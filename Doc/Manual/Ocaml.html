@@ -6,7 +6,7 @@
 </head>
   <body bgcolor="#ffffff">
           <a name="n1"></a>         
-<a name="n1"></a><H1>18 SWIG and Ocaml</H1>
+<a name="n1"></a><H1>19 SWIG and Ocaml</H1>
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Preliminaries</a>
@@ -73,7 +73,7 @@ If you're not familiar with the Objective Caml language, you can visit
 <a href="http://www.ocaml.org/">The Ocaml Website</a>.
 </p>
 
-<a name="n2"></a><H2>18.1 Preliminaries</H2>
+<a name="n2"></a><H2>19.1 Preliminaries</H2>
 
 
                   SWIG 1.3 works with Ocaml 3.04 and above.  Given the choice,
@@ -90,7 +90,7 @@ usual -lxxx  against libxxx.so, as well as with Gerd Stolpmann's
 file Examples/Makefile illustrate how to compile and link SWIG modules that
 will be loaded dynamically.  This has only been tested on Linux so far.
 
-<a name="n3"></a><H3>18.1.1 Running SWIG</H3>
+<a name="n3"></a><H3>19.1.1 Running SWIG</H3>
 
 
                   The basics of getting a SWIG Ocaml module up and running
@@ -109,7 +109,7 @@ you will compile the file  <tt>example_wrap.c</tt> with <tt>ocamlc</tt> or
 the resulting .ml and .mli files as well, and do the final link with -custom
 (not needed for native link). </p>
                
-<a name="n4"></a><H3>18.1.2 Compiling the code</H3>
+<a name="n4"></a><H3>19.1.2 Compiling the code</H3>
 
 
 The O'Caml SWIG module now requires you to compile a module (<tt>Swig</tt>) 
@@ -141,7 +141,7 @@ the user more freedom with respect to custom typing.
   <pre>% cp example_wrap.cxx example_wrap.cxx.c<br>% ocamlc -c ... -ccopt -xc++ example_wrap.cxx.c<br>% ...<br></pre>
             </blockquote>
 
-<a name="n5"></a><H3>18.1.3 The camlp4 module</H3>
+<a name="n5"></a><H3>19.1.3 The camlp4 module</H3>
 
 
 The camlp4 module (swigp4.ml -&gt; swigp4.cmo) contains a simple rewriter which
@@ -211,7 +211,7 @@ let b = C_string (getenv "PATH")
 </td></tr>
 </table>
 
-<a name="n6"></a><H3>18.1.4 Using your module</H3>
+<a name="n6"></a><H3>19.1.4 Using your module</H3>
 
 
                    You can test-drive your module by building a
@@ -221,7 +221,7 @@ toplevel ocaml interpreter.  Consult the ocaml manual for details.
       option to build your functions into the primitive list. This
       option is not needed when you build native code.
 
-<a name="n7"></a><H3>18.1.5 Compilation problems and compiling with C++</H3>
+<a name="n7"></a><H3>19.1.5 Compilation problems and compiling with C++</H3>
 
 
                    As mentioned above, .cxx files need special
@@ -230,7 +230,7 @@ that uses <tt>class</tt> as a non-keyword, and C code that is too
 liberal with pointer types may not compile under the C++ compiler.
 Most code meant to be compiled as C++ will not have problems.
 
-<a name="n8"></a><H2>18.2 The low-level Ocaml/C interface</H2>
+<a name="n8"></a><H2>19.2 The low-level Ocaml/C interface</H2>
 
 
          In order to provide access to overloaded functions, and
@@ -317,7 +317,7 @@ is that  you  must append them to the return list with swig_result = caml_list_a
     value items pass through directly, but you must make your own type
     signature for a function that uses value in this way.
 
-<a name="n9"></a><H3>18.2.1 The generated module</H3>
+<a name="n9"></a><H3>19.2.1 The generated module</H3>
 
 
 The SWIG <tt>%module</tt> directive specifies the name of the Ocaml
@@ -347,7 +347,7 @@ which should run when the module is loaded may be inserted here.
 it describes the output SWIG will generate for class definitions.
 </table>
                
-<a name="n10"></a><H3>18.2.2 Enums</H3>
+<a name="n10"></a><H3>19.2.2 Enums</H3>
 
 
 SWIG will wrap enumerations as polymorphic variants in the output
@@ -403,10 +403,10 @@ val x : Enum_test.c_obj = C_enum `a
        
 <p> </p>
 
-<a name="n11"></a><H3>18.2.3 Arrays</H3>
+<a name="n11"></a><H3>19.2.3 Arrays</H3>
 
 
-<a name="n12"></a><H4>18.2.3.1 Simple types of bounded arrays</H4>
+<a name="n12"></a><H4>19.2.3.1 Simple types of bounded arrays</H4>
 
 
 <p>
@@ -426,7 +426,7 @@ arrays of simple types with known bounds in your code, but this only works
 for arrays whose bounds are completely specified.
 </p>
 
-<a name="n13"></a><H4>18.2.3.2 Complex and unbounded arrays</H4>
+<a name="n13"></a><H4>19.2.3.2 Complex and unbounded arrays</H4>
 
 
 <p>
@@ -439,7 +439,7 @@ SWIG can't predict which of these methods will be used in the array,
 so you have to specify it for yourself in the form of a typemap.
 </p>
 
-<a name="n14"></a><H4>18.2.3.3 Using an object</H4>
+<a name="n14"></a><H4>19.2.3.3 Using an object</H4>
 
 
 <p>
@@ -453,7 +453,7 @@ Consider writing an object when the ending condition of your array is complex,
 such as using a required centinel, etc.
 </p>
 
-<a name="n15"></a><H4>18.2.3.4 Example typemap for a function taking float * and int</H4>
+<a name="n15"></a><H4>19.2.3.4 Example typemap for a function taking float * and int</H4>
 
 
 <p>
@@ -503,7 +503,7 @@ void printfloats( float *tab, int len );
 </pre></td></tr></table>
 
 
-<a name="n16"></a><H3>18.2.4 C++ Classes</H3>
+<a name="n16"></a><H3>19.2.4 C++ Classes</H3>
 
 
 C++ classes, along with structs and unions are represented by C_obj
@@ -541,7 +541,7 @@ the underlying pointer, so using create_[x]_from_ptr alters the
 returned value for the same object.
 <p>
 
-<a name="n17"></a><H4>18.2.4.1 STL vector and string Example</H4>
+<a name="n17"></a><H4>19.2.4.1 STL vector and string Example</H4>
 
 
 Standard typemaps are now provided for STL vector and string.  More are in
@@ -613,7 +613,7 @@ baz
 # 
 </pre></blockquote>
 
-<a name="n18"></a><H4>18.2.4.2 C++ Class Example</H4>
+<a name="n18"></a><H4>19.2.4.2 C++ Class Example</H4>
 
 
 Here's a simple example using Trolltech's Qt Library:
@@ -640,7 +640,7 @@ public:
 };
 </pre></td></tr></table><p>
 
-<a name="n19"></a><H4>18.2.4.3 Compiling the example</H4>
+<a name="n19"></a><H4>19.2.4.3 Compiling the example</H4>
 
 
 <blockquote><pre>
@@ -658,7 +658,7 @@ bash-2.05a$ ocamlmktop -custom swig.cmo -I `camlp4 -where` \
   -L$QTPATH/lib -cclib -lqt
 </pre></blockquote>
 
-<a name="n20"></a><H4>18.2.4.4 Sample Session</H4>
+<a name="n20"></a><H4>19.2.4.4 Sample Session</H4>
 
 
 <blockquote><pre>
@@ -683,10 +683,10 @@ val hello : Qt.c_obj = C_obj <fun>
 Assuming you have a working installation of QT, you will see a window
 containing the string "hi" in a button.  
 
-<a name="n21"></a><H3>18.2.5 Director Classes</H3>
+<a name="n21"></a><H3>19.2.5 Director Classes</H3>
 
 
-<a name="n22"></a><H4>18.2.5.1 Director Introduction</H4>
+<a name="n22"></a><H4>19.2.5.1 Director Introduction</H4>
 
 
 Director classes are classes which allow Ocaml code to override the public
@@ -708,7 +708,7 @@ class foo {
 };
 </p></blockquote></pre>
 
-<a name="n23"></a><H4>18.2.5.2 Overriding Methods in Ocaml</H4>
+<a name="n23"></a><H4>19.2.5.2 Overriding Methods in Ocaml</H4>
 
 
 <p>
@@ -732,7 +732,7 @@ In this example, I'll examine the objective caml code involved in providing
 an overloaded class.  This example is contained in Examples/ocaml/shapes.
 <p>
 
-<a name="n24"></a><H4>18.2.5.3 Director Usage Example</H4>
+<a name="n24"></a><H4>19.2.5.3 Director Usage Example</H4>
 
 
 <table border="1" bgcolor="#dddddd"><tr><th><center>example_prog.ml</center>
@@ -786,7 +786,7 @@ a tricky shape implementation, such as a boolean combination, to be expressed
 in a more effortless style in ocaml, while leaving the "engine" part of the
 program in C++.
 <p>
-<a name="n25"></a><H4>18.2.5.4 Creating director objects</H4>
+<a name="n25"></a><H4>19.2.5.4 Creating director objects</H4>
 
 
 The definition of the actual object triangle can be described this way:
@@ -820,7 +820,7 @@ new_derived_object, and throws NotObject).  This prevents a deleted C++
 object from causing a core dump, as long as the object is destroyed
 properly.
 
-<a name="n26"></a><H4>18.2.5.5 Typemaps for directors, <tt>directorin, directorout, directorargout</tt></H4>
+<a name="n26"></a><H4>19.2.5.5 Typemaps for directors, <tt>directorin, directorout, directorargout</tt></H4>
 
 
 <p>
@@ -830,7 +830,7 @@ direction is reversed.  They provide for you to provide argout values, as
 well as a function return value in the same way you provide function arguments,
 and to receive arguments the same way you normally receive function returns.
 </P>
-<a name="n27"></a><H4>18.2.5.6 <tt>directorin</tt> typemap</H4>
+<a name="n27"></a><H4>19.2.5.6 <tt>directorin</tt> typemap</H4>
 
 
 <p>
@@ -841,7 +841,7 @@ code receives when you are called.  In general, a simple <tt>directorin</tt> typ
 can use the same body as a simple <tt>out</tt> typemap.
 </p>
 
-<a name="n28"></a><H4>18.2.5.7 <tt>directorout</tt> typemap</H4>
+<a name="n28"></a><H4>19.2.5.7 <tt>directorout</tt> typemap</H4>
 
 
 <p>
@@ -852,7 +852,7 @@ for the same type, except when there are special requirements for object
 ownership, etc.
 </p>
 
-<a name="n29"></a><H4>18.2.5.8 <tt>directorargout</tt> typemap</H4>
+<a name="n29"></a><H4>19.2.5.8 <tt>directorargout</tt> typemap</H4>
 
 
 <p>
@@ -869,7 +869,7 @@ In the event that you don't specify all of the necessary values, integral
 values will read zero, and struct or object returns have undefined results.
 </p>
 
-<a name="n30"></a><H3>18.2.6 Exceptions</H3>
+<a name="n30"></a><H3>19.2.6 Exceptions</H3>
 
 
 Catching exceptions is now supported using SWIG's %exception feature.  A simple

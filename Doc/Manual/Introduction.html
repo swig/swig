@@ -17,11 +17,11 @@
 <li><a href="#n7">Building a Perl5 module</a>
 <li><a href="#n8">Building a Python module</a>
 <li><a href="#n9">Shortcuts</a>
-<li><a href="#n10">Building libraries and modules</a>
 </ul>
-<li><a href="#n11">Supported C/C++ language features</a>
-<li><a href="#n12">Non-intrusive interface building</a>
-<li><a href="#n13">Hands off code generation</a>
+<li><a href="#n10">Supported C/C++ language features</a>
+<li><a href="#n11">Non-intrusive interface building</a>
+<li><a href="#n12">Hands off code generation</a>
+<li><a href="#n13">SWIG and freedom</a>
 </ul>
 <!-- INDEX -->
 
@@ -66,6 +66,7 @@ small; especially the research and development work that is commonly found
 in scientific and engineering projects.
 
 <a name="n3"></a><H2>1.2 Why use SWIG?</H2>
+
 
 As stated in the previous section, the primary purpose of SWIG is to simplify
 the task of integrating C/C++ with other programming languages.  However, why would
@@ -286,7 +287,8 @@ print $example::My_variable + 4.5, "\n";
 7.5
 </pre></blockquote>
 
-<a name="n11"></a><H2>1.4 Supported C/C++ language features</H2>
+<a name="n10"></a><H2>1.4 Supported C/C++ language features</H2>
+
 
 A primary goal of the SWIG project is to make the language binding
 process extremely easy.  Although a few simple examples have been shown,
@@ -321,7 +323,8 @@ wrapping simple C++ code.  In fact, SWIG is able handle C++ code that
 stresses the very limits of many C++ compilers.
 
 
-<a name="n12"></a><H2>1.5 Non-intrusive interface building</H2>
+<a name="n11"></a><H2>1.5 Non-intrusive interface building</H2>
+
 
 When used as intended, SWIG requires minimal (if any) modification to
 existing C code. This makes SWIG extremely easy to use with existing
@@ -330,7 +333,7 @@ the C code independent of the high level interface, you can change the
 interface and reuse the code in other applications.   It is also
 possible to support different types of interfaces depending on the application.
 
-<a name="n13"></a><H2>1.6 Hands off code generation</H2>
+<a name="n12"></a><H2>1.6 Hands off code generation</H2>
 
 
 SWIG is designed to produce working code that needs no
@@ -343,7 +346,8 @@ file. While this approach may limit flexibility for hard-core hackers,
 it allows others to forget about the low-level implementation
 details.
 
-<H2>SWIG and freedom</h2>
+<a name="n13"></a><H2>1.7 SWIG and freedom</H2>
+
 
 No, this isn't a special section on the sorry state of world politics.
 However, it may be useful to know that SWIG was written with a

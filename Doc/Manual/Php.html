@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>20 SWIG and PHP4</H1>
+<a name="n1"></a><H1>21 SWIG and PHP4</H1>
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Preliminaries</a>
@@ -43,7 +43,7 @@ if you thought you were familiar with what it said.  The major change is
 that shadow classes are implemented inside the php module in C++ instead 
 of in the generated .php file in php.
 
-<a name="n2"></a><H2>20.1 Preliminaries</H2>
+<a name="n2"></a><H2>21.1 Preliminaries</H2>
 
 
 In order to use this module, you will need to have a copy of the PHP 4.0 (or
@@ -53,7 +53,7 @@ need either the php binary or the Apache php module. If you want to build your
 extension into php directly (without having the overhead of loading it into
 each script), you will need the complete PHP source tree available.
 
-<a name="n3"></a><H2>20.2 Building PHP4 Extensions</H2>
+<a name="n3"></a><H2>21.2 Building PHP4 Extensions</H2>
 
 
 To build a PHP4 extension, run swig using the <tt>-php4</tt> option as follows :
@@ -86,7 +86,7 @@ the extension into the php executable/library so it will be available in every
 script.  The first choice is the default, however it can be changed by passing
 the '-phpfull' command line switch to select the second build method.  
 
-<a name="n4"></a><H3>20.2.1 Building a loadable extension</H3>
+<a name="n4"></a><H3>21.2.1 Building a loadable extension</H3>
 
 
 To build a dynamic module for PHP, you have two options.  You can use the
@@ -146,10 +146,10 @@ attempts to do the <tt>dl()</tt> call for you:
 A more complicated method which builds the module directly into the <tt>php</tt>
 executable is described <a href="n12">below</a>.
 
-<a name="n5"></a><H3>20.2.2 Basic PHP4 interface</H3>
+<a name="n5"></a><H3>21.2.2 Basic PHP4 interface</H3>
 
 
-<a name="n6"></a><H3>20.2.3 Functions</H3>
+<a name="n6"></a><H3>21.2.3 Functions</H3>
 
 
 C functions are converted into PHP functions. Default/optional arguments are
@@ -170,7 +170,7 @@ $c = bar(3.5);		# Use default argument for 2nd parameter
 
 </pre></blockquote>
 
-<a name="n7"></a><H3>20.2.4 Global Variables</H3>
+<a name="n7"></a><H3>21.2.4 Global Variables</H3>
 
 
 Global variables are difficult for PHP to handle, unlike Perl, their is no
@@ -198,7 +198,7 @@ example_func();		# Syncs C variable to PHP Variable, now both 4
 SWIG supports global variables of all C datatypes including pointers and complex
 objects.<p>
 
-<a name="n8"></a><H3>20.2.5 Pointers </H3>
+<a name="n8"></a><H3>21.2.5 Pointers </H3>
 
 
 Pointers to C/C++ objects <b>no longer</b> represented as character 
@@ -208,7 +208,7 @@ as PHP resources, rather like MySQL connection handles.
 You can also explicitly create a NULL pointer as a string "NULL" 
 or by passing a null or empty value.
 
-<a name="n9"></a><H3>20.2.6 Structures and C++ classes</H3>
+<a name="n9"></a><H3>21.2.6 Structures and C++ classes</H3>
 
 
 For structures and classes, SWIG produces accessor fuction for each member function and data. For example :<p>
@@ -241,7 +241,7 @@ To use the class, simply use these functions. However, SWIG also has a mechanism
 for creating shadow classes that hides these functions and uses an object 
 oriented interface instead - see <a href="n7">below</a>
 
-<a name="n10"></a><H3>20.2.7 Constants</H3>
+<a name="n10"></a><H3>21.2.7 Constants</H3>
 
 
 These work in much the same way as in C/C++, constants can be defined by using
@@ -337,7 +337,7 @@ both point to the same value, without the case test taking place.
 </pre>
 </blockquote>
 
-<a name="n11"></a><H3>20.2.8 Shadow classes</H3>
+<a name="n11"></a><H3>21.2.8 Shadow classes</H3>
 
 
 To avoid having to call the various accessor function to get at structures or
@@ -360,7 +360,7 @@ functions like before.
 
 .... ( more examples on the way ) ....
 
-<a name="n12"></a><H3>20.2.9 Constructors and Destructers</H3>
+<a name="n12"></a><H3>21.2.9 Constructors and Destructers</H3>
 
 
 Constructors are used in PHP as in C++, they are called when the object is
@@ -384,7 +384,7 @@ object.  'RegisterShutdownFunction' is no longer needed for this.
 I am not sure if PHP resources are all freed at the end of a script, or 
 when they each go out of scope.
 
-<a name="n13"></a><H3>20.2.10 Static Member Variables</H3>
+<a name="n13"></a><H3>21.2.10 Static Member Variables</H3>
 
 
 Class variables are not supported in PHP, however class functions are, using
@@ -418,7 +418,7 @@ echo "There has now been " . Ko::threats() . " threats\n";
 
 </pre></blockquote>
 
-<a name="n14"></a><H3>20.2.11 PHP4 Pragmas</H3>
+<a name="n14"></a><H3>21.2.11 PHP4 Pragmas</H3>
 
 
 There are a few pragmas understood by the PHP4 module.  The first, 
@@ -447,7 +447,7 @@ function is called.
 	%include "example.h"
 </pre></blockquote>
 
-<a name="n15"></a><H3>20.2.12 Building extensions into php</H3>
+<a name="n15"></a><H3>21.2.12 Building extensions into php</H3>
 
 
 This method, selected with the <tt>-phpfull</tt> command line switch, involves
@@ -489,7 +489,7 @@ Once configure has completed, you can run make to build php. If this all
 compiles correctly, you should end up with a php executable/library
 which contains your new module. You can test it with a php script which
 does not have the 'dl' command as used above.
-<a name="n16"></a><H3>20.2.13 To be furthered...</H3>
+<a name="n16"></a><H3>21.2.13 To be furthered...</H3>
 
 
 </body>

@@ -39,9 +39,7 @@ Mapping Operations (for hash table behavior)
 Getattr(hash,key)              Get an attribute
 Setattr(hash,key,value)        Set an attribute
 Delattr(hash,key)              Delete an attribute
-Firstkey(hash)                 Get first key
-Nextkey(hash)                  Get next key
-First(hash)                    Get first object
+First(hash)                    Get first object (iterator)
 Next(hash)                     Get next object
 GetInt(hash,key)               Get attribute as an 'int'
 SetInt(hash,key,ivalue)        Set attribute as an 'int'

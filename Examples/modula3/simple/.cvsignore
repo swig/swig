@@ -1,0 +1,8 @@
+*_wrap.c
+*_wrap.xml
+*.i3
+*.m3
+m3makefile
+src
+Release
+Debug

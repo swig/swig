@@ -1,0 +1,17 @@
+runme
+*_wrap.c
+*_wrap.cxx
+*_wrap.xml
+*.iltmp
+*.cs
+*.dll
+*.dsw
+*.exp
+*.lib
+*.ncb
+*.opt
+*.plg
+Release
+Debug
+src
+LINUXLIBC6

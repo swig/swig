@@ -1,0 +1,17 @@
+*.class
+*.java
+*_wrap.*
+*.i3
+*.m3
+m3makefile
+src
+LINUXLIBC6
+*.dll
+*.dsw
+*.exp
+*.lib
+*.ncb
+*.opt
+*.plg
+Release
+Debug

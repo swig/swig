@@ -47,6 +47,7 @@ skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-pike       = test -n "@SKIP_PIKE@"
 skip-chicken	= test -n "@SKIP_CHICKEN@"
 skip-csharp	= test -n "@SKIP_CSHARP@"
+skip-modula3	= test -n "@SKIP_MODULA3@"
 
 #####################################################################
 # CHECK
@@ -78,6 +79,7 @@ check-aliveness:
 	@$(skip-pike)     || ./$(TARGET) -pike     -help
 	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
 	@$(skip-csharp)   || ./$(TARGET) -csharp   -help
+	@$(skip-modula3)  || ./$(TARGET) -modula3  -help
 
 check-examples:					\
 	check-tcl-examples			\
@@ -91,7 +93,8 @@ check-examples:					\
 	check-php4-examples			\
 	check-pike-examples			\
 	check-chicken-examples                  \
-	check-csharp-examples
+	check-csharp-examples                   \
+	check-modula3-examples
 
 check-%-examples:
 	@passed=true;						\
@@ -124,6 +127,7 @@ check-test-suite:				\
 	check-php4-test-suite			\
 	check-pike-test-suite			\
 	check-csharp-test-suite			\
+	check-modula3-test-suite		\
 #	check-chicken-test-suite
 
 check-%-test-suite:
@@ -155,7 +159,8 @@ check-gifplot:					\
 	check-php4-gifplot			\
 	check-pike-gifplot			\
 	check-chicken-gifplot                   \
-#	check-csharp-gifplot
+#	check-csharp-gifplot                    \
+#	check-modula3-gifplot
 
 check-%-gifplot: gifplot-library
 	@passed=true;						\
@@ -194,6 +199,7 @@ all-test-suite:					\
 	all-php4-test-suite			\
 	all-pike-test-suite			\
 	all-csharp-test-suite			\
+	all-modula3-test-suite			\
 #	all-chicken-test-suite
 
 all-%-test-suite:
@@ -216,6 +222,7 @@ broken-test-suite:				\
 	broken-php4-test-suite			\
 	broken-pike-test-suite			\
 	broken-csharp-test-suite		\
+	broken-modula3-test-suite		\
 #	broken-chicken-test-suite
 
 broken-%-test-suite:
@@ -327,7 +334,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/$(TARGET)
 
 lib-languages = tcl perl5 python guile java mzscheme ruby php4 ocaml \
-	pike chicken csharp
+	pike chicken csharp modula3
 
 install-lib:
 	@echo "Installing the SWIG library"
