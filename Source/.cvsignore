@@ -2,3 +2,5 @@ Makefile
 Makefile.in
 .deps
 swig
+*.ilk
+*.pdb
