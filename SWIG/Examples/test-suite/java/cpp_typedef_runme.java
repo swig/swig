@@ -19,12 +19,12 @@ public class cpp_typedef_runme {
 
     Test test = new Test();
     UnnamedStruct unnamed = new UnnamedStruct();
-    NamedStruct named = new NamedStruct();
+    TypedefNamedStruct named = new TypedefNamedStruct();
 
     UnnamedStruct unnamed2 = test.test1(unnamed);
-    NamedStruct named2 = test.test2(named);
-    NamedStruct named3 = test.test3(named);
-    NamedStruct named4 = test.test4(named);
+    TypedefNamedStruct named2 = test.test2(named);
+    TypedefNamedStruct named3 = test.test3(named);
+    TypedefNamedStruct named4 = test.test4(named);
   }
 }
 
