@@ -24,22 +24,25 @@
 //
 //
 #ifdef SWIG_UNNAMED_USE_MEMCPY
-// "dangerous" assigment, but for enums it should work.
-// it is dangerous because you could get a bad value,
-// but it is safer than "*(T*)(void*)&x = t;", which
-// could produce a seg. fault.
-#define swig_assign_unnamed(eval, val) memcpy(&(eval),&(val), sizeof(eval))
+// safe assigment, for enums it should work.
+#define swig_assign_unnamed(eval, val)       \
+ if(sizeof(eval) == sizeof(val))            \
+   memcpy(&(eval), &(val), sizeof(eval));  \
+ else                                      \
+   printf("unnamed member assigment not supported\n")
 #else
 // much much safer choice :)
-#define swig_assign_unnamed(eval, val) printf("unnamed member assigment not supported\n")
+#define swig_assign_unnamed(eval, val) \
+   printf("unnamed member assigment not supported\n")
 #endif
-#else
+#else /*** we have a 'good' compiler ***/
+// This is much safer, but some old compiler could not like it
 template <class T, class V>
 inline
 void swig_assign_unnamed(T& eval, const V& val)
 {
   // it 'should' be:  eval = static_cast<T>(val);
-  // but just in case we found a very very old compiler
+  // but just in case we found an old compiler
   eval = (T)val;
 }
 #endif
