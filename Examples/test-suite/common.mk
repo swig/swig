@@ -210,6 +210,7 @@ CPP_TEST_CASES += \
 	using_private \
 	using_protected \
 	valuewrapper_base \
+	varargs \
 	virtual_destructor \
 	voidtest
 
