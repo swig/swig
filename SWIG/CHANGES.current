@@ -1,5 +1,13 @@
 Version 1.3.17 (In progress)
 ============================
+11/19/2002: beazley
+            Fixed [ 613922 ] preprocessor errors with HAVE_LONG_LONG.
+            
+11/19/2002: beazley
+            Fixed [ 615480 ] mzscheme SWIG_MustGetPtr_.
+
+11/19/2002: beazley
+            Fixed [ 635119 ] SWIG_croak causes compiler warning.
 
 11/16/2002: cheetah (William Fulton)
             [Java] Added typemaps for pointers to class members.
