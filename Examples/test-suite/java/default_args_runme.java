@@ -137,5 +137,11 @@ public class default_args_runme {
     if (default_args.constructorcall(new Klass()).getVal() != -1)
       throw new RuntimeException("constructorcall test 3 failed");
 
+    // const methods 
+    ConstMethods cm = new ConstMethods();
+    if (cm.coo() != 20)
+      throw new RuntimeException("coo test 1 failed");
+    if (cm.coo(1.0) != 20)
+      throw new RuntimeException("coo test 2 failed");
   }
 }

@@ -129,6 +129,12 @@ public class runme
       if (default_args.constructorcall(new Klass()).val != -1)
         throw new Exception("constructorcall test 3 failed");
 
+      // const methods 
+      ConstMethods cm = new ConstMethods();
+      if (cm.coo() != 20)
+        throw new Exception("coo test 1 failed");
+      if (cm.coo(1.0) != 20)
+        throw new Exception("coo test 2 failed");
     }
 }
 
