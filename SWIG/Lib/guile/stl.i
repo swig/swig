@@ -3,7 +3,7 @@
 // Luigi Ballabio
 // Apr 8, 2002
 //
-// MzScheme implementation
+// Guile implementation
 
 // ------------------------------------------------------------------------
 // std::string is typemapped by value
@@ -22,16 +22,22 @@ namespace std {
 
     class string;
 
-    %typemap(in) string {
-        if (SCHEME_STRINGP($input))
-            $1 = std::string(SCHEME_STR_VAL($input));
-        else
+    %typemap(in) string (char* tempptr) {
+        if (gh_string_p($input)) {
+            tempptr = gh_scm2newstr($input, NULL);
+            $1 = std::string(tempptr);
+            if (tempptr) scm_must_free(tempptr);
+        } else {
             SWIG_exception(SWIG_TypeError, "string expected");
+        }
     }
 
-    %typemap(in) const string & (std::string temp) {
-        if (SCHEME_STRINGP($input)) {
-            temp = std::string(SCHEME_STR_VAL($input));
+    %typemap(in) const string & (std::string temp,
+                                 char* tempptr) {
+        if (gh_string_p($input)) {
+            tempptr = gh_scm2newstr($input, NULL);
+            temp = std::string(tempptr);
+            if (tempptr) scm_must_free(tempptr);
             $1 = &temp;
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");
@@ -39,11 +45,11 @@ namespace std {
     }
 
     %typemap(out) string {
-        $result = scheme_make_string($1.c_str());
+        $result = gh_str02scm($1.c_str());
     }
 
     %typemap(out) const string & {
-        $result = scheme_make_string($1->c_str());
+        $result = gh_str02scm($1->c_str());
     }
 
 }
@@ -82,20 +88,20 @@ namespace std {
 // std::vector
 // 
 // The aim of all that follows would be to integrate std::vector with 
-// MzScheme as much as possible, namely, to allow the user to pass and 
-// be returned MzScheme vectors or lists.
+// Guile as much as possible, namely, to allow the user to pass and 
+// be returned Guile vectors or lists.
 // const declarations are used to guess the intent of the function being
 // exported; therefore, the following rationale is applied:
 // 
 //   -- f(std::vector<T>), f(const std::vector<T>&), f(const std::vector<T>*):
-//      the parameter being read-only, either a MzScheme sequence or a
+//      the parameter being read-only, either a Guile sequence or a
 //      previously wrapped std::vector<T> can be passed.
 //   -- f(std::vector<T>&), f(std::vector<T>*):
 //      the parameter must be modified; therefore, only a wrapped std::vector
 //      can be passed.
 //   -- std::vector<T> f():
-//      the vector is returned by copy; therefore, a MzScheme vector of T:s 
-//      is returned which is most easily used in other MzScheme functions
+//      the vector is returned by copy; therefore, a Guile vector of T:s 
+//      is returned which is most easily used in other Guile functions
 //   -- std::vector<T>& f(), std::vector<T>* f(), const std::vector<T>& f(),
 //      const std::vector<T>* f():
 //      the vector is returned by reference; therefore, a wrapped std::vector
@@ -221,6 +227,7 @@ namespace std {
     // specializations for built-ins
 
     template<> class vector<int> {
+        /* 
         %typemap(in) vector<int> {
             if (SCHEME_VECTORP($input)) {
                 unsigned int size = SCHEME_VEC_SIZE($input);
@@ -296,6 +303,7 @@ namespace std {
             for (unsigned int i=0; i<$1.size(); i++)
                 els[i] = scheme_make_integer_value((($1_type &)$1)[i]);
         }
+        */
       public:
         vector(unsigned int size);
         %rename(length) size;
@@ -335,6 +343,7 @@ namespace std {
 
 
     template<> class vector<double> {
+        /*
         %typemap(in) vector<double> {
             if (SCHEME_VECTORP($input)) {
                 unsigned int size = SCHEME_VEC_SIZE($input);
@@ -426,6 +435,7 @@ namespace std {
             for (unsigned int i=0; i<$1.size(); i++)
                 els[i] = scheme_make_double((($1_type &)$1)[i]);
         }
+        */
       public:
         vector(unsigned int size);
         %rename(length) size;

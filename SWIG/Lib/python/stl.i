@@ -24,12 +24,10 @@ namespace std {
     class string;
 
     %typemap(in) string {
-        if (PyString_Check($input)) {
+        if (PyString_Check($input))
             $1 = std::string(PyString_AsString($input));
-        } else {
-            PyErr_SetString(PyExc_TypeError,"string expected");
-            return NULL;
-        }
+        else
+            SWIG_exception(SWIG_TypeError, "string expected");
     }
 
     %typemap(in) const string & (std::string temp) {
@@ -37,8 +35,7 @@ namespace std {
             temp = std::string(PyString_AsString($input));
             $1 = &temp;
         } else {
-            PyErr_SetString(PyExc_TypeError,"string expected");
-            return NULL;
+            SWIG_exception(SWIG_TypeError, "string expected");
         }
     }
 
