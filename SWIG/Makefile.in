@@ -88,6 +88,8 @@ runtime:
 # CHECK
 #####################################################################
 
+CHECK_CLEAN = check
+
 skip-tcl	= [ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
 skip-perl	= [ -z "@PERL@" -o -z "@PERL5EXT@" ]
 skip-python	= [ -z "@PYINCLUDE@" -o -z "@PYLIB@" ]
@@ -97,7 +99,7 @@ skip-mzscheme	= [ -z "@MZC@" ]
 skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
 
 chk-swiglib = @ROOT_DIR@/Lib
-chk = $(MAKE) -k -s SWIG_LIB=$(chk-swiglib) SWIG=@ROOT_DIR@/$(TARGET) check
+chk = $(MAKE) -k -s SWIG_LIB=$(chk-swiglib) SWIG=@ROOT_DIR@/$(TARGET) $(CHECK_CLEAN)
 
 check-aliveness:
 	test -x ./$(TARGET)
@@ -125,11 +127,11 @@ check-examples: check-tcl-examples check-perl5-examples check-python-examples \
 
 check-tcl-examples:
 	@if $(skip-tcl); then			\
-	  echo Skipping Tcl tests;		\
+	  echo Skipping Tcl $(CHECK_CLEAN);		\
 	else					\
 	  passed=true;				\
 	  for a in $(TCL_EXAMPLES); do		\
-	    echo Checking Examples/tcl/$$a;	\
+	    echo $(CHECK_CLEAN)ing Examples/tcl/$$a;	\
 	    (cd Examples/tcl/$$a && $(chk))	\
 	    || passed=false;			\
 	  done;					\
@@ -138,11 +140,11 @@ check-tcl-examples:
 
 check-perl5-examples:
 	@if $(skip-perl); then			\
-	  echo Skipping Perl tests;		\
+	  echo Skipping Perl $(CHECK_CLEAN);		\
 	else					\
 	  passed=true;				\
 	  for a in $(PERL5_EXAMPLES); do	\
-	    echo Checking Examples/perl5/$$a;	\
+	    echo $(CHECK_CLEAN)ing Examples/perl5/$$a;	\
 	    (cd Examples/perl5/$$a && $(chk))	\
 	    || passed=false;			\
 	  done;					\
@@ -151,11 +153,11 @@ check-perl5-examples:
 
 check-python-examples:
 	@if $(skip-python); then			\
-	  echo Skipping Python tests;			\
+	  echo Skipping Python $(CHECK_CLEAN);			\
 	else						\
 	  passed=true;					\
 	  for a in $(PYTHON_EXAMPLES); do		\
-	    echo Checking Examples/python/$$a;		\
+	    echo $(CHECK_CLEAN)ing Examples/python/$$a;		\
 	    (cd Examples/python/$$a && $(chk))		\
 	    || passed=false;				\
 	  done;						\
@@ -164,11 +166,11 @@ check-python-examples:
 
 check-java-examples:
 	@if $(skip-java); then			\
-	  echo Skipping Java tests;		\
+	  echo Skipping Java $(CHECK_CLEAN);		\
 	else					\
 	  passed=true;				\
 	  for a in $(JAVA_EXAMPLES); do		\
-	    echo Checking Examples/java/$$a;	\
+	    echo $(CHECK_CLEAN)ing Examples/java/$$a;	\
 	    (cd Examples/java/$$a && $(chk))	\
 	    || passed=false;			\
 	  done;					\
@@ -177,11 +179,11 @@ check-java-examples:
 
 check-guile-examples:
 	@if $(skip-guile); then			\
-	  echo Skipping Guile tests;		\
+	  echo Skipping Guile $(CHECK_CLEAN);		\
 	else					\
 	  passed=true;				\
 	  for a in $(GUILE_EXAMPLES); do	\
-	    echo Checking Examples/guile/$$a;	\
+	    echo $(CHECK_CLEAN)ing Examples/guile/$$a;	\
 	    (cd Examples/guile/$$a && $(chk))	\
 	    || passed=false;			\
 	  done;					\
@@ -190,11 +192,11 @@ check-guile-examples:
 
 check-mzscheme-examples:
 	@if $(skip-mzscheme); then			\
-	  echo Skipping MzScheme tests;			\
+	  echo Skipping MzScheme $(CHECK_CLEAN);			\
 	else						\
 	  passed=true;					\
 	  for a in $(MZSCHEME_EXAMPLES); do		\
-	    echo Checking Examples/mzscheme/$$a;	\
+	    echo $(CHECK_CLEAN)ing Examples/mzscheme/$$a;	\
 	    (cd Examples/mzscheme/$$a && $(chk))	\
 	    || passed=false;				\
 	  done;						\
@@ -203,14 +205,88 @@ check-mzscheme-examples:
 
 check-ruby-examples:
 	@if $(skip-ruby); then			\
-	  echo Skipping Ruby tests;		\
+	  echo Skipping Ruby $(CHECK_CLEAN);		\
 	else					\
 	  passed=true;				\
 	  for a in $(RUBY_EXAMPLES); do		\
-	    echo Checking Examples/ruby/$$a;	\
+	    echo $(CHECK_CLEAN)ing Examples/ruby/$$a;	\
 	    (cd Examples/ruby/$$a && $(chk))	\
 	    || passed=false;			\
 	  done;					\
+	  test $$passed = true;			\
+	fi
+
+check-test-suite: check-tcl-test-suite check-perl5-test-suite check-python-test-suite \
+		check-java-test-suite check-guile-test-suite check-mzscheme-test-suite \
+		check-ruby-test-suite
+
+check-tcl-test-suite:
+	@if $(skip-tcl); then			\
+	  echo Skipping Tcl test-suite $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  (cd Examples/test-suite/tcl && $(chk))	\
+	  || passed=false;			\
+	  test $$passed = true;			\
+	fi
+
+check-perl5-test-suite:
+	@if $(skip-perl); then			\
+	  echo Skipping Perl5 test-suite $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  (cd Examples/test-suite/perl5 && $(chk))	\
+	  || passed=false;			\
+	  test $$passed = true;			\
+	fi
+
+check-python-test-suite:
+	@if $(skip-python); then			\
+	  echo Skipping Python test-suite $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  (cd Examples/test-suite/python && $(chk))	\
+	  || passed=false;			\
+	  test $$passed = true;			\
+	fi
+
+check-java-test-suite:
+	@if $(skip-java); then			\
+	  echo Skipping Java test-suite $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  (cd Examples/test-suite/java && $(chk))	\
+	  || passed=false;			\
+	  test $$passed = true;			\
+	fi
+
+check-guile-test-suite:
+	@if $(skip-guile); then			\
+	  echo Skipping Guile test-suite $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  (cd Examples/test-suite/guile && $(chk))	\
+	  || passed=false;			\
+	  test $$passed = true;			\
+	fi
+
+check-mzscheme-test-suite:
+	@if $(skip-mzscheme); then			\
+	  echo Skipping Mzscheme test-suite $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  (cd Examples/test-suite/mzscheme && $(chk))	\
+	  || passed=false;			\
+	  test $$passed = true;			\
+	fi
+
+check-ruby-test-suite:
+	@if $(skip-ruby); then			\
+	  echo Skipping Ruby test-suite $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  (cd Examples/test-suite/ruby && $(chk))	\
+	  || passed=false;			\
 	  test $$passed = true;			\
 	fi
 
@@ -238,21 +314,25 @@ check-c++-examples:
 	$(skip-python) || (cd Examples/C++/Python && $(chk))
 	$(skip-java) || (cd Examples/C++/Java && $(chk))
 
-check: check-aliveness check-examples check-gifplot-example check-c++-examples
+check: check-aliveness check-examples check-test-suite check-gifplot-example check-c++-examples
 
 #####################################################################
 # CLEAN
 #####################################################################
 
-clean:
+clean: clean-objects clean-examples clean-test-suite
+	
+clean-objects:
 	@for i in $(SOURCEDIRS) ; \
 	do \
+	   echo cleaning $(SOURCE)/$$i; \
 	   if [ -d $(SOURCE)/$$i -a -f $(SOURCE)/$$i/Makefile ]; then \
-		(cd $(SOURCE)/$$i; $(MAKE) clean) ; \
+		(cd $(SOURCE)/$$i; $(MAKE) -s clean) ; \
 	   fi \
 	done;
-	@cd Runtime; $(MAKE) clean
-	rm -f $(TARGET)
+	@echo cleaning Runtime
+	@cd Runtime; $(MAKE) -s clean
+	@rm -f $(TARGET)
 
 distclean-dead = config.status config.log config.cache \
 		 @configure_substituted_files@
@@ -260,6 +340,12 @@ distclean-dead = config.status config.log config.cache \
 distclean: clean
 	rm -f $(distclean-dead)
 
+clean-examples:
+	@make check-examples CHECK_CLEAN=clean
+
+clean-test-suite:
+	@echo cleaning Examples/test-suite
+	@make check-test-suite CHECK_CLEAN=clean
 
 #####################################################################
 # TARGETS: install & friends
