@@ -321,8 +321,8 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   // Now write code to extract the parameters (this is super ugly)
 
   int i = 0;
-  p = Firstitem(l);
-  for (i = 0; i < pcount; ++i, p = Nextitem(l)) {
+  p = l;
+  for (i = 0; i < pcount; ++i, p = Getnext(p)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 
@@ -689,7 +689,7 @@ MZSCHEME::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
   // Now go through and print parameters
 
-  for (p = Firstitem(l); p != 0; p = Nextitem(l)) {
+  for (p = l; p != 0; p = Getnext(p)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 
@@ -740,7 +740,7 @@ MZSCHEME::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage
 
   // go through and see if any are output.
 
-  for (p = Firstitem(l); p != 0; p = Nextitem(l)) {
+  for (p = l; p != 0; p = Getnext(p)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 

@@ -52,8 +52,8 @@ DelWrapper(Wrapper *w) {
   Delete(w->code);
   Delete(w->def);
   if (w->_type) DelDataType(w->_type);
-  if (w->_parms) Delete(w->_parms);
-  if (w->_name) Delete(w->_name);
+  Delete(w->_parms);
+  Delete(w->_name);
   free(w);
 }
 
@@ -291,8 +291,9 @@ Wrapper_Getparms(Wrapper *w) {
 
 void
 Wrapper_Setparms(Wrapper *w, ParmList *l) {
-  if (w->_parms) Delete(w->_parms);
-  w->_parms = CopyParmList(l);
+  Delete(w->_parms);
+  w->_parms = l;
+  DohIncref(l);
 }
 
 /* -----------------------------------------------------------------------------
@@ -310,7 +311,7 @@ Wrapper_Getname(Wrapper *w) {
 
 void
 Wrapper_Setname(Wrapper *w, DOHString_or_char *n) {
-  if (w->_name) Delete(w->_name);
+  Delete(w->_name);
   w->_name = NewString(n);
 }
 

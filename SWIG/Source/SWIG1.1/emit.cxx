@@ -43,7 +43,7 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
   Swig_cargs(f, l);
 
   i = 0;
-  p = Firstitem(l);
+  p = l;
   while (p != 0) {
     lname  = Getlname(p);
     pt     = Gettype(p);
@@ -65,7 +65,7 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
       Setignore(p,1);
     }
     i++;
-    p = Nextitem(l);
+    p = Getnext(p);
   }
   return(i);
 }

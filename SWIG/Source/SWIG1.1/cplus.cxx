@@ -151,9 +151,7 @@ static void update_local_type(DataType *type) {
 // (if neccessary).  
 // -----------------------------------------------------------------------------
 
-static void update_parms(ParmList *l) {
-  Parm *p;
-  p = Firstitem(l);
+static void update_parms(ParmList *p) {
   while (p) {
     DataType *pt = Gettype(p);
     char     *pvalue = Getvalue(p);
@@ -169,7 +167,7 @@ static void update_parms(ParmList *l) {
 	Setvalue(p,s);
       }
     }
-    p = Nextitem(l);
+    p = Getnext(p);
   }
 }
 
@@ -639,9 +637,7 @@ public:
     Clear(CCode);
     AddMethods = 0;
     if ((!have_constructor) && (1)) {
-      ParmList *l;
-      l = NewParmList();
-      cplus_constructor(classname,0,l);
+      cplus_constructor(classname,0,0);
     };
     
     if (!have_destructor) {

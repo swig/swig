@@ -133,6 +133,7 @@ typedef DOH   ParmList;
 extern ParmList   *NewParmList();
 extern ParmList   *CopyParmList(ParmList *);
 
+extern int         ParmList_len(ParmList *);
 extern int         ParmList_numarg(ParmList *);
 extern char       *ParmList_str(ParmList *);
 extern char       *ParmList_protostr(ParmList *);

@@ -594,8 +594,8 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   int gencomma = 0;
 
   // Now walk the function parameter list and generate code to get arguments
-  p = Firstitem(l);
-  for (int i = 0; i < pcount ; i++, p = Nextitem(l)) {
+  p = l;
+  for (int i = 0; i < pcount ; i++, p = Getnext(p)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
     char *target_copy = NULL;
@@ -1076,10 +1076,10 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   }
   Printv(nativecall, module, ".", Swig_name_member(shadow_classname,iname), "(_self", 0);
 
-  int pcount = Len(l);
+  int pcount = ParmList_len(l);
 
-  Parm *p = Firstitem(l);
-  for (int i = 0; i < pcount ; i++, p = Nextitem(l)) {
+  Parm *p = l;
+  for (int i = 0; i < pcount ; i++, p = Getnext(p)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 
@@ -1148,11 +1148,11 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
   }
   Printv(nativecall, module, ".", Swig_name_member(shadow_classname,iname), "(", 0);
 
-  int pcount = Len(l);
+  int pcount = ParmList_len(l);
   int gencomma = 0;
 
-  Parm *p = Firstitem(l);
-  for (int i = 0; i < pcount ; i++, p = Nextitem(l)) {
+  Parm *p = l;
+  for (int i = 0; i < pcount ; i++, p = Getnext(p)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 
@@ -1215,12 +1215,12 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
   else
     Printv(nativecall, tab8, " _self = ", module, ".", Swig_name_construct(shadow_classname), "(", 0);
 
-  int pcount = Len(l);
+  int pcount = ParmList_len(l);
   if(pcount == 0)  // We must have a default constructor
     have_default_constructor = 1;
 
-  Parm *p = Firstitem(l);
-  for (int i = 0; i < pcount ; i++, p = Nextitem(l)) {
+  Parm *p = l;
+  for (int i = 0; i < pcount ; i++, p = Getnext(p)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 
