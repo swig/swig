@@ -4,6 +4,9 @@
 %warnfilter(801) EnumDirector::hello; /* Ruby, wrong constant name */
 %warnfilter(801) EnumDirector::yo; /* Ruby, wrong constant name */
 %warnfilter(801) EnumDirector::awright; /* Ruby, wrong constant name */
+%warnfilter(801) EnumDirector::ciao; /* Ruby, wrong constant name */
+%warnfilter(801) EnumDirector::aufwiedersehen; /* Ruby, wrong constant name */
+%warnfilter(801) EnumDirector::adios; /* Ruby, wrong constant name */
 
 
 %feature("director") Foo;
