@@ -155,3 +155,24 @@ unsigned short ushorttest() { return 100; }
     exception_macro_run_flag = true;
   }
 %}
+
+// exceptions in multiple threads test
+%exception ThrowsClass::ThrowException(long long input) {
+  try {
+    $action
+  } catch (long long d) {
+    char message[64];
+    sprintf(message, "%lld", d);
+    SWIG_CSharpSetPendingException(SWIG_CSharpArgumentOutOfRangeException, message);
+  }
+}
+%inline %{
+struct ThrowsClass {
+  double dub;
+  ThrowsClass(double d) : dub(d) {}
+  long long ThrowException(long long input) {
+    throw input;
+    return input;
+  }
+};
+%}
