@@ -266,6 +266,7 @@ CPP_TEST_CASES += \
 	typedef_scope \
 	typemap_namespace \
 	typemap_ns_using \
+	typemap_numinputs \
 	typename \
 	union_scope \
 	using1 \
