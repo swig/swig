@@ -351,7 +351,7 @@ SwigType_find_scope(Typetab *s, String *nameprefix) {
       if (nnameprefix) Delete(nnameprefix);
       return s;
     }
-    if (!s) {
+    if (0) if (!s) {
       /* Check inheritance */
       List *inherit;
       inherit = Getattr(ss,"inherit");
