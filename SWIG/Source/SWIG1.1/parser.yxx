@@ -236,7 +236,7 @@ static void add_symbols(Node *n) {
       wrn = name_warning(symname,0);
     } else {
       SwigType *fdecl = Copy(decl);
-      SwigType *fun = SwigType_pop(fdecl);
+      SwigType *fun = SwigType_pop_function(fdecl);
       symname = make_name(GetChar(n,"name"),fun);
       wrn = name_warning(symname,fun);
       Delete(fdecl);
@@ -951,7 +951,7 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
 		   Printf(stderr,"%s:%d. %%native declaration '%s' is not a function.\n", input_file,line_number, $7.id);
 		   $$ = 0;
 		 } else {
-		     Delete(SwigType_pop($7.type));
+		     Delete(SwigType_pop_function($7.type));
 		     /* Need check for function here */
 		     SwigType_push($6,$7.type);
 		     $$ = new_node("native");
@@ -1026,7 +1026,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		/* Special declarator check */
 		if (t) {
 		  if (SwigType_isfunction(t)) {
-		    SwigType *decl = SwigType_pop(t);
+		    SwigType *decl = SwigType_pop_function(t);
 		    if (SwigType_ispointer(t)) {
 		      String *nname = NewStringf("*%s",$5.id);
 		      if ($1) {
@@ -1596,7 +1596,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     Printf(macrocode, "%%_template_%s(__name,%s)\n", $6.id,$3);
 		     /* Create function definition */
 		     if (SwigType_isfunction($6.type)) {
-		       Delete(SwigType_pop($6.type));
+		       Delete(SwigType_pop_function($6.type));
 		       SwigType_push($5,$6.type);
 		       String *pdecl = NewStringf("%s(%s)", $6.id, ParmList_str($6.parms));
 		       Printf(macrocode,"%%name(__name) %s;\n", SwigType_str($5,pdecl));
@@ -2036,7 +2036,7 @@ parameter_declarator : declarator def_args {
 typemap_parameter_declarator : declarator {
                  $$ = $1;
 		 if (SwigType_isfunction($1.type)) {
-		   Delete(SwigType_pop($1.type));
+		   Delete(SwigType_pop_function($1.type));
 		 } else {
 		   $$.parms = 0;
 		 }
@@ -2044,7 +2044,7 @@ typemap_parameter_declarator : declarator {
             | abstract_declarator {
               $$ = $1;
 	      if (SwigType_isfunction($1.type)) {
-		Delete(SwigType_pop($1.type));
+		Delete(SwigType_pop_function($1.type));
 	      } else {
 		$$.parms = 0;
 	      }
