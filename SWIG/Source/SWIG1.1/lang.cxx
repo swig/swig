@@ -496,8 +496,19 @@ void Language::cDeclaration(Node *n) {
   /* Overloaded symbol check */
   over = Swig_symbol_isoverloaded(n);
   if (over && (over != n)) {
-    Printf(stderr,"%s:%d. Warning. Overloaded declaration '%s' ignored.\n",
-	   input_file,line_number, name);
+    SwigType *tc = Copy(decl);
+    SwigType *td = SwigType_pop(tc);
+    String   *oname;
+    if (InClass) {
+      oname = NewStringf("%s::%s",ClassName,name);
+    } else {
+      oname = NewString(name);
+    }
+    Printf(stderr,"%s:%d. Warning. Overloaded declaration ignored.  %s\n",
+	   input_file,line_number, SwigType_str(td,oname));
+    Delete(tc);
+    Delete(td);
+    Delete(oname);
     return;
   }
   
@@ -795,7 +806,9 @@ void Language::constructorDeclaration(Node *n) {
     Node *over;
     over = Swig_symbol_isoverloaded(n);
     if ((over) && (over != n)) {
-      Printf(stderr,"%s:%d. Warning. Overloaded constructor '%s' ignored.\n", input_file,line_number, name);
+      String *oname = NewStringf("%s::%s", ClassName, name);
+      SwigType *decl = Getdecl(n);
+      Printf(stderr,"%s:%d. Warning. Overloaded constructor ignored.  %s\n", input_file,line_number, SwigType_str(decl,oname));
     } else {
       lang->cpp_constructor(Char(name),Char(symname),nonvoid_parms(parms));
     }
