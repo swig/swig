@@ -685,6 +685,23 @@
   }
 %}
 
+%typemap(javadestruct_base) SWIGTYPE {
+    if(swigCPtr != 0 && swigCMemOwn) {
+      $jnicall;
+      swigCMemOwn = false;
+    }
+    swigCPtr = 0;
+  }
+
+%typemap(javadestruct_derived) SWIGTYPE {
+    if(swigCPtr != 0 && swigCMemOwn) {
+      $jnicall;
+      swigCMemOwn = false;
+    }
+    swigCPtr = 0;
+    super.delete();
+  }
+
 %typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
   protected static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;

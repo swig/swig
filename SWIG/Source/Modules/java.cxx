@@ -591,7 +591,7 @@ class JAVA : public Language {
 
     // Now walk the function parameter list and generate code to get arguments
     for (i = 0, p=l; i < num_arguments; i++) {
-      
+
       while (checkAttribute(p,"tmap:in:numinputs","0")) {
         p = Getattr(p,"tmap:in:next");
       }
@@ -1120,22 +1120,36 @@ class JAVA : public Language {
           NIL);
     }
 
+    // C++ destructor is wrapped by the delete method
+    String *destruct = NewString("");
+    const String *tm = NULL;
+    if (derived)
+      tm = javaTypemapLookup("javadestruct_derived", classDeclarationName, WARN_NONE);
+    else
+      tm = javaTypemapLookup("javadestruct_base", classDeclarationName, WARN_NONE);
+
+    // Emit the finalize and delete methods
+    if (*Char(destructor_call) && tm) {
+      Printv(destruct, tm, NIL);
+      Replaceall(destruct, "$jnicall", destructor_call);
+      // finalize method
+      Printv(shadow_classdef, 
+          javaTypemapLookup("javafinalize", classDeclarationName, WARN_NONE),
+          "\n",
+          NIL);
+      // delete method
+      if (*Char(destruct)) {
+        Printv(shadow_classdef, "  public void delete() ", destruct, "\n", NIL);
+      }
+    } else {
+      // Ensure method exists for derived class to call. Don't bother if the typemap doesn't exist.
+      if (tm && *Char(tm))
+        Printv(shadow_classdef, "\n  protected void delete() {\n  }\n", NIL);
+    }
+    Delete(destruct);
+
+    // Emit various other methods
     Printv(shadow_classdef, 
-        javaTypemapLookup("javafinalize", classDeclarationName, WARN_NONE), // finalize method
-        "\n",
-        *Char(destructor_call) ? 
-        "  public void delete() {\n" :
-        "  protected void delete() {\n",
-        "    if(swigCPtr != 0 && swigCMemOwn) {\n",
-        destructor_call,
-        "",
-        "      swigCMemOwn = false;\n",
-        derived ?    // Zero all pointers up any inheritance hierarchy
-        "      super.delete();\n" : 
-        "",
-        "    }\n",
-        "    swigCPtr = 0;\n",
-        "  }\n",
         javaTypemapLookup("javagetcptr", classDeclarationName, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
         javaTypemapLookup("javacode", classDeclarationName, WARN_NONE), // extra Java code
         "\n",
@@ -1543,7 +1557,7 @@ class JAVA : public Language {
     String *symname = Getattr(n,"sym:name");
 
     if(proxy_flag) {
-      Printv(destructor_call, "      ", jniclass_name, ".", Swig_name_destroy(symname), "(swigCPtr);\n", NIL);
+      Printv(destructor_call, jniclass_name, ".", Swig_name_destroy(symname), "(swigCPtr)", NIL);
     }
     return SWIG_OK;
   }
