@@ -1,46 +1,34 @@
-/****************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * include.c
+ *
+ *     The functions in this file are used to manage files in the SWIG library.
+ *     General purpose functions for opening, including, and retrieving pathnames
+ *     are provided.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- ****************************************************************************/
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
 
 #include "swig.h"
 
-/*******************************************************************************
- * $Header$
- *
- * File : include.c
- *
- * Various file manipulation functions.
- *******************************************************************************/
-
 /* Delimeter used in accessing files and directories */
 
 static DOH           *directories = 0;        /* List of include directories */
-static DOH           *libdir = 0;             /* SWIG library directory */
 static DOH           *lastpath = 0;           /* Last file that was included */
 static int            bytes_read = 0;         /* Bytes read */
 
 /* -----------------------------------------------------------------------------
- * void Swig_add_directory( DOH *dirname)
+ * Swig_add_directory()
  *
  * Adds a directory to the SWIG search path.
  * ----------------------------------------------------------------------------- */
 
 void 
-Swig_add_directory(DOH *dirname)
-{
+Swig_add_directory(DOH *dirname) {
   if (!directories) directories = NewList();
   assert(directories);
   if (!String_check(dirname)) {
@@ -51,35 +39,7 @@ Swig_add_directory(DOH *dirname)
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_set_library(DOH *libname) 
- *
- * Sets the language specific library name like 'tcl', 'perl5', 'python', etc...
- * ----------------------------------------------------------------------------- */
-
-void
-Swig_set_library(DOH *libname)
-{
-  Delete(libdir);
-  if (!String_check(libname)) {
-      libname = NewString((char *) libname);
-      assert(libname);
-  }
-  libdir = libname;
-}
-
-/* -----------------------------------------------------------------------------
- * DOH *Swig_get_library()
- *
- * Gets the language specific name like 'tcl', 'perl5', etc...
- * ----------------------------------------------------------------------------- */
-DOH *
-Swig_get_library() {
-  assert(libdir);
-  return libdir;
-}
-
-/* -----------------------------------------------------------------------------
- * DOH *Swig_last_file()
+ * Swig_last_file()
  * 
  * Returns the full pathname of the last file opened. 
  * ----------------------------------------------------------------------------- */
@@ -91,13 +51,13 @@ Swig_last_file() {
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *Swig_search_path() 
+ * Swig_search_path() 
  * 
  * Returns a list of the current search paths.
  * ----------------------------------------------------------------------------- */
 
-DOH *Swig_search_path() 
-{
+DOH *
+Swig_search_path() {
   DOH *filename;
   DOH *dirname;
   DOH *slist;
@@ -111,12 +71,6 @@ DOH *Swig_search_path()
   Append(slist,filename);
   for (i = 0; i < Len(directories); i++) {
     dirname =  Getitem(directories,i);
-    if (libdir) {
-      filename = NewString("");
-      assert(filename);
-      Printf(filename,"%s%s%s%s", dirname, SWIG_FILE_DELIMETER, libdir, SWIG_FILE_DELIMETER);
-      Append(slist,filename);
-    }
     filename = NewString("");
     assert(filename);
     Printf(filename, "%s%s", dirname, SWIG_FILE_DELIMETER);
@@ -126,14 +80,13 @@ DOH *Swig_search_path()
 }  
 
 /* -----------------------------------------------------------------------------
- * FILE *Swig_open( DOH *name)           
+ * Swig_open()
  *
- * Looks for a file and open it.
+ * Looks for a file and open it.  Returns an open  FILE * on success.
  * ----------------------------------------------------------------------------- */
 
 FILE *
-Swig_open(DOH *name)
-{
+Swig_open(DOH *name) {
   FILE    *f;
   DOH     *filename;
   DOH     *spath = 0;
@@ -166,12 +119,13 @@ Swig_open(DOH *name)
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *Swig_read_file(FILE *f)
+ * Swig_read_file()
  * 
- * Reads data from f and returns as a new string
+ * Reads data from an open FILE * and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
-DOH *Swig_read_file(FILE *f) {
+DOH *
+Swig_read_file(FILE *f) {
   char buffer[4096];
   DOH *str = NewString("");
   assert(str);
@@ -183,14 +137,13 @@ DOH *Swig_read_file(FILE *f) {
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *Swig_include(DOH *name)
+ * Swig_include()
  *
- * Open a file and return it as a string.
+ * Opens a file and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
 DOH *
-Swig_include(DOH *name) 
-{
+Swig_include(DOH *name) {
   FILE  *f;
   DOH    *str;
   f = Swig_open(name);
@@ -201,7 +154,12 @@ Swig_include(DOH *name)
   Seek(str,0,SEEK_SET);
   Setfile(str,lastpath);
   Setline(str,1);
-  /*   fprintf(stderr,"%d bytes read\n", bytes_read); */
   return str;
 }
+
+
+
+
+
+
 

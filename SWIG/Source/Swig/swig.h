@@ -1,17 +1,16 @@
-/****************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * swig.h
+ *
+ *     Header file for the SWIG core.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ *             Dustin Mitchell (djmitche@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
  *
- * Please read the file LICENSE for the copyright and terms by which Swig
- * can be used and distributed.
- ****************************************************************************/
+ * $Header$
+ * ----------------------------------------------------------------------------- */
 
 #ifndef _SWIGCORE_H
 #define _SWIGCORE_H
@@ -20,6 +19,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+
 #include "doh.h"
 
 #ifdef __cplusplus
@@ -29,8 +29,6 @@ extern "C" {
 /* --- File interface --- */
 
 extern void  Swig_add_directory(DOH *dirname);
-extern void  Swig_set_library(DOH *libname);
-extern DOH  *Swig_get_library();
 extern DOH  *Swig_last_file();
 extern DOH  *Swig_search_path();
 extern FILE *Swig_open(DOH *name);
@@ -50,7 +48,6 @@ extern void  Swig_init_args(int argc, char **argv);
 extern void  Swig_mark_arg(int n);
 extern void  Swig_check_options();
 extern void  Swig_arg_error();
-
 
 /* --- Scanner Interface --- */
 
@@ -122,8 +119,7 @@ extern void     SwigScanner_idstart(SwigScanner *, char *idchar);
 #define   SWIG_TOKEN_LAST         99 
 
 /* --- Misc --- */
-
-extern char *copy_string(const char *c);
+extern char *Swig_copy_string(const char *c);
 
 #ifdef __cplusplus
 }

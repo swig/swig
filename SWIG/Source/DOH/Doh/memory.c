@@ -1,17 +1,14 @@
-/****************************************************************************
- * DOH (Dynamic Object Hack)
+/* ----------------------------------------------------------------------------- 
+ * memory.c
+ *
+ *     This file implements all of DOH's memory management including allocation
+ *     of objects, checking of objects, and garbage collection.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which DOH
- * can be used and distributed.
- ****************************************************************************/
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
 
@@ -33,14 +30,7 @@ static int   _DohMemoryCurrent = 0;
 static int   _DohMemoryHigh    = 0;
 static int   _PoolSize = DOH_POOL_SIZE;
 
-DOH    *DohNone = 0;
-
-/* -----------------------------------------------------------------------------
- * memory.c
- *
- * Doh memory manager.    Keeps pools of memory around for allocating objects.
- * Pools are used to determine if an object is really a Doh object or not. 
- * ----------------------------------------------------------------------------- */
+DOH    *DohNone = 0;    /* The DOH None object */
 
 typedef struct fragment {
   char             *ptr;        /* Pointer to fragment */
@@ -64,13 +54,13 @@ static int      nscopes = 0;
 
 
 /* ----------------------------------------------------------------------
- * Pool *CreatePool(int size)
+ * CreatePool()
  * 
- * Create a new pool
+ * Create a new memory pool
  * ---------------------------------------------------------------------- */
 
-Pool *CreatePool(int size)
-{
+static Pool *
+CreatePool(int size) {
   Pool *p = 0;
   char *c;
   c = (char *) DohMalloc(size);
@@ -85,12 +75,13 @@ Pool *CreatePool(int size)
 }
 
 /* ----------------------------------------------------------------------
- * void InitPools()
+ * InitPools()
  *
  * Initialize the memory allocator
  * ---------------------------------------------------------------------- */
 
-static void InitPools() {
+static void 
+InitPools() {
   int i;
   if (pools_initialized) return;
   for (i = 0; i < DOH_MAX_FRAG; i++) {
@@ -107,12 +98,14 @@ static void InitPools() {
 }
 
 /* ----------------------------------------------------------------------
- * int DohCheck(DOH *ptr)
+ * DohCheck()
  *
- * Check if ptr is an object we created.
+ * Returns 1 if an arbitrary pointer is a DOH object.   This determination
+ * is made according to the pointer value only.
  * ---------------------------------------------------------------------- */
 
-int DohCheck(DOH *ptr) {
+int 
+DohCheck(DOH *ptr) {
   Pool *p = Pools;
   char *cptr = (char *) ptr;
   while (p) {
@@ -123,12 +116,14 @@ int DohCheck(DOH *ptr) {
 }
 
 /* ----------------------------------------------------------------------
- * int DohObjFreeCheck(DOH *ptr)
+ * DohObjFreeCheck()
  * 
- * Check if ptr is an object that has been deleted.
+ * Checks to see if an object was already deleted.  Useful when tracking
+ * down nasty double-free problems.
  * ---------------------------------------------------------------------- */
 
-int DohObjFreeCheck(DOH *ptr) {
+int 
+DohObjFreeCheck(DOH *ptr) {
   int i;
   Fragment *f;
   char *cptr = (char *) ptr;
@@ -143,12 +138,13 @@ int DohObjFreeCheck(DOH *ptr) {
 }
 
 /* ----------------------------------------------------------------------
- * int DohNewScope()
+ * DohNewScope()
  *
- * Create a new scope in which objects will be placed
+ * Create a new scope in which objects will be placed. Returns a scope
+ * identifier.
  * ---------------------------------------------------------------------- */
-int DohNewScope() 
-{
+int 
+DohNewScope() {
   assert(nscopes < DOH_MAX_SCOPES);
   if (!pools_initialized) InitPools();
   scopes[nscopes] = 0;
@@ -157,11 +153,13 @@ int DohNewScope()
 }
 
 /* ----------------------------------------------------------------------
- * void DohDelScope(int s) - Delete scope s
+ * DohDelScope()
+ *
+ * Deletes a scope.
  * ---------------------------------------------------------------------- */
 
-void DohDelScope(int s)
-{
+void 
+DohDelScope(int s) {
   int ns;
   DohBase *b, *b1;
   ns = s;
@@ -193,9 +191,14 @@ void DohDelScope(int s)
 }
 
 /* ----------------------------------------------------------------------
- * void real_objfree(DOH *ptr) - Free a DOH object for real.
+ * real_objfree()
+ *
+ * This is the function that actually frees an object.  Invoked by the
+ * garbage collector.
  * ---------------------------------------------------------------------- */
-static void real_objfree(DOH *ptr) {
+
+static void 
+real_objfree(DOH *ptr) {
   DohBase  *b;
   Fragment *f;
   b = (DohBase *) ptr;
@@ -213,7 +216,7 @@ static void real_objfree(DOH *ptr) {
 }
 
 /* ----------------------------------------------------------------------
- * void DohGarbageCollect()
+ * DohGarbageCollect()
  *
  * This walks through all of the scopes and does garbage collection.
  *
@@ -259,12 +262,13 @@ DohGarbageCollect() {
 }
 
 /* ----------------------------------------------------------------------
- * void *DohObjMalloc(size_t size)
+ * DohObjMalloc()
  *
- * Allocate an object
+ * Allocate memory for a new object.
  * ---------------------------------------------------------------------- */
 
-void *DohObjMalloc(size_t size) {
+void *
+DohObjMalloc(size_t size) {
   Pool *p;
   Fragment *f;
   void *ptr = 0;
@@ -329,14 +333,14 @@ void *DohObjMalloc(size_t size) {
 }
 
 /* ----------------------------------------------------------------------
- * void DohObjFree(DOH *ptr)
+ * DohObjFree()
  *
- * Free a DOH object.  This function doesn't do much of anything with GC.
+ * Frees a DOH object.  Doesn't do much with GC.
  * ---------------------------------------------------------------------- */
 
-void DohObjFree(DOH *ptr) {
+void 
+DohObjFree(DOH *ptr) {
   DohBase  *b;
-
   if (!DohCheck(ptr)) {
     DohTrace(DOH_MEMORY,"DohObjFree. %x not a DOH object!\n", ptr);
     return;                  /* Oh well.  Guess we're leaky */
@@ -349,71 +353,46 @@ void DohObjFree(DOH *ptr) {
 }
 
 /* -----------------------------------------------------------------------------
- * void *DohMalloc(size_t nbytes)
+ * DohMalloc()
  *
  * Wrapper around malloc() function. Records memory usage.
  * ----------------------------------------------------------------------------- */
 
-void *DohMalloc(size_t nbytes) {
-  char *ptr;
-  ptr = (char *) malloc(nbytes+8);
-  if (!ptr) return 0;
-  _DohMemoryCurrent += (nbytes+8);
-  if (_DohMemoryCurrent > _DohMemoryHigh) _DohMemoryHigh = _DohMemoryCurrent;
-  *((int *) ptr) = nbytes;
-  return (void *) (ptr+8);
+void *
+DohMalloc(size_t nbytes) {
+  return (void *) malloc(nbytes);
 }
 
 /* -----------------------------------------------------------------------------
- * void *DohRealloc(void *ptr, size_t newsize)
+ * DohRealloc()
  *
  * Wrapper around realloc() function.
  * ----------------------------------------------------------------------------- */
 
-void *DohRealloc(void *ptr, size_t newsize) {
-  char *cptr = (char *) ptr;
-  char *nptr;
-  int  size;
-
-  size = *((int *) (cptr - 8));
-  nptr = (char *) realloc(cptr-8,newsize+8);
-  if (!nptr) return 0;
-  *((int *) nptr) = newsize;
-  _DohMemoryCurrent += (newsize - size);
-  if (_DohMemoryCurrent > _DohMemoryHigh) _DohMemoryHigh = _DohMemoryCurrent;
-  return (void *) (nptr+8);
+void *
+DohRealloc(void *ptr, size_t newsize) {
+  return (void *) realloc(ptr,newsize);
 }
 
 /* -----------------------------------------------------------------------------
- * void DohFree(void *ptr)
+ * DohFree()
  *
- * Wrapper around free() function.  Records memory usage.
+ * Wrapper around free() function.
  * ----------------------------------------------------------------------------- */
 
-void DohFree(void *ptr) {
-  char *cptr = (char *) ptr;
-  int size;
-  if (!ptr) return;
-  size = *((int *) (cptr - 8));
-  free(cptr-8);
-  _DohMemoryCurrent = _DohMemoryCurrent - (size+8);
+void 
+DohFree(void *ptr) {
+  free(ptr);
 }
 
 /* -----------------------------------------------------------------------------
- * int DohMemoryUse()
+ * DohPoolSize()
  *
- * Return bytes currently in use by Doh
+ * Change the size of the memory pools used by DOH
  * ----------------------------------------------------------------------------- */
 
-int DohMemoryUse() {
-  return _DohMemoryCurrent;
-}
-  
-int DohMemoryHigh() {
-  return _DohMemoryHigh;
-}
-
-int DohPoolSize(int poolsize) {
+int 
+DohPoolSize(int poolsize) {
   int ps;
   ps = _PoolSize;
   if (poolsize > 0) {

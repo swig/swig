@@ -1,27 +1,17 @@
-/****************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * type.c
+ *
+ *     Lame SWIG1.1 type implementation.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- ****************************************************************************/
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
+
+static char cvsroot[] = "$Header$";
 
 #include "lparse.h"
-
-/* -----------------------------------------------------------------------------
- * $Header$
- *
- * type.c 
- *
- * Lame type structure for old SWIG parser
- * ----------------------------------------------------------------------------- */
 
 extern DOH *LParseTypeStr(DOH *to);
 

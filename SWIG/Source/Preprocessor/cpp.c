@@ -1,38 +1,24 @@
-/****************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * cpp.c
+ *
+ *     An implementation of a C preprocessor plus some support for additional
+ *     SWIG directives.
+ *
+ *         - SWIG directives such as %include, %extern, and %import are handled
+ *         - A new macro %define ... %enddef can be used for multiline macros
+ *         - No preprocessing is performed in %{ ... %} blocks
+ *         - Lines beginning with %# are stripped down to #... and passed through.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- ****************************************************************************/
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
 
 #include "preprocessor.h"
 #include <ctype.h>
-
-/* -----------------------------------------------------------------------------
- * $Header$
- *
- * File : cpp.c
- *
- * The SWIG Preprocessor.   This works almost exactly like the C preprocessor except
- * for a number of extensions:
- *
- *     -  SWIG directives such as %include, %extern, and %import are recognized
- *     -  A new macro %define  ... %enddef is provided to make it easier to
- *        write multi-line macros.
- *     -  No preprocessing is performed inside %{ ... %} blocks.
- *     -  Lines beginning with %#... are stripped to #... and passed through
- *        unmodified.
- * ----------------------------------------------------------------------------- */
 
 static DOH  *cpp = 0;                /* C preprocessor data */
 static int   include_all = 1;        /* Follow all includes */

@@ -1,44 +1,39 @@
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * getopt.c
+ *
+ *     Handles the parsing of command line options.  This is particularly nasty
+ *     compared to other utilities given that command line options can potentially
+ *     be read by many different modules within SWIG.  Thus, in order to make sure
+ *     there are no unrecognized options, each module is required to "mark"
+ *     the options that it uses.  Afterwards, we can make a quick scan to make
+ *     sure there are no unmarked options.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
+ * To do: 
+ *     - This module needs to be modified so that it doesn't call exit().
+ *       Should have cleaner error handling in general.
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
 
 #include "swig.h"
-
-/*******************************************************************************
- * $Header$
- *
- * File : getopt.c
- *
- * Functions for handling command line arguments.  This is a little funky because
- * the arguments are checked in multiple places.
- *******************************************************************************/
 
 static char **args;
 static int    numargs;
 static int   *marked;
 
 /* -----------------------------------------------------------------------------
- * void Swig_init_args(int argc, char **argv)
+ * Swig_init_args()
  * 
- * Initializes the argument list. 
+ * Initialize the argument list handler.
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_init_args(int argc, char **argv)
-{
+Swig_init_args(int argc, char **argv) {
   int i;
   assert(argc > 0);
   assert(argv);
@@ -53,10 +48,9 @@ Swig_init_args(int argc, char **argv)
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_mark_arg(int n)
+ * Swig_mark_arg()
  * 
- * Marks an argument as being parsed.  All modules should do this whenever they
- * parse a command line option.
+ * Marks an argument as being parsed.
  * ----------------------------------------------------------------------------- */
 
 void
@@ -67,16 +61,16 @@ Swig_mark_arg(int n) {
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_check_options()
+ * Swig_check_options()
  * 
- * Checks for unparsed command line options.  If so, issues an error and exits.
+ * Checkers for unprocessed command line options and errors.
  * ----------------------------------------------------------------------------- */
  
-void Swig_check_options() {
+void
+Swig_check_options() {
     int error = 0;
     int i;
     assert(marked);
-
     for (i = 1; i < numargs-1; i++) {
       if (!marked[i]) {
 	Printf(stderr,"swig error : Unrecognized option %s\n", args[i]);
@@ -94,12 +88,13 @@ void Swig_check_options() {
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_arg_error()
+ * Swig_arg_error()
  * 
  * Generates a generic error message and exits.
  * ----------------------------------------------------------------------------- */
 
-void Swig_arg_error() {
+void 
+Swig_arg_error() {
   Printf(stderr,"SWIG : Unable to parse command line options.\n");
   Printf(stderr,"Use 'swig -help' for available options.\n");
   exit(1);

@@ -1,21 +1,21 @@
-/****************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * scanner.c
+ *
+ *     This file implements a general purpose C/C++ compatible lexical scanner.
+ *     This scanner isn't intended to be plugged directly into a parser built
+ *     with yacc. Rather, it contains a lot of generic code that could be used
+ *     to easily construct yacc-compatible scanners.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- ****************************************************************************/
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
 
 #include "swig.h"
+#include <ctype.h>
 
 struct SwigScanner {
   DOH           *text;                    /* Current token value */
@@ -30,21 +30,14 @@ struct SwigScanner {
   DOH           *file; 
 };
 
-#include <ctype.h>
-
 /* -----------------------------------------------------------------------------
- * $Header$
+ * NewSwigScanner()
  *
- * scanner.c
- *
- * A generic C-based lexical scanner.
+ * Create a new scanner object
  * ----------------------------------------------------------------------------- */
 
-/* -----------------------------------------------------------------------------
- * SwigScanner *NewSwigScanner() - Create a new scanner object. 
- * ----------------------------------------------------------------------------- */
-SwigScanner *NewSwigScanner() 
-{
+SwigScanner *
+NewSwigScanner() {
   SwigScanner *s;
   s = (SwigScanner *) malloc(sizeof(SwigScanner));
   s->line = 1;
@@ -61,10 +54,13 @@ SwigScanner *NewSwigScanner()
 }
 
 /* -----------------------------------------------------------------------------
- * DelSwigScanner(SwigScanner *s) -  Delete a SwigScanner object
+ * DelSwigScanner()
+ *
+ * Delete a scanner object.
  * ----------------------------------------------------------------------------- */
-void DelSwigScanner(SwigScanner *s)
-{
+
+void 
+DelSwigScanner(SwigScanner *s) {
   assert(s);
   Delete(s->scanobjs);
   Delete(s->text);
@@ -73,9 +69,13 @@ void DelSwigScanner(SwigScanner *s)
 }
 
 /* -----------------------------------------------------------------------------
- * SwigScanner_clear(SwigScanner *s) - Clear a scanner object
+ * SwigScanner_clear()
+ *
+ * Clear the contents of a scanner object.
  * ----------------------------------------------------------------------------- */
-void SwigScanner_clear(SwigScanner *s) {
+
+void 
+SwigScanner_clear(SwigScanner *s) {
   assert(s);
   Delete(s->str);
   Clear(s->text);
@@ -88,11 +88,14 @@ void SwigScanner_clear(SwigScanner *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigScanner_push(SwigScanner *s, DOH *txt) - Push text into the scanner
+ * SwigScanner_push()
+ *
+ * Push some new text into the scanner.  The scanner will start parsing this text
+ * immediately before returning to the old text.
  * ----------------------------------------------------------------------------- */
 
-void SwigScanner_push(SwigScanner *s, DOH *txt)
-{
+void 
+SwigScanner_push(SwigScanner *s, DOH *txt) {
   assert(s && txt);
   Push(s->scanobjs,txt);
   if (s->str) Delete(s->str);
@@ -100,30 +103,37 @@ void SwigScanner_push(SwigScanner *s, DOH *txt)
   Incref(s->str);
   s->line = Getline(txt);
 }
+
 /* -----------------------------------------------------------------------------
- * SwigScanner_pushtoken(SwigScanner *s, int nt)
+ * SwigScanner_pushtoken()
  *
- * Set the next processing token.
+ * Push a token into the scanner.  This token will be returned on the next
+ * call to SwigScanner_token().
  * ----------------------------------------------------------------------------- */
 
-void SwigScanner_pushtoken(SwigScanner *s, int nt) {
+void 
+SwigScanner_pushtoken(SwigScanner *s, int nt) {
   assert(s);
   assert((nt >= 0) && (nt < SWIG_MAXTOKENS));
   s->nexttoken = nt;
 }
 
 /* -----------------------------------------------------------------------------
- * SwigScanner_set_location(SwigScanner *s, DOH *file, int line)
+ * SwigScanner_set_location()
+ *
+ * Set the file and line number location of the scanner.
  * ----------------------------------------------------------------------------- */
+
 void
-SwigScanner_set_location(SwigScanner *s, DOH *file, int line)
-{
+SwigScanner_set_location(SwigScanner *s, DOH *file, int line) {
   Setline(s->str,line);
   Setfile(s->str,file);
 }
 
 /* -----------------------------------------------------------------------------
- * SwigScanner_get_file(SwigScanner *s) - Get current file
+ * SwigScanner_get_file()
+ *
+ * Get the current file.
  * ----------------------------------------------------------------------------- */
 
 DOH *
@@ -131,24 +141,29 @@ SwigScanner_get_file(SwigScanner *s) {
   return Getfile(s->str);
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigScanner_get_line()
+ *
+ * Get the current line number
+ * ----------------------------------------------------------------------------- */
 int
 SwigScanner_get_line(SwigScanner *s) {
   return Getline(s->str);
 }
 
 /* -----------------------------------------------------------------------------
- * void SwigScanner_idstart(SwigScanner *s, char *id)
+ * SwigScanner_idstart()
  *
- * Set the characters that can be used to start an identifier
+ * Change the set of additional characters that can be used to start an identifier.
  * ----------------------------------------------------------------------------- */
 
 void
 SwigScanner_idstart(SwigScanner *s, char *id) {
-  s->idstart = copy_string(id);
+  s->idstart = Swig_copy_string(id);
 }
 
 /* -----------------------------------------------------------------------------
- * char nextchar(SwigScanner *s) 
+ * nextchar()
  * 
  * Returns the next character from the scanner or 0 if end of the string.
  * ----------------------------------------------------------------------------- */
@@ -176,7 +191,7 @@ nextchar(SwigScanner *s)
 }
 
 /* -----------------------------------------------------------------------------
- * void retract(SwigScanner *s, int n)
+ * retract()
  *
  * Retract n characters
  * ----------------------------------------------------------------------------- */
@@ -199,14 +214,13 @@ retract(SwigScanner *s, int n) {
 }
 
 /* -----------------------------------------------------------------------------
- * int look(SwigScanner *s)
+ * look()
  *
- * Get the next token.
+ * Return the raw value of the next token.
  * ----------------------------------------------------------------------------- */
 
 static int
-look(SwigScanner *s) 
-{
+look(SwigScanner *s) {
     int      state;
     char     c = 0;
 
@@ -632,14 +646,13 @@ look(SwigScanner *s)
 }
 
 /* -----------------------------------------------------------------------------
- * int SwigScanner_token(SwigScanner *s)
+ * SwigScanner_token()
  *
- * Return the next token or 0 if at the end of the string
+ * Real entry point to return the next token. Returns 0 if at end of input.
  * ----------------------------------------------------------------------------- */
 
 int
-SwigScanner_token(SwigScanner *s)
-{
+SwigScanner_token(SwigScanner *s) {
     int t;
     Clear(s->text);
     if (s->nexttoken >= 0) {
@@ -652,25 +665,24 @@ SwigScanner_token(SwigScanner *s)
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *SwigScanner_text(SwigScanner *s)
+ * SwigScanner_text()
  *
- * Return the text associated with the last token returned.
+ * Return the lexene associated with the last returned token.
  * ----------------------------------------------------------------------------- */
+
 DOH *
-SwigScanner_text(SwigScanner *s)
-{
+SwigScanner_text(SwigScanner *s) {
     return s->text;
 }
 
 /* -----------------------------------------------------------------------------
- * void SwigScanner_skip_line(SwigScanner *s)
+ * SwigScanner_skip_line()
  *
  * Skips to the end of a line
  * ----------------------------------------------------------------------------- */
 
 void
-SwigScanner_skip_line(SwigScanner *s)
-{
+SwigScanner_skip_line(SwigScanner *s) {
     char c;
     int done = 0;
     Clear(s->text);
@@ -685,15 +697,14 @@ SwigScanner_skip_line(SwigScanner *s)
 }
 
 /* -----------------------------------------------------------------------------
- * void SwigScanner_skip_balanced(SwigScanner *s, int start, int end)
+ * SwigScanner_skip_balanced()
  *
  * Skips a piece of code enclosed in begin/end symbols such as '{...}' or
  * (...).  Ignores symbols inside comments or strings.
  * ----------------------------------------------------------------------------- */
 
 int 
-SwigScanner_skip_balanced(SwigScanner *s, int startchar, int endchar)
-{
+SwigScanner_skip_balanced(SwigScanner *s, int startchar, int endchar) {
     char c;
     int  num_levels = 1;
     int  l;

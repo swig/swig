@@ -1,25 +1,16 @@
-/****************************************************************************
- * DOH (Dynamic Object Hack)
- * 
- * Author : David Beazley
- *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which DOH
- * can be used and distributed.
- ****************************************************************************/
-
-static char cvsroot[] = "$Header$";
-
-/* ---------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------- 
  * string.c
  *
- * String object.
- * --------------------------------------------------------------------------- */
+ *     Implements a string object that supports both sequence operations and
+ *     file semantics.
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ *
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
+
+static char cvsroot[] = "$Header$";
 
 #include "dohint.h"
 
@@ -69,13 +60,6 @@ static DohSequenceMethods StringSeqMethods = {
   0,                      /* doh_next    */
 };
 
-static DohPositionalMethods StringPositionalMethods = {
-  XBase_setfile,
-  XBase_getfile,
-  XBase_setline,
-  XBase_getline
-};
-
 static DohFileMethods StringFileMethods = {
   String_read,
   String_write,
@@ -111,7 +95,7 @@ static DohObjInfo StringType = {
     &StringFileMethods,/* doh_file */
     &StringStringMethods, /* doh_string */ 
     0,                 /* doh_callable */ 
-    &StringPositionalMethods, /* doh_position */
+    0,                 /* doh_position */
 };
 
 #define INIT_MAXSIZE  16
@@ -160,6 +144,7 @@ NewString(char *s)
     String *str;
     str = (String *) DohObjMalloc(sizeof(String));
     str->objinfo = &StringType;
+    DohXInit(str);
     str->hashkey = -1;
     str->sp = 0;
     str->lsp = 0;

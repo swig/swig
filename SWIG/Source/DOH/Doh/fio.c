@@ -1,30 +1,29 @@
-/****************************************************************************
- * DOH (Dynamic Object Hack)
- * 
- * Author : David Beazley
- *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which DOH
- * can be used and distributed.
- ****************************************************************************/
-
-static char cvsroot[] = "$Header:";
-
-/* -----------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------- 
  * fio.c
  *
- * This file provides support for formatted I/O via fprint style
- * functions.
+ *     This file implements a number of standard I/O operations included
+ *     formatted output, readline, and splitting.
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ *
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
+
+static char cvsroot[] = "$Header:";
 
 #include "dohint.h"
 
 #define OBUFLEN  512
+
+static DOH *encodings = 0;              /* Encoding hash */
+
+/* -----------------------------------------------------------------------------
+ * Writen()
+ *
+ * Write's N characters of output and retries until all characters are
+ * written.  This is useful should a write operation encounter a spurious signal.
+ * ----------------------------------------------------------------------------- */
 
 static int Writen(DOH *out, void *buffer, int len) {
   int nw = len, ret;
@@ -39,18 +38,19 @@ static int Writen(DOH *out, void *buffer, int len) {
 }
 
 /* -----------------------------------------------------------------------------
- * void DohEncoding(char *name, DOH *(*fn)(DOH *s))
+ * DohEncoding()
  *
- * Register a printf named encoding method. 
+ * Registers a new printf encoding method.  An encoder function should accept
+ * two file-like objects and operate as a filter.
  * ----------------------------------------------------------------------------- */
 
-static DOH *encodings = 0;
-void DohEncoding(char *name, DOH *(*fn)(DOH *s)) 
-{
+void 
+DohEncoding(char *name, DOH *(*fn)(DOH *s)) {
   if (!encodings) encodings = NewHash();
   Setattr(encodings,(void *) name, NewVoid((void *)fn,0));
 }
 
+/* internal function for processing an encoding */
 static DOH *encode(char *name,  DOH *s) {
   DOH *handle, *ns;
   DOH *(*fn)(DOH *);
@@ -67,9 +67,21 @@ static DOH *encode(char *name,  DOH *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * DohvPrintf(DOH *so, char *format, va_list ap)
+ * DohvPrintf()
  *
- * printf
+ * DOH implementation of printf.  Output can be directed to any file-like object
+ * including bare FILE * objects.  The same formatting codes as printf are
+ * recognized with two extensions:
+ *
+ *       %s          - Prints a "char *" or the string representation of any
+ *                     DOH object.  This will implicitly result in a call to
+ *                     Str(obj).
+ *
+ *       %(encoder)* - Filters the output through an encoding function registered
+ *                     with DohEncoder().
+ *
+ * Note: This function is not particularly memory efficient with large strings.
+ * It's better to use Dump() or some other method instead.
  * ----------------------------------------------------------------------------- */
 
 int
@@ -357,8 +369,14 @@ DohvPrintf(DOH *so, char *format, va_list ap)
   return nbytes;
 }
 
-/* Printf */
-int DohPrintf(DOH *obj, char *format, ...) {
+/* -----------------------------------------------------------------------------
+ * DohPrintf()
+ *
+ * Variable length argument entry point to Printf
+ * ----------------------------------------------------------------------------- */
+
+int
+DohPrintf(DOH *obj, char *format, ...) {
   va_list ap;
   int ret;
   va_start(ap,format);
@@ -367,9 +385,15 @@ int DohPrintf(DOH *obj, char *format, ...) {
   return ret;
 }
 
-/* DohCopyto(DOH *in, DOH *out) */
+/* ----------------------------------------------------------------------------- 
+ * DohCopyto()
+ *
+ * Copies all of the input from an input stream to an output stream. Returns the
+ * number of bytes copied.
+ * ----------------------------------------------------------------------------- */
 
-int DohCopyto(DOH *in, DOH *out) {
+int
+DohCopyto(DOH *in, DOH *out) {
   int nbytes = 0, ret;
   int nwrite = 0, wret;
   char *cw;
@@ -394,9 +418,16 @@ int DohCopyto(DOH *in, DOH *out) {
   }
 }
 
-/* Split by a character */
 
-DOH *DohSplit(DOH *in, char *chs, int nsplits) {
+/* -----------------------------------------------------------------------------
+ * DohSplit()
+ *
+ * Split an input stream into a list of strings delimeted by characters in a 
+ * string.  Optionally accepts a maximum number of splits to perform.
+ * ----------------------------------------------------------------------------- */
+
+DOH *
+DohSplit(DOH *in, char *chs, int nsplits) {
   DOH *list;
   DOH *str;
   int c;
@@ -425,9 +456,14 @@ DOH *DohSplit(DOH *in, char *chs, int nsplits) {
   return list;
 }
 
-/* Read a single line of text */
+/* -----------------------------------------------------------------------------
+ * DohReadline()
+ *
+ * Read a single input line and return it as a string.
+ * ----------------------------------------------------------------------------- */
 
-DOH *DohReadline(DOH *in) {
+DOH *
+DohReadline(DOH *in) {
   char c;
   int n = 0;
   DOH *s = NewString("");

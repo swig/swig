@@ -1,25 +1,14 @@
 %{
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
- * 
- * Author : David Beazley
- *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
-/***********************************************************************
- * $Header$
- *
+/* ----------------------------------------------------------------------------- 
  * parser.y
  *
- * YACC parser for parsing function declarations.
- ***********************************************************************/
+ *     YACC grammar for Dave's lame parser.
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ *
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 #define yylex lparse_yylex
 #define yyerror lparse_yyerror
@@ -597,7 +586,7 @@ tm_parm        : type tm_name {
                     $$ = NewHash();
 		    if ($2.array) {
 		      $1->is_pointer++;
-		      $1->arraystr = copy_string(Char($2.array));
+		      $1->arraystr = Swig_copy_string(Char($2.array));
 		    }
 		    Setattr($$,"type",$1);
 		    if ($2.name)
@@ -610,7 +599,7 @@ tm_parm        : type tm_name {
 		  $1->is_pointer += $2.ivalue;
 		  if ($3.array) {
 		    $1->is_pointer++;
-		    $1->arraystr = copy_string(Char($3.array));
+		    $1->arraystr = Swig_copy_string(Char($3.array));
 		  }
 		  Setattr($$,"type",$1);
 		  if ($3.name)
@@ -624,7 +613,7 @@ tm_parm        : type tm_name {
 		  $1->is_pointer++;
 		  if ($3.array) {
 		    $1->is_pointer++;
-		    $1->arraystr = copy_string(Char($3.array));
+		    $1->arraystr = Swig_copy_string(Char($3.array));
 		  }
 		  Setattr($$,"type",$1);
 		  if ($3.name)
@@ -750,7 +739,7 @@ variable_decl   : extern_spec type declaration array2 def_args {
 		    $2->is_pointer += $3.is_pointer;
 		    if ($4.text) {
 		      $2->is_pointer++;
-                      $2->arraystr = copy_string(Char($4.text));
+                      $2->arraystr = Swig_copy_string(Char($4.text));
 		    }
 		    $2->is_reference = $3.is_reference;
 		    o = new_node("Variable", Getfile($3.id),Getline($3.id));
@@ -860,7 +849,7 @@ stail          : SEMI { }
 		 t->is_pointer += $2.is_pointer;
 		 if ($3.text) {
 		     t->is_pointer++;
-		     t->arraystr = copy_string(Char($3.text));
+		     t->arraystr = Swig_copy_string(Char($3.text));
 		 }
 		 t->is_reference = $2.is_reference;
 		 o = new_node("Variable", Getfile($2.id),Getline($2.id));
@@ -1021,7 +1010,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   Active_typedef = (LParseType *) Copy($2);
 		   $2->is_pointer += $3.is_pointer;
 		   $2->is_pointer++;
-		   $2->arraystr = copy_string(Char($4.text));
+		   $2->arraystr = Swig_copy_string(Char($4.text));
 		   LParse_typedef_add($2,$3.id);
 		   o = new_node("Typedef", $1.filename, $1.line);
 		   Setattr(o,"name", $3.id);
@@ -1046,7 +1035,7 @@ typedeflist   : COMMA declaration typedeflist {
 		    LParseType *t;
 		    t = (LParseType *) Copy(Active_typedef);
 		    t->is_pointer += $2.is_pointer + 1;
-		    t->arraystr = copy_string(Char($3.text));
+		    t->arraystr = Swig_copy_string(Char($3.text));
 		    LParse_typedef_add(t,$2.id);
 		    o = new_node("Typedef", Getfile($2.id), Getline($2.id));
 		    Setattr(o,"name", $2.id);
@@ -1322,7 +1311,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  $1->is_pointer += $2.is_pointer;
 		  $1->is_reference = $2.is_reference;
 		  if ($3.text) {
-		    $1->arraystr = copy_string(Char($3.text));
+		    $1->arraystr = Swig_copy_string(Char($3.text));
 		    $1->is_pointer++;
 		  }
 		  Setattr(o,"name",$2.id);
@@ -1498,7 +1487,7 @@ cpp_tail      : SEMI { }
 		   t->is_pointer += $2.is_pointer;
 		   t->is_reference = $2.is_reference;
 		   if ($3.text) {
-		     t->arraystr = copy_string(Char($3.text));
+		     t->arraystr = Swig_copy_string(Char($3.text));
 		     t->is_pointer++;
 		   }
 		   Setattr(o,"name",$2.id);
@@ -1595,7 +1584,7 @@ parm           : type pname {
 		   Setattr($$,"name",$2.name);
 		   if ($2.array) {
 		     $1->is_pointer++;
-		     $1->arraystr = copy_string(Char($2.array));
+		     $1->arraystr = Swig_copy_string(Char($2.array));
 		   }
 		   if ($2.value)
 		     Setattr($$,"value",$2.value);
@@ -1607,7 +1596,7 @@ parm           : type pname {
 		  $1->is_pointer += $2.ivalue;
 		  if ($3.array) {
 		     $1->is_pointer++;
-		     $1->arraystr = copy_string(Char($3.array));
+		     $1->arraystr = Swig_copy_string(Char($3.array));
 		  }
 		  if ($3.value) {
 		    Setattr($$,"value",$3.value);
@@ -1621,7 +1610,7 @@ parm           : type pname {
 		  Setattr($$,"name",$3.name);
 		  if ($3.array) {
 		     $1->is_pointer++;
-		     $1->arraystr = copy_string(Char($3.array));
+		     $1->arraystr = Swig_copy_string(Char($3.array));
 		  }
 		  if ($3.value) {
 		    Setattr($$,"value",$3.value);
@@ -1766,7 +1755,7 @@ realtype       : TYPE_INT {  $$ = NewLParseType(LPARSE_T_INT);  }
 	       }
                | CONST type {
 		  $$ = $2;
-                  $$->qualifier = copy_string("const");
+                  $$->qualifier = Swig_copy_string("const");
      	       }
                | cpptype idtype {
                   $$ = NewLParseType(LPARSE_T_USER);

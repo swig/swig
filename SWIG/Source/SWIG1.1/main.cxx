@@ -279,7 +279,11 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   
   Swig_check_options();
 
-  Swig_set_library(LibDir);
+  {
+    DOH *rl = NewString("");
+    Printf(rl,"%s/%s", SwigLib,LibDir);
+    Swig_add_directory(rl);
+  }
 
   // If we made it this far, looks good. go for it....
 

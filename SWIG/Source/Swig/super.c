@@ -1,29 +1,20 @@
-/* ----------------------------------------------------------------------
- * Simplified Wrapper and Interface Generator (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * super.c
+ *
+ *     SuperStrings are just like strings, except that they maintain
+ *     information as to the origininal file/line of each character they
+ *     contain.
  * 
- * Authors : David Beazley
- *           Dustin Mitchell  
+ * Author(s) : Dustin Mitchell (djmitche@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- ---------------------------------------------------------------------- */
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 #include "doh.h"
 #include "swig.h"
 
 static char cvstag[] = "$Header$";
-
-/*
- * SuperStrings are just like strings, except that they maintain
- * information as to the origininal file/line of each character they
- * contain.
- */
 
 typedef struct SSTag 
 {

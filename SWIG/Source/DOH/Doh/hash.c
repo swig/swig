@@ -1,25 +1,15 @@
-/****************************************************************************
- * DOH
- * 
- * Author : David Beazley
- *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which DOH
- * can be used and distributed.
- ****************************************************************************/
-
-static char cvsroot[] = "$Header$";
-
-/***********************************************************************
+/* ----------------------------------------------------------------------------- 
  * hash.c
  *
- * Hash table implementation.
- ***********************************************************************/
+ *     Implements a simple hash table object.
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ *
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
+
+static char cvsroot[] = "$Header$";
 
 #include "dohint.h"
 
@@ -40,12 +30,7 @@ typedef struct Hash {
     HashNode           *current;
 } Hash;
 
-/* -----------------------------------------------------------------------------
-   Key interning.    This is used for getattr,setattr functions.
-
-   The following structure maps raw char * entries to string objects.  
-   ----------------------------------------------------------------------------- */
-
+/* Key interning structure */
 typedef struct KeyValue {
     char   *cstr;
     DOH    *sstr;
@@ -55,6 +40,7 @@ typedef struct KeyValue {
 
 static KeyValue *root = 0;
 
+/* Find or create a key in the interned key table */
 static DOH *find_key(char *c) {
   KeyValue *r, *s;
   int d = 0;
@@ -85,8 +71,8 @@ static DOH *find_key(char *c) {
 
 #define HASH_INIT_SIZE   7
 
-static HashNode *NewNode(DOH *k, void *obj) 
-{
+/* Create a new hash node */
+static HashNode *NewNode(DOH *k, void *obj) {
     HashNode *hn = (HashNode *) DohMalloc(sizeof(HashNode));
     hn->key = k;
     Incref(hn->key);
@@ -96,22 +82,21 @@ static HashNode *NewNode(DOH *k, void *obj)
     return hn;
 }
 
-static void DelNode(HashNode *hn) 
-{
+/* Delete a hash node */
+static void DelNode(HashNode *hn) {
     Delete(hn->key);
     Delete(hn->object);
     DohFree(hn);
 }
 
-int Hash_check(DOH *);
-
 /* -----------------------------------------------------------------------------
- * DelHash() - Delete a hash table
+ * DelHash()
+ *
+ * Delete a hash table.
  * ----------------------------------------------------------------------------- */
 
 static void 
-DelHash(DOH *ho)
-{
+DelHash(DOH *ho) {
     Hash *h;
     HashNode *n,*next;
     int i;
@@ -134,12 +119,13 @@ DelHash(DOH *ho)
 }
 
 /* -----------------------------------------------------------------------------
- * Hash_clear(DOH *ho) - Clear all entries in a hash table
+ * Hash_clear()
+ *
+ * Clear all of the entries in the hash table.
  * ----------------------------------------------------------------------------- */
 
 static void
-Hash_clear(DOH *ho)
-{
+Hash_clear(DOH *ho) {
     Hash *h;
     HashNode *n,*next;
     int i;
@@ -159,12 +145,13 @@ Hash_clear(DOH *ho)
 }
 
 /* -----------------------------------------------------------------------------
- * Hash_scope(DOH *ho, int s) - Clear all entries in a hash table
+ * Hash_scope()
+ *
+ * Change the scope of the hash table.
  * ----------------------------------------------------------------------------- */
 
 static void
-Hash_scope(DOH *ho, int s)
-{
+Hash_scope(DOH *ho, int s) {
     Hash *h;
     HashNode *n;
     int i;
@@ -184,10 +171,7 @@ Hash_scope(DOH *ho, int s)
     h->flags = h->flags & ~DOH_FLAG_SETSCOPE;
 }
 
-/* ----------------------------------------------------------------------------- 
- * static resize(Hash *h) - Resizes the hash table
- * ----------------------------------------------------------------------------- */
-
+/* resize the hash table */
 static void resize(Hash *h) {
     HashNode   *n, *next, **table;
     int         oldsize, newsize;
@@ -233,7 +217,10 @@ static void resize(Hash *h) {
 }
 
 /* -----------------------------------------------------------------------------
- * int Hash_setattr(DOH *h, DOH *k, DOH *obj) - Adds an object to a hash
+ * Hash_setattr()
+ *
+ * Set an attribute in the hash table.  Deletes the existing entry if it already
+ * exists.
  * ----------------------------------------------------------------------------- */
 
 static int  
@@ -280,7 +267,9 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *Hash_getattr(DOH *ho, DOH *k) - Get an item from the hash table
+ * Hash_getattr()
+ *
+ * Get an attribute from the hash table. Returns 0 if it doesn't exist.
  * ----------------------------------------------------------------------------- */
 
 static DOH *
@@ -301,12 +290,13 @@ Hash_getattr(DOH *ho, DOH *k) {
 }
 
 /* -----------------------------------------------------------------------------
- * void Hash_delattr(DOH *ho, DOH *k) - Delete an element from the table
+ * Hash_delattr()
+ *
+ * Delete an object from the hash table.
  * ----------------------------------------------------------------------------- */
 
 static int
-Hash_delattr(DOH *ho, DOH *k)
-{
+Hash_delattr(DOH *ho, DOH *k) {
     HashNode *n, *prev;
     int hv;
     Hash *h;
@@ -334,10 +324,7 @@ Hash_delattr(DOH *ho, DOH *k)
     return 0;
 }
 
-/* -----------------------------------------------------------------------------
- * Iterators
- * ----------------------------------------------------------------------------- */
-
+/* General purpose iterators */
 static HashNode *
 hash_first(DOH *ho) {
     Hash *h = (Hash *) ho;
@@ -367,41 +354,39 @@ hash_next(DOH *ho) {
     h->current = h->hashtable[h->currentindex];
     return h->current;
 }
-    
-static DOH *
-Hash_first(DOH *ho) {
-    HashNode *hn = hash_first(ho);
-    if (hn) return hn->object;
-    return 0;
-}
+
+/* -----------------------------------------------------------------------------
+ * Hash_firstkey()
+ *
+ * Return first hash-table key.
+ * ----------------------------------------------------------------------------- */
 
 static DOH *
-Hash_next(DOH *ho)
-{
-    HashNode *hn = hash_next(ho);
-    if (hn) return hn->object;
-    return 0;
-}
-
-static DOH *
-Hash_firstkey(DOH *ho)
-{
+Hash_firstkey(DOH *ho) {
     HashNode *hn = hash_first(ho);
     if (hn) return hn->key;
     return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * Hash_nextkey()
+ *
+ * Return next hash table key.
+ * ----------------------------------------------------------------------------- */
+
 static DOH *
-Hash_nextkey(DOH *ho)
-{
+Hash_nextkey(DOH *ho) {
     HashNode *hn = hash_next(ho);
     if (hn) return hn->key;
     return 0;
 }
 
 /* -----------------------------------------------------------------------------
- * String *Hash_str(DOH *ho) - Create a string representation of a hash
+ * Hash_str()
+ *
+ * Create a string representation of a hash table (mainly for debugging).
  * ----------------------------------------------------------------------------- */
+
 static DOH *
 Hash_str(DOH *ho) {
     int i;
@@ -430,7 +415,9 @@ Hash_str(DOH *ho) {
 }
       
 /* -----------------------------------------------------------------------------
- * Hash_len(DOH *)
+ * Hash_len()
+ *
+ * Return number of entries in the hash table.
  * ----------------------------------------------------------------------------- */
 
 static int 
@@ -444,7 +431,6 @@ Hash_len(DOH *ho) {
  *
  * Return a list of keys
  * ----------------------------------------------------------------------------- */
-
 DOH *
 Hash_keys(DOH *so) {
   DOH *keys;
@@ -461,7 +447,9 @@ Hash_keys(DOH *so) {
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *CopyHash(DOH *ho) - Copy a hash table
+ * CopyHash()
+ *
+ * Make a copy of a hash table.  Note: this is a shallow copy.
  * ----------------------------------------------------------------------------- */
 
 static DOH *
@@ -471,6 +459,7 @@ CopyHash(DOH *ho) {
     int   i;
     h = (Hash *) ho;
     nh = (Hash *) DohObjMalloc(sizeof(Hash));
+    nh->objinfo = h->objinfo;
     DohXInit(h);
     nh->hashsize = h->hashsize;
     nh->hashtable = (HashNode **) DohMalloc(nh->hashsize*sizeof(HashNode *));
@@ -480,7 +469,6 @@ CopyHash(DOH *ho) {
     nh->currentindex = -1;
     nh->current = 0;
     nh->nitems = 0;
-    nh->objinfo = h->objinfo;
     nh->line = h->line;
     nh->file = h->file;
     if (nh->file) Incref(nh->file);
@@ -508,13 +496,6 @@ static DohMappingMethods HashMappingMethods = {
   Hash_nextkey,
 };
 
-static DohPositionalMethods HashPositionalMethods = {
-  XBase_setfile,
-  XBase_getfile,
-  XBase_setline,
-  XBase_getline
-};
-
 static DohObjInfo HashType = {
     "Hash",          /* objname */
     sizeof(Hash),    /* size */
@@ -534,10 +515,17 @@ static DohObjInfo HashType = {
     0,                /* doh_file */
     0,                /* doh_string */
     0,                /* doh_callable */
-    &HashPositionalMethods,  /* doh_positional */
+    0,                /* doh_positional */
 };
 
-int Hash_check(DOH *so) {
+/* -----------------------------------------------------------------------------
+ * Hash_check()
+ *
+ * Return 1 if an object is a hash table object.
+ * ----------------------------------------------------------------------------- */
+
+int
+Hash_check(DOH *so) {
     Hash *h = (Hash *) so;
     if (!h) return 0;
     if (!DohCheck(so)) return 0;
@@ -546,13 +534,17 @@ int Hash_check(DOH *so) {
 }
 
 /* -----------------------------------------------------------------------------
- * NewHash() -  Create a new hash table
+ * NewHash()
+ *
+ * Create a new hash table.
  * ----------------------------------------------------------------------------- */
 
-DOH *NewHash() {
+DOH *
+NewHash() {
     Hash *h;
     int   i;
     h = (Hash *) DohObjMalloc(sizeof(Hash));
+    h->objinfo = &HashType;
     DohXInit(h);
     h->hashsize = HASH_INIT_SIZE;
     h->hashtable = (HashNode **) DohMalloc(h->hashsize*sizeof(HashNode *));
@@ -562,8 +554,9 @@ DOH *NewHash() {
     h->currentindex = -1;
     h->current = 0;
     h->nitems = 0;
-    h->objinfo = &HashType;
     return (DOH *) h;
 }
+
+
 
 

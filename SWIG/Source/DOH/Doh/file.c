@@ -1,19 +1,16 @@
-/******************************************************************************
- * DOH 
+/* ----------------------------------------------------------------------------- 
+ * file.c
+ *
+ *     This file implements a file-like object that can be built around an 
+ *     ordinary FILE * or integer file descriptor.
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.	
- ******************************************************************************/
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
-
-/* ---------------------------------------------------------------------------
- * file.c
- *
- * This file implements a DOH file-like object.
- * --------------------------------------------------------------------------- */
 
 #include "dohint.h"
 #include <unistd.h>
@@ -26,7 +23,9 @@ typedef struct {
 } DohFile;
 
 /* -----------------------------------------------------------------------------
- * DelFile(DOH *s) - Delete a file
+ * DelFile()
+ *
+ * Delete a file.  Closes the file if the closeondel flag is set.
  * ----------------------------------------------------------------------------- */
 
 static void
@@ -39,9 +38,9 @@ DelFile(DOH *so) {
 }
 
 /* -----------------------------------------------------------------------------
- * int File_read(DOH *so, void *buffer, int len)
+ * File_read()
  * 
- * Read data from the File
+ * Reads data from a file into a buffer.
  * ----------------------------------------------------------------------------- */
 
 static int
@@ -54,10 +53,11 @@ File_read(DOH *so, void *buffer, int len) {
 }
 
 /* -----------------------------------------------------------------------------
- * int File_write(DOH *so, void *buffer, int len)
+ * File_write()
  * 
- * Write data to the File
+ * Write data from a buffer to a file.
  * ----------------------------------------------------------------------------- */
+
 static int
 File_write(DOH *so, void *buffer, int len) {
   DohFile *s = (DohFile *) so;
@@ -68,10 +68,11 @@ File_write(DOH *so, void *buffer, int len) {
 }
 
 /* -----------------------------------------------------------------------------
- * int File_seek(DOH *so, long offset, int whence)
+ * File_seek()
  * 
- * Seek to a new position
+ * Seek to a new file position.
  * ----------------------------------------------------------------------------- */
+
 static int
 File_seek(DOH *so, long offset, int whence) {
   DohFile *s = (DohFile *) so;
@@ -82,10 +83,11 @@ File_seek(DOH *so, long offset, int whence) {
 }
 
 /* -----------------------------------------------------------------------------
- * long File_tell(DOH *so)
+ * File_tell()
  * 
- * Return current position
+ * Return current file pointer.
  * ----------------------------------------------------------------------------- */
+
 static long
 File_tell(DOH *so) {
   DohFile *s = (DohFile *) so;
@@ -96,7 +98,7 @@ File_tell(DOH *so) {
 }
 
 /* -----------------------------------------------------------------------------
- * int File_putc(DOH *obj, int ch)
+ * File_putc()
  *
  * Put a character on the output
  * ----------------------------------------------------------------------------- */
@@ -110,7 +112,7 @@ File_putc(DOH *obj, int ch) {
 }
 
 /* -----------------------------------------------------------------------------
- * int File_getc(DOH *obj)
+ * File_getc()
  *
  * Get a character
  * ----------------------------------------------------------------------------- */
@@ -124,7 +126,7 @@ File_getc(DOH *obj) {
 }
 
 /* -----------------------------------------------------------------------------
- * int File_ungetc(DOH *obj, int ch)
+ * File_ungetc()
  *
  * Put a character back onto the input
  * ----------------------------------------------------------------------------- */
@@ -171,8 +173,11 @@ static DohObjInfo DohFileType = {
 };
 
 /* -----------------------------------------------------------------------------
- * NewFile(DOH *filename, char *mode)
+ * NewFile()
+ *
+ * Create a new file from a given filename and mode.
  * ----------------------------------------------------------------------------- */
+
 DOH *
 NewFile(DOH *fn, char *mode)
 {
@@ -197,7 +202,9 @@ NewFile(DOH *fn, char *mode)
 }
 
 /* -----------------------------------------------------------------------------
- * NewFileFromFile(FILE *f)
+ * NewFileFromFile()
+ *
+ * Create a file object from an already open FILE *.
  * ----------------------------------------------------------------------------- */
 
 DOH *
@@ -214,7 +221,9 @@ NewFileFromFile(FILE *file)
 }
 
 /* -----------------------------------------------------------------------------
- * NewFileFromFd(int fd)
+ * NewFileFromFd()
+ *
+ * Create a file object from an already existing integer file descriptor.
  * ----------------------------------------------------------------------------- */
 
 DOH *
@@ -232,7 +241,9 @@ NewFileFromFd(int fd)
     
 
 /* -----------------------------------------------------------------------------
- * int File_check(DOH *f) - Check if f is a file
+ * File_check()
+ *
+ * Check if an object is a file.
  * ----------------------------------------------------------------------------- */
 int
 File_check(DOH *f) 
