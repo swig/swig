@@ -2,7 +2,7 @@
 
 # file: example.pl
 
-dl("example.so");
+dl("libexample.so");
 
 $a = 37;
 $b = 42;
