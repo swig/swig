@@ -930,6 +930,9 @@ int yylook(void) {
 	  } else if (c == '\'') {
 	    yytext[yylen-1] = 0;
 	    yylval.str = NewString(yytext+1);
+	    if (yylen == 2) {
+	      Printf(stderr,"%s:%d. Empty character constant\n", input_file,line_number);
+	    }
 	    return(CHARCONST);
 	  }
 	  break;
