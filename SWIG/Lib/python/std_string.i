@@ -27,7 +27,7 @@ namespace std {
   template <class _CharT> 
   class basic_string
   {
-#ifdef SWIG_STD_STRING_MODERN
+#ifndef SWIG_STD_STRING_MODERN
     %ignore push_back;
     %ignore clear;
     %ignore compare;
