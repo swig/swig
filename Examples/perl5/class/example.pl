@@ -22,10 +22,8 @@ print "\nA total of $example::Shape_nshapes shapes were created\n";
 
 # Set the location of the object
 
-# Notice how we can do this using functions specific to
-# the 'Circle' class.
-example::Circle_x_set($c, 20);
-example::Circle_y_set($c, 30);
+example::Shape_x_set($c, 20);
+example::Shape_y_set($c, 30);
 
 # Now use the same functions in the base class
 example::Shape_x_set($s,-10);

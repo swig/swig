@@ -27,10 +27,10 @@ extern Point            pt;
 
 /* Some read-only variables */
 
-%readonly
+%readonly {
 extern int  status;
 extern char path[256];
-%readwrite
+}
 
 /* Some helper functions to make it easier to test */
 extern void  print_vars();

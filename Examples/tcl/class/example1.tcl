@@ -23,10 +23,8 @@ puts "\nA total of $Shape_nshapes shapes were created"
 
 # Set the location of the object
 
-# Notice how we can do this using functions specific to
-# the 'Circle' class.
-Circle_x_set $c 20
-Circle_y_set $c 30
+Shape_x_set $c 20
+Shape_y_set $c 30
 
 # Now use the same functions in the base class
 Shape_x_set $s -10
@@ -70,4 +68,7 @@ delete_Shape $s
 
 puts "$Shape_nshapes shapes remain"
 puts "Goodbye"
+
+
+
 
