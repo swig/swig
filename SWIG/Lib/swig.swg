@@ -32,6 +32,10 @@
 #define %readonly    %pragma(swig) readonly;
 #define %readwrite   %pragma(swig) readwrite;
 
+/* Variable length arguments (experimental) */
+
+#define %varargs(f)  %feature(varargs) f %parms
+
 /* Directives for callback functions */
 
 /*
@@ -78,6 +82,8 @@
 #else
 %typemap(newfree) char * "free($1);";
 #endif
+
+%typemap(ignore,warning="Can't wrap variable length arguments.") (...) "";
 
 /* Default typemap for handling char * members */
 
