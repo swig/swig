@@ -8,22 +8,22 @@
  
   struct C
   {
-      C(int);
+      C(int) {}
   };
  
   template <Hello>
     class A
     {
     public:
-      A(int);
+      A(int) {}
     };
  
  
   template <Hello h>
     struct B
     {
-      C get_c();               // this works
-      A<h> get_a();         // this doesn't
+      C get_c() { return C(0); }               // this works
+      A<h> get_a() { return A<h>(0); }         // this doesn't
     };
  
   %}

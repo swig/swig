@@ -9,8 +9,8 @@
     struct A
     {
     public:
-      A();    // *** Here, the const. breaks swig ***
-               // *** swig  works without it     ***
+      A() {}    // *** Here, the const. breaks swig ***
+                // *** swig  works without it     ***
     };
  
     namespace hello
@@ -18,7 +18,7 @@
       template <Hello H>
       struct B : A<H>
       {
-    int say_hi();
+        int say_hi() { return 0; }
       };
     }
   }

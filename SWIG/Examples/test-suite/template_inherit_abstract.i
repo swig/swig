@@ -2,6 +2,7 @@
 
 %warnfilter(801) oss::test;	/* Ruby, wrong class name */
 %warnfilter(802) oss::Module;	/* Ruby, multiple inheritance */
+%warnfilter(813) oss::Module;	/* Java, multiple inheritance */
 
 %inline %{ 
  
@@ -14,7 +15,7 @@
  
       struct ModuleBase 
       { 
-          virtual ~ModuleBase(); 
+          virtual ~ModuleBase() {}
           virtual int get() = 0; 
       };      
     
@@ -22,7 +23,7 @@
       struct Module : C, ModuleBase 
       { 
         protected: 
-        Module(); 
+        Module() {}
       }; 
       
       template <class  C> 
@@ -31,7 +32,7 @@
        //  virtual int get();   // declaration here works 
    
       protected: 
-    HModule(); 
+        HModule() {}
       }; 
   } 
  
@@ -53,7 +54,7 @@ namespace oss
   { 
     struct test : HModule<B> 
     { 
-    virtual int get();   // declaration here breaks swig 
+    virtual int get() {return 0;}   // declaration here breaks swig 
     }; 
   } 
 %}  
