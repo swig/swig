@@ -156,7 +156,9 @@ namespace swigpy {
       int res = (SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0) != -1) 
 	? SWIG_OLDOBJ : 0;
       if (res) {
-	if (val) *val = p;
+	if (val) {
+	  *val = p;
+	}
       } else {
 	PyErr_Format(PyExc_TypeError, "a '%s *' is expected",
 		     type_name<Type>());
@@ -246,8 +248,8 @@ namespace swigpy {
   template <class Type> 
   struct traits_as<Type, pointer_category> {
     static Type as(PyObject *obj, bool throw_error) {
-      Type *v = 0;
-      int res = (obj ? asptr(obj, &v) : 0) && v;
+      Type *v = 0;      
+      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : 0) && v;
       if (res) {
 	if (res == SWIG_NEWOBJ) {
 	  Type r(*v);
@@ -267,6 +269,27 @@ namespace swigpy {
 	}
 	if (throw_error) throw std::invalid_argument(msg);
 	return *v_def;
+      }
+    }
+  };
+
+  template <class Type> 
+  struct traits_as<Type*, pointer_category> {
+    static Type* as(PyObject *obj, bool throw_error) {
+      Type *v = 0;      
+      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : 0) && v;
+      if (res) {
+	return v;
+      } else {
+	// Uninitialized return value, no Type() constructor required.
+	std::string msg = "a value of type '";
+	msg += swigpy::type_name<Type>();
+	msg += "' is expected";
+	if (!PyErr_Occurred()) {
+	  PyErr_SetString(PyExc_TypeError, msg.c_str());
+	}
+	if (throw_error) throw std::invalid_argument(msg);
+	return 0;
       }
     }
   };
