@@ -28,9 +28,7 @@ typedef struct ColorMap {
   %addmethods {
     ColorMap(char *filename);
     ~ColorMap();
-#ifdef SWIGJAVA
-    %name(make_default) void        default();
-#elif  SWIGPHP4
+#if defined(SWIGJAVA ) || defined(SWIGPHP4)
     %name(make_default) void        default();
 #else
     void        default();
@@ -44,16 +42,6 @@ typedef struct ColorMap {
 
 /* Some default colors */
 
-#ifdef SWIGJAVA
-const Pixel BLACK   = 0;
-const Pixel WHITE   = 1;
-const Pixel RED     = 2;
-const Pixel GREEN   = 3;
-const Pixel BLUE    = 4;
-const Pixel YELLOW  = 5;
-const Pixel CYAN    = 6;
-const Pixel MAGENTA = 7;
-#else
 #define BLACK   0
 #define WHITE   1
 #define RED     2
@@ -62,7 +50,6 @@ const Pixel MAGENTA = 7;
 #define YELLOW  5
 #define CYAN    6
 #define MAGENTA 7
-#endif
 
 /*-------------------------------------------------------------------------
   FrameBuffer
