@@ -16,13 +16,17 @@ SWIG_LIB    = @swig_lib@
 BIN_DIR     = @bindir@
 TARGET      = swig@release_suffix@@EXEEXT@
 SOURCE      = Source
+RUNTIME     = Runtime
 
 swig: source runtime swig.spec
 
 source:
 	@cd $(SOURCE); $(MAKE)
 
-swig.spec: swig.spec.in config.status
+runtime:
+	@cd $(RUNTIME); $(MAKE)
+
+swig.spec: $(srcdir)/swig.spec.in config.status
 	@CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=swig.spec $(SHELL) ./config.status
 
 .PHONY: source runtime
@@ -31,34 +35,18 @@ swig.spec: swig.spec.in config.status
 # All the languages SWIG speaks (when it wants to)
 #####################################################################
 
-skip-tcl	= [ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
-skip-perl	= [ -z "@PERL@" -o -z "@PERL5EXT@" ]
-skip-python	= [ -z "@PYINCLUDE@" -o -z "@PYLIB@" ]
-skip-java	= [ -z "@JAVA@" -o -z "@JAVAC@" -o -z "@JAVAINC@" ]
-skip-guile	= [ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
-skip-mzscheme	= [ -z "@MZC@" ]
-skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
-skip-php4	= [ -z "@PHP4@" -o -z "@PHP4INC@" ]
-skip-ocaml      = [ -z "@OCAMLBIN@" -o -z "@OCAMLINC@" ]
-skip-pike       = [ -z "@PIKE@" -o -z "@PIKEINCLUDE@" ]
-skip-chicken	= [ -z "@CHICKEN@" -o -z "@CHICKENHOME@" -o -z "@CHICKENLIB@" ]
-skip-csharp	= [ -z "@CSHARPCILINTERPRETER@" -o -z "@CSHARPCOMPILER@" ]
-
-#####################################################################
-# Runtime libraries
-#####################################################################
-
-runtime:
-	@-$(skip-tcl)      || (cd Runtime; $(MAKE) tcl)
-	@-$(skip-python)   || (cd Runtime; $(MAKE) python)
-	@-$(skip-perl)     || (cd Runtime; $(MAKE) perl5)
-	@-$(skip-ruby)     || (cd Runtime; $(MAKE) ruby)
-	@-$(skip-guile)    || (cd Runtime; $(MAKE) guile)
-	@-$(skip-mzscheme) || (cd Runtime; $(MAKE) mzscheme)
-	@-$(skip-php4)     || (cd Runtime; $(MAKE) php4)
-	@-$(skip-ocaml)    || (cd Runtime; $(MAKE) ocaml)
-	@-$(skip-chicken)  || (cd Runtime; $(MAKE) chicken)
-#	@-$(skip-pike)     || (cd Runtime; $(MAKE) pike)
+skip-tcl	= test -n "@SKIP_TCL@"
+skip-perl	= test -n "@SKIP_PERL5@"
+skip-python	= test -n "@SKIP_PYTHON@"
+skip-java	= test -n "@SKIP_JAVA@"
+skip-guile	= test -n "@SKIP_GUILE@"
+skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
+skip-ruby	= test -n "@SKIP_RUBY@"
+skip-php4	= test -n "@SKIP_PHP4@"
+skip-ocaml      = test -n "@SKIP_OCAML@"
+skip-pike       = test -n "@SKIP_PIKE@"
+skip-chicken	= test -n "@SKIP_CHICKEN@"
+skip-csharp	= test -n "@SKIP_CSHARP@"
 
 #####################################################################
 # CHECK
@@ -67,7 +55,7 @@ runtime:
 ACTION = check
 
 chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/Lib
-chk-set-runtimelib	= RUNTIMEDIR=@ROOT_DIR@/Runtime/.libs
+chk-set-runtimelib	= RUNTIMEDIR=@ROOT_DIR@/$(RUNTIME)/.libs
 chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
 
 chk-set-env = $(chk-set-swiglib) $(chk-set-swig) $(chk-set-runtimelib)
@@ -87,9 +75,9 @@ check-aliveness:
 	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
 	@$(skip-php4)     || ./$(TARGET) -php4     -help
+	@$(skip-pike)     || ./$(TARGET) -pike     -help
 	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
 	@$(skip-csharp)   || ./$(TARGET) -csharp   -help
-#	@$(skip-pike)     || ./$(TARGET) -pike     -help
 
 check-examples:					\
 	check-tcl-examples			\
@@ -101,9 +89,9 @@ check-examples:					\
 	check-ruby-examples			\
 	check-ocaml-examples			\
 	check-php4-examples			\
+	check-pike-examples			\
 	check-chicken-examples                  \
-	check-csharp-examples                   \
-#	check-pike-examples
+	check-csharp-examples
 
 check-%-examples:
 	@passed=true;						\
@@ -133,9 +121,9 @@ check-test-suite:				\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
 	check-php4-test-suite			\
+	check-pike-test-suite			\
 	check-csharp-test-suite			\
-#	check-chicken-test-suite		\
-#	check-pike-test-suite
+#	check-chicken-test-suite
 
 check-%-test-suite:
 	@passed=true;							\
@@ -164,9 +152,9 @@ check-gifplot:					\
 	check-ruby-gifplot			\
 	check-ocaml-gifplot			\
 	check-php4-gifplot			\
+	check-pike-gifplot			\
 	check-chicken-gifplot                   \
-#	check-csharp-gifplot                    \
-#	check-pike-gifplot
+#	check-csharp-gifplot
 
 check-%-gifplot: gifplot-library
 	@passed=true;						\
@@ -202,9 +190,9 @@ all-test-suite:					\
 	all-ruby-test-suite			\
 	all-ocaml-test-suite			\
 	all-php4-test-suite			\
+	all-pike-test-suite			\
 	all-csharp-test-suite			\
-#	all-chicken-test-suite			\
-#	all-pike-test-suite
+#	all-chicken-test-suite
 
 all-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=all
@@ -223,9 +211,9 @@ broken-test-suite:				\
 	broken-ruby-test-suite			\
 	broken-ocaml-test-suite			\
 	broken-php4-test-suite			\
+	broken-pike-test-suite			\
 	broken-csharp-test-suite		\
-#	broken-chicken-test-suite		\
-#	broken-pike-test-suite
+#	broken-chicken-test-suite
 
 broken-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=broken
@@ -250,7 +238,7 @@ distclean-source:
 
 clean-runtime:
 	@echo cleaning Runtime
-	@cd Runtime; $(MAKE) -s clean
+	@cd $(RUNTIME); $(MAKE) -s clean
 
 distclean-dead = config.status config.log config.cache swig.spec Makefile mkmf.log
 
@@ -281,10 +269,10 @@ clean-%-gifplot:
 # TARGETS: install & friends
 #####################################################################
 
-INSTALL         = $(srcdir)/Tools/config/install-sh -c
+INSTALL         = @abs_srcdir@/Tools/config/install-sh -c
 INSTALL_DATA    = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL} -m 755
-MKINSTDIRS      = $(srcdir)/Tools/config/mkinstalldirs
+MKINSTDIRS      = @abs_srcdir@/Tools/config/mkinstalldirs
 
 install: install-main install-lib install-runtime
 	@echo "Installation complete"
@@ -304,7 +292,7 @@ install-lib:
 	@cd $(srcdir)/Lib; for i in *.i *.swg; \
 	    do \
 	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i"; \
-            ../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/$$i; \
+            $(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/$$i; \
 	    done;
 	@for lang in $(lib-languages);				\
 	    do							\
@@ -322,14 +310,14 @@ install-lib:
 	      else for file in $$doti $$dotswg $$extra;		\
 		  do						\
 		  echo "Installing $$dst/$$file";		\
-		  ../../$(INSTALL_DATA) $$file $$dst/$$file;	\
+		  $(INSTALL_DATA) $$file $$dst/$$file;	\
 		  done;						\
 	      fi );						\
 	    done
 
 
 install-runtime:
-	@cd Runtime; $(MAKE) install
+	@cd $(RUNTIME); $(MAKE) install
 
 
 #####################################################################
@@ -348,7 +336,7 @@ uninstall-lib:
 	rm -rf $(DESTDIR)$(SWIG_LIB)/;
 
 uninstall-runtime:
-	@cd Runtime; $(MAKE) uninstall
+	@cd $(RUNTIME); $(MAKE) uninstall
 
 
 ############################################################################
