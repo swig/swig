@@ -678,7 +678,7 @@ if test "$JAVAINC" = "" ; then
 else
   # now look for <arch>/jni_md.h
   AC_MSG_CHECKING(for java include file jni_md.h)
-  JAVAMDDIR=`find $JAVAINCDIR -name jni_md.h -print`
+  JAVAMDDIR=`find $JAVAINCDIR -follow -name jni_md.h -print`
   if test "$JAVAMDDIR" = "" ; then
     AC_MSG_RESULT(not found)
   else
