@@ -466,12 +466,11 @@ public:
 	    if (!ts) {
 		Node *ns;
 		/* Create a empty scope for the alias */
-		SwigType_new_scope(name);
 		ns = Getattr(n,"namespace");
 		if (ns) {
-		    SwigType_inherit_scope(Getattr(ns,"typescope"));
+		    SwigType_scope_alias(name, Getattr(ns,"typescope"));
 		}
-		ts = SwigType_pop_scope();	  
+		ts = Getattr(ns,"typescope");
 		Setattr(n,"typescope",ts);
 	    }
 	    /* Namespace alias */
@@ -704,7 +703,7 @@ public:
 	    if (ns) {
 		Typetab *ts = Getattr(ns,"typescope");
 		if (ts) {
-		    SwigType_inherit_scope(ts);
+		    SwigType_using_scope(ts);
 		}
 	    }
 	    return SWIG_OK;

@@ -227,15 +227,67 @@ void SwigType_new_scope(String_or_char *name) {
 void 
 SwigType_inherit_scope(Typetab *scope) {
   List *inherits;
+  int   i, len;
   inherits = Getattr(current_scope,"inherit");
   if (!inherits) {
     inherits = NewList();
     Setattr(current_scope,"inherit", inherits);
   }
   assert(scope != current_scope);
+  
+  len = Len(inherits);
+  for (i = 0; i < len; i++) {
+    Node *n = Getitem(inherits,i);
+    if (n == scope) return;
+  }
   Append(inherits,scope);
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_scope_alias()
+ *
+ * Creates a scope-alias.
+ * ----------------------------------------------------------------------------- */
+
+void
+SwigType_scope_alias(String *aliasname, Typetab *ttab) {
+  String *s,*q;
+  /*  Printf(stdout,"alias: '%s' '%x'\n", aliasname, ttab);*/
+  q = SwigType_scope_name(current_scope);
+  if (Len(q)) {
+    Append(q,"::");
+  } 
+  Append(q,aliasname);
+  Setattr(scopes,q,ttab);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_using_scope()
+ *
+ * Import another scope into this scope.
+ * ----------------------------------------------------------------------------- */
+
+void
+SwigType_using_scope(Typetab *scope) {
+  SwigType_inherit_scope(scope);
+  {
+    List *ulist;
+    int   i, len;
+    ulist = Getattr(current_scope,"using");
+    if (!ulist) {
+      ulist = NewList();
+      Setattr(current_scope,"using", ulist);
+    }
+    assert(scope != current_scope);
+    len = Len(ulist);
+    for (i = 0; i < len; i++) {
+      Typetab *n = Getitem(ulist,i);
+      if (n == scope) return;
+    }
+    Append(ulist,scope);
+  }
+}
+ 
 /* -----------------------------------------------------------------------------
  * SwigType_pop_scope()
  *
@@ -302,7 +354,7 @@ void SwigType_print_scope(Typetab *t) {
     t = Getattr(scopes,tkey);
     ttab = Getattr(t,"typetab");
     
-    Printf(stdout,"Type scope '%s' (%x)\n", Getattr(t,"qname"), t);
+    Printf(stdout,"Type scope '%s' (%x)\n", tkey, t);
     {
       List *inherit = Getattr(t,"inherit");
       if (inherit) {
@@ -351,10 +403,10 @@ SwigType_find_scope(Typetab *s, String *nameprefix) {
       if (nnameprefix) Delete(nnameprefix);
       return s;
     }
-    if (0) if (!s) {
+    if (!s) {
       /* Check inheritance */
       List *inherit;
-      inherit = Getattr(ss,"inherit");
+      inherit = Getattr(ss,"using");
       if (inherit) {
 	Typetab *ttab;
 	int i, len;

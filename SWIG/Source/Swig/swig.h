@@ -244,6 +244,8 @@ extern int         SwigType_typedef(SwigType *type, String_or_char *name);
 extern int         SwigType_typedef_class(String_or_char *name);
 extern int         SwigType_typedef_using(String_or_char *qname);
 extern void        SwigType_inherit(String *subclass, String *baseclass, String *cast);
+extern void        SwigType_scope_alias(String *aliasname, Typetab *t);
+extern void        SwigType_using_scope(Typetab *t);
 extern void        SwigType_new_scope(String_or_char *name);
 extern void        SwigType_reset_scopes();
 extern void        SwigType_set_scope_name(String_or_char *name);
