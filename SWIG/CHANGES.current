@@ -1,6 +1,75 @@
 Version 1.3.23 (in progress)
 ==================================
 
+10/1/2004: mmatus
+	   - Fix the %callback feature (only used in ruby and python examples,
+	     by now, but it should be generic), now member callbacks
+	     are working again
+	     
+	   - Fix wrapping of functions pointers like
+
+		 std::ostream& std::endl(std::ostream&);
+
+	     ie, the ones that return references or enums.
+	 
+	   [Python] Add the %pythoncallback directive, which is 
+	   an improved version of %callback, ie,
+
+	     %pythoncallback(1) foo;
+	     %pythoncallback(1) A::bar;
+	     %pythoncallback(1) A::barm;
+
+	     int foo(int a) {
+	         return a;
+	     }
+  
+	     struct A 
+	     {
+	       static int bar(int a);
+	       int barm(int a);
+
+	     };
+
+             int foobar(int a, int (*pf)(int a));
+
+	   in python you can use
+
+             foo(2)
+	     foobar(2,foo)
+             A.bar(2)
+	     foobar(2,A.bar)
+          
+           ie, no additional pointer elements are created, and
+	   the original 'foo' and 'A.bar' can be used as parameters.
+
+	   In the case of member fucntion however, still you need
+	   to use the special variable Class::<fnc_name>_cb_ptr, ie:
+
+ 	     foobarm(3, a, A.barm_cb_ptr)
+	   
+	   we will try to fix this situation also, but later.  
+
+	   [Python] Add more elements from the STL library, now
+	   you can use
+
+	     import std
+	     std.cout << "hello " << 123 << std.endl
+
+	   [Python] Fix in/out return mechanism, now swig will behave
+	   as 1.3.21 but using a python list when needed. The problem
+	   is that the types std::pair,std::vector,etc, use tuples,
+	   and they interfer with the previous inout tuple type.
+
+	   By using lists we solve the conflicts, swig acts as before,
+	   but returns a list when more than one parameter are using
+	   the OUT typemap. See the new inout.i example in the
+	   test-suite.
+
+            *** POTENTIAL INCOMPATIBILITY FOR PYTHON MODULE ***
+		   
+           [Python] Much better error messages for bad arguments, now
+	   you always get the argument number where the error occurred.
+
 09/27/2004: wsfulton
             Patch from Bill Clarke -
             1) Warning emitted when -importall and -includeall is used together,
