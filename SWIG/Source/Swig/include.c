@@ -143,6 +143,7 @@ Swig_read_file(FILE *f) {
  * Opens a file and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
+static int readbytes = 0;
 DOHString *
 Swig_include(const DOHString_or_char *name) {
   FILE         *f;
@@ -156,7 +157,13 @@ Swig_include(const DOHString_or_char *name) {
   Seek(str,0,SEEK_SET);
   Setfile(str,lastpath);
   Setline(str,1);
+  readbytes += Len(str);
   return str;
+}
+
+int
+Swig_bytes_read() {
+  return readbytes;
 }
 
 /* -----------------------------------------------------------------------------
