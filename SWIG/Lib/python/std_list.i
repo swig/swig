@@ -12,12 +12,8 @@
   void pop_front();
   void push_front(const value_type& x);
   		
-  void remove(const value_type& x);
-  void unique();
   void reverse();
-  void sort();
   
-  void merge(list& x);
 %enddef
 
 
@@ -69,18 +65,15 @@
   namespace swigpy {
     template <class T >
     struct traits_asptr<std::list<T> >  {
-      typedef std::list<T> list_type;
-      typedef T value_type;
-      static int asptr(PyObject *obj, list_type **lis) {
-	return traits_asptr_stdseq<list_type>::asptr(obj, lis);
+      static int asptr(PyObject *obj, std::list<T> **lis) {
+	return traits_asptr_stdseq<std::list<T> >::asptr(obj, lis);
       }
     };
 
     template <class T>
     struct traits_from<std::list<T> > {
-      typedef std::list<T> list_type;
-      static PyObject *from(const list_type& vec) {
-	return traits_from_stdseq<list_type>::from(vec);
+      static PyObject *from(const std::list<T> & vec) {
+	return traits_from_stdseq<std::list<T> >::from(vec);
       }
     };
   }
@@ -117,7 +110,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_CCode(LIST), std::list<T >);
   
-    %std_list_methods(std::list<T >);
+    %std_list_methods(list);
     %pysequence_methods(std::list<T >);
   };
 
@@ -145,15 +138,26 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_CCode(LIST), std::list<T* >);
 
-    %std_list_methods_val(std::list<T* >);
+    %std_list_methods_val(list);
     %pysequence_methods_val(std::list<T* >);
   };
 
 }
 
+%define %std_extequal_list(...)
+%extend std::list<__VA_ARGS__ > { 
+  void remove(const value_type& x) { self->remove(x); }  
+  void merge(std::list<__VA_ARGS__ >& x){ self->merge(x); }  
+  void unique() { self->unique(); }  
+  void sort() { self->sort(); }  
+}
+%enddef
+
 %define %std_list_ptypen(...) 
   %std_extcomp(list, __VA_ARGS__);
   %std_definst(list, __VA_ARGS__);
+  %evalif(SWIG_EqualType(__VA_ARGS__),
+	  SWIG_arg(%std_extequal_list(__VA_ARGS__)));
 %enddef
 
 #if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)

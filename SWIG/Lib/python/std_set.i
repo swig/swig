@@ -73,8 +73,7 @@
 
     template <class T>
     struct traits_asptr<std::set<T> >  {
-      typedef std::set<T> set_type;
-      static int asptr(PyObject *obj, set_type **s) {
+      static int asptr(PyObject *obj, std::set<T> **s) {
 	return traits_asptr_stdseq<std::set<T> >::asptr(obj, s);
       }
     };
@@ -121,7 +120,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_CCode(SET), std::set<T >);
   
-    %std_set_methods(std::set<T >);
+    %std_set_methods(set);
     %pycontainer_methods(std::set<T >);
   };
 

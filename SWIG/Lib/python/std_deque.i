@@ -54,18 +54,15 @@
   namespace swigpy {
     template <class T>
     struct traits_asptr<std::deque<T> >  {
-      typedef std::deque<T> deque_type;
-      typedef T value_type;
-      static int asptr(PyObject *obj, deque_type **vec) {
-	return traits_asptr_stdseq<deque_type>::asptr(obj, vec);
+      static int asptr(PyObject *obj, std::deque<T>  **vec) {
+	return traits_asptr_stdseq<std::deque<T> >::asptr(obj, vec);
       }
     };
 
     template <class T>
     struct traits_from<std::deque<T> > {
-      typedef std::deque<T> deque_type;
-      static PyObject *from(const deque_type& vec) {
-	return traits_from_stdseq<deque_type>::from(vec);
+      static PyObject *from(const std::deque<T> & vec) {
+	return traits_from_stdseq<std::deque<T> >::from(vec);
       }
     };
   }
@@ -102,7 +99,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_CCode(DEQUE), std::deque<T >);
   
-    %std_deque_methods(std::deque<T >);
+    %std_deque_methods(deque);
     %pysequence_methods(std::deque<T >);
   };
 

@@ -57,18 +57,15 @@
   namespace swigpy {
     template <class T>
     struct traits_asptr<std::vector<T> >  {
-      typedef std::vector<T> vector_type;
-      typedef T value_type;
-      static int asptr(PyObject *obj, vector_type **vec) {
-	return traits_asptr_stdseq<vector_type>::asptr(obj, vec);
+      static int asptr(PyObject *obj, std::vector<T> **vec) {
+	return traits_asptr_stdseq<std::vector<T> >::asptr(obj, vec);
       }
     };
-
+    
     template <class T>
     struct traits_from<std::vector<T> > {
-      typedef std::vector<T> vector_type;
-      static PyObject *from(const vector_type& vec) {
-	return traits_from_stdseq<vector_type>::from(vec);
+      static PyObject *from(const std::vector<T>& vec) {
+	return traits_from_stdseq<std::vector<T> >::from(vec);
       }
     };
   }

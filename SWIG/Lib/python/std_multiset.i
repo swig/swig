@@ -49,8 +49,7 @@
 
     template <class T>
     struct traits_asptr<std::multiset<T> >  {
-      typedef std::multiset<T> multiset_type;
-      static int asptr(PyObject *obj, multiset_type **m) {
+      static int asptr(PyObject *obj, std::multiset<T> **m) {
 	return traits_asptr_stdseq<std::multiset<T> >::asptr(obj, m);
       }
     };
@@ -98,7 +97,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_CCode(MULTISET), std::multiset<T >);
   
-    %std_multiset_methods(std::multiset<T >);
+    %std_multiset_methods(multiset);
     %pycontainer_methods(std::multiset<T >);
   };
 

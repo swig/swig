@@ -175,3 +175,15 @@
   }
 %}
 
+
+//
+// Ignore member methods for Type with no default constructor
+//
+%define %std_nodefconst_type(...)
+%feature("ignore") std::vector<__VA_ARGS__ >::vector(size_type size);
+%feature("ignore") std::vector<__VA_ARGS__ >::resize(size_type size);
+%feature("ignore") std::deque<__VA_ARGS__ >::deque(size_type size);
+%feature("ignore") std::deque<__VA_ARGS__ >::resize(size_type size);
+%feature("ignore") std::list<__VA_ARGS__ >::list(size_type size);
+%feature("ignore") std::list<__VA_ARGS__ >::resize(size_type size);
+%enddef

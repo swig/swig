@@ -255,42 +255,37 @@ namespace swigpy
   // __getitem__ is required to raise an IndexError for for-loops to work
   // other methods which can raise are made to throw an IndexError as well
   %exception __getitem__ {
-    try {
-      $action;
-    } catch (std::out_of_range& e) {
+    try { $action }
+    catch (std::out_of_range& e) {
       SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
   }
 
   %exception __setitem__ {
-    try {
-      $action;
-    } catch (std::out_of_range& e) {
+    try { $action }
+    catch (std::out_of_range& e) {
       SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
   }
 
   %exception __setslice__ {
-    try {
-      $action;
-    } catch (std::invalid_argument& e) {
+    try { $action }
+    catch (std::invalid_argument& e) {
       SWIG_exception(SWIG_TypeError,const_cast<char*>(e.what()));
     }
   }
 
   %exception __delitem__  {
-    try {
-      $action;
-    } catch (std::out_of_range& e) {
+    try { $action }
+    catch (std::out_of_range& e) {
       SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
   }
 
   %exception pop  {
-    try {
-	$action;
-    } catch (std::out_of_range& e) {
-	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+    try { $action }
+    catch (std::out_of_range& e) {
+      SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
   }
 
@@ -301,8 +296,7 @@ namespace swigpy
       return !(self->empty());
     }
 
-    size_type __len__() const 
-    {
+    size_type __len__() const {
       return self->size();
     }
   }
