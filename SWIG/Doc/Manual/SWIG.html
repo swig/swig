@@ -42,7 +42,7 @@
 <li><a href="#SWIG_nn26">Arrays</a>
 <li><a href="#SWIG_nn27">Creating read-only variables</a>
 <li><a href="#SWIG_nn28">Renaming and ignoring declarations</a>
-<li><a href="#SWIG_nn29">Default/optional arguments</a>
+<li><a href="#SWIG_default_args">Default/optional arguments</a>
 <li><a href="#SWIG_nn30">Pointers to functions and callbacks</a>
 </ul>
 <li><a href="#SWIG_nn31">Structures and unions</a>
@@ -1581,7 +1581,7 @@ For example:
 This directive is still supported, but it is deprecated and should probably be avoided.  The <tt>%rename</tt>
 directive is more powerful and better supports wrapping of raw header file information.
 
-<H3><a name="SWIG_nn29"></a>5.4.8 Default/optional arguments</H3>
+<H3><a name="SWIG_default_args"></a>5.4.8 Default/optional arguments</H3>
 
 
 <p>
@@ -1609,10 +1609,11 @@ arguments specified in a SWIG interface work with both C and C++.
 <p>
 <b>Note:</b> There is a subtle semantic issue concerning the use 
 of default arguments and the SWIG generated wrapper code.  When default
-arguments are used, the default values are emitted into the wrappers and the
-function is invoked with a full set of arguments.  This behavior is not
-100% compatible with all uses of default arguments in C++.  Please refer to
-the C++ chapter for further details.
+arguments are used in C code, the default values are emitted into the wrappers and the
+function is invoked with a full set of arguments. This is different to when wrapping C++
+where an overloaded wrapper method is generated for each defaulted argument.
+Please refer to the section on <a href="SWIGPlus.html#SWIGPlus_default_args">default arguments</a>
+in the C++ chapter for further details.
 </p>
 
 <H3><a name="SWIG_nn30"></a>5.4.9 Pointers to functions and callbacks</H3>

@@ -46,6 +46,7 @@
 <li><a href="#null_pointers">Null pointers</a>
 </ul>
 <li><a href="#overloaded_functions">C++ overloaded functions</a>
+<li><a href="#java_default_arguments">C++ default arguments</a>
 <li><a href="#namespaces">C++ namespaces</a>
 <li><a href="#templates">C++ templates</a>
 <li><a href="#smart_pointers">C++ Smart Pointers</a>
@@ -1493,6 +1494,8 @@ if you have two functions like this:
 
 <blockquote>
 <pre>
+%module example
+
 void foo(int);
 void foo(char *c);
 </pre>
@@ -1502,8 +1505,8 @@ You can use them in Java in a straightforward manner:
 
 <blockquote>
 <pre>
-foo(3);           // foo(int)
-foo("Hello");     // foo(char *c)
+example.foo(3);           // foo(int)
+example.foo("Hello");     // foo(char *c)
 </pre>
 </blockquote>
 
@@ -1580,7 +1583,46 @@ void spam(short);   // Ignored
 </pre>
 </blockquote>
 
-<H3><a name="namespaces"></a>19.3.12 C++ namespaces</H3>
+<H3><a name="java_default_arguments"></a>19.3.12 C++ default arguments</H3>
+
+
+Any function with a default argument is wrapped by generating an additional function for each argument that is defaulted.
+For example, if we have the following C++:
+
+<blockquote>
+<pre>
+%module example
+
+void defaults(double d=10.0, int i=0);
+</pre>
+</blockquote>
+
+The following methods are generated in the Java module class:
+
+<blockquote>
+<pre>
+public class example {
+  public static void defaults(double d, int i) { ... }
+  public static void defaults(double d) { ... }
+  public static void defaults() { ... }
+}
+</pre>
+</blockquote>
+
+<p>
+It is as if SWIG had parsed three separate overloaded methods.
+The same approach is taken for static methods, constructors and member methods.
+</p>
+
+<p>
+<b>Compatibility note:</b> Versions of SWIG prior to SWIG-1.3.23 wrapped these with a
+single wrapper method and so the default values could not be taken advantage of from Java.
+Further details on default arguments and how to restore this approach are given in the more general 
+<a href="SWIGPlus.html#SWIGPlus_default_args">Default arguments</a> section.
+</p>
+
+
+<H3><a name="namespaces"></a>19.3.13 C++ namespaces</H3>
 
 
 SWIG is aware of C++ namespaces, but namespace names do not appear in
@@ -1628,11 +1670,11 @@ namespace Bar {
 </pre>
 </blockquote>
 
-If you have more than one namespace and your want to keep their
+If you have more than one namespace and you want to keep their
 symbols separate, consider wrapping them as separate SWIG modules.
 Each SWIG module can be placed into a separate package.
 
-<H3><a name="templates"></a>19.3.13 C++ templates</H3>
+<H3><a name="templates"></a>19.3.14 C++ templates</H3>
 
 
 C++ templates don't present a huge problem for SWIG.  However, in order
@@ -1675,7 +1717,7 @@ int second = p.getSecond();
 Obviously, there is more to template wrapping than shown in this example.
 More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a> chapter.   
 
-<H3><a name="smart_pointers"></a>19.3.14 C++ Smart Pointers</H3>
+<H3><a name="smart_pointers"></a>19.3.15 C++ Smart Pointers</H3>
 
 
 In certain C++ programs, it is common to use classes that have been wrapped by
