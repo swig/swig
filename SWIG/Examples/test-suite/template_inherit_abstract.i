@@ -1,6 +1,7 @@
 %module template_inherit_abstract
 
-%warnfilter(801) oss::test; /* Ruby, wrong class name */
+%warnfilter(801) oss::test;	/* Ruby, wrong class name */
+%warnfilter(802) oss::Module;	/* Ruby, multiple inheritance */
 
 %inline %{ 
  
