@@ -198,9 +198,10 @@ public:
 
     /* Add a symbol for this module */
     Preprocessor_define ("SWIGGUILE 1",0);
-    Preprocessor_define ("SWIG_NO_OVERLOAD 1", 0);
     /* Read in default typemaps */
     SWIG_config_file("guile.i");
+    allow_overloading();
+    
   }
 
   /* ------------------------------------------------------------
@@ -467,12 +468,12 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int functionWrapper(Node *n) {
-    char *iname = GetChar(n,"sym:name");
+    String *iname = Getattr(n,"sym:name");
     SwigType *d = Getattr(n,"type");
     ParmList *l = Getattr(n,"parms");
     Parm *p;
     String *proc_name = 0;
-    char source[256], target[256], wname[256];
+    char source[256], target[256];
     Wrapper *f = NewWrapper();;
     String *cleanup = NewString("");
     String *outarg = NewString("");
@@ -484,14 +485,22 @@ public:
     int i;
     int numargs = 0;
     int numreq = 0;
-    
-    if (!addSymbol(iname,n)) return SWIG_ERROR;
+    String *overname = 0;
+    int args_passed_as_array = 0;
     
     // Make a wrapper name for this
-    {
-      String *n = Swig_name_mangle(iname);
-      strcpy(wname, Char(Swig_name_wrapper(n)));
+    String *wname = Swig_name_wrapper(iname);
+    if (Getattr(n,"sym:overloaded")) {
+      overname = Getattr(n,"sym:overname");
+      args_passed_as_array = 1;
+    } else {
+      if (!addSymbol(iname,n)) return SWIG_ERROR;
     }
+    if (overname) {
+      Append(wname, overname);
+    }
+    Setattr(n,"wrap:name",wname);
+    
     // Build the name for scheme.
     proc_name = NewString(iname);
     Replaceall(proc_name,"_", "-");
@@ -501,6 +510,7 @@ public:
     
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l,f);
+    Setattr(n,"wrap:parms",l);
     
     /* Get number of required and total arguments */
     numargs = emit_num_arguments(l);
@@ -528,6 +538,9 @@ public:
     /* Open prototype and signature */
     
     Printv(f->def, "static SCM\n", wname," (", NIL);
+    if (args_passed_as_array) {
+      Printv(f->def, "int argc, SCM *argv", NIL);
+    }
     Printv(signature, proc_name, NIL);
     
     /* Now write code to extract the parameters */
@@ -543,13 +556,18 @@ public:
       int opt_p = (i >= numreq);
       
       // Produce names of source and target
-      sprintf(source,"s_%d",i);
+      if (args_passed_as_array)
+	sprintf(source, "argv[%d]", i);
+      else
+	sprintf(source,"s_%d",i);
       sprintf(target,"%s", Char(ln));
       
-      if (i!=0) Printf(f->def,", ");
-      Printf(f->def,"SCM s_%d", i);
+      if (!args_passed_as_array) {
+	if (i!=0) Printf(f->def,", ");
+	Printf(f->def,"SCM s_%d", i);
+      }
       if (opt_p) {
-	Printf(f->code,"    if (s_%d != GH_NOT_PASSED) {\n", i);
+	Printf(f->code,"    if (%s != GH_NOT_PASSED) {\n", source);
       }
       if ((tm = Getattr(p,"tmap:in"))) {
 	Replaceall(tm,"$source",source);
@@ -687,6 +705,7 @@ public:
     
     Wrapper_print (f, f_wrappers);
     
+    if (!Getattr(n, "sym:overloaded")) {
     if (numargs > 10) {
       int i;
       /* gh_new_procedure would complain: too many args */
@@ -742,6 +761,37 @@ public:
       /* Register the function */
       Printf (f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s, %d, %d, 0);\n",
 	      proc_name, wname, numreq, numargs-numreq);
+    }
+    }
+    else { /* overloaded function; don't export the single methods */
+      if (!Getattr(n,"sym:nextSibling")) {
+	/* Emit overloading dispatch function */
+
+	int maxargs;
+	String *dispatch = Swig_overload_dispatch(n,"return %s(argc,argv);",&maxargs);
+	
+	/* Generate a dispatch wrapper for all overloaded functions */
+
+	Wrapper *df      = NewWrapper();
+	String  *dname   = Swig_name_wrapper(iname);
+
+	Printv(df->def,	
+	       "static SCM\n", dname,
+	       "(SCM rest)\n{\n",
+	       NIL);
+	Printf(df->code, "SCM argv[%d];\n", maxargs);
+	Printf(df->code, "int argc = SWIG_Guile_GetArgs (argv, rest, %d, %d, \"%s\");\n", 
+	       0, maxargs, proc_name);
+	Printv(df->code,dispatch,"\n",NIL);
+	Printf(df->code,"scm_misc_error(\"%s\", \"No matching method for generic function `%s'\", SCM_EOL);\n", proc_name, iname);
+	Printv(df->code,"}\n",NIL);
+	Wrapper_print(df,f_wrappers);
+	Printf(f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s, 0, 0, 1);\n",
+	       proc_name, dname);
+	DelWrapper(df);
+	Delete(dispatch);
+	Delete(dname);
+      }
     }
     Printf (exported_symbols, "\"%s\", ", proc_name);
     if (procdoc) {
