@@ -36,8 +36,8 @@ struct Method {               // Methods list.  Needed to build methods
 
 static Method  *head = 0;
 
-static  DOHString       *const_code = 0;
-static  DOHString       *shadow_methods = 0;
+static  String       *const_code = 0;
+static  String       *shadow_methods = 0;
 
 static  char   *module = 0;               // Module name
 static  char   *path = (char*)"python";   // Pathname of where to look for library files
@@ -48,13 +48,13 @@ static  int     have_output;
 static  int     use_kw = 0;     
 static  int     noopt = 1; 
 static  FILE    *f_shadow;
-static  DOHHash     *hash;
-static  DOHHash     *symbols;
-static  DOHString   *classes;
-static  DOHString   *func;
-static  DOHString   *vars;
-static  DOHString   *modinit;
-static  DOHString   *modextern;
+static  Hash     *hash;
+static  Hash     *symbols;
+static  String   *classes;
+static  String   *func;
+static  String   *vars;
+static  String   *modinit;
+static  String   *modextern;
 
 static  char     *import_file = 0;
 static  char     *class_name;
@@ -68,7 +68,15 @@ Python Options (available with -python)\n\
      -opt            - Optimized shadow classes (1.5.2 or later)\n\
      -shadow         - Generate shadow classes. \n\n";
 
-static DOHString *pragma_include = 0;
+static String *pragma_include = 0;
+
+/* Test to see if a type corresponds to something wrapped with a shadow class */
+
+static DOH *is_shadow(SwigType *t) {
+  SwigType *lt = Swig_clocal_type(t);
+  Swig_temp_result(lt);
+  return Getattr(hash,lt);
+}
 
 // ---------------------------------------------------------------------
 // PYTHON::parse_args(int argc, char *argv[])
@@ -139,8 +147,6 @@ void PYTHON::parse_args(int argc, char *argv[]) {
 void
 PYTHON::parse() {
   
-  printf("Generating wrappers for Python\n"); 
-
   hash = NewHash();
   symbols = NewHash();
 
@@ -189,29 +195,6 @@ void PYTHON::set_module(char *mod_name, char **mod_list) {
 
   module = new char[strlen(mod_name)+1];
   strcpy(module,mod_name);
-
-  // If there was a mod_list specified, make this incredible hack
-  if  (mod_list) {
-    Printf(modinit, "#define SWIGMODINIT ");
-    Printv(modextern,
-	   "#ifdef __cplusplus\n",
-	   "extern \"C\" {\n",
-	   "#endif\n",
-	   0);
-    i = 0;
-    while(mod_list[i]) {
-      Printv(modinit, "swig_add_module(\"", mod_list[i], "\",init", mod_list[i], "); \\\n", 0);
-      
-      Printv(modextern, "extern void init", mod_list[i], "();\n", 0);
-      i++;
-    }
-    Printv(modextern,
-	   "#ifdef __cplusplus\n",
-	   "}\n",
-	   "#endif\n",
-	   0);
-    Printf(modinit,"/* End of extern module initialization */\n");
-  }
 }
 
 // ---------------------------------------------------------------------
@@ -295,12 +278,15 @@ void PYTHON::headers(void)
 
   Swig_banner(f_runtime);
 
-  Printf(f_runtime,"/* Implementation : PYTHON */\n\n");
   Printf(f_runtime,"#define SWIGPYTHON\n");
 
   if (NoInclude) 
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
 
+  if (Swig_insert_file("common.swg", f_runtime) == -1) {
+    Printf(stderr,"SWIG : Fatal error. Unable to locate common.swg. (Possible installation problem).\n");
+    SWIG_exit(1);
+  }
   if (Swig_insert_file("python.swg", f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate python.swg. (Possible installation problem).\n");
     SWIG_exit(1);
@@ -454,8 +440,7 @@ void PYTHON::close(void)
 // --------------------------------------------------------------------
 void PYTHON::close_cmodule(void)
 {
-  emit_type_table(f_runtime);
-  /*  emit_ptr_equivalence(f_init); */
+  SwigType_emit_type_table(f_runtime,f_wrappers);
   Printf(const_code, "{0}};\n");
   
   Printf(f_wrappers,"%s\n",const_code);
@@ -493,7 +478,7 @@ void PYTHON::close_cmodule(void)
 
 // ----------------------------------------------------------------------
 // PYTHON::get_pointer(char *iname, char *srcname, char *src, char *target,
-//                     DataType *t, DOHString *f, char *ret)
+//                     DataType *t, String *f, char *ret)
 //
 // Emits code to get a pointer and do type checking.
 //      iname = name of the function/method  (used for error messages)
@@ -513,20 +498,20 @@ void PYTHON::close_cmodule(void)
 
 void
 PYTHON::get_pointer(char *iname, char *srcname, char *src, char *dest,
-		    DataType *t, DOHString *f, char *ret)
+		    SwigType *t, String *f, char *ret)
 {
-  DataType_remember(t);
+  SwigType_remember(t);
   
   // Now get the pointer value from the string and save in dest
-  
+
   Printv(f,tab4, "if ((SWIG_ConvertPtr(", src, ",(void **) &", dest, ",", 0);
 
   // If we're passing a void pointer, we give the pointer conversion a NULL
   // pointer, otherwise pass in the expected type.
   
-  if (DataType_type(t) == T_VOID) Printv(f, "0,1)) == -1) return ", ret, ";\n", 0);
+  if (SwigType_type(t) == T_VOID) Printv(f, "0,1)) == -1) return ", ret, ";\n", 0);
   else
-    Printv(f,"SWIGTYPE", DataType_manglestr(t), ",1)) == -1) return ", ret, ";\n", 0);
+    Printv(f,"SWIGTYPE", SwigType_manglestr(t), ",1)) == -1) return ", ret, ";\n", 0);
 }
 
 // ----------------------------------------------------------------------
@@ -551,31 +536,6 @@ void PYTHON::emit_function_header(Wrapper *emit_to, char *wname)
 }
 
 // ----------------------------------------------------------------------
-// PYTHON::convert_self()
-//
-// Called during the function generation process, to determine what to
-// use as the "self" variable during the call.  Derived classes may emit code
-// to convert the real self pointer into a usable pointer.
-//
-// Returns the name of the variable to use as the self pointer
-// ----------------------------------------------------------------------
-char *PYTHON::convert_self(Wrapper *f)
-{
-  // Default behaviour is no translation
-  return (char*)"";
-}
-
-// ----------------------------------------------------------------------
-// PYTHON::make_funcname_wrapper()
-//
-// Called to create a name for a wrapper function
-// ----------------------------------------------------------------------
-char *PYTHON::make_funcname_wrapper(char *fnName)
-{
-  return Swig_name_wrapper(fnName);
-}
-
-// ----------------------------------------------------------------------
 // PYTHON::create_command(char *cname, char *iname)
 //
 // Create a new command in the interpreter.  Used for C++ inheritance 
@@ -586,7 +546,7 @@ void PYTHON::create_command(char *cname, char *iname) {
 
   // Create the name of the wrapper function
 
-  char *wname = Swig_name_wrapper(cname);
+  char *wname = Char(Swig_name_wrapper(cname));
 
   // Now register the function with the interpreter.  
 
@@ -609,7 +569,7 @@ void PYTHON::create_command(char *cname, char *iname) {
 //
 // ----------------------------------------------------------------------
 
-void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
+void PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 {
   Parm    *p;
   int     pcount,i,j;
@@ -617,13 +577,13 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   char    source[64], target[64], temp[256], argnum[20];
   char    *usage = 0;
   Wrapper *f;
-  DOHString *parse_args;
-  DOHString *arglist;
-  DOHString *get_pointers;
-  DOHString *cleanup;
-  DOHString *outarg;
-  DOHString *check;
-  DOHString *kwargs;
+  String *parse_args;
+  String *arglist;
+  String *get_pointers;
+  String *cleanup;
+  String *outarg;
+  String *check;
+  String *kwargs;
 
   char     *tm;
   int      numopt = 0;
@@ -642,7 +602,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Make a valid name for this function.   This removes special symbols
   // that would cause problems in the C compiler.
 
-  strcpy(wname,make_funcname_wrapper(iname));
+  strcpy(wname,Char(Swig_name_wrapper(iname)));
 
   // Now emit the function declaration for the wrapper function.  You
   // should modify this to return the appropriate types and use the
@@ -683,15 +643,14 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   p = l;
   Printf(kwargs,"{ ");
   while (p != 0) {
-    DataType *pt = Gettype(p);
-    char     *pn = Getname(p);
-    char     *pv = Getvalue(p);
+    SwigType *pt = Gettype(p);
+    String   *pn = Getname(p);
+    String   *pv = Getvalue(p);
 
     // Generate source and target strings
     sprintf(source,"obj%d",i);
-    sprintf(target,Getlname(p));
+    sprintf(target,Char(Getlname(p)));
     sprintf(argnum,"%d",j+1);
-
     // Only consider this argument if it's not ignored
 
     if (!Getignore(p)) {
@@ -702,7 +661,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	Putc('|',parse_args);
       }
 
-      if (strlen(pn)) {
+      if (Len(pn)) {
 	Printf(kwargs,"\"%s\",", pn);
       } else {
 	Printf(kwargs,"\"arg%d\",", j+1);
@@ -710,7 +669,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
       // Look for input typemap
       
-      if ((tm = typemap_lookup((char*)"in",(char*)"python",pt,pn,source,target,f))) {
+      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {
 	Putc('O',parse_args);
 	Wrapper_add_localv(f, source, "PyObject *",source,0);
 	Printf(arglist,"&%s",source);
@@ -723,7 +682,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	int noarg = 0;
 
 	// Check if this parameter is a pointer.  If not, we'll get values
-	switch(DataType_type(pt)) {
+	switch(SwigType_type(pt)) {
 	case T_INT : case T_UINT:
 	  Putc('i',parse_args);
 	  break;
@@ -759,7 +718,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	      Wrapper_add_localv(f,tempb,"int",tempb,0);
 	    else
 	      Wrapper_add_localv(f,tempb,"int",tempb, "=",tempval,0);
-	    Printv(get_pointers, tab4, target, " = (", DataType_lstr(pt,0), ") ", tempb, ";\n", 0);
+	    Printv(get_pointers, tab4, target, " = (", SwigType_lstr(pt,0), ") ", tempb, ";\n", 0);
 	    Printf(arglist,"&%s",tempb);
 	    noarg = 1;
 	  }
@@ -773,14 +732,14 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  
 	  Putc('O',parse_args);
 	  sprintf(source,"argo%d", i);
-	  sprintf(target,Getlname(p));
+	  sprintf(target,Char(Getlname(p)));
 	  sprintf(temp,"argument %d",i+1);
 	  
 	  Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
 	  Printf(arglist,"&%s",source);
-	  DataType_add_pointer(pt);
+	  SwigType_add_pointer(pt);
 	  get_pointer(iname, temp, source, target, pt, get_pointers, (char*)"NULL");
-	  DataType_del_pointer(pt);
+	  SwigType_del_pointer(pt);
 	  noarg = 1;
 	  break;
 
@@ -797,7 +756,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    
 	  Putc('O',parse_args);
 	  sprintf(source,"argo%d", i);
-	  sprintf(target,"%s",Getlname(p));
+	  sprintf(target,"%s",Char(Getlname(p)));
 	  sprintf(temp,"argument %d",i+1);
 	    
 	  Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
@@ -807,7 +766,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  break;
 
 	default :
-	  Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_str(pt,0));
+	  Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
 	  break;
 	}
 	
@@ -819,17 +778,17 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       j++;
     }
     // Check if there was any constraint code
-    if ((tm = typemap_lookup((char*)"check",(char*)"python",pt,pn,source,target))) {
+    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,source,target,0))) {
       Printf(check,"%s\n",tm);
       Replace(check,"$argnum", argnum, DOH_REPLACE_ANY);
     }
     // Check if there was any cleanup code
-    if ((tm = typemap_lookup((char*)"freearg",(char*)"python",pt,pn,target,source))) {
+    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,target,source,0))) {
       Printf(cleanup,"%s\n",tm);
       Replace(cleanup,"$argnum", argnum, DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
     }
-    if ((tm = typemap_lookup((char*)"argout",(char*)"python",pt,pn,target,(char*)"resultobj"))) {
+    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,target,(char*)"resultobj",0))) {
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$argnum",argnum,DOH_REPLACE_ANY);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
@@ -849,26 +808,24 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	 arglist, ")) return NULL;\n",
 	 0);
   
-  strcpy(self_name,convert_self(f));
-
   /* Now slap the whole first part of the wrapper function together */
   Printv(f->code, parse_args, get_pointers, check, 0);
 
   // This function emits code to call the real function.  Assuming you read
   // the parameters in correctly, this will work.
 
-  sprintf(call_name,"%s%s",self_name,name);
+  sprintf(call_name,"%s",name);
   emit_func_call(call_name,d,l,f);
 
   // Now emit code to return the functions return value (if any).
   // If there was a result, it was saved in result.
   // If the function is a void type, don't do anything.
   
-  if ((tm = typemap_lookup((char*)"out",(char*)"python",d,iname,(char*)"result",(char*)"resultobj"))) {
+  if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"resultobj",0))) {
     // Yep.  Use it instead of the default
     Printf(f->code,"%s\n", tm);
   } else {
-    switch(DataType_type(d)) {
+    switch(SwigType_type(d)) {
     case T_INT: case T_UINT: case T_BOOL:
       Printf(f->code,"    resultobj = Py_BuildValue(\"i\",result);\n");
       break;
@@ -899,10 +856,10 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       break;
       
     case T_USER :
-      DataType_add_pointer(d);
-      DataType_remember(d);
-      Printv(f->code,tab4, "resultobj = SWIG_NewPointerObj((void *)result, SWIGTYPE", DataType_manglestr(d), ");\n",0);
-      DataType_del_pointer(d);
+      SwigType_add_pointer(d);
+      SwigType_remember(d);
+      Printv(f->code,tab4, "resultobj = SWIG_NewPointerObj((void *)result, SWIGTYPE", SwigType_manglestr(d), ");\n",0);
+      SwigType_del_pointer(d);
       break;
 
     case T_STRING:
@@ -910,8 +867,8 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       break;
 
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
-      DataType_remember(d);
-      Printv(f->code, tab4, "resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE", DataType_manglestr(d), ");\n", 0);
+      SwigType_remember(d);
+      Printv(f->code, tab4, "resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
       break;
 
     case T_VOID:
@@ -920,7 +877,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       break;
 
     default :
-      Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, DataType_str(d,0), name);
+      Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
       break;
     }
   }
@@ -937,14 +894,14 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Look to see if there is any newfree cleanup code
 
   if (NewObject) {
-    if ((tm = typemap_lookup((char*)"newfree",(char*)"python",d,iname,(char*)"result",(char*)""))) {
+    if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"",0))) {
       Printf(f->code,"%s\n",tm);
     }
   }
 
   // See if there is any argument cleanup code
 
-  if ((tm = typemap_lookup((char*)"ret",(char*)"python",d,iname,(char*)"result",(char*)""))) {
+  if ((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char*)"result",(char*)"",0))) {
     // Yep.  Use it instead of the default
     Printf(f->code,"%s\n",tm);
   }
@@ -981,7 +938,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
     
     // Check return code for modification
-    if ((Getattr(hash,DataType_Getname(d))) && (DataType_is_pointer(d) <=1)) {
+    if (is_shadow(d)) {
       need_wrapper = 1;
       munge_return = 1;
     }
@@ -1000,15 +957,14 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	//  If the output of this object has been remapped in any way, we're
 	//  going to return it as a bare object.
 	
-	if (!typemap_check((char*)"out",typemap_lang,d,iname)) {
+	if (!Swig_typemap_search((char*)"out",d,iname)) {
 
 	  // If there are output arguments, we are going to return the value
           // unchanged.  Otherwise, emit some shadow class conversion code.
 
 	  if (!have_output) {
-	    Printv(func, tab4, "if val: val = ", GetChar(hash,DataType_Getname(d)), "Ptr(val)", 0);
-	    if (((Getattr(hash,DataType_Getname(d))) && (DataType_is_pointer(d) < 1)) ||
-		((Getattr(hash,DataType_Getname(d))) && (DataType_is_pointer(d) == 1) && NewObject))
+	    Printv(func, tab4, "if val: val = ", is_shadow(d), "Ptr(val)", 0);
+	    if ((!SwigType_ispointer(d)) || NewObject)
 	      Printf(func, "; val.thisown = 1\n");
 	    else
 	      Printf(func,"\n");
@@ -1043,7 +999,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 // variable type.
 // -----------------------------------------------------------------------
 
-void PYTHON::link_variable(char *name, char *iname, DataType *t) {
+void PYTHON::link_variable(char *name, char *iname, SwigType *t) {
 
     char   *wname;
     static int have_globals = 0;
@@ -1067,7 +1023,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // First make a sanitized version of the function name (in case it's some
     // funky C++ thing).
     
-    wname = Swig_name_wrapper(name);
+    wname = Char(Swig_name_wrapper(name));
 
     // ---------------------------------------------------------------------
     // Create a function for setting the value of the variable
@@ -1075,22 +1031,22 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 
     Printf(setf->def,"static int %s_set(PyObject *val) {", wname);
     if (!(Status & STAT_READONLY)) {
-      if ((tm = typemap_lookup((char*)"varin",(char*)"python",t,name,(char*)"val",name))) {
+      if ((tm = Swig_typemap_lookup((char*)"varin",t,name,(char*)"val",name,0))) {
 	Printf(setf->code,"%s\n",tm);
 	Replace(setf->code,"$name",iname, DOH_REPLACE_ANY);
       } else {
-	switch(DataType_type(t)) {
+	switch(SwigType_type(t)) {
 
 	case T_INT: case T_SHORT: case T_LONG :
 	case T_UINT: case T_USHORT: case T_ULONG:
 	case T_SCHAR: case T_UCHAR: case T_BOOL:
 	  // Get an integer value
-	  Wrapper_add_localv(setf,"tval",DataType_lstr(t,0),"tval",0);
+	  Wrapper_add_localv(setf,"tval",SwigType_lstr(t,0),"tval",0);
 	  Printv(setf->code,
-		 tab4, "tval = (", DataType_lstr(t,0), ") PyInt_AsLong(val);\n",
+		 tab4, "tval = (", SwigType_lstr(t,0), ") PyInt_AsLong(val);\n",
 		 tab4, "if (PyErr_Occurred()) {\n",
 		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		 iname, "'(", DataType_str(t,0), ")\");\n",
+		 iname, "'(", SwigType_str(t,0), ")\");\n",
 		 tab8, "return 1; \n",
 		 tab4, "}\n",
 		 tab4, name, " = tval;\n",
@@ -1099,12 +1055,12 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	  
 	case T_FLOAT: case T_DOUBLE:
 	  // Get a floating point value
-	  Wrapper_add_localv(setf,"tval",DataType_lstr(t,0), "tval",0);
+	  Wrapper_add_localv(setf,"tval",SwigType_lstr(t,0), "tval",0);
 	  Printv(setf->code,
-		 tab4, "tval = (", DataType_lstr(t,0), ") PyFloat_AsDouble(val);\n",
+		 tab4, "tval = (", SwigType_lstr(t,0), ") PyFloat_AsDouble(val);\n",
 		 tab4, "if (PyErr_Occurred()) {\n",
 		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		 iname, "'(", DataType_str(t,0), ")\");\n",
+		 iname, "'(", SwigType_str(t,0), ")\");\n",
 		 tab8, "return 1; \n",
 		 tab4, "}\n",
 		 tab4, name, " = tval;\n",
@@ -1119,18 +1075,18 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 		 tab4, "tval = (char *) PyString_AsString(val);\n",
 		 tab4, "if (PyErr_Occurred()) {\n",
 		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		 iname, "'(", DataType_str(t,0), ")\");\n",
+		 iname, "'(", SwigType_str(t,0), ")\");\n",
 		 tab8, "return 1; \n",
 		 tab4, "}\n",
 		 tab4, name, " = *tval;\n",
 		 0);
 	  break;
 	case T_USER:
-	  DataType_add_pointer(t);
-	  Wrapper_add_localv(setf,"temp",DataType_lstr(t,0),"temp",0);
+	  SwigType_add_pointer(t);
+	  Wrapper_add_localv(setf,"temp",SwigType_lstr(t,0),"temp",0);
 	  get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf->code,(char*)"1");
 	  Printv(setf->code, tab4, name, " = *temp;\n", 0);
-	  DataType_del_pointer(t);
+	  SwigType_del_pointer(t);
 	  break;
 
 	case T_STRING:
@@ -1139,7 +1095,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 		 tab4, "tval = (char *) PyString_AsString(val);\n",
 		 tab4, "if (PyErr_Occurred()) {\n",
 		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		 iname, "'(", DataType_str(t,0), ")\");\n",
+		 iname, "'(", SwigType_str(t,0), ")\");\n",
 		 tab8, "return 1; \n",
 		 tab4, "}\n",
 		 0);
@@ -1160,13 +1116,13 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	  break;
 
 	case T_POINTER: case T_ARRAY: case T_REFERENCE:
-	  Wrapper_add_localv(setf,"temp", DataType_lstr(t,0), "temp",0);
+	  Wrapper_add_localv(setf,"temp", SwigType_lstr(t,0), "temp",0);
 	  get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf->code,(char*)"1");
 	  Printv(setf->code,tab4, name, " = temp;\n", 0);
 	  break;
 
 	default:
-	  Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, DataType_str(t,0));
+	  Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, SwigType_str(t,0));
 	}
       }
       Printf(setf->code,"    return 0;\n");
@@ -1191,14 +1147,14 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     
     Printf(getf->def,"static PyObject *%s_get() {", wname);
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
-    if ((tm = typemap_lookup((char*)"varout",(char*)"python",t,name,name,(char*)"pyobj"))) {
+    if ((tm = Swig_typemap_lookup((char*)"varout",t,name,name,(char*)"pyobj",0))) {
       Printf(getf->code,"%s\n",tm);
       Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
-    } else if ((tm = typemap_lookup((char*)"out",(char*)"python",t,name,name,(char*)"pyobj"))) {
+    } else if ((tm = Swig_typemap_lookup((char*)"out",t,name,name,(char*)"pyobj",0))) {
       Printf(getf->code,"%s\n",tm);
       Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
     } else {
-      switch(DataType_type(t)) {
+      switch(SwigType_type(t)) {
       case T_INT: case T_UINT: 
       case T_SHORT: case T_USHORT:
       case T_LONG: case T_ULONG:
@@ -1218,13 +1174,13 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	break;
       case T_USER:
 	// Hack this into a pointer
-	DataType_add_pointer(t);
-	DataType_remember(t);
+	SwigType_add_pointer(t);
+	SwigType_remember(t);
 	Printv(getf->code,
 	       tab4, "pyobj = SWIG_NewPointerObj((void *) &", name ,
-	       ", SWIGTYPE", DataType_manglestr(t), ");\n",
+	       ", SWIGTYPE", SwigType_manglestr(t), ");\n",
 	       0);
-	DataType_del_pointer(t);
+	SwigType_del_pointer(t);
 	break;
       case T_STRING:
 	Printv(getf->code,
@@ -1235,15 +1191,15 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	break;
 
       case T_POINTER: case T_ARRAY: case T_REFERENCE:
-	DataType_remember(t);
+	SwigType_remember(t);
 	Printv(getf->code,
 	       tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
-	       ", SWIGTYPE", DataType_manglestr(t), ");\n",
+	       ", SWIGTYPE", SwigType_manglestr(t), ");\n",
 	       0);
 	break;
 
       default:
-	Printf(stderr,"Unable to link with type %s\n", DataType_str(t,0));
+	Printf(stderr,"Unable to link with type %s\n", SwigType_str(t,0));
 	break;
       }
     }
@@ -1260,9 +1216,9 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // Output a shadow variable.  (If applicable and possible)
     // ----------------------------------------------------------
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-      if ((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) <= 1)) {
+      if (is_shadow(t)) {
 	Printv(vars,
-	       iname, " = ", GetChar(hash,DataType_Getname(t)), "Ptr(", module, ".", global_name,
+	       iname, " = ", is_shadow(t), "Ptr(", module, ".", global_name,
 	       ".", iname, ")\n",
 	       0);
       }
@@ -1280,16 +1236,16 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 //
 // ------------------------------------------------------------------------
 
-void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
+void PYTHON::declare_const(char *name, char *, SwigType *type, char *value) {
 
   char   *tm;
 
   // Make a static python object
 
-  if ((tm = typemap_lookup((char*)"const",(char*)"python",type,name,value,name))) {
+  if ((tm = Swig_typemap_lookup((char*)"const",type,name,value,name,0))) {
     Printf(const_code,"%s\n", tm);
   } else {
-    switch(DataType_type(type)) {
+    switch(SwigType_type(type)) {
     case T_INT: case T_UINT: case T_BOOL:
     case T_SHORT: case T_USHORT:
     case T_LONG: case T_ULONG:
@@ -1307,8 +1263,8 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
       Printv(const_code,tab4, "{ SWIG_PY_STRING,  \"", name, "\", 0, 0, (void *) \"", value, "\", 0},\n", 0);
       break;
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
-      DataType_remember(type);
-      Printv(const_code, tab4, "{ SWIG_PY_POINTER, \"", name, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", DataType_manglestr(type), "}, \n", 0);
+      SwigType_remember(type);
+      Printv(const_code, tab4, "{ SWIG_PY_POINTER, \"", name, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", SwigType_manglestr(type), "}, \n", 0);
       break;
     default:
       Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
@@ -1332,7 +1288,7 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
 // a string and set this pointer to point to it.
 // ----------------------------------------------------------------------
 
-char *PYTHON::usage_var(char *iname, DataType *) {
+char *PYTHON::usage_var(char *iname, SwigType *) {
 
   static char temp[512];
   sprintf(temp,"%s.%s", global_name,iname);
@@ -1349,9 +1305,9 @@ char *PYTHON::usage_var(char *iname, DataType *) {
 //
 // ---------------------------------------------------------------------------
 
-char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
+char *PYTHON::usage_func(char *iname, SwigType *, ParmList *l) {
 
-  static DOHString *temp = 0;
+  static String *temp = 0;
   Parm  *p;
   int    i;
   if (!temp) temp = NewString("");
@@ -1366,17 +1322,17 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
   i = 0;
   p = l;
   while (p != 0) {
-    DataType *pt = Gettype(p);
-    char     *pn = Getname(p);
+    SwigType *pt = Gettype(p);
+    String   *pn = Getname(p);
     if (!Getignore(p)) {
       i++;
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
-      if (DataType_type(pt) != T_VOID) {
-	if (strlen(pn) > 0) {
+      if (SwigType_type(pt) != T_VOID) {
+	if (Len(pn) > 0) {
 	  Printf(temp,"%s",pn);
 	} else {
-	  Printf(temp,"%s", DataType_str(pt,0));
+	  Printf(temp,"%s", SwigType_str(pt,0));
 	}
       }
       p = Getnext(p);
@@ -1405,7 +1361,7 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
 // usage_var() except we'll indicate the value of the constant.
 // ----------------------------------------------------------------------
 
-char *PYTHON::usage_const(char *iname, DataType *, char *value) {
+char *PYTHON::usage_const(char *iname, SwigType *, char *value) {
   static char temp[1024];
   sprintf(temp,"%s = %s", iname, value);
   return temp;
@@ -1417,7 +1373,7 @@ char *PYTHON::usage_const(char *iname, DataType *, char *value) {
 // Add a native module name to the methods list.
 // -----------------------------------------------------------------------
 
-void PYTHON::add_native(char *name, char *funcname, DataType *, ParmList *) {
+void PYTHON::add_native(char *name, char *funcname, SwigType *, ParmList *) {
   add_method(name, funcname,0);
   if (shadow) {
     Printv(func, name, " = ", module, ".", name, "\n\n", 0);
@@ -1433,13 +1389,19 @@ void PYTHON::add_native(char *name, char *funcname, DataType *, ParmList *) {
 
 void PYTHON::cpp_class_decl(char *name, char *rename, char *type) {
     char temp[256];
+    String *stype;
     if (shadow) {
-	Setattr(hash,name,rename);
-	// Add full name of datatype to the hash table
-	if (strlen(type) > 0) {
-	  sprintf(temp,"%s %s", type, name);
-	  Setattr(hash,temp,rename);
-	}
+      stype = NewString(name);
+      SwigType_add_pointer(stype);
+      Setattr(hash,stype,rename);
+      Delete(stype);
+      // Add full name of datatype to the hash table
+      if (strlen(type) > 0) {
+	stype = NewStringf("%s %s", type, name);
+	SwigType_add_pointer(stype);
+	Setattr(hash,stype,rename);
+	Delete(stype);
+      }
     }
 }
 
@@ -1482,8 +1444,8 @@ void PYTHON::pragma(char *lang, char *cmd, char *value) {
 
 
 struct PyPragma {
-  DOHString  *m_method;
-  DOHString  *m_text;
+  String  *m_method;
+  String  *m_text;
   PyPragma  *next;
   PyPragma(char *method, char *text) {
     m_method = NewString(method);
@@ -1515,7 +1477,7 @@ void PYTHON::cpp_pragma(Pragma *plist) {
     if (strcmp(Char(plist->lang),(char*)"python") == 0) {
       if (strcmp(Char(plist->name),"addtomethod") == 0) {
             // parse value, expected to be in the form "methodName:line"
-	DOHString *temp = NewString(plist->value);
+	String *temp = NewString(plist->value);
 	char* txtptr = strchr(Char(temp), ':');
 	if (txtptr) {
 	  // add name and line to a list in current_class
@@ -1558,7 +1520,7 @@ void PYTHON::cpp_pragma(Pragma *plist) {
 // Append the text properly spaced to the output string.
 // --------------------------------------------------------------------------------
 
-void PYTHON::emitAddPragmas(DOHString *output, char* name, char* spacing)
+void PYTHON::emitAddPragmas(String *output, char* name, char* spacing)
 {
   PyPragma *p = pragmas;
   while (p) {
@@ -1573,15 +1535,15 @@ void PYTHON::emitAddPragmas(DOHString *output, char* name, char* spacing)
  * C++ Support + Shadow Classes
  **************************************************************************/
 
-static  DOHString   *setattr = 0;
-static  DOHString   *getattr = 0;
-static  DOHString   *csetattr = 0;
-static  DOHString   *cgetattr = 0;
-static  DOHString   *pyclass = 0;
-static  DOHString   *imethod = 0;
-static  DOHString   *construct = 0;
-static  DOHString   *cinit = 0;
-static  DOHString   *additional = 0;
+static  String   *setattr = 0;
+static  String   *getattr = 0;
+static  String   *csetattr = 0;
+static  String   *cgetattr = 0;
+static  String   *pyclass = 0;
+static  String   *imethod = 0;
+static  String   *construct = 0;
+static  String   *cinit = 0;
+static  String   *additional = 0;
 static  int       have_constructor;
 static  int       have_destructor;
 static  int       have_getattr;
@@ -1589,7 +1551,7 @@ static  int       have_setattr;
 static  int       have_repr;
 static  char     *class_type;
 static  char     *real_classname;
-static  DOHString   *base_class = 0;
+static  String   *base_class = 0;
 static  int       class_renamed = 0;
 
 // --------------------------------------------------------------------------
@@ -1635,11 +1597,7 @@ void PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip
   real_classname = Swig_copy_string(classname);
   class_type = Swig_copy_string(ctype);
 
-  // Build up the hash table
-  Setattr(hash,real_classname,class_name);
-
-  sprintf(temp,"%s %s", class_type, real_classname);
-  Setattr(hash,temp,class_name);
+  cpp_class_decl(real_classname,class_name,class_type);
 
   if (shadow) {
     Printv(setattr,
@@ -1663,11 +1621,10 @@ void PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip
 // Creates a C++ member function
 // --------------------------------------------------------------------------
 
-void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
+void PYTHON::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 
   char *realname;
   int   oldshadow;
-
 
   char  cname[1024];
 
@@ -1693,7 +1650,7 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
     if (strcmp(realname,"__repr__") == 0) 
       have_repr = 1;
 
-    if (!((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) <=1)) && !noopt) {
+    if (!is_shadow(t) && !noopt) {
       Printv(imethod,
 	     class_name, ".", realname, " = new.instancemethod(", module, ".", Swig_name_member(class_name,realname), ", None, ", class_name, ")\n",
 	     0);
@@ -1713,15 +1670,15 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
 	Printv(pyclass, tab8, "val = apply(", module, ".", Swig_name_member(class_name,realname), ",args)\n",0);
       
       // Check to see if the return type is an object
-      if ((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) <= 1)) {
-	if (!typemap_check((char*)"out",typemap_lang,t,Swig_name_member(class_name,realname))) {
+      if (is_shadow(t)) {
+	if (!Swig_typemap_search((char*)"out",t,Swig_name_member(class_name,realname))) {
 	  if (!have_output) {
-	    Printv(pyclass, tab8, "if val: val = ", GetChar(hash,DataType_Getname(t)), "Ptr(val) ", 0);
-	    if (((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) < 1)) ||
-		((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) == 1) && NewObject))
+	    Printv(pyclass, tab8, "if val: val = ", is_shadow(t), "Ptr(val) ", 0);
+	    if ((!SwigType_ispointer(t) || NewObject)) {
 	      Printf(pyclass, "; val.thisown = 1\n");
-	    else 
+	    } else {
 	      Printf(pyclass,"\n");
+	    }
 	  } else {
 	    // Do nothing!
 	  }
@@ -1837,8 +1794,8 @@ void PYTHON::cpp_destructor(char *name, char *newname) {
 // -------------------------------------------------------------------------------
     
 void PYTHON::cpp_close_class() {
-  DOHString    *ptrclass;
-  DOHString    *repr;
+  String    *ptrclass;
+  String    *repr;
   
   ptrclass = NewString("");
   repr =  NewString("");
@@ -1954,7 +1911,7 @@ void PYTHON::cpp_inherit(char **baseclass,int) {
 // Adds an instance member.
 // --------------------------------------------------------------------------------
 
-void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
+void PYTHON::cpp_variable(char *name, char *iname, SwigType *t) {
   char *realname;
   int   inhash = 0;
   int   oldshadow = shadow;
@@ -1981,7 +1938,7 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     
     // Figure out if we've seen this datatype before
     
-    if ((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) <= 1)) inhash = 1;
+    if (is_shadow(t)) inhash = 1;
     
     // Now write some code to set the variable
     if (Status & STAT_READONLY) {
@@ -1991,7 +1948,7 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     }
     // Write some code to get the variable
     if (inhash) {
-      Printv(cgetattr, tab8, "\"", realname, "\" : lambda x : ", GetChar(hash,DataType_Getname(t)), "Ptr(", module, ".", Swig_name_get(Swig_name_member(class_name,realname)), "(x)),\n", 0);
+      Printv(cgetattr, tab8, "\"", realname, "\" : lambda x : ", is_shadow(t), "Ptr(", module, ".", Swig_name_get(Swig_name_member(class_name,realname)), "(x)),\n", 0);
 
     } else {
       Printv(cgetattr, tab8, "\"", realname, "\" : ", module, ".", Swig_name_get(Swig_name_member(class_name,realname)),",\n", 0);
@@ -2005,7 +1962,7 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
 // Add access to a C++ constant
 // --------------------------------------------------------------------------------
 
-void PYTHON::cpp_declare_const(char *name, char *iname, DataType *type, char *value) {
+void PYTHON::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
   char *realname;
   int   oldshadow = shadow;
   char  cname[512];
@@ -2045,24 +2002,13 @@ void PYTHON::cpp_declare_const(char *name, char *iname, DataType *type, char *va
 //
 // --------------------------------------------------------------------------------
 
-void PYTHON::add_typedef(DataType *t, char *name) {
+void PYTHON::add_typedef(SwigType *t, char *name) {
 
   if (!shadow) return;
 
   // First check to see if there aren't too many pointers
 
-  if (DataType_is_pointer(t) > 1) return;
-
-  if (Getattr(hash,name)) return;      // Already added
-
-  // Now look up the datatype in our shadow class hash table
-
-  if (Getattr(hash,DataType_Getname(t))) {
-
-    // Yep.   This datatype is in the hash
-    
-    // Put this types 'new' name into the hash
-
-    Setattr(hash,name, GetChar(hash,DataType_Getname(t)));
+  if (is_shadow(t)) {
+    cpp_class_decl(name,Char(is_shadow(t)),"");
   }
 }

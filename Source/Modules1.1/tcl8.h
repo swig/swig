@@ -22,13 +22,7 @@
 
 class TCL8 : public Language {
 private:
-  void   get_pointer(char *iname, char *srcname, char *src, char *dest, SwigType *t,
-		     DOHString *f, char *ret);
-  char  *char_result;
-  char  *usage_func(char *, SwigType *, ParmList *);
   char  *usage_string(char *, SwigType *, ParmList *);
-  char  *usage_var(char *, SwigType *);
-  char  *usage_const(char *, SwigType *, char *);
 
 public :
   virtual void parse_args(int, char *argv[]);
@@ -37,12 +31,9 @@ public :
   virtual void link_variable(char *, char *, SwigType *);
   virtual void declare_const(char *, char *, SwigType *, char *);
   virtual void initialize(void);
-  virtual void headers(void);
   virtual void close(void);
   virtual void set_module(char *,char **);
-  virtual void set_init(char *);
   virtual void add_native(char *, char *, SwigType *, ParmList *);
-  virtual void pragma(char *,char *, char *);
   virtual void create_command(char *, char *);
 
   // Stubs for processing C++ classes in Tcl
@@ -53,11 +44,6 @@ public :
   virtual void cpp_variable(char *name, char *iname, SwigType *t);
   virtual void cpp_constructor(char *name, char *iname, ParmList *l);
   virtual void cpp_destructor(char *name, char *newname);
-  virtual void cpp_inherit(char **baseclass, int mode = INHERIT_ALL);
-  virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
-  virtual void add_typedef(SwigType *, char *);
-  virtual void cpp_class_decl(char *, char *, char *);
-
 };
 
 

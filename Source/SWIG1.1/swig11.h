@@ -134,8 +134,6 @@ struct Pragma {
  *    set_module(char *modname)
  *           Sets the name of the module (%module directive)
  *
- *    set_init(char *initname)
- *           Sets name of initialization function (an alternative to set_module)
  *    add_native(char *name, char *funcname);
  *           Adds a native wrapper function to the initialize process
  *
@@ -176,10 +174,8 @@ public:
   virtual void link_variable(char *, char *, SwigType *)  = 0;
   virtual void declare_const(char *, char *, SwigType *, char *) = 0;
   virtual void initialize(void) = 0;
-  virtual void headers(void) = 0;
   virtual void close(void) = 0;
   virtual void set_module(char *mod_name,char **mod_list) = 0;
-  virtual void set_init(char *init_name);
   virtual void add_native(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void add_typedef(SwigType *t, char *name);
   virtual void create_command(char *cname, char *iname);

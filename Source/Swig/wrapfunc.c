@@ -211,12 +211,12 @@ Wrapper_new_local(Wrapper *w, const String_or_char *name, const String_or_char *
   char      *ret;
 
   i = 0;
+
   while (Wrapper_check_local(w,nname)) {
     Clear(nname);
-    i++;
     Printf(nname,"%s%d",name,i);
+    i++;
   }
-  
   Replace(ndecl, name, nname, DOH_REPLACE_ID);
   Setattr(w->localh,nname,ndecl);
   Printf(w->locals,"%s;\n", ndecl);

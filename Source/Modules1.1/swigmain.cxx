@@ -27,11 +27,11 @@ static char cvsroot[] = "$Header$";
 #include "swigconfig.h"
 #include "mod11.h"
 #include "tcl8.h"
+#include "python.h"
 
 #ifdef OLD
 #include "perl5.h"
 #include "java.h"
-#include "python.h"
 #include "guile.h"
 #include "mzscheme.h"
 #include "ruby.h"
@@ -78,12 +78,12 @@ int main(int argc, char **argv) {
           } else if (strcmp(argv[i],"-tcl8") == 0) {
 	      dl = new TCL8;
 	      Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-python") == 0) {
+	      dl = new PYTHON;
+	      Swig_mark_arg(i);
 #ifdef OLD
 	  } else if (strcmp(argv[i],"-perl5") == 0) {
 	      dl = new PERL5;
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-python") == 0) {
-	      dl = new PYTHON;
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-guile") == 0) {
 	      dl = new GUILE;
