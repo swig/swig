@@ -73,18 +73,18 @@ static int Super_insert(DOH *s, int pos, DOH *DOH);
 static int Super_delitem(DOH *s, int where);
 static DOH *Super_str(DOH *s);
 static int Super_read(DOH *s, void *buffer, int length);
-static int Super_write(DOH *s, void *buffer, int length);
-static int Super_seek(DOH *s, long offset, int whence);
+ static int Super_write(DOH *s, void *buffer, int length);
+ static int Super_seek(DOH *s, long offset, int whence);
 static long Super_tell(DOH *s);
-static int Super_putc(DOH *s, int ch);
+ static int Super_putc(DOH *s, int ch);
 static int Super_getc(DOH *s);
-static int Super_ungetc(DOH *s, int ch);
-static int Super_replace(DOH *str, DOH *token, DOH *rep, int flags);    
-static void Super_setfile(DOH *s, DOH *f);
-static void Super_setline(DOH *s, int);
-static DOH * Super_getfile(DOH *s);
-static int Super_getline(DOH *s);
-static void Super_chop(DOH *str);
+ static int Super_ungetc(DOH *s, int ch);
+ static int Super_replace(DOH *str, DOH *token, DOH *rep, int flags);    
+ static void Super_setfile(DOH *s, DOH *f);
+ static void Super_setline(DOH *s, int);
+ static DOH * Super_getfile(DOH *s);
+ static int Super_getline(DOH *s);
+ static void Super_chop(DOH *str);
 
 /* internal functions */
 
@@ -203,10 +203,6 @@ NewSuper(char *s, DOH *filename, int firstline)
    else
       str->str[0] = 0;
 
-   str->line = firstline;
-   str->file = filename;	/* don't incref: it's 'owned' by the
-				   tag it comes from. */
-
    str->maxtags = INIT_MAXTAGS;
    str->numtags = 1;
    str->curtag = 0;
@@ -214,14 +210,17 @@ NewSuper(char *s, DOH *filename, int firstline)
 
    str->tags = (SSTag *) DohMalloc(max * sizeof(SSTag));
    assert(str->tags);
-   str->tags[0].length = 0;
+   str->tags[0].length = strlen(str->str);
    str->tags[0].line = firstline;
-   if (!String_check(filename) && !SuperString_check(filename))
+   if (!DohCheck(filename) || (!String_check(filename) && !SuperString_check(filename)))
       filename = NewString(filename);
    else
       Incref(filename);
    str->tags[0].filename = filename;
 
+   str->line = firstline;
+   str->file = filename;	/* don't incref: it's 'owned' by the
+				   tag it comes from. */
    str->len = l;
    return (DOH *) str;
 }
@@ -506,7 +505,7 @@ Super_str(DOH *so)
 {
    DOH *nstr;
    Super *s = (Super *) so;
-   nstr = CopySuper(s);
+   nstr = NewString(s->str);
    return nstr;
 }
 
@@ -637,9 +636,9 @@ Super_putc(DOH *so, int ch)
    if (s->sp >= s->len)
    {
       if (s->len + 1 >= s->maxsize) {
-	 s->str = (char *) DohRealloc(s->str ,2 * s->maxsize);
-	 assert(s->str);
 	 s->maxsize *= 2;
+	 s->str = (char *) DohRealloc(s->str, s->maxsize);
+	 assert(s->str);
       }
       s->str[s->len++] = ch;
       s->str[s->len] = 0;
@@ -735,7 +734,7 @@ Super_setline(DOH *obj, int l)
 static DOH *
 Super_getfile(DOH *obj)
 {
-   assert(0);			/* illegal operation */
+  return ((Super *)obj)->file;
 }
 
 /* -------------------------------------------------------------------------
@@ -745,7 +744,7 @@ Super_getfile(DOH *obj)
 static int
 Super_getline(DOH *obj)
 {
-   assert(0);			/* illegal operation */
+  return ((Super *)obj)->line;
 }
 
 /* -------------------------------------------------------------------------
@@ -795,7 +794,7 @@ Super_move(Super *s, int delta)
 {
    int changed_tag = 0;
    int curtag_offset = s->curtag_offset;
-   int line_offset;
+   int line = s->line;
 
    if (delta > s->len - s->sp)
       delta = s->len - s->sp;
@@ -804,16 +803,17 @@ Super_move(Super *s, int delta)
    {
       int remaining = s->tags[s->curtag].length - curtag_offset;
       
-      if (delta > remaining)
+      if (delta >= remaining)
       {
 	 delta -= remaining;
 	 s->sp += remaining;
 	 s->curtag++;
+	 line = s->tags[s->curtag].line;
 	 curtag_offset = 0;
       }
       else
       {
-	 line_offset = Super_count_newlines(s->str + s->sp, delta);
+	 line += Super_count_newlines(s->str + s->sp, delta);
 	 curtag_offset += delta;
 	 s->sp += delta;
 
@@ -823,7 +823,7 @@ Super_move(Super *s, int delta)
 
    s->curtag_offset = curtag_offset;
    s->file = s->tags[s->curtag].filename;
-   s->line = s->tags[s->curtag].line + line_offset;
+   s->line = line;
 }
 
 /* -------------------------------------------------------------------------
@@ -836,11 +836,10 @@ Super_get_tag(Super *s, int pos, int *offset)
    int tag = 0;
    SSTag *tags = s->tags;
 
-   while (pos > tags->length)
+   while (pos >= tags->length)
    {
       pos -= tags->length;
-      tags++;
-      tag++;
+      tags++, tag++;
    }
 
    if (offset) *offset = pos;
@@ -910,10 +909,9 @@ Super_add_space(Super *s, int more_bytes)
 {
    if (s->len + more_bytes >= s->maxsize)
    {
-      int newsize = (s->len + more_bytes) * 2;
-      s->str = (char *)DohRealloc(s->str, newsize);
+      s->maxsize = (s->len + more_bytes) * 2;
+      s->str = (char *)DohRealloc(s->str, s->maxsize);
       assert(s->str);
-      s->maxsize = newsize;
    }
 }
 
@@ -1034,7 +1032,7 @@ Super_super_insert(Super *s, int pos, Super *str)
    Super_add_space(s, len);
    if (pos < s->len)
       memmove(s->str+pos+len, s->str+pos, (s->len - pos));
-   memmove(s->str+pos,str,len);
+   memmove(s->str+pos,str->str,len);
    s->len += len; 
    s->str[s->len] = 0;
 
@@ -1068,10 +1066,9 @@ Super_super_insert(Super *s, int pos, Super *str)
    /* allocate enough space for all those tags */
    if (s->numtags + new_tags >= s->maxtags)
    {
-      int newsize = (s->numtags + new_tags) * 2;
-      s->tags = (SSTag *)DohRealloc(s->tags, newsize * sizeof(SSTag));
+      s->maxtags = (s->numtags + new_tags) * 2;
+      s->tags = (SSTag *)DohRealloc(s->tags, s->maxtags * sizeof(SSTag));
       assert(s->tags);
-      s->maxsize = newsize;
    }
       
    /* and start writing in the data */
@@ -1341,11 +1338,49 @@ Super_raw_replace(Super *str, char *token, int flags,
 #ifdef SUPER_TEST
 #include <stdio.h>
 
+static void annotate(DOH *hyd)
+{
+  int len, i;
+  len = Len(hyd);
+  Seek(hyd, SEEK_SET, 0);
+  for (i = 0; i < len; i++)
+    {
+      DOH *file;
+      int line;
+      char c[3];
+      char d;
+      int pos;
+
+      file = Getfile(hyd);
+      line = Getline(hyd);
+      pos = Tell(hyd);
+      c[0] = Getc(hyd);
+      d = Getc(hyd);
+      Ungetc(d, hyd);
+      if (c[0] < ' ')
+	{
+	  c[2] = 0;
+	  c[1] = c[0] + 'a' - 1;
+	  c[0] = '\\';
+	}
+      else
+	c[1] = 0;
+
+      Printf(stdout, "%5d -- %5s:%3d -- %s\n", pos, file, line, c);
+    }
+}
+
 int main(int argc, char **argv)
 {
-   DOH *g = NewSuper("Hello, cruel world", "greeting", 100);
-   DOH *b = NewSuper("Goodbye!!!", "bye", 20);
-
-   Printf(stdout, "%s\n%s\n", g, b);
+   DOH *g = NewSuper("Hello\ncruel\nworld\nas", "hey", 100);
+   DOH *b = NewSuper("namaste\nadios\nseeya!\nas", "bye", 20);
+   DOH *hyd = NewSuper("so,\nhow\nare\nyou\ndoing?\nad", "hyd", 200);
+   DOH *str = NewString("####\n####");
+   Setfile(str, "str");
+   Setline(str, 10000);
+ 
+   Insert(hyd, 23, b);
+   annotate(hyd);
+   return Len(hyd);
 }
 #endif
