@@ -237,6 +237,7 @@ public:
 	String *tdname = Getattr(n,"tdname");
 	String *unnamed = Getattr(n,"unnamed");
 	String *storage = Getattr(n,"storage");
+	String *kind = Getattr(n,"kind");
 	Node   *oldinclass = inclass;
 	List   *olist = normalize;
 	Symtab *symtab;
@@ -244,12 +245,15 @@ public:
 
 	normalize = NewList();
 
-
 	if (name) {
+	  if ((CPlusPlus) || (unnamed)) {
 	    SwigType_typedef_class(name);
-	    SwigType_new_scope(name);
+	  } else {
+	    SwigType_typedef_class(NewStringf("%s %s", kind, name));
+	  }
+	  SwigType_new_scope(name);
 	} else {
-	    SwigType_new_scope(0);
+	  SwigType_new_scope(0);
 	}
 
 	/* Need to set up a typedef if unnamed */
@@ -439,6 +443,11 @@ public:
       
 	    SwigType *t = Copy(ty);
 	    SwigType_push(t,decl);
+	    if (CPlusPlus) {
+	      Replaceall(t,"struct ","");
+	      Replaceall(t,"union ","");
+	      Replaceall(t,"class ","");
+	    }
 	    SwigType_typedef(t,name);
 	}
 	/* If namespaces are active.  We need to patch the name with a namespace prefix */
