@@ -1159,6 +1159,70 @@ class OCAML : public Language {
 	return SWIG_OK;
     }
 
+    int
+    OCAML::classHandler(Node *n) {
+	int rv = 0;
+	String *name = Getattr(n,"name");
+
+	if( name && objects ) {
+	    classmode = 1;
+    
+	    classname = Copy(Getattr(n,"name"));
+	    lcase(Char(classname));
+	
+	    if( mliout )
+		Printf(f_modclass,"class %s : _p_%s -> object\n", 
+		       classname, Getattr(n,"name"));
+	    else
+		Printf(f_modclass,"class %s (c_self : _p_%s) = object\n",
+		       classname, Getattr(n,"name"));
+	
+	    DOH *baseclass_list = Getattr(n,"bases");
+	    Printf(f_modclass,"(* Start superclasses *)\n" );
+	
+	    int i;
+	
+	    for( i = 0; i < Len(baseclass_list); i++ ) {
+		SwigType *baseclass = Getitem(baseclass_list,i);
+		String *basename = Copy(Getattr(baseclass,"name"));
+		lcase(Char(basename));
+		Printf(f_modclass,"(* %s is a superclass *)\n", basename);
+		String *seen = Getattr(seen_classes,basename);
+
+		if( seen ) {
+		    if( mliout ) 
+			Printf( f_modclass, "  inherit %s\n" );
+		    else
+			Printf( f_modclass,"  inherit %s (Obj.magic c_self)\n", 
+				seen );
+		}
+
+		baseclass = nextSibling(baseclass);
+	    }
+	    Printf(f_modclass,"(* End superclasses *)\n" );
+	
+	    rv = Language::classHandler(n);
+
+	    if( !mliout )
+		Printf(f_modclass,
+		       "  method _self_ : _p_void = (Obj.magic c_self)\n");
+	    else
+		Printf(f_modclass,
+		       "  method _self_ : _p_void\n" );
+
+	    Printf(f_modclass,"end\n");
+	    
+	    classmode = 0;
+	
+	    String *cln = NewString(classname);
+	    Setattr(seen_classes,cln,cln);
+	} else {
+	    rv = Language::classHandler(n);
+	}
+    
+	return rv;
+    }
+
     void
     import_start(char *modname) {
     }
