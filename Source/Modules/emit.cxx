@@ -372,7 +372,6 @@ void emit_action(Node *n, Wrapper *f) {
        methods are all public */
     Node* parent = Getattr(n,"parentNode");
     String* symname = Getattr(parent, "sym:name");
-    String* classtype = Getattr(parent,"classtype");    
     String* dirname = NewStringf("SwigDirector_%s", symname);
     String* dirdecl = NewStringf("%s *darg = 0", dirname);    
     Wrapper_add_local(f, "darg", dirdecl);
