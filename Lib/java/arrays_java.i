@@ -182,8 +182,38 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 %typemap(jstype) float[ANY]              "float[]"
 %typemap(jstype) double[ANY]             "double[]"
 
+%typemap(directorin) bool[ANY],
+                     signed char[ANY],
+                     unsigned char[ANY],
+                     short[ANY],
+                     unsigned short[ANY],
+                     int[ANY],
+                     unsigned int[ANY],
+                     long[ANY],
+                     unsigned long[ANY],
+                     long long[ANY],
+                     /* unsigned long long[ANY], */
+                     float[ANY],
+                     double[ANY]
+  "$jniinput"
+
+%typemap(directorout) bool[ANY],
+                      signed char[ANY],
+                      unsigned char[ANY],
+                      short[ANY],
+                      unsigned short[ANY],
+                      int[ANY],
+                      unsigned int[ANY],
+                      long[ANY],
+                      unsigned long[ANY],
+                      long long[ANY],
+                      /* unsigned long long[ANY], */
+                      float[ANY],
+                      double[ANY]
+  "$javacall"
+
 /* Arrays of primitive types use the following macro. The array typemaps use support functions. */
-%define JAVA_ARRAYS_TYPEMAPS(CTYPE, JNITYPE, JFUNCNAME)
+%define JAVA_ARRAYS_TYPEMAPS(CTYPE, JNITYPE, JFUNCNAME, JNIDESC)
 
 %typemap(in) CTYPE[] (JNITYPE *jarr)
 %{  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
@@ -195,6 +225,8 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
   if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
 %typemap(argout) CTYPE[ANY] 
 %{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, $1, $input); %}
+%typemap(inv,parse=JNIDESC) CTYPE[ANY] 
+%{$input = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
 %typemap(out) CTYPE[ANY] 
 %{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
 %typemap(freearg) CTYPE[ANY] 
@@ -203,21 +235,25 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 #else
 %{ free($1); %}
 #endif
+%typemap(director_in) CTYPE[ANY] 
+%{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
+%typemap(director_out) CTYPE[] (JNITYPE *jarr)
+%{  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
 
 %enddef
 
-JAVA_ARRAYS_TYPEMAPS(bool, jboolean, Bool)         /* bool[ANY] */
-JAVA_ARRAYS_TYPEMAPS(signed char, jbyte, Schar)    /* signed char[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned char, jshort, Uchar) /* unsigned char[ANY] */
-JAVA_ARRAYS_TYPEMAPS(short, jshort, Short)         /* short[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned short, jint, Ushort) /* unsigned short[ANY] */
-JAVA_ARRAYS_TYPEMAPS(int, jint, Int)               /* int[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned int, jlong, Uint)    /* unsigned int[ANY] */
-JAVA_ARRAYS_TYPEMAPS(long, jint, Long)             /* long[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned long, jlong, Ulong)  /* unsigned long[ANY] */
-JAVA_ARRAYS_TYPEMAPS(long long, jlong, Longlong)   /* long long[ANY] */
-JAVA_ARRAYS_TYPEMAPS(float, jfloat, Float)         /* float[ANY] */
-JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
+JAVA_ARRAYS_TYPEMAPS(bool, jboolean, Bool, "[Z")         /* bool[ANY] */
+JAVA_ARRAYS_TYPEMAPS(signed char, jbyte, Schar, "[B")    /* signed char[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned char, jshort, Uchar, "[S") /* unsigned char[ANY] */
+JAVA_ARRAYS_TYPEMAPS(short, jshort, Short, "[S")         /* short[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned short, jint, Ushort, "[I") /* unsigned short[ANY] */
+JAVA_ARRAYS_TYPEMAPS(int, jint, Int, "[I")               /* int[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned int, jlong, Uint, "[J")    /* unsigned int[ANY] */
+JAVA_ARRAYS_TYPEMAPS(long, jint, Long, "[I")             /* long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned long, jlong, Ulong, "[J")  /* unsigned long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(long long, jlong, Longlong, "[J")   /* long long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(float, jfloat, Float, "[F")         /* float[ANY] */
+JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double, "[D")      /* double[ANY] */
 
 %typecheck(SWIG_TYPECHECK_BOOL_ARRAY) /* Java boolean[] */
     bool[ANY]

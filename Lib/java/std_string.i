@@ -28,6 +28,8 @@ class string;
 %typemap(jni) string "jstring"
 %typemap(jtype) string "String"
 %typemap(jstype) string "String"
+%typemap(directorin) string "$jniinput"
+%typemap(directorout) string "$javacall"
 
 %typemap(in) string 
 %{if($input) {
@@ -40,6 +42,9 @@ class string;
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
     return $null;
   } %}
+
+%typemap(inv,parse="Ljava/lang/String;") string 
+%{ $input = jenv->NewStringUTF($1.c_str()); %}
 
 %typemap(out) string 
 %{ $result = jenv->NewStringUTF($1.c_str()); %}
@@ -56,6 +61,8 @@ class string;
 %typemap(jni) const string & "jstring"
 %typemap(jtype) const string & "String"
 %typemap(jstype) const string & "String"
+%typemap(directorin) const string & "$jniinput"
+%typemap(directorout) const string & "$javacall"
 
 %typemap(in) const string & 
 %{$1 = NULL;
@@ -72,6 +79,9 @@ class string;
 
 %typemap(freearg) const string & 
 %{ delete $1; %}
+
+%typemap(inv,parse="Ljava/lang/String;") const string &
+%{ $input = jenv->NewStringUTF($1.c_str()); %}
 
 %typemap(out) const string & 
 %{ $result = jenv->NewStringUTF($1->c_str()); %}
@@ -109,6 +119,8 @@ class wstring;
 %typemap(jni) wstring "jstring"
 %typemap(jtype) wstring "String"
 %typemap(jstype) wstring "String"
+%typemap(directorin) wstring "$jniinput"
+%typemap(directorout) wstring "$javacall"
 
 %typemap(in) wstring
 %{if($input) {
@@ -130,6 +142,15 @@ class wstring;
     return $null;
   } %}
 
+%typemap(inv,parse="Ljava/lang/String;") wstring 
+%{jsize len = $1.length();
+  jchar *conv_buf = new jchar[len];
+  for (jsize i = 0; i < len; ++i) {
+    conv_buf[i] = (jchar)$1[i];
+  }
+  $input = jenv->NewString(conv_buf, len);
+  delete [] conv_buf; %}
+
 %typemap(out) wstring
 %{jsize len = $1.length();
   jchar *conv_buf = new jchar[len];
@@ -149,6 +170,8 @@ class wstring;
 %typemap(jni) const wstring & "jstring"
 %typemap(jtype) const wstring & "String"
 %typemap(jstype) const wstring & "String"
+%typemap(directorin) const wstring & "$jniinput"
+%typemap(directorout) const wstring & "$javacall"
 
 %typemap(in) const wstring & 
 %{$1 = NULL;
@@ -170,6 +193,15 @@ class wstring;
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
     return $null;
   } %}
+
+%typemap(inv,parse="Ljava/lang/String;") const wstring &
+%{jsize len = $1->length();
+  jchar *conv_buf = new jchar[len];
+  for (jsize i = 0; i < len; ++i) {
+    conv_buf[i] = (jchar)(*$1)[i];
+  }
+  $input = jenv->NewString(conv_buf, len);
+  delete [] conv_buf; %}
 
 %typemap(out) const wstring & 
 %{jsize len = $1->length();
