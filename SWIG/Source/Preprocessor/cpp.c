@@ -732,7 +732,10 @@ Preprocessor_replace(DOH *s)
 	  break;
 	}
 	if (Cmp(id,"__FILE__") == 0) {
-	  Printf(ns,"\"%s\"",Getfile(s));
+	  String *fn = Copy(Getfile(s));
+	  Replaceall(fn,"\\","\\\\");
+	  Printf(ns,"\"%s\"",fn);
+	  Delete(fn);
 	  state = 0;
 	  break;
 	}
