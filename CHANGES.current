@@ -1,5 +1,11 @@
 Version 1.3.20 (In progress)
 ============================
+05/21/2003: cheetah (William Fulton)
+            Fixes to some of the Visual C++ example project files which would not 
+            work with spaces in the paths held in the environment variables used to 
+            point to the target language's library / include directory.
+            SF bug #740769
+
 05/21/2003:  songyanf (Tiger)
             Added -contracts option.
             First try of the idea of "Wrap by Contract": 
