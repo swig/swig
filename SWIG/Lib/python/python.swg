@@ -40,7 +40,7 @@
 %typemap(in,parse="f") float "";
 %typemap(in,parse="d") double "";
 %typemap(in,parse="c") char "";
-%typemap(in,parse="s") char * "";
+%typemap(in,parse="s") char *, char [ANY] "";
 
 /* Boolean values.  Have to convert from a long since */
 %typemap(in) bool "$1 = (bool) PyInt_AsLong($input);
