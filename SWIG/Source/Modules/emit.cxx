@@ -371,26 +371,9 @@ void emit_action(Node *n, Wrapper *f) {
 
   /* Emit contract code (if any) */
   if (Swig_contract_mode_get()) {
-
     /* Preassertion */
-    tm = Getattr(n, "feature:preassert");
+    tm = Getattr(n, "contract:preassert");
     if (Len(tm)) {
-      replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
-      Printv(f->code,tm,"\n",NIL);
-    }
-    
-    /* Inherit_Preassertion */
-    tm = Getattr(n, "feature:inherit_preassert");
-    if (Len(tm)) {
-      replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
-      Printv(f->code,tm,"\n",NIL);
-    }
-     
-    /* Invariant -- EXPERIMENTAL */
-    tm = Getattr(n, "feature:invariant");
-    if (Len(tm)) {
-      replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
-      Replaceid(tm, "SWIG_invariant", "SWIG_invariant_begin");
       Printv(f->code,tm,"\n",NIL);
     }
   }
@@ -440,23 +423,9 @@ void emit_action(Node *n, Wrapper *f) {
 
   /* Emit contract code (if any) */
   if (Swig_contract_mode_get()) {
-    /* Invariant -- EXPERIMENTAL */
-    tm = Getattr(n, "feature:invariant");
-    if (Len(tm)) {
-      replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
-      Replaceid(tm, "SWIG_invariant", "SWIG_invariant_end");
-      Printv(f->code,tm,"\n",NIL);
-    }
     /* Postassertion */
-    tm = Getattr(n, "feature:postassert");
+    tm = Getattr(n, "contract:postassert");
     if (Len(tm)) {
-      replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
-      Printv(f->code,tm,"\n",NIL);
-    }
-    /* Inherit Postassertion */
-    tm = Getattr(n, "feature:inherit_postassert");
-    if (Len(tm)) {
-      replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
       Printv(f->code,tm,"\n",NIL);
     }
   }
