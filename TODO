@@ -132,7 +132,7 @@ defer  ready to go.  The primary obstacle lies in the target language
 
                $typemap(in,1=int foo, input=x)
 
-***    Add attributes to the %feature directive. Something like:
+[DONE] Add attributes to the %feature directive. Something like:
 
        %feature("except", throws="OutOfMemoryException")
 
@@ -152,13 +152,6 @@ defer  ready to go.  The primary obstacle lies in the target language
        nodes to be identified.  For example:
 
              %feature("foo", nodetype="class") Foo { ... some code ... };
-
-       Also desirable for the Java module to specify the classes to go in the
-       throw clause:
-
-             %feature("except", throws="OutOfMemoryException") Foo {
-                ... code which throws the OutOfMemoryException ...
-             };
 
        Consider use of wildcards.   Namespace/nested scope support in
        %feature is currently weak.  It works, but is fragile.  Consider
@@ -365,7 +358,7 @@ C#
        methods. It currently works with 'virtual' is specified in a derived 
        C++ class function. A polymorphic method need not specify 'virtual' in C++.
 
-****   Wrap C/C++ enums with C# enums, currently they are wrapped with a C# int.
+[DONE] Wrap C/C++ enums with C# enums, currently they are wrapped with a C# int.
 
 ****   Implement director support for C# so that virtual methods work seemlessly
        when mixing C# and C++ code.
