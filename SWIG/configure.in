@@ -980,10 +980,14 @@ AC_SUBST(PIKEDYNAMICLINKING)
 #----------------------------------------------------------------
 
 # Root directory
-# Translate path for native Windows compilers on Cygwin for use with 'make check'
+# Translate path for native Windows compilers for use with 'make check'
 ROOT_DIR=`pwd`
 case $host in
-*-*-cygwin* | *-*-mingw*) ROOT_DIR=`cygpath --mixed $ROOT_DIR`;;
+*-*-cygwin* | *-*-mingw*)
+  if (cygpath --mixed $ROOT_DIR) >/dev/null 2>/dev/null; then
+    ROOT_DIR=`cygpath --mixed $ROOT_DIR`
+  fi
+  ;;
 esac
 
 AC_SUBST(ROOT_DIR)
