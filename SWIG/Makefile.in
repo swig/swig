@@ -28,7 +28,7 @@ TARGET      = swig$(RELEASESUFFIX)
 SOURCE      = Source
 SOURCEDIRS  = `ls $(SOURCE)`
 
-swig: Modules1.1 Swig Preprocessor CParse DOH runtime
+swig: Modules1.1 Swig Preprocessor CParse DOH runtime swig.spec
 	$(CXX) -o $(TARGET) \
 	$(SOURCE)/Modules1.1/libmodules11.a \
 	$(SOURCE)/CParse/libcparse.a \
@@ -47,6 +47,9 @@ Preprocessor: Source/Include/swigconfig.h
 
 CParse: Source/Include/swigconfig.h
 	@cd $(SOURCE)/CParse; $(MAKE)
+
+swig.spec: swig.spec.in config.status
+	@cd $(SOURCE) && CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=swig.spec $(SHELL) ./config.status
 
 DOH: Source/Include/swigconfig.h
 	@cd $(SOURCE)/DOH; $(MAKE)
@@ -514,7 +517,7 @@ clean-objects:
 	@cd Runtime; $(MAKE) -s clean
 	@rm -f $(TARGET)
 
-distclean-dead = config.status config.log config.cache \
+distclean-dead = config.status config.log config.cache swig.spec \
 		 @configure_substituted_files@
 
 distclean: clean
@@ -721,13 +724,13 @@ uninstall-runtime:
 # distribution directory
 dd = @PACKAGE@-@VERSION@
 
-dist:
+dist: swig.spec
 	@echo 'Dave, what do you want to do w/ "make dist"?'
 	@echo 'See Makefile.in target "dist-suggested" for an idea.'
 	@echo '    --thi'
 	false
 
-dist-suggested:
+dist-suggested: swig.spec
 	rm -rf $(dd) $(dd).tar.gz
 	cvs export -d $(dd) -r HEAD SWIG
 	tar cf - $(dd) | gzip --best > $(dd).tar.gz
