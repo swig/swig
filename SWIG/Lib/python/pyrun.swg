@@ -409,7 +409,9 @@ SWIG_InstallConstants(PyObject *d, swig_const_info constants[]) {
 
 #define SWIG_preassert(x)  if (!(x)) { PyErr_SetString(PyExc_RuntimeError, "preassertion failure: " #x); goto fail; } else
 #define SWIG_postassert(x) if (!(x)) { PyErr_SetString(PyExc_RuntimeError, "postassertion failure: " #x); goto fail; } else
-#define SWIG_invarassert(x) if (!(x)) { PyErr_SetString(PyExc_RuntimeError, "invariant failure: " #x); goto fail; } else
+#define SWIG_invariant(x) if (!(x)) { PyErr_SetString(PyExc_RuntimeError, "invariant failure: " #x); goto fail; } else
+#define SWIG_invariant_begin(x) if (!(x)) { PyErr_SetString(PyExc_RuntimeError, "invariant failure at begining: " #x); goto fail; } else
+#define SWIG_invariant_end(x) if (!(x)) { PyErr_SetString(PyExc_RuntimeError, "invariant failure at ending: " #x); goto fail; } else
 
 #ifdef __cplusplus
 }
