@@ -134,7 +134,7 @@ index += "<!-- INDEX -->\n"
 
 data = "\n".join(result)
 
-data = data.replace("@INDEX@",index);
+data = data.replace("@INDEX@",index) + "\n";
 
 # Write the file back out
 open(filename,"w").write(data)
