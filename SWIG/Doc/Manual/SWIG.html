@@ -858,7 +858,8 @@ would be an extremely bad idea to free or destroy such a pointer.
 <h3> Arrays</h3>
 
 Arrays are fully supported by SWIG, but they are always handled as pointers instead
-of a special array object or list.  Thus, the following declarations :<p>
+of mapping them to a special array object or list in the target language.  Thus, the
+following declarations :<p>
 
 <p>
 <blockquote><pre>int foobar(int a[40]);
@@ -872,20 +873,32 @@ are processed as if they were really declared like this:
 <p>
 <blockquote><pre>int foobar(int *a);
 void grok(char **argv);
-void transpose(double *a);
+void transpose(double (*a)[20]);
 </pre></blockquote>
 
-<p>
-Multi-dimensional arrays are transformed into a single pointer since
-<tt>a[][]</tt> and <tt>**a</tt> are not the same thing (even though
-they can be used in similar ways). Rather, <tt>a[][]</tt> is mapped to
-*a, where <tt>*a</tt> is the equivalent of <tt>&amp;a[0][0]</tt>. The
-reader is encouraged to dust off their C book and look at the section
-on arrays before using them with SWIG.<p>
-
-Like C, SWIG does not perform array bounds or shape checking.  When an array is wrapped,
+Like C, SWIG does not perform array bounds checking.  When an array is wrapped,
 any pointer to an appropriate type will be accepted.   It is up to the
 user to make sure the pointer points a suitably allocated region of memory. 
+
+<p>
+Multi-dimensional arrays are transformed into a pointer to array of one less
+dimension.  For example:
+
+<blockquote>
+<pre>
+int [10];         // Maps to int *
+int [10][20];     // Maps to int (*)[20]
+int [10][20][30]; // Maps to int (*)[20][30]
+</pre>
+</blockquote>
+
+It is important to note that in the C type system, a multidimensional
+array <tt>a[][]</tt> is <b>NOT</b> equivalent to a single pointer
+<tt>*a</tt> or a double pointer such as <tt>**a</tt>.  Instead, a
+pointer to an array is used (as shown above) where the actual value of
+the pointer is usually the starting memory location of the array.  The
+reader is strongly advised to dust off their C book and re-read the
+section on arrays before using them with SWIG.
 
 <p>
 Array variables are supported, but are read-only by default.  For example:
@@ -896,12 +909,11 @@ int   a[100][200];
 </pre>
 </blockquote>
 
-In this case, reading the variable 'a' returns a pointer to the first
-element of the array <tt>&a[0][0]</tt>.  Trying to modify 'a' results
-in an error.  This is because SWIG needs more information about array
-dimensions and shape to properly to change the array contents.  To
-work around this limitation, it is probably easier to simply write a
-few simple assist functions like this:
+In this case, reading the variable 'a' returns a pointer of type <tt>int (*)[200]</tt>
+that points to the first element of the array <tt>&a[0][0]</tt>.  Trying to modify 'a' results
+in an error.  This is because SWIG does not know how to copy data from the target
+language into the array.   To work around this limitation, it may be easier to write
+a few simple assist functions like this:
 
 <blockquote>
 <pre>
@@ -912,6 +924,25 @@ void a_set(int i, int j, int val) {
 int a_get(int i, int j) {
    return a[i][j];
 }
+%}
+</pre>
+</blockquote>
+
+To dynamically create arrays of various sizes and shapes, you may need to 
+write some helper functions in your interface.  For example:
+
+<blockquote>
+<pre>
+// Some array helpers
+%inline %{
+  /* Create any sort of [size] array */
+  int *int_array(int size) {
+     return (int *) malloc(size*sizeof(int));
+  }
+  /* Create a two-dimension array [size][10] */
+  int (*int_array_10(int size))[10] {
+     return (int (*)[10]) malloc(size*10*sizeof(int));
+  }
 %}
 </pre>
 </blockquote>
