@@ -401,10 +401,97 @@ you to change the internal representation of Foo without breaking all
 of the other modules or having to recompile the entire universe after
 making your changes.
 
-<h3>10. Miscellaneous </h3>
+<h2>10. Guile Support Internals</h2>
+
+Please direct questions about this section to
+<a href="mailto:ttn@glug.org">ttn@glug.org</a>.
+Last update: 2000-04-03 05:27:34-0700.
+
+<h3>Meaning of "Module"</h3>
+
+<p>
+There are three different concepts of "module" involved, defined separately
+for SWIG, Guile, and Libtool.  To avoid horrible confusion, we explicitly
+prefix the context, e.g., "guile-module".
+
+
+<h3>Linkage</h3>
+
+<p>
+Guile support is complicated by a lack of user community cohesiveness, which
+manifests in multiple shared-library usage conventions.  A set of policies
+implementing a usage convention is called a <b>linkage</b>.  The default
+linkage is the simplest; nothing special is done.  In this case `SWIG_init()'
+is provided and users must do something like this:
+
+<blockquote>
+<pre>
+(define my-so (dynamic-link "./example.so"))
+(dynamic-call "SWIG_init" my-so)
+</pre>
+</blockquote>
+
+At this time, the name `SWIG_init' is hardcoded; this approach does not work
+with multiple swig-modules.
+
+<p>
+A second linkage creates "libtool dl module" wrappers, and currently is
+broken.  Whoever fixes this needs to track Guile's libtool dl module
+convention, since that is not finalized.
+
+<p>
+The only other linkage supported at this time creates shared object libraries
+suitable for use by hobbit's `(hobbit4d link)' guile module.  This is called
+the "hobbit" linkage, and requires also using the "-package" command line
+option to set the part of the module name before the last symbol.  For
+example, both command lines: [checkme:ttn]
+
+<blockquote>
+<pre>
+swig -guile -package my/lib foo.i
+swig -guile -package my/lib -module foo foo.i
+</pre>
+</blockquote>
+
+would create module `(my lib foo)' (assuming in the first case foo.i declares
+the module to be "foo").  The installed files are my/lib/libfoo.so.X.Y.Z and
+friends.  This scheme is still very experimental; the (hobbit4d link)
+conventions are not well understood.
+
+<p>
+There are no other linkage types planned, but that could change...  To add a
+new type, add the name to the enum in guile.h and add the case to
+`GUILE::emit_linkage()'.
+
+<h3>Underscore Folding</h3>  
+
+<p>
+Underscores are converted to dashes in identifiers.  Guile support may grow an
+option to inhibit this folding in the future, but no one has complained so
+far.
+
+<h3>Typemaps</h3>
+
+<p>
+It used to be that the mappings for "native" types were included in
+guile.cxx.  This information is now in Lib/guile/typemaps.i, which presents a
+new challenge: how to have SWIG include typemaps.i before processing the
+user's foo.i.  At this time, we must say:
+
+<blockquote>
+<pre>
+%include guile/typemaps.i
+</pre>
+</blockquote>
+
+in foo.i.  This may change in the future.
+
+<h2>11. Miscellaneous </h2>
 
 <ul>
 <li> Do not use the ternary ?: operator.  It is unnecessarily error prone,
 hard for people to read, and hard to maintain code that uses it.
 </ul>
 
+</body>
+</html>
