@@ -10,35 +10,35 @@ g = Grok.new(f)
 begin
   x = b.x
   puts "Error! b.x"
-rescue
+rescue NameError
 end
 
 begin
   x = s.x
   puts "Error! s.x"    
-rescue
+rescue NameError
 end
 
 begin
   x = g.x
   puts "Error! g.x"
-rescue
+rescue NameError
 end
 
 begin
   x = b.getx()
   puts "Error! b.getx()"    
-rescue
+rescue NameError
 end
 
 begin
   x = s.getx()
   puts "Error! s.getx()"        
-rescue
+rescue NameError
 end
 
 begin
   x = g.getx()
   puts "Error! g.getx()"
-rescue
+rescue NameError
 end
