@@ -56,6 +56,7 @@ CPP_TEST_CASES += \
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES += \
+	arrays \
 	defines \
 	sizeof_pointer \
 	unions \

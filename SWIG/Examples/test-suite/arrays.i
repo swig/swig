@@ -1,0 +1,38 @@
+/*
+This test case tests that various types of arrays are working.
+*/
+
+%module arrays
+%pragma make_default
+
+%inline %{
+#define ARRAY_LEN 2
+
+typedef enum {One, Two, Three, Four, Five} finger;
+
+typedef struct {
+	double         double_field;
+} SimpleStruct;
+
+typedef struct {
+	char           array_c [ARRAY_LEN];
+	unsigned char  array_uc[ARRAY_LEN];
+	short          array_s [ARRAY_LEN];
+	unsigned short array_us[ARRAY_LEN];
+	int            array_i [ARRAY_LEN];
+	unsigned int   array_ui[ARRAY_LEN];
+	long           array_l [ARRAY_LEN];
+	unsigned long  array_ul[ARRAY_LEN];
+	float          array_f [ARRAY_LEN];
+	double         array_d [ARRAY_LEN];
+    SimpleStruct   array_struct[ARRAY_LEN];
+    SimpleStruct*  array_structpointers[ARRAY_LEN];
+	int*           array_ipointers [ARRAY_LEN];
+	finger         array_enum[ARRAY_LEN];
+    const int      array_const_i[ARRAY_LEN];
+} ArrayStruct;
+
+int fn_taking_arrays(SimpleStruct arrays[ARRAY_LEN]) {};
+
+%}
+
