@@ -36,14 +36,14 @@ swig: _recurse DOH
 experiment: GOAL := experiment
 experiment: MODULES := Swig Preprocessor LParse Experiment Swim
 experiment: _recurse DOH SWILL
-	$(CC) $(OBJS) $(LIBS) -o experiment
+	$(CC) $(OBJS) $(LIBS) -o swig
 
 #####################################################################
 # TARGET: clean
 #####################################################################
 clean: GOAL := clean
 clean: _recurse
-	rm -f swig experiment
+	rm -f swig
 
 #####################################################################
 # TARGET: nuke
