@@ -186,6 +186,9 @@ DohCmp(const DOH *obj1, const DOH *obj2) {
   b1 = (DohBase *) obj1;
   b2 = (DohBase *) obj2;
   if ((!DohCheck(b1)) || (!DohCheck(b2))) {
+    if ((b1 == 0) && (b2 == 0)) return 0;
+    if (b1 && !b2) return 1;
+    if (!b1 &&  b2) return -1;
     return strcmp((char *) DohData(b1),(char *) DohData(b2));
   }
   b1info = dohtypes[b1->type];
