@@ -1,15 +1,15 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * sstring.cxx
  *
  *     SWIG string object.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1998-2000.  The University of Chicago
  * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
  *                           University of California.
  *
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
@@ -50,7 +50,7 @@ void format_string(char *str) {
   while (*c) {
     switch(state) {
     case 0:
-      if (*c == '\\') 
+      if (*c == '\\')
 	state = 1;
       else {
 	*(c1++) = *c;
@@ -102,12 +102,12 @@ void format_string(char *str) {
 // sstring.cxx
 //
 // SWIG String class.
-// This class is used to construct long strings when writing 
+// This class is used to construct long strings when writing
 // wrapper functions.  It also "mimicks" the C++ streams I/O
 // library for creating strings.  For example :
 //
 //     str << "hi there" << 3 << "\n";
-// 
+//
 // Will append the given strings to str.
 //
 // The idea here is to provide a mechanism for writing wrapper
@@ -238,18 +238,18 @@ void String::insert(const char *newstr) {
     maxsize = newmaxsize;
     str = nstr;
   }
-  
+
   /* Shift all of the characters over */
 
   for (i = len -1; i >= 0; i--) {
     str[i+l] = str[i];
   }
-  
+
   /* Now insert the new string */
 
   strncpy(str,newstr,l);
   len += l;
-  str[len] = 0;                         
+  str[len] = 0;
 
 }
 
@@ -287,7 +287,7 @@ String &operator<<(String &t,const int a) {
   return t;
 }
 
-String &operator<<(String &t, String &s) {
+String &operator<<(String &t, const String &s) {
   t.add(s.get());
   return t;
 }
@@ -322,7 +322,7 @@ String &operator>>(const char *s, String &t) {
   return t;
 }
 
-String &operator>>(String &s, String &t) {
+String &operator>>(const String &s, String &t) {
   t.insert(s.get());
   return t;
 }
@@ -413,14 +413,14 @@ void String::replace(const char *token, const char *rep) {
       // Now dump the replacement string into place
 
       this->add(rep);
-      
+
       // Jump over the token
-      
+
       c+=strlen(token);
       t = strstr(c,token);
     }
     // Attach rest of the string
-    if (*c) 
+    if (*c)
       this->add(c);
     delete [] s;
   }
@@ -465,7 +465,7 @@ void String::replaceid(const char *token, const char *rep) {
 	else whitespace = 0;
 	c++;
       }
-    
+
       if (whitespace) {
 	// Check to see if there is whitespace afterwards
 	if ((!c[tokenlen]) || (!(isalnum(c[tokenlen]) || (c[tokenlen] == '_') || (c[tokenlen] == '$')))) {
@@ -482,7 +482,7 @@ void String::replaceid(const char *token, const char *rep) {
     }
 
     // Attach rest of the string
-    if (*c) 
+    if (*c)
       this->add(c);
 
     // Delete the old string
@@ -501,7 +501,7 @@ void String::replaceid(const char *token, const char *rep) {
 
 void String::strip() {
   char *s = str;          // Old pointer value
-  char *c, lastchar = 0;    
+  char *c, lastchar = 0;
   int   whitespace = 0;
   int   oldmaxsize = maxsize;
 
@@ -514,7 +514,7 @@ void String::strip() {
       // See if this character doesn't violate our whitespace rules
       if (whitespace) {
 	if (isalnum(lastchar) || (lastchar == '_') || (lastchar == '$')) {
-	  if (isalnum(*c) || (*c == '_') || (*c == '$')) 
+	  if (isalnum(*c) || (*c == '_') || (*c == '$'))
 	    this->add(' ');
 	}
       }
