@@ -355,6 +355,7 @@ extern DOH      *DohNone;
 #define Setmeta            DohSetmeta
 #define Delmeta            DohDelmeta
 #define NewString          DohNewString
+#define NewStringWithSize  DohNewStringWithSize
 #define NewStringf         DohNewStringf
 #define NewHash            DohNewHash
 #define NewList            DohNewList
