@@ -40,8 +40,9 @@ SWIG supports overloading by generating a dynamic dispatch function
 that picks the appropriate function by examining the number and types
 of input arguments. The creation of this function does not depend on
 declaration order, it is fully integrated into the SWIG typemap
-system, and it does not rely on unreliable techniques like trying
-overloaded methods in order until a match is found.  It's better.
+system, and it does not rely on unreliable techniques like attempting
+to execute overloaded methods in order until one executes
+successfully.  It's better.
 
 * C++ Smart pointer support */
 
@@ -86,6 +87,18 @@ output using an XML module.
 Numerous bug fixes in many parts of SWIG.  A large number of subtle
 template/namespace problems have been fixed in this release.  See the
 CHANGES file for details.
+
+Some words on backwards compatibility
+-------------------------------------
+SWIG-1.3.14 is pushing SWIG development in some exciting new directions.
+Support for overloading, smart pointers, and other long requested
+features have been added.  A large number of enhancements to existing
+language modules have also been included.
+
+That said, this release represents work in progress and is not
+guaranteed to be backwards compatible with older SWIG versions or
+SWIG-1.3.13 for that matter.  However, we hope that people will try
+the release and give us feedback on the new additions.
 
 Availability:
 -------------
