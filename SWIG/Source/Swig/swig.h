@@ -72,7 +72,12 @@ typedef  DOH     SwigType;
 #define   T_ULONGLONG  12
 #define   T_FLOAT      20
 #define   T_DOUBLE     21
-#define   T_NUMERIC    22
+#define   T_LONGDOUBLE 22
+#define   T_FLTCPLX    23
+#define   T_DBLCPLX    24
+#define   T_NUMERIC    25
+
+#define   T_COMPLEX    T_DBLCPLX
 
 /* non-numeric */
 

@@ -115,6 +115,9 @@ SwigType *NewSwigType(int t) {
   case T_DOUBLE:
     return NewString("double");
     break;
+  case T_COMPLEX:
+    return NewString("complex");
+    break;
   case T_CHAR:
     return NewString("char");
     break;
