@@ -17,6 +17,10 @@ tree (maybe).
 Version 1.3.14 (In progress)
 ============================
 
+07/29/2002: beazley
+            Fixed problem with typemap copies, %apply, and %clear inside
+            C++ namespaces.
+
 07/28/2002: cheetah (William Fulton)
             [Java] The JNI class now has package access as the class modifier
             has been changed from "public" to nothing. This has been done
