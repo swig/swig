@@ -44,6 +44,8 @@ new_frame() {
   f->debug_nargs = -1;
   f->debug_args = 0;
   f->debug_lastarg = 0;
+  f->debug_str = 0;
+  f->debug_srcstr = 0;
 
   f->last = 0;
   f->next = 0;

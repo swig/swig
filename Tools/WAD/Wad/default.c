@@ -83,8 +83,11 @@ char *wad_strip_dir(char *name) {
   return name;
 }
 
+
+
 static char *src_file = 0;
 static int   src_len = 0;
+static char  src_path[1024] = "";
 
 /* Opens up a source file and tries to locate a specific line number */
 
@@ -94,16 +97,22 @@ char *wad_load_source(char *path, int line) {
   char *start;
   int   n;
 
-  fd = open(path, O_RDONLY);
-  if (fd < 0) return 0;
-  src_len = lseek(fd, 0, SEEK_END);
-  lseek(fd,0,SEEK_SET);
-  src_file = (char *)mmap(NULL,src_len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-  if (src_file == MAP_FAILED) {
+  if (strcmp(src_path,path)) {
+    if (src_file) {
+      munmap(src_file, src_len);
+    }
+    fd = open(path, O_RDONLY);
+    if (fd < 0) return 0;
+    src_len = lseek(fd, 0, SEEK_END);
+    lseek(fd,0,SEEK_SET);
+    src_file = (char *)mmap(NULL,src_len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+    if (src_file == MAP_FAILED) {
+      close(fd);
+      return 0;
+    }
     close(fd);
-    return 0;
-  }
-  close(fd);
+    strcpy(src_path,path);
+  } 
   n = 0;
   start = src_file;
   c = src_file;
@@ -118,14 +127,102 @@ char *wad_load_source(char *path, int line) {
     c++;
     n++;
   }
-  munmap(src_file,src_len);
-  src_file = 0;
   return 0;
 }
 
 void wad_release_source() {
-  if (src_file)
+  if (src_file) {
     munmap(src_file,src_len);
+    src_file = 0;
+    src_len = 0;
+    src_path[0] = 0;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * wad_debug_src_code(WadFrame *f)
+ *
+ * Get source code for a frame 
+ * ----------------------------------------------------------------------------- */
+
+char *wad_debug_src_string(WadFrame *f, int window) {
+  static char temp[16384];
+  char ntemp[64];
+
+  if (f->loc_srcfile && strlen(f->loc_srcfile) && (f->loc_line > 0)) {
+    char *line, *c;
+    int   i;
+    int   first, last;
+    first = f->loc_line - window;
+    last  = f->loc_line + window;
+    if (first < 1) first = 1;
+    line = wad_load_source(f->loc_srcfile,first);
+    if (line) {
+      strcpy(temp,f->loc_srcfile);
+      strcat(temp,", line ");
+      sprintf(ntemp,"%d\n\n", f->loc_line);
+      strcat(temp,ntemp);
+      for (i = first; i <= last; i++) {
+	if (i == f->loc_line) strcat(temp," => ");
+	else                  strcat(temp,"    ");
+	c = strchr(line,'\n');
+	if (c) {
+	  *c = 0;
+	  strcat(temp,line);
+	  strcat(temp,"\n");
+	  *c = '\n';
+	} else {
+	  strcat(temp,line);
+	  strcat(temp,"\n");
+	  break;
+	}
+	line = c+1;
+      }
+      f->debug_srcstr = wad_strdup(temp);
+      return f->debug_srcstr;
+    }
+  }
+  f->debug_srcstr = 0;
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * wad_debug_make_strings(WadFrame *f)
+ *
+ * This function walks the stack trace and tries to generate a debugging string
+ * ----------------------------------------------------------------------------- */
+
+void 
+wad_debug_make_strings(WadFrame *f) {
+  static char msg[16384];
+  char temp[1024];
+  while (f) {
+    sprintf(msg,"#%-3d 0x%08x in ", f->frameno, f->pc);
+    strcat(msg, f->sym_name ? f->sym_name : "?");
+    strcat(msg,"(");
+    strcat(msg,wad_arg_string(f));
+    strcat(msg,")");
+    if (f->loc_srcfile && strlen(f->loc_srcfile)) {
+      strcat(msg," in '");
+      strcat(msg, wad_strip_dir(f->loc_srcfile));
+      strcat(msg,"'");
+      if (f->loc_line > 0) {
+	sprintf(temp,", line %d", f->loc_line);
+	strcat(msg,temp);
+	/* Try to locate the source file */
+	wad_debug_src_string(f, WAD_SRC_WINDOW);
+      }
+    } else {
+      if (f->loc_objfile && strlen(f->loc_objfile)) {
+	strcat(msg," from '");
+	strcat(msg, wad_strip_dir(f->loc_objfile));
+	strcat(msg,"'");
+      }
+    }
+    strcat(msg,"\n");
+    f->debug_str = wad_strdup(msg);
+    f = f->next;
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -135,6 +232,7 @@ void wad_release_source() {
 void wad_default_callback(int signo, WadFrame *f, char *ret) {
   char *fd;
   WadFrame *fline = 0;
+  char  *srcstr = 0;
 
   switch(signo) {
   case SIGSEGV:
@@ -161,60 +259,18 @@ void wad_default_callback(int signo, WadFrame *f, char *ret) {
   while (f && !(f->last)) {
     f = f->next;
   }
+
   while (f) {
-    fprintf(stderr,"#%-3d 0x%08x in %s(%s)", f->frameno, f->pc, f->sym_name ? f->sym_name : "?", 
-	   wad_arg_string(f));
-    if (f->loc_srcfile && strlen(f->loc_srcfile)) {
-      fprintf(stderr," in '%s'", wad_strip_dir(f->loc_srcfile));
-      if (f->loc_line > 0) {
-	fprintf(stderr,", line %d", f->loc_line);
-	{
-	  int fd;
-	  fd = open(f->loc_srcfile, O_RDONLY);
-	  if (fd > 0) {
-	    fline = f;
-	  } 
-	  close(fd);
-	}
-      }
-    } else {
-      if (f->loc_objfile && strlen(f->loc_objfile)) {
-	fprintf(stderr," from '%s'", f->loc_objfile);
-      }
+    fputs(f->debug_str, stderr);
+    if (f->debug_srcstr) {
+      srcstr = f->debug_srcstr;
     }
-    fprintf(stderr,"\n");
     f = f->prev;
   }
-
-  if (fline) {
-    int first;
-    int last;
-    char *line, *c;
-    int i;
-    first = fline->loc_line - 2;
-    last  = fline->loc_line + 2;
-    if (first < 1) first = 1;
-    
-    line = wad_load_source(fline->loc_srcfile,first);
-    if (line) {
-      fprintf(stderr,"\n%s, line %d\n\n", fline->loc_srcfile,fline->loc_line);
-      for (i = first; i <= last; i++) {
-	if (i == fline->loc_line) fprintf(stderr," => ");
-	else                         fprintf(stderr,"    ");
-	c = strchr(line,'\n');
-	if (c) {
-	  *c = 0;
-	  fprintf(stderr,"%s\n",line);
-	  *c = '\n';
-	} else {
-	  fprintf(stderr,"%s\n",line);
-	  break;
-	}
-	line = c+1;
-      }
-      wad_release_source();
-      fprintf(stderr,"\n");
-    }
+  if (srcstr) {
+    fputs("\n", stderr);
+    fputs(srcstr,stderr);
+    fputs("\n", stderr);
   }
 }
 

@@ -20,6 +20,8 @@ static PyObject *buserror_exc = 0;
 static PyObject *abort_exc = 0;
 static PyObject *illegal_exc = 0;
 
+extern PyObject *new_wadobject(WadFrame *f,int);
+
 /* Function return points and values */
 
 static WadReturnFunc retpts[] = {
@@ -101,7 +103,7 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   char *name;
   WadFrame *f;
   WadFrame *fline = 0;
-
+  char     *srcstr = 0;
 
   printf("python handler.\n");
   if (!ret) {
@@ -131,6 +133,7 @@ static void handler(int signo, WadFrame *frame, char *ret) {
     break;
   }
 
+#ifdef OLD
   f = frame;
   /* Find the last exception frame */
   while (!f->last) {
@@ -139,73 +142,17 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   /* Now work backwards */
   f = f->prev;
   while (f) {
-    sprintf(temp,"#%-3d 0x%08x in ", f->frameno, f->pc);
-    strcat(message,temp);
-    strcat(message, f->sym_name ? f->sym_name : "?");
-    strcat(message,"(");
-    strcat(message,wad_arg_string(f));
-    strcat(message,")");
-    if (f->loc_srcfile && strlen(f->loc_srcfile)) {
-      strcat(message," in '");
-      strcat(message, wad_strip_dir(f->loc_srcfile));
-      strcat(message,"'");
-      if (f->loc_line > 0) {
-	sprintf(temp,", line %d", f->loc_line);
-	strcat(message,temp);
-	{
-	  int fd;
-	  fd = open(f->loc_srcfile, O_RDONLY);
-	  if (fd > 0) {
-	    fline = f;
-	  } 
-	  close(fd);
-	}
-      }
-    } else {
-      if (f->loc_objfile && strlen(f->loc_objfile)) {
-	strcat(message," from '");
-	strcat(message, wad_strip_dir(f->loc_objfile));
-	strcat(message,"'");
-      }
-    }
-    strcat(message,"\n");
+    strcat(message, f->debug_str);
+    if (f->debug_srcstr) srcstr = f->debug_srcstr;
     f = f->prev;
   }
-  if (fline) {
-    int first;
-    int last;
-    char *line, *c;
-    int i;
-    first = fline->loc_line - 2;
-    last  = fline->loc_line + 2;
-    if (first < 1) first = 1;
-    
-    line = wad_load_source(fline->loc_srcfile,first);
-    if (line) {
-      strcat(message,"\n");
-      strcat(message, fline->loc_srcfile);
-      sprintf(temp,", line %d\n\n", fline->loc_line);
-      strcat(message, temp);
-      for (i = first; i <= last; i++) {
-	if (i == fline->loc_line) strcat(message," => ");
-	else                         strcat(message,"    ");
-	c = strchr(line,'\n');
-	if (c) {
-	  *c = 0;
-	  strcat(message,line);
-	  strcat(message,"\n");
-	  *c = '\n';
-	} else {
-	  strcat(message,line);
-	  strcat(message,"\n");
-	  break;
-	}
-	line = c+1;
-      }
-      wad_release_source();
-      strcat(message,"\n");
-    }
+  if (srcstr) {
+    strcat(message,"\n");
+    strcat(message, srcstr);
+    strcat(message,"\n");
   }
+#endif
+
   if (wad_heap_overflow) {
     write(2, "WAD: Heap overflow detected.\n", 30);
     wad_default_callback(signo, frame, ret);
@@ -216,7 +163,11 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   above should dump a stack trace to stderr just in case we don't make it
   back. */
 
+#ifdef OLD
   PyErr_SetString(type, message);
+#endif
+  PyErr_SetObject(type, new_wadobject(frame,0));
+
 }
 
 void pywadinit() {

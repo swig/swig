@@ -91,7 +91,8 @@ char *wad_format_var(WadLocal *l) {
 #endif
 	strcat(buffer,"0x");
 	c = buffer+2;
-	for (i = 0; i < l->size; i++) {
+	/*	for (i = 0; i < l->size; i++) { */
+	for (i = 0; i < 4; i++) {
 	  b = (int) *ptr;
 	  if (!leading || (b)) {
 	    if (!leading || (b & 0xf0))

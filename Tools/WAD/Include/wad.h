@@ -33,6 +33,8 @@ extern "C" {
 #define MAX_PATH 1024
 #endif
 
+#define WAD_SRC_WINDOW 2
+
 /* --- Low level memory management functions --- */
 
 extern int   wad_memory_init();
@@ -140,24 +142,28 @@ typedef struct WadFrame {
 
   /* Symbol table information for PC */
 
-  char            *sym_name;        /* Symbol name          */
-  char            *sym_file;        /* Source file (if any) */
-  unsigned long    sym_base;        /* Symbol base address  */
-  unsigned long    sym_size;        /* Symbol size          */
-  int              sym_type;        /* Symbol type          */
-  int              sym_bind;        /* Symbol binding       */
+  char              *sym_name;        /* Symbol name          */
+  char              *sym_file;        /* Source file (if any) */
+  unsigned long      sym_base;        /* Symbol base address  */
+  unsigned long      sym_size;        /* Symbol size          */
+  int                sym_type;        /* Symbol type          */
+  int                sym_bind;        /* Symbol binding       */
 
   /* Location information */
-  char            *loc_objfile;     /* Object filename */
-  char            *loc_srcfile;     /* Source filename */
-  int              loc_line;        /* Source line */
+  char              *loc_objfile;     /* Object filename */
+  char              *loc_srcfile;     /* Source filename */
+  int                loc_line;        /* Source line */
 
   /* Debugging information */
-  int              debug_nargs;     /* Number of arguments */
-  WadLocal        *debug_args;      /* Arguments           */
-  WadLocal        *debug_lastarg;   /* Last argument       */
+  int                debug_nargs;     /* Number of arguments */
+  WadLocal          *debug_args;      /* Arguments           */
+  WadLocal          *debug_lastarg;   /* Last argument       */
 
-  int              last;          /* Last frame flag */
+  /* Output strings */
+  char              *debug_str;       /* Debugging string */
+  char              *debug_srcstr;    /* Source string    */
+
+  int                last;            /* Last frame flag */
 } WadFrame;
 
 extern WadFrame *wad_stack_trace(unsigned long, unsigned long, unsigned long);
@@ -189,6 +195,8 @@ extern void wad_find_symbol(WadFrame *f);
 extern void wad_find_debug(WadFrame *f);
 extern void wad_build_vars(WadFrame *f);
 extern char *wad_format_var(WadLocal *l);
+
+extern void  wad_debug_make_strings(WadFrame *f);
 
 /* --- Debugging Interface --- */
 
