@@ -71,7 +71,7 @@ Python Options (available with -python)\n\
      -keyword        - Use keyword arguments\n\
      -classic        - Use classic classes only\n\
      -cppcast        - Enable new C++ casting operators, useful for debugging\n\
-     -nortti         - Disable the use of RTTI, useful (sometimes) with directors\n\
+     -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -modern         - Use modern python features only, without compatibility code\n\
      -apply          - Use apply() in proxy classes\n\
      -new_vwm        - New value wrapper mode, use only when everything else fails \n\
@@ -1404,7 +1404,12 @@ public:
     */
      
     /* Emit the function call */
+    Printf(f->code, "try {\n");
     emit_action(n,f);
+    Printf(f->code, "} catch (Swig::DirectorException& e) {\n");
+    Printf(f->code, "  SWIG_Python_AddErrMesg(e.getMessage(), 1);\n");
+    Printf(f->code, "  SWIG_fail;\n");
+    Printf(f->code, "}\n");
 
     /* This part below still needs cleanup */
 
@@ -1760,7 +1765,9 @@ public:
         String *basetype = Getattr(parent, "classtype");
         String *target = Swig_method_decl(decl, classname, parms, 0, 0);
         call = Swig_csuperclass_call(0, basetype, superparms);
-        Printf(w->def, "%s::%s: %s, Swig::Director(self) { }", classname, target, call);
+        Printf(w->def, "%s::%s: %s, Swig::Director(self) { \n", classname, target, call);
+        Printf(w->def, "   SWIG_DIRECTOR_RGTR((%s *)this, this); \n", basetype);
+        Printf(w->def, "}\n");
         Delete(target);
         Wrapper_print(w, f_directors);
         Delete(call);
@@ -1787,11 +1794,14 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorDefaultConstructor(Node *n) {
-    String *classname;
-    classname = Swig_class_name(n);
+    String *classname = Swig_class_name(n);
     {
+      Node *parent = Swig_methodclass(n);
+      String *basetype = Getattr(parent, "classtype");
       Wrapper *w = NewWrapper();
-      Printf(w->def, "SwigDirector_%s::SwigDirector_%s(PyObject* self) : Swig::Director(self) { }", classname, classname);
+      Printf(w->def, "SwigDirector_%s::SwigDirector_%s(PyObject* self) : Swig::Director(self) { \n", classname, classname);
+      Printf(w->def, "   SWIG_DIRECTOR_RGTR((%s *)this, this); \n", basetype);
+      Printf(w->def, "}\n");
       Wrapper_print(w, f_directors);
       DelWrapper(w);
     }
@@ -2775,13 +2785,19 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   if (!tm) {
     tm = Getattr(n, "feature:director:except");
   }
+  Printf(w->code, "if (result == NULL) {\n");
+  Printf(w->code, "  PyObject *error = PyErr_Occurred();\n");
   if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-    Printf(w->code, "if (result == NULL) {\n");
-    Printf(w->code, "  PyObject *error = PyErr_Occurred();\n");
     Replaceall(tm, "$error", "error");
     Printv(w->code, Str(tm), "\n", NIL);
-    Printf(w->code, "}\n");
+  } else {
+    Printf(w->code, "  if (error != NULL) {\n");
+    Printf(w->code, "    throw Swig::DirectorMethodException(\"Swig director error detected when calling %s.%s.\\n\");\n", 
+	   classname, pyname);
+    Printf(w->code, "  }\n");
   }
+  
+  Printf(w->code, "}\n");
 
   /*
    * Python method may return a simple object, or a tuple.
