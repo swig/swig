@@ -5,16 +5,6 @@ Simplified Wrapper and Interface Generator
 [ <a href="http://swig-jp.dyndns.org">Japanese</a> ]
 
 <p>
-<center>
-<em>
-"So, we caught one of our interns out back with our mission critical C++
-code, a couple of scripting languages, and SWIG. And that boy had the
-nerve to call it a 'computer science' project. We killed him--had no
-other choice." -- Anonymous
-</em>
-</center>
-
-<p>
 SWIG is a software development tool that connects programs written in
 C and C++ with a variety of high-level programming
 languages.  SWIG is primarily used with common scripting languages
@@ -30,7 +20,6 @@ noncommercial use.
 <li> <a href="download.html">Download</a> the latest version.
 <li> <a href="doc.html">Documentation, papers, and presentations</a>
 <li> <a href="compare.html">Features</a>.
-<li> <a href="myths.html">Myths</a> about SWIG.
 <li> <a href="mail.html">Mailing List</a>
 <li> <a href="bugs.html">Bug tracking</a>
 <li> <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SwigWiki!</a>
