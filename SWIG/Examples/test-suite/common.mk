@@ -43,7 +43,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 
 CPP_TEST_BROKEN = \
-	template_arg_replace \
 	abstract_typedef \
 	namespace_nested \
 	template_default_arg \
@@ -145,6 +144,7 @@ CPP_TEST_CASES += \
 	static_const_member_2 \
 	struct_value \
 	template \
+	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \
 	template_base_template \
