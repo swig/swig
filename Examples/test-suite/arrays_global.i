@@ -2,6 +2,8 @@
 This test case tests that various types of arrays are working.
 */
 
+#pragma SWIG nowarn=451
+
 %module arrays_global
 
 %inline %{
