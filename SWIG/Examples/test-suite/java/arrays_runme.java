@@ -36,17 +36,9 @@ public class arrays_runme {
     double[] array_d = {1010.2f, 2010.2f};
     int[] array_enum = {arrays.Three, arrays.Four};
 
-    long[] array_enumpointers = {arrays.newintpointer(), arrays.newintpointer()};
-    arrays.setintfrompointer(array_enumpointers[0], arrays.One);
-    arrays.setintfrompointer(array_enumpointers[1], arrays.Five);
-
     SimpleStruct[] array_struct={new SimpleStruct(), new SimpleStruct()};
     array_struct[0].setDouble_field(222.333);
     array_struct[1].setDouble_field(444.555);
-
-    long[] array_ipointers = {arrays.newintpointer(), arrays.newintpointer()};
-    arrays.setintfrompointer(array_ipointers[0], 567);
-    arrays.setintfrompointer(array_ipointers[1], 890);
 
     // Now set the array members and check that they have been set correctly
     as.setArray_c(array_c);
@@ -87,12 +79,6 @@ public class arrays_runme {
 
     as.setArray_enum(array_enum);
     check_int_array(array_enum, as.getArray_enum());
-
-    as.setArray_ipointers(array_ipointers);
-    check_ipointers_array(array_ipointers, as.getArray_ipointers());
-
-    as.setArray_enumpointers(array_enumpointers);
-    check_ipointers_array(array_enumpointers, as.getArray_enumpointers());
 
     as.setArray_struct(array_struct);
     check_struct_array(array_struct, as.getArray_struct());
@@ -160,16 +146,6 @@ public class arrays_runme {
     for (int i=0; i<original.length; i++) {
       if (checking[i].getDouble_field() != original[i].getDouble_field()) {
         System.err.println("Runtime test failed. checking[" + i + "].double_field=" + checking[i].getDouble_field());
-        System.exit(1);
-      }
-    }
-  }
-  public static void check_ipointers_array(long[] original, long[] checking) {
-    for (int i=0; i<original.length; i++) {
-        int checking_val = arrays.getintfrompointer(checking[i]);
-        int original_val = arrays.getintfrompointer(original[i]);
-      if (checking_val != original_val) {
-        System.err.println("Runtime test failed. checking[" + i + "]=" + checking_val);
         System.exit(1);
       }
     }

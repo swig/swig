@@ -17,8 +17,9 @@ public class ret_by_value_runme {
 
   public static void main(String argv[]) {
 
-    // Get the test class to own the memory created in the wrapper
-    test tst = new test(ret_by_value.get_test(), true);
+    // Get the test class. Note that this constructor will ensure that the memory created 
+    // in the wrapper is owned by the test class.
+    test tst = ret_by_value.get_test();
 
     if (tst.getMyInt() != 100 || tst.getMyShort() != 200) {
       System.err.println("Runtime test failed. myInt=" + tst.getMyInt() + " myShort=" + tst.getMyShort());
