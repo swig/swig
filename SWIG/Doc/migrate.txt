@@ -91,8 +91,8 @@ Instead, just use the type code above like this:
 There are about 2-dozen type manipulation functions that could also be useful.
 See Source/Swig/swig.h and Source/Swig/stype.c.
 
-Parameter Lists
----------------
+3. Parameter Lists
+------------------
 
 The ParmList data structure is gone.  In reality, parameter lists are nothing more than
 a linked list of parameters.   The proper way to iterate over this list and get
@@ -110,8 +110,9 @@ parameter values is as follows:
       ...
   }
 
-Typemaps
---------
+4. Typemaps
+-----------
+
 Typemaps more or less work.  However, the interface has changed slightly.  Instead of
 
      typemap_lookup("in","python",type,pname,"$source","$target",wrapper);
@@ -121,4 +122,19 @@ the function is
      Swig_typemap_lookup("in",type,pname,"$source","$target",wrapper);
 
 There are a variety of other changes to typemaps (see CHANGES).
+
+5. Use of new types
+-------------------
+When possible, language modules should try to use the built in String,
+List, and Hash objects instead of C arrays or 'char *'.   This will probably require a
+detailed pass through the code with an eye towards cleanup.
+
+6. Miscellaneous
+----------------
+Language modules no longer need to concern themselves with formatting the
+wrapper code they produce (provided you are using the special Wrapper object).
+The function Wrapper_print() passes everything through a pretty-printer that
+automatically performs indentation and tries to clean things up.   This especially
+works well when there are lots of typemaps.
+
 
