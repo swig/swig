@@ -1119,7 +1119,7 @@ public:
       String *method_def = NewString("");
       String *goops_name;
       if (in_class)
-	goops_name = goopsNameMapping(memberfunction_name, short_class_name);
+	goops_name = NewString(memberfunction_name);
       else
 	goops_name = goopsNameMapping(proc_name, (char *)"");
       String *primitive_name = NewString("");
