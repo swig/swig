@@ -36,7 +36,6 @@ struct Overloaded {
 
 List *
 Swig_overload_rank(Node *n) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   Overloaded  nodes[MAX_OVERLOAD];
   int         nnodes = 0;
   Node *o = Getattr(n,"sym:overloaded");

@@ -123,7 +123,6 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
-    (void)cvsroot; /* keep version info in binary without compiler warning */
     int i = 1;
 
     SWIG_library_directory("perl5");

@@ -27,7 +27,6 @@ public:
   Sexp() : indent_level( 0 ) {}
   virtual ~Sexp() {}
   virtual void main(int argc, char *argv[]) {
-    (void)cvsroot; /* keep version info in binary without compiler warning */
     SWIG_typemap_lang("sexp");
     for( int iX = 0; iX < argc; iX++ )
       {

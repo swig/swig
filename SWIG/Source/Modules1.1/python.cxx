@@ -67,7 +67,6 @@ public:
    * ------------------------------------------------------------ */
   
   virtual void main(int argc, char *argv[]) {
-    (void)cvsroot; /* keep version info in binary without compiler warning */
 
     SWIG_library_directory("python");
   

@@ -9,7 +9,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header";
+static char cvsroot[] = "$Header$";
 
 #include "swigmod.h"
 
@@ -18,7 +18,6 @@ struct Module {
   char            *name;
   Module          *next;
   Module(const char *n, ModuleFactory f) {
-    (void)cvsroot; /* keep version info in binary without compiler warning */
     fac = f;
     name = new char[strlen(n)+1];
     strcpy(name, n);

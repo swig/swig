@@ -29,7 +29,6 @@ extern SwigType *cplus_value_type(SwigType *t);
  * ----------------------------------------------------------------------------- */
 
 void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
 
   Parm *p;
   String *tm;

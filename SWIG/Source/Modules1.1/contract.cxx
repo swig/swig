@@ -26,7 +26,6 @@ public:
   virtual int externDeclaration(Node *n) { return emit_children(n); }
 
   String * strParms(ParmList *l) {
-    (void)cvsroot; /* keep version info in binary without compiler warning */
     int comma = 0;
     int i = 0;
     Parm *p = l;

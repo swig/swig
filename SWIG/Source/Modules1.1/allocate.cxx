@@ -28,7 +28,6 @@ class Allocate : public Dispatcher {
 
   /* Checks to see if a class is abstract through inheritance */
   int is_abstract_inherit(Node *n, Node *base = 0, int first = 0) {
-    (void)cvsroot; /* keep version info in binary without compiler warning */
     if (!first && (base == n)) return 0;
     if (!base) {
       /* Root node */

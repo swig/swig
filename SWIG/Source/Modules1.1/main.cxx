@@ -92,7 +92,6 @@ static char *usage = (char*)"\
 
 int
 check_suffix(char *name) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   char *c;
   if (!name) return 0;
   c = Swig_file_suffix(name);

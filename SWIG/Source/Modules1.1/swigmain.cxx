@@ -95,7 +95,6 @@ swig_module  modules[] = {
 
 
 int main(int argc, char **argv) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   int i;
   Language *dl = 0;
   ModuleFactory fac = 0;
