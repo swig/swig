@@ -80,14 +80,15 @@
 /* Constant references. Passed by value */
 /* Const primitive references.  Passed by value */
 
-%typemap(in) const int & ($basetype temp),
-	     const short & ($basetype temp),
-             const long  & ($basetype temp),
-             const unsigned int & ($basetype temp),
-             const unsigned short & ($basetype temp),
-             const unsigned long & ($basetype temp),
-             const signed char & ($basetype temp),
-             const unsigned char & ($basetype temp)
+%typemap(in) const int & ($*1_ltype temp),
+	     const short & ($*1_ltype temp),
+             const long  & ($*1_ltype temp),
+             const unsigned int & ($*1_ltype temp),
+             const unsigned short & ($*1_ltype temp),
+             const unsigned long & ($*1_ltype temp),
+             const signed char & ($*1_ltype temp),
+             const unsigned char & ($*1_ltype temp),
+             const enum SWIGTYPE & ($*1_ltype temp)
 {
   long ltemp;
   if (Tcl_GetLongFromObj(interp, $input, &ltemp) != TCL_OK) {
@@ -229,7 +230,8 @@
               const short &, const unsigned short &,
               const long &, const unsigned long &,
               const signed char &, const unsigned char &,
-              const bool &
+              const bool &,
+              const enum SWIGTYPE &
     "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) *($1)));";
 
 %typemap(out) const float &, const double & 
@@ -484,7 +486,7 @@
 	 const int &, const short &, const long &,
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const long long &, const unsigned long long &,
-	 enum SWIGTYPE,
+	 enum SWIGTYPE, const enum SWIGTYPE &,
 	 bool, const bool & 
 {
   long tmp;

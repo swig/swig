@@ -4,6 +4,33 @@
  * enum and each enum item is a static instance of this class.
  * ----------------------------------------------------------------------------- */
 
+// const enum SWIGTYPE & typemaps
+%typemap(jni) const enum SWIGTYPE & "jint"
+%typemap(jtype) const enum SWIGTYPE & "int"
+%typemap(jstype) const enum SWIGTYPE & "$*javaclassname"
+
+%typemap(in) const enum SWIGTYPE & ($*1_ltype temp)
+%{ temp = ($*1_ltype)$input; 
+   $1 = &temp; %}
+%typemap(out) const enum SWIGTYPE &  %{ $result = (jint)*$1; %}
+
+%typemap(directorin, descriptor="L$packagepath/$*javaclassname;") const enum SWIGTYPE &    "$input = (jint)$1_name;"
+%typemap(javadirectorin) const enum SWIGTYPE & "$*javaclassname.swigToEnum($jniinput)"
+%typemap(javadirectorout) const enum SWIGTYPE & "($javacall).swigValue()"
+
+%typecheck(SWIG_TYPECHECK_POINTER) const enum SWIGTYPE & ""
+
+%typemap(throws) const enum SWIGTYPE & %{
+  (void)$1;
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
+%}
+
+%typemap(javain) const enum SWIGTYPE & "$javainput.swigValue()"
+%typemap(javaout) const enum SWIGTYPE & {
+    return $*javaclassname.swigToEnum($jnicall);
+  }
+
+// enum SWIGTYPE typemaps
 %typemap(jni) enum SWIGTYPE "jint"
 %typemap(jtype) enum SWIGTYPE "int"
 %typemap(jstype) enum SWIGTYPE "$javaclassname"

@@ -69,7 +69,8 @@
 	     const short & (short temp),
              const long  & (long temp),
              const signed char & (signed char temp),
-             const bool & (bool temp)
+             const bool & (bool temp),
+             const enum SWIGTYPE & ($*1_ltype temp)
 	"temp = ($*1_ltype) SvIV($input);
          $1 = &temp;";
 
@@ -97,7 +98,6 @@
         temp = *SvPV($input,PL_na);
         $1 = &temp;
 }
-
 
 /* Typemap for output values */
 
@@ -191,7 +191,8 @@
               const short &,
               const long &,
               const signed char &,
-              const bool &
+              const bool &,
+              const enum SWIGTYPE &
       "ST(argvi) = sv_newmortal();
        sv_setiv(ST(argvi++), (IV) *($1));";
 
@@ -303,7 +304,8 @@
 	     const short & (short temp),
              const long  & (long temp),
              const signed char & (signed char temp),
-             const bool & (bool temp)
+             const bool & (bool temp),
+             const enum SWIGTYPE & ($*1_ltype temp)
 	"temp = ($*1_ltype) SvIV($input);
          $1 = &temp;";
 
@@ -473,14 +475,14 @@
  * ------------------------------------------------------------ */
 
 %typecheck(SWIG_TYPECHECK_INTEGER)
-	 int, short, long,
- 	 unsigned int, unsigned short, unsigned long,
-	 signed char, unsigned char,
-	 long long, unsigned long long,
-	 const int &, const short &, const long &,
+	int, short, long,
+ 	unsigned int, unsigned short, unsigned long,
+	signed char, unsigned char,
+	long long, unsigned long long,
+	const int &, const short &, const long &,
 	const unsigned int &, const unsigned short &, const unsigned long &,
 	const long long &, const unsigned long long &,
-	enum SWIGTYPE,
+	enum SWIGTYPE, const enum SWIGTYPE &,
 	bool, const bool & 
 {
   $1 = SvIOK($input) ? 1 : 0;
