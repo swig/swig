@@ -107,7 +107,6 @@ Swig_overload_rank(Node *n) {
 	      t1v = atoi(Char(t1));
 	      t2v = atoi(Char(t2));
 	      differ = t1v-t2v;
-	      /*	      differ = Strcmp(t1,t2); */
 	    }
 	    else if (!t1 && t2) differ = 1;
 	    else if (t2 && !t1) differ = -1;
@@ -135,10 +134,21 @@ Swig_overload_rank(Node *n) {
 		}
 		Setattr(p2,"ltype",t2);
 	      }
+
+	      /* Need subtype check here.  If t2 is a subtype of t1, then we need to change the
+                 order */
+
+	      if (SwigType_issubtype(t2,t1)) {
+		Overloaded t = nodes[i];
+		nodes[i] = nodes[j];
+		nodes[j] = t;
+	      }
+
 	      if (Strcmp(t1,t2) != 0) {
 		differ = 1;
 		break;
 	      }
+
 	    } else if (differ) {
 	      break;
 	    }
