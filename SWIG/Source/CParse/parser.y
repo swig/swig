@@ -2130,32 +2130,36 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
                          type (id)(parms)
 
 			 Otherwise it's an error. */
+                    int err = 0;
                     $$ = 0;
 
-                    if ($6.have_parms) {
-                      int err = 1;
-		      if (ParmList_len($4) == 1) {
-                         SwigType *ty = Getattr($4,"type");
-                         String *value = Getattr($4,"value");
-                         String *decl;
-                         if (!value) {
-                            $$ = new_node("cdecl");
-                            Setattr($$,"type",$2);
-                            Setattr($$,"storage",$1);
-                            Setattr($$,"name",ty);
-                            decl = NewString("");
-                            SwigType_add_function(decl,$6.parms);
-                            Setattr($$,"decl",decl);
-                            Setattr($$,"parms",$6.parms);
-			    if (Len(scanner_ccode)) {
-			      Setattr($$,"code",Copy(scanner_ccode));
-			    }
-                            err = 0;
-                         }
+		    if ((ParmList_len($4) == 1) && (!Swig_scopename_check($2))) {
+		      SwigType *ty = Getattr($4,"type");
+		      String *name = Getattr($4,"name");
+		      err = 1;
+		      if (!name) {
+			$$ = new_node("cdecl");
+			Setattr($$,"type",$2);
+			Setattr($$,"storage",$1);
+			Setattr($$,"name",ty);
+
+			if ($6.have_parms) {
+			  SwigType *decl = NewString("");
+			  SwigType_add_function(decl,$6.parms);
+			  Setattr($$,"decl",decl);
+			  Setattr($$,"parms",$6.parms);
+			  if (Len(scanner_ccode)) {
+			    Setattr($$,"code",Copy(scanner_ccode));
+			  }
+			}
+			if ($6.defarg) {
+			  Setattr($$,"value",$6.defarg);
+			}
+			err = 0;
 		      }
-		      if (err) {
-			Swig_error(cparse_file,cparse_line,"Syntax error in input.\n");
-                      }
+		    }
+		    if (err) {
+		      Swig_error(cparse_file,cparse_line,"Syntax error in input.\n");
 		    }
                 }
                 ;
@@ -4197,10 +4201,11 @@ cpp_const      : type_qualifier {
                | empty { $$ = 0; }
                ;
 
-ctor_end       : cpp_const ctor_initializer SEMI { Clear(scanner_ccode); $$.have_parms = 0; }
-               | cpp_const ctor_initializer LBRACE { skip_balanced('{','}'); $$.have_parms = 0; }
-               | LPAREN parms RPAREN SEMI { Clear(scanner_ccode); $$.parms = $2; $$.have_parms = 1; }
-               | LPAREN parms RPAREN LBRACE { skip_balanced('{','}'); $$.parms = $2; $$.have_parms = 1; }
+ctor_end       : cpp_const ctor_initializer SEMI { Clear(scanner_ccode); $$.have_parms = 0; $$.defarg = 0; }
+               | cpp_const ctor_initializer LBRACE { skip_balanced('{','}'); $$.have_parms = 0; $$.defarg = 0; }
+               | LPAREN parms RPAREN SEMI { Clear(scanner_ccode); $$.parms = $2; $$.have_parms = 1; $$.defarg = 0; }
+               | LPAREN parms RPAREN LBRACE { skip_balanced('{','}'); $$.parms = $2; $$.have_parms = 1; $$.defarg = 0; }
+               | EQUAL definetype SEMI { $$.have_parms = 0; $$.defarg = $2.val; }
                ;
 
 ctor_initializer : COLON mem_initializer_list
