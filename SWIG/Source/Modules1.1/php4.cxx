@@ -882,16 +882,6 @@ public:
     String *cleanup, *outarg;
     
     if (!addSymbol(iname,n)) return SWIG_ERROR;
-/*
-  DOH* key;
-Printf(stderr,"Classode: %p\n",classnode);
-  key = Firstkey(classnode);
-  while (key) {
-    Printf(stderr,"classnode: %s\n",key,Getattr(classnode,key));
-    key = Nextkey(classnode);
-  }
-  Printf(stderr,"--classtype=%s\n",Getattr(classnode,"classtype"));
-*/
     
     if(shadow && variable_wrapper_flag && !enum_flag) {
       String *member_function_name = NewString("");
@@ -959,11 +949,6 @@ Printf(stderr,"Classode: %p\n",classnode);
       Wrapper_print(df,s_wrappers);
     }
 
-    /* If shadow not set all functions exported. If shadow set only
-     * non-wrapped functions exported ( the wrapped ones are accessed
-     * through the class. )
-     */
-
     create_command(iname, Char(Swig_name_wrapper(iname)));
     Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", NULL);
 
@@ -979,21 +964,20 @@ Printf(stderr,"Classode: %p\n",classnode);
     // or do we need to?
     sprintf(args, "%s[%d]", "zval **args", num_arguments+1); 
     
-    Wrapper_add_local(f, "args",args);
-    
+    Wrapper_add_local(f, "args",args);    
+
     // This generated code may be called 
     // 1) as an object method, or
     // 2) as a class-method/function (without a "this_ptr")
     // Option (1) has "this_ptr" for "this", option (2) needs it as
     // first parameter
     // NOTE: possible we ignore this_ptr as a param for native constructor
-    
+
+    Printf(f->code,"{ // scope for argbase \n");   
     if (native_constructor) {
       if (native_constructor==NATIVE_CONSTRUCTOR) Printf(f->code, "// NATIVE Constructor\nint self_constructor=1;\n");
       else Printf(f->code, "// ALTERNATIVE Constructor\n");
     }
-    Printf(f->code,"// %s %s\n",iname, name);
-    
     Printf(f->code, "int argbase=0;\n");
     
     // only let this_ptr count as arg[-1] if we are not a constructor
@@ -1211,7 +1195,7 @@ Printf(stderr,"Classode: %p\n",classnode);
     Replaceall(f->code,"$cleanup",cleanup);
     Replaceall(f->code,"$symname",iname);
     
-    Printf(f->code, "\n}");
+    Printf(f->code, "\n} // end of arbase scope\n}\n");
     
     Wrapper_print(f,s_wrappers);
     return SWIG_OK;
