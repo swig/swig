@@ -1418,6 +1418,9 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
 
     /* Look for code fragments */
     Swig_typemap_emit_code_fragments(op,firstp);
+
+    /* increase argnum to consider numinputs */
+    argnum += nmatch - 1;
   }
 }
 
