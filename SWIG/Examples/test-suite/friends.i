@@ -17,6 +17,7 @@
     {
     }
     
+    friend void ::globalscope();
     friend int mix(A* a, B *b);
     virtual ~B()
     {
@@ -27,6 +28,7 @@
     
   };
   
+  void globalscope() { B b(0); b.v=10; }
   
   struct A
   {
