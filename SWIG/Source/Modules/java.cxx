@@ -1220,10 +1220,10 @@ class JAVA : public Language {
           // Wrap (non-anonymouse) enum using the typesafe enum pattern
           if (Getattr(n,"enumvalue")) {
             String *value = enumValue(n);
-            Printf(enum_code, "  public final static %s %s = new %s(%s);\n", return_type, symname, return_type, value);
+            Printf(enum_code, "  public final static %s %s = new %s(\"%s\", %s);\n", return_type, symname, return_type, symname, value);
             Delete(value);
           } else {
-            Printf(enum_code, "  public final static %s %s = new %s();\n", return_type, symname, return_type);
+            Printf(enum_code, "  public final static %s %s = new %s(\"%s\");\n", return_type, symname, return_type, symname);
           }
         } else {
           // Simple integer constants
