@@ -47,7 +47,7 @@ class A;
 
 %feature("valuewrapper") TemplateClass<A>;
 %feature("valuewrapper") TemplateClass<C>;
-template<class A> class TemplateClass;
+template<class T> class TemplateClass;
 
 %feature("valuewrapper") BB;
 class BB;
@@ -55,9 +55,8 @@ class BB;
 
 %inline %{
 
-class A 
+struct A 
 {
-public:
   A(int){}
 };
 
