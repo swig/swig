@@ -504,7 +504,7 @@ public:
   
 
   int functionHandler(Node *n) {
-    if (checkAttribute(n,"feature:python:callback","1")) {
+    if (Getattr(n,"feature:python:callback")) {
       Setattr(n,"feature:callback","%s_cb_ptr");
       autodoc_l dlevel = autodoc_level(Getattr(n, "feature:autodoc"));
       if (dlevel != NO_AUTODOC && dlevel > TYPES_AUTODOC) {
@@ -523,7 +523,7 @@ public:
    * ------------------------------------------------------------ */
 
   void emitFunctionShadowHelper(Node *n, File *f_dest, String *name, int kw) {
-    if (checkAttribute(n,"feature:python:callback","1") || ! have_addtofunc(n) ) {
+    if (Getattr(n,"feature:python:callback") || ! have_addtofunc(n) ) {
       /* If there is no addtofunc directive then just assign from the extension module */
       Printv(f_dest, "\n", name, " = ", module, ".", name, "\n", NIL);
     } else {
@@ -776,7 +776,7 @@ public:
   String* make_autodocParmList(Node* n, bool showTypes) {
     String*   doc = NewString(""); 
     String*   pdocs = Copy(Getattr(n,"feature:pdocs")); 
-    ParmList* plist = Getattr(n,"parms");
+    ParmList* plist = CopyParmList(Getattr(n,"parms"));
     Parm*     p;
     Parm*     pnext;
     Node*     lookup;
@@ -854,6 +854,7 @@ public:
       }
     }
     if (pdocs) Setattr(n,"feature:pdocs", pdocs);
+    Delete(plist);
     return doc;
   }
   
@@ -1679,14 +1680,14 @@ public:
     // Get any exception classes in the throws typemap
     ParmList *throw_parm_list = 0;
 
-    if ((throw_parm_list = Getattr(n,"throws"))) {
+    if ((throw_parm_list = Getattr(n,"throws")) || Getattr(n,"throw")) {
       Parm      *p;
       int       gencomma = 0;
 
       Append(w->def, " throw(");
       Append(declaration, " throw(");
 
-      Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+      if (throw_parm_list) Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p=nextSibling(p)) {
         if ((tm = Getattr(p,"tmap:throws"))) {
           if (gencomma++) {
@@ -2332,18 +2333,20 @@ public:
 
       if (!have_repr) {
 	/* Supply a repr method for this class  */
-          if (new_repr) {
-              Printv(f_shadow_file,
+	String *rname = SwigType_namestr(real_classname);
+	if (new_repr) {
+	  Printv(f_shadow_file,
                  tab4, "def __repr__(self):\n",
-                 tab8, "return \"<%s.%s; proxy of ", CPlusPlus ? "C++ " : "C ", real_classname," instance at %s>\" % (self.__class__.__module__, self.__class__.__name__, self.this,)\n",
+                 tab8, "return \"<%s.%s; proxy of ", CPlusPlus ? "C++ " : "C ", rname," instance at %s>\" % (self.__class__.__module__, self.__class__.__name__, self.this,)\n",
                  NIL);
-          }
-          else {
-              Printv(f_shadow_file,
+	}
+	else {
+	  Printv(f_shadow_file,
 	         tab4, "def __repr__(self):\n",
-  	         tab8, "return \"<C ", real_classname," instance at %s>\" % (self.this,)\n",
+  	         tab8, "return \"<C ", rname," instance at %s>\" % (self.this,)\n",
 	         NIL);
-          }
+	}
+	Delete(rname);
       }
 
 
@@ -2441,7 +2444,7 @@ public:
     String *symname = Getattr(n,"sym:name");
     Language::staticmemberfunctionHandler(n);
     if (shadow) {
-      if ( !classic && (have_pythonprepend(n) || have_pythonappend(n) || have_docstring(n)) ) {
+      if ( !classic && !Getattr(n,"feature:python:callback") && have_addtofunc(n)) {
         int kw = (check_kwargs(n) && !Getattr(n,"sym:overloaded")) ? 1 : 0;
         Printv(f_shadow, tab4, "def ", symname, "(*args", (kw ? ", **kwargs" : ""), "):\n", NIL);
         if ( have_docstring(n) )

@@ -92,12 +92,19 @@ Foo *launder(Foo *f);
   {
   };
 
-  class Bar 
+  class Base 
   {
   public:
-    virtual ~Bar(){}
+    virtual ~Base() throw () {}
+  };
+  
+
+  class Bar : public Base
+  {
+  public:
     virtual std::string ping() throw (Exception1, Exception2&) { return "Bar::ping()"; }
     virtual std::string pong() throw (Unknown1, int, Unknown2&) { return "Bar::pong();" + ping(); }
+    virtual std::string pang() throw () { return "Bar::pang()"; }
   };
   
 %}
