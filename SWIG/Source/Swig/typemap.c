@@ -936,32 +936,44 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
 static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
   Parm *p;
   char *new_name;
-  SwigType *pbase = 0;
 
   p = l;
   while (p) {
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
+    String   *value = Getattr(p,"value");
     if (pn) {
       if (Len(pn) > 0) {
-	DOHString *str;
+	String *str;
+	int     isglobal = 0;
 
 	str = NewString("");
+
+	if (Strncmp(pn,"_global_",8) == 0) {
+	    isglobal = 1;
+	}
 
 	/* If the user gave us $type as the name of the local variable, we'll use
 	   the passed datatype instead */
 
-	if (argnum >= 0) {
+	if ((argnum >= 0) && (!isglobal)) {
 	  Printf(str,"%s%d",pn,argnum);
 	} else {
 	  Printf(str,"%s",pn);
 	}
-	/* Substitute parameter names */
-	/*	Replace(str,"$arg",pname, DOH_REPLACE_ANY);    /* This is deprecated (or should be) */
-	new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), NULL);
-	/* Substitute  */
-	Replace(s,pn,new_name,DOH_REPLACE_ID);
-	Delete(pbase);
+	if (isglobal && Wrapper_check_local(f,str)) {
+	    p = nextSibling(p);
+	    continue;
+	}
+	if (value) {
+	    new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), "=", value, NULL);
+	} else {
+	    new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), NULL);
+	}
+	if (!isglobal) {
+	    /* Substitute  */
+	    Replace(s,pn,new_name,DOH_REPLACE_ID);
+	}
       }
     }
     p = nextSibling(p);
