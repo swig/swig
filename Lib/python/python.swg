@@ -471,7 +471,7 @@
                 if (!proxy) {
                         $input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
                 } else {
-                        $input = proxy->__get_self();
+                        $input = proxy->swig_get_self();
                 }
         }
 }

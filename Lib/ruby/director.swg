@@ -24,15 +24,15 @@ namespace Swig {
   /* Base class for director exceptions */
   class DirectorException {
     protected:
-      VALUE _error;
+      VALUE swig_error;
     protected:
-      DirectorException(VALUE error=Qnil) : _error(error) {}
+      DirectorException(VALUE error=Qnil) : swig_error(error) {}
     public:
       VALUE getType() const  { 
-        return CLASS_OF(_error); 
+        return CLASS_OF(swig_error); 
       }
       VALUE getError() const {
-        return _error;
+        return swig_error;
       }
       virtual ~DirectorException() {}
   };
@@ -43,7 +43,7 @@ namespace Swig {
       DirectorTypeMismatchException(const char *msg="") {
         VALUE str = rb_str_new2("Swig director type mismatch: ");
         rb_str_concat(str, rb_str_new2(msg));
-        _error = rb_exc_new3(rb_eTypeError, str);
+        swig_error = rb_exc_new3(rb_eTypeError, str);
       }
   };
 
@@ -75,35 +75,35 @@ namespace Swig {
   class Director {
     private:
       /* pointer to the wrapped Ruby object */
-      VALUE _self;
+      VALUE swig_self;
       /* flag indicating whether the object is owned by Ruby or c++ */
-      mutable bool _disown;
+      mutable bool swig_disown_flag;
       /* shared flag for breaking recursive director calls */
-      static bool _up;
+      static bool swig_up;
 
 #ifdef __PTHREAD__
-      /* locks for sharing the _up flag in a threaded environment */
-      static pthread_mutex_t _mutex_up;
-      static bool _mutex_active;
-      static pthread_t _mutex_thread;
+      /* locks for sharing the swig_up flag in a threaded environment */
+      static pthread_mutex_t swig_mutex_up;
+      static bool swig_mutex_active;
+      static pthread_t swig_mutex_thread;
 #endif
 
-      /* reset the _up flag once the routing direction has been determined */
+      /* reset the swig_up flag once the routing direction has been determined */
 #ifdef __PTHREAD__
-      void __clear_up() const { 
-        Swig::Director::_up = false; 
-        Swig::Director::_mutex_active = false;
-        pthread_mutex_unlock(&_mutex_up);
+      void swig_clear_up() const { 
+        Swig::Director::swig_up = false; 
+        Swig::Director::swig_mutex_active = false;
+        pthread_mutex_unlock(&swig_mutex_up);
       }
 #else
-      void __clear_up() const { 
-        Swig::Director::_up = false; 
+      void swig_clear_up() const { 
+        Swig::Director::swig_up = false; 
       }
 #endif
 
     public:
       /* wrap a Ruby object, optionally taking ownership */
-      Director(VALUE self, bool disown) : _self(self), _disown(disown) {
+      Director(VALUE self, bool disown) : swig_self(self), swig_disown_flag(disown) {
       }
 
       /* discard our reference at destruction */
@@ -111,64 +111,63 @@ namespace Swig {
       }
 
       /* return a pointer to the wrapped Ruby object */
-      VALUE __get_self() const { 
-        return _self; 
+      VALUE swig_get_self() const { 
+        return swig_self; 
       }
 
-
-      /* get the _up flag to determine if the method call should be routed
+      /* get the swig_up flag to determine if the method call should be routed
        * to the c++ base class or through the wrapped Ruby object
        */
 #ifdef __PTHREAD__
-      bool __get_up() const { 
-        if (Swig::Director::_mutex_active) {
-          if (pthread_equal(Swig::Director::_mutex_thread, pthread_self())) {
-            bool up = _up;
-            __clear_up();
+      bool swig_get_up() const { 
+        if (Swig::Director::swig_mutex_active) {
+          if (pthread_equal(Swig::Director::swig_mutex_thread, pthread_self())) {
+            bool up = swig_up;
+            swig_clear_up();
             return up;
           }
         }
         return false;
       }
 #else 
-      bool __get_up() const { 
-        bool up = _up;
-        _up = false;
+      bool swig_get_up() const { 
+        bool up = swig_up;
+        swig_up = false;
         return up;
       }
 #endif
 
-      /* set the _up flag if the next method call should be directed to
+      /* set the swig_up flag if the next method call should be directed to
        * the c++ base class rather than the wrapped Ruby object
        */
 #ifdef __PTHREAD__
-      void __set_up() const { 
-        pthread_mutex_lock(&Swig::Director::_mutex_up);
-        Swig::Director::_mutex_thread = pthread_self();
-        Swig::Director::_mutex_active = true;
-        Swig::Director::_up = true;
+      void swig_set_up() const { 
+        pthread_mutex_lock(&Swig::Director::swig_mutex_up);
+        Swig::Director::swig_mutex_thread = pthread_self();
+        Swig::Director::swig_mutex_active = true;
+        Swig::Director::swig_up = true;
       }
 #else 
-      void __set_up() const { 
-        Swig::Director::_up = true; 
+      void swig_set_up() const { 
+        Swig::Director::swig_up = true; 
       }
 #endif
 
       /* acquire ownership of the wrapped Ruby object (the sense of "disown"
        * is from Ruby) */
-      void __disown() const { 
-        if (!_disown) { 
-          _disown = true;
+      void swig_disown() const { 
+        if (!swig_disown_flag) { 
+          swig_disown_flag = true;
         } 
       }
   };
 
-  bool Swig::Director::_up = false;
+  bool Swig::Director::swig_up = false;
 
 #ifdef __PTHREAD__
-  MUTEX_INIT(Swig::Director::_mutex_up);
-  pthread_t Swig::Director::_mutex_thread;
-  int Swig::Director::_mutex_active = false;
+  MUTEX_INIT(Swig::Director::swig_mutex_up);
+  pthread_t Swig::Director::swig_mutex_thread;
+  bool Swig::Director::swig_mutex_active = false;
 #endif
 
 }
