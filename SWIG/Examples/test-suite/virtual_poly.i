@@ -8,7 +8,10 @@
 //
 //%feature("director");
 
-%newobject *::copy();
+// This shouldn't get used.
+// %newobject *::copy();
+
+%newobject *::copy() const;
 
 
 %inline %{  
