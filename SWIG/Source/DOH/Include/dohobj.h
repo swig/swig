@@ -99,7 +99,7 @@ typedef struct {
   int     flag_intern   : 1;        /* Interned object */
   int     flag_marked   : 1;        /* Mark flag. Used to avoid recursive loops in places */
   int     flag_user     : 1;        /* User flag */
-  int     flag_reserved : 1;        /* Reserved flag */
+  int     flag_usermark : 1;        /* User marked */
   int     refcount      : 28;       /* Reference count (max 16 million) */
 } DohBase;
 

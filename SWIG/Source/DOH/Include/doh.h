@@ -235,6 +235,8 @@ extern int           DohIsSequence(const DOH *obj);
 extern int           DohIsString(const DOH *obj);
 extern int           DohIsFile(const DOH *obj);
 
+extern void          DohSetmark(DOH *obj, int x);
+extern int           DohGetmark(DOH *obj);
 
 /* -----------------------------------------------------------------------------
  * Strings.
@@ -361,6 +363,8 @@ extern DOH      *DohNone;
 #define Strchr             DohStrchr
 #define Copyto             DohCopyto
 #define Split              DohSplit
+#define Setmark            DohSetmark
+#define Getmark            DohGetmark
 
 #endif
 

@@ -797,3 +797,18 @@ DohDelmeta(DOH *ho, const DOH *name) {
   return DohDelattr(h->meta, name);
 }
 
+/* -----------------------------------------------------------------------------
+ * DohSetmark()
+ * ----------------------------------------------------------------------------- */
+
+void
+DohSetmark(DOH *ho, int x) {
+  DohBase *h = (DohBase *) ho;
+  h->flag_usermark = x;
+}
+
+int
+DohGetmark(DOH *ho) {
+  DohBase *h = (DohBase *) ho;
+  return h->flag_usermark;
+}
