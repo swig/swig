@@ -276,8 +276,8 @@ cobject:
 type_error:
   if (flags & SWIG_POINTER_EXCEPTION) {
     if (ty) {
-      char *temp = (char *) malloc(64+strlen(ty->name));
-      sprintf(temp,"Type error. Expected %s", ty->name);
+      char *temp = (char *) malloc(64+strlen(ty->name)+strlen(c));
+      sprintf(temp,"Type error. Got %s, expected %s", c, ty->name);	
       PyErr_SetString(PyExc_TypeError, temp);
       free((char *) temp);
     } else {
@@ -309,8 +309,8 @@ type_error:
 
   if (flags) {
     if (ty) {
-      char *temp = (char *) malloc(64+strlen(ty->name));
-      sprintf(temp,"Type error. Expected %s", ty->name);
+      char *temp = (char *) malloc(64+strlen(ty->name)+strlen(c));
+      sprintf(temp,"Type error. Got %s, expected %s", c, ty->name);	
       PyErr_SetString(PyExc_TypeError, temp);
       free((char *) temp);
     } else {
