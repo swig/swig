@@ -37,9 +37,7 @@ public :
   virtual int publicconstructorDeclaration(Node *n);
   virtual int publicdestructorDeclaration(Node *n);
 
-  virtual void set_module(char *);
   virtual void add_native(char *, char *, SwigType *, ParmList *);
-  virtual void create_command(char *, char *);
 
   // Support for blessed perl thingies....
 
