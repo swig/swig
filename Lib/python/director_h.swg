@@ -41,9 +41,11 @@ namespace Swig {
   class DirectorTypeMismatchException : public Swig::DirectorException {
     public:
       DirectorTypeMismatchException(const char* msg="") {
-        swig_msg = "Swig director type mismatch: ";
-        swig_msg += msg;
-        PyErr_SetString(PyExc_TypeError, getMessage());
+	if (!PyErr_Occurred()) {
+	  swig_msg = "Swig director type mismatch: ";
+	  swig_msg += msg;
+	  PyErr_SetString(PyExc_TypeError, getMessage());
+	}
       }
   };
 

@@ -40,7 +40,7 @@
 /* directorout */
 
 %typemap(directorout) void * {
-  if ((SWIG_ConvertPtr($input,(void **)(&$result),
+  if (!$input || (SWIG_ConvertPtr($input,(void **)(&$result),
 	 	       0, SWIG_POINTER_EXCEPTION | $disown )) == -1)
     throw Swig::DirectorTypeMismatchException("Pointer conversion failed.");
 }

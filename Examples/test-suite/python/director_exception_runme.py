@@ -7,6 +7,7 @@ class MyFoo(Foo):
 
 class MyFoo2(Foo):
 	def ping(self):
+		return true
 		pass # error: should return a string
 
 ok = 0
@@ -31,10 +32,9 @@ b = launder(a)
 
 try:
 	b.pong()
-except TypeError, e:
-	ok = 1
 except:
-	pass
+	ok = 1
+
 
 if not ok:
 	raise RuntimeError

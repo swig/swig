@@ -98,7 +98,7 @@
 
 %typemap(directorout,fragment=#SWIG_AsCharPtr)
   Char *, Char const*, Char *const, Char const* const
-  "if (!SWIG_AsCharPtr($input, (Char**) &$result)) {
+  "if (!$input || !SWIG_AsCharPtr($input, (Char**) &$result)) {
       Swig::DirectorTypeMismatchException(\"Error converting Python object into Char*\");
    }";
 
@@ -106,7 +106,7 @@
   Char const *&, Char *const &, Char const *const &
 { 
   Char* temp;
-  if (!SWIG_AsCharPtr($input, &temp)) {
+  if (!$input || !SWIG_AsCharPtr($input, &temp)) {
     Swig::DirectorTypeMismatchException("Error converting Python object into Char*");
   }
   $result = ($1_ltype) &temp;
@@ -239,7 +239,7 @@
 %typemap(directorout,fragment=#SWIG_AsCharArray)
   Char [ANY], const Char [ANY] (Char temp[$result_dim0])
 { 
-  if (!SWIG_AsCharArray($input, temp, $result_dim0)) {
+  if (!$input || !SWIG_AsCharArray($input, temp, $result_dim0)) {
     Swig::DirectorTypeMismatchException("Error converting Python object into Char[$result_dim0]");
   }
   $result = temp;
