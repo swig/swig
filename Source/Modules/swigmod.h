@@ -25,6 +25,12 @@
 #include "preprocessor.h"
 #include "swigwarn.h"
 
+#if !defined(HAVE_BOOL)
+typedef int bool;
+#define true ((bool)1)
+#define false ((bool)0)
+#endif
+
 #define NOT_VIRTUAL     0
 #define PLAIN_VIRTUAL   1
 #define PURE_VIRTUAL    2
