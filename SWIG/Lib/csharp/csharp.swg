@@ -11,7 +11,15 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef WIN32
 #define DllExport   __declspec( dllexport )
+#else
+/*
+	This is not needed for unix
+*/
+#define DllExport  
+#endif 
 %}
 
 /* The jni, jtype and jstype typemaps work together and so there should be one of each. 
