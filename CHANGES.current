@@ -15,6 +15,8 @@ Version 1.3.20 (In progress)
             - Running the test-suite, other than from the root directory, say
               in Examples/test-suite/python will now display all the code being
               executed.
+            - The following 3 C# compilers are detected during configure and work with 
+              the test-suite: Mono, Portable.NET and Microsoft.
 
 09/01/2003: Tiger
             Added inheritance support for design by contract feature.
