@@ -734,7 +734,7 @@ DIRECTOROUT_TYPEMAP(std::size_t, PyInt_AsLong);
 %ignorewarn("362:operator= ignored") operator=;
 %ignorewarn("383:operator++ ignored") operator++;
 %ignorewarn("384:operator-- ignored") operator--;
-%ignorewarn("385:operator! ignored") operator!;
+%ignorewarn("361:operator! ignored") operator!;
 %ignorewarn("381:operator&& ignored") operator&&;
 %ignorewarn("382:operator|| ignored") operator||;
 %ignorewarn("386:operator->* ignored") operator->*;
