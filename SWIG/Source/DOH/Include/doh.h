@@ -148,6 +148,9 @@ extern void    DohInit(DOH *obj);
 
 extern int     DohGetInt(DOH *obj, DOH *name);
 extern double  DohGetDouble(DOH *obj, DOH *name);
+extern char   *DohGetChar(DOH *obj, DOH *name);
+extern void    DohSetInt(DOH *obj, DOH *name, int);
+extern void    DohSetDouble(DOH *obj, DOH *name, double);
 
 /* File methods */
 
@@ -206,6 +209,9 @@ extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
 #define vPrintf            DohvPrintf
 #define GetInt             DohGetInt
 #define GetDouble          DohGetDouble
+#define GetChar            DohGetChar
+#define SetInt             DohSetInt
+#define SetDouble          DohSetDouble
 #define Firstitem          DohFirstitem
 #define Nextitem           DohNextitem
 
