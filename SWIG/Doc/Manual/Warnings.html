@@ -41,7 +41,7 @@
 During compilation, SWIG may generate a variety of warning messages.  For example:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 example.i:16: Warning(501): Overloaded declaration ignored.  bar(double)
 example.i:15: Warning(501): Previous declaration is bar(int)
@@ -63,7 +63,7 @@ To suppress the printing of a warning message, a number of techniques can be use
 First, you can run SWIG with the <tt>-w</tt> command line option. For example:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 % swig -python -w501 example.i
 % swig -python -w501,505,401 example.i
@@ -153,7 +153,7 @@ to provide additional diagnostics.  All warning messages can be
 enabled using the <tt>-Wall</tt> option. For example:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 % swig -Wall -python example.i
 </pre>
@@ -168,7 +168,7 @@ To selectively turn on extra warning messages, you can use the directives and op
 previous section--simply add a "+" to all warning numbers.  For example:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 % swig -w+309,+452 example.i
 </pre>
@@ -285,7 +285,7 @@ default except on Windows where the Microsoft format is used by default.
 These can be overridden using command line options, for example:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -python -Fstandard example.i
 example.i:4: Syntax error in input.
 $ swig -python -Fmicrosoft example.i
