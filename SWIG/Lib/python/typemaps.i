@@ -53,6 +53,7 @@ you would use a real value instead.
          unsigned short *INPUT
          unsigned long  *INPUT
          unsigned char  *INPUT
+         bool           *INPUT
          float          *INPUT
          double         *INPUT
          
@@ -131,7 +132,13 @@ or you can use the %apply directive :
   temp = (unsigned char) PyInt_AsLong($input);
   $1 = &temp;
 }
-                 
+
+%typemap(python,in) bool *INPUT(bool temp) 
+{
+  temp = (bool) PyInt_AsLong($input);
+  $1 = &temp;
+}                 
+
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as
 // a list element.
@@ -152,6 +159,7 @@ multiple output values, they are returned in the form of a Python tuple.
          unsigned short *OUTPUT
          unsigned long  *OUTPUT
          unsigned char  *OUTPUT
+         bool           *OUTPUT
          float          *OUTPUT
          double         *OUTPUT
          
@@ -213,8 +221,10 @@ static PyObject* l_output_helper(PyObject* target, PyObject* o) {
                         unsigned long  *L_OUTPUT(unsigned long temp),
                         unsigned char  *L_OUTPUT(unsigned char temp),
                         signed char    *L_OUTPUT(signed char temp),  
+	                bool           *L_OUTPUT(bool temp),
                         float          *L_OUTPUT(float temp),
                         double         *L_OUTPUT(double temp)
+                       
 {
   $1 = &temp;
 }
@@ -226,7 +236,8 @@ static PyObject* l_output_helper(PyObject* target, PyObject* o) {
                         unsigned short *L_OUTPUT,
                         unsigned long  *L_OUTPUT,
                         unsigned char  *L_OUTPUT,
-                        signed char    *L_OUTPUT
+                        signed char    *L_OUTPUT,
+                        bool           *L_OUTPUT
 {
     PyObject *o;
     o = PyInt_FromLong((long) (*$1));
@@ -287,6 +298,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
                         unsigned long  *T_OUTPUT(unsigned long temp),
                         signed char    *T_OUTPUT(signed char temp),
                         unsigned char  *T_OUTPUT(unsigned char temp),
+                        bool           *T_OUTPUT(bool temp),
                         float          *T_OUTPUT(float temp),
                         double         *T_OUTPUT(double temp)
 {
@@ -300,7 +312,8 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
                         unsigned short *T_OUTPUT,
                         unsigned long  *T_OUTPUT,
                         unsigned char  *T_OUTPUT,
-                        signed char    *T_OUTPUT
+                        signed char    *T_OUTPUT,
+                        bool           *T_OUTPUT
 {
     PyObject *o;
     o = PyInt_FromLong((long) (*$1));
@@ -326,6 +339,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
 %typemap(python,ignore) unsigned long      *OUTPUT = unsigned long  *L_OUTPUT;
 %typemap(python,ignore) unsigned char      *OUTPUT = unsigned char  *L_OUTPUT;
 %typemap(python,ignore) signed char        *OUTPUT = signed char    *L_OUTPUT;
+%typemap(python,ignore) bool               *OUTPUT = bool           *L_OUTPUT;
 %typemap(python,ignore) double             *OUTPUT = double         *L_OUTPUT;
 %typemap(python,ignore) float              *OUTPUT = float          *L_OUTPUT;
 
@@ -337,6 +351,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
 %typemap(python,argout) unsigned long      *OUTPUT = unsigned long  *L_OUTPUT;
 %typemap(python,argout) unsigned char      *OUTPUT = unsigned char  *L_OUTPUT;
 %typemap(python,argout) signed char        *OUTPUT = signed char    *L_OUTPUT;
+%typemap(python,argout) bool               *OUTPUT = bool           *L_OUTPUT;
 %typemap(python,argout) double             *OUTPUT = double         *L_OUTPUT;
 %typemap(python,argout) float              *OUTPUT = float          *L_OUTPUT;
 #else
@@ -348,6 +363,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
 %typemap(python,ignore) unsigned long      *OUTPUT = unsigned long  *T_OUTPUT;
 %typemap(python,ignore) unsigned char      *OUTPUT = unsigned char  *T_OUTPUT;
 %typemap(python,ignore) signed char        *OUTPUT = signed char    *T_OUTPUT;
+%typemap(python,ignore) bool               *OUTPUT = bool           *T_OUTPUT;
 %typemap(python,ignore) double             *OUTPUT = double         *T_OUTPUT;
 %typemap(python,ignore) float              *OUTPUT = float          *T_OUTPUT;
 
@@ -359,6 +375,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
 %typemap(python,argout) unsigned long      *OUTPUT = unsigned long  *T_OUTPUT;
 %typemap(python,argout) unsigned char      *OUTPUT = unsigned char  *T_OUTPUT;
 %typemap(python,argout) signed char        *OUTPUT = signed char    *T_OUTPUT;
+%typemap(python,argout) bool               *OUTPUT = bool           *T_OUTPUT;
 %typemap(python,argout) double             *OUTPUT = double         *T_OUTPUT;
 %typemap(python,argout) float              *OUTPUT = float          *T_OUTPUT;
 #endif
@@ -385,6 +402,7 @@ using L_INOUT instead.
          unsigned short *INOUT
          unsigned long  *INOUT
          unsigned char  *INOUT
+         bool           *INOUT
          float          *INOUT
          double         *INOUT
          
@@ -426,6 +444,7 @@ phased out in future releases.
 %typemap(python,in) unsigned short *INOUT = unsigned short *INPUT;
 %typemap(python,in) unsigned long *INOUT = unsigned long *INPUT;
 %typemap(python,in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(python,in) bool *INOUT = bool *INPUT;
 %typemap(python,in) float *INOUT = float *INPUT;
 %typemap(python,in) double *INOUT = double *INPUT;
 
@@ -436,6 +455,7 @@ phased out in future releases.
 %typemap(python,argout) unsigned short *INOUT = unsigned short *OUTPUT;
 %typemap(python,argout) unsigned long *INOUT = unsigned long *OUTPUT;
 %typemap(python,argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(python,argout) bool *INOUT = bool *OUTPUT;
 %typemap(python,argout) float *INOUT = float *OUTPUT;
 %typemap(python,argout) double *INOUT = double *OUTPUT;
 
@@ -446,6 +466,7 @@ phased out in future releases.
 %typemap(python,in) unsigned short *T_INOUT = unsigned short *INPUT;
 %typemap(python,in) unsigned long *T_INOUT = unsigned long *INPUT;
 %typemap(python,in) unsigned char *T_INOUT = unsigned char *INPUT;
+%typemap(python,in) bool *T_INOUT = bool *INPUT;
 %typemap(python,in) float *T_INOUT = float *INPUT;
 %typemap(python,in) double *T_INOUT = double *INPUT;
 
@@ -456,6 +477,7 @@ phased out in future releases.
 %typemap(python,argout) unsigned short *T_INOUT = unsigned short *T_OUTPUT;
 %typemap(python,argout) unsigned long *T_INOUT = unsigned long *T_OUTPUT;
 %typemap(python,argout) unsigned char *T_INOUT = unsigned char *T_OUTPUT;
+%typemap(python,argout) bool *T_INOUT = bool *T_OUTPUT;
 %typemap(python,argout) float *T_INOUT = float *T_OUTPUT;
 %typemap(python,argout) double *T_INOUT = double *T_OUTPUT;
 
@@ -466,6 +488,7 @@ phased out in future releases.
 %typemap(python,in) unsigned short *L_INOUT = unsigned short *INPUT;
 %typemap(python,in) unsigned long *L_INOUT = unsigned long *INPUT;
 %typemap(python,in) unsigned char *L_INOUT = unsigned char *INPUT;
+%typemap(python,in) bool *L_INOUT = bool *INPUT;
 %typemap(python,in) float *L_INOUT = float *INPUT;
 %typemap(python,in) double *L_INOUT = double *INPUT;
 
@@ -476,6 +499,7 @@ phased out in future releases.
 %typemap(python,argout) unsigned short *L_INOUT = unsigned short *L_OUTPUT;
 %typemap(python,argout) unsigned long *L_INOUT = unsigned long *L_OUTPUT;
 %typemap(python,argout) unsigned char *L_INOUT = unsigned char *L_OUTPUT;
+%typemap(python,argout) bool *L_INOUT = bool *L_OUTPUT;
 %typemap(python,argout) float *L_INOUT = float *L_OUTPUT;
 %typemap(python,argout) double *L_INOUT = double *L_OUTPUT;
 
@@ -488,6 +512,7 @@ phased out in future releases.
 %apply unsigned long *INOUT { unsigned long *BOTH };
 %apply unsigned short *INOUT { unsigned short *BOTH };
 %apply unsigned char *INOUT { unsigned char *BOTH };
+%apply bool *INOUT { bool *BOTH };
 %apply float *INOUT { float *BOTH };
 %apply double *INOUT { double *BOTH };
 
@@ -498,6 +523,7 @@ phased out in future releases.
 %apply unsigned long *T_INOUT { unsigned long *T_BOTH };
 %apply unsigned short *T_INOUT { unsigned short *T_BOTH };
 %apply unsigned char *T_INOUT { unsigned char *T_BOTH };
+%apply bool *T_INOUT { bool *T_BOTH };
 %apply float *T_INOUT { float *T_BOTH };
 %apply double *T_INOUT { double *T_BOTH };
 
@@ -540,4 +566,9 @@ PyObject *
 %typemap(python,out) PyObject * {
   $result = $1;
 }
+
+
+
+
+
 
