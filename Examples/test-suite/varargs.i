@@ -2,6 +2,8 @@
 %module varargs
 
 %varargs(int mode = 0) test_def;
+%varargs(int mode = 0) Foo::Foo;
+%varargs(int mode = 0) Foo::statictest(const char*fmt, ...);
 
 %inline %{
 char *test(const char *fmt, ...) {
@@ -26,6 +28,9 @@ public:
         delete [] str;
     }
     char *test(const char *fmt, ...) {
+        return (char *) fmt;
+    }
+    static char *statictest(const char *fmt, ...) {
         return (char *) fmt;
     }
 };
