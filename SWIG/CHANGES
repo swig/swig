@@ -16,6 +16,14 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+05/29/2002: cheetah (William Fulton)
+            [Java] The java arrray support functions are enclosed by 
+            a SWIG_NOARRAYS #define. Useful if not using arrays and 
+            it is desirable to minimise the amount of compiled code.
+
+05/29/2002: cheetah (William Fulton)
+            [Java] Enums were not renamed when using %name or %rename
+            fix.
 
 05/28/2002: ljohnson
             [Ruby] Modified the name of the wrapper functions for the
@@ -733,6 +741,26 @@ Version 1.3.12 (In Progress)
             Overcomes a bug where the module assumed that a pointer to a derived
             class could be used in place of a pointer to a base class. Thanks 
             to Stephen McCaul for analysing the bug and submitting patches.
+
+            A consequence is that the getCPtr() method in each shadow class has
+            disappeared and has been replaced with a getCPtrXXX(), where XXX is the 
+            shadow class name. If you have code that previously used getCPtr(), 
+            and the associated class is wrapping a C struct or a C++ class that
+            is not involved in an inheritance chain, just use the new method. If
+            however, the class is involved in an inheritance chain, you'll have
+            to choose which pointer you really want. Backwards compatibility 
+            has been broken as not using the correct pointer can lead to weird bugs
+            through ill-defined behaviour. If you are sure you want the old methods, 
+            you could add them back into all shadow classes by adding this at the 
+            beginning of your interface file:
+
+            %pragma(java) allshadowcode=%{
+              public long getCPtr(){
+                return swigCPtr;
+              }
+            %}
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
 
 04/13/2002: beazley
             Fixed problem with default arguments and references.   Declarations such 
