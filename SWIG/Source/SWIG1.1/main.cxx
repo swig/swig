@@ -69,6 +69,7 @@ static char *usage = (char*)"\
      -co             - Check a file out of the SWIG library\n\
      -Dsymbol        - Define a symbol (for conditional compilation)\n\
      -I<dir>         - Look for SWIG files in <dir>\n\
+     -includeall     - Follow all #include statements\n\
      -l<ifile>       - Include SWIG library file.\n\
      -make_default   - Create default constructors/destructors\n\
      -o outfile      - Set name of the output file.\n\
@@ -255,6 +256,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-freeze") == 0) {
 	    freeze = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-includeall") == 0) {
+	    Preprocessor_include_all(1);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
