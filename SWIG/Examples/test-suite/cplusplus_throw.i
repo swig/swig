@@ -7,8 +7,16 @@
 
 %pragma no_default
 
+%inline %{
+
+class Foo { };
+
 class Bar {
-  void baz() const;
-  void foo() throw (exception);
-  void bazfoo() const throw ();
+public:
+  void baz() const { };
+  void foo() throw (Foo) { };
+  void bazfoo() const throw (int) { };
 };
+
+%}
+
