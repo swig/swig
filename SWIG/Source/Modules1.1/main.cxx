@@ -318,7 +318,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 		      SWIG_VERSION);
 	      fprintf(stderr,"Copyright (c) 1995-1998\n");
 	      fprintf(stderr,"University of Utah and the Regents of the University of California\n");
-              fprintf(stderr,"Copyright (c) 1998-2001\n");
+              fprintf(stderr,"Copyright (c) 1998-2002\n");
 	      fprintf(stderr,"University of Chicago\n");
 	      fprintf(stderr,"\nCompiled with %s\n", SWIG_CC);
 	      SWIG_exit (EXIT_SUCCESS);
