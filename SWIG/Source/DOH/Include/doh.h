@@ -26,6 +26,12 @@
 #include <ctype.h>
 #include <stdarg.h>
 
+#define DOH_MAJOR_VERSION 0
+#define DOH_MINOR_VERSION 1
+
+extern int _DohMemoryCurrent;
+extern int _DohMemoryHigh;
+
 typedef void DOH;                
 
 #define DOH_BEGIN    -1
@@ -109,11 +115,15 @@ typedef struct DohObjInfo {
 } DohObjInfo;
 
 /* Memory management */
-extern void   *DohMalloc(int size);     
+extern void   *DohMalloc(size_t size);     
+extern void   *DohObjMalloc(size_t size);
 extern void    DohFree(DOH *ptr);
-extern int     DohFreeCheck(DOH *ptr);
+extern void    DohObjFree(DOH *ptr);
+extern int     DohObjFreeCheck(DOH *ptr);
 extern int     DohCheck(DOH *ptr);
 extern int     DohFreeCheck(DOH *ptr);
+extern int     DohMemoryUse();
+extern int     DohMemoryHigh();
 
 /* Low-level doh methods.  Do not call directly (well, unless you want to). */
 extern void    DohError(int level, char *fmt,...);

@@ -99,8 +99,8 @@ static DOH *find_internal(DOH *co) {
     if (d < 0) r = r->left;
     else r = r->right;
   }
-  r = (StringNode *) malloc(sizeof(StringNode));
-  r->cstr = (char *) malloc(strlen(c)+1);
+  r = (StringNode *) DohMalloc(sizeof(StringNode));
+  r->cstr = (char *) DohMalloc(strlen(c)+1);
   strcpy(r->cstr,c);
   r->sstr = NewString(c);
   Incref(r->sstr);
@@ -122,8 +122,8 @@ void DohDestroy(DOH *obj) {
     b->refcount--;
     if (b->refcount <= 0) {
       if (doh_debug_level >= DOH_MEMORY) {
-	if (DohFreeCheck(obj)) {
-	  DohError(DOH_MEMORY,"DohFree. %x was already released! (ignoring for now)\n", obj);
+	if (DohObjFreeCheck(obj)) {
+	  DohError(DOH_MEMORY,"DohDestroy. %x was already released! (ignoring for now)\n", obj);
 	  return;
 	}
       }
@@ -131,7 +131,7 @@ void DohDestroy(DOH *obj) {
 	(b->objinfo->doh_del)(obj);
 	return;
       } else {
-	free(b);
+	/*	free(b); */
       }
     }
 }

@@ -60,7 +60,7 @@ static DohObjInfo DohVoidType = {
 
 DOH *NewVoid(void *obj, void (*del)(void *)) {
   VoidObj *v;
-  v = (VoidObj *) DohMalloc(sizeof(VoidObj));
+  v = (VoidObj *) DohObjMalloc(sizeof(VoidObj));
   DohInit(v);
   v->objinfo = &DohVoidType;
   v->ptr = obj;
@@ -73,7 +73,7 @@ void Void_delete(DOH *vo) {
   if (v->del) {
     (*v->del)(v->ptr);
   }
-  free(v);
+  DohObjFree(v);
 }
 
 DOH *Void_copy(DOH *vo) {

@@ -23,6 +23,9 @@
 #define DOH_MAX_FRAG          1024
 #endif
 
+int   _DohMemoryCurrent = 0;
+int   _DohMemoryHigh    = 0;
+
 /* -----------------------------------------------------------------------------
  * memory.c
  *
@@ -58,10 +61,10 @@ Pool *CreatePool(int size)
 {
   Pool *p = 0;
   char *c;
-  c = (char *) malloc(size);
+  c = (char *) DohMalloc(size);
   if (!c) return 0;
 
-  p = (Pool *) malloc(sizeof(Pool));
+  p = (Pool *) DohMalloc(sizeof(Pool));
   p->ptr = c;
   p->len = size;
   p->current = 0;
@@ -102,12 +105,12 @@ int DohCheck(DOH *ptr) {
 }
 
 /* ----------------------------------------------------------------------
- * int DohFreeCheck(DOH *ptr)
+ * int DohObjFreeCheck(DOH *ptr)
  * 
  * Check if ptr is an object that has been deleted.
  * ---------------------------------------------------------------------- */
 
-int DohFreeCheck(DOH *ptr) {
+int DohObjFreeCheck(DOH *ptr) {
   int i;
   Fragment *f;
   char *cptr = (char *) ptr;
@@ -122,12 +125,12 @@ int DohFreeCheck(DOH *ptr) {
 }
 
 /* ----------------------------------------------------------------------
- * void *DohMalloc(int size)
+ * void *DohObjMalloc(size_t size)
  *
  * Allocate an object
  * ---------------------------------------------------------------------- */
 
-void *DohMalloc(int size) {
+void *DohObjMalloc(size_t size) {
   Pool *p;
   Fragment *f;
   void *ptr;
@@ -140,7 +143,7 @@ void *DohMalloc(int size) {
   if (f) {
     ptr = (void *) f->ptr;
     FreeFragments[size] = f->next;
-    free(f);
+    DohFree(f);
     return ptr;
   }
 
@@ -154,7 +157,7 @@ void *DohMalloc(int size) {
 
   /* Pool is not large enough. Create a new pool */  
   if (p->len - p->current > 0) {
-    f = (Fragment *) malloc(sizeof(Fragment));
+    f = (Fragment *) DohMalloc(sizeof(Fragment));
     f->ptr = (p->ptr + p->current);
     f->len = (p->len - p->current);
     f->next = FreeFragments[f->len];
@@ -163,36 +166,97 @@ void *DohMalloc(int size) {
   p = CreatePool(DOH_POOL_SIZE);
   p->next = Pools;
   Pools = p;
-  return DohMalloc(size);
+  return DohObjMalloc(size);
 }
 
 /* ----------------------------------------------------------------------
- * void DohFree(DOH *ptr)
+ * void DohObjFree(DOH *ptr)
  *
  * Free a DOH object.  Important! It must be a properly allocated
  * DOH object. Not something else.
  * ---------------------------------------------------------------------- */
 
-void DohFree(DOH *ptr) {
+void DohObjFree(DOH *ptr) {
   DohBase  *b;
   Fragment *f;
   extern int doh_debug_level;
 
   if (!DohCheck(ptr)) {
-    DohError(DOH_MEMORY,"DohFree. %x not a DOH object!\n", ptr);
+    DohError(DOH_MEMORY,"DohObjFree. %x not a DOH object!\n", ptr);
     return;                  /* Oh well.  Guess we're leaky */
   }
   b = (DohBase *) ptr;
   if (!b->objinfo) {
-    DohError(DOH_MEMORY,"DohFree. %x not properly defined.  No objinfo structure.\n", ptr);
+    DohError(DOH_MEMORY,"DohObjFree. %x not properly defined.  No objinfo structure.\n", ptr);
     return;   /* Improperly initialized object. leak some more */
   }
-  f = (Fragment *) malloc(sizeof(Fragment));
+  f = (Fragment *) DohMalloc(sizeof(Fragment));
   f->ptr = (char *) ptr;
   f->len = b->objinfo->objsize; 
   f->next = FreeFragments[f->len];
   FreeFragments[f->len] = f;
 }
 
+/* -----------------------------------------------------------------------------
+ * void *DohMalloc(size_t nbytes)
+ *
+ * Wrapper around malloc() function. Records memory usage.
+ * ----------------------------------------------------------------------------- */
+
+void *DohMalloc(size_t nbytes) {
+  char *ptr;
+  ptr = (char *) malloc(nbytes+8);
+  if (!ptr) return 0;
+  _DohMemoryCurrent += (nbytes+8);
+  if (_DohMemoryCurrent > _DohMemoryHigh) _DohMemoryHigh = _DohMemoryCurrent;
+  *((int *) ptr) = nbytes;
+  return (void *) (ptr+8);
+}
+
+/* -----------------------------------------------------------------------------
+ * void *DohRealloc(void *ptr, size_t newsize)
+ *
+ * Wrapper around realloc() function.
+ * ----------------------------------------------------------------------------- */
+
+void *DohRealloc(void *ptr, size_t newsize) {
+  char *cptr = (char *) ptr;
+  char *nptr;
+  int  size;
+
+  size = *((int *) (cptr - 8));
+  nptr = (char *) realloc(cptr-8,newsize+8);
+  if (!nptr) return 0;
+  *((int *) nptr) = newsize;
+  _DohMemoryCurrent += (newsize - size);
+  if (_DohMemoryCurrent > _DohMemoryHigh) _DohMemoryHigh = _DohMemoryCurrent;
+  return (void *) (nptr+8);
+}
+
+/* -----------------------------------------------------------------------------
+ * void DohFree(void *ptr)
+ *
+ * Wrapper around free() function.  Records memory usage.
+ * ----------------------------------------------------------------------------- */
+
+void DohFree(void *ptr) {
+  char *cptr = (char *) ptr;
+  int size;
+  size = *((int *) (cptr - 8));
+  free(cptr-8);
+  _DohMemoryCurrent -= (size+8);
+}
+
+/* -----------------------------------------------------------------------------
+ * int DohMemoryUse()
+ *
+ * Return bytes currently in use by Doh
+ * ----------------------------------------------------------------------------- */
+
+int DohMemoryUse() {
+  return _DohMemoryCurrent;
+}
   
-  
+int DohMemoryHigh() {
+  return _DohMemoryHigh;
+}

@@ -88,7 +88,7 @@ NewFile(char *filename, char *mode)
   file = fopen(filename,mode);
   if (!file) return 0;
 
-  f = (File *) DohMalloc(sizeof(File));
+  f = (File *) DohObjMalloc(sizeof(File));
   if (!f) {
     fclose(file);
     return 0;
@@ -109,7 +109,7 @@ DOH *
 NewFileFromFile(FILE *file) 
 {
   File *f;
-  f = (File *) DohMalloc(sizeof(File));
+  f = (File *) DohObjMalloc(sizeof(File));
   if (!f) return 0;
   DohInit(f);
   f->objinfo = &FileType;
@@ -127,7 +127,7 @@ DOH *
 NewFileFromFd(int fd)
 {
   File *f;
-  f = (File *) DohMalloc(sizeof(File));
+  f = (File *) DohObjMalloc(sizeof(File));
   if (!f) return 0;
   DohInit(f);
   f->objinfo = &FileType;
@@ -146,7 +146,7 @@ DelFile(DOH *so) {
   assert(f->refcount <= 0);
   if (f->closeondel)
     fclose(f->filep);
-  DohFree(f);
+  DohObjFree(f);
 }
 
 /* -----------------------------------------------------------------------------
