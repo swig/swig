@@ -2,7 +2,7 @@
 
 %apply int *INPUT {int *bar};
 
-%typemap(out, fragment=SWIG_From_frag(int)) int * Foo::foo {
+%typemap(out, fragment=SWIG_From_frag(int)) int *foo {
   if ($1) {
     $result = SWIG_From(int)(*$1);
   } else {
