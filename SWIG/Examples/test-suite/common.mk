@@ -42,8 +42,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
-	abstract_virtual \
-	abstract_typedef2 \
 	cast_operator \
 	arrayref \
 	namespace_nested \
@@ -65,6 +63,8 @@ CPP_TEST_CASES += \
 	abstract_inherit_ok \
 	abstract_signature \
 	abstract_typedef \
+	abstract_typedef2 \
+	abstract_virtual \
 	add_link \
 	anonymous_arg \
 	argout \
