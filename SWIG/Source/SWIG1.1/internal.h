@@ -39,4 +39,26 @@ struct TMParm {
 
 #define NI_NAMES    512
 
+// Some functions for emitting some C++ helper code
+extern void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
+                                   char *mname, char *mrename, SwigType *type, ParmList *l,
+                                   int mode);
+
+extern void cplus_emit_static_func(char *classname, char *classtype, char *classrename,
+                                   char *mname, char *mrename, SwigType *type, ParmList *l,
+                                   int mode);
+
+extern void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
+                                  char *name, char *iname, int mode);
+
+extern void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
+                                   char *name, char *iname, ParmList *l, int mode);
+
+extern void cplus_emit_variable_get(char *classname, char *classtype, char *classrename,
+				    char *name, char *iname, SwigType *type, int mode);
+
+extern void cplus_emit_variable_set(char *classname, char *classtype, char *classrename,
+				    char *name, char *iname, SwigType *type, int mode);
+
+extern char *cplus_base_class(char *name);
 

@@ -461,15 +461,15 @@ throw_unhandled_guile_type_error (SwigType *d)
 }
 
 // ----------------------------------------------------------------------
-// GUILE::create_function(char *name, char *iname, SwigType *d,
-//                             ParmList *l)
-//
+// GUILE::create_function()
 // Create a function declaration and register it with the interpreter.
 // ----------------------------------------------------------------------
 
 void
-GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
-{
+GUILE::function (DOH *node) {
+  char *name, *iname;
+  SwigType *d;
+  ParmList *l;
   Parm *p;
   DOHString *proc_name = 0;
   char source[256], target[256];
@@ -483,6 +483,11 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   int i;
   int numargs = 0;
   int numopt = 0;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  d = Getattr(node,"type");
+  l = Getattr(node,"parms");
 
   // Make a wrapper name for this
   char * wname = new char [strlen (prefix) + strlen (iname) + 2];
@@ -722,7 +727,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 }
 
 // -----------------------------------------------------------------------
-// GUILE::link_variable(char *name, char *iname, SwigType *d)
+// GUILE::variable()
 //
 // Create a link to a C variable.
 // This creates a single function PREFIX_var_VARNAME().
@@ -733,12 +738,20 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 // -----------------------------------------------------------------------
 
 void
-GUILE::link_variable (char *name, char *iname, SwigType *t)
+GUILE::variable (DOH *node)
 {
+  char *name, *iname;
+  SwigType *t;
+
   DOHString *proc_name;
   char  var_name[256];
   char  *tm;
   Wrapper *f;
+
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
 
   f = NewWrapper();
   // evaluation function names
@@ -879,21 +892,28 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 }
 
 // -----------------------------------------------------------------------
-// GUILE::declare_const(char *name, char *iname, SwigType *type, char *value)
+// GUILE::constant()
 //
 // Makes a constant.   Not sure how this is really supposed to work.
 // I'm going to fake out SWIG and create a variable instead.
 // ------------------------------------------------------------------------
 
 void
-GUILE::declare_const (char *name, char *, SwigType *type, char *value)
+GUILE::constant(DOH *node)
 {
+  char   *name;
+  SwigType *type;
+  char   *value;
   int OldStatus = Status;      // Save old status flags
   DOHString *proc_name;
   char   var_name[256];
   DOHString *rvalue;
   char   *tm;
   Wrapper *f;
+
+  name = GetChar(node,"name");
+  type = Getattr(node,"type");
+  value = GetChar(node,"value");
 
   f = NewWrapper();
   Status = STAT_READONLY;      // Enable readonly mode.
@@ -937,7 +957,10 @@ GUILE::declare_const (char *name, char *, SwigType *type, char *value)
     }
     // Now create a variable declaration
 
-    link_variable (var_name, name, type);
+    Hash *nnode = Copy(node);
+    Setattr(nnode,"name",var_name);
+    variable(nnode);
+    Delete(nnode);
     Status = OldStatus;
   }
   Delete(proc_name);

@@ -20,6 +20,23 @@ extern "C" {
 static char cvsroot[] = "$Header$";
 
 /* -----------------------------------------------------------------------------
+ * new_create_function()
+ * 
+ * Create a new function
+ * ----------------------------------------------------------------------------- */
+
+void new_create_function(char *name, char *iname, SwigType *type, ParmList *l) {
+  Hash *h;
+  h = NewHash();
+  Setattr(h,"name",name);
+  Setattr(h,"scriptname",iname);
+  Setattr(h,"type",type);
+  Setattr(h,"parms",l);
+  lang->function(h);
+  Delete(h);
+}
+
+/* -----------------------------------------------------------------------------
  * emit_args()
  *
  * Creates a list of variable declarations for both the return value
@@ -169,7 +186,7 @@ void emit_set_get(char *name, char *iname, SwigType *t) {
     Wrapper_print(w,f_header);
     new_iname = Swig_name_set(iname);
     DohIncref(new_iname);
-    lang->create_function(Wrapper_Getname(w), Char(new_iname), Wrapper_Gettype(w), Wrapper_Getparms(w));
+    new_create_function(Wrapper_Getname(w), Char(new_iname), Wrapper_Gettype(w), Wrapper_Getparms(w));
     Delete(new_iname);
     DelWrapper(w);
   }
@@ -178,7 +195,7 @@ void emit_set_get(char *name, char *iname, SwigType *t) {
   Wrapper_print(w,f_header);
   new_iname = Swig_name_get(iname);
   DohIncref(new_iname);
-  lang->create_function(Wrapper_Getname(w), Char(new_iname), Wrapper_Gettype(w), Wrapper_Getparms(w));
+  new_create_function(Wrapper_Getname(w), Char(new_iname), Wrapper_Gettype(w), Wrapper_Getparms(w));
   Delete(new_iname);
   DelWrapper(w);
 }

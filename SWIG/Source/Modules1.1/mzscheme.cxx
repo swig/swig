@@ -240,8 +240,7 @@ MZSCHEME::get_pointer (String *name, int parm, SwigType *t, Wrapper *f)
 	 "\", \"", SwigType_manglestr(t), "\", ", p, ", argc, argv);\n",0);    
 }
 // ----------------------------------------------------------------------
-// MZSCHEME::create_function(char *name, char *iname, SwigType *d,
-//                             ParmList *l)
+// MZSCHEME::create_function()
 //
 // Create a function declaration and register it with the interpreter.
 // ----------------------------------------------------------------------
@@ -267,8 +266,11 @@ throw_unhandled_mzscheme_type_error (SwigType *d)
 }
 
 void
-MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
+MZSCHEME::function(DOH *node)
 {
+  char *name, *iname;
+  SwigType *d;
+  ParmList *l;
   Parm *p;
   Wrapper *f = NewWrapper();
   String *proc_name = NewString("");
@@ -286,6 +288,11 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   int have_build = 0;
   int argout_set = 0;
   int i = 0;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  d = Getattr(node,"type");
+  l = Getattr(node,"parms");
 
   // Make a wrapper name for this
   char *wname = Char(Swig_name_wrapper(iname));
@@ -476,7 +483,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 }
 
 // -----------------------------------------------------------------------
-// MZSCHEME::link_variable(char *name, char *iname, SwigType *d)
+// MZSCHEME::variable()
 //
 // Create a link to a C variable.
 // This creates a single function _wrap_swig_var_varname().
@@ -487,14 +494,20 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 // -----------------------------------------------------------------------
 
 void
-MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
+MZSCHEME::variable (DOH *node)
 {
+  char *name, *iname;
+  SwigType *t;
   String *proc_name = NewString("");
   char  var_name[256];
   char  *tm;
   String *tm2 = NewString("");;
   String *argnum = NewString("0");
   String *arg = NewString("argv[0]");
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
 
   // evaluation function names
 
@@ -604,21 +617,29 @@ MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
 }
 
 // -----------------------------------------------------------------------
-// MZSCHEME::declare_const(char *name, char *iname, SwigType *type, char *value)
+// MZSCHEME::constant()
 //
 // Makes a constant.   Not sure how this is really supposed to work.
 // I'm going to fake out SWIG and create a variable instead.
 // ------------------------------------------------------------------------
 
 void
-MZSCHEME::declare_const (char *name, char *, SwigType *type, char *value)
+MZSCHEME::constant(DOH *node)
 {
+  char   *name;
+  SwigType *type;
+  char   *value;
+
   int OldStatus = Status;      // Save old status flags
   char   var_name[256];
   String *proc_name = NewString("");
   String *rvalue = NewString("");
   String *temp = NewString("");
   char   *tm;
+
+  name = GetChar(node,"name");
+  type = Getattr(node,"type");
+  value = GetChar(node,"value");
 
   Status = STAT_READONLY;      // Enable readonly mode.
 
@@ -666,7 +687,10 @@ MZSCHEME::declare_const (char *name, char *, SwigType *type, char *value)
 
     // Now create a variable declaration
 
-    link_variable (var_name, name, type);
+    Hash *nnode = Copy(node);
+    Setattr(nnode,"name",var_name);
+    variable (nnode);
+    Delete(nnode);
     Status = OldStatus;
   }
   Delete(proc_name);

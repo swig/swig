@@ -264,13 +264,21 @@ TCL8::create_command(char *cname, char *iname) {
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
+TCL8::function(DOH *node) {
+  char *name, *iname;
+  SwigType *d;
+  ParmList *l;
   Parm            *p;
   int              pcount,i,j;
   char            *tm;
   Wrapper         *f;
   String          *incode, *cleanup, *outarg, *argstr, *args;
   int              numopt= 0;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  d = Getattr(node,"type");
+  l = Getattr(node,"parms");
 
   incode  = NewString("");
   cleanup = NewString("");
@@ -530,14 +538,16 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::link_variable()
+ * TCL8::variable()
  * ----------------------------------------------------------------------------- */
 
 static Hash      *setf = 0;
 static Hash      *getf = 0;
 
 void
-TCL8::link_variable(char *name, char *iname, SwigType *t) {
+TCL8::variable(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
 
   String *setname;
   String *getname;
@@ -546,6 +556,10 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
   int readonly = 0;
   int setable = 1;
   int tc;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
 
   if (!setf) setf = NewHash();
   if (!getf) getf = NewHash();
@@ -755,17 +769,26 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::declare_const()
+ * TCL8::constant()
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
+TCL8::constant(DOH *node) {
+  char   *name;
+  SwigType *type;
+  char   *value;
   int OldStatus = Status;
   SwigType *t;
   char      var_name[256];
   char     *tm;
   String   *rvalue;
   Status = STAT_READONLY;
+  DOH      *nnode;
+
+  name = GetChar(node,"name");
+  type = Getattr(node,"type");
+  value = GetChar(node,"value");
+  nnode = Copy(node);
 
   /* Make a static variable */
   sprintf(var_name,"_wrap_const_%s",name);
@@ -784,7 +807,8 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
     switch(SwigType_type(type)) {
     case T_BOOL: case T_INT: case T_DOUBLE:
       Printf(f_header,"static %s %s = %s;\n", SwigType_str(type,0), var_name, value);
-      link_variable(var_name,name,type);
+      Setattr(nnode,"name",var_name);
+      variable(nnode);
       break;
 
     case T_SHORT:
@@ -801,7 +825,9 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       sprintf(var_name,"%s_char",var_name);
       t = NewString("char");
       SwigType_add_pointer(t);
-      link_variable(var_name,name,t);
+      Setattr(nnode,"name",var_name);
+      Setattr(nnode,"type",t);
+      variable(nnode);
       Delete(t);
       break;
 
@@ -820,25 +846,31 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       sprintf(var_name,"%s_char",var_name);
       t = NewSwigType(T_CHAR);
       SwigType_add_pointer(t);
-      link_variable(var_name,name,t);
+      Setattr(nnode,"name",var_name);
+      Setattr(nnode,"type",t);
+      variable(nnode);
       Delete(t);
       break;
 
     case T_FLOAT:
       Printf(f_header,"static %s %s = (%s) (%s);\n", SwigType_lstr(type,0), var_name, SwigType_lstr(type,0), value);
-      link_variable(var_name,name,type);
+      Setattr(nnode,"name",var_name);
+      variable(nnode);
       break;
 
     case T_CHAR:
       SwigType_add_pointer(type);
       Printf(f_header,"static %s %s = \"%s\";\n", SwigType_lstr(type,0), var_name, value);
-      link_variable(var_name,name,type);
+      Setattr(nnode,"name",var_name);
+      Setattr(nnode,"type",type);
+      variable(nnode);
       SwigType_del_pointer(type);
       break;
 
     case T_STRING:
       Printf(f_header,"static %s %s = \"%s\";\n", SwigType_lstr(type,0), var_name, value);
-      link_variable(var_name,name,type);
+      Setattr(nnode,"name",var_name);
+      variable(nnode);
       break;
 
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
@@ -855,7 +887,9 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
 	     var_name, var_name, SwigType_manglestr(type));
       sprintf(var_name,"%s_char",var_name);
-      link_variable(var_name,name,t);
+      Setattr(nnode,"type",t);
+      Setattr(nnode,"name",var_name);
+      variable(nnode);
       Delete(t);
       break;
 
@@ -865,6 +899,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
     }
   }
   Delete(rvalue);
+  Delete(nnode);
   Status = OldStatus;
 }
 
