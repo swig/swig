@@ -1420,43 +1420,19 @@ List *SwigType_equivalent_mangle(String *ms, Hash *checked, Hash *found) {
  * ----------------------------------------------------------------------------- */
 
 static
-String *SwigType_clientdata_collect(String *ms, Hash *checked) {
-  Hash *ch;
+String *SwigType_clientdata_collect(String *ms) {
   Hash *mh;
   String *clientdata = 0;
 
-  if (checked) {
-    ch = checked;
-  } else {
-    ch = NewHash();
-  }
-  if (Getattr(ch,ms)) goto check_exit;    /* Already checked this type */
-  Setattr(ch, ms, "1");
   mh = Getattr(r_mangled,ms);
   if (mh) {
     Iterator ki;
     ki = First(mh);
     while (ki.key) {
-      Hash *rh;
-      Setattr(ch,ki.key,"1");
       clientdata = Getattr(r_clientdata,ki.key);
-      if (clientdata) goto check_exit;
-      rh = Getattr(r_resolved,ki.key);
-      if (rh) {
-	Iterator rk;
-	rk = First(rh);
-	while (rk.key) {
-	  clientdata = SwigType_clientdata_collect(rk.key,ch);
-	  if (clientdata) goto check_exit;
-	  rk = Next(rk);
-	}
-      }
+      if (clientdata) break;
       ki = Next(ki);
     }
-  }
- check_exit:
-  if (!checked) {
-    Delete(ch);
   }
   return clientdata;
 }
@@ -1671,6 +1647,9 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   Printf(stdout,"---conversions---\n");
   Printf(stdout,"%s\n", conversions);
 
+  Printf(stdout,"---r_clientdata---\n");
+  Printf(stdout,"%s\n", r_clientdata);
+
 #endif
   table = NewString("");
   types = NewString("");
@@ -1691,7 +1670,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     Printf(f_forward,"#define  SWIGTYPE%s swig_types[%d] \n", ki.key, i);
     Printv(types,"static swig_type_info _swigt_", ki.key, "[] = {", NIL);
     
-    cd = SwigType_clientdata_collect(ki.key,0);
+    cd = SwigType_clientdata_collect(ki.key);
     if (!cd) cd = "0";
     lt = Getattr(r_ltype,ki.key);
     rt = SwigType_typedef_resolve_all(lt);

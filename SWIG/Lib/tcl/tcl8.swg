@@ -670,6 +670,9 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *interp) {
        for (i = 0; swig_types_initial[i]; i++) {
           swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
        }
+       for (i = 0; swig_types_initial[i]; i++) {
+          SWIG_PropagateClientData(swig_types[i]);
+       }
        _init = 1;
     }
     for (i = 0; swig_commands[i].name; i++) {
