@@ -1,5 +1,10 @@
 Version 1.3.16 (In progress)
 ==================================
+09/20/2002: ttn
+	    [Methodology] Reworked "make clean" and "make install"
+			  to be more table driven.
+	    [Docs] Explain how to extend "make install" w/ extra-install.list.
+
 09/15/2002: beazley
             Deprecation of the "ignore" typemap.   The "ignore" typemap has
             been deprecated in favor of a generalization of the "in" typemap.
@@ -11,7 +16,7 @@ Version 1.3.16 (In progress)
 
             This change fixes a number of subtle bugs related to the interaction
             of the "in" and "ignore" typemaps (which were supposed to be
-            mutually exclusive).  
+            mutually exclusive).
 
             The use of the numinputs argument is reserved for future expansion.
             Currently, values >1 will generate an error.  However, future
@@ -22,7 +27,7 @@ Version 1.3.16 (In progress)
 
             *** POTENTIAL INCOMPATIBILITY ***
             *** NEW FEATURE ***
-                     
+
 09/15/2002: beazley
             Fixed segmentation fault for unnamed structures.  For example:
 
@@ -32,7 +37,7 @@ Version 1.3.16 (In progress)
 
             Reported by Roger Gibson.
             Note: we might be able to generate wrappers in special cases.
-               
+
 09/13/2002: beazley
             Minor modification to generated wrapper functions.  Pointer arguments are now
             always set to an initial value of 0.   Simplifies typemap writing and cleanup
@@ -58,9 +63,9 @@ Version 1.3.16 (In progress)
                  };
 
                  class Spam : public Bar { };
- 
+
             then methods from Foo are still available.  For example,
- 
+
                  >>> s = Spam()
                  >>> s.blah()
                  0
