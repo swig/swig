@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * lang.cxx
  *
  *     Language base class functions.  Default C++ handling is also implemented here.
@@ -1059,7 +1059,7 @@ Language::staticmemberfunctionHandler(Node *n) {
       cname = NewStringf("%s::%s",ClassName,name);
     }
   } else {
-    cname = Copy(Swig_name_member(ClassPrefix,name));    
+    cname = Copy(Swig_name_member(ClassPrefix,name));
   }
   mrename = Swig_name_member(ClassPrefix, symname);
 
@@ -2194,7 +2194,7 @@ void Language::main(int argc, char *argv[]) {
  * ----------------------------------------------------------------------------- */
 
 int
-Language::addSymbol(String *s, Node *n) {
+Language::addSymbol(const String *s, const Node *n) {
   Node *c = Getattr(symbols,s);
   if (c && (c != n)) {
     Swig_error(input_file, line_number, "'%s' is multiply defined in the generated module.\n", s);
