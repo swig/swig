@@ -1,5 +1,10 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+3/02/00 : ttn
+          Added support for different Guile "linkage" schemes.
+	  Currently, "-Linkage hobbit" works.
+
+
 Version 1.3 Alpha 2 (March 1, 2000)
 ===================================
 
