@@ -168,6 +168,7 @@ CPP_TEST_CASES += \
 	pointer_reference \
 	primitive_ref \
 	private_assign \
+        protected_rename \
 	pure_virtual \
 	reference_global_vars \
 	rename_default \
