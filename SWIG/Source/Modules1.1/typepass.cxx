@@ -45,7 +45,6 @@ class TypePass : public Dispatcher {
     /* Normalize a type. Replaces type with fully qualified version */
 
     void normalize_type(SwigType *ty) {
-
 	SwigType *qty = SwigType_typedef_qualified(ty);
 	/* SwigType *qty = Swig_symbol_type_qualify(ty,0);  */
 	/*	Printf(stdout,"%s --> %s\n", ty, qty); */
@@ -61,6 +60,18 @@ class TypePass : public Dispatcher {
 	    SwigType *ty = Getattr(p,"type");
 	    normalize_type(ty);
 	    String *value = Getattr(p,"value");
+	    if (value) {
+	      /*	      Printf(stdout,"value = '%s'\n", value); */
+	      Node *n = Swig_symbol_clookup(value,0);
+	      if (n) {
+		String *q = Swig_symbol_qualified(n);
+		if (q && Len(q)) {
+		  Insert(value,0,"::");
+		  Insert(value,0,SwigType_namestr(q));
+		  Delete(q);
+		}
+	      }
+	    }
 	    p = nextSibling(p);
 	}
     }

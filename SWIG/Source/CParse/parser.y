@@ -3899,12 +3899,14 @@ expr           :  exprnum { $$ = $1; }
 		     }
 
 		   }
+		   /*
 		   ns = Swig_symbol_qualified(n);
 		   if (ns && Len(ns)) {
 		     Insert($$.val,0,"::");
 		     Insert($$.val,0,ns);
 		     Delete(ns);
 		   }
+		   */
 		 }
 		 if (SwigType_istemplate($$.val)) {
 		   $$.val = SwigType_namestr($$.val);
