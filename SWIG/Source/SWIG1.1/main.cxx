@@ -151,8 +151,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   extern void parser_init(void);
   DOH    *libfiles = 0;
 
-  /* This registers a function for producing escaped strings */
-  DohEncoding("escape",Swig_string_escape);
+  /* Initialize the SWIG core */
+  Swig_init();
 
 #ifdef MACSWIG
   try {
@@ -160,7 +160,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   // Initialize the preprocessor
   Preprocessor_init();
-  Swig_typemap_init();
 
   f_wrappers = 0;
   f_init = 0;
@@ -168,8 +167,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   lang = l;
   Status = 0;
-
-  //  DataType_init_typedef();         // Initialize the type handler
 
   // Set up some default symbols (available in both SWIG interface files
   // and C files)
