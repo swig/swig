@@ -2,6 +2,7 @@
 
 // this example shows a problem with 'dump_nested' (parser.y).
 
+// bug #949654
 %inline %{
 typedef struct s1 {
 union {
@@ -19,3 +20,22 @@ char *name;
 } s2; 
 
 %}
+
+// bug #491476
+%inline %{
+struct {
+struct {
+int a;
+} a, b;
+} a;
+
+%}
+
+// bug #909387
+%inline %{
+struct foo {
+  struct happy; // no warning
+  struct sad { int x; }; // warning
+  happy *good(); // produces good code
+  sad *bad(); // produces bad code
+};

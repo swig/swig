@@ -283,4 +283,11 @@ inline const char* mangle ## #@__VA_ARGS__ () {
 const int endif = 1;
 const int define = 1;
 const int defined = 1; 
+int test(int defined)
+{
+  return defined;
+}
+ 
 %}
+
+
