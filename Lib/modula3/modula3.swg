@@ -66,8 +66,10 @@
 %typemap(m3rawintype) long double *,        long double &,        long double        "C.long_double"
 %typemap(m3rawintype) char *                                                         "C.char_star"
 %typemap(m3rawintype) void                                                           ""
+%typemap(m3rawintype) void *                                                         "ADDRESS"
 
 %typemap(m3rawinmode) char *             ""
+%typemap(m3rawinmode) void *             ""
 
 %typemap(m3rawrettype) bool,               const bool &               "BOOLEAN"
 %typemap(m3rawrettype) char,               const char &               "C.char"
@@ -86,6 +88,7 @@
 %typemap(m3rawrettype) long double,        const long double &        "C.long_double"
 %typemap(m3rawrettype) char *                                         "C.char_star"
 %typemap(m3rawrettype) void                                           ""
+%typemap(m3rawrettype) void *                                         "ADDRESS"
 
 %typemap("m3rawtype:import")
   char,               const char &,
