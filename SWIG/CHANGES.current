@@ -1,6 +1,30 @@
 Version 1.3.22 (September 1, 2004)
 ==================================
 
+09/01/2004: wsfulton
+            [Perl] Applied patch #1019669 from Christoph Flamm. Adds support
+            for %feature("shadow") in the same way as it works in Python. This
+            enables one to override the generated shadow/proxy methods, including
+            constructors and destructors. For example:
+
+              /* Let's make the constructor of the class Square more verbose */
+
+              %feature("shadow") Square(double w)
+              %{
+                sub new {
+                  my $pkg = shift;
+                  my $self = examplec::new_Square(@_);
+                  print STDERR "Constructed an @{[ref($self)]}\n";
+                  bless $self, $pkg if defined($self);
+                }
+              %}
+
+              class Square {
+              public:
+                Square(double w);
+                ...
+              };
+
 08/31/2004: mmatus 
 	    [Python] Incompatibility reported by Bill Clarke (llib@computer.org):
 	    
