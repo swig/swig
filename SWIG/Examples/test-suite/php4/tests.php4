@@ -64,9 +64,13 @@ class check {
   function is_a($a,$b) {
     if (is_object($a)) $a=strtolower(get_class($a));
     if (is_object($b)) $a=strtolower(get_class($b));
+    $parents=array();
     $c=$a;
-    while($c!=$b && $c=strtolower(get_parent_class($c))) { };
-    if ($c!=$b) return check::fail("Class $a does not inherit from class $b");
+    while($c!=$b && $c) {
+      $parents[]=$c;
+      $c=strtolower(get_parent_class($c));
+    }
+    if ($c!=$b) return check::fail("Class $a does not inherit from class $b\nHierachy:\n  %s\n",join("\n  ",$parents));
     return TRUE;
   }
 

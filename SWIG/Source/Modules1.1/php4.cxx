@@ -1485,25 +1485,31 @@ public:
         abstractConstructorHandler(n);
       }
 
-      if (baselist) base=Firstitem(baselist);
-
       Printf(s_oinit,"// Define class %s\n"
 	     "INIT_OVERLOADED_CLASS_ENTRY(ce_swig_%s,\"%(lower)s\",%s_functions,"
-	     "NULL,_propget_%s,_propset_%s);\n",
+	     "NULL,_wrap_propget_%s,_wrap_propset_%s);\n",
 	     shadow_classname,shadow_classname,shadow_classname,
 	     shadow_classname,shadow_classname,shadow_classname);
-
-      Printf(s_propget,"static pval _propget_%s(zend_property_reference *property_reference) {\n", shadow_classname);
-      Printf(s_header,"static pval _propget_%s(zend_property_reference *property_reference);\n", shadow_classname);
-
-      Printf(s_propset,"static int _propset_%s(zend_property_reference *property_reference, pval *value) {\n", shadow_classname);
-      Printf(s_header,"static int _propset_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
 
 //        int type;  /* read, write or r/w */
 //        zval *object;
 //        zend_llist *elements_list;
 
+      // ******** Write property SET handlers
+      Printf(s_header,"static int _wrap_propset_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
+      Printf(s_propset,"static int _wrap_propset_%s(zend_property_reference *property_reference, pval *value) { \n"
+                       "  zend_llist_element *element = property_reference->elements_list->head;\n"
+                       "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
+                       "  if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n"
+                       "  //set it ourselves as we are actual class\n"
+                       "  return add_property_zval_ex(property_reference->object,Z_STRVAL_P(&(property->element)),Z_STRLEN_P(&(property->element)),value);\n"
+                       "}\n", shadow_classname, shadow_classname);
+      Printf(s_header,"static int _propset_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
+      Printf(s_propset,"static int _propset_%s(zend_property_reference *property_reference, pval *value) {\n", shadow_classname);
+
+      if (baselist) base=Firstitem(baselist);
       key = Firstkey(shadow_set_vars);
+
       // Print function header; we only need to find property name if there
       // are properties for this class to look up...
       if (key || ! base) { // or if we are base class and set it ourselves
@@ -1532,18 +1538,39 @@ public:
       if (scount) Printf(s_propset," else");
 
       // If there is a base class then chain it's handler else set directly
+      // try each base class handler, else set directly...
       if (base) {
-        Printf(s_propset,  "  {\n    // chain to base class\n"
-               "    return _propset_%s(property_reference, value);\n  }\n",
+        Printf(s_propset,  "  {\n    // chain to base class\n");
+        while(base) {
+          Printf(s_propset,"    if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n",
                GetChar(base, "sym:name"));
-      } else {
-        Printf(s_propset,"  {\n    //set it ourselves as we are base class\n");
-        Printf(s_propset,"    return add_property_zval_ex(property_reference->object,propname,Z_STRLEN_P(&(property->element)),value);\n");
+
+          base=Nextitem(baselist);
+        }
         Printf(s_propset,"  }\n");
       }
-      Printf(s_propset,"}\n\n");
+      Printf(s_propset,"  return FAILURE;\n}\n\n");
 
+      // ******** Write property GET handlers
+      Printf(s_header,"static pval _wrap_propget_%s(zend_property_reference *property_reference);\n", shadow_classname);
+      Printf(s_propget,"static pval _wrap_propget_%s(zend_property_reference *property_reference) {\n"
+             "  pval result;\n"
+             "  pval **_result;\n"
+             "  zend_llist_element *element = property_reference->elements_list->head;\n"
+             "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
+             "  result.type = IS_NULL;\n"
+             "  if (_propget_%s(property_reference, &result)==SUCCESS) return result;\n"
+             "  //return it ourselves\n"
+             "  if (zend_hash_find(Z_OBJPROP_P(property_reference->object),Z_STRVAL_P(&(property->element)),Z_STRLEN_P(&(property->element)),(void**)&_result)==SUCCESS) return **_result;\n"
+             "  result.type = IS_NULL;\n"
+             "  return result;\n"
+             "}\n", shadow_classname, shadow_classname);
+      Printf(s_header,"static int _propget_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
+      Printf(s_propget,"static int _propget_%s(zend_property_reference *property_reference, pval *value) {\n", shadow_classname);
+
+      if (baselist) base=Firstitem(baselist);
       key = Firstkey(shadow_get_vars);
+
       // Print function header; we only need to find property name if there
       // are properties for this class to look up...
       if (key || !base ) { // or if we are base class...
@@ -1564,7 +1591,8 @@ public:
       while (key) {
         if (gcount++) Printf(s_propget," else");
         Printf(s_propget,"  if (strcmp(propname,\"%s\")==0) {\n"
-                          "    return _wrap_%s(property_reference);\n"
+                          "    *value=_wrap_%s(property_reference);\n"
+                          "    return SUCCESS;\n"
                           "  }",Getattr(shadow_get_vars,key),key);
 
         key=Nextkey(shadow_get_vars);
@@ -1574,17 +1602,16 @@ public:
 
       // If there is a base class then chain it's handler else return null
       if (base) {
-        Printf(s_propget,  "  {\n    // chain to base class\n"
-               "    return _propget_%s(property_reference);\n  }\n",
+        Printf(s_propget,  "  {\n    // chain to base class\n");
+        while(base) {
+          Printf(s_propget,"    if (_propget_%s(property_reference,  value)==SUCCESS) return SUCCESS;\n",
                GetChar(base, "sym:name"));
-      } else { 
-        Printf(s_propget,"  {\n    //return it ourselves\n    pval **_result;\n"
-                         "    if (zend_hash_find(Z_OBJPROP_P(property_reference->object),propname,Z_STRLEN_P(&(property->element)),(void**)&_result)==SUCCESS) {\n"
-                         "      return **_result;\n"
-                         "    }\n");
-        Printf(s_propget,"  return presult;\n  }\n");
+
+          base=Nextitem(baselist);
+        }
+        Printf(s_propget,"  }\n");
       }
-      Printf(s_propget,"}\n\n");
+      Printf(s_propget,"  return FAILURE;\n}\n\n");
 
       // wrappers generated now...
 
@@ -1593,6 +1620,7 @@ public:
       Printv(s_wrappers,s_propget,s_propset,NULL);
 
       // Save class in class table
+      if (baselist) base=Firstitem(baselist);
       if (base) {
         Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,&ce_swig_%s,NULL))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
           shadow_classname,shadow_classname,GetChar(base, "sym:name"), shadow_classname);

@@ -66,6 +66,7 @@ CPP_TEST_CASES += \
 	lib_std_deque \
 	evil_diamond \
 	evil_diamond_ns \
+	evil_diamond_prop \
 	constructor_explicit \
 	lib_typemaps \
 	typemap_namespace \
