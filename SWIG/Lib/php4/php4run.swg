@@ -12,8 +12,8 @@ extern "C" {
 #include "zend_API.h"
 #include "php.h"
 
-// These TSRMLS_ stuff should already be defined now, but with older php under
-// redhat are not...
+/* These TSRMLS_ stuff should already be defined now, but with older php under
+   redhat are not... */
 #ifndef TSRMLS_D
 #define TSRMLS_D
 #endif
@@ -31,23 +31,23 @@ extern "C" {
 }
 #endif
 
-// used to wrap returned objects in so we know whether they are newobject
-// and need freeing, or not
+/* used to wrap returned objects in so we know whether they are newobject
+   and need freeing, or not */
 typedef struct _swig_object_wrapper {
   void * ptr;
   int newobject;
 } swig_object_wrapper;
 
-// local scope self_constructors are set to 1 inside function wrappers
-// which are also class constructors, so that the php4.swg output typemaps
-// know whether or not to wrap returned objects in this_ptr or a new object
+/* local scope self_constructors are set to 1 inside function wrappers
+   which are also class constructors, so that the php4.swg output typemaps
+   know whether or not to wrap returned objects in this_ptr or a new object */
 int self_constructor=0;
 
-// empty zend destructor for types without one
+/* empty zend destructor for types without one */
 static ZEND_RSRC_DTOR_FUNC(SWIG_landfill) {};
 
-// This one makes old swig style string pointers but the php module doesn't
-// use these any more.  This is just left here for old times sake and may go
+/* This one makes old swig style string pointers but the php module doesn't
+   use these any more.  This is just left here for old times sake and may go */
 SWIGRUNTIME(void)
 SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
   static char hex[17] = "0123456789abcdef";
@@ -85,7 +85,7 @@ SWIG_SetPointerChar(char **c, void *ptr, swig_type_info *type) {
 SWIGRUNTIME(void)
 SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject, zend_module_entry* module_entry TSRMLS_DC) {
   swig_object_wrapper *value=NULL;
-  // No need to call SWIG_MakePtr here!
+  /* No need to call SWIG_MakePtr here! */
   if (type->clientdata) {
     if (! (*(int *)(type->clientdata))) zend_error(E_ERROR, "Type: %s failed to register with zend",type->name);
     value=(swig_object_wrapper *)emalloc(sizeof(swig_object_wrapper));
@@ -93,15 +93,15 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject,
     value->newobject=newobject;
     ZEND_REGISTER_RESOURCE(z, value, *(int *)(type->clientdata));
     return;
-  } else { // have to deal with old fashioned string pointer?
-           // but this should not get this far
+  } else { /* have to deal with old fashioned string pointer?
+              but this should not get this far */
     zend_error(E_ERROR, "Type: %s not registered with zend",type->name);
   }
 }
 
-// This old-style routine converts an old string-pointer c into a real pointer
-// ptr calling making appropriate casting functions according to ty
-// We don't use this any more
+/* This old-style routine converts an old string-pointer c into a real pointer
+   ptr calling making appropriate casting functions according to ty
+   We don't use this any more */
 SWIGRUNTIME(int)
 _SWIG_ConvertPtr(char *c, void **ptr, swig_type_info *ty) {
    register int d;
@@ -148,42 +148,42 @@ type_error:
     return -1;
 }
 
-// This is a new pointer conversion routine
-// Taking the native pointer p (which would have been converted from the old
-// string pointer) and it's php type id, and it's type name (which also would
-// have come from the old string pointer) it converts it to ptr calling 
-// appropriate casting functions according to ty
-// Sadly PHP has no API to find a type name from a type id, only from an instance
-// of a resource of the type id, so we have to pass type_name as well.
-// The two functions which might call this are:
-// SWIG_ZTS_ConvertResourcePtr which gets the type name from the resource
-// and the registered zend destructors for which we have one per type each
-// with the type name hard wired in.
+/* This is a new pointer conversion routine
+   Taking the native pointer p (which would have been converted from the old
+   string pointer) and it's php type id, and it's type name (which also would
+   have come from the old string pointer) it converts it to ptr calling 
+   appropriate casting functions according to ty
+   Sadly PHP has no API to find a type name from a type id, only from an instance
+   of a resource of the type id, so we have to pass type_name as well.
+   The two functions which might call this are:
+   SWIG_ZTS_ConvertResourcePtr which gets the type name from the resource
+   and the registered zend destructors for which we have one per type each
+   with the type name hard wired in. */
 SWIGRUNTIME(int)
 SWIG_ZTS_ConvertResourceData(void * p, int type, const char *type_name, void **ptr, swig_type_info *ty TSRMLS_DC) {
   swig_type_info *tc;
 
   if (ty) {
     if (! type_name) {  
-      // can't convert p to ptr type ty if we don't know what type p is
+      /* can't convert p to ptr type ty if we don't know what type p is */
       return -1;
     } else {
-      // convert and cast p from type_name to ptr as ty
-      // Need to sort out const-ness, can SWIG_TypeCast really not take a const?
+      /* convert and cast p from type_name to ptr as ty
+         Need to sort out const-ness, can SWIG_TypeCast really not take a const? */
       tc = SWIG_TypeCheck((char *)type_name,ty);
       if (!tc) return -1;
       *ptr = SWIG_TypeCast(tc, (void*)p);
     }
   } else {
-    // They don't care about the target type, so just pass on the pointer!
+    /* They don't care about the target type, so just pass on the pointer! */
     *ptr = (void *) p;
   }
   return 0;
 }
 
-// This function fills ptr with a pointer of type ty by extracting the pointer
-// and type info from the resource in z.  z must be a resource
-// It uses SWIG_ZTS_ConvertResourceData to do the real work.
+/* This function fills ptr with a pointer of type ty by extracting the pointer
+   and type info from the resource in z.  z must be a resource
+   It uses SWIG_ZTS_ConvertResourceData to do the real work. */
 SWIGRUNTIME(int)
 SWIG_ZTS_ConvertResourcePtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
   swig_object_wrapper *value;
@@ -200,14 +200,14 @@ SWIG_ZTS_ConvertResourcePtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
   return SWIG_ZTS_ConvertResourceData(p,type,type_name,ptr,ty TSRMLS_CC);
 }
 
-// But in fact SWIG_ConvertPtr is the native interface for getting typed
-// pointer values out of zvals.  We need the TSRMLS_ macros for when we
-// make PHP type calls later as we handle php resources
+/* But in fact SWIG_ConvertPtr is the native interface for getting typed
+   pointer values out of zvals.  We need the TSRMLS_ macros for when we
+   make PHP type calls later as we handle php resources */
 #define SWIG_ConvertPtr(a,b,c) SWIG_ZTS_ConvertPtr(a,b,c TSRMLS_CC)
 
-// We allow passing of a STRING or RESOURCE pointing to the object
-// or an OBJECT whose _cPtr is a string or resource pointing to the object
-// STRING pointers are very depracated
+/* We allow passing of a STRING or RESOURCE pointing to the object
+   or an OBJECT whose _cPtr is a string or resource pointing to the object
+   STRING pointers are very depracated */
 SWIGRUNTIME(int)
 SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
    char *c;
@@ -221,12 +221,12 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
    if (z->type==IS_OBJECT) {
      zval ** _cPtr;
      if (zend_hash_find(HASH_OF(z),"_cPtr",sizeof("_cPtr"),(void**)&_cPtr)==SUCCESS) {
-       // Don't co-erce to string if it isn't
+       /* Don't co-erce to string if it isn't */
        if ((*_cPtr)->type==IS_STRING) c = Z_STRVAL_PP(_cPtr);
        else if ((*_cPtr)->type==IS_RESOURCE) {
          return SWIG_ZTS_ConvertResourcePtr(*_cPtr,ptr,ty TSRMLS_CC);
-       } else goto type_error; // _cPtr was not string or resource property
-     } else goto type_error; // can't find property _cPtr
+       } else goto type_error; /* _cPtr was not string or resource property */
+     } else goto type_error; /* can't find property _cPtr */
    } else if (z->type==IS_RESOURCE) {
      return SWIG_ZTS_ConvertResourcePtr(z,ptr,ty TSRMLS_CC);
    } else if (z->type==IS_STRING) {

@@ -50,10 +50,10 @@
 /* Special case when void* is passed by reference so it can be made to point
    to opaque api structs */
 %typemap(in) void ** ($*1_ltype ptr, int force), void *& ($*1_ltype ptr, int force) %{
-  // If they pass NULL by reference, make it into a void*
-  // This bit should go in arginit if arginit support init-ing scripting args
+  /* If they pass NULL by reference, make it into a void*
+     This bit should go in arginit if arginit support init-ing scripting args */
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
-    // So... we didn't get a ref or ptr, but we'll accept NULL by reference
+    /* So... we didn't get a ref or ptr, but we'll accept NULL by reference */
     if ((*$input)->type==IS_NULL && PZVAL_IS_REF(*$input)) {
       #if __cplusplus
       ptr=new $*1_ltype;
@@ -61,9 +61,9 @@
       ptr=($*1_ltype) calloc(1,sizeof($*1_ltype));
       #endif
       $1=&ptr;
-      // have to passback arg$arg too
+      /* have to passback arg$arg too */
       force=1;
-    } else {  // wasn't a pre/ref/thing, OR anything like an int thing
+    } else {  /* wasn't a pre/ref/thing, OR anything like an int thing */
       force=0;
       zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s or %s or at least NULL passed by reference", $argnum-argbase, $1_descriptor->name,$*1_descriptor->name);
     }
@@ -71,7 +71,7 @@
 %}
 
 %typemap(argout) void **, void *& %{
-  if (force$argnum) {  // pass back arg$argnum through params ($arg) if we can
+  if (force$argnum) {  /* pass back arg$argnum through params ($arg) if we can */
     if(! PZVAL_IS_REF(*$arg)) {
       zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
     } else {
@@ -152,9 +152,8 @@
 %typemap(in) TYPES * ($*1_ltype intr, int force), 
              TYPES & ($*1_ltype intr, int force) %{
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
-    // So... we didn't get a ref or ptr, but can it be 
-    // reasonably co-erced into what we were 
-    // looking for a ref of or ptr to?
+    /* So... we didn't get a ref or ptr, but can it be reasonably 
+       co-erced into what we were looking for a ref of or ptr to? */
     if ((*$input)->type==IS_STRING ||
         (*$input)->type==IS_LONG ||
         (*$input)->type==IS_BOOL ||
@@ -162,9 +161,9 @@
       TYPE_IN($input);
       intr = ($*1_ltype) (*$input)->value.lval;
       $1 = &intr;
-      // have to passback arg$arg too
+      /* have to passback arg$arg too */
       force=1;
-    } else {  // wasn't a pre/ref/thing, OR anything like an int thing
+    } else {  /* wasn't a pre/ref/thing, OR anything like an int thing */
       force=0;
       zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s or at least something looking vaguely like a number hopefully passed by reference", $argnum-argbase, $1_descriptor->name);
     }
@@ -172,7 +171,7 @@
 %}
 
 %typemap(argout) TYPES *, TYPES & %{
-  if (force$argnum) {  // pass back arg$argnum through params ($arg) if we can
+  if (force$argnum) {  /* pass back arg$argnum through params ($arg) if we can */
     if(! PZVAL_IS_REF(*$arg)) {
       zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
     } else {

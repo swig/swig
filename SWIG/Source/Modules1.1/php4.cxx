@@ -142,12 +142,12 @@ SwigPHP_emit_resource_registrations() {
   if (!zend_types) return;
   key = Firstkey(zend_types);
 
-  if (key) Printf(s_oinit,"\n// Register resource destructors for pointer types\n");
+  if (key) Printf(s_oinit,"\n/* Register resource destructors for pointer types */\n");
   while (key) if (1 /* is pointer type*/) {
     Node *class_node;
     if ((class_node=Getattr(zend_types,key))) {
       // Write out destructor function header
-      Printf(s_wrappers,"//NEW Destructor style\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n",key);
+      Printf(s_wrappers,"/* NEW Destructor style */\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n",key);
 
       // write out body
       if ((class_node!=NOTCLASS)) {
@@ -155,20 +155,20 @@ SwigPHP_emit_resource_registrations() {
         if (! (shadow_classname = Getattr(class_node,"sym:name"))) shadow_classname=classname;
         // Do we have a known destructor for this type?
         if ((destructor = Getattr(class_node,"destructor"))) {
-          Printf(s_wrappers,"// has destructor: %s\n",destructor);
+          Printf(s_wrappers,"/* has destructor: %s */\n",destructor);
           Printf(s_wrappers,"%s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n",destructor,key);
         } else {
-          Printf(s_wrappers,"//bah! No destructor for this wrapped class!!\n");
+          Printf(s_wrappers,"/* bah! No destructor for this wrapped class!! */\n");
         }
       } else {
-          Printf(s_wrappers,"//bah! No destructor for this simple type!!\n");
+          Printf(s_wrappers,"/* bah! No destructor for this simple type!! */\n");
       }
 
       // close function
       Printf(s_wrappers,"}\n");
 
       // declare le_swig_<mangled> to store php registration
-      Printf(s_vdecl,"static int le_swig_%s=0; // handle for %s\n", key, shadow_classname);
+      Printf(s_vdecl,"static int le_swig_%s=0; /* handle for %s */\n", key, shadow_classname);
 
       // register with php
       Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
@@ -953,7 +953,7 @@ public:
       Setattr(classnode,"destructor",destructorname);
 
       Wrapper *df = NewWrapper();
-      Printf(df->def,"// This function is designed to be called by the zend list destructors to typecast and do the actual destruction\n"
+      Printf(df->def,"/* This function is designed to be called by the zend list destructors to typecast and do the actual destruction */\n"
                      "void %s(zend_rsrc_list_entry *rsrc, const char *type_name TSRMLS_DC) {\n",destructorname);
 
       Wrapper_add_localv(df, "value", "swig_object_wrapper *value=(swig_object_wrapper *) rsrc->ptr", NIL);
@@ -974,7 +974,7 @@ public:
 
         Printf(df->code,
              "  efree(value);\n"
-             "  if (! newobject) return; // can't delete it!\n"
+             "  if (! newobject) return; /* can't delete it! */\n"
 	     "  SWIG_ZTS_ConvertResourceData(ptr,rsrc->type,type_name,(void **) &arg1,SWIGTYPE%s TSRMLS_CC);\n"
 	     "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n"
 	     ,SwigType_manglestr(pt), shadow_classname);
@@ -1018,8 +1018,8 @@ public:
     // NOTE: possible we ignore this_ptr as a param for native constructor
 
     if (native_constructor) {
-      if (native_constructor==NATIVE_CONSTRUCTOR) Printf(f->code, "// NATIVE Constructor\nint self_constructor=1;\n");
-      else Printf(f->code, "// ALTERNATIVE Constructor\n");
+      if (native_constructor==NATIVE_CONSTRUCTOR) Printf(f->code, "/* NATIVE Constructor */\nint self_constructor=1;\n");
+      else Printf(f->code, "/* ALTERNATIVE Constructor */\n");
     }
 
     if (mvr && ! mvrset) {
@@ -1032,7 +1032,7 @@ public:
     // method and can make one of us
     if (! mvr && native_constructor==0) Printf(f->code,
 				      "if (this_ptr && this_ptr->type==IS_OBJECT) {\n"
-				      "  // fake this_ptr as first arg (till we can work out how to do it better\n"
+				      "  /* fake this_ptr as first arg (till we can work out how to do it better */\n"
 				      "  argbase++;\n"
 				      "}\n");
     
@@ -1173,15 +1173,14 @@ public:
       // then destroy it the resource way
       
       Printf(f->code,
-	     "//if ((*args[0])->type==IS_RESOURCE) {\n"
-	     "//  // Get zend list destructor to free it\n"
-	     "//  zend_list_delete(Z_LVAL_PP(args[0]));\n"
-	     "//} else {\n",name,name
+	     "/*if ((*args[0])->type==IS_RESOURCE) { */\n"
+	     "/*  Get zend list destructor to free it */\n"
+	     "/*  zend_list_delete(Z_LVAL_PP(args[0])); */\n"
+	     "/* } else {*/ \n",name,name
 	     );
       // but leave the old way in for as long as we accept strings as swig objects
       emit_action(n,f);
-      Printf(f->code,"//}\n");
-      
+      Printf(f->code,"/*}*/\n");
     } else {
       emit_action(n,f);
     }
@@ -1196,9 +1195,9 @@ public:
       // are we returning a wrapable object?
       // I don't know if this test is comlete, I nicked it
       if(is_shadow(d) && (SwigType_type(d) != T_ARRAY)) {
-	Printf(f->code,"// Wrap this return value\n");
+	Printf(f->code,"/* Wrap this return value */\n");
 	if (native_constructor==NATIVE_CONSTRUCTOR) {
-	  Printf(f->code, "if (this_ptr) {\n// NATIVE Constructor, use this_ptr\n");
+	  Printf(f->code, "if (this_ptr) {\n/* NATIVE Constructor, use this_ptr */\n");
 	  Printf(f->code,"zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n"
 		 "*_cPtr = *return_value;\n"
 		 "INIT_ZVAL(*return_value);\n"
@@ -1207,7 +1206,7 @@ public:
 	}
 	{ // THIS CODE only really needs writing out if the object to be returned
 	  // Is being shadow-wrap-thingied
-	  Printf(f->code, "{\n// ALTERNATIVE Constructor, make an object wrapper\n");
+	  Printf(f->code, "{\n/* ALTERNATIVE Constructor, make an object wrapper */\n");
 	  // Make object 
 	  String *shadowrettype = NewString("");
 	  SwigToPhpType(d, iname, shadowrettype, shadow);
@@ -1412,7 +1411,7 @@ public:
       if (!addSymbol(rename,n)) return SWIG_ERROR;
       shadow_classname = Swig_copy_string(rename);
       cs_entry = NewString("");
-      Printf(cs_entry,"// Function entries for %s\n"
+      Printf(cs_entry,"/* Function entries for %s */\n"
 	     "static zend_function_entry %s_functions[] = {\n"
 	     ,shadow_classname, shadow_classname);
 
@@ -1484,7 +1483,7 @@ public:
         abstractConstructorHandler(n);
       }
 
-      Printf(s_oinit,"// Define class %s\n"
+      Printf(s_oinit,"/* Define class %s */\n"
 	     "INIT_OVERLOADED_CLASS_ENTRY(ce_swig_%s,\"%(lower)s\",%s_functions,"
 	     "NULL,_wrap_propget_%s,_wrap_propset_%s);\n",
 	     shadow_classname,shadow_classname,shadow_classname,
@@ -1500,9 +1499,9 @@ public:
                        "  zend_llist_element *element = property_reference->elements_list->head;\n"
                        "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
                        "  if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n"
-                       "  //set it ourselves as we are actual class\n"
+                       "  /* set it ourselves as it is %s */\n"
                        "  return add_property_zval_ex(property_reference->object,Z_STRVAL_P(&(property->element)),Z_STRLEN_P(&(property->element)),value);\n"
-                       "}\n", shadow_classname, shadow_classname);
+                       "}\n", shadow_classname, shadow_classname,shadow_classname);
       Printf(s_header,"static int _propset_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
       Printf(s_propset,"static int _propset_%s(zend_property_reference *property_reference, pval *value) {\n", shadow_classname);
 
@@ -1520,9 +1519,9 @@ public:
                "  char *propname=Z_STRVAL_P(&(property->element));\n");
       } else {
         if (base) {
-          Printf(s_propset,"  // No extra properties for subclass %s\n",shadow_classname);
+          Printf(s_propset,"  /* No extra properties for subclass %s */\n",shadow_classname);
         } else {
-          Printf(s_propset,"  // No properties for base class %s\n",shadow_classname);
+          Printf(s_propset,"  /* No properties for base class %s */\n",shadow_classname);
         }
       }
 
@@ -1541,7 +1540,7 @@ public:
       // If there is a base class then chain it's handler else set directly
       // try each base class handler, else set directly...
       if (base) {
-        Printf(s_propset,  "  {\n    // chain to base class\n");
+        Printf(s_propset,  "  {\n    /* chain to base class */\n");
         while(base) {
           Printf(s_propset,"    if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n",
                GetChar(base, "sym:name"));
@@ -1562,7 +1561,7 @@ public:
              "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
              "  result.type = IS_NULL;\n"
              "  if (_propget_%s(property_reference, &result)==SUCCESS) return result;\n"
-             "  //return it ourselves\n"
+             "  /* return it ourselves */\n"
              "  if (zend_hash_find(Z_OBJPROP_P(property_reference->object),Z_STRVAL_P(&(property->element)),Z_STRLEN_P(&(property->element)),(void**)&_result)==SUCCESS) return **_result;\n"
              "  result.type = IS_NULL;\n"
              "  return result;\n"
@@ -1584,9 +1583,9 @@ public:
                "  char *propname=Z_STRVAL_P(&(property->element));\n");
       } else {
         if (base) {
-          Printf(s_propget,"  // No extra properties for subclass %s\n",shadow_classname);
+          Printf(s_propget,"  /* No extra properties for subclass %s */\n",shadow_classname);
         } else {
-          Printf(s_propget,"  // No properties for base class %s\n",shadow_classname);
+          Printf(s_propget,"  /* No properties for base class %s */\n",shadow_classname);
         }
       }
 
@@ -1605,7 +1604,7 @@ public:
 
       // If there is a base class then chain it's handler else return null
       if (base) {
-        Printf(s_propget,  "  {\n    // chain to base class\n");
+        Printf(s_propget,  "  {\n    /* chain to base class */\n");
         while(base) {
           Printf(s_propget,"    if (_propget_%s(property_reference,  value)==SUCCESS) return SUCCESS;\n",
                GetChar(base, "sym:name"));
@@ -1620,7 +1619,7 @@ public:
       // wrappers generated now...
 
       // add wrappers to output code
-      Printf(s_wrappers,"// property handler for class %s\n",shadow_classname);
+      Printf(s_wrappers,"/* property handler for class %s */\n",shadow_classname);
       Printv(s_wrappers,s_propget,s_propset,NIL);
 
       // Save class in class table
@@ -1644,7 +1643,7 @@ public:
       // These are all the enums defined withing the c++ class.
 
       // PHP Needs to handle shadow enums properly still
-      if(strlen(Char(shadow_enum_code)) != 0 ) Printv(f_phpcode, "{\n // enum\n", shadow_enum_code, " }\n", NIL);
+      if(strlen(Char(shadow_enum_code)) != 0 ) Printv(f_phpcode, "{\n /* enum */\n", shadow_enum_code, " }\n", NIL);
 
       free(shadow_classname);
       shadow_classname = NULL;

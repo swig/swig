@@ -39,7 +39,7 @@
 
 #ifdef SWIGPHP4
 %{
-// We should make use of "code" if we can
+/* We should make use of "code" if we can */
 #define SWIG_exception(code, msg) { zend_error(E_ERROR, msg); }
 %}
 #endif

@@ -11,12 +11,22 @@ include ../common.mk
 SWIGOPT    = -I$(TOP)/../Lib -I$(TOP)/$(TEST_SUITE) 
 TARGETPREFIX = php_
 
-runtests:
-	@bash -ec 'ls *_runme.php4 | sed -e "s/_runme.php4/.cpptest/" | while read file; do make clean && make $$file; done'
+runcpptests:
+	@bash -ec 'for test in $(CPP_TEST_CASES) ; do if [ -f $${test}_runme.php4 ] ; then make clean && make $${test}.cpptest; fi ; done'
+
+runctests:
+	@bash -ec 'for test in $(C_TEST_CASES) ; do if [ -f $${test}_runme.php4 ] ; then make clean && make $${test}.cpptest; fi; done'
+
+runtests: runcpptests runctests
 
 # write out tests without a _runme.php4
-missingtests:
+missingcpptests:
 	@bash -ec 'for test in $(CPP_TEST_CASES) ; do test -f $${test}_runme.php4 || echo $${test}; done'
+
+missingctests:
+	@bash -ec 'for test in $(C_TEST_CASES) ; do test -f $${test}_runme.php4 || echo $${test}; done'
+
+missingtests: missingcpptests missingctests
 
 # Rules for the different types of tests
 %.cpptest: 
