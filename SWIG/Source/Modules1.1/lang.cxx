@@ -32,6 +32,8 @@ static String  *ActionFunc = 0;
 static int      cplus_mode = 0;
 static Node    *CurrentClass = 0;
 static Hash    *ClassHash = 0;
+int             line_number = 0;
+char           *input_file = 0;
 
 extern    int           GenerateDefault;
 extern    int           ForceExtern;

@@ -35,8 +35,8 @@ extern void  yyerror (const char *s);
 
 /* scanner.cxx */
 
-extern int  line_number;
-extern int  start_line;
+extern int  cparse_line;
+extern int  cparse_start_line;
 extern void skip_balanced(int startchar, int endchar);
 extern void skip_decl(void);
 extern void scanner_check_typedef(void);
@@ -72,8 +72,8 @@ int      ShowTemplates = 0;    /* Debugging mode */
 static Node *new_node(const String_or_char *tag) {
   Node *n = NewHash();
   set_nodeType(n,tag);
-  Setfile(n,input_file);
-  Setline(n,line_number);
+  Setfile(n,cparse_file);
+  Setline(n,cparse_line);
   return n;
 }
 
@@ -635,7 +635,7 @@ Node *Swig_cparse(File *f) {
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
    return top;
  }
-
+#ifdef OLD
 void canonical_template(String *s) {
   Replaceall(s,"\n"," ");
   Replaceall(s,"\t"," ");
@@ -665,6 +665,7 @@ void canonical_template(String *s) {
 
   Replace(s,">"," >", DOH_REPLACE_ANY);
 }
+#endif
 
 %}
 
@@ -689,11 +690,7 @@ void canonical_template(String *s) {
     ParmList  *parms;
     short      have_parms;
   } decl;
-  struct {
-    String     *rparms;
-    String     *sparms;
-    Parm       *parms;
-  } tmplstr;
+  Parm         *tparms;
   struct {
     String     *op;
     Hash       *kwargs;
@@ -797,7 +794,7 @@ void canonical_template(String *s) {
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate stringbrace stringbracesemi;
 %type <id>       string;
-%type <tmplstr>  template_parms;
+%type <tparms>   template_parms;
 %type <ivalue>   cpp_vend;
 %type <ivalue>   rename_namewarn;
 %type <ptype>    type_specifier primitive_type_list ;
@@ -844,9 +841,9 @@ declaration    : swig_directive { $$ = $1; }
                   $$ = 0;
 		  if (!Swig_numerrors()) {
 		    static int last_error_line = -1;
-		    if (last_error_line != line_number) {
-		      Swig_error(input_file, line_number,"Syntax error in input.\n");
-		      last_error_line = line_number;
+		    if (last_error_line != cparse_line) {
+		      Swig_error(cparse_file, cparse_line,"Syntax error in input.\n");
+		      last_error_line = cparse_line;
 		      skip_decl();
 		    }
 		  }
@@ -983,7 +980,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		     add_symbols($$);
 		   } else {
 		     if ($4.type == T_ERROR) {
-		       Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,input_file,line_number,"Unsupported constant value (ignored)\n");
+		       Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line,"Unsupported constant value (ignored)\n");
 		     }
 		     $$ = 0;
 		   }
@@ -1006,13 +1003,13 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   add_symbols($$);
 		 } else {
 		     if ($4.type == T_ERROR) {
-		       Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,input_file,line_number,"Unsupported constant value\n");
+		       Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line,"Unsupported constant value\n");
 		     }
 		   $$ = 0;
 		 }
                }
                | CONSTANT error SEMI {
-		 Swig_warning(WARN_PARSE_BAD_VALUE,input_file,line_number,"Bad constant value (ignored).\n");
+		 Swig_warning(WARN_PARSE_BAD_VALUE,cparse_file,cparse_line,"Bad constant value (ignored).\n");
 		 $$ = 0;
 	       }
                ;
@@ -1024,8 +1021,8 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 
 echo_directive : ECHO HBLOCK {
 		 char temp[64];
-		 Replace($2,"$file",input_file, DOH_REPLACE_ANY);
-		 sprintf(temp,"%d", line_number);
+		 Replace($2,"$file",cparse_file, DOH_REPLACE_ANY);
+		 sprintf(temp,"%d", cparse_line);
 		 Replace($2,"$line",temp,DOH_REPLACE_ANY);
 		 Printf(stderr,"%s\n", $2);
 		 Delete($2);
@@ -1034,8 +1031,8 @@ echo_directive : ECHO HBLOCK {
                | ECHO string {
 		 char temp[64];
 		 String *s = NewString($2);
-		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
-		 sprintf(temp,"%d", line_number);
+		 Replace(s,"$file",cparse_file, DOH_REPLACE_ANY);
+		 sprintf(temp,"%d", cparse_line);
 		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
 		 Printf(stderr,"%s\n", s);
 		 Delete(s);
@@ -1082,13 +1079,13 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
    ------------------------------------------------------------ */
 
 include_directive: includetype string LBRACKET {
-                     $1.filename = Swig_copy_string(input_file);
-		     $1.line = line_number;
-		     input_file = Swig_copy_string($2);
-		     line_number = 0;
+                     $1.filename = Swig_copy_string(cparse_file);
+		     $1.line = cparse_line;
+		     cparse_file = Swig_copy_string($2);
+		     cparse_line = 0;
                } interface RBRACKET {
-		     input_file = $1.filename;
-		     line_number = $1.line;
+		     cparse_file = $1.filename;
+		     cparse_line = $1.line;
 		     if (strcmp($1.type,"include") == 0) $$ = new_node("include");
 		     if (strcmp($1.type,"import") == 0) $$ = new_node("import");
 		     Setattr($$,"name",$2);
@@ -1107,18 +1104,18 @@ includetype    : INCLUDE { $$.type = (char *) "include"; }
 inline_directive : INLINE HBLOCK {
                  String *cpps;
 		 if (Namespaceprefix) {
-		   Swig_error(input_file, start_line, "Error. %%inline directive inside a namespace is disallowed.\n");
+		   Swig_error(cparse_file, cparse_start_line, "Error. %%inline directive inside a namespace is disallowed.\n");
 
 		   $$ = 0;
 		 } else {
 		   $$ = new_node("insert");
 		   Setattr($$,"code",$2);
 		   /* Need to run through the preprocessor */
-		   Setline($2,start_line);
-		   Setfile($2,input_file);
+		   Setline($2,cparse_start_line);
+		   Setfile($2,cparse_file);
 		   Seek($2,0,SEEK_SET);
 		   cpps = Preprocessor_parse($2);
-		   start_inline(Char(cpps), start_line);
+		   start_inline(Char(cpps), cparse_start_line);
 		   Delete($2);
 		   Delete(cpps);
 		 }
@@ -1143,7 +1140,7 @@ insert_directive : HBLOCK {
 		 Setattr($$,"section",$3);
 		 Setattr($$,"code",code);
 		 if (Swig_insert_file($5,code) < 0) {
-		   Swig_error(input_file, line_number, "Couldn't find '%s'.\n", $5);
+		   Swig_error(cparse_file, cparse_line, "Couldn't find '%s'.\n", $5);
 		   $$ = 0;
 		 } 
                }
@@ -1185,7 +1182,7 @@ name_directive : NAME LPAREN idstring RPAREN {
                }
                | NAME LPAREN RPAREN {
                    $$ = 0;
-		   Swig_error(input_file,line_number,"Missing argument to %%name directive.\n");
+		   Swig_error(cparse_file,cparse_line,"Missing argument to %%name directive.\n");
 	       }
                ;
 
@@ -1203,7 +1200,7 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
 	       }
                | NATIVE LPAREN ID RPAREN storage_class type declarator SEMI {
 		 if (!SwigType_isfunction($7.type)) {
-		   Swig_error(input_file,line_number,"%%native declaration '%s' is not a function.\n", $7.id);
+		   Swig_error(cparse_file,cparse_line,"%%native declaration '%s' is not a function.\n", $7.id);
 		   $$ = 0;
 		 } else {
 		     Delete(SwigType_pop_function($7.type));
@@ -1506,7 +1503,7 @@ varargs_parms   : parms { $$ = $1; }
 		  Parm *p;
 		  n = atoi(Char($1.val));
 		  if (n <= 0) {
-		    Swig_error(input_file, line_number,"Argument count in %%varargs must be positive.\n");
+		    Swig_error(cparse_file, cparse_line,"Argument count in %%varargs must be positive.\n");
 		    $$ = 0;
 		  } else {
 		    $$ = Copy($3);
@@ -1676,13 +1673,13 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 			add_symbols($$);
 			Setattr($$,"specialization_wrapped","1");
 		      } else {
-			Swig_warning(WARN_PARSE_TEMPLATE_REPEAT,input_file, line_number, "Template '%s' was already wrapped as '%s' (ignored)\n", 
+			Swig_warning(WARN_PARSE_TEMPLATE_REPEAT,cparse_file, cparse_line, "Template '%s' was already wrapped as '%s' (ignored)\n", 
 				     SwigType_namestr(templateargs), Getattr(n,"sym:name"));
 			$$ = 0;
 		      }
 		    } else {
 			if (Strcmp(nodeType(n),"constructor") != 0) {
-			    Swig_warning(WARN_PARSE_TEMPLATE_REPEAT,input_file, line_number, "Template '%s' was already wrapped as '%s' (ignored)\n", 
+			    Swig_warning(WARN_PARSE_TEMPLATE_REPEAT,cparse_file, cparse_line, "Template '%s' was already wrapped as '%s' (ignored)\n", 
 					 SwigType_namestr(templateargs), Getattr(n,"sym:name"));
 			    $$ = 0;
 			} else {
@@ -1699,9 +1696,9 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		    if (n && (Strcmp(nodeType(n),"template") == 0)) {
 		      Parm *tparms = Getattr(n,"templateparms");
 		      if (ParmList_len($7) > ParmList_len(tparms)) {
-			Swig_error(input_file, line_number, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
+			Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
 		      } else if (ParmList_len($7) < ParmList_numrequired(tparms)) {
-			Swig_error(input_file, line_number, "Not enough template parameters specified. %d required.\n", ParmList_numrequired(tparms));
+			Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", ParmList_numrequired(tparms));
 		      } else {
 			int  def_supplied = 0;
 			/* Expand the template */
@@ -1747,8 +1744,8 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 			Setattr($$,"sym:name", $3);
 			Delattr($$,"templatetype");
 			Setattr($$,"template","1");
-			Setfile($$,input_file);
-			Setline($$,line_number);
+			Setfile($$,cparse_file);
+			Setline($$,cparse_line);
 			add_symbols_copy($$);
 			
 			if (Strcmp(nodeType($$),"class") == 0) {
@@ -1782,9 +1779,9 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		      }
 		    } else {
 		      if (n) {
-			Swig_error(input_file, line_number, "'%s' is not defined as a template. (%s)\n", $5, nodeType(n));
+			Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", $5, nodeType(n));
 		      } else {
-			Swig_error(input_file, line_number, "Template '%s' undefined.\n", $5);
+			Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", $5);
 		      }
 		    }
  		  }
@@ -1797,7 +1794,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
    ------------------------------------------------------------ */
 
 warn_directive : WARN string {
-		  Swig_warning(0,input_file, line_number,"%s\n", $2);
+		  Swig_warning(0,cparse_file, cparse_line,"%s\n", $2);
 		  $$ = 0;
                }
                ;
@@ -1822,7 +1819,7 @@ c_declaration   : c_decl {
 		    Setattr($$,"name",$2);
 		    appendChild($$,firstChild($4));
 		  } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,input_file, line_number,"Unrecognized extern type \"%s\" (ignored).\n", $2);
+		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\" (ignored).\n", $2);
 		     $$ = 0;
 		  }
                 }
@@ -2051,14 +2048,14 @@ cpp_class_decl  :
 		     }
 		   }
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		   start_line = line_number;
+		   cparse_start_line = cparse_line;
 		   inclass = 1;
                } cpp_members RBRACE cpp_opt_declarators {
 		 Node *p;
 		 SwigType *ty;
 		 inclass = 0;
 		 $$ = new_node("class");
-		 Setline($$,start_line);
+		 Setline($$,cparse_start_line);
 		 Setattr($$,"name",$3);
 		 Setattr($$,"kind",$2);
 		 Setattr($$,"baselist",$4);
@@ -2087,7 +2084,7 @@ cpp_class_decl  :
 		   set_nextSibling($$,p);
 		 }
 		 
-		 if (CPlusPlus) {
+		 if (cparse_cplusplus) {
 		   ty = NewString($3);
 		 } else {
 		   ty = NewStringf("%s %s", $2,$3);
@@ -2139,7 +2136,7 @@ cpp_class_decl  :
 		 cplus_mode = CPLUS_PUBLIC;
 	       }
 	       Swig_symbol_newscope();
-	       start_line = line_number;
+	       cparse_start_line = cparse_line;
 	       inclass = 1;
 	       Classprefix = NewString("");
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
@@ -2150,7 +2147,7 @@ cpp_class_decl  :
 	       inclass = 0;
 	       unnamed = make_unnamed();
 	       $$ = new_node("class");
-	       Setline($$,start_line);
+	       Setline($$,cparse_start_line);
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"storage",$1);
 	       Setattr($$,"unnamed",unnamed);
@@ -2269,17 +2266,19 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 		      if ($$) {
 			  Setattr($$,"templatetype",nodeType($5));
 			  set_nodeType($$,"template");
-			  Setattr($$,"templateparms", $3.parms);
+			  Setattr($$,"templateparms", $3);
 			  Setattr($$,"sym:typename","1");
 			  add_symbols($$);
 		      } else {
-			  if (($3.parms) && ($5)) {
-			    Swig_warning(WARN_PARSE_TEMPLATE_PARTIAL,input_file, line_number,"Template partial specialization not supported.\n");
+			  if (($3) && ($5)) {
+			    Swig_warning(WARN_PARSE_TEMPLATE_PARTIAL,cparse_file, cparse_line,"Template partial specialization not supported.\n");
 			  }
 		      }
                 }
                 /* Forward template class declaration */
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_forward_class_decl { $$ = 0; }
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_forward_class_decl { 
+                     $$ = 0; 
+                }
                 ;
 
 cpp_temp_possible:  c_decl {
@@ -2305,36 +2304,29 @@ cpp_temp_possible:  c_decl {
 template_parms  : rawparms {
 		   /* Rip out the parameter names */
 		  Parm *p = $1;
-		  $$.rparms = NewString("");
-		  $$.sparms = NewString("");
-		  $$.parms = $1;
+		  $$ = $1;
 
 		  while (p) {
 		    String *name = Getattr(p,"name");
 		    if (!name) {
 		      /* Hmmm. Maybe it's a 'class T' parameter */
 		      char *type = Char(Getattr(p,"type"));
+		      /* Template template parameter */
+		      if (strncmp(type,"template<class> ",16) == 0) {
+			type += 16;
+		      }
 		      if ((strncmp(type,"class ",6) == 0) || (strncmp(type,"typename ", 9) == 0)) {
 			char *t = strchr(type,' ');
-			Printf($$.rparms,"%s",t+1);
-			Printf($$.sparms,"__swig%s",t+1);
 			Setattr(p,"name", t+1);
 		      } else {
-			 Swig_error(input_file, line_number, "Missing template parameter name\n");
+			/*
+			 Swig_error(cparse_file, cparse_line, "Missing template parameter name\n");
 			 $$.rparms = 0;
-			 $$.sparms = 0;
 			 $$.parms = 0;
-			 break;
+			 break; */
 		      }
-		    } else {
-		      Printf($$.rparms,"%s", Getattr(p,"name"));
-		      Printf($$.sparms,"__swig%s",Getattr(p,"name"));
 		    }
 		    p = nextSibling(p);
-		    if (p) {
-		      Putc(',',$$.rparms);
-		      Putc(',',$$.sparms);
-		    }
 		  }
                  }
                 ;
@@ -2344,7 +2336,7 @@ template_parms  : rawparms {
 cpp_using_decl : USING idcolon SEMI {
                   Node *n = Swig_symbol_clookup($2,0);
                   if (!n) {
-		    Swig_warning(WARN_PARSE_USING_UNDEF, input_file, line_number, "Nothing known about '%s'.\n", $2);
+		    Swig_warning(WARN_PARSE_USING_UNDEF, cparse_file, cparse_line, "Nothing known about '%s'.\n", $2);
 		    $$ = 0;
 		  } else {
 		    $$ = new_node("using");
@@ -2360,7 +2352,7 @@ cpp_using_decl : USING idcolon SEMI {
              | USING NAMESPACE idcolon SEMI {
 	       Node *n = Swig_symbol_clookup($3,0);
 	       if (!n) {
-		 Swig_error(input_file, line_number, "Nothing known about namespace '%s'\n", $3);
+		 Swig_error(cparse_file, cparse_line, "Nothing known about namespace '%s'\n", $3);
 		 $$ = 0;
 	       } else {
 
@@ -2374,7 +2366,7 @@ cpp_using_decl : USING idcolon SEMI {
 		     Setattr($$,"namespace", $3);
 		     Swig_symbol_inherit(Getattr(n,"symtab"));
 		   } else {
-		     Swig_error(input_file, line_number, "'%s' is not a namespace.\n", $3);
+		     Swig_error(cparse_file, cparse_line, "'%s' is not a namespace.\n", $3);
 		     $$ = 0;
 		   }
 		 } else {
@@ -2391,7 +2383,7 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
 		if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
 		  if (Getattr(h,"alias")) {
 		    h = Getattr(h,"namespace");
-		    Swig_warning(WARN_PARSE_NAMESPACE_ALIAS, input_file, line_number, "Namespace alias '%s' not allowed here. Assuming '%s'\n",
+		    Swig_warning(WARN_PARSE_NAMESPACE_ALIAS, cparse_file, cparse_line, "Namespace alias '%s' not allowed here. Assuming '%s'\n",
 				 $2, Getattr(h,"name"));
 		    $2 = Getattr(h,"name");
 		  }
@@ -2439,11 +2431,11 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
 	       Setattr($$,"alias",$4);
 	       n = Swig_symbol_clookup($4,0);
 	       if (!n) {
-		 Swig_error(input_file, line_number, "Unknown namespace '%s'\n", $4);
+		 Swig_error(cparse_file, cparse_line, "Unknown namespace '%s'\n", $4);
 		 $$ = 0;
 	       } else {
 		 if (Strcmp(nodeType(n),"namespace") != 0) {
-		   Swig_error(input_file, line_number, "'%s' is not a namespace\n",$4);
+		   Swig_error(cparse_file, cparse_line, "'%s' is not a namespace\n",$4);
 		   $$ = 0;
 		 } else {
 		   while (Getattr(n,"alias")) {
@@ -2478,7 +2470,7 @@ cpp_members  : cpp_member cpp_members {
 		     appendChild($$,$3);
 		     set_nextSibling($$,$5);
 		 } else {
-		     Swig_error(input_file,line_number,"%%extend can only be used in a public section\n");
+		     Swig_error(cparse_file,cparse_line,"%%extend can only be used in a public section\n");
 		     $$ = 0;
 		 }
 	     }
@@ -2487,9 +2479,9 @@ cpp_members  : cpp_member cpp_members {
 	       skip_decl();
 		   {
 		     static int last_error_line = -1;
-		     if (last_error_line != line_number) {
-		       Swig_error(input_file, line_number,"Syntax error in input.\n");
-		       last_error_line = line_number;
+		     if (last_error_line != cparse_line) {
+		       Swig_error(cparse_file, cparse_line,"Syntax error in input.\n");
+		       last_error_line = cparse_line;
 		     }
 		   }
 	     } cpp_members { 
@@ -2672,13 +2664,13 @@ cpp_protection_decl : PUBLIC COLON {
 
 /* A struct sname { } id;  declaration */
 
-cpp_nested : storage_class cpptype ID LBRACE { start_line = line_number; skip_balanced('{','}');
+cpp_nested : storage_class cpptype ID LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
 	      } nested_decl SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if ($6.id) {
 		    if (strcmp($2,"class") == 0) {
-		      Swig_warning(WARN_PARSE_NESTED_CLASS, input_file, line_number, "Nested classes not currently supported (ignored).\n");
+		      Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested classes not currently supported (ignored).\n");
 		      /* Generate some code for a new class */
 		    } else {
 		      Nested *n = (Nested *) malloc(sizeof(Nested));
@@ -2687,7 +2679,7 @@ cpp_nested : storage_class cpptype ID LBRACE { start_line = line_number; skip_ba
 			     Char(scanner_ccode), " $classname_", $6.id, ";\n", NULL);
 
 		      n->name = Swig_copy_string($6.id);
-		      n->line = start_line;
+		      n->line = cparse_start_line;
 		      n->type = NewString("");
 		      n->kind = $2;
 		      SwigType_push(n->type, $6.type);
@@ -2695,18 +2687,18 @@ cpp_nested : storage_class cpptype ID LBRACE { start_line = line_number; skip_ba
 		      add_nested(n);
 		    }
 		  } else {
-		    Swig_warning(WARN_PARSE_NESTED_CLASS, input_file, line_number, "Nested %s not currently supported (ignored).\n", $2);
+		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
 		  }
 		}
 	      }
 
 /* An unnamed nested structure definition */
-              | storage_class cpptype LBRACE { start_line = line_number; skip_balanced('{','}');
+              | storage_class cpptype LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
               } nested_decl SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (strcmp($2,"class") == 0) {
-		    Swig_warning(WARN_PARSE_NESTED_CLASS,input_file, line_number,"Nested class not currently supported (ignored)\n");
+		    Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
 		    /* Generate some code for a new class */
 		  } else if ($5.id) {
 		    /* Generate some code for a new class */
@@ -2715,14 +2707,14 @@ cpp_nested : storage_class cpptype ID LBRACE { start_line = line_number; skip_ba
 		    Printv(n->code, "typedef ", $2, " " ,
 			    Char(scanner_ccode), " $classname_", $5.id, ";\n",NULL);
 		    n->name = Swig_copy_string($5.id);
-		    n->line = start_line;
+		    n->line = cparse_start_line;
 		    n->type = NewString("");
 		    n->kind = $2;
 		    SwigType_push(n->type,$5.type);
 		    n->next = 0;
 		    add_nested(n);
 		  } else {
-		    Swig_warning(WARN_PARSE_NESTED_CLASS, input_file, line_number, "Nested %s not currently supported (ignored).\n", $2);
+		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
 		  }
 		}
 	      } 
@@ -2781,7 +2773,7 @@ storage_class  : EXTERN { $$ = "extern"; }
                    if (strcmp($2,"C") == 0) {
 		     $$ = "externc";
 		   } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,input_file, line_number,"Unrecognized extern type \"%s\" (ignored).\n", $2);
+		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\" (ignored).\n", $2);
 		     $$ = 0;
 		   }
                }
@@ -2829,17 +2821,22 @@ ptail          : COMMA parm ptail {
 parm           : rawtype parameter_declarator {
                    SwigType_push($1,$2.type);
 		   $$ = NewParm($1,$2.id);
-		   Setfile($$,input_file);
-		   Setline($$,line_number);
+		   Setfile($$,cparse_file);
+		   Setline($$,cparse_line);
 		   if ($2.defarg)
 		     Setattr($$,"value",$2.defarg);
 		}
 
+                | TEMPLATE LESSTHAN cpptype GREATERTHAN cpptype idcolon {
+                  $$ = NewParm(NewStringf("template<class> %s %s", $5,$6), 0);
+		  Setfile($$,cparse_file);
+		  Setline($$,cparse_line);
+                }
                 | PERIOD PERIOD PERIOD {
 		  SwigType *t = NewString("v(...)");
 		  $$ = NewParm(t, 0);
-		  Setfile($$,input_file);
-		  Setline($$,line_number);
+		  Setfile($$,cparse_file);
+		  Setline($$,cparse_line);
 		}
 		;
 
@@ -2880,14 +2877,14 @@ valparm        : parm {
                } 
                | exprnum {
                   $$ = NewParm(0,0);
-                  Setfile($$,input_file);
-		  Setline($$,line_number);
+                  Setfile($$,cparse_file);
+		  Setline($$,cparse_line);
 		  Setattr($$,"value",$1.val);
                }
                | STRING {
                   $$ = NewParm(0,0);
-                  Setfile($$,input_file);
-		  Setline($$,line_number);
+                  Setfile($$,cparse_file);
+		  Setline($$,cparse_line);
 		  Setattr($$,"value",NewString($1));
                }
                ;
@@ -2898,7 +2895,7 @@ def_args       : EQUAL definetype {
 		  /* If the value of a default argument is in the symbol table,  we replace it with it's
                      fully qualified name.  Needed for C++ enums and other features */
 		  if ($2.type == T_ERROR) {
-		    Swig_warning(WARN_PARSE_BAD_DEFAULT,input_file, line_number, "Can't set default argument (ignored)\n");
+		    Swig_warning(WARN_PARSE_BAD_DEFAULT,cparse_file, cparse_line, "Can't set default argument (ignored)\n");
 		    $$.val = 0;
 		    $$.rawval = 0;
 		  }
@@ -2920,8 +2917,8 @@ def_args       : EQUAL definetype {
 		 if (n) {
 		   String *q = Swig_symbol_qualified(n);
 		   if (Getattr(n,"access")) {
-		     Swig_warning(WARN_PARSE_PRIVATE, input_file, line_number,"'%s' is private in this context.\n", $3);
-		     Swig_warning(WARN_PARSE_BAD_DEFAULT, input_file, line_number,"Can't set default argument value (ignored)\n");
+		     Swig_warning(WARN_PARSE_PRIVATE, cparse_file, cparse_line,"'%s' is private in this context.\n", $3);
+		     Swig_warning(WARN_PARSE_BAD_DEFAULT, cparse_file, cparse_line,"Can't set default argument value (ignored)\n");
 		     $$.val = 0;
 		   } else {
 		     if (q) {
@@ -3413,7 +3410,7 @@ primitive_type_list : type_specifier {
                }
                | type_specifier primitive_type_list {
                     if ($1.us && $2.us) {
-		      Swig_error(input_file, line_number, "Extra %s specifier.\n", $2.us);
+		      Swig_error(cparse_file, cparse_line, "Extra %s specifier.\n", $2.us);
 		    }
                     $$ = $2;
                     if ($1.us) $$.us = $1.us;
@@ -3445,7 +3442,7 @@ primitive_type_list : type_specifier {
 			  }
 			}
 			if (err) {
-			  Swig_error(input_file, line_number, "Extra %s specifier.\n", $1.type);
+			  Swig_error(cparse_file, cparse_line, "Extra %s specifier.\n", $1.type);
 			}
 		      }
 		    }
@@ -3557,7 +3554,7 @@ etype            : expr {
 		       ($$.type != T_LONG) && ($$.type != T_ULONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR)) {
-		     Swig_error(input_file,line_number,"Type error. Expecting an int\n");
+		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an int\n");
 		   }
 
                 }
@@ -3588,7 +3585,7 @@ expr           :  exprnum { $$ = $1; }
 		 if (n) {
 		   String *ns;
 		   if (Getattr(n,"access")) {
-		     Swig_warning(WARN_PARSE_PRIVATE,input_file, line_number, "'%s' is private in this context.\n", $1);
+		     Swig_warning(WARN_PARSE_PRIVATE,cparse_file, cparse_line, "'%s' is private in this context.\n", $1);
 		     $$.type = T_ERROR;
 
 		   }
@@ -3721,17 +3718,17 @@ base_list      : base_specifier {
                ;
 
 base_specifier : opt_virtual idcolon {
-                  Swig_error(input_file, line_number,"No access specifier given for base class %s (ignored).\n",$2);
+                  Swig_error(cparse_file, cparse_line,"No access specifier given for base class %s (ignored).\n",$2);
 		  $$ = (char *) 0;
                }
 	       | opt_virtual access_specifier opt_virtual idcolon {
 		 $$ = 0;
 	         if (strcmp($2,"public") == 0) {
 		   $$ = $4;
-		   Setfile($$, input_file);
-		   Setline($$, line_number);
+		   Setfile($$, cparse_file);
+		   Setline($$, cparse_line);
 		 } else {
-		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, input_file, line_number, "%s inheritance ignored.\n", $2);
+		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, cparse_file, cparse_line, "%s inheritance ignored.\n", $2);
 		 }
                }
                ;

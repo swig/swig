@@ -158,6 +158,7 @@ void SWIG_library_directory(const char *filename) {
 }
 
 extern  "C" Node *Swig_cparse(File *);
+extern "C"  void  Swig_cparse_cplusplus(int);
 
 int SWIG_main(int argc, char *argv[], Language *l) {
   int    i;
@@ -267,6 +268,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
 	      Preprocessor_define((DOH *) "__cplusplus 1", 0);
+	      Swig_cparse_cplusplus(1);
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c") == 0) {
 	      NoInclude=1;

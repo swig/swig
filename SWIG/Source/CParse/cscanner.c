@@ -38,16 +38,25 @@ static char          *yybuffer = 0;
 
 static char    yytext[YYBSIZE];
 static int     yylen = 0;
-int            line_number = 1;
-char          *input_file;
-int            start_line = 0;
+int            cparse_line = 1;
+char          *cparse_file;
+int            cparse_start_line = 0;
 static  int    comment_start;
 static  int    scan_init  = 0;
 static  int    num_brace = 0;
 static  int    last_brace = 0;
 static  int    last_id = 0;
 static  int    rename_active = 0;
-static  int    cplusplus_mode = 0;
+        int    cparse_cplusplus;
+
+/* -----------------------------------------------------------------------------
+ * Swig_cparse_cplusplus()
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_cparse_cplusplus(int v) {
+  cparse_cplusplus = v;
+}
 
 /* ----------------------------------------------------------------------
  * locator()
@@ -74,20 +83,20 @@ scanner_locator(String *loc) {
   if (c == '@') {
     /* Empty locator.  We pop the last location off */
     if (locs) {
-      input_file = locs->filename;
-      line_number = locs->line_number;
+      cparse_file = locs->filename;
+      cparse_line = locs->line_number;
       l = locs->next;
       free(locs);
       locs = l;
     }
-    /*    Printf(stderr,"location: %s:%d\n",input_file,line_number);*/
+    /*    Printf(stderr,"location: %s:%d\n",cparse_file,cparse_line);*/
     return;
   }
 
   /* We're going to push a new location */
   l = (Locator *) malloc(sizeof(Locator));
-  l->filename = input_file;
-  l->line_number = line_number;
+  l->filename = cparse_file;
+  l->line_number = cparse_line;
   l->next = locs;
   locs = l;
   
@@ -101,17 +110,17 @@ scanner_locator(String *loc) {
       Putc(c,fn);
     }
 
-    input_file = Swig_copy_string(Char(fn));
+    cparse_file = Swig_copy_string(Char(fn));
     Clear(fn);
   
-    line_number = 1;
+    cparse_line = 1;
     /* Get the line number */
     while ((c = Getc(loc)) != EOF) {
       if ((c == '@') || (c == ',')) break;
       Putc(c,fn);
     }
 
-    line_number = atoi(Char(fn));
+    cparse_line = atoi(Char(fn));
     Clear(fn);
 
     /* Get the rest of it */
@@ -119,7 +128,7 @@ scanner_locator(String *loc) {
       if (c == '@') break;
       Putc(c,fn);
     }
-    /*  Printf(stderr,"location: %s:%d\n",input_file,line_number); */
+    /*  Printf(stderr,"location: %s:%d\n",cparse_file,cparse_line); */
     Delete(fn);
   }
 }
@@ -148,13 +157,13 @@ void scanner_file(DOHFile *f) {
 
   in = (InFile *) malloc(sizeof(InFile));
   in->f = f;
-  in->in_file = input_file;
+  in->in_file = cparse_file;
   in->line_number = 1;
   if (!in_head) in->prev = 0;
   else in->prev = in_head;
   in_head = in;
   LEX_in = f;
-  line_number = 1;
+  cparse_line = 1;
 }
 
 /**************************************************************
@@ -170,8 +179,8 @@ void scanner_close() {
   p = in_head->prev;
   if (p != 0) {
     LEX_in = p->f;
-    line_number = p->line_number;
-    input_file = p->in_file;
+    cparse_line = p->line_number;
+    cparse_file = p->in_file;
   } else {
     LEX_in = 0;
   }
@@ -206,7 +215,7 @@ char nextchar() {
     yytext[yylen] = c;
     yylen++;
     if (c == '\n') {
-      line_number++;
+      cparse_line++;
     }
     return(c);
 }
@@ -218,7 +227,7 @@ void retract(int n) {
     if (yylen >= 0) {
       Ungetc(yytext[yylen],LEX_in);
       if (yytext[yylen] == '\n') {
-	line_number--;
+	cparse_line--;
       }
     }
   }
@@ -240,18 +249,18 @@ void start_inline(char *text, int line) {
   InFile *in;
 
   /* Save current state */
-  in_head->line_number = line_number;
-  in_head->in_file = input_file;
+  in_head->line_number = cparse_line;
+  in_head->in_file = cparse_file;
 
   in = (InFile *) malloc(sizeof(InFile));
   in->f = NewString(text);
   Seek(in->f,0,SEEK_SET);
-  in->in_file = Swig_copy_string(input_file);
+  in->in_file = Swig_copy_string(cparse_file);
   in->line_number = line;
   in->prev = in_head;
   in_head = in;
   LEX_in = in->f;
-  line_number = line;
+  cparse_line = line;
 }
 
 /**************************************************************
@@ -277,7 +286,7 @@ skip_balanced(int startchar, int endchar) {
     int  num_levels = 1;
     int  state = 0;
     char temp[2] = {0,0};
-    int  start_line = line_number;
+    int  start_line = cparse_line;
 
     Clear(scanner_ccode);
     Putc(startchar,scanner_ccode);
@@ -285,7 +294,7 @@ skip_balanced(int startchar, int endchar) {
     while (num_levels > 0) {
       c = nextchar();
       if (c == 0) {
-	  Swig_error(input_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
+	  Swig_error(cparse_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
 	  return;
       }
       Putc(c,scanner_ccode);
@@ -354,7 +363,7 @@ void skip_decl(void) {
   int  done = 0;
   while (!done) {
     if ((c = nextchar()) == 0) {
-      Swig_error(input_file,line_number,"Missing semicolon. Reached end of input.\n");
+      Swig_error(cparse_file,cparse_line,"Missing semicolon. Reached end of input.\n");
       return;
     }
     if (c == '{') {
@@ -368,7 +377,7 @@ void skip_decl(void) {
   if (!done) {
     while (num_brace > last_brace) {
       if ((c = nextchar()) == 0) {
-	Swig_error(input_file,line_number,"Missing '}'. Reached end of input.\n");
+	Swig_error(cparse_file,cparse_line,"Missing '}'. Reached end of input.\n");
 	return;
       }
       if (c == '{') num_brace++;
@@ -522,7 +531,7 @@ int yylook(void) {
 	  else if (c == '}') {
 	    num_brace--;
 	    if (num_brace < 0) {
-	      Swig_error(input_file, line_number, "Syntax error. Extraneous '}'\n");
+	      Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous '}'\n");
 	      state = 0;
 	      num_brace = 0;
 	    } else {
@@ -578,11 +587,11 @@ int yylook(void) {
 	case 1:  /*  Comment block */
 	  if ((c = nextchar()) == 0) return(0);
 	  if (c == '/') {
-	    comment_start = line_number;
+	    comment_start = cparse_line;
 	    Clear(comment);
 	    state = 10;        /* C++ style comment */
 	  } else if (c == '*') {
-	    comment_start = line_number;
+	    comment_start = cparse_line;
 	    Clear(comment);
 	    state = 12;   /* C style comment */
 	  } else {
@@ -607,7 +616,7 @@ int yylook(void) {
 	  }
 	case 10:  /* C++ style comment */
 	  if ((c = nextchar()) == 0) {
-	    Swig_error(input_file,-1, "Unterminated comment detected.\n");
+	    Swig_error(cparse_file,-1, "Unterminated comment detected.\n");
 	    return 0;
 	  }
 	  if (c == '\n') {
@@ -625,7 +634,7 @@ int yylook(void) {
 
 	case 12: /* C style comment block */
 	  if ((c = nextchar()) == 0) {
-	    Swig_error(input_file,-1,"Unterminated comment detected.\n");
+	    Swig_error(cparse_file,-1,"Unterminated comment detected.\n");
 	    return 0;
 	  }
 	  if (c == '*') {
@@ -638,7 +647,7 @@ int yylook(void) {
 	  break;
 	case 13: /* Still in C style comment */
 	  if ((c = nextchar()) == 0) {
-	    Swig_error(input_file,-1,"Unterminated comment detected.\n");
+	    Swig_error(cparse_file,-1,"Unterminated comment detected.\n");
 	    return 0;
 	  }
 	  if (c == '*') {
@@ -669,7 +678,7 @@ int yylook(void) {
 
 	case 2: /* Processing a string */
 	  if ((c = nextchar()) == 0) {
-	    Swig_error(input_file,-1, "Unterminated string detected.\n");
+	    Swig_error(cparse_file,-1, "Unterminated string detected.\n");
 	    return 0;
 	  }
 	  if (c == '\"') {
@@ -698,10 +707,10 @@ int yylook(void) {
 	  if (c == '{') {
 	    state = 40;   /* Include block */
 	    Clear(header);
-	    start_line = line_number;
+	    cparse_start_line = cparse_line;
 	  } else if ((isalpha(c)) || (c == '_')) state = 7;
 	  else if (c == '}') {
-	    Swig_error(input_file,line_number, "Misplaced %%}.\n");
+	    Swig_error(cparse_file,cparse_line, "Misplaced %%}.\n");
 	    return 0;
 	  } else {
 	    retract(1);
@@ -711,7 +720,7 @@ int yylook(void) {
 
 	case 40: /* Process an include block */
 	  if ((c = nextchar()) == 0) {
-	    Swig_error(input_file,-1, "Unterminated include block detected.\n");
+	    Swig_error(cparse_file,-1, "Unterminated include block detected.\n");
 	    return 0;
 	  }
 	  yylen = 0;
@@ -724,7 +733,7 @@ int yylook(void) {
 	  break;
 	case 41: /* Still processing include block */
 	  if ((c = nextchar()) == 0) {
-	    Swig_error(input_file,-1, "Unterminated include block detected.\n");
+	    Swig_error(cparse_file,-1, "Unterminated include block detected.\n");
 	    return 0;
 	  }
 	  if (c == '}') {
@@ -946,7 +955,7 @@ int yylook(void) {
 	    yytext[yylen-1] = 0;
 	    yylval.str = NewString(yytext+1);
 	    if (yylen == 2) {
-	      Swig_error(input_file, line_number, "Empty character constant\n");
+	      Swig_error(cparse_file, cparse_line, "Empty character constant\n");
 	    }
 	    return(CHARCONST);
 	  }
@@ -970,7 +979,7 @@ int yylook(void) {
 	  break;
 
 	default:
-	  Swig_error(input_file, line_number, "Illegal character '%c'=%d.\n",c,c);
+	  Swig_error(cparse_file, cparse_line, "Illegal character '%c'=%d.\n",c,c);
 	  state = 0;
 	  return(ILLEGAL);
 	}
@@ -1031,8 +1040,8 @@ int yylex(void) {
     /* We got some sort of non-white space object.  We set the start_line
        variable unless it has already been set */
 
-    if (!start_line) {
-      start_line = line_number;
+    if (!cparse_start_line) {
+      cparse_start_line = cparse_line;
     }
 
     /* Copy the lexene */
@@ -1105,7 +1114,7 @@ int yylex(void) {
 	  }
 	  /* C++ keywords */
 	  
-	  if (CPlusPlus) {
+	  if (cparse_cplusplus) {
 	    if (strcmp(yytext,"class") == 0) return(CLASS);
 	    if (strcmp(yytext,"private") == 0) return(PRIVATE);
 	    if (strcmp(yytext,"public") == 0) return(PUBLIC);
@@ -1154,7 +1163,7 @@ int yylex(void) {
 	    if (strcmp(yytext,"explicit") == 0) return(yylex());
 	    if (strcmp(yytext,"typename") == 0) return (TYPENAME);
 	    if (strcmp(yytext,"template") == 0) {
-	      yylval.ivalue = line_number;
+	      yylval.ivalue = cparse_line;
 	      return(TEMPLATE);
 	    }
 	    if (strcmp(yytext,"new") == 0) {
@@ -1171,7 +1180,7 @@ int yylex(void) {
 	    }
 	  } else {
 	    if (strcmp(yytext,"class") == 0) {
-	      Swig_warning(WARN_PARSE_CLASS_KEYWORD,input_file,line_number, "class keyword used, but not in C++ mode.\n");
+	      Swig_warning(WARN_PARSE_CLASS_KEYWORD,cparse_file,cparse_line, "class keyword used, but not in C++ mode.\n");
 	    }
 	  }
 	  
@@ -1223,11 +1232,11 @@ int yylex(void) {
 	  }
 	  if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
 	  if (strcmp(yytext,"%val") == 0) {
-	    Swig_warning(WARN_DEPRECATED_VAL, input_file, line_number, "%%val directive deprecated (ignored).\n");
+	    Swig_warning(WARN_DEPRECATED_VAL, cparse_file, cparse_line, "%%val directive deprecated (ignored).\n");
 	    return (yylex());
 	  }
 	  if (strcmp(yytext,"%out") == 0) {
-	    Swig_warning(WARN_DEPRECATED_OUT, input_file, line_number, "%%out directive deprecated (ignored).\n");
+	    Swig_warning(WARN_DEPRECATED_OUT, cparse_file, cparse_line, "%%out directive deprecated (ignored).\n");
 	    return(yylex());
 	  }
 	  if (strcmp(yytext,"%constant") == 0) return(CONSTANT);
