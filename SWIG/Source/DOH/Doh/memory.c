@@ -30,8 +30,7 @@ typedef struct pool {
   struct  pool  *next;           /* Next pool */
 } Pool;
 
-DohBase  *FreeList = 0;          /* List of free objects */
-
+static DohBase  *FreeList = 0;          /* List of free objects */
 static Pool    *Pools = 0;
 static int      pools_initialized = 0;
 

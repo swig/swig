@@ -363,6 +363,26 @@ Hash_nextkey(DOH *ho) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Hash_keys(DOH *)
+ *
+ * Return a list of keys
+ * ----------------------------------------------------------------------------- */
+
+static DOH *
+Hash_keys(DOH *so) {
+  DOH *keys;
+  DOH *k;
+
+  keys = NewList();
+  k = Firstkey(so);
+  while (k) {
+    Append(keys,k);
+    k = Nextkey(so);
+  }
+  return keys;
+}
+
+/* -----------------------------------------------------------------------------
  * Hash_str()
  *
  * Create a string representation of a hash table (mainly for debugging).
@@ -412,26 +432,6 @@ Hash_len(DOH *ho) {
 }
 
 /* -----------------------------------------------------------------------------
- * Hash_keys(DOH *)
- *
- * Return a list of keys
- * ----------------------------------------------------------------------------- */
-DOH *
-Hash_keys(DOH *so) {
-  DOH *keys;
-  DOH *k;
-
-  keys = NewList();
-  k = Firstkey(so);
-  while (k) {
-    Append(keys,k);
-    k = Nextkey(so);
-  }
-  /*   List_sort(keys); */
-  return keys;
-}
-
-/* -----------------------------------------------------------------------------
  * CopyHash()
  *
  * Make a copy of a hash table.  Note: this is a shallow copy.
@@ -472,7 +472,8 @@ CopyHash(DOH *ho) {
 
 
 
-void Hash_setfile(DOH *ho, DOH *file) {
+static void 
+Hash_setfile(DOH *ho, DOH *file) {
   DOH *fo;
   Hash *h = (Hash *) ObjData(ho);
 
@@ -485,17 +486,20 @@ void Hash_setfile(DOH *ho, DOH *file) {
   h->file = fo;
 }
 
-DOH *Hash_getfile(DOH *ho) {
+static DOH *
+Hash_getfile(DOH *ho) {
   Hash *h = (Hash *) ObjData(ho);
   return h->file;
 }
 
-void Hash_setline(DOH *ho, int line) {
+static void 
+Hash_setline(DOH *ho, int line) {
   Hash *h = (Hash *) ObjData(ho);
   h->line = line;
 }
 
-int Hash_getline(DOH *ho) {
+static int 
+Hash_getline(DOH *ho) {
   Hash *h = (Hash *) ObjData(ho);
   return h->line;
 }
@@ -510,6 +514,7 @@ static DohHashMethods HashHashMethods = {
   Hash_delattr,
   Hash_firstkey,
   Hash_nextkey,
+  Hash_keys,
 };
 
 DohObjInfo DohHashType = {
@@ -542,7 +547,7 @@ DohObjInfo DohHashType = {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-NewHash() {
+DohNewHash() {
     Hash *h;
     int   i;
     static int init = 0;

@@ -263,27 +263,8 @@ List_dump(DOH *lo, DOH *out) {
   return nsent;
 }
 
-
-/* -----------------------------------------------------------------------------
- * List_sort()
- * ----------------------------------------------------------------------------- */
-
-
-static int  objcmp(const void *s1, const void *s2) {
-  DOH **so1, **so2;
-  so1 = (DOH **) s1;
-  so2 = (DOH **) s2;
-  return Cmp(*so1,*so2);
-}
-
-void
-List_sort(DOH *lo, int opt) {
-  List *l = (List *) ObjData(lo);
-  qsort(l->items,l->nitems,sizeof(DOH *),objcmp);
-}
-
-
-void List_setfile(DOH *lo, DOH *file) {
+static void 
+List_setfile(DOH *lo, DOH *file) {
   DOH *fo;
   List *l = (List *) ObjData(lo);
 
@@ -296,17 +277,19 @@ void List_setfile(DOH *lo, DOH *file) {
   l->file = fo;
 }
 
-DOH *List_getfile(DOH *lo) {
+static DOH *
+List_getfile(DOH *lo) {
   List *l = (List *) ObjData(lo);
   return l->file;
 }
 
-void List_setline(DOH *lo, int line) {
+static void 
+List_setline(DOH *lo, int line) {
   List *l = (List *) ObjData(lo);
   l->line = line;
 }
 
-int List_getline(DOH *lo) {
+static int List_getline(DOH *lo) {
   List *l = (List *) ObjData(lo);
   return l->line;
 }
@@ -318,7 +301,6 @@ static DohListMethods ListListMethods = {
   List_insert,
   List_first,
   List_next,
-  List_sort
 };
 
 DohObjInfo DohListType = {
@@ -353,7 +335,7 @@ DohObjInfo DohListType = {
 #define MAXLISTITEMS 8
 
 DOH *
-NewList() {
+DohNewList() {
     List *l;
     int   i;
     l = (List *) DohMalloc(sizeof(List));

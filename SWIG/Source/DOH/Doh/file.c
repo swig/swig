@@ -232,7 +232,7 @@ static DohObjInfo DohFileType = {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-NewFile(DOH *fn, const char *mode)
+DohNewFile(DOH *fn, const char *mode)
 {
   DohFile *f;
   FILE *file;
@@ -260,7 +260,7 @@ NewFile(DOH *fn, const char *mode)
  * ----------------------------------------------------------------------------- */
 
 DOH *
-NewFileFromFile(FILE *file) 
+DohNewFileFromFile(FILE *file) 
 {
   DohFile *f;
   f = (DohFile *) DohMalloc(sizeof(DohFile));
@@ -278,7 +278,7 @@ NewFileFromFile(FILE *file)
  * ----------------------------------------------------------------------------- */
 
 DOH *
-NewFileFromFd(int fd)
+DohNewFileFromFd(int fd)
 {
   DohFile *f;
   f = (DohFile *) DohMalloc(sizeof(DohFile));

@@ -88,7 +88,7 @@ static DohObjInfo DohVoidType = {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-NewVoid(void *obj, void (*del)(void *)) {
+DohNewVoid(void *obj, void (*del)(void *)) {
   VoidObj *v;
   v = (VoidObj *) DohMalloc(sizeof(VoidObj));
   v->ptr = obj;
