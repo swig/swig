@@ -27,7 +27,11 @@ if bv[0] != bv[2]:
 
 b = B(5)
 va = VecA([b,None,b,b])
+
 if va[0].f(1) != 6:
+    raise RuntimeError,"bad std::vector<A*> mapping"
+
+if vecAptr(va) != 6:
     raise RuntimeError,"bad std::vector<A*> mapping"
 
 b.val = 7
