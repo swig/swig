@@ -2,6 +2,15 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 Version 1.3 Alpha 6 (Work in progress)
 ======================================
+02/03/01: beazley
+          Fixed some bugs related to typedef and typemaps.  The following
+          declarations are now legal:
+
+               typedef type (f)(parms);
+
+               %typemap(method) type (*f)(parms) {
+                 ...
+               }
 
 01/16/01: ttn
           Integrated XML output code contributed by Klaus Wiederaenders.
