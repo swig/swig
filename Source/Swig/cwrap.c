@@ -396,6 +396,106 @@ Swig_cppconstructor_director_call(String_or_char *name, ParmList *parms) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_cattr_search()
+ *
+ * This function search for the class attribute 'attr' in the class
+ * 'n' or recursively in its bases.
+ *
+ * if you define SWIG_FAST_REC_SEARCH, the method will set the found
+ * 'attr' in io the target class 'n'. If not, the method will set the
+ * 'noattr' one. This prevents of having to navigate the entire
+ * hierarchy tree everytime, so, it is an O(1) method...  or something
+ * like that. However, it populates all the parsed classes with the
+ * 'attr' and/or 'noattr' attributes.
+ *
+ * If you undefine the SWIG_FAST_REC_SEARCH no attribute will be set
+ * while searching. This could be slower for large projects with very
+ * large hierarchy trees... or maybe not. But it will be cleaner. 
+ *
+ * Maybe latter a swig option can be added to switch at runtime.
+ *
+ * ----------------------------------------------------------------------------- */
+
+/* #define SWIG_FAST_REC_SEARCH 1 */
+String *
+Swig_cattr_search(Node *n, const String *attr, const String *noattr)
+{
+  String *f = 0;
+  n = Swig_methodclass(n);  
+  if (Getattr(n, noattr)) {
+    /* Printf(stdout,"noattr in %s\n", Getattr(n,"name")); */
+    return 0;
+  }
+  f = Getattr(n, attr);
+  if (f) {
+    /* Printf(stdout,"attr in %s\n", Getattr(n,"name")); */
+    return f;
+  } else {
+    List* bl = Getattr(n, "bases");
+    if (bl) {
+      Iterator bi;
+      for (bi = First(bl); bi.item; bi = Next(bi)) {
+	f = Swig_cattr_search(bi.item, attr, noattr);
+	if (f) {
+#ifdef SWIG_FAST_REC_SEARCH
+	  Setattr(n, attr, f);
+#endif
+	  return f;
+	}
+      }
+    }
+  }
+#ifdef SWIG_FAST_REC_SEARCH
+  Setattr(n, noattr, "1");
+#endif
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_unref_call()
+ *
+ * find the unref call, if any.
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_unref_call(Node *n) {
+  String* unref = 0;
+  n = Swig_methodclass(n);  
+  if (!Getattr(n,"feature:nounref")) {
+    unref = Getattr(n,"feature:unref");
+    unref = unref ? unref : 
+      Swig_cattr_search(n,"feature:unref","feature:nounref");
+    if (unref) {
+      unref = NewStringf("%s",unref);
+      Replaceall(unref,"$this",Swig_cparm_name(0,0));
+    }
+  }
+  return unref;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_ref_call()
+ *
+ * find the ref call, if any.
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_ref_call(Node *n, const String* lname) {
+  String* ref = 0;
+  n = Swig_methodclass(n);
+  if (!Getattr(n,"feature:noref")) {
+    ref = Getattr(n,"feature:ref");
+    ref = ref ? ref : 
+      Swig_cattr_search(n,"feature:ref","feature:noref");
+    if (ref) {
+      ref = NewStringf("%s",ref);
+      Replaceall(ref,"$this",lname);
+    }
+  }
+  return ref;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_cdestructor_call()
  *
  * Creates a string that calls a C constructor function.
@@ -404,11 +504,11 @@ Swig_cppconstructor_director_call(String_or_char *name, ParmList *parms) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_cdestructor_call() {
-  String *func;
-  func = NewString("");
-  Printf(func,"free((char *) %s)", Swig_cparm_name(0,0));
-  return func;
+Swig_cdestructor_call(Node *n) {
+  String* unref = Swig_unref_call(n);
+  if (unref) return unref;
+  
+  return NewStringf("free((char *) %s);",Swig_cparm_name(0,0));
 }
 
 
@@ -421,12 +521,11 @@ Swig_cdestructor_call() {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_cppdestructor_call() {
-  String *func;
+Swig_cppdestructor_call(Node *n) {
+  String* unref = Swig_unref_call(n);
+  if (unref) return unref;
 
-  func = NewString("");
-  Printf(func,"delete %s", Swig_cparm_name(0,0));
-  return func;
+  return NewStringf("delete %s;",Swig_cparm_name(0,0));
 }
 
 /* -----------------------------------------------------------------------------
@@ -584,9 +683,11 @@ Swig_directormethod(Node *n) {
     if (vtable) {
       String *name = Getattr(n, "name");
       String *decl = Getattr(n, "decl");
-      String *method_id = NewStringf("%s|%s", name, decl);
+      String *local_decl = SwigType_typedef_resolve_all(decl);
+      String *method_id = NewStringf("%s|%s", name, local_decl);
       Hash *item = Getattr(vtable, method_id);
       Delete(method_id);
+      Delete(local_decl);
       if (item) {
         return (Getattr(item, "director") != 0);
       }
@@ -789,11 +890,9 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags)
     Delete(mangled);
   } else {
     if (cplus) {
-      String* action = NewString("");
-      Printf(action, "%s;\n", Swig_cppdestructor_call());
-      Setattr(n,"wrap:action", action);
+      Setattr(n,"wrap:action", NewStringf("%s\n",Swig_cppdestructor_call(n)));
     } else {
-      Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cdestructor_call()));
+      Setattr(n,"wrap:action", NewStringf("%s\n", Swig_cdestructor_call(n)));
     }
   }
   Setattr(n,"type",type);

@@ -6,7 +6,7 @@
 #include "refcount.h"
 %}
 
-#if 1
+#if 0
 //
 // the old macro way
 //
@@ -32,8 +32,8 @@ RefCount(B);
 // using the ref/unref features you can active the ref. counting
 // for RCObj and all its descendents at once
 //
-%feature("refbase")   RCObj "$this->ref();"
-%feature("unrefbase") RCObj "$this->unref();"
+%feature("ref")   RCObj "$this->ref();"
+%feature("unref") RCObj "$this->unref();"
 
 #endif
 
@@ -106,16 +106,8 @@ RefCount(B);
 
 /* Other ref/unref uses:
 
-// deactive the refcounting for A1 
+// deactive the refcounting for A1 and its descendents
 %feature("noref")   A1;
 %feature("nounref") A1;
-
-// deactive the refcounting for A2 and all its descendents 
-%feature("norefbase")   A2;
-%feature("nounrefbase") A2;
-
-// active the refcounting only for A3 
-%feature("ref")   A3 { $this->ref(); }     
-%feature("unref") A3 { $this->unref(); }
 
 */

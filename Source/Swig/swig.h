@@ -447,8 +447,10 @@ extern String    *Swig_cfunction_call(String_or_char *name, ParmList *parms);
 extern String    *Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self);
 extern String    *Swig_cconstructor_call(String_or_char *name);
 extern String    *Swig_cppconstructor_call(String_or_char *name, ParmList *parms);
-extern String    *Swig_cdestructor_call();
-extern String    *Swig_cppdestructor_call();
+extern String    *Swig_unref_call(Node *n);
+extern String    *Swig_ref_call(Node *n, const String* lname);
+extern String    *Swig_cdestructor_call(Node *n);
+extern String    *Swig_cppdestructor_call(Node *n);
 extern String    *Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self);
 extern String    *Swig_cmemberget_call(const String_or_char *name, SwigType *t, String_or_char *self);
 
