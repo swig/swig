@@ -31,7 +31,7 @@ SimpleStruct*  array_structpointers[ARRAY_LEN_X][ARRAY_LEN_Y];
 int*           array_ipointers [ARRAY_LEN_X][ARRAY_LEN_Y];
 finger         array_enum[ARRAY_LEN_X][ARRAY_LEN_Y];
 finger*        array_enumpointers[ARRAY_LEN_X][ARRAY_LEN_Y];
-const int      array_const_i[ARRAY_LEN_X][ARRAY_LEN_Y] = {10, 11, 12, 13, 14, 15, 16, 17};
+const int      array_const_i[ARRAY_LEN_X][ARRAY_LEN_Y] = { {10, 11, 12, 13}, {14, 15, 16, 17} };
 
 void fn_taking_arrays(SimpleStruct array_struct[ARRAY_LEN_X][ARRAY_LEN_Y]) {}
 
