@@ -15,12 +15,18 @@
 #   define JCALL2(func, jenv, ar1, ar2) jenv->func(ar1, ar2)
 #   define JCALL3(func, jenv, ar1, ar2, ar3) jenv->func(ar1, ar2, ar3)
 #   define JCALL4(func, jenv, ar1, ar2, ar3, ar4) jenv->func(ar1, ar2, ar3, ar4)
+#   define JCALL5(func, jenv, ar1, ar2, ar3, ar4, ar5) jenv->func(ar1, ar2, ar3, ar4, ar5)
+#   define JCALL6(func, jenv, ar1, ar2, ar3, ar4, ar5, ar6) jenv->func(ar1, ar2, ar3, ar4, ar5, ar6)
+#   define JCALL7(func, jenv, ar1, ar2, ar3, ar4, ar5, ar6, ar7) jenv->func(ar1, ar2, ar3, ar4, ar5, ar6, ar7)
 #else
 #   define JCALL0(func, jenv) (*jenv)->func(jenv)
 #   define JCALL1(func, jenv, ar1) (*jenv)->func(jenv, ar1)
 #   define JCALL2(func, jenv, ar1, ar2) (*jenv)->func(jenv, ar1, ar2)
 #   define JCALL3(func, jenv, ar1, ar2, ar3) (*jenv)->func(jenv, ar1, ar2, ar3)
 #   define JCALL4(func, jenv, ar1, ar2, ar3, ar4) (*jenv)->func(jenv, ar1, ar2, ar3, ar4)
+#   define JCALL5(func, jenv, ar1, ar2, ar3, ar4, ar5) (*jenv)->func(jenv, ar1, ar2, ar3, ar4, ar5)
+#   define JCALL6(func, jenv, ar1, ar2, ar3, ar4, ar5, ar6) (*jenv)->func(jenv, ar1, ar2, ar3, ar4, ar5, ar6)
+#   define JCALL7(func, jenv, ar1, ar2, ar3, ar4, ar5, ar6, ar7) (*jenv)->func(jenv, ar1, ar2, ar3, ar4, ar5, ar6, ar7)
 #endif
 
 %insert(runtime) %{
