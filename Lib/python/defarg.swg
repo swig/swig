@@ -20,7 +20,7 @@
    An ugly hack, but it works.
 */
 
-static PyObject *swig_call_defargs(PyObject *self, PyObject *args) {
+SWIGINTERN PyObject *swig_call_defargs(PyObject *self, PyObject *args) {
 	PyObject *func;
 	PyObject *parms;
 

@@ -748,7 +748,7 @@ SWIG_Python_GetModule() {
   return (swig_module_info *) type_pointer;
 }
 
-static void
+SWIGINTERN void
 SWIG_Python_SetModule(swig_module_info *swig_module) {
   static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} };/* Sentinel */
 
