@@ -7,7 +7,7 @@ VPATH = @srcdir@
 
 SHELL    = /bin/sh
 CXX      = @CXX@
-CFLAGS   = @CFLAGS@
+CFLAGS   = @CFLAGS@ @SWILL@
 YACC     = @YACC@
 AR       = @AR@
 RANLIB   = @RANLIB@
