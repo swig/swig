@@ -251,12 +251,12 @@ Swig_file_suffix(const String_or_char *filename) {
   char *d;
   char *c = Char(filename);
   if (strlen(c)) {
-    d = c + Strlen(filename) - 1;
+    d = c + Len(filename) - 1;
     while (d != c) {
       if (*d == '.') return d;
       d--;
     }
-    return c+Strlen(filename);  
+    return c+Len(filename);  
   }
   return c;
 }
