@@ -423,10 +423,6 @@ or are related to SWIG.
 Python access to Java methods (Kevin Butler). 
 
 <p>
-<li> <a href="ftp://ftp.caos.kun.nl/pub/misc/jswig.tar.gz">JavaSWIG</a>. An
-experimental SWIG module that integrates C/C++ with Java (Harco de Hilster).
-
-<p>
 <li><a href="http://playground.sun.com/~bharat/pilotmgr.html">Pilot Manager</a>. Hook
 your US Robotics PalmPilot up to your Sun workstation (Bharat Mediratta).
 

@@ -8,7 +8,7 @@ Guilty Parties
 <li>Dave Beazley, (a.k.a., "Mr. Swig")
 <li>Thien-Thi Nguyen (Guile)
 <li>Matthias Köppe (Guile)
-<li>Harco de Hilster (Java)
+<li>William Fulton (Java)
 <li>Loic Dachary (Perl)
 <li>Oleg Tolmatcev (Mzscheme)
 <li>Masaki Fukushima (Ruby)
@@ -24,6 +24,7 @@ Guilty Parties
 <li>Pier Giorgio Esposito (Borland Makefiles).
 <li>David Fletcher (Perl5 shadow class design).
 <li>Gary Holt (Perl5 shadow class design)
+<li>Harco de Hilster (Java)
 <li>Dustin Mitchell.
 <li>Ian Cooke.
 <li>Hasan Baran Kovuk.
