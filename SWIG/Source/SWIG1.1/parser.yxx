@@ -2229,7 +2229,7 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
 
 /* A virtual destructor */
 
-              | VIRTUAL NOT ID LPAREN parms RPAREN cpp_end {
+              | VIRTUAL NOT ID LPAREN parms RPAREN cpp_vend {
  	        char *iname;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {
