@@ -29,12 +29,19 @@ extern "C" {
 
 #ifdef PERL_OBJECT
 #define MAGIC_PPERL  CPerlObj *pPerl = (CPerlObj *) this;
-#define MAGIC_CAST   (int (CPerlObj::*)(SV *, MAGIC *))
-#define SWIGCLASS_STATIC 
+typedef int (CPerlObj::*SwigMagicFunc)(SV *, MAGIC *);
+#define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
+#define SWIGCLASS_STATIC
 #else
 #define MAGIC_PPERL
-#define MAGIC_CAST
 #define SWIGCLASS_STATIC static
+#ifndef MULTIPLICITY
+#define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
+typedef int (*SwigMagicFunc)(SV *, MAGIC *);
+#else
+#define SWIG_MAGIC(a,b) (struct interpreter *interp, SV *a, MAGIC *b)
+typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
+#endif
 #endif
 
 #if defined(WIN32) && defined(PERL_OBJECT) && !defined(PerlIO_exportFILE)
@@ -156,6 +163,8 @@ _SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t)
   sv_setref_pv(sv, (char *) t->name, ptr);
 }
 
+#endif
+
 /* Magic variable code */
 #ifndef PERL_OBJECT
 #define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
@@ -181,7 +190,36 @@ static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (C
   mg->mg_virtual->svt_free = 0;
 }
 
-#endif
+/* Structure for command table */
+typedef struct {
+  const char   *name;
+  XSUBADDR_t    wrapper;
+} swig_command_info;
+
+/* Structure for variable table */
+typedef struct {
+  const char   *name;
+  SwigMagicFunc   set;
+  SwigMagicFunc   get;
+} swig_variable_info;
+
+/* Information for constant table */
+
+#define SWIG_INT     1
+#define SWIG_FLOAT   2
+#define SWIG_STRING  3
+#define SWIG_POINTER 4
+#define SWIG_BINARY  5
+
+/* Constant information structure */
+typedef struct swig_constant_info {
+    int              type;
+    const char      *name;
+    long             lvalue;
+    double           dvalue;
+    void            *pvalue;
+    swig_type_info **ptype;
+} swig_constant_info;
 
 #ifdef __cplusplus
 }

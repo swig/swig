@@ -9,7 +9,7 @@
 
 /* Typemaps for input parameters */
 
-%typemap(in)  int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE
+%typemap(in)  int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE
        "$1 = ($1_ltype) SvIV($input);";
 
 %typemap(in)  char
@@ -88,6 +88,121 @@
 %typemap(out) char [ANY] 
      "ST(argvi) = sv_newmortal();
       sv_setpv((SV*)ST(argvi++),(char *) $1);";
+
+
+/* Variable input */
+%typemap(varin) char *
+#ifdef __cplusplus
+{
+  char *_a = (char *) SvPV(sv,PL_na);
+  if ($1) delete [] $1;
+  $1 = new char[strlen(_a)+1];
+  strcpy((char *)$1,_a);
+}
+#else
+{
+  char *_a = (char *) SvPV(sv,PL_na);
+  if ($1) free((char *) $1);
+  $1 = (char *) malloc(strlen(_a)+1);
+  strcpy((char *)$1,_a);
+}
+#endif
+
+%typemap(varin) char [ANY]
+     "strncpy($1, (char *) SvPV(sv,PL_na), $1_dim0);";
+
+%typemap(varin) SWIGTYPE [] "croak(\"Value is read-only.\");";
+
+
+/* --- Typemaps for variable output --- */
+
+%typemap(varout) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
+    "sv_setiv($result, (IV) $1);";
+
+%typemap(varout) float, double
+    "sv_setnv($result, (double) $1);";
+
+%typemap(varout) char 
+    "sv_setpvn((SV *) $result, &$1, 1);";
+
+%typemap(varout) char *, char [ANY]
+    "sv_setpv((SV *) $result, $1);";
+
+%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
+    "SWIG_MakePtr($result, (void *) $1, $1_descriptor);";
+
+%typemap(varout) SWIGTYPE
+    "SWIG_MakePtr($result, (void *) &$1, $&1_descriptor);";
+
+
+/* --- Typemaps for constants --- */
+
+/* --- Constants --- */
+
+%typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
+       { SWIG_INT,     (char *) SWIG_prefix "$symname", (long) $value, 0, 0, 0}
+
+%typemap(consttab) float, double
+       { SWIG_FLOAT,   (char *) SWIG_prefix "$symname", 0, (double) $value, 0, 0}
+
+%typemap(consttab) char, char *
+       { SWIG_STRING,  (char *) SWIG_prefix "$symname", 0, 0, (void *)"$value", 0}
+
+%typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
+       { SWIG_POINTER, (char *) SWIG_prefix "$symname", 0, 0, (void *)$value, &$1_descriptor}
+
+%typemap(consttab) SWIGTYPE (CLASS::*) 
+       { SWIG_BINARY,  (char *) SWIG_prefix "$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
+
+
+/* Install all of the commands */
+
+%init %{
+  for (i = 0; swig_commands[i].name; i++) {
+    newXS((char*) swig_commands[i].name,swig_commands[i].wrapper, __FILE__);
+  }
+%}
+
+/* Install all of the variables */
+
+%init %{
+  for (i = 0; swig_variables[i].name; i++) {
+    SV *sv;
+    sv = perl_get_sv(swig_variables[i].name, TRUE | 0x2);
+    sv_setiv(sv, (IV) 0);
+    swig_create_magic(sv, (char *) swig_variables[i].name, swig_variables[i].set, swig_variables[i].get);
+  }
+%}
+
+/* Install all of the constants */
+
+%init %{
+    /* Install Constants */
+    for (i = 0; swig_constants[i].type; i++) {
+      SV *sv;
+      sv = perl_get_sv(swig_constants[i].name, TRUE | 0x2);
+      switch(swig_constants[i].type) {
+      case SWIG_INT:
+	sv_setiv(sv, (IV) swig_constants[i].lvalue);
+	break;
+      case SWIG_FLOAT:
+	sv_setnv(sv, (double) swig_constants[i].dvalue);
+	break;
+      case SWIG_STRING:
+	sv_setpv(sv, (char *) swig_constants[i].pvalue);
+	break;
+      case SWIG_POINTER:
+	SWIG_MakePtr(sv, swig_constants[i].pvalue, *(swig_constants[i].ptype));
+	break;
+      case SWIG_BINARY:
+	/*      obj = SWIG_NewPackedObj(swig_constants[i].pvalue, swig_constants[i].lvalue, *(swig_constants[i].ptype)); */
+	break;
+      default:
+	break;
+      }
+      SvREADONLY_on(sv);
+    }
+%}
 
 
 
