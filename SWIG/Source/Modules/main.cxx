@@ -72,7 +72,6 @@ static char *usage = (char*)"\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
      -fcompact       - Compile in compact mode\n\
-     -fdirectors     - Enable C++ directors\n\
      -fvirtual       - Compile in virtual elimination mode\n\
      -small          - Compile in virtual elimination & compact mode\n\
      -version        - Print SWIG version number\n\
@@ -190,7 +189,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     dump_classes = 0;
   int     werror = 0;
   int     depend = 0;
-  int     directors = 0;
 
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
@@ -287,9 +285,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       } else if (strcmp(temp, "-small") == 0) {
 	Wrapper_compact_print_mode_set(1);
 	Wrapper_virtual_elimination_mode_set(1);
-      } else if (strcmp(temp, "-fdirectors") == 0) {
-        directors = 1;
-      	lang->allow_directors();
       }
     }
   }
@@ -328,10 +323,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-small") == 0) {
 	    Wrapper_compact_print_mode_set(1);
 	    Wrapper_virtual_elimination_mode_set(1);
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i], "-fdirectors") == 0) {
-            directors = 1;
-	    lang->allow_directors();
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c") == 0) {
 	      NoInclude=1;
@@ -542,9 +533,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(fs,"%%include \"swig.swg\"\n");
       if (lang_config) {
 	Printf(fs,"\n%%include \"%s\"\n", lang_config);
-      }
-      if (directors) {
-	Printf(fs,"\n%%include \"director.swg\"\n");
       }
       Printf(fs,"%%include \"%s\"\n", Swig_last_file());
       for (i = 0; i < Len(libfiles); i++) {
