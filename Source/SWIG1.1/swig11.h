@@ -246,12 +246,11 @@ public:
 #define INHERIT_ALL        (INHERIT_FUNC | INHERIT_VAR | INHERIT_CONST)
 
 struct Pragma {
-  Pragma() { next = 0; }
-  String  filename;
-  int     lineno;
-  String  lang;
-  String  name;
-  String  value;
+  void  *filename;
+  int   lineno;
+  void  *lang;
+  void  *name;
+  void  *value;
   Pragma  *next;
 };
 

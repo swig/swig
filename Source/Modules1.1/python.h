@@ -23,55 +23,22 @@
 
 class PYTHON : public Language {
 protected:
-  char   *module;               // Module name
-  char   *path;                 // Pathname of where to look for library files
-  char   *methods;              // Method table name
-  char   *global_name;          // Name of global variables.
-  void    get_pointer(char *iname, char *srcname, char *src, char *dest, DataType *t, String &f, char *ret);
-  int     shadow;
-  int     have_defarg;
-  int     docstring;
-  int     have_output;
-  int     use_kw;     
-  int     noopt; 
-  FILE    *f_shadow;
-  DOH     *hash;
-  DOH     *symbols;
-  String   classes;
-  String   func;
-  String   vars;
-  String   modinit;
-  String   modextern;
+  void    get_pointer(char *iname, char *srcname, char *src, char *dest, DataType *t, DOHString *f, char *ret);
 
-  char     *import_file;
-  char     *class_name;
   void add_method(char *name, char *function, int kw);
   void print_methods();
   char *usage_var(char *, DataType *);
   char *usage_func(char *, DataType *, ParmList *);
-  char *usage_const(char *, DataType *, char *);
+  char *usage_const(char *, DataType *, char *);    
 
-  // Add for Python-COM support
   virtual void initialize_cmodule();
   virtual void close_cmodule();
   virtual void emit_function_header(WrapperFunction &emit_to, char *wname);
   virtual char *convert_self(WrapperFunction &f);
   virtual char *make_funcname_wrapper(char *fnName);
-  void emitAddPragmas(String& output, char* name, char* spacing);
+  void emitAddPragmas(DOHString *output, char* name, char* spacing);
+
 public :
-  PYTHON() {
-    module = (char *) 0;
-    path = (char*)"python";     // Set this to subdirectory where language
-                                  // Dependent library files will be stored
-    global_name = (char*)"cvar";
-    shadow = 0;
-    have_defarg = 0;
-    import_file = 0;
-    use_kw = 0;
-    noopt = 1;
-    hash = NewHash();
-    symbols = NewHash();
-  };
 
   // Don't change any of this
   virtual void parse_args(int, char *argv[]);
@@ -106,4 +73,7 @@ public :
 };
 
 #define PYSHADOW_MEMBER  0x2
+
+
+
 

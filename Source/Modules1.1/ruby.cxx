@@ -1278,7 +1278,7 @@ void RUBY::pragma(char *lang, char *cmd, char *value) {
 
 void RUBY::cpp_pragma(Pragma *plist) {
   while (plist) {
-    pragma(plist->lang.get(), plist->name.get(), plist->value.get());
+    pragma(Char(plist->lang), Char(plist->name), Char(plist->value));
     plist = plist->next;
   }
 }
