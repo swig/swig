@@ -18,7 +18,7 @@ aiming to replace versions 1.1p5 and 1.1-883. The guilty parties
 working on this are:
 
  Dave Beazley (beazley@cs.uchicago.edu)                 (SWIG core, Python, Tcl, Perl)
- William Fulton (wsf@fultondesigns.co.uk)               (Java, Cygwin)
+ William Fulton (wsf@fultondesigns.co.uk)               (Java, C#, Windows, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
  Jason Stewart (jason@openinformatics.com)              (Perl5)
  Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
@@ -35,8 +35,7 @@ Major contributors include:
  Marcelo Matus                                          (Evil C++ testing)
  Loic Dachary                                           (Perl5)
  Masaki Fukushima                                       (Ruby)
-
- James Michael DuPont(mdupont777@yahoo.com)             (C#/PNet Support with the original code from Niel Cawse)
+ James Michael DuPont(mdupont777@yahoo.com)             (C#/PNet Support with the original code from Neil Cawse)
  
 Past contributors include:
  Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
