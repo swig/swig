@@ -10,14 +10,14 @@
 
 
 %insert(header) {
-SWIG_define(SWIG_From(signed char),    PyInt_FromLong);
-SWIG_define(SWIG_From(unsigned char),  PyInt_FromLong);
-SWIG_define(SWIG_From(short),          PyInt_FromLong);
-SWIG_define(SWIG_From(unsigned short), PyInt_FromLong);
-SWIG_define(SWIG_From(int),            PyInt_FromLong);
-SWIG_define(SWIG_From(long),           PyInt_FromLong);
-SWIG_define(SWIG_From(float),          PyFloat_FromDouble);
-SWIG_define(SWIG_From(double),         PyFloat_FromDouble);
+SWIG_define(SWIG_From(signed char),    PyInt_FromLong)
+SWIG_define(SWIG_From(unsigned char),  PyInt_FromLong)
+SWIG_define(SWIG_From(short),          PyInt_FromLong)
+SWIG_define(SWIG_From(unsigned short), PyInt_FromLong)
+SWIG_define(SWIG_From(int),            PyInt_FromLong)
+SWIG_define(SWIG_From(long),           PyInt_FromLong)
+SWIG_define(SWIG_From(float),          PyFloat_FromDouble)
+SWIG_define(SWIG_From(double),         PyFloat_FromDouble)
 }
 
 %fragment("<limits.h>","header") %{
@@ -359,9 +359,9 @@ SWIGSTATICINLINE(unsigned int)
 	  fragment=SWIG_From_frag(long),
 	  fragment=SWIG_From_frag(unsigned long)) {
 %#if UINT_MAX < LONG_MAX
-SWIG_define(SWIG_From(unsigned int), SWIG_From(long));
+SWIG_define(SWIG_From(unsigned int), SWIG_From(long))
 %#else
-SWIG_define(SWIG_From(unsigned int), SWIG_From(unsigned long));
+SWIG_define(SWIG_From(unsigned int), SWIG_From(unsigned long))
 %#endif
 }
 
