@@ -66,7 +66,9 @@
 // exported class
 
 namespace std {
-    
+
+    %mixin vector "Enumerable";
+
     template<class T> class vector {
         %typemap(in) vector<T> {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
@@ -215,6 +217,7 @@ namespace std {
     // specializations for built-ins
 
     %define specialize_std_vector(T,CHECK,CONVERT_FROM,CONVERT_TO)
+    %mixin vector<T> "Enumerable";
     template<> class vector<T> {
         %typemap(in) vector<T> {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
