@@ -818,7 +818,9 @@ pike_clean:
 # -----------------------------------------------------------------
 
 CHICKEN_LIBOPTS = @CHICKENLIB@  $(SYSLIBS)
+CHICKEN_SHAREDLIBOPTS = @CHICKENSHAREDLIB@  $(SYSLIBS)
 CHICKEN_CFLAGS = @CHICKENOPTS@
+CHICKEN_SHAREDCFLAGS = @CHICKENSHAREDOPTS@
 CHICKENOPTS = -optimize-level 3 -quiet
 
 chicken: $(INTERFACE)
@@ -845,23 +847,47 @@ chicken_csi:
 		-prelude "(declare (uses posix $(INTERFACE)))" \
 		-output-file $$X/$(TARGET)
 
+chicken_clean:
+	rm -f *_wrap* *.o core *~ *.so *.stackdump STACKTRACE
+	rm -f *.exe module$(SO)
+
+# -----------------------------------------------------------------
+# Build a CHICKEN dynamically loadable module
+# -----------------------------------------------------------------
+
+chicken_module: $(SRCS) $(CXXSRCS) $(CHICKSRCS)
+	$(CC) -c $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) $(INCLUDE) \
+		$(CHICKEN_INCLUDE) $(CHICKSRCS)
+	test x = "x$(SRCS)" || \
+		$(CC) -c $(CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
+			$(ISRCS) $(SRCS)
+	test x = "x$(CXXSRCS)" || \
+		$(CXX) -c $(CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
+			$(ICXXSRCS) $(CXXSRCS)
+	$(CXXSHARED) $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@) \
+		$(CHICKSRCS:.c=.@OBJEXT@) \
+		$(LIBS) $(CHICKEN_SHAREDLIBOPTS) \
+		-o $(TARGET)$(SO)
+
 # -----------------------------------------------------------------
 # Build statically linked CHICKEN interpreter
-#
-# These should only be used in conjunction with the %include embed.i
-# library file
 # -----------------------------------------------------------------
 
-chicken_static: $(SRCS)
-	$(CC) $(CFLAGS) $(CHICKEN_CFLAGS)  $(ISRCS) $(SRCS) $(INCLUDE) \
-	$(CHICKEN_INCLUDE) $(LIBS) $(CHICKEN_LIBOPTS) \
-	-o $(TARGET)
-
-chicken_cpp_static: $(SRCS)
-	$(CXX) $(CFLAGS) $(CHICKEN_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) \
-	$(INCLUDE) \
-	$(CHICKEN_INCLUDE) $(LIBS) $(CHICKEN_LIBOPTS) \
-	-o $(TARGET)
+chicken_static: csi.c $(SRCS) $(CXXSRCS) $(CHICKSRCS)
+	$(CC) -c $(CFLAGS) $(CHICKEN_CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
+		csi.c
+	$(CC) -c $(CFLAGS) $(CHICKEN_CFLAGS) $(INCLUDE) \
+		$(CHICKEN_INCLUDE) $(CHICKSRCS)
+	test x = "x$(SRCS)" || \
+		$(CC) -c $(CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
+			$(CHICKEN_CFLAGS) $(ISRCS) $(SRCS)
+	test x = "x$(CXXSRCS)" || \
+		$(CXX) -c $(CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
+			$(CHICKEN_CFLAGS) $(ICXXSRCS) $(CXXSRCS)
+	$(CXX) -static csi.@OBJEXT@ $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@) \
+		$(CHICKSRCS:.c=.@OBJEXT@) \
+		$(LIBS) $(CHICKEN_LIBOPTS) \
+		-o $(TARGET)
 
 ##################################################################
 #####                      CSHARP                           ######
