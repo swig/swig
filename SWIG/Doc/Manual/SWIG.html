@@ -1927,7 +1927,7 @@ SWIG currently supports the following C++ features :<p>
 <li>Function and method overloading (with renaming)
 <li>Operator overloading for most standard operators
 <li>References
-<li>Templates
+<li>Simple templates
 <li>Pointers to members
 </ul>
 
@@ -1939,7 +1939,8 @@ The following C++ features are not currently supported :<p>
 <li>Automatic function and method overloading
 <li>Nested classes
 <li>Namespaces
-<li>Complicated templates (probably)
+<li>Template specialization and partial specialization
+<li>Nested template definitions
 <li>Overloaded versions of certain operators (new, delete, etc.)
 </ul>
 
@@ -3333,6 +3334,47 @@ Since the C++ compiler (or is it a preprocessor?) will <em>definitely</em> check
 compiles the resulting wrapper file, there is no practical reason for
 SWIG to duplicate this functionality (besides, none of the SWIG
 developers are masochistic enough to want to implement this).
+
+<p>
+Finally, there are a few limitations in SWIG's current support for templates:
+
+<ul>
+<li>Template specialization or partial specialization is not supported.  For example:
+
+<blockquote>
+<pre>
+class List&lt;int&gt; {
+  ...
+};
+</pre>
+</blockquote>
+
+<p>
+<li>Class templates may not be defined as the argument of another template.   If you are
+doing this on purpose, we're all really impressed, but please stop.
+
+<p>
+<li>Member templates aren't supported.  
+
+<P>
+<li>Since SWIG expands templates as macros, certain subtle problems with types can arise.  For instance:
+
+<blockquote>
+<pre>
+template&lt;class T&gt; class Blah {
+public:
+   ...
+   void foo(const T);
+   ...
+};
+
+%template(Spam) Blah&lt;char *&gt;;
+</pre>
+</blockquote>
+
+In this case, the argument (in SWIG) will be of type <tt>const char *</tt>, whereas it should really be
+set to <tt>char * const</tt> (in C++).   We'll probably get around to fixing this (eventually).
+</ul>
 
 <h3>Pointers to Members</h3>
 
