@@ -422,6 +422,46 @@ public:
    * ------------------------------------------------------------ */
 
   void dispatchFunction(Node *n) {
+    /* Last node in overloaded chain */
+
+    int maxargs;
+    String *tmp = NewString("");
+    String *dispatch = Swig_overload_dispatch(n,"return %s(self,args);",&maxargs);
+	
+    /* Generate a dispatch wrapper for all overloaded functions */
+
+    Wrapper *f       = NewWrapper();
+    String  *symname = Getattr(n,"sym:name");
+    String  *wname   = Swig_name_wrapper(symname);
+  
+
+    Printv(f->def,	
+	   "struct array *", wname,
+	   "(struct array *self, struct array *args) {",
+	   NULL);
+    
+    Wrapper_add_local(f,"argc","INT32 argc");
+    Printf(tmp,"struct array *argv[%d]", maxargs+1);
+    Wrapper_add_local(f,"argv",tmp);
+    Wrapper_add_local(f,"ii","INT32 ii");
+    Printf(f->code,"argc = sizeof(args);\n");
+    Printf(f->code,"for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n",maxargs);
+    Printf(f->code,"argv[ii] = array_index(args,&argv[ii],ii);\n");
+    Printf(f->code,"}\n");
+    
+    Replaceall(dispatch,"$args","self,args");
+    Printv(f->code,dispatch,"\n",NULL);
+    // Printf(f->code,"PyErr_SetString(PyExc_TypeError,\"No matching function for overloaded '%s'\");\n", symname);
+    Printf(f->code,"No matching function for overloaded '%s'\n", symname);
+    Printf(f->code,"return NULL;\n");
+    Printv(f->code,"}\n",NULL);
+    Wrapper_print(f,f_wrappers);
+    add_method(n,symname,wname,0);
+
+    DelWrapper(f);
+    Delete(dispatch);
+    Delete(tmp);
+    Delete(wname);
   }
 
   /* ------------------------------------------------------------
