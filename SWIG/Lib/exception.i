@@ -71,12 +71,12 @@ interface itself.
 
 #ifdef SWIGTCL8
 %{
-#define SWIG_exception(a,b)   Tcl_SetResult(interp,b,TCL_VOLATILE); return TCL_ERROR
+#define SWIG_exception(a,b)   { Tcl_SetResult(interp,b,TCL_VOLATILE); return TCL_ERROR; }
 %}
 #else
 #ifdef SWIGTCL
 %{
-#define SWIG_exception(a,b)   Tcl_SetResult(interp,b,TCL_VOLATILE); return TCL_ERROR
+#define SWIG_exception(a,b)   { Tcl_SetResult(interp,b,TCL_VOLATILE); return TCL_ERROR; }
 %}
 #endif
 #endif
@@ -133,7 +133,7 @@ static void _SWIG_exception(int code, char *msg) {
   }
 }
 
-#define SWIG_exception(a,b) _SWIG_exception(a,b); return NULL
+#define SWIG_exception(a,b) { _SWIG_exception(a,b); return NULL; }
 %}
 #endif
 
