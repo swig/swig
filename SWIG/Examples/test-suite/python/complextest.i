@@ -45,6 +45,11 @@
   {
     return conj(a);
   }
+
+  float_complex Conjf(float_complex a)
+  {
+    return conj(a);
+  }
 }
 
 
