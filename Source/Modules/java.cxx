@@ -248,7 +248,7 @@ class JAVA : public Language {
     jniclass_class_modifiers = NewString(""); // package access only to the JNI class by default
     module_class_code = NewString("");
     module_baseclass = NewString("");
-    module_interfaces = NewString("");
+    module_interfaces = NewStringf("");
     module_imports = NewString("");
     module_class_modifiers = NewString("public");
     jniclass_imports = NewString("");
@@ -351,18 +351,51 @@ class JAVA : public Language {
 
       if (module_baseclass && *Char(module_baseclass))
         Printf(f_module, "extends %s ", module_baseclass);
-      if (Len(module_interfaces) > 0)
-        Printv(f_module, "implements ", module_interfaces, " ", NIL);
+      if (Len(module_interfaces) > 0) {
+        if (Len(module_constants_code) != 0 )
+          Printv(f_module, "implements ", Getattr(n, "name"), "Constants, ", module_interfaces, " ", NIL);
+        else
+          Printv(f_module, "implements ", module_interfaces, " ", NIL);
+      } else {
+        if (Len(module_constants_code) != 0 )
+          Printv(f_module, "implements ", Getattr(n, "name"), "Constants ", NIL);
+      }
       Printf(f_module, "{\n");
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
 
-      // Write out all the enums constants
-      if (Len(module_constants_code) != 0 )
-        Printv(f_module, "  // enums and constants\n", module_constants_code, NIL);
-
       // Finish off the Java class
+      Printf(f_module, "}\n");
+      Close(f_module);
+    }
+
+    // Generate the Java constants interface
+    if (Len(module_constants_code) != 0 ) {
+      String *filen = NewStringf("%s%sConstants.java", Swig_file_dirname(outfile), module_class_name);
+      File *f_module = NewFile(filen,"w");
+      if(!f_module) {
+        Printf(stderr,"Unable to open %s\n", filen);
+        SWIG_exit(EXIT_FAILURE);
+      }
+      Delete(filen); filen = NULL;
+
+      // Start writing out the Java constants interface
+      if(Len(package) > 0)
+        Printf(f_module, "package %s;\n\n", package);
+
+      emitBanner(f_module);
+      if(module_imports)
+        Printf(f_module, "%s\n", module_imports);
+
+      if (Len(module_class_modifiers) > 0)
+        Printf(f_module, "%s ", module_class_modifiers);
+      Printf(f_module, "interface %sConstants {\n", module_class_name);
+
+      // Write out all the enums constants
+      Printv(f_module, "  // enums and constants\n", module_constants_code, NIL);
+
+      // Finish off the Java interface
       Printf(f_module, "}\n");
       Close(f_module);
     }
