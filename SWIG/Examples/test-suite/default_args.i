@@ -74,7 +74,7 @@
 
 // Rename a class member
 %rename(bar2) Foo::bar;
-%rename(newname) Foo::oldname(int x);
+%rename(newname) Foo::oldname(int x = 1234);
 %ignore Foo::Foo(int x, int y = 0, int z = 0);
 
 %inline %{
