@@ -251,7 +251,7 @@ Python:
 
 WAD tries to raise a Python exception and return.  At this time, the exception
 merely contains a traceback string.  However, in future versions, it may be
-possible to access a complete exception object.
+possible to access a complete exception object. 
 
 Tcl:
 
