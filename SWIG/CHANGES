@@ -16,6 +16,119 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+04/11/2002: beazley
+            Major change to template wrapping internals. Template declarations are
+            no longer processed as macros but now result in real parse-tree
+            nodes.  The %template directive expands these nodes into a
+            specific instantiation.   This change enables a number of
+            new and interesting capabilities:
+
+            Directives such as %rename, %feature, and %addmethods can
+            now be applied to uninstantiated templates.  For example:
+
+              %rename(barsize) vector::bar(char *buf, int len);
+              ...
+              template<typename T> class vector {
+              public:
+                 ...
+                 void bar(char *buf);
+                 void bar(char *buf, int len);   // Renamed
+                 ...
+              };
+
+              %template(intvector) vector<int>;   // Renaming carries through
+
+            
+            By parsing templates into an internal data structure, it will
+            be possible to support specialization (and maybe partial
+            specialization).
+            
+            This is highly experimental and a work in progress.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            In SWIG-1.3.11, template declarations were simply processed
+            as weird macros.  No other information was retained.   This 
+            made it impossible to support more advanced features and 
+            complicated many other parts of the implementation.
+
+04/09/2002: beazley
+            Change to template class wrapping.   There were a variety of
+            "issues" with the old approach related to parsing, the type
+            system, and namespaces.   These changes are meant to rectify
+            some of these problems:
+
+            A specific instantiation of a template can now be specified
+            by including the class inline like this:
+ 
+                  class vector<int> {
+                  public:
+                       vector();
+                      ~vector();
+                       ... whatever ...
+	                  };
+
+            This is template specialization, but partial specialization is
+            not yet implemented.
+            
+            The %template directive has been modified to expand roughly as
+            follows:
+
+                 %template(vecint) vector<int>;
+
+            becomes
+
+                 %rename(vecint> vector<int>;
+                 class vector<int> {
+                 public:
+                     vector();
+                     ...
+                 };
+
+            Note that this simply builds upon the code above (templates
+            included inline).
+
+            This modified approach to wrapping fixes some subtle type
+            issues.  For instance, you can now define typemaps and typedefs
+            like this:
+
+                 %typemap(in) vector<int> * {
+                 ...
+                 }
+                 typedef vector<int> intvector;
+                 ...
+                 void blah(intvector *v);   // Gets the above typemap
+
+            This did not work in SWIG-1.3.11 due to a peculiarity of
+            the template implementation.
+
+            %template(name) no longer installs the template as a class
+            with name "name".   This might break %addmethods as described
+            in the manual.  For example:
+
+                 %template(vecint) vector<int>;
+                 %addmethods vecint {    // Fails. vecint not a class
+                   ...
+                 };
+           
+            To fix this, just use the template name instead:
+
+                 %addmethods vector<int> {
+                     ...
+                 }
+
+            Note: This technique might be a way to implement some bizarre
+            template specialization techniques.   For example:
+
+                 %addmethods vector<int> {
+                     // Only applied if vector<int> instantiated later
+                     %typemap(in) vector<int> * {
+                        ...
+                     }
+                     ...
+                 };
+
+            *** POTENTIAL INCOMPATIBILITY ***
+             
 04/08/2002: beazley
             Fixed [ 540868 ] #if defined whatever - not parsed.  SWIG should
             now correctly handle preprocessor directives like this:
