@@ -1,11 +1,8 @@
 /* This was broken in the perl module.  See bug 962115 
 It tests basic multiple inheritance */
 
-%module multiple_inheritance
+%module(ruby_minherit="1") multiple_inheritance
 
-#ifdef SWIGRUBY
-#pragma SWIG nowarn=802; // Ruby doesn't support multiple  inheritance
-#endif
 
 #ifdef SWIGJAVA
 #pragma SWIG nowarn=813; // Java doesn't support multiple  inheritance

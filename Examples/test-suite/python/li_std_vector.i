@@ -18,7 +18,24 @@ namespace std {
 
 %template(DoubleVector) std::vector<double>;
 
-%template(SizeVector) std::vector<size_t>;
+specialize_std_vector(size_t,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
+
+
+%template(sizeVector) std::vector<size_t>;
+%{
+  template <class T>
+  struct Param
+  {
+    T val;
+
+    Param(T v = 0): val(v) {
+    }
+    
+    operator T() const { return val; }
+  };
+%}
+specialize_std_vector(Param<int>,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
+%template(PIntVector) std::vector<Param<int> >;
 
 %inline %{
 typedef float Real;

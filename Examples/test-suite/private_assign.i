@@ -17,6 +17,11 @@
    Foo blah() {
       return Foo();
    }
+
+  class Bar : protected Foo
+  {
+  };
+
 %}
 
 #pragma SWIG nowarn=350 // operator new
@@ -26,6 +31,11 @@
   protected:
      void *operator new(size_t l) { return malloc(sizeof(TROOT)); }
    
+    int prot_meth() 
+    {
+      return 1;
+    }
+    
   public:
     TROOT()
     {
@@ -36,7 +46,7 @@
     }
   };
 
-  class A : public TROOT
+  class A : protected TROOT
   {
   };
   
@@ -46,11 +56,11 @@
 
 // This case only works in python
 %inline %{
-   struct Bar : Foo 
+   struct FooBar : Foo 
    {
    };
    
-   Bar bar;
+   FooBar bar;
    
 %}
 

@@ -35,10 +35,10 @@
       const T& meth(const T& t = T(0)) { return t; }
     };
 
-  template <typename T> class Y : private X<T> {
+  template <typename TT> class Y : private X<TT> {
   public:
     // test using on templated class with default args in the method
-    using X<T>::meth;
+    using X<TT>::meth;
   };
 
   template <int V> struct Z 
