@@ -2622,7 +2622,6 @@ cpp_class_decl  :
 		 Setattr($$,"allows_typedef","1");
 		 /* Check for pure-abstract class */
 		 Setattr($$,"abstract", pure_abstract($7));
-		 appendChild($$,$7);
 		 
 		 /* This bit of code merges in a previously defined %extend directive (if any) */
 		 if (extendhash) {
@@ -2638,6 +2637,7 @@ cpp_class_decl  :
 		 if (!classes) classes = NewHash();
 		 Setattr(classes,Swig_symbol_qualifiedscopename(0),$$);
 
+		 appendChild($$,$7);
 		 p = $9;
 		 if (p) {
 		   set_nextSibling($$,p);
