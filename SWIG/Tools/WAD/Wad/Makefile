@@ -14,7 +14,7 @@ WADOPT     = -DWAD_LINUX
 
 # Location of your Python installation
 PYINCLUDE = -I/usr/local/include/python2.0
-PYSRCS    = wadpy.cxx
+PYCSRCS   = wadpyinit.cxx
 PYOBJS    = wadpy.o
 
 # Location of your Tcl installation
@@ -39,6 +39,9 @@ CXXFLAGS = #-fpic
 CLINK = 
 CXXLINK = g++ -shared
 
+# AR
+CC = ar
+
 # Rules for creation of a .o file from .cxx
 .SUFFIXES: .cxx
 .cxx.o:
@@ -49,7 +52,9 @@ CXXLINK = g++ -shared
 
 wad:    $(WADOBJS) main.o
 	$(CXXLINK) $(WADOBJS) main.o -o libwad.so 
+	$(AR) cr libwadcore.a $(WADOBJS)
 	cp libwad.so ..
+	cp libwadcore.a ..
 
 python: $(WADOBJS) $(PYOBJS)
 	$(CXXLINK) $(WADOBJS) $(PYOBJS) -o libwadpy.so
