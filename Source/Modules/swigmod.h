@@ -266,6 +266,36 @@ extern void   emit_action(Node *n, Wrapper *f);
 extern List  *Swig_overload_rank(Node *n);
 extern String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
 
+/************************************************************************
+ * class Contracts:
+ *
+ * This class defines the functions that need to be used in 
+ *         "wrap by contract" module.
+ *************************************************************************/
+
+class Contracts : public Dispatcher {
+public:
+  int ContractSplit(Node *n);
+  int AssertModify(Node *n, int flag);
+  int InheritModify(Node *n);
+  int InheritAssertAppend(Node *n, Node *bases); 
+  int AssertAddTag(Node *n);
+  int AssertAddErrorMsg(Node *n);
+  int AssertSetParms(Node *n);
+
+  int emit_contract(Node *n);
+  int cDeclaration(Node *n);
+  int constructorDeclaration(Node  *n);
+  int destructorDeclaration(Node  *n);
+  int externDeclaration(Node *n);
+  int extendDirective(Node *n);
+  int importDirective(Node *n);
+  int includeDirective(Node *n);
+  int classDeclaration(Node *n);
+  int classHandler(Node *n);
+  virtual int top(Node *n);
+};
+
 extern void Swig_contracts(Node *n);
 extern void Swig_contract_mode_set(int flag);
 extern int  Swig_contract_mode_get();

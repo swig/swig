@@ -428,20 +428,34 @@ void emit_action(Node *n, Wrapper *f) {
 
   /* Emit contract code (if any) */
   if (Swig_contract_mode_get()) {
+    /* Modify contracts */
+    Contracts *a = new Contracts;
+    if (Getattr(n, "feature:contract")) {
+      a->AssertAddTag(n);
+      a->AssertAddErrorMsg(n);
+      a->AssertSetParms(n);
+    }
+    delete a;
+    
     /* Preassertion */
-    tm = Getattr(n,"feature:preassert");
-    if (tm) {
+    tm = Getattr(n, "feature:preassert");
+    if (Len(tm)) {
       replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
-      Printf(stdout, "name: %s, preassert: %s\n", Getattr(n,"name"), tm);
       Printv(f->code,tm,"\n",NIL);
     }
     
+    /* Inherit_Preassertion */
+    tm = Getattr(n, "feature:inherit_preassert");
+    if (Len(tm)) {
+      replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
+      Printv(f->code,tm,"\n",NIL);
+    }
+     
     /* Invariant -- EXPERIMENTAL */
-    tm = Getattr(n,"feature:invariant");
-    if (tm) {
+    tm = Getattr(n, "feature:invariant");
+    if (Len(tm)) {
       replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
       Replaceid(tm, "SWIG_invariant", "SWIG_invariant_begin");
-      Printf(stdout, "name: %s, invarassert: %s\n", Getattr(n,"name"), tm);
       Printv(f->code,tm,"\n",NIL);
     }
   }
@@ -492,18 +506,22 @@ void emit_action(Node *n, Wrapper *f) {
   /* Emit contract code (if any) */
   if (Swig_contract_mode_get()) {
     /* Invariant -- EXPERIMENTAL */
-    tm = Getattr(n,"feature:invariant");
-    if (tm) {
+    tm = Getattr(n, "feature:invariant");
+    if (Len(tm)) {
       replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
       Replaceid(tm, "SWIG_invariant", "SWIG_invariant_end");
-      Printf(stdout, "name: %s, invarassert: %s\n", Getattr(n,"name"), tm);
       Printv(f->code,tm,"\n",NIL);
     }
-    /* Postassertion - EXPERIMENTAL */
-    tm = Getattr(n,"feature:postassert");
-    if (tm) {
+    /* Inherit Postassertion */
+    tm = Getattr(n, "feature:inherit_postassert");
+    if (Len(tm)) {
       replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
-      Printf(stdout, "name: %s, postassert: %s\n", Getattr(n,"name"), tm);
+      Printv(f->code,tm,"\n",NIL);
+    }
+    /* Postassertion */
+    tm = Getattr(n, "feature:postassert");
+    if (Len(tm)) {
+      replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
       Printv(f->code,tm,"\n",NIL);
     }
   }
