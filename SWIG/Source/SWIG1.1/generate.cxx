@@ -41,7 +41,6 @@ extern void cplus_abort();
 static int     module_init = 0;    /* Indicates whether the %module name was given */
 static int     lang_init = 0;      /* Indicates if the language has been initialized */
 static String  *yyrename = 0;      /* Set by %name directive */
-static Hash   *name_hash = 0;      /* Hash table containing renaming */
 static int     cplus_mode;
 static int     InClass = 0;
 static char   *Callback = 0;
@@ -149,19 +148,6 @@ static void init_language() {
   lang_init = 1;
 }
 
-/* -----------------------------------------------------------------------------
- * add_symbol()
- * 
- * Add a symbol to the symbol table 
- * ----------------------------------------------------------------------------- */
-
-int add_symbol(char *name) {
-   if (!symbols) symbols = NewHash();
-   if (Getattr(symbols,name)) return -1;
-   Setattr(symbols,name,name);
-   return 0;
-}
-
 /* ------------------------------------------------------------------
  * create_constant()
  *
@@ -176,14 +162,9 @@ static void create_constant(char *name, SwigType *type, char *value) {
   char *iname = make_name(name);
 
   if (!value) value = Swig_copy_string(name);
-  if (add_symbol(iname)) {
-    Printf(stderr,"%s:%d. %s multiply defined. (2nd definition ignored)\n",
-	   input_file, line_number, name);
-  } else {
-    String *tval = NewStringf("%(escape)s",value);
-    lang->declare_const(name, iname, type, Char(tval));
-    Delete(tval);
-  }
+  String *tval = NewStringf("%(escape)s",value);
+  lang->declare_const(name, iname, type, Char(tval));
+  Delete(tval);
 }
 
 /* ----------------------------------------------------------------------
@@ -201,6 +182,10 @@ c_varfunc_decl(char *storage, SwigType *type, char *name, SwigType *decltype, Pa
   if (strcmp(storage,"static") == 0) return;
   init_language();
 
+  if (!type) {
+    Printf(stderr,"%s:%d. Can't wrap '%s' because it is declared with an unnamed type.\n", input_file,line_number,name);
+    return;
+  }
 
   if (strstr(name,"::")) {
     Printf(stderr,"%s:%d. Warning. Qualified declaration %s ignored.\n", input_file, line_number, name);
@@ -208,11 +193,6 @@ c_varfunc_decl(char *storage, SwigType *type, char *name, SwigType *decltype, Pa
   }
 
   char *iname = make_name(name);
-
-  if (add_symbol(iname)) {
-    Printf(stderr,"%s:%d. %s multiply defined (2nd definition ignored).\n", input_file, line_number, iname);
-    return;
-  }
   ty = Copy(type);    
   if (SwigType_isfunction(decltype)) {
     SwigType_push(ty,decltype);
@@ -364,12 +344,6 @@ start_class(char *cpptype, char *name, List *bases)
     cpp_bases[i] = Char(Getitem(bases,i));
   }
   iname = make_name(name);
-  if (strlen(iname)) {
-    if (add_symbol(iname)) {
-      Printf(stderr,"%s:%d. %s is multiply defined.\n", input_file, line_number, iname);
-      FatalError();
-    }
-  }
   if ((iname == name) || (strlen(iname) == 0)) {
     cplus_open_class(name,0,cpptype);
   } else {
@@ -578,11 +552,6 @@ void generate(Node *top) {
 	module_init = 1;
 	init_language();
       }
-    } else if (strcmp(tag,"name") == 0) {
-
-      /* %name directive */
-      String *name = Getname(n);
-      yyrename = Copy(name);
 
     } else if (strcmp(tag,"native") == 0) {
 
@@ -619,14 +588,6 @@ void generate(Node *top) {
 	  lang->pragma(Char(lan),Char(name),Char(value));
 	}
       }
-
-    } else if (strcmp(tag,"rename") == 0) {
-
-      /* %rename directive */
-	String *name = Getname(n);
-	String *sname = Getattr(n,"scriptname");
-	if (!name_hash) name_hash = NewHash();
-	Setattr(name_hash,name,sname);
 
     } else if (strcmp(tag,"typemap") == 0) {
 
@@ -690,10 +651,12 @@ void generate(Node *top) {
       if (storage && (Cmp(storage, "typedef") == 0)) {
 	/* A typedef declaration */
 	SwigType *t = Copy(type);
-	SwigType_push(t,decl);
-	SwigType_typedef(t,name);
-	lang->add_typedef(t,Char(name));
-	cplus_register_type(Char(name));
+	if (t) {
+	  SwigType_push(t,decl);
+	  SwigType_typedef(t,name);
+	  lang->add_typedef(t,Char(name));
+	  cplus_register_type(Char(name));
+	}
       } else if (storage && ((Cmp(storage,"friend") == 0))) {
 	/* nothing */
       } else {
@@ -741,7 +704,7 @@ void generate(Node *top) {
       List   *bases = Getattr(n,"bases");
       String *tdname = Getattr(n,"tdname");
       SwigType *tddecl = Getattr(n,"decl");
-
+      
       start_class(Char(kind), name ? Char(name) : (char *) "",bases);
       generate(Getchild(n));
       end_class(tddecl,Char(tdname));
@@ -808,7 +771,7 @@ void generate(Node *top) {
 
 void generate_all(Node *n) {
   generate(n);
-  /*  Swig_dump_tree(n);*/
+  /*  Swig_dump_tree(n); */
   if (lang_init) {
     cplus_cleanup();
     lang->close();
