@@ -29,14 +29,16 @@ namespace std {
 
     %typemap(in) string {
         if (PyString_Check($input))
-            $1 = std::string(PyString_AsString($input));
+            $1 = std::string(PyString_AsString($input),
+                             PyString_Size($input));
         else
             SWIG_exception(SWIG_TypeError, "string expected");
     }
 
     %typemap(in) const string & (std::string temp) {
         if (PyString_Check($input)) {
-            temp = std::string(PyString_AsString($input));
+            temp = std::string(PyString_AsString($input),
+                               PyString_Size($input));
             $1 = &temp;
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");
@@ -57,14 +59,16 @@ namespace std {
     
     %typemap(outv) string {
         if (PyString_Check($input))
-            $result = std::string(PyString_AsString($input));
+            $result = std::string(PyString_AsString($input),
+                                  PyString_Size($input));
         else
             throw SWIG_DIRECTOR_TYPE_MISMATCH("string expected");
     }
     
     %typemap(outv) const string & (std::string temp) {
         if (PyString_Check($input)) {
-            temp = std::string(PyString_AsString($input));
+            temp = std::string(PyString_AsString($input),
+                               PyString_Size($input));
             $result = &temp;
         } else {
             throw SWIG_DIRECTOR_TYPE_MISMATCH("string expected");
