@@ -1508,6 +1508,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/ruby/Makefile	        \
     Examples/test-suite/tcl/Makefile	        \
 ])
+AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_OUTPUT
 
 dnl configure.in ends here
