@@ -87,13 +87,13 @@ static DOH *find_internal(DOH *co) {
   if (DohCheck(co)) return co;
   c = (char *) co;
   if (doh_debug_level) {
-    DohError(DOH_CONVERSION,"Unknown object %x being treated as 'char *'.\n", c);
+    DohError(DOH_CONVERSION,"Unknown object '%s' being treated as 'char *'.\n", c);
   }
   r = root;
   s = 0;
   while (r) {
     s = r;
-    /*    printf("checking %s\n", r->cstr);*/
+    //    printf("checking %s\n", r->cstr);
     d = strcmp(r->cstr,c);
     if (d == 0) return r->sstr;
     if (d < 0) r = r->left;
@@ -350,6 +350,7 @@ DOH *DohGetattr(DOH *obj, DOH *name) {
   DOH  *name_obj;
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohGetattr %x, %x\n",obj,name);
+  if (!name) return 0;
   if (DohIsMapping(b)) {
     name_obj = find_internal(name);
     if (b->objinfo->doh_mapping->doh_getattr) {
@@ -370,6 +371,7 @@ int DohSetattr(DOH *obj, DOH *name, DOH *value) {
     DOH *name_obj, *value_obj;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohSetattr %x, %x, %x\n",obj,name, value);
+    if ((!name) || (!value)) return 0;
     if (DohIsMapping(b)) {
       name_obj = find_internal(name);
       if (!DohCheck(value)) {
@@ -395,6 +397,7 @@ void DohDelattr(DOH *obj, DOH *name) {
   DOH *name_obj;
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohDelattr %x, %x\n",obj,name);
+  if (!name) return;
   if (DohIsMapping(obj)) {
     name_obj = find_internal(name);
     if (b->objinfo->doh_mapping->doh_delattr) {

@@ -29,6 +29,10 @@
 #define DOH_MAJOR_VERSION 0
 #define DOH_MINOR_VERSION 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void DOH;                
 
 #define DOH_BEGIN    -1
@@ -309,5 +313,8 @@ extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
 #define DOH_CONVERSION  5
 #define DOH_CALLS       10
 
+#ifdef __cplusplus
+}
+#endif
 
 
