@@ -17,6 +17,23 @@ tree (maybe).
 Version 1.3.11 (Work in progress)
 =================================
 
+01/02/2002: cheetah (william fulton)
+           [Java] The Java module incorrectly used argout typemaps for 
+           strings and arrays. This is now corrected and the code now resides
+           in the freearg typemap. This would have forced some user written 
+           typemaps to do the same, and these typemaps will also need moving 
+           from argout to freearg, unless they are truly argout typemaps.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+12/28/2001: cheetah (william fulton)
+           [Java] Multi typemaps now working for Java see multimap example.
+
+12/28/2001: cheetah (william fulton)
+           [Java] JCALL macro for JNI calls that work in both C and C++ typemaps
+           have been replaced with JCALL0, JCALL1, JCALL2, JCALL3 and JCALL4 
+           macros.
+           *** POTENTIAL INCOMPATIBILITY ***
+
 12/21/2001: cheetah (william fulton)
            [Java] jni, jtype and jstype typemaps no longer hardcoded but real 
            typemaps. New variable substitution, $javaclassname, can be used in
