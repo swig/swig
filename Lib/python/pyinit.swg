@@ -169,8 +169,8 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
 /* Install Constants */
 static void
 SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
-  int i;
-  PyObject *obj;
+  PyObject *obj = 0;
+  size_t i;
   for (i = 0; constants[i].type; i++) {
     switch(constants[i].type) {
     case SWIG_PY_INT:
@@ -213,7 +213,7 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 		       swig_const_info *const_table,
 		       swig_type_info **types,
 		       swig_type_info **types_initial) {
-  int i;
+  size_t i;
   for (i = 0; methods[i].ml_name; ++i) {
     char *c = methods[i].ml_doc;
     if (c && (c = strstr(c, "swig_ptr: "))) {
@@ -239,7 +239,7 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 	buff += ldoc;
 	strncpy(buff, "swig_ptr: ", 10);
 	buff += 10;
-	SWIG_Python_PointerStr(buff, ptr, ty->name, lptr);
+	SWIG_PackVoidPtr(buff, ptr, ty->name, lptr);
 	methods[i].ml_doc = ndoc;
       }
     }

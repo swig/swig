@@ -39,6 +39,230 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* -----------------------------------------------------------------------------
+ * Create a new pointer string 
+ * ----------------------------------------------------------------------------- */
+
+
+#if defined(SWIG_COBJECT_TYPES)
+#if !defined(SWIG_COBJECT_PYTHON)
+/* -----------------------------------------------------------------------------
+ * Implements a simple Swig Object type, and use it instead of PyCObject
+ * ----------------------------------------------------------------------------- */
+
+typedef struct {
+  PyObject_HEAD
+  void *ptr;
+  char *desc;
+} PySwigObject;
+
+/* Declarations for objects of type PySwigObject */
+
+SWIGRUNTIME int
+PySwigObject_print(PySwigObject *v, FILE *fp, int flags)
+{
+  char result[1024];
+  if (SWIG_PackVoidPtr(result, v->ptr, v->desc, 1024)) {
+    fputs("<Swig Object at ", fp); fputs(result, fp); fputs(">", fp);
+    return 0; 
+  } else {
+    return 1; 
+  }
+}
+  
+SWIGRUNTIME PyObject *
+PySwigObject_repr(PySwigObject *v)
+{
+  char result[1024];
+  return SWIG_PackVoidPtr(result, v->ptr, v->desc, 1024) ?
+    PyString_FromFormat("<Swig Object at %s>", result) : 0;
+}
+
+SWIGRUNTIME PyObject *
+PySwigObject_str(PySwigObject *v)
+{
+  char result[1024];
+  return SWIG_PackVoidPtr(result, v->ptr, v->desc, 1024) ?
+    PyString_FromString(result) : 0;
+}
+
+SWIGRUNTIME PyObject *
+PySwigObject_long(PySwigObject *v)
+{
+  return PyLong_FromUnsignedLong((unsigned long) v->ptr);
+}
+
+SWIGRUNTIME int
+PySwigObject_compare(PySwigObject *v, PySwigObject *w)
+{
+  int c = strcmp(v->desc, w->desc);
+  if (c) {
+    return c;
+  } else {
+    void *i = v->ptr;
+    void *j = w->ptr;
+    return (i < j) ? -1 : (i > j) ? 1 : 0;
+  }
+}
+
+SWIGRUNTIME void
+PySwigObject_dealloc(PySwigObject *self)
+{
+  PyObject_DEL(self);
+}
+
+SWIGRUNTIME PyTypeObject*
+PySwigObject_GetType() {
+  static char PySwigObject_Type__doc__[] = 
+    "Swig object carries a C/C++ instance pointer";
+  
+  static PyNumberMethods PySwigObject_as_number = {
+    (binaryfunc)0, /*nb_add*/
+    (binaryfunc)0, /*nb_subtract*/
+    (binaryfunc)0, /*nb_multiply*/
+    (binaryfunc)0, /*nb_divide*/
+    (binaryfunc)0, /*nb_remainder*/
+    (binaryfunc)0, /*nb_divmod*/
+    (ternaryfunc)0,/*nb_power*/
+    (unaryfunc)0,  /*nb_negative*/
+    (unaryfunc)0,  /*nb_positive*/
+    (unaryfunc)0,  /*nb_absolute*/
+    (inquiry)0,    /*nb_nonzero*/
+    0,		 /*nb_invert*/
+    0,		 /*nb_lshift*/
+    0,		 /*nb_rshift*/
+    0,		 /*nb_and*/
+    0,		 /*nb_xor*/
+    0,		 /*nb_or*/
+    (coercion)0,   /*nb_coerce*/
+    (unaryfunc)PySwigObject_long,  /*nb_int*/
+    (unaryfunc)PySwigObject_long, /*nb_long*/
+    (unaryfunc)0,  /*nb_float*/
+    0,		 /* nb_oct */
+    0,		 /* nb_hex */
+    0,		 /* nb_inplace_add */
+    0,		 /* nb_inplace_subtract */
+    0,		 /* nb_inplace_multiply */
+    0,		 /* nb_inplace_divide */
+    0,		 /* nb_inplace_remainder */
+    0, 		 /* nb_inplace_power */
+    0,		 /* nb_inplace_lshift */
+    0,		 /* nb_inplace_rshift */
+    0,		 /* nb_inplace_and */
+    0,		 /* nb_inplace_xor */
+    0,		 /* nb_inplace_or */
+    0,           /* nb_floor_divide */
+    0,	         /* nb_true_divide */
+    0,		 /* nb_inplace_floor_divide */
+    0,		 /* nb_inplace_true_divide */
+  };
+  
+  static PyTypeObject PySwigObject_Type = {
+    PyObject_HEAD_INIT(&PyType_Type)
+    0,					/*ob_size*/
+    "PySwigObject",			/*tp_name*/
+    sizeof(PySwigObject),		/*tp_basicsize*/
+    0,					/*tp_itemsize*/
+    /* methods */
+    (destructor)PySwigObject_dealloc,	/*tp_dealloc*/
+    (printfunc)PySwigObject_print,	/*tp_print*/
+    (getattrfunc)0,			/*tp_getattr*/
+    (setattrfunc)0,			/*tp_setattr*/
+    (cmpfunc)PySwigObject_compare,	/*tp_compare*/
+    (reprfunc)PySwigObject_repr,	/*tp_repr*/
+    &PySwigObject_as_number,	        /*tp_as_number*/
+    0,					/*tp_as_sequence*/
+    0,					/*tp_as_mapping*/
+    (hashfunc)0,			/*tp_hash*/
+    (ternaryfunc)0,			/*tp_call*/
+    (reprfunc)PySwigObject_str,		/*tp_str*/
+    /* Space for future expansion */
+    0L,0L,0L,0L,
+    PySwigObject_Type__doc__, 	        /* Documentation string */
+    0,                                  /* tp_traverse */
+    0,                                  /* tp_clear */
+    0,                                  /* tp_richcompare */
+    0,                                  /* tp_weaklistoffset */
+#if PY_VERSION_HEX >= 0x02020000
+    0,                                  /* tp_iter */
+    0,                                  /* tp_iternext */
+    0,                                  /* tp_methods */
+    0,                                  /* tp_members */
+    0,                                  /* tp_getset */
+    0,                                  /* tp_base */
+    0,                                  /* tp_dict */
+    0,                                  /* tp_descr_get */
+    0,                                  /* tp_descr_set */
+    0,                                  /* tp_dictoffset */
+    0,                                  /* tp_init */
+    0,                                  /* tp_alloc */
+    0,                                  /* tp_new */
+    0,                                  /* tp_free */
+    0,                                  /* tp_is_gc */
+    0,                                  /* tp_bases */
+    0,                                  /* tp_mro */
+    0,                                  /* tp_cache */
+    0,                                  /* tp_subclasses */
+    0,                                  /* tp_weaklist */
+#endif
+#if PY_VERSION_HEX >= 0x02030000
+    0,                                  /* tp_del */
+#endif
+#ifdef COUNT_ALLOCS
+    /* these must be last */
+    0,                                  /* tp_alloc */
+    0,                                  /* tp_free */
+    0,                                  /* tp_maxalloc */
+    0,                                  /*  tp_next */
+#endif
+  };
+
+  return &PySwigObject_Type;
+}
+
+SWIGRUNTIME PyObject *
+PySwigObject_FromVoidPtrAndDesc(void *ptr, char *desc)
+{
+  PySwigObject *self = PyObject_NEW(PySwigObject, PySwigObject_GetType());
+  if (self == NULL) return NULL;
+  self->ptr = ptr;
+  self->desc = desc;
+  return (PyObject *)self;
+}
+
+SWIGRUNTIMEINLINE void *
+PySwigObject_AsVoidPtr(PyObject *self)
+{
+  return ((PySwigObject *)self)->ptr;
+}
+
+SWIGRUNTIMEINLINE char *
+PySwigObject_GetDesc(PyObject *self)
+{
+  return ((PySwigObject *)self)->desc;
+}
+
+SWIGRUNTIMEINLINE int
+PySwigObject_Check(PyObject *op) {
+  return ((op)->ob_type == PySwigObject_GetType()) 
+    || (strcmp((op)->ob_type->tp_name,"PySwigObject") == 0);
+}
+
+#else
+/* -----------------------------------------------------------------------------
+ * Use the old and original Python PyCObject instead of PySwigObject
+ * ----------------------------------------------------------------------------- */
+
+#define PySwigObject_GetDesc(obj)	           PyCObject_GetDesc(obj)
+#define PySwigObject_Check(obj)	           PyCObject_Check(obj)
+#define PySwigObject_AsVoidPtr(obj)	   PyCObject_AsVoidPtr(obj)
+#define PySwigObject_FromVoidPtrAndDesc(p, d)  PyCObject_FromVoidPtrAndDesc(p, d, NULL)
+
+#endif
+
+#endif
+
 /* -----------------------------------------------------------------------------
  * errors manipulation
  * ----------------------------------------------------------------------------- */
@@ -47,7 +271,7 @@ SWIGRUNTIME void
 SWIG_Python_TypeError(const char *type, PyObject *obj)
 {
   if (type) {
-    if (!PyCObject_Check(obj)) {
+    if (!PySwigObject_Check(obj)) {
       const char *otype = (obj ? obj->ob_type->tp_name : 0); 
       if (otype) {
 	PyObject *str = PyObject_Str(obj);
@@ -63,21 +287,20 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 	return;
       }
     } else {
-      const char *otype = (char *) PyCObject_GetDesc(obj);
+      const char *otype = (char *) PySwigObject_GetDesc(obj);
       if (otype) {
-	PyErr_Format(PyExc_TypeError, "a '%s' is expected, 'PyCObject(%s)' is received",
+	PyErr_Format(PyExc_TypeError, "a '%s' is expected, 'PySwigObject(%s)' is received",
 		     type, otype);
 	return;
       }
     }   
     PyErr_Format(PyExc_TypeError, "a '%s' is expected", type);
-
   } else {
     PyErr_Format(PyExc_TypeError, "unexpected type is received");
   }
 }
 
-SWIGRUNTIME void
+SWIGRUNTIMEINLINE void
 SWIG_Python_NullRef(const char *type)
 {
   if (type) {
@@ -147,21 +370,21 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
   }
 
 #ifdef SWIG_COBJECT_TYPES
-  if (!(PyCObject_Check(obj))) {
+  if (!(PySwigObject_Check(obj))) {
     if (!SWIG_this)
       SWIG_this = PyString_FromString("this");
     pyobj = obj;
     obj = PyObject_GetAttr(obj,SWIG_this);
     newref = 1;
     if (!obj) goto type_error;
-    if (!PyCObject_Check(obj)) {
+    if (!PySwigObject_Check(obj)) {
       Py_DECREF(obj);
       goto type_error;
     }
   }  
-  vptr = PyCObject_AsVoidPtr(obj);
-  c = (char *) PyCObject_GetDesc(obj);
-  if (newref) Py_DECREF(obj);
+  vptr = PySwigObject_AsVoidPtr(obj);
+  c = (char *) PySwigObject_GetDesc(obj);
+  if (newref) { Py_DECREF(obj); }
   goto type_check;
 #else
   if (!(PyString_Check(obj))) {
@@ -279,36 +502,23 @@ type_error:
     }
   }
   return -1;
-}
+}  
 
-/* Create a new pointer string */
-SWIGRUNTIME char *
-SWIG_Python_PointerStr(char *buff, void *ptr, const char *name, size_t bsz) {
-  char *r = buff;
-  if ((2*sizeof(void *) + 2) > bsz) return 0;
-  *(r++) = '_';
-  r = SWIG_PackData(r,&ptr,sizeof(void *));
-  if (strlen(name) + 1 > (bsz - (r - buff))) return 0;
-  strcpy(r,name);
-  return buff;
-}
-  
-
-/* Create a new pointer object */
+/* Create a new array object */
 SWIGRUNTIME PyObject *
 SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int own) {
-  PyObject *robj;
+  PyObject *robj = 0;
   if (!ptr) {
     Py_INCREF(Py_None);
     return Py_None;
   }
 #ifdef SWIG_COBJECT_TYPES
-  robj = PyCObject_FromVoidPtrAndDesc((void *) ptr, (char *) type->name, NULL);
+  robj = PySwigObject_FromVoidPtrAndDesc((void *) ptr, (char *)type->name);
 #else
   {
     char result[1024];
-    SWIG_Python_PointerStr(result, ptr, type->name, 1024);
-    robj = PyString_FromString(result);
+    robj = SWIG_PackVoidPtr(result, ptr, type->name, 1024) ?
+      PyString_FromString(result) : 0;
   }
 #endif
   if (!robj || (robj == Py_None)) return robj;
@@ -369,7 +579,7 @@ SWIG_Python_GetTypeListHandle() {
 /*
   Search for a swig_type_info structure
  */
-SWIGRUNTIME swig_type_info *
+SWIGRUNTIMEINLINE swig_type_info *
 SWIG_Python_GetTypeList() {
   swig_type_info **type_list_handle = SWIG_Python_GetTypeListHandle();
   return type_list_handle ? *type_list_handle : (swig_type_info *)0;
@@ -379,25 +589,25 @@ SWIG_Python_GetTypeList() {
  *  Standard SWIG API 
  * -----------------------------------------------------------------------------*/
 
-SWIGRUNTIME swig_type_info *
+SWIGRUNTIMEINLINE swig_type_info *
 SWIG_Python_TypeQuery(const char *name) {
   swig_type_info *tl = SWIG_Python_GetTypeList();
   return SWIG_TypeQueryTL(tl, name);
 }
 
-SWIGRUNTIME swig_type_info *
+SWIGRUNTIMEINLINE swig_type_info *
 SWIG_Python_TypeRegister(swig_type_info *ti) {
   swig_type_info **tlh = SWIG_Python_GetTypeListHandle();
   return SWIG_TypeRegisterTL(tlh, ti);
 }
 
-SWIGRUNTIME void
+SWIGRUNTIMEINLINE void
 SWIG_Python_TypeClientData(swig_type_info *ti, void *clientdata) {
   swig_type_info *tl = SWIG_Python_GetTypeList();
   SWIG_TypeClientDataTL(tl, ti, clientdata);
 }
 
-SWIGRUNTIME void
+SWIGRUNTIMEINLINE void
 SWIG_Python_PropagateClientData(swig_type_info *type) {
   swig_type_info *tl = SWIG_Python_GetTypeList();
   SWIG_PropagateClientDataTL(tl, type);

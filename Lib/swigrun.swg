@@ -30,11 +30,18 @@
 #endif
 
 /*
-  You can use this macro for creating a static or dynamic library.
-  Swig just needs to use it as 'static'
+  You can use the SWIGRUNTIME and SWIGRUNTIMEINLINE macros for
+  creating a static or dynamic library from the swig runtime code.
+  In 99.9% of the cases, swig just needs to declare them as 'static'.
+  
+  But only do this if is strictly necessary, ie, if you have problems
+  with your compiler or so.
 */
 #ifndef SWIGRUNTIME
 #define SWIGRUNTIME static
+#endif
+#ifndef SWIGRUNTIMEINLINE
+#define SWIGRUNTIMEINLINE static SWIGINLINE
 #endif
 
 #ifdef __cplusplus
@@ -172,10 +179,9 @@ SWIG_TypeCheck(char *c, swig_type_info *ty) {
 /*
   Cast a pointer up an inheritance hierarchy
 */
-SWIGRUNTIME SWIGINLINE void *
+SWIGRUNTIMEINLINE void *
 SWIG_TypeCast(swig_type_info *ty, void *ptr) {
-  if ((!ty) || (!ty->converter)) return ptr;
-  return (*ty->converter)(ptr);
+  return ((!ty) || (!ty->converter)) ? ptr : (*ty->converter)(ptr);
 }
 
 /* 
@@ -195,7 +201,7 @@ SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) {
 /*
   Return the name associated with this type
 */
-SWIGRUNTIME SWIGINLINE const char *
+SWIGRUNTIMEINLINE const char *
 SWIG_TypeName(const swig_type_info *ty) {
   return ty->name;
 }
@@ -325,6 +331,20 @@ SWIG_PropagateClientDataTL(swig_type_info *tl, swig_type_info *type) {
     }
     equiv = equiv->next;
   }
+}
+
+/* 
+   Pack 'void *' into a string buffer.
+*/
+SWIGRUNTIME char *
+SWIG_PackVoidPtr(char *buff, void *ptr, const char *name, size_t bsz) {
+  char *r = buff;
+  if ((2*sizeof(void *) + 2) > bsz) return 0;
+  *(r++) = '_';
+  r = SWIG_PackData(r,&ptr,sizeof(void *));
+  if (strlen(name) + 1 > (bsz - (r - buff))) return 0;
+  strcpy(r,name);
+  return buff;
 }
 
 #ifdef __cplusplus
