@@ -56,6 +56,26 @@
   %apply int { enum SWIGTYPE };
 
 
+  Also note that this test should not only compile, if you run the
+  program
+
+     grep 'resultobj = SWIG_NewPointerObj' primitive_types_wrap.cxx 
+ 
+  you should get only two calls:
+
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_Test, 1);
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_TestDirector, 1);
+
+  if you get a lot more, some typemap could be not defined.
+
+  The same with
+
+     grep SWIG_ConvertPtr primitive_types_wrap.cxx| egrep -v 'Test'
+
+  you should only get
+
+    #define SWIG_ConvertPtr(obj, pp, type, flags)
+
  */
 
 //
@@ -63,8 +83,8 @@
 // these nowarn flags.
 //
 #pragma SWIG nowarn=451
-#pragma SWIG nowarn=515
-#pragma SWIG nowarn=509
+ //#pragma SWIG nowarn=515
+ //#pragma SWIG nowarn=509
 
 %{
 #include <stddef.h>
@@ -74,18 +94,30 @@
 
 %feature("director") TestDirector;
 
-// Fake integer class, only visible in C++
 %{
+  // Integer class, only visible in C++
   struct MyInt
   {
     char name[5];
     int val;
 
     MyInt(int v = 0): val(v) {
-      name[0]='n';
     }
     
     operator int() const { return val; }
+  };
+
+  // Template primitive type, only visible in C++
+  template <class T>
+  struct Param
+  {
+    char name[5];
+    T val;
+
+    Param(T v = 0): val(v) {
+    }
+    
+    operator T() const { return val; }
   };
 
   typedef char namet[5];
@@ -98,6 +130,14 @@
 //
 %apply int { MyInt };
 %apply const int& {  const MyInt& };
+%apply int { Param<int> };
+%apply char { Param<char> };
+%apply float { Param<float> };
+%apply double { Param<double> };
+%apply const int&  { const Param<int>& };
+%apply const char&  { const Param<char>& };
+%apply const float&  { const Param<float>& };
+%apply const double&  { const Param<double>& };
 
 
 
@@ -107,6 +147,7 @@
 %apply const int& { const Hello&  };
 
 %apply long { pint };
+%apply const long& { const pint& };
   
 
 //
@@ -118,9 +159,11 @@
 
   typedef char namet[5];
   typedef char* pchar;
+  typedef const char* pcharc;
   typedef int* pint;
 
   char* const def_pchar = "hello";
+  const char* const def_pcharc = "hija";
 
   const namet def_namet = {'h','o',0, 'l','a'};
 
@@ -148,9 +191,12 @@
 #define def_sizet 1
 #define def_hello Hola
 #define def_myint 1
+#define def_parami 1
+#define def_paramd 1
+#define def_paramc 'c'
 
-%define %test_prim_types_int(macro, pfx)
-/* all the primitive types */
+/* types that can be declared as static const class members */
+%define %test_prim_types_stc(macro, pfx)
 macro(bool,               pfx, bool)
 macro(signed char,        pfx, schar)
 macro(unsigned char,      pfx, uchar)
@@ -168,14 +214,24 @@ macro(char,               pfx, char)
 %enddef
 
 
-%define %test_prim_types(macro, pfx)
-%test_prim_types_int(macro, pfx)
+/* types that can be used to test overloading */
+%define %test_prim_types_ovr(macro, pfx)
+%test_prim_types_stc(macro, pfx)
 macro(pchar,              pfx, pchar)
+%enddef
+
+/* all the types */
+%define %test_prim_types(macro, pfx)
+%test_prim_types_ovr(macro, pfx)
+macro(pcharc,             pfx, pcharc)
 macro(pint,               pfx, pint)
 /* these ones should behave like primitive types too */
-macro(size_t,             pfx, sizet)
 macro(Hello,              pfx, hello)
 macro(MyInt,              pfx, myint)
+macro(Param<int>,         pfx, parami)
+macro(Param<double>,      pfx, paramd)
+macro(Param<char>,        pfx, paramc)
+macro(size_t,             pfx, sizet)
 %enddef
 
 
@@ -191,8 +247,6 @@ macro(MyInt,              pfx, myint)
 /* C++ constant declaration */
 %define cct_decl(type, pfx, name)
   const type pfx##_##name = def##_##name;
-  const type* pfx##_##name##_p = &pfx##_##name;
-  const type& pfx##_##name##_r = pfx##_##name;
 %enddef
 
 /* C++ static constant declaration */
@@ -233,6 +287,7 @@ macro(MyInt,              pfx, myint)
   void var_init() 
   {
     var_pchar = 0;
+    var_pcharc = 0;
     var_pint = 0;
     var_namet[0] = 'h';
   }
@@ -255,9 +310,10 @@ macro(MyInt,              pfx, myint)
 
 /* check a function call */
 %define call_check(type, pfx, name)
-  if (pfx##_##name(def_##name) != def_##name) {
+  type pfx##_##tmp##name = def_##name;
+  if (pfx##_##name(pfx##_##tmp##name) != def_##name) {
     std::ostringstream a; std::ostringstream b;
-    a << pfx##_##name(def_##name);
+    a << pfx##_##name(pfx##_##tmp##name);
     b << def_##name;
     if (a.str() != b.str()) {
       std::cout << "failing in pfx""_""name : "
@@ -275,9 +331,10 @@ macro(MyInt,              pfx, myint)
 
 /* function passing by value */
 %define ovr_decl(type, pfx, name)
-  int pfx##_##val(type x) { return 1; }
-  int pfx##_##ref(const type& x) { return 1; }
+  virtual int pfx##_##val(type x) { return 1; }
+  virtual int pfx##_##ref(const type& x) { return 1; }
 %enddef
+
 
 #ifdef SWIGPYTHON
 %apply (char *STRING, int LENGTH) { (const char *str, size_t len) }
@@ -288,13 +345,34 @@ macro(MyInt,              pfx, myint)
  struct Test 
  {
    Test()
-     : var_pchar(0), var_pint(0)
+     : var_pchar(0), var_pcharc(0), var_pint(0)
    {
    }
-   %test_prim_types_int(stc_decl, stc);
+   %test_prim_types_stc(stc_decl, stc);
    %test_prim_types(var_decl, var);
    var_decl(namet, var, namet);
 
+
+   const char* val_namet(namet x) throw(namet)
+   {
+     return x;
+   }
+
+   const char* val_cnamet(const namet x) throw(namet)
+   {
+     return x;
+   }
+
+#if 0
+   /* I have no idea how to define a typemap for 
+      const namet&, where namet is a char[ANY]  array */
+   const namet& ref_namet(const namet& x) throw(namet)
+   {
+     return x;
+   }
+#endif
+
+   
    %test_prim_types(val_decl, val);
    %test_prim_types(ref_decl, ref);
 
@@ -307,13 +385,13 @@ macro(MyInt,              pfx, myint)
 
    int v_check() 
    {
-     %test_prim_types_int(var_check, stc);
+     %test_prim_types_stc(var_check, stc);
      %test_prim_types(var_check, var);
      var_check(namet, var, namet);
      return 1;
    }
 
-   %test_prim_types_int(ovr_decl, ovr);
+   %test_prim_types_ovr(ovr_decl, ovr);
 
    int strlen(const char *str, size_t len)
    {
@@ -328,24 +406,44 @@ macro(MyInt,              pfx, myint)
    const char* mainv(size_t argc, const char **argv, int idx) 
    {
      return argv[idx];
-   }
-   
+   }   
    
  };
 
  struct TestDirector
  {
    TestDirector()
-     : var_pchar(0), var_pint(0)
+     : var_pchar(0), var_pcharc(0), var_pint(0)
    {
    }
+
    
    virtual ~TestDirector()
    {
      var_namet[0]='h';
    }
 
-   %test_prim_types_int(stc_decl, stc);
+   virtual const char* vval_namet(namet x) throw(namet)
+   {
+     return x;
+   }
+
+   virtual const char* vval_cnamet(const namet x) throw(namet)
+   {
+     return x;
+   }
+
+#if 0
+   /* I have no idea how to define a typemap for 
+      const namet&, where namet is a char[ANY]  array */
+   virtual const namet& vref_namet(const namet& x) throw(namet)
+   {
+     return x;
+   }
+#endif
+
+
+   %test_prim_types_stc(stc_decl, stc);
    %test_prim_types(var_decl, var);
    var_decl(namet, var, namet);
 
@@ -367,13 +465,12 @@ macro(MyInt,              pfx, myint)
 
    int v_check() 
    {
-     %test_prim_types_int(var_check, stc);
+     %test_prim_types_stc(var_check, stc);
      %test_prim_types(var_check, var);
      return 1;
    }
 
-
-   %test_prim_types_int(ovr_decl, ovr);
+   %test_prim_types_ovr(ovr_decl, ovr);
 
  }; 
 

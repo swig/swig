@@ -148,15 +148,33 @@ SPyObj_AsFloat(PyObject *obj) {
   return (float) value;
 }
 
+SWIG_STATIC_INLINE void 
+SPyObj_AsCharPtrAndSize(PyObject *obj, char** cptr, int* len) {
+  if (obj != Py_None) {
+    PyString_AsStringAndSize(obj, cptr, len);
+  } else {
+    *cptr = 0; *len = 0;
+  }
+}
+
 SWIG_STATIC_INLINE char
 SPyObj_AsChar(PyObject *obj) { 
-  char c = (PyString_Check(obj) && PyString_Size(obj) == 1) ?
-    PyString_AsString(obj)[0] 
-    : (char) SPyObj_AsLongInRange(obj, CHAR_MIN, CHAR_MAX);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    PyErr_SetString(PyExc_TypeError, "a char is required");
-  }
+  char c;
+  if (PyString_Check(obj)) {
+    char* cptr; int len;
+    SPyObj_AsCharPtrAndSize(obj, &cptr, &len);
+    if (len == 1) {
+      c = cptr[0];
+    } else {
+      PyErr_SetString(PyExc_OverflowError, "a char is required");
+    }
+  } else {  
+    c = (char) SPyObj_AsLongInRange(obj, CHAR_MIN, CHAR_MAX);
+    if (PyErr_Occurred()) {
+      PyErr_Clear();
+      PyErr_SetString(PyExc_TypeError, "a char is required");
+    }
+  }  
   return c;
 }
 
@@ -165,41 +183,57 @@ SPyObj_FromChar(char c) {
   return PyString_FromStringAndSize(&c,1);
 }
 
-SWIG_STATIC_INLINE PyObject *
-SPyObj_FromCharPtr(const char* cptr) { 
-  return cptr ? PyString_FromString(cptr) : Py_BuildValue((char*)"");
+SWIG_STATIC_INLINE char* 
+SPyObj_AsCharPtr(PyObject *obj) {
+  return (obj != Py_None) ? PyString_AsString(obj) : (char*) 0;
 }
 
-/*
-  these two routines allows char[ANY] with '0' chars inside, ie:
-   
-     const char def_namet[5] = {'h','o',0, 'l','a'};
-   
-  is not truncated to "ho". 
- */
+SWIG_STATIC_INLINE PyObject *
+SPyObj_FromCharPtr(const char* cptr) { 
+  if (cptr) {
+    return PyString_FromString(cptr);
+  } else {
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+}
+
+SWIG_STATIC_INLINE char*
+SPyObj_AsNewCharPtr(PyObject *obj) {
+  char *res = 0;
+  char* cptr; int len;
+  SPyObj_AsCharPtrAndSize(obj, &cptr, &len);
+  if (!PyErr_Occurred() && cptr) {
+    size_t size = (len  && !(cptr[len - 1])) ? len : len + 1; 
+#ifdef __cplusplus
+    res = new char[size];
+#else
+    res = malloc(size);
+#endif
+    if (len) memcpy(res, cptr, len);
+    res[size-1] = 0;
+  }
+  return res;
+}
 
 SWIG_STATIC_INLINE PyObject *
-SPyObj_FromCharArray(const char* carray, int len) {
+SPyObj_FromCharArray(const char* carray, int size) {
   /* checking the effective size backward */
-  for (; len && (carray[len - 1] == 0); --len);
-  
-  return PyString_FromStringAndSize(carray, len);
+  //for (; size && (carray[size - 1] == 0); --size);  
+  return PyString_FromStringAndSize(carray, size);
 }
 
 SWIG_STATIC_INLINE void
 SPyObj_AsCharArray(PyObject *obj, char* carray, int size) { 
-  int len = size;
-  char* buf;
-  PyString_AsStringAndSize(obj, &buf, &len);
+  char* cptr; int len;  
+  SPyObj_AsCharPtrAndSize(obj, &cptr, &len);
   if (!PyErr_Occurred()) {
     if (len > size) {
       PyErr_SetObject(PyExc_TypeError, 
          PyString_FromFormat("a string of maximum size %d is required", size));
     } else {
-      memcpy(carray, buf, len);
-      /* pad the string with zero chars if needed */
-      if (len < size) 
-	memset(carray + len, 0, size - len);
+      if (len) memcpy(carray, cptr, len);
+      if (len < size) memset(carray + len, 0, size - len);
     }
   }
 }

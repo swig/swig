@@ -18,11 +18,15 @@ cvar.var_float = sct_float
 cvar.var_double = sct_double
 cvar.var_char = sct_char
 cvar.var_pchar = sct_pchar
+cvar.var_pcharc = sct_pcharc
 cvar.var_pint = sct_pint
 cvar.var_sizet = sct_sizet
 cvar.var_hello = sct_hello
 cvar.var_myint = sct_myint
 cvar.var_namet = def_namet
+cvar.var_parami = sct_parami
+cvar.var_paramd = sct_paramd
+cvar.var_paramc = sct_paramc
 
 v_check()
 
@@ -46,6 +50,7 @@ if cvar.var_float != cct_float: pyerror("float", cvar.var_float, cct_float)
 if cvar.var_double != cct_double: pyerror("double", cvar.var_double, cct_double)
 if cvar.var_char != cct_char: pyerror("char", cvar.var_char, cct_char)
 if cvar.var_pchar != cct_pchar: pyerror("pchar", cvar.var_pchar, cct_pchar)
+if cvar.var_pcharc != cct_pcharc: pyerror("pchar", cvar.var_pcharc, cct_pcharc)
 if cvar.var_pint != cct_pint: pyerror("pint", cvar.var_pint, cct_pint)
 if cvar.var_sizet != cct_sizet: pyerror("sizet", cvar.var_sizet, cct_sizet)
 if cvar.var_hello != cct_hello: pyerror("hello", cvar.var_hello, cct_hello)
@@ -74,6 +79,7 @@ class PyTest (TestDirector):
   def vval_double(self, x): return self.ident(x)
   def vval_char(self, x): return self.ident(x)
   def vval_pchar(self, x): return self.ident(x)
+  def vval_pcharc(self, x): return self.ident(x)
   def vval_pint(self, x): return self.ident(x)
   def vval_sizet(self, x): return self.ident(x)
   def vval_hello(self, x): return self.ident(x)
@@ -94,6 +100,7 @@ class PyTest (TestDirector):
   def vref_double(self, x): return self.ident(x)
   def vref_char(self, x): return self.ident(x)
   def vref_pchar(self, x): return self.ident(x)
+  def vref_pcharc(self, x): return self.ident(x)
   def vref_pint(self, x): return self.ident(x)
   def vref_sizet(self, x): return self.ident(x)
   def vref_hello(self, x): return self.ident(x)
@@ -125,11 +132,15 @@ p.var_float = p.stc_float
 p.var_double = p.stc_double
 p.var_char = p.stc_char
 p.var_pchar = sct_pchar
+p.var_pcharc = sct_pcharc
 p.var_pint = sct_pint
 p.var_sizet = sct_sizet
 p.var_hello = sct_hello
 p.var_myint = sct_myint
 p.var_namet = def_namet
+p.var_parami = sct_parami
+p.var_paramd = sct_paramd
+p.var_paramc = sct_paramc
 
 p.v_check()
 
@@ -149,11 +160,15 @@ t.var_float = t.stc_float
 t.var_double = t.stc_double
 t.var_char = t.stc_char
 t.var_pchar = sct_pchar
+t.var_pcharc = sct_pcharc
 t.var_pint = sct_pint
 t.var_sizet = sct_sizet
 t.var_hello = sct_hello
 t.var_myint = sct_myint
 t.var_namet = def_namet
+t.var_parami = sct_parami
+t.var_paramd = sct_paramd
+t.var_paramc = sct_paramc
 
 t.v_check()
 
@@ -175,7 +190,7 @@ if t.var_namet != 'holac':
 
 t.var_namet = 'hol'
 
-if t.var_namet != 'hol':
+if t.var_namet != 'hol\0\0':
   print "bad namet", t.var_namet
   raise RuntimeError
 
@@ -190,3 +205,40 @@ if t.mainv(targs,1) != 'hola':
 
 if t.strlen('hile') != 4:
   raise RuntimeError, "bad string typemap"
+
+
+
+cvar.var_char = '\0'
+if cvar.var_char != '\0':
+  raise RuntimeError, "bad char '0' case"
+  
+cvar.var_char = 0
+if cvar.var_char != '\0':
+  raise RuntimeError, "bad char '0' case"
+
+cvar.var_namet = '\0'
+if cvar.var_namet != '\0\0\0\0\0':
+  raise RuntimeError, "bad char '\0' case"
+
+cvar.var_namet = ''
+if cvar.var_namet != '\0\0\0\0\0':
+  raise RuntimeError, "bad char empty case"
+
+cvar.var_pchar = None
+if cvar.var_pchar != None:
+  raise RuntimeError, "bad None case"
+
+cvar.var_pchar = ''
+if cvar.var_pchar != '':
+  raise RuntimeError, "bad char empty case"
+
+cvar.var_pcharc = None
+if cvar.var_pcharc != None:
+  raise RuntimeError, "bad None case"
+
+cvar.var_pcharc = ''
+if cvar.var_pcharc != '':
+  raise RuntimeError, "bad char empty case"
+
+
+
