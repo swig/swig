@@ -2,6 +2,8 @@
 #include <stdio.h>
 %}
 
+%include <pymacros.swg>
+
 /*
   Attribute implementation using JOHN E LENZ ideas.
 
@@ -142,9 +144,9 @@
 //
 
 %define %attribute(Class, type, attr, get, ...)
- %attribute_T(Class, #@Class, SWIG_arg(type), attr, get, __VA_ARGS__)
+ %attribute_T(SWIG_arg(Class), SWIG_Mangle(Class), SWIG_arg(type), attr, get, __VA_ARGS__)
 %enddef
 
 %define %attribute_ref(Class, type, refname, ...)
- %attribute_ref_T(Class, #@Class, SWIG_arg(type), refname, __VA_ARGS__)
+ %attribute_ref_T(SWIG_arg(Class), SWIG_Mangle(Class), SWIG_arg(type), refname, __VA_ARGS__)
 %enddef
