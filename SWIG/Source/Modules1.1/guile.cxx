@@ -240,8 +240,7 @@ GUILE::headers (void)
   // Write out directives and declarations
 
   if (NoInclude) {
-    /* This module imports the helper functions, so declare them `extern' */
-    fprintf(f_header, "#define SWIG_GLOBAL\n");
+    fprintf(f_header, "#define SWIG_NOINCLUDE\n");
   }
   if (Swig_insert_file ("guiledec.swg", f_header) == -1) {
     fprintf (stderr, "SWIG : Fatal error.  ");
@@ -268,7 +267,17 @@ GUILE::headers (void)
 void
 GUILE::initialize (void)
 {
-  fprintf (f_init, "SWIGSTATIC void\nSWIG_init (void)\n{\n");
+  switch (linkage) {
+  case GUILE_LSTYLE_SIMPLE:
+    /* Simple linkage; we have to export the SWIG_init function. The user can
+       rename the function by a #define. */
+    fprintf (f_init, "extern void\nSWIG_init (void)\n{\n");
+    break;
+  default:
+    /* Other linkage; we make the SWIG_init function static */
+    fprintf (f_init, "static void\nSWIG_init (void)\n{\n");
+    break;
+  }
   fprintf (f_init, "\tSWIG_Guile_Init();\n");
 }
 
@@ -307,7 +316,7 @@ GUILE::emit_linkage (String &module_name)
       String mod = "";
       mod << module_name;
       mod.replace ("/", " ");
-      fprintf (f_init, "    scm_register_module_xxx (\"%s\", SWIG_init);\n",
+      fprintf (f_init, "    scm_register_module_xxx (\"%s\", (void *) SWIG_init);\n",
                mod.get());
       fprintf (f_init, "    return SCM_UNSPECIFIED;\n");
     }
@@ -457,7 +466,11 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     }
   }
 
-  f.def << ")\n{";
+  f.def << ")\n{\n";
+
+  // Define the scheme name in C
+
+  f.def << "#define SCHEME_NAME \"" << proc_name << "\"\n";
 
   // Declare return variable and arguments
 
@@ -598,6 +611,11 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   // Wrap things up (in a manner of speaking)
 
   f.code << tab4 << "return gswig_result;\n";
+
+  // Undefine the scheme name
+
+  f.code << "#undef SCHEME_NAME\n";
+
   f.code << "}\n";
 
   f.print (f_wrappers);
@@ -688,7 +706,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
           fprintf (f_wrappers, "\"%s\")) {\n", t->print_mangle());
 	/* Raise exception */
 	fprintf(f_wrappers, "\tscm_wrong_type_arg(\"%s\", "
-		"%d, s_0);\n", proc_name, 1);
+		"%d, s_0);\n", proc_name.get(), 1);
         fprintf (f_wrappers, "\t}\n");
       }
     }
