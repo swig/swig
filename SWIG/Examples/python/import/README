@@ -15,12 +15,7 @@ a separate C++ class.
 
 Each module used %import to refer to another module.  For
 example, the 'foo.i' module uses '%import base.i' to get
-definitions for its base class. These modules do not generate
-any runtime code (-noruntime commandline option).
-
-The runtime.i file is an empty SWIG module which will generate
-the runtime library code for sharing amongst the other modules 
-(uses -runtime commandline option). 
+definitions for its base class.
 
 If everything is okay, all of the modules will load correctly and
 type checking will work correctly.
@@ -28,8 +23,6 @@ type checking will work correctly.
 Unix:
 -----
 - Run make
-- Make sure your LD_LIBRARY_PATH includes the current directory so that
-  lib_runtime.so can be loaded.
 - Run the test as described above
 
 Windows:
