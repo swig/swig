@@ -134,8 +134,7 @@ class TypePass : public Dispatcher {
 			if (bcls) {
 			    if (Strcmp(nodeType(bcls),"class") != 0) {
 				/* Not a class.   The symbol could be a typedef. */
-				String *storage = Getattr(bcls,"storage");
-				if (storage && (Strcmp(storage,"typedef") == 0)) {
+				if (checkAttribute(bcls,"storage","typedef")) {
 				    SwigType *decl = Getattr(bcls,"decl");
 				    if (!decl || !(Len(decl))) {
 					sname = Getattr(bcls,"type");
@@ -521,13 +520,25 @@ public:
 	}
 	normalize_parms(Getattr(n,"parms"));
 
-	String *storage = Getattr(n,"storage");
-	if (storage && Strcmp(storage,"typedef") == 0) {
+	if (checkAttribute(n,"storage","typedef")) {
 	    String   *name = Getattr(n,"name");
 	    ty   = Getattr(n,"type");
 	    decl = Getattr(n,"decl");
-      
 	    SwigType *t = Copy(ty);
+	    {
+	      /* If the typename is qualified, make sure the scopename is fully qualified when making a typedef */
+	      if (Swig_scopename_check(t)) {
+		String *base, *prefix, *qprefix;
+		base = Swig_scopename_last(t);
+		prefix = Swig_scopename_prefix(t);
+		qprefix = SwigType_typedef_qualified(prefix);
+		Delete(t);
+		t = NewStringf("%s::%s", qprefix,base);
+		Delete(base);
+		Delete(prefix);
+		Delete(qprefix);
+	      }
+	    }
 	    SwigType_push(t,decl);
 	    if (CPlusPlus) {
 	      Replaceall(t,"struct ","");
@@ -547,35 +558,6 @@ public:
 	}
 
 	clean_overloaded(n);
-#if 0
-	/* If overloaded, removed templates */
-	{
-	  Node *nn = Getattr(n,"sym:overloaded");
-	  Node *first = 0;
-	  while (nn) {
-	    if (Strcmp(nodeType(nn),"template") != 0) {
-	      if (!first) first = nn;
-	      Setattr(nn,"sym:overloaded",first);
-	    } else {
-	      /* Is a template */
-	      Node *ps = Getattr(nn,"sym:previousSibling");
-	      Node *ns = Getattr(nn,"sym:nextSibling");
-	      if (ps) {
-		Setattr(ps,"sym:nextSibling",ns);
-	      } 
-	      if (ns) {
-		Setattr(ns,"sym:previousSibling",ps);
-	      }
-	    }
-	    nn = Getattr(nn,"sym:nextSibling");
-	  }
-	  if (!first) {
-	    Delattr(n,"sym:overloaded");
-	  }
-
-	}
-#endif
-
 	return SWIG_OK;
     }
 

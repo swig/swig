@@ -135,14 +135,17 @@ int SwigType_typedef(SwigType *type, String_or_char *name) {
     return 0;
   }
   
-  /* Check if 'type' is already a scope */
-  /*  {
+  /* Check if 'type' is already a scope.  If so, we create an alias in the type
+     system for it.  This is needed to make strange nested scoping problems work
+     correctly.  */
+  {
     Typetab *t = SwigType_find_scope(current_scope,type);
     if (t) {
-      Printf(stdout,"'%s' --> %x\n", type, t);
+      SwigType_new_scope(name);
+      SwigType_inherit_scope(t);
+      SwigType_pop_scope();
     }
   }
-  */
   Setattr(current_typetab,name,type);
   return 0;
 }
@@ -300,6 +303,15 @@ void SwigType_print_scope(Typetab *t) {
     ttab = Getattr(t,"typetab");
     
     Printf(stdout,"Type scope '%s' (%x)\n", Getattr(t,"qname"), t);
+    {
+      List *inherit = Getattr(t,"inherit");
+      if (inherit) {
+	Typetab *it;
+	for (it = Firstitem(inherit); it; it = Nextitem(inherit)) {
+	  Printf(stdout,"    Inherits from '%s' (%x)\n", Getattr(it,"qname"), it);
+	}
+      }
+    }
     Printf(stdout,"-------------------------------------------------------------\n");
     for (key = Firstkey(ttab); key; key = Nextkey(ttab)) {
       Printf(stdout,"%40s -> %s\n", key, Getattr(ttab,key));
@@ -425,7 +437,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
       if (Swig_scopename_check(base)) {
 	/* A qualified name. */
 	nameprefix = Swig_scopename_prefix(base);
-	/* Printf(stdout,"nameprefix = '%s'\n", nameprefix); */
+	/*	Printf(stdout,"nameprefix = '%s'\n", nameprefix);*/
 	if (nameprefix) {
 	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
 	  s = SwigType_find_scope(s,nameprefix);
