@@ -768,8 +768,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 }
 
 // -----------------------------------------------------------------------
-// TCL8::link_variable(char *name, char *iname, DataType *t,
-//                           int ex)
+// TCL8::link_variable(char *name, char *iname, DataType *t, int ex)
 //
 // Create a TCL link to a variable.
 // -----------------------------------------------------------------------
@@ -832,9 +831,18 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
 	set.code << tab4 << "*(addr) = " << t->print_cast() << "atof(value);\n";
 	break;
       case T_USER:
-	// User defined type.  We've got to extract it as a pointer and perform a copy.
-	
-	fprintf(stderr,"User defined type\n");
+	// User defined type.  We return it as a pointer
+	t->is_pointer++;
+	t->remember();
+	set.code << tab4 << "{\n"
+		 << tab8 << "void *ptr;\n"
+		 << tab8 << "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE" << t->print_mangle() << ") != TCL_OK) {\n"
+		 << tab8 << tab4 << "return \"Type Error\";\n"
+		 << tab8 << "}\n"
+		 << tab8 << "*(addr) = *(" << t->print_cast() << " ptr);\n"
+		 << tab4 << "}\n";
+
+	t->is_pointer--;
 	break;
       default:
 	fprintf(stderr,"Unknown type!\n");
@@ -842,8 +850,11 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       }
     } else {
       if ((t->is_pointer == 1) && (t->type == T_CHAR)) {
+	if (CPlusPlus) {
+	}
 	/* A character string */
-	
+      } else {
+	/* A Pointer */
       }
     }
     set.code << tab4 << "return NULL;\n"
@@ -882,6 +893,16 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
 	get.code << tab4 << "temp[0] = *addr; temp[1] = 0;\n"
 		 << tab4 << "Tcl_SetVar2(interp,name1,name2,temp,flags);\n";
 	break;
+
+      case T_USER:
+	get.add_local("Tcl_Obj *","value");
+	t->is_pointer++;
+	get.code << tab4 << "value = SWIG_NewPointerObj(addr, SWIGTYPE" << t->print_mangle() << ");\n"
+		 << tab4 << "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n"
+		 << tab4 << "Tcl_DecrRefCount(value);\n";
+	t->is_pointer--;
+	break;
+
       default:
 	break;
       }
