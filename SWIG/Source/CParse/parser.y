@@ -1933,7 +1933,10 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			
                         /* Set up inheritance in symbol table */
 			{
+			  Symtab  *csyms;
 			  List *baselist = Getattr($$,"baselist");
+			  csyms = Swig_symbol_current();
+			  Swig_symbol_setscope(Getattr($$,"symtab"));
 			  if (baselist) {
 			    List *bases = make_inherit_list(Getattr($$,"name"),baselist);
 			    if (bases) {
@@ -1946,6 +1949,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			      }
 			    }
 			  }
+			  Swig_symbol_setscope(csyms);
 			}
 
 			/* Merge in addmethods for this class */
