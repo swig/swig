@@ -50,6 +50,7 @@ extern void start_inline(char *, int);
 extern void generate_all(Node *);
 
 static Node    *top = 0;      /* Top of the generated parse tree */
+static int      unnamed = 0;  /* Unnamed datatype counter */
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -122,18 +123,21 @@ static char *make_name(char *name) {
   return name;
 }
 
+/* Generate an unnamed identifier */
+static String *make_unnamed() {
+  unnamed++;
+  return NewStringf("$unnamed%d$",unnamed);
+}
+
 /* Add declaration list to symbol table */
 static void add_symbols(Node *n) {
   while (n) {
+    if (Getattr(n,"$symname")) {
+      n = Getnext(n);
+      continue;
+    }
     char *symname = make_name(GetChar(n,"name"));
     String *storage = Getstorage(n);
-    if (Cmp(storage,"typedef") == 0) {
-      if (Cmp(symname,Getname(n)) == 0) {
-	/* Don't allow typedef to myself. */
-	symname = 0;
-      }
-    }
-
     if (!symname) {
       n = Getnext(n);
       continue;
@@ -150,9 +154,26 @@ static void add_symbols(Node *n) {
 	Printf(e," (Renamed from '%s')", Getname(c));
       }
       Printf(stderr,"%s\n",e);
-      /*      Seterror(n,e); */
+      Seterror(n,e);
     }
     n = Getnext(n);
+  }
+}
+
+/* Add a declaration to the tag-space */
+static void add_tag(Node *n) {
+  char *symname = make_name(GetChar(n,"name"));
+  if (!symname) {
+    symname = GetChar(n,"unnamed");
+  }
+  if (!symname) return;
+  Node *c = Swig_symbol_add_tag(symname, n);
+  if (c != n) {
+    String *e = NewString("");
+    Printf(e,"%s:%d. '%s' redeclared.\n", Getfile(n),Getline(n),symname);
+    Printf(e,"%s:%d. Previous definition of tag '%s'\n", Getfile(c),Getline(c), symname);
+    Printf(stderr,"%s",e);
+    Seterror(n,e);
   }
 }
 
@@ -1002,33 +1023,38 @@ initializer   : def_args { $$ = $1; }
 
 c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
                   $$ = new_node("enum");
-
-		  /* Setname($$,NewStringf("enum %s",$3)); */
 		  Setname($$,$3);
-		  
 		  append_child($$,$5);
-		  add_symbols($$);
-		  add_symbols($5);
+		  add_tag($$);           /* Add to tag space */
+		  add_symbols($5);       /* Add enum values to id space */
 	       }
 
                | storage_class ENUM ename LBRACE enumlist RBRACE declarator c_decl_tail {
 		 Node *n;
+		 SwigType *ty;
 		 $$ = new_node("enum");
-		 /*		 Setname($$,NewStringf("enum %s",$3));*/
-		 Setname($$,$3);
+		 String   *unnamed = 0;
+		 if ($3) {
+		   Setname($$,$3);
+		   ty = NewStringf("enum %s", $3);
+		 } else {
+		   unnamed = make_unnamed();
+		   ty = 0;
+		 }
 		 append_child($$,$5);
 		 n = new_node("cdecl");
-		 SwigType *ty = NewStringf("enum %s", $3);
 		 Settype(n,ty);
 		 Setname(n,$7.id);
 		 Setattr(n,"storage",$1);
 		 Setdecl(n,$7.type);
 		 Setparms(n,$7.parms);
+		 Setattr(n,"unnamed",unnamed);
 		 if ($8) {
 		   Setnext(n,$8);
 		   Node *p = $8;
 		   while (p) {
 		     Settype(p,ty);
+		     Setattr(p,"unnamed",unnamed);
 		     Setattr(p,"storage",$1);
 		     p = Getnext(p);
 		   }
@@ -1036,8 +1062,8 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		   if (Len(CCode)) Setattr(n,"code",Copy(CCode));
 		 }
 		 Setnext($$,n);
-		 add_symbols($$);
-		 add_symbols($5);
+		 add_tag($$);           /* Add enum to tag space */
+		 add_symbols($5);       /* Add to id space */
 	       }
                ;
 
@@ -1068,11 +1094,6 @@ cpp_class_decl  :
                $$ = new_node("class");
 	       Setline($$,start_line);
 	       Setname($$,$3);
-		 /*	       if (CPlusPlus) 
-		 Setname($$,$3);
-	       else
-	       Setname($$,NewStringf("%s %s",$2,$3)); */
-
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"bases",$4);
 	       Swig_symbol_setscopename($3);
@@ -1109,7 +1130,9 @@ cpp_class_decl  :
 		 }
 		 append_child($$,dump_nested(name));
 	       }
-	       add_symbols($$);
+	       add_tag($$);
+	       if ($9)
+		 add_symbols($9);
 	     }
 
 /* An unnamed struct, possibly with a typedef */
@@ -1124,15 +1147,17 @@ cpp_class_decl  :
 	       Swig_symbol_newscope();
 	       start_line = line_number;
              } cpp_members RBRACE declarator c_decl_tail {
+	       String *unnamed = make_unnamed();
 	       $$ = new_node("class");
 	       Setline($$,start_line);
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"storage",$1);
+	       Setattr($$,"unnamed",unnamed);
 	       append_child($$,$5);
-	       /*
 	       Node *n = new_node("cdecl");
 	       Setname(n,$7.id);
-	       Settype(n,$2);
+	       Setattr(n,"unnamed",unnamed);
+	       Settype(n,unnamed);
 	       Setdecl(n,$7.type);
 	       Setparms(n,$7.parms);
 	       Setattr(n,"storage",$1);
@@ -1143,20 +1168,18 @@ cpp_class_decl  :
 		 Node *p = $8;
 		 while (p) {
 		   pp = p;
-		   Settype(p,$2);
+		   Setattr(p,"unnamed",unnamed);
+		   Settype(p,unnamed);
 		   Setattr(p,"storage",$1);
 		   p = Getnext(p);
 		 }
 	       }
-	       */
 	       {
-
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
-
 		 char *name = 0;
-		 if (strcmp($1,"typedef") == 0) {
+		 if ($1 && (strcmp($1,"typedef") == 0)) {
 		   if (!Len($7.type)) {	
-	     name = $7.id;
+		     name = $7.id;
 		     Setattr($$,"tdname",name);
 		     if (!class_rename) class_rename = name;
 		     Swig_symbol_setscopename(name);
@@ -1171,6 +1194,7 @@ cpp_class_decl  :
 	       if (class_rename) {
 		 yyrename = NewString(class_rename);
 	       }
+	       add_tag($$);
 	       add_symbols($$);
               }
              ;
