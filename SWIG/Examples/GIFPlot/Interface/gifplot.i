@@ -264,9 +264,9 @@ typedef struct Plot3D {
 /* These directives create constants of a specific type.  They
    do not correspond to any C variable or declared constant in the
    header file */
-%constant(PixMap *) SQUARE = &PixMap_SQUARE;
-%constant(PixMap *) TRIANGLE = &PixMap_TRIANGLE;
-%constant(PixMap *) CROSS = &PixMap_CROSS;
+%constant PixMap * SQUARE = &PixMap_SQUARE;
+%constant PixMap * TRIANGLE = &PixMap_TRIANGLE;
+%constant PixMap * CROSS = &PixMap_CROSS;
 #endif
 
 %enabledoc
