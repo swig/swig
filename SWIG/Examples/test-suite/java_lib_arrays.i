@@ -1,6 +1,8 @@
 /* Testcase for the Java array typemaps which are not used by default. */
 %module java_lib_arrays
 
+%include "enumtypeunsafe.swg"
+
 /* Use the Java library typemaps */
 %include "arrays_java.i"
 

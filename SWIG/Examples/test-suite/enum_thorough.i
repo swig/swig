@@ -52,7 +52,7 @@ const enum colour colourTest4(const enum colour e) { return e; }
 colour myColour;
 
 struct SpeedClass {
-  enum speed { slow=10, medium=20, fast=30 };
+  enum speed { slow=10, medium=20, fast=30, lightning };
   typedef enum speed speedtd1;
 
   speed                         speedTest1(speed s) { return s; }
@@ -64,7 +64,7 @@ struct SpeedClass {
 
   const colour myColour2;
   speedtd1 mySpeedtd1;
-  SpeedClass() : myColour2(red) { }
+  SpeedClass() : myColour2(red), mySpeedtd1(slow) { }
 };
 
 SpeedClass::speed              speedTest1(SpeedClass::speed s) { return s; }
@@ -223,6 +223,7 @@ TClass<int>::scientiststd3                  scientistsNameSpaceTestL(TClass<int>
 %rename(doublenamerenamed) doublename;
 %rename(simplerenamed) simple;
 %rename(singlenamerenamed) singlename;
+%rename(bang) OldNameStruct::kerboom;
 
 %inline %{
 enum oldname { argh };
@@ -231,7 +232,7 @@ oldname                             renameTest1(oldname e) { return e; }
 oldnametd                           renameTest2(oldnametd e) { return e; }
 
 struct OldNameStruct {
-  enum enumeration {whizz, bang, pop};
+  enum enumeration {whizz, kerboom, pop};
   enumeration                       renameTest1(enumeration e) { return e; }
   OldNameStruct::enumeration        renameTest2(OldNameStruct::enumeration e) { return e; }
 
@@ -449,6 +450,14 @@ struct Obscure {
   typedef enum EmptyTrail {,};
   typedef enum {} AlsoEmpty;
   typedef enum {,} AlsoEmptyTrail;
+};
+
+// Unnamed enum instance
+enum { globalinstance1, globalinstance2 } GlobalInstance;
+
+struct Instances {
+  enum { memberinstance1, memberinstance2, memberinstance3 } MemberInstance;
+  Instances() : MemberInstance(memberinstance3) {}
 };
 
 %}
