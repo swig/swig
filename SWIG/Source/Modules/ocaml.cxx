@@ -710,7 +710,7 @@ public:
 	Printv(f->code, 
 	       tab4, "swig_result = caml_list_append(swig_result,rv);\n", NIL);
 	if( isOverloaded )
-	    Printv(f->code, "free(argv);\n");
+	    Printv(f->code, "free(argv);\n", NIL);
 	Printv(f->code,
 	       tab4, "CAMLreturn(swig_result);\n", NIL );
 	Printv(f->code, "}\n",NIL);
