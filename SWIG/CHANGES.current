@@ -1,5 +1,33 @@
 Version 1.3.15 (In progress)
 ================================
+08/26/2002: beazley
+            Two new command line options for printing dependencies.
+            'swig -M' lists all file dependencies.  'swig -MM' lists
+            dependencies, but excludes files in the SWIG library. 
+            Example:
+
+               % swig -M -python example.i
+               example_wrap.cxx: \
+                /u0/beazley/Projects/lib/swig1.3/swig.swg \
+                /u0/beazley/Projects/lib/swig1.3/python/python.swg \
+                example.i \
+                example.h 
+
+               % swig -MM -python example.i
+               example_wrap.cxx: \
+                example.i \
+                example.h 
+
+            *** NEW FEATURE ***
+
+08/26/2002: beazley
+            Fixed [ 597599 ] union in class: incorrect scope.
+            Reported by Art Yerkes.
+
+08/26/2002: beazley
+            Fixed [ 600132 ] Default argument with namespace. 
+            Reported by Shibukawa Yoshiki.
+ 
 08/24/2002: beazley
             Automatic C++ exception handling enabled for all language modules.    This is
             pretty simple.  If you have a class like this:

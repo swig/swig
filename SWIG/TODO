@@ -74,7 +74,7 @@ defer  ready to go.  The primary obstacle lies in the target language
 
 ****   Typemap environments.  Stay tuned.
 
-****   Implement option to print dependencies.
+[DONE] Implement option to print dependencies.
 
 ****   Implement "throw" typemaps for all of the target languages.
 
