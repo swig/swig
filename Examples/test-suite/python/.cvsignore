@@ -424,3 +424,4 @@ clientdata_prop_b.py
 imports_a.py
 imports_b.py
 template_typedef_import.py
+ordering.py typemap_variables.py
