@@ -1866,7 +1866,7 @@ PHP4::typedefHandler(Node *n) {
 }
 
 void 
-PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name = NULL) {
+PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name) {
 	char arg[256];
 	String *nativecall = NewString("");
 	String *user_arrays = NewString("");
