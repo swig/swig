@@ -1302,7 +1302,7 @@ PHP4::emit_shadow_classdef() {
 		" var $_cMemOwn;\n",
 		"\n",
 		" function getCPtr() {\n",
-		"    return _cPtr;\n",
+		"    return $this->_cPtr;\n",
 		" }\n",
 		"\n", 0);
 
@@ -1434,6 +1434,8 @@ int PHP4::classHandler(Node *n) {
 		free(shadow_classname);
 		shadow_classname = NULL;
 
+		Printf(f_oinit, "CG(active_class_entry) = NULL;\n");
+
 		Delete(shadow_enum_code); shadow_enum_code = NULL;
 		Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
 		Delete(this_shadow_extra_code); this_shadow_extra_code = NULL;
@@ -1454,12 +1456,11 @@ PHP4::memberfunctionHandler(Node *n) {
 	member_func = 0;
 
 	if(shadow) {
-		/* Add function name and script name to hash in overload
-		 * function.
-		Printf(php, "%s();\n", name);
-		 */
+		char *realname = iname ? iname : name;
+		String *php_function_name = Swig_name_member(shadow_classname, realname);
 
-    	Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name));
+		cpp_func(iname, t, l, php_function_name);
+		/*
 
 	Printf(f_oinit, "{\nzend_function function;\n");
 	Printf(f_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
@@ -1468,8 +1469,9 @@ PHP4::memberfunctionHandler(Node *n) {
 	Printf(f_oinit, "internal_function->arg_types = NULL;\n");
 	Printf(f_oinit, "internal_function->function_name = estrdup(\"%s\");\n", Swig_name_wrapper(iname));
 	Printf(f_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%s\", %d, &function, sizeof(zend_function), NULL);\n}\n", Swig_name_wrapper(name), strlen(Char(Swig_name_wrapper(name)))+1);
-	}
 
+	*/
+	}
 }
 
 int
@@ -1582,6 +1584,7 @@ int PHP4::constructorHandler(Node *n) {
 
 	if(shadow) {
 		String *nativecall = NewString("");
+		String *php_function_name = NewString(iname);
 		char arg[256];
 
 		 Printf(f_oinit, "{\nzend_function function;\n");
@@ -1589,15 +1592,15 @@ int PHP4::constructorHandler(Node *n) {
 		 Printf(f_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
 		 Printf(f_oinit, "internal_function->handler = _wrap_new_%s;\n", iname);
 		 Printf(f_oinit, "internal_function->arg_types = NULL;\n");
-		 Printf(f_oinit, "internal_function->function_name = estrdup(\"_wrap_new_%s\");\n", iname);
-		 Printf(f_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"_wrap_new_%s\", %d, &function, sizeof(zend_function), NULL);\n}\n", iname, strlen(iname)+11);
+		 Printf(f_oinit, "internal_function->function_name = estrdup(\"new_%(lower)s\");\n", php_function_name);
+		 Printf(f_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"new_%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+5);
 		Printf(shadow_code, " function %s(", shadow_classname);
 
 		Printv(nativecall, "$superconstructorcall", 0); // Super call for filling in later.
 		if(iname != NULL)
-			Printv(nativecall, tab4, "$_cPtr = ", package, "::", Swig_name_construct(iname), "(", 0);
+			Printv(nativecall, tab4, "$this->_cPtr = ", package, "::", Swig_name_construct(iname), "(", 0);
 		else
-			Printv(nativecall, tab4, "$_cPtr = ", module, "::", Swig_name_construct(shadow_classname), "(", 0);
+			Printv(nativecall, tab4, "$this->_cPtr = ", module, "::", Swig_name_construct(shadow_classname), "(", 0);
 
 		int pcount = ParmList_len(l);
 		if(pcount == 0) // must have default constructor
@@ -1637,7 +1640,7 @@ int PHP4::constructorHandler(Node *n) {
 		}
 
 		Printf(shadow_code, ") {\n");
-		Printv(nativecall, ");\n", tab4, "$_cMemOwn = true;\n", 0);
+		Printv(nativecall, ");\n", tab4, "$this->_cMemOwn = true;\n", 0);
 
 		Printf(shadow_code, "%s", nativecall);
 		Printf(shadow_code, "  }\n\n");
@@ -1657,9 +1660,9 @@ int PHP4::destructorHandler(Node *n) {
 	  }
 
 	  Printf(shadow_code, " function _destroy() {\n");
-	  Printf(shadow_code, "   if(_cPtr!=0 && _cMemOwn) {\n");
-	  Printf(shadow_code, "     %s::%s(_cPtr);\n", package, Swig_name_destroy(shadow_classname));
-	  Printf(shadow_code, "     _cPtr = 0;\n");
+	  Printf(shadow_code, "   if($this->_cPtr!=0 && $this->_cMemOwn) {\n");
+	  Printf(shadow_code, "     %s::%s($this->_cPtr);\n", package, Swig_name_destroy(shadow_classname));
+	  Printf(shadow_code, "     $this->_cPtr = 0;\n");
 	  Printf(shadow_code, "   }\n");
 	  Printf(shadow_code, " }\n\n");
 	}
@@ -1691,6 +1694,7 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	char arg[256];
 	String *nativecall = NewString("");
 	String *user_arrays = NewString("");
+	String *lower;
 
 	if(!shadow) return;
 
@@ -1700,13 +1704,14 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	  }
 	}
 
+	 
 	 Printf(f_oinit, "{\nzend_function function;\n");
 	 Printf(f_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
 	 Printf(f_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
 	 Printf(f_oinit, "internal_function->handler = %s;\n", Swig_name_wrapper(php_function_name));
 	 Printf(f_oinit, "internal_function->arg_types = NULL;\n");
-	 Printf(f_oinit, "internal_function->function_name = estrdup(\"%s\");\n", Swig_name_wrapper(php_function_name));
-	 Printf(f_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%s\", %d, &function, sizeof(zend_function), NULL);\n}\n", Swig_name_wrapper(php_function_name), strlen(Char(Swig_name_wrapper(php_function_name)))+1);
+	 Printf(f_oinit, "internal_function->function_name = estrdup(\"%(lower)s\");\n", php_function_name);
+	 Printf(f_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+1);
 
 	Printf(shadow_code, "function %s(", iname);
 
@@ -1719,7 +1724,7 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	}
 
 	Printv(nativecall, package, "::", php_function_name, "(", 0);
-	Printv(nativecall, "$_cPtr", 0);
+	Printv(nativecall, "$this->_cPtr", 0);
 
 	int pcount = ParmList_len(l);
 
