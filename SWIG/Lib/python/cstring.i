@@ -267,7 +267,7 @@
  */
 
 %define %cstring_output_allocate_size(TYPEMAP, SIZE, RELEASE)
-%typemap(ignore) (TYPEMAP, SIZE) ($*1_ltype temp = 0, $*2_ltype tempn) {
+%typemap(in,numinputs=0) (TYPEMAP, SIZE) ($*1_ltype temp = 0, $*2_ltype tempn) {
    $1 = &temp;
    $2 = &tempn;
 }
