@@ -1,6 +1,15 @@
 Version 1.3.25 (In progress)
 ============================
 
+03/29/2005: wuzzeb (John Lenz)
+	    [Chicken]
+	    + Reallow older versions of chicken (1.40 to 1.89) by passing -nocollection
+	      argument to SWIG
+	    + %import now works correctly with tinyclos.  (declare (uses ...)) will be
+	      exported correctly.
+	    + TinyCLOS proxy classes now work correctly with overloaded functions
+	      and constructors.
+
 03/29/2005: wsfulton
             [Java] Patch from Scott Michel for directorout typemaps. Java directors
             require the directorout typemaps like the other languages now. The new
