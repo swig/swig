@@ -1234,7 +1234,8 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     /* Attach kwargs */
     kw = Getattr(tm,"kwargs");
     while (kw) {
-      Setattr(firstp,tmop_name(Getattr(kw,"name")), Getattr(kw,"value"));
+      sprintf(temp,"%s:%s",op,Char(Getattr(kw,"name")));
+      Setattr(firstp,tmop_name(temp), Getattr(kw,"value"));
       kw = nextSibling(kw);
     }
   }
