@@ -18,7 +18,7 @@ using it in a way that wasn't intended.
 
 <p>
 This chapter describes SWIG's support for software contracts.  In the context
-of SWIG, a contract can be viewed as a constraint that is attached
+of SWIG, a contract can be viewed as a runtime constraint that is attached
 to a declaration.  For example, you can easily attach argument checking rules,
 check the output values of a function and more. 
 When one of the rules is violated by a script, a runtime exception is 
@@ -68,12 +68,80 @@ resulting module.  For example:
 >>> example.sqrt(-2)
 Traceback (most recent call last):
   File "<stdin>", line 1, in ?
-RuntimeError: Require assertion violation, in function sqrt( arg1>=0)
+RuntimeError: Contract violation: require: (arg1>=0)
 >>>
 </pre>
 </blockquote>
 
 <h2>%contract and classes</h2>
+
+The <tt>%contract</tt> directive can also be applied to class methods and constructors.  For example:
+
+<blockquote>
+<pre>
+%contract Foo::bar(int x, int y) {
+require:
+   x > 0;
+ensure:
+   bar > 0;
+}
+
+%contract Foo::Foo(int a) {
+require:
+   a > 0;
+}
+
+class Foo {
+public:
+    Foo(int);
+    int bar(int, int);
+};
+</pre>
+</blockquote>
+
+The way in which <tt>%contract</tt> is applied is exactly the same as the <tt>%feature</tt> directive. 
+Thus, any contract that you specified for a base class will also be attached to inherited methods.  For example:
+
+<blockquote>
+<pre>
+class Spam : public Foo {
+public:
+   int bar(int,int);    // Gets contract defined for Foo::bar(int,int)
+};
+</pre>
+</blockquote>
+
+In addition to this, separate contracts can be applied to both the base class and a derived class.  For example:
+
+<blockquote>
+<pre>
+%contract Foo::bar(int x, int) {
+require:
+    x > 0;
+}
+
+%contract Spam::bar(int, int y) {
+require:
+    y > 0;
+}
+
+class Foo {
+public:
+    int bar(int,int);   // Gets Foo::bar contract.
+};
+
+class Spam : public Foo {
+public:
+     int bar(int,int);   // Gets Foo::bar and Spam::bar contract
+};
+</pre>
+</blockquote>
+
+When more than one contract is applied, the conditions specified in a
+"require:" section are combined together using a logical-AND operation.
+In other words conditions specified for the base class and conditions
+specified for the derived class all must hold.  In the above example,
+this means that both the arguments to <tt>Spam::bar</tt> must be positive.
 
 <h2>Constant aggregation and %aggregate_check</h2>
 
