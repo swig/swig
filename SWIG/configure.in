@@ -822,7 +822,6 @@ configure_substituted_files=`echo	\
     Examples/Makefile			\
     Examples/C++/test_conf.py		\
     Examples/guile/Makefile		\
-    Examples/guile/test-suite/Makefile	\
     Examples/GIFPlot/Makefile	\
     Examples/GIFPlot/Lib/Makefile	\
     Makefile				\

@@ -117,7 +117,7 @@ TCL_EXAMPLES = class constants enum funcptr pointer reference simple value varia
 PERL5_EXAMPLES = class constants funcptr pointer reference simple value variables
 PYTHON_EXAMPLES = class constants enum funcptr pointer reference shadow simple value variables 
 JAVA_EXAMPLES = class constants enum native reference simple typemap
-GUILE_EXAMPLES = constants matrix simple port test-suite
+GUILE_EXAMPLES = constants matrix simple port 
 MZSCHEME_EXAMPLES = simple
 RUBY_EXAMPLES = class constants enum funcptr pointer reference simple value variables
 
