@@ -1089,6 +1089,7 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%apply") == 0) return(APPLY);
 	  if (strcmp(yytext,"%clear") == 0) return(CLEAR);
 	  if (strcmp(yytext,"%doconly") == 0) return(DOCONLY);
+	  if (strcmp(yytext,"%types") == 0) return(TYPES);
 	}
 	  // Have an unknown identifier, as a last step, we'll
 	// do a typedef lookup on it.
