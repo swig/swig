@@ -67,6 +67,12 @@ extern String  *Swig_read_file(FILE *f);
 extern String  *Swig_include(const String_or_char *name);
 extern int      Swig_insert_file(const String_or_char *name, File *outfile);
 extern int      Swig_bytes_read();
+extern void     Swig_set_config_file(const String_or_char *filename);
+extern String  *Swig_get_config_file(void);
+extern void     Swig_swiglib_set(const String_or_char *);
+extern String  *Swig_swiglib_get();
+extern void     Swig_register_filebyname(const String_or_char *filename, File *outfile);
+extern File    *Swig_filebyname(const String_or_char *filename);
 
 #ifdef MACSWIG
 #  define SWIG_FILE_DELIMETER  ":"

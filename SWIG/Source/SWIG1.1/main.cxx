@@ -47,8 +47,6 @@ extern "C" {
     int       Status;
     Language  *lang;                            // Language method
     int        CPlusPlus = 0;
-    int        ObjC = 0;
-    int        ObjCClass = 0;
     int        AddMethods = 0;                  // AddMethods flag
     int        NewObject = 0;                   // NewObject flag
     int        Inline = 0;                      // Inline mode
@@ -74,7 +72,6 @@ static char *usage = (char*)"\
      -l<ifile>       - Include SWIG library file.\n\
      -make_default   - Create default constructors/destructors\n\
      -o outfile      - Set name of the output file.\n\
-     -objc           - Enable Objective C processing\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
      -version        - Print SWIG version number\n\
@@ -146,7 +143,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     includecount = 0;
   extern  int check_suffix(char *);
   extern  void scanner_file(DOHFile *);
-  extern void parser_init(void);
   DOH    *libfiles = 0;
 
   /* Initialize the SWIG core */
@@ -217,9 +213,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	      CPlusPlus=1;
 	      Preprocessor_define((DOH *) "__cplusplus 1", 0);
 	      Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-objc") == 0) {
-	      ObjC = 1;
-              Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c") == 0) {
 	      NoInclude=1;
 	      Preprocessor_define((DOH *) "SWIG_NOINCLUDE 1", 0);
@@ -397,6 +390,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	SWIG_exit (EXIT_FAILURE);
       }
       fclose(df);
+      Printf(fs,"%%include \"swig.swg\"\n");
       if (lang_config) {
 	Printf(fs,"\n%%include \"%s\"\n", lang_config);
       }
@@ -424,6 +418,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     f_wrappers = NewString("");
     f_init = NewString("");
 
+    /* Register files with the file handler */
+    Swig_register_filebyname("header",f_header);
+    Swig_register_filebyname("wrapper", f_wrappers);
+    Swig_register_filebyname("init",f_init);
+    Swig_register_filebyname("runtime", NewFileFromFile(f_runtime));
+    Swig_register_filebyname("null", NewString(""));
+
     // Set up the typemap for handling new return strings
     {
       if (CPlusPlus)
@@ -432,25 +433,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	Swig_typemap_register((char*)"newfree",(char*)"p.char",(char*)"",(char*)"free($source);\n",0);
     }
 
-    // If in Objective-C mode.  Load in a configuration file
-
-    if (ObjC) {
-      // Add the 'id' object type as a void *
-      /*      DataType *t = new DataType(T_VOID);
-      t->is_pointer = 1;
-      t->implicit_ptr = 0;
-      t->typedef_add("id");
-      delete t;
-      */
-    }
-
     // Pass control over to the specific language interpreter
 
     if (Verbose) {
       fprintf (stdout, "Starting language-specific parse...\n");
       fflush (stdout);
     }
-    parser_init();
     lang->parse();
     if (Verbose) {
       fprintf (stdout, "Finished language-specific parse.\n");
@@ -486,25 +474,3 @@ void SWIG_exit(int exit_code) {
   exit (exit_code);
 }
 
-
-// --------------------------------------------------------------------------
-// swig_pragma(char *name, char *value)
-//
-// Handle pragma directives.  Not many supported right now
-// --------------------------------------------------------------------------
-
-void swig_pragma(char *name, char *value) {
-
-  if (strcmp(name,"make_default") == 0) {
-    GenerateDefault = 1;
-  }
-  if (strcmp(name,"no_default") == 0) {
-    GenerateDefault = 0;
-  }
-  if (strcmp(name,"objc_new") == 0) {
-    objc_construct = Swig_copy_string(value);
-  }
-  if (strcmp(name,"objc_delete") == 0) {
-    objc_destruct = Swig_copy_string(value);
-  }
-}

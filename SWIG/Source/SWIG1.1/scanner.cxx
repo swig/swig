@@ -15,7 +15,6 @@
 static char cvsroot[] = "$Header$";
 
 #include "internal.h"
-#include "parser_internal.h"
 #include "parser.h"
 #include <string.h>
 #include <ctype.h>
@@ -1081,6 +1080,7 @@ extern "C" int yylex(void) {
 	  }
 	  
 	  // Objective-C keywords
+#ifdef OBJECTIVEC
 	  if ((ObjC) && (yytext[0] == '@')) {
 	    if (strcmp(yytext,"@interface") == 0) return (OC_INTERFACE);
 	    if (strcmp(yytext,"@end") == 0) return (OC_END);
@@ -1091,6 +1091,7 @@ extern "C" int yylex(void) {
 	    if (strcmp(yytext,"@implementation") == 0) return(OC_IMPLEMENT);
 	    if (strcmp(yytext,"@protocol") == 0) return(OC_PROTOCOL);
 	  }
+#endif
 	  
 	  // Misc keywords
 	  
@@ -1114,13 +1115,7 @@ extern "C" int yylex(void) {
 	  // SWIG directives
 	} else {
 	  if (strcmp(yytext,"%module") == 0) return(MODULE);
-	  if (strcmp(yytext,"%init") == 0)  return(INIT);
-	  if (strcmp(yytext,"%wrapper") == 0) return(WRAPPER);
-	  if (strcmp(yytext,"%runtime") == 0) return(RUNTIME);
-	  if (strcmp(yytext,"%header") == 0) return(HEADER);
 	  if (strcmp(yytext,"%insert") == 0) return(INSERT);
-	  if (strcmp(yytext,"%readonly") == 0) return(READONLY);
-	  if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
 	  if (strcmp(yytext,"%name") == 0) return(NAME);
 	  if (strcmp(yytext,"%rename") == 0) return(RENAME);
 	  if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
@@ -1134,34 +1129,11 @@ extern "C" int yylex(void) {
 	    return(yylex());
 	  }
 	  if (strcmp(yytext,"%constant") == 0) return(CONSTANT);
-	  if (strcmp(yytext,"%macro") == 0) return(SWIGMACRO);
-
-	  if (strcmp(yytext,"%section") == 0) {
-	    yylval.ivalue = line_number;
-	    return(SECTION);
-	  }
-	  if (strcmp(yytext,"%subsection") == 0) {
-	    yylval.ivalue = line_number;
-	    return(SUBSECTION);
-	  }
-	  if (strcmp(yytext,"%subsubsection") == 0) {
-	    yylval.ivalue = line_number;
-	    return (SUBSUBSECTION);
-	  }
-	  if (strcmp(yytext,"%title") == 0) {
-	    yylval.ivalue = line_number;
-	    return(TITLE);
-	  }
-	  if (strcmp(yytext,"%style") == 0) return(STYLE);
-	  if (strcmp(yytext,"%localstyle") == 0) return(LOCALSTYLE);
 	  if (strcmp(yytext,"%typedef") == 0) {
 	    yylval.ivalue = 1;
 	    return(TYPEDEF);
 	  }
-	  if (strcmp(yytext,"%text") == 0) return(TEXT);
 	  if (strcmp(yytext,"%native") == 0) return(NATIVE);
-	  if (strcmp(yytext,"%disabledoc") == 0) return(DOC_DISABLE);
-	  if (strcmp(yytext,"%enabledoc") == 0) return(DOC_ENABLE);
 	  if (strcmp(yytext,"%pragma") == 0) return(PRAGMA);
 	  if (strcmp(yytext,"%addmethods") == 0) return(ADDMETHODS);
 	  if (strcmp(yytext,"%inline") == 0) return(INLINE);
@@ -1172,7 +1144,6 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%new") == 0) return(NEW);
 	  if (strcmp(yytext,"%apply") == 0) return(APPLY);
 	  if (strcmp(yytext,"%clear") == 0) return(CLEAR);
-	  if (strcmp(yytext,"%doconly") == 0) return(DOCONLY);
 	  if (strcmp(yytext,"%types") == 0) return(TYPES);
 	}
 	  // Have an unknown identifier, as a last step, we'll
@@ -1187,8 +1158,10 @@ extern "C" int yylex(void) {
 
 	yylval.id = Swig_copy_string(yytext);
 	return(ID);
-      default:
-	return(l);
+    case POUND:
+      return yylex();
+    default:
+      return(l);
     }
 }
 

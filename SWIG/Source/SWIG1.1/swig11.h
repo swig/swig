@@ -48,8 +48,6 @@ extern  int       line_number;
 extern  int       start_line;
 extern  char     *input_file;                       // Current input file
 extern  int       CPlusPlus;                        // C++ mode
-extern  int       ObjC;                             // Objective-C mode
-extern  int       ObjCClass;                        // Objective-C style class
 extern  int       AddMethods;                       // AddMethods mode
 extern  int       NewObject;                        // NewObject mode
 extern  int       Inline;                           // Inline mode

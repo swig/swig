@@ -129,7 +129,7 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
   char *prefix, *cname;
   multiple_definition = 0;
 
-  if ((strcmp(name,ClassName)) && (!ObjCClass)) {
+  if (strcmp(name,ClassName)) {
     Printf(stderr,"%s : Line %d.  Function %s must have a return type.\n", 
 	    input_file, line_number, name);
     return;
@@ -289,10 +289,6 @@ void Language::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l
   /* Now do a symbol table lookup on it : */
 
   if (add_symbol(cname)) {
-    if (ObjCClass)
-      Printf(stderr,"%s : Line %d. class function %s multiply defined (multiple definition ignored).\n",
-	      input_file, line_number, cname);
-    else
       Printf(stderr,"%s : Line %d. static function %s multiply defined (multiple definition ignored).\n",
 	      input_file, line_number, cname);
     multiple_definition = 1;

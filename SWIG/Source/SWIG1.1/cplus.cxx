@@ -525,7 +525,6 @@ public:
   int          have_destructor;       // Status bit indicating if a destructor has been seen
   int          is_abstract;           // Status bit indicating if this is an abstract class
   int          generate_default;      // Generate default constructors
-  int          objective_c;           // Set if this is an objective C class
   int          error;                 // Set if this class can't be generated
   int          line;                  // Line number
   char        **baseclass;            // Base classes (if any)
@@ -567,7 +566,6 @@ public:
     have_destructor = 0;
     is_abstract = 0;
     generate_default = GenerateDefault;
-    objective_c = ObjCClass;
   }
 
   // ------------------------------------------------------------------------------
@@ -692,7 +690,6 @@ void CPP_class::create_all() {
       current_class = c;
       localtypes = c->local;
       if ((!c->wextern) && (c->classtype)) {
-	ObjCClass = c->objective_c;
 	lang->cpp_open_class(c->classname,c->classrename,c->classtype,c->strip);
 	lang->cpp_pragma(c->pragmas);
 	c->create_default();
@@ -881,7 +878,7 @@ void cplus_class_close(char *name) {
 
   // If we're in C++ or Objective-C mode. We're going to drop the class specifier
 
-  if ((CPlusPlus) || (ObjCClass)) {
+  if ((CPlusPlus)) {
     current_class->strip = 1;
   }
   
@@ -1006,7 +1003,7 @@ void cplus_generate_types(char **baseclass) {
     if (bc) {
       // Generate a conversion function (but only for C++)
 
-      if (!current_class->objective_c) {
+      if (1) {
 	Clear(temp3);
 	Printv(temp3, "Swig", current_class->classname, "To", bc->classname,0);
 
@@ -1650,7 +1647,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
     if (strlen(bc) == 0) bc = classname;
     
     // Generate the name of the C wrapper function 
-    if ((!mode) && (!ObjCClass)) {
+    if (!mode) {
       sprintf(cname,"%s::%s", bc, mname);
     } else {
       strcpy(cname,Char(Swig_name_member(bc,mname)));
