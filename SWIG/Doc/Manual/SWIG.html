@@ -3274,8 +3274,21 @@ void foo(vector&lt;int&gt; *a, int n);
 </pre>
 </blockquote>
 
-Starting with SWIG-1.3.7, simple C++ template declarations can also be easily wrapped.
-For example, consider the following template class declaration:
+Starting with SWIG-1.3.7, simple C++ template declarations can also be
+wrapped.  Before discussing this any further, there are a few things
+you need to know about template wrapping.  First, a bare C++ template
+does not define any sort of runnable object-code for which SWIG can
+normally create a wrapper.  Therefore, in order to wrap a template, you need to give
+SWIG specific information about a particular template instantiation to wrap
+(e.g., <tt>vector&lt;int&gt;</tt>, <tt>array&lt;double&gt;</tt>, etc.).  Second,
+an instantiation name such as <tt>vector&lt;int&gt;</tt> is generally not 
+a valid identifier name in most target languages.  Thus, you will need to choose
+some kind of suitable name such as <tt>intvector</tt> if you are going
+to make a wrapper.
+
+<p>
+To illustrate, consider the following (and admittedly lame) template
+class declaration:
 
 <p>
 <blockquote><pre>// File : list.h
@@ -3333,10 +3346,11 @@ language (e.g., the name must not match any existing C++ typename,
 class name, or declaration name).
 
 <p>
-Since most C++ compilers are nothing more than glorified preprocessors
+Since most C++ compilers are nothing more than glorified preprocessors (sic) 
 <em>and</em> C++ purists really hate macros, SWIG internally handles
 templates by converting them into macros and performing expansions
-using the preprocessor.  Specifically, the <tt>%template(intList)
+using the preprocessor (well, actually it's somewhat more complicated than this, but
+the preprocessor is used for part of it).  Specifically, the <tt>%template(intList)
 List&lt;int&gt;</tt> declaration results in a macro expansion that
 generates the following code (which is then parsed to create the
 interface):
@@ -3396,8 +3410,83 @@ In this case, <tt>maxint</tt> and <tt>maxdouble</tt> become unique names for spe
 instantiations of the function.
 
 <p>
+When a template is instantiated using <tt>%template</tt>, information about that class is
+recorded by SWIG and used elsewhere in the program.  For example, if you wrote code like this,
+
+<blockquote>
+<pre>
+...
+%template(intList) List&lt;int&gt;;
+...
+class UltraList : public List&lt;int&gt; {
+   ...
+};
+</pre>
+</blockquote>
+
+then SWIG knows that <tt>List&lt;int&gt;</tt> was already wrapped as a class called 
+<tt>intList</tt> and arranges to handle the inheritance correctly.    If, on the other hand,
+nothing is known about <tt>List&lt;int&gt;</tt>, you will get a warning message similar to this:
+
+<blockquote>
+<pre>
+example.h:42. Nothing known about class 'List&lt;int &gt;' (ignored). 
+example.h:42. Maybe you forgot to instantiate 'List&lt;int &gt;' using %template. 
+</pre>
+</blockquote>
+
+<p>
+If a template class inherits from another template class, you need to
+make sure that base classes are instantiated before derived classes.
+For example:
+
+<blockquote>
+<pre>
+template&lt;class T&gt; class Foo {
+...
+};
+
+template&lt;class T&gt; class Bar : public Foo&lt;T&gt; {
+...
+};
+
+// Instantiate base classes first 
+%template(intFoo) Foo&lt;int&gt;;
+%template(doubleFoo) Foo&lt;double&gt;;
+
+// Now instantiate derived classes
+%template(intBar) Bar&lt;int&gt;;
+%template(doubleBar) Bar&lt;double&gt;;
+</pre>
+</blockquote>
+
+The order is important since SWIG uses the instantiation names to
+properly set up the inheritance hierarchy in the resulting wrapper
+code (and base classes need to be wrapped before derived classes).
+Don't worry--if you get the order wrong, SWIG will generate an warning message.
+
+<p>
+If you have to instantiate a lot of different classes for many different types,
+you might consider writing a SWIG macro.  For example:
+
+<blockquote>
+<pre>
+%define TEMPLATE_WRAP(T,prefix) 
+%template(prefix ## Foo) Foo&lt;T&gt;;
+%template(prefix ## Bar) Bar&lt;T&gt;;
+...
+%enddef
+
+TEMPLATE_WRAP(int, int)
+TEMPLATE_WRAP(double, double)
+TEMPLATE_WRAP(char *, String)
+...
+</pre>
+</blockquote>
+
+<p>
 If your goal is to make someone's head explode more than usual, SWIG
-directives such as <tt>%name</tt> and <tt>%addmethods</tt> can be
+directives such as <tt>%rename</tt> and <tt>%addmethods</tt> can be
 included directly in template definitions.  Not only that, since SWIG
 has the advantage of using the preprocessor for template expansion,
 standard C preprocessor operators such as <tt>#</tt> and <tt>##</tt>
@@ -3409,10 +3498,11 @@ standard that SWIG now corrects). For example:
 template&lt;class T&gt; class List {
    ...
 public:
+    %rename(__getitem__) get(int);
     List(int max);
     ~List();
     ...
-    %name(getitem) T get(int index);
+    T get(int index);
     %addmethods {
         char *__str__() {
             /* Make a string representation */
@@ -3445,15 +3535,16 @@ additional methods to a specific instantiation. For example:
 </pre>
 </blockquote>
 
-Needless to say, SWIG's template support provides plenty of opportunities to
-break the universe.  That said, an important final point to note is
-that <b>SWIG performs no extensive error checking of templates!</b>
-Specifically, SWIG does not perform type checking nor does it check to
-see if the actual contents of the template declaration make any sense.
-Since the C++ compiler (or is it a preprocessor?) will <em>definitely</em> check this when it
-compiles the resulting wrapper file, there is no practical reason for
-SWIG to duplicate this functionality (besides, none of the SWIG
-developers are masochistic enough to want to implement this).
+Needless to say, SWIG's template support provides plenty of
+opportunities to break the universe.  That said, an important final
+point is that <b>SWIG performs no extensive error checking of
+templates!</b> Specifically, SWIG does not perform type checking nor
+does it check to see if the actual contents of the template
+declaration make any sense.  Since the C++ compiler will hopefully
+check this when it compiles the resulting wrapper file, there is no
+practical reason for SWIG to duplicate this functionality (besides,
+none of the SWIG developers are masochistic enough to want to
+implement this right now).
 
 <p>
 Finally, there are a few limitations in SWIG's current support for templates:
@@ -3477,9 +3568,12 @@ doing this on purpose, we're all really impressed, but please stop.
 <li>Member templates aren't supported.  
 
 <p>
-<li>Template support in SWIG is still relatively immature.  Although the current implementation
-is probably enough to handle simple stuff, wrapping something like the STL would probably be
-rough going.   If you succeed at this, we'd definitely like to know about it!
+<li>Template support in SWIG is still relatively immature.  Although
+the current implementation is probably enough to handle simple stuff,
+wrapping something like the STL would probably be rough going.  If you
+succeed at this, we'd definitely like to know about it!  If you tried
+and failed, we would also like to get feedback so that we can try to
+address the problems you encountered.
 
 </ul>
 
