@@ -2,8 +2,7 @@
 <tr>
 <td><a href="index.html">Home</a></td>
 <td><a href="http://sourceforge.net/project/?group_id=1645">Development</a></td>
-<td><a href="http://www.cs.uchicago.edu/mailman/listinfo/swig">Mailing List</a></td>
-<td><a href="http://sourceforge.net/bugs/?group_id=1645">Bug tracking</a></td>
-<td><a href="http://sourceforge.net/patch/?group_id=1645">Patches</a></td>
+<td><a href="mail.html">Mailing Lists</a></td>
+<td><a href="bugs.html">Bugs and Patches</a></td>
 </tr>
 </table>

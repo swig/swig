@@ -111,8 +111,8 @@ in their <a href="projects.html">projects</a>.
 SWIG has been freely available in various forms since February, 1996
 and a large number of developers have made contributions.  Today, SWIG
 remains an all-volunteer effort.  Approximately 875 people subscribe
-to the SWIG mailing list (swig@cs.uchicago.edu) and a public CVS
-repository is available at the University of Chicago.  Versions of 
+to the <a href="mail.html">swig</a> mailing list and a public CVS
+repository is available at SourceForge.  Versions of 
 SWIG can now be found in most Linux distributions (however, you'll almost
 certainly want to get the latest version here).
 
