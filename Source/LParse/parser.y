@@ -571,21 +571,25 @@ except_directive:  EXCEPT LPAREN ID RPAREN LBRACE {
 	       }
                ; 
 
-pragma_directive :  PRAGMA ID pragma_arg {
-                  $$ = new_node("pragmadirective",$1.filename,$1.line);
+pragma_directive :  PRAGMA idstring pragma_arg SEMI {
+                  $$ = new_node("pragma",$1.filename,$1.line);
 		  Setattr($$,ATTR_NAME,$2.text);
 		  Setattr($$,ATTR_VALUE,$3.text);
     	       }
-               | PRAGMA LPAREN ID RPAREN ID pragma_arg {
-		 $$ = new_node("pragmadirective",$1.filename,$1.line);
+               | PRAGMA LPAREN idstring RPAREN idstring pragma_arg SEMI {
+		 $$ = new_node("pragma",$1.filename,$1.line);
 		 Setattr($$,ATTR_NAME,$5.text);
 		 Setattr($$,"lang",$3.text);
 		 Setattr($$,ATTR_VALUE,$6.text);
 	       }
                ;
 
-pragma_arg     : EQUAL definetype {
+pragma_arg     : definetype {
+                  $$.text = $1.text;
+               }
+               | EQUAL definetype {
                   $$.text = $2.text;
+                  /* print warning message here */
                }
                | empty { 
                   $$.text = 0;
