@@ -72,7 +72,7 @@
 	"$result = rb_str_new2($1);";
 
 %typemap(out) SWIGTYPE*, SWIGTYPE &, SWIGTYPE []
-        "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor,0);";
+        "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor,$owner);";
 
 %typemap(out) void "";
 
@@ -176,6 +176,30 @@
 
 %typemap(varout) char [ANY] "$result = rb_str_new2($1);";
 
+/* --- Constants --- */
+
+%typemap(constant) int, short, long, signed char, enum SWIGTYPE 
+	"rb_define_const($module,\"$symname\", INT2NUM($1));";
+
+%typemap(constant) unsigned int, unsigned short, unsigned long, unsigned char
+	"rb_define_const($module,\"$symname\", UINT2NUM($1);";
+
+%typemap(constant) double, float
+	"rb_define_const($module,\"$symname\", rb_float_new($1));";
+
+%typemap(constant) char
+	"rb_define_const($module,\"$symname\", rb_str_new(\"$1\",1));";
+
+%typemap(constant) bool
+	"rb_define_const($module,\"$symname\", ($1 ? Qtrue : Qfalse));";
+
+%typemap(constant) char *
+	"rb_define_const($module,\"$symname\", rb_str_new2(\"$1\"));";
+
+%typemap(constant) SWIGTYPE*, SWIGTYPE &, SWIGTYPE []
+        "rb_define_const($module,\"$symname\", SWIG_NewPointerObj((void *) $1, $1_descriptor,0));";
+
+%typemap(constant) SWIGTYPE "rb_define_const($module,\"$symname\", SWIG_NewPointerObj((void *) &$1, $&1_descriptor, 0));";
 
 // Typedef declaration for VALUE.  This is provided to make VALUE typemaps
 typedef unsigned long VALUE;
