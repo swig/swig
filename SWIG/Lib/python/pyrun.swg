@@ -53,10 +53,6 @@ typedef struct swig_const_info {
   SWIG_Python_addvarlink(p, name, get_attr, set_attr)
 #define SWIG_ConvertPacked(obj, ptr, sz, ty, flags) \
   SWIG_Python_ConvertPacked(obj, ptr, sz, ty, flags)
-#define SWIG_PackData(c, ptr, sz) \
-  SWIG_Python_PackData(c, ptr, sz)
-#define SWIG_UnpackData(c, ptr, sz) \
-  SWIG_Python_UnpackData(c, ptr, sz)
 #define SWIG_NewPackedObj(ptr, sz, type) \
   SWIG_Python_NewPackedObj(ptr, sz, type)
 #define SWIG_InstallConstants(d, constants) \
@@ -70,8 +66,6 @@ SWIGIMPORT(void *)            SWIG_Python_MustGetPtr(PyObject *, swig_type_info 
 SWIGIMPORT(PyObject *)        SWIG_Python_newvarlink(void);
 SWIGIMPORT(void)              SWIG_Python_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
 SWIGIMPORT(int)               SWIG_Python_ConvertPacked(PyObject *, void *, int sz, swig_type_info *, int);
-SWIGIMPORT(char *)            SWIG_Python_PackData(char *c, void *, int);
-SWIGIMPORT(char *)            SWIG_Python_UnpackData(char *c, void *, int);
 SWIGIMPORT(PyObject *)        SWIG_Python_NewPackedObj(void *, int sz, swig_type_info *);
 SWIGIMPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]);
 
@@ -180,44 +174,6 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
   gv->set_attr = set_attr;
   gv->next = v->vars;
   v->vars = gv;
-}
-
-/* Pack binary data into a string */
-SWIGRUNTIME(char *)
-SWIG_Python_PackData(char *c, void *ptr, int sz) {
-  static char hex[17] = "0123456789abcdef";
-  int i;
-  unsigned char *u = (unsigned char *) ptr;
-  register unsigned char uu;
-  for (i = 0; i < sz; i++,u++) {
-    uu = *u;
-    *(c++) = hex[(uu & 0xf0) >> 4];
-    *(c++) = hex[uu & 0xf];
-  }
-  return c;
-}
-
-/* Unpack binary data from a string */
-SWIGRUNTIME(char *)
-SWIG_Python_UnpackData(char *c, void *ptr, int sz) {
-  register unsigned char uu = 0;
-  register int d;
-  unsigned char *u = (unsigned char *) ptr;
-  int i;
-  for (i = 0; i < sz; i++, u++) {
-    d = *(c++);
-    if ((d >= '0') && (d <= '9'))
-      uu = ((d - '0') << 4);
-    else if ((d >= 'a') && (d <= 'f'))
-      uu = ((d - ('a'-10)) << 4);
-    d = *(c++);
-    if ((d >= '0') && (d <= '9'))
-      uu |= (d - '0');
-    else if ((d >= 'a') && (d <= 'f'))
-      uu |= (d - ('a'-10));
-    *u = uu;
-  }
-  return c;
 }
 
 /* Convert a pointer value */

@@ -54,6 +54,12 @@
     $1 = *argp;
 }
 
+/* Pointer to a class member */
+%typemap(in) SWIGTYPE (CLASS::*) {
+     if ((SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor,0)) < 0) {
+            SWIG_croak("Type error in argument $argnum of $symname. Expected $&1_mangle");
+     }          
+}
 
 /* Const primitive references.  Passed by value */
 
@@ -160,6 +166,13 @@
   SWIG_MakePtr(ST(argvi++), (void *) $1, ty, $shadow|$owner);
 }
 
+/* Member pointer */
+%typemap(out) SWIGTYPE (CLASS::*) {
+  ST(argvi) = sv_newmortal();
+  SWIG_MakePackedObj(ST(argvi), (void *) &$1, sizeof($1_type), $1_descriptor);
+  argvi++;
+}
+
 %typemap(out) void "";
 
 /* Typemap for character array returns */
@@ -264,6 +277,15 @@
             croak("Type error in argument $argnum of $symname. Expected $&1_mangle");
     }
     $1 = *argp;
+}
+
+/* Member pointer */
+%typemap(varin) SWIGTYPE (CLASS::*) {
+  char temp[sizeof($1_type)];
+  if (SWIG_ConvertPacked($input, (void *) temp, sizeof($1_type), $1_descriptor, 0) < 0) {
+            croak("Type error in argument $argnum of $symname. Expected $&1_mangle");
+  }
+  memmove((void *) &$1, temp, sizeof($1_type));
 }
 
 /* Const primitive references.  Passed by value */
@@ -389,6 +411,10 @@
 
 %typemap(varout,type="$&1_descriptor") SWIGTYPE
     "sv_setiv(SvRV($result), (IV) &$1);";
+
+%typemap(varout,type="$1_descriptor") SWIGTYPE (CLASS::*) {
+  SWIG_MakePackedObj($result, (void *) &$1, sizeof($1_type), $1_descriptor);
+}
 
 /* --- Typemaps for constants --- *
 
@@ -585,7 +611,7 @@ XS(SWIG_init) {
 	SWIG_MakePtr(sv, swig_constants[i].pvalue, *(swig_constants[i].ptype),0);
 	break;
       case SWIG_BINARY:
-	/*      obj = SWIG_NewPackedObj(swig_constants[i].pvalue, swig_constants[i].lvalue, *(swig_constants[i].ptype)); */
+	SWIG_MakePackedObj(sv, swig_constants[i].pvalue, swig_constants[i].lvalue, *(swig_constants[i].ptype));
 	break;
       default:
 	break;

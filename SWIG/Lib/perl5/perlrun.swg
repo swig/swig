@@ -126,11 +126,20 @@ extern "C" {
      SWIG_Perl_ConvertPtr(pPerl, obj, pp, type, flags)
 #  define SWIG_NewPointerObj(p, type, flags) \
      SWIG_Perl_NewPointerObj(pPerl, p, type, flags)
+#  define SWIG_MakePackedObj(sv, p, s, type)	\
+     SWIG_Perl_MakePackedObj(pPerl, sv, p, s, type)
+#  define SWIG_ConvertPacked(obj, p, s, type, flags) \
+     SWIG_Perl_ConvertPacked(pPerl, obj, p, s, type, flags)
+
 #else
 #  define SWIG_ConvertPtr(obj, pp, type, flags) \
      SWIG_Perl_ConvertPtr(obj, pp, type, flags)
 #  define SWIG_NewPointerObj(p, type, flags) \
      SWIG_Perl_NewPointerObj(p, type, flags)
+#  define SWIG_MakePackedObj(sv, p, s, type)	\
+     SWIG_Perl_MakePackedObj(sv, p, s, type )
+#  define SWIG_ConvertPacked(obj, p, s, type, flags) \
+     SWIG_Perl_ConvertPacked(obj, p, s, type, flags)
 #endif
 
 /* Perl-specific API */
@@ -166,6 +175,8 @@ extern "C" {
 SWIGIMPORT(int)               SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *, void **, swig_type_info *, int flags);
 SWIGIMPORT(void)              SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *, void *, swig_type_info *, int flags);
 SWIGIMPORT(SV *)              SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *, swig_type_info *, int flags);
+SWIGIMPORT(void)              SWIG_Perl_MakePackedObj(SWIG_MAYBE_PERL_OBJECT SV *, void *, int, swig_type_info *);
+SWIGIMPORT(int)               SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *, void *, int, swig_type_info *, int flags);
 SWIGIMPORT(swig_type_info *)  SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty);
 SWIGIMPORT(SV *)              SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT char *);
 
@@ -293,6 +304,36 @@ SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *ptr, swig_type_info *t, int
   SV *result = sv_newmortal();
   SWIG_MakePtr(result, ptr, t, flags);
   return result;
+}
+
+SWIGRUNTIME(void)
+  SWIG_Perl_MakePackedObj(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, int sz, swig_type_info *type) {
+  char result[1024];
+  char *r = result;
+  if ((2*sz + 1 + strlen(type->name)) > 1000) return;
+  *(r++) = '_';
+  r = SWIG_PackData(r,ptr,sz);
+  strcpy(r,type->name);
+  sv_setpv(sv, result);
+}
+
+/* Convert a packed value value */
+SWIGRUNTIME(int)
+SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
+  swig_type_info *tc;
+  char  *c = 0;
+
+  if ((!obj) || (!SvOK(obj))) return -1;
+  c = SvPV(obj, PL_na);
+  /* Pointer values must start with leading underscore */
+  if (*c != '_') return -1;
+  c++;
+  c = SWIG_UnpackData(c,ptr,sz);
+  if (ty) {
+    tc = SWIG_TypeCheck(c,ty);
+    if (!tc) return -1;
+  }
+  return 0;
 }
 
 SWIGRUNTIME(void)

@@ -70,6 +70,8 @@ SWIGIMPORT(swig_type_info *) SWIG_TypeDynamicCast(swig_type_info *, void **);
 SWIGIMPORT(const char *)     SWIG_TypeName(const swig_type_info *);
 SWIGIMPORT(swig_type_info *) SWIG_TypeQuery(const char *);
 SWIGIMPORT(void)             SWIG_TypeClientData(swig_type_info *, void *);
+SWIGIMPORT(char *)           SWIG_PackData(char *, void *, int);
+SWIGIMPORT(char *)           SWIG_UnpackData(char *, void *, int);
 
 #else
 
@@ -196,6 +198,45 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
     equiv = equiv->next;
   }
 }
+
+/* Pack binary data into a string */
+SWIGRUNTIME(char *)
+SWIG_PackData(char *c, void *ptr, int sz) {
+  static char hex[17] = "0123456789abcdef";
+  int i;
+  unsigned char *u = (unsigned char *) ptr;
+  register unsigned char uu;
+  for (i = 0; i < sz; i++,u++) {
+    uu = *u;
+    *(c++) = hex[(uu & 0xf0) >> 4];
+    *(c++) = hex[uu & 0xf];
+  }
+  return c;
+}
+
+/* Unpack binary data from a string */
+SWIGRUNTIME(char *)
+SWIG_UnpackData(char *c, void *ptr, int sz) {
+  register unsigned char uu = 0;
+  register int d;
+  unsigned char *u = (unsigned char *) ptr;
+  int i;
+  for (i = 0; i < sz; i++, u++) {
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu = ((d - '0') << 4);
+    else if ((d >= 'a') && (d <= 'f'))
+      uu = ((d - ('a'-10)) << 4);
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu |= (d - '0');
+    else if ((d >= 'a') && (d <= 'f'))
+      uu |= (d - ('a'-10));
+    *u = uu;
+  }
+  return c;
+}
+
 #endif
 
 #ifdef __cplusplus
