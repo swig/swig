@@ -5,7 +5,6 @@
    
 </head>
   <body bgcolor="#ffffff">
-  <a name="n1"></a> 
 <a name="n1"></a><H1>15 SWIG and Ocaml</H1>
 <!-- INDEX -->
 <ul>
@@ -15,29 +14,31 @@
 <li><a href="#n4">Additional Command Line Options</a>
 <li><a href="#n5">Getting the right header files</a>
 <li><a href="#n6">Compiling the code</a>
-<li><a href="#n7">Using your module</a>
-<li><a href="#n8">Compilation problems and compiling with C++</a>
+<li><a href="#n7">Current thoughts on best practice for Ocaml</a>
+<li><a href="#n8">Using your module</a>
+<li><a href="#n9">Compilation problems and compiling with C++</a>
 </ul>
-<li><a href="#n9">The low-level Ocaml/C interface</a>
+<li><a href="#n10">The low-level Ocaml/C interface</a>
 <ul>
-<li><a href="#n10">The generated module</a>
-<li><a href="#n11">Deleters</a>
-<li><a href="#n12">Types</a>
-<li><a href="#n13">Functions</a>
-<li><a href="#n14">Variable Linking</a>
-<li><a href="#n15">Callbacks</a>
-<li><a href="#n16">Enums</a>
-<li><a href="#n17">C++ Classes</a>
+<li><a href="#n11">The generated module</a>
+<li><a href="#n12">Deleters</a>
+<li><a href="#n13">Types</a>
+<li><a href="#n14">Functions</a>
+<li><a href="#n15">Variable Linking</a>
+<li><a href="#n16">Callbacks</a>
+<li><a href="#n17">A word about message loops</a>
+<li><a href="#n18">Enums</a>
+<li><a href="#n19">C++ Classes</a>
 <ul>
-<li><a href="#n18">No flags, function wrapping</a>
-<li><a href="#n19">-objects</a>
-<li><a href="#n20">-objects -onlyobjects</a>
-<li><a href="#n21">-classmod</a>
+<li><a href="#n20">No flags, function wrapping</a>
+<li><a href="#n21">-objects</a>
+<li><a href="#n22">-objects -onlyobjects</a>
+<li><a href="#n23">-classmod</a>
 </ul>
-<li><a href="#n22">Overloaded functions</a>
-<li><a href="#n23">Operator overloading</a>
-<li><a href="#n24">Ocaml typemaps</a>
-<li><a href="#n25">Exceptions</a>
+<li><a href="#n24">Overloaded functions</a>
+<li><a href="#n25">Operator overloading</a>
+<li><a href="#n26">Ocaml typemaps</a>
+<li><a href="#n27">Exceptions</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -56,7 +57,7 @@ as their own mature C and C++ code.  SWIG allows  this code to be used in
 a natural, type-safe way with Ocaml, by providing  the necessary, but repetetive 
 glue code which creates and uses Ocaml values  to communicate with C and C++
 code.  In addition, SWIG also produces the needed Ocaml source that binds 
-types, variants, functions, class, etc.      <a name="n2"></a> 
+types, variants, functions, class, etc.     
 <a name="n2"></a><H2>15.1 Preliminaries</H2>
 
 
@@ -69,8 +70,7 @@ Linux (PPC,MIPS,Intel,Sparc) and Cygwin on Windows.  The best way to determine
 using the system's dynamic linking  (the usual -lxxx agains libxxx.so, but
 not using the explicit dynamic linking provided by the Dl package  <a
  href="http://www.ocaml-programming.de/packages/documentation/dl/"> http://www.ocaml-programming.de/packages/documentation/dl/ 
- </a>, although I suspect that it will work without a problem.    <a
- name="n3"></a> 
+ </a>, although I suspect that it will work without a problem.   
 <a name="n3"></a><H3>15.1.1 Running SWIG</H3>
 
 
@@ -93,8 +93,6 @@ you will compile the file  <tt>example_wrap.c</tt> with <tt>ocamlc</tt> or
 the resulting .ml and .mli files as well, and do the final link with -custom
 (not needed for native link). </p>
    
-<p>   <a name="n4"></a></p>
- 
 <a name="n4"></a><H3>15.1.2 Additional Command Line Options</H3>
 
 
@@ -147,7 +145,6 @@ as  class methods or member accessors.<br>
   </tbody>  
 </table>
    <br>
-    <a name="n5"></a> <a name="n5"></a> 
 <a name="n5"></a><H3>15.1.3 Getting the right header files</H3>
 
 
@@ -155,7 +152,7 @@ as  class methods or member accessors.<br>
 to  be included.  It provides several useful functions that almost all programs 
  that use SWIG will need.  It is located in $(prefix)/include/libswigocaml.h 
  where $(prefix) is usually /usr/local, but could be /usr.  This is set at 
- configure time.    <a name="n6"></a> 
+ configure time.   
 <a name="n6"></a><H3>15.1.4 Compiling the code</H3>
 
 
@@ -174,31 +171,63 @@ in C++ mode, you must: </p>
 <blockquote>      
   <pre>% cp example_wrap.cxx example_wrap.cxx.c<br>% ocamlc -c ... -ccopt -xc++ example_wrap.cxx.c<br>% ...<br></pre>
   </blockquote>
-    <a name="n7"></a> 
-<a name="n7"></a><H3>15.1.5 Using your module</H3>
+
+<a name="n7"></a><H3>15.1.5 Current thoughts on best practice for Ocaml</H3>
+
+
+Because the VC compiler (cl) needs link options specified after all compiler
+options, and ocamlc doesn't really understand that, I think that this is the
+best way to link ocaml code with C++ code.  I formulated this method to make
+it easy for co-workers who rely on MSDev to create GUIs, etc.. to live in
+harmony with the ocaml parts of the application.
+<p>
+Let's say you have ocaml sources foo.ml and bar.ml and interface frob.i;
+<p>
+<blockquote><pre>
+swig -c++ -objects frob.i
+ocamlc -custom -c frob.mli
+ocamlc -custom -c frob.ml
+cp frob_wrap.cxx frob_wrap.c
+ocamlc -custom -c -I$(FROBLIB)/include frob_wrap.c
+ocamlc -custom -c foo.ml
+ocamlc -custom -c bar.ml
+ocamlc -pack -o foobar.cmo foo.cmo bar.cmo frob.cmo
+ocamlc -custom -output-obj -o foobar.obj foobar.cmo
+</pre></blockquote>
+<p>
+At this point, foobar.obj can be included in your MSVC project and linked
+against other code.  This is how you link it:
+<blockquote><pre>
+link /OUT:big_program.exe \
+  other1.obj other2.obj foobar.obj frob_wrap.obj \
+  $(OCAMLLIB)/ocamlrun.lib $(FROBLIB)/lib/frob.lib
+</pre></blockquote>
+<p>
+
+<a name="n8"></a><H3>15.1.6 Using your module</H3>
 
 
       You can test-drive your module by building a toplevel ocaml interpreter. 
  Consult the ocaml manual for details.   
 <p> When linking any ocaml bytecode with your module, use the -custom option
- to build your functions into the primitive list.      <a name="n8"></a></p>
+ to build your functions into the primitive list.    
  
-<a name="n8"></a><H3>15.1.6 Compilation problems and compiling with C++</H3>
+<a name="n9"></a><H3>15.1.7 Compilation problems and compiling with C++</H3>
 
 
       As mentioned above, .cxx files need special handling to be compile
 with  <tt>ocamlc</tt>.  Other than that, C code that uses <tt>class</tt>
 as a non-keyword, and C code that is too liberal with pointer types may not
 compile under the C++ compiler.  Most code meant to be compiled as C++ will
-not have problems.    <a name="n9"></a> 
-<a name="n9"></a><H2>15.2 The low-level Ocaml/C interface</H2>
+not have problems.   
+<a name="n10"></a><H2>15.2 The low-level Ocaml/C interface</H2>
 
 
       The SWIG Ocaml module is based upon the page in the Ocaml manual titled
   <a href="http://caml.inria.fr/ocaml/htmlman/manual031.html">"Interfacing
  C with Objective Caml"</a>.   You should familiarize yourself with this
-information  if you need to write any special typemaps.   <a name="n10"></a> 
-<a name="n10"></a><H3>15.2.1 The generated module</H3>
+information  if you need to write any special typemaps. 
+<a name="n11"></a><H3>15.2.1 The generated module</H3>
 
 
       The SWIG <tt>%module</tt> directive specifies the name of the Ocaml 
@@ -206,9 +235,9 @@ module  to be generated.  If you specified `<tt>%module example</tt>', then
 your  Ocaml code will be accessible in the module Example.  The module name 
 is  always capitalized as is the ocaml convention.  Note that you must not 
 use  any Ocaml keyword to name your module.  Remember that the keywords are 
-not  the same as the C++ ones.    <a name="n11"></a><br>
+not  the same as the C++ ones.  
 <br>
-<a name="n11"></a><H3>15.2.2 Deleters</H3>
+<a name="n12"></a><H3>15.2.2 Deleters</H3>
 
 
  module gives the Ocaml is a garbage collected language. &nbsp;You can choose
@@ -233,7 +262,7 @@ let _ = set_delete_fn z "_wrap_delete_managing_container" <br>
 &nbsp;&nbsp;&nbsp; (* But z is garbage collected. &nbsp;It will delete y
 *)</code><br>
  
-<a name="n12"></a><H3>15.2.3 Types</H3>
+<a name="n13"></a><H3>15.2.3 Types</H3>
 
 
       The default typemaps are good generally, but have their weaknesses
@@ -339,9 +368,9 @@ the program  this way (just as with a C cast). </p>
 <p> In general, any C/C++ pointer type is represented by _p prepended, all
  types are prepended with _, and some more exotic types are encoded with
 different  pseudo-symbols.  You should check the .mli output to find the
-types assigned  to various functions.    <a name="n12"></a></p>
+types assigned  to various functions.  
  
-<a name="n13"></a><H3>15.2.4 Functions</H3>
+<a name="n14"></a><H3>15.2.4 Functions</H3>
 
 
       C/C++ functions are mapped directly into Ocaml functions.  Parameters 
@@ -353,9 +382,9 @@ mean adding a number to the end to break a conflict.  You should read the
 is made to handle namespace and class names in an intelligent way that preserves 
 the original name within the constraints of the ocaml system (ocaml functions 
  can't be overloaded in the C++ sense, and can't start with an upper case 
-letter, as well as needing to avoid the use of ocaml keywords).    <a
- name="n13"></a> 
-<a name="n14"></a><H3>15.2.5 Variable Linking</H3>
+letter, as well as needing to avoid the use of ocaml keywords). 
+
+<a name="n15"></a><H3>15.2.5 Variable Linking</H3>
 
 
       SWIG provides access to C/C++ global and member variables both as Ocaml
@@ -378,8 +407,8 @@ letter, as well as needing to avoid the use of ocaml keywords).    <a
    
 <p> Member variables are accesses in the obvious way through methods of their 
  containing classes. </p>
-   <a name="n14"></a> 
-<a name="n15"></a><H3>15.2.6 Callbacks</H3>
+
+<a name="n16"></a><H3>15.2.6 Callbacks</H3>
 
 
     The ocaml SWIG language module allows you to write callbacks that will 
@@ -398,8 +427,19 @@ be called from your C code.  Currently, this feature is experimental.  Consider
   <pre>        Objective Caml version 3.04<br><br># open Error ;;<br># Callback.register "{caml_error}" (fun unit -&gt; print_endline "hi"; flush stdout) ;;<br>- : unit = ()<br># call_err caml_error ;;<br>hi<br>  </pre>
  </blockquote>
    As you can see, this enables the C code to call your Ocaml code quite
- transparently.   <a name="n15"></a> 
-<a name="n16"></a><H3>15.2.7 Enums</H3>
+ transparently.  
+
+<a name="n17"></a><H3>15.2.7 A word about message loops</H3>
+
+
+If you use native threads and message loops that can call into ocaml, ocaml
+code must originate any thread that can make a call back into the interpreter.
+I'm not sure if there's a way to register a non-ocaml thread with the
+interpreter as there is in the JNI.  It can, however, be mitigated, by
+queueing or signalling notifications that a call made from an ocaml thread
+will retrieve.
+
+<a name="n18"></a><H3>15.2.8 Enums</H3>
 
 
       SWIG will wrap enumerations as polymorphic variants in the output Ocaml
@@ -504,8 +544,8 @@ _c_enum_type_list  -&gt; _c_enum_type_list</code><br>
   </tbody>  
 </table>
   <br>
-   <a name="n16"></a> 
-<a name="n17"></a><H3>15.2.8 C++ Classes</H3>
+
+<a name="n19"></a><H3>15.2.9 C++ Classes</H3>
 
 
     C++ classes can currently be wrapped in three styles, selectable with 
@@ -531,8 +571,8 @@ objects, and call their methods, etc, as though they were. &nbsp;Objects
   public:<br>
   &nbsp;&nbsp;&nbsp; int g( float y );<br>
   };<br>
-   <a name="n17"></a> 
-<a name="n18"></a><H4>15.2.8.1 No flags, function wrapping</H4>
+
+<a name="n20"></a><H4>15.2.9.1 No flags, function wrapping</H4>
 
 
     <code>&nbsp; type _p_cpp_base<br>
@@ -551,8 +591,8 @@ objects, and call their methods, etc, as though they were. &nbsp;Objects
 lightest weight in terms of runtime and memory, as well as being uncomplicated
  by any type inference problems. Use this wherever it is convenient, as part 
 of a functor, or where extra performance will be needed.<br>
-   <a name="n18"></a> 
-<a name="n19"></a><H4>15.2.8.2 -objects</H4>
+
+<a name="n21"></a><H4>15.2.9.2 -objects</H4>
 
 
     <code>class cpp_base : _p_cpp_base -&gt; object<br>
@@ -588,15 +628,15 @@ visible to the SWIG interface file are defined, and that every defined class
 in a hirearchy will be correctly inherited in Ocaml. &nbsp;This makes it
 easy to use a deep C++ inheritance tree without complicated effort, and also
 allows any subtype to fill the role of its parent in an Ocaml expression
-involving objects.  <a name="n19"></a> 
-<a name="n20"></a><H4>15.2.8.3 -objects -onlyobjects</H4>
+involving objects. 
+<a name="n22"></a><H4>15.2.9.3 -objects -onlyobjects</H4>
 
 
     This flag combination outputs only the object definitions into the .mli 
 file. &nbsp;It reduces the amount of code emitted to the .mli file in order 
 to make link info smaller, and to reduce the size of the interface file.<br>
-   <a name="n20"></a> 
-<a name="n21"></a><H4>15.2.8.4 -classmod</H4>
+
+<a name="n23"></a><H4>15.2.9.4 -classmod</H4>
 
 
     This flag wraps class, struct, and union code in modules. &nbsp;It may 
@@ -606,23 +646,23 @@ ocaml convention. &nbsp;Note that types which may need to be accessed outside
 of the module are defined outside at global scope (such as pointer types) 
 since ocaml always applies scopes to types. &nbsp;Types such as enums, that 
 are defined in scope stay there.<br>
-   <a name="n21"></a> 
-<a name="n22"></a><H3>15.2.9 Overloaded functions</H3>
+
+<a name="n24"></a><H3>15.2.10 Overloaded functions</H3>
 
 
     Overloaded functions are disambiguated according to a simple naming rule
  which produces a unique, but not necessarily meaningful name. &nbsp;These
  names are always produced in declaration order. &nbsp;If you wish to extract
  and rename certain overloaded methods, use the %rename directive.<br>
-   <a name="n22"></a> 
-<a name="n23"></a><H3>15.2.10 Operator overloading</H3>
+
+<a name="n25"></a><H3>15.2.11 Operator overloading</H3>
 
 
     Because operators are not polymorphic in Ocaml, operator overloading
 as used in C++ is not available in Ocaml, however, needed operators may be
 renamed  with the %rename directive as above.<br>
-   <a name="n23"></a> 
-<a name="n24"></a><H3>15.2.11 Ocaml typemaps</H3>
+
+<a name="n26"></a><H3>15.2.12 Ocaml typemaps</H3>
 
 
     The previous section illustrated an "in" typemap for converting Ocaml 
@@ -651,6 +691,11 @@ the user frees the block with a delete function that corresponds to its type.
 &nbsp;The type of the deleter function must be value -&gt; value, and must
 return Val_unit. &nbsp;This makes it compatible with the SWIG deleter (called
 explicity) as well as the Ocaml finalizer.</li>
+    <li>Although it's not extremely clear, CAMLparam... must precede all
+    other variable declarations, even non-ocaml ones.  
+    <li>It seems that C code can use enter_blocking_section /
+    leave_blocking_section to release the mutex that covers ocaml code, then
+    regain it.  This is handy if the intervening code will take a long time.
     <li>SWIG_MustGetPtr takes a value and a type descriptor.  The function
  returns a void * to the actual C data. &nbsp;Use this to retrieve C data
 from value objects.</li>
@@ -681,14 +726,14 @@ is a lot of need, but will leave the more efficiently typed system in regardless
     </li>
    
 </ul>
-   <a name="n24"></a> 
-<a name="n25"></a><H3>15.2.12 Exceptions</H3>
+
+<a name="n27"></a><H3>15.2.13 Exceptions</H3>
 
 
     Please view the "<a
  href="http://caml.inria.fr/ocaml/htmlman/manual031.html#s:c-exceptions">Raising
  Exceptions</a>" section of Interfacing C with Objective Caml.<br>
   <br>
- 
+
 </body>
 </html>
