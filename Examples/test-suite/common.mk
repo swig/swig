@@ -50,7 +50,6 @@ CPP_TEST_BROKEN += \
 	template_specialization_enum \
 	using_namespace
 
-
 # Broken C test cases. (Can be run individually using make testcase.cpptest.)
 C_TEST_BROKEN += 
 
@@ -76,6 +75,7 @@ CPP_TEST_CASES += \
 	casts \
 	cast_operator \
 	class_ignore \
+	class_scope_weird \
 	const_const_2 \
 	constant_pointers \
 	constover \
