@@ -32,6 +32,10 @@ commercial or noncommercial use.
 <h3>News</h3>
 
 <p>
+(6/18/00) <a href="http://download.sourceforge.net/swig/swig1.3a3.tar.gz">SWIG1.3a3</a> has been released. This fixes a number of bugs in 1.3a2 and
+includes more code cleanup.
+
+<p>
 (3/1/00) SWIG1.3a2 has been released!  Download now from <a
 href="http://download.sourceforge.net/swig/swig1.3a2.tar.gz">SourceForge</a>.
 Note: this is an unstable release and is not recommended for
