@@ -51,7 +51,7 @@ Perl on the Macintosh although some users have reported success.
 You can read the
 installation instructions included in the distribution <a href="INSTALL">here.</a>
 
-<h3> Supported Scripting Languages </h3>
+<a name="SupportedLanguages"><h3> Supported Languages </h3>
 
 The following scripting languages were supported in the final SWIG 1.1 release.
 
