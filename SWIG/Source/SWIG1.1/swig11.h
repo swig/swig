@@ -20,6 +20,10 @@
 
 #include "swigver.h"
 
+extern "C" {
+#include "swig.h"
+}
+
 /* Global variables.   Needs to be cleaned up */
 
 #ifdef MACSWIG
@@ -411,24 +415,6 @@ extern "C" {
   extern FILE *Swig_open(const void *filename);
   extern char *Swig_copy_string(const char *s);
 }
-
-// -----------------------------------------------------------------------
-//  Structure for Creating Wrapper Functions
-// -----------------------------------------------------------------------
-
-typedef struct Wrapper {
-  void    *h;
-  void    *localh;
-  void    *def;               
-  void    *locals;
-  void    *code;
-} Wrapper;
-
-extern Wrapper *NewWrapper();
-extern void     DelWrapper(Wrapper *w);
-extern void     Wrapper_print(Wrapper *w, void *f);
-extern void     Wrapper_add_local(Wrapper *w, char *type, char *name, char *defvalue = 0);
-extern char    *Wrapper_new_local(Wrapper *w, char *type, char *name, char *defvalue = 0);
 
 // Misc
 

@@ -174,13 +174,16 @@ typedef struct {
   DOHString *def;
   DOHString *locals;
   DOHString *code;
-} SwigWrapper;
+} Wrapper;
 
-extern SwigWrapper *NewSwigWrapper();
-extern void         DelSwigWrapper(SwigWrapper *w);
-extern void         SwigWrapper_print(SwigWrapper *w, DOHFile *f);
-extern int          SwigWrapper_add_local(SwigWrapper *w, DOHString_or_char *decl, DOHString_or_char *name);
-extern int          SwigWrapper_check_local(SwigWrapper *w, DOHString_or_char *name);
+extern Wrapper *NewWrapper();
+extern void     DelWrapper(Wrapper *w);
+extern void     Wrapper_print(Wrapper *w, DOHFile *f);
+extern int      Wrapper_add_local(Wrapper *w, const DOHString_or_char *name, const DOHString_or_char *decl);
+extern int      Wrapper_add_localv(Wrapper *w, const DOHString_or_char *name, ...);
+extern int      Wrapper_check_local(Wrapper *w, const DOHString_or_char *name);
+extern char    *Wrapper_new_local(Wrapper *w, const DOHString_or_char *name, const DOHString_or_char *decl);
+extern char    *Wrapper_new_localv(Wrapper *w, const DOHString_or_char *name, ...);
 
 /* --- Naming functions --- */
 

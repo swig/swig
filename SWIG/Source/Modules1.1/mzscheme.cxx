@@ -328,9 +328,9 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int numopt = 0;
 
   // adds local variables : type name
-  Wrapper_add_local (f,(char*)"char *", (char*)"_tempc",0);
-  Wrapper_add_local (f,(char*)"int",    (char*)"_len",0);
-  Wrapper_add_local (f,(char*)"Scheme_Object *", (char*)"swig_result",0);
+  Wrapper_add_local (f,"_tempc","char *_tempc");
+  Wrapper_add_local (f,"_len", "int _len");
+  Wrapper_add_local (f,"swig_result", "Scheme_Object *swig_result");
 
   // Now write code to extract the parameters (this is super ugly)
 
@@ -452,13 +452,13 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   // returning multiple values
   if(argout_set) {
     if(d->type == T_VOID) {
-      Wrapper_add_local(f,(char*)"int", (char*)"_lenv", (char*)"0");
-      Wrapper_add_local(f,(char*)"Scheme_Object *", (char*)"_values[MAXVALUES]",0);
+      Wrapper_add_local(f,"_lenv","int _lenv = 0");
+      Wrapper_add_local(f,"_values", "Scheme_Object * _values[MAXVALUES]");
       Printv(f->code, tab4, "swig_result = scheme_values(_lenv, _values);\n", 0);
     }
     else {
-      Wrapper_add_local(f,(char*)"int", (char*)"_lenv", (char*)"1");
-      Wrapper_add_local(f,(char*)"Scheme_Object *",(char*) "_values[MAXVALUES]",0);
+      Wrapper_add_local(f,"_lenv","int _lenv = 1");
+      Wrapper_add_local(f,"_values", "Scheme_Object * _values[MAXVALUES]");
       Printv(f->code, tab4, "_values[0] = swig_result;\n", 0);
       Printv(f->code, tab4, "swig_result = scheme_values(_lenv, _values);\n", 0);
     }

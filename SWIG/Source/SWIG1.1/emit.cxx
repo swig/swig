@@ -199,12 +199,12 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
 
       // Special case for return by "value"
       rt->is_pointer++;
-      Wrapper_add_local(f, rt->print_type(), (char*)"_result",0);
+      Wrapper_add_localv(f, "_result", rt->print_type(), "_result",0);
       rt->is_pointer--;
     } else {
 
       // Normal return value
-      Wrapper_add_local(f,rt->print_type(), (char*)"_result",0);
+      Wrapper_add_localv(f, "_result", rt->print_type(), "_result",0);
     }
   }
 
@@ -218,16 +218,13 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
       // Figure out default values
       if (((p->t->is_reference) && (p->defvalue)) ||
 	  ((p->t->type == T_USER) && (p->call_type == CALL_REFERENCE) && (p->defvalue))) {
-	char deftmp[1024];
-	sprintf(deftmp,"(%s) &%s", p->t->print_type(), p->defvalue);
-	Wrapper_add_local(f,p->t->print_type(),temp,deftmp);
+	Wrapper_add_localv(f,temp, p->t->print_type(), temp," = (", p->t->print_type(), ") &", p->defvalue,0);
       } else {
 	char deftmp[1024];
 	if (p->defvalue) {
-	  sprintf(deftmp,"(%s) %s", p->t->print_type(), p->defvalue);
-	  Wrapper_add_local(f,p->t->print_type(), temp, deftmp);
+	  Wrapper_add_localv(f,temp, p->t->print_type(), temp, " = (", p->t->print_type(), ") ", p->defvalue, 0);
 	} else {
-	  Wrapper_add_local(f,p->t->print_type(), temp, 0);
+	  Wrapper_add_localv(f,temp, p->t->print_type(), temp, 0);
 	}
 
 	tm = typemap_lookup((char*)"arginit", typemap_lang, p->t,p->name,(char*)"",temp,f);

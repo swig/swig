@@ -653,7 +653,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   emit_function_header(f, wname);
 
-  Wrapper_add_local(f,(char*)"PyObject *",(char*)"_resultobj",0);
+  Wrapper_add_local(f,"_resultobj", "PyObject *_resultobj");
 
   // Get the function usage string for later use
   
@@ -712,7 +712,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       
       if ((tm = typemap_lookup((char*)"in",(char*)"python",p->t,p->name,source,target,f))) {
 	Putc('O',parse_args);
-	Wrapper_add_local(f, (char*)"PyObject *",source,(char*)"0");
+	Wrapper_add_localv(f, source, "PyObject *",source,0);
 	Printf(arglist,"&%s",source);
 	if (i >= (pcount-numopt))
 	  Printv(get_pointers, tab4, "if (", source, ")\n",
@@ -765,9 +765,9 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	      sprintf(tempb,"tempbool%d",i);
 	      Putc('i',parse_args);
 	      if (!p->defvalue)
-		Wrapper_add_local(f,(char*)"int",tempb,0);
+		Wrapper_add_localv(f,tempb,"int",tempb,0);
 	      else
-		Wrapper_add_local(f,(char*)"int",tempb,tempval);
+		Wrapper_add_localv(f,tempb,"int",tempb, "=",tempval,0);
 	      Printv(get_pointers, tab4, target, " = ", p->t->print_cast(), " ", tempb, ";\n", 0);
 	      Printf(arglist,"&%s",tempb);
 	    }
@@ -813,7 +813,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    sprintf(target,"_arg%d", i);
 	    sprintf(temp,"argument %d",i+1);
 	    
-	    Wrapper_add_local(f,(char*)"PyObject *", source,(char*)"0");
+	    Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
 	    Printf(arglist,"&%s",source);
 	    get_pointer(iname, temp, source, target, p->t, get_pointers, (char*)"NULL");
 	  }
@@ -1113,7 +1113,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    case T_SINT: case T_SSHORT: case T_SLONG:
 	    case T_SCHAR: case T_UCHAR: case T_BOOL:
 	      // Get an integer value
-	      Wrapper_add_local(setf,t->print_type(), (char*)"tval",0);
+	      Wrapper_add_localv(setf,"tval",t->print_type(),"tval",0);
 	      Printv(setf->code,
 		     tab4, "tval = ", t->print_cast(), "PyInt_AsLong(val);\n",
 		     tab4, "if (PyErr_Occurred()) {\n",
@@ -1127,7 +1127,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	      
 	    case T_FLOAT: case T_DOUBLE:
 	      // Get a floating point value
-	      Wrapper_add_local(setf,t->print_type(), (char*)"tval",0);
+	      Wrapper_add_localv(setf,"tval",t->print_type(), "tval",0);
 	      Printv(setf->code,
 		     tab4, "tval = ", t->print_cast(), "PyFloat_AsDouble(val);\n",
 		     tab4, "if (PyErr_Occurred()) {\n",
@@ -1142,7 +1142,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	      // A single ascii character
 	      
 	    case T_CHAR:
-	      Wrapper_add_local(setf,(char*)"char *", (char*)"tval",0);
+	      Wrapper_add_local(setf,"tval","char * tval");
 	      Printv(setf->code,
 		     tab4, "tval = (char *) PyString_AsString(val);\n",
 		     tab4, "if (PyErr_Occurred()) {\n",
@@ -1155,7 +1155,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	      break;
 	    case T_USER:
 	      t->is_pointer++;
-	      Wrapper_add_local(setf,t->print_type(),(char*)"temp",0);
+	      Wrapper_add_localv(setf,"temp",t->print_type(),"temp",0);
 	      get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf->code,(char*)"1");
 	      Printv(setf->code, tab4, name, " = *temp;\n", 0);
 	      t->is_pointer--;
@@ -1168,7 +1168,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    // Parse a pointer value
 	    
 	    if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
-	      Wrapper_add_local(setf,(char*)"char *", (char*)"tval",0);
+	      Wrapper_add_local(setf,"tval","char * tval");
 	      Printv(setf->code,
 		     tab4, "tval = (char *) PyString_AsString(val);\n",
 		     tab4, "if (PyErr_Occurred()) {\n",
@@ -1195,7 +1195,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	      
 	      // Is a generic pointer value.
 	      
-	      Wrapper_add_local(setf,t->print_type(),(char*)"temp",0);
+	      Wrapper_add_localv(setf,"temp", t->print_type(), "temp",0);
 	      get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf->code,(char*)"1");
 	      Printv(setf->code,tab4, name, " = temp;\n", 0);
 	    }
@@ -1223,7 +1223,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // ----------------------------------------------------------------
     
     Printf(getf->def,"static PyObject *%s_get() {", wname);
-    Wrapper_add_local(getf,(char*)"PyObject *",(char*)"pyobj",0);
+    Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
     if ((tm = typemap_lookup((char*)"varout",(char*)"python",t,name,name,(char*)"pyobj"))) {
       Printf(getf->code,"%s\n",tm);
       Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
@@ -1246,7 +1246,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    Printv(getf->code, tab4, "pyobj = PyFloat_FromDouble((double) ", name, ");\n", 0);
 	    break;
 	  case T_CHAR:
-	    Wrapper_add_local(getf,(char*)"char",(char*)"ptemp[2]",0);
+	    Wrapper_add_local(getf,"ptemp","char ptemp[2]");
 	    Printv(getf->code,
 		   tab4, "ptemp[0] = ", name, ";\n",
 		   tab4, "ptemp[1] = 0;\n",

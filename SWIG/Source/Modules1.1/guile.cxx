@@ -450,7 +450,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int numargs = 0;
   int numopt = 0;
 
-  Wrapper_add_local (f,(char*)"SCM",    (char*)"gswig_result", 0);
+  Wrapper_add_local (f,"gswig_result", "SCM gswig_result");
 
   // Now write code to extract the parameters (this is super ugly)
 

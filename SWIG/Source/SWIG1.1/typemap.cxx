@@ -516,12 +516,12 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
           char temp_ip1 = tt->implicit_ptr;
           tt->is_pointer = 0;
           tt->implicit_ptr = 0;
-          new_name = Wrapper_new_local(f,tt->print_type(),Char(str));
+          new_name = Wrapper_new_localv(f,str, tt->print_type(), str, 0);
           tt->is_pointer = temp_ip;
           tt->implicit_ptr = temp_ip1;
         } 
         else 
-          new_name = Wrapper_new_local(f,tt->print_full(),Char(str));
+          new_name = Wrapper_new_localv(f,str, tt->print_full(), str, 0);
 
 	if (tt->arraystr) tt->is_pointer++;
 	// Substitute 
