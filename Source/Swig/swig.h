@@ -119,26 +119,26 @@ extern void     SwigScanner_idstart(SwigScanner *, char *idchar);
 #define   SWIG_TOKEN_ILLEGAL      98
 #define   SWIG_TOKEN_LAST         99 
 
-/* --- Simplified string-based type system */
+/* --- Functions for manipulating the string-based type encoding --- */
 
-extern void  SwigType_add_pointer(DOH *t);
-extern void  SwigType_add_array(DOH *t, DOH *size);
-extern void  SwigType_add_reference(DOH *t);
-extern void  SwigType_add_qualifier(DOH *t, DOH *qual);
-extern void  SwigType_add_function(DOH *t, DOH *parms);
-extern DOH  *SwigType_split(DOH *t);
-extern DOH  *SwigType_pop(DOH *t);
-extern void  SwigType_push(DOH *t, DOH *s);
-extern DOH  *SwigType_split_parms(DOH *p);
-extern DOH  *SwigType_split_struct(DOH *s);
-extern DOH  *SwigType_cstr(DOH *s, DOH *id);
-extern int   SwigType_ispointer(DOH *t);
-extern int   SwigType_isreference(DOH *t);
-extern int   SwigType_isarray(DOH *t);
-extern int   SwigType_isfunction(DOH *t);
-extern int   SwigType_isstruct(DOH *t);
-extern int   SwigType_isqualifier(DOH *t);
-extern DOH  *SwigType_base(DOH *t);
+extern void  StringType_add_pointer(DOH *t);
+extern void  StringType_add_array(DOH *t, DOH *size);
+extern void  StringType_add_reference(DOH *t);
+extern void  StringType_add_qualifier(DOH *t, DOH *qual);
+extern void  StringType_add_function(DOH *t, DOH *parms);
+extern DOH  *StringType_split(DOH *t);
+extern DOH  *StringType_pop(DOH *t);
+extern void  StringType_push(DOH *t, DOH *s);
+extern DOH  *StringType_split_parms(DOH *p);
+extern DOH  *StringType_split_struct(DOH *s);
+extern DOH  *StringType_cstr(DOH *s, DOH *id);
+extern int   StringType_ispointer(DOH *t);
+extern int   StringType_isreference(DOH *t);
+extern int   StringType_isarray(DOH *t);
+extern int   StringType_isfunction(DOH *t);
+extern int   StringType_isstruct(DOH *t);
+extern int   StringType_isqualifier(DOH *t);
+extern DOH  *StringType_base(DOH *t);
 
 /* --- NEW Type system --- */
 
