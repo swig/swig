@@ -435,6 +435,7 @@
 %typemap(inv,parse="d") double "";
 %typemap(inv,parse="s") char* "";
 %typemap(inv,parse="i") bool "";
+%typemap(inv,parse="i") enum SWIGTYPE "";
 
 %typemap(inv,parse="l") unsigned int, unsigned short, unsigned long, unsigned char "(long) $1_name";
 	
@@ -453,6 +454,7 @@
 
 %typemap(inv, parse="O") PyObject* "";
 
+%typemap(inv, parse="l") std::size_t "(long) $input";
 
 /* // this is rather dangerous
 %typemap(inv) SWIGTYPE  {
@@ -514,6 +516,7 @@ OUTV_TYPEMAP(double, PyFloat_AsDouble);
 OUTV_TYPEMAP(bool, PyInt_AsLong);
 OUTV_TYPEMAP(PyObject *, );
 OUTV_TYPEMAP(char *, PyString_AsString);
+OUTV_TYPEMAP(std::size_t, PyInt_AsLong);
 
 /* Object returned by value. Convert from a pointer */
 %typemap(outv) SWIGTYPE  ($&ltype argp)

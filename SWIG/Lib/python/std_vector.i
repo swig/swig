@@ -203,9 +203,9 @@ namespace std {
             }
         }
         %typemap(inv) vector<T> {
-            $input = PyTuple_New($1.size());
-            for (unsigned int i=0; i<$1.size(); i++) {
-                T* ptr = new T((($1_type &)$1)[i]);
+            $input = PyTuple_New($1_name.size());
+            for (unsigned int i=0; i<$1_name.size(); i++) {
+                T* ptr = new T((($1_type &)$1_name)[i]);
                 PyTuple_SetItem($input,i,
                                 SWIG_NewPointerObj((void *) ptr, 
                                                    $descriptor(T *), 1));
@@ -486,7 +486,7 @@ namespace std {
         %typemap(inv) vector<T> {
             $input = PyTuple_New($1_name.size());
             for (unsigned int i=0; i<$1_name.size(); i++) {
-                T ptr = (($1_type &)$1)[i];
+                T ptr = (($1_type &)$1_name)[i];
                 PyTuple_SetItem($input,i,
                                 SWIG_NewPointerObj((void *) ptr, 
                                                    $descriptor(T), 0));

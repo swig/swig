@@ -53,6 +53,7 @@ class SWIG_DIRECTOR_PURE_VIRTUAL_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION { };
   #endif
 #endif
 
+
 /* director base class */
 class __DIRECTOR__ {
 private:
@@ -171,6 +172,7 @@ public:
 
 };
 
+namespace {
 int __DIRECTOR__::_up = 0;
 
 #ifdef __PTHREAD__
@@ -178,6 +180,8 @@ int __DIRECTOR__::_up = 0;
   pthread_t __DIRECTOR__::_mutex_thread;
   int __DIRECTOR__::_mutex_active = 0;
 #endif
+
+}
 
 #endif /* __cplusplus */
 

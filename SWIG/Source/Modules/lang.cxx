@@ -1640,6 +1640,8 @@ int Language::classDeclaration(Node *n) {
 
 int Language::classHandler(Node *n) {
 
+  bool hasDirector = Swig_directorclass(n);
+
   /* Emit all of the class members */
   emit_children(n);
 
@@ -1659,7 +1661,7 @@ int Language::classHandler(Node *n) {
   if (!ImportMode && (GenerateDefault && !Getattr(n,"feature:nodefault"))) {
     if (!Getattr(n,"has_constructor") && !Getattr(n,"allocate:has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
       /* Note: will need to change this to support different kinds of classes */
-      if (!Abstract) {
+      if (!Abstract || hasDirector) {
 	Setattr(CurrentClass,"feature:new","1");
 	constructorHandler(CurrentClass);
 	Delattr(CurrentClass,"feature:new");
@@ -1671,7 +1673,7 @@ int Language::classHandler(Node *n) {
   }
 
   /* emit director disown method */
-  if (Getattr(n, "vtable")) {
+  if (hasDirector) {
   	classDirectorDisown(n);
   }
 

@@ -72,7 +72,7 @@ SwigComplex_AsComplexDouble(PyObject *o)
   }
   
   %typemap(inv) const complex<T> & {
-    $inupt =  PyComplex_FromDoubles($1_name->real(), $1_name->imag());
+    $input =  PyComplex_FromDoubles($1_name->real(), $1_name->imag());
   }
   
   %typemap(outv) complex<T> {
