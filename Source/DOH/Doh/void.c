@@ -15,7 +15,6 @@ static char cvsroot[] = "$Header$";
 #include "dohint.h"
 
 typedef struct {
-    DOHCOMMON;
     void   *ptr; 
     void   (*del)(void *);
 } VoidObj;
@@ -28,11 +27,10 @@ typedef struct {
 
 static void
 Void_delete(DOH *vo) {
-  VoidObj *v = (VoidObj *) vo;
+  VoidObj *v = (VoidObj *) ObjData(vo);
   if (v->del)
     (*v->del)(v->ptr);
-  v->del = 0;
-  DohObjFree(v);
+  DohFree(v);
 }
 
 /* -----------------------------------------------------------------------------
@@ -44,7 +42,7 @@ Void_delete(DOH *vo) {
 
 static DOH *
 Void_copy(DOH *vo) {
-  VoidObj *v = (VoidObj *) vo;
+  VoidObj *v = (VoidObj *) ObjData(vo);
   return NewVoid(v->ptr,0);
 }
 
@@ -56,29 +54,31 @@ Void_copy(DOH *vo) {
 
 static void *
 Void_data(DOH *vo) {
-  VoidObj *v = (VoidObj *) vo;
+  VoidObj *v = (VoidObj *) ObjData(vo);
   return v->ptr;
 }
 
 static DohObjInfo DohVoidType = {
   "VoidObj",        /* objname */
-  sizeof(VoidObj),  /* objsize */
   Void_delete,      /* doh_del */
   Void_copy,        /* doh_copy */
   0,                /* doh_clear */
   0,                /* doh_str */
   Void_data,        /* doh_data */
   0,                /* doh_dump */
-  0,                /* doh_load */
   0,                /* doh_len */
   0,                /* doh_hash    */
   0,                /* doh_cmp */
+  0,                /* doh_setfile */
+  0,                /* doh_getfile */
+  0,                /* doh_setline */
+  0,                /* doh_getline */
   0,                /* doh_mapping */
   0,                /* doh_sequence */
   0,                /* doh_file  */
   0,                /* doh_string */
-  0,                /* doh_reserved1 */
-  0,                /* doh_reserved2 */
+  0,                /* doh_reserved */
+  0,                /* clientdata */
 };
 
 /* -----------------------------------------------------------------------------
@@ -89,10 +89,14 @@ static DohObjInfo DohVoidType = {
 
 DOH *
 NewVoid(void *obj, void (*del)(void *)) {
+  static int init = 0;
   VoidObj *v;
-  v = (VoidObj *) DohObjMalloc(sizeof(VoidObj));
-  v->objinfo = &DohVoidType;
+  if (!init) {
+    DohRegisterType(DOHTYPE_VOID, &DohVoidType);
+    init = 1;
+  }
+  v = (VoidObj *) DohMalloc(sizeof(VoidObj));
   v->ptr = obj;
   v->del = del;
-  return (DOH *) v;
+  return DohObjMalloc(DOHTYPE_VOID,v);
 }
