@@ -4,8 +4,6 @@ SWIG CVS
 <img src="images/cvs.png">
 
 <p>
-<b>Notice (9/4/00): Due to building rennovations, the CVS repository
-will be unavailable from 9/5/00 to 9/18/00.</b>
 
 <p>
 SWIG is currently undergoing a large redevelopment effort.
@@ -44,11 +42,19 @@ CVS password: &lt;enter 'cvs' here&gt
 The password to the cvs account is 'cvs'.
 
 <p>
-<li>The latest version of SWIG can be retrieved using
+<li>The latest stable version of SWIG can be retrieved using
 
 <p>
 <pre>
-% cvs checkout SWIG
+% cvs checkout -r rel-1-3 SWIG
+</pre>
+</p>
+
+<p>
+<li>The latest development version of SWIG can be retrieved using
+<p>
+<pre>
+% cvs checkout -r rel-1-5 SWIG
 </pre>
 </p>
 
