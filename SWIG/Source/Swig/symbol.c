@@ -883,6 +883,32 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
 	  }
 	  Delete(qname);
 	}
+      } else if (SwigType_istemplate(e)) {
+	String *tprefix, *tsuffix;
+	SwigType *qprefix;
+	List   *targs;
+	String  *tparm;
+	tprefix = SwigType_templateprefix(e);
+	tsuffix = SwigType_templatesuffix(e);
+	qprefix = Swig_symbol_type_qualify(tprefix,st);
+	targs = SwigType_parmlist(e);
+	Printf(qprefix,"<(");
+	for (tparm = Firstitem(targs); tparm;) {
+	  String *qparm = Swig_symbol_type_qualify(tparm,st);
+	  Append(qprefix,qparm);
+	  tparm = Nextitem(targs);
+	  if (tparm) {
+	    Putc(',',qprefix);
+	  }
+	  Delete(qparm);
+	}
+	Append(qprefix,")>");
+	Append(qprefix,tsuffix);
+	Clear(e);
+	Append(e,qprefix);
+	Delete(tprefix);
+	Delete(tsuffix);
+	Delete(qprefix);
       }
       if (Strncmp(e,"::",2) == 0) {
 	Delitem(e,0);
