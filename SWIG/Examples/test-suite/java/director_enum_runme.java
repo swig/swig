@@ -22,6 +22,9 @@ public class director_enum_runme {
       if (a.ping_ref(Hallo.awright) != Hallo.hello) {
           throw new RuntimeException ( "a.ping_ref()" );
       }
+      if (a.ping_member_enum(Foo.Bye.adios) != Foo.Bye.aufwiedersehen) {
+          throw new RuntimeException ( "a.ping_member_enum()" );
+      }
 
       Foo b = new Foo();
 
@@ -30,6 +33,9 @@ public class director_enum_runme {
       }
       if (b.ping_ref(Hallo.awright) != Hallo.awright) {
           throw new RuntimeException ( "b.ping_ref()" );
+      }
+      if (b.ping_member_enum(Foo.Bye.adios) != Foo.Bye.adios) {
+          throw new RuntimeException ( "b.ping_member_enum()" );
       }
   }
 }
@@ -40,6 +46,9 @@ class MyFoo extends Foo {
     }
     public Hallo say_hi_ref(Hallo h) {
         return Hallo.hello;
+    }
+    public Foo.Bye say_bye(Foo.Bye b) {
+        return Foo.Bye.aufwiedersehen;
     }
 }
 
