@@ -170,22 +170,37 @@ SPyObj_FromCharPtr(const char* cptr) {
   return cptr ? PyString_FromString(cptr) : Py_BuildValue((char*)"");
 }
 
+/*
+  these two routines allows char[ANY] with '0' chars inside, ie:
+   
+     const char def_namet[5] = {'h','o',0, 'l','a'};
+   
+  is not truncated to "ho". 
+ */
+
 SWIG_STATIC_INLINE PyObject *
-SPyObj_FromCharArray(const char* carray, size_t size) { 
-  return PyString_FromStringAndSize(carray, strnlen(carray, size));
+SPyObj_FromCharArray(const char* carray, int len) {
+  /* checking the effective size backward */
+  for (; len && (carray[len - 1] == 0); --len);
+  
+  return PyString_FromStringAndSize(carray, len);
 }
 
-
 SWIG_STATIC_INLINE void
-SPyObj_AsCharArray(PyObject *obj, char* carray, size_t size) { 
-  const char* s = PyString_Check(obj) ? PyString_AsString(obj) : 0;
+SPyObj_AsCharArray(PyObject *obj, char* carray, int size) { 
+  int len = size;
+  char* buf;
+  PyString_AsStringAndSize(obj, &buf, &len);
   if (!PyErr_Occurred()) {
-    size_t len = strlen(s);
     if (len > size) {
       PyErr_SetObject(PyExc_TypeError, 
-		      PyString_FromFormat("a string of maximum size %d is required", size));
+         PyString_FromFormat("a string of maximum size %d is required", size));
+    } else {
+      memcpy(carray, buf, len);
+      /* pad the string with zero chars if needed */
+      if (len < size) 
+	memset(carray + len, 0, size - len);
     }
-    strncpy(carray, s, size);
   }
 }
  

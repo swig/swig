@@ -81,10 +81,17 @@
     char name[5];
     int val;
 
-    MyInt(int v = 0): val(v) { }
+    MyInt(int v = 0): val(v) {
+      name[0]='n';
+    }
     
     operator int() const { return val; }
   };
+
+  typedef char namet[5];
+  extern namet gbl_namet;
+  namet gbl_namet;
+
 %}
 //
 // adding applies for incomplete swig type MyInt
@@ -101,6 +108,7 @@
 
 %apply long { pint };
   
+
 //
 // Some simple types
 %inline %{
@@ -114,8 +122,10 @@
 
   char* const def_pchar = "hello";
 
-  const namet def_namet = "hola";//{'h','o','l','a',0};
+  const namet def_namet = {'h','o',0, 'l','a'};
 
+  extern namet gbl_namet;
+  
 %}
 
 
@@ -305,14 +315,19 @@ macro(MyInt,              pfx, myint)
 
    %test_prim_types_int(ovr_decl, ovr);
 
-   const char* stringl(const char *str, size_t len)
+   int strlen(const char *str, size_t len)
    {
-     return str;
+     return len;
    }
 
-   int main(size_t argc, const char **argv) 
+   int mainc(size_t argc, const char **argv) 
    {
      return argc;
+   }
+
+   const char* mainv(size_t argc, const char **argv, int idx) 
+   {
+     return argv[idx];
    }
    
    
@@ -327,6 +342,7 @@ macro(MyInt,              pfx, myint)
    
    virtual ~TestDirector()
    {
+     var_namet[0]='h';
    }
 
    %test_prim_types_int(stc_decl, stc);

@@ -31,26 +31,26 @@ def pyerror(name, val, cte):
   raise RuntimeError
   pass
 
-if cvar.var_bool != cct_bool: pyerror("bool", var_bool, cct_bool)
-if cvar.var_schar != cct_schar: pyerror("schar", var_schar, cct_schar)
-if cvar.var_uchar != cct_uchar: pyerror("uchar", var_uchar, cct_uchar)
-if cvar.var_int != cct_int: pyerror("int", var_int, cct_int)
-if cvar.var_uint != cct_uint: pyerror("uint", var_uint, cct_uint)
-if cvar.var_short != cct_short: pyerror("short", var_short, cct_short)
-if cvar.var_ushort != cct_ushort: pyerror("ushort", var_ushort, cct_ushort)
-if cvar.var_long != cct_long: pyerror("long", var_long, cct_long)
-if cvar.var_ulong != cct_ulong: pyerror("ulong", var_ulong, cct_ulong)
-if cvar.var_llong != cct_llong: pyerror("llong", var_llong, cct_llong)
-if cvar.var_ullong != cct_ullong: pyerror("ullong", var_ullong, cct_ullong)
-if cvar.var_float != cct_float: pyerror("float", var_float, cct_float)
-if cvar.var_double != cct_double: pyerror("double", var_double, cct_double)
-if cvar.var_char != cct_char: pyerror("char", var_char, cct_char)
-if cvar.var_pchar != cct_pchar: pyerror("pchar", var_pchar, cct_pchar)
-if cvar.var_pint != cct_pint: pyerror("pint", var_pint, cct_pint)
-if cvar.var_sizet != cct_sizet: pyerror("sizet", var_sizet, cct_sizet)
-if cvar.var_hello != cct_hello: pyerror("hello", var_hello, cct_hello)
-if cvar.var_myint != cct_myint: pyerror("myint", var_myint, cct_myint)
-if cvar.var_namet != def_namet: pyerror("name", var_namet, def_namet)
+if cvar.var_bool != cct_bool: pyerror("bool", cvar.var_bool, cct_bool)
+if cvar.var_schar != cct_schar: pyerror("schar", cvar.var_schar, cct_schar)
+if cvar.var_uchar != cct_uchar: pyerror("uchar", cvar.var_uchar, cct_uchar)
+if cvar.var_int != cct_int: pyerror("int", cvar.var_int, cct_int)
+if cvar.var_uint != cct_uint: pyerror("uint", cvar.var_uint, cct_uint)
+if cvar.var_short != cct_short: pyerror("short", cvar.var_short, cct_short)
+if cvar.var_ushort != cct_ushort: pyerror("ushort", cvar.var_ushort, cct_ushort)
+if cvar.var_long != cct_long: pyerror("long", cvar.var_long, cct_long)
+if cvar.var_ulong != cct_ulong: pyerror("ulong", cvar.var_ulong, cct_ulong)
+if cvar.var_llong != cct_llong: pyerror("llong", cvar.var_llong, cct_llong)
+if cvar.var_ullong != cct_ullong: pyerror("ullong", cvar.var_ullong, cct_ullong)
+if cvar.var_float != cct_float: pyerror("float", cvar.var_float, cct_float)
+if cvar.var_double != cct_double: pyerror("double", cvar.var_double, cct_double)
+if cvar.var_char != cct_char: pyerror("char", cvar.var_char, cct_char)
+if cvar.var_pchar != cct_pchar: pyerror("pchar", cvar.var_pchar, cct_pchar)
+if cvar.var_pint != cct_pint: pyerror("pint", cvar.var_pint, cct_pint)
+if cvar.var_sizet != cct_sizet: pyerror("sizet", cvar.var_sizet, cct_sizet)
+if cvar.var_hello != cct_hello: pyerror("hello", cvar.var_hello, cct_hello)
+if cvar.var_myint != cct_myint: pyerror("myint", cvar.var_myint, cct_myint)
+if cvar.var_namet != def_namet: pyerror("name", cvar.var_namet, def_namet)
 
 class PyTest (TestDirector):
   def __init__(self):
@@ -157,10 +157,36 @@ t.var_namet = def_namet
 
 t.v_check()
 
-if def_namet != 'hola':
-  raise RuntimeError, "bad namet"
+# this value contains a '0' char!
+if def_namet != 'ho\0la':
+  print "bad namet", def_namet
+  raise RuntimeError
+
+t.var_namet = def_namet
+if t.var_namet != def_namet:
+  print "bad namet", t.var_namet
+  raise RuntimeError
 
 t.var_namet = 'holac'
 
 if t.var_namet != 'holac':
-  raise RuntimeError, "bad namet"
+  print "bad namet", t.var_namet
+  raise RuntimeError
+
+t.var_namet = 'hol'
+
+if t.var_namet != 'hol':
+  print "bad namet", t.var_namet
+  raise RuntimeError
+
+largs=['hi','hola','hello']
+if t.mainc(largs) != 3:
+  raise RuntimeError, "bad main typemap"
+
+targs=('hi','hola')
+if t.mainv(targs,1) != 'hola':
+  raise RuntimeError, "bad main typemap"
+
+
+if t.strlen('hile') != 4:
+  raise RuntimeError, "bad string typemap"
