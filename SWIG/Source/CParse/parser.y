@@ -335,6 +335,8 @@ static void add_symbols(Node *n) {
 	  }
 	  Swig_warning(WARN_PARSE_REDEFINED,Getfile(n), Getline(n),"%s\n", e);
 	  Setattr(n,"error",e);
+	} else if ((c != n) && (Getattr(n,"sym:weak"))) {
+	  Setattr(n,"sym:name", symname);
 	}
       } else {
 	Setattr(n,"sym:name", symname);
@@ -344,6 +346,7 @@ static void add_symbols(Node *n) {
     n = nextSibling(n);
   }
 }
+
 
 /* add symbols a parse tree node copy */
 
@@ -2239,13 +2242,17 @@ cpp_opt_declarators :  SEMI { $$ = 0; }
    ------------------------------------------------------------ */
 
 cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
-               $$ = new_node("classforward");
-	       Setattr($$,"kind",$2);
-	       Setattr($$,"name",$3);
-	       Setattr($$,"sym:weak", "1");
-	       add_symbols($$);
-	       /*	       Setattr($$,"sym:name", make_name(Getattr($$,"name"),0)); */
-	     }
+              if ($1 && (Strcmp($1,"friend") == 0)) {
+		/* Ignore */
+                $$ = 0; 
+	      } else {
+		$$ = new_node("classforward");
+		Setattr($$,"kind",$2);
+		Setattr($$,"name",$3);
+		Setattr($$,"sym:weak", "1");
+		add_symbols($$);
+	      }
+             }
              ;
 
 /* ------------------------------------------------------------
