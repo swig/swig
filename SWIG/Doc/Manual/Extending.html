@@ -59,9 +59,9 @@ currently implemented in this stage of processing.
 
 <h4>Preprocessing</h4>
 
-The role of the preprocessor needs to be strongly emphasized. In reality, a lot
+The role of the preprocessor needs to be strongly emphasized. In practice, a lot
 of SWIG's processing and internal configuration is managed not by code written in C, but
-by configuration files that are contained in the SWIG library and parsed.   In fact, when you
+by configuration files in the SWIG library.  In fact, when you
 run SWIG, parsing starts with a small interface file like this (note: this explains
 the cryptic error messages that users sometimes get when SWIG is misconfigured or installed
 incorrectly):
@@ -117,9 +117,10 @@ of <tt>swig.swg</tt> looks like this:
 </pre>
 </blockquote>
 
-The fact that most of the standard SWIG directives are macros is intended to simplify the 
-implementation of the parser.  For instance, rather than having to support dozens of
-special grammar rules, it is easier to have a few basic primitives such as <tt>%pragma</tt> or
+The fact that most of the standard SWIG directives are macros is
+intended to simplify the implementation of the parser.  For instance,
+rather than having to support dozens of special grammar rules, it is
+easier to have a few basic primitives such as <tt>%pragma</tt> or
 <tt>%insert</tt>.
 
 <p>
@@ -130,9 +131,10 @@ support code (e.g., the type-checker) as well as a collection of
 typemaps that define the default wrapping behavior. 
 
 <p>
-Although the SWIG preprocessor is intended to mimic the behavior of the C preprocessor,
-it is not meant to be a direct replacement.  Instead, its behavior is adapted for use with SWIG and
-it provides a number of a non-standard extensions:
+Although the SWIG preprocessor is intended to mimic the behavior of
+the C preprocessor, it is not meant to be a direct replacement.
+Instead, its behavior is adapted for use with SWIG and it provides a
+number of a non-standard extensions:
 
 <ul>
 <li>File inclusion directives such as <tt>#include &lt;stdio.h&gt;</tt> are ignored by default.
@@ -145,9 +147,10 @@ it provides a number of a non-standard extensions:
 }
 </pre>
 </blockquote>
-These blocks are used during parsing and code generation to track the relationship between all of the files
-that were included or imported into an interface.  This is especially important when SWIG is being used to create a collection
-of interrelated extension modules.
+These blocks are used during parsing and code generation to track the
+relationship between all of the files that were included or imported
+into an interface.  This is especially important when SWIG is being
+used to create a collection of interrelated extension modules.
 
 <p>
 <li>Preprocessing is disabled inside any <tt>%{ ... %}</tt> block.
@@ -203,9 +206,9 @@ functions, etc.).  Examples of declarators include <tt>*x</tt>, <tt>**x</tt>, <t
 body of code enclosed in braces <tt>{ ... }</tt>.
 
 <p>
-This declaration format covers the most common C++ programming style.  However, the C++ standard
+This declaration format covers most common C++ declarations. However, the C++ standard
 is somewhat more flexible in the placement of the pieces.  For example, it is technically legal, although
-probably poor form to write something like <tt>int typedef const a</tt> in your program.   SWIG simply
+unusual form to write something like <tt>int typedef const a</tt> in your program.   SWIG simply
 doesn't bother to deal with this (although it could probably be modified if there is sufficient demand).
 
 <P>
@@ -222,21 +225,22 @@ it won't parse correctly unless <tt>Foo</tt> and <tt>Bar</tt> have
 been previously defined as types either using a <tt>class</tt>
 definition or a <tt>typedef</tt>.  The reasons for this are subtle,
 but this treatment of typenames is normally integrated at the level of the C
-tokenizer---when a typename appears, a different token is returned
+tokenizer---when a typename appears, a different token is returned to the parser
 instead of an identifier.  
 
 <p>
 SWIG does not operate in this manner--any legal identifier can be used
-as a type name.  The reason for this is primarily motivated by the use of
-SWIG with partially defined data.  Specifically, I wanted to make SWIG easy to use on interfaces
-with missing type information.  On a more practical level however, the introduction of typenames
-would greatly complicate other parts of SWIG such as the parsing of SWIG directives (many of which
-also rely upon identifier names).
+as a type name.  The reason for this is primarily motivated by the use
+of SWIG with partially defined data.  Specifically, I wanted to make
+SWIG easy to use on interfaces with missing type information.  On a
+more practical level however, the introduction of typenames would
+greatly complicate other parts of SWIG such as the parsing of SWIG
+directives (many of which also rely upon identifier names).
 
 <p>
-Because of the different treatment of typenames, the most serious limitation of the SWIG parser
-is that it can't process declarations in which an extra (and unnecessary)
-grouping has been used.  For example:
+Because of the different treatment of typenames, the most serious
+limitation of the SWIG parser is that it can't process declarations in
+which an extra (and unnecessary) grouping operator is used.  For example:
 
 <blockquote>
 <pre>
@@ -256,8 +260,381 @@ foo(a,b) {
 </pre>
 </blockquote>
 In this case, the return type as well as the types of the arguments are taken to be an <tt>int</tt>.
-However, SWIG behaves differently (in fact, the above declaration would be an abstract declarator
+However, SWIG interprets the above code as an abstract declarator
 for a function returning a <tt>foo</tt> and taking types <tt>a</tt> and <tt>b</tt> as arguments).
+
+<h4>Parse Trees</h4>
+
+The SWIG parser produces a complete parse tree of the input file before any wrapper code
+is actually generated.  Each item in the tree is known as a "Node".   Each node is identified
+by a symbolic tag.   Furthermore, a node may have an arbitrary number of children.
+The parse tree structure and tag names of an interface can be displayed using <tt>swig -dump_tags</tt>.
+For example:
+
+<blockquote>
+<pre>
+$ <b>swig -c++ -python -dump_tags example.i</b>
+ . top (example.i:1)
+ . top . include (example.i:1)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/swig.swg:71)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/swig.swg:71)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/swig.swg:83)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/swig.swg:83)
+ . top . include (example.i:4)
+ . top . include . insert (/r0/beazley/Projects/lib/swig1.3/python/python.swg:7)
+ . top . include . insert (/r0/beazley/Projects/lib/swig1.3/python/python.swg:8)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:19)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:19)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:19)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:20)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:20)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:20)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:21)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:21)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:21)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:22)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:22)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:22)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:23)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:23)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:24)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:24)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:25)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:25)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:26)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:26)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:29)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:29)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:32)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:32)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:42)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:42)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:42)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:42)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:45)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:45)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:46)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:46)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:49)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:49)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:61)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:61)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:61)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:62)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:62)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:63)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:63)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:66)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:66)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:66)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:66)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:69)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:69)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:72)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:72)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:75)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:75)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:75)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:84)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:84)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:114)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:114)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:114)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:124)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:124)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:137)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:137)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:154)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:154)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:164)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:164)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:173)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:173)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:173)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:182)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:182)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:191)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:191)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:200)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:200)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:208)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:208)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:208)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:211)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:211)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:211)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:214)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:214)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:214)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:214)
+ . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:217)
+ . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:217)
+ . top . include (example.i:6)
+ . top . include . module (example.i:2)
+ . top . include . insert (example.i:6)
+ . top . include . include (example.i:9)
+ . top . include . include . class (example.h:3)
+ . top . include . include . class . access (example.h:4)
+ . top . include . include . class . constructor (example.h:7)
+ . top . include . include . class . destructor (example.h:10)
+ . top . include . include . class . cdecl (example.h:11)
+ . top . include . include . class . cdecl (example.h:11)
+ . top . include . include . class . cdecl (example.h:12)
+ . top . include . include . class . cdecl (example.h:13)
+ . top . include . include . class . cdecl (example.h:14)
+ . top . include . include . class . cdecl (example.h:15)
+ . top . include . include . class (example.h:18)
+ . top . include . include . class . access (example.h:19)
+ . top . include . include . class . cdecl (example.h:20)
+ . top . include . include . class . access (example.h:21)
+ . top . include . include . class . constructor (example.h:22)
+ . top . include . include . class . cdecl (example.h:23)
+ . top . include . include . class . cdecl (example.h:24)
+ . top . include . include . class (example.h:27)
+ . top . include . include . class . access (example.h:28)
+ . top . include . include . class . cdecl (example.h:29)
+ . top . include . include . class . access (example.h:30)
+ . top . include . include . class . constructor (example.h:31)
+ . top . include . include . class . cdecl (example.h:32)
+ . top . include . include . class . cdecl (example.h:33)
+</pre>
+</blockquote>
+
+Even for the most simple interface, the parse tree structure is larger than you might expect.  For example, in the
+above output, a substantial number of nodes are actually generated by the <tt>python.swg</tt> configuration file
+which defines typemaps and other directives.   The contents of the user-supplied input file don't appear until the end
+of the output.
+
+<p>
+The contents of each parse tree node consist of a collection of attribute/value
+pairs.  Internally, the nodes are simply stored as a hash table.  A display of
+the parse-tree structure can be obtained using <tt>swig -dump_tree</tt>. For example:
+
+<blockquote>
+<pre>
+$ swig -c++ -python -dump_tree example.i
+...
+      +++ include ----------------------------------------
+      | name         - "example.i"
+
+            +++ module ----------------------------------------
+            | name         - "example"
+            | 
+            +++ insert ----------------------------------------
+            | code         - "\n#include \"example.h\"\n"
+            | 
+            +++ include ----------------------------------------
+            | name         - "example.h"
+
+                  +++ class ----------------------------------------
+                  | abstract     - "1"
+                  | sym:name     - "Shape"
+                  | name         - "Shape"
+                  | kind         - "class"
+                  | symtab       - 0x40194140
+                  | sym:symtab   - 0x40191078
+
+                        +++ access ----------------------------------------
+                        | kind         - "public"
+                        | 
+                        +++ constructor ----------------------------------------
+                        | sym:name     - "Shape"
+                        | name         - "Shape"
+                        | decl         - "f()."
+                        | code         - "{\n    nshapes++;\n  }"
+                        | sym:symtab   - 0x40194140
+                        | 
+                        +++ destructor ----------------------------------------
+                        | sym:name     - "~Shape"
+                        | name         - "~Shape"
+                        | storage      - "virtual"
+                        | code         - "{\n    nshapes--;\n  }"
+                        | sym:symtab   - 0x40194140
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | sym:name     - "x"
+                        | name         - "x"
+                        | decl         - ""
+                        | type         - "double"
+                        | sym:symtab   - 0x40194140
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | sym:name     - "y"
+                        | name         - "y"
+                        | decl         - ""
+                        | type         - "double"
+                        | sym:symtab   - 0x40194140
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | sym:name     - "move"
+                        | name         - "move"
+                        | decl         - "f(double,double)."
+                        | parms        - double ,double 
+                        | type         - "void"
+                        | sym:symtab   - 0x40194140
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | sym:name     - "area"
+                        | name         - "area"
+                        | decl         - "f(void)."
+                        | parms        - void 
+                        | storage      - "virtual"
+                        | value        - "0"
+                        | type         - "double"
+                        | sym:symtab   - 0x40194140
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | sym:name     - "perimeter"
+                        | name         - "perimeter"
+                        | decl         - "f(void)."
+                        | parms        - void 
+                        | storage      - "virtual"
+                        | value        - "0"
+                        | type         - "double"
+                        | sym:symtab   - 0x40194140
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | sym:name     - "nshapes"
+                        | name         - "nshapes"
+                        | decl         - ""
+                        | storage      - "static"
+                        | type         - "int"
+                        | sym:symtab   - 0x40194140
+                        | 
+                  +++ class ----------------------------------------
+                  | sym:name     - "Circle"
+                  | name         - "Circle"
+                  | kind         - "class"
+                  | bases        - 0x40194510
+                  | symtab       - 0x40194538
+                  | sym:symtab   - 0x40191078
+
+                        +++ access ----------------------------------------
+                        | kind         - "private"
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | name         - "radius"
+                        | decl         - ""
+                        | type         - "double"
+                        | 
+                        +++ access ----------------------------------------
+                        | kind         - "public"
+                        | 
+                        +++ constructor ----------------------------------------
+                        | sym:name     - "Circle"
+                        | name         - "Circle"
+                        | parms        - double 
+                        | decl         - "f(double)."
+                        | code         - "{ }"
+                        | sym:symtab   - 0x40194538
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | sym:name     - "area"
+                        | name         - "area"
+                        | decl         - "f(void)."
+                        | parms        - void 
+                        | storage      - "virtual"
+                        | type         - "double"
+                        | sym:symtab   - 0x40194538
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | sym:name     - "perimeter"
+                        | name         - "perimeter"
+                        | decl         - "f(void)."
+                        | parms        - void 
+                        | storage      - "virtual"
+                        | type         - "double"
+                        | sym:symtab   - 0x40194538
+                        | 
+                  +++ class ----------------------------------------
+                  | sym:name     - "Square"
+                  | name         - "Square"
+                  | kind         - "class"
+                  | bases        - 0x40194760
+                  | symtab       - 0x40194788
+                  | sym:symtab   - 0x40191078
+
+                        +++ access ----------------------------------------
+                        | kind         - "private"
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | name         - "width"
+                        | decl         - ""
+                        | type         - "double"
+                        | 
+                        +++ access ----------------------------------------
+                        | kind         - "public"
+                        | 
+                        +++ constructor ----------------------------------------
+                        | sym:name     - "Square"
+                        | name         - "Square"
+                        | parms        - double 
+                        | decl         - "f(double)."
+                        | code         - "{ }"
+                        | sym:symtab   - 0x40194788
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | sym:name     - "area"
+                        | name         - "area"
+                        | decl         - "f(void)."
+                        | parms        - void 
+                        | storage      - "virtual"
+                        | type         - "double"
+                        | sym:symtab   - 0x40194788
+                        | 
+                        +++ cdecl ----------------------------------------
+                        | sym:name     - "perimeter"
+                        | name         - "perimeter"
+                        | decl         - "f(void)."
+                        | parms        - void 
+                        | storage      - "virtual"
+                        | type         - "double"
+                        | sym:symtab   - 0x40194788
+</pre>
+</blockquote>
+
+<h4>Code Generation</h4>
+
+Language modules work by attaching handler functions to different
+types of parse-tree nodes.  These handlers simply look at the
+attributes of each node in order to produce low-level code.
+
+<p>
+However, the picture is actually a little more complicated than this.   In certain
+cases, parse tree nodes are transformed.   
 
 <p>
 <hr>
