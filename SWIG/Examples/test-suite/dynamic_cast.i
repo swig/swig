@@ -9,9 +9,11 @@
 
 class Foo {
 public:
-   virtual Foo *blah() {
-       return this;
-   }
+  virtual ~Foo() { }
+  
+  virtual Foo *blah() {
+    return this;
+  }
 };
 %}
 

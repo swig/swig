@@ -7,6 +7,7 @@
 
 class Foo {
 public:
+    virtual ~Foo() { }
     virtual int blah() = 0;
 };
 

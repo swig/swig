@@ -46,6 +46,7 @@ namespace Foo {
    typedef int Integer;
    class Test2 { 
    public:
+       virtual ~Test2() { }
        virtual char *method() {	
 	 return (char *) "Test2::method";
        }

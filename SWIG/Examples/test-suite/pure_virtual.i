@@ -49,6 +49,7 @@ class D : public C {
 /* Another abstract class */
 class AA {
   public:
+     virtual ~AA() { }
      virtual void method2() = 0;
 };
 

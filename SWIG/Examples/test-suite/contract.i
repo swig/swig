@@ -75,6 +75,8 @@ int test_prepost(int x, int y) {
 %inline %{
 class Foo {
 public:
+        virtual ~Foo() { }
+  
 	virtual int test_preassert(int x, int y) {
             if ((x > 0) && (y > 0)) return 1;
             return 0;
@@ -140,6 +142,7 @@ public:
 %inline %{
   class A {
    public:
+    virtual ~A() {}
     virtual int foo(int a, int b, int c, int d, int e) {
       if ((a > 0) && (b > 0) && (c > 0) && (d > 0) && (e > 0)) {
 	return 1;
@@ -150,6 +153,7 @@ public:
 
   class B {
    public:
+    virtual ~B() {}
     virtual int bar(int a, int b, int c, int d, int e) {
       if ((a > 0) && (b > 0) && (c > 0) && (d > 0) && (e > 0)) {
 	return 1;

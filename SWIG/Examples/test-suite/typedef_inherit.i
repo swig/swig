@@ -1,9 +1,12 @@
 // Inheritance through a typedef name
 %module typedef_inherit
 
+  
 %inline %{
 class Foo {
 public:
+     virtual ~Foo () { }
+  
      virtual char *blah() {
 	return (char *) "Foo::blah";
      }
@@ -29,6 +32,7 @@ typedef struct {
 } Spam;
 
 struct Grok : public Spam {
+   virtual ~Grok() { }
    virtual char *blah() {
        return (char *) "Grok::blah";
    }

@@ -7,6 +7,7 @@
 /* Define the class internally, but don't tell SWIG about it */
 class Foo {
 public:
+     virtual ~Foo() {}
      virtual char *blah() {
 	return (char *) "Foo::blah";
      }
@@ -21,6 +22,7 @@ class Foo;
 
 class Bar : public Foo {
  public:
+  virtual ~Bar() {}
   virtual char *blah() {
     return (char *) "Bar::blah";
   };

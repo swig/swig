@@ -8,6 +8,10 @@
 
     struct AbstractBaseClass
     {
+      virtual ~AbstractBaseClass()
+      {
+      }
+      
       virtual bool write(Engine& archive) const = 0;
     };    
 

@@ -5,6 +5,7 @@
 %inline %{
 class Foo {
 public:
+   virtual ~Foo() { }
    virtual char *blah() = 0;
 };
 

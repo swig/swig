@@ -2,6 +2,11 @@
 
 %inline %{
 class A {
+public:
+  virtual ~A()
+  {
+  }
+
 private:
 	virtual int x() = 0;
 protected:

@@ -6,6 +6,10 @@
 %inline %{
   struct A 
   {
+    virtual ~A()
+    {
+    }
+    
     virtual int foo() = 0;
   };
  

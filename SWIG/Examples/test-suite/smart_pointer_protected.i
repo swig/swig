@@ -6,6 +6,7 @@
   {    
     struct A 
     {
+      virtual ~A() { }
       virtual int value(A*) = 0;
       int index;
     };    

@@ -4,6 +4,7 @@
   class Foo {
   public:
     int x;
+    virtual ~Foo() { }
     virtual Foo* blah() { return this; }
   };
 
