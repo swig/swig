@@ -385,7 +385,7 @@ static void get_escape() {
 	return;
       }
       if (c == 'e') {
-	yytext[yylen-1] = '\e';
+	yytext[yylen-1] = '\033';
 	return;
       }
       if (c == '\'') {
