@@ -210,8 +210,8 @@ public:
   int          is_virtual;
 
   CPP_function(char *n, char *i, DataType *t, ParmList *l, int s, int v = 0) {
-    name = copy_string(n);
-    iname = copy_string(i);
+    name = Swig_copy_string(n);
+    iname = Swig_copy_string(i);
     ret_type = CopyDataType(t);
     parms = CopyParmList(l);
     is_static = s;
@@ -229,7 +229,7 @@ public:
     }
     if (AddMethods) {
       if (strlen(Char(CCode)))
-	code = copy_string(Char(CCode));
+	code = Swig_copy_string(Char(CCode));
       else
 	code = 0;
     } else {
@@ -292,8 +292,8 @@ class CPP_constructor : public CPP_member {
 public:
   ParmList  *parms;
   CPP_constructor(char *n, char *i, ParmList *l) {
-    name = copy_string(n);
-    iname = copy_string(i);
+    name = Swig_copy_string(n);
+    iname = Swig_copy_string(i);
     parms = CopyParmList(l);
     new_method = AddMethods;
     inherited = 0;
@@ -303,7 +303,7 @@ public:
     id = type_id;
     if (AddMethods) {
       if (strlen(Char(CCode)))
-	code = copy_string(Char(CCode));
+	code = Swig_copy_string(Char(CCode));
       else
 	code = 0;
     } else {
@@ -339,8 +339,8 @@ class CPP_destructor : public CPP_member {
 public:
 
   CPP_destructor(char *n, char *i) {
-    name = copy_string(n);
-    iname = copy_string(i);
+    name = Swig_copy_string(n);
+    iname = Swig_copy_string(i);
     new_method = AddMethods;
     next = 0;
     inherited = 0;
@@ -349,7 +349,7 @@ public:
     id = type_id;
     if (AddMethods) {
       if (strlen(Char(CCode)))
-	code = copy_string(Char(CCode));
+	code = Swig_copy_string(Char(CCode));
       else
 	code = 0;
     } else {
@@ -377,8 +377,8 @@ public:
   DataType *type;
   int status;
   CPP_variable(char *n, char *i, DataType *t, int s) {
-    name = copy_string(n);
-    iname = copy_string(i);
+    name = Swig_copy_string(n);
+    iname = Swig_copy_string(i);
     type = CopyDataType(t);
     is_static = s;
     status = Status;
@@ -450,10 +450,10 @@ public:
   char       *value;
   DataType   *type;
   CPP_constant(char *n, char *i, DataType *t, char *v) {
-    name = copy_string(n);
-    iname = copy_string(i);
+    name = Swig_copy_string(n);
+    iname = Swig_copy_string(i);
     type = CopyDataType(t);
-    value = copy_string(v);
+    value = Swig_copy_string(v);
     new_method = AddMethods;
     next = 0;
     line = line_number;
@@ -512,8 +512,8 @@ public:
 
   CPP_class(char *name, char *ctype) {
     CPP_class *c;
-    classname = copy_string(name);
-    classtype = copy_string(ctype);
+    classname = Swig_copy_string(name);
+    classtype = Swig_copy_string(ctype);
     classrename = 0;
     baseclass = 0;
     local = NewHash();                 // Create hash table for storing local datatypes
@@ -734,7 +734,7 @@ void cplus_open_class(char *name, char *rname, char *ctype) {
       // somehow, but no other information is known.  We'll
       // make it our current class and fix it up a bit
       current_class = c;
-      c->classtype = copy_string(ctype);
+      c->classtype = Swig_copy_string(ctype);
     }
   } else {
     // Create a new class
@@ -748,7 +748,7 @@ void cplus_open_class(char *name, char *rname, char *ctype) {
   // If renaming the class, set the new name
 
   if (rname) {
-    current_class->classrename = copy_string(rname);
+    current_class->classrename = Swig_copy_string(rname);
   }
   
   // Make a typedef for both long and short versions of this datatype
@@ -838,7 +838,7 @@ void cplus_class_close(char *name) {
 
   if (name) {
     // The name of our class suddenly changed by typedef.  Fix things up
-    current_class->classname = copy_string(name);
+    current_class->classname = Swig_copy_string(name);
 
     // This flag indicates that the class needs to have it's type stripped off
     current_class->strip = 1;
@@ -921,7 +921,7 @@ void cplus_inherit(int count, char **baseclass) {
   if (count) {
     current_class->baseclass = (char **) new char*[count+1];
     for (i = 0; i < count; i++) 
-      current_class->baseclass[i] = copy_string(baseclass[i]);
+      current_class->baseclass[i] = Swig_copy_string(baseclass[i]);
     current_class->baseclass[i] = 0;
   } else {
     baseclass = 0;
@@ -1475,163 +1475,57 @@ static DOHHash *member_hash = 0;  // Hash wrapping member function wrappers to s
 void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
                             char *mname, char *mrename, DataType *type, ParmList *l,
   		            int mode) {
-    Parm     *p;
-    ParmList *newparms;
-    int i;
-    DOHString  *wrap;
-    char     cname[512],iname[512];
-    DOHString *key;
-    char     *prefix;
-    char     *prev_wrap = 0;
-    char     *temp_mname;
 
-    wrap = NewString("");
+  Wrapper *w;
+  char    *code = 0;
+  char     iname[512];
+  char     fullname[512];
+  DOHString *key;
+  char    *prev_wrap = 0;
 
-    key = NewString("");
-    // First generate a proper name for the member function
+  key = NewString("");
 
-    // Get the base class of this member
-    if (!mrename) temp_mname = mname;
-    else temp_mname = mrename;
+  if (classtype) {
+    sprintf(fullname,"%s%s", classtype, classname);
+  } else {
+    strcpy(fullname, classname);
+  }
 
-    char *bc = cplus_base_class(temp_mname);
-    if (!bc) bc = classname;
-    if (strlen(bc) == 0) bc = classname;
+  w = Swig_cmethod_wrapper(fullname, mname, type, l, code);
 
-    // Generate the name of the C wrapper function (is always the same, regardless
-    // of renaming).
+  if (!classrename) classrename = classname;
+  if (!mrename) mrename = mname;
 
-    strcpy(cname, Swig_name_member(bc,mname));
+  strcpy(iname, Swig_name_member(classrename, mrename));
 
-    // Generate the scripting name of this function
-    if (classrename) 
-      prefix = classrename;
-    else
-      prefix = classname;
+  char *bc = cplus_base_class(mrename);
+  if (!bc) bc = classname;
+  if (strlen(bc) == 0) bc = classname;
 
-    if (mrename)
-      strcpy(iname,Swig_name_member(prefix,mrename));
-    else
-      strcpy(iname,Swig_name_member(prefix,mname));
+  Printf(key,"%s+",Wrapper_Getname(w));
+  ParmList_print_types(l,key);
+  if (!member_hash) member_hash = NewHash();
+  if (Getattr(member_hash,key)) {
+    prev_wrap = GetChar(member_hash,key);
+  } else {
+    Setattr(member_hash,key,iname);
+  }
 
-    // Now check to see if we have already wrapped a function like this.
-    // If so, we'll just use the existing wrapper.
-
-    Printf(key,"%s+",cname);
-    ParmList_print_types(l,key);
-    char *temp = copy_string(iname);
-    if (!member_hash) member_hash = NewHash();
-    if (Getattr(member_hash,key)) {
-      delete [] temp;
-      prev_wrap = GetChar(member_hash,key);
-    } else {
-      Setattr(member_hash,key,temp);
-      delete [] temp;
+  if (!prev_wrap) {
+    if (mode && code) {
+      /* Produce an actual C wrapper */
+      Wrapper_print(w,f_wrappers);
+    } else if (!mode) {
+      /* Nah. Just produce a string that does the work for us */
+      emit_set_action(Swig_cmethod_call(mname, Wrapper_Getparms(w)));
     }
-    
-    // Only generate code if an already existing wrapper doesn't exist
-    
-    if (!prev_wrap) {
-
-      // If mode = 0: Then we go ahead and create a wrapper macro
-    
-      if (!mode) {
-	strcpy(cname,iname);
-	Printv(wrap, "#define ", cname, "(_swigobj", 0);
-
-	// Walk down the parameter list and Spit out arguments
-	
-	i = 0;
-	p = ParmList_first(l);
-	while (p != 0) {
-	  DataType *pt = Parm_Gettype(p);
-	  if ((pt->type != T_VOID) || (pt->is_pointer)) {
-	    Printf(wrap,",_swigarg%d",i);
-	    i++;
-	  }
-	  p = ParmList_next(l);
-	}
-	Printf(wrap,")  (");
-	
-	if (!ObjCClass) {
-	  Printv(wrap, "_swigobj->", mname, "(", 0);         // C++ invocation
-	} else { 
-	  Printv(wrap, "[ _swigobj ", mname, 0);               // Objective C invocation 
-	}
-	i = 0;
-	p = ParmList_first(l);
-	while(p != 0) {
-	  DataType *pt = Parm_Gettype(p);
-	  /*	  if (ObjCClass) Printf(wrap," %s", p->objc_separator); */
-	  if ((pt->type != T_VOID) || (pt->is_pointer)) {
-	    Printf(wrap,"_swigarg%d",i);
-	    i++;
-	  }
-	  p = ParmList_next(l);
-	  if ((p != 0) && (!ObjCClass)) 
-	  Putc(',',wrap);
-	}
-	if (!ObjCClass) 
-	  Printf(wrap,"))\n");
-	else
-	  Printf(wrap,"])\n");
-	
-	// Emit it
-	fprintf(f_wrappers,"%s",Char(wrap));
-      } else {
-	if (ccode) {
-	  Printf(wrap,"static ");
-	  if (type->is_reference) {
-	    type->is_pointer--;
-	  }
-	  Printf(wrap,"%s", DataType_str(type,0));
-	  Printv(wrap, " ", cname, "(", classtype, classname, " *self", 0);
-	  
-	  // Walk down the parameter list and Spit out arguments
-	  
-	  p = ParmList_first(l);
-	  while (p != 0) {
-	    DataType *pt = Parm_Gettype(p);
-	    if ((pt->type != T_VOID) || (pt->is_pointer)) {
-	      Printf(wrap,",");
-	      Printf(wrap, DataType_str(pt, Parm_Getname(p)));
-	    }
-	    p = ParmList_next(l);
-	  }
-	  Printf(wrap,") %s", ccode);
-	  fprintf(f_wrappers,"%s\n",Char(wrap));
-	}
-      }
-
-      // Now add a parameter to the beginning of the function and call
-      // a language specific function to add it.
-      
-      newparms = CopyParmList(l);
-      p = NewParm(0,0);
-      {
-	DataType *pt = NewDataType(0);
-	pt->type = T_USER;
-	sprintf(pt->name,"%s%s", classtype,classname);
-	pt->is_pointer = 1;
-	pt->id = cpp_id;
-	Parm_Settype(p,pt);
-	DelDataType(pt);
-      }
-      Parm_Setname(p,(char*)"self");
-      ParmList_insert(newparms,p,0);       // Attach parameter to beginning of list
-      
-      // Now wrap the thing.  The name of the function is iname
-      
-      lang->create_function(cname, iname, type, newparms);
-      DelParmList(newparms);
-    } else {
-      // Already wrapped this function.   Just patch it up 
-      lang->create_command(prev_wrap, iname);
-    }
-    Delete(key);
-    Delete(wrap);
+    lang->create_function(Wrapper_Getname(w), iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
+    DelWrapper(w);
+  } else {
+    lang->create_command(prev_wrap, iname);
+  }
+  Delete(key);
 }
-
 
 // -----------------------------------------------------------------------------
 // void cplus_emit_static_func(char *classname, char *classtype, char *classrename,
@@ -1686,23 +1580,18 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 void cplus_emit_static_func(char *classname, char *, char *classrename,
 			    char *mname, char *mrename, DataType *type, ParmList *l,
 			    int mode) {
-    Parm     *p;
-    DOHString  *wrap;
+
     char     cname[512], iname[512];
     DOHString *key;
-    int      i;
-    char     *prefix;
     char     *prev_wrap = 0;
-    char     *temp_mname;
     
     key = NewString("");
-    wrap = NewString("");
 
     // Generate a function name for the member function
     
-    if (!mrename) temp_mname = mname;
-    else temp_mname = mrename;
-    char *bc = cplus_base_class(temp_mname);
+    if (!mrename) mrename = mname;
+    char *bc = cplus_base_class(mname);
+
     if (!bc) bc = classname;
     if (strlen(bc) == 0) bc = classname;
     
@@ -1714,105 +1603,38 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
     }
 
     // Generate the scripting name of this function
-    if (classrename)
-      prefix = classrename;
-    else
-      prefix = classname;
-
-    if (mrename) 
-      strcpy(iname,Swig_name_member(prefix,mrename));
-    else
-      strcpy(iname,Swig_name_member(prefix,mname));
+    if (!classrename) classrename = classname;
+    strcpy(iname,Swig_name_member(classrename, mrename));
 
     // Perform a hash table lookup to see if we've wrapped anything like this before
-
-    Printf(key,"%s+",cname);
-    ParmList_print_types(l,key);
-    char *temp = copy_string(iname);
+    Printf(key,"%s+%s",cname, ParmList_str(l));
     if (!member_hash) member_hash = NewHash();
     if (Getattr(member_hash,key)) {
-      delete [] temp;
       prev_wrap = GetChar(member_hash,key);
     } else {
-      Setattr(member_hash,key,temp);
-      delete [] temp;
+      Setattr(member_hash,key,iname);
     }
 
     if (!prev_wrap) {
-      if (!((mode) || (ObjCClass))) {
+      if (!mode) {
 	// Not an added method and not objective C, just wrap it
 	lang->create_function(cname,iname, type, l);
       } else {
-	// This is either an added method or an objective C class function
-	//
-	// If there is attached code, use it.
-	// Otherwise, assume the function has been written already and
-	// wrap it.
-	
-	Printv(wrap,"static ", DataType_str(type,0), " ", cname, "(", 0);
-	  
-	// Walk down the parameter list and Spit out arguments
-	p = ParmList_first(l);
-	while (p != 0) {
-	  DataType *pt = Parm_Gettype(p);
-	  if ((pt->type != T_VOID) || (pt->is_pointer)) {
-	    Printf(wrap, DataType_str(pt,Parm_Getname(p)));
-	  }
-	  p = ParmList_next(l);
-	  if (p) Printf(wrap, ",");
+	if (!ccode) {
+	  strcpy(cname, Swig_name_member(classname,mname));
+	  lang->create_function(cname,iname, type, l);
+	} else {
+	  Wrapper *w = Swig_cfunction_wrapper(cname, type, l, ccode);
+	  Wrapper_print(w,f_wrappers);	  
+	  lang->create_function(cname,iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
+	  DelWrapper(w);
 	}
-	Printf(wrap, ") ");
-	if ((mode) && (ccode)) {
-	  Printf(wrap,"%s",ccode);
-	} else if (ObjCClass) {
-	  // This is an objective-C method
-	  Printf(wrap, "{\n");
-	  
-	  // Emit the function call.  
-	  
-	  if ((type->type != T_VOID) || (type->is_pointer)) {
-	    // Declare the return value
-	    Printv(wrap, tab4, DataType_str(type,"_result"), " = ", 0);
-	  } else {
-	    Printf(wrap,tab4);
-	  }
-	  Printv(wrap, "[ ", classname, " ", mname,0);               // Objective C invocation 
-	  i = 0;
-	  p = ParmList_first(l);
-	  while(p != 0) {
-	    DataType *pt = Parm_Gettype(p);
-	    /*Printf(wrap," %s", p->objc_separator); */
-	    Printf(wrap," ");
-	    if ((pt->type != T_VOID) || (pt->is_pointer)) {
-	      if (pt->is_reference) {
-		Printf(wrap,"*");
-	      }
-	      Printf(wrap,Parm_Getname(p));
-	      i++;
-	    }
-	    p = ParmList_next(l);
-	  }
-	  Printf(wrap,"];\n");
-	  
-	  if ((type->type != T_VOID) || (type->is_pointer)) {
-	    if (type->is_reference) {
-	      Printv(wrap, tab4, "return &_result;\n",0);
-	    } else {
-	      Printv(wrap, tab4, "return _result;\n",0);
-	    }
-	  }
-	  Printf(wrap,"}\n");
-	}
-	if (ObjCClass || (mode && ccode)) 
-	  fprintf(f_wrappers,"%s\n",Char(wrap));
-	lang->create_function(cname,iname,type,l);
       }
     } else {
       // Already wrapped this function.   Just hook up to it.
       lang->create_command(prev_wrap, iname);
     }
     Delete(key);
-    Delete(wrap);
 }
 
 // -----------------------------------------------------------------------------
@@ -1851,74 +1673,37 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 void cplus_emit_destructor(char *classname, char *classtype, char *classrename, 
 			   char *mname, char *mrename, int mode)
 {
-    Parm *p;
-    DataType *type;
-    ParmList *l;
-    DOHString    *wrap;
+    Wrapper *w;
     char      cname[512],iname[512];
-    char      *prefix;
+    char      fclassname[512];
 
-    // Construct names for the function
+    if (!classrename) classrename = classname;
 
-    wrap = NewString("");
-
-    if (classrename)
-      prefix = classrename;
-    else
-      prefix = classname;
-    
     strcpy(cname,Swig_name_destroy(classname));
     if (mrename)
       strcpy(iname, Swig_name_destroy(mrename));
     else
-      strcpy(iname, Swig_name_destroy(prefix));
+      strcpy(iname, Swig_name_destroy(classrename));
     
-    if (!mode) {
-      // Spit out a helper function for this member function
-      Printv(wrap, "#define ", cname, "(_swigobj) (",0);
-      if (ObjCClass) {
-	Printv(wrap, "[_swigobj ", mname, "])\n", 0);   // Name of the member is the destructor
-      } else if (CPlusPlus) 
-	Printv(wrap, "delete _swigobj)\n",0);
-      else
-	Printv(wrap, "free ((char *) _swigobj))\n", 0);
-      fprintf(f_wrappers,"%s", Char(wrap));
+    sprintf(fclassname,"%s%s", classtype, classname);
+    if (CPlusPlus) {
+      w = Swig_cppdestructor_wrapper(fclassname,ccode);
     } else {
-      if (ccode) {
-	Printv(wrap, "static void ", cname, "(", classtype, classname, " *self) ", ccode,0);
-	fprintf(f_wrappers,"%s\n",Char(wrap));
-      }
+      w = Swig_cdestructor_wrapper(fclassname, ccode);
     }
-
-    // Make a parameter list for this function
-    
-    l = NewParmList();
-    p = NewParm(0,0);
-    {
-      DataType *pt = NewDataType(0);
-      pt->type = T_USER;
-      pt->is_pointer = 1;
-      pt->id = cpp_id;
-      sprintf(pt->name,"%s%s", classtype, classname);
-      Parm_Settype(p,pt);
-      DelDataType(pt);
+    if (mode && ccode) {
+      Wrapper_print(w,f_wrappers);
+      lang->create_function(Wrapper_Getname(w),iname,Wrapper_Gettype(w), Wrapper_Getparms(w));
+    } else if (mode) {
+      lang->create_function(Wrapper_Getname(w),iname,Wrapper_Gettype(w), Wrapper_Getparms(w));
+    } else {
+      if (CPlusPlus) 
+	emit_set_action(Swig_cppdestructor_call(fclassname));
+      else
+	emit_set_action(Swig_cdestructor_call(fclassname));
+      lang->create_function(cname, iname, Wrapper_Gettype(w), Wrapper_Getparms(w));      
     }
-    Parm_Setname(p,(char*)"self");
-    ParmList_insert(l,p,0);
-    
-    type = NewDataType(0);
-    type->type = T_VOID;
-    sprintf(type->name,"void");
-    type->is_pointer = 0;
-    type->id = cpp_id;
-
-    // iname is the desired name of the function in the target language
-
-    lang->create_function(cname,iname,type,l);
-
-    DelDataType(type);
-    DelParmList(l);
-    Delete(wrap);
+    DelWrapper(w);
 }
 
 // -----------------------------------------------------------------------------
@@ -1945,119 +1730,39 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
 void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
                             char *mname, char *mrename, ParmList *l, int mode)
 {
-    Parm *p;
-    int i;
-    DataType *type;
-    DOHString *fcall, *wrap;
     char cname[512],iname[512];
-    char    *prefix;
-
-    fcall = NewString("");
-    wrap = NewString("");
-
+    char fclassname[512];
+    Wrapper *w;
     // Construct names for the function
 
-    if (classrename)
-      prefix = classrename;
-    else
-      prefix = classname;
-    
+    if (!classrename) classrename = classname;
     strcpy(cname,Swig_name_construct(classname));
     if (mrename)
       strcpy(iname, Swig_name_construct(mrename));
     else
-      strcpy(iname, Swig_name_construct(prefix));
+      strcpy(iname, Swig_name_construct(classrename));
 
-    // Create a return type
+    sprintf(fclassname,"%s%s", classtype, classname);
 
-    type = NewDataType(0);
-    type->type = T_USER;
-    sprintf(type->name,"%s%s", classtype,classname);
-    type->is_pointer = 1;
-    type->id = cpp_id;
-
+    if (CPlusPlus) {
+      w = Swig_cppconstructor_wrapper(fclassname, l, ccode);
+    } else {
+      w = Swig_cconstructor_wrapper(fclassname, l, ccode);
+    }
+    
     if (!mode) {
-      Printv(wrap, "#define ", iname, "(", 0);
-      strcpy(cname,iname);
-      if (ObjCClass) {
-	Printv(fcall, "(", DataType_lstr(type,0), ") [", classname, " ", mname,0);
-      } else if (CPlusPlus) {
-	Printv(fcall, "new ", classname, "(", 0);
+      if (CPlusPlus) {
+	emit_set_action(Swig_cppconstructor_call(fclassname, l));
       } else {
-	Printv(fcall, "(", DataType_lstr(type,0), ") calloc(1,sizeof(", classtype, classname, "))", 0);
+	emit_set_action(Swig_cconstructor_call(fclassname));
       }
-
-      // Walk down the parameter list and spit out arguments
-      
-      i = 0;
-      p = ParmList_first(l);
-      while (p != 0) {
-	DataType *pt = Parm_Gettype(p);
-	/*	if (ObjCClass) Printf(fcall," %s", p->objc_separator); */
-	if ((pt->type != T_VOID) || (pt->is_pointer)) {
-	  Printf(wrap,"_swigarg%d",i);
-
-	  // Emit an argument in the function call if in C++ mode
-	  
-	  if ((CPlusPlus) || (ObjCClass)) {
-	    Printf(fcall,"_swigarg%d",i);
-	  }
-	}
-	i++;
-	p = ParmList_next(l);
-	if (p) {
-	  Printf(wrap,",");
-	  if ((CPlusPlus) && (!ObjCClass))
-	    Printf(fcall,",");
-	}
-      }
-      Printf(wrap,") ");
-      if (ObjCClass) Printf(fcall,"]");
-      else if (CPlusPlus) Printf(fcall,")");
-
-      Printf(wrap,"(%s)", fcall);
-      fprintf(f_wrappers,"%s\n",Char(wrap));
     } else {
       if (ccode) {
-	Printv(wrap, "static ", classtype, classname, " *", cname, "(", 0);
-
-	// Walk down the parameter list and spit out arguments
-      
-	p = ParmList_first(l);
-	while (p != 0) {
-	  DataType *pt = Parm_Gettype(p);
-	  
-	  if ((pt->type != T_VOID) || (pt->is_pointer)) {
-	    Printf(wrap, DataType_str(pt,Parm_Getname(p)));
-	    p = ParmList_next(l);
-	    if (p) {
-	      Printf(wrap,",");
-	    }
-	  } else {
-	    p = ParmList_next(l);
-	  }
-	}
-	Printv(wrap,") ", ccode, "\n", 0);
-	fprintf(f_wrappers,"%s\n",Char(wrap));
-     }
+	Wrapper_print(w,f_wrappers);
+      }
     }
-
-    // If we had any C++ references, get rid of them now
-
-    if (!mode) {
-      p = ParmList_first(l);
-      while (p) {
-	//	p->t->is_reference = 0;
-	p = ParmList_next(l);
-      } 
-    }
-
-    // We've now created a C wrapper.  We're going to add it to the interpreter
-
-    lang->create_function(cname, iname, type, l);
-    DelDataType(type);
-    Delete(wrap);
-    Delete(fcall);
+    lang->create_function(Wrapper_Getname(w), iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
+    DelWrapper(w);
 }
 
 // -----------------------------------------------------------------------------
@@ -2103,26 +1808,17 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 void cplus_emit_variable_get(char *classname, char *classtype, char *classrename,
 			     char *mname, char *mrename, DataType *type, int mode) {
 
-    Parm     *p;
-    ParmList *l;
-    DOHString  *wrap;
-    char      cname[512],iname[512];
+    char      cname[512],iname[512], fclassname[512];
     char      key[512];
-    char      *prefix;
-    char      *tm;
-    char      source[512];
-    char     *temp_mname;
     char     *prev_wrap = 0;
-
-    wrap = NewString("");
+    Wrapper   *w;
 
     // First generate a proper name for the get function
 
     // Get the base class of this member
-    if (!mrename) temp_mname = mname;
-    else temp_mname = mrename;
+    if (!mrename) mrename = mname;
 
-    char *bc = cplus_base_class(temp_mname);
+    char *bc = cplus_base_class(mrename);
     if (!bc) bc = classname;
     if (strlen(bc) == 0) bc = classname;
 
@@ -2132,110 +1828,35 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
     strcpy(cname, Swig_name_get(Swig_name_member(bc,mname)));
 
     // Generate the scripting name of this function
-    if (classrename) 
-      prefix = classrename;
-    else
-      prefix = classname;
-
-    if (mrename)
-      strcpy(iname, Swig_name_get(Swig_name_member(prefix,mrename)));
-    else
-      strcpy(iname, Swig_name_get(Swig_name_member(prefix,mname)));
+    if (!classrename) classrename = classname;
+    strcpy(iname, Swig_name_get(Swig_name_member(classrename,mrename)));
 
     // Now check to see if we have already wrapped a variable like this.
     
     strcpy(key,cname);
-    char *temp = copy_string(iname);
     if (!member_hash) member_hash = NewHash();
     if (Getattr(member_hash,key)) {
-      delete [] temp;
       prev_wrap = GetChar(member_hash,key);
     } else {
-      Setattr(member_hash,key,temp);
-      delete [] temp;
+      Setattr(member_hash,key,iname);
     }
 
+    sprintf(fclassname,"%s%s", classtype, classname);
+    w = Swig_cmemberget_wrapper(fclassname,mname,type,ccode);
+    
     // Only generate code if already existing wrapper doesn't exist
     if (!prev_wrap) {
-      if (!mode) {
-	// Get any sort of typemap that might exist
-
-	sprintf(source,"obj->%s",mname);
-
-	// Now write a function to get the value of the variable
-
-	tm = typemap_lookup((char*)"memberout",typemap_lang,type,mname,source,(char*)"result");
-
-	if ((type->type == T_USER) && (!type->is_pointer)) {
-	  type->is_pointer++;
-	  if (tm) {
-	    Printv(wrap, "static ", DataType_str(type,0), " ", cname, "(",  
-		   classtype, classname, " *obj) {\n",
-		   tab4, DataType_str(type,0), " result;\n",
-		   tm, "\n",
-		   tab4, "return result;\n",
-		   "}\n",
-		   0);
-	  } else {
-	    Printv(wrap, "#define ", cname, "(_swigobj) ",
-		   "(&_swigobj->", mname, ")\n",
-		   0);
-	  }
-	  type->is_pointer--;
-	} else {
-	  if (tm) {
-	    Printv(wrap, "static ", DataType_str(type,0), " ", cname, "(",
-		   classtype, classname, " *obj) {\n",
-		   tab4, DataType_str(type,0), " result;\n",
-		   tm, "\n",
-		   tab4, "return result;\n",
-		   "}\n",
-		   0);
-	  } else {
-	    Printv(wrap, "#define ", cname, "(_swigobj) (",0);
-	    if (!type->is_reference) Printf(wrap,"(%s)", DataType_lstr(type,0));
-	    else
-	      Printf(wrap,"&");
-	    Printv(wrap, " _swigobj->", mname, ")\n",0);
-	  }
-	}
-	fprintf(f_wrappers,"%s",Char(wrap));
+      if ((mode) && (ccode)) {
+	Wrapper_print(w,f_wrappers);
+      } else if (!mode) {
+	emit_set_action(Swig_cmemberget_call(mname, type));
       }
-      
-      // Wrap this function
-
-      l = NewParmList();
-      p = NewParm(0,0);
-      {
-	DataType *pt = NewDataType(0);
-	pt->type = T_USER;
-	pt->is_pointer = 1;
-	pt->id = cpp_id;
-	sprintf(pt->name,"%s%s", classtype,classname);
-	Parm_Settype(p,pt);
-	DelDataType(pt);
-      }
-      Parm_Setname(p,(char*)"self");
-
-      ParmList_insert(l,p,0);
-
-      if ((type->type == T_USER) && (!type->is_pointer)) {
-	type->is_pointer++;
-	lang->create_function(cname,iname, type, l);
-	type->is_pointer--;
-      } else {
-	int is_ref = type->is_reference;
-	type->is_reference = 0;
-	lang->create_function(cname,iname, type, l);
-	type->is_reference = is_ref;
-      }
-      DelParmList(l);
+      lang->create_function(Wrapper_Getname(w),iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
     } else {
       // Already wrapped this function.  Just patch it up
       lang->create_command(prev_wrap,iname);
     }
-    Delete(wrap);
-
+    DelWrapper(w);
 }
 
 // -----------------------------------------------------------------------------
@@ -2290,27 +1911,15 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 void cplus_emit_variable_set(char *classname, char *classtype, char *classrename,
 			     char *mname, char *mrename, DataType *type, int mode) {
 
-    Parm     *p;
-    ParmList *l;
-    DOHString   *wrap;
-    int       is_user = 0;
-    char      *tm;
-    char      target[512];
     char      cname[512], iname[512];
     char      key[512];
-    char      *temp_mname;
-    char      *prefix;
+    char      fclassname[512];
     char      *prev_wrap = 0;
-
-    wrap = NewString("");
-
-    // First generate a proper name for the get function
-
+    Wrapper   *w;
     // Get the base class of this member
-    if (!mrename) temp_mname = mname;
-    else temp_mname = mrename;
+    if (!mrename) mrename = mname;
 
-    char *bc = cplus_base_class(temp_mname);
+    char *bc = cplus_base_class(mrename);
     if (!bc) bc = classname;
     if (strlen(bc) == 0) bc = classname;
 
@@ -2319,158 +1928,35 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 
     strcpy(cname, Swig_name_set(Swig_name_member(bc,mname)));
 
-    // Generate the scripting name of this function
-    if (classrename) 
-      prefix = classrename;
-    else
-      prefix = classname;
-
-    if (mrename)
-      strcpy(iname, Swig_name_set(Swig_name_member(prefix,mrename)));
-    else
-      strcpy(iname, Swig_name_set(Swig_name_member(prefix,mname)));
+    if (!classrename) classrename = classname;
+    strcpy(iname, Swig_name_set(Swig_name_member(classrename, mrename)));
 
     // Now check to see if we have already wrapped a variable like this.
 
     strcpy(key,cname);
-    char *temp = copy_string(iname);
     if (!member_hash) member_hash = NewHash();
     if (Getattr(member_hash,key)) {
-      delete [] temp;
       prev_wrap = GetChar(member_hash,key);
     } else {
-      Setattr(member_hash,key,temp);
-      delete [] temp;
+      Setattr(member_hash,key,iname);
     }
+
+    sprintf(fclassname,"%s%s",classtype,classname);
+    w = Swig_cmemberset_wrapper(fclassname,mname,type,ccode);
 
     // Only generate code if already existing wrapper doesn't exist
 
     if (!prev_wrap) {
-      if (!mode) {
-	
-	sprintf(target,"obj->%s",mname);
-	
-	// Lookup any typemaps that might exist
-	tm = typemap_lookup((char*)"memberin",typemap_lang,type,mname,(char*)"val",target);
-	
-	// First write a function to set the variable 
-
-	if (tm) {
-	  if ((type->type == T_USER) && (!type->is_pointer)) {
-	    type->is_pointer++;
-	    is_user = 1;
-	  }
-	  Printv(wrap,
-		 "static ", DataType_str(type,0), " ", cname, "(",
-		 classtype, classname, " *obj, ", DataType_str(type,(char*)"val"), ") {\n",
-		 0);
-	  if (is_user) {
-	    type->is_pointer--;
-	  }
-	  Printv(wrap,tm,"\n",0);
-	  // Return the member
-	  if (is_user) type->is_pointer++;
-	  Printv(wrap, tab4, "return val;\n",0);
-	  if (is_user) type->is_pointer--;
-	  Printf(wrap,"}\n");
-	} else {
-	  if ((type->type != T_VOID) || (type->is_pointer)){
-	    if (!type->is_pointer) {
-
-	      Printv(wrap, "#define ", cname, "(_swigobj,_swigval) (",0);	      
-	      // Have a real value here (ie.  not a pointer).  
-	      // If it's a user defined type, we'll do something special.
-	      // Otherwise, just assign it.
-	      
-	      if (type->type != T_USER) {
-		Printv(wrap,"_swigobj->",mname," = _swigval",0);
-	      } else {
-		Printv(wrap,"_swigobj->",mname, " = *(_swigval)",0);
-	      }
-	      Printf(wrap,",_swigval)\n");
-	    } else {
-	      // Is a pointer type here.  If string, we do something
-	      // special.  Otherwise. No problem.
-	      if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
-		char temp[512];
-		Printv(wrap,
-		       "static ", DataType_str(type,0), " ", cname, "(",
-		       classtype, classname, " *obj, ", DataType_str(type,(char*)"val"), ") {\n",
-		       0);
-		sprintf(temp,"obj->%s",mname);
-		if (CPlusPlus) {
-		  Printv(wrap,
-			 tab4, "if (", temp, ") delete [] ", temp, ";\n",
-			 tab4, temp, " = new char[strlen(val)+1];\n",
-			 tab4, "strcpy((char *)", temp, ",val);\n",
-			 0);
-		} else {
-		  Printv(wrap,
-			 tab4, "if (obj->", mname, ") free(obj->", mname, ");\n",
-			 tab4, "obj->", mname, " = (char *) malloc(strlen(val)+1);\n",
-			 tab4, "strcpy((char *)obj->", mname, ",val);\n",
-			 0);
-		}
-		Printv(wrap,tab4, "return (char *) val;\n","}\n",0);
-	      } else {
-		// A normal pointer type of some sort
-		Printv(wrap, "#define ", cname, "(_swigobj,_swigval) (",0);
-		if (type->is_reference) {
-		  Printv(wrap, "_swigobj->", mname, " = *_swigval, _swigval)\n",0);
-		} else {
-		  Printv(wrap, "_swigobj->", mname, " = _swigval,_swigval)\n",0);
-		}
-	      }
-	    }
-	  }
-	}
+      if ((mode) && (ccode)) {
+	Wrapper_print(w,f_wrappers);
+      } else if (!mode) {
+	emit_set_action(Swig_cmemberset_call(mname,type));
       }
-      fprintf(f_wrappers,"%s",Char(wrap));
-      // Now wrap it.
-      
-      l = NewParmList();
-      p = NewParm(0,0);
-      {
-	DataType *pt = CopyDataType(type);
-	pt->is_reference = 0;
-	pt->id = cpp_id;
-	if ((type->type == T_USER) && (!type->is_pointer)) pt->is_pointer++;
-	Parm_Settype(p,pt);
-	DelDataType(pt);
-      }
-      if (mrename) 
-	Parm_Setname(p,mrename);
-      else
-	Parm_Setname(p,mname);
-      ParmList_insert(l,p,0);
-      p = NewParm(0,0);
-      {
-	DataType *pt = NewDataType(0);
-	pt->type = T_USER;
-	pt->is_pointer = 1;
-	pt->id = cpp_id;
-	sprintf(pt->name,"%s%s", classtype,classname);
-	Parm_Settype(p,pt);
-	DelDataType(pt);
-      }
-      Parm_Setname(p,(char*)"self");
-      ParmList_insert(l,p,0);
-      
-      if ((type->type == T_USER) && (!type->is_pointer)) {
-	type->is_pointer++;
-	lang->create_function(cname,iname, type, l);
-	type->is_pointer--;
-      } else {
-	int is_ref = type->is_reference;
-	type->is_reference = 0;
-	lang->create_function(cname,iname, type, l);
-	type->is_reference = is_ref;
-      }
-      DelParmList(l);
+      lang->create_function(Wrapper_Getname(w),iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
     } else {
       lang->create_command(prev_wrap,iname);
     } 
-    Delete(wrap);
+    DelWrapper(w);
 }
 
 // -----------------------------------------------------------------------------

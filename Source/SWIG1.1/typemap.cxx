@@ -76,7 +76,7 @@ struct TypeMap {
   ParmList    *args;                    // Local variables (if any)
 
   TypeMap(char *l, DataType *t, char *c, ParmList *p = 0) {
-    lang = copy_string(l);
+    lang = Swig_copy_string(l);
     type = CopyDataType(t);
     code = NewString(c);
     first = type_id;
@@ -90,7 +90,7 @@ struct TypeMap {
     }
   }
   TypeMap(char *l, char *c) {
-    lang = copy_string(l);
+    lang = Swig_copy_string(l);
     type = 0;
     code = NewString(c);
     first = type_id;
@@ -100,7 +100,7 @@ struct TypeMap {
     args = 0;
   }
   TypeMap(TypeMap *t) {
-    lang = copy_string(t->lang);
+    lang = Swig_copy_string(t->lang);
     type = CopyDataType(t->type);
     code = Copy(t->code);
     first = type_id;
@@ -126,7 +126,7 @@ struct TmMethod {
   DataType *type;      // Typemap type
   TmMethod *next;      // Next method
   TmMethod(char *n, DataType *t, TmMethod *m = 0) {
-    if (n) name = copy_string(n);
+    if (n) name = Swig_copy_string(n);
     else name = 0;
     if (t) {
       type = CopyDataType(t);
@@ -310,7 +310,6 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
     Parm *p;
     p = ParmList_first(tm->args);
     while (p) {
-      DataType *pt = Parm_Gettype(p);
       char     *pn = Parm_Getname(p);
       if (pn) {
 	//	printf("    %s %s\n", pt,pn);
@@ -711,7 +710,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 	  // Copy old array string (just in case)
 	  
 	  if (DataType_arraystr(m->type))
-	    oldary = copy_string(DataType_arraystr(m->type));
+	    oldary = Swig_copy_string(DataType_arraystr(m->type));
 	  else
 	    oldary = 0;
 
@@ -738,7 +737,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 	  result = typemap_lookup_internal(op,lang,m->type,ppname,source,target,f);
 	  DataType_set_arraystr(m->type,oldary);
 	  if (oldary)
-	    delete oldary;
+	    free(oldary);
 	  m->type->is_pointer -= drop_pointer;
 	  if (result) {
 	    type->is_pointer += drop_pointer;
@@ -827,7 +826,7 @@ char *typemap_check_internal(char *op, char *lang, DataType *type, char *pname) 
   Printf(str,"%s",tm->code);
 
   // Return character string
-  Char(str);
+  return Char(str);
 }
 
 // Function for checking with applications
@@ -871,7 +870,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 	  else ppname = pname;
 	  m->type->is_pointer += drop_pointer;
 	  if (DataType_arraystr(m->type))
-	    oldary = copy_string(DataType_arraystr(m->type));
+	    oldary = Swig_copy_string(DataType_arraystr(m->type));
 	  else
 	    oldary = 0;
 
@@ -895,7 +894,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 	  }
 	  result = typemap_check_internal(op,lang,m->type,ppname);
 	  DataType_set_arraystr(m->type,oldary);
-	  if (oldary) delete oldary;
+	  if (oldary) free(oldary);
 	  m->type->is_pointer -= drop_pointer;
 	  if (result) {
 	    type->is_pointer += drop_pointer;
