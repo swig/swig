@@ -5,6 +5,34 @@
  * constant integers in the Java proxy class.
  * ----------------------------------------------------------------------------- */
 
+// const enum SWIGTYPE & typemaps
+%typemap(jni) const enum SWIGTYPE & "jint"
+%typemap(jtype) const enum SWIGTYPE & "int"
+%typemap(jstype) const enum SWIGTYPE & "int"
+
+%typemap(in) const enum SWIGTYPE & ($*1_ltype temp)
+%{ temp = ($*1_ltype)$input; 
+   $1 = &temp; %}
+%typemap(out) const enum SWIGTYPE &  %{ $result = (jint)*$1; %}
+
+%typemap(directorin, descriptor="I") const enum SWIGTYPE &    "$input = (jint)$1_name;"
+%typemap(javadirectorin) const enum SWIGTYPE & "$jniinput"
+%typemap(javadirectorout) const enum SWIGTYPE & "$javacall"
+
+%typecheck(SWIG_TYPECHECK_INT32) const enum SWIGTYPE & ""
+
+%typemap(throws) const enum SWIGTYPE & %{
+  (void)$1;
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
+%}
+
+%typemap(javain) const enum SWIGTYPE & "$javainput"
+%typemap(javaout) const enum SWIGTYPE & {
+    return $jnicall;
+  }
+
+
+// enum SWIGTYPE typemaps
 %typemap(jni) enum SWIGTYPE "jint"
 %typemap(jtype) enum SWIGTYPE "int"
 %typemap(jstype) enum SWIGTYPE "int"

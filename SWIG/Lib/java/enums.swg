@@ -5,6 +5,34 @@
  * specify a value for the enum item, as native Java enums do not support this.
  * ----------------------------------------------------------------------------- */
 
+// const enum SWIGTYPE & typemaps
+%typemap(jni) const enum SWIGTYPE & "jint"
+%typemap(jtype) const enum SWIGTYPE & "int"
+%typemap(jstype) const enum SWIGTYPE & "$*javaclassname"
+
+%typemap(in) const enum SWIGTYPE & ($*1_ltype temp)
+%{ temp = ($*1_ltype)$input; 
+   $1 = &temp; %}
+%typemap(out) const enum SWIGTYPE &  %{ $result = (jint)*$1; %}
+
+%typemap(directorin, descriptor="L$packagepath/$*javaclassname;") const enum SWIGTYPE &    "$input = (jint)$1_name;"
+%typemap(javadirectorin) const enum SWIGTYPE & "$*javaclassname.swigToEnum($jniinput)"
+%typemap(javadirectorout) const enum SWIGTYPE & "($javacall).swigValue()"
+
+%typecheck(SWIG_TYPECHECK_POINTER) const enum SWIGTYPE & ""
+
+%typemap(throws) const enum SWIGTYPE & %{
+  (void)$1;
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
+%}
+
+%typemap(javain) const enum SWIGTYPE & "$javainput.swigValue()"
+%typemap(javaout) const enum SWIGTYPE & {
+    return $*javaclassname.swigToEnum($jnicall);
+  }
+
+
+// enum SWIGTYPE typemaps
 %typemap(jni) enum SWIGTYPE "jint"
 %typemap(jtype) enum SWIGTYPE "int"
 %typemap(jstype) enum SWIGTYPE "$javaclassname"
@@ -12,11 +40,11 @@
 %typemap(in) enum SWIGTYPE  %{ $1 = ($1_ltype)$input; %}
 %typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
 
-%typemap(directorin, descriptor="L$packagepath/$javaclassname") enum SWIGTYPE    "$input = (jint) $1;"
+%typemap(directorin, descriptor="L$packagepath/$javaclassname;") enum SWIGTYPE    "$input = (jint) $1;"
 %typemap(javadirectorin) enum SWIGTYPE "$javaclassname.swigToEnum($jniinput)"
 %typemap(javadirectorout) enum SWIGTYPE "($javacall).swigValue()"
 
-%typecheck(SWIG_TYPECHECK_INT32) enum SWIGTYPE ""
+%typecheck(SWIG_TYPECHECK_POINTER) enum SWIGTYPE ""
 
 %typemap(throws) enum SWIGTYPE %{
   (void)$1;

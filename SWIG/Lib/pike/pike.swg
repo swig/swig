@@ -79,7 +79,8 @@ extern "C" {
              const unsigned char & (unsigned char temp),
              const bool & (bool temp),
 	     const long long & ($*1_ltype temp),
-	     const unsigned long long & ($*1_ltype temp)
+	     const unsigned long long & ($*1_ltype temp),
+             const enum SWIGTYPE & ($*1_ltype temp)
 {
   if ($input.type != T_INT)
     Pike_error("Bad argument: Expected an integer.\n");
@@ -151,7 +152,8 @@ extern "C" {
               const long &, const unsigned long &,
               const char &, const signed char &, const unsigned char &,
               const bool &,
-	      const long long &, const unsigned long long &
+	      const long long &, const unsigned long long &,
+              const enum SWIGTYPE & ($*1_ltype temp)
       "push_int(*($1));";
 
 %typemap(out, pikedesc="tFloat") const float &, const double &  "push_float(*($1));";
@@ -214,7 +216,7 @@ extern "C" {
 	 const int &, const short &, const long &,
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const long long &, const unsigned long long &,
-	 enum SWIGTYPE,
+	 enum SWIGTYPE, enum SWIGTYPE &,
          bool, const bool & 
 {
   $1 = ($input.type == T_INT) ? 1 : 0;
