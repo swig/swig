@@ -1,5 +1,9 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+4/02/00 : ttn
+	  Incorporated new guilemain.i by Martin Froehlich.
+	  Incorporated guile-support rewrite patch by Matthias Koeppe.
+
 3/13/00 : beazley
           Added purify patches submitted by Ram Bhamidipaty.
 
