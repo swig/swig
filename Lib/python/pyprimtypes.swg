@@ -18,8 +18,6 @@ SWIG_define(SWIG_From(int),            PyInt_FromLong);
 SWIG_define(SWIG_From(long),           PyInt_FromLong);
 SWIG_define(SWIG_From(float),          PyFloat_FromDouble);
 SWIG_define(SWIG_From(double),         PyFloat_FromDouble);
-SWIG_define(SWIG_From(float),          PyFloat_FromDouble);
-SWIG_define(SWIG_From(double),         PyFloat_FromDouble);
 }
 
 %fragment("<limits.h>","header") %{
@@ -499,6 +497,38 @@ SWIGSTATICINLINE(int)
  }
 }
 
+%fragment(SWIG_From_frag(wchar_t),"header") {
+SWIGSTATICINLINE(PyObject*)
+  SWIG_From(wchar_t)(wchar_t c) 
+{ 
+  return PyUnicode_FromWideChar(&c, 1);
+}
+}
+
+%fragment(SWIG_AsVal_frag(wchar_t),"header",
+	  fragment="SWIG_AsWCharArray",
+	  fragment="SWIG_CheckLongInRange",
+	  fragment=SWIG_AsVal_frag(long)) {
+#include <wchar.h>
+SWIGSTATICINLINE(int)
+  SWIG_AsVal(wchar_t)(PyObject *obj, wchar_t *val)
+{
+  const char* errmsg = val ? "wchar_t" : 0;
+  long v;
+  if (SWIG_AsVal(long)(obj, &v)) {
+    if (SWIG_CheckLongInRange(v, WCHAR_MIN, WCHAR_MAX, errmsg)) {
+      if (val) *val = v;
+      return 1;
+    } else {
+      return 0;
+    }    
+  } else {
+    PyErr_Clear();
+    return SWIG_AsWCharArray(obj, val, 1);
+  }
+ }
+}
+
 %fragment(SWIG_From_frag(bool),"header") {
 SWIGSTATICINLINE(PyObject*)
   SWIG_From(bool)(bool value)
@@ -529,7 +559,7 @@ SWIGSTATICINLINE(int)
     return 1;
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a float is expected");
+    PyErr_SetString(PyExc_TypeError, "a bool is expected");
   }
   return 0;
 }
@@ -576,6 +606,7 @@ _apply_macro(Macro, unsigned long long , __VA_ARGS__);
 _apply_macro(Macro, float              , __VA_ARGS__);
 _apply_macro(Macro, double             , __VA_ARGS__);
 _apply_macro(Macro, char               , __VA_ARGS__);
+_apply_macro(Macro, wchar_t            , __VA_ARGS__);
 %enddef
 
 /* apply the Macro(Type) to all the C++ types  */
@@ -606,6 +637,7 @@ Macro(SWIG_CCode(UINT128), unsigned long long);
 Macro(SWIG_CCode(FLOAT),   float);
 Macro(SWIG_CCode(DOUBLE),  double);
 Macro(SWIG_CCode(CHAR),    char);
+Macro(SWIG_CCode(UNICHAR), wchar_t);
 %enddef
 
 /* ------------------------------------------------------------

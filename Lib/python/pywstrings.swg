@@ -241,7 +241,7 @@ SWIG_FromWCharArray(const wchar_t * carray, size_t size)
 
 /* typecheck */
 
-%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING,
+%typemap(typecheck,precedence=SWIG_TYPECHECK_UNISTRING,
 	 fragment="SWIG_AsWCharPtr") 
   wchar_t *, wchar_t const*, wchar_t *const, wchar_t const *const,
   wchar_t const*&, wchar_t *const&, wchar_t const *const & 
@@ -335,7 +335,7 @@ SWIG_FromWCharArray(const wchar_t * carray, size_t size)
 
 /* typecheck */
 
-%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING,
+%typemap(typecheck,precedence=SWIG_TYPECHECK_UNISTRING,
 	 fragment="SWIG_AsWCharArray")  
   wchar_t [ANY], const wchar_t[ANY]
 {  
