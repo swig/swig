@@ -1,18 +1,3 @@
 
-/* SWIG version information */
 
-#ifndef SWIG_VERSION
-#define SWIG_VERSION "@SWIG_VERSION@"
-#endif
-
-#ifndef SWIG_MAJOR_VERSION
-#define SWIG_MAJOR_VERSION @SWIG_MAJOR_VERSION@
-#endif
-
-#ifndef SWIG_MINOR_VERSION
-#define SWIG_MINOR_VERSION @SWIG_MINOR_VERSION@
-#endif
-
-#ifndef SWIG_SPIN
-#define SWIG_SPIN @SWIG_SPIN@
-#endif
+/* empty file no longer used */
