@@ -418,6 +418,7 @@ class TypePass : private Dispatcher {
 
     Hash *ts = SwigType_pop_scope();
     Setattr(n,"typescope",ts);
+    Delete(ts);
     Setattr(n,"module",module);
 
     /* Normalize deferred types */
@@ -527,6 +528,7 @@ class TypePass : private Dispatcher {
       if (name) {
 	Hash *ts = SwigType_pop_scope();
 	Setattr(n,"typescope",ts);
+	Delete(ts);
       }
 
       /* Normalize deferred types */
