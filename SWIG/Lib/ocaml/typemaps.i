@@ -12,7 +12,8 @@
 /* Pointers */
 
 %typemap(in) SWIGTYPE * {
-  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum);
+    void *v = SWIG_MustGetPtr($input, $descriptor, $argnum);
+    $1 = ($ltype)(v) ;
 }
 
 %typemap(in) void * {
@@ -20,7 +21,8 @@
 }
 
 %typemap(varin) SWIGTYPE * {
-  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, 1);
+    void *v = SWIG_MustGetPtr($input, $descriptor, 1);
+    $1 = ($ltype)(v) ;
 }
 
 %typemap(varin) void * {
@@ -29,19 +31,19 @@
 
 %typemap(out) SWIGTYPE * {
   extern value $delete_fn( value );
-  $result = SWIG_MakePtr ($1, $descriptor, (void *)$delete_fn);
+  $result = SWIG_MakePtr ((void *)$1, $descriptor, (void *)$delete_fn);
 }
 
 %typemap(varout) SWIGTYPE * {
-  $result = SWIG_MakePtr ($1, $descriptor, NULL);
+  $result = SWIG_MakePtr ((void *)$1, $descriptor, NULL);
 }
 
 /* C++ References */
 
 #ifdef __cplusplus
 
-%typemap(in) SWIGTYPE & { 
-  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum);
+%typemap(in) SWIGTYPE & {
+  *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum)) ;
 }
 
 %typemap(out) SWIGTYPE & {
@@ -49,7 +51,7 @@
 }
 
 %typemap(in) SWIGTYPE {
-  $1 = *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum));
+  *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum)) ;
 }
 
 %typemap(out) SWIGTYPE {
@@ -62,7 +64,7 @@
 #else
 
 %typemap(in) SWIGTYPE {
-    $1 = *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum));
+  *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum)) ;
 }
 
 %typemap(out) SWIGTYPE {
