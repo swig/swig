@@ -179,7 +179,9 @@ value in the single element array. In Java you would use it like this:
 
 */
 
-%define OUTPUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JAVATYPE)
+%typecheck(SWIG_TYPECHECK_INT128_ARRAY) SWIGBIGINTEGERARRAY "" /* Java BigInteger[] */
+
+%define OUTPUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JAVATYPE, TYPECHECKTYPE)
 %typemap(jni) CTYPE *OUTPUT %{JNITYPE##Array%}
 %typemap(jtype) CTYPE *OUTPUT "JTYPE[]"
 %typemap(jstype) CTYPE *OUTPUT "JTYPE[]"
@@ -206,23 +208,23 @@ value in the single element array. In Java you would use it like this:
 %typemap(argout) CTYPE *OUTPUT, CTYPE &OUTPUT 
 { JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, (JNITYPE *)&temp$argnum); }
 
-%typemap(typecheck) CTYPE *OUTPUT = CTYPE[ANY];
-%typemap(typecheck) CTYPE &OUTPUT = CTYPE[ANY];
+%typemap(typecheck) CTYPE *INOUT = TYPECHECKTYPE;
+%typemap(typecheck) CTYPE &INOUT = TYPECHECKTYPE;
 %enddef
 
-OUTPUT_TYPEMAP(bool, jboolean, boolean, Boolean);
-OUTPUT_TYPEMAP(signed char, jbyte, byte, Byte);
-OUTPUT_TYPEMAP(unsigned char, jshort, short, Short);
-OUTPUT_TYPEMAP(short, jshort, short, Short);
-OUTPUT_TYPEMAP(unsigned short, jint, int, Int);
-OUTPUT_TYPEMAP(int, jint, int, Int);
-OUTPUT_TYPEMAP(unsigned int, jlong, long, Long);
-OUTPUT_TYPEMAP(long, jint, int, Int);
-OUTPUT_TYPEMAP(unsigned long, jlong, long, Long);
-OUTPUT_TYPEMAP(long long, jlong, long, Long);
-OUTPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, NOTUSED);
-OUTPUT_TYPEMAP(float, jfloat, float, Float);
-OUTPUT_TYPEMAP(double, jdouble, double, Double);
+OUTPUT_TYPEMAP(bool, jboolean, boolean, Boolean, jbooleanArray);            
+OUTPUT_TYPEMAP(signed char, jbyte, byte, Byte, jbyteArray);               
+OUTPUT_TYPEMAP(unsigned char, jshort, short, Short, jshortArray);              
+OUTPUT_TYPEMAP(short, jshort, short, Short, jshortArray);              
+OUTPUT_TYPEMAP(unsigned short, jint, int, Int, jintArray);                
+OUTPUT_TYPEMAP(int, jint, int, Int, jintArray);                
+OUTPUT_TYPEMAP(unsigned int, jlong, long, Long, jlongArray);               
+OUTPUT_TYPEMAP(long, jint, int, Int, jintArray);                
+OUTPUT_TYPEMAP(unsigned long, jlong, long, Long, jlongArray);               
+OUTPUT_TYPEMAP(long long, jlong, long, Long, jlongArray);               
+OUTPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, NOTUSED, SWIGBIGINTEGERARRAY);      
+OUTPUT_TYPEMAP(float, jfloat, float, Float, jfloatArray);              
+OUTPUT_TYPEMAP(double, jdouble, double, Double, jdoubleArray);             
 
 #undef OUTPUT_TYPEMAP
 
@@ -302,7 +304,7 @@ of the function return value. This difference is due to Java being a typed langu
 
 */
 
-%define INOUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JAVATYPE)
+%define INOUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JAVATYPE, TYPECHECKTYPE)
 %typemap(jni) CTYPE *INOUT %{JNITYPE##Array%}
 %typemap(jtype) CTYPE *INOUT "JTYPE[]"
 %typemap(jstype) CTYPE *INOUT "JTYPE[]"
@@ -328,23 +330,23 @@ of the function return value. This difference is due to Java being a typed langu
 %typemap(argout) CTYPE *INOUT, CTYPE &INOUT
 { JCALL3(Release##JAVATYPE##ArrayElements, jenv, $input, (JNITYPE *)$1, 0); }
 
-%typemap(typecheck) CTYPE *INOUT = CTYPE[ANY];
-%typemap(typecheck) CTYPE &INOUT = CTYPE[ANY];
+%typemap(typecheck) CTYPE *INOUT = TYPECHECKTYPE;
+%typemap(typecheck) CTYPE &INOUT = TYPECHECKTYPE;
 %enddef
 
-INOUT_TYPEMAP(bool, jboolean, boolean, Boolean);
-INOUT_TYPEMAP(signed char, jbyte, byte, Byte);
-INOUT_TYPEMAP(unsigned char, jshort, short, Short);
-INOUT_TYPEMAP(short, jshort, short, Short);
-INOUT_TYPEMAP(unsigned short, jint, int, Int);
-INOUT_TYPEMAP(int, jint, int, Int);
-INOUT_TYPEMAP(unsigned int, jlong, long, Long);
-INOUT_TYPEMAP(long, jint, int, Int);
-INOUT_TYPEMAP(unsigned long, jlong, long, Long);
-INOUT_TYPEMAP(long long, jlong, long, Long);
-INOUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, NOTUSED);
-INOUT_TYPEMAP(float, jfloat, float, Float);
-INOUT_TYPEMAP(double, jdouble, double, Double);
+INOUT_TYPEMAP(bool, jboolean, boolean, Boolean, jbooleanArray); 
+INOUT_TYPEMAP(signed char, jbyte, byte, Byte, jbyteArray); 
+INOUT_TYPEMAP(unsigned char, jshort, short, Short, jshortArray);     
+INOUT_TYPEMAP(short, jshort, short, Short, jshortArray);
+INOUT_TYPEMAP(unsigned short, jint, int, Int, jintArray); 
+INOUT_TYPEMAP(int, jint, int, Int, jintArray);
+INOUT_TYPEMAP(unsigned int, jlong, long, Long, jlongArray); 
+INOUT_TYPEMAP(long, jint, int, Int, jintArray);
+INOUT_TYPEMAP(unsigned long, jlong, long, Long, jlongArray); 
+INOUT_TYPEMAP(long long, jlong, long, Long, jlongArray);
+INOUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, NOTUSED, SWIGBIGINTEGERARRAY);                             
+INOUT_TYPEMAP(float, jfloat, float, Float, jfloatArray);
+INOUT_TYPEMAP(double, jdouble, double, Double, jdoubleArray); 
 
 #undef INOUT_TYPEMAP
 
