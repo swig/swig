@@ -41,6 +41,7 @@ skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
 skip-php4	= [ -z "@PHP4@" -o -z "@PHP4INC@" ]
 skip-ocaml      = [ -z "@OCAMLBIN@" -o -z "@OCAMLINC@" ]
 skip-pike       = [ -z "@PIKE@" -o -z "@PIKEINCLUDE@" ]
+skip-chicken	= [ -z "@CHICKENINCLUDE@" -o -z "@CHICKENLIB@" ]
 
 #####################################################################
 # Runtime libraries
@@ -56,6 +57,7 @@ runtime:
 	@-$(skip-php4)     || (cd Runtime; $(MAKE) php4)
 	@-$(skip-ocaml)    || (cd Runtime; $(MAKE) ocaml)
 #	@-$(skip-pike)     || (cd Runtime; $(MAKE) pike)
+	@-$(skip-chicken)    || (cd Runtime; $(MAKE) chicken)
 
 #####################################################################
 # CHECK
@@ -85,6 +87,7 @@ check-aliveness:
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
 	@$(skip-php4)     || ./$(TARGET) -php4     -help
 #	@$(skip-pike)     || ./$(TARGET) -pike     -help
+	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
 
 check-examples:					\
 	check-tcl-examples			\
@@ -96,7 +99,8 @@ check-examples:					\
 	check-ruby-examples			\
 	check-ocaml-examples			\
 	check-php4-examples			\
-#	check-pike-examples
+#	check-pike-examples                     \
+	check-chicken-examples
 
 check-%-examples:
 	@passed=true;						\
@@ -126,7 +130,8 @@ check-test-suite:				\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
 	check-php4-test-suite			\
-#	check-pike-test-suite
+#	check-pike-test-suite                   \
+	check-chicken-test-suite
 
 check-%-test-suite:
 	@passed=true;							\
@@ -155,7 +160,8 @@ check-gifplot:					\
 	check-ruby-gifplot			\
 	check-ocaml-gifplot			\
 	check-php4-gifplot			\
-#	check-pike-gifplot
+#	check-pike-gifplot                      \
+	check-chicken-gifplot
 
 check-%-gifplot: gifplot-library
 	@passed=true;						\
@@ -280,7 +286,8 @@ install-main:
 	@echo "Installing $(BIN_DIR)/$(TARGET)"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/$(TARGET)
 
-lib-languages = tcl perl5 python guile java mzscheme ruby php4 ocaml pike
+lib-languages = tcl perl5 python guile java mzscheme ruby php4 ocaml \
+	pike chicken 
 
 install-lib:
 	@echo "Installing the SWIG library"
