@@ -129,7 +129,14 @@ to disambiguate scoped enums, classes, etc. by planting them inside modules.
 as released.<br>
       </td>
     </tr>
-  
+  <tr>
+   <td valign="top">-uncurried</td>
+   <td valign="top">Wrap functions uncurried (with tuples).  This was the
+    way the module was originally written, but it's not as efficient in
+    most cases.  A case where it might be more efficient is the case of a
+    list of tuples that match the call signature of the target function
+    when this list is used with that function in List.map or List.iter.
+  </tr>
   </tbody>
 </table>
  <br>
@@ -471,20 +478,20 @@ public:<br>
 
 
 <code>&nbsp; type _p_cpp_base<br>
-&nbsp; external x_set : (_p_cpp_base * _int) -&gt; _void = "_wrap_x_set"<br>
+&nbsp; external x_set : _p_cpp_base -&gt; _int -&gt; _void = "_wrap_x_set"<br>
 &nbsp; external x_get : _p_cpp_base -&gt; _int = "_wrap_x_get"<br>
-&nbsp; external f : (_p_cpp_base * _float) -&gt; _int = "_wrap_f"<br>
-&nbsp; external new_cpp_base :&nbsp; unit -&gt; _p_cpp_base = "_wrap_new_cpp_base"<br>
+&nbsp; external f : _p_cpp_base -&gt; _float -&gt; _int = "_wrap_f"<br>
+&nbsp; external new_cpp_base : unit -&gt; _p_cpp_base = "_wrap_new_cpp_base"<br>
 &nbsp; external delete_cpp_base : _p_cpp_base -&gt; _void = "_wrap_delete_cpp_base"<br>
 &nbsp; type _p_cpp_class_type<br>
-&nbsp; external g : (_p_cpp_class_type * _float) -&gt; _int = "_wrap_g"<br>
-&nbsp; external new_cpp_class_type :&nbsp; unit -&gt; _p_cpp_class_type =
+&nbsp; external g : _p_cpp_class_type -&gt; _float -&gt; _int = "_wrap_g"<br>
+&nbsp; external new_cpp_class_type : unit -&gt; _p_cpp_class_type =
 "_wrap_new_cpp_class_type"<br>
 &nbsp; external delete_cpp_class_type : _p_cpp_class_type -&gt; _void = "_wrap_delete_cpp_class_type"<br>
 </code><br>
-This is the default code produced by SWIG for the above module. &nbsp;It
+This is the default code produced by SWIG for the above module. It
 is the lightest weight in terms of runtime and memory, as well as being uncomplicated
-by any type inference problems. &nbsp;Use this wherever it is convenient,
+by any type inference problems. Use this wherever it is convenient,
 as part of a functor, or where extra performance will be needed.<br>
 
 <a name="n17"></a><H4>15.2.6.2 -objects</H4>
