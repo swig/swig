@@ -326,6 +326,15 @@ void TCL8::initialize()
   
   cmd_info << "\nstatic _swig_command_info _swig_commands[] = {\n";
   var_info << "\nstatic _swig_var_info _swig_variables[] = {\n";
+
+  String init;
+  init << tab4 << "{\n"
+       << tab8 << "int i;\n"
+       << tab8 << "for (i = 0; _swig_types_initial[i]; i++) {\n"
+       << tab8 << tab4 << "_swig_types[i] = SWIG_TypeRegister(_swig_types_initial[i]);\n"
+       << tab8 << "}\n"
+       << tab4 << "}\n";
+  fprintf(f_init,"%s", init.get());
 }
 
 // ---------------------------------------------------------------------
@@ -938,83 +947,6 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
   }
 }
 
-#ifdef OLD
-  // Check the datatype.  Must be a valid Tcl type (there aren't many)
-
-  if (((t->type == T_INT) && (!t->is_pointer)) ||
-      ((t->type == T_UINT) && (!t->is_pointer)) ||
-      ((t->type == T_SINT) && (!t->is_pointer)) ||
-      ((t->type == T_DOUBLE) && (!t->is_pointer)) ||
-      ((t->type == T_BOOL) && (!t->is_pointer)) ||
-      ((t->type == T_CHAR) && (t->is_pointer == 1))) {
-
-    // This is a valid TCL type. 
-
-    if (t->type == T_UINT)
-      fprintf(stderr,"%s : Line %d : ** Warning. Linkage of unsigned type may be unsafe.\n",
-              input_file,  line_number);
-
-    // Now add symbol to the TCL interpreter
-
-    switch(t->type) {
-    case T_CHAR :
-      if (t->arraystr) {
-	// Is an array.  We have to do something different
-	fprintf(f_wrappers,"static char *tclvar%s = %s;\n",name,name);
-	s << "(char *) &tclvar" << name << ", TCL_LINK_STRING";
-      } else {
-	s << "(char *) &" << name << ", TCL_LINK_STRING";
-      }
-      break;
-    case T_BOOL:
-    case T_INT :
-    case T_UINT:
-    case T_SINT:
-      s << "(char *) &" << name << ", TCL_LINK_INT";
-      break;
-    case T_DOUBLE :
-      s << "(char *) &" << name << ", TCL_LINK_DOUBLE";
-      break;
-    default :
-      fprintf(f_init,"Fatal error. Internal error (Tcl:link_variable)\n");
-      break;
-    }
-
-    if (Status & STAT_READONLY)
-      s << " | TCL_LINK_READ_ONLY);\n";
-    else
-      s << ");\n";
-
-    fprintf(f_init,"\t Tcl_LinkVar(%s, SWIG_prefix \"%s\", %s",interp_name, iname, s.get());    
-  } else {
-
-    // Have some sort of "other" type.
-    // We're going to emit some functions to set/get it's value instead
-    
-    emit_set_get(name,iname, t);
-
-    // If shadow classes are enabled and we have a user-defined type
-    // that we know about, create a command for it.  
-
-    if (shadow) {
-      if ((t->type == T_USER) && (t->is_pointer < 1)) {
-	// See if the datatype is in our hash table
-	if (hash.lookup(t->name)) {
-	  // Yep.  Try to create a command for it
-
-	  postinit << tab4 << "{\n"
-		   << tab8 << "char cmd[] = \"" 
-		   << (char *) hash.lookup(t->name) << " " << iname << " -this ["
-		   << iname << "_get ]\";\n"
-		   << tab8 << "Tcl_GlobalEval(interp,cmd);\n"
-		   << tab4 << "}\n";
-	}
-      }
-    }
-  }  
-}
-#endif
-
 // -----------------------------------------------------------------------
 // TCL8::declare_const(char *name, char *iname, DataType *type, char *value)
 //
@@ -1129,8 +1061,9 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
 	  fprintf(f_init,"\t %s_char = (char *) malloc(%d);\n",var_name, (int) strlen(type->print_mangle())+ 20);
 	
 	t = new DataType(T_CHAR);
-	t->is_pointer = 1;
-	fprintf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s,\"%s\");\n",
+        t->is_pointer = 1;
+        type->remember(); 
+	fprintf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
 		var_name, var_name, type->print_mangle());
 	sprintf(var_name,"%s_char",var_name);
 	link_variable(var_name,name,t);
