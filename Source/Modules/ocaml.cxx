@@ -703,7 +703,7 @@ public:
     
     // adds local variables
     Wrapper_add_local(f, "args", "CAMLparam1(args)");
-    Wrapper_add_local(f, "ret" , "CAMLlocal2(swig_result,rv)");
+    Wrapper_add_local(f, "ret" , "SWIG_CAMLlocal2(swig_result,rv)");
     Wrapper_add_local(f, "_len", "int _len");
     Wrapper_add_local(f, "lenv", "int lenv = 1");
     Wrapper_add_local(f, "argc", "int argc = caml_list_length(args)");
@@ -992,7 +992,7 @@ public:
     String *tm;
     String *tm2 = NewString("");;
     String *argnum = NewString("0");
-    String *arg = NewString("Field(args,0)");
+    String *arg = NewString("SWIG_Field(args,0)");
     Wrapper *f;
 	
     if (!iname || !addSymbol(iname,n)) return SWIG_ERROR;
@@ -1452,7 +1452,7 @@ public:
     declaration = NewString("");
     Wrapper_add_local(w,"swig_result",
 		      "CAMLparam0();\n"
-		      "CAMLlocal2(swig_result,args)");
+		      "SWIG_CAMLlocal2(swig_result,args)");
 	
     /* determine if the method returns a pointer */
     decl = Getattr(n, "decl");
@@ -1626,7 +1626,7 @@ public:
     /* pass the method call on to the Python object */
     Printv(w->code,
 	   "swig_result = caml_swig_alloc(1,C_list);\n"
-	   "Store_field(swig_result,0,args);\n"
+	   "SWIG_Store_field(swig_result,0,args);\n"
 	   "args = swig_result;\n"
 	   "swig_result = Val_unit;\n",0);
     Printf(w->code, 

@@ -16,8 +16,9 @@ SWIGEXT {
 #else
 #define SWIGEXT 
 #endif
-#define alloc caml_alloc
 #define value caml_value_t
+#define CAML_VALUE caml_value_t
+#define alloc caml_alloc
 #include <caml/alloc.h>
 #include <caml/custom.h>
 #include <caml/mlvalues.h>
@@ -26,7 +27,59 @@ SWIGEXT {
 #include <caml/fail.h>
 #include <caml/misc.h>
 #undef alloc
-#define CAML_VALUE value
+
+// Adapted from memory.h and mlvalues.h
+
+#define SWIG_CAMLlocal1(x) \
+  caml_value_t x = 0; \
+  CAMLxparam1 (x)
+
+#define SWIG_CAMLlocal2(x, y) \
+  caml_value_t x = 0, y = 0; \
+  CAMLxparam2 (x, y)
+
+#define SWIG_CAMLlocal3(x, y, z) \
+  caml_value_t x = 0, y = 0, z = 0; \
+  CAMLxparam3 (x, y, z)
+
+#define SWIG_CAMLlocal4(x, y, z, t) \
+  caml_value_t x = 0, y = 0, z = 0, t = 0; \
+  CAMLxparam4 (x, y, z, t)
+
+#define SWIG_CAMLlocal5(x, y, z, t, u) \
+  caml_value_t x = 0, y = 0, z = 0, t = 0, u = 0; \
+  CAMLxparam5 (x, y, z, t, u)
+
+#define SWIG_CAMLlocalN(x, size) \
+  caml_value_t x [(size)] = { 0, /* 0, 0, ... */ }; \
+  CAMLxparamN (x, (size))
+
+#define SWIG_Field(x, i) (((caml_value_t *)(x)) [i])           /* Also an l-value. */
+#define SWIG_Store_field(block, offset, val) do{ \
+  mlsize_t caml__temp_offset = (offset); \
+  caml_value_t caml__temp_val = (val); \
+  modify (&SWIG_Field ((block), caml__temp_offset), caml__temp_val); \
+}while(0)
+
+#define SWIG_Data_custom_val(v) ((void *) &SWIG_Field((v), 1))
+#ifdef ARCH_BIG_ENDIAN
+#define SWIG_Tag_val(val) (((unsigned char *) (val)) [-1])
+                                                 /* Also an l-value. */
+#define SWIG_Tag_hp(hp) (((unsigned char *) (hp)) [sizeof(caml_value_t)-1])
+                                                 /* Also an l-value. */
+#else
+#define SWIG_Tag_val(val) (((unsigned char *) (val)) [-sizeof(caml_value_t)])
+                                                 /* Also an l-value. */
+#define SWIG_Tag_hp(hp) (((unsigned char *) (hp)) [0])
+                                                 /* Also an l-value. */
+#endif
+
+#ifndef ARCH_ALIGN_INT64
+#define SWIG_Int64_val(v) (*((int64 *) SWIG_Data_custom_val(v)))
+#else
+CAMLextern int64 Int64_val(caml_value_t v);
+#define SWIG_Int64_val(v) Int64_val(v)
+#endif
 
 #if defined(SWIG_NOINCLUDE)
 #	define SWIGSTATIC
