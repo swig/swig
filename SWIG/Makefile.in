@@ -99,6 +99,7 @@ CHECK_CLEAN = check
 chk-swiglib = @ROOT_DIR@/Lib
 chk-runtimelib = @ROOT_DIR@/Runtime/.libs
 chk = $(MAKE) -k -s SWIG_LIB=$(chk-swiglib) SWIG=@ROOT_DIR@/$(TARGET) RUNTIMEDIR=$(chk-runtimelib) $(CHECK_CLEAN)
+phpchk = $(MAKE) -f ../Makefile.php -k -s SWIG_LIB=$(chk-swiglib) SWIG=@ROOT_DIR@/$(TARGET) RUNTIMEDIR=$(chk-runtimelib) $(CHECK_CLEAN)
 
 check-aliveness:
 	test -x ./$(TARGET)
@@ -247,7 +248,7 @@ check-pike-examples:
 	  test $$passed = true;			\
 	fi
 
-check-php4-examples:
+oldcheck-php4-examples:
 	@if $(skip-php4); then			\
 	  echo skipping php4 $(CHECK_CLEAN);		\
 	else					\
@@ -255,6 +256,19 @@ check-php4-examples:
 	  for a in $(PHP4_EXAMPLES); do		\
 	    echo $(CHECK_CLEAN)ing Examples/php4/$$a;	\
 	    (cd Examples/php4/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
+check-php4-examples:
+	@if $(skip-php4); then			\
+	  echo skipping php4 $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  for a in $(PHP4_EXAMPLES); do		\
+	    echo $(CHECK_CLEAN)ing Examples/php4/$$a;	\
+	    (cd Examples/php4/$$a && $(phpchk))	\
 	    || passed=false;			\
 	  done;					\
 	  test $$passed = true;			\
