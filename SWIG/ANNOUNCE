@@ -6,7 +6,23 @@ We're pleased to announce the next installment of the SWIG1.3
 redevelopment effort.  The 1.3.10 release primarily addresses problems
 related to SWIG's internal implementation.  Substantial changes have
 been made to all of SWIG's language modules.  In addition, typemaps
-and exception handling have been completely rewritten.  
+and exception handling have been completely rewritten.
+
+*** SPECIAL DISCLAIMER ***
+
+SWIG-1.3.10 represents work in progress and is very likely to be
+broken in a number of critical areas (in fact, it may not work at all
+on your machine).  This release includes some of the most substantial
+changes to the internals that have occurred in the last several years.
+We are also working very hard to eliminate some very nasty
+long-standing limitations of SWIG-1.1.  However, to make SWIG better,
+we need to get your feedback about what's broken and what can be improved.
+Please try it out and let us know how (and if) it works.
+
+Note: A more stable 1.3.11 release is planned for early January.
+
+New Features in 1.3.10
+----------------------
 
 * Redesigned Typemaps *
 
