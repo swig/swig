@@ -1,5 +1,5 @@
 %module template_opaque
-%include std_vector.i
+%include "std_vector.i"
 
 %{
   namespace A 
@@ -35,4 +35,7 @@ namespace A {
 }
 }
 
+#ifndef SWIGCSHARP
+// C# vector typemaps only ready for simple cases right now
 %template(OpaqueVectorType) std::vector<A::OpaqueType>; 
+#endif
