@@ -27,20 +27,32 @@
 
 #define SWIGRUNTIME(x) static x
 
+#ifndef SWIGINLINE
 #if defined(__cplusplus) || defined(__GNUC__)
 #  define SWIGINLINE inline
 #else
 #  define SWIGINLINE
 #endif
+#endif
 
 /* 
-   needed at Swig_cfunction_call/Swig_cmethod_call (cwrap.c) when
-   using template calls
+   SWIG_TEMPLATE_DISAMBIGUATOR is needed when wrapping template calls
+   (cwrap.c:Swig_cfunction_call/Swig_cmethod_call), as in
+
+     result = nspace::template function<int >(arg1);
+     result = arg1->template method<int >(arg2);
+
+    SWIG_TEMPLATE_DISAMBIGUATOR is compiler dependent (common.swg),
+      - SUN Studio requires 'template', 
+      - gcc-3.4 forbids the use of 'template'.
+      - gcc-3.2.3 produces internal errors if you use 'template'
 */
-#if defined(__SUNPRO_CC) 
-#define SWIG_TEMPLATE_DISAMBIGUATOR template
-#else
-#define SWIG_TEMPLATE_DISAMBIGUATOR 
+#ifndef SWIG_TEMPLATE_DISAMBIGUATOR
+#  if defined(__SUNPRO_CC) 
+#    define SWIG_TEMPLATE_DISAMBIGUATOR template
+#  else
+#    define SWIG_TEMPLATE_DISAMBIGUATOR 
+#  endif
 #endif
 
 /* This should only be incremented when either the layout of swig_type_info changes,
