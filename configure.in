@@ -558,7 +558,11 @@ if test ! -r $srcdir/Tools/configure ; then
 	(cd $srcdir/Tools ; autoconf)
 fi
 
-AC_OUTPUT_COMMANDS(test -f Examples/install-sh || cp install-sh Examples)
+#
+#AC_OUTPUT_COMMANDS(test -f Examples/install-sh || cp install-sh Examples)
+# DB: Maybe I'm missings something, but why is it necessary to put
+# an 'install-sh' script in the Examples directory?
+
 AC_CONFIG_SUBDIRS(Source/SWILL Source/DOH Tools)
 
 # NOTE: The following ref to `Source' should NOT be prefixed w/ `$srcdir/'.
