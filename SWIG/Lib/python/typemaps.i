@@ -84,9 +84,17 @@ INPUT_TYPEMAP(unsigned long, PyInt_AsLong);
 INPUT_TYPEMAP(unsigned long long, PyLong_AsUnsignedLongLong);
 INPUT_TYPEMAP(unsigned char, PyInt_AsLong);
 INPUT_TYPEMAP(signed char, PyInt_AsLong);
-INPUT_TYPEMAP(bool, PyInt_AsLong);
 
 #undef INPUT_TYPEMAP
+
+%typemap(in) bool *INPUT(bool temp), bool &INPUT(bool temp)
+{
+   temp = PyInt_AsLong($input) ? true : false;
+   if (PyErr_Occurred()) SWIG_fail;
+   $1 = &temp;
+}
+%typemap(typecheck) bool *INPUT = bool;
+%typemap(typecheck) bool &INPUT = bool;
 
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as
