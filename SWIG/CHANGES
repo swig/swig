@@ -18,6 +18,7 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 	   * Added changes for the Macintosh contributed by Luigi
 	   Ballabio <ballabio@mac.com>. 
 	   * Some "const" fixes in the code.
+	   * [Guile]: Made the constant-wrapper functions much shorter.
 
 7/13/2001: mkoeppe
 	   * [Guile]: Some "const" fixes for Guile version 1.3.4.

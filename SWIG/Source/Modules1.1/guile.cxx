@@ -853,31 +853,20 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
        macros. */
     Printv(f_wrappers, "#define FUNC_NAME \"", proc_name, "\"\n", 0);
 
-    if (!(Status & STAT_READONLY) && SwigType_type(t) == T_STRING) {
-      Printf (f_wrappers, "\t char *_temp;\n");
-      Printf (f_wrappers, "\t int  _len;\n");
-    }
     Printf (f_wrappers, "\t SCM gswig_result;\n");
 
-    // Check for a setting of the variable value
-
-    Printf (f_wrappers, "\t if (s_0 != GH_NOT_PASSED) {\n");
-
-    // Yup. Extract the type from s_0 and set variable value
-
-    if (Status & STAT_READONLY) {
-      Printf (f_wrappers, "\t\t scm_misc_error(\"%s\", "
-	       "\"Unable to set %s. Variable is read only.\", SCM_EOL);\n",
-	       proc_name, proc_name);
+    if (!(Status & STAT_READONLY)) {
+      /* Check for a setting of the variable value */
+      Printf (f_wrappers, "\t if (s_0 != GH_NOT_PASSED) {\n");
+      if (guile_do_typemap(f_wrappers, "varin",
+			   t, name, (char*) "s_0", name, 1, name, f, 0)) {
+	/* nothing */
+      }
+      else {
+	throw_unhandled_guile_type_error (t);
+      }
+      Printf (f_wrappers, "\t}\n");
     }
-    else if (guile_do_typemap(f_wrappers, "varin",
-			      t, name, (char*) "s_0", name, 1, name, f, 0)) {
-      /* nothing */
-    }
-    else {
-      throw_unhandled_guile_type_error (t);
-    }
-    Printf (f_wrappers, "\t}\n");
 
     // Now return the value of the variable (regardless
     // of evaluating or setting)
@@ -899,9 +888,10 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
     if (!emit_setters
 	|| Status & STAT_READONLY) {
       /* Read-only variables become a simple procedure returning the
-	 value. */
-      Printf (f_init, "\t gh_new_procedure(\"%s\", (SCM (*) ()) %s, 0, 1, 0);\n",
-	      proc_name, var_name);
+	 value; read-write variables become a simple procedure with
+	 an optional argument. */
+      Printf (f_init, "\t gh_new_procedure(\"%s\", (SCM (*) ()) %s, 0, %d, 0);\n",
+	      proc_name, var_name, (Status & STAT_READONLY) ? 0 : 1);
     }
     else {
       /* Read/write variables become a procedure with setter. */
