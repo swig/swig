@@ -34,13 +34,6 @@ private:
     GUILE_LSTYLE_LTDLMOD,               // "native" guile?
     GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
   } linkage;
-  void   get_pointer(char *iname, int parm, SwigType *t,
-		     Wrapper *f, DOHString_or_char *proc_name,
-		     int num_scheme_parm);
-  void   usage_var(char *, SwigType *, DOHString *usage);
-  void   usage_func(char *, SwigType *, ParmList *, DOHString *usage);
-  void   usage_returns(char *, SwigType *, ParmList *, DOHString *usage);
-  void   usage_const(char *, SwigType *, char *, DOHString *usage);
   void   emit_linkage(char *module_name);
 
 public :
@@ -53,7 +46,7 @@ public :
   void initialize ();
   void headers (void);
   void close (void);
-  void set_module (char *, char **);
+  void set_module(char *);
   void set_init (char *);
   void create_command (char *, char *) { };
 };
