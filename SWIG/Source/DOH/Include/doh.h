@@ -67,6 +67,7 @@ extern int           DohDump(const DOH *obj, DOHFile *out);
 extern int           DohLen(const DOH *obj);
 extern int           DohHashval(const DOH *obj);
 extern int           DohCmp(const DOH *obj1, const DOH *obj2);
+extern void          DohIncref(DOH *obj);
 
 /* Mapping methods */
 
