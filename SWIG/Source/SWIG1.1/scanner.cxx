@@ -513,7 +513,8 @@ int yylook(void) {
 	    yylen = 0;
 	  }
 
-	  else if ((isalpha(c)) || (c == '_') || (c == '$')) state = 7;
+	  else if ((isalpha(c)) || (c == '_')) state = 7;
+	  else if (c == '$') state = 75;
 
 	  /* Look for single character symbols */
 
@@ -759,6 +760,16 @@ int yylook(void) {
 	    return(ID);
 	  }
 	  break;
+	case 75: /* Special identifier $*/
+	  if ((c = nextchar()) == 0) return(0);
+	  if (isalnum(c) || (c == '_') || (c == '*') || (c == '&')) {
+	    state = 7;
+	  } else {
+	    retract(1);
+	    return(ID);
+	  }
+	  break;
+
 	case 8: /* A numerical digit */
 	  if ((c = nextchar()) == 0) return(0);
 	  if (c == '.') {state = 81;}
