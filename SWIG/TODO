@@ -105,6 +105,9 @@ defer  ready to go.  The primary obstacle lies in the target language
 
        Note: needs testing
 
+[DONE] Add warning message if %apply directive is used, but no typemaps
+       match the requested type.
+
 ***    Rewrite declaration annotation to better unify %rename and related
        directives.  Add a selector mechanism that allows specific parse tree
        nodes to be identified.  For example:
