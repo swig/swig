@@ -82,6 +82,7 @@ static const char *usage2 = (const char*)"\
      -nodirprot      - Do not wrap director protected members\n\
      -noexcept       - Do not wrap exception specifiers\n\
      -noextern       - Do not generate extern declarations\n\
+     -nopreprocess   - Skip the preprocessor step\n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
      -outdir <dir>   - Set language specific files output directory\n\
@@ -108,6 +109,7 @@ static String  *xmlout = 0;
 static int     help = 0;
 static int     checkout = 0;
 static int     cpp_only = 0;
+static int     no_cpp = 0;
 static char   *outfile_name = 0;
 static char   *outfile_name_h = 0;
 static int     tm_debug = 0;
@@ -291,6 +293,9 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-E") == 0) {
 	    cpp_only = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-nopreprocess") == 0) {
+	    no_cpp = 1;
 	    Swig_mark_arg(i);
 	  } else if ((strcmp(argv[i],"-verbose") == 0) ||
 		     (strcmp(argv[i],"-v") == 0)) {
@@ -721,21 +726,26 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	SWIG_exit (EXIT_FAILURE);
       }
       fclose(df);
-      Printf(fs,"%%include <swig.swg>\n");
-      if (allkw) {
-	Printf(fs,"%%include <allkw.swg>\n");
+      if(!no_cpp) {
+        Printf(fs,"%%include <swig.swg>\n");
+        if (allkw) {
+          Printf(fs,"%%include <allkw.swg>\n");
+        }
+        if (lang_config) {
+          Printf(fs,"\n%%include <%s>\n", lang_config);
+        }
+        Printf(fs,"%%include \"%s\"\n", Swig_last_file());
+        for (i = 0; i < Len(libfiles); i++) {
+          Printf(fs,"\n%%include \"%s\"\n", Getitem(libfiles,i));
+        }
+        Seek(fs,0,SEEK_SET);
+        cpps = Preprocessor_parse(fs);
+      } else {
+        df = Swig_open(input_file);
+        cpps = NewFileFromFile(df);
       }
-      if (lang_config) {
-	Printf(fs,"\n%%include <%s>\n", lang_config);
-      }
-      Printf(fs,"%%include \"%s\"\n", Swig_last_file());
-      for (i = 0; i < Len(libfiles); i++) {
-	Printf(fs,"\n%%include \"%s\"\n", Getitem(libfiles,i));
-      }
-      Seek(fs,0,SEEK_SET);
-      cpps = Preprocessor_parse(fs);
       if (Swig_error_count()) {
-	SWIG_exit(EXIT_FAILURE);
+        SWIG_exit(EXIT_FAILURE);
       }
       if (cpp_only) {
 	Printf(stdout,"%s", cpps);
