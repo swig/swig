@@ -26,14 +26,15 @@ class string;
 %typemap(imtype) string "string"
 %typemap(cstype) string "string"
 
-%typemap(in) string 
+%typemap(in, canthrow=1) string 
 %{ if (!$input) SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "null string");
   $1 = std::string($input); %}
 %typemap(out) string %{ $result = SWIG_csharp_string_callback($1.c_str()); %}
 
 %typemap(csin) string "$csinput"
-%typemap(csout) string {
-    return $imcall;
+%typemap(csout, excode=SWIGEXCODE) string {
+    string ret = $imcall;$excode
+    return ret;
   }
 
 %typemap(csvarin) string %{
@@ -47,7 +48,7 @@ class string;
 
 %typemap(typecheck) string = char *;
 
-%typemap(throws) string %{
+%typemap(throws, canthrow=1) string %{
   SWIG_CSharpThrowException(SWIG_CSharpException, $1.c_str());
 %}
 
@@ -56,15 +57,16 @@ class string;
 %typemap(imtype) const string & "string"
 %typemap(cstype) const string & "string"
 
-%typemap(in) const string &
+%typemap(in, canthrow=1) const string &
 %{ if (!$input) SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "null string");
   std::string $1_str($input);
   $1 = &$1_str; %}
 %typemap(out) const string & %{ $result = SWIG_csharp_string_callback($1->c_str()); %}
 
 %typemap(csin) const string & "$csinput"
-%typemap(csout) const string & {
-    return $imcall;
+%typemap(csout, excode=SWIGEXCODE) const string & {
+    string ret = $imcall;$excode
+    return ret;
   }
 
 %typemap(csvarin) const string & %{
@@ -78,7 +80,7 @@ class string;
 
 %typemap(typecheck) const string & = char *;
 
-%typemap(throws) const string & %{
+%typemap(throws, canthrow=1) const string & %{
   SWIG_CSharpThrowException(SWIG_CSharpException, $1.c_str());
 %}
 

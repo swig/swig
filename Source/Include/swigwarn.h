@@ -205,6 +205,8 @@
 #define WARN_CSHARP_TYPEMAP_CSDIRECTOROUT_UNDEF   840
 #define WARN_CSHARP_COVARIANT_RET             842
 #define WARN_CSHARP_TYPEMAP_CSCONSTRUCT_UNDEF 843
+#define WARN_CSHARP_EXCODE                    844
+#define WARN_CSHARP_CANTHROW                  845
 
 /* please leave 830-849 free for C# */
 

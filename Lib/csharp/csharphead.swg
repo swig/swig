@@ -122,6 +122,41 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(SWIG_CSharpExc
   }
 
   static SWIGExceptionHelper exceptionHelper = new SWIGExceptionHelper();
+
+  [ThreadStatic]
+  private static Exception pendingException = null;
+  private static int numExceptionsPending = 0;
+
+  public static bool ExceptionPending {
+    get {
+      bool pending = false;
+      if (numExceptionsPending > 0)
+        if (pendingException != null)
+          pending = true;
+      return pending;
+    } 
+  }
+
+  public static void SetPendingException(Exception e) {
+    pendingException = e;
+    lock(typeof($modulePINVOKE)) {
+      numExceptionsPending++;
+    }
+  }
+
+  public static Exception RetrievePendingException() {
+    Exception e = null;
+    if (numExceptionsPending > 0) {
+      if (pendingException != null) {
+        e = pendingException;
+        pendingException = null;
+        lock(typeof($modulePINVOKE)) {
+          numExceptionsPending--;
+        }
+      }
+    }
+    return e;
+  }
 %}
 
 %insert(runtime) %{

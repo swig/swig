@@ -2,11 +2,16 @@
 
 %include "exception.i"
 
+#ifdef SWIGCSHARP
+#undef %exception
+#define %exception %csexception
+#endif
 
 /* 
    last resource, catch everything but don't override 
    user's throw declarations.
 */
+
 %exception {
   try {
     $action
@@ -31,7 +36,7 @@
 
   struct A 
   {
-    /* catched by the user's throw definition */
+    /* caught by the user's throw definition */
     int foo() throw(E1) 
     {
       throw E1();
@@ -44,7 +49,7 @@
       return 0;     
     }
     
-    /* catched by the %postexception */
+    /* caught by %postexception */
     int foobar()
     {
       throw E3();

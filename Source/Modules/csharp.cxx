@@ -593,7 +593,7 @@ class CSHARP : public Language {
       
       // Get typemap for this argument
       if ((tm = Getattr(p,"tmap:in"))) {
-        addThrows(n, "tmap:in", p);
+        canThrow(n, "in", p);
         Replaceall(tm,"$source",arg); /* deprecated */
         Replaceall(tm,"$target",ln); /* deprecated */
         Replaceall(tm,"$arg",arg); /* deprecated? */
@@ -614,7 +614,7 @@ class CSHARP : public Language {
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:check"))) {
-        addThrows(n, "tmap:check", p);
+        canThrow(n, "check", p);
         Replaceall(tm,"$target",Getattr(p,"lname")); /* deprecated */
         Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
         Replaceall(tm,"$input",Getattr(p,"emit:input"));
@@ -628,7 +628,7 @@ class CSHARP : public Language {
     /* Insert cleanup code */
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:freearg"))) {
-        addThrows(n, "tmap:freearg", p);
+        canThrow(n, "freearg", p);
         Replaceall(tm,"$source",Getattr(p,"emit:input")); /* deprecated */
         Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
         Replaceall(tm,"$input",Getattr(p,"emit:input"));
@@ -642,7 +642,7 @@ class CSHARP : public Language {
     /* Insert argument output code */
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:argout"))) {
-        addThrows(n, "tmap:argout", p);
+        canThrow(n, "argout", p);
         Replaceall(tm,"$source",Getattr(p,"emit:input")); /* deprecated */
         Replaceall(tm,"$target",Getattr(p,"lname")); /* deprecated */
         Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
@@ -661,7 +661,7 @@ class CSHARP : public Language {
       Swig_typemap_attach_parms("throws", throw_parm_list, f);
       for (p = throw_parm_list; p; p=nextSibling(p)) {
         if ((tm = Getattr(p,"tmap:throws"))) {
-          addThrows(n, "tmap:throws", p);
+          canThrow(n, "throws", p);
         }
       }
     }
@@ -685,7 +685,7 @@ class CSHARP : public Language {
     /* Return value if necessary  */
     if(!native_function_flag) {
       if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
-        addThrows(n, "tmap:out", n);
+        canThrow(n, "out", n);
         Replaceall(tm,"$source", "result"); /* deprecated */
         Replaceall(tm,"$target", "jresult"); /* deprecated */
         Replaceall(tm,"$result","jresult");
@@ -707,7 +707,7 @@ class CSHARP : public Language {
     /* Look to see if there is any newfree cleanup code */
     if (Getattr(n,"feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
-        addThrows(n, "tmap:newfree", n);
+        canThrow(n, "newfree", n);
         Replaceall(tm,"$source","result"); /* deprecated */
         Printf(f->code,"%s\n",tm);
       }
@@ -723,7 +723,6 @@ class CSHARP : public Language {
 
     /* Finish C function and intermediary class function definitions */
     Printf(imclass_class_code, ")");
-    generateThrowsClause(n, imclass_class_code);
     Printf(imclass_class_code, ";\n");
 
     Printf(f->def,") {");
@@ -744,8 +743,27 @@ class CSHARP : public Language {
       Replaceall(f->code,"$null","");
 
     /* Dump the function out */
-    if(!native_function_flag)
+    if(!native_function_flag) {
       Wrapper_print(f,f_wrappers);
+
+      // Handle %csexception which sets the canthrow attribute
+      if (Getattr(n,"feature:except:canthrow"))
+        Setattr(n,"csharp:canthrow","1");
+
+      // A very simple check (it is not foolproof) to help typemap/feature writers for
+      // throwing C# exceptions from unmanaged code. It checks for the common methods which
+      // set a pending C# exception... the 'canthrow' typemap/feature attribute must be set
+      // so that code which checks for pending exceptions is added in the C# proxy method.
+      if (!Getattr(n,"csharp:canthrow")) {
+        if(Strstr(f->code, "SWIG_exception")) {
+          Swig_warning(WARN_CSHARP_CANTHROW, input_file, line_number, 
+              "Unmanaged code contains a call to SWIG_exception and C# code does not handle pending exceptions via the canthrow attribute.\n");
+        } else if(Strstr(f->code, "SWIG_CSharpThrowException")) {
+          Swig_warning(WARN_CSHARP_CANTHROW, input_file, line_number, 
+              "Unmanaged code contains a call to SWIG_CSharpThrowException and C# code does not handle pending exceptions via the canthrow attribute.\n");
+        }
+      }
+    }
 
     if(!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       moduleClassFunctionHandler(n);
@@ -1571,7 +1589,7 @@ class CSHARP : public Language {
 
         // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
         if ((tm = Getattr(p,"tmap:csin"))) {
-          addThrows(n, "tmap:csin", p);
+          canThrow(n, "csin", p);
           substituteClassname(pt, tm);
           Replaceall(tm, "$csinput", arg);
           Printv(imcall, tm, NIL);
@@ -1597,19 +1615,19 @@ class CSHARP : public Language {
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup_new("csout",n,"",0))) {
-      addThrows(n, "tmap:csout", n);
+      canThrow(n, "csout", n);
       if (Getattr(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
         Replaceall(tm,"$owner","false");
       substituteClassname(t, tm);
       Replaceall(tm, "$imcall", imcall);
+      excodeSubstitute(n, tm, "csout", n);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
           "No csout typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    generateThrowsClause(n, function_code);
     Printf(function_code, " %s\n\n", tm ? (const String *)tm : empty_string);
 
     if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
@@ -1724,7 +1742,7 @@ class CSHARP : public Language {
 
         // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
         if ((tm = Getattr(p,"tmap:csin"))) {
-          addThrows(n, "tmap:csin", p);
+          canThrow(n, "csin", p);
           substituteClassname(pt, tm);
           Replaceall(tm, "$csinput", arg);
           Printv(imcall, tm, NIL);
@@ -1747,11 +1765,14 @@ class CSHARP : public Language {
       Printf(imcall, ")");
 
       Printf(function_code, ")");
-      generateThrowsClause(n, function_code);
-      Printv(function_code, " ", typemapLookup("csconstruct", Getattr(n,"name"), WARN_CSHARP_TYPEMAP_CSCONSTRUCT_UNDEF), NIL);
+
+      Node *attributes = NewHash();
+      Printv(function_code, " ", typemapLookup("csconstruct", Getattr(n,"name"), WARN_CSHARP_TYPEMAP_CSCONSTRUCT_UNDEF, attributes), NIL);
       Replaceall(function_code, "$imcall", imcall);
+      excodeSubstitute(n, function_code, "csconstruct", attributes);
       Printv(proxy_class_code, function_code, "\n", NIL);
 
+      Delete(attributes);
       Delete(overloaded_name);
       Delete(imcall);
     }
@@ -1963,7 +1984,7 @@ class CSHARP : public Language {
 
       // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
       if ((tm = Getattr(p,"tmap:csin"))) {
-        addThrows(n, "tmap:csin", p);
+        canThrow(n, "csin", p);
         substituteClassname(pt, tm);
         Replaceall(tm, "$csinput", arg);
         Printv(imcall, tm, NIL);
@@ -1988,19 +2009,19 @@ class CSHARP : public Language {
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in module class)
     if ((tm = Swig_typemap_lookup_new("csout",n,"",0))) {
-      addThrows(n, "tmap:csout", n);
+      canThrow(n, "csout", n);
       if (Getattr(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
         Replaceall(tm,"$owner","false");
       substituteClassname(t, tm);
       Replaceall(tm, "$imcall", imcall);
+      excodeSubstitute(n, tm, "csout", n);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
           "No csout typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    generateThrowsClause(n, function_code);
     Printf(function_code, " %s\n\n", tm ? (const String *)tm : empty_string);
 
     if (proxy_flag && global_variable_flag) {
@@ -2318,65 +2339,42 @@ class CSHARP : public Language {
   }
 
   /* -----------------------------------------------------------------------------
-   * addThrows()
+   * canThrow()
+   * Determine whether the code in the typemap can throw a C# exception.
+   * If so, note it for later when excodeSubstitute() is called.
    * ----------------------------------------------------------------------------- */
 
-  void addThrows(Node *n, const String *typemap, Node *parameter) {
-    // Get the comma separated throws clause - held in "throws" attribute in the typemap passed in
-    String *throws_attribute = NewStringf("%s:throws", typemap);
-    String *throws = Getattr(parameter,throws_attribute);
-
-    if (throws) {
-      String *throws_list = Getattr(n,"csharp:throwslist");
-      if (!throws_list) {
-        throws_list = NewList();
-        Setattr(n,"csharp:throwslist", throws_list);
-      }
-
-      // Put the exception classes in the throws clause into a temporary List
-      List *temp_classes_list = Split(throws,',',INT_MAX);
-
-      // Add the exception classes to the node throws list, but don't duplicate if already in list
-      if (temp_classes_list && Len(temp_classes_list) > 0) {
-        for (Iterator cls = First(temp_classes_list); cls.item; cls = Next(cls)) {
-          String *exception_class = NewString(cls.item);
-          Replaceall(exception_class," ","");  // remove spaces
-          Replaceall(exception_class,"\t",""); // remove tabs
-          if (Len(exception_class) > 0) {
-            // $csclassname substitution
-            SwigType *pt = Getattr(parameter,"type");
-            substituteClassname(pt, exception_class);
-
-            // Don't duplicate the C# exception class in the throws clause
-            bool found_flag = false;
-            for (Iterator item = First(throws_list); item.item; item = Next(item)) {
-              if (Strcmp(item.item, exception_class) == 0)
-                found_flag = true;
-            }
-            if (!found_flag)
-              Append(throws_list, exception_class);
-          }
-          Delete(exception_class);
-        } 
-      }
-      Delete(temp_classes_list);
-    } 
-    Delete(throws_attribute);
+  void canThrow(Node *n, const String *typemap, Node *parameter) {
+    String *canthrow_attribute = NewStringf("tmap:%s:canthrow", typemap);
+    String *canthrow = Getattr(parameter,canthrow_attribute);
+    if (canthrow) {
+      if (!Getattr(n,"csharp:canthrow"))
+        Setattr(n,"csharp:canthrow", "1");
+    }
+    Delete(canthrow_attribute);
   }
 
   /* -----------------------------------------------------------------------------
-   * generateThrowsClause()
+   * excodeSubstitute()
+   * If a method can throw a C# exception, additional exception code is added to
+   * check for the pending exception so that it can then throw the exception. The
+   * $excode special variable is replaced by the exception code in the excode
+   * typemap attribute.
    * ----------------------------------------------------------------------------- */
 
-  void generateThrowsClause(Node *n, String *code) {
-    // Add the throws clause into code
-    List *throws_list = Getattr(n,"csharp:throwslist");
-    if (throws_list) {
-      Iterator cls = First(throws_list);
-      Printf(code, " throws %s", cls.item);
-      while ( (cls = Next(cls)).item)
-        Printf(code, ", %s", cls.item);
+  void excodeSubstitute(Node *n, String *code, const String *typemap, Node *parameter) {
+    String *excode_attribute = NewStringf("tmap:%s:excode", typemap);
+    String *excode = Getattr(parameter, excode_attribute);
+    if (Getattr(n,"csharp:canthrow")) {
+      int count = Replaceall(code, "$excode", excode);
+      if (count < 1 || !excode) {
+        Swig_warning(WARN_CSHARP_EXCODE, input_file, line_number, 
+          "C# exception may not be thrown - no $excode or excode attribute in '%s' typemap.\n", typemap);
+      }
+    } else {
+      Replaceall(code, "$excode", empty_string);
     }
+    Delete(excode_attribute);
   }
 
 };   /* class CSHARP */

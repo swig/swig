@@ -327,7 +327,7 @@ namespace std {
 
 
 // Methods which can throw an Exception
-%exception std::vector::vector(int capacity) {
+%csexception std::vector::vector(int capacity) {
   try {
     $action
   } catch (std::out_of_range& e) {
@@ -335,7 +335,7 @@ namespace std {
   }
 }
 
-%exception std::vector::getitemcopy {
+%csexception std::vector::getitemcopy {
   try {
     $action
   } catch (std::out_of_range& e) {
@@ -343,7 +343,7 @@ namespace std {
   }
 }
 
-%exception std::vector::getitem {
+%csexception std::vector::getitem {
   try {
     $action
   } catch (std::out_of_range& e) {
@@ -351,7 +351,7 @@ namespace std {
   }
 }
 
-%exception std::vector::setitem {
+%csexception std::vector::setitem {
   try {
     $action
   } catch (std::out_of_range& e) {
@@ -359,49 +359,7 @@ namespace std {
   }
 }
 
-%exception std::vector::GetRange {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
-  } catch (const char *e) {
-    SWIG_CSharpThrowException(SWIG_CSharpException, e);
-  }
-}
-
-%exception std::vector::Insert {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
-  }
-}
-
-%exception std::vector::InsertRange {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
-  }
-}
-
-%exception std::vector::RemoveAt {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
-  }
-}
-
-%exception std::vector::Repeat {
-  try {
-    $action
-  } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
-  }
-}
-
-%exception std::vector::RemoveRange {
+%csexception std::vector::GetRange {
   try {
     $action
   } catch (std::out_of_range& e) {
@@ -411,7 +369,39 @@ namespace std {
   }
 }
 
-%exception std::vector::Reverse(int index, int count) {
+%csexception std::vector::Insert {
+  try {
+    $action
+  } catch (std::out_of_range& e) {
+    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+  }
+}
+
+%csexception std::vector::InsertRange {
+  try {
+    $action
+  } catch (std::out_of_range& e) {
+    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+  }
+}
+
+%csexception std::vector::RemoveAt {
+  try {
+    $action
+  } catch (std::out_of_range& e) {
+    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+  }
+}
+
+%csexception std::vector::Repeat {
+  try {
+    $action
+  } catch (std::out_of_range& e) {
+    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+  }
+}
+
+%csexception std::vector::RemoveRange {
   try {
     $action
   } catch (std::out_of_range& e) {
@@ -421,7 +411,17 @@ namespace std {
   }
 }
 
-%exception std::vector::SetRange {
+%csexception std::vector::Reverse(int index, int count) {
+  try {
+    $action
+  } catch (std::out_of_range& e) {
+    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+  } catch (const char *e) {
+    SWIG_CSharpThrowException(SWIG_CSharpException, e);
+  }
+}
+
+%csexception std::vector::SetRange {
   try {
     $action
   } catch (std::out_of_range& e) {
