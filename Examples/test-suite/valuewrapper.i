@@ -3,12 +3,12 @@
 
 %inline %{
 template <typename T> struct X {
-   X(int);
+   X(int) {}
 };
  
 template <typename T> struct Y {
-   Y();
-   int spam(T t = T(0));
+   Y() {}
+   int spam(T t = T(0)) { return 0; }
 };
 %}
  
