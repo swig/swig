@@ -134,7 +134,7 @@ int DohObjFreeCheck(DOH *ptr) {
 void *DohObjMalloc(size_t size) {
   Pool *p;
   Fragment *f;
-  void *ptr;
+  void *ptr = 0;
 
   if (size > DOH_MAX_FRAG) return 0;
   if (!pools_initialized) InitPools();
@@ -149,7 +149,6 @@ void *DohObjMalloc(size_t size) {
   }
 
   /* No free fragments.  See if the pool is large enough */
-  
   if (size < (p->len - p->current)) {
     ptr = (void *) (p->ptr + p->current);
     p->current = (p->current + size + 7) & ~0x3;
@@ -162,8 +161,10 @@ void *DohObjMalloc(size_t size) {
     f->ptr = (p->ptr + p->current);
     f->len = (p->len - p->current);
     f->next = FreeFragments[f->len];
+    p->current = p->len;
     FreeFragments[f->len] = f;
   }
+
   p = CreatePool(_PoolSize);
   p->next = Pools;
   Pools = p;

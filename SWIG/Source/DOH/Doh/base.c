@@ -93,7 +93,7 @@ static DOH *find_internal(DOH *co) {
   s = 0;
   while (r) {
     s = r;
-    //    printf("checking %s\n", r->cstr);
+    /*    printf("checking %s\n", r->cstr); */
     d = strcmp(r->cstr,c);
     if (d == 0) return r->sstr;
     if (d < 0) r = r->left;
