@@ -145,6 +145,7 @@ extern void        SwigType_merge_scope(DOHHash *scope, DOHString_or_char *prefi
 extern DOHHash    *SwigType_pop_scope();
 extern DOHString  *SwigType_typedef_resolve(DOHString_or_char *t);
 extern int         SwigType_istypedef(DOHString_or_char *t);
+extern int         SwigType_cmp(DOHString_or_char *pat, DOHString_or_char *t);
 
 /* --- Parse tree support --- */
 

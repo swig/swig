@@ -384,7 +384,6 @@ int SwigType_isqualifier(DOHString_or_char *t) {
 DOHString *SwigType_base(DOHString *t) {
   char *c, *d;
 
-  assert(DohIsString(t));
   c = Char(t);
   d = c + strlen(c);
   while (d > c) {
@@ -677,6 +676,35 @@ int SwigType_istypedef(DOHString_or_char *t) {
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_cmp()
+ *
+ * Compares two type-strings using all available typedef information.  Returns 0
+ * if equal, 1 if not. 
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_cmp(DOHString_or_char *tpat, DOHString_or_char *type) {
+  DOHString *r, *s;
+  char *p, *t;
+
+  p = Char(tpat);
+  t = Char(type);
+
+  if (strcmp(p,t) == 0) return 0;
+  
+  r = SwigType_typedef_resolve(type);
+  while (r) {
+    t = Char(r);
+    if (strcmp(p,t) == 0) {
+      Delete(r);
+      return 0;
+    }
+    s = SwigType_typedef_resolve(r);
+    Delete(r);
+    r = s;
+  }
+  return 1;
+}
 
 #ifdef DEBUG
 int main() {
@@ -692,8 +720,10 @@ int main() {
 
   Printf(stdout,"b = '%s'\n", b);
   c = SwigType_typedef_resolve(b);
-
   Printf(stdout,"c = '%s'\n", c);
+
+  Printf(stdout,"cmp = %d\n", SwigType_cmp("a(1000).p.p.int",b));
+
 }
 
 #endif
