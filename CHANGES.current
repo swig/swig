@@ -1,6 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
 12/02/2003: beazley
+            [Perl] Fixed [ 852119 ] recursive inheritance in output .pm, perl5.
+            Reported by William Dowling.
+
+12/02/2003: beazley
             [Tcl] Fixed [ 755382 ] calling func(const vector<T>& p) evaluates p[0] in interp.
             The Tcl type checker was improperly handling the interpreter result when
             type violations were supposed to be ignored.
