@@ -1305,6 +1305,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
   int      nelements, i;
   int      clear = 1;
   int      firstarray = 1;
+  int      isreference = 0;
 
   result = NewString("");
 
@@ -1318,7 +1319,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
 
   if (SwigType_issimple(rs)) {
     td = SwigType_typedef_resolve(rs);
-    if ((td) && (SwigType_isconst(td) || SwigType_isarray(td))) {
+    if ((td) && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
       elements = SwigType_split(td);
     } else if (td && SwigType_isenum(td)) {
       elements = SwigType_split(rs);
@@ -1368,6 +1369,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       firstarray = 0;
     } else if (SwigType_isreference(element)) {
       Insert(result,0,"&");
+      isreference = 1;
     } else if (SwigType_isarray(element)) {
       DOH *size;
       if (firstarray) {
@@ -1414,7 +1416,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
     cast = NewStringf("(%s)",result);
   }
   if (name) {
-    if (SwigType_isreference(s)) {
+    if (isreference) {
       Append(cast,"*");
     }
     Append(cast,name);
