@@ -1560,7 +1560,7 @@ declaration    : ID { $$.id = $1;
 	       }
                | AND ID {
 		      $$.id = $2;
-		      $$.is_pointer = 1;
+		      $$.is_pointer = 0;
 		      $$.is_reference = 1;
 		      if (!CPlusPlus) {
 			Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
