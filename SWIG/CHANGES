@@ -17,6 +17,36 @@ tree (maybe).
 Version 1.3.11 (Work in progress)
 =================================
 
+01/11/2002: cheetah (william fulton)
+           [Java] Changed mapping of C long to Java type. Was mapped to Java
+           long, now mapped to Java int. If you want the previous mapping to 
+           Java long use this approach in your interface file:
+           
+             %clear long;
+             %typemap(jni) long             "jlong"
+             %typemap(jtype) long           "long"
+             %typemap(jstype) long          "long"
+
+             %clear long[ANY];
+             %typemap(jni) long[ANY]        "jlongArray"
+             %typemap(jtype) long[ANY]      "long[]"
+             %typemap(jstype) long[ANY]     "long[]"
+             %typemap(in) long[ANY]         {write me for array support}
+             %typemap(out) long[ANY]        {write me for array support}
+             %typemap(freearg) long[ANY]    {write me for array support}
+
+           *** POTENTIAL INCOMPATIBILITY ***
+
+           This new mapping is more appropriate when interfacing to 32 bit 
+           applications which are used in the current 32-bit JVMs. For future 
+           64-bit JVMs you may have to change these mappings - eg on Unix LP64 
+           systems, but not on Microsoft 64bit Windows which will be using a 
+           P64 IL32 model. This may be automated in a future version of SWIG.
+
+01/09/2002: cheetah (william fulton)
+           [Java] Default support for the long long type. signed long long is 
+           mapped to a Java long. unsigned long long is mapped to BigInteger.
+
 01/09/2002:beazley
            Experimental change to parser to better support mixing of
            int, long, short, unsigned, float, and double.   The parser
