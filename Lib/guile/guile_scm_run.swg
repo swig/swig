@@ -165,7 +165,7 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   return 1;
 }
 
-static inline void *
+static SWIGINLINE void *
 SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
 		       int argnum, int flags, const char *func_name)
 {
@@ -177,7 +177,7 @@ SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
   return result;
 }
 
-static inline int
+static SWIGINLINE int
 SWIG_Guile_IsPointerOfType (SCM s, swig_type_info *type)
 {
   void *result;
@@ -187,8 +187,8 @@ SWIG_Guile_IsPointerOfType (SCM s, swig_type_info *type)
   }
   else return 1;
 }
-  
-static inline int
+
+static SWIGINLINE int
 SWIG_Guile_IsPointer (SCM s)
 {
   return SWIG_Guile_IsPointerOfType (s, NULL);
@@ -330,7 +330,7 @@ SWIG_Guile_Init ()
     scm_set_smob_equalp(swig_destroyed_tag, equalp_swig);
   }
   {
-    SCM variable = scm_sym2var(scm_str2symbol("swig-type-list-address"),
+    SCM variable = scm_sym2var(scm_str2symbol("swig-type-list-address" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME),
 			       scm_module_lookup_closure(swig_module),
 			       SCM_BOOL_T);
     if (SCM_UNBNDP(SCM_VARIABLE_REF(variable))) {

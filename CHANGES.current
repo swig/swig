@@ -1,6 +1,22 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/21/2004: wuzzeb (John Lenz)
+            - If you define SWIG_TYPE_TABLE when compiling a wrapper file,
+	      the runtime types will be stored in the given type table name.
+	      Using this, you can seperate different modules to share their
+	      own type systems.  -DSWIG_TYPE_TABLE=Mytable
+
+	    - [Python] If you define SWIG_STATIC_RUNTIME then the type information
+	      will be static to this wrapper.  Nothing will be shared with any
+	      other modules
+
+	    - [Python] If you define SWIG_LINK_RUNTIME, then instead of using
+	      the new way of sharing type information, the wrapper will expect
+	      to be linked against the Lib/linkruntime.c file.  Any modules compiled
+	      with SWIG_LINK_RUNTIME and linked against linkruntime.c will all
+	      share type information.
+
 10/20/2004: mmatus
 	    - [Python] Initial fix for python/import example. Please
 	      update the Makefile (autoconf, configure, etc, expert),

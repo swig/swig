@@ -111,14 +111,14 @@ SWIG_Tcl_LookupTypePointer(Tcl_Interp *interp) {
   char *data;
   
   /* first check if pointer already created */
-  data = (char *) Tcl_GetVar(interp, "swig_runtime_data_type_pointer", TCL_GLOBAL_ONLY);
+  data = (char *) Tcl_GetVar(interp, "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TCL_GLOBAL_ONLY);
   if (data) {
     SWIG_UnpackData(data, &swig_type_list_handle, sizeof(swig_type_info **));
   } else {
     /* create a new pointer */
     data = SWIG_PackData(buf, &swig_type_list_handle, sizeof(swig_type_info **));
     *data = 0;
-    Tcl_SetVar(interp, "swig_runtime_data_type_pointer", buf, 0);
+    Tcl_SetVar(interp, "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, buf, 0);
   }
 }
 
@@ -151,7 +151,7 @@ SWIG_Tcl_Disown(void *ptr) {
   return 0;
 }
 
-static inline int
+static int
 SWIG_Tcl_Thisown(void *ptr) {
   if (!swigobjectTableinit) return 0;
   if (Tcl_FindHashEntry(&swigobjectTable, (char *) ptr)) {
@@ -200,7 +200,7 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type
 }
 
 /* Convert a pointer value */
-static inline int
+static SWIGINLINE int
 SWIG_Tcl_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, swig_type_info *ty, int flags) {
   return SWIG_Tcl_ConvertPtrFromString(interp, Tcl_GetStringFromObj(oc,NULL), ptr, ty, flags);
 }
@@ -270,7 +270,7 @@ SWIG_Tcl_MakePtr(char *c, void *ptr, swig_type_info *ty, int flags) {
 }
 
 /* Create a new pointer object */
-static Tcl_Obj *
+static SWIGINLINE Tcl_Obj *
 SWIG_Tcl_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   Tcl_Obj *robj;
   char result[512];

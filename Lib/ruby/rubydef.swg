@@ -43,7 +43,7 @@ SWIG_Ruby_InitRuntime(void)
     }
     
     /* first check if pointer already created */
-    pointer = rb_gv_get("$swig_runtime_data_type_pointer");
+    pointer = rb_gv_get("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
     if (pointer != Qnil) {
       Data_Get_Struct(pointer, swig_type_info *, swig_type_list_handle);
     } else {
@@ -51,7 +51,7 @@ SWIG_Ruby_InitRuntime(void)
       VALUE cl = rb_define_class("swig_runtime_data", rb_cObject);
       /* create and store the structure pointer to a global variable */
       swig_runtime_data_type_pointer = Data_Wrap_Struct(cl, 0, 0, swig_type_list_handle);
-      rb_define_readonly_variable("$swig_runtime_data_type_pointer", &swig_runtime_data_type_pointer);
+      rb_define_readonly_variable("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, &swig_runtime_data_type_pointer);
     }
 }
 
@@ -108,7 +108,7 @@ SWIG_Ruby_NewClassInstance(VALUE klass, swig_type_info *type)
 }
 
 /* Get type mangle from class name */
-static char *
+static SWIGINLINE char *
 SWIG_Ruby_MangleStr(VALUE obj)
 {
   VALUE stype = rb_iv_get(obj, "__swigtype__");
@@ -158,7 +158,7 @@ SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
 }
 
 /* Convert a pointer value, signal an exception on a type mismatch */
-static inline void *
+static SWIGINLINE void *
 SWIG_Ruby_MustGetPtr(VALUE obj, swig_type_info *ty, int argnum, int flags)
 {
   void *result;
@@ -167,7 +167,7 @@ SWIG_Ruby_MustGetPtr(VALUE obj, swig_type_info *ty, int argnum, int flags)
 }
 
 /* Check convert */
-static inline int
+static SWIGINLINE int
 SWIG_Ruby_CheckConvert(VALUE obj, swig_type_info *ty)
 {
   char *c = SWIG_MangleStr(obj);

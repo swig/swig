@@ -11,6 +11,16 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define SWIG_RUNTIME_VERSION "1"
+/* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
+#ifdef SWIG_TYPE_TABLE
+#define SWIG_QUOTE_STRING(x) #x
+#define SWIG_EXPAND_AND_QUOTE_STRING(x) SWIG_QUOTE_STRING(x)
+#define SWIG_TYPE_TABLE_NAME SWIG_EXPAND_AND_QUOTE_STRING(SWIG_TYPE_TABLE)
+#else
+#define SWIG_TYPE_TABLE_NAME
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -426,10 +436,10 @@ SWIG_Guile_Init (void)
 {
   SCM pointer;
 
-  pointer = gh_lookup("swig_runtime_data_type_pointer");
+  pointer = gh_lookup("swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
   if (pointer == SCM_UNDEFINED) {
     pointer = gh_ulong2scm((unsigned long)SwigModule);
-    gh_define("swig_runtime_data_type_pointer", pointer);
+    gh_define("swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, pointer);
     if (SwigModule->swig_tag == 0) {
       SwigModule->swig_tag = scm_make_smob_type_mfpe((char *) "swig", 0, NULL, NULL,
 				       print_swig, equalp_swig);

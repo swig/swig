@@ -27,6 +27,25 @@
 
 #define SWIGRUNTIME(x) static x
 
+#if defined(__cplusplus) || defined(__GNUC__)
+#  define SWIGINLINE inline
+#else
+#  define SWIGINLINE
+#endif
+
+/* This should only be incremented when either the layout of swig_type_info changes,
+   or for whatever reason, the runtime changes incompatibly */
+#define SWIG_RUNTIME_VERSION "1"
+
+/* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
+#ifdef SWIG_TYPE_TABLE
+#define SWIG_QUOTE_STRING(x) #x
+#define SWIG_EXPAND_AND_QUOTE_STRING(x) SWIG_QUOTE_STRING(x)
+#define SWIG_TYPE_TABLE_NAME SWIG_EXPAND_AND_QUOTE_STRING(SWIG_TYPE_TABLE)
+#else
+#define SWIG_TYPE_TABLE_NAME
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -114,7 +133,7 @@ SWIG_TypeCheck(char *c, swig_type_info *ty) {
 }
 
 /* Cast a pointer up an inheritance hierarchy */
-static inline void *
+static SWIGINLINE void *
 SWIG_TypeCast(swig_type_info *ty, void *ptr) {
   if ((!ty) || (!ty->converter)) return ptr;
   return (*ty->converter)(ptr);
@@ -133,7 +152,7 @@ SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) {
 }
 
 /* Return the name associated with this type */
-static inline const char *
+static SWIGINLINE const char *
 SWIG_TypeName(const swig_type_info *ty) {
   return ty->name;
 }
