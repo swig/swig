@@ -573,6 +573,24 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
     name = rname;
   }  
 
+  /*
+    very specific hack for functions that return pointers/references,
+    in the long term, %feature should check the entire declaration,
+    including the returning type, but for now, these declarations
+
+       char f();    -> decl:  f().
+       char* f();   -> decl:  f().p.
+       char& f();   -> decl:  f().r.  ?
+
+    are working again, since we get ride of the extra 'p./r.'
+  */
+  if (SwigType_isfunction(decl)) {
+    rdecl = Copy(decl);
+    decl = SwigType_pop(rdecl);
+    Delete(rdecl);
+    rdecl = decl;
+  }
+  
   /* Printf(stdout,"feature_get: %s %s %s\n", prefix, name, decl);  */
 
 
