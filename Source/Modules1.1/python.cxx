@@ -492,9 +492,9 @@ PYTHON::get_pointer(char *iname, char *srcname, char *src, char *dest,
   // If we're passing a void pointer, we give the pointer conversion a NULL
   // pointer, otherwise pass in the expected type.
   
-  if (t->type == T_VOID) f << "0)) == -1) return " << ret << ";\n";
+  if (t->type == T_VOID) f << "0,1)) == -1) return " << ret << ";\n";
   else
-    f << "SWIGTYPE" << t->print_mangle() << ")) == -1) return " << ret << ";\n";
+    f << "SWIGTYPE" << t->print_mangle() << ",1)) == -1) return " << ret << ";\n";
 
 }
 
