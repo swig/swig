@@ -1489,18 +1489,19 @@ public:
 	     shadow_classname,shadow_classname,shadow_classname,
 	     shadow_classname,shadow_classname,shadow_classname);
 
-//        int type;  /* read, write or r/w */
-//        zval *object;
-//        zend_llist *elements_list;
-
       // ******** Write property SET handlers
       Printf(s_header,"static int _wrap_propset_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
       Printf(s_propset,"static int _wrap_propset_%s(zend_property_reference *property_reference, pval *value) { \n"
+                       "  zval * _value;\n"
                        "  zend_llist_element *element = property_reference->elements_list->head;\n"
                        "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
                        "  if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n"
                        "  /* set it ourselves as it is %s */\n"
-                       "  return add_property_zval_ex(property_reference->object,Z_STRVAL_P(&(property->element)),Z_STRLEN_P(&(property->element)),value);\n"
+                       "  MAKE_STD_ZVAL(_value);\n"
+                       "  *_value=*value;\n"
+                       "  INIT_PZVAL(_value);\n"
+                       "  zval_copy_ctor(_value);\n"
+                       "  return add_property_zval_ex(property_reference->object,Z_STRVAL_P(&(property->element)),1+Z_STRLEN_P(&(property->element)),_value);\n"
                        "}\n", shadow_classname, shadow_classname,shadow_classname);
       Printf(s_header,"static int _propset_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
       Printf(s_propset,"static int _propset_%s(zend_property_reference *property_reference, pval *value) {\n", shadow_classname);
@@ -1562,7 +1563,14 @@ public:
              "  result.type = IS_NULL;\n"
              "  if (_propget_%s(property_reference, &result)==SUCCESS) return result;\n"
              "  /* return it ourselves */\n"
-             "  if (zend_hash_find(Z_OBJPROP_P(property_reference->object),Z_STRVAL_P(&(property->element)),Z_STRLEN_P(&(property->element)),(void**)&_result)==SUCCESS) return **_result;\n"
+             "  if (zend_hash_find(Z_OBJPROP_P(property_reference->object),Z_STRVAL_P(&(property->element)),1+Z_STRLEN_P(&(property->element)),(void**)&_result)==SUCCESS) {\n"
+             "  zval *_value;\n"
+             "  MAKE_STD_ZVAL(_value);"
+             "  *_value=**_result;\n"
+             "  INIT_PZVAL(_value);\n"
+             "  zval_copy_ctor(_value);\n"
+             "  return *_value;\n"
+             "  }\n"
              "  result.type = IS_NULL;\n"
              "  return result;\n"
              "}\n", shadow_classname, shadow_classname);
