@@ -202,7 +202,8 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     int hv;
     HashNode *n, *prev;
     Hash *h = (Hash *) ObjData(ho);
-
+    
+    if (!obj) DohDelattr(ho,k);
     if (!obj) return 0;
     if (!DohCheck(k)) k = find_key(k);
     if (!DohCheck(obj)) {
