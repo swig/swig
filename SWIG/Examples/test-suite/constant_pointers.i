@@ -45,6 +45,7 @@ public:
     ParametersTest* array_member2[ARRAY_SIZE];
     int* const array_member3[ARRAY_SIZE];
     ParametersTest* const array_member4[ARRAY_SIZE];
+    MemberVariablesTest() : member3(NULL), member4(NULL) {}
 };
 void foo(const int *const i) {}
 
@@ -64,6 +65,7 @@ public:
 
     void ret6(int*& a) {}
     int*& ret7() {return GlobalIntPtr;}
+    ReturnValuesTest() : int3(NULL) {}
 };
 
 const int* globalRet1() {return &GlobalInt;};
