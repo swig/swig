@@ -1,5 +1,10 @@
 %module preproc_6
  
+%warnfilter(801) a; /* Ruby, wrong constant name */
+%warnfilter(801) b; /* Ruby, wrong constant name */
+%warnfilter(801) c; /* Ruby, wrong constant name */
+%warnfilter(801) d; /* Ruby, wrong constant name */
+
 #define add(a, b) (a + b)
 #define times(a, b) (a * b)
 #define op(x) x(1, 5)
