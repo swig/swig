@@ -6,7 +6,6 @@
 
 %runtime "common.swg"         // common type checking code
 %runtime "perlrun.swg"        // Perl runtime functions
-%include "exception.i"        // Exception library
 
 /* Typemaps for input parameters */
 
@@ -34,13 +33,13 @@
 
 %typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
 	if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
-            SWIG_exception(SWIG_TypeError,"Type error in argument $argnum of $symname. Expected $1_mangle");
+            SWIG_croak("Type error in argument $argnum of $symname. Expected $1_mangle");
         }
 }
 
 %typemap(in) void * {
 	if (SWIG_ConvertPtr($input, (void **) &$1, 0,0) < 0) {
-            SWIG_exception(SWIG_TypeError, "Type error in argument $argnum of $symname. Expected $1_mangle");
+            SWIG_croak("Type error in argument $argnum of $symname. Expected $1_mangle");
         }
 }
 
@@ -48,7 +47,7 @@
 %typemap(in) SWIGTYPE {
     $&1_ltype argp;
     if (SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,0) < 0) {
-            SWIG_exception(SWIG_TypeError,"Type error in argument $argnum of $symname. Expected $&1_mangle");
+            SWIG_croak("Type error in argument $argnum of $symname. Expected $&1_mangle");
     }
     $1 = *argp;
 }
@@ -208,7 +207,80 @@
   "ST(argvi) = sv_newmortal();
    sv_setpvn((SV*)ST(argvi++), $1, 1);";
 
+
 /* Variable input */
+
+%typemap(varin)  int, short, long, signed char, bool, enum SWIGTYPE
+       "$1 = ($1_ltype) SvIV($input);";
+
+%typemap(varin) unsigned int, unsigned short, unsigned long, unsigned char
+	"$1 = ($1_ltype) SvUV($input);";
+
+%typemap(varin)  char
+       "$1 = ($1_ltype) *SvPV($input,PL_na);";
+
+%typemap(varin)  float, double 
+       "$1 = ($1_ltype) SvNV($input);\n";
+
+%typemap(varin)  long long "$1 = (long long) strtoll(SvPV($input, PL_na), 0, 0);";
+%typemap(varin)  unsigned long long "$1 = (unsigned long long) strtoull(SvPV($input, PL_na), 0, 0);";
+
+%typemap(varin) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
+	if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
+            croak("Type error in argument $argnum of $symname. Expected $1_mangle");
+        }
+}
+
+%typemap(varin) void * {
+	if (SWIG_ConvertPtr($input, (void **) &$1, 0,0) < 0) {
+            croak("Type error in argument $argnum of $symname. Expected $1_mangle");
+        }
+}
+
+/* Object passed by value. Convert to a pointer */
+%typemap(varin) SWIGTYPE {
+    $&1_ltype argp;
+    if (SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,0) < 0) {
+            croak("Type error in argument $argnum of $symname. Expected $&1_mangle");
+    }
+    $1 = *argp;
+}
+
+/* Const primitive references.  Passed by value */
+
+%typemap(varin) const int & (int temp),
+	     const short & (short temp),
+             const long  & (long temp),
+             const signed char & (signed char temp),
+             const bool & (bool temp)
+	"temp = ($*1_ltype) SvIV($input);
+         $1 = &temp;";
+
+%typemap(varin) const unsigned int & (unsigned int temp),
+             const unsigned short & (unsigned short temp),
+             const unsigned long & (unsigned long temp),
+             const unsigned char & (unsigned char temp)
+	"temp = ($*1_ltype) SvUV($input);
+         $1 = &temp;";
+
+%typemap(varin) const float & (float temp),
+	     const double & (double temp)
+	"temp = ($*1_ltype) SvNV($input);
+         $1 = &temp;";
+
+%typemap(varin) const long long & (long long temp) 
+        "temp = (long long) strtoll(SvPV($input,PL_na),0,0);
+         $1 = &temp;";
+
+%typemap(varin) const unsigned long long & (unsigned long long temp) 
+        "temp = (unsigned long long) strtoull(SvPV($input, PL_na),0,0);
+         $1 = &temp;";
+
+%typemap(varin) const char &(char temp) {
+        temp = *SvPV($input,PL_na);
+        $1 = &temp;
+}
+
 %typemap(varin) char *
 #ifdef __cplusplus
 {
@@ -391,6 +463,29 @@
   } else {
         $1 = 1;
   }
+}
+
+/* ------------------------------------------------------------
+ * Exception handling
+ * ------------------------------------------------------------ */
+
+%typemap("throw") int, 
+                  long, 
+                  short, 
+                  unsigned int, 
+                  unsigned long, 
+                  unsigned short {
+  sprintf(_swigmsg,"%d",$1);
+  SWIG_croak(_swigmsg);
+}
+
+%typemap("throw") SWIGTYPE {
+  SWIG_croak("$1_type");
+}
+
+%typemap("throw") char * {
+  SWIG_croak($1);
+  SWIG_fail;
 }
 
 

@@ -32,13 +32,13 @@
 
 /* Pointers */
 %typemap(in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
-  "if ((SWIG_ConvertPtr(interp, $input, (void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION | $disown) != TCL_OK)) return TCL_ERROR;";
+  "if ((SWIG_ConvertPtr(interp, $input, (void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION | $disown) != TCL_OK)) SWIG_fail;";
 
 
 /* For bools, we first convert to an integer and then to a bool.  There
    is no guarantee that a bool is the same size as an int so we have to do this */
 
-%typemap(in) bool (int tempb) "if (Tcl_GetIntFromObj(interp,$input,&tempb) == TCL_ERROR) return TCL_ERROR;
+%typemap(in) bool (int tempb) "if (Tcl_GetIntFromObj(interp,$input,&tempb) == TCL_ERROR) SWIG_fail;
                                $1 = (bool) tempb;";
 
 /* These will pass an integer as an unsigned long.  However, the implementation is crippled due
@@ -54,7 +54,7 @@
 
 /* Unknown type.  We convert from a pointer */
 %typemap(in) SWIGTYPE ($&1_ltype argp) 
-  "if ((SWIG_ConvertPtr(interp, $input, (void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION ) != TCL_OK)) return TCL_ERROR;
+  "if ((SWIG_ConvertPtr(interp, $input, (void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION ) != TCL_OK)) SWIG_fail;
   $1 = *argp; ";
 
 
@@ -88,7 +88,7 @@
 {
   long ltemp;
   if (Tcl_GetLongFromObj(interp, $input, &ltemp) != TCL_OK) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = ($*1_ltype) ltemp;
   $1 = &temp;
@@ -99,7 +99,7 @@
 {
   double dtemp;
   if (Tcl_GetDoubleFromObj(interp, $input, &dtemp) != TCL_OK) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = ($*1_ltype) dtemp;
   $1 = &temp;
@@ -477,6 +477,36 @@
   } else {
     $1 = 1;
   }
+}
+
+/* ------------------------------------------------------------
+ * Exception handling
+ * ------------------------------------------------------------ */
+
+%typemap("throw") int, 
+                  long, 
+                  short, 
+                  unsigned int, 
+                  unsigned long, 
+                  unsigned short {
+  Tcl_SetObjResult(interp, Tcl_NewIntObj((long) $1));
+  SWIG_fail;
+}
+
+%typemap("throw") SWIGTYPE CLASS {
+  $&1_ltype temp = new $1_ltype($1);
+  Tcl_SetObjResult(interp, SWIG_NewInstanceObj(interp, (void *) temp, $&1_descriptor, 1));
+  SWIG_fail;
+}
+
+%typemap("throw") SWIGTYPE {
+  Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) "$1_type", -1));
+  SWIG_fail;
+}
+
+%typemap("throw") char * {
+  Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) $1, -1));
+  SWIG_fail;
 }
 
 // Some special reserved words in classes

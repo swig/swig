@@ -57,7 +57,7 @@ or you can use the %apply directive :
 %typemap(in) double *INPUT(double temp), double &INPUT(double temp)
 {
   if (Tcl_GetDoubleFromObj(interp,$input,&temp) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   $1 = &temp;
 }
@@ -65,7 +65,7 @@ or you can use the %apply directive :
 %typemap(in) float *INPUT(double dvalue, float  temp), float &INPUT(double dvalue, float temp) 
 {
   if (Tcl_GetDoubleFromObj(interp,$input,&dvalue) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = (float) dvalue;
   $1 = &temp;
@@ -74,7 +74,7 @@ or you can use the %apply directive :
 %typemap(in) int  *INPUT(int temp), int &INPUT(int temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&temp) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   $1 = &temp;
 }
@@ -82,7 +82,7 @@ or you can use the %apply directive :
 %typemap(in) short *INPUT(int ivalue, short temp), short &INPUT(int ivalue, short temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = (short) ivalue;
   $1 = &temp;
@@ -91,7 +91,7 @@ or you can use the %apply directive :
 %typemap(in) long *INPUT(int ivalue, long temp), long &INPUT(int ivalue, long temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = (long) ivalue;
   $1 = &temp;
@@ -101,7 +101,7 @@ or you can use the %apply directive :
              unsigned int  &INPUT(int ivalue, unsigned int temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = (unsigned int) ivalue;
   $1 = &temp;
@@ -111,7 +111,7 @@ or you can use the %apply directive :
              unsigned short &INPUT(int ivalue, unsigned short temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = (unsigned short) ivalue;
   $1 = &temp;
@@ -121,7 +121,7 @@ or you can use the %apply directive :
              unsigned long &INPUT(int ivalue, unsigned long temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = (unsigned long) ivalue;
   $1 = &temp;
@@ -131,7 +131,7 @@ or you can use the %apply directive :
              unsigned char &INPUT(int ivalue, unsigned char temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = (unsigned char) ivalue;
   $1 = &temp;
@@ -141,7 +141,7 @@ or you can use the %apply directive :
              signed char &INPUT(int ivalue, signed char temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = (signed char) ivalue;
   $1 = &temp;
@@ -151,7 +151,7 @@ or you can use the %apply directive :
              bool &INPUT(int ivalue, bool temp)
 {
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
-    return TCL_ERROR;
+    SWIG_fail;
   }
   temp = (bool) ivalue;
   $1 = &temp;

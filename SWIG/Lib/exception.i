@@ -21,7 +21,7 @@
 
 #ifdef SWIGTCL8
 %{
-#define SWIG_exception(a,b)   { Tcl_SetResult(interp,b,TCL_VOLATILE); return TCL_ERROR; }
+#define SWIG_exception(a,b)   { Tcl_SetResult(interp,b,TCL_VOLATILE); SWIG_fail; }
 %}
 #else
 #ifdef SWIGTCL
@@ -33,13 +33,7 @@
 
 #ifdef SWIGPERL5
 %{
-#define SWIG_exception(a,b)   croak(b)
-%}
-#endif
-
-#ifdef SWIGPERL4
-%{
-#define SWIG_exception(a,b)   fatal(b)
+#define SWIG_exception(a,b)   SWIG_croak(b)
 %}
 #endif
 

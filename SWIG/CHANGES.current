@@ -1,5 +1,41 @@
 Version 1.3.15 (In progress)
 ================================
+09/02/2002: beazley
+            [Perl] Better exception handling support.  Since Perl error handling
+            relies on setjmp/longjmp, wrapper functions have been modified slightly
+            to provide an extra block scope:
+
+                XS(foo) {
+                   char _swigmsg[SWIG_MAX_ERRMSG] = "";
+                   const char *_swigerr = _swigmsg;
+                   {
+                      /* Normal wrapper function here */
+                      ...
+                      SWIG_croak("An error occurred\n");
+                      ...
+                      XSRETURN(argvi);      /* Successful return */
+                      fail:
+                        /* cleanup code */
+                   }
+                   croak(_swig_err);
+                }
+
+            The macro SWIG_croak(x) sets the value of _swigerr to x and
+            executes a "goto fail".  The whole wrapper function is enclosed
+            block scope to provide proper cleanup of C++ objects.  Since
+            croak executes a longjmp(), there is no way to properly reclaim
+            resources if this executes in the same scope as the wrapper
+            function.
+
+            The _swigmsg[] variable is normally unused, but can be used
+            to store small error messages using sprintf or snprintf. It
+            has a capacity of at least 256 bytes (SWIG_MAX_ERRMSG).
+            
+09/02/2002: beazley
+            [Tcl] Added better support for exceptions.  Instead of returning TCL_ERROR,
+            use the macro SWIG_fail to return with an error.  This ensures that
+            arguments are properly cleaned up.  Exception specifiers are now
+            handled by default.
 
 09/02/2002: ljohnson (Lyle Johnson)
             [Ruby] The type-checking system for the Ruby module has had a flaw

@@ -492,6 +492,8 @@ public:
     }
     Setattr(n,"wrap:name",wname);
     Printv(f->def, "XS(", wname, ") {\n", NIL);
+    Printv(f->def, "char _swigmsg[SWIG_MAX_ERRMSG] = \"\";\n", NIL);
+    Printv(f->def, "const char *_swigerr = _swigmsg;\n","{\n",NIL);
 
     emit_args(d, l, f);
     emit_attach_parmmaps(l,f);
@@ -509,7 +511,7 @@ public:
     } else {
       Printf(f->code,"    if (items < %d) {\n", num_required);
     }
-    Printf(f->code,"        croak(\"Usage: %s\");\n", usage_func(Char(iname),d,l));
+    Printf(f->code,"        SWIG_croak(\"Usage: %s\");\n", usage_func(Char(iname),d,l));
     Printf(f->code,"}\n");
 
     /* Write code to extract parameters. */
@@ -645,7 +647,13 @@ public:
       Printf(f->code,"%s\n", tm);
     }
 
-    Printf(f->code,"    XSRETURN(argvi);\n}\n");
+    Printf(f->code,"    XSRETURN(argvi);\n");
+    Printf(f->code,"fail:\n");
+    Printv(f->code,cleanup,NIL);
+    Printv(f->code,"(void) _swigerr;\n", NIL);
+    Printv(f->code,"}\n",NIL);
+    Printv(f->code,"croak(_swigerr);\n", NIL);
+    Printv(f->code,"}\n",NIL);
 
   /* Add the dXSARGS last */
 
@@ -792,8 +800,6 @@ public:
 
       /* Check for a few typemaps */
       tm = Swig_typemap_lookup_new("varin",n,name,0);
-      if (!tm) 
-	tm = Swig_typemap_lookup_new("in",n,name,0);
       if (tm) {
 	Replaceall(tm,"$source","sv");
 	Replaceall(tm,"$target",name);

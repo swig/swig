@@ -317,7 +317,7 @@ public:
     Printf(argstr,"%s\"",usage_string(Char(iname),type,parms));
     
     Printv(f->code,
-	   "if (SWIG_GetArgs(interp, objc, objv,", argstr, args, ") == TCL_ERROR) return TCL_ERROR;\n",
+	   "if (SWIG_GetArgs(interp, objc, objv,", argstr, args, ") == TCL_ERROR) SWIG_fail;\n",
 	   NIL);
     
     Printv(f->code,incode,NIL);
@@ -393,7 +393,9 @@ public:
       Replaceall(tm,"$source","result");
       Printf(f->code,"%s\n", tm);
     }
-    Printv(f->code, "return TCL_OK;\n}", NIL);
+    Printv(f->code, "return TCL_OK;\n", NIL);
+    Printv(f->code, "fail:\n", cleanup, "return TCL_ERROR;\n", NIL);
+    Printv(f->code,"}\n", NIL);
     
     /* Substitute the cleanup code */
     Replaceall(f->code,"$cleanup",cleanup);

@@ -164,7 +164,7 @@
 %typemap(in) (TYPEMAP, SIZE) {
    long  temp;
    if (Tcl_GetLongFromObj(interp,$input,&temp) != TCL_OK) {
-	return TCL_ERROR;
+	SWIG_fail;
    }
    $2 = ($2_ltype) temp;
 #ifdef __cpluscplus
@@ -202,7 +202,7 @@
 %typemap(in) (TYPEMAP, SIZE) {
    long  n;
    if (Tcl_GetLongFromObj(interp,$input,&n) != TCL_OK) {
-	return TCL_ERROR;
+	SWIG_fail;
    }
 #ifdef __cpluscplus
    $1 = ($1_ltype) new char[n+1];

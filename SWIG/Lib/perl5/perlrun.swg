@@ -43,6 +43,11 @@ extern "C" {
 #endif 
 #endif 
 
+/* Macros for low-level exception handling */
+#define SWIG_fail      goto fail
+#define SWIG_croak(x)  while ((_swigerr = (const char *) x)) goto fail
+#define SWIG_MAX_ERRMSG 256
+
 /* Note: SwigMagicFuncHack is a typedef used to get the C++
    compiler to just shut up already */
 
