@@ -19,22 +19,6 @@ static char cvsroot[] = "$Header$";
 
 extern int emit_num_required(ParmList *);
 
-static Hash *promotions = 0;
-
-/* -----------------------------------------------------------------------------
- * Swig_overload_promote()
- * 
- * Define a type-promotion for disambiguation rules
- * ----------------------------------------------------------------------------- */
-
-void
-Swig_overload_promote(SwigType *t, SwigType *s) {
-  if (!promotions) {
-    promotions = NewHash();
-  }
-  Setattr(promotions,Copy(t),Copy(s));
-}
-
 /* -----------------------------------------------------------------------------
  * Swig_overload_rank()
  *
@@ -66,8 +50,9 @@ Swig_overload_rank(Node *n) {
     }
     if (!Getattr(c,"error") && !Getattr(c,"feature:ignore")) {
       nodes[nnodes].n = c;
-      nodes[nnodes].argc = emit_num_required(Getattr(c,"parms"));
-      nodes[nnodes].parms = CopyParmList(Getattr(c,"parms"));
+      nodes[nnodes].parms = Getattr(c,"wrap:parms");
+      if (!nodes[nnodes].parms) nodes[nnodes].parms = Getattr(c,"parms");
+      nodes[nnodes].argc = emit_num_required(nodes[nnodes].parms);
       nnodes++;
     }
     c = Getattr(c,"sym:nextSibling");
@@ -79,20 +64,21 @@ Swig_overload_rank(Node *n) {
     for (i = 0; i < nnodes; i++) {
       Parm *p = nodes[i].parms;
       while (p) {
-	SwigType *rt = SwigType_typedef_resolve_all(Getattr(p,"type"));
-	SwigType *t = SwigType_ltype(rt);
-	Setattr(p,"type",t);
-	if (promotions) {
-	  SwigType *nt = Getattr(promotions,t);
-	  if (nt) {
-	    Setattr(p,"type",nt);
-	  } else {
-	    Setattr(p,"type","0");
-	  }
+	if (Getattr(p,"tmap:ignore")) {
+	  p = Getattr(p,"tmap:ignore:next");
+	  continue;
 	}
-	p = nextSibling(p);
-	Delete(rt);
-	Delete(t);
+	/* Get argument precedence level */
+	String *prec = Getattr(p,"tmap:typecheck:precedence");
+	//	Printf(stdout,"%s. prec = '%s'\n", Getattr(p,"type"), prec); 
+	if (!prec) {
+	  Setattr(p,"tmap:typecheck:precedence","0");
+	}
+	if (Getattr(p,"tmap:in:next")) {
+	  p = Getattr(p,"tmap:in:next");
+	} else {
+	  p = nextSibling(p);
+	}
       }
     }
   }
@@ -119,18 +105,43 @@ Swig_overload_rank(Node *n) {
 	Parm *p1 = nodes[i].parms;
 	Parm *p2 = nodes[j].parms;
 	int   differ = 0;
+	//	Printf(stdout,"---- [%d,%d]\n", i,j);
 	while (p1 && p2) {
-	  SwigType *t1 = Getattr(p1,"type");
-	  SwigType *t2 = Getattr(p2,"type");
+	  //	  Printf(stdout,"p1 = '%s', p2 = '%s'\n", Getattr(p1,"type"), Getattr(p2,"type"));
+	  if (Getattr(p1,"tmap:ignore")) {
+	    p1 = Getattr(p1,"tmap:ignore:next");
+	    continue;
+	  }
+	  if (Getattr(p2,"tmap:ignore")) {
+	    p2 = Getattr(p2,"tmap:ignore:next");
+	    continue;
+	  }
+	  String *t1 = Getattr(p1,"tmap:typecheck:precedence");
+	  String *t2 = Getattr(p2,"tmap:typecheck:precedence");
 	  differ = Strcmp(t1,t2);
 	  if (differ > 0) {
 	    Overloaded t = nodes[i];
 	    nodes[i] = nodes[j];
 	    nodes[j] = t;
 	    break;
+	  } else if ((differ == 0) && (Strcmp(t1,"0") == 0)) {
+	    t1 = Getattr(p1,"type");
+	    t2 = Getattr(p2,"type");
+	    if (Strcmp(t1,t2) != 0) {
+	      differ = 1;
+	      break;
+	    }
 	  }
-	  p1 = nextSibling(p1);
-	  p2 = nextSibling(p2);
+	  if (Getattr(p1,"tmap:in:next")) {
+	    p1 = Getattr(p1,"tmap:in:next");
+	  } else {
+	    p1 = nextSibling(p1);
+	  }
+	  if (Getattr(p2,"tmap:in:next")) {
+	    p2 = Getattr(p2,"tmap:in:next");
+	  } else {
+	    p2 = nextSibling(p2);
+	  }
 	}
 	if (!differ) {
 	  Printf(stdout,"Ambiguous overloading.\n");
@@ -144,8 +155,8 @@ Swig_overload_rank(Node *n) {
     int i;
     for (i = 0; i < nnodes; i++) {
       Append(result,nodes[i].n);
-      Printf(stdout,"[ %d ] %s\n", i, ParmList_str(nodes[i].parms));
-      Swig_print_node(nodes[i].n);
+      //      Printf(stdout,"[ %d ] %s\n", i, ParmList_str(nodes[i].parms));
+      //      Swig_print_node(nodes[i].n);
     }
   }
   return result;

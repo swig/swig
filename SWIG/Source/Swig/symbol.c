@@ -390,6 +390,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   SwigType *decl, *ndecl;
   String   *cstorage, *nstorage;
   int      nt = 0, ct = 0;
+  int      pn = 0;
   String   *name;
 
   /* See if the node has a name.  If so, we place in the C symbol table for this
@@ -552,6 +553,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     }
     /* Okay. Walk down the list of symbols and see if we get a declarator match */
     cn = c;
+    pn = 0;
     while (cn) {
       decl = Getattr(cn,"decl");
       if (Cmp(ndecl,decl) == 0) {
@@ -560,11 +562,13 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
       }
       cl = cn;
       cn = Getattr(cn,"sym:nextSibling");
+      pn++;
     }
 
     /* Well, we made it this far.  Guess we can drop the symbol in place */
     Setattr(n,"sym:symtab",current_symtab);
     Setattr(n,"sym:name",symname);
+    Setattr(n,"sym:overname", NewStringf("_%d", pn));
     Setattr(cl,"sym:nextSibling",n);
     Setattr(n,"sym:previousSibling",cl);
     Setattr(cl,"sym:overloaded",c);
@@ -575,6 +579,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   /* No conflict.  Just add it */
   Setattr(n,"sym:symtab",current_symtab);
   Setattr(n,"sym:name",symname);
+  Setattr(n,"sym:overname", NewStringf("_%d", pn));
   Setattr(current,symname,n);
   return n;
 }

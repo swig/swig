@@ -120,6 +120,7 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
 
 void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
   Swig_typemap_attach_parms("in",l,f);
+  Swig_typemap_attach_parms("typecheck",l,0);
   Swig_typemap_attach_parms("argout",l,f);
   Swig_typemap_attach_parms("check",l,f);
   Swig_typemap_attach_parms("freearg",l,f);

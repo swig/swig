@@ -191,10 +191,14 @@ public:
  protected:
   /* Patch C++ pass-by-value */
   static void patch_parms(Parm *p);
-  
+
+  /* Allow overloaded functions */
+  void   allow_overloading();
+
  private:
   Hash   *symbols;
   Hash   *classtypes;
+  int     overloading;
 };
 
 extern  int   SWIG_main(int, char **, Language *);

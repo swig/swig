@@ -203,6 +203,7 @@ int Dispatcher::namespaceDeclaration(Node *n) { return defaultHandler(n); }
 Language::Language() {
   symbols = NewHash();
   classtypes = NewHash();
+  overloading = 0;
 }
 
 Language::~Language() {
@@ -292,7 +293,6 @@ static Node *first_nontemplate(Node *n) {
  * -------------------------------------------------------------------------- */
 
 void swig_pragma(char *lang, char *name, char *value) {
-  extern void Swig_overload_promote(SwigType *, SwigType *);
   if (strcmp(lang,"swig") == 0) {
     if ((strcmp(name,"make_default") == 0) || ((strcmp(name,"makedefault") == 0))) {
       GenerateDefault = 1;
@@ -312,21 +312,6 @@ void swig_pragma(char *lang, char *name, char *value) {
     } else if (strcmp(name,"noattributefunction") == 0) {
       AttributeFunctionGet = 0;
       AttributeFunctionSet = 0;
-    } else if (strcmp(name,"promote") == 0) {
-      String *nvalue = NewString(value);
-      char *s = strchr(Char(nvalue),'=');
-      if (!s) {
-	Swig_error(input_file, line_number, "Bad value for pragma promote. Expected \"type=type\".\n");
-      } else {
-	*s = 0;
-	SwigType *t1 = NewString(Char(nvalue));
-	SwigType *t2 = NewString(s+1);
-	Swig_overload_promote(t1,t2);
-	Delete(t1);
-	Delete(t2);
-      }
-      Delete(nvalue);
-
     }
   }
 }
@@ -652,33 +637,35 @@ int Language::cDeclaration(Node *n) {
 
   /* Overloaded symbol check */
   over = Swig_symbol_isoverloaded(n);
-  if (over) over = first_nontemplate(over);
-  if (over && (over != n)) {
-    SwigType *tc = Copy(decl);
-    SwigType *td = SwigType_pop_function(tc);
-    String   *oname;
-    String   *cname;
-    if (CurrentClass) {
-      oname = NewStringf("%s::%s",ClassName,name);
-      cname = NewStringf("%s::%s",ClassName,Getattr(over,"name"));
-    } else {
-      oname = NewString(name);
-      cname = NewString(Getattr(over,"name"));
+  if (!overloading) {
+    if (over) over = first_nontemplate(over);
+    if (over && (over != n)) {
+      SwigType *tc = Copy(decl);
+      SwigType *td = SwigType_pop_function(tc);
+      String   *oname;
+      String   *cname;
+      if (CurrentClass) {
+	oname = NewStringf("%s::%s",ClassName,name);
+	cname = NewStringf("%s::%s",ClassName,Getattr(over,"name"));
+      } else {
+	oname = NewString(name);
+	cname = NewString(Getattr(over,"name"));
+      }
+      
+      SwigType *tc2 = Copy(Getattr(over,"decl"));
+      SwigType *td2 = SwigType_pop_function(tc2);
+      
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, input_file, line_number, "Overloaded declaration ignored.  %s\n", SwigType_str(td,oname));
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, Getfile(over), Getline(over),"Previous declaration is %s\n", SwigType_str(td2,cname));
+      
+      Delete(tc2);
+      Delete(td2);
+      Delete(tc);
+      Delete(td);
+      Delete(oname);
+      Delete(cname);
+      return SWIG_NOWRAP;
     }
-      
-    SwigType *tc2 = Copy(Getattr(over,"decl"));
-    SwigType *td2 = SwigType_pop_function(tc2);
-      
-    Swig_warning(WARN_LANG_OVERLOAD_DECL, input_file, line_number, "Overloaded declaration ignored.  %s\n", SwigType_str(td,oname));
-    Swig_warning(WARN_LANG_OVERLOAD_DECL, Getfile(over), Getline(over),"Previous declaration is %s\n", SwigType_str(td2,cname));
-      
-    Delete(tc2);
-    Delete(td2);
-    Delete(tc);
-    Delete(td);
-    Delete(oname);
-    Delete(cname);
-    return SWIG_NOWRAP;
   }
 
   if (symname && !validIdentifier(symname)) {
@@ -905,6 +892,8 @@ Language::memberfunctionHandler(Node *n) {
   Swig_MethodToFunction(n,ClassType, Getattr(n,"template") ? 0 : Extend | SmartPointer);
   Setattr(n,"sym:name",fname);
   functionWrapper(n);
+
+  Setattr(n,"wrap:parms",Getattr(n,"parms"));
 
   /*  DelWrapper(w);*/
   Delete(fname);
@@ -1362,7 +1351,7 @@ int Language::constructorDeclaration(Node *n) {
     Node *over;
     over = Swig_symbol_isoverloaded(n);
     if (over) over = first_nontemplate(over);
-    if (over) {
+    if ((over) && (!overloading)) {
       /* If the symbol is overloaded.  We check to see if it is a copy constructor.  If so, 
 	 we invoke copyconstructorHandler() as a special case. */
       if (Getattr(n,"copy_constructor") && (!Getattr(CurrentClass,"has_copy_constructor"))) {
@@ -1711,6 +1700,10 @@ Language::classLookup(SwigType *s) {
 
   if (n && (Getattr(n,"feature:ignore"))) return 0;
   return n; 
+}
+
+void Language::allow_overloading() {
+  overloading = 1;
 }
 
 

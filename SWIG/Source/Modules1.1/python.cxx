@@ -29,6 +29,7 @@ static  String       *interface = 0;
 static  String       *global_name = 0;
 static  int           shadow = 0;
 static  int           use_kw = 0;
+static  int           overload = 0;
 
 static  File         *f_runtime = 0;
 static  File         *f_header = 0;
@@ -93,6 +94,9 @@ public:
 	} else if (strcmp(argv[i],"-keyword") == 0) {
 	  use_kw = 1;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-overload") == 0) {
+	  overload = 1;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
 	} else if (strcmp (argv[i], "-ldflags") == 0) {
@@ -105,6 +109,13 @@ public:
     Preprocessor_define("SWIGPYTHON 1", 0);
     SWIG_typemap_lang("python");
     SWIG_config_file("python.swg");
+    if (overload) {
+      allow_overloading();
+      if (use_kw) {
+	Printf(stderr,"Can't use keyword arguments with overloading.  Disabled.\n");
+	use_kw = 0;
+      }
+    }
   }
 
   /* ------------------------------------------------------------
@@ -261,13 +272,18 @@ public:
     String *outarg;
     String *kwargs;
     String *tm;
-    
+    String *overname = 0;
+
     int     num_required;
     int     num_arguments;
     int     varargs = 0;
-    
-    if (!addSymbol(iname,n)) return SWIG_ERROR;
-    
+
+    if (overload && Getattr(n,"sym:overloaded")) {
+      overname = Getattr(n,"sym:overname");
+    } else {
+      if (!addSymbol(iname,n)) return SWIG_ERROR;
+    }
+
     f = NewWrapper();
     parse_args   = NewString("");
     arglist      = NewString("");
@@ -284,17 +300,15 @@ public:
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l,f);
 
-    //    {
-    //      Swig_overload_rank(n);
-    //    }
-
-
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
     num_required  = emit_num_required(l);
     varargs = emit_isvarargs(l);
 
     strcpy(wname,Char(Swig_name_wrapper(iname)));
+    if (overname) {
+      strcat(wname,Char(overname));
+    }
 
     if (!use_kw) {
       if (!varargs) {
@@ -514,15 +528,20 @@ public:
       Wrapper_print(f,f_wrappers);
     }
 
-
     /* Now register the function with the interpreter.   */
-    add_method(iname, wname, use_kw);
+    if (!Getattr(n,"sym:overloaded") || (!overload)) {
+      add_method(iname, wname, use_kw);
 
-    /* Create a shadow for this function (if enabled and not in a member function) */
-    if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-      Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n\n", NULL);
+      /* Create a shadow for this function (if enabled and not in a member function) */
+      if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+	Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n\n", NULL);
+      }
+    } else {
+      Setattr(n,"wrap:name", wname);
+      if (!Getattr(n,"sym:nextSibling")) {
+	dispatchFunction(n);
+      }
     }
-
     Delete(parse_args);
     Delete(arglist);
     Delete(get_pointers);
@@ -531,6 +550,80 @@ public:
     Delete(kwargs);
     DelWrapper(f);
     return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * dispatchFunction()
+   * ------------------------------------------------------------ */
+  void dispatchFunction(Node *n) {
+    /* Last node in overloaded chain */
+    List *dispatch = Swig_overload_rank(n);
+	
+    /* Generate a dispatch wrapper for all overloaded functions */
+
+    Wrapper *f       = NewWrapper();
+    String  *symname = Getattr(n,"sym:name");
+    String  *wname   = Swig_name_wrapper(symname);
+
+    Printv(f->def,	
+	   "static PyObject *", wname,
+	   "(PyObject *self, PyObject *args) {",
+	   NULL);
+    
+    Wrapper_add_local(f,"argc","int argc");
+    Wrapper_add_local(f,"valid","int valid");
+    Wrapper_add_local(f,"match","int match");
+    Printf(f->code,"argc = PyObject_Length(args);\n");
+
+    /* Walk the dispatch list and emit functions */
+    Node *c;
+    for (c = Firstitem(dispatch); c; c = Nextitem(dispatch)) {
+      ParmList *l = Getattr(c,"wrap:parms");
+      if (!l) l = Getattr(c,"parms");
+      int num_arguments = emit_num_arguments(l);
+      int num_required  = emit_num_required(l);
+      int varargs       = emit_isvarargs(l);
+
+      Printf(f->code,"if ((argc >= %d) && (argc <= %d)) {\n", num_required, num_arguments);
+      Printf(f->code,"match = 1;\n");
+      Printf(f->code,"valid = 1;\n");
+      Parm *p = l;
+      int   i = 0;
+      while (p) {
+	while (Getattr(p,"tmap:ignore")) {
+	  p = Getattr(p,"tmap:ignore:next");
+	}
+	String *tm = Getattr(p,"tmap:typecheck");
+	if (tm) {
+	  char   temp[64];
+	  sprintf(temp,"PyTuple_GetItem(args,%d)",i);
+	  Replaceall(tm,"$input",temp);
+	  Printv(f->code,tm,NULL);
+	}
+	Printf(f->code,"\nmatch &= valid;\n");
+	if (Getattr(p,"tmap:in:next")) {
+	  p = Getattr(p,"tmap:in:next");
+	} else {
+	  p = nextSibling(p);
+	}
+	i++;
+      }
+      Printf(f->code,"if (match) return %s(self,args);\n", Getattr(c,"wrap:name"));
+      Printf(f->code,"PyErr_Clear();\n");
+      Printf(f->code,"}\n");
+    }
+    Printf(f->code,"PyErr_SetString(PyExc_ValueError,\"Bad arguments\");\n");
+    Printf(f->code,"return NULL;\n");
+    Printv(f->code,"}\n",NULL);
+    Wrapper_print(f,f_wrappers);
+    add_method(symname,wname,use_kw);
+
+    /* Create a shadow for this function (if enabled and not in a member function) */
+    if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+      Printv(f_shadow_stubs,symname, " = ", module, ".", symname, "\n\n", NULL);
+    }
+    DelWrapper(f);
+    Delete(wname);
   }
 
   /* ------------------------------------------------------------
@@ -835,20 +928,22 @@ public:
     Language::memberfunctionHandler(n);
     shadow = oldshadow;
 
-    if (shadow) {
-      if (Strcmp(symname,"__repr__") == 0)
-	have_repr = 1;
-
-      if (Getattr(n,"feature:shadow")) {
-	String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
-	Printv(f_shadow,pycode,"\n",NULL);
-      } else {
-	if (use_kw) {
-	  Printv(f_shadow,tab4, "def ", symname, "(*args, **kwargs): ", NULL);
-	  Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args, kwargs)\n", NULL);
+    if ((!overload) || (overload && !Getattr(n,"sym:nextSibling"))) {
+      if (shadow) {
+	if (Strcmp(symname,"__repr__") == 0)
+	  have_repr = 1;
+	
+	if (Getattr(n,"feature:shadow")) {
+	  String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
+	  Printv(f_shadow,pycode,"\n",NULL);
 	} else {
-	  Printv(f_shadow, tab4, "def ", symname, "(*args): ", NULL);
-	  Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args)\n",NULL);
+	  if (use_kw) {
+	    Printv(f_shadow,tab4, "def ", symname, "(*args, **kwargs): ", NULL);
+	    Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args, kwargs)\n", NULL);
+	  } else {
+	    Printv(f_shadow, tab4, "def ", symname, "(*args): ", NULL);
+	    Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args)\n",NULL);
+	  }
 	}
       }
     }
@@ -867,49 +962,51 @@ public:
     Language::constructorHandler(n);
     shadow = oldshadow;
 
-    if (shadow) {
-      if (!have_constructor) {
-	if (Getattr(n,"feature:shadow")) {
-	  String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
-	  Printv(f_shadow,pycode,"\n",NULL);
-	} else {
-	  if (use_kw) {
-	    Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", NULL);
-	    Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
-	  }  else {
-	    Printv(f_shadow, tab4, "def __init__(self,*args):\n",NULL);
-	    Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", NULL);
-	  }
-	  Printv(f_shadow,
-		 tab8, "self.thisown = 1\n",
-		 NULL);
-
-	  /*	       tab8,"try: self.this = this.this; this.thisown=0\n",
+    if ((!overload) || (overload && !Getattr(n,"sym:nextSibling"))) {
+      if (shadow) {
+	if (!have_constructor) {
+	  if (Getattr(n,"feature:shadow")) {
+	    String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
+	    Printv(f_shadow,pycode,"\n",NULL);
+	  } else {
+	    if (use_kw) {
+	      Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", NULL);
+	      Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
+	    }  else {
+	      Printv(f_shadow, tab4, "def __init__(self,*args):\n",NULL);
+	      Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", NULL);
+	    }
+	    Printv(f_shadow,
+		   tab8, "self.thisown = 1\n",
+		   NULL);
+	    
+	    /*	       tab8,"try: self.this = this.this; this.thisown=0\n",
 		       tab8,"except AttributeError: self.this = this\n",NULL); */
-	
-	  /*	Printv(f_shadow, tab8, "self.thisown = 1\n", NULL); */
-	}
-	have_constructor = 1;
-      } else {
-	/* Hmmm. We seem to be creating a different constructor.  We're just going to create a
-	   function for it. */
-
-	if (Getattr(n,"feature:shadow")) {
-	  String *pycode = pythoncode(Getattr(n,"feature:shadow"),"");
-	  Printv(f_shadow_stubs,pycode,"\n",NULL);
+	    
+	    /*	Printv(f_shadow, tab8, "self.thisown = 1\n", NULL); */
+	  }
+	  have_constructor = 1;
 	} else {
-	  if (use_kw)
-	    Printv(f_shadow_stubs, "def ", symname, "(*args,**kwargs):\n", NULL);
-	  else
-	    Printv(f_shadow_stubs, "def ", symname, "(*args):\n", NULL);
-	
-	  Printv(f_shadow_stubs, tab4, "val = apply(", NULL);
-	  if (use_kw)
-	    Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
-	  else
-	    Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args)\n", NULL);
-	  Printv(f_shadow_stubs,tab4, "val.thisown = 1\n",
-		 tab4, "return val\n\n", NULL);
+	  /* Hmmm. We seem to be creating a different constructor.  We're just going to create a
+	     function for it. */
+	  
+	  if (Getattr(n,"feature:shadow")) {
+	    String *pycode = pythoncode(Getattr(n,"feature:shadow"),"");
+	    Printv(f_shadow_stubs,pycode,"\n",NULL);
+	  } else {
+	    if (use_kw)
+	      Printv(f_shadow_stubs, "def ", symname, "(*args,**kwargs):\n", NULL);
+	    else
+	      Printv(f_shadow_stubs, "def ", symname, "(*args):\n", NULL);
+	    
+	    Printv(f_shadow_stubs, tab4, "val = apply(", NULL);
+	    if (use_kw)
+	      Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
+	    else
+	      Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args)\n", NULL);
+	    Printv(f_shadow_stubs,tab4, "val.thisown = 1\n",
+		   tab4, "return val\n\n", NULL);
+	  }
 	}
       }
     }
