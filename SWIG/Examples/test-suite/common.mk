@@ -140,14 +140,14 @@ CPP_TEST_CASES += \
 	inline_initializer \
 	inherit_void_arg \
 	kind \
-	lib_carrays \
-	lib_cdata \
-	lib_cpointer \
-	lib_std_deque \
-        lib_std_pair \
-	lib_std_string \
-	lib_std_vector \
-	lib_typemaps \
+	li_carrays \
+	li_cdata \
+	li_cpointer \
+	li_std_deque \
+        li_std_pair \
+	li_std_string \
+	li_std_vector \
+	li_typemaps \
 	long_long_apply \
 	member_template \
 	minherit \
@@ -296,12 +296,12 @@ C_TEST_CASES += \
 	function_typedef \
 	inctest \
 	lextype \
-	lib_carrays \
-	lib_cdata \
-	lib_cmalloc \
-	lib_constraints \
-	lib_cpointer \
-	lib_math \
+	li_carrays \
+	li_cdata \
+	li_cmalloc \
+	li_constraints \
+	li_cpointer \
+	li_math \
 	long_long \
 	name \
 	nested \
