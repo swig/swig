@@ -38,6 +38,7 @@
 #define WARN_DEPRECATED_READONLY      114
 #define WARN_DEPRECATED_READWRITE     115
 #define WARN_DEPRECATED_EXCEPT        116
+#define WARN_DEPRECATED_NEW           117
 
 /* -- Preprocessor -- */
 

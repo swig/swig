@@ -708,7 +708,7 @@ public:
     }
 
     int newobj = 0;
-    if (NewObject || (Getattr(n,"feature:new"))) newobj = 1;
+    if (Getattr(n,"feature:new")) newobj = 1;
 
     /* Return value if necessary */
     if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_ALLOCATE && current != CONSTRUCTOR_INITIALIZE) {

@@ -1171,9 +1171,6 @@ int yylex(void) {
 	      yylval.ivalue = cparse_line;
 	      return(TEMPLATE);
 	    }
-	    if (strcmp(yytext,"new") == 0) {
-	      return(NEW);
-	    }
 	    if (strcmp(yytext,"delete") == 0) {
 	      return(DELETE);
 	    }
@@ -1259,7 +1256,6 @@ int yylex(void) {
 	  if (strcmp(yytext,"%except") == 0) return(EXCEPT);
 	  if (strcmp(yytext,"%importfile") == 0) return(IMPORT);
 	  if (strcmp(yytext,"%echo") == 0) return(ECHO);
-	  if (strcmp(yytext,"%new") == 0) return(NEW);
 	  if (strcmp(yytext,"%apply") == 0) return(APPLY);
 	  if (strcmp(yytext,"%clear") == 0) return(CLEAR);
 	  if (strcmp(yytext,"%types") == 0) return(TYPES);

@@ -633,7 +633,7 @@ public:
 
     Printv(f->code,cleanup,NULL);
 
-    if ((NewObject) || (Getattr(n,"feature:new")))  {
+    if (Getattr(n,"feature:new"))  {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
 	Replaceall(tm,"$source","result");
 	Printf(f->code,"%s\n",tm);
@@ -728,7 +728,7 @@ public:
 	  /* If we're returning an object by value, put it's reference
 	     into our local hash table */
 	  
-	  if ((!SwigType_ispointer(d) && !SwigType_isreference(d)) || NewObject) {
+	  if ((!SwigType_ispointer(d) && !SwigType_isreference(d)) || Getattr(n,"feature:new")) {
 	    Printv(func, tab4, "$", is_shadow(d), "::OWNER{$result} = 1;\n", NULL);
 	  }
 	  
@@ -1287,7 +1287,7 @@ public:
 	/* If we're returning an object by value, put it's reference
 	   into our local hash table */
   
-	if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || NewObject) {
+	if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || Getattr(n,"feature:new")) {
 	  Printv(func, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", NULL);
 	}
   
@@ -1474,7 +1474,7 @@ public:
 	/* If we're returning an object by value, put it's reference
 	   into our local hash table */
 	
-	if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || NewObject) {
+	if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || Getattr(n,"feature:new")) {
 	  Printv(pcode, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", NULL);
 	}
 	

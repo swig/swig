@@ -36,7 +36,6 @@ extern  int       line_number;
 extern  int       start_line;
 extern  int       CPlusPlus;                        // C++ mode
 extern  int       Extend;                           // Extend mode
-extern  int       NewObject;                        // NewObject mode
 extern  int       NoInclude;                        // NoInclude flag
 extern  int       Verbose;
 extern  int       IsVirtual;
@@ -70,7 +69,6 @@ class Dispatcher {
   virtual int insertDirective(Node *n);
   virtual int moduleDirective(Node *n);
   virtual int nativeDirective(Node *n);
-  virtual int newDirective(Node *n);
   virtual int pragmaDirective(Node *n);
   virtual int typemapDirective(Node *n);
   virtual int typemapitemDirective(Node *n);
@@ -128,7 +126,6 @@ public:
   virtual int insertDirective(Node *n);
   virtual int moduleDirective(Node *n);
   virtual int nativeDirective(Node *n);
-  virtual int newDirective(Node *n);
   virtual int pragmaDirective(Node *n);
   virtual int typemapDirective(Node *n);
   virtual int typemapcopyDirective(Node *n);

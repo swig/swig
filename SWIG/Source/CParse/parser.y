@@ -805,9 +805,9 @@ Node *Swig_cparse(File *f) {
 %token USING
 %token <node> NAMESPACE
 %token NATIVE INLINE
-%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE FRAGMENT
+%token TYPEMAP EXCEPT ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
-%token LESSTHAN GREATERTHAN MODULO NEW DELETE
+%token LESSTHAN GREATERTHAN MODULO DELETE
 %token TYPES PARMS
 %token NONID DSTAR DCNOT
 %token <ivalue> TEMPLATE
@@ -833,7 +833,7 @@ Node *Swig_cparse(File *f) {
 %type <node>     extend_directive apply_directive clear_directive constant_directive ;
 %type <node>     echo_directive except_directive fragment_directive include_directive inline_directive ;
 %type <node>     insert_directive module_directive name_directive native_directive ;
-%type <node>     new_directive pragma_directive rename_directive feature_directive varargs_directive typemap_directive ;
+%type <node>     pragma_directive rename_directive feature_directive varargs_directive typemap_directive ;
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
@@ -954,7 +954,6 @@ swig_directive : extend_directive { $$ = $1; }
                | module_directive { $$ = $1; }
                | name_directive { $$ = $1; }
                | native_directive { $$ = $1; }
-               | new_directive { $$ = $1; }
                | pragma_directive { $$ = $1; }
                | rename_directive { $$ = $1; }
                | feature_directive { $$ = $1; }
@@ -1333,18 +1332,6 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
 	         add_symbols($$);
 	       }
                ;
-
-
-/* ------------------------------------------------------------ 
-   %new declaration
-   ------------------------------------------------------------ */
-
-new_directive : NEW c_declaration {
-                 $$ = new_node("new");
-		 appendChild($$,$2);
-               }
-               ;
-
 
 /* ------------------------------------------------------------
    %pragma(lang) name=value
@@ -3016,11 +3003,6 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
 
              | name_directive { $$ = $1; }
 
-/* New mode */
-             | NEW cpp_member {
-	       $$ = new_node("new");
-	       appendChild($$,$2);
-             }
 /* rename directive */
              | rename_directive { $$ = $1; }
              | feature_directive { $$ = $1; }

@@ -131,8 +131,6 @@ int Dispatcher::emit_one(Node *n) {
     ret = moduleDirective(n);
   } else if (strcmp(tag,"native") == 0) {
     ret = nativeDirective(n);
-  } else if (strcmp(tag,"new") == 0) {
-    ret = newDirective(n);
   } else if (strcmp(tag,"pragma") == 0) {
     ret = pragmaDirective(n);
   } else if (strcmp(tag,"typemap") == 0) {
@@ -181,7 +179,6 @@ int Dispatcher::includeDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::insertDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::moduleDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::nativeDirective(Node *n) { return defaultHandler(n); }
-int Dispatcher::newDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::pragmaDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::typemapDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::typemapitemDirective(Node *n) { return defaultHandler(n); }
@@ -488,18 +485,6 @@ int Language::nativeDirective(Node *n) {
   } else {
     return SWIG_NOWRAP;
   }
-}
-
-/* ----------------------------------------------------------------------
- * Language::newDirective()
- * ---------------------------------------------------------------------- */
-
-int Language::newDirective(Node *n) {
-  /* %new directive */
-  NewObject = 1;
-  emit_one(firstChild(n));
-  NewObject = 0;
-  return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------

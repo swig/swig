@@ -46,7 +46,6 @@ extern "C" {
     Language  *lang;                            // Language method
     int        CPlusPlus = 0;
     int        Extend = 0;                      // Extend flag
-    int        NewObject = 0;                   // NewObject flag
     int        ForceExtern = 0;                 // Force extern mode
     int        GenerateDefault = 1;             // Generate default constructors
     char      *Config = 0;

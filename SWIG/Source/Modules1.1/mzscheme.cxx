@@ -339,7 +339,7 @@ public:
     
     // Look for any remaining cleanup
     
-    if ((NewObject) || (Getattr(n,"feature:new"))) {
+    if (Getattr(n,"feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
 	Replaceall(tm,"$source","result");
 	Printv(f->code, tm, "\n",NULL);

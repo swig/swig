@@ -696,7 +696,7 @@ class JAVA : public Language {
     Printv(f->code,cleanup,NULL);
 
     /* Look to see if there is any newfree cleanup code */
-    if (NewObject || (Getattr(n,"feature:new"))) {
+    if (Getattr(n,"feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
         Replaceall(tm,"$source","result"); /* deprecated */
         Printf(f->code,"%s\n",tm);
@@ -1392,7 +1392,7 @@ class JAVA : public Language {
           case T_ARRAY:
           case T_REFERENCE:
           case T_POINTER:
-            if (NewObject || (Getattr(n,"feature:new"))) // %newobject indicating Java must take responsibility for memory ownership
+            if (Getattr(n,"feature:new")) // %newobject indicating Java must take responsibility for memory ownership
               Printf(nativecall, "), true");
             else
               Printf(nativecall, "), false");
@@ -1796,7 +1796,7 @@ class JAVA : public Language {
           case T_ARRAY:
           case T_REFERENCE:
           case T_POINTER:
-            if (NewObject || (Getattr(n,"feature:new"))) // %newobject indicating Java must take responsibility for memory ownership
+            if (Getattr(n,"feature:new")) // %newobject indicating Java must take responsibility for memory ownership
               Printf(nativecall, "), true");
             else
               Printf(nativecall, "), false");
