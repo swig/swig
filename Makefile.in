@@ -4,11 +4,17 @@
 # 
 #######################################################################
 
+prefix     = @prefix@
+exec_prefix= @exec_prefix@
+
 TARGET     = swig
 SHELL  = /bin/sh
 CC     = @CC@
 CXX    = @CXX@
 LIBS   =
+
+SWIG_LIB = $(prefix)/lib/swig1.3
+BIN_DIR  = $(exec_prefix)/bin
 
 #
 #
@@ -50,3 +56,74 @@ nuke:
           fi \
         done;
 	rm -f Makefile Makefile.template config.*
+
+
+
+# Install the SWIG program
+
+INSTALL        = ./install-sh -c
+INSTALL_DATA   = ${INSTALL} -m 644
+INSTALL_PROGRAM= ${INSTALL} -m 755
+
+install: install-main install-lib
+	@echo "Installation complete"
+
+install-main:
+	@for i in $(LIB_DIR) $(BIN_DIR); \
+	do \
+	  if [ ! -d $$i ] ; then \
+	         mkdir $$i; \
+                 echo "Making directory $$i"; \
+                 chmod 755 $$i;\
+                 else true; \
+             fi; \
+            done;
+	@echo "Installing $(BIN_DIR)/swig"
+	@$(INSTALL_PROGRAM) swig $(BIN_DIR)/swig
+
+install-lib:
+	@for i in $(SWIG_LIB) ; \
+	do \
+	  if [ ! -d $$i ] ; then \
+	         mkdir $$i; \
+                 echo "Making directory $$i"; \
+                 chmod 755 $$i;\
+                 else true; \
+             fi; \
+            done;
+	@echo "Installing the SWIG library"
+#	cd $(SWIG_LIB); rm -rf *
+	@for i in $(SWIG_LIB)/tcl $(SWIG_LIB)/perl5 $(SWIG_LIB)/python $(SWIG_LIB)/guile ; \
+	do \
+	  if [ ! -d $$i ] ; then \
+	         mkdir $$i; \
+                 echo "Making directory $$i"; \
+                 chmod 755 $$i;\
+                 else true; \
+             fi; \
+            done;
+	@cd Lib; for i in *.i *.swg; \
+	    do \
+	    echo "Installing Lib/$$i"; \
+            ../$(INSTALL_DATA) $$i $(SWIG_LIB)/$$i; \
+	    done;
+	@cd Lib/tcl; for i in *.i *.swg; \
+	    do \
+	    echo "Installing Lib/tcl/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/tcl/$$i; \
+	    done;
+	@cd Lib/perl5; for i in *.i *.swg Makefile.pl; \
+	    do \
+	    echo "Installing Lib/perl5/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/perl5/$$i; \
+	    done;
+	@cd Lib/python; for i in *.i *.swg; \
+	    do \
+	    echo "Installing Lib/python/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/python/$$i; \
+	    done;
+	@cd Lib/guile; for i in *.i *.swg; \
+	    do \
+	    echo "Installing Lib/guile/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/guile/$$i; \
+	    done;
