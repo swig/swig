@@ -58,6 +58,10 @@ class RUBY : public Language {
   virtual int variableWrapper(Node *n);
   virtual int functionWrapper(Node *n);
   virtual int nativeWrapper(Node *n);
+
+  // Import directive
+
+  virtual void import_start(char *modulename);    /* Import a new module */  
 };
 
 /*

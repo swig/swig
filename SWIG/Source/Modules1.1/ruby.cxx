@@ -99,9 +99,6 @@ Ruby Options (available with -ruby)\n\
 static  char *module;
 static  char *modvar;
 static  char *feature;
-static  String *other_extern = 0;
-static  String *other_init = 0;
-static  char *import_file;
 
 static int current;
 
@@ -190,16 +187,12 @@ RUBY::top(Node *n) {
   Swig_register_filebyname("runtime",f_runtime);
   Swig_register_filebyname("init",f_init);
 
-  module = 0;
   modvar = 0;
   feature = 0;
-  import_file = 0;
   current = NO_CPP;
   klass = 0;
   classes = NewHash();
   special_methods = NewHash();
-  other_extern = NewString("");
-  other_init = NewString("");
 
   /* Python style special method name. */
   /* Basic */
@@ -257,12 +250,12 @@ RUBY::top(Node *n) {
   SwigType_typedef(value,(char*)"VALUE");
   Delete(value);
 
+  /* Set module name */
   set_module(Char(Getattr(n,"name")));
 
   Printf(f_header,"#define SWIG_init    Init_%s\n", feature);
   Printf(f_header,"#define SWIG_name    \"%s\"\n\n", module);
   Printf(f_header,"static VALUE %s;\n", modvar);
-  Printf(f_header,"\n%s\n", other_extern);
 
   /* Start generating the initialization function */
   Printv(f_init,
@@ -272,7 +265,6 @@ RUBY::top(Node *n) {
 	 "#endif\n",
 	 "void Init_", feature, "(void) {\n",
 	 "int i;\n",
-	 other_init,
 	 "\n",
 	 NULL);
 
@@ -308,6 +300,15 @@ RUBY::top(Node *n) {
   return SWIG_OK;
 }
 
+/* -----------------------------------------------------------------------------
+ * RUBY::import_start(char *modname)
+ * ----------------------------------------------------------------------------- */
+
+void
+RUBY::import_start(char *modname) {
+  Printf(f_init,"rb_require(\"%s\");\n", modname);
+}
+
 /* ---------------------------------------------------------------------
  * RUBY::set_module(const char *mod_name)
  *
@@ -318,12 +319,6 @@ RUBY::top(Node *n) {
 
 void
 RUBY::set_module(const char *mod_name) {
-  if (import_file) {
-    Printf(f_init, "%srb_f_require(Qnil, rb_str_new2(\"%s\"));\n", tab4, mod_name);
-    free(import_file);  /* Note: was allocated from C */
-    import_file = 0;
-  }
-
   if (module) return;
 
   if (!feature) {
