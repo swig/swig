@@ -862,7 +862,7 @@ Node *Swig_cparse(File *f) {
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl;
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator;
-%type <node>     cpp_swig_directive cpp_template_decl cpp_temp_possible cpp_nested cpp_opt_declarators ;
+%type <node>     cpp_swig_directive cpp_temp_possible cpp_nested cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl ;
 %type <node>     kwargs options;
 

@@ -1,6 +1,10 @@
 Version 1.3.17 (In progress)
 ============================
 
+11/07/2002: mkoeppe
+	    Removed duplicate declaration of "cpp_template_decl" in
+	    parser.y; bison 1.75 complained.
+
 11/06/2002: cheetah (William Fulton)
             [Java] Default primitive array handling has changed like arrays of classes. 
             C primitive arrays are no longer wrapped by a Java array but with a pointer 
