@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using csharp_exceptionsNamespace;
 
 public class runme
@@ -183,8 +184,59 @@ public class runme
       }
       if (csharp_exceptions.exception_macro_run_flag)
         throw new Exception("exceptionmacrotest was executed");
+
+      // exceptions in multiple threads test
+      {
+        ThrowsClass throwsClass = new ThrowsClass(1234.5678);
+        const int NUM_THREADS = 8;
+        Thread[] threads = new Thread[NUM_THREADS];
+        TestThread[] testThreads = new TestThread[NUM_THREADS];
+        // invoke the threads
+        for (int i=0; i<NUM_THREADS; i++) {
+            testThreads[i] = new TestThread(throwsClass, i);
+            threads[i] = new Thread(new ThreadStart(testThreads[i].Run));
+            threads[i].Start();
+        }
+        // wait for the threads to finish
+        for (int i=0; i<NUM_THREADS; i++) {
+            threads[i].Join();
+        }
+        for (int i=0; i<NUM_THREADS; i++) {
+            if (testThreads[i].Failed) throw new Exception("Test Failed");
+        }
+      }
     }
 }
 
+public class TestThread {
+   private int threadId;
+   private ThrowsClass throwsClass;
+   public bool Failed;
+   public TestThread(ThrowsClass t, int id) {
+       throwsClass = t;
+       threadId = id;
+   }
+   public void Run() {
+     Failed = false;
+     try {
+       for (int i=0; i<4000; i++) { // run test for about 10 seconds on a 1GHz machine
+         try {
+           throwsClass.ThrowException(i);
+           throw new Exception("No exception thrown");
+         } catch (ArgumentOutOfRangeException e) {
+           String expectedMessage = "Argument is out of range.\nParameter name: " + i;
+           if (e.Message != expectedMessage) {
+             throw new Exception("Exception message incorrect. Expected:\n[" + expectedMessage + "]\n" + "Received:\n[" + e.Message + "]");
+           }
+         }
+         if (throwsClass.dub != 1234.5678) // simple check which attempts to catch memory corruption
+           throw new Exception("throwsException.dub = " + throwsClass.dub + " expected: 1234.5678");
+       }
+     } catch (Exception e) {
+       Console.Error.WriteLine("Test failed (thread " + threadId + "): " + e.Message);
+       Failed = true;
+     }
+   }
+}
 
 
