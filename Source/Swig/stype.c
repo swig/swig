@@ -342,7 +342,8 @@ SwigType *SwigType_default(SwigType *t) {
     def = NewString("SWIGTYPE");
   }
   if (r != t) Delete(r);
-  Setattr(default_cache,t,Copy(def));
+  /* The cache produces strange results, see enum_template.i case */
+  /* Setattr(default_cache,t,Copy(def)); */
   if (Strcmp(def,t) == 0) {
     Delete(def);
     def = 0;
