@@ -14,6 +14,12 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+
+9/02/2001: cheetah (william fulton)
+           [Java] shadowcode pragma modified so that the code that is output 
+           in the shadow file is placed relative to where it is placed in the 
+           c/c++ code. This allows support for JavaDoc function comments. 
+
 9/01/2001: beazley
            Fixed SF Patch [ #447791 ] Fix for python -interface option.
            Submitted by Tarn Weisner Burton.
