@@ -1087,10 +1087,12 @@ rename_namewarn : RENAME {
 
 
 /* ------------------------------------------------------------
-   %feature(featurename) name { ... }
-   %feature(featurename) name "..." 
+   %feature(featurename) name { val }
+   %feature(featurename) name "val";
+   %feature(featurename,val) name;
    ------------------------------------------------------------ */
 
+              
 feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringbracesemi {
                  String *fname;
                  Hash *n;
@@ -1101,7 +1103,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 fname = NewStringf("feature:%s",$3);
 		 if (Classprefix) name = NewStringf("%s::%s", $5.id);
 		 else name = NewString($5.id);
-		 val = NewString($7);
+		 val = $7 ? NewString($7) : 0;
 		 t = $5.type;
 		 if (!Len(t)) t = 0;
 		 if (t) {
@@ -1127,10 +1129,63 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 Delete(name);
 		 $$ = 0;
               }
+
+              /* Special form where value is included in (...) part */
+
+              |  FEATURE LPAREN idstring COMMA idstring RPAREN declarator cpp_const SEMI {
+                 String *fname;
+                 Hash *n;
+                 String *val;
+		 String *name;
+		 SwigType *t;
+                 if (!features_hash) features_hash = NewHash();
+		 fname = NewStringf("feature:%s",$3);
+		 if (Classprefix) name = NewStringf("%s::%s", $7.id);
+		 else name = NewString($7.id);
+		 val = NewString($5);
+		 t = $7.type;
+		 if (!Len(t)) t = 0;
+		 if (t) {
+		   if ($8) SwigType_push(t,$8);
+		   if (SwigType_isfunction(t)) {
+		     SwigType *decl = SwigType_pop_function(t);
+		     if (SwigType_ispointer(t)) {
+		       String *nname = NewStringf("*%s",name);
+		       Swig_feature_set(features_hash, nname, decl, fname, val);
+		       Delete(nname);
+		     } else {
+		       Swig_feature_set(features_hash, name, decl, fname, val);
+		     }
+		   } else if (SwigType_ispointer(t)) {
+		     String *nname = NewStringf("*%s",name);
+		     Swig_feature_set(features_hash,nname,0,fname,val);
+		     Delete(nname);
+		   }
+		 } else {
+		   Swig_feature_set(features_hash,name,0,fname,val);
+		 }
+		 Delete(fname);
+		 Delete(name);
+		 $$ = 0;
+              }
+
+              /* Global feature */
+
+              | FEATURE LPAREN idstring RPAREN stringbracesemi {
+		String *name;
+		String *fname = NewStringf("feature:%s",$3);
+		if (!features_hash) features_hash = NewHash();
+		if (Classprefix) name = NewStringf("%s::", Classprefix);
+		else name = NewString("");
+		Swig_feature_set(features_hash,name,0,fname,($5 ? NewString($5) : 0));
+		Delete(name);
+		Delete(fname);
+		$$ = 0;
+              }
               ;
 
 stringbracesemi : stringbrace { $$ = $1; }
-                | SEMI { $$ = ""; }
+                | SEMI { $$ = 0; }
  
 /* ------------------------------------------------------------
    %typemap(method) type { ... }
@@ -1838,6 +1893,7 @@ cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
 		 if (Len(scanner_ccode)) {
 		   Setattr($$,"code",Copy(scanner_ccode));
 		 }
+		 Setattr($$,"feature:new","1");
 		 add_symbols($$);
 	       }
               ;
