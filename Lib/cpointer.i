@@ -54,7 +54,7 @@ typedef struct {
 } NAME;
 
 %extend NAME {
-#if __cplusplus
+#ifdef __cplusplus
 NAME() {
   return new TYPE();
 }
@@ -119,7 +119,7 @@ static NAME * frompointer(TYPE *t) {
 %define %pointer_functions(TYPE,NAME)
 %{
 static TYPE *new_##NAME() { %}
-#if __cplusplus
+#ifdef __cplusplus
 %{  return new TYPE(); %}
 #else
 %{  return (TYPE *) calloc(1,sizeof(TYPE)); %}
@@ -127,7 +127,7 @@ static TYPE *new_##NAME() { %}
 %{}
 
 static TYPE *copy_##NAME(TYPE value) { %}
-#if __cplusplus
+#ifdef __cplusplus
 %{  return new TYPE(value); %}
 #else
 %{  TYPE *self = (TYPE *) calloc(1,sizeof(TYPE));
@@ -137,7 +137,7 @@ static TYPE *copy_##NAME(TYPE value) { %}
 %{}
 
 static void delete_##NAME(TYPE *self) { %}
-#if __cplusplus
+#ifdef __cplusplus
 %{  if (self) delete self; %}
 #else
 %{  if (self) free(self); %}

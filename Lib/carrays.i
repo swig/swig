@@ -25,7 +25,7 @@
 %define %array_functions(TYPE,NAME)
 %{
 static TYPE *new_##NAME(int nelements) { %}
-#if __cplusplus
+#ifdef __cplusplus
 %{  return new TYPE[nelements]; %}
 #else
 %{  return (TYPE *) calloc(nelements,sizeof(TYPE)); %}
@@ -33,7 +33,7 @@ static TYPE *new_##NAME(int nelements) { %}
 %{}
 
 static void delete_##NAME(TYPE *ary) { %}
-#if __cplusplus
+#ifdef __cplusplus
 %{  delete [] ary; %}
 #else
 %{  free(ary); %}
@@ -88,7 +88,7 @@ typedef struct NAME {
 
 %extend NAME {
 
-#if __cplusplus
+#ifdef __cplusplus
 NAME(int nelements) {
   return new TYPE[nelements];
 }

@@ -64,7 +64,7 @@ strarray_inout(char [ANY])
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
     /* So... we didn't get a ref or ptr, but we'll accept NULL by reference */
     if ((*$input)->type==IS_NULL && PZVAL_IS_REF(*$input)) {
-#if __cplusplus
+#ifdef __cplusplus
       ptr=new $*1_ltype;
 #else
       ptr=($*1_ltype) calloc(1,sizeof($*1_ltype));
