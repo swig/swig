@@ -27,23 +27,13 @@ TARGET      = swig$(RELEASESUFFIX)
 SOURCE      = Source
 SOURCEDIRS  = `ls $(SOURCE)`
 
-swig: SWIG1.1 Modules1.1 Swig Preprocessor DOH
+swig: SWIG1.1 Modules1.1 Swig Preprocessor DOH runtime
 	$(CXX) -o $(TARGET) \
 	$(SOURCE)/Modules1.1/libmodules11.a \
 	$(SOURCE)/SWIG1.1/libswig11.a \
 	$(SOURCE)/Preprocessor/libcpp.a \
 	$(SOURCE)/Swig/libswig.a \
 	$(SOURCE)/DOH/libdoh.a
-
-experiment: Swig Preprocessor LParse DOH Modules
-	$(CXX) -o $(TARGET) \
-	$(SOURCE)/Experiment/libexp.a \
-	$(SOURCE)/LParse/liblparse.a \
-	$(SOURCE)/Preprocessor/libcpp.a \
-	$(SOURCE)/Modules/libmodules.a \
-	$(SOURCE)/Swig/libswig.a \
-	$(SOURCE)/DOH/libdoh.a \
-	$(LIBS)
 
 SWIG1.1: Source/Include/swigconfig.h
 	@cd $(SOURCE)/SWIG1.1; $(MAKE)

@@ -94,14 +94,6 @@ To build and install SWIG, simply type the following:
      % make -k check	# this step is optional (see note below)
      % make install
 
-In addition, if you need to build the runtime libraries, type
-the following before doing the 'make install' step above.
-
-     % make runtime
-
-If you don't know what the runtime libraries are, don't worry
-about this step.
-
 The file INSTALL details more about using configure. Also try
 
      % ./configure --help. 
