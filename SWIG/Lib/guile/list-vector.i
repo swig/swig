@@ -288,7 +288,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
        else $1 = NULL;
      }
 	 
-     %typemap(in, doc="($arg <list of <" #SCM_TYPE ">>)") 
+     %typemap(in, doc="$NAME is a list of " #SCM_TYPE " values") 
 		  C_TYPE *PARALLEL_LISTINPUT,
 		  const C_TYPE *PARALLEL_LISTINPUT
      {
