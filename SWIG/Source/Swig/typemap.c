@@ -875,6 +875,15 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
     Delete(base_mangle);
     Delete(base_type);
   }
+  
+  /* Replace any $n. with (&n)-> */
+  {
+    char temp[64];
+    sprintf(var,"$%d.",index);
+    sprintf(temp,"(&$%d)->", index);
+    Replace(s,var,temp,DOH_REPLACE_ANY);
+  }
+
   /* Replace the bare $n variable */
   sprintf(var,"$%d",index);
   Replace(s,var,lname,DOH_REPLACE_ANY);
