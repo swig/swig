@@ -698,9 +698,11 @@ int Language::cDeclaration(Node *n) {
 
 
   if (CurrentClass && (cplus_mode == CPLUS_PRIVATE)) return SWIG_NOWRAP;
-  if ((cplus_mode == CPLUS_PROTECTED) && 
-      (!director_protected_mode || !is_member_director(CurrentClass,n))) return SWIG_NOWRAP;
-
+  if (CurrentClass && (cplus_mode == CPLUS_PROTECTED) &&
+      (!directors ||
+       !director_protected_mode ||
+       !is_member_director(CurrentClass,n))) return SWIG_NOWRAP;
+  
   if (Cmp(storage,"typedef") == 0) {
     Swig_save("cDeclaration",n,"type",NIL);
     SwigType *t = Copy(type);
