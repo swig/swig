@@ -18,7 +18,7 @@ To run SWIG, use the <tt>swig</tt> command with one or more of the
 following options and a filename like this:
 
 <p>
-<blockquote><pre>swig &lt;options&gt; filename
+<blockquote><pre>swig [ <em>options</em> ] filename
 
 -tcl                  Generate Tcl wrappers
 -perl                 Generate Perl5 wrappers
@@ -28,13 +28,12 @@ following options and a filename like this:
 -java                 Generate Java wrappers
 -mzscheme             Generate mzscheme wrappers
 -c++                  Enable C++ parsing
--Idir                 Add a directory to the file include path
--lfile                Include a SWIG library file.
+-I<em>dir</em>                 Add a directory to the file include path
+-l<em>file</em>                Include a SWIG library file.
 -c                    Generate raw wrapper code (omit supporting code)
--v                    Verbose mode (perhaps overly verbose)
--o outfile            Name of output file
--module name          Set the name of the SWIG module
--Dsymbol              Define a preprocessor symbol
+-o <em>outfile</em>            Name of output file
+-module <em>name</em>          Set the name of the SWIG module
+-D<em>symbol</em>              Define a preprocessor symbol
 -includeall           Follow all #include statements
 -version              Show SWIG's version number
 -help                 Display all options
@@ -63,14 +62,16 @@ The general format of a SWIG interface is as follows:
 %{
 #include "myheader.h"
 %}
-// Now list ANSI C variable and function declarations
-
+// Now list ANSI C/C++ declarations
+int foo;
+int bar(int x);
+...
 </pre></blockquote>
 
 The name of the module is supplied using the special <tt>%module</tt>
 directive (or the <tt>-module</tt> command line option).  This
 directive must appear at the beginning of the file and is used to name
-the resulting extension module (in addition, this name is often defines
+the resulting extension module (in addition, this name is often used to define
 a namespace in the target language).  If the module name is supplied on the
 command line, it overrides the name specified with the
 <tt>%module</tt> directive.
@@ -79,24 +80,26 @@ command line, it overrides the name specified with the
 Everything in the <tt>%{ ... %}</tt> block is simply copied to the
 resulting output file.  The enclosed text is not parsed or interpreted
 by SWIG.  Although the use of a <tt>%{,%}</tt> block is optional, most
-interface files have one to include header files and other
-C declarations.  For the curious, the<tt>%{...%}</tt> syntax and
-semantics in SWIG is analogous to that of the declarations section
-in yacc or bison.
+interface files have one to include header files and other supporting
+C declarations.  The <tt>%{...%}</tt> syntax and
+semantics in SWIG is analogous to that of the declarations section used
+in input files to yacc or bison.
 
 <h3>SWIG Output</h3>
 
 The output of SWIG is a C/C++ file that contains all of the wrapper
-code needed to build your extension module.  By default, an input file
-with the name <tt>file.i</tt> is transformed into a file <tt>file_wrap.c</tt>.
-The name of the output file can be changed using the <tt>-o</tt> option.
-In certain cases, file suffixes are used by the compiler to determine the 
-source language (C, C++, etc.). If you are wrapping C++ code, you may want to
-use the <tt>-o</tt> option to change the suffix of the SWIG-generated wrapper file.
-For example:
+code needed to build an extension module.  By default, an input file
+with the name <tt>file.i</tt> is transformed into a file
+<tt>file_wrap.c</tt> or <tt>file_wrap.cxx</tt> (depending on whether
+or not the <tt>-c++</tt> option has been used).  The name of the
+output file can be changed using the <tt>-o</tt> option.  In certain
+cases, file suffixes are used by the compiler to determine the source
+language (C, C++, etc.). Therefore, you may want to use the
+<tt>-o</tt> option to change the suffix of the SWIG-generated wrapper
+file (if needed). For example:
 
 <blockquote><pre>
-$ swig -python -o example_wrap.cpp example.i</pre></blockquote>
+$ swig -c++ -python -o example_wrap.cpp example.i</pre></blockquote>
 
 <p>
 It is important to note that the output file created by SWIG normally
@@ -110,16 +113,17 @@ now ready to use.
 
 <h3>Comments</h3>
 
-C and C++ style comments may appear anywhere in interface files.  In previous versions of
-SWIG, comments were used to generate documentation files. However, this feature is currently
-disabled and under repair. It will reappear in a later SWIG release.
+C and C++ style comments may appear anywhere in interface files.  In
+previous versions of SWIG, comments were used to generate
+documentation files. However, this feature is currently under repair
+and will reappear in a later SWIG release.
 
-<h3>C Preprocessor directives</h3>
+<h3>C Preprocessor</h3>
 
 Like C, SWIG preprocesses all input files through an enhanced version
 of the C preprocessor.  All standard preprocessor features are
-supported including conditional compilation and macros. However,
-<tt>#include</tt> statements are ignored unless the
+supported including file inclusion, conditional compilation and
+macros. However, <tt>#include</tt> statements are ignored unless the
 <tt>-includeall</tt> command line option has been supplied.  The
 reason for disabling includes is that SWIG is sometimes used to
 process raw C header files.  In this case, you usually only want the
@@ -128,23 +132,23 @@ rather than everything that might be included by that header file
 (i.e., system headers, C library functions, etc.).
 
 <p>
-It should be noted that the SWIG preprocessor skips all text
-enclosed in a <tt>%{...%}</tt> block.  In addition, the
-preprocessor includes a number of macro handling enhancements that make
-it more powerful than the normal C preprocessor.  These extensions are
-described in the "Preprocessor" chapter.
+It should also be noted that the SWIG preprocessor skips all text
+enclosed inside a <tt>%{...%}</tt> block.  In addition, the
+preprocessor includes a number of macro handling enhancements that
+make it more powerful than the normal C preprocessor.  These
+extensions are described in the "Preprocessor" chapter.
 
 <h3>SWIG Directives</h3>
 
-Special SWIG directives are always preceded by a "<tt>%</tt>" to
-distinguish them from normal C declarations. These directives are used
-to give SWIG hints or to alter SWIG's behavior in some manner.  The
-SWIG reference manual contains a complete list of these directives.
+Most of SWIG's operation is controlled by special directives that are
+always preceded by a "<tt>%</tt>" to distinguish them from normal C
+declarations. These directives are used to give SWIG hints or to alter
+SWIG's parsing behavior in some manner.   
 
 <p>
-Since SWIG directives are not understood by the C compiler, it is
-not generally possible to include them in header files.  However, 
-directives can be included in C source files using conditional compilation like this:
+Since SWIG directives are not legal C syntax, it is generally not
+possible to include them in header files.  However, SWIG directives can be
+included in C source files using conditional compilation like this:
 
 <blockquote><pre>
 /* header.h  --- Some header file */
@@ -156,82 +160,124 @@ directives can be included in C source files using conditional compilation like 
 </pre>
 </blockquote>
 
-<h3>Limitations in the Parser</h3>
+<tt>SWIG</tt> is a special preprocessing symbol defined by SWIG when
+it is parsing an input file.
 
-Although SWIG can parse most common C/C++ declarations, it is not a 
-complete C/C++ parser implementation.  Here are some of the current limitations:
+<h3>Parser Limitations</h3>
+
+Although SWIG can parse many common C/C++ declarations, it does not
+provide a complete C/C++ parser implementation.  Most of these
+limitations pertain to complicated type declarations and advanced C++
+features.  Specifically, the following features are not supported:
 
 <p>
 <ul>
-<li>Functions with variable length arguments (ie. "...") are not
-supported.  Please see the section on variable length arguments
-for a discussion.
+<li>Non-conventional type declarations are generally not supported.
+For example, SWIG does not support declarations such as the following
+(even though this is legal C):
 
-<li>Extremely complicated type declarations may not parse correctly (e.g.,
-const pointers to arrays of const pointers to functions or things like that).
-Although SWIG has gotten a lot better at handling C datatypes, it may be
-necessary to remove problematic declarations from the
-interface file or to simplify the interface using <tt>typedef</tt>.
-It should be noted that this problem only pertains to the parsing of
-complex datatypes---internally, SWIG is able to represent all valid 
-C types.  The few remaining parsing problems may disappear in later
-releases.
+<blockquote>
+<pre>
+/* Non-conventional placement of storage specifier (extern) */
+const int extern Number;
+/* Function declaration with unnecessary grouping */
+int (foo)(int,int); 
+...
+</pre>
+</blockquote>
 
-<li>Running SWIG on C++ source files (what would appear in a .C file) 
+In practice, very few (if any) C programmers actually write code like
+is since it is never really shown in standard programming texts.  However,
+if you're feeling particularly obfuscated, be aware that unusual C declarations
+may not parse.
+
+<p>
+<li>Running SWIG on C++ source files (what would appear in a .C or .cxx file) 
 is not recommended.  Even though SWIG can parse C++ class declarations,
-it has not been written to parse declarations that are decoupled from
-the class definition (e.g., the implementation of methods).
+it does not know how to parse declarations that are decoupled from their
+class definition.  For example:
 
-<li>Advanced features of C++ such as templates and operator
+<blockquote>
+<pre>
+/* Not supported by SWIG */
+int foo::bar(int) {
+    ... whatever ...
+}
+</pre>
+</blockquote>
+
+<li>Other advanced features of C++ such as templates, namespaces, and operator
 overloading are not supported. Please see the section on using SWIG
 with C++ for more information.
 </ul> <p>
 
-<p>
-If you are not sure whether SWIG can handle a particular declaration,
-the best thing to do is try it and see. SWIG will complain if
-it can't figure out you're trying to do. When errors occur, you 
-can either remove the offending declaration, conditionally remove it
-with the preprocessor, or develop a workaround using helper functions.
+In the event of a parsing error, conditional compilation can be used to skip
+over offending code.  For example:
 
-<h2>Simple C functions, variables, and constants</h2>
+<blockquote>
+<pre>
+#ifndef SWIG
+... some bad declarations ...
+#endif
+</pre>
+</blockquote>
 
-SWIG easily supports just about any C function, variable, or constant
-declaration involving built-in C datatypes. For example, the following interface<p>
+<h2>Wrapping Simple C Declarations</h2>
+
+When SWIG encounters simple C declarations, it builds an extension module whose
+functionality closely matches the way that these declarations would be used
+in a C program.   For example, consider the following interface file:
 
 <p>
 <blockquote><pre>%module example
 
 extern double sin(double x);
 extern int strcmp(const char *, const char *);
-extern int My_variable;
+extern int Foo;
 #define STATUS 50
 #define VERSION "1.1"
 </pre></blockquote>
 
-defines two commands called "<tt>sin</tt>" and "<tt>strcmp</tt>",
-a global variable "<tt>My_variable</tt>", and two constants
-"<tt>STATUS</tt>" and "<tt>VERSION</tt>".  When compiled into a
-scripting language module, the functions work like you would expect.
-For example, in Tcl: <p>
+In this file, there are two functions <tt>sin()</tt> and <tt>strcmp()</tt>,
+a global variable <tt>Foo</tt>, and two constants <tt>STATUS</tt> and
+<tt>VERSION</tt>.  When SWIG creates an extension module, these
+declarations are accessible as scripting language functions, variables, and
+constants respectively.  For example, in Tcl:
 
 <p>
 <blockquote><pre>% sin 3
 5.2335956
 % strcmp Dave Mike
 -1
-% puts $My_variable
+% puts $Foo
 42
 % puts $STATUS
 50
 % puts $VERSION
 1.1
-
 </pre></blockquote>
 
-The primary issue when working with simple declarations is the
-handling of basic datatypes.  The next few sections describe
-how this is commonly done.
+Or in Python:
+
+<p>
+<blockquote><pre>
+>>> example.sin(3)
+5.2335956
+>>> example.strcmp('Dave','Mike')
+-1
+>>> print example.cvar.Foo
+42
+>>> print example.STATUS
+50
+>>> print example.VERSION
+1.1
+</pre></blockquote>
+
+Whenever possible, SWIG tries to closely match the underlying C/C++
+code. However, due to subtle differences between languages, run-time
+environments, and semantics, it is not always possible to do so.  This
+section describes how SWIG addresses some of these issues.
+
 
 <h3>Integers</h3>
 
