@@ -2,6 +2,8 @@
 
 %warnfilter(801) traits<Double, Double>;	/* Ruby, wrong class name */
 
+#pragma SWIG nowarn=320
+
 %inline %{
   typedef double Double;
 
@@ -34,6 +36,10 @@
   {
     return Class<AF, RF>();
   }
+
+  template class traits <Double, Double>;
+  template class Function <Double, Double>;
+  template class Class <Double, Double>;
  
 %}
  
