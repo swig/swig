@@ -359,9 +359,9 @@ public:
       Printf(f_pm,"boot_%s();\n", tmp);
       Delete(tmp);
     }
-    Printf(f_pm,"%s",pragma_include);
     Printf(f_pm,"package %s;\n", fullmodule);
     Printf(f_pm,"@EXPORT = qw( %s);\n",exported);
+    Printf(f_pm,"%s",pragma_include);
 
     if (blessed) {
 
