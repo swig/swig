@@ -18,7 +18,7 @@
 <li><a href="#n9">Shortcuts</a>
 <li><a href="#n10">Building libraries and modules</a>
 </ul>
-<li><a href="#n11">C syntax, but not a C compiler</a>
+<li><a href="#n11">Supported C/C++ language features</a>
 <li><a href="#n12">Non-intrusive interface building</a>
 <li><a href="#n13">Hands off code generation</a>
 </ul>
@@ -193,7 +193,6 @@ build a Tcl module (under Linux) as follows :<p>
 
 <p>
 <blockquote><pre>unix &gt; <b>swig -tcl example.i</b>
-Generating wrappers for Tcl.
 unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include</b>
 unix &gt; <b>gcc -shared example.o example_wrap.o -o example.so</b>
 unix &gt; <b>tclsh</b>
@@ -227,7 +226,6 @@ any changes type the following (shown for Solaris):<p>
 <p>
 <p>
 <blockquote><pre>unix &gt; <b>swig -perl5 example.i</b>
-Generating wrappers for Perl5
 unix &gt; <b>gcc -c example.c example_wrap.c \
 	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
 unix&gt; <b>ld -G example.o example_wrap.o -o example.so</b>		# This is for Solaris
@@ -251,9 +249,8 @@ Finally, let's build a module for Python (shown for Irix).<p>
 
 <p>
 <blockquote><pre>unix &gt; <b>swig -python example.i</b>
-Generating wrappers for Python
 unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include/python2.0</b>
-unix &gt; <b>gcc -shared example.o example_wrap.o -o examplemodule.so</b>
+unix &gt; <b>gcc -shared example.o example_wrap.o -o _example.so</b>
 unix &gt; <b>python</b>
 Python 2.0 (#6, Feb 21 2001, 13:29:45)
 [GCC egcs-2.91.66 19990314/Linux (egcs-1.1.2 release)] on linux2
@@ -273,10 +270,10 @@ Type "copyright", "credits" or "license" for more information.
 To the truly lazy programmer, one may wonder why we needed the extra
 interface file at all. As it turns out, you can often do without
 it. For example, you could also build a Perl5 module by just running
-SWIG on the C source and specifying a module name as follows<p>
+SWIG on the C header file and specifying a module name as follows<p>
 
 <p>
-<blockquote><pre>unix&gt; <b>swig -perl5 -module example example.c</b>
+<blockquote><pre>unix&gt; <b>swig -perl5 -module example example.h</b>
 unix &gt; <b>gcc -c example.c example_wrap.c \
 	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
 unix&gt; <b>ld -G example.o example_wrap.o -o example.so</b>
@@ -289,29 +286,6 @@ print $example::My_variable + 4.5, "\n";
 24
 2
 7.5
-</pre></blockquote>
-
-<p>
-Of course, there are some restrictions as SWIG is not a full C/C++
-parser. If you make heavy use of the C preprocessor, complicated
-declarations, or C++, giving SWIG a raw source file probably isn't
-going to work very well (in this case, you would probably want to use
-a separate interface file). <p>
-<p>
-
-SWIG provides its own version of the C preprocessor.  Thus, if you want to make
-a combination SWIG/C header file, you might write the following:
-
-<p>
-<blockquote><pre>/* File : example.h */
-#ifdef SWIG
-%module example
-%include tclsh.i
-#endif
-extern double My_variable;
-extern int    fact(int);
-extern int    my_mod(int n, int m);
-
 </pre></blockquote>
 
 <a name="n10"></a><H3>1.3.6 Building libraries and modules</H3>
@@ -351,37 +325,41 @@ build up your own personalized environment for building interfaces.
 If changes are made to any of the components, they will appear
 automatically the next time SWIG is run. <p>
 
-<a name="n11"></a><H2>1.4 C syntax, but not a C compiler</H2>
+<a name="n11"></a><H2>1.4 Supported C/C++ language features</H2>
 
 
-SWIG uses ANSI C syntax, but is not a full ANSI C compiler. By using C
-syntax, SWIG is relatively easy to use with most C programs.  This avoids
-the problems with other interface generation tools that require programs to
-formally specify an interface in a special purpose interface definition language.
-On the other hand, using C syntax can be ambiguous. For example, if
-you have the following declaration, <p>
+A primary goal of the SWIG project is to make the language binding
+process extremely easy.  Although a few simple examples have been shown,
+SWIG is quite capable in supporting most of C++.  Some of the
+major features include:
+
+<ul>
+<li>Full C99 preprocessing.
+<li>All ANSI C and C++ datatypes.
+<li>Functions, variables, and constants.
+<li>Classes.
+<li>Single and multiple inheritance.
+<li>Overloaded functions and methods.
+<li>Overloaded operators.
+<li>C++ templates (including member templates, specialization, and partial specialization).
+<li>Namespaces.
+<li>Variable length arguments.
+<li>C++ smart pointers.
+</ul>
+
+Currently, the only C++ feature not supported is nested classes--a limitation
+that will be removed in a future release.
 
 <p>
-<blockquote><pre>int foo(double *a);
+It is important to stress that SWIG is not a simplistic C++ lexing
+tool like several apparently similar wrapper generation tools.  SWIG
+not only parses C++, it implements the full C++ type system and it is
+able to understand C++ semantics.  SWIG generates its wrappers with
+full knowledge of this information.  As a result, you will find SWIG
+to be just as capable of dealing with nasty corner cases as it is in
+wrapping simple C++ code.  In fact, SWIG is able handle C++ code that
+stresses the very limits of many C++ compilers.
 
-</pre></blockquote>
-SWIG doesn't know if <tt>a</tt> is an array of some fixed size, a
-dynamically allocated block of memory, a single value, or an output
-value of the function. For the most part, SWIG takes a literal
-approach (<tt>a</tt> is obviously a <tt>double *</tt>) and leaves it
-up to the user to use the function in a correct manner.  Fortunately,
-there are several ways to help SWIG out using additional directives
-and "helper" functions. Thus, the input to SWIG is often a mix of C
-declarations, special directives and hints.  Like Perl, there is almost always
-more than one way to do almost anything.<p>
-
-<p>
-SWIG does not currently parse every conceivable type of C declaration
-that it might encounter in a C/C++ file. Many things may be difficult
-or impossible to integrate with a scripting language.
-Thus, SWIG may not recognize certain advanced C/C++ constructs.
-Of course, SWIG's parser is always being improved so currently
-unsupported features may be supported in later releases.<p>
 
 <a name="n12"></a><H2>1.5 Non-intrusive interface building</H2>
 
@@ -408,6 +386,6 @@ details.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : November 28, 2001</address>
+<address>SWIG 1.3 - Last Modified : August 10, 2002</address>
 </body>
 </html>

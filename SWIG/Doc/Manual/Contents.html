@@ -16,13 +16,12 @@
 <li><a href="Preface.html#n3">Special Introduction for Version 1.3</a>
 <li><a href="Preface.html#n4">SWIG Versions</a>
 <li><a href="Preface.html#n5">SWIG resources</a>
-<ul>
 <li><a href="Preface.html#n6">Prerequisites</a>
 <li><a href="Preface.html#n7">Organization of this manual</a>
 <li><a href="Preface.html#n8">How to avoid reading the manual</a>
-</ul>
-<li><a href="Preface.html#n9">Credits</a>
-<li><a href="Preface.html#n10">Bug reports</a>
+<li><a href="Preface.html#n9">Backwards Compatibility</a>
+<li><a href="Preface.html#n10">Credits</a>
+<li><a href="Preface.html#n11">Bug reports</a>
 </ul>
 <!-- INDEX -->
 
@@ -41,7 +40,7 @@
 <li><a href="Introduction.html#n9">Shortcuts</a>
 <li><a href="Introduction.html#n10">Building libraries and modules</a>
 </ul>
-<li><a href="Introduction.html#n11">C syntax, but not a C compiler</a>
+<li><a href="Introduction.html#n11">Supported C/C++ language features</a>
 <li><a href="Introduction.html#n12">Non-intrusive interface building</a>
 <li><a href="Introduction.html#n13">Hands off code generation</a>
 </ul>
@@ -432,70 +431,80 @@
 <li><a href="Java.html#n10">Running SWIG from Developer Studio</a>
 <li><a href="Java.html#n11">Using NMAKE</a>
 </ul>
-<li><a href="Java.html#n12">The low-level Java/C interface</a>
+<li><a href="Java.html#n12">A tour of basic C/C++ wrapping</a>
 <ul>
-<li><a href="Java.html#n13">Modules and the module class</a>
+<li><a href="Java.html#n13">Modules, packages and generated Java classes</a>
 <li><a href="Java.html#n14">Functions</a>
-<li><a href="Java.html#n15">Variable Linking</a>
-<li><a href="Java.html#n16">Enums</a>
-<li><a href="Java.html#n17">Constants</a>
+<li><a href="Java.html#n15">Global variables</a>
+<li><a href="Java.html#n16">Constants</a>
+<li><a href="Java.html#n17">Enumerations</a>
 <li><a href="Java.html#n18">Pointers</a>
-<li><a href="Java.html#n19">Structures </a>
-<li><a href="Java.html#n20">C++ Classes</a>
+<li><a href="Java.html#n19">Arrays</a>
+<li><a href="Java.html#n20">Structures</a>
+<li><a href="Java.html#n21">C++ classes</a>
+<li><a href="Java.html#n22">C++ inheritance</a>
+<li><a href="Java.html#n23">Pointers, references and pass by value</a>
+<li><a href="Java.html#n24">C++ overloaded functions</a>
+<li><a href="Java.html#n25">C++ namespaces</a>
+<li><a href="Java.html#n26">C++ templates</a>
 </ul>
-<li><a href="Java.html#n21">Java proxy classes</a>
+<li><a href="Java.html#n27">Further details on the generated Java classes</a>
 <ul>
-<li><a href="Java.html#n22">A simple example</a>
-<li><a href="Java.html#n23">Why write proxy classes in Java?</a>
-<li><a href="Java.html#n24">Automated proxy class generation</a>
-<li><a href="Java.html#n25">Compiling modules with proxy classes</a>
-<li><a href="Java.html#n26">Where to go for more information</a>
-</ul>
-<li><a href="Java.html#n27">Examples</a>
-<li><a href="Java.html#n28">Exception handling </a>
-<li><a href="Java.html#n29">Remapping C datatypes with typemaps</a>
+<li><a href="Java.html#n28">The JNI class</a>
 <ul>
-<li><a href="Java.html#n30">Default type mapping</a>
-<li><a href="Java.html#n31">What is a typemap?</a>
-<li><a href="Java.html#n32">Java typemaps</a>
-<li><a href="Java.html#n33">Typemap variables</a>
-<li><a href="Java.html#n34">Typemaps for C and C++</a>
-<li><a href="Java.html#n35">Name based type conversion</a>
-<li><a href="Java.html#n36">Converting Java String arrays to char ** </a>
-<li><a href="Java.html#n37">Using typemaps to return arguments</a>
-<li><a href="Java.html#n38">Accessing array structure members</a>
-<li><a href="Java.html#n39">Pointer handling</a>
+<li><a href="Java.html#n29">The JNI class pragmas</a>
 </ul>
-<li><a href="Java.html#n40">The gory details of proxy classes</a>
+<li><a href="Java.html#n30">The Java module class</a>
 <ul>
-<li><a href="Java.html#n41">A simple proxy class</a>
-<li><a href="Java.html#n42">Generated class</a>
-<li><a href="Java.html#n43">The this pointer</a>
-<li><a href="Java.html#n44">Object ownership</a>
-<li><a href="Java.html#n45">Constructors and destructors</a>
-<li><a href="Java.html#n46">Member data</a>
-<li><a href="Java.html#n47">Proxy functions</a>
-<li><a href="Java.html#n48">Proxy class pointer handling</a>
-<li><a href="Java.html#n49">Methods that return new objects</a>
-<li><a href="Java.html#n50">Global variables and functions</a>
-<li><a href="Java.html#n51">Nested objects</a>
-<li><a href="Java.html#n52">Inheritance and proxy classes</a>
-<li><a href="Java.html#n53">Proxy classes and garbage collection</a>
-<li><a href="Java.html#n54">Performance concerns and hints</a>
+<li><a href="Java.html#n31">The Java module class pragmas</a>
 </ul>
-<li><a href="Java.html#n55">Java pragmas</a>
+<li><a href="Java.html#n32">Java proxy classes</a>
 <ul>
-<li><a href="Java.html#n56">Deprecated pragmas</a>
-<li><a href="Java.html#n57">Pragma uses</a>
+<li><a href="Java.html#n33">Memory management</a>
+<li><a href="Java.html#n34">Inheritance</a>
+<li><a href="Java.html#n35">Proxy classes and garbage collection</a>
+</ul>
+<li><a href="Java.html#n36">Type wrapper classes</a>
+</ul>
+<li><a href="Java.html#n37">Common customization features</a>
 <ul>
-<li><a href="Java.html#n58">Derive C++ from Java and visa-versa</a>
-<li><a href="Java.html#n59">JavaDoc and the shadowcode pragma</a>
-<li><a href="Java.html#n60">Tips for using the shadow pragmas</a>
+<li><a href="Java.html#n38">C/C++ helper functions</a>
+<li><a href="Java.html#n39">Class extension with %extend</a>
+<li><a href="Java.html#n40">Exception handling with %exception</a>
 </ul>
+<li><a href="Java.html#n41">Tips and techniques</a>
+<ul>
+<li><a href="Java.html#n42">Input and output parameters</a>
+<li><a href="Java.html#n43">Simple pointers</a>
+<li><a href="Java.html#n44">Unbounded C Arrays</a>
 </ul>
+<li><a href="Java.html#n45">Java typemaps</a>
+<ul>
+<li><a href="Java.html#n46">Default primitive type mappings</a>
+<li><a href="Java.html#n47">bit JVMs</a>
+<li><a href="Java.html#n48">What is a typemap?</a>
+<li><a href="Java.html#n49">Typemaps for mapping C/C++ types to Java types</a>
+<li><a href="Java.html#n50">Typemap variables</a>
+<li><a href="Java.html#n51">Typemaps for both C and C++ compilation</a>
+<li><a href="Java.html#n52">Java code typemaps</a>
+</ul>
+<li><a href="Java.html#n53">Typemap Examples</a>
+<ul>
+<li><a href="Java.html#n54">Converting Java String arrays to char ** </a>
+<li><a href="Java.html#n55">Expanding a Java object to multiple arguments</a>
+<li><a href="Java.html#n56">Using typemaps to return arguments</a>
+<li><a href="Java.html#n57">Accessing array structure members</a>
+<li><a href="Java.html#n58">Pointer handling</a>
+</ul>
+<li><a href="Java.html#n59">Odds and ends</a>
+<ul>
+<li><a href="Java.html#n60">Functional interface without proxy classes</a>
 <li><a href="Java.html#n61">Dynamic linking problems</a>
 <li><a href="Java.html#n62">Using your own JNI methods</a>
-<li><a href="Java.html#n63">Known bugs</a>
+<li><a href="Java.html#n63">Performance concerns and hints</a>
+<li><a href="Java.html#n64">Known bugs</a>
+</ul>
+<li><a href="Java.html#n65">Examples</a>
 </ul>
 <!-- INDEX -->
 
@@ -684,21 +693,16 @@
 <li><a href="Python.html#n46">What is a typemap?</a>
 <li><a href="Python.html#n47">Python typemaps</a>
 <li><a href="Python.html#n48">Typemap variables</a>
-<li><a href="Python.html#n49">Useful Functions</a>
+<li><a href="Python.html#n49">Useful Python Functions</a>
 </ul>
 <li><a href="Python.html#n50">Typemap Examples</a>
 <ul>
 <li><a href="Python.html#n51">Converting  Python list to a char ** </a>
-<li><a href="Python.html#n52">Expanding a Python object to multiple arguments</a>
+<li><a href="Python.html#n52">Expanding a Python object into multiple arguments</a>
 <li><a href="Python.html#n53">Using typemaps to return arguments</a>
 <li><a href="Python.html#n54">Mapping Python tuples into small arrays</a>
 <li><a href="Python.html#n55">Mapping sequences to C arrays</a>
-<li><a href="Python.html#n56">Accessing array structure members</a>
-<li><a href="Python.html#n57">Pointer handling</a>
-</ul>
-<li><a href="Python.html#n58">Other odds and ends</a>
-<ul>
-<li><a href="Python.html#n59">Adding native Python functions to a SWIG module</a>
+<li><a href="Python.html#n56">Pointer handling</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -792,42 +796,45 @@
 <li><a href="Tcl.html#n12">Running SWIG from Developer Studio</a>
 <li><a href="Tcl.html#n13">Using NMAKE</a>
 </ul>
-<li><a href="Tcl.html#n14">Primitive Tcl Interface</a>
+<li><a href="Tcl.html#n14">A tour of basic C/C++ wrapping</a>
 <ul>
-<li><a href="Tcl.html#n15">Functions</a>
-<li><a href="Tcl.html#n16">Global variables</a>
-<li><a href="Tcl.html#n17">Constants</a>
-<li><a href="Tcl.html#n18">Pointers</a>
-<li><a href="Tcl.html#n19">Structures </a>
-<li><a href="Tcl.html#n20">C++ Classes</a>
+<li><a href="Tcl.html#n15">Modules</a>
+<li><a href="Tcl.html#n16">Functions</a>
+<li><a href="Tcl.html#n17">Global variables</a>
+<li><a href="Tcl.html#n18">Constants and enums</a>
+<li><a href="Tcl.html#n19">Pointers</a>
+<li><a href="Tcl.html#n20">Structures</a>
+<li><a href="Tcl.html#n21">C++ classes</a>
+<li><a href="Tcl.html#n22">C++ inheritance</a>
+<li><a href="Tcl.html#n23">Pointers, references, values, and arrays</a>
+<li><a href="Tcl.html#n24">C++ overloaded functions</a>
+<li><a href="Tcl.html#n25">C++ operators</a>
+<li><a href="Tcl.html#n26">C++ namespaces</a>
+<li><a href="Tcl.html#n27">C++ templates</a>
+<li><a href="Tcl.html#n28">C++ Smart Pointers</a>
 </ul>
-<li><a href="Tcl.html#n21">The object-based interface</a>
+<li><a href="Tcl.html#n29">Further details on the Tcl class interface</a>
 <ul>
-<li><a href="Tcl.html#n22">Creating new objects</a>
-<li><a href="Tcl.html#n23">Invoking member functions</a>
-<li><a href="Tcl.html#n24">Deleting objects</a>
-<li><a href="Tcl.html#n25">Accessing member data</a>
-<li><a href="Tcl.html#n26">Changing member data</a>
-<li><a href="Tcl.html#n27">Managing Object Ownership</a>
-<li><a href="Tcl.html#n28">Relationship with pointers</a>
+<li><a href="Tcl.html#n30">Proxy classes</a>
+<li><a href="Tcl.html#n31">Memory management</a>
 </ul>
-<li><a href="Tcl.html#n29">Input and output parameters</a>
-<li><a href="Tcl.html#n30">Exception handling </a>
-<li><a href="Tcl.html#n31">Typemaps</a>
+<li><a href="Tcl.html#n32">Input and output parameters</a>
+<li><a href="Tcl.html#n33">Exception handling </a>
+<li><a href="Tcl.html#n34">Typemaps</a>
 <ul>
-<li><a href="Tcl.html#n32">What is a typemap?</a>
-<li><a href="Tcl.html#n33">Tcl typemaps</a>
-<li><a href="Tcl.html#n34">Typemap variables</a>
-<li><a href="Tcl.html#n35">Converting  a Tcl list to a char ** </a>
-<li><a href="Tcl.html#n36">Returning values in arguments</a>
-<li><a href="Tcl.html#n37">Useful functions</a>
-<li><a href="Tcl.html#n38">Standard  typemaps</a>
-<li><a href="Tcl.html#n39">Pointer handling</a>
+<li><a href="Tcl.html#n35">What is a typemap?</a>
+<li><a href="Tcl.html#n36">Tcl typemaps</a>
+<li><a href="Tcl.html#n37">Typemap variables</a>
+<li><a href="Tcl.html#n38">Converting  a Tcl list to a char ** </a>
+<li><a href="Tcl.html#n39">Returning values in arguments</a>
+<li><a href="Tcl.html#n40">Useful functions</a>
+<li><a href="Tcl.html#n41">Standard  typemaps</a>
+<li><a href="Tcl.html#n42">Pointer handling</a>
 </ul>
-<li><a href="Tcl.html#n40">Turning a SWIG module into a Tcl Package.</a>
-<li><a href="Tcl.html#n41">Building new kinds of Tcl interfaces (in Tcl)</a>
+<li><a href="Tcl.html#n43">Turning a SWIG module into a Tcl Package.</a>
+<li><a href="Tcl.html#n44">Building new kinds of Tcl interfaces (in Tcl)</a>
 <ul>
-<li><a href="Tcl.html#n42">Shadow classes</a>
+<li><a href="Tcl.html#n45">Shadow classes</a>
 </ul>
 </ul>
 <!-- INDEX -->

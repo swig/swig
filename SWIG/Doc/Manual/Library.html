@@ -15,10 +15,21 @@
 <li><a href="#n6">cmalloc.i</a>
 <li><a href="#n7">cdata.i</a>
 </ul>
-<li><a href="#n8">C++ Library</a>
+<li><a href="#n8">C String Handling</a>
 <ul>
-<li><a href="#n9">std_string.i</a>
-<li><a href="#n10">std_vector.i</a>
+<li><a href="#n9">Default string handling</a>
+<li><a href="#n10">Passing binary data</a>
+<li><a href="#n11">Using %newobject to release memory</a>
+<li><a href="#n12">cstring.i</a>
+</ul>
+<li><a href="#n13">C++ Library</a>
+<ul>
+<li><a href="#n14">std_string.i</a>
+<li><a href="#n15">std_vector.i</a>
+</ul>
+<li><a href="#n16">Utility Libraries</a>
+<ul>
+<li><a href="#n17">exception.i</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -568,7 +579,8 @@ char *cdata_<em>name</em>(int nitems)
 <b>Note:</b> These functions provide direct access to memory and can be used to overwrite data.
 Clearly they are unsafe.
 
-<h2>11.3 C String Handling</h2>
+<a name="n8"></a><H2>11.3 C String Handling</H2>
+
 
 A common problem when working with C programs is dealing with
 functions that manipulate raw character data using <tt>char *</tt>.
@@ -584,7 +596,8 @@ well-known. However, SWIG is not in the business of enforcing
 morality.  The modules in this section provide basic functionality
 for manipulating raw C strings. 
 
-<h3>Default string handling</h3>
+<a name="n9"></a><H3>11.3.1 Default string handling</H3>
+
 
 Suppose you have a C function with this prototype:
 
@@ -617,7 +630,8 @@ a <tt>char *</tt> argument points to data inside the target language, it is
 interpreter and lead to a crash).  Furthermore, the default behavior does
 not work well with binary data. Instead, strings are assumed to be NULL-terminated.
 
-<h3>Passing binary data</h3>
+<a name="n10"></a><H3>11.3.2 Passing binary data</H3>
+
 
 If you have a function that expects binary data,
 
@@ -649,7 +663,8 @@ Now, in the target language, you can use binary string data like this:
 
 In the wrapper function, the passed string will be expanded to a pointer and length parameter.
 
-<h3>Using %newobject to release memory</h3>
+<a name="n11"></a><H3>11.3.3 Using %newobject to release memory</H3>
+
 
 If you have a function that allocates memory like this,
 
@@ -679,7 +694,8 @@ char *foo();
 
 This will release the result.
 
-<h3>cstring.i</h3>
+<a name="n12"></a><H3>11.3.4 cstring.i</H3>
+
 
 The <tt>cstring.i</tt> library file provides a collection of macros
 for dealing with functions that either mutate string arguments or
@@ -1049,14 +1065,14 @@ allocation.  If using ANSI C, the library uses <tt>malloc()</tt> and <tt>free()<
 structure or class instead.
 </ul>
 
-<a name="n8"></a><H2>11.3 C++ Library</H2>
+<a name="n13"></a><H2>11.4 C++ Library</H2>
 
 
 The library modules in this section provide access to parts of the standard C++ library.
 All of these modules are new in SWIG-1.3.12 and are only the beginning phase of more complete
 C++ library support including support for the STL.  
 
-<a name="n9"></a><H3>11.3.1 std_string.i</H3>
+<a name="n14"></a><H3>11.4.1 std_string.i</H3>
 
 
 The <tt>std_string.i</tt> library provides typemaps for converting C++ <tt>std::string</tt>
@@ -1104,7 +1120,7 @@ void foo(string s, const String &t);     // std_string typemaps still applied
 <b>Note:</b> The <tt>std_string</tt> library is incompatible with Perl on some platforms.
 We're looking into it.
 
-<a name="n10"></a><H3>11.3.2 std_vector.i</H3>
+<a name="n15"></a><H3>11.4.2 std_vector.i</H3>
 
 
 The <tt>std_vector.i</tt> library provides support for the C++ <tt>vector</tt> class in the STL.
@@ -1273,9 +1289,11 @@ details and the public API exposed to the interpreter vary.
 <b>Note:</b> <tt>std_vector.i</tt> was written by Luigi "The Amazing" Ballabio.  
 
 
-<h2>Utility Libraries</h2>
+<a name="n16"></a><H2>11.5 Utility Libraries</H2>
 
-<h3>exception.i</h3>
+
+<a name="n17"></a><H3>11.5.1 exception.i</H3>
+
 
 The <tt>exception.i</tt> library provides a language-independent function for raising a run-time
 exception in the target language.

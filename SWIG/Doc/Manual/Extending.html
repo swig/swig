@@ -50,17 +50,17 @@
 <li><a href="#n35">Entry point to code generation</a>
 <li><a href="#n36">Module I/O and wrapper skeleton</a>
 <li><a href="#n37">Low-level code generators</a>
-<li><a href="#n37a">Configuration files</a>
-<li><a href="#n37b">Runtime support</a>
-<li><a href="#n37c">Standard library files</a>
-<li><a href="#n37d">Examples and test cases</a>
-<li><a href="#n37e">Documentation</a>
+<li><a href="#n38">Configuration files</a>
+<li><a href="#n39">Runtime support</a>
+<li><a href="#n40">Standard library files</a>
+<li><a href="#n41">Examples and test cases</a>
+<li><a href="#n42">Documentation</a>
 </ul>
-<li><a href="#n38">Typemaps</a>
+<li><a href="#n43">Typemaps</a>
 <ul>
-<li><a href="#n39">Proxy classes</a>
+<li><a href="#n44">Proxy classes</a>
 </ul>
-<li><a href="#n40">Guide to parse tree nodes</a>
+<li><a href="#n45">Guide to parse tree nodes</a>
 </ul>
 <!-- INDEX -->
 
@@ -2030,6 +2030,7 @@ different methods of the <tt>Language</tt> that must be defined by your module.
 
 <a name="n32"></a><H3>21.10.2 Starting out</H3>
 
+
 To define a new language module, first create a minimal implementation using
 this example as a guide:
 
@@ -2272,9 +2273,12 @@ int Python::top(Node *n) {
 
 <a name="n36"></a><H3>21.10.6 Module I/O and wrapper skeleton</H3>
 
+
 <a name="n37"></a><H3>21.10.7 Low-level code generators</H3>
 
-<a name="n37a"></a><H3>21.10.8 Configuration files</H3>
+
+<a name="n38"></a><H3>21.10.8 Configuration files</H3>
+
 
 Discuss required changes for the following configuration files:<p>
 <ul>
@@ -2285,13 +2289,15 @@ Discuss required changes for the following configuration files:<p>
 <li> Source/Modules1.1/Makefile.in
 </ul>
 
-<a name="n37b"></a><H3>21.10.9 Runtime support</H3>
+<a name="n39"></a><H3>21.10.9 Runtime support</H3>
+
 
 Discuss the kinds of functions typically needed for SWIG runtime support (e.g.
 <tt>SWIG_ConvertPtr()</tt> and <tt>SWIG_NewPointerObj()</tt>) and the names of
 the SWIG files that implement those functions.
 
-<a name="n37c"></a><H3>21.10.10 Standard library files</H3>
+<a name="n40"></a><H3>21.10.10 Standard library files</H3>
+
 
 Discuss the standard library files that most language modules provide, e.g.
 <ul>
@@ -2301,7 +2307,8 @@ Discuss the standard library files that most language modules provide, e.g.
 <li> stl.i </li>
 </ul>
 
-<a name="n37d"></a><H3>21.10.11 Examples and test cases</H3>
+<a name="n41"></a><H3>21.10.11 Examples and test cases</H3>
+
 
 Each of the language modules provides one or more examples. These examples
 are used to demonstrate different features of the language module to SWIG
@@ -2321,7 +2328,8 @@ By default, all of the examples are built and run when the user types
 during this process, see the section on <a href="#n37a">configuration
 files</a>.
 
-<a name="n37e"></a><H3>21.10.12 Documentation</H3>
+<a name="n42"></a><H3>21.10.12 Documentation</H3>
+
 
 Don't forget to write end-user documentation for your language module. Currently,
 each language module has a dedicated chapter (although this structure may change
@@ -2347,11 +2355,14 @@ Some topics that you'll want to be sure to address include:
      if available.
 </ul>
 
-<a name="n38"></a><H2>21.11 Typemaps</H2>
+<a name="n43"></a><H2>21.11 Typemaps</H2>
 
-<a name="n39"></a><H3>21.11.1 Proxy classes</H3>
 
-<a name="n40"></a><H2>21.12 Guide to parse tree nodes</H2>
+<a name="n44"></a><H3>21.11.1 Proxy classes</H3>
+
+
+<a name="n45"></a><H2>21.12 Guide to parse tree nodes</H2>
+
 
 This section describes the different parse tree nodes and their attributes.
 
