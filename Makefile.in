@@ -55,7 +55,7 @@ DOH:
 Modules:
 	@cd $(SOURCE)/Modules; $(MAKE)
 
-.PHONY: Modules1.1 Modules Swig Preprocessor LParse DOH 
+.PHONY: Modules1.1 Modules Swig Preprocessor LParse DOH
 
 #####################################################################
 # Runtime libraries
@@ -150,7 +150,12 @@ check-c++-examples:
 	$(skip-python) || (cd Examples/C++/Python && $(chk))
 	$(skip-java) || (cd Examples/C++/Java && $(chk))
 
-check: check-aliveness check-examples check-gifplot-example check-c++-examples
+check-xml:
+	cd Examples/xml && $(chk)
+
+check: check-aliveness \
+       check-examples check-gifplot-example check-c++-examples \
+       check-xml
 
 #####################################################################
 # CLEAN
