@@ -1086,6 +1086,10 @@ static void init_scopes() {
 int SwigType_typedef(SwigType *type, String_or_char *name) {
   init_scopes();
   if (Getattr(scopes[scope_level],name)) return -1;
+  if (Cmp(type,name) == 0) {
+    return 0;
+  }
+
   Setattr(scopes[scope_level],name,type);
   if (default_cache)
     Delattr(default_cache,type);
