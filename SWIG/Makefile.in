@@ -37,33 +37,6 @@ swig: Modules1.1 Swig Modules Preprocessor LParse DOH
 	$(SOURCE)/DOH/libdoh.a \
 	$(LIBS)
 
-experiment: Swig Preprocessor LParse Experiment DOH Modules
-	$(CXX) -o $(TARGET) \
-	$(SOURCE)/Experiment/libexp.a \
-	$(SOURCE)/LParse/liblparse.a \
-	$(SOURCE)/Preprocessor/libcpp.a \
-	$(SOURCE)/Modules/libmodules.a \
-	$(SOURCE)/Swig/libswig.a \
-	$(SOURCE)/DOH/libdoh.a \
-	$(LIBS)
-
-
-swig13: Swig Preprocessor LParse SWIG1.3 DOH Modules
-	$(CXX) -o $(TARGET) $(LINKFORSHARED) \
-	$(SOURCE)/Modules/libmodules.a \
-	$(SOURCE)/SWIG1.3/libswig13.a \
-	$(SOURCE)/LParse/liblparse.a \
-	$(SOURCE)/Preprocessor/libcpp.a \
-	$(SOURCE)/Swig/libswig.a \
-	$(SOURCE)/DOH/libdoh.a \
-	$(LIBS)
-
-SWIG1.1:
-	@cd $(SOURCE)/SWIG1.1; $(MAKE)
-
-SWIG1.3:
-	@cd $(SOURCE)/SWIG1.3; $(MAKE)
-
 Modules1.1:
 	@cd $(SOURCE)/Modules1.1; $(MAKE)
 
@@ -76,17 +49,13 @@ Preprocessor:
 LParse:
 	@cd $(SOURCE)/LParse; $(MAKE)
 
-Experiment:
-	@cd $(SOURCE)/Experiment; $(MAKE)
-
 DOH:
 	@cd $(SOURCE)/DOH; $(MAKE)
 
 Modules:
 	@cd $(SOURCE)/Modules; $(MAKE)
 
-.PHONY: SWIG1.1 Modules1.1 Swig Preprocessor LParse \
-        Experiment Swim SWILL DOH Swithe
+.PHONY: Modules1.1 Modules Swig Preprocessor LParse DOH 
 
 #####################################################################
 # Runtime libraries
