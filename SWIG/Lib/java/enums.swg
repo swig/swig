@@ -36,7 +36,7 @@
  * values are specified then a lengthy linear search through all possible enums might occur. Specific typemaps could be
  * written to possibly optimise this lookup by taking advantage of characteristics peculiar to the targeted enum.
  */
-%typemap(javagetcptr) enum SWIGTYPE %{
+%typemap(javabody) enum SWIGTYPE %{
   public final int swigValue() {
     return swigValue;
   }

@@ -28,7 +28,7 @@
   }
 
 %typemap(javaclassmodifiers) enum SWIGTYPE ""
-%typemap(javagetcptr) enum SWIGTYPE ""
+%typemap(javabody) enum SWIGTYPE ""
 
 %javaenum(simple);
 
