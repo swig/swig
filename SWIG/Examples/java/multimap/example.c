@@ -1,6 +1,7 @@
 /* File : example.c */
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 /* Compute the greatest common divisor of positive integers */
 int gcd(int x, int y) {
