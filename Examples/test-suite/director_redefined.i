@@ -16,7 +16,13 @@
     virtual ~A()
     {
     }
+
     virtual int get_val(Int a)
+    {
+      return 0;
+    }
+
+    virtual int get_rval(const Int& a)
     {
       return 0;
     }
@@ -26,6 +32,11 @@
   struct B : A
   {
     int get_val(int a)
+    {
+      return 1;
+    }    
+
+    int get_rval(const int& a)
     {
       return 1;
     }    
