@@ -651,14 +651,13 @@ void Language::classDeclaration(Node *n) {
   char *classname = tdname ? Char(tdname) : Char(name);
   char *iname = Char(symname);
 
+  this->cpp_class_decl(Char(name),iname,Char(kind));
   if (ImportMode) {
-    lang->cpp_class_decl(Char(name),iname,Char(kind));
     return;
   }
-  if (Cmp(iname,classname) == 0) iname = 0;
   SwigType_new_scope();
   if (name) SwigType_set_scope_name(name);
-  lang->cpp_open_class(classname,iname,Char(kind),(tdname || CPlusPlus) ? 1 : 0);
+  this->cpp_open_class(classname,iname,Char(kind),(tdname || CPlusPlus) ? 1 : 0);
   InClass = 1;
   Abstract = GetInt(n,"abstract");
   has_constructor = 0;
@@ -679,11 +678,11 @@ void Language::classDeclaration(Node *n) {
     CCode = 0;
     if (!has_constructor) {
       /* Generate default constructor */
-      lang->cpp_constructor(classname,iname,0);
+      this->cpp_constructor(classname,iname,0);
     } 
     if (!has_destructor) {
       /* Generate default destructor */
-      lang->cpp_destructor(classname,iname);
+      this->cpp_destructor(classname,iname);
     }
   }
   char *baselist[256];
