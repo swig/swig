@@ -4,18 +4,18 @@
  * by: Tal Shalif <tal@slt.atr.co.jp>
  */
 /* what type to use in java source code */
-%typemap(java,jtype) const string & {String}
+%typemap(jtype) const string & "String"
 
 /* what is the corresponding jni type */
-%typemap(java,jni) const string & {jstring}
+%typemap(jni) const string & "jstring"
 
 /* how to convert the c++ type to the java type */
-%typemap(java,out) const string & {
+%typemap(out) const string & {
  $target = JCALL(NewStringUTF, jenv) $source->c_str());
 }
 
 /* how to convert java type to requested c++ type */
-%typemap(java,in) const string & {
+%typemap(in) const string & {
   $target = NULL;
   if($source != NULL) {
     /* get the String from the StringBuffer */
@@ -25,24 +25,24 @@
   }
 }
 /* free resource once finished using */
-%typemap(java,freearg) const string & {
+%typemap(freearg) const string & {
   delete $target;
 }
 
-%typemap(java,jtype) string & = const string &;
-%typemap(java,jni) string & = const string &;
-%typemap(java,in) string & = const string &;
-%typemap(java,out) string & = const string &;
-%typemap(java,freearg) string & = const string &;
+%typemap(jtype) string & = const string &;
+%typemap(jni) string & = const string &;
+%typemap(in) string & = const string &;
+%typemap(out) string & = const string &;
+%typemap(freearg) string & = const string &;
 
 /* what type to use in java source code */
-%typemap(java,jtype) const wstring & {String}
+%typemap(jtype) const wstring & "String"
 
 /* what is the corresponding jni type */
-%typemap(java,jni) const wstring & {jstring}
+%typemap(jni) const wstring & "jstring"
 
 /* how to convert the c++ type to the java type */
-%typemap(java,out) const wstring & {
+%typemap(out) const wstring & {
   unsigned int len = $source->length();
   jchar *conv_buf = new jchar[len];
   for (unsigned int i = 0; i < len; ++i) {
@@ -53,7 +53,7 @@
 }
 
 /* how to convert java type to requested c++ type */
-%typemap(java,in) const wstring & {
+%typemap(in) const wstring & {
   $target = NULL;
   if($source != NULL) {
     /* get the String from the StringBuffer */
@@ -74,9 +74,9 @@
 }
 
 
-%typemap(java,jtype) wstring & = const wstring &;
-%typemap(java,jni) wstring & = const wstring &;
-%typemap(java,in) wstring & = const wstring &;
-%typemap(java,out) wstring & = const wstring &;
-%typemap(java,freearg) wstring & = const wstring &;
+%typemap(jtype) wstring & = const wstring &;
+%typemap(jni) wstring & = const wstring &;
+%typemap(in) wstring & = const wstring &;
+%typemap(out) wstring & = const wstring &;
+%typemap(freearg) wstring & = const wstring &;
 
