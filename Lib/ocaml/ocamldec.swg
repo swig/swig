@@ -89,8 +89,6 @@ CAMLextern int64 Int64_val(caml_value_t v);
 #	define SWIGSTATIC static
 #endif
 
-#define __OCAML__SWIG__MAXVALUES 6
-
     SWIGSTATIC int
     SWIG_GetPtr(void *source, void **result, swig_type_info *type, swig_type_info *result_type);
     
