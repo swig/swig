@@ -55,7 +55,9 @@ DohDelete(DOH *obj) {
 DOH *
 DohCopy(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohObjInfo *objinfo = dohtypes[b->type];
+  DohObjInfo *objinfo;
+
+  if (!obj) return 0;
   objinfo = dohtypes[b->type];
   if (objinfo->doh_copy) 
     return (objinfo->doh_copy)(b);
