@@ -219,9 +219,8 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
   $1 = &temp; 
 }
 
-%typemap(directorout) TYPE *OUTPUT($*1_ltype temp), TYPE &OUTPUT($*1_ltype temp)
-{
-#error "Need to provide OUTPUT directorout typemap
+%typemap(directorout) TYPE *OUTPUT, TYPE &OUTPUT {
+#error "Need to provide OUTPUT directorout typemap"
 }
 
 %typemap(directorin,descriptor=JNIDESC) TYPE &OUTPUT
@@ -361,7 +360,7 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 }
 
 %typemap(directorout) TYPE *INOUT, TYPE &INOUT {
-#error "Need to provide INOUT directorout typemap
+#error "Need to provide INOUT directorout typemap"
 }
 
 %typemap(directorin,descriptor=JNIDESC) TYPE &INOUT
