@@ -1707,13 +1707,13 @@ int    SvNOK(SV *);
 
 <blockquote>
 <pre>
-char     *SvPV(SV *, int len);
+char     *SvPV(SV *, STRLEN len);
 void      sv_setpv(SV *, char *val);
-void      sv_setpvn(SV *, char *val, int len);
-SV       *newSVpv(char *value, int len);
+void      sv_setpvn(SV *, char *val, STRLEN len);
+SV       *newSVpv(char *value, STRLEN len);
 int       SvPOK(SV *);
 void      sv_catpv(SV *, char *);
-void      sv_catpvn(SV *, char *, int);
+void      sv_catpvn(SV *, char *, STRLEN);
 </pre>
 </blockquote>
 
@@ -2445,6 +2445,6 @@ not even sure if it really works). <p>
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : May 26, 2002</address>
+<address>SWIG 1.3 - Last Modified : June 2, 2002</address>
 </body>
 </html>
