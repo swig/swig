@@ -1,12 +1,37 @@
-/* Test module */
+/* -----------------------------------------------------------------------------
+ * test.c
+ *
+ * This module implements a SWIG module in the new tag-based parser.
+ * This is work in progress.
+ * ----------------------------------------------------------------------------- */
+
 #include "swig.h"
+
+/* -------- Module variables ------- */
+
+#define CPLUS_PUBLIC    1
+#define CPLUS_PRIVATE   2
+#define CPLUS_PROTECTED 3
+
+static DOHFile     *headers = 0;     
+static DOHFile     *wrappers = 0;
+static DOHFile     *init = 0;
+
+static int          ExternMode = 0;
+static int          ImportMode = 0;
+static int          ReadOnly = 0;
+static int          CPlusMode = CPLUS_PUBLIC;
+static int          NewMode = 0;
+static DOHString   *ModuleName = 0;
+static int          NativeMode = 0;
+static DOHString   *NewName = 0;
+static DOHHash     *RenameHash = 0;
 
 /* -------- File inclusion directions -------- */
 
 static int
 emit_includefile(DOH *obj, void *clientdata) {
   DOH *c;
-  printf("includefile\n");
   c = Getattr(obj,"child");
   if (c) {
     Swig_emit(c,clientdata);
@@ -16,27 +41,32 @@ emit_includefile(DOH *obj, void *clientdata) {
 static int
 emit_externfile(DOH *obj, void *clientdata) {
   DOH *c;
-  printf("externfile\n");
+  int  oldem = ExternMode;
+  ExternMode = 1;
   c = Getattr(obj,"child");
   if (c) {
     Swig_emit(c,clientdata);
   }
+  ExternMode = oldem;
 }
 
 static int
 emit_importfile(DOH *obj, void *clientdata) {
   DOH *c;
-  printf("importfile\n");
+  int  oldem = ExternMode;
+  ExternMode = 1;
+  ImportMode = 1;
   c = Getattr(obj,"child");
   if (c) {
     Swig_emit(c,clientdata);
   }
+  ExternMode = oldem;
+  ImportMode = 0;
 }
 
 static int
 emit_scope(DOH *obj, void *clientdata) {
   DOH *c;
-  Printf(stdout,"scope\n");
   c = Getattr(obj,"child");
   if (c) {
     Swig_emit(c,clientdata);
@@ -45,23 +75,22 @@ emit_scope(DOH *obj, void *clientdata) {
 }
 
 
-/* Code blocks */
-
+/* -------- Code blocks -------- */
 static int
 emit_headerblock(DOH *obj, void *clientdata) {
-  Printf(stdout,"headerblock\n");
+  Dump(Getattr(obj,"code"),headers);
   return 0;
 }
 
 static int
 emit_wrapperblock(DOH *obj, void *clientdata) {
-  Printf(stdout,"wrapperblock\n");
+  Dump(Getattr(obj,"code"),wrappers);
   return 0;
 }
 
 static int
 emit_initblock(DOH *obj, void *clientdata) {
-  Printf(stdout,"initblock\n");
+  Dump(Getattr(obj,"code"),init);
   return 0;
 }
 
@@ -135,19 +164,19 @@ emit_classdecl(DOH *obj, void *clientdata) {
 
 static int
 emit_private(DOH *obj, void *clientdata) {
-  Printf(stdout,"private\n");
+  CPlusMode = CPLUS_PRIVATE;
   return 0;
 }
 
 static int
 emit_protected(DOH *obj, void *clientdata) {
-  Printf(stdout,"protected\n");
+  CPlusMode = CPLUS_PROTECTED;
   return 0;
 }
 
 static int
 emit_public(DOH *obj, void *clientdata) {
-  Printf(stdout,"public\n");
+  CPlusMode = CPLUS_PUBLIC;
   return 0;
 }
 
@@ -166,37 +195,46 @@ emit_addmethods(DOH *obj, void *clientdata) {
 
 static int
 emit_moduledirective(DOH *obj, void *clientdata) {
-  Printf(stdout,"moduledirective : %s\n", Getattr(obj,"name"));
+  if (!ModuleName) {
+    ModuleName = Getattr(obj,"name");
+    Incref(ModuleName);
+  }
   return 0;
 }
 
 static int
 emit_renamedirective(DOH *obj, void *clientdata) {
-  Printf(stdout,"renamedirective\n");
+  DOHString *name, *rename;
+  name = Getattr(obj,"oldname");
+  rename = Getattr(obj,"newname");
+  if (name && rename)
+    Setattr(RenameHash,name,rename);
   return 0;
 }
 
 static int
 emit_readonlydirective(DOH *obj, void *clientdata) {
-  Printf(stdout,"readonlydirective\n");
+  ReadOnly = 1;
   return 0;
 }
 
 static int
 emit_readwritedirective(DOH *obj, void *clientdata) {
-  Printf(stdout,"readwritedirective\n");
+  ReadOnly = 0;
   return 0;
 }
 
 static int
 emit_namedirective(DOH *obj, void *clientdata) {
-  Printf(stdout,"namedirective\n");
+  if (NewName) Delete(NewName);
+  NewName = Getattr(obj,"name");
+  if (NewName) Incref(NewName);
   return 0;
 }
 
 static int
 emit_newdirective(DOH *obj, void *clientdata) {
-  Printf(stdout,"newdirective\n");
+  NewMode = 1;
   return 0;
 }
 
@@ -214,7 +252,14 @@ emit_pragmadirective(DOH *obj, void *clientdata) {
 
 static int
 emit_nativedirective(DOH *obj, void *clientdata) {
-  Printf(stdout,"nativedirective\n");
+  DOH *c;
+  int oldnative = NativeMode;
+  NativeMode = 1;
+  c = Getattr(obj, "child");
+  if (c) {
+    Swig_emit(c,clientdata);
+  }
+  NativeMode = oldnative;
   return 0;
 }
 
@@ -242,16 +287,34 @@ emit_cleardirective(DOH *obj, void *clientdata) {
   return 0;
 }
 
-/* Entry point */
+/* -------- Entry point -------- */
+
 void test_emit(DOH *top, void *clientdata) {
+
+  /* Initialization */
+
+  headers = NewString("\n/* --- Headers --- */\n");
+  wrappers = NewString("\n/* --- Wrappers --- */\n");
+  init = NewString("\n/* --- Initialization --- */\n");
+
+  RenameHash = NewHash();
+
   Swig_emit(top, clientdata);
+
+  Swig_banner(stdout);
+  Dump(headers,stdout);
+  Dump(wrappers,stdout);
+  Dump(init, stdout);
+  Delete(headers);
+  Delete(wrappers);
+  Delete(init);
+  Delete(RenameHash);
 }
 
 static SwigRule rules[] = {
   "includefile",        emit_includefile,
   "externfile",         emit_externfile,
   "importfile",         emit_importfile,
-
   "headerblock",        emit_headerblock,
   "wrapperblock",       emit_wrapperblock,
   "initblock",          emit_initblock,
@@ -260,7 +323,6 @@ static SwigRule rules[] = {
   "variable",           emit_variable,
   "constant",           emit_constant,
   "typedef",            emit_typedef,
-
   "class",              emit_class,
   "destructor",         emit_destructor,
   "enum",               emit_enum,
@@ -270,7 +332,6 @@ static SwigRule rules[] = {
   "protected",          emit_protected,
   "public",             emit_public,
   "addmethods",         emit_addmethods,
-
   "moduledirective",    emit_moduledirective,
   "renamedirective",    emit_renamedirective,
   "readonlydirective",  emit_readonlydirective,
@@ -284,7 +345,6 @@ static SwigRule rules[] = {
   "typemapcopy",        emit_typemapcopy,
   "applydirective",     emit_applydirective,
   "cleardirective",     emit_cleardirective,
-  
   NULL, NULL
 };
 
@@ -292,3 +352,7 @@ static SwigRule rules[] = {
 void test_init() {
   Swig_add_rules(rules);
 }
+
+
+
+
