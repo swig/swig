@@ -988,9 +988,9 @@ class OCAML : public Language {
 		       i-4,i-3,i-2,i-1,i);
 	}
 
-	int j;
+	int j = 0;
 
-	if( i != numargs ) {
+	if( i - (i % 5) != numargs ) {
 	    Printf(f->def,"\tCAMLxparam%d(",i % 5);
 	    for( j = i - (i % 5); j < i; j++ ) {
 		Printf(f->def,"args%d%s",j,j==(i-1)?"":",");
@@ -1037,12 +1037,149 @@ class OCAML : public Language {
     }
 
 // ----------------------------------------------------------------------
+// callbackWrapper()
+// Create a callback function by this name, and have it call our ocaml
+// function.
+//
+// This is essentially the reverse operation of functionWrapper... It 
+// takes C arguments and bundles them for consumption by an Ocaml function
+// ----------------------------------------------------------------------
+
+    int callbackWrapper(Node *n) {
+	SwigType *d = Getattr(n,"type");
+	SwigType *dcaml = process_type(d);
+	ParmList *l = Getattr(n,"parms");
+	Parm *p;
+	Wrapper *f = NewWrapper();
+	String *source = NewString("");
+	String *target = NewString("");
+	String *arg = NewString("");
+	String   *tm;
+	int i = 0;
+	int numargs;
+	int numreq;
+
+	char *comma;
+
+	numargs = emit_num_arguments(l);
+	numreq  = emit_num_required(l);
+	
+	// Function declaration
+
+	Printf(f->def,"%s(",
+	       SwigType_str(d, Getattr(n,"name")));
+	
+	comma = "";
+	for( i = 0, p = l; p; i++, p = nextSibling(p) ) {
+	    SwigType *t = Getattr(p,"type");
+	    String *argname = NewString("args");
+	    Printf(argname,"%d",i);
+
+	    Printf(f->def,"%s %s", comma, SwigType_str(t,argname), i);
+
+	    Delete(argname);
+
+	    comma = ",";
+	}
+
+	Printf(f->def,") {\n");
+
+	// Argument proxies
+
+	if( strcmp(Char(d),"void") ) 
+	    Printv(f->def,"\t",SwigType_str(d,"result"),";\n",0);
+	Printv(f->def,"\tvalue *swig_func;\n",0);
+	Printv(f->def,"\tvalue swig_result;\n",0);
+	Printf(f->def,"\tvalue args[%d];\n", numargs == 0 ? 1 : numargs);
+
+	if( !numargs ) 
+	    Printf(f->def,"\targs[0] = Val_unit;\n");
+
+	// Fill arguments
+
+	for (i = 0, p = l; i < numargs; i++) {
+	    /* Skip ignored arguments */
+	    while (Getattr(p,"tmap:ignore")) {
+		p = Getattr(p,"tmap:ignore:next");
+	    }
+
+	    // Produce names of source and target
+	    Clear(target);
+	    Clear(source);
+	    Clear(arg);
+
+	    Printf(target, "args[%d]", i);
+	    Printf(source, "args%d", i);
+	    Printv(arg, Getattr(p,"name"),0);
+
+	    // Handle parameter types.
+	    if ((tm = Swig_typemap_lookup_new("out",p,source,0))) {
+		delete_replacement(tm,d);
+		Replaceall(tm,"$source",source);
+		Replaceall(tm,"$target",target);
+		Replaceall(tm,"$result",target);
+			   		
+		Printv(f->code, tm, "\n",0);
+	    } else {
+		throw_unhandled_ocaml_type_error (dcaml);
+	    }
+	}
+
+	// Produce result
+
+	Printv(f->code,
+	       "\tswig_func = caml_named_value(\"",
+	       Getattr(n,"feature:camlcb"),
+	       "\");\n"
+	       "if( !swig_func ) failwith(\"Function ",
+	       Getattr(n,"feature:camlcb"),
+	       " not implemented.\");\n",0);
+
+	if( strcmp(Char(d),"void") )
+	    Printf(f->code,"\tresult = callbackN(*swig_func,%d,args);\n",
+		   numargs ? numargs : 1 );
+	else
+	    Printf(f->code,"\tcallbackN(*swig_func,%d,args);\n",
+		   numargs ? numargs : 1 );
+
+	Setattr(n,"type",dcaml);
+
+	// Handle return type.
+	if( strcmp(Char(d),"void") ) {
+	    if ((tm = Swig_typemap_lookup_new("in",n,"swig_result",0))) {
+		delete_replacement(tm,d);
+		Replaceall(tm,"$1","swig_result");
+		Replaceall(tm,"$input","result");
+		
+		Printv(f->code, tm, "\n",0);
+	    } else {
+		throw_unhandled_ocaml_type_error (dcaml);
+	    }
+	    
+	    Printf(f->code,"\treturn swig_result;\n");
+	}
+
+	Printf(f->code,"}\n");
+
+	Wrapper_print(f, f_wrappers);
+
+	DelWrapper(f);
+
+	// Generate constant
+	// Restore the reported type
+	Setattr(n,"type",d);
+	Setattr(n,"feature:callback",Getattr(n,"name"));
+	Language::globalfunctionHandler(n);
+
+	return SWIG_OK;
+    }
+
+// ----------------------------------------------------------------------
 // functionWrapper()
 // Create a function declaration and register it with the interpreter.
 // ----------------------------------------------------------------------
 
     int functionWrapper(Node *n) {
-	// ML function name
 	SwigType *d = Getattr(n,"type");
 	SwigType *dcaml = process_type(d);
 	ParmList *l = Getattr(n,"parms");
@@ -1059,6 +1196,9 @@ class OCAML : public Language {
 	int i = 0;
 	int numargs;
 	int numreq;
+
+	if( Getattr(n,"feature:camlcb") ) 
+	    return callbackWrapper( n );
 
 	// Don't produce a 'set' for an immutable.
 	if( in_vwrap == VWRAP_SET && Getattr(n,"feature:immutable") )
