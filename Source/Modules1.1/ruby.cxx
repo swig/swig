@@ -18,7 +18,7 @@ static char cvsroot[] = "$Header$";
 #include <ctype.h>
 #include <string.h>
 
-static char *usage = "\
+static char *usage = (char*)"\
 Ruby Options\n\
      -module name    - Set module name\n\
      -toplevel       - Do not define module\n\
@@ -27,7 +27,7 @@ Ruby Options\n\
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
 
-static String& indent(String& s, char *sp = tab4) {
+static String& indent(String& s, char *sp = (char*)tab4) {
   sp >> s;
   String rep = sp;
   s.replace("\n", ("\n" >> rep).get());
@@ -133,7 +133,7 @@ void RUBY::parse_args(int argc, char *argv[]) {
   Preprocessor_define((void *) "SWIGRUBY", 0);
 
   // Add typemap definitions
-  typemap_lang = "ruby";
+  typemap_lang = (char*)"ruby";
 }
 
 // ---------------------------------------------------------------------
@@ -151,7 +151,7 @@ void RUBY::parse() {
   value.type = T_VOID;
   value.is_pointer = 1;
   value.implicit_ptr = 0;
-  value.typedef_add("VALUE");
+  value.typedef_add((char*)"VALUE");
 
   yyparse();       // Run the SWIG parser
 }
@@ -223,11 +223,11 @@ void RUBY::headers(void) {
   fprintf(f_header,"/* Implementation : RUBY */\n\n");
   fprintf(f_header,"#define SWIGRUBY\n");
 
-  insert_file("ruby.swg", f_header);
+  insert_file((char*)"ruby.swg", f_header);
   if (NoInclude) {
-    insert_file("rubydec.swg", f_header);
+    insert_file((char*)"rubydec.swg", f_header);
   } else {
-    insert_file("rubydef.swg", f_header);
+    insert_file((char*)"rubydef.swg", f_header);
   }
 }
 
@@ -240,7 +240,7 @@ void RUBY::headers(void) {
 void RUBY::initialize() {
   if (!module) {
     fprintf(stderr,"SWIG : *** Warning. No module name specified.\n");
-    set_module("swig", NULL);         // Pick a default name
+    set_module((char*)"swig", NULL);         // Pick a default name
   }
 
   fprintf(f_header,"#define SWIG_init    Init_%s\n", feature);
@@ -423,11 +423,11 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
       if (!l->get(i)->ignore) {
 	String s;
 	s << "varg" << i;
-	f.add_local("VALUE", s.get());
+	f.add_local((char*)"VALUE", s.get());
       }
     }
   }
-  f.add_local("VALUE", "vresult", "Qnil");
+  f.add_local((char*)"VALUE", (char*)"vresult", (char*)"Qnil");
   int pcount = emit_args(t,l,f);
 
 #if 0
@@ -475,14 +475,14 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     target << "_arg" << i;
 
     if (!p.ignore) {
-      char *tab = tab4;
+      char *tab = (char*)tab4;
       if (j >= (pcount-numopt)) { // Check if parsing an optional argument
 	f.code << tab4 << "if (argc > " << j -  start << ") {\n";
-	tab = tab8;
+	tab = (char*)tab8;
       }
 
       // Get typemap for this argument
-      tm = ruby_typemap_lookup("in",p.t,p.name,source.get(),target.get(),&f);
+      tm = ruby_typemap_lookup((char*)"in",p.t,p.name,source.get(),target.get(),&f);
       if (tm) {
 	String s = tm;
 	f.code << indent(s, tab) << "\n";
@@ -497,7 +497,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     }
 
     // Check to see if there was any sort of a constaint typemap
-    tm = ruby_typemap_lookup("check",p.t,p.name,source.get(),target.get());
+    tm = ruby_typemap_lookup((char*)"check",p.t,p.name,source.get(),target.get());
     if (tm) {
       String s = tm;
       f.code << indent(s) << "\n";
@@ -505,14 +505,14 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     }
 
     // Check if there was any cleanup code (save it for later)
-    tm = ruby_typemap_lookup("freearg",p.t,p.name,target.get(),source.get());
+    tm = ruby_typemap_lookup((char*)"freearg",p.t,p.name,target.get(),source.get());
     if (tm) {
       String s = tm;
       cleanup << indent(s) << "\n";
       cleanup.replace("$arg",source.get());
     }
 
-    tm = ruby_typemap_lookup("argout",p.t,p.name,target.get(),"vresult");
+    tm = ruby_typemap_lookup((char*)"argout",p.t,p.name,target.get(),(char*)"vresult");
     if (tm) {
       String s = tm;
       outarg << indent(s) << "\n";
@@ -528,7 +528,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     if (predicate) {
       f.code << tab4 << "vresult = (_result ? Qtrue : Qfalse);\n";
     } else {
-      tm = ruby_typemap_lookup("out",t,name,"_result","vresult");
+      tm = ruby_typemap_lookup((char*)"out",t,name,(char*)"_result",(char*)"vresult");
       if (tm) {
 	String s = tm;
 	f.code << indent(s) << "\n";
@@ -547,7 +547,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   // Look for any remaining cleanup.  This processes the %new directive
   if (NewObject) {
-    tm = ruby_typemap_lookup("newfree",t,name,"_result","");
+    tm = ruby_typemap_lookup((char*)"newfree",t,name,(char*)"_result",(char*)"");
     if (tm) {
       String s = tm;
       f.code << indent(s) << "\n";
@@ -560,7 +560,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   }
 
   // Special processing on return value.
-  tm = ruby_typemap_lookup("ret",t,name,"_result","");
+  tm = ruby_typemap_lookup((char*)"ret",t,name,(char*)"_result",(char*)"");
   if (tm) {
     String s = tm;
     f.code << indent(s) << "\n";
@@ -604,10 +604,10 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
   getf.def << "static VALUE\n" << getfname << "(";
   if (mod_attr) getf.def << "VALUE self";
   getf.def << ") {";
-  getf.add_local("VALUE", "_val");
-  tm = ruby_typemap_lookup("varout",t,name,name,"_val");
+  getf.add_local((char*)"VALUE", (char*)"_val");
+  tm = ruby_typemap_lookup((char*)"varout",t,name,name,(char*)"_val");
   if (!tm)
-    tm = ruby_typemap_lookup("out",t,name,name,"_val");
+    tm = ruby_typemap_lookup((char*)"out",t,name,name,(char*)"_val");
   if (tm) {
     String s = tm;
     getf.code << indent(s) << "\n";
@@ -636,15 +636,15 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
     else
       setf.def << "static void\n" << setfname << "(";
     setf.def << "VALUE _val) {";
-    tm = ruby_typemap_lookup("varin",t,name,"_val",name);
+    tm = ruby_typemap_lookup((char*)"varin",t,name,(char*)"_val",name);
     if (!tm)
-      tm = ruby_typemap_lookup("in",t,name,"_val",name);
+      tm = ruby_typemap_lookup((char*)"in",t,name,(char*)"_val",name);
     if (tm) {
       String s = tm;
       setf.code << indent(s) << "\n";
     } else if (!t->is_pointer && t->type == T_USER) {
       t->is_pointer++;
-      setf.add_local(t->print_type(), "temp");
+      setf.add_local(t->print_type(), (char*)"temp");
       setf.code << tab4 << "temp = (" << t->print_type() << ")"
 		<< "SWIG_ConvertPtr(_val, \"" << t->print_mangle() << "\");\n";
       setf.code << tab4 << name << " = *temp;\n";
@@ -737,7 +737,7 @@ void RUBY::declare_const(char *name, char *iname, DataType *type, char *value) {
   if (current == CLASS_CONST)
     iname = klass->strip(iname);
 
-  tm = ruby_typemap_lookup("const",type,name,value,iname);
+  tm = ruby_typemap_lookup((char*)"const",type,name,value,iname);
   if (tm) {
     String str = tm;
     str.replace("$value",value);
@@ -770,7 +770,7 @@ void RUBY::declare_const(char *name, char *iname, DataType *type, char *value) {
 //              target = a string containing the target value
 //              f      = a wrapper function object (optional)
 // ---------------------------------------------------------------------
-char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *source, char *target, WrapperFunction *f = 0) {
+char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *source, char *target, WrapperFunction *f) {
   static String s;
   char *tm;
   String target_replace = target;
@@ -798,15 +798,15 @@ char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *sou
     s = "";
     if (strcmp("in", op) == 0) {
       String v;
-      if (from_VALUE(type, "$source", v))
+      if (from_VALUE(type, (char*)"$source", v))
 	s << "$target = " << v << ";";
     } else if (strcmp("out", op) == 0) {
       String v;
-      if (to_VALUE(type, "$source", v))
+      if (to_VALUE(type, (char*)"$source", v))
 	s << "$target = " << v << ";";
     } else if (strcmp("const", op) == 0) {
       String v;
-      if (to_VALUE(type, "$value", v, 1)) {
+      if (to_VALUE(type, (char*)"$value", v, 1)) {
 	s << "rb_define_const($module, \"$target\", " << v << ");";
 	validate_const_name(target);
       }
@@ -834,7 +834,7 @@ char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *sou
 //              str = resulting code (as a string)
 //              raw = value is raw string (not quoted) ? 
 // ---------------------------------------------------------------------
-int RUBY::to_VALUE(DataType *type, char *value, String& str, int raw = 0) {
+int RUBY::to_VALUE(DataType *type, char *value, String& str, int raw) {
   str = "";
   if (type->is_pointer == 0) {
     switch(type->type) {
