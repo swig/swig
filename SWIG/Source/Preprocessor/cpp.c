@@ -803,9 +803,9 @@ Preprocessor_replace(DOH *s)
 	    args = 0;
 	  }
 	  if (args) {
-	    List *nargs = evaluate_args(args);
-	    Delete(args);
-	    args = nargs;
+	    /*	    List *nargs = evaluate_args(args);
+		    Delete(args);
+		    args = nargs; */
 	  }
 
 	  e = expand_macro(id,args);
