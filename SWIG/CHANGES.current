@@ -1,11 +1,52 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/08/2004: mmatus
+	    - Fix the SwigValueWrapper for opaque types, now it is 
+	      applied for opaque templates and classes, for which we
+	      don't know if there is or not a default constructor, ie
+
+                 struct A { 
+                   A(int);
+                 };
+ 
+              Still, if you know that you class has a default
+              constructor, and for some very very particular reason
+              you want to avoid the SwigValueWrapper, and you don't
+              want or can't expose the class to swig, now you can
+              say
+
+                 %feature("novaluewrapper") A;    
+                 class A;
+               
+              or the other way around, if the class has a default
+              constructor, but you want to use the value wrapper, you
+              can say
+
+                 %feature("valuewrapper") A;
+                 struct A { 
+                   A();
+		   ....
+                 };   
+      
+	    - Fix for char > 128, ie
+
+                const char tilde_a = '\341';
+
+            - Add patch 1041858 for $lextype, which carries the 
+              literal type of a symbol. See lextype.i in the
+              test-suite for more details.
+
+                            
+ 
+
 10/07/2004: wsfulton
-	    {Ruby, Java] Fix director + destructor with 'empty' throw
+	    {Ruby, Java] Fix director + 'empty' throws
 
 		    struct A {
+		      A() throw();
 		      virtual ~A() throw();
+		      int foo() throw();
 		    };
 
 
