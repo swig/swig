@@ -448,11 +448,11 @@ is_a_pointer (SwigType *t)
    requested -- enum handling is somewhat broken in the 1.1 parser.
    But we don't want to change it now since it is deprecated. */
 
-static char *
+static String *
 guile_typemap_lookup(const char *op, SwigType *type, const String_or_char *pname, const String_or_char *lname, String_or_char *source,
 		     String_or_char *target, Wrapper *f)
 {
-  char *tm;
+  String *tm;
   tm = Swig_typemap_lookup((char*) op, type, (char*)pname, (char *) lname, source, target, f);
   if (!tm) {
     SwigType *base = SwigType_typedef_resolve_all(type);
@@ -472,10 +472,10 @@ guile_do_typemap(DOHFile *file, const char *op,
 		 int argnum, DOHString *name, Wrapper *f,
 		 int nonewline_p)
 {
-  char *tm;
+  String *tm;
   if ((tm = guile_typemap_lookup(op, type, arg, lname,
 				 source, target, f))) {
-    String *s = NewString(tm);
+    String *s = tm;
     char argnum_s[10];
     sprintf(argnum_s, "%d", argnum);
     Replace(s,"$argnum", argnum_s, DOH_REPLACE_ANY);

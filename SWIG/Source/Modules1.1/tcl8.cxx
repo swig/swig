@@ -280,7 +280,7 @@ void
 TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Parm            *p;
   int              pcount,i,j;
-  char            *tm;
+  String          *tm;
   Wrapper         *f;
   String          *incode, *cleanup, *outarg, *argstr, *args;
   int              numopt= 0;
@@ -329,6 +329,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	Printf(incode,"%s\n", tm);
 	Replace(incode,"$argnum",argnum, DOH_REPLACE_ANY);
 	Replace(incode,"$arg",source, DOH_REPLACE_ANY);
+	Delete(tm);
       } else {
 	switch(SwigType_type(pt)) {
 	case T_INT:
@@ -424,18 +425,21 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       Printf(incode,"%s\n", tm);
       Replace(incode,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(incode,"$arg",source, DOH_REPLACE_ANY);
+      Delete(tm);
     }
     /* Check if there was any cleanup code (save it for later) */
     if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,ln,target,(char*)"Tcl_GetObjResult(interp)",0))) {
        Printf(cleanup,"%s\n", tm);
       Replace(cleanup,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",source,DOH_REPLACE_ANY);
+      Delete(tm);
     }
     /* Look for output arguments */
     if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"Tcl_GetObjResult(interp)",0))) {
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
+      Delete(tm);
     }
     i++;
     p = nextSibling(p);
@@ -454,6 +458,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   /* Return value if necessary  */
   if ((tm = Swig_typemap_lookup((char*)"out",d,name,(char*)"result",(char*)"result",(char*)"Tcl_GetObjResult(interp)",0))) {
     Printf(f->code,"%s\n", tm);
+    Delete(tm);
   } else {
     switch(SwigType_type(d)) {
       case T_BOOL:
@@ -520,11 +525,13 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   if (NewObject) {
     if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
       Printf(f->code,"%s\n", tm);
+      Delete(tm);
     }
   }
 
   if ((tm = Swig_typemap_lookup((char*)"ret",d,name,(char*)"result",(char*)"result",(char*)"",0))) {
     Printf(f->code,"%s\n", tm);
+    Delete(tm);
   }
   Printv(f->code, "return TCL_OK;\n}", 0);
 
@@ -780,7 +787,7 @@ TCL8::declare_const(char *name, char *iname, SwigType *type, char *value) {
   int OldReadOnly = ReadOnly;
   SwigType *t;
   char      var_name[256];
-  char     *tm;
+  String   *tm;
   String   *rvalue;
   ReadOnly = 1;
 
@@ -796,6 +803,7 @@ TCL8::declare_const(char *name, char *iname, SwigType *type, char *value) {
   }
   if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,Char(rvalue),name,0))) {
     Printf(f_init,"%s\n",tm);
+    Delete(tm);
   } else {
     /* Create variable and assign it a value */
     switch(SwigType_type(type)) {

@@ -298,13 +298,14 @@ char *JAVA::JavaMethodSignature(SwigType *t, int ret, int inShadow) {
 }
 
 char *JAVA::JavaTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *lname) {
+  String *tms;
   char *tm;
   char *c = bigbuf;
-  if(!(tm = Swig_typemap_lookup(op, t, pname, lname, (char*)"", (char*)"", NULL))) return NULL;
+  if(!(tms = Swig_typemap_lookup(op, t, pname, lname, (char*)"", (char*)"", NULL))) return NULL;
+  tm = Char(tms);
   while(*tm && (isspace(*tm) || *tm == '{')) tm++;
   while(*tm && *tm != '}') *c++ = *tm++;
   *c='\0';
-
   return strdup(bigbuf);
 }
 
@@ -655,7 +656,7 @@ void JAVA::add_native(char *name, char *iname, SwigType *t, ParmList *l) {
 void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
 {
   char      source[256], target[256];
-  char	 	*tm;
+  String    *tm;
   char		*javaReturnSignature = 0;
   String    *jnirettype = NewString("");
   String    *javarettype = NewString("");
@@ -762,6 +763,7 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
       if (tm) {
         Printf(f->code,"%s\n", tm);
         Replace(f->code,"$arg",source, DOH_REPLACE_ANY);
+	Delete(tm);
       } else {
         switch(SwigType_type(pt)) {
         case T_BOOL:
@@ -844,6 +846,7 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
       // Yep.  Use it instead of the default
       Printf(f->code,"%s\n", tm);
       Replace(f->code,"$arg",source, DOH_REPLACE_ANY);
+      Delete(tm);
     }
 
     // Check if there was any cleanup code (save it for later)
@@ -851,12 +854,14 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
       // Yep.  Use it instead of the default
       Printf(cleanup,"%s\n", tm);
       Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
+      Delete(tm);
     }
 
     if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,ln,source,target,NULL))) {
       // Yep.  Use it instead of the default
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
+      Delete(tm);
     } else {
         switch(SwigType_type(pt)) {
         case T_BOOL:
@@ -921,6 +926,7 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
   if((SwigType_type(t) != T_VOID) && !native_func) {
     if ((tm = Swig_typemap_lookup((char*)"out",t,iname,(char*)"result",(char*)"result",(char*)"jresult",NULL))) {
       Printf(f->code,"%s\n", tm);
+      Delete(tm);
     } else {
         switch(SwigType_type(t)) {
         case T_BOOL:
@@ -1022,12 +1028,14 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
   if (NewObject) {
     if ((tm = Swig_typemap_lookup((char*)"newfree",t,iname,(char*)"result",(char*)"result",(char*)"",NULL))) {
       Printf(f->code,"%s\n", tm);
+      Delete(tm);
     }
   }
 
   if((SwigType_type(t) != T_VOID) && !native_func) {
     if ((tm = Swig_typemap_lookup((char*)"ret",t,iname,(char*)"result",(char*)"result",(char*)"jresult", NULL))) {
       Printf(f->code,"%s\n", tm);
+      Delete(tm);
     }
   }
 
@@ -1082,7 +1090,7 @@ void JAVA::link_variable(char *name, char *iname, SwigType *t)
 
 void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
   int OldReadOnly = ReadOnly;
-  char *tm;
+  String *tm;
   char *jname;
   DOH *jout;
   ReadOnly = 1;
@@ -1099,10 +1107,10 @@ void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
   }
 
   if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,name,iname,NULL))) {
-    String *str = NewString(tm);
+    String *str = tm;
     Replace(str,"$value",value, DOH_REPLACE_ANY);
     Printf(jout,"  %s\n\n", str);
-    Delete(str);
+    Delete(tm);
   } else {
     SwigToJavaType(type, iname, java_type, shadow && wrapping_member);
     if(strcmp(jname, value) == 0 || strstr(value,"::") != NULL) {

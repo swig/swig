@@ -355,7 +355,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   String *outarg;
   String *check;
   String *kwargs;
-  char     *tm;
+  String *tm;
   int      numopt = 0;
   int      numin = 0;
 
@@ -424,18 +424,6 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       } else {
 	Printf(kwargs,"\"arg%d\",", j+1);
       }
-      /*
-      {
-	char *m;
-	int   nmatch = 0;
-	m = Swig_typemap_lookup_multi((char *) "in", p, source, f, &nmatch);
-	if (m) {
-	  Printf(stdout,"nmatch = %d\n", nmatch);
-	  Printf(stdout,"%s\n\n", m);
-	}
-      }
-      */
-
       /*      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {*/
       if ((tm = Swig_typemap_lookup_multi((char *)"in",p,source,f,&numin))) {
 	Putc('O',parse_args);
@@ -446,6 +434,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	Printv(get_pointers,tm,"\n", 0);
 	Replace(get_pointers,"$argnum", argnum, DOH_REPLACE_ANY);
 	Replace(get_pointers,"$arg",source, DOH_REPLACE_ANY);
+	Delete(tm);
       } else {
 	int noarg = 0;
 
@@ -559,12 +548,14 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,ln,source,target,0))) {
       Printf(check,"%s\n",tm);
       Replace(check,"$argnum", argnum, DOH_REPLACE_ANY);
+      Delete(tm);
     }
     /* Check if there was any cleanup code */
     if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,ln,target,source,0))) {
       Printf(cleanup,"%s\n",tm);
       Replace(cleanup,"$argnum", argnum, DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
+      Delete(tm);
     }
     /* Check for output arguments */
     if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"resultobj",0))) {
@@ -572,6 +563,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       Replace(outarg,"$argnum",argnum,DOH_REPLACE_ANY);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
       have_output++;
+      Delete(tm);
     }
     p = nextSibling(p);
     i++;
@@ -596,6 +588,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   /* Return the function value */
   if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char *)"result",(char*)"result",(char*)"resultobj",0))) {
     Printf(f->code,"%s\n", tm);
+    Delete(tm);
   } else {
     switch(SwigType_type(d)) {
     case T_INT: case T_UINT: case T_BOOL:
@@ -649,12 +642,14 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   if (NewObject) {
     if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
       Printf(f->code,"%s\n",tm);
+      Delete(tm);
     }
   }
 
   /* See if there is any return cleanup code */
   if ((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
     Printf(f->code,"%s\n",tm);
+    Delete(tm);
   }
 
   Printf(f->code,"    return resultobj;\n}\n");
@@ -730,7 +725,7 @@ void
 PYTHON::link_variable(char *name, char *iname, SwigType *t) {
     char   *wname;
     static int have_globals = 0;
-    char   *tm;
+    String  *tm;
     Wrapper *getf, *setf;
 
     getf = NewWrapper();
@@ -756,6 +751,7 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
       if ((tm = Swig_typemap_lookup((char*)"varin",t,name,name,(char*)"val",name,0))) {
 	Printf(setf->code,"%s\n",tm);
 	Replace(setf->code,"$name",iname, DOH_REPLACE_ANY);
+	Delete(tm);
       } else {
 	switch(SwigType_type(t)) {
 
@@ -896,9 +892,11 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
     if ((tm = Swig_typemap_lookup((char*)"varout",t,name,name, name,(char*)"pyobj",0))) {
       Printf(getf->code,"%s\n",tm);
       Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
+      Delete(tm);
     } else if ((tm = Swig_typemap_lookup((char*)"out",t,name,name,name,(char*)"pyobj",0))) {
       Printf(getf->code,"%s\n",tm);
       Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
+      Delete(tm);
     } else {
       switch(SwigType_type(t)) {
       case T_INT: case T_UINT:
@@ -1000,10 +998,11 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
  * ----------------------------------------------------------------------------- */
 void
 PYTHON::declare_const(char *name, char *iname, SwigType *type, char *value) {
-  char   *tm;
+  String  *tm;
 
   if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,value,name,0))) {
     Printf(const_code,"%s\n", tm);
+    Delete(tm);
   } else {
     switch(SwigType_type(type)) {
     case T_INT: case T_UINT: case T_BOOL:

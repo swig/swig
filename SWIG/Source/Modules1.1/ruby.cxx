@@ -445,7 +445,7 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
 
 void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   char source[256], target[256];
-  char *tm;
+  String *tm;
   String *cleanup, *outarg;
   Wrapper *f;
   int i;
@@ -578,10 +578,9 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
       /* Get typemap for this argument */
       tm = ruby_typemap_lookup((char*)"in",pt,pn,ln,source,target,f);
       if (tm) {
-	String *s = NewString(tm);
-	Printv(f->code, s, 0);
+	Printv(f->code, tm, 0);
 	Replace(f->code, "$arg", source, DOH_REPLACE_ANY);
-	Delete(s);
+	Delete(tm);
       } else {
 	Printf(stderr,"%s : Line %d. No typemapping for datatype %s\n",
 		input_file,line_number, SwigType_str(pt,0));
@@ -594,28 +593,25 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     /* Check to see if there was any sort of a constaint typemap */
     tm = ruby_typemap_lookup((char*)"check",pt,pn,ln,source,target);
     if (tm) {
-      String *s = NewString(tm);
-      Printv(f->code, s, 0);
+      Printv(f->code, tm, 0);
       Replace(f->code, "$arg", source, DOH_REPLACE_ANY);
-      Delete(s);
+      Delete(tm);
     }
 
     /* Check if there was any cleanup code (save it for later) */
     tm = ruby_typemap_lookup((char*)"freearg",pt,pn,ln,target,source);
     if (tm) {
-      String *s = NewString(tm);
-      Printv(cleanup,s,0);
+      Printv(cleanup,tm,0);
       Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
-      Delete(s);
+      Delete(tm);
     }
 
     tm = ruby_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"vresult");
     if (tm) {
-      String *s = NewString(tm);
       need_result = 1;
-      Printv(outarg, s, 0);
+      Printv(outarg, tm, 0);
       Replace(outarg, "$arg", source, DOH_REPLACE_ANY);
-      Delete(s);
+      Delete(tm);
     }
   }
 
@@ -631,9 +627,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     } else {
       tm = ruby_typemap_lookup((char*)"out",t,name,(char*)"result",(char*)"result",(char*)"vresult");
       if (tm) {
-	String *s = NewString(tm);
-	Printv(f->code, s, 0);
-	Delete(s);
+	Printv(f->code, tm, 0);
+	Delete(tm);
       } else {
 	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
 		input_file,line_number,SwigType_str(t,0));
@@ -651,9 +646,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   if (NewObject) {
     tm = ruby_typemap_lookup((char*)"newfree",t,name,(char*)"result",(char*)"result",(char*)"");
     if (tm) {
-      String *s = NewString(tm);
-      Printv(f->code,s, 0);
-      Delete(s);
+      Printv(f->code,tm, 0);
+      Delete(tm);
     }
   }
 
@@ -665,8 +659,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   /* Special processing on return value. */
   tm = ruby_typemap_lookup((char*)"ret",t,name,(char*)"result",(char*)"result",(char*)"");
   if (tm) {
-    String *s = NewString(tm);
-    Printv(f->code,s, 0);
+    Printv(f->code,tm, 0);
+    Delete(tm);
   }
 
   /* Wrap things up (in a manner of speaking) */
@@ -700,8 +694,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
  * --------------------------------------------------------------------- */
 
 void RUBY::link_variable(char *name, char *iname, SwigType *t) {
-  char *tm, *source;
-
+  char   *source;
+  String *tm;
   String *getfname, *setfname;
   Wrapper *getf, *setf;
 
@@ -728,9 +722,8 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
   if (!tm)
     tm = ruby_typemap_lookup((char*)"out",t,name,name,source,(char*)"_val");
   if (tm) {
-    String *s = NewString(tm);
-    Printv(getf->code,s, 0);
-    Delete(s);
+    Printv(getf->code,tm, 0);
+    Delete(tm);
   } else {
     Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	    input_file,line_number,SwigType_str(t,0));
@@ -761,9 +754,8 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
     if (!tm)
       tm = ruby_typemap_lookup((char*)"in",t,name,name,(char*)"_val",target);
     if (tm) {
-      String *s = NewString(tm);
-      Printv(setf->code,s,0);
-      Delete(s);
+      Printv(setf->code,tm,0);
+      Delete(tm);
     } else {
       Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	      input_file,line_number,SwigType_str(t,0));
@@ -860,23 +852,22 @@ char *RUBY::validate_const_name(char *name) {
  * --------------------------------------------------------------------- */
 
 void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
-  char *tm;
+  String *tm;
 
   if (current == CLASS_CONST)
     iname = klass->strip(iname);
 
   tm = ruby_typemap_lookup((char*)"const",type,name,name,value,iname);
   if (tm) {
-    String *str = NewString(tm);
-    Replace(str,"$value",value, DOH_REPLACE_ANY);
+    Replace(tm,"$value",value, DOH_REPLACE_ANY);
     if (current == CLASS_CONST) {
-      Replace(str,"$module", klass->vname, DOH_REPLACE_ANY);
-      Printv(klass->init, str, 0);
+      Replace(tm,"$module", klass->vname, DOH_REPLACE_ANY);
+      Printv(klass->init, tm, 0);
     } else {
-      Replace(str,"$module", modvar, DOH_REPLACE_ANY);
-      Printf(f_init,"%s", str);
+      Replace(tm,"$module", modvar, DOH_REPLACE_ANY);
+      Printf(f_init,"%s", tm);
     }
-    Delete(str);
+    Delete(tm);
   } else {
     Printf(stderr,"%s : Line %d. Unable to create constant %s = %s\n",
 	    input_file, line_number, SwigType_str(type,0), value);
@@ -895,9 +886,9 @@ void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
  *              f      = a wrapper function object (optional)
  * --------------------------------------------------------------------- */
 
-char *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname, String_or_char *lname, char *source, char *target, Wrapper *f) {
-  static String *s = 0;
-  char *tm;
+String *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname, String_or_char *lname, char *source, char *target, Wrapper *f) {
+  String *s = 0;
+  String *tm;
   String *target_replace = NewString(target);
   target = Char(target_replace);
   int type_code, add_pointer = 0;
@@ -935,6 +926,7 @@ char *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname,
     if (tm) {
       Delete(target_replace);
       Printv(s, tm, "\n", 0);
+      Delete(tm);
     } else {
       Clear(s);
       if (strcmp("in", op) == 0) {
@@ -968,9 +960,11 @@ char *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname,
     add_pointer = 0;
   }
 
-  if (Len(s) == 0)
+  if (Len(s) == 0) {
+    Delete(s);
     return NULL;
-  return Char(s);
+  }
+  return s;
 }
 
 

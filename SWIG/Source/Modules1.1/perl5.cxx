@@ -542,7 +542,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   int   pcount,i,j;
   Wrapper *f;
   char  source[256],target[256],temp[256], argnum[32];
-  char  *tm;
+  String  *tm;
   String *cleanup, *outarg;
   int    numopt = 0;
   int    need_save, num_saved = 0;
@@ -586,6 +586,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	Printf(f->code,"%s\n",tm);
 	Replace(f->code,"$argnum",argnum,DOH_REPLACE_ANY);
 	Replace(f->code,"$arg",source,DOH_REPLACE_ANY);
+	Delete(tm);
       } else {
 	switch(SwigType_type(pt)) {
 	case T_BOOL:
@@ -647,6 +648,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
     if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,ln,source,target,0))) {
       Printf(f->code,"%s\n", tm);
       Replace(f->code,"$argnum",argnum, DOH_REPLACE_ANY);
+      Delete(tm);
     }
     need_save = 0;
 
@@ -655,6 +657,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
       Replace(cleanup,"$argnum",argnum,DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",temp,DOH_REPLACE_ANY);
       need_save = 1;
+      Delete(tm);
     }
     if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"ST(argvi)",0))) {
       String *tempstr = NewString(tm);
@@ -663,6 +666,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
       Printf(outarg,"%s\n", tempstr);
       Delete(tempstr);
       need_save = 1;
+      Delete(tm);
     }
     /* If we need a saved variable, we need to emit to emit some code for that
        This only applies if the argument actually existed (not ignore) */
@@ -685,6 +689,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 
   if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"result",(char*)"ST(argvi)",0))) {
     Printf(f->code, "%s\n", tm);
+    Delete(tm);
   } else {
     if (SwigType_type(d) != T_VOID) {
       Printf(f->code,"    ST(argvi) = sv_newmortal();\n");
@@ -743,11 +748,13 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   if (NewObject) {
     if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
       Printf(f->code,"%s\n",tm);
+      Delete(tm);
     }
   }
 
   if ((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
     Printf(f->code,"%s\n", tm);
+    Delete(tm);
   }
 
   Printf(f->code,"    XSRETURN(argvi);\n}\n");
@@ -808,6 +815,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 
 	if ((tm = Swig_typemap_lookup((char*)"perl5in",pt,(char*)"",sourceNtarget,sourceNtarget,sourceNtarget,0))) {
 	  Printf(func,"%s\n", tm);
+	  Delete(tm);
 	} else if (is_shadow(pt)) {
 	  /*
 	  if (i >= (pcount - numopt))
@@ -837,6 +845,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	     "}\n",
 	     0);
       need_stub = 1;
+      Delete(tm);
     } else if (is_shadow(d)) {
       Printv(func, tab4, "return undef if (!defined($result));\n", 0);
 
@@ -887,7 +896,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
   char  set_name[256];
   char  val_name[256];
   Wrapper  *getf, *setf;
-  char  *tm;
+  String  *tm;
   int   setable = 1;
 
   sprintf(set_name,"_wrap_set_%s",iname);
@@ -912,8 +921,10 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
     /* Check for a few typemaps */
     if ((tm = Swig_typemap_lookup((char*)"varin",t,(char*)"",name,(char*)"sv",name,0))) {
       Printf(setf->code,"%s\n", tm);
+      Delete(tm);
     } else if ((tm = Swig_typemap_lookup((char*)"in",t,(char*)"",name, (char*)"sv",name,0))) {
       Printf(setf->code,"%s\n", tm);
+      Delete(tm);
     } else {
       switch(SwigType_type(t)) {
       case T_INT : case T_BOOL: case T_UINT:
@@ -1004,6 +1015,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 
   if ((tm = Swig_typemap_lookup((char*)"varout",t,(char*)"",name, name, (char*)"sv",0))) {
     Printf(getf->code,"%s\n", tm);
+    Delete(tm);
   } else {
     switch(SwigType_type(t)) {
 
@@ -1172,7 +1184,7 @@ void
 PERL5::declare_const(char *name, char *iname, SwigType *type, char *value)
   {
 
-  char   *tm;
+  String   *tm;
   static  int have_int_func = 0;
   static  int have_double_func = 0;
   static  int have_char_func = 0;
@@ -1180,6 +1192,7 @@ PERL5::declare_const(char *name, char *iname, SwigType *type, char *value)
 
   if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,value,name,0))) {
     Printf(f_init,"%s\n",tm);
+    Delete(tm);
   } else {
     switch(SwigType_type(type)) {
     case T_INT: case T_UINT: case T_BOOL:
@@ -1536,7 +1549,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   int      i;
   String  *cname;
   int      pcount, numopt;
-  char    *tm;
+  String  *tm;
   int      need_wrapper = 0;
 
   member_func = 1;
@@ -1576,8 +1589,9 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
         sprintf(sourceNtarget, "$args[%d]", i);
   
         if ((tm = Swig_typemap_lookup((char*)"perl5in",pt,(char*)"",sourceNtarget, sourceNtarget,sourceNtarget,0))) {
-      Printf(func,"%s\n",tm);
-      need_wrapper = 1;
+	  Printf(func,"%s\n",tm);
+	  need_wrapper = 1;
+	  Delete(tm);
         }
         i++;
       }
@@ -1603,6 +1617,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
           "}\n",
           0);
       need_wrapper = 1;
+      Delete(tm);
   
     } else if (is_shadow(t)) {
   

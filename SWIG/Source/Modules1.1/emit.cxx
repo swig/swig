@@ -32,7 +32,7 @@ int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
 
   Parm *p;
   int   i;
-  char *tm;
+  String *tm;
   SwigType *pt;
   DOHString  *pvalue;
   DOHString  *pname;
@@ -53,16 +53,19 @@ int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
       tm = Swig_typemap_lookup((char*)"arginit",pt,pname,lname, (char*)"",lname,f);
       if (tm) {
 	Printv(f->code,tm,"\n",0);
+	Delete(tm);
       }
       /* Check for ignore or default typemaps */
       tm = Swig_typemap_lookup((char*)"default",pt,pname,lname,(char*)"",lname,f);
       if (tm) {
 	Printv(f->code,tm,"\n",0);
+	Delete(tm);
       }
       tm = Swig_typemap_lookup((char*)"ignore",pt,pname,lname,(char*)"",lname,f);
       if (tm) {
 	Printv(f->code,tm,"\n",0);
 	Setattr(p,"ignore","1");
+	Delete(tm);
       }
       i++;
     }
@@ -95,14 +98,16 @@ void emit_set_action(DOHString_or_char *decl) {
 }
 
 void emit_func_call(char *decl, SwigType *t, ParmList *l, Wrapper *f) {
-  char *tm;
+  String *tm;
 
   if ((tm = Swig_typemap_lookup((char*)"except",t,decl,(char*)"result", (char*)"result",(char*)"",0))) {
     Printv(f->code,tm,0);
     Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
+    Delete(tm);
   } else if ((tm = Swig_except_lookup())) {
     Printv(f->code,tm,0);
     Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
+    Delete(tm);
   } else {
     Printv(f->code,"$function",0);
   }

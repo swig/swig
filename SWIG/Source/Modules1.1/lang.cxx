@@ -1287,12 +1287,13 @@ void Language::cpp_variable(char *name, char *iname, SwigType *t) {
     } else if (!AddMethods) {
       /* Check for a member in typemap here */
       String *target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
-      char *tm = Swig_typemap_lookup((char *) "memberin",t,name,Swig_cparm_name(0,1),Swig_cparm_name(0,1),target,0);
+      String *tm = Swig_typemap_lookup((char *) "memberin",t,name,Swig_cparm_name(0,1),Swig_cparm_name(0,1),target,0);
       if (!tm) {
 	if (SwigType_isarray(t)) make_wrapper = 0;
 	emit_set_action(Swig_cmemberset_call(name,t));
       }  else {
 	emit_set_action(tm);
+	Delete(tm);
       }
       Delete(target);
     }

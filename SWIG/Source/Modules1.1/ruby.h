@@ -14,7 +14,7 @@ class RUBY : public Language {
  protected:
   virtual String *make_wrapper_name(char *cname);
   virtual char *validate_const_name(char *name);
-  virtual char *ruby_typemap_lookup(char *, SwigType *, String_or_char *, String_or_char *, char *, char *, Wrapper * = 0);
+  virtual String *ruby_typemap_lookup(char *, SwigType *, String_or_char *, String_or_char *, char *, char *, Wrapper * = 0);
   virtual int to_VALUE(SwigType *, char *, DOHString *, int = 0);
   virtual int from_VALUE(SwigType *, char *, char *, DOHString *);
  public:

@@ -216,12 +216,12 @@ is_a_pointer (SwigType *t)
    requested -- enum handling is somewhat broken in the 1.1 parser.
    But we don't want to change it now since it is deprecated. */
 
-static char *
+static String *
 mzscheme_typemap_lookup(const char *op, SwigType *type, const String_or_char *pname, const String_or_char *lname,
 			String_or_char *source,
 			String_or_char *target, Wrapper *f)
 {
-  char *tm;
+  String *tm;
   tm = Swig_typemap_lookup((char*) op, type, (char*)pname, (char*)lname, source, target, f);
   if (!tm) {
     SwigType *base = SwigType_typedef_resolve_all(type);
@@ -245,7 +245,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   String *outarg = NewString("");
   String *build = NewString("");
   SwigType *t;
-  char  *tm;
+  String   *tm;
   int argout_set = 0;
   int i = 0;
 
@@ -304,6 +304,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       if ((tm = mzscheme_typemap_lookup ("in", pt, pn, ln, source, target, f))) {
 	Printv(f->code, tm, "\n", 0);
 	mreplace (f->code, argnum, arg, proc_name);
+	Delete(tm);
       }
       // no typemap found
       // check if typedef and resolve
@@ -316,6 +317,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       // Yep.  Use it instead of the default
       Printv(f->code, tm, "\n", 0);
       mreplace (f->code, argnum, arg, proc_name);
+      Delete(tm);
     }
 
     // Pass output arguments back to the caller.
@@ -325,6 +327,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       Printv(outarg, tm, "\n",0);
       mreplace (outarg, argnum, arg, proc_name);
       argout_set = 1;
+      Delete(tm);
     }
 
     // Free up any memory allocated for the arguments.
@@ -332,6 +335,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       // Yep.  Use it instead of the default
       Printv(cleanup, tm, "\n",0);
       mreplace (cleanup, argnum, arg, proc_name);
+      Delete(tm);
     }
     i++;
   }
@@ -347,6 +351,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 				     (char*)"result", (char*)"values[0]", f))) {
     Printv(f->code, tm, "\n",0);
     mreplace (f->code, argnum, arg, proc_name);
+    Delete(tm);
   }
   else {
     throw_unhandled_mzscheme_type_error (d);
@@ -366,6 +371,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 				       (char*)"result", (char*)"", f))) {
       Printv(f->code, tm, "\n",0);
       mreplace (f->code, argnum, arg, proc_name);
+      Delete(tm);
     }
   }
 
@@ -376,6 +382,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     // Yep.  Use it instead of the default
     Printv(f->code, tm, "\n",0);
     mreplace (f->code, argnum, arg, proc_name);
+    Delete(tm);
   }
 
   // Wrap things up (in a manner of speaking)
@@ -421,7 +428,7 @@ MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
 {
   String *proc_name = NewString("");
   char  var_name[256];
-  char  *tm;
+  String *tm;
   String *tm2 = NewString("");;
   String *argnum = NewString("0");
   String *arg = NewString("argv[0]");
@@ -452,6 +459,7 @@ MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
 	Printv(tm2, tm,0);
 	mreplace(tm2, argnum, arg, proc_name);
 	Printv(f->code, tm2, "\n",0);
+	Delete(tm);
       }
       else {
 	throw_unhandled_mzscheme_type_error (t);
@@ -465,6 +473,7 @@ MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
     if ((tm = mzscheme_typemap_lookup ("varout",
 				       t, name, name, name, (char*)"swig_result",0))) {
       Printf (f->code, "%s\n", tm);
+      Delete(tm);
     }
     else {
       throw_unhandled_mzscheme_type_error (t);
@@ -517,7 +526,7 @@ MZSCHEME::declare_const (char *name, char *iname, SwigType *type, char *value)
   String *proc_name = NewString("");
   String *rvalue = NewString("");
   String *temp = NewString("");
-  char   *tm;
+  String *tm;
 
   ReadOnly = 1;     // Enable readonly mode.
 
@@ -553,6 +562,7 @@ MZSCHEME::declare_const (char *name, char *iname, SwigType *type, char *value)
 				 rvalue, name,0))) {
     // Yep.  Use it instead of the default
     Printf (f_init, "%s\n", tm);
+    Delete(tm);
   } else {
     // Create variable and assign it a value
 
@@ -582,3 +592,6 @@ MZSCHEME::import_start(char *modname) {
 void 
 MZSCHEME::import_end() {
 }
+
+
+

@@ -828,7 +828,7 @@ static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, Par
  * Perform a typemap lookup (ala SWIG1.1)
  * ----------------------------------------------------------------------------- */
 
-char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname,
+String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname,
 			  String_or_char *lname, String_or_char *source,
 			  String_or_char *target, Wrapper *f) 
 {
@@ -858,7 +858,7 @@ char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_ch
   }
   Replace(s,"$parmname",pname, DOH_REPLACE_ANY);
   Replace(s,"$name",pname,DOH_REPLACE_ANY);
-  return Char(s);
+  return s;
 }
 
 
@@ -868,7 +868,7 @@ char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_ch
  * Perform a multi-valued typemap lookup
  * ----------------------------------------------------------------------------- */
 
-char *Swig_typemap_lookup_multi(const String_or_char *op, ParmList *parms, String_or_char *source, Wrapper *f, int *nmatch) 
+String *Swig_typemap_lookup_multi(const String_or_char *op, ParmList *parms, String_or_char *source, Wrapper *f, int *nmatch) 
 {
   Hash      *tm;
   String    *s;
@@ -916,7 +916,111 @@ char *Swig_typemap_lookup_multi(const String_or_char *op, ParmList *parms, Strin
     argnum++;
 
   }
-  return Char(s);
+  return s;
+}
+
+
+/* -----------------------------------------------------------------------------
+ * Swig_typemap_single()
+ *
+ * Perform a single valued typemap lookup
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_typemap_single(const String_or_char *op, ParmList *parms, Hash *vars, Wrapper *f)
+{
+  Hash   *tm;
+  String *s;
+  String *key;
+  ParmList *locals;
+  SwigType  *type = Getattr(parms,"type");
+  String    *pname = Getattr(parms,"name");
+  String    *lname = Getattr(parms,"lname");
+
+  tm = Swig_typemap_search(op,type,pname);
+  if (!tm) return 0;
+
+  s = Getattr(tm,"code");
+  if (!s) return 0;
+  s = Copy(s);             /* Make a local copy of the typemap code */
+
+  locals = Getattr(tm,"locals");
+
+  if (locals && f) {
+    typemap_locals(type,pname,s,locals,f);
+  }
+  typemap_replace_vars(s,type,pname,lname,0);
+  {
+    String *tmname = Getattr(tm,"typemap");
+    if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
+  }
+  Replace(s,"$parmname",pname, DOH_REPLACE_ANY);
+  Replace(s,"$name",pname,DOH_REPLACE_ANY);
+
+  for (key = Firstkey(vars); key; key = Nextkey(vars)) {
+    String *val = Getattr(vars,key);
+    Replace(s,key,val,DOH_REPLACE_ANY);
+  }
+  return s;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_typemap_multi()
+ *
+ * Perform a multi-valued typemap lookup
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_typemap_multi(const String_or_char *op, ParmList *parms, Hash *vars, Wrapper *f, int *nmatch) 
+{
+  Hash      *tm;
+  String    *s;
+  SwigType  *type;
+  String    *pname;
+  String    *lname;
+  String    *tmname;
+  ParmList  *locals;
+  String    *key;
+  int        argnum = 0;
+
+  tm = Swig_typemap_search_multi(op,parms,nmatch);
+  if (!tm) return 0;
+
+  s = Getattr(tm,"code");
+  if (!s) return 0;
+  s = Copy(s);             /* Make a local copy of the typemap code */
+
+  locals = Getattr(tm,"locals");
+
+  argnum = 0;
+  while (parms) {
+    type = Getattr(parms,"type");
+    pname = Getattr(parms,"name");
+    lname = Getattr(parms,"lname");
+
+    if (locals && f && !argnum) {
+      typemap_locals(type,pname,s,locals,f);
+    }
+
+    typemap_replace_vars(s,type,pname,lname,argnum);
+
+    /* Now perform character replacements (compatibility mode) */
+
+    if (!argnum) {
+      String *tmname;
+      Replace(s,"$name",pname, DOH_REPLACE_ANY);
+    }
+    parms = nextSibling(parms);
+    argnum++;
+
+  }
+  tmname = Getattr(tm,"typemap");
+  if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
+
+  /* Replace all user supplied variables */
+  for (key = Firstkey(vars); key; key = Nextkey(vars)) {
+    String *val = Getattr(vars,key);
+    Replace(s,key,val,DOH_REPLACE_ANY);
+  }
+  return s;
 }
 
 
