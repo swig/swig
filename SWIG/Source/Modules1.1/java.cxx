@@ -26,10 +26,9 @@ static  File         *f_wrappers = 0;
 static  File         *f_init = 0;
 
 static int    shadow = 0; // Set to 1 when generating shadow classes
-static int    classdef_emitted = 0;
 static int    have_default_constructor = 0;
 static int    native_func = 0;     // Set to 1 when wrapping a native function
-static int    enum_flag = 0; // Set to 1 when wrapping an enum
+static int    enum_constant_flag = 0; // Set to 1 when wrapping an enum or constant
 static int    static_flag = 0; // Set to 1 when wrapping a static functions or member variables
 static int    variable_wrapper_flag = 0; // Set to 1 when wrapping a nonstatic member variable
 static int    wrapping_member = 0; // Set to 1 when wrapping a member variable/enum/const
@@ -197,7 +196,7 @@ int JAVA::top(Node *n) {
 
   String* wrapper_name = NewString("");
 
-  if(package) {
+  if(Len(package)) {
     String *jniname = makeValidJniName(package);
     Printv(jnipackage, jniname, NULL);
     Delete(jniname);
@@ -228,13 +227,30 @@ int JAVA::top(Node *n) {
   Printf(f_wrappers,"extern \"C\" {\n");
   Printf(f_wrappers,"#endif\n");
 
+  // Start writing out the module class
   if(Len(package) > 0)
     Printf(f_java, "package %s;\n\n", package);
 
+  emitBanner(f_java);
+  if(module_import)
+    Printf(f_java, "%s\n", module_import);
+
+  if (module_class_modifiers && *Char(module_class_modifiers))
+    Printf(f_java, "%s", module_class_modifiers);
+  else
+    Printf(f_java, "public");
+  Printf(f_java, " class %s ", module);
+
+  if (module_baseclass && *Char(module_baseclass))
+    Printf(f_java, "extends %s ", module_baseclass);
+  if (module_interfaces)
+    Printv(f_java, module_interfaces, " ", NULL);
+  Printf(f_java, "{\n", module);
+  if (module_extra_code)
+    Printv(f_java, module_extra_code, NULL);
+
   /* Emit code */
   Language::top(n);
-
-  if(!classdef_emitted) emitClassDef();
 
   // Write out all the enums constants
   if (strlen(Char(module_constants_code)) != 0 )
@@ -294,30 +310,6 @@ void JAVA::emitBanner(File *f) {
   Printf(f, " * ----------------------------------------------------------------------------- */\n\n");
 }
 
-void JAVA::emitClassDef() {
-  if(!classdef_emitted) {
-    emitBanner(f_java);
-    if(module_import)
-      Printf(f_java, "%s\n", module_import);
-
-    if (module_class_modifiers && *Char(module_class_modifiers))
-      Printf(f_java, "%s", module_class_modifiers);
-    else
-      Printf(f_java, "public");
-    Printf(f_java, " class %s ", module);
-
-    if (module_baseclass && *Char(module_baseclass))
-      Printf(f_java, "extends %s ", module_baseclass);
-    if (module_interfaces)
-      Printv(f_java, module_interfaces, " ", NULL);
-    Printf(f_java, "{\n", module);
-    if (module_extra_code)
-      Printv(f_java, module_extra_code, NULL);
-
-  }
-  classdef_emitted = 1;
-}
-
 int JAVA::nativeWrapper(Node *n) {
 
   if (Getattr(n,"type")) {
@@ -374,8 +366,9 @@ int JAVA::functionWrapper(Node *n) {
   /* 
   Generate the java class wrapper function ie the java shadow class. Only done for public
   member variables. That is this generates the getters/setters for member variables.
+  Not for enums and constants.
   */
-  if(shadow && wrapping_member && !enum_flag) {
+  if(shadow && wrapping_member && !enum_constant_flag) {
     String *member_function_name = NewString("");
     String *java_function_name = NewString(iname);
     if(Cmp(iname, Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name))) == 0)
@@ -402,8 +395,6 @@ int JAVA::functionWrapper(Node *n) {
 
   // A new wrapper function object
   Wrapper *f = NewWrapper();
-
-  if(!classdef_emitted) emitClassDef();
 
   // Make a wrapper name for this function
   String *jniname = makeValidJniName(iname);
@@ -678,97 +669,67 @@ int JAVA::enumDeclaration(Node *n) {
 // ------------------------------------------------------------------------
 
 int JAVA::constantWrapper(Node *n) {
-  String *name    = Getattr(n,"name");
-  char *iname     = GetChar(n,"sym:name");
+  String *symname = Getattr(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
-  char     *value = GetChar(n,"value");
+  String *value   = GetChar(n,"value");
   ParmList  *l    = Getattr(n,"parms");
-
   String *tm;
-  String *jname;
-  DOH *jout;
-  String *constants_code;
   String *java_type = NewString("");
 
-  if(!classdef_emitted) emitClassDef();
-
-  /* tidy this up */
-  if(shadow && wrapping_member) {
-    jout = shadow_code;
-    jname = shadow_variable_name;
-    constants_code = shadow_constants_code;
-  } else {
-    jout = f_java;
-    jname = name;
-    constants_code = module_constants_code;
-  }
-
-  if ((tm = Swig_typemap_lookup_new("const",n,"",0))) {
-    String *str = tm;
-    Replace(str,"$value",value, DOH_REPLACE_ANY);
-    Printf(jout,"  %s\n\n", str);
-    Delete(tm);
-  } else {
-    if (wrapping_member) {
-      Swig_typemap_attach_parms("jstype", l, 0);
-      if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
-        String *javaclassname = is_shadow(SwigType_base(Getattr(n,"type")));
-        Replaceall(javaclassname, "enum ", "");
-        Replaceall(tm,"$javaclassname", javaclassname);
-        if (!Len(tm)) {
-          Printf(java_type,"long");
-        }
-        else
-          Printf(java_type,"%s", tm);
-      } else {
-        Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
-            "No jstype typemap defined for %s\n", SwigType_str(type,0));
+  if (wrapping_member) {
+    Swig_typemap_attach_parms("jstype", l, 0);
+    if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
+      String *javaclassname = is_shadow(SwigType_base(Getattr(n,"type")));
+      Replaceall(javaclassname, "enum ", "");
+      Replaceall(tm,"$javaclassname", javaclassname);
+      if (!Len(tm)) {
+        Printf(java_type,"long");
       }
-    } else {
-      Swig_typemap_attach_parms("jtype", l, 0);
-      if ((tm = Swig_typemap_lookup_new("jtype",n,"",0))) {
-        Printf(java_type,"%s", tm);
-      } else {
-        Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
-            "No jtype typemap defined for %s\n", SwigType_str(type,0));
-      }
-    }
-//    if(Cmp(jname, value) == 0 || strstr(value,"::") != NULL) {
-      // Enums are wrapped using a public final static int in Java.
-      // Other constants are wrapped using a public final static [jtype] in Java.
-      if(shadow && wrapping_member) {
-        Printf(shadow_constants_code, "  public final static %s %s = %s.%s;\n", java_type, jname, module, iname);
-        Printf(module_constants_code, "  public final static %s %s = %s();\n", java_type, iname, Swig_name_get(iname));
-      }
-      else {
-        Printf(module_constants_code, "  public final static %s %s = %s();\n", java_type, jname, Swig_name_get(iname));
-      }
-
-      String *new_value = NewString("");
-      Swig_save(&n,"value",NULL);
-      if(SwigType_type(type) == T_STRING) {
-        Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
-        Setattr(n, "value", new_value);
-      }
-      else if(SwigType_type(type) == T_CHAR) {
-        Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));
-        Setattr(n, "value", new_value);
-      }
-
-      enum_flag = 1; // this flag can probably disappear and use Getattr(n, "value") instead
-      variableWrapper(n);
-      enum_flag = 0;
-      Swig_restore(&n);
-/*    } else {
-      if(SwigType_type(type) == T_STRING)
-        Printf(constants_code, "  public final static %s %s = \"%s\";\n", java_type, jname, value);
-      else if(SwigType_type(type) == T_CHAR)
-        Printf(constants_code, "  public final static String %s = \"%s\";\n", jname, value);
       else
-        Printf(constants_code, "  public final static %s %s = %s;\n", java_type, jname, value);
+        Printf(java_type,"%s", tm);
+    } else {
+      Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+          "No jstype typemap defined for %s\n", SwigType_str(type,0));
     }
-*/
+  } else {
+    Swig_typemap_attach_parms("jtype", l, 0);
+    if ((tm = Swig_typemap_lookup_new("jtype",n,"",0))) {
+      Printf(java_type,"%s", tm);
+    } else {
+      Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
+          "No jtype typemap defined for %s\n", SwigType_str(type,0));
+    }
   }
+
+  // Enums are wrapped using a public final static int in Java.
+  // Other constants are wrapped using a public final static [jtype] in Java.
+  if(shadow && wrapping_member) {
+    Printf(shadow_constants_code, "  public final static %s %s = %s.%s;\n", java_type, shadow_variable_name, module, symname);
+    Printf(module_constants_code, "  public final static %s %s = %s();\n", java_type, symname, Swig_name_get(symname));
+  }
+  else {
+    Printf(module_constants_code, "  public final static %s %s = %s();\n", java_type, symname, Swig_name_get(symname));
+  }
+
+  // Add the stripped quotes back in
+  String *new_value = NewString("");
+  Swig_save(&n,"value",NULL);
+  if(SwigType_type(type) == T_STRING) {
+    Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
+    Setattr(n, "value", new_value);
+  }
+  else if(SwigType_type(type) == T_CHAR) {
+    Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));
+    Setattr(n, "value", new_value);
+  }
+
+  // Each constant and enum value is wrapped with a separate JNI function call
+  enum_constant_flag = 1;
+  variableWrapper(n);
+  enum_constant_flag = 0;
+
+  Swig_restore(&n);
+  Delete(new_value);
   Delete(java_type);
   return SWIG_OK;
 }

@@ -33,7 +33,6 @@ private:
 
   // Java module methods
   String *is_shadow(SwigType *ty);
-  void emitClassDef();
   void emitBanner(File *f);
   void emitShadowClassDef(Node *);
   String *makeValidJniName(const String *name);

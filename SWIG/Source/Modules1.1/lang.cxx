@@ -1151,6 +1151,7 @@ int Language::enumvalueDeclaration(Node *n) {
   Setattr(n, "value", tmpValue);
 
   if (!CurrentClass) {
+    Setattr(n,"name",tmpValue); /* for wrapping of enums in a namespace when emit_action is used */
     constantWrapper(n);
   } else {
     memberconstantHandler(n);
