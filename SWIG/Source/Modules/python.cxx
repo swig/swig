@@ -2576,7 +2576,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   /* remove the wrapper 'w' since it was producing spurious temps */
   Swig_typemap_attach_parms("in", l, 0);
   Swig_typemap_attach_parms("directorin", l, 0);
-  Swig_typemap_attach_parms("directorout", l, 0);
   Swig_typemap_attach_parms("directorargout", l, w);
 
   Parm* p;
