@@ -406,7 +406,12 @@ Super_scope(DOH *o, int sc)
    int i;
 
    for (i = 0; i < s->numtags; i++)
-      Setscope(s->tags[i].filename, sc);
+     /* I am commenting this out because I can't find a definition anywhere.
+        Sorry for this horrible kludge!  The fprintf should be removed when
+        things are properly fixed.  -ttn, 2000/05/11 01:11:24  */
+     /* Setscope(s->tags[i].filename, sc) */
+     fprintf (stderr, "WARNING: Swig/super.c:Super_scope() dainbramaged!\n")
+     ;
 }
 
 /* -------------------------------------------------------------------------
@@ -453,7 +458,8 @@ Super_insert(DOH *so, int pos, DOH *str)
 			  Getfile(str), Getline(str));
    else
       /* hmph. Nothin. */
-      Super_string_insert(s, pos, str, 0, 0, 0);
+      /* The cast to `char *' seems bogus.  --ttn, 2000/05/11 00:03:24 */
+      Super_string_insert(s, pos, (char *) str, 0, 0, 0);
 
    return 0;
 }
