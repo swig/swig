@@ -76,6 +76,7 @@ static int	static_flag = 0; // Set to 1 when wrapping a static functions or memb
 static int	variable_wrapper_flag = 0; // Set to 1 when wrapping a member variable/enum/const
 static int	wrapping_member = 0;
 static int 	nofinalize = 0;	// for generating destructors
+static int	written_base_class = 0; // XX hack to prevent base class duplicated
 
 static String *shadow_enum_code = 0;
 static String *php_enum_code = 0;
@@ -1524,6 +1525,11 @@ PHP4::emit_shadow_classdef() {
 		" function getCPtr() {\n",
 		"    return $this->_cPtr;\n",
 		" }\n",
+		"\n",
+		" function setCPtr($cPtr, $own) {\n",
+		"    $this->_cPtr = $cPtr;\n",
+		"    $this->_cMemOwn = $own;\n",
+		" }\n",
 		"\n", 0);
 
 		// No explicit super constructor call as this class does not
@@ -1558,6 +1564,7 @@ int PHP4::classHandler(Node *n) {
 		}
 
 		Setattr(shadow_classes, classname, shadow_classname);
+
 		if(ctype && strcmp(ctype, "struct") == 0) {
 			sprintf(bigbuf, "struct %s", classname);
 			Setattr(shadow_classes, bigbuf, shadow_classname);
@@ -1571,7 +1578,6 @@ int PHP4::classHandler(Node *n) {
 		Printf(f_shadow, "<?\n");
 
 		emit_banner(f_shadow);
-
 
 		Clear(shadow_classdef);
 		Clear(shadow_code);
@@ -1597,36 +1603,41 @@ int PHP4::classHandler(Node *n) {
 		} else { // XXX Must be base class ?
 		  /* Write out class init code */
 
-		  Printf(s_oinit, "{\nzend_class_entry *ce;\n");
-		  Printf(s_oinit, "CG(class_entry).type = ZEND_USER_CLASS;\n");
-		  Printf(s_oinit, "CG(class_entry).name = estrdup(\"%s\");\n", package);
-		  Printf(s_oinit, "CG(class_entry).name_length = strlen(\"%s\");\n", package);
-		  Printf(s_oinit, "CG(class_entry).refcount = (int *) emalloc(sizeof(int));\n");
-		  Printf(s_oinit, "*CG(class_entry).refcount = 1;\n");
-		  Printf(s_oinit, "CG(class_entry).constants_updated = 0;\n");
+		  if(!written_base_class) {
+		    written_base_class = 1;
+		    Printf(s_oinit,"{\nzend_class_entry *ce;\n");
+		    Printf(s_oinit,"CG(class_entry).type = ZEND_USER_CLASS;\n");
+		    Printf(s_oinit, "CG(class_entry).name = estrdup(\"%s\");\n", package);
+		    Printf(s_oinit, "CG(class_entry).name_length = strlen(\"%s\");\n", package);
+		    Printf(s_oinit, "CG(class_entry).refcount = (int *) emalloc(sizeof(int));\n");
+		    Printf(s_oinit, "*CG(class_entry).refcount = 1;\n");
+		    Printf(s_oinit, "CG(class_entry).constants_updated = 0;\n");
 
-		  /* XXX do this ourselves */
+		    /* XXX do this ourselves */
 
-		  Printf(s_oinit, "zend_str_tolower(CG(class_entry).name, CG(class_entry).name_length);\n");
+		    Printf(s_oinit, "zend_str_tolower(CG(class_entry).name, CG(class_entry).name_length);\n");
 	
-		  /* Init class function hash */
+		    /* Init class function hash */
 		
-		  Printf(s_oinit, "zend_hash_init(&CG(class_entry).function_table, 10, NULL, ZEND_FUNCTION_DTOR, 0);\n");
-		  Printf(s_oinit, "zend_hash_init(&CG(class_entry).default_properties, 10, NULL, ZVAL_PTR_DTOR, 0);\n");
+		    Printf(s_oinit, "zend_hash_init(&CG(class_entry).function_table, 10, NULL, ZEND_FUNCTION_DTOR, 0);\n");
+		    Printf(s_oinit, "zend_hash_init(&CG(class_entry).default_properties, 10, NULL, ZVAL_PTR_DTOR, 0);\n");
 
-		  /* XXX Handle inheritance ? */
+		    /* XXX Handle inheritance ? */
 
-		  Printf(s_oinit, "CG(class_entry).handle_function_call = NULL;\n");
-		  Printf(s_oinit, "CG(class_entry).handle_property_set = NULL;\n");
-		  Printf(s_oinit, "CG(class_entry).handle_property_get = NULL;\n");
+		    Printf(s_oinit, "CG(class_entry).handle_function_call = NULL;\n");
+		    Printf(s_oinit, "CG(class_entry).handle_property_set = NULL;\n");
+		    Printf(s_oinit, "CG(class_entry).handle_property_get = NULL;\n");
 
-		  /* Save class in class table */
-		  Printf(s_oinit, "zend_hash_update(CG(class_table), \"%s\", strlen(\"%s\")+1, &CG(class_entry), sizeof(zend_class_entry), (void **) &CG(active_class_entry));\n", package, package);
+		    /* Save class in class table */
+		    Printf(s_oinit, "zend_hash_update(CG(class_table), \"%s\", strlen(\"%s\")+1, &CG(class_entry), sizeof(zend_class_entry), (void **) &CG(active_class_entry));\n", package, package);
 
-		  Printf(s_oinit, "}\n");
+		    Printf(s_oinit, "}\n");
 
-		  /* Load module in base class */
-		  Printf(f_shadow, "dl(\"%s.so\");\n", module);
+		    /* Load module in base class 
+		    Printf(f_shadow, "dl(\"%s.so\");\n", module);
+		    */
+		  }
+
 		}
 
 		Language::classHandler(n);
@@ -1825,7 +1836,6 @@ int PHP4::constructorHandler(Node *n) {
 		for (int i = 0; i < pcount ; i++, p = nextSibling(p)) {
 			SwigType *pt = Getattr(p, "type");
 			String *pn = Getattr(p, "name");
-			String *php4paramtype = NewString("");
 
 	/* Produce string representation of source and target arguments */
 
@@ -1836,21 +1846,17 @@ int PHP4::constructorHandler(Node *n) {
 			}
 
 			if(is_shadow(pt)) {
-				Printv(nativecall, "$", arg, ".getCPtr()", 0);
+				Printv(nativecall, "$", arg, "->getCPtr()", 0);
 			} else 
 				Printv(nativecall, "$", arg, 0);
 
-			/* Get the php type of the parameter */
-			SwigToPhpType(pt, pn, php4paramtype, shadow);
-
 			/* Add to php shadow function header */
-			Printf(shadow_code, "%s $%s", php4paramtype, arg);
+			Printf(shadow_code, "$%s", arg);
 
 			if(i != pcount-1) {
 				Printf(nativecall, ", ");
 				Printf(shadow_code, ", ");
 			}
-			Delete(php4paramtype);
 		}
 
 		Printf(shadow_code, ") {\n");
@@ -1890,12 +1896,35 @@ PHP4::memberconstantHandler(Node *n) {
 
 int
 PHP4::classforwardDeclaration(Node *n) {
-		;
+	String *name = Getattr(n, "name");
+	String *rename = Getattr(n, "sym:name");
+	String *type = Getattr(n, "kind");
+	String *stype;
+
+	if(shadow) {
+		stype = NewString(name);
+		SwigType_add_pointer(stype);
+		Setattr(shadow_classes, stype, rename);
+		Delete(stype);
+		if(Len(type) > 0) {
+			stype = NewStringf("%s %s", type, name);
+			SwigType_add_pointer(stype);
+			Setattr(shadow_classes, stype, rename);
+			Delete(stype);
+		}
+	}
+	return SWIG_OK;
 }
 
 int
-PHP4::typedefHandler(Node *) {
-		;
+PHP4::typedefHandler(Node *n) {
+	SwigType *t = Getattr(n, "type");
+	String *name = Getattr(n, "name");
+	if(!shadow) return SWIG_OK;
+	if(is_shadow(t)) {
+		Setattr(shadow_classes, name, is_shadow(t));
+	}
+	return SWIG_OK;
 }
 
 void 
@@ -1925,16 +1954,22 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 
 	Printf(shadow_code, "function %s(", iname);
 
-	if(SwigType_type(t) != T_VOID) {
-			Printf(nativecall, "return ");
+	if((SwigType_type(t) != T_VOID) && !is_shadow(t)) {
+		Printf(nativecall, "return ");
+		Printv(nativecall, package, "::", php_function_name, "(", 0);
+		Printv(nativecall, "$this->_cPtr", 0);
+	} else if(SwigType_type(t) == T_VOID) {
+		Printv(nativecall, package, "::", php_function_name, "(", 0);
+		Printv(nativecall, "$this->_cPtr", 0);
+	} else if(is_shadow(t)) {
+		String *shadowrettype = NewString("");
+		SwigToPhpType(t, iname, shadowrettype, shadow);
+		Printf(nativecall, "    $_sPtr = new %s();\n", shadowrettype);
+		Printf(nativecall, "    $_sPtr->_destroy();\n");
+		Printf(nativecall, "    $_iPtr = %s::%s($this->_cPtr",
+		       package, php_function_name);
 	}
 
-	if(is_shadow(t)) {
-		Printf(nativecall, "new (");
-	}
-
-	Printv(nativecall, package, "::", php_function_name, "(", 0);
-	Printv(nativecall, "$this->_cPtr", 0);
 
 	int pcount = ParmList_len(l);
 
@@ -1960,7 +1995,6 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	  {
 	    SwigType *pt = Getattr(p, "type");
 	    String   *pn = Getattr(p, "name");
-	    String   *phpparamtype = NewString("");
 
 	    /* Produce string repesentation of source and target arguments */
 
@@ -1978,41 +2012,40 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	    gencomma = 1;
 
 	    if(is_shadow(pt)) {
-		Printv(nativecall, arg, ".getCPtr()", 0);
+		Printv(nativecall, "$", arg, "->getCPtr()", 0);
 	    } else {
 		Printv(nativecall, "$", arg, 0);
 	    }
-
-	    /* Get the php type of the parameter  - XXX not needed, all var
-
-	    SwigToPhpType(pt, pn, phpparamtype, shadow);
-
-	    */
 
 	    /* Add to php shadow function header */
 
 	    Printf(shadow_code, "$%s", arg);
 
-	    Delete(phpparamtype);
 	}
       }
       
       if(is_shadow(t)) {
 	switch(SwigType_type(t)) {
 		case T_USER:
-			Printf(nativecall, "), true");
+			Printf(nativecall, ");\n");
+			Printf(nativecall, 
+			       "    $_sPtr->setCPtr($_iPtr, true);\n");
+			Printf(nativecall, "    return $_sPtr;\n");
 			break;
 		case T_REFERENCE:
 		case T_POINTER:
-			/* if(NewObject)	XXX handle memory ??? */
-			Printf(nativecall, "), false");
+			Printf(nativecall, ");\n");
+			Printf(nativecall, 
+			       "    $_sPtr->setCPtr($_iPtr, false);\n");
+			Printf(nativecall, "    return $_sPtr;\n");
 			break;
 		default:
 			Printf(stderr, "Internal Error: unknown shadow_type: %\n", SwigType_str(t,0));
 			break;
 	 }
+	} else {
+		Printf(nativecall,");\n");
 	}
-	Printf(nativecall,");\n");
 
 	Printf(shadow_code, ") {\n");
 	Printf(shadow_code, "    %s", nativecall);
