@@ -2596,7 +2596,7 @@ create and read pointer values.<p>
 
 <p>
 <tt>
-int SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *obj, void **ptr, swig_type_info *ty, int flags)</tt>
+int SWIG_ConvertPtr(Tcl_Obj *obj, void **ptr, swig_type_info *ty, int flags)</tt>
 
 <p>
 <blockquote>
@@ -2626,7 +2626,7 @@ is usually accessed as follows:
 <blockquote>
 <pre>
 Foo *f;
-if (SWIG_ConvertPtr(interp,$input, (void **) &f, SWIGTYPE_p_Foo, 0) == -1) return NULL;
+if (SWIG_ConvertPtr($input, (void **) &f, SWIGTYPE_p_Foo, 0) == -1) return NULL;
 
 Tcl_Obj *;
 obj = SWIG_NewPointerObj(f, SWIGTYPE_p_Foo, 0);
@@ -2639,7 +2639,7 @@ variable <tt>$1_descriptor</tt>.  For example:
 <blockquote>
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr(interp, $input,(void **) &$1, $1_descriptor,0)) == -1) return NULL;
+   if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,0)) == -1) return NULL;
 }
 </pre>
 </blockquote>
@@ -2651,7 +2651,7 @@ For example:
 <blockquote>
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr(interp,$input,(void **) &$1, $descriptor(Foo *), 0)) == -1) return NULL;
+   if ((SWIG_ConvertPtr($input,(void **) &$1, $descriptor(Foo *), 0)) == -1) return NULL;
 }
 </pre>
 </blockquote>
