@@ -1,0 +1,59 @@
+#######################################################################
+# $Header$
+# Simplified Wrapper and Interface Generator (SWIG)
+# 
+#######################################################################
+
+#.KEEP_STATE:
+
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+# Set your C++ compiler here.   g++ works on most machines,
+# but you might have to change it depending on your installation.
+#
+CC      = @CXX@
+
+#
+# Set the prefix below to indicate where you want SWIG to install its
+# files.   Normally this is /usr/local
+# 
+
+prefix     = @prefix@
+
+# Location of the SWIG library.  Is normally put in /usr/local/lib/swig_lib
+# The SWIG library contains configuration files and library modules
+# so you should install it someplace where it can be easily accessed.
+
+SWIG_LIB = $(prefix)/lib/swig1.3
+
+########################################################################
+# Normally, you shouldn't have to change anything below this point     #
+########################################################################
+
+WRAPOBJS = swigmain.o tcl8.o perl5.o python.o pycpp.o guile.o debug.o
+WRAPSRCS = swigmain.cxx tcl8.cxx perl5.cxx python.cxx pycpp.cxx guile.cxx debug.cxx
+
+TARGET  = ../swig
+CFLAGS  = @CFLAGS@ -DSWIG_LIB='"$(SWIG_LIB)"' -DSWIG_CC='"$(CC)"' @DEFS@
+INCLUDE = -I../Include -I../SWIG1.1
+SHELL  = /bin/sh
+
+#
+#
+#
+# Rules for creation of a .o file from .cxx
+.SUFFIXES: .cxx
+.cxx.o: 
+	$(CC) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
+
+all:    $(TARGET) 
+
+$(TARGET): $(WRAPOBJS)
+
+clean::
+	rm -f *.o *~
+
+nuke::
+	rm -f Makefile *~ #* core a.out 

@@ -1,0 +1,17 @@
+SWIG Source Directory
+
+All new development is being done in C. Portions of the old SWIG1.1
+C++ base are slowly being converted over.
+
+DOH -  Dave's Object Hack.   A C library containing core datatypes
+        for most of the new C-based system.
+
+Core -  C based SWIG core.
+
+Preprocessor - C based preprocessing module.
+
+SWIG1.1  - Old SWIG1.1 C++ core
+
+Modules1.1 - Old SWIG1.1 C++ modules
+  
+
