@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
- * swig11.h
+ * swigmod.h
  *
- *     Main header file for the SWIG1.1 core.
+ *     Main header file for SWIG modules
  *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
@@ -183,7 +183,7 @@ public:
 
   /* Miscellaneous */
 
-  virtual int  validIdentifier(String *s);        /* valid identifier? */
+  virtual  int  validIdentifier(String *s);        /* valid identifier? */
   virtual  int  addSymbol(String *s, Node *n);     /* Add symbol        */
   virtual  Node *symbolLookup(String *s);          /* Symbol lookup     */
   virtual  Node *classLookup(SwigType *s);         /* Class lookup      */
@@ -208,6 +208,8 @@ extern  int   SWIG_main(int, char **, Language *);
 extern  void  emit_args(SwigType *, ParmList *, Wrapper *f);
 extern  void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
 extern  void  SWIG_config_file(const String_or_char *);
+extern  void  SWIG_config_cppext(const char *ext);
+
 extern "C"    void  SWIG_typemap_lang(const char *);
 extern void   SWIG_library_directory(const char *);
 extern int    emit_num_arguments(ParmList *);
