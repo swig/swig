@@ -7,7 +7,7 @@ LANGUAGE   = guile_simple
 include ../common.mk
 
 # Overridden variables here
-CPP_TEST_CASES += long-long
+CPP_TEST_CASES += long_long
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -32,7 +32,7 @@ run_testcase = \
 
 # Clean
 %.clean:
-
+	@rm -f $*-guile
 
 clean:
 	@rm -f *_wrap* *.o *.so *~ ~* core

@@ -16,10 +16,6 @@
 
 ** Incorporate all the patches on SourceForge
 
-** Make a proper test suite with both language-independent and language-dependent tests.
-   The directories Examples/guile/test-suite, Examples/perl5/pointer-cxx, Examples/C++
-   contain some material that can be used.
-
 * for the unstable 1.5 series
 
 **     Maybe use libtool rather than all the home-grown compile/link stuff
