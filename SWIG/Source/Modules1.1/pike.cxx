@@ -129,7 +129,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int importDirective(Node *n) {
-        String *modname = Getattr(n,"module");
+    String *modname = Getattr(n,"module");
     if (modname) {
       Printf(f_init,"pike_require(\"%s\");\n", modname);
     }
@@ -464,7 +464,14 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int nativeWrapper(Node *n) {
-    return Language::nativeWrapper(n);
+    //   return Language::nativeWrapper(n);
+    String *name     = Getattr(n,"sym:name");
+    String *wrapname = Getattr(n,"wrap:name");
+
+    if (!addSymbol(wrapname,n)) return SWIG_ERROR;
+
+    add_method(n, name, wrapname,0);
+    return SWIG_OK;
   }  
 
   /* ------------------------------------------------------------
