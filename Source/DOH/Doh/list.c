@@ -364,7 +364,7 @@ static DohObjInfo ListType = {
  * Return 1 if an object is a List object.
  * ----------------------------------------------------------------------------- */
 int
-List_check(DOH *lo) {
+List_check(const DOH *lo) {
     List *l = (List *) lo;
     if (!l) return 0;
     if (!DohCheck(lo)) return 0;
