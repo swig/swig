@@ -514,7 +514,7 @@ using System.Runtime.InteropServices;
 
 /* Some ANSI C typemaps */
 
-%apply long { size_t };
+%apply unsigned long { size_t };
 
 /* csharp keywords */
 /* please test and activate */
