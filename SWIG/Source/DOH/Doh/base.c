@@ -20,7 +20,6 @@ static DohObjInfo DohBaseType = {
   0,                /* doh_del */
   0,                /* doh_copy */
   0,                /* doh_clear */
-  0,                /* doh_scope */
   0,                /* doh_str */
   0,                /* doh_data */
   0,                /* doh_dump */
@@ -260,91 +259,6 @@ DohData(const DOH *obj) {
   }
   DohTrace(DOH_CONVERSION, "Unknown object %x passed to Data being returned as-is.\n", obj);
   return (char *) obj;
-}
-
-/* -----------------------------------------------------------------------------
- * DohGetLine()
- *
- * Return the line number associated with an object or -1 if unspecified.
- * ----------------------------------------------------------------------------- */
-
-int
-DohGetline(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohGetline %x\n",obj);
-  if (DohCheck(obj)) {
-    if (b->objinfo->doh_position && b->objinfo->doh_position->doh_getline) {
-      return (b->objinfo->doh_position->doh_getline)(b);
-    } else {
-      DohTrace(DOH_UNSUPPORTED,"No getline method defined for type '%s'\n", b->objinfo->objname);
-      return -1;
-    }
-  }
-  DohTrace(DOH_UNKNOWN, "Unknown object %x passed to Getline.\n", obj);
-  return -1;
-}
-
-/* -----------------------------------------------------------------------------
- * DohSetLine()
- *
- * Set the line number associated with an object.
- * ----------------------------------------------------------------------------- */
-
-void
-DohSetline(DOH *obj, int line) {
-  DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohSetline %x, %d\n",obj, line);
-  if (DohCheck(obj)) {
-    if (b->objinfo->doh_position && b->objinfo->doh_position->doh_setline) {
-      (b->objinfo->doh_position->doh_setline)(obj, line);
-      return;
-    }
-    DohTrace(DOH_UNSUPPORTED,"No setline method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN, "Unknown object %x passed to Setline.\n", obj);
-  }
-}
-
-/* -----------------------------------------------------------------------------
- * DohGetfile()
- *
- * Get the file associated with an object.
- * ----------------------------------------------------------------------------- */
-
-DOH *
-DohGetfile(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohGetfile %x\n",obj);
-  if (DohCheck(obj)) {
-    if (b->objinfo->doh_position && b->objinfo->doh_position->doh_getfile) {
-      return (b->objinfo->doh_position->doh_getfile)(b);
-    }
-    DohTrace(DOH_UNSUPPORTED,"No getfile method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN, "Unknown object %x passed to Getfile.\n", obj);
-  }
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
- * DohSetfile()
- *
- * Set the file associated with an object.
- * ----------------------------------------------------------------------------- */
-
-void
-DohSetfile(DOH *obj, DOH *file) {
-  DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohSetfile %x, %x\n",obj,file);
-  if (DohCheck(obj)) {
-    if (b->objinfo->doh_position && b->objinfo->doh_position->doh_setfile) {
-      (b->objinfo->doh_position->doh_setfile)(obj,file);
-      return;
-    }
-    DohTrace(DOH_UNSUPPORTED,"No setfile method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN, "Unknown object %x passed to Setfile.\n", obj);
-  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -1051,43 +965,6 @@ DohChop(DOH *src) {
 }
 
 /* -----------------------------------------------------------------------------
- * Callable methods
- * ----------------------------------------------------------------------------- */
-
-/* -----------------------------------------------------------------------------
- * DohIsCallable()
- *
- * Return 1 if an object supports callable methods.
- * ----------------------------------------------------------------------------- */
-
-int
-DohIsCallable(const DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  if (!DohCheck(b)) return 0;
-  if (b->objinfo->doh_callable) return 1;
-  else return 0;
-}
-
-
-/* -----------------------------------------------------------------------------
- * DohCall()
- *
- * Perform a function call on an object.
- * ----------------------------------------------------------------------------- */
-
-DOH *
-DohCall(DOH *obj, DOH *args) {
-  DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohCall %x\n",obj);
-  if (DohCheck(b)) {
-    if ((b->objinfo->doh_callable) && (b->objinfo->doh_callable->doh_call)) {
-	  return (b->objinfo->doh_callable->doh_call)(b,args);
-    }
-  }
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
  * DohInit()
  *
  * Initialize an object.
@@ -1099,67 +976,67 @@ DohInit(DOH *b) {
   bs->refcount = 1;
   bs->objinfo = &DohBaseType;
   bs->flags = 0;
+  bs->file = 0;
+  bs->line = 0;
 }
 
 /* -----------------------------------------------------------------------------
- * DohXBase_setfile()
+ * DohSetFile()
  *
  * Set file location (default method).
  * ----------------------------------------------------------------------------- */
 void
-DohXBase_setfile(DOH *ho, DOH *file) {
-  DohXBase *h = (DohXBase *) ho;
-  if (!DohCheck(file)) file = NewString(file);
-  h->file = file;
-  Incref(h->file);
+DohSetFile(DOH *ho, DOH *file) {
+  DohBase *h = (DohBase *) ho;
+  if (DohCheck(h)) {
+    if (!DohCheck(file)) file = NewString(file);
+    h->file = file;
+    Incref(h->file);
+  } else {
+    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Setfile.\n",h);
+  }
 }
 
 /* -----------------------------------------------------------------------------
- * DohXBase_getfile()
+ * DohGetFile()
  * ----------------------------------------------------------------------------- */
 
 DOH *
-DohXBase_getfile(DOH *ho) {
-  DohXBase *h = (DohXBase *) ho;
-  return h->file;
+DohGetfile(DOH *ho) {
+  DohBase *h = (DohBase *) ho;
+  if (DohCheck(h)) {
+    return h->file;
+  } else {
+    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Getfile.\n", h);
+  }
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
- * DohXBase_setline()
+ * DohSetLine()
  * ----------------------------------------------------------------------------- */
 void
-DohXBase_setline(DOH *ho, int l) {
-  DohXBase *h = (DohXBase *) ho;
-  h->line = l;
+DohSetline(DOH *ho, int l) {
+  DohBase *h = (DohBase *) ho;
+  if (DohCheck(h)) {
+    h->line = l;
+  } else {
+    DohTrace(DOH_UNKNOWN, "Unknown object %x passed to Setline.\n", h);
+  }
 }
 
 /* -----------------------------------------------------------------------------
- * DohXBase_getline()
+ * DohGetLine()
  * ----------------------------------------------------------------------------- */
 int
-DohXBase_getline(DOH *ho) {
-  DohXBase *h = (DohXBase *) ho;
-  return h->line;
-}
-
-static DohPositionalMethods XBasePositionalMethods = {
-  DohXBase_setfile,
-  DohXBase_getfile,
-  DohXBase_setline,
-  DohXBase_getline
-};
-
-/* -----------------------------------------------------------------------------
- * DohXInit()
- *
- * Initialize an extended object.
- * ----------------------------------------------------------------------------- */
-void
-DohXInit(DOH *b) {
-  DohXBase *bs = (DohXBase *) b;
-  bs->file = 0;
-  bs->line = 0;
-  bs->objinfo->doh_position = &XBasePositionalMethods;
+DohGetline(DOH *ho) {
+  DohBase *h = (DohBase *) ho;
+  if (DohCheck(h)) {
+    return h->line;
+  } else {
+    DohTrace(DOH_UNKNOWN, "Unknown object %x passed to GetLine.\n", h);
+  }
+  return -1;
 }
 
 

@@ -19,7 +19,7 @@ static char cvsroot[] = "$Header$";
 #endif
 
 typedef struct String {
-    DOHXCOMMON;
+    DOHCOMMON;
     int            maxsize;                   /* Max size allocated */
     int            len;                       /* Current length     */
     int            hashkey;                   /* Hash key value     */
@@ -83,7 +83,6 @@ static DohObjInfo StringType = {
     DelString,         /* doh_del */
     CopyString,        /* doh_copy */
     String_clear,      /* doh_clear */
-    0,                 /* doh_scope */
     String_str,        /* doh_str */
     String_data,       /* doh_data */
     String_dump,       /* doh_dump */
@@ -148,7 +147,6 @@ NewString(const DOH *so)
     else s = (char *) so;
     str = (String *) DohObjMalloc(sizeof(String));
     str->objinfo = &StringType;
-    DohXInit(str);
     str->hashkey = -1;
     str->sp = 0;
     str->line = 1;
@@ -226,7 +224,6 @@ DelString(DOH *so) {
   if (s->str)
     DohFree(s->str);
   s->str = 0;
-  Delete(s->file);
   DohObjFree(s);
 }
 
@@ -324,11 +321,9 @@ add(String *s, const char *newstr) {
   }
   strcpy(s->str+s->len,newstr);
   if (s->sp >= s->len) {
-#ifdef DOH_STRING_UPDATE_LINES
     for (i = s->sp; i < s->len+l; i++) {
       if (s->str[i] == '\n') s->line++;
     }
-#endif
     s->sp = s->len+l;
   }
   s->len += l;
@@ -348,9 +343,7 @@ String_addchar(DOH *so, char c) {
   if (s->sp >= s->len) {
     s->sp = s->len+1;
     s->str[s->len+1] = 0;
-#ifdef DOH_STRING_UPDATE_LINES
     if (c == '\n') s->line++;
-#endif
   }
   s->len++;
 }
@@ -406,11 +399,9 @@ raw_insert(String *s, int pos, char *data, int len)
     if (s->sp >= pos) {
       int i;
 
-#ifdef DOH_STRING_UPDATE_LINES
       for (i = 0; i < len; i++) {
 	if (data[i] == '\n') s->line++;
       }
-#endif
       s->sp+=len;
     }
 
@@ -458,9 +449,7 @@ int String_delitem(DOH *so, int pos)
   if (s->sp > pos) {
     s->sp--;
     assert (s->sp >= 0);
-#ifdef DOH_STRING_UPDATE_LINES
     if (s->str[pos] == '\n') s->line--;
-#endif
   }
   memmove(s->str+pos, s->str+pos+1, ((s->len-1) - pos));
   s->len--;
@@ -534,9 +523,7 @@ String_write(DOH *so, void *buffer, int len) {
 int
 String_seek(DOH *so, long offset, int whence) {
   int    pos, nsp, inc;
-#ifdef DOH_STRING_UPDATE_LINES
   int prev;
-#endif
   String *s = (String *) so;
   if (whence == SEEK_SET) pos = 0;
   else if (whence == SEEK_CUR) pos = s->sp;
@@ -554,16 +541,12 @@ String_seek(DOH *so, long offset, int whence) {
 
   inc = (nsp > s->sp) ? 1 : -1;
 
-#ifdef DOH_STRING_UPDATE_LINES
   while (s->sp != nsp) {
     prev = s->sp + inc;
     if (prev>=0 && prev<=s->len && s->str[prev] == '\n')
       s->line += inc;
     s->sp += inc;
   }
-#else
-  s->sp = nsp;
-#endif
   assert (s->sp >= 0);
   return 0;
 }
@@ -594,9 +577,7 @@ String_putc(DOH *so, int ch) {
   } else {
     s->str[s->sp] = (char) ch;
     s->sp++;
-#ifdef DOH_STRING_UPDATE_LINES
   if (ch == '\n') s->line++;
-#endif
   }
   return ch;
 }
@@ -615,9 +596,7 @@ int String_getc(DOH *so) {
     c = EOF;
   else
     c = (int) s->str[s->sp++];
-#ifdef DOH_STRING_UPDATE_LINES
   if (c == '\n') s->line++;
-#endif
   return c;
 }
 
@@ -631,9 +610,7 @@ int String_ungetc(DOH *so, int ch) {
   if (ch == EOF) return ch;
   if (s->sp <= 0) return EOF;
   s->sp--;
-#ifdef DOH_STRING_UPDATE_LINES
   if (ch == '\n') s->line--;
-#endif
   return ch;
 }
 
@@ -795,9 +772,7 @@ String_chop(DOH *s) {
   while ((str->len > 0) && (isspace(*c))) {
     if (str->sp >= str->len) {
       str->sp--;
-#ifdef DOH_STRING_UPDATE_LINES
       if (*c == '\n') str->line--;
-#endif
     }
     str->len--;
     c--;

@@ -22,7 +22,7 @@ typedef struct HashNode {
 
 /* Hash object */
 typedef struct Hash {
-    DOHXCOMMON;
+    DOHCOMMON;
     HashNode          **hashtable;
     int                 hashsize;
     int                 currentindex;
@@ -115,7 +115,6 @@ DelHash(DOH *ho) {
     DohFree(h->hashtable);
     h->hashtable = 0;
     h->hashsize = 0;
-    Delete(h->file);
     DohObjFree(h);
 }
 
@@ -433,7 +432,6 @@ CopyHash(DOH *ho) {
     h = (Hash *) ho;
     nh = (Hash *) DohObjMalloc(sizeof(Hash));
     nh->objinfo = h->objinfo;
-    DohXInit(h);
     nh->hashsize = h->hashsize;
     nh->hashtable = (HashNode **) DohMalloc(nh->hashsize*sizeof(HashNode *));
     for (i = 0; i < nh->hashsize; i++) {
@@ -475,7 +473,6 @@ static DohObjInfo HashType = {
     DelHash,         /* doh_del */
     CopyHash,        /* doh_copy */
     Hash_clear,      /* doh_clear */
-    0,               /* doh_scope */
     Hash_str,        /* doh_str */
     0,               /* doh_data */
     0,               /* doh_dump */
