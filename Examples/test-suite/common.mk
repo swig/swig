@@ -42,7 +42,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
-	namespace_nested \
 	template_default_arg \
 	template_specialization_defarg \
 	template_specialization_enum \
@@ -134,8 +133,10 @@ CPP_TEST_CASES += \
 	name_inherit \
 	namespace_enum \
 	namespace_extend \
+	namespace_nested \
 	namespace_template \
 	namespace_typemap \
+	namespace_virtual_method \
 	newobject1 \
 	overload_complicated \
 	overload_copy \
