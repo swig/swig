@@ -19,18 +19,4 @@ private:
   int owned;
 };
 
-%typemap(ocaml,out) SWIGTYPE [ANY] {
-  $result = new SWIG_OCAML_ARRAY_WRAPPER($1);
-}
-
-%typemap(ocaml,varout) SWIGTYPE [ANY] {
-  $result = new SWIG_OCAML_ARRAY_WRAPPER($1);
-}
-
-%typemap(ocaml,in) SWIGTYPE [ANY] {
-  $1 = (SWIG_OCAML_ARRAY_WRAPPER<$ltype> *)$input;
-}
-
-%typemap(ocaml,varin) SWIGTYPE [ANY] {
-  $1 = (SWIG_OCAML_ARRAY_WRAPPER<$ltype> *)$input;
-}
+%apply SWIGTYPE [ANY] {SWIG_OCAML_ARRAY_WRAPPER};

@@ -160,11 +160,17 @@
 %typemap(varin) C_NAME {
     $1 = MZ_TO_C($input);
 }
+%typemap(memberin) C_NAME {
+    $1 = MZ_TO_C($input);
+}
 %typemap(out) C_NAME {
     $result = C_TO_MZ($1);
 }
 %typemap(varout) C_NAME {
     $result = C_TO_MZ($1);
+}
+%typemap(memberout) C_NAME {
+    $resunt = C_TO_MZ($1);
 }
 %typemap(in) C_NAME *INPUT (C_NAME temp) {
     temp = (C_NAME) MZ_TO_C($input);
@@ -185,8 +191,8 @@
 }
 %enddef
 
-SIMPLE_MAP(oc_bool, caml_val_bool, caml_long_val);
 SIMPLE_MAP(bool, caml_val_bool, caml_long_val);
+SIMPLE_MAP(oc_bool, caml_val_bool, caml_long_val);
 SIMPLE_MAP(char, caml_val_char, caml_long_val);
 SIMPLE_MAP(unsigned char, caml_val_uchar, caml_long_val);
 SIMPLE_MAP(int, caml_val_int, caml_long_val);

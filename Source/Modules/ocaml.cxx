@@ -232,15 +232,12 @@ public:
     Printf( f_mlibody,
 	    "val int_to_enum : c_enum_type -> int -> c_obj\n" );
     Printf( f_wrappers,
-	    "#ifdef __cplusplus\n"
-	    "extern \"C\"\n"
-	    "#endif\n"
-	    "void f_%s_init() {\n"
+	    "SWIGEXT void f_%s_init() {\n"
 	    "%s"
 	    "}\n",
 	    module, init_func_def );
     Printf( f_mlbody,
-	    "external f_init : unit -> unit = \"f_%s_init\"\n"
+	    "external f_init : unit -> unit = \"f_%s_init\" ;;\n"
 	    "let _ = f_init ()\n",
 	    module, module );
     Printf( f_enumtypes_type, "]\n" );
@@ -414,16 +411,13 @@ public:
 
     // writing the function wrapper function
     Printv(f->def,
-	   "#ifdef __cplusplus\n"
-	   "extern \"C\"\n"
-	   "#endif\n"
-	   "value ", wname, " (", NIL);
+	   "SWIGEXT value ", wname, " (", NIL);
     Printv(f->def, "value args", NIL);
     Printv(f->def, ")\n{", NIL);
     
     /* Define the scheme name in C. This define is used by several
        macros. */
-    Printv(f->def, "#define FUNC_NAME \"", mangled_name, "\"", NIL);
+    //Printv(f->def, "#define FUNC_NAME \"", mangled_name, "\"", NIL);
     
     // adds local variables
     Wrapper_add_local(f, "args", "CAMLparam1(args)");
@@ -516,7 +510,7 @@ public:
 	Replaceall(tm,"$target",Getattr(p,"lname"));   /* Deprecated */
 	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
-	Replaceall(tm,"$ntype",return_type_normalized);
+	Replaceall(tm,"$ntype",normalizeTemplatedClassName(Getattr(p,"type")));
 	Printv(outarg,tm,"\n",NIL);
 	p = Getattr(p,"tmap:argout:next");
 	argout_set = 1;
@@ -607,10 +601,7 @@ public:
 	Wrapper_add_local(df, "argv", "value *argv");
 
 	Printv(df->def,
-	       "#ifdef __cplusplus\n"
-	       "extern \"C\"\n"
-	       "#endif\n"
-	       "value ",dname,"(value args) {\n"
+	       "SWIGEXT value ",dname,"(value args) {\n"
 	       "  CAMLparam1(args);\n"
 	       "  int i;\n"
 	       "  int argc = caml_list_length(args);\n",NIL);
@@ -625,7 +616,7 @@ public:
 	Wrapper_print(df,f_wrappers);
 
 	Printf(f_mlbody, 
-	       "external %s_f : c_obj list -> c_obj list = \"%s\"\n"
+	       "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n"
 	       "let %s = fnhelper %s %s_f\n",
 	       mangled_name, dname, mangled_name, 
 	       newobj ? "true" : "false",
@@ -642,7 +633,7 @@ public:
       }
     } else {
       Printf(f_mlbody, 
-	     "external %s_f : c_obj list -> c_obj list = \"%s\"\n"
+	     "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n"
 	     "let %s = fnhelper %s %s_f\n",
 	     mangled_name, wname, mangled_name, newobj ? "true" : "false", 
 	     mangled_name );
@@ -703,11 +694,8 @@ public:
     if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 	    
       Printf (f->def, 
-	      "#ifdef __cplusplus\n"
-	      "extern \"C\"\n"
-	      "#endif\n"
-	      "value %s(value args) {\n", var_name);
-      Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
+	      "SWIGEXT value %s(value args) {\n", var_name);
+      // Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
 	    
       Wrapper_add_local (f, "swig_result", "value swig_result");
 	    
@@ -747,7 +735,7 @@ public:
 	    
       if( Getattr( n, "feature:immutable" ) ) {
 	Printf( f_mlbody, 
-		"external __%s : c_obj -> c_obj = \"%s\"\n"
+		"external __%s : c_obj -> c_obj = \"%s\" ;;\n"
 		"let _%s = __%s C_void\n",
 		mname, var_name, mname, mname );
 	Printf( f_mlibody, "val _%s : c_obj\n", iname );
@@ -760,9 +748,9 @@ public:
 		  mname, mname );
 	}
       } else {
-	Printf( f_mlbody, "external _%s : c_obj -> c_obj = \"%s\"\n",
+	Printf( f_mlbody, "external _%s : c_obj -> c_obj = \"%s\" ;;\n",
 		mname, var_name );
-	Printf( f_mlibody, "external _%s : c_obj -> c_obj = \"%s\"\n",
+	Printf( f_mlibody, "external _%s : c_obj -> c_obj = \"%s\" ;;\n",
 		mname, var_name );
       }
     } else {
