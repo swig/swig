@@ -1,11 +1,6 @@
 require 'director_string'
-require 'test/unit'
 
-
-include Director_string
-
-
-class B < A
+class B < Director_string::A
 
  def initialize(some_string)
   super(some_string)
