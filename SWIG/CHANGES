@@ -17,6 +17,47 @@ tree (maybe).
 Version 1.3.14 (In progress)
 ============================
 
+08/01/2002: cheetah (William Fulton)
+            [Java] New attribute 'jniclassname' for the module directive allows a way of
+            changing the JNI class name from the default which uses the modulename with JNI
+            appended after it.
+
+                %module (jniclassname="name") modulename
+
+            If 'name' is the same as 'modulename' then the module class name gets changed
+            from 'modulename' to modulenameModule.
+
+            Java backwards compatibility summary
+            ------------------------------------
+
+            The 'jniclassname' attribute is the last of the changes which will help in 
+            achieving some backwards compatibility for the changes in the Java module
+            version 1.3.14.  If at all possible change your code to take advantages of the 
+            improvements. If you were using proxy classes you may not notice any backwards 
+            compatibility issues. Here is an example which will help with most backwards 
+            compatibility problems where this is not possible:
+
+            Repalce:
+                %module modulename
+
+            With:
+                %module (jniclassname="modulename") modulename;
+                %typemap(javacode) SWIGTYPE %{
+                    public long getCPtr$javaclassname() {
+                        return swigCPtr;
+                    }
+                %}
+                %pragma(java) jniclassclassmodifiers="public";
+
+            The proxy constructors that took parameters (long cPtr, boolean cMemoryOwn)
+            were public and are now protected. If you were making use of these then you'll 
+            have to modify your code and the best solution would be to use the new type 
+            wrapper classes.
+
+            The other main areas are the pragmas and global variable wrapping. Replace 
+            the pragmas with one of the new directives or typemaps mentioned below and use
+            %rename on the variables.
+
 08/01/2002: beazley
             Fixed problem with file include order.  Language specific
             directories should take precedence over generic directories.
@@ -66,9 +107,9 @@ Version 1.3.14 (In progress)
 07/30/2002: cheetah (William Fulton)
             [Java] Due to new static typechecking all pointers held in a Java long are part of 
             the internal workings and this pointer value in the Java long has become abstracted
-            data. The pointer wrapper constructor and getCPtr() methods are as such protected.
+            data. The type wrapper constructor and getCPtr() methods are as such protected.
             If you need to mess around with pointers from Java or for example create a proxy 
-            class or pointer wrapper class around a null pointer, add a function/constructor 
+            class or type wrapper class around a null pointer, add a function/constructor 
             to do so with the %javacode typemap. You can also make getCPtr() public again with
             the %javagetcptr typemap.
 
@@ -541,11 +582,13 @@ Version 1.3.14 (In progress)
             new static type checking implementation makes it less so but it remains a
             functional interface to the C/C++ world. Proxy classes are the obvious way to use
             SWIG generated code, but for those who want a functional interface all non-primitive
-            types now have a simple Java class wrapper around the C/C++ pointer. The class name
-            is based on the SWIG descriptors used by the other language modules. For example:
+            types now have a simple Java class wrapper around the C/C++ type. Pointers and
+            references to primitive types are also wrapped by type wrapper classes. The type
+            wrapper classnames are based on the SWIG descriptors used by the other language 
+            modules. For example:
 
-            C/C++ type      Java class name
-            ----------      ---------------
+            C/C++ type      Java type wrapper class name
+            ----------      ----------------------------
             int*            SWIGTYPE_p_int
             double**        SWIGTYPE_p_p_double
             SomeClass*      SWIGTYPE_p_SomeClass
@@ -579,7 +622,7 @@ Version 1.3.14 (In progress)
             void foo(Snazzy sds);
 
             If SWIG has not parsed Snazzy it handles it simply as a pointer to a Snazzy.
-            The Java module gives it a wrapper class around the pointer and calls it 
+            The Java module gives it a type wrapper class around the pointer and calls it 
             SWIGTYPE_p_Snazzy. In other words it handles it in the same manner as types are 
             handled in the low-level functional interface. This approach is used for all 
             non-proxy classes, eg all pointer to pointers and pointers to primitive types.
@@ -588,8 +631,8 @@ Version 1.3.14 (In progress)
             -----------------------
             Backwards compatibility is not an issue if you have been using proxy classes and 
             no global variables/functions. Otherwise some changes will have to be made. 
-            The native methods still exist but they are now in a JNI interface class,
-            which is called modulenameJNI. As this class is really part of the internal workings,
+            The native methods still exist but they are now in a JNI class, which is called 
+            modulenameJNI. As this class is really part of the internal workings,
             it should not be required so the class has become protected. Some pragmas/directives
             will hopefully be added to help with backwards compatibility.
 
