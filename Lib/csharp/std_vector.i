@@ -188,22 +188,19 @@
        return pv;
       }
       CTYPE getitemcopy(int index) {
-        int size = int(self->size());
-        if (index>=0 && index<size)
+        if (index>=0 && index<(int)self->size())
           return (*self)[index];
         else
           throw std::out_of_range("index");
       }
       const CTYPE& getitem(int index) {
-        int size = int(self->size());
-        if (index>=0 && index<size)
+        if (index>=0 && index<(int)self->size())
           return (*self)[index];
         else
           throw std::out_of_range("index");
       }
       void setitem(int index, const CTYPE& value) {
-        int size = int(self->size());
-        if (index>=0 && index<size)
+        if (index>=0 && index<(int)self->size())
           (*self)[index] = value;
         else
           throw std::out_of_range("index");
@@ -214,8 +211,8 @@
       }
       // Takes a deep copy of the elements unlike ArrayList.GetRange
       std::vector<CTYPE > *GetRange(int index, int count) {
-        if (index>=0 && index<self->size()+1)
-          if (count >= 0 && index+count <= self->size())
+        if (index>=0 && index<(int)self->size()+1)
+          if (count >= 0 && index+count <= (int)self->size())
             return new std::vector<CTYPE >(self->begin()+index, self->begin()+index+count);
           else
             throw "count too large or negative.";
@@ -223,27 +220,27 @@
           throw std::out_of_range("index");
       }
       void Insert(int index, const CTYPE& value) {
-        if (index>=0 && index<self->size()+1)
+        if (index>=0 && index<(int)self->size()+1)
           self->insert(self->begin()+index, value);
         else
           throw std::out_of_range("index");
       }
       // Takes a deep copy of the elements unlike ArrayList.InsertRange
       void InsertRange(int index, const std::vector<CTYPE >& values) {
-        if (index>=0 && index<self->size()+1)
+        if (index>=0 && index<(int)self->size()+1)
           self->insert(self->begin()+index, values.begin(), values.end());
         else
           throw std::out_of_range("index");
       }
       void RemoveAt(int index) {
-        if (index>=0 && index<self->size())
+        if (index>=0 && index<(int)self->size())
           self->erase(self->begin() + index);
         else
           throw std::out_of_range("index");
       }
       void RemoveRange(int index, int count) {
-        if (index>=0 && index<self->size()+1)
-          if (count >= 0 && index+count <= self->size())
+        if (index>=0 && index<(int)self->size()+1)
+          if (count >= 0 && index+count <= (int)self->size())
             self->erase(self->begin()+index, self->begin()+index+count);
           else
             throw "count too large or negative.";
@@ -259,8 +256,8 @@
         std::reverse(self->begin(), self->end());
       }
       void Reverse(int index, int count) {
-        if (index>=0 && index<self->size()+1)
-          if (count >= 0 && index+count <= self->size())
+        if (index>=0 && index<(int)self->size()+1)
+          if (count >= 0 && index+count <= (int)self->size())
             std::reverse(self->begin()+index, self->begin()+index+count);
           else
             throw "count too large or negative.";
@@ -269,7 +266,7 @@
       }
       // Takes a deep copy of the elements unlike ArrayList.SetRange
       void SetRange(int index, const std::vector<CTYPE >& values) {
-        if (index>=0 && index<self->size()+1)
+        if (index>=0 && index<(int)self->size()+1)
           if (index+values.size() <= self->size())
             std::copy(values.begin(), values.end(), self->begin()+index);
           else
