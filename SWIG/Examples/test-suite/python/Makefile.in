@@ -14,6 +14,7 @@ CPP_TEST_CASES += \
 	attributetest \
 	complextest \
 	director_stl \
+	file_test \
 	implicittest \
 	inplaceadd \
 	lib_std_vectora \
