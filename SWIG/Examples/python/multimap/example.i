@@ -1,6 +1,7 @@
 /* File : example.i */
 %module example
 %include exception.i
+%include typemaps.i
 
 extern int    gcd(int x, int y);
 
@@ -40,4 +41,43 @@ extern int gcdmain(int argc, char *argv[]);
 }
 
 extern int count(char *bytes, int len, char c);
+
+
+/* This example shows how to wrap a function that mutates a string */
+
+/* Since str is modified, we make a copy of the Python object
+   so that we don't violate it's mutability */
+
+%typemap(python,in) (char *str, int len) {
+   $1 = PyString_Size($arg);
+   $0 = (char *) malloc($1+1);
+   memmove($0,PyString_AsString($arg),$1);
+}
+
+/* Return the mutated string as a new object.  The t_output_helper
+   function takes an object and appends it to the output object
+   to create a tuple */
+
+%typemap(python,argout) (char *str, int len) {
+   PyObject *o;
+   o = PyString_FromStringAndSize($0,$1);
+   $target = t_output_helper($target,o);
+   free($0);
+}   
+
+extern void capitalize(char *str, int len);
+
+/* A multi-valued constraint.  Force two arguments to lie
+   inside the unit circle */
+
+%typemap(check) (double cx, double cy) {
+   double a = $0*$0 + $1*$1;
+   if (a > 1.0) {
+	SWIG_exception(SWIG_ValueError,"$0_name and $1_name must be in unit circle");
+        return NULL;
+   }
+}
+
+extern void circle(double cx, double cy);
+
 
