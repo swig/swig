@@ -39,9 +39,6 @@ Guile Options (available with -guile)\n\
 \n\
   When unspecified, the default LSTYLE is `ltdlmod' for libtool ltdl\n\
   modules.  Other LSTYLE values are: `hobbit' for hobbit modules.\n\
-\n\
-  WARNING: Guile support is undergoing large changes and is\n\
-           likely to be broken.  Please use with care.\n\
 \n";
 
 // ---------------------------------------------------------------------
@@ -112,7 +109,7 @@ GUILE::parse_args (int argc, char *argv[])
       }
       else if (strcmp (argv[i], "-module") == 0) {
 	if (argv[i + 1]) {
-	  set_module (argv[i + 1], 0);
+	  set_module (argv[i + 1]);
 	  Swig_mark_arg (i);
 	  Swig_mark_arg (i + 1);
 	  ++i;
@@ -149,9 +146,10 @@ GUILE::parse_args (int argc, char *argv[])
     prefix[orig_len] = '_';
   }
 
-  // Add a symbol for this module
+  /* Add a symbol for this module */
 
   Preprocessor_define ((void *) "SWIGGUILE",0);
+
 }
 
 // --------------------------------------------------------------------
@@ -171,20 +169,6 @@ GUILE::parse ()
 
   // Run the parser
 
-#ifdef SICK_AND_WRONG
-  {                                     // ttn hack
-    char *tmp_file_name = "TMPSWIG";
-    char *orig_input_file = input_file;
-    FILE *ttn_hack = fopen (tmp_file_name, "w");
-
-    Printf (ttn_hack, "%%include guile/typemaps.i\n");
-    fclose (ttn_hack);
-    input_file = tmp_file_name;
-    yyparse();
-    remove (tmp_file_name);
-    input_file = orig_input_file;
-  }
-#endif /* SICK_AND_WRONG */
   yyparse();
 }
 
@@ -198,7 +182,7 @@ GUILE::parse ()
 //----------------------------------------------------------------------
 
 void
-GUILE::set_module (char *mod_name, char **)
+GUILE::set_module (char *mod_name)
 {
   if (module) {
     printf ("module already set (%s), returning\n", module);
@@ -221,7 +205,7 @@ void
 GUILE::set_init (char *iname)
 {
   abort ();                             // for now -ttn
-  set_module (iname, 0);
+  set_module (iname);
 }
 
 // ---------------------------------------------------------------------
@@ -233,23 +217,23 @@ GUILE::set_init (char *iname)
 void
 GUILE::headers (void)
 {
-  Swig_banner (f_header);
+  Swig_banner (f_runtime);
 
-  Printf (f_header, "/* Implementation : GUILE */\n\n");
+  Printf (f_runtime, "/* Implementation : GUILE */\n\n");
 
   // Write out directives and declarations
-
+  
   if (NoInclude) {
-    Printf(f_header, "#define SWIG_NOINCLUDE\n");
+    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
   }
-  if (Swig_insert_file ("guiledec.swg", f_header) == -1) {
+  if (Swig_insert_file ("guiledec.swg", f_runtime) == -1) {
     Printf (stderr, "SWIG : Fatal error.  ");
     Printf (stderr, "Unable to locate 'guiledec.swg' in SWIG library.\n");
     SWIG_exit (1);
   }
   if (!NoInclude) {
     // Write out function definitions
-    if (Swig_insert_file ("guile.swg", f_header) == -1) {
+    if (Swig_insert_file ("guile.swg", f_runtime) == -1) {
       Printf (stderr, "SWIG : Fatal error.  ");
       Printf (stderr, "Unable to locate 'guile.swg' in SWIG library.\n");
       SWIG_exit (1);
@@ -330,7 +314,9 @@ GUILE::emit_linkage (char *module_name)
 void
 GUILE::close (void)
 {
-  emit_ptr_equivalence (f_wrappers,f_init);
+  SwigType_emit_type_table (f_runtime, f_wrappers);
+
+  Printf (f_init, "SWIG_Guile_RegisterTypes(_swig_types);\n");
   Printf (f_init, "}\n\n");
   char module_name[256];
 
@@ -346,24 +332,25 @@ GUILE::close (void)
 }
 
 // ----------------------------------------------------------------------
-// GUILE::get_pointer(int parm, DataType *t)
+// get_pointer(int parm, SwigType *t, FIXME: )
 //
 // Emits code to get a pointer from a parameter and do type checking.
 // parm is the parameter number.   This function is only used
 // in create_function().
 // ----------------------------------------------------------------------
 
-void
-GUILE::get_pointer (char *iname, int parm, DataType *t,
-		    Wrapper *f, DOHString_or_char *proc_name,
-		    int num_scheme_parm)
+static void
+get_pointer (char *iname, int parm, SwigType *t,
+	     Wrapper *f, DOHString_or_char *proc_name,
+	     int num_scheme_parm)
 {
+  SwigType_remember(t);
   /* Pointers are smobs */
-  Printf(f->code, "    if (SWIG_Guile_GetPtr_Str(s_%d,(void **) &_arg%d", parm, parm);
-  if (DataType_type(t) == T_VOID)
-    Printf(f->code, ", (char *) 0)) {\n");
+  Printf(f->code, "    if (SWIG_Guile_GetPtr(s_%d,(void **) &arg%d", parm, parm);
+  if (SwigType_type(t) == T_VOID)
+    Printf(f->code, ", 0)) {\n");
   else
-    Printv(f->code, ", \"", DataType_manglestr(t), "\")) {\n", 0);
+    Printv(f->code, ", SWIGTYPE", SwigType_manglestr(t), ")) {\n", 0);
   /* Raise exception */
   Printv(f->code,
 	 tab8,
@@ -373,8 +360,35 @@ GUILE::get_pointer (char *iname, int parm, DataType *t,
   Printv(f->code, tab4, "}\n", 0);
 }
 
+/* Return true iff T is a pointer type */
+
+static bool
+is_a_pointer (SwigType *t)
+{
+  return SwigType_ispointer(SwigType_typedef_resolve_all(t));
+}
+
+
+/* Same as Swig_typemap_lookup but fall back to `int' when `enum' is
+   requested -- enum handling is somewhat broken in the 1.1 parser.
+   But we don't want to change it now since it is deprecated. */
+
+static char *
+guile_typemap_lookup(const char *op, SwigType *type, String_or_char *pname, String_or_char *source,
+		     String_or_char *target, Wrapper *f) 
+{
+  char *tm;
+  tm = Swig_typemap_lookup((char*) op, type, pname, source, target, f);
+  if (!tm) {
+    SwigType *base = SwigType_typedef_resolve_all(type);
+    if (strncmp(Char(base), "enum ", 5)==0)
+      tm = Swig_typemap_lookup((char*) op, (char*) "int", pname, source, target, f);
+  }
+  return tm;
+}  
+
 // ----------------------------------------------------------------------
-// GUILE::create_function(char *name, char *iname, DataType *d,
+// GUILE::create_function(char *name, char *iname, SwigType *d,
 //                             ParmList *l)
 //
 // Create a function declaration and register it with the interpreter.
@@ -389,26 +403,14 @@ mreplace (DOHString *s, DOHString_or_char *argnum, DOHString_or_char *arg, DOHSt
 }
 
 static void
-throw_unhandled_guile_type_error (DataType *d)
+throw_unhandled_guile_type_error (SwigType *d)
 {
-  fflush (stdout);
-  Printf (stderr, "ERROR: Unhandled GUILE type error.\n");
-  Printf (stderr, "        type %d\n", DataType_type(d));
-  Printf (stderr, "        name %s\n", DataType_Getname(d));
-  Printf (stderr, "  is_pointer %d\n", DataType_is_pointer(d));
-  /*  Printf (stderr, "implicit_ptr %d\n", d->implicit_ptr);*/ 
-  Printf (stderr, "is_reference %d\n", DataType_is_reference(d));
-  /*  Printf (stderr, "      status %d\n", d->status); */
-  /*  Printf (stderr, "   qualifier %s\n", (d->qualifier ? d->qualifier : ""));
-      Printf (stderr, "    arraystr %s\n", (d->arraystr ? d->arraystr : ""));*/
-  /*  Printf (stderr, "          id %d\n", d->id);*/
-
-  Printf (stderr, "\n\nBAILING...\n"); // for now -ttn
-  abort();                              // for now -ttn
+  Printf (stderr, "%s : Line %d. Unable to handle type %s.\n",input_file, line_number, SwigType_str(d,0));
+  error_count++;
 }
 
 void
-GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
+GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 {
   Parm *p;
   DOHString *proc_name = 0;
@@ -437,11 +439,11 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int i = 0;
   int first_arg = 1;
   for (p = l; p != 0; ++i, p = Getnext(p)) {
-    DataType *pt = Gettype(p);
+    SwigType *pt = Gettype(p);
 
     if (Getignore(p))
       continue;
-    if (DataType_type(pt) != T_VOID) {
+    if (SwigType_type(pt) != T_VOID) {
       if (!first_arg)
 	Printf(f->def,", ");
       Printf(f->def,"SCM s_%d", i);
@@ -463,20 +465,18 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   Wrapper_add_local (f,"gswig_result", "SCM gswig_result");
 
-  // Now write code to extract the parameters (this is super ugly)
+  /* Now write code to extract the parameters */
 
   i = 0;
   int j = 0;
-  p = l;
-  for (i = 0; i < pcount; ++i) {
-    DataType *pt = Gettype(p);
-    char     *pn = Getname(p);
+  for (p = l; p; p=Getnext(p)) {
+    SwigType *pt = Gettype(p);
+    String   *pn = Getname(p);
 
     // Produce names of source and target
     sprintf(source,"s_%d",i);
-    sprintf(target,"%s",Getlname(p));
+    sprintf(target,"%s", Char(Getlname(p)));
     sprintf(argnum,"%d",i);
-    strcpy(arg,pn);
 
     // Handle parameter types.
 
@@ -484,13 +484,14 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
       Printv(f->code, "/* ", pn, " ignored... */\n", 0);
     else {
       ++numargs;
-      if ((tm = typemap_lookup ((char*)"in", typemap_lang,
+      if ((tm = guile_typemap_lookup ("in", 
                                 pt, pn, source, target, f))) {
 	Printv(f->code,tm,"\n",0);
-        mreplace (f->code, argnum, arg, proc_name);
+        mreplace (f->code, argnum, pn, proc_name);
       }
-      else if (DataType_is_pointer(pt))
+      else if (is_a_pointer(pt)) {
         get_pointer (iname, i, pt, f, proc_name, numargs);
+      }
       else {
         throw_unhandled_guile_type_error (pt);
       }
@@ -499,7 +500,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Check if there are any constraints.
 
-    if ((tm = typemap_lookup ((char*)"check", typemap_lang,
+    if ((tm = guile_typemap_lookup ("check", 
                               pt, pn, source, target, f))) {
       Printv(f->code,tm,"\n",0);
       mreplace (f->code, argnum, arg, proc_name);
@@ -507,7 +508,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Pass output arguments back to the caller.
 
-    if ((tm = typemap_lookup ((char*)"argout", typemap_lang,
+    if ((tm = guile_typemap_lookup ("argout", 
                               pt, pn, source, target, f))) {
       Printv(outarg,tm,"\n",0);
       mreplace (outarg, argnum, arg, proc_name);
@@ -515,12 +516,12 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Free up any memory allocated for the arguments.
 
-    if ((tm = typemap_lookup ((char*)"freearg", typemap_lang,
+    if ((tm = guile_typemap_lookup ("freearg", 
                               pt, pn, source, target, f))) {
       Printv(cleanup, tm, "\n", 0);
       mreplace (cleanup, argnum, arg, proc_name);
     }
-    p = Getnext(p);
+    i++;
   }
 
   // Now write code to make the function call
@@ -530,21 +531,19 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   // Now have return value, figure out what to do with it.
 
-  if (DataType_type(d) == T_VOID)
+  if (SwigType_type(d) == T_VOID)
     Printv(f->code, tab4, "gswig_result = GH_UNSPECIFIED;\n", 0);
-  else if ((tm = typemap_lookup ((char*)"out", typemap_lang,
+  else if ((tm = guile_typemap_lookup ("out", 
                                  d, name, (char*)"result", (char*)"gswig_result", f))) {
     Printv(f->code,tm,"\n",0);
     mreplace (f->code, argnum, arg, proc_name);
   }
-  else if (DataType_is_pointer(d)) {
-    /* MK: I would like to use SWIG_Guile_MakePtr here to save one type
-       look-up. */
+  else if (is_a_pointer(d)) {
+    SwigType_remember(d);
     Printv(f->code, tab4,
-           "gswig_result = SWIG_Guile_MakePtr_Str (",
+           "gswig_result = SWIG_Guile_MakePtr (",
            "result, ",
-           "\"", DataType_manglestr(d), "\", ",
-           "\"", DataType_str(d,0), "\"",
+           "SWIGTYPE", SwigType_manglestr(d),
            ");\n",
 	   0);
   }
@@ -561,7 +560,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   // Look for any remaining cleanup
 
   if (NewObject) {
-    if ((tm = typemap_lookup ((char*)"newfree", typemap_lang,
+    if ((tm = guile_typemap_lookup ("newfree", 
                               d, iname, (char*)"result", (char*)"", f))) {
       Printv(f->code,tm,"\n",0);
       mreplace (f->code, argnum, arg, proc_name);
@@ -570,7 +569,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   // Free any memory allocated by the function being wrapped..
 
-  if ((tm = typemap_lookup ((char*)"ret", typemap_lang,
+  if ((tm = guile_typemap_lookup ("ret", 
                             d, name, (char*)"result", (char*)"", f))) {
     Printv(f->code,tm,"\n",0);
     mreplace (f->code, argnum, arg, proc_name);
@@ -606,7 +605,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 }
 
 // -----------------------------------------------------------------------
-// GUILE::link_variable(char *name, char *iname, DataType *d)
+// GUILE::link_variable(char *name, char *iname, SwigType *d)
 //
 // Create a link to a C variable.
 // This creates a single function PREFIX_var_VARNAME().
@@ -617,13 +616,14 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 // -----------------------------------------------------------------------
 
 void
-GUILE::link_variable (char *name, char *iname, DataType *t)
+GUILE::link_variable (char *name, char *iname, SwigType *t)
 {
   DOHString *proc_name;
   char  var_name[256];
   char  *tm;
-
-
+  Wrapper *f;
+  
+  f = NewWrapper();
   // evaluation function names
 
   sprintf (var_name, "%svar_%s", prefix, iname);
@@ -632,11 +632,11 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
   proc_name = NewString(iname);
   Replace(proc_name,"_", "-",DOH_REPLACE_ANY);
 
-  if (DataType_type(t) != T_USER) {
+  if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 
     Printf (f_wrappers, "SCM %s(SCM s_0) {\n", var_name);
 
-    if (!(Status & STAT_READONLY) && DataType_type(t) == T_STRING) {
+    if (!(Status & STAT_READONLY) && SwigType_type(t) == T_STRING) {
       Printf (f_wrappers, "\t char *_temp;\n");
       Printf (f_wrappers, "\t int  _len;\n");
     }
@@ -653,12 +653,12 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
 	       "\"Unable to set %s. Variable is read only.\", SCM_EOL);\n",
 	       proc_name, proc_name);
     }
-    else if ((tm = typemap_lookup ((char*)"varin", typemap_lang,
-                                   t, name, (char*)"s_0", name))) {
+    else if ((tm = guile_typemap_lookup ("varin", 
+                                   t, name, (char*)"s_0", name, f))) {
       Printf (f_wrappers, "%s\n", tm);
     }
-    else if (DataType_is_pointer(t)) {
-      if (DataType_type(t) == T_STRING) {
+    else if (is_a_pointer(t)) {
+      if (SwigType_type(t) == T_STRING) {
         Printf (f_wrappers, "\t\t _temp = gh_scm2newstr(s_0, &_len);\n");
         Printf (f_wrappers, "\t\t if (%s) { free(%s);}\n", name, name);
         Printf (f_wrappers, "\t\t %s = (char *) "
@@ -667,13 +667,12 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
         Printf (f_wrappers, "\t\t %s[_len] = 0;\n", name);
       } else {
         // Set the value of a pointer
-        /* MK: I would like to use SWIG_Guile_GetPtr here */
-        Printf (f_wrappers, "\t if (SWIG_Guile_GetPtr_Str(s_0, "
+        Printf (f_wrappers, "\t if (SWIG_Guile_GetPtr(s_0, "
                  "(void **) &%s, ", name);
-        if (DataType_type(t) == T_VOID)
+        if (SwigType_type(t) == T_VOID)
           Printf (f_wrappers, "(char *) 0)) {\n");
         else
-          Printf (f_wrappers, "\"%s\")) {\n", DataType_manglestr(t));
+          Printf (f_wrappers, "SWIGTYPE%s)) {\n", SwigType_manglestr(t));
 	/* Raise exception */
 	Printf(f_wrappers, "\tscm_wrong_type_arg(\"%s\", "
 		"%d, s_0);\n", proc_name, 1);
@@ -688,20 +687,17 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if ((tm = typemap_lookup ((char*)"varout", typemap_lang,
-                              t, name, name, (char*)"gswig_result"))) {
+    if ((tm = guile_typemap_lookup ("varout", 
+                              t, name, name, (char*)"gswig_result", f))) {
       Printf (f_wrappers, "%s\n", tm);
     }
-    else if (DataType_is_pointer(t)) {
-      if (DataType_type(t) == T_STRING) {
+    else if (is_a_pointer(t)) {
+      if (SwigType_type(t) == T_STRING) {
         Printf (f_wrappers, "\t gswig_result = gh_str02scm(%s);\n", name);
       } else {
         // Is an ordinary pointer type.
-        /* MK: I would like to use SWIG_Guile_MakePtr here to save one type
-           look-up. */
-        Printf (f_wrappers, "\t gswig_result = SWIG_Guile_MakePtr_Str ("
-                 "%s, \"%s\", \"%s\");\n", name, DataType_manglestr(t),
-                 DataType_str(t,0));
+        Printf (f_wrappers, "\t gswig_result = SWIG_Guile_MakePtr ("
+                 "%s, SWIGTYPE%s);\n", name, SwigType_manglestr(t));
       }
     }
     else {
@@ -718,27 +714,30 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
   } else {
     Printf (stderr, "%s : Line %d. ** Warning. Unable to link with "
              " type %s (ignored).\n",
-             input_file, line_number, DataType_str(t,0));
+             input_file, line_number, SwigType_str(t,0));
   }
   Delete(proc_name);
+  DelWrapper(f);
 }
 
 // -----------------------------------------------------------------------
-// GUILE::declare_const(char *name, char *iname, DataType *type, char *value)
+// GUILE::declare_const(char *name, char *iname, SwigType *type, char *value)
 //
 // Makes a constant.   Not sure how this is really supposed to work.
 // I'm going to fake out SWIG and create a variable instead.
 // ------------------------------------------------------------------------
 
 void
-GUILE::declare_const (char *name, char *, DataType *type, char *value)
+GUILE::declare_const (char *name, char *, SwigType *type, char *value)
 {
   int OldStatus = Status;      // Save old status flags
   DOHString *proc_name;
   char   var_name[256];
   DOHString *rvalue;
   char   *tm;
+  Wrapper *f;
 
+  f = NewWrapper();
   Status = STAT_READONLY;      // Enable readonly mode.
 
   // Make a static variable;
@@ -749,7 +748,7 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
   proc_name = NewString(name);
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
-  if (DataType_type(type) == T_USER) {
+  if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
     Printf (stderr, "%s : Line %d.  Unsupported constant value.\n",
              input_file, line_number);
     return;
@@ -757,21 +756,21 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
 
   // See if there's a typemap
 
-  if (DataType_type(type) == T_STRING) {
+  if (SwigType_type(type) == T_STRING) {
     rvalue = NewStringf("\"%s\"", value);
-  } else if (DataType_type(type) == T_CHAR) {
+  } else if (SwigType_type(type) == T_CHAR) {
     rvalue = NewStringf("\'%s\'", value);
   } else {
     rvalue = NewString(value);
   }
-  if ((tm = typemap_lookup ((char*)"const", typemap_lang, type, name,
-                            Char(rvalue), name))) {
+  if ((tm = guile_typemap_lookup ("const", type, name,
+                            Char(rvalue), name, f))) {
     Printf (f_init, "%s\n", tm);
   } else {
     // Create variable and assign it a value
 
-    Printf (f_header, "static %s %s = ", DataType_lstr(type,0), var_name);
-    if (DataType_type(type) == T_STRING) {
+    Printf (f_header, "static %s %s = ", SwigType_lstr(type,0), var_name);
+    if (SwigType_type(type) == T_STRING) {
       Printf (f_header, "\"%s\";\n", value);
     } else {
       Printf (f_header, "%s;\n", value);
@@ -783,32 +782,34 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
   }
   Delete(proc_name);
   Delete(rvalue);
+  DelWrapper(f);
 }
 
+#if 0
 // ----------------------------------------------------------------------
-// GUILE::usage_var(char *iname, DataType *t, String &usage)
+// GUILE::usage_var(char *iname, SwigType *t, String &usage)
 //
 // Produces a usage string for a Guile variable.
 // ----------------------------------------------------------------------
 
 void
-GUILE::usage_var (char *iname, DataType *t, DOHString *usage)
+GUILE::usage_var (char *iname, SwigType *t, DOHString *usage)
 {
 
   Printv(usage, "(", iname, " [value])", 0);
-  if ((DataType_type(t) == T_USER) || (DataType_type(t) == T_VOID)) {
+  if ((SwigType_type(t) == T_USER) || (SwigType_type(t) == T_VOID)) {
     Printf(usage," - unsupported");
   }
 }
 
 // ---------------------------------------------------------------------------
-// GUILE::usage_func(char *iname, DataType *t, ParmList *l, String &usage)
+// GUILE::usage_func(char *iname, SwigType *t, ParmList *l, String &usage)
 //
 // Produces a usage string for a function in Guile
 // ---------------------------------------------------------------------------
 
 void
-GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
+GUILE::usage_func (char *iname, SwigType *d, ParmList *l, DOHString *usage)
 {
 
   Parm *p;
@@ -820,7 +821,7 @@ GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
   // Now go through and print parameters
 
   for (p = l; p != 0; p = Getnext(p)) {
-    DataType *pt = Gettype(p);
+    SwigType *pt = Gettype(p);
     char     *pn = Getname(p);
 
     if (Getignore(p))
@@ -828,13 +829,13 @@ GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
     // Print the type.  If the parameter has been named, use that as well.
 
-    if (DataType_type(pt) != T_VOID) {
+    if (SwigType_type(pt) != T_VOID) {
 
       // Print the type.
-      Printv(usage, " <", DataType_Getname(pt), 0);
-      if (DataType_is_pointer(pt)) {
+      Printv(usage, " <", SwigType_Getname(pt), 0);
+      if (SwigType_is_pointer(pt)) {
 	/*	for (int j = 0; j < (pt->is_pointer - pt->implicit_ptr); j++) {*/
-	for (int j = 0; j < DataType_is_pointer(pt); j++) {
+	for (int j = 0; j < SwigType_is_pointer(pt); j++) {
 	  Putc('*', usage);
 	}
       }
@@ -851,13 +852,13 @@ GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
 
 // ---------------------------------------------------------------------------
-// GUILE::usage_returns(char *iname, DataType *t, ParmList *l, String &usage)
+// GUILE::usage_returns(char *iname, SwigType *t, ParmList *l, String &usage)
 //
 // Produces a usage string for a function in Guile
 // ---------------------------------------------------------------------------
 
 void
-GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
+GUILE::usage_returns (char *iname, SwigType *d, ParmList *l, DOHString *usage)
 {
   Parm *p;
   DOHString *param;
@@ -870,7 +871,7 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
   // go through and see if any are output.
 
   for (p = l; p != 0; p = Getnext(p)) {
-    DataType *pt = Gettype(p);
+    SwigType *pt = Gettype(p);
     char     *pn = Getname(p);
 
     if (strcmp (pn,"BOTH") && strcmp (pn,"OUTPUT"))
@@ -878,14 +879,14 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
     // Print the type.  If the parameter has been named, use that as well.
 
-    if (DataType_type(pt) != T_VOID) {
+    if (SwigType_type(pt) != T_VOID) {
       ++have_param;
 
       // Print the type.
-      Printv(param," $", DataType_Getname(pt), 0);
-      if (DataType_is_pointer(pt)) {
+      Printv(param," $", SwigType_Getname(pt), 0);
+      if (SwigType_is_pointer(pt)) {
 	/*	for (j = 0; j < (pt->is_pointer - pt->implicit_ptr - 1); j++) { */
-	for (j = 0; j < DataType_is_pointer(pt) - 1; j++) {
+	for (j = 0; j < SwigType_is_pointer(pt) - 1; j++) {
 	  Putc('*', param);
 	}
       }
@@ -894,13 +895,13 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
   }
 
   // See if we stick on the function return type.
-  if ((DataType_type(d) != T_VOID) || (have_param == 0)) {
+  if ((SwigType_type(d) != T_VOID) || (have_param == 0)) {
     ++have_param;
-    if (DataType_type(d) == T_VOID)
+    if (SwigType_type(d) == T_VOID)
       Insert(param,0," unspecified ");
     else {
       Insert(param,0,"# ");
-      Insert(param,0, DataType_str(d,0));
+      Insert(param,0, SwigType_str(d,0));
       Insert(param,0," $");
     }
   }
@@ -921,15 +922,16 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
 }
 
 // ----------------------------------------------------------------------
-// GUILE::usage_const(char *iname, DataType *type, char *value, String &usage)
+// GUILE::usage_const(char *iname, SwigType *type, char *value, String &usage)
 //
 // Produces a usage string for a Guile constant
 // ----------------------------------------------------------------------
 
 void
-GUILE::usage_const (char *iname, DataType *, char *value, DOHString *usage)
+GUILE::usage_const (char *iname, SwigType *, char *value, DOHString *usage)
 {
   Printv(usage, "(", iname, " ", value, ")", 0);
 }
 
 
+#endif
