@@ -14,6 +14,69 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged back to the trunk of the CVS
 tree (maybe).
 
+Version 1.3.10 (In progress)
+============================
+9/26/2001: beazley
+           Super-experimental support for overloaded operators. 
+           This implementation consists of a few different parts.
+
+           (i) Operator names such as 'operator+' are now allowed
+           as valid declarator names.  Thus the 'operator' syntax
+           can appear *anyplace* a normal declarator name was used
+           before.  On the surface, this means that operators can
+           be parsed just like normal functions and methods. 
+           However, it also means that operator names can be used
+           in many other SWIG directives like %rename.  For example:
+
+            %rename(__add__) Complex::operator+(const Complex &);
+
+           (ii) Operators are wrapped *exactly* like normal functions
+           and methods.  Internally, the operator name is used 
+           directly meaning that the wrapper code might contain
+           statements like this:
+
+                arg0->operator*((Complex const &)*arg1);
+
+           This all seems to parse and compile correctly (at least
+           on my machine).
+
+           (iii) SWIG will no longer wrap a declaration if its symbol
+           table name contains illegal identifier characters.  If
+           illegal characters are detected, you will see an error
+           like this:
+ 
+                Warning. Can't wrap operator* unless it is renamed to a valid identifier.
+
+           The only way to fix this is to use %rename or %name to bind
+           the operator to a nice name like "add" or something.
+
+           There are certain issues with friend functions and operators.
+           Sometimes, friends are used to define mixed operators such
+           as adding a Complex and a double together.  Currently, SWIG
+           ignores all friend declarations in a class.  A global operator
+           declaration can probably be made to work, but you'll have to
+           rename it and it probably won't work very cleanly in the
+           target language since it's not a class member.
+
+           SWIG doesn't know how to handle operator specifications 
+           sometimes used for automatic type conversion. For example:
+
+           class String {
+              ...
+              operator const char*();
+              ...
+           };
+
+           (this doesn't parse correctly and generates a syntax error).
+
+           Also: operators no longer show up as separate parse-tree
+           nodes (instead they are normal 'cdecl' nodes).  I may
+           separate them as a special case later.
+
+           See Examples/python/operator for an example.
+
+           *** SUPER-EXPERIMENTAL NEW FEATURE ***
+
 Version 1.3.9 (September 25, 2001)
 ==================================
 9/25/2001: beazley
