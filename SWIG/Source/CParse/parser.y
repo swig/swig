@@ -488,14 +488,32 @@ Node *Swig_cparse(File *f) {
 }
 
 static void canonical_template(String *s) {
-  Replace(s,"\n"," ", DOH_REPLACE_ANY);
-  Replace(s,"\t"," ", DOH_REPLACE_ANY);
-  Replace(s,"  "," ", DOH_REPLACE_ANY);
+  Replaceall(s,"\n"," ");
+  Replaceall(s,"\t"," ");
+  Replaceall(s,"  "," ");
   /* Canonicalize whitespace around angle brackets and commas */
-  while (Replace(s, "< ", "<", DOH_REPLACE_ANY));
-  while (Replace(s, " >", ">", DOH_REPLACE_ANY));
-  while (Replace(s, " ,", ",", DOH_REPLACE_ANY));
-  while (Replace(s, ", ", ",", DOH_REPLACE_ANY));
+  while (Replaceall(s, "< ", "<"));
+  while (Replaceall(s, " >", ">"));
+  while (Replaceall(s, " ,", ","));
+  while (Replaceall(s, ", ", ","));
+  /* Canonicalize whitespace around pointers and references */
+  while (Replaceall(s,"* ", "*"));
+  while (Replaceall(s," *", "*"));
+  while (Replaceall(s,"& ", "&"));
+  while (Replaceall(s," &", "&"));
+  /* Canonicalize whitespace around array brackets and parentheses */
+  while (Replaceall(s,"[ ", "["));
+  while (Replaceall(s," [", "["));
+  while (Replaceall(s,"] ", "]"));
+  while (Replaceall(s," ]", "]"));
+
+  while (Replaceall(s,"( ", "("));
+  while (Replaceall(s," (", "("));
+  while (Replaceall(s,") ", ")"));
+  while (Replaceall(s," )", ")"));
+
+  /* Patch up for nested templates */
+
   Replace(s,">"," >", DOH_REPLACE_ANY);
 }
 
