@@ -48,7 +48,7 @@ public:
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
         if (strcmp (argv[i], "-ldflags") == 0) {
-	  printf("%s\n", SWIG_RUBY_RUNTIME);
+	  printf("%s\n", SWIG_PIKE_RUNTIME);
 	  SWIG_exit(EXIT_SUCCESS);
 	}
       }
@@ -102,6 +102,10 @@ public:
 
     Printf(f_header, "#define SWIG_init    pike_module_init\n");
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
+    
+    /* Change naming scheme for constructors and destructors */
+    Swig_name_register((char *)"construct",(char *)"%c_create");
+    Swig_name_register((char *)"destroy",(char *)"%c_destroy");
 
     /* Emit code for children */
     Language::top(n);
@@ -166,7 +170,9 @@ public:
    * ------------------------------------------------------------ */
   
   int is_member_function(Node *n) const {
-    return CPlusPlus && getCurrentClass() && !is_constructor(n);
+    return CPlusPlus &&
+           getCurrentClass() &&
+	   !is_constructor(n);
   }
 
   /* ------------------------------------------------------------
@@ -174,15 +180,17 @@ public:
    * ------------------------------------------------------------ */
 
   void add_method(Node *n, String *name, String *function, String *description) {
+    String *rename;
     if (is_member_function(n)) {
-      name = strip(name);
+      rename = strip(name);
     } else if (is_constructor(n)) {
-      name = NewString("create");
+      // rename = NewString("create");
+      rename = strip(name);
+    } else {
+      rename = Copy(name);
     }
-    Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", name, function, description);
-    if (is_member_function(n) || is_constructor(n)) {
-      Delete(name);
-    }
+    Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
+    Delete(rename);
   }
 
   /* ---------------------------------------------------------------------
@@ -226,10 +234,9 @@ public:
     /* Which input argument to start with? */
     int start = is_member_function(n) ? 1 : 0;
 
-    char wname[256];
-    strcpy(wname,Char(Swig_name_wrapper(iname)));
+    String *wname = Swig_name_wrapper(iname);
     if (overname) {
-      strcat(wname,Char(overname));
+      Append(wname,overname);
     }
     
     Printv(f->def, "static void ", wname, "(INT32 args) {", NULL);
@@ -400,13 +407,14 @@ public:
     Delete(cleanup);
     Delete(outarg);
     Delete(description);
+    Delete(wname);
     DelWrapper(f);
 
     return SWIG_OK;
   }
 
   /* ------------------------------------------------------------
-   * dispatchFunc      
+   * dispatchFunction()
    *
    * Emit overloading dispatch function
    * ------------------------------------------------------------ */
@@ -601,7 +609,3 @@ extern "C" Language *
 swig_pike(void) {
   return new PIKE();
 }
-
-
-
-
