@@ -37,3 +37,4 @@ ARITH_RTYPE(double,int) hello1();
 //   ARITH_RTYPE(double,int) hello2();
 //
 HELLO_TYPE(double,int) hello2();
+
