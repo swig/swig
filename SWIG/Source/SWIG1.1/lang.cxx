@@ -35,7 +35,8 @@ static int      has_constructor = 0;
 static int      has_destructor = 0;
 static int      private_constructor = 0;
 static int      private_destructor = 0;
-
+static int      base_default_constructor = 0;
+static int      has_default_constructor = 0;
 static String  *Callback = 0;
 int             IsVirtual = 0;
 static String  *AttributeFunctionGet = 0;
@@ -213,6 +214,7 @@ static void cplus_inherit_types(Node *cls, String *clsname) {
     
     private_constructor |= GetInt(bclass,"private_constructor");
     private_destructor |= GetInt(bclass,"private_destructor");
+    base_default_constructor &= GetInt(bclass,"default_constructor");
 
     SwigType_inherit(clsname,bname);
     String *btype = Copy(bname);
@@ -774,6 +776,8 @@ void Language::classDeclaration(Node *n) {
   has_destructor = 0;
   private_constructor = 0;
   private_destructor = 0;
+  base_default_constructor = 1;
+  has_default_constructor = 0;
 
   /* Inherit type definitions into the class */
   if (CPlusPlus && name) {
@@ -792,13 +796,17 @@ void Language::classDeclaration(Node *n) {
   if (private_destructor) {
     SetInt(n,"private_destructor",1);
   }
-
+  if ((base_default_constructor) || (has_default_constructor)) {
+    SetInt(n,"default_constructor",1);
+  }
+  
   if (!ImportMode) {
     if (GenerateDefault) {
       CCode = 0;
-      if ((!has_constructor) && (!private_constructor)) {
+      if ((!has_constructor) && (!private_constructor) && (!private_destructor) && (base_default_constructor)) {
 	/* Generate default constructor */
 	this->cpp_constructor(classname,iname,0);
+	SetInt(n,"default_constructor",1);
       } 
       if ((!has_destructor) && (!private_destructor)) {
 	/* Generate default destructor */
@@ -842,17 +850,28 @@ void Language::constructorDeclaration(Node *n) {
   String *code  = Getattr(n,"code");
   CCode = code;
 
+  base_default_constructor = 0;
   if (InClass && (cplus_mode != CPLUS_PUBLIC)) {
     if (!has_constructor) {
-      private_constructor = 1;
+      if (cplus_mode == CPLUS_PRIVATE) {
+	private_constructor = 1;
+      } else {
+	/* Protected mode: class has a default constructor, but it's not accessible directly */
+	if (!(nonvoid_parms(parms))) {
+	  has_default_constructor = 1;
+	}
+      }
     }
     has_constructor = 1;
     return;
   }
   private_constructor = 0;
-
+  
   if (ImportMode) return;
   if (Cmp(symname,name) == 0) symname = 0;
+  if (!(AddMethods) && (!(nonvoid_parms(parms)))) {
+    has_default_constructor = 1;
+  }
   if (!Abstract) {
     Node *over;
     over = Swig_symbol_isoverloaded(n);
@@ -865,7 +884,8 @@ void Language::constructorDeclaration(Node *n) {
       Delete(oname);
       Delete(cname);
     } else {
-      lang->cpp_constructor(Char(name),Char(symname),nonvoid_parms(parms));
+      Parm *nv = nonvoid_parms(parms);
+      lang->cpp_constructor(Char(name),Char(symname),nv);
     }
   }
   has_constructor = 1;
@@ -884,10 +904,12 @@ void Language::destructorDeclaration(Node *n) {
 
   if (InClass && (cplus_mode != CPLUS_PUBLIC)) {
     has_destructor = 1;
-    private_destructor = 1;
+    if (cplus_mode == CPLUS_PRIVATE)
+      private_destructor = 1;
     return;
   }
-  private_destructor = 0;
+  if (!AddMethods) 
+    private_destructor = 0;
   if (ImportMode) return;
 
   char *cname = Char(name);
