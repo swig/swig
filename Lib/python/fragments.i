@@ -1,28 +1,23 @@
-/* Helper function to return tuples */
+/*
 
-%fragment("t_output_helper","header") %{
-  static PyObject* t_output_helper(PyObject* target, PyObject* o) {
-    PyObject*   o2;
-    PyObject*   o3;
+  Create a file with this name, 'fragments.i', in your working
+  directory and add all the %fragments you want to take precedence
+  over the ones defined by default by swig.
+
+  For example, if you add:
+  
+  %fragment(SWIG_AsVal_frag(int),"header") {
+   SWIGSTATICINLINE(int)
+   SWIG_AsVal(int)(PyObject *obj, int *val)
+   { 
+     <your code here>;
+   }
+  }
+  
+  this will replace the code used to retreive an integer value for all
+  the typemaps that need it, including:
+  
+    int, std::vector<int>, std::list<std::pair<int,int> >, etc.
+
     
-    if (!target) {                   
-        target = o;
-    } else if (target == Py_None) {  
-        Py_DECREF(Py_None);
-        target = o;
-    } else {                         
-        o2 = target;
-        target = PyTuple_New(1);
-        PyTuple_SetItem(target, 0, o2);
-
-        o3 = PyTuple_New(1);            
-        PyTuple_SetItem(o3, 0, o);      
-
-        o2 = target;
-        target = PySequence_Concat(o2, o3); 
-        Py_DECREF(o2);                      
-        Py_DECREF(o3);
-    }
-    return target;
-}
-%}
+*/
