@@ -175,6 +175,7 @@ class OCAML : public Language {
 	// Add a symbol for this module
 	
 	Preprocessor_define ((void *) "SWIGOCAML",0);
+	Preprocessor_define ("SWIG_NO_OVERLOAD 1", 0);    
 	
 	// Set name of typemaps
 	SWIG_typemap_lang("ocaml");

@@ -198,7 +198,7 @@ public:
 
     /* Add a symbol for this module */
     Preprocessor_define ("SWIGGUILE 1",0);
-
+    Preprocessor_define ("SWIG_NO_OVERLOAD 1", 0);
     /* Read in default typemaps */
     SWIG_config_file("guile.i");
   }

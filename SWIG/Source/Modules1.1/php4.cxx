@@ -222,6 +222,7 @@ public:
     
     Preprocessor_define((void *) "SWIGPHP 1", 0);
     Preprocessor_define((void *) "SWIGPHP4 1", 0);
+    Preprocessor_define ("SWIG_NO_OVERLOAD 1", 0);    
     SWIG_typemap_lang("php4");
     /* DB: Suggest using a language configuration file */
     SWIG_config_file("php4.swg");
