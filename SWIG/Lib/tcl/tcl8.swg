@@ -463,8 +463,8 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *interp) {
     }
     for (i = 0; swig_variables[i].name; i++) {
       Tcl_SetVar(interp, (char *) swig_variables[i].name, (char *) "", TCL_GLOBAL_ONLY);
-      Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_READS | TCL_GLOBAL_ONLY, swig_variables[i].get, (ClientData) swig_variables[i].addr);
-      Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_WRITES | TCL_GLOBAL_ONLY, swig_variables[i].set, (ClientData) swig_variables[i].addr);
+      Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_READS | TCL_GLOBAL_ONLY, (Tcl_VarTraceProc *) swig_variables[i].get, (ClientData) swig_variables[i].addr);
+      Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_WRITES | TCL_GLOBAL_ONLY, (Tcl_VarTraceProc *) swig_variables[i].set, (ClientData) swig_variables[i].addr);
     }
     SWIG_InstallConstants(interp, swig_constants);
 %}

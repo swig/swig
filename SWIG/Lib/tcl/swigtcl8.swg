@@ -588,7 +588,7 @@ SWIG_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   while (cls) {
     meth = cls->methods;
     while (meth && meth->name) {
-      char *cr = Tcl_GetStringResult(interp);
+      char *cr = (char *) Tcl_GetStringResult(interp);
       if (!strstr(strchr(cr,':'), meth->name))
 	Tcl_AppendElement(interp, (char *) meth->name);
       meth++;
