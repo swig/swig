@@ -3,6 +3,13 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+8/31/00 : beazley
+          Improved handling of string array variables. For example,
+          a global variable of the form "char name[64]" is automatically
+          managed as a 64 character string.  Previously this didn't
+          work at all or required the use of a special typemap.
+          *** NEW FEATURE (Tcl, Perl, Python) ***
+           
 8/31/00 : ttn
 	  Added Makefile target `check-c++-examples', which uses new
 	  files under Examples/C++ contributed by Tal Shalif.  Now "make
@@ -41,7 +48,6 @@ Version 1.3 Alpha 4 (not yet released)
           use this in language configuration files.
           *** NEW FEATURE ***
 
-======= end of combination
 8/28/00 : beazley
           Typemaps can now be specified using string literals like
           this:
@@ -234,6 +240,31 @@ Version 1.3 Alpha 4 (not yet released)
           This is likely to break interfaces that rely on the odd type
           handling behavior of typemaps in SWIG1.1--especially with
           respect to interfaces involving pass-by-value.
+
+7/23/00 : beazley
+          New %constant directive.  This directive can be used to
+          create true constants in the target scripting language.
+          It's most simple form is something like this:
+
+             %constant FOO 42;
+
+          In this case, the type is inferred from the syntax of the 
+          value (in reality, all #define macros are translated into
+          directives of this form).
+
+          An expanded version is as follows:
+
+            %constant(Foo *) FOO = &FooObj;
+
+          In this case, an explicit type can be specified.  This
+          latter form may be useful for creating constants that
+          used to be specified as
+
+             const Foo *FOO = &FooObj;
+
+          (which are now treated as variables).
+          *** EXPERIMENTAL FEATURE *** The syntax may change in
+          the final release.
 
 7/23/00 : beazley
           Modified the parser so that variable declarations of the form
