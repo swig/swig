@@ -24,7 +24,7 @@ extern char   *Preprocessor_expr_error(void);
 extern Hash   *Preprocessor_define(String_or_char *str, int swigmacro);
 extern void    Preprocessor_undef(String_or_char *name);
 extern void    Preprocessor_init();
-extern String *Preprocessor_parse(File *s);
+extern String *Preprocessor_parse(String *s);
 extern void    Preprocessor_include_all(int);
 extern void    Preprocessor_import_all(int);
 extern int     Preprocessor_errors(void);
