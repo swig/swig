@@ -1,4 +1,4 @@
-%module template_typedef_cplx3
+%module template_typedef_cplx4
 %{
 #include "template_typedef_cplx2.h"
 %}

@@ -1,5 +1,5 @@
 import string
-from template_typedef_cplx3 import *
+from template_typedef_cplx4 import *
 
 #
 # this is OK
