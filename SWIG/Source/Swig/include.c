@@ -249,4 +249,65 @@ Swig_filebyname(const String_or_char *filename) {
   return Getattr(named_files,filename);
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_file_suffix()
+ *
+ * Returns the suffix of a file
+ * ----------------------------------------------------------------------------- */
 
+char *
+Swig_file_suffix(const String_or_char *filename) {
+  char *d;
+  char *c = Char(filename);
+  if (strlen(c)) {
+    d = c + strlen(filename) - 1;
+    while (d != c) {
+      if (*d == '.') return d;
+      d--;
+    }
+    return c+strlen(filename);  
+  }
+  return c;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_file_basename()
+ *
+ * Returns the filename with no suffix attached.
+ * ----------------------------------------------------------------------------- */
+
+char *
+Swig_file_basename(const String_or_char *filename)
+{
+  static char tmp[1024];
+  char *c;
+  strcpy(tmp,Char(filename));
+  c = Swig_file_suffix(tmp);
+  *c = 0;
+  return tmp;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_file_dirname()
+ *
+ * Return the name of the directory associated with a file
+ * ----------------------------------------------------------------------------- */
+char *
+Swig_file_dirname(const String_or_char *filename)
+{
+  static char tmp[1024];
+  const char *delim = SWIG_FILE_DELIMETER;
+  char *c;
+  strcpy(tmp,Char(filename));
+  if (!strstr(tmp,delim)) {
+    return "";
+  }
+  c = tmp + strlen(tmp) -1;
+  while (*c != *delim) c--;
+  *c = 0;
+  return tmp;
+}
+      
+    
+    
+  
