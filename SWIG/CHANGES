@@ -1,12 +1,12 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-:::: NOTE ::::  There is a also CVS branch "mkoeppe-1-3-a5-patches"
-		starting from release 1.3a5, where the Guile,
-MzScheme, and Java modules are being improved.  The changes need to be
-merged in before version 1.3a6 is released.
+:::: NOTE :::: The CVS head works towards release 1.4; it is currently
+	       unstable.  The CVS branch "mkoeppe-1-3-a5-patches"
+	       starting from release 1.3a5 works towards the next
+	       stable release (1.3.6).
 
-Version 1.3 Alpha 6 (Work in progress)
-======================================
+Work in progress
+================
 02/03/01: beazley
           Fixed some bugs related to typedef and typemaps.  The following
           declarations are now legal:
