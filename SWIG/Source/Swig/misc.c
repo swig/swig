@@ -142,6 +142,41 @@ String *Swig_string_escape(String *s) {
   }
   return ns;
 }
+
+
+/* -----------------------------------------------------------------------------
+ * Swig_string_upper()
+ *
+ * Takes a string object and convets it to all caps.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_upper(String *s) {
+  String *ns;
+  int c;
+  ns = NewString("");
+  
+  while ((c = Getc(s)) != EOF) {
+    Putc(toupper(c),ns);
+  }
+  return ns;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_string_lower()
+ *
+ * Takes a string object and convets it to all lower.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_lower(String *s) {
+  String *ns;
+  int c;
+  ns = NewString("");
+  
+  while ((c = Getc(s)) != EOF) {
+    Putc(tolower(c),ns);
+  }
+  return ns;
+}
      
 /* -----------------------------------------------------------------------------
  * Swig_string_mangle()
@@ -168,6 +203,8 @@ String *Swig_string_mangle(String *s) {
 void
 Swig_init() {
   DohEncoding("escape", Swig_string_escape);
+  DohEncoding("upper", Swig_string_upper);
+  DohEncoding("lower", Swig_string_lower);
   Swig_typemap_init();
 
 }
