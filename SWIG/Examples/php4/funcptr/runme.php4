@@ -1,4 +1,4 @@
-<?
+<?php
 
 require "example.php";
 
