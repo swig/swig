@@ -45,7 +45,7 @@ Version 1.3.25 (In progress)
 	      gets a ++ccf.
 
 	    - [Guile GH] Update Guile GH to use the new type system.  See
-	      Doc/Devel/Guile.cxx for how smobs are now used.
+	      Doc/Manual/Guile.html for how smobs are now used.
 
 01/11/2005: wsfulton
             [C#] New typemap called 'csconstruct'. The code in this typemaps was previously hard
