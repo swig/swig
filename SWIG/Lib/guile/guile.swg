@@ -7,12 +7,17 @@
 
 /* SWIG pointer structure */
 
+struct SwigCast {
+  unsigned short      type;		  /* Index into SwigPtrTbl          */
+  void               *(*cast)(void *);    /* Pointer casting function       */
+  struct SwigCast    *next;		  /* Linked list pointer            */
+};
+
 struct SwigPtrType {
   char               *name;               /* Datatype name                  */
   char		     *prettyname;         /* Pretty datatype name           */
-  void               *(*cast)(void *);    /* Pointer casting function       */
   unsigned short      tag;		  /* Index in SwigPtrTable          */
-  struct SwigPtrType *next;               /* Linked list pointer            */
+  struct SwigCast    *cast;		  /* List of compatible types       */
 };
 
 /* Some variables  */
@@ -39,21 +44,18 @@ swigsort (const void *data1, const void *data2)
 }
 
 /* Register a new datatype with the type-checker */
-
-SWIGSTATIC void
-SWIG_RegisterMapping (char *origtype, char *newtype, void *(*cast)(void *))
+SWIGSTATIC size_t
+SWIG_RegisterType (char *type, char *prettyname)
 {
   int i;
-  SwigPtrType *t = 0,*t1;
 
   /* Allocate the pointer table if necessary */
-
   if (!SwigPtrList) {
     SwigPtrList = (SwigPtrType *) malloc(SwigPtrMax*sizeof(SwigPtrType));
     SwigPtrTbl = (size_t *) malloc(SwigPtrMax*sizeof(size_t));
     SwigPtrN = 0;
   }
-  /* Grow the table */
+  /* Grow the table if necessary */
   if (SwigPtrN >= SwigPtrMax) {
     SwigPtrMax = 2*SwigPtrMax;
     SwigPtrList = (SwigPtrType *) realloc((char *) SwigPtrList,
@@ -61,46 +63,53 @@ SWIG_RegisterMapping (char *origtype, char *newtype, void *(*cast)(void *))
     SwigPtrTbl = (size_t *) realloc((char *) SwigPtrTbl,
 				    SwigPtrMax*sizeof(size_t));
   }
+  /* Look up type */
   for (i = 0; i < SwigPtrN; i++)
-    if (strcmp(SwigPtrList[i].name,origtype) == 0) {
-      t = &SwigPtrList[i];
-      break;
+    if (strcmp(SwigPtrList[i].name,type) == 0) {
+      if (prettyname!=NULL)
+	SwigPtrList[i].prettyname = prettyname;
+      return i;
     }
-  if (!t) {
+  {
+    struct SwigPtrType *t;
+    size_t tag;
 #if 0
-    fprintf(stderr, "New type: %s\n", origtype);
+    fprintf(stderr, "New type: %s\n", type);
 #endif
-    SwigPtrTbl[SwigPtrN] = SwigPtrN;
-    t = &SwigPtrList[SwigPtrN];
-    t->name = origtype;
-    t->prettyname = NULL;
-    t->cast = 0;
-    t->next = 0;
+    tag = SwigPtrTbl[SwigPtrN] = SwigPtrN;
+    t = &SwigPtrList[tag];
+    t->name = type;
+    t->prettyname = prettyname;
     t->tag = SwigPtrN;
+    t->cast = NULL;
     SwigPtrN++;
-    SwigPtrSort = 0;
+    SwigPtrSort = 0; 
+    return tag;
   }
+}
+
+/* Register two data types and their mapping with the type checker. */
+SWIGSTATIC void
+SWIG_RegisterMapping (char *origtype, char *newtype, void *(*cast)(void *))
+{
+  int i;
+  size_t t = SWIG_RegisterType(origtype, NULL);
 
   if (newtype!=NULL) {
-    /* Check for existing entry */
-
-    while (t->next) {
-      if ((strcmp(t->name,newtype) == 0)) {
-	if (cast) t->cast = cast;
-	return;
-      }
-      t = t->next;
+    size_t t1 = SWIG_RegisterType(newtype, NULL);
+    struct SwigCast *c;
+    /* Check for existing cast */
+    for (c = SwigPtrList[t].cast; c && c->type!=t1; c=c->next) /* nothing */;
+    if (c) {
+      if (cast) c->cast = cast;
     }
-
-    /* FIXME: List of compatible types subject to change */
-    /* Now place entry (in sorted order) */
-
-    t1 = (SwigPtrType *) malloc(sizeof(SwigPtrType));
-    t1->name = newtype;
-    t1->prettyname = NULL;
-    t1->cast = cast;
-    t1->next = 0;
-    t->next = t1;
+    else {
+      c = (struct SwigCast *) malloc(sizeof(struct SwigCast));
+      c->type = t1;
+      c->cast = cast;
+      c->next = SwigPtrList[t].cast;
+      SwigPtrList[t].cast = c;
+    }
   }
 }
 
@@ -136,52 +145,33 @@ SWIG_GetPtrType (const char *_t)
   else return NULL;
 }
 
-/* Cast a pointer if possible */
+/* Cast a pointer if possible; returns 1 if successful */
 
-static char *
-SWIG_Cast_Str (void *source, char *source_type, void **ptr, char *_t)
+static int
+SWIG_Cast (void *source, size_t source_type,
+	   void **ptr, size_t dest_type)
 {
-  char temp_type[256];
-  char *name;
-  int  i, len;
-  SwigPtrType *sp,*tp;
-  int  start, end;
-  if (_t) {
-    if (strcmp(_t,source_type)) {
-      if (!SwigPtrSort) SWIG_SortTable();
-
-      /* We have a type mismatch.  Will have to look through our type
-	 mapping table to figure out whether or not we can accept this
-         datatype.  */
-
-      sp = SWIG_GetPtrType(_t);
-      if (sp!=NULL) {
-	name = sp->name;
-	tp = sp->next;
-	/* Try to find entry for our given datatype.  */
-	while(tp) {
-	  if (strcmp(source_type, tp->name) == 0) {
-	    /* Get pointer value.  */
-	    *ptr = source;
-	    if (tp->cast) *ptr = (*(tp->cast))(*ptr);
-	    return (char *) 0;
-	  }
-	  tp = tp->next;
-	}
-      }
-      /* Didn't find any sort of match for this data.
-	 Get the pointer value and return the received type.  */
-      *ptr = source;
-      return source_type;
-    } else {
-      /* Found a match on the first try.  Return pointer value.  */
-      *ptr = source;
-      return (char *) 0;
+  if (dest_type != source_type) {
+    /* We have a type mismatch.  Will have to look through our type
+       mapping table to figure out whether or not we can accept this
+       datatype.  */
+    struct SwigCast *c;
+    for (c = SwigPtrList[source_type].cast;
+	 c && c->type!=dest_type; c = c->next) /* nothing */;
+    if (c) {
+      /* Get pointer value. */
+      if (c->cast) *ptr = (*(c->cast))(source);
+      else *ptr = source;
+      return 1;
     }
-  } else {
-    /* No type specified.  Good luck!  */
+    /* Didn't find any sort of match for this data.
+       Get the pointer value and return false.  */
     *ptr = source;
-    return (char *) 0;
+    return 0;
+  } else {
+    /* Found a match on the first try.  Return pointer value.  */
+    *ptr = source;
+    return 1;
   }
 }
 
@@ -193,12 +183,13 @@ SWIGSTATIC SCM
 SWIG_Guile_MakePtr (void *ptr, _swig_type_info *type)
 {
   if (ptr==NULL) return SCM_EOL;
-  SCM_RETURN_NEWSMOB((((unsigned long)type->ptrtype->tag << 16) | swig_tag),
+  SCM_RETURN_NEWSMOB((((unsigned long)type->tag << 16) | swig_tag),
 		     ptr);
 }
 
-static int
-SWIG_Guile_GetPtr_Str (SCM s, void **result, char *typestring)
+/* Return 0 if successful. */
+SWIGSTATIC int
+SWIG_Guile_GetPtr(SCM s, void **result, _swig_type_info *type)
 {
   if (SCM_NULLP(s)) {
     *result = NULL;
@@ -206,20 +197,16 @@ SWIG_Guile_GetPtr_Str (SCM s, void **result, char *typestring)
   }
   else if (SCM_NIMP(s)
 	   && (unsigned long) SCM_TYP16(s) == swig_tag) {
-    if (SWIG_Cast_Str((void *) SCM_CDR(s),
-		      SwigPtrList[SCM_CAR(s) >> 16].name,
-		      result, typestring) == NULL)
+    if (type) 
+      return !SWIG_Cast((void *) SCM_CDR(s),
+			SCM_CAR(s) >> 16,
+			result, type->tag);
+    else {
+      *result = (void *) SCM_CDR(s);
       return 0;
+    }
   }
   return 1;
-}
-
-/* Return 0 if successful. */
-SWIGSTATIC int
-SWIG_Guile_GetPtr(SCM s, void **result, _swig_type_info *type)
-{
-  /* FIXME: Use native typechecking w/o string-compares */
-  return SWIG_Guile_GetPtr_Str(s, result, type->name);
 }
 
 /* Init */
@@ -264,10 +251,8 @@ void SWIG_Guile_RegisterTypes(_swig_type_info **table)
   for (; *table; table++) {
     _swig_type_info *type = *table;
     char *origname = type->name;
-    /* Register datatype itself */
-    SWIG_RegisterMapping(origname, 0, 0);
-    /* Store pointer to actual type */
-    type->ptrtype = SWIG_GetPtrType(origname);
+    /* Register datatype itself and store pointer back */
+    type->tag = SWIG_RegisterType(origname, NULL /* FIXME: prettyname */);
     /* Register compatible types */
     for (type++; type->name; type++)
       SWIG_RegisterMapping(origname, type->name, type->converter);
