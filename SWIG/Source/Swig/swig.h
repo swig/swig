@@ -30,7 +30,8 @@ typedef  DOH     List;
 typedef  DOH     String_or_char;
 typedef  DOH     File;
 
-/* --- Legacy DataType interface.  This is being replaced --- */
+/* --- Legacy DataType interface.  These type codes are provided solely 
+   for backwards compatibility with older modules --- */
 
 #define   T_INT        1
 #define   T_SHORT      2
@@ -337,6 +338,26 @@ extern Wrapper   *Swig_cvarget_wrapper(String_or_char *varname,
 				       SwigType *type,
 				       String_or_char *code);
 
+
+/* --- Legacy Typemap API (somewhat simplified) --- */
+
+extern void   Swig_typemap_init();
+extern void   Swig_typemap_register(char *op, SwigType *type, String_or_char *name, String_or_char *code, ParmList *locals);
+extern void   Swig_typemap_copy(char *op, SwigType *stype, String_or_char *sname,
+				SwigType *ttype, String_or_char *tname);
+extern void   Swig_typemap_clear(char *op, SwigType *type, String_or_char *name);
+extern void   Swig_typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, String_or_char *pname);
+extern void   Swig_typemap_clear_apply(SwigType *type, String_or_char *pname);
+extern void   Swig_typemap_debug();
+extern Hash  *Swig_typemap_search(char *op, SwigType *type, String_or_char *pname);
+extern char  *Swig_typemap_lookup(char *op, SwigType *type, String_or_char *pname, String_or_char *source, String_or_char *target, Wrapper *f);
+extern void   Swig_typemap_new_scope();
+extern Hash  *Swig_typemap_pop_scope();
+
+/* --- Legacy %except directive API --- */
+extern void   Swig_except_register(String_or_char *code);
+extern char  *Swig_except_lookup();
+extern void   Swig_except_clear();
 
 /* --- Attribute access macros --- */
 

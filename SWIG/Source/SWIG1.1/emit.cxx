@@ -50,16 +50,16 @@ int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
     pname  = Getname(p);
     pvalue = Getvalue(p);
 
-    tm = typemap_lookup((char*)"arginit", typemap_lang, pt,pname,(char*)"",lname,f);
+    tm = Swig_typemap_lookup((char*)"arginit",pt,pname,(char*)"",lname,f);
     if (tm) {
       Printv(f->code,tm,"\n",0);
     }
     /* Check for ignore or default typemaps */
-    tm = typemap_lookup((char*)"default",typemap_lang,pt,pname,(char*)"",lname,f);
+    tm = Swig_typemap_lookup((char*)"default",pt,pname,(char*)"",lname,f);
     if (tm) {
       Printv(f->code,tm,"\n",0);
     }
-    tm = typemap_lookup((char*)"ignore",typemap_lang,pt,pname,(char*)"",lname,f);
+    tm = Swig_typemap_lookup((char*)"ignore",pt,pname,(char*)"",lname,f);
     if (tm) {
       Printv(f->code,tm,"\n",0);
       Setignore(p,1);
@@ -92,10 +92,10 @@ void emit_set_action(DOHString_or_char *decl) {
 void emit_func_call(char *decl, SwigType *t, ParmList *l, Wrapper *f) {
   char *tm;
 
-  if ((tm = typemap_lookup((char*)"except",typemap_lang,t,decl,(char*)"result",(char*)"",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"except",t,decl,(char*)"result",(char*)"",0))) {
     Printv(f->code,tm,0);
     Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
-  } else if ((tm = fragment_lookup((char*)"except",typemap_lang))) {
+  } else if ((tm = Swig_except_lookup())) {
     Printv(f->code,tm,0);
     Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
   } else {
@@ -183,6 +183,36 @@ void emit_set_get(char *name, char *iname, SwigType *t) {
   DelWrapper(w);
 }
 
+/* ------------------------------------------------------------------
+ * int check_numopt()
+ *
+ * Gets the number of optional arguments for a ParmList. 
+ * ------------------------------------------------------------------ */
+
+int check_numopt(ParmList *p) {
+  int  n = 0;
+  int  i = 0;
+  int  state = 0;
+
+  for (;p; p = Getnext(p),i++) {
+    SwigType *pt = Gettype(p);
+    String   *pn = Getname(p);
+    if (Getvalue(p)) {
+      n++;
+      state = 1;
+    } else if (Swig_typemap_search((char*)"default",pt,pn)) {
+      n++;
+      state = 1;
+    } else if (Swig_typemap_search((char*)"ignore",pt,pn)) {
+      n++;
+    } else {
+      if (state) {
+	Printf(stderr,"%s : Line %d.  Argument %d must have a default value!\n", input_file,line_number,i+1);
+      }
+    }
+  }
+  return n;
+}
 
 
 

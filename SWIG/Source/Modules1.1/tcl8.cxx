@@ -522,7 +522,7 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
       if (j == (pcount-numopt)) 
 	Putc('|',argstr);
 
-      if ((tm = typemap_lookup((char*)"in",(char*)"tcl8",pt,pn,source,target,f))) {
+      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {
 	Putc('o',argstr);
 	Printf(args,",0");
 
@@ -621,7 +621,7 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
     }
 
     // Check to see if there was any sort of a constaint typemap
-    if ((tm = typemap_lookup((char*)"check",(char*)"tcl8",pt,pn,source,target,0))) {
+    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,source,target,0))) {
       // Yep.  Use it instead of the default
       Printf(incode,"%s\n", tm);
       Replace(incode,"$argnum",argnum, DOH_REPLACE_ANY);
@@ -629,14 +629,14 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
     }
 
     // Check if there was any cleanup code (save it for later)
-    if ((tm = typemap_lookup((char*)"freearg",(char*)"tcl8",pt,pn,target,(char*)"tcl_result",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,target,(char*)"tcl_result",0))) {
       // Yep.  Use it instead of the default
       Printf(cleanup,"%s\n", tm);
       Replace(cleanup,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",source,DOH_REPLACE_ANY);
     }
     // Look for output arguments
-    if ((tm = typemap_lookup((char*)"argout",(char*)"tcl8",pt,pn,target,(char*)"tcl_result",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,target,(char*)"tcl_result",0))) {
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
@@ -657,7 +657,7 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 
   // Return value if necessary 
 
-  if ((tm = typemap_lookup((char*)"out",(char*)"tcl8",d,name,(char*)"result",(char*)"tcl_result",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"out",d,name,(char*)"result",(char*)"tcl_result",0))) {
     // Yep.  Use it instead of the default
     Printf(f->code,"%s\n", tm);
   } else {
@@ -729,12 +729,12 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   // Look for any remaining cleanup
 
   if (NewObject) {
-    if ((tm = typemap_lookup((char*)"newfree",(char*)"tcl8",d,iname,(char*)"result",(char*)"",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"",0))) {
       Printf(f->code,"%s\n", tm);
     }
   }
 
-  if ((tm = typemap_lookup((char*)"ret",(char*)"tcl8",d,name,(char*)"result",(char*)"",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"ret",d,name,(char*)"result",(char*)"",0))) {
     // Yep.  Use it instead of the default
     Printf(f->code,"%s\n", tm);
   }
@@ -772,8 +772,8 @@ void TCL8::link_variable(char *name, char *iname, SwigType *t)
 
   // See if there were any typemaps
 
-  tm = typemap_lookup((char*)"varin",(char*)"tcl8",t,name,(char*)"",(char*)"",0);
-  tm1 = typemap_lookup((char*)"varout",(char*)"tcl8",t,name,(char*)"",(char*)"",0);
+  tm = Swig_typemap_lookup((char*)"varin",t,name,(char*)"",(char*)"",0);
+  tm1 = Swig_typemap_lookup((char*)"varout",t,name,(char*)"",(char*)"",0);
   if (tm || tm1) {
     Printf(stderr,"%s : Line %d. Warning. varin/varout typemap methods not supported.",
 	    input_file, line_number);
@@ -978,7 +978,7 @@ void TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
   } else {
     rvalue = NewString(value);
   }
-  if ((tm = typemap_lookup((char*)"const",(char*)"tcl8",type,name,Char(rvalue),name,0))) {
+  if ((tm = Swig_typemap_lookup((char*)"const",type,name,Char(rvalue),name,0))) {
     // Yep.  Use it instead of the default
     Printf(f_init,"%s\n",tm);
   } else {
@@ -1116,7 +1116,7 @@ char * TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
 
     // Only print an argument if not ignored
 
-    if (!typemap_check((char*)"ignore",(char*)"tcl8",pt,pn)) {
+    if (!Swig_typemap_search((char*)"ignore",pt,pn)) {
       if (i >= (pcount-numopt))
 	Putc('?',temp);
 

@@ -267,46 +267,5 @@ extern "C" {
 extern  int   emit_args(SwigType *, ParmList *, Wrapper *f);
 extern  void  emit_func_call(char *, SwigType *, ParmList *, Wrapper *f);
 extern  void  SWIG_exit(int);
-
-// -----------------------------------------------------------------------
-// Typemap support
-// -----------------------------------------------------------------------
-#ifndef OLD
-extern void    typemap_register(char *op, char *lang, SwigType *type, String_or_char *pname, String_or_char *code, ParmList *l = 0);
-extern char   *typemap_lookup(char *op, char *lang, SwigType *type, String_or_char *pname, String_or_char *source, String_or_char *target,                Wrapper *f = 0);
-extern void    typemap_clear(char *op, char *lang, SwigType *type, String_or_char *pname);
-extern void    typemap_copy(char *op, char *lang, SwigType *stype, String_or_char *sname,
-			    SwigType *ttype, String_or_char *tname);
-extern char   *typemap_check(char *op, char *lang, SwigType *type, String_or_char *pname);
-extern void    typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, String_or_char *pname);
-extern void    typemap_clear_apply(SwigType *type, String_or_char *pname);
 extern int     check_numopt(ParmList *);
-
-
-// -----------------------------------------------------------------------
-// Code fragment support
-// -----------------------------------------------------------------------
-
-extern void    fragment_register(char *op, char *lang, String_or_char *code);
-extern char   *fragment_lookup(char *op, char *lang);
-extern void    fragment_clear(char *op, char *lang);
-
-#else
-
-#define typemap_register(op,lang,type,pname,code,l)
-#define typemap_register_default(op,lang,type,ptr,arraystr,code,l)
-#define typemap_lookup(op,lang,type,pname,source,target,f)  0
-
-#define typemap_clear(op,lang,type,pname)
-#define typemap_copy(op,lang,stype,sname,ttype,tname)
-#define typemap_check(op,lang,type,pname)  0
-#define typemap_apply(tm,tmname,type,pname)
-#define typemap_clear_apply(type,pname)
-#define check_numopt(l)  ParmList_len(l)
-#define fragment_register(op,lang,code)
-#define fragment_lookup(op,lang,age) 0
-#define fragment_clear(op,lang)
-
-#endif
-
 
