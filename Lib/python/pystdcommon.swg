@@ -228,3 +228,39 @@ std::string SwigString_AsString(PyObject* o) {
 #endif
 
 
+%define %specialize_std_container(Type,Check,As,From)
+%{
+namespace swig {
+  template <>  struct traits_asval<Type > {   
+    typedef Type value_type;
+    static int asval(PyObject *obj, value_type *val) {
+      if (Check(obj)) {
+	*val = As(obj);
+	return 1;
+      }
+      return 0;
+    }
+  };
+  template <>  struct traits_from<Type > {
+    typedef Type value_type;
+    static PyObject *from(const value_type& val) {
+      return From(val);
+    }
+  };
+
+  template <> 
+  struct traits_check<Type, value_category> {
+    static bool check(PyObject *obj) {
+      return obj && Check(obj);
+    }
+  };
+}
+%}
+%enddef
+
+
+#define specialize_std_vector(Type,Check,As,From) %specialize_std_container(SWIG_arg(Type),Check,As,From)
+#define specialize_std_list(Type,Check,As,From) %specialize_std_container(SWIG_arg(Type),Check,As,From)
+#define specialize_std_deque(Type,Check,As,From) %specialize_std_container(SWIG_arg(Type),Check,As,From)
+#define specialize_std_set(Type,Check,As,From) %specialize_std_container(SWIG_arg(Type),Check,As,From)
+#define specialize_std_multiset(Type,Check,As,From) %specialize_std_container(SWIG_arg(Type),Check,As,From)
