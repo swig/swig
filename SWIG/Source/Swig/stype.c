@@ -130,6 +130,12 @@ SwigType *NewSwigType(int t) {
     return t;
     break;
   }
+  case T_LONGLONG:
+    return NewString("long long");
+    break;
+  case T_ULONGLONG:
+    return NewString("unsigned long long");
+    break;
   case T_VOID:
     return NewString("void");
     break;
@@ -1546,7 +1552,7 @@ int SwigType_type(SwigType *t)
  ***                                                                        ***
  *** Don't even think about modifying anything below this line unless you   ***
  *** are completely on top of *EVERY* subtle aspect of the C++ type system  ***
- *** are you are prepared to suffer endless hours of agony trying to        ***
+ *** and you are prepared to suffer endless hours of agony trying to        ***
  *** debug the SWIG run-time type checker after you break it.               ***
  ******************************************************************************/
 
