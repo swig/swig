@@ -28,6 +28,8 @@ static char cvsroot[] = "$Header$";
 
 void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
 
+  extern SwigType *cplus_value_type(SwigType *t);
+
   Parm *p;
   String *tm;
 
@@ -35,9 +37,11 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
   Swig_cargs(f, l);
 
   if (rt && (SwigType_type(rt) != T_VOID)) {
-    /* Declare the return type, but not if its user defined and we're in C++ mode */
-    if ((SwigType_type(rt) != T_USER) || (!CPlusPlus)) {
+    SwigType *vt = cplus_value_type(rt);
+    if (!vt) {
       Wrapper_add_local(f,"result", SwigType_lstr(rt,"result"));
+    } else {
+      Wrapper_add_local(f,"result", SwigType_lstr(vt,"result"));
     }
   }
   
@@ -215,12 +219,14 @@ void emit_action(Node *n, Wrapper *f) {
   rt = Getattr(n,"type");
   if (rt && (SwigType_type(rt) != T_VOID)) {
     /* Declare the return type, but not if its user defined and we're in C++ mode */
+    /*
     if ((SwigType_type(rt) == T_USER) && (CPlusPlus)) {
       String *s = SwigType_lstr(rt,0);
       Insert(action,0," ");
       Insert(action,0,s);
       Delete(s);
     }
+    */
   }
 
   /* Preassert -- EXPERIMENTAL */

@@ -145,40 +145,31 @@ static Parm *nonvoid_parms(Parm *p) {
   return p;
 }
 
+/* This is a hack */
+SwigType *cplus_value_type(SwigType *t) {
+  Node *n;
+  if (!ClassHash) return 0;
+  SwigType *td = SwigType_typedef_resolve_all(t);
+  if ((n = Getattr(ClassHash,td))) {
+    if (Getattr(n,"has_default_constructor")) return 0;
+    String *s = NewStringf("SwigValueWrapper<%s>",t);
+    return s;
+  }
+  return 0;
+}
+
 /* Patch C++ pass-by-value */
 static void patch_parms(Parm *p) {
   if (!ClassHash) return;
   while (p) {
     SwigType *t = Getattr(p,"type");
-    SwigType *td = SwigType_typedef_resolve_all(t);
-    if (Getattr(ClassHash,td)) {
-      /* Insert an alternative type */
-      String *s = NewStringf("SwigValueWrapper<%s>",t);
+    SwigType *s = cplus_value_type(t);
+    if (s) {
       Setattr(p,"alttype",s);
       Delete(s);
-      
-      /* Old hack that converts to reference */
-      /*      Setattr(p,"origtype", Copy(t));
-	      SwigType_add_reference(t); */
     }
     p = nextSibling(p);
   }
-}
-
-/* Unpatch pass-by-value references */
-static void unpatch_parms(Parm *p) {
-
-  /* Not used with template hack above */
-  /*
-  if (!ClassHash) return;
-  while (p) {
-    SwigType *t = Getattr(p,"origtype");
-    if (t) {
-      Setattr(p,"type",t);
-    }
-    p = nextSibling(p);
-  }
-  */
 }
 
 /* --------------------------------------------------------------------------
@@ -709,7 +700,6 @@ Language::functionHandler(Node *n) {
       memberfunctionHandler(n);
     }
   }
-  if (CPlusPlus) unpatch_parms(p);
   return SWIG_OK;
 }
 
