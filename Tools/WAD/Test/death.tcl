@@ -1,4 +1,4 @@
-load ./debug.so
+load ./debug[info sharedlibextension]
 
 proc death_by_segmentation { } {
     seg_crash

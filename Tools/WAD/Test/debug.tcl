@@ -1,6 +1,6 @@
 # WAD debugging module for Tcl.  This should be executed with wish
 
-load ./debug.so
+load ./debug[info sharedlibextension]
 
 message .t -text "This program tests various program faults. Note: Not all of these errors can be gracefully handled."
 
