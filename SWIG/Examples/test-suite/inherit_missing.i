@@ -11,7 +11,9 @@ public:
 };
 %}
 
-%echo "*** inherit_missing: A warning message about class 'Foo' is expected."
+/* Forward declaration.  Says that Foo is a class, but doesn't provide a definition */
+
+class Foo;
 
 %inline %{
 
