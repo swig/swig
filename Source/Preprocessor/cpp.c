@@ -493,8 +493,12 @@ get_filename(String *str) {
     if (isspace(c)) Ungetc(c,str);
   }
 #if defined(_WIN32) || defined(MACSWIG)
-  /* accept Unix file separator on non-Unix systems */
+  /* accept Unix path separator on non-Unix systems */
   Replaceall(fn, "/", SWIG_FILE_DELIMETER);
+#endif
+#if defined(__CYGWIN__)
+  /* accept Windows path separator in addition to Unix path separator */
+  Replaceall(fn, "\\", SWIG_FILE_DELIMETER);
 #endif
   Seek(fn,0,SEEK_SET);
   return fn;
