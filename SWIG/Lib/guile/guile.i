@@ -9,6 +9,8 @@
 %insert(runtime) "guile.swg"
 #endif
 
+#define %scheme(text) %pragma(guile) scheme = text;
+
 /* Read in standard typemaps. */
 %include "typemaps.i"
 

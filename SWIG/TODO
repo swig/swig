@@ -4,15 +4,13 @@
 
 ** Revive the documentation
 
-** [Guile] Emit Scheme module code for use with passive linkage.
-
 ** Discuss the %pragma directive syntax change from CVS head.  
    Why is the syntax changing all the time?  Can't we just stick to
    the syntax in 1.3a5? 
 
 ** Maybe port other parser-related stuff from CVS head
 
-** Maybe get the 10/14/00 changes from CVS head
+** Maybe get the 10/14/00 ("output file handling and shadow classes") change from CVS head 
 
 ** Fix all the bugs on SourceForge
 

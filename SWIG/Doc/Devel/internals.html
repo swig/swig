@@ -1013,9 +1013,26 @@ following module-system hack:
 	    (current-module))
 </pre>
 </blockquote>
+
+<p>SWIG can also generate this Scheme stub (from
+<code>define-module</code> up to <code>export</code>)
+semi-automagically if you pass it the command-line argument
+<code>-scmstub <var>foo.scm</var></code>.  Since SWIG doesn't know how
+to load your extension module (with <code>dynamic-link</code> or
+<code>load-extension</code>, you need to supply this
+information by including a directive like this in the interface file:
+<blockquote>
+<pre>
+%scheme("(load-extension \"./example.so\" \"SWIG_init\")")
+</pre>
+</blockquote>
+(The <code>%scheme</code> directive allows to insert arbitrary Scheme
+code into the generated file <code><var>foo.scm</var></code>; it is
+placed between the <code>define-module</code> form and the
+<code>export</code> form.)
 </ul>
 
-If you want to include several SWIG modules, you would need to rename
+<p>If you want to include several SWIG modules, you would need to rename
 <code>SWIG_init</code> via a preprocessor define to avoid symbol
 clashes. For this case, however, passive linkage is available.
 

@@ -38,6 +38,8 @@ private:
     GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
   } linkage;
   File  *procdoc;
+  File  *scmstub;
+  String *scmtext;
   enum {
     GUILE_1_4,
     PLAIN,
