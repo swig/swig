@@ -116,6 +116,7 @@ then
 			LDSHARED="ld -Bshareable"
 		fi;;
 	SCO_SV*) LDSHARED="cc -G -KPIC -Ki486 -belf -Wl,-Bexport";;
+        Darwin*) LDSHARED="cc -bundle -undefined suppress -flat_namespace";;
 	*)	LDSHARED="ld";;
 	esac
 fi
@@ -140,6 +141,7 @@ then
              then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G";
              else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun";
              fi;;
+        Darwin*) TRYLINKINGWITHCXX="CXXSHARED= $CXX -bundle -undefined suppress -flat_namespace";;
         *)       TRYLINKINGWITHCXX="CXXSHARED=      $CXX -shared ";;
         esac
 fi
