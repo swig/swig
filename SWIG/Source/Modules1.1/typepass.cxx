@@ -769,7 +769,7 @@ public:
      * ------------------------------------------------------------ */ 
 
     virtual int typemapcopyDirective(Node *n) {
-	if (inclass) {
+	if (inclass || nsname) {
 	    Node *items = firstChild(n);
 	    ParmList *pattern = Getattr(n,"pattern");
 	    normalize_later(pattern);
@@ -787,7 +787,7 @@ public:
      * ------------------------------------------------------------ */ 
 
     virtual int applyDirective(Node *n) {
-	if (inclass) {
+	if (inclass || nsname) {
 	    ParmList *pattern = Getattr(n,"pattern");
 	    normalize_later(pattern);
 	    Node *items = firstChild(n);
@@ -805,7 +805,7 @@ public:
      * ------------------------------------------------------------ */ 
 
     virtual int clearDirective(Node *n) {
-	if (inclass) {
+	if (inclass || nsname) {
 	    Node *p;
 	    for (p = firstChild(n); p; p = nextSibling(p)) {
 		ParmList *pattern = Getattr(p,"pattern");
