@@ -300,7 +300,7 @@ int RUBY::top(Node *n) {
 
   /* Finish off our init function */
   Printf(f_init,"}\n");
-  SwigType_emit_type_table(f_header,f_wrappers);
+  SwigType_emit_type_table(f_runtime,f_wrappers);
 
   /* Close all of the files */
   Dump(f_header,f_runtime);
