@@ -7,8 +7,8 @@
 //
 /* Revision History
  * $Log$
- * Revision 1.2  2002/11/30 22:01:08  beazley
- * The great merge
+ * Revision 1.3  2002/11/30 22:10:09  beazley
+ * *** empty log message ***
  *
  * Revision 1.1.2.1  2001/06/20 11:47:29  mkoeppe
  * Portability fixes
