@@ -139,7 +139,7 @@ namespace std {
                 }
             } else {
                 $1 = *(($&1_type)
-                       SWIG_MustGetPtr($input,$1_descriptor,$argnum));
+                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp),
@@ -252,7 +252,7 @@ namespace std {
                 }
             } else {
                 $1 = *(($&1_type)
-                       SWIG_MustGetPtr($input,$1_descriptor,$argnum));
+                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
             }
         }
         %typemap(in) const vector<int>& (std::vector<int> temp),
@@ -374,7 +374,7 @@ namespace std {
                 }
             } else {
                 $1 = *(($&1_type)
-                       SWIG_MustGetPtr($input,$1_descriptor,$argnum));
+                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
             }
         }
         %typemap(in) const vector<double>& (std::vector<double> temp),

@@ -127,7 +127,7 @@ namespace std {
                     (($1_type &)$1)[i] = *x;
                 }
             } else {
-                $1 = *(($&1_type) SWIG_ConvertPtr($input,$1_descriptor));
+                $1 = *(($&1_type) SWIG_ConvertPtr($input,$&1_descriptor));
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp),
@@ -217,7 +217,7 @@ namespace std {
                                  " (expected vector<int>)");
                 }
             } else {
-                $1 = *(($&1_type) SWIG_ConvertPtr($input,$1_descriptor));
+                $1 = *(($&1_type) SWIG_ConvertPtr($input,$&1_descriptor));
             }
         }
         %typemap(in) const vector<int>& (std::vector<int> temp),
@@ -302,7 +302,7 @@ namespace std {
                                  " (expected vector<double>)");
                 }
             } else {
-                $1 = *(($&1_type) SWIG_ConvertPtr($input,$1_descriptor));
+                $1 = *(($&1_type) SWIG_ConvertPtr($input,$&1_descriptor));
             }
         }
         %typemap(in) const vector<double>& (std::vector<double> temp),
