@@ -86,7 +86,7 @@
 
 %typemap(ctype) enum SWIGTYPE "int"
 %typemap(imtype) enum SWIGTYPE "int"
-%typemap(cstype) enum SWIGTYPE "int"
+%typemap(cstype) enum SWIGTYPE "$csclassname"
 
 /* pointer to a class member */
 %typemap(ctype) SWIGTYPE (CLASS::*) "int"
@@ -299,6 +299,10 @@ $1 = &temp; %}
   SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
 }
 
+%typemap(throws) enum SWIGTYPE {
+  SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
+}
+
 %typemap(throws) char * {
   SWIG_CSharpThrowException(SWIG_CSharpException, $1);
 }
@@ -323,9 +327,9 @@ $1 = &temp; %}
                  float,              const float &,
                  double,             const double &,
                  char *,
-                 char[ANY],
-                 enum SWIGTYPE 
+                 char[ANY]
     "$csinput"
+%typemap(csin) enum SWIGTYPE "(int)$csinput"
 %typemap(csin) SWIGTYPE "$&csclassname.getCPtr($csinput)"
 %typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "$csclassname.getCPtr($csinput)"
 
@@ -346,9 +350,11 @@ $1 = &temp; %}
                   float,              const float &,
                   double,             const double &,
                   char *,
-                  char[ANY],
-                  enum SWIGTYPE {
+                  char[ANY] {
     return $imcall;
+  }
+%typemap(csout) enum SWIGTYPE {
+    return ($csclassname)$imcall;
   }
 %typemap(csout) void {
     $imcall;
@@ -385,11 +391,15 @@ $1 = &temp; %}
                    float,              const float &,
                    double,             const double &,
                    char *,
-                   char[ANY],
-                   enum SWIGTYPE %{
+                   char[ANY] %{
     get {
       return $imcall;
     } %}
+%typemap(csvarout) enum SWIGTYPE %{
+    get {
+      return ($csclassname)$imcall;
+    } %}
+
 %typemap(csvarout) void %{
     get {
       $imcall;
@@ -410,7 +420,7 @@ $1 = &temp; %}
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public"
+%typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*), enum SWIGTYPE "public"
 %typemap(cscode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing System;\n"
 %typemap(csinterfaces)                SWIGTYPE "IDisposable"
@@ -450,6 +460,7 @@ $1 = &temp; %}
 
 /* C# specific directives */
 #define %csconst(flag)     %feature("cs:const","flag")
+#define %csenumint(flag)   %feature("cs:enumint","flag")
 #define %csmethodmodifiers %feature("cs:methodmodifiers")
 
 %pragma(csharp) moduleimports=%{
