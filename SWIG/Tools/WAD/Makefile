@@ -21,7 +21,7 @@ wad:
 	@cd Wad; $(MAKE) wad
 
 python:
-	@cd Wad; $(MAKE) SINCLUDE='$(PYINCLUDE)' python
+	@cd Python; $(MAKE) SINCLUDE='$(PYINCLUDE)' python
 
 tcl:
 	@cd Wad; $(MAKE) SINCLUDE='$(TCLINCLUDE)' tcl

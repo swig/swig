@@ -351,7 +351,11 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   if (sig == SIGSEGV) {
     if (addr >= current_brk) wad_heap_overflow = 1;
   }
+
   wad_stack_debug(frame);
+
+  /* Generate debugging strings */
+  wad_debug_make_strings(frame);
 
   /* Walk the exception frames and try to find a return point */
   origframe = frame;

@@ -6,8 +6,8 @@
 #######################################################################
 
 # These are the files that make up the WAD core
-SRCS = python.c
-OBJS = python.o
+SRCS = type.c python.c
+OBJS = type.o python.o
 INCLUDE = -I../Include -I.  $(SINCLUDE)
 WADOPT     = @WADOPT@
 
