@@ -19,6 +19,13 @@ static::
 	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' ocaml_static
 
+dynamic::
+	$(MAKE) -f $(TOP)/Makefile TOP='$(TOP)' \
+	IOBJS='$(IOBJS)' PROGFILE='$(PROGFILE)' \
+	SRCS='$(SRCS)' SWIG='$(SWIG)' MLFILE='$(MLFILE)' \
+	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' ocaml_static
+
 clean::
 	$(MAKE) -f $(TOP)/Makefile MLFILE='$(MLFILE)' ocaml_clean
 	rm -f *.gif

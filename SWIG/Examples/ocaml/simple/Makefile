@@ -9,6 +9,12 @@ OBJS       = example.o
 
 all:: static 
 
+dynamic::
+	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' MLFILE='$(MLFILE)' \
+	PROGFILE='$(PROGFILE)' OBJS='$(OBJS)' \
+	ocaml_dynamic
+
 static::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' MLFILE='$(MLFILE)' \

@@ -914,6 +914,22 @@ AC_SUBST(PHP4INC)
 
 AC_ARG_WITH(ocaml,[  --with-ocaml=path	  Set location of ocaml executable],[ OCAMLBIN="$withval"], [OCAMLBIN=])
 AC_ARG_WITH(ocamlc,[  --with-ocamlc=path  Set location of ocamlc executable],[ OCAMLC="$withval"], [OCAMLC=])
+AC_ARG_WITH(ocamldlgen,[  --with-ocamldlgen=path  Set location of ocamldlgen],[ OCAMLDLGEN="$withval" ], [OCAMLDLGEN=])
+AC_ARG_WITH(ocamlfind,[  --with-ocamlfind=path  Set location of ocamlfind],[OCAMLFIND="$withval"],[OCAMLFIND=])
+
+AC_MSG_CHECKING(for Ocaml DL load generator)
+if test -z "$OCAMLDLGEN"; then
+AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen, ocamldlgen)
+else
+OCAMLDLGEN="$OCAMLDLGEN"
+fi
+
+AC_MSG_CHECKING(for Ocaml package tool)
+if test -z "$OCAMLFIND"; then
+AC_CHECK_PROGS(OCAMLFIND, ocamlfind, ocamlfind)
+else
+OCAMLFIND="$OCAMLFIND"
+fi
 
 AC_MSG_CHECKING(for Ocaml compiler)
 if test -z "$OCAMLC"; then
@@ -945,10 +961,14 @@ fi
 export OCAMLINC
 export OCAMLBIN
 export OCAMLC
+export OCAMLDLGEN
+export OCAMLFIND
 
 AC_SUBST(OCAMLINC)
 AC_SUBST(OCAMLBIN)
 AC_SUBST(OCAMLC)
+AC_SUBST(OCAMLDLGEN)
+AC_SUBST(OCAMLFIND)
 
 #----------------------------------------------------------------
 # Look for Pike
