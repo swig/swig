@@ -1782,8 +1782,8 @@ public:
 	String *classname = NewString("");
 	Printf(classname, "SwigDirector_%s", supername);
 
-	/* insert self and disown parameters */
-	Parm *p, *q, *ip;
+	/* insert self parameter */
+	Parm *p, *q;
 	ParmList *superparms = Getattr(n, "parms");
 	ParmList *parms = CopyParmList(superparms);
 	String *type = NewString("CAML_VALUE");
@@ -1792,12 +1792,6 @@ public:
 	set_nextSibling(q, superparms);
 	set_nextSibling(p, parms);
 	parms = p;
-	for (ip = parms; nextSibling(ip); ) ip = nextSibling(ip);
-	p = NewParm(NewString("bool"), NewString("disown"));
-	Setattr(p, "arg:byname", "1");
-	Setattr(n, "director:postfix_args", p);
-	Setattr(p, "value", "0");
-	set_nextSibling(ip, p);
 
         if (!Getattr(n,"defaultargs")) {
           /* constructor */
@@ -1807,9 +1801,7 @@ public:
               String *basetype = Getattr(parent, "classtype");
               String *target = Swig_method_decl(decl, classname, parms, 0, 0);
               call = Swig_csuperclass_call(0, basetype, superparms);
-              Printf( w->def, 
-                      "%s::%s: %s, Swig::Director(self, disown) { }", 
-                      classname, target, call );
+              Printf( w->def, "%s::%s: %s, Swig::Director(self) { }", classname, target, call );
               Delete(target);
               Wrapper_print(w, f_directors);
               Delete(call);
@@ -1843,8 +1835,8 @@ public:
 	String *classname;
 	classname = Swig_class_name(n);
 
-	/* insert self and disown parameters */
-	Parm *p, *q, *ip;
+	/* insert self parameter */
+	Parm *p, *q;
 	ParmList *superparms = Getattr(n, "parms");
 	ParmList *parms = CopyParmList(superparms);
 	String *type = NewString("CAML_VALUE");
@@ -1852,20 +1844,14 @@ public:
 	q = Copy(p);
 	set_nextSibling(p, parms);
 	parms = p;
-	for (ip = parms; nextSibling(ip); ) ip = nextSibling(ip);
-	p = NewParm(NewString("bool"), NewString("disown"));
-	Setattr(p, "arg:byname", "1");
-	Setattr(n, "director:postfix_args", p);
-	Setattr(p, "value", "0");
-	set_nextSibling(ip, p);
 
 	{
 	    Wrapper *w = NewWrapper();
-	    Printf(w->def, "SwigDirector_%s::SwigDirector_%s(CAML_VALUE self, bool disown) : Swig::Director(self, disown) { }", classname, classname);
+	    Printf(w->def, "SwigDirector_%s::SwigDirector_%s(CAML_VALUE self) : Swig::Director(self) { swig_disown(); }", classname, classname);
 	    Wrapper_print(w, f_directors);
 	    DelWrapper(w);
 	}
-	Printf(f_directors_h, "    SwigDirector_%s(CAML_VALUE self, bool disown = true);\n", classname);
+	Printf(f_directors_h, "    SwigDirector_%s(CAML_VALUE self);\n", classname);
 	Delete(classname);
 	Setattr(n,"parms",q);
 	return Language::classDirectorDefaultConstructor(n);

@@ -103,7 +103,7 @@ namespace Swig {
 
     public:
       /* wrap a Ruby object, optionally taking ownership */
-      Director(VALUE self, bool disown) : swig_self(self), swig_disown_flag(disown) {
+      Director(VALUE self) : swig_self(self), swig_disown_flag(false) {
       }
 
       /* discard our reference at destruction */

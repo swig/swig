@@ -1696,8 +1696,8 @@ public:
     String *classname = NewString("");
     Printf(classname, "SwigDirector_%s", supername);
 
-    /* insert self and disown parameters */
-    Parm *p, *ip;
+    /* insert self parameter */
+    Parm *p;
     ParmList *superparms = Getattr(n, "parms");
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("PyObject");
@@ -1705,13 +1705,7 @@ public:
     p = NewParm(type, NewString("self"));
     set_nextSibling(p, parms);
     parms = p;
-    for (ip = parms; nextSibling(ip); ) ip = nextSibling(ip);
-    p = NewParm(NewString("bool"), NewString("disown"));
-    Setattr(p, "arg:byname", "1");
-    Setattr(n, "director:postfix_args", p);
-    Setattr(p, "value", "false");
-    set_nextSibling(ip, p);
-    
+
     if (!Getattr(n,"defaultargs")) {
       /* constructor */
       {
@@ -1720,7 +1714,7 @@ public:
         String *basetype = Getattr(parent, "classtype");
         String *target = Swig_method_decl(decl, classname, parms, 0, 0);
         call = Swig_csuperclass_call(0, basetype, superparms);
-        Printf(w->def, "%s::%s: %s, Swig::Director(self, disown) { }", classname, target, call);
+        Printf(w->def, "%s::%s: %s, Swig::Director(self) { }", classname, target, call);
         Delete(target);
         Wrapper_print(w, f_directors);
         Delete(call);
@@ -1745,17 +1739,17 @@ public:
   /* ------------------------------------------------------------
    * classDirectorDefaultConstructor()
    * ------------------------------------------------------------ */
-   
+
   int classDirectorDefaultConstructor(Node *n) {
     String *classname;
     classname = Swig_class_name(n);
     {
       Wrapper *w = NewWrapper();
-      Printf(w->def, "SwigDirector_%s::SwigDirector_%s(PyObject* self, bool disown) : Swig::Director(self, disown) { }", classname, classname);
+      Printf(w->def, "SwigDirector_%s::SwigDirector_%s(PyObject* self) : Swig::Director(self) { }", classname, classname);
       Wrapper_print(w, f_directors);
       DelWrapper(w);
     }
-    Printf(f_directors_h, "    SwigDirector_%s(PyObject* self, bool disown = false);\n", classname);
+    Printf(f_directors_h, "    SwigDirector_%s(PyObject* self);\n", classname);
     Delete(classname);
     return Language::classDirectorDefaultConstructor(n);
   }

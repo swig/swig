@@ -102,7 +102,7 @@ namespace Swig {
 
     public:
       /* wrap a python object, optionally taking ownership */
-      Director(PyObject* self, bool disown) : swig_self(self), swig_disown_flag(disown) {
+      Director(PyObject* self) : swig_self(self), swig_disown_flag(false) {
         swig_incref();
       }
 

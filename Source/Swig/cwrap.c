@@ -789,7 +789,6 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 {
   ParmList *parms;
   Parm     *prefix_args;
-  Parm     *postfix_args;
   Parm     *p;
   ParmList *directorparms;
   SwigType *type;
@@ -815,25 +814,6 @@ Swig_ConstructorToFunction(Node *n, String *classname,
     }
   } else
     directorparms = parms;
-
-  postfix_args = Getattr(n,"director:postfix_args");
-  if (postfix_args != NIL) {
-    Parm *p2, *p3, *p4;
-
-    if (prefix_args == NIL) /* no prefix args from above. */
-      directorparms = CopyParmList(parms);
-
-    if (directorparms != NIL) {
-      p2 = directorparms;
-      for ( ; nextSibling(p2); p2 = nextSibling(p2));
-      for (p3 = postfix_args; p3; p3 = nextSibling(p3)) {
-        p4 = CopyParm(p3);
-        set_nextSibling(p2, p4);
-        p2 = p4;
-      }
-    } else
-      directorparms = CopyParmList(postfix_args);
-  }
 
   type  = NewString(classname);
   SwigType_add_pointer(type);
