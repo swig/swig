@@ -7,8 +7,8 @@
 
 %inline %{
 
-  typedef vfncs::UnaryFunction<double, double> RFunction;
-  typedef vfncs::UnaryFunction<Complex, Complex> CFunction;
+  typedef vfncs::ArithUnaryFunction<double, double> RFunction;
+  typedef vfncs::ArithUnaryFunction<Complex, Complex> CFunction;
   
 
   int my_func_r(RFunction* hello)
@@ -21,6 +21,14 @@
       return 1;
     }  
 
+  struct Sin : RFunction
+  {
+  };  
+
+  struct CSin : CFunction
+  {
+  };  
+  
 %}
 
   

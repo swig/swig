@@ -3,23 +3,41 @@ from template_typedef_cplx2 import *
 from template_typedef_import import *
 
 #
-# double case
+# this is OK
 #
 
 
-d = make_Identity_double()
-print d.get_base_value()
-print d.get_value()
-print d.get_arith_value()
+s = Sin()
+s.get_base_value()
+s.get_value()
+s.get_arith_value()
+my_func_r(s)
+make_Multiplies_double_double_double_double(s,s)
 
-print make_Multiplies_double_double_double_double(d,d)
-print my_func_r(d)
+z = CSin()
+z.get_base_value()
+z.get_value()
+z.get_arith_value()
+my_func_c(z)
+make_Multiplies_complex_complex_complex_complex(z,z)
+
+#
+# Here we fail
+#
+try:
+  d = make_Identity_double()
+  my_func_r(d)
+except:
+  print d, "is not a RFunction?, but yes it is!" 
+  raise RuntimeError
+
+try:
+  c = make_Identity_double()
+  my_func_c(c)
+except:
+  print c, "is not a CFunction?, but yes it is!" 
+  raise RuntimeError
+  
 
 
-c = make_Identity_double()
-print c.get_base_value()
-print c.get_value()
-print c.get_arith_value()
 
-print make_Multiplies_complex_complex_complex_complex(c,c)
-print my_func_c(c)

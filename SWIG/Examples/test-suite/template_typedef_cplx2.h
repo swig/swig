@@ -1,6 +1,10 @@
 #ifndef ___typedef_import_h__
 #define ___typedef_import_h__
 
+#ifdef SWIG
+%module template_typedef_cplx2;
+#endif
+
 #include <complex>
 typedef std::complex<double> Complex;
 

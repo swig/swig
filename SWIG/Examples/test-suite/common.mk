@@ -166,7 +166,6 @@ CPP_TEST_CASES += \
 	template_typedef \
 	template_typedef_cplx \
 	template_typedef_cplx2 \
-	template_typedef_import \
 	template_virtual \
 	template_whitespace \
 	throw_exception \
@@ -220,7 +219,8 @@ C_TEST_CASES += \
 
 
 MULTI_CPP_TEST_CASES += \
-	imports
+	imports \
+	template_typedef_import
 
 ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) \
 		 $(C_TEST_CASES:=.ctest) \
