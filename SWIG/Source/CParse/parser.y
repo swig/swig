@@ -847,7 +847,7 @@ Node *Swig_cparse(File *f) {
 %token <ivalue> TEMPLATE
 %token <str> OPERATOR
 %token <str> COPERATOR
-%token PARSETYPE
+%token PARSETYPE PARSEPARM
 
 %left  CAST
 %left  LOR
@@ -938,6 +938,12 @@ program        :  interface {
                  top = Getattr($2,"type");
                }
                | PARSETYPE error {
+                 top = 0;
+               }
+               | PARSEPARM parm SEMI {
+                 top = $2;
+               }
+               | PARSEPARM error {
                  top = 0;
                }
                ;
@@ -4710,6 +4716,22 @@ SwigType *Swig_cparse_type(String *s) {
    scanner_file(ns);
    top = 0;
    scanner_next_token(PARSETYPE);
+   yyparse();
+   /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
+   return top;
+}
+
+
+Parm *Swig_cparse_parm(String *s) {
+   String *ns;
+   extern void scanner_file(File *);
+   extern int yyparse();
+   extern void scanner_next_token(int);
+   ns = NewStringf("%s;",s);
+   Seek(ns,0,SEEK_SET);
+   scanner_file(ns);
+   top = 0;
+   scanner_next_token(PARSEPARM);
    yyparse();
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
    return top;

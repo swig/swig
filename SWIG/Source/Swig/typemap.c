@@ -12,6 +12,9 @@
 char cvsroot_typemap_c[] = "$Header$";
 
 #include "swig.h"
+#include <ctype.h>
+
+void replace_embedded_typemap(String *s, Wrapper *f);
 
 /* -----------------------------------------------------------------------------
  * Typemaps are stored in a collection of nested hash tables.  Something like
@@ -37,6 +40,7 @@ char cvsroot_typemap_c[] = "$Header$";
  * ----------------------------------------------------------------------------- */
 
 #define MAX_SCOPE  32
+
 
 static Hash *typemaps[MAX_SCOPE];
 static int   tm_scope = 0;
@@ -704,6 +708,8 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
   char *varname;
   SwigType *ftype;
 
+  Replaceall(s,"$typemap","$TYPEMAP");
+
   ftype = SwigType_typedef_resolve_all(type);
 
   if (!pname) pname = lname;
@@ -1064,16 +1070,22 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
   if (locals && f) {
     typemap_locals(s,locals,f,-1);
   }
-   
+
+  replace_embedded_typemap(s,f);   
+
   /* Now perform character replacements */
   Replace(s,"$source",source,DOH_REPLACE_ANY);
   Replace(s,"$target",target,DOH_REPLACE_ANY);
-  {
+
+  /*  {
     String *tmname = Getattr(tm,"typemap");
     if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
   }
+  */
+
   Replace(s,"$parmname",pname, DOH_REPLACE_ANY);
   /*  Replace(s,"$name",pname,DOH_REPLACE_ANY); */
+
   Delete(locals);
   Delete(mtype);
   return s;
@@ -1127,18 +1139,22 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     clname = SwigType_namestr((char *)lname);
     lname = clname;
   }
+
   if (mtype && SwigType_isarray(mtype)) {
     typemap_replace_vars(s,locals,mtype,pname,(char *) lname,1);
   } else {
     typemap_replace_vars(s,locals,type,pname,(char *) lname,1);
   }
+
   if (locals && f) {
     typemap_locals(s,locals,f,-1);
   }
-  {
+  replace_embedded_typemap(s,f);
+  /*  {
     String *tmname = Getattr(tm,"typemap");
     if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
-  }
+    }*/
+
   Replace(s,"$name",pname,DOH_REPLACE_ANY);
   
   symname = Getattr(node,"sym:name");
@@ -1312,13 +1328,14 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       pname = Getattr(p,"name");
       lname = Getattr(p,"lname");
       mtype = Getattr(p,"tmap:match");
-      
+
       if (mtype) {
 	typemap_replace_vars(s,locals, mtype,pname,lname,i+1);
 	Delattr(p,"tmap:match");
       } else {
 	typemap_replace_vars(s,locals, type,pname,lname,i+1);
       }
+
       if (checkAttribute(tm,"type","SWIGTYPE")) {
 	sprintf(temp,"%s:SWIGTYPE", Char(op));
 	Setattr(p,tmop_name(temp),"1");
@@ -1329,6 +1346,8 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     if (locals && f) {
       typemap_locals(s,locals,f,argnum);
     }
+
+    replace_embedded_typemap(s,f);   
 
     /* Replace the argument number */
     sprintf(temp,"%d",argnum);
@@ -1359,6 +1378,198 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
 }
 
 /* -----------------------------------------------------------------------------
+ * replace_embedded_typemap()
+ *
+ * This function replaces the special variable $typemap(....) with typemap
+ * code.  The general form of $typemap is as follows:
+ *
+ *   $TYPEMAP(method, $var1=value, $var2=value, $var3=value,...)
+ *
+ * For example:
+ *
+ *   $TYPEMAP(in, $1=int x, $input=y, ...)
+ *
+ * ----------------------------------------------------------------------------- */
+
+/* Splits the arguments of an embedded typemap */
+static List *split_embedded(String *s) {
+  List *args = 0;
+  char *c,*start;
+  int  level=0;
+  int  leading = 1;
+  args = NewList();
+  
+  c = Strstr(s,"(");
+  c++;
+
+  start = c;
+  while (*c) {
+    if (*c == '\"') {
+      c++;
+      while (*c) {
+	if (*c == '\\') {
+	  c++;
+	} else {
+	  if (*c == '\"') break;
+	}
+	c++;
+      }
+    }
+    if ((level == 0) && ((*c == ',') || (*c == ')'))) {
+      String *tmp = NewStringWithSize(start,c-start);
+      Append(args,tmp);
+      Delete(tmp);
+      start = c+1;
+      leading = 1;
+      if (*c == ')') break;
+      c++;
+      continue;
+    }
+    if (*c == '(') level++;
+    if (*c == ')') level--;
+    if (isspace(*c) && leading) start++; 
+    if (!isspace(*c)) leading = 0;
+    c++;
+  }
+  return args;
+}
+
+static void split_var(String *s, String **name, String **value) {
+  char *eq;
+  char *c;
+  extern Parm *Swig_cparse_parm(String *s);
+
+  eq = Strstr(s,"=");
+  if (!eq) {
+    *name = 0;
+    *value = 0;
+    return;
+  }
+  c = Char(s);
+  *name = NewStringWithSize(c,eq-c);
+  
+  /* Look for $n variables */
+  if (isdigit(*(c))) {
+    /* Parse the value as a type */
+    String *v;
+    Parm *p;
+    v = NewString(eq+1);
+    p = Swig_cparse_parm(v);
+    Delete(v);
+    *value = p;
+  } else {
+    *value = NewString(eq+1);
+  }
+}
+
+void replace_embedded_typemap(String *s, Wrapper *f) {
+  while (Strstr(s,"$TYPEMAP(")) {
+
+    /* Gather the argument */
+    char *start, *end=0,*c;
+    int  level = 0;
+    String *tmp;
+    start = Strstr(s,"$TYPEMAP(");
+    c = start;
+    while (*c) {
+      if (*c == '(') level++;
+      if (*c == ')') {
+	level--;
+	if (level == 0) {
+	  end = c+1;
+	  break;
+	}
+      }
+      c++;
+    }
+    if (end) {
+      tmp = NewStringWithSize(start,(end-start));
+    } else {
+      tmp = 0;
+    }
+
+    /* Got a substitution. Split it apart into pieces */
+    if (tmp) {
+      List   *l;
+      Hash   *vars;
+      String *method;
+      int i;
+
+      l = split_embedded(tmp);
+      vars = NewHash();
+      for (i = 1; i < Len(l); i++) {
+	String *n, *v;
+	split_var(Getitem(l,i),&n,&v);
+	if (n && v) {
+	  Insert(n,0,"$");
+	  Setattr(vars,n,v);
+	}
+      }
+
+      method = Getitem(l,0);
+      /* Generate the parameter list for matching typemaps */
+
+      {
+	Parm *p = 0;
+	Parm *first = 0;
+	char  temp[32];
+	int   n = 1;
+	while (1) {
+	  Hash *v;
+	  sprintf(temp,"$%d",n);
+	  v = Getattr(vars,temp);
+	  if (v) {
+	    if (p) {
+	      set_nextSibling(p,v);
+	      set_previousSibling(v,p);
+	    }
+	    p = v;
+	    Setattr(p,"lname",Getattr(p,"name"));
+	    if (Getattr(p,"value")) {
+	      Setattr(p,"name",Getattr(p,"value"));
+	    }
+	    if (!first) first = p;
+	    DohIncref(p);
+	    Delattr(vars,temp);
+	  } else {
+	    break;
+	  }
+	  n++;
+	}
+	/* Perform a typemap search */
+	if (first) {
+	  Swig_typemap_attach_parms(method,first,0);
+	  {
+	    String *tm;
+	    char attr[64];
+	    sprintf(attr,"tmap:%s",Char(method));
+	    
+	    /* Look for the typemap code */
+	    tm = Getattr(first,attr);
+	    if (tm) {
+	      sprintf(attr,"tmap:%s:next",Char(method));
+	      if (!Getattr(first,attr)) {
+		/* Should be no more matches.  Hack??? */
+		/* Replace all of the remaining variables */
+		String *key;
+		for (key = Firstkey(vars); key; key = Nextkey(vars)) {
+		  Replace(tm,key,Getattr(vars,key), DOH_REPLACE_ANY);
+		}
+		/* Do the replacement */
+		Replace(s,tmp,tm, DOH_REPLACE_ANY);
+		Delete(tm);
+		Delete(vars);
+	      }
+	    }
+	  }
+	}
+      }
+      Replace(s,tmp,"<embedded typemap>", DOH_REPLACE_ANY);
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_typemap_debug()
  * ----------------------------------------------------------------------------- */
 
@@ -1374,4 +1585,5 @@ void Swig_typemap_debug() {
   }
   Printf(stdout,"-----------------------------------------------------------------------------\n");
 }
+
 
