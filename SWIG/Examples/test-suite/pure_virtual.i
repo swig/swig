@@ -48,6 +48,7 @@ class AA {
 };
 
 /* Multiple inheritance between two abstract classes */
+#ifndef SWIGJAVA
 class E : public C, public AA {
 public:
    virtual void something() { };
@@ -58,6 +59,7 @@ class F : public E {
    public:
      virtual void method2() { }
 };
+#endif
 
 %}
 
