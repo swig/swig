@@ -26,6 +26,7 @@ static int       ignore_missing = 0;
 static int       import_all = 0;         /* Follow all includes, but as %import statements */
 static int       single_include = 1;     /* Only include each file once */
 static Hash     *included_files = 0;
+static List     *dependencies = 0;
 
 /* Test a character to see if it starts an identifier */
 static int
@@ -91,8 +92,16 @@ static String *cpp_include(String_or_char *fn) {
     }
   } else {
     Seek(s,0,SEEK_SET);
+    if (!dependencies) {
+      dependencies = NewList();
+    }
+    Append(dependencies, Copy(Swig_last_file()));
   }
   return s;
+}
+
+List *Preprocessor_depend(void) {
+  return dependencies;
 }
 
 /* -----------------------------------------------------------------------------

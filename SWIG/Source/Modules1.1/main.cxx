@@ -69,11 +69,13 @@ static char *usage = (char*)"\
      -importall      - Follow all #include statements as imports\n\
      -ignoremissing  - Ignore missing include files.\n\
      -l<ifile>       - Include SWIG library file.\n\
+     -M              - List all dependencies. \n\
+     -MM             - List dependencies, but omit files in SWIG library.\n\
      -makedefault    - Create default constructors/destructors (the default)\n\
+     -module         - Set module name\n\
      -nodefault      - Do not generate constructors/destructors\n\
      -noexcept       - Do not wrap exception specifiers.\n\
      -noextern       - Do not generate extern declarations.\n\
-     -module         - Set module name\n\
      -o outfile      - Set name of the output file.\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
@@ -190,6 +192,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     dump_typedef = 0;
   int     dump_classes = 0;
   int     werror = 0;
+  int     depend = 0;
 
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
@@ -350,6 +353,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    } else {
 	      Swig_arg_error();
 	    }
+	  } else if (strcmp(argv[i],"-M") == 0) {
+	    depend = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-MM") == 0) {
+	    depend = 2;
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Wall") == 0) {
 	    Swig_mark_arg(i);
 	    Swig_warnall();
@@ -496,6 +505,27 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	Printf(stdout,"%s", cpps);
 	while (freeze);
 	SWIG_exit (EXIT_SUCCESS);
+      }
+      if (depend) {
+	String *outfile;
+	if (!outfile_name) {
+	  if (CPlusPlus) {
+	    outfile = NewStringf("%s_wrap.%s", Swig_file_basename(input_file),cpp_extension);
+	  } else {
+	    outfile = NewStringf("%s_wrap.c", Swig_file_basename(input_file));
+	  }
+	} else {
+	  outfile = NewString(outfile_name);
+	}
+	Printf(stdout,"%s: ", outfile);
+	List *files = Preprocessor_depend();
+	for (int i = 0; i < Len(files); i++) {
+	  if ((depend != 2) || ((depend == 2) && (Strncmp(Getitem(files,i),SwigLib, Len(SwigLib)) != 0))) {
+	    Printf(stdout,"\\\n %s ", Getitem(files,i));
+	  }
+	}
+	Printf(stdout,"\n");
+	SWIG_exit(EXIT_SUCCESS);
       }
       Seek(cpps, 0, SEEK_SET);
     }

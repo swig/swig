@@ -29,6 +29,7 @@ extern String *Preprocessor_parse(String *s);
 extern void    Preprocessor_include_all(int);
 extern void    Preprocessor_import_all(int);
 extern void    Preprocessor_ignore_missing(int);
+extern List   *Preprocessor_depend(void);
 
 #ifdef __cplusplus
 }
