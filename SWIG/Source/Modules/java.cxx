@@ -2641,14 +2641,14 @@ class JAVA : public Language {
         Delete(t);
 
         if (!SwigType_isclass(return_type)) {
-          Wrapper_add_localv(w, "result", SwigType_lstr(return_type, "result"), "= 0", NIL);
+          Wrapper_add_localv(w, "result", SwigType_lstr(return_type, "result"), NIL);
         } else {
           SwigType *vt = NULL;
           vt = cplus_value_type(return_type);
           if (vt == NULL) {
-            Wrapper_add_localv(w, "result", SwigType_lstr(return_type, "result"), "= 0", NIL);
+            Wrapper_add_localv(w, "result", SwigType_lstr(return_type, "result"), NIL);
           } else {
-            Wrapper_add_localv(w, "result", SwigType_lstr(vt, "result"), "= 0", NIL);
+            Wrapper_add_localv(w, "result", SwigType_lstr(vt, "result"), NIL);
             Delete(vt);
           }
         }
