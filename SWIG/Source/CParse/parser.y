@@ -1395,7 +1395,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 
 		  Printf(ts,"%%}\n");
                   Printf(ts,"%%_template_%s(%s,%s,%s)\n",$5,$3,args,sargs);
-		  Printf(ts,"%%endtemplate;\n");
+		  /*		  Printf(ts,"%%endtemplate;\n"); */
 		  Delete(args);
 		  Delete(sargs);
 		  Setfile(ts,input_file);
@@ -1839,6 +1839,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		       SwigType_push($5,$6.type);
 		       pdecl = NewStringf("%s(%s)", $6.id, ParmList_str($6.parms));
 		       Printf(macrocode,"%%name(__name) %s;\n", SwigType_str($5,pdecl));
+		       Printf(macrocode,"%%endtemplate;\n");
 		       Delete(pdecl);
 		       Seek(macrocode, 0, SEEK_SET);
 		       Setline(macrocode,$1);
@@ -1870,6 +1871,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     Replace(scanner_ccode,$6,"__name", DOH_REPLACE_ID);
 		     Printf(macrocode," %s;\n", scanner_ccode);
 		     /* Include a reverse typedef to associate templated version with renamed version */
+		     Printf(macrocode,"%%endtemplate;\n");
 		     Printf(macrocode,"typedef __name %s< %s >;\n", $6,$3.sparms);
 		     /*		     Printf(stdout,"%s\n", macrocode); */
 		     Seek(macrocode,0, SEEK_SET);
@@ -2981,6 +2983,9 @@ inherit        : raw_inherit {
 		     }
 		     if (!cls) {
 		       Printf(stderr,"%s:%d. Nothing known about class '%s' (ignored).\n", input_file, line_number, name);
+		       if (Strchr(name,'<')) {
+			 Printf(stderr,"%s:%d. Maybe you forgot to instantiate '%s' using %%template.\n", input_file, line_number, name);
+		       }
 		     } else {
 		       if (!$$) $$ = NewList();
 		       Append($$,cls);
