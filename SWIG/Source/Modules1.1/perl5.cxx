@@ -702,7 +702,7 @@ void PERL5::get_pointer(char *iname, char *srcname, char *src, char *dest,
   // If we're passing a void pointer, we give the pointer conversion a NULL
   // pointer, otherwise pass in the expected type.
   
-  if (t->type == T_VOID) Printf(f, "(char *) 0 )) {\n");
+  if (DataType_type(t) == T_VOID) Printf(f, "(char *) 0 )) {\n");
   else 
     Printv(f, "\"", (hidden ? realpackage : ""), (hidden ? "::" : ""), DataType_manglestr(t), "\")) {\n", 0);
 
@@ -769,6 +769,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Check the number of arguments
 
   usage = usage_func(iname,d,l);
+
   Printf(f->code,"    if ((items < %d) || (items > %d)) \n", pcount-numopt, ParmList_numarg(l));
   Printf(f->code,"        croak(\"Usage: %s\");\n", usage);
 
@@ -803,77 +804,64 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	Replace(f->code,"$argnum",argnum,DOH_REPLACE_ANY);
 	Replace(f->code,"$arg",source,DOH_REPLACE_ANY);
       } else {
-
-	if (!pt->is_pointer) {
+	switch(DataType_type(pt)) {
+	  // Integers
 	  
-	  // Extract a parameter by "value"
+	case T_BOOL:
+	case T_INT :
+	case T_SHORT :
+	case T_LONG :
+	case T_SCHAR:
+	case T_UINT:
+	case T_USHORT:
+	case T_ULONG:
+	case T_UCHAR:
+	  Printf(f->code,"    %s = (%s)SvIV(ST(%d));\n", target, DataType_lstr(pt,0),j);
+	  break;
+	case T_CHAR :
 	  
-	  switch(pt->type) {
-	    
-	    // Integers
-	    
-	  case T_BOOL:
-	  case T_INT :
-	  case T_SHORT :
-	  case T_LONG :
-	  case T_SCHAR:
-	  case T_UINT:
-	  case T_USHORT:
-	  case T_ULONG:
-	  case T_UCHAR:
-	    Printf(f->code,"    %s = (%s)SvIV(ST(%d));\n", target, DataType_lstr(pt,0),j);
-	    break;
-	  case T_CHAR :
-
-
-	    Printf(f->code,"    %s = (char) *SvPV(ST(%d),PL_na);\n", target, j);
-	    break;
+	  
+	  Printf(f->code,"    %s = (char) *SvPV(ST(%d),PL_na);\n", target, j);
+	  break;
 	  
 	  // Doubles
 	  
-	  case T_DOUBLE :
-	  case T_FLOAT :
-	    Printf(f->code,"    %s = (%s)SvNV(ST(%d));\n", target, DataType_lstr(pt,0), j);
-	    break;
+	case T_DOUBLE :
+	case T_FLOAT :
+	  Printf(f->code,"    %s = (%s)SvNV(ST(%d));\n", target, DataType_lstr(pt,0), j);
+	  break;
 	  
 	  // Void.. Do nothing.
 	  
-	  case T_VOID :
-	    break;
+	case T_VOID :
+	  break;
 	  
-	    // User defined.   This is invalid here.   Note, user-defined types by
-	    // value are handled in the parser.
-	    
-	  case T_USER:
-	    
-	    pt->is_pointer++;
-	    sprintf(temp,"argument %d", i+1);
-	    get_pointer(iname, temp, source, target, pt, f->code, (char *)"XSRETURN(1)");
-	    pt->is_pointer--;
-	    break;
+	  // User defined.   This is invalid here.   Note, user-defined types by
+	  // value are handled in the parser.
+	  
+	case T_USER:
+	  
+	  pt->is_pointer++;
+	  sprintf(temp,"argument %d", i+1);
+	  get_pointer(iname, temp, source, target, pt, f->code, (char *)"XSRETURN(1)");
+	  pt->is_pointer--;
+	  break;
 
-	    // Unsupported data type
+	case T_STRING:
+	  Printf(f->code,"    if (! SvOK((SV*) ST(%d))) { %s = 0; }\n", j, target);
+	  Printf(f->code,"    else { %s = (char *) SvPV(ST(%d),PL_na); }\n", target,j);
+	  break;
+
+	case T_POINTER: case T_ARRAY: case T_REFERENCE:
+	  sprintf(temp,"argument %d", i+1);
+	  get_pointer(iname,temp,source,target, pt, f->code, (char*)"XSRETURN(1)");
+	  break;
+
+	  // Unsupported data type
 	    
-	  default :
-	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_str(pt,0));
-	    break;
-	  }
-	} else {
-	  
-	  // Argument is a pointer type.   Special case is for char *
-	  // since that is usually a string.
-	  
-	  if ((pt->type == T_CHAR) && (pt->is_pointer == 1)) {
-	    Printf(f->code,"    if (! SvOK((SV*) ST(%d))) { %s = 0; }\n", j, target);
-	    Printf(f->code,"    else { %s = (char *) SvPV(ST(%d),PL_na); }\n", target,j);
-	  } else {
-	    
-	    // Have a generic pointer type here.    Read it in as a swig
-	    // typed pointer.
-	    
-	    sprintf(temp,"argument %d", i+1);
-	    get_pointer(iname,temp,source,target, pt, f->code, (char*)"XSRETURN(1)");
-	  }
+	default :
+	  Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_str(pt,0));
+	  break;
 	}
       }
       // The source is going to be an array of saved values.
@@ -932,12 +920,10 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   if ((tm = typemap_lookup((char*)"out",(char*)"perl5",d,iname,(char*)"result",(char*)"ST(argvi)"))) {
     // Yep.  Use it instead of the default
     Printf(f->code, "%s\n", tm);
-  } else if ((d->type != T_VOID) || (d->is_pointer)) {
-    if (!d->is_pointer) {
-      
-      // Function returns a "value"
+  } else {
+    if (DataType_type(d) != T_VOID) {
       Printf(f->code,"    ST(argvi) = sv_newmortal();\n");
-      switch(d->type) {
+      switch (DataType_type(d)) {
       case T_INT: case T_BOOL: case T_UINT:
       case T_SHORT: case T_USHORT:
       case T_LONG : case T_ULONG:
@@ -967,23 +953,18 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	d->is_pointer--;
 	break;
 	
+      case T_STRING:
+	Printf(f->code,"    sv_setpv((SV*)ST(argvi++),(char *) result);\n");
+	break;
+
+      case T_POINTER: case T_ARRAY: case T_REFERENCE:
+	Printv(f->code, tab4, "sv_setref_pv(ST(argvi++),\"", (hidden ? realpackage : ""), (hidden ? "::" : ""), DataType_manglestr(d),
+	       "\", (void *) result);\n", 0);
+	break;
+
       default :
 	Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, DataType_str(d,0), name);
 	break;
-      }
-    } else {
-      
-      // Is a pointer return type
-      Printf(f->code,"    ST(argvi) = sv_newmortal();\n");
-      if ((d->type == T_CHAR) && (d->is_pointer == 1)) {
-	
-	// Return a character string
-	Printf(f->code,"    sv_setpv((SV*)ST(argvi++),(char *) result);\n");
-	
-      } else {
-	// Is an ordinary pointer type.
-	Printv(f->code, tab4, "sv_setref_pv(ST(argvi++),\"", (hidden ? realpackage : ""), (hidden ? "::" : ""), DataType_manglestr(d),
-	       "\", (void *) result);\n", 0);
       }
     }
   }
@@ -1181,65 +1162,62 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
     } else if ((tm = typemap_lookup((char*)"in",(char*)"perl5",t,(char*)"",(char*)"sv",name))) {
       Printf(setf->code,"%s\n", tm);
     } else {
-      if (!t->is_pointer) {
-	
+      switch(DataType_type(t)) {
 	// Set the value to something 
+      case T_INT : case T_BOOL: case T_UINT:
+      case T_SHORT : case T_USHORT:
+      case T_LONG : case T_ULONG:
+      case T_UCHAR: case T_SCHAR:
+	Printv(setf->code,tab4, name, " = (", DataType_str(t,0), ") SvIV(sv);\n", 0);
+	break;
+      case T_DOUBLE :
+      case T_FLOAT :
+	Printv(setf->code, tab4, name, " = (", DataType_str(t,0), ") SvNV(sv);\n", 0);
+	break;
+      case T_CHAR :
+	Printv(setf->code, tab4, name, " = (char) *SvPV(sv,PL_na);\n", 0);
+	break;
 	
-	switch(t->type) {
-	case T_INT : case T_BOOL: case T_UINT:
-	case T_SHORT : case T_USHORT:
-	case T_LONG : case T_ULONG:
-	case T_UCHAR: case T_SCHAR:
-	  Printv(setf->code,tab4, name, " = (", DataType_str(t,0), ") SvIV(sv);\n", 0);
-	  break;
-	case T_DOUBLE :
-	case T_FLOAT :
-	  Printv(setf->code, tab4, name, " = (", DataType_str(t,0), ") SvNV(sv);\n", 0);
-	  break;
-	case T_CHAR :
-	  Printv(setf->code, tab4, name, " = (char) *SvPV(sv,PL_na);\n", 0);
-	  break;
-	  
-	case T_USER:
-	  
-	  // Add support for User defined type here
-	  // Get as a pointer value
-	  
-	  t->is_pointer++;
-	  Wrapper_add_local(setf,"_temp", "void *_temp");
-	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
-	  Printv(setf->code, tab4, name, " = *((", DataType_str(t,0), ") _temp);\n", 0);
-	  t->is_pointer--;
-	  break;
-	  
-	default :
-	  Printf(stderr,"%s : Line %d.  Unable to link with datatype %s (ignored).\n", input_file, line_number, DataType_str(t,0));
-	  return;
-	}
-      } else {
-	// Have some sort of pointer type here, Process it differently
-	if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
-	  Wrapper_add_local(setf,"_a","char *_a");
-	  Printf(setf->code,"    _a = (char *) SvPV(sv,PL_na);\n");
-	  
-	  if (CPlusPlus)
-	    Printv(setf->code,
-		   tab4, "if (", name, ") delete [] ", name, ";\n",
-		   tab4, name, " = new char[strlen(_a)+1];\n",
-		   0);
-	  else
-	    Printv(setf->code,
-		   tab4, "if (", name, ") free(", name, ");\n",
-		   tab4, name, " = (char *) malloc(strlen(_a)+1);\n",
-		   0);
-	  Printv(setf->code,"strcpy(", name, ",_a);\n", 0);
-	} else {
-	  // Set the value of a pointer
-	  
-	  Wrapper_add_local(setf,"_temp","void *_temp");
-	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
-	  Printv(setf->code,tab4, name, " = (", DataType_str(t,0), ") _temp;\n", 0);
-	}
+      case T_USER:
+	
+	// Add support for User defined type here
+	// Get as a pointer value
+	
+	t->is_pointer++;
+	Wrapper_add_local(setf,"_temp", "void *_temp");
+	get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
+	Printv(setf->code, tab4, name, " = *((", DataType_str(t,0), ") _temp);\n", 0);
+	t->is_pointer--;
+	break;
+
+      case T_STRING:
+	Wrapper_add_local(setf,"_a","char *_a");
+	Printf(setf->code,"    _a = (char *) SvPV(sv,PL_na);\n");
+	
+	if (CPlusPlus)
+	  Printv(setf->code,
+		 tab4, "if (", name, ") delete [] ", name, ";\n",
+		 tab4, name, " = new char[strlen(_a)+1];\n",
+		 0);
+	else
+	  Printv(setf->code,
+		 tab4, "if (", name, ") free(", name, ");\n",
+		 tab4, name, " = (char *) malloc(strlen(_a)+1);\n",
+		 0);
+	Printv(setf->code,"strcpy(", name, ",_a);\n", 0);
+	break;
+
+      case T_POINTER: case T_ARRAY: case T_REFERENCE:
+	// Set the value of a pointer
+	
+	Wrapper_add_local(setf,"_temp","void *_temp");
+	get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
+	Printv(setf->code,tab4, name, " = (", DataType_str(t,0), ") _temp;\n", 0);
+	break;
+
+      default :
+	Printf(stderr,"%s : Line %d.  Unable to link with datatype %s (ignored).\n", input_file, line_number, DataType_str(t,0));
+	return;
       }
     }
     Printf(setf->code,"    return 1;\n}\n");
@@ -1263,58 +1241,57 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
   } else  if ((tm = typemap_lookup((char*)"out",(char*)"perl5",t,(char*)"",name,(char*)"sv"))) {
     Printf(getf->code,"%s\n", tm);
   } else {
-    if (!t->is_pointer) {
-      switch(t->type) {
-      case T_INT : case T_BOOL: case T_UINT:
-      case T_SHORT : case T_USHORT:
-      case T_LONG : case T_ULONG:
-      case T_UCHAR: case T_SCHAR:
-	Printv(getf->code,tab4, "sv_setiv(sv, (IV) ", name, ");\n", 0);
-	Printv(vinit, tab4, "sv_setiv(sv,(IV)", name, ");\n",0);
-	break;
-      case T_DOUBLE :
-      case T_FLOAT :
-	Printv(getf->code, tab4,"sv_setnv(sv, (double) ", name, ");\n", 0);
-	Printv(vinit, tab4, "sv_setnv(sv,(double)", name, ");\n",0);
-	break;
-      case T_CHAR :
-	Wrapper_add_local(getf,"_ptemp","char _ptemp[2]");
-	Printv(getf->code,
-	       tab4, "_ptemp[0] = ", name, ";\n",
-	       tab4, "_ptemp[1] = 0;\n",
-	       tab4, "sv_setpv((SV*) sv, _ptemp);\n",
-	       0);
-	break;
-      case T_USER:
-	t->is_pointer++;
-	Printv(getf->code,
-	       tab4, "rsv = SvRV(sv);\n",
-	       tab4, "sv_setiv(rsv,(IV) &", name, ");\n",
-	       0);
-
-	Wrapper_add_local(getf,"rsv","SV *rsv");
-	Printv(vinit, tab4, "sv_setref_pv(sv,\"", DataType_manglestr(t), "\",(void *) &", name, ");\n",0);
-	t->is_pointer--;
-	
-	break;
-      default :
-	break;
-      }
-    } else {
+    switch(DataType_type(t)) {
       
-      // Have some sort of arbitrary pointer type.  Return it as a string
+    case T_INT : case T_BOOL: case T_UINT:
+    case T_SHORT : case T_USHORT:
+    case T_LONG : case T_ULONG:
+    case T_UCHAR: case T_SCHAR:
+      Printv(getf->code,tab4, "sv_setiv(sv, (IV) ", name, ");\n", 0);
+      Printv(vinit, tab4, "sv_setiv(sv,(IV)", name, ");\n",0);
+      break;
+    case T_DOUBLE :
+    case T_FLOAT :
+      Printv(getf->code, tab4,"sv_setnv(sv, (double) ", name, ");\n", 0);
+      Printv(vinit, tab4, "sv_setnv(sv,(double)", name, ");\n",0);
+      break;
+    case T_CHAR :
+      Wrapper_add_local(getf,"_ptemp","char _ptemp[2]");
+      Printv(getf->code,
+	     tab4, "_ptemp[0] = ", name, ";\n",
+	     tab4, "_ptemp[1] = 0;\n",
+	     tab4, "sv_setpv((SV*) sv, _ptemp);\n",
+	     0);
+      break;
+    case T_USER:
+      t->is_pointer++;
+      Printv(getf->code,
+	     tab4, "rsv = SvRV(sv);\n",
+	     tab4, "sv_setiv(rsv,(IV) &", name, ");\n",
+	     0);
       
-      if ((t->type == T_CHAR) && (t->is_pointer == 1))
-	Printv(getf->code, tab4, "sv_setpv((SV*) sv, ", name, ");\n", 0);
-      else {
-	Printv(getf->code,
-	       tab4, "rsv = SvRV(sv);\n",
-	       tab4, "sv_setiv(rsv,(IV) ", name, ");\n",
-	       0);
+      Wrapper_add_local(getf,"rsv","SV *rsv");
+      Printv(vinit, tab4, "sv_setref_pv(sv,\"", DataType_manglestr(t), "\",(void *) &", name, ");\n",0);
+      t->is_pointer--;
+      
+      break;
 
-	Wrapper_add_local(getf,"rsv","SV *rsv");
-	Printv(vinit, tab4, "sv_setref_pv(sv,\"", DataType_manglestr(t), "\",(void *) 1);\n",0);
-      }
+    case T_STRING:
+      Printv(getf->code, tab4, "sv_setpv((SV*) sv, ", name, ");\n", 0);
+      break;
+
+    case T_POINTER: case T_ARRAY: case T_REFERENCE:
+      Printv(getf->code,
+	     tab4, "rsv = SvRV(sv);\n",
+	     tab4, "sv_setiv(rsv,(IV) ", name, ");\n",
+	     0);
+      
+      Wrapper_add_local(getf,"rsv","SV *rsv");
+      Printv(vinit, tab4, "sv_setref_pv(sv,\"", DataType_manglestr(t), "\",(void *) 1);\n",0);
+      break;
+
+    default :
+      break;
     }
   }
   Printf(getf->code,"    return 1;\n}\n");
@@ -1427,58 +1404,53 @@ PERL5::declare_const(char *name, char *, DataType *type, char *value)
   if ((tm = typemap_lookup((char*)"const",(char*)"perl5",type,name,value,name))) {
     Printf(f_init,"%s\n",tm);
   } else {
-    if ((type->type == T_USER) && (!type->is_pointer)) {
-      Printf(stderr,"%s : Line %d.  Unsupported constant value.\n", input_file, line_number);
-      return;
-    }
-    // Generate a constant 
-    if (type->is_pointer == 0) {
-      switch(type->type) {
-      case T_INT: case T_UINT: case T_BOOL:
-      case T_SHORT: case T_USHORT:
-      case T_LONG:  case T_ULONG:
-      case T_SCHAR: case T_UCHAR:
-	if (!have_int_func) {
-	  Printf(f_header,"%s\n",setiv);
-	  have_int_func = 1;
-	}
-	Printv(vinit, tab4, "swig_setiv(\"", package, "::", name, "\", (long) ", value, ");\n",0);
-	break;
-      case T_DOUBLE:
-      case T_FLOAT:
-	if (!have_double_func) {
-	  Printf(f_header,"%s\n",setnv);
-	  have_double_func = 1;
-	}
-	Printv(vinit, tab4, "swig_setnv(\"", package, "::", name, "\", (double) (", value, "));\n",0);
-	break;
-      case T_CHAR :
-	if (!have_char_func) {
-	  Printf(f_header,"%s\n",setpv);
-	  have_char_func = 1;
-	}
-	Printv(vinit, tab4, "swig_setpv(\"", package, "::", name, "\", \"", value, "\");\n",0);
-	break;
-      default:
-	Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
-	break;
+    switch(DataType_type(type)) {
+    case T_INT: case T_UINT: case T_BOOL:
+    case T_SHORT: case T_USHORT:
+    case T_LONG:  case T_ULONG:
+    case T_SCHAR: case T_UCHAR:
+      if (!have_int_func) {
+	Printf(f_header,"%s\n",setiv);
+	have_int_func = 1;
       }
-    } else {
-      if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
-	if (!have_char_func) {
-	  Printf(f_header,"%s\n",setpv);
-	  have_char_func = 1;
-	}
-	Printv(vinit, tab4, "swig_setpv(\"", package, "::", name, "\", \"", value, "\");\n",0);
-      } else {
-	// A user-defined type.  We're going to munge it into a string pointer value
-	if (!have_ref_func) {
-	  Printf(f_header,"%s\n",setrv);
-	  have_ref_func = 1;
-	}
-	Printv(vinit, tab4, "swig_setrv(\"", package, "::", name, "\", (void *) ", value, ", \"", 
-	      DataType_manglestr(type), "\");\n", 0);
+      Printv(vinit, tab4, "swig_setiv(\"", package, "::", name, "\", (long) ", value, ");\n",0);
+      break;
+    case T_DOUBLE:
+    case T_FLOAT:
+      if (!have_double_func) {
+	Printf(f_header,"%s\n",setnv);
+	have_double_func = 1;
       }
+      Printv(vinit, tab4, "swig_setnv(\"", package, "::", name, "\", (double) (", value, "));\n",0);
+      break;
+    case T_CHAR :
+      if (!have_char_func) {
+	Printf(f_header,"%s\n",setpv);
+	have_char_func = 1;
+      }
+      Printv(vinit, tab4, "swig_setpv(\"", package, "::", name, "\", \"", value, "\");\n",0);
+      break;
+    case T_STRING:
+      if (!have_char_func) {
+	Printf(f_header,"%s\n",setpv);
+	have_char_func = 1;
+      }
+      Printv(vinit, tab4, "swig_setpv(\"", package, "::", name, "\", \"", value, "\");\n",0);
+      break;
+
+    case T_POINTER: case T_ARRAY: case T_REFERENCE:
+      // A user-defined type.  We're going to munge it into a string pointer value
+      if (!have_ref_func) {
+	Printf(f_header,"%s\n",setrv);
+	have_ref_func = 1;
+      }
+      Printv(vinit, tab4, "swig_setrv(\"", package, "::", name, "\", (void *) ", value, ", \"", 
+	     DataType_manglestr(type), "\");\n", 0);
+      break;
+
+    default:
+      Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+      break;
     }
   }
 
@@ -1542,7 +1514,7 @@ char *PERL5::usage_func(char *iname, DataType *, ParmList *l) {
     if (!Getignore(p)) {
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
-      if ((pt->type != T_VOID) || (pt->is_pointer)) {
+      if (DataType_type(pt) != T_VOID) {
 	if (strlen(pn) > 0) {
 	  Printf(temp,"%s",pn);
 	} else {

@@ -430,7 +430,7 @@ void TCL8::get_pointer(char *iname, char *srcname, char *src, char *dest,
   DataType_remember(t);
   Printv(f, tab4, "if ((SWIG_ConvertPtr(interp,", src, ",(void **) &", dest, ",",0);
 
-  if (t->type == T_VOID) Printf(f, "0)) == TCL_ERROR) { return TCL_ERROR; }\n");
+  if (DataType_type(t) == T_VOID) Printf(f, "0)) == TCL_ERROR) { return TCL_ERROR; }\n");
   else 
     Printv(f, "SWIGTYPE", DataType_manglestr(t), ")) == TCL_ERROR) { return TCL_ERROR; }\n", 0);
 }
@@ -530,97 +530,90 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	Replace(incode,"$argnum",argnum, DOH_REPLACE_ANY);
 	Replace(incode,"$arg",source, DOH_REPLACE_ANY);
       } else {
-	if (!pt->is_pointer) {
-	
 	  // Extract a parameter by value.
 	
-	  switch(pt->type) {
-	    
+	switch(DataType_type(pt)) {
 	    // Signed Integers
-	  
-	  case T_INT:
-	  case T_UINT:
-	    Putc('i', argstr);
-	    Printf(args,",&%s",target);
-	    break;
-	  case T_BOOL:
-	    Putc('i',argstr);
-	    {
-	      char tb[32];
-	      sprintf(tb,"tempb%d",i);
-	      Wrapper_add_localv(f,tb,"int",tb,0);
-	      Printf(args,",&%s",tb);
-	      Printv(incode, tab4, target, " = (bool) ", tb, ";\n", 0);
-	    }
-	    break;
-	  case T_SHORT:
-	  case T_USHORT:
-	    Putc('h',argstr);
-	    Printf(args,",&%s",target);
-	    break;
-	  case T_LONG:
-	  case T_ULONG:
-	    Putc('l',argstr);
-	    Printf(args,",&%s",target);
-	    break;
-	  case T_SCHAR:
-	  case T_UCHAR:
-	    Putc('b',argstr);
-	    Printf(args,",&%s", target);
-	    break;
+	case T_INT:
+	case T_UINT:
+	  Putc('i', argstr);
+	  Printf(args,",&%s",target);
+	  break;
+	case T_BOOL:
+	  Putc('i',argstr);
+	  {
+	    char tb[32];
+	    sprintf(tb,"tempb%d",i);
+	    Wrapper_add_localv(f,tb,"int",tb,0);
+	    Printf(args,",&%s",tb);
+	    Printv(incode, tab4, target, " = (bool) ", tb, ";\n", 0);
+	  }
+	  break;
+	case T_SHORT:
+	case T_USHORT:
+	  Putc('h',argstr);
+	  Printf(args,",&%s",target);
+	  break;
+	case T_LONG:
+	case T_ULONG:
+	  Putc('l',argstr);
+	  Printf(args,",&%s",target);
+	  break;
+	case T_SCHAR:
+	case T_UCHAR:
+	  Putc('b',argstr);
+	  Printf(args,",&%s", target);
+	  break;
 	  
 	  // Floating point
+	  
+	case T_FLOAT:
+	  Putc('f',argstr);
+	  Printf(args,",&%s", target);
+	  break;
+	  
+	case T_DOUBLE:
+	  Putc('d',argstr);
+	  Printf(args,",&%s", target);
+	  break;
+	  
+	  // A single character
+	case T_CHAR :
+	  Putc('c',argstr);
+	  Printf(args,",&%s",target);
+	  break;
+	  
+	  // Void.. Do nothing.
+	  
+	case T_VOID :
+	  break;
+	  // User defined.   This is an error.
+	  
+	case T_USER:
+	  pt->is_pointer++;
+	  DataType_remember(pt);
+	  Putc('p',argstr);
+	  Printv(args, ",&", target, ", SWIGTYPE", DataType_manglestr(pt), 0);
+	  pt->is_pointer--;
+	  break;
+	  
+	case T_STRING:
+	  Putc('s',argstr);
+	  Printf(args,",&%s",target);
+	  break;
 
-	  case T_FLOAT:
-	    Putc('f',argstr);
-	    Printf(args,",&%s", target);
-	    break;
+	case T_POINTER: case T_ARRAY: case T_REFERENCE:
+	  DataType_remember(pt);
+	  Putc('p',argstr);
+	  Printv(args, ",&", target, ", SWIGTYPE", DataType_manglestr(pt), 0);
+	  break;
 
-	  case T_DOUBLE:
-	    Putc('d',argstr);
-	    Printf(args,",&%s", target);
-	    break;
-	  
-	    // A single character
-	  case T_CHAR :
-	    Putc('c',argstr);
-	    Printf(args,",&%s",target);
-	    break;
-	  
-	    // Void.. Do nothing.
-	  
-	  case T_VOID :
-	    break;
-	    // User defined.   This is an error.
+	  // Unsupported data type
 	    
-	  case T_USER:
-	    pt->is_pointer++;
-	    DataType_remember(pt);
-	    Putc('p',argstr);
-	    Printv(args, ",&", target, ", SWIGTYPE", DataType_manglestr(pt), 0);
-	    pt->is_pointer--;
-	    break;
-
-	    // Unsupported data type
-	    
-	  default :
-	    Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
-		    input_file, line_number, DataType_str(pt,0));
-	    break;
-	  }
-	} else {
-	  
-	  // Function argument is some sort of pointer
-	  // Look for a string.   Otherwise, just pull off a pointer.
-	  
-	  if ((pt->type == T_CHAR) && (pt->is_pointer == 1)) {
-	    Putc('s',argstr);
-	    Printf(args,",&%s",target);
-	  } else {
-	    DataType_remember(pt);
-	    Putc('p',argstr);
-	    Printv(args, ",&", target, ", SWIGTYPE", DataType_manglestr(pt), 0);
-	  }
+	default :
+	  Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
+		 input_file, line_number, DataType_str(pt,0));
+	  break;
 	}
       }
       j++;
@@ -666,13 +659,8 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
   if ((tm = typemap_lookup((char*)"out",(char*)"tcl8",d,name,(char*)"result",(char*)"tcl_result"))) {
     // Yep.  Use it instead of the default
     Printf(f->code,"%s\n", tm);
-  } else if ((d->type != T_VOID) || (d->is_pointer)) {
-    if (!d->is_pointer) {
-	
-      // Function returns a "value"
-	
-      switch(d->type) {
-	// Is an integer
+  } else {
+    switch(DataType_type(d)) {
       case T_BOOL:
       case T_INT:
       case T_SHORT:
@@ -710,25 +698,24 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	d->is_pointer--;
 	break;
 	
-	// Unknown type
-      default :
-	Printf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
-		input_file, line_number, DataType_str(d,0), name);
-	break;
-      }
-    } else {
-	
-      // Is a pointer return type
-      
-      if ((d->type == T_CHAR) && (d->is_pointer == 1)) {
+    case T_STRING:
 	// Return a character string
 	Printv(f->code, tab4, "Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));\n",0);
-      } else {
+	break;
+    case T_POINTER: case T_REFERENCE: case T_ARRAY:
 	DataType_remember(d);
 	Printv(f->code, tab4, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) result,SWIGTYPE",
 	       DataType_manglestr(d), "));\n",
 	       0);
-      }
+	break;
+
+    case T_VOID:
+      break;
+      // Unknown type
+    default :
+      Printf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
+	     input_file, line_number, DataType_str(d,0), name);
+      break;
     }
   }
 
@@ -812,130 +799,129 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
     Printv(set->code, tab4, "value = Tcl_GetVar2(interp, name1, name2, flags);\n",
 	   tab4, "if (!value) return NULL;\n", 0);
 
-    if (!t->is_pointer) {
-      switch(t->type) {
-      case T_INT:
-      case T_SHORT:
-      case T_USHORT:
-      case T_LONG:
-      case T_UCHAR:
-      case T_SCHAR:
-      case T_BOOL:
-	Printv(set->code, tab4, "*(addr) = (", DataType_str(t,0), ") atol(value);\n", 0);
-	break;
-      case T_UINT:
-      case T_ULONG:
-	Printv(set->code, tab4, "*(addr) = (", DataType_str(t,0), ") strtoul(value,0,0);\n",0);
-	break;
-      case T_FLOAT:
-      case T_DOUBLE:
-	Printv(set->code, tab4, "*(addr) = (", DataType_str(t,0), ") atof(value);\n",0);
-	break;
-      case T_CHAR:  /* Single character. */
-	Printv(set->code, tab4, "*(addr) = *value;\n",0);
-	break;
-      case T_USER:
-	// User defined type.  We return it as a pointer
-	t->is_pointer++;
-	DataType_remember(t);
-	Printv(set->code, tab4, "{\n",
-	       tab8, "void *ptr;\n",
-	       tab8, "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", DataType_manglestr(t), ") != TCL_OK) {\n",
-	       tab8, tab4, "return \"Type Error\";\n",
-	       tab8, "}\n",
-	       tab8, "*(addr) = *((", DataType_lstr(t,0), ") ptr);\n",
-	       tab4, "}\n",
-	       0);
+    switch(DataType_type(t)) {
+    case T_INT:
+    case T_SHORT:
+    case T_USHORT:
+    case T_LONG:
+    case T_UCHAR:
+    case T_SCHAR:
+    case T_BOOL:
+      Printv(set->code, tab4, "*(addr) = (", DataType_str(t,0), ") atol(value);\n", 0);
+      break;
+    case T_UINT:
+    case T_ULONG:
+      Printv(set->code, tab4, "*(addr) = (", DataType_str(t,0), ") strtoul(value,0,0);\n",0);
+      break;
+    case T_FLOAT:
+    case T_DOUBLE:
+      Printv(set->code, tab4, "*(addr) = (", DataType_str(t,0), ") atof(value);\n",0);
+      break;
+    case T_CHAR:  /* Single character. */
+      Printv(set->code, tab4, "*(addr) = *value;\n",0);
+      break;
+    case T_USER:
+      // User defined type.  We return it as a pointer
+      t->is_pointer++;
+      DataType_remember(t);
+      Printv(set->code, tab4, "{\n",
+	     tab8, "void *ptr;\n",
+	     tab8, "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", DataType_manglestr(t), ") != TCL_OK) {\n",
+	     tab8, tab4, "return \"Type Error\";\n",
+	     tab8, "}\n",
+	     tab8, "*(addr) = *((", DataType_lstr(t,0), ") ptr);\n",
+	     tab4, "}\n",
+	     0);
+      
+      t->is_pointer--;
+      break;
+    case T_STRING:
+      Printv(set->code, tab4, "if (*addr) free(*addr);\n",
+	     tab4, "*addr = (char *) malloc(strlen(value)+1);\n",
+	     tab4, "strcpy(*addr,value);\n",
+	     0);
+      break;
+    case T_POINTER: case T_ARRAY: case T_REFERENCE:
+      // User defined type.  We return it as a pointer
+      DataType_remember(t);
+      Printv(set->code, tab4, "{\n",
+	     tab8, "void *ptr;\n",
+	     tab8, "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", DataType_manglestr(t), ") != TCL_OK) {\n",
+	     tab8, tab4, "return \"Type Error\";\n",
+	     tab8, "}\n",
+	     tab8, "*(addr) = (", DataType_lstr(t,0), ") ptr;\n",
+	     tab4, "}\n",
+	     0);
+      break;
+    case T_VOID:
+      break;
 
-	t->is_pointer--;
-	break;
-      default:
-	Printf(stderr,"Unknown type %d!\n", t->type);
-	break;
-      }
-    } else {
-      if ((t->is_pointer == 1) && (t->type == T_CHAR)) {
-	Printv(set->code, tab4, "if (*addr) free(*addr);\n",
-	       tab4, "*addr = (char *) malloc(strlen(value)+1);\n",
-	       tab4, "strcpy(*addr,value);\n",
-	       0);
-      } else {
-	// User defined type.  We return it as a pointer
-	DataType_remember(t);
-	Printv(set->code, tab4, "{\n",
-	       tab8, "void *ptr;\n",
-	       tab8, "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", DataType_manglestr(t), ") != TCL_OK) {\n",
-	       tab8, tab4, "return \"Type Error\";\n",
-	       tab8, "}\n",
-	       tab8, "*(addr) = (", DataType_lstr(t,0), ") ptr;\n",
-	       tab4, "}\n",
-	       0);
-
-	/* A Pointer */
-      }
+    default:
+      Printf(stderr,"Unknown type %s!\n", DataType_str(t,0));
+      break;
     }
+
     Printv(set->code, tab4, "return NULL;\n", "}\n",0);
 
-    if (!t->is_pointer) {
-      switch(t->type) {
-      case T_INT:
-      case T_UINT:
-      case T_SHORT:
-      case T_USHORT:
-      case T_LONG:
-      case T_ULONG:
-      case T_UCHAR:
-      case T_SCHAR:
-      case T_BOOL:
-	Wrapper_add_local(get,"value","Tcl_Obj *value");
-	Printv(get->code,
-	       tab4, "value = Tcl_NewIntObj((int) *addr);\n",
-	       tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
-	       tab4, "Tcl_DecrRefCount(value);\n",
-	       0);
-	break;
-      case T_FLOAT:
-      case T_DOUBLE:
-	Wrapper_add_local(get,"value","Tcl_Obj *value");
-	Printv(get->code,
-	       tab4, "value = Tcl_NewDoubleObj((double) *addr);\n",
-	       tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
-	       tab4, "Tcl_DecrRefCount(value);\n",
-	       0);
-	break;
+    switch(DataType_type(t)) {
+    case T_INT:
+    case T_UINT:
+    case T_SHORT:
+    case T_USHORT:
+    case T_LONG:
+    case T_ULONG:
+    case T_UCHAR:
+    case T_SCHAR:
+    case T_BOOL:
+      Wrapper_add_local(get,"value","Tcl_Obj *value");
+      Printv(get->code,
+	     tab4, "value = Tcl_NewIntObj((int) *addr);\n",
+	     tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
+	     tab4, "Tcl_DecrRefCount(value);\n",
+	     0);
+      break;
+    case T_FLOAT:
+    case T_DOUBLE:
+      Wrapper_add_local(get,"value","Tcl_Obj *value");
+      Printv(get->code,
+	     tab4, "value = Tcl_NewDoubleObj((double) *addr);\n",
+	     tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
+	     tab4, "Tcl_DecrRefCount(value);\n",
+	     0);
+      break;
+      
+    case T_CHAR:
+      Wrapper_add_local(get,"temp", "char temp[2]");
+      Printv(get->code,tab4, "temp[0] = *addr; temp[1] = 0;\n",
+	     tab4, "Tcl_SetVar2(interp,name1,name2,temp,flags);\n",
+	     0);
+      break;
+      
+    case T_USER:
+      Wrapper_add_local(get,"value", "Tcl_Obj *value");
+      t->is_pointer++;
+      DataType_remember(t);
+      Printv(get->code, tab4, "value = SWIG_NewPointerObj(addr, SWIGTYPE", DataType_manglestr(t), ");\n",
+	     tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
+	     tab4, "Tcl_DecrRefCount(value);\n",0);
+      t->is_pointer--;
+      break;
+      
+    case T_STRING:
+      Printv(get->code, tab4, "Tcl_SetVar2(interp,name1,name2,*addr, flags);\n",0);
+      break;
 
-      case T_CHAR:
-	Wrapper_add_local(get,"temp", "char temp[2]");
-	Printv(get->code,tab4, "temp[0] = *addr; temp[1] = 0;\n",
-	       tab4, "Tcl_SetVar2(interp,name1,name2,temp,flags);\n",
-	       0);
-	break;
-
-      case T_USER:
-	Wrapper_add_local(get,"value", "Tcl_Obj *value");
-	t->is_pointer++;
-	DataType_remember(t);
-	Printv(get->code, tab4, "value = SWIG_NewPointerObj(addr, SWIGTYPE", DataType_manglestr(t), ");\n",
-	       tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
-	       tab4, "Tcl_DecrRefCount(value);\n",0);
-	t->is_pointer--;
-	break;
-
-      default:
-	break;
-      }
-    } else {
-      if ((t->is_pointer == 1) && (t->type == T_CHAR)) {
-	Printv(get->code, tab4, "Tcl_SetVar2(interp,name1,name2,*addr, flags);\n",0);
-      } else {
-	Wrapper_add_local(get,"value","Tcl_Obj *value");
-	DataType_remember(t);
-	Printv(get->code,
-	       tab4, "value = SWIG_NewPointerObj(*addr, SWIGTYPE", DataType_manglestr(t), ");\n",
-	       tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
-	       tab4, "Tcl_DecrRefCount(value);\n",
-	       0);
-      }
+    case T_POINTER: case T_ARRAY: case T_REFERENCE:
+      Wrapper_add_local(get,"value","Tcl_Obj *value");
+      DataType_remember(t);
+      Printv(get->code,
+	     tab4, "value = SWIG_NewPointerObj(*addr, SWIGTYPE", DataType_manglestr(t), ");\n",
+	     tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
+	     tab4, "Tcl_DecrRefCount(value);\n",
+	     0);
+      break;
+    default:
+      break;
     }
 
     Printv(get->code, tab4, "return NULL;\n", "}\n",0);
@@ -984,9 +970,9 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
   sprintf(var_name,"_wrap_const_%s",name);
   
   // See if there's a typemap
-  if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
+  if (DataType_type(type) == T_STRING) {
     rvalue = NewStringf("\"%s\"",value);
-  } else if ((type->type == T_CHAR) && (type->is_pointer == 0)) {
+  } else if (DataType_type(type) == T_CHAR) {
     rvalue = NewStringf("\'%s\'",value);
   } else {
     rvalue = NewString(value);
@@ -997,89 +983,86 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
   } else {
 
     // Create variable and assign it a value
-    
-    if (type->is_pointer == 0) {
-      switch(type->type) {
-      case T_BOOL: case T_INT: case T_DOUBLE:
-	Printf(f_header,"static %s %s = %s;\n", DataType_str(type,0), var_name, value);
-	link_variable(var_name,name,type);
-	break;
-      case T_SHORT:
-      case T_LONG:
-      case T_SCHAR:
-	Printf(f_header,"static %s %s = %s;\n", DataType_str(type,0), var_name, value);
-	Printf(f_header,"static char *%s_char;\n", var_name);
-	if (CPlusPlus)
-	  Printf(f_init,"\t %s_char = new char[32];\n",var_name);
-	else
-	  Printf(f_init,"\t %s_char = (char *) malloc(32);\n",var_name);
+    switch(DataType_type(type)) {
+    case T_BOOL: case T_INT: case T_DOUBLE:
+      Printf(f_header,"static %s %s = %s;\n", DataType_str(type,0), var_name, value);
+      link_variable(var_name,name,type);
+      break;
+    case T_SHORT:
+    case T_LONG:
+    case T_SCHAR:
+      Printf(f_header,"static %s %s = %s;\n", DataType_str(type,0), var_name, value);
+      Printf(f_header,"static char *%s_char;\n", var_name);
+      if (CPlusPlus)
+	Printf(f_init,"\t %s_char = new char[32];\n",var_name);
+      else
+	Printf(f_init,"\t %s_char = (char *) malloc(32);\n",var_name);
+      
+      Printf(f_init,"\t sprintf(%s_char,\"%%ld\", (long) %s);\n", var_name, var_name);
+      sprintf(var_name,"%s_char",var_name);
+      t = NewDataType(T_CHAR);
+      t->is_pointer = 1;
+      link_variable(var_name,name,t);
+      DelDataType(t);
+      break;
+    case T_UINT:
+    case T_USHORT:
+    case T_ULONG:
+    case T_UCHAR:
+      Printf(f_header,"static %s %s = %s;\n", DataType_str(type,0), var_name, value);
+      Printf(f_header,"static char *%s_char;\n", var_name);
+      if (CPlusPlus)
+	Printf(f_init,"\t %s_char = new char[32];\n",var_name);
+      else
+	Printf(f_init,"\t %s_char = (char *) malloc(32);\n",var_name);
+      
+      Printf(f_init,"\t sprintf(%s_char,\"%%lu\", (unsigned long) %s);\n", var_name, var_name);
+      sprintf(var_name,"%s_char",var_name);
+      t = NewDataType(T_CHAR);
+      t->is_pointer = 1;
+      link_variable(var_name,name,t);
+      DelDataType(t);
+      break;
+    case T_FLOAT:
+      DataType_Settypecode(type,T_DOUBLE);
+      strcpy(type->name,"double");
+      Printf(f_header,"static %s %s = (%s) (%s);\n", DataType_lstr(type,0), var_name, DataType_lstr(type,0), value);
+      link_variable(var_name,name,type);
+      break;
 	
-	Printf(f_init,"\t sprintf(%s_char,\"%%ld\", (long) %s);\n", var_name, var_name);
-	sprintf(var_name,"%s_char",var_name);
-	t = NewDataType(T_CHAR);
-	t->is_pointer = 1;
-	link_variable(var_name,name,t);
-	DelDataType(t);
-	break;
-      case T_UINT:
-      case T_USHORT:
-      case T_ULONG:
-      case T_UCHAR:
-	Printf(f_header,"static %s %s = %s;\n", DataType_str(type,0), var_name, value);
-	Printf(f_header,"static char *%s_char;\n", var_name);
-	if (CPlusPlus)
-	  Printf(f_init,"\t %s_char = new char[32];\n",var_name);
-	else
-	  Printf(f_init,"\t %s_char = (char *) malloc(32);\n",var_name);
-	
-	Printf(f_init,"\t sprintf(%s_char,\"%%lu\", (unsigned long) %s);\n", var_name, var_name);
-	sprintf(var_name,"%s_char",var_name);
-	t = NewDataType(T_CHAR);
-	t->is_pointer = 1;
-	link_variable(var_name,name,t);
-	DelDataType(t);
-	break;
-      case T_FLOAT:
-	type->type = T_DOUBLE;
-	strcpy(type->name,"double");
-	Printf(f_header,"static %s %s = (%s) (%s);\n", DataType_lstr(type,0), var_name, DataType_lstr(type,0), value);
-	link_variable(var_name,name,type);
-	break;
-	
-      case T_CHAR:
-	type->is_pointer++;
-	Printf(f_header,"static %s %s = \"%s\";\n", DataType_lstr(type,0), var_name, value);
-	link_variable(var_name,name,type);
-	type->is_pointer--;
-	break;
-      default:
-	Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
-	break;
-      }
-    } else {
-      // Have some sort of pointer value here
-      if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
-	// Character string
-	Printf(f_header,"static %s %s = \"%s\";\n", DataType_lstr(type,0), var_name, value);
-	link_variable(var_name,name,type);
-      } else {
-	// Something else.   Some sort of pointer value
-	Printf(f_header,"static %s %s = %s;\n", DataType_lstr(type,0), var_name, value);
-	Printf(f_header,"static char *%s_char;\n", var_name);
-	if (CPlusPlus)
-	  Printf(f_init,"\t %s_char = new char[%d];\n",var_name,(int) strlen(DataType_manglestr(type))+ 20);
-	else
-	  Printf(f_init,"\t %s_char = (char *) malloc(%d);\n",var_name, (int) strlen(DataType_manglestr(type))+ 20);
-	
-	t = NewDataType(T_CHAR);
-        t->is_pointer = 1;
-        DataType_remember(type);
-	Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
-		var_name, var_name, DataType_manglestr(type));
-	sprintf(var_name,"%s_char",var_name);
-	link_variable(var_name,name,t);
-	DelDataType(t);
-      }
+    case T_CHAR:
+      type->is_pointer++;
+      Printf(f_header,"static %s %s = \"%s\";\n", DataType_lstr(type,0), var_name, value);
+      link_variable(var_name,name,type);
+      type->is_pointer--;
+      break;
+
+    case T_STRING:
+      Printf(f_header,"static %s %s = \"%s\";\n", DataType_lstr(type,0), var_name, value);
+      link_variable(var_name,name,type);
+      break;
+
+    case T_POINTER: case T_ARRAY: case T_REFERENCE:
+      // Something else.   Some sort of pointer value
+      Printf(f_header,"static %s %s = %s;\n", DataType_lstr(type,0), var_name, value);
+      Printf(f_header,"static char *%s_char;\n", var_name);
+      if (CPlusPlus)
+	Printf(f_init,"\t %s_char = new char[%d];\n",var_name,(int) strlen(DataType_manglestr(type))+ 20);
+      else
+	Printf(f_init,"\t %s_char = (char *) malloc(%d);\n",var_name, (int) strlen(DataType_manglestr(type))+ 20);
+      
+      t = NewDataType(T_CHAR);
+      t->is_pointer = 1;
+      DataType_remember(type);
+      Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
+	     var_name, var_name, DataType_manglestr(type));
+      sprintf(var_name,"%s_char",var_name);
+      link_variable(var_name,name,t);
+      DelDataType(t);
+      break;
+    default:
+      Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+      break;
     }
   }
   Delete(rvalue);
@@ -1100,14 +1083,6 @@ char *TCL8::usage_var(char *iname, DataType *t) {
     sprintf(temp,"$%s%s", prefix, iname);
   } else { 
     sprintf(temp,"%s::%s", ns_name, iname);
-  }
-  if (!(((t->type == T_INT) && (!t->is_pointer)) ||
-	((t->type == T_UINT) && (!t->is_pointer)) ||
-	((t->type == T_DOUBLE) && (!t->is_pointer)) ||
-	((t->type == T_BOOL) && (!t->is_pointer)) ||
-	((t->type == T_CHAR) && (t->is_pointer)))) {
-    /* We emitted a pair of set/get functions instead.  Doc will be generated for that */
-    return temp;
   }
   return temp;
 }
@@ -1147,8 +1122,7 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
 	Putc('?',temp);
 
       /* If parameter has been named, use that.   Otherwise, just print a type  */
-
-      if ((pt->type != T_VOID) || (pt->is_pointer)) {
+      if (DataType_type(pt) != T_VOID) {
 	if (strlen(pn) > 0) {
 	  Printf(temp,pn);
 	}
@@ -1281,9 +1255,8 @@ void TCL8::cpp_close_class() {
   this->Language::cpp_close_class();
   if (shadow) {
 
-    t = NewDataType(0);
+    t = NewDataType(T_USER);
     sprintf(t->name,"%s%s", class_type, real_classname);
-    t->type = T_USER;
     t->is_pointer = 1;
 
     if (have_destructor) {

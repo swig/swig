@@ -102,7 +102,7 @@ int ParmList_numarg(ParmList *l) {
 
   p = Firstitem(l);
   while (p) {
-    if (Getignore(p)) n++;
+    if (!Getignore(p)) n++;
     p = Nextitem(l);
   }
   return n;

@@ -258,7 +258,7 @@ throw_unhandled_mzscheme_type_error (DataType *d)
 {
   fflush (stdout);
   Printf (stderr, "ERROR: Unhandled MZSCHEME type error.\n");
-  Printf (stderr, "        type %d\n", d->type);
+  Printf (stderr, "        type %d\n", DataType_Gettypecode(d));
   Printf (stderr, "        name %s\n", d->name);
   Printf (stderr, "  is_pointer %d\n", d->is_pointer);
   Printf (stderr, "implicit_ptr %d\n", d->implicit_ptr);
@@ -387,7 +387,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   // Now have return value, figure out what to do with it.
 
-  if (d->type == T_VOID) {
+  if (DataType_type(d) == T_VOID) {
     if(!argout_set)
       Printv(f->code, tab4, "swig_result = scheme_void;\n", 0);
   }
@@ -439,7 +439,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   // returning multiple values
   if(argout_set) {
-    if(d->type == T_VOID) {
+    if(DataType_type(d) == T_VOID) {
       Wrapper_add_local(f,"_lenv","int _lenv = 0");
       Wrapper_add_local(f,"_values", "Scheme_Object * _values[MAXVALUES]");
       Printv(f->code, tab4, "swig_result = scheme_values(_lenv, _values);\n", 0);
@@ -504,11 +504,11 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
   proc_name = NewString(iname);
   Replace(proc_name,"_","-",DOH_REPLACE_ANY);
 
-  if ((t->type != T_USER) || (t->is_pointer)) {
+  if (DataType_type(t) != T_USER) {
 
     Printf (f_wrappers, "static Scheme_Object *%s(int argc, Scheme_Object** argv) {\n", var_name);
 
-    if ((t->type == T_CHAR) || (t->is_pointer)){
+    if ((DataType_type(t) == T_CHAR) || (DataType_type(t) == T_POINTER) || (DataType_type(t) == T_ARRAY) || (DataType_type(t) == T_REFERENCE)) {
       Printf (f_wrappers, "\t char *_temp, _ptemp[128];\n");
       Printf (f_wrappers, "\t int  _len;\n");
     }
@@ -536,7 +536,7 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
       Delete(tm2);
     }
     else if (t->is_pointer) {
-      if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
+      if (DataType_type(t) == T_STRING) {
         Printf (f_wrappers, "\t\t _temp = SCHEME_STR_VAL(argv[0]);\n");
         Printf (f_wrappers, "\t\t _len = SCHEME_STRLEN_VAL(argv[0]);\n");
         Printf (f_wrappers, "\t\t if (%s) { free(%s);}\n", name, name);
@@ -564,7 +564,7 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
       Printf (f_wrappers, "%s\n", tm);
     }
     else if (t->is_pointer) {
-      if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
+      if (DataType_type(t) == T_STRING) {
         Printf (f_wrappers, "\t swig_result = scheme_make_string(%s);\n", name);
       } else {
         // Is an ordinary pointer type.
@@ -620,7 +620,7 @@ MZSCHEME::declare_const (char *name, char *, DataType *type, char *value)
   proc_name = NewString(name);
   Replace(proc_name,"_","-",DOH_REPLACE_ANY);
 
-  if ((type->type == T_USER) && (!type->is_pointer)) {
+  if (DataType_type(type) == T_USER) {
     Printf (stderr, "%s : Line %d.  Unsupported constant value.\n",
              input_file, line_number);
     return;
@@ -628,9 +628,9 @@ MZSCHEME::declare_const (char *name, char *, DataType *type, char *value)
 
   // See if there's a typemap
   rvalue = NewString(value);
-  if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
+  if (DataType_type(type) == T_STRING) {
     rvalue = NewStringf("\"%s\"", value);
-  } else if ((type->type == T_CHAR) && (type->is_pointer == 0)) {
+  } else if (DataType_type(type) == T_CHAR) {
     rvalue = NewStringf("\'%s\'", value);
   } else {
     rvalue = NewString(value);
@@ -643,7 +643,7 @@ MZSCHEME::declare_const (char *name, char *, DataType *type, char *value)
     // Create variable and assign it a value
 
     Printf (f_header, "static %s %s = ", DataType_lstr(type,0), var_name);
-    if ((type->type == T_CHAR) && (type->is_pointer <= 1)) {
+    if ((DataType_type(type) == T_CHAR) || (DataType_type(type) == T_STRING)) {
       Printf (f_header, "\"%s\";\n", value);
     } else {
       Printf (f_header, "%s;\n", value);
@@ -666,7 +666,7 @@ void
 MZSCHEME::usage_var (char *iname, DataType *t, DOHString *usage)
 {
   Printv(usage, "(", iname, " [value])", 0);
-  if (!((t->type != T_USER) || (t->is_pointer))) {
+  if (DataType_type(t) == T_USER) {
     Printf(usage," - unsupported");
   }
 }
@@ -698,7 +698,7 @@ MZSCHEME::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
     // Print the type.  If the parameter has been named, use that as well.
 
-    if ((pt->type != T_VOID) || (pt->is_pointer)) {
+    if (DataType_type(pt) != T_VOID) {
 
       // Print the type.
       Printv(usage," <", pt->name, 0);
@@ -748,7 +748,7 @@ MZSCHEME::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage
 
     // Print the type.  If the parameter has been named, use that as well.
 
-    if ((pt->type != T_VOID) || (pt->is_pointer)) {
+    if (DataType_type(pt) != T_VOID) {
       ++have_param;
 
       // Print the type.
@@ -763,9 +763,9 @@ MZSCHEME::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage
   }
 
   // See if we stick on the function return type.
-  if (d->type != T_VOID || have_param == 0) {
+  if (DataType_type(d) != T_VOID || have_param == 0) {
     ++have_param;
-    if (d->type == T_VOID)
+    if (DataType_type(d) == T_VOID)
       Insert(param,0," unspecified");
     else {
       Insert(param,0,"# ");

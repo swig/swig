@@ -335,7 +335,7 @@ void typemap_register(char *op, char *lang, char *type, char *pname,
   temp = NewDataType(0);
   strcpy(temp->name,type);
   temp->is_pointer = 0;
-  temp->type = T_USER;
+  DataType_Settypecode(temp,T_USER);
   typemap_register(op,lang,temp,pname,getcode,args);
   DelDataType(temp);
 }
@@ -759,11 +759,11 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
       DelDataType(t);
       return result;
     }
-    if ((t->type == T_USER) || (t->is_pointer)) {
-      if ((t->type == T_CHAR) && (t->is_pointer == 1)) return 0;
-    
+    int tc = DataType_type(t);
+    if (tc == T_STRING) return 0;
+    if ((tc == T_USER) || (tc == T_POINTER)) {
       /* Still no result, go even more primitive */
-      t->type = T_USER;
+      DataType_Settypecode(t, T_USER);
       t->is_pointer = 1;
       DataType_set_arraystr(t,0);
       DataType_primitive(t);
@@ -916,10 +916,11 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
       DelDataType(t);
       return result;
     }
-    if ((t->type == T_USER) || (t->is_pointer)) {
-      if ((t->type == T_CHAR) && (t->is_pointer == 1)) return 0;
+    int tc = DataType_type(t);
+    if (tc == T_STRING) return 0;
+    if ((tc == T_USER) || (tc == T_POINTER)) {
       /* Still no result, go even more primitive */
-      t->type = T_USER;
+      DataType_Settypecode(t,T_USER);
       t->is_pointer = 1;
       DataType_set_arraystr(t,0);
       DataType_primitive(t);

@@ -386,9 +386,9 @@ void create_constant(char *name, DataType *type, char *value) {
     Rename_true = 0;
   }
 
-  if ((type->type == T_CHAR) && (!type->is_pointer))
+  if (DataType_type(type) == T_CHAR) {
     type->is_pointer++;
-  
+  }
   if (!value) value = Swig_copy_string(name);
   sprintf(temp_name,"const:%s", name);
   if (add_symbol(temp_name)) {
@@ -1001,7 +1001,7 @@ statement      : INCLUDE STRING LBRACE {
                | extern ENUM ename LBRACE { scanner_clear_start(); } enumlist RBRACE SEMI { 
 		   init_language();
 		   if ($3) {
-		     temp_type->type = T_INT;
+		     DataType_Settypecode(temp_type,T_INT);
 		     temp_type->is_pointer = 0;
 		     temp_type->implicit_ptr = 0;
 		     sprintf(temp_type->name,"int");
@@ -1014,7 +1014,7 @@ statement      : INCLUDE STRING LBRACE {
 
                | TYPEDEF ENUM ename LBRACE { scanner_clear_start(); } enumlist RBRACE ID {
 		   init_language();
-		   temp_type->type = T_INT;
+		   DataType_Settypecode(temp_type,T_INT);
 		   temp_type->is_pointer = 0;
 		   temp_type->implicit_ptr = 0;
 		   sprintf(temp_type->name,"int");
@@ -1260,7 +1260,7 @@ typedef_decl   : TYPEDEF type declaration {
 		     emit_extern_func(temp_name, $2,$8,0,f_header);
 		   }
 		   strcpy($2->name,"<function ptr>");
-		   $2->type = T_USER;
+		   DataType_Settypecode($2,T_USER);
 		   $2->is_pointer = 1;
 		   DataType_typedef_add($2,$5,1);
 		   lang->add_typedef($2,$5);
@@ -1283,7 +1283,7 @@ typedef_decl   : TYPEDEF type declaration {
 
 		   /* Typedef'd pointer */
 		   strcpy($2->name,"<function ptr>");
-		   $2->type = T_USER;
+		   DataType_Settypecode($2,T_USER);
 		   $2->is_pointer = 1;
 		   DataType_typedef_add($2,$6,1);
 		   lang->add_typedef($2,$6);
@@ -1431,8 +1431,8 @@ func_end       : cpp_const LBRACE { skip_brace(); }
 
 parms          : parm ptail {
                   DataType *pt = Gettype($1);
-                 if ((pt->type != T_VOID) || (pt->is_pointer))
-		   Insert($2,0,$1);
+		  if (DataType_type(pt) != T_VOID)
+		    Insert($2,0,$1);
 		 $$ = $2;
 		}
                | empty { $$ = NewParmList(); }
@@ -1493,7 +1493,7 @@ parm_type      : type pname {
 		  FatalError();
 		  $$ = NewParm($1,$4);
 		  DataType *pt = Gettype($$);
-		  pt->type = T_ERROR;
+		  DataType_Settypecode(pt,T_ERROR);
 		  Setname($$,$4);
 		  strcpy(pt->name,"<function ptr>");
 		  DelDataType($1);
@@ -1504,7 +1504,7 @@ parm_type      : type pname {
                   fprintf(stderr,"%s : Line %d. Variable length arguments not supported (ignored).\n", input_file, line_number);
 		  $$ = NewParm(NewDataType(T_INT),(char *) "varargs");
 		  DataType *pt = Gettype($$);
-		  pt->type = T_ERROR;
+		  DataType_Settypecode(pt,T_ERROR);
 		  Setname($$,(char*)"varargs");
 		  strcpy(pt->name,"<varargs>");
 		  FatalError();
@@ -1646,9 +1646,8 @@ type           : TYPE_INT {
 		  }
 	       }
                | ID objc_protolist {
-		  $$ = NewDataType(0);
+		  $$ = NewDataType(T_USER);
 		  strcpy($$->name,$1);
-		  $$->type = T_USER;
 		  /* Do a typedef lookup */
 		  DataType_typedef_resolve($$,0);
 		  if (strlen($2) > 0) {
@@ -1665,29 +1664,25 @@ type           : TYPE_INT {
 		  DataType_set_qualifier($$,(char*)"const");
      	       }
                | cpptype ID {
-                  $$ = NewDataType(0);
+                  $$ = NewDataType(T_USER);
 		  sprintf($$->name,"%s %s",$1, $2);
-		  $$->type = T_USER;
 	       }
                | ID DCOLON ID {
-                  $$ = NewDataType(0);
+                  $$ = NewDataType(T_USER);
                   sprintf($$->name,"%s::%s",$1,$3);
-                  $$->type = T_USER;
 		  DataType_typedef_resolve($$,0);
                }
 /* This declaration causes a shift-reduce conflict.  Unresolved for now */
 
 
                | DCOLON ID {
-                  $$ = NewDataType(0);
+                  $$ = NewDataType(T_USER);
                   sprintf($$->name,"%s", $2);
-                  $$->type = T_USER;
                   DataType_typedef_resolve($$,1);
                }
                | ENUM ID {
-                  $$ = NewDataType(0);
+                  $$ = NewDataType(T_INT);
                   sprintf($$->name,"enum %s", $2);
-                  $$->type = T_INT;
                   DataType_typedef_resolve($$,1);
                }
                ;
@@ -1735,9 +1730,8 @@ strict_type    : TYPE_INT {
 		  DataType_set_qualifier($$,(char*)"const");
      	       }
                | cpptype ID {
-                  $$ = NewDataType(0);
+                  $$ = NewDataType(T_USER);
 		  sprintf($$->name,"%s %s",$1, $2);
-		  $$->type = T_USER;
 	       }
                ;
 
@@ -1748,25 +1742,25 @@ opt_signed     : empty {
                }
                | TYPE_INT {
                    $$ = $1;
-		   $$->type = T_INT;
+		   DataType_Settypecode($$,T_INT);
 		   sprintf(temp_name,"signed %s",$1->name);
 		   strcpy($$->name,temp_name);
 	       }
                | TYPE_SHORT opt_int {
                    $$ = $1;
-		   $$->type = T_SHORT;
+		   DataType_Settypecode($$,T_SHORT);
 		   sprintf(temp_name,"signed %s",$1->name);
 		   strcpy($$->name,temp_name);
 	       }
                | TYPE_LONG opt_int {
                    $$ = $1;
-		   $$->type = T_LONG;
+		   DataType_Settypecode($$,T_LONG);
 		   sprintf(temp_name,"signed %s",$1->name);
 		   strcpy($$->name,temp_name);
 	       }
                | TYPE_CHAR {
                    $$ = $1;
-		   $$->type = T_SCHAR;
+		   DataType_Settypecode($$,T_SCHAR);
 		   sprintf(temp_name,"signed %s",$1->name);
 		   strcpy($$->name,temp_name);
 	       }
@@ -1779,25 +1773,25 @@ opt_unsigned   : empty {
                }
                | TYPE_INT {
                    $$ = $1;
-		   $$->type = T_UINT;
+		   DataType_Settypecode($$,T_UINT);
 		   sprintf(temp_name,"unsigned %s",$1->name);
 		   strcpy($$->name,temp_name);
 	       }
                | TYPE_SHORT opt_int {
                    $$ = $1;
-		   $$->type = T_USHORT;
+		   DataType_Settypecode($$,T_USHORT);
 		   sprintf(temp_name,"unsigned %s",$1->name);
 		   strcpy($$->name,temp_name);
 	       }
                | TYPE_LONG opt_int {
                    $$ = $1;
-		   $$->type = T_ULONG;
+		   DataType_Settypecode($$,T_ULONG);
 		   sprintf(temp_name,"unsigned %s",$1->name);
 		   strcpy($$->name,temp_name);
 	       }
                | TYPE_CHAR {
                    $$ = $1;
-		   $$->type = T_UCHAR;
+		   DataType_Settypecode($$,T_UCHAR);
 		   sprintf(temp_name,"unsigned %s",$1->name);
 		   strcpy($$->name,temp_name);
 	       }
@@ -1930,7 +1924,7 @@ expr           :  NUM_INT {
                |  LPAREN strict_type RPAREN expr %prec UMINUS {
 		  $$.id = (char *) malloc(strlen($4.id)+strlen($2->name)+3);
 		  sprintf($$.id,"(%s)%s",$2->name,$4.id);
-		  $$.type = $2->type;
+		  $$.type = DataType_Gettypecode($2);
 	       } 
                | ID {
 		 $$.id = $1;
@@ -2156,8 +2150,7 @@ cpp_class    :
 		  }
 		}
 		// Create a datatype for correctly processing the typedef
-		Active_typedef = NewDataType(0);
-		Active_typedef->type = T_USER;
+		Active_typedef = NewDataType(T_USER);
 		sprintf(Active_typedef->name,"%s %s", $2,$3);
 		Active_typedef->is_pointer = 0;
 		Active_typedef->implicit_ptr = 0;
@@ -2237,11 +2230,8 @@ cpp_class    :
 		  }
 		}
 		// Create a datatype for correctly processing the typedef
-		Active_typedef = NewDataType(0);
-		Active_typedef->type = T_USER;
+		Active_typedef = NewDataType(T_USER);
 		sprintf(Active_typedef->name,"%s",$7.id);
-		Active_typedef->is_pointer = 0;
-		Active_typedef->implicit_ptr = 0;
 		
 		// Dump nested classes
 		if ($7.is_pointer == 0)  
@@ -2576,7 +2566,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if ($2) {
 		    cplus_register_type($2);
-		    temp_type->type = T_INT;
+		    DataType_Settypecode(temp_type,T_INT);
 		    temp_type->is_pointer = 0;
 		    temp_type->implicit_ptr = 0;
 		    sprintf(temp_type->name,"int");
@@ -2659,8 +2649,7 @@ cpp_pragma    : PRAGMA ID stylearg {
 			      Char(CCode), " $classname_", $5.id, ";\n", 0);
 		      n->name = Swig_copy_string($5.id);
 		      n->line = start_line;
-		      n->type = NewDataType(0);
-		      n->type->type = T_USER;
+		      n->type = NewDataType(T_USER);
 		      n->type->is_pointer = $5.is_pointer;
 		      n->type->is_reference = $5.is_reference;
 		      n->next = 0;
@@ -2685,8 +2674,7 @@ cpp_pragma    : PRAGMA ID stylearg {
 			    Char(CCode), " $classname_", $4.id, ";\n",0);
 		    n->name = Swig_copy_string($4.id);
 		    n->line = start_line;
-		    n->type = NewDataType(0);
-		    n->type->type = T_USER;
+		    n->type = NewDataType(T_USER);
 		    n->type->is_pointer = $4.is_pointer;
 		    n->type->is_reference = $4.is_reference;
 		    n->next = 0;
@@ -3353,7 +3341,7 @@ typemap_parm   : type typemap_name {
                   $$ = NewTMParm();
 		  $$->p = NewParm($1,$4);
 		  DataType *pt = Gettype($$->p);
-		  pt->type = T_ERROR;
+		  DataType_Settypecode(pt,T_ERROR);
 		  Setname($$->p,$4);
 		  strcpy(pt->name,"<function ptr>");
 		  $$->args = tm_parm;

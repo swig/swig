@@ -68,7 +68,7 @@ DataType *NewDataType(int t) {
     strcpy(ty->name,"");
     break;
   }
-  ty->type = t;
+  ty->_type = t;
   ty->is_pointer = 0;
   ty->implicit_ptr = 0;
   ty->_qualifier = 0;
@@ -81,7 +81,7 @@ DataType *NewDataType(int t) {
  	
 DataType *CopyDataType(DataType *t) {
   DataType *ty = (DataType *) malloc(sizeof(DataType));
-  ty->type = t->type;
+  ty->_type = t->_type;
   strcpy(ty->name,t->name);
   ty->is_pointer = t->is_pointer;
   ty->implicit_ptr = t->implicit_ptr;
@@ -97,6 +97,22 @@ void DelDataType(DataType *t) {
     if (t->_qualifier) free(t->_qualifier);
     if (t->_arraystr) free(t->_arraystr);
     free(t);
+}
+
+int   DataType_type(DataType *t) {
+  if ((t->_type == T_CHAR) && (t->is_pointer == 1)) return T_STRING;
+  if (t->_arraystr) return T_ARRAY;
+  if (t->is_reference) return T_REFERENCE;
+  if (t->is_pointer) return T_POINTER;
+  return t->_type;
+}
+
+int DataType_Gettypecode(DataType *t) {
+  return t->_type;
+}
+
+void DataType_Settypecode(DataType *t, int ty) {
+  t->_type = ty;
 }
 
 char *DataType_qualifier(DataType *t) {
@@ -126,7 +142,7 @@ void DataType_set_arraystr(DataType *t, char *a) {
  * -------------------------------------------------------------------- */
 
 void DataType_primitive(DataType *t) {
-  switch(t->type) {
+  switch(t->_type) {
   case T_BOOL:
     strcpy(t->name,"bool");
     break;
@@ -554,7 +570,7 @@ int DataType_typedef_add(DataType *t,char *tname, int mode) {
   /* Now add this type mapping to our type-equivalence table */
 
   if (mode == 0) {
-      if ((t->type != T_VOID) && (strcmp(t->name,tname) != 0)) {
+      if ((t->_type != T_VOID) && (strcmp(t->name,tname) != 0)) {
 	t1 = NewDataType(0);
 	strcpy(t1->name,tname);
 	name2 = DataType_manglestr(t1);
@@ -601,7 +617,7 @@ void DataType_typedef_resolve(DataType *t, int level) {
 
   while (s >= 0) {
     if ((td = (DataType *) GetVoid(typedef_hash[s],t->name))) {
-      t->type = td->type;
+      t->_type = td->_type;
       t->is_pointer += td->is_pointer;
       t->implicit_ptr += td->implicit_ptr;
       t->status = t->status | td->status;
@@ -637,7 +653,7 @@ void DataType_typedef_replace (DataType *t) {
   temp[0] = 0;
 
   if ((td = (DataType *) GetVoid(typedef_hash[scope],t->name))) {
-    t->type = td->type;
+    t->_type = td->_type;
     t->is_pointer = td->is_pointer;
     t->implicit_ptr -= td->implicit_ptr;
     strcpy(t->name, td->name);
@@ -979,8 +995,8 @@ void typeeq_derived(char *n1, char *n2, char *cast) {
   t1 = NewDataType(0);
   if (!te_init) typeeq_init();
 
-  t->type = T_USER;
-  t1->type = T_USER;
+  t->_type = T_USER;
+  t1->_type = T_USER;
   strcpy(t->name,n1);
   strcpy(t1->name,n2);
   name = DataType_manglestr(t);

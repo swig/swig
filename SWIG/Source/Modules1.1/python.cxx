@@ -524,7 +524,7 @@ PYTHON::get_pointer(char *iname, char *srcname, char *src, char *dest,
   // If we're passing a void pointer, we give the pointer conversion a NULL
   // pointer, otherwise pass in the expected type.
   
-  if (t->type == T_VOID) Printv(f, "0,1)) == -1) return ", ret, ";\n", 0);
+  if (DataType_type(t) == T_VOID) Printv(f, "0,1)) == -1) return ", ret, ";\n", 0);
   else
     Printv(f,"SWIGTYPE", DataType_manglestr(t), ",1)) == -1) return ", ret, ";\n", 0);
 }
@@ -721,110 +721,101 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	Replace(get_pointers,"$argnum", argnum, DOH_REPLACE_ANY);
 	Replace(get_pointers,"$arg",source, DOH_REPLACE_ANY);
       } else {
+	int noarg = 0;
 
 	// Check if this parameter is a pointer.  If not, we'll get values
-
-	if (!pt->is_pointer) {
-	  // Extract a parameter by "value"
-	
-	  switch(pt->type) {
+	switch(DataType_type(pt)) {
+	case T_INT : case T_UINT:
+	  Putc('i',parse_args);
+	  break;
+	case T_SHORT: case T_USHORT:
+	  Putc('h',parse_args);
+	  break;
+	case T_LONG : case T_ULONG:
+	  Putc('l',parse_args);
+	  break;
+	case T_SCHAR : case T_UCHAR :
+	  Putc('b',parse_args);
+	  break;
+	case T_CHAR:
+	  Putc('c',parse_args);
+	  break;
+	case T_FLOAT :
+	  Putc('f',parse_args);
+	  break;
+	case T_DOUBLE:
+	  Putc('d',parse_args);
+	  break;
 	  
-	    // Handle integers here.  Usually this can be done as a single
-	    // case if you appropriate cast things.   However, if you have
-	    // special cases, you'll need to add more code.  
-	    
-	  case T_INT : case T_UINT:
-	    Putc('i',parse_args);
-	    break;
-	  case T_SHORT: case T_USHORT:
-	    Putc('h',parse_args);
-	    break;
-	  case T_LONG : case T_ULONG:
-	    Putc('l',parse_args);
-	    break;
-	  case T_SCHAR : case T_UCHAR :
-	    Putc('b',parse_args);
-	    break;
-	  case T_CHAR:
-	    Putc('c',parse_args);
-	    break;
-	  case T_FLOAT :
-	    Putc('f',parse_args);
-	    break;
-	  case T_DOUBLE:
-	    Putc('d',parse_args);
-	    break;
-	    
-	  case T_BOOL:
-	    {
-	      char tempb[128];
-	      char tempval[128];
-	      if (pv) {
-		sprintf(tempval, "(int) %s", pv);
-	      }
-	      sprintf(tempb,"tempbool%d",i);
-	      Putc('i',parse_args);
-	      if (!pv)
-		Wrapper_add_localv(f,tempb,"int",tempb,0);
-	      else
-		Wrapper_add_localv(f,tempb,"int",tempb, "=",tempval,0);
-	      Printv(get_pointers, tab4, target, " = (", DataType_lstr(pt,0), ") ", tempb, ";\n", 0);
-	      Printf(arglist,"&%s",tempb);
+	case T_BOOL:
+	  {
+	    char tempb[128];
+	    char tempval[128];
+	    if (pv) {
+	      sprintf(tempval, "(int) %s", pv);
 	    }
+	    sprintf(tempb,"tempbool%d",i);
+	    Putc('i',parse_args);
+	    if (!pv)
+	      Wrapper_add_localv(f,tempb,"int",tempb,0);
+	    else
+	      Wrapper_add_localv(f,tempb,"int",tempb, "=",tempval,0);
+	    Printv(get_pointers, tab4, target, " = (", DataType_lstr(pt,0), ") ", tempb, ";\n", 0);
+	    Printf(arglist,"&%s",tempb);
+	    noarg = 1;
+	  }
 	  break;
 
-	    // Void.. Do nothing.
-	    
-	  case T_VOID :
-	    break;
+	case T_VOID :
+	  noarg = 1;
+	  break;
 
-	  case T_USER:
-	    
-	    Putc('O',parse_args);
-	    sprintf(source,"argo%d", i);
-	    sprintf(target,Getlname(p));
-	    sprintf(temp,"argument %d",i+1);
-	    
-	    Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
-	    Printf(arglist,"&%s",source);
-	    pt->is_pointer++;
-	    get_pointer(iname, temp, source, target, pt, get_pointers, (char*)"NULL");
-	    pt->is_pointer--;
-	    // Unsupported data type
-	    break;
+	case T_USER:
+	  
+	  Putc('O',parse_args);
+	  sprintf(source,"argo%d", i);
+	  sprintf(target,Getlname(p));
+	  sprintf(temp,"argument %d",i+1);
+	  
+	  Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
+	  Printf(arglist,"&%s",source);
+	  pt->is_pointer++;
+	  get_pointer(iname, temp, source, target, pt, get_pointers, (char*)"NULL");
+	  pt->is_pointer--;
+	  noarg = 1;
+	  break;
 
-	  default :
-	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_str(pt,0));
-	    break;
-	  }
-	  
-	  // Emit code for parameter list
-	  
-	  if ((pt->type != T_VOID) && (pt->type != T_BOOL) && (pt->type != T_USER))
-	    Printf(arglist,"&%s",Getlname(p));
-	  
-	} else {
-	  
-	  // Is some other kind of variable.   
-	  
-	  if ((pt->type == T_CHAR) && (pt->is_pointer == 1)) {
-	    Putc('s',parse_args);
-	    Printf(arglist,"&%s", Getlname(p));
-	  } else {
+	case T_STRING:
+	  Putc('s',parse_args);
+	  Printf(arglist,"&%s", Getlname(p));
+	  noarg = 1;
+	  break;
+
+	case T_POINTER: case T_ARRAY: case T_REFERENCE:
 	    
-	    // Have some sort of pointer variable.  Create a temporary local
-	    // variable for the string and read the pointer value into it.
+	  // Have some sort of pointer variable.  Create a temporary local
+	  // variable for the string and read the pointer value into it.
 	    
-	    Putc('O',parse_args);
-	    sprintf(source,"argo%d", i);
-	    sprintf(target,"%s",Getlname(p));
-	    sprintf(temp,"argument %d",i+1);
+	  Putc('O',parse_args);
+	  sprintf(source,"argo%d", i);
+	  sprintf(target,"%s",Getlname(p));
+	  sprintf(temp,"argument %d",i+1);
 	    
-	    Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
-	    Printf(arglist,"&%s",source);
-	    get_pointer(iname, temp, source, target, pt, get_pointers, (char*)"NULL");
-	  }
+	  Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
+	  Printf(arglist,"&%s",source);
+	  get_pointer(iname, temp, source, target, pt, get_pointers, (char*)"NULL");
+	  noarg = 1;
+	  break;
+
+	default :
+	  Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_str(pt,0));
+	  break;
 	}
+	
+	// Emit code for parameter list
+	if (!noarg) 
+	  Printf(arglist,"&%s",Getlname(p));
+	  
       }
       j++;
     }
@@ -878,79 +869,60 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
     // Yep.  Use it instead of the default
     Printf(f->code,"%s\n", tm);
   } else {
-
-    if ((d->type != T_VOID) || (d->is_pointer)) {
-      // Now have return value, figure out what to do with it.
+    switch(DataType_type(d)) {
+    case T_INT: case T_UINT: case T_BOOL:
+      Printf(f->code,"    resultobj = Py_BuildValue(\"i\",result);\n");
+      break;
+    case T_SHORT: case T_USHORT:
+      Printf(f->code,"    resultobj = Py_BuildValue(\"h\",result);\n");
+      break;
+    case T_LONG : case T_ULONG:
+      Printf(f->code,"    resultobj = Py_BuildValue(\"l\",result);\n");
+      break;
+    case T_SCHAR: case T_UCHAR :
+      Printf(f->code,"    resultobj = Py_BuildValue(\"b\",result);\n");
+      break;
       
-      if (!d->is_pointer) {
-	
-	// Function returns a "value"
-	
-	switch(d->type) {
-	  
-	  // Return an integer type
-	  
-	case T_INT: case T_UINT: case T_BOOL:
-	  Printf(f->code,"    resultobj = Py_BuildValue(\"i\",result);\n");
-	  break;
-	case T_SHORT: case T_USHORT:
-	  Printf(f->code,"    resultobj = Py_BuildValue(\"h\",result);\n");
-	  break;
-	case T_LONG : case T_ULONG:
-	  Printf(f->code,"    resultobj = Py_BuildValue(\"l\",result);\n");
-	  break;
-	case T_SCHAR: case T_UCHAR :
-	  Printf(f->code,"    resultobj = Py_BuildValue(\"b\",result);\n");
-	  break;
-	  
-	  // Return a floating point value
-	  
-	case T_DOUBLE :
-	  Printf(f->code,"    resultobj = Py_BuildValue(\"d\",result);\n");
-	  break;
-	case T_FLOAT :
-	  Printf(f->code,"    resultobj = Py_BuildValue(\"f\",result);\n");
-	  break;
-	  
-	  // Return a single ASCII value.  Usually we need to convert
-	  // it to a NULL-terminate string and return that instead.
-	  
-	case T_CHAR :
-	  Printf(f->code,"    resultobj = Py_BuildValue(\"c\",result);\n");
-	  break;
-	  
-	case T_USER :
-	  d->is_pointer++;
-	  DataType_remember(d);
-	  Printv(f->code,tab4, "resultobj = SWIG_NewPointerObj((void *)result, SWIGTYPE", DataType_manglestr(d), ");\n",0);
-	  d->is_pointer--;
-	  break;
-	default :
-	  Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, DataType_str(d,0), name);
-	  break;
-	}
-      } else {
-	
-	// Return type is a pointer.   We'll see if it's a char * and return
-	// a string. Otherwise, we'll convert it into a SWIG pointer and return
-	// that.
-	
-	if ((d->type == T_CHAR) && (d->is_pointer == 1)) {
-	  
-	  // Return a character string
-	  Printf(f->code,"    resultobj = Py_BuildValue(\"s\", result);\n");
+      // Return a floating point value
+      
+    case T_DOUBLE :
+      Printf(f->code,"    resultobj = Py_BuildValue(\"d\",result);\n");
+      break;
+    case T_FLOAT :
+      Printf(f->code,"    resultobj = Py_BuildValue(\"f\",result);\n");
+      break;
+      
+      // Return a single ASCII value.  Usually we need to convert
+      // it to a NULL-terminate string and return that instead.
+      
+    case T_CHAR :
+      Printf(f->code,"    resultobj = Py_BuildValue(\"c\",result);\n");
+      break;
+      
+    case T_USER :
+      d->is_pointer++;
+      DataType_remember(d);
+      Printv(f->code,tab4, "resultobj = SWIG_NewPointerObj((void *)result, SWIGTYPE", DataType_manglestr(d), ");\n",0);
+      d->is_pointer--;
+      break;
 
-	  // If declared as a new object, free the result
+    case T_STRING:
+      Printf(f->code,"    resultobj = Py_BuildValue(\"s\", result);\n");
+      break;
 
-	} else {
-	  // Build a SWIG pointer.
-	  DataType_remember(d);
-	  Printv(f->code, tab4, "resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE", DataType_manglestr(d), ");\n", 0);
-	}
-      }
-    } else {
+    case T_POINTER: case T_ARRAY: case T_REFERENCE:
+      DataType_remember(d);
+      Printv(f->code, tab4, "resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE", DataType_manglestr(d), ");\n", 0);
+      break;
+
+    case T_VOID:
       Printf(f->code,"    Py_INCREF(Py_None);\n");
       Printf(f->code,"    resultobj = Py_None;\n");
+      break;
+
+    default :
+      Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, DataType_str(d,0), name);
+      break;
     }
   }
 
@@ -1108,103 +1080,94 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	Printf(setf->code,"%s\n",tm);
 	Replace(setf->code,"$name",iname, DOH_REPLACE_ANY);
       } else {
-	if ((t->type != T_VOID) || (t->is_pointer)) {
-	  if (!t->is_pointer) {
-	    
-	    // Have a real value here 
-	    
-	    switch(t->type) {
-	    case T_INT: case T_SHORT: case T_LONG :
-	    case T_UINT: case T_USHORT: case T_ULONG:
-	    case T_SCHAR: case T_UCHAR: case T_BOOL:
-	      // Get an integer value
-	      Wrapper_add_localv(setf,"tval",DataType_lstr(t,0),"tval",0);
-	      Printv(setf->code,
-		     tab4, "tval = (", DataType_lstr(t,0), ") PyInt_AsLong(val);\n",
-		     tab4, "if (PyErr_Occurred()) {\n",
-		     tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		     iname, "'(", DataType_str(t,0), ")\");\n",
-		     tab8, "return 1; \n",
-		     tab4, "}\n",
-		     tab4, name, " = tval;\n",
-		     0);
-	      break;
-	      
-	    case T_FLOAT: case T_DOUBLE:
-	      // Get a floating point value
-	      Wrapper_add_localv(setf,"tval",DataType_lstr(t,0), "tval",0);
-	      Printv(setf->code,
-		     tab4, "tval = (", DataType_lstr(t,0), ") PyFloat_AsDouble(val);\n",
-		     tab4, "if (PyErr_Occurred()) {\n",
-		     tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		     iname, "'(", DataType_str(t,0), ")\");\n",
-		     tab8, "return 1; \n",
-		     tab4, "}\n",
-		     tab4, name, " = tval;\n",
-		     0);
-	      break;
-	      
-	      // A single ascii character
-	      
-	    case T_CHAR:
-	      Wrapper_add_local(setf,"tval","char * tval");
-	      Printv(setf->code,
-		     tab4, "tval = (char *) PyString_AsString(val);\n",
-		     tab4, "if (PyErr_Occurred()) {\n",
-		     tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		     iname, "'(", DataType_str(t,0), ")\");\n",
-		     tab8, "return 1; \n",
-		     tab4, "}\n",
-		     tab4, name, " = *tval;\n",
-		     0);
-	      break;
-	    case T_USER:
-	      t->is_pointer++;
-	      Wrapper_add_localv(setf,"temp",DataType_lstr(t,0),"temp",0);
-	      get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf->code,(char*)"1");
-	      Printv(setf->code, tab4, name, " = *temp;\n", 0);
-	      t->is_pointer--;
-	      break;
-	    default:
-	      Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, DataType_str(t,0));
-	    }
+	switch(DataType_type(t)) {
+
+	case T_INT: case T_SHORT: case T_LONG :
+	case T_UINT: case T_USHORT: case T_ULONG:
+	case T_SCHAR: case T_UCHAR: case T_BOOL:
+	  // Get an integer value
+	  Wrapper_add_localv(setf,"tval",DataType_lstr(t,0),"tval",0);
+	  Printv(setf->code,
+		 tab4, "tval = (", DataType_lstr(t,0), ") PyInt_AsLong(val);\n",
+		 tab4, "if (PyErr_Occurred()) {\n",
+		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
+		 iname, "'(", DataType_str(t,0), ")\");\n",
+		 tab8, "return 1; \n",
+		 tab4, "}\n",
+		 tab4, name, " = tval;\n",
+		 0);
+	  break;
+	  
+	case T_FLOAT: case T_DOUBLE:
+	  // Get a floating point value
+	  Wrapper_add_localv(setf,"tval",DataType_lstr(t,0), "tval",0);
+	  Printv(setf->code,
+		 tab4, "tval = (", DataType_lstr(t,0), ") PyFloat_AsDouble(val);\n",
+		 tab4, "if (PyErr_Occurred()) {\n",
+		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
+		 iname, "'(", DataType_str(t,0), ")\");\n",
+		 tab8, "return 1; \n",
+		 tab4, "}\n",
+		 tab4, name, " = tval;\n",
+		 0);
+	  break;
+	  
+	  // A single ascii character
+	  
+	case T_CHAR:
+	  Wrapper_add_local(setf,"tval","char * tval");
+	  Printv(setf->code,
+		 tab4, "tval = (char *) PyString_AsString(val);\n",
+		 tab4, "if (PyErr_Occurred()) {\n",
+		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
+		 iname, "'(", DataType_str(t,0), ")\");\n",
+		 tab8, "return 1; \n",
+		 tab4, "}\n",
+		 tab4, name, " = *tval;\n",
+		 0);
+	  break;
+	case T_USER:
+	  t->is_pointer++;
+	  Wrapper_add_localv(setf,"temp",DataType_lstr(t,0),"temp",0);
+	  get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf->code,(char*)"1");
+	  Printv(setf->code, tab4, name, " = *temp;\n", 0);
+	  t->is_pointer--;
+	  break;
+
+	case T_STRING:
+	  Wrapper_add_local(setf,"tval","char * tval");
+	  Printv(setf->code,
+		 tab4, "tval = (char *) PyString_AsString(val);\n",
+		 tab4, "if (PyErr_Occurred()) {\n",
+		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
+		 iname, "'(", DataType_str(t,0), ")\");\n",
+		 tab8, "return 1; \n",
+		 tab4, "}\n",
+		 0);
+	  
+	  if (CPlusPlus) {
+	    Printv(setf->code,
+		   tab4, "if (", name, ") delete [] ", name, ";\n",
+		   tab4, name, " = new char[strlen(tval)+1];\n",
+		   tab4, "strcpy((char *)", name, ",tval);\n",
+		   0);
 	  } else {
-	    
-	    // Parse a pointer value
-	    
-	    if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
-	      Wrapper_add_local(setf,"tval","char * tval");
-	      Printv(setf->code,
-		     tab4, "tval = (char *) PyString_AsString(val);\n",
-		     tab4, "if (PyErr_Occurred()) {\n",
-		     tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		     iname, "'(", DataType_str(t,0), ")\");\n",
-		     tab8, "return 1; \n",
-		     tab4, "}\n",
-		     0);
-	      
-	      if (CPlusPlus) {
-		Printv(setf->code,
-		       tab4, "if (", name, ") delete [] ", name, ";\n",
-		       tab4, name, " = new char[strlen(tval)+1];\n",
-		       tab4, "strcpy((char *)", name, ",tval);\n",
-		       0);
-	      } else {
-		Printv(setf->code,
-		       tab4, "if (", name, ") free(", name, ");\n",
-		       tab4, name, " = (char *) malloc(strlen(tval)+1);\n",
-		       tab4, "strcpy((char *)", name, ",tval);\n",
-		       0);
-	      }
-	    } else {
-	      
-	      // Is a generic pointer value.
-	      
-	      Wrapper_add_localv(setf,"temp", DataType_lstr(t,0), "temp",0);
-	      get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf->code,(char*)"1");
-	      Printv(setf->code,tab4, name, " = temp;\n", 0);
-	    }
+	    Printv(setf->code,
+		   tab4, "if (", name, ") free(", name, ");\n",
+		   tab4, name, " = (char *) malloc(strlen(tval)+1);\n",
+		   tab4, "strcpy((char *)", name, ",tval);\n",
+		   0);
 	  }
+	  break;
+
+	case T_POINTER: case T_ARRAY: case T_REFERENCE:
+	  Wrapper_add_localv(setf,"temp", DataType_lstr(t,0), "temp",0);
+	  get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf->code,(char*)"1");
+	  Printv(setf->code,tab4, name, " = temp;\n", 0);
+	  break;
+
+	default:
+	  Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, DataType_str(t,0));
 	}
       }
       Printf(setf->code,"    return 0;\n");
@@ -1236,62 +1199,56 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
       Printf(getf->code,"%s\n",tm);
       Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
     } else {
-      if ((t->type != T_VOID) || (t->is_pointer)) {
-	if (!t->is_pointer) {
-	  
-	  /* Is a normal datatype */
-	  switch(t->type) {
-	  case T_INT: case T_UINT: 
-	  case T_SHORT: case T_USHORT:
-	  case T_LONG: case T_ULONG:
-	  case T_SCHAR: case T_UCHAR: case T_BOOL:
-	    Printv(getf->code, tab4, "pyobj = PyInt_FromLong((long) ", name, ");\n", 0);
-	    break;
-	  case T_FLOAT: case T_DOUBLE:
-	    Printv(getf->code, tab4, "pyobj = PyFloat_FromDouble((double) ", name, ");\n", 0);
-	    break;
-	  case T_CHAR:
-	    Wrapper_add_local(getf,"ptemp","char ptemp[2]");
-	    Printv(getf->code,
-		   tab4, "ptemp[0] = ", name, ";\n",
-		   tab4, "ptemp[1] = 0;\n",
-		   tab4, "pyobj = PyString_FromString(ptemp);\n",
-		   0);
-	    break;
-	  case T_USER:
-	    // Hack this into a pointer
-	    t->is_pointer++;
-	    DataType_remember(t);
-	    Printv(getf->code,
-		   tab4, "pyobj = SWIG_NewPointerObj((void *) &", name ,
-		   ", SWIGTYPE", DataType_manglestr(t), ");\n",
-		   0);
-	    t->is_pointer--;
-	    break;
-	  default:
-	    Printf(stderr,"Unable to link with type %s\n", DataType_str(t,0));
-	    break;
-	  }
-	} else {
-	  
-	  // Is some sort of pointer value
-	  if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
-	    Printv(getf->code,
-		   tab4, "if (", name, ")\n",
-		   tab8, "pyobj = PyString_FromString(", name, ");\n",
-		   tab4, "else pyobj = PyString_FromString(\"(NULL)\");\n",
-		   0);
-	  } else {
-	    DataType_remember(t);
-	    Printv(getf->code,
-		   tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
-		   ", SWIGTYPE", DataType_manglestr(t), ");\n",
-		   0);
-	  }
-	}
+      switch(DataType_type(t)) {
+      case T_INT: case T_UINT: 
+      case T_SHORT: case T_USHORT:
+      case T_LONG: case T_ULONG:
+      case T_SCHAR: case T_UCHAR: case T_BOOL:
+	Printv(getf->code, tab4, "pyobj = PyInt_FromLong((long) ", name, ");\n", 0);
+	break;
+      case T_FLOAT: case T_DOUBLE:
+	Printv(getf->code, tab4, "pyobj = PyFloat_FromDouble((double) ", name, ");\n", 0);
+	break;
+      case T_CHAR:
+	Wrapper_add_local(getf,"ptemp","char ptemp[2]");
+	Printv(getf->code,
+	       tab4, "ptemp[0] = ", name, ";\n",
+	       tab4, "ptemp[1] = 0;\n",
+	       tab4, "pyobj = PyString_FromString(ptemp);\n",
+	       0);
+	break;
+      case T_USER:
+	// Hack this into a pointer
+	t->is_pointer++;
+	DataType_remember(t);
+	Printv(getf->code,
+	       tab4, "pyobj = SWIG_NewPointerObj((void *) &", name ,
+	       ", SWIGTYPE", DataType_manglestr(t), ");\n",
+	       0);
+	t->is_pointer--;
+	break;
+      case T_STRING:
+	Printv(getf->code,
+	       tab4, "if (", name, ")\n",
+	       tab8, "pyobj = PyString_FromString(", name, ");\n",
+	       tab4, "else pyobj = PyString_FromString(\"(NULL)\");\n",
+	       0);
+	break;
+
+      case T_POINTER: case T_ARRAY: case T_REFERENCE:
+	DataType_remember(t);
+	Printv(getf->code,
+	       tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
+	       ", SWIGTYPE", DataType_manglestr(t), ");\n",
+	       0);
+	break;
+
+      default:
+	Printf(stderr,"Unable to link with type %s\n", DataType_str(t,0));
+	break;
       }
     }
-    
+
     Printf(getf->code,"    return pyobj;\n}\n");
     
     Wrapper_print(getf,f_wrappers);
@@ -1333,40 +1290,31 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
   if ((tm = typemap_lookup((char*)"const",(char*)"python",type,name,value,name))) {
     Printf(const_code,"%s\n", tm);
   } else {
-
-    if ((type->type == T_USER) && (!type->is_pointer)) {
-      Printf(stderr,"%s : Line %d.  Unsupported constant value.\n", input_file, line_number);
+    switch(DataType_type(type)) {
+    case T_INT: case T_UINT: case T_BOOL:
+    case T_SHORT: case T_USHORT:
+    case T_LONG: case T_ULONG:
+    case T_SCHAR: case T_UCHAR:
+      Printv(const_code, tab4, "{ SWIG_PY_INT,     \"", name, "\", (long) ", value, ", 0, 0, 0},\n", 0);
+      break;
+    case T_DOUBLE:
+    case T_FLOAT:
+      Printv(const_code, tab4, "{ SWIG_PY_FLOAT,   \"", name, "\", 0, (double) ", value, ", 0,0},\n", 0);
+      break;
+    case T_CHAR :
+      Printv(const_code, tab4, "{ SWIG_PY_STRING,  \"", name, "\", 0, 0, (void *) \"", value, "\", 0},\n", 0);
+      break;
+    case T_STRING:
+      Printv(const_code,tab4, "{ SWIG_PY_STRING,  \"", name, "\", 0, 0, (void *) \"", value, "\", 0},\n", 0);
+      break;
+    case T_POINTER: case T_ARRAY: case T_REFERENCE:
+      DataType_remember(type);
+      Printv(const_code, tab4, "{ SWIG_PY_POINTER, \"", name, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", DataType_manglestr(type), "}, \n", 0);
+      break;
+    default:
+      Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
       return;
-    }
-    
-    if (type->is_pointer == 0) {
-      switch(type->type) {
-      case T_INT: case T_UINT: case T_BOOL:
-      case T_SHORT: case T_USHORT:
-      case T_LONG: case T_ULONG:
-      case T_SCHAR: case T_UCHAR:
-	Printv(const_code, tab4, "{ SWIG_PY_INT,     \"", name, "\", (long) ", value, ", 0, 0, 0},\n", 0);
-	break;
-      case T_DOUBLE:
-      case T_FLOAT:
-	Printv(const_code, tab4, "{ SWIG_PY_FLOAT,   \"", name, "\", 0, (double) ", value, ", 0,0},\n", 0);
-	break;
-      case T_CHAR :
-	Printv(const_code, tab4, "{ SWIG_PY_STRING,  \"", name, "\", 0, 0, (void *) \"", value, "\", 0},\n", 0);
-	break;
-      default:
-	Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
-	break;
-      }
-    } else {
-      if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
-	Printv(const_code,tab4, "{ SWIG_PY_STRING,  \"", name, "\", 0, 0, (void *) \"", value, "\", 0},\n", 0);
-      } else {
-	// A funky user-defined type.  We're going to munge it into a string pointer value
-	DataType_remember(type);
-	Printv(const_code, tab4, "{ SWIG_PY_POINTER, \"", name, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", DataType_manglestr(type), "}, \n", 0);
-
-      }
+      break;
     }
   }
   if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
@@ -1425,7 +1373,7 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
       i++;
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
-      if ((pt->type != T_VOID) || (pt->is_pointer)) {
+      if (DataType_type(pt) != T_VOID) {
 	if (strlen(pn) > 0) {
 	  Printf(temp,"%s",pn);
 	} else {

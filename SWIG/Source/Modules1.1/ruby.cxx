@@ -176,9 +176,8 @@ void RUBY::parse() {
   headers();
 
   // typedef void *VALUE
-  DataType *value = NewDataType(0);
+  DataType *value = NewDataType(T_VOID);
   strcpy(value->name, "void");
-  value->type = T_VOID;
   value->is_pointer = 1;
   value->implicit_ptr = 0;
   DataType_typedef_add(value,(char*)"VALUE",0);
@@ -582,7 +581,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
 
   // Return value if necessary
-  if ((t->type != T_VOID) || (t->is_pointer)) {
+  if (DataType_type(t) != T_VOID) {
     if (predicate) {
       Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", 0);
     } else {
@@ -682,7 +681,7 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
     indent(s);
     Printv(getf->code,s,"\n", 0);
     Delete(s);
-  } else if (!t->is_pointer && t->type == T_USER) {
+  } else if (DataType_type(t) == T_USER) {
     // Hack this into a pointer
     t->is_pointer++;
     DataType_remember(t);
@@ -715,7 +714,7 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
       indent(s);
       Printv(setf->code,s,"\n",0);
       Delete(s);
-    } else if (!t->is_pointer && t->type == T_USER) {
+    } else if (DataType_type(t) == T_USER) {
       t->is_pointer++;
       Wrapper_add_localv(setf,"temp",DataType_lstr(t,0), "temp",0);
       Printv(setf->code, tab4, "temp = (", DataType_lstr(t,0), ")",
@@ -876,11 +875,11 @@ char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *sou
   if ((strcmp("out", op) == 0 || strcmp("in", op) == 0)
       && strcmp(type->name, "VALUE") == 0) {
     Printf(s,"$target = $source;");
-  } else if (strcmp("out", op) == 0 && type->type == T_USER &&
+  } else if (strcmp("out", op) == 0 && (DataType_Gettypecode(type) == T_USER) &&
 	     type->is_pointer == 1 && cls) {
     const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
     Printv(s, "$target = Wrap_", cls->cname, "(", vname, ", $source);",0);
-  } else if (strcmp("in", op)==0 && type->type == T_USER &&
+  } else if (strcmp("in", op)==0 && (DataType_Gettypecode(type) == T_USER) &&
 	     type->is_pointer == 1 && cls) {
     Printv(s, "Get_", cls->cname, "($source, $target);", 0);
   } else {
@@ -932,42 +931,41 @@ char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *sou
 // ---------------------------------------------------------------------
 int RUBY::to_VALUE(DataType *type, char *value, DOHString *str, int raw) {
   Clear(str);
-  if (type->is_pointer == 0) {
-    switch(type->type) {
-    case T_INT:
-    case T_SHORT:
-    case T_LONG:
-    case T_SCHAR:
-      Printv(str, "INT2NUM(", value, ")", 0);
-      break;
-    case T_UINT:
-    case T_USHORT:
-    case T_ULONG:
-    case T_UCHAR:
-      Printv(str,"UINT2NUM(", value, ")", 0);
-      break;
-    case T_DOUBLE:
-    case T_FLOAT:
-      Printv(str, "rb_float_new(", value, ")", 0);
-      break;
-    case T_CHAR:
-      Printv(str, "rb_str_new(&", value, ", 1)", 0);
-      break;
-    case T_BOOL:
-      Printv(str, "(", value, " ? Qtrue : Qfalse)", 0);
-      break;
-    default:
-      break;
-    }
-  } else if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
+  switch(DataType_type(type)) {
+  case T_INT:
+  case T_SHORT:
+  case T_LONG:
+  case T_SCHAR:
+    Printv(str, "INT2NUM(", value, ")", 0);
+    break;
+  case T_UINT:
+  case T_USHORT:
+  case T_ULONG:
+  case T_UCHAR:
+    Printv(str,"UINT2NUM(", value, ")", 0);
+    break;
+  case T_DOUBLE:
+  case T_FLOAT:
+    Printv(str, "rb_float_new(", value, ")", 0);
+    break;
+  case T_CHAR:
+    Printv(str, "rb_str_new(&", value, ", 1)", 0);
+    break;
+  case T_BOOL:
+    Printv(str, "(", value, " ? Qtrue : Qfalse)", 0);
+    break;
+  case T_STRING:
     if (raw)
       Printv(str, "rb_str_new2(\"", value, "\")", 0);
     else
       Printv(str, "rb_str_new2(", value, ")", 0);
-  } else {
+    break;
+  case T_POINTER: case T_ARRAY: case T_REFERENCE:
     Printv(str, "SWIG_NewPointerObj((void *)", value, ", \"", DataType_manglestr(type), "\")", 0);
+    break;
+  default:
+    break;
   }
-
   if (Len(str) == 0)
     return 0;
   return 1;
@@ -983,45 +981,44 @@ int RUBY::to_VALUE(DataType *type, char *value, DOHString *str, int raw) {
 // ---------------------------------------------------------------------
 int RUBY::from_VALUE(DataType *type, char *value, DOHString *str) {
   Clear(str);
-  if (type->is_pointer == 0) {
-    switch(type->type) {
-    case T_INT:
-      Printv(str, "NUM2INT(", value, ")", 0);
-      break;
-    case T_LONG:
-      Printv(str, "NUM2LONG(", value, ")", 0);
-      break;
-    case T_SHORT:
-      Printv(str, "NUM2SHRT(", value, ")", 0);
-      break;
-    case T_UINT:
-      Printv(str, "NUM2UINT(", value, ")", 0);
-      break;
-    case T_ULONG:
-      Printv(str, "NUM2ULONG(", value, ")", 0);
-      break;
-    case T_USHORT:
-      Printv(str, "NUM2USHRT(", value, ")", 0);
-      break;
-    case T_DOUBLE:
-    case T_FLOAT:
-      Printv(str, "NUM2DBL(", value, ")", 0);
-      break;
-    case T_CHAR: case T_SCHAR: case T_UCHAR:
-      Printv(str, "NUM2CHR(", value, ")", 0);
-      break;
-    case T_BOOL:
-      Printv(str,"RTEST(", value, ")", 0);
-      break;
-    default:
-      break;
-    }
-  } else if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
+  switch(DataType_type(type)) {
+  case T_INT:
+    Printv(str, "NUM2INT(", value, ")", 0);
+    break;
+  case T_LONG:
+    Printv(str, "NUM2LONG(", value, ")", 0);
+    break;
+  case T_SHORT:
+    Printv(str, "NUM2SHRT(", value, ")", 0);
+    break;
+  case T_UINT:
+    Printv(str, "NUM2UINT(", value, ")", 0);
+    break;
+  case T_ULONG:
+    Printv(str, "NUM2ULONG(", value, ")", 0);
+    break;
+  case T_USHORT:
+    Printv(str, "NUM2USHRT(", value, ")", 0);
+    break;
+  case T_DOUBLE:
+  case T_FLOAT:
+    Printv(str, "NUM2DBL(", value, ")", 0);
+    break;
+  case T_CHAR: case T_SCHAR: case T_UCHAR:
+    Printv(str, "NUM2CHR(", value, ")", 0);
+    break;
+  case T_BOOL:
+    Printv(str,"RTEST(", value, ")", 0);
+    break;
+  case T_STRING:
     Printv(str, "STR2CSTR(", value, ")", 0);
-  } else {
+    break;
+  case T_POINTER: case T_ARRAY: case T_REFERENCE:
     Printv(str, "SWIG_ConvertPtr(", value, ", \"", DataType_manglestr(type), "\")", 0);
+    break;
+  default:
+    break;
   }
-  
   if (Len(str) == 0) return 0;
   return 1;
 }
