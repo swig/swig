@@ -158,6 +158,19 @@ namespace swigpy {
     return traits_asptr<Type>::asptr(obj, vptr);
   }
 
+  template <class Type>
+  struct noconst_traits 
+  {
+    typedef Type noconst_type;
+  };
+  
+
+  template <class Type>
+  struct noconst_traits<const Type>
+  {
+    typedef Type noconst_type;
+  };
+  
   template <class Type> 
   struct traits_asval
   {
@@ -167,7 +180,8 @@ namespace swigpy {
 	value_type *p = 0;
 	int res = asptr(obj, &p);
 	if (res && p) {
-	  *val = *p;
+	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
+	  *((noconst_type*)(val)) = *p;
 	  if (res == SWIG_NEWOBJ) delete p;
 	  return true;
 	} else {
