@@ -1,7 +1,7 @@
 
-		 *** ANNOUNCE:  SWIG1.3 (Alpha 4) ***
+*** ANNOUNCE : SWIG1.3 (Alpha 4) ***
 
-			  September 4, 2000
+September 4, 2000
 
 Overview
 --------
@@ -27,21 +27,24 @@ been added to support Ruby and Mzscheme. In addition, Python, Perl,
 and Guile support has been enhanced to support new releases such as
 Python1.6 and Perl5.6.
 
-Under the hood, you will find that this release represents an almost
-complete reimplementation of SWIG's internals.  In fact the only code
-that still remains from SWIG1.1 is the C/C++ parser and the language
+Under the hood, you will find that this release is an almost complete
+reimplementation of SWIG's internals.  In fact the only code that
+still remains from SWIG1.1 is the C/C++ parser and the language
 modules (all of which have undergone significant changes as well).  As
 a result, a lot of minor improvements can be found throughout the
 system and things that used to cause problems may now work (for
-instance, pointers to functions are now supported).
+instance, pointers to functions are now supported).  In addition, this
+release incorporates a number of feature requests that have been made
+on the mailing list.
 
 What's broken?
 --------------
 As this is a work in progress, a number of features are still missing
-or imcomplete.  The documentation system is still missing and won't be
+or incomplete.  The documentation system is still missing and won't be
 reimplemented for some time.  The Java module is also temporarily out
 of service for this release.  In addition, C++ programmers who make
-extensive use of typemaps may encounter a few strange problems.
+extensive use of typemaps may encounter a few strange problems
+(although SWIG will generate warning messages).
 
 We need your help!
 ------------------
@@ -49,13 +52,13 @@ Even if you are perfectly happy with SWIG1.1, we can use your
 feedback.  First, we like to know about compilation problems and other
 issues concerning the building of SWIG.  Second, if SWIG1.3 is unable
 to compile your old interface files, we would like to get information
-about the problematic features you are using.  This information will
-help us find bugs in the SWIG1.3 release, develop techniques for
-supporting backwards compatibility, and write documentation that
-addresses specific issues related to migrating from SWIG1.1 to
-SWIG1.3.  Finally, we are still looking for volunteers to work on
-aspects of SWIG development.  Please send email to
-beazley@cs.uchicago.edu for details.
+about the features you are using.  This information will help us find
+bugs in the SWIG1.3 release, develop techniques for supporting
+backwards compatibility, and write documentation that addresses
+specific issues related to migrating from SWIG1.1 to SWIG1.3.
+Finally, we are still looking for volunteers to work on aspects of
+SWIG development.  Please send email to beazley@cs.uchicago.edu for
+details.
 
 Please report problems with this release to swig-dev@cs.uchicago.edu.
 
@@ -68,4 +71,3 @@ Masaki Fukushima
 Harco de Hilster
 Loic Dachary
 Oleg Tolmatcev
-
