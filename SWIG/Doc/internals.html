@@ -57,7 +57,7 @@ beazley@cs.uchicago.edu </br>
 <li><a name="i10.3" href="#10.3">10.3 Underscore Folding</a>
 <li><a name="i10.4" href="#10.4">10.4 Typemaps</a>
 <li><a name="i10.5" href="#10.5">10.5 Smobs</a>
-<li><a name="i10.6" href="#10.6">10.5 Exception Handling</a>
+<li><a name="i10.6" href="#10.6">10.6 Exception Handling</a>
 </ul>
 <li><a name="i11" href="#11">11. Python Support</a>
 <li><a name="i12" href="#12">12. Perl Support</a>
@@ -938,7 +938,8 @@ for specifying local variable declarations and argument conversions.
 <h2>10. Guile Support</h2>
 </a>
 
-Revised: Thien-Thi Nguyen (July 23, 2000)
+Revised: Matthias K&ouml;ppe (August 30, 2000)
+
 
 <p>
 This section details guile-specific support in SWIG.
@@ -1064,16 +1065,14 @@ and value.
 
 <p>
 To construct a Scheme object from a C pointer, the wrapper code calls
-the function <code>SWIG_Guile_MakePtr_Str()</code>, passing both a
-mangled type string and a pretty type string.  The former is looked up
-in the type table to get the type index to store in the upper half of
-the CAR.  If the type is new, it is appended to type table.
+the function <code>SWIG_Guile_MakePtr()</code>, passing a pointer to a
+struct representing the pointer type. The type index to store in the
+upper half of the CAR is read from this struct.
 
 <p>
 To get the pointer represented by a smob, the wrapper code calls the
-function <code>SWIG_Guile_GetPtr_Str</code>, passing the mangled name
-of the expected pointer type, which is used for looking up the type in
-the type table and accessing the list of compatible types.  If the
+function <code>SWIG_Guile_GetPtr</code>, passing a pointer to a struct
+representing the expected pointer type.  If the
 Scheme object passed was not a SWIG smob representing a compatible
 pointer, a <code>wrong-type-arg</code> exception is raised.
 
@@ -1102,20 +1101,46 @@ mapping:
 The default when not specified here is to use "swig-error".
 See Lib/exception.i for details.
 
+<a name="10.7" href="#i10.7">
+<h3>10.7 Guile procedure documentation</h3>
+</a>
+
+<p>If invoked with the command-line option <code>-procdoc
+<var>file</var></code>, SWIG creates documentation strings for the
+generated wrapper functions, describing the procedure signature and
+return value, and writes them to <var>file</var>.
+
+<p>You need to register the generated documentation file with Guile
+like this:
+<pre>
+(use-modules (ice-9 documentation))
+(set! documentation-files 
+      (cons "<var>file</var>" documentation-files))
+</pre>
+This requires Guile 1.4 or later.
+
+<p>Documentation strings can be configured using the Guile-specific
+typemaps <code>indoc</code>, <code>outdoc</code>,
+<code>argoutdoc</code>, <code>varindoc</code>, and
+<code>varoutdoc</code>. See <code>Lib/guile/typemaps.i</code> for
+details.
+
+
+
 <a name="11" href="#i11">
-<h2>10. Python Support</h2>
+<h2>11. Python Support</h2>
 </a>
 
 [TODO]
 
 <a name="12" href="#i12">
-<h2>10. Perl Support</h2>
+<h2>12. Perl Support</h2>
 </a>
 
 [TODO]
 
 <a name="13" href="#i13">
-<h2>10. Java Support</h2>
+<h2>13. Java Support</h2>
 </a>
 
 [TODO]
