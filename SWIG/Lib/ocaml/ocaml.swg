@@ -2,6 +2,7 @@
 
 /* SWIG pointer structure */
 
+#include <string.h>
 #include <assert.h>
 
 #ifdef __cplusplus
