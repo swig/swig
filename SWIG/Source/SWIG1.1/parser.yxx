@@ -926,7 +926,7 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
    %new declaration
    ------------------------------------------------------------ */
 
-new_directive : NEW declaration {
+new_directive : NEW c_declaration {
                  $$ = new_node("new");
 		 appendChild($$,$2);
                }
@@ -1797,7 +1797,7 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
 /* New mode */
              | NEW cpp_member {
 	       $$ = new_node("new");
-	       set_nextSibling($$,$2);
+	       appendChild($$,$2);
              }
              ;
 
