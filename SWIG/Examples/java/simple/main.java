@@ -21,12 +21,12 @@ public class main {
     // Manipulate the Foo global variable
     
     // Output its current value
-    System.out.println("Foo = " + example.get_Foo());
+    System.out.println("Foo = " + example.getFoo());
     
     // Change its value
-    example.set_Foo(3.1415926);
+    example.setFoo(3.1415926);
     
     // See if the change took effect
-    System.out.println("Foo = " + example.get_Foo());
+    System.out.println("Foo = " + example.getFoo());
   }
 }

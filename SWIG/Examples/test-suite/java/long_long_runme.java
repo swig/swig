@@ -30,8 +30,8 @@ public class long_long_runme {
   }
 
   public static void check_ll(long ll) {
-    long_long.set_ll(ll);
-    long ll_check = long_long.get_ll();
+    long_long.setLl(ll);
+    long ll_check = long_long.getLl();
     if (ll != ll_check) {
       System.err.println("Runtime test using long long failed. ll=" + ll + " ll_check=" + ll_check);
       System.exit(1);
@@ -39,8 +39,8 @@ public class long_long_runme {
   }
 
   public static void check_ull(BigInteger ull) {
-    long_long.set_ull(ull);
-    BigInteger ull_check = long_long.get_ull();
+    long_long.setUll(ull);
+    BigInteger ull_check = long_long.getUll();
     if (ull.compareTo(ull_check) != 0) {
       System.err.println("Runtime test using unsigned long long failed. ull=" + ull.toString() + " ull_check=" + ull_check.toString());
       System.exit(1);

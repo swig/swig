@@ -28,6 +28,7 @@ class JAVA : public Language {
   bool   static_flag; // Flag for when wrapping a static functions or member variables
   bool   variable_wrapper_flag; // Flag for when wrapping a nonstatic member variable
   bool   wrapping_member_flag; // Flag for when wrapping a member variable/enum/const
+  bool   global_variable_flag; // Flag for when wrapping a global variable
 
   String *jniclass;  // JNI class name
   String *module_class_name;  // module class name
@@ -36,7 +37,7 @@ class JAVA : public Language {
   String *shadow_code;
   String *module_class_code;
   String *shadow_classname;
-  String *shadow_variable_name; //Name of a c struct variable or c++ public member variable (may or may not be const)
+  String *variable_name; //Name of a variable being wrapped
   String *shadow_constants_code;
   String *module_constants_code;
   String *package; // Package name
@@ -77,6 +78,7 @@ class JAVA : public Language {
     static_flag(false),
     variable_wrapper_flag(false),
     wrapping_member_flag(false),
+    global_variable_flag(false),
 
     jniclass(NULL),
     module_class_name(NULL),
@@ -85,7 +87,7 @@ class JAVA : public Language {
     shadow_code(NULL),
     module_class_code(NULL),
     shadow_classname(NULL),
-    shadow_variable_name(NULL),
+    variable_name(NULL),
     shadow_constants_code(NULL),
     module_constants_code(NULL),
     package(NULL),
@@ -474,20 +476,21 @@ class JAVA : public Language {
        Not for enums and constants.
        */
     if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
-      String *member_function_name = NewString("");
-      if(Cmp(symname, Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name))) == 0)
-        Printf(member_function_name,"set");
+      // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
+      String *getter_setter_name = NewString("");
+      if(Cmp(symname, Swig_name_set(Swig_name_member(shadow_classname, variable_name))) == 0)
+        Printf(getter_setter_name,"set");
       else 
-        Printf(member_function_name,"get");
-      Putc(toupper((int) *Char(shadow_variable_name)), member_function_name);
-      Printf(member_function_name, "%s", Char(shadow_variable_name)+1);
+        Printf(getter_setter_name,"get");
+      Putc(toupper((int) *Char(variable_name)), getter_setter_name);
+      Printf(getter_setter_name, "%s", Char(variable_name)+1);
 
-      Setattr(n,"java:shadowfuncname", member_function_name);
+      Setattr(n,"java:shadowfuncname", getter_setter_name);
       Setattr(n,"java:funcname", symname);
 
       javaShadowFunctionHandler(n);
 
-      Delete(member_function_name);
+      Delete(getter_setter_name);
     }
 
     /*
@@ -757,6 +760,20 @@ class JAVA : public Language {
   }
 
   /* -----------------------------------------------------------------------
+   * globalvariableHandler()
+   * ------------------------------------------------------------------------ */
+
+  virtual int globalvariableHandler(Node *n) {
+
+    variable_name = Getattr(n,"sym:name");
+    global_variable_flag = true;
+    int ret = Language::globalvariableHandler(n);
+    global_variable_flag = false;
+    return ret;
+  }
+
+
+  /* -----------------------------------------------------------------------
    * enumDeclaration()
    * ------------------------------------------------------------------------ */
 
@@ -818,7 +835,7 @@ class JAVA : public Language {
 
     // enums are wrapped using a public final static int in java.
     // Other constants are wrapped using a public final static [jstype] in Java.
-    Printf(constants_code, "  public final static %s %s = ", shadowrettype, ((proxy_flag && wrapping_member_flag) ? shadow_variable_name : symname));
+    Printf(constants_code, "  public final static %s %s = ", shadowrettype, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
 
     // The %javaconst directive determines how the constant value is obtained
     String *javaconst = Getattr(n,"feature:java:const");
@@ -1088,15 +1105,13 @@ class JAVA : public Language {
       Replaceall(jniclass_cppcasts_code, "$baseclass", baseclass);
 
       Printv(wrapper_conversion_code,
-          "extern \"C\" {\n",
-          "  JNIEXPORT jlong JNICALL",
-          " Java_$jnipackage$jnijniclass_SWIG$jniclazznameTo$jnibaseclass",
+          "JNIEXPORT jlong JNICALL Java_$jnipackage$jnijniclass_SWIG$jniclazznameTo$jnibaseclass",
           "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
           "    jlong baseptr = 0;\n"
           "    *($cbaseclass **)&baseptr = ($cclass *)*(void**)&jarg1;\n"
           "    return baseptr;\n"
-          " }\n",
           "}\n",
+          "\n",
           NULL); 
 
       String *jnijniclass  = makeValidJniName(jniclass);
@@ -1595,7 +1610,7 @@ class JAVA : public Language {
    * ---------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
-    shadow_variable_name = Getattr(n,"sym:name");
+    variable_name = Getattr(n,"sym:name");
     wrapping_member_flag = true;
     variable_wrapper_flag = true;
     Language::membervariableHandler(n);
@@ -1609,7 +1624,7 @@ class JAVA : public Language {
    * ---------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
-    shadow_variable_name = Getattr(n,"sym:name");
+    variable_name = Getattr(n,"sym:name");
     wrapping_member_flag = true;
     static_flag = true;
     Language::staticmembervariableHandler(n);
@@ -1623,7 +1638,7 @@ class JAVA : public Language {
    * ---------------------------------------------------------------------- */
 
   virtual int memberconstantHandler(Node *n) {
-    shadow_variable_name = Getattr(n,"sym:name");
+    variable_name = Getattr(n,"sym:name");
     wrapping_member_flag = true;
     Language::memberconstantHandler(n);
     wrapping_member_flag = false;
@@ -1664,6 +1679,7 @@ class JAVA : public Language {
     int       num_arguments = 0;
     int       num_required = 0;
     String    *overloaded_name = getOverloadedName(n);
+    String    *func_name = NULL;
 
     if (l) {
       if (SwigType_type(Getattr(l,"type")) == T_VOID) {
@@ -1684,7 +1700,21 @@ class JAVA : public Language {
           "No jstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    Printf(module_class_code, "  %s static %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadowrettype, Getattr(n,"sym:name"));
+    /* Change function name for global variables */
+    if (proxy_flag && global_variable_flag) {
+      // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
+      func_name = NewString("");
+      if(Cmp(Getattr(n,"sym:name"), Swig_name_set(variable_name)) == 0)
+        Printf(func_name,"set");
+      else 
+        Printf(func_name,"get");
+      Putc(toupper((int) *Char(variable_name)), func_name);
+      Printf(func_name, "%s", Char(variable_name)+1);
+    } else {
+      func_name = Copy(Getattr(n,"sym:name"));
+    }
+
+    Printf(module_class_code, "  %s static %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadowrettype, func_name);
 
     if(SwigType_isarray(t) && is_shadow(getArrayType(t))) {
       Printf(nativecall, "long[] cArray = ");
@@ -1787,6 +1817,7 @@ class JAVA : public Language {
     Delete(shadowrettype);
     Delete(nativecall);
     Delete(user_arrays);
+    Delete(func_name);
   }
 
   /* -----------------------------------------------------------------------------

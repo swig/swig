@@ -16,44 +16,44 @@ public class main {
 
 // Try to set the values of some global variables
 
-    example.set_ivar(42);
-    example.set_svar((short)-31000);
-    example.set_lvar(65537);
-    example.set_uivar(123456);
-    example.set_usvar(61000);
-    example.set_ulvar(654321);
-    example.set_scvar((byte)-13);
-    example.set_ucvar((short)251);
-    example.set_cvar('S');
-    example.set_fvar((float)3.14159);
-    example.set_dvar(2.1828);
-    example.set_strvar("Hello World");
-    example.set_cstrvar("Goodbye");
-    example.set_iptrvar(example.new_int(37));
-    example.set_ptptr(example.new_Point(37,42));
-    example.set_name("Bill");
+    example.setIvar(42);
+    example.setSvar((short)-31000);
+    example.setLvar(65537);
+    example.setUivar(123456);
+    example.setUsvar(61000);
+    example.setUlvar(654321);
+    example.setScvar((byte)-13);
+    example.setUcvar((short)251);
+    example.setCvar('S');
+    example.setFvar((float)3.14159);
+    example.setDvar(2.1828);
+    example.setStrvar("Hello World");
+    example.setCstrvar("Goodbye");
+    example.setIptrvar(example.new_int(37));
+    example.setPtptr(example.new_Point(37,42));
+    example.setName("Bill");
 
     // Now print out the values of the variables
 
     System.out.println( "Variables (values printed from Java)" );
 
-    System.out.println( "ivar      =" + example.get_ivar() );
-    System.out.println( "svar      =" + example.get_svar() );
-    System.out.println( "lvar      =" + example.get_lvar() );
-    System.out.println( "uivar     =" + example.get_uivar() );
-    System.out.println( "usvar     =" + example.get_usvar() );
-    System.out.println( "ulvar     =" + example.get_ulvar() );
-    System.out.println( "scvar     =" + example.get_scvar() );
-    System.out.println( "ucvar     =" + example.get_ucvar() );
-    System.out.println( "fvar      =" + example.get_fvar() );
-    System.out.println( "dvar      =" + example.get_dvar() );
-    System.out.println( "cvar      =" + (char)example.get_cvar() );
-    System.out.println( "strvar    =" + example.get_strvar() );
-    System.out.println( "cstrvar   =" + example.get_cstrvar() );
-    System.out.println( "iptrvar   =" + Long.toHexString(SWIGTYPE_p_int.getCPtr(example.get_iptrvar())) );
-    System.out.println( "name      =" + example.get_name() );
-    System.out.println( "ptptr     =" + Long.toHexString(SWIGTYPE_p_Point.getCPtr(example.get_ptptr())) + example.Point_print(example.get_ptptr()) );
-    System.out.println( "pt        =" + Long.toHexString(SWIGTYPE_p_Point.getCPtr(example.get_pt())) + example.Point_print(example.get_pt()) );
+    System.out.println( "ivar      =" + example.getIvar() );
+    System.out.println( "svar      =" + example.getSvar() );
+    System.out.println( "lvar      =" + example.getLvar() );
+    System.out.println( "uivar     =" + example.getUivar() );
+    System.out.println( "usvar     =" + example.getUsvar() );
+    System.out.println( "ulvar     =" + example.getUlvar() );
+    System.out.println( "scvar     =" + example.getScvar() );
+    System.out.println( "ucvar     =" + example.getUcvar() );
+    System.out.println( "fvar      =" + example.getFvar() );
+    System.out.println( "dvar      =" + example.getDvar() );
+    System.out.println( "cvar      =" + (char)example.getCvar() );
+    System.out.println( "strvar    =" + example.getStrvar() );
+    System.out.println( "cstrvar   =" + example.getCstrvar() );
+    System.out.println( "iptrvar   =" + Long.toHexString(SWIGTYPE_p_int.getCPtr(example.getIptrvar())) );
+    System.out.println( "name      =" + example.getName() );
+    System.out.println( "ptptr     =" + Long.toHexString(SWIGTYPE_p_Point.getCPtr(example.getPtptr())) + example.Point_print(example.getPtptr()) );
+    System.out.println( "pt        =" + Long.toHexString(SWIGTYPE_p_Point.getCPtr(example.getPt())) + example.Point_print(example.getPt()) );
 
     System.out.println( "\nVariables (values printed from C)" );
 
@@ -63,7 +63,7 @@ public class main {
 
     System.out.println( "     Trying to set 'path'" );
     try {
-        Method m = example.class.getDeclaredMethod("set_path", new Class[] {String.class});
+        Method m = example.class.getDeclaredMethod("setPath", new Class[] {String.class});
         m.invoke(example.class, new Object[] {"Whoa!"} );
         System.out.println( "Hey, what's going on?!?! This shouldn't work" );
     }
@@ -76,7 +76,7 @@ public class main {
 
     System.out.println( "     Trying to set 'status'" );
     try {
-        Method m = example.class.getDeclaredMethod("set_status", new Class[] {Integer.class});
+        Method m = example.class.getDeclaredMethod("setStatus", new Class[] {Integer.class});
         m.invoke(example.class, new Object[] {new Integer(0)} );
         System.out.println( "Hey, what's going on?!?! This shouldn't work" );
     }
@@ -89,10 +89,10 @@ public class main {
 
     System.out.println( "\nI'm going to try and update a structure variable.\n" );
 
-    example.set_pt(example.get_ptptr());
+    example.setPt(example.getPtptr());
 
     System.out.println( "The new value is" );
     example.pt_print();
-    System.out.println( "You should see the value" + example.Point_print(example.get_ptptr()) );
+    System.out.println( "You should see the value" + example.Point_print(example.getPtptr()) );
   }
 }
