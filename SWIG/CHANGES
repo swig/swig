@@ -14,6 +14,10 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/22/2001: cheetah (william fulton)
+           * [Java] %new support added.
+           * [Java] Package JNI name refixed!
+
 8/19/2001: beazley
            Python module modified to support pointers to C++ members.  This
            is an experimental feature.
