@@ -1,5 +1,11 @@
 %module preproc
 
+%warnfilter(801) one; /* Ruby, wrong constant name */
+%warnfilter(801) three; /* Ruby, wrong constant name */
+%warnfilter(801) __GMP_HAVE_CONST; /* Ruby, wrong constant name */
+%warnfilter(801) __GMP_HAVE_PROTOTYPES; /* Ruby, wrong constant name */
+%warnfilter(801) __GMP_HAVE_TOKEN_PASTE; /* Ruby, wrong constant name */
+
 /* check __cplusplus case */
 %header
 %{
@@ -254,7 +260,7 @@ inline const char* mangle ## #@__VA_ARGS__ () {
 #endif
 
 
-/* empyt TWO() macro is broken */
+/* empty TWO() macro is broken */
 #define ONE 1
 #define TWO() 2
 #define THREE(FOO) 3

@@ -1,5 +1,7 @@
 %module caca
 
+%warnfilter(801) hi; /* Ruby, wrong constant name */
+%warnfilter(801) hello; /* Ruby, wrong constant name */
 
 %inline 
 {
