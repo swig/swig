@@ -653,8 +653,8 @@ int JAVA::functionWrapper(Node *n) {
 
       // Get typemap for this argument
       if ((tm = Getattr(p,"tmap:in"))) {
-        Replaceall(tm,"$source",source);
-        Replaceall(tm,"$target",ln);
+        Replaceall(tm,"$source",source); /* deprecated */
+        Replaceall(tm,"$target",ln); /* deprecated */
         Replaceall(tm,"$input", source);
         Replaceall(tm,"$arg",source);
         Setattr(p,"emit:input", source);
@@ -751,7 +751,7 @@ int JAVA::functionWrapper(Node *n) {
   /* Insert constraint checking code */
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
-      Replaceall(tm,"$target",target);
+      Replaceall(tm,"$target",target); /* deprecated */
       Replaceall(tm,"$arg",Getattr(p,"emit:input"));
       Printv(f->code,tm,"\n",0);
       p = Getattr(p,"tmap:check:next");
@@ -761,19 +761,12 @@ int JAVA::functionWrapper(Node *n) {
   }
   
   /* Insert cleanup code */
-  for (p = l; p;) {
-    if ((tm = Getattr(p,"tmap:freearg"))) {
-      Replaceall(tm,"$source",source);
-      Replaceall(tm,"$arg",Getattr(p,"emit:input"));
-      Printv(f->code,tm,"\n",0);
-      p = Getattr(p,"tmap:freearg:next");
-    } else {
-      p = nextSibling(p);
-    }
-  }
-
-  /* Insert argument output code */
   for (i = 0, p=l, jnip=l, jtypep=l; i < num_arguments; i++) {
+    
+    while (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    }
+
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
     String   *ln = Getattr(p,"lname");
@@ -802,13 +795,12 @@ int JAVA::functionWrapper(Node *n) {
       Printf(stderr, "No jtype typemap defined for %s\n", SwigType_str(pt,0));
     }
 
-    if ((tm = Getattr(p,"tmap:argout"))) {
-      Replaceall(tm,"$source",source);
-      Replaceall(tm,"$target",target);
+    if ((tm = Getattr(p,"tmap:freearg"))) {
+      Replaceall(tm,"$source",source); /* deprecated */
       Replaceall(tm,"$arg",Getattr(p,"emit:input"));
-      Replaceall(tm,"$input",source);
-      Printv(outarg,tm,"\n",0);
-      p = Getattr(p,"tmap:argout:next");
+      Replaceall(tm,"$input",Getattr(p,"emit:input"));
+      Printv(cleanup,tm,"\n",0);
+      p = Getattr(p,"tmap:freearg:next");
     } else {
         switch(SwigType_type(pt)) {
         case T_BOOL:
@@ -854,10 +846,25 @@ int JAVA::functionWrapper(Node *n) {
           break;
         }
       p = nextSibling(p);
-      }
+    }
     Delete(javaparamtype);
     Delete(jni_param_type);
+  }
+
+  /* Insert argument output code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:argout"))) {
+      Replaceall(tm,"$source",source); /* deprecated */
+      Replaceall(tm,"$target",target); /* deprecated */
+      Replaceall(tm,"$arg",source); // ??????????
+      Replaceall(tm,"$result","jresult");
+      Replaceall(tm,"$input",Getattr(p,"emit:input"));
+      Printv(outarg,tm,"\n",0);
+      p = Getattr(p,"tmap:argout:next");
+    } else {
+      p = nextSibling(p);
     }
+  }
 
   Printf(f_java, ");\n");
   Printf(f->def,") {");
@@ -869,7 +876,9 @@ int JAVA::functionWrapper(Node *n) {
   /* Return value if necessary  */
   if((SwigType_type(t) != T_VOID) && !native_func) {
   if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
-    Replaceall(tm,"$result", "jresult");
+    Replaceall(tm,"$source", "result"); /* deprecated */
+    Replaceall(tm,"$target", "jresult"); /* deprecated */
+    Replaceall(tm,"$result","jresult");
     Printf(f->code,"%s\n", tm);
   } else {
         switch(SwigType_type(t)) {
@@ -985,7 +994,7 @@ int JAVA::functionWrapper(Node *n) {
   /* Look to see if there is any newfree cleanup code */
   if (NewObject || (Getattr(n,"feature:new"))) {
     if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
-      Replaceall(tm,"$source","result");
+      Replaceall(tm,"$source","result"); /* deprecated */
       Printf(f->code,"%s\n",tm);
     }
   }
@@ -993,7 +1002,7 @@ int JAVA::functionWrapper(Node *n) {
   /* See if there is any return cleanup code */
   if((SwigType_type(t) != T_VOID) && !native_func) {
     if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
-      Replaceall(tm,"$source","result");
+      Replaceall(tm,"$source","result"); /* deprecated */
       Printf(f->code,"%s\n",tm);
     }
   }
