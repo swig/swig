@@ -1,5 +1,3 @@
-#ifndef __python_ccomplex_i__
-#define __python_ccomplex_i__
 
 %include complex_common.i
 
@@ -40,4 +38,4 @@
 
 
 
-#endif //__python_ccomplex_i__
+
