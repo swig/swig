@@ -147,12 +147,12 @@ output values.
 
 OUTPUT_TYPEMAP(int, INT2NUM, (int));
 OUTPUT_TYPEMAP(short, INT2NUM, (int));
-OUTPUT_TYPEMAP(long, INT2NUM, (int));
-OUTPUT_TYPEMAP(long long, LL2NUM, (int));
+OUTPUT_TYPEMAP(long, INT2NUM, (long));
+OUTPUT_TYPEMAP(long long, LL2NUM, (long long));
 OUTPUT_TYPEMAP(unsigned int, UINT2NUM, (unsigned int));
 OUTPUT_TYPEMAP(unsigned short, UINT2NUM, (unsigned int));
-OUTPUT_TYPEMAP(unsigned long, UINT2NUM, (unsigned int));
-OUTPUT_TYPEMAP(unsigned long long, ULL2NUM, (unsigned int));
+OUTPUT_TYPEMAP(unsigned long, UINT2NUM, (unsigned long));
+OUTPUT_TYPEMAP(unsigned long long, ULL2NUM, (unsigned long long));
 OUTPUT_TYPEMAP(unsigned char, UINT2NUM, (unsigned int));
 OUTPUT_TYPEMAP(signed char, INT2NUM, (int));
 OUTPUT_TYPEMAP(float, rb_float_new, (double));
