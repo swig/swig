@@ -470,23 +470,26 @@ AC_SUBST(PERL5EXT)
 
 AC_SUBST(ROOT_DIR)ROOT_DIR=`pwd`
 
-if test ! -r Source/DOH/configure; then
-	cd Source/DOH
-	autoconf
-	cd ../..
+# FIXME: Calling autoconf manually like this is wrong. --ttn, 2000/02/25
+if test ! -r $srcdir/Source/DOH/configure; then
+	(cd $srcdir/Source/DOH ; autoconf)
 fi
 
-if test -d Source/SWILL/SWILL; then
-  if test ! -r Source/SWILL/configure; then
-  	cd Source/SWILL
-  	autoconf
-	cd ../..
+if test -d $srcdir/Source/SWILL/SWILL; then
+  if test ! -r $srcdir/Source/SWILL/configure; then
+  	(cd $srcdir/Source/SWILL ; autoconf)
   fi
 fi
 
-cd Tools; ./ltconfig --enable-dlopen ltmain.sh; cd ..
+if test ! -r $srcdir/Tools/configure ; then
+	(cd $srcdir/Tools ; autoconf)
+fi
 
-AC_CONFIG_SUBDIRS(Source/SWILL Source/DOH)
+AC_CONFIG_SUBDIRS(Source/SWILL Source/DOH Tools)
+
+# NOTE: The following ref to `Source' should NOT be prefixed w/ `$srcdir/'.
+# We can remove it if `Source' ever has a generated file but not before.
+test -d Source || mkdir Source
 
 AC_OUTPUT(
     Examples/Makefile
