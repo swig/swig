@@ -2210,7 +2210,7 @@ To make this work with a reference, you can use a typemap such as this:
 %typemap(argout) double * {
   SV *tempsv;
   tempsv = SvRV($input);
-  sv_setnv(tempsv, *$input);
+  sv_setnv(tempsv, *$1);
 }
 </pre></blockquote>
 
