@@ -28,15 +28,6 @@ public:
 %}
 %feature("director");
 
-#ifdef SWIGJAVA
-%typemap(directordisconnect_derived, methodname="disconnect_director") hi::A1 {
-    // Uncomment to see if the call actually happens (it does... :-)
-    // System.out.println("A1 Java object disconnecting from director.");
-    swigCMemOwn = false;
-    $jnicall;
-  }
-#endif
-
 // basic renaming
 %rename(rg) A::gg;
 %feature("nodirector") hi::A1::gg;
