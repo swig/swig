@@ -61,6 +61,7 @@ static int    enum_flag = 0; // Set to 1 when wrapping an enum
 static int    static_flag = 0; // Set to 1 when wrapping a static functions or member variables
 static int    variable_wrapper_flag = 0; // Set to 1 when wrapping a nonstatic member variable
 static int    wrapping_member = 0; // Set to 1 when wrapping a member variable/enum/const
+static int    abstract_class_flag = 0;
 static int    jnic = -1;          // 1: use c syntax jni; 0: use c++ syntax jni
 static int    nofinalize = 0;          // for generating finalize methods
 static int    useRegisterNatives = 0;        // Set to 1 when doing stuff with register natives
@@ -682,7 +683,7 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
     Putc(toupper((int) *shadow_variable_name), member_function_name);
     Printf(member_function_name, "%s", shadow_variable_name+1);
 
-    cpp_func(Char(member_function_name), t, l, java_function_name);
+    cpp_func(Char(member_function_name), t, l, java_function_name, NOT_VIRTUAL);
 
     Delete(java_function_name);
     Delete(member_function_name);
@@ -1330,6 +1331,7 @@ void JAVA::cpp_open_class(char *classname, char *rename, char *ctype, int strip)
   Clear(shadow_classdef);
   Clear(shadow_code);
 
+  abstract_class_flag = 0;
   have_default_constructor = 0;
   shadow_enum_code = NewString("");
   this_shadow_baseclass =  NewString("");
@@ -1359,6 +1361,8 @@ void JAVA::emit_shadow_classdef() {
     Printv(shadow_classdef, all_shadow_class_modifiers, 0);
   else
     Printv(shadow_classdef, "public", 0);
+  if (abstract_class_flag)
+    Printv(shadow_classdef, " abstract", 0);
   Printf(shadow_classdef, " class $class ");
 
   // Inherited classes
@@ -1470,19 +1474,11 @@ void JAVA::cpp_close_class() {
 void JAVA::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   this->Language::cpp_member_func(name,iname,t,l);
 
-/*
-// TODO: modify output so that pure virtual functions are declared abstract and 
-// have no body. Also make the class declaration abstract. Make other constructor protected.
-extern int IsVirtual;
-  printf("IsVirtual: %d [%s] %s\n", IsVirtual, name, shadow_classname);
-  if (IsVirtual == PURE_VIRTUAL) {
-  }
-*/
   if (shadow && !is_multiple_definition()) {
     char* realname = iname ? iname : name;
     String* java_function_name = Swig_name_member(shadow_classname, realname);
 
-    cpp_func(iname, t, l, java_function_name);
+    cpp_func(iname, t, l, java_function_name, IsVirtual);
   }
 }
 
@@ -1494,7 +1490,7 @@ void JAVA::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
     String* java_function_name = Swig_name_member(shadow_classname, realname);
 
     static_flag = 1;
-    cpp_func(iname, t, l, java_function_name);
+    cpp_func(iname, t, l, java_function_name, NOT_VIRTUAL);
     static_flag = 0;
   }
 }
@@ -1506,7 +1502,7 @@ C++ static functions map to java static functions.
 iname is the name of the java class wrapper function, which in turn will call 
 java_function_name, the java function which wraps the c++ function.
 */
-void JAVA::cpp_func(char *iname, SwigType *t, ParmList *l, String* java_function_name) {
+void JAVA::cpp_func(char *iname, SwigType *t, ParmList *l, String* java_function_name, int is_virtual) {
   char     arg[256];
   String   *nativecall = NewString("");
   String   *shadowrettype = NewString("");
@@ -1517,7 +1513,12 @@ void JAVA::cpp_func(char *iname, SwigType *t, ParmList *l, String* java_function
   /* Get the java return type */
   SwigToJavaType(t, iname, shadowrettype, shadow);
 
-  Printf(shadow_code, "  public %s %s %s(", (static_flag ? "static":""), shadowrettype, iname);
+  Printf(shadow_code, "  public ");
+  if (static_flag)
+    Printf(shadow_code, "static ");
+  if (is_virtual == PURE_VIRTUAL)
+    Printf(shadow_code, "abstract ");
+  Printf(shadow_code, "%s %s(", shadowrettype, iname);
 
   if(SwigType_type(t) == T_ARRAY && is_shadow(get_array_type(t))) {
     Printf(nativecall, "long[] cArray = ");
@@ -1626,10 +1627,17 @@ DelWrapper(f);
     Printf(nativecall,");\n");
   }
 
-  Printf(shadow_code, ") {\n");
-  Printv(shadow_code, user_arrays, 0);
-  Printf(shadow_code, "\t%s", nativecall);
-  Printf(shadow_code, "  }\n\n");
+  if (is_virtual == PURE_VIRTUAL) {
+    Printf(shadow_code, ");\n\n");
+    abstract_class_flag = 1;
+  }
+  else {
+    Printf(shadow_code, ") {\n");
+    Printv(shadow_code, user_arrays, 0);
+    Printf(shadow_code, "    %s", nativecall);
+    Printf(shadow_code, "  }\n\n");
+  }
+
   Delete(shadowrettype);
   Delete(nativecall);
   Delete(user_arrays);
@@ -1775,8 +1783,6 @@ void JAVA::cpp_static_var(char *name, char *iname, SwigType *t) {
   this->Language::cpp_static_var(name, iname, t);
   wrapping_member = 0;
   static_flag = 0;
-
-//  Printf(stderr, "Ignoring %s::%s. Static member variables are broken in SWIG!\n", shadow_classname, shadow_variable_name);
 }
 
 void JAVA::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {

@@ -47,5 +47,5 @@ public :
   char *makeValidJniName(const char *name);
   char *JavaMethodSignature(SwigType *t, int ret, int inShadow);
   void writeRegisterNatives();
-  void cpp_func(char *iname, SwigType *t, ParmList *l, String* java_function_name);
+  void cpp_func(char *iname, SwigType *t, ParmList *l, String* java_function_name, int is_virtual);
 };
