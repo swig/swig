@@ -1,0 +1,31 @@
+# ---------------------------------------------------------------
+# $Header$
+#----------------------------------------------------------------
+
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
+SRCS          = 
+OBJS          = 
+
+prefix        = @prefix@
+exec_prefix   = @exec_prefix@
+
+CC            = @CC@
+AR            = @AR@
+RANLIB        = @RANLIB@
+CFLAGS        = @CFLAGS@
+INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../DOH/Include
+TARGET        = libmodules.a
+
+.c.o:
+	$(CC) $(CFLAGS) $(INCLUDE) -c -o $*.o $<
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(AR) cr $(TARGET) $(OBJS)
+	$(RANLIB) $(TARGET)
+
+clean:
+	rm -f *.o *~ core *.so *.a *_wrap.*
