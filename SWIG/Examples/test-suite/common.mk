@@ -43,6 +43,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	overload_extend \
 	template_default2 \
 	template_enum_typedef \
 	template_inherit_abstract \
@@ -138,6 +139,7 @@ CPP_TEST_CASES += \
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES += \
+	overload_extendc \
 	arrayptr \
 	arrays \
 	char_constant \
