@@ -2,6 +2,1116 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 See CHANGES.current for current version.
 
+Version 1.3.22 (September 4, 2004)
+==================================
+
+09/03/2004: wsfulton
+            The swig.m4 macro for use with the Autoconf/Automake/Libtool has
+            been removed and is no longer installed. Please use the new and better
+            maintained version derived from swig.m4 in the Autoconf macro archive.
+            See http://www.gnu.org/software/ac-archive/htmldoc/ac_pkg_swig.html and
+            http://www.gnu.org/software/ac-archive/htmldoc/ac_python_devel.html.
+
+09/01/2004: wsfulton
+            [Perl] Applied patch #1019669 from Christoph Flamm. Adds support
+            for %feature("shadow") in the same way as it works in Python. This
+            enables one to override the generated shadow/proxy methods, including
+            constructors and destructors. For example:
+
+              /* Let's make the constructor of the class Square more verbose */
+
+              %feature("shadow") Square(double w)
+              %{
+                sub new {
+                  my $pkg = shift;
+                  my $self = examplec::new_Square(@_);
+                  print STDERR "Constructed an @{[ref($self)]}\n";
+                  bless $self, $pkg if defined($self);
+                }
+              %}
+
+              class Square {
+              public:
+                Square(double w);
+                ...
+              };
+
+08/31/2004: mmatus 
+	    [Python] Incompatibility reported by Bill Clarke (llib@computer.org):
+	    
+	    If you are using Sun Studio 8 (and possibly earlier
+	    versions) to compile the output produced by swig
+	    1.3.22rc1, and you are using C++ and STL templates then
+	    you need to use either "-runtime" or "-noruntime".  If you
+	    use neither of these options then you will probably get
+	    compiler errors when trying to compile the wrapper file;
+	    the error message will be like this: The name
+	    SWIG_Python_ConvertPtr[...] is unusable in static
+	    swigpy::traits_asptr[...]  If you get this error message,
+	    you need to regenerate your wrapper file using 'swig
+	    -runtime' or 'swig -noruntime'.
+
+	    You shouldn't get this problem with Sun Studio 9.
+
+            *** POTENTIAL INCOMPATIBILITY FOR PYTHON MODULE ***
+	    
+08/26/2004: wsfulton
+            [Perl] Applied #932333 from Ikegami Tsutomu. Fixes long long *OUTPUT
+            and unsigned long long *OUTPUT typemaps in typemaps.i.
+
+08/26/2004: wsfulton
+            Applied patch #857344 from Art Yerkes. Workaround for autoconf bug when
+            running 'make install'.
+
+08/26/2004: wsfulton
+            [Perl] Part of patch #982753 applied. This implements a %perlcode directive.
+            It allows one to add Perl code to the generated .pm file. Works the same 
+            as %pythoncode.
+
+08/26/2004: wsfulton
+            [Java] Fix for directors when wrapping virtual methods with exception
+            specifications that were not simple types. Previously code was generated that
+            didn't compile, for example when the exception specification was a pointer.
+
+08/25/2004: wsfulton
+            [C#] Typemap fix for methods that return char *. The CLR would incorrectly
+            delete the memory pointed to by char *. Also applied the same correction to
+            the char array typemaps.
+
+08/24/2004: wsfulton
+            Fixes for -fmicrosoft error/warning message display: 
+            - End of file (EOF) warning messages not displaying in correct format
+            - Some messages containing a file path were displaying a double backslash
+              instead of a single backslash
+
+08/23/2004: wsfulton
+            Applied patch #1011604 submitted by Charles Schwieters. Fix for 64 bit tcl
+            interpreters.
+
+08/23/2004: wsfulton
+            Fix for bug #875583 - enum forward declarations previously gave a syntax error.
+
+08/23/2004: mkoeppe
+	    [Allegro CL] Use typemaps "ffitype" and "lisptype" to determine the FFI type
+	    specifiers from the C type.  This makes it possible, for instance, to control
+	    whether a C "char" argument takes a Lisp character or a Lisp integer value.
+	    The default (taking Lisp characters) is done by these built-in typemaps:
+	      %typemap(ffitype) char ":char"; %typemap(lisptype) char "character";
+	    If char means an integer instead, use these typemaps:
+	      %typemap(ffitype) char ":char"; %typemap(lisptype) char "integer";
+
+08/22/2004: wsfulton
+            As discussed in bug #772453, the SWIG library directory is now installed
+            into a different default directory. The library used to be installed to
+            /usr/local/lib/swig1.3. It is now in the more usual architecture independent
+            directory and I have additionally used a version specific subdirectory as
+            the library will rarely work with older versions of SWIG. This release
+            will thus use /usr/local/share/swig/1.3.22 by default, which can be
+            tailored as before using './configure --swiglibdir'.
+
+08/17/2004: mkoeppe
+	    [MzScheme] Add support to create native MzScheme structures from C structures.
+	    To convert a C structure to an MzScheme structure, use the new runtime macro
+	    SWIG_NewStructFromPtr in a typemap.  Patch from Dmitriy Zavin. 
+
+08/12/2004: wsfulton
+            Patch #837715 from Ben Reser to correctly detect Python lib directory
+            on 64 bit systems.
+
+08/12/2004: wsfulton
+            [C# and Java] Prevent memory leaks in the case of early return
+            from wrapper methods using const std::string & parameters. Modified
+            Mark Traudt patch #951565.
+
+08/12/2004: wsfulton
+            Bug #943783 with patch fixes php char * out typemap NULL values.
+
+08/03/2004: Ahmon Dancy  <dancy@dancy>
+
+            [allegrocl] Additional case mode fixes.  Also, make sure
+	    foreign types are exported.
+
+07/24/2004: mkoeppe 
+	    [Guile] In -scm mode, SWIG modules now exchange their pointer type
+	    information via the Guile interpreter.  It is no longer necessary to build a
+	    runtime library or to use -noruntime and -runtime etc.
+	    
+	    The module (Swig swigrun) which was introduced in the change of 05/17/2004 is
+	    no longer automatically built.  If you need it, run SWIG on the interface file
+	    swigrun.i. 
+
+07/23/2004: wsfulton
+            [C#] Bug #917601 Mapping C++ bool fix from Mark Traudt
+
+07/23/2004: wsfulton
+            RPM fixes for latest CVS version including removal of runtime
+            library.
+
+07/23/2004: wsfulton
+            Patch #908955 from Robert H De Vries.
+            RPM file generation fix for Fedore Core 1 and Redhat AS2.1.
+
+07/12/2004: wsfulton
+            Patch #864689 from Robin Dunn:
+
+            This patch corrects two problems in the XML output of SWIG:
+             
+              1. There were often extra '/>\n' in the output.
+              
+              2. value attributes were output with '\n' in them but
+              since that is not technically legal most (all?) XML
+              parsers will strip them out. Replacing the '\n' with
+              the '&#10;' entity reference solves this as that is
+              legal and XML parsers will convert it to a '\n' when
+              reading the values back in.
+              
+              This patch also adds a new global command line option
+              that will allow the parse tree to be written out in XML
+              *after* some other language module has been run, in
+              order to be able to get extra info that the language
+              module puts in the tree. In this way the XML is a
+              post-processed version of the tree rather than a
+              pre-processed version. 
+ 
+              Command line option is -dump_xml or -xmlout <file>
+
+07/12/2004: wsfulton
+            [Java] Patch from Scott Michel to fix typesafe enums and proper enums
+            with directors.
+
+07/12/2004: wsfulton
+            HTML documentation (makechap.py) file generator missing end of line
+            patch #908951 from Robert de Vries.
+
+07/08/2004: wsfulton
+            The deprecated runtime library build has been removed. This also removes
+            the dependency on Libtool. Libtool is no longer required to build SWIG.
+            The associated -ldflags SWIG commandline option has also been removed.
+
+            The examples and test-suite testcases that used the runtime library have
+            been updated to use the replacement approach to using SWIG across 
+            multiple modules, that is they use the -noruntime and -runtime commandline
+            options, see Modules.html. Effectively they build their own runtime
+            libraries using -runtime. The examples are import and import_template.
+            The test cases are in the imports and template_typedef_import directories.
+
+            Anyone who wants the original runtime libraries can either run the test-suite
+            or build the examples and use the appropriate shared object/DLL that is
+            generated with the -runtime commandline option. For example libimports_runtime.so
+            (Python calls it lib_imports_runtime.so) is generated after running the 
+            'make imports.multicpptest' testcase in the Examples/test-suite/<lang>
+            directory. Or use libruntime.so / runtime.dll after building the import
+            examples in Examples/<lang>/import.
+
+07/07/2004: mkoeppe
+	    [Allegro CL] Convert character and string literals in constants to 
+	    CL syntax.  Fix FF:DEF-FOREIGN-CALL for mixed-case C functions.
+
+06/27/2004: wsfulton
+            [Java] New feature for Java exceptions with format %javaexception(exceptionclasses).
+            This feature is a slight enhancement to %exception and the only difference is the 
+            addition of the exception classes which are generated into a throws clause.
+            The 'exceptionclasses' is a comma separated list of classes which will be
+            added to the associated proxy method's throws clause. The 'exceptionclasses'
+            are specified like the exception classes in the 'throws' attribute in the
+            typemaps. This feature should be used for correctly handling checked exceptions
+            thrown from JNI code. For example:
+
+              %javaexception("java.lang.Exception") throwException %{
+                ... convert a std::logic_error into a java.lang.Exception using JNI code ...
+              %}
+
+              #include <stdexcept>
+              void throwException() {
+                throw std::logic_error("Logic error!");
+              }
+
+            will generate a method with a throws clause in the module class:
+
+              public static void throwException() throws java.lang.Exception { ... }
+
+06/27/2004: wsfulton
+            [C#] New %csconstvalue(value) feature directive for use with constants and
+            enums. This works the same way as %javaconstvalue. For C#, this directive
+            is the only way that one can fix wrapping of C/C++ enums with proper C#
+            enums if the enum item's initialiser cannot compile as C# code. This is
+            because Java enums can use a call into C code to initialise the enum item,
+            whereas in C#, the enum value must be a compile time constant. That is,
+            using %csconst(0) cannot be used in C# to initialise the C# enum item via
+            a PINVOKE call.
+
+06/27/2004: wsfulton
+            [Java] New %javaconstvalue(value) feature directive for use with constants and
+            enums. Sometimes the use of %javaconst(1) will produce code that won't compile
+            under Java. If a compile time constant is required, %javaconst(0) is not an
+            option. The %javaconstvalue directive achieves this goal and the value specified
+            is generated as Java code to initialise the constant.  For example:
+
+              %javaconst(1);
+              %javaconstvalue(1000) BIG;
+              %javaconstvalue("new java.math.BigInteger(\"2000\")") LARGE;
+              %javaconstvalue(10) bar;
+              %{
+                const int bar = 10;
+              %}
+              %inline %{
+                #define BIG 1000LL
+                #define LARGE 2000ULL
+                enum Foo { BAR = ::bar };
+              %}
+
+            Generates:
+
+              public interface exampleConstants {
+                public final static long BIG = 1000;
+                public final static java.math.BigInteger LARGE = new java.math.BigInteger("2000");
+              }
+              public final class Foo {
+                public final static Foo BAR = new Foo("BAR", 10);
+                ...
+              }
+
+            Previously, none of BIG, LARGE or BAR would have produced compileable code
+            when using %javaconst(1).
+
+06/27/2004: wsfulton
+            %feature enhancements. Features can now take an unlimited number of attributes
+            in addition to the feature name and feature value. The attributes are optional 
+            and are much the same as the typemap attributes. For example, the following
+            specifies two optional attributes, attrib1 and attrib2:
+
+             %feature(featurename, attrib1="attribval1", attrib2="attribval2") name "val";
+             %feature(featurename, val, attrib1="attribval1", attrib2="attribval2") name;
+
+06/27/2004: wsfulton
+            %feature improvements for the syntax that takes the feature value within the
+            %feature() brackets. The value specified is no longer restricted to being just
+            a string. It can be a string or a number. For example, this is now acceptable
+            syntax:
+              %feature("featurename",20.0);
+            whereas previously it would have to have been:
+              %feature("featurename","20.0");
+            Useful for features that are implemented as a macro, for example:
+              #define %somefeature(value)      %feature("somefeature",value)
+            These will now work accepting either a string or a number:
+              %somefeature("Fred");
+              %somefeature(4);
+
+06/06/2004: wuzzeb (John Lenz)
+            [Chicken, Guile]
+             - Created the Examples/test-suite/schemerunme directory, which holds all the
+	       runme scripts for guile and chicken (and possibly mzscheme...).  The guile
+	       and chicken _runme files then (load "../schemerunme/foo.scm").
+             - In chicken module, fix a few bugs invlolving dynamic casts.
+
+06/03/2004: wsfulton
+            Patch to fix wrapping of templated methods. ISO compliant compilers, like
+            Comeau and GCC-3.4.0, don't like the template specifier that SWIG was generating
+            when calling the method. This fix may break some non standard compliant compilers,
+            for example, Sun workshop compilers prior to version 6.2.p2. Patch submitted
+            by Bill Clarke.
+
+06/03/2004: wsfulton
+            [Java, C#] Undocumented special variable $imclassname removed.
+            New special variable $module is replaced by the module name, as specified
+            by %module or -module commandline option. $imclassname can be created from $module.
+
+06/03/2004: wsfulton
+            [C#] Same as for Java below. The new typemaps are named differently, namely,
+            csbody and csbody_derived. The deprecated typemaps are csgetcptr and
+            csptrconstructormodifiers.
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+
+06/03/2004: wsfulton
+            [Java] Typemap changes for the Java proxy / typewrapper and enum classes. A new
+            typemap called javabody contains the essential support code for generation into the body
+            of these classes. There is also a new javabody_derived typemap which is used instead for
+            wrapped classes that have a wrapped base class. The code is basically, the getCPtr()
+            method and swigCPtr and swigCMemOwn member variables. These used to be hard coded
+            with no way to modify the code. The introduction of this typemap makes it possible for
+            the user to tailor nearly every aspect of the code generation.
+            The exception now is the code for director classes.
+
+            The javagetcptr and javaptrconstructormodifiers typemaps are deprecated and are
+            no longer used as the code that these generated can be put in the more flexible
+            javabody and javabody_derived typemaps.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+            The following macros contributed by Scott Michel may help you upgrade if you have used
+            the javagetcptr typemap:
+
+                /* Utility macro for manipulating the Java body code method attributes */
+                %define SWIGJAVA_ATTRIBS(TYPENAME, CTOR_ATTRIB, GETCPTR_ATTRIB)
+                %typemap(javabody) TYPENAME %{
+                  private long swigCPtr;
+                  protected boolean swigCMemOwn;
+
+                  CTOR_ATTRIB $javaclassname(long cPtr, boolean cMemoryOwn) {
+                    swigCMemOwn = cMemoryOwn;
+                    swigCPtr = cPtr;
+                  }
+
+                  GETCPTR_ATTRIB static long getCPtr($javaclassname obj) {
+                    return (obj == null) ? 0 : obj.swigCPtr;
+                  }
+                %}
+
+                %typemap(javabody_derived) TYPENAME %{
+                  private long swigCPtr;
+
+                  CTOR_ATTRIB $javaclassname(long cPtr, boolean cMemoryOwn) {
+                    super($moduleJNI.SWIG$javaclassnameUpcast(cPtr), cMemoryOwn);
+                    swigCPtr = cPtr;
+                  }
+
+                  GETCPTR_ATTRIB static long getCPtr($javaclassname obj) {
+                    return (obj == null) ? 0 : obj.swigCPtr;
+                  }
+                %}
+                %enddef
+
+                /* The default is protected getCPtr, protected constructor */
+                SWIGJAVA_ATTRIBS(SWIGTYPE, protected, protected)
+
+                /* Public getCPtr method, protected constructor */
+                %define PUBLIC_GETCPTR(TYPENAME)
+                SWIGJAVA_ATTRIBS(TYPENAME, protected, public)
+                %enddef
+
+                /* Public getCPtr method, public constructor */
+                %define PUBLIC_BODYMETHODS(TYPENAME)
+                SWIGJAVA_ATTRIBS(TYPENAME, public, public)
+                %enddef
+
+06/03/2004: wsfulton
+            [Java, C#] The contents of the class modifier typemaps and pragmas have changed.
+            They must now include the class type. Previously 'class' was hard coded.
+            This change enables flexibility into what type of class is generated,
+            for example the proxy class could be an interface instead of a class.
+
+            For Java this affects the javaclassmodifiers typemap and the jniclassclassmodifiers
+            and moduleclassmodifiers pragmas.
+
+            For C# this affects the csclassmodifiers typemap and the imclassclassmodifiers
+            and moduleclassmodifiers pragmas.
+
+            Unless you have overridden the default versions of these typemaps or pragmas, you
+            shouldn't be affected. However, if you have, upgrading is easy, for example
+
+                class Foo {};
+                %typemap(javaclassmodifiers) Foo "public final"
+
+            must now be:
+
+                class Foo {};
+                %typemap(javaclassmodifiers) Foo "public final class"
+
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+05/31/2004: wsfulton
+            Fix for C++ exception specifications that are references. Problem reported by
+            Oren Miller. Also improves the generated exception declarations in the
+            catch handler for pointers - a pointer is used instead of a reference to
+            a pointer. Added default throws typemaps for SWIGTYPE &, SWIGTYPE * and
+            SWIGTYPE[ANY] (Java and C#).
+
+05/31/2004: wsfulton
+            [Java, C#] Some minor typesafe enum improvements, including storing the name of
+            the enum item. The toSring() / ToString() methods are overridden to return this name.
+
+05/30/2004: wuzzeb (John Lenz)
+            [Chicken] 
+	     - Update how examples and the test suite are built.
+	     - Symbol names are no longer converted to lower case
+	     - Added union_runme.ss, which was copied and modified from the guile module
+
+05/26/2004: lballabio (Luigi Ballabio)
+            Committed on behalf of Marcelo (who still has problems with 
+	    the SourceForge CVS.)
+
+	    Added Python typemaps for FILE* with (Python-only) test.
+
+5/24/2004:  dancy
+
+	* Allegro CL module:  Now using some macros (defined in
+	Lib/allegrocl/allegrocl.swg), swig-defconstant and swig-defun, for
+	defining constants and foreign functions.  This makes the
+	generated file a bit neater.    
+
+	Now strips a layer of parenthesis from constants.
+
+	Uses (* :void) instead of :foreign-address now.
+
+05/20/2004: wsfulton
+            Unnamed enum global variables are now supported in addition
+            to the recently added support for unnamed enum member variables.
+            For example:
+
+                struct Foo {
+                  enum { enum1, enum2 } MemberInstance;
+                };
+                enum { enum3, enum4 } GlobalInstance;
+
+            The int typemaps are used for wrapping the get/set accessor methods.
+            If the sizeof an enum is not the same size as an int then setting the
+            variable will silently do nothing as the casts cannot be easily and portably
+            generated. If you need to solve this highly obscure situation, write
+            the assignment using the %exception feature.
+
+05/20/2004: wsfulton
+            [C#] C# enum wrapping mods. Similar to the Java module, enums can be wrapped using
+            one of 3 approaches:
+
+            1) Proper C# enums - use %include "enums.swg"
+            2) Typesafe enums - use %include "enumtypesafe.swg"
+            3) Simple constant integers (original approach) - use %include "enumsimple.swg"
+
+            See each of these files for further details. Each of these files use typemaps
+            and a new feature to control the generated code. The feature is:
+
+                %csenum(wrapapproach);
+
+            where wrapapproach should be one of: "proper", "typesafe", "typeunsafe" or "simple".
+            [No implementation deemed necessary for type unsafe enums].
+
+            The default approach is proper C# enums. Anonymous enums are always wrapped by
+            constant integers. 
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+
+05/20/2004: wsfulton
+            [Java] Java enum support added. There are now 4 ways in which enums can be wrapped:
+
+            1) Proper Java enums - use %include "enums.swg"
+            2) Typesafe enums - use %include "enumtypesafe.swg"
+            3) Type unsafe enums (constant integers) - use %include "enumtypeunsafe.swg"
+            4) Simple constant integers (original approach) - use %include "enumsimple.swg"
+
+            See each of these files for further details. Each of these files use typemaps
+            and a new feature to control the generated code. The feature is:
+
+                %javaenum(wrapapproach);
+
+            where wrapapproach should be one of: "proper", "typesafe", "typeunsafe" or "simple".
+            The default typemaps will handle enums that may or may not have specified initial
+            values, for example ten is specified:
+
+                enum Numbers { zero, ten(10) };
+
+            However, the amount of generated Java code can be cut down, by modifying these typemaps
+            if none of the enums have initial values (proper Java enums and typesafe enums approach).
+            
+            The default approach is typesafe enums. Anonymous enums are always wrapped by
+            constant integers. 
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+05/11/2004: wsfulton
+            [Java, C#] Fix bug using %rename on enum items and when using
+            %javaconst(1) / %csconst(1)
+            For example, the following used to generate code that wouldn't compile:
+
+                %rename(Obj) Object;
+                enum Grammar { Subject, Object };
+
+04/28/2004: wsfulton
+            [Java, C#] Minor fixes when using combinations of the 
+            javainterfaces, javabase, csinterfaces and csbase typemaps.
+
+05/18/2004: wsfulton
+            [Java] JVM link failure on some systems fixed when using std_vector.i.
+            Also adds default vector constructor for use from Java.
+
+05/17/2004: mkoeppe (Matthias Koeppe)
+
+	    [Guile] New runtime functions SWIG_PointerAddress,
+	    SWIG_PointerType, SWIG_IsPointerOfType, SWIG_IsPointer.
+
+	    [Guile] In -scm mode, wrap several SWIG runtime functions
+	    and export them into the module (Swig swigrun).  The
+	    runtime module is now built with "module" linkage.
+
+	    [Guile] GOOPS proxy objects now also print the pointer
+	    address of the C object.
+
+05/14/2004: lyle
+            Added Kou's patch for the Ruby %import directive so that modules
+            with "nested" names are handled properly. Consider an interface
+            file foo.i that has this %module declaration at its top:
+
+                %module "misc::text::foo"
+
+            Now consider another interface file spam.i that imports foo.i:
+
+                %import foo.i
+            
+            Before this patch, this would result in the following code being
+            generated for spam_wrap.c:
+
+                rb_require("misc::text::foo");
+
+            With this patch, however, you'll get the correct path name
+            for the call to rb_require(), e.g.
+
+                rb_require("misc/text/foo");
+
+            See SourceForge Bug #928299.
+
+05/12/2004: wsfulton
+            Patch for emitting directors when %feature("director") specified
+            for a class with no virtual methods, but does have a virtual destructor.
+            Submitted by Kevin Smith.
+
+05/06/2004: mkoeppe (Matthias Koeppe)
+	    New SWIG runtime function SWIG_TypePrettyName, which 
+	    returns an unmangled type name for a swig_type_info
+	    object. 
+
+	    [Guile]: Use it for printing pointer objects.
+
+05/03/2004:  dancy (Ahmon Dancy)
+
+	* Lib/allegrocl/allegrocl.swg:  Updated comments about identifer
+	conversion.  
+
+	* Sources/Modules/allegrocl.cxx:  Register /dev/null for "header"
+	target.   Also, disregard "const" qualifiers during type
+	conversion.  
+
+	
+05/02/2004: wuzzeb (John Lenz)
+	    [Chicken] Fix bug 782468.
+	    To fix this bug, the runtime code has been rewritten, and
+	    pointers are now represented as a C_SWIG_POINTER_TYPE.
+
+	    Chicken version > 1.40 is now required!
+
+	    * Typemap incompatibility:  typemaps no longer use chicken_words.
+	      If a typemap needs some space, it should just call C_alloc
+
+	    * argout typemaps no longer use the /* if ONE */ construct to
+	      build an output list.  A SWIG_APPEND_VALUE macro, exactly like
+	      guile and mzscheme is now used.
+
+04/25/2004: mkoeppe (Matthias Koeppe)
+	    [Guile] In the generated GOOPS code, don't create methods
+	    that would not specialize any arguments; simply re-export
+	    the primitive functions.  (This is a performance
+	    optimization which reduces load time and execution time.)
+
+	    [Guile] In -gh mode, fix the "too many initializers" error
+	    which was caused by an incompatible swig_type_info layout.
+
+	    [Guile] The typemap for FILE * in ports.i now also accepts
+	    a regular FILE * pointer object.  Also a bug with Scheme
+	    file ports that are open for input and output has been
+	    fixed. 
+
+04/25/2004: wsfulton
+            Change entry 03/21/2004 revoked. The change introduced another
+            inconsistency (reference typemaps beings used instead of
+            pointer typemaps for member variables as well as static
+            member variables and global variables for some languages,
+            but only for C++ and not C). This would break user's current
+            typemaps and introduce further inconsistencies. Alternative
+            solution required and being discussed.
+
+04/10/2004: mmatus (Marcelo Matus) 
+	    
+	    Added the -directors flag. This enables the director
+	    mode for the interface and all the classes that
+	    don't set the "feature:nodirector" explicitly.
+
+	    You can use this in your module if you want to use the
+	    director feature in all your classes, but it is most
+	    intended for testing purposes, like:
+
+	      make check-python-test-suite SWIG="../../../swig  -directors"
+	      make check-ruby-test-suite SWIG="../../../swig  -directors"
+	      make check-java-test-suite SWIG="../../../../swig  -directors"
+
+	    These commands will run the entire test-suite using
+	    directors, and not only the specific 'directors_*'
+	    cases. This should be done from time to time.
+
+04/10/2004: mmatus (Marcelo Matus) 
+	    
+	    [python] Added support for std::wstring and wchar_t,
+	    for compiler and python versions that support them.
+	    
+	    When needed, use 
+
+	     %inlcude std_string.i      // 'char' strings
+	     %inlcude std_wstring.i     // 'wchar_t; strings
+	    
+
+04/10/2004: mmatus (Marcelo Matus) 
+	    
+	    [python] Fix the default behaviour (seg. fault) when an
+	    inplace operator (+=,-=,...) was wrapped, as reported by
+	    Lucriz (lucriz@sitilandia.it), when the most common
+	    form was used:
+
+                   A&  A::operator+=(int i) { ...; return *this; }
+                  ^^^^                                    ^^^^^^
+	    
+
+	    ie, an object is returned and its contains the same 'this'
+	    value than the input object, which is deleted after the
+	    operation "a += b", leaving the result with no real
+	    object, but a seg. fault.
+
+	    To fix it, we needed to introduce a new feature and use an
+	    old one:
+
+               %feature("self:disown") A::operator+=;
+               %feature("new") A::operator+=;
+	    
+	    here, "self:disown" disable the ownership of the 'self'
+	    or input object, and the "new" feature transfers the
+	    ownership to the result object.
+	    
+	    The feature/solution could also be used in other languages
+	    that use gc and implement the inplace operators, or other
+	    operators, in a similar way.
+
+            *** POTENTIAL INCOMPATIBILITY FOR Python MODULE ***
+
+	    If you already are using the inplace operators in python,
+	    and you implemented some kind of workaround to the problem
+	    fixed here, it is possible you could end with 'free'
+	    objects that never get deleted. If that is the case, and
+	    you want to disable the current fix, use:
+
+               %feature("self:disown","") A::operator+=;
+               %feature("new","") A::operator+=;
+
+
+04/07/2004: cheetah (William Fulton)
+            [C#] C++ enums are no longer wrapped by integers, they are now wrapped by 
+            C# enums. For Example, given C++:
+
+                enum AnEnum { foo, bar };
+                typedef AnEnum AnEnumeration;
+                void something(AnEnum e, AnEnumeration f);
+
+            The following is generated:
+
+                public enum AnEnum {
+                  foo,
+                  bar
+                }
+                public static void something(AnEnum e, AnEnum f) {...}
+
+            Note that a global enum like AnEnum above is generated into its own
+            file called AnEnum.cs. Enums defined within a C++ class are defined
+            within the C# proxy class. Some of the typemaps for modifying C# proxy
+            classes also work for enums. For example global enums can use
+
+                %typemap(csimports) to add in extra using statements.
+
+            Global enums and class enums can use
+
+                %typemap(csclassmodifiers) to make the enum private, public etc.
+                %typemap(csbase) to change the underlying enum type (enum base)
+
+            If we add this for the above example:
+
+                %typemap(csclassmodifiers) AnEnum "protected"
+                %typemap(csbase) AnEnum "long"
+
+            the following is generated:
+            
+                protected enum AnEnum : long {
+                  foo,
+                  bar
+                }
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+
+04/07/2004: cheetah (William Fulton)
+            Seg fault fix for empty enums, like
+                enum Foo {};
+
+03/21/2004: mmatus
+            [Note: this change revoked on 04/25/2004]
+	    [Python] Makes the following 'var' cases more uniform:
+
+                std::string ga;
+ 
+                struct A {
+                  static std::string sa;
+                  std::string ma;
+                };
+
+
+            now the three variables (ga, sa, ma) can be assigned as:
+
+
+                  cvar.ga = "hello";
+                  A.sa = "hello";
+                  a.ma = "hello";
+
+            ie, now 'ma' will also use a std::string typemap 'in' if
+            defined, before it was only accepting a 'p_std_string'
+            pointer.  Note, however, that 'ma' will not use the
+            'varin/varout' typemaps (that probably could be more
+            natural), but it will pick up the 'in' typemap for const
+            std::string& (which is easier).
+
+	    The changes in cwrap.c and lang.cxx will probably fix the
+	    behaviour in other languages that do not overload the
+	    membervarHandler method "too much".
+ 
+            
+03/21/2004: mmatus
+	    [Python] Disabling the default instantiations like:
+
+	      %template() std::pair<int,int>;
+
+            for all the primitive types and STL containers/classes.
+	    They are expensive, specially for pair and map, and the
+	    previous behaviour also requires the user to perform
+	    manual instantiations. Still, if the speed difference is
+	    not important, it can be re-enabled by defining the macro
+	    SWIG_STD_DEFAULT_INSTANTIATION (see std_common.i).
+
+	    Also, normalizing the INPUT/OUTPUT/INOUT typemaps. Now
+	    they use the same conversors than the rest of the
+	    typemaps, and you can use them for std::pair, std::string
+	    and all the other STL types, like in:
+
+	      void p_inoutd(std::pair<double, double> *INOUT);
+
+	    Added the attribute.i and implicit.i files with macros to
+	    transform functions pairs like 'set_x'/'get_x' 
+	    (or 'T& x()'/'const T& x() const') into an attribute,
+	    and allowing the use of implicit constructors in typemaps
+	    (see the files for more details).
+
+03/21/2004: mkoeppe
+	    [Guile] Fix the documentation strings of functions with
+	    anonymous arguments.
+
+03/18/2004: mmatus
+	    [Python] More general std_string.i interface.
+	    Now you can wrap it using
+
+	      %template(string) std::basic_string<char>;
+
+            and use the std::string as a base class:
+
+	      struct A : std::string {
+              };
+
+	    But more important, swig will recognize 
+	    both std::basic_string<char> and std::string as
+	    the same type.
+
+03/16/2004: mmatus
+	    Previously added, but not mentioned before:
+
+	    - friend declaration support, swig now emits a global
+	      function in the same class scope.
+
+	    - ref/unref features: to mix ref counting C++ classes
+	      and native script ref counting mechanisms (like in python).
+	    
+	      Use it like:
+
+ 	        %feature("ref")   RCObj "$this->ref();"
+                %feature("unref") RCObj "$this->unref();"
+
+	      And the class RCObj, and all the derived ones, will
+	      perform the right ref/unref calls when a new pointer  
+	      is returned to the target language, or when the target
+	      language attempts to delete the object.
+	      
+	      See the refcount.i file in the test-suite for more
+	      details.
+
+	    
+03/16/2004: mmatus
+	    [Python] Using the new %fragment support, major rewrote 
+	    of the python swig library, including:
+
+	    - Almost automatic template/typemap instantiation for
+	      the STL components. For example, now you can write:
+
+		   %template(vector_i) std::vector<int>;
+
+              and a specialized vector_i class is emitted with all
+	      the needed typemaps. No need to use the old
+	      'specialize_vector' macros.
+
+	      Note you can also define
+
+	          %template(matrix_i)   std::vector<std::vector<int> >;
+	          %template(vector_pii) std::vector<std::pair<int,int> >;
+
+	    - The empty template instantiation 
+ 	 
+           	  %template() std::vector<int>;
+
+	      defines the vector typemaps, but no proxy class. For all the
+              fundamental types, the empty template instantiation are
+              defined, so, you can say
+
+	      %include std_vector
+
+	      int func(const std::vector<int>& a);
+	      
+	      where the proper typemap is applied to 'a', but no
+	      std::vector<int> proxy is generated.
+	      
+
+            - All the STL containers present a more uniform behavior and
+	      more complete interface declaration. The following are 
+	      now supported:
+
+		  std::vector<T>
+		  std::list<T>
+		  std::deque<T>
+		  std::set<T>
+		  std::multiset<T>
+		  std::map<T>
+		  std::multimap<T>
+              
+              not a container, but also supported:
+
+		  std::pair<T,U>
+
+              also, more typemaps are defined for all of them,
+	      including varin, varout, typecheck, etc.
+
+            - Initial attempt to implement the STL containers
+              considering allocators, ie:
+
+	          std::vector<T,A>			
+
+	      it is partially working, but it is just a workaround
+	      while swig improves its template type support.
+	      
+	      
+	     Please test with your particular setup. It seems to be
+	     working with g++ 3.2.2, g++ 2.96, Intel icc and SGI CC
+	     compilers, plus python 1.5.2, 2.0 and 2.3, but since
+	     we are using templates, there is a chance you can find
+	     some problems when using with an old C++ compiler.
+
+03/16/2004: mmatus
+
+            - Allowing the empty %template directive, such as
+
+                 %template() std::vector<int>;
+
+	      to process the class "typedef"s and "typemap"s. Before
+	      only the internal "typedef"s were processed.
+
+              This makes possible to emit the default in/out
+              typemaps without the need of wrapping an specialized
+              vector instance.
+
+	    - Adding the preprocessor extension #@ which mangles the
+              following macro argument, like in:
+
+                #define macro(X)  #@X
+                macro(int)         -> int
+                macro(std::string) -> std_s_s_string
+                
+	    - Fragments can now be "type specialized", as the typemaps. The
+	      syntax is as follows
+ 
+                %fragment("name","header") 
+                  { /* a type independent fragment (old syntax) */ }
+                %fragment("name" {Type}, "header") 
+                  { /* the fragment is type dependent */}
+ 
+              Now fragments can also be used inside templates: 
+
+                template <class T>
+                struct A {
+                   %fragment("incode"{A<T>},"header") {
+		      /* 'incode' specialized fragment */
+		   }
+ 
+		   %typemap(in,fragment="incode"{A<T>}) {
+		      /*
+		         here we use the 'type specialized' 
+                         fragment "incode"{A<T>}
+                      */
+		    }
+                };
+			     	
+
+03/11/2004: cheetah (William Fulton)
+            [Java] Director bug which meant that some virtual functions overridden in
+            Java were not being called on some operating systems. Bug reported and fixed
+            by Robert de Vries and Scott Michel.
+
+03/02/2004: mkoeppe (Matthias Koeppe)
+	    [Guile] In -scm mode, don't forget to check the type of string arguments.
+
+02/24/2004: cheetah (William Fulton)
+            [C#] New commandline option -namespace <name>. This allows one to specify
+            a C# namespace into which all C# classes are generated.
+
+02/23/2004: mkoeppe (Matthias Koeppe) 
+	    [MzScheme] Use FUNC_NAME rather than a bogus typemap variable for signalling
+	    errors.  Call scheme_wrong_type with a zero-based argument number.  
+	    Reported by Ondrej Pacovsky, SF #902621.
+
+	    [Guile] Define FUNC_NAME also in the dispatch wrapper for overloaded
+	    functions.  Patch by John Lenz, SF #896255.
+
+02/22/2004: mkoeppe (Matthias Koeppe)
+	    [Guile] In -scm mode, don't try to invoke a null destructor function.
+
+02/20/2004: cheetah (William Fulton)
+            Fixes so that the SWIG source will compile using the Digital Mars Compiler
+            (formerly Symantic compiler) on Windows. Submitted by Scott Michel.
+
+02/13/2004: mkoeppe (Matthias Koeppe)
+	    [MzScheme] New command-line argument -noinit.  Use it for building
+	    the runtime library, where we don't want to define the functions
+	    scheme_initialize etc.  Reported by Tim Brown, SF #891754.
+
+	    [MzScheme] Don't produce invalid C code when invoked with the
+	    -declaremodule option.  Reported by Tim Brown, SF #891108.
+	    
+	    [Guile] Build the runtime library with passive linkage, to rename
+	    the SWIG_init function uniquely.
+
+02/12/2004: cheetah (William Fulton)
+            [Java, C#] Patch submitted by Bill Hoffman which prevents SWIG from crashing
+            when a file for the typewrapper class cannot be opened.
+
+02/11/2004: cheetah (William Fulton)
+            [Java, C#] Overloading changes:
+              - Methods which are overloaded in const only no longer generate Java
+                code that won't compile - the first method parsed is used and a
+                warning is displayed. Note that this behaviour is slightly different
+                to the scripting languages which always uses the non-const method.
+              - Warning messages 509 and 512 replaced by new warning number 516, which 
+                is more relevant to these statically typed languages as the overloaded
+                methods aren't 'shadowed', they are ignored.
+
+01/23/2004: mkoeppe (Matthias Koeppe)
+	    [Guile] Replace the "known_classes" hash table by a node
+	    attribute.  Methods of classes in C++ namespaces now get
+	    the proper specializer in the GOOPS declaration.
+	    Reported by rm@mh-freiburg.de.
+
+01/23/2004: mkoeppe (Matthias Koeppe)
+	    [Guile] Uniquify the argument names in GOOPS shadow method
+	    declarations.  Reported by rm@mh-freiburg.de.
+
+01/21/2004: sunshine (Eric Sunshine)
+            Revived the NextStep port of SWIG.
+
+            Fixed fatal problem in DohStrstr() caused by difference in strstr()
+            implementation which made %apply become entirely dysfunctional.  On
+            NextStep, strstr("foo","") evaluates to NULL; whereas, on modern
+            platforms, it evaluates to "foo".  %apply relies extensively upon
+            strstr("foo","") evaluating to non-NULL, therefore it failed
+            catastrophically when faced with NextStep's strstr().
+
+            Added `bool' check to configure.in since NextStep's C++ compiler
+            does not supply this type.  swig.h now fakes up `bool' if needed.
+
+            Worked around NextStep C++ compiler bug in which C++ code is
+            disallowed inside extern "C" functions.  This problem affected all
+            language modules, since they publish hook functions of the form:
+                extern "C" Language *swig_foo(void) { return new FOO(); }
+            Fixed by creating a C++ wrapper:
+                static Language *new_swig_foo() { return new FOO(); }
+                extern "C" Language *swig_foo(void) { return new_swig_foo(); }
+
+            Ensured that Swig_copy_string() is used in place of strdup() since
+            NextStep does not supply strdup().
+
+            Fixed detection of Ruby library name and location in configure.in.
+            Problem 1: Assumed that library always resided in Ruby's "archdir",
+            which was correct for Ruby 1.6.x, but which is incorrect for Ruby
+            1.8.x, in which case the library normally resides in Ruby's
+            "libdir".  Problem 2: Assumed that the library could always be
+            linked via "-l"+RUBY_INSTALL_NAME (where RUBY_INSTALL_NAME
+            typically is "ruby"), however this failed for platforms, such as
+            NextStep, which do not support shared libraries.  In this case, the
+            static library name in 1.8.x is libruby-static.a, thus
+            -lruby-static is required.  The new logic works correctly for
+            static and shared libraries for 1.6.x and 1.8.x.
+
+            Fixed detection of Perl CFLAGS in configure.in for NextStep.
+            Detection code extracted CFLAGS from Perl's %Config hash but
+            neglected to add a newline to the value before passing it through
+            `sed'.  NextStep's ancient `sed' discards input which is not
+            terminated with a newline, thus Perl CFLAGS always evaluated to the
+            empty string.
+
+01/16/2004: cheetah (William Fulton)
+            Tidy up in the exception handling code that is generated when
+            C++ exception specifications are wrapped with the throws typemap.
+            This redundant code is no longer generated:
+
+                catch(...) {
+                    throw; 
+                }
+
+01/12/2004: wsfulton on behalf of mmatus (marcelo matus) 
+            if a method uses %exception and the method requires the use
+            of the throws typemap, the code in a throws typemap will be
+            generated inside the try body. For example:
+
+              %exception method {
+                try {
+                  // method action 
+                  $action
+                } catch (int i) {
+                  // method int catch handler
+                } catch (...) {
+                  // method generic catch handler
+                }
+              }
+              %typemap(throws) Except %{
+                // throws typemap Except catch handler
+              %}
+
+              %inline %{
+              class Except {};
+              void method(int i) throw (Except);
+
+            Will generate:
+
+              {
+                  try {
+                      // method action 
+                      try {
+                          method(arg1);
+                      }
+                      catch(Except &_e) {
+                          // throws typemap Except catch handler
+                          
+                      }
+                      
+                  } catch (int i) {
+                      // method int catch handler
+                  } catch (...) {
+                      // method generic catch handler
+                  }
+              }
+
+
+            As can be seen, the inner try catch block is for the throws typemaps.
+            Previously, this was reversed so that the inner try catch block
+            was the %exception code. In the example above, it would have been
+            impossible to catch Except as the catch all (...) would catch the
+            exception instead.
+
 Version 1.3.21 (January 11, 2004)
 ==================================
 01/10/2004: cheetah (William Fulton)
