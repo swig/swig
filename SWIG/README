@@ -128,10 +128,13 @@ The files NEW and CHANGES describe in some detail all of the important
 changes that have been made to the system.  Experienced users would be
 well advised to read this.
 
-Windows
-=======
-Please see the Doc/Manual/Windows.html file for instructions on obtaining 
-a prebuilt windows executable and using SWIG on Windows.
+Windows Installation
+====================
+Please see the Doc/Manual/Windows.html file for instructions on installing 
+SWIG on Windows and running the examples. The Windows distribution is 
+called swigwin and includes a prebuilt SWIG executable, swig.exe, included in
+the same directory as this README file. Otherwise it is exactly the same as 
+the main SWIG distribution. There is no need to download anything else.
 
 Unix Installation
 =================
