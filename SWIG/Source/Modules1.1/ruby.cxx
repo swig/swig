@@ -42,12 +42,11 @@ class RClass {
   String *includes;
   Hash *freemethods;
   Hash *predmethods;
+  int constructor_defined;
   int destructor_defined;
 
-  RClass(void) {
-    freemethods = NewHash();
-    predmethods = NewHash();
-    destructor_defined = 0;
+  RClass() {
+    temp = NewString("");
     name = NewString("");
     cname = NewString("");
     vname = NewString("");
@@ -57,7 +56,10 @@ class RClass {
     init = NewString("");
     aliases = NewString("");
     includes = NewString("");
-    temp = NewString("");
+    freemethods = NewHash();
+    predmethods = NewHash();
+    constructor_defined = 0;
+    destructor_defined = 0;
   }
   ~RClass() {
     Delete(name);
@@ -937,10 +939,15 @@ int RUBY::memberfunctionHandler(Node *n) {
  * -------------------------------------------------------------------- */
 
 int RUBY::constructorHandler(Node *n) {
-
-  current = CONSTRUCTOR;
-  Language::constructorHandler(n);
-  current = NO_CPP;
+  if (!klass->constructor_defined) {
+    current = CONSTRUCTOR;
+    Language::constructorHandler(n);
+    current = NO_CPP;
+    klass->constructor_defined = 1;
+  } else {
+    char *symname = GetChar(n,"sym:name");
+    fprintf(stderr, "Warning: Overloaded constructor \"%s\" ignored.\n", symname);
+  }
   return SWIG_OK;
 }
 

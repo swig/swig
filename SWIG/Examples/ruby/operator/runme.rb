@@ -1,8 +1,10 @@
 # Operator overloading example
 require 'example'
 
-a = Example::Complex.new(2,3)
-b = Example::Complex.new(-5,10)
+include Example
+
+a = Complex.new(2,3)
+b = Complex.new(-5,10)
 
 puts "a   = #{a}"
 puts "b   = #{b}"
@@ -12,7 +14,8 @@ puts "c   = #{c}"
 puts "a*b = #{a*b}"
 puts "a-c = #{a-c}"
 
-e = Example::ComplexCopy(a-c)
+#e = ComplexCopy(a-c)
+e = a - c
 puts "e   = #{e}"
 
 # Big expression
