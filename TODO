@@ -97,6 +97,32 @@ defer  ready to go.  The primary obstacle lies in the target language
        multi-arguments typemaps. The same will hold for "out" typemaps
        and all the others.
 
+       Comment by mkoeppe:  
+
+	  I think we need to be careful to keep the syntax readable.
+	  I would like to get a syntax that is close to that of
+	  typemap definitions.  So consider this typemap:
+
+		 %typemap(in) int { ... }
+
+	  I would like to refer to this typemap like this:
+
+		 $typemap(in, input=x) int = foo;
+
+	  Here $input would be replaced by the given keyword argument
+	  x, and $1 would be replaced by foo.
+
+	  This syntax would extend easily to multi-typemaps:
+
+		 %typemap(in) ( int FIRST, double SECOND ) { ... }
+
+	      -> $typemap(in, input=x) int FIRST = foo, double SECOND = bar;
+
+	  The advantage of this syntax would be that the formal
+	  arguments (int FIRST, double SECOND) are close to the
+	  actual arguments (foo, bar).
+
+
 ***    Add attributes to the %feature directive. Something like:
 
        %feature("except", throws="OutOfMemoryException")
