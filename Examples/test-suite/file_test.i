@@ -10,9 +10,6 @@
   }
 
   int nfile_name(const char *filename) {
-    FILE *file = fopen(filename,"w");
-    nfile(file);
-    fclose(file);
     return 0;
   }
 
