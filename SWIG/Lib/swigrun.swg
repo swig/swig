@@ -20,29 +20,6 @@
 #endif
 
 /*
-  We need to define the compiler attributes here again since swigrun.swg
-  can be exported  using -runtime.
-*/
-
-/* inline attribute */
-#ifndef SWIGINLINE
-# if defined(__cplusplus) || (defined(__GNUC__) && !defined(__STRICT_ANSI__))
-#   define SWIGINLINE inline
-# else
-#   define SWIGINLINE
-# endif
-#endif
-
-/* attritbute passed for some compilers to avoid 'unused' warnings */
-#ifndef SWIGUNUSED
-# ifdef __GNUC__
-#   define SWIGUNUSED __attribute__ ((unused)) 
-# else
-#   define SWIGUNUSED 
-# endif
-#endif
-
-/*
   You can use the SWIGRUNTIME and SWIGRUNTIMEINLINE macros for
   creating a static or dynamic library from the swig runtime code.
   In 99.9% of the cases, swig just needs to declare them as 'static'.
@@ -52,7 +29,7 @@
 */
 
 #ifndef SWIGRUNTIME
-# define SWIGRUNTIME static SWIGUNUSED
+# define SWIGRUNTIME SWIGINTERN
 #endif
 
 #ifndef SWIGRUNTIMEINLINE
@@ -90,7 +67,7 @@ typedef struct swig_cast_info {
  * all of these structures and stores them in a circularly linked list.*/
 typedef struct swig_module_info {
   swig_type_info         **types;		/* Array of pointers to swig_type_info structures that are in this module */
-  int                      size;		/* Number of types in this module */
+  size_t                 size;		        /* Number of types in this module */
   struct swig_module_info *next;		/* Pointer to next element in circularly linked list */
   swig_type_info         **type_initial;	/* Array of initially generated type structures */
   swig_cast_info         **cast_initial;	/* Array of initially generated casting structures */
@@ -156,28 +133,25 @@ SWIG_TypeCompare(const char *nb, const char *tb) {
 
 
 /* think of this as a c++ template<> or a scheme macro */
-#define SWIG_TypeCheck_Template(comparison, ty) \
-  if (ty) { \
-    swig_cast_info *iter; \
-    iter = ty->cast; \
-    while (iter) { \
-      if (comparison) { \
-        if (iter == ty->cast) return iter; \
-\
-        /* Move iter to the top of the linked list */ \
-        iter->prev->next = iter->next; \
-        if (iter->next) \
-          iter->next->prev = iter->prev; \
-        iter->next = ty->cast; \
-        iter->prev = 0; \
-        if (ty->cast) ty->cast->prev = iter; \
-        ty->cast = iter; \
-\
-        return iter; \
-      } \
-      iter = iter->next; \
-    } \
-  } \
+#define SWIG_TypeCheck_Template(comparison, ty)         \
+  if (ty) {                                             \
+    swig_cast_info *iter = ty->cast;                    \
+    while (iter) {                                      \
+      if (comparison) {                                 \
+        if (iter == ty->cast) return iter;              \
+        /* Move iter to the top of the linked list */   \
+        iter->prev->next = iter->next;                  \
+        if (iter->next)                                 \
+          iter->next->prev = iter->prev;                \
+        iter->next = ty->cast;                          \
+        iter->prev = 0;                                 \
+        if (ty->cast) ty->cast->prev = iter;            \
+        ty->cast = iter;                                \
+        return iter;                                    \
+      }                                                 \
+      iter = iter->next;                                \
+    }                                                   \
+  }                                                     \
   return 0
 
 /*
@@ -250,17 +224,16 @@ SWIG_TypePrettyName(const swig_type_info *type) {
 */
 SWIGRUNTIME void
 SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
-  swig_cast_info *cast;
-  
-  if (ti->clientdata) return;
-  /* if (ti->clientdata == clientdata) return; */
-  ti->clientdata = clientdata;
-
-  cast = ti->cast;
-  while (cast) {
-    if (!cast->converter)
-      SWIG_TypeClientData(cast->type, clientdata);
-    cast = cast->next;
+  if (!ti->clientdata) {
+    swig_cast_info *cast = ti->cast;
+    /* if (ti->clientdata == clientdata) return; */
+    ti->clientdata = clientdata;
+    
+    while (cast) {
+      if (!cast->converter)
+	SWIG_TypeClientData(cast->type, clientdata);
+      cast = cast->next;
+    }
   }
 }
 
@@ -276,29 +249,35 @@ SWIGRUNTIME swig_type_info *
 SWIG_MangledTypeQueryModule(swig_module_info *start, 
                             swig_module_info *end, 
 		            const char *name) {
-  swig_module_info *iter;
-  int l, r, i, compare;
-
-  iter = start;
+  swig_module_info *iter = start;
   do {
-    l = 0;
-    r = iter->size - 1;
-    while (l <= r) {
-      i = (l + r) / 2;
-
-      if (!(iter->types[i]->name)) break; /* should never happen */
-
-      compare = strcmp(name, iter->types[i]->name);
-      if (compare == 0)
-        return iter->types[i];
-      else if (compare < 0)
-        r = i - 1;
-      else if (compare > 0)
-        l = i + 1;
+    if (iter->size) {
+      register size_t l = 0;
+      register size_t r = iter->size - 1;
+      do {
+	/* since l+r >= 0, we can (>> 1) instead (/ 2) */
+	register size_t i = (l + r) >> 1; 
+	const char *iname = iter->types[i]->name;
+	if (iname) {
+	  register int compare = strcmp(name, iname);
+	  if (compare == 0) {	    
+	    return iter->types[i];
+	  } else if (compare < 0) {
+	    if (i) {
+	      r = i - 1;
+	    } else {
+	      break;
+	    }
+	  } else if (compare > 0) {
+	    l = i + 1;
+	  }
+	} else {
+	  break; /* should never happen */
+	}
+      } while (l <= r);
     }
     iter = iter->next;
   } while (iter != end);
-
   return 0;
 }
 
@@ -315,24 +294,23 @@ SWIGRUNTIME swig_type_info *
 SWIG_TypeQueryModule(swig_module_info *start, 
                      swig_module_info *end, 
 		     const char *name) {
-  swig_module_info *iter;
-  swig_type_info *ret;
-  int i;
-
   /* STEP 1: Search the name field using binary search */
-  ret = SWIG_MangledTypeQueryModule(start, end, name);
-  if (ret) return ret;
-
-  /* STEP 2: If the type hasn't been found, do a complete search
-             of the str field (the human readable name) */
-  iter = start;
-  do {
-    for (i = 0; i < iter->size; ++i) {
-      if (iter->types[i]->str && (SWIG_TypeEquiv(iter->types[i]->str, name)))
-        return iter->types[i];
-    }
-    iter = iter->next;
-  } while (iter != end);
+  swig_type_info *ret = SWIG_MangledTypeQueryModule(start, end, name);
+  if (ret) {
+    return ret;
+  } else {
+    /* STEP 2: If the type hasn't been found, do a complete search
+       of the str field (the human readable name) */
+    swig_module_info *iter = start;
+    do {
+      register size_t i = 0;
+      for (; i < iter->size; ++i) {
+	if (iter->types[i]->str && (SWIG_TypeEquiv(iter->types[i]->str, name)))
+	  return iter->types[i];
+      }
+      iter = iter->next;
+    } while (iter != end);
+  }
   
   /* neither found a match */
   return 0;
@@ -344,12 +322,11 @@ SWIG_TypeQueryModule(swig_module_info *start,
 */
 SWIGRUNTIME char *
 SWIG_PackData(char *c, void *ptr, size_t sz) {
-  static char hex[17] = "0123456789abcdef";
-  unsigned char *u = (unsigned char *) ptr;
-  const unsigned char *eu =  u + sz;
-  register unsigned char uu;
+  static const char hex[17] = "0123456789abcdef";
+  register const unsigned char *u = (unsigned char *) ptr;
+  register const unsigned char *eu =  u + sz;
   for (; u != eu; ++u) {
-    uu = *u;
+    register unsigned char uu = *u;
     *(c++) = hex[(uu & 0xf0) >> 4];
     *(c++) = hex[uu & 0xf];
   }

@@ -279,7 +279,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
   nname = SwigType_namestr(name);
 
   /*
-    SWIG_TEMPLATE_DISAMBIGUATOR is compiler dependent (common.swg),
+    SWIGTEMPLATEDISAMBIGUATOR is compiler dependent (swiglabels.swg),
       - SUN Studio 9 requires 'template', 
       - gcc-3.4 forbids the use of 'template'.
     the rest seems not caring very much,
@@ -290,7 +290,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
     if (!prefix || Len(prefix) == 0) {
       Printf(func,"%s(", last);
     } else {
-      Printf(func,"%s::SWIG_TEMPLATE_DISAMBIGUATOR %s(", prefix, last);
+      Printf(func,"%s::SWIGTEMPLATEDISAMBIGUATOR %s(", prefix, last);
     }
     Delete(prefix);
     Delete(last);
@@ -360,13 +360,13 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
   }
 
   /*
-    SWIG_TEMPLATE_DESIMBUAGATOR is compiler dependent (common.swg),
+    SWIGTEMPLATEDESIMBUAGATOR is compiler dependent (swiglabels.swg),
       - SUN Studio 9 requires 'template', 
       - gcc-3.4 forbids the use of 'template'.
     the rest seems not caring very much,
   */
   if (SwigType_istemplate(name)) {
-    Printf(func,"SWIG_TEMPLATE_DISAMBIGUATOR %s(", nname);
+    Printf(func,"SWIGTEMPLATEDISAMBIGUATOR %s(", nname);
   } else {
     Printf(func,"%s(", nname);
   }

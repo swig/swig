@@ -294,6 +294,15 @@ static void SWIG_dump_runtime() {
   }
 
   Swig_banner(runtime);
+
+  s = Swig_include_sys("swiglabels.swg");
+  if (!s) {
+    Printf(stderr, "*** Unable to open 'swiglabels.swg'\n");
+    Close(runtime);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  Printf(runtime, "%s", s);
+  Delete(s);
   
   s = Swig_include_sys("swigrun.swg");
   if (!s) {
