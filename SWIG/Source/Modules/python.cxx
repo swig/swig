@@ -1416,7 +1416,8 @@ public:
     }
     Printv(f->code,"}\n",NIL);
     Wrapper_print(f,f_wrappers);
-    add_method(symname,wname,0);
+    Node *p = Getattr(n, "sym:previousSibling");
+    add_method(symname,wname,0,p);
 
     /* Create a shadow for this function (if enabled and not in a member function) */
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
