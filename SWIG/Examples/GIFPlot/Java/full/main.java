@@ -2,7 +2,7 @@
 import gifplot;
 import java.lang.Math;
 
-public class runme {
+public class main {
 
   static {
     try {
