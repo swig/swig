@@ -1,6 +1,28 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/21/2004: mmatus
+	    - [Python] Add the '-cpluscast' option to enable the 'new'
+	      C++ casting operators, such as 'static_cast', inside the
+	      typemaps. By default swig use the old C cast style, even
+	      when parsing C++.
+	      
+	    - [Python] Add the '-new_vwm' option to enable the new
+              SwigValueWrapper mode. Now this is mainly for testing
+              that the typemaps are really safe for any future
+              solution, but you can use it if you have a very strange
+              error with default cosntructors missing + %apply +
+              %typemap, and if everything else fails (see
+              valuwrapper_opaque.i for alternative and current
+              solutions). If you are a user that don't know what is
+              SwigValueWrapper, don't even try it.
+
+	    - [Python] Add the '-noh' option to be used with directors
+	      and when you prefer to disable the generation of the
+	      director header file. If not used, swig will work as
+	      usual generating both the wrap.cxx and wrap.h files. If
+	      you use it, swig will only generate wrap.cxx.
+
 10/21/2004: wuzzeb (John Lenz)
             - If you define SWIG_TYPE_TABLE when compiling a wrapper file,
 	      the runtime types will be stored in the given type table name.
@@ -40,13 +62,18 @@ Version 1.3.23 (in progress)
               PYTHON class is getting too large to been declared and
               defined at the same time.
 
-	    - Add the -oh option to change the output header file if
-              needed. 
+	    - Add the -oh option to change the output header file name
+              if needed:
 
                  swig -c++ -python test.i -o test.CC -oh test.HH
 	      
               this is mainly needed when using directors, and if the
-              current default header file name is not good for you.
+              current default header file name is not good for you,
+              which is generated as follow:	      
+
+                 swig -c++ -python test.i             => test_wrap.h
+                 swig -c++ -python test.i -o test.CC  => test.h
+
 
 10/20/2004: wsfulton
             1) Compact default arguments feature added. This feature allows one
