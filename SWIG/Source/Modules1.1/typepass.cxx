@@ -586,6 +586,7 @@ public:
 	    normalize_type(decl);
 	}
 	normalize_parms(Getattr(n,"parms"));
+	normalize_parms(Getattr(n,"throws"));
 
 	/*	if (Getattr(n,"conversion_operator")) {
 	  String *name = Swig_symbol_string_qualify(Getattr(n,"name"),0);
@@ -658,6 +659,8 @@ public:
 	    }
 	}
 	normalize_parms(Getattr(n,"parms"));
+	normalize_parms(Getattr(n,"throws"));
+
 	/* If in a namespace, patch the class name */
 	if (nsname) {
 	    String *nname = NewStringf("%s::%s", nsname, Getattr(n,"name"));

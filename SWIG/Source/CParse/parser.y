@@ -133,7 +133,7 @@ static Node *copy_node(Node *n) {
     if (Strcmp(key,"node") == 0) {
       continue;
     }
-    if ((Strcmp(key,"parms") == 0) || (Strcmp(key,"pattern") == 0)) {
+    if ((Strcmp(key,"parms") == 0) || (Strcmp(key,"pattern") == 0) || (Strcmp(key,"throws") == 0))  {
       Setattr(nn,key,CopyParmList(Getattr(n,key)));
       continue;
     }
@@ -771,6 +771,7 @@ Node *Swig_cparse(File *f) {
     int     type;
     String *qualifier;
     String *bitfield;
+    Parm   *throws;
   } dtype;
   struct {
     char *type;
@@ -783,6 +784,7 @@ Node *Swig_cparse(File *f) {
     String    *defarg;
     ParmList  *parms;
     short      have_parms;
+    ParmList  *throws;
   } decl;
   Parm         *tparms;
   struct {
@@ -863,7 +865,7 @@ Node *Swig_cparse(File *f) {
 %type <node>     kwargs options;
 
 /* Misc */
-%type <dtype>    initializer;
+%type <dtype>    initializer cpp_const ;
 %type <id>       storage_class;
 %type <pl>       parms  ptail rawparms varargs_parms ;
 %type <p>        parm valparm rawvalparms valparms valptail ;
@@ -876,7 +878,7 @@ Node *Swig_cparse(File *f) {
 %type <dtype>    expr exprnum exprcompound ;
 %type <id>       ename ;
 %type <id>       template_decl;
-%type <str>      type_qualifier cpp_const ;
+%type <str>      type_qualifier ;
 %type <id>       type_qualifier_raw;
 %type <id>       idstring idstringopt;
 %type <id>       pragma_lang;
@@ -1408,7 +1410,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		if (!Len(t)) t = 0;
 		/* Special declarator check */
 		if (t) {
-		  if ($6) SwigType_push(t,$6);
+		  if ($6.qualifier) SwigType_push(t,$6.qualifier);
 		  if (SwigType_isfunction(t)) {
 		    SwigType *decl = SwigType_pop_function(t);
 		    if (SwigType_ispointer(t)) {
@@ -1494,7 +1496,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 if ($5.parms) Setmeta(val,"parms",$5.parms);
 		 if (!Len(t)) t = 0;
 		 if (t) {
-		   if ($6) SwigType_push(t,$6);
+		   if ($6.qualifier) SwigType_push(t,$6.qualifier);
 		   if (SwigType_isfunction(t)) {
 		     SwigType *decl = SwigType_pop_function(t);
 		     if (SwigType_ispointer(t)) {
@@ -1546,7 +1548,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 if ($7.parms) Setmeta(val,"parms",$7.parms);
 		 if (!Len(t)) t = 0;
 		 if (t) {
-		   if ($8) SwigType_push(t,$8);
+		   if ($8.qualifier) SwigType_push(t,$8.qualifier);
 		   if (SwigType_isfunction(t)) {
 		     SwigType *decl = SwigType_pop_function(t);
 		     if (SwigType_ispointer(t)) {
@@ -1616,7 +1618,7 @@ varargs_directive : VARARGS LPAREN varargs_parms RPAREN declarator cpp_const SEM
 		 t = $5.type;
 		 if (!Len(t)) t = 0;
 		 if (t) {
-		   if ($6) SwigType_push(t,$6);
+		   if ($6.qualifier) SwigType_push(t,$6.qualifier);
 		   if (SwigType_isfunction(t)) {
 		     SwigType *decl = SwigType_pop_function(t);
 		     if (SwigType_ispointer(t)) {
@@ -2038,6 +2040,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      Setattr($$,"decl",$3.type);
 	      Setattr($$,"parms",$3.parms);
 	      Setattr($$,"value",$4.val);
+	      Setattr($$,"throws",$4.throws);
 	      if (!$5) {
 		if (Len(scanner_ccode)) {
 		  Setattr($$,"code",Copy(scanner_ccode));
@@ -2078,6 +2081,7 @@ c_decl_tail    : SEMI {
 		 Setattr($$,"decl",$2.type);
 		 Setattr($$,"parms",$2.parms);
 		 Setattr($$,"value",$3.val);
+		 Setattr($$,"throws",$3.throws);
 		 if ($3.bitfield) {
 		   Setattr($$,"bitfield", $3.bitfield);
 		 }
@@ -2098,18 +2102,22 @@ c_decl_tail    : SEMI {
 initializer   : def_args { 
                    $$ = $1; 
                    $$.qualifier = 0;
+		   $$.throws = 0;
               }
               | type_qualifier def_args { 
                    $$ = $2; 
 		   $$.qualifier = $1;
+		   $$.throws = 0;
 	      }
               | THROW LPAREN parms RPAREN def_args { 
 		   $$ = $5; 
                    $$.qualifier = 0;
+		   $$.throws = $3;
               }
               | type_qualifier THROW LPAREN parms RPAREN def_args { 
                    $$ = $6; 
                    $$.qualifier = $1;
+		   $$.throws = $4;
               }
               ;
 
@@ -2207,6 +2215,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 			if ($6.defarg) {
 			  Setattr($$,"value",$6.defarg);
 			}
+			Setattr($$,"throws",$6.throws);
 			err = 0;
 		      }
 		    }
@@ -2862,6 +2871,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		 Setattr($$,"parms",$4);
 		 SwigType_add_function(decl,$4);
 		 Setattr($$,"decl",decl);
+		 Setattr($$,"throws",$6.throws);
 		 if (Len(scanner_ccode)) {
 		   Setattr($$,"code",Copy(scanner_ccode));
 		 }
@@ -3106,9 +3116,27 @@ cpp_end        : cpp_const SEMI {
                | cpp_const LBRACE { skip_balanced('{','}'); }
                ;
 
-cpp_vend       : cpp_const SEMI { Clear(scanner_ccode); $$.val = 0; $$.qualifier = $1; $$.bitfield = 0; }
-               | cpp_const EQUAL definetype SEMI { Clear(scanner_ccode); $$.val = $3.val; $$.qualifier = $1; $$.bitfield = 0; }
-               | cpp_const LBRACE { skip_balanced('{','}'); $$.val = 0; $$.qualifier = $1; $$.bitfield = 0; }
+cpp_vend       : cpp_const SEMI { 
+                     Clear(scanner_ccode);
+                     $$.val = 0;
+                     $$.qualifier = $1.qualifier;
+                     $$.bitfield = 0;
+                     $$.throws = $1.throws;
+                }
+               | cpp_const EQUAL definetype SEMI { 
+                     Clear(scanner_ccode);
+                     $$.val = $3.val;
+                     $$.qualifier = $1.qualifier;
+                     $$.bitfield = 0;
+                     $$.throws = $1.throws; 
+               }
+               | cpp_const LBRACE { 
+                     skip_balanced('{','}');
+                     $$.val = 0;
+                     $$.qualifier = $1.qualifier;
+                     $$.bitfield = 0;
+                     $$.throws = $1.throws; 
+               }
                ;
 
 
@@ -3268,6 +3296,7 @@ def_args       : EQUAL definetype {
 		    $$.val = 0;
 		    $$.rawval = 0;
 		    $$.bitfield = 0;
+		    $$.throws = 0;
 		  }
                }
                | EQUAL AND idcolon {
@@ -3294,6 +3323,7 @@ def_args       : EQUAL definetype {
 		 $$.rawval = 0;
 		 $$.type = T_USER;
 		 $$.bitfield = 0;
+		 $$.throws = 0;
 	       }
                | EQUAL LBRACE {
 		 skip_balanced('{','}');
@@ -3301,18 +3331,21 @@ def_args       : EQUAL definetype {
 		 $$.rawval = 0;
                  $$.type = T_INT;
 		 $$.bitfield = 0;
+		 $$.throws = 0;
 	       }
                | COLON NUM_INT { 
 		 $$.val = 0;
 		 $$.rawval = 0;
 		 $$.type = 0;
 		 $$.bitfield = $2.val;
+		 $$.throws = 0;
 	       }
                | empty {
                  $$.val = 0;
                  $$.rawval = 0;
                  $$.type = T_INT;
 		 $$.bitfield = 0;
+		 $$.throws = 0;
                }
                ;
 
@@ -3942,6 +3975,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
                    $$ = $2;
 		   $$.rawval = 0;
 		   $$.bitfield = 0;
+		   $$.throws = 0;
 		   scanner_ignore_typedef();
                 }
                 | string {
@@ -3949,6 +3983,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
                    $$.type = T_STRING;
 		   $$.bitfield = 0;
+		   $$.throws = 0;
 		}
                 | CHARCONST {
                    $$.val = NewString($1);
@@ -3959,6 +3994,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   }
 		   $$.type = T_CHAR;
 		   $$.bitfield = 0;
+		   $$.throws;
 		 }
                 ;
 
@@ -4223,26 +4259,54 @@ opt_virtual    : VIRTUAL
                ;
 
 cpp_const      : type_qualifier {
-                    $$ = $1;
+                    $$.qualifier = $1;
+                    $$.throws = 0;
                }
-               | THROW LPAREN {
-	            skip_balanced('(',')');
-		    Clear(scanner_ccode);
-                    $$ = 0;
+               | THROW LPAREN parms RPAREN {
+                    $$.qualifier = 0;
+                    $$.throws = $3;
                }
-               | type_qualifier THROW LPAREN {
-  		    skip_balanced('(',')');
-		    Clear(scanner_ccode);
-                    $$ = $1;
+               | type_qualifier THROW LPAREN parms RPAREN {
+                    $$.qualifier = $1;
+                    $$.throws = $4;
                }
-               | empty { $$ = 0; }
+               | empty { 
+                    $$.qualifier = 0; 
+                    $$.throws = 0;
+               }
                ;
 
-ctor_end       : cpp_const ctor_initializer SEMI { Clear(scanner_ccode); $$.have_parms = 0; $$.defarg = 0; }
-               | cpp_const ctor_initializer LBRACE { skip_balanced('{','}'); $$.have_parms = 0; $$.defarg = 0; }
-               | LPAREN parms RPAREN SEMI { Clear(scanner_ccode); $$.parms = $2; $$.have_parms = 1; $$.defarg = 0; }
-               | LPAREN parms RPAREN LBRACE { skip_balanced('{','}'); $$.parms = $2; $$.have_parms = 1; $$.defarg = 0; }
-               | EQUAL definetype SEMI { $$.have_parms = 0; $$.defarg = $2.val; }
+ctor_end       : cpp_const ctor_initializer SEMI { 
+                    Clear(scanner_ccode); 
+                    $$.have_parms = 0; 
+                    $$.defarg = 0; 
+		    $$.throws = $1.throws;
+               }
+               | cpp_const ctor_initializer LBRACE { 
+                    skip_balanced('{','}'); 
+                    $$.have_parms = 0; 
+                    $$.defarg = 0; 
+                    $$.throws = $1.throws;
+               }
+               | LPAREN parms RPAREN SEMI { 
+                    Clear(scanner_ccode); 
+                    $$.parms = $2; 
+                    $$.have_parms = 1; 
+                    $$.defarg = 0; 
+		    $$.throws = 0;
+               }
+               | LPAREN parms RPAREN LBRACE {
+                    skip_balanced('{','}'); 
+                    $$.parms = $2; 
+                    $$.have_parms = 1; 
+                    $$.defarg = 0; 
+                    $$.throws = 0;
+               }
+               | EQUAL definetype SEMI { 
+                    $$.have_parms = 0; 
+                    $$.defarg = $2.val; 
+                    $$.throws = 0;
+               }
                ;
 
 ctor_initializer : COLON mem_initializer_list

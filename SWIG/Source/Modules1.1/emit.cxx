@@ -354,7 +354,7 @@ void emit_action(Node *n, Wrapper *f) {
 
   /* Exception handling code */
 
-  /* Look for except typemap */
+  /* Look for except typemap (Deprecated) */
   tm = Swig_typemap_lookup_new("except",n,"result",0);
 
   /* Look for except feature */

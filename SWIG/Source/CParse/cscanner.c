@@ -1065,6 +1065,7 @@ int yylex(void) {
       if (l == NUM_ULONGLONG) yylval.dtype.type = T_ULONGLONG;
       yylval.dtype.val = NewString(yytext);
       yylval.dtype.bitfield = 0;
+      yylval.dtype.throws = 0;
       return(l);
       break;
       

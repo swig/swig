@@ -86,6 +86,8 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     }
     
     add_parms(Getattr(n,"parms"), cpatchlist, typelist);
+    add_parms(Getattr(n,"throws"), cpatchlist, typelist);
+
   } else if (Strcmp(nodeType(n),"class") == 0) {
     /* Patch base classes */
     {
@@ -140,6 +142,7 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     Append(cpatchlist,Getattr(n,"code"));
     Append(typelist, Getattr(n,"decl"));
     add_parms(Getattr(n,"parms"), cpatchlist, typelist);
+    add_parms(Getattr(n,"throws"), cpatchlist, typelist);
   } else if (Strcmp(nodeType(n),"destructor") == 0) {
     String *name = Getattr(n,"name");
     if (Strstr(name,"<")) {
@@ -174,6 +177,7 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     Append(typelist, Getattr(n,"decl"));
     add_parms(Getattr(n,"parms"), cpatchlist, typelist);
     add_parms(Getattr(n,"pattern"), cpatchlist, typelist);
+    add_parms(Getattr(n,"throws"), cpatchlist, typelist);
     cn = firstChild(n);
     while (cn) {
       cparse_template_expand(cn,tname, rname, templateargs, patchlist, typelist, cpatchlist);
