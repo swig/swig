@@ -65,19 +65,7 @@ Modules: Source/Include/swigconfig.h
 Source/Include/swigconfig.h: Source/Include/swigconfig.h.in Makefile.in config.status
 	sed 's|@-swig_lib-@|$(SWIG_LIB)|g;s|@-exec_prefix-@|$(exec_prefix)|g;s|@-release_suffix-@|$(RELEASESUFFIX)|g' Source/Include/swigconfig.h.in > $@
 
-
-#####################################################################
-# Runtime libraries
-#####################################################################
-
-runtime:
-	@cd Runtime; $(MAKE)
-
-#####################################################################
-# CHECK
-#####################################################################
-
-CHECK_CLEAN = check
+####
 
 skip-tcl	= [ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
 skip-perl	= [ -z "@PERL@" -o -z "@PERL5EXT@" ]
@@ -86,6 +74,24 @@ skip-java	= [ -z "@JAVA@" -o -z "@JAVAC@" -o -z "@JAVAINC@" ]
 skip-guile	= [ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
 skip-mzscheme	= [ -z "@MZC@" ]
 skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
+
+#####################################################################
+# Runtime libraries
+#####################################################################
+
+runtime:
+	-$(skip-tcl) || (cd Runtime; $(MAKE) tcl)
+	-$(skip-python) || (cd Runtime; $(MAKE) python)
+	-$(skip-perl) || (cd Runtime; $(MAKE) perl5)
+	-$(skip-ruby) || (cd Runtime; $(MAKE) ruby)
+	-$(skip-guile) || (cd Runtime; $(MAKE) guile)
+	-$(skip-mzscheme) || (cd Runtime; $(MAKE) mzscheme)
+
+#####################################################################
+# CHECK
+#####################################################################
+
+CHECK_CLEAN = check
 
 chk-swiglib = @ROOT_DIR@/Lib
 chk = $(MAKE) -k -s SWIG_LIB=$(chk-swiglib) SWIG=@ROOT_DIR@/$(TARGET) $(CHECK_CLEAN)
