@@ -506,7 +506,6 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
   String   *tmop = tmop_name(op);
 
   if ((name) && Len(name)) cname = name;
-  isarray = SwigType_isarray(type);
   ts = tm_scope;
 
   while (ts >= 0) {
@@ -527,7 +526,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
 	if (result && Getattr(result,"code")) goto ret_result;
 	if (result) backup = result;
       }
-      
+      isarray = SwigType_isarray(ctype);
       if (isarray) {
 	/* If working with arrays, strip away all of the dimensions and replace with "".
 	   See if that generates a match */
