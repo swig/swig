@@ -698,6 +698,7 @@ end_class(SwigType *endtype, char *endname) {
 %type <id>       typemap_type;
 %type <str>      template_parms;
 %type <str>      idcolon idcolontail;
+%type <id>       string;
 
 %%
 
@@ -848,7 +849,7 @@ echo_directive : ECHO HBLOCK {
 		 Printf(stderr,"%s\n", $2);
 		 Delete($2);
 	       }
-               | ECHO STRING {
+               | ECHO string {
 		 char temp[64];
 		 String *s = NewString($2);
 		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
@@ -893,7 +894,7 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
    %importfile  "filename" { declarations }
    ------------------------------------------------------------ */
 
-include_directive: includetype STRING LBRACE {
+include_directive: includetype string LBRACE {
 		     $1.flag = ImportMode;
                      $1.filename = Swig_copy_string(input_file);
 		     $1.line = line_number;
@@ -961,7 +962,7 @@ insert_directive : HBLOCK {
 		 }
 		 Delete($1);
 	       }
-               | INSERT LPAREN idstring RPAREN STRING {
+               | INSERT LPAREN idstring RPAREN string {
 	         if (!ImportMode) {
 		   File *f = Swig_filebyname($3);
 		   if (!f) {
@@ -1109,7 +1110,7 @@ pragma_directive : PRAGMA pragma_lang ID EQUAL pragma_arg {
 	      }
               ;
 
-pragma_arg    : STRING { $$ = NewString($1); }
+pragma_arg    : string { $$ = NewString($1); }
               | HBLOCK { $$ = $1; }
               ;
 
@@ -1147,7 +1148,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
                    }
 	       }
 
-               | TYPEMAP LPAREN typemap_type RPAREN tm_list STRING {
+               | TYPEMAP LPAREN typemap_type RPAREN tm_list string {
 		   TMParm *p;
 		   if ($3) {
 		     p = $5;
@@ -1274,7 +1275,7 @@ c_declaration   : c_varfunc_decl
 
 /* A an extern C type declaration.  Does nothing, but is ignored */
 
-                | EXTERN STRING LBRACE interface RBRACE { }
+                | EXTERN string LBRACE interface RBRACE { }
                 ;
 
 /* ------------------------------------------------------------
@@ -1831,7 +1832,7 @@ cpp_edecl      :  ID {
 storage_class  : EXTERN {
 	           $$ = STORAGE_EXTERN;
                }
-               | EXTERN STRING {
+               | EXTERN string {
                    if (strcmp($2,"C") == 0) {
 		     $$ = STORAGE_EXTERN_C;
 		   } else {
@@ -2339,7 +2340,7 @@ definetype     : { scanner_check_typedef(); } expr {
 		   $$.rawval = 0;
 		   scanner_ignore_typedef();
                 }
-                | STRING {
+                | string {
                    $$.val = NewString($1);
 		   $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
                    $$.type = T_STRING;
@@ -2597,7 +2598,7 @@ template_decl : LESSTHAN {
                ;
 
 idstring       : ID { $$ = $1; }
-               | STRING { $$ = $1; }
+               | string { $$ = $1; }
                ;
 
 idcolon        : ID idcolontail { 
@@ -2624,6 +2625,15 @@ idcolontail    : DCOLON ID idcolontail {
                    $$ = NewStringf("::%s",$2);
                }
                ;
+
+/* Concatenated strings */
+string         : string STRING { 
+                   $$ = new char[strlen($1)+strlen($2)+1];
+                   strcpy($$,$1);
+                   strcat($$,$2);
+               }
+               | STRING { $$ = $1;}
+               ; 
 
 empty          :   ;
 
