@@ -15,7 +15,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "swigcpp.h"
+#include "preprocessor.h"
 #include <ctype.h>
 
 /* -----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ static DOH  *included_files = 0;
 
 /* Handle an error */
 
-void cpp_error(DOH *file, int line, char *fmt, ...) {
+static void cpp_error(DOH *file, int line, char *fmt, ...) {
   va_list ap;
   if (silent_errors) return;
   va_start(ap,fmt);
@@ -109,7 +109,7 @@ static DOH *cpp_include(DOH *fn) {
     if (Getattr(included_files,fn)) return 0;
     Setattr(included_files,fn,fn);
   }
-  s = SWIG_include(fn);
+  s = Swig_include(fn);
   if (!s) {
     Seek(fn,0,SEEK_SET);
     cpp_error(Getfile(fn),Getline(fn),"Unable to find '%s'\n", fn);
@@ -120,31 +120,31 @@ static DOH *cpp_include(DOH *fn) {
 }
 
 /* -----------------------------------------------------------------------------
- * void SWIG_cpp_init() - Initialize the preprocessor
+ * void Preprocessor_cpp_init() - Initialize the preprocessor
  * ----------------------------------------------------------------------------- */
-void SWIG_cpp_init() {
+void Preprocessor_init() {
   DOH *s;
   cpp = NewHash();
   s = NewHash();
   Setattr(cpp,"symbols",s);
-  SWIG_expr_init();            /* Initialize the expression evaluator */
+  Preprocessor_expr_init();            /* Initialize the expression evaluator */
   included_files = NewHash();
 }
 /* -----------------------------------------------------------------------------
- * void SWIG_cpp_include_all() - Instruct preprocessor to include all files
+ * void Preprocessor_include_all() - Instruct preprocessor to include all files
  * ----------------------------------------------------------------------------- */
-void SWIG_cpp_include_all(int a) {
+void Preprocessor_include_all(int a) {
   include_all = a;
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *SWIG_cpp_define(DOH *str, int swigmacro)
+ * DOH *Preprocessor_define(DOH *str, int swigmacro)
  *
  * Defines a new C preprocessor symbol.   swigmacro specifies whether or not the macro has 
  * SWIG macro semantics.
  * ----------------------------------------------------------------------------- */
 
-DOH *SWIG_cpp_define(DOH *str, int swigmacro)
+DOH *Preprocessor_define(DOH *str, int swigmacro)
 {
     DOH *macroname = 0, *argstr = 0, *macrovalue = 0, *arglist = 0, *macro = 0, *symbols = 0, *file = 0, *s, *m1;
     int c, line;
@@ -261,11 +261,11 @@ macro_error:
 }
 
 /* -----------------------------------------------------------------------------
- * void SWIG_cpp_undef(DOH *str)
+ * void Preprocessor_undef(DOH *str)
  *
  * Undefines a macro.
  * ----------------------------------------------------------------------------- */
-void SWIG_cpp_undef(DOH *str)
+void Preprocessor_undef(DOH *str)
 {
   DOH *symbols;
   assert(cpp);
@@ -384,12 +384,12 @@ get_filename(DOH *str) {
 
 DOH *expanded_value = 0;
 
-DOH *
+static DOH *
 expand_macro(DOH *name, DOH *args)
 {
   DOH *symbols, *ns, *macro, *margs, *mvalue, *temp, *tempa, *e;
-  DOH *swig_cpp_replace(DOH *);
-  DOH *SWIG_cpp_parse(DOH *);
+  DOH *Preprocessor_replace(DOH *);
+  DOH *Preprocessor_parse(DOH *);
   int i, l;
 
   symbols = Getattr(cpp,"symbols");
@@ -464,7 +464,7 @@ expand_macro(DOH *name, DOH *args)
   Replace(ns,"\001","#",DOH_REPLACE_ANY);   /* Put # back (non-standard C) */ 
 
   /* Expand this macro even further */
-  e = swig_cpp_replace(ns);
+  e = Preprocessor_replace(ns);
   Delattr(macro,"*expanded*");
   if (Getattr(macro,"swigmacro")) {
     DOH *g;
@@ -472,7 +472,7 @@ expand_macro(DOH *name, DOH *args)
     Printf(f,"%%macro %s, \"%s\", %d {\n", name, Getfile(macro), Getline(macro));
     Seek(e,0,SEEK_SET);
     copy_location(macro,e);
-    g = SWIG_cpp_parse(e);
+    g = Preprocessor_parse(e);
     Printf(f,"%s\n", g);
     Printf(f,"}\n");
     e = f;
@@ -481,7 +481,7 @@ expand_macro(DOH *name, DOH *args)
 }    
 
 /* -----------------------------------------------------------------------------
- * DOH *swig_cpp_replace(DOH *s)
+ * DOH *Preprocessor_replace(DOH *s)
  * 
  * Performs a macro substitution on a string s.  Returns a new string with
  * substitutions applied.   This function works by walking down s and looking
@@ -490,7 +490,7 @@ expand_macro(DOH *name, DOH *args)
  * ----------------------------------------------------------------------------- */
  
 DOH *
-swig_cpp_replace(DOH *s)
+Preprocessor_replace(DOH *s)
 {
   DOH   *ns, *id, *symbols, *m;
   int   c, i, state = 0;
@@ -727,7 +727,7 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
   DOH *echunk;
   Seek(chunk,0,SEEK_SET);
   if (allow) {
-    echunk = swig_cpp_replace(chunk);
+    echunk = Preprocessor_replace(chunk);
     addline(ns,echunk,allow);
     Delete(echunk);
   } else {
@@ -737,7 +737,7 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *SWIG_cpp_parse(DOH *s)
+ * DOH *Preprocessor_parse(DOH *s)
  *
  * Parses the string s.  Returns a new string containing the preprocessed version.
  *
@@ -750,7 +750,7 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-SWIG_cpp_parse(DOH *s)
+Preprocessor_parse(DOH *s)
 {
   DOH   *ns;             /* New string containing the preprocessed text */  
   DOH   *chunk, *symbols, *sval, *decl;
@@ -936,12 +936,12 @@ SWIG_cpp_parse(DOH *s)
 	if (allow) {
 	  DOH *m, *v, *v1;
 	  Seek(value,0,SEEK_SET);
-	  m = SWIG_cpp_define(value,0);
+	  m = Preprocessor_define(value,0);
 	  if ((m) && !(Getattr(m,"args"))) {
 	    v = Copy(Getattr(m,"value"));
 	    if (Len(v)) {
 	      silent_errors = 1;
-	      v1 = swig_cpp_replace(v);
+	      v1 = Preprocessor_replace(v);
 	      silent_errors = 0;
 	      if (!check_id(v1)) {
 		if (Len(comment) == 0)
@@ -954,7 +954,7 @@ SWIG_cpp_parse(DOH *s)
 	  } 
 	}
       } else if (Cmp(id,"undef") == 0) {
-	if (allow) SWIG_cpp_undef(value);
+	if (allow) Preprocessor_undef(value);
       } else if (Cmp(id,"ifdef") == 0) {
 	cond_lines[level] = Getline(id);
 	level++;
@@ -996,9 +996,9 @@ SWIG_cpp_parse(DOH *s)
 	level++;
 	if (allow) {
 	  start_level = level;
-	  sval = swig_cpp_replace(value);
+	  sval = Preprocessor_replace(value);
 	  Seek(sval,0,SEEK_SET);
-  	  val = SWIG_expr(sval,&e);
+  	  val = Preprocessor_expr(sval,&e);
   	  if (e) {
   	    Seek(value,0,SEEK_SET); 
 	    /* cpp_error(Getfile(value),Getline(value),"Could not evaluate '%s'\n", value); */
@@ -1018,9 +1018,9 @@ SWIG_cpp_parse(DOH *s)
   	    allow = 0; 
   	    mask = 0;  
   	  } else if (level == start_level) { 
-  	    sval = swig_cpp_replace(value); 
+  	    sval = Preprocessor_replace(value); 
   	    Seek(sval,0,SEEK_SET); 
-  	    val = SWIG_expr(sval,&e); 
+  	    val = Preprocessor_expr(sval,&e); 
   	    if (e) { 
   	      Seek(value,0,SEEK_SET); 
   	      /*      cpp_error(Getfile(value),Getline(value),"Could not evaluate '%s'\n", value);  */
@@ -1041,8 +1041,8 @@ SWIG_cpp_parse(DOH *s)
   	  fn = get_filename(value); 
 	  s1 = cpp_include(fn);
 	  if (s1) {
-  	    Printf(ns,"%%includefile \"%s\" {\n", SWIG_last_file()); 
-  	    s2 = SWIG_cpp_parse(s1); 
+  	    Printf(ns,"%%includefile \"%s\" {\n", Swig_last_file()); 
+  	    s2 = Preprocessor_parse(s1); 
   	    addline(ns,s2,allow); 
   	    Printf(ns,"\n}\n"); 
 	    Delete(s2);
@@ -1114,13 +1114,13 @@ SWIG_cpp_parse(DOH *s)
 	    if (s1) {
   	      add_chunk(ns,chunk,allow); 
   	      copy_location(s,chunk); 
-  	      Printf(ns,"%sfile \"%s\" {\n", decl, SWIG_last_file()); 
+  	      Printf(ns,"%sfile \"%s\" {\n", decl, Swig_last_file()); 
 	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
-		SWIG_cpp_define("WRAPEXTERN 1", 0);
+		Preprocessor_define("WRAPEXTERN 1", 0);
 	      }
-  	      s2 = SWIG_cpp_parse(s1); 
+  	      s2 = Preprocessor_parse(s1); 
 	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
-		SWIG_cpp_undef("WRAPEXTERN");
+		Preprocessor_undef("WRAPEXTERN");
 	      }
   	      addline(ns,s2,allow); 
   	      Printf(ns,"\n}\n"); 
@@ -1167,7 +1167,7 @@ SWIG_cpp_parse(DOH *s)
   	  } 
   	  if (allow) { 
   	    Seek(value,0,SEEK_SET); 
-  	    SWIG_cpp_define(value,1); 
+  	    Preprocessor_define(value,1); 
   	  } 
   	  Putc('\n',ns); 
   	  addline(ns,value,0); 
