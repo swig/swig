@@ -145,15 +145,21 @@ static Parm *nonvoid_parms(Parm *p) {
   return p;
 }
 
-/* Patch C++ pass-by-value reference. Might not work for typedef */
+/* Patch C++ pass-by-value */
 static void patch_parms(Parm *p) {
   if (!ClassHash) return;
   while (p) {
     SwigType *t = Getattr(p,"type");
     SwigType *td = SwigType_typedef_resolve_all(t);
     if (Getattr(ClassHash,td)) {
-      Setattr(p,"origtype", Copy(t));
-      SwigType_add_reference(t);
+      /* Insert an alternative type */
+      String *s = NewStringf("SwigValueWrapper<%s>",t);
+      Setattr(p,"alttype",s);
+      Delete(s);
+      
+      /* Old hack that converts to reference */
+      /*      Setattr(p,"origtype", Copy(t));
+	      SwigType_add_reference(t); */
     }
     p = nextSibling(p);
   }
@@ -161,6 +167,9 @@ static void patch_parms(Parm *p) {
 
 /* Unpatch pass-by-value references */
 static void unpatch_parms(Parm *p) {
+
+  /* Not used with template hack above */
+  /*
   if (!ClassHash) return;
   while (p) {
     SwigType *t = Getattr(p,"origtype");
@@ -169,6 +178,7 @@ static void unpatch_parms(Parm *p) {
     }
     p = nextSibling(p);
   }
+  */
 }
 
 /* --------------------------------------------------------------------------
