@@ -1,5 +1,18 @@
 Version 1.3.18 (In progress)
 ============================
+03/07/2003: mrose (Mark Rose)
+            Added Examples/python/callback to demostrate how directors can
+	    be used to implement callbacks in Python
+	    Added Examples/python/extend to demonstrate virtual method
+	    calls from C++ to Python (really the same as the callback
+	    example, just a different context).
+	    Added four tests for very basic director functionality.  These
+	    have runtime tests under python.
+	    The Python module now emits #define SWIG_DIRECTORS near the
+	    top of the output file if directors are enabled.  This is useful
+	    for disabling parts of tests in target languages that don't
+	    support directors.
+
 03/06/2003: mrose (Mark Rose)
             Added a section to Doc/Manual/Python.html on cross language
 	    polymorphism (directors).
