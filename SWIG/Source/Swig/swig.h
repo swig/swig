@@ -222,6 +222,7 @@ extern int         SwigType_isconst(SwigType *t);
 extern int         SwigType_issimple(SwigType *t);
 extern int         SwigType_isvarargs(SwigType *t);
 extern int         SwigType_istemplate(SwigType *t);
+extern int         SwigType_check_decl(SwigType *t, const String_or_char *decl);
 extern SwigType   *SwigType_strip_qualifiers(SwigType *t);
 extern String     *SwigType_base(SwigType *t);
 extern String     *SwigType_namestr(SwigType *t);

@@ -454,6 +454,31 @@ get_filename(String *str) {
   return fn;
 }
 
+static String *
+get_options(String *str) {
+
+  int  c;
+  skip_whitespace(str,0);
+  c = Getc(str);
+  if (c == '(') {
+    String *opt;
+    int     level = 1;
+    opt = NewString("(");
+    while (((c = Getc(str)) != EOF)) {
+      Putc(c,opt);
+      if (c == ')') {
+	level--;
+	if (!level) return opt;
+      }
+      if (c == '(') level++;
+    }
+    Delete(opt);
+    return 0;
+  } else {
+    Ungetc(c,str);
+    return 0;
+  }
+}
 /* -----------------------------------------------------------------------------
  * expand_macro()
  *
@@ -1304,19 +1329,20 @@ Preprocessor_parse(String *s)
   	if ((Cmp(decl,"%include") == 0) || (Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
   	  /* Got some kind of file inclusion directive  */
   	  if (allow) {
-  	    DOH *s1, *s2, *fn;
+  	    DOH *s1, *s2, *fn, *opt;
 
 	    if (Cmp(decl,"%extern") == 0) {
 	      Swig_warning(WARN_DEPRECATED_EXTERN, Getfile(s),Getline(s),"%%extern is deprecated. Use %%import instead.\n");
 	      Clear(decl);
 	      Printf(decl,"%%import");
 	    }
+	    opt = get_options(s);
   	    fn = get_filename(s);
 	    s1 = cpp_include(fn);
 	    if (s1) {
   	      add_chunk(ns,chunk,allow);
   	      copy_location(s,chunk);
-  	      Printf(ns,"%sfile \"%s\" [\n", decl, Swig_last_file());
+  	      Printf(ns,"%sfile%s \"%s\" [\n", decl, opt, Swig_last_file());
 	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
 		Preprocessor_define("WRAPEXTERN 1", 0);
 		Preprocessor_define("SWIGIMPORT 1", 0);

@@ -104,7 +104,11 @@ class Allocate : public Dispatcher {
 		  }
 		}
 		if (!match) {
-		  Append(methods,c);
+		  Node *cc = c;
+		  while (cc) {
+		    Append(methods,cc);
+		    cc = Getattr(cc,"sym:nextSibling");
+		  }
 		}
 	      }
 	    }
@@ -268,12 +272,41 @@ public:
 	/* Look for smart pointer operator */
 	if ((Strcmp(name,"operator ->") == 0) && (!Getattr(n,"feature:ignore"))) {
 	  /* Look for version with no parameters */
-	  if (!Getattr(n,"parms")) {
-	    SwigType *type = Getattr(n,"type");
-	    Node *sc = Swig_symbol_clookup(type,0);
-	    if ((sc) && (Strcmp(nodeType(sc),"class") == 0)) {
-	      List *methods = smart_pointer_methods(sc,0);
-	      Setattr(inclass,"allocate:smartpointer",methods);
+	  Node *sn = n;
+	  while (sn) {
+	    if (!Getattr(sn,"parms")) {
+	      SwigType *type = SwigType_typedef_resolve_all(Getattr(sn,"type"));
+	      SwigType_push(type,Getattr(sn,"decl"));
+	      Delete(SwigType_pop_function(type));
+	      SwigType *base = SwigType_base(type);
+	      Node *sc = Swig_symbol_clookup(base, 0);
+	      if ((sc) && (Strcmp(nodeType(sc),"class") == 0)) {
+		if (SwigType_check_decl(type,"p.")) {
+		  List *methods = smart_pointer_methods(sc,0);
+		  Setattr(inclass,"allocate:smartpointer",methods);
+		  break;
+		} else {
+		  /* Hmmm.  The return value is not a pointer.  If the type is a value
+		     or reference.  We're going to chase it to see if another operator->()
+		     can be found */
+		  
+		  if ((SwigType_check_decl(type,"")) || (SwigType_check_decl(type,"r."))) {
+		    Node *nn = Swig_symbol_clookup((char*)"operator ->", Getattr(sc,"symtab"));
+		    if (nn) {
+		      sn = nn;
+		      continue;
+		    } else {
+		      break;
+		    }
+		  } else {
+		    break;
+		  }
+		}
+	      } else {
+		break;
+	      }
+	    } else {
+	      break;
 	    }
 	  }
 	}

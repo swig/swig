@@ -565,7 +565,7 @@ String *SwigType_parm(SwigType *t) {
  * SwigType_isfunction()
  * SwigType_isqualifier()
  *
- * Testing functions for querying a datatype
+ * Testing functions for querying a raw datatype
  * ----------------------------------------------------------------------------- */
 
 int SwigType_ispointer(SwigType *t) {
@@ -1223,7 +1223,7 @@ SwigType_ltype(SwigType *s) {
   if (SwigType_issimple(tc)) {
     /* Resolve any typedef definitions */
     td = SwigType_typedef_resolve(tc);
-    if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isenum(td))) {
+    if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isenum(td) || SwigType_isreference(td))) {
       /* We need to use the typedef type */
       Delete(tc);
       tc = td;
@@ -1560,4 +1560,25 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   }
   Clear(t);
   Append(t,nt);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_check_decl()
+ *
+ * Checks type declarators for a match
+ * ----------------------------------------------------------------------------- */
+
+int
+SwigType_check_decl(SwigType *ty, const SwigType *decl) {
+  SwigType *t,*t1,*t2;
+  int r;
+  t = SwigType_typedef_resolve_all(ty);
+  t1 = SwigType_strip_qualifiers(ty);
+  t2 = SwigType_prefix(t1);
+  r = Cmp(t2,decl);
+  Delete(t);
+  Delete(t1);
+  Delete(t2);
+  if (r == 0) return 1;
+  return 0;
 }

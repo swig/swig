@@ -742,7 +742,7 @@ Node *Swig_cparse(File *f) {
    Seek(ns,0,SEEK_SET);
    scanner_file(ns);
    top = 0;
-   scanner_next_token(TYPEPARSE);
+   scanner_next_token(PARSETYPE);
    yyparse();
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
    return top;
@@ -814,7 +814,7 @@ Node *Swig_cparse(File *f) {
 %token <ivalue> TEMPLATE
 %token <str> OPERATOR
 %token <str> COPERATOR
-%token TYPEPARSE
+%token PARSETYPE
 
 %left  CAST
 %left  LOR
@@ -847,7 +847,7 @@ Node *Swig_cparse(File *f) {
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator;
 %type <node>     cpp_swig_directive cpp_template_decl cpp_temp_possible cpp_nested cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl ;
-%type <node>     kwargs;
+%type <node>     kwargs options;
 
 /* Misc */
 %type <dtype>    initializer;
@@ -901,10 +901,10 @@ program        :  interface {
 		   check_extensions();
 	           top = $1;
                }
-               | TYPEPARSE parm SEMI {
+               | PARSETYPE parm SEMI {
                  top = Getattr($2,"type");
                }
-               | TYPEPARSE error {
+               | PARSETYPE error {
                  top = 0;
                }
                ;
@@ -970,13 +970,13 @@ swig_directive : extend_directive { $$ = $1; }
    %extend classname { ... } 
    ------------------------------------------------------------ */
 
-extend_directive : EXTEND idcolon LBRACE {
+extend_directive : EXTEND options idcolon LBRACE {
                Node *cls;
 	       String *clsname;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
 	       if (!extendhash) extendhash = NewHash();
-	       clsname = make_class_name($2);
+	       clsname = make_class_name($3);
 	       cls = Getattr(classes,clsname);
 	       if (!cls) {
 		 /* No previous definition. Create a new scope */
@@ -993,7 +993,7 @@ extend_directive : EXTEND idcolon LBRACE {
 		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
 		 current_class = cls;
 	       }
-	       Classprefix = NewString($2);
+	       Classprefix = NewString($3);
 	       Namespaceprefix= Swig_symbol_qualifiedscopename(0);
 	       Delete(clsname);
 	     } cpp_members RBRACE {
@@ -1004,20 +1004,20 @@ extend_directive : EXTEND idcolon LBRACE {
 		 Swig_symbol_setscope(prev_symtab);
 	       }
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-               clsname = make_class_name($2);
+               clsname = make_class_name($3);
 	       Setattr($$,"name",clsname);
 	       if (current_class) {
 		 /* We add the extension to the previously defined class */
-		 appendChild($$,$5);
+		 appendChild($$,$6);
 		 appendChild(current_class,$$);
 	       } else {
 		 /* We store the extensions in the extensions hash */
 		 Node *am = Getattr(extendhash,clsname);
 		 if (am) {
 		   /* Append the members to the previous extend methods */
-		   appendChild(am,$5);
+		   appendChild(am,$6);
 		 } else {
-		   appendChild($$,$5);
+		   appendChild($$,$6);
 		   Setattr(extendhash,clsname,$$);
 		 }
 	       }
@@ -1182,18 +1182,18 @@ fragment_directive: FRAGMENT LPAREN idstring COMMA idstring RPAREN HBLOCK {
    %importfile  "filename" [ declarations ]
    ------------------------------------------------------------ */
 
-include_directive: includetype string LBRACKET {
+include_directive: includetype options string LBRACKET {
                      $1.filename = Swig_copy_string(cparse_file);
 		     $1.line = cparse_line;
-		     cparse_file = Swig_copy_string($2);
+		     cparse_file = Swig_copy_string($3);
 		     cparse_line = 0;
                } interface RBRACKET {
-                     $$ = $5;
+                     $$ = $6;
 		     cparse_file = $1.filename;
 		     cparse_line = $1.line;
 		     if (strcmp($1.type,"include") == 0) set_nodeType($$,"include");
 		     if (strcmp($1.type,"import") == 0) set_nodeType($$,"import");
-		     Setattr($$,"name",$2);
+		     Setattr($$,"name",$3);
 		     /* Search for the module (if any) */
 		     {
 			 Node *n = firstChild($$);
@@ -1205,6 +1205,7 @@ include_directive: includetype string LBRACKET {
 			     n = nextSibling(n);
 			 }
 		     }
+		     Setattr($$,"options",$2);
                }
                ;
 
@@ -1279,10 +1280,11 @@ insert_directive : HBLOCK {
     %module "modname"
    ------------------------------------------------------------ */
 
-module_directive: MODULE idstring {
+module_directive: MODULE options idstring {
                  $$ = new_node("module");
-		 Setattr($$,"name",$2);
-		 if (!ModuleName) ModuleName = NewString($2);
+		 Setattr($$,"name",$3);
+		 if ($2) Setattr($$,"options",$2);
+		 if (!ModuleName) ModuleName = NewString($3);
 		 if (!module_node) module_node = $$;
 	       }
                ;
@@ -4218,6 +4220,21 @@ stringbrace    : string {
 		 $$ = $1;
               }
                ;
+
+options        : LPAREN kwargs RPAREN {
+                  Hash *n;
+                  $$ = NewHash();
+                  n = $2;
+                  while(n) {
+                     String *name, *value;
+                     name = Getattr(n,"name");
+                     value = Getattr(n,"value");
+		     if (!value) value = (String *) "1";
+                     Setattr($$,name, value);
+		     n = nextSibling(n);
+		  }
+               }   
+               | empty { $$ = 0; }
  
 /* Keyword arguments */
 kwargs         : idstring EQUAL string {
