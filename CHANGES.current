@@ -1,5 +1,15 @@
 Version 1.3.20 (In progress)
 ============================
+11/16/2003: cheetah (William Fulton)
+            Fixes for installation to work with the upcoming Automake-1.8.
+            mkinstalldirs was being used by a non-Automake makefile. 
+            mkinstalldirs is being phased out and so was not being
+            created by Automake. install-sh used instead.
+
+11/16/2003: cheetah (William Fulton)
+            [Java] Numerous director improvements, tweaks and bug fixes since 
+            the initial implementation have been contributed by Scott Michel.
+
 11/12/2003: beazley
             [Python] When %feature("shadow") is used to add code to shadow
             classes, the special variable $action expands to the name of the
