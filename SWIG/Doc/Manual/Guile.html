@@ -25,14 +25,14 @@
 <li><a href="#n12">Typemaps</a>
 <li><a href="#n13">Representation of pointers as smobs</a>
 <ul>
-<li><a href="#n14">GH API</a>
-<li><a href="#n15">SCM API</a>
+<li><a href="#n14">GH Smobs</a>
+<li><a href="#n15">SCM Smobs</a>
 <li><a href="#n16">Garbage Collection</a>
 </ul>
 <li><a href="#n17">Exception Handling</a>
 <li><a href="#n18">Procedure documentation</a>
 <li><a href="#n19">Procedures with setters</a>
-<li><a href="#n20">GOOPS support</a>
+<li><a href="#n20">GOOPS Shadow Classes</a>
 <ul>
 <li><a href="#n21">Naming Issues</a>
 <li><a href="#n22">Linking</a>
@@ -56,6 +56,7 @@ separately for SWIG, Guile, and Libtool.  To avoid horrible confusion,
 we explicitly prefix the context, e.g., "guile-module".
 
 <a name="n3"></a><H2>14.2 Using the SCM or GH Guile API</H2>
+
 
 <p>The guile module can currently export wrapper files that use the guile GH interface or the
 SCM interface. This is controlled by an argument passed to swig.  The "-gh" argument causes swig
@@ -391,6 +392,7 @@ See also the "multivalue" example.
 
 <a name="n13"></a><H2>14.6 Representation of pointers as smobs</H2>
 
+
 <p>
 For pointer types, SWIG uses Guile smobs. SWIG smobs print
 like this: <code>#&lt;swig struct xyzzy * 0x1234affe&gt;</code>  Two of
@@ -411,6 +413,7 @@ pointer, a <code>wrong-type-arg</code> exception is raised.
 
 <a name="n14"></a><H3>14.6.1 GH Smobs</H3>
 
+
 <p>
 In earlier versions of SWIG, C pointers were represented as Scheme
 strings containing a hexadecimal rendering of the pointer value and a
@@ -429,6 +432,7 @@ are appended.  The CDR stores the pointer value.
 
 <a name="n15"></a><H3>14.6.2 SCM Smobs</H3>
 
+
 <p>The SCM interface (using the "-scm" argument to swig) uses common.swg.
 The whole type system, when it is first initialized, creates two smobs named "swig" and "collected_swig".
 The swig smob is used for non-garbage collected smobs, while the collected_swig smob is used as described
@@ -443,6 +447,7 @@ GOOPS class.</p>
 
 <a name="n16"></a><H3>14.6.3 Garbage Collection</H3>
 
+
 <p>Garbage collection is a feature of the new SCM interface, and it is automatically included
 if you pass the "-scm" flag to swig.  Thus the swig garbage collection support requires guile &gt;1.6.
 Garbage collection works like this.  Every swig_type_info structure stores in its clientdata field a pointer
@@ -455,6 +460,8 @@ Section 9.2 Object ownership and %newobject</a> in the SWIG manual.  All typemap
 the guile module replaces $owner with 0 or 1 depending on feature:new.</p>
 
 <a name="n17"></a><H2>14.7 Exception Handling</H2>
+
+
 </a>
 
 <p>
@@ -479,6 +486,8 @@ The default when not specified here is to use "swig-error".
 See Lib/exception.i for details.
 
 <a name="n18"></a><H2>14.8 Procedure documentation</H2>
+
+
 </a>
 
 <p>If invoked with the command-line option <code>-procdoc
@@ -541,7 +550,9 @@ struct members, the procedures <code>(<var>struct</var>-<var>member</var>-get
 pointer)</code> and <code>(<var>struct-member</var>-set pointer
 value)</code> are <em>not</em> generated.
 
-<a name="n20"></a><h2>14.10 GOOPS Shadow Classes</h2>
+<a name="n20"></a><H2>14.10 GOOPS Shadow Classes</H2>
+
+
 <p>SWIG can also generate classes and generic functions for use with
 Guile's Object-Oriented Programming System (GOOPS).  GOOPS is a
 sophisticated object system in the spirit of the Common Lisp Object
@@ -662,7 +673,9 @@ before the definition of &lt;Foo&gt;.  The generated GOOPS file would look like
 Notice that &lt;Foo&gt; is used before it is defined.  The fix is to just put the 
 <code>%import "foo.h"</code> before the <code>%inline</code> block.
 
-<a name="n21"></a><h3>14.10.1 Naming Issues</h3>
+<a name="n21"></a><H3>14.10.1 Naming Issues</H3>
+
+
 <p>As you can see in the example above, there are potential naming conflicts.  The default exported
 accessor for the <code>Foo::a</code> variable is named <code>a</code>.  The name of the wrapper global 
 function is <code>getFooPlus</code>.
@@ -698,7 +711,9 @@ guile-modules.  For example,</p>
 
 <p>TODO: Renaming class name prefixes?</p>
 
-<a name="n22"></a><h3>14.10.2 Linking</h3>
+<a name="n22"></a><H3>14.10.2 Linking</H3>
+
+
 <p>The guile-modules generated above all need to be linked together.  GOOPS support requires
 either passive or module linkage.  The exported GOOPS guile-module will be the name of the swig-module
 and should be located in a file called <i>Module</i>.scm.  This should be installed on the autoload

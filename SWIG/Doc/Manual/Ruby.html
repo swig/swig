@@ -66,16 +66,15 @@
 </ul>
 <li><a href="#n44">Operator overloading</a>
 <ul>
-<li><a href="#n45">An example (putting everything together)</a>
-<li><a href="#n47">STL Vector to Ruby Array</a>
+<li><a href="#n45">Example: STL Vector to Ruby Array</a>
 </ul>
-<li><a href="#n48">Advanced Topics</a>
+<li><a href="#n46">Advanced Topics</a>
 <ul>
-<li><a href="#n49">Creating Multi-Module Packages</a>
-<li><a href="#n50">Defining Aliases</a>
-<li><a href="#n51">Predicate Methods</a>
-<li><a href="#n52">Specifying Mixin Modules</a>
-<li><a href="#n53">Interacting with Ruby's Garbage Collector</a>
+<li><a href="#n47">Creating Multi-Module Packages</a>
+<li><a href="#n48">Defining Aliases</a>
+<li><a href="#n49">Predicate Methods</a>
+<li><a href="#n50">Specifying Mixin Modules</a>
+<li><a href="#n51">Interacting with Ruby's Garbage Collector</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -1075,6 +1074,7 @@ For example:
 <blockquote>
 <pre>
 %module example
+
 %{
 #include "pair.h"
 %}
@@ -1109,9 +1109,36 @@ irb(main):004:0> <b>p.second</b>
 </pre>
 </blockquote>
 
-Obviously, there is more to template wrapping than shown in this example.
-More details can be found in the <a href="SWIGPlus.html">SWIG and C++</a> chapter.   Some more complicated
-examples will appear later.
+On a related note, the standard SWIG library contains a number of modules that
+provide typemaps for standard C++ library classes (such as <tt>std::pair</tt>, <tt>std::string</tt>
+and <tt>std::vector</tt>). These library modules don't provide wrappers around the templates
+themselves, but they do make it convenient for users of your extension module to pass
+Ruby objects (such as arrays and strings) to wrapped C++ code that expects instances
+of standard C++ templates. For example, suppose the C++ library you're wrapping has a
+function that expects a vector of floats:
+
+<blockquote><pre>
+%module example
+
+float sum(const std::vector&lt;float&gt;& values);
+</pre></blockquote>
+
+Rather than go through the hassle of writing an "in" typemap to convert an array of Ruby
+numbers into a std::vector&lt;float&gt;, you can just use the <tt>std_vector.i</tt> module
+from the standard SWIG library:
+
+<blockquote>
+<pre>
+%module example
+
+<b>%include std_vector.i</b>
+
+float sum(const std::vector&lt;float&gt;& values);
+</pre>
+</blockquote>
+
+Obviously, there is a lot more to template wrapping than shown in these examples.
+More details can be found in the <a href="SWIGPlus.html">SWIG and C++</a> chapter.
 
 <a name="n24"></a><H3>20.3.13 C++ Smart Pointers</H3>
 
@@ -2353,68 +2380,10 @@ __ge__        - &gt;=
 
 Note that although SWIG supports the <tt>__eq__</tt> magic method name for defining an equivalence operator, there is no separate method for handling <i>inequality</i> since Ruby parses the expression <i>a != b</i> as <i>!(a == b)</i>.
 
-<a name="n45"></a><H3>20.7.1 Example: Using Standard SWIG Library Modules</H3>
+<a name="n45"></a><H3>20.7.1 Example: STL Vector to Ruby Array</H3>
 
-The following example illustrates how to use two of the standard SWIG library modules
-(the <tt>std_string.i</tt> and <tt>std_vector.i</tt> modules).
 
-<p>
-<blockquote><pre>
-%module example
-
-%{
-#include &lt;string&gt;
-#include &lt;vector&gt;
-%}
-
-%include std_string.i
-%include std_vector.i
-
-%template(StringVector) std::vector&lt;string&gt;;
-%template(IntVector)    std::vector&lt;int&gt;;
-</pre></blockquote>
-
-<p>
-An IRB session using this extension might go like this:
-<blockquote><pre>
-$ <b>irb</b>
-irb(main):001:0> <b>require 'Example'</b>
-=> true
-irb(main):002:0> <b>i_list = Example::IntVector.new</b>
-=> #&lt;Example::IntVector:0x2ab9a18>
-irb(main):003:0> <b>i_list.push(1)</b>
-=> nil
-irb(main):004:0> <b>i_list.push(2)</b>
-=> nil
-irb(main):005:0> <b>i_list.each { |i| puts i }</b>
-1
-2
-=> nil
-irb(main):006:0> <b>i_list.length</b>
-=> 2
-irb(main):007:0> <b>s_list = Example::StringVector.new</b>
-=> #&lt;Example::IntVector:0x2aa9c98>
-irb(main):008:0> <b>s_list.push("Hello")</b>
-=> nil
-irb(main):009:0> <b>s_list.push("There")</b>
-=> nil
-irb(main):010:0> <b>s_list.each { |s| puts s }</b>
-Hello
-There
-=> nil
-irb(main):011:0> <b>s_list.length</b>
-=> 2
-irb(main):012:0> <b>s_list[0]</b>
-=> "Hello"
-irb(main):013:0> <b>s_list[0] = "New Entry"</b>
-=> "New Entry"
-irb(main):014:0> <b>s_list[0]</b>
-=> "New Entry"
-</pre></blockquote>
-<p>
-
-<a name="n47"></a><H3>20.7.3 Example: STL Vector to Ruby Array</H3>
-
+<em><b>FIXME: This example is out of place here!</b></em><p>
 
 Another use for macros and type maps is to create a Ruby array from a STL
 vector of pointers.  In essence, copy of all the pointers in the vector into a Ruby
@@ -2500,10 +2469,10 @@ It is also possible to create a Ruby array from a vector of static data types:
 </pre></blockquote>
 
 
-<a name="n48"></a><H2>20.8 Advanced Topics</H2>
+<a name="n46"></a><H2>20.8 Advanced Topics</H2>
 
 
-<a name="n49"></a><H3>20.8.1 Creating Multi-Module Packages</H3>
+<a name="n47"></a><H3>20.8.1 Creating Multi-Module Packages</H3>
 
 
 The chapter on <a href="Advanced.html">Advanced Topics</a> discusses the basics
@@ -2628,7 +2597,7 @@ irb(main):005:0> <b>c.getX()</b>
 </pre>
 </blockquote>
 
-<a name="n50"></a><H3>20.8.2 Defining Aliases</H3>
+<a name="n48"></a><H3>20.8.2 Defining Aliases</H3>
 
 
 It's a fairly common practice in the Ruby built-ins and standard library to
@@ -2696,7 +2665,7 @@ mechanism and so the same name matching rules used for other kinds of features
 apply (see the chapter on <a href="Customization.html">"Customization Features"</a>)
 for more details).
 
-<a name="n51"></a><H3>20.8.3 Predicate Methods</H3>
+<a name="n49"></a><H3>20.8.3 Predicate Methods</H3>
 
 
 Predicate methods in Ruby are those which return either <tt>true</tt> or
@@ -2747,7 +2716,7 @@ Note that the <tt>%predicate</tt> directive is implemented using SWIG's
 of features apply (see the chapter on <a href="Customization.html">"Customization
 Features"</a>) for more details).
 
-<a name="n52"></a><H3>20.8.4 Specifying Mixin Modules</H3>
+<a name="n50"></a><H3>20.8.4 Specifying Mixin Modules</H3>
 
 
 The Ruby language doesn't support multiple inheritance, but it does allow you
@@ -2819,7 +2788,7 @@ Note that the <tt>%mixin</tt> directive is implemented using SWIG's
 of features apply (see the chapter on <a href="Customization.html">"Customization
 Features"</a>) for more details).
 
-<a name="n53"></a><H3>20.8.5 Interacting with Ruby's Garbage Collector</H3>
+<a name="n51"></a><H3>20.8.5 Interacting with Ruby's Garbage Collector</H3>
 
 
 <b>This section is still unfinished!</b><p>

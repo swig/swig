@@ -41,30 +41,30 @@
 <li><a href="#n25">Common typemap methods</a>
 <ul>
 <li><a href="#n26">"in" typemap</a>
-<li><a href="#n27">"out" typemap</a>
-<li><a href="#n28">"arginit" typemap</a>
-<li><a href="#n29">"default" typemap</a>
-<li><a href="#n30">"check" typemap</a>
-<li><a href="#n31">"argout" typemap</a>
-<li><a href="#n32">"freearg" typemap</a>
-<li><a href="#n33">"newfree" typemap</a>
-<li><a href="#n34">"memberin" typemap</a>
-<li><a href="#n35">"varin" typemap</a>
-<li><a href="#n36">"varout" typemap</a>
+<li><a href="#n27">"typecheck" typemap</a>
+<li><a href="#n28">"out" typemap</a>
+<li><a href="#n29">"arginit" typemap</a>
+<li><a href="#n30">"default" typemap</a>
+<li><a href="#n31">"check" typemap</a>
+<li><a href="#n32">"argout" typemap</a>
+<li><a href="#n33">"freearg" typemap</a>
+<li><a href="#n34">"newfree" typemap</a>
+<li><a href="#n35">"memberin" typemap</a>
+<li><a href="#n36">"varin" typemap</a>
+<li><a href="#n37">"varout" typemap</a>
 </ul>
-<li><a href="#n37">Some typemap examples</a>
+<li><a href="#n38">Some typemap examples</a>
 <ul>
-<li><a href="#n38">Typemaps for arrays</a>
-<li><a href="#n39">Implementing constraints with typemaps</a>
+<li><a href="#n39">Typemaps for arrays</a>
+<li><a href="#n40">Implementing constraints with typemaps</a>
 </ul>
-<li><a href="#n40">Multi-argument typemaps</a>
-<li><a href="#n41">The run-time type checker</a>
-<li><a href="#n42">More about <tt>%apply</tt> and <tt>%clear</tt></a>
-<li><a href="#n43">Reducing wrapper code size</a>
-<ul>
-<li><a href="#n44">Passing data between typemaps</a>
-</ul>
-<li><a href="#n45">Where to go for more information?</a>
+<li><a href="#n41">Multi-argument typemaps</a>
+<li><a href="#n42">The run-time type checker</a>
+<li><a href="#n43">Typemaps and overloading</a>
+<li><a href="#n44">More about <tt>%apply</tt> and <tt>%clear</tt></a>
+<li><a href="#n45">Reducing wrapper code size</a>
+<li><a href="#n46">Passing data between typemaps</a>
+<li><a href="#n47">Where to go for more information?</a>
 </ul>
 <!-- INDEX -->
 
@@ -1653,7 +1653,8 @@ At this time, only zero or one arguments may be converted.
 <b>Compatibility note: </b> Specifying <tt>numinputs=0</tt>
 is the same as the old "ignore" typemap.
 
-<h3>"typecheck" typemap</h3>
+<a name="n27"></a><H3>8.5.2 "typecheck" typemap</H3>
+
 
 The "typecheck" typemap is used to support overloaded functions and methods.  It merely checks an argument
 to see whether or not it matches a specific type.  For example:
@@ -1673,7 +1674,7 @@ the input argument is the correct type.
 If you define new "in" typemaps <em>and</em> your program uses overloaded methods, you should also define a collection of
 "typecheck" typemaps.  More details about this follow in a later section on "Typemaps and Overloading."
 
-<a name="n27"></a><H3>8.5.2 "out" typemap</H3>
+<a name="n28"></a><H3>8.5.3 "out" typemap</H3>
 
 
 The "out" typemap is used to convert function/method return values from C
@@ -1695,7 +1696,7 @@ $symname          - Name of function/method being wrapped
 </pre>
 </blockquote>
 
-<a name="n28"></a><H3>8.5.3 "arginit" typemap</H3>
+<a name="n29"></a><H3>8.5.4 "arginit" typemap</H3>
 
 
 The "arginit" typemap is used to set the initial value of a function
@@ -1712,7 +1713,7 @@ For example:
 </pre>
 </blockquote>
 
-<a name="n29"></a><H3>8.5.4 "default" typemap</H3>
+<a name="n30"></a><H3>8.5.5 "default" typemap</H3>
 
 
 The "default" typemap is used to turn an argument into a default
@@ -1736,7 +1737,7 @@ they aren't supported (like C).
 Once a default typemap has been applied to an argument, all arguments
 that follow must have default values.
 
-<a name="n30"></a><H3>8.5.5 "check" typemap</H3>
+<a name="n31"></a><H3>8.5.6 "check" typemap</H3>
 
 
 The "check" typemap is used to supply value checking code during argument
@@ -1753,7 +1754,7 @@ converted.  For example:
 </pre>
 </blockquote>
 
-<a name="n31"></a><H3>8.5.6 "argout" typemap</H3>
+<a name="n32"></a><H3>8.5.7 "argout" typemap</H3>
 
 
 The "argout" typemap is used to return values from arguments.  This
@@ -1791,7 +1792,7 @@ return values are often appended to return value of the function.
 <p>
 See the <tt>typemaps.i</tt> library for examples.
 
-<a name="n32"></a><H3>8.5.7 "freearg" typemap</H3>
+<a name="n33"></a><H3>8.5.8 "freearg" typemap</H3>
 
 
 The "freearg" typemap is used to cleanup argument data.  It is only
@@ -1820,7 +1821,7 @@ code is also placed into a special variable <tt>$cleanup</tt> that may
 be used in other typemaps whenever a wrapper function needs to abort
 prematurely.
 
-<a name="n33"></a><H3>8.5.8 "newfree" typemap</H3>
+<a name="n34"></a><H3>8.5.9 "newfree" typemap</H3>
 
 
 The "newfree" typemap is used in conjunction with the <tt>%newobject</tt>
@@ -1843,7 +1844,7 @@ string *foo();
 </pre>
 </blockquote>
 
-<a name="n34"></a><H3>8.5.9 "memberin" typemap</H3>
+<a name="n35"></a><H3>8.5.10 "memberin" typemap</H3>
 
 
 The "memberin" typemap is used to copy data from <em>an already converted input value</em>
@@ -1861,26 +1862,26 @@ cases.  For example:
 It is rarely necessary to write "memberin" typemaps---SWIG already provides
 a default implementation for arrays, strings, and other objects.
 
-<a name="n35"></a><H3>8.5.10 "varin" typemap</H3>
+<a name="n36"></a><H3>8.5.11 "varin" typemap</H3>
 
 
 The "varin" typemap is used to convert objects in the target language to C for the
 purposes of assigning to a C/C++ global variable.    This is implementation specific.
 
-<a name="n36"></a><H3>8.5.11 "varout" typemap</H3>
+<a name="n37"></a><H3>8.5.12 "varout" typemap</H3>
 
 
 The "varout" typemap is used to convert a C/C++ object to an object in the target
 language when reading a C/C++ global variable.  This is implementation specific.
 
 
-<a name="n37"></a><H2>8.6 Some typemap examples</H2>
+<a name="n38"></a><H2>8.6 Some typemap examples</H2>
 
 
 This section contains a few examples.  Consult language module documentation
 for more examples.
 
-<a name="n38"></a><H3>8.6.1 Typemaps for arrays</H3>
+<a name="n39"></a><H3>8.6.1 Typemaps for arrays</H3>
 
 
 A common use of typemaps is to provide support for C arrays appearing both as
@@ -2110,7 +2111,7 @@ Now, you will find that member access is quite nice:
 <b>Compatibility Note:</b>  SWIG1.1 used to provide a special "memberout" typemap.  However, it was mostly
 useless and has since been eliminated.   To return structure members, simply use the "out" typemap.
 
-<a name="n39"></a><H3>8.6.2 Implementing constraints with typemaps</H3>
+<a name="n40"></a><H3>8.6.2 Implementing constraints with typemaps</H3>
 
 
 One particularly interesting application of typemaps is the
@@ -2156,7 +2157,7 @@ rather than blindly passing values to the underlying C/C++ program.<p>
 <p>
 Note: A more advanced constraint checking system is in development.  Stay tuned.
 
-<a name="n40"></a><H2>8.7 Multi-argument typemaps</H2>
+<a name="n41"></a><H2>8.7 Multi-argument typemaps</H2>
 
 
 So far, the typemaps presented have focused on the problem of dealing with
@@ -2392,7 +2393,7 @@ Numeric Python.  However, it should also be stressed that some care is in order.
 when crossing languages you may need to worry about issues such as row-major vs. column-major
 ordering (and perform conversions if needed).
 
-<a name="n41"></a><H2>8.8 The run-time type checker</H2>
+<a name="n42"></a><H2>8.8 The run-time type checker</H2>
 
 
 A critical part of SWIG's operation is that of its run-time type checker.  
@@ -2584,7 +2585,8 @@ type-checking.  This code is also included in every generated wrapped file so yo
 probably just look at the output of SWIG to get a better sense for how types are
 managed.
 
-<h2>Typemaps and overloading</h2>
+<a name="n43"></a><H2>8.9 Typemaps and overloading</H2>
+
 
 In many target languages, SWIG fully supports C++ overloaded methods and functions.   For example,
 if you have a collection of functions like this:
@@ -2867,7 +2869,7 @@ Subsequent "in" typemaps would then perform more extensive type-checking.
 <Li>Make sure you read the section on overloading in the "<a href="SWIGPlus.html">SWIG and C++</a>" chapter.
 </ul>
 
-<a name="n42"></a><H2>8.9 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
+<a name="n44"></a><H2>8.10 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
 
 
 In order to implement certain kinds of program behavior, it is sometimes necessary to
@@ -2940,7 +2942,7 @@ example:
 </pre>
 </blockquote>
 
-<a name="n43"></a><H2>8.10 Reducing wrapper code size</H2>
+<a name="n45"></a><H2>8.11 Reducing wrapper code size</H2>
 
 
 Since the code supplied to a typemap is inlined directly into wrapper functions, typemaps can result
@@ -3016,7 +3018,7 @@ convert_float_array(PyObject *input, int size) {
 </pre>
 </blockquote>
 
-<a name="n44"></a><H2>8.10.1 Passing data between typemaps</H2>
+<a name="n46"></a><H2>8.12 Passing data between typemaps</H2>
 
 
 <p>
@@ -3050,7 +3052,7 @@ in this manner should probably be avoided.  At the very least, you should make
 sure that the typemaps sharing information have exactly the same types and names.
 
 
-<a name="n45"></a><H2>8.11 Where to go for more information?</H2>
+<a name="n47"></a><H2>8.13 Where to go for more information?</H2>
 
 
 The
