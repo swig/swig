@@ -256,6 +256,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty) {
     *ptr = 0;
     return 0;
   }
+#ifdef SWIG_COBJECT_TYPES
   if (!(PyCObject_Check(obj))) {
     if (!SWIG_this)
       SWIG_this = PyString_InternFromString("this");
@@ -265,8 +266,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty) {
   *ptr = PyCObject_AsVoidPtr(obj);
   c = (char *) PyCObject_GetDesc(obj);
   goto cobject;
-
-#ifdef SWIG_STRING_TYPES
+#else
   if (!(PyString_Check(obj))) {
     if (!SWIG_this)
       SWIG_this = PyString_InternFromString("this");
@@ -350,9 +350,12 @@ SWIG_NewPointerObj(void *ptr, _swig_type_info *type) {
     Py_INCREF(Py_None);
     return Py_None;
   }
-  /*  SWIG_MakePtr(result,ptr,type);
-      robj = PyString_FromString(result);*/
+#ifdef SWIG_COBJECT_TYPES
   robj = PyCObject_FromVoidPtrAndDesc((void *) ptr, type->name, NULL);
+#else
+  SWIG_MakePtr(result,ptr,type);
+  robj = PyString_FromString(result);
+#endif
   return robj;
 }
 
