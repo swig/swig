@@ -390,8 +390,9 @@
 %{ temp = $input ? true : false; 
    $1 = &temp; %}
 
-%typemap(directorout) const bool & (bool temp)
-%{ temp = $input ? true : false; 
+%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const bool &
+%{ static $*1_ltype temp;
+   temp = $input ? true : false; 
    $1 = &temp; %}
 
 %typemap(javadirectorin) const bool & "$jniinput"
@@ -412,19 +413,20 @@
 %{ temp = ($*1_ltype)$input; 
    $1 = &temp; %}
 
-%typemap(directorout) const char & (char temp), 
-             const signed char & (signed char temp), 
-             const unsigned char & (unsigned char temp), 
-             const short & (short temp), 
-             const unsigned short & (unsigned short temp), 
-             const int & (int temp), 
-             const unsigned int & (unsigned int temp), 
-             const long & (long temp), 
-             const unsigned long & (unsigned long temp), 
-             const long long & ($*1_ltype temp), 
-             const float & (float temp), 
-             const double & (double temp)
-%{ temp = ($*1_ltype)$input; 
+%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const char &,
+             const signed char &,
+             const unsigned char &,
+             const short &,
+             const unsigned short &,
+             const int &,
+             const unsigned int &,
+             const long &,
+             const unsigned long &,
+             const long long &,
+             const float &,
+             const double &
+%{ static $*1_ltype temp;
+   temp = ($*1_ltype)$input; 
    $1 = &temp; %}
 
 %typemap(directorin, descriptor="Z") const bool &           "$input = (jboolean)$1_name;"
@@ -518,7 +520,8 @@
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
 
-%typemap(directorout) const unsigned long long & ($*1_ltype temp) { 
+%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const unsigned long long & { 
+  static $*1_ltype temp;
   jclass clazz;
   jmethodID mid;
   jbyteArray ba;
