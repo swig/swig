@@ -127,7 +127,7 @@
 
 /* char * - treat as String */
 %typemap(in) char * %{ $1 = $input; %}
-%typemap(out) char * %{ $result = $1; %}
+%typemap(out) char * %{ $result = SWIG_csharp_string_callback($1); %}
 
 %typemap(out) void ""
 
