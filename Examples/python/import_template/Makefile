@@ -1,11 +1,9 @@
 TOP        = ../..
-SWIG       = $(TOP)/../swig
-SWIGOPT    = -noruntime
-LIBS       = -L. -l_runtime
+SWIG       = $(TOP)/../preinst-swig
+SWIGOPT    =
+LIBS       =
 
 all::
-	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='-runtime' \
-	LIBPREFIX='lib' TARGET='runtime' INTERFACE='runtime.i' python_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
 	LIBS='$(LIBS)' TARGET='base' INTERFACE='base.i' python_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
