@@ -157,6 +157,7 @@ CPP_TEST_CASES += \
 	namespace_nested \
 	namespace_spaces \
 	namespace_template \
+	namespace_typedef_class \
 	namespace_typemap \
 	namespace_virtual_method \
 	newobject1 \

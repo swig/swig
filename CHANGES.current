@@ -1,5 +1,20 @@
 Version 1.3.21 (in progress)
 ==================================
+01/09/2004: beazley
+            Fixed [ 871909 ] simple namespace problem.
+            This was a problem using anonymous structures in a namespace.
+            For example:
+
+                namespace ns {
+                   typedef struct  {
+                      int n;
+                   } S;
+                };
+
+            Reported by Josh Cherry.
+
+01/09/2004: beazley
+            Fixed some broken Perl examples.
 
 12/28/2003: cheetah (William Fulton)
             [Java and C#] Fixes for wrapping covariant (polymorphic) return types.
