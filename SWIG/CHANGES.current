@@ -44,7 +44,7 @@ Version 1.3.17 (In progress)
                 %typemap(javain) Class "Class.getCPtr($javainput)"
                 %typemap(javain) unsigned short "$javainput"
                 %typemap(javaout) Class * {
-                    return new Class($nativemethod, $owner);
+                    return new Class($jnicall, $owner);
                   }
 
                 %inline %{
@@ -60,10 +60,10 @@ Version 1.3.17 (In progress)
 
 
             Some new special variables have been introduced in order to use these typemaps.
-            Here $javainput has been replaced by 'cls' and 'ush'. $nativemethod has been replaced by 
+            Here $javainput has been replaced by 'cls' and 'ush'. $jnicall has been replaced by 
             the native method call, 'exampleJNI.bar(...)' and $owner has been replaced by 'false'.
             $javainput is analogous to the $input special variable. It is replaced by the parameter name.
-            $nativemethod is analogous to $action in %exception. It is replaced by the call to the native
+            $jnicall is analogous to $action in %exception. It is replaced by the call to the native
             method in the JNI class.
             $owner is replaced by either true if %newobject has been used otherwise false.
 
