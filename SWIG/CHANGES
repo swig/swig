@@ -17,6 +17,23 @@ tree (maybe).
 Version 1.3.14 (In progress)
 ============================
 
+08/02/2002: beazley
+            New library file cstring.i added.  Provides macros for
+            manipulating char * data.
+ 
+08/02/2002: beazley
+            Deprecated the %new directive.  Use %newobject instead.  For
+            example:
+
+               %newobject foo;
+               ...
+               char *foo();
+
+            %newobject follows the same rules as %rename, %ignore, %feature,
+            etc.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 08/01/2002: cheetah (William Fulton)
             [Java] New attribute 'jniclassname' for the module directive allows a way of
             changing the JNI class name from the default which uses the modulename with JNI
@@ -80,6 +97,9 @@ Version 1.3.14 (In progress)
             the BOTH typemaps.  This is now INOUT (e.g., int *INOUT).
 
             *** POTENTIAL INCOMPATIBILITY FOR PYTHON MODULE ***
+
+08/01/2002: beazley
+            Deprecated the array.i, carray.i, and timer.i library files.
 
 08/01/2002: beazley
             Deprecated the pointer.i library file.  Use cpointer.i instead.
