@@ -32,39 +32,29 @@ static int    variable_wrapper_flag = 0; // Set to 1 when wrapping a nonstatic m
 static int    wrapping_member = 0; // Set to 1 when wrapping a member variable/enum/const
 static int    nofinalize = 0;          // for generating finalize methods
 
-static String *module = 0;  // Module name
-static String *primitive_class = 0;  // Primitive class name
-static String *module_class_code = 0; // Module class Java code - mainly native methods
+static String *jniclass = 0;  // JNI class name
+static String *module_class_name = 0;  // module class name
+static String *jniclass_class_code = 0; // JNI class Java code - that is the native methods
 static String *shadow_classdef = 0;
 static String *shadow_code = 0;
-static String *primitive_class_code = 0;
+static String *module_class_code = 0;
 static String *shadow_classname = 0;
 static String *shadow_variable_name = 0; //Name of a c struct variable or c++ public member variable (may or may not be const)
 static String *shadow_constants_code = 0;
-static String *primitive_constants_code = 0;
+static String *module_constants_code = 0;
 static String *package = 0; // Package name
 static String *jnipackage = 0; // JNI package name
-static String *all_shadow_extra_code = 0; // Extra code for all shadow classes from %pragma
-static String *this_shadow_extra_code = 0; // Extra code for current single shadow class from %pragma
+static String *jniclass_import = 0; //jniclass import from %pragma
 static String *module_import = 0; //module import from %pragma
-static String *primitive_import = 0; //primitive import from %pragma
-static String *all_shadow_import = 0; //import for all shadow classes from %pragma
-static String *this_shadow_import = 0; //import for current shadow classes from %pragma
+static String *jniclass_baseclass = 0; //inheritance for jniclass class from %pragma
 static String *module_baseclass = 0; //inheritance for module class from %pragma
-static String *primitive_baseclass = 0; //inheritance for primitive class from %pragma
-static String *all_shadow_baseclass = 0; //inheritance for all shadow classes from %pragma
-static String *this_shadow_baseclass = 0; //inheritance for shadow class from %pragma and cpp_inherit
+static String *jniclass_interfaces = 0; //interfaces for jniclass class from %pragma
 static String *module_interfaces = 0; //interfaces for module class from %pragma
-static String *primitive_interfaces = 0; //interfaces for primitive class from %pragma
-static String *all_shadow_interfaces = 0; //interfaces for all shadow classes from %pragma
-static String *this_shadow_interfaces = 0; //interfaces for shadow class from %pragma
+static String *jniclass_class_modifiers = 0; //class modifiers for jniclass class overriden by %pragma
 static String *module_class_modifiers = 0; //class modifiers for module class overriden by %pragma
-static String *primitive_class_modifiers = 0; //class modifiers for primitive module class overriden by %pragma
-static String *all_shadow_class_modifiers = 0; //class modifiers for all shadow classes overriden by %pragma
-static String *this_shadow_class_modifiers = 0; //class modifiers for shadow class overriden by %pragma
-static String *module_method_modifiers = 0; //native method modifiers overridden by %pragma
+static String *jniclass_method_modifiers = 0; //native method modifiers overridden by %pragma
 static String *wrapper_conversion_code = 0; //C++ casts for inheritance hierarchies JNI code
-static String *module_conversion_code = 0; //C++ casts up inheritance hierarchies module Java code
+static String *jniclass_cppcasts_code = 0; //C++ casts up inheritance hierarchies JNI class Java code
 static String *destructor_call = 0; //Destructor (delete) call if any
 
 enum type_additions {none, pointer, reference};
@@ -176,28 +166,23 @@ public:
     Swig_register_filebyname("init",f_init);
     swig_types_hash = NewHash();
 
-    module = NewStringf("%sJNI", Getattr(n,"name"));
-    module_class_code = NewString("");
+    jniclass = NewStringf("%sJNI", Getattr(n,"name"));
+    jniclass_class_code = NewString("");
     shadow_classdef = NewString("");
     shadow_code = NewString("");
-    primitive_constants_code = NewString("");
+    module_constants_code = NewString("");
+    jniclass_baseclass = NewString("");
+    jniclass_interfaces = NewString("");
+    jniclass_class_modifiers = NewString("");
+    module_class_name = Copy(Getattr(n,"name"));
+    module_class_code = NewString("");
     module_baseclass = NewString("");
     module_interfaces = NewString("");
-    module_class_modifiers = NewString("");
-    primitive_class = Copy(Getattr(n,"name"));
-    primitive_class_code = NewString("");
-    primitive_baseclass = NewString("");
-    primitive_interfaces = NewString("");
-    primitive_import = NewString("");
-    primitive_class_modifiers = NewString("");
-    all_shadow_extra_code = NewString("");
-    all_shadow_import = NewString("");
-    all_shadow_baseclass = NewString("");
-    all_shadow_interfaces = NewString("");
-    all_shadow_class_modifiers = NewString("");
     module_import = NewString("");
-    module_method_modifiers = NewString("public final static");
-    module_conversion_code = NewString("");
+    module_class_modifiers = NewString("");
+    jniclass_import = NewString("");
+    jniclass_method_modifiers = NewString("public final static");
+    jniclass_cppcasts_code = NewString("");
     wrapper_conversion_code = NewString("");
     if (!package) package = NewString("");
     jnipackage = NewString("");
@@ -217,7 +202,7 @@ public:
       Replaceall(jnipackage,".","_");
       Append(jnipackage, "_");
     }
-    String *jniname = makeValidJniName(module);
+    String *jniname = makeValidJniName(jniclass);
     Printf(wrapper_name, "Java_%s%s_%%f", Char(jnipackage), jniname);
     Delete(jniname);
 
@@ -235,8 +220,8 @@ public:
   /* Emit code */
     Language::top(n);
 
-    // Generate the Java module class
-    String *filen = NewStringf("%s.java", module);
+    // Generate the Java JNI class
+    String *filen = NewStringf("%s.java", jniclass);
     File *f_java = NewFile(filen,"w");
     if(!f_java) {
       Printf(stderr,"Unable to open %s\n", filen);
@@ -244,74 +229,74 @@ public:
     }
     Delete(filen); filen = NULL;
 
-  // Start writing out the Java module class
+  // Start writing out the Java JNI class
     if(Len(package) > 0)
       Printf(f_java, "package %s;\n\n", package);
 
     emitBanner(f_java);
-    if(module_import)
-      Printf(f_java, "%s\n", module_import);
+    if(jniclass_import)
+      Printf(f_java, "%s\n", jniclass_import);
 
-    if (module_class_modifiers && *Char(module_class_modifiers))
-      Printf(f_java, "%s", module_class_modifiers);
+    if (jniclass_class_modifiers && *Char(jniclass_class_modifiers))
+      Printf(f_java, "%s", jniclass_class_modifiers);
     else
       Printf(f_java, "public");
-    Printf(f_java, " class %s ", module);
+    Printf(f_java, " class %s ", jniclass);
 
-    if (module_baseclass && *Char(module_baseclass))
-      Printf(f_java, "extends %s ", module_baseclass);
-    if (module_interfaces)
-      Printv(f_java, module_interfaces, " ", NULL);
+    if (jniclass_baseclass && *Char(jniclass_baseclass))
+      Printf(f_java, "extends %s ", jniclass_baseclass);
+    if (jniclass_interfaces)
+      Printv(f_java, jniclass_interfaces, " ", NULL);
     Printf(f_java, "{\n");
 
     // Add the native methods
-    Printv(f_java, module_class_code, NULL);
-    Printv(f_java,module_conversion_code,NULL);
+    Printv(f_java, jniclass_class_code, NULL);
+    Printv(f_java,jniclass_cppcasts_code,NULL);
 
     // Finish off the Java class
     Printf(f_java, "}\n");
     Close(f_java);
 
     {
-      // Generate the Java primitive interface class
-      String *filen = NewStringf("%s.java", primitive_class);
-      File *f_primitive = NewFile(filen,"w");
-      if(!f_primitive) {
+      // Generate the Java module class
+      String *filen = NewStringf("%s.java", module_class_name);
+      File *f_module = NewFile(filen,"w");
+      if(!f_module) {
         Printf(stderr,"Unable to open %s\n", filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
 
-      // Start writing out the Java primitive interface class
+      // Start writing out the Java module class
       if(Len(package) > 0)
-        Printf(f_primitive, "package %s;\n\n", package);
+        Printf(f_module, "package %s;\n\n", package);
 
-      emitBanner(f_primitive);
-      if(primitive_import)
-        Printf(f_primitive, "%s\n", primitive_import);
+      emitBanner(f_module);
+      if(module_import)
+        Printf(f_module, "%s\n", module_import);
 
-      if (primitive_class_modifiers && *Char(primitive_class_modifiers))
-        Printf(f_primitive, "%s", primitive_class_modifiers);
+      if (module_class_modifiers && *Char(module_class_modifiers))
+        Printf(f_module, "%s", module_class_modifiers);
       else
-        Printf(f_primitive, "public");
-      Printf(f_primitive, " class %s ", primitive_class);
+        Printf(f_module, "public");
+      Printf(f_module, " class %s ", module_class_name);
 
-      if (primitive_baseclass && *Char(primitive_baseclass))
-        Printf(f_primitive, "extends %s ", primitive_baseclass);
-      if (primitive_interfaces)
-        Printv(f_primitive, primitive_interfaces, " ", NULL);
-      Printf(f_primitive, "{\n");
+      if (module_baseclass && *Char(module_baseclass))
+        Printf(f_module, "extends %s ", module_baseclass);
+      if (module_interfaces)
+        Printv(f_module, module_interfaces, " ", NULL);
+      Printf(f_module, "{\n");
 
       // Add the wrapper methods
-      Printv(f_primitive, primitive_class_code, NULL);
+      Printv(f_module, module_class_code, NULL);
 
       // Write out all the enums constants
-      if (strlen(Char(primitive_constants_code)) != 0 )
-        Printv(f_primitive, "  // enums and constants\n", primitive_constants_code, NULL);
+      if (strlen(Char(module_constants_code)) != 0 )
+        Printv(f_module, "  // enums and constants\n", module_constants_code, NULL);
 
       // Finish off the Java class
-      Printf(f_primitive, "}\n");
-      Close(f_primitive);
+      Printf(f_module, "}\n");
+      Close(f_module);
     }
 
     if(wrapper_conversion_code)
@@ -327,27 +312,22 @@ public:
     }
 
     Delete(swig_types_hash); swig_types_hash = NULL;
-    Delete(module_class_code); module_class_code = NULL;
+    Delete(jniclass_class_code); jniclass_class_code = NULL;
     Delete(shadow_classdef); shadow_classdef = NULL;
     Delete(shadow_code); shadow_code = NULL;
-    Delete(primitive_constants_code); primitive_constants_code = NULL;
+    Delete(module_constants_code); module_constants_code = NULL;
+    Delete(jniclass_baseclass); jniclass_baseclass = NULL;
+    Delete(jniclass_interfaces); jniclass_interfaces = NULL;
+    Delete(jniclass_class_modifiers); jniclass_class_modifiers = NULL;
+    Delete(module_class_name); module_class_name = NULL;
+    Delete(module_class_code); module_class_code = NULL;
     Delete(module_baseclass); module_baseclass = NULL;
     Delete(module_interfaces); module_interfaces = NULL;
-    Delete(module_class_modifiers); module_class_modifiers = NULL;
-    Delete(primitive_class); primitive_class = NULL;
-    Delete(primitive_class_code); primitive_class_code = NULL;
-    Delete(primitive_baseclass); primitive_baseclass = NULL;
-    Delete(primitive_interfaces); primitive_interfaces = NULL;
-    Delete(primitive_import); primitive_import = NULL;
-    Delete(primitive_class_modifiers); primitive_class_modifiers = NULL;
-    Delete(all_shadow_extra_code); all_shadow_extra_code = NULL;
-    Delete(all_shadow_import); all_shadow_import = NULL;
-    Delete(all_shadow_baseclass); all_shadow_baseclass = NULL;
-    Delete(all_shadow_interfaces); all_shadow_interfaces = NULL;
-    Delete(all_shadow_class_modifiers); all_shadow_class_modifiers = NULL;
     Delete(module_import); module_import = NULL;
-    Delete(module_method_modifiers); module_method_modifiers = NULL;
-    Delete(module_conversion_code); module_conversion_code = NULL;
+    Delete(module_class_modifiers); module_class_modifiers = NULL;
+    Delete(jniclass_import); jniclass_import = NULL;
+    Delete(jniclass_method_modifiers); jniclass_method_modifiers = NULL;
+    Delete(jniclass_cppcasts_code); jniclass_cppcasts_code = NULL;
     Delete(wrapper_conversion_code); wrapper_conversion_code = NULL;
     Delete(package); package = NULL;
     Delete(jnipackage); jnipackage = NULL;
@@ -486,8 +466,8 @@ public:
       Wrapper_add_localv(f,"jresult", jnirettype, "jresult = 0",NULL);
     }
 
-    Printf(module_class_code, "  %s ", module_method_modifiers);
-    Printf(module_class_code, "native %s %s(", javarettype, overloaded_name);
+    Printf(jniclass_class_code, "  %s ", jniclass_method_modifiers);
+    Printf(jniclass_class_code, "native %s %s(", javarettype, overloaded_name);
 
     Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NULL);
 
@@ -539,8 +519,8 @@ public:
       }
 
       /* Add to java function header */
-      if(gencomma) Printf(module_class_code, ", ");
-      Printf(module_class_code, "%s %s", javaparamtype, arg);
+      if(gencomma) Printf(jniclass_class_code, ", ");
+      Printf(jniclass_class_code, "%s %s", javaparamtype, arg);
 
       gencomma = 1;
 
@@ -613,7 +593,7 @@ public:
       }
     }
 
-    Printf(module_class_code, ");\n");
+    Printf(jniclass_class_code, ");\n");
     Printf(f->def,") {");
 
     if (Getattr(n, "value") && Cmp(Getattr(n, "storage"), "%constant") == 0)
@@ -691,7 +671,7 @@ public:
     }
 
     if(!(shadow && is_wrapping_class()) && !enum_constant_flag) {
-      primitiveFunctionWrapper(n);
+      jniclassFunctionHandler(n);
     }
 
     Delete(jnirettype);
@@ -765,14 +745,14 @@ public:
     Printf(constants_code, "  public final static %s %s = ", shadowrettype, ((shadow && wrapping_member) ? shadow_variable_name : symname));
 
     if(is_return_type_java_class)
-      Printf(constants_code, "new %s(%s.%s(), false);\n", shadowrettype, module, Swig_name_get(symname));
+      Printf(constants_code, "new %s(%s.%s(), false);\n", shadowrettype, jniclass, Swig_name_get(symname));
     else
-      Printf(constants_code, "%s.%s();\n", module, Swig_name_get(symname));
+      Printf(constants_code, "%s.%s();\n", jniclass, Swig_name_get(symname));
 
     if(shadow && wrapping_member)
       Printv(shadow_constants_code, constants_code, NULL);
     else
-      Printv(primitive_constants_code, constants_code, NULL);
+      Printv(module_constants_code, constants_code, NULL);
 
     // Add the stripped quotes back in
     String *new_value = NewString("");
@@ -800,29 +780,29 @@ public:
 
   /*
     Valid Pragmas:
-    These pragmas start with 'allshadow' or 'module'
-    modulebase         - base (extends) for the java module class
-    allshadowbase      - base (extends) for all java shadow classes
-    modulecode         - text (java code) is copied verbatim to the java module class
-    allshadowcode      - text (java code) is copied verbatim to all java shadow classes
-    moduleclassmodifiers     - class modifiers for the module class
-    allshadowclassmodifiers  - class modifiers for all shadow classes
-    moduleimport       - import statement generation for the java module class
-    allshadowimport    - import statement generation for all java shadow classes
-    moduleinterface    - interface (implements) for the module class
-    allshadowinterface - interface (implements) for all shadow classes
-    modulemethodmodifiers    - replaces the generated native calls' default modifiers
+    These pragmas start with 'allshadow' or 'jniclass'
+    jniclassbase       - base (extends) for the java jniclass class
+x   allshadowbase      - base (extends) for all java shadow classes
+    jniclasscode       - text (java code) is copied verbatim to the java jniclass class
+x   allshadowcode      - text (java code) is copied verbatim to all java shadow classes
+    jniclassclassmodifiers   - class modifiers for the jniclass class
+x   allshadowclassmodifiers  - class modifiers for all shadow classes
+    jniclassimport     - import statement generation for the java jniclass class
+x   allshadowimport    - import statement generation for all java shadow classes
+    jniclassinterface  - interface (implements) for the jniclass class
+x   allshadowinterface - interface (implements) for all shadow classes
+    jniclassmethodmodifiers  - replaces the generated native calls' default modifiers
   */
   
   /* 
      C++ pragmas: pragmas declared within a class or c struct for the shadow class. 
      These pragmas start with 'shadow'
      Valid pragmas:
-     shadowbase      - base (extends) for all java shadow classes
-     shadowcode      - text (java code) is copied verbatim to the shadow class
-     shadowclassmodifiers  - class modifiers for the shadow class
-     shadowimport    - import statement generation for the shadow class
-     shadowinterface - interfaces (extends) for the shadow class
+x    shadowbase      - base (extends) for all java shadow classes
+x    shadowcode      - text (java code) is copied verbatim to the shadow class
+x    shadowclassmodifiers  - class modifiers for the shadow class
+x    shadowimport    - import statement generation for the shadow class
+x    shadowinterface - interfaces (extends) for the shadow class
   */
   
   virtual int pragmaDirective(Node *n) {
@@ -836,64 +816,64 @@ public:
       String *strvalue = NewString(value);
       Replaceall(strvalue,"\\\"", "\"");
       
-      if(Strcmp(code, "moduleimport") == 0) {
-	Printf(module_import, "import %s;\n", strvalue);
+      if(Strcmp(code, "jniclassimport") == 0) {
+	Printf(jniclass_import, "import %s;\n", strvalue);
       } 
       else if(Strcmp(code, "allshadowimport") == 0) {
-	if(shadow && all_shadow_import)
-	  Printf(all_shadow_import, "import %s;\n", strvalue);
+//	if(shadow && all_shadow_import)
+//	  Printf(all_shadow_import, "import %s;\n", strvalue);
       } 
       else if(Strcmp(code, "import") == 0) {
-	Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please replace with moduleimport, shadowimport and/or allshadowimport pragmas.\n", input_file, line_number);
+	Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please replace with jniclassimport, shadowimport and/or allshadowimport pragmas.\n", input_file, line_number);
       }
-      else if(Strcmp(code, "modulecode") == 0 || Strcmp(code, "module") == 0) {
-	if(Strcmp(code, "module") == 0)
-	  Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with modulecode pragma.\n", input_file, line_number);
-	Printf(module_class_code, "%s\n", strvalue);
+      else if(Strcmp(code, "jniclasscode") == 0 || Strcmp(code, "jniclass") == 0) {
+	if(Strcmp(code, "jniclass") == 0)
+	  Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with jniclasscode pragma.\n", input_file, line_number);
+	Printf(jniclass_class_code, "%s\n", strvalue);
       } 
       else if(Strcmp(code, "allshadowcode") == 0 || Strcmp(code, "shadow") == 0) {
-	if(shadow && all_shadow_extra_code) {
-	  if(Strcmp(code, "shadow") == 0)
-	    Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with allshadowcode pragma.\n", input_file, line_number);
-	  Printf(all_shadow_extra_code, "%s\n", strvalue);
-	}
+//	if(shadow && all_shadow_extra_code) {
+//	  if(Strcmp(code, "shadow") == 0)
+//	    Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with allshadowcode pragma.\n", input_file, line_number);
+//	  Printf(all_shadow_extra_code, "%s\n", strvalue);
+//	}
       } 
-      else if(Strcmp(code, "modulebase") == 0) {
-	if(shadow && module_baseclass)
-	  Printf(module_baseclass, "%s", strvalue);
+      else if(Strcmp(code, "jniclassbase") == 0) {
+	if(shadow && jniclass_baseclass)
+	  Printf(jniclass_baseclass, "%s", strvalue);
       } 
       else if(Strcmp(code, "allshadowbase") == 0) {
-	if(shadow && all_shadow_baseclass)
-	  Printf(all_shadow_baseclass, "%s", strvalue);
+//	if(shadow && all_shadow_baseclass)
+//	  Printf(all_shadow_baseclass, "%s", strvalue);
       } 
-      else if(Strcmp(code, "moduleinterface") == 0) {
-	if(shadow && module_interfaces)
-	  if (!*Char(module_interfaces))
-	    Printf(module_interfaces, "implements %s", strvalue);
+      else if(Strcmp(code, "jniclassinterface") == 0) {
+	if(shadow && jniclass_interfaces)
+	  if (!*Char(jniclass_interfaces))
+	    Printf(jniclass_interfaces, "implements %s", strvalue);
 	  else
-	    Printf(module_interfaces, ", %s", strvalue);
+	    Printf(jniclass_interfaces, ", %s", strvalue);
       } 
       else if(Strcmp(code, "allshadowinterface") == 0) {
-	if(shadow && all_shadow_interfaces) {
-	  if (!*Char(all_shadow_interfaces))
-	    Printf(all_shadow_interfaces, " implements %s", strvalue);
-	  else
-	    Printf(all_shadow_interfaces, ", %s", strvalue);
-	}
+//	if(shadow && all_shadow_interfaces) {
+//	  if (!*Char(all_shadow_interfaces))
+//	    Printf(all_shadow_interfaces, " implements %s", strvalue);
+//	  else
+//	    Printf(all_shadow_interfaces, ", %s", strvalue);
+//	}
       } 
       else if(Strcmp(code, "allshadowclassmodifiers") == 0) {
-	if(shadow && all_shadow_class_modifiers)
-	  Printv(all_shadow_class_modifiers, strvalue, NULL);
+//	if(shadow && all_shadow_class_modifiers)
+//	  Printv(all_shadow_class_modifiers, strvalue, NULL);
       } 
-      else if(Strcmp(code, "moduleclassmodifiers") == 0) {
-	if(shadow && module_class_modifiers)
-	  Printv(module_class_modifiers, strvalue, NULL);
+      else if(Strcmp(code, "jniclassclassmodifiers") == 0) {
+	if(shadow && jniclass_class_modifiers)
+	  Printv(jniclass_class_modifiers, strvalue, NULL);
       } 
-      else if(Strcmp(code, "modulemethodmodifiers") == 0 || Strcmp(code, "modifiers") == 0) {
+      else if(Strcmp(code, "jniclassmethodmodifiers") == 0 || Strcmp(code, "modifiers") == 0) {
 	if(Strcmp(code, "modifiers") == 0)
-	  Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with modulemethodmodifiers pragma.\n", input_file, line_number);
-	Clear(module_method_modifiers);
-	Printv(module_method_modifiers, strvalue, NULL);
+	  Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with jniclassmethodmodifiers pragma.\n", input_file, line_number);
+	Clear(jniclass_method_modifiers);
+	Printv(jniclass_method_modifiers, strvalue, NULL);
       } else if (shadow) {
 	if (Strcmp(code,"shadowcode") == 0) {
 	  if (shadow_code)
@@ -902,32 +882,32 @@ public:
 	    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
 	} 
 	else if (Strcmp(code,"shadowimport") == 0) {
-	  if (this_shadow_import)
-	    Printf(this_shadow_import, "import %s;\n", strvalue);
-	  else
-	    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+//	  if (this_shadow_import)
+//	    Printf(this_shadow_import, "import %s;\n", strvalue);
+//	  else
+//	    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
 	} 
 	else if (Strcmp(code,"shadowbase") == 0) {
-	  if (this_shadow_baseclass)
-	    Printf(this_shadow_baseclass, "%s", strvalue);
-	  else
-	    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+//	  if (this_shadow_baseclass)
+//	    Printf(this_shadow_baseclass, "%s", strvalue);
+//	  else
+//	    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
 	} 
 	else if (Strcmp(code,"shadowinterface") == 0) {
-	  if (this_shadow_interfaces) {
-	    if (!*Char(this_shadow_interfaces))
-	      Printf(this_shadow_interfaces, " implements %s", strvalue);
-	    else
-	      Printf(this_shadow_interfaces, ", %s", strvalue);
-	  }
-	  else
-	    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+//	  if (this_shadow_interfaces) {
+//	    if (!*Char(this_shadow_interfaces))
+//	      Printf(this_shadow_interfaces, " implements %s", strvalue);
+//	    else
+//	      Printf(this_shadow_interfaces, ", %s", strvalue);
+//	  }
+//	  else
+//	    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
 	} 
 	else if (Strcmp(code,"shadowclassmodifiers") == 0) {
-	  if (this_shadow_class_modifiers)
-	    Printv(this_shadow_class_modifiers, strvalue, NULL);
-	  else
-	    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+//	  if (this_shadow_class_modifiers)
+//	    Printv(this_shadow_class_modifiers, strvalue, NULL);
+//	  else
+//	    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
 	}  else {
 	  Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
 	}
@@ -944,6 +924,7 @@ public:
     String *c_baseclass = 0;
     String *baseclass = 0;
     String *c_baseclassname = 0;
+    String *empty_string = NewString("");
 
     /* Deal with inheritance */
     List *baselist = Getattr(n,"bases");
@@ -965,43 +946,38 @@ public:
     if (!baseclass)
       baseclass = NewString("");
 
-    if (shadow) {
-
-    // Inheritance from pure Java classes (that is not necessarily a C class)
-    String* pure_java_baseclass = NULL; 
-    if(this_shadow_baseclass && *Char(this_shadow_baseclass))
-      pure_java_baseclass = Copy(this_shadow_baseclass);
-    if(all_shadow_baseclass && *Char(all_shadow_baseclass)) {
-      if (pure_java_baseclass) {
-	Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-		     "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, pure_java_baseclass);
-	pure_java_baseclass = NULL;
-      }
-      else {
-	pure_java_baseclass = Copy(all_shadow_baseclass);
-      }
-    }
-    if (pure_java_baseclass && Len(baseclass) > 0) {
-      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
+    // Inheritance from pure Java classes
+    //
+    // can be improved by getting rid of empty string check when it gets emitted down below?? !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    String* pure_java_baseclass = empty_string;
+    if (Getattr(n,"feature:java:base")) {
+      if (Len(pure_java_baseclass) > 0 && Len(baseclass) > 0)
+        Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
 		   "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, pure_java_baseclass);
-      pure_java_baseclass = NULL;
+      else
+        pure_java_baseclass = Getattr(n,"feature:java:base");
     }
-    if (!pure_java_baseclass)
-      pure_java_baseclass = NewString("");
  
   // Get any non-default class modifiers
     String *class_modifiers = NULL;
-    if (this_shadow_class_modifiers && *Char(this_shadow_class_modifiers))
-      class_modifiers = Copy(this_shadow_class_modifiers);
-    else if (all_shadow_class_modifiers && *Char(all_shadow_class_modifiers))
-      class_modifiers = Copy(all_shadow_class_modifiers);
+    if (Getattr(n,"feature:java:classmodifiers"))
+      class_modifiers = Copy(Getattr(n,"feature:java:classmodifiers"));
     else
       class_modifiers = NewString("public");
 
+    // Pure Java interfaces
+    String *pure_java_interfaces = empty_string;
+    if (Getattr(n,"feature:java:interfaces"))
+      pure_java_interfaces = Getattr(n,"feature:java:interfaces");
+
+    // Import statements
+    String *imports = empty_string;
+    if (Getattr(n,"feature:java:imports"))
+      imports = Getattr(n,"feature:java:imports");
+
   // Start writing the shadow class
     Printv(shadow_classdef,
-	   all_shadow_import,             // Import statements
-	   this_shadow_import,
+       imports,                       // Import statements
 	   "\n",
 	   class_modifiers,               // Class modifiers
 	   " class $class ",              // Class name and bases
@@ -1010,7 +986,10 @@ public:
 	   "",
 	   baseclass,
 	   pure_java_baseclass,
-	   this_shadow_interfaces,        // Interfaces
+       *Char(pure_java_interfaces) ?  // Pure Java interfaces
+         " implements " :
+         "",
+       pure_java_interfaces,
 	   "{\n",
 	   "  private long swigCPtr;\n",  // Member variables for memory handling
 	   derived ? 
@@ -1019,7 +998,7 @@ public:
 	   "\n",
 	   "  public $class(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
 	   derived ? 
-	   "    super($module.SWIG$classTo$baseclass(cPtr), cMemoryOwn);\n" : 
+	   "    super($jniclass.SWIG$classTo$baseclass(cPtr), cMemoryOwn);\n" : 
 	   "    swigCMemOwn = cMemoryOwn;\n",
 	   "    swigCPtr = cPtr;\n",
 	   "  }\n",
@@ -1058,8 +1037,13 @@ public:
 	   "  public long getCPtr$class(){\n",  // Function to access C pointer
 	   "    return swigCPtr;\n",
 	   "  }\n",
-	   "\n", 
 	   NULL);
+
+    // Extra Java code
+    if (Getattr(n,"feature:java:code"))
+      Printv(shadow_classdef, Getattr(n,"feature:java:code"), NULL);
+
+    Printf(shadow_classdef, "\n");
 
     // Substitute various strings into the above template
     Replaceall(shadow_code,     "$class", shadow_classname);
@@ -1068,32 +1052,21 @@ public:
     Replaceall(shadow_classdef, "$baseclass", baseclass);
     Replaceall(shadow_code,     "$baseclass", baseclass);
 
-    Replaceall(shadow_classdef, "$module", module);
-    Replaceall(shadow_code,     "$module", module);
-
-
-    if (all_shadow_extra_code)
-      Printv(shadow_classdef, all_shadow_extra_code, NULL);
-
-    if (this_shadow_extra_code)
-      Printv(shadow_classdef, this_shadow_extra_code, NULL);
-
-    Delete(pure_java_baseclass);
-    Delete(class_modifiers);
-    }
+    Replaceall(shadow_classdef, "$jniclass", jniclass);
+    Replaceall(shadow_code,     "$jniclass", jniclass);
 
   // Add JNI code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if(derived){
-      Printv(module_conversion_code,"  ", module_method_modifiers, " native long ",
+      Printv(jniclass_cppcasts_code,"  ", jniclass_method_modifiers, " native long ",
 	     "SWIG$classTo$baseclass(long jarg1);\n",
 	     NULL);
-      Replaceall(module_conversion_code, "$class", shadow_classname);
-      Replaceall(module_conversion_code, "$baseclass", baseclass);
+      Replaceall(jniclass_cppcasts_code, "$class", shadow_classname);
+      Replaceall(jniclass_cppcasts_code, "$baseclass", baseclass);
 
       Printv(wrapper_conversion_code,
 	     "extern \"C\" {\n",
 	     "  JNIEXPORT jlong JNICALL",
-	     " Java_$jnipackage$jnimodule_SWIG$jniclassTo$jnibaseclass",
+	     " Java_$jnipackage$jnijniclass_SWIG$jniclazznameTo$jnibaseclass",
 	     "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
 	     "    jlong baseptr = 0;\n"
 	     "    *($cbaseclass **)&baseptr = ($cclass *)*(void**)&jarg1;\n"
@@ -1102,34 +1075,38 @@ public:
 	     "}\n",
 	     NULL); 
 
-      String *jnimodule    = makeValidJniName(module);
-      String *jniclass     = makeValidJniName(shadow_classname);
+      String *jnijniclass  = makeValidJniName(jniclass);
+      String *jniclazzname = makeValidJniName(shadow_classname);
       String *jnibaseclass = makeValidJniName(baseclass);
       Replaceall(wrapper_conversion_code, "$jnibaseclass",jnibaseclass);
       Replaceall(wrapper_conversion_code, "$cbaseclass",  c_baseclass);
-      Replaceall(wrapper_conversion_code, "$jniclass",    jniclass);
+      Replaceall(wrapper_conversion_code, "$jniclazzname",jniclazzname);
       Replaceall(wrapper_conversion_code, "$cclass",      c_classname);
       Replaceall(wrapper_conversion_code, "$jnipackage",  jnipackage);
-      Replaceall(wrapper_conversion_code, "$jnimodule",   jnimodule);
+      Replaceall(wrapper_conversion_code, "$jnijniclass", jnijniclass);
 
+      /*
       if (!shadow) {
-        Printv(primitive_class_code, 
+        Printv(module_class_code, 
           "  public static $baseclass SWIG$classTo$baseclass($class self) {\n",
-          "    return new $baseclass($module.SWIG$classTo$baseclass(self.getCPtr$class()), false);\n",
+          "    return new $baseclass($jniclass.SWIG$classTo$baseclass(self.getCPtr$class()), false);\n",
           "  }\n",
           "\n",
           NULL);
 
-        Replaceall(primitive_class_code, "$baseclass",   baseclass);
-        Replaceall(primitive_class_code, "$class",       shadow_classname);
-        Replaceall(primitive_class_code, "$module",      module);
+        Replaceall(module_class_code, "$baseclass",   baseclass);
+        Replaceall(module_class_code, "$class",       shadow_classname);
+        Replaceall(module_class_code, "$jniclass",    jniclass);
       }
+      */
 
       Delete(jnibaseclass);
-      Delete(jniclass);
-      Delete(jnimodule);
+      Delete(jniclazzname);
+      Delete(jnijniclass);
     }
     Delete(baseclass);
+    Delete(class_modifiers);
+    Delete(empty_string);
   }
 
   /* ----------------------------------------------------------------------
@@ -1142,13 +1119,13 @@ public:
     if (shadow) {
       shadow_classname = NewString(Getattr(n,"sym:name"));
     
-      if (Cmp(shadow_classname, module) == 0) {
-	Printf(stderr, "Class name cannot be equal to module name: %s\n", shadow_classname);
+      if (Cmp(shadow_classname, jniclass) == 0) {
+	Printf(stderr, "Class name cannot be equal to JNI class name: %s\n", shadow_classname);
 	SWIG_exit(EXIT_FAILURE);
       }
 
-      if (Cmp(shadow_classname, primitive_class) == 0) {
-        Printf(stderr, "Class name cannot be equal to primitive class name: %s\n", shadow_classname);
+      if (Cmp(shadow_classname, module_class_name) == 0) {
+        Printf(stderr, "Class name cannot be equal to module class name: %s\n", shadow_classname);
         SWIG_exit(EXIT_FAILURE);
       }
 
@@ -1171,19 +1148,12 @@ public:
       have_default_constructor = 0;
       destructor_call = NewString("");
       shadow_constants_code = NewString("");
-      this_shadow_baseclass =  NewString("");
-      this_shadow_extra_code = NewString("");
-      this_shadow_interfaces = NewString("");
-      this_shadow_import = NewString("");
-      this_shadow_class_modifiers = NewString("");
-      if(all_shadow_interfaces)
-	Printv(this_shadow_interfaces, all_shadow_interfaces, NULL);
     }
     Language::classHandler(n);
 
-    emitShadowClassDefAndCPPCasts(n);
-
     if (shadow) {
+
+      emitShadowClassDefAndCPPCasts(n);
 
       Printv(f_shadow, shadow_classdef, shadow_code, NULL);
 
@@ -1198,11 +1168,6 @@ public:
       Delete(shadow_classname); shadow_classname = NULL;
       Delete(destructor_call); destructor_call = NULL;
       Delete(shadow_constants_code); shadow_constants_code = NULL;
-      Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
-      Delete(this_shadow_extra_code); this_shadow_extra_code = NULL;
-      Delete(this_shadow_interfaces); this_shadow_interfaces = NULL;
-      Delete(this_shadow_import); this_shadow_import = NULL;
-      Delete(this_shadow_class_modifiers); this_shadow_class_modifiers = NULL;
     }
     return SWIG_OK;
   }
@@ -1305,7 +1270,7 @@ public:
 	Printv(nativecall, "new ", shadowrettype, "(", NULL);
     }
 
-    Printv(nativecall, module, ".", java_function_name, "(", NULL);
+    Printv(nativecall, jniclass, ".", java_function_name, "(", NULL);
     if (!static_flag)
       Printv(nativecall, "swigCPtr", NULL);
 
@@ -1435,7 +1400,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
       String *nativecall = NewString("");
   
       Printf(shadow_code, "  public %s(", shadow_classname);
-      Printv(nativecall, "this(", module, ".", Swig_name_construct(overloaded_name), "(", NULL);
+      Printv(nativecall, "this(", jniclass, ".", Swig_name_construct(overloaded_name), "(", NULL);
     
       int pcount = ParmList_len(l);
       if(pcount == 0)  // We must have a default constructor
@@ -1503,7 +1468,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
     String *symname = Getattr(n,"sym:name");
     
     if(shadow) {
-      Printv(destructor_call, "      ", module, ".", Swig_name_destroy(symname), "(swigCPtr);\n", NULL);
+      Printv(destructor_call, "      ", jniclass, ".", Swig_name_destroy(symname), "(swigCPtr);\n", NULL);
     }
     return SWIG_OK;
   }
@@ -1633,7 +1598,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
     return overloaded_name;
   }
 
-  void JAVA::primitiveFunctionWrapper(Node *n) {
+  void JAVA::jniclassFunctionHandler(Node *n) {
     SwigType  *t = Getattr(n,"type");
     ParmList  *l = Getattr(n,"parms");
     String    *tm;
@@ -1666,7 +1631,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
           "No jstype typemap defined for %s\n", SwigType_str(t,0));
     }
   
-    Printf(primitive_class_code, "  public static %s %s(", shadowrettype, overloaded_name);
+    Printf(module_class_code, "  public static %s %s(", shadowrettype, overloaded_name);
   
     if(SwigType_type(t) == T_ARRAY && is_shadow(getArrayType(t))) {
       Printf(nativecall, "long[] cArray = ");
@@ -1678,7 +1643,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
         Printv(nativecall, "new ", shadowrettype, "(", NULL);
     }
   
-    Printv(nativecall, module, ".", overloaded_name, "(", NULL);
+    Printv(nativecall, jniclass, ".", overloaded_name, "(", NULL);
   
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
@@ -1723,9 +1688,9 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
 
       /* Add to java shadow function header */
       if (gencomma >= 2)
-        Printf(primitive_class_code, ", ");
+        Printf(module_class_code, ", ");
       gencomma = 2;
-      Printf(primitive_class_code, "%s %s", javaparamtype, arg);
+      Printf(module_class_code, "%s %s", javaparamtype, arg);
 
       p = nextSibling(p);
       Delete(arg);
@@ -1766,10 +1731,10 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
       Printf(nativecall,");\n");
     }
   
-    Printf(primitive_class_code, ") {\n");
-    Printv(primitive_class_code, user_arrays, NULL);
-    Printf(primitive_class_code, "    %s", nativecall);
-    Printf(primitive_class_code, "  }\n\n");
+    Printf(module_class_code, ") {\n");
+    Printv(module_class_code, user_arrays, NULL);
+    Printf(module_class_code, "    %s", nativecall);
+    Printf(module_class_code, "  }\n\n");
   
     Delete(shadowrettype);
     Delete(nativecall);
@@ -1833,7 +1798,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
     return is_java_class;
   }
 
-  /* Helper function for generating the shadow / primitive wrapper functions.
+  /* Helper function for generating the shadow / module class wrapper functions.
    * Inputs: 
    * n - Node
    * p - parameter node
@@ -1923,6 +1888,72 @@ swig_java(void) {
 
 
 
+
+/* TODO
+ * strlen -> Len
+ * fix arrays in constructor
+ * change all 0 to NULL
+ * use Replaceall and SwigType_isarray instead of T_ARRAY
+ * SwigType *JAVA::getArrayType(SwigType *t) might be in the internals now
+ * change name of is_shadow()??
+ * Change variable names to reflect new names that will go in documentation - eg JNI interface class.
+ * Make all variables private not file scope
+ *
+ * Generate SWIGAToB C++ casting functions for classes in inheritance chain when -noproxy being used. - tidy up emitShadowClassDefAndCPPCasts wrt shadow flag.
+ *
+ * change -shadow to -proxy (-noproxy) in all makefiles
+ *
+ *         Possible to remove is_shadow and replace with SwigType_isclass() or classLookup ??
+ *
+ * Should generate a non-wrapped base class to wrapped derived class c++ conversion function.
+ *
+ * Add comment into java.swg that the 2 ARRAYSOFCLASS typemaps only get applied for proxy classes.
+ *
+ * Check classes with underscores will work correctly, especially in inheritance chain, ie new SWIGAToB() calls.
+ *
+ * Think about using custom typemaps and whether it will all hang together - will the primitive and jni interface classes be okay?
+ * module class needs changing to JNIinterface and primitive class needs changing to module class
+ *
+ * check pointer library
+ *
+ * Things to solve:
+ * Backward compatibility - need pragmas to rename class
+ * Single base class for all the SWIGTYPEs? - not possible with proxy classes.
+ *
+ * Document these fixes:
+ *  Square** was incorrectly using a Square in shadow class, should be a long (or new SWIGTYPE_p_p_Square.)
+ *  non-unique parameter names - only occurs when 2 typemaps of the same named typemaps are used, eg pointer example
+ *
+ *  Add to test-suite some of the tests out of javaclass, eg Class** cpp[] - could add a whole testcase full of not wrapped types, eg enums pointers references and combinations of these
+ *  Add in a runtime typedef example, based on cpp_typedef.i - I reckon that python and other scripting langs won't work with this - check. It doesn't seem to like things that are not pointers.
+ *  Explain what $javaclassname does now
+ *  jstype typemaps now for SWIGTYPES and shadow classes
+ *
+ * Documentation:
+ *  Memory leaks if not -proxy used.
+ *  Because the shadow class is a wrapper around a pointer, a shadow class can be passed to a function that would take a class/struct by value or a pointer or a reference - SWIG treats references pointers.
+ *  dynamic_cast - use helper function, mentioned in python section on pointers.
+ *  void* pointers - use wrapper constructor -> new SWIGTYPE_p_void(cls.getCPtr(), false);
+ *  null pointers - use wrapper constructor -> new cls(0, false);
+ *
+ *  the following pragmas have changed name from moduleXXX to jniclassXXX
+    modulebase
+    modulecode
+    moduleclassmodifiers
+    moduleimport
+    moduleinterface
+    modulemethodmodifiers
+ *
+ * Incompatibilities:
+ *  enums and constants in the module class have moved to the Primitive class
+ *  If never defined a jstype and not using shadow classes, ie just a jtype then need to define one now.
+ *  Some arrays are treated differently, eg arrays of int*, arrays of enum*, arrays of not wrapped* - but this last one was wrong anyway!
+ *  %native - will have to change JNI function name to include modulenameJNI rather than just modulename [this falls under the pragma to change the JNI interface class name]
+ *  eg JNIEXPORT jstring JNICALL Java_exampleJNI_point_1toString2(JNIEnv *jenv, jclass jcls, jlong jpoint);
+ *     JNIEXPORT jstring JNICALL Java_example_point_1toString2(JNIEnv *jenv, jclass jcls, jlong jpoint);
+ *
+ *
+ */
 
 
 
