@@ -283,9 +283,18 @@ GUILE::emit_linkage (char *module_name)
   case GUILE_LSTYLE_LTDLMOD:
     Printf (f_init, "\n/* Linkage: ltdlmod */\n");
     Replace(module_func,"/", "_", DOH_REPLACE_ANY);
-    Insert(module_func,0, "scm_init");
+    Insert(module_func,0, "scm_init_");
     Append(module_func,"_module");
-    /* TODO */
+    Printf (f_init, "SCM\n%s (void)\n{\n", module_func);
+    {
+      DOHString *mod = NewString(module_name);
+      Replace(mod,"/", " ", DOH_REPLACE_ANY);
+      Printf (f_init, "    scm_register_module_xxx (\"%s\", (void *) SWIG_init);\n",
+               mod);
+      Printf (f_init, "    return SCM_UNSPECIFIED;\n");
+      Delete(mod);
+    }
+    Printf (f_init, "}\n");
     break;
   case GUILE_LSTYLE_HOBBIT:
     Printf (f_init, "\n/* Linkage: hobbit */\n");
