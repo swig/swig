@@ -36,7 +36,7 @@ PYTHONKW(yield);
 
 #undef PYTHONKW
 
-#define PYTHONBN(x) %namewarn("315:" #x " is a bad name in python")  #x
+#define PYTHONBN(x) %namewarn("315:" #x " is a bad global name in python")  "::"#x
 
 /* recurrent built-in functions */
 PYTHONBN(close);
