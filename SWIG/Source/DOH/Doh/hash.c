@@ -448,6 +448,36 @@ CopyHash(DOH *ho) {
     return DohObjMalloc(DOHTYPE_HASH, nh);
 }
 
+
+
+void Hash_setfile(DOH *ho, DOH *file) {
+  DOH *fo;
+  Hash *h = (Hash *) ObjData(ho);
+
+  if (!DohCheck(file)) {
+    fo = NewString(file);
+    Decref(fo);
+  } else fo = file;
+  Incref(fo);
+  Delete(h->file);
+  h->file = fo;
+}
+
+DOH *Hash_getfile(DOH *ho) {
+  Hash *h = (Hash *) ObjData(ho);
+  return h->file;
+}
+
+void Hash_setline(DOH *ho, int line) {
+  Hash *h = (Hash *) ObjData(ho);
+  h->line = line;
+}
+
+int Hash_getline(DOH *ho) {
+  Hash *h = (Hash *) ObjData(ho);
+  return h->line;
+}
+
 /* -----------------------------------------------------------------------------
  * type information
  * ----------------------------------------------------------------------------- */
@@ -471,10 +501,10 @@ static DohObjInfo HashType = {
     Hash_len,        /* doh_len */
     0,               /* doh_hash    */
     0,               /* doh_cmp */
-    0,               /* doh_setfile */
-    0,               /* doh_getfile */
-    0,               /* doh_setline */
-    0,               /* doh_getline */
+    Hash_setfile,               /* doh_setfile */
+    Hash_getfile,               /* doh_getfile */
+    Hash_setline,               /* doh_setline */
+    Hash_getline,               /* doh_getline */
     &HashHashMethods, /* doh_mapping */
     0,                /* doh_sequence */
     0,                /* doh_file */
