@@ -934,9 +934,7 @@ configure_substituted_files=`echo	\
     Makefile				\
     Runtime/Makefile			\
     Source/Include/swigver.h		\
-    Source/LParse/Makefile		\
     Source/CParse/Makefile		\
-    Source/Modules/Makefile		\
     Source/Modules1.1/Makefile		\
     Source/Preprocessor/Makefile	\
     Source/Swig/Makefile		\
