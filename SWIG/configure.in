@@ -467,7 +467,7 @@ PYPACKAGE=
 
 AC_ARG_WITH(python,[  --with-python=path       Set location of Python executable],[ PYBIN="$withval"], [PYBIN=])
 
-# First figure out what the name of the Python executable
+# First figure out the name of the Python executable
 
 if test -z "$PYBIN"; then
 AC_CHECK_PROGS(PYTHON, $prefix/bin/python python python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python)
@@ -959,15 +959,24 @@ else
 	PIKE="$PIKEBIN"
 fi
 
+# Check for a --with-pikeincl option to configure
+PIKEINCLUDE=
+AC_ARG_WITH(pikeincl,[  --with-pikeincl=path     Set location of Pike include directory],[
+	PIKEINCLUDE="-I$withval"], [PIKEINCLUDE=])
+
 AC_MSG_CHECKING(for Pike header files)
+if test -z "$PIKEINCLUDE"; then
 if test -n "$PIKE"; then
 	PIKEPATH=`which $PIKE`
 	PIKEINCLUDE=`$PIKE Tools/check-include-path.pike $PIKEPATH`
  	AC_MSG_RESULT($PIKEINCLUDE)
 	PIKEINCLUDE="-I$PIKEINCLUDE"
+fi
+if test -z "$PIKEINCLUDE"; then
+    	AC_MSG_RESULT(not found)
+fi
 else
-	AC_MSG_RESULT(could not figure out how to run Pike)
-	PIKEINCLUDE="-I/usr/local/pike/7.2.239/include/pike"
+        AC_MSG_RESULT($PIKEINCLUDE)
 fi
 
 AC_SUBST(PIKEINCLUDE)
