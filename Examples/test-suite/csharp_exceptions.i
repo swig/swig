@@ -156,14 +156,53 @@ unsigned short ushorttest() { return 100; }
   }
 %}
 
+// test all the types of exceptions
+%typemap(check, canthrow=1) UnmanagedExceptions {
+  switch($1) {
+    case UnmanagedApplicationException:          SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException,        "msg"); return $null; break;
+    case UnmanagedArithmeticException:           SWIG_CSharpSetPendingException(SWIG_CSharpArithmeticException,         "msg"); return $null; break;
+    case UnmanagedDivideByZeroException:         SWIG_CSharpSetPendingException(SWIG_CSharpDivideByZeroException,       "msg"); return $null; break;
+    case UnmanagedIndexOutOfRangeException:      SWIG_CSharpSetPendingException(SWIG_CSharpIndexOutOfRangeException,    "msg"); return $null; break;
+    case UnmanagedInvalidOperationException:     SWIG_CSharpSetPendingException(SWIG_CSharpInvalidOperationException,   "msg"); return $null; break;
+    case UnmanagedIOException:                   SWIG_CSharpSetPendingException(SWIG_CSharpIOException,                 "msg"); return $null; break;
+    case UnmanagedNullReferenceException:        SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException,      "msg"); return $null; break;
+    case UnmanagedOutOfMemoryException:          SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException,        "msg"); return $null; break;
+    case UnmanagedOverflowException:             SWIG_CSharpSetPendingException(SWIG_CSharpOverflowException,           "msg"); return $null; break;
+    case UnmanagedSystemException:               SWIG_CSharpSetPendingException(SWIG_CSharpSystemException,             "msg"); return $null; break;
+    case UnmanagedArgumentException:             SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException,           "msg", "parm"); return $null; break;
+    case UnmanagedArgumentNullException:         SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException,       "msg", "parm"); return $null; break;
+    case UnmanagedArgumentOutOfRangeException:   SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, "msg", "parm"); return $null; break;
+  }
+}
+%inline %{
+enum UnmanagedExceptions {
+  UnmanagedApplicationException,
+  UnmanagedArithmeticException,
+  UnmanagedDivideByZeroException,
+  UnmanagedIndexOutOfRangeException,
+  UnmanagedInvalidOperationException,
+  UnmanagedIOException,
+  UnmanagedNullReferenceException,
+  UnmanagedOutOfMemoryException,
+  UnmanagedOverflowException,
+  UnmanagedSystemException,
+  UnmanagedArgumentException,
+  UnmanagedArgumentNullException,
+  UnmanagedArgumentOutOfRangeException,
+};
+
+void check_exception(UnmanagedExceptions e) {
+}
+%}
+
 // exceptions in multiple threads test
 %exception ThrowsClass::ThrowException(long long input) {
   try {
     $action
   } catch (long long d) {
     char message[64];
-    sprintf(message, "%lld", d);
-    SWIG_CSharpSetPendingException(SWIG_CSharpArgumentOutOfRangeException, message);
+    sprintf(message, "caught:%lld", d);
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, message, "input");
   }
 }
 %inline %{

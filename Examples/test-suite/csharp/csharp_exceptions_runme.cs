@@ -27,26 +27,26 @@ public class runme
       try {
         csharp_exceptions.ExceptionSpecificationValue();
         testFailed = true;
-      } catch (SystemException) {
+      } catch (ApplicationException) {
       }
       if (testFailed) throw new Exception("ExceptionSpecificationValue not working");
       try {
         csharp_exceptions.ExceptionSpecificationReference();
         testFailed = true;
-      } catch (SystemException) {
+      } catch (ApplicationException) {
       }
       if (testFailed) throw new Exception("ExceptionSpecificationReference not working");
       try {
         csharp_exceptions.ExceptionSpecificationString();
         testFailed = true;
-      } catch (SystemException e) {
+      } catch (ApplicationException e) {
         if (e.Message != "ExceptionSpecificationString") throw new Exception("ExceptionSpecificationString unexpected message: " + e.Message);
       }
       if (testFailed) throw new Exception("ExceptionSpecificationString not working");
       try {
         csharp_exceptions.ExceptionSpecificationInteger();
         testFailed = true;
-      } catch (SystemException e) {
+      } catch (ApplicationException e) {
       }
       if (testFailed) throw new Exception("ExceptionSpecificationInteger not working");
 
@@ -66,13 +66,13 @@ public class runme
       try {
         csharp_exceptions.ExceptionSpecificationEnumValue();
         testFailed = true;
-      } catch (SystemException) {
+      } catch (ApplicationException) {
       }
       if (testFailed) throw new Exception("ExceptionSpecificationEnumValue not working");
       try {
         csharp_exceptions.ExceptionSpecificationEnumReference();
         testFailed = true;
-      } catch (SystemException) {
+      } catch (ApplicationException) {
       }
       if (testFailed) throw new Exception("ExceptionSpecificationEnumReference not working");
 
@@ -90,14 +90,14 @@ public class runme
       try {
         csharp_exceptions.ExceptionSpecificationStdStringValue();
         testFailed = true;
-      } catch (SystemException e) {
+      } catch (ApplicationException e) {
         if (e.Message != "ExceptionSpecificationStdStringValue") throw new Exception("ExceptionSpecificationStdStringValue unexpected message: " + e.Message);
       }
       if (testFailed) throw new Exception("ExceptionSpecificationStdStringValue not working");
       try {
         csharp_exceptions.ExceptionSpecificationStdStringReference();
         testFailed = true;
-      } catch (SystemException e) {
+      } catch (ApplicationException e) {
         if (e.Message != "ExceptionSpecificationStdStringReference") throw new Exception("ExceptionSpecificationStdStringReference unexpected message: " + e.Message);
       }
       if (testFailed) throw new Exception("ExceptionSpecificationStdStringReference not working");
@@ -114,12 +114,12 @@ public class runme
       try {
         constructor c = new constructor(null);
         throw new Exception("constructor 1 not working");
-      } catch (SystemException e) {
+      } catch (NullReferenceException e) {
       }
       try {
         constructor c = new constructor();
         throw new Exception("constructor 2 not working");
-      } catch (SystemException e) {
+      } catch (ApplicationException e) {
       }
 
       // test exception pending in the csout typemaps
@@ -185,6 +185,91 @@ public class runme
       if (csharp_exceptions.exception_macro_run_flag)
         throw new Exception("exceptionmacrotest was executed");
 
+      // test all the types of exceptions
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedApplicationException);
+        throw new Exception("ApplicationException not caught");
+      } catch (ApplicationException e) {
+        if (e.Message != "msg") throw new Exception("ApplicationException msg incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedArithmeticException);
+        throw new Exception("ArithmeticException not caught");
+      } catch (ArithmeticException e) {
+        if (e.Message != "msg") throw new Exception("ArithmeticException msg incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedDivideByZeroException);
+        throw new Exception("DivideByZeroException not caught");
+      } catch (DivideByZeroException e) {
+        if (e.Message != "msg") throw new Exception("DivideByZeroException msg incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedIndexOutOfRangeException);
+        throw new Exception("IndexOutOfRangeException not caught");
+      } catch (IndexOutOfRangeException e) {
+        if (e.Message != "msg") throw new Exception("IndexOutOfRangeException msg incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedInvalidOperationException);
+        throw new Exception("InvalidOperationException not caught");
+      } catch (InvalidOperationException e) {
+        if (e.Message != "msg") throw new Exception("InvalidOperationException msg incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedIOException);
+        throw new Exception("IOException not caught");
+      } catch (System.IO.IOException e) {
+        if (e.Message != "msg") throw new Exception("IOException msg incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedNullReferenceException);
+        throw new Exception("NullReferenceException not caught");
+      } catch (NullReferenceException e) {
+        if (e.Message != "msg") throw new Exception("NullReferenceException msg incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedOutOfMemoryException);
+        throw new Exception("OutOfMemoryException not caught");
+      } catch (OutOfMemoryException e) {
+        if (e.Message != "msg") throw new Exception("OutOfMemoryException msg incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedOverflowException);
+        throw new Exception("OverflowException not caught");
+      } catch (OverflowException e) {
+        if (e.Message != "msg") throw new Exception("OverflowException msg incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedSystemException);
+        throw new Exception("SystemException not caught");
+      } catch (SystemException e) {
+        if (e.Message != "msg") throw new Exception("SystemException msg incorrect");
+      }
+
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedArgumentException);
+        throw new Exception("ArgumentException not caught");
+      } catch (ArgumentException e) {
+        if (e.Message != "msg\nParameter name: parm") throw new Exception("ArgumentException msg incorrect");
+        if (e.ParamName != "parm") throw new Exception("ArgumentException parm incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedArgumentNullException);
+        throw new Exception("ArgumentNullException not caught");
+      } catch (ArgumentNullException e) {
+        if (e.Message != "msg\nParameter name: parm") throw new Exception("ArgumentNullException msg incorrect");
+        if (e.ParamName != "parm") throw new Exception("ArgumentNullException parm incorrect");
+      }
+      try {
+        csharp_exceptions.check_exception(UnmanagedExceptions.UnmanagedArgumentOutOfRangeException);
+        throw new Exception("ArgumentOutOfRangeException not caught");
+      } catch (ArgumentOutOfRangeException e) {
+        if (e.Message != "msg\nParameter name: parm") throw new Exception("ArgumentOutOfRangeException msg incorrect");
+        if (e.ParamName != "parm") throw new Exception("ArgumentOutOfRangeException parm incorrect");
+      }
+
+
       // exceptions in multiple threads test
       {
         ThrowsClass throwsClass = new ThrowsClass(1234.5678);
@@ -224,10 +309,11 @@ public class TestThread {
            throwsClass.ThrowException(i);
            throw new Exception("No exception thrown");
          } catch (ArgumentOutOfRangeException e) {
-           String expectedMessage = "Argument is out of range.\nParameter name: " + i;
-           if (e.Message != expectedMessage) {
+           String expectedMessage = "caught:" + i + "\n" + "Parameter name: input";
+           if (e.Message != expectedMessage)
              throw new Exception("Exception message incorrect. Expected:\n[" + expectedMessage + "]\n" + "Received:\n[" + e.Message + "]");
-           }
+           if (e.ParamName != "input")
+             throw new Exception("Exception ParamName incorrect. Expected:\n[input]\n" + "Received:\n[" + e.ParamName + "]");
          }
          if (throwsClass.dub != 1234.5678) // simple check which attempts to catch memory corruption
            throw new Exception("throwsException.dub = " + throwsClass.dub + " expected: 1234.5678");
