@@ -436,7 +436,7 @@ public:
 	/* Temporary hack. Can't do inside a class because it breaks
 	   C nested structure wrapping */
 
-	if (!inclass) {
+      if ((!inclass) || (CPlusPlus)) { 
 	    String *name = Getattr(n,"name");
 	    String *nname;
 	    SwigType_typedef_class(name);
