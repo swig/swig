@@ -1607,6 +1607,10 @@ void SwigType_remember(SwigType *t) {
     lt = SwigType_ltype(t);
   Setattr(r_ltype, mt, lt);
   fr = SwigType_typedef_resolve_all(t);     /* Create fully resolved type */
+
+  /* Added to deal with possible table bug */
+  fr = SwigType_strip_qualifiers(fr);
+
   /*  Printf(stdout,"%s ---> %s\n", t, fr); */
 
   h = Getattr(r_mangled,mt);
