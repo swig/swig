@@ -30,6 +30,16 @@ void   yyerror (char *s);
 
 static DOH      *top = 0;
 
+ /* Set parent node of a collection of children */
+ static void setparent(DOH *parent, DOH *child) {
+   DOH *o;
+   o = child;
+   while (o) {
+     Setattr(o,"parent",parent);
+     o = Getattr(o,"sibling");
+   }
+ }
+
 /* LParse_parse() - Main entry point to the C parser */
  DOH *LParse_parse(DOH *str) {
    int yyparse();
@@ -41,6 +51,7 @@ static DOH      *top = 0;
    Setattr(tp, "name", Getfile(str));
    yyparse();
    Setattr(tp, "child", top);
+   setparent(tp,top);
    return tp;
  }
 
@@ -228,8 +239,10 @@ statement      : swig_directive { $$ = $1; }
                | c_declaration { $$ = $1; }
                | LBRACE interface RBRACE {
 		 $$ = new_node("scope",$1.filename,$1.line);
-		 if ($2)
+		 if ($2) {
 		   Setattr($$,"child",$2);
+		   setparent($$,$2);
+		 }
                }
                | SEMI { $$ = 0; }
                | error { $$ = 0; }
@@ -323,6 +336,7 @@ file_include   : file_include_type STRING LBRACE {
 		    LParse_set_location($3.filename,$3.line + 1);
 		    if ($5) {
 		      Setattr($$,"child",$5);
+		      setparent($$,$5);
 		    }
                }
 
@@ -480,6 +494,7 @@ native_directive : NATIVE LBRACE interface RBRACE {
                       $$ = new_node("nativedirective",$1.filename,$1.line);
 		      if ($3) {
 			Setattr($$,"child",$3);
+			setparent($$,$3);
 		      }
                 }
                 ;
@@ -901,6 +916,7 @@ enum_decl      : storage_spec ENUM ename LBRACE enumlist RBRACE SEMI {
                     $$ = new_node("enum", $2.filename,$2.line);
 		    Setattr($$,"name",$2.text);
 		    Setattr($$,"child",$5);
+		    setparent($$,$5);
 		    /* Add typename */
                  }
 
@@ -910,6 +926,7 @@ enum_decl      : storage_spec ENUM ename LBRACE enumlist RBRACE SEMI {
    		   $$ = new_node("enum",$2.filename,$2.line);
 		   Setattr($$,"name",$3.text);
 		   Setattr($$,"child",$5);
+		   setparent($$,$5);
 		   /* Add typedef for enum */
 		   {
 		     DOH *o;
@@ -1045,6 +1062,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 		   Setattr($$,"name",$3.text);
 		   Setattr($$,"bases", $4);
 		   Setattr($$,"child",$6);
+		   setparent($$,$6);
 		   if ($8.text) {
 		     Setattr($$,"variable",$8.text);
 		   }
@@ -1054,6 +1072,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 		  $$ = new_node("class",$3.filename,$3.line);
 		  Setattr($$,"classtype",$2.text);
 		  Setattr($$,"child",$4);
+		  setparent($$,$4);
 		  if ($6.text)
 		    Setattr($$,"variable",$6.text);
               }
@@ -1066,6 +1085,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 	       Setattr($$,"name",$3.text);
 	       Setattr($$,"bases",$4);
 	       Setattr($$,"child",$6);
+	       setparent($$,$6);
 	       if (Len($8.decl) == 0)
 		 Setattr($$,"altname",$8.id);
 	       
@@ -1101,6 +1121,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 	       $$ = new_node("class",$3.filename,$3.line);
 	       Setattr($$,"classtype",$2.text);
 	       Setattr($$,"child",$4);
+	       setparent($$,$4);
 	       if (Len($6.decl) == 0)
 		 Setattr($$,"altname",$6.id);
 	       }
@@ -1215,6 +1236,7 @@ cpp_other    :/* A dummy class name */
 		if ($1.text)
 		  Setattr($$,"name",$1.text);
 		Setattr($$,"child",$4);
+		setparent($$,$4);
              }
 
 opt_id       : ID { $$ = $1; }
