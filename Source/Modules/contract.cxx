@@ -432,8 +432,8 @@ int Contracts::AssertAddErrorMsg(Node *n) {
   str_assert = NewString(Getattr(n, "feature:preassert"));
   Replaceall(str_assert, ");\n", "");
   if (Len(str_assert)) {
-    error_msg = NewString("\\nRequire assertion violation, ");
-    Printf(error_msg, "in function of <<%s>>\\n", Getattr(n, "name"));
+    error_msg = NewString("Require assertion violation, ");
+    Printf(error_msg, "in function %s", Getattr(n, "name"));
     Printf(str_assert, ", \"%s\");\n", error_msg);
     Setattr(n, "feature:preassert", str_assert);
     Delete(error_msg);
@@ -444,8 +444,8 @@ int Contracts::AssertAddErrorMsg(Node *n) {
   str_assert = NewString(Getattr(n, "feature:inherit_preassert"));
   Replaceall(str_assert, ");\n", "");
   if (Len(str_assert)) {
-    error_msg = NewString("\\nInherited require assertion violation, ");
-    Printf(error_msg, "in function of <<%s>>\\n", Getattr(n, "name"));
+    error_msg = NewString("Inherited require assertion violation, ");
+    Printf(error_msg, "in function %s", Getattr(n, "name"));
     Printf(str_assert, ", \"%s\");\n", error_msg);
     Setattr(n, "feature:inherit_preassert", str_assert);
     Delete(error_msg);
@@ -456,8 +456,8 @@ int Contracts::AssertAddErrorMsg(Node *n) {
   str_assert = NewString(Getattr(n, "feature:postassert"));
   Replaceall(str_assert, ");\n", "");
   if (Len(str_assert)) {
-    error_msg = NewString("\\nEnsure assertion violation, ");
-    Printf(error_msg, "in function of <<%s>>\\n", Getattr(n, "name"));
+    error_msg = NewString("Ensure assertion violation, ");
+    Printf(error_msg, "in function of %s", Getattr(n, "name"));
     Printf(str_assert, ", \"%s\");\n", error_msg);
     Setattr(n, "feature:postassert", str_assert);
     Delete(error_msg);
@@ -468,8 +468,8 @@ int Contracts::AssertAddErrorMsg(Node *n) {
   str_assert = NewString(Getattr(n, "feature:inherit_postassert"));
   Replaceall(str_assert, ");\n", "");
   if (Len(str_assert)) {
-    error_msg = NewString("\\nInherited ensure assertion violation, ");
-    Printf(error_msg, "in function of <<%s>>\\n", Getattr(n, "name"));
+    error_msg = NewString("Inherited ensure assertion violation, ");
+    Printf(error_msg, "in function of %s", Getattr(n, "name"));
     Printf(str_assert, ", \"%s\");\n", error_msg);
     Setattr(n, "feature:inherit_postassert", str_assert);
     Delete(error_msg);
@@ -480,8 +480,8 @@ int Contracts::AssertAddErrorMsg(Node *n) {
   str_assert = NewString(Getattr(n, "feature:invariant"));
   Replaceall(str_assert, ");\n", "");
   if (Len(str_assert)) {
-    error_msg = NewString("\\nInvariant assertion violation, ");
-    Printf(error_msg, "in function of <<%s>>\\n", Getattr(n, "name"));
+    error_msg = NewString("Invariant assertion violation, ");
+    Printf(error_msg, "in function of %s", Getattr(n, "name"));
     Printf(str_assert, ", \"%s\");\n", error_msg);
     Setattr(n, "feature:invariant", str_assert);
     Delete(error_msg);
@@ -557,6 +557,11 @@ int Contracts::emit_contract(Node *n) {
   }
   /* Add tags and error msgs later when emit,
      and keep assertions as experisions in the parse tree */ 
+  
+  AssertAddTag(n);
+  AssertAddErrorMsg(n);
+  AssertSetParms(n);
+
   return ret;
 }
 
