@@ -32,8 +32,6 @@ typedef void DOH;
 #define DOH_END      -2
 #define DOH_CUR      -3
 
-#define DOH_MAGIC  0x04
-
 /* -----------------------------------------------------------------------------
  * Object classes
  * ----------------------------------------------------------------------------- */
@@ -101,8 +99,19 @@ typedef struct DohObjInfo {
   void               *reserved2;           /* Number methods     */
   void               *reserved3;           
   void               *reserved4;
-  void               *user[16];            /* User extensions    */
+  void               *reserved5;
+  void               *reserved6;
+  void               *user1;
+  void               *user2;
+  void               *user3;
+  void               *user4;
 } DohObjInfo;
+
+/* Memory management */
+extern void   *DohMalloc(int size);     
+extern void    DohFree(DOH *ptr);
+extern int     DohCheck(DOH *ptr);
+extern int     DohFreeCheck(DOH *ptr);
 
 /* Low-level doh methods.  Do not call directly (well, unless you want to). */
 
@@ -135,7 +144,6 @@ extern int     DohGetline(DOH *obj);
 extern void    DohSetline(DOH *obj, int line);
 extern DOH    *DohGetfile(DOH *obj);
 extern void    DohSetfile(DOH *obj, DOH *file);
-extern int     DohCheck(DOH *obj);
 extern void    DohInit(DOH *obj);
 
 /* File methods */
@@ -201,8 +209,6 @@ extern int     DohvScanf(DOH *obj, char *format, va_list ap);
  * ----------------------------------------------------------------------------- */
 
 #define  DOHCOMMON      \
-   char           magic; \
-   char           moremagic[3]; \
    DohObjInfo    *objinfo; \
    int            refcount; \
    int            line; \

@@ -75,7 +75,7 @@ static DohFileMethods StringFileMethods = {
 
 static DohObjInfo StringType = {
     "String",          /* objname */
-    0,
+    sizeof(String),    /* objsize */
     DelString,         /* sm_del */
     CopyString,        /* sm_copy */
     String_clear,      /* sm_clear */
@@ -114,7 +114,7 @@ NewString(char *s)
 {
     int l, max;
     String *str;
-    str = (String *) malloc(sizeof(String));
+    str = (String *) DohMalloc(sizeof(String));
     DohInit(str);
     str->objinfo = &StringType;
     str->hashkey = -1;
@@ -147,7 +147,7 @@ CopyString(DOH *so) {
   int l, max;
   String *str;
   s = (String *) so;
-  str = (String *) malloc(sizeof(String));
+  str = (String *) DohMalloc(sizeof(String));
   DohInit(str);
   str->objinfo = &StringType;
   str->hashkey = -1;
@@ -171,7 +171,7 @@ DelString(DOH *so) {
   s = (String *) so;
   assert(s->refcount <= 0);
   free(s->str);
-  free(s);
+  DohFree(s);
 }
 
 /* -----------------------------------------------------------------------------
@@ -182,7 +182,7 @@ String_check(DOH *s)
 {
   char *c = (char *) s;
   if (!s) return 0;
-  if (*c == DOH_MAGIC) {
+  if (DohCheck(s)) {
     if (((String *) c)->objinfo == &StringType)
       return 1;
     return 0;

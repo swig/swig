@@ -83,7 +83,7 @@ static DohMappingMethods HashMappingMethods = {
 
 static DohObjInfo HashType = {
     "Hash",          /* objname */
-    0,
+    sizeof(Hash),    /* size */
     DelHash,         /* sm_del */
     CopyHash,        /* sm_copy */
     Hash_clear,      /* sm_clear */
@@ -108,7 +108,7 @@ DohObjInfo *Hash_type() {
 int Hash_check(DOH *so) {
     Hash *h = (Hash *) so;
     if (!h) return 0;
-    if (h->magic != DOH_MAGIC) return 0;
+    if (!DohCheck(so)) return 0;
     if (h->objinfo != &HashType) return 0;
     return 1;
 }
@@ -120,7 +120,7 @@ int Hash_check(DOH *so) {
 DOH *NewHash() {
     Hash *h;
     int   i;
-    h = (Hash *) malloc(sizeof(Hash));
+    h = (Hash *) DohMalloc(sizeof(Hash));
     DohInit(h);
     h->hashsize = HASH_INIT_SIZE;
     h->hashtable = (HashNode **) malloc(h->hashsize*sizeof(HashNode *));
@@ -145,7 +145,7 @@ DOH *CopyHash(DOH *ho) {
     DOH *key;
 
     h = (Hash *) ho;
-    nh = (Hash *) malloc(sizeof(Hash));
+    nh = (Hash *) DohMalloc(sizeof(Hash));
     DohInit(nh);
 
     nh->hashsize = h->hashsize;
@@ -190,7 +190,7 @@ void DelHash(DOH *ho)
 	}
     }
     free(h->hashtable);
-    free(h);
+    DohFree(h);
 }
 
 /* -----------------------------------------------------------------------------
