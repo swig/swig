@@ -5,6 +5,7 @@ arrays
 arrays_global
 casts
 char_constant
+class_ignore
 constant_pointers
 constover
 const_const
@@ -17,6 +18,7 @@ cpp_nodefault
 cpp_static
 cpp_typedef
 default_constructor
+default_ref
 defineop
 defines
 dynamic_cast
@@ -31,6 +33,8 @@ macro_2
 minherit
 name
 name_cxx
+namespace_template
+namespace_typemap
 nested
 pointer_cxx
 pointer_reference
