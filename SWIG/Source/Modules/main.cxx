@@ -27,7 +27,7 @@ char cvsroot_main_cxx[] = "$Header$";
 
 // Global variables
 
-    char       LibDir[512];                      // Library directory
+    char       LibDir[512];                     // Library directory
     Language  *lang;                            // Language method
     int        CPlusPlus = 0;
     int        Extend = 0;                      // Extend flag
@@ -55,7 +55,7 @@ static const char *usage1 = (const char*)"\
      -E              - Preprocess only, does not generate wrapper code\n\
      -fcompact       - Compile in compact mode\n\
      -features list  - Set a list of global features, where the syntax list is \n\
-                         -features directors,autodoc=1      \n\
+                       -features directors,autodoc=1      \n\
                        if not explicit value is given to the feature, a '1' is used \n\
      -fvirtual       - Compile in virtual elimination mode\n\
      -Fstandard      - Display error/warning messages in commonly used format\n\
@@ -68,7 +68,10 @@ static const char *usage1 = (const char*)"\
      -includeall     - Follow all #include statements\n\
      -l<ifile>       - Include SWIG library file <ifile>\n\
      -M              - List all dependencies \n\
+     -MD             - Is equivalent to `-M -MF <file>', except `-E' is not implied\n\
+     -MF <file>      - Generate dependencies into <file> and continue generating wrappers \n\
      -MM             - List dependencies, but omit files in SWIG library\n\
+     -MMD            - Like `-MD', but omit files in SWIG library\n\
 ";
 // usage string split in two otherwise string is too big for some compilers
 static const char *usage2 = (const char*)"\
@@ -99,6 +102,7 @@ static int     freeze = 0;
 static String  *lang_config = 0;
 static char    *hpp_extension = (char *) "h";
 static char    *cpp_extension = (char *) "cxx";
+static char    *depends_extension = (char *) "d";
 static String  *outdir = 0;
 static String  *xmlout = 0;
 static int     help = 0;
@@ -115,10 +119,13 @@ static int     dump_typedef = 0;
 static int     dump_classes = 0;
 static int     werror = 0;
 static int     depend = 0;
+static int     depend_only = 0;
 static int     memory_debug = 0;
 static int     allkw = 0;
 static DOH    *libfiles = 0;
 static DOH    *cpps = 0 ;
+static String  *dependencies_file = 0;
+static File    *f_dependencies_file = 0;
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
@@ -347,12 +354,17 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Swig_mark_arg(i);
 	    if (argv[i+1]) {
 	      outfile_name = Swig_copy_string(argv[i+1]);
-	      if (!outfile_name_h) {
+	      if (!outfile_name_h || !dependencies_file) {
 		char *ext = strrchr(outfile_name, '.');
 		String *basename = ext ? NewStringWithSize(outfile_name,ext-outfile_name) : NewString(outfile_name);
-		Printf(basename, ".%s", hpp_extension);
-		outfile_name_h = Swig_copy_string(Char(basename));
-		Delete(basename);
+                if (!dependencies_file) {
+                  dependencies_file = NewStringf("%s.%s", basename, depends_extension);
+                }
+                if (!outfile_name_h) {
+                  Printf(basename, ".%s", hpp_extension);
+                  outfile_name_h = Swig_copy_string(Char(basename));
+                  Delete(basename);
+                }
 	      }
 	      Swig_mark_arg(i+1);
 	      i++;
@@ -417,8 +429,24 @@ void SWIG_getoptions(int argc, char *argv[])
 	    }
 	  } else if (strcmp(argv[i],"-M") == 0) {
 	    depend = 1;
+	    depend_only = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-MM") == 0) {
+	    depend = 2;
+	    depend_only = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-MF") == 0) {
+	    Swig_mark_arg(i);
+	    if (argv[i+1]) {
+	      dependencies_file = NewString(argv[i+1]);	    
+	      Swig_mark_arg(i+1);
+	    } else {
+	      Swig_arg_error();
+	    }
+	  } else if (strcmp(argv[i],"-MD") == 0) {
+	    depend = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-MMD") == 0) {
 	    depend = 2;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-outdir") == 0) {
@@ -717,15 +745,26 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	} else {
 	  outfile = NewString(outfile_name);
 	}
-	Printf(stdout,"%s: ", outfile);
+	if (dependencies_file && Len(dependencies_file) != 0)
+	  f_dependencies_file = NewFile(dependencies_file,"w");
+	else if (!depend_only) {
+	  String *filename = NewStringf("%s_wrap.%s", Swig_file_basename(input_file), depends_extension);
+	  f_dependencies_file = NewFile(filename,"w");
+	} 
+	else
+	  f_dependencies_file = stdout;
+	Printf(f_dependencies_file,"%s: ", outfile);
 	List *files = Preprocessor_depend();
 	for (int i = 0; i < Len(files); i++) {
 	  if ((depend != 2) || ((depend == 2) && (Strncmp(Getitem(files,i),SwigLib, Len(SwigLib)) != 0))) {
-	    Printf(stdout,"\\\n %s ", Getitem(files,i));
+	    Printf(f_dependencies_file,"\\\n %s ", Getitem(files,i));
 	  }
 	}
-	Printf(stdout,"\n");
-	SWIG_exit(EXIT_SUCCESS);
+	Printf(f_dependencies_file,"\n");
+	if (f_dependencies_file != stdout)
+	  Close(f_dependencies_file);
+	if (depend_only)
+	  SWIG_exit(EXIT_SUCCESS);
       }
       Seek(cpps, 0, SEEK_SET);
     }
