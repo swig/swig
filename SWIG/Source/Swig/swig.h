@@ -424,7 +424,8 @@ extern void   Swig_except_clear();
 #define Getchild(x)        Getattr(x,"child")
 #define Setchild(x,c)      Setattr(x,"child",c)
 
-extern int Swig_main(int argc, char *argv[]);
+extern int Swig_main(int argc, char **argv, char **modules);
+extern void Swig_exit(int n);
 
 #endif
 

@@ -87,7 +87,7 @@ PERL5::parse_args(int argc, char *argv[]) {
   int i = 1;
 
   cmodule = NewString("");
-  strcpy(LibDir,"perl5");
+  Swig_swiglib_set("perl5");
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	  if(strcmp(argv[i],"-package") == 0) {
@@ -157,12 +157,12 @@ PERL5::initialize(String *modname)
 
   if (Swig_insert_file("common.swg", f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error.  Unable to locate 'common.swg' in SWIG library.\n");
-    SWIG_exit (EXIT_FAILURE);
+    Swig_exit (EXIT_FAILURE);
   }
 
   if (Swig_insert_file("perl5.swg", f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error.  Unable to locate 'perl5.swg' in SWIG library.\n");
-    SWIG_exit (EXIT_FAILURE);
+    Swig_exit (EXIT_FAILURE);
   }
 
   if (!module) module = NewString(modname);
@@ -200,7 +200,7 @@ PERL5::initialize(String *modname)
     sprintf(filen,"%s%s.pm", output_dir,m);
     if ((f_pm = fopen(filen,"w")) == 0) {
       Printf(stderr,"Unable to open %s\n", filen);
-      SWIG_exit (EXIT_FAILURE);
+      Swig_exit (EXIT_FAILURE);
     }
   }
   if (!blessed) {

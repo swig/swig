@@ -59,7 +59,7 @@ static DOH *is_shadow(SwigType *t) {
 void
 PYTHON::parse_args(int argc, char *argv[]) {
   int i;
-  strcpy(LibDir,"python");
+  Swig_swiglib_set("python");
 
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -150,11 +150,11 @@ PYTHON::initialize(String *modname) {
 
   if (Swig_insert_file("common.swg", f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate common.swg. (Possible installation problem).\n");
-    SWIG_exit (EXIT_FAILURE);
+    Swig_exit (EXIT_FAILURE);
   }
   if (Swig_insert_file("python.swg", f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate python.swg. (Possible installation problem).\n");
-    SWIG_exit (EXIT_FAILURE);
+    Swig_exit (EXIT_FAILURE);
   }
   
   if (!module) module = NewString(modname);
@@ -168,7 +168,7 @@ PYTHON::initialize(String *modname) {
     Append(module,"c");
     if ((f_shadow = fopen(filen,"w")) == 0) {
       Printf(stderr,"Unable to open %s\n", filen);
-      SWIG_exit (EXIT_FAILURE);
+      Swig_exit (EXIT_FAILURE);
     }
     Printf(f_shadow,"# This file was created automatically by SWIG.\n");
     Printf(f_shadow,"import %s\n", interface ? interface : module);

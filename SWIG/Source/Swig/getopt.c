@@ -111,8 +111,6 @@ Swig_arg_error() {
   Printf(stderr,"Use 'swig -help' for available options.\n");
   exit(1);
 }
-
-
 	
 		
 

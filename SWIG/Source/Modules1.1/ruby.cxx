@@ -150,11 +150,11 @@ void RUBY::parse_args(int argc, char *argv[]) {
     }
   }
   /* Set location of SWIG library */
-  strcpy(LibDir,"ruby");
+  Swig_swiglib_set("ruby");
 
   /* Add a symbol to the parser for conditional compilation */
   Preprocessor_define((void *) "SWIGRUBY", 0);
-  SWIG_config_file("ruby.i");
+  Swig_set_config_file("ruby.i");
 }
 
 
@@ -164,7 +164,7 @@ static void insert_file(char *filename, File *file) {
 	    "SWIG : Fatal error. "
 	    "Unable to locate %s. (Possible installation problem).\n",
 	    filename);
-    SWIG_exit (EXIT_FAILURE);
+    Swig_exit (EXIT_FAILURE);
   }
 }
 

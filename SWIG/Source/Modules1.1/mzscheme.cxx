@@ -51,14 +51,14 @@ MZSCHEME::parse_args (int argc, char *argv[])
 {
   int i;
 
-  sprintf (LibDir, "%s", mzscheme_path);
+  Swig_swiglib_set("mzscheme");
 
   // Look for certain command line options
   for (i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp (argv[i], "-help") == 0) {
 	fputs (mzscheme_usage, stderr);
-	SWIG_exit (0);
+	Swig_exit (0);
       }
       else if (strcmp (argv[i], "-prefix") == 0) {
 	if (argv[i + 1]) {
@@ -116,7 +116,7 @@ MZSCHEME::initialize (String *modname)
     if (Swig_insert_file ("mzscheme.swg", f_header) == -1) {
       Printf (stderr, "SWIG : Fatal error.  ");
       Printf (stderr, "Unable to locate 'mzscheme.swg' in SWIG library.\n");
-      SWIG_exit (1);
+      Swig_exit (1);
     }
   }
 

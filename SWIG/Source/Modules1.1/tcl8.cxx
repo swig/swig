@@ -50,7 +50,7 @@ static Hash      *repeatcmd = 0;
 void
 TCL8::parse_args(int argc, char *argv[]) {
   int i;
-  strcpy(LibDir,"tcl");
+  Swig_swiglib_set("tcl");
 
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -84,7 +84,7 @@ TCL8::parse_args(int argc, char *argv[]) {
 
   Preprocessor_define((void *) "SWIGTCL 1",0);
   Preprocessor_define((void *) "SWIGTCL8 1", 0);
-  SWIG_config_file("tcl8.swg");
+  Swig_set_config_file("tcl8.swg");
 }
 
 /* -----------------------------------------------------------------------------
@@ -109,11 +109,11 @@ TCL8::initialize(String *modname) {
   }
   if (Swig_insert_file("common.swg",f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate 'common.swg' in SWIG library.\n");
-    SWIG_exit (EXIT_FAILURE);
+    Swig_exit (EXIT_FAILURE);
   }
   if (Swig_insert_file("swigtcl8.swg",f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate 'swigtcl8.swg' in SWIG library.\n");
-    SWIG_exit (EXIT_FAILURE);
+    Swig_exit (EXIT_FAILURE);
   }
   if (!module) module = NewString(modname);
 
@@ -947,7 +947,7 @@ TCL8::cpp_open_class(DOH *node) {
     if (!included_object) {
       if (Swig_insert_file("object.swg",f_header) == -1) {
 	Printf(stderr,"SWIG : Fatal error. Unable to locate 'object.swg' in SWIG library.\n");
-	SWIG_exit (EXIT_FAILURE);
+	Swig_exit (EXIT_FAILURE);
       }
       included_object = 1;
     }

@@ -31,7 +31,6 @@ extern  DOH       *f_header;                        // Headers
 extern  DOH       *f_wrappers;                      // Wrappers
 extern  DOH       *f_init;                          // Initialization code
 extern  FILE      *f_input;
-extern  char      LibDir[512];                      // Library directory
 extern  int       CPlusPlus;                        // C++ mode
 extern  int       AddMethods;                       // AddMethods mode
 extern  int       NewObject;                        // NewObject mode
@@ -95,8 +94,6 @@ extern  void  new_create_function(char *, char *, SwigType *, ParmList *);
 extern  void  emit_set_get(DOH *node);
 extern  void  emit_set_action(DOHString_or_char *decl);
 
-extern  int   SWIG_main(int, char **, Language *);
-
 /* These are in the new core */
 extern "C" void *Preprocessor_define(void *, int);
 
@@ -104,7 +101,6 @@ extern "C" void *Preprocessor_define(void *, int);
 
 extern  int   emit_args(DOH *node, Wrapper *f);
 extern  void  emit_func_call(DOH *node, Wrapper *f);
-extern  void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
 extern  int   check_numopt(ParmList *);
 extern  void  SWIG_config_file(const String_or_char *);
 
