@@ -1,6 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
 11/26/2003: beazley
+            Fixed another one of Marcelo's evil template bugs (infinite
+            recursion). [ 849504 ] template and typedef -> inf. recursion.
+
+11/26/2003: beazley
             Fixed parsing problem with declarations like this:
 
 	         int *x = &somearray[0];
