@@ -855,7 +855,7 @@ int
 Language::staticmemberfunctionDeclaration(Node *n) {
 
   Swig_require(n,"*name","*sym:name","*type",0);
-  Swig_save(n,"storage");
+  Swig_save(n,"storage",0);
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
   SwigType *type    = Getattr(n,"type");
