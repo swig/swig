@@ -924,7 +924,7 @@
 %typemap(javabody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
   private long swigCPtr;
 
-  protected $javaclassname(long cPtr, boolean bFutureUse) {
+  protected $javaclassname(long cPtr, boolean futureUse) {
     swigCPtr = cPtr;
   }
 
