@@ -13,4 +13,6 @@
 #define SWIG_TypeName        SWIG_Tcl_TypeName
 #define SWIG_TypeQuery       SWIG_Tcl_TypeQuery
 #define SWIG_TypeClientData  SWIG_Tcl_TypeClientData
+#define SWIG_PackData        SWIG_Tcl_PackData 
+#define SWIG_UnpackData      SWIG_Tcl_UnpackData 
 

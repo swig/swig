@@ -13,4 +13,6 @@
 #define SWIG_TypeName        SWIG_PHP4_TypeName
 #define SWIG_TypeQuery       SWIG_PHP4_TypeQuery
 #define SWIG_TypeClientData  SWIG_PHP4_TypeClientData
+#define SWIG_PackData        SWIG_PHP4_PackData 
+#define SWIG_UnpackData      SWIG_PHP4_UnpackData 
 

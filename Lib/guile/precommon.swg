@@ -13,4 +13,6 @@
 #define SWIG_TypeName        SWIG_Guile_TypeName
 #define SWIG_TypeQuery       SWIG_Guile_TypeQuery
 #define SWIG_TypeClientData  SWIG_Guile_TypeClientData
+#define SWIG_PackData        SWIG_Guile_PackData 
+#define SWIG_UnpackData      SWIG_Guile_UnpackData 
 

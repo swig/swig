@@ -13,4 +13,6 @@
 #define SWIG_TypeName        SWIG_Perl_TypeName
 #define SWIG_TypeQuery       SWIG_Perl_TypeQuery
 #define SWIG_TypeClientData  SWIG_Perl_TypeClientData
+#define SWIG_PackData        SWIG_Perl_PackData 
+#define SWIG_UnpackData      SWIG_Perl_UnpackData 
 
