@@ -50,9 +50,11 @@
 
       When confronted with a large C library, CHICKEN users can use
       SWIG to generate CHICKEN wrappers for the C library.  However,
-      the real advantage of using SWIG with CHICKEN is its
-      <strong>support for C++</strong>; object-oriented code is
-      difficult to wrap by hand in CHICKEN.
+      the real advantages of using SWIG with CHICKEN are its
+      <strong>support for C++</strong> -- object-oriented code is
+      difficult to wrap by hand in CHICKEN -- and its <strong>typed
+      pointer representation</strong>, essential for C and C++
+      libraries involving structures or classes.
       
     </p>      
 
@@ -60,19 +62,21 @@
 
 
     <p>
-      CHICKEN support was introduced to SWIG in version 1.3.18.  SWIG relies
-      on a recent addition to CHICKEN -- the C_TAGGED_POINTER -- which
-      is only present in CVS versions of CHICKEN dated after February
-      11, 2003, and in releases of CHICKEN with version number
-      <strong>greater than</strong> 0.1082.
+      CHICKEN support was introduced to SWIG in version 1.3.18.  SWIG
+      relies on some recent additions to CHICKEN, which are only
+      present in releases of CHICKEN with version number
+      <strong>greater than or equal to <tt>0.1099</tt></strong>, or in CVS
+      versions of CHICKEN dated after March 11, 2003.
 
       <br></br> CHICKEN can be downloaded from <a
       href="http://www.call-with-current-continuation.org/chicken.html">http://www.call-with-current-continuation.org/chicken.html</a>
 
       You may want to look at any of the examples in Examples/chicken/
       or Examples/GIFPlot/Chicken for the basic steps to run SWIG
-      CHICKEN.  We will generically refer to the <em>wrapper</em> as
-      the generated files.
+      CHICKEN.  
+
+      We will generically refer to the <em>wrapper</em> as the
+      generated files.
 
     </p>
 
@@ -242,7 +246,7 @@
       </blockquote>
       Almost all good Scheme books describe how to use metaobjects and
       generic procedures to implement an object-oriented Scheme
-      system.  Please consult with a Scheme book if you are unfamiliar
+      system.  Please consult a Scheme book if you are unfamiliar
       with the concept.
       
       <br></br>
@@ -258,10 +262,10 @@
 
       <br></br>
 
-      SWIG CHICKEN will call the destructor for TinyCLOS objects
-      garbage-collected by CHICKEN.  It also allows access to the
-      underlying low-level Scheme procedures with (de)-marshaling of
-      any TinyCLOS parameters.  It is best to learn the TinyCLOS
+      SWIG CHICKEN will call the destructor for all TinyCLOS objects
+      that are garbage-collected by CHICKEN.  It also allows access to
+      the underlying low-level Scheme procedures with (de)-marshaling
+      of any TinyCLOS parameters.  It is best to learn the TinyCLOS
       system by running the <tt>Examples/chicken/class/</tt> example.
 
     </p>
@@ -271,10 +275,13 @@
 
     <p>
       Please refer to <em>CHICKEN - A practical and portable Scheme
-	system - User's manual</em> for detailed help on how to
-      compile C code for use in a CHICKEN program.  Briefly, to
-      compile C code, be sure to add <tt>`chicken-config -cflags`</tt>
-      to your compiler options.
+      system - User's manual</em> for detailed help on how to compile
+      C code for use in a CHICKEN program.  Briefly, to compile C
+      code, be sure to add <tt>`chicken-config -cflags`</tt> or
+      <tt>`chicken-config -shared -cflags`</tt> to your compiler
+      options.  Use the <tt>-shared</tt> option if you want to create
+      a dynamically loadable module.  You might also want to use the
+      much simpler <tt>csc</tt> or <tt>csc.bat</tt>.
     </p>
 
 <a name="n12"></a><H2>22.5 Linkage</H2>
@@ -285,7 +292,10 @@
       system - User's manual</em> for detailed help on how to link
       object files to create a CHICKEN Scheme program.  Briefly, to
       link object files, be sure to add <tt>`chicken-config
-      -libs` `chicken-config -extra-libs`</tt> to your linker options.
+      -extra-libs -libs`</tt> or <tt>`chicken-config -shared
+      -extra-libs -libs`</tt>to your linker options.  Use the
+      <tt>-shared</tt> option if you want to create a dynamically
+      loadable module.
     </p>
     <p>
       All the following examples assume that the module is named
@@ -349,9 +359,10 @@ CHICKEN_HOME=/usr/local/share/chicken</pre>
 
       <br></br>
 
-      Two non-standard typemaps are supported: <code>clos_in</code> and
-      <code>clos_out</code>.  They are for converting TinyCLOS to and
-      from low-level CHICKEN SWIG.  Here is a quick example:
+      Two Chicken-specific typemaps are supported:
+      <code>clos_in</code> and <code>clos_out</code>.  They are for
+      converting TinyCLOS to and from low-level CHICKEN SWIG.  Here is
+      a quick example:
 
       <blockquote>
 	<pre>
@@ -380,9 +391,101 @@ CHICKEN_HOME=/usr/local/share/chicken</pre>
       to SWIG</em> will have correct TinyCLOS representations based on
       <code>SIMPLE_CLOS_OBJECT</code>.  SWIG "knows" the classes that
       are exposed in the SWIG interface file; it "fully knows" only
-      those classes that are not forward declarations.  Have a look at
-      the <tt>Examples/chicken/vtk/example.i</tt> for more
-      information.
+      those classes that are not forward declarations.  
+
+      <br></br> 
+
+      A real-world example of the "fully knows" problem is found in
+      the VTK visualization library.  All VTK classes are derived from
+      vtkObject.
+
+      <blockquote>
+	<pre>
+   /* FILE: vtkObject.h */
+   class vtkObject {
+      // ...
+   };
+	</pre>
+      </blockquote>
+
+      <blockquote>
+	<pre>
+   /* FILE: vtkWindow.h */
+   #include "vtkObject.h"
+
+   class vtkWindow : public vtkObject {
+      // ...
+   };
+	</pre>
+      </blockquote>
+
+      <blockquote>
+	<pre>
+   /* FILE: vtkViewport.h */
+   #include "vtkViewport.h"
+
+   class vtkViewport : public vtkObject {
+      // ...
+   };
+	</pre>
+      </blockquote>
+
+      <blockquote>
+	<pre>
+   /* FILE: vtkRenderWindow.h */
+   #include "vtkWindow.h"
+
+   class vtkRenderer;
+   class vtkRenderWindow : public vtkWindow {
+      // ...
+      virtual void AddRenderer (vtkRenderer *rendererArg);
+      // ...
+   };
+	</pre>
+      </blockquote>
+
+      <blockquote>
+	<pre>
+   /* FILE: vtkRenderer.h */
+   #include "vtkViewport.h"
+
+   class vtkRenderWindow;
+   class vtkRenderer : public vtkViewport {
+      // ...
+      void SetRenderWindow(vtkRenderWindow *);
+      // ...
+   };
+	</pre>
+      </blockquote>
+
+      <blockquote>
+	<pre>
+   /* FILE: vtk.i; SWIG interface file */
+   %typemap(clos_in) vtkObject * = SIMPLE_CLOS_OBJECT *;
+   %typemap(clos_out) vtkObject * = SIMPLE_CLOS_OBJECT *;
+   %include "vtkObject.h"
+   %include "vtkWindow.h"
+   %include "vtkViewport.h"
+   %include "vtkRenderWindow.h"
+   %include "vtkRenderer.h"
+	</pre>
+      </blockquote>
+
+    After SWIG processes <code>vtkObject.h</code> (from the
+    <tt>%include "vtkObject.h"</tt> line), SWIG will have the complete
+    definition of the <code>vtkObject</code> class because
+    <code>vtkObject</code> does not contain any references to any
+    other classes.  As it reads <code>vtkWindow.h</code> and
+    <code>vtkViewport.h</code>, it will already have the definition of
+    <code>vtkObject</code>, so it will not need a <code>clos_in</code>
+    or <code>clos_out</code> typemap for the <code>vtkWindow</code> or
+    <code>vtkViewport</code> subclasses of <code>vtkObject</code>.
+    However, by the time SWIG gets to <tt>%include
+    "vtkRenderWindow.h"</tt>, it will not have the definition for the
+    <code>vtkRenderer</code> class, even though it is used by
+    <code>vtkRenderWindow</code>.  We therefore <strong>must</strong>
+    put in <code>clos_in/clos_out</code> typemaps for
+    <code>vtkRenderer</code>.
 
     </p>
       
