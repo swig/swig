@@ -1,6 +1,38 @@
 Version 1.3.22 (in progress)
 ==================================
 
+07/12/2004: wsfulton
+            Patch #864689 from Robin Dunn:
+
+            This patch corrects two problems in the XML output of SWIG:
+             
+              1. There were often extra '/>\n' in the output.
+              
+              2. value attributes were output with '\n' in them but
+              since that is not technically legal most (all?) XML
+              parsers will strip them out. Replacing the '\n' with
+              the '&#10;' entity reference solves this as that is
+              legal and XML parsers will convert it to a '\n' when
+              reading the values back in.
+              
+              This patch also adds a new global command line option
+              that will allow the parse tree to be written out in XML
+              *after* some other language module has been run, in
+              order to be able to get extra info that the language
+              module puts in the tree. In this way the XML is a
+              post-processed version of the tree rather than a
+              pre-processed version. 
+ 
+              Command line option is -dump_xml or -xmlout <file>
+
+07/12/2004: wsfulton
+            [Java] Patch from Scott Michel to fix typesafe enums and proper enums
+            with directors.
+
+07/12/2004: wsfulton
+            HTML documentation (makechap.py) file generator missing end of line
+            patch #908951 from Robert de Vries.
+
 07/08/2004: wsfulton
             The deprecated runtime library build has been removed. This also removes
             the dependency on Libtool. Libtool is no longer required to build SWIG.
