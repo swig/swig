@@ -75,8 +75,25 @@ namespace std {
 
     %typemap_traits(SWIG_CCode(PAIR), std::pair<T,U >);
 
+    pair();
+    pair(const T& __a, const U& __b);
+    pair(const pair& __p);
+
     T first;
     U second;
+
+    %extend
+    {
+      const T& f() {
+	return self->first;
+      }
+      
+      %pythoncode {
+	def __repr__(self):
+	  return "(%s, %s)" %(str(self.first),str(self.second))
+      }
+    }
+    
   };
 
   // ***
@@ -104,6 +121,10 @@ namespace std {
 
     %typemap_traits(SWIG_CCode(PAIR), std::pair<T,U* >);
 
+    pair();
+    pair(const T& __a, U* __b);
+    pair(const pair& __p);
+
     T first;
     U* second;
   };
@@ -129,6 +150,10 @@ namespace std {
 
     %typemap_traits(SWIG_CCode(PAIR), std::pair<T*,U >);
 
+    pair();
+    pair(T* __a, const U& __b);
+    pair(const pair& __p);
+
     T* first;
     U second;
   };
@@ -150,6 +175,10 @@ namespace std {
     }
 
     %typemap_traits(SWIG_CCode(PAIR), std::pair<T*,U* >);
+
+    pair();
+    pair(T* __a, U* __b);
+    pair(const pair& __p);
 
     T* first;
     U* second;

@@ -13,7 +13,7 @@
     $1 = *ptr;
     if (res == SWIG_NEWOBJ) delete ptr;
   }
-  %typemap(in,fragment=pyfrag) const __VA_ARGS__ & (int res = 0) 
+  %typemap(in,fragment=pyfrag) const __VA_ARGS__ & (int res = 0)
     "if (!(res = asptr_meth($input, &$1)) || !($1)) SWIG_fail;";
 
   %typemap(freearg) const __VA_ARGS__ & 
@@ -83,10 +83,10 @@
   %fragment(SWIG_AsVal_frag(__VA_ARGS__),"header",
 	    fragment=SWIG_AsPtr_frag(__VA_ARGS__)) %{
   SWIGSTATICINLINE(int)
-    SWIG_AsVal_meth(__VA_ARGS__)(PyObject* obj, __VA_ARGS__ *val)
+    SWIG_AsVal(__VA_ARGS__)(PyObject* obj, __VA_ARGS__ *val)
     {
       __VA_ARGS__ *v = (__VA_ARGS__ *)0;
-      int res = SWIG_AsPtr_meth(__VA_ARGS__)(obj, &v);
+      int res = SWIG_AsPtr(__VA_ARGS__)(obj, &v);
       if (!res || !v) return 0;  
       if (val) {
 	*val = *v;
@@ -98,10 +98,10 @@
   %fragment(SWIG_As_frag(__VA_ARGS__),"header",
 	    fragment=SWIG_AsVal_frag(__VA_ARGS__)) %{
   SWIGSTATICINLINE(__VA_ARGS__)
-    SWIG_As_meth(__VA_ARGS__)(PyObject* obj)
+    SWIG_As(__VA_ARGS__)(PyObject* obj)
     {
       __VA_ARGS__ v;
-      SWIG_AsVal_meth(__VA_ARGS__)(obj, &v);
+      SWIG_AsVal(__VA_ARGS__)(obj, &v);
       return v;
     }
   %}
@@ -123,8 +123,8 @@
 
 %define %typemap_asptrfromn(CheckCode, ...)
 %typemap_asptrfrom(SWIG_arg(CheckCode),
-		   SWIG_arg(SWIG_AsPtr_meth(__VA_ARGS__)), 
-		   SWIG_arg(SWIG_From_meth(__VA_ARGS__)), 
+		   SWIG_arg(SWIG_AsPtr(__VA_ARGS__)), 
+		   SWIG_arg(SWIG_From(__VA_ARGS__)), 
 		   SWIG_arg(SWIG_AsPtr_frag(__VA_ARGS__)), 
 		   SWIG_arg(SWIG_From_frag(__VA_ARGS__)), 
 		   __VA_ARGS__);

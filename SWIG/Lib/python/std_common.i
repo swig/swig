@@ -327,14 +327,14 @@ namespace swigpy {
     template <>  struct traits_asval<__VA_ARGS__ > {   
       typedef __VA_ARGS__ value_type;
       static int asval(PyObject *obj, value_type *val) { 
-	return SWIG_AsVal_meth(__VA_ARGS__)(obj, val);
+	return SWIG_AsVal(__VA_ARGS__)(obj, val);
       }
     };
     
     template <>  struct traits_from<__VA_ARGS__ > {
       typedef __VA_ARGS__ value_type;
       static PyObject *from(const value_type& val) {
-	return SWIG_From_meth(__VA_ARGS__)(val);
+	return SWIG_From(__VA_ARGS__)(val);
       }
     };
   }
@@ -413,6 +413,15 @@ namespace swigpy {
 }
 %enddef
 
+/*
+  Comparison methods
+*/
+
+%define %std_comp_methods(...)
+%std_equal_methods(__VA_ARGS__ )
+%std_order_methods(__VA_ARGS__ )
+%enddef
+
 #ifdef SWIG_STD_EXTEND_COMPARISON
 %define %std_extcomp(Class,T)
   %evalif(SWIG_EqualType(T), %std_equal_methods(std::Class<T >))
@@ -437,6 +446,34 @@ namespace swigpy {
 #define %std_definst(Class,...)
 #define %std_definst_2(Class,...)
 #endif
+
+/* ------------------------------------------------------------
+ * equal and order types definition.
+ * these are needed to decide when we the comparison
+ * operators ==, !=, <=, etc, can be used.
+ * ------------------------------------------------------------ */
+
+/* the operators ==, != can used with these types */
+%swig_equal_type(bool);
+%swig_equal_type(std::complex<float>);
+%swig_equal_type(std::complex<double>);
+
+/* the operators <,>,<=,=> can used with these types */
+%swig_order_type(std::string);
+%swig_order_type(std::basic_string<char>);
+%swig_order_type(signed char);
+%swig_order_type(unsigned char);
+%swig_order_type(short);
+%swig_order_type(unsigned short);
+%swig_order_type(int);
+%swig_order_type(unsigned int);
+%swig_order_type(long);
+%swig_order_type(unsigned long);
+%swig_order_type(long long);
+%swig_order_type(unsigned long long);
+%swig_order_type(float);
+%swig_order_type(double);
+%swig_order_type(char);
 
 
 //

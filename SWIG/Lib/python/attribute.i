@@ -77,6 +77,23 @@
 
 */
 
+#ifdef __cplusplus
+%define %_attribute(Class, Wrap, type, attr, getcode, setcode) 
+%extend Class {
+  type attr;
+}
+%{
+  template <class C> inline
+    type Wrap ##_## attr ## _get(const C* _t)
+    { return getcode; }
+
+  template <class C> inline
+    void Wrap ##_## attr ## _set(C* _t, type _val)
+    { setcode; }
+%}
+%enddef
+
+#else
 
 %define %_attribute(Class, Wrap, type, attr, getcode, setcode) 
 %extend Class {
@@ -87,7 +104,7 @@
 #define Wrap ##_## attr ## _set(_t, _val) setcode
 %}
 %enddef
-
+#endif
 //
 // Internal versions, need Wrap name
 //
@@ -124,10 +141,10 @@
 // User versions
 //
 
-%define %attribute(Class, type, attr, get, ...) 
- %attribute_T(Class, #@Class, SWIG_arg(type), attr, get, __VA_ARGS__) 
+%define %attribute(Class, type, attr, get, ...)
+ %attribute_T(Class, #@Class, SWIG_arg(type), attr, get, __VA_ARGS__)
 %enddef
 
-%define %attribute_ref(Class, type, refname, ...) 
-%attribute_ref_T(Class, #@Class, SWIG_arg(type), refname, __VA_ARGS__) 
+%define %attribute_ref(Class, type, refname, ...)
+ %attribute_ref_T(Class, #@Class, SWIG_arg(type), refname, __VA_ARGS__)
 %enddef

@@ -176,9 +176,9 @@ phased out in future releases.
 
 %define %typemap_inoutn(Code,...)
   %typemap_inout(SWIG_arg(Code),
-		 SWIG_arg(SWIG_As_meth(__VA_ARGS__)), 
-		 SWIG_arg(SWIG_Check_meth(__VA_ARGS__)), 
-		 SWIG_arg(SWIG_From_meth(__VA_ARGS__)), 
+		 SWIG_arg(SWIG_As(__VA_ARGS__)), 
+		 SWIG_arg(SWIG_Check(__VA_ARGS__)), 
+		 SWIG_arg(SWIG_From(__VA_ARGS__)), 
 		 SWIG_arg(SWIG_As_frag(__VA_ARGS__)), 
 		 SWIG_arg(SWIG_Check_frag(__VA_ARGS__)), 
 		 SWIG_arg(SWIG_From_frag(__VA_ARGS__)), 
