@@ -35,6 +35,12 @@ std::string& test_reference_out() {
    return x;
 }
 
+void test_throw() throw(std::string){
+  static std::string x = "x";
+  
+  throw x;
+}
+
 %}
 
 

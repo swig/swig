@@ -22,59 +22,20 @@
 #define %pythoncode  %insert("python")
 
 
-/* auxiliar macros for char array alloc/dealloc */
+/* auxiliar memory allocators */
 
 #ifdef __cplusplus
-%define %swig_new_carray(size) new char[(size)]
-%enddef
-%define %swig_del_carray(cptr) delete [] cptr;
-%enddef
+#define %swig_new(type, size) new type[(size)]
+#define %swig_delete(cptr) delete [] cptr;
 #else
-%define %swig_new_carray(size) malloc((size))
-%enddef
-%define %swig_del_carray(cptr) free((char*)cptr);
-%enddef
+#define %swig_new(type, size) (type*) malloc((size)*sizeof(type))
+#define %swig_delete(cptr) free((char*)cptr);
 #endif
 
 /* -----------------------------------------------------------------------------
  *                          standard typemaps
  * ----------------------------------------------------------------------------- */
 
-/* --- macro to expand a given typemap macro using the As methods --- */
-%define %expand_primitives_as(typemap)
-  typemap(bool,               SWIG_PyObj_AsBool);
-  typemap(signed char,        SWIG_PyObj_AsSignedChar);
-  typemap(int,                SWIG_PyObj_AsInt);
-  typemap(short,              SWIG_PyObj_AsShort);
-  typemap(long,               SWIG_PyObj_AsLong);
-  typemap(unsigned char,      SWIG_PyObj_AsUnsignedChar);
-  typemap(unsigned short,     SWIG_PyObj_AsUnsignedShort);
-  typemap(unsigned int,       SWIG_PyObj_AsUnsignedInt);
-  typemap(unsigned long,      SWIG_PyObj_AsUnsignedLong);
-  typemap(char,               SWIG_PyObj_AsChar);
-  typemap(float,              SWIG_PyObj_AsFloat);
-  typemap(double,             SWIG_PyObj_AsDouble);
-  typemap(long long,          SWIG_PyObj_AsLongLong);
-  typemap(unsigned long long, SWIG_PyObj_AsUnsignedLongLong);
-%enddef
-
-/* --- macro to expand a given typemap macro using the From methods --- */
-%define %expand_primitives_from(typemap)
-  typemap(bool,               SWIG_PyObj_FromBool);
-  typemap(signed char,        PyInt_FromLong);
-  typemap(int,                PyInt_FromLong);
-  typemap(short,              PyInt_FromLong);
-  typemap(long,               PyInt_FromLong);
-  typemap(unsigned char,      PyInt_FromLong);
-  typemap(unsigned short,     PyInt_FromLong);
-  typemap(unsigned int,       SWIG_PyObj_FromUnsignedLong);
-  typemap(unsigned long,      SWIG_PyObj_FromUnsignedLong);
-  typemap(char,               SWIG_PyObj_FromChar);
-  typemap(float,              PyFloat_FromDouble);
-  typemap(double,             PyFloat_FromDouble);
-  typemap(long long,          SWIG_PyObj_FromLongLong);
-  typemap(unsigned long long, SWIG_PyObj_FromUnsignedLongLong);
-%enddef
 
 
 /* -----------------------------------------------------------------------------
@@ -101,7 +62,7 @@
 /* Primitive datatypes.  */
 
 %define PY_IN_TYPEMAP(type, pyobj_as)
- %typemap(in) type {
+%typemap(in,fragment=#pyobj_as) type {
   $1 = ($1_type) pyobj_as($input);  
   if (PyErr_Occurred()) SWIG_fail;
  }
@@ -111,8 +72,6 @@
    $1 = &temp;
  }
 %enddef
-
-%expand_primitives_as(PY_IN_TYPEMAP);
 
 /* Pointers, references, and arrays */
 
@@ -167,11 +126,9 @@
 
 /* Primitive types */
 %define PY_OUT_TYPEMAP(type, pyobj_from)
-  %typemap(out) type "$result = pyobj_from((type)$1);";
-  %typemap(out) const type& "$result = pyobj_from((type) *($1));";
+  %typemap(out,fragment=#pyobj_from) type "$result = pyobj_from((type)$1);";
+  %typemap(out,fragment=#pyobj_from) const type& "$result = pyobj_from((type) *($1));";
 %enddef
-
-%expand_primitives_from(PY_OUT_TYPEMAP);
 
 /* Pointers, references, and arrays */
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, $owner);";
@@ -221,7 +178,7 @@
 
 /* primitive types */
 %define PY_VARIN_TYPEMAP(type, pyobj_as)
-  %typemap(varin) type {
+  %typemap(varin,fragment=#pyobj_as) type {
     $1_type temp = ($1_type) pyobj_as($input);  
     if (PyErr_Occurred()) {
       PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
@@ -231,8 +188,6 @@
   }
 %enddef
 
-%expand_primitives_as(PY_VARIN_TYPEMAP);
-
 /* char* and char[ANY] */
 %typemap(varin) char * {
   char *cptr = SWIG_PyObj_AsNewCharPtr($input, $descriptor(char*));
@@ -240,7 +195,7 @@
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
   }
-  if ($1) %swig_del_carray($1);
+  if ($1) %swig_delete($1);
   $1 = cptr;
 }
 
@@ -326,29 +281,34 @@
 
 /* Primitive types */
 %define PY_VAROUT_TYPEMAP(type, pyobj_from)
-  %typemap(varout) type, const type&  "$result = pyobj_from((type)$1);";
+  %typemap(varout,fragment=#pyobj_from) type, const type&  "$result = pyobj_from((type)$1);";
 %enddef
 
-%expand_primitives_from(PY_VAROUT_TYPEMAP);
-
 /* Pointers and arrays */
-%typemap(varout) SWIGTYPE *, SWIGTYPE [] "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, 0);";
+%typemap(varout) SWIGTYPE *, SWIGTYPE [] 
+  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, 0);";
 
 /* References */
-%typemap(varout) SWIGTYPE & "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);";
+%typemap(varout) SWIGTYPE & 
+  "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);";
 
 /* Member pointer */
-%typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor);";
+%typemap(varout) SWIGTYPE (CLASS::*) 
+  "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor);";
 
 /* Void */
 %typemap(varout) void "Py_INCREF(Py_None); $result = Py_None;";
 
+/* Special typemap for char* return values */
+%typemap(varout) char*, char const*, char *const, char const *const
+  "$result = SWIG_PyObj_FromCharPtr($1);";
+
 /* Special typemap for character array return values */
-%typemap(varout) char *, const char * "$result = SWIG_PyObj_FromCharPtr((const char*)$1);";
+%typemap(varout) char [ANY], const char [ANY] 
+  "$result = SWIG_PyObj_FromCharArray($1, $1_dim0);";
 
-%typemap(varout) char [ANY], const char [ANY] "$result = SWIG_PyObj_FromCharArray((const char*)$1, $1_dim0);";
-
-%typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor, 0);";
+%typemap(varout) SWIGTYPE 
+  "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor, 0);";
 
 /* -----------------------------------------------------------------------------
  * --- Constants --- *
@@ -356,12 +316,9 @@
 
 /* Primitive types */
 %define PY_CONSTCODE_TYPEMAP(type, pyobj_from)
-  %typemap(constcode) type 
+  %typemap(constcode,fragment=#pyobj_from) type 
      "PyDict_SetItemString(d,\"$symname\", pyobj_from((type)$value));";
 %enddef
-
-%expand_primitives_from(PY_CONSTCODE_TYPEMAP);
-
 
 /* Pointers, arrays, objects */
 %typemap(consttab) char *, char const*, char * const, char const* const
@@ -393,11 +350,9 @@
 /* Primitive datatypes */
 
 %define PY_DIRECTORIN_TYPEMAP(type, pyobj_from)
-  %typemap(directorin) type *DIRECTORIN "$input = pyobj_from((type) *$1_name);";
-  %typemap(directorin) type, const type& "$input = pyobj_from((type) $1_name);";
+  %typemap(directorin,fragment=#pyobj_from) type *DIRECTORIN "$input = pyobj_from((type) *$1_name);";
+  %typemap(directorin,fragment=#pyobj_from) type, const type& "$input = pyobj_from((type) $1_name);";
 %enddef
-
-%expand_primitives_from(PY_DIRECTORIN_TYPEMAP);
 
 /* we just pass the char* as a pointer, much cheaper */
 %typemap(directorin) char *, char const*, char *const, char const *const, 
@@ -413,20 +368,18 @@
 /* --- directorout typemaps --- */
 
 %define PY_DIRECTOROUT_TYPEMAP(Type, pyobj_as)
-  %typemap(directorargout) Type *DIRECTOROUT
+  %typemap(directorargout,fragment=#pyobj_as) Type *DIRECTOROUT
     "*$result = ($basetype) pyobj_as($input);
      if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using pyobj_as\");";
-%typemap(directorout) Type
+%typemap(directorout,fragment=#pyobj_as) Type
     "$result = ($basetype) pyobj_as($input);
     if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using pyobj_as\");";
-%typemap(directorout) const Type&
+%typemap(directorout,fragment=#pyobj_as) const Type&
     "$basetype temp = ($basetype) pyobj_as($input);
      $result = &temp;
      if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using pyobj_as\");";
-  %typemap(directorout) Type &DIRECTOROUT = Type
+  %typemap(directorout,fragment=#pyobj_as) Type &DIRECTOROUT = Type
 %enddef
-
-%expand_primitives_as(PY_DIRECTOROUT_TYPEMAP);
 
 /* Char pointer and arrays */
 %typemap(directorout) char *, char const*, char *const, char const* const { 
@@ -466,10 +419,10 @@
 /* ------------------------------------------------------------
  * --- Typechecking rules ---
  * ------------------------------------------------------------ */
-%define PY_TYPECHECK_TYPEMAP(check, type, pyobj_as)
-%typecheck(SWIG_TYPECHECK_##check) type, const type&
+%define PY_TYPECHECK_TYPEMAP(check, type, pyobj_asorcheck)
+%typemap(typecheck,fragment=#pyobj_asorcheck,precedence=SWIG_TYPECHECK_##check) type, const type&
 {
-  pyobj_as($input);
+  pyobj_asorcheck($input);
   if (PyErr_Occurred()) {
     $1 = 0;
     PyErr_Clear();
@@ -479,39 +432,29 @@
 }
 %enddef
 
-PY_TYPECHECK_TYPEMAP(BOOL,    bool,               SWIG_PyObj_AsBool);
-PY_TYPECHECK_TYPEMAP(INT8,    signed char,        SWIG_PyObj_AsSignedChar);
-PY_TYPECHECK_TYPEMAP(UINT8,   unsigned char,      SWIG_PyObj_AsUnsignedChar);
-PY_TYPECHECK_TYPEMAP(INT16,   short,              SWIG_PyObj_AsShort);
-PY_TYPECHECK_TYPEMAP(UINT16,  unsigned short,     SWIG_PyObj_AsUnsignedShort);
-PY_TYPECHECK_TYPEMAP(INT32,   int,                SWIG_PyObj_AsInt);
-PY_TYPECHECK_TYPEMAP(UINT32,  unsigned int,       SWIG_PyObj_AsUnsignedInt);
-PY_TYPECHECK_TYPEMAP(INT64,   long,               SWIG_PyObj_AsLong);
-PY_TYPECHECK_TYPEMAP(UINT64,  unsigned long,      SWIG_PyObj_AsUnsignedLong);
-PY_TYPECHECK_TYPEMAP(INT128,  long long,          SWIG_PyObj_AsLongLong);
-PY_TYPECHECK_TYPEMAP(UINT128, unsigned long long, SWIG_PyObj_AsUnsignedLongLong);
-PY_TYPECHECK_TYPEMAP(FLOAT,   float,              SWIG_PyObj_AsFloat);
-PY_TYPECHECK_TYPEMAP(DOUBLE,  double,             SWIG_PyObj_AsDouble);
-PY_TYPECHECK_TYPEMAP(CHAR,    char,               SWIG_PyObj_AsChar);
-
-
 %typecheck(SWIG_TYPECHECK_STRING) 
   char *, char const*, char *const, char const *const,
   char const*&, char *const&, char const *const & 
 {
-  void *ptr;
-  if (SWIG_ConvertPtr($input, (void **) &ptr, $descriptor(char*), 0) == -1) {
+  SWIG_PyObj_AsCharPtr($input, $descriptor(char*));
+  if (PyErr_Occurred()) {
+    $1 = 0;
     PyErr_Clear();
-    $1 = (PyString_Check($input));
   } else {
     $1 = 1;
-  }  
+  }
 }
 
-%typecheck(SWIG_TYPECHECK_STRING) char [ANY], const char[ANY]
+%typecheck(SWIG_TYPECHECK_CHAR_ARRAY) char [ANY], const char[ANY]
 {
-  $1 = (PyString_Check($input) 
-	&& (PyString_Size($input) <= $input_dim0)) ? 1 : 0;
+  char* carray = 0; size_t size = 0;
+  SWIG_PyObj_AsCharArray($input, $descriptor(char*), &carray, &size);
+  if (PyErr_Occurred()) {
+    $1 = 0;
+    PyErr_Clear();
+  } else {
+    $1 = ((carray != 0) && (size <= $input_dim0));
+  }
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
@@ -552,13 +495,11 @@ PY_TYPECHECK_TYPEMAP(CHAR,    char,               SWIG_PyObj_AsChar);
  * ------------------------------------------------------------ */
 
 %define PY_THROWS_TYPEMAP(type, pyobj_from)
-  %typemap(throws) type {
+  %typemap(throws,fragment=#pyobj_from) type {
   PyErr_SetObject(PyExc_RuntimeError, pyobj_from((type)$1));
     SWIG_fail;
   }
 %enddef
-
-%expand_primitives_from(PY_THROWS_TYPEMAP);
 
 %typemap(throws) char *, char const*, char * const, char const* const {
   PyErr_SetObject(PyExc_RuntimeError, SWIG_PyObj_FromCharPtr((const char*)$1));
@@ -614,6 +555,69 @@ PY_TYPECHECK_TYPEMAP(CHAR,    char,               SWIG_PyObj_AsChar);
 }
 
 /* ------------------------------------------------------------
+ * Basic as/from type specialization
+ * ------------------------------------------------------------ */
+/*
+  typemap definition for types with As/From/Check methods
+ */
+%define %typemap_asfromcheck(Type, CheckCode, AsType, FromType, CheckType)  
+  PY_IN_TYPEMAP(Type, AsType);
+  PY_OUT_TYPEMAP(Type, FromType);
+  PY_VARIN_TYPEMAP(Type, AsType);
+  PY_VAROUT_TYPEMAP(Type, FromType);
+  PY_CONSTCODE_TYPEMAP(Type, FromType);
+  PY_DIRECTORIN_TYPEMAP(Type, FromType);
+  PY_DIRECTOROUT_TYPEMAP(Type, AsType);
+  PY_THROWS_TYPEMAP(Type, FromType);
+  PY_TYPECHECK_TYPEMAP(CheckCode, Type, CheckType);
+%enddef
+
+/*
+  typemap definition for types with As/From methods. The cheking is
+  performed by calling the As method.
+ */
+%define %typemap_asfrom(Type, CheckCode, AsType, FromType)  
+  PY_IN_TYPEMAP(Type, AsType);
+  PY_OUT_TYPEMAP(Type, FromType);
+  PY_VARIN_TYPEMAP(Type, AsType);
+  PY_VAROUT_TYPEMAP(Type, FromType);
+  PY_CONSTCODE_TYPEMAP(Type, FromType);
+  PY_DIRECTORIN_TYPEMAP(Type, FromType);
+  PY_DIRECTOROUT_TYPEMAP(Type, AsType);
+  PY_THROWS_TYPEMAP(Type, FromType);
+  PY_TYPECHECK_TYPEMAP(CheckCode, Type, AsType);
+%enddef
+
+/*
+  typemap for simple types with conversor methods
+  named as SWIG_PyObj_As##Name/SWIG_PyObj_From##Name 
+*/
+%define %typemap_stype(Type, CheckCode, Name)  
+%typemap_asfrom(Type, CheckCode, SWIG_PyObj_As##Name,SWIG_PyObj_From##Name)
+%enddef
+
+/* ------------------------------------------------------------
+ * Primitive Types
+ * ------------------------------------------------------------ */
+
+%include "pyprim.swg"
+
+%typemap_stype(bool,               BOOL,    Bool);
+%typemap_stype(signed char,        INT8,    SignedChar);
+%typemap_stype(unsigned char,      UINT8,   UnsignedChar);
+%typemap_stype(short,              INT16,   Short);
+%typemap_stype(unsigned short,     UINT16,  UnsignedShort);
+%typemap_stype(int,                INT32,   Int);
+%typemap_stype(unsigned int,       UINT32,  UnsignedInt);
+%typemap_stype(long,               INT64,   Long);
+%typemap_stype(unsigned long,      UINT64,  UnsignedLong);
+%typemap_stype(long long,          INT128,  LongLong);
+%typemap_stype(unsigned long long, UINT128, UnsignedLongLong);
+%typemap_stype(float,              FLOAT,   Float);
+%typemap_stype(double,             DOUBLE,  Double);
+%typemap_stype(char,               CHAR,    Char);
+
+/* ------------------------------------------------------------
  * ---  Enums ---
  * ------------------------------------------------------------ */
 
@@ -642,14 +646,26 @@ PY_TYPECHECK_TYPEMAP(CHAR,    char,               SWIG_PyObj_AsChar);
  * --- String & length ---
  * ------------------------------------------------------------ */
 
-%typemap(in) (char *STRING, int LENGTH) (char *buf, int len) {
-  SWIG_PyObj_AsCharPtrAndSize($input, $descriptor(char*), &buf, &len);
+/* Here len doesn't include the '0' terminator */
+%typemap(in) (char *STRING, int LENGTH) (char *buf, size_t size) {
+  SWIG_PyObj_AsCharPtrAndSize($input, $descriptor(char*), &buf, &size);
   if (PyErr_Occurred()) {
     PyErr_SetString(PyExc_TypeError,"a string is expected");
     SWIG_fail;
   }
   $1 = ($1_ltype) buf;
-  $2 = ($2_ltype) len;
+  $2 = ($2_ltype) (size && (buf[size -1] == 0)) ? size - 1 : size;
+}
+
+/* Here size includes the '0' terminator */
+%typemap(in) (char *STRING, int SIZE) (char *buf, size_t size) {
+  SWIG_PyObj_AsCharPtrAndSize($input, $descriptor(char*), &buf, &size);
+  if (PyErr_Occurred()) {
+    PyErr_SetString(PyExc_TypeError,"a string is expected");
+    SWIG_fail;
+  }
+  $1 = ($1_ltype) buf;
+  $2 = ($2_ltype) size;
 }
 
 /* ------------------------------------------------------------
@@ -661,7 +677,7 @@ PY_TYPECHECK_TYPEMAP(CHAR,    char,               SWIG_PyObj_AsChar);
   int list = PyList_Check($input);
   if (list || PyTuple_Check($input)) {
     int argc = list ? PyList_Size($input) : PyTuple_Size($input);
-    char **argv = (char **)%swig_new_carray((argc + 1)*sizeof(char*));
+    char **argv = %swig_new(char*, argc + 1);
     int i = 0;
     for (; i < argc; ++i) {
       PyObject *obj = list ? PyList_GetItem($input,i) : PyTuple_GetItem($input,i);
@@ -683,7 +699,7 @@ PY_TYPECHECK_TYPEMAP(CHAR,    char,               SWIG_PyObj_AsChar);
 }
 
 %typemap(freearg) (int ARGC, char **ARGV) {
-  if ($2) %swig_del_carray($2);
+  if ($2) %swig_delete($2);
 }
 
 
