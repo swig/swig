@@ -430,7 +430,7 @@ void emit_action(Node *n, Wrapper *f) {
     tm = Getattr(n,"feature:preassert");
     if (tm) {
       replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
-      /*    Printf(stdout, "name: %s, preassert: %s\n", Getattr(n,"name"), tm); */
+      Printf(stdout, "name: %s, preassert: %s\n", Getattr(n,"name"), tm);
       Printv(f->code,tm,"\n",NIL);
     }
     
@@ -439,7 +439,7 @@ void emit_action(Node *n, Wrapper *f) {
     if (tm) {
       replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
       Replaceid(tm, "SWIG_invariant", "SWIG_invariant_begin");
-      /*    Printf(stdout, "name: %s, invarassert: %s\n", Getattr(n,"name"), tm); */
+      Printf(stdout, "name: %s, invarassert: %s\n", Getattr(n,"name"), tm);
       Printv(f->code,tm,"\n",NIL);
     }
   }
@@ -494,14 +494,14 @@ void emit_action(Node *n, Wrapper *f) {
     if (tm) {
       replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
       Replaceid(tm, "SWIG_invariant", "SWIG_invariant_end");
-      /* Printf(stdout, "name: %s, invarassert: %s\n", Getattr(n,"name"), tm); */
+      Printf(stdout, "name: %s, invarassert: %s\n", Getattr(n,"name"), tm);
       Printv(f->code,tm,"\n",NIL);
     }
     /* Postassertion - EXPERIMENTAL */
     tm = Getattr(n,"feature:postassert");
     if (tm) {
       replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
-      /* Printf(stdout, "name: %s, postassert: %s\n", Getattr(n,"name"), tm); */
+      Printf(stdout, "name: %s, postassert: %s\n", Getattr(n,"name"), tm);
       Printv(f->code,tm,"\n",NIL);
     }
   }
