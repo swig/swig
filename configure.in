@@ -1,20 +1,28 @@
 dnl Process this file with autoconf to produce a configure script.
 
-dnl NOTES:
-dnl * As of 1.34, we no longer use and test for "nope" to indicate
-dnl   an empty variable.  Instead, we use `VAR=' (set the variable
-dnl   to nothing) and `test -z "$VAR"' or `test -n "$VAR"' as the
-dnl   case may be.  --ttn, 2000/08/04 12:11:26
-
-AC_INIT(Source/Swig/swig.h)
+AC_INIT([swig],[1.3.18],[http://www.swig.org])
 AC_PREREQ(2.53)
-. $srcdir/VERSION
-AC_SUBST(PACKAGE)
-AC_SUBST(VERSION)
-AC_SUBST(SWIG_VERSION)
-AC_SUBST(SWIG_SPIN)
-AC_SUBST(SWIG_MAJOR_VERSION)
-AC_SUBST(SWIG_MINOR_VERSION)
+AC_CONFIG_SRCDIR([Source/Swig/swig.h])
+AC_CONFIG_HEADERS([Source/Include/swigconfig.h])
+
+dnl Some extra defines for the config file
+AH_TOP([
+/* Default language */
+#define SWIG_LANG               "-tcl"
+
+/* Values returned by SWIG when invoked with the -ldflags option.
+ * Define LIBDIR and RELEASESUFFIX on the compilation command line in the Makefile when needed. */
+#define SWIG_GUILE_RUNTIME      "-L" LIBDIR " -lswigguile" RELEASE_SUFFIX
+#define SWIG_MZSCHEME_RUNTIME   "-L" LIBDIR " -lswigmz" RELEASE_SUFFIX
+#define SWIG_OCAML_RUNTIME      "-L" LIBDIR " -lswigocaml" RELEASE_SUFFIX
+#define SWIG_PERL_RUNTIME       "-L" LIBDIR " -lswigpl" RELEASE_SUFFIX
+#define SWIG_PIKE_RUNTIME       "-L" LIBDIR " -lswigpike" RELEASE_SUFFIX
+#define SWIG_PHP_RUNTIME        "-L" LIBDIR " -lswigphp4" RELEASE_SUFFIX
+#define SWIG_PYTHON_RUNTIME     "-L" LIBDIR " -lswigpy" RELEASE_SUFFIX
+#define SWIG_RUBY_RUNTIME       "-L" LIBDIR " -lswigrb" RELEASE_SUFFIX
+#define SWIG_TCL_RUNTIME        "-L" LIBDIR " -lswigtcl" RELEASE_SUFFIX
+])
+
 
 # Set name for machine-dependent library files
 AC_SUBST(MACHDEP)
@@ -48,6 +56,8 @@ AC_MSG_RESULT($MACHDEP)
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
+
+AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
 
 dnl Checks for programs.
 
@@ -260,7 +270,7 @@ LIBM=-lm
 AC_ARG_WITH(libm, [  --with-libm=STRING      math library], [
 if test "$withval" != yes
 then LIBM=$withval
-else AC_ERROR(proper usage is --with-libm=STRING)
+else AC_MSG_ERROR([proper usage is --with-libm=STRING])
 fi])
 AC_CHECK_LIB(ieee, main, [LIBM="-lieee $LIBM"])
 AC_CHECK_LIB(crypt,crypt, [LIBCRYPT="-lcrypt"])
@@ -271,7 +281,7 @@ AC_SUBST(LIBC)
 AC_ARG_WITH(libc, [  --with-libc=STRING      C library], [
 if test "$withval" != yes
 then LIBC=$withval
-else AC_ERROR(proper usage is --with-libc=STRING)
+else AC_MSG_ERROR([proper usage is --with-libc=STRING])
 fi])
 
 #--------------------------------------------------------------------
@@ -379,7 +389,6 @@ fi
 # check in a few common install locations
 if test x"${TCLCONFIG}" = x ; then
     for i in `ls -d /usr/lib 2>/dev/null` \
-	     `ls -d ${prefix}/lib 2>/dev/null` \
 	    `ls -d /usr/local/lib 2>/dev/null` ; do
 	if test -f "$i/tclConfig.sh" ; then
 	    TCLCONFIG=`(cd $i; pwd)`
@@ -412,7 +421,7 @@ AC_MSG_CHECKING(for Tcl header files)
 if test -z "$TCLINCLUDE"; then
 AC_TRY_CPP([#include <tcl.h>], , TCLINCLUDE="")
 if test -z "$TCLINCLUDE"; then
-	dirs="$prefix/include /usr/local/include /usr/include /opt/local/include"
+	dirs="/usr/local/include /usr/include /opt/local/include"
 	for i in $dirs ; do
 		if test -r $i/tcl.h; then
 			AC_MSG_RESULT($i)
@@ -431,7 +440,7 @@ fi
 
 AC_MSG_CHECKING(for Tcl library)
 if test -z "$TCLLIB"; then
-dirs="$prefix/lib /usr/local/lib /usr/lib /opt/local/lib"
+dirs="/usr/local/lib /usr/lib /opt/local/lib"
 for i in $dirs ; do
 	if test -r $i/libtcl.a; then
 	    AC_MSG_RESULT($i)
@@ -493,7 +502,7 @@ AC_ARG_WITH(python,[  --with-python=path       Set location of Python executable
 # First figure out the name of the Python executable
 
 if test -z "$PYBIN"; then
-AC_CHECK_PROGS(PYTHON, $prefix/bin/python python python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python)
+AC_CHECK_PROGS(PYTHON, python python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python)
 else
 PYTHON="$PYBIN"
 fi
@@ -1013,7 +1022,7 @@ AC_SUBST(ROOT_DIR)
 # Configure SWIG_LIB path
 
 AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
-  [swig_lib="$withval"], [swig_lib="\$(prefix)/lib/swig1.3"])
+  [swig_lib="$withval"], [swig_lib="\$(libdir)/swig1.3"])
 AC_SUBST(swig_lib)
 
 # Configure RELEASESUFFIX (for setups having both SWIG 1.1 and 1.3 on a system...)
@@ -1023,37 +1032,6 @@ AC_ARG_WITH(release-suffix,
   [release_suffix="$withval"], [release_suffix=""])
 AC_SUBST(release_suffix)
 
-##########
-# The commands below are only intended for use in a development environment.
-# When one makes a fresh CVS checkout, no 'configure' scripts exist. This
-# Makes the CONFIG_SUBDIRS macro fail below. To fix this, one needs to
-# generate the configure script by calling autoconf manually.  This is
-# not an issue in non-CVS releases--the mkdist.py script creates all
-# of the configure scripts before making a tar-ball. -- beazley 2000/03/01
-
-# All these have been commented out as it turned out that the mkdist.py
-# script was not creating all of the configure files in subdirectories.
-# This required autoconf to be installed on user's machines when installing
-# SWIG - not a good requirement. Developers should run the autogen.sh instead.
-# Do not uncomment else the same problem may arise again. - William Fulton 2001/08/03.
-
-#if test ! -r $srcdir/Source/DOH/configure; then
-#	(cd $srcdir/Source/DOH ; autoconf)
-#fi
-
-#if test ! -r $srcdir/Tools/configure ; then
-#	(cd $srcdir/Tools ; autoconf)
-#fi
-
-#if test ! -r $srcdir/Examples/GIFPlot/configure ; then
-#	(cd $srcdir/Examples/GIFPlot ; autoconf)
-#fi
-
-#
-#AC_OUTPUT_COMMANDS(test -f Examples/install-sh || cp install-sh Examples)
-# DB: Maybe I'm missings something, but why is it necessary to put
-# an 'install-sh' script in the Examples directory?
-###########
 
 AC_CONFIG_SUBDIRS(Tools)
 
@@ -1061,7 +1039,7 @@ AC_CONFIG_SUBDIRS(Tools)
 # We can remove it if `Source' ever has a generated file but not before.
 test -d Source || mkdir Source
 
-dnl We use the following in `AC_OUTPUT' and "make distclean".
+dnl We use the following in `AC_CONFIG_FILES' and "make distclean".
 configure_substituted_files=`echo	\
     Examples/Makefile			\
     Examples/guile/Makefile		\
@@ -1069,7 +1047,6 @@ configure_substituted_files=`echo	\
     Examples/GIFPlot/Lib/Makefile	\
     Makefile				\
     Runtime/Makefile			\
-    Source/Include/swigver.h		\
     Source/CParse/Makefile		\
     Source/DOH/Makefile			\
     Source/Modules/Makefile		\
@@ -1078,6 +1055,7 @@ configure_substituted_files=`echo	\
 `
 AC_SUBST(configure_substituted_files)
 
-AC_OUTPUT([$configure_substituted_files])
+AC_CONFIG_FILES([$configure_substituted_files])
+AC_OUTPUT
 
 dnl configure.in ends here
