@@ -11,7 +11,10 @@
 #include <stdlib.h>
 
 #ifdef __cplusplus
-extern "C" {
+#define SWIGEXT extern "C"
+SWIGEXT {
+#else
+#define SWIGEXT 
 #endif
 #define alloc caml_alloc
 #include <caml/alloc.h>
