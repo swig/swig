@@ -19,6 +19,11 @@ include ../common.mk
 	($(swig_and_compile_c); ); \
 	$(run_testcase)
 
+%.multicpptest: 
+	$(setup) \
+	($(swig_and_compile_multi_cpp); ); \
+	$(run_testcase)
+
 setup = \
 	@echo Checking testcase $* under MzScheme;
 

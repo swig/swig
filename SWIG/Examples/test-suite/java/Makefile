@@ -24,6 +24,11 @@ TARGETPREFIX = lib
 	(cd $*; $(swig_and_compile_c); ); \
 	$(run_testcase)
 
+%.multicpptest: 
+	$(setup) \
+	(cd $*; $(swig_and_compile_multi_cpp); ); \
+	$(run_testcase)
+
 # Makes a directory for the testcase if it does not exist
 setup = \
 	@if [ -f $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then		  \
