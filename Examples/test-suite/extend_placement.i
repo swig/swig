@@ -5,10 +5,11 @@
 // Before the class
 
 %extend Foo {
-    Foo(int a) { return new Foo(); }
-    ~Foo() { delete self;}
-    int spam(int x) { return x; }
-    int spam(int x, int y) { return x + y ; }
+  Foo(int a) { return new Foo(); }
+  ~Foo() { delete self;}
+  int spam(int x) { return x; }
+  int spam(int x, int y) { return x + y ; }
+  int spam(int x, int y,int z) { return x + y ; }
 };
 
 %inline %{
@@ -26,14 +27,69 @@ public:
 %inline %{
 class Bar {
 public:
- int spam() { return 1; }
- int spam(const char* c) { return 2; }
+  Bar() { }
+  int spam() { return 1; }
+  int spam(const char* c) { return 2; }
 };
 %}
 
 
 %extend Bar {
-    Bar() { return new Bar(); }
-    ~Bar() { delete self;}
-    //    int spam(int x) { return x; }
+  Bar(int a) { return new Bar(); }
+  ~Bar() { delete self;}
+  int spam() { return 1}
+  int spam(int x) { return x; }
+  int spam(int x, int y) { return x + y ; }
+  int spam(int x, int y,int z) { return x + y ; }
 };
+
+
+// testing templates
+
+// Before the class
+
+%extend FooT {
+  FooT(int a) { return new FooT<T>(); }
+  ~FooT() { delete self;}
+  int spam(int x) { return x; }
+  int spam(int x, int y) { return x + y ; }
+  int spam(int x, int y,int z) { return x + y ; }
+};
+
+%inline %{
+template<class T>
+class FooT {
+public:
+  FooT(){}
+
+  int spam() { return 1; }
+  int spam(const char* c) { return 2; }
+};
+%}
+
+%template(FooTi) FooT<int>;
+
+
+// After the class
+
+%inline %{
+template<class T>
+class BarT {
+public:
+  BarT() { }
+  int spam() { return 1; }
+  int spam(const char* c) { return 2; }
+};
+%}
+
+
+%extend BarT {
+  BarT(int a) { return new BarT<T>(); }
+  ~BarT() { delete self;}
+  int spam() { return 1}
+  int spam(int x) { return x; }
+  int spam(int x, int y) { return x + y ; }
+  int spam(int x, int y,int z) { return x + y ; }
+};
+
+%template(BarTi) BarT<int>;
