@@ -766,15 +766,15 @@
   return $null;
 }
 
-%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE * {
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
   return $null;
-}
+%}
 
-%typemap(throws) char * {
+%typemap(throws) char * %{
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
   return $null;
-}
+%}
 
 
 /* Typemaps for code generation in proxy classes and Java type wrapper classes */
