@@ -30,9 +30,6 @@ Perl5 Options (available with -perl5)\n\
      -const          - Wrap constants as constants and not variables (implies -shadow).\n\
      -compat         - Compatibility mode.\n\n";
 
-static String *import_file = 0;
-static List   *import_stack = 0;
-
 static String *smodule = 0;
 static int     compat = 0;
 
@@ -59,7 +56,7 @@ static int          is_static = 0;
 
 static  int        blessed = 0;                /* Enable object oriented features */
 static  int        do_constants = 0;           /* Constant wrapping */
-static  Hash       *classes = 0;               /* A hash table for storing the classes we've seen so far */
+static  List       *classlist = 0;             /* List of classes */
 static  int        have_constructor = 0;
 static  int        have_destructor= 0;
 static  int        have_data_members = 0;
@@ -81,12 +78,17 @@ static  Hash     *operators = 0;
 static  int       have_operators = 0;
 
 /* Test to see if a type corresponds to something wrapped with a shadow class */
-static DOH *is_shadow(SwigType *t) {
+DOH *PERL5::is_shadow(SwigType *t) {
   DOH *r;
-  SwigType *lt = SwigType_ltype(t);
-  r = Getattr(classes,lt);
-  Delete(lt);
-  return r;
+  Node *n;
+  n = classLookup(t);
+  if (n) {
+    if (!Getattr(n,"perl5:proxy")) {
+      setclassname(n);
+    }
+    return Getattr(n,"perl5:proxy");
+  }
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -172,7 +174,7 @@ PERL5::top(Node *n) {
   Swig_register_filebyname("runtime",f_runtime);
   Swig_register_filebyname("init",f_init);
 
-  classes = NewHash();
+  classlist = NewList();
 
   pm             = NewString("");
   func_stubs     = NewString("");
@@ -185,8 +187,6 @@ PERL5::top(Node *n) {
   command_tab    = NewString("static swig_command_info swig_commands[] = {\n");
   constant_tab   = NewString("static swig_constant_info swig_constants[] = {\n");
   variable_tab   = NewString("static swig_variable_info swig_variables[] = {\n");
-
-  import_stack   = NewList();
 
   Swig_banner(f_runtime);
   
@@ -299,13 +299,16 @@ PERL5::top(Node *n) {
 
   /* Patch the type table to reflect the names used by shadow classes */
   if (blessed) {
-    SwigType *type;
-    for (type = Firstkey(classes); type; type = Nextkey(classes)) {
+    Node     *cls;
+    for (cls = Firstitem(classlist); cls; cls = Nextitem(classlist)) {
+      SwigType *type = Copy(Getattr(cls,"classtype"));
+      SwigType_add_pointer(type);
       String *mangle = NewStringf("\"%s\"", SwigType_manglestr(type));
-      String *rep = NewStringf("\"%s\"", Getattr(classes,type));
+      String *rep = NewStringf("\"%s\"", Getattr(cls,"perl5:proxy"));
       Replaceall(type_table,mangle,rep);
       Delete(mangle);
       Delete(rep);
+      Delete(type);
     }
   }
 
@@ -316,8 +319,6 @@ PERL5::top(Node *n) {
   Printv(f_wrappers,constant_tab,NULL);
 
   Printf(f_wrappers,"#ifdef __cplusplus\n}\n#endif\n");
-
-  /*  Printf(stdout,"::: Perl shadow :::\n\n%s",classes); */
 
   Printf(f_init,"\t ST(0) = &PL_sv_yes;\n");
   Printf(f_init,"\t XSRETURN(1);\n");
@@ -433,22 +434,6 @@ void
 PERL5::import_start(char *modname) {
   if (blessed) {
     Printf(f_pm,"require %s;\n", modname);
-  }
-  /* Save the old module */
-  if (import_file) {
-    Append(import_stack,import_file);
-  }
-  import_file = NewString(modname);
-}
-
-void 
-PERL5::import_end() {
-  Delete(import_file);
-  if (Len(import_stack)) {
-    import_file = Copy(Getitem(import_stack,Len(import_stack)-1));
-    Delitem(import_stack,Len(import_stack)-1);
-  } else {
-    import_file = 0;
   }
 }
 
@@ -1006,6 +991,31 @@ PERL5::nativeWrapper(Node *n) {
  ***
  ****************************************************************************/
 
+void PERL5::setclassname(Node *n) {
+  String *symname = Getattr(n,"sym:name");
+  String *fullname;
+  String *actualpackage;
+  Node   *clsmodule = Getattr(n,"module");
+  
+  /* Do some work on the class name */
+  actualpackage = Getattr(clsmodule,"name");
+  if ((!compat) && (!Strchr(symname,':'))) {
+    fullname = NewStringf("%s::%s",actualpackage,symname);
+  } else {
+    fullname = NewString(symname);
+  }
+  Setattr(n,"perl5:proxy", fullname);
+}
+
+int PERL5::classDeclaration(Node *n) {
+  /* Do some work on the class name */
+  if (blessed) {
+    setclassname(n);
+    Append(classlist,n);
+  }
+  return Language::classDeclaration(n);
+}
+
 /* -----------------------------------------------------------------------------
  * PERL5::classHandler()
  * ----------------------------------------------------------------------------- */
@@ -1071,7 +1081,7 @@ PERL5::classHandler(Node *n) {
     if (baselist && Len(baselist)) {
       Node *base = Firstitem(baselist);
       while (base) {
-	String *bname = Getattr(base, "perl5:class");
+	String *bname = Getattr(base, "perl5:proxy");
 	if (!bname) {
 	  base = Nextitem(baselist);
 	  continue;
@@ -1408,63 +1418,6 @@ PERL5::memberconstantHandler(Node *n) {
   }
   return SWIG_OK;
 }
-
-/* -----------------------------------------------------------------------------
- * classforwardDeclaration()
- * ----------------------------------------------------------------------------- */
-int
-PERL5::classforwardDeclaration(Node *n) {
-  String *name    = Getattr(n,"name");
-  String *symname = Getattr(n,"sym:name");
-  String *kind    = Getattr(n,"kind");
-  String *stype;
-  String *fullname;
-  String *actualpackage;
-  
-  actualpackage = import_file ? import_file : realpackage;
-
-  if (!symname) {
-    assert(symname);
-  }
-
-  if (blessed) {
-    stype = NewString(name);
-    SwigType_add_pointer(stype);
-    if ((!compat) && (!Strchr(symname,':'))) {
-      fullname = NewStringf("%s::%s",actualpackage,symname);
-    } else {
-      fullname = NewString(symname);
-    }
-    Setattr(n,"perl5:class", fullname);
-    Setattr(classes,stype,fullname);
-    Setattr(classes,name,fullname);
-    Delete(stype);
-    if (kind && (Len(kind) > 0)) {
-      stype = NewStringf("%s %s",kind,name);
-      SwigType_add_pointer(stype);
-      Setattr(classes,stype,fullname);
-      Delete(stype);
-    }
-  }
-  return SWIG_OK;
-}
-
-
-
-/* -----------------------------------------------------------------------------
- * PERL5::typedefHandler()
- * ----------------------------------------------------------------------------- */
-int
-PERL5::typedefHandler(Node *n) {
-  SwigType *t = Getattr(n,"type");
-  String   *name = Getattr(n,"name");
-  if (!blessed) return SWIG_OK;
-  if (is_shadow(t)) {
-    Setattr(classes,NewString(name), is_shadow(t));
-  }
-  return SWIG_OK;
-}
-
 
 /* -----------------------------------------------------------------------------
  * PERL5::pragma()

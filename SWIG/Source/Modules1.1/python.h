@@ -40,11 +40,10 @@ public :
   virtual int constructorHandler(Node *);
   virtual int destructorHandler(Node *);
   virtual int classHandler(Node *);
-  virtual int classforwardDeclaration(Node *);
+  virtual int classDeclaration(Node *);
 
   virtual int insertDirective(Node *);
   virtual void import_start(char *);
-  virtual void import_end();
 
 };
 

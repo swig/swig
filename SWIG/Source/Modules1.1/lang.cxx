@@ -31,7 +31,6 @@ static String  *AttributeFunctionSet = 0;
 static String  *ActionFunc = 0;
 static int      cplus_mode = 0;
 static Node    *CurrentClass = 0;
-static Hash    *ClassHash = 0;
 int             line_number = 0;
 char           *input_file = 0;
 
@@ -261,7 +260,6 @@ SwigType *cplus_value_type(SwigType *t) {
 
 /* Patch C++ pass-by-value */
 static void patch_parms(Parm *p) {
-    if (!ClassHash) return;
     while (p) {
 	SwigType *t = Getattr(p,"type");
 	SwigType *s = cplus_value_type(t);
@@ -316,7 +314,6 @@ void swig_pragma(char *lang, char *name, char *value) {
  * ---------------------------------------------------------------------- */
 
 int Language::top(Node *n) {
-    ClassHash = Getattr(n,"classes");
     return emit_children(n);
 }
 
@@ -1654,43 +1651,62 @@ Language::symbolLookup(String *s) {
 
 Node *
 Language::classLookup(SwigType *s) {
-    Node *n;
-    SwigType *ty1,*ty2;
+    Node *n = 0;
+    SwigType *lt, *ty1,*ty2;
     String *base;
     String *prefix;
+    Symtab  *stab = 0;
 
     /* Look in hash of cached values */
     n = Getattr(classtypes,s);
     if (n) return n;
 
-    ty1 = SwigType_typedef_resolve_all(s);
+    lt = SwigType_ltype(s);
+    ty1 = SwigType_typedef_resolve_all(lt);
     ty2 = SwigType_strip_qualifiers(ty1);
+    Delete(lt);
     Delete(ty1);
 
     base = SwigType_base(ty2);
+
+    Replaceall(base,"class ","");
+    Replaceall(base,"struct ","");
+    Replaceall(base,"union ","");
+
     prefix = SwigType_prefix(ty2);
 
+    while (!n) {
+      n = Swig_symbol_clookup(base,stab);
+      if (!n) break;
+      if (Strcmp(nodeType(n),"class") == 0) break;
+      n = parentNode(n);
+      if (!n) break;
+      stab = Getattr(n,"sym:symtab");
+      if (!stab) {
+	n = 0;
+	break;
+      }
+    }
     /* Do a symbol table search on the base type */
-    n = Swig_symbol_clookup(base,0);
+    /*    n = Swig_symbol_clookup(base,0); */
     if (n) {
 	/* Found a match.  Look at the prefix.  We only allow
 	   a few cases: pointers, references, and simple */
-
-	if ((Len(prefix) == 0) ||               /* Simple type */
-	    (Strcmp(prefix,"p.") == 0) ||       /* pointer     */ 
-	    (Strcmp(prefix,"r.") == 0) ||       /* reference   */
-	    (SwigType_isarray(prefix) && (SwigType_array_ndim(prefix) == 1))
-	    ) {
-	    Setattr(classtypes,Copy(s),n);
-	} else {
-	    n = 0;
-	}
+      if ((Len(prefix) == 0) ||               /* Simple type */
+	  (Strcmp(prefix,"p.") == 0) ||       /* pointer     */ 
+	  (Strcmp(prefix,"r.") == 0)) {       /* reference   */
+	Setattr(classtypes,Copy(s),n);
+      } else {
+	n = 0;
+      }
     }
     Delete(ty2);
     Delete(base);
     Delete(prefix);
     return n; 
 }
+
+
 
 
 

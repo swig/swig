@@ -1975,7 +1975,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
  *                       C++ Support
  * ====================================================================== */
 
-cpp_declaration : cpp_class_decl { $$ = $1; }
+cpp_declaration : cpp_class_decl {  $$ = $1; }
                 | cpp_forward_class_decl { $$ = $1; }
                 | cpp_template_decl { $$ = $1; }
                 | cpp_using_decl { $$ = $1; }

@@ -36,7 +36,7 @@ static normal_node *patch_list = 0;
 
 class TypePass : public Dispatcher {
     Node   *inclass;
-    String *module;
+    Node   *module;
     int    importmode;
     String *nsname;
     Hash   *classhash;
@@ -219,7 +219,7 @@ public:
      * ------------------------------------------------------------ */ 
 
     virtual int moduleDirective(Node *n) {
-	module = Getattr(n,"name");
+	module = n;
 	return SWIG_OK;
     }
 

@@ -22,6 +22,8 @@
 class PERL5 : public Language {
 private:
   char     *usage_func(char *, SwigType *, ParmList *);
+  DOH      *is_shadow(SwigType *t);
+  void      setclassname(Node *);
 public :
   virtual void main(int, char *argv[]);
   virtual int top(Node *);
@@ -38,14 +40,11 @@ public :
   virtual int constructorHandler(Node *n);
   virtual int destructorHandler(Node *n);
 
-  virtual int classforwardDeclaration(Node *n);
   virtual int classHandler(Node *n);
-
-  virtual int typedefHandler(Node *);
+  virtual int classDeclaration(Node *n);
 
   virtual void pragma(char *, char *, char *);
   virtual void import_start(char *filename);
-  virtual void import_end();
 };
 
 

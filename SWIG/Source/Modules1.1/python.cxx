@@ -22,6 +22,7 @@ static char cvsroot[] = "$Header$";
 static  String       *const_code = 0;
 static  String       *shadow_methods = 0;
 static  String       *module = 0;
+static  String       *mainmodule = 0;
 static  String       *interface = 0;
 static  String       *global_name = 0;
 static  int           shadow = 0;
@@ -34,8 +35,6 @@ static  File         *f_init = 0;
 static  File         *f_shadow = 0;
 static  File         *f_shadow_stubs = 0;
 
-static  String       *import_file = 0;
-static  List         *import_stack = 0;
 static  String       *methods;
 static  String       *class_name;
 static  String       *shadow_indent = 0;
@@ -124,7 +123,6 @@ PYTHON::top(Node *n) {
   const_code     = NewString("");
   shadow_methods = NewString("");
   methods        = NewString("");
-  import_stack   = NewList();
 
   Swig_banner(f_runtime);
 
@@ -134,6 +132,7 @@ PYTHON::top(Node *n) {
 
   /* Set module name */
   module = Copy(Getattr(n,"name"));
+  mainmodule = Getattr(n,"name");
 
   char  filen[256];
 
@@ -211,22 +210,6 @@ void
 PYTHON::import_start(char *modname) {
   if (shadow) {
     Printf(f_shadow,"import %s\n", modname);
-  }
-  /* Save the old module */
-  if (import_file) {
-    Append(import_stack,import_file);
-  }
-  import_file = NewString(modname);
-}
-
-void 
-PYTHON::import_end() {
-  Delete(import_file);
-  if (Len(import_stack)) {
-    import_file = Copy(Getitem(import_stack,Len(import_stack)-1));
-    Delitem(import_stack,Len(import_stack)-1);
-  } else {
-    import_file = 0;
   }
 }
 
@@ -686,21 +669,26 @@ static  int       have_repr;
 static  String   *real_classname;
 
 /* -----------------------------------------------------------------------------
- * classforwardDeclaration()
+ * classDeclaration()
  * ----------------------------------------------------------------------------- */
 
 int
-PYTHON::classforwardDeclaration(Node *n) {
+PYTHON::classDeclaration(Node *n) {
   String *importname;
+  Node   *mod;
   if (shadow) {
-    if (import_file) {
-      importname = NewStringf("%s.%s", import_file, Getattr(n,"sym:name"));
-    } else {
-      importname = NewString(Getattr(n,"sym:name"));
+    mod = Getattr(n,"module");
+    if (mod) {
+      String *modname = Getattr(mod,"name");
+      if (Strcmp(modname,mainmodule) != 0) {
+	importname = NewStringf("%s.%s", modname, Getattr(n,"sym:name"));
+      } else {
+	importname = NewString(Getattr(n,"sym:name"));
+      }
+      Setattr(n,"python:proxy",importname);
     }
-    Setattr(n,"python:class",importname);
   }
-  return Language::classforwardDeclaration(n);
+  return Language::classDeclaration(n);
 }
 
 /* -----------------------------------------------------------------------------
@@ -710,6 +698,7 @@ PYTHON::classforwardDeclaration(Node *n) {
 int
 PYTHON::classHandler(Node *n) {
   if (shadow) {
+
     /* Create new strings for building up a wrapper function */
     have_constructor = 0;
     have_repr = 0;
@@ -727,7 +716,7 @@ PYTHON::classHandler(Node *n) {
     if (baselist && Len(baselist)) {
       Node *base = Firstitem(baselist);
       while (base) {
-	String *bname = Getattr(base, "python:class");
+	String *bname = Getattr(base, "python:proxy");
 	if (!bname) {
 	  base = Nextitem(baselist);
 	  continue;
