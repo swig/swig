@@ -194,11 +194,13 @@ static void add_symbols(Node *n) {
     if (!SwigType_isfunction(decl)) {
       symname = make_name(GetChar(n,"name"),0);
       wrn = name_warning(symname,0);
+      Swig_features_get(features_hash, Classprefix, Getattr(n,"name"), 0, n);
     } else {
       SwigType *fdecl = Copy(decl);
       SwigType *fun = SwigType_pop_function(fdecl);
       symname = make_name(GetChar(n,"name"),fun);
       wrn = name_warning(symname,fun);
+      Swig_features_get(features_hash,Classprefix,Getattr(n,"name"),fun,n);
       Delete(fdecl);
       Delete(fun);
     }
@@ -232,8 +234,6 @@ static void add_symbols(Node *n) {
 	Setattr(n,"error",e);
       }
     }
-    /* Attach features (if any) */
-    Swig_features_get(features_hash, Classprefix, Getattr(n,"name"), decl, n);
     n = nextSibling(n);
   }
 }
@@ -1193,7 +1193,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
               ;
 
 stringbracesemi : stringbrace { $$ = $1; }
-                | HBLOCK { $$ = $1; }                
+/*                | HBLOCK { $$ = $1; }                */
                 | SEMI { $$ = 0; }
                 ;
 
@@ -3039,6 +3039,9 @@ stringbrace    : string {
                   skip_balanced('{','}');
 		  $$ = NewString(scanner_ccode);
                }
+              | HBLOCK {
+		 $$ = $1;
+              }
                ;
  
 /* Keyword arguments */
