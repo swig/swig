@@ -45,9 +45,9 @@ class string;
 
 %typemap(in) const string &
 %{ if (!$input) SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "null string");
-  $1 = new std::string($input); %}
+  std::string $1_str($input);
+  $1 = &$1_str; %}
 %typemap(out) const string & %{ $result = SWIG_csharp_string_callback($1->c_str()); %}
-%typemap(freearg) const string & %{ delete $1; %}
 
 %typemap(csin) const string & "$csinput"
 %typemap(csout) const string & {
