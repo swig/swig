@@ -15,18 +15,13 @@
 
 class PHP4 : public Language {
 public :
-	virtual void parse_args(int, char *argv[]);
-	virtual void parse();
-	virtual void create_function(char *, char *, SwigType *, ParmList *);
-	virtual void link_variable(char *, char *, SwigType *);
-	virtual void declare_const(char *, char *, SwigType *, char *);
-	virtual void initialize(void);
-	virtual void headers(void);
-	virtual void close(void);
-	virtual void set_module(char *);
+	virtual void main(int, char *argv[]);
+	virtual int top(Node *n);
+	virtual int functionWrapper(Node *n);
+	virtual int variableWrapper(Node *n);
+	virtual int constantWrapper(Node *n);
 	virtual void add_native(char *, char *, SwigType *, ParmList *);
 	virtual void create_command(char *, char *);
-	virtual void import(char *);
 
 	// Modular Support
 	
