@@ -1,6 +1,6 @@
 %module using_extend
 
-%warnfilter(802) FooBar;	// Ruby, multiple inheritance
+%warnfilter(802, 813) FooBar;   // Ruby, Java multiple inheritance
 
 %extend Foo {
      int blah(int x, int y) {
