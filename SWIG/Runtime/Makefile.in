@@ -1,4 +1,4 @@
-# Makefile for producing SWIG runtime libraries. 
+# Makefile for producing SWIG runtime libraries.
 #
 # The runtime libraries contain the pointer-type checking code and other
 # support functions that are needed when creating multi-file SWIG modules.
@@ -7,6 +7,9 @@
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
+srcdir      = @srcdir@
+VPATH       = @srcdir@
+
 CC          = @CC@
 LIBTOOL     = ../Tools/libtool
 SWIGLIB     = ../Lib
@@ -14,7 +17,7 @@ LIBS        = libswigpl.la libswigpy.la libswigtcl8.la
 LIB_DIR     = $(exec_prefix)/lib
 
 all:
-	@sh make.sh
+	@sh $(srcdir)/make.sh
 
 
 install:
@@ -40,23 +43,23 @@ TCL_RUNTIME = $(SWIGLIB)/tcl/swigtcl8.swg
 tcl: libswigtcl8.la
 
 libswigtcl8.la:
-	cp $(TCL_RUNTIME) swigtcl8.c
-	$(LIBTOOL) $(CC) -c $(TCL_INCLUDE) -DSWIG_GLOBAL swigtcl8.c 
+	-cp $(srcdir)/$(TCL_RUNTIME) swigtcl8.c
+	$(LIBTOOL) $(CC) -c $(TCL_INCLUDE) -DSWIG_GLOBAL swigtcl8.c
 	$(LIBTOOL) $(CC) -o libswigtcl8.la swigtcl8.lo -rpath $(LIB_DIR) -avoid-version
 
 # ----------------------------------------------------------------------
 # Python run-time library
 # ----------------------------------------------------------------------
 
-PYTHON_INCLUDE= -DHAVE_CONFIG_H @PYINCLUDE@
-PYTHON_RUNTIME= $(SWIGLIB)/python/python.swg
+PYTHON_INCLUDE = -DHAVE_CONFIG_H @PYINCLUDE@
+PYTHON_RUNTIME = $(SWIGLIB)/python/python.swg
 
 # Python shared
 
 python: libswigpy.la
 
 libswigpy.la:
-	cp $(PYTHON_RUNTIME) libpy.c
+	-cp $(srcdir)/$(PYTHON_RUNTIME) libpy.c
 	$(LIBTOOL) $(CC) -c $(PYTHON_INCLUDE) -DSWIG_GLOBAL libpy.c
 	$(LIBTOOL) $(CC) -o libswigpy.la libpy.lo -rpath $(LIB_DIR) -avoid-version
 
@@ -64,8 +67,8 @@ libswigpy.la:
 # Perl run-time library
 # ----------------------------------------------------------------------
 
-PERL5_INCLUDE= -I@PERL5EXT@
-PERL5_RUNTIME= $(SWIGLIB)/perl5/perl5.swg
+PERL5_INCLUDE = -I@PERL5EXT@
+PERL5_RUNTIME = $(SWIGLIB)/perl5/perl5.swg
 
 # Perl shared
 
@@ -73,7 +76,7 @@ perl5: libswigpl.la
 
 libswigpl.la:
 	@rm -f libperl.c
-	cat perlrun.h >> libperl.c
-	cat $(PERL5_RUNTIME) >> libperl.c
+	cat $(srcdir)/perlrun.h >> libperl.c
+	cat $(srcdir)/$(PERL5_RUNTIME) >> libperl.c
 	$(LIBTOOL) $(CC) -c $(PERL5_INCLUDE) -DSWIG_GLOBAL -Dbool=char -Dexplicit= libperl.c
 	$(LIBTOOL) $(CC) -o libswigpl.la libperl.lo -rpath $(LIB_DIR) -avoid-version
