@@ -601,7 +601,7 @@ static void patch_template_type(String *s) {
 %token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE ENDTEMPLATE STARTTEMPLATE GENCODE
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
 %token TYPES PARMS
-%token NONID DSTAR
+%token NONID DSTAR DCNOT
 %token <ivalue> TEMPLATE
 %token <str> OPERATOR
 %token <str> COPERATOR
@@ -711,6 +711,9 @@ declaration    : swig_directive { $$ = $1; }
 		   Error = 1;
 		 }
                }
+/* Out of class constructor/destructor declarations */
+               | c_constructor_decl { $$ = 0; }
+               | c_destructor_decl { $$ = 0; }
                ;
 
 
@@ -1558,7 +1561,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
  * to prevent certain types of template substitutions.
  * ----------------------------------------------------------------------------- */
 
-starttemplate_directive: STARTTEMPLATE SEMI {
+starttemplate_directive: STARTTEMPLATE  SEMI {
                    templatemode = 1;
                    $$ = 0;
                 }
@@ -1743,15 +1746,13 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 	       }
                ;
 
-/*
-c_constructor_decl : storage_class idcolon LPAREN parms RPAREN ctor_end {
+c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
                 }
                 ;
 
-c_destructor_decl : storage_class ID DCOLON NOT ID LPAREN parms RPAREN cpp_end { }
+c_destructor_decl : storage_class type DCNOT ID LPAREN RPAREN cpp_end { 
+                }
                 ;
-*/
-
 
 /* ======================================================================
  *                       C++ Support
@@ -1915,8 +1916,16 @@ cpp_class_decl  :
 		   if (!Len($7.type)) {	
 		     name = $7.id;
 		     Setattr($$,"tdname",name);
+		     Setattr($$,"name",name);
 		     if (!class_rename) class_rename = name;
 		     Swig_symbol_setscopename(name);
+
+		     /* If a proper name given, we use that as the typedef, not unnamed */
+		     Clear(unnamed);
+		     Append(unnamed, name);
+		     
+		     n = nextSibling(n);
+		     set_nextSibling($$,n);
 
 		     /* Check for previous addmethods */
 		     if (addmethods) {
@@ -2125,9 +2134,21 @@ cpp_member   : c_declaration { $$ = $1; }
              ;
 
 /* Possibly a constructor */
-cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
+/* Note: the use of 'type' is here to resolve a shift-reduce conflict.  For example:
+            typedef Foo ();
+            typedef Foo (*ptr)();
+*/
+  
+cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		 SwigType *decl = NewString("");
 		 $$ = new_node("constructor");
+
+		 /* Since the parse performs type-corrections in template mode, we
+                    have to undo the correction here.  Ugh. */
+
+		 if ((templatemode) && (Strcmp($2,templatename) == 0)) {
+		   $2 = NewString(Classprefix);
+		 }
 		 Setattr($$,"name",$2);
 		 Setattr($$,"parms",$4);
 		 SwigType_add_function(decl,$4);
@@ -2539,7 +2560,7 @@ declarator :  pointer direct_declarator {
 	       Delete($$.type);
 	     }
 	     $$.type = t;
-           }
+	     } 
            | pointer idcolon DSTAR direct_declarator { 
 	     SwigType *t = NewString("");
 	     $$ = $4;
@@ -2698,7 +2719,7 @@ abstract_declarator : pointer {
                     $$.id = 0;
                     $$.parms = 0;
 		    $$.have_parms = 0;
-		   } 
+      	          }
                   | pointer idcolon DSTAR { 
 		    SwigType *t = NewString("");
                     $$.type = $1;
