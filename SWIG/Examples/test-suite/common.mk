@@ -39,6 +39,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	namespace_typemap \
 	cpp_namespace \
 	rename_default \
 	dynamic_cast \
