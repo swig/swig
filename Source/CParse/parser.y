@@ -2423,12 +2423,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             String *nname = NewStringf("__dummy_%d__", cnt++);
                             Swig_cparse_template_expand(templnode,nname,temparms,tscope);
                             Setattr(templnode,"sym:name",nname);
-                            if (!Swig_template_extmode()) {
-                              Setattr(templnode,"feature:ignore","1");
-                            } else {
-                              Setattr(templnode,"feature:onlychildren",
-                                      "typemap,typemapitem,typemapcopy,typedef,types,fragment");
-                            }
+                            Setattr(templnode,"feature:onlychildren",
+                                    "typemap,typemapitem,typemapcopy,typedef,types,fragment");
                           }
                           Delattr(templnode,"templatetype");
                           Setattr(templnode,"template",nn);

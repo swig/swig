@@ -107,11 +107,6 @@ public:
 
     SWIG_library_directory("python");
   
-
-
-    /* Turn on template extmode */
-    Wrapper_template_extmode_set(1);
-
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
 	if(strcmp(argv[i],"-interface") == 0) {
