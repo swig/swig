@@ -926,7 +926,17 @@ TCL8::nativefunction(DOH *node) {
 
   name = GetChar(node,"scriptname");
   funcname = GetChar(node,"name");
-  Printf(f_init,"\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
+
+  if ((Swig_proto_cmp("f(ClientData,p.Tcl_Interp,int,p.p.Tcl_Obj).int", node) == 0) ||
+      (Swig_proto_cmp("f(ClientData,p.Tcl_Interp,int,a().p.Tcl_Obj).int", node) == 0)) {
+    Printf(f_init,"\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
+  }
+
+  if ((Swig_proto_cmp("f(ClientData,p.Tcl_Interp,int,p.p.char).int", node) == 0) ||
+      (Swig_proto_cmp("f(ClientData,p.Tcl_Interp,int,a().p.char).int", node) == 0)) {
+    Printf(f_init,"\t Tcl_CreateCommand(interp, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
+  }
+    
 }
 
 /* -----------------------------------------------------------------------------

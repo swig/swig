@@ -208,6 +208,7 @@ extern String     *SwigType_default(SwigType *t);
 extern int         SwigType_type(SwigType *t);
 extern void        SwigType_remember(SwigType *t);
 extern void        SwigType_emit_type_table(File *f_headers, File *f_table);
+extern void        SwigType_strip_qualifiers(SwigType *t);
 
 /* --- Parameters and Parameter Lists --- */
 
@@ -300,6 +301,8 @@ extern DOH       *Swig_temp_result(DOH *x);
 extern String    *Swig_string_escape(String *s);
 extern String    *Swig_string_mangle(String *s);
 extern void       Swig_init();
+
+extern int        Swig_proto_cmp(const String_or_char *pat, DOH *node);
 
 /* --- C Wrappers --- */
 extern String    *Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value);

@@ -992,7 +992,14 @@ PYTHON::nativefunction(DOH *node) {
   name = GetChar(node,"scriptname");
   funcname = GetChar(node,"name");
 
-  add_method(name, funcname,0);
+  /* Figure out what kind of function this is */
+  if (Swig_proto_cmp("f(p.PyObject,p.PyObject).p.PyObject",node) == 0) {
+    /* Not with keyword arguments */
+    add_method(name,funcname,0);
+  } 
+  if (Swig_proto_cmp("f(p.PyObject,p.PyObject,p.PyObject).p.PyObject",node) == 0) {
+    add_method(name,funcname,1);
+  }
   if (shadow) {
     Printv(func, name, " = ", module, ".", name, "\n\n", 0);
   }

@@ -240,7 +240,16 @@ int swig11_file(DOH *node, void *clientdata) {
 
 int swig11_scope(DOH *node, void *clientdata) {
   DOH *c;
+  String *name;
+  int oldnative = Native;
   c = Getchild(node);
+  name = Getname(node);
+  if (name && (Cmp(name,"native") == 0)) {
+    Native = 1;
+    Swig_emit_all(c,clientdata);
+    Native = oldnative;
+    return 0;
+  }
   Swig_typemap_new_scope();
   Swig_emit_all(c,clientdata);
   Swig_typemap_pop_scope();
@@ -308,6 +317,8 @@ int swig11_pragma(DOH *node, void *clientdata) {
     ReadOnly = 1;
   } else if (Cmp(name,"readwrite") == 0) {
     ReadOnly = 0;
+  } else if (Cmp(name,"name") == 0) {
+    new_name = value;
   }
   lang->pragma(node);
   return 0;
@@ -453,7 +464,12 @@ int swig11_function(DOH *node, void *clientdata) {
     /* Can't wrap a static function.  Oh well. */
     if (is_static) return 0;
     emit_extern_func(node,f_header);
-    lang->function(node);
+
+    if (Native) {
+      lang->nativefunction(node);
+    } else {
+      lang->function(node);
+    }
   }
   return 0;
 }
@@ -470,6 +486,11 @@ int swig11_variable(DOH *node, void *clientdata) {
 
   if (WrapExtern) return 0;
   if (Access != PUBLIC) return 0;
+
+  if (Native) {
+    Printf(stderr,"%s:%d. Can't wrap variables in %%native mode (ignored).\n", Getfile(node),Getline(node));
+    return 0;
+  }
 
   type = Gettype(node);
   
@@ -578,6 +599,11 @@ int swig11_class(DOH *node, void *clientdata) {
   String *name = Getname(node);
   Setattr(class_hash,name,node);
   if (WrapExtern) return 0;
+
+  if (Native) {
+    Printf(stderr,"%s:%d. Can't wrap structures or classes in %%native mode (ignored).\n", Getfile(node),Getline(node));
+    return 0;
+  }
 
   set_scriptname(node);
   class_name = name;

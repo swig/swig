@@ -160,6 +160,39 @@ String *Swig_string_mangle(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_proto_cmp()
+ *
+ * Compares a function prototype against an expected type-string.
+ * For example, Swig_proto_cmp("f(p.void,p.Tcl_Interp,int,p.p.char).int", node)
+ * ----------------------------------------------------------------------------- */
+
+int
+Swig_proto_cmp(const String_or_char *pat, DOH *node) {
+  SwigType *ty;
+  SwigType *ct;
+  ParmList  *p;
+  List     *tl;
+  int       r;
+
+  ty = Gettype(node);
+  p = Getparms(node);
+  if (!ty || !p) return -1;
+  ct = Copy(ty);
+  tl = NewList();
+  while (p) {
+    Append(tl,Gettype(p));
+    p = Getnext(p);
+  }
+  SwigType_add_function(ct,tl);
+  SwigType_strip_qualifiers(ct);
+  r = Cmp(pat,ct);
+  Delete(ct);
+  Delete(tl);
+  return r;
+}
+
+
+/* -----------------------------------------------------------------------------
  * Swig_init()
  *
  * Initialize the SWIG core
