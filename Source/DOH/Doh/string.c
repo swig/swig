@@ -629,10 +629,10 @@ int String_ungetc(DOH *so, int ch) {
  *
  * Replaces token with rep.  flags is as follows:
  *
- *         REPLACE_ANY           -   Replace all occurrences
- *         REPLACE_NOQUOTE       -   Don't replace in quotes
- *         REPLACE_ID            -   Only replace valid identifiers
- *         REPLACE_FIRST         -   Only replace first occurrence
+ *         DOH_REPLACE_ANY           -   Replace all occurrences
+ *         DOH_REPLACE_NOQUOTE       -   Don't replace in quotes
+ *         DOH_REPLACE_ID            -   Only replace valid identifiers
+ *         DOH_REPLACE_FIRST         -   Only replace first occurrence
  * 
  * start is a starting position. count is a count.
  * ----------------------------------------------------------------------------- */
@@ -702,6 +702,9 @@ int replace_internal(String *str, char *token, char *rep, int flags, char *start
 		} else if (flags & DOH_REPLACE_NOQUOTE) {
 		    if (*c == '\"') state = 20;
 		    else if (*c == '\'') state = 30;
+		    else if (*c == '\\' &&
+			     (*(c+1) == '\'' || *(c+1) == '\"'))
+		       c++;
 		}
 		break;
 	    case 10:  /* The start of an identifier */
