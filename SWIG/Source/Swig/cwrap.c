@@ -123,6 +123,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
   String  *pname;
   String  *local;
   String  *lname;
+  SwigType *altty;
 
   i = 0;
   while (p != 0) {
@@ -131,7 +132,12 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
     if (SwigType_type(pt) != T_VOID) {
       pname  = Getattr(p,"name");
       pvalue = Getattr(p,"value");
-      local  = Swig_clocal(pt,lname,pvalue);
+      altty = Getattr(p,"alttype");
+      if (!altty) {
+	local  = Swig_clocal(pt,lname,pvalue);
+      } else {
+	local = Swig_clocal(altty,lname, pvalue);
+      }
       Wrapper_add_localv(w,lname,local,0);
       i++;
     }
