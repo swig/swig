@@ -23,7 +23,7 @@
 
 class PYTHON : public Language {
 protected:
-  void    get_pointer(char *iname, char *srcname, char *src, char *dest, SwigType *t, DOHString *f, char *ret);
+  void    get_pointer(char *iname, char *srcname, char *src, char *dest, SwigType *t, String *f, char *ret);
 
   void add_method(char *name, char *function, int kw);
   void print_methods();
@@ -34,9 +34,7 @@ protected:
   virtual void initialize_cmodule();
   virtual void close_cmodule();
   virtual void emit_function_header(Wrapper *emit_to, char *wname);
-  virtual char *convert_self(Wrapper *f);
-  virtual char *make_funcname_wrapper(char *fnName);
-  void emitAddPragmas(DOHString *output, char* name, char* spacing);
+  void emitAddPragmas(String *output, char* name, char* spacing);
 
 public :
 

@@ -27,64 +27,51 @@ static char cvsroot[] = "$Header$";
 #include "tcl8.h"
 #include <ctype.h>
 
-
 static char *usage = (char*)"\
 Tcl 8.0 Options (available with -tcl)\n\
      -module name    - Set name of module\n\
      -prefix name    - Set a prefix to be appended to all names\n\
      -namespace      - Build module into a Tcl 8 namespace. \n\
-     -noobject       - Omit code for object oriented interface.\n\
-     -old            - Use old SWIG interface (same as -noobject).\n\n";
-
-static char *ns_name = 0;
+     -noobject       - Omit code for object oriented interface.\n\n";
 
 static String *mod_init = 0;
-static String *mod_extern = 0;
 static String *cmd_info = 0;
 static String *var_info = 0;
 static String *methods = 0;
 static String *attributes = 0;
 
-/* Various parameters */
+static String *prefix = 0;
+static String *module = 0;
+static int     nspace = 0;
+static int     shadow = 1;
+static String *init_name = 0;
+static String *ns_name = 0;
+static int     have_constructor;
+static int     have_destructor;
 
-static char *prefix = 0;
-static char *module = 0;
-static int  nspace = 0;
-static int  shadow = 1;
-static char *tcl_path = (char*)"tcl";
-static char interp_name[256] = "interp";
-static char  *init_name = 0;
-
-static int    have_constructor;
-static int    have_destructor;
-
-static char   *class_name = 0;
-static char   *class_type = 0;
-static char   *real_classname = 0;
-static char   *base_class = 0;
-static Hash   *hash = 0;
+static String *class_name = 0;
+static String *class_type = 0;
+static String *real_classname = 0;
 static Hash   *repeatcmd = 0; 
 static Hash   *setget = 0;
 
-// ---------------------------------------------------------------------
-// TCL8::parse_args(int argc, char *argv[])
-//
-// Parse tcl specific command line options
-// ---------------------------------------------------------------------
+/* ----------------------------------------------------------------------------- 
+ * TCL8::parse_args()
+ * 
+ * Parse tcl specific command line options
+ * ----------------------------------------------------------------------------- */
 
-void TCL8::parse_args(int argc, char *argv[]) {
+void
+TCL8::parse_args(int argc, char *argv[]) {
   
   int i = 1;
-  sprintf(LibDir,"%s",tcl_path);
-
-  // Look for certain command line options
+  strcpy(LibDir,"tcl");
 
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	  if (strcmp(argv[i],"-prefix") == 0) {
 	    if (argv[i+1]) {
-	      prefix = new char[strlen(argv[i+1])+2];
-	      strcpy(prefix, argv[i+1]);
+	      prefix = NewString(argv[i+1]);
 	      Swig_mark_arg(i);
 	      Swig_mark_arg(i+1);
 	      i++;
@@ -103,9 +90,6 @@ void TCL8::parse_args(int argc, char *argv[]) {
 	  } else if (strcmp(argv[i],"-namespace") == 0) {
 	    nspace = 1;
 	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-old") == 0) {
-	    shadow = 0;
-	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-noobject") == 0) {
 	    shadow = 0;
 	    Swig_mark_arg(i);
@@ -115,164 +99,38 @@ void TCL8::parse_args(int argc, char *argv[]) {
       }
   }
 
-  // If a package has been specified, make sure it ends with a '_'
-
+  /* If a prefix has been given, make sure it ends with a '_' */
   if (prefix) {
-    ns_name = Swig_copy_string(prefix);
-    if (prefix[strlen(prefix)] != '_') {
-      prefix[strlen(prefix)+1] = 0;
-      prefix[strlen(prefix)] = '_';
-    }
-  } else 
-    prefix = (char*)"";
+    ns_name = Copy(prefix);
+    Append(prefix,"_");
+  }
 
-  // Create a symbol SWIGTCL
-
+  /* Create a symbol SWIGTCL */
   Preprocessor_define((void *) "SWIGTCL 1",0);
   Preprocessor_define((void *) "SWIGTCL8 1", 0);
 
-  // Set name of typemaps
-
   typemap_lang = (char*)"tcl8";
-
 }
 
-// ---------------------------------------------------------------------
-// void TCL8::parse()
-//
-// Start parsing an interface file for Tcl.
-// ---------------------------------------------------------------------
+/* ----------------------------------------------------------------------------- 
+ * TCL8::parse()
+ *
+ * Start parsing an interface file for Tcl.
+ * ----------------------------------------------------------------------------- */
 
-void TCL8::parse() {
-
-  Printf(stderr,"Making wrappers for Tcl 8.x\n");
-
-  mod_init = NewString("");
-  mod_extern = NewString("");
-  cmd_info = NewString("");
-  var_info = NewString("");
-  methods = NewString("");
+void
+TCL8::parse() {
+  mod_init   = NewString("");
+  cmd_info   = NewString("");
+  var_info   = NewString("");
+  methods    = NewString("");
   attributes = NewString("");
-
-  hash = NewHash();
-  repeatcmd = NewHash();
-  setget = NewHash();
-
-  // Print out TCL specific headers
-  
-  headers();
-  
-  // Run the parser
-  
-  yyparse();
-
-}
-
-// ---------------------------------------------------------------------
-// TCL8::set_module(char *mod_name,char **mod_list)
-//
-// Sets the module name.
-// Does nothing if it's already set (so it can be overridden as a command
-// line option).
-//
-// mod_list is a NULL-terminated list of additional modules.  This
-// is really only useful when building static executables and other
-// things.
-//----------------------------------------------------------------------
-
-void TCL8::set_module(char *mod_name, char **mod_list) {
-
-  char temp[256], *c;
-  int  i;
-
-  if (module) return;
-  
-  module = new char[strlen(mod_name)+1];
-  strcpy(module,mod_name);
-
-  // Fix capitalization for Tcl 
-
-  c = module;
-  while (*c) {
-    *c = (char) tolower(*c);
-    c++;
-  }
-
-  // Now create an initialization function
-
-  sprintf(temp,"%s_Init", module);
-  init_name = new char[strlen(temp) + 1];
-  strcpy(init_name, temp);
-  *init_name = toupper(*init_name);
-
-  if (!ns_name) ns_name = Swig_copy_string(module);
-
-  // If namespaces have been specified, set the prefix to the module name
-
-  if ((nspace) && (strlen(prefix) < 1)) {
-    prefix = new char[strlen(module)+2];
-    strcpy(prefix,module);
-    prefix[strlen(module)] = '_';
-    prefix[strlen(module)+1] = 0;
-  }
-
-  // If additional modules have been specified, create some code for
-  // initializing them.
-
-  if (mod_list) {
-    i = 0;
-    while (mod_list[i]) {
-      c = mod_list[i];
-      while (*c) {
-	*c = (char) tolower(*c);
-	c++;
-      }
-      sprintf(temp,"%s_Init",mod_list[i]);
-      temp[0] = toupper(temp[0]);
-      
-      // Dump out some initialization code
-      
-      Printv(mod_init,
-	     tab4, "if (", temp, "(", interp_name, ") == TCL_ERROR) {\n",
-	     tab8, "return TCL_ERROR;\n",
-	     tab4, "}\n\n",
-	     0);
-      Printv(mod_extern, "extern int ", temp, "(Tcl_Interp *);\n", 0);
-      i++;
-    }
-  }
-}
-
-
-// ---------------------------------------------------------------------
-// TCL8::set_init(char *iname)
-//
-// Sets the initialization function name.
-// Does nothing if it's already set
-//
-//----------------------------------------------------------------------
-
-void TCL8::set_init(char *iname) {
-
-  if (init_name) return;
-  init_name = new char[strlen(iname)+1];
-  strcpy(init_name, iname);
-
-}
-
-// ---------------------------------------------------------------------
-// TCL8::headers(void)
-//
-// Generate the appropriate header files for TCL interface.
-// ----------------------------------------------------------------------
-
-void TCL8::headers(void)
-{
+  repeatcmd  = NewHash();
+  setget     = NewHash();
 
   Swig_banner(f_runtime);
   
-  // Include a Tcl configuration file for Unix,Mac,Wintel.
-
+  /* Include a Tcl configuration file */
   if (NoInclude) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
@@ -284,17 +142,58 @@ void TCL8::headers(void)
     Printf(stderr,"SWIG : Fatal error. Unable to locate 'swigtcl8.swg' in SWIG library.\n");
     SWIG_exit(1);
   }
+
+  yyparse();
+
 }
 
-// --------------------------------------------------------------------
-// TCL8::initialize(void)
-//
-// Produces an initialization function.   Assumes that the init function
-// name has already been specified.
-// ---------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * TCL8::set_module()
+ *
+ * Sets the module name. Does nothing if it's already set.
+ * ----------------------------------------------------------------------------- */
 
-void TCL8::initialize() 
-{
+void
+TCL8::set_module(char *mod_name, char **mod_list) {
+  char *c;
+
+  if (module) return;
+  module = NewString(mod_name);
+
+  /* Fix capitalization for Tcl */
+
+  c = Char(module);
+  while (*c) {
+    *c = (char) tolower(*c);
+    c++;
+  }
+
+  /* Now create an initialization function */
+
+  init_name = NewStringf("%s_Init",module);
+  c = Char(init_name);
+  *c = toupper(*c);
+
+  if (!ns_name) ns_name = Copy(module);
+
+  /* If namespaces have been specified, set the prefix to the module name */
+
+  if ((nspace) && (!prefix)) {
+    prefix = NewStringf("%s_",module);
+  } else {
+    prefix = NewString("");
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * TCL8::initialize()
+ *
+ * Produces an initialization function.   Assumes that the init function
+ * name has already been specified.
+ * ----------------------------------------------------------------------------- */
+
+void
+TCL8::initialize() {
 
   if ((!ns_name) && (nspace)) {
     Printf(stderr,"Tcl error.   Must specify a namespace.\n");
@@ -307,7 +206,7 @@ void TCL8::initialize()
   }
 
   Printf(f_header,"#define SWIG_init    %s\n", init_name);
-  if (!module) module = (char*)"swig";
+  if (!module) module = NewString("swig");
   Printf(f_header,"#define SWIG_name    \"%s\"\n", module);
   if (nspace) {
     Printf(f_header,"#define SWIG_prefix  \"%s::\"\n", ns_name);
@@ -329,37 +228,15 @@ void TCL8::initialize()
   Printf(f_header,"#ifdef __cplusplus\n");
   Printf(f_header,"}\n");
   Printf(f_header,"#endif\n");
-  
 
-  Printf(f_init,"SWIGEXPORT(int) %s(Tcl_Interp *%s) {\n", init_name, interp_name);
+  Printf(f_init,"SWIGEXPORT(int) %s(Tcl_Interp *interp) {\n", init_name);
   Printf(f_init,"\t int i;\n");
-  if (nspace) {
-    Printf(f_init,"#ifdef ITCL_NAMESPACES\n");
-    Printf(f_init,"\t Itcl_Namespace spaceId;\n");
-    Printf(f_init,"#endif\n");
-  }
-  
-  Printf(f_init,"\t if (%s == 0) \n", interp_name);
+  Printf(f_init,"\t if (interp == 0) \n");
   Printf(f_init,"\t\t return TCL_ERROR;\n");
-
-  /* Check to see if other initializations need to be performed */
-
-  if (Len(mod_extern)) {
-    Printf(f_init,"%s\n",mod_init);
-    Printf(f_header,"#ifdef __cplusplus\n");
-    Printf(f_header,"extern \"C\" {\n");
-    Printf(f_header,"#endif\n");
-    Printf(f_header,"%s\n",mod_extern);
-    Printf(f_header,"#ifdef __cplusplus\n");
-    Printf(f_header,"}\n");
-    Printf(f_header,"#endif\n");
-  }
 
   /* Check to see if we're adding support for Tcl8 nspaces */
   if (nspace) {
-    Printf(f_init,"#if (TCL_MAJOR_VERSION >= 8)\n");
-    Printf(f_init,"\t Tcl_Eval(%s,\"namespace eval %s { }\");\n", interp_name, ns_name);
-    Printf(f_init,"#endif\n");
+    Printf(f_init,"\t Tcl_Eval(interp,\"namespace eval %s { }\");\n", ns_name);
   }
   
   Printf(cmd_info, "\nstatic _swig_command_info _swig_commands[] = {\n");
@@ -374,16 +251,15 @@ void TCL8::initialize()
 	 0);
 }
 
-// ---------------------------------------------------------------------
-// TCL8::close(void)
-//
-// Wrap things up.  Close initialization function.
-// ---------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * TCL8::close()
+ *
+ * Wrap things up.  Close initialization function.
+ * ----------------------------------------------------------------------------- */
 
-void TCL8::close(void)
-{
+void
+TCL8::close(void) {
   Printv(cmd_info, tab4, "{0, 0, 0}\n", "};\n",0);
-
   Printv(var_info, tab4, "{0,0,0,0}\n", "};\n",0);
 
   Printf(f_wrappers,"%s", cmd_info);
@@ -399,128 +275,84 @@ void TCL8::close(void)
   Printf(f_init,"\t     Tcl_TraceVar(interp, (char *) _swig_variables[i].name, TCL_TRACE_WRITES | TCL_GLOBAL_ONLY, _swig_variables[i].set, (ClientData) _swig_variables[i].addr);\n");
   Printf(f_init,"\t}\n");
 
-  // Dump the pointer equivalency table
-
-  // emit_type_table(f_runtime);
+  /* Dump the pointer equivalency table */
 
   SwigType_emit_type_table(f_runtime, f_wrappers);
 
-  //  emit_ptr_equivalence(f_init);
-
-  // Close the init file and quit
-
+  /* Close the init function and quit */
   Printf(f_init,"\t return TCL_OK;\n");
   Printf(f_init,"}\n");
-
 }
 
-// ----------------------------------------------------------------------
-// TCL8::get_pointer(char *iname, char *srcname, char *src, char *dest,
-//                  SwigType *t, String &f, char *ret)
-//
-// iname     = name of function or variable
-// srcname   = name of source
-// src       = source variable in wrapper code
-// dest      = destination variable in wrapper code
-// t         = SwigType 
-// f         = String where output is going to go
-// ret       = Return action
-// ----------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * TCL8::create_command()
+ *
+ * Creates a Tcl command from a C function.
+ * ----------------------------------------------------------------------------- */
 
-void TCL8::get_pointer(char *iname, char *srcname, char *src, char *dest,
-		      SwigType *t, String *f, char *ret) {
-
-  // Pointers are read as hex-strings with encoded type information
-  
-  SwigType_remember(t);
-  Printv(f, tab4, "if ((SWIG_ConvertPtr(interp,", src, ",(void **) &", dest, ",",0);
-
-  if (SwigType_type(t) == T_VOID) Printf(f, "0)) == TCL_ERROR) { return TCL_ERROR; }\n");
-  else 
-    Printv(f, "SWIGTYPE", SwigType_manglestr(t), ")) == TCL_ERROR) { return TCL_ERROR; }\n", 0);
-}
-
-// ----------------------------------------------------------------------
-// TCL8::create_command(char *cname, char *iname)
-//
-// Creates a Tcl command from a C function.
-// ----------------------------------------------------------------------
-
-void TCL8::create_command(char *cname, char *iname) {
+void
+TCL8::create_command(char *cname, char *iname) {
 
   String *wname = Swig_name_wrapper(cname);
-
   Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", ", wname, ", NULL},\n", 0);
   
-  // Add interpreter name to repeatcmd hash table.  This hash is used in C++ code
-  // generation to try and find repeated wrapper functions.
+  /* Add interpreter name to repeatcmd hash table.  This hash is used in C++ code
+     generation to try and find repeated wrapper functions. */
 
-  Setattr(repeatcmd,iname,Char(wname));
+  Setattr(repeatcmd,iname,wname);
 }
 
-// ----------------------------------------------------------------------
-// TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
-//
-// Create a function declaration and register it with the interpreter.
-// ----------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * TCL8::create_function()
+ *
+ * Create a function declaration and register it with the interpreter.
+ * ----------------------------------------------------------------------------- */
 
-void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
-{
+void 
+TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Parm            *p;
   int              pcount,i,j;
-  char             wname[256];
-  char            *usage = 0, *tm;
-  char             source[64];
-  char             target[64];
-  char             argnum[32];
+  char            *tm;
   Wrapper         *f;
-  String       *incode, *cleanup, *outarg, *argstr, *args;
+  String          *incode, *cleanup, *outarg, *argstr, *args;
   int              numopt= 0;
 
-  f = NewWrapper();
-  incode = NewString("");
+  f       = NewWrapper();
+  incode  = NewString("");
   cleanup = NewString("");
-  outarg = NewString("");
-  argstr = NewString("\"");
-  args = NewString("");
+  outarg  = NewString("");
+  argstr  = NewString("\"");
+  args    = NewString("");
 
-  // Make a wrapper name for this function
-
-  strcpy(wname, Char(Swig_name_wrapper(iname)));
-
-  // Now write the wrapper function itself....this is pretty ugly
+  /* Now write the wrapper function itself. */
 
   Printv(f->def,
-	 "static int\n ", wname, "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
+	 "static int\n ", Swig_name_wrapper(iname), "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
 	 0);
 
-  // Print out variables for storing arguments.
+  /* Print out variables for storing arguments. */
 
   pcount = emit_args(d, l, f);
   numopt = check_numopt(l);
 
-  // Create a local variable for holding the interpreter result value
-
-  // Check the number of arguments
-
-  usage = usage_func(iname,d,l);       // Create a usage string
-
-  // Extract parameters.    This case statement should be used to extract
-  // Function parameters.   Add more cases if you want to do more.
+  /* Extract parameters. */
 
   i = 0;
   j = 0;
   p = l;
   while (p != 0) {
+    char      source[64];
+    char      target[64];
+    char      argnum[64];
     SwigType *pt = Gettype(p);
     String   *pn = Getname(p);
-    // Produce string representations of the source and target arguments
+
+    /* Produce string representations of the source and target arguments */
     sprintf(source,"objv[%d]",j+1);
     sprintf(target,"%s", Char(Getlname(p)));
     sprintf(argnum,"%d",j+1);
 
-    // See if this argument is being ignored
-    
+    /* See if this argument is being ignored */
     if (!Getignore(p)) {
       if (j == (pcount-numopt)) 
 	Putc('|',argstr);
@@ -528,21 +360,17 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
       if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {
 	Putc('o',argstr);
 	Printf(args,",0");
-
-	// Yep.  Use it instead of the default
 	Printf(incode,"%s\n", tm);
 	Replace(incode,"$argnum",argnum, DOH_REPLACE_ANY);
 	Replace(incode,"$arg",source, DOH_REPLACE_ANY);
       } else {
-	  // Extract a parameter by value.
-	
 	switch(SwigType_type(pt)) {
-	    // Signed Integers
 	case T_INT:
 	case T_UINT:
 	  Putc('i', argstr);
 	  Printf(args,",&%s",target);
 	  break;
+
 	case T_BOOL:
 	  Putc('i',argstr);
 	  {
@@ -553,24 +381,25 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	    Printv(incode, tab4, target, " = (bool) ", tb, ";\n", 0);
 	  }
 	  break;
+
 	case T_SHORT:
 	case T_USHORT:
 	  Putc('h',argstr);
 	  Printf(args,",&%s",target);
 	  break;
+
 	case T_LONG:
 	case T_ULONG:
 	  Putc('l',argstr);
 	  Printf(args,",&%s",target);
 	  break;
+
 	case T_SCHAR:
 	case T_UCHAR:
 	  Putc('b',argstr);
 	  Printf(args,",&%s", target);
 	  break;
-	  
-	  // Floating point
-	  
+
 	case T_FLOAT:
 	  Putc('f',argstr);
 	  Printf(args,",&%s", target);
@@ -581,17 +410,13 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	  Printf(args,",&%s", target);
 	  break;
 	  
-	  // A single character
 	case T_CHAR :
 	  Putc('c',argstr);
 	  Printf(args,",&%s",target);
 	  break;
 	  
-	  // Void.. Do nothing.
-	  
 	case T_VOID :
 	  break;
-	  // User defined.   This is an error.
 	  
 	case T_USER:
 	  SwigType_add_pointer(pt);
@@ -611,8 +436,6 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	  Putc('p',argstr);
 	  Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
 	  break;
-
-	  // Unsupported data type
 	    
 	default :
 	  Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
@@ -623,45 +446,43 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
       j++;
     }
 
-    // Check to see if there was any sort of a constaint typemap
+    /* Check to see if there was any sort of a constaint typemap */
     if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,source,target,0))) {
-      // Yep.  Use it instead of the default
       Printf(incode,"%s\n", tm);
       Replace(incode,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(incode,"$arg",source, DOH_REPLACE_ANY);
     }
 
-    // Check if there was any cleanup code (save it for later)
+    /* Check if there was any cleanup code (save it for later) */
     if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,target,(char*)"tcl_result",0))) {
-      // Yep.  Use it instead of the default
-      Printf(cleanup,"%s\n", tm);
+       Printf(cleanup,"%s\n", tm);
       Replace(cleanup,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",source,DOH_REPLACE_ANY);
     }
-    // Look for output arguments
+    /* Look for output arguments */
     if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,target,(char*)"tcl_result",0))) {
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
     }
     i++;
-    p = Getnext(p);   // Get next parameter and continue
+    p = Getnext(p);
   }
-  Printf(argstr,":%s\"",usage);
+
+  Printf(argstr,":%s\"",usage_string(iname,d,l));
   Printv(f->code,
 	 tab4, "if (SWIG_GetArgs(interp, objc, objv,", argstr, args, ") == TCL_ERROR) return TCL_ERROR;\n",
 	 0);
 
   Printv(f->code,incode,0);
 
-  // Now write code to make the function call
+  /* Now write code to make the function call */
 
   emit_func_call(name,d,l,f);
 
-  // Return value if necessary 
+  /* Return value if necessary  */
 
   if ((tm = Swig_typemap_lookup((char*)"out",d,name,(char*)"result",(char*)"tcl_result",0))) {
-    // Yep.  Use it instead of the default
     Printf(f->code,"%s\n", tm);
   } else {
     switch(SwigType_type(d)) {
@@ -677,22 +498,20 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	Printv(f->code, tab4, "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));\n",0);
 	break;
 	
-	// Is a single character.  Assume we return it as a string
+	/* Is a single character.  We return it as a string */
       case T_CHAR :
 	Printv(f->code, tab4, "Tcl_SetObjResult(interp,Tcl_NewStringObj(&result,1));\n",0);
 	break;
 	
-	// Floating point number
       case T_DOUBLE :
       case T_FLOAT :
 	Printv(f->code, tab4, "Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) result));\n",0);
 	break;
 	
-	// User defined type
       case T_USER :
 	
-	// Okay. We're returning malloced memory at this point.
-	// Probably dangerous, but who said safety was a good thing?
+	/* Okay. We're returning malloced memory at this point.
+	   Probably dangerous, but safe programming is for wimps. */
 	
 	SwigType_add_pointer(d);
 	SwigType_remember(d);
@@ -703,7 +522,6 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	break;
 	
     case T_STRING:
-	// Return a character string
 	Printv(f->code, tab4, "Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));\n",0);
 	break;
     case T_POINTER: case T_REFERENCE: case T_ARRAY:
@@ -715,7 +533,7 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 
     case T_VOID:
       break;
-      // Unknown type
+
     default :
       Printf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
 	     input_file, line_number, SwigType_str(d,0), name);
@@ -723,13 +541,13 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
     }
   }
 
-  // Dump output argument code
+  /* Dump output argument code */
   Printv(f->code,outarg,0);
 
-  // Dump the argument cleanup code
+  /* Dump the argument cleanup code */
   Printv(f->code,cleanup,0);
 
-  // Look for any remaining cleanup
+  /* Look for any remaining cleanup */
 
   if (NewObject) {
     if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"",0))) {
@@ -738,22 +556,20 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   }
 
   if ((tm = Swig_typemap_lookup((char*)"ret",d,name,(char*)"result",(char*)"",0))) {
-    // Yep.  Use it instead of the default
     Printf(f->code,"%s\n", tm);
   }
   Printv(f->code,tab4, "return TCL_OK;\n}", 0);
 
-  // Substitute the cleanup code
+  /* Substitute the cleanup code */
   Replace(f->code,"$cleanup",cleanup,DOH_REPLACE_ANY);
   Replace(f->code,"$name", iname, DOH_REPLACE_ANY);
 
-  // Dump out the function
-
+  /* Dump out the function */
   Wrapper_print(f,f_wrappers);
 
-  // Now register the function with Tcl
 
-  Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", ", wname, ", NULL},\n", 0);
+  /* Register the function with Tcl */
+  Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", ", Swig_name_wrapper(iname), ", NULL},\n", 0);
 
   Delete(incode);
   Delete(cleanup);
@@ -763,26 +579,26 @@ void TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   DelWrapper(f);
 }
 
-// -----------------------------------------------------------------------
-// TCL8::link_variable(char *name, char *iname, SwigType *t, int ex)
-//
-// Create a TCL link to a variable.
-// -----------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * TCL8::link_variable()
+ *
+ * Create a link to a variable.
+ * ----------------------------------------------------------------------------- */
 
-void TCL8::link_variable(char *name, char *iname, SwigType *t)
-{
-  char      *tm, *tm1;
+void
+TCL8::link_variable(char *name, char *iname, SwigType *t) {
+  DOH      *tm, *tm1;
 
-  // See if there were any typemaps
+  /* See if there were any typemaps */
 
-  tm = Swig_typemap_lookup((char*)"varin",t,name,(char*)"",(char*)"",0);
-  tm1 = Swig_typemap_lookup((char*)"varout",t,name,(char*)"",(char*)"",0);
+  tm = Swig_typemap_search((char*)"varin",t,name);
+  tm1 = Swig_typemap_search((char*)"varout",t,name);
   if (tm || tm1) {
     Printf(stderr,"%s : Line %d. Warning. varin/varout typemap methods not supported.",
 	    input_file, line_number);
   }
 
-  // Dump a collection of set/get functions suitable for variable tracing
+  /* Dump a collection of set/get functions suitable for variable tracing */
   if (!Getattr(setget,SwigType_lstr(t,0))) {
     Setattr(setget,SwigType_lstr(t,0),"1");
     Wrapper *get, *set;
@@ -821,11 +637,11 @@ void TCL8::link_variable(char *name, char *iname, SwigType *t)
     case T_DOUBLE:
       Printv(set->code, tab4, "*(addr) = (", SwigType_str(t,0), ") atof(value);\n",0);
       break;
-    case T_CHAR:  /* Single character. */
+    case T_CHAR:  
       Printv(set->code, tab4, "*(addr) = *value;\n",0);
       break;
     case T_USER:
-      // User defined type.  We return it as a pointer
+      /* User defined type.  We return it as a pointer */
       SwigType_add_pointer(t);
       SwigType_remember(t);
       Printv(set->code, tab4, "{\n",
@@ -846,7 +662,6 @@ void TCL8::link_variable(char *name, char *iname, SwigType *t)
 	     0);
       break;
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
-      // User defined type.  We return it as a pointer
       SwigType_remember(t);
       Printv(set->code, tab4, "{\n",
 	     tab8, "void *ptr;\n",
@@ -861,7 +676,7 @@ void TCL8::link_variable(char *name, char *iname, SwigType *t)
       break;
 
     default:
-      Printf(stderr,"Unknown type %s!\n", SwigType_str(t,0));
+      Printf(stderr,"TCL8::link_variable. Unknown type %s!\n", SwigType_str(t,0));
       break;
     }
 
@@ -952,29 +767,29 @@ void TCL8::link_variable(char *name, char *iname, SwigType *t)
   }
 }
 
-// -----------------------------------------------------------------------
-// TCL8::declare_const(char *name, char *iname, SwigType *type, char *value)
-//
-// Makes a constant.  Really just creates a variable and links to it.
-// Tcl variable linkage allows read-only variables so we'll use that
-// instead of just creating a Tcl variable.
-// ------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * TCL8::declare_const()
+ *
+ * Makes a constant.  Really just creates a variable and links to it.
+ * Tcl variable linkage allows read-only variables so we'll use that
+ * instead of just creating a Tcl variable.
+ * ----------------------------------------------------------------------------- */
 
-void TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
+void
+TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
 
-  int OldStatus = Status;      // Save old status flags
+  int OldStatus = Status;
   SwigType *t; 
-  char   var_name[256];
+  char      var_name[256];
   char     *tm;
-  String *rvalue;
-  Status = STAT_READONLY;      // Enable readonly mode.
+  String   *rvalue;
+  Status = STAT_READONLY;
 
-  // Make a static variable;
+  /* Make a static variable */
 
   sprintf(var_name,"_wrap_const_%s",name);
   
-  // See if there's a typemap
-  if (SwigType_type(type) == T_STRING) {
+   if (SwigType_type(type) == T_STRING) {
     rvalue = NewStringf("\"%s\"",value);
   } else if (SwigType_type(type) == T_CHAR) {
     rvalue = NewStringf("\'%s\'",value);
@@ -982,16 +797,16 @@ void TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
     rvalue = NewString(value);
   }
   if ((tm = Swig_typemap_lookup((char*)"const",type,name,Char(rvalue),name,0))) {
-    // Yep.  Use it instead of the default
     Printf(f_init,"%s\n",tm);
   } else {
 
-    // Create variable and assign it a value
+    /* Create variable and assign it a value */
     switch(SwigType_type(type)) {
     case T_BOOL: case T_INT: case T_DOUBLE:
       Printf(f_header,"static %s %s = %s;\n", SwigType_str(type,0), var_name, value);
       link_variable(var_name,name,type);
       break;
+
     case T_SHORT:
     case T_LONG:
     case T_SCHAR:
@@ -1009,6 +824,7 @@ void TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       link_variable(var_name,name,t);
       Delete(t);
       break;
+
     case T_UINT:
     case T_USHORT:
     case T_ULONG:
@@ -1027,6 +843,7 @@ void TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       link_variable(var_name,name,t);
       Delete(t);
       break;
+
     case T_FLOAT:
       Printf(f_header,"static %s %s = (%s) (%s);\n", SwigType_lstr(type,0), var_name, SwigType_lstr(type,0), value);
       link_variable(var_name,name,type);
@@ -1045,7 +862,6 @@ void TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       break;
 
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
-      // Something else.   Some sort of pointer value
       Printf(f_header,"static %s %s = %s;\n", SwigType_lstr(type,0), var_name, value);
       Printf(f_header,"static char *%s_char;\n", var_name);
       if (CPlusPlus)
@@ -1062,6 +878,7 @@ void TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       link_variable(var_name,name,t);
       Delete(t);
       break;
+
     default:
       Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
       break;
@@ -1071,41 +888,25 @@ void TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
   Status = OldStatus;
 }
 
-// ----------------------------------------------------------------------
-// TCL8::usage_var(char *iname, SwigType *t, char **s)
-//
-// Produces a usage string for a tcl variable.  Stores it in s
-// ----------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * TCL8::usage_string()
+ * 
+ * Generates a generic usage string for a Tcl function.
+ * ----------------------------------------------------------------------------- */
 
-char *TCL8::usage_var(char *iname, SwigType *t) {
-
-  static char temp[2048];
-
-  if (!nspace) {
-    sprintf(temp,"$%s%s", prefix, iname);
-  } else { 
-    sprintf(temp,"%s::%s", ns_name, iname);
-  }
-  return temp;
-}
-
-
-
-// ---------------------------------------------------------------------------
-// char *TCL8::usage_string(char *iname, SwigType *t, ParmList *l),
-// 
-// Generates a generic usage string for a Tcl function.
-// ---------------------------------------------------------------------------
-
-char * TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
-
+char *
+TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
   static String *temp = 0;
   Parm  *p;
   int   i, numopt,pcount;
 
   if (!temp) temp = NewString("");
   Clear(temp);
-  Printf(temp,"%s ",iname);
+  if (nspace) {
+    Printf(temp,"%s::%s", ns_name,iname);
+  } else {
+    Printf(temp,"%s ", iname);
+  }
   
   /* Now go through and print parameters */
   i = 0;
@@ -1117,7 +918,7 @@ char * TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
     SwigType   *pt = Gettype(p);
     String  *pn = Getname(p);
 
-    // Only print an argument if not ignored
+    /* Only print an argument if not ignored */
 
     if (!Swig_typemap_search((char*)"ignore",pt,pn)) {
       if (i >= (pcount-numopt))
@@ -1141,76 +942,31 @@ char * TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
   }
   return Char(temp);
 }
-
-// ---------------------------------------------------------------------------
-// char *TCL8::usage_func(char *iname, SwigType *t, ParmList *l),
-// 
-// Produces a usage string for a function in Tcl
-// ---------------------------------------------------------------------------
-
-char * TCL8::usage_func(char *iname, SwigType *t, ParmList *l) {
-  char temp[1024];
-
-  if (nspace) {
-    sprintf(temp,"%s::%s",ns_name,iname);
-  } else {
-    sprintf(temp,"%s%s",prefix,iname);
-  }
-  return usage_string(temp,t,l);
-}
-
-// -----------------------------------------------------------------
-// TCL8::usage_const(char *name, SwigType *type, char *value)
-//                         char **s)
-//
-// Makes a usage string and returns it
-// -----------------------------------------------------------------
-
-char *TCL8::usage_const(char *name, SwigType *, char *value) {
-  static char temp[1024];
-  if (nspace) {
-    sprintf(temp,"%s::%s = %s", ns_name,name,value);
-  } else {
-    sprintf(temp,"$%s%s = %s", prefix,name,value);
-  }
-  return temp;
-}
     
-// -------------------------------------------------------------------
-// TCL8::add_native(char *name, char *funcname, SwigType *t, ParmList *l)
-//
-// This adds an already written Tcl wrapper function to our
-// initialization function.
-// -------------------------------------------------------------------
+/* ----------------------------------------------------------------------------- 
+ * TCL8::add_native()
+ *
+ * This adds an already written Tcl wrapper function to our
+ * initialization function.
+ * ----------------------------------------------------------------------------- */
 
 
-void TCL8::add_native(char *name, char *funcname, SwigType *, ParmList *) {
-
-  Printf(f_init,"\t Tcl_CreateObjCommand(%s, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",interp_name, name, funcname);
-    
-}
- 
-// -------------------------------------------------------------------
-// TCL8::pragma(char *lname, char *name, char *value)
-//
-// Handle pragmas.
-// --------------------------------------------------------------------
-
-void TCL8::pragma(char *, char *, char *) {
-
+void
+TCL8::add_native(char *name, char *funcname, SwigType *, ParmList *) {
+  Printf(f_init,"\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
+  
 }
 
-// ---------------------------------------------------------------------
-// C++ Handling
-//
-// The following functions provide some support for C++ classes and
-// C structs.   
-// ---------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * C++ Handling
+ *
+ * The following functions provide some support for C++ classes and
+ * C structs.   
+ * ----------------------------------------------------------------------------- */
 
-void TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip) {
-
+void
+TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip) {
   this->Language::cpp_open_class(classname,rename,ctype,strip);
-
   if (shadow) {
     static int included_object = 0;
     if (!included_object) {
@@ -1232,23 +988,26 @@ void TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip)
     have_constructor = 0;
     have_destructor = 0;
 
-    if (rename)
-      class_name = Swig_copy_string(rename);
-    else
-      class_name = Swig_copy_string(classname);
-  
-    base_class = (char *) 0;
-    if (!strip) {
-      class_type = new char[strlen(ctype)+2];
-      sprintf(class_type,"%s ", ctype);
-    } else
-      class_type = (char*)"";
+    Delete(class_name);
+    Delete(class_type);
+    Delete(real_classname);
 
-    real_classname = Swig_copy_string(classname);
+    if (rename)
+      class_name = NewString(rename);
+    else
+      class_name = NewString(classname);
+  
+    if (!strip) {
+      class_type = NewStringf("%s ",ctype);
+    } else {
+      class_type = NewString("");
+    }
+    real_classname = NewString(classname);
   }
 }
 
-void TCL8::cpp_close_class() {
+void
+TCL8::cpp_close_class() {
   String *code;
   SwigType *t;
   
@@ -1301,7 +1060,7 @@ void TCL8::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 
   char *realname;
   char temp[1024];
-  char  *rname;
+  String  *rname;
 
   this->Language::cpp_member_func(name,iname,t,l);
 
@@ -1311,12 +1070,12 @@ void TCL8::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
     else
       realname = name;
     
-    // Add stubs for this member to our class handler function
+    /* Add stubs for this member to our class handler function */
 
     strcpy(temp, Char(Swig_name_member(class_name,realname)));
-    rname = GetChar(repeatcmd,temp);
+    rname = Getattr(repeatcmd,temp);
     if (!rname)
-      rname = Char(Swig_name_wrapper(temp));
+      rname = Swig_name_wrapper(temp);
     
     Printv(methods, tab4, "{\"", realname, "\", ", rname, "}, \n", 0);
   }
@@ -1325,7 +1084,7 @@ void TCL8::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
   char *realname;
   char temp[1024];
-  char *rname;
+  String *rname;
 
   this->Language::cpp_variable(name, iname, t);
 
@@ -1334,23 +1093,21 @@ void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
       realname = iname;
     else
       realname = name;
-    
-    char *bc = class_name;
 
     Printv(attributes, tab4, "{ \"-", realname, "\",", 0);
 
-    // Try to figure out if there is a wrapper for this function
-    strcpy(temp, Char(Swig_name_get(Swig_name_member(bc,realname))));
-    rname = GetChar(repeatcmd,temp);
+    /* Try to figure out if there is a wrapper for this function */
+    strcpy(temp, Char(Swig_name_get(Swig_name_member(class_name,realname))));
+    rname = Getattr(repeatcmd,temp);
     if (!rname) 
-      rname = Char(Swig_name_wrapper(temp));
+      rname = Swig_name_wrapper(temp);
     Printv(attributes, rname, ", ", 0);
 
     if (!(Status & STAT_READONLY)) {
-      strcpy(temp, Char(Swig_name_set(Swig_name_member(bc,realname))));
-      rname = GetChar(repeatcmd,temp);
+      strcpy(temp, Char(Swig_name_set(Swig_name_member(class_name,realname))));
+      rname = Getattr(repeatcmd,temp);
       if (!rname) 
-	rname = Char(Swig_name_wrapper(temp));
+	rname = Swig_name_wrapper(temp);
       Printv(attributes, rname, "},\n",0);
     } else {
       Printf(attributes, "0 },\n");
@@ -1358,86 +1115,19 @@ void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
   }
 }
 
-void TCL8::cpp_constructor(char *name, char *iname, ParmList *l) {
+void
+TCL8::cpp_constructor(char *name, char *iname, ParmList *l) {
   this->Language::cpp_constructor(name,iname,l);
-
   if (shadow) {
     have_constructor = 1;
   }
 }
-void TCL8::cpp_destructor(char *name, char *newname) {
+void
+TCL8::cpp_destructor(char *name, char *newname) {
   this->Language::cpp_destructor(name,newname);
   if (shadow) {
     have_destructor = 1;
   }
 }
-
-void TCL8::cpp_inherit(char **baseclass, int) {
-  this->Language::cpp_inherit(baseclass);
-}
-
-void TCL8::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
-  this->Language::cpp_declare_const(name,iname,type,value);
-}
-
-// --------------------------------------------------------------------------------
-// TCL8::add_typedef(SwigType *t, char *name)
-//
-// This is called whenever a typedef is encountered.   When shadow classes are
-// used, this function lets us discovered hidden uses of a class.  For example :
-//
-//     struct FooBar {
-//            ...
-//     }
-//
-// typedef FooBar *FooBarPtr;
-//
-// --------------------------------------------------------------------------------
-
-void TCL8::add_typedef(SwigType *t, char *name) {
-
-  if (!shadow) return;
-
-  // First check to see if there aren't too many pointers
-
-  if (SwigType_ispointer(t) > 1) return;
-  if (Getattr(hash,name)) return;      // Already added
-
-  // Now look up the datatype in our shadow class hash table
-
-  if (Getattr(hash,t)) {
-
-    // Yep.   This datatype is in the hash
-    // Put this types 'new' name into the hash
-    Setattr(hash,name,GetChar(hash,t));
-  }
-}
-
-// -----------------------------------------------------------------------
-// TCL8::cpp_class_decl(char *name, char *rename, char *type)
-//
-// Treatment of an empty class definition.    Used to handle
-// shadow classes across modules.
-// -----------------------------------------------------------------------
-
-void TCL8::cpp_class_decl(char *name, char *rename, char *type) {
-  char temp[256];
-  this->Language::cpp_class_decl(name,rename, type);
-
-  if (shadow) {
-    Setattr(hash,name,rename);
-    // Add full name of datatype to the hash table
-    if (strlen(type) > 0) {
-      sprintf(temp,"%s %s", type, name);
-      Setattr(hash,temp,rename);
-    }
-  }
-}
-
-
-
-
-
-
 
 
