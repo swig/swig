@@ -168,7 +168,7 @@
 %init %{
   for (i = 0; swig_variables[i].name; i++) {
     SV *sv;
-    sv = perl_get_sv(swig_variables[i].name, TRUE | 0x2);
+    sv = perl_get_sv((char*) swig_variables[i].name, TRUE | 0x2);
     sv_setiv(sv, (IV) 0);
     swig_create_magic(sv, (char *) swig_variables[i].name, swig_variables[i].set, swig_variables[i].get);
   }
@@ -180,7 +180,7 @@
     /* Install Constants */
     for (i = 0; swig_constants[i].type; i++) {
       SV *sv;
-      sv = perl_get_sv(swig_constants[i].name, TRUE | 0x2);
+      sv = perl_get_sv((char*)swig_constants[i].name, TRUE | 0x2);
       switch(swig_constants[i].type) {
       case SWIG_INT:
 	sv_setiv(sv, (IV) swig_constants[i].lvalue);
