@@ -250,7 +250,12 @@ extern void      DelDataType(DataType *type);
 
 /* -- New type interface -- */
 
-extern char     *DataType_str(DataType *, char *name);  /* Exact datatype */
+extern char     *DataType_str(DataType *, DOHString_or_char *name);        /* Exact datatype */
+extern char     *DataType_lstr(DataType *, DOHString_or_char *name);       /* Assignable datatype */
+extern char     *DataType_rcaststr(DataType *, DOHString_or_char *name);    /* Cast from lstr to str */
+extern char     *DataType_lcaststr(DataType *, DOHString_or_char *name);   /* Cast from str to lstr */
+extern char     *DataType_manglestr(DataType *t);                          /* Mangled type name */
+extern DataType *DataType_ltype(DataType *);                               /* Create local type object */
 
 /* -- Old type interface -- */
 
@@ -258,14 +263,8 @@ extern char     *DataType_qualifier(DataType *);
 extern void      DataType_set_qualifier(DataType *, char *q);
 extern char     *DataType_arraystr(DataType *);
 extern void      DataType_set_arraystr(DataType *, char *a);
-
+extern char     *DataType_mangle_default(DataType *t);                     /* Default name mangler */
 extern void      DataType_primitive(DataType *);
-extern char     *DataType_print_type(DataType *);
-extern char     *DataType_print_full(DataType *);
-extern char     *DataType_print_cast(DataType *);
-extern char     *DataType_print_mangle(DataType *);
-extern char     *DataType_print_arraycast(DataType *);
-extern char     *DataType_print_mangle_default(DataType *);
 extern void      DataType_set_mangle(char *(*m)(DataType *));
 extern int       DataType_array_dimensions(DataType *);
 extern char     *DataType_get_dimension(DataType *, int);
@@ -294,10 +293,11 @@ extern void      typeeq_addtypedef(char *name, char *eqname, DataType *t);
 /* --- Deprecated parameter list structure */
 
 typedef struct Parm {
-  DataType   *_type;            /* Datatype of this parameter */
+  DataType   *_type;            /* Datatype of this parameter   */
   char       *_name;            /* Name of parameter (optional) */
-  char       *_defvalue;        /* Default value (as a string) */
-  int        ignore;            /* Ignore flag */
+  char       *_defvalue;        /* Default value (as a string)  */
+  char       *_lname;           /* Local name                   */
+  int        ignore;            /* Ignore flag                  */
 } Parm;
 
 extern Parm     *NewParm(DataType *type, char *n);
@@ -307,6 +307,8 @@ extern void      Parm_Settype(Parm *p, DataType *t);
 extern DataType *Parm_Gettype(Parm *p);
 extern void      Parm_Setname(Parm *p, char *name);
 extern char     *Parm_Getname(Parm *p);
+extern void      Parm_Setlname(Parm *p, char *lname);
+extern char     *Parm_Getlname(Parm *p);
 extern void      Parm_Setvalue(Parm *p, char *value);
 extern char     *Parm_Getvalue(Parm *p);
 
@@ -329,6 +331,24 @@ extern Parm     *ParmList_first(ParmList *);
 extern Parm     *ParmList_next(ParmList *);
 extern void      ParmList_print_types(ParmList*,DOHFile *f);
 extern void      ParmList_print_args(ParmList *, DOHFile *f);
+
+
+extern void     Wrapper_local(Wrapper *w, DataType *t, DOHString_or_char *name, DOHString_or_char *value);
+extern char    *Wrapper_local_deref(DataType *t, DOHString_or_char *name);
+
+/* --- C Wrappers --- */
+extern char    *Swig_clocal(DataType *t, DOHString_or_char *name, DOHString_or_char *value);
+extern DataType *Swig_clocal_type(DataType *t);
+extern char    *Swig_clocal_deref(DataType *t, DOHString_or_char *name);
+extern char    *Swig_clocal_assign(DataType *t, DOHString_or_char *name);
+extern char    *Swig_cparm_name(Parm *p, int i);
+extern int      Swig_cargs(Wrapper *w, ParmList *l);
+extern void     Swig_cresult(Wrapper *w, DataType *t, DOHString_or_char *name, DOHString_or_char *decl);
+extern void     Swig_cppresult(Wrapper *w, DataType *t, DOHString_or_char *name, DOHString_or_char *decl);
+extern char    *Swig_cfunction(DOHString_or_char *name, ParmList *parms);
+extern char    *Swig_cmethod(DOHString_or_char *name, ParmList *parms);
+extern char    *Swig_cmember_set(DOHString_or_char *name, ParmList *parms);
+extern char    *Swig_cmember_get(DOHString_or_char *name, ParmList *parms);
 
 #endif
 

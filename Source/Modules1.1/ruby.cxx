@@ -521,7 +521,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     else
       sprintf(source,"varg%d",i);
 
-    sprintf(target,"_arg%d",i);
+    sprintf(target,"%s", Parm_Getlname(p));
 
     if (!p->ignore) {
       char *tab = (char*)tab4;
@@ -540,7 +540,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 	Delete(s);
       } else {
 	Printf(stderr,"%s : Line %d. No typemapping for datatype %s\n",
-		input_file,line_number, DataType_print_type(pt));
+		input_file,line_number, DataType_str(pt,0));
       }
       if (j >= (pcount-numopt))
 	Printv(f->code, tab4, "} \n");
@@ -580,12 +580,13 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   // Now write code to make the function call
   emit_func_call(name,t,l,f);
 
+
   // Return value if necessary
   if ((t->type != T_VOID) || (t->is_pointer)) {
     if (predicate) {
-      Printv(f->code, tab4, "vresult = (_result ? Qtrue : Qfalse);\n", 0);
+      Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", 0);
     } else {
-      tm = ruby_typemap_lookup((char*)"out",t,name,(char*)"_result",(char*)"vresult");
+      tm = ruby_typemap_lookup((char*)"out",t,name,(char*)"result",(char*)"vresult");
       if (tm) {
 	DOHString *s = NewString(tm);
 	indent(s);
@@ -593,7 +594,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 	Delete(s);
       } else {
 	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
-		input_file,line_number,DataType_print_type(t));
+		input_file,line_number,DataType_str(t,0));
       }
     }
   }
@@ -606,7 +607,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   // Look for any remaining cleanup.  This processes the %new directive
   if (NewObject) {
-    tm = ruby_typemap_lookup((char*)"newfree",t,name,(char*)"_result",(char*)"");
+    tm = ruby_typemap_lookup((char*)"newfree",t,name,(char*)"result",(char*)"");
     if (tm) {
       DOHString *s = NewString(tm);
       indent(s);
@@ -621,7 +622,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   }
 
   // Special processing on return value.
-  tm = ruby_typemap_lookup((char*)"ret",t,name,(char*)"_result",(char*)"");
+  tm = ruby_typemap_lookup((char*)"ret",t,name,(char*)"result",(char*)"");
   if (tm) {
     DOHString *s = NewString(tm);
     indent(s);
@@ -686,11 +687,11 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
     t->is_pointer++;
     DataType_remember(t);
     Printv(getf->code, tab4, "_val = SWIG_NewPointerObj((void *)&", name,
-	   ", \"", DataType_print_mangle(t), "\");\n", 0);
+	   ", \"", DataType_manglestr(t), "\");\n", 0);
     t->is_pointer--;
   } else {
     Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
-	    input_file,line_number,DataType_print_type(t));
+	    input_file,line_number,DataType_str(t,0));
   }
   Printv(getf->code, tab4, "return _val;\n}\n", 0);
   Wrapper_print(getf,f_wrappers);
@@ -716,15 +717,15 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
       Delete(s);
     } else if (!t->is_pointer && t->type == T_USER) {
       t->is_pointer++;
-      Wrapper_add_localv(setf,"temp",DataType_print_type(t), "temp",0);
-      Printv(setf->code, tab4, "temp = (", DataType_print_type(t), ")",
-	     "SWIG_ConvertPtr(_val, \"", DataType_print_mangle(t), "\");\n",
+      Wrapper_add_localv(setf,"temp",DataType_lstr(t,0), "temp",0);
+      Printv(setf->code, tab4, "temp = (", DataType_lstr(t,0), ")",
+	     "SWIG_ConvertPtr(_val, \"", DataType_manglestr(t), "\");\n",
 	     0);
       Printv(setf->code, tab4, name, " = *temp;\n",0);
       t->is_pointer--;
     } else {
       Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
-	      input_file,line_number,DataType_print_type(t));
+	      input_file,line_number,DataType_str(t,0));
     }
     if (mod_attr)
       Printv(setf->code, tab4, "return _val;\n",0);
@@ -846,7 +847,7 @@ void RUBY::declare_const(char *name, char *iname, DataType *type, char *value) {
     Delete(str);
   } else {
     Printf(stderr,"%s : Line %d. Unable to create constant %s = %s\n",
-	    input_file, line_number, DataType_print_type(type), value);
+	    input_file, line_number, DataType_str(type,0), value);
   }
 }
 
@@ -916,7 +917,7 @@ char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *sou
     Replace(s,"$source",source, DOH_REPLACE_ANY);
   if (target && strlen(target) > 0)
     Replace(s,"$target",target, DOH_REPLACE_ANY);
-  Replace(s,"$type", DataType_print_type(type), DOH_REPLACE_ANY);
+  Replace(s,"$type", DataType_str(type,0), DOH_REPLACE_ANY);
   return Char(s);
 }
 
@@ -964,7 +965,7 @@ int RUBY::to_VALUE(DataType *type, char *value, DOHString *str, int raw) {
     else
       Printv(str, "rb_str_new2(", value, ")", 0);
   } else {
-    Printv(str, "SWIG_NewPointerObj((void *)", value, ", \"", DataType_print_mangle(type), "\")", 0);
+    Printv(str, "SWIG_NewPointerObj((void *)", value, ", \"", DataType_manglestr(type), "\")", 0);
   }
 
   if (Len(str) == 0)
@@ -1018,7 +1019,7 @@ int RUBY::from_VALUE(DataType *type, char *value, DOHString *str) {
   } else if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
     Printv(str, "STR2CSTR(", value, ")", 0);
   } else {
-    Printv(str, "SWIG_ConvertPtr(", value, ", \"", DataType_print_mangle(type), "\")", 0);
+    Printv(str, "SWIG_ConvertPtr(", value, ", \"", DataType_manglestr(type), "\")", 0);
   }
   
   if (Len(str) == 0) return 0;

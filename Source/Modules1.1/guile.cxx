@@ -363,7 +363,7 @@ GUILE::get_pointer (char *iname, int parm, DataType *t,
   if (t->type == T_VOID)
     Printf(f->code, ", (char *) 0)) {\n");
   else
-    Printv(f->code, ", \"", DataType_print_mangle(t), "\")) {\n", 0);
+    Printv(f->code, ", \"", DataType_manglestr(t), "\")) {\n", 0);
   /* Raise exception */
   Printv(f->code,
 	 tab8,
@@ -474,7 +474,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Produce names of source and target
     sprintf(source,"s_%d",i);
-    sprintf(target,"_arg%d",i);
+    sprintf(target,"%s",Parm_Getlname(p));
     sprintf(argnum,"%d",i);
     strcpy(arg,pn);
 
@@ -532,7 +532,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   if (d->type == T_VOID)
     Printv(f->code, tab4, "gswig_result = GH_UNSPECIFIED;\n", 0);
   else if ((tm = typemap_lookup ((char*)"out", typemap_lang,
-                                 d, name, (char*)"_result", (char*)"gswig_result", f))) {
+                                 d, name, (char*)"result", (char*)"gswig_result", f))) {
     Printv(f->code,tm,"\n",0);
     mreplace (f->code, argnum, arg, proc_name);
   }
@@ -541,9 +541,9 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
        look-up. */
     Printv(f->code, tab4,
            "gswig_result = SWIG_Guile_MakePtr_Str (",
-           "_result, ",
-           "\"", DataType_print_mangle(d), "\", ",
-           "\"", DataType_print_type(d), "\"",
+           "result, ",
+           "\"", DataType_manglestr(d), "\", ",
+           "\"", DataType_str(d,0), "\"",
            ");\n",
 	   0);
   }
@@ -561,7 +561,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   if (NewObject) {
     if ((tm = typemap_lookup ((char*)"newfree", typemap_lang,
-                              d, iname, (char*)"_result", (char*)"", f))) {
+                              d, iname, (char*)"result", (char*)"", f))) {
       Printv(f->code,tm,"\n",0);
       mreplace (f->code, argnum, arg, proc_name);
     }
@@ -570,7 +570,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   // Free any memory allocated by the function being wrapped..
 
   if ((tm = typemap_lookup ((char*)"ret", typemap_lang,
-                            d, name, (char*)"_result", (char*)"", f))) {
+                            d, name, (char*)"result", (char*)"", f))) {
     Printv(f->code,tm,"\n",0);
     mreplace (f->code, argnum, arg, proc_name);
   }
@@ -672,7 +672,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
         if (t->type == T_VOID)
           Printf (f_wrappers, "(char *) 0)) {\n");
         else
-          Printf (f_wrappers, "\"%s\")) {\n", DataType_print_mangle(t));
+          Printf (f_wrappers, "\"%s\")) {\n", DataType_manglestr(t));
 	/* Raise exception */
 	Printf(f_wrappers, "\tscm_wrong_type_arg(\"%s\", "
 		"%d, s_0);\n", proc_name, 1);
@@ -699,8 +699,8 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
         /* MK: I would like to use SWIG_Guile_MakePtr here to save one type
            look-up. */
         Printf (f_wrappers, "\t gswig_result = SWIG_Guile_MakePtr_Str ("
-                 "%s, \"%s\", \"%s\");\n", name, DataType_print_mangle(t),
-                 DataType_print_type(t));
+                 "%s, \"%s\", \"%s\");\n", name, DataType_manglestr(t),
+                 DataType_str(t,0));
       }
     }
     else {
@@ -717,7 +717,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
   } else {
     Printf (stderr, "%s : Line %d. ** Warning. Unable to link with "
              " type %s (ignored).\n",
-             input_file, line_number, DataType_print_type(t));
+             input_file, line_number, DataType_str(t,0));
   }
   Delete(proc_name);
 }
@@ -769,7 +769,7 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
   } else {
     // Create variable and assign it a value
 
-    Printf (f_header, "static %s %s = ", DataType_print_type(type), var_name);
+    Printf (f_header, "static %s %s = ", DataType_lstr(type,0), var_name);
     if ((type->type == T_CHAR) && (type->is_pointer <= 1)) {
       Printf (f_header, "\"%s\";\n", value);
     } else {
@@ -898,7 +898,7 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
       Insert(param,0," unspecified ");
     else {
       Insert(param,0,"# ");
-      Insert(param,0, DataType_print_type(d));
+      Insert(param,0, DataType_str(d,0));
       Insert(param,0," $");
     }
   }

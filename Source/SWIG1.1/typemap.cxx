@@ -154,7 +154,7 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
 
   // Form the application name
   if (!pname) pname = (char*)"";
-  sprintf(temp,"%s$%s",DataType_print_type(type),pname);
+  sprintf(temp,"%s$%s",DataType_str(type,0),pname);
 
   // See if there is a method already defined
 
@@ -209,7 +209,7 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
 void typemap_clear_apply(DataType *type, char *pname) {
   char temp[512];
   if (!pname) pname = (char*)"";
-  sprintf(temp,"%s$%s", DataType_print_type(type), pname);
+  sprintf(temp,"%s$%s", DataType_str(type,0), pname);
   if (!application_hash) application_hash = NewHash();
   Delattr(application_hash,temp);
 }
@@ -231,9 +231,9 @@ static char *typemap_string(char *lang, DataType *type, char *pname, char *ary, 
   Clear(str);
 
   if (ary)
-    Printv(str, lang, DataType_print_type(type), pname, ary, suffix, 0);
+    Printv(str, lang, DataType_str(type,0), pname, ary, suffix, 0);
   else
-    Printv(str, lang, DataType_print_type(type), pname, suffix,0);
+    Printv(str, lang, DataType_str(type,0), pname, suffix,0);
 
   type->status = old_status;
   return Char(str);
@@ -518,12 +518,12 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
           char temp_ip1 = tt->implicit_ptr;
           tt->is_pointer = 0;
           tt->implicit_ptr = 0;
-          new_name = Wrapper_new_localv(f,str, DataType_print_type(tt), str, 0);
+          new_name = Wrapper_new_localv(f,str, DataType_str(tt,0), str, 0);
           tt->is_pointer = temp_ip;
           tt->implicit_ptr = temp_ip1;
         } 
         else 
-          new_name = Wrapper_new_localv(f,str, DataType_print_full(tt), str, 0);
+          new_name = Wrapper_new_localv(f,str, DataType_str(tt,str), 0);
 
 	if (DataType_arraystr(tt)) tt->is_pointer++;
 	// Substitute 
@@ -618,7 +618,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
 
   Replace(str,"$source",source,DOH_REPLACE_ANY);
   Replace(str,"$target",target,DOH_REPLACE_ANY);
-  Replace(str,"$type",DataType_print_type(realtype),DOH_REPLACE_ANY);
+  Replace(str,"$type",DataType_str(realtype,0),DOH_REPLACE_ANY);
   if (realname) {
     Replace(str,"$parmname",realname,DOH_REPLACE_ANY);
   } else {
@@ -630,16 +630,16 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
     char temp_ip1 = realtype->implicit_ptr;
     realtype->is_pointer = 0;
     realtype->implicit_ptr = 0;
-    char *bt = DataType_print_type(realtype);
+    char *bt = DataType_str(realtype,0);
     if (bt[strlen(bt)-1] == ' ') 
       bt[strlen(bt)-1] = 0;
     Replace(str,"$basetype",bt,DOH_REPLACE_ANY);
-    Replace(str,"$basemangle",DataType_print_mangle(realtype), DOH_REPLACE_ANY);
+    Replace(str,"$basemangle",DataType_manglestr(realtype), DOH_REPLACE_ANY);
     realtype->is_pointer = temp_ip;
     realtype->implicit_ptr = temp_ip1;
   }
   
-  Replace(str,"$mangle",DataType_print_mangle(realtype), DOH_REPLACE_ANY);
+  Replace(str,"$mangle",DataType_manglestr(realtype), DOH_REPLACE_ANY);
 
   // If there were locals and a wrapper function, replace
   if ((tm->args) && f) {
@@ -650,7 +650,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   if ((tm->args) && !f) {
     if (!pname) pname = (char*)"";
     fprintf(stderr,"%s:%d: Warning. '%%typemap(%s,%s) %s %s' being applied with ignored locals.\n",
-	    input_file, line_number, lang,op, DataType_print_type(type), pname);
+	    input_file, line_number, lang,op, DataType_str(type,0), pname);
   }
 
   // Return character string
@@ -690,7 +690,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 
     while (drop_pointer <= (type->is_pointer - type->implicit_ptr)) {
       type->is_pointer -= drop_pointer;
-      tstr = DataType_print_type(type);
+      tstr = DataType_str(type,0);
       sprintf(temp,"%s$%s",tstr,ppname);
       // No mapping was found.  See if the name has been mapped with %apply
       m = (TmMethod *) GetVoid(application_hash,temp);
@@ -852,7 +852,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 
     while (drop_pointer <= (type->is_pointer - type->implicit_ptr)) {
       type->is_pointer -= drop_pointer;
-      tstr = DataType_print_type(type);
+      tstr = DataType_str(type,0);
       sprintf(temp,"%s$%s",tstr,ppname);
       // No mapping was found.  See if the name has been mapped with %apply
       if (!application_hash) application_hash = NewHash();

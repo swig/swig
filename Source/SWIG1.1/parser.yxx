@@ -1148,7 +1148,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   lang->add_typedef($2,$3.id);
 		   /* If this is %typedef, add it to the header */
 		   if ($1) 
-		     fprintf(f_header,"typedef %s %s;\n", DataType_print_full($2), $3.id);
+		     fprintf(f_header,"typedef %s;\n", DataType_str($2,$3.id));
 		   cplus_register_type($3.id);
 	       } typedeflist { };
 
