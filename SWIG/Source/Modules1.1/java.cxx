@@ -587,7 +587,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 
   // Now walk the function parameter list and generate code to get arguments
   for (int i = 0; i < pcount ; i++) {
-    Parm *p = l->get(i);         // Get the ith argument
+    Parm *p = ParmList_get(l,i);        // Get the ith argument
     char *target_copy = NULL;
     char *target_length = NULL;
     char *local_i = NULL;
@@ -1068,7 +1068,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   int pcount = l->nparms;
 
   for (int i = 0; i < pcount ; i++) {
-    Parm *p = l->get(i);         // Get the ith argument
+    Parm *p = ParmList_get(l,i);         // Get the ith argument
     // Produce string representation of source and target arguments
     if(p->name && *(p->name))
       strcpy(arg,p->name);
@@ -1138,7 +1138,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
   int gencomma = 0;
 
   for (int i = 0; i < pcount ; i++) {
-    Parm *p = l->get(i);         // Get the ith argument
+    Parm *p = ParmList_get(l,i);         // Get the ith argument
     // Produce string representation of source and target arguments
     if(p->name && *(p->name))
       strcpy(arg,p->name);
@@ -1203,7 +1203,7 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
     have_default_constructor = 1;
 
   for (int i = 0; i < pcount ; i++) {
-    Parm *p = l->get(i);         // Get the ith argument
+    Parm *p = ParmList_get(l,i);       // Get the ith argument
     // Produce string representation of source and target arguments
     if(p->name && *(p->name))
       strcpy(arg,p->name);

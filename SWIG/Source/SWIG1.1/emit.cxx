@@ -111,7 +111,7 @@ void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FIL
     }
 
     fprintf(f,"%s(", decl);
-    L->print_types(f);
+    ParmList_print_types(L,f);
     fprintf(f,");\n");
     break;
   case 1:
@@ -125,7 +125,7 @@ void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FIL
       fprintf(f,"extern %s", t->print_full());
     }
     fprintf(f,"%s(", decl);
-    L->print_types(f);
+    ParmList_print_types(L,f);
     fprintf(f,");\n");
     break;
   case 2:
@@ -139,7 +139,7 @@ void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FIL
       fprintf(f,"extern \"C\" %s", t->print_full());
     }
     fprintf(f,"%s(", decl);
-    L->print_types(f);
+    ParmList_print_types(L,f);
     fprintf(f,");\n");
     break;
   case 3:
@@ -153,7 +153,7 @@ void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FIL
     }
 
     fprintf(f,"%s(", decl);
-    L->print_args(f);
+    ParmList_print_args(L,f);
     fprintf(f,")\n");
     break;
   default:
@@ -211,7 +211,7 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
   // Emit function arguments
 
   i = 0;
-  p = l->get_first();
+  p = ParmList_first(l);
   while (p != 0) {
     if ((p->t->type != T_VOID) || (p->t->is_pointer))  {
       char *temp = emit_local(i);
@@ -247,7 +247,7 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
       }
       i++;
     }
-    p = l->get_next();
+    p = ParmList_next(l);
   }
 
   // i now contains number of parameters
@@ -314,7 +314,7 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
   Printv(fcall, decl, "(", 0);
 
   i = 0;
-  p = l->get_first();
+  p = ParmList_first(l);
   while(p != 0) {
     if ((p->t->type != T_VOID) || (p->t->is_pointer)){
       Printf(fcall,p->t->print_arraycast());
@@ -326,7 +326,7 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
       Printf(fcall, emit_local(i));
       i++;
     }
-    p = l->get_next();
+    p = ParmList_next(l);
     if (p != 0)
       Printf(fcall,",");
   }
@@ -456,12 +456,12 @@ void emit_set_get(char *name, char *iname, DataType *t) {
 
       // Now wrap it.
 
-      l = new ParmList;
-      p = new Parm(t,0);
+      l = NewParmList();
+      p = NewParm(t,0);
       if ((t->type == T_USER) && (!t->is_pointer)) p->t->is_pointer++;
       p->name = new char[1];
       p->name[0] = 0;
-      l->append(p);
+      ParmList_append(l,p);
 
       new_name = copy_string(Swig_name_set(name));
       new_iname = copy_string(Swig_name_set(iname));
@@ -473,8 +473,8 @@ void emit_set_get(char *name, char *iname, DataType *t) {
       } else {
 	lang->create_function(new_name, new_iname, t, l);
       }
-      delete l;
-      delete p;
+      DelParmList(l);
+      DelParm(p);
     }
 
     // Now write a function to get the value of the variable
@@ -495,7 +495,7 @@ void emit_set_get(char *name, char *iname, DataType *t) {
 
     // Wrap this function
 
-    l = new ParmList;
+    l = NewParmList();
 
     if (new_name) delete [] new_name;
     if (new_iname) delete [] new_iname;
@@ -510,7 +510,7 @@ void emit_set_get(char *name, char *iname, DataType *t) {
     } else {
       lang->create_function(new_name, new_iname, t, l);
     }
-    delete l;
+    DelParmList(l);
     delete [] new_name;
     delete [] new_iname;
 }

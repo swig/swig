@@ -88,6 +88,7 @@ static int    Inherit_mode = 0;             // Set if we're inheriting members
 static char   *ccode = 0;                   // Set to optional C code (if available)
 static DOHHash  *localtypes = 0;                  // Localtype hash
 static int    abstract =0;                  // Status bit set during code generation
+int IsVirtual = 0;
 
 static int    cpp_id = 0;
 
@@ -152,7 +153,7 @@ static void update_local_type(DataType *type) {
 
 static void update_parms(ParmList *l) {
   Parm *p;
-  p = l->get_first();
+  p = ParmList_first(l);
   while (p) {
     update_local_type(p->t);
 
@@ -166,7 +167,7 @@ static void update_parms(ParmList *l) {
 	p->defvalue = copy_string(s);
       }
     }
-    p = l->get_next();
+    p = ParmList_next(l);
   }
 }
 
@@ -210,7 +211,7 @@ public:
     name = copy_string(n);
     iname = copy_string(i);
     ret_type = new DataType(t);
-    parms = new ParmList(l);
+    parms = CopyParmList(l);
     is_static = s;
     is_virtual = v;
     new_method = AddMethods;
@@ -260,10 +261,11 @@ public:
     line_number = line;        // Restore line and file 
     input_file = file;
     ccode = code;
+    IsVirtual = is_virtual;
 
     // Make a copy of the parameter list and upgrade its types
 
-    l = new ParmList(parms);
+    l = CopyParmList(parms);
     t = new DataType(ret_type);
     update_parms(l);
     update_local_type(t);
@@ -272,8 +274,9 @@ public:
     } else {
       lang->cpp_member_func(name, iname, t, l);
     }
-    delete l;
+    DelParmList(l);
     delete t;
+    IsVirtual = 0;
   }
 };
 
@@ -289,7 +292,7 @@ public:
   CPP_constructor(char *n, char *i, ParmList *l) {
     name = copy_string(n);
     iname = copy_string(i);
-    parms = new ParmList(l);
+    parms = CopyParmList(l);
     new_method = AddMethods;
     inherited = 0;
     next = 0;
@@ -315,10 +318,10 @@ public:
       
       // Make a copy of the parameter list and upgrade its types
       
-      l = new ParmList(parms);
+      l = CopyParmList(parms);
       update_parms(l);
       lang->cpp_constructor(name,iname,l);
-      delete l;
+      DelParmList(l);
     }
   }
 };
@@ -638,7 +641,7 @@ public:
     AddMethods = 0;
     if ((!have_constructor) && (1)) {
       ParmList *l;
-      l = new ParmList();
+      l = NewParmList();
       cplus_constructor(classname,0,l);
     };
     
@@ -1518,7 +1521,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
     // If so, we'll just use the existing wrapper.
 
     Printf(key,"%s+",cname);
-    l->print_types(key);
+    ParmList_print_types(l,key);
     char *temp = copy_string(iname);
     if (!member_hash) member_hash = NewHash();
     if (Getattr(member_hash,key)) {
@@ -1542,13 +1545,13 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	// Walk down the parameter list and Spit out arguments
 	
 	i = 0;
-	p = l->get_first();
+	p = ParmList_first(l);
 	while (p != 0) {
 	  if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
 	    Printf(wrap,",_swigarg%d",i);
 	    i++;
 	  }
-	  p = l->get_next();
+	  p = ParmList_next(l);
 	}
 	Printf(wrap,")  (");
 	
@@ -1558,14 +1561,14 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	  Printv(wrap, "[ _swigobj ", mname, 0);               // Objective C invocation 
 	}
 	i = 0;
-	p = l->get_first();
+	p = ParmList_first(l);
 	while(p != 0) {
 	  if (ObjCClass) Printf(wrap," %s", p->objc_separator);
 	  if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
 	    Printf(wrap,"_swigarg%d",i);
 	    i++;
 	  }
-	  p = l->get_next();
+	  p = ParmList_next(l);
 	  if ((p != 0) && (!ObjCClass)) 
 	  Putc(',',wrap);
 	}
@@ -1591,7 +1594,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	  
 	  // Walk down the parameter list and Spit out arguments
 	  
-	  p = l->get_first();
+	  p = ParmList_first(l);
 	  while (p != 0) {
 	    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
 	      Printf(wrap,",");
@@ -1606,7 +1609,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	      }
 	      Printf(wrap," %s", p->name);
 	    }
-	    p = l->get_next();
+	    p = ParmList_next(l);
 	  }
 	  Printf(wrap,") %s", ccode);
 	  fprintf(f_wrappers,"%s\n",Char(wrap));
@@ -1616,8 +1619,8 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       // Now add a parameter to the beginning of the function and call
       // a language specific function to add it.
       
-      newparms = new ParmList(l);
-      p = new Parm(0,0);
+      newparms = CopyParmList(l);
+      p = NewParm(0,0);
       p->t = new DataType;
       p->t->type = T_USER;
       p->t->is_pointer = 1;
@@ -1626,12 +1629,12 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       
       sprintf(p->t->name,"%s%s", classtype,classname);
       p->name = (char*)"self";
-      newparms->insert(p,0);       // Attach parameter to beginning of list
+      ParmList_insert(newparms,p,0);       // Attach parameter to beginning of list
       
       // Now wrap the thing.  The name of the function is iname
       
       lang->create_function(cname, iname, type, newparms);
-      delete newparms;
+      DelParmList(newparms);
     } else {
       // Already wrapped this function.   Just patch it up 
       lang->create_command(prev_wrap, iname);
@@ -1735,7 +1738,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
     // Perform a hash table lookup to see if we've wrapped anything like this before
 
     Printf(key,"%s+",cname);
-    l->print_types(key);
+    ParmList_print_types(l,key);
     char *temp = copy_string(iname);
     if (!member_hash) member_hash = NewHash();
     if (Getattr(member_hash,key)) {
@@ -1760,7 +1763,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	Printv(wrap,"static ", type->print_full(), " ", cname, "(", 0);
 	  
 	// Walk down the parameter list and Spit out arguments
-	p = l->get_first();
+	p = ParmList_first(l);
 	while (p != 0) {
 	  if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
 	    if (p->t->is_reference) {
@@ -1773,7 +1776,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	    }
 	    Printf(wrap," %s", p->name);
 	  }
-	  p = l->get_next();
+	  p = ParmList_next(l);
 	  if (p) Printf(wrap, ",");
 	}
 	Printf(wrap, ") ");
@@ -1800,7 +1803,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	  }
 	  Printv(wrap, "[ ", classname, " ", mname,0);               // Objective C invocation 
 	  i = 0;
-	  p = l->get_first();
+	  p = ParmList_first(l);
 	  while(p != 0) {
 	    Printf(wrap," %s", p->objc_separator);
 	    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
@@ -1810,7 +1813,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	      Printf(wrap,p->name);
 	      i++;
 	    }
-	    p = l->get_next();
+	    p = ParmList_next(l);
 	  }
 	  Printf(wrap,"];\n");
 	  
@@ -1912,8 +1915,8 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
 
     // Make a parameter list for this function
     
-    l = new ParmList;
-    p = new Parm(0,0);
+    l = NewParmList();
+    p = NewParm(0,0);
     p->t = new DataType;
     p->t->type = T_USER;
     p->t->is_pointer = 1;
@@ -1921,7 +1924,7 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
     p->call_type = 0;
     sprintf(p->t->name,"%s%s", classtype, classname);
     p->name = (char*)"self";
-    l->insert(p,0);
+    ParmList_insert(l,p,0);
     
     type = new DataType;
     type->type = T_VOID;
@@ -1934,7 +1937,7 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
     lang->create_function(cname,iname,type,l);
 
     delete type;
-    delete l;
+    DelParmList(l);
     Delete(wrap);
 }
 
@@ -2007,7 +2010,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
       // Walk down the parameter list and spit out arguments
       
       i = 0;
-      p = l->get_first();
+      p = ParmList_first(l);
       while (p != 0) {
 	if (ObjCClass) Printf(fcall," %s", p->objc_separator);
 	if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
@@ -2020,7 +2023,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 	  }
 	}
 	i++;
-	p = l->get_next();
+	p = ParmList_next(l);
 	if (p) {
 	  Printf(wrap,",");
 	  if ((CPlusPlus) && (!ObjCClass))
@@ -2039,7 +2042,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 
 	// Walk down the parameter list and spit out arguments
       
-	p = l->get_first();
+	p = ParmList_first(l);
 	while (p != 0) {
 	  if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
 	    if (p->call_type & CALL_REFERENCE) {
@@ -2049,12 +2052,12 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 	    if (p->call_type & CALL_REFERENCE) {
 	      p->t->is_pointer++;
 	    }
-	    p = l->get_next();
+	    p = ParmList_next(l);
 	    if (p) {
 	      Printf(wrap,",");
 	    }
 	  } else {
-	    p = l->get_next();
+	    p = ParmList_next(l);
 	  }
 	}
 	Printv(wrap,") ", ccode, "\n", 0);
@@ -2065,10 +2068,10 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
     // If we had any C++ references, get rid of them now
 
     if (!mode) {
-      p = l->get_first();
+      p = ParmList_first(l);
       while (p) {
 	//	p->t->is_reference = 0;
-	p = l->get_next();
+	p = ParmList_next(l);
       } 
     }
 
@@ -2224,8 +2227,8 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
       
       // Wrap this function
 
-      l = new ParmList;
-      p = new Parm(0,0);
+      l = NewParmList();
+      p = NewParm(0,0);
       p->t =  new DataType;
       p->t->type = T_USER;
       p->t->is_pointer = 1;
@@ -2233,7 +2236,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
       p->call_type = 0;	
       p->name = (char*)"self";
       sprintf(p->t->name,"%s%s", classtype,classname);
-      l->insert(p,0);
+      ParmList_insert(l,p,0);
 
       if ((type->type == T_USER) && (!type->is_pointer)) {
 	type->is_pointer++;
@@ -2245,7 +2248,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 	lang->create_function(cname,iname, type, l);
 	type->is_reference = is_ref;
       }
-      delete l;
+      DelParmList(l);
     } else {
       // Already wrapped this function.  Just patch it up
       lang->create_command(prev_wrap,iname);
@@ -2444,8 +2447,8 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       fprintf(f_wrappers,"%s",Char(wrap));
       // Now wrap it.
       
-      l = new ParmList;
-      p = new Parm(0,0);
+      l = NewParmList();
+      p = NewParm(0,0);
       p->t = new DataType(type);
       p->t->is_reference = 0;
       p->call_type = 0;	
@@ -2455,8 +2458,8 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	p->name = mrename;
       else
 	p->name = mname;
-      l->insert(p,0);
-      p = new Parm(0,0);
+      ParmList_insert(l,p,0);
+      p = NewParm(0,0);
       p->t =  new DataType;
       p->t->type = T_USER;
       p->call_type = 0;	
@@ -2464,7 +2467,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       p->t->id = cpp_id;
       sprintf(p->t->name,"%s%s", classtype,classname);
       p->name = (char*)"self";
-      l->insert(p,0);
+      ParmList_insert(l,p,0);
       
       if ((type->type == T_USER) && (!type->is_pointer)) {
 	type->is_pointer++;
@@ -2476,7 +2479,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	lang->create_function(cname,iname, type, l);
 	type->is_reference = is_ref;
       }
-      delete l;
+      DelParmList(l);
     } else {
       lang->create_command(prev_wrap,iname);
     } 

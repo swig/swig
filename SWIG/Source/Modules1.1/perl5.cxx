@@ -764,14 +764,14 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   Printv(f->code, tab4, "cv = cv;\n", 0);
 
   pcount = emit_args(d, l, f);
-  numopt = l->numopt();
+  numopt = ParmList_numopt(l);
 
   Wrapper_add_local(f,"argvi","int argvi = 0");
 
   // Check the number of arguments
 
   usage = usage_func(iname,d,l);
-  Printf(f->code,"    if ((items < %d) || (items > %d)) \n", pcount-numopt, l->numarg());
+  Printf(f->code,"    if ((items < %d) || (items > %d)) \n", pcount-numopt, ParmList_numarg(l));
   Printf(f->code,"        croak(\"Usage: %s\");\n", usage);
 
   // Write code to extract parameters.
@@ -780,7 +780,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   i = 0;
   j = 0;
-  p = l->get_first();
+  p = ParmList_first(l);
   while (p != 0) {
     // Produce string representation of source and target arguments
     sprintf(source,"ST(%d)",j);
@@ -909,7 +909,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
       Printv(f->code, tab4, temp, " = ", source, ";\n", 0);
       num_saved++;
     }
-    p = l->get_next();
+    p = ParmList_next(l);
     i++;
   }
 
@@ -1051,7 +1051,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     // arguments to our function correspond to other Perl objects, we
     // need to extract them from a tied-hash table object.
 
-    Parm *p = l->get_first();
+    Parm *p = ParmList_first(l);
     int i = 0;
     while(p) {
 
@@ -1073,7 +1073,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	}
 	i++;
       }
-      p = l->get_next();
+      p = ParmList_next(l);
     }
 
     Printv(func, tab4, "my $result = ", package, "::", iname, "(@args);\n", 0);
@@ -1529,7 +1529,7 @@ char *PERL5::usage_func(char *iname, DataType *, ParmList *l) {
   
   /* Now go through and print parameters */
 
-  p = l->get_first();
+  p = ParmList_first(l);
   i = 0;
   while (p != 0) {
     if (!p->ignore) {
@@ -1543,12 +1543,12 @@ char *PERL5::usage_func(char *iname, DataType *, ParmList *l) {
 	}
       }
       i++;
-      p = l->get_next();
+      p = ParmList_next(l);
       if (p)
 	if (!p->ignore)
 	  Putc(',',temp);
     } else {
-      p = l->get_next();
+      p = ParmList_next(l);
       if (p) 
 	if ((i>0) && (!p->ignore))
 	  Putc(',',temp);
@@ -1885,9 +1885,9 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   // arguments to our function correspond to other Perl objects, we
   // need to extract them from a tied-hash table object.
 
-  p = l->get_first();
+  p = ParmList_first(l);
   pcount = l->nparms;
-  numopt = l->numopt();
+  numopt = ParmList_numopt(l);
   i = 1;
   while(p) {
     if (!p->ignore) {
@@ -1910,7 +1910,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       }
       i++;
     }
-    p = l->get_next();
+    p = ParmList_next(l);
   }
   
   // Okay.  We've made argument adjustments, now call into the package
@@ -2090,7 +2090,7 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
     // arguments to our function correspond to other Perl objects, we
     // need to extract them from a tied-hash table object.
     
-    p = l->get_first();
+    p = ParmList_first(l);
     i = 0;
     while(p) {
       
@@ -2101,7 +2101,7 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
 	// Yep.   This smells alot like an object, patch up the arguments
 	Printf(pcode, "    $args[%d] = tied(%%{$args[%d]});\n", i, i);
       }
-      p = l->get_next();
+      p = ParmList_next(l);
       i++;
     }
     

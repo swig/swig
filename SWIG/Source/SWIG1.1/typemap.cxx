@@ -84,7 +84,7 @@ struct TypeMap {
     next = 0;
     previous = 0;
     if (p) {
-      args = new ParmList(p);
+      args = CopyParmList(p);
     } else {
       args = 0;
     }
@@ -108,7 +108,7 @@ struct TypeMap {
     next = 0;
     previous = t->previous;
     if (args) {
-      args = new ParmList(args);
+      args = CopyParmList(args);
     } else {
       args = 0;
     }
@@ -308,7 +308,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
   
   if (args) {
     Parm *p;
-    p = tm->args->get_first();
+    p = ParmList_first(tm->args);
     while (p) {
       if (p->name) {
 	//	printf("    %s %s\n", p->t->print_type(),p->name);
@@ -321,7 +321,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
 	p->t->is_pointer--;
 	p->call_type = 0;
       }
-      p = tm->args->get_next();
+      p = ParmList_next(tm->args);
     }
   }
 }
@@ -482,7 +482,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
   Parm *p;
   char *new_name;
   
-  p = l->get_first();
+  p = ParmList_first(l);
   while (p) {
     if (p->name) {
       if (strlen(p->name) > 0) {
@@ -528,7 +528,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 	Replace(s,p->name,new_name,DOH_REPLACE_ID);
       }
     }
-    p = l->get_next();
+    p = ParmList_next(l);
   }
   // If the original datatype was an array. We're going to go through and substitute
   // it's array dimensions
