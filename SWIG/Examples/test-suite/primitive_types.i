@@ -208,8 +208,8 @@ macro(long,               pfx, long)
 macro(unsigned long,      pfx, ulong)
 macro(long long,          pfx, llong)
 macro(unsigned long long, pfx, ullong)
-macro(float,              pfx, float)
-macro(double,             pfx, double)
+//macro(float,              pfx, float)
+//macro(double,             pfx, double)
 macro(char,               pfx, char)
 %enddef
 
