@@ -23,8 +23,9 @@
 #define DOH_MAX_FRAG          1024
 #endif
 
-int   _DohMemoryCurrent = 0;
-int   _DohMemoryHigh    = 0;
+static int   _DohMemoryCurrent = 0;
+static int   _DohMemoryHigh    = 0;
+static int   _PoolSize = DOH_POOL_SIZE;
 
 /* -----------------------------------------------------------------------------
  * memory.c
@@ -84,7 +85,7 @@ static void InitPools() {
   for (i = 0; i < DOH_MAX_FRAG; i++) {
     FreeFragments[i] = 0;
   }
-  Pools = CreatePool(DOH_POOL_SIZE);       /* Create initial pool */
+  Pools = CreatePool(_PoolSize);       /* Create initial pool */
   pools_initialized = 1;
 }
 
@@ -163,7 +164,7 @@ void *DohObjMalloc(size_t size) {
     f->next = FreeFragments[f->len];
     FreeFragments[f->len] = f;
   }
-  p = CreatePool(DOH_POOL_SIZE);
+  p = CreatePool(_PoolSize);
   p->next = Pools;
   Pools = p;
   return DohObjMalloc(size);
@@ -259,4 +260,13 @@ int DohMemoryUse() {
   
 int DohMemoryHigh() {
   return _DohMemoryHigh;
+}
+
+int DohPoolSize(int poolsize) {
+  int ps;
+  ps = _PoolSize;
+  if (poolsize > 0) {
+    _PoolSize = poolsize;
+  }
+  return ps;
 }

@@ -172,9 +172,9 @@ int
 File_read(DOH *so, void *buffer, int len) {
   File *s = (File *) so;
   if (s->filep) 
-    return (size_t) fread(buffer,1,len,s->filep);
+    return fread(buffer,1,len,s->filep);
   else 
-    return (size_t) read(s->fd,buffer,len);
+    return read(s->fd,buffer,len);
 }
 
 /* -----------------------------------------------------------------------------
@@ -186,9 +186,9 @@ int
 File_write(DOH *so, void *buffer, int len) {
   File *s = (File *) so;
   if (s->filep) 
-    return (size_t) fwrite(buffer,1,len,s->filep);
+    return fwrite(buffer,1,len,s->filep);
   else
-    return (size_t) write(s->fd,buffer,len);
+    return write(s->fd, buffer, len);
 }
 
 /* -----------------------------------------------------------------------------

@@ -29,9 +29,6 @@
 #define DOH_MAJOR_VERSION 0
 #define DOH_MINOR_VERSION 1
 
-extern int _DohMemoryCurrent;
-extern int _DohMemoryHigh;
-
 typedef void DOH;                
 
 #define DOH_BEGIN    -1
@@ -124,6 +121,7 @@ extern int     DohCheck(DOH *ptr);
 extern int     DohFreeCheck(DOH *ptr);
 extern int     DohMemoryUse();
 extern int     DohMemoryHigh();
+extern int     DohPoolSize(int);
 
 /* Low-level doh methods.  Do not call directly (well, unless you want to). */
 extern void    DohError(int level, char *fmt,...);
