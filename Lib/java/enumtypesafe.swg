@@ -36,7 +36,7 @@
  * written to possibly optimise this lookup by taking advantage of characteristics peculiar to the targeted enum.
  * The special variable, $enumvalues, is replaced with a comma separated list of all the enum values.
  */
-%typemap(javagetcptr) enum SWIGTYPE %{
+%typemap(javabody) enum SWIGTYPE %{
   public final int swigValue() {
     return swigValue;
   }
