@@ -486,7 +486,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Parse language dependent options
   lang->main(argc,argv);
 
-  if (help) SWIG_exit (EXIT_SUCCESS);    // Exit if we're in help mode
+  
+  if (help) {
+    Printf(stderr,"\nNote: 'swig -lang -help' displays options for a specific language module.\n\n");
+    SWIG_exit (EXIT_SUCCESS);    // Exit if we're in help mode
+  }
 
   // Check all of the options to make sure we're cool.
   Swig_check_options();
