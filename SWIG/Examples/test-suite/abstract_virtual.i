@@ -1,5 +1,8 @@
 %module abstract_virtual
 
+%warnfilter(802, 813) D; /* Ruby, Java multiple inheritance */
+%warnfilter(802, 813) E; /* Ruby, Java multiple inheritance */
+
 %inline %{
   struct A 
   {
