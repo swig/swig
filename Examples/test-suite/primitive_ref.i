@@ -24,3 +24,24 @@ ref(double, double);
 ref(bool, bool);
 ref(long long, longlong);
 ref(unsigned long long, ulonglong);
+
+
+%inline %{
+
+int ref_over(int a)
+{
+  return a;
+}
+
+ struct A 
+ {
+   int v;
+   A(int V) :v(V) {}
+ };
+ 
+int ref_over(const A& a)
+{
+  return a.v;
+}
+
+%}

@@ -35,3 +35,6 @@ if ref_bool(1) != 1:
 
 if ref_char('x') != 'x':
     raise RuntimeError
+
+if ref_over(0) != 0:
+    raise RuntimeError
