@@ -35,7 +35,7 @@ private:
     GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
   } linkage;
   void   get_pointer(char *iname, int parm, DataType *t,
-		     WrapperFunction &f, DOHString_or_char *proc_name,
+		     Wrapper *f, DOHString_or_char *proc_name,
 		     int num_scheme_parm);
   void   usage_var(char *, DataType *, DOHString *usage);
   void   usage_func(char *, DataType *, ParmList *, DOHString *usage);

@@ -33,8 +33,8 @@ protected:
 
   virtual void initialize_cmodule();
   virtual void close_cmodule();
-  virtual void emit_function_header(WrapperFunction &emit_to, char *wname);
-  virtual char *convert_self(WrapperFunction &f);
+  virtual void emit_function_header(Wrapper *emit_to, char *wname);
+  virtual char *convert_self(Wrapper *f);
   virtual char *make_funcname_wrapper(char *fnName);
   void emitAddPragmas(DOHString *output, char* name, char* spacing);
 

@@ -175,7 +175,7 @@ char *emit_local(int i) {
 }
 
 // -----------------------------------------------------------------------------
-// int emit_args(char *d, DataType *rt, ParmList *l, WrapperFunction &f)
+// int emit_args(char *d, DataType *rt, ParmList *l, Wrapper *f)
 //
 // Creates a list of variable declarations for both the return value
 // and function parameters.
@@ -186,7 +186,7 @@ char *emit_local(int i) {
 // Returns the number of parameters associated with a function.
 // -----------------------------------------------------------------------------
 
-int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
+int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
 
   Parm *p;
   int   i;
@@ -199,13 +199,12 @@ int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
 
       // Special case for return by "value"
       rt->is_pointer++;
-      f.add_local(rt->print_type(), (char*)"_result");
+      Wrapper_add_local(f, rt->print_type(), (char*)"_result",0);
       rt->is_pointer--;
     } else {
 
       // Normal return value
-
-      f.add_local(rt->print_type(), (char*)"_result");
+      Wrapper_add_local(f,rt->print_type(), (char*)"_result",0);
     }
   }
 
@@ -221,28 +220,28 @@ int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
 	  ((p->t->type == T_USER) && (p->call_type == CALL_REFERENCE) && (p->defvalue))) {
 	char deftmp[1024];
 	sprintf(deftmp,"(%s) &%s", p->t->print_type(), p->defvalue);
-	f.add_local(p->t->print_type(),temp,deftmp);
+	Wrapper_add_local(f,p->t->print_type(),temp,deftmp);
       } else {
 	char deftmp[1024];
 	if (p->defvalue) {
 	  sprintf(deftmp,"(%s) %s", p->t->print_type(), p->defvalue);
-	  f.add_local(p->t->print_type(), temp, deftmp);
+	  Wrapper_add_local(f,p->t->print_type(), temp, deftmp);
 	} else {
-	  f.add_local(p->t->print_type(), temp, 0);
+	  Wrapper_add_local(f,p->t->print_type(), temp, 0);
 	}
 
-	tm = typemap_lookup((char*)"arginit", typemap_lang, p->t,p->name,(char*)"",temp,&f);
+	tm = typemap_lookup((char*)"arginit", typemap_lang, p->t,p->name,(char*)"",temp,f);
 	if (tm) {
-	  Printv(f.code,tm,"\n",0);
+	  Printv(f->code,tm,"\n",0);
 	}
       }
       // Check for ignore or default typemaps
-      tm = typemap_lookup((char*)"default",typemap_lang,p->t,p->name,(char*)"",temp,&f);
+      tm = typemap_lookup((char*)"default",typemap_lang,p->t,p->name,(char*)"",temp,f);
       if (tm)
-	Printv(f.code,tm,"\n",0);
-      tm = typemap_lookup((char*)"ignore",typemap_lang,p->t,p->name,(char*)"",temp,&f);
+	Printv(f->code,tm,"\n",0);
+      tm = typemap_lookup((char*)"ignore",typemap_lang,p->t,p->name,(char*)"",temp,f);
       if (tm) {
-	Printv(f.code,tm,"\n",0);
+	Printv(f->code,tm,"\n",0);
 	p->ignore = 1;
       }
       tm = typemap_check((char*)"build",typemap_lang,p->t,p->name);
@@ -260,7 +259,7 @@ int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
 
 
 // -----------------------------------------------------------------------------
-// int emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f)
+// int emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper*f)
 //
 // Emits code for a function call (new version).
 //
@@ -271,7 +270,7 @@ int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
 //        handling block.
 // -----------------------------------------------------------------------------
 
-void emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f) {
+void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
 
   int  i;
   Parm  *p;
@@ -353,14 +352,14 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f) {
     Printv(exc,tm);
     Replace(exc,"$function",fcall,DOH_REPLACE_ANY);
     Replace(exc,"$name",decl,DOH_REPLACE_ANY);
-    Printv(f.code,exc,0);
+    Printv(f->code,exc,0);
   } else if ((tm = fragment_lookup((char*)"except",typemap_lang, t->id))) {
     Printv(exc,tm);
     Replace(exc,"$function",fcall,DOH_REPLACE_ANY);
     Replace(exc,"$name",decl,DOH_REPLACE_ANY);
-    Printv(f.code,exc,0);
+    Printv(f->code,exc,0);
   } else {
-    Printv(f.code,fcall,0);
+    Printv(f->code,fcall,0);
   }
   Delete(fcall);
   Delete(exc);

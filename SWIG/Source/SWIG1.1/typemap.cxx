@@ -470,7 +470,7 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
 }
 
 // ------------------------------------------------------------------------
-// static typemap_locals(Datatype *t, char *pname, String &s, ParmList *l, WrapperFunction &f)
+// static typemap_locals(Datatype *t, char *pname, String &s, ParmList *l, Wrapper *f)
 //
 // Takes a string, a parameter list and a wrapper function argument and
 // starts creating local variables.
@@ -478,7 +478,7 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
 // Substitutes locals in the string with actual values used.
 // ------------------------------------------------------------------------
 
-static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, WrapperFunction &f) {
+static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, Wrapper *f) {
   Parm *p;
   char *new_name;
   
@@ -516,12 +516,12 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
           char temp_ip1 = tt->implicit_ptr;
           tt->is_pointer = 0;
           tt->implicit_ptr = 0;
-          new_name = f.new_local(tt->print_type(),Char(str));
+          new_name = Wrapper_new_local(f,tt->print_type(),Char(str));
           tt->is_pointer = temp_ip;
           tt->implicit_ptr = temp_ip1;
         } 
         else 
-          new_name = f.new_local(tt->print_full(),Char(str));
+          new_name = Wrapper_new_local(f,tt->print_full(),Char(str));
 
 	if (tt->arraystr) tt->is_pointer++;
 	// Substitute 
@@ -537,7 +537,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
     char temp[10];
     for (int i = 0; i < t->array_dimensions(); i++) {
       sprintf(temp,"$dim%d",i);
-      Replace(f.locals,temp,t->get_dimension(i), DOH_REPLACE_ANY);
+      Replace(f->locals,temp,t->get_dimension(i), DOH_REPLACE_ANY);
     }
   }
 
@@ -581,7 +581,7 @@ static DataType *realtype;       // This is a gross hack
 static char     *realname = 0;   // Real parameter name
 
 char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname, char *source,
-                     char *target, WrapperFunction *f) {
+                     char *target, Wrapper *f) {
   static DOHString *str = 0;
   char *key = 0;
   TypeMap *tm = 0;
@@ -641,7 +641,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
 
   // If there were locals and a wrapper function, replace
   if ((tm->args) && f) {
-    typemap_locals(realtype, pname, str,tm->args,*f);
+    typemap_locals(realtype, pname, str,tm->args,f);
   }
 
   // If there were locals and no wrapper function, print a warning
@@ -661,7 +661,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
 // ----------------------------------------------------------
 
 char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *source,
-                     char *target, WrapperFunction *f) {
+                     char *target, Wrapper *f) {
   TmMethod *m;
   char temp[512];
   char *result;

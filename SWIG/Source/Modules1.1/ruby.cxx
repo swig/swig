@@ -397,7 +397,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   char source[256], target[256];
   char *tm;
   DOHString *cleanup, *outarg;
-  WrapperFunction  f;
+  Wrapper *f;
   int i;
 
   // Ruby needs no destructor wrapper
@@ -410,6 +410,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   cleanup = NewString("");
   outarg = NewString("");
+  f = NewWrapper();
 
   switch (current) {
   case MEMBER_FUNC:
@@ -450,18 +451,18 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   int vararg = (numoptreal != 0);
 
   // Now write the wrapper function itself
-  Printv(f.def, "static VALUE\n", wname, "(", 0);
+  Printv(f->def, "static VALUE\n", wname, "(", 0);
   if (vararg) {
-    Printv(f.def, "int argc, VALUE *argv, VALUE self",0);
+    Printv(f->def, "int argc, VALUE *argv, VALUE self",0);
   } else {
-    Printv(f.def, "VALUE self", 0);
+    Printv(f->def, "VALUE self", 0);
     for (i = start; i < l->nparms; i++) {
       if (!l->get(i)->ignore) {
-	Printf(f.def,", VALUE varg%d", i);
+	Printf(f->def,", VALUE varg%d", i);
       }
     }
   }
-  Printf(f.def,") {");
+  Printf(f->def,") {");
 
   // Emit all of the local variables for holding arguments.
   if (vararg) {
@@ -469,11 +470,11 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
       if (!l->get(i)->ignore) {
 	char s[256];
 	sprintf(s,"varg%d",i);
-	f.add_local((char*)"VALUE", s);
+	Wrapper_add_local(f,(char*)"VALUE", s,0);
       }
     }
   }
-  f.add_local((char*)"VALUE", (char*)"vresult", (char*)"Qnil");
+  Wrapper_add_local(f,(char*)"VALUE", (char*)"vresult", (char*)"Qnil");
   int pcount = emit_args(t,l,f);
 
 #if 0
@@ -490,17 +491,17 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
        << (numarg-numoptreal) << numoptreal << "\") */" << br;
   temp << br;
   if (numignore != 0) Printf(stderr, temp);
-  f.code << temp;
+  f->code << temp;
 #endif
   // Emit count to check the number of arguments
   if (vararg) {
-    Printf(f.code,"    rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numoptreal);
+    Printf(f->code,"    rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numoptreal);
     for (i = start; i < l->nparms; i++) {
       if (!l->get(i)->ignore) {
-	Printf(f.code,", &varg%d", i);
+	Printf(f->code,", &varg%d", i);
       }
     }
-    Printf(f.code,");\n");
+    Printf(f->code,");\n");
   }
 
   // Now walk the function parameter list and generate code
@@ -522,24 +523,24 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     if (!p.ignore) {
       char *tab = (char*)tab4;
       if (j >= (pcount-numopt)) { // Check if parsing an optional argument
-	Printf(f.code,"    if (argc > %d) {\n", j -  start);
+	Printf(f->code,"    if (argc > %d) {\n", j -  start);
 	tab = (char*)tab8;
       }
 
       // Get typemap for this argument
-      tm = ruby_typemap_lookup((char*)"in",p.t,p.name,source,target,&f);
+      tm = ruby_typemap_lookup((char*)"in",p.t,p.name,source,target,f);
       if (tm) {
 	DOHString *s = NewString(tm);
 	indent(s,tab);
-	Printv(f.code, s, "\n", 0);
-	Replace(f.code, "$arg", source, DOH_REPLACE_ANY);
+	Printv(f->code, s, "\n", 0);
+	Replace(f->code, "$arg", source, DOH_REPLACE_ANY);
 	Delete(s);
       } else {
 	Printf(stderr,"%s : Line %d. No typemapping for datatype %s\n",
 		input_file,line_number, p.t->print_type());
       }
       if (j >= (pcount-numopt))
-	Printv(f.code, tab4, "} \n");
+	Printv(f->code, tab4, "} \n");
       j++;
     }
 
@@ -548,8 +549,8 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     if (tm) {
       DOHString *s = NewString(tm);
       indent(s);
-      Printv(f.code, s, "\n", 0);
-      Replace(f.code, "$arg", source, DOH_REPLACE_ANY);
+      Printv(f->code, s, "\n", 0);
+      Replace(f->code, "$arg", source, DOH_REPLACE_ANY);
       Delete(s);
     }
 
@@ -579,13 +580,13 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   // Return value if necessary
   if ((t->type != T_VOID) || (t->is_pointer)) {
     if (predicate) {
-      Printv(f.code, tab4, "vresult = (_result ? Qtrue : Qfalse);\n", 0);
+      Printv(f->code, tab4, "vresult = (_result ? Qtrue : Qfalse);\n", 0);
     } else {
       tm = ruby_typemap_lookup((char*)"out",t,name,(char*)"_result",(char*)"vresult");
       if (tm) {
 	DOHString *s = NewString(tm);
 	indent(s);
-	Printv(f.code, s, "\n", 0);
+	Printv(f->code, s, "\n", 0);
 	Delete(s);
       } else {
 	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
@@ -595,10 +596,10 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   }
 
   // Dump argument output code;
-  Printv(f.code,outarg,0);
+  Printv(f->code,outarg,0);
 
   // Dump the argument cleanup code
-  Printv(f.code,cleanup,0);
+  Printv(f->code,cleanup,0);
 
   // Look for any remaining cleanup.  This processes the %new directive
   if (NewObject) {
@@ -606,14 +607,14 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     if (tm) {
       DOHString *s = NewString(tm);
       indent(s);
-      Printv(f.code,s,"\n", 0);
+      Printv(f->code,s,"\n", 0);
       Delete(s);
     }
   }
 
   // free pragma
   if (current == MEMBER_FUNC && Getattr(klass->freemethods, mname)) {
-    Printv(f.code, tab4, "DATA_PTR(self) = 0;\n", 0);
+    Printv(f->code, tab4, "DATA_PTR(self) = 0;\n", 0);
   }
 
   // Special processing on return value.
@@ -621,22 +622,23 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   if (tm) {
     DOHString *s = NewString(tm);
     indent(s);
-    Printv(f.code,s,"\n", 0);
+    Printv(f->code,s,"\n", 0);
   }
 
   // Wrap things up (in a manner of speaking)
-  Printv(f.code, tab4, "return vresult;\n}\n", 0);
+  Printv(f->code, tab4, "return vresult;\n}\n", 0);
 
   // Substitute the cleanup code
-  Replace(f.code,"$cleanup",cleanup, DOH_REPLACE_ANY);
+  Replace(f->code,"$cleanup",cleanup, DOH_REPLACE_ANY);
 
   // Emit the function
-  f.print(f_wrappers);
+  Wrapper_print(f,f_wrappers);
 
   // Now register the function with the language
   create_command(name, iname, (vararg ? -1 : numarg));
   Delete(cleanup);
   Delete(outarg);
+  DelWrapper(f);
 }
 
 // ---------------------------------------------------------------------
@@ -651,8 +653,11 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
   char *tm;
   
   DOHString *getfname, *setfname;
-  WrapperFunction getf, setf;
+  Wrapper *getf, *setf;
   int mod_attr = 0;
+
+  getf = NewWrapper();
+  setf = NewWrapper();
 
   // module attribute?
   if (current == STATIC_VAR || !toplevel)
@@ -661,31 +666,31 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
   // create getter
   getfname = NewString(Swig_name_get(name));
   Replace(getfname,"::", "_", DOH_REPLACE_ANY); /* FIXME: Swig_name_get bug? */
-  Printv(getf.def, "static VALUE\n", getfname, "(", 0);
-  if (mod_attr) Printf(getf.def, "VALUE self");
-  Printf(getf.def, ") {");
-  getf.add_local((char*)"VALUE", (char*)"_val");
+  Printv(getf->def, "static VALUE\n", getfname, "(", 0);
+  if (mod_attr) Printf(getf->def, "VALUE self");
+  Printf(getf->def, ") {");
+  Wrapper_add_local(getf,(char*)"VALUE", (char*)"_val",0);
   tm = ruby_typemap_lookup((char*)"varout",t,name,name,(char*)"_val");
   if (!tm)
     tm = ruby_typemap_lookup((char*)"out",t,name,name,(char*)"_val");
   if (tm) {
     DOHString *s = NewString(tm);
     indent(s);
-    Printv(getf.code,s,"\n", 0);
+    Printv(getf->code,s,"\n", 0);
     Delete(s);
   } else if (!t->is_pointer && t->type == T_USER) {
     // Hack this into a pointer
     t->is_pointer++;
     t->remember();
-    Printv(getf.code, tab4, "_val = SWIG_NewPointerObj((void *)&", name,
+    Printv(getf->code, tab4, "_val = SWIG_NewPointerObj((void *)&", name,
 	   ", \"", t->print_mangle(), "\");\n", 0);
     t->is_pointer--;
   } else {
     Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	    input_file,line_number,t->print_type());
   }
-  Printv(getf.code, tab4, "return _val;\n}\n", 0);
-  getf.print(f_wrappers);
+  Printv(getf->code, tab4, "return _val;\n}\n", 0);
+  Wrapper_print(getf,f_wrappers);
 
   if (Status & STAT_READONLY) {
     setfname = NewString("NULL");
@@ -694,34 +699,34 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
     setfname = NewString(Swig_name_set(name));
     Replace(setfname,"::", "_", DOH_REPLACE_ANY); /* FIXME: Swig_name_get bug? */
     if (mod_attr)
-      Printv(setf.def, "static VALUE\n", setfname, "(VALUE self, ", 0);
+      Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", 0);
     else
-      Printv(setf.def, "static void\n", setfname, "(", 0);
-    Printf(setf.def, "VALUE _val) {");
+      Printv(setf->def, "static void\n", setfname, "(", 0);
+    Printf(setf->def, "VALUE _val) {");
     tm = ruby_typemap_lookup((char*)"varin",t,name,(char*)"_val",name);
     if (!tm)
       tm = ruby_typemap_lookup((char*)"in",t,name,(char*)"_val",name);
     if (tm) {
       DOHString *s = NewString(tm);
       indent(s);
-      Printv(setf.code,s,"\n",0);
+      Printv(setf->code,s,"\n",0);
       Delete(s);
     } else if (!t->is_pointer && t->type == T_USER) {
       t->is_pointer++;
-      setf.add_local(t->print_type(), (char*)"temp");
-      Printv(setf.code, tab4, "temp = (", t->print_type(), ")",
+      Wrapper_add_local(setf,t->print_type(), (char*)"temp",0);
+      Printv(setf->code, tab4, "temp = (", t->print_type(), ")",
 	     "SWIG_ConvertPtr(_val, \"", t->print_mangle(), "\");\n",
 	     0);
-      Printv(setf.code, tab4, name, " = *temp;\n",0);
+      Printv(setf->code, tab4, name, " = *temp;\n",0);
       t->is_pointer--;
     } else {
       Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	      input_file,line_number,t->print_type());
     }
     if (mod_attr)
-      Printv(setf.code, tab4, "return _val;\n",0);
-    Printf(setf.code,"}\n");
-    setf.print(f_wrappers);
+      Printv(setf->code, tab4, "return _val;\n",0);
+    Printf(setf->code,"}\n");
+    Wrapper_print(setf,f_wrappers);
   }
 
   // define accessor method
@@ -775,6 +780,8 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
   }
   Delete(getfname);
   Delete(setfname);
+  DelWrapper(setf);
+  DelWrapper(getf);
 }
 
 
@@ -851,7 +858,7 @@ void RUBY::declare_const(char *name, char *iname, DataType *type, char *value) {
 //              target = a string containing the target value
 //              f      = a wrapper function object (optional)
 // ---------------------------------------------------------------------
-char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *source, char *target, WrapperFunction *f) {
+char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *source, char *target, Wrapper *f) {
   static DOHString *s = 0;
   char *tm;
   DOHString *target_replace = NewString(target);

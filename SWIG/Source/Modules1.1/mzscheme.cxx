@@ -246,10 +246,10 @@ MZSCHEME::close (void)
 
 void
 MZSCHEME::get_pointer (DOHString_or_char *name, int parm, DataType *t,
-		       WrapperFunction &f)
+		       Wrapper *f)
 {
-  Printf(f.code,"    if (!swig_get_c_pointer(argv[%d],\"%s\", (void **) &_arg%d))\n", parm, t->print_mangle(), parm);
-  Printf(f.code,"        scheme_wrong_type(\"%s\", \"%s\", %d, argc, argv);\n", name, t->print_mangle(), parm);
+  Printf(f->code,"    if (!swig_get_c_pointer(argv[%d],\"%s\", (void **) &_arg%d))\n", parm, t->print_mangle(), parm);
+  Printf(f->code,"        scheme_wrong_type(\"%s\", \"%s\", %d, argc, argv);\n", name, t->print_mangle(), parm);
 }
 
 // ----------------------------------------------------------------------
@@ -292,7 +292,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   Parm *p;
   char   source[256], target[256], argnum[256], arg[256];
   char  *tm;
-  WrapperFunction f;
+  Wrapper *f;
   DOHString *cleanup = 0;
   DOHString *proc_name = 0;
   int need_len = 0;
@@ -300,7 +300,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   DOHString *outarg = 0;
   int argout_set = 0;
 
-
+  f = NewWrapper();
   outarg = NewString("");
   cleanup = NewString("");
 
@@ -312,7 +312,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   Replace(proc_name,"_","-",DOH_REPLACE_ANY);
 
   // writing the function wrapper function
-  Printv(f.def,
+  Printv(f->def,
 	 "static Scheme_Object *", wname, " (",
 	 "int argc, Scheme_Object **argv",
 	 ")\n{",
@@ -328,9 +328,9 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int numopt = 0;
 
   // adds local variables : type name
-  f.add_local ((char*)"char *", (char*)"_tempc");
-  f.add_local ((char*)"int",    (char*)"_len");
-  f.add_local ((char*)"Scheme_Object *", (char*)"swig_result");
+  Wrapper_add_local (f,(char*)"char *", (char*)"_tempc",0);
+  Wrapper_add_local (f,(char*)"int",    (char*)"_len",0);
+  Wrapper_add_local (f,(char*)"Scheme_Object *", (char*)"swig_result",0);
 
   // Now write code to extract the parameters (this is super ugly)
 
@@ -348,13 +348,13 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Handle parameter types.
 
     if (p.ignore)
-      Printv(f.code, "/* ", p.name, " ignored... */\n", 0);
+      Printv(f->code, "/* ", p.name, " ignored... */\n", 0);
     else {
       ++numargs;
       if ((tm = typemap_lookup ((char*)"in", typemap_lang,
-				p.t, p.name, source, target, &f))) {
-	Printv(f.code, tm, "\n", 0);
-	mreplace (f.code, argnum, arg, proc_name);
+				p.t, p.name, source, target, f))) {
+	Printv(f->code, tm, "\n", 0);
+	mreplace (f->code, argnum, arg, proc_name);
       }
       // no typemap found
       // assume it's a Scheme_Object containing the C pointer
@@ -368,16 +368,16 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Check if there are any constraints.
 
     if ((tm = typemap_lookup ((char*)"check", typemap_lang,
-			      p.t, p.name, source, target, &f))) {
+			      p.t, p.name, source, target, f))) {
       // Yep.  Use it instead of the default
-      Printv(f.code,tm,"\n", 0);
-      mreplace (f.code, argnum, arg, proc_name);
+      Printv(f->code,tm,"\n", 0);
+      mreplace (f->code, argnum, arg, proc_name);
     }
 
     // Pass output arguments back to the caller.
 
     if ((tm = typemap_lookup ((char*)"argout", typemap_lang,
-                              p.t, p.name, source, target, &f))) {
+                              p.t, p.name, source, target, f))) {
       // Yep.  Use it instead of the default
       Printv(outarg, tm, "\n", 0);
       mreplace (outarg, argnum, arg, proc_name);
@@ -386,7 +386,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Free up any memory allocated for the arguments.
     if ((tm = typemap_lookup ((char*)"freearg", typemap_lang,
-                              p.t, p.name, source, target, &f))) {
+                              p.t, p.name, source, target, f))) {
       // Yep.  Use it instead of the default
       Printv(cleanup, tm, "\n", 0);
       mreplace (cleanup, argnum, arg, proc_name);
@@ -401,18 +401,18 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   if (d->type == T_VOID) {
     if(!argout_set)
-      Printv(f.code, tab4, "swig_result = scheme_void;\n", 0);
+      Printv(f->code, tab4, "swig_result = scheme_void;\n", 0);
   }
 
   else if ((tm = typemap_lookup ((char*)"out", typemap_lang,
-                                 d, name, (char*)"_result", (char*)"swig_result", &f))) {
-    Printv(f.code, tm, "\n", 0);
-    mreplace (f.code, argnum, arg, proc_name);
+                                 d, name, (char*)"_result", (char*)"swig_result", f))) {
+    Printv(f->code, tm, "\n", 0);
+    mreplace (f->code, argnum, arg, proc_name);
   }
   // no typemap found and not void then create a Scheme_Object holding
   // the C pointer and return it
   else if (d->is_pointer) {
-    Printv(f.code,
+    Printv(f->code,
 	   tab4,
 	   "swig_result = swig_make_c_pointer(",
 	   "_result, \"",
@@ -425,50 +425,50 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   }
 
   // Dump the argument output code
-  Printv(f.code, outarg,0);
+  Printv(f->code, outarg,0);
 
   // Dump the argument cleanup code
-  Printv(f.code, cleanup, 0);
+  Printv(f->code, cleanup, 0);
 
   // Look for any remaining cleanup
 
   if (NewObject) {
     if ((tm = typemap_lookup ((char*)"newfree", typemap_lang,
-                              d, iname, (char*)"_result", (char*)"", &f))) {
-      Printv(f.code,tm,"\n",0);
-      mreplace (f.code, argnum, arg, proc_name);
+                              d, iname, (char*)"_result", (char*)"", f))) {
+      Printv(f->code,tm,"\n",0);
+      mreplace (f->code, argnum, arg, proc_name);
     }
   }
 
   // Free any memory allocated by the function being wrapped..
 
   if ((tm = typemap_lookup ((char*)"ret", typemap_lang,
-                            d, name, (char*)"_result", (char*)"", &f))) {
+                            d, name, (char*)"_result", (char*)"", f))) {
     // Yep.  Use it instead of the default
-    Printv(f.code,tm,"\n",0);
-    mreplace (f.code, argnum, arg, proc_name);
+    Printv(f->code,tm,"\n",0);
+    mreplace (f->code, argnum, arg, proc_name);
   }
 
   // returning multiple values
   if(argout_set) {
     if(d->type == T_VOID) {
-      f.add_local((char*)"int", (char*)"_lenv", (char*)"0");
-      f.add_local((char*)"Scheme_Object *", (char*)"_values[MAXVALUES]");
-      Printv(f.code, tab4, "swig_result = scheme_values(_lenv, _values);\n", 0);
+      Wrapper_add_local(f,(char*)"int", (char*)"_lenv", (char*)"0");
+      Wrapper_add_local(f,(char*)"Scheme_Object *", (char*)"_values[MAXVALUES]",0);
+      Printv(f->code, tab4, "swig_result = scheme_values(_lenv, _values);\n", 0);
     }
     else {
-      f.add_local((char*)"int", (char*)"_lenv", (char*)"1");
-      f.add_local((char*)"Scheme_Object *",(char*) "_values[MAXVALUES]");
-      Printv(f.code, tab4, "_values[0] = swig_result;\n", 0);
-      Printv(f.code, tab4, "swig_result = scheme_values(_lenv, _values);\n", 0);
+      Wrapper_add_local(f,(char*)"int", (char*)"_lenv", (char*)"1");
+      Wrapper_add_local(f,(char*)"Scheme_Object *",(char*) "_values[MAXVALUES]",0);
+      Printv(f->code, tab4, "_values[0] = swig_result;\n", 0);
+      Printv(f->code, tab4, "swig_result = scheme_values(_lenv, _values);\n", 0);
     }
   }
 
   // Wrap things up (in a manner of speaking)
 
-  Printv(f.code, tab4, "return swig_result;\n", "}\n", 0);
+  Printv(f->code, tab4, "return swig_result;\n", "}\n", 0);
 
-  f.print (f_wrappers);
+  Wrapper_print(f,f_wrappers);
 
   // Now register the function
   /*  Printv(init_func_def,
@@ -485,6 +485,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   Delete(proc_name);
   Delete(outarg);
   Delete(cleanup);
+  DelWrapper(f);
 }
 
 // -----------------------------------------------------------------------

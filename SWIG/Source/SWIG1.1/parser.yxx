@@ -825,6 +825,7 @@ statement      : INCLUDE STRING LBRACE {
                       DOH *s = NewString($2);
 	              Setline(s,start_line);
                       Setfile(s,input_file);
+		      Seek(s,0,SEEK_SET);
                       cpps = Preprocessor_parse(s);
                       start_inline(Char(cpps), start_line);
 		      Delete(s);
@@ -2691,13 +2692,13 @@ cpp_tail      : SEMI { }
                ;
 
 cpp_end        : cpp_const SEMI { 
-                    CCode = "";
+	            Clear(CCode);
                } 
                | cpp_const LBRACE { skip_brace(); }
                ;
 
-cpp_vend       : cpp_const SEMI { CCode = ""; }
-               | cpp_const EQUAL definetype SEMI { CCode = ""; }
+cpp_vend       : cpp_const SEMI { Clear(CCode); }
+               | cpp_const EQUAL definetype SEMI { Clear(CCode); }
                | cpp_const LBRACE { skip_brace(); }
                ;
 
@@ -2831,7 +2832,7 @@ cpp_const      : CONST {}
 /* Constructor initializer */
 
 ctor_end       : cpp_const ctor_initializer SEMI { 
-                    CCode = "";
+		Clear(CCode);
                } 
                | cpp_const ctor_initializer LBRACE { skip_brace(); }
                ;
@@ -3112,7 +3113,7 @@ objc_method    : MINUS objc_ret_type ID objc_args objc_end {
                }
                ;
 
-objc_end       : SEMI { CCode = ""; }
+objc_end       : SEMI { Clear(CCode); }
                | LBRACE { skip_brace(); }
                ;
 

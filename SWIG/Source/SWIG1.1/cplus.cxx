@@ -240,7 +240,8 @@ public:
       int oldnewobject = NewObject;
       AddMethods = new_method;
       NewObject = new_object;
-      CCode = code;
+      Clear(CCode);
+      Append(CCode,code);
       if (is_static) {
 	cplus_static_func(name, iname, ret_type, parms);
       } else {
@@ -248,7 +249,7 @@ public:
       }
       AddMethods = oldaddmethods;
       NewObject = oldnewobject;
-      CCode = "";
+      Clear(CCode);
     }
   }
   void emit() {
@@ -423,10 +424,11 @@ public:
       if (!is_static) {
 	int oldaddmethods = AddMethods;
 	AddMethods = new_method;
-	CCode = code;
+	Clear(CCode);
+	Append(CCode,code);
 	cplus_variable(name,iname,type);
 	AddMethods = oldaddmethods;
-	CCode = "";
+	Clear(CCode);
       } else {
 	cplus_static_var(name,iname,type);
       }
@@ -632,7 +634,7 @@ public:
     if (!generate_default) return;
     
     // Try to generate a constructor if not available.
-    CCode = "";
+    Clear(CCode);
     AddMethods = 0;
     if ((!have_constructor) && (1)) {
       ParmList *l;
