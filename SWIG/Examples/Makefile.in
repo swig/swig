@@ -490,7 +490,9 @@ ocaml_static: $(SRCS)
 	$(OCC) -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
-	$(NOLINK) || $(OCC) -custom -o $(TARGET) $(INTERFACE:%.i=%.cmo) \
+	$(NOLINK) || $(OCC) -custom -o $(TARGET) \
+		$(INTERFACE:%.i=%.cmo) \
+		$(PROGFILE:%.ml=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.o) $(OBJS) -cclib "$(LIBS)"
 
 ocaml_static_cpp: $(SRCS)
