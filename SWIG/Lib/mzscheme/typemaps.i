@@ -214,10 +214,11 @@ SIMPLE_MAP(float, SCHEME_REALP, scheme_real_to_double,
 	   scheme_make_double, real);
 SIMPLE_MAP(double, SCHEME_REALP, scheme_real_to_double,
 	   scheme_make_double, real);
+
 SIMPLE_MAP(char *, SCHEME_STRINGP, SCHEME_STR_VAL, 
-	   scheme_make_string_without_copying, string);
+	   SCHEME_MAKE_STRING, string);
 SIMPLE_MAP(const char *, SCHEME_STRINGP, SCHEME_STR_VAL, 
-	   scheme_make_string_without_copying, string);
+	   SCHEME_MAKE_STRING, string);
 
 /* For MzScheme 30x:  Use these typemaps if you are not going to use
    UTF8 encodings in your C code. 

@@ -61,6 +61,9 @@ extern "C" {
 #define scheme_make_sized_string(s,l)  scheme_make_sized_utf8_string(s,l)
 #define scheme_make_sized_offset_string(s,d,l) \
                    scheme_make_sized_offset_utf8_string(s,d,l)
+#define SCHEME_MAKE_STRING(s) scheme_make_utf8_string(s)
+#else
+#define SCHEME_MAKE_STRING(s) scheme_make_string_without_copying(s)
 #endif
 /* ----------------------------------------------------------------------- 
  * End of mzscheme 30X support code 
