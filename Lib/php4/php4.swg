@@ -499,7 +499,7 @@ deliberate error cos this code looks bogus to me
 
 /* Some ANSI C typemaps */
 
-%apply long { size_t };
+%apply unsigned long { size_t };
 
 /* php kewords */
 /* please test and activate */

@@ -462,14 +462,7 @@
  * ANSI C typemaps 
  * ------------------------------------------------------------ */
 
-%typemap(in) size_t (int temp) "if (Tcl_GetIntFromObj(interp,$input,&temp) == TCL_ERROR) return TCL_ERROR;
-                               $1 = (size_t) temp;";
-
-%typemap(out)      size_t = long;
-%typemap(varin)    size_t = long;
-%typemap(varout)   size_t = long;
-%typemap(consttab) size_t = long;
-
+%apply unsigned long { size_t };
 
 
 /* ------------------------------------------------------------

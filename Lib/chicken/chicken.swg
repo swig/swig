@@ -437,15 +437,7 @@ $result = C_SCHEME_UNDEFINED;
  * ANSI C typemaps
  * ------------------------------------------------------------ */
 
-%typemap(in)     size_t
-%{  if (!C_swig_is_flonum ($input)) {
-    swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument #$argnum is not of type 'flonum'");
-  }
-  $1 = (size_t) C_flonum_magnitude ($input); %}
-%typemap(out)       size_t = long;
-%typemap(varin)     size_t = long;
-%typemap(varout)    size_t = long;
-%typemap(constcode) size_t = long;
+%apply unsigned long { size_t };
 
 /* ------------------------------------------------------------
  * CHICKEN types

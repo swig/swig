@@ -743,4 +743,4 @@ FROM BlaBla IMPORT Bla;
 
 /* Some ANSI C typemaps */
 
-%apply long { size_t };
+%apply unsigned long { size_t };

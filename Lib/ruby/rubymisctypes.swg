@@ -2,5 +2,5 @@
  * --- ANSI/Posix C/C++ types ---
  * ------------------------------------------------------------ */
 
-%apply long { size_t };
+%apply unsigned long { size_t };
 

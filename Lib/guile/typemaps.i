@@ -278,7 +278,7 @@ typedef unsigned long SCM;
 
 /* Some ANSI C typemaps */
 
-%apply long { size_t };
+%apply unsigned long { size_t };
 
 /* ------------------------------------------------------------
  * String & length
