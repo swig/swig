@@ -16,6 +16,20 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+05/22/2002: cheetah (William Fulton)
+            [Java] C type char no longer maps to Java type byte, but to Java type char.
+            It is now treated as a character rather than a signed number. This fits in
+            with the other language modules and is a more natural mapping as char* is 
+            mapped as a string of characters. Note that the C signed char type is still
+            mapped to a Java byte.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+05/22/2002: cheetah (William Fulton)
+            [Java] Improved constants wrapping. Constants (#define and %constant) values 
+            are now obtained through a JNI call. Previously the value was compiled as 
+            Java code, but this didn't work for all cases, eg #define 123ULL.
+
 05/22/2002: beazley
             Fixed bogus error message with %extend directive and C++
             access specifiers.  Reported by Marcelo Matus.
