@@ -256,7 +256,7 @@ clean-%-gifplot:
 INSTALL         = install-sh -c
 INSTALL_DATA    = ${INSTALL} -m 644
 INSTALL_PROGRAM = $(srcdir)/${INSTALL} -m 755
-MKINSTDIRS      = $(srcdir)/mkinstalldirs
+MKINSTDIRS      = $(srcdir)/Tools/config/mkinstalldirs
 
 install: install-main install-lib install-runtime
 	@echo "Installation complete"
