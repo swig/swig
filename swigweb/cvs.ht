@@ -88,18 +88,18 @@ Here are some guidelines should you be experiencing problems building SWIG from 
 <p>
 <ol>
 
-<li>Check is that you have a complete SWIG CVS repository update. 
+<li>Check that you have a complete update from the SWIG CVS repository. 
 A fresh checkout from CVS often solves build problems.
 </li>
 
 <li>
 Make sure you have run <tt>./autogen.sh</tt> and <tt>./configure</tt>.
-This is required after updating from the CVS repository in the case of build files changing.
+Both these steps will be necessary if you have a fresh CVS checkout or if the build files in the repository have changed since a previous update.
 </li>
 
 <li>
-Check that your autotools are installed properly. 
-The autotools (Autoconf, Automake and Libtool) are in a state of flux and there are backward compatibility issues which are solved in different ways on different operating systems.
+Check that the appropriate versions of your autotools (Autoconf, Automake and Libtool) are installed properly. 
+The autotools are in a state of flux and there are backward compatibility issues which are solved in different ways on different operating systems.
 </li>
 </ol>
 
@@ -114,8 +114,8 @@ We are always looking for people to help out with various projects.
 if you are interested in doing developer work and gaining write access to the CVS repository.
 
 <p>
-<li>A developer mailing list is available at <a href="mailto:swig-dev@cs.uchicago.edu">swig-dev@cs.uchicago.edu</a> to discuss coding issues, bugs, patches, and so forth.  Archives of recent
-activity can be found <a href="http://mailman.cs.uchicago.edu/mailman/listinfo/swig-dev">here</a>.
+<li>A developer mailing list is available at <a href="mailto:swig-dev@cs.uchicago.edu">swig-dev@cs.uchicago.edu</a> to discuss coding issues, bugs, patches, and so forth.  
+Subscription information and archives of recent activity can be found on the <a href="http://mailman.cs.uchicago.edu/mailman/listinfo/swig-dev">SWIG Developer Mailing List</a> page.
 </ul>
 
 
