@@ -46,7 +46,6 @@ const enum SpeedClass::speed   speedTest4(const enum SpeedClass::speed s) { retu
 typedef enum { NamedAnon1, NamedAnon2 } namedanon;
 
 namedanon                       namedanonTest1(namedanon e) { return e; } 
-namedanon                       namedanonTest2(namedanon e) { return e; } 
 
 typedef enum twonamestag { TwoNames1, TwoNames2 } twonames;
 
@@ -88,12 +87,12 @@ template<typename T> struct TemplateClass {
 //  enum TemplateClass::scientists            scientistsTestA(enum TemplateClass::scientists e) { return e; }
   const TemplateClass::scientists           scientistsTestB(const TemplateClass::scientists e) { return e; }
 //  const enum TemplateClass::scientists      scientistsTestC(const enum TemplateClass::scientists e) { return e; }
-  scientiststd1                             scientistsTestC(scientiststd1 e) { return e; }
-  scientiststd2                             scientistsTestD(scientiststd2 e) { return e; }
-  scientiststd3                             scientistsTestE(scientiststd3 e) { return e; }
-  TemplateClass<T>::scientiststd1           scientistsTestF(TemplateClass<T>::scientiststd1 e) { return e; }
-  TemplateClass<T>::scientiststd2           scientistsTestG(TemplateClass<T>::scientiststd2 e) { return e; }
-  TemplateClass<T>::scientiststd3           scientistsTestH(TemplateClass<T>::scientiststd3 e) { return e; }
+  scientiststd1                             scientistsTestD(scientiststd1 e) { return e; }
+  scientiststd2                             scientistsTestE(scientiststd2 e) { return e; }
+  scientiststd3                             scientistsTestF(scientiststd3 e) { return e; }
+  TemplateClass<T>::scientiststd1           scientistsTestG(TemplateClass<T>::scientiststd1 e) { return e; }
+  TemplateClass<T>::scientiststd2           scientistsTestH(TemplateClass<T>::scientiststd2 e) { return e; }
+  TemplateClass<T>::scientiststd3           scientistsTestI(TemplateClass<T>::scientiststd3 e) { return e; }
 };
 
 TemplateClass<int>::scientists              scientistsTest1(TemplateClass<int>::scientists e) { return e; }
@@ -120,15 +119,15 @@ template<typename T> struct TClass {
   enum TClass<T>::scientists                scientistsNameTest7(enum TClass<T>::scientists e) { return e; }
   const enum TClass<T>::scientists          scientistsNameTest8(const enum TClass<T>::scientists e) { return e; }
   TClass::scientists                        scientistsNameTest9(TClass::scientists e) { return e; }
-//  enum TClass::scientists                 scientistsNameTestA(enum TClass::scientists e) { return e; }
+//  enum TClass::scientists                   scientistsNameTestA(enum TClass::scientists e) { return e; }
   const TClass::scientists                  scientistsNameTestB(const TClass::scientists e) { return e; }
-//  const enum TClass::scientists           scientistsNameTestC(const enum TClass::scientists e) { return e; }
-  scientiststd1                             scientistsNameTestC(scientiststd1 e) { return e; }
-  scientiststd2                             scientistsNameTestD(scientiststd2 e) { return e; }
-  scientiststd3                             scientistsNameTestE(scientiststd3 e) { return e; }
-  TClass<T>::scientiststd1                  scientistsNameTestF(TClass<T>::scientiststd1 e) { return e; }
-  TClass<T>::scientiststd2                  scientistsNameTestG(TClass<T>::scientiststd2 e) { return e; }
-  TClass<T>::scientiststd3                  scientistsNameTestH(TClass<T>::scientiststd3 e) { return e; }
+//  const enum TClass::scientists             scientistsNameTestC(const enum TClass::scientists e) { return e; }
+  scientiststd1                             scientistsNameTestD(scientiststd1 e) { return e; }
+  scientiststd2                             scientistsNameTestE(scientiststd2 e) { return e; }
+  scientiststd3                             scientistsNameTestF(scientiststd3 e) { return e; }
+  TClass<T>::scientiststd1                  scientistsNameTestG(TClass<T>::scientiststd1 e) { return e; }
+  TClass<T>::scientiststd2                  scientistsNameTestH(TClass<T>::scientiststd2 e) { return e; }
+  TClass<T>::scientiststd3                  scientistsNameTestI(TClass<T>::scientiststd3 e) { return e; }
 
   Name::TClass<T>::scientists               scientistsNameSpaceTest1(Name::TClass<T>::scientists e) { return e; }
   const Name::TClass<T>::scientists         scientistsNameSpaceTest2(const Name::TClass<T>::scientists e) { return e; }
@@ -277,16 +276,16 @@ typedef TreesClass::treestd1 treesglobaltd3;
 typedef TreesClass::treestd2 treesglobaltd4;
 typedef treesglobaltd4 treesglobaltd5;
 
-treesglobaltd1                      treesTestE(treesglobaltd1 e) { return e; }
-treesglobaltd2                      treesTestF(treesglobaltd2 e) { return e; }
-treesglobaltd3                      treesTestG(treesglobaltd3 e) { return e; }
-treesglobaltd4                      treesTestH(treesglobaltd4 e) { return e; }
-treesglobaltd5                      treesTestI(treesglobaltd5 e) { return e; }
-const treesglobaltd1                treesTestJ(const treesglobaltd1 e) { return e; }
-const treesglobaltd2                treesTestK(const treesglobaltd2 e) { return e; }
-const treesglobaltd3                treesTestL(const treesglobaltd3 e) { return e; }
-const treesglobaltd4                treesTestM(const treesglobaltd4 e) { return e; }
-const treesglobaltd5                treesTestN(const treesglobaltd5 e) { return e; }
+treesglobaltd1                      treesTestD(treesglobaltd1 e) { return e; }
+treesglobaltd2                      treesTestE(treesglobaltd2 e) { return e; }
+treesglobaltd3                      treesTestF(treesglobaltd3 e) { return e; }
+treesglobaltd4                      treesTestG(treesglobaltd4 e) { return e; }
+treesglobaltd5                      treesTestH(treesglobaltd5 e) { return e; }
+const treesglobaltd1                treesTestI(const treesglobaltd1 e) { return e; }
+const treesglobaltd2                treesTestJ(const treesglobaltd2 e) { return e; }
+const treesglobaltd3                treesTestK(const treesglobaltd3 e) { return e; }
+const treesglobaltd4                treesTestL(const treesglobaltd4 e) { return e; }
+const treesglobaltd5                treesTestM(const treesglobaltd5 e) { return e; }
 
 typedef const enum TreesClass::trees treesglobaltd6;
 typedef const TreesClass::trees treesglobaltd7;
@@ -294,16 +293,16 @@ typedef const TreesClass::treestd1 treesglobaltd8;
 typedef const TreesClass::treestd2 treesglobaltd9;
 typedef const treesglobaltd4 treesglobaltdA;
 
-//treesglobaltd6                      treesTestO(treesglobaltd6 e) { return e; } // casting using an int instead of treesglobaltd6
-treesglobaltd7                      treesTestP(treesglobaltd7 e) { return e; }
-treesglobaltd8                      treesTestQ(treesglobaltd8 e) { return e; }
-treesglobaltd9                      treesTestR(treesglobaltd9 e) { return e; }
-treesglobaltdA                      treesTestS(treesglobaltdA e) { return e; }
+//treesglobaltd6                      treesTestN(treesglobaltd6 e) { return e; } // casting using an int instead of treesglobaltd6
+treesglobaltd7                      treesTestO(treesglobaltd7 e) { return e; }
+treesglobaltd8                      treesTestP(treesglobaltd8 e) { return e; }
+treesglobaltd9                      treesTestQ(treesglobaltd9 e) { return e; }
+treesglobaltdA                      treesTestR(treesglobaltdA e) { return e; }
 
 namespace curly {
   namespace greasy {
     struct HairStruct {
-      enum hair { blonde, ginger };
+      enum hair { blonde=0xFF0, ginger };
       typedef hair hairtd1;
       typedef HairStruct::hair hairtd2;
       typedef greasy::HairStruct::hair hairtd3;
