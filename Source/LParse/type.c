@@ -126,8 +126,8 @@ CopyLParseType(DOH *co) {
   t->implicit_ptr = c->implicit_ptr;
   t->is_reference = c->is_reference;
   t->status = c->status;
-  t->qualifier = copy_string(c->qualifier);
-  t->arraystr = copy_string(c->arraystr);
+  t->qualifier = Swig_copy_string(c->qualifier);
+  t->arraystr = Swig_copy_string(c->arraystr);
   return t;
 }
 
@@ -238,7 +238,7 @@ void LParse_typedef_resolve(LParseType *t, int level) {
       if (td->qualifier) {
 	if (strcmp(td->qualifier,"const") == 0) {
 	  strcpy(t->name,td->name);
-	  t->qualifier = copy_string(td->qualifier);
+	  t->qualifier = Swig_copy_string(td->qualifier);
 	  t->implicit_ptr -= td->implicit_ptr;
 	}
       }
@@ -274,7 +274,7 @@ void LParse_typedef_replace(LParseType *t) {
 	free(t->arraystr);
       }
       Printf(temp,"%s", td->arraystr);
-      t->arraystr = copy_string(Char(temp));
+      t->arraystr = Swig_copy_string(Char(temp));
     }
   }
   Delete(temp);
