@@ -135,17 +135,17 @@ static VALUE ptrvalue(VALUE _PTRVALUE, int index, char *type) {
 
     /* No datatype was passed.   Type to figure out if it's a common one */
 
-    if (!SWIG_GetPtr(s,&ptr,"int_p")) {
+    if (!SWIG_GetPtr(s,&ptr,"_int_p")) {
       type = "int";
-    } else if (!SWIG_GetPtr(s,&ptr,"double_p")) {
+    } else if (!SWIG_GetPtr(s,&ptr,"_double_p")) {
       type = "double";
-    } else if (!SWIG_GetPtr(s,&ptr,"short_p")) {
+    } else if (!SWIG_GetPtr(s,&ptr,"_short_p")) {
       type = "short";
-    } else if (!SWIG_GetPtr(s,&ptr,"long_p")) {
+    } else if (!SWIG_GetPtr(s,&ptr,"_long_p")) {
       type = "long";
-    } else if (!SWIG_GetPtr(s,&ptr,"float_p")) {
+    } else if (!SWIG_GetPtr(s,&ptr,"_float_p")) {
       type = "float";
-    } else if (!SWIG_GetPtr(s,&ptr,"char_p")) {
+    } else if (!SWIG_GetPtr(s,&ptr,"_char_p")) {
       type = "char";
     } else if (!SWIG_GetPtr(s,&ptr,"char_pp")) {
       type = "char *";
@@ -199,22 +199,22 @@ static VALUE ptrcreate(char *type, VALUE _RBVALUE, int numelements) {
 
   if (strcmp(type,"int") == 0) {
     sz = sizeof(int)*numelements;
-    cast = "int_p";
+    cast = "_int_p";
   } else if (strcmp(type,"short") == 0) {
     sz = sizeof(short)*numelements;
-    cast = "short_p";
+    cast = "_short_p";
   } else if (strcmp(type,"long") == 0) {
     sz = sizeof(long)*numelements;
-    cast = "long_p";
+    cast = "_long_p";
   } else if (strcmp(type,"double") == 0) {
     sz = sizeof(double)*numelements;
-    cast = "double_p";
+    cast = "_double_p";
   } else if (strcmp(type,"float") == 0) {
     sz = sizeof(float)*numelements;
-    cast = "float_p";
+    cast = "_float_p";
   } else if (strcmp(type,"char") == 0) {
     sz = sizeof(char)*numelements;
-    cast = "char_p";
+    cast = "_char_p";
   } else if (strcmp(type,"char *") == 0) {
     sz = sizeof(char *)*(numelements+1);
     cast = "char_pp";
@@ -316,17 +316,17 @@ static VALUE ptrset(VALUE _PTRVALUE, VALUE _RBVALUE, int index, char *type) {
 
     /* No datatype was passed.   Type to figure out if it's a common one */
 
-    if (!SWIG_GetPtr(s,&ptr,"int_p")) {
+    if (!SWIG_GetPtr(s,&ptr,"_int_p")) {
       type = "int";
-    } else if (!SWIG_GetPtr(s,&ptr,"double_p")) {
+    } else if (!SWIG_GetPtr(s,&ptr,"_double_p")) {
       type = "double";
-    } else if (!SWIG_GetPtr(s,&ptr,"short_p")) {
+    } else if (!SWIG_GetPtr(s,&ptr,"_short_p")) {
       type = "short";
-    } else if (!SWIG_GetPtr(s,&ptr,"long_p")) {
+    } else if (!SWIG_GetPtr(s,&ptr,"_long_p")) {
       type = "long";
-    } else if (!SWIG_GetPtr(s,&ptr,"float_p")) {
+    } else if (!SWIG_GetPtr(s,&ptr,"_float_p")) {
       type = "float";
-    } else if (!SWIG_GetPtr(s,&ptr,"char_p")) {
+    } else if (!SWIG_GetPtr(s,&ptr,"_char_p")) {
       type = "char";
     } else if (!SWIG_GetPtr(s,&ptr,"char_pp")) {
       type = "char *";
@@ -393,17 +393,17 @@ static VALUE ptradd(VALUE _PTRVALUE, int offset) {
 
   /* Try to handle a few common datatypes first */
 
-  if (!SWIG_GetPtr(s,&ptr,"int_p")) {
+  if (!SWIG_GetPtr(s,&ptr,"_int_p")) {
     ptr = (void *) (((int *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"double_p")) {
+  } else if (!SWIG_GetPtr(s,&ptr,"_double_p")) {
     ptr = (void *) (((double *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"short_p")) {
+  } else if (!SWIG_GetPtr(s,&ptr,"_short_p")) {
     ptr = (void *) (((short *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"long_p")) {
+  } else if (!SWIG_GetPtr(s,&ptr,"_long_p")) {
     ptr = (void *) (((long *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"float_p")) {
+  } else if (!SWIG_GetPtr(s,&ptr,"_float_p")) {
     ptr = (void *) (((float *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"char_p")) {
+  } else if (!SWIG_GetPtr(s,&ptr,"_char_p")) {
     ptr = (void *) (((char *) ptr) + offset);
   } else if (!SWIG_GetPtr(s,&ptr,0)) {
     ptr = (void *) (((char *) ptr) + offset);
