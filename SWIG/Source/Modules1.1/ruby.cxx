@@ -1148,7 +1148,8 @@ RUBY::constructorHandler(Node *n) {
     klass->constructor_defined = 1;
   } else {
     Swig_require(&n,"?name","*sym:name","?type","?parms",NULL);
-    String *classname = Getattr(n,"name");
+    /*    String *classname = Getattr(n,"name"); */  
+    String *classname = klass->name;    /* Made this change: -- Dave */
     String *symname = Getattr(n,"sym:name");
     String *mrename = Swig_name_member(classname, symname);
     Setattr(n, "sym:name", mrename);
