@@ -7,6 +7,7 @@
 
 %runtime "common.swg"		// common type checking code
 %runtime "php4run.swg"		// Php4 runtime functions
+%include "utils.i"
 
 /* Typemaps for input parameters by value */
 
@@ -146,61 +147,17 @@
 
 /* Typemap for in/argout references
    NOTE: we don't choose to use these for arrays yet, maybe later */
-%define outLONG(ZVALARG,CARG)
-      ZVAL_LONG(*$arg,intr$argnum);
-%enddef
 
-%define %typemap_in_out(TYPES,TYPE_IN,TYPE_OUT)
-%typemap(in) TYPES * ($*1_ltype intr, int force), 
-             TYPES & ($*1_ltype intr, int force) %{
-   /* in_out typemap for TYPES using TYPE_IN and TYPE_OUT */
-  if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
-    /* So... we didn't get a ref or ptr, but can it be reasonably 
-       co-erced into what we were looking for a ref of or ptr to? */
-    if (!PZVAL_IS_REF(*$input) && (*$input)->type==IS_NULL) {
-      // null passed not by reference means pass NULL
-      $1 = NULL;
-      force=0;
-    } else if (PZVAL_IS_REF(*$input) &&
-        ((*$input)->type==IS_STRING ||
-         (*$input)->type==IS_LONG ||
-         /* Null passed by reference means we want a value back */
-         (*$input)->type==IS_NULL ||
-         (*$input)->type==IS_BOOL ||
-         (*$input)->type==IS_DOUBLE)) {
-      TYPE_IN($input);
-      intr = ($*1_ltype) (*$input)->value.lval;
-      $1 = &intr;
-      /* have to passback arg$arg too */
-      force=1;
-    } else {  /* wasn't a pre/ref/thing, OR anything like an int thing */
-      force=0;
-      zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s or at least something looking vaguely like a number hopefully passed by reference", $argnum-argbase, $1_descriptor->name);
-    }
-  } else force=0;
-%}
-
-%typemap(argout) TYPES *, TYPES & %{
-  if (force$argnum) {  /* pass back arg$argnum through params ($arg) if we can */
-    if(! PZVAL_IS_REF(*$arg)) {
-      zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference [argout TYPES *, TYPES &]",$argnum-argbase);
-    } else {
-       TYPE_OUT(*$arg,intr$argnum);	
-    }
-  }
-%}
-%enddef
-
-%typemap_in_out(bool,convert_to_bool_ex,ZVAL_BOOL)
-%typemap_in_out(int,convert_to_long_ex,ZVAL_LONG)
-%typemap_in_out(unsigned int,convert_to_long_ex,ZVAL_LONG)
-%typemap_in_out(short,convert_to_long_ex,ZVAL_LONG)
-%typemap_in_out(unsigned short,convert_to_long_ex,ZVAL_LONG)
-%typemap_in_out(long,convert_to_long_ex,ZVAL_LONG)
-%typemap_in_out(unsigned long,convert_to_long_ex,ZVAL_LONG)
-%typemap_in_out(signed char,convert_to_long_ex,ZVAL_LONG)
-%typemap_in_out(unsigned char,convert_to_long_ex,ZVAL_LONG)
-%typemap_in_out(enum SWIGTYPE,convert_to_long_ex,ZVAL_LONG)
+%typemap_inout_ord(bool,convert_to_bool_ex,ZVAL_BOOL)
+%typemap_inout_ord(int,convert_to_long_ex,ZVAL_LONG)
+%typemap_inout_ord(unsigned int,convert_to_long_ex,ZVAL_LONG)
+%typemap_inout_ord(short,convert_to_long_ex,ZVAL_LONG)
+%typemap_inout_ord(unsigned short,convert_to_long_ex,ZVAL_LONG)
+%typemap_inout_ord(long,convert_to_long_ex,ZVAL_LONG)
+%typemap_inout_ord(unsigned long,convert_to_long_ex,ZVAL_LONG)
+%typemap_inout_ord(signed char,convert_to_long_ex,ZVAL_LONG)
+%typemap_inout_ord(unsigned char,convert_to_long_ex,ZVAL_LONG)
+%typemap_inout_ord(enum SWIGTYPE,convert_to_long_ex,ZVAL_LONG)
 
 %typemap(argout) char [ANY] {
 	ZVAL_STRINGL($arg,$1, $1_dim0, 1);
