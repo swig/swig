@@ -133,7 +133,6 @@ namespace std {
     specialize_std_vector(float);
     specialize_std_vector(double);
     specialize_std_vector(std::string);
-    specialize_std_vector(string);
 
 }
 

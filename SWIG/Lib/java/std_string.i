@@ -5,9 +5,14 @@
 //
 // Java implementation
 //
-// ------------------------------------------------------------------------
-// These are mapped to a Java String and are passed around by value.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+  Typemaps for std::string and const std::string&
+  These are mapped to a Java String and are passed around by value.
+
+  To use non-const std::string references use the following %apply.  Note 
+  that they are passed by value.
+  %apply const std::string & {std::string &};
+  ------------------------------------------------------------------------ */
 
 %include exception.i
 
@@ -15,12 +20,16 @@
 #include <string>
 %}
 
-// std::string
-%typemap(jni) std::string "jstring"
-%typemap(jtype) std::string "String"
-%typemap(jstype) std::string "String"
+namespace std {
 
-%typemap(in) std::string 
+class string;
+
+// string
+%typemap(jni) string "jstring"
+%typemap(jtype) string "String"
+%typemap(jstype) string "String"
+
+%typemap(in) string 
 %{if($input) {
     const char *pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
     if (!pstr) return $null;
@@ -32,23 +41,23 @@
     return $null;
   } %}
 
-%typemap(out) std::string 
+%typemap(out) string 
 %{ $result = jenv->NewStringUTF($1.c_str()); %}
 
-%typemap(javain) std::string "$javainput"
+%typemap(javain) string "$javainput"
 
-%typemap(javaout) std::string {
+%typemap(javaout) string {
     return $jnicall;
   }
 
-%typemap(typecheck) std::string = char *;
+%typemap(typecheck) string = char *;
 
-// const std::string &
-%typemap(jni) const std::string & "jstring"
-%typemap(jtype) const std::string & "String"
-%typemap(jstype) const std::string & "String"
+// const string &
+%typemap(jni) const string & "jstring"
+%typemap(jtype) const string & "String"
+%typemap(jstype) const string & "String"
 
-%typemap(in) const std::string & 
+%typemap(in) const string & 
 %{$1 = NULL;
   if($input) {
     const char *pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
@@ -61,39 +70,47 @@
     return $null;
   } %}
 
-%typemap(freearg) const std::string & 
+%typemap(freearg) const string & 
 %{ delete $1; %}
 
-%typemap(out) const std::string & 
+%typemap(out) const string & 
 %{ $result = jenv->NewStringUTF($1->c_str()); %}
 
-%typemap(javain) const std::string & "$javainput"
+%typemap(javain) const string & "$javainput"
 
-%typemap(javaout) const std::string & {
+%typemap(javaout) const string & {
     return $jnicall;
   }
 
-%typemap(typecheck) const std::string & = char *;
+%typemap(typecheck) const string & = char *;
 
-// For using std::string in the global namespace
-%apply const std::string & {const string &};
-%apply std::string {string};
+}
 
-/* To use non-const std::string references use the following %apply.  Note that they are passed by value.
-// std::string & 
-%apply const std::string & {std::string &};
-%apply std::string & {string &};
-*/
+/* ------------------------------------------------------------------------
+  Typemaps for std::wstring and const std::wstring&
+
+  These are mapped to a Java String and are passed around by value.
+  Warning: Unicode / multibyte characters are handled differently on different 
+  OSs so the std::wstring typemaps may not always work as intended. Therefore 
+  a #define is required to use them.
+
+  To use non-const std::wstring references use the following %apply.  Note 
+  that they are passed by value.
+  %apply const std::wstring & {std::wstring &};
+  ------------------------------------------------------------------------ */
 
 #ifdef SWIGJAVA_WSTRING
-// Warning: Unicode / multibyte characters are handled differently on different OSs so the std::wstring 
-// typemaps may not always work as intended. Therefore a #define is required to use them.
-// std::wstring
-%typemap(jni) std::wstring "jstring"
-%typemap(jtype) std::wstring "String"
-%typemap(jstype) std::wstring "String"
 
-%typemap(in) std::wstring
+namespace std {
+
+class wstring;
+
+// wstring
+%typemap(jni) wstring "jstring"
+%typemap(jtype) wstring "String"
+%typemap(jstype) wstring "String"
+
+%typemap(in) wstring
 %{if($input) {
     const jchar *pstr = jenv->GetStringChars($input, 0);
     if (!pstr) return $null;
@@ -113,7 +130,7 @@
     return $null;
   } %}
 
-%typemap(out) std::wstring
+%typemap(out) wstring
 %{jsize len = $1.length();
   jchar *conv_buf = new jchar[len];
   for (jsize i = 0; i < len; ++i) {
@@ -122,18 +139,18 @@
   $result = jenv->NewString(conv_buf, len);
   delete [] conv_buf; %}
 
-%typemap(javain) std::wstring "$javainput"
+%typemap(javain) wstring "$javainput"
 
-%typemap(javaout) std::wstring {
+%typemap(javaout) wstring {
     return $jnicall;
   }
 
-// const std::wstring &
-%typemap(jni) const std::wstring & "jstring"
-%typemap(jtype) const std::wstring & "String"
-%typemap(jstype) const std::wstring & "String"
+// const wstring &
+%typemap(jni) const wstring & "jstring"
+%typemap(jtype) const wstring & "String"
+%typemap(jstype) const wstring & "String"
 
-%typemap(in) const std::wstring & 
+%typemap(in) const wstring & 
 %{$1 = NULL;
   if($input) {
     const jchar *pstr = jenv->GetStringChars($input, 0);
@@ -154,7 +171,7 @@
     return $null;
   } %}
 
-%typemap(out) const std::wstring & 
+%typemap(out) const wstring & 
 %{jsize len = $1->length();
   jchar *conv_buf = new jchar[len];
   for (jsize i = 0; i < len; ++i) {
@@ -163,21 +180,13 @@
   $result = jenv->NewString(conv_buf, len);
   delete [] conv_buf; %}
 
-%typemap(javain) const std::wstring & "$javainput"
+%typemap(javain) const wstring & "$javainput"
 
-%typemap(javaout) const std::wstring & {
+%typemap(javaout) const wstring & {
     return $jnicall;
   }
 
-// For using std::wstring in the global namespace
-%apply const std::wstring & {const wstring &};
-%apply std::wstring {wstring};
-
-/* To use non-const std::wstring references use the following %apply.  Note that they are passed by value.
-// std::wstring & 
-%apply const std::wstring & {std::wstring &};
-%apply std::wstring & {wstring &};
-*/
+}
 
 #endif
 
