@@ -197,6 +197,7 @@ extern void        SwigType_del_pointer(SwigType *t);
 extern void        SwigType_add_array(SwigType *t, String_or_char *size);
 extern SwigType   *SwigType_pop_arrays(SwigType *t);
 extern void        SwigType_add_reference(SwigType *t);
+extern void        SwigType_del_reference(SwigType *t);
 extern void        SwigType_add_qualifier(SwigType *t, String_or_char *qual);
 extern void        SwigType_add_function(SwigType *t, ParmList *parms);
 extern void        SwigType_add_template(SwigType *t, ParmList *parms);
