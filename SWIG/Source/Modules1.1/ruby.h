@@ -12,18 +12,18 @@
 
 class RClass {
  private:
-  String temp;
+  DOHString *temp;
  public:
-  String name;	// class name (renamed)
-  String cname; // original C class/struct name
-  String vname; // variable name
-  String type;
-  String prefix;
-  String header;
-  String init;
+  DOHString *name;    // class name (renamed)
+  DOHString *cname;   // original C class/struct name
+  DOHString *vname;   // variable name
+  DOHString *type;
+  DOHString *prefix;
+  DOHString *header;
+  DOHString *init;
 
-  String aliases;
-  String includes;
+  DOHString *aliases;
+  DOHString *includes;
   DOH *freemethods;
   DOH *predmethods;
   int destructor_defined;
@@ -32,56 +32,61 @@ class RClass {
     freemethods = NewHash();
     predmethods = NewHash();
     destructor_defined = 0;
+    name = NewString("");
+    cname = NewString("");
+    vname = NewString("");
+    type = NewString("");
+    prefix = NewString("");
+    header = NewString("");
+    init = NewString("");
+    aliases = NewString("");
+    includes = NewString("");
+    temp = NewString("");
   }
+  ~RClass() {
+    Delete(name);
+    Delete(cname);
+    Delete(vname);
+    Delete(type);
+    Delete(prefix);
+    Delete(header);
+    Delete(init);
+    Delete(aliases);
+    Delete(includes);
+    Delete(freemethods);
+    Delete(predmethods);
+    Delete(temp);
+  }
+
   void set_name(char *cn, char *rn, char *valn) {
-    cname = cn;
-    name = valn;
-    vname << "c" << name;
-    prefix <<  (rn ? rn : cn) << "_";
+    Clear(cname);
+    Append(cname,cn);
+    Clear(name);
+    Append(name,valn);
+    Clear(vname);
+    Printf(vname,"c%s",name);
+    Printv(prefix,(rn ? rn : cn), "_", 0);
   }
+
   char *strip(char *s) {
-    if (strncmp(s, prefix.get(), strlen(prefix.get())) != 0)
+    if (strncmp(s, Char(prefix), Len(prefix)) != 0)
       return s;
-    temp = s;
-    temp.replace(prefix.get(), "");
-    return temp.get();
+    Clear(temp);
+    Append(temp,s);
+    Replace(temp,prefix,"",DOH_REPLACE_ANY);
+    return Char(temp);
   }
 };
 
 class RUBY : public Language {
  private:
-  char *module;
-  char *modvar;
-  char *feature;
-  int toplevel;
-  String other_extern;
-  String other_init;
-  char *import_file;
-
-  int current;
-  enum {
-    NO_CPP,
-    MEMBER_FUNC,
-    CONSTRUCTOR,
-    DESTRUCTOR,
-    MEMBER_VAR,
-    CLASS_CONST,
-    STATIC_FUNC,
-    STATIC_VAR
-  };
-
-  DOH *classes;		// key=cname val=RClass
-  RClass *klass;	// Currently processing class
-  DOH *special_methods;	// Python style special method name table
-
   virtual char *make_wrapper_name(char *cname);
   virtual char *validate_const_name(char *name);
   virtual char *ruby_typemap_lookup(char *, DataType *, char *, char *, char *, WrapperFunction * = 0);
-  virtual int to_VALUE(DataType *, char *, String&, int = 0);
-  virtual int from_VALUE(DataType *, char *, String&);
+  virtual int to_VALUE(DataType *, char *, DOHString *, int = 0);
+  virtual int from_VALUE(DataType *, char *, DOHString *);
  public:
   RUBY();
-
   // Virtual functions required by the SWIG parser
   virtual void parse_args(int, char *argv[]);
   virtual void parse();
