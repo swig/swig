@@ -9,11 +9,28 @@
 %insert(runtime) "guile.swg"
 #endif
 
+/* Macro for inserting Scheme code into the stub */
 #define %scheme	    %insert("scheme")
 
-#define %values_as_list   %pragma(guile) beforereturn = ""
-#define %values_as_vector %pragma(guile) beforereturn = "GUILE_MAYBE_VECTOR"
-#define %multiple_values  %pragma(guile) beforereturn = "GUILE_MAYBE_VALUES"
+/* Return-styles */
+%pragma(guile) return_nothing_doc = "Returns unspecified."
+%pragma(guile) return_one_doc = "Returns $values."
+
+%define %values_as_list
+  %pragma(guile) beforereturn = ""
+  %pragma(guile) return_multi_doc = "Returns a list of $num_values values: $values."
+%enddef
+%values_as_list /* the default style */
+
+%define %values_as_vector
+  %pragma(guile) beforereturn = "GUILE_MAYBE_VECTOR"
+  %pragma(guile) return_multi_doc = "Returns a vector of $num_values values: $values."
+%enddef
+
+%define %multiple_values
+  %pragma(guile) beforereturn = "GUILE_MAYBE_VALUES"
+  %pragma(guile) return_multi_doc = "Returns $num_values values: $values."
+%enddef
 
 /* The following definitions are supposed to provide a common API for
    the supported Scheme dialects, so that typemaps may be shared.  I

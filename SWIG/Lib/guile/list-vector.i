@@ -58,7 +58,7 @@
      
      /* We make use of the new multi-dispatch typemaps here. */
      
-     %typemap(in, doc="($arg <vector of <" #SCM_TYPE ">>)")
+     %typemap(in, doc="$NAME is a vector of " #SCM_TYPE " values")
        (int VECTORLENINPUT, C_TYPE *VECTORINPUT),
        (size_t VECTORLENINPUT, C_TYPE *VECTORINPUT)
      {
@@ -75,7 +75,7 @@
        else $2 = NULL;
      }
 	 
-     %typemap(in, doc="($arg <list of <" #SCM_TYPE ">>)")
+     %typemap(in, doc="$NAME is a list of " #SCM_TYPE " values")
        (int LISTLENINPUT, C_TYPE *LISTINPUT),
        (size_t LISTLENINPUT, C_TYPE *LISTINPUT)
      {
@@ -133,7 +133,7 @@
      /* In the ARGOUT typemaps, we convert the array into a vector or
         a list and append it to the results. */
 
-     %typemap(argout, doc="($arg <vector of <" #SCM_TYPE ">>)") 
+     %typemap(argout, doc="$NAME (a vector of " #SCM_TYPE " values)") 
           (int *VECTORLENOUTPUT, C_TYPE **VECTOROUTPUT),
 	  (size_t *VECTORLENOUTPUT, C_TYPE **VECTOROUTPUT)
      {
@@ -147,7 +147,7 @@
        SWIG_APPEND_VALUE(res);
      }
 
-     %typemap(argout, doc="($arg <list of <" #SCM_TYPE ">>)")
+     %typemap(argout, doc="$NAME (a list of " #SCM_TYPE " values)")
           (int *LISTLENOUTPUT, C_TYPE **LISTOUTPUT),
 	  (size_t *LISTLENOUTPUT, C_TYPE **LISTOUTPUT)
      {
@@ -244,7 +244,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
 
      /* All the work is done in IN. */
 
-     %typemap(in, doc="($arg <vector of <" #SCM_TYPE ">>)") 
+     %typemap(in, doc="$NAME is a vector of " #SCM_TYPE " values") 
 		  C_TYPE *PARALLEL_VECTORINPUT,
 		  const C_TYPE *PARALLEL_VECTORINPUT
      {
@@ -318,7 +318,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
      /* In the ARGOUT typemaps, we convert the array into a vector or
         a list and append it to the results. */
 
-     %typemap(argout, doc="($arg <vector of <" #SCM_TYPE ">>)") 
+     %typemap(argout, doc="$NAME (a vector of " #SCM_TYPE " values)") 
 		      C_TYPE **PARALLEL_VECTOROUTPUT
      {
        int i;
@@ -331,7 +331,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
        SWIG_APPEND_VALUE(res);
      }
 
-     %typemap(argout, doc="($arg <list of <" #SCM_TYPE ">>)") 
+     %typemap(argout, doc="$NAME (a list of " #SCM_TYPE " values)") 
 		      C_TYPE **PARALLEL_LISTOUTPUT
      {
        int i;

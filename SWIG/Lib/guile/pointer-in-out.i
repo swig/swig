@@ -34,7 +34,7 @@
 
 %define TYPEMAP_POINTER_INPUT_OUTPUT(PTRTYPE, SCM_TYPE)
 
-%typemap(in, doc="($arg <" #SCM_TYPE ">)") PTRTYPE *INPUT(PTRTYPE temp)
+%typemap(in, doc="$NAME is of type <" #SCM_TYPE ">") PTRTYPE *INPUT(PTRTYPE temp)
 {
     if (SWIG_Guile_GetPtr($input, (void **) &temp, $*descriptor)) {
 	scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
@@ -56,7 +56,7 @@
 /* As a special convenience measure, also attach docs involving
    SCM_TYPE to the standard pointer typemaps */
 
-%typemap(in, doc="($arg <" #SCM_TYPE ">)") PTRTYPE {
+%typemap(in, doc="$NAME is of type <" #SCM_TYPE ">") PTRTYPE {
   if (SWIG_Guile_GetPtr($input, (void **) &$1, $descriptor))
     scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
 }

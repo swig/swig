@@ -14,9 +14,9 @@
   #include <unistd.h>
 %}
 
-/* Feed FILE * arguments from file ports */
+/* Feed temporary FILE * arguments from file ports */
 
-%typemap(guile, in, doc="($arg <port>)") FILE *
+%typemap(in, doc="$NAME is a port") FILE *
 {
   if(!(SCM_FPORTP($input)))
     scm_wrong_type_arg("$name", $argnum, $input);
@@ -37,7 +37,7 @@
   }
 }
 
-%typemap(guile, freearg) FILE* {
+%typemap(freearg) FILE* {
   fclose($1);
 }
 

@@ -152,22 +152,35 @@
    for simple types. */
 
 %define SIMPLE_MAP(C_NAME, SCM_TO_C, C_TO_SCM, SCM_NAME)
- %typemap (in,     doc="($name <" #SCM_NAME ">)")      C_NAME {$1 = SCM_TO_C($input);}
- %typemap (varin,  doc="(new-value <" #SCM_NAME ">)")  C_NAME {$1 = SCM_TO_C($input);}
- %typemap (out,    doc="<" #SCM_NAME ">")              C_NAME {$result = C_TO_SCM($1);}
- %typemap (varout, doc="<" #SCM_NAME ">")              C_NAME {$result = C_TO_SCM($1);}
- %typemap (in, doc="($name <" #SCM_NAME ">)") C_NAME *INPUT(C_NAME temp) {
+ %typemap (in,     doc="$NAME is of type <" #SCM_NAME ">")
+     C_NAME {$1 = SCM_TO_C($input);}
+ %typemap (varin,  doc="NEW-VALUE is of type <" #SCM_NAME ">")
+     C_NAME {$1 = SCM_TO_C($input);}
+ %typemap (out,    doc="<" #SCM_NAME ">")
+     C_NAME {$result = C_TO_SCM($1);}
+ %typemap (varout, doc="<" #SCM_NAME ">")
+     C_NAME {$result = C_TO_SCM($1);}
+ /* INPUT and OUTPUT */
+ %typemap (in, doc="$NAME is of type <" #SCM_NAME ">)")
+     C_NAME *INPUT(C_NAME temp) {
    temp = (C_NAME) SCM_TO_C($input); $1 = &temp;
  }
  %typemap (ignore)      C_NAME *OUTPUT (C_NAME temp)
    {$1 = &temp;}
- %typemap (argout,doc="($name <" #SCM_NAME ">)") C_NAME *OUTPUT
+ %typemap (argout,doc="$name (of type <" #SCM_NAME ">)") C_NAME *OUTPUT
    {SWIG_APPEND_VALUE(C_TO_SCM(*$1));}
-
  %typemap (in)          C_NAME *BOTH = C_NAME *INPUT;
  %typemap (argout)      C_NAME *BOTH = C_NAME *OUTPUT;
  %typemap (in)          C_NAME *INOUT = C_NAME *INPUT;
  %typemap (argout)      C_NAME *INOUT = C_NAME *OUTPUT;
+ /* Const primitive references.  Passed by value */
+ %typemap(in, doc="$NAME is of type <" #SCM_NAME ">") const C_NAME & (C_NAME temp) {
+   temp = SCM_TO_C($input);
+   $1 = &temp;
+ }
+ %typemap(out, doc="<" #SCM_NAME ">")  const C_NAME & {
+   $result = C_TO_SCM(*$1);
+ }
 %enddef
 
  SIMPLE_MAP(bool, gh_scm2bool, gh_bool2scm, boolean);
@@ -186,20 +199,20 @@
 // SIMPLE_MAP(char *, SWIG_scm2str, gh_str02scm, string);
 // SIMPLE_MAP(const char *, SWIG_scm2str, gh_str02scm, string);
 
- %typemap (in,     doc="($name <string>)")      char *(int must_free = 0) {
+ %typemap (in,     doc="$NAME is a string")      char *(int must_free = 0) {
   $1 = SWIG_scm2str($input);
   must_free = 1;
  }
- %typemap (varin,  doc="(new-value <string>)")  char * {$1 = SWIG_scm2str($input);}
+ %typemap (varin,  doc="NEW-VALUE is a string")  char * {$1 = SWIG_scm2str($input);}
  %typemap (out,    doc="<string>")              char * {$result = gh_str02scm($1);}
  %typemap (varout, doc="<string>")              char * {$result = gh_str02scm($1);}
- %typemap (in, doc="($name <string>)")          char * *INPUT(char * temp, int must_free = 0) {
+ %typemap (in, doc="$NAME is a string")          char * *INPUT(char * temp, int must_free = 0) {
    temp = (char *) SWIG_scm2str($input); $1 = &temp;
    must_free = 1;
  }
  %typemap (ignore)  char * *OUTPUT (char * temp)
    {$1 = &temp;}
- %typemap (argout,doc="($name <string>)") char * *OUTPUT
+ %typemap (argout,doc="$NAME (a string)") char * *OUTPUT
    {SWIG_APPEND_VALUE(gh_str02scm(*$1));}
  %typemap (in)          char * *BOTH = char * *INPUT;
  %typemap (argout)      char * *BOTH = char * *OUTPUT;
@@ -210,39 +223,13 @@
    the function call. */
 
 %typemap (freearg) char * "if (must_free$argnum && $1) scm_must_free($1);";
-%typemap (freearg) char **OUTPUT, char **BOTH "if (must_free$argnum && (*$1)) scm_must_free(*$1);"
-
+%typemap (freearg) char **INPUT, char **BOTH "if (must_free$argnum && (*$1)) scm_must_free(*$1);"
+%typemap (freearg) char **OUTPUT "scm_must_free(*$1);"
+  
 /* But this shall not apply if we try to pass a single char by
    reference. */
 
 %typemap (freearg) char *OUTPUT, char *BOTH "";
-
-/* Typemaps for constant references */
-
-/* Const primitive references.  Passed by value */
-
-%define REF_MAP(C_NAME, SCM_TO_C, C_TO_SCM, SCM_NAME)
-  %typemap(in, doc="($name <" #SCM_NAME ">)") const C_NAME & (C_NAME temp) {
-      temp = SCM_TO_C($input);
-      $1 = &temp;
-  }
-  %typemap(out, doc="<" #SCM_NAME ">")  const C_NAME & {
-    $result = C_TO_SCM(*$1);
-  }
-%enddef
-
-
- REF_MAP(bool, gh_scm2bool, gh_bool2scm, boolean);
- REF_MAP(char, gh_scm2char, gh_char2scm, char);
- REF_MAP(unsigned char, gh_scm2char, gh_char2scm, char);
- REF_MAP(int, gh_scm2int, gh_int2scm, integer);
- REF_MAP(short, gh_scm2int, gh_int2scm, integer);
- REF_MAP(long, gh_scm2long, gh_long2scm, integer);
- REF_MAP(unsigned int, gh_scm2ulong, gh_ulong2scm, integer);
- REF_MAP(unsigned short, gh_scm2ulong, gh_ulong2scm, integer);
- REF_MAP(unsigned long, gh_scm2ulong, gh_ulong2scm, integer);
- REF_MAP(float, gh_scm2double, gh_double2scm, real);
- REF_MAP(double, gh_scm2double, gh_double2scm, real);
 
 /* If we set a string variable, delete the old result first. */
 
@@ -274,7 +261,6 @@ typedef unsigned long SCM;
     $1 = ($1_ltype) gh_scm2newstr($input, &temp);
     $2 = ($2_ltype) temp;
 }
-
 
 /* ------------------------------------------------------------
  * Typechecking rules
