@@ -11,8 +11,6 @@
 typedef unsigned char Pixel;
 typedef float Zvalue;
 
-%disabledoc
-
 /* ------------------------------------------------------------------------
    ColorMap
 
@@ -268,8 +266,6 @@ typedef struct Plot3D {
 %constant PixMap * TRIANGLE = &PixMap_TRIANGLE;
 %constant PixMap * CROSS = &PixMap_CROSS;
 #endif
-
-%enabledoc
 
 
 
