@@ -11,6 +11,8 @@ namespace Namespace {
   typedef Error ErrorTypedef;
   typedef const Error& ErrorRef;
   typedef const Error* ErrorPtr;
+  typedef int IntArray[10];
+  enum EnumTest { enum1, enum2 };
 };
 class Foo {
 public:
@@ -42,6 +44,16 @@ public:
       static Error StaticError;
       throw StaticError;
     }	
+    void test_array() throw(Namespace::IntArray) {
+      static Namespace::IntArray array;
+      for (int i=0; i<10; i++) {
+        array[i] = i;
+      }
+      throw array;
+    }	
+    void test_enum() throw(Namespace::EnumTest) {
+      throw Namespace::enum2;
+    }	
     void test_multi(int x) throw(int, const char *, Error) {
       if (x == 1) throw 37;
       if (x == 2) throw "Dead";
@@ -49,5 +61,5 @@ public:
     }
 };
 
- %}
+%}
 
