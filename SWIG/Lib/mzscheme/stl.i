@@ -221,33 +221,34 @@ namespace std {
 
     // specializations for built-ins
 
-    template<> class vector<int> {
-        %typemap(in) vector<int> {
+    %define specialize_std_vector(T,CHECK,CONVERT_FROM,CONVERT_TO)
+    template<> class vector<T> {
+        %typemap(in) vector<T> {
             if (SCHEME_VECTORP($input)) {
                 unsigned int size = SCHEME_VEC_SIZE($input);
-                $1 = std::vector<int>(size);
+                $1 = std::vector<T>(size);
                 Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
                     Scheme_Object* o = items[i];
-                    if (SCHEME_INTP(o))
-                        (($1_type &)$1)[i] = SCHEME_INT_VAL(o);
+                    if (CHECK(o))
+                        (($1_type &)$1)[i] = CONVERT_FROM(o);
                     else
-                        scheme_wrong_type(FUNC_NAME, "vector<int>", 
+                        scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
                                           $argnum, argc, argv);
                 }
             } else if (SCHEME_NULLP($input)) {
-                $1 = std::vector<int>();
+                $1 = std::vector<T>();
             } else if (SCHEME_PAIRP($input)) {
                 Scheme_Object *head, *tail;
-                $1 = std::vector<int>();
+                $1 = std::vector<T>();
                 tail = $input;
                 while (!SCHEME_NULLP(tail)) {
                     head = scheme_car(tail);
                     tail = scheme_cdr(tail);
-                    if (SCHEME_INTP(head))
-                        $1.push_back(SCHEME_INT_VAL(head));
+                    if (CHECK(head))
+                        $1.push_back(CONVERT_FROM(head));
                     else
-                        scheme_wrong_type(FUNC_NAME, "vector<int>", 
+                        scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
                                           $argnum, argc, argv);
                 }
             } else {
@@ -255,47 +256,47 @@ namespace std {
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
             }
         }
-        %typemap(in) const vector<int>& (std::vector<int> temp),
-                     const vector<int>* (std::vector<int> temp) {
+        %typemap(in) const vector<T>& (std::vector<T> temp),
+                     const vector<T>* (std::vector<T> temp) {
             if (SCHEME_VECTORP($input)) {
                 unsigned int size = SCHEME_VEC_SIZE($input);
-                temp = std::vector<int>(size);
+                temp = std::vector<T>(size);
                 $1 = &temp;
                 Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
                     Scheme_Object* o = items[i];
-                    if (SCHEME_INTP(o))
-                        temp[i] = SCHEME_INT_VAL(o);
+                    if (CHECK(o))
+                        temp[i] = CONVERT_FROM(o);
                     else
-                        scheme_wrong_type(FUNC_NAME, "vector<int>", 
+                        scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
                                           $argnum, argc, argv);
                 }
             } else if (SCHEME_NULLP($input)) {
-                temp = std::vector<int>();
+                temp = std::vector<T>();
                 $1 = &temp;
             } else if (SCHEME_PAIRP($input)) {
-                temp = std::vector<int>();
+                temp = std::vector<T>();
                 $1 = &temp;
                 Scheme_Object *head, *tail;
                 tail = $input;
                 while (!SCHEME_NULLP(tail)) {
                     head = scheme_car(tail);
                     tail = scheme_cdr(tail);
-                    if (SCHEME_INTP(head))
-                        temp.push_back(SCHEME_INT_VAL(head));
+                    if (CHECK(head))
+                        temp.push_back(CONVERT_FROM(head));
                     else
-                        scheme_wrong_type(FUNC_NAME, "vector<int>", 
+                        scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
                                           $argnum, argc, argv);
                 }
             } else {
                 $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
             }
         }
-        %typemap(out) vector<int> {
+        %typemap(out) vector<T> {
             $result = scheme_make_vector($1.size(),scheme_undefined);
             Scheme_Object** els = SCHEME_VEC_ELS($result);
             for (unsigned int i=0; i<$1.size(); i++)
-                els[i] = scheme_make_integer_value((($1_type &)$1)[i]);
+                els[i] = CONVERT_TO((($1_type &)$1)[i]);
         }
       public:
         vector(unsigned int size = 0);
@@ -308,23 +309,23 @@ namespace std {
         %rename("set!") set;
         %rename("pop!") pop;
         %rename("push!") push_back;
-        void push_back(int x);
+        void push_back(T x);
         %extend {
-            int pop() {
+            T pop() {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
-                int x = self->back();
+                T x = self->back();
                 self->pop_back();
                 return x;
             }
-            int ref(int i) {
+            T ref(int i) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void set(int i, int x) {
+            void set(int i, T x) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     (*self)[i] = x;
@@ -333,120 +334,25 @@ namespace std {
             }
         }
     };
+    %enddef
 
-
-    template<> class vector<double> {
-        %typemap(in) vector<double> {
-            if (SCHEME_VECTORP($input)) {
-                unsigned int size = SCHEME_VEC_SIZE($input);
-                $1 = std::vector<double>(size);
-                Scheme_Object** items = SCHEME_VEC_ELS($input);
-                for (unsigned int i=0; i<size; i++) {
-                    Scheme_Object* o = items[i];
-                    if (SCHEME_REALP(o))
-                        (($1_type &)$1)[i] = scheme_real_to_double(o);
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<double>", 
-                                          $argnum, argc, argv);
-                }
-            } else if (SCHEME_NULLP($input)) {
-                $1 = std::vector<double>();
-            } else if (SCHEME_PAIRP($input)) {
-                Scheme_Object *head, *tail;
-                $1 = std::vector<double>();
-                tail = $input;
-                while (!SCHEME_NULLP(tail)) {
-                    head = scheme_car(tail);
-                    tail = scheme_cdr(tail);
-                    if (SCHEME_REALP(head))
-                        $1.push_back(scheme_real_to_double(head));
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<double>", 
-                                          $argnum, argc, argv);
-                }
-            } else {
-                $1 = *(($&1_type)
-                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
-            }
-        }
-        %typemap(in) const vector<double>& (std::vector<double> temp),
-                     const vector<double>* (std::vector<double> temp) {
-            if (SCHEME_VECTORP($input)) {
-                unsigned int size = SCHEME_VEC_SIZE($input);
-                temp = std::vector<double>(size);
-                $1 = &temp;
-                Scheme_Object** items = SCHEME_VEC_ELS($input);
-                for (unsigned int i=0; i<size; i++) {
-                    Scheme_Object* o = items[i];
-                    if (SCHEME_REALP(o))
-                        temp[i] = scheme_real_to_double(o);
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<double>", 
-                                          $argnum, argc, argv);
-                }
-            } else if (SCHEME_NULLP($input)) {
-                temp = std::vector<double>();
-                $1 = &temp;
-            } else if (SCHEME_PAIRP($input)) {
-                temp = std::vector<double>();
-                $1 = &temp;
-                Scheme_Object *head, *tail;
-                tail = $input;
-                while (!SCHEME_NULLP(tail)) {
-                    head = scheme_car(tail);
-                    tail = scheme_cdr(tail);
-                    if (SCHEME_REALP(head))
-                        temp.push_back(scheme_real_to_double(head));
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<double>", 
-                                          $argnum, argc, argv);
-                }
-            } else {
-                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
-            }
-        }
-        %typemap(out) vector<double> {
-            $result = scheme_make_vector($1.size(),scheme_undefined);
-            Scheme_Object** els = SCHEME_VEC_ELS($result);
-            for (unsigned int i=0; i<$1.size(); i++)
-                els[i] = scheme_make_double((($1_type &)$1)[i]);
-        }
-      public:
-        vector(unsigned int size = 0);
-        %rename(length) size;
-        unsigned int size() const;
-        %rename("empty?") empty;
-        bool empty() const;
-        %rename("clear!") clear;
-        void clear();
-        %rename("set!") set;
-        %rename("pop!") pop;
-        %rename("push!") push_back;
-        void push_back(double x);
-        %extend {
-            double pop() {
-                if (self->size() == 0)
-                    throw std::out_of_range("pop from empty vector");
-                double x = self->back();
-                self->pop_back();
-                return x;
-            }
-            double ref(int i) {
-                int size = int(self->size());
-                if (i>=0 && i<size)
-                    return (*self)[i];
-                else
-                    throw std::out_of_range("vector index out of range");
-            }
-            void set(int i, double x) {
-                int size = int(self->size());
-                if (i>=0 && i<size)
-                    (*self)[i] = x;
-                else
-                    throw std::out_of_range("vector index out of range");
-            }
-        }
-    };
+    specialize_std_vector(int,SCHEME_INTP,SCHEME_INT_VAL,\
+                          scheme_make_integer_value);
+    specialize_std_vector(short,SCHEME_INTP,SCHEME_INT_VAL,\
+                          scheme_make_integer_value);
+    specialize_std_vector(long,SCHEME_INTP,SCHEME_INT_VAL,\
+                          scheme_make_integer_value);
+    specialize_std_vector(unsigned int,SCHEME_INTP,SCHEME_INT_VAL,\
+                          scheme_make_integer_value);
+    specialize_std_vector(unsigned short,SCHEME_INTP,SCHEME_INT_VAL,\
+                          scheme_make_integer_value);
+    specialize_std_vector(unsigned long,SCHEME_INTP,SCHEME_INT_VAL,\
+                          scheme_make_integer_value);
+    specialize_std_vector(float,SCHEME_REALP,scheme_real_to_double,\
+                          scheme_make_double);
+    specialize_std_vector(double,SCHEME_REALP,scheme_real_to_double,\
+                          scheme_make_double);
+    
 
 }
 

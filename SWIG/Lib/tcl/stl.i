@@ -46,7 +46,7 @@ namespace std {
 // containers
 
 // methods which can raise are caused to throw an IndexError
-%exception std::vector::__getitem__ {
+%exception std::vector::get {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -54,7 +54,15 @@ namespace std {
     }
 }
 
-%exception std::vector::__setitem__ {
+%exception std::vector::set {
+    try {
+        $action
+    } catch (std::out_of_range& e) {
+        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+    }
+}
+
+%exception std::vector::pop {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -101,12 +109,10 @@ namespace std {
         // add generic typemaps here
       public:
         vector(unsigned int size = 0);
-        // %rename(__len__) size;
         unsigned int size() const;
-        // %rename(__nonzero__) empty;
         bool empty() const;
         void clear();
-        // %rename(append) push_back;
+        %rename(push) push_back;
         void push_back(const T& x);
         %extend {
             T pop() {
@@ -116,7 +122,7 @@ namespace std {
                 self->pop_back();
                 return x;
             }
-            T& __getitem__(int i) {
+            T& get(int i) {
                 int size = int(self->size());
                 if (i<0) i += size;
                 if (i>=0 && i<size)
@@ -124,7 +130,7 @@ namespace std {
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void __setitem__(int i, const T& x) {
+            void set(int i, const T& x) {
                 int size = int(self->size());
                 if (i<0) i+= size;
                 if (i>=0 && i<size)
@@ -138,26 +144,25 @@ namespace std {
 
     // specializations for built-ins
 
-    template<> class vector<int> {
+    %define specialize_std_vector(T)
+    template<> class vector<T> {
         // add specialized typemaps here
       public:
         vector(unsigned int size = 0);
-        // %rename(__len__) size;
         unsigned int size() const;
-        // %rename(__nonzero__) empty;
         bool empty() const;
         void clear();
-        // %rename(append) push_back;
-        void push_back(int x);
+        %rename(push) push_back;
+        void push_back(T x);
         %extend {
-            int pop() {
+            T pop() {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
-                int x = self->back();
+                T x = self->back();
                 self->pop_back();
                 return x;
             }
-            int __getitem__(int i) {
+            T get(int i) {
                 int size = int(self->size());
                 if (i<0) i += size;
                 if (i>=0 && i<size)
@@ -165,7 +170,7 @@ namespace std {
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void __setitem__(int i, int x) {
+            void set(int i, T x) {
                 int size = int(self->size());
                 if (i<0) i+= size;
                 if (i>=0 && i<size)
@@ -175,44 +180,16 @@ namespace std {
             }
         }
     };
+    %enddef
 
-    template<> class vector<double> {
-        // add specialized typemaps here
-      public:
-        vector(unsigned int size = 0);
-        // %rename(__len__) size;
-        unsigned int size() const;
-        // %rename(__nonzero__) empty;
-        bool empty() const;
-        void clear();
-        // %rename(append) push_back;
-        void push_back(double x);
-        %extend {
-            double pop() {
-                if (self->size() == 0)
-                    throw std::out_of_range("pop from empty vector");
-                double x = self->back();
-                self->pop_back();
-                return x;
-            }
-            double __getitem__(int i) {
-                int size = int(self->size());
-                if (i<0) i += size;
-                if (i>=0 && i<size)
-                    return (*self)[i];
-                else
-                    throw std::out_of_range("vector index out of range");
-            }
-            void __setitem__(int i, double x) {
-                int size = int(self->size());
-                if (i<0) i+= size;
-                if (i>=0 && i<size)
-                    (*self)[i] = x;
-                else
-                    throw std::out_of_range("vector index out of range");
-            }
-        }
-    };
+    specialize_std_vector(int);
+    specialize_std_vector(short);
+    specialize_std_vector(long);
+    specialize_std_vector(unsigned int);
+    specialize_std_vector(unsigned short);
+    specialize_std_vector(unsigned long);
+    specialize_std_vector(double);
+    specialize_std_vector(float);
 
 }
 

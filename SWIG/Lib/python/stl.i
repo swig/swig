@@ -271,22 +271,23 @@ namespace std {
 
     // specializations for built-ins
 
-    template<> class vector<int> {
-        %typemap(in) vector<int> (std::vector<int>* v) {
+    %define specialize_std_vector(T,CHECK,CONVERT_FROM,CONVERT_TO)
+    template<> class vector<T> {
+        %typemap(in) vector<T> (std::vector<T>* v) {
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
-                $1 = std::vector<int>(size);
+                $1 = std::vector<T>(size);
                 for (unsigned int i=0; i<size; i++) {
                     PyObject* o = PySequence_GetItem($input,i);
-                    if (PyInt_Check(o)) {
-                        (($1_type &)$1)[i] = int(PyInt_AsLong(o));
+                    if (CHECK(o)) {
+                        (($1_type &)$1)[i] = T(CONVERT_FROM(o));
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
                         PyErr_SetString(PyExc_TypeError,
-                                        "vector<int> expected");
+                                        "vector<" #T "> expected");
                         return NULL;
                     }
                 }
@@ -294,29 +295,29 @@ namespace std {
                                        $&1_descriptor,1) != -1){
                 $1 = *v;
             } else {
-                PyErr_SetString(PyExc_TypeError,"vector<int> expected");
+                PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
                 return NULL;
             }
         }
-        %typemap(in) const vector<int>& (std::vector<int> temp,
-                                         std::vector<int>* v),
-                     const vector<int>* (std::vector<int> temp,
-                                         std::vector<int>* v) {
+        %typemap(in) const vector<T>& (std::vector<T> temp,
+                                       std::vector<T>* v),
+                     const vector<T>* (std::vector<T> temp,
+                                       std::vector<T>* v) {
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
-                temp = std::vector<int>(size);
+                temp = std::vector<T>(size);
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     PyObject* o = PySequence_GetItem($input,i);
-                    if (PyInt_Check(o)) {
-                        temp[i] = int(PyInt_AsLong(o));
+                    if (CHECK(o)) {
+                        temp[i] = T(CONVERT_FROM(o));
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
                         PyErr_SetString(PyExc_TypeError,
-                                        "vector<int> expected");
+                                        "vector<" #T "> expected");
                         return NULL;
                     }
                 }
@@ -324,15 +325,15 @@ namespace std {
                                        $1_descriptor,1) != -1){
                 $1 = v;
             } else {
-                PyErr_SetString(PyExc_TypeError,"vector<int> expected");
+                PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
                 return NULL;
             }
         }
-        %typemap(out) vector<int> {
+        %typemap(out) vector<T> {
             $result = PyTuple_New($1.size());
             for (unsigned int i=0; i<$1.size(); i++)
                 PyTuple_SetItem($result,i,
-                                PyInt_FromLong(long((($1_type &)$1)[i])));
+                                CONVERT_TO((($1_type &)$1)[i]));
         }
       public:
         vector(unsigned int size = 0);
@@ -342,16 +343,16 @@ namespace std {
         bool empty() const;
         void clear();
         %rename(append) push_back;
-        void push_back(int x);
+        void push_back(T x);
         %extend {
-            int pop() {
+            T pop() {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
-                int x = self->back();
+                T x = self->back();
                 self->pop_back();
                 return x;
             }
-            int __getitem__(int i) {
+            T __getitem__(int i) {
                 int size = int(self->size());
                 if (i<0) i += size;
                 if (i>=0 && i<size)
@@ -359,17 +360,17 @@ namespace std {
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            std::vector<int> __getslice__(int i, int j) {
+            std::vector<T> __getslice__(int i, int j) {
                 int size = int(self->size());
                 if (i<0) i = size+i;
                 if (j<0) j = size+j;
                 if (i<0) i = 0;
                 if (j>size) j = size;
-                std::vector<int> tmp(j-i);
+                std::vector<T> tmp(j-i);
                 std::copy(self->begin()+i,self->begin()+j,tmp.begin());
                 return tmp;
             }
-            void __setitem__(int i, int x) {
+            void __setitem__(int i, T x) {
                 int size = int(self->size());
                 if (i<0) i+= size;
                 if (i>=0 && i<size)
@@ -377,7 +378,7 @@ namespace std {
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void __setslice__(int i, int j, const std::vector<int>& v) {
+            void __setslice__(int i, int j, const std::vector<T>& v) {
                 int size = int(self->size());
                 if (i<0) i = size+i;
                 if (j<0) j = size+j;
@@ -411,153 +412,21 @@ namespace std {
             }
         }
     };
+    %enddef
 
-    template<> class vector<double> {
-        %typemap(in) vector<double> (std::vector<double>* v) {
-            if (PyTuple_Check($input) || PyList_Check($input)) {
-                unsigned int size = (PyTuple_Check($input) ?
-                                     PyTuple_Size($input) :
-                                     PyList_Size($input));
-                $1 = std::vector<double>(size);
-                for (unsigned int i=0; i<size; i++) {
-                    PyObject* o = PySequence_GetItem($input,i);
-                    if (PyFloat_Check(o)) {
-                        (($1_type &)$1)[i] = PyFloat_AsDouble(o);
-                        Py_DECREF(o);
-                    } else if (PyInt_Check(o)) {
-                        (($1_type &)$1)[i] = double(PyInt_AsLong(o));
-                        Py_DECREF(o);
-                    } else {
-                        Py_DECREF(o);
-                        PyErr_SetString(PyExc_TypeError,
-                                        "vector<double> expected");
-                        return NULL;
-                    }
-                }
-            } else if (SWIG_ConvertPtr($input,(void **) &v, 
-                                       $&1_descriptor,1) != -1){
-                $1 = *v;
-            } else {
-                PyErr_SetString(PyExc_TypeError,"vector<double> expected");
-                return NULL;
-            }
-        }
-        %typemap(in) const vector<double>& (std::vector<double> temp,
-                                            std::vector<double>* v),
-                     const vector<double>* (std::vector<double> temp,
-                                            std::vector<double>* v) {
-            if (PyTuple_Check($input) || PyList_Check($input)) {
-                unsigned int size = (PyTuple_Check($input) ?
-                                     PyTuple_Size($input) :
-                                     PyList_Size($input));
-                temp = std::vector<double>(size);
-                $1 = &temp;
-                for (unsigned int i=0; i<size; i++) {
-                    PyObject* o = PySequence_GetItem($input,i);
-                    if (PyFloat_Check(o)) {
-                        temp[i] = PyFloat_AsDouble(o);
-                        Py_DECREF(o);
-                    } else if (PyInt_Check(o)) {
-                        temp[i] = double(PyInt_AsLong(o));
-                        Py_DECREF(o);
-                    } else {
-                        Py_DECREF(o);
-                        PyErr_SetString(PyExc_TypeError,
-                                        "vector<double> expected");
-                        return NULL;
-                    }
-                }
-            } else if (SWIG_ConvertPtr($input,(void **) &v, 
-                                       $1_descriptor,1) != -1){
-                $1 = v;
-            } else {
-                PyErr_SetString(PyExc_TypeError,"vector<double> expected");
-                return NULL;
-            }
-        }
-        %typemap(out) vector<double> {
-            $result = PyTuple_New($1.size());
-            for (unsigned int i=0; i<$1.size(); i++)
-                PyTuple_SetItem($result,i,
-                                PyFloat_FromDouble((($1_type &)$1)[i]));
-        }
-      public:
-        vector(unsigned int size = 0);
-        %rename(__len__) size;
-        unsigned int size() const;
-        %rename(__nonzero__) empty;
-        bool empty() const;
-        void clear();
-        %rename(append) push_back;
-        void push_back(double x);
-        %extend {
-            double pop() {
-                if (self->size() == 0)
-                    throw std::out_of_range("pop from empty vector");
-                double x = self->back();
-                self->pop_back();
-                return x;
-            }
-            double __getitem__(int i) {
-                int size = int(self->size());
-                if (i<0) i += size;
-                if (i>=0 && i<size)
-                    return (*self)[i];
-                else
-                    throw std::out_of_range("vector index out of range");
-            }
-            std::vector<double> __getslice__(int i, int j) {
-                int size = int(self->size());
-                if (i<0) i = size+i;
-                if (j<0) j = size+j;
-                if (i<0) i = 0;
-                if (j>size) j = size;
-                std::vector<double> tmp(j-i);
-                std::copy(self->begin()+i,self->begin()+j,tmp.begin());
-                return tmp;
-            }
-            void __setitem__(int i, double x) {
-                int size = int(self->size());
-                if (i<0) i+= size;
-                if (i>=0 && i<size)
-                    (*self)[i] = x;
-                else
-                    throw std::out_of_range("vector index out of range");
-            }
-            void __setslice__(int i, int j, const std::vector<double>& v) {
-                int size = int(self->size());
-                if (i<0) i = size+i;
-                if (j<0) j = size+j;
-                if (i<0) i = 0;
-                if (j>size) j = size;
-                if (int(v.size()) == j-i) {
-                    std::copy(v.begin(),v.end(),self->begin()+i);
-                } else {
-                    self->erase(self->begin()+i,self->begin()+j);
-                    if (i+1 <= size)
-                        self->insert(self->begin()+i+1,v.begin(),v.end());
-                    else
-                        self->insert(self->end(),v.begin(),v.end());
-                }
-            }
-            void __delitem__(int i) {
-                int size = int(self->size());
-                if (i<0) i+= size;
-                if (i>=0 && i<size)
-                    self->erase(self->begin()+i);
-                else
-                    throw std::out_of_range("vector index out of range");
-            }
-            void __delslice__(int i, int j) {
-                int size = int(self->size());
-                if (i<0) i = size+i;
-                if (j<0) j = size+j;
-                if (i<0) i = 0;
-                if (j>size) j = size;
-                self->erase(self->begin()+i,self->begin()+j);
-            }
-        }
-    };
+    specialize_std_vector(int,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
+    specialize_std_vector(short,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
+    specialize_std_vector(long,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
+    specialize_std_vector(unsigned int,PyInt_Check,\
+                          PyInt_AsLong,PyInt_FromLong);
+    specialize_std_vector(unsigned short,PyInt_Check,\
+                          PyInt_AsLong,PyInt_FromLong);
+    specialize_std_vector(unsigned long,PyInt_Check,\
+                          PyInt_AsLong,PyInt_FromLong);
+    specialize_std_vector(double,PyFloat_Check,\
+                          PyFloat_AsDouble,PyFloat_FromDouble);
+    specialize_std_vector(float,PyFloat_Check,\
+                          PyFloat_AsDouble,PyFloat_FromDouble);
 
 }
 

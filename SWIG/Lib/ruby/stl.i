@@ -108,6 +108,8 @@ namespace std {
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
+
+#define SWIG_FLOAT_P(x) (TYPE(x) == T_FLOAT)
 %}
 
 // exported class
@@ -199,47 +201,48 @@ namespace std {
 
     // specializations for built-ins
 
-    template<> class vector<int> {
-        %typemap(in) vector<int> {
+    %define specialize_std_vector(T,CHECK,CONVERT_FROM,CONVERT_TO)
+    template<> class vector<T> {
+        %typemap(in) vector<T> {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;
-                $1 = std::vector<int>(size);
+                $1 = std::vector<T>(size);
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
-                    if (FIXNUM_P(o))
-                        (($1_type &)$1)[i] = int(FIX2INT(o));
+                    if (CHECK(o))
+                        (($1_type &)$1)[i] = T(CONVERT_FROM(o));
                     else
                         rb_raise(rb_eTypeError,
                                  "wrong argument type"
-                                 " (expected vector<int>)");
+                                 " (expected vector<" #T ">)");
                 }
             } else {
                 $1 = *(($&1_type) SWIG_ConvertPtr($input,$&1_descriptor));
             }
         }
-        %typemap(in) const vector<int>& (std::vector<int> temp),
-                     const vector<int>* (std::vector<int> temp) {
+        %typemap(in) const vector<T>& (std::vector<T> temp),
+                     const vector<T>* (std::vector<T> temp) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;
-                temp = std::vector<int>(size);
+                temp = std::vector<T>(size);
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
-                    if (FIXNUM_P(o))
-                        temp[i] = int(FIX2INT(o));
+                    if (CHECK(o))
+                        temp[i] = T(CONVERT_FROM(o));
                     else
                         rb_raise(rb_eTypeError,
                                  "wrong argument type"
-                                 " (expected vector<int>)");
+                                 " (expected vector<" #T ">)");
                 }
             } else {
                 $1 = ($1_ltype) SWIG_ConvertPtr($input,$1_descriptor);
             }
         }
-        %typemap(out) vector<int> {
+        %typemap(out) vector<T> {
             $result = rb_ary_new2($1.size());
             for (unsigned int i=0; i<$1.size(); i++)
-                rb_ary_store($result,i,INT2NUM((($1_type &)$1)[i]));
+                rb_ary_store($result,i,CONVERT_TO((($1_type &)$1)[i]));
         }
       public:
         vector(unsigned int size = 0);
@@ -250,16 +253,16 @@ namespace std {
         %rename("clear!") clear;
         void clear();
         %rename(push) push_back;
-        void push_back(int x);
+        void push_back(T x);
         %extend {
-            int pop() {
+            T pop() {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
-                int x = self->back();
+                T x = self->back();
                 self->pop_back();
                 return x;
             }
-            int __getitem__(int i) {
+            T __getitem__(int i) {
                 int size = int(self->size());
                 if (i<0) i += size;
                 if (i>=0 && i<size)
@@ -267,7 +270,7 @@ namespace std {
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void __setitem__(int i, int x) {
+            void __setitem__(int i, T x) {
                 int size = int(self->size());
                 if (i<0) i+= size;
                 if (i>=0 && i<size)
@@ -277,97 +280,20 @@ namespace std {
             }
             void each() {
                 for (unsigned int i=0; i<self->size(); i++)
-                    rb_yield(INT2NUM((*self)[i]));
+                    rb_yield(CONVERT_TO((*self)[i]));
             }
         }
     };
+    %enddef
 
-    template<> class vector<double> {
-        %typemap(in) vector<double> {
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
-                $1 = std::vector<double>(size);
-                for (unsigned int i=0; i<size; i++) {
-                    VALUE o = RARRAY($input)->ptr[i];
-                    if (TYPE(o) == T_FLOAT)
-                        (($1_type &)$1)[i] = NUM2DBL(o);
-                    else if (FIXNUM_P(o))
-                        (($1_type &)$1)[i] = double(FIX2INT(o));
-                    else
-                        rb_raise(rb_eTypeError,
-                                 "wrong argument type"
-                                 " (expected vector<double>)");
-                }
-            } else {
-                $1 = *(($&1_type) SWIG_ConvertPtr($input,$&1_descriptor));
-            }
-        }
-        %typemap(in) const vector<double>& (std::vector<double> temp),
-                     const vector<double>* (std::vector<double> temp) {
-            if (rb_obj_is_kind_of($input,rb_cArray)) {
-                unsigned int size = RARRAY($input)->len;
-                temp = std::vector<double>(size);
-                $1 = &temp;
-                for (unsigned int i=0; i<size; i++) {
-                    VALUE o = RARRAY($input)->ptr[i];
-                    if (TYPE(o) == T_FLOAT)
-                        temp[i] = NUM2DBL(o);
-                    else if (FIXNUM_P(o))
-                        temp[i] = double(FIX2INT(o));
-                    else
-                        rb_raise(rb_eTypeError,
-                                 "wrong argument type"
-                                 " (expected vector<double>)");
-                }
-            } else {
-                $1 = ($1_ltype) SWIG_ConvertPtr($input,$1_descriptor);
-            }
-        }
-        %typemap(out) vector<double> {
-            $result = rb_ary_new2($1.size());
-            for (unsigned int i=0; i<$1.size(); i++)
-                rb_ary_store($result,i,rb_float_new((($1_type &)$1)[i]));
-        }
-      public:
-        vector(unsigned int size = 0);
-        %rename(__len__) size;
-        unsigned int size() const;
-        %rename("empty?") empty;
-        bool empty() const;
-        %rename("clear!") clear;
-        void clear();
-        %rename(push) push_back;
-        void push_back(double x);
-        %extend {
-            double pop() {
-                if (self->size() == 0)
-                    throw std::out_of_range("pop from empty vector");
-                double x = self->back();
-                self->pop_back();
-                return x;
-            }
-            double __getitem__(int i) {
-                int size = int(self->size());
-                if (i<0) i += size;
-                if (i>=0 && i<size)
-                    return (*self)[i];
-                else
-                    throw std::out_of_range("vector index out of range");
-            }
-            void __setitem__(int i, double x) {
-                int size = int(self->size());
-                if (i<0) i+= size;
-                if (i>=0 && i<size)
-                    (*self)[i] = x;
-                else
-                    throw std::out_of_range("vector index out of range");
-            }
-            void each() {
-                for (unsigned int i=0; i<self->size(); i++)
-                    rb_yield(rb_float_new((*self)[i]));
-            }
-        }
-    };
+    specialize_std_vector(int,FIXNUM_P,FIX2INT,INT2NUM);
+    specialize_std_vector(short,FIXNUM_P,FIX2INT,INT2NUM);
+    specialize_std_vector(long,FIXNUM_P,FIX2INT,INT2NUM);
+    specialize_std_vector(unsigned int,FIXNUM_P,FIX2INT,INT2NUM);
+    specialize_std_vector(unsigned short,FIXNUM_P,FIX2INT,INT2NUM);
+    specialize_std_vector(unsigned long,FIXNUM_P,FIX2INT,INT2NUM);
+    specialize_std_vector(double,SWIG_FLOAT_P,NUM2DBL,rb_float_new);
+    specialize_std_vector(float,SWIG_FLOAT_P,NUM2DBL,rb_float_new);
 
 }
 

@@ -17,7 +17,7 @@ print example.average(v)
 # half will return a Python list.
 # Call it with a Python tuple...
 
-print example.half((1, 1.5, 2, 2.5, 3))
+print example.half((1.0, 1.5, 2.0, 2.5, 3.0))
 
 # ... or a wrapped std::vector<double>
 

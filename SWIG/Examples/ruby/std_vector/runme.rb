@@ -16,7 +16,7 @@ puts Example::average(v)
 # half will return a Ruby array.
 # Call it with a Ruby array...
 
-w = Example::half([1, 1.5, 2, 2.5, 3])
+w = Example::half([1.0, 1.5, 2.0, 2.5, 3.0])
 0.upto(w.length-1) { |i| print w[i],"; " }
 puts
 
