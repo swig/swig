@@ -79,8 +79,6 @@ In Java you could then use it like this:
 %}
 #endif
 
-%include "exception.i"
-
 %typemap(jni) signed char        *INPUT "jbyte"
 %typemap(jni) unsigned char      *INPUT "jshort"
 %typemap(jni) short              *INPUT "jshort"
@@ -147,8 +145,7 @@ In Java you could then use it like this:
   int i;
 
   if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "BigInteger null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
     return $null;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
@@ -284,12 +281,11 @@ value in the single element array. In Java you would use it like this:
              double             *OUTPUT($*1_type temp),
              bool               *OUTPUT($*1_type temp)
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = &temp; %}
@@ -429,147 +425,135 @@ of the function return value. This is due to Java being a typed language.
 %typemap(jstype) double             *INOUT = double             *OUTPUT;
 %typemap(jstype) bool               *INOUT = bool               *OUTPUT;
 
-/* Note most of this common code can be put in a function when the runtime library is sorted */
+/* Note: most of this common code will be put in a function in the near future. */
 %typemap(in) signed char        *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetByteArrayElements, jenv, $input, 0); %}
 
 %typemap(in) unsigned char      *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetShortArrayElements, jenv, $input, 0); %}
 
 %typemap(in) short              *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetShortArrayElements, jenv, $input, 0); %}
 
 %typemap(in) unsigned short     *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetIntArrayElements, jenv, $input, 0); %}
 
 %typemap(in) int                *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetIntArrayElements, jenv, $input, 0); %}
 
 %typemap(in) unsigned int       *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetLongArrayElements, jenv, $input, 0); %}
 
 %typemap(in) long               *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetIntArrayElements, jenv, $input, 0); %}
 
 %typemap(in) unsigned long      *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetLongArrayElements, jenv, $input, 0); %}
 
 %typemap(in) long long          *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetLongArrayElements, jenv, $input, 0); %}
 
 %typemap(in) float              *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetFloatArrayElements, jenv, $input, 0); %}
 
 %typemap(in) double             *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetDoubleArrayElements, jenv, $input, 0); %}
 
 %typemap(in) bool               *INOUT 
 %{if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $1 = ($1_type) JCALL2(GetBooleanArrayElements, jenv, $input, 0); %}
@@ -584,18 +568,16 @@ of the function return value. This is due to Java being a typed language.
   int i;
 
   if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   bigint = JCALL2(GetObjectArrayElement, jenv, $input, 0);
   if (!bigint) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "array element null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array element null");
     return $null;
   }
   clazz = JCALL1(GetObjectClass, jenv, bigint);
