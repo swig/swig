@@ -11,6 +11,14 @@ include ../common.mk
 SWIGOPT    = -I$(TOP)/../Lib -I$(TOP)/$(TEST_SUITE) 
 TARGETPREFIX = php_
 
+makecpptests:
+	@bash -ec 'for test in $(CPP_TEST_CASES) ; do make clean && make $${test}.cpptest; done'
+
+maketests: makecpptests makectests
+
+makectests:
+	@bash -ec 'for test in $(C_TEST_CASES) ; do make clean && make $${test}.cpptest; done'
+
 runcpptests:
 	@bash -ec 'for test in $(CPP_TEST_CASES) ; do if [ -f $${test}_runme.php4 ] ; then make clean && make $${test}.cpptest; fi ; done'
 
