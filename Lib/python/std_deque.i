@@ -113,7 +113,10 @@ namespace std {
     typedef value_type reference;
     typedef value_type const_reference;
 
+    %traits_swigtype(T);
+
     %fragment(SWIG_Traits_frag(std::deque<T* >), "header",
+	      fragment=SWIG_Traits_frag(T),
 	      fragment="StdDequeTraits") {
       namespace swigpy {
 	template <>  struct traits<std::deque<T* > > {

@@ -30,8 +30,24 @@
 %define %std_set_methods(set)
   %std_set_methods_common(set);
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
+  pair<iterator,bool> insert(const value_type& __x);
   iterator insert(iterator pos);
   #endif
+%enddef
+
+%define %pyset_methods(set)
+  %pycontainer_methods(set);
+
+  %extend  {
+   void append(value_type x) {
+     self->insert(x);
+   }
+  
+   bool __contains__(value_type x) {
+     return self->find(x) != self->end();
+   }
+  };
+    
 %enddef
 
 // ------------------------------------------------------------------------
@@ -121,9 +137,8 @@ namespace std {
     %typemap_traits_ptr(SWIG_CCode(SET), std::set<T >);
   
     %std_set_methods(set);
-    %pycontainer_methods(std::set<T >);
+    %pyset_methods(std::set<T >);
   };
-
 }
 
 %define %std_set_ptypen(...) 

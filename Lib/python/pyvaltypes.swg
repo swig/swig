@@ -7,7 +7,7 @@
 /* in */
 
 %define PYVAL_IN_TYPEMAP(as_meth,pyfrag,...)
-  %typemap(in,fragment=pyfrag) __VA_ARGS__ 
+  %typemap(in,fragment=pyfrag) __VA_ARGS__
     "$1 = ($ltype)as_meth($input); 
      if (PyErr_Occurred()) SWIG_fail;";
   %typemap(in,fragment=pyfrag) const __VA_ARGS__ & ($basetype temp)

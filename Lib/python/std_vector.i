@@ -132,6 +132,7 @@ namespace std {
     %traits_swigtype(T);
 
     %fragment(SWIG_Traits_frag(std::vector<T* >), "header",
+	      fragment=SWIG_Traits_frag(T),
 	      fragment="StdVectorTraits") {
       namespace swigpy {
 	template <>  struct traits<std::vector<T* > > {

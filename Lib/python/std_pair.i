@@ -138,7 +138,7 @@ namespace std {
     %typemap_traits_ptr(SWIG_CCode(PAIR), std::pair<T,U* >);
 
     pair();
-    pair(const T& __a, U* __b);
+    pair(T __a, U* __b);
     pair(const pair& __p);
 
     T first;
@@ -171,7 +171,7 @@ namespace std {
     %typemap_traits_ptr(SWIG_CCode(PAIR), std::pair<T*,U >);
 
     pair();
-    pair(T* __a, const U& __b);
+    pair(T* __a, U __b);
     pair(const pair& __p);
 
     T* first;
