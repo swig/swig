@@ -873,9 +873,11 @@ public:
     }
 
     /* Error handling code */
+    /*
     Printf(f->code,"fail:\n");
     Printv(f->code,cleanup,NIL);
     Printv(f->code,"return Qnil;\n",NIL);
+    */
     Printf(f->code,"}\n");
 
     /* Substitute the cleanup code */
