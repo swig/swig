@@ -269,6 +269,8 @@ PYTHON::functionWrapper(Node *n) {
   int     num_arguments;
   int     varargs = 0;
 
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
   f = NewWrapper();
   parse_args   = NewString("");
   arglist      = NewString("");
@@ -538,74 +540,76 @@ PYTHON::variableWrapper(Node *n) {
   char *iname = GetChar(n,"sym:name");
   SwigType *t = Getattr(n,"type");
 
-    char   *wname;
-    static int have_globals = 0;
-    String  *tm;
-    Wrapper *getf, *setf;
+  char   *wname;
+  static int have_globals = 0;
+  String  *tm;
+  Wrapper *getf, *setf;
 
-    getf = NewWrapper();
-    setf = NewWrapper();
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
 
-    /* If this is our first call, add the globals variable to the
-       Python dictionary. */
+  getf = NewWrapper();
+  setf = NewWrapper();
 
-    if (!have_globals) {
-      Printf(f_init,"\t PyDict_SetItemString(d,(char*)\"%s\", SWIG_globals);\n",global_name);
-      have_globals=1;
-      if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-	Printf(f_shadow_stubs,"%s = %s.%s\n", global_name, module, global_name);
-      }
+  /* If this is our first call, add the globals variable to the
+     Python dictionary. */
+
+  if (!have_globals) {
+    Printf(f_init,"\t PyDict_SetItemString(d,(char*)\"%s\", SWIG_globals);\n",global_name);
+    have_globals=1;
+    if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+      Printf(f_shadow_stubs,"%s = %s.%s\n", global_name, module, global_name);
     }
+  }
 
-    wname = Char(Swig_name_wrapper(name));
+  wname = Char(Swig_name_wrapper(name));
 
     /* Create a function for setting the value of the variable */
 
-    Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
-    if (!ReadOnly) {
-      if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
-	Replaceall(tm,"$source","_val");
-	Replaceall(tm,"$target",name);
-	Replaceall(tm,"$input","_val");
-	Printf(setf->code,"%s\n",tm);
-	Delete(tm);
-      } else {
-	Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, SwigType_str(t,0));
-      }
-      Printf(setf->code,"    return 0;\n");
+  Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
+  if (!ReadOnly) {
+    if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
+      Replaceall(tm,"$source","_val");
+      Replaceall(tm,"$target",name);
+      Replaceall(tm,"$input","_val");
+      Printf(setf->code,"%s\n",tm);
+      Delete(tm);
     } else {
-      /* Is a readonly variable.  Issue an error */
-      Printv(setf->code,
-	     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
-	     " is read-only.\");\n",
-	     tab4, "return 1;\n",
-	     NULL);
+      Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, SwigType_str(t,0));
     }
+    Printf(setf->code,"    return 0;\n");
+  } else {
+    /* Is a readonly variable.  Issue an error */
+    Printv(setf->code,
+	   tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
+	   " is read-only.\");\n",
+	   tab4, "return 1;\n",
+	   NULL);
+  }
 
-    Printf(setf->code,"}\n");
-    Wrapper_print(setf,f_wrappers);
+  Printf(setf->code,"}\n");
+  Wrapper_print(setf,f_wrappers);
 
-    /* Create a function for getting the value of a variable */
-    Printf(getf->def,"static PyObject *%s_get() {", wname);
-    Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
-    if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
-      Replaceall(tm,"$source",name);
-      Replaceall(tm,"$target","pyobj");
-      Replaceall(tm,"$result","pyobj");
-      Printf(getf->code,"%s\n", tm);
-    } else {
-      Printf(stderr,"Unable to link with type %s\n", SwigType_str(t,0));
-    }
+  /* Create a function for getting the value of a variable */
+  Printf(getf->def,"static PyObject *%s_get() {", wname);
+  Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
+  if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
+    Replaceall(tm,"$source",name);
+    Replaceall(tm,"$target","pyobj");
+    Replaceall(tm,"$result","pyobj");
+    Printf(getf->code,"%s\n", tm);
+  } else {
+    Printf(stderr,"Unable to link with type %s\n", SwigType_str(t,0));
+  }
     
-    Printf(getf->code,"    return pyobj;\n}\n");
-    Wrapper_print(getf,f_wrappers);
+  Printf(getf->code,"    return pyobj;\n}\n");
+  Wrapper_print(getf,f_wrappers);
 
-    /* Now add this to the variable linking mechanism */
-    Printf(f_init,"\t SWIG_addvarlink(SWIG_globals,(char*)\"%s\",%s_get, %s_set);\n", iname, wname, wname);
+  /* Now add this to the variable linking mechanism */
+  Printf(f_init,"\t SWIG_addvarlink(SWIG_globals,(char*)\"%s\",%s_get, %s_set);\n", iname, wname, wname);
 
-    DelWrapper(setf);
-    DelWrapper(getf);
-    return SWIG_OK;
+  DelWrapper(setf);
+  DelWrapper(getf);
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -619,6 +623,8 @@ PYTHON::constantWrapper(Node *n) {
   String   *value = Getattr(n,"value");
   String  *tm;
   int     have_tm = 0;
+
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
 
   /* Special hook for member pointer */
   if (SwigType_type(type) == T_MPOINTER) {
@@ -658,6 +664,9 @@ int
 PYTHON::nativeWrapper(Node *n) {
   char *name     = GetChar(n,"sym:name");
   char *wrapname = GetChar(n,"wrap:name");
+
+  if (!addSymbol(wrapname,n)) return SWIG_ERROR;
+
   add_method(name, wrapname,0);
   if (shadow) {
     Printv(f_shadow_stubs, name, " = ", module, ".", name, "\n\n", NULL);
@@ -704,6 +713,8 @@ PYTHON::classHandler(Node *n) {
 
     class_name = Getattr(n,"sym:name");
     real_classname = Getattr(n,"name");
+
+    if (!addSymbol(class_name,n)) return SWIG_ERROR;
 
     /* Handle inheritance */
     String *base_class = NewString("");
@@ -1031,4 +1042,5 @@ int PYTHON::insertDirective(Node *n) {
   }
   return SWIG_OK;
 }
+
 

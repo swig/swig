@@ -345,7 +345,7 @@ void RUBY::set_module(char *mod_name) {
 int
 RUBY::nativeWrapper(Node *n) {
   String *funcname = Getattr(n,"wrap:name");
-  Printf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, funcname);
+  Printf(stderr,"%s:%d.  Adding native function %s not supported (ignored).\n", input_file, line_number, funcname);
   return SWIG_NOWRAP;
 }
 
@@ -357,6 +357,8 @@ RUBY::nativeWrapper(Node *n) {
  * --------------------------------------------------------------------- */
 
 void RUBY::create_command(Node *n, char *iname) {
+
+
   String *wname = Swig_name_wrapper(iname);
   if (CPlusPlus) {
     Insert(wname,0,"VALUEFUNC(");
@@ -600,6 +602,7 @@ int RUBY::functionWrapper(Node *n) {
   char mname[256], inamebuf[256];
   int need_result = 0;
 
+
   cleanup = NewString("");
   outarg = NewString("");
   f = NewWrapper();
@@ -688,7 +691,7 @@ int RUBY::functionWrapper(Node *n) {
 	Replaceall(tm,"$owner", newobj ? "1" : "0");
         Printv(f->code, tm, "\n", NULL);
       } else {
-	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
+	Printf(stderr,"%s:%d. No return typemap for datatype %s\n",
 	       input_file,line_number,SwigType_str(t,0));
       }
     }
@@ -787,7 +790,7 @@ int RUBY::variableWrapper(Node *n) {
     Replaceall(tm,"$source",name);
     Printv(getf->code,tm, NULL);
   } else {
-    Printf(stderr,"%s : Line %d. Unable to link with variable type %s\n",
+    Printf(stderr,"%s:%d. Unable to link with variable type %s\n",
 	   input_file,line_number,SwigType_str(t,0));
   }
   Printv(getf->code, tab4, "return _val;\n}\n", NULL);
@@ -879,12 +882,12 @@ char *RUBY::validate_const_name(char *name, const char *reason) {
 
   if (islower(name[0])) {
     name[0] = toupper(name[0]);
-    Printf(stderr, "%s : Line %d. Wrong %s name "
+    Printf(stderr, "%s:%d. Wrong %s name "
 	    "(corrected to `%s')\n", input_file, line_number, reason, name);
     return name;
   }
 
-  Printf(stderr,"%s : Line %d. Wrong %s name\n",
+  Printf(stderr,"%s:%d. Wrong %s name\n",
 	  input_file, line_number, reason);
   return name;
 }
@@ -926,7 +929,7 @@ int RUBY::constantWrapper(Node *n) {
       Printf(f_init, "%s\n", tm);
     }
   } else {
-    Printf(stderr,"%s : Line %d. Unable to create constant %s = %s\n",
+    Printf(stderr,"%s:%d. Unable to create constant %s = %s\n",
 	   input_file, line_number, SwigType_str(type, 0), value);
   }
   Swig_restore(&n);
@@ -941,6 +944,7 @@ int RUBY::classHandler(Node *n) {
 
   char *cname = GetChar(n,"name");
   char *rename = GetChar(n,"sym:name");
+
   klass = RCLASS(classes, cname);
 
   /* !!! Added by beazley. 8/29/01 */

@@ -184,6 +184,15 @@ int Dispatcher::accessDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::usingDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::namespaceDeclaration(Node *n) { return defaultHandler(n); }
 
+/* Allocators */
+Language::Language() {
+  symbols = NewHash();
+}
+
+Language::~Language() {
+  Delete(symbols);
+}
+
 /* ----------------------------------------------------------------------
    emit_one()
    ---------------------------------------------------------------------- */
@@ -1511,3 +1520,33 @@ int Language::nativeWrapper(Node *n) {
 
 void Language::main(int argc, char *argv[]) {
 }
+
+/* -----------------------------------------------------------------------------
+ * Language::addSymbol()
+ *
+ * Adds a symbol entry.  Returns 1 if the symbol is added successfully.
+ * Prints an error message and returns 0 if a conflict occurs.
+ * ----------------------------------------------------------------------------- */
+
+int
+Language::addSymbol(String *s, Node *n) {
+  Node *c = Getattr(symbols,s);
+  if (c && (c != n)) {
+    Printf(stderr,"%s:%d. Error. '%s' is multiply defined in the generated module.\n", 
+	   input_file, line_number, s);
+    Printf(stderr,"%s:%d. Previous declaration of '%s'\n", Getfile(c), Getline(c), s);
+    return 0;
+  }
+  Setattr(symbols,s,n);
+  return 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::lookupSymbol()
+ * ----------------------------------------------------------------------------- */
+
+Node *
+Language::lookupSymbol(String *s) {
+  return Getattr(symbols,s);
+}
+

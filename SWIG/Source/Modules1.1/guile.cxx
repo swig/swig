@@ -495,6 +495,8 @@ GUILE::functionWrapper(Node *n) {
   int numargs = 0;
   int numreq = 0;
 
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
   // Make a wrapper name for this
   {
     String *n = Swig_name_mangle(iname);
@@ -796,6 +798,8 @@ GUILE::variableWrapper(Node *n)
   Wrapper *f;
   String  *tm;
 
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
   f = NewWrapper();
   // evaluation function names
 
@@ -1033,7 +1037,6 @@ void GUILE::pragma(char *lang, char *cmd, char *value)
     }
   }
 }
-
 
 int GUILE::validIdentifier(String *s) {
   char *c = Char(s);

@@ -473,6 +473,9 @@ PERL5::functionWrapper(Node *n)
   int    num_arguments, num_required;
   int    varargs = 0;
 
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
+
   f       = NewWrapper();
   cleanup = NewString("");
   outarg  = NewString("");
@@ -732,6 +735,8 @@ int PERL5::variableWrapper(Node *n)
   sprintf(set_name,"_wrap_set_%s",iname);
   sprintf(val_name,"_wrap_val_%s",iname);
 
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
   getf = NewWrapper();
   setf = NewWrapper();
 
@@ -849,6 +854,8 @@ PERL5::constantWrapper(Node *n)
   String   *value = Getattr(n,"value");
   String   *tm;
 
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
   /* Special hook for member pointer */
   if (SwigType_type(type) == T_MPOINTER) {
     String *wname = Swig_name_wrapper(iname);
@@ -949,6 +956,9 @@ int
 PERL5::nativeWrapper(Node *n) {
   String *name = Getattr(n,"sym:name");
   String *funcname = Getattr(n,"wrap:name");
+
+  if (!addSymbol(funcname,n)) return SWIG_ERROR;
+
   Printf(command_tab,"{\"%s::%s\", %s},\n", package,name,funcname);
   if (export_all)
     Printf(exported,"%s ",name);
@@ -1005,6 +1015,8 @@ PERL5::classHandler(Node *n) {
     operators = NewHash();
 
     class_name = Getattr(n,"sym:name");
+
+    if (!addSymbol(class_name,n)) return SWIG_ERROR;
 
     /* Use the fully qualified name of the Perl class */
     if (!compat) {

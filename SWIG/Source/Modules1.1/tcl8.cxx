@@ -205,6 +205,8 @@ TCL8::functionWrapper(Node *n) {
 
   char             source[64];
 
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
   incode  = NewString("");
   cleanup = NewString("");
   outarg  = NewString("");
@@ -383,6 +385,7 @@ TCL8::functionWrapper(Node *n) {
   /* Register the function with Tcl */
   Printv(cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), ", NULL},\n", NULL);
 
+
   Delete(incode);
   Delete(cleanup);
   Delete(outarg);
@@ -408,6 +411,8 @@ TCL8::variableWrapper(Node *n) {
   Wrapper *setf = 0, *getf = 0;
   int readonly = 0;
   String *tm;
+
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
 
   /* Create a function for getting a variable */
   getf = NewWrapper();
@@ -494,6 +499,8 @@ TCL8::constantWrapper(Node *n) {
   String   *value = Getattr(n,"value");
   String *tm;
 
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
   /* Special hook for member pointer */
   if (SwigType_type(type) == T_MPOINTER) {
     String *wname = Swig_name_wrapper(iname);
@@ -568,6 +575,8 @@ int
 TCL8::nativeWrapper(Node *n) {
   String *name = Getattr(n,"sym:name");
   String *funcname = Getattr(n,"wrap:name");
+  if (!addSymbol(funcname,n)) return SWIG_ERROR;
+
   Printf(f_init,"\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", (swig_wrapper_func) %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
   return SWIG_OK;
 }
@@ -587,6 +596,8 @@ TCL8::classHandler(Node *n) {
   destructor_action = 0;
 
   class_name = Getattr(n,"sym:name");
+  if (!addSymbol(class_name,n)) return SWIG_ERROR;
+
   real_classname = Getattr(n,"name");
   mangled_classname = Swig_name_mangle(real_classname);
 

@@ -207,6 +207,9 @@ MZSCHEME::functionWrapper(Node *n) {
   SwigType *d = Getattr(n,"type");
   ParmList *l = Getattr(n,"parms");
   Parm *p;
+
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
   Wrapper *f = NewWrapper();
   String *proc_name = NewString("");
   String *source = NewString("");
@@ -430,6 +433,8 @@ MZSCHEME::variableWrapper(Node *n)
   String *argnum = NewString("0");
   String *arg = NewString("argv[0]");
   Wrapper *f;
+
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
 
   f = NewWrapper();
 

@@ -721,6 +721,8 @@ PHP4::functionWrapper(Node *n) {
   int need_save, num_saved = 0;
   String *cleanup, *outarg;
 
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
   if(shadow && variable_wrapper_flag && !enum_flag) {
     String *member_function_name = NewString("");
     String *php_function_name = NewString(iname);
@@ -1027,6 +1029,8 @@ PHP4::variableWrapper(Node *n) {
   char *iname = GetChar(n,"sym:name");
   SwigType *t = Getattr(n,"type");
   int flags = 0;
+
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
 
   if(ReadOnly) {
 	  flags |= PHP_READONLY;
@@ -1460,6 +1464,9 @@ PHP4::constantWrapper(Node *n) {
   char *iname = GetChar(n,"sym:name");
   SwigType *type = Getattr(n,"type");
   char *value = GetChar(n,"value");
+
+  if (!addSymbol(iname,n)) return SWIG_ERROR;
+
 	String *rval;
 	String *tm;
 
@@ -1674,7 +1681,7 @@ int PHP4::classHandler(Node *n) {
 		char *classname = GetChar(n, "name");
 		char *rename = GetChar(n, "sym:name");
 		char *ctype = GetChar(n, "kind");
-
+		if (!addSymbol(rename,n)) return SWIG_ERROR;
 		shadow_classname = Swig_copy_string(rename);
 
 		if(Strcmp(shadow_classname, module) == 0) {

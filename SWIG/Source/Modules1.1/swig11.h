@@ -106,6 +106,8 @@ class Dispatcher {
 
 class Language : public Dispatcher {
 public:
+  Language();
+  virtual ~Language();
   virtual int emit_one(Node *n);
 
   /* Parse command line options */
@@ -183,6 +185,8 @@ public:
   /* Miscellaneous */
 
   virtual int  validIdentifier(String *s);        /* valid identifier? */
+  virtual int  addSymbol(String *s, Node *n);     /* Add symbol        */
+  virtual Node *lookupSymbol(String *s);          /* Symbol lookup     */
 
   /* ----------------------------------------------------------------------
    !! Deprecated interface.   These functions are going away as soon
@@ -200,6 +204,9 @@ public:
 
   // Attributes
 
+  // Private data
+ private:
+  Hash   *symbols;
 };
 
 extern  int   SWIG_main(int, char **, Language *);
