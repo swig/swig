@@ -5,6 +5,8 @@
 %include typemaps.i
 */
 
+This example is not finished, sorry. Look out for it in the next release of SWIG!
+
 extern int    gcd(int x, int y);
 
 %typemap(in) (int argc, char *argv[]) {
