@@ -43,7 +43,7 @@ class string;
     return $null;
   } %}
 
-%typemap(directorin,parse="Ljava/lang/String;") string 
+%typemap(directorin,descriptor="Ljava/lang/String;") string 
 %{ $input = jenv->NewStringUTF($1.c_str()); %}
 
 %typemap(out) string 
@@ -80,7 +80,7 @@ class string;
 %typemap(freearg) const string & 
 %{ delete $1; %}
 
-%typemap(directorin,parse="Ljava/lang/String;") const string &
+%typemap(directorin,descriptor="Ljava/lang/String;") const string &
 %{ $input = jenv->NewStringUTF($1.c_str()); %}
 
 %typemap(out) const string & 
@@ -142,7 +142,7 @@ class wstring;
     return $null;
   } %}
 
-%typemap(directorin,parse="Ljava/lang/String;") wstring 
+%typemap(directorin,descriptor="Ljava/lang/String;") wstring 
 %{jsize len = $1.length();
   jchar *conv_buf = new jchar[len];
   for (jsize i = 0; i < len; ++i) {
@@ -194,7 +194,7 @@ class wstring;
     return $null;
   } %}
 
-%typemap(directorin,parse="Ljava/lang/String;") const wstring &
+%typemap(directorin,descriptor="Ljava/lang/String;") const wstring &
 %{jsize len = $1->length();
   jchar *conv_buf = new jchar[len];
   for (jsize i = 0; i < len; ++i) {
