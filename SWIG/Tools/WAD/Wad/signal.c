@@ -261,6 +261,8 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 
   context = (ucontext_t *) vcontext;
 
+  wad_printf("WAD: Collecting debugging information...\n");
+
   /* Read the segments */
   if (wad_segment_read() < 0) {
     wad_printf("WAD: Unable to read segment map\n");
@@ -268,7 +270,7 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   }
  
   if (wad_debug_mode & DEBUG_SIGNAL) {
-    printf("WAD: siginfo = %x, context = %x\n", si, vcontext);
+    wad_printf("WAD: siginfo = %x, context = %x\n", si, vcontext);
   }
   
   current_brk = (long) sbrk(0);

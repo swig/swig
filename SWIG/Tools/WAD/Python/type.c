@@ -186,6 +186,8 @@ wadobject_getattr(wadobject *self, char *name) {
     return PyInt_FromLong(1);
   }
 
+  /* Put a check for local variables */
+  
   PyErr_SetString(PyExc_NameError,"Unknown attribute.");
   return NULL;
 }

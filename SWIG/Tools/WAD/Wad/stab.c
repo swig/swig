@@ -43,33 +43,99 @@ typedef struct Stab {
  * We also need to keep a hash table of stabs types.
  * ----------------------------------------------------------------------------- */
 
+/* Hash table containing stab strings and such */
+typedef struct stringtype {
+  char             *str;
+  struct stringtype *next;
+} stringtype;
+
+#define STRING_HASH_SIZE  1023
+
+static stringtype *strings[STRING_HASH_SIZE];
+static int         strings_init = 0;
+
+static int shash(char *name) {
+  unsigned int h = 0;
+  int i;
+  for (i = 0; i < 8 && (*name); i++, name++) {
+    h = ((h << 5) + *name);
+  }
+  return (h % STRING_HASH_SIZE);
+}
+
+static char *
+string_lookup(char *s) {
+  int h;
+  int i;
+  stringtype *st;
+
+  if (!strings_init) {
+    for (i = 0; i < STRING_HASH_SIZE; i++) {
+      strings[i] = 0;
+    }
+    strings_init = 1;
+  }
+  
+  h = shash(s);
+  st = strings[h];
+  while (st) {
+    if (strcmp(st->str,s) == 0) return st->str;
+    st = st->next;
+  }
+  
+  /* Not found. Add the string to the hash table */
+  st = (stringtype *) wad_malloc(sizeof(stringtype));
+  st->str = wad_strdup(s);
+  st->next = strings[h];
+  strings[h] = st;
+  return st->str;
+}
+
 typedef struct stabtype {
   char             *name;
   char             *value;
   struct stabtype  *next;
+  int               visit;
 } stabtype;
 
 #define HASH_SIZE    113
 
 static int       stab_type_init = 0;
-static stabtype *lnames[HASH_SIZE];     /* Hash of local names */
+static stabtype *lnames[HASH_SIZE];      /* Hash of local names */
+static stabtype  *deadnames[HASH_SIZE];  /* Hash of dead names */
 
 /* Initialize the hash table */
 
 static void init_hash() {
   int i;
+  stabtype *s, *sp = 0;
+
   for (i = 0; i < HASH_SIZE; i++) {
+    if (stab_type_init) {
+      /* Add stabs to dead list */
+      s = lnames[i];
+      sp = 0;
+      while (s) {
+	sp = s;
+	s = s->next;
+      }
+      if (sp) {
+	sp->next = deadnames[i];
+	deadnames[i] = lnames[i];
+      }
+    }
     lnames[i] = 0;
   }
+  stab_type_init = 1;
 }
 
 static int thash(char *name) {
   unsigned int h = 0;
   int i;
   for (i = 0; i < 8 && (*name); i++, name++) {
-    h = ((h << 7) + *name) % HASH_SIZE;
+    h = ((h << 7) + *name);
   }
-  return h;
+  return (h % HASH_SIZE);
 }
 
 /* Add a symbol to the hash */
@@ -106,18 +172,23 @@ static void type_add(char *name, char *value) {
   s = lnames[h];
   while (s) {
     if (strcmp(s->name,name) == 0) {
-      if (strcmp(s->value,v) == 0) {
-	return;
+      if (strcmp(s->value,v)) {
+	s->value = string_lookup(v);
       }
-      s->value = (char *) wad_strdup(v);
       goto add_more;
     }
     s = s->next;
   }
-  s = (stabtype *) wad_malloc(sizeof(stabtype));
-  s->name = wad_strdup(name);
-  s->value = wad_strdup(v);
+  s = deadnames[h];
+  if (!s) {
+    s = (stabtype *) wad_malloc(sizeof(stabtype));
+  } else {
+    deadnames[h] = s->next; 
+  }
+  s->name = string_lookup(name);
+  s->value = string_lookup(v);
   s->next = lnames[h];
+  s->visit = 0;
   lnames[h] = s;
 
   /* Now take a look at the value.   If it is contains other types, we might be able to define more stuff */
@@ -137,12 +208,113 @@ char *type_resolve(char *name) {
   s = lnames[h];
   while(s) {
     if (strcmp(s->name,name) == 0) {
-      return type_resolve(s->value);
+      if (!s->visit) {
+	char *c;
+	/* The visit flag is set so that we don't get in infinite loops */
+	s->visit = 1;
+	c = type_resolve(s->value);
+	s->visit = 0;
+	return c;
+      } else {
+	return name;
+      }
     }
     s = s->next;
   }
   return name;
 }  
+
+/* This function tries to resolve base stabs types into a machine equivalent */
+static
+int type_typecode(char *name) {
+  char *range;
+
+  if (name[0] == '*') {
+    return WAD_TYPE_POINTER;
+  }
+
+  range = strchr(name,';');
+  if (!range) return WAD_TYPE_UNKNOWN;
+  range++;
+
+  if (name[0] == 'r') {
+    /* GNU-style range specifiers */
+    if (
+	(strcmp(range,"0000000000000;0037777777777;") == 0)
+	) {
+      return WAD_TYPE_UINT32;
+    }
+    if (
+	(strcmp(range,"0020000000000;0017777777777;") == 0)
+	) {
+      return WAD_TYPE_INT32;
+    }
+    if (
+	(strcmp(range,"-32768;32767;") == 0)
+	) {
+      return WAD_TYPE_INT16;
+    }
+    if (
+	(strcmp(range,"0;65535;") == 0) 
+	) {
+      return WAD_TYPE_UINT16;
+    }
+    if (
+	(strcmp(range,"0;127;") == 0)
+	) {
+      return WAD_TYPE_CHAR;
+    }
+    if (
+	(strcmp(range,"-128;127;") == 0)
+	) {
+      return WAD_TYPE_INT8;
+    }
+    if (
+	(strcmp(range,"0;255;") == 0) 
+	) {
+      return WAD_TYPE_UINT8;
+    }
+    if (
+	(strcmp(range,"4;0;") == 0)
+	) {
+      return WAD_TYPE_FLOAT;
+    }
+    if (
+	(strcmp(range,"8;0;") == 0)
+	) {
+      return WAD_TYPE_DOUBLE;
+    }
+  }
+  /* Traditional built-in types */
+  if (strcmp(name,"bs4;0;32;") == 0) {
+    return WAD_TYPE_INT32;
+  } 
+  if (strcmp(name,"bs2;0;16;") == 0) {
+    return WAD_TYPE_INT16;
+  }
+  if (strcmp(name,"bs1;0;8;") == 0) {
+    return WAD_TYPE_INT8;
+  }
+  if (strcmp(name,"bsc1;0;8;") == 0) {
+    return WAD_TYPE_CHAR;
+  }
+  if (strcmp(name,"bu4;0;32;") == 0) {
+    return WAD_TYPE_UINT32;
+  }
+  if (strcmp(name,"bu2;0;16;") == 0) {
+    return WAD_TYPE_UINT16;
+  }
+  if (strcmp(name,"bu1;0;8;") == 0) {
+    return WAD_TYPE_UINT8;
+  }
+  if (strcmp(name,"R1;4;") == 0) {
+    return WAD_TYPE_FLOAT;
+  }
+  if (strcmp(name,"R2;8;") == 0) {
+    return WAD_TYPE_DOUBLE;
+  }
+  return WAD_TYPE_UNKNOWN;
+}
 
 static void types_print() {
   stabtype *s;
@@ -249,7 +421,7 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
 
     if (s->n_type == N_SLINE) {
       get_parms = 0;
-      if (s->n_value < offset) {
+      if (s->n_value <= offset) {
 	f->loc_line = s->n_desc;
       }
     } else if ((s->n_type == N_PSYM) || (s->n_type == N_RSYM)) {
@@ -323,7 +495,11 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
 	    *t++ = *c++;
 	  }
 	  *t = 0;
-	  /*	  printf("type_resolve '%s' -> '%s'\n", tname, type_resolve(tname));*/
+	  t = type_resolve(tname);
+	  arg->type = type_typecode(t);
+	  if (wad_debug_mode & DEBUG_STABS) {
+	    printf("type_resolve '%s' -> '%s' (%d)\n", tname, t, arg->type);
+	  }
 	}
 	if (f->debug_args) {
 	  f->debug_lastarg->next = arg;
@@ -361,13 +537,19 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
   int   slen;
   int   i;
   int   found = 0;
+  int   filefound = 0;
+
   char  *file, *lastfile = 0;
   int   chk = 0;
   WadLocal *arg;
 
   char   srcfile[MAX_PATH];
   char   objfile[MAX_PATH];
-  
+
+  /* It appears to be necessary to clear the types table on each new stabs section */
+
+  init_hash();
+
   if (!f->sym_name) return 0;
 
   s = (Stab *) sp;            /* Stabs data      */
@@ -378,11 +560,11 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
   objfile[0] = 0;
 
   for (i = 0; i < ns; i++, s++) {
-    /*    if (wad_debug_mode & DEBUG_STABS) {
+    if (wad_debug_mode & DEBUG_STABS) {
       wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
 	     stabstr+s->n_strx);
       
-	     } */
+	     }
     if (s->n_type == N_LSYM) {
       stab_symbol(s,stabstr);
       continue;
@@ -420,6 +602,7 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
 
       /* We're going to check for a file match. Maybe we're looking for a local symbol */
       if (f->sym_file && strcmp(f->sym_file,file) == 0) {
+	filefound = 1;
 	found = 1;
       }
       lastfile = file;

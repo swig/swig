@@ -60,6 +60,22 @@ int math_crash(int x, int y) {
   return x/y;
 }
 
+void type_crash(int a, short b, char c, unsigned long d, float f, double g) {
+  int la;
+  short lb;
+  char  lc;
+  long  ld;
+  float lf;
+  double lg;
+
+  la = a;
+  lb = b;
+  lc = c;
+  ld = ld;
+  lf = lf;
+  lg = lg;
+  assert(a);
+}
 
 #ifdef NEED_MAIN
 
@@ -94,6 +110,8 @@ int main(int argc, char **argv) {
     blowheap_crash();
   } else if (strcmp(argv[1],"overflow") == 0) {
     overflow_crash();
+  } else if (strcmp(argv[1],"type") == 0) {
+    type_crash(0,2,'x',420000,3.14159,2.1828);
   }
 }
 
