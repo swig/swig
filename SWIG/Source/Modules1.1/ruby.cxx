@@ -632,7 +632,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 	    SwigType_del_pointer(t);
 	  }
 	  String *v = NewString("");
-	  if (to_VALUE(t, add_pointer ? "resultobj" : "result",v)) {
+	  if (to_VALUE(t, (char*) (add_pointer ? "resultobj" : "result"),v)) {
 	    Printv(f->code,"vresult = ",v, ";\n", 0);
 	  } else {
 	    Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
