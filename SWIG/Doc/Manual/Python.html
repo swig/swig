@@ -1680,13 +1680,13 @@ by Python built-in types until Python 2.2).
 
 Associated with proxy object, is an ownership flag <tt>.thisown</tt>   The value of this
 flag determines who is responsible for deleting the underlying C++ object.   If set to 1,
-the Python interpreter will destroy the underlying C++ object when the proxy class is 
+the Python interpreter will destroy the C++ object when the proxy class is 
 garbage collected.   If set to 0 (or if the attribute is missing), then the destruction
-of the Proxy class has no effect on the C++ object.
+of the proxy class has no effect on the C++ object.
 
 <P>
-When an object is created by a constructor or returned by value, Python automatically assumes
-ownership.  For example:
+When an object is created by a constructor or returned by value, Python automatically takes
+ownership of the result.  For example:
 
 <blockquote>
 <pre>
@@ -1771,7 +1771,7 @@ is assigned to a global variable.  For example:
 >>>
 </pre>
 </blockquote>
-In this case, C is now holding a reference to the object---probably don't want Python to destroy it.
+In this case, C is now holding a reference to the object---you probably don't want Python to destroy it.
 Similarly, this occurs for members.  For example:
 
 <blockquote>
@@ -1908,12 +1908,13 @@ TypeError: Type error. Expected _p_a_4__double
 </blockquote>
 
 The problem here is that there is no easy way to construct and manipulate a suitable
-<tt>double [4][4]</tt> type to use.   To fix this, you can write some extra C helper
+<tt>double [4][4]</tt> value to use.   To fix this, you can write some extra C helper
 functions.  Just use the <tt>%inline</tt> directive. For example:
 
 <blockquote>
 <pre>
 %inline %{
+/* Note: double[4][4] is equivalent to a pointer to an array double (*)[4] */
 double (*new_mat44())[4] {
    return (double (*)[4]) malloc(16*sizeof(double));
 }
@@ -1946,10 +1947,9 @@ From Python, you could then write code like this:
 
 Admittedly, this is not the most elegant looking approach.  However, it works and it wasn't too
 hard to implement.  It is possible to clean this up using Python code, typemaps, and other
-customization features.
+customization features as covered in later sections.
 
 <a name="n28"></a><H3>18.4.2 Adding additional Python code</H3>
-
 
 If writing support code in C isn't enough, it is also possible to write code in
 Python.  This code gets inserted in to the <tt>.py</tt> file created by SWIG.   One
@@ -1958,6 +1958,10 @@ For example:
 
 <blockquote>
 <pre>
+void set_transform(Image *im, double x[4][4]);
+
+...
+/* Rewrite the high level interface to set_transform */
 %pythoncode %{
 def set_transform(im,x):
    a = new_mat44()
@@ -1970,7 +1974,7 @@ def set_transform(im,x):
 </pre>
 </blockquote>
 
-In this example, the module now provides a high-level Python interface built on top of
+In this example, <tt>set_transform()</tt> provides a high-level Python interface built on top of
 low-level helper functions.  For example, this code now seems to work:
 
 <blockquote>
@@ -1986,14 +1990,13 @@ low-level helper functions.  For example, this code now seems to work:
 </blockquote>
 
 Admittedly, this whole scheme for wrapping the two-dimension array
-argument probably appears to be rather ad-hoc.  Besides, shouldn't a
-Python list or a Numeric Python array just work normally?
-We'll get to those examples soon enough.  For now, think of this example
-as an illustration of what can be done without having to rely on any
-of the more advanced customization features.
+argument is rather ad-hoc. Besides, shouldn't a Python list or a
+Numeric Python array just work normally?  We'll get to those examples
+soon enough.  For now, think of this example as an illustration of
+what can be done without having to rely on any of the more advanced
+customization features.
 
 <a name="n29"></a><H3>18.4.3 Class extension with %extend</H3>
-
 
 One of the more interesting features of SWIG is that it can extend
 structures and classes with new methods--at least in the Python interface.
@@ -2038,9 +2041,8 @@ Vector(2,3,4)
 </pre>
 </blockquote>
 
-As you can see, <tt>%extend</tt> is a rather interesting directive. Furthermore, you can use
-it for far more evil tasks than this.  For example, if you wanted to overload
-a Python operator, you might do this:
+<tt>%extend</tt> can be used for many more tasks than this.  
+For example, if you wanted to overload a Python operator, you might do this:
 
 <blockquote>
 <pre>
@@ -2086,7 +2088,7 @@ or a NULL pointer perhaps).  Here is a simple example of how you might handle th
 <blockquote>
 <pre>
 %exception malloc {
-  $action;
+  $action
   if (!result) {
      PyErr_SetString(PyExc_MemoryError,"Not enough memory");
      return NULL;
@@ -2114,7 +2116,7 @@ that.  For example:
 <blockquote>
 <pre>
 %exception {
-   $action;
+   $action
    if (err_occurred()) {
       PyErr_SetString(PyExc_RuntimeError, err_message());
       return NULL;
@@ -2182,52 +2184,17 @@ PyExc_ZeroDivisionError
 </pre>
 </blockquote>
 
-These exceptions are actually organized into an hierarchy as shown below.  Consult the Python
-Essential Reference for more details (shameless plug):
-
-<blockquote>
-<pre>
-PyExc_Exception
-    PyExc_SystemExit
-    PyExc_StandardError
-       PyExc_ArithmeticError
-           PyExc_FloatingPointError
-           PyExc_OverflowError
-           PyExc_ZeroDivisionError
-       PyExc_AssertionError
-       PyExc_AttributeError
-       PyExc_EnvironmentError
-           PyExc_IOError  
-           PyExc_OSError
-       PyExc_EOFError
-       PyExc_ImportError
-       PyExc_KeyboardInterrupt
-       PyExc_LookupError
-           PyExc_IndexError
-           PyExc_KeyError
-       PyExc_MemoryError
-       PyExc_NameError
-       PyExc_RuntimeError
-           PyExc_NotImplementedError
-       PyExc_SyntaxError
-       PyExc_SystemError
-       PyExc_TypeError
-       PyExc_ValueError
-           PyExc_UnicodeError
-</pre>
-</blockquote>
-
-There is also a language-independent <tt>exception.i</tt> library file that can be used
-to raise exceptions.
+The language-independent <tt>exception.i</tt> library file can also be used
+to raise exceptions.  See the <a href="Library.html">SWIG Library</a> chapter.
 
 <a name="n31"></a><H2>18.5 Tips and techniques</H2>
 
+Although SWIG is largely automatic, there are certain types of wrapping problems that
+require additional user input.    Examples include dealing with output parameters,
+strings, binary data, and arrays.   This chapter discusses the common techniques for
+solving these problems.
 
-This section covers some of the more common wrapping problems.  Topics include dealing with
-input and output parameters, strings, and arrays.
-  
 <a name="n32"></a><H3>18.5.1 Input and output parameters</H3>
-
 
 A common problem in some C programs is handling parameters passed as simple pointers.  For
 example:
@@ -2395,20 +2362,135 @@ Now, in Python:
 </pre>
 </blockquote>
 
+Be aware that the primary purpose of the <tt>typemaps.i</tt> file is to support primitive datatypes.
+Writing a function like this
+
+<blockquote>
+<pre>
+void foo(Bar *OUTPUT);
+</pre>
+</blockquote>
+
+may not have the intended effect since <tt>typemaps.i</tt> does not define an OUTPUT rule for <tt>Bar</tt>.
+
+<h3>Simple pointers</h3>
+
+If you must work with simple pointers such as <tt>int *</tt> or <tt>double *</tt> and you don't want to use
+<tt>typemaps.i</tt>, consider using the <tt>cpointer.i</tt> library file.    For example:
+
+<blockquote>
+<pre>
+%module example
+%include "cpointer.i"
+
+extern void add(int x, int y, int *result);
+%pointer_functions(int, intp);
+</pre>
+</blockquote>
+
+The <tt>%pointer_functions(type,name)</tt> macro generates five helper functions that can be used to create,
+destroy, copy, assign, and dereference a pointer.  In this case, the functions are as follows:
+
+<blockquote>
+<pre>
+int  *new_intp();
+int  *copy_intp(int *x);
+void  delete_intp(int *x);
+void  intp_assign(int *x, int value);
+int   intp_value(int *x);
+</pre>
+</blockquote>
+
+In Python, you would use the functions like this:
+
+<blockquote>
+<pre>
+>>> result = new_intp()
+>>> print result
+_108fea8_p_int
+>>> add(3,4,result)
+>>> print intp_value(result)
+7
+>>>
+</pre>
+</blockquote>
+
+If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type,name)</tt>, the interface is more class-like.
+
+<blockquote>
+<pre>
+>>> result = intp()
+>>> add(3,4,result)
+>>> print result.value()
+7
+</pre>
+</blockquote>
+
+See the <a href="Library.html">SWIG Library</a> chapter for further details.
+
+<h3>Unbounded C Arrays</h3>
+
+Sometimes a C function expects an array to be passed as a pointer.  For example,
+
+<blockquote>
+<pre>
+int sumitems(int *first, int nitems) {
+    int i, sum = 0;
+    for (i = 0; i < nitems; i++) {
+        sum += first[i];
+    }
+    return sum;
+}</pre>
+</blockquote>
+
+To wrap this into Python, you need to pass an array pointer as the first argument. 
+A simple way to do this is to use the <tt>carrays.i</tt> library file.  For example:
+
+<blockquote>
+<pre>
+%include "carrays.i"
+%array_class(int, intArray);
+</pre>
+</blockquote>
+
+The <tt>%array_class(type, name)</tt> macro creates wrappers for an unbounded array object that
+can be passed around as a simple pointer like <tt>int *</tt> or <tt>double *</tt>.
+For instance, you will be able to do this in Python:
+
+<blockquote>
+<pre>
+>>> a = intArray(10000000)         # Array of 10-million integers
+>>> for i in xrange(10000):        # Set some values
+...     a[i] = i
+>>> sumitems(a,10000)
+49995000
+>>>
+</pre>
+</blockquote>
+
+The array "object" created by <tt>%array_class()</tt> does not
+encapsulate pointers inside a special array object.  In fact, there is
+no bounds checking or safety of any kind (just like in C).  Because of
+this, the arrays created by this library are extremely low-level
+indeed.  You can't iterate over them nor can you even query their
+length.  In fact, any valid memory address can be accessed if you want
+(negative indices, indices beyond the end of the array, etc.).
+Needless to say, this approach is not going to suit all applications.
+On the other hand, this low-level approach is extremely efficient and
+well suited for applications in which you need to create buffers,
+package binary data, etc.
+
 <a name="n33"></a><H3>18.5.2 String handling</H3>
 
+<h3>Binary data</h3>
 
 <a name="n34"></a><H3>18.5.3 Arrays</H3>
 
-
 <a name="n35"></a><H3>18.5.4 String arrays</H3>
-
 
 <a name="n36"></a><H3>18.5.5 STL wrappers</H3>
 
-
 <a name="n37"></a><H2>18.6 Typemaps</H2>
-
 
 This section describes how you can modify SWIG's default wrapping behavior
 for various C/C++ datatypes using the <tt>%typemap</tt> directive.   This
