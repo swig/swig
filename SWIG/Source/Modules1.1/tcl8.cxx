@@ -21,7 +21,6 @@ static char cvsroot[] = "$Header$";
 static char *usage = (char*)"\
 Tcl 8.0 Options (available with -tcl)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -module name    - Set name of module\n\
      -prefix name    - Set a prefix to be appended to all names\n\
      -namespace      - Build module into a Tcl 8 namespace. \n\
      -noobject       - Omit code for object oriented interface.\n\n";
@@ -58,20 +57,14 @@ static File      *f_runtime = 0;
 void
 TCL8::main(int argc, char *argv[]) {
   int i;
-  strcpy(LibDir,"tcl");
+  
+  SWIG_library_directory("tcl");
 
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	  if (strcmp(argv[i],"-prefix") == 0) {
 	    if (argv[i+1]) {
 	      prefix = NewString(argv[i+1]);
-	      Swig_mark_arg(i);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else Swig_arg_error();
-	  } else if (strcmp(argv[i],"-module") == 0) {
-	    if (argv[i+1]) {
-	      set_module(argv[i+1]);
 	      Swig_mark_arg(i);
 	      Swig_mark_arg(i+1);
 	      i++;
@@ -91,18 +84,15 @@ TCL8::main(int argc, char *argv[]) {
       }
   }
 
-  if ((nspace) && module) {
-    ns_name = Copy(module);
-  } else if (prefix) {
+  if (prefix) {
     ns_name = Copy(prefix);
-
   }
   if (prefix && Len(prefix))
     Append(prefix,"_");
 
   Preprocessor_define((void *) "SWIGTCL 1",0);
   Preprocessor_define((void *) "SWIGTCL8 1", 0);
-  typemap_lang = (char*)"tcl8";
+  SWIG_typemap_lang("tcl8");
   SWIG_config_file("tcl8.swg");
 }
 
@@ -1122,3 +1112,5 @@ int TCL8::validIdentifier(String *s) {
   }
   return 1;
 }
+
+

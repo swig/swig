@@ -49,7 +49,7 @@ public :
   virtual void cpp_destructor(char *name, char *newname);
   virtual void cpp_open_class(char *classname, char *rname, char *ctype, int strip);
   virtual void cpp_close_class();
-  virtual void cpp_inherit(char **baseclass, int mode = INHERIT_ALL);
+  virtual void cpp_inherit(char **baseclass, int mode = 0);
   virtual void cpp_variable(char *name, char *iname, SwigType *t);
   virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
   virtual void cpp_class_decl(char *, char *,char *);

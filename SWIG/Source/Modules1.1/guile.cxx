@@ -33,7 +33,6 @@ static char cvsroot[] = "$Header$";
 static char *guile_usage = (char*)"\
 Guile Options (available with -guile)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -module name    - Set name of module [default \"swig\"]\n\
      -prefix name    - Use NAME as prefix [default \"gswig_\"]\n\
      -package name   - Set the path of the module [default NULL]\n\
      -linkage lstyle - Use linkage protocol LSTYLE [default `module']\n\
@@ -63,7 +62,7 @@ GUILE::GUILE ()
 {
   // Set global vars
 
-  typemap_lang = (char*)"guile";
+  SWIG_typemap_lang("guile");
 
   // Set class vars
 
@@ -93,7 +92,7 @@ GUILE::main (int argc, char *argv[])
 {
   int i, orig_len;
 
-  sprintf (LibDir, "%s", "guile");
+  SWIG_library_directory("guile");
 
   // Look for certain command line options
   for (i = 1; i < argc; i++) {
@@ -120,16 +119,6 @@ GUILE::main (int argc, char *argv[])
 	  Swig_mark_arg (i);
 	  Swig_mark_arg (i + 1);
 	  i++;
-	} else {
-	  Swig_arg_error();
-	}
-      }
-      else if (strcmp (argv[i], "-module") == 0) {
-	if (argv[i + 1]) {
-	  set_module (argv[i + 1]);
-	  Swig_mark_arg (i);
-	  Swig_mark_arg (i + 1);
-	  ++i;
 	} else {
 	  Swig_arg_error();
 	}

@@ -30,8 +30,7 @@ static char *mzscheme_usage = (char*)"\
 \n\
 Mzscheme Options (available with -mzscheme)\n\
 -help           - Print this help\n\
--module name    - Set base name of module (not implemented) \n\
--prefix name    - Set a prefix to be appended to all name\n\
+-prefix name    - Set a prefix to be appended to all names\n\
 \n"
 ;
 
@@ -56,7 +55,7 @@ MZSCHEME::main (int argc, char *argv[])
 {
   int i;
 
-  sprintf (LibDir, "%s", mzscheme_path);
+  SWIG_library_directory(mzscheme_path);
 
   // Look for certain command line options
   for (i = 1; i < argc; i++) {
@@ -72,16 +71,6 @@ MZSCHEME::main (int argc, char *argv[])
 	  Swig_mark_arg (i);
 	  Swig_mark_arg (i + 1);
 	  i++;
-	} else {
-	  Swig_arg_error();
-	}
-      }
-      else if (strcmp (argv[i], "-module") == 0) {
-	if (argv[i + 1]) {
-	  set_module (argv[i + 1]);
-	  Swig_mark_arg (i);
-	  Swig_mark_arg (i + 1);
-	  ++i;
 	} else {
 	  Swig_arg_error();
 	}
@@ -105,7 +94,7 @@ MZSCHEME::main (int argc, char *argv[])
 
   // Set name of typemaps
 
-  typemap_lang = (char*)"mzscheme";
+  SWIG_typemap_lang("mzscheme");
 
   // Read in default typemaps */
   SWIG_config_file("mzscheme.i");

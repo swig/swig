@@ -102,7 +102,6 @@ class RClass {
 static char *usage = (char*)"\
 Ruby Options (available with -ruby)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -module name    - Set module name\n\
      -feature name   - Set feature name (used by `require')\n";
 
 static  char *module;
@@ -143,16 +142,7 @@ void RUBY::main(int argc, char *argv[]) {
   /* Look for certain command line options */
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
-      if (strcmp(argv[i],"-module") == 0) {
-	if (argv[i+1]) {
-	  set_module(argv[i+1]);
-	  Swig_mark_arg(i);
-	  Swig_mark_arg(i+1);
-	  i++;
-	} else {
-	  Swig_arg_error();
-	}
-      } else if (strcmp(argv[i],"-feature") == 0) {
+      if (strcmp(argv[i],"-feature") == 0) {
 	if (argv[i+1]) {
 	  char *name = argv[i+1];
 	  feature = new char [strlen(name)+1];
@@ -172,14 +162,13 @@ void RUBY::main(int argc, char *argv[]) {
     }
   }
   /* Set location of SWIG library */
-  strcpy(LibDir,"ruby");
+  SWIG_library_directory("ruby");
 
   /* Add a symbol to the parser for conditional compilation */
   Preprocessor_define((void *) "SWIGRUBY", 0);
 
   /* Add typemap definitions */
-  typemap_lang = (char*)"ruby";
-
+  SWIG_typemap_lang("ruby");
   SWIG_config_file("ruby.i");
 }
 

@@ -61,7 +61,7 @@ static int      inclass = 0;
 static int      templatenum = 0;
 static Hash    *templatetypes = 0;
 
- int      ShowTemplates = 0;    // Debugging mode
+ int      ShowTemplates = 0;    /* Debugging mode */
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -90,6 +90,10 @@ static char  *class_rename = 0;
 #define  CPLUS_PUBLIC    1
 #define  CPLUS_PRIVATE   2
 #define  CPLUS_PROTECTED 3
+
+void SWIG_typemap_lang(const char *tm_lang) {
+  typemap_lang = Swig_copy_string(tm_lang);
+}
 
 /* -----------------------------------------------------------------------------
  *                           Assist functions
@@ -249,7 +253,6 @@ static void add_symbols(Node *n) {
       n = nextSibling(n);
       continue;
     }
-    //    String *storage = Getstorage(n);
 
     if (strncmp(Char(symname),"$ignore",7) == 0) {
       Seterror(n,NewString("ignored"));
@@ -367,12 +370,12 @@ static void merge_addmethods(Node *am) {
 /* Structures for handling code fragments built for nested classes */
 
 struct Nested {
-  String   *code;        // Associated code fragment
-  int      line;         // line number where it starts
-  char     *name;        // Name associated with this nested class
-  char     *kind;        // Kind of class
-  SwigType *type;        // Datatype associated with the name
-  Nested   *next;        // Next code fragment in list
+  String   *code;        /* Associated code fragment */
+  int      line;         /* line number where it starts */
+  char     *name;        /* Name associated with this nested class */
+  char     *kind;        /* Kind of class */
+  SwigType *type;        /* Datatype associated with the name */
+  Nested   *next;        /* Next code fragment in list */
 };
 
 /* Some internal variables for saving nested class information */
@@ -405,16 +408,16 @@ static Node *dump_nested(char *parent) {
   }
   while (n) {
     char temp[256];
-    // Token replace the name of the parent class
+    /* Token replace the name of the parent class */
     Replace(n->code, "$classname", parent, DOH_REPLACE_ANY);
-    // Fix up the name of the datatype (for building typedefs and other stuff)
+    /* Fix up the name of the datatype (for building typedefs and other stuff) */
     sprintf(temp,"%s_%s", parent,n->name);
 
     Append(n->type,parent);
     Append(n->type,"_");
     Append(n->type,n->name);
 
-    // Add the appropriate declaration to the C++ processor
+    /* Add the appropriate declaration to the C++ processor */
     Node *retx = new_node("cdecl");
     Setname(retx,n->name);
     Settype(retx,Copy(n->type));
@@ -431,21 +434,23 @@ static Node *dump_nested(char *parent) {
     set_nextSibling(retx,ret);
     ret = retx; 
 
-    // Make all SWIG created typedef structs/unions/classes unnamed else 
-    // redefinition errors occur - nasty hack alert.
+    /* Make all SWIG created typedef structs/unions/classes unnamed else 
+       redefinition errors occur - nasty hack alert.*/
+
     const int NUM_TYPES = 3;
     char* types_array[NUM_TYPES] = {"struct", "union", "class"};
     for (int i=0; i<NUM_TYPES; i++) {
       char* code_ptr = Char(n->code);
       while (code_ptr) {
-        // Replace struct name (as in 'struct name {' ) with whitespace
-        // name will be between struct and {
+        /* Replace struct name (as in 'struct name {' ) with whitespace
+           name will be between struct and { */
+
         code_ptr = strstr(code_ptr, types_array[i]);
         if (code_ptr) {
           code_ptr += strlen(types_array[i]);
           char* open_bracket_pos = strstr(code_ptr, "{");
           if (open_bracket_pos) { 
-            // Make sure we don't have something like struct A a;
+            /* Make sure we don't have something like struct A a; */
             char* semi_colon_pos = strstr(code_ptr, ";");
             if (!(semi_colon_pos && (semi_colon_pos < open_bracket_pos)))
               while (code_ptr < open_bracket_pos)
@@ -455,7 +460,7 @@ static Node *dump_nested(char *parent) {
       }
     }
 
-    // Remove SWIG directive %constant which may be left in the SWIG created typedefs
+    /* Remove SWIG directive %constant which may be left in the SWIG created typedefs */
     char* code_ptr = Char(n->code);
     while (code_ptr) {
       code_ptr = strstr(code_ptr, "%constant");
@@ -474,8 +479,7 @@ static Node *dump_nested(char *parent) {
     set_nextSibling(head,ret);
     ret = head;
 
-    // Dump the code to the scanner
-    /*    Printf(f_header,"\n%s\n", Char(n->code)); */
+    /* Dump the code to the scanner */
     start_inline(Char(n->code),n->line);
 
     n1 = n->next;
@@ -489,6 +493,7 @@ static Node *dump_nested(char *parent) {
 
 Node *Swig_cparse(File *f) {
   extern void scanner_file(File *);
+  extern int yyparse();
   scanner_file(f);
   top = 0;
   yyparse();
@@ -2021,7 +2026,7 @@ storage_class  : EXTERN { $$ = "extern"; }
    ------------------------------------------------------------------------------ */
 
 parms          : parm ptail {
-		  if (1) { //(SwigType_type(pt) != T_VOID) {
+		  if (1) { 
 		    set_nextSibling($1,$2);
 		    $$ = $1;
 		  } else {

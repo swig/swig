@@ -45,7 +45,7 @@ public :
   virtual void cpp_variable(char *name, char *iname, SwigType *t);
   virtual void cpp_constructor(char *name, char *iname, ParmList *l);
   virtual void cpp_destructor(char *name, char *newname);
-  virtual void cpp_inherit(char **baseclass, int mode = INHERIT_ALL);
+  virtual void cpp_inherit(char **baseclass, int mode = 0);
   virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
   virtual void cpp_class_decl(char *, char *, char *);
  virtual  void add_typedef(SwigType *t, char *name);

@@ -40,7 +40,7 @@ InFile  *in_head;
 DOHFile *LEX_in = 0;
 static DOHString     *header = 0;
 static DOHString     *comment = 0;
-       DOHString     *CCode = 0;            // String containing C code
+DOHString     *CCode = 0;            /* String containing C code */
 static char           *yybuffer = 0;
 
 static char    yytext[YYBSIZE];
@@ -583,20 +583,20 @@ int yylook(void) {
 
 	  /* Look for multi-character sequences */
 
-	  else if (c == '/') state = 1;    // Comment (maybe)
-	  else if (c == '\"') state = 2;   // Possibly a string
-	  else if (c == '#') state = 3;    // CPP
-	  else if (c == '%') state = 4;    // Directive
-	  else if (c == '@') state = 4;    // Objective C keyword
-	  else if (c == ':') state = 5;    // maybe double colon
-	  else if (c == '0') state = 83;   // An octal or hex value
-	  else if (c == '\'') state = 9;   // A character constant
-	  else if (c == '.') state = 100;  // Maybe a number, maybe just a period
+	  else if (c == '/') state = 1;    /* Comment (maybe) */
+	  else if (c == '\"') state = 2;   /* Possibly a string */
+	  else if (c == '#') state = 3;    /* CPP */
+	  else if (c == '%') state = 4;    /* Directive */
+	  else if (c == '@') state = 4;    /* Objective C keyword */
+	  else if (c == ':') state = 5;    /* maybe double colon */
+	  else if (c == '0') state = 83;   /* An octal or hex value */
+	  else if (c == '\'') state = 9;   /* A character constant */
+	  else if (c == '.') state = 100;  /* Maybe a number, maybe just a period */
 	  else if (c == '`') {
-	    state = 200; // Back-tick type
+	    state = 200; /* Back-tick type */
 	    yylen = 0;
 	  }
-	  else if (isdigit(c)) state = 8;  // A numerical value
+	  else if (isdigit(c)) state = 8;  /* A numerical value */
 
 	  else state = 99;
 	  break;
@@ -605,11 +605,11 @@ int yylook(void) {
 	  if (c == '/') {
 	    comment_start = line_number;
 	    Clear(comment);
-	    state = 10;        // C++ style comment
+	    state = 10;        /* C++ style comment */
 	  } else if (c == '*') {
 	    comment_start = line_number;
 	    Clear(comment);
-	    state = 12;   // C style comment
+	    state = 12;   /* C style comment */
 	  } else {
 	    retract(1);
 	    return(SLASH);
@@ -623,8 +623,8 @@ int yylook(void) {
 	  }
 	  if (c == '\n') {
 	    Putc(c,comment);
-	    // Add the comment to documentation
-	    //	    yycomment(Char(comment),comment_start, column_start);
+	    /* Add the comment to documentation */
+	    /*	    yycomment(Char(comment),comment_start, column_start);*/
 	    yylen = 0;
 	    state = 0;
 	  } else {
@@ -669,7 +669,7 @@ int yylook(void) {
 		}
 	      }
 	    }
-	    //	    yycomment(Char(comment),comment_start,column_start);
+	    /*	    yycomment(Char(comment),comment_start,column_start); */
 	    yylen = 0;
 	    state = 0;
 	  } else {
@@ -998,8 +998,6 @@ extern "C" int yylex(void) {
 
     if (!scan_init) {
       scanner_init();
-      //      if (LEX_in == NULL) LEX_in = stdin;
-      //      scanner_file(LEX_in);
     }
 
     l = yylook();
@@ -1082,7 +1080,7 @@ extern "C" int yylex(void) {
 	    yylval.type = NewSwigType(T_BOOL);
 	    return(TYPE_BOOL);
 	  }
-	  // C++ keywords
+	  /* C++ keywords */
 	  
 	  if (CPlusPlus) {
 	    if (strcmp(yytext,"class") == 0) return(CLASS);
@@ -1143,7 +1141,7 @@ extern "C" int yylex(void) {
 	    }
 	  }
 	  
-	  // Objective-C keywords
+	  /* Objective-C keywords */
 #ifdef OBJECTIVEC
 	  if ((ObjC) && (yytext[0] == '@')) {
 	    if (strcmp(yytext,"@interface") == 0) return (OC_INTERFACE);
@@ -1157,7 +1155,7 @@ extern "C" int yylex(void) {
 	  }
 #endif
 	  
-	  // Misc keywords
+	  /* Misc keywords */
 	  
 	  if (strcmp(yytext,"extern") == 0) return(EXTERN);
 	  if (strcmp(yytext,"const") == 0) return(CONST);
@@ -1172,11 +1170,11 @@ extern "C" int yylex(void) {
 	    return(TYPEDEF);
 	  }
 	  
-	  // Ignored keywords
+	  /* Ignored keywords */
 	  
 	  if (strcmp(yytext,"volatile") == 0) return(VOLATILE);
 	  
-	  // SWIG directives
+	  /* SWIG directives */
 	} else {
 	  if (strcmp(yytext,"%module") == 0) return(MODULE);
 	  if (strcmp(yytext,"%insert") == 0) return(INSERT);
@@ -1211,16 +1209,15 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%types") == 0) return(TYPES);
 	  if (strcmp(yytext,"%template") == 0) return (SWIGTEMPLATE);
 	}
-	  // Have an unknown identifier, as a last step, we'll
-	// do a typedef lookup on it.
+	/* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 
+        /* Need to fix this */
 	if (check_typedef) {
 	  if (SwigType_istypedef(yytext)) {
 	    yylval.type = NewString(yytext);
 	    return(TYPE_TYPEDEF);
 	  }
 	}
-
 	yylval.id = Swig_copy_string(yytext);
 	last_id = 1;
 	return(ID);

@@ -52,8 +52,7 @@ extern "C" {
 
 extern String  *ModuleName;
 extern int ShowTemplates;
-
-class SwigException {};
+extern  int       yyparse();
 
 static char *usage = (char*)"\
 \nGeneral Options\n\
@@ -74,8 +73,6 @@ static char *usage = (char*)"\
      -show_templates - Show template expansions\n\
      -version        - Print SWIG version number\n\
      -help           - This output.\n\n";
-
-
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
@@ -113,6 +110,10 @@ static String  *lang_config = 0;
 
 void SWIG_config_file(const String_or_char *filename) {
   lang_config = NewString(filename);
+}
+
+void SWIG_library_directory(const char *filename) {
+  strcpy(LibDir,filename);
 }
 
 int SWIG_main(int argc, char *argv[], Language *l) {

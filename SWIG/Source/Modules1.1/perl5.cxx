@@ -12,7 +12,7 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-/* DB: I had to take some features related to package naming out of this to
+/* DB: I had to take out some features related to package naming out of this to
    get the new type system to work.   These need to be put back in at some point. */
 
 static char cvsroot[] = "$Header$";
@@ -26,7 +26,6 @@ static char cvsroot[] = "$Header$";
 static char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -module name    - Set module name\n\
      -interface name - Set interface name\n\
      -package name   - Set package prefix\n\
      -static         - Omit code related to dynamic loading.\n\
@@ -102,7 +101,7 @@ PERL5::main(int argc, char *argv[]) {
   int i = 1;
 
   cmodule = NewString("");
-  strcpy(LibDir,"perl5");
+  SWIG_library_directory("perl5");
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	  if(strcmp(argv[i],"-package") == 0) {
@@ -123,17 +122,6 @@ PERL5::main(int argc, char *argv[]) {
             } else {
               Swig_arg_error();
             }
-	  } else if (strcmp(argv[i],"-module") == 0) {
-	    if (argv[i+1]) {
-	      module = NewString(argv[i+1]);
-	      Append(cmodule,module);
-	      Replace(cmodule,":","_",DOH_REPLACE_ANY);
-	      Swig_mark_arg(i);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
-	    }
 	  } else if (strcmp(argv[i],"-exportall") == 0) {
 	      export_all = 1;
 	      Swig_mark_arg(i);
@@ -161,7 +149,7 @@ PERL5::main(int argc, char *argv[]) {
 
   Preprocessor_define((void *) "SWIGPERL 1", 0);
   Preprocessor_define((void *) "SWIGPERL5 1", 0);
-  typemap_lang = (char*)"perl5";
+  SWIG_typemap_lang("perl5");
   SWIG_config_file("perl5.swg");
 }
 
@@ -1869,7 +1857,7 @@ PERL5::cpp_inherit(char **baseclass, int) {
   /* Inherit variables and constants from base classes, but not
      functions (since Perl can handle that okay). */
 
-  this->Language::cpp_inherit(baseclass, INHERIT_CONST | INHERIT_VAR);
+  this->Language::cpp_inherit(baseclass, 0);
 
   /* Now tell the Perl5 module that we're inheriting from base classes */
 

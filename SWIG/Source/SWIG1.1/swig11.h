@@ -25,19 +25,11 @@ extern "C" {
 extern DOH  *Preprocessor_define(DOHString_or_char *str, int swigmacro);
 }
 
-/* Global variables.   Needs to be cleaned up */
-
-#ifdef MACSWIG
-#define Status Swig_Status
-#endif
-
 #define NOT_VIRTUAL     0
 #define PLAIN_VIRTUAL   1
 #define PURE_VIRTUAL    2
 
-extern  char      LibDir[512];                      // Library directory
 extern  int       ReadOnly;
-extern  int       yyparse();
 extern  char     *input_file;
 extern  int       line_number;
 extern  int       start_line;
@@ -46,7 +38,6 @@ extern  int       AddMethods;                       // AddMethods mode
 extern  int       NewObject;                        // NewObject mode
 extern  int       Inline;                           // Inline mode
 extern  int       NoInclude;                        // NoInclude flag
-extern  char     *typemap_lang;                     // Current language name
 extern  int       error_count;
 extern  int       Verbose;
 extern  int       IsVirtual;
@@ -56,18 +47,9 @@ extern  int       Overloaded;
 
 /* Miscellaneous stuff */
 
-/* #define  MAXSCOPE       16 */
-
 #define  tab2   "  "
 #define  tab4   "    "
 #define  tab8   "        "
-
-// Modes for different types of inheritance
-
-#define INHERIT_FUNC       0x1
-#define INHERIT_VAR        0x2
-#define INHERIT_CONST      0x4
-#define INHERIT_ALL        (INHERIT_FUNC | INHERIT_VAR | INHERIT_CONST)
 
 /************************************************************************
  * class language:
@@ -143,8 +125,7 @@ public:
   virtual void cpp_destructor(char *name, char *newname);
   virtual void cpp_open_class(char *name, char *rename, char *ctype, int strip);
   virtual void cpp_close_class();
-  virtual void cpp_cleanup();
-  virtual void cpp_inherit(char **baseclass, int mode = INHERIT_ALL);
+  virtual void cpp_inherit(char **baseclass, int mode = 0);
   virtual void cpp_variable(char *name, char *iname, SwigType *t);
   virtual void cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
@@ -178,5 +159,9 @@ extern  void  emit_func_call(char *, SwigType *, ParmList *, Wrapper *f);
 extern  void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
 extern int    check_numopt(ParmList *);
 extern void   SWIG_config_file(const String_or_char *);
+extern void   SWIG_typemap_lang(const char *);
+extern void   SWIG_library_directory(const char *);
 
 /* swig11.h ends here */
+
+

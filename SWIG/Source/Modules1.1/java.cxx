@@ -35,7 +35,6 @@ static char *usage = (char*)"\
 Java Options\n\
      -jnic            - use c syntax for JNI calls\n\
      -jnicpp          - use c++ syntax for JNI calls\n\
-     -module <name>   - set name of the module\n\
      -package <name>  - set name of the package\n\
      -shadow          - generate shadow classes\n\
      -nofinalize      - do not generate finalize methods in shadow classes\n\
@@ -387,22 +386,12 @@ void JAVA::writeRegisterNatives()
 void JAVA::main(int argc, char *argv[]) {
 
   // file::set_library(java_path);
-  sprintf(LibDir,"%s", "java");
-
+  SWIG_library_directory("java");
 
   // Look for certain command line options
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
-      if (strcmp(argv[i],"-module") == 0) {
-	if (argv[i+1]) {
-	  set_module(argv[i+1]);
-	  Swig_mark_arg(i);
-	  Swig_mark_arg(i+1);
-	  i++;
-	} else {
-	  Swig_arg_error();
-	}
-      } else if (strcmp(argv[i],"-package") == 0) {
+      if (strcmp(argv[i],"-package") == 0) {
 	if (argv[i+1]) {
 	  package = new char[strlen(argv[i+1])+1];
           strcpy(package, argv[i+1]);
@@ -444,8 +433,7 @@ void JAVA::main(int argc, char *argv[]) {
   Preprocessor_define((void *) "SWIGJAVA 1",0);
 
   // Add typemap definitions
-  typemap_lang = (char*)"java";
-
+  SWIG_typemap_lang("java");
   SWIG_config_file("java.i");
 }
 

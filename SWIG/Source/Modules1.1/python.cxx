@@ -48,7 +48,6 @@ static char *usage = (char *)"\
 Python Options (available with -python)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -globals name   - Set name used to access C global variable ('cvar' by default).\n\
-     -module name    - Set module name\n\
      -interface name - Set the lib name\n\
      -keyword        - Use keyword arguments\n\
      -noopt          - No optimized shadows (pre 1.5.2)\n\
@@ -70,22 +69,13 @@ static DOH *is_shadow(SwigType *t) {
 void
 PYTHON::main(int argc, char *argv[]) {
   int i;
-  strcpy(LibDir,"python");
+  
+  SWIG_library_directory("python");
 
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
-	  if(strcmp(argv[i],"-module") == 0) {
-	    if (argv[i+1]) {
-	      module = NewString(argv[i+1]);
-	      Swig_mark_arg(i);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
-	    }
-
 	  /* Added edz@bsn.com */
-          } else if(strcmp(argv[i],"-interface") == 0) {
+          if(strcmp(argv[i],"-interface") == 0) {
             if (argv[i+1]) {
               interface = NewString(argv[i+1]);
               Swig_mark_arg(i);
@@ -126,7 +116,7 @@ PYTHON::main(int argc, char *argv[]) {
   }
   if (!global_name) global_name = NewString("cvar");
   Preprocessor_define((void *) "SWIGPYTHON", 0);
-  typemap_lang = (char*)"python";
+  SWIG_typemap_lang("python");
   SWIG_config_file("python.swg");
 }
 
@@ -1524,7 +1514,7 @@ PYTHON::cpp_inherit(char **baseclass,int) {
   }
 
   /* We'll inherit variables and constants, but not methods */
-  this->Language::cpp_inherit(baseclass, INHERIT_VAR);
+  this->Language::cpp_inherit(baseclass, 0);
 
   if (!baseclass) return;
   base_class = NewString("");
