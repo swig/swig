@@ -61,27 +61,27 @@ Source/Include/swigconfig.h: Source/Include/swigconfig.h.in Makefile.in config.s
 
 ####
 
-skip-tcl	= @[ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
-skip-perl	= @[ -z "@PERL@" -o -z "@PERL5EXT@" ]
-skip-python	= @[ -z "@PYINCLUDE@" -o -z "@PYLIB@" ]
-skip-java	= @[ -z "@JAVA@" -o -z "@JAVAC@" -o -z "@JAVAINC@" ]
-skip-guile	= @[ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
-skip-mzscheme	= @[ -z "@MZC@" ]
-skip-ruby	= @[ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
-skip-php4	= @[ -z "@PHP4BIN@" -o -z "@PHP4INC@" ]
+skip-tcl	= [ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
+skip-perl	= [ -z "@PERL@" -o -z "@PERL5EXT@" ]
+skip-python	= [ -z "@PYINCLUDE@" -o -z "@PYLIB@" ]
+skip-java	= [ -z "@JAVA@" -o -z "@JAVAC@" -o -z "@JAVAINC@" ]
+skip-guile	= [ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
+skip-mzscheme	= [ -z "@MZC@" ]
+skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
+skip-php4	= [ -z "@PHP4BIN@" -o -z "@PHP4INC@" ]
 
 #####################################################################
 # Runtime libraries
 #####################################################################
 
 runtime:
-	-$(skip-tcl) || (cd Runtime; $(MAKE) tcl)
-	-$(skip-python) || (cd Runtime; $(MAKE) python)
-	-$(skip-perl) || (cd Runtime; $(MAKE) perl5)
-	-$(skip-ruby) || (cd Runtime; $(MAKE) ruby)
-	-$(skip-guile) || (cd Runtime; $(MAKE) guile)
-	-$(skip-mzscheme) || (cd Runtime; $(MAKE) mzscheme)
-	-$(skip-php4) || (cd Runtime; $(MAKE) php4)
+	@-$(skip-tcl) || (cd Runtime; $(MAKE) tcl)
+	@-$(skip-python) || (cd Runtime; $(MAKE) python)
+	@-$(skip-perl) || (cd Runtime; $(MAKE) perl5)
+	@-$(skip-ruby) || (cd Runtime; $(MAKE) ruby)
+	@-$(skip-guile) || (cd Runtime; $(MAKE) guile)
+	@-$(skip-mzscheme) || (cd Runtime; $(MAKE) mzscheme)
+	@-$(skip-php4) || (cd Runtime; $(MAKE) php4)
 
 #####################################################################
 # CHECK
@@ -96,13 +96,13 @@ check-aliveness:
 	test -x ./$(TARGET)
 	./$(TARGET) -version
 	./$(TARGET) -help
-	$(skip-tcl) || ./$(TARGET) -tcl -help
-	$(skip-perl) || ./$(TARGET) -perl -help
-	$(skip-python) || ./$(TARGET) -python -help
-	$(skip-java) || ./$(TARGET) -java -help
-	$(skip-guile) || ./$(TARGET) -guile -help
-	$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
-	$(skip-ruby) || ./$(TARGET) -ruby -help
+	@$(skip-tcl) || ./$(TARGET) -tcl -help
+	@$(skip-perl) || ./$(TARGET) -perl -help
+	@$(skip-python) || ./$(TARGET) -python -help
+	@$(skip-java) || ./$(TARGET) -java -help
+	@$(skip-guile) || ./$(TARGET) -guile -help
+	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
+	@$(skip-ruby) || ./$(TARGET) -ruby -help
 
 TCL_EXAMPLES = class constants enum funcptr import multimap operator pointer reference simple value variables
 PERL5_EXAMPLES = class constants constants2 funcptr import multimap pointer reference shadow simple value variables
@@ -407,6 +407,52 @@ clean-gifplot-examples:
 clean-test-suite:
 	@echo cleaning Examples/test-suite
 	@make -k -s check-test-suite CHECK_CLEAN=clean
+
+
+clean-tcl-examples:
+	@make -k -s check-tcl-examples CHECK_CLEAN=clean
+
+clean-perl5-examples:
+	@make -k -s check-perl5-examples CHECK_CLEAN=clean
+
+clean-python-examples:
+	@make -k -s check-python-examples CHECK_CLEAN=clean
+
+clean-java-examples:
+	@make -k -s check-java-examples CHECK_CLEAN=clean
+
+clean-guile-examples:
+	@make -k -s check-guile-examples CHECK_CLEAN=clean
+
+clean-mzscheme-examples:
+	@make -k -s check-mzscheme-examples CHECK_CLEAN=clean
+
+clean-ruby-examples:
+	@make -k -s check-ruby-examples CHECK_CLEAN=clean
+
+
+clean-tcl-test-suite:
+	@make -k -s check-tcl-test-suite CHECK_CLEAN=clean
+
+clean-perl5-test-suite:
+	@make -k -s check-perl5-test-suite CHECK_CLEAN=clean
+
+clean-python-test-suite:
+	@make -k -s check-python-test-suite CHECK_CLEAN=clean
+
+clean-java-test-suite:
+	@make -k -s check-java-test-suite CHECK_CLEAN=clean
+
+clean-guile-test-suite:
+	@make -k -s check-guile-test-suite CHECK_CLEAN=clean
+
+clean-mzscheme-test-suite:
+	@make -k -s check-mzscheme-test-suite CHECK_CLEAN=clean
+
+clean-ruby-test-suite:
+	@make -k -s check-ruby-test-suite CHECK_CLEAN=clean
+
+
 
 #####################################################################
 # TARGETS: install & friends
