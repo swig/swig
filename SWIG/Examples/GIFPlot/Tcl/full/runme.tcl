@@ -1,7 +1,6 @@
 # Plot a 3D function
 
-catch { load ./gifplot.so gifplot}
-catch { load ./gifplot.dll gifplot}  ;# Windows
+catch { load ./gifplot[info sharedlibextension] gifplot}
 
 # Here is the function to plot
 proc func { x y } {

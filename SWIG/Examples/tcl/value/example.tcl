@@ -1,8 +1,7 @@
 # file: example.py
 # Try to load as a dynamic module.
 
-catch { load ./example.so example}
-catch { load ./example.dll example}    ;# Windows
+catch { load ./example[info sharedlibextension] example}
 
 # Create a couple of a vectors
 

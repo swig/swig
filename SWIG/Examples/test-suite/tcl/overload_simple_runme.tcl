@@ -1,12 +1,6 @@
 
-if { [ string match $tcl_platform(platform) "windows" ] == 1 } {
-    if [ catch { load ./overload_simple.dll overload_simple} err_msg ] {
-        puts stderr "Could not load dll:\n$err_msg"
-    }
-} else {
-    if [ catch { load ./overload_simple.so overload_simple} err_msg ] {
-        puts stderr "Could not load shared object:\n$err_msg"
-    }
+if [ catch { load ./overload_simple[info sharedlibextension] overload_simple} err_msg ] {
+	puts stderr "Could not load shared object:\n$err_msg"
 }
 
 set f [new_Foo]

@@ -1,5 +1,4 @@
-catch { load ./gifplot.so }
-catch { load ./gifplot.dll }   ; # Windows
+catch { load ./gifplot[info sharedlibextension] }
 source display.tcl
 set tcl_precision 17
 set f [FrameBuffer -args 400 400]
