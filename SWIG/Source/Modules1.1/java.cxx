@@ -1799,7 +1799,7 @@ class JAVA : public Language {
     String *tm = NULL;
     const String *code = NULL;
 
-    if((tm = Swig_typemap_search(op, type, NULL))) {
+    if((tm = Swig_typemap_search(op, type, NULL, NULL))) {
       code = Getattr(tm,"code");
     }
 
