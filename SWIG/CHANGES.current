@@ -1,5 +1,21 @@
 Version 1.3.20 (In progress)
 ============================
+09/01/2003: cheetah (William Fulton)
+            Test-suite build improvements:
+            - Multiple build directories working for the test suite, so it is now
+              possible to run configure in multiple subdirectories and run the test
+              suite in each of these sub directories.
+            - 'make distclean' fixed so it doesn't bomb out on the Examples directory
+              when using multiple subdiretory builds. Required the following directories
+              to be moved:
+                Examples/GIFPlot/Perl -> Examples/GIFPlot/Perl5
+                Examples/GIFPlot/Php  -> Examples/GIFPlot/Php4
+              These new directories used to be symbolic links to the old directory.
+              Also the Examples/test-suite/Perl symbolic link has been removed.
+            - Running the test-suite, other than from the root directory, say
+              in Examples/test-suite/python will now display all the code being
+              executed.
+
 09/01/2003: Tiger
             Added inheritance support for design by contract feature.
 
