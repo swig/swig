@@ -14,6 +14,66 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+9/29/2001: beazley
+           Changes to Perl5 shadow class code generation.  Iterators
+           are no longer supported (FIRSTKEY, NEXTKEY).  Also, attribute
+           access has been changed to rely on inheritance.  
+
+8/28/2001: beazley
+           Various obscure improvements to the type system and classes.
+           Strange declarations like this are now wrapped correctly
+           (i.e., the generated wrapper code doesn't cause the C++
+            compiler to die with a type error).
+
+            class Foo {
+            public:
+                 typedef double Real;
+                 Real foo(Real (*op)(Real,Real), Real x, Real y);
+            };
+
+           Inheritance of types is also handled correctly.
+           
+8/28/2001: beazley
+           Changes to class wrappers.   When SWIG sees two classes like this,
+ 
+           class X {
+           public:
+             void foo();
+             ...
+           }
+ 
+           class Y : public X {
+           public:
+             void bar();
+             ...
+           }
+ 
+           it now only generates two wrapper functions:
+ 
+             X_foo(X *x) { x->foo(); }
+             Y_bar(Y *y) { y->bar(); }
+ 
+           Unlike SWIG1.15, the foo() method does *not* propagate to a wrapper
+           function Y_foo(). Instead, the base class method X_foo() must be
+           used.
+
+           This change should not affect modules that use shadow classes, but
+           it might break modules that directly use the low-level C wrappers.
+           This change is being made for a number of reasons:
+
+               -  It greatly simplifies the implementation of SWIG--especially
+                  with anticipated future changes such as overloaded methods.
+
+               -  It results in substantially less wrapper code--especially
+                  for big C++ class hierarchies (inherited declarations
+                  are no longer copied into every single derived class).
+
+               -  It allows for better code generation across multiple
+                  SWIG generated modules (code isn't replicated in
+                  every single module).
+
+           *** POTENTIAL INCOMPATIBILITY ***                                    
+
 8/22/2001: cheetah (william fulton)
            Provided some Windows documentation in the Win directory and some
            Visual C++ project files for running examples on Windows.
