@@ -621,9 +621,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (dump_tags) {
       Swig_print_tags(top,0);
     }
-    if (dump_tree) {
-      Swig_print_tree(top);
-    }
     if (top) {
       if (!Getattr(top,"name")) {
 	Printf(stderr,"*** No module name specified using %%module or -module.\n");
@@ -655,6 +652,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  Swig_browser(top,0);
 	}
       }
+    }
+    if (dump_tree) {
+      Swig_print_tree(top);
     }
   }
   if (tm_debug) Swig_typemap_debug();

@@ -364,6 +364,7 @@ void replace_args(Parm *p, String *s) {
 /* replace_contract_args.  This function replaces argument names in contract
    specifications.   Used in conjunction with the %contract directive. */
 
+//replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
 static
 void replace_contract_args(Parm *cp, Parm *rp, String *s) {
   while (cp && rp) {
@@ -374,7 +375,7 @@ void replace_contract_args(Parm *cp, Parm *rp, String *s) {
     cp = nextSibling(cp);
     rp = nextSibling(rp);
   }
-} 
+}
 
 /* -----------------------------------------------------------------------------
  * int emit_action()
@@ -429,6 +430,16 @@ void emit_action(Node *n, Wrapper *f) {
   tm = Getattr(n,"feature:preassert");
   if (tm) {
     replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
+    /*    Printf(stdout, "name: %s, preassert: %s\n", Getattr(n,"name"), tm); */
+    Printv(f->code,tm,"\n",NIL);
+  }
+
+  /* Invariant -- EXPERIMENTAL */
+  tm = Getattr(n,"feature:invariant");
+  if (tm) {
+    replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
+    Replaceid(tm, "SWIG_invariant", "SWIG_invariant_begin");
+    /*    Printf(stdout, "name: %s, invarassert: %s\n", Getattr(n,"name"), tm); */
     Printv(f->code,tm,"\n",NIL);
   }
 
@@ -476,10 +487,19 @@ void emit_action(Node *n, Wrapper *f) {
     Printf(f->code,"catch(...) { throw; }\n");
   }
 
+  /* Invariant -- EXPERIMENTAL */
+  tm = Getattr(n,"feature:invariant");
+  if (tm) {
+    replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
+    Replaceid(tm, "SWIG_invariant", "SWIG_invariant_end");
+    /* Printf(stdout, "name: %s, invarassert: %s\n", Getattr(n,"name"), tm); */
+    Printv(f->code,tm,"\n",NIL);
+  }
   /* Postassert - EXPERIMENTAL */
   tm = Getattr(n,"feature:postassert");
   if (tm) {
     replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
+    /* Printf(stdout, "name: %s, postassert: %s\n", Getattr(n,"name"), tm); */
     Printv(f->code,tm,"\n",NIL);
   }
 }
