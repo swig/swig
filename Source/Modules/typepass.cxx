@@ -189,7 +189,7 @@ class TypePass : private Dispatcher {
 		  if (!ilist) ilist = NewList();
 		  Append(ilist,bcls);
 		} else {
-		  Swig_error(Getfile(bcls),Getline(bcls),"class '%s' must be defined before it is used as a base class.\n", bname);
+		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS,Getfile(bcls),Getline(bcls),"class '%s' must be defined before it is used as a base class.\n", bname);
 		}
 	      }
 	    }
