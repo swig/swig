@@ -641,6 +641,7 @@ AC_OUTPUT(
     Source/Include/swigconfig.h
     Source/Include/swigver.h
     Source/LParse/Makefile
+    Source/Modules/Makefile
     Source/Modules1.1/Makefile
     Source/Preprocessor/Makefile
     Source/SWIG1.1/Makefile
