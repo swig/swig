@@ -326,7 +326,9 @@ typedef struct {
  * Strings.   
  * ----------------------------------------------------------------------------- */
 
-extern DOH   *NewString(char *c);
+extern DOH   *NewString(DOH *c);
+extern DOH   *NewStringf(DOH *fmt, ...);
+
 extern int    String_check(DOH *s);
 
 /* String replacement flags */
