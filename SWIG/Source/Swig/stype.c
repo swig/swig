@@ -471,8 +471,10 @@ String *SwigType_pop(SwigType *t)
 
 void SwigType_push(SwigType *t, String *cons)
 {
+  int hv1, hv2;
   if (!cons) return;
   if (!Len(cons)) return;
+
   if (Len(t)) {
     char *c = Char(cons);
     if (c[strlen(c)-1] != '.')
@@ -1596,7 +1598,7 @@ SwigType_check_decl(SwigType *ty, const SwigType *decl) {
   SwigType *t,*t1,*t2;
   int r;
   t = SwigType_typedef_resolve_all(ty);
-  t1 = SwigType_strip_qualifiers(ty);
+  t1 = SwigType_strip_qualifiers(t);
   t2 = SwigType_prefix(t1);
   r = Cmp(t2,decl);
   Delete(t);
