@@ -893,8 +893,6 @@ Language::memberfunctionHandler(Node *n) {
   Setattr(n,"sym:name",fname);
   functionWrapper(n);
 
-  Setattr(n,"wrap:parms",Getattr(n,"parms"));
-
   /*  DelWrapper(w);*/
   Delete(fname);
   Swig_restore(&n);

@@ -396,39 +396,40 @@
 %typemap(out)  PyObject * "$result = $1;";
 
 /* ------------------------------------------------------------
- * Type-checking typemaps
+ * Typechecking rules
  * ------------------------------------------------------------ */
 
-%typemap(typecheck,precedence="1")
+%typecheck(10)
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
 	 signed char, unsigned char,
 	 long long, unsigned long long 
 {
-  valid = PyInt_Check($input) ? 1 : 0;
+  $1 = PyInt_Check($input) ? 1 : 0;
 }
 
-%typemap(typecheck,precedence="4")
+%typecheck(20)
 	float, double
 {
-  valid = PyNumber_Check($input) ? 1 : 0;
+  $1 = PyFloat_Check($input) ? 1 : 0;
 }
 
-%typemap(typecheck,precedence="6") char {
+%typecheck(30) char {
   
 
 }
 
-%typemap(typecheck, precedence="7") char * {
-  valid = PyString_Check($input) ? 1 : 0;
+%typecheck(31) char * {
+  $1 = PyString_Check($input) ? 1 : 0;
 }
 
-%typemap(typecheck) SWIGTYPE * {
+%typecheck(0) SWIGTYPE * {
   void *ptr;
   if (SWIG_ConvertPtr($input, (void **) &ptr, $1_descriptor, 0) == -1) {
-    valid = 0;
+    $1 = 0;
+    PyErr_Clear();
   } else {
-    valid = 1;
+    $1 = 1;
   }
 }
 

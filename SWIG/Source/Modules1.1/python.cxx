@@ -299,7 +299,7 @@ public:
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l,f);
-
+    Setattr(n,"wrap:parms",l);
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
     num_required  = emit_num_required(l);
@@ -557,7 +557,10 @@ public:
    * ------------------------------------------------------------ */
   void dispatchFunction(Node *n) {
     /* Last node in overloaded chain */
-    List *dispatch = Swig_overload_rank(n);
+
+    int maxargs;
+    String *tmp = NewString("");
+    String *dispatch = Swig_overload_dispatch(n,&maxargs);
 	
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -571,48 +574,17 @@ public:
 	   NULL);
     
     Wrapper_add_local(f,"argc","int argc");
-    Wrapper_add_local(f,"valid","int valid");
-    Wrapper_add_local(f,"match","int match");
+    Printf(tmp,"PyObject *argv[%d]", maxargs+1);
+    Wrapper_add_local(f,"argv",tmp);
+    Wrapper_add_local(f,"ii","int ii");
     Printf(f->code,"argc = PyObject_Length(args);\n");
-
-    /* Walk the dispatch list and emit functions */
-    Node *c;
-    for (c = Firstitem(dispatch); c; c = Nextitem(dispatch)) {
-      ParmList *l = Getattr(c,"wrap:parms");
-      if (!l) l = Getattr(c,"parms");
-      int num_arguments = emit_num_arguments(l);
-      int num_required  = emit_num_required(l);
-      int varargs       = emit_isvarargs(l);
-
-      Printf(f->code,"if ((argc >= %d) && (argc <= %d)) {\n", num_required, num_arguments);
-      Printf(f->code,"match = 1;\n");
-      Printf(f->code,"valid = 1;\n");
-      Parm *p = l;
-      int   i = 0;
-      while (p) {
-	while (Getattr(p,"tmap:ignore")) {
-	  p = Getattr(p,"tmap:ignore:next");
-	}
-	String *tm = Getattr(p,"tmap:typecheck");
-	if (tm) {
-	  char   temp[64];
-	  sprintf(temp,"PyTuple_GetItem(args,%d)",i);
-	  Replaceall(tm,"$input",temp);
-	  Printv(f->code,tm,NULL);
-	}
-	Printf(f->code,"\nmatch &= valid;\n");
-	if (Getattr(p,"tmap:in:next")) {
-	  p = Getattr(p,"tmap:in:next");
-	} else {
-	  p = nextSibling(p);
-	}
-	i++;
-      }
-      Printf(f->code,"if (match) return %s(self,args);\n", Getattr(c,"wrap:name"));
-      Printf(f->code,"PyErr_Clear();\n");
-      Printf(f->code,"}\n");
-    }
-    Printf(f->code,"PyErr_SetString(PyExc_ValueError,\"Bad arguments\");\n");
+    Printf(f->code,"for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n",maxargs);
+    Printf(f->code,"argv[ii] = PyTuple_GetItem(args,ii);\n");
+    Printf(f->code,"}\n");
+    
+    Replaceall(dispatch,"$args","self,args");
+    Printv(f->code,dispatch,"\n",NULL);
+    Printf(f->code,"PyErr_SetString(PyExc_TypeError,\"No match for overloaded '%s'\");\n", symname);
     Printf(f->code,"return NULL;\n");
     Printv(f->code,"}\n",NULL);
     Wrapper_print(f,f_wrappers);
@@ -623,6 +595,8 @@ public:
       Printv(f_shadow_stubs,symname, " = ", module, ".", symname, "\n\n", NULL);
     }
     DelWrapper(f);
+    Delete(dispatch);
+    Delete(tmp);
     Delete(wname);
   }
 

@@ -84,6 +84,9 @@
 %rename(__deref__) operator->;
 #endif
 
+/* Macro for overload resolution */
+
+#define %typecheck(_x) %typemap(typecheck, precedence=`_x`)
 
 /* Set up the typemap for handling new return strings */
 

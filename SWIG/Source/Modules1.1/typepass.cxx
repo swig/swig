@@ -503,6 +503,31 @@ public:
 		Delete(nname);
 	    }
 	}
+	/* If overloaded, removed templates */
+	{
+	  Node *nn = Getattr(n,"sym:overloaded");
+	  Node *first = 0;
+	  while (nn) {
+	    if (Strcmp(nodeType(nn),"template") != 0) {
+	      if (!first) first = nn;
+	      Setattr(nn,"sym:overloaded",first);
+	    } else {
+	      /* Is a template */
+	      Node *ps = Getattr(nn,"sym:prevSibling");
+	      Node *ns = Getattr(nn,"sym:nextSibling");
+	      if (ps) {
+		Setattr(ps,"sym:nextSibling",ns);
+	      }
+	      if (ns) {
+		Setattr(ns,"sym:prevSibling",ps);
+	      }
+	    }
+	    nn = Getattr(nn,"sym:nextSibling");
+	  }
+	  if (!first) {
+	    Delattr(n,"sym:overloaded");
+	  }
+	}
 	return SWIG_OK;
     }
 
