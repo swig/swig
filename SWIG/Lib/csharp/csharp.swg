@@ -429,7 +429,7 @@ $1 = &temp; %}
 %typemap(csptrconstructormodifiers) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "internal"
 
 %typemap(csfinalize) SWIGTYPE %{
-  protected override void Finalize() {
+  ~$csclassname() {
     Dispose();
   }
 %}
