@@ -891,34 +891,43 @@
 %typemap(javaimports)          SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javainterfaces)       SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 
-// Proxy classes (base classes, ie, not derived classes)
-%typemap(javabody) SWIGTYPE %{
+/* javabody typemaps */
+
+%define SWIG_JAVABODY_METHODS(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPENAME...)
+// Base proxy classes
+%typemap(javabody) TYPENAME %{
   private long swigCPtr;
   protected boolean swigCMemOwn;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+  PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr($javaclassname obj) {
+  CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
 
 // Derived proxy classes
-%typemap(javabody_derived) SWIGTYPE %{
+%typemap(javabody_derived) TYPENAME %{
   private long swigCPtr;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+  PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     super($moduleJNI.SWIG$javaclassnameUpcast(cPtr), cMemoryOwn);
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr($javaclassname obj) {
+  CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
+%enddef
+
+/* Set the default for SWIGTYPE: pointer constructor is protected,
+   getCPtr is protected. Season to your own taste! */
+
+SWIG_JAVABODY_METHODS(protected, protected, SWIGTYPE)
 
 // Typewrapper classes
 %typemap(javabody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
@@ -943,14 +952,49 @@
   }
 %}
 
-%typemap(javaconstruct) SWIGTYPE {
-    this($imcall, true);
-  }
+/*
+ * Java constructor typemaps:
+ *
+ * The javaconstruct and javaconstruct_director typemaps are inserted when a
+ * proxy class's constructor is generated. These typemaps allow control over what
+ * code is executed in the constructor as well as specifying who owns the
+ * underlying C/C++ object. Normally, Java has ownership and the underlying
+ * C/C++ object is deallocated when the Java object is finalized (swigCMemOwn
+ * is true.) If swigCMemOwn is false, C/C++ is ultimately responsible for
+ * deallocating the underlying object's memory.
+ *
+ * The SWIG_PROXY_CONSTRUCTOR and SWIG_DIRECTOR_CONSTRUCTOR macros define the
+ * javaconstruct and javaconstruct_director typemaps for a proxy class for a
+ * particular TYPENAME. OWNERSHIP is passed as the value of swigCMemOwn to the
+ * pointer constructor method. SWIG_DIRECTOR_CONSTRUCTOR takes an additional
+ * parameter, WEAKREF, that determines which kind of Java object reference
+ * will be used by the C++ director class (WeakGlobalRef vs. GlobalRef.)
+ *
+ * The SWIG_DIRECTOR_OWNED macro sets the ownership of director-based proxy
+ * classes to false, meaning that the underlying C++ object will be
+ * reclaimed by C++.
+ */
 
-%typemap(javaconstruct_director) SWIGTYPE {
-    this($imcall, true);
-    $moduleJNI.$javaclassname_director_connect(this, swigCPtr);
+%define SWIG_PROXY_CONSTRUCTOR(OWNERSHIP, TYPENAME...)
+%typemap(javaconstruct) TYPENAME {
+    this($imcall, OWNERSHIP);
   }
+%enddef
+
+%define SWIG_DIRECTOR_CONSTRUCTOR(OWNERSHIP, WEAKREF, TYPENAME...)
+%typemap(javaconstruct_director) TYPENAME {
+    this($imcall, OWNERSHIP);
+    $moduleJNI.$javaclassname_director_connect(this, swigCPtr, OWNERSHIP, WEAKREF);
+  }
+%enddef
+
+%define SWIG_DIRECTOR_OWNED(TYPENAME...)
+SWIG_DIRECTOR_CONSTRUCTOR(true, false, TYPENAME)
+%enddef
+
+// Set the default for SWIGTYPE: Java owns the C/C++ object.
+SWIG_PROXY_CONSTRUCTOR(true, SWIGTYPE)
+SWIG_DIRECTOR_CONSTRUCTOR(true, true, SWIGTYPE)
 
 %typemap(javadestruct, methodname="delete") SWIGTYPE {
     if(swigCPtr != 0 && swigCMemOwn) {
