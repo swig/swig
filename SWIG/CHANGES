@@ -3,6 +3,11 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+7/10/00 : beazley
+          Removed WrapperFunction class from the core and updated the language
+          module.  This will break third party modules.
+          *** POTENTIAL INCOMPATIBILITY ***
+
 7/9/00  : beazley
           Implementation of SWIG no longer makes use of C++ operator overloading.
           This will almost certainly break *all* third party language modules
