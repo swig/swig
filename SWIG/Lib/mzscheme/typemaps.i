@@ -11,27 +11,27 @@
 /* Pointers */
 
 %typemap(in) SWIGTYPE * {
-  $target = ($ltype) SWIG_MustGetPtr($source, $descriptor, $argnum);
+  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum);
 }
 
 %typemap(in) void * {
-  $target = SWIG_MustGetPtr($source, NULL, $argnum);
+  $1 = SWIG_MustGetPtr($input, NULL, $argnum);
 }
 
 %typemap(varin) SWIGTYPE * {
-  $target = ($ltype) SWIG_MustGetPtr($source, $descriptor, $argnum);
+  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, 1);
 }
 
 %typemap(varin) void * {
-  $target = SWIG_MustGetPtr($source, NULL, $argnum);
+  $1 = SWIG_MustGetPtr($input, NULL, 1);
 }
 
 %typemap(out) SWIGTYPE * {
-  $target = SWIG_MakePtr ($source, $descriptor);
+  $result = SWIG_MakePtr ($1, $descriptor);
 }
     
 %typemap(varout) SWIGTYPE * {
-  $target = SWIG_MakePtr ($source, $descriptor);
+  $result = SWIG_MakePtr ($1, $descriptor);
 }
 
 /* C++ References */
@@ -39,11 +39,11 @@
 #ifdef __cplusplus
 
 %typemap(in) SWIGTYPE & { 
-  $target = ($ltype) SWIG_MustGetPtr($source, $descriptor, $argnum);
+  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum);
 }
 
 %typemap(out) SWIGTYPE & {
-  $target = SWIG_MakePtr ($source, $descriptor);
+  $result = SWIG_MakePtr ($1, $descriptor);
 }
 
 #endif
@@ -51,59 +51,59 @@
 /* Arrays */
 
 %typemap(in) SWIGTYPE[] {
-  $target = ($ltype) SWIG_MustGetPtr($source, $descriptor, $argnum);
+  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum);
 }
 
 %typemap(out) SWIGTYPE[] {
-  $target = SWIG_MakePtr ($source, $descriptor);
+  $result = SWIG_MakePtr ($1, $descriptor);
 }
 
 /* Enums */
 %typemap(in) enum SWIGTYPE {
-  if (!SCHEME_INTP($source)) 
+  if (!SCHEME_INTP($input)) 
       scheme_wrong_type("$name", "integer", $argnum, argc, argv);
-  $target = SCHEME_INT_VAL($source);
+  $1 = SCHEME_INT_VAL($input);
 }
 
 %typemap(varin) enum SWIGTYPE {
-  if (!SCHEME_INTP($source)) 
-      scheme_wrong_type("$name", "integer", $argnum, argc, argv);
-  $target = SCHEME_INT_VAL($source);
+  if (!SCHEME_INTP($input)) 
+      scheme_wrong_type("$name", "integer", 1, argc, argv);
+  $1 = SCHEME_INT_VAL($input);
 }
 
-%typemap(out) enum SWIGTYPE "$target = scheme_make_integer_value($source);";
-%typemap(varout) enum SWIGTYPE "$target = scheme_make_integer_value($source);";
+%typemap(out) enum SWIGTYPE "$result = scheme_make_integer_value($1);";
+%typemap(varout) enum SWIGTYPE "$result = scheme_make_integer_value($1);";
 
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 
 %define SIMPLE_MAP(C_NAME, MZ_PREDICATE, MZ_TO_C, C_TO_MZ, MZ_NAME)
-%typemap(in) C_NAME, C_NAME const {
-    if (!MZ_PREDICATE($source))
+%typemap(in) C_NAME {
+    if (!MZ_PREDICATE($input))
 	scheme_wrong_type("$name", "MZ_NAME", $argnum, argc, argv);
-    $target = MZ_TO_C($source);
+    $1 = MZ_TO_C($input);
 }
-%typemap(varin) C_NAME, C_NAME const {
-    if (!MZ_PREDICATE($source))
-	scheme_wrong_type("$name", "MZ_NAME", $argnum, argc, argv);
-    $target = MZ_TO_C($source);
+%typemap(varin) C_NAME {
+    if (!MZ_PREDICATE($input))
+	scheme_wrong_type("$name", "MZ_NAME", 1, argc, argv);
+    $1 = MZ_TO_C($input);
 }
-%typemap(out) C_NAME, C_NAME const {
-    $target = C_TO_MZ($source);
+%typemap(out) C_NAME {
+    $result = C_TO_MZ($1);
 }
-%typemap(varout) C_NAME, C_NAME const {
-    $target = C_TO_MZ($source);
+%typemap(varout) C_NAME {
+    $result = C_TO_MZ($1);
 }
 %typemap(in) C_NAME *INPUT (C_NAME temp) {
-    temp = (C_NAME) MZ_TO_C($source);
-    $target = &temp;
+    temp = (C_NAME) MZ_TO_C($input);
+    $1 = &temp;
 }
 %typemap(ignore) C_NAME *OUTPUT (C_NAME temp) {
-    $target = &temp;
+    $1 = &temp;
 }
 %typemap(argout) C_NAME *OUTPUT {
     Scheme_Object *s;
-    s = C_TO_MZ(*$target);
+    s = C_TO_MZ(*$1);
     SWIG_APPEND_VALUE(s);
 }
 %typemap(in) C_NAME *BOTH = C_NAME *INPUT;
@@ -145,10 +145,11 @@ SIMPLE_MAP(const char *, SCHEME_STRINGP, SCHEME_STR_VAL,
 
 /* Void */
 
-%typemap(out) void "$target = scheme_void;";
+%typemap(out) void "$result = scheme_void;";
 
 /* Pass through Scheme_Object * */
 
-%typemap (in) Scheme_Object * "$target=$source;";
-%typemap (out) Scheme_Object * "$target=$source;";
+%typemap (in) Scheme_Object * "$1=$input;";
+%typemap (out) Scheme_Object * "$result=$1;";
+
 

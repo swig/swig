@@ -352,14 +352,12 @@ MZSCHEME::functionWrapper(Node *n) {
 
   // Now have return value, figure out what to do with it.
 
-  if ((tm = Swig_typemap_lookup ("out",
-				     d, name, (char*)"result",
-				     (char*)"result", (char*)"values[0]", f))) {
+  if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+    Replaceall(tm,"$source","result");
+    Replaceall(tm,"$target","values[0]");
+    Replaceall(tm,"$result","values[0]");
     Printv(f->code, tm, "\n",0);
-    //    mreplace (f->code, argnum, arg, proc_name);
-    Delete(tm);
-  }
-  else {
+  } else {
     throw_unhandled_mzscheme_type_error (d);
   }
 
@@ -372,23 +370,17 @@ MZSCHEME::functionWrapper(Node *n) {
   // Look for any remaining cleanup
 
   if (NewObject) {
-    if ((tm = Swig_typemap_lookup ("newfree",
-				       d, iname, (char*)"result",
-				       (char*)"result", (char*)"", f))) {
+    if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
+      Replaceall(tm,"$source","result");
       Printv(f->code, tm, "\n",0);
-      //      mreplace (f->code, argnum, arg, proc_name);
-      Delete(tm);
     }
   }
 
   // Free any memory allocated by the function being wrapped..
 
-  if ((tm = Swig_typemap_lookup ("ret",
-				 d, name, (char*)"result",(char*)"result", (char*)"", f))) {
-    // Yep.  Use it instead of the default
+  if ((tm = Swig_typemap_lookup_new("ret",n,"result",0))) {
+    Replaceall(tm,"$source","result");
     Printv(f->code, tm, "\n",0);
-    // mreplace (f->code, argnum, arg, proc_name);
-    Delete(tm);
   }
 
   // Wrap things up (in a manner of speaking)
@@ -469,12 +461,11 @@ MZSCHEME::variableWrapper(Node *n)
     if (!ReadOnly) {
       /* Check for a setting of the variable value */
       Printf (f->code, "if (argc) {\n");
-      if ((tm = Swig_typemap_lookup ("varin",
-					 t, name, name, (char*)"argv[0]", name,0))) {
-	Printv(tm2, tm,0);
-	mreplace(tm2, argnum, arg, proc_name);
-	Printv(f->code, tm2, "\n",0);
-	Delete(tm);
+      if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
+	Replaceall(tm,"$source","argv[0]");
+	Replaceall(tm,"$target",name);
+	Replaceall(tm,"$input","argv[0]");
+	Printv(f->code, tm, "\n",0);
       }
       else {
 	throw_unhandled_mzscheme_type_error (t);
@@ -485,10 +476,11 @@ MZSCHEME::variableWrapper(Node *n)
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if ((tm = Swig_typemap_lookup ("varout",
-				       t, name, name, name, (char*)"swig_result",0))) {
+    if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
+      Replaceall(tm,"$source",name);
+      Replaceall(tm,"$target","swig_result");
+      Replaceall(tm,"$result","swig_result");
       Printf (f->code, "%s\n", tm);
-      Delete(tm);
     }
     else {
       throw_unhandled_mzscheme_type_error (t);
@@ -576,11 +568,11 @@ MZSCHEME::constantWrapper(Node *n)
     Clear(rvalue);
     Printv(rvalue, "'", temp, "'",0);
   }
-  if ((tm = Swig_typemap_lookup ("const", type, name, name, 
-				 rvalue, name,0))) {
-    // Yep.  Use it instead of the default
+  if ((tm = Swig_typemap_lookup_new("constant",n,name,0))) {
+    Replaceall(tm,"$source",rvalue);
+    Replaceall(tm,"$value",rvalue);
+    Replaceall(tm,"$target",name);
     Printf (f_init, "%s\n", tm);
-    Delete(tm);
   } else {
     // Create variable and assign it a value
 
@@ -619,6 +611,7 @@ MZSCHEME::import_start(char *modname) {
 void 
 MZSCHEME::import_end() {
 }
+
 
 
 
