@@ -100,7 +100,7 @@ void scanner_init() {
 void scanner_file(FILE *f) {
   InFile *in;
 
-  in = new InFile;
+  in = (InFile *) malloc(sizeof(InFile));
   in->f = f;
   in->in_file = input_file;
   in->extern_mode = WrapExtern;	
@@ -134,7 +134,7 @@ void scanner_close() {
   } else {
     LEX_in = NULL;
   }
-  delete in_head;
+  free(in_head);
   in_head = p;
 }
 
@@ -154,7 +154,7 @@ char nextchar() {
       if (inline_lex_pos >= inline_lex_len) {
 	// Done with inlined code.  Check to see if we have any
 	// new code fragments.  If so, switch to them.
-	delete inline_yybuffer;
+	free(inline_yybuffer);
 	if (fragments) {
 	  CodeFragment *f;
 	  inline_yybuffer = fragments->text;
@@ -162,7 +162,7 @@ char nextchar() {
 	  inline_lex_len = strlen(fragments->text);
 	  line_number = fragments->line_number;
 	  f = fragments->next;
-	  delete fragments;
+	  free(fragments);
 	  fragments = f;
 	  c = inline_yybuffer[0];
 	} else {
@@ -260,8 +260,8 @@ void start_inline(char *text, int line) {
     CodeFragment *f,*f1;
 
     // Add a new code fragment to our list
-    f = new CodeFragment;
-    f->text = copy_string(text);
+    f = (CodeFragment *) malloc(sizeof(CodeFragment));
+    f->text = Swig_copy_string(text);
     f->line_number = line;
     f->next = 0;
     if (!fragments) fragments = f;
@@ -275,7 +275,7 @@ void start_inline(char *text, int line) {
     // Switch our scanner over to process text from a string.
     // Save current line number and other information however.
 
-    inline_yybuffer = copy_string(text);
+    inline_yybuffer = Swig_copy_string(text);
     inline_lex_len = strlen(text);
     inline_lex_pos = 0;
     inline_line_number = line_number;       // Make copy of old line number
@@ -476,7 +476,7 @@ int skip_cond(int inthen) {
   int    start_line;
   char  *file;
   
-  file = copy_string(input_file);
+  file = Swig_copy_string(input_file);
   start_line = line_number;
   yylen = 0;
 
@@ -545,7 +545,7 @@ int skip_cond(int inthen) {
 	      state = 0;
 	    } else {
 	      yylen = 0;
-	      delete file;
+	      free(file);
 	      return 1;
 	    }
 	  } else {
@@ -555,7 +555,7 @@ int skip_cond(int inthen) {
 	} else if ((strcmp(yytext,"#endif") == 0) || (strcmp(yytext,"%endif") == 0)) {
 	  if (level <= 0) {    /* Found matching endif. exit */
 	    yylen = 0;
-	    delete file;
+	    free(file);
 	    return 0;
 	  } else {
 	    state = 0;
@@ -566,7 +566,7 @@ int skip_cond(int inthen) {
 	  if (level <= 0) {
 	    // If we come across this, we pop it back onto the input queue and return
 	    retract(6);
-	    delete file;
+	    free(file);
 	    return 0;
 	  } else {
 	    yylen = 0;
@@ -778,7 +778,7 @@ int yylook(void) {
 	  }
 	  if (c == '\"') {
 	    yytext[yylen-1] = 0;
-	    yylval.id = copy_string(yytext+1);
+	    yylval.id = Swig_copy_string(yytext+1);
 	    return(STRING);
 	  } else if (c == '\\') {
 	    state = 21;             /* Possibly an escape sequence. */
@@ -902,7 +902,7 @@ int yylook(void) {
 	  else if ((c == 'e') || (c == 'E')) {state = 86;}
 	  else if ((c == 'f') || (c == 'F')) {
              yytext[yylen] = 0;
-	     yylval.id = copy_string(yytext);
+	     yylval.id = Swig_copy_string(yytext);
 	     return(NUM_FLOAT);
 	  }
 	  else if (isdigit(c)) { state = 8;}
@@ -913,7 +913,7 @@ int yylook(void) {
 	  } else {
 	      retract(1);
 	      yytext[yylen] = 0;
-	      yylval.id = copy_string(yytext);
+	      yylval.id = Swig_copy_string(yytext);
 	      return(NUM_INT);
 	    }
 	  break;
@@ -923,12 +923,12 @@ int yylook(void) {
 	  else if ((c == 'e') || (c == 'E')) state = 82;
           else if ((c == 'f') || (c == 'F') || (c == 'l') || (c == 'L')) {
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_FLOAT);
 	  } else {
 	    retract(1);
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_FLOAT);
 	  }
 	  break;
@@ -938,7 +938,7 @@ int yylook(void) {
 	  else {
 	    retract(2);
 	    yytext[yylen-1] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_INT);
 	  }
 	  break;
@@ -955,7 +955,7 @@ int yylook(void) {
 	  } else {
 	    retract(1);
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_INT);
 	  }
 	  break;
@@ -970,7 +970,7 @@ int yylook(void) {
 	  } else {
 	    retract(1);
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_INT);
 	  }
 	  break;
@@ -989,7 +989,7 @@ int yylook(void) {
 	  } else {
 	    retract(1);
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_INT);
 	  }
 	  break;
@@ -1001,12 +1001,12 @@ int yylook(void) {
 	  if (isdigit(c)) state = 86;
           else if ((c == 'f') || (c == 'F') || (c == 'l') || (c == 'L')) {
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_FLOAT);
 	  } else {
 	    retract(1);
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_FLOAT);
 	  }
 	  /* Parse a character constant. ie. 'a' */
@@ -1017,12 +1017,12 @@ int yylook(void) {
 	  if ((c = nextchar()) == 0) return (0);
 	  if ((c == 'u') || (c == 'U')) {
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_ULONG);
 	  } else {
 	    retract(1);
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_LONG);
 	  } 
 
@@ -1031,12 +1031,12 @@ int yylook(void) {
 	  if ((c = nextchar()) == 0) return (0);
 	  if ((c == 'l') || (c == 'L')) {
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_ULONG);
 	  } else {
 	    retract(1);
 	    yytext[yylen] = 0;
-	    yylval.id = copy_string(yytext);
+	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_UNSIGNED);
 	  } 
 
@@ -1045,7 +1045,7 @@ int yylook(void) {
 	  if (c == '\\') state = 91;
 	  else if (c == '\'') {
 	    yytext[yylen-1] = 0;
-	    yylval.id = copy_string(yytext+1);
+	    yylval.id = Swig_copy_string(yytext+1);
 	    return(CHARCONST);
 	  }
 	  break;
@@ -1171,7 +1171,7 @@ extern "C" int yylex(void) {
 	}
 	if (strcmp(yytext,"signed") == 0) {
 	  yylval.type = NewDataType(0);
-	  yylval.type->type = T_SINT;
+	  yylval.type->type = T_INT;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_SIGNED);
 	}
@@ -1308,7 +1308,7 @@ extern "C" int yylex(void) {
 	  }
 	}
 
-	yylval.id = copy_string(yytext);
+	yylval.id = Swig_copy_string(yytext);
 	return(ID);
       default:
 	return(l);

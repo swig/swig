@@ -81,22 +81,22 @@ void Language::cpp_open_class(char *classname, char *classrename, char *ctype, i
 
   // Copy the class name
 
-  if (ClassName) delete ClassName;
-  ClassName = copy_string(classname);
+  if (ClassName) free(ClassName);
+  ClassName = Swig_copy_string(classname);
 
   // Copy the class renaming
 
-  if (ClassRename) delete ClassRename;
+  if (ClassRename) free(ClassRename);
   if (classrename) {
-    ClassRename = copy_string(classrename);
+    ClassRename = Swig_copy_string(classrename);
   } else {
     ClassRename = 0;           // No renaming
   }
 
   // Make the class type
 
-  if (ClassType) delete ClassType;
-  ClassType = new char[strlen(ctype)+2];
+  if (ClassType) free(ClassType);
+  ClassType = (char *) malloc(strlen(ctype)+2);
   if (strip) ClassType[0] = 0;
   else sprintf(ClassType,"%s ",ctype);
 }
@@ -442,7 +442,7 @@ void Language::cpp_declare_const(char *name, char *iname, DataType *type, char *
 
   // Declare a constant
   if (!value) {
-    new_value = new char[strlen(ClassName)+strlen(name)+3];
+    new_value = (char *) malloc(strlen(ClassName)+strlen(name)+3);
     sprintf(new_value,"%s::%s",ClassName,name);
   } else {
     new_value = value;
@@ -451,7 +451,7 @@ void Language::cpp_declare_const(char *name, char *iname, DataType *type, char *
   lang->declare_const(cname,cname,type, new_value);
   
   if (!value) {
-    delete new_value;
+    free(new_value);
   }
 }
 

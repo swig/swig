@@ -55,7 +55,6 @@ extern  int       Inline;                           // Inline mode
 extern  int       NoInclude;                        // NoInclude flag
 extern  char     *typemap_lang;                     // Current language name
 extern  int       error_count;
-extern  char     *copy_string(char *);
 extern  char      output_dir[512];                  // Output directory
 extern  int       Verbose;
 extern  int       IsVirtual;
@@ -219,10 +218,9 @@ public:
 
 /* Emit functions */
 
-extern  void  emit_extern_var(char *, DataType *, int, FILE *);
-extern  void  emit_extern_func(char *, DataType *, ParmList *, int, FILE *);
 extern  void  emit_func_call(char *, DataType *, ParmList *, FILE *);
 extern  void  emit_set_get(char *, char *, DataType *);
+extern  void  emit_set_action(DOHString_or_char *decl);
 
 extern  int   SWIG_main(int, char **, Language *);
 

@@ -143,7 +143,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     checkout = 0;
   int     cpp_only = 0;
 
-  char   *typemap_file = 0;
   char   *includefiles[256];
   int     includecount = 0;
   extern  int check_suffix(char *);
@@ -189,7 +188,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       strcpy(LibDir,c);
   }
 
-  SwigLib = copy_string(LibDir);        // Make a copy of the real library location
+  SwigLib = Swig_copy_string(LibDir);        // Make a copy of the real library location
 
   sprintf(temp,"%s/config", LibDir);
   Swig_add_directory((DOH *) temp);
@@ -205,7 +204,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (argv[i]) {
 	  if (strncmp(argv[i],"-I",2) == 0) {
 	    // Add a new directory search path
-	    includefiles[includecount++] = copy_string(argv[i]+2);
+	    includefiles[includecount++] = Swig_copy_string(argv[i]+2);
 	    Swig_mark_arg(i);
 	  } else if (strncmp(argv[i],"-D",2) == 0) {
 	    DOH *d = NewString(argv[i]+2);
@@ -238,7 +237,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-o") == 0) {
 	      Swig_mark_arg(i);
 	      if (argv[i+1]) {
-		outfile_name = copy_string(argv[i+1]);
+		outfile_name = Swig_copy_string(argv[i+1]);
 		Swig_mark_arg(i+1);
 		i++;
 	      } else {
@@ -564,9 +563,9 @@ void swig_pragma(char *name, char *value) {
     GenerateDefault = 0;
   }
   if (strcmp(name,"objc_new") == 0) {
-    objc_construct = copy_string(value);
+    objc_construct = Swig_copy_string(value);
   }
   if (strcmp(name,"objc_delete") == 0) {
-    objc_destruct = copy_string(value);
+    objc_destruct = Swig_copy_string(value);
   }
 }

@@ -33,7 +33,6 @@ extern void scanner_check_typedef(void);
 extern void scanner_ignore_typedef(void);
 extern void scanner_clear_start(void);
 extern void start_inline(char *, int);
-extern void format_string(char *);
 extern void swig_pragma(char *, char *);
 
 #include "internal.h"
@@ -85,7 +84,7 @@ static DOHHash        *symbols = 0;
 /* Some macros for building constants */
 
 #define E_BINARY(TARGET, SRC1, SRC2, OP)  \
-        TARGET = new char[strlen(SRC1) + strlen(SRC2) +strlen(OP)+1];\
+        TARGET = (char *) malloc(strlen(SRC1) + strlen(SRC2) +strlen(OP)+1);\
 	sprintf(TARGET,"%s%s%s",SRC1,OP,SRC2);
 
 /* C++ modes */
@@ -121,6 +120,112 @@ void parser_init() {
 	ArrayString = NewString("");
 	temp_type = NewDataType(0);
 }  
+
+static TMParm *NewTMParm() {
+  TMParm *tmp = (TMParm *) malloc(sizeof(TMParm));
+  tmp->next = 0;
+  return tmp;
+}
+
+//-----------------------------------------------------------------------
+// void format_string(char *str)
+//
+// Replace all of the escape sequences in the string str.   It is
+// assumed that the new string is smaller than the original!
+//-----------------------------------------------------------------------
+
+static void format_string(char *str) {
+  char *newstr, *c,*c1;
+  int  state;
+  if (!str) return;
+  newstr = Swig_copy_string(str);
+  c = newstr;
+  c1 = str;
+  state = 0;
+  while (*c) {
+    switch(state) {
+    case 0:
+      if (*c == '\\')
+	state = 1;
+      else {
+	*(c1++) = *c;
+	state = 0;
+      }
+      break;
+   case 1:
+      // We're in a simple escape sequence figure out what to do
+      switch(*c) {
+      case 'n':
+	*(c1++) = '\n';
+	break;
+      case 'f':
+	*(c1++) = '\f';
+	break;
+      case 'r':
+	*(c1++) = '\r';
+	break;
+      case 't':
+	*(c1++) = '\t';
+	break;
+      case '\\':
+	*(c1++) = '\\';
+      break;
+      case '\"':
+	*(c1++) = '\"';
+      break;
+      case '\'':
+	*(c1++) = '\'';
+      break;
+      default:
+	*(c1++) = '\\';
+        *(c1++) = *c;
+      }
+      state = 0;
+      break;
+    default:
+      *(c1++) = *c;
+      state = 0;
+    }
+    c++;
+  }
+  *c1 = 0;
+  free(newstr);
+}
+
+// Emit an external function declaration 
+
+static void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FILE *f) {
+
+  switch(extern_type) {
+  case 0:
+    fprintf(f,"%s", DataType_str(t,0));
+    fprintf(f,"%s(", decl);
+    ParmList_print_types(L,f);
+    fprintf(f,");\n");
+    break;
+  case 1:
+    fprintf(f,"extern %s", DataType_str(t,0));
+    fprintf(f,"%s(", decl);
+    ParmList_print_types(L,f);
+    fprintf(f,");\n");
+    break;
+  case 2:
+  /* A C++ --- > C Extern */
+    fprintf(f,"extern \"C\" %s", DataType_str(t,0));
+    fprintf(f,"%s(", decl);
+    ParmList_print_types(L,f);
+    fprintf(f,");\n");
+    break;
+  case 3:
+    fprintf(f,"%s", DataType_str(t,0));
+    fprintf(f,"%s(", decl);
+    ParmList_print_args(L,f);
+    fprintf(f,")\n");
+    break;
+  default:
+    break;
+  }
+}
 
 // ----------------------------------------------------------------------
 // static init_language()
@@ -257,10 +362,8 @@ void create_variable(int ext, char *name, DataType *t) {
 
     // If externed, output an external declaration
 
-    if (ext) 
-      emit_extern_var(name, t, ext, f_header);
-    else if (ForceExtern) {
-      emit_extern_var(name, t, 1, f_header);
+    if (ext || ForceExtern) {
+	Printf(f_header,"extern %s;\n", DataType_str(t,name));
     }
 
     // If variable datatype is read-only, we'll force it to be readonly
@@ -294,7 +397,7 @@ void create_constant(char *name, DataType *type, char *value) {
   if ((type->type == T_CHAR) && (!type->is_pointer))
     type->is_pointer++;
   
-  if (!value) value = copy_string(name);
+  if (!value) value = Swig_copy_string(name);
   sprintf(temp_name,"const:%s", name);
   if (add_symbol(temp_name)) {
     fprintf(stderr,"%s : Line %d. Constant %s multiply defined. (2nd definition ignored)\n",
@@ -368,7 +471,7 @@ static void dump_nested(char *parent) {
 
     n1 = n->next;
     Delete(n->code);
-    delete n;
+    free(n);
     n = n1;
   }
   nested_list = 0;
@@ -489,9 +592,9 @@ command        : command statement {
                ;
 
 statement      : INCLUDE STRING LBRACE {
-                     $1.filename = copy_string(input_file);
+                     $1.filename = Swig_copy_string(input_file);
 		     $1.line = line_number;
-		     input_file = copy_string($2);
+		     input_file = Swig_copy_string($2);
 		     line_number = 0;
                } command RBRACE {
                      input_file = $1.filename;
@@ -503,9 +606,9 @@ statement      : INCLUDE STRING LBRACE {
                | WEXTERN STRING LBRACE {
 		 $1.flag = WrapExtern;
 		 WrapExtern = 1;
-		 $1.filename = copy_string(input_file);
+		 $1.filename = Swig_copy_string(input_file);
 		 $1.line = line_number;
-		 input_file = copy_string($2);
+		 input_file = Swig_copy_string($2);
 		 line_number = 0;
 	       } command RBRACE {
 		 input_file = $1.filename;
@@ -518,9 +621,9 @@ statement      : INCLUDE STRING LBRACE {
                | IMPORT STRING LBRACE {
 		 $1.flag = WrapExtern;
 		 WrapExtern = 1;
-		 $1.filename = copy_string(input_file);
+		 $1.filename = Swig_copy_string(input_file);
 		 $1.line = line_number;
-		 input_file = copy_string($2);
+		 input_file = Swig_copy_string($2);
 		 line_number = 0;
 		 lang->import($2);
 	       } command RBRACE {
@@ -530,9 +633,9 @@ statement      : INCLUDE STRING LBRACE {
 	       }
 
                | SWIGMACRO ID COMMA STRING COMMA NUM_INT LBRACE {
-		 $1.filename = copy_string(input_file);
+		 $1.filename = Swig_copy_string(input_file);
 		 $1.line = line_number;
-		 input_file = copy_string($4);
+		 input_file = Swig_copy_string($4);
 		 line_number = atoi($6) - 1;
 	       } command RBRACE {
 		 input_file = $1.filename;
@@ -562,13 +665,15 @@ statement      : INCLUDE STRING LBRACE {
 		      FatalError();
 		    } else {
 		      if (DataType_qualifier($2)) {
-			if ((strcmp(DataType_qualifier($2),"const") == 0)) {
-			  if ($5.type != T_ERROR)
+			if (!($2->is_pointer) && (strcmp(DataType_qualifier($2),"const") == 0)) {
+			  if ($5.type != T_ERROR) 
 			    create_constant($3.id, $2, $5.id);
-			} else 
+			} else {
 			  create_variable($1,$3.id,$2);
-		      } else
+			}
+		      } else {
 			create_variable($1,$3.id,$2);
+		      }
 		    }
 		  DelDataType($2);
                 } stail { } 
@@ -865,8 +970,8 @@ statement      : INCLUDE STRING LBRACE {
 			     input_file,line_number);
 		   }
 		 for (i = 0; i < $3.count; i++)
-		   if ($3.names[i]) delete [] $3.names[i];
-		 delete [] $3.names;
+		   if ($3.names[i]) free($3.names[i]);
+		 free($3.names);
 	       }
 /* Module directive */
 
@@ -878,8 +983,8 @@ statement      : INCLUDE STRING LBRACE {
 		   module_init = 1;
 		   init_language();
 		 for (i = 0; i < $3.count; i++)
-		   if ($3.names[i]) delete [] $3.names[i];
-		 delete [] $3.names;
+		   if ($3.names[i]) free($3.names[i]);
+		 free($3.names);
 	       }
 
 /* constant directive */
@@ -942,8 +1047,8 @@ statement      : INCLUDE STRING LBRACE {
 		     typemap_register($5,$3,Parm_Gettype(p->p),Parm_Getname(p->p),Char(CCode),p->args);
 		     p = p->next;
                    }
-		   delete $3;
-		   delete $5;
+		   free($3);
+		   free($5);
 	       }
 
 /* Create a new typemap in current language */
@@ -961,7 +1066,7 @@ statement      : INCLUDE STRING LBRACE {
 		     p = p->next;
 		   }
 		 }
-		 delete $3;
+		 free($3);
 	       }
 
 /* Clear a typemap */
@@ -973,8 +1078,8 @@ statement      : INCLUDE STRING LBRACE {
                    typemap_clear($5,$3,Parm_Gettype(p->p),Parm_Getname(p->p));
 		   p = p->next;
 		 }
-		 delete $3;
-		 delete $5;
+		 free($3);
+		 free($5);
 	       }
 /* Clear a typemap in current language */
 
@@ -991,7 +1096,7 @@ statement      : INCLUDE STRING LBRACE {
 		     p = p->next;
 		   }
 		 }
-		 delete $3;
+		 free($3);
 	       }
 
 /* Copy a typemap */
@@ -1003,10 +1108,10 @@ statement      : INCLUDE STRING LBRACE {
 		     typemap_copy($5,$3,Parm_Gettype($9->p),Parm_Getname($9->p),Parm_Gettype(p->p),Parm_Getname(p->p));
 		     p = p->next;
 		   }
-		   delete $3;
-		   delete $5;
+		   free($3);
+		   free($5);
 		   DelParm($9->p);
-		   delete $9;
+		   free($9);
 	       }
 
 /* Copy typemap in current language */
@@ -1024,9 +1129,9 @@ statement      : INCLUDE STRING LBRACE {
 		     p = p->next;
 		   }
 		 }
-		 delete $3;
+		 free($3);
 		 DelParm($7->p);
-		 delete $7;
+		 free($7);
 	       }
 /* -----------------------------------------------------------------
    apply and clear support (for typemaps)
@@ -1039,9 +1144,9 @@ statement      : INCLUDE STRING LBRACE {
 		   typemap_apply(Parm_Gettype($2->p),Parm_Getname($2->p),Parm_Gettype(p->p),Parm_Getname(p->p));
 		   p = p->next;
 		 }
-		 delete $4;
+		 free($4);
 		 DelParmList($2->args);
-		 delete $2;
+		 free($2);
                }
 	       | CLEAR tm_list SEMI {
 		 TMParm *p;
@@ -1063,7 +1168,7 @@ statement      : INCLUDE STRING LBRACE {
                | EXCEPT LPAREN ID RPAREN LBRACE {
                     skip_brace();
                     fragment_register((char *)"except",$3, Char(CCode));
-		    delete $3;
+		    free($3);
 	       }
 
 /* A Generic Exception (no language specified */
@@ -1169,7 +1274,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   lang->add_typedef($2,$5);
 		   cplus_register_type($5);
 		 DelDataType($2);
-		 delete $5;
+		 free($5);
 		 DelParmList($8);
 	       }
 
@@ -1192,7 +1297,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   lang->add_typedef($2,$6);
 		   cplus_register_type($6);
 		 DelDataType($2);
-		 delete $6;
+		 free($6);
 		 DelParmList($9);
 	       }
 
@@ -1353,7 +1458,7 @@ ptail          : COMMA parm ptail {
 parm           : parm_type {
                   $$ = $1;
 		  if (typemap_check((char *)"ignore",typemap_lang,Parm_Gettype($$),Parm_Getname($$)))
-		    $$->ignore = 1;
+		    Parm_Setignore($$,1);
                }
 
 parm_type      : type pname {
@@ -1365,7 +1470,7 @@ parm_type      : type pname {
 		    $$ = NewParm($1,$2);
 		    Parm_Setvalue($$,DefArg);
 		    DelDataType($1);
-		    delete $2;
+		    free($2);
                  }
 
                 | type stars pname {
@@ -1378,7 +1483,7 @@ parm_type      : type pname {
 		     DataType_set_arraystr(Parm_Gettype($$), Char(ArrayString));
 		    }
 		   DelDataType($1);
-		   delete $3;
+		   free($3);
 		}
 
                 | type AND pname {
@@ -1391,7 +1496,7 @@ parm_type      : type pname {
 			fprintf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
 		  }
 		  DelDataType($1);
-		  delete $3;
+		  free($3);
 		}
                 | type LPAREN stars pname RPAREN LPAREN parms RPAREN {
                   fprintf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
@@ -1402,7 +1507,7 @@ parm_type      : type pname {
 		  Parm_Setname($$,$4);
 		  strcpy(pt->name,"<function ptr>");
 		  DelDataType($1);
-		  delete $4;
+		  free($4);
 		  DelParmList($7);
 		}
                 | PERIOD PERIOD PERIOD {
@@ -1423,7 +1528,7 @@ pname          : ID def_args {
 		      DefArg = Swig_copy_string(ConstChar);
 		    else
 		      DefArg = Swig_copy_string($2.id);
-                    if ($2.id) delete $2.id;
+                    if ($2.id) free($2.id);
                 }
                | ID array {
                     $$ = $1; 
@@ -1431,12 +1536,12 @@ pname          : ID def_args {
                     DefArg = 0;
                }
                | array {
-                         $$ = new char[1];
+                         $$ = (char *) malloc(1);
                          $$[0] = 0;
                          InArray = $1;
                          DefArg = 0;
                }
-               | empty { $$ = new char[1];
+               | empty { $$ = (char *) malloc(1);
 	                 $$[0] = 0;
                          InArray = 0;
                          DefArg = 0;
@@ -1445,7 +1550,7 @@ pname          : ID def_args {
 
 def_args       : EQUAL definetype { $$ = $2; }
                | EQUAL AND ID {
-		 $$.id = new char[strlen($3)+2];
+		 $$.id = (char *) malloc(strlen($3)+2);
 		 $$.id[0] = '&';
 		 strcpy(&$$.id[1], $3);
 		 $$.type = T_USER;
@@ -1715,21 +1820,21 @@ opt_int        : TYPE_INT { }
 definetype     : { scanner_check_typedef(); } expr {
                    $$ = $2;
 		   scanner_ignore_typedef();
-		   if (ConstChar) delete ConstChar;
+		   if (ConstChar) free(ConstChar);
 		   ConstChar = 0;
                 }
                 | STRING {
                    $$.id = $1;
                    $$.type = T_CHAR;
-		   if (ConstChar) delete ConstChar;
-		   ConstChar = new char[strlen($1)+3];
+		   if (ConstChar) free(ConstChar);
+		   ConstChar = (char *) malloc(strlen($1)+3);
 		   sprintf(ConstChar,"\"%s\"",$1);
 		}
                 | CHARCONST {
                    $$.id = $1;
 		   $$.type = T_CHAR;
-		   if (ConstChar) delete ConstChar;
-		   ConstChar = new char[strlen($1)+3];
+		   if (ConstChar) free(ConstChar);
+		   ConstChar = (char *) malloc(strlen($1)+3);
 		   sprintf(ConstChar,"'%s'",$1);
 		 }
                 ;	       
@@ -1739,12 +1844,12 @@ definetype     : { scanner_check_typedef(); } expr {
 
 initlist       : initlist COMMA ID {
                  $$ = $1;
-		 $$.names[$$.count] = copy_string($3);
+		 $$.names[$$.count] = Swig_copy_string($3);
 		 $$.count++;
 		 $$.names[$$.count] = (char *) 0;
                 }
                | empty {
-                 $$.names = new char *[NI_NAMES];
+                 $$.names = (char **) malloc(NI_NAMES*sizeof(char*));
 		 $$.count = 0;
 		 for (i = 0; i < NI_NAMES; i++) 
 		   $$.names[i] = (char *) 0;
@@ -1828,12 +1933,12 @@ expr           :  NUM_INT {
 		  $$.type = T_ULONG;
 	       }
                |  SIZEOF LPAREN type RPAREN {
-	          $$.id = new char[strlen($3->name)+9];
+	          $$.id = (char *) malloc(strlen($3->name)+9);
 		  sprintf($$.id,"sizeof(%s)", $3->name);
 		  $$.type = T_INT;
 	       }
                |  LPAREN strict_type RPAREN expr %prec UMINUS {
-		  $$.id = new char[strlen($4.id)+strlen($2->name)+3];
+		  $$.id = (char *) malloc(strlen($4.id)+strlen($2->name)+3);
 		  sprintf($$.id,"(%s)%s",$2->name,$4.id);
 		  $$.type = $2->type;
 	       } 
@@ -1842,36 +1947,36 @@ expr           :  NUM_INT {
 		 $$.type = T_INT;
                }
                | ID DCOLON ID {
-                  $$.id = new char[strlen($1)+strlen($3)+3];
+                  $$.id = (char *) malloc(strlen($1)+strlen($3)+3);
 		  sprintf($$.id,"%s::%s",$1,$3);
                   $$.type = T_INT;
-		  delete $1;
-		  delete $3;
+		  free($1);
+		  free($3);
                }
                | expr PLUS expr {
 	         E_BINARY($$.id,$1.id,$3.id,"+");
 		 $$.type = promote($1.type,$3.type);
-		 delete $1.id;
-		 delete $3.id;
+		 free($1.id);
+		 free($3.id);
 	       }
                | expr MINUS expr {
 	         E_BINARY($$.id,$1.id,$3.id,"-");
 		 $$.type = promote($1.type,$3.type);
-		 delete $1.id;
-		 delete $3.id;
+		 free($1.id);
+		 free($3.id);
 	       }
                | expr STAR expr {
 	         E_BINARY($$.id,$1.id,$3.id,"*");
 		 $$.type = promote($1.type,$3.type);
-		 delete $1.id;
-		 delete $3.id;
+		 free($1.id);
+		 free($3.id);
 
 	       }
                | expr SLASH expr {
 	         E_BINARY($$.id,$1.id,$3.id,"/");
 		 $$.type = promote($1.type,$3.type);
-		 delete $1.id;
-		 delete $3.id;
+		 free($1.id);
+		 free($3.id);
 
 	       }
                | expr AND expr {
@@ -1881,8 +1986,8 @@ expr           :  NUM_INT {
 		   fprintf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
-		 delete $1.id;
-		 delete $3.id;
+		 free($1.id);
+		 free($3.id);
 
 	       }
                | expr OR expr {
@@ -1893,8 +1998,8 @@ expr           :  NUM_INT {
 		   FatalError();
 		 }
 		 $$.type = T_INT;
-		 delete $1.id;
-		 delete $3.id;
+		 free($1.id);
+		 free($3.id);
 
 	       }
                | expr XOR expr {
@@ -1905,8 +2010,8 @@ expr           :  NUM_INT {
 		   FatalError();
 		 }
 		 $$.type = T_INT;
-		 delete $1.id;
-		 delete $3.id;
+		 free($1.id);
+		 free($3.id);
 
 	       }
                | expr LSHIFT expr {
@@ -1917,8 +2022,8 @@ expr           :  NUM_INT {
 		   FatalError();
 		 }
 		 $$.type = T_INT;
-		 delete $1.id;
-		 delete $3.id;
+		 free($1.id);
+		 free($3.id);
 
 	       }
                | expr RSHIFT expr {
@@ -1929,32 +2034,32 @@ expr           :  NUM_INT {
 		   FatalError();
 		 }
 		 $$.type = T_INT;
-		 delete $1.id;
-		 delete $3.id;
+		 free($1.id);
+		 free($3.id);
 
 	       }
                |  MINUS expr %prec UMINUS {
-	          $$.id = new char[strlen($2.id)+2];
+	          $$.id = (char *) malloc(strlen($2.id)+2);
 		  sprintf($$.id,"-%s",$2.id);
 		  $$.type = $2.type;
-		 delete $2.id;
+		 free($2.id);
 
 	       }
                |  NOT expr {
-	          $$.id = new char[strlen($2.id)+2];
+	          $$.id = (char *) malloc(strlen($2.id)+2);
 		  sprintf($$.id,"~%s",$2.id);
 		  if ($2.type == T_DOUBLE) {
 		   fprintf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		  }
 		  $$.type = $2.type;
-		  delete $2.id;
+		  free($2.id);
 	       }
                |  LPAREN expr RPAREN {
-	          $$.id = new char[strlen($2.id)+3];
+	          $$.id = (char *) malloc(strlen($2.id)+3);
 	          sprintf($$.id,"(%s)", $2.id);
 		  $$.type = $2.type;
-		  delete $2.id;
+		  free($2.id);
 	       }
                ;
 /****************************************************************/
@@ -2007,9 +2112,9 @@ cpp_class    :
 	       if ($4.names) {
 		 int j;
 		 for (j = 0; j < $4.count; j++) {
-		   if ($4.names[j]) delete [] $4.names[j];
+		   if ($4.names[j]) free($4.names[j]);
 		 }
-		 delete [] $4.names;
+		 free($4.names);
 	       }
 	       
 	       // Dumped nested declarations (if applicable)
@@ -2071,9 +2176,9 @@ cpp_class    :
 		if ($4.names) {
 		  int j;
 		  for (j = 0; j < $4.count; j++) {
-		    if ($4.names[j]) delete [] $4.names[j];
+		    if ($4.names[j]) free($4.names[j]);
 		  }
-		  delete [] $4.names;
+		  free($4.names);
 		}
 		
 		if ($9.is_pointer > 0) {
@@ -2558,11 +2663,11 @@ cpp_pragma    : PRAGMA ID stylearg {
 		      fprintf(stderr,"%s : Line %d.  Warning. Nested classes not currently supported (ignored).\n", input_file, line_number);
 		      /* Generate some code for a new class */
 		    } else {
-		      Nested *n = new Nested;
+		      Nested *n = (Nested *) malloc(sizeof(Nested));
 		      n->code = NewString("");
 		      Printv(n->code, "typedef ", $1, " ", 
 			      Char(CCode), " $classname_", $5.id, ";\n", 0);
-		      n->name = copy_string($5.id);
+		      n->name = Swig_copy_string($5.id);
 		      n->line = start_line;
 		      n->type = NewDataType(0);
 		      n->type->type = T_USER;
@@ -2584,11 +2689,11 @@ cpp_pragma    : PRAGMA ID stylearg {
 		  } else {
 		    /* Generate some code for a new class */
 
-		    Nested *n = new Nested;
+		    Nested *n = (Nested *) malloc(sizeof(Nested));
 		    n->code = NewString("");
 		    Printv(n->code, "typedef ", $1, " " ,
 			    Char(CCode), " $classname_", $4.id, ";\n",0);
-		    n->name = copy_string($4.id);
+		    n->name = Swig_copy_string($4.id);
 		    n->line = start_line;
 		    n->type = NewDataType(0);
 		    n->type->type = T_USER;
@@ -2739,13 +2844,13 @@ inherit        : COLON base_list {
 
 base_list      : base_specifier { 
                    int i;
-                   $$.names = new char *[NI_NAMES];
+                   $$.names = (char **) malloc(NI_NAMES*sizeof(char *));
 		   $$.count = 0;
 		   for (i = 0; i < NI_NAMES; i++){
 		     $$.names[i] = (char *) 0;
 		   }
                    if ($1) {
-                       $$.names[$$.count] = copy_string($1);
+                       $$.names[$$.count] = Swig_copy_string($1);
                        $$.count++;
 		   }
                }
@@ -2753,7 +2858,7 @@ base_list      : base_specifier {
                | base_list COMMA base_specifier { 
                    $$ = $1;
                    if ($3) {
-		     $$.names[$$.count] = copy_string($3);
+		     $$.names[$$.count] = Swig_copy_string($3);
 		     $$.count++;
 		   }
                }
@@ -2864,8 +2969,8 @@ objective_c    : OC_INTERFACE ID objc_inherit {
 		  cplus_class_close($2);
 		  cplus_mode = CPLUS_PUBLIC;
 		  ObjCClass = 0;
-		  delete $2;
-		  delete $3;
+		  free($2);
+		  free($3);
                 }
 /* An obj-c category declaration */
                | OC_INTERFACE ID LPAREN ID RPAREN objc_protolist {
@@ -2887,10 +2992,10 @@ objective_c    : OC_INTERFACE ID objc_inherit {
 		   if ($3.names[i]) {
 		     iname = make_name($3.names[i]);
 		     lang->cpp_class_decl($3.names[i],iname,(char*)"");
-		     delete [] $3.names[i];
+		     free($3.names[i]);
 		   }
 		 } 
-		 delete [] $3.names;
+		 free($3.names);
 	       }
                ;
 
@@ -3075,7 +3180,7 @@ objc_method    : MINUS objc_ret_type ID objc_args objc_end {
 		   cplus_member_func($3,iname,$2,$4,0);
 		   scanner_clear_start();
 		   DelDataType($2);
-		   delete $3;
+		   free($3);
 		   DelParmList($4);
 		 }
                }
@@ -3093,7 +3198,7 @@ objc_method    : MINUS objc_ret_type ID objc_args objc_end {
 		 }
                  scanner_clear_start();
                  DelDataType($2);
-                 delete $3;
+                 free($3);
                  DelParmList($4);
                }
                ;
@@ -3140,11 +3245,11 @@ objc_args      : objc_args objc_separator objc_arg_type ID {
                }
                ;
 
-objc_separator : COLON { $$ = copy_string((char*)":"); }
-               | ID COLON { $$ = new char[strlen($1)+2]; 
+objc_separator : COLON { $$ = Swig_copy_string((char*)":"); }
+               | ID COLON { $$ = (char *) malloc(strlen($1)+2); 
                     strcpy($$,$1);
 		    strcat($$,":");
-		    delete $1;
+		    free($1);
 	        }
                ;
 
@@ -3154,8 +3259,8 @@ objc_separator : COLON { $$ = copy_string((char*)":"); }
 
 stylelist      : ID stylearg styletail {
                     $$ = $3;
-		    $$.names[$$.count] = copy_string($1);
-		    $$.values[$$.count] = copy_string($2);
+		    $$.names[$$.count] = Swig_copy_string($1);
+		    $$.values[$$.count] = Swig_copy_string($2);
 		    format_string($$.values[$$.count]);
 		    $$.count++;
                  }
@@ -3164,14 +3269,14 @@ stylelist      : ID stylearg styletail {
 
 styletail      : styletail COMMA ID stylearg {
                     $$ = $1;
-		    $$.names[$$.count] = copy_string($3);
-		    $$.values[$$.count] = copy_string($4);
+		    $$.names[$$.count] = Swig_copy_string($3);
+		    $$.values[$$.count] = Swig_copy_string($4);
 		    format_string($$.values[$$.count]);
 		    $$.count++;
                  }
                | empty {
-                    $$.names = new char *[NI_NAMES];
-		    $$.values = new char *[NI_NAMES];
+                    $$.names = (char **) malloc(NI_NAMES*sizeof(char *));
+		    $$.values = (char **) malloc(NI_NAMES*sizeof(char *));
 		    $$.count = 0;
 	       }
                ;
@@ -3196,7 +3301,7 @@ tm_method      : ID {
                  $$ = $1;
                } 
                | CONST {
-                 $$ = copy_string((char*)"const");
+                 $$ = Swig_copy_string((char*)"const");
                }
                ;
 
@@ -3218,15 +3323,15 @@ typemap_parm   : type typemap_name {
 		      $1->is_pointer++;
 		      DataType_set_arraystr($1,Char(ArrayString));
 		    }
-		    $$ = new TMParm;
+		    $$ = NewTMParm();
                     $$->p = NewParm($1,$2);
 		    $$->args = tm_parm;
 		    DelDataType($1);
-		    delete $2;
+		    free($2);
                  }
 
                 | type stars typemap_name {
-		  $$ = new TMParm;
+		  $$ = NewTMParm();
 		   $$->p = NewParm($1,$3);
 		   DataType *pt = Parm_Gettype($$->p);
 		   pt->is_pointer += $2;
@@ -3236,11 +3341,11 @@ typemap_parm   : type typemap_name {
 		    }
 		   $$->args = tm_parm;
 		   DelDataType($1);
-		   delete $3;
+		   free($3);
 		}
 
                 | type AND typemap_name {
-                  $$ = new TMParm;
+                  $$ = NewTMParm();
 		  $$->p = NewParm($1,$3);
 		  DataType *pt = Parm_Gettype($$->p);
 		  pt->is_reference = 1;
@@ -3250,12 +3355,12 @@ typemap_parm   : type typemap_name {
 		  }
 		  $$->args = tm_parm;
 		  DelDataType($1);
-		  delete $3;
+		  free($3);
 		}
                 | type LPAREN stars typemap_name RPAREN LPAREN parms RPAREN {
                   fprintf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
 		  FatalError();
-                  $$ = new TMParm;
+                  $$ = NewTMParm();
 		  $$->p = NewParm($1,$4);
 		  DataType *pt = Parm_Gettype($$->p);
 		  pt->type = T_ERROR;
@@ -3263,7 +3368,7 @@ typemap_parm   : type typemap_name {
 		  strcpy(pt->name,"<function ptr>");
 		  $$->args = tm_parm;
 		  DelDataType($1);
-		  delete $4;
+		  free($4);
 		  DelParmList($7);
 		}
 		;
@@ -3284,14 +3389,14 @@ typemap_name    : ID typemap_args {
                 | array { 
 		    ArrayBackup = Copy(ArrayString);
 		} typemap_args {
-		    $$ = new char[1];
+		    $$ = (char *) malloc(1);
 		    $$[0] = 0;
 		    InArray = $1;
                     Clear(ArrayString);
                     Append(ArrayString,ArrayBackup);
 		    Delete(ArrayBackup);
 		}
-                | typemap_args { $$ = new char[1];
+                | typemap_args { $$ = (char *) malloc(1);
   	                  $$[0] = 0;
                           InArray = 0;
                 }
