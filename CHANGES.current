@@ -5,6 +5,9 @@ Version 1.3.22 (in progress)
 	    [MzScheme] New command-line argument -noinit.  Use it for building
 	    the runtime library, where we don't want to define the functions
 	    scheme_initialize etc.  Reported by Tim Brown, SF #891754.
+
+	    [MzScheme] Don't produce invalid C code when invoked with the
+	    -declaremodule option.  Reported by Tim Brown, SF #891108.
 	    
 	    [Guile] Build the runtime library with passive linkage, to rename
 	    the SWIG_init function uniquely.
