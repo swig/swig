@@ -103,6 +103,17 @@ static Hash    *current_symtab  = 0;              /* Current symbol table       
 static Typetab *global_scope  = 0;                /* The global scope                             */
 static Hash    *scopes        = 0;                /* Hash table containing fully qualified scopes */
 
+/* Performance optimization */
+static Hash     *typedef_resolve_cache = 0;
+static Hash     *typedef_all_cache = 0;
+static Hash     *typedef_qualified_cache = 0;
+
+static void flush_cache() {
+  typedef_resolve_cache = 0;
+  typedef_all_cache = 0;
+  typedef_qualified_cache = 0;
+}
+
 /* Initialize the scoping system */
 
 void SwigType_typesystem_init() {
@@ -147,6 +158,7 @@ int SwigType_typedef(SwigType *type, String_or_char *name) {
     }
   }
   Setattr(current_typetab,name,type);
+  flush_cache();
   return 0;
 }
 
@@ -164,6 +176,7 @@ int SwigType_typedef_class(String_or_char *name) {
   cname = NewString(name);
   Setmeta(cname,"class","1");
   Setattr(current_typetab,cname,cname);
+  flush_cache();
   return 0;
 }
 
@@ -216,6 +229,7 @@ void SwigType_new_scope(String_or_char *name) {
   current_scope = s;
   current_typetab = ttab;
   current_symtab = 0;
+  flush_cache();
 }
 
 /* -----------------------------------------------------------------------------
@@ -260,6 +274,7 @@ SwigType_scope_alias(String *aliasname, Typetab *ttab) {
   } 
   Append(q,aliasname);
   Setattr(scopes,q,ttab);
+  flush_cache();
 }
 
 /* -----------------------------------------------------------------------------
@@ -287,6 +302,7 @@ SwigType_using_scope(Typetab *scope) {
     }
     Append(ulist,scope);
   }
+  flush_cache();
 }
  
 /* -----------------------------------------------------------------------------
@@ -309,6 +325,7 @@ Typetab *SwigType_pop_scope() {
   current_scope = s;
   current_typetab = Getattr(s,"typetab");
   current_symtab = Getattr(s,"symtab");
+  flush_cache();
   return s1;
 }
 
@@ -325,6 +342,7 @@ SwigType_set_scope(Typetab *t) {
   current_scope = t;
   current_typetab = Getattr(t,"typetab");
   current_symtab = Getattr(t,"symtab");
+  flush_cache();
   return old;
 }
 
@@ -479,18 +497,33 @@ typedef_resolve(Typetab *s, String *base) {
   return type;
 }
 
-
-
 SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *base;
   String *type = 0;
-  String *r;
+  String *r = 0;
   Typetab  *s;
   Hash     *ttab;
   String *namebase = 0;
   String *nameprefix = 0;
   int     newtype = 0;
+
   resolved_scope = 0;
+
+
+  if (!typedef_resolve_cache) {
+    typedef_resolve_cache = NewHash();
+  }
+  /*
+  r = Getattr(typedef_resolve_cache,t);
+  if (r) {
+    if (r != DohNone) {
+      resolved_scope = Getmeta(r,"scope");
+      return Copy(r);
+    } else {
+      return 0;
+    }
+  }
+*/
 
   base = SwigType_base(t);
 
@@ -523,7 +556,8 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	  if (!s) {
 	    Delete(base);
 	    Delete(nameprefix);
-	    return 0;
+	    r = 0;
+	    goto return_result;
 	  }
 	  /* Try to locate the name starting in the scope */
 	  namebase = Swig_scopename_last(base);
@@ -554,7 +588,8 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     
     if (type && (Strcmp(base,type) == 0)) {
       Delete(base);
-      return 0;
+      r = 0;
+      goto return_result;
     }
 
     /* If the type is a template, and no typedef was found, we need to check the
@@ -595,7 +630,6 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	type = 0;
       }
     }
-  
     if (namebase) Delete(namebase);
     if (nameprefix) Delete(nameprefix);
   } else {
@@ -650,23 +684,33 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	  Delete(r);
 	  Append(rt,base);
 	  Delete(base);
-	  /*	  Printf(stdout,"+ %s --> %s\n", t,rt); */
-	  return rt;
+	  r = rt;
+	  goto return_result;
 	}
       }
     }
     Delete(r);
     Delete(base);
-    return 0;
+    r = 0;
+    goto return_result;
   }
   Delete(base);
   Append(r,type);
   if (newtype) {
     Delete(type);
   }
-  /*  Printf(stdout,"%s --> %s\n", t,r); */
+
+ return_result:
+  if (!r) {
+    Setattr(typedef_resolve_cache,NewString(t),DohNone);
+  } else {
+    Setattr(typedef_resolve_cache,NewString(t),r);
+    Setmeta(r,"scope",resolved_scope);
+    r = Copy(r);
+  }
   return r;
 }
+
 
 /* -----------------------------------------------------------------------------
  * SwigType_typedef_resolve_all()
@@ -676,14 +720,30 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 
 SwigType *SwigType_typedef_resolve_all(SwigType *t) {
   SwigType *n;
-  SwigType *r = Copy(t);
-  
+  SwigType *r;
+
+  /*  if (!typedef_all_cache) {
+    typedef_all_cache = NewHash();
+  }
+  r = Getattr(typedef_all_cache,t);
+  if (r) {
+    return Copy(r);
+  }
+  */
+  r = NewString(t);
   while ((n = SwigType_typedef_resolve(r))) {
     Delete(r);
     r = n;
   }
+  /*
+  {
+    SwigType *rr = Copy(r);
+    Setattr(typedef_all_cache,NewString(t),rr);
+  }
+  */
   return r;
 }
+
 
 /* -----------------------------------------------------------------------------
  * SwigType_typedef_qualified()
@@ -692,12 +752,21 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
  * typedef scope rules.
  * ----------------------------------------------------------------------------- */
 
+#if 1
+
 SwigType *SwigType_typedef_qualified(SwigType *t) 
 {
   List   *elements;
   String *result;
   int     i,len;
 
+ if (!typedef_qualified_cache) typedef_qualified_cache = NewHash();
+
+  result = Getattr(typedef_qualified_cache,t);
+  if (result) {
+    String *rc = Copy(result);
+    return rc;
+  }
   result = NewString("");
   elements = SwigType_split(t);
   len = Len(elements);
@@ -842,8 +911,184 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
     }
   }
   Delete(elements);
+  Setattr(typedef_qualified_cache,NewString(t),NewString(result));
   return result;
 }
+
+#endif
+
+#if 0
+
+/* -----------------------------------------------------------------------------
+ * SwigType_typedef_qualified()
+ *
+ * Given a type declaration, this function tries to fully qualify it according to
+ * typedef scope rules.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_typedef_qualified(SwigType *t) 
+{
+  List   *elements;
+  String *result;
+  int     i,len;
+
+  if (!typedef_qualified_cache) typedef_qualified_cache = NewHash();
+
+  result = Getattr(typedef_qualified_cache,t);
+  if (result) {
+    Printf(stdout,"t = '%s' --> '%s'\n", t, result);
+    return Copy(result);
+  }
+
+  result = NewString("");
+  elements = SwigType_split(t);
+  len = Len(elements);
+  for (i = 0; i < len; i++) {
+    String *e = Getitem(elements,i);
+    if (SwigType_issimple(e)) {
+      if (!SwigType_istemplate(e)) {
+	String *isenum = 0;
+	if (SwigType_isenum(e)) {
+	  isenum = e;
+	  e = NewString(Char(e)+5);
+	}
+	resolved_scope = 0;
+	if (typedef_resolve(current_scope,e)) {
+	  /* resolved_scope contains the scope that actually resolved the symbol */
+	  String *qname = Getattr(resolved_scope,"qname");
+	  if (qname) {
+	    Insert(e,0,"::");
+	    Insert(e,0,qname);
+	    if (isenum) {
+	      Clear(isenum);
+	      Printf(isenum, "enum %s", e);
+	      Delete(e);
+	    }
+	  }
+	} else {
+	  if (Swig_scopename_check(e)) {
+	    String *tqname;
+	    String *qlast;
+	    String *qname = Swig_scopename_prefix(e);
+	    if (qname) {
+	      qlast = Swig_scopename_last(e);
+	      tqname = SwigType_typedef_qualified(qname);
+	      Clear(e);
+	      Printf(e,"%s::%s", tqname, qlast);
+	      Delete(qname);
+	      Delete(qlast);
+	      Delete(tqname);
+	    }
+	    /* Automatic template instantiation might go here??? */
+
+	  }
+	}
+	if (isenum) e = isenum;
+
+      } else {
+	/* Template.  We need to qualify template parameters as well as the template itself */
+	String *tprefix, *qprefix;
+	String *tsuffix;
+	Parm   *p;
+	List *parms = SwigType_parmlist(e);
+	tprefix = SwigType_templateprefix(e);
+	tsuffix = SwigType_templatesuffix(e);
+	qprefix = SwigType_typedef_qualified(tprefix);
+	Printf(qprefix,"<(");
+	p = Firstitem(parms);
+	while (p) {
+	  String *qt = SwigType_typedef_qualified(p);
+	  if ((Strcmp(qt,p) == 0)) { /*  && (!Swig_scopename_check(qt))) { */
+	    /* No change in value.  It is entirely possible that the parameter is an integer value.
+	       If there is a symbol table associated with this scope, we're going to check for this */
+
+	    if (current_symtab) {
+	      Node *lastnode = 0;
+	      String *value = Copy(p);
+	      while (1) {
+		Node *n = Swig_symbol_clookup(value,current_symtab);
+		if (n == lastnode) break;
+		lastnode = n;
+		if (n) {
+		  if (Strcmp(nodeType(n),"enumitem") == 0) {
+		    /* An enum item.   Generate a fully qualified name */
+		    String *qn = Swig_symbol_qualified(n);
+		    if (Len(qn)) {
+		      Append(qn,"::");
+		      Append(qn,Getattr(n,"name"));
+		      Delete(value);
+		      value = qn;
+		      continue;
+		    } else {
+		      break;
+		    }
+		  } else if ((Strcmp(nodeType(n),"cdecl") == 0) && (Getattr(n,"value"))) {
+		    Delete(value);
+		    value = Copy(Getattr(n,"value"));
+		    continue;
+		  }
+		}
+		break;
+	      }
+	      Append(qprefix,value);
+	    } else {
+	      Append(qprefix,p);
+	    }
+	  } else {
+	    Append(qprefix,qt);
+	  }
+	  Delete(qt);
+	  p= Nextitem(parms);
+	  if (p) {
+	    Append(qprefix,",");
+	  }
+	}
+	Append(qprefix,")>");
+	Append(qprefix,tsuffix);
+	Delete(tsuffix);
+	Clear(e);
+	Append(e,qprefix);
+	Delete(tprefix);
+	Delete(qprefix);
+      }
+      if (Strncmp(e,"::",2) == 0) {
+	Delitem(e,0);
+	Delitem(e,0);
+      }
+      Append(result,e);
+    } else if (SwigType_isfunction(e)) {
+      List *parms = SwigType_parmlist(e);
+      String *s = NewString("f(");
+      String *p;
+      p = Firstitem(parms);
+      while (p) {
+	Append(s,SwigType_typedef_qualified(p));
+	p = Nextitem(parms);
+	if (p) {
+	  Append(s,",");
+	}
+      }
+      Append(s,").");
+      Append(result,s);
+      Delete(s);
+    } else if (SwigType_isarray(e)) {
+      String *ndim;
+      String *dim = SwigType_parm(e);
+      ndim = Swig_symbol_string_qualify(dim,0);
+      Printf(result,"a(%s).",ndim);
+      Delete(dim);
+      Delete(ndim);
+    } else {
+      Append(result,e);
+    }
+  }
+  Delete(elements);
+  Printf(stdout,"result = '%s'\n", result);
+  Setattr(typedef_qualified_cache,NewString(t),Copy(result));
+  return result;
+}
+
+#endif
 
 /* ----------------------------------------------------------------------------- 
  * SwigType_istypedef()
