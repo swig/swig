@@ -24,7 +24,7 @@
   }
 }
 
-%typecheck(SWIG_TYPECHECK_INTEGER) short, signed short, const short &, const signed short & {
+%typecheck(SWIG_TYPECHECK_INTEGER) short, signed short, const short &, const signed short &, wchar_t {
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {

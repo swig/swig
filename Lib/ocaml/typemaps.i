@@ -86,7 +86,22 @@
     }
 }
 
-#endif
+%typemap(ocaml,in) SWIGTYPE {
+    $1 = *(($&1_ltype) caml_ptr_val($input,$descriptor)) ;
+}
+
+%typemap(ocaml,out) SWIGTYPE {
+    void *temp = new $ltype($1);
+    value *fromval = caml_named_value("create_$ntype_from_ptr");
+    *(($ltype *)temp) = $1;
+    if( fromval ) {
+	$result = callback(*fromval,caml_val_ptr((void *)temp,$descriptor));
+    } else {
+	$result = caml_val_ptr ((void *)temp,$descriptor);
+    }
+}
+
+#else
 
 %typemap(ocaml,in) SWIGTYPE {
     $1 = *(($&1_ltype) caml_ptr_val($input,$descriptor)) ;
@@ -102,6 +117,8 @@
 	$result = caml_val_ptr ((void *)temp,$descriptor);
     }
 }
+
+#endif
 
 /* Arrays */
 
@@ -151,6 +168,7 @@ SIMPLE_MAP(char, caml_val_char, caml_long_val);
 SIMPLE_MAP(unsigned char, caml_val_uchar, caml_long_val);
 SIMPLE_MAP(int, caml_val_int, caml_long_val);
 SIMPLE_MAP(short, caml_val_short, caml_long_val);
+SIMPLE_MAP(wchar_t, caml_val_short, caml_long_val);
 SIMPLE_MAP(long, caml_val_long, caml_long_val);
 SIMPLE_MAP(ptrdiff_t, caml_val_int, caml_long_val);
 SIMPLE_MAP(unsigned int, caml_val_uint, caml_long_val);
