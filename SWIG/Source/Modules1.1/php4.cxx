@@ -35,7 +35,7 @@ static String *cap_module = 0;
 static String *dlname = 0;
 static String *withlibs = 0;
 static String *withincs = 0;
-static String *outputfile = 0;
+static String *outfile = 0;
 
 static String *f_cinit = 0;
 static String *f_oinit = 0;
@@ -271,6 +271,20 @@ void create_simple_make(void) {
 static
 void create_extra_files(void) {
 	File *f_extra;
+
+  static String *configm4=0;
+  static String *makefilein=0;
+  static String *credits=0;
+
+  configm4=NewString("");
+  Printv(configm4, Swig_file_dirname(outfile), "config.m4", NULL);
+
+  makefilein=NewString("");
+  Printv(makefilein, Swig_file_dirname(outfile), "Makefile.in", NULL);
+
+  credits=NewString("");
+  Printv(credits, Swig_file_dirname(outfile), "CREDITS", NULL);
+
         // are we a --with- or --enable-
         int with=(withincs || withlibs)?1:0;
 
@@ -280,9 +294,9 @@ void create_extra_files(void) {
 
 	if(gen_extra) {
 		/* Write out Makefile.in */
-        f_extra = NewFile((void *)"Makefile.in", "w");
+        f_extra = NewFile(makefilein, "w");
         if (!f_extra) {
-		Printf(stderr,"Unable to open Makefile.in\n");
+		Printf(stderr,"Unable to open %s\n",makefilein);
 		SWIG_exit(EXIT_FAILURE);
 	}
 
@@ -292,11 +306,11 @@ void create_extra_files(void) {
             module);
 
         // CPP has more and different entires to C in Makefile.in
-        if (! CPlusPlus) Printf(f_extra,"LTLIBRARY_SOURCES       = %s\n",outputfile);
+        if (! CPlusPlus) Printf(f_extra,"LTLIBRARY_SOURCES       = %s\n",Swig_file_filename(outfile));
         else Printf(f_extra,"LTLIBRARY_SOURCES       =\n"
-                            "LTLIBRARY_SOURCES_CPP   =%s\n"
+                            "LTLIBRARY_SOURCES_CPP   = %s\n"
                             "LTLIBRARY_OBJECTS_X = $(LTLIBRARY_SOURCES_CPP:.cpp=.lo)\n"
-                           ,outputfile);
+                           ,Swig_file_filename(outfile));
   
 	Printf(f_extra,"LTLIBRARY_SHARED_NAME   = php_%s.la\n"
 	     "LTLIBRARY_SHARED_LIBADD = $(%(upper)s_SHARED_LIBADD)\n\n"
@@ -313,9 +327,9 @@ void create_extra_files(void) {
         // NOTE2: phpize really ought to be able to write out a sample
         // config.m4 based on some simple data, I'll take this up with
         // the php folk!
-	f_extra = NewFile((void *)"config.m4", "w");
+	f_extra = NewFile(configm4, "w");
 	if (!f_extra) {
-		Printf(stderr, "Unable to open config.m4\n");
+		Printf(stderr, "Unable to open %s\n",configm4);
 		SWIG_exit(EXIT_FAILURE);
 	}
 
@@ -364,7 +378,7 @@ void create_extra_files(void) {
 	  Printf(f_extra,"  for LIBNAME in $LIBNAMES ; do\n");
 	  Printf(f_extra,"    LIBDIR=\"\"\n");
           // For each path element to try...
-          Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/lib /usr/local/lib /usr/lib ; do\n",module,module);
+          Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/lib /usr/lib /usr/local/lib ; do\n",module,module);
           Printf(f_extra,"      if test -r $i/lib$LIBNAME.a -o -r $i/lib$LIBNAME.so ; then\n"
 			 "        LIBDIR=\"$i\"\n"
                          "        break\n"
@@ -429,9 +443,9 @@ void create_extra_files(void) {
 	Close(f_extra);
 
 	/*  CREDITS */
-	f_extra = NewFile((void *)"CREDITS", "w");
+	f_extra = NewFile(credits, "w");
 	if (!f_extra) {
-		Printf(stderr,"Unable to open CREDITS\n");
+		Printf(stderr,"Unable to open %s\n",credits);
 		SWIG_exit(EXIT_FAILURE);
 	}
 	Printf(f_extra, "%s\n", module);
@@ -463,12 +477,10 @@ int
 PHP4::top(Node *n) {
 
   String *filen;
-  String *outfile;
   String *s_type;
 
   /* Initialize all of the output files */
   outfile = Getattr(n,"outfile");
-  outputfile = NewString(outfile);
   
   /* main output file */
   f_runtime = NewFile(outfile,"w");
@@ -536,8 +548,9 @@ PHP4::top(Node *n) {
   }
 
   /* PHP module file */
-  filen = NewString(module);
-  Printf(filen, ".php");
+  filen = NewString("");
+  Printv(filen, Swig_file_dirname(outfile), module, ".php", NULL);
+
   f_phpcode = NewFile(filen, "w");
   if (!f_phpcode) {
 	  Printf(stderr, "*** Can't open '%s'\n", filen);

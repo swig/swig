@@ -279,6 +279,23 @@ Swig_file_basename(const String_or_char *filename)
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_file_filename()
+ *
+ * Return the file with any leading path stripped off
+ * ----------------------------------------------------------------------------- */
+char *
+Swig_file_filename(const String_or_char *filename)
+{
+  static char tmp[1024];
+  const char *delim = SWIG_FILE_DELIMETER;
+  char *c;
+
+  strcpy(tmp,Char(filename));
+  if (c=strrchr(tmp,*delim)) return c+1;
+  else return tmp;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_file_dirname()
  *
  * Return the name of the directory associated with a file

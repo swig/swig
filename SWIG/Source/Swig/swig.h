@@ -98,6 +98,7 @@ extern void     Swig_register_filebyname(const String_or_char *filename, File *o
 extern File    *Swig_filebyname(const String_or_char *filename);
 extern char    *Swig_file_suffix(const String_or_char *filename);
 extern char    *Swig_file_basename(const String_or_char *filename);
+extern char    *Swig_file_filename(const String_or_char *filename);
 extern char    *Swig_file_dirname(const String_or_char *filename);
 
 #ifdef MACSWIG
