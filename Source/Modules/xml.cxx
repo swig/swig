@@ -112,7 +112,7 @@ public:
 		}
 		Printf( out, "<?xml version=\"1.0\" ?> \n" );
 		Xml_print_tree(n);
-    	return SWIG_OK;
+		return SWIG_OK;
   	}
 
 
@@ -198,7 +198,8 @@ public:
 					Replaceall( o, "<", "&lt;" );
 					Replaceall( o, "\"", "&quot;" );
 					Replaceall( o, "\\", "\\\\" );
-					Printf(out,"<attribute name=\"%s\" value=\"%s\" id=\"%ld\" addr=\"%x\" />\n", ck, o, ++id, o );
+                                        Replaceall( o, "\n", "&#10;" );
+                                        Printf(out,"<attribute name=\"%s\" value=\"%s\" id=\"%ld\" addr=\"%x\" />\n", ck, o, ++id, o );
 					Delete(o);
 					Delete(ck);
 				}
@@ -207,7 +208,7 @@ public:
 					o = Getattr(obj,k);
 					String *ck = NewString(k);
 					Replaceall( ck, ":", "_" );
-					Printf(out,"<attribute name=\"%s\" value=\"%x\" id=\"%ld\" addr=\"%x\" />\n", ck, o, ++id, o );
+                                        Printf(out,"<attribute name=\"%s\" value=\"%x\" id=\"%ld\" addr=\"%x\" />\n", ck, o, ++id, o );
 					Delete(ck);
 				}
 			}
@@ -319,9 +320,8 @@ public:
 			print_indent(0);
 			Printf( out, "<%ssitem id=\"%ld\" addr=\"%x\" >\n", markup, ++id, n.item );
 			Xml_print_attributes( n.item );
-			Printf( out, "</%ssitem >\n", markup );
 			print_indent(0);
-			Printf( out, " />\n" );
+			Printf( out, "</%ssitem >\n", markup );
 			n = Next(n);
 		}
 		indent_level -= 4;
@@ -331,6 +331,34 @@ public:
 
 };
 
+/* -----------------------------------------------------------------------------
+ * Swig_print_xml
+ *
+ * Dump an XML version of the parse tree.  This is different from using the -xml
+ * language module normally as it allows the real language module to process the
+ * tree first, possibly stuffing in new attributes, so the XML that is output ends
+ * up being a post-processing version of the tree.
+ * ----------------------------------------------------------------------------- */
+
+void Swig_print_xml(DOH *obj, String* filename)
+{
+    XML xml;
+    xmllite = 1;
+
+    if (! filename) {
+        out = stdout;
+    }
+    else {
+        out = NewFile(filename, "w");
+        if (!out) {
+            Printf(stderr,"*** Can't open '%s'\n", filename);
+            SWIG_exit(EXIT_FAILURE);
+        }
+    }
+    
+    Printf( out, "<?xml version=\"1.0\" ?> \n" );
+    xml.Xml_print_tree(obj);
+}
 
 static Language * new_swig_xml() {
         return new XML();

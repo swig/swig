@@ -359,6 +359,8 @@ extern void Swig_print_tags(File *obj, Node *root);
 extern void Swig_print_tree(Node *obj);
 extern void Swig_print_node(Node *obj);
 
+extern void Swig_print_xml(Node *obj, String* filename);
+
 /* -- Wrapper function Object */
 
 typedef struct {
