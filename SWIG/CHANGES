@@ -16,6 +16,23 @@ tree (maybe).
 
 Version 1.3.13 (In progress)
 ============================
+06/14/2002: beazley
+            Fixed warning message about 'name private in this context'.  The
+            warning is only generated for public methods.  Reported by
+            Scott Michel.
+ 
+06/14/2002: beazley
+            Fixed some problems related to template instantiation 
+            and namespaces.   When SWIG expands a template, it does
+            so with fully resolved types.  For example, if you have this:
+
+                template<class T> class foo { };
+                typedef double Double;
+                %template(foo_d) foo<Double>;
+
+            then, it is handled as foo<double> in the typesystem.
+            This fixes a number of subtle problems with inheritance
+            and templates.
 
 06/14/2002: ljohnson (Lyle Johnson)
             [Ruby] Added missing bool typemaps for INPUT, OUTPUT and
