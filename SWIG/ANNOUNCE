@@ -53,6 +53,12 @@ of a multi-argument typemap:
 SWIG-1.3.11 provides many bug-fixes and minor patches to improve
 typemap support.
 
+* Minor parser improvements *
+
+SWIG-1.3.11 includes some minor parsing improvements related to
+integer types.  Also, better support for the C long long type
+has been added.
+
 * Updated documentation *
 
 Continued updates of the SWIG Users Manual are included in this
