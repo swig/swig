@@ -1,5 +1,28 @@
 Version 1.3.20 (In progress)
 ============================
+08/29/2003: cheetah (William Fulton)
+            [C#] Implemented exception handling for throwing C# exceptions from C/C++ code.
+            A few delegate functions are available for calling which then throw the C#
+            exception. Use the SWIG_CSharpThrowException function from C/C++ typemaps.
+            See the generated wrapper code or csharphead.swg for all available exceptions.
+            Example:
+
+              SWIG_CSharpThrowException(SWIG_CSharpException, "exception description");
+
+            The 'throws' typemaps are also now implemented, so code is automatically 
+            generated to convert any C++ exception into a C# System.Exception when the C++ 
+            method declares an exception specification such as:
+
+               int foo() throw(Bar);
+
+            Also any parameters that are references to a C++ class or a class passed by value
+            and are passed as a C# null will now throw a C# NullReferenceException.
+
+08/29/2003: cheetah (William Fulton)
+            [C#] Fix to match the calling convention of all pinvoke methods so that they
+            match the calling convention used by default in the C# 'static extern' declarations 
+            (__stdcall is used on Windows).
+
 08/19/2003: cheetah (William Fulton)
             [Java] Reworked std::string typemaps. Fixes a number of string in std namespace 
             problems. For example %template vector<string>. The templated class' get method 
