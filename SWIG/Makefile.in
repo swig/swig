@@ -118,11 +118,10 @@ install-main:
              fi; \
             done;
 	@echo "Installing $(BIN_DIR)/swig"
-	@if [ -f swig ]; then \
-		$(INSTALL_PROGRAM) swig $(BIN_DIR)/swig; \
-	fi
 	@if [ -f swig.exe ]; then \
 		$(INSTALL_PROGRAM) swig.exe $(BIN_DIR)/swig.exe; \
+	else \
+		$(INSTALL_PROGRAM) swig $(BIN_DIR)/swig; \
 	fi
 
 install-lib:
