@@ -34,18 +34,18 @@
 
 /* Access control directives */
 
-#define %readonly    %warn "114:%readonly is deprecated. Use %immutable; " %feature("immutable","1");
-#define %readwrite   %warn "115:%readwrite is deprecated. Use %mutable; " %feature("immutable");
+#define %readonly    %warn "114:%readonly is deprecated. Use %immutable; " %feature("immutable");
+#define %readwrite   %warn "115:%readwrite is deprecated. Use %mutable; " %feature("immutable","");
 
-#define %immutable   %feature("immutable","1")
-#define %mutable     %feature("immutable")
+#define %immutable   %feature("immutable")
+#define %mutable     %feature("immutable","")
 
 /* Directives for callback functions */
 
 /* Experimental */
 
 #define %callback(x) %feature("callback") `x`;
-#define %nocallback  %feature("callback");
+#define %nocallback  %feature("callback","");
 
 /* Directives for attribute functions */
 
@@ -59,16 +59,14 @@
 
 /* Generation of default constructors/destructors */
 
-#define %nodefault     %feature("nodefault","1")
-#define %makedefault   %feature("nodefault")
-
-//#define %nodefault     %pragma nodefault
-//#define %makedefault   %pragma makedefault
+#define %nodefault     %feature("nodefault")
+#define %makedefault   %feature("nodefault","")
 
 /* Common features */
 
-#define %exception %feature("except")
-#define %newobject %feature("new","1")
+#define %exception   %feature("except")
+#define %noexception %feature("except","")
+#define %newobject   %feature("new")
 
 /* Warnings */
 #define %warnfilter(...) %feature("warnfilter",`__VA_ARGS__`)
