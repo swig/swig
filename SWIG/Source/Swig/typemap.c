@@ -325,6 +325,8 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
   SwigType *type = 0, *name;
   Hash     *tm, *sm;
 
+  /*  Printf(stdout,"apply : %s --> %s\n", ParmList_str(src), ParmList_str(dest));*/
+
   /* Create type signature of source */
   ssig = NewString("");
   dsig = NewString("");
@@ -399,7 +401,6 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	    if (code) {
 	      Replace(nkey,dsig,"", DOH_REPLACE_ANY);
 	      Replace(nkey,"tmap:","", DOH_REPLACE_ANY);
-
 	      Swig_typemap_register(nkey,dest,code,locals,kwargs);
 	    }
 	  }
