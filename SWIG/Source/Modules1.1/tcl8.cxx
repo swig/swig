@@ -766,7 +766,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
+TCL8::declare_const(char *name, char *iname, SwigType *type, char *value) {
   int OldStatus = Status;
   SwigType *t;
   char      var_name[256];
@@ -791,7 +791,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
     switch(SwigType_type(type)) {
     case T_BOOL: case T_INT: case T_DOUBLE:
       Printf(f_header,"static %s %s = %s;\n", SwigType_str(type,0), var_name, value);
-      link_variable(var_name,name,type);
+      link_variable(var_name,iname,type);
       break;
 
     case T_SHORT:
@@ -808,7 +808,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       sprintf(var_name,"%s_char",var_name);
       t = NewString("char");
       SwigType_add_pointer(t);
-      link_variable(var_name,name,t);
+      link_variable(var_name,iname,t);
       Delete(t);
       break;
 
@@ -827,25 +827,25 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       sprintf(var_name,"%s_char",var_name);
       t = NewSwigType(T_CHAR);
       SwigType_add_pointer(t);
-      link_variable(var_name,name,t);
+      link_variable(var_name,iname,t);
       Delete(t);
       break;
 
     case T_FLOAT:
       Printf(f_header,"static %s %s = (%s) (%s);\n", SwigType_lstr(type,0), var_name, SwigType_lstr(type,0), value);
-      link_variable(var_name,name,type);
+      link_variable(var_name,iname,type);
       break;
 
     case T_CHAR:
       SwigType_add_pointer(type);
       Printf(f_header,"static %s %s = \"%s\";\n", SwigType_lstr(type,0), var_name, value);
-      link_variable(var_name,name,type);
+      link_variable(var_name,iname,type);
       SwigType_del_pointer(type);
       break;
 
     case T_STRING:
       Printf(f_header,"static %s %s = \"%s\";\n", SwigType_lstr(type,0), var_name, value);
-      link_variable(var_name,name,type);
+      link_variable(var_name,iname,type);
       break;
 
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
@@ -862,7 +862,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
 	     var_name, var_name, SwigType_manglestr(type));
       sprintf(var_name,"%s_char",var_name);
-      link_variable(var_name,name,t);
+      link_variable(var_name,iname,t);
       Delete(t);
       break;
 

@@ -1136,7 +1136,7 @@ static const char *setrv = "#ifndef PERL_OBJECT\
 \n}\n";
 
 void
-PERL5::declare_const(char *name, char *, SwigType *type, char *value)
+PERL5::declare_const(char *name, char *iname, SwigType *type, char *value)
   {
 
   char   *tm;
@@ -1157,7 +1157,7 @@ PERL5::declare_const(char *name, char *, SwigType *type, char *value)
 	Printf(f_header,"%s\n",setiv);
 	have_int_func = 1;
       }
-      Printv(vinit, tab4, "swig_setiv(\"", package, "::", name, "\", (long) ", value, ");\n",0);
+      Printv(vinit, tab4, "swig_setiv(\"", package, "::", iname, "\", (long) ", value, ");\n",0);
       break;
     case T_DOUBLE:
     case T_FLOAT:
@@ -1165,14 +1165,14 @@ PERL5::declare_const(char *name, char *, SwigType *type, char *value)
 	Printf(f_header,"%s\n",setnv);
 	have_double_func = 1;
       }
-      Printv(vinit, tab4, "swig_setnv(\"", package, "::", name, "\", (double) (", value, "));\n",0);
+      Printv(vinit, tab4, "swig_setnv(\"", package, "::", iname, "\", (double) (", value, "));\n",0);
       break;
     case T_CHAR :
       if (!have_char_func) {
 	Printf(f_header,"%s\n",setpv);
 	have_char_func = 1;
       }
-      Printf(vinit,"    swig_setpv(\"%s::%s\",\"%s\");\n", package, name, value);
+      Printf(vinit,"    swig_setpv(\"%s::%s\",\"%s\");\n", package, iname, value);
 
       break;
     case T_STRING:
@@ -1180,7 +1180,7 @@ PERL5::declare_const(char *name, char *, SwigType *type, char *value)
 	Printf(f_header,"%s\n",setpv);
 	have_char_func = 1;
       }
-      Printf(vinit,"    swig_setpv(\"%s::%s\",\"%s\");\n", package, name, value);
+      Printf(vinit,"    swig_setpv(\"%s::%s\",\"%s\");\n", package, iname, value);
       break;
 
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
@@ -1188,7 +1188,7 @@ PERL5::declare_const(char *name, char *, SwigType *type, char *value)
 	Printf(f_header,"%s\n",setrv);
 	have_ref_func = 1;
       }
-      Printv(vinit, tab4, "swig_setrv(\"", package, "::", name, "\", (void *) ", value, ", \"",
+      Printv(vinit, tab4, "swig_setrv(\"", package, "::", iname, "\", (void *) ", value, ", \"",
 	     SwigType_manglestr(type), "\");\n", 0);
       break;
 
@@ -1201,18 +1201,18 @@ PERL5::declare_const(char *name, char *, SwigType *type, char *value)
   if (blessed) {
     if (is_shadow(type)) {
       Printv(var_stubs,
-	     "\nmy %__", name, "_hash;\n",
-	     "tie %__", name, "_hash,\"", is_shadow(type), "\", $",
-	     package, "::", name, ";\n",
-	     "$", name, "= \\%__", name, "_hash;\n",
-	     "bless $", name, ", ", is_shadow(type), ";\n",
+	     "\nmy %__", iname, "_hash;\n",
+	     "tie %__", iname, "_hash,\"", is_shadow(type), "\", $",
+	     package, "::", iname, ";\n",
+	     "$", iname, "= \\%__", iname, "_hash;\n",
+	     "bless $", iname, ", ", is_shadow(type), ";\n",
 	     0);
     } else {
-      Printv(var_stubs, "*",name," = *", package, "::", name, ";\n", 0);
+      Printv(var_stubs, "*",iname," = *", package, "::", iname, ";\n", 0);
     }
   }
   if (export_all)
-    Printf(exported,"$%s ",name);
+    Printf(exported,"$%s ",iname);
 }
 
 /* -----------------------------------------------------------------------------

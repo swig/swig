@@ -916,7 +916,7 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
  * PYTHON::declare_const()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::declare_const(char *name, char *, SwigType *type, char *value) {
+PYTHON::declare_const(char *name, char *iname, SwigType *type, char *value) {
   char   *tm;
 
   if ((tm = Swig_typemap_lookup((char*)"const",type,name,value,name,0))) {
@@ -927,21 +927,21 @@ PYTHON::declare_const(char *name, char *, SwigType *type, char *value) {
     case T_SHORT: case T_USHORT:
     case T_LONG: case T_ULONG:
     case T_SCHAR: case T_UCHAR:
-      Printv(const_code, tab4, "{ SWIG_PY_INT,     \"", name, "\", (long) ", value, ", 0, 0, 0},\n", 0);
+      Printv(const_code, tab4, "{ SWIG_PY_INT,     \"", iname, "\", (long) ", value, ", 0, 0, 0},\n", 0);
       break;
     case T_DOUBLE:
     case T_FLOAT:
-      Printv(const_code, tab4, "{ SWIG_PY_FLOAT,   \"", name, "\", 0, (double) ", value, ", 0,0},\n", 0);
+      Printv(const_code, tab4, "{ SWIG_PY_FLOAT,   \"", iname, "\", 0, (double) ", value, ", 0,0},\n", 0);
       break;
     case T_CHAR :
-      Printf(const_code,"    { SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", name, value);
+      Printf(const_code,"    { SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", iname, value);
       break;
     case T_STRING:
-      Printf(const_code,"    { SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", name, value);
+      Printf(const_code,"    { SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", iname, value);
       break;
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
       SwigType_remember(type);
-      Printv(const_code, tab4, "{ SWIG_PY_POINTER, \"", name, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", SwigType_manglestr(type), "}, \n", 0);
+      Printv(const_code, tab4, "{ SWIG_PY_POINTER, \"", iname, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", SwigType_manglestr(type), "}, \n", 0);
       break;
     default:
       Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
@@ -950,7 +950,7 @@ PYTHON::declare_const(char *name, char *, SwigType *type, char *value) {
     }
   }
   if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-    Printv(vars,name, " = ", module, ".", name, "\n", 0);
+    Printv(vars,iname, " = ", module, ".", iname, "\n", 0);
   }
 }
 
