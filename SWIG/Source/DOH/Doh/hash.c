@@ -159,7 +159,8 @@ Hash_scope(DOH *ho, int s) {
     if (h->flags & DOH_FLAG_SETSCOPE) return;
     if (s < h->scope) h->scope = s;
     h->flags = h->flags | DOH_FLAG_SETSCOPE;
-    for (i = 0; i < h->hashsize; i++) {
+    if (h->scope != s) {
+      for (i = 0; i < h->hashsize; i++) {
 	if ((n = h->hashtable[i])) {
 	  while (n) {
 	    Setscope(n->object,s);
@@ -167,6 +168,7 @@ Hash_scope(DOH *ho, int s) {
 	    n = n->next;
 	  }
 	}
+      }
     }
     h->flags = h->flags & ~DOH_FLAG_SETSCOPE;
 }
