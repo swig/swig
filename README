@@ -11,12 +11,13 @@ This distribution represents work in progress towards building a new
 SWIG release.  The guilty parties working on this are:
 
   -  Dave Beazley (beazley@cs.uchicago.edu)             (SWIG core)
-  -  Dustin Mitchell (djmitche@cs.uchicago.edu)         (SWIG core)
-  -  Ian Cooke (iancooke@cs.uchicago.edu)               (SWIG core)
-  -  Catalin Dumitrescu (cldumitr@cs.uchicago.edu)      (SWIG core)
   -  Loic Dachary (loic@ceic.com)                       (Perl5)
   -  Harco de Hilster (Harco.de.Hilster@ATComputing.nl) (Java)
   -  Thien-Thi Nguyen (ttn@glug.org)                    (Guile)
+  -  Masaki Fukushima (fukusima@goto.info.waseda.ac.jp) (Ruby)
+  -  Dustin Mitchell (djmitche@cs.uchicago.edu)         (SWIG core)
+  -  Ian Cooke (iancooke@cs.uchicago.edu)               (SWIG core)
+  -  Catalin Dumitrescu (cldumitr@cs.uchicago.edu)      (SWIG core)
 
 ***********************************************************************
 *****             IMPORTANT NOTICE -- READ THIS NOW!              *****
