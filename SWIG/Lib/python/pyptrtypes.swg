@@ -77,12 +77,12 @@
     $result = *ptr;
     if (res == SWIG_NEWOBJ) delete ptr;
   }
-  %typemap(directorout,fragment=pyfrag) const __VA_ARGS__& ($*1_ltype temp) {
+%typemap(directorout,fragment=pyfrag,warning="470:Using thread unsafe wrapping, consider using a lvalue return type.") const __VA_ARGS__& {
     __VA_ARGS__ *ptr = 0;
     int res = asptr_meth($input, &ptr);
     if (!res || !ptr) 
       throw Swig::DirectorTypeMismatchException("Error converting Python object using asptr_meth");
-    temp = *ptr;
+    static  $*1_ltype temp = *ptr;
     $result = &temp;
     if (res == SWIG_NEWOBJ) delete ptr;
   }
