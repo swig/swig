@@ -113,7 +113,7 @@ check-aliveness:
 	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
 	@$(skip-ruby) || ./$(TARGET) -ruby -help
 	@$(skip-ocaml) || ./$(TARGET) -ocaml -help
-	@($skip-php4) || ./$(TARGET) -php4 -help
+	@$(skip-php4) || ./$(TARGET) -php4 -help
 	@$(skip-pike) || ./$(TARGET) -pike -help
 
 TCL_EXAMPLES = class constants enum funcptr import multimap operator pointer reference simple value variables
