@@ -50,8 +50,10 @@ RUBYKW(next);
 RUBYKW(return);
 RUBYKW(until);
 
-/* swig doesn't like this one */
-// RUBYKW(defined);
+/* swig doesn't like this one in a macro, adding it by hand */
+//RUBYKW(defined);
+%namewarn("314: defined is a ruby keyword") "defined";
+
 
 #undef RUBYKW
 
