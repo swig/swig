@@ -599,7 +599,7 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 	       scanner_clear_start();
 	       AddMethods = 1;
 	       InClass = 1;
-	     } added_members RBRACE {
+	     } cpp_members RBRACE {
 	       InClass = 0;
 	       cplus_unset_class();
 	       AddMethods = 0;
@@ -1066,7 +1066,6 @@ types_directive : TYPES LPAREN parms RPAREN SEMI {
                }
                ;
 
-
 /* ======================================================================
  *                              C Parsing
  * ====================================================================== */
@@ -1141,7 +1140,9 @@ c_function_decl : storage_class type declarator LPAREN parms RPAREN cpp_const {
  
                ;
          
-/* Enumerations */
+/* ------------------------------------------------------------
+   enums
+ * ------------------------------------------------------------ */
 
 c_enum_decl : storage_class ENUM ename LBRACE { scanner_clear_start(); } enumlist RBRACE SEMI {
 		   init_language();
@@ -1173,9 +1174,10 @@ c_enum_decl : storage_class ENUM ename LBRACE { scanner_clear_start(); } enumlis
 	       } typedeflist { }
                ;
 
-/* Note : This really needs to be re-done */
+/* ------------------------------------------------------------
+   typedef
+   ------------------------------------------------------------ */
 
-/* A typedef with pointers */
 c_typedef_decl   : TYPEDEF type declarator {
 		   init_language();
 		   /* Add a new typedef */
@@ -1219,16 +1221,6 @@ c_typedef_decl   : TYPEDEF type declarator {
 	       }
                ;
 
-/* ------------------------------------------------------------------------
-   Typedef list
-
-   The following rules are used to manage typedef lists.  Only a temporary
-   hack until the SWIG 2.0 parser gets online.
-
-   Active_typedef contains the datatype of the last typedef (if applicable)
-   ------------------------------------------------------------------------ */
-
-
 typedeflist   : COMMA declarator typedeflist {
 		  if (Active_typedef) {
 		    SwigType *t;
@@ -1242,7 +1234,6 @@ typedeflist   : COMMA declarator typedeflist {
               }
               | empty { }
               ;
-
 
 /* Allow lists of variables and functions to be built up */
 
@@ -1263,6 +1254,626 @@ stail          : SEMI { }
 		 Delete($4);
 	       } stail { }
               ;
+
+
+/* ======================================================================
+ *                       C++ Support
+ *                   (this is a mess right now)
+ * ====================================================================== */
+
+cpp_declaration : cpp_class_decl
+                | cpp_forward_class_decl
+                | cpp_other
+             ;
+
+cpp_class_decl  :
+
+/* A class/struct/union  definition */
+             storage_class cpptype ID inherit LBRACE {
+	       char *iname;
+	       init_language();
+	       SwigType_new_scope();
+
+	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
+	       if (add_symbol(temp_name)) {
+		 Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
+		 FatalError();
+	       }
+	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
+		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+
+	       iname = make_name($3);
+	       if (iname == $3)
+		 cplus_open_class($3, 0, $2);
+	       else
+	       cplus_open_class($3, iname, $2);
+	       if (strcmp($2,"class") == 0)
+		 cplus_mode = CPLUS_PRIVATE;
+	       else
+	       cplus_mode = CPLUS_PUBLIC;
+	       scanner_clear_start();
+	       nested_list = 0;
+	       // Merge in scope from base classes
+	       cplus_inherit_scope($4.count,$4.names);
+	       InClass = 1;
+              } cpp_members RBRACE {
+	       InClass = 0;
+	       if ($4.names) {
+		 if (strcmp($2,"union") != 0)
+		   cplus_inherit($4.count, $4.names);
+		 else {
+		   Printf(stderr,"%s:%d.  Inheritance not allowed for unions.\n",input_file, line_number);
+		   FatalError();
+		 }
+	       }
+	       // Clean up the inheritance list
+	       if ($4.names) {
+		 int j;
+		 for (j = 0; j < $4.count; j++) {
+		   if ($4.names[j]) free($4.names[j]);
+		 }
+		 free($4.names);
+	       }
+
+	       // Dumped nested declarations (if applicable)
+	       dump_nested($3);
+
+	       // Save and collapse current scope
+	       SwigType_set_scope_name($3);
+	       cplus_register_scope(SwigType_pop_scope());
+
+	       cplus_class_close((char *) 0);
+	       cplus_mode = CPLUS_PUBLIC;
+
+	      }
+
+/* Class with a typedef */
+
+             | TYPEDEF cpptype ID inherit LBRACE {
+	       char *iname;
+	       init_language();
+	       SwigType_new_scope();
+
+	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
+	       if (add_symbol(temp_name)) {
+		 Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
+		 FatalError();
+	       }
+	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
+		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+
+	       iname = make_name($3);
+	       if ($3 == iname)
+		 cplus_open_class($3, 0, $2);
+	       else
+		 cplus_open_class($3, iname, $2);
+	       if (strcmp($2,"class") == 0)
+		 cplus_mode = CPLUS_PRIVATE;
+	       else
+		 cplus_mode = CPLUS_PUBLIC;
+	       scanner_clear_start();
+	       nested_list = 0;
+
+	       // Merge in scope from base classes
+	       cplus_inherit_scope($4.count,$4.names);
+	       InClass = 1;
+              } cpp_members RBRACE declarator {
+		InClass = 0;
+		if ($4.names) {
+		  if (strcmp($2,"union") != 0)
+		    cplus_inherit($4.count, $4.names);
+		  else {
+		    Printf(stderr,"%s:%d.  Inheritance not allowed for unions.\n",input_file, line_number);
+		    FatalError();
+		  }
+		}
+		// Create a datatype for correctly processing the typedef
+		Active_typedef = NewStringf("%s %s", $2, $3);
+		// Clean up the inheritance list
+		if ($4.names) {
+		  int j;
+		  for (j = 0; j < $4.count; j++) {
+		    if ($4.names[j]) free($4.names[j]);
+		  }
+		  free($4.names);
+		}
+
+		if ($9.type > 0) {
+		  Printf(stderr,"%s:%d.  typedef struct { } %s not supported properly. Winging it...\n", input_file, line_number, SwigType_str($9.type,$9.id));
+
+		}
+		// Create dump nested class code
+		if ($9.type) {
+		  dump_nested($3);
+		} else {
+		  dump_nested($9.id);
+		}
+
+		// Collapse any datatypes created in the the class
+
+		SwigType_set_scope_name($3);
+		cplus_register_scope(SwigType_pop_scope());
+		if ($9.type) {
+		  cplus_class_close($3);
+		} else {
+		  cplus_class_close($9.id);
+		}
+		// Create a typedef in global scope
+		if (!$9.type) {
+		  SwigType_typedef(Active_typedef,$9.id);
+		  lang->add_typedef(Active_typedef,$9.id);
+		} else {
+		  SwigType *t = Copy(Active_typedef);
+		  SwigType_push(t,$9.type);
+		  SwigType_typedef(t,$9.id);
+		  lang->add_typedef(t,$9.id);
+		  cplus_register_type($9.id);
+		  Delete(t);
+		}
+		cplus_mode = CPLUS_PUBLIC;
+	      } typedeflist { };
+
+/* An unnamed struct with a typedef */
+
+             | TYPEDEF cpptype LBRACE {
+	       char *iname;
+	       init_language();
+	       SwigType_new_scope();
+	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
+		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+
+	       iname = make_name((char*)"");
+	       if (strlen(iname))
+		 cplus_open_class((char *)"", iname, $2);
+	       else
+		 cplus_open_class((char *) "",0,$2);
+	       if (strcmp($2,"class") == 0)
+		 cplus_mode = CPLUS_PRIVATE;
+	       else
+		 cplus_mode = CPLUS_PUBLIC;
+	       scanner_clear_start();
+	       nested_list = 0;
+	       InClass = 1;
+              } cpp_members RBRACE declarator {
+		InClass = 0;
+		if ($7.type) {
+		  Printf(stderr,"%s:%d. typedef %s {} %s not supported correctly. Will be ignored.\n", input_file, line_number, SwigType_str($7.type,$7.id));
+		  cplus_abort();
+		} else {
+		  sprintf(temp_name,"CPP_CLASS:%s\n",$7.id);
+		  if (add_symbol(temp_name)) {
+		    Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $7.id);
+		    FatalError();
+		  }
+		}
+		// Create a datatype for correctly processing the typedef
+		Active_typedef = NewString($7.id);
+
+		// Dump nested classes
+		if (!$7.type)
+		  dump_nested($7.id);
+
+		// Go back to previous scope
+
+		cplus_register_scope(SwigType_pop_scope());
+		if (!$7.type)
+		  cplus_class_close($7.id);
+		cplus_mode = CPLUS_PUBLIC;
+	      } typedeflist { }
+             ;
+
+/* ------------------------------------------------------------
+   class Name;
+   ------------------------------------------------------------ */
+
+cpp_forward_class_decl : storage_class cpptype ID SEMI {
+	       char *iname;
+	       init_language();
+	       iname = make_name($3);
+	       lang->cpp_class_decl($3,iname,$2);
+	     }
+             ;
+
+
+/* Operator overloading catch */
+
+cpp_other      : storage_class type declarator DCOLON OPERATOR {
+	       Printf(stderr,"%s:%d. Operator overloading not supported (ignored).\n", input_file, line_number);
+		skip_decl();
+		Delete($2);
+	     }
+
+
+/* Template catch */
+             | TEMPLATE {
+	       Printf(stderr,"%s:%d. Templates not currently supported (ignored).\n",
+		       input_file, line_number);
+	       skip_decl();
+	     }
+             ;
+
+cpp_members  : cpp_member cpp_members {}
+             | ADDMETHODS LBRACE {
+	           AddMethods = 1;
+	     } cpp_members RBRACE {
+	           AddMethods = 0;
+	     } cpp_members { }
+	     | error {
+	       skip_decl();
+		   {
+		     static int last_error_line = -1;
+		     if (last_error_line != line_number) {
+		       Printf(stderr,"%s:%d. Syntax error in input.\n", input_file, line_number);
+		       FatalError();
+		       last_error_line = line_number;
+		     }
+		   }
+	     } cpp_members { }
+             | empty { }
+             ;
+
+cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
+                char *iname;
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  SwigType_push($1,$2.type);
+		  iname = make_name($2.id);
+		  if (iname == $2.id) iname = 0;
+		  cplus_member_func($2.id, iname, $1,$4,0);
+		}
+		scanner_clear_start();
+		Delete($1);
+	        Delete($4);
+              }
+
+/* Virtual member function */
+
+             |  VIRTUAL type declarator LPAREN parms RPAREN cpp_vend {
+	       char *iname;
+	       init_language();
+	       if (cplus_mode == CPLUS_PUBLIC) {
+		 SwigType_push($2,$3.type);
+		 iname = make_name($3.id);
+		 if (iname == $3.id) iname = 0;
+		 cplus_member_func($3.id,iname,$2,$5,$7 ? PURE_VIRTUAL : PLAIN_VIRTUAL);
+	       }
+	       scanner_clear_start();
+	       Delete($2);
+	       Delete($5);
+	     }
+
+/* Possibly a constructor */
+              | ID LPAREN parms RPAREN ctor_end {
+		char *iname;
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  iname = make_name($1);
+		  if (iname == $1) iname = 0;
+		  cplus_constructor($1,iname, $3);
+		}
+		scanner_clear_start();
+		Delete($3);
+	      }
+
+/* A destructor (hopefully) */
+
+              | NOT ID LPAREN parms RPAREN cpp_end {
+		char *iname;
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  iname = make_name($2);
+		  if (iname == $2) iname = 0;
+		  cplus_destructor($2,iname);
+		}
+		scanner_clear_start();
+		Delete($4);
+	      }
+
+/* A virtual destructor */
+
+              | VIRTUAL NOT ID LPAREN parms RPAREN cpp_vend {
+ 	        char *iname;
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  iname = make_name($3);
+		  if (iname == $3) iname = 0;
+		  cplus_destructor($3,iname);
+		}
+		scanner_clear_start();
+		Delete($5);
+	      }
+
+/* Member data */
+
+              | type declarator def_args {
+		char *iname;
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  if (Active_type) Delete(Active_type);
+		  Active_type = Copy($1);
+		  SwigType_push($1,$2.type);
+		  iname = make_name($2.id);
+		  if (iname == $2.id) iname = 0;
+		  int oldstatus = Status;
+		  if (SwigType_isconst($1)) {
+		    Status |= STAT_READONLY;
+		  }
+		  cplus_variable($2.id,iname,$1);
+		  Status = oldstatus;
+		}
+		scanner_clear_start();
+		Delete($1);
+	      } cpp_tail { }
+
+/* Static Member data */
+
+              | STATIC type declarator def_args {
+		char *iname;
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  SwigType_push($2,$3.type);
+		  iname = make_name($3.id);
+		  if (iname == $3.id) iname = 0;
+		  int oldstatus = Status;
+		  if (SwigType_isconst($2)) {
+		    Status |= STAT_READONLY;
+		  }
+		  cplus_static_var($3.id,iname,$2);
+		  Status = oldstatus;
+		  if (Active_type) Delete(Active_type);
+		  Active_type = Copy($2);
+		}
+		scanner_clear_start();
+		Delete($2);
+	      } cpp_tail { }
+
+/* Static member function */
+
+              | STATIC type declarator LPAREN parms RPAREN cpp_end {
+		char *iname;
+		SwigType_push($2,$3.type);
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  iname = make_name($3.id);
+		  if (iname == $3.id) iname = 0;
+		  cplus_static_func($3.id, iname, $2, $5);
+		}
+		scanner_clear_start();
+		Delete($2);
+		Delete($5);
+	      }
+/* Turn on public: mode */
+
+              | PUBLIC COLON {
+		cplus_mode = CPLUS_PUBLIC;
+		scanner_clear_start();
+	      }
+
+/* Turn on private: mode */
+
+              | PRIVATE COLON {
+		cplus_mode = CPLUS_PRIVATE;
+		scanner_clear_start();
+	      }
+
+/* Turn on protected mode */
+
+              | PROTECTED COLON {
+		cplus_mode = CPLUS_PROTECTED;
+		scanner_clear_start();
+	      }
+
+/* This is the new style rename */
+
+             | NAME LPAREN ID RPAREN {
+	       strcpy(yy_rename,$3);
+	       Rename_true = 1;
+	     }
+
+/* New mode */
+             | NEW {
+                 NewObject = 1;
+             } cpp_member {
+                 NewObject = 0;
+             }
+
+/* C++ Enum */
+              | ENUM ename LBRACE {scanner_clear_start();} cpp_enumlist RBRACE SEMI {
+
+		 // if ename was supplied.  Install it as a new integer datatype.
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  if ($2) {
+		    cplus_register_type($2);
+		    if (temp_type) Delete(temp_type);
+		    /*		    temp_type = NewSwigType(T_INT); */
+		    temp_type = NewStringf("enum %s",$2);
+		    SwigType_typedef(temp_type,$2);
+		    lang->add_typedef(temp_type,$2);
+		  }
+		}
+	      }
+
+/* A friend :   Illegal */
+              | FRIEND {
+		Printf(stderr,"%s:%d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
+		skip_decl();
+		scanner_clear_start();
+	      }
+
+/* An operator: Illegal */
+              | type abstract_declarator OPERATOR {
+		Printf(stderr,"%s:%d. Operator overloading not supported (ignored).\n", input_file, line_number);
+		skip_decl();
+		scanner_clear_start();
+	      }
+
+/* A typedef inside a class */
+              | c_typedef_decl { }
+
+/* Pragma directive */
+
+              | pragma_directive {
+		scanner_clear_start();
+	      }
+
+/* A constant (includes #defines) inside a class */
+              | constant_directive { }
+
+
+/* ----------------------------------------------------------------------
+   Nested structure.    This is a big ugly "hack".   If we encounter
+   a nested structure, we're going to grab the text of its definition and
+   feed it back into the scanner.  In the meantime, we need to grab
+   variable declaration information and generate the associated wrapper
+   code later.  Yikes!
+
+   This really only works in a limited sense.   Since we use the
+   code attached to the nested class to generate both C/C++ code,
+   it can't have any SWIG directives in it.  It also needs to be parsable
+   by SWIG or this whole thing is going to puke.
+   ---------------------------------------------------------------------- */
+
+/* A struct sname { } id;  declaration */
+
+              | cpptype ID LBRACE { start_line = line_number; skip_brace();
+	      } nested_decl SEMI {
+
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  cplus_register_type($2);
+		  if ($5.id) {
+		    if (strcmp($1,"class") == 0) {
+		      Printf(stderr,"%s:%d.  Warning. Nested classes not currently supported (ignored).\n", input_file, line_number);
+		      /* Generate some code for a new class */
+		    } else {
+		      Nested *n = (Nested *) malloc(sizeof(Nested));
+		      n->code = NewString("");
+		      Printv(n->code, "typedef ", $1, " ",
+			      Char(CCode), " $classname_", $5.id, ";\n", 0);
+		      n->name = Swig_copy_string($5.id);
+		      n->line = start_line;
+		      n->type = NewString("");
+		      SwigType_push(n->type, $5.type);
+		      n->next = 0;
+		      add_nested(n);
+		    }
+		  }
+		}
+	      }
+/* An unnamed structure definition */
+              | cpptype LBRACE { start_line = line_number; skip_brace();
+              } declarator SEMI {
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  if (strcmp($1,"class") == 0) {
+		    Printf(stderr,"%s:%d.  Warning. Nested classes not currently supported (ignored)\n", input_file, line_number);
+		    /* Generate some code for a new class */
+		  } else {
+		    /* Generate some code for a new class */
+
+		    Nested *n = (Nested *) malloc(sizeof(Nested));
+		    n->code = NewString("");
+		    Printv(n->code, "typedef ", $1, " " ,
+			    Char(CCode), " $classname_", $4.id, ";\n",0);
+		    n->name = Swig_copy_string($4.id);
+		    n->line = start_line;
+		    n->type = NewString("");
+		    SwigType_push(n->type,$4.type);
+		    n->next = 0;
+		    add_nested(n);
+
+		  }
+		}
+	      }
+/* An empty class declaration */
+              | cpptype ID SEMI {
+  		    if (cplus_mode == CPLUS_PUBLIC) {
+                       cplus_register_type($2);
+                    }
+              }
+
+/* Other miscellaneous stuff */
+
+              | SEMI { }
+              ;
+
+nested_decl   : declarator { $$ = $1;}
+              | empty { $$.id = 0; }
+              ;
+
+cpp_tail      : SEMI { }
+               | COMMA declarator def_args {
+		 init_language();
+		 if (cplus_mode == CPLUS_PUBLIC) {
+		   temp_typeptr = Copy(Active_type);
+		   SwigType_push(temp_typeptr,$2.type);
+		   int oldstatus = Status;
+		   if (SwigType_isconst(temp_typeptr)) {
+		     Status |= STAT_READONLY;
+		   }
+		   cplus_variable($2.id,(char *) 0, temp_typeptr);
+		   Status = oldstatus;
+		   Delete(temp_typeptr);
+		 }
+		 scanner_clear_start();
+	       } cpp_tail { }
+               ;
+
+cpp_end        : cpp_const SEMI {
+	            Clear(CCode);
+               }
+               | cpp_const LBRACE { skip_brace(); }
+               ;
+
+cpp_vend       : cpp_const SEMI { Clear(CCode); $$ = 0;  }
+               | cpp_const EQUAL definetype SEMI { Clear(CCode); $$ = 1; }
+               | cpp_const LBRACE { skip_brace(); $$ = 0; }
+               ;
+
+cpp_enumlist   :  cpp_enumlist COMMA cpp_edecl {}
+               |  cpp_edecl {}
+               ;
+
+cpp_edecl      :  ID {
+		 if (cplus_mode == CPLUS_PUBLIC) {
+		   temp_typeptr = NewSwigType(T_INT);
+		   my_cplus_declare_const($1, (char *) 0, temp_typeptr, (char *) 0);
+		   Delete(temp_typeptr);
+		   scanner_clear_start();
+		 }
+}
+                 | ID EQUAL etype {
+		   if (cplus_mode == CPLUS_PUBLIC) {
+		     temp_typeptr = NewSwigType(T_INT);
+		     my_cplus_declare_const($1,(char *) 0, temp_typeptr,(char *) 0);
+		     // OLD : Bug with value     my_cplus_declare_const($1,(char *) 0, temp_typeptr,$3.id);
+		     Delete(temp_typeptr);
+		     scanner_clear_start();
+		   }
+		 }
+                 | NAME LPAREN ID RPAREN ID {
+		   if (cplus_mode == CPLUS_PUBLIC) {
+		     temp_typeptr = NewSwigType(T_INT);
+		     my_cplus_declare_const($5, $3, temp_typeptr, (char *) 0);
+		     Delete(temp_typeptr);
+		     scanner_clear_start();
+		   }
+		 }
+                 | NAME LPAREN ID RPAREN ID EQUAL etype {
+		     if (cplus_mode == CPLUS_PUBLIC) {
+		       temp_typeptr = NewSwigType(T_INT);
+		       my_cplus_declare_const($5,$3, temp_typeptr, (char *) 0);
+		       Delete(temp_typeptr);
+		       scanner_clear_start();
+		     }
+		 }
+                 | empty { }
+                 ;
+
+
+
+
+/* ====================================================================== 
+ *                       PRIMITIVES
+ * ====================================================================== */
 
 storage_class  : EXTERN {
 	           $$ = STORAGE_EXTERN;
@@ -1766,651 +2377,6 @@ expr           :  NUM_INT {
 		 $$.type = $2.type;
 	       }
                ;
-
-/****************************************************************/
-/* C++ Support                                                  */
-/****************************************************************/
-
-cpp_declaration : cpp_class { }
-                | cpp_other {}
-             ;
-
-cpp_class    :
-
-/* A class/struct/union  definition */
-             storage_class cpptype ID inherit LBRACE {
-	       char *iname;
-	       init_language();
-	       SwigType_new_scope();
-
-	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
-	       if (add_symbol(temp_name)) {
-		 Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
-		 FatalError();
-	       }
-	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-
-	       iname = make_name($3);
-	       if (iname == $3)
-		 cplus_open_class($3, 0, $2);
-	       else
-	       cplus_open_class($3, iname, $2);
-	       if (strcmp($2,"class") == 0)
-		 cplus_mode = CPLUS_PRIVATE;
-	       else
-	       cplus_mode = CPLUS_PUBLIC;
-	       scanner_clear_start();
-	       nested_list = 0;
-	       // Merge in scope from base classes
-	       cplus_inherit_scope($4.count,$4.names);
-	       InClass = 1;
-              } cpp_members RBRACE {
-	       InClass = 0;
-	       if ($4.names) {
-		 if (strcmp($2,"union") != 0)
-		   cplus_inherit($4.count, $4.names);
-		 else {
-		   Printf(stderr,"%s:%d.  Inheritance not allowed for unions.\n",input_file, line_number);
-		   FatalError();
-		 }
-	       }
-	       // Clean up the inheritance list
-	       if ($4.names) {
-		 int j;
-		 for (j = 0; j < $4.count; j++) {
-		   if ($4.names[j]) free($4.names[j]);
-		 }
-		 free($4.names);
-	       }
-
-	       // Dumped nested declarations (if applicable)
-	       dump_nested($3);
-
-	       // Save and collapse current scope
-	       SwigType_set_scope_name($3);
-	       cplus_register_scope(SwigType_pop_scope());
-
-	       cplus_class_close((char *) 0);
-	       cplus_mode = CPLUS_PUBLIC;
-
-	      }
-
-/* Class with a typedef */
-
-             | TYPEDEF cpptype ID inherit LBRACE {
-	       char *iname;
-	       init_language();
-	       SwigType_new_scope();
-
-	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
-	       if (add_symbol(temp_name)) {
-		 Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
-		 FatalError();
-	       }
-	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-
-	       iname = make_name($3);
-	       if ($3 == iname)
-		 cplus_open_class($3, 0, $2);
-	       else
-		 cplus_open_class($3, iname, $2);
-	       if (strcmp($2,"class") == 0)
-		 cplus_mode = CPLUS_PRIVATE;
-	       else
-		 cplus_mode = CPLUS_PUBLIC;
-	       scanner_clear_start();
-	       nested_list = 0;
-
-	       // Merge in scope from base classes
-	       cplus_inherit_scope($4.count,$4.names);
-	       InClass = 1;
-              } cpp_members RBRACE declarator {
-		InClass = 0;
-		if ($4.names) {
-		  if (strcmp($2,"union") != 0)
-		    cplus_inherit($4.count, $4.names);
-		  else {
-		    Printf(stderr,"%s:%d.  Inheritance not allowed for unions.\n",input_file, line_number);
-		    FatalError();
-		  }
-		}
-		// Create a datatype for correctly processing the typedef
-		Active_typedef = NewStringf("%s %s", $2, $3);
-		// Clean up the inheritance list
-		if ($4.names) {
-		  int j;
-		  for (j = 0; j < $4.count; j++) {
-		    if ($4.names[j]) free($4.names[j]);
-		  }
-		  free($4.names);
-		}
-
-		if ($9.type > 0) {
-		  Printf(stderr,"%s:%d.  typedef struct { } %s not supported properly. Winging it...\n", input_file, line_number, SwigType_str($9.type,$9.id));
-
-		}
-		// Create dump nested class code
-		if ($9.type) {
-		  dump_nested($3);
-		} else {
-		  dump_nested($9.id);
-		}
-
-		// Collapse any datatypes created in the the class
-
-		SwigType_set_scope_name($3);
-		cplus_register_scope(SwigType_pop_scope());
-		if ($9.type) {
-		  cplus_class_close($3);
-		} else {
-		  cplus_class_close($9.id);
-		}
-		// Create a typedef in global scope
-		if (!$9.type) {
-		  SwigType_typedef(Active_typedef,$9.id);
-		  lang->add_typedef(Active_typedef,$9.id);
-		} else {
-		  SwigType *t = Copy(Active_typedef);
-		  SwigType_push(t,$9.type);
-		  SwigType_typedef(t,$9.id);
-		  lang->add_typedef(t,$9.id);
-		  cplus_register_type($9.id);
-		  Delete(t);
-		}
-		cplus_mode = CPLUS_PUBLIC;
-	      } typedeflist { };
-
-/* An unnamed struct with a typedef */
-
-             | TYPEDEF cpptype LBRACE {
-	       char *iname;
-	       init_language();
-	       SwigType_new_scope();
-	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-
-	       iname = make_name((char*)"");
-	       if (strlen(iname))
-		 cplus_open_class((char *)"", iname, $2);
-	       else
-		 cplus_open_class((char *) "",0,$2);
-	       if (strcmp($2,"class") == 0)
-		 cplus_mode = CPLUS_PRIVATE;
-	       else
-		 cplus_mode = CPLUS_PUBLIC;
-	       scanner_clear_start();
-	       nested_list = 0;
-	       InClass = 1;
-              } cpp_members RBRACE declarator {
-		InClass = 0;
-		if ($7.type) {
-		  Printf(stderr,"%s:%d. typedef %s {} %s not supported correctly. Will be ignored.\n", input_file, line_number, SwigType_str($7.type,$7.id));
-		  cplus_abort();
-		} else {
-		  sprintf(temp_name,"CPP_CLASS:%s\n",$7.id);
-		  if (add_symbol(temp_name)) {
-		    Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $7.id);
-		    FatalError();
-		  }
-		}
-		// Create a datatype for correctly processing the typedef
-		Active_typedef = NewString($7.id);
-
-		// Dump nested classes
-		if (!$7.type)
-		  dump_nested($7.id);
-
-		// Go back to previous scope
-
-		cplus_register_scope(SwigType_pop_scope());
-		if (!$7.type)
-		  cplus_class_close($7.id);
-		cplus_mode = CPLUS_PUBLIC;
-	      } typedeflist { }
-             ;
-
-cpp_other    :/* A dummy class name */
-
-             storage_class cpptype ID SEMI {
-	       char *iname;
-	       init_language();
-	       iname = make_name($3);
-	       lang->cpp_class_decl($3,iname,$2);
-	     }
-
-/* A static C++ member function (declared out of scope)  */
-
-              | storage_class type declarator DCOLON ID LPAREN parms RPAREN SEMI {
-		init_language();
-		if (!CPlusPlus)
-		  Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-
-		SwigType_push($2,$3.type);
-		// Fix up the function name
-		sprintf(temp_name,"%s::%s",$3.id,$5);
-		if (!Rename_true) {
-		  Rename_true = 1;
-		  sprintf(yy_rename,"%s_%s",$3.id,$5);
-		}
-		create_function($1, temp_name, $2, $7);
-		Delete($2);
-		Delete($7);
-	      }
-
-/* A static C++ member data */
-             | storage_class type declarator DCOLON ID SEMI {
-	       init_language();
-	       if (!CPlusPlus)
-		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-
-	       SwigType_push($2,$3.type);
-	       // Fix up the function name
-	       sprintf(temp_name,"%s::%s",$3.id,$5);
-	       if (!Rename_true) {
-		 Rename_true = 1;
-		 sprintf(yy_rename,"%s_%s",$3.id,$5);
-	       }
-	       create_variable($1, temp_name, $2);
-	       Delete($2);
-	     }
-
-/* Operator overloading catch */
-
-             | storage_class type declarator DCOLON OPERATOR {
-	       Printf(stderr,"%s:%d. Operator overloading not supported (ignored).\n", input_file, line_number);
-		skip_decl();
-		Delete($2);
-	     }
-
-
-/* Template catch */
-             | TEMPLATE {
-	       Printf(stderr,"%s:%d. Templates not currently supported (ignored).\n",
-		       input_file, line_number);
-	       skip_decl();
-	     }
-
-added_members : cpp_member cpp_members { }
-              | empty { }
-              ;
-
-cpp_members  : cpp_member cpp_members {}
-             | ADDMETHODS LBRACE {
-	           AddMethods = 1;
-	     } cpp_members RBRACE {
-	           AddMethods = 0;
-	     } cpp_members { }
-	     | error {
-	       skip_decl();
-		   {
-		     static int last_error_line = -1;
-		     if (last_error_line != line_number) {
-		       Printf(stderr,"%s:%d. Syntax error in input.\n", input_file, line_number);
-		       FatalError();
-		       last_error_line = line_number;
-		     }
-		   }
-	     } cpp_members { }
-             | empty { }
-             ;
-
-cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
-                char *iname;
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  SwigType_push($1,$2.type);
-		  iname = make_name($2.id);
-		  if (iname == $2.id) iname = 0;
-		  cplus_member_func($2.id, iname, $1,$4,0);
-		}
-		scanner_clear_start();
-		Delete($1);
-	        Delete($4);
-              }
-
-/* Virtual member function */
-
-             |  VIRTUAL type declarator LPAREN parms RPAREN cpp_vend {
-	       char *iname;
-	       init_language();
-	       if (cplus_mode == CPLUS_PUBLIC) {
-		 SwigType_push($2,$3.type);
-		 iname = make_name($3.id);
-		 if (iname == $3.id) iname = 0;
-		 cplus_member_func($3.id,iname,$2,$5,$7 ? PURE_VIRTUAL : PLAIN_VIRTUAL);
-	       }
-	       scanner_clear_start();
-	       Delete($2);
-	       Delete($5);
-	     }
-
-/* Possibly a constructor */
-              | ID LPAREN parms RPAREN ctor_end {
-		char *iname;
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  iname = make_name($1);
-		  if (iname == $1) iname = 0;
-		  cplus_constructor($1,iname, $3);
-		}
-		scanner_clear_start();
-		Delete($3);
-	      }
-
-/* A destructor (hopefully) */
-
-              | NOT ID LPAREN parms RPAREN cpp_end {
-		char *iname;
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  iname = make_name($2);
-		  if (iname == $2) iname = 0;
-		  cplus_destructor($2,iname);
-		}
-		scanner_clear_start();
-		Delete($4);
-	      }
-
-/* A virtual destructor */
-
-              | VIRTUAL NOT ID LPAREN parms RPAREN cpp_vend {
- 	        char *iname;
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  iname = make_name($3);
-		  if (iname == $3) iname = 0;
-		  cplus_destructor($3,iname);
-		}
-		scanner_clear_start();
-		Delete($5);
-	      }
-
-/* Member data */
-
-              | type declarator def_args {
-		char *iname;
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (Active_type) Delete(Active_type);
-		  Active_type = Copy($1);
-		  SwigType_push($1,$2.type);
-		  iname = make_name($2.id);
-		  if (iname == $2.id) iname = 0;
-		  int oldstatus = Status;
-		  if (SwigType_isconst($1)) {
-		    Status |= STAT_READONLY;
-		  }
-		  cplus_variable($2.id,iname,$1);
-		  Status = oldstatus;
-		}
-		scanner_clear_start();
-		Delete($1);
-	      } cpp_tail { }
-
-/* Static Member data */
-
-              | STATIC type declarator def_args {
-		char *iname;
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  SwigType_push($2,$3.type);
-		  iname = make_name($3.id);
-		  if (iname == $3.id) iname = 0;
-		  int oldstatus = Status;
-		  if (SwigType_isconst($2)) {
-		    Status |= STAT_READONLY;
-		  }
-		  cplus_static_var($3.id,iname,$2);
-		  Status = oldstatus;
-		  if (Active_type) Delete(Active_type);
-		  Active_type = Copy($2);
-		}
-		scanner_clear_start();
-		Delete($2);
-	      } cpp_tail { }
-
-/* Static member function */
-
-              | STATIC type declarator LPAREN parms RPAREN cpp_end {
-		char *iname;
-		SwigType_push($2,$3.type);
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  iname = make_name($3.id);
-		  if (iname == $3.id) iname = 0;
-		  cplus_static_func($3.id, iname, $2, $5);
-		}
-		scanner_clear_start();
-		Delete($2);
-		Delete($5);
-	      }
-/* Turn on public: mode */
-
-              | PUBLIC COLON {
-		cplus_mode = CPLUS_PUBLIC;
-		scanner_clear_start();
-	      }
-
-/* Turn on private: mode */
-
-              | PRIVATE COLON {
-		cplus_mode = CPLUS_PRIVATE;
-		scanner_clear_start();
-	      }
-
-/* Turn on protected mode */
-
-              | PROTECTED COLON {
-		cplus_mode = CPLUS_PROTECTED;
-		scanner_clear_start();
-	      }
-
-/* This is the new style rename */
-
-             | NAME LPAREN ID RPAREN {
-	       strcpy(yy_rename,$3);
-	       Rename_true = 1;
-	     }
-
-/* New mode */
-             | NEW {
-                 NewObject = 1;
-             } cpp_member {
-                 NewObject = 0;
-             }
-
-/* C++ Enum */
-              | ENUM ename LBRACE {scanner_clear_start();} cpp_enumlist RBRACE SEMI {
-
-		 // if ename was supplied.  Install it as a new integer datatype.
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if ($2) {
-		    cplus_register_type($2);
-		    if (temp_type) Delete(temp_type);
-		    /*		    temp_type = NewSwigType(T_INT); */
-		    temp_type = NewStringf("enum %s",$2);
-		    SwigType_typedef(temp_type,$2);
-		    lang->add_typedef(temp_type,$2);
-		  }
-		}
-	      }
-
-/* A friend :   Illegal */
-              | FRIEND {
-		Printf(stderr,"%s:%d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
-		skip_decl();
-		scanner_clear_start();
-	      }
-
-/* An operator: Illegal */
-              | type abstract_declarator OPERATOR {
-		Printf(stderr,"%s:%d. Operator overloading not supported (ignored).\n", input_file, line_number);
-		skip_decl();
-		scanner_clear_start();
-	      }
-
-/* A typedef inside a class */
-              | c_typedef_decl { }
-
-/* Pragma directive */
-
-              | pragma_directive {
-		scanner_clear_start();
-	      }
-
-/* A constant (includes #defines) inside a class */
-              | constant_directive { }
-
-
-/* ----------------------------------------------------------------------
-   Nested structure.    This is a big ugly "hack".   If we encounter
-   a nested structure, we're going to grab the text of its definition and
-   feed it back into the scanner.  In the meantime, we need to grab
-   variable declaration information and generate the associated wrapper
-   code later.  Yikes!
-
-   This really only works in a limited sense.   Since we use the
-   code attached to the nested class to generate both C/C++ code,
-   it can't have any SWIG directives in it.  It also needs to be parsable
-   by SWIG or this whole thing is going to puke.
-   ---------------------------------------------------------------------- */
-
-/* A struct sname { } id;  declaration */
-
-              | cpptype ID LBRACE { start_line = line_number; skip_brace();
-	      } nested_decl SEMI {
-
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  cplus_register_type($2);
-		  if ($5.id) {
-		    if (strcmp($1,"class") == 0) {
-		      Printf(stderr,"%s:%d.  Warning. Nested classes not currently supported (ignored).\n", input_file, line_number);
-		      /* Generate some code for a new class */
-		    } else {
-		      Nested *n = (Nested *) malloc(sizeof(Nested));
-		      n->code = NewString("");
-		      Printv(n->code, "typedef ", $1, " ",
-			      Char(CCode), " $classname_", $5.id, ";\n", 0);
-		      n->name = Swig_copy_string($5.id);
-		      n->line = start_line;
-		      n->type = NewString("");
-		      SwigType_push(n->type, $5.type);
-		      n->next = 0;
-		      add_nested(n);
-		    }
-		  }
-		}
-	      }
-/* An unnamed structure definition */
-              | cpptype LBRACE { start_line = line_number; skip_brace();
-              } declarator SEMI {
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (strcmp($1,"class") == 0) {
-		    Printf(stderr,"%s:%d.  Warning. Nested classes not currently supported (ignored)\n", input_file, line_number);
-		    /* Generate some code for a new class */
-		  } else {
-		    /* Generate some code for a new class */
-
-		    Nested *n = (Nested *) malloc(sizeof(Nested));
-		    n->code = NewString("");
-		    Printv(n->code, "typedef ", $1, " " ,
-			    Char(CCode), " $classname_", $4.id, ";\n",0);
-		    n->name = Swig_copy_string($4.id);
-		    n->line = start_line;
-		    n->type = NewString("");
-		    SwigType_push(n->type,$4.type);
-		    n->next = 0;
-		    add_nested(n);
-
-		  }
-		}
-	      }
-/* An empty class declaration */
-              | cpptype ID SEMI {
-  		    if (cplus_mode == CPLUS_PUBLIC) {
-                       cplus_register_type($2);
-                    }
-              }
-
-/* Other miscellaneous stuff */
-
-              | SEMI { }
-              ;
-
-nested_decl   : declarator { $$ = $1;}
-              | empty { $$.id = 0; }
-              ;
-
-cpp_tail      : SEMI { }
-               | COMMA declarator def_args {
-		 init_language();
-		 if (cplus_mode == CPLUS_PUBLIC) {
-		   temp_typeptr = Copy(Active_type);
-		   SwigType_push(temp_typeptr,$2.type);
-		   int oldstatus = Status;
-		   if (SwigType_isconst(temp_typeptr)) {
-		     Status |= STAT_READONLY;
-		   }
-		   cplus_variable($2.id,(char *) 0, temp_typeptr);
-		   Status = oldstatus;
-		   Delete(temp_typeptr);
-		 }
-		 scanner_clear_start();
-	       } cpp_tail { }
-               ;
-
-cpp_end        : cpp_const SEMI {
-	            Clear(CCode);
-               }
-               | cpp_const LBRACE { skip_brace(); }
-               ;
-
-cpp_vend       : cpp_const SEMI { Clear(CCode); $$ = 0;  }
-               | cpp_const EQUAL definetype SEMI { Clear(CCode); $$ = 1; }
-               | cpp_const LBRACE { skip_brace(); $$ = 0; }
-               ;
-
-cpp_enumlist   :  cpp_enumlist COMMA cpp_edecl {}
-               |  cpp_edecl {}
-               ;
-
-cpp_edecl      :  ID {
-		 if (cplus_mode == CPLUS_PUBLIC) {
-		   temp_typeptr = NewSwigType(T_INT);
-		   my_cplus_declare_const($1, (char *) 0, temp_typeptr, (char *) 0);
-		   Delete(temp_typeptr);
-		   scanner_clear_start();
-		 }
-}
-                 | ID EQUAL etype {
-		   if (cplus_mode == CPLUS_PUBLIC) {
-		     temp_typeptr = NewSwigType(T_INT);
-		     my_cplus_declare_const($1,(char *) 0, temp_typeptr,(char *) 0);
-		     // OLD : Bug with value     my_cplus_declare_const($1,(char *) 0, temp_typeptr,$3.id);
-		     Delete(temp_typeptr);
-		     scanner_clear_start();
-		   }
-		 }
-                 | NAME LPAREN ID RPAREN ID {
-		   if (cplus_mode == CPLUS_PUBLIC) {
-		     temp_typeptr = NewSwigType(T_INT);
-		     my_cplus_declare_const($5, $3, temp_typeptr, (char *) 0);
-		     Delete(temp_typeptr);
-		     scanner_clear_start();
-		   }
-		 }
-                 | NAME LPAREN ID RPAREN ID EQUAL etype {
-		     if (cplus_mode == CPLUS_PUBLIC) {
-		       temp_typeptr = NewSwigType(T_INT);
-		       my_cplus_declare_const($5,$3, temp_typeptr, (char *) 0);
-		       Delete(temp_typeptr);
-		       scanner_clear_start();
-		     }
-		 }
-                 | empty { }
-                 ;
 
 inherit        : COLON base_list {
 		   $$ = $2;
