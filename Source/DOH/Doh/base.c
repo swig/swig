@@ -45,6 +45,7 @@ static DohObjInfo DohBaseType = {
   0,                /* doh_del */
   0,                /* doh_copy */
   0,                /* doh_clear */
+  0,                /* doh_scope */
   0,                /* doh_str */
   0,                /* doh_data */
   0,                /* doh_dump */
@@ -85,8 +86,12 @@ static DOH *find_internal(DOH *co) {
   StringNode *r, *s;
   int d;
   char *c;
+  DOH *n;
   if (DohCheck(co)) return co;
   c = (char *) co;
+  n = NewString(c);
+  return n;
+
   if (doh_debug_level) {
     DohError(DOH_CONVERSION,"Unknown object '%s' being treated as 'char *'.\n", c);
   }
@@ -120,26 +125,24 @@ void DohDestroy(DOH *obj) {
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohDestroy %x\n",obj);
     if (!DohCheck(b)) return;
+    if (b->flags & DOH_FLAG_INTERN) return;
     b->refcount--;
-    if (b->refcount <= 0) {
-      if (doh_debug_level >= DOH_MEMORY) {
-	if (DohObjFreeCheck(obj)) {
-	  DohError(DOH_MEMORY,"DohDestroy. %x was already released! (ignoring for now)\n", obj);
-	  return;
-	}
-      }
+    if (b->refcount == 0) {
       if (b->objinfo->doh_del) {
-	(b->objinfo->doh_del)(obj);
-	return;
-      } else {
-	/*	free(b); */
+	(b->objinfo->doh_del)(obj); 
       }
+      return;
     }
+}
+
+void DohIntern(DOH *obj) {
+  DohBase *b = (DohBase *) obj;
+  if (!DohCheck(b)) return;
+  b->flags = b->flags | DOH_FLAG_INTERN;
 }
 
 /* Copy an object */
 DOH *DohCopy(DOH *obj) {
-    DOH  *result;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohCopy %x\n",obj);
     if (!DohCheck(b)) {
@@ -165,6 +168,20 @@ void DohClear(DOH *obj) {
       return;
     }
     DohError(DOH_UNSUPPORTED, "No clear method defined for type '%s'\n", b->objinfo->objname);
+}
+
+void DohSetScope(DOH *obj, int s) {
+    DohBase *b = (DohBase *) obj;
+    DohError(DOH_CALLS,"DohScope %x\n",obj);
+    if (!DohCheck(b)) {
+      DohError(DOH_UNKNOWN,"Unknown object %x passed to Scope.\n",obj);
+      return;
+    }
+    if (b->objinfo->doh_scope) {
+      (b->objinfo->doh_scope)(obj,s);
+      return;
+    }
+    if (s < b->scope) b->scope = s;
 }
 
 /* Turn an object into a string */
@@ -202,7 +219,6 @@ int DohDump(DOH *obj, DOH *out) {
 
 /* Get the length */
 int DohLen(DOH *obj) {
-    int s;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohLen %x\n",obj);
     if (!b) return 0;
@@ -220,7 +236,6 @@ int DohLen(DOH *obj) {
 
 /* Get the hash value */
 int DohHashval(DOH *obj) {
-    int s;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohHashval %x\n",obj);
     if (DohCheck(b)) {
@@ -237,7 +252,6 @@ int DohHashval(DOH *obj) {
 /* Get raw data */
 void *DohData(DOH *obj) {
     char *c;
-    char *s;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohData %x\n",obj);
     c = (char *) obj;
@@ -312,7 +326,6 @@ void DohSetfile(DOH *obj, DOH *file) {
 
 /* Get an attribute from an object */
 int DohCmp(DOH *obj1, DOH *obj2) {
-    int s;
     DohBase *b1, *b2;
     DohError(DOH_CALLS,"DohCmp %x, %x\n",obj1,obj2);
     b1 = (DohBase *) obj1;
@@ -347,15 +360,12 @@ int DohIsMapping(DOH *obj) {
 
 /* Get an attribute from an object */
 DOH *DohGetattr(DOH *obj, DOH *name) {
-  DOH  *s;
-  DOH  *name_obj;
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohGetattr %x, %x\n",obj,name);
   if (!name) return 0;
   if (DohIsMapping(b)) {
-    name_obj = find_internal(name);
     if (b->objinfo->doh_mapping->doh_getattr) {
-      return (b->objinfo->doh_mapping->doh_getattr)(obj,name_obj);
+      return (b->objinfo->doh_mapping->doh_getattr)(obj,name);
     }
   }
   if (DohCheck(b)) {
@@ -368,21 +378,12 @@ DOH *DohGetattr(DOH *obj, DOH *name) {
 
 /* Set an attribute in an object */
 int DohSetattr(DOH *obj, DOH *name, DOH *value) {
-    int s;
-    DOH *name_obj, *value_obj;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohSetattr %x, %x, %x\n",obj,name, value);
     if ((!name) || (!value)) return 0;
     if (DohIsMapping(b)) {
-      name_obj = find_internal(name);
-      if (!DohCheck(value)) {
-	DohError(DOH_CONVERSION,"Unknown object %x converted to a string in Setattr.\n",value);
-	value_obj = NewString(value);
-      } else {
-	value_obj = value;
-      }
       if (b->objinfo->doh_mapping->doh_setattr) {
-	return (b->objinfo->doh_mapping->doh_setattr)(obj,name_obj,value_obj);
+	return (b->objinfo->doh_mapping->doh_setattr)(obj,name,value);
       }
     }
     if (DohCheck(b)) {
@@ -395,14 +396,12 @@ int DohSetattr(DOH *obj, DOH *name, DOH *value) {
 
 /* Delete an attribute from an object */
 void DohDelattr(DOH *obj, DOH *name) {
-  DOH *name_obj;
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohDelattr %x, %x\n",obj,name);
   if (!name) return;
   if (DohIsMapping(obj)) {
-    name_obj = find_internal(name);
     if (b->objinfo->doh_mapping->doh_delattr) {
-      (b->objinfo->doh_mapping->doh_delattr)(obj,name_obj);
+      (b->objinfo->doh_mapping->doh_delattr)(obj,name);
       return;
     }
   }
@@ -416,7 +415,6 @@ void DohDelattr(DOH *obj, DOH *name) {
 
 /* Get first item in an object */
 DOH *DohFirst(DOH *obj) {
-    DOH *s;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohFirst %x\n",obj);
     if (DohIsMapping(obj)) {
@@ -434,7 +432,6 @@ DOH *DohFirst(DOH *obj) {
 
 /* Get next item in an object */
 DOH *DohNext(DOH *obj) {
-    DOH *s;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohNext %x\n",obj);
     if (DohIsMapping(obj)) {
@@ -453,7 +450,6 @@ DOH *DohNext(DOH *obj) {
 
 /* Get first item in an object */
 DOH *DohFirstkey(DOH *obj) {
-    DOH *s;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohFirstkey %x\n",obj);
     if (DohIsMapping(obj)) {
@@ -471,7 +467,6 @@ DOH *DohFirstkey(DOH *obj) {
 
 /* Get next item in an object */
 DOH *DohNextkey(DOH *obj) {
-    DOH *s;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohNextkey %x\n",obj);
     if (DohIsMapping(obj)) {
@@ -488,7 +483,6 @@ DOH *DohNextkey(DOH *obj) {
 }
 
 int DohGetInt(DOH *obj, DOH *name) {
-  int ival;
   DOH *val;
   DohError(DOH_CALLS,"DohGetInt %x, %x\n",obj,name);  
   val = Getattr(obj,name);
@@ -500,7 +494,6 @@ int DohGetInt(DOH *obj, DOH *name) {
 }
 
 double DohGetDouble(DOH *obj, DOH *name) {
-  double dval;
   DOH *val;
   DohError(DOH_CALLS,"DohGetDouble %x, %x\n",obj,name);  
   val = Getattr(obj,name);
@@ -512,7 +505,6 @@ double DohGetDouble(DOH *obj, DOH *name) {
 }
 
 char *DohGetChar(DOH *obj, DOH *name) {
-  double dval;
   DOH *val;
   DohError(DOH_CALLS,"DohGetChar %x, %x\n",obj,name);  
   val = Getattr(obj,name);
@@ -553,7 +545,6 @@ int DohIsSequence(DOH *obj) {
 
 /* Get an item from an object */
 DOH *DohGetitem(DOH *obj, int index) {
-    DOH  *s;
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohGetitem %x, %d\n",obj,index);  
     if (DohIsSequence(obj)) {
@@ -621,7 +612,6 @@ void DohInsertitem(DOH *obj, int index, DOH *value) {
       DohError(DOH_CONVERSION,"Unknown object %x being converted to a string in Insertitem.\n", value);
       value_obj = NewString(value);
       no = 1;
-      Incref(value_obj);
     } else {
       value_obj = value;
     }
@@ -827,10 +817,38 @@ int DohClose(DOH *obj) {
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * String methods
+ * ----------------------------------------------------------------------------- */
+
+int DohIsString(DOH *obj) {
+  DohBase *b = (DohBase *) obj;
+  if (!DohCheck(b)) return 0;
+  if (b->objinfo->doh_string) return 1;
+  else return 0;
+}
+
+int DohReplace(DOH *src, DOH *token, DOH *rep, int flags) {
+  DohBase *b = (DohBase *) src;
+  DohError(DOH_CALLS, "DohReplace %x\n", src);
+  if (DohIsString(src)) {
+    if (b->objinfo->doh_string->doh_replace) {
+      return (b->objinfo->doh_string->doh_replace)(src,token,rep,flags);
+    }
+  }
+  if (DohCheck(b)) {
+    DohError(DOH_UNSUPPORTED, "No replace method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    DohError(DOH_UNKNOWN,"Unknown object %x passed to Replace\n", b);
+  }
+  return 0;
+}
+
 void DohInit(DOH *b) {
     DohBase *bs = (DohBase *) b;
-    bs->refcount =0;
+    bs->refcount = 1;
     bs->objinfo = &DohBaseType;
     bs->line = 0;
     bs->file = 0;
+    bs->flags = 0;
 }

@@ -14,6 +14,7 @@
  ****************************************************************************/
 
 #include "dohint.h"
+#include <unistd.h>
 
 /* ---------------------------------------------------------------------------
  * $Header$
@@ -58,6 +59,7 @@ static DohObjInfo FileType = {
     DelFile,         /* doh_del      */
     0,               /* doh_copy     */
     0,               /* doh_clear    */
+    0,               /* doh_scope    */
     0,               /* doh_str      */
     0,               /* doh_data     */
     0,               /* doh_dump     */
@@ -95,7 +97,6 @@ NewFile(DOH *fn, char *mode)
     fclose(file);
     return 0;
   }
-  DohInit(f);
   f->objinfo = &FileType;
   f->filep = file;
   f->fd = fileno(file);
@@ -113,7 +114,6 @@ NewFileFromFile(FILE *file)
   File *f;
   f = (File *) DohObjMalloc(sizeof(File));
   if (!f) return 0;
-  DohInit(f);
   f->objinfo = &FileType;
   f->filep = file;
   f->fd = fileno(file);
@@ -131,7 +131,6 @@ NewFileFromFd(int fd)
   File *f;
   f = (File *) DohObjMalloc(sizeof(File));
   if (!f) return 0;
-  DohInit(f);
   f->objinfo = &FileType;
   f->filep = 0;
   f->fd = fd;

@@ -56,7 +56,9 @@ int     String_putc(DOH *s, int ch);
 int     String_ungetc(DOH *s, int ch);
 int     String_seek(DOH *s, long offset, int whence);
 long    String_tell(DOH *s);
-    
+int     String_replace(DOH *str, DOH *token, DOH *rep, int flags);    
+void    String_chop(DOH *str);
+
 static DohSequenceMethods StringSeqMethods = {
   0,                      /* doh_getitem */
   0,                      /* doh_setitem */
@@ -77,12 +79,17 @@ static DohFileMethods StringFileMethods = {
   0,
 };
 
+static DohStringMethods StringStringMethods = {
+  String_replace,
+};
+
 static DohObjInfo StringType = {
     "String",          /* objname */
     sizeof(String),    /* objsize */
     DelString,         /* doh_del */
     CopyString,        /* doh_copy */
     String_clear,      /* doh_clear */
+    0,                 /* doh_scope */
     String_str,        /* doh_str */
     String_data,       /* doh_data */
     String_dump,       /* doh_dump */
@@ -93,7 +100,7 @@ static DohObjInfo StringType = {
     0,                 /* doh_mapping */
     &StringSeqMethods, /* doh_sequence */
     &StringFileMethods,/* doh_file */
-    0,                 /* doh_string */ 
+    &StringStringMethods, /* doh_string */ 
     0,                 /* doh_callable */ 
 };
 
@@ -139,10 +146,9 @@ int String_dump(DOH *so, DOH *out) {
 DOH *
 NewString(char *s)
 {
-    int l, max;
+    int l = 0, max;
     String *str;
     str = (String *) DohObjMalloc(sizeof(String));
-    DohInit(str);
     str->objinfo = &StringType;
     str->hashkey = -1;
     str->sp = 0;
@@ -172,11 +178,10 @@ NewString(char *s)
 DOH *
 CopyString(DOH *so) {
   String *s;
-  int l, max;
+  int max;
   String *str;
   s = (String *) so;
   str = (String *) DohObjMalloc(sizeof(String));
-  DohInit(str);
   str->objinfo = &StringType;
   str->hashkey = -1;
   str->sp = 0;
@@ -200,7 +205,9 @@ DelString(DOH *so) {
   String *s;
   s = (String *) so;
   assert(s->refcount <= 0);
-  DohFree(s->str);
+  if (s->str) 
+    DohFree(s->str);
+  s->str = 0;
   DohObjFree(s);
 }
 
@@ -240,7 +247,7 @@ String_cmp(DOH *so1, DOH *so2)
 {
     String *s1, *s2;
     char *c1, *c2;
-    int  maxlen,i,ret;
+    int  maxlen,i;
     s1 = (String *) so1;
     s2 = (String *) so2;
     maxlen = s1->len;
@@ -284,7 +291,7 @@ int String_hash(DOH *so) {
 
 static void
 add(String *s, const char *newstr) {
-  int   newlen, newmaxsize, l;
+  int   newlen, newmaxsize, l, i;
   if (!newstr) return;
   s->hashkey = -1;
   l = (int) strlen(newstr);
@@ -292,47 +299,39 @@ add(String *s, const char *newstr) {
   if (newlen >= s->maxsize-1) {
     newmaxsize = 2*s->maxsize;
     if (newlen >= newmaxsize -1) newmaxsize = newlen + 1;
-    assert(s->str = (char *) DohRealloc(s->str,newmaxsize));
+    s->str = (char *) DohRealloc(s->str,newmaxsize);
+    assert(s->str);
     s->maxsize = newmaxsize;
   }
   strcpy(s->str+s->len,newstr);
-  if (s->sp >= s->len) 
-    s->sp+=l;
-  s->len += l;
-}  
-
-static void
-addstr(String *s, String *s1) {
-  int   newlen, newmaxsize, l;
-  s->hashkey = -1;
-  l = s1->len;
-  newlen = s->len+l + 1;
-  if (newlen >= s->maxsize-1) {
-    newmaxsize = 2*s->maxsize;
-    if (newlen >= newmaxsize -1) newmaxsize = newlen + 1;
-    assert(s->str = (char *) DohRealloc(s->str,newmaxsize));
-    s->maxsize = newmaxsize;
+  if (s->sp >= s->len) {
+#ifdef DOH_STRING_UPDATE_LINES
+    for (i = s->sp; i < s->len+l; i++) {
+      if (s->str[i] == '\n') s->line++;
+    }
+#endif
+    s->sp = s->len+l;
   }
-  memmove(s->str+s->len,s1->str,s1->len);
-  if (s->sp >= s->len) s->sp+=l;
   s->len += l;
 }  
-
 
 /* Add a single character to s */
-
 void
 String_addchar(DOH *so, char c) {
   String *s = (String *) so;
   s->hashkey = -1;
   if ((s->len+1) > (s->maxsize-1)) {
-    assert(s->str = (char *) DohRealloc(s->str,2*s->maxsize));
+    s->str = (char *) DohRealloc(s->str,2*s->maxsize);
+    assert(s->str);
     s->maxsize *= 2;
   }
   s->str[s->len] = c;
   if (s->sp >= s->len) {
-    s->sp++;
+    s->sp = s->len+1;
     s->str[s->len+1] = 0;
+#ifdef DOH_STRING_UPDATE_LINES
+    if (c == '\n') s->line++;
+#endif
   }
   s->len++;
 }
@@ -341,7 +340,8 @@ String_addchar(DOH *so, char c) {
 void
 String_expand(String *s, int width) {
   if ((s->len + width) > (s->maxsize-1)) {
-    assert(s->str = (char *) DohRealloc(s->str,(s->len + width)+1));
+    s->str = (char *) DohRealloc(s->str,(s->len + width)+1);
+    assert(s->str);
     s->maxsize = s->len + width + 1;
   }
 }
@@ -357,7 +357,7 @@ String_clear(DOH *so)
   s = (String *) so;
   s->hashkey = -1;
   s->len = 0;
-  s->str[0] = 0;
+  *(s->str) = 0;
   s->sp = 0;
   s->lsp = 0;
   s->line = 1;
@@ -380,11 +380,22 @@ raw_insert(String *s, int pos, char *data, int len)
     /* See if there is room to insert the new data */
 
     while (s->maxsize <= s->len+len) {
-	assert(s->str = (char *) DohRealloc(s->str,2*s->maxsize));
+	s->str = (char *) DohRealloc(s->str,2*s->maxsize);
+	assert(s->str);
 	s->maxsize *= 2;
     }
     memmove(s->str+pos+len, s->str+pos, (s->len - pos));
     memcpy(s->str+pos,data,len);
+    if (s->sp >= s->len) {
+      int i;
+      s->sp = s->len;
+#ifdef DOH_STRING_UPDATE_LINES
+      for (i = 0; i < len; i++) {
+	if (data[i] == '\n') s->line++;
+      }
+#endif
+      s->sp+=len;
+    }
     s->len += len; 
     s->str[s->len] = 0;
 }  
@@ -399,7 +410,7 @@ String_insert(DOH *so, int pos, DOH *str)
     char   *c;
     int     len;
     s = (String *) so;
-    assert(s->refcount <= 1);
+    /*    assert(s->refcount <= 1); */
     s1 = (String *) str;
     len = s1->len;
     c = s1->str;
@@ -419,9 +430,14 @@ int String_delitem(DOH *so, int pos)
   s->hashkey = -1;
   if (pos == DOH_END) pos = s->len-1;
   if (pos == DOH_BEGIN) pos = 0;
+  if (s->len == 0) return 0;
 
-  if (s->len == 0) return;
-  
+  if (s->sp > pos) {
+    s->sp--;
+#ifdef DOH_STRING_UPDATE_LINES
+    if (s->str[pos] == '\n') s->line--;
+#endif
+  }
   memmove(s->str+pos, s->str+pos+1, ((s->len-1) - pos));
   s->len--;
   s->str[s->len] = 0;
@@ -448,10 +464,10 @@ String_str(DOH *so) {
 int
 String_read(DOH *so, void *buffer, int len) {
   int    reallen, retlen;
-  int    i;
   char   *cb;
   String *s = (String *) so;
   if (((s->sp-s->pbi) + len) > s->len) reallen = (s->len - (s->sp-s->pbi));
+  else reallen = len;
 
   cb = (char *) buffer;
   retlen = reallen;
@@ -476,12 +492,13 @@ String_read(DOH *so, void *buffer, int len) {
  * ----------------------------------------------------------------------------- */
 int
 String_write(DOH *so, void *buffer, int len) {
-  int    reallen, newlen, newmaxsize;
+  int    newlen;
   String *s = (String *) so;
   s->hashkey = -1;
   newlen = s->sp + len+1;
   if (newlen > s->maxsize) {
-    assert(s->str = (char *) DohRealloc(s->str,newlen));
+    s->str = (char *) DohRealloc(s->str,newlen);
+    assert(s->str);
     s->maxsize = newlen;
     s->len = s->sp + len;
   }
@@ -499,23 +516,34 @@ String_write(DOH *so, void *buffer, int len) {
  * ----------------------------------------------------------------------------- */
 int
 String_seek(DOH *so, long offset, int whence) {
-  int    pos;
+  int    pos, nsp, inc;
   String *s = (String *) so;
   if (whence == SEEK_SET) pos = 0;
-  if (whence == SEEK_CUR) pos = s->sp;
-  if (whence == SEEK_END) {
+  else if (whence == SEEK_CUR) pos = s->sp;
+  else if (whence == SEEK_END) {
     pos = s->len;
     offset = -offset;
   }
-  s->sp = pos + offset;
-  if (s->sp < 0) s->sp = 0;
-  if (s->sp > s->len) s->sp = s->len;
+  else pos = s->sp;
+
+  nsp = pos + offset;
+  if (nsp < 0) nsp = 0;
+  if (nsp > s->len) nsp = s->len;
+  if (nsp > s->sp) inc = 1;
+  else inc = -1;
+#ifdef DOH_STRING_UPDATE_LINES
+  while (s->sp != nsp) { 
+    if (s->str[s->sp-1] == '\n') s->line += inc;
+    s->sp += inc;
+  }
+#endif
+  s->sp = nsp;
   s->pbi = 0;
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
- * long String_seek(DOH *so)
+ * long String_tell(DOH *so)
  * 
  * Return current position
  * ----------------------------------------------------------------------------- */
@@ -540,6 +568,9 @@ String_putc(DOH *so, int ch) {
   } else {
     s->str[s->sp] = (char) ch;
     s->sp++;
+#ifdef DOH_STRING_UPDATE_LINES
+  if (ch == '\n') s->line++;
+#endif
   }
   s->pbi = 0;
   return ch;
@@ -548,28 +579,30 @@ String_putc(DOH *so, int ch) {
 /* -----------------------------------------------------------------------------
  * int String_getc(DOH *so)
  *
- * Get a character from the string
+ * Get a character from the string.  Updates the line number.
  * ----------------------------------------------------------------------------- */
 
 int String_getc(DOH *so) {
+  int c;
   String *s = (String *) so;
 
   if (s->pbi) {
-    return (int) s->pb[--s->pbi];
-  }
-  if (s->sp >= s->len) return EOF;
-  else return (int) s->str[s->sp++];
+    c = (int) s->pb[--s->pbi];
+  } else if (s->sp >= s->len) c = EOF;
+  else c = (int) s->str[s->sp++];
+#ifdef DOH_STRING_UPDATE_LINES
+  if (c == '\n') s->line++;
+#endif
+  return c;
 }
 
 /* -----------------------------------------------------------------------------
  * int String_ungetc(DOH *so, int ch)
  *
- * Put a character back on to the input stream.
+ * Put a character back on to the input stream.  Updates the line count.
  * ----------------------------------------------------------------------------- */
-
 int String_ungetc(DOH *so, int ch) {
   String *s = (String *) so;
-  int i;
   if (ch == EOF) return ch;
   if ((s->sp - s->pbi) <= 0) return EOF;
   if (s->pbi == 4) {
@@ -580,11 +613,14 @@ int String_ungetc(DOH *so, int ch) {
   } else {
     s->pb[s->pbi++] = (char) ch;
   }
+#ifdef DOH_STRING_UPDATE_LINES
+  if (ch == '\n') s->line--;
+#endif
   return ch;
 }
 
 /* -----------------------------------------------------------------------------
- * static void replace_internal(String *str, char *token, char *rep, int flags, char *start, int count)
+ * int replace_internal(String *str, char *token, char *rep, int flags, char *start, int count)
  *
  * Replaces token with rep.  flags is as follows:
  *
@@ -596,11 +632,13 @@ int String_ungetc(DOH *so, int ch) {
  * start is a starting position. count is a count.
  * ----------------------------------------------------------------------------- */
 
-void replace_internal(String *str, char *token, char *rep, int flags, char *start, int count)
+static
+int replace_internal(String *str, char *token, char *rep, int flags, char *start, int count)
 {
     char *s, *c, *t;
     int  tokenlen;
     int  state;
+    int  repcount = 0;
 
     /* Copy the current string representation */
 
@@ -646,6 +684,7 @@ void replace_internal(String *str, char *token, char *rep, int flags, char *star
 			    c += (tokenlen-1);
 			    t = c+1;
 			    count--;
+			    repcount++;
 			}
 		    } else if (isalpha(*c) || (*c == '_') || (*c == '$')) {
 			char temp = *c;
@@ -668,6 +707,7 @@ void replace_internal(String *str, char *token, char *rep, int flags, char *star
 		    if (strcmp(token,t) == 0) {
 			add(str,rep);
 			count--;
+			repcount++;
 		    } else {
 			add(str,t);
 		    }
@@ -698,20 +738,50 @@ void replace_internal(String *str, char *token, char *rep, int flags, char *star
 	}
 	DohFree(s);
     }
+    return repcount;
 }
 
 /* -----------------------------------------------------------------------------
- * void String_replace(DOH *str, DOH *token, DOH *rep, int flags)
+ * int String_replace(DOH *str, DOH *token, DOH *rep, int flags)
  * ----------------------------------------------------------------------------- */
 
-void 
+int 
 String_replace(DOH *stro, DOH *token, DOH *rep, int flags)
 {
     int count = -1;
     String *str;
-    if (!String_check(stro)) return;
+    if (!String_check(stro)) return 0;
     str = (String *) stro;
-    assert(!str->refcount);
+    assert(str->refcount);
+    /* assert(!str->refcount); */
     if (flags & DOH_REPLACE_FIRST) count = 1;
-    replace_internal(str,Char(token),Char(rep),flags,str->str,count);
+    return replace_internal(str,Char(token),Char(rep),flags,str->str,count);
 }
+
+/* -----------------------------------------------------------------------------
+ * void String_chop(DOH *str)
+ * ----------------------------------------------------------------------------- */
+
+void
+String_chop(DOH *s) {
+  char *c;
+  String *str = (String *) s;
+  if (!String_check(s)) return;
+  /* assert(!str->refcount); */
+  
+  /* Replace trailing whitespace */
+  c = str->str + str->len - 1;
+  while ((str->len >= 0) && (isspace(*c))) {
+    if (str->sp >= str->len) {
+      str->sp--;
+#ifdef DOH_STRING_UPDATE_LINES
+      if (*c == '\n') str->line--;
+#endif
+    }
+    str->len--;
+    c--;
+  }
+  str->hashkey = -1;
+  str->pbi = 0;
+}
+  
