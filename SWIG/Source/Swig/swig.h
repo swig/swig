@@ -202,6 +202,17 @@ extern void Swig_add_rules(SwigRule ruleset[]);
 extern void Swig_clear_rules();
 extern int  Swig_emit(DOH *obj, void *clientdata);
 
+  /* -- Wrapper function Object */
+
+typedef struct {
+  DOHHash   *h;
+  DOHHash   *localh;
+  DOHString *def;
+  DOHString *locals;
+  DOHString *code;
+} SwigWrapper;
+
+
 /* --- Misc --- */
 extern char *Swig_copy_string(const char *c);
 
