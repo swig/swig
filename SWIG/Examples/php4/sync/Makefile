@@ -3,10 +3,11 @@ SWIG       = $(TOP)/../swig
 CXXSRCS	   = example.cxx
 TARGET     = libexample
 INTERFACE  = example.i
-SWIGOPT    = -shadow #-nosync
+SWIGOPT    = -shadow # -nosync	
+
 
 all::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' php4_cpp
 
 clean::
