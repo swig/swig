@@ -7,7 +7,8 @@
 %}
 
 namespace std {
-  template <class _CharT> 
+
+  template <class _CharT, class _Traits =  char_traits<_CharT> > 
   class basic_string
   {
 #if !defined(SWIG_STD_MODERN_STL) || defined(SWIG_STD_NOMODERN_STL)
@@ -253,4 +254,5 @@ namespace std {
 
   };
 }
+
 
