@@ -271,90 +271,41 @@ install: install-main install-lib install-runtime
 install-main:
 	@echo "Installing $(BIN_DIR)/swig"
 	@$(MKINSTDIRS) $(DESTDIR)$(BIN_DIR)
-	@if [ -f swig.exe ]; then						\
-		$(INSTALL_PROGRAM) swig.exe $(DESTDIR)$(BIN_DIR)/swig.exe;	\
-	else									\
-		$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/$(TARGET);	\
-	fi
+	@if [ -f swig.exe ]; then swig=swig.exe; else swig=$(TARGET); fi; \
+	$(INSTALL_PROGRAM) $$swig $(DESTDIR)$(BIN_DIR)/$$swig
+
+lib-languages = tcl perl5 python guile java mzscheme ruby php4 ocaml pike
 
 install-lib:
 	@echo "Installing the SWIG library"
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
 #	cd $(SWIG_LIB); rm -rf *
-#	The following line has `*.swg' removed -- add it back if needed.
 	@cd $(srcdir)/Lib; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/$$i"; \
             ../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/$$i; \
 	    done;
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/tcl
-	@cd $(srcdir)/Lib/tcl; for i in *.i *.swg; \
-	    do \
-	    echo "Installing Lib/tcl/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/tcl/$$i; \
-	    done;
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/perl5
-	@cd $(srcdir)/Lib/perl5; for i in *.i *.swg Makefile.pl; \
-	    do \
-	    echo "Installing Lib/perl5/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/perl5/$$i; \
-	    done;
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/python
-	@cd $(srcdir)/Lib/python; for i in *.i *.swg; \
-	    do \
-	    echo "Installing Lib/python/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/python/$$i; \
-	    done;
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/guile
-	@cd $(srcdir)/Lib/guile; for i in *.i *.swg; \
-	    do \
-	    echo "Installing Lib/guile/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/guile/$$i; \
-	    done;
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/java
-	@cd $(srcdir)/Lib/java; for i in *.i *.swg; \
-	    do \
-	    echo "Installing Lib/java/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/java/$$i; \
-	    done;
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/mzscheme
-	@cd $(srcdir)/Lib/mzscheme; for i in *.i *.swg; \
-	    do \
-	    echo "Installing Lib/mzscheme/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/mzscheme/$$i; \
-	    done;
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/ruby
-	@cd $(srcdir)/Lib/ruby; for i in *.i *.swg Makefile.swig extconf.rb; \
-	    do \
-	    echo "Installing Lib/ruby/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/ruby/$$i; \
-	    done;
+	@for lang in $(lib-languages);				\
+	    do							\
+	    dst=$(DESTDIR)$(SWIG_LIB)/$$lang;			\
+	    $(MKINSTDIRS) $$dst;				\
+	    ( cd $(srcdir)/Lib/$$lang;				\
+	      doti="`ls *.i 2>/dev/null`";			\
+	      dotswg="`ls *.swg 2>/dev/null`";			\
+	      if [ -f extra-install.list ]; then		\
+		  extra="`sed '/^#/d' extra-install.list`";	\
+	      fi;						\
+	      files="`echo $$doti $$dotswg $$extra`";		\
+	      if [ x"$$files" = x ]; then			\
+		  echo "Installing nothing from Lib/$$lang";	\
+	      else for file in $$doti $$dotswg $$extra;		\
+		  do						\
+		  echo "Installing Lib/$$lang/$$file";		\
+		  ../../$(INSTALL_DATA) $$file $$dst/$$file;	\
+		  done;						\
+	      fi );						\
+	    done
 
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/php4
-	@cd $(srcdir)/Lib/php4; for i in *.i *.swg; \
-	    do \
-	    echo "Installing Lib/php4/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/php4/$$i; \
-	    done;
-
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/ocaml
-	@cd $(srcdir)/Lib/ocaml; for i in *.i *.swg; \
-	    do \
-	    echo "Installing Lib/ocaml/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/ocaml/$$i; \
-	    done;
-	@cd $(srcdir)/Lib/ocaml; for i in *.h; \
-	    do \
-	    echo "Installing Lib/ocaml/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/ocaml/$$i; \
-	    done;
-
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/pike
-	@cd $(srcdir)/Lib/pike; for i in *.swg; \
-	    do \
-	    echo "Installing Lib/pike/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/pike/$$i; \
-	    done;
 
 install-runtime:
 	@cd Runtime; $(MAKE) install
