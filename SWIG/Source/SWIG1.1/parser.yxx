@@ -45,48 +45,39 @@ extern void scanner_check_typedef(void);
 extern void scanner_ignore_typedef(void);
 extern void start_inline(char *, int);
 
-/* cplus.cxx */
+/* NEW Variables */
+typedef Hash Node;
+#define Setdecl(x,a) Setattr(x,"decl",a)
 
-extern void cplus_open_class(char *name, char *rname, char *ctype);
-extern void cplus_member_func(char *, char *, SwigType *, ParmList *, int);
-extern void cplus_constructor(char *, char *, ParmList *);
-extern void cplus_destructor(char *, char *);
-extern void cplus_variable(char *, char *, SwigType *);
-extern void cplus_static_func(char *, char *, SwigType *, ParmList *);
-extern void cplus_declare_const(char *, char *, SwigType *, char *);
-extern void cplus_class_close(char *);
-extern void cplus_inherit(int, char **);
-extern void cplus_cleanup(void);
-extern void cplus_static_var(char *, char *, SwigType *);
-extern void cplus_register_type(char *);
-extern void cplus_register_scope(void *);
-extern void cplus_inherit_scope(int, char **);
-extern void cplus_add_pragma(char *, char *, char *);
-extern void cplus_set_class(char *);
-extern void cplus_unset_class();
-extern void cplus_abort();
+extern void generate_all(Node *);
+
+static Node    *top = 0;      /* Top of the generated parse tree */
+
+/* -----------------------------------------------------------------------------
+ *                            Assist Functions
+ * ----------------------------------------------------------------------------- */
+
+static Node *new_node(const String_or_char *tag) {
+  Node *n = NewHash();
+  Settag(n,tag);
+  Setfile(n,input_file);
+  Setline(n,line_number);
+  return n;
+}
+
+/* Append one or more children to a node */
+static void append_child(Node *n, Node *c) {
+  Swig_node_append_child(n,c);
+}
 
 /* -----------------------------------------------------------------------------
  *                              Variables
  * ----------------------------------------------------------------------------- */
 
-       char  *typemap_lang = 0;    /* Current language setting */
-static int     module_init = 0;    /* Indicates whether the %module name was given */
-static int     lang_init = 0;      /* Indicates if the language has been initialized */
-
+      char  *typemap_lang = 0;    /* Current language setting */
        int            Error = 0;
-static SwigType      *temp_typeptr = 0, *temp_type = 0;
-static char           yy_rename[256];
-static int            Rename_true = 0;
-static SwigType      *Active_type = 0;         // Used to support variable lists
-static int            Active_extern = 0;       // Whether or not list is external
-static int            Active_static = 0;
-static SwigType      *Active_typedef = 0;     // Used for typedef lists
-static Hash           *name_hash = 0;          // Hash table containing renamings
-static Hash           *symbols = 0;
-static int             cplus_mode;
-static int             InClass = 0;
-static char           *Callback = 0;
+
+static int cplus_mode  = 0;
 
 /* C++ modes */
 
@@ -94,45 +85,9 @@ static char           *Callback = 0;
 #define  CPLUS_PRIVATE   2
 #define  CPLUS_PROTECTED 3
 
-/* Storage classes */
-
-#define  STORAGE_EXTERN     1
-#define  STORAGE_EXTERN_C   2
-#define  STORAGE_STATIC     3
-#define  STORAGE_VIRTUAL    4
-#define  STORAGE_FRIEND     5
-
-/* Import modes */
-#define  IMPORT_MODE        1
-#define  IMPORT_MODULE      2
-
 /* -----------------------------------------------------------------------------
  *                           Assist functions
  * ----------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
- * swig_pragma()
- *
- * Handle swig pragma directives.  
- * -------------------------------------------------------------------------- */
-
-void swig_pragma(char *lang, char *name, char *value) {
-  if (strcmp(lang,"swig") == 0) {
-    if (strcmp(name,"make_default") == 0) {
-      GenerateDefault = 1;
-    } else if (strcmp(name,"no_default") == 0) {
-      GenerateDefault = 0;
-    } else if (strcmp(name,"readonly") == 0) {
-      Status = Status | STAT_READONLY;
-    } else if (strcmp(name,"readwrite") == 0) {
-      Status = Status & ~STAT_READONLY;
-    } else if (strcmp(name,"callback") == 0) {
-      Callback = Swig_copy_string(value ? value:"%s");
-    } else if (strcmp(name,"nocallback") == 0) {
-      Callback = 0;
-    }
-  }
-}
 
 /* Create a type list from a set of parameters */
 static List *typelist(Parm *p) {
@@ -144,280 +99,11 @@ static List *typelist(Parm *p) {
    return l;
  }
 
-static Parm *nonvoid_parms(Parm *p) {
-  if (p) {
-    SwigType *t = Gettype(p);
-    if (SwigType_type(t) == T_VOID) return 0;
-  }
-  return p;
-}
-
-/* -----------------------------------------------------------------------------
- * emit_extern_func()
- * 
- * Emit an external function declaration.
- * ----------------------------------------------------------------------------- */
-
-static void emit_extern_func(char *decl, SwigType *t, ParmList *L, int extern_type, DOHFile *f) {
-  SwigType *ty;
-  List     *tlist;
-  ty = Copy(t);
-  tlist = typelist(L);
-  SwigType_add_function(ty,tlist);
-
-  switch(extern_type) {
-  case 0:
-    /*    Printf(f,"%s", SwigType_str(t,0));
-	  Printf(f,"%s(%s);\n", decl, ParmList_protostr(L)); */
-    Printf(f,"%s",SwigType_str(ty,decl));
-    break;
-  case STORAGE_EXTERN:
-    /*
-    Printf(f,"extern %s", SwigType_str(t,0));
-    Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
-    */
-    Printf(f,"extern %s;\n", SwigType_str(ty,decl));
-    break;
-  case STORAGE_EXTERN_C:
-  /* A C++ --- > C Extern */
-    /*    Printf(f,"extern \"C\" %s", SwigType_str(t,0));
-	  Printf(f,"%s(%s);\n", decl, ParmList_protostr(L)); */
-    Printf(f,"extern \"C\" %s;\n", SwigType_str(ty,decl));
-    break;
-  default:
-    break;
-  }
-  Delete(ty);
-  Delete(tlist);
-}
-
-/* -----------------------------------------------------------------------------
- * init_language()
- * 
- * Initialize the target language.  Does nothing if the function
- * is called more than once.
- * ----------------------------------------------------------------------------- */
-
-static void init_language() {
-  if (lang_init) return;
-  lang->initialize();
-  lang_init = 1;
-}
-
-/* -----------------------------------------------------------------------------
- * add_symbol()
- * 
- * Add a symbol to the symbol table 
- * ----------------------------------------------------------------------------- */
-
-int add_symbol(char *name) {
-   if (!symbols) symbols = NewHash();
-   if (Getattr(symbols,name)) return -1;
-   Setattr(symbols,name,name);
-   return 0;
-}
-
 /* Perform type-promotion for binary operators */
 static int promote(int t1, int t2) {
   return t1 > t2 ? t1 : t2;
 }
 
-/* Generate the scripting name of an object using the %name directive */
-static char *make_name(char *name) {
-  static String *tmp = 0;
-  /* Check to see if the name is in the hash */
-  if (!name_hash) name_hash = NewHash();
-  char *nn = GetChar(name_hash,name);
-  if (nn) return nn;   
-  if (Rename_true) {
-    Rename_true = 0;
-    return yy_rename;
-  }
-  if (strstr(name,"::")) {
-    if (!tmp) tmp = NewString("");
-    Clear(tmp);
-    if (strncmp(name,"::",2) == 0) name = name + 2;
-    Append(tmp,name);
-    Replace(tmp,"::","_", DOH_REPLACE_ANY);
-    return Char(tmp);
-  } else {
-    return name;
-  }
-}
-
-/* ------------------------------------------------------------------
- * create_constant()
- *
- * Creates a new constant.
- * ------------------------------------------------------------------- */
-
-static void create_constant(char *name, SwigType *type, char *value) {
-
-  if (ImportMode) return;   
-  init_language();
-
-  char *iname = make_name(name);
-
-  if (!value) value = Swig_copy_string(name);
-  if (add_symbol(iname)) {
-    Printf(stderr,"%s:%d. %s multiply defined. (2nd definition ignored)\n",
-	   input_file, line_number, name);
-  } else {
-    String *tval = NewStringf("%(escape)s",value);
-    lang->declare_const(name, iname, type, Char(tval));
-    Delete(tval);
-  }
-}
-
-/* ----------------------------------------------------------------------
- * c_varfunc_decl()
- *
- * Create a wrapper for a C declaration (variable or function)
- * ---------------------------------------------------------------------- */
-
-static void
-c_varfunc_decl(int storage, SwigType *type, char *name, SwigType *decltype, ParmList *parms) {
-  SwigType *ty;
-  if (Active_static) return;
-  if (ImportMode) return;
-  if ((storage == STORAGE_STATIC) && (!Inline)) return;
-
-  if (strstr(name,"::")) {
-    Printf(stderr,"%s:%d. Warning. Qualified declaration %s ignored.\n", input_file, line_number, name);
-    return;
-  }
-
-  init_language();
-
-  char *iname = make_name(name);
-
-  if (add_symbol(iname)) {
-    Printf(stderr,"%s:%d. %s multiply defined (2nd definition ignored).\n", input_file, line_number, iname);
-    return;
-  }
-  ty = Copy(type);    
-  if (SwigType_isfunction(decltype)) {
-    SwigType_push(ty,decltype);
-    Delete(SwigType_pop(ty));
-    if ((storage) || (ForceExtern)) {
-      emit_extern_func(name,ty,parms,ForceExtern ? 1 : storage, f_header);
-    }
-    if (Callback) {
-      String *cbname;
-      SwigType *cbty = Copy(type);
-      SwigType_push(cbty,decltype);
-      SwigType_add_pointer(cbty);
-      cbname = NewStringf(Callback,iname);
-      if (Cmp(cbname,iname) == 0) {
-	lang->declare_const(name,iname,cbty,name);
-      } else {
-	create_constant(Char(cbname),cbty,name);
-	lang->create_function(name,iname,ty,nonvoid_parms(parms));
-      }
-      Delete(cbty);
-      Delete(cbname);
-    } else {
-      lang->create_function(name,iname,ty,nonvoid_parms(parms));
-    }
-  } else {
-    /* Variable declaration */
-    SwigType_push(ty,decltype);
-    if ((storage == STORAGE_EXTERN) || (ForceExtern)) {
-      Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
-    }
-    int oldstatus = Status;
-    if (SwigType_isconst(ty)) {
-      Status |= STAT_READONLY;
-    }
-    /* If an array and elements are const, then read-only */
-    if (SwigType_isarray(ty)) {
-      SwigType *tya = SwigType_array_type(ty);
-      if (SwigType_isconst(tya)) {
-	Status |= STAT_READONLY;
-      }
-    }
-    lang->link_variable(name,iname,ty);
-    Status = oldstatus;
-  }
-  Delete(ty);
-}
-
-/* ----------------------------------------------------------------------
- * C++ member variable or function declaration
- * ---------------------------------------------------------------------- */
-
-static void
-cplus_varfunc_decl(int storage, SwigType *type, char *id, SwigType *decltype, ParmList *parms, String *val) {
-  char *iname;
-  SwigType *ty;
-  init_language();
-
-  if (cplus_mode != CPLUS_PUBLIC) return;
-  if (storage == STORAGE_FRIEND) return;
-  if (strstr(id,"::")) {
-    Printf(stderr,"%s:%d. Warning. Qualified declaration %s ignored.\n", input_file, line_number, id);
-    return;
-  }
-
-  /*  Printf(stdout,"vardecl: %s %s %s %s\n", id, type, decltype, parms); */
-  ty = Copy(type);
-  iname = make_name(id);
-  if (iname == id) iname = 0;
-  if (SwigType_isfunction(decltype)) {
-    /* A member function */
-    Delete(SwigType_pop(decltype));
-    SwigType_push(ty,decltype);
-    if (storage == STORAGE_STATIC) {
-      /* Static member function */
-      cplus_static_func(id,iname,ty,nonvoid_parms(parms));
-    } else {
-      int is_virtual = 0;
-      if (storage == STORAGE_VIRTUAL) {
-	is_virtual = PLAIN_VIRTUAL;
-	/* Check for pure virtual */
-	if (val && Cmp(val,"0") == 0) is_virtual = PURE_VIRTUAL;
-      }
-      cplus_member_func(id,iname,ty,nonvoid_parms(parms),is_virtual);
-    }
-  } else {
-    /* A member variable */
-    SwigType_push(ty,decltype);
-    int oldstatus = Status;
-    if (SwigType_isconst(ty)) {
-      Status |= STAT_READONLY;
-    }
-    /* If an array and elements are const, then read-only */
-    if (SwigType_isarray(ty)) {
-      SwigType *tya = SwigType_array_type(ty);
-      if (SwigType_isconst(tya)) {
-	Status |= STAT_READONLY;
-      }
-    }
-    if (storage == STORAGE_STATIC) {
-      cplus_static_var(id,iname,ty);
-    } else {
-      cplus_variable(id,iname,ty);
-    }
-    Status = oldstatus;
-  }
-  Delete(ty);
-}
-
-/* Create a C++ constant */
-static void 
-cplus_enum_const(char *name, SwigType *type, char *value) {
-  String *tval;
-  char *iname;
-  iname = make_name(name);
-  if (name == iname) iname = 0;
-  if (value) {
-    tval = NewStringf("%(escape)s",value);
-    cplus_declare_const(name,iname,type,Char(tval));
-    Delete(tval);
-  } else {
-    cplus_declare_const(name,iname,type,value);
-  }
-}
 
 /* Structures for handling code fragments built for nested classes */
 
@@ -449,12 +135,14 @@ static void add_nested(Nested *n) {
  * However.  We need to do a few name replacements and other munging
  * first.  This function must be called before closing a class! */
 
-static void dump_nested(char *parent) {
+static Node *dump_nested(char *parent) {
   Nested *n,*n1;
   n = nested_list;
-  int oldstatus = Status;
-
-  Status = STAT_READONLY;
+  Node *ret = 0;
+  if (!parent) {
+    nested_list = 0;
+    return 0;
+  }
   while (n) {
     char temp[256];
     // Token replace the name of the parent class
@@ -468,7 +156,14 @@ static void dump_nested(char *parent) {
     Append(n->type,n->name);
 
     // Add the appropriate declaration to the C++ processor
-    cplus_variable(n->name,(char *) 0, n->type);
+    Node *retx = new_node("cdecl");
+    Setname(retx,n->name);
+    Settype(retx,n->type);
+    Setattr(retx,"nested",parent);
+    if (ret) {
+      Setnext(retx,ret);
+    }
+    ret = retx;
 
     // Make all SWIG created typedef structs/unions/classes unnamed else 
     // redefinition errors occur - nasty hack alert.
@@ -507,8 +202,14 @@ static void dump_nested(char *parent) {
       }
     }
 
+    Node *head;
+    head = new_node("insert");
+    Setattr(head,"code",NewStringf("\n%s\n",n->code));
+    Setnext(head,ret);
+    ret = head;
+
     // Dump the code to the scanner
-    Printf(f_header,"\n%s\n", Char(n->code));
+    /*    Printf(f_header,"\n%s\n", Char(n->code)); */
     start_inline(Char(n->code),n->line);
 
     n1 = n->next;
@@ -517,110 +218,10 @@ static void dump_nested(char *parent) {
     n = n1;
   }
   nested_list = 0;
-  Status = oldstatus;
+  return ret;
 }
 
-/* ----------------------------------------------------------------------
- * start_class()
- *
- * Start a new class definition.
- * ---------------------------------------------------------------------- */
 
-static char  *cpp_name = 0;
-static char  *cpp_type = 0;
-static char  *cpp_bases[256];
-static int   cpp_nbases = 0;
-
-static void 
-start_class(char *cpptype, char *name, List *bases)
-{
-  char *iname;
-  int  i;
-  init_language();
-  SwigType_new_scope();
-
-  /* Rip apart the bases list */
-  cpp_nbases = bases ? Len(bases) : 0;
-  for (i = 0; i < cpp_nbases; i++) {
-    cpp_bases[i] = Char(Getitem(bases,i));
-  }
-  iname = make_name(name);
-  if (strlen(iname)) {
-    if (add_symbol(iname)) {
-      Printf(stderr,"%s:%d. %s is multiply defined.\n", input_file, line_number, iname);
-      FatalError();
-    }
-  }
-  if ((iname == name) || (strlen(iname) == 0)) {
-    cplus_open_class(name,0,cpptype);
-  } else {
-    cplus_open_class(name,iname,cpptype);
-  }
-  if (strcmp(cpptype,"class") == 0) 
-    cplus_mode = CPLUS_PRIVATE;
-  else
-    cplus_mode = CPLUS_PUBLIC;
-  // Merge scope from base classes
-  if (cpp_nbases) 
-    cplus_inherit_scope(cpp_nbases,cpp_bases);
-  InClass = 1;
-  cpp_type = cpptype;
-  if (strlen(name)) cpp_name = name;
-  else cpp_name = 0;
-}
-
-/* ----------------------------------------------------------------------
- * end_class()
- * 
- * End a class definition
- * ---------------------------------------------------------------------- */
-
-static void
-end_class(SwigType *endtype, char *endname) {
-  InClass = 0;
-  SwigType *et = endtype;
-  char     *en = endname;
-
-  if (cpp_name)
-    Active_typedef = NewStringf("%s %s", cpp_type, cpp_name);
-  else
-    Active_typedef = NewStringf("%s", endname);
-
-  if (cpp_nbases) {
-    cplus_inherit(cpp_nbases,cpp_bases);
-  }
-
-  if (cpp_name)
-    SwigType_set_scope_name(cpp_name);
-  cplus_register_scope(SwigType_pop_scope());
-
-  /* Create a typedef in global scope */
-
-  if (endtype && Len(endtype)) {
-    Printf(stderr,"%s:%d. typedef %s { } %s not supported.\n", input_file, line_number, cpp_type, 
-	   SwigType_str(endtype,endname));
-    endtype = 0;
-    endname = 0;
-  }
-  if (endname) {
-    dump_nested(endname);
-    cplus_class_close(endname);
-  } else {
-    dump_nested(cpp_name);
-    cplus_class_close((char *)0);
-  }
-  if (en) {
-    SwigType *ty = Copy(Active_typedef);
-    if (endtype)
-      SwigType_push(ty,et);
-    SwigType_typedef(ty,en);
-    lang->add_typedef(ty,en);
-    cplus_register_type(en);
-    Delete(ty);
-  }
-  cplus_mode = CPLUS_PUBLIC;
-}
- 
 %}
 
 %union {
@@ -650,6 +251,7 @@ end_class(SwigType *endtype, char *endname) {
   TMParm       *tmparm;
   ParmList     *pl;
   int           ivalue;
+  Node         *node;
 };
 
 %token <id> ID
@@ -684,16 +286,35 @@ end_class(SwigType *endtype, char *endname) {
 %left  UMINUS NOT LNOT
 %left  DCOLON
 
-%type <ivalue>   storage_class cpp_storage_class;
+%type <node>     program interface declaration swig_directive ;
+
+/* SWIG directives */
+%type <node>     addmethods_directive apply_directive clear_directive constant_directive ;
+%type <node>     echo_directive except_directive include_directive inline_directive ;
+%type <node>     insert_directive module_directive name_directive native_directive ;
+%type <node>     new_directive pragma_directive rename_directive typemap_directive ;
+%type <node>     types_directive template_directive ;
+
+/* C declarations */
+%type <node>     c_declaration c_decl c_decl_tail c_enum_decl;
+%type <node>     enumlist edecl;
+
+/* C++ declarations */
+%type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_other ;
+%type <node>     cpp_members cpp_member ;
+%type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_operator ;
+%type <node>     cpp_swig_directive cpp_template_decl cpp_nested cpp_opt_declarators ;
+
+/* Misc */
+%type <dtype>    initializer;
+%type <id>       storage_class;
 %type <pl>       parms  ptail;
 %type <p>        parm;
 %type <tmparm>   typemap_parm tm_list tm_tail;
 %type <id>       cpptype base_specifier access_specifier tm_method;
 %type <type>     type type_right opt_signed opt_unsigned cast_type cast_type_right;
-%type <ivalue>   cpp_vend;
 %type <bases>    base_list inherit;
-%type <dtype>    definetype def_args initializer;
-%type <dtype>    etype;
+%type <dtype>    definetype def_args etype;
 %type <dtype>    expr;
 %type <id>       ename ;
 %type <id>       template_decl;
@@ -706,9 +327,10 @@ end_class(SwigType *endtype, char *endname) {
 %type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
 %type <decl>     abstract_declarator direct_abstract_declarator;
 %type <id>       typemap_type;
-%type <str>      template_parms;
 %type <str>      idcolon idcolontail;
 %type <id>       string;
+%type <str>      template_parms;
+%type <ivalue>   cpp_vend;
 
 %%
 
@@ -720,22 +342,27 @@ end_class(SwigType *endtype, char *endname) {
  * ====================================================================== */
 
 program        :  interface {
-		   if (lang_init) {    /* Clean up the language module if initialized */
-		     cplus_cleanup();    /* Dump all of the C++ classes */
-		     lang->close();
-		   }
+	           top = $1;
+		   generate_all(top);
                }
                ;
 
-interface      : interface declaration {  Error = 0;  }
-               | empty
+interface      : interface declaration {  
+                   append_child($1,$2);
+                   Error = 0; 
+                   $$ = $1;
+               }
+               | empty {
+                   $$ = new_node("top");
+               }
                ;
 
-declaration    : swig_directive
-               | c_declaration 
-               | cpp_declaration
-               | SEMI
+declaration    : swig_directive { $$ = $1; }
+               | c_declaration { $$ = $1; } 
+               | cpp_declaration { $$ = $1; }
+               | SEMI { $$ = 0; }
                | error {
+                  $$ = 0;
 		 if (!Error) {
 		   static int last_error_line = -1;
 		   if (last_error_line != line_number) {
@@ -754,24 +381,24 @@ declaration    : swig_directive
  *                           SWIG DIRECTIVES 
  * ====================================================================== */
   
-swig_directive : addmethods_directive 
-               | apply_directive
- 	       | clear_directive
-               | constant_directive
-               | echo_directive
-               | except_directive
-               | include_directive
-               | inline_directive
-               | insert_directive
-               | module_directive
-               | name_directive
-               | native_directive
-               | new_directive
-               | pragma_directive
-               | rename_directive
-               | typemap_directive
-               | types_directive 
-               | template_directive
+swig_directive : addmethods_directive { $$ = $1; }
+               | apply_directive { $$ = $1; }
+ 	       | clear_directive { $$ = $1; }
+               | constant_directive { $$ = $1; }
+               | echo_directive { $$ = $1; }
+               | except_directive { $$ = $1; }
+               | include_directive { $$ = $1; }
+               | inline_directive { $$ = $1; }
+               | insert_directive { $$ = $1; }
+               | module_directive { $$ = $1; }
+               | name_directive { $$ = $1; }
+               | native_directive { $$ = $1; }
+               | new_directive { $$ = $1; }
+               | pragma_directive { $$ = $1; }
+               | rename_directive { $$ = $1; }
+               | typemap_directive { $$ = $1; }
+               | types_directive  { $$ = $1; }
+               | template_directive { $$ = $1; }
                ;
 
 /* ------------------------------------------------------------
@@ -780,13 +407,10 @@ swig_directive : addmethods_directive
 
 addmethods_directive : ADDMETHODS ID LBRACE {
 	       cplus_mode = CPLUS_PUBLIC;
-	       cplus_set_class($2);
-	       AddMethods = 1;
-	       InClass = 1;
 	     } cpp_members RBRACE {
-	       InClass = 0;
-	       cplus_unset_class();
-	       AddMethods = 0;
+               $$ = new_node("addmethods");
+	       Setname($$,$2);
+	       append_child($$,$5);
 	     }
              ;
 
@@ -794,30 +418,20 @@ addmethods_directive : ADDMETHODS ID LBRACE {
    %apply
    ------------------------------------------------------------ */
 
-apply_directive : APPLY typemap_parm LBRACE tm_list RBRACE {
-		 TMParm *p;
-		 p = $4;
-		 while(p) {
-		   Swig_typemap_apply(Gettype($2->p),Getname($2->p),Gettype(p->p),Getname(p->p));
-		   p = p->next;
-		 }
-		 free($4);
-		 Delete($2->args);
-		 free($2);
+apply_directive : APPLY parm LBRACE parms RBRACE {
+                    $$ = new_node("apply");
+                    Setname($$,Getname($2));
+   		    Settype($$,Gettype($2));
+		    Setparms($$,$4);
                };
 
 /* ------------------------------------------------------------
    %clear
    ------------------------------------------------------------ */
 
-clear_directive : CLEAR tm_list SEMI {
-		 TMParm *p;
-		 p = $2;
-		 while (p) {
-		  Printf(stderr,"%s:%d. Warning. %%clear directive is temporarily disabled in this release. Ignored.\n", input_file, line_number);
-/*		   Swig_typemap_clear_apply(Gettype(p->p), Getname(p->p)); */
-		   p = p->next;
-		 }
+clear_directive : CLEAR parms SEMI {
+		 $$ = new_node("clear");
+		 Setparms($$,$2);
                }
                ;
 
@@ -828,9 +442,10 @@ clear_directive : CLEAR tm_list SEMI {
 
 constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
-		     temp_typeptr = NewSwigType($4.type);
-		     create_constant($2, temp_typeptr, Char($4.val));
-		     Delete(temp_typeptr);
+		     $$ = new_node("constant");
+		     Setname($$,$2);
+		     Settype($$,NewSwigType($4.type));
+		     Setvalue($$,$4.val);
 		   }
 	       }
 
@@ -841,7 +456,10 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   if (SwigType_isfunction($2)) {
 		     SwigType_add_pointer($2);
 		   }
-		   create_constant($3.id,$2,Char($4.val));
+		   $$ = new_node("constant");
+		   Setname($$,$3.id);
+		   Settype($$,$2);
+		   Setvalue($$,$4.val);
 		 } 
                }
                ;
@@ -858,6 +476,7 @@ echo_directive : ECHO HBLOCK {
 		 Replace($2,"$line",temp,DOH_REPLACE_ANY);
 		 Printf(stderr,"%s\n", $2);
 		 Delete($2);
+                 $$ = 0;
 	       }
                | ECHO string {
 		 char temp[64];
@@ -867,6 +486,7 @@ echo_directive : ECHO HBLOCK {
 		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
 		 Printf(stderr,"%s\n", s);
 		 Delete(s);
+                 $$ = 0;
                }
                ;
 
@@ -880,22 +500,26 @@ echo_directive : ECHO HBLOCK {
 except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
                     skip_balanced('{','}');
 		    if (strcmp($3,typemap_lang) == 0) {
-		      Swig_except_register(CCode);
+		      $$ = new_node("except");
+		      Setattr($$,"code",Copy(CCode));
+		    } else {
+		      $$ = 0;
 		    }
 		    free($3);
 	       }
 
                | EXCEPT LBRACE {
                     skip_balanced('{','}');
-		    Swig_except_register(CCode);
+		    $$ = new_node("except");
+		    Setattr($$,"code",Copy(CCode));
                }
 
                | EXCEPT LPAREN ID RPAREN SEMI {
-		 Swig_except_clear();
+		 $$ = new_node("except");
                }
 
                | EXCEPT SEMI {
-		 Swig_except_clear();
+		 $$ = new_node("except");
 	       }
                ;
 
@@ -910,19 +534,13 @@ include_directive: includetype string LBRACE {
 		     $1.line = line_number;
 		     input_file = Swig_copy_string($2);
 		     line_number = 0;
-		     if (strcmp($1.type,"import") == 0) {
-		       ImportMode = IMPORT_MODE;
-		       /*		       lang->import($2); */
-		     }
                } interface RBRACE {
 		     input_file = $1.filename;
 		     line_number = $1.line;
-		     if (strcmp($1.type,"import") == 0) {
-		       if (ImportMode & IMPORT_MODULE) {
-			 lang->import_end();
-		       }
-		     }
-		     ImportMode = $1.flag;
+		     $$ = new_node("include");
+		     Setattr($$,"kind",$1.type);
+		     Setname($$,$2);
+		     append_child($$,Getchild($5));
                }
                ;
 
@@ -935,23 +553,17 @@ includetype    : INCLUDE { $$.type = (char *) "include"; }
    ------------------------------------------------------------ */
 
 inline_directive : INLINE HBLOCK {
-		 if (!ImportMode) {
-		   File *f;
-		   init_language();
-		   f = Swig_filebyname("header");
-		   if (f) {
-		     Printf(f, "%s\n", $2);
-		     /* Need to run through the preprocessor */
-		     DOH *cpps;
-		     Setline($2,start_line);
-		     Setfile($2,input_file);
-		     Seek($2,0,SEEK_SET);
-		     cpps = Preprocessor_parse($2);
-		     start_inline(Char(cpps), start_line);
-		     Delete($2);
-		     Delete(cpps);
-		   }
-		 }
+                 $$ = new_node("insert");
+		 Setattr($$,"code",$2);
+		 /* Need to run through the preprocessor */
+		 DOH *cpps;
+		 Setline($2,start_line);
+		 Setfile($2,input_file);
+		 Seek($2,0,SEEK_SET);
+		 cpps = Preprocessor_parse($2);
+		 start_inline(Char(cpps), start_line);
+		 Delete($2);
+		 Delete(cpps);
 	       }
                ;
 
@@ -964,38 +576,18 @@ inline_directive : INLINE HBLOCK {
    ------------------------------------------------------------ */
 
 insert_directive : HBLOCK {
-		 if (!ImportMode) {
-		   File *f = Swig_filebyname("header");
-		   if (f) {
-		     Printf(f, "%s\n", $1);
-		   }
-		 }
-		 Delete($1);
+                 $$ = new_node("insert");
+		 Setattr($$,"code",$1);
 	       }
                | INSERT LPAREN idstring RPAREN string {
-	         if (!ImportMode) {
-		   File *f = Swig_filebyname($3);
-		   if (!f) {
-		     Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file, line_number, $3);
-		   } else {
-		     if (Swig_insert_file($5,f) < 0) {
-		       Printf(stderr,"%s:%d: Couldn't find '%s'. Possible installation problem.\n", input_file, line_number, $5);
-		       SWIG_exit (EXIT_FAILURE);
-		     }
-		   }
-		 }
+		 $$ = new_node("insert");
+		 Setattr($$,"section",$3);
+		 Setattr($$,"filename",$5);
                }
                | INSERT LPAREN idstring RPAREN HBLOCK {
-		 if (!ImportMode) {
-		   File *f;
-		   f = Swig_filebyname($3);
-		   if (!f) {
-		     Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file,line_number,$3);
-		   } else {
-		     Printf(f,"%s\n",$5);
-		   }
-		 }
-		 Delete($5);
+		 $$ = new_node("insert");
+		 Setattr($$,"section",$3);
+		 Setattr($$,"code",$5);
                }
                ;
 
@@ -1005,17 +597,8 @@ insert_directive : HBLOCK {
    ------------------------------------------------------------ */
 
 module_directive: MODULE idstring {
-		 if (ImportMode) {
-		   /* We only call import_start for the first %module directive */
-		   if (ImportMode == IMPORT_MODE) {
-		     lang->import_start($2);
-		     ImportMode |= IMPORT_MODULE;
-		   }
-		 } else {
-		   lang->set_module($2);
-		   module_init = 1;
-		   init_language();
-		 }
+                 $$ = new_node("module");
+		 Setname($$,$2);
 	       }
                ;
 
@@ -1025,10 +608,11 @@ module_directive: MODULE idstring {
    ------------------------------------------------------------ */
 
 name_directive : NAME LPAREN idstring RPAREN {
-		 strcpy(yy_rename,$3);
-		 Rename_true = 1;
+                 $$ = new_node("name");
+		 Setname($$,$3);
                }
                | NAME LPAREN RPAREN {
+                   $$ = 0;
 		   Printf(stderr,"%s:%d. Missing argument to %%name directive.\n",
 			   input_file, line_number);
 		   FatalError();
@@ -1042,39 +626,24 @@ name_directive : NAME LPAREN idstring RPAREN {
    ------------------------------------------------------------ */
 
 native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
-		 if (!ImportMode) {
-		   init_language();
-		   if (add_symbol($3)) {
-		     Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
-			     input_file, line_number, $3);
-		   } else {
-		     lang->add_native($3,$6,0,0);
-		   }
-		 }
+                 $$ = new_node("native");
+		 Setname($$,$6);
+		 Setattr($$,"scriptname",$3);
 	       }
                | NATIVE LPAREN ID RPAREN storage_class type declarator SEMI {
-		 if (!ImportMode) {
-		   init_language();
-		   if (!SwigType_isfunction($7.type)) {
-		     Printf(stderr,"%s:%d. %%native declaration '%s' is not a function.\n", input_file,line_number, $7.id);
-		   } else {
+		 if (!SwigType_isfunction($7.type)) {
+		   Printf(stderr,"%s:%d. %%native declaration '%s' is not a function.\n", input_file,line_number, $7.id);
+		   $$ = 0;
+		 } else {
 		     Delete(SwigType_pop($7.type));
 		     /* Need check for function here */
 		     SwigType_push($6,$7.type);
-		     if (add_symbol($3)) {
-		       Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
-			      input_file, line_number, $3);
-		     } else {
-		       if ($5) {
-			 emit_extern_func($7.id, $6, $7.parms, $5, f_header);
-		       }
-		       lang->add_native($3,$7.id,$6,$7.parms);
-		     }
-		   }
+		     $$ = new_node("native");
+		     Setname($$,$7.id);
+		     Settype($$,$6);
+		     Setparms($$,$7.parms);
+		     Setdecl($$,$7.type);
 		 }
-		 Delete($6);
-		 Delete($7.type);
-		 Delete($7.parms);
 	       }
                ;
 
@@ -1083,10 +652,9 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
    %new declaration
    ------------------------------------------------------------ */
 
-new_directive : NEW {
-		 NewObject = 1;
-	       } declaration {
-		 NewObject = 0;
+new_directive : NEW declaration {
+                 $$ = new_node("new");
+		 append_child($$,$2);
                }
                ;
 
@@ -1099,24 +667,15 @@ new_directive : NEW {
    ------------------------------------------------------------ */
 
 pragma_directive : PRAGMA pragma_lang ID EQUAL pragma_arg {
-		 if (!ImportMode) {
-		   swig_pragma($2,$3,Char($5));
-		   if (InClass) {  /* Hack. Fix me */
-		     cplus_add_pragma($2,$3,Char($5));
-		   } else {
-		     lang->pragma($2,$3,Char($5));
-		   }
-		 }
+                 $$ = new_node("pragma");
+		 Setattr($$,"lang",$2);
+		 Setattr($$,"name",$3);
+		 Setattr($$,"value",$5);
 	       }
               | PRAGMA pragma_lang ID {
-		if (!ImportMode) {
-		  swig_pragma($2,$3,"");
-		  if (InClass) {    /* Hack. Fix me */
-		    cplus_add_pragma($2,$3,0); 
-		  } else {
-		    lang->pragma($2,$3,0);
-		  }
-		}
+		$$ = new_node("pragma");
+		Setattr($$,"lang",$2);
+		Setattr($$,"name",$3);
 	      }
               ;
 
@@ -1134,8 +693,9 @@ pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
    ------------------------------------------------------------ */
 
 rename_directive : RENAME ID idstring SEMI {
-		 if (!name_hash) name_hash = NewHash();
-		 Setattr(name_hash,$2,$3);
+                 $$ = new_node("rename");
+		 Setattr($$,"name",$2);
+		 Setattr($$,"scriptname",$3);
 	       }
                ;
 
@@ -1149,10 +709,18 @@ rename_directive : RENAME ID idstring SEMI {
 typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		   TMParm *p;
                    skip_balanced('{','}');
+		   $$ = 0;
 		   if ($3) {
+		     $$ = new_node("typemap");
+		     Setattr($$,"method",$3);
+		     Setattr($$,"code",NewString(CCode));
 		     p = $5;
 		     while (p) {
-		       Swig_typemap_register($3,Gettype(p->p),Getname(p->p), CCode, p->args);
+		       Node *n = new_node("typemapitem");
+		       Setattr(n,"type",Gettype(p->p));
+		       Setattr(n,"name",Getname(p->p));
+		       Setattr(n,"parms",p->args);
+		       append_child($$,n);
 		       p = p->next;
 		     }
                    }
@@ -1160,10 +728,18 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 
                | TYPEMAP LPAREN typemap_type RPAREN tm_list string {
 		   TMParm *p;
+		   $$ = 0;
 		   if ($3) {
+		     $$ = new_node("typemap");
+		     Setattr($$,"method",$3);
+		     Setattr($$,"code",NewString($6));
 		     p = $5;
 		     while (p) {
-		       Swig_typemap_register($3,Gettype(p->p),Getname(p->p), $6, p->args);
+		       Node *n = new_node("typemapitem");
+		       Setattr(n,"type",Gettype(p->p));
+		       Setattr(n,"name",Getname(p->p));
+		       Setattr(n,"parms",p->args);
+		       append_child($$,n);
 		       p = p->next;
 		     }
 		   }
@@ -1171,21 +747,35 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 
                | TYPEMAP LPAREN typemap_type RPAREN tm_list SEMI {
 		 TMParm *p;
+		 $$ = 0;
 		 if ($3) {
+		   $$ = new_node("typemap");
+		   Setattr($$,"method",$3);
 		   p = $5;
 		   while (p) {
-	             Printf(stderr,"%s:%d. Warning. Typemap deletion is temporary disabled in this release.\n", input_file, line_number);
-		     /*	Swig_typemap_clear($3,Gettype(p->p),Getname(p->p)); */
+		     Node *n = new_node("typemapitem");
+		     Setattr(n,"type",Gettype(p->p));
+		     Setattr(n,"name",Getname(p->p));
+		     append_child($$,n);
 		     p = p->next;
 		   }
 		 }
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list EQUAL typemap_parm SEMI {
                    TMParm *p;
+		   $$ = 0;
 		   if ($3) {
+		     $$ = new_node("typemapcopy");
+		     Setattr($$,"method",$3);
+		     Setattr($$,"type",Gettype($7->p));
+		     Setattr($$,"name",Getname($7->p));
+
 		     p = $5;
 		     while (p) {
-		       Swig_typemap_copy($3,Gettype($7->p),Getname($7->p),Gettype(p->p),Getname(p->p));
+		       Node *n = new_node("typemapitem");
+		       Setattr(n,"newtype", Gettype(p->p));
+		       Setattr(n,"newname", Getname(p->p));
+		       append_child($$,n);
 		       p = p->next;
 		     }
 		   }
@@ -1235,13 +825,8 @@ typemap_parm   : type typemap_parameter_declarator {
    ------------------------------------------------------------ */
 
 types_directive : TYPES LPAREN parms RPAREN SEMI {
-	            Parm *p = $3;
-                    while (p) {
-		      SwigType *t = Gettype(p);
-		      SwigType_remember(t);
-		      p = Getnext(p);
-		    }
-		    Delete($3);
+                   $$ = new_node("types");
+		   Setattr($$,"parms",$3);
                }
                ;
 
@@ -1272,48 +857,78 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN {
 		  }
 		  Delete(ts);
 		  Delete(cpps);
+		  $$ = 0;
                }
                ;
+
 
 /* ======================================================================
  *                              C Parsing
  * ====================================================================== */
 
-c_declaration   : c_varfunc_decl
-                | c_enum_decl
-  	        | c_typedef_decl
+c_declaration   : c_decl { $$ = $1; }
+                | c_enum_decl { $$ = $1; }
 
 /* A an extern C type declaration.  Does nothing, but is ignored */
 
-                | EXTERN string LBRACE interface RBRACE { }
+                | EXTERN string LBRACE interface RBRACE { 
+                   $$ = new_node("extern");
+		   Setname($$,$2);
+		   append_child($$,Getchild($4));
+                }
                 ;
 
 /* ------------------------------------------------------------
-   A C global declaration of some kind (may be a variable or a function)
+   A C global declaration of some kind (may be variable, function, typedef, etc.)
    ------------------------------------------------------------ */
 
-c_varfunc_decl  : storage_class type declarator initializer {
-		    if (Active_type) Delete(Active_type);
-		    Active_type = Copy($2);
-		    Active_extern = $1;
-		    if ($1 == STORAGE_STATIC) Active_static = 1;
-		    c_varfunc_decl($1,$2,$3.id,$3.type,$3.parms);
-		 } varfunc_tail { 
-                    Active_static = 0;
-                    Delete($2);
-		    Delete($3.type);
-		    Delete($3.parms);
+c_decl  : storage_class type declarator initializer c_decl_tail {
+                   $$ = new_node("cdecl");
+		   Settype($$,$2);
+		   Setattr($$,"storage",$1);
+		   Setname($$,$3.id);
+		   Setdecl($$,$3.type);
+		   Setparms($$,$3.parms);
+		   Setvalue($$,$4.val);
+		   if (!$5) {
+		     if (Len(CCode)) {
+		       Setattr($$,"code",Copy(CCode));
+		     }
+		   } else {
+		     Setnext($$,$5);
+		     /* Inherit attributes */
+		     Node *n = $5;
+		     while (n) {
+		       Settype(n,$2);
+		       Setattr(n,"storage",$1);
+		       n = Getnext(n);
+		     }
+		   }
 		 }
                 ;
 
 /* Allow lists of variables and functions to be built up */
 
-varfunc_tail   : SEMI { Clear(CCode); }
-               | COMMA declarator initializer {
-		 Clear(CCode);
-		 c_varfunc_decl(Active_extern, Active_type, $2.id,$2.type,$2.parms);
-	       } varfunc_tail { }
-               | LBRACE { skip_balanced('{','}'); }
+c_decl_tail    : SEMI { 
+                   $$ = 0;
+                   Clear(CCode); 
+               }
+               | COMMA declarator initializer c_decl_tail {
+		 $$ = new_node("cdecl");
+		 Setname($$,$2.id);
+		 Setdecl($$,$2.type);
+		 Setparms($$,$2.parms);
+		 Setvalue($$,$3.val);
+		 if (!$4) {
+		   if (Len(CCode)) Setattr($$,"code",Copy(CCode));
+		 } else {
+		   Setnext($$,$4);
+		 }
+	       }
+               | LBRACE { 
+                   skip_balanced('{','}');
+                   $$ = 0;
+               }
               ;
 
 initializer   : def_args { $$ = $1; }
@@ -1322,117 +937,166 @@ initializer   : def_args { $$ = $1; }
               | CONST THROW LPAREN parms RPAREN def_args { $$ = $6; }
               ;
 
+
 /* ------------------------------------------------------------
-   enums
+   enum { ... }
  * ------------------------------------------------------------ */
 
 c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
-		   init_language();
-		   if ($3) {
-		     if (temp_type) Delete(temp_type);
-		     temp_type = NewStringf("enum %s", $3);
-		     /*		     String *ts = NewSwigType(T_INT); */
-		     SwigType_typedef(temp_type,$3);
-		     lang->add_typedef(temp_type,$3);
-		   }
+                  $$ = new_node("enum");
+		  Setname($$,$3);
+		  append_child($$,$5);
 	       }
 
-/* A typdef'd enum.  Pretty common in C headers */
-
-               | TYPEDEF ENUM ename LBRACE enumlist RBRACE ID {
-		   init_language();
-		   if (temp_type) Delete(temp_type);
-		   temp_type = NewStringf("enum %s", $3);
-		   /*		   temp_type= NewSwigType(T_INT);*/
-		   Active_typedef = Copy(temp_type);
-		   if ($3) {
-		     SwigType_typedef(temp_type,$3);
-		     lang->add_typedef(temp_type,$3);
+               | storage_class ENUM ename LBRACE enumlist RBRACE declarator c_decl_tail {
+		 Node *n;
+		 $$ = new_node("enum");
+		 Setname($$,$3);
+		 append_child($$,$5);
+		 n = new_node("cdecl");
+		 SwigType *ty = NewStringf("enum %s", $3);
+		 Settype(n,ty);
+		 Setname(n,$7.id);
+		 Setattr(n,"storage",$1);
+		 Setdecl(n,$7.type);
+		 Setparms(n,$7.parms);
+		 if ($8) {
+		   Setnext(n,$8);
+		   Node *p = $8;
+		   while (p) {
+		     Settype(p,ty);
+		     Setattr(p,"storage",$1);
+		     p = Getnext(p);
 		   }
-		   if ($7) {
-		     SwigType_typedef(temp_type,$7);
-		     lang->add_typedef(temp_type,$7);
-		   }
-	       } typedeflist { }
+		 } else {
+		   if (Len(CCode)) Setattr(n,"code",Copy(CCode));
+		 }
+		 Setnext($$,n);
+	       }
                ;
-
-/* ------------------------------------------------------------
-   typedef
-   ------------------------------------------------------------ */
-
-c_typedef_decl   : TYPEDEF type declarator {
-		   init_language();
-		   /* Add a new typedef */
-		   Active_typedef = Copy($2);
-		   SwigType_push($2,$3.type);
-		   SwigType_typedef($2, $3.id);
-		   lang->add_typedef($2,$3.id);
-		   cplus_register_type($3.id);
-	       } typedeflist { };
-
-typedeflist   : COMMA declarator typedeflist {
-                   if (Active_typedef) {
-                      SwigType *t;
-  		      t = Copy(Active_typedef);
-		      SwigType_push(t,$2.type);
-		      SwigType_typedef(t,$2.id);
-		      lang->add_typedef(t,$2.id);
-		      cplus_register_type($2.id);
-		      Delete(t);
-		  }
-              }
-              | empty { }
-              ;
 
 
 /* ======================================================================
  *                       C++ Support
  * ====================================================================== */
 
-cpp_declaration : cpp_class_decl
-                | cpp_forward_class_decl
-                | cpp_template_decl
-                | cpp_other
+cpp_declaration : cpp_class_decl { $$ = $1; }
+                | cpp_forward_class_decl { $$ = $1; }
+                | cpp_template_decl { $$ = $1; }
+                | cpp_other { $$ = $1; }
              ;
 
 cpp_class_decl  :
 
-/* A class/struct/union  definition */
-             storage_class cpptype ID inherit LBRACE {
-               start_class($2,$3,$4);
-	       nested_list = 0;
-              } cpp_members RBRACE {
-	       end_class(0,0);
-	      }
+/* A simple class/struct/union definition */
+                storage_class cpptype ID inherit LBRACE {
+                   if (strcmp($2,"class") == 0) {
+		     cplus_mode = CPLUS_PRIVATE;
+		   } else {
+		     cplus_mode = CPLUS_PUBLIC;
+		   }
+               } cpp_members RBRACE cpp_opt_declarators {
+               $$ = new_node("class");
+	       Setname($$,$3);
+	       Setattr($$,"kind",$2);
+	       Setattr($$,"bases",$4);
+	       append_child($$,$7);
+	       Node *p = $9;
+	       if (p) {
+		 Setnext($$,p);
+	       }
+	       SwigType *ty;
+	       if (CPlusPlus) {
+		 ty = NewString($3);
+	       } else {
+		 ty = NewStringf("%s %s", $2,$3);
+	       }
+	       while (p) {
+		 Setattr(p,"storage",$1);
+		 Settype(p,ty);
+		 p = Getnext(p);
+	       }
+	       /* Dump nested classes */
+	       {
+		 char *name = $3;
+		 if ($9) {
+		   SwigType *decltype = Getattr($9,"decl");
+		   if (strcmp($1,"typedef") == 0) {
+		     if (!decltype || !Len(decltype)) {
+		       name = Char(Getname($9));
+		       Setattr($$,"tdname",name);
+		       Setattr($$,"decl",decltype);
+		     }
+		   }
+		 }
+		 append_child($$,dump_nested(name));
+	       }
+	     }
 
-/* Class with a typedef */
+/* An unnamed struct, possibly with a typedef */
 
-             | TYPEDEF cpptype ID inherit LBRACE {
-	       start_class($2,$3,$4);
-	       nested_list = 0;
-              } cpp_members RBRACE declarator {
-		end_class($9.type,$9.id);
-	      } typedeflist { };
-
-/* An unnamed struct with a typedef */
-
-             | TYPEDEF cpptype LBRACE {
-	       start_class($2,"",0);
-	       nested_list = 0;
-              } cpp_members RBRACE declarator {
-		end_class($7.type,$7.id);
-	      } typedeflist { }
+             | storage_class cpptype LBRACE {
+                   if (strcmp($2,"class") == 0) {
+		     cplus_mode = CPLUS_PRIVATE;
+		   } else {
+		     cplus_mode = CPLUS_PUBLIC;
+		   }
+             } cpp_members RBRACE declarator c_decl_tail {
+	       $$ = new_node("class");
+	       Setattr($$,"kind",$2);
+	       Setattr($$,"storage",$1);
+	       append_child($$,$5);
+	       /*
+	       Node *n = new_node("cdecl");
+	       Setname(n,$7.id);
+	       Settype(n,$2);
+	       Setdecl(n,$7.type);
+	       Setparms(n,$7.parms);
+	       Setattr(n,"storage",$1);
+	       Setnext($$,n);
+	       Node *p, *pp = 0;
+	       if ($8) {
+		 Setnext(n,$8);
+		 Node *p = $8;
+		 while (p) {
+		   pp = p;
+		   Settype(p,$2);
+		   Setattr(p,"storage",$1);
+		   p = Getnext(p);
+		 }
+	       }
+	       */
+	       /* This is a sick hack to deal with nested class definitions */
+	       {
+		 char *name = 0;
+		 if (strcmp($1,"typedef") == 0) {
+		   if (!Len($7.type)) {
+		     name = $7.id;
+		     Setattr($$,"tdname",name);
+		   }
+		 }
+		 append_child($$,dump_nested(name));
+	       }
+              }
              ;
 
+cpp_opt_declarators :  SEMI { $$ = 0; }
+                    |  declarator c_decl_tail {
+                        $$ = new_node("cdecl");
+                        Setname($$,$1.id);
+                        Setdecl($$,$1.type);
+                        Setparms($$,$1.parms);
+			Setnext($$,$2);
+                    }
+                    ;
 /* ------------------------------------------------------------
    class Name;
    ------------------------------------------------------------ */
 
 cpp_forward_class_decl : storage_class cpptype ID SEMI {
-	       char *iname;
-	       init_language();
-	       iname = make_name($3);
-	       lang->cpp_class_decl($3,iname,$2);
+               $$ = new_node("forwardclass");
+	       Setattr($$,"kind",$2);
+	       Setname($$,$3);
 	     }
              ;
 
@@ -1459,6 +1123,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		       /*		       Printf(stdout,"%s\n", macrocode); */
 		     } 
 		   }
+		   $$ = 0;
                 }
                 | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype ID inherit LBRACE {
 		     skip_balanced('{','}'); 
@@ -1489,6 +1154,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     Setfile(macrocode,input_file);
 		     Preprocessor_define(macrocode,1);
 		  }
+                  $$ = 0;
 		}
                 ;
 
@@ -1525,21 +1191,36 @@ template_parms  : parms {
 /* Operator overloading catch */
 
 cpp_other      : storage_class type abstract_declarator OPERATOR LPAREN parms RPAREN cpp_end {
+                  $$ = 0;
                    Printf(stderr,"%s:%d. Operator '%s' not supported (ignored).\n", input_file, line_number,$4);
 	     }
 
                | storage_class type OPERATOR LPAREN parms RPAREN cpp_end {
+                  $$ = 0;
                    Printf(stderr,"%s:%d. Operator '%s' not supported (ignored).\n", input_file, line_number,$3);
 	     }
              ;
 
-cpp_members  : cpp_member cpp_members {}
-             | ADDMETHODS LBRACE {
-	           AddMethods = 1;
-	     } cpp_members RBRACE {
-	           AddMethods = 0;
-	     } cpp_members { }
-             | empty { }
+cpp_members  : cpp_member cpp_members {
+                 $$ = $1;
+		 if ($$) {
+		   Node *p = $$;
+		   Node *pp =0;
+		   while (p) {
+		     pp = p;
+		     p = Getnext(p);
+		   }
+		   Setnext(pp,$2);
+		 } else {
+		   $$ = $2;
+		 }
+             }
+             | ADDMETHODS LBRACE cpp_members RBRACE cpp_members {
+	       $$ = new_node("addmethods");
+	       append_child($$,$3);
+	       Setnext($$,$5);
+	     }
+             | empty { $$ = 0;}
 	     | error {
 	       skip_decl();
 		   {
@@ -1550,7 +1231,9 @@ cpp_members  : cpp_member cpp_members {}
 		       last_error_line = line_number;
 		     }
 		   }
-	     } cpp_members { }
+	     } cpp_members { 
+                $$ = $3;
+             }
              ;
 
 /* ======================================================================
@@ -1559,172 +1242,93 @@ cpp_members  : cpp_member cpp_members {}
 
 /* A class member.  May be data or a function. Static or virtual as well */
 
-cpp_member   : cpp_varfunc_decl
-             | cpp_constructor_decl
-             | cpp_destructor_decl
-             | cpp_protection_decl
-             | cpp_enum_decl
-             | cpp_operator
-             | c_typedef_decl
-             | cpp_swig_directives
-             | cpp_nested
-             | cpp_unnamed
-             | cpp_member_class_decl
-             | SEMI
+cpp_member   : c_declaration { $$ = $1; }
+             | cpp_constructor_decl { $$ = $1; }
+             | cpp_destructor_decl { $$ = $1; }
+             | cpp_protection_decl { $$ = $1; }
+             | cpp_operator { $$ = $1; } 
+             | cpp_swig_directive { $$ = $1; }
+             | cpp_forward_class_decl { $$ = $1; }
+             | cpp_nested { $$ = $1; }
+             | SEMI { $$ = 0; }
              ;
 
-cpp_varfunc_decl:  cpp_storage_class type declarator initializer {
-                    if (Active_type) Delete(Active_type);
-		    Active_type = Copy($2);
-		    Active_extern = $1;
-                    cplus_varfunc_decl($1,$2,$3.id,$3.type,$3.parms,$4.val);
-		 } cpp_varfunc_tail { 
-                    Active_extern = 0;
-                    Delete($2);
-		    Delete($3.type);
-		    Delete($3.parms);
-		 }
-
-                | cpp_storage_class type declarator cpp_const LBRACE { 
-		  skip_balanced('{','}');
-		  cplus_varfunc_decl($1,$2,$3.id,$3.type,$3.parms,0);
-		}
-
-                | type declarator initializer {
-		    if (Active_type) Delete(Active_type);
-		    Active_type = Copy($1);
-		    Active_extern = 0;
-		    cplus_varfunc_decl(0,$1,$2.id,$2.type,$2.parms,$3.val);
-		 } cpp_varfunc_tail { 
-                    Active_extern = 0;
-                    Delete($1);
-		    Delete($2.type);
-		    Delete($2.parms);
-		 }
-                | type declarator cpp_const LBRACE { 
-		  skip_balanced('{','}');
-		  cplus_varfunc_decl(0,$1,$2.id,$2.type,$2.parms,0);
-		}
-                ;
-
-/* Allow lists of variables and functions to be built up */
-
-cpp_varfunc_tail : SEMI { Clear(CCode); }
-                 | COMMA declarator initializer {
-		   temp_typeptr = Copy(Active_type);
-		   cplus_varfunc_decl(Active_extern,temp_typeptr,$2.id,$2.type,$2.parms,$3.val);
-		   Delete(temp_typeptr);
-	       } cpp_varfunc_tail { }
-              ;
-
-
-cpp_storage_class : STATIC { $$ = STORAGE_STATIC; }
-                  | VIRTUAL { $$ = STORAGE_VIRTUAL; }
-                  | FRIEND { $$ = STORAGE_FRIEND; }
-                  ;
-
 /* Possibly a constructor */
-cpp_constructor_decl :  ID LPAREN parms RPAREN ctor_end {
-		char *iname;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  iname = make_name($1);
-		  if (iname == $1) iname = 0;
-		  cplus_constructor($1,iname, nonvoid_parms($3));
-		}
-		Delete($3);
+cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
+               $$ = new_node("constructor");
+	       Setname($$,$2);
+	       Setparms($$,$4);
+	       if (Len(CCode)) {
+		 Setattr($$,"code",Copy(CCode));
+	       }
 	      }
               ;
 
 /* A destructor (hopefully) */
 
 cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
-		char *iname;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  iname = make_name($2);
-		  if (iname == $2) iname = 0;
-		  cplus_destructor($2,iname);
-		}
-		Delete($4);
+               $$ = new_node("destructor");
+	       Setname($$,$2);
+	       if (Len(CCode)) {
+		 Setattr($$,"code",Copy(CCode));
+	       }
 	      }
 
 /* A virtual destructor */
 
               | VIRTUAL NOT ID LPAREN parms RPAREN cpp_vend {
- 	        char *iname;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  iname = make_name($3);
-		  if (iname == $3) iname = 0;
-		  cplus_destructor($3,iname);
+		$$ = new_node("destructor");
+		Setattr($$,"storage","virtual");
+		Setname($$,$3);
+		if ($7) {
+		  Setattr($$,"value","0");
 		}
-		Delete($5);
+		if (Len(CCode)) {
+		  Setattr($$,"code",Copy(CCode));
+		}
 	      }
               ;
 
 
 /* public: */
-cpp_protection_decl : PUBLIC COLON { cplus_mode = CPLUS_PUBLIC; }
+cpp_protection_decl : PUBLIC COLON { 
+                $$ = new_node("access");
+		Setattr($$,"kind","public");
+                cplus_mode = CPLUS_PUBLIC;
+              }
 
 /* private: */
-              | PRIVATE COLON { cplus_mode = CPLUS_PRIVATE;  }
+              | PRIVATE COLON { 
+                $$ = new_node("access");
+		Setattr($$,"kind","private");
+		cplus_mode = CPLUS_PRIVATE;
+	      }
 
 /* protected: */
 
-              | PROTECTED COLON { cplus_mode = CPLUS_PROTECTED; }
-              ;
-
-/* C++ Enum */
-
-cpp_enum_decl : ENUM ename LBRACE cpp_enumlist RBRACE SEMI {
-		 // if ename was supplied.  Install it as a new integer datatype.
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if ($2) {
-		    cplus_register_type($2);
-		    if (temp_type) Delete(temp_type);
-		    temp_type = NewStringf("enum %s",$2);
-		    SwigType_typedef(temp_type,$2);
-		    lang->add_typedef(temp_type,$2);
-		  }
-		}
+              | PROTECTED COLON { 
+                $$ = new_node("access");
+		Setattr($$,"kind","protected");
+		cplus_mode = CPLUS_PROTECTED;
 	      }
               ;
 
 /* An operator: Illegal */
-cpp_operator  : cpp_storage_class type parameter_declarator OPERATOR LPAREN parms RPAREN cpp_end {
-                   if ($1 != STORAGE_FRIEND) {
-		     Printf(stderr,"%s:%d. Operator '%s' not supported (ignored).\n", input_file, line_number, $4);
+cpp_operator  : storage_class type parameter_declarator OPERATOR LPAREN parms RPAREN cpp_end {
+                   $$ = new_node("operator");
+		   Setname($$,$4);
+		   Settype($$,$2);
+		   Setdecl($$,$3.type);
+		   Setparms($$,$6);
+		   Setattr($$,"storage",$1);
+		   if (Len(CCode)) {
+		     Setattr($$,"code",Copy(CCode));
 		   }
-	      }
-              | type parameter_declarator OPERATOR LPAREN parms RPAREN cpp_end {
-		Printf(stderr,"%s:%d. Operator '%s' not supported (ignored).\n", input_file, line_number, $3);
 	      }
               ;
 
-/* Pragma directive */
-
-cpp_swig_directives: pragma_directive 
-
-/* A constant (includes #defines) inside a class */
-              | constant_directive
-
-/* This is the new style rename */
-
-             | NAME LPAREN ID RPAREN {
-	       strcpy(yy_rename,$3);
-	       Rename_true = 1;
-	     }
-
-/* New mode */
-             | NEW {
-                 NewObject = 1;
-             } cpp_member {
-                 NewObject = 0;
-             }
-             ;
-
-
-
 /* ----------------------------------------------------------------------
-   Nested structure.    This is a big ugly "hack".   If we encounter
+   Nested structure.    This is a sick "hack".   If we encounter
    a nested structure, we're going to grab the text of its definition and
    feed it back into the scanner.  In the meantime, we need to grab
    variable declaration information and generate the associated wrapper
@@ -1738,69 +1342,77 @@ cpp_swig_directives: pragma_directive
 
 /* A struct sname { } id;  declaration */
 
-cpp_nested : cpptype ID LBRACE { start_line = line_number; skip_balanced('{','}');
+cpp_nested : storage_class cpptype ID LBRACE { start_line = line_number; skip_balanced('{','}');
 	      } nested_decl SEMI {
-
+	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  cplus_register_type($2);
-		  if ($5.id) {
-		    if (strcmp($1,"class") == 0) {
+		  if ($6.id) {
+		    if (strcmp($2,"class") == 0) {
 		      Printf(stderr,"%s:%d.  Warning. Nested classes not currently supported (ignored).\n", input_file, line_number);
 		      /* Generate some code for a new class */
 		    } else {
 		      Nested *n = (Nested *) malloc(sizeof(Nested));
 		      n->code = NewString("");
-		      Printv(n->code, "typedef ", $1, " ",
-			      Char(CCode), " $classname_", $5.id, ";\n", 0);
-		      n->name = Swig_copy_string($5.id);
+		      Printv(n->code, "typedef ", $2, " ",
+			      Char(CCode), " $classname_", $6.id, ";\n", 0);
+		      n->name = Swig_copy_string($6.id);
 		      n->line = start_line;
 		      n->type = NewString("");
-		      SwigType_push(n->type, $5.type);
+		      SwigType_push(n->type, $6.type);
 		      n->next = 0;
 		      add_nested(n);
 		    }
 		  }
 		}
 	      }
-              ;
 
-/* An unnamed structure definition */
-cpp_unnamed : cpptype LBRACE { start_line = line_number; skip_balanced('{','}');
+/* An unnamed nested structure definition */
+              | storage_class cpptype LBRACE { start_line = line_number; skip_balanced('{','}');
               } declarator SEMI {
+	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (strcmp($1,"class") == 0) {
+		  if (strcmp($2,"class") == 0) {
 		    Printf(stderr,"%s:%d.  Warning. Nested classes not currently supported (ignored)\n", input_file, line_number);
 		    /* Generate some code for a new class */
 		  } else {
 		    /* Generate some code for a new class */
-
 		    Nested *n = (Nested *) malloc(sizeof(Nested));
 		    n->code = NewString("");
-		    Printv(n->code, "typedef ", $1, " " ,
-			    Char(CCode), " $classname_", $4.id, ";\n",0);
-		    n->name = Swig_copy_string($4.id);
+		    Printv(n->code, "typedef ", $2, " " ,
+			    Char(CCode), " $classname_", $5.id, ";\n",0);
+		    n->name = Swig_copy_string($5.id);
 		    n->line = start_line;
 		    n->type = NewString("");
-		    SwigType_push(n->type,$4.type);
+		    SwigType_push(n->type,$5.type);
 		    n->next = 0;
 		    add_nested(n);
-
 		  }
 		}
 	      } 
               ;
 
-/* An empty class declaration */
-cpp_member_class_decl : cpptype ID SEMI {
-  		    if (cplus_mode == CPLUS_PUBLIC) {
-                       cplus_register_type($2);
-                    }
-              }
-              ;
-
 nested_decl   : declarator { $$ = $1;}
               | empty { $$.id = 0; }
               ;
+
+
+/* Pragma directive */
+
+cpp_swig_directive: pragma_directive { $$ = $1; }
+
+/* A constant (includes #defines) inside a class */
+             | constant_directive { $$ = $1; }
+
+/* This is the new style rename */
+
+             | name_directive { $$ = $1; }
+
+/* New mode */
+             | NEW cpp_member {
+	       $$ = new_node("new");
+	       Setnext($$,$2);
+             }
+             ;
 
 cpp_end        : cpp_const SEMI {
 	            Clear(CCode);
@@ -1813,54 +1425,29 @@ cpp_vend       : cpp_const SEMI { Clear(CCode); $$ = 0;  }
                | cpp_const LBRACE { skip_balanced('{','}'); $$ = 0; }
                ;
 
-cpp_enumlist   :  cpp_enumlist COMMA cpp_edecl {}
-               |  cpp_edecl {}
-               ;
-
-cpp_edecl      :  ID {
-		  if (cplus_mode == CPLUS_PUBLIC) {
-		   temp_typeptr = NewSwigType(T_INT);
-		   cplus_enum_const($1, temp_typeptr, (char *) 0);
-		   Delete(temp_typeptr);
-  		  }
-                 }
-                 | ID EQUAL etype {
-		   if (cplus_mode == CPLUS_PUBLIC) {
-		     temp_typeptr = NewSwigType(T_INT);
-		     cplus_enum_const($1, temp_typeptr,(char *) 0);
-		     Delete(temp_typeptr);
-		   }
-		 }
-                 | name_directive { }
-                 | empty { }
-                 ;
 
 /* ====================================================================== 
  *                       PRIMITIVES
  * ====================================================================== */
 
-storage_class  : EXTERN {
-	           $$ = STORAGE_EXTERN;
-               }
-               | EXTERN string {
+storage_class  : EXTERN { $$ = "extern"; }
+               | EXTERN string { 
                    if (strcmp($2,"C") == 0) {
-		     $$ = STORAGE_EXTERN_C;
+		     $$ = "externc";
 		   } else {
 		     Printf(stderr,"%s:%d.  Unrecognized extern type \"%s\" (ignored).\n", input_file,line_number, $2);
 		     $$ = 0;
 		   }
                }
-               | STATIC {
-                   $$ = STORAGE_STATIC;
-               }
-               | empty {
-                   $$ = 0;
-               }
+               | STATIC { $$ = "static"; }
+               | TYPEDEF { $$ = "typedef"; }
+               | VIRTUAL { $$ = "virtual"; }
+               | FRIEND { $$ = "friend"; }
+               | empty { $$ = 0; }
                ;
 
 /* ------------------------------------------------------------------------------
    Function parameter lists
-
    ------------------------------------------------------------------------------ */
 
 parms          : parm ptail {
@@ -2317,8 +1904,6 @@ type_right     : TYPE_INT { $$ = $1; }
                | idcolon template_decl { 
                    $$ = NewStringf("%s%s",$1,$2); 
                }
-/*               | ID DCOLON ID     { $$ = NewStringf("%s::%s", $1,$3); }
-		 | DCOLON ID        { $$ = NewString($2); } */
                ;
 
 /* Optional signed types */
@@ -2370,26 +1955,34 @@ ename          :  ID { $$ = $1; }
 
 /* SWIG enum list */
 
-enumlist       :  enumlist COMMA edecl {}
-               |  edecl {}
+enumlist       :  enumlist COMMA edecl { 
+                   Node *n = Getattr($1,"_last");
+		   if (!n) {
+		     Setnext($1,$3);
+		     Setattr($1,"_last",$3);
+		   } else {
+		     Setnext(n,$3);
+		     Setattr($1,"_last",$3);
+		   }
+		   $$ = $1;
+               }
+               |  edecl { $$ = $1; }
                ;
 
-
 edecl          :  ID {
-		   temp_typeptr = NewSwigType(T_INT);
-		   create_constant($1, temp_typeptr, $1);
-		   Delete(temp_typeptr);
+		   $$ = new_node("enumitem");
+		   Setname($$,$1);
 		 }
-                 | ID EQUAL { scanner_check_typedef();} etype {
-		   temp_typeptr = NewSwigType($4.type);
-	           if ($4.type == T_CHAR)
-	               create_constant($1,temp_typeptr, Char($4.val));
-		   else
-		     create_constant($1, temp_typeptr, $1);
-		   Delete(temp_typeptr);
-  	           scanner_ignore_typedef();
+                 | ID EQUAL etype {
+		   $$ = new_node("enumitem");
+		   Setname($$,$1);
+	           if ($3.type == T_CHAR) {
+		     Setvalue($$,$3.val);
+		   } else {
+		     Setvalue($$,$1);
+		   }
                  }
-                 | empty { }
+                 | empty { $$ = 0; }
                  ;
 
 etype            : expr {
@@ -2517,8 +2110,6 @@ cast_type_right: TYPE_INT { $$ = $1; }
 		  SwigType_add_qualifier($$,$2);
      	       }
                ;
-
-
 
 
 inherit        : COLON base_list { $$ = $2; }
