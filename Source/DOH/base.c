@@ -829,3 +829,28 @@ DohGetmark(DOH *ho) {
   DohBase *h = (DohBase *) ho;
   return h->flag_usermark;
 }
+
+/* -----------------------------------------------------------------------------
+ * DohCall()
+ *
+ * Invokes a function via DOH.  A Function is represented by a hash table with
+ * the following attributes:
+ *
+ *       "builtin"    -  Pointer to built-in function (if any)
+ *
+ * (Additional attributes may be added later)
+ * 
+ * Returns a DOH object with result on success. Returns NULL on error
+ * ----------------------------------------------------------------------------- */
+
+DOH *
+DohCall(DOH *func, DOH *args) {
+  DOH *result;
+  DOH *(*builtin)(DOH *);
+
+  builtin = (DOH *(*)(DOH *)) GetVoid(func,"builtin");
+  if (!builtin) return 0;
+  result = (*builtin)(args);
+  return result;
+}
+

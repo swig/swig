@@ -123,7 +123,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
       }
       break;
     case 10: /* Look for a width and precision */
-      if (isdigit(*p) && (*p != '0')) {
+      if (isdigit((int)*p) && (*p != '0')) {
 	w = temp;
 	*(w++) = *p;
 	*(fmt++) = *p;
@@ -154,7 +154,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
       break;
       
     case 20: /* Hmmm. At the start of a width field */
-      if (isdigit(*p)) {
+      if (isdigit((int)*p)) {
 	*(w++) = *p;
 	*(fmt++) = *p;
       } else if (strchr(fmt_codes,*p)) {
@@ -196,7 +196,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 
     case 40:
       /* Start of precision expected */
-      if (isdigit(*p) && (*p != '0')) {
+      if (isdigit((int)*p) && (*p != '0')) {
 	*(fmt++) = *p;
 	*(w++) = *p;
 	state = 41;
@@ -217,7 +217,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
       }
       break;
     case 41:
-      if (isdigit(*p)) {
+      if (isdigit((int)*p)) {
 	*(fmt++) = *p;
 	*(w++) = *p;
       } else if (strchr(fmt_codes,*p)) {

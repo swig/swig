@@ -104,7 +104,7 @@
 #define DohNewVoid         DOH_NAMESPACE(NewVoid)
 #define DohSplit           DOH_NAMESPACE(Split)
 #define DohNone            DOH_NAMESPACE(None)
-
+#define DohCall            DOH_NAMESPACE(Call)
 #define DohObjMalloc       DOH_NAMESPACE(ObjMalloc)
 #define DohObjFree         DOH_NAMESPACE(ObjFree)
 #define DohMemoryDebug     DOH_NAMESPACE(MemoryDebug)
@@ -377,6 +377,7 @@ extern void      DohMemoryDebug(void);
 #define Setmark            DohSetmark
 #define Getmark            DohGetmark
 #define None               DohNone
+#define Call               DohCall
 #endif
 
 #ifdef NIL
