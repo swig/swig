@@ -3,37 +3,37 @@
  * Tcl8.x - Object oriented runtime functions
  */
 
-typedef int (*_swig_wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST []);
+typedef int (*swig_wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST []);
 
-typedef struct _swig_method { 
+typedef struct swig_method { 
   const char     *name;
-  _swig_wrapper   method;
-} _swig_method;
+  swig_wrapper   method;
+} swig_method;
 
-typedef struct _swig_attribute {
+typedef struct swig_attribute {
   const char     *name;
-  _swig_wrapper   getmethod;
-  _swig_wrapper   setmethod;
-} _swig_attribute;
+  swig_wrapper   getmethod;
+  swig_wrapper   setmethod;
+} swig_attribute;
   
-typedef struct _swig_class {
+typedef struct swig_class {
   const char        *name;
-  _swig_type_info  **type;
-  _swig_wrapper      constructor;
+  swig_type_info  **type;
+  swig_wrapper      constructor;
   void             (*destructor)(void *);
-  _swig_method      *methods;
-  _swig_attribute   *attributes;
-} _swig_class;
+  swig_method      *methods;
+  swig_attribute   *attributes;
+} swig_class;
 
-typedef struct _swig_instance {
+typedef struct swig_instance {
   Tcl_Obj       *thisptr;
   void          *thisvalue;
-  _swig_class   *classptr;
+  swig_class   *classptr;
   int            destroy;
-} _swig_instance;
+} swig_instance;
 
 static void SwigObjectDelete(ClientData clientData) {
-  _swig_instance *si = (_swig_instance *) clientData;
+  swig_instance *si = (swig_instance *) clientData;
   if (si->destroy) {
     if (si->classptr->destructor) {
       (si->classptr->destructor)(si->thisvalue);
@@ -48,9 +48,9 @@ static int
 SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST _objv[])
 {
   char *method, *attrname;
-  _swig_instance  *inst = (_swig_instance *) clientData;
-  _swig_method    *meth;
-  _swig_attribute *attr;
+  swig_instance  *inst = (swig_instance *) clientData;
+  swig_method    *meth;
+  swig_attribute *attr;
   Tcl_Obj         *oldarg;
   Tcl_Obj         **objv;
   int              rcode;
@@ -151,9 +151,9 @@ SwigObjectCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 {
     Tcl_Obj          *newObj = 0;
     void             *thisvalue = 0;
-    _swig_instance   *newinst = 0;
-    _swig_class      *classptr = (_swig_class *) clientData;
-    _swig_wrapper     cons = 0;
+    swig_instance   *newinst = 0;
+    swig_class      *classptr = (swig_class *) clientData;
+    swig_wrapper     cons = 0;
     char             *name = 0;
     int               firstarg = 0;
     int               thisarg = 0;
@@ -213,7 +213,7 @@ SwigObjectCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	Tcl_DecrRefCount(newObj);
 	return TCL_ERROR;
       }
-      newinst = (_swig_instance *) malloc(sizeof(_swig_instance));
+      newinst = (swig_instance *) malloc(sizeof(swig_instance));
       newinst->thisptr = newObj;
       Tcl_IncrRefCount(newObj);
       newinst->thisvalue = thisvalue;

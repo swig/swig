@@ -285,8 +285,8 @@ PERL5::initialize()
   Printf(f_init,"\t char *file = __FILE__;\n");
   Printf(f_init,"\t cv = cv; items = items;\n");
   Printv(f_init,
-	 "for (i = 0; _swig_types_initial[i]; i++) {\n",
-	 "_swig_types[i] = SWIG_TypeRegister(_swig_types_initial[i]);\n",
+	 "for (i = 0; swig_types_initial[i]; i++) {\n",
+	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
 	 "}\n", 0);
   Printf(f_init,"\t newXS(\"%s::var_%s_init\", _wrap_perl5_%s_var_init, file);\n",package,cmodule, cmodule);
 

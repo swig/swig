@@ -54,17 +54,17 @@ GSWIG_scm2char (SCM s)
 
 typedef struct SwigPtrType SwigPtrType;
 
-typedef struct _swig_type_info {
+typedef struct swig_type_info {
   char  *name;
   void *(*converter)(void *);
   char  *str;
   size_t tag;
-} _swig_type_info;
+} swig_type_info;
 
-#define _swig_types_initial _swig_types
+#define swig_types_initial swig_types
 
 SWIGSTATIC void
-SWIG_Guile_RegisterTypes (_swig_type_info **table);
+SWIG_Guile_RegisterTypes (swig_type_info **table);
 
 /* Register a new type-mapping with the type-checker.  origtype is the
    original datatype and newtype is an equivalent type.  cast is optional
@@ -87,11 +87,11 @@ SWIG_Guile_Init();
 /* Get a pointer value from a smob.  If there is a type-mismatch,
    return nonzero; on success, return 0.  */
 SWIGSTATIC int
-SWIG_Guile_GetPtr (SCM s, void **result, _swig_type_info *type);
+SWIG_Guile_GetPtr (SCM s, void **result, swig_type_info *type);
 
 /* Make a smob from a pointer and typeinfo.  */
 SWIGSTATIC SCM
-SWIG_Guile_MakePtr (void *ptr, _swig_type_info *type);
+SWIG_Guile_MakePtr (void *ptr, swig_type_info *type);
 
 /* Get arguments from an argument list */
 SWIGSTATIC void

@@ -8,8 +8,8 @@ static VALUE _mSWIG = Qnil;
 static VALUE _cSWIG_Pointer = Qnil;
 
 /* Define ruby class for C type */
-SWIGSTATICRUNTIME(void)
-SWIG_define_class(_swig_type_info *type)
+SWIGRUNTIME(void)
+SWIG_define_class(swig_type_info *type)
 {
     char *klass_name = ALLOCA_N(char, 4 + strlen(type->name) + 1);
     sprintf(klass_name, "TYPE%s", type->name);
@@ -20,8 +20,8 @@ SWIG_define_class(_swig_type_info *type)
 }
 
 /* Create a new pointer object */
-SWIGSTATICRUNTIME(VALUE)
-SWIG_NewPointerObj(void *ptr, _swig_type_info *type)
+SWIGRUNTIME(VALUE)
+SWIG_NewPointerObj(void *ptr, swig_type_info *type)
 {
     char *klass_name;
     VALUE klass;
@@ -36,7 +36,7 @@ SWIG_NewPointerObj(void *ptr, _swig_type_info *type)
 }
 
 /* Get type mangle from class name */
-SWIGSTATICRUNTIME(char *)
+SWIGRUNTIME(char *)
 SWIG_MangleStr(VALUE obj)
 {
   char *c;
@@ -53,12 +53,12 @@ SWIG_MangleStr(VALUE obj)
 }
 
 /* Convert a pointer value */
-SWIGSTATICRUNTIME(void *)
-SWIG_ConvertPtr(VALUE obj, _swig_type_info *ty)
+SWIGRUNTIME(void *)
+SWIG_ConvertPtr(VALUE obj, swig_type_info *ty)
 {
   char *c;
   void *ptr;
-  _swig_type_info *tc;
+  swig_type_info *tc;
 
   if ((c = SWIG_MangleStr(obj)) == NULL)
     rb_raise(rb_eTypeError, "Expected %s", ty->name);	
@@ -72,8 +72,8 @@ SWIG_ConvertPtr(VALUE obj, _swig_type_info *ty)
 }
 
 /* Check convert */
-SWIGSTATICRUNTIME(int)
-SWIG_CheckConvert(VALUE obj, _swig_type_info *ty)
+SWIGRUNTIME(int)
+SWIG_CheckConvert(VALUE obj, swig_type_info *ty)
 {
   char *c = SWIG_MangleStr(obj);
   if (!c)
