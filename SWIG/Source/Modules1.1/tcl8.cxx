@@ -416,13 +416,13 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       Replace(incode,"$arg",source, DOH_REPLACE_ANY);
     }
     /* Check if there was any cleanup code (save it for later) */
-    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,target,(char*)"tcl_result",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,target,(char*)"Tcl_GetObjResult(interp)",0))) {
        Printf(cleanup,"%s\n", tm);
       Replace(cleanup,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",source,DOH_REPLACE_ANY);
     }
     /* Look for output arguments */
-    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,target,(char*)"tcl_result",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,target,(char*)"Tcl_GetObjResult(interp)",0))) {
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
@@ -442,7 +442,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   emit_func_call(name,d,l,f);
 
   /* Return value if necessary  */
-  if ((tm = Swig_typemap_lookup((char*)"out",d,name,(char*)"result",(char*)"tcl_result",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"out",d,name,(char*)"result",(char*)"Tcl_GetObjResult(interp)",0))) {
     Printf(f->code,"%s\n", tm);
   } else {
     switch(SwigType_type(d)) {
