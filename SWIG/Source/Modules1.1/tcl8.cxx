@@ -1075,3 +1075,8 @@ TCL8::cpp_destructor(char *name, char *newname) {
   this->Language::cpp_destructor(name,newname);
   have_destructor = 1;
 }
+
+void
+TCL8::import_start(char *) {
+  /* Does nothing */
+}
