@@ -161,8 +161,8 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
 
 
     if (!((Getattr(hash,t->name)) && (t->is_pointer <=1)) && !noopt) {
-      *imethod << class_name << "."  << realname << " = new.instancemethod(" << module << "." << name_member(realname,class_name) << ", None, " << class_name << ")\n";
-      /*       *pyclass << tab4 << realname << " = " << module << ".__shadow__." << name_member(realname,class_name) << "\n"; */
+      *imethod << class_name << "."  << realname << " = new.instancemethod(" << module << "." << Swig_name_member(class_name,realname) << ", None, " << class_name << ")\n";
+      /*       *pyclass << tab4 << realname << " = " << module << ".__shadow__." << Swig_name_member(class_name,realname) << "\n"; */
     } else {
 
       // Now add it to the class
@@ -173,13 +173,13 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
 	*pyclass << tab4 << "def " << realname << "(*args):\n";
       
       if (use_kw)
-	*pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",args, kwargs)\n";
+	*pyclass << tab8 << "val = apply(" << module << "." << Swig_name_member(class_name,realname) << ",args, kwargs)\n";
       else
-	*pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",args)\n";
+	*pyclass << tab8 << "val = apply(" << module << "." << Swig_name_member(class_name,realname) << ",args)\n";
       
       // Check to see if the return type is an object
       if ((Getattr(hash,t->name)) && (t->is_pointer <= 1)) {
-	if (!typemap_check((char*)"out",typemap_lang,t,name_member(realname,class_name))) {
+	if (!typemap_check((char*)"out",typemap_lang,t,Swig_name_member(class_name,realname))) {
 	  if (!have_output) {
 	    *pyclass << tab8 << "if val: val = " << GetChar(hash,t->name) << "Ptr(val) ";
 	    if (((Getattr(hash,t->name)) && (t->is_pointer < 1)) ||
@@ -244,9 +244,9 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
 	*construct << tab4 << "def __init__(self,*args):\n";
 
       if (use_kw)
-	*construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",args,kwargs)\n";
+	*construct << tab8 << "self.this = apply(" << module << "." << Swig_name_construct(realname) << ",args,kwargs)\n";
       else
-	*construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",args)\n";
+	*construct << tab8 << "self.this = apply(" << module << "." << Swig_name_construct(realname) << ",args)\n";
       *construct << tab8 << "self.thisown = 1\n";
       emitAddPragmas(*construct,(char*)"__init__",(char*)tab8);
       have_constructor = 1;
@@ -262,9 +262,9 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
 
       *additional << tab4 << "val = " << class_name << "Ptr(apply(";
       if (use_kw)
-	*additional << module << "." << name_construct(realname) << ",args,kwargs))\n";
+	*additional << module << "." << Swig_name_construct(realname) << ",args,kwargs))\n";
       else
-	*additional << module << "." << name_construct(realname) << ",args))\n";
+	*additional << module << "." << Swig_name_construct(realname) << ",args))\n";
       *additional << tab4 << "val.thisown = 1\n"
 		  << tab4 << "return val\n\n";
     }
@@ -294,7 +294,7 @@ void PYTHON::cpp_destructor(char *name, char *newname) {
     *pyclass << tab4 << "def __del__(self," << module << "=" << module << "):\n";
     emitAddPragmas(*pyclass,(char*)"__del__",(char*)tab8);
     *pyclass << tab8 << "if self.thisown == 1 :\n"
-	     << tab8 << tab4 << module << "." << name_destroy(realname) << "(self)\n";
+	     << tab8 << tab4 << module << "." << Swig_name_destroy(realname) << "(self)\n";
     
     have_destructor = 1;
   }
@@ -452,14 +452,14 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     if (Status & STAT_READONLY) {
       //      *setattr << tab8 << tab4 << "raise RuntimeError, \'Member is read-only\'\n";
     } else {
-      *csetattr << tab8 << "\"" << realname << "\" : " << module << "." << name_set(name_member(realname,class_name)) << ",\n";
+      *csetattr << tab8 << "\"" << realname << "\" : " << module << "." << Swig_name_set(Swig_name_member(class_name,realname)) << ",\n";
     }
     // Write some code to get the variable
     if (inhash) {
-      *cgetattr << tab8 << "\"" << realname << "\" : lambda x : " << GetChar(hash,t->name) << "Ptr(" << module << "." << name_get(name_member(realname,class_name)) << "(x)),\n";
+      *cgetattr << tab8 << "\"" << realname << "\" : lambda x : " << GetChar(hash,t->name) << "Ptr(" << module << "." << Swig_name_get(Swig_name_member(class_name,realname)) << "(x)),\n";
 
     } else {
-      *cgetattr << tab8 << "\"" << realname << "\" : " << module << "." << name_get(name_member(realname,class_name)) << ",\n";
+      *cgetattr << tab8 << "\"" << realname << "\" : " << module << "." << Swig_name_get(Swig_name_member(class_name,realname)) << ",\n";
     }
   }
 }
@@ -493,7 +493,7 @@ void PYTHON::cpp_declare_const(char *name, char *iname, DataType *type, char *va
     }
     Setattr(symbols,cname.get(),cname.get());
     
-    *cinit << tab4 << realname << " = " << module << "." << name_member(realname,class_name) << "\n";
+    *cinit << tab4 << realname << " = " << module << "." << Swig_name_member(class_name,realname) << "\n";
   }
 }
  

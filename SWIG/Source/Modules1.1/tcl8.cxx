@@ -415,7 +415,7 @@ void TCL8::get_pointer(char *iname, char *srcname, char *src, char *dest,
 
 void TCL8::create_command(char *cname, char *iname) {
 
-  char *wname = name_wrapper(cname,prefix);
+  char *wname = Swig_name_wrapper(cname);
 
   cmd_info << tab4 << "{ SWIG_prefix \"" << iname << "\", " << wname << ", NULL},\n";
   
@@ -449,7 +449,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   // Make a wrapper name for this function
 
-  wname = name_wrapper(iname,prefix);
+  wname = Swig_name_wrapper(iname);
 
   // Now write the wrapper function itself....this is pretty ugly
 
@@ -1277,7 +1277,7 @@ void TCL8::cpp_close_class() {
 
     if (have_destructor) {
       code << "static void _swig_delete_" << class_name << "(void *obj) {\n"
-	      << tab4 << name_destroy(class_name) << "((" << t->print_type() << ") obj);\n"
+	      << tab4 << Swig_name_destroy(class_name) << "((" << t->print_type() << ") obj);\n"
 	      << "}\n";
     }
 
@@ -1293,7 +1293,7 @@ void TCL8::cpp_close_class() {
 	 << "\", &SWIGTYPE" << t->print_mangle() << ",";
 
     if (have_constructor) {
-      code << name_wrapper(name_construct(class_name),prefix);
+      code << Swig_name_wrapper(Swig_name_construct(class_name));
     } else {
       code << "0";
     }
@@ -1326,10 +1326,10 @@ void TCL8::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
     // Add stubs for this member to our class handler function
 
     temp = "";
-    temp << name_member(realname,class_name);
+    temp << Swig_name_member(class_name,realname);
     rname = GetChar(repeatcmd,temp);
     if (!rname)
-      rname = name_wrapper(temp.get(),prefix);
+      rname = Swig_name_wrapper(temp.get());
     
     methods << tab4 << "{\"" << realname << "\", " << rname << "}, \n";
   }
@@ -1354,18 +1354,18 @@ void TCL8::cpp_variable(char *name, char *iname, DataType *t) {
 
     // Try to figure out if there is a wrapper for this function
     temp = "";
-    temp << name_get(name_member(realname,bc));
+    temp << Swig_name_get(Swig_name_member(bc,realname));
     rname = GetChar(repeatcmd,temp);
     if (!rname) 
-      rname = name_wrapper(temp.get(),prefix);
+      rname = Swig_name_wrapper(temp.get());
     attributes << rname << ", ";
 
     if (!(Status & STAT_READONLY)) {
       temp = "";
-      temp << name_set(name_member(realname,bc));
+      temp << Swig_name_set(Swig_name_member(bc,realname));
       rname = GetChar(repeatcmd,temp);
       if (!rname) 
-	rname = name_wrapper(temp.get(),prefix);
+	rname = Swig_name_wrapper(temp.get());
       attributes << rname << "},\n";
     } else {
       attributes << "0 },\n";

@@ -532,7 +532,7 @@ char *PYTHON::convert_self(WrapperFunction &)
 // ----------------------------------------------------------------------
 char *PYTHON::make_funcname_wrapper(char *fnName)
 {
-  return name_wrapper(fnName,(char*)"");
+  return Swig_name_wrapper(fnName);
 }
 
 // ----------------------------------------------------------------------
@@ -546,7 +546,7 @@ void PYTHON::create_command(char *cname, char *iname) {
 
   // Create the name of the wrapper function
 
-  char *wname = name_wrapper(cname,(char*)"");
+  char *wname = Swig_name_wrapper(cname);
 
   // Now register the function with the interpreter.  
 
@@ -1057,7 +1057,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // First make a sanitized version of the function name (in case it's some
     // funky C++ thing).
     
-    wname = name_wrapper(name,(char*)"");
+    wname = Swig_name_wrapper(name);
 
     // ---------------------------------------------------------------------
     // Create a function for setting the value of the variable

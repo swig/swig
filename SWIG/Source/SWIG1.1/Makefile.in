@@ -16,11 +16,11 @@ TARGET   = libswig11.a
 
 OBJS     = parser.o main.o scanner.o symbol.o types.o parms.o \
            emit.o cplus.o lang.o hash.o sstring.o wrapfunc.o \
-           typemap.o naming.o
+           typemap.o
 
 SRCS     = main.cxx scanner.cxx symbol.cxx types.cxx parms.cxx \
            emit.cxx cplus.cxx lang.cxx hash.cxx \
-           sstring.cxx wrapfunc.cxx typemap.cxx naming.cxx
+           sstring.cxx wrapfunc.cxx typemap.cxx
 
 PARSER   = $(srcdir)/parser.yxx
 INCLUDE  = -I$(srcdir)/../Include               \

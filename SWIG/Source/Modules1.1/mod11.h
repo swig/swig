@@ -5,3 +5,7 @@ extern "C" {
 #include "doh.h"
 }
 #include "swig11.h"
+
+extern "C" {
+#include "swig.h"
+}

@@ -654,7 +654,7 @@ void PERL5::get_pointer(char *iname, char *srcname, char *src, char *dest,
 // ----------------------------------------------------------------------
 
 void PERL5::create_command(char *cname, char *iname) {
-  fprintf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package, iname, name_wrapper(cname,(char*)""));
+  fprintf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package, iname, Swig_name_wrapper(cname));
   if (export_all) {
     exported << iname << " ";
   }
@@ -683,7 +683,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   // Make a wrapper name for this
 
-  wname = name_wrapper(iname,(char*)"");
+  wname = Swig_name_wrapper(iname);
   
   // Now write the wrapper function itself....this is pretty ugly
 
@@ -1706,7 +1706,7 @@ void PERL5::cpp_close_class() {
       // Output a FETCH method.  This is actually common to all classes
       pm << "sub FETCH {\n"
 	 << tab4 << "my ($self,$field) = @_;\n"
-	 << tab4 << "my $member_func = \"" << package << "::" << name_get(name_member((char*)"${field}",class_name,AS_IS),AS_IS) << "\";\n"
+	 << tab4 << "my $member_func = \"" << package << "::" << Swig_name_get(Swig_name_member(class_name,"${field}")) << "\";\n"
 	 << tab4 << "my $val = &$member_func($self);\n"
 	 << tab4 << "if (exists $BLESSEDMEMBERS{$field}) {\n"
 	 << tab8 << "return undef if (!defined($val));\n"
@@ -1721,7 +1721,7 @@ void PERL5::cpp_close_class() {
       
       pm << "sub STORE {\n"
 	 << tab4 << "my ($self,$field,$newval) = @_;\n"
-	 << tab4 << "my $member_func = \"" << package << "::" << name_set(name_member((char*)"${field}",class_name,AS_IS),AS_IS) << "\";\n"
+	 << tab4 << "my $member_func = \"" << package << "::" << Swig_name_set(Swig_name_member(class_name,"${field}")) << "\";\n"
 	 << tab4 << "if (exists $BLESSEDMEMBERS{$field}) {\n"
 	 << tab8 << "&$member_func($self,tied(%{$newval}));\n"
 	 << tab4 << "} else {\n"
@@ -1834,7 +1834,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   
   // Okay.  We've made argument adjustments, now call into the package
 
-  func << tab4 << "my $result = " << package << "::" << name_member(realname,class_name)
+  func << tab4 << "my $result = " << package << "::" << Swig_name_member(class_name,realname)
        << "(@args);\n";
   
   // Now check to see what kind of return result was found.
@@ -1988,7 +1988,7 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
       
       // Constructor doesn't match classname so we'll just use the normal name 
 
-      *pcode << "sub " << name_construct(realname) << " () {\n";
+      *pcode << "sub " << Swig_name_construct(realname) << " () {\n";
 	
     }
     
@@ -2015,7 +2015,7 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
       i++;
     }
     
-    *pcode << tab4 << "$self = " << package << "::" << name_construct(realname) << "(@args);\n"
+    *pcode << tab4 << "$self = " << package << "::" << Swig_name_construct(realname) << "(@args);\n"
 	   << tab4 << "return undef if (!defined($self));\n"
 	   << tab4 << "bless $self, \"" << fullclassname << "\";\n"
 	   << tab4 << "$OWNER{$self} = 1;\n"
@@ -2055,7 +2055,7 @@ void PERL5::cpp_destructor(char *name, char *newname) {
 	   << tab4 << "my $self = tied(%{$_[0]});\n"
            << tab4 << "delete $ITERATORS{$self};\n"
 	   << tab4 << "if (exists $OWNER{$self}) {\n"
-	   << tab8 <<  package << "::" << name_destroy(realname) << "($self);\n"
+	   << tab8 <<  package << "::" << Swig_name_destroy(realname) << "($self);\n"
 	   << tab8 << "delete $OWNER{$self};\n"
 	   << tab4 << "}\n}\n\n";
     
@@ -2077,7 +2077,7 @@ void PERL5::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
   else realname = iname;
 
   if (blessed) {
-    *pcode << "*" << realname << " = *" << realpackage << "::" << name_member(realname,class_name) << ";\n";
+    *pcode << "*" << realname << " = *" << realpackage << "::" << Swig_name_member(class_name,realname) << ";\n";
   }
 }
   
@@ -2150,7 +2150,7 @@ void PERL5::cpp_declare_const(char *name, char *iname, DataType *type, char *val
     Setattr(symbols, cname.get(),cname.get());
 
     // Create a symbol table entry for it
-    *pcode << "*" << realname << " = *" << package << "::" << name_member(realname,class_name) << ";\n";
+    *pcode << "*" << realname << " = *" << package << "::" << Swig_name_member(class_name,realname) << ";\n";
 
   }
 }

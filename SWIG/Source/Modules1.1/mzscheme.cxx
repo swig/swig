@@ -314,7 +314,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int argout_set = 0;
 
   // Make a wrapper name for this
-  char * wname = name_wrapper (iname, prefix);
+  char * wname = Swig_name_wrapper (iname);
 
   // Build the name for Scheme.
   proc_name = "";

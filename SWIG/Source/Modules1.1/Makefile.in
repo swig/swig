@@ -19,6 +19,7 @@ INCLUDE  = -I$(srcdir)/../Include		\
 	   -I$(srcdir)/../SWIG1.1		\
 	   -I$(srcdir)/../SWIG1.3		\
            -I$(srcdir)/../DOH/Include		\
+           -I$(srcdir)/../Swig                  \
            -I../Include
 
 # Rules for creation of a .o file from .cxx

@@ -13,6 +13,9 @@
  * ----------------------------------------------------------------------------- */
 
 #include "internal.h"
+extern "C" {
+#include "swig.h"
+}
 
 static char cvstag[] = "$Header$";
 
@@ -1493,7 +1496,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
     // Generate the name of the C wrapper function (is always the same, regardless
     // of renaming).
 
-    cname << name_member(mname,bc);
+    cname << Swig_name_member(bc,mname);
 
     // Generate the scripting name of this function
     if (classrename) 
@@ -1502,9 +1505,9 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       prefix = classname;
 
     if (mrename)
-      iname << name_member(mrename,prefix);
+      iname << Swig_name_member(prefix,mrename);
     else
-      iname << name_member(mname,prefix);
+      iname << Swig_name_member(prefix,mname);
 
     // Now check to see if we have already wrapped a function like this.
     // If so, we'll just use the existing wrapper.
@@ -1708,7 +1711,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
     if ((!mode) && (!ObjCClass)) {
       cname << bc << "::" << mname;
     } else {
-      cname << name_member(mname,bc);
+      cname << Swig_name_member(bc,mname);
     }
 
     // Generate the scripting name of this function
@@ -1718,9 +1721,9 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
       prefix = classname;
 
     if (mrename) 
-      iname << name_member(mrename,prefix);
+      iname << Swig_name_member(prefix,mrename);
     else
-      iname << name_member(mname,prefix);
+      iname << Swig_name_member(prefix,mname);
 
     // Perform a hash table lookup to see if we've wrapped anything like this before
 
@@ -1870,11 +1873,11 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
     else
       prefix = classname;
     
-    cname << name_destroy(classname);
+    cname << Swig_name_destroy(classname);
     if (mrename)
-      iname << name_destroy(mrename);
+      iname << Swig_name_destroy(mrename);
     else
-      iname << name_destroy(prefix);
+      iname << Swig_name_destroy(prefix);
     
     if (!mode) {
       // Spit out a helper function for this member function
@@ -1959,11 +1962,11 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
     else
       prefix = classname;
     
-    cname << name_construct(classname);
+    cname << Swig_name_construct(classname);
     if (mrename)
-      iname << name_construct(mrename);
+      iname << Swig_name_construct(mrename);
     else
-      iname << name_construct(prefix);
+      iname << Swig_name_construct(prefix);
 
     // Create a return type
 
@@ -2131,7 +2134,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
     // Generate the name of the C wrapper function (is always the same, regardless
     // of renaming).
 
-    cname << name_get(name_member(mname,bc));
+    cname << Swig_name_get(Swig_name_member(bc,mname));
 
     // Generate the scripting name of this function
     if (classrename) 
@@ -2140,9 +2143,9 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
       prefix = classname;
 
     if (mrename)
-      iname << name_get(name_member(mrename,prefix));
+      iname << Swig_name_get(Swig_name_member(prefix,mrename));
     else
-      iname << name_get(name_member(mname,prefix));
+      iname << Swig_name_get(Swig_name_member(prefix,mname));
 
     // Now check to see if we have already wrapped a variable like this.
 
@@ -2308,7 +2311,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
     // Generate the name of the C wrapper function (is always the same, regardless
     // of renaming).
 
-    cname << name_set(name_member(mname,bc));
+    cname << Swig_name_set(Swig_name_member(bc,mname));
 
     // Generate the scripting name of this function
     if (classrename) 
@@ -2317,9 +2320,9 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       prefix = classname;
 
     if (mrename)
-      iname << name_set(name_member(mrename,prefix));
+      iname << Swig_name_set(Swig_name_member(prefix,mrename));
     else
-      iname << name_set(name_member(mname,prefix));
+      iname << Swig_name_set(Swig_name_member(prefix,mname));
 
     // Now check to see if we have already wrapped a variable like this.
 
