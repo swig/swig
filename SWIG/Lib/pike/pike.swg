@@ -205,6 +205,66 @@ extern "C" {
 %typemap(out)      size_t = long;
 
 /* ------------------------------------------------------------
+ * Typechecking rules
+ * ------------------------------------------------------------ */
+
+%typecheck(SWIG_TYPECHECK_INTEGER)
+	 int, short, long,
+ 	 unsigned int, unsigned short, unsigned long,
+	 signed char, unsigned char,
+	 long long, unsigned long long,
+	 const int &, const short &, const long &,
+ 	 const unsigned int &, const unsigned short &, const unsigned long &,
+	 const long long &, const unsigned long long &,
+	 enum SWIGTYPE,
+         bool, const bool & 
+{
+  $1 = ($input.type == T_INT) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_DOUBLE)
+	float, double,
+	const float &, const double &
+{
+  $1 = (($input.type == T_FLOAT) || ($input.type == T_INT)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_CHAR) char {
+  $1 = ($input.type == T_INT) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_STRING) char * {
+  $1 = ($input.type == T_STRING) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+  void *ptr;
+  if (SWIG_ConvertPtr($input.u.object, (void **) &ptr, $1_descriptor, 0) == -1) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
+  void *ptr;
+  if (SWIG_ConvertPtr($input.u.object, (void **) &ptr, $&1_descriptor, 0) == -1) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
+  void *ptr;
+  if (SWIG_ConvertPtr($input.u.object, (void **) &ptr, 0, 0) == -1) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+/* ------------------------------------------------------------
  * Overloaded operator support
  * ------------------------------------------------------------ */
 
