@@ -20,6 +20,16 @@ extern "C" {
 #define SWIG_PY_STRING  3
 #define SWIG_PY_POINTER 4
 
+/* Constant information structure */
+typedef struct _swig_const_info {
+    int type;
+    char *name;
+    long lvalue;
+    double dvalue;
+    void   *pvalue;
+    _swig_type_info **ptype;
+} _swig_const_info;
+
 #ifdef SWIG_NOINCLUDE
 
 SWIGEXPORT(PyObject *)        SWIG_newvarlink();
@@ -213,7 +223,7 @@ cobject:
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) goto type_error;
-    *ptr = SWIG_TypeCast(tc,p);
+    *ptr = SWIG_TypeCast(tc,(void*)p);
   }
   return 0;
 
