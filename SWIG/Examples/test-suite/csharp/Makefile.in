@@ -15,7 +15,7 @@ top_builddir = @top_builddir@../
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-SWIGOPT    = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE) -package $*
+SWIGOPT    = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE) -namespace $*Namespace
 
 # Rules for the different types of tests
 %.cpptest: 
