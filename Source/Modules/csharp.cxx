@@ -3,8 +3,8 @@
  *
  *     CSharp wrapper module.
  *
- * Author(s) : Neil Cawse
- *             William Fulton
+ * Author(s) : William Fulton
+ *             Neil Cawse
  *
  * Copyright (C) 1999-2002.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.
@@ -29,7 +29,7 @@ class CSHARP : public Language {
   File   *f_wrappers;
   File   *f_init;
 
-  bool   proxy_flag; // Flag for generating shadow classes
+  bool   proxy_flag; // Flag for generating proxy classes
   bool   have_default_constructor_flag;
   bool   native_function_flag;     // Flag for when wrapping a native function
   bool   enum_constant_flag; // Flag for when wrapping an enum or constant
@@ -38,29 +38,28 @@ class CSHARP : public Language {
   bool   wrapping_member_flag; // Flag for when wrapping a member variable/enum/const
   bool   global_variable_flag; // Flag for when wrapping a global variable
 
-  String *jniclass_name;  // JNI class name
+  String *imclass_name;  // intermediary class name
   String *module_class_name;  // module class name
-  String *jniclass_class_code; // JNI class csharp code - that is the native methods
-  String *shadow_classdef;
-  String *shadow_code;
+  String *imclass_class_code; // intermediary class code
+  String *proxy_class_def;
+  String *proxy_class_code;
   String *module_class_code;
-  String *shadow_classname;
+  String *proxy_class_name;
   String *variable_name; //Name of a variable being wrapped
-  String *shadow_constants_code;
-  String *module_constants_code;
+  String *proxy_class_constants_code;
+  String *module_class_constants_code;
   String *package; // Package name
-  String *jnipackage; // JNI package name
-  String *jniclass_imports; //jniclass imports from %pragma
+  String *imclass_imports; //intermediary class imports from %pragma
   String *module_imports; //module imports from %pragma
-  String *jniclass_baseclass; //inheritance for jniclass class from %pragma
+  String *imclass_baseclass; //inheritance for intermediary class class from %pragma
   String *module_baseclass; //inheritance for module class from %pragma
-  String *jniclass_interfaces; //interfaces for jniclass class from %pragma
+  String *imclass_interfaces; //interfaces for intermediary class class from %pragma
   String *module_interfaces; //interfaces for module class from %pragma
-  String *jniclass_class_modifiers; //class modifiers for jniclass class overriden by %pragma
+  String *imclass_class_modifiers; //class modifiers for intermediary class overriden by %pragma
   String *module_class_modifiers; //class modifiers for module class overriden by %pragma
-  String *wrapper_conversion_code; //C++ casts for inheritance hierarchies JNI code
-  String *jniclass_cppcasts_code; //C++ casts up inheritance hierarchies JNI class csharp code
-  String *destructor_call; //Destructor (delete) call if any
+  String *upcasts_code; //C++ casts for inheritance hierarchies C++ code
+  String *imclass_cppcasts_code; //C++ casts up inheritance hierarchies intermediary class code
+  String *destructor_call; //C++ destructor call if any
   String *outfile;
 
   enum type_additions {none, pointer, reference};
@@ -89,28 +88,27 @@ class CSHARP : public Language {
     wrapping_member_flag(false),
     global_variable_flag(false),
 
-    jniclass_name(NULL),
+    imclass_name(NULL),
     module_class_name(NULL),
-    jniclass_class_code(NULL),
-    shadow_classdef(NULL),
-    shadow_code(NULL),
+    imclass_class_code(NULL),
+    proxy_class_def(NULL),
+    proxy_class_code(NULL),
     module_class_code(NULL),
-    shadow_classname(NULL),
+    proxy_class_name(NULL),
     variable_name(NULL),
-    shadow_constants_code(NULL),
-    module_constants_code(NULL),
+    proxy_class_constants_code(NULL),
+    module_class_constants_code(NULL),
     package(NULL),
-    jnipackage(NULL),
-    jniclass_imports(NULL),
+    imclass_imports(NULL),
     module_imports(NULL),
-    jniclass_baseclass(NULL),
+    imclass_baseclass(NULL),
     module_baseclass(NULL),
-    jniclass_interfaces(NULL),
+    imclass_interfaces(NULL),
     module_interfaces(NULL),
-    jniclass_class_modifiers(NULL),
+    imclass_class_modifiers(NULL),
     module_class_modifiers(NULL),
-    wrapper_conversion_code(NULL),
-    jniclass_cppcasts_code(NULL),
+    upcasts_code(NULL),
+    imclass_cppcasts_code(NULL),
     destructor_call(NULL),
     outfile(NULL)
 
@@ -118,13 +116,13 @@ class CSHARP : public Language {
     }
 
   /* -----------------------------------------------------------------------------
-   * is_shadow()
+   * getProxyName()
    *
-   * Test to see if a type corresponds to something wrapped with a shadow/proxy class
-   * Return NULL if not otherwise the shadow name
+   * Test to see if a type corresponds to something wrapped with a proxy class
+   * Return NULL if not otherwise the proxy class name
    * ----------------------------------------------------------------------------- */
 
-  String *is_shadow(SwigType *t) {
+  String *getProxyName(SwigType *t) {
     if (proxy_flag) {
       Node *n = classLookup(t);
       if (n) {
@@ -199,40 +197,39 @@ class CSHARP : public Language {
     Swig_register_filebyname("init",f_init);
     swig_types_hash = NewHash();
 
-    // Make the JNI class and module class names. The jniclassname can be set in the module directive.
+    // Make the intermediary class and module class names. The intermediary class name can be set in the module directive.
     Node* optionsnode = Getattr( Getattr(n,"module") ,"options");
     if (optionsnode)
-        if (Getattr(optionsnode,"jniclassname"))
-          jniclass_name = Copy(Getattr(optionsnode,"jniclassname"));
-    if (!jniclass_name) {
-      jniclass_name = NewStringf("%sPINVOKE", Getattr(n,"name"));
+        if (Getattr(optionsnode,"imclassname"))
+          imclass_name = Copy(Getattr(optionsnode,"imclassname"));
+    if (!imclass_name) {
+      imclass_name = NewStringf("%sPINVOKE", Getattr(n,"name"));
       module_class_name = Copy(Getattr(n,"name"));
     } else {
-      // Rename the module name if it is the same as JNI class name - a backwards compatibility solution
-      if (Cmp(jniclass_name, Getattr(n,"name")) == 0)
+      // Rename the module name if it is the same as intermediary class name - a backwards compatibility solution
+      if (Cmp(imclass_name, Getattr(n,"name")) == 0)
         module_class_name = NewStringf("%sModule", Getattr(n,"name"));
       else
         module_class_name = Copy(Getattr(n,"name"));
     }
 
 
-    jniclass_class_code = NewString("");
-    shadow_classdef = NewString("");
-    shadow_code = NewString("");
-    module_constants_code = NewString("");
-    jniclass_baseclass = NewString("");
-    jniclass_interfaces = NewString("");
-    jniclass_class_modifiers = NewString(""); // package access only to the JNI class by default
+    imclass_class_code = NewString("");
+    proxy_class_def = NewString("");
+    proxy_class_code = NewString("");
+    module_class_constants_code = NewString("");
+    imclass_baseclass = NewString("");
+    imclass_interfaces = NewString("");
+    imclass_class_modifiers = NewString(""); // package access only to the intermediary class by default
     module_class_code = NewString("");
     module_baseclass = NewString("");
     module_interfaces = NewString("");
     module_imports = NewString("");
     module_class_modifiers = NewString("public");
-    jniclass_imports = NewString("");
-    jniclass_cppcasts_code = NewString("");
-    wrapper_conversion_code = NewString("");
+    imclass_imports = NewString("");
+    imclass_cppcasts_code = NewString("");
+    upcasts_code = NewString("");
     if (!package) package = NewString("");
-    jnipackage = NewString("");
 
     Swig_banner(f_runtime);               // Print the SWIG banner message
 
@@ -242,14 +239,7 @@ class CSHARP : public Language {
 
     String *wrapper_name = NewString("");
 
-    if(Len(package)) {
-      Printv(jnipackage, package, NIL);
-      Replaceall(jnipackage,".","_");
-      Append(jnipackage, "_");
-    }
-    //Printf(wrapper_name, "Cil_%s%s_%%f", Char(jnipackage), jniclass_name);
-    //Printf(wrapper_name, "%%f", jniclass_name);
-    Printf(wrapper_name, "CSharp_%%f", jniclass_name);
+    Printf(wrapper_name, "CSharp_%%f", imclass_name);
     Swig_name_register((char*)"wrapper", Char(wrapper_name));
     Swig_name_register((char*)"set", (char*)"set_%v");
     Swig_name_register((char*)"get", (char*)"get_%v");
@@ -264,44 +254,44 @@ class CSHARP : public Language {
     /* Emit code */
     Language::top(n);
 
-    // Generate the CSharp JNI class
+    // Generate the intermediary class
     {
-      String *filen = NewStringf("%s%s.cs", Swig_file_dirname(outfile), jniclass_name);
-      File *f_java = NewFile(filen,"w");
-      if(!f_java) {
+      String *filen = NewStringf("%s%s.cs", Swig_file_dirname(outfile), imclass_name);
+      File *f_im = NewFile(filen,"w");
+      if(!f_im) {
         Printf(stderr,"Unable to open %s\n", filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
 
-      // Start writing out the Java JNI class
+      // Start writing out the intermediary class
       if(Len(package) > 0)
-        Printf(f_java, "//package %s;\n\n", package);
+        Printf(f_im, "//package %s;\n\n", package);
 
-      emitBanner(f_java);
-      if(jniclass_imports)
-        Printf(f_java, "%s\n", jniclass_imports);
+      emitBanner(f_im);
+      if(imclass_imports)
+        Printf(f_im, "%s\n", imclass_imports);
 
-      if (Len(jniclass_class_modifiers) > 0)
-        Printf(f_java, "%s ", jniclass_class_modifiers);
-      Printf(f_java, "class %s ", jniclass_name);
+      if (Len(imclass_class_modifiers) > 0)
+        Printf(f_im, "%s ", imclass_class_modifiers);
+      Printf(f_im, "class %s ", imclass_name);
 
-      if (jniclass_baseclass && *Char(jniclass_baseclass))
-          Printf(f_java, ": %s ", jniclass_baseclass);
-      if (Len(jniclass_interfaces) > 0)
-        Printv(f_java, "implements ", jniclass_interfaces, " ", NIL);
-      Printf(f_java, "{\n");
+      if (imclass_baseclass && *Char(imclass_baseclass))
+          Printf(f_im, ": %s ", imclass_baseclass);
+      if (Len(imclass_interfaces) > 0)
+        Printv(f_im, "implements ", imclass_interfaces, " ", NIL);
+      Printf(f_im, "{\n");
 
-      // Add the native methods
-      Printv(f_java, jniclass_class_code, NIL);
-      Printv(f_java, jniclass_cppcasts_code, NIL);
+      // Add the intermediary class methods
+      Printv(f_im, imclass_class_code, NIL);
+      Printv(f_im, imclass_cppcasts_code, NIL);
 
-      // Finish off the Java class
-      Printf(f_java, "}\n");
-      Close(f_java);
+      // Finish off the class
+      Printf(f_im, "}\n");
+      Close(f_im);
     }
 
-    // Generate the Java module class
+    // Generate the C# module class
     {
       String *filen = NewStringf("%s%s.cs", Swig_file_dirname(outfile), module_class_name);
       File *f_module = NewFile(filen,"w");
@@ -311,7 +301,7 @@ class CSHARP : public Language {
       }
       Delete(filen); filen = NULL;
 
-      // Start writing out the Java module class
+      // Start writing out the module class
       if(Len(package) > 0)
         Printf(f_module, "//package %s;\n\n", package);
 
@@ -333,46 +323,45 @@ class CSHARP : public Language {
       Printv(f_module, module_class_code, NIL);
 
       // Write out all the enums constants
-      if (Len(module_constants_code) != 0 )
-        Printv(f_module, "  // enums and constants\n", module_constants_code, NIL);
+      if (Len(module_class_constants_code) != 0 )
+        Printv(f_module, "  // enums and constants\n", module_class_constants_code, NIL);
 
-      // Finish off the Java class
+      // Finish off the class
       Printf(f_module, "}\n");
       Close(f_module);
     }
 
-    if(wrapper_conversion_code)
-      Printv(f_wrappers,wrapper_conversion_code,NIL);
+    if(upcasts_code)
+      Printv(f_wrappers,upcasts_code,NIL);
 
     Printf(f_wrappers,"#ifdef __cplusplus\n");
     Printf(f_wrappers,"}\n");
     Printf(f_wrappers,"#endif\n");
 
-    // Output a Java class for each SWIG type
+    // Output a C# type wrapper class for each SWIG type
     for (String *swig_type = Firstkey(swig_types_hash); swig_type; swig_type = Nextkey(swig_types_hash)) {
-      emitJavaClass(swig_type, Getattr(swig_types_hash, swig_type));
+      emitTypeWrapperClass(swig_type, Getattr(swig_types_hash, swig_type));
     }
 
     Delete(swig_types_hash); swig_types_hash = NULL;
-    Delete(jniclass_name); jniclass_name = NULL;
-    Delete(jniclass_class_code); jniclass_class_code = NULL;
-    Delete(shadow_classdef); shadow_classdef = NULL;
-    Delete(shadow_code); shadow_code = NULL;
-    Delete(module_constants_code); module_constants_code = NULL;
-    Delete(jniclass_baseclass); jniclass_baseclass = NULL;
-    Delete(jniclass_interfaces); jniclass_interfaces = NULL;
-    Delete(jniclass_class_modifiers); jniclass_class_modifiers = NULL;
+    Delete(imclass_name); imclass_name = NULL;
+    Delete(imclass_class_code); imclass_class_code = NULL;
+    Delete(proxy_class_def); proxy_class_def = NULL;
+    Delete(proxy_class_code); proxy_class_code = NULL;
+    Delete(module_class_constants_code); module_class_constants_code = NULL;
+    Delete(imclass_baseclass); imclass_baseclass = NULL;
+    Delete(imclass_interfaces); imclass_interfaces = NULL;
+    Delete(imclass_class_modifiers); imclass_class_modifiers = NULL;
     Delete(module_class_name); module_class_name = NULL;
     Delete(module_class_code); module_class_code = NULL;
     Delete(module_baseclass); module_baseclass = NULL;
     Delete(module_interfaces); module_interfaces = NULL;
     Delete(module_imports); module_imports = NULL;
     Delete(module_class_modifiers); module_class_modifiers = NULL;
-    Delete(jniclass_imports); jniclass_imports = NULL;
-    Delete(jniclass_cppcasts_code); jniclass_cppcasts_code = NULL;
-    Delete(wrapper_conversion_code); wrapper_conversion_code = NULL;
+    Delete(imclass_imports); imclass_imports = NULL;
+    Delete(imclass_cppcasts_code); imclass_cppcasts_code = NULL;
+    Delete(upcasts_code); upcasts_code = NULL;
     Delete(package); package = NULL;
-    Delete(jnipackage); jnipackage = NULL;
 
     /* Close all of the files */
     Dump(f_header,f_runtime);
@@ -434,12 +423,11 @@ class CSHARP : public Language {
     String    *tm;
     Parm      *p;
     int       i;
-    String    *jnirettype = NewString("");
-    String    *javarettype = NewString("");
+    String    *c_return_type = NewString("");
+    String    *im_return_type = NewString("");
     String    *cleanup = NewString("");
     String    *outarg = NewString("");
     String    *body = NewString("");
-    String    *javaParameterSignature = NewString("");
     int       num_arguments = 0;
     int       num_required = 0;
     bool      is_void_return;
@@ -450,14 +438,12 @@ class CSHARP : public Language {
     }
 
     /* 
-       Generate the java class wrapper function ie the java shadow class. Only done for public
-       member variables. That is this generates the getters/setters for member variables.
-       Not for enums and constants.
-       */
-
+     * Generate the proxy class properties for public member variables.
+     * Not for enums and constants.
+     */
     if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
-      // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(shadow_classname, variable_name))) != 0;
+      // Capitalize the first letter in the variable in the getter/setter function name
+      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) != 0;
 
       String *getter_setter_name = NewString("");
       if(!getter_flag)
@@ -467,17 +453,17 @@ class CSHARP : public Language {
       Putc(toupper((int) *Char(variable_name)), getter_setter_name);
       Printf(getter_setter_name, "%s", Char(variable_name)+1);
 
-      Setattr(n,"java:shadowfuncname", getter_setter_name);
-      Setattr(n,"java:funcname", symname);
+      Setattr(n,"csharp:proxyfuncname", getter_setter_name);
+      Setattr(n,"csharp:imfuncname", symname);
 
-      javaShadowFunctionHandler(n);
+      proxyClassFunctionHandler(n);
       Delete(getter_setter_name);
     }
 
     /*
-       The rest of this function deals with generating the java wrapper function (that wraps
-       a c/c++ function) and generating the JNI c code. Each java wrapper function has a 
-       matching JNI c function call.
+       The rest of this function deals with generating the intermediary class wrapper function (that wraps
+       a c/c++ function) and generating the PInvoke c code. Each C# wrapper function has a 
+       matching PInvoke c function call.
        */
 
     // A new wrapper function object
@@ -490,31 +476,31 @@ class CSHARP : public Language {
     Swig_typemap_attach_parms("ctype", l, f);
     Swig_typemap_attach_parms("cstype", l, f);
 
-    /* Get Java return types */
+    /* Get return types */
     if ((tm = Swig_typemap_lookup_new("ctype",n,"",0))) {
-      Printf(jnirettype,"%s", tm);
+      Printf(c_return_type,"%s", tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, 
           "No ctype typemap defined for %s\n", SwigType_str(t,0));
     }
 
     if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
-      Printf(javarettype,"%s", tm);
+      Printf(im_return_type,"%s", tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, 
           "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    is_void_return = (Cmp(jnirettype, "void") == 0);
+    is_void_return = (Cmp(c_return_type, "void") == 0);
     if (!is_void_return)
-      Wrapper_add_localv(f,"jresult", jnirettype, "jresult = 0",NIL);
+      Wrapper_add_localv(f,"jresult", c_return_type, "jresult = 0",NIL);
 
-    Printv(jniclass_class_code, 
+    Printv(imclass_class_code, 
            "\n  [DllImport(\"",module_class_name,"\", EntryPoint=\"CSharp_",overloaded_name,"\")]\n", NIL);
 
-    Printf(jniclass_class_code, "  public static extern %s %s(", javarettype, overloaded_name);
+    Printf(imclass_class_code, "  public static extern %s %s(", im_return_type, overloaded_name);
 
-    Printv(f->def, " DllExport ", jnirettype, " ", wname, "(", NIL); //JNIEXPORT
+    Printv(f->def, " DllExport ", c_return_type, " ", wname, "(", NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_args(t,l,f);
@@ -526,46 +512,45 @@ class CSHARP : public Language {
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
     num_required  = emit_num_required(l);
-
     int gencomma = 0;
 
     // Now walk the function parameter list and generate code to get arguments
     for (i = 0, p=l; i < num_arguments; i++) {
-      
+
       while (checkAttribute(p,"tmap:in:numinputs","0")) {
         p = Getattr(p,"tmap:in:next");
       }
 
       SwigType *pt = Getattr(p,"type");
       String   *ln = Getattr(p,"lname");
-      String   *javaparamtype = NewString("");
-      String   *jni_param_type = NewString("");
+      String   *im_param_type = NewString("");
+      String   *c_param_type = NewString("");
       String   *arg = NewString("");
 
       Printf(arg,"j%s", ln);
 
       /* Get the ctype types of the parameter */
       if ((tm = Getattr(p,"tmap:ctype"))) {
-        Printv(jni_param_type, tm, NIL);
+        Printv(c_param_type, tm, NIL);
       } else {
-        Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, 
+        Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, 
             "No ctype typemap defined for %s\n", SwigType_str(pt,0));
       }
 
-      /* Get the java types of the parameter */
+      /* Get the intermediary class parameter types of the parameter */
       if ((tm = Getattr(p,"tmap:cstype"))) {
-        Printv(javaparamtype, tm, NIL);
+        Printv(im_param_type, tm, NIL);
       } else {
-        Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
+        Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, 
             "No cstype typemap defined for %s\n", SwigType_str(pt,0));
       }
 
-      /* Add to java function header */
-      if(gencomma) Printf(jniclass_class_code, ", ");
-      Printf(jniclass_class_code, "%s %s", javaparamtype, arg);
+      /* Add parameter to intermediary class method */
+      if(gencomma) Printf(imclass_class_code, ", ");
+      Printf(imclass_class_code, "%s %s", im_param_type, arg);
 
-      // Add to Jni function header
-      Printv(f->def, gencomma?", ":"", jni_param_type, " ", arg, NIL);
+      // Add parameter to C function
+      Printv(f->def, gencomma?", ":"", c_param_type, " ", arg, NIL);
 
       gencomma = 1;
       
@@ -584,8 +569,8 @@ class CSHARP : public Language {
             "Unable to use type %s as a function argument.\n",SwigType_str(pt,0));
         p = nextSibling(p);
       }
-      Delete(javaparamtype);
-      Delete(jni_param_type);
+      Delete(im_param_type);
+      Delete(c_param_type);
       Delete(arg);
     }
 
@@ -633,7 +618,7 @@ class CSHARP : public Language {
       }
     }
 
-    // Get any Java exception classes in the throw typemap
+    // Get any C# exception classes in the throws typemap
     ParmList *throw_parm_list = NULL;
     if ((throw_parm_list = Getattr(n,"throws"))) {
       Swig_typemap_attach_parms("throws", throw_parm_list, f);
@@ -698,10 +683,10 @@ class CSHARP : public Language {
       }
     }
 
-    /* Finish JNI C function and JNI class native function definitions */
-    Printf(jniclass_class_code, ")");
-    generateThrowsClause(n, jniclass_class_code);
-    Printf(jniclass_class_code, ";\n");
+    /* Finish C function and intermediary class function definitions */
+    Printf(imclass_class_code, ")");
+    generateThrowsClause(n, imclass_class_code);
+    Printf(imclass_class_code, ";\n");
     Printf(f->def,") {");
 
     if(!is_void_return)
@@ -722,7 +707,7 @@ class CSHARP : public Language {
 
     Setattr(n,"wrap:name", wname);
 
-    /* Emit warnings for the few cases that can't be overloaded in Java */
+    /* Emit warnings for the few cases that can't be overloaded in C# */
     if (Getattr(n,"sym:overloaded")) {
       if (!Getattr(n,"sym:nextSibling"))
         Swig_overload_rank(n);
@@ -732,12 +717,11 @@ class CSHARP : public Language {
       moduleClassFunctionHandler(n);
     }
 
-    Delete(jnirettype);
-    Delete(javarettype);
+    Delete(c_return_type);
+    Delete(im_return_type);
     Delete(cleanup);
     Delete(outarg);
     Delete(body);
-    Delete(javaParameterSignature);
     Delete(overloaded_name);
     DelWrapper(f);
     return SWIG_OK;
@@ -745,8 +729,6 @@ class CSHARP : public Language {
 
   /* -----------------------------------------------------------------------
    * variableWrapper()
-   *
-   * Create a JAVA link to a C variable.
    * ----------------------------------------------------------------------- */
 
   virtual int variableWrapper(Node *n) {
@@ -764,9 +746,9 @@ class CSHARP : public Language {
 
     // Get the variable type
     if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
-      substituteJavaclassname(t, tm);
+      substituteClassname(t, tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
           "No cswtype typemap defined for %s\n", SwigType_str(t,0));
     }
 
@@ -792,7 +774,7 @@ class CSHARP : public Language {
     SwigType *t     = Getattr(n,"type");
     ParmList  *l    = Getattr(n,"parms");
     String *tm;
-    String *shadowrettype = NewString("");
+    String *return_type = NewString("");
     String *constants_code = NewString("");
     SwigType *original_type = t;
 
@@ -810,14 +792,14 @@ class CSHARP : public Language {
     /* Attach the non-standard typemaps to the parameter list. */
     Swig_typemap_attach_parms("cswtype", l, NULL);
 
-    /* Get Java return types */
-    bool is_return_type_java_class = false;
+    /* Get C# return types */
+    bool classname_substituted_flag = false;
     
     if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
-      is_return_type_java_class = substituteJavaclassname(t, tm);
-      Printf(shadowrettype, "%s", tm);
+      classname_substituted_flag = substituteClassname(t, tm);
+      Printf(return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
           "No cswtype typemap defined for %s\n", SwigType_str(t,0));
     }
 
@@ -833,38 +815,38 @@ class CSHARP : public Language {
       Setattr(n, "value", new_value);
     }
 
-    // The %csconst directive determines how the constant value is obtained
-    String *csconst = Getattr(n,"feature:java:const");
-    bool csconst_flag = csconst && Cmp(csconst, "0") != 0;
+    // The %csconst feature determines how the constant value is obtained
+    String *const_feature = Getattr(n,"feature:cs:const");
+    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
 
-    // enums are wrapped using a public final static int in java.
-    // Other constants are wrapped using a public final static [cswtype] in Java.
-    Printf(constants_code, "  public %s %s %s = ", (csconst_flag ? "const" : "static readonly"), shadowrettype, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
+    // enums are wrapped using a public final static int in C#.
+    // Other constants are wrapped using a public final static [cswtype] in C#.
+    Printf(constants_code, "  public %s %s %s = ", (const_feature_flag ? "const" : "static readonly"), return_type, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
 
-    if ((is_enum_item && Getattr(n,"enumvalue") == 0) || !csconst_flag) {
-      // Enums without value and default constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
+    if ((is_enum_item && Getattr(n,"enumvalue") == 0) || !const_feature_flag) {
+      // Enums without value and default constant handling will work with any type of C constant and initialises the C# variable from C through a PInvoke call.
 
-      if(is_return_type_java_class) // This handles function pointers using the %constant directive
-        Printf(constants_code, "new %s(%s.%s(), false);\n", shadowrettype, jniclass_name, Swig_name_get(symname));
+      if(classname_substituted_flag) // This handles function pointers using the %constant directive
+        Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, imclass_name, Swig_name_get(symname));
       else
-        Printf(constants_code, "%s.%s();\n", jniclass_name, Swig_name_get(symname));
+        Printf(constants_code, "%s.%s();\n", imclass_name, Swig_name_get(symname));
 
-      // Each constant and enum value is wrapped with a separate JNI function call
+      // Each constant and enum value is wrapped with a separate PInvoke function call
       enum_constant_flag = true;
       variableWrapper(n);
       enum_constant_flag = false;
     } else if (is_enum_item) {
-      // Alternative enum item handling will use the explicit value of the enum item and hope that it compiles as Java code
+      // Alternative enum item handling will use the explicit value of the enum item and hope that it compiles as C# code
       Printf(constants_code, "%s;\n", Getattr(n,"enumvalue"));
     } else {
-      // Alternative constant handling will use the C syntax to make a true Java constant and hope that it compiles as Java code
+      // Alternative constant handling will use the C syntax to make a true C# constant and hope that it compiles as C# code
       Printf(constants_code, "%s;\n", Getattr(n,"value"));
     }
 
     if(proxy_flag && wrapping_member_flag)
-      Printv(shadow_constants_code, constants_code, NIL);
+      Printv(proxy_class_constants_code, constants_code, NIL);
     else
-      Printv(module_constants_code, constants_code, NIL);
+      Printv(module_class_constants_code, constants_code, NIL);
 
     Swig_restore(n);
     if (is_enum_item) {
@@ -872,7 +854,7 @@ class CSHARP : public Language {
       Setattr(n,"type", original_type);
     }
     Delete(new_value);
-    Delete(shadowrettype);
+    Delete(return_type);
     Delete(constants_code);
     return SWIG_OK;
   }
@@ -881,15 +863,15 @@ class CSHARP : public Language {
    * pragmaDirective()
    *
    * Valid Pragmas:
-   * imclassbase            - base (extends) for the JNI class
-   * imclassclassmodifiers  - class modifiers for the JNI class
-   * imclasscode            - text (java code) is copied verbatim to the JNI class
-   * imclassimports         - import statements for the JNI class
-   * imclassinterfaces      - interface (implements) for the JNI class
+   * imclassbase            - base (extends) for the intermediary class
+   * imclassclassmodifiers  - class modifiers for the intermediary class
+   * imclasscode            - text (C# code) is copied verbatim to the intermediary class
+   * imclassimports         - import statements for the intermediary class
+   * imclassinterfaces      - interface (implements) for the intermediary class
    *
    * modulebase              - base (extends) for the module class
    * moduleclassmodifiers    - class modifiers for the module class
-   * modulecode              - text (java code) is copied verbatim to the module class
+   * modulecode              - text (C# code) is copied verbatim to the module class
    * moduleimports           - import statements for the module class
    * moduleinterfaces        - interface (implements) for the module class
    *
@@ -907,23 +889,23 @@ class CSHARP : public Language {
         Replaceall(strvalue,"\\\"", "\"");
 
         if(Strcmp(code, "imclassbase") == 0) {
-          Delete(jniclass_baseclass);
-          jniclass_baseclass = Copy(strvalue);
+          Delete(imclass_baseclass);
+          imclass_baseclass = Copy(strvalue);
         } 
         else if(Strcmp(code, "imclassclassmodifiers") == 0) {
-          Delete(jniclass_class_modifiers);
-          jniclass_class_modifiers = Copy(strvalue);
+          Delete(imclass_class_modifiers);
+          imclass_class_modifiers = Copy(strvalue);
         } 
         else if(Strcmp(code, "imclasscode") == 0) {
-          Printf(jniclass_class_code, "%s\n", strvalue);
+          Printf(imclass_class_code, "%s\n", strvalue);
         } 
         else if(Strcmp(code, "imclassimports") == 0) {
-          Delete(jniclass_imports);
-          jniclass_imports = Copy(strvalue);
+          Delete(imclass_imports);
+          imclass_imports = Copy(strvalue);
         } 
         else if(Strcmp(code, "imclassinterfaces") == 0) {
-          Delete(jniclass_interfaces);
-          jniclass_interfaces = Copy(strvalue);
+          Delete(imclass_interfaces);
+          imclass_interfaces = Copy(strvalue);
         } 
         else if(Strcmp(code, "modulebase") == 0) {
           Delete(module_baseclass);
@@ -953,10 +935,10 @@ class CSHARP : public Language {
   }
 
   /* -----------------------------------------------------------------------------
-   * emitShadowClassDefAndCPPCasts()
+   * emitProxyClassDefAndCPPCasts()
    * ----------------------------------------------------------------------------- */
 
-  void emitShadowClassDefAndCPPCasts(Node *n) {
+  void emitProxyClassDefAndCPPCasts(Node *n) {
     String *c_classname = SwigType_namestr(Getattr(n,"name"));
     String *c_baseclass = NULL;
     String *baseclass = NULL;
@@ -968,46 +950,46 @@ class CSHARP : public Language {
     if (baselist) {
       Node *base = Firstitem(baselist);
       c_baseclassname = Getattr(base,"name");
-      baseclass = Copy(is_shadow(c_baseclassname));
+      baseclass = Copy(getProxyName(c_baseclassname));
       if (baseclass){
         c_baseclass = SwigType_namestr(Getattr(base,"name"));
       }
       base = Nextitem(baselist);
       if (base) {
-        Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
+        Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number, 
             "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", classDeclarationName, Getattr(base,"name"));
       }
     }
 
-    bool derived = baseclass && is_shadow(c_baseclassname);
+    bool derived = baseclass && getProxyName(c_baseclassname);
     if (!baseclass)
       baseclass = NewString("");
 
-    // Inheritance from pure Java classes
-    const String *pure_java_baseclass = javaTypemapLookup("csbase", classDeclarationName, WARN_NONE);
-    if (Len(pure_java_baseclass) > 0 && Len(baseclass) > 0) {
-      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-          "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", classDeclarationName, pure_java_baseclass);
+    // Inheritance from pure C# classes
+    const String *pure_baseclass = typemapLookup("csbase", classDeclarationName, WARN_NONE);
+    if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
+      Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number, 
+          "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", classDeclarationName, pure_baseclass);
     }
 
-    // Pure Java interfaces
-    const String *pure_java_interfaces = javaTypemapLookup(derived ? "csinterfaces_derived" : "csinterfaces", classDeclarationName, WARN_NONE);
+    // Pure C# interfaces
+    const String *pure_interfaces = typemapLookup(derived ? "csinterfaces_derived" : "csinterfaces", classDeclarationName, WARN_NONE);
 
-    // Start writing the shadow class
-    Printv(shadow_classdef,
-        javaTypemapLookup("csimports", classDeclarationName, WARN_NONE), // Import statements
+    // Start writing the proxy class
+    Printv(proxy_class_def,
+        typemapLookup("csimports", classDeclarationName, WARN_NONE), // Import statements
         "\n",
-        javaTypemapLookup("csclassmodifiers", classDeclarationName, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
+        typemapLookup("csclassmodifiers", classDeclarationName, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
         " class $csclassname",       // Class name and bases
-        (derived || *Char(pure_java_baseclass) || *Char(pure_java_interfaces)) ?
+        (derived || *Char(pure_baseclass) || *Char(pure_interfaces)) ?
         " : " : 
         "",
         baseclass,
-        pure_java_baseclass,
-        ((derived || *Char(pure_java_baseclass)) && *Char(pure_java_interfaces)) ? // Pure Java interfaces
+        pure_baseclass,
+        ((derived || *Char(pure_baseclass)) && *Char(pure_interfaces)) ? // Interfaces
         ", " :
         "",
-        pure_java_interfaces,
+        pure_interfaces,
         " {\n",
         "  private IntPtr swigCPtr;\n",  // Member variables for memory handling
         derived ? 
@@ -1015,17 +997,17 @@ class CSHARP : public Language {
         "  protected bool swigCMemOwn;\n",
         "\n",
         "  ",
-        javaTypemapLookup("csptrconstructormodifiers", classDeclarationName, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
+        typemapLookup("csptrconstructormodifiers", classDeclarationName, WARN_CSHARP_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
         " $csclassname(IntPtr cPtr, bool cMemoryOwn) ", // Constructor used for wrapping pointers
         derived ? 
-        ": base($jniclassname.$csclassnameTo$baseclass(cPtr), cMemoryOwn) {\n" : 
+        ": base($imclassname.$csclassnameTo$baseclass(cPtr), cMemoryOwn) {\n" : 
         "{\n    swigCMemOwn = cMemoryOwn;\n",
         "    swigCPtr = cPtr;\n",
         "  }\n",
         NIL);
 
-    if(!have_default_constructor_flag) { // All Java classes need a constructor
-      Printv(shadow_classdef, 
+    if(!have_default_constructor_flag) { // All proxy classes need a constructor
+      Printv(proxy_class_def, 
           "\n",
           "  protected $csclassname() : this(IntPtr.Zero, false) {\n",
           "  }\n",
@@ -1036,16 +1018,16 @@ class CSHARP : public Language {
     String *destruct = NewString("");
     const String *tm = NULL;
     if (derived)
-      tm = javaTypemapLookup("csdestruct_derived", classDeclarationName, WARN_NONE);
+      tm = typemapLookup("csdestruct_derived", classDeclarationName, WARN_NONE);
     else
-      tm = javaTypemapLookup("csdestruct", classDeclarationName, WARN_NONE);
+      tm = typemapLookup("csdestruct", classDeclarationName, WARN_NONE);
 
     // Emit the Finalize and Dispose methods
     if (tm) {
       // Finalize method
       if (*Char(destructor_call)) {
-        Printv(shadow_classdef, 
-            javaTypemapLookup("csfinalize", classDeclarationName, WARN_NONE),
+        Printv(proxy_class_def, 
+            typemapLookup("csfinalize", classDeclarationName, WARN_NONE),
             NIL);
       }
       // Dispose method
@@ -1055,39 +1037,39 @@ class CSHARP : public Language {
       else
         Replaceall(destruct, "$imcall", "throw new MethodAccessException(\"C++ destructor does not have public access\")");
       if (*Char(destruct))
-        Printv(shadow_classdef, "\n  public ", derived ? "override" : "virtual", " void Dispose() ", destruct, "\n", NIL);
+        Printv(proxy_class_def, "\n  public ", derived ? "override" : "virtual", " void Dispose() ", destruct, "\n", NIL);
     }
     Delete(destruct);
 
     // Emit various other methods
-    Printv(shadow_classdef, 
-        javaTypemapLookup("csgetcptr", classDeclarationName, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
-        javaTypemapLookup("cscode", classDeclarationName, WARN_NONE), // extra Java code
+    Printv(proxy_class_def, 
+        typemapLookup("csgetcptr", classDeclarationName, WARN_CSHARP_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
+        typemapLookup("cscode", classDeclarationName, WARN_NONE), // extra C# code
         "\n",
         NIL);
 
     // Substitute various strings into the above template
-    Replaceall(shadow_code,     "$csclassname", shadow_classname);
-    Replaceall(shadow_classdef, "$csclassname", shadow_classname);
+    Replaceall(proxy_class_code, "$csclassname", proxy_class_name);
+    Replaceall(proxy_class_def,  "$csclassname", proxy_class_name);
 
-    Replaceall(shadow_classdef, "$baseclass", baseclass);
-    Replaceall(shadow_code,     "$baseclass", baseclass);
+    Replaceall(proxy_class_def,  "$baseclass", baseclass);
+    Replaceall(proxy_class_code, "$baseclass", baseclass);
 
-    Replaceall(shadow_classdef, "$jniclassname", jniclass_name);
-    Replaceall(shadow_code,     "$jniclassname", jniclass_name);
+    Replaceall(proxy_class_def,  "$imclassname", imclass_name);
+    Replaceall(proxy_class_code, "$imclassname", imclass_name);
 
-    // Add JNI code to do C++ casting to base class (only for classes in an inheritance hierarchy)
+    // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if(derived){
-      Printv(jniclass_cppcasts_code,"\n  [DllImport(\"", module_class_name, "\", EntryPoint=\"CSharp_", shadow_classname ,"To", baseclass ,"\")]\n", NIL);
-      Printv(jniclass_cppcasts_code,"  public static extern IntPtr ",
+      Printv(imclass_cppcasts_code,"\n  [DllImport(\"", module_class_name, "\", EntryPoint=\"CSharp_", proxy_class_name ,"To", baseclass ,"\")]\n", NIL);
+      Printv(imclass_cppcasts_code,"  public static extern IntPtr ",
           "$csclassnameTo$baseclass(IntPtr objectRef);\n",
           NIL);
 
-      Replaceall(jniclass_cppcasts_code, "$csclassname", shadow_classname);
-      Replaceall(jniclass_cppcasts_code, "$baseclass", baseclass);
+      Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
+      Replaceall(imclass_cppcasts_code, "$baseclass", baseclass);
 
-      Printv(wrapper_conversion_code,
-          "DllExport long CSharp_$jniclazznameTo$jnibaseclass", //JNIEXPORT
+      Printv(upcasts_code,
+          "DllExport long CSharp_$imclazznameTo$imbaseclass",
           "(long objectRef) {\n",
           "    long baseptr = 0;\n"
           "    *($cbaseclass **)&baseptr = *($cclass **)&objectRef;\n"
@@ -1096,12 +1078,10 @@ class CSHARP : public Language {
           "\n",
           NIL); 
 
-      Replaceall(wrapper_conversion_code, "$jnibaseclass",baseclass);
-      Replaceall(wrapper_conversion_code, "$cbaseclass",  c_baseclass);
-      Replaceall(wrapper_conversion_code, "$jniclazzname",shadow_classname);
-      Replaceall(wrapper_conversion_code, "$cclass",      c_classname);
-      //Replaceall(wrapper_conversion_code, "$jnipackage",  jnipackage);
-      //Replaceall(wrapper_conversion_code, "$jnijniclass", jniclass_name);
+      Replaceall(upcasts_code, "$imbaseclass", baseclass);
+      Replaceall(upcasts_code, "$cbaseclass",  c_baseclass);
+      Replaceall(upcasts_code, "$imclazzname", proxy_class_name);
+      Replaceall(upcasts_code, "$cclass",      c_classname);
     }
     Delete(baseclass);
   }
@@ -1112,61 +1092,61 @@ class CSHARP : public Language {
 
   virtual int classHandler(Node *n) {
 
-    File *f_shadow = NULL;
+    File *f_proxy = NULL;
     if (proxy_flag) {
-      shadow_classname = NewString(Getattr(n,"sym:name"));
+      proxy_class_name = NewString(Getattr(n,"sym:name"));
 
-      if (!addSymbol(shadow_classname,n)) return SWIG_ERROR;
+      if (!addSymbol(proxy_class_name,n)) return SWIG_ERROR;
 
-      if (Cmp(shadow_classname, jniclass_name) == 0) {
-        Printf(stderr, "Class name cannot be equal to JNI class name: %s\n", shadow_classname);
+      if (Cmp(proxy_class_name, imclass_name) == 0) {
+        Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
         SWIG_exit(EXIT_FAILURE);
       }
 
-      if (Cmp(shadow_classname, module_class_name) == 0) {
-        Printf(stderr, "Class name cannot be equal to module class name: %s\n", shadow_classname);
+      if (Cmp(proxy_class_name, module_class_name) == 0) {
+        Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
         SWIG_exit(EXIT_FAILURE);
       }
 
-      String *filen = NewStringf("%s%s.cs", Swig_file_dirname(outfile), shadow_classname);
-      f_shadow = NewFile(filen,"w");
-      if(!f_shadow) {
+      String *filen = NewStringf("%s%s.cs", Swig_file_dirname(outfile), proxy_class_name);
+      f_proxy = NewFile(filen,"w");
+      if(!f_proxy) {
         Printf(stderr, "Unable to create proxy class file: %s\n", filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
 
-      emitBanner(f_shadow);
+      emitBanner(f_proxy);
 
       if(Len(package) > 0)
-        Printf(f_shadow, "//package %s;\n\n", package);
+        Printf(f_proxy, "//package %s;\n\n", package);
 
-      Clear(shadow_classdef);
-      Clear(shadow_code);
+      Clear(proxy_class_def);
+      Clear(proxy_class_code);
 
       have_default_constructor_flag = false;
       destructor_call = NewString("");
-      shadow_constants_code = NewString("");
+      proxy_class_constants_code = NewString("");
     }
     Language::classHandler(n);
 
     if (proxy_flag) {
 
-      emitShadowClassDefAndCPPCasts(n);
+      emitProxyClassDefAndCPPCasts(n);
 
-      Printv(f_shadow, shadow_classdef, shadow_code, NIL);
+      Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
       // Write out all the enums and constants
-      if (Len(shadow_constants_code) != 0 )
-        Printv(f_shadow, "  // enums and constants\n", shadow_constants_code, NIL);
+      if (Len(proxy_class_constants_code) != 0 )
+        Printv(f_proxy, "  // enums and constants\n", proxy_class_constants_code, NIL);
 
-      Printf(f_shadow, "}\n");
-      Close(f_shadow);
-      f_shadow = NULL;
+      Printf(f_proxy, "}\n");
+      Close(f_proxy);
+      f_proxy = NULL;
 
-      Delete(shadow_classname); shadow_classname = NULL;
+      Delete(proxy_class_name); proxy_class_name = NULL;
       Delete(destructor_call); destructor_call = NULL;
-      Delete(shadow_constants_code); shadow_constants_code = NULL;
+      Delete(proxy_class_constants_code); proxy_class_constants_code = NULL;
     }
     return SWIG_OK;
   }
@@ -1180,10 +1160,10 @@ class CSHARP : public Language {
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *java_function_name = Swig_name_member(shadow_classname, overloaded_name);
-      Setattr(n,"java:shadowfuncname", Getattr(n, "sym:name"));
-      Setattr(n,"java:funcname", java_function_name);
-      javaShadowFunctionHandler(n);
+      String *intermediary_function_name = Swig_name_member(proxy_class_name, overloaded_name);
+      Setattr(n,"csharp:proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n,"csharp:imfuncname", intermediary_function_name);
+      proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
     return SWIG_OK;
@@ -1200,10 +1180,10 @@ class CSHARP : public Language {
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *java_function_name = Swig_name_member(shadow_classname, overloaded_name);
-      Setattr(n,"java:shadowfuncname", Getattr(n,"sym:name"));
-      Setattr(n,"java:funcname", java_function_name);
-      javaShadowFunctionHandler(n);
+      String *intermediary_function_name = Swig_name_member(proxy_class_name, overloaded_name);
+      Setattr(n,"csharp:proxyfuncname", Getattr(n,"sym:name"));
+      Setattr(n,"csharp:imfuncname", intermediary_function_name);
+      proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
     static_flag = false;
@@ -1213,25 +1193,26 @@ class CSHARP : public Language {
 
 
   /* -----------------------------------------------------------------------------
-   * javaShadowFunctionHandler()
+   * proxyClassFunctionHandler()
    *
-   * Function called for creating a java class wrapper function around a c++ function in the 
-   * java wrapper class. Used for both static and non static functions.
-   * C++ static functions map to java static functions.
-   * Two extra attributes in the Node must be available. These are "java:shadowfuncname" - the name of the java class shadow 
-   * function, which in turn will call "java:funcname" - the java native function name which wraps the c++ function.
+   * Function called for creating a C# wrapper function around a c++ function in the 
+   * proxy class. Used for both static and non-static C++ class functions.
+   * C++ class static functions map to C# static functions.
+   * Two extra attributes in the Node must be available. These are "csharp:proxyfuncname" - 
+   * the name of the C# class proxy function, which in turn will call "csharp:imfuncname" - 
+   * the intermediary (PInvoke) function name in the intermediary class.
    * ----------------------------------------------------------------------------- */
 
-  void javaShadowFunctionHandler(Node *n) {
+  void proxyClassFunctionHandler(Node *n) {
     SwigType  *t = Getattr(n,"type");
     ParmList  *l = Getattr(n,"parms");
-    String    *java_function_name = Getattr(n,"java:funcname");
-    String    *java_shadow_function_name = Getattr(n,"java:shadowfuncname");
+    String    *intermediary_function_name = Getattr(n,"csharp:imfuncname");
+    String    *proxy_function_name = Getattr(n,"csharp:proxyfuncname");
     String    *tm;
     Parm      *p;
     int       i;
-    String    *nativecall = NewString("");
-    String    *shadowrettype = NewString("");
+    String    *imcall = NewString("");
+    String    *return_type = NewString("");
     String    *function_code = NewString("");
     bool      setter_flag = false;
 
@@ -1248,21 +1229,21 @@ class CSHARP : public Language {
     Swig_typemap_attach_parms("cswtype", l, NULL);
     Swig_typemap_attach_parms("csin", l, NULL);
 
-    /* Get Java return types */
+    /* Get return types */
     if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
-      substituteJavaclassname(t, tm);
-      Printf(shadowrettype, "%s", tm);
+      substituteClassname(t, tm);
+      Printf(return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
           "No cswtype typemap defined for %s\n", SwigType_str(t,0));
     }
 
     if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Properties
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(Swig_name_member(shadow_classname, variable_name))) == 0);
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) == 0);
     }
 
-    /* Start generating the shadow function */
+    /* Start generating the proxy function */
     Printf(function_code, "  %s ", Getattr(n,"feature:cs:methodmodifiers"));
     if (static_flag)
       Printf(function_code, "static ");
@@ -1271,11 +1252,11 @@ class CSHARP : public Language {
     else if (checkAttribute(n, "storage", "virtual"))
         Printf(function_code, "virtual ");
 
-    Printf(function_code, "%s %s(", shadowrettype, java_shadow_function_name);
+    Printf(function_code, "%s %s(", return_type, proxy_function_name);
 
-    Printv(nativecall, jniclass_name, ".", java_function_name, "(", NIL);
+    Printv(imcall, imclass_name, ".", intermediary_function_name, "(", NIL);
     if (!static_flag)
-      Printv(nativecall, "swigCPtr", NIL);
+      Printv(imcall, "swigCPtr", NIL);
 
     emit_mark_varargs(l);
 
@@ -1300,59 +1281,59 @@ class CSHARP : public Language {
       if (!(variable_wrapper_flag && i==0)) 
       {
         SwigType *pt = Getattr(p,"type");
-        String   *javaparamtype = NewString("");
+        String   *param_type = NewString("");
 
-        /* Get the java type of the parameter */
+        /* Get the C# parameter type */
         if ((tm = Getattr(p,"tmap:cswtype"))) {
-          substituteJavaclassname(pt, tm);
-          Printf(javaparamtype, "%s", tm);
+          substituteClassname(pt, tm);
+          Printf(param_type, "%s", tm);
         } else {
-          Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+          Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
               "No cswtype typemap defined for %s\n", SwigType_str(pt,0));
         }
 
         if (gencomma)
-          Printf(nativecall, ", ");
+          Printf(imcall, ", ");
 
         String *arg = variable_wrapper_flag ? NewString("value") : makeParameterName(n, p, i);
 
-        // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in native function (in JNI class)
+        // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
         if ((tm = Getattr(p,"tmap:csin"))) {
-          substituteJavaclassname(pt, tm);
+          substituteClassname(pt, tm);
           Replaceall(tm, "$csinput", arg);
-          Printv(nativecall, tm, NIL);
+          Printv(imcall, tm, NIL);
         } else {
-          Swig_warning(WARN_JAVA_TYPEMAP_JAVAIN_UNDEF, input_file, line_number, 
+          Swig_warning(WARN_CSHARP_TYPEMAP_CSIN_UNDEF, input_file, line_number, 
               "No csin typemap defined for %s\n", SwigType_str(pt,0));
         }
 
-        /* Add to java shadow function header */
+        /* Add parameter to proxy function */
         if (gencomma >= 2)
           Printf(function_code, ", ");
         gencomma = 2;
-        Printf(function_code, "%s %s", javaparamtype, arg);
+        Printf(function_code, "%s %s", param_type, arg);
 
         Delete(arg);
-        Delete(javaparamtype);
+        Delete(param_type);
       }
       p = Getattr(p,"tmap:in:next");
     }
 
-    Printf(nativecall, ")");
+    Printf(imcall, ")");
     Printf(function_code, ")");
     generateThrowsClause(n, function_code);
 
-    // Transform return type used in native function (in JNI class) to type used in Java wrapper function (in proxy class)
+    // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup_new("csout",n,"",0))) {
       if (Getattr(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
         Replaceall(tm,"$owner","false");
-      substituteJavaclassname(t, tm);
-      Replaceall(tm, "$imcall", nativecall);
+      substituteClassname(t, tm);
+      Replaceall(tm, "$imcall", imcall);
       Printf(function_code, " %s\n\n", tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
           "No csout typemap defined for %s\n", SwigType_str(t,0));
     }
 
@@ -1365,11 +1346,11 @@ class CSHARP : public Language {
             Replaceall(tm,"$owner","true");
           else
             Replaceall(tm,"$owner","false");
-          substituteJavaclassname(t, tm);
-          Replaceall(tm, "$imcall", nativecall);
-          Printf(shadow_code, "%s", tm);
+          substituteClassname(t, tm);
+          Replaceall(tm, "$imcall", imcall);
+          Printf(proxy_class_code, "%s", tm);
         } else {
-          Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
+          Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
               "No csvarin typemap defined for %s\n", SwigType_str(t,0));
         }
       } else {
@@ -1379,22 +1360,22 @@ class CSHARP : public Language {
             Replaceall(tm,"$owner","true");
           else
             Replaceall(tm,"$owner","false");
-          substituteJavaclassname(t, tm);
-          Replaceall(tm, "$imcall", nativecall);
-          Printf(shadow_code, "%s", tm);
+          substituteClassname(t, tm);
+          Replaceall(tm, "$imcall", imcall);
+          Printf(proxy_class_code, "%s", tm);
         } else {
-          Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
+          Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
               "No csvarout typemap defined for %s\n", SwigType_str(t,0));
         }
       }
     } else {
       // Normal function call
-      Printv(shadow_code, function_code, NIL);
+      Printv(proxy_class_code, function_code, NIL);
     }
 
     Delete(function_code);
-    Delete(shadowrettype);
-    Delete(nativecall);
+    Delete(return_type);
+    Delete(imcall);
   }
 
   /* ----------------------------------------------------------------------
@@ -1412,10 +1393,10 @@ class CSHARP : public Language {
 
     if(proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *nativecall = NewString("");
+      String *imcall = NewString("");
 
-      Printf(shadow_code, "  %s %s(", Getattr(n,"feature:cs:methodmodifiers"), shadow_classname);
-      Printv(nativecall, " : this(", jniclass_name, ".", Swig_name_construct(overloaded_name), "(", NIL);
+      Printf(proxy_class_code, "  %s %s(", Getattr(n,"feature:cs:methodmodifiers"), proxy_class_name);
+      Printv(imcall, " : this(", imclass_name, ".", Swig_name_construct(overloaded_name), "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("in", l, NULL);
@@ -1442,56 +1423,56 @@ class CSHARP : public Language {
         }
 
         SwigType *pt = Getattr(p,"type");
-        String   *javaparamtype = NewString("");
+        String   *param_type = NewString("");
 
-        /* Get the java type of the parameter */
+        /* Get the C# parameter type */
         if ((tm = Getattr(p,"tmap:cswtype"))) {
-          substituteJavaclassname(pt, tm);
-          Printf(javaparamtype, "%s", tm);
+          substituteClassname(pt, tm);
+          Printf(param_type, "%s", tm);
         } else {
-          Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+          Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
               "No cswtype typemap defined for %s\n", SwigType_str(pt,0));
         }
 
         if (gencomma)
-          Printf(nativecall, ", ");
+          Printf(imcall, ", ");
 
         String *arg = makeParameterName(n, p, i);
 
-        // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in native function (in JNI class)
+        // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
         if ((tm = Getattr(p,"tmap:csin"))) {
-          substituteJavaclassname(pt, tm);
+          substituteClassname(pt, tm);
           Replaceall(tm, "$csinput", arg);
-          Printv(nativecall, tm, NIL);
+          Printv(imcall, tm, NIL);
         } else {
-          Swig_warning(WARN_JAVA_TYPEMAP_JAVAIN_UNDEF, input_file, line_number, 
+          Swig_warning(WARN_CSHARP_TYPEMAP_CSIN_UNDEF, input_file, line_number, 
               "No csin typemap defined for %s\n", SwigType_str(pt,0));
         }
 
-        /* Add to java shadow function header */
+        /* Add parameter to proxy function */
         if(gencomma)
-          Printf(shadow_code, ", ");
-        Printf(shadow_code, "%s %s", javaparamtype, arg);
+          Printf(proxy_class_code, ", ");
+        Printf(proxy_class_code, "%s %s", param_type, arg);
         gencomma = 1;
 
         Delete(arg);
-        Delete(javaparamtype);
+        Delete(param_type);
         p = Getattr(p,"tmap:in:next");
       }
 
-      Printf(nativecall, "), true)");
+      Printf(imcall, "), true)");
 
-      Printf(shadow_code, ")");
-      Printf(shadow_code,"%s", nativecall);
-      generateThrowsClause(n, shadow_code);
-      Printf(shadow_code, " {\n");
-      Printf(shadow_code, "  }\n\n");
+      Printf(proxy_class_code, ")");
+      Printf(proxy_class_code,"%s", imcall);
+      generateThrowsClause(n, proxy_class_code);
+      Printf(proxy_class_code, " {\n");
+      Printf(proxy_class_code, "  }\n\n");
 
       if(!gencomma)  // We must have a default constructor
         have_default_constructor_flag = true;
 
       Delete(overloaded_name);
-      Delete(nativecall);
+      Delete(imcall);
     }
 
     return SWIG_OK;
@@ -1506,7 +1487,7 @@ class CSHARP : public Language {
     String *symname = Getattr(n,"sym:name");
 
     if(proxy_flag) {
-      Printv(destructor_call, jniclass_name, ".", Swig_name_destroy(symname), "(swigCPtr)", NIL);
+      Printv(destructor_call, imclass_name, ".", Swig_name_destroy(symname), "(swigCPtr)", NIL);
     }
     return SWIG_OK;
   }
@@ -1521,14 +1502,14 @@ class CSHARP : public Language {
 
     // Get the variable type
     if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
-      substituteJavaclassname(t, tm);
+      substituteClassname(t, tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
           "No cswtype typemap defined for %s\n", SwigType_str(t,0));
     }
 
     // Output the property's field declaration and accessor methods
-    Printf(shadow_code, "  public %s %s {", tm, Getattr(n, "sym:name"));
+    Printf(proxy_class_code, "  public %s %s {", tm, Getattr(n, "sym:name"));
 
     variable_name = Getattr(n,"sym:name");
     wrapping_member_flag = true;
@@ -1537,7 +1518,7 @@ class CSHARP : public Language {
     wrapping_member_flag = false;
     variable_wrapper_flag = false;
 
-    Printf(shadow_code, "\n  }\n\n");
+    Printf(proxy_class_code, "\n  }\n\n");
 
     return SWIG_OK;
   }
@@ -1555,14 +1536,14 @@ class CSHARP : public Language {
 
       // Get the variable type
       if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
-        substituteJavaclassname(t, tm);
+        substituteClassname(t, tm);
       } else {
-        Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+        Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
             "No cswtype typemap defined for %s\n", SwigType_str(t,0));
       }
 
       // Output the property's field declaration and accessor methods
-      Printf(shadow_code, "  public static %s %s {", tm, Getattr(n, "sym:name"));
+      Printf(proxy_class_code, "  public static %s %s {", tm, Getattr(n, "sym:name"));
     }
 
     variable_name = Getattr(n,"sym:name");
@@ -1573,7 +1554,7 @@ class CSHARP : public Language {
     static_flag = false;
 
     if(static_const_member_flag)
-      Printf(shadow_code, "\n  }\n\n");
+      Printf(proxy_class_code, "\n  }\n\n");
 
     return SWIG_OK;
   }
@@ -1596,8 +1577,8 @@ class CSHARP : public Language {
 
   String *getOverloadedName(Node *n) {
 
-    /* Although the JNI is designed to handle overloaded Java functions, a Java long is used for all classes in the SWIG
-     * JNI native interface. The JNI native interface function is thus mangled when overloaded to give a unique name. */
+    /* Although PInvoke functions are designed to handle overloaded functions, a C# IntPtr is used for all classes in the SWIG
+     * intermediary class. The intermediary class methods are thus mangled when overloaded to give a unique name. */
     String *overloaded_name = NewStringf("%s", Getattr(n,"sym:name"));
 
     if (Getattr(n,"sym:overloaded")) {
@@ -1617,8 +1598,8 @@ class CSHARP : public Language {
     String    *tm;
     Parm      *p;
     int       i;
-    String    *nativecall = NewString("");
-    String    *shadowrettype = NewString("");
+    String    *imcall = NewString("");
+    String    *return_type = NewString("");
     String    *function_code = NewString("");
     int       num_arguments = 0;
     int       num_required = 0;
@@ -1636,18 +1617,18 @@ class CSHARP : public Language {
     Swig_typemap_attach_parms("cswtype", l, NULL);
     Swig_typemap_attach_parms("csin", l, NULL);
 
-    /* Get Java return types */
+    /* Get return types */
     if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
-      substituteJavaclassname(t, tm);
-      Printf(shadowrettype, "%s", tm);
+      substituteClassname(t, tm);
+      Printf(return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
           "No cswtype typemap defined for %s\n", SwigType_str(t,0));
     }
 
     /* Change function name for global variables */
     if (proxy_flag && global_variable_flag) {
-      // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
+      // Capitalize the first letter in the variable to create the getter/setter function name
       func_name = NewString("");
       setter_flag = (Cmp(Getattr(n,"sym:name"), Swig_name_set(variable_name)) == 0);
       if(setter_flag)
@@ -1661,8 +1642,8 @@ class CSHARP : public Language {
     }
 
     /* Start generating the function */
-    Printf(function_code, "  %s static %s %s(", Getattr(n,"feature:cs:methodmodifiers"), shadowrettype, func_name);
-    Printv(nativecall, jniclass_name, ".", overloaded_name, "(", NIL);
+    Printf(function_code, "  %s static %s %s(", Getattr(n,"feature:cs:methodmodifiers"), return_type, func_name);
+    Printv(imcall, imclass_name, ".", overloaded_name, "(", NIL);
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
@@ -1679,58 +1660,58 @@ class CSHARP : public Language {
       }
 
       SwigType *pt = Getattr(p,"type");
-      String   *javaparamtype = NewString("");
+      String   *param_type = NewString("");
 
-      /* Get the java type of the parameter */
+      /* Get the C# parameter type */
       if ((tm = Getattr(p,"tmap:cswtype"))) {
-        substituteJavaclassname(pt, tm);
-        Printf(javaparamtype, "%s", tm);
+        substituteClassname(pt, tm);
+        Printf(param_type, "%s", tm);
       } else {
-        Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+        Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
             "No cswtype typemap defined for %s\n", SwigType_str(pt,0));
       }
 
       if (gencomma)
-        Printf(nativecall, ", ");
+        Printf(imcall, ", ");
 
       String *arg = makeParameterName(n, p, i);
 
-      // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in native function (in JNI class)
+      // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
       if ((tm = Getattr(p,"tmap:csin"))) {
-        substituteJavaclassname(pt, tm);
+        substituteClassname(pt, tm);
         Replaceall(tm, "$csinput", arg);
-        Printv(nativecall, tm, NIL);
+        Printv(imcall, tm, NIL);
       } else {
-        Swig_warning(WARN_JAVA_TYPEMAP_JAVAIN_UNDEF, input_file, line_number, 
+        Swig_warning(WARN_CSHARP_TYPEMAP_CSIN_UNDEF, input_file, line_number, 
             "No csin typemap defined for %s\n", SwigType_str(pt,0));
       }
 
-      /* Add to java shadow function header */
+      /* Add parameter to module class function */
       if (gencomma >= 2)
         Printf(function_code, ", ");
       gencomma = 2;
-      Printf(function_code, "%s %s", javaparamtype, arg);
+      Printf(function_code, "%s %s", param_type, arg);
 
       p = Getattr(p,"tmap:in:next");
       Delete(arg);
-      Delete(javaparamtype);
+      Delete(param_type);
     }
 
-    Printf(nativecall, ")");
+    Printf(imcall, ")");
     Printf(function_code, ")");
     generateThrowsClause(n, function_code);
 
-    // Transform return type used in native function (in JNI class) to type used in Java wrapper function (in module class)
+    // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in module class)
     if ((tm = Swig_typemap_lookup_new("csout",n,"",0))) {
       if (Getattr(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
         Replaceall(tm,"$owner","false");
-      substituteJavaclassname(t, tm);
-      Replaceall(tm, "$imcall", nativecall);
+      substituteClassname(t, tm);
+      Replaceall(tm, "$imcall", imcall);
       Printf(function_code, " %s\n\n", tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
           "No csout typemap defined for %s\n", SwigType_str(t,0));
     }
 
@@ -1743,11 +1724,11 @@ class CSHARP : public Language {
             Replaceall(tm,"$owner","true");
           else
             Replaceall(tm,"$owner","false");
-          substituteJavaclassname(t, tm);
-          Replaceall(tm, "$imcall", nativecall);
+          substituteClassname(t, tm);
+          Replaceall(tm, "$imcall", imcall);
           Printf(module_class_code, "%s", tm);
         } else {
-          Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
+          Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
               "No csvarin typemap defined for %s\n", SwigType_str(t,0));
         }
       } else {
@@ -1757,11 +1738,11 @@ class CSHARP : public Language {
             Replaceall(tm,"$owner","true");
           else
             Replaceall(tm,"$owner","false");
-          substituteJavaclassname(t, tm);
-          Replaceall(tm, "$imcall", nativecall);
+          substituteClassname(t, tm);
+          Replaceall(tm, "$imcall", imcall);
           Printf(module_class_code, "%s", tm);
         } else {
-          Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
+          Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
               "No csvarout typemap defined for %s\n", SwigType_str(t,0));
         }
       }
@@ -1771,16 +1752,16 @@ class CSHARP : public Language {
     }
 
     Delete(function_code);
-    Delete(shadowrettype);
-    Delete(nativecall);
+    Delete(return_type);
+    Delete(imcall);
     Delete(func_name);
   }
 
   /* -----------------------------------------------------------------------------
-   * substituteJavaclassname()
+   * substituteClassname()
    *
-   * Substitute $csclassname with either the shadow class name for classes/structs/unions that SWIG knows about.
-   * Otherwise use the $descriptor name for the Java class name. Note that the $&csclassname substitution
+   * Substitute $csclassname with the proxy class name for classes/structs/unions that SWIG knows about.
+   * Otherwise use the $descriptor name for the C# class name. Note that the $&csclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
    * Inputs:
    *   pt - parameter type
@@ -1788,16 +1769,16 @@ class CSHARP : public Language {
    * Outputs:
    *   tm - cswtype typemap with $csclassname substitution
    * Return:
-   *   is_java_class - flag indicating if a substitution was performed
+   *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
 
-  bool substituteJavaclassname(SwigType *pt, String *tm) {
-    bool is_java_class = false;
+  bool substituteClassname(SwigType *pt, String *tm) {
+    bool substitution_performed = false;
     if (Strstr(tm, "$csclassname") || Strstr(tm,"$&csclassname")) {
-      String *csclassname = is_shadow(pt);
-      if (csclassname) {
-        Replaceall(tm,"$&csclassname", csclassname); // is_shadow() works for pointers to classes too
-        Replaceall(tm,"$csclassname", csclassname);
+      String *classname = getProxyName(pt);
+      if (classname) {
+        Replaceall(tm,"$&csclassname", classname); // getProxyName() works for pointers to classes too
+        Replaceall(tm,"$csclassname", classname);
       }
       else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
         String *descriptor = NULL;
@@ -1813,14 +1794,14 @@ class CSHARP : public Language {
           Replaceall(tm, "$csclassname", descriptor);
         }
 
-        // Add to hash table so that the SWIGTYPE Java classes can be created later
+        // Add to hash table so that the type wrapper classes can be created later
         Setattr(swig_types_hash, descriptor, type);
         Delete(descriptor);
         Delete(type);
       }
-      is_java_class = true;
+      substitution_performed = true;
     }
-    return is_java_class;
+    return substitution_performed;
   }
 
   /* -----------------------------------------------------------------------------
@@ -1846,16 +1827,16 @@ class CSHARP : public Language {
       plist = nextSibling(plist);
     }
     String *arg = (!pn || (count > 1)) ? NewStringf("arg%d",arg_num) : Copy(Getattr(p,"name"));
-    
+
     return arg;
   }
 
   /* -----------------------------------------------------------------------------
-   * emitJavaClass()
+   * emitTypeWrapperClass()
    * ----------------------------------------------------------------------------- */
 
-  void emitJavaClass(String *csclassname, SwigType *type) {
-    String *filen = NewStringf("%s%s.cs", Swig_file_dirname(outfile), csclassname);
+  void emitTypeWrapperClass(String *classname, SwigType *type) {
+    String *filen = NewStringf("%s%s.cs", Swig_file_dirname(outfile), classname);
     File *f_swigtype = NewFile(filen,"w");
     String *swigtype = NewString("");
 
@@ -1864,29 +1845,29 @@ class CSHARP : public Language {
     if(Len(package) > 0)
       Printf(f_swigtype, "//package %s;\n\n", package);
 
-    // Pure Java baseclass and interfaces
-    const String *pure_java_baseclass = javaTypemapLookup("csbase", type, WARN_NONE);
-    const String *pure_java_interfaces = javaTypemapLookup("csinterfaces", type, WARN_NONE);
+    // Pure C# baseclass and interfaces
+    const String *pure_baseclass = typemapLookup("csbase", type, WARN_NONE);
+    const String *pure_interfaces = typemapLookup("csinterfaces", type, WARN_NONE);
 
     // Emit the class
     Printv(swigtype,
-        javaTypemapLookup("csimports", type, WARN_NONE), // Import statements
+        typemapLookup("csimports", type, WARN_NONE), // Import statements
         "\n",
-        javaTypemapLookup("csclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
+        typemapLookup("csclassmodifiers", type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
         " class $csclassname",       // Class name and bases
-        *Char(pure_java_baseclass) ?
+        *Char(pure_baseclass) ?
         " : " : 
         "",
-        pure_java_baseclass,
-        *Char(pure_java_interfaces) ?  // Pure Java interfaces
+        pure_baseclass,
+        *Char(pure_interfaces) ?  // Interfaces
         " : " :
         "",
-        pure_java_interfaces,
+        pure_interfaces,
         " {\n",
         "  private IntPtr swigCPtr;\n",
         "\n",
         "  ",
-        javaTypemapLookup("csptrconstructormodifiers", type, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
+        typemapLookup("csptrconstructormodifiers", type, WARN_CSHARP_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
         " $csclassname(IntPtr cPtr, bool bFutureUse) {\n", // Constructor used for wrapping pointers
         "    swigCPtr = cPtr;\n",
         "  }\n",
@@ -1894,13 +1875,13 @@ class CSHARP : public Language {
         "  protected $csclassname() {\n", // Default constructor
         "    swigCPtr = IntPtr.Zero;\n",
         "  }\n",
-        javaTypemapLookup("csgetcptr", type, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
-        javaTypemapLookup("cscode", type, WARN_NONE), // extra Java code
+        typemapLookup("csgetcptr", type, WARN_CSHARP_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
+        typemapLookup("cscode", type, WARN_NONE), // extra C# code
         "}\n",
         "\n",
         NIL);
 
-        Replaceall(swigtype, "$csclassname", csclassname);
+        Replaceall(swigtype, "$csclassname", classname);
         Printv(f_swigtype, swigtype, NIL);
 
         Close(f_swigtype);
@@ -1909,10 +1890,10 @@ class CSHARP : public Language {
   }
 
   /* -----------------------------------------------------------------------------
-   * javaTypemapLookup()
+   * typemapLookup()
    * ----------------------------------------------------------------------------- */
 
-  const String *javaTypemapLookup(const String *op, String *type, int warning) {
+  const String *typemapLookup(const String *op, String *type, int warning) {
     String *tm = NULL;
     const String *code = NULL;
 
@@ -1939,10 +1920,10 @@ class CSHARP : public Language {
     String *throws = Getattr(parameter,throws_attribute);
 
     if (throws) {
-      String *throws_list = Getattr(n,"java:throwslist");
+      String *throws_list = Getattr(n,"csharp:throwslist");
       if (!throws_list) {
         throws_list = NewList();
-        Setattr(n,"java:throwslist", throws_list);
+        Setattr(n,"csharp:throwslist", throws_list);
       }
 
       // Put the exception classes in the throws clause into a temporary List
@@ -1951,24 +1932,24 @@ class CSHARP : public Language {
       // Add the exception classes to the node throws list, but don't duplicate if already in list
       if (temp_classes_list && Len(temp_classes_list) > 0) {
         for (String *cls = Firstitem(temp_classes_list); cls; cls = Nextitem(temp_classes_list)) {
-          String *javacls = NewString(cls);
-          Replaceall(javacls," ","");  // remove spaces
-          Replaceall(javacls,"\t",""); // remove tabs
-          if (Len(javacls) > 0) {
+          String *exception_class = NewString(cls);
+          Replaceall(exception_class," ","");  // remove spaces
+          Replaceall(exception_class,"\t",""); // remove tabs
+          if (Len(exception_class) > 0) {
             // $csclassname substitution
             SwigType *pt = Getattr(parameter,"type");
-            substituteJavaclassname(pt, javacls);
+            substituteClassname(pt, exception_class);
 
-            // Don't duplicate the Java class in the throws clause
+            // Don't duplicate the C# exception class in the throws clause
             bool found_flag = false;
             for (String *item = Firstitem(throws_list); item; item = Nextitem(throws_list)) {
-              if (Strcmp(item, javacls) == 0)
+              if (Strcmp(item, exception_class) == 0)
                 found_flag = true;
             }
             if (!found_flag)
-              Append(throws_list, javacls);
+              Append(throws_list, exception_class);
           }
-          Delete(javacls);
+          Delete(exception_class);
         } 
       }
       Delete(temp_classes_list);
@@ -1982,7 +1963,7 @@ class CSHARP : public Language {
 
   void generateThrowsClause(Node *n, String *code) {
     // Add the throws clause into code
-    List *throws_list = Getattr(n,"java:throwslist");
+    List *throws_list = Getattr(n,"csharp:throwslist");
     if (throws_list) {
       String *cls = Firstitem(throws_list);
       Printf(code, " throws %s", cls);
@@ -2011,3 +1992,4 @@ C# Options (available with -csharp)\n\
      -package <name> - set name of the assembly\n\
      -noproxy        - Generate the low-level functional interface instead of proxy classes\n\
 \n";
+
