@@ -180,6 +180,7 @@ static int promote(int t1, int t2) {
 %type <node>   variable_decl function_decl enum_decl typedef_decl stail enumlist edecl typedeflist
 %type <node>   inherit base_list
 %type <tok>    base_specifier access_specifier cpp_end ctor_end
+%type <node>   cpp_decl cpp_class
 
 %%
 
@@ -995,21 +996,34 @@ typedeflist   : COMMA declaration typedeflist {
  *                        -- Feeble C++ (yuck) Parsing --
  * ============================================================================= */
 
-cpp_decl     : cpp_class { }
-             | cpp_other { }
+cpp_decl     : cpp_class { $$ = $1; }
+             | cpp_other { $$ = $1; }
              ;
   
-cpp_class    :  storage_spec cpptype ID inherit LBRACE cpp_members RBRACE {
+cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE {
+                   $$ = new_node("class",$3.filename,$3.line);
+		   Setattr($$,"classtype",$2.text);
+		   Setattr($$,"name",$3);
+		   Setattr($$,"bases", $4);
+		   Setattr($$,"child",$6);
 	      }
 
 /* Class with a typedef */
 		
-             | TYPEDEF cpptype ID inherit LBRACE cpp_members RBRACE declaration typedeflist {
+             | TYPEDEF cpptype ID inherit LBRACE interface RBRACE declaration typedeflist {
+	       $$ = new_node("class",$3.filename,$3.line);
+	       Setattr($$,"classtype",$2.text);
+	       Setattr($$,"name",$3);
+	       Setattr($$,"bases",$4);
+	       Setattr($$,"child",$6);
 	     } 
 
 /* An unnamed struct with a typedef */
 
-             | TYPEDEF cpptype LBRACE cpp_members RBRACE declaration typedeflist {
+             | TYPEDEF cpptype LBRACE interface RBRACE declaration typedeflist {
+	       $$ = new_node("class",$3.filename,$3.line);
+	       Setattr($$,"classtype",$2.text);
+	       Setattr($$,"child",$4);
 	     }
              ;
 
@@ -1051,8 +1065,9 @@ access_specifier :  PUBLIC { $$.text = NewString("public"); }
                |    PROTECTED { $$.text = NewString("protected"); }
                ;
 
-cpp_members  : cpp_member cpp_members {}
+cpp_members  : cpp_member cpp_members { }
              | ADDMETHODS LBRACE cpp_members RBRACE cpp_members {
+
 	     }
 	     | error {
 	       LParse_error(0,0,"Syntax error in class definition.\n");
@@ -1060,75 +1075,6 @@ cpp_members  : cpp_member cpp_members {}
 	     } cpp_members { }
              | empty { }
              ;
-
-cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
-              }
-
-/* Possibly a constructor */
-              | ID LPAREN parms RPAREN ctor_end {
-	      }
-
-/* A destructor (hopefully) */
-
-              | NOT ID LPAREN parms RPAREN cpp_end {
-	      }
-
-/* Member data */
-
-              | type declaration def_args cpp_tail {
-	      }
-
-              | type declaration array def_args {
-	      }
-
-/* Static Member data */
-
-              | STATIC type declaration cpp_tail { }
-
-/* Static member function */
-
-              | STATIC type declaration LPAREN parms RPAREN cpp_end {
-	      }
-
-/* Turn on public: mode */
-
-              | PUBLIC COLON { }
-
-/* Turn on private: mode */
-
-              | PRIVATE COLON { }
-
-/* Turn on protected mode */
-
-              | PROTECTED COLON { }
-              | modifier_directive { } 
-              | ENUM ename LBRACE enumlist RBRACE SEMI {
-     	      }
-
-/* A friend :   Illegal */
-              | FRIEND {
-		LParse_skip_decl();
-	      }  
-
-/* An operator: Illegal */
-              | type type_extra OPERATOR {
-		LParse_skip_decl();
-	      }
-
-/* A typedef inside a class */
-              | typedef_decl { }
-
-/* Pragma directive */
-
-              | pragma_directive { }
-              ;
-
-cpp_tail      : SEMI { }
-               | COMMA declaration def_args {
-	       } cpp_tail { } 
-               | COMMA declaration array def_args {
-	       } cpp_tail { } 
-               ;
 
 cpp_end        : cpp_const SEMI { 
                    $$.text = 0;
@@ -1170,6 +1116,18 @@ cpp_other    :/* A dummy class name */
                  Setattr(o,"name",$3.text);
 	     }   
 
+             | PUBLIC COLON { $$ = new_node("public",$1.filename,$1.line); }
+             | PRIVATE COLON { $$ = new_node("private",$1.filename,$1.line); }
+             | PROTECTED COLON { $$ = new_node("protected",$1.filename,$1.line); }
+
+             | FRIEND {
+	       LParse_skip_decl();
+	     }
+
+             | type type_extra OPERATOR {
+	       LParse_skip_decl();
+             }
+	       
 /* Any sort of out-of-class C++ declaration */
             
               | storage_spec type declaration DCOLON {
@@ -1181,9 +1139,10 @@ cpp_other    :/* A dummy class name */
 		LParse_skip_decl();
 	     }
 
-/* %addmethods directive used outside of a class definition */
+/* %addmethods directive */
 
-             | ADDMETHODS ID LBRACE cpp_members RBRACE { }
+             | ADDMETHODS ID LBRACE interface RBRACE { }
+             | ADDMETHODS LBRACE interface RBRACE cpp_members { }
              ;
 
 /* =============================================================================
