@@ -71,6 +71,10 @@
 /* Warnings */
 #define %warnfilter(...) %feature("warnfilter",`__VA_ARGS__`)
 
+/* Contract support - Experimental and undocumented */
+
+#define %contract    %feature("contract")
+
 /* Default handling of certain overloaded operators */
 
 #ifdef __cplusplus
