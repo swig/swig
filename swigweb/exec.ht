@@ -59,12 +59,14 @@ prototyping tool.   Specifically:
 <li><b>ANSI C/C++ syntax</b>.  SWIG parses a form of ANSI C 
 syntax that has been extended with a number of special directives.
 As a result, interfaces are usually built by grabbing a header file
-and tweaking it a little bit.
+and tweaking it a little bit.  This particular approach is especially
+useful when the underlying C/C++ program undergoes frequent
+modification.
 
 <p>
 <li><b>SWIG is not a stub generator</b>.  SWIG produces code that you
 simply compile and run.  You don't have to fill in any stubs or write
-special code as you do with RPC-like systems.
+special client/server code as you do with RPC-like systems.
 
 <p>
 <li><b>SWIG does not define a protocol nor is it a component
@@ -73,10 +75,10 @@ regarding the way in which software components are supposed to
 interact with each other.  All it does is provide the glue needed to
 hook C code to other languages.
 
-<p>
-<li><b>Designed to work with existing C/C++ code</b>.  SWIG requires little, if any, modifications
-to existing code.  For the most part, it encourages you to keep a clean separation between
-C/C++ and its scripting interface.
+<p> <li><b>Designed to work with existing C/C++ code</b>.  SWIG
+requires little, if any, modifications to existing code.  For the most
+part, it encourages you to keep a clean separation between C/C++ and
+its scripting interface.
 
 <p>
 <li><b>Extensibility</b>.  SWIG provides a variety of customization options that
