@@ -264,4 +264,5 @@ extern  int   emit_args(SwigType *, ParmList *, Wrapper *f);
 extern  void  emit_func_call(char *, SwigType *, ParmList *, Wrapper *f);
 extern  void  SWIG_exit(int);
 extern int     check_numopt(ParmList *);
+extern void   SWIG_config_file(String_or_char *);
 

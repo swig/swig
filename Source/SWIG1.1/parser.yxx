@@ -475,7 +475,7 @@ static void dump_nested(char *parent) {
 };
 
 %token <id> ID 
-%token <id> HBLOCK WRAPPER POUND 
+%token <id> HBLOCK WRAPPER POUND RUNTIME
 %token <id> STRING
 %token <loc> INCLUDE IMPORT WEXTERN SWIGMACRO
 %token <id> NUM_INT NUM_FLOAT CHARCONST NUM_UNSIGNED NUM_LONG NUM_ULONG
@@ -857,6 +857,13 @@ statement      : INCLUDE STRING LBRACE {
 		   Printf(f_wrappers,"%s\n",$2);
 		 }
 	       }
+
+	       | RUNTIME HBLOCK {
+                 if (!WrapExtern) {
+                  $2[strlen($2) - 1] = 0;
+	          Printf(f_runtime,"%s\n", $2);
+                }
+               }
 
 /* Initialization code */
 

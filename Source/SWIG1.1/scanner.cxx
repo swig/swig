@@ -396,6 +396,10 @@ static void get_escape() {
 	yytext[yylen-1] = '\"';
 	return;
       }
+      if (c == '\n') {
+	yylen--;
+	return;
+      }
       if (c == '0') {
 	state = 10;
       }
@@ -1026,6 +1030,7 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%module") == 0) return(MODULE);
 	  if (strcmp(yytext,"%init") == 0)  return(INIT);
 	  if (strcmp(yytext,"%wrapper") == 0) return(WRAPPER);
+	  if (strcmp(yytext,"%runtime") == 0) return(RUNTIME);
 	  if (strcmp(yytext,"%readonly") == 0) return(READONLY);
 	  if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
 	  if (strcmp(yytext,"%name") == 0) return(NAME);
