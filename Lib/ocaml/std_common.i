@@ -6,6 +6,8 @@
 //
 // Ocaml implementation
 
+%apply size_t { std::size_t };
+
 %{
 #include <string>
     CAML_VALUE SwigString_FromString(const std::string& s) {
