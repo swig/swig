@@ -18,6 +18,76 @@ Version 1.3.8 (Not yet released)
 ==================================
 
 9/20/2001: beazley
+           Parser modified to ignore out-of-class constructor
+           and destructor declarations.  For example:
+
+               inline Foo::Foo() :
+                    Bar("foo")
+               { 
+               } 
+
+               inline Foo::~Foo() {
+               }
+
+           Suggested by Jason Stewart.
+           *** EXPERIMENTAL FEATURE ***
+
+9/20/2001: beazley
+           Modified the parser to ignore forward template class
+           declarations.  For example:
+
+              template <class V, long S> class MapIter;
+
+           Suggested by an email example from Irina Kotlova.
+
+9/20/2001: beazley
+           Fixed problem with undeclared tcl_result variable in 
+           the "out" typemap for Tcl.  Reported by Shaun Lowry.
+
+9/20/2001: beazley
+           Incorporated changes to make SWIG work with ActivePerl.  
+           Contributed by Joel Reed.
+
+9/20/2001: beazley
+           Slight change to the parsing of C++ constructor initializers.
+           For example:
+
+           class Foo : public Bar {
+           public:
+                  Foo() : Bar(...) {...}
+           };
+
+           SWIG now discards the contents of the (...) regardless of 
+           what might enclosed (even if syntactically wrong).  SWIG
+           doesn't need this information and there is no reason to
+           needless add syntax rules to handle all of the possibilities
+           here.
+
+9/20/2001: beazley
+           Change to typemaps for structure members.  If you have a
+           structure like this:
+
+              struct Vector {
+                int *bar;
+              };
+
+           The member name 'bar' is now used in any accessor functions.
+           This allows the "in" typemap to be used when setting the value.
+           For example, this typemap
+
+               %typemap(python,in) int *bar {
+                   ...
+               }
+
+           now matches Vector::bar.  It should be noted that this will also
+           match any function with an argument of "int *bar" (so you should
+           be careful).
+           *** NEW FEATURE. POTENTIAL INCOMPATIBILITY ***
+
+9/20/2001: beazley
+           Fixed SF bug #462642 setting string values in structures
+
+9/20/2001: beazley
            Fixed SF bug #462398 problem with nested templates.
 
 9/20/2001: beazley
