@@ -566,6 +566,9 @@ int RUBY::functionWrapper(Node *n) {
   /* Now write code to make the function call */
   emit_action(n,f);
 
+  int newobj = 0;
+  if (NewObject || (Getattr(n,"feature:new"))) newobj = 1;
+
   /* Return value if necessary */
   if (SwigType_type(t) != T_VOID) {
     need_result = 1;
@@ -577,7 +580,7 @@ int RUBY::functionWrapper(Node *n) {
 	Replaceall(tm,"$result","vresult");
 	Replaceall(tm,"$source","result");
 	Replaceall(tm,"$target","vresult");
-	Replaceall(tm,"$owner", ((current == CONSTRUCTOR) || NewObject) ? "1" : "0");
+	Replaceall(tm,"$owner", ((current == CONSTRUCTOR) || newobj) ? "1" : "0");
 	Printv(f->code, tm, "\n", 0);
       } else {
 	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
@@ -593,7 +596,7 @@ int RUBY::functionWrapper(Node *n) {
   Printv(f->code,cleanup,0);
 
   /* Look for any remaining cleanup.  This processes the %new directive */
-  if (NewObject) {
+  if (newobj) {
     tm = Swig_typemap_lookup_new("newfree",n,"result",0);
     if (tm) {
       Replaceall(tm,"$source","result");

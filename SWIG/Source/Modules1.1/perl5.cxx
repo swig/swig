@@ -593,7 +593,7 @@ PERL5::functionWrapper(Node *n)
 
   Printv(f->code,cleanup,0);
 
-  if (NewObject) {
+  if ((NewObject) || (Getattr(n,"feature:new")))  {
     if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
       Replaceall(tm,"$source","result");
       Printf(f->code,"%s\n",tm);
@@ -840,7 +840,7 @@ PERL5::constantWrapper(Node *n)
 	     "bless $", iname, ", ", is_shadow(type), ";\n",
 	     0);
     } else if (do_constants) {
-      Printv(const_stubs,"sub ", name, " { $",
+      Printv(const_stubs,"sub ", name, " () { $",
 	     package, "::", name, " }\n", 0);
       num_consts++;
     } else {

@@ -1040,7 +1040,7 @@ int JAVA::functionWrapper(Node *n) {
 
   // Look for any remaining cleanup
 
-  if (NewObject) {
+  if (NewObject || (Getattr(n,"feature:new"))) {
     if ((tm = Swig_typemap_lookup((char*)"newfree",t,iname,(char*)"result",(char*)"result",(char*)"",NULL))) {
       Printf(f->code,"%s\n", tm);
       Delete(tm);

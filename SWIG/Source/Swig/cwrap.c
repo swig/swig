@@ -110,48 +110,6 @@ Swig_wrapped_var_assign(SwigType *t, String_or_char *name) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_clocal_deref()
- *
- * Creates a string that can be used to deref a local variable wrapped with 
- * the Swig_clocal() function.
- * ----------------------------------------------------------------------------- */
-#if 0
-String *
-Swig_clocal_deref(SwigType *t, String_or_char *name) {
-  switch(SwigType_type(t)) {
-    /*  case T_VOID:
-    return NewString("");
-    break;
-    */
-  default:
-    return SwigType_rcaststr(t,name);
-    break;
-  }
-}
-
-
-/* -----------------------------------------------------------------------------
- * Swig_clocal_assign()
- *
- * Assigns a value to a local
- * ----------------------------------------------------------------------------- */
-
-String *
-Swig_clocal_assign(SwigType *t, String_or_char *name) {
-  switch(SwigType_type(t)) {
-    /*  case T_VOID:
-    return NewString("");
-    break;
-    */
-  default:
-    return SwigType_lcaststr(t,name);
-    break;
-  }
-}
-
-#endif
-
-/* -----------------------------------------------------------------------------
  * Swig_cargs()
  *
  * Emit all of the local variables for a list of parameters.  Returns the

@@ -335,7 +335,7 @@ TCL8::functionWrapper(Node *n) {
   Printv(f->code,cleanup,0);
 
   /* Look for any remaining cleanup */
-  if (NewObject) {
+  if ((NewObject) || (Getattr(n,"feature:new"))) {
     if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
       Replaceall(tm,"$source","result");
       Printf(f->code,"%s\n", tm);

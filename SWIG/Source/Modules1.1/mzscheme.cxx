@@ -360,7 +360,7 @@ MZSCHEME::functionWrapper(Node *n) {
 
   // Look for any remaining cleanup
 
-  if (NewObject) {
+  if ((NewObject) || (Getattr(n,"feature:new"))) {
     if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
       Replaceall(tm,"$source","result");
       Printv(f->code, tm, "\n",0);
