@@ -528,8 +528,7 @@ CHICKEN::functionWrapper(Node *n)
   }
 
   // Check for interrupts
-  Printv (f->code, "C_check_for_interrupt;\n",
-	  "C_trace(\"",scmname,"\");\n", NIL);
+  Printv (f->code, "C_trace(\"",scmname,"\");\n", NIL);
 
   Printv(f->def,
 #ifndef BINDING
@@ -952,8 +951,7 @@ CHICKEN::variableWrapper(Node *n)  {
   namify(proc_name);
 
   // Check for interrupts
-  Printv (f->code, "C_check_for_interrupt;\n",
-	  "C_trace(\"",scmname,"\");\n", NIL);
+  Printv (f->code, "C_trace(\"",scmname,"\");\n", NIL);
 
   closargs     = NewString("");
   closwrapargs = NewString("");
@@ -1224,8 +1222,7 @@ CHICKEN::constantWrapper(Node *n)
   namify(proc_name);
     
   // Check for interrupts
-  Printv (f->code, "C_check_for_interrupt;\n",
-	  "C_trace(\"",scmname,"\");\n", NIL);
+  Printv (f->code, "C_trace(\"",scmname,"\");\n", NIL);
 
   if (1 || (SwigType_type(t) != T_USER) || (isPointer(t))) {
       
