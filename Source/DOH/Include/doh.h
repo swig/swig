@@ -1,12 +1,12 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * doh.h
  *
  *     This file describes of the externally visible functions in DOH.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  *
  * $Header$
  * ----------------------------------------------------------------------------- */
@@ -24,7 +24,7 @@ extern "C" {
 #define DOH_MAJOR_VERSION 0
 #define DOH_MINOR_VERSION 1
 
-typedef void DOH;                
+typedef void DOH;
 
 #define DOH_BEGIN    -1
 #define DOH_END      -2
@@ -50,7 +50,7 @@ typedef struct {
   int       (*doh_setitem)(DOH *obj, int index, DOH *value); /* Set item      */
   int       (*doh_delitem)(DOH *obj, int index);             /* Delete item   */
   int       (*doh_insitem)(DOH *obj, int index, DOH *value); /* Insert item   */
-  DOH      *(*doh_firstitem)(DOH *obj);                      /* Iterators     */  
+  DOH      *(*doh_firstitem)(DOH *obj);                      /* Iterators     */
   DOH      *(*doh_nextitem)(DOH *obj);
 } DohSequenceMethods;
 
@@ -87,7 +87,7 @@ typedef struct {
 
 /* -----------------------------------------------------------------------------
  * DohObjInfo
- * 
+ *
  * A pointer to this structure is included in all DOH types and is used to
  * describe the properties of various objects.
  * ----------------------------------------------------------------------------- */
@@ -109,17 +109,17 @@ typedef struct DohObjInfo {
   DOH       *(*doh_load)(DOH *in);             /* Unserialize from in */
 
   /* Length and hash values */
-  int       (*doh_len)(DOH *obj);          
-  int       (*doh_hash)(DOH *obj); 
+  int       (*doh_len)(DOH *obj);
+  int       (*doh_hash)(DOH *obj);
 
-  /* Compare */ 
+  /* Compare */
   int       (*doh_cmp)(DOH *obj1, DOH *obj2);
 
   DohMappingMethods  *doh_mapping;             /* Mapping methods    */
   DohSequenceMethods *doh_sequence;            /* Sequence methods   */
   DohFileMethods     *doh_file;                /* File methods       */
   DohStringMethods   *doh_string;              /* String methods     */
-  DohCallableMethods *doh_callable;            /* Callable methods   */ 
+  DohCallableMethods *doh_callable;            /* Callable methods   */
   DohPositionalMethods *doh_position;          /* Positional methods */
   void               *reserved4;
   void               *reserved5;
@@ -161,7 +161,7 @@ typedef struct DohObjInfo {
   extern int     DohCmp(DOH *obj1, DOH *obj2);
 
   /* Mapping methods */
-  
+
   extern DOH    *DohGetattr(DOH *obj, DOH *name);
   extern int     DohSetattr(DOH *obj, DOH *name, DOH *value);
   extern void    DohDelattr(DOH *obj, DOH *name);
@@ -321,12 +321,12 @@ typedef struct {
 #define DOH_FLAG_DELSCOPE    0x04
 #define DOH_FLAG_GC          0x08
 #define DOH_FLAG_INTERN      0x10
-  
+
 /* -----------------------------------------------------------------------------
- * Strings.   
+ * Strings.
  * ----------------------------------------------------------------------------- */
 
-extern DOH   *NewString(DOH *c);
+extern DOH   *NewString(const DOH *c);
 extern DOH   *NewStringf(DOH *fmt, ...);
 
 extern int    String_check(DOH *s);
@@ -376,7 +376,7 @@ extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
 
 extern DOH *DohNone;
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * Callable
  * ----------------------------------------------------------------------------- */
 
