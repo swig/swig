@@ -377,17 +377,21 @@ $result = C_SCHEME_UNDEFINED;
 }
 #endif
 
+%typemap(varin) char [] {
+  swig_barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, "C/C++ variable '$name' is read-only");
+}
+
 /* Special case for string array variables */
 %typemap(varin) char [ANY] {
   if ($input == C_SCHEME_FALSE) {
-    $1 = NULL;
+    memset($1,0,$1_dim0*sizeof(char));
   }
   else if (!C_swig_is_string ($input)) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "C variable '$name ($1_ltype)'");
   }
   else {
     char *temp = C_c_string ($input);
-    strncpy($1,temp,$1_dim0);
+    strncpy($1,temp,$1_dim0*sizeof(char));
   }
 }
 
@@ -398,15 +402,15 @@ $result = C_SCHEME_UNDEFINED;
 
 /* Special typemap for character array return values */
 %typemap(varout) char [ANY], const char [ANY] 
-%{  if ($varname == C_SCHEME_FALSE) {
-    $result = NULL;
-  }
-  else if (C_swig_is_string ($varname)) {
-    $result = SWIG_MakeString ($varname);
+%{  if ($varname == NULL) {
+    $result = C_SCHEME_FALSE;
   }
   else {
-     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument #$argnum is not of type 'string'");    
-  } %}
+   const int string_len = strlen ($varname);
+   C_word *string_space = C_alloc (C_SIZEOF_STRING (string_len));
+   $result = C_string (&string_space, string_len, (char *) $varname);
+  }
+%}
 
 
 /* --- Constants --- */
@@ -578,7 +582,7 @@ $result = C_SCHEME_UNDEFINED;
 extern "C" {
 #endif
 /* Chicken initialization function */
-SWIGEXPORT(void) SWIG_init(int, C_word, C_word) C_noret;
+SWIGEXPORT(void) SWIG_init(C_word, C_word, C_word) C_noret;
 #ifdef __cplusplus
 }
 #endif
@@ -590,6 +594,9 @@ SWIGEXPORT(void) SWIG_init(int, C_word, C_word) C_noret;
 
 %insert(init) %{
 /* CHICKEN initialization function */
+#ifdef __cplusplus
+extern "C" {
+#endif
 SWIGEXPORT(void)
 SWIG_init(C_word argc, C_word closure, C_word continuation) {
   int       i;
