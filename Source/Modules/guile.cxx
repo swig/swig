@@ -711,6 +711,7 @@ public:
     String *overname = 0;
     int args_passed_as_array = 0;
     int scheme_argnum = 0;
+    bool any_specialized_arg = false;
     
     // Make a wrapper name for this
     String *wname = Swig_name_wrapper(iname);
@@ -836,6 +837,7 @@ public:
 	      /* do input conversion */
 	      if (goopsclassname) {
 		Printv(method_signature, " (", argname, " ", goopsclassname, ")", NIL);
+		any_specialized_arg = true;
 	      } else {
 		Printv(method_signature, " ", argname, NIL);
 	      }
@@ -1132,7 +1134,14 @@ public:
 	Printv(primitive_name, proc_name, NIL);
       Replaceall(method_signature, "_", "-");
       Replaceall(primitive_args, "_", "-");
-      if (numreq == numargs) {
+      if (!any_specialized_arg) {
+	/* If there would not be any specialized argument in
+	   the method declaration, we simply re-export the
+	   function.  This is a performance optimization. */
+	Printv(method_def, "(define ", goops_name, " ",
+	       primitive_name, ")\n", NIL);
+      }
+      else if (numreq == numargs) {
 	Printv(method_def, "(define-method (", goops_name, method_signature, ")\n", NIL);
 	Printv(method_def, "  (", primitive_name, primitive_args, "))\n", NIL);	
       }
