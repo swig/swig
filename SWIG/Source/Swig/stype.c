@@ -1140,6 +1140,8 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       }
       Printv(e,").",NIL);
       Delete(fparms);
+    } else if (SwigType_isarray(e)) {
+      Replace(e,pat,rep, DOH_REPLACE_ID);
     }
     Append(nt,e);
   }

@@ -245,7 +245,6 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	int     sz, i;
 	
 	name = Getattr(tp,"name");
-
 	value = Getattr(p,"value");
 	tydef = Getattr(p,"typedef");
 
@@ -278,10 +277,10 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	  for (i = 0; i < sz; i++) {
 	    String *s = Getitem(typelist,i);
 	    /*	    Replace(s,name,value, DOH_REPLACE_ID); */
-	    /* Printf(stdout,"name = '%s', s = '%s' --> ", name, s); */
+	    /*	    Printf(stdout,"name = '%s', value = '%s', tbase = '%s', iname='%s' s = '%s' --> ", name, value, tbase, iname, s); */
 	    SwigType_typename_replace(s,name,value);
 	    SwigType_typename_replace(s,tbase,iname);
-	    /*	    Printf(stdout,"'%s'\n", s); */
+	    /*	    Printf(stdout,"'%s'\n", s);*/
 	  }
 	  
 	  if (!tydef) {
