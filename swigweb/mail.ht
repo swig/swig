@@ -7,7 +7,7 @@ SWIG Mailing Lists
 There are a number of mailing lists available. Please use them for any queries related to the use or development of SWIG.
 
 <p>
-<b>Important</b>. The mailing lists are set with a very high level of spam rejection, meaning occasionally some SWIG user's email postings will be discarded. Emails classified as spam are quietly discarded, so please check the archives if you are unsure as to whether or not your email was successfully posted. The mailing lists are also subscriber only lists, so you must subscribe to the relevant list in order to post to that list.
+<b>Important</b>. The mailing lists are set with a very high level of spam rejection, meaning occasionally some SWIG user's email postings will be discarded. Emails classified as spam are quietly discarded, so please check the archives if you are unsure as to whether or not your email was successfully posted. Note that only plain text emails should be sent, that is html, rtf etc formatted emails will be quietly discarded. The mailing lists are also subscriber only lists, so you must subscribe to the relevant list in order to post to that list. 
 
 <p>
 To subscribe to any of the mailing lists or view the archives, use the links on the left column.
@@ -56,8 +56,8 @@ The mailing lists can be searched in various different ways.
 
 <p>
 <a href="http://www.gmane.org">Gmane</a> archives many mailing lists including the swig mailing list.
-You can <a href="http://search.gmane.org/search.php?query=&email=&group=gmane.comp.programming.swig&sort=date">search the SWIG mailing list</a>
-archives at Gmane.
+You can use Gmane to <a href="http://dir.gmane.org/gmane.comp.programming.swig">search the swig mailing list</a> archives
+or just browse the list online as if the list was a newsgroup.
 Note that only the swig mailing list can be queried as the swig-dev mailing list is not currently archived by Gmane.
 </p>
 
