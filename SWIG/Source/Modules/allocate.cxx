@@ -316,7 +316,6 @@ class Allocate : public Dispatcher {
 			Append(methods,cp);
 		      }
 		    } else {
-		      Setattr(cp,"feature:immutable","1");
 		      Append(methods,cp);
 		    }
 		  } else {

@@ -1208,12 +1208,11 @@ Language::membervariableHandler(Node *n) {
     int assignable = is_assignable(n);
 
     if (SmartPointer) {
-      if (!Getattr(n,"classname")) {
-	Setattr(n,"classname",Getattr(CurrentClass,"allocate:smartpointerbase"));
+      if (Getattr(CurrentClass,"allocate:smartpointerconst")) {
+	assignable = 0;
       }
     }
-    
-    
+
     if (assignable) {
       int       make_wrapper = 1;
       String *tm = 0;
@@ -1221,7 +1220,8 @@ Language::membervariableHandler(Node *n) {
       if (!Extend) {
 	if (SmartPointer) {
 	  if (checkAttribute(n, "storage", "static")) {
-	    String *base = Getattr(n,"classname"); 
+	    Node *sn = Getattr(n,"cplus:staticbase");
+	    String *base = Getattr(sn,"name"); 
 	    target = NewStringf("%s::%s", base,name);
 	  } else {
 	    target = NewStringf("(*%s)->%s",Swig_cparm_name(0,0),name);

@@ -1148,7 +1148,8 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
 
   if (flags & CWRAP_SMART_POINTER) {
     if (checkAttribute(n, "storage", "static")) {
-      String *base = Getattr(n,"classname"); 
+      Node *sn = Getattr(n,"cplus:staticbase");
+      String *base = Getattr(sn,"name"); 
       self = NewStringf("%s::", base);
     } else {
       self = NewString("(*this)->");

@@ -8,7 +8,9 @@
       static int hello() 
       {
 	return 1;
-      }      
+      }
+      int x;
+      static const int z = 1;
     };
 
     class CDerived : public CBase
@@ -29,7 +31,7 @@
     class CPtrConst
     {
     public:
-      CDerived* operator->(void) const {return 0;};
+      const CDerived* operator->() const {return 0;};
     };
     
   }

@@ -32,7 +32,7 @@
     Foo *f;
   public:
     CBar(Foo *f) : f(f) { }
-    Foo *operator->() const {
+    const Foo *operator->()  {
       return f;
     }
   };
