@@ -2,11 +2,16 @@
 // a class with no default constructor
 
 %module cpp_nodefault
+
 %inline %{
 
 class Foo {
 public:
+   int a;
    Foo(int x, int y) { }
+  ~Foo() {
+      printf("Destroying foo\n");
+   }
 };
 
 Foo create(int x, int y) {

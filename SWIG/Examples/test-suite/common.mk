@@ -39,6 +39,8 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	inherit_missing \
+	typedef_inherit \
 	add_link \
 	anonymous_arg \
 	arrays_global \
