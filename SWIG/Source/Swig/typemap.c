@@ -405,7 +405,7 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
     */
     if (!sm) {
       SwigType *ntype = SwigType_typedef_resolve(type);
-      if (Cmp(ntype,type) != 0) {
+      if (ntype && (Cmp(ntype,type) != 0)) {
 	sm = Swig_typemap_get(ntype,name,ts);
       }
       Delete(ntype);
