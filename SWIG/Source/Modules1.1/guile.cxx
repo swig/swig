@@ -207,7 +207,7 @@ GUILE::main (int argc, char *argv[])
 // GUILE::top()
 // --------------------------------------------------------------------
 
-void
+int
 GUILE::top(Node *n)
 {
 
@@ -300,7 +300,7 @@ GUILE::top(Node *n)
   Delete(f_init);
   Close(f_runtime);
   Delete(f_runtime);
-
+  return SWIG_OK;
 }
 
 // ---------------------------------------------------------------------
@@ -531,15 +531,16 @@ GUILE::write_doc(const String *proc_name,
 
 
 // ----------------------------------------------------------------------
-// GUILE::create_function(char *name, char *iname, SwigType *d,
-//                             ParmList *l)
-//
+// GUILE::functionWrapper()
 // Create a function declaration and register it with the interpreter.
 // ----------------------------------------------------------------------
 
-void
-GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
-{
+int
+GUILE::functionWrapper(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *d = Getattr(n,"type");
+  ParmList *l = Getattr(n,"parms");
   Parm *p;
   DOHString *proc_name = 0;
   char source[256], target[256], wname[256];
@@ -695,7 +696,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   // Now write code to make the function call
   Printv(f->code, tab4, "gh_defer_ints();\n", 0);
-  emit_func_call (name, d, l, f);
+  emit_action(n,f);
   Printv(f->code, tab4, "gh_allow_ints();\n", 0);
 
   // Now have return value, figure out what to do with it.
@@ -814,10 +815,11 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   Delete(returns);
   Delete(tmp);
   DelWrapper(f);
+  return SWIG_OK;
 }
 
 // -----------------------------------------------------------------------
-// GUILE::link_variable(char *name, char *iname, SwigType *d)
+// GUILE::variableWrapper()
 //
 // Create a link to a C variable.
 // This creates a single function PREFIX_var_VARNAME().
@@ -827,9 +829,14 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 // value.
 // -----------------------------------------------------------------------
 
-void
-GUILE::link_variable (char *name, char *iname, SwigType *t)
+int
+GUILE::variableWrapper(Node *n)
 {
+
+  char *name  = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+
   DOHString *proc_name;
   char  var_name[256];
   Wrapper *f;
@@ -837,7 +844,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
   f = NewWrapper();
   // evaluation function names
 
-  strcpy(var_name, Char(Swig_name_wrapper(name))); 
+  strcpy(var_name, Char(Swig_name_wrapper(iname))); 
 
   // Build the name for scheme.
   proc_name = NewString(iname);
@@ -937,17 +944,23 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
   }
   Delete(proc_name);
   DelWrapper(f);
+  return SWIG_OK;
 }
 
 // -----------------------------------------------------------------------
-// GUILE::declare_const(char *name, char *iname, SwigType *type, char *value)
+// GUILE::constantWrapper()
 //
 // We create a read-only variable.
 // ------------------------------------------------------------------------
 
-void
-GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
+int
+GUILE::constantWrapper(Node *n)
 {
+  char *name      = GetChar(n,"name");
+  char *iname     = GetChar(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  String   *value = Getattr(n,"value");
+
   int OldReadOnly = ReadOnly;
   DOHString *proc_name;
   char   var_name[256];
@@ -960,7 +973,7 @@ GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
 
   // Make a static variable;
 
-  sprintf (var_name, "%sconst_%s", prefix, name);
+  sprintf (var_name, "%sconst_%s", prefix, iname);
 
   // Strip const qualifier from type if present
 
@@ -976,7 +989,7 @@ GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
   if ((SwigType_type(nctype) == T_USER) && (!is_a_pointer(nctype))) {
     Printf (stderr, "%s : Line %d.  Unsupported constant value.\n",
              input_file, line_number);
-    return;
+    return SWIG_NOWRAP;
   }
 
   // See if there's a typemap
@@ -996,28 +1009,37 @@ GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
     Printf (f_header, "static %s %s = %s;\n", SwigType_lstr(nctype,0),
 	    var_name, rvalue);
   }
-  // Now create a variable declaration
-  link_variable (var_name, iname, nctype);
+  {
+    /* Hack alert: will cleanup later -- Dave */
+    Node *n = NewHash();
+    Setattr(n,"name",var_name);
+    Setattr(n,"sym:name",iname);
+    Setattr(n,"type", nctype);
+    variableWrapper(n);
+    Delete(n);
+  }
   ReadOnly = OldReadOnly;
   Delete(nctype);
   Delete(proc_name);
   Delete(rvalue);
   DelWrapper(f);
+  return SWIG_OK;
 }
 
-void GUILE::cpp_variable(char *name, char *iname, SwigType *t)
+int GUILE::membervariableDeclaration(Node *n)
 {
   if (emit_setters) {
     struct_member = 1;
     Printf(f_init, "{\n");
-    Language::cpp_variable(name, iname, t);
+    Language::membervariableDeclaration(n);
     Printf(f_init, "}\n");
     struct_member = 0;
   }
   else {
     /* Only emit traditional VAR-get and VAR-set procedures */
-    Language::cpp_variable(name, iname, t);
+    Language::membervariableDeclaration(n);
   }
+  return SWIG_OK;
 }
 
 void GUILE::pragma(char *lang, char *cmd, char *value)

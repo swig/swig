@@ -88,7 +88,7 @@ static  int       have_operators = 0;
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 static DOH *is_shadow(SwigType *t) {
   DOH *r;
-  SwigType *lt = Swig_clocal_type(t);
+  SwigType *lt = SwigType_ltype(t);
   r = Getattr(classes,lt);
   Delete(lt);
   return r;
@@ -157,7 +157,7 @@ PERL5::main(int argc, char *argv[]) {
 /* -----------------------------------------------------------------------------
  * PERL5::top()
  * ----------------------------------------------------------------------------- */
-void
+int
 PERL5::top(Node *n) {
 
   /* Initialize all of the output files */
@@ -449,6 +449,7 @@ PERL5::top(Node *n) {
   Delete(f_init);
   Close(f_runtime);
   Delete(f_runtime);
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -501,7 +502,7 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
 	    SwigType *t, String *f, char *ret) {
 
   SwigType_remember(t);
-  SwigType *lt = Swig_clocal_type(t);
+  SwigType *lt = SwigType_ltype(t);
   Printv(f, "if (SWIG_ConvertPtr(", src, ",(void **) &", dest, ",", 0);
 
   /* If we're passing a void pointer, we give the pointer conversion a NULL
@@ -534,11 +535,16 @@ PERL5::create_command(char *cname, char *iname) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::create_function()
+ * PERL5::functionWrapper()
  * ----------------------------------------------------------------------------- */
-void
-PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
+int
+PERL5::functionWrapper(Node *n)
 {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *d = Getattr(n,"type");
+  ParmList *l = Getattr(n,"parms");
+
   Parm *p;
   int   i;
   Wrapper *f;
@@ -707,7 +713,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 
   /* Now write code to make the function call */
 
-  emit_func_call(name,d,l,f);
+  emit_action(n,f);
 
   if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"result",(char*)"ST(argvi)",0))) {
     Printf(f->code, "%s\n", tm);
@@ -916,14 +922,20 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   Delete(cleanup);
   Delete(outarg);
   DelWrapper(f);
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::link_variable()
+ * PERL5::variableWrapper()
  * ----------------------------------------------------------------------------- */
 
-void PERL5::link_variable(char *name, char *iname, SwigType *t)
+int PERL5::variableWrapper(Node *n)
 {
+
+  char *name  = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+
   char  set_name[256];
   char  val_name[256];
   Wrapper  *getf, *setf;
@@ -1027,7 +1039,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 
       default :
 	Printf(stderr,"%s : Line %d.  Unable to link with datatype %s (ignored).\n", input_file, line_number, SwigType_str(t,0));
-	return;
+	return SWIG_NOWRAP;
       }
     }
     Printf(setf->code,"    return 1;\n}\n");
@@ -1151,10 +1163,11 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 
   DelWrapper(setf);
   DelWrapper(getf);
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::declare_const()
+ * PERL5::constantWrapper()
  * ----------------------------------------------------------------------------- */
 
 /* Functions used to create constants */
@@ -1211,9 +1224,13 @@ static const char *setrv = "#ifndef PERL_OBJECT\
 \n     SvREADONLY_on(sv);\
 \n}\n";
 
-void
-PERL5::declare_const(char *name, char *iname, SwigType *type, char *value)
+int
+PERL5::constantWrapper(Node *n)
   {
+  char *name      = GetChar(n,"name");
+  char *iname     = GetChar(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  String   *value = Getattr(n,"value");
 
   String   *tm;
   static  int have_int_func = 0;
@@ -1299,6 +1316,7 @@ PERL5::declare_const(char *name, char *iname, SwigType *type, char *value)
       Printf(exported,"$%s ",iname);
     }
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1591,10 +1609,15 @@ PERL5::cpp_close_class() {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_member_func()
+ * PERL5::memberfunctionDeclaration()
  * ----------------------------------------------------------------------------- */
-void
-PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
+int
+PERL5::memberfunctionDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+  ParmList *l = Getattr(n,"parms");
+
   String  *func;
   char    *realname;
   Parm    *p;
@@ -1605,7 +1628,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   int      need_wrapper = 0;
 
   member_func = 1;
-  this->Language::cpp_member_func(name,iname,t,l);
+  Language::memberfunctionDeclaration(n);
   member_func = 0;
 
   if (blessed) {
@@ -1648,7 +1671,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   
     p = l;
     pcount = ParmList_len(l);
-    numopt = check_numopt(l);
+    numopt = 0; /* check_numopt(l); */
     i = 1;
     while(p) {
       SwigType *pt = Getattr(p,"type");
@@ -1725,10 +1748,11 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
     Delete(func);
     Delete(cname);
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_variable()
+ * PERL5::membervariableDeclaration()
  *
  * Adds an instance member.   This is a little hairy because data members are
  * really added with a tied-hash table that is attached to the object.
@@ -1744,14 +1768,18 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
  * is in the list, we tie it, otherwise, we just return the normal SWIG value.
  * ----------------------------------------------------------------------------- */
 
-void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
+int PERL5::membervariableDeclaration(Node *n) {
+
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t  = Getattr(n,"type");
 
   char *realname;
 
   /* Emit a pair of get/set functions for the variable */
 
   member_func = 1;
-  this->Language::cpp_variable(name, iname, t);
+  Language::membervariableDeclaration(n);
   member_func = 0;
 
   if (blessed) {
@@ -1777,18 +1805,23 @@ void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
      }
   }
   have_data_members++;
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_constructor()
+ * PERL5::constructorDeclaration()
  *
  * Emits a blessed constructor for our class.    In addition to our construct
  * we manage a Perl hash table containing all of the pointers created by
  * the constructor.   This prevents us from accidentally trying to free
  * something that wasn't necessarily allocated by malloc or new
  * ----------------------------------------------------------------------------- */
-void
-PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
+int
+PERL5::publicconstructorDeclaration(Node *n) {
+
+  char *iname = GetChar(n,"sym:name");
+  ParmList *l = Getattr(n,"parms");
+
   Parm *p;
   int   i;
   String *realname;
@@ -1796,7 +1829,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
   /* Emit an old-style constructor for this class */
 
   member_func = 1;
-  this->Language::cpp_constructor(name, iname, l);
+  Language::publicconstructorDeclaration(n);
 
   if (blessed) {
 
@@ -1857,16 +1890,19 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
 
   }
   member_func = 0;
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_destructor()
+ * PERL5::publicdestructorDeclaration()
  * ----------------------------------------------------------------------------- */
-void
-PERL5::cpp_destructor(char *name, char *newname) {
+int
+PERL5::publicdestructorDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *newname = GetChar(n,"sym:name");
   String *realname;
   member_func = 1;
-  this->Language::cpp_destructor(name, newname);
+  Language::publicdestructorDeclaration(n);
 
   if (blessed) {
     if (newname) realname = newname;
@@ -1892,38 +1928,34 @@ PERL5::cpp_destructor(char *name, char *newname) {
 
   }
   member_func = 0;
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_static_func()
+ * PERL5::staticmemberfunctionDeclaration()
  * ----------------------------------------------------------------------------- */
-void
-PERL5::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
-  this->Language::cpp_static_func(name,iname,t,l);
-
+int
+PERL5::staticmemberfunctionDeclaration(Node *n) {
+  Language::staticmemberfunctionDeclaration(n);
   if (blessed) {
-    char *realname;
-    if (iname) realname = name;
-    else realname = iname;
-
-    Printv(pcode, "*", realname, " = *", package, "::", Swig_name_member(class_name,realname), ";\n", 0);
+    String *symname = Getattr(n,"sym:name");
+    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", 0);
   }
+  return SWIG_OK;
 }
 
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_static_var()
+ * PERL5::staticmembervariableDeclaration()
  * ----------------------------------------------------------------------------- */
-void
-PERL5::cpp_static_var(char *name, char *iname, SwigType *t) {
-  this->Language::cpp_static_var(name,iname,t);
-
+int
+PERL5::staticmembervariableDeclaration(Node *n) {
+  Language::staticmembervariableDeclaration(n);
   if (blessed) {
-    char *realname;
-    if (iname) realname = name;
-    else realname = iname;
-    Printv(pcode, "*", realname, " = *", package, "::", Swig_name_member(class_name,realname), ";\n", 0);
+    String *symname = Getattr(n,"sym:name");
+    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", 0);
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1965,16 +1997,19 @@ PERL5::cpp_inherit(char **baseclass, int) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_declare_const()
+ * PERL5::memberconstantDeclaration()
  * ----------------------------------------------------------------------------- */
-void
-PERL5::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
+int
+PERL5::memberconstantDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+
   String *realname;
   int   oldblessed = blessed;
 
   /* Create a normal constant */
   blessed = 0;
-  this->Language::cpp_declare_const(name, iname, type, value);
+  Language::memberconstantDeclaration(n);
   blessed = oldblessed;
 
   if (blessed) {
@@ -1986,6 +2021,7 @@ PERL5::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
     /* Create a symbol table entry for it */
     Printv(pcode, "*", realname, " = *", package, "::", Swig_name_member(class_name,realname), ";\n", 0);
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------

@@ -104,6 +104,9 @@ int main(int argc, char **argv) {
 	  } else if (strcmp(argv[i],"-ruby") == 0) {
 	      dl = new RUBY;
 	      Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-nolang") == 0) {
+	    dl = new Language;
+	    Swig_mark_arg(i);
 	      /*	  } else if (strcmp(argv[i],"-htoi") == 0) {
 	    dl = new HTOI;
 	    Swig_mark_arg(i); */

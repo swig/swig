@@ -16,8 +16,6 @@
 
 static char cvsroot[] = "$Header$";
 
-extern Language *lang;
-
 /* -----------------------------------------------------------------------------
  * emit_args()
  *
@@ -28,16 +26,17 @@ extern Language *lang;
  * Returns the number of parameters associated with a function.
  * ----------------------------------------------------------------------------- */
 
-int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
+void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
 
   Parm *p;
-  int   i;
   String *tm;
-  SwigType *pt;
 
   /* Emit function arguments */
   Swig_cargs(f, l);
 
+  if (rt && (SwigType_type(rt) != T_VOID))
+    Wrapper_add_local(f,"result", SwigType_lstr(rt,"result"));
+  
   /* Attach typemaps to parameters */
   Swig_typemap_attach_parms("ignore",l,f);
   Swig_typemap_attach_parms("default",l,f);
@@ -91,19 +90,7 @@ int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
       p = nextSibling(p);
     }
   }
-
-  /* Hack for compatibility -- Remove later */
-  i = 0;
-  p = l;
-  while (p != 0) {
-    pt     = Getattr(p,"type");
-    if (SwigType_type(pt) != T_VOID) {
-      i++;
-    }
-    p = nextSibling(p);
-  }
-  /* End hack */
-  return i;
+  return;
 }
 
 /* -----------------------------------------------------------------------------
@@ -175,165 +162,40 @@ int emit_num_required(ParmList *parms) {
       }
     }
   }
-
   /* Might want an error message if any arguments that follow don't have defaults */
   return nargs;
 }
  
 /* -----------------------------------------------------------------------------
- * int emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper*f)
+ * int emit_action()
  *
- * Emits code for a function call (new version).
- *
- * Exception handling support :
- *
- *     -  This function checks to see if any sort of exception mechanism
- *        has been defined.  If so, we emit the function call in an exception
- *        handling block.
+ * Emits action code for a wrapper and checks for exception handling
  * ----------------------------------------------------------------------------- */
 
-static DOH *fcall = 0;
-
-void emit_set_action(DOHString_or_char *decl) {
-  if (fcall) Delete (fcall);
-  if (decl) {
-    fcall = NewString(decl);
-  } else {
-    fcall = 0;
-  }
-}
-
-void emit_func_call(char *decl, SwigType *t, ParmList *l, Wrapper *f) {
+void emit_action(Node *n, Wrapper *f) {
   String *tm;
+  String *action;
+  String *wrap;
 
-  if ((tm = Swig_typemap_lookup((char*)"except",t,decl,(char*)"result", (char*)"result",(char*)"",0))) {
-    Printv(f->code,tm,0);
-    Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
-    Delete(tm);
-  } else if ((tm = Swig_except_lookup())) {
-    Printv(f->code,tm,0);
-    Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
-    Delete(tm);
-  } else {
-    Printv(f->code,"$function",0);
-  }
-  
-  if (!fcall) fcall = NewString(Swig_cfunction_call(decl,l));
-
-  if (CPlusPlus) {
-    Swig_cppresult(f, t, (char*)"result", Char(fcall));
-  } else {
-    Swig_cresult(f, t, (char*)"result", Char(fcall));
-  }
-  Delete(fcall);
-  fcall = 0;
-}
-
-/* -----------------------------------------------------------------------------
- * void emit_set_get(char *name, char *iname, DataType *type)
- *
- * Emits a pair of functions to set/get the value of a variable.  This is
- * only used in the event the target language can't provide variable linking
- * on its own.
- *
- * double foo;
- *
- * Gets translated into the following :
- *
- * double foo_set(double x) {
- *      return foo = x;
- * }
- *
- * double foo_get() {
- *      return foo;
- * }
- * ----------------------------------------------------------------------------- */
-
-/* How to assign a C allocated string */
-
-static char *c_str = (char *)"\
-if ($target) free($target);\n\
-$target = ($rtype) malloc(strlen($source)+1);\n\
-strcpy((char *)$target,$source);\n\
-return $ltype $target;\n";
-
-/* How to assign a C allocated string */
-
-static char *cpp_str = (char *)"\
-if ($target) delete [] $target;\n\
-$target = ($rtype) (new char[strlen($source)+1]);\n\
-strcpy((char *)$target,$source);\n\
-return ($ltype) $target;\n;";
-
-
-void emit_set_get(char *name, char *iname, SwigType *t) {
-
-  Wrapper *w;
-  DOHString *new_iname;
-  char    *code = 0;
-  File    *f_header;
-  
-  f_header = Swig_filebyname("header");
-  assert(f_header);
-
-  /* First write a function to set the variable of the variable */
-  if (!ReadOnly) {
-
-    if (SwigType_type(t) == T_STRING) {
-      if (CPlusPlus)
-	code = cpp_str;
-      else
-	code = c_str;
-    }
-    w = Swig_cvarset_wrapper(name, t, code);
-    Wrapper_print(w,f_header);
-    new_iname = Swig_name_set(iname);
-    DohIncref(new_iname);
-    lang->create_function(Wrapper_Getname(w), Char(new_iname), Wrapper_Gettype(w), Wrapper_Getparms(w));
-    Delete(new_iname);
-    DelWrapper(w);
-  }
-
-  w = Swig_cvarget_wrapper(name,t,0);
-  Wrapper_print(w,f_header);
-  new_iname = Swig_name_get(iname);
-  DohIncref(new_iname);
-  lang->create_function(Wrapper_Getname(w), Char(new_iname), Wrapper_Gettype(w), Wrapper_Getparms(w));
-  Delete(new_iname);
-  DelWrapper(w);
-}
-
-/* ------------------------------------------------------------------
- * int check_numopt()
- *
- * Gets the number of optional arguments for a ParmList. 
- * ------------------------------------------------------------------ */
-
-int check_numopt(ParmList *p) {
-  int  n = 0;
-  int  i = 0;
-  int  state = 0;
-
-  for (;p; p = nextSibling(p),i++) {
-    SwigType *pt = Getattr(p,"type");
-    String   *pn = Getattr(p,"name");
-    if (Getattr(p,"value")) {
-      n++;
-      state = 1;
-    } else if (Swig_typemap_search((char*)"default",pt,pn)) {
-      n++;
-      state = 1;
-    } else if (Swig_typemap_search((char*)"ignore",pt,pn)) {
-      n++;
-    } else {
-      if (state) {
-	Printf(stderr,"%s : Line %d.  Argument %d must have a default value!\n", input_file,line_number,i+1);
-      }
+  /* Emit wrapper code (if any) */
+  wrap = Getattr(n,"wrap:code");
+  if (wrap) {
+    File *f_wrapper = Swig_filebyname("wrapper");
+    if (f_wrapper) {
+      Printv(f_wrapper,wrap,0);
     }
   }
-  return n;
+  action = Getattr(n,"wrap:action");
+  assert(action);
+  if ((tm = Swig_except_lookup())) {
+    Replace(tm,"$name",Getattr(n,"name"), DOH_REPLACE_ANY);
+    Replace(tm,"$function", action, DOH_REPLACE_ANY);      /* Deprecated */
+    Replace(tm,"$action", action, DOH_REPLACE_ANY);
+    Printv(f->code,tm,0);
+  } else {
+    Printv(f->code, action, 0);
+  }
 }
-
 
 
 

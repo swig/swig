@@ -132,6 +132,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   char   *includefiles[256];
   int     includecount = 0;
   extern  int check_suffix(char *);
+  int     dump_tags = 0;
+  int     dump_tree = 0;
 
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
@@ -273,6 +275,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    } else {
 	      Swig_arg_error();
 	    }
+	  } else if (strcmp(argv[i],"-dump_tags") == 0) {
+	    dump_tags = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dump_tree") == 0) {
+	    dump_tree = 1;
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	    Swig_mark_arg(i);
@@ -387,6 +395,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       fflush (stdout);
     }
     Node *top = Swig_cparse(cpps);
+    if (dump_tags) {
+      Swig_dump_tags(top,0);
+    }
+    if (dump_tree) {
+      Swig_dump_tree(top);
+    }
+
     if (top) {
       if (!Getattr(top,"name")) {
 	Printf(stderr,"*** No module name specified using %%module or -module.\n");

@@ -290,17 +290,16 @@ SwigType_add_qualifier(SwigType *t, String *qual) {
  * ----------------------------------------------------------------------------- */
 
 void
-SwigType_add_function(SwigType *t, List *parms) {
+SwigType_add_function(SwigType *t, ParmList *parms) {
   String *pstr;
-  int        i,l;
+  Parm   *p;
 
   Insert(t,0,").");
   pstr = NewString("f(");
-  l = Len(parms);
-  for (i = 0; i < l; i++) {
-    Printf(pstr,"%s",Getitem(parms,i));
-    if (i < (l-1))
-      Putc(',',pstr);
+  p = parms;
+  for (p = parms; p; p = nextSibling(p)) {
+    if (p != parms) Putc(',',pstr);
+    Printf(pstr,"%s", Getattr(p,"type"));
   }
   Insert(t,0,pstr);
   Delete(pstr);
@@ -323,6 +322,23 @@ SwigType_pop_function(SwigType *t) {
   if (f) SwigType_push(g,f);
   Delete(f);
   return g;
+}
+
+ParmList *
+SwigType_function_parms(SwigType *t) {
+  List *l = SwigType_parmlist(t);
+  Hash *p, *pp = 0, *firstp = 0;
+  DOH  *obj;
+  for (obj = Firstitem(l); obj; obj = Nextitem(l)) {
+    p = NewParm(obj,0);
+    if (!firstp) firstp = p;
+    if (pp) {
+      set_nextSibling(pp,p);
+    }
+    pp = p;
+  }
+  Delete(l);
+  return firstp;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1584,6 +1600,8 @@ void SwigType_remember(SwigType *t) {
     lt = SwigType_ltype(t);
   Setattr(r_ltype, mt, lt);
   fr = SwigType_typedef_resolve_all(t);     /* Create fully resolved type */
+  /*  Printf(stdout,"%s ---> %s\n", t, fr); */
+
   h = Getattr(r_mangled,mt);
   if (!h) {
     h = NewHash();

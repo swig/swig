@@ -176,7 +176,7 @@ void RUBY::main(int argc, char *argv[]) {
  * RUBY::top()
  * --------------------------------------------------------------------- */
 
-void RUBY::top(Node *n) {
+int RUBY::top(Node *n) {
 
   /* Initialize all of the output files */
   String *outfile = Getattr(n,"outfile");
@@ -296,7 +296,7 @@ void RUBY::top(Node *n) {
   Delete(f_init);
   Close(f_runtime);
   Delete(f_runtime);
-
+  return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
@@ -412,16 +412,16 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::create_function(char *name, char *iname, SwigType *d, ParmList *l)
+ * RUBY::functionWrapper()
  *
  * Create a function declaration and register it with the interpreter.
- *              name = Name of real C function
- *              iname = Name of function in scripting language
- *              t = Return datatype
- *              l = Function parameters
  * --------------------------------------------------------------------- */
 
-void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
+int RUBY::functionWrapper(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+  ParmList *l = Getattr(n,"parms");
   char source[256], target[256];
   String *tm;
   String *cleanup, *outarg;
@@ -431,7 +431,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 
   /* Ruby needs no destructor wrapper */
   if (current == DESTRUCTOR)
-    return;
+    return SWIG_NOWRAP;
 
   char mname[256], inamebuf[256];
   int predicate = 0, need_result = 0;
@@ -588,7 +588,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   }
 
   /* Now write code to make the function call */
-  emit_func_call(name,t,l,f);
+  emit_action(n,f);
 
   /* Return value if necessary */
   if (SwigType_type(t) != T_VOID) {
@@ -692,18 +692,19 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   Delete(cleanup);
   Delete(outarg);
   DelWrapper(f);
+  return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::link_variable(char *name, char *iname, SwigType *t)
- *
- * Create a link to a C variable.
- *              name = Name of C variable
- *              iname = Name of variable in scripting language
- *              t = Datatype of the variable
+ * RUBY::variableWrapper()
  * --------------------------------------------------------------------- */
 
-void RUBY::link_variable(char *name, char *iname, SwigType *t) {
+int RUBY::variableWrapper(Node *n) {
+
+  char *name  = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+
   char   *source;
   String *tm;
   String *getfname, *setfname;
@@ -869,6 +870,7 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
   Delete(setfname);
   DelWrapper(setf);
   DelWrapper(getf);
+  return SWIG_OK;
 }
 
 
@@ -898,16 +900,15 @@ char *RUBY::validate_const_name(char *name) {
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::declare_const(char *name, char *iname, SwigType *type, char *value)
- *
- * Makes a constant.
- *              name = Name of the constant
- *              iname = Scripting language name of constant
- *              type = Datatype of the constant
- *              value = Constant value (as a string)
+ * RUBY::constantWrapper()
  * --------------------------------------------------------------------- */
 
-void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
+int RUBY::constantWrapper(Node *n) {
+  char *name      = GetChar(n,"name");
+  char *iname     = GetChar(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  char  *value    = GetChar(n,"value");
+
   String *tm;
 
   if (current == CLASS_CONST)
@@ -944,6 +945,7 @@ void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
     }
     Delete(v);
   }
+  return SWIG_OK;
 }
 
 #ifdef OLD
@@ -1132,7 +1134,7 @@ get_pointer(char *src, char *dest, SwigType *t, String *f) {
   SwigType_remember(t);
   Printv(f, dest, " = (", SwigType_lstr(t,0), ")SWIG_ConvertPtr(", src, ", ", 0);
 
-  lt = Swig_clocal_type(t);
+  lt = SwigType_ltype(t);
   if (Cmp(lt,"p.void") == 0) {
     Printv(f, "0);", 0);
   } else {
@@ -1343,15 +1345,9 @@ void RUBY::cpp_inherit(char **baseclass, int mode) {
 }
 
 /* ----------------------------------------------------------------------
- * void RUBY::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l)
+ * void RUBY::memberfunctionDeclaration()
  *
  * Method for adding C++ member function
- *
- * INPUTS:
- *      name        - name of the member function
- *      iname       - renaming (if given)
- *      t           - Return datatype
- *      l           - Parameter list
  *
  * By default, we're going to create a function of the form :
  *
@@ -1365,44 +1361,36 @@ void RUBY::cpp_inherit(char **baseclass, int mode) {
  *
  * --------------------------------------------------------------------- */
 
-void RUBY::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
+int RUBY::memberfunctionDeclaration(Node *n) {
   current = MEMBER_FUNC;
-  /*  Printf(stdout,"%s %s %s\n", name, iname, t); */
-  this->Language::cpp_member_func(name, iname, t, l);
+  Language::memberfunctionDeclaration(n);
   current = NO_CPP;
+  return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
- * void RUBY::cpp_constructor(char *name, char *iname, ParmList *l)
+ * void RUBY::constructorDeclaration()
  *
  * Method for adding C++ member constructor
- *
- * INPUTS:
- *      name     - Name of the constructor (usually same as classname)
- *      iname    - Renamed version
- *      l        - parameters
  * -------------------------------------------------------------------- */
 
-void RUBY::cpp_constructor(char *name, char *iname, ParmList *l) {
+int RUBY::publicconstructorDeclaration(Node *n) {
+
   current = CONSTRUCTOR;
-  this->Language::cpp_constructor(name, iname, l);
+  Language::publicconstructorDeclaration(n);
   current = NO_CPP;
+  return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
- * void RUBY::cpp_destructor(char *name, char *iname)
- *
- * Method for adding C++ member destructor
- *
- * INPUT:
- *     name        -  Name of the destructor (classname)
- *     iname       -  Renamed destructor
- *
+ * RUBY::publicdestructorDeclaration()
  * -------------------------------------------------------------------- */
 
-void RUBY::cpp_destructor(char *name, char *newname) {
+int RUBY::publicdestructorDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *newname = GetChar(n,"sym:name");
   current = DESTRUCTOR;
-  this->Language::cpp_destructor(name, newname);
+  Language::publicdestructorDeclaration(n);
 
     String *freefunc = NewString("");
     String *freeproto = NewString("");
@@ -1418,9 +1406,9 @@ void RUBY::cpp_destructor(char *name, char *newname) {
     } else {
       /* When no addmethods mode, swig emits no destroy function. */
       if (CPlusPlus)
-        Printv(freebody, Swig_cppdestructor_call(), 0);
+        Printf(freebody, "delete %s;\n", Swig_cparm_name(0,0));
       else
-        Printv(freebody, Swig_cdestructor_call(), 0);
+        Printf(freebody, "free((char*) %s);\n", Swig_cparm_name(0,0));
     }
     Printv(freebody, ";\n}\n", 0);
     if (CPlusPlus) {
@@ -1437,81 +1425,60 @@ void RUBY::cpp_destructor(char *name, char *newname) {
     Delete(freefunc);
     Delete(freeproto);
     Delete(freebody);
+    return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
- * void RUBY::cpp_variable(char *name, char *iname, SwigType *t)
- *
- * Wrap a C++ data member
- *
- * INPUTS :
- *      name       = Name of the C++ member
- *     iname       = Name as used in the interpreter
- *         t       = Datatype
+ * void RUBY::membervariableDeclaration()
  *
  * This creates a pair of functions to set/get the variable of a member.
  * -------------------------------------------------------------------- */
 
-void RUBY::cpp_variable(char *name, char *iname, SwigType *t) {
+int
+RUBY::membervariableDeclaration(Node *n) {
   current = MEMBER_VAR;
-  this->Language::cpp_variable(name, iname, t);
+  Language::membervariableDeclaration(n);
   current = NO_CPP;
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------
- * void RUBY::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l)
+ * void RUBY::staticmemberfunctionDeclaration()
  *
  * Wrap a static C++ function
- *
- * INPUTS:
- *      name           = Real name of the function
- *     iname           = New name in interpreter
- *      t              = Return datatype
- *      l              = Parameters
  * ---------------------------------------------------------------------- */
 
-void RUBY::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
+int RUBY::staticmemberfunctionDeclaration(Node *n) {
   current = STATIC_FUNC;
-  this->Language::cpp_static_func(name, iname, t, l);
+  Language::staticmemberfunctionDeclaration(n);
   current = NO_CPP;
+  return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------
- * void RUBY::cpp_declare_const(char *name, char *iname, SwigType *t, char *value)
+ * void RUBY::memberconstantDeclaration()
  *
  * Create a C++ constant
- *
- * INPUTS :
- *       name          = Real name of the constant
- *       iname         = new name
- *       t             = Datatype
- *       value         = value as a string
- *
  * --------------------------------------------------------------------- */
 
 
-void RUBY::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
+int RUBY::memberconstantDeclaration(Node *n) {
+
   current = CLASS_CONST;
-  this->Language::cpp_declare_const(name, iname, type, value);
+  Language::memberconstantDeclaration(n);
   current = NO_CPP;
+  return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
- * void RUBY::cpp_static_var(char *name, char *iname, SwigType *t)
- *
- * Wrap a static C++ variable
- *
- * INPUT :
- *      name        = name of the variable
- *     iname        = interpreter name
- *         t        = Datatype
- *
+ * void RUBY::staticmembervariableDeclaration()
  * --------------------------------------------------------------------- */
 
-void RUBY::cpp_static_var(char *name, char *iname, SwigType *t) {
+int RUBY::staticmembervariableDeclaration(Node *n) {
   current = STATIC_VAR;
-  this->Language::cpp_static_var(name, iname, t);
+  Language::staticmembervariableDeclaration(n);
   current = NO_CPP;
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------

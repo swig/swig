@@ -104,7 +104,7 @@ MZSCHEME::main (int argc, char *argv[])
 // MZSCHEME::top()
 // --------------------------------------------------------------------
 
-void
+int
 MZSCHEME::top(Node *n)
 {
 
@@ -158,7 +158,7 @@ MZSCHEME::top(Node *n)
   Delete(f_init);
   Close(f_runtime);
   Delete(f_runtime);
-
+  return SWIG_OK;
 }
 
 // ---------------------------------------------------------------------
@@ -183,9 +183,7 @@ MZSCHEME::set_module (char *mod_name)
 }
 
 // ----------------------------------------------------------------------
-// MZSCHEME::create_function(char *name, char *iname, SwigType *d,
-//                             ParmList *l)
-//
+// MZSCHEME::functionWrapper()
 // Create a function declaration and register it with the interpreter.
 // ----------------------------------------------------------------------
 
@@ -212,9 +210,12 @@ is_a_pointer (SwigType *t)
   return SwigType_ispointer(SwigType_typedef_resolve_all(t));
 }
 
-void
-MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
-{
+int
+MZSCHEME::functionWrapper(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *d = Getattr(n,"type");
+  ParmList *l = Getattr(n,"parms");
   Parm *p;
   Wrapper *f = NewWrapper();
   String *proc_name = NewString("");
@@ -347,7 +348,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   // Now write code to make the function call
 
-  emit_func_call (name, d, l, f);
+  emit_action(n,f);
 
   // Now have return value, figure out what to do with it.
 
@@ -418,10 +419,11 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   Delete(cleanup);
   Delete(build);
   DelWrapper(f);
+  return SWIG_OK;
 }
 
 // -----------------------------------------------------------------------
-// MZSCHEME::link_variable(char *name, char *iname, SwigType *d)
+// MZSCHEME::variableWrapper()
 //
 // Create a link to a C variable.
 // This creates a single function _wrap_swig_var_varname().
@@ -431,9 +433,14 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 // value.
 // -----------------------------------------------------------------------
 
-void
-MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
+int
+MZSCHEME::variableWrapper(Node *n)
 {
+
+  char *name  = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+
   String *proc_name = NewString("");
   char  var_name[256];
   String *tm;
@@ -517,18 +524,21 @@ MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
   Delete(arg);
   Delete(tm2);
   DelWrapper(f);
+  return SWIG_OK;
 }
 
 // -----------------------------------------------------------------------
-// MZSCHEME::declare_const(char *name, char *iname, SwigType *type, char *value)
-//
-// Makes a constant.   Not sure how this is really supposed to work.
-// I'm going to fake out SWIG and create a variable instead.
+// MZSCHEME::constantWrapper()
 // ------------------------------------------------------------------------
 
-void
-MZSCHEME::declare_const (char *name, char *iname, SwigType *type, char *value)
+int
+MZSCHEME::constantWrapper(Node *n)
 {
+  char *name      = GetChar(n,"name");
+  char *iname     = GetChar(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  String   *value = Getattr(n,"value");
+
   int OldReadOnly = ReadOnly;      // Save old status flags
   String *var_name = NewString("");
   String *proc_name = NewString("");
@@ -549,7 +559,7 @@ MZSCHEME::declare_const (char *name, char *iname, SwigType *type, char *value)
   if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
     fprintf (stderr, "%s : Line %d.  Unsupported constant value.\n",
 	     input_file, line_number);
-    return;
+    return SWIG_NOWRAP;
   }
 
   // See if there's a typemap
@@ -585,12 +595,21 @@ MZSCHEME::declare_const (char *name, char *iname, SwigType *type, char *value)
 
     // Now create a variable declaration
 
-    link_variable (Char(var_name), iname, type);
+    {
+      /* Hack alert: will cleanup later -- Dave */
+    Node *n = NewHash();
+    Setattr(n,"name",var_name);
+    Setattr(n,"sym:name",iname);
+    Setattr(n,"type", type);
+    variableWrapper(n);
+    Delete(n);
+    }
     ReadOnly = OldReadOnly;
   }
   Delete(proc_name);
   Delete(rvalue);
   Delete(temp);
+  return SWIG_OK;
 }
 
 void

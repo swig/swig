@@ -99,16 +99,6 @@ void SWIG_typemap_lang(const char *tm_lang) {
  *                           Assist functions
  * ----------------------------------------------------------------------------- */
 
-/* Create a type list from a set of parameters */
-static List *typelist(Parm *p) {
-   List *l = NewList();
-   while (p) {
-     Append(l,Getattr(p,"type"));
-     p = nextSibling(p);
-   }
-   return l;
- }
-
 /* Perform type-promotion for binary operators */
 static int promote(int t1, int t2) {
   return t1 > t2 ? t1 : t2;
@@ -428,6 +418,8 @@ static Node *dump_nested(char *parent) {
     Setattr(retx,"name",n->name);
     Setattr(retx,"type",Copy(n->type));
     Setattr(retx,"nested",parent);
+    /*    Printf(stdout,"%s   %s\n", n->name, yyrename);*/
+    add_symbols(retx);
     if (ret) {
       set_nextSibling(retx,ret);
     }
@@ -1422,7 +1414,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		     set_nextSibling($$,n);
 		     /* Inherit attributes */
 		     while (n) {
-		       Setattr(n,"type",$2);
+		       Setattr(n,"type",Copy($2));
 		       Setattr(n,"storage",$1);
 		       n = nextSibling(n);
 		     }
@@ -1512,7 +1504,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		   Node *p = $8;
 		   set_nextSibling(n,p);
 		   while (p) {
-		     Setattr(p,"type",ty);
+		     Setattr(p,"type",Copy(ty));
 		     Setattr(p,"unnamed",unnamed);
 		     Setattr(p,"storage",$1);
 		     p = nextSibling(p);
@@ -1599,7 +1591,6 @@ cpp_class_decl  :
 		 Setattr(classes,$3,$$);
 		 
 		 Setattr($$,"symtab",Swig_symbol_popscope());
-		 yyrename = NewString(class_rename);
 		 appendChild($$,$7);
 		 p = $9;
 		 if (p) {
@@ -1631,9 +1622,12 @@ cpp_class_decl  :
 		   }
 		   appendChild($$,dump_nested(name));
 		 }
+		 yyrename = NewString(class_rename);
 		 add_tag($$);
+
 		 if ($9)
 		   add_symbols($9);
+
 		 Classprefix = 0;
 	       }
 
@@ -1674,18 +1668,19 @@ cpp_class_decl  :
 	       Setattr(n,"decl",$7.type);
 	       Setattr(n,"parms",$7.parms);
 	       Setattr(n,"storage",$1);
-	       set_nextSibling($$,n);
+	       pp = n;
 	       if ($8) {
 		 set_nextSibling(n,$8);
 		 p = $8;
 		 while (p) {
 		   pp = p;
 		   Setattr(p,"unnamed",unnamed);
-		   Setattr(p,"type",unnamed);
+		   Setattr(p,"type",Copy(unnamed));
 		   Setattr(p,"storage",$1);
 		   p = nextSibling(p);
 		 }
 	       }
+	       set_nextSibling($$,n);
 	       {
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
 		 char *name = 0;
@@ -1721,7 +1716,7 @@ cpp_class_decl  :
 		 yyrename = NewString(class_rename);
 	       }
 	       add_tag($$);
-	       add_symbols($$);
+	       add_symbols(n);
               }
              ;
 
@@ -1899,11 +1894,10 @@ cpp_member   : c_declaration { $$ = $1; }
 /* Possibly a constructor */
 cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
 		 SwigType *decl = NewString("");
-		 List *l = typelist($4);
 		 $$ = new_node("constructor");
 		 Setattr($$,"name",$2);
 		 Setattr($$,"parms",$4);
-		 SwigType_add_function(decl,l);
+		 SwigType_add_function(decl,$4);
 		 Setattr($$,"decl",decl);
 		 if (Len(scanner_ccode)) {
 		   Setattr($$,"code",Copy(scanner_ccode));
@@ -1942,25 +1936,20 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
 
 /* C++ type conversion operator */
 cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAREN cpp_vend {
-		 List *l = typelist($6);
                  $$ = new_node("cdecl");
                  Setattr($$,"type",$3);
 		 Setattr($$,"name",$2);
-		 SwigType_add_function($4,l);
-		 Delete(l);
+		 SwigType_add_function($4,$6);
 		 Setattr($$,"decl",$4);
 		 Setattr($$,"parms",$6);
 		 add_symbols($$);
 	       }
               | storage_class COPERATOR type LPAREN parms RPAREN cpp_vend {
-		List *l = typelist($5);
 		String *t = NewString("");
-
 		$$ = new_node("cdecl");
 		Setattr($$,"type",$3);
 		Setattr($$,"name",$2);
-		SwigType_add_function(t,l);
-		Delete(l);
+		SwigType_add_function(t,$5);
 		Setattr($$,"decl",t);
 		Setattr($$,"parms",$5);
 		add_symbols($$);
@@ -2378,10 +2367,8 @@ direct_declarator : idcolon template_decl {
 	            List *l;
 		    SwigType *t;
                     $$ = $1;
-                    l = typelist($3);
 		    t = NewString("");
-		    SwigType_add_function(t,l);
-		    Delete(l);
+		    SwigType_add_function(t,$3);
 		    if (!$$.have_parms) {
 		      $$.parms = $3;
 		      $$.have_parms = 1;
@@ -2507,9 +2494,8 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 	            List *l;
 		    SwigType *t;
                     $$ = $1;
-                    l = typelist($3);
 		    t = NewString("");
-                    SwigType_add_function(t,l);
+                    SwigType_add_function(t,$3);
 		    if (!$$.type) {
 		      $$.type = t;
 		    } else {
@@ -2521,17 +2507,14 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		      $$.parms = $3;
 		      $$.have_parms = 1;
 		    }
-                    Delete(l);
 		  }
                   | LPAREN parms RPAREN {
 	            List *l;
                     $$.type = NewString("");
-                    l = typelist($2);
-                    SwigType_add_function($$.type,l);
+                    SwigType_add_function($$.type,$2);
 		    $$.parms = $2;
 		    $$.have_parms = 1;
 		    $$.id = 0;
-                    Delete(l);
                   }
                   ;
 

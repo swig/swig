@@ -56,7 +56,7 @@ Python Options (available with -python)\n\
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 static DOH *is_shadow(SwigType *t) {
   DOH *r;
-  SwigType *lt = Swig_clocal_type(t);
+  SwigType *lt = SwigType_ltype(t);
   r = Getattr(hash,lt);
   Delete(lt);
   return r;
@@ -122,7 +122,7 @@ PYTHON::main(int argc, char *argv[]) {
 /* -----------------------------------------------------------------------------
  * PYTHON::top()
  * ----------------------------------------------------------------------------- */
-void
+int
 PYTHON::top(Node *n) {
 
   /* Initialize all of the output files */
@@ -259,6 +259,7 @@ PYTHON::top(Node *n) {
   Delete(f_wrappers);
   Delete(f_init);
   Close(f_runtime);
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -317,10 +318,16 @@ PYTHON::create_command(char *cname, char *iname) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::create_function()
+ * PYTHON::functionWrapper()
  * ----------------------------------------------------------------------------- */
-void
-PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
+int
+PYTHON::functionWrapper(Node *n) {
+  
+  char   *name  = GetChar(n,"name");
+  char   *iname = GetChar(n,"sym:name");
+  SwigType *d   = Getattr(n,"type");
+  ParmList *l   = Getattr(n,"parms");
+
   Parm    *p;
   int     i;
   char    wname[256];
@@ -489,7 +496,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Printv(f->code, parse_args, get_pointers, check, 0);
 
   /* Emit the function call */
-  emit_func_call(name,d,l,f);
+  emit_action(n,f);
 
   /* This part below still needs cleanup */
 
@@ -587,13 +594,19 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Delete(check);
   Delete(kwargs);
   DelWrapper(f);
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::link_variable()
+ * PYTHON::variableWrapper()
  * ----------------------------------------------------------------------------- */
-void
-PYTHON::link_variable(char *name, char *iname, SwigType *t) {
+int
+PYTHON::variableWrapper(Node *n) {
+
+  char *name  = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+
     char   *wname;
     static int have_globals = 0;
     String  *tm;
@@ -675,13 +688,18 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
     }
     DelWrapper(setf);
     DelWrapper(getf);
+    return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::declare_const()
+ * PYTHON::constantWrapper()
  * ----------------------------------------------------------------------------- */
-void
-PYTHON::declare_const(char *name, char *iname, SwigType *type, char *value) {
+int
+PYTHON::constantWrapper(Node *n) {
+  char *name      = GetChar(n,"name");
+  char *iname     = GetChar(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  String   *value = Getattr(n,"value");
   String  *tm;
 
   /* Special hook for member pointer */
@@ -701,11 +719,12 @@ PYTHON::declare_const(char *name, char *iname, SwigType *type, char *value) {
     Printf(f_init, "%s\n", tm);
   } else {
     Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
-    return;
+    return SWIG_NOWRAP;
   }
   if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
     Printv(vars,iname, " = ", module, ".", iname, "\n", 0);
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -971,17 +990,21 @@ PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::cpp_member_func()
+ * PYTHON::memberfunctionDeclaration()
  * ----------------------------------------------------------------------------- */
-void
-PYTHON::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
+int
+PYTHON::memberfunctionDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+
   char *realname;
   int   oldshadow;
 
   /* Create the default member function */
   oldshadow = shadow;    /* Disable shadowing when wrapping member functions */
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  this->Language::cpp_member_func(name,iname,t,l);
+  Language::memberfunctionDeclaration(n);
   shadow = oldshadow;
 
   if (shadow) {
@@ -1023,18 +1046,20 @@ PYTHON::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
     /*    emitAddPragmas(*pyclass, realname, tab8);
 	  *pyclass << tab8 << "return val\n"; */
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::cpp_constructor()
+ * PYTHON::constructorDeclaration()
  * ----------------------------------------------------------------------------- */
-void
-PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
+int
+PYTHON::publicconstructorDeclaration(Node *n) {
+  char *iname = GetChar(n,"sym:name");
   char *realname;
   int   oldshadow = shadow;
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  this->Language::cpp_constructor(name,iname,l);
+  Language::publicconstructorDeclaration(n);
   shadow = oldshadow;
 
   if (shadow) {
@@ -1071,18 +1096,21 @@ PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
 	     tab4, "return val\n\n", 0);
     }
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
  * PYTHON::cpp_destructor()
  * ----------------------------------------------------------------------------- */
-void
-PYTHON::cpp_destructor(char *name, char *newname) {
+int
+PYTHON::publicdestructorDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *newname = GetChar(n,"sym:name");
   char *realname;
   int oldshadow = shadow;
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  this->Language::cpp_destructor(name,newname);
+  Language::publicdestructorDeclaration(n);
   shadow = oldshadow;
   if (shadow) {
     if (newname) realname = newname;
@@ -1095,6 +1123,7 @@ PYTHON::cpp_destructor(char *name, char *newname) {
 
     have_destructor = 1;
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1215,16 +1244,20 @@ PYTHON::cpp_inherit(char **baseclass,int) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::cpp_variable() - Add a member variable
+ * PYTHON::membervariableDeclaration()
  * ----------------------------------------------------------------------------- */
-void
-PYTHON::cpp_variable(char *name, char *iname, SwigType *t) {
+int
+PYTHON::membervariableDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+
   char *realname;
   int   inhash = 0;
   int   oldshadow = shadow;
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  this->Language::cpp_variable(name,iname,t);
+  Language::membervariableDeclaration(n);
   shadow = oldshadow;
 
   if (shadow) {
@@ -1247,24 +1280,29 @@ PYTHON::cpp_variable(char *name, char *iname, SwigType *t) {
       Printv(cgetattr, tab8, "\"", realname, "\" : ", module, ".", Swig_name_get(Swig_name_member(class_name,realname)),",\n", 0);
     }
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::cpp_declare_const()
+ * PYTHON::memberconstantDeclaration()
  * ----------------------------------------------------------------------------- */
-void
-PYTHON::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
+int
+PYTHON::memberconstantDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+
   char *realname;
   int   oldshadow = shadow;
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  this->Language::cpp_declare_const(name,iname,type,value);
+  Language::memberconstantDeclaration(n);
   shadow = oldshadow;
 
   if (shadow) {
     realname = iname ? iname : name;
     Printv(cinit, tab4, realname, " = ", module, ".", Swig_name_member(class_name,realname), "\n", 0);
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1277,5 +1315,8 @@ PYTHON::add_typedef(SwigType *t, char *name) {
     cpp_class_decl(name,Char(is_shadow(t)), (char *) "");
   }
 }
+
+
+
 
 

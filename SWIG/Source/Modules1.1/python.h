@@ -30,10 +30,17 @@ public :
 
   // Don't change any of this
   virtual void main(int, char *argv[]);
-  virtual void top(Node *); 
-  virtual void create_function(char *, char *, SwigType *, ParmList *);
-  virtual void link_variable(char *, char *, SwigType *);
-  virtual void declare_const(char *, char *, SwigType *, char *);
+  virtual int top(Node *); 
+  virtual int functionWrapper(Node *);
+  virtual int constantWrapper(Node *);
+  virtual int variableWrapper(Node *);
+
+  virtual int membervariableDeclaration(Node *);
+  virtual int memberconstantDeclaration(Node *);
+  virtual int memberfunctionDeclaration(Node *);
+  virtual int publicconstructorDeclaration(Node *);
+  virtual int publicdestructorDeclaration(Node *);
+
   virtual void set_module(char *);
   virtual void add_native(char *, char *, SwigType *, ParmList *);
   virtual void create_command(char *, char *);
@@ -42,20 +49,20 @@ public :
 
   // C++ extensions---for creating shadow classes
   
-  virtual void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l);
-  virtual void cpp_constructor(char *name, char *iname, ParmList *l);
-  virtual void cpp_destructor(char *name, char *newname);
   virtual void cpp_open_class(char *classname, char *rname, char *ctype, int strip);
   virtual void cpp_close_class();
   virtual void cpp_inherit(char **baseclass, int mode = 0);
-  virtual void cpp_variable(char *name, char *iname, SwigType *t);
-  virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
+
+
   virtual void cpp_class_decl(char *, char *,char *);
   virtual void pragma(char *, char *, char *);
   virtual void add_typedef(SwigType *t, char *name);
 };
 
 #define PYSHADOW_MEMBER  0x2
+
+
+
 
 
 

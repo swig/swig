@@ -22,6 +22,12 @@
 
 #include "doh.h"
 
+/* Status codes */
+
+#define SWIG_OK         1
+#define SWIG_ERROR      0
+#define SWIG_NOWRAP     0
+
 /* Short names for common data types */
 
 typedef  DOH     String;
@@ -188,6 +194,7 @@ extern void        SwigType_add_reference(SwigType *t);
 extern void        SwigType_add_qualifier(SwigType *t, String_or_char *qual);
 extern void        SwigType_add_function(SwigType *t, ParmList *parms);
 extern SwigType   *SwigType_pop_function(SwigType *t);
+extern ParmList   *SwigType_function_parms(SwigType *t);
 extern List       *SwigType_split(SwigType *t);
 extern String     *SwigType_pop(SwigType *t);
 extern void        SwigType_push(SwigType *t, SwigType *s);
@@ -285,18 +292,18 @@ extern String     *ParmList_protostr(ParmList *);
 
 extern void appendChild(Node *node, Node *child);
 
+extern int  Swig_require(Node *node, ...);
+extern int  Swig_save(Node *node,...);
+extern void Swig_restore(Node *node);
+
 /* Debugging of parse trees */
 extern void Swig_debug_emit(int);
 extern void Swig_dump_tags(File *obj, Node *root);
 extern void Swig_dump_tree(File *obj);
-extern void Swig_dump_rules();
 
 /* -- Wrapper function Object */
 
 typedef struct {
-  SwigType  *_type;
-  ParmList  *_parms;
-  String    *_name;
   Hash      *localh;
   String    *def;
   String    *locals;
@@ -312,12 +319,6 @@ extern int       Wrapper_add_localv(Wrapper *w, const String_or_char *name, ...)
 extern int       Wrapper_check_local(Wrapper *w, const String_or_char *name);
 extern char     *Wrapper_new_local(Wrapper *w, const String_or_char *name, const String_or_char *decl);
 extern char     *Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...);
-extern SwigType *Wrapper_Gettype(Wrapper *w);
-extern void      Wrapper_Settype(Wrapper *w, SwigType *t);
-extern ParmList *Wrapper_Getparms(Wrapper *w);
-extern void      Wrapper_Setparms(Wrapper *w, ParmList *l);
-extern char     *Wrapper_Getname(Wrapper *w);
-extern void      Wrapper_Setname(Wrapper *w, String_or_char *name);
 
 /* --- Naming functions --- */
 
@@ -329,13 +330,11 @@ extern String  *Swig_name_get(String_or_char *vname);
 extern String  *Swig_name_set(String_or_char *vname);
 extern String  *Swig_name_construct(String_or_char *classname);
 extern String  *Swig_name_destroy(String_or_char *classname);
-extern void     Swig_name_object_set(Hash *namehash, String_or_char *name, SwigType *decl, DOH *object);
-extern DOH     *Swig_name_object_get(Hash *namehash, String_or_char *prefix, String_or_char *name, SwigType *decl);
 
-/* --- Mapping interface --- */
+/* --- parameterized rename functions --- */
 
-extern void       Swig_map_add(Hash *ruleset, Hash *parms, DOH *obj);
-extern DOH       *Swig_map_match(Hash *ruleset, Hash *parms, int *nmatch);
+extern void      Swig_name_object_set(Hash *namehash, String_or_char *name, SwigType *decl, DOH *object);
+extern DOH      *Swig_name_object_get(Hash *namehash, String_or_char *prefix, String_or_char *name, SwigType *decl);
 
 /* --- Misc --- */
 extern char      *Swig_copy_string(const char *c);
@@ -349,84 +348,32 @@ extern void       Swig_warn(const char *filename, int line, const char *msg);
 
 /* --- C Wrappers --- */
 extern String    *Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value);
-extern SwigType  *Swig_clocal_type(SwigType *t);
-extern String    *Swig_clocal_deref(SwigType *t, String_or_char *name);
-extern String    *Swig_clocal_assign(SwigType *t, String_or_char *name);
 extern String    *Swig_cparm_name(Parm *p, int i);
 extern int        Swig_cargs(Wrapper *w, ParmList *l);
-extern void       Swig_cresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_char *decl);
-extern void       Swig_cppresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_char *decl);
+
+extern String    *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_char *decl);
 extern String    *Swig_cfunction_call(String_or_char *name, ParmList *parms);
-extern String    *Swig_cmethod_call(String_or_char *name, ParmList *parms);
-extern String    *Swig_cconstructor_call(String_or_char *name);
-extern String    *Swig_cppconstructor_call(String_or_char *name, ParmList *parms);
-extern String    *Swig_cdestructor_call();
-extern String    *Swig_cppdestructor_call();
-extern String    *Swig_cmemberset_call(String_or_char *name, SwigType *t);
-extern String    *Swig_cmemberget_call(String_or_char *name, SwigType *t);
 
-extern Wrapper   *Swig_cfunction_wrapper(String_or_char *funcname,
-                                         SwigType *rtype,
-                                         ParmList *parms,
-                                         String_or_char *code);
+/* --- Transformations --- */
 
-extern Wrapper   *Swig_cmethod_wrapper(String_or_char *classname,
-				       String_or_char *methodname,
-				       SwigType *rtype,
-				       ParmList *parms,
-				       String_or_char *code,
-                                       String_or_char *qualifier);
+extern int        Swig_MethodToFunction(Node *n, String *classname, int added);
+extern int        Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int added);
+extern int        Swig_DestructorToFunction(Node *n, String *classname, int cplus, int added);
+extern int        Swig_MembersetToFunction(Node *n, String *classname, int added);
+extern int        Swig_MembergetToFunction(Node *n, String *classname, int added);
+extern int        Swig_VargetToFunction(Node *n);
+extern int        Swig_VarsetToFunction(Node *n);
 
-extern Wrapper   *Swig_cdestructor_wrapper(String_or_char *classname,
-                                           String_or_char *code);
+/* --- Legacy Typemap API (somewhat simplified, ha!) --- */
 
-extern Wrapper   *Swig_cppdestructor_wrapper(String_or_char *classname,
-					     String_or_char *code);
+extern     void   Swig_typemap_init();
+extern     void   Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals, ParmList *kwargs);
+extern     int    Swig_typemap_copy_multi(const String_or_char *op, ParmList *srcparms, ParmList *parms);
+extern     void   Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms);
+extern     void   Swig_typemap_apply_multi(ParmList *src, ParmList *dest);
+extern     void   Swig_typemap_clear_apply_multi(ParmList *parms);
+extern     void   Swig_typemap_debug();
 
-extern Wrapper   *Swig_cconstructor_wrapper(String_or_char *classname,
-                                            ParmList *parms,
-                                            String_or_char *code);
-
-extern Wrapper   *Swig_cppconstructor_wrapper(String_or_char *classname,
-					      ParmList *parms,
-					      String_or_char *code);
-
-
-extern Wrapper   *Swig_cmemberset_wrapper(String_or_char *classname,
-                                          String_or_char *membername,
-					  SwigType *type,
-                                          String_or_char *code);
-
-extern Wrapper   *Swig_cmemberget_wrapper(String_or_char *classname,
-                                          String_or_char *membername,
-					  SwigType *type,
-                                          String_or_char *code);
-
-extern Wrapper   *Swig_cvarset_wrapper(String_or_char *varname,
-				       SwigType *type,
-				       String_or_char *code);
-
-extern Wrapper   *Swig_cvarget_wrapper(String_or_char *varname,
-				       SwigType *type,
-				       String_or_char *code);
-
-
-/* --- Legacy Typemap API (somewhat simplified) --- */
-
-extern void   Swig_typemap_init();
-extern void   Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *name, String_or_char *code, ParmList *locals, ParmList *kwargs);
-extern void   Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals, ParmList *kwargs);
-
-extern int    Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sname,
-				SwigType *ttype, String_or_char *tname);
-extern int    Swig_typemap_copy_multi(const String_or_char *op, ParmList *srcparms, ParmList *parms);
-extern void   Swig_typemap_clear(const String_or_char *op, SwigType *type, String_or_char *name);
-extern void   Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms);
-extern void   Swig_typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, String_or_char *pname);
-extern void   Swig_typemap_apply_multi(ParmList *src, ParmList *dest);
-extern void   Swig_typemap_clear_apply(SwigType *type, String_or_char *pname);
-extern void   Swig_typemap_clear_apply_multi(ParmList *parms);
-extern void   Swig_typemap_debug();
 extern Hash  *Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *pname);
 extern Hash  *Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch);
 extern String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *lname,

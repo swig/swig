@@ -94,7 +94,7 @@ TCL8::main(int argc, char *argv[]) {
  * TCL8::top()
  * ----------------------------------------------------------------------------- */
 
-void
+int
 TCL8::top(Node *n) {
 
   /* Initialize all of the output files */
@@ -177,14 +177,20 @@ TCL8::top(Node *n) {
   Delete(f_wrappers);
   Delete(f_init);
   Close(f_runtime);
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::create_function()
+ * TCL8::functionWrapper()
  * ----------------------------------------------------------------------------- */
 
-void
-TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
+int
+TCL8::functionWrapper(Node *n) {
+  String   *name  = Getattr(n,"name");       /* Like to get rid of this */
+  String   *iname = Getattr(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  ParmList *parms = Getattr(n,"parms");
+
   Parm            *p;
   int              i;
   String          *tm;
@@ -206,18 +212,18 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	 0);
 
   /* Print out variables for storing arguments. */
-  emit_args(d, l, f);
+  emit_args(type,parms, f);
   
   /* Attach standard typemaps */
-  emit_attach_parmmaps(l,f);
+  emit_attach_parmmaps(parms,f);
 
   /* Get number of require and total arguments */
-  num_arguments = emit_num_arguments(l);
-  num_required = emit_num_required(l);
+  num_arguments = emit_num_arguments(parms);
+  num_required = emit_num_required(parms);
 
   /* Unmarshal parameters */
 
-  for (i = 0, p = l; i < num_arguments; i++) {
+  for (i = 0, p = parms; i < num_arguments; i++) {
     /* Skip ignored arguments */
     while (Getattr(p,"tmap:ignore")) {
       p = Getattr(p,"tmap:ignore:next");
@@ -246,7 +252,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	Printf(argstr,"%s",parse);
 	Printf(args,",&%s",ln);
 	if (Strcmp(parse,"p") == 0) {
-	  SwigType *lt = Swig_clocal_type(pt);
+	  SwigType *lt = SwigType_ltype(pt);
 	  SwigType_remember(pt);
 	  if (Cmp(lt,"p.void") == 0) {
 	    Printf(args,",0");
@@ -265,7 +271,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     p = nextSibling(p);
   }
 
-  Printf(argstr,":%s\"",usage_string(iname,d,l));
+  Printf(argstr,":%s\"",usage_string(Char(iname),type,parms));
   Printv(f->code,
 	 "if (SWIG_GetArgs(interp, objc, objv,", argstr, args, ") == TCL_ERROR) return TCL_ERROR;\n",
 	 0);
@@ -273,7 +279,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Printv(f->code,incode,0);
 
   /* Insert constraint checking code */
-  for (p = l; p;) {
+  for (p = parms; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
       Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
       Printv(f->code,tm,"\n",0);
@@ -284,7 +290,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   }
   
   /* Insert cleanup code */
-  for (i = 0, p = l; p; i++) {
+  for (i = 0, p = parms; p; i++) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
       Printv(cleanup,tm,"\n",0);
@@ -295,7 +301,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   }
 
   /* Insert argument output code */
-  for (i=0,p = l; p;i++) {
+  for (i=0,p = parms; p;i++) {
     if ((tm = Getattr(p,"tmap:argout"))) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
       Replace(tm,"$target","(Tcl_GetObjResult(interp))",DOH_REPLACE_ANY);
@@ -310,17 +316,17 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   }
 
   /* Now write code to make the function call */
-  emit_func_call(name,d,l,f);
+  emit_action(n,f);
 
   /* Need to redo all of this code (eventually) */
 
   /* Return value if necessary  */
-  if ((tm = Swig_typemap_lookup((char*)"out",d,name,(char*)"result",(char*)"result",(char*)"Tcl_GetObjResult(interp)",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"out",type,name,(char*)"result",(char*)"result",(char*)"Tcl_GetObjResult(interp)",0))) {
     Printf(f->code,"%s\n", tm);
     Delete(tm);
   } else {
     Printf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
-	   input_file, line_number, SwigType_str(d,0), name);
+	   input_file, line_number, SwigType_str(type,0), name);
   }
 
   /* Dump output argument code */
@@ -331,13 +337,13 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
   /* Look for any remaining cleanup */
   if (NewObject) {
-    if ((tm = Swig_typemap_lookup((char*)"newfree",d,name,(char*)"result",(char*)"result",(char*)"",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"newfree",type,name,(char*)"result",(char*)"result",(char*)"",0))) {
       Printf(f->code,"%s\n", tm);
       Delete(tm);
     }
   }
 
-  if ((tm = Swig_typemap_lookup((char*)"ret",d,name,(char*)"result",(char*)"result",(char*)"",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"ret",type,name,(char*)"result",(char*)"result",(char*)"",0))) {
     Printf(f->code,"%s\n", tm);
     Delete(tm);
   }
@@ -359,14 +365,19 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Delete(argstr);
   Delete(args);
   DelWrapper(f);
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::link_variable()
+ * TCL8::variableWrapper()
  * ----------------------------------------------------------------------------- */
 
-void
-TCL8::link_variable(char *name, char *iname, SwigType *t) {
+int
+TCL8::variableWrapper(Node *n) {
+
+  char *name  = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
 
   String *setname = 0;
   String *getname = 0;
@@ -394,7 +405,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
   } else {
     Printf(stderr,"%s:%d. Can't link to variable of type %s\n", input_file, line_number, SwigType_str(t,0));
     DelWrapper(getf);
-    return;
+    return SWIG_NOWRAP;
   }
   DelWrapper(getf);
 
@@ -442,14 +453,19 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
   
   Delete(setname);
   Delete(getname);
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::declare_const()
+ * TCL8::constantWrapper()
  * ----------------------------------------------------------------------------- */
 
-void
-TCL8::declare_const(char *name, char *iname, SwigType *type, char *value) {
+int
+TCL8::constantWrapper(Node *n) {
+  char *name      = GetChar(n,"name");
+  char *iname     = GetChar(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  String   *value = Getattr(n,"value");
   String *tm;
 
   /* Special hook for member pointer */
@@ -469,8 +485,9 @@ TCL8::declare_const(char *name, char *iname, SwigType *type, char *value) {
     Printf(f_init, "%s\n", tm);
   } else {
     Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
-    return;
+    return SWIG_NOWRAP;
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -493,7 +510,7 @@ TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
   /* Now go through and print parameters */
   i = 0;
   pcount = ParmList_len(l);
-  numopt = check_numopt(l);
+  numopt = 0; /*check_numopt(l); */
   for (p = l; p; p = nextSibling(p)) {
     
     SwigType  *pt = Getattr(p,"type");
@@ -612,47 +629,53 @@ TCL8::cpp_close_class() {
   Delete(code);
 }
 
-void TCL8::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
+int TCL8::memberfunctionDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+
   char *realname;
   String  *rname;
 
-  this->Language::cpp_member_func(name,iname,t,l);
+  Language::memberfunctionDeclaration(n);
 
   realname = iname ? iname : name;
   rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
   Printv(methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", 0);
   Delete(rname);
+  return SWIG_OK;
 }
 
-void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
-  char *realname;
-  String *rname;
+int TCL8::membervariableDeclaration(Node *n) {
+    String   *symname = Getattr(n,"sym:name");
+    String *rname;
 
-  this->Language::cpp_variable(name, iname, t);
-  realname = iname ? iname : name;
-  Printv(attr_tab, tab4, "{ \"-", realname, "\",", 0);
-  rname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name,realname)));
-  Printv(attr_tab, rname, ", ", 0);
-  Delete(rname);
-  if (!ReadOnly) {
-    rname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name,realname)));
-    Printv(attr_tab, rname, "},\n",0);
+    Language::membervariableDeclaration(n);
+    Printv(attr_tab, tab4, "{ \"-", symname, "\",", 0);
+    rname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name,symname)));
+    Printv(attr_tab, rname, ", ", 0);
     Delete(rname);
-  } else {
-    Printf(attr_tab, "0 },\n");
-  }
+    if (!ReadOnly) {
+      rname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name,symname)));
+      Printv(attr_tab, rname, "},\n",0);
+      Delete(rname);
+    } else {
+      Printf(attr_tab, "0 },\n");
+    }
+    return SWIG_OK;
 }
 
-void
-TCL8::cpp_constructor(char *name, char *iname, ParmList *l) {
-  this->Language::cpp_constructor(name,iname,l);
+int
+TCL8::publicconstructorDeclaration(Node *n) {
+  Language::publicconstructorDeclaration(n);
   have_constructor = 1;
+  return SWIG_OK;
 }
 
-void
-TCL8::cpp_destructor(char *name, char *newname) {
-  this->Language::cpp_destructor(name,newname);
+int
+TCL8::publicdestructorDeclaration(Node *n) {
+  Language::publicdestructorDeclaration(n);
   have_destructor = 1;
+  return SWIG_OK;
 }
 
 void

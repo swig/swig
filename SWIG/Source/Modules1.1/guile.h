@@ -56,18 +56,14 @@ private:
 		   const String *doc);
 public :
   GUILE ();
-  void main (int, char *argv[]);
-  void top(Node *);
-  void create_function (char *, char *, SwigType *, ParmList *);
-  void link_variable (char *, char *, SwigType *);
-  void declare_const (char *, char *, SwigType *, char *);
-
-
+  virtual void main (int, char *argv[]);
+  virtual int top(Node *);
+  virtual int functionWrapper(Node *);
+  virtual int constantWrapper(Node *);
+  virtual int variableWrapper(Node *);
+  virtual int membervariableDeclaration(Node *);
 
   void set_module(char *);
-
-  void create_command (char *, char *) { };
-  void cpp_variable(char *name, char *iname, SwigType *t);
   void pragma(char *lang, char *cmd, char *value);
   void import_start(char *modname);
   void import_end();

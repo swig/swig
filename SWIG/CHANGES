@@ -16,6 +16,46 @@ tree (maybe).
 
 Version 1.3.10 (In progress)
 ============================
+11/10/2001:beazley
+           Fixed a very subtle bug due to unnamed class wrapping. For example, if
+           you did this
+
+              typedef struct {
+                  int x,y;
+              } gdPoint, *gdPointPtr;
+
+              void foo(gdPointPtr x);
+
+           The the foo function would get a type-error.   The problem has
+           to do with internal typedef handling and the fact that the typedef
+           declarations after the struct appear later in the parse tree.
+           It should work now.  Problem reported by Vin Jovanovic.
+
+11/09/2001:beazley
+           Subtle change to "out" typemaps (and related variations).  The name
+           that is attached to the typemap is now the raw C identifier that
+           appears on a declaration.  This changes the behavior of
+           member functions.  For example:
+
+               %typemap(out) int foo {
+                  ...
+               }
+
+               class Blah {
+                   public:
+                      int foo();    // typemap gets applied
+               }
+            
+           Previous versions never really specified how this was supposed to
+           work.  In SWIG1.1, you could probably write a typemap for the
+           wrapper name like this:
+
+                %typemap(out) int Blah_foo { ... }
+
+           However, this old behavior is now withdrawn and not supported. 
+           Just use the member name without any sort of special prefix.
+           *** POTENTIAL INCOMPATIBILITY ***
+
 11/06/2001:beazley
            Changes to Tcl module initialization:
 

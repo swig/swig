@@ -71,15 +71,25 @@
 
 #ifdef __cplusplus
 %typemap(memberin) char * {
-  if ($target) delete [] $target;
-  $target = new char[strlen($source)+1];
-  strcpy($target,$source);
+  if ($1) delete [] $1;
+  $1 = new char[strlen($minput)+1];
+  strcpy($1,$minput);
+}
+%typemap(globalin) char * {
+  if ($1) delete [] $1;
+  $1 = new char[strlen($ginput)+1];
+  strcpy($1,$minput);
 }
 #else
 %typemap(memberin) char * {
-  if ($target) free($target);
-  $target = (char *) malloc(strlen($source)+1);
-  strcpy($target,$source);
+  if ($1) free($1);
+  $1 = (char *) malloc(strlen($minput)+1);
+  strcpy($1,$minput);
+}
+%typemap(globalin) char * {
+  if ($1) free($1);
+  $1 = (char *) malloc(strlen($ginput)+1);
+  strcpy($1,$ginput);
 }
 #endif
 

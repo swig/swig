@@ -28,17 +28,14 @@ class MZSCHEME : public Language
 private:
   void   get_pointer(DOHString_or_char *name, int parm, SwigType *t, Wrapper *f);
 public :
-  void main (int, char *argv[]);
-  void top(Node *); 
-  void create_function (char *, char *, SwigType *, ParmList *);
-  void link_variable (char *, char *, SwigType *);
-  void declare_const (char *, char *, SwigType *, char *);
-
-
+  virtual void main (int, char *argv[]);
+  virtual int top(Node *); 
+  virtual int functionWrapper(Node *);
+  virtual int constantWrapper(Node *);
+  virtual int variableWrapper(Node *);
 
   void set_module (char *);
-
-  void create_command (char *, char *) { };
   void import_start(char *modname);
   void import_end();
 };
+

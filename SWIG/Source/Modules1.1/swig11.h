@@ -41,6 +41,7 @@ extern  int       error_count;
 extern  int       Verbose;
 extern  int       IsVirtual;
 extern  int       Overloaded;
+extern  int       Abstract;
 
 #define FatalError()   if ((error_count++) > 20) { fprintf(stderr,"Confused by earlier errors. Bailing out\n"); SWIG_exit (EXIT_FAILURE); }
 
@@ -65,45 +66,71 @@ public:
    * New interface.  SWIG-1.3.7 and newer versions
    * ---------------------------------------------------------------------- */
 
-  virtual void main(int argc, char *argv[]) = 0;
-  virtual void top(Node *n);
+  /* Parse command line options */
+
+  virtual void main(int argc, char *argv[]);
+
+  /* Top of the parse tree */
+
+  virtual int  top(Node *n);
   
   /* SWIG directives */
   
-  virtual void addmethodsDirective(Node *n);
-  virtual void applyDirective(Node *n);
-  virtual void clearDirective(Node *n);
-  virtual void constantDirective(Node *n);
-  virtual void exceptDirective(Node *n);
-  virtual void importDirective(Node *n);
-  virtual void includeDirective(Node *n);
-  virtual void insertDirective(Node *n);
-  virtual void moduleDirective(Node *n);
-  virtual void nativeDirective(Node *n);
-  virtual void newDirective(Node *n);
-  virtual void pragmaDirective(Node *n);
-  virtual void typemapDirective(Node *n);
-  virtual void typemapcopyDirective(Node *n);
-  virtual void typesDirective(Node *n);
+  virtual int addmethodsDirective(Node *n);
+  virtual int applyDirective(Node *n);
+  virtual int clearDirective(Node *n);
+  virtual int constantDirective(Node *n);
+  virtual int exceptDirective(Node *n);
+  virtual int importDirective(Node *n);
+  virtual int includeDirective(Node *n);
+  virtual int insertDirective(Node *n);
+  virtual int moduleDirective(Node *n);
+  virtual int nativeDirective(Node *n);
+  virtual int newDirective(Node *n);
+  virtual int pragmaDirective(Node *n);
+  virtual int typemapDirective(Node *n);
+  virtual int typemapcopyDirective(Node *n);
+  virtual int typesDirective(Node *n);
 
   /* C/C++ parsing */
   
-  virtual void cDeclaration(Node *n);
-  virtual void externDeclaration(Node *n);
-  virtual void enumDeclaration(Node *n);
-  virtual void enumvalueDeclaration(Node *n);
-  virtual void classDeclaration(Node *n);
-  virtual void classforwardDeclaration(Node *n);
-  virtual void constructorDeclaration(Node *n);
-  virtual void destructorDeclaration(Node *n);
-  virtual void operatorDeclaration(Node *n);
-  virtual void accessDeclaration(Node *n);
+  virtual int cDeclaration(Node *n);
+  virtual int externDeclaration(Node *n);
+  virtual int enumDeclaration(Node *n);
+  virtual int enumvalueDeclaration(Node *n);
+  virtual int classDeclaration(Node *n);
+  virtual int classforwardDeclaration(Node *n);
+  virtual int constructorDeclaration(Node *n);
+  virtual int destructorDeclaration(Node *n);
+  virtual int accessDeclaration(Node *n);
+
+  /* Function events */
+
+  virtual int functionDeclaration(Node *n);
+  virtual int globalfunctionDeclaration(Node *n);
+  virtual int memberfunctionDeclaration(Node *n);
+  virtual int staticmemberfunctionDeclaration(Node *n);
+  virtual int callbackfunctionDeclaration(Node *n);
+
+  /* Variable events */
+
+  virtual int variableDeclaration(Node *n);
+  virtual int globalvariableDeclaration(Node *n);
+  virtual int membervariableDeclaration(Node *n);
+  virtual int staticmembervariableDeclaration(Node *n);
+
+  /* Miscellaneous C++ */
+
+  virtual int memberconstantDeclaration(Node *n);
+  virtual int publicconstructorDeclaration(Node *n);
+  virtual int publicdestructorDeclaration(Node *n);
 
   /* Low-level code generation */
-  
-  virtual void constantWrapper(Node *n);
-  virtual void variableWrapper(Node *n);
-  virtual void functionWrapper(Node *n);
+
+  virtual int constantWrapper(Node *n);
+  virtual int variableWrapper(Node *n);
+  virtual int functionWrapper(Node *n);
+  virtual int nativeWrapper(Node *n);
 
   /* ----------------------------------------------------------------------
    !! Deprecated interface.   It is only provided for backwards
@@ -111,24 +138,12 @@ public:
    !! instead
    * ----------------------------------------------------------------------*/
 
-  virtual void create_function(char *, char *, SwigType *, ParmList *);
-  virtual void link_variable(char *, char *, SwigType *);
-  virtual void declare_const(char *, char *, SwigType *, char *);
-  virtual void create_command(char *cname, char *iname);
-
   virtual void add_native(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void add_typedef(SwigType *t, char *name);
 
-  virtual void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l);
-  virtual void cpp_constructor(char *name, char *iname, ParmList *l);
-  virtual void cpp_destructor(char *name, char *newname);
   virtual void cpp_open_class(char *name, char *rename, char *ctype, int strip);
   virtual void cpp_close_class();
   virtual void cpp_inherit(char **baseclass, int mode = 0);
-  virtual void cpp_variable(char *name, char *iname, SwigType *t);
-  virtual void cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l);
-  virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
-  virtual void cpp_static_var(char *name, char *iname, SwigType *t);
 
   // Pragma directive
 
@@ -142,29 +157,28 @@ public:
   virtual void import_start(char *modulename);    /* Import a new module */
   virtual void import_end();                      /* Done with import    */
   virtual int  validIdentifier(String *s);        /* valid identifier? */
+
+
 };
 
-/* Emit functions */
-
-extern  void  emit_func_call(char *, SwigType *, ParmList *, FILE *);
-extern  void  emit_set_get(char *, char *, SwigType *);
-extern  void  emit_set_action(DOHString_or_char *decl);
 extern  int   SWIG_main(int, char **, Language *);
-
-// Misc
-
-extern  int   emit_args(SwigType *, ParmList *, Wrapper *f);
-extern  void  emit_func_call(char *, SwigType *, ParmList *, Wrapper *f);
+extern  void  emit_args(SwigType *, ParmList *, Wrapper *f);
 extern  void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
-extern int    check_numopt(ParmList *);
-extern void   SWIG_config_file(const String_or_char *);
-extern "C" void  SWIG_typemap_lang(const char *);
+extern  void  SWIG_config_file(const String_or_char *);
+extern "C"    void  SWIG_typemap_lang(const char *);
 extern void   SWIG_library_directory(const char *);
-
 extern int    emit_num_arguments(ParmList *);
 extern int    emit_num_required(ParmList *);
 extern void   emit_attach_parmmaps(ParmList *, Wrapper *f);
+extern void   emit_action(Node *n, Wrapper *f);
 
 /* swig11.h ends here */
+
+
+
+
+
+
+
 
 

@@ -94,7 +94,7 @@ static String *module_method_modifiers = 0; //native method modifiers overridden
 /* Return NULL if not otherwise the shadow name */
 static String *is_shadow(SwigType *t) {
   String *r;
-  SwigType *lt = Swig_clocal_type(t);
+  SwigType *lt = SwigType_ltype(t);
   r = Getattr(shadow_classes,lt);
   Delete(lt);
   return r;
@@ -442,7 +442,7 @@ void JAVA::main(int argc, char *argv[]) {
 // void JAVA::top()
 // ---------------------------------------------------------------------
 
-void JAVA::top(Node *n) {
+int JAVA::top(Node *n) {
 
   /* Initialize all of the output files */
   String *outfile = Getattr(n,"outfile");
@@ -582,6 +582,7 @@ void JAVA::top(Node *n) {
   Delete(f_init);
   Close(f_runtime);
   Delete(f_runtime);
+  return SWIG_OK;
 }
 
 // ---------------------------------------------------------------------
@@ -643,18 +644,27 @@ void JAVA::create_command(char *cname, char *iname) {
 
 void JAVA::add_native(char *name, char *iname, SwigType *t, ParmList *l) {
   native_func = 1;
-  create_function(name, iname, t, l);
+  Node *n = NewHash();
+  Setattr(n,"name",name);
+  Setattr(n,"sym:name",iname);
+  Setattr(n,"type",t);
+  Setattr(n,"parms",l);
+  functionWrapper(n);
+  Delete(n);
   native_func = 0;
 }
 
 // ----------------------------------------------------------------------
-// JAVA::create_function(char *name, char *iname, SwigType *d, ParmList *l)
+// JAVA::functionWrapper()
 //
 // Create a function declaration and register it with the interpreter.
 // ----------------------------------------------------------------------
 
-void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
-{
+int JAVA::functionWrapper(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+  ParmList *l = Getattr(n,"parms");
   char      source[256], target[256];
   String    *tm;
   char		*javaReturnSignature = 0;
@@ -722,7 +732,8 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
   Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", 0);
 
   // Emit all of the local variables for holding arguments.
-  int pcount = emit_args(t,l,f);
+  emit_args(t,l,f);
+  int pcount = emit_num_arguments(l);
 
   int gencomma = 0;
 
@@ -928,7 +939,7 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
   // Now write code to make the function call
 
   if(!native_func)
-	emit_func_call(name,t,l,f);
+	emit_action(n,f);
   // Return value if necessary
 
   if((SwigType_type(t) != T_VOID) && !native_func) {
@@ -1091,24 +1102,31 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
   Delete(body);
   Delete(javaParameterSignature);
   DelWrapper(f);
+  return SWIG_OK;
 }
 
 // -----------------------------------------------------------------------
-// JAVA::link_variable(char *name, char *iname, SwigType *t)
+// JAVA::variableWrapper()
 //
 // Create a JAVA link to a C variable.
 // -----------------------------------------------------------------------
 
-void JAVA::link_variable(char *name, char *iname, SwigType *t)
+int JAVA::variableWrapper(Node *n)
 {
-  emit_set_get(name,iname, t);
+  Language::variableWrapper(n);           /* Default to functions */
+  return SWIG_OK;
 }
 
 // -----------------------------------------------------------------------
-// JAVA::declare_const(char *name, char *iname, SwigType *type, char *value)
+// JAVA::constantWrapper()
 // ------------------------------------------------------------------------
 
-void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
+int JAVA::constantWrapper(Node *n) {
+  char *name      = GetChar(n,"name");
+  char *iname     = GetChar(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  char     *value = GetChar(n,"value");
+
   int OldReadOnly = ReadOnly;
   String *tm;
   char *jname;
@@ -1154,7 +1172,7 @@ void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
         Printv(java_enum_code, tab4, jname, " = ", Swig_name_get(iname), "();\n", 0);
       }
       enum_flag = 1;
-      emit_set_get(name,iname, type);
+      variableWrapper(n);
       enum_flag = 0;
     } else {
       if(SwigType_type(type) == T_STRING)
@@ -1167,6 +1185,7 @@ void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
   }
   Delete(java_type);
   ReadOnly = OldReadOnly;
+  return SWIG_OK;
 }
 /*
 Valid Pragmas:
@@ -1397,7 +1416,7 @@ void JAVA::emit_shadow_classdef() {
   //Display warning on attempt to use multiple inheritance
   char* search_str = Char(shadow_classdef);
   int count = 0;
-  while(search_str = strstr(search_str, "extends")) {
+  while((search_str = strstr(search_str, "extends"))) {
     search_str += strlen("extends");
     count++;
   }
@@ -1485,8 +1504,13 @@ void JAVA::cpp_close_class() {
   Delete(this_shadow_class_modifiers); this_shadow_class_modifiers = NULL;
 }
 
-void JAVA::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
-  this->Language::cpp_member_func(name,iname,t,l);
+int JAVA::memberfunctionDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+  ParmList *l = Getattr(n,"parms");
+
+  Language::memberfunctionDeclaration(n);
 
   if (shadow) {
     char* realname = iname ? iname : name;
@@ -1494,19 +1518,21 @@ void JAVA::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 
     cpp_func(iname, t, l, java_function_name, IsVirtual);
   }
+  return SWIG_OK;
 }
 
-void JAVA::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
-  this->Language::cpp_static_func(name,iname,t,l);
+int JAVA::staticmemberfunctionDeclaration(Node *n) {
+
+  Language::staticmemberfunctionDeclaration(n);
 
   if (shadow) {
-    char* realname = iname ? iname : name;
-    String* java_function_name = Swig_name_member(shadow_classname, realname);
-
+    String *symname = Getattr(n,"sym:name");
+    String* java_function_name = Swig_name_member(shadow_classname, symname);
     static_flag = 1;
-    cpp_func(iname, t, l, java_function_name, NOT_VIRTUAL);
+    cpp_func(Char(symname), Getattr(n,"type"), Getattr(n,"parms"), java_function_name, NOT_VIRTUAL);
     static_flag = 0;
   }
+  return SWIG_OK;
 }
 
 /* 
@@ -1523,6 +1549,12 @@ void JAVA::cpp_func(char *iname, SwigType *t, ParmList *l, String* java_function
   String   *user_arrays = NewString("");
 
   if(!shadow) return;
+
+  if (l) {
+    if (SwigType_type(Getattr(l,"type")) == T_VOID) {
+      l = nextSibling(l);
+    }
+  }
 
   /* Get the java return type */
   SwigToJavaType(t, iname, shadowrettype, shadow);
@@ -1660,8 +1692,12 @@ DelWrapper(f);
   Delete(user_arrays);
 }
 
-void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
-  this->Language::cpp_constructor(name,iname,l);
+int JAVA::publicconstructorDeclaration(Node *n) {
+
+  char *iname = GetChar(n,"sym:name");
+  ParmList *l = Getattr(n,"parms");
+
+  Language::publicconstructorDeclaration(n);
 
   if(shadow) {
     String *nativecall = NewString("");
@@ -1720,14 +1756,13 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
     Printf(shadow_code, "  }\n\n");
     Delete(nativecall);
   }
+  return SWIG_OK;
 }
 
-void JAVA::cpp_destructor(char *name, char *newname) {
-  this->Language::cpp_destructor(name,newname);
+int JAVA::publicdestructorDeclaration(Node *n) {
+  Language::publicdestructorDeclaration(n);
 
   if(shadow) {
-    char *realname = (newname) ? newname : name;
-  
     if(!nofinalize) {
       Printf(shadow_code, "  protected void finalize() {\n");
       Printf(shadow_code, "    _delete();\n");
@@ -1741,6 +1776,7 @@ void JAVA::cpp_destructor(char *name, char *newname) {
     Printf(shadow_code, "    }\n");
     Printf(shadow_code, "  }\n\n");
   }
+  return SWIG_OK;
 }
 
 void JAVA::cpp_class_decl(char *name, char *rename, char *type) {
@@ -1782,32 +1818,36 @@ void JAVA::cpp_inherit(char **baseclass, int) {
   }
 }
 
-void JAVA::cpp_variable(char *name, char *iname, SwigType *t) {
+int JAVA::membervariableDeclaration(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+
   shadow_variable_name = Swig_copy_string((iname) ? iname : name);
 
   wrapping_member = 1;
   variable_wrapper_flag = 1;
-  this->Language::cpp_variable(name, iname, t);
+  Language::membervariableDeclaration(n);
   wrapping_member = 0;
   variable_wrapper_flag = 0;
+  return SWIG_OK;
 }
 
-void JAVA::cpp_static_var(char *name, char *iname, SwigType *t) {
-  shadow_variable_name = Swig_copy_string((iname) ? iname : name);
-
+int JAVA::staticmembervariableDeclaration(Node *n) {
+  shadow_variable_name = GetChar(n,"sym:name");
   wrapping_member = 1;
   static_flag = 1;
-  this->Language::cpp_static_var(name, iname, t);
+  Language::staticmembervariableDeclaration(n);
   wrapping_member = 0;
   static_flag = 0;
+  return SWIG_OK;
 }
 
-void JAVA::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
-  shadow_variable_name = Swig_copy_string((iname) ? iname : name);
-
+int JAVA::memberconstantDeclaration(Node *n) {
+  shadow_variable_name = GetChar(n,"sym:name");
   wrapping_member = 1;
-  this->Language::cpp_declare_const(name, iname, type, value);
+  Language::memberconstantDeclaration(n);
   wrapping_member = 0;
+  return SWIG_OK;
 }
 
 
@@ -1816,4 +1856,9 @@ void JAVA::import_start(char *modulename) {
 
 void JAVA::import_end() {
 }
+
+
+
+
+
 

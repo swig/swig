@@ -11,6 +11,8 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
+#include <stdarg.h>
+#include <assert.h>
 
 static char cvsroot[] = "$Header$";
 
@@ -29,10 +31,10 @@ Swig_dump_tags(DOH *obj, DOH *root) {
   else croot = root;
 
   while (obj) {
-    Printf(stdout,"%s . %s (%s:%d)\n", croot, Getattr(obj,"tag"), Getfile(obj), Getline(obj));
+    Printf(stdout,"%s . %s (%s:%d)\n", croot, nodeType(obj), Getfile(obj), Getline(obj));
     cobj = firstChild(obj);
     if (cobj) {
-      newroot = NewStringf("%s . %s",croot,Getattr(obj,"tag"));
+      newroot = NewStringf("%s . %s",croot,nodeType(obj));
       Swig_dump_tags(cobj,newroot);
       Delete(newroot);
     }
@@ -69,13 +71,13 @@ Swig_dump_tree(DOH *obj) {
 
   while (obj) {
     print_indent(0);
-    Printf(stdout,"+++ %s ----------------------------------------\n", Getattr(obj,"tag"));
+    Printf(stdout,"+++ %s ----------------------------------------\n", nodeType(obj));
       
     k = Firstkey(obj);
     while (k) {
-      if ((Cmp(k,"tag") == 0) || (Cmp(k,"firstChild") == 0) || (Cmp(k,"lastChild") == 0) ||
+      if ((Cmp(k,"nodeType") == 0) || (Cmp(k,"firstChild") == 0) || (Cmp(k,"lastChild") == 0) ||
 	  (Cmp(k,"parentNode") == 0) || (Cmp(k,"nextSibling") == 0) ||
-	  (Cmp(k,"previousSibling") == 0) || (Cmp(k,"symtab") == 0) || (*(Char(k)) == '$')) {
+	  (Cmp(k,"previousSibling") == 0) || (*(Char(k)) == '$')) {
 	/* Do nothing */
       } else if (Cmp(k,"parms") == 0) {
 	print_indent(2);
@@ -84,12 +86,16 @@ Swig_dump_tree(DOH *obj) {
 	DOH *o;
 	char *trunc = "";
 	print_indent(2);
-	o = Str(Getattr(obj,k));
-	if (Len(o) > 40) {
-	  trunc = "...";
+	if (DohIsString(Getattr(obj,k))) {
+	  o = Str(Getattr(obj,k));
+	  if (Len(o) > 40) {
+	    trunc = "...";
+	  }
+	  Printf(stdout,"%-12s - \"%(escape)-0.40s%s\"\n", k, o, trunc);
+	  Delete(o);
+	} else {
+	  Printf(stdout,"%-12s - 0x%x\n", k, Getattr(obj,k));
 	}
-	Printf(stdout,"%-12s - \"%(escape)-0.40s%s\"\n", k, o, trunc);
-	Delete(o);
       }
       k = Nextkey(obj);
     }
@@ -115,8 +121,6 @@ Swig_dump_tree(DOH *obj) {
 
 void
 appendChild(Node *node, Node *chd) {
-  Node *c;
-  Node *pc;
   Node *lc;
 
   if (!chd) return;
@@ -136,7 +140,102 @@ appendChild(Node *node, Node *chd) {
   set_lastChild(node,lc);
 }
 
-  
+
+/* -----------------------------------------------------------------------------
+ * Swig_require()
+ * ----------------------------------------------------------------------------- */
 
 
+static List  *attr_stack = 0;
+static int    stackp = 0;
+#define MAX_SWIG_STACK 64
 
+int 
+Swig_require(Node *n, ...) {
+  va_list ap;
+  char *name;
+  DOH *obj;
+  DOH *frame = 0;
+  va_start(ap, n);
+  name = va_arg(ap, char *);
+  while (name) {
+    int newref = 0;
+    int opt = 0;
+    if (*name == '*') {
+      newref = 1;
+      name++;
+    } else if (*name == '?') {
+      newref = 1;
+      opt = 1;
+      name++;
+    }
+    obj = Getattr(n,name);
+    if (!opt && !obj) {
+      Printf(stderr,"%s:%d. Fatal error (Swig_require).  Missing attribute '%s' in node '%s'.\n", 
+	     Getfile(n), Getline(n), name, nodeType(n));
+      assert(obj);
+    }
+    if (!obj) obj = DohNone;
+    if (newref) {
+      if (!attr_stack) {
+	int i;
+	attr_stack = NewList();
+	for (i = 0; i < MAX_SWIG_STACK; i++)
+	  Append(attr_stack,NewHash());
+      }
+      if (!frame) {
+	frame = Getitem(attr_stack,stackp);
+      }
+      Setattr(frame,name,obj);
+    } 
+    name = va_arg(ap, char *);
+  }
+  va_end(ap);
+  if (frame) stackp++;
+  return 1;
+}
+
+
+int 
+Swig_save(Node *n, ...) {
+  va_list ap;
+  char *name;
+  DOH *obj;
+  DOH *frame = Getitem(attr_stack,stackp-1);
+  va_start(ap, n);
+  name = va_arg(ap, char *);
+  while (name) {
+    if (*name == '*') {
+      name++;
+    } else if (*name == '?') {
+      name++;
+    }
+    obj = Getattr(n,name);
+    if (!obj) {
+      obj = DohNone;
+    }
+    Setattr(frame,name,obj);
+    name = va_arg(ap, char *);
+  }
+  va_end(ap);
+  return 1;
+}
+
+
+void 
+Swig_restore(Node *n) {
+  String *key;
+  Hash   *frame;
+  assert(attr_stack && (stackp > 0));
+  frame = Getitem(attr_stack,stackp-1);
+  for (key = Firstkey(frame); key; key = Nextkey(frame)) {
+    DOH *obj = Getattr(frame,key);
+    if (obj != DohNone) {
+      Setattr(n,key,obj);
+    } else {
+      Delattr(n,key);
+    }
+    Delattr(frame,key);
+  }
+  stackp--;
+}

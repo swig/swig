@@ -33,9 +33,6 @@ NewWrapper() {
   w->locals = NewString("");
   w->code = NewString("");
   w->def = NewString("");
-  w->_type = 0;
-  w->_parms = 0;
-  w->_name = 0;
   return w;
 }
 
@@ -51,9 +48,6 @@ DelWrapper(Wrapper *w) {
   Delete(w->locals);
   Delete(w->code);
   Delete(w->def);
-  Delete(w->_type);
-  Delete(w->_parms);
-  Delete(w->_name);
   free(w);
 }
 
@@ -291,64 +285,6 @@ Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...) {
   ret = Wrapper_new_local(w,name,decl);
   Delete(decl);
   return ret;
-}
-
-/* -----------------------------------------------------------------------------
- * Wrapper_Gettype()
- * ----------------------------------------------------------------------------- */
-
-SwigType *
-Wrapper_Gettype(Wrapper *w) {
-  return w->_type;
-}
-
-/* -----------------------------------------------------------------------------
- * Wrapper_Settype()
- * ----------------------------------------------------------------------------- */
-
-void
-Wrapper_Settype(Wrapper *w, SwigType *t) {
-  Delete(w->_type);
-  w->_type = NewString(t);
-}
-
-/* -----------------------------------------------------------------------------
- * Wrapper_Getparms()
- * ----------------------------------------------------------------------------- */
-
-ParmList *
-Wrapper_Getparms(Wrapper *w) {
-  return w->_parms;
-}
-
-/* -----------------------------------------------------------------------------
- * Wrapper_Setparms()
- * ----------------------------------------------------------------------------- */
-
-void
-Wrapper_Setparms(Wrapper *w, ParmList *l) {
-  Delete(w->_parms);
-  w->_parms = l;
-  DohIncref(l);
-}
-
-/* -----------------------------------------------------------------------------
- * Wrapper_Getname()
- * ----------------------------------------------------------------------------- */
-
-char *
-Wrapper_Getname(Wrapper *w) {
-  return Char(w->_name);
-}
-
-/* -----------------------------------------------------------------------------
- * Wrapper_Setname()
- * ----------------------------------------------------------------------------- */
-
-void
-Wrapper_Setname(Wrapper *w, String_or_char *n) {
-  Delete(w->_name);
-  w->_name = NewString(n);
 }
 
 
