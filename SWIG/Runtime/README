@@ -10,7 +10,7 @@ Run make. This can also be done from the top level directory by running
 
 Windows
 -------
+See Doc\Manual\Windows.html for environment variables to set and further information.
 Choose which runtime library needs building and load the Visual Studio 6
-project file and build it. For example, use swigpy.dsp for Python. The 
-runtime libraries can also be built using Cygwin.
+project file and build it. For example, use swigpy.dsp for Python.
 
