@@ -25,18 +25,18 @@ static char cvsroot[] = "$Header$";
  ***********************************************************************/
 
 #include "swigconfig.h"
-
-#include "wrap.h"
+#include "swig11.h"
 #include "tcl8.h"
 #include "perl5.h"
 #include "java.h"
 #include "python.h"
 #include "guile.h"
-#include "ascii.h"
-#include "html.h"
-#include "nodoc.h"
+
 #include <ctype.h>
 
+#ifndef SWIG_LANG
+#define SWIG_LANG PYTHON
+#endif
 
 static char  *usage = "\
 swig <options> filename\n\n\
@@ -45,26 +45,7 @@ Target Language Options:\n\
      -python         - Generate Python wrappers.\n\
      -perl5          - Generate Perl5 wrappers.\n\
      -java           - Generate Java wrappers.\n\
-     -guile          - Generate Guile wrappers.\n\n\
-Documentation Options\n\
-     -dascii         - ASCII documentation.\n\
-     -dhtml          - HTML documentation.\n\
-     -dnone          - No documentation.\n";
-
-#ifdef MACSWIG     
-static char *macmessage = "\
-Copyright (c) 1995-1997\n\
-University of Utah and the Regents of the University of California\n\n\
-Enter SWIG processing options and filename below. For example :\n\
-\n\
-      -tcl -c++ interface.i\n\
-\n\
--help displays a list of all available options.\n\
-\n\
-Note : Macintosh filenames should be enclosed in quotes if they contain whitespace.\n\
-\n";
-
-#endif
+     -guile          - Generate Guile wrappers.\n";
 
 //-----------------------------------------------------------------
 // main()
@@ -72,18 +53,11 @@ Note : Macintosh filenames should be enclosed in quotes if they contain whitespa
 // Main program.    Initializes the files and starts the parser.
 //-----------------------------------------------------------------
 
-#ifndef MACSWIG
+
 int main(int argc, char **argv) {
-#else
-int Mac_main(int argc, char **argv) {
-#endif
-
   int i;
-
   Language *dl = new SWIG_LANG;
-  Documentation *dd = new SWIG_DOC;
-  extern int SWIG_main(int, char **, Language *, Documentation *);
-
+  extern int SWIG_main(int, char **, Language *);
   Swig_init_args(argc,argv);
   
   // Get options
@@ -108,78 +82,11 @@ int Mac_main(int argc, char **argv) {
 	  } else if (strcmp(argv[i],"-java") == 0) {
 	      dl = new JAVA;
 	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dascii") == 0) {
-	      dd = new ASCII;
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dnone") == 0) {
-	      dd = new NODOC;
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dhtml") == 0) {
-	      dd = new HTML;
-	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	      fputs(usage,stderr);
 	      Swig_mark_arg(i);
 	  }
       }
   }
-  if (!dd) dd = new ASCII;
-
-  SWIG_main(argc,argv,dl,dd);
-  return 0;
+  return SWIG_main(argc,argv,dl);
 }
-
-#ifdef MACSWIG
-int MacMainEntry(char *options) {
-	static char *_argv[256];
-	int i,argc;
-	char *c,*s,*t;
-
-	swig_log = fopen("swig_log","w");
-	fprintf(swig_log,"SWIG 1.1\n");
-	fprintf(swig_log,"Options : %s\n", options);
-	fprintf(swig_log,"-----------------------------------------------------\n");
-
-	// Tokenize the user input
-	
-	_argv[0] = "swig";
-	i=1;
-	c = options;
-	while (*c) {
-	    while(isspace(*c)) c++;
-	    if (*c) {
-	      s = c;             // Starting character
-	      while(isgraph(*c)) {
-		if (*c == '\"') {
-		  c++;
-		  while ((*c) && (*c != '\"'))
-		    c++;
-		  c++;
-		} else {
-		  c++;
-		}
-	      }
-	      // Found some whitespace 
-	      if (*c) {
-		*c = 0;
-		c++;
-	      }
-	      _argv[i] = copy_string(s);
-	      // Go through and remove quotes (if necessary)
-	      
-	      t = _argv[i];
-	      while(*s) {
-		if (*s != '\"') 
-		  *(t++) = *s;
-		s++;
-	      }
-	      *t = 0;
-	      i++;
-	    }
-	}
-	argc = i;
-	_argv[i] = 0;
-	return Mac_main(argc,_argv);
-}
-	
-#endif	

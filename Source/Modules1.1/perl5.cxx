@@ -335,8 +335,8 @@ void PERL5::initialize()
   char filen[256];
 
   if (!module){
-    module = "swig";
-    fprintf(stderr,"SWIG : *** Warning. No module name specified.\n");
+    fprintf(stderr,"*** Error. No module name specified.\n");
+    SWIG_exit(1);
   }
 
   if (!package) {
@@ -577,14 +577,6 @@ void PERL5::close(void)
 
   fprintf(f_pm,"1;\n");
   fclose(f_pm);
-
-  // Patch up documentation title
-
-  if ((doc_entry) && (module)) {
-    doc_entry->cinfo << "Module  : " << module << ", "
-	 << "Package : " << realpackage;
-  }
-
 }
 
 // ----------------------------------------------------------------------
@@ -644,43 +636,14 @@ void PERL5::get_pointer(char *iname, char *srcname, char *src, char *dest,
   // pointer, otherwise pass in the expected type.
   
   if (t->type == T_VOID) f << "(char *) 0 )) {\n";
-  else
+  else 
     f << "\"" << (hidden ? realpackage : "") << (hidden ? "::" : "") << t->print_mangle() << "\")) {\n";
 
-  // This part handles the type checking according to three different
-  // levels.   0 = no checking, 1 = warning message, 2 = strict.
-
-  switch(TypeStrict) {
-  case 0: // No type checking
-    f << tab4 << "}\n";
-    break;
-
-  case 1: // Warning message only
-
-    // Change this part to how you want to handle a type-mismatch warning.
-    // By default, it will just print to stderr.
-
-    f << tab8 << "fprintf(stderr,\"Warning : type mismatch in " << srcname
-      << " of " << iname << ". Expected " << (hidden ? realpackage : "") << (hidden ? "::" : "") << t->print_mangle()
-      << ", received %s\\n\"," << src << ");\n"
-      << tab4 << "}\n";
-
-    break;
-  case 2: // Super strict mode.
-
-    // Change this part to return an error.
-
-    f << tab8 << "croak(\"Type error in " << srcname
-	   << " of " << iname << ". Expected " << (hidden ? realpackage : "") << (hidden ? "::" : "") << t->print_mangle() << ".\");\n"
-	   << tab8 << ret << ";\n"
-	   << tab4 << "}\n";
-
-    break;
-    
-  default :
-    fprintf(stderr,"SWIG Error. Unknown strictness level\n");
-    break;
-  }
+  // Change this part to return an error.
+  f << tab8 << "croak(\"Type error in " << srcname
+    << " of " << iname << ". Expected " << (hidden ? realpackage : "") << (hidden ? "::" : "") << t->print_mangle() << ".\");\n"
+    << tab8 << ret << ";\n"
+    << tab4 << "}\n";
 }
 
 // ----------------------------------------------------------------------
@@ -1012,17 +975,6 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   f.print(f_wrappers);
 
-  // Create a first crack at a documentation entry
-
-  if (doc_entry) {
-    static DocEntry *last_doc_entry = 0;
-    doc_entry->usage << usage;
-    if (last_doc_entry != doc_entry) {
-      doc_entry->cinfo << "returns " << d->print_type();
-      last_doc_entry = doc_entry;
-    }
-  }
-
   // Now register the function
 
   fprintf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package, iname, wname);
@@ -1313,12 +1265,6 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
   } else {
     vinit << tab4 << "swig_create_magic(sv,\"" << package << "::" << iname << "\", MAGIC_CAST MAGIC_CLASS " << set_name << ", MAGIC_CAST MAGIC_CLASS " << val_name << ");\n";
   }      
-  // Add a documentation entry
-  
-  if (doc_entry) {
-    doc_entry->usage << usage_var(iname,t);
-    doc_entry->cinfo << "Global : " << t->print_type() << " " << name;
-  }
   
   // If we're blessed, try to figure out what to do with the variable
   //     1.  If it's a Perl object of some sort, create a tied-hash
@@ -1468,15 +1414,6 @@ PERL5::declare_const(char *name, char *, DataType *type, char *value)
 	      << type->print_mangle() << "\");\n";
       }
     }
-  }
-
-  // Patch up the documentation entry
-
-  if (doc_entry) {
-    doc_entry->usage = "";
-    doc_entry->usage << usage_const(name,type,value);
-    doc_entry->cinfo = "";
-    doc_entry->cinfo << "Constant: " << type->print_type();
   }
 
   if (blessed) {
@@ -1942,13 +1879,6 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   // Append our function to the pcode segment
 
   *pcode << func;
-
-  // Create a new kind of documentation entry for the shadow class
-
-  if (doc_entry) {
-    doc_entry->usage = "";            // Blow away whatever was there before
-    doc_entry->usage << usage_func(realname,t,l);
-  }
 }
 
 // --------------------------------------------------------------------------------
@@ -2002,13 +1932,6 @@ void PERL5::cpp_variable(char *name, char *iname, DataType *t) {
       *blessedmembers << tab4 << realname << " => '" << (hidden ? realpackage : "") << (hidden ? "::" : "") << (char *) classes.lookup(t->name) << "',\n";
       
      }
-
-    // Patch up the documentation entry
-
-    if (doc_entry) {
-      doc_entry->usage = "";
-      doc_entry->usage << "$this->{" << realname << "}";
-    }
   }
   have_data_members++;
 }
@@ -2094,12 +2017,6 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
 	   << "}\n\n";
     have_constructor = 1;
 
-    // Patch up the documentation entry
-    
-    if (doc_entry) {
-      doc_entry->usage = "";
-      doc_entry->usage << usage_func("new",0,l);
-    }
   }
   member_func = 0;
 }
@@ -2136,10 +2053,6 @@ void PERL5::cpp_destructor(char *name, char *newname) {
     
     have_destructor = 1;
     
-    if (doc_entry) {
-      doc_entry->usage = "DESTROY";
-      doc_entry->cinfo = "Destructor";
-    }
   }
   member_func = 0;
 }
@@ -2230,15 +2143,6 @@ void PERL5::cpp_declare_const(char *name, char *iname, DataType *type, char *val
     // Create a symbol table entry for it
     *pcode << "*" << realname << " = *" << package << "::" << name_member(realname,class_name) << ";\n";
 
-    // Fix up the documentation entry
-
-    if (doc_entry) {
-      doc_entry->usage = "";
-      doc_entry->usage << realname;
-      if (value) {
-	doc_entry->usage << " = " << value;
-      }
-    }
   }
 }
 

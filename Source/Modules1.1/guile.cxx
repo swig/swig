@@ -164,20 +164,12 @@ void GUILE::initialize()
   int i;
         
   if (!module) {
-    module = "swig_init";
-    fprintf(stderr,"SWIG : *** Warning. No module name specified.\n");
+    fprintf(stderr,"*** Error. No module name specified.\n");
+    SWIG_exit(1);
   }
   
   fprintf(f_header,"#define SWIG_init    %s\n\n", module);
   fprintf(f_init,"void %s() {\n", module);
-
-  if (InitNames) {
-    i = 0;
-    while (InitNames[i]) {
-      fprintf(f_init,"\t %s();\n",InitNames[i]);
-      i++;
-    }
-  }
 }
 
 // ---------------------------------------------------------------------
@@ -211,27 +203,9 @@ void GUILE::get_pointer(char *iname, int parm, DataType *t) {
   else 
     fprintf(f_wrappers,"\"%s\")) {\n", t->print_mangle());
 
-  // Now emit code according to the level of strictness desired
-
-  switch(TypeStrict) {
-  case 0: // No type checking
-    fprintf(f_wrappers,"\t}\n");
-    break;
-  case 1: // Warning message only
-    fprintf(f_wrappers,
-      "\t fprintf(stderr,\"Warning : type mismatch in argument %d of %s. Expected %s, received %%s\\n\", _tempc);\n", parm+1,iname, t->print_mangle());
-    fprintf(f_wrappers,"\t }\n");
-    break;
-  case 2: // Super strict mode.
 
 //    fprintf(f_wrappers,"\t\t gscm_error(\"Type error in argument %d of %s. Expected %s.\", s_%d);\n", parm+1,iname,t->print_mangle(),parm);
     fprintf(f_wrappers,"\t}\n");
-    break;
-
-  default :
-    fprintf(stderr,"Unknown strictness level\n");
-    break;
-  }
 }
 
 // ----------------------------------------------------------------------
@@ -480,20 +454,6 @@ void GUILE::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Now register the function
   fprintf(f_init,"\t gh_new_procedure(\"%s\", _wrap_gscm_%s, %d, %d, 0);\n", 
           iname, wname, reqargs, pcount-reqargs);
-
-  // Make a documentation entry for this
-
-  if (doc_entry) {
-    static DocEntry *last_doc_entry = 0;
-    char *usage = 0;
-    usage_func(iname,d,l,&usage);
-    doc_entry->usage << usage;
-    if (last_doc_entry != doc_entry) {
-      doc_entry->cinfo << "returns " << d->print_type();
-      last_doc_entry = doc_entry;
-    }
-    delete usage;
-  }
 }
 
 // -----------------------------------------------------------------------
@@ -604,25 +564,9 @@ void GUILE::link_variable(char *name, char *iname, DataType *t)
             
             // Now emit code according to the level of strictness desired
             
-            switch(TypeStrict) {
-            case 0: // No type checking
-              fprintf(f_wrappers,"\t}\n");
-              break;
-            case 1: // Warning message only
-              fprintf(f_wrappers,
-                      "\t fprintf(stderr,\"Warning : type mismatch in variable %s. Expected %s, received %%s\\n\", _temp);\n", name, t->print_mangle());
-              fprintf(f_wrappers,"\t }\n");
-              break;
-            case 2: // Super strict mode.
               
 //            fprintf(f_wrappers,"\t\t gscm_error(\"Type error in variable %s. Expected %s.\", s_0);\n", name,t->print_mangle());
               fprintf(f_wrappers,"\t}\n");
-              break;
-              
-            default :
-              fprintf(stderr,"Unknown strictness level\n");
-              break;
-            }
           }
         }
       }
@@ -696,17 +640,6 @@ void GUILE::link_variable(char *name, char *iname, DataType *t)
     fprintf(stderr,"%s : Line %d. ** Warning. Unable to link with type %s (ignored).\n",
             input_file, line_number, t->print_type());
   }
-
-  // Add a documentation entry
-  
-  if (doc_entry) {
-    char *usage = 0; 
-    usage_var(iname,t,&usage);
-    doc_entry->usage << usage;
-    doc_entry->cinfo << "Global : " << t->print_type() << " " << name;
-    delete usage;
-  }
-
 }
 
 // -----------------------------------------------------------------------
@@ -745,17 +678,6 @@ void GUILE::declare_const(char *name, char *, DataType *type, char *value) {
 
   link_variable(var_name, name, type);
   Status = OldStatus;
-
-  if (doc_entry) {
-    char *usage = 0;
-    usage_const(name,type,value,&usage);
-    doc_entry->usage = "";
-    doc_entry->usage << usage;
-    doc_entry->cinfo = "";
-    doc_entry->cinfo << "Constant: " << type->print_type();
-    delete usage;
-  }
-
 }
 
 // ----------------------------------------------------------------------

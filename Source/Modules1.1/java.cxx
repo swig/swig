@@ -420,7 +420,7 @@ void JAVA::headers(void)
 void JAVA::initialize() 
 {
   if (!module) {
-    fprintf(stderr,"SWIG : *** Error. No module name specified.\n");
+    fprintf(stderr,"*** Error. No module name specified.\n");
     SWIG_exit(1);
   }
 
@@ -798,24 +798,6 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
     methodEntry << "\"" << name << "\", \"(" << javaParameterSignature << ")" << javaReturnSignature << "\", " << wname;
     registerNativesList << tab4 << "{" << methodEntry << "}," << "\n";
   }
-
-  // If there's a documentation entry, produce a usage string
-  
-  if (doc_entry) {
-
-    static DocEntry *last_doc_entry = 0;
-
-    // Use usage as description
-    doc_entry->usage << iname;
-
-    // Set the cinfo field to specific a return type 
-
-    if (last_doc_entry != doc_entry) {
-      doc_entry->cinfo << "returns " << t->print_type();
-      last_doc_entry = doc_entry;
-    }
-  }
-
 }
 
 // -----------------------------------------------------------------------

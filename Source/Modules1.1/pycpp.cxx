@@ -148,10 +148,6 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
     else
       *pyclass << tab4 << "def " << realname << "(*args):\n";
     
-    // Create a doc string
-    if (docstring && doc_entry) {
-      *pyclass << tab8 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
-    }
     if (use_kw)
       *pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",args, kwargs)\n";
     else
@@ -174,12 +170,6 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
     }
     emitAddPragmas(*pyclass, realname, tab8);
     *pyclass << tab8 << "return val\n";
-
-    // Change the usage string to reflect our shadow class
-    if (doc_entry) {
-      doc_entry->usage = "";
-      doc_entry->usage << usage_func(realname,t,l);
-    }
   }
 }
 
@@ -226,9 +216,6 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
       else
 	*construct << tab4 << "def __init__(self,*args):\n";
 
-      if (docstring && doc_entry) 
-	*construct << tab8 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
-
       if (use_kw)
 	*construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",args,kwargs)\n";
       else
@@ -253,11 +240,6 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
 	*additional << module << "." << name_construct(realname) << ",args))\n";
       *additional << tab4 << "val.thisown = 1\n"
 		  << tab4 << "return val\n\n";
-    }
-    // Patch up the documentation entry
-    if (doc_entry) {
-      doc_entry->usage = "";
-      doc_entry->usage << usage_func(class_name,0,l);
     }
   }
 }
@@ -288,10 +270,6 @@ void PYTHON::cpp_destructor(char *name, char *newname) {
 	     << tab8 << tab4 << module << "." << name_destroy(realname) << "(self)\n";
     
     have_destructor = 1;
-    if (doc_entry) {
-      doc_entry->usage = "";
-      doc_entry->usage << "del this";
-    }
   }
 }
 
@@ -318,9 +296,6 @@ void PYTHON::cpp_close_class() {
       ptrclass << "class " << class_name << "(" << *base_class << "):\n";
     } else {
     ptrclass << "class " << class_name << ":\n";
-    }
-    if (docstring && doc_entry) {
-      classes << tab4 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
     }
 
     //    *getattr << tab8 << "return self.__dict__[name]\n";
@@ -451,13 +426,6 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     } else {
       *getattr << tab8 << tab4 << "return " << module << "." << name_get(name_member(realname,class_name)) << "(self)\n";
     }
-
-    // Patch up ye old documentation entry
-    
-    if (doc_entry) {
-      doc_entry->usage = "";
-      doc_entry->usage << "self." << realname;
-    }
   }
 }
 
@@ -490,14 +458,6 @@ void PYTHON::cpp_declare_const(char *name, char *iname, DataType *type, char *va
     }
     
     *cinit << tab4 << realname << " = " << module << "." << name_member(realname,class_name) << "\n";
-
-    if (doc_entry) {
-      doc_entry->usage = "";
-      doc_entry->usage << "self." << realname;
-      if (value) {
-	doc_entry->usage << " = " << value;
-      }
-    }
   }
 }
  

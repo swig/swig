@@ -13,8 +13,8 @@ AR       = @AR@
 RANLIB   = @RANLIB@
 
 TARGET   = libmodules11.a
-OBJS     = swigmain.o tcl8.o perl5.o python.o pycpp.o guile.o java.o ascii.o html.o
-SRCS     = swigmain.cxx tcl8.cxx perl5.cxx python.cxx pycpp.cxx guile.cxx java.cxx ascii.cxx html.cxx
+OBJS     = swigmain.o tcl8.o perl5.o python.o pycpp.o guile.o java.o
+SRCS     = swigmain.cxx tcl8.cxx perl5.cxx python.cxx pycpp.cxx guile.cxx java.cxx
 INCLUDE  = -I../Include -I../SWIG1.1
 
 # Rules for creation of a .o file from .cxx

@@ -1,132 +1,68 @@
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * include.cxx
+ *
+ *     File inclusion functions.  This file is deprecated.  These are only a
+ *     thin wrapper over the functions in Swig/include.c.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Copyright (C) 1998-2000.  The University of Chicago
+ * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
+ *                           University of California.
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
 
 #include "internal.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
 
 extern "C" FILE *Swig_open(void *);
 
-/*******************************************************************************
- * $Header$
- *
- * File : include.cxx
- *
- * Code for including files into a wrapper file.
- *******************************************************************************/
-
 // -----------------------------------------------------------------------------
-// void check_suffix(char *name)
+// check_suffix(char *name)
 // 
-// Checks the suffix of an include file to see if we need to handle it
-// differently.  C and C++ source files need a little extra help.
+// Checks the suffix of a file to see if we should emit extern declarations.
 // -----------------------------------------------------------------------------
 
-void check_suffix(char *name) {
+int 
+check_suffix(char *name) {
   char *c;
-
-  if (!name) return;
-  if (strlen(name) == 0) return;
+  if (!name) return 0;
+  if (strlen(name) == 0) return 0;
   c = name+strlen(name)-1;
   while (c != name) {
     if (*c == '.') break;
     c--;
   }
-  if (c == name) return;
-
-  /* Check suffixes */
-
-  if (strcmp(c,".c") == 0) {
-    ForceExtern = 1;
-  } else if (strcmp(c,".C") == 0) {
-    ForceExtern = 1;
-  } else if (strcmp(c,".cc") == 0) {
-    ForceExtern = 1;
-  } else if (strcmp(c,".cxx") == 0) {
-    ForceExtern = 1;
-  } else if (strcmp(c,".c++") == 0) {
-    ForceExtern = 1;
-  } else if (strcmp(c,".cpp") == 0) {
-    ForceExtern = 1;
-  } else {
-    ForceExtern = 0;
+  if (c == name) return 0;
+  if ((strcmp(c,".c") == 0) ||
+      (strcmp(c,".C") == 0) ||
+      (strcmp(c,".cc") == 0) ||
+      (strcmp(c,".cxx") == 0) ||
+      (strcmp(c,".c++") == 0) ||
+      (strcmp(c,".cpp") == 0)) {
+    return 1;
   }
+  return 0;
 }
 
 // -----------------------------------------------------------------------------
-// void copy_data(FILE *f1, FILE *f2)
-//
-// Copies data from file f1 to file f2.
-// -----------------------------------------------------------------------------
-
-static char buffer[1024];
-
-void copy_data(FILE *f1, FILE *f2) {
-
-  while (fgets(buffer,1023,f1)) {
-    fputs(buffer, f2);
-  }
-  fclose(f1);
-}
-
-// -----------------------------------------------------------------------------
-// void copy_data(FILE *f1, String *s2)
-//
-// Copies data from file f1 to String s2.
-// -----------------------------------------------------------------------------
-
-void copy_data(FILE *f1, String &s2) {
-
-  while (fgets(buffer,1023,f1)) {
-    s2 << buffer;
-  }
-  fclose(f1);
-}
-
-// -----------------------------------------------------------------------------
-// int insert_file(char *name, FILE *f)
-//
-// Looks for a file and inserts into file f.
-// -----------------------------------------------------------------------------
-int insert_file(char *name, FILE *f_out) {
-  FILE  *f;
-  f = Swig_open((void *) name);
-  if (f) {
-      copy_data(f,f_out);
-      return 0;
-  }
-  return -1;
-}
-
-// -----------------------------------------------------------------------------
-// void swig_append(char *filename, FILE *f)
+// int insert_file(char *filename, FILE *f)
 // 
 // Appends the contents of filename to stream f.
 // -----------------------------------------------------------------------------
-
-void swig_append(char *filename, FILE *f) {
+int insert_file(char *filename, FILE *f) {
   FILE *in_file;
-  if ((in_file = fopen(filename,"r")) == NULL) {
-      fprintf(stderr,"** SWIG ERROR ** file %s not found.\n",filename);
-      FatalError();
-      return;
+  char buffer[1024];
+  if ((in_file = Swig_open((void *) filename)) == NULL) {
+    return -1;
   }
-  copy_data(in_file, f);
+  while (fgets(buffer,1023,in_file)) {
+    fputs(buffer, f);
+  }
+  fclose(in_file);
+  return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -136,13 +72,17 @@ void swig_append(char *filename, FILE *f) {
 // -----------------------------------------------------------------------------
 int get_file(char *name, String &str) {
   FILE  *f;
+  char buffer[1024];
   f = Swig_open((void *) name);
   if (!f) {
     fprintf(stderr,"SWIG Error. Unable to find %s. Possible installation problem.\n",name);
     FatalError();
     return -1;
   }
-  copy_data(f,str);
+  while (fgets(buffer,1023,f)) {
+    str << buffer;
+  }
+  fclose(f);
   return 0;
 }
 

@@ -1,58 +1,25 @@
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * naming.cxx
+ *
+ *     Functions for creating various kinds of names used during code generation.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Copyright (C) 1998-2000.  The University of Chicago
+ * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
+ *                           University of California.
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
 
 #include "internal.h"
-#include <limits.h>
 #include <ctype.h>
-
-// --------------------------------------------------------------------------------
-// $Header$
-//
-// naming.cxx
-//
-// SWIG naming service.
-//
-// This module provides universal naming services for manufacturing function names.
-// All language modules use this so it provides a convenient centralized
-// mechanism for producing names.
-// --------------------------------------------------------------------------------
-
-// Structure for holding names
-
-struct NamingScheme {
-  char            *format;
-  int             first;                // Scoping information
-  int             last;                 // Scoping information
-  NamingScheme    *next;
-  NamingScheme(char *n) {
-    format = copy_string(n);
-    first = type_id;
-    last = INT_MAX;
-    next = 0;
-  };
-};
 
 // Hash table containing naming data
 
 static Hash naming_hash;
-
-// Variable indicating naming scope
-
-static int naming_scope = -1;
 
 //-----------------------------------------------------------------
 // make_wrap_name(char *s)
@@ -70,23 +37,9 @@ void make_wrap_name(char *s) {
 
   char *c1 = s;
   int  i;
-
   for (i = 0; i < (int) strlen(s); i++, c1++) {
     if(!isalnum(*c1)) *c1 = '_';
   }
-}
-
-// --------------------------------------------------------------------------------
-// int name_scope(int scope)
-//
-// Set the scope variable.  This is used to determine what naming scheme to
-// use.    Returns the current value of the scope.
-// --------------------------------------------------------------------------------
-
-int name_scope(int scope) {
-  int s = naming_scope;
-  naming_scope = scope;
-  return s;
 }
 
 // --------------------------------------------------------------------------------
@@ -96,42 +49,18 @@ int name_scope(int scope) {
 // --------------------------------------------------------------------------------
 
 void name_register(char *method, char *format) {
-  NamingScheme *ns, *nns;
-
-  ns = (NamingScheme *) naming_hash.lookup(method);
-  if (ns) {
-    naming_hash.remove(method);
-  }
-
-  nns = new NamingScheme(format);      // Create a new naming scheme
-  if (ns) ns->last = type_id;
-  nns->next = ns;
-
-  naming_hash.add(method,nns);
-};
+  naming_hash.remove(method);
+  naming_hash.add(method,copy_string(format));
+}
 
 // --------------------------------------------------------------------------------
 // char *name_getformat(char *method)
 //
-// Looks up a naming scheme in the hash table.  The scope of the name should have
-// been set prior to calling this.  If not set, we just use the last name entered.
-// Returns the format string or NULL if no name has been set.
+// Get name format
 // --------------------------------------------------------------------------------
 
 static char *name_getformat(char *method) {
-  
-  NamingScheme *ns;
-  int scope;
-  if (naming_scope == -1) scope = type_id;
-  else scope = naming_scope;
-
-  ns = (NamingScheme *) naming_hash.lookup(method);
-  while (ns) {
-    if ((ns->first <= scope) && (scope < ns->last))
-      return ns->format;
-    ns = ns->next;
-  }
-  return 0;
+  return (char *) naming_hash.lookup(method);
 }
 
 // --------------------------------------------------------------------------------

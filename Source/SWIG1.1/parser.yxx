@@ -1,34 +1,18 @@
 %{
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * parser.yxx
+ *
+ *     YACC parser for SWIG1.1.   This grammar is a broken subset of C/C++.
+ *     This file is in the process of being deprecated.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Copyright (C) 1998-2000.  The University of Chicago
+ * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
+ *                           University of California.
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
-/***********************************************************************
- * $Header$
- *
- * parser.y
- *
- * YACC parser for parsing function declarations.
- *
- * *** DISCLAIMER ***
- *
- * This is the most ugly, incredibly henious, and completely unintelligible
- * file in SWIG.  While it started out simple, it has grown into a
- * monster that is almost unmaintainable.   A complete parser rewrite is
- * currently in progress that should make this file about 1/4 the size
- * that it is now.   Needless to say, don't modify this file or even look
- * at it for that matter!
- ***********************************************************************/
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 #define yylex yylex
 
@@ -72,9 +56,6 @@ void *alloca(unsigned n) {
 // versions).
 
 static int     module_init = 0;    /* Indicates whether the %module name was given */
-static int     title_init = 0;     /* Indicates whether %title directive has been given */
-static int     doc_init = 0;    
-
 static int     lang_init = 0;      /* Indicates if the language has been initialized */
 
 static int            i;
@@ -88,10 +69,6 @@ static int            Active_extern = 0;       // Whether or not list is externa
 static int            Active_static = 0;
 static DataType       *Active_typedef = 0;     // Used for typedef lists
 static int            InArray = 0;             // Used when an array declaration is found 
-static int            in_then = 0;
-static int            in_else = 0;       
-static int            allow = 1;               // Used during conditional compilation
-static int            doc_scope = 0;           // Documentation scoping
 static String         ArrayString;             // Array type attached to parameter names
 static String         ArrayBackup;             // Array backup string
 static char           *DefArg = 0;             // Default argument hack
@@ -132,7 +109,7 @@ extern void cplus_register_type(char *);
 extern void cplus_register_scope(void *);
 extern void cplus_inherit_scope(int, char **);
 extern void cplus_add_pragma(char *, char *, char *);
-extern DocEntry *cplus_set_class(char *);
+extern void cplus_set_class(char *);
 extern void cplus_unset_class();
 extern void cplus_abort();
   
@@ -146,24 +123,8 @@ extern void cplus_abort();
 static void init_language() {
   if (!lang_init) {
     lang->initialize();
-    
-    // Initialize the documentation system
-
-    if (!doctitle) {
-      doctitle = new DocTitle(title,0);
-    }
-    if (!doc_init)
-      doctitle->usage = title;
-
-    doc_stack[0] = doctitle;
-    doc_stack_top = 0;
-    
-    int oldignore = IgnoreDoc;
-    IgnoreDoc = 1;
-    IgnoreDoc = oldignore;
   }
   lang_init = 1;
-  title_init = 1;
 }
 
 // ----------------------------------------------------------------------
@@ -217,15 +178,6 @@ static char *make_name(char *name) {
   }
 }
 
-/* Return the parent of a documentation entry.   If wrapping externally, this is 0 */
-
-static DocEntry *doc_parent() {
-  if (!WrapExtern) 
-    return doc_stack[doc_stack_top];
-  else
-    return 0;
-}
-
 // ----------------------------------------------------------------------
 // create_function(int ext, char *name, DataType *t, ParmList *l)
 //
@@ -247,11 +199,6 @@ void create_function(int ext, char *name, DataType *t, ParmList *l) {
     fprintf(stderr,"%s : Line %d. Function %s multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, iname);
   } else {
-    Stat_func++;
-    if (Verbose) {
-      fprintf(stderr,"Wrapping function : ");
-      emit_extern_func(name, t, l, 0, stderr);
-    }
 
     // If extern, make an extern declaration in the SWIG wrapper file
 
@@ -262,8 +209,6 @@ void create_function(int ext, char *name, DataType *t, ParmList *l) {
     }
 
     // If this function has been declared inline, produce a function
-
-    doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
     lang->create_function(name, iname, t, l);
   }
   scanner_clear_start();
@@ -289,11 +234,6 @@ void create_variable(int ext, char *name, DataType *t) {
     fprintf(stderr,"%s : Line %d. Variable %s multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, iname);
   } else {
-    Stat_var++;
-    if (Verbose) {
-      fprintf(stderr,"Wrapping variable : ");
-      emit_extern_var(name, t, 0, stderr);
-    }
 
     // If externed, output an external declaration
 
@@ -307,7 +247,6 @@ void create_variable(int ext, char *name, DataType *t) {
     if (t->status & STAT_READONLY) Status = Status | STAT_READONLY;
 
     // Now dump it out
-    doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
     lang->link_variable(name, iname, t);
     Status = oldstatus;
   }
@@ -345,11 +284,6 @@ void create_constant(char *name, DataType *type, char *value) {
     update_symbol(name, type, value);
 
     if (!WrapExtern) {    // Only wrap the constant if not in %extern mode
-      Stat_const++;
-      if (Verbose) 
-	fprintf(stderr,"Creating constant %s = %s\n", name, value);
-
-      doc_entry = new DocDecl(name,doc_stack[doc_stack_top]);	   
       lang->declare_const(name, name, type, value);
     }
   }
@@ -408,12 +342,9 @@ static void dump_nested(char *parent) {
     sprintf(n->type->name,"%s_%s",parent,n->name);
     
     // Add the appropriate declaration to the C++ processor
-    doc_entry = new DocDecl(n->name,doc_stack[doc_stack_top]);
     cplus_variable(n->name,(char *) 0, n->type);
 
     // Dump the code to the scanner
-    if (Verbose)
-      fprintf(stderr,"Splitting from %s : (line %d) \n%s\n", parent,n->line, n->code.get());
 
     fprintf(f_header,"\n%s\n", n->code.get());
     start_inline(n->code.get(),n->line);
@@ -523,19 +454,8 @@ static void dump_nested(char *parent) {
 /* The productions of the grammar with their
    associated semantic actions. */
 
-program        : { 
-                    {
-		      int ii;
-		      for (ii = 0; ii < 256; ii++) {
-			handler_stack[ii] = 0;
-		      }
-		      handler_stack[0] = comment_handler;
-		    }
-                    doc_stack[0] = doctitle;
-                 } command {
-		   CommentHandler::cleanup();
+program        :  command {
                    cplus_cleanup();
-		   doc_entry = doctitle;
 		   if (lang_init) {
 		     lang->close();
 		   }
@@ -604,10 +524,6 @@ statement      : INCLUDE STRING LBRACE {
 /* An unknown C preprocessor statement.  Just throw it away */
 
                 | POUND {
-                  doc_entry = 0;
-		  if (Verbose) {
-		    fprintf(stderr,"%s : Line %d.  CPP %s ignored.\n", input_file, line_number,$1);
-		  }
 		}
 
 /* A variable declaration */
@@ -650,9 +566,6 @@ statement      : INCLUDE STRING LBRACE {
 /* A static variable declaration (Ignored) */
 
    	        | STATIC type declaration array2 def_args {
-		  if (Verbose) {
-		    fprintf(stderr,"static variable %s ignored.\n",$3.id);
-		  }
 		  Active_static = 1;
 		  delete $2;
 		} stail {
@@ -743,9 +656,6 @@ statement      : INCLUDE STRING LBRACE {
 /* A static function declaration (ignored) */
 
                 | STATIC type declaration LPAREN parms RPAREN cpp_const {
-		  if (Verbose) {
-		    fprintf(stderr,"static function %s ignored.\n", $3.id);
-		  }
 		  Active_static = 1;
 		  delete $2;
 		  delete $5;
@@ -806,7 +716,6 @@ statement      : INCLUDE STRING LBRACE {
 		     fprintf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
 			     input_file, line_number, $3);
 		   } else {
-		     doc_entry = new DocDecl($3,doc_stack[doc_stack_top]);
 		     lang->add_native($3,$6,0,0);
 		   }
 		 }
@@ -822,7 +731,6 @@ statement      : INCLUDE STRING LBRACE {
 		     if ($5) {
 		       emit_extern_func($7.id, $6, $9, $5, f_header);
 		     }
-		     doc_entry = new DocDecl($3,doc_stack[doc_stack_top]);
 		     lang->add_native($3,$7.id,$6,$9);
 		   }
 		 }
@@ -833,170 +741,20 @@ statement      : INCLUDE STRING LBRACE {
 /* %title directive */
 
                | TITLE STRING styletail {
-		 if (!WrapExtern) {
-		   if (!title_init) {
-		     title_init = 1;
-		     doc_init = 1;
-		     if (!comment_handler) {
-		       comment_handler = new CommentHandler();
-		     }
-		     { 
-		       int ii;
-		       for (ii = 0; ii < $3.count; ii++) {
-			 comment_handler->style($3.names[ii],$3.values[ii]);
-		       }
-		     }
-		     // Create a new title for documentation 
-		     {
-		       int temp = line_number;
-		       line_number = $1;
-		       if (!doctitle)
-			 doctitle = new DocTitle($2,0);
-		       else {
-			 doctitle->name = copy_string(title);
-			 doctitle->line_number = $1;
-			 doctitle->end_line = $1;
-		       }
-		       line_number = temp;
-		     }
-		     doctitle->usage = $2;
-		     doc_entry = doctitle;
-		     doc_stack[0] = doc_entry;
-		     doc_stack_top = 0;
-		     handler_stack[0] = comment_handler;
-		     { 
-		       int ii;
-		       for (ii = 0; ii < $3.count; ii++) {
-			 doc_stack[doc_stack_top]->style($3.names[ii],$3.values[ii]);
-		       }
-		     }
-
-		   } else {
-		     // Ignore it
-		   }
-		 }
 	       } 
 
 
 /* %section directive */
 
                | SECTION STRING styletail {
-		 if ((!WrapExtern) && (!IgnoreDoc)) {
-		   // Copy old comment handler
-		   // if (handler_stack[1]) delete handler_stack[1];
-		   handler_stack[1] = new CommentHandler(handler_stack[0]);  
-		   comment_handler = handler_stack[1];
-		   { 
-		     int ii;
-		     for (ii = 0; ii < $3.count; ii++) {
-		       comment_handler->style($3.names[ii],$3.values[ii]);
-		     }
-		   }
-		   {
-		     int temp = line_number;
-		     line_number = $1;
-		     doc_entry = new DocSection($2,doc_stack[0]);
-		     line_number = temp;
-		   }
-		   doc_stack_top = 1;
-		   doc_stack[1] = doc_entry;
-		   { 
-		     int ii;
-		     for (ii = 0; ii < $3.count; ii++) {
-		       doc_stack[doc_stack_top]->style($3.names[ii],$3.values[ii]);
-		     }
-		   }
-		 }
 	       }
 
 /* %subsection directive */
                | SUBSECTION STRING styletail {
-		 if ((!WrapExtern) && (!IgnoreDoc)) {
-		   if (doc_stack_top < 1) {
-		     fprintf(stderr,"%s : Line %d. Can't apply %%subsection here.\n", input_file,line_number);
-		     FatalError();
-		   } else {
-
-		     // Copy old comment handler
-		     // if (handler_stack[2]) delete handler_stack[2];
-		     handler_stack[2] = new CommentHandler(handler_stack[1]);
-		     comment_handler = handler_stack[2];
-		     { 
-		       int ii;
-		       for (ii = 0; ii < $3.count; ii++) {
-			 comment_handler->style($3.names[ii],$3.values[ii]);
-		       }
-		     }
-		     {
-		       int temp = line_number;
-		       line_number = $1;
-		       doc_entry = new DocSection($2,doc_stack[1]);
-		       line_number = temp;
-		     }
-		     doc_stack_top = 2;
-		     doc_stack[2] = doc_entry;
-		     { 
-		       int ii;
-		       for (ii = 0; ii < $3.count; ii++) {
-			 doc_stack[doc_stack_top]->style($3.names[ii],$3.values[ii]);
-		       }
-		     }
-		   }
-		 }
 	       }
 
 /* %subsubsection directive */
                | SUBSUBSECTION STRING styletail {
-		 if ((!WrapExtern) && (!IgnoreDoc)) {
-		   if (doc_stack_top < 2) {
-		     fprintf(stderr,"%s : Line %d. Can't apply %%subsubsection here.\n", input_file,line_number);
-		     FatalError();
-		   } else {
-
-		     // Copy old comment handler
-
-		     // if (handler_stack[3]) delete handler_stack[3];
-		     handler_stack[3] = new CommentHandler(handler_stack[2]);
-		     comment_handler = handler_stack[3];
-		     { 
-		       int ii;
-		       for (ii = 0; ii < $3.count; ii++) {
-			 comment_handler->style($3.names[ii],$3.values[ii]);
-		       }
-		     }
-		     {
-		       int temp = line_number;
-		       line_number = $1;
-		       doc_entry = new DocSection($2,doc_stack[2]);
-		       line_number = temp;
-		     }
-		     doc_stack_top = 3;
-		     doc_stack[3] = doc_entry;
-		     { 
-		       int ii;
-		       for (ii = 0; ii < $3.count; ii++) {
-			 doc_stack[doc_stack_top]->style($3.names[ii],$3.values[ii]);
-		       }
-		     }
-		   }
-		 }
-	       }
-
-/* %alpha directive (obsolete) */
-               | ALPHA_MODE {
-		 if (!WrapExtern) {
-		   fprintf(stderr,"%%alpha directive is obsolete.  Use '%%style sort' instead.\n");
-		   handler_stack[0]->style("sort",0);
-		   doc_stack[0]->style("sort",0);
-		 }
-	       }
-/* %raw directive (obsolete) */
-               | RAW_MODE {
-		 if (!WrapExtern) {
-		   fprintf(stderr,"%%raw directive is obsolete. Use '%%style nosort' instead.\n");
-		   handler_stack[0]->style("nosort",0);
-		   doc_stack[0]->style("nosort",0);
-		 }
 	       }
 
                | doc_enable { }
@@ -1004,11 +762,6 @@ statement      : INCLUDE STRING LBRACE {
 /* %text directive */
 
                | TEXT HBLOCK {
-		 if (!WrapExtern) {
-		   $2[strlen($2) - 1] = 0;
-		   doc_entry = new DocText($2,doc_stack[doc_stack_top]);
-		   doc_entry = 0;
-		 }
 	       }
              
 
@@ -1080,7 +833,6 @@ statement      : INCLUDE STRING LBRACE {
 
 /* Disable code generation */
                | DOCONLY {
-                   DocOnly = 1;
                }
        
 /* Init directive--to avoid errors in other modules */
@@ -1090,10 +842,6 @@ statement      : INCLUDE STRING LBRACE {
 		     lang->set_init($2);
 		     module_init = 1;
 		     init_language();
-		   } else {
-		     if (Verbose)
-		       fprintf(stderr,"%s : Line %d. %%init %s ignored.\n",
-			       input_file, line_number, $2);
 		   }
 		   if ($3.count > 0) {
 		     fprintf(stderr,"%s : Line %d. Warning. Init list no longer supported.\n",
@@ -1348,31 +1096,11 @@ statement      : INCLUDE STRING LBRACE {
 /* %style directive.   This applies to all current styles */
 
                | STYLE stylelist {
-		 { 
-		   int ii,jj;
-		   for (ii = 0; ii < $2.count; ii++) {
-		     comment_handler->style($2.names[ii],$2.values[ii]);
-		     for (jj = 0; jj < doc_stack_top; jj++) 
-		       doc_stack[jj]->style($2.names[ii],$2.values[ii]);
-		     if (doctitle)
-		       doctitle->style($2.names[ii],$2.values[ii]);
-		     doc->style($2.names[ii],$2.values[ii]);
-		   }
-		 }
 	       }
 
 /* %localstyle directive.   This applies only to the current style */
 
                | LOCALSTYLE stylelist {
-		 { 
-		   int ii;
-		   for (ii = 0; ii < $2.count; ii++) {
-		     comment_handler = new CommentHandler(comment_handler);
-		     handler_stack[doc_stack_top] = comment_handler;
-		     comment_handler->style($2.names[ii],$2.values[ii]);
-		     doc_stack[doc_stack_top]->style($2.names[ii],$2.values[ii]);
-		   }
-		 }
 	       }
 
 /* User defined directive */
@@ -1383,28 +1111,9 @@ statement      : INCLUDE STRING LBRACE {
 /* Dcumentation disable/enable */
 
 doc_enable     : DOC_DISABLE {
-		   if (IgnoreDoc) {
-		     /* Already in a disabled documentation */
-		     doc_scope++;
-		   } else {
-		     if (Verbose)
-		       fprintf(stderr,"%s : Line %d. Documentation disabled.\n", input_file, line_number);
-		     IgnoreDoc = 1;
-		     doc_scope = 1;
-		   }
 	       }
 /* %enabledoc directive */
                | DOC_ENABLE {
-		   if (IgnoreDoc) {
-		     if (doc_scope > 1) {
-		       doc_scope--;
-		     } else {
-		       if (Verbose)
-			 fprintf(stderr,"%s : Line %d. Documentation enabled.\n", input_file, line_number);
-		       IgnoreDoc = 0;
-		       doc_scope = 0;
-		     }
-		   }
 	       }
                ;
 
@@ -1540,41 +1249,37 @@ pragma         : PRAGMA LPAREN ID COMMA ID stylearg RPAREN {
 
 stail          : SEMI { }
                | COMMA declaration array2 def_args {
-		 if (allow) {
-		   init_language();
-		   temp_typeptr = new DataType(Active_type);
-		   temp_typeptr->is_pointer += $2.is_pointer;
-		   if ($3 > 0) {
-		     temp_typeptr->is_pointer++;
-		     temp_typeptr->status = STAT_READONLY;
-		     temp_typeptr->arraystr = copy_string(ArrayString);
-		   }
-		   if ($2.is_reference) {
-		     fprintf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
-		     FatalError();
-		   } else {
-		     if (temp_typeptr->qualifier) {
-		       if ((strcmp(temp_typeptr->qualifier,"const") == 0)) {
-			 /* Okay.  This is really some sort of C++ constant here. */
-			 if ($4.type != T_ERROR)
-			   create_constant($2.id, temp_typeptr, $4.id);
-		       } else 
-			 create_variable(Active_extern,$2.id, temp_typeptr);
-		     } else
-		       create_variable(Active_extern, $2.id, temp_typeptr);
-		   }
-		   delete temp_typeptr;
+		 init_language();
+		 temp_typeptr = new DataType(Active_type);
+		 temp_typeptr->is_pointer += $2.is_pointer;
+		 if ($3 > 0) {
+		   temp_typeptr->is_pointer++;
+		   temp_typeptr->status = STAT_READONLY;
+		   temp_typeptr->arraystr = copy_string(ArrayString);
 		 }
+		 if ($2.is_reference) {
+		   fprintf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
+		   FatalError();
+		 } else {
+		   if (temp_typeptr->qualifier) {
+		     if ((strcmp(temp_typeptr->qualifier,"const") == 0)) {
+		       /* Okay.  This is really some sort of C++ constant here. */
+		       if ($4.type != T_ERROR)
+			 create_constant($2.id, temp_typeptr, $4.id);
+		     } else 
+		       create_variable(Active_extern,$2.id, temp_typeptr);
+		   } else
+		     create_variable(Active_extern, $2.id, temp_typeptr);
+		 }
+		 delete temp_typeptr;
 	       } stail { } 
                | COMMA declaration LPAREN parms RPAREN cpp_const {
-		 if (allow) {
-		   init_language();
-		   temp_typeptr = new DataType(Active_type);
-		   temp_typeptr->is_pointer += $2.is_pointer;
-		   temp_typeptr->is_reference = $2.is_reference;
-		   create_function(Active_extern, $2.id, temp_typeptr, $4);
-		   delete temp_typeptr;
-		 }
+		 init_language();
+		 temp_typeptr = new DataType(Active_type);
+		 temp_typeptr->is_pointer += $2.is_pointer;
+		 temp_typeptr->is_reference = $2.is_reference;
+		 create_function(Active_extern, $2.id, temp_typeptr, $4);
+		 delete temp_typeptr;
 		 delete $4;
 	       } stail { }
               ;
@@ -1642,11 +1347,6 @@ parm           : parm_type {
 parm_type      : type pname {
 		    if (InArray) {
 		      $1->is_pointer++;
-		      if (Verbose) {
-			fprintf(stderr,"%s : Line %d. Warning. Array %s", input_file, line_number, $1->print_type());
-			print_array();
-			fprintf(stderr," has been converted to %s.\n", $1->print_type());
-		      }
 		      // Add array string to the type
 		      $1->arraystr = copy_string(ArrayString.get());
 		    } 
@@ -1654,10 +1354,6 @@ parm_type      : type pname {
 		    $$->call_type = 0;
 		    $$->defvalue = DefArg;
 		    if (($1->type == T_USER) && !($1->is_pointer)) {
-		      if (Verbose)
-			fprintf(stderr,"%s : Line %d. Warning : Parameter of type '%s'\nhas been remapped to '%s *' and will be called using *((%s *) ptr).\n",
-				input_file, line_number, $1->name, $1->name, $1->name);
-
 		      $$->call_type = CALL_REFERENCE;
 		      $$->t->is_pointer++;
 		    }
@@ -1672,11 +1368,6 @@ parm_type      : type pname {
 		   $$->defvalue = DefArg;
 		   if (InArray) {
 		     $$->t->is_pointer++;
-		     if (Verbose) {
-		       fprintf(stderr,"%s : Line %d. Warning. Array %s", input_file, line_number, $$->t->print_type());
-		       print_array();
-		       fprintf(stderr," has been converted to %s.\n", $$->t->print_type());
-		     }
 		     // Add array string to the type
 		     $$->t->arraystr = copy_string(ArrayString.get());
 		    }
@@ -2289,232 +1980,192 @@ cpp_class    :
 /* A class/struct/union  definition */
              extern cpptype ID inherit LBRACE {
 	       char *iname;
-	       if (allow) {
-		 init_language();
-		 DataType::new_scope();
-
-		 sprintf(temp_name,"CPP_CLASS:%s\n",$3);
-		 if (add_symbol(temp_name, (DataType *) 0, (char *) 0)) {
-		   fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
+	       init_language();
+	       DataType::new_scope();
+	       
+	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
+	       if (add_symbol(temp_name, (DataType *) 0, (char *) 0)) {
+		 fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
+		 FatalError();
+	       }
+	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
+		 fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+	       
+	       iname = make_name($3);
+	       if (iname == $3) 
+		 cplus_open_class($3, 0, $2);
+	       else
+	       cplus_open_class($3, iname, $2);
+	       if (strcmp($2,"class") == 0)
+		 cplus_mode = CPLUS_PRIVATE;
+	       else
+	       cplus_mode = CPLUS_PUBLIC;
+	       scanner_clear_start();
+	       nested_list = 0;
+	       // Merge in scope from base classes
+	       cplus_inherit_scope($4.count,$4.names);
+              } cpp_members RBRACE {
+	       if ($4.names) {
+		 if (strcmp($2,"union") != 0)
+		   cplus_inherit($4.count, $4.names);
+		 else {
+		   fprintf(stderr,"%s : Line %d.  Inheritance not allowed for unions.\n",input_file, line_number);
 		   FatalError();
 		 }
-		 if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		   fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-
-		 iname = make_name($3);
-		 doc_entry = new DocClass(iname, doc_parent());
-		 if (iname == $3) 
-		   cplus_open_class($3, 0, $2);
-		 else
-		   cplus_open_class($3, iname, $2);
-		 if (strcmp($2,"class") == 0)
-		   cplus_mode = CPLUS_PRIVATE;
-		 else
-		   cplus_mode = CPLUS_PUBLIC;
-		 doc_stack_top++;
-		 doc_stack[doc_stack_top] = doc_entry;
-		 scanner_clear_start();
-		 nested_list = 0;
-		 // Merge in scope from base classes
-		 cplus_inherit_scope($4.count,$4.names);
 	       }
-              } cpp_members RBRACE {
-		if (allow) {
-		  if ($4.names) {
-		    if (strcmp($2,"union") != 0)
-		      cplus_inherit($4.count, $4.names);
-		    else {
-		      fprintf(stderr,"%s : Line %d.  Inheritance not allowed for unions.\n",input_file, line_number);
-		      FatalError();
-		    }
-		  }
-		  // Clean up the inheritance list
-		  if ($4.names) {
-		    int j;
-		    for (j = 0; j < $4.count; j++) {
-		      if ($4.names[j]) delete [] $4.names[j];
-		    }
-		    delete [] $4.names;
-		  }
-
-		  // Dumped nested declarations (if applicable)
-		  dump_nested($3);
-
-		  // Save and collapse current scope
-		  cplus_register_scope(DataType::collapse_scope($3));
-
-		  // Restore the original doc entry for this class
-		  doc_entry = doc_stack[doc_stack_top];
-		  cplus_class_close((char *) 0); 
-		  doc_entry = 0;
-		  // Bump the documentation stack back down
-		  doc_stack_top--;
-		  cplus_mode = CPLUS_PUBLIC;
-		}
+	       // Clean up the inheritance list
+	       if ($4.names) {
+		 int j;
+		 for (j = 0; j < $4.count; j++) {
+		   if ($4.names[j]) delete [] $4.names[j];
+		 }
+		 delete [] $4.names;
+	       }
+	       
+	       // Dumped nested declarations (if applicable)
+	       dump_nested($3);
+	       
+	       // Save and collapse current scope
+	       cplus_register_scope(DataType::collapse_scope($3));
+	       cplus_class_close((char *) 0); 
+	       cplus_mode = CPLUS_PUBLIC;
 	      }
 
 /* Class with a typedef */
 		
              | TYPEDEF cpptype ID inherit LBRACE {
-	       if (allow) {
-		 char *iname;
-		 init_language();
-		 DataType::new_scope();
-
-		 sprintf(temp_name,"CPP_CLASS:%s\n",$3);
-		 if (add_symbol(temp_name, (DataType *) 0, (char *) 0)) {
-		   fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
-		   FatalError();
-		 }
-		 if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		   fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-		 
-		 iname = make_name($3);
-		 doc_entry = new DocClass(iname, doc_parent());
-		 if ($3 == iname) 
-		   cplus_open_class($3, 0, $2);
-		 else
-		   cplus_open_class($3, iname, $2);
-		 if (strcmp($2,"class") == 0)
-		   cplus_mode = CPLUS_PRIVATE;
-		 else
-		   cplus_mode = CPLUS_PUBLIC;
-		 // Create a documentation entry for the class
-		 doc_stack_top++;
-		 doc_stack[doc_stack_top] = doc_entry;
-		 scanner_clear_start();
-		 nested_list = 0;
-
-		 // Merge in scope from base classes
-		 cplus_inherit_scope($4.count,$4.names);
-
+	       char *iname;
+	       init_language();
+	       DataType::new_scope();
+	       
+	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
+	       if (add_symbol(temp_name, (DataType *) 0, (char *) 0)) {
+		 fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
+		 FatalError();
 	       }
+	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
+		 fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+	       
+	       iname = make_name($3);
+	       if ($3 == iname) 
+		 cplus_open_class($3, 0, $2);
+	       else
+		 cplus_open_class($3, iname, $2);
+	       if (strcmp($2,"class") == 0)
+		 cplus_mode = CPLUS_PRIVATE;
+	       else
+		 cplus_mode = CPLUS_PUBLIC;
+	       scanner_clear_start();
+	       nested_list = 0;
+	       
+	       // Merge in scope from base classes
+	       cplus_inherit_scope($4.count,$4.names);
+
               } cpp_members RBRACE declaration {
-		if (allow) {
-		  if ($4.names) {
-		    if (strcmp($2,"union") != 0)
-		      cplus_inherit($4.count, $4.names);
-		    else {
-		      fprintf(stderr,"%s : Line %d.  Inheritance not allowed for unions.\n",input_file, line_number);
-		      FatalError();
-		    }
-		  }
-		  // Create a datatype for correctly processing the typedef
-		  Active_typedef = new DataType();
-		  Active_typedef->type = T_USER;
-		  sprintf(Active_typedef->name,"%s %s", $2,$3);
-		  Active_typedef->is_pointer = 0;
-		  Active_typedef->implicit_ptr = 0;
-
-		  // Clean up the inheritance list
-		  if ($4.names) {
-		    int j;
-		    for (j = 0; j < $4.count; j++) {
-		      if ($4.names[j]) delete [] $4.names[j];
-		    }
-		    delete [] $4.names;
-		  }
-
-		  if ($9.is_pointer > 0) {
-		    fprintf(stderr,"%s : Line %d.  typedef struct { } *id not supported properly. Winging it...\n", input_file, line_number);
-
-		  }
-		  // Create dump nested class code
-		  if ($9.is_pointer > 0) {
-		    dump_nested($3);
-		  } else {
-		    dump_nested($9.id);
-		  }
-		    
-		  // Collapse any datatypes created in the the class
-
-		  cplus_register_scope(DataType::collapse_scope($3));
-
-		  doc_entry = doc_stack[doc_stack_top];
-		  if ($9.is_pointer > 0) {
-		    cplus_class_close($3);
-		  } else {
-		    cplus_class_close($9.id); 
-		  }
-		  doc_stack_top--;
-		  doc_entry = 0;
-
-		  // Create a typedef in global scope
-
-		  if ($9.is_pointer == 0)
-		    Active_typedef->typedef_add($9.id);
+		if ($4.names) {
+		  if (strcmp($2,"union") != 0)
+		    cplus_inherit($4.count, $4.names);
 		  else {
-		    DataType *t = new DataType(Active_typedef);
-		    t->is_pointer += $9.is_pointer;
-		    t->typedef_add($9.id);
-		    cplus_register_type($9.id);
-		    delete t;
+		    fprintf(stderr,"%s : Line %d.  Inheritance not allowed for unions.\n",input_file, line_number);
+		    FatalError();
 		  }
-		  cplus_mode = CPLUS_PUBLIC;
 		}
+		// Create a datatype for correctly processing the typedef
+		Active_typedef = new DataType();
+		Active_typedef->type = T_USER;
+		sprintf(Active_typedef->name,"%s %s", $2,$3);
+		Active_typedef->is_pointer = 0;
+		Active_typedef->implicit_ptr = 0;
+		
+		// Clean up the inheritance list
+		if ($4.names) {
+		  int j;
+		  for (j = 0; j < $4.count; j++) {
+		    if ($4.names[j]) delete [] $4.names[j];
+		  }
+		  delete [] $4.names;
+		}
+		
+		if ($9.is_pointer > 0) {
+		  fprintf(stderr,"%s : Line %d.  typedef struct { } *id not supported properly. Winging it...\n", input_file, line_number);
+		  
+		}
+		// Create dump nested class code
+		if ($9.is_pointer > 0) {
+		  dump_nested($3);
+		} else {
+		  dump_nested($9.id);
+		}
+		
+		// Collapse any datatypes created in the the class
+		
+		cplus_register_scope(DataType::collapse_scope($3));
+		if ($9.is_pointer > 0) {
+		  cplus_class_close($3);
+		} else {
+		  cplus_class_close($9.id); 
+		}
+		// Create a typedef in global scope
+		if ($9.is_pointer == 0)
+		  Active_typedef->typedef_add($9.id);
+		else {
+		  DataType *t = new DataType(Active_typedef);
+		  t->is_pointer += $9.is_pointer;
+		  t->typedef_add($9.id);
+		  cplus_register_type($9.id);
+		  delete t;
+		}
+		cplus_mode = CPLUS_PUBLIC;
 	      } typedeflist { };
 
 /* An unnamed struct with a typedef */
 
              | TYPEDEF cpptype LBRACE {
 	       char *iname;
-	       if (allow) {
-		 init_language();
-		 DataType::new_scope();
-		 if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		   fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-		 
-		 iname = make_name("");
-		 doc_entry = new DocClass(iname,doc_parent());
-		 if (strlen(iname))
-		   cplus_open_class("", iname, $2);
-		 else
-		   cplus_open_class("",0,$2);
-		 if (strcmp($2,"class") == 0)
-		   cplus_mode = CPLUS_PRIVATE;
-		 else
-		   cplus_mode = CPLUS_PUBLIC;
-		 doc_stack_top++;
-		 doc_stack[doc_stack_top] = doc_entry;
-		 scanner_clear_start();
-		 nested_list = 0;
-	       }
+	       init_language();
+	       DataType::new_scope();
+	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
+		 fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+	       
+	       iname = make_name("");
+	       if (strlen(iname))
+		 cplus_open_class("", iname, $2);
+	       else
+		 cplus_open_class("",0,$2);
+	       if (strcmp($2,"class") == 0)
+		 cplus_mode = CPLUS_PRIVATE;
+	       else
+		 cplus_mode = CPLUS_PUBLIC;
+	       scanner_clear_start();
+	       nested_list = 0;
               } cpp_members RBRACE declaration {
-		if (allow) {
-		  if ($7.is_pointer > 0) {
-		    fprintf(stderr,"%s : Line %d. typedef %s {} *%s not supported correctly. Will be ignored.\n", input_file, line_number, $2, $7.id);
-		    cplus_abort();
-		  } else {
-		    sprintf(temp_name,"CPP_CLASS:%s\n",$7.id);
-		    if (add_symbol(temp_name, (DataType *) 0, (char *) 0)) {
-		      fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $7.id);
-		      FatalError();
-		    }
+		if ($7.is_pointer > 0) {
+		  fprintf(stderr,"%s : Line %d. typedef %s {} *%s not supported correctly. Will be ignored.\n", input_file, line_number, $2, $7.id);
+		  cplus_abort();
+		} else {
+		  sprintf(temp_name,"CPP_CLASS:%s\n",$7.id);
+		  if (add_symbol(temp_name, (DataType *) 0, (char *) 0)) {
+		    fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $7.id);
+		    FatalError();
 		  }
-		  // Create a datatype for correctly processing the typedef
-		  Active_typedef = new DataType();
-		  Active_typedef->type = T_USER;
-		  sprintf(Active_typedef->name,"%s",$7.id);
-		  Active_typedef->is_pointer = 0;
-		  Active_typedef->implicit_ptr = 0;
-		  
-		  // Dump nested classes
-		  if ($7.is_pointer == 0)  
-		    dump_nested($7.id);
-
-		  // Go back to previous scope
-
-		  cplus_register_scope(DataType::collapse_scope((char *) 0));
-		  
-		  doc_entry = doc_stack[doc_stack_top];
-		  // Change name of doc_entry
-		  doc_entry->name = copy_string($7.id);
-		  if ($7.is_pointer == 0) 
-		    cplus_class_close($7.id); 
-		  doc_entry = 0;
-		  doc_stack_top--;
-		  cplus_mode = CPLUS_PUBLIC;
 		}
+		// Create a datatype for correctly processing the typedef
+		Active_typedef = new DataType();
+		Active_typedef->type = T_USER;
+		sprintf(Active_typedef->name,"%s",$7.id);
+		Active_typedef->is_pointer = 0;
+		Active_typedef->implicit_ptr = 0;
+		
+		// Dump nested classes
+		if ($7.is_pointer == 0)  
+		  dump_nested($7.id);
+		
+		// Go back to previous scope
+		
+		cplus_register_scope(DataType::collapse_scope((char *) 0));
+		if ($7.is_pointer == 0) 
+		  cplus_class_close($7.id); 
+		cplus_mode = CPLUS_PUBLIC;
 	      } typedeflist { }
              ;
 
@@ -2522,51 +2173,45 @@ cpp_other    :/* A dummy class name */
 
              extern cpptype ID SEMI {
 	       char *iname;
-		 if (allow) {
-		   init_language();
-		   iname = make_name($3);
-		   lang->cpp_class_decl($3,iname,$2);
-		 }
+	       init_language();
+	       iname = make_name($3);
+	       lang->cpp_class_decl($3,iname,$2);
 	     }   
 
 /* A static C++ member function (declared out of scope)  */
             
               | extern type declaration DCOLON ID LPAREN parms RPAREN SEMI {
-	       if (allow) {
-		 init_language();
-		 if (!CPlusPlus) 
-		   fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-		 
-		 $2->is_pointer += $3.is_pointer;
-		 $2->is_reference = $3.is_reference;
-		 // Fix up the function name
-		 sprintf(temp_name,"%s::%s",$3.id,$5);
-		 if (!Rename_true) {
-		   Rename_true = 1;
-		   sprintf(yy_rename,"%s_%s",$3.id,$5);
-		 }
-		 create_function($1, temp_name, $2, $7);
-	       }
-	       delete $2;
-	       delete $7;
+		init_language();
+		if (!CPlusPlus) 
+		  fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		
+		$2->is_pointer += $3.is_pointer;
+		$2->is_reference = $3.is_reference;
+		// Fix up the function name
+		sprintf(temp_name,"%s::%s",$3.id,$5);
+		if (!Rename_true) {
+		  Rename_true = 1;
+		  sprintf(yy_rename,"%s_%s",$3.id,$5);
+		}
+		create_function($1, temp_name, $2, $7);
+		delete $2;
+		delete $7;
 	      }
  
 /* A static C++ member data */
              | extern type declaration DCOLON ID SEMI {
-	       if (allow) {
-		 init_language();
-		 if (!CPlusPlus) 
-		   fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-
-		 $2->is_pointer += $3.is_pointer;
-		 // Fix up the function name
-		 sprintf(temp_name,"%s::%s",$3.id,$5);
-		 if (!Rename_true) {
-		   Rename_true = 1;
-		   sprintf(yy_rename,"%s_%s",$3.id,$5);
-		 }
-		 create_variable($1,temp_name, $2);
+	       init_language();
+	       if (!CPlusPlus) 
+		 fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+	       
+	       $2->is_pointer += $3.is_pointer;
+	       // Fix up the function name
+	       sprintf(temp_name,"%s::%s",$3.id,$5);
+	       if (!Rename_true) {
+		 Rename_true = 1;
+		 sprintf(yy_rename,"%s_%s",$3.id,$5);
 	       }
+	       create_variable($1,temp_name, $2);
 	       delete $2;
 	     }
 
@@ -2590,18 +2235,11 @@ cpp_other    :/* A dummy class name */
 
              | ADDMETHODS ID LBRACE {
 	       cplus_mode = CPLUS_PUBLIC;
-               doc_entry = cplus_set_class($2);
-	       if (!doc_entry) {
-		 doc_entry = new DocClass($2,doc_parent());
-	       };
-	       doc_stack_top++;
-	       doc_stack[doc_stack_top] = doc_entry;
+	       cplus_set_class($2);
 	       scanner_clear_start();
 	       AddMethods = 1;
 	     } added_members RBRACE {
 	       cplus_unset_class();
-	       doc_entry = 0;
-	       doc_stack_top--;
 	       AddMethods = 0;
 	     }
              ;
@@ -2633,22 +2271,15 @@ cpp_members  : cpp_member cpp_members {}
 
 cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
                 char *iname;
-                if (allow) {
-		  init_language();
-		  if (cplus_mode == CPLUS_PUBLIC) {
-		    Stat_func++;
-		    $1->is_pointer += $2.is_pointer;
-		    $1->is_reference = $2.is_reference;
-		    if (Verbose) {
-		      fprintf(stderr,"Wrapping member function : %s\n",$2.id);
-		    }
-		    iname = make_name($2.id);
-		    doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
-		    if (iname == $2.id) iname = 0;
-		    cplus_member_func($2.id, iname, $1,$4,0);
-		  }
-		  scanner_clear_start();
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  $1->is_pointer += $2.is_pointer;
+		  $1->is_reference = $2.is_reference;
+		  iname = make_name($2.id);
+		  if (iname == $2.id) iname = 0;
+		  cplus_member_func($2.id, iname, $1,$4,0);
 		}
+		scanner_clear_start();
 		delete $1;
 		delete $4;
               }
@@ -2657,22 +2288,15 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
                       
              |  VIRTUAL type declaration LPAREN parms RPAREN cpp_vend {
 	       char *iname;
-	       if (allow) {
-		 init_language();
-		 if (cplus_mode == CPLUS_PUBLIC) {
-		   Stat_func++;
-		   $2->is_pointer += $3.is_pointer;
-		   $2->is_reference = $3.is_reference;
-		   if (Verbose) {
-		     fprintf(stderr,"Wrapping virtual member function : %s\n",$3.id);
-		   }
-		   iname = make_name($3.id);
-		   doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
-		   if (iname == $3.id) iname = 0;
-		   cplus_member_func($3.id,iname,$2,$5,1);
-		 }
-		 scanner_clear_start();
+	       init_language();
+	       if (cplus_mode == CPLUS_PUBLIC) {
+		 $2->is_pointer += $3.is_pointer;
+		 $2->is_reference = $3.is_reference;
+		 iname = make_name($3.id);
+		 if (iname == $3.id) iname = 0;
+		 cplus_member_func($3.id,iname,$2,$5,1);
 	       }
+	       scanner_clear_start();
 	       delete $2;
 	       delete $5;
 	     }
@@ -2680,20 +2304,13 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 /* Possibly a constructor */
               | ID LPAREN parms RPAREN ctor_end {
 		char *iname;
-		if (allow) {
-		  init_language();
-		  if (cplus_mode == CPLUS_PUBLIC) {
-		    Stat_func++;
-		    if (Verbose) {
-		      fprintf(stderr,"Wrapping C++ constructor %s\n", $1);
-		    }
-		    iname = make_name($1);
-		    doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
-		    if (iname == $1) iname = 0;
-		    cplus_constructor($1,iname, $3);
-		  }
-		  scanner_clear_start();
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  iname = make_name($1);
+		  if (iname == $1) iname = 0;
+		  cplus_constructor($1,iname, $3);
 		}
+		scanner_clear_start();
 		delete $3;
 	      }
 
@@ -2701,18 +2318,11 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 
               | NOT ID LPAREN parms RPAREN cpp_end {
 		char *iname;
-		if (allow) {
-		  init_language();
-		  if (cplus_mode == CPLUS_PUBLIC) {
-		    Stat_func++;
-		    if (Verbose) {
-		      fprintf(stderr,"Wrapping C++ destructor %s\n", $2);
-		    }
-		    iname = make_name($2);
-		    doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
-		    if (iname == $2) iname = 0;
-		    cplus_destructor($2,iname);
-		  }
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  iname = make_name($2);
+		  if (iname == $2) iname = 0;
+		  cplus_destructor($2,iname);
 		}
 		scanner_clear_start();
 	      }
@@ -2721,18 +2331,11 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 
               | VIRTUAL NOT ID LPAREN RPAREN cpp_end {
  	        char *iname;
-		if (allow) {
-		  init_language();
-		  if (cplus_mode == CPLUS_PUBLIC) {
-		    Stat_func++;
-		    if (Verbose) {
-		      fprintf(stderr,"Wrapping C++ destructor %s\n", $3);
-		    }
-		    iname = make_name($3);
-		    doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
-		    if (iname == $3) iname = 0;
-		    cplus_destructor($3,iname);
-		  }
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  iname = make_name($3);
+		  if (iname == $3) iname = 0;
+		  cplus_destructor($3,iname);
 		}
 		scanner_clear_start();
 	      }
@@ -2740,83 +2343,72 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 /* Member data */
 
               | type declaration def_args {
-		if (allow) {
-		  char *iname;
-		  init_language();
-		  if (cplus_mode == CPLUS_PUBLIC) {
-		    if (Active_type) delete Active_type;
-		    Active_type = new DataType($1);
-		    $1->is_pointer += $2.is_pointer;
-		    $1->is_reference = $2.is_reference;
-		    if ($1->qualifier) {
-		      if ((strcmp($1->qualifier,"const") == 0) && ($1->is_pointer == 0)) {
-			// Okay.  This is really some sort of C++ constant here.
-	  	          if ($3.type != T_ERROR) {
-			    iname = make_name($2.id);
-			    doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
-			    if (iname == $2.id) iname = 0;
-			    cplus_declare_const($2.id,iname, $1, $3.id);
-			  }
-		      } else {
-			int oldstatus = Status;
-			char *tm;
-			if ($1->status & STAT_READONLY) {
-			  if (!(tm = typemap_lookup("memberin",typemap_lang,$1,$2.id,"",""))) 
-			    Status = Status | STAT_READONLY;
-			}
+		char *iname;
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  if (Active_type) delete Active_type;
+		  Active_type = new DataType($1);
+		  $1->is_pointer += $2.is_pointer;
+		  $1->is_reference = $2.is_reference;
+		  if ($1->qualifier) {
+		    if ((strcmp($1->qualifier,"const") == 0) && ($1->is_pointer == 0)) {
+		      // Okay.  This is really some sort of C++ constant here.
+		      if ($3.type != T_ERROR) {
 			iname = make_name($2.id);
-			doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
 			if (iname == $2.id) iname = 0;
-			cplus_variable($2.id,iname,$1);
-			Status = oldstatus;
+			cplus_declare_const($2.id,iname, $1, $3.id);
 		      }
 		    } else {
-		      char *tm = 0;
 		      int oldstatus = Status;
+		      char *tm;
 		      if ($1->status & STAT_READONLY) {
 			if (!(tm = typemap_lookup("memberin",typemap_lang,$1,$2.id,"",""))) 
 			  Status = Status | STAT_READONLY;
 		      }
 		      iname = make_name($2.id);
-		      doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
 		      if (iname == $2.id) iname = 0;
 		      cplus_variable($2.id,iname,$1);
 		      Status = oldstatus;
-		      if (Verbose) {
-			fprintf(stderr,"Wrapping member data %s\n", $2.id);
-		      }
 		    }
+		  } else {
+		    char *tm = 0;
+		    int oldstatus = Status;
+		    if ($1->status & STAT_READONLY) {
+		      if (!(tm = typemap_lookup("memberin",typemap_lang,$1,$2.id,"",""))) 
+			Status = Status | STAT_READONLY;
+		    }
+		    iname = make_name($2.id);
+		    if (iname == $2.id) iname = 0;
+		    cplus_variable($2.id,iname,$1);
+		    Status = oldstatus;
 		  }
-		  scanner_clear_start();
 		}
+		scanner_clear_start();
 		delete $1;
 	      } cpp_tail { }
 
               | type declaration array def_args {
 		char *iname;
-		if (allow) {
-		  int oldstatus = Status;
-		  char *tm = 0;
-		  init_language();
-		  if (cplus_mode == CPLUS_PUBLIC) {
-		    if (Active_type) delete Active_type;
-		    Active_type = new DataType($1);
-		    $1->is_pointer += $2.is_pointer + 1;
-		    $1->is_reference = $2.is_reference;
-		    $1->arraystr = copy_string(ArrayString);
-		    if (!(tm = typemap_lookup("memberin",typemap_lang,$1,$2.id,"",""))) 
-		      Status = STAT_READONLY;
-
-		    iname = make_name($2.id);
-		    doc_entry = new DocDecl(iname, doc_stack[doc_stack_top]);
-		    if (iname == $2.id) iname = 0;
-		    cplus_variable($2.id,iname,$1);
-		    Status = oldstatus;
-		    if (!tm)
-		      fprintf(stderr,"%s : Line %d. Warning. Array member will be read-only.\n",input_file,line_number);
-		  }
-		scanner_clear_start();
+		int oldstatus = Status;
+		char *tm = 0;
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  if (Active_type) delete Active_type;
+		  Active_type = new DataType($1);
+		  $1->is_pointer += $2.is_pointer + 1;
+		  $1->is_reference = $2.is_reference;
+		  $1->arraystr = copy_string(ArrayString);
+		  if (!(tm = typemap_lookup("memberin",typemap_lang,$1,$2.id,"",""))) 
+		    Status = STAT_READONLY;
+		  
+		  iname = make_name($2.id);
+		  if (iname == $2.id) iname = 0;
+		  cplus_variable($2.id,iname,$1);
+		  Status = oldstatus;
+		  if (!tm)
+		    fprintf(stderr,"%s : Line %d. Warning. Array member will be read-only.\n",input_file,line_number);
 		}
+		scanner_clear_start();
 		delete $1;
 	      }
   
@@ -2825,22 +2417,16 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 
               | STATIC type declaration {
 		char *iname;
-		if (allow) {
-		  init_language();
-		  if (cplus_mode == CPLUS_PUBLIC) {
-		    $2->is_pointer += $3.is_pointer;
-		    iname = make_name($3.id);
-		    doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
-		    if (iname == $3.id) iname = 0;
-		    cplus_static_var($3.id,iname,$2);
-		    if (Active_type) delete Active_type;
-		    Active_type = new DataType($2);
-		    if (Verbose) {
-		      fprintf(stderr,"Wrapping static member data %s\n", $3.id);
-		    }
-		  }
-		  scanner_clear_start();
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  $2->is_pointer += $3.is_pointer;
+		  iname = make_name($3.id);
+		  if (iname == $3.id) iname = 0;
+		  cplus_static_var($3.id,iname,$2);
+		  if (Active_type) delete Active_type;
+		  Active_type = new DataType($2);
 		}
+		scanner_clear_start();
 		delete $2;
 	      } cpp_tail { }
 
@@ -2848,62 +2434,43 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 
               | STATIC type declaration LPAREN parms RPAREN cpp_end {
 		char *iname;
-		if (allow) {
-		  $2->is_pointer += $3.is_pointer;
-		  $2->is_reference = $3.is_reference;
-		  if (cplus_mode == CPLUS_PUBLIC) {
-		    iname = make_name($3.id);
-		    doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
-		    if (iname == $3.id) iname = 0;
-		    cplus_static_func($3.id, iname, $2, $5);
-		    if (Verbose)
-		      fprintf(stderr,"Wrapping static member function %s\n",$3.id);
-		  }
-		  scanner_clear_start();
+		$2->is_pointer += $3.is_pointer;
+		$2->is_reference = $3.is_reference;
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  iname = make_name($3.id);
+		  if (iname == $3.id) iname = 0;
+		  cplus_static_func($3.id, iname, $2, $5);
 		}
+		scanner_clear_start();
 		delete $2;
 		delete $5;
 	      }
 /* Turn on public: mode */
 
               | PUBLIC COLON {
-		if (allow) {
-		  cplus_mode = CPLUS_PUBLIC;
-		  if (Verbose)
-		    fprintf(stderr,"Public mode\n");
-		  scanner_clear_start();
-		}
+		cplus_mode = CPLUS_PUBLIC;
+		scanner_clear_start();
 	      }
 
 /* Turn on private: mode */
 
               | PRIVATE COLON {
-		if (allow) {
-		  cplus_mode = CPLUS_PRIVATE;
-		  if (Verbose)
-		    fprintf(stderr,"Private mode\n");
-		  scanner_clear_start();
-		}
+		cplus_mode = CPLUS_PRIVATE;
+		scanner_clear_start();
 	      }
 
 /* Turn on protected mode */
 
               | PROTECTED COLON {
-		if (allow) {
-		  cplus_mode = CPLUS_PROTECTED;
-		  if (Verbose)
-		    fprintf(stderr,"Protected mode\n");
-		  scanner_clear_start();
-		}
+		cplus_mode = CPLUS_PROTECTED;
+		scanner_clear_start();
 	      }
 
 /* This is the new style rename */
 
              | NAME LPAREN ID RPAREN {
-	       if (allow) {
-		 strcpy(yy_rename,$3);
-		 Rename_true = 1;
-	       }
+	       strcpy(yy_rename,$3);
+	       Rename_true = 1;
 	     } 
 
 /* New mode */
@@ -2917,43 +2484,36 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
               | ENUM ename LBRACE {scanner_clear_start();} cpp_enumlist RBRACE SEMI {
 
 		 // if ename was supplied.  Install it as a new integer datatype.
-
-		if (allow) {
-		  init_language();
-		  if (cplus_mode == CPLUS_PUBLIC) {
-		   if ($2) {
-		     cplus_register_type($2);
-		     temp_type.type = T_INT;
-		     temp_type.is_pointer = 0;
-		     temp_type.implicit_ptr = 0;
-		     sprintf(temp_type.name,"int");
-		     temp_type.typedef_add($2,1); 
-		   }
-		 }
-	       }
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  if ($2) {
+		    cplus_register_type($2);
+		    temp_type.type = T_INT;
+		    temp_type.is_pointer = 0;
+		    temp_type.implicit_ptr = 0;
+		    sprintf(temp_type.name,"int");
+		    temp_type.typedef_add($2,1); 
+		  }
+		}
 	      }
               | READONLY {
-		if (allow)
-		  Status = Status | STAT_READONLY;
+		Status = Status | STAT_READONLY;
 		scanner_clear_start();
               }
               | READWRITE {
-		if (allow) 
 		  Status = Status & ~(STAT_READONLY);
-		scanner_clear_start();
+		  scanner_clear_start();
 	      }
 /* A friend :   Illegal */
               | FRIEND {
-		if (allow)
-		  fprintf(stderr,"%s : Line %d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
+		fprintf(stderr,"%s : Line %d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
 		skip_decl();
 		scanner_clear_start();
 	      }  
 
 /* An operator: Illegal */
               | type type_extra OPERATOR {
-		if (allow)
-		  fprintf(stderr,"%s : Line %d. Operator overloading not supported (ignored).\n", input_file, line_number);
+		fprintf(stderr,"%s : Line %d. Operator overloading not supported (ignored).\n", input_file, line_number);
 		skip_decl();
 		scanner_clear_start();
 	      }
@@ -2964,15 +2524,15 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 /* Pragma directive */
 
               | cpp_pragma {
-	      		scanner_clear_start();
+		scanner_clear_start();
 	      }
 
 
 cpp_pragma    : PRAGMA ID stylearg {
-                 if (allow && (!WrapExtern)) { }
+                 if (!WrapExtern) { }
     	       }
                | PRAGMA LPAREN ID RPAREN ID stylearg {
-		 if (allow && (!WrapExtern))
+		 if (!WrapExtern)
                    cplus_add_pragma($3,$5,$6);
 	       }
                ;
@@ -3082,55 +2642,41 @@ type_extra    : stars {}
 
 cpp_tail      : SEMI { }
                | COMMA declaration def_args {
-		 if (allow) {
-		   int oldstatus = Status;
-		   char *tm;
-
-		   init_language();
-		   if (cplus_mode == CPLUS_PUBLIC) {
-		     temp_typeptr = new DataType(Active_type);
-		     temp_typeptr->is_pointer += $2.is_pointer;
-		     if (Verbose) {
-		       fprintf(stderr,"Wrapping member variable : %s\n",$2.id);
-		     }
-		     Stat_var++;
-		     doc_entry = new DocDecl($2.id,doc_stack[doc_stack_top]);
-		     if (temp_typeptr->status & STAT_READONLY) {
-		       if (!(tm = typemap_lookup("memberin",typemap_lang,temp_typeptr,$2.id,"",""))) 
-			 Status = Status | STAT_READONLY;
-		     }
-		     cplus_variable($2.id,(char *) 0,temp_typeptr);		
-		     Status = oldstatus;
-		     delete temp_typeptr;
-		   }
-		   scanner_clear_start();
-		 }
-	       } cpp_tail { } 
-               | COMMA declaration array def_args {
-		 if (allow) {
-		   int oldstatus = Status;
-		   char *tm;
-
-		   init_language();
-		   if (cplus_mode == CPLUS_PUBLIC) {
-		     temp_typeptr = new DataType(Active_type);
-		     temp_typeptr->is_pointer += $2.is_pointer;
-		     if (Verbose) {
-		       fprintf(stderr,"Wrapping member variable : %s\n",$2.id);
-		     }
-		     Stat_var++;
+		 int oldstatus = Status;
+		 char *tm;
+		 
+		 init_language();
+		 if (cplus_mode == CPLUS_PUBLIC) {
+		   temp_typeptr = new DataType(Active_type);
+		   temp_typeptr->is_pointer += $2.is_pointer;
+		   if (temp_typeptr->status & STAT_READONLY) {
 		     if (!(tm = typemap_lookup("memberin",typemap_lang,temp_typeptr,$2.id,"",""))) 
 		       Status = Status | STAT_READONLY;
-		     doc_entry = new DocDecl($2.id,doc_stack[doc_stack_top]);
-		     if (temp_typeptr->status & STAT_READONLY) Status = Status | STAT_READONLY;
-		     cplus_variable($2.id,(char *) 0,temp_typeptr);		
-		     Status = oldstatus;
-		     if (!tm)
-		       fprintf(stderr,"%s : Line %d. Warning. Array member will be read-only.\n",input_file,line_number);
-		     delete temp_typeptr;
 		   }
-		   scanner_clear_start();
+		   cplus_variable($2.id,(char *) 0,temp_typeptr);		
+		   Status = oldstatus;
+		   delete temp_typeptr;
 		 }
+		 scanner_clear_start();
+	       } cpp_tail { } 
+               | COMMA declaration array def_args {
+		 int oldstatus = Status;
+		 char *tm;
+		 
+		 init_language();
+		 if (cplus_mode == CPLUS_PUBLIC) {
+		   temp_typeptr = new DataType(Active_type);
+		   temp_typeptr->is_pointer += $2.is_pointer;
+		   if (!(tm = typemap_lookup("memberin",typemap_lang,temp_typeptr,$2.id,"",""))) 
+		     Status = Status | STAT_READONLY;
+		   if (temp_typeptr->status & STAT_READONLY) Status = Status | STAT_READONLY;
+		   cplus_variable($2.id,(char *) 0,temp_typeptr);		
+		   Status = oldstatus;
+		   if (!tm)
+		     fprintf(stderr,"%s : Line %d. Warning. Array member will be read-only.\n",input_file,line_number);
+		   delete temp_typeptr;
+		 }
+		 scanner_clear_start();
 	       } cpp_tail { } 
                ;
 
@@ -3150,59 +2696,33 @@ cpp_enumlist   :  cpp_enumlist COMMA cpp_edecl {}
                ;
 
 cpp_edecl      :  ID {
-                    if (allow) {
-		      if (cplus_mode == CPLUS_PUBLIC) {
-			if (Verbose) {
-			  fprintf(stderr,"Creating enum value %s\n", $1);
-			}
-			Stat_const++;
-			temp_typeptr = new DataType(T_INT);
-			doc_entry = new DocDecl($1,doc_stack[doc_stack_top]);
-			cplus_declare_const($1, (char *) 0, temp_typeptr, (char *) 0);
-			delete temp_typeptr;
-			scanner_clear_start();
-		      }
-		    }
-                  }
+		 if (cplus_mode == CPLUS_PUBLIC) {
+		   temp_typeptr = new DataType(T_INT);
+		   cplus_declare_const($1, (char *) 0, temp_typeptr, (char *) 0);
+		   delete temp_typeptr;
+		   scanner_clear_start();
+		 }
+}
                  | ID EQUAL etype {
-		   if (allow) {
-		     if (cplus_mode == CPLUS_PUBLIC) {
-		       if (Verbose) {
-			 fprintf(stderr, "Creating enum value %s = %s\n", $1, $3.id);
-		       }
-		       Stat_const++;
-		       temp_typeptr = new DataType(T_INT);
-		       doc_entry = new DocDecl($1,doc_stack[doc_stack_top]);
-		       cplus_declare_const($1,(char *) 0, temp_typeptr,(char *) 0);
-// OLD : Bug with value     cplus_declare_const($1,(char *) 0, temp_typeptr,$3.id);
-		       delete temp_typeptr;
-		       scanner_clear_start();
-		     }
+		   if (cplus_mode == CPLUS_PUBLIC) {
+		     temp_typeptr = new DataType(T_INT);
+		     cplus_declare_const($1,(char *) 0, temp_typeptr,(char *) 0);
+		     // OLD : Bug with value     cplus_declare_const($1,(char *) 0, temp_typeptr,$3.id);
+		     delete temp_typeptr;
+		     scanner_clear_start();
 		   }
 		 }
                  | NAME LPAREN ID RPAREN ID {
-		   if (allow) {
-		     if (cplus_mode == CPLUS_PUBLIC) {
-		       if (Verbose) {
-			 fprintf(stderr,"Creating enum value %s\n", $5);
-		       }
-		       Stat_const++;
-		       temp_typeptr = new DataType(T_INT);
-		       doc_entry = new DocDecl($3,doc_stack[doc_stack_top]);
-		       cplus_declare_const($5, $3, temp_typeptr, (char *) 0);
-		       delete temp_typeptr;
-		       scanner_clear_start();
-		     }
+		   if (cplus_mode == CPLUS_PUBLIC) {
+		     temp_typeptr = new DataType(T_INT);
+		     cplus_declare_const($5, $3, temp_typeptr, (char *) 0);
+		     delete temp_typeptr;
+		     scanner_clear_start();
 		   }
 		 }
                  | NAME LPAREN ID RPAREN ID EQUAL etype {
 		     if (cplus_mode == CPLUS_PUBLIC) {
-		       if (Verbose) {
-			 fprintf(stderr, "Creating enum value %s = %s\n", $5, $7.id);
-		       }
-		       Stat_const++;
 		       temp_typeptr = new DataType(T_INT);
-		       doc_entry = new DocDecl($3,doc_stack[doc_stack_top]);
 		       cplus_declare_const($5,$3, temp_typeptr, (char *) 0);
 // Old : bug with value	       cplus_declare_const($5,$3, temp_typeptr,$7.id);
 		       delete temp_typeptr;
@@ -3337,10 +2857,6 @@ objective_c    : OC_INTERFACE ID objc_inherit {
 			     input_file,line_number,$2);
 		     FatalError();
 		   }
-		   // Create a new documentation entry
-		   doc_entry = new DocClass($2,doc_parent());
-		   doc_stack_top++;
-		   doc_stack[doc_stack_top] = doc_entry;
 		   scanner_clear_start();
 		   cplus_open_class($2, (char *) 0, "");     // Open up a new C++ class
                 } LBRACE objc_data RBRACE objc_methods OC_END { 
@@ -3349,11 +2865,7 @@ objective_c    : OC_INTERFACE ID objc_inherit {
 		      inames[0] = $3;
 		      cplus_inherit(1,inames);
 		  }
-		  // Restore original doc entry for this class
-		  doc_entry = doc_stack[doc_stack_top];
 		  cplus_class_close($2);
-		  doc_entry = 0;
-		  doc_stack_top--;
 		  cplus_mode = CPLUS_PUBLIC;
 		  ObjCClass = 0;
 		  delete $2;
@@ -3364,17 +2876,10 @@ objective_c    : OC_INTERFACE ID objc_inherit {
                  ObjCClass = 1;
 		 init_language();
                  cplus_mode = CPLUS_PROTECTED;
-                 doc_entry = cplus_set_class($2);
-		 if (!doc_entry) {
-		   doc_entry = new DocClass($2,doc_parent());
-		 }
-		 doc_stack_top++;
-		 doc_stack[doc_stack_top] = doc_entry;
+		 cplus_set_class($2);
 		 scanner_clear_start();
 	       } objc_methods OC_END {
                  cplus_unset_class();
-                 doc_entry = 0;
-                 doc_stack_top--;
                }
                | OC_IMPLEMENT { skip_to_end(); }
                | OC_PROTOCOL { skip_to_end(); }
@@ -3457,7 +2962,6 @@ objc_var       : type declaration {
 		       Status = Status | STAT_READONLY;
 		   }
 		   iname = make_name($2.id);
-		   doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
 		   if (iname == $2.id) iname = 0;
 		   cplus_variable($2.id,iname,$1);
 		   Status = oldstatus; 
@@ -3479,7 +2983,6 @@ objc_var       : type declaration {
 		       Status = Status | STAT_READONLY;
 		   }
 		   iname = make_name($2.id);
-		   doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
 		   if (iname == $2.id) iname = 0;
 		   cplus_variable($2.id,iname,$1);
 		   Status = oldstatus; 
@@ -3504,7 +3007,6 @@ objc_vartail   : COMMA declaration objc_vartail {
 		       Status = Status | STAT_READONLY;
 		   }
 		   iname = make_name($2.id);
-		   doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
 		   if (iname == $2.id) iname = 0;
 		   cplus_variable($2.id,iname,t);
 		   Status = oldstatus; 
@@ -3526,7 +3028,6 @@ objc_vartail   : COMMA declaration objc_vartail {
 		       Status = Status | STAT_READONLY;
 		   }
 		   iname = make_name($2.id);
-		   doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
 		   if (iname == $2.id) iname = 0;
 		   cplus_variable($2.id,iname,t);
 		   Status = oldstatus; 
@@ -3571,11 +3072,9 @@ objc_method    : MINUS objc_ret_type ID objc_args objc_end {
 
 		 if (strcmp($3,objc_destruct) == 0) {
 		   // This is an objective C destructor
-                   doc_entry = new DocDecl($3,doc_stack[doc_stack_top]);
                    cplus_destructor($3,(char *) 0);
 		 } else {
 		   iname = make_name($3);
-		   doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
 		   if (iname == $3) iname = 0;
 		   cplus_member_func($3,iname,$2,$4,0);
 		   scanner_clear_start();
@@ -3590,11 +3089,9 @@ objc_method    : MINUS objc_ret_type ID objc_args objc_end {
                  // This is like a c++ static member function
                  if (strcmp($3,objc_construct) == 0) {
 		   // This is an objective C constructor
-		   doc_entry = new DocDecl($3,doc_stack[doc_stack_top]);
                    cplus_constructor($3,0,$4);
 		 } else {
 		   iname = make_name($3);
-		   doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
 		   if (iname == $3) iname = 0;
 		   cplus_static_func($3,iname,$2,$4);
 		 }
