@@ -169,7 +169,32 @@ String *ParmList_str(ParmList *p) {
 }
 
 /* ---------------------------------------------------------------------
- * ParmList_str()
+ * ParmList_str_defaultargs()
+ *
+ * Generates a string of parameters including default arguments
+ * ---------------------------------------------------------------------- */
+
+String *ParmList_str_defaultargs(ParmList *p) {
+  String *out;
+  String *value;
+  SwigType *t;
+
+  out = NewString("");
+  while(p) {
+    t = Getattr(p,"type");
+    Printf(out,"%s", SwigType_str(t,Getattr(p,"name")));
+    value = Getattr(p,"value");
+    if (value)
+      Printf(out,"=%s", value);
+    p = nextSibling(p);
+    if (p)
+      Printf(out,",");
+  }
+  return out;
+}
+
+/* ---------------------------------------------------------------------
+ * ParmList_protostr()
  *
  * Generate a prototype string.
  * ---------------------------------------------------------------------- */

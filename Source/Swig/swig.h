@@ -324,6 +324,7 @@ extern int         ParmList_len(ParmList *);
 extern int         ParmList_numarg(ParmList *);
 extern int         ParmList_numrequired(ParmList *);
 extern String     *ParmList_str(ParmList *);
+extern String     *ParmList_str_defaultargs(ParmList *);
 extern String     *ParmList_protostr(ParmList *);
 
 /* --- Parse tree support --- */
@@ -437,7 +438,6 @@ extern void       Swig_error_msg_format(ErrorMessageFormat format);
 
 /* --- C Wrappers --- */
 extern String    *Swig_cparm_name(Parm *p, int i);
-extern String    *Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value);
 extern String    *Swig_wrapped_var_type(SwigType *t);
 extern int        Swig_cargs(Wrapper *w, ParmList *l);
 extern String    *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_char *decl);
