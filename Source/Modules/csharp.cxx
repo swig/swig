@@ -749,7 +749,7 @@ class CSHARP : public Language {
     if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
       substituteClassname(t, tm);
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
           "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
@@ -800,7 +800,7 @@ class CSHARP : public Language {
       classname_substituted_flag = substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
           "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
@@ -1016,12 +1016,22 @@ class CSHARP : public Language {
     }
 
     // C++ destructor is wrapped by the Dispose method
+    // Note that the method name is specified in a typemap attribute called methodname
     String *destruct = NewString("");
     const String *tm = NULL;
-    if (derived)
-      tm = typemapLookup("csdestruct_derived", classDeclarationName, WARN_NONE);
-    else
-      tm = typemapLookup("csdestruct", classDeclarationName, WARN_NONE);
+    Node *attributes = NewHash();
+    String *destruct_methodname = NULL;
+    if (derived) {
+      tm = typemapLookup("csdestruct_derived", classDeclarationName, WARN_NONE, attributes);
+      destruct_methodname = Getattr(attributes, "tmap:csdestruct_derived:methodname");
+    } else {
+      tm = typemapLookup("csdestruct", classDeclarationName, WARN_NONE, attributes);
+      destruct_methodname = Getattr(attributes, "tmap:csdestruct:methodname");
+    }
+    if (!destruct_methodname) {
+      Swig_error(input_file, line_number, 
+          "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+    }
 
     // Emit the Finalize and Dispose methods
     if (tm) {
@@ -1038,8 +1048,9 @@ class CSHARP : public Language {
       else
         Replaceall(destruct, "$imcall", "throw new MethodAccessException(\"C++ destructor does not have public access\")");
       if (*Char(destruct))
-        Printv(proxy_class_def, "\n  public ", derived ? "override" : "virtual", " void Dispose() ", destruct, "\n", NIL);
+        Printv(proxy_class_def, "\n  public ", derived ? "override" : "virtual", " void ", destruct_methodname, "() ", destruct, "\n", NIL);
     }
+    Delete(attributes);
     Delete(destruct);
 
     // Emit various other methods
@@ -1235,7 +1246,7 @@ class CSHARP : public Language {
       substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
           "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
@@ -1289,7 +1300,7 @@ class CSHARP : public Language {
           substituteClassname(pt, tm);
           Printf(param_type, "%s", tm);
         } else {
-          Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
+          Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
               "No cstype typemap defined for %s\n", SwigType_str(pt,0));
         }
 
@@ -1434,7 +1445,7 @@ class CSHARP : public Language {
           substituteClassname(pt, tm);
           Printf(param_type, "%s", tm);
         } else {
-          Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
+          Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
               "No cstype typemap defined for %s\n", SwigType_str(pt,0));
         }
 
@@ -1509,7 +1520,7 @@ class CSHARP : public Language {
     if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
       substituteClassname(t, tm);
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
           "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
@@ -1543,7 +1554,7 @@ class CSHARP : public Language {
       if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
         substituteClassname(t, tm);
       } else {
-        Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
+        Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
             "No cstype typemap defined for %s\n", SwigType_str(t,0));
       }
 
@@ -1627,7 +1638,7 @@ class CSHARP : public Language {
       substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
           "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
@@ -1672,7 +1683,7 @@ class CSHARP : public Language {
         substituteClassname(pt, tm);
         Printf(param_type, "%s", tm);
       } else {
-        Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
+        Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
             "No cstype typemap defined for %s\n", SwigType_str(pt,0));
       }
 
@@ -1901,12 +1912,14 @@ class CSHARP : public Language {
    * typemapLookup()
    * ----------------------------------------------------------------------------- */
 
-  const String *typemapLookup(const String *op, String *type, int warning) {
+  const String *typemapLookup(const String *op, String *type, int warning, Node *typemap_attributes=NULL) {
     String *tm = NULL;
     const String *code = NULL;
 
     if((tm = Swig_typemap_search(op, type, NULL, NULL))) {
       code = Getattr(tm,"code");
+      if (typemap_attributes)
+        Swig_typemap_attach_kwargs(tm,op,typemap_attributes);
     }
 
     if (!code) {

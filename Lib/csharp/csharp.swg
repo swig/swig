@@ -434,7 +434,7 @@ $1 = &temp; %}
   }
 %}
 
-%typemap(csdestruct) SWIGTYPE {
+%typemap(csdestruct, methodname="Dispose") SWIGTYPE {
     if(swigCPtr != IntPtr.Zero && swigCMemOwn) {
       $imcall;
       swigCMemOwn = false;
@@ -443,7 +443,7 @@ $1 = &temp; %}
     GC.SuppressFinalize(this);
   }
 
-%typemap(csdestruct_derived) SWIGTYPE {
+%typemap(csdestruct_derived, methodname="Dispose") SWIGTYPE {
     if(swigCPtr != IntPtr.Zero && swigCMemOwn) {
       $imcall;
       swigCMemOwn = false;

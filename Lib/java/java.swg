@@ -685,7 +685,7 @@
   }
 %}
 
-%typemap(javadestruct) SWIGTYPE {
+%typemap(javadestruct, methodname="delete") SWIGTYPE {
     if(swigCPtr != 0 && swigCMemOwn) {
       $jnicall;
       swigCMemOwn = false;
@@ -693,7 +693,7 @@
     swigCPtr = 0;
   }
 
-%typemap(javadestruct_derived) SWIGTYPE {
+%typemap(javadestruct_derived, methodname="delete") SWIGTYPE {
     if(swigCPtr != 0 && swigCMemOwn) {
       $jnicall;
       swigCMemOwn = false;
