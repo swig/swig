@@ -61,7 +61,7 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
     char temp[64], *t;
     t = temp;
     msg = Char(out);
-    while (isdigit(*msg)) {
+    while (isdigit((int) *msg)) {
       *(t++) = *(msg++);
     }
     if (t != temp) {
@@ -158,15 +158,15 @@ Swig_warnfilter(const String_or_char *wlist, int add) {
   c = Char(s);
   c = strtok(c,", ");
   while (c) {
-    if (isdigit(*c) || (*c == '+') || (*c == '-')) {
+    if (isdigit((int) *c) || (*c == '+') || (*c == '-')) {
       if (add) {
 	Insert(filter,0,c);
-	if (isdigit(*c)) {
+	if (isdigit((int) *c)) {
 	  Insert(filter,0,"-");
 	}
       } else {
 	char temp[32];
-	if (isdigit(*c)) {
+	if (isdigit((int) *c)) {
 	  sprintf(temp,"-%s",c);
 	} else {
 	  strcpy(temp,c);
