@@ -51,6 +51,9 @@ namespace oss
 %inline %{ 
   namespace oss 
   { 
+#ifdef SWIGCSHARP
+%ignore HModule<B>::get(); // Work around for lack of multiple inheritance support - base ModuleBase is ignored.
+#endif
     struct test : HModule<B> 
     { 
     virtual int get() {return 0;}   // declaration here breaks swig 
