@@ -17,7 +17,7 @@ extern char             cvar;
 extern float            fvar;
 extern double           dvar;
 extern char            *strvar;
-extern const char      *cstrvar;
+extern const char       cstrvar[];
 extern int             *iptrvar;
 extern char             name[256];
 

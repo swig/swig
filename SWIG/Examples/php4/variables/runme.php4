@@ -15,7 +15,6 @@
 	fvar_set(3.14159);
 	dvar_set(2.1828);
 	strvar_set("Hello World");
-	cstrvar_set("Goodbye");
 	iptrvar_set(new_int(37));
 	ptptr_set(new_point(37,42));
 	name_set("Bill");
