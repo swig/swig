@@ -93,6 +93,13 @@ interface itself.
 %}
 #endif
 
+#ifdef SWIGPHP4
+%{
+// We should make use of "code" if we can
+#define SWIG_exception(code, msg) { zend_error(E_ERROR, msg); }
+%}
+#endif
+
 #ifdef SWIGPYTHON
 %{
 static void _SWIG_exception(int code, char *msg) {
