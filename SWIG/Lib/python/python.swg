@@ -21,6 +21,21 @@
 #define %shadow      %insert("shadow")
 #define %pythoncode  %insert("python")
 
+
+/* auxiliar macros for char array alloc/dealloc */
+#ifdef __cplusplus
+%define %swig_new_carray(size) new char[(size)]
+%enddef
+%define %swig_del_carray(cptr) delete [] cptr;
+%enddef
+#else
+%define %swig_new_carray(size) malloc((size))
+%enddef
+%define %swig_del_carray(cptr) free((char*)cptr);
+%enddef
+#endif
+
+
 /* -----------------------------------------------------------------------------
  *                          standard typemaps
  * ----------------------------------------------------------------------------- */
@@ -60,6 +75,23 @@
   typemap(double,             PyFloat_FromDouble);
   typemap(char,               SPyObj_FromChar);
 %enddef
+
+
+/* -----------------------------------------------------------------------------
+ * --- memberin and globalin typemaps --- 
+ * ----------------------------------------------------------------------------- */
+
+/* Character array handling */
+
+%typemap(memberin) char [ANY] {
+  if ($input) memcpy($1,$input,$1_dim0);
+  else memset($1,0,$1_dim0);
+}
+
+%typemap(globalin) char [ANY] {
+  if ($input) memcpy($1,$input,$1_dim0);
+  else memset($1,0,$1_dim0);
+}
 
 
 /* -----------------------------------------------------------------------------
@@ -190,17 +222,15 @@
 
 %expand_primitives_as(PY_VARIN_TYPEMAP);
 
-/* A string */
-#ifdef __cplusplus
-
+/* A strings */
 %typemap(varin) char * {
   char *temp = (char *) PyString_AsString($input);
   if (PyErr_Occurred()) {
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
   }
-  if ($1) delete [] $1;
-  $1 = ($type) new char[strlen(temp)+1];
+  if ($1) %swig_del_carray($1);
+  $1 = ($type) %swig_new_carray(strlen(temp)+1);
   strcpy((char*)$1,temp);
 }
 
@@ -210,34 +240,21 @@
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
   }
-  $1 = ($type) new char[strlen(temp)+1];
+  $1 = ($type) %swig_new_carray(strlen(temp)+1);
   strcpy((char*)$1,temp);
 }
 
-#else
 
-%typemap(varin) char * {
-  char *temp = (char *) PyString_AsString($input);
+/* here we need no temp, the variable provide the memory */
+%typemap(varin) char [ANY] {
+  SPyObj_AsCharArray($input, $1, $1_dim0);
   if (PyErr_Occurred()) {
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
   }
-  if ($1) free((char*) $1);
-  $1 = ($type) malloc(strlen(temp)+1);
-  strcpy((char*)$1,temp);
 }
 
-%typemap(varin,warning="451:Setting const char * variable may leak memory") const char * {
-  char *temp = (char *) PyString_AsString($input);
-  if (PyErr_Occurred()) {
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
-    return 1;
-  }
-  $1 = ($type) malloc(strlen(temp)+1);
-  strcpy((char*)$1,temp);
-}
-
-#endif
+/* Pointers, references, and arrays */
 
 %typemap(varin) SWIGTYPE [ANY] {
   void *temp;
@@ -249,23 +266,6 @@
   }
   b = ($1_basetype *) $1;
   for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) temp + ii);
-}
-
-/* Special case for string array variables */
-%typemap(varin) char* {
-  $1 = PyString_AsString($input);
-  if (PyErr_Occurred()) {
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
-    return 1;
-  }
-}
-
-%typemap(varin) char [ANY] {
-  SPyObj_AsCharArray($input, $1, $1_dim0);
-  if (PyErr_Occurred()) {
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
-    return 1;
-  }
 }
 
 %typemap(varin) SWIGTYPE * {
@@ -361,7 +361,7 @@
     { SWIG_PY_STRING,  (char*)"$symname", 0, 0, (void *)$value, 0}
 
 %typemap(consttab) char [ANY], const char [ANY]
-    { SWIG_PY_STRING,  (char*)"$symname", 0, 0, (void *)$value, 0}
+  "PyDict_SetItemString(d,\"$symname\", SPyObj_FromCharArray($value, $value_dim0));";
 
 %typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
     { SWIG_PY_POINTER, (char*)"$symname", 0, 0, (void *)$value, &$1_descriptor}
@@ -426,11 +426,12 @@
   }
 }
 
-%typemap(directorout) char [ANY] { 
-  SPyObj_AsCharArray($input, $result, $result_dim0);
+%typemap(directorout) char [ANY] (char temp[$result_dim0]) { 
+  SPyObj_AsCharArray($input, temp, $result_dim0);
   if (PyErr_Occurred()) {
-    Swig::DirectorTypeMismatchException("Error converting Python object into char[ANY]");
+    Swig::DirectorTypeMismatchException("Error converting Python object into char[$result_dim0]");
   }
+  $result = temp;
 }
 
 /* Object returned by value. Convert from a pointer */
@@ -623,40 +624,35 @@ PY_TYPECHECK_TYPEMAP(CHAR,    char,               SPyObj_AsChar);
 /* ------------------------------------------------------------
  * --- Argc & Argv ---
  * ------------------------------------------------------------ */
-
+/* This typemap works with either a list or a tuple */
 %typemap(in) (int ARGC, char **ARGV) {
   /* Check if is a list */
-  if (PyList_Check($input)) {
+  int list = PyList_Check($input);
+  if (list || PyTuple_Check($input)) {
     int i = 0;
-    int size = PyList_Size($input);
+    int size = list ? PyList_Size($input) : PyTuple_Size($input);
     $1 = ($1_ltype) size;
-#ifdef __cplusplus
-    $2 = ($2_ltype) new char*[(size + 1)];
-#else
-    $2 = ($2_ltype) malloc((size + 1)*sizeof(char *));
-#endif
+    $2 = ($2_ltype) %swig_new_carray((size + 1)*sizeof(char*));
     for (; i < size; ++i) {
-      PyObject *o = PyList_GetItem($input,i);
-      if (PyString_Check(o))
-	$2[i] = PyString_AsString(PyList_GetItem($input,i));
-      else {
-	PyErr_SetString(PyExc_TypeError,"list must contain strings");
+      PyObject *obj = list ? 
+	PyList_GetItem($input,i) : PyTuple_GetItem($input,i);
+      $2[i] = PyString_AsString(obj);
+      if (PyErr_Occurred()) {
+	PyErr_SetString(PyExc_TypeError,"list must contain strings only");
 	SWIG_fail;
       }
     }
     $2[i] = 0;
   } else {
-    PyErr_SetString(PyExc_TypeError,"argument is not a python list");
+    PyErr_SetString(PyExc_TypeError,"argument is not a python list or tuple");
     SWIG_fail;
   }
 }
 
-#ifdef __cplusplus
-%typemap(freearg) (int ARGC, char **ARGV) "if ($2) delete[] $2;";
-#else
-%typemap(freearg) (int ARGC, char **ARGV) "if ($2) free((char *) $2);";
-#endif
-  
+%typemap(freearg) (int ARGC, char **ARGV) {
+  if ($2) %swig_del_carray($2);
+}
+
 
 /*****************************************************************************
  *
