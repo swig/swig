@@ -106,6 +106,67 @@
 %typemap(jstype) float[ANY]              "float[]"
 %typemap(jstype) double[ANY]             "double[]"
 
+/* JNI types */
+%typemap(jni) jboolean      "jboolean"
+%typemap(jni) jchar         "jchar"
+%typemap(jni) jbyte         "jbyte"
+%typemap(jni) jshort        "jshort"
+%typemap(jni) jint          "jint"
+%typemap(jni) jlong         "jlong"
+%typemap(jni) jfloat        "jfloat"
+%typemap(jni) jdouble       "jdouble"
+%typemap(jni) jstring       "jstring"
+%typemap(jni) jobject       "jobject"
+%typemap(jni) jbooleanArray "jbooleanArray"
+%typemap(jni) jcharArray    "jcharArray"
+%typemap(jni) jbyteArray    "jbyteArray"
+%typemap(jni) jshortArray   "jshortArray"
+%typemap(jni) jintArray     "jintArray"
+%typemap(jni) jlongArray    "jlongArray"
+%typemap(jni) jfloatArray   "jfloatArray"
+%typemap(jni) jdoubleArray  "jdoubleArray"
+%typemap(jni) jobjectArray  "jobjectArray"
+
+%typemap(jtype) jboolean      "boolean"
+%typemap(jtype) jchar         "char"
+%typemap(jtype) jbyte         "byte"
+%typemap(jtype) jshort        "short"
+%typemap(jtype) jint          "int"
+%typemap(jtype) jlong         "long"
+%typemap(jtype) jfloat        "float"
+%typemap(jtype) jdouble       "double"
+%typemap(jtype) jstring       "String"
+%typemap(jtype) jobject       "Object"
+%typemap(jtype) jbooleanArray "boolean[]"
+%typemap(jtype) jcharArray    "char[]"
+%typemap(jtype) jbyteArray    "byte[]"
+%typemap(jtype) jshortArray   "short[]"
+%typemap(jtype) jintArray     "int[]"
+%typemap(jtype) jlongArray    "long[]"
+%typemap(jtype) jfloatArray   "float[]"
+%typemap(jtype) jdoubleArray  "double[]"
+%typemap(jtype) jobjectArray  "Object[]"
+
+%typemap(jstype) jboolean      "boolean"
+%typemap(jstype) jchar         "char"
+%typemap(jstype) jbyte         "byte"
+%typemap(jstype) jshort        "short"
+%typemap(jstype) jint          "int"
+%typemap(jstype) jlong         "long"
+%typemap(jstype) jfloat        "float"
+%typemap(jstype) jdouble       "double"
+%typemap(jstype) jstring       "String"
+%typemap(jstype) jobject       "Object"
+%typemap(jstype) jbooleanArray "boolean[]"
+%typemap(jstype) jcharArray    "char[]"
+%typemap(jstype) jbyteArray    "byte[]"
+%typemap(jstype) jshortArray   "short[]"
+%typemap(jstype) jintArray     "int[]"
+%typemap(jstype) jlongArray    "long[]"
+%typemap(jstype) jfloatArray   "float[]"
+%typemap(jstype) jdoubleArray  "double[]"
+%typemap(jstype) jobjectArray  "Object[]"
+
 /* Non primitive types */
 %typemap(jni) SWIGTYPE "jlong"
 %typemap(jtype) SWIGTYPE "long"
@@ -274,10 +335,8 @@
              long long & (long long temp), 
              float & (float temp), 
              double & (double temp)
-%{ 
-temp = ($*1_ltype)$input; 
-$1 = &temp;
-%}
+%{ temp = ($*1_ltype)$input; 
+$1 = &temp; %}
 
 %typemap(out) const bool &           %{ $result = (jboolean)*$1; %}
 %typemap(out) const char &           %{ $result = (jchar)*$1; %}
@@ -598,6 +657,48 @@ $1 = &temp;
 
 %include "java_arrays.i"
 
+/* JNI types */
+%typemap(in) jboolean,
+             jchar,
+             jbyte,
+             jshort,
+             jint,
+             jlong,
+             jfloat,
+             jdouble,
+             jstring,
+             jobject,
+             jbooleanArray,
+             jcharArray,
+             jbyteArray,
+             jshortArray,
+             jintArray,
+             jlongArray,
+             jfloatArray,
+             jdoubleArray,
+             jobjectArray
+%{ $1 = $input; %}
+
+%typemap(out) jboolean,
+              jchar,
+              jbyte,
+              jshort,
+              jint,
+              jlong,
+              jfloat,
+              jdouble,
+              jstring,
+              jobject,
+              jbooleanArray,
+              jcharArray,
+              jbyteArray,
+              jshortArray,
+              jintArray,
+              jlongArray,
+              jfloatArray,
+              jdoubleArray,
+              jobjectArray
+%{ $result = $1; %}
 
 /* Some ANSI C typemaps */
 
