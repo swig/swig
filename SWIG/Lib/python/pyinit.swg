@@ -32,14 +32,14 @@ typedef struct swig_varlinkobject {
 static PyObject *
 swig_varlink_repr(swig_varlinkobject *v) {
   v = v;
-  return PyString_FromString("<Global variables>");
+  return PyString_FromString("<Swig global variables>");
 }
 
 static int
 swig_varlink_print(swig_varlinkobject *v, FILE *fp, int flags) {
   swig_globalvar  *var;
   flags = flags;
-  fprintf(fp,"Global variables { ");
+  fprintf(fp,"Swig global variables { ");
   for (var = v->vars; var; var=var->next) {
     fprintf(fp,"%s", var->name);
     if (var->next) fprintf(fp,", ");
@@ -97,41 +97,22 @@ static PyTypeObject varlinktype = {
   0,                                  /* tp_as_buffer */
   0,                                  /* tp_flags */
   0,                                  /* tp_doc */
+#if PY_VERSION_HEX >= 0x02000000
   0,                                  /* tp_traverse */
   0,                                  /* tp_clear */
+#endif
+#if PY_VERSION_HEX >= 0x02010000
   0,                                  /* tp_richcompare */
   0,                                  /* tp_weaklistoffset */
+#endif
 #if PY_VERSION_HEX >= 0x02020000
-  0,                                  /* tp_iter */
-  0,                                  /* tp_iternext */
-  0,                                  /* tp_methods */
-  0,                                  /* tp_members */
-  0,                                  /* tp_getset */
-  0,                                  /* tp_base */
-  0,                                  /* tp_dict */
-  0,                                  /* tp_descr_get */
-  0,                                  /* tp_descr_set */
-  0,                                  /* tp_dictoffset */
-  0,                                  /* tp_init */
-  0,                                  /* tp_alloc */
-  0,                                  /* tp_new */
-  0,                                  /* tp_free */
-  0,                                  /* tp_is_gc */
-  0,                                  /* tp_bases */
-  0,                                  /* tp_mro */
-  0,                                  /* tp_cache */
-  0,                                  /* tp_subclasses */
-  0,                                  /* tp_weaklist */
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* tp_iter -> tp_weaklist */
 #endif
 #if PY_VERSION_HEX >= 0x02030000
   0,                                  /* tp_del */
 #endif
 #ifdef COUNT_ALLOCS
-  /* these must be last */
-  0,                                  /* tp_alloc */
-  0,                                  /* tp_free */
-  0,                                  /* tp_maxalloc */
-  0,                                  /*  tp_next */
+  0,0,0,0                             /* tp_alloc -> tp_next */
 #endif
 };
 
