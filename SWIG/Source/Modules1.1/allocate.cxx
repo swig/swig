@@ -193,12 +193,26 @@ public:
     Setattr(inclass,"allocate:has_constructor","1");
 
     /* See if this is a copy constructor */
-    if (parms && (!nextSibling(parms))) {
+    if (parms && (ParmList_numrequired(parms) == 1)) {
+      /* Look for a few cases. X(const X &), X(X &), X(X *) */
+
       String *cc = NewStringf("r.q(const).%s", Getattr(inclass,"name"));
       if (Strcmp(cc,Getattr(parms,"type")) == 0) {
 	Setattr(n,"copy_constructor","1");
       }
       Delete(cc);
+      cc = NewStringf("r.%s", Getattr(inclass,"name"));
+      if (Strcmp(cc,Getattr(parms,"type")) == 0) {
+	Setattr(n,"copy_constructor","1");
+      }
+      Delete(cc);
+      cc = NewStringf("p.%s", Getattr(inclass,"name"));
+      String *ty = SwigType_strip_qualifiers(Getattr(parms,"type"));
+      if (Strcmp(cc,ty) == 0) {
+	Setattr(n,"copy_constructor","1");
+      }
+      Delete(cc);
+      Delete(ty);
     }
     return SWIG_OK;
   }

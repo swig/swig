@@ -346,6 +346,7 @@ extern String  *Swig_name_member(String_or_char *classname, String_or_char *mnam
 extern String  *Swig_name_get(String_or_char *vname);
 extern String  *Swig_name_set(String_or_char *vname);
 extern String  *Swig_name_construct(String_or_char *classname);
+extern String  *Swig_name_copyconstructor(String_or_char *classname);
 extern String  *Swig_name_destroy(String_or_char *classname);
 
 /* --- parameterized rename functions --- */

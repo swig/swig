@@ -256,7 +256,35 @@ Swig_name_construct(String_or_char *classname) {
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
   return r;
 }
-  
+
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_copyconstructor()
+ *
+ * Returns the name of the accessor function used to copy an object.
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_name_copyconstructor(String_or_char *classname) {
+  String *r;
+  String *f;
+  char *cname, *c;
+  r = NewString("");
+  if (!naming_hash) naming_hash = NewHash();
+  f = Getattr(naming_hash,"construct");
+  if (!f) {
+    Append(r,"copy_%c");
+  } else {
+    Append(r,f);
+  }
+
+  cname = Char(classname);
+  c = strchr(cname, ' ');
+  if (c) cname = c+1;
+
+  Replace(r,"%c",cname, DOH_REPLACE_ANY);
+  return r;
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_name_destroy()

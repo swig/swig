@@ -819,7 +819,7 @@ GUILE::variableWrapper(Node *n)
 
     Wrapper_add_local (f, "gswig_result", "SCM gswig_result");
 
-    if (!ReadOnly) {
+    if (!Getattr(n,"feature:immutable")) {
       /* Check for a setting of the variable value */
       Printf (f->code, "if (s_0 != GH_NOT_PASSED) {\n");
       if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
@@ -855,12 +855,12 @@ GUILE::variableWrapper(Node *n)
     // Now add symbol to the Guile interpreter
 
     if (!emit_setters
-	|| ReadOnly) {
+	|| Getattr(n,"feature:immutable")) {
       /* Read-only variables become a simple procedure returning the
 	 value; read-write variables become a simple procedure with
 	 an optional argument. */
       Printf (f_init, "\t gh_new_procedure(\"%s\", (swig_guile_proc) %s, 0, %d, 0);\n",
-	      proc_name, var_name, ReadOnly ? 0 : 1);
+	      proc_name, var_name, Getattr(n,"feature:immutable") ? 0 : 1);
     }
     else {
       /* Read/write variables become a procedure with setter. */
@@ -877,7 +877,7 @@ GUILE::variableWrapper(Node *n)
       String *signature = NewString("");
       String *doc = NewString("");
 
-      if (ReadOnly) {
+      if (Getattr(n,"feature:immutable")) {
 	Printv(signature, proc_name, NULL);
 	Printv(doc, "Returns constant ", NULL);
 	if ((tm = Getattr(n,"tmap:varout:doc"))) {
@@ -942,7 +942,6 @@ GUILE::constantWrapper(Node *n)
   SwigType *type  = Getattr(n,"type");
   String   *value = Getattr(n,"value");
 
-  int OldReadOnly = ReadOnly;
   DOHString *proc_name;
   char   var_name[256];
   DOHString *rvalue;
@@ -951,7 +950,6 @@ GUILE::constantWrapper(Node *n)
   String   *tm;
 
   f = NewWrapper();
-  ReadOnly = 1;     // Enable readonly mode.
 
   // Make a static variable;
 
@@ -1003,7 +1001,6 @@ GUILE::constantWrapper(Node *n)
     variableWrapper(n);
     Delete(n);
   }
-  ReadOnly = OldReadOnly;
   Delete(nctype);
   Delete(proc_name);
   Delete(rvalue);

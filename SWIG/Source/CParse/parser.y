@@ -865,6 +865,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		     Setattr($$,"type",NewSwigType($4.type));
 		     Setattr($$,"value",$4.val);
 		     Setattr($$,"storage","%constant");
+		     Setattr($$,"feature:immutable","1");
 		     add_symbols($$);
 		   } else {
 		     if ($4.type == T_ERROR) {
@@ -887,6 +888,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   Setattr($$,"type",$2);
 		   Setattr($$,"value",$4.val);
 		   Setattr($$,"storage","%constant");
+		   Setattr($$,"feature:immutable","1");
 		   add_symbols($$);
 		 } else {
 		     if ($4.type == T_ERROR) {
@@ -1324,6 +1326,17 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
               /* Global feature */
 
               | FEATURE LPAREN idstring RPAREN stringbracesemi {
+		String *name;
+		String *fname = NewStringf("feature:%s",$3);
+		if (!features_hash) features_hash = NewHash();
+		if (Namespaceprefix) name = NewStringf("%s::", Namespaceprefix);
+		else name = NewString("");
+		Swig_feature_set(features_hash,name,0,fname,($5 ? NewString($5) : 0));
+		Delete(name);
+		Delete(fname);
+		$$ = 0;
+              }
+              | FEATURE LPAREN idstring COMMA idstring RPAREN SEMI {
 		String *name;
 		String *fname = NewStringf("feature:%s",$3);
 		if (!features_hash) features_hash = NewHash();
@@ -3317,6 +3330,7 @@ edecl          :  ID {
 		   $$ = new_node("enumitem");
 		   Setattr($$,"name",$1);
 		   Setattr($$,"type",NewSwigType(T_INT));
+		   Setattr($$,"feature:immutable","1");
 		 }
                  | ID EQUAL etype {
 		   $$ = new_node("enumitem");
@@ -3328,6 +3342,7 @@ edecl          :  ID {
 		     Setattr($$,"value",$1);
 		     Setattr($$,"type",NewSwigType(T_INT));
 		   }
+		   Setattr($$,"feature:immutable","1");
                  }
                  | empty { $$ = 0; }
                  ;

@@ -265,10 +265,6 @@ void swig_pragma(char *lang, char *name, char *value) {
 	    GenerateDefault = 1;
 	} else if ((strcmp(name,"no_default") == 0) || ((strcmp(name,"nodefault") == 0))) {
 	    GenerateDefault = 0;
-	} else if (strcmp(name,"readonly") == 0) {
-	    ReadOnly = 1;
-	} else if (strcmp(name,"readwrite") == 0) {
-	    ReadOnly = 0;
 	} else if (strcmp(name,"attributefunction") == 0) {
 	    String *nvalue = NewString(value);
 	    char *s = strchr(Char(nvalue),':');
@@ -693,8 +689,7 @@ int Language::cDeclaration(Node *n) {
     } else {
 	/* Some kind of variable declaration */
 	Delattr(n,"decl");
-	int oldro = ReadOnly;
-	if (Getattr(n,"nested")) ReadOnly = 1;
+	if (Getattr(n,"nested")) Setattr(n,"feature:immutable","1");
 	if (!CurrentClass) {
 	    if ((Cmp(storage,"extern") == 0) || ForceExtern) {
 		f_header = Swig_filebyname("header");
@@ -705,13 +700,13 @@ int Language::cDeclaration(Node *n) {
 	    }
 	}
 	if (SwigType_isconst(ty)) {
-	    ReadOnly = 1;
+	  Setattr(n,"feature:immutable","1");
 	}
 	/* If an array and elements are const, then read-only */
 	if (SwigType_isarray(ty)) {
 	    SwigType *tya = SwigType_array_type(ty);
 	    if (SwigType_isconst(tya)) {
-		ReadOnly = 1;
+	      Setattr(n,"feature:immutable","1");
 	    }
 	}
 	DohIncref(type);
@@ -722,7 +717,6 @@ int Language::cDeclaration(Node *n) {
 	Delete(ty);
 	Delete(type);
 	Delete(fullty);
-	ReadOnly = oldro;
 	return SWIG_OK;
     }
 }
@@ -980,7 +974,7 @@ Language::membervariableHandler(Node *n) {
 
 	/* Create a function to set the value of the variable */
     
-	if (!ReadOnly) {
+	if (!Getattr(n,"feature:immutable")) {
 	    int       make_wrapper = 1;
 	    String *tm;
 	    String *target;
@@ -1012,7 +1006,7 @@ Language::membervariableHandler(Node *n) {
 		Setattr(n,"sym:name", mrename_set);
 		functionWrapper(n);
 	    } else {
-		ReadOnly = 1;     /* Note: value is restored by generate.cxx */
+	      Setattr(n,"feature:immutable","1");
 	    }
 	    /* Restore parameters */
 	    Setattr(n,"type",type);
@@ -1050,7 +1044,7 @@ Language::membervariableHandler(Node *n) {
 	    Delete(cname);
 	}
 	Delete(gname);
-	if (!ReadOnly) {
+	if (!Getattr(n,"feature:immutable")) {
 	    gname = NewStringf(AttributeFunctionSet,symname);
 	    vty = NewString("void");
 	    if (!AddMethods) {
@@ -1310,8 +1304,16 @@ int Language::constructorDeclaration(Node *n) {
     if (!Abstract) {
 	Node *over;
 	over = Swig_symbol_isoverloaded(n);
-	if ((over) && (over != n)) {
-	    if (!IgnoreOverloadedConstructors) {
+	if (over) {
+	  /* If the symbol is overloaded.  We check to see if it is a copy constructor.  If so, 
+             we invoke copyconstructorHandler() as a special case. */
+	  if (Getattr(n,"copy_constructor") && (!Getattr(CurrentClass,"has_copy_constructor"))) {
+	    copyconstructorHandler(n);
+	    Setattr(CurrentClass,"has_copy_constructor","1");
+	  } else {
+	    if (Getattr(over,"copy_constructor")) over = Getattr(over,"sym:nextSibling");
+	    if (over != n) {
+	      if (!IgnoreOverloadedConstructors) {
 		String *oname = NewStringf("%s::%s", ClassName, name);
 		String *cname = NewStringf("%s::%s", ClassName, Getattr(over,"name"));
 		SwigType *decl = Getattr(n,"decl");
@@ -1319,14 +1321,18 @@ int Language::constructorDeclaration(Node *n) {
 		Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over),SwigType_str(Getattr(over,"decl"),cname));
 		Delete(oname);
 		Delete(cname);
+	      }
+	    } else {
+	      constructorHandler(n);
 	    }
+	  }
 	} else {
-	    if (name && (Cmp(name,ClassName))) {
-		Printf(stderr,"%s:%d.  Function %s must have a return type.\n", 
-		       input_file, line_number, name);
-		return SWIG_NOWRAP;
-	    }
-	    constructorHandler(n);
+	  if (name && (Cmp(name,ClassName))) {
+	    Printf(stderr,"%s:%d.  Function %s must have a return type.\n", 
+		   input_file, line_number, name);
+	    return SWIG_NOWRAP;
+	  }
+	  constructorHandler(n);
 	}
     }
     Setattr(CurrentClass,"has_constructor","1");
@@ -1351,6 +1357,25 @@ Language::constructorHandler(Node *n) {
     Delete(mrename);
     Swig_restore(&n);
     return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::copyconstructorHandler()
+ * ---------------------------------------------------------------------- */
+
+int
+Language::copyconstructorHandler(Node *n) {
+  Swig_require(&n,"?name","*sym:name","?type","?parms", NULL);
+  String *symname = Getattr(n,"sym:name");
+  String *mrename;
+
+  mrename = Swig_name_copyconstructor(symname);
+  Swig_ConstructorToFunction(n,ClassType, CPlusPlus, AddMethods);
+  Setattr(n,"sym:name", mrename);
+  functionWrapper(n);
+  Delete(mrename);
+  Swig_restore(&n);
+  return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------
@@ -1474,7 +1499,7 @@ int Language::variableWrapper(Node *n) {
     String *name   = Getattr(n,"name");
 
     /* If no way to set variables.  We simply create functions */
-    if (!ReadOnly) {
+    if (!Getattr(n,"feature:immutable")) {
 	int make_wrapper = 1;
 	String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
 

@@ -957,7 +957,7 @@ PHP4::variableWrapper(Node *n) {
 
   /* Now generate C -> PHP sync blocks */
 
-  if(!ReadOnly) {
+  if(!Getattr(n,"feature:immutable")) {
 
 	tm = Swig_typemap_lookup_new("varout", n, name, 0);
 	if(tm) {
@@ -1320,7 +1320,7 @@ int PHP4::staticmembervariableHandler(Node *n) {
    * would be available in php as Example::ncount() 
    */
 	static_flag = 1;
-	if(ReadOnly) {
+	if(Getattr(n,"feature:immutable")) {
 		const_flag = 1;
 	}
 	cpp_func(iname, d, 0, iname);

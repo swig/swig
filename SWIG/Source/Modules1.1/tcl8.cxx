@@ -440,7 +440,7 @@ TCL8::variableWrapper(Node *n) {
   DelWrapper(getf);
 
   /* Try to create a function setting a variable */
-  if (!ReadOnly) {
+  if (!Getattr(n,"feature:immutable")) {
     setf = NewWrapper();
     setname = Swig_name_wrapper(Swig_name_set(iname));
     Printv(setf->def,"static char *",setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NULL);
@@ -467,7 +467,7 @@ TCL8::variableWrapper(Node *n) {
   } 
 
   Printv(var_tab, tab4,"{ SWIG_prefix \"", iname, "\", 0, (swig_variable_func) ", getname, ",", NULL);
-  if (readonly || ReadOnly) {
+  if (readonly || Getattr(n,"feature:immutable")) {
     static int readonlywrap = 0;
     if (!readonlywrap) {
       Wrapper *ro = NewWrapper();
@@ -720,7 +720,7 @@ int TCL8::membervariableHandler(Node *n) {
     rname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name,symname)));
     Printv(attr_tab, rname, ", ", NULL);
     Delete(rname);
-    if (!ReadOnly) {
+    if (!Getattr(n,"feature:immutable")) {
       rname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name,symname)));
       Printv(attr_tab, rname, "},\n",NULL);
       Delete(rname);

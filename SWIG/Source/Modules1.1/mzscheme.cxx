@@ -453,7 +453,7 @@ MZSCHEME::variableWrapper(Node *n)
 
     Wrapper_add_local (f, "swig_result", "Scheme_Object *swig_result");
 
-    if (!ReadOnly) {
+    if (!Getattr(n,"feature:immutable")) {
       /* Check for a setting of the variable value */
       Printf (f->code, "if (argc) {\n");
       if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
@@ -526,14 +526,11 @@ MZSCHEME::constantWrapper(Node *n)
   SwigType *type  = Getattr(n,"type");
   String   *value = Getattr(n,"value");
 
-  int OldReadOnly = ReadOnly;      // Save old status flags
   String *var_name = NewString("");
   String *proc_name = NewString("");
   String *rvalue = NewString("");
   String *temp = NewString("");
   String *tm;
-
-  ReadOnly = 1;     // Enable readonly mode.
 
   // Make a static variable;
 
@@ -591,7 +588,6 @@ MZSCHEME::constantWrapper(Node *n)
     variableWrapper(n);
     Delete(n);
     }
-    ReadOnly = OldReadOnly;
   }
   Delete(proc_name);
   Delete(rvalue);

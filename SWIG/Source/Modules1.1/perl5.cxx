@@ -742,7 +742,7 @@ int PERL5::variableWrapper(Node *n)
 
   /* Create a Perl function for setting the variable value */
 
-  if (!ReadOnly) {
+  if (!Getattr(n,"feature:immutable")) {
     Printf(setf->def,"SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC *mg) {\n", set_name);
     Printv(setf->code,
 	   tab4, "MAGIC_PPERL\n",
@@ -808,7 +808,7 @@ int PERL5::variableWrapper(Node *n)
     tt = (String *) "0";
   }
   /* Now add symbol to the PERL interpreter */
-  if (ReadOnly) {
+  if (Getattr(n,"feature:immutable")) {
     Printv(variable_tab, tab4, "{ \"", package, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", val_name,",", tt, " },\n",NULL);
 
   } else {

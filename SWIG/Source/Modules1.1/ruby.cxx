@@ -796,7 +796,7 @@ int RUBY::variableWrapper(Node *n) {
   Printv(getf->code, tab4, "return _val;\n}\n", NULL);
   Wrapper_print(getf,f_wrappers);
 
-  if (ReadOnly) {
+  if (Getattr(n,"feature:immutable")) {
     setfname = NewString("NULL");
   } else {
     /* create setter */
@@ -834,7 +834,7 @@ int RUBY::variableWrapper(Node *n) {
 	   tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	   klass->strip(iname), "\", ", getfname, ", 0);\n",
 	   NULL);
-    if (!ReadOnly) {
+    if (!Getattr(n,"feature:immutable")) {
       Printv(s,
 	     tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	     klass->strip(iname), "=\", ", setfname, ", 1);\n",
@@ -849,7 +849,7 @@ int RUBY::variableWrapper(Node *n) {
 	   tab4, "rb_define_singleton_method(", modvar, ", \"",
 	   iname, "\", ", getfname, ", 0);\n",
 	   NULL);
-    if (!ReadOnly) {
+    if (!Getattr(n,"feature:immutable")) {
       Printv(s,
 	     tab4, "rb_define_singleton_method(", modvar, ", \"",
 	     iname, "=\", ", setfname, ", 1);\n",

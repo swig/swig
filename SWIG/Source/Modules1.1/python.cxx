@@ -566,7 +566,7 @@ PYTHON::variableWrapper(Node *n) {
     /* Create a function for setting the value of the variable */
 
   Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
-  if (!ReadOnly) {
+  if (!Getattr(n,"feature:immutable")) {
     if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
       Replaceall(tm,"$source","_val");
       Replaceall(tm,"$target",name);
@@ -945,7 +945,7 @@ PYTHON::membervariableHandler(Node *n) {
   shadow = oldshadow;
 
   if (shadow) {
-    if (!ReadOnly) {
+    if (!Getattr(n,"feature:immutable")) {
       Printv(f_shadow, tab4, "__setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", NULL);
     }
     Printv(f_shadow, tab4, "__getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NULL);

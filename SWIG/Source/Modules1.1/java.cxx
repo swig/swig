@@ -823,12 +823,10 @@ int JAVA::constantWrapper(Node *n) {
   char     *value = GetChar(n,"value");
   ParmList  *l    = Getattr(n,"parms");
 
-  int OldReadOnly = ReadOnly;
   String *tm;
   char *jname;
   DOH *jout;
   String *constants_code;
-  ReadOnly = 1;
   String *java_type = NewString("");
 
   if(!classdef_emitted) emit_classdef();
@@ -896,7 +894,6 @@ int JAVA::constantWrapper(Node *n) {
     }
   }
   Delete(java_type);
-  ReadOnly = OldReadOnly;
   return SWIG_OK;
 }
 /*

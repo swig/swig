@@ -29,7 +29,6 @@ extern DOH  *Preprocessor_define(DOHString_or_char *str, int swigmacro);
 #define PLAIN_VIRTUAL   1
 #define PURE_VIRTUAL    2
 
-extern  int       ReadOnly;
 extern  char     *input_file;
 extern  int       line_number;
 extern  int       start_line;
@@ -41,8 +40,6 @@ extern  int       error_count;
 extern  int       Verbose;
 extern  int       IsVirtual;
 extern  int       ImportMode;
-extern  int       Overloaded;
-extern  int       Abstract;
 
 #define FatalError()   if ((error_count++) > 20) { fprintf(stderr,"Confused by earlier errors. Bailing out\n"); SWIG_exit (EXIT_FAILURE); }
 
@@ -168,6 +165,7 @@ public:
 
   virtual int memberconstantHandler(Node *n);
   virtual int constructorHandler(Node *n);
+  virtual int copyconstructorHandler(Node *n);
   virtual int destructorHandler(Node *n);
   virtual int classHandler(Node *n);
 
