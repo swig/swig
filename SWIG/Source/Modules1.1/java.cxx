@@ -54,8 +54,8 @@ static int    jnic = -1;          // 1: use c syntax jni; 0: use c++ syntax jni
 static int    nofinalize = 0;          // for generating finalize methods
 static int    useRegisterNatives = 0;        // Set to 1 when doing stuff with register natives
 static String *registerNativesList = 0;
-static String *shadow_enum_code = 0;
-static String *java_enum_code = 0;
+static String *shadow_constants_code = 0;
+static String *module_constants_code = 0;
 static String *module_extra_code = 0; // Extra code for the module class from %pragma
 static String *all_shadow_extra_code = 0; // Extra code for all shadow classes from %pragma
 static String *this_shadow_extra_code = 0; // Extra code for current single shadow class from %pragma
@@ -299,7 +299,7 @@ int JAVA::top(Node *n) {
   shadow_classdef = NewString("");
   shadow_code = NewString("");
   registerNativesList = NewString("");
-  java_enum_code = NewString("");
+  module_constants_code = NewString("");
   module_extra_code = NewString("");
   module_baseclass = NewString("");
   module_interfaces = NewString("");
@@ -370,10 +370,9 @@ int JAVA::top(Node *n) {
 
   if(!classdef_emitted) emit_classdef();
 
-  // Write the enum initialisation code in a static block.
-  // These are all the enums defined in the global c context.
-  if (strlen(Char(java_enum_code)) != 0 )
-    Printv(f_java, "  static {\n  // Initialise java constants from c/c++ enums\n", java_enum_code, "  }\n",0);
+  // Write out all the enums constants
+  if (strlen(Char(module_constants_code)) != 0 )
+    Printv(f_java, "  // enums and constants\n", module_constants_code, 0);
 
   // Finish off the java class
   Printf(f_java, "}\n");
@@ -386,7 +385,7 @@ int JAVA::top(Node *n) {
   Delete(shadow_classdef); shadow_classdef = NULL;
   Delete(shadow_code); shadow_code = NULL;
   Delete(registerNativesList); registerNativesList = NULL;
-  Delete(java_enum_code); java_enum_code = NULL;
+  Delete(module_constants_code); module_constants_code = NULL;
   Delete(module_extra_code); module_extra_code = NULL;
   Delete(module_baseclass); module_baseclass = NULL;
   Delete(module_interfaces); module_interfaces = NULL;
@@ -817,6 +816,7 @@ int JAVA::constantWrapper(Node *n) {
   String *tm;
   char *jname;
   DOH *jout;
+  String *constants_code;
   ReadOnly = 1;
   String *java_type = NewString("");
 
@@ -825,9 +825,11 @@ int JAVA::constantWrapper(Node *n) {
   if(shadow && wrapping_member) {
     jout = shadow_code;
     jname = shadow_variable_name;
+    constants_code = shadow_constants_code;
   } else {
     jout = f_java;
     jname = name;
+    constants_code = module_constants_code;
   }
 
   if ((tm = Swig_typemap_lookup_new("const",n,"",0))) {
@@ -856,34 +858,25 @@ int JAVA::constantWrapper(Node *n) {
     }
     if(strcmp(jname, value) == 0 || strstr(value,"::") != NULL) {
       /* 
-      We have found an enum. 
-      The enum implementation is done using a public final static int
-      in Java. They are then initialised through a JNI call to c in a Java static block.
+      We have found an enum.  The enum implementation is done using a public final static int in Java.
       */
-      Printf(jout, "  public final static %s %s;\n", java_type, jname, value);
-
       if(shadow && wrapping_member) {
-        Printv(shadow_enum_code, tab4, jname, " = ", module, ".", Swig_name_get(iname), "();\n", 0);
-        /* 
-        The following is a work around for an apparent bug in the swig core.
-        When an enum is defined in a c++ class the emit_func_call() should 
-        output ClassName::EnumName, but instead it outputs ClassName_EnumName.
-        */
-        Printv(f_header, "#define ", iname, " ", value, "\n", 0);
+        Printf(shadow_constants_code, "  public final static %s %s = %s.%s;\n", java_type, jname, module, iname);
+        Printf(module_constants_code, "  public final static %s %s = %s();\n", java_type, iname, Swig_name_get(iname));
       }
       else {
-        Printv(java_enum_code, tab4, jname, " = ", Swig_name_get(iname), "();\n", 0);
+        Printf(module_constants_code, "  public final static %s %s = %s();\n", java_type, jname, Swig_name_get(iname));
       }
       enum_flag = 1;
       variableWrapper(n);
       enum_flag = 0;
     } else {
       if(SwigType_type(type) == T_STRING)
-        Printf(jout, "  public final static %s %s = \"%s\";\n", java_type, jname, value);
+        Printf(constants_code, "  public final static %s %s = \"%s\";\n", java_type, jname, value);
       else if(SwigType_type(type) == T_CHAR)
-        Printf(jout, "  public final static String %s = \"%s\";\n", jname, value);
+        Printf(constants_code, "  public final static String %s = \"%s\";\n", jname, value);
       else
-        Printf(jout, "  public final static %s %s = %s;\n", java_type, jname, value);
+        Printf(constants_code, "  public final static %s %s = %s;\n", java_type, jname, value);
     }
   }
   Delete(java_type);
@@ -1160,7 +1153,7 @@ int JAVA::classHandler(Node *n) {
     
     abstract_class_flag = 0;
     have_default_constructor = 0;
-    shadow_enum_code = NewString("");
+    shadow_constants_code = NewString("");
     this_shadow_baseclass =  NewString("");
     this_shadow_extra_code = NewString("");
     this_shadow_interfaces = NewString("");
@@ -1190,10 +1183,9 @@ int JAVA::classHandler(Node *n) {
 
     Printv(f_shadow, shadow_classdef, shadow_code, 0);
 
-    // Write the enum initialisation code in a static block.
-    // These are all the enums defined within the c++ class.
-    if (strlen(Char(shadow_enum_code)) != 0 )
-      Printv(f_shadow, "  static {\n  // Initialise java constants from c++ enums\n", shadow_enum_code, "  }\n",0);
+    // Write out all the enums and constants
+    if (strlen(Char(shadow_constants_code)) != 0 )
+      Printv(f_shadow, "  // enums and constants\n", shadow_constants_code, 0);
 
     Printf(f_shadow, "}\n");
     fclose(f_shadow);
@@ -1202,7 +1194,7 @@ int JAVA::classHandler(Node *n) {
     free(shadow_classname);
     shadow_classname = NULL;
     
-    Delete(shadow_enum_code); shadow_enum_code = NULL;
+    Delete(shadow_constants_code); shadow_constants_code = NULL;
     Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
     Delete(this_shadow_extra_code); this_shadow_extra_code = NULL;
     Delete(this_shadow_interfaces); this_shadow_interfaces = NULL;
