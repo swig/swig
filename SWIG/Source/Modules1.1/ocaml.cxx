@@ -942,7 +942,7 @@ public:
 	   "    try\n"
 	   "      let method_name,application = List.hd (List.filter (fun (x,y) -> x = mth) method_table) in\n"
 	   "        application \n"
-	   "          (match arg with C_list l -> (C_list (raw_ptr :: l)) | v -> (C_list [ raw_ptr ; v ]))\n"
+	   "          (match arg with C_list l -> (C_list (raw_ptr :: l)) | C_void -> (C_list [ raw_ptr ]) | v -> (C_list [ raw_ptr ; v ]))\n"
 	   "    with (Failure \"hd\") -> \n"
 	   "    (* Try parent classes *)\n"
 	   "    begin\n"
