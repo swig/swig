@@ -145,7 +145,7 @@ mzscheme: libswigmz$(RELEASESUFFIX).la
 libswigmz$(RELEASESUFFIX).la: $(MZSCHEME_RUNTIME)
 	rm -f libmz.c
 	cat $(srcdir)/$(MZSCHEME_RUNTIME) >> libmz.c
-	-mkdir .libs
 	$(MZC) ++ccf "-DSWIG_GLOBAL" --cc libmz.c
+	if [ ! -d .libs ] ; then mkdir .libs; fi
 	$(MZC) --ld .libs/libswigmz$(RELEASESUFFIX)$(SO) libmz.o 
 
