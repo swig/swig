@@ -82,10 +82,11 @@ Version 1.3.25 (In progress)
             be minimal impact on execution speed during normal behaviour. Full details will be
             documented in CSharp.html.
 
-            The SWIG_CSharpThrowException() function has been removed and replaced with 
-            SWIG_CSharpSetPendingExceptionArgument(). The name has been deliberately changed
-            to break old code as the old approach was somewhat flawed. Any user defined
-            exceptions that follow the same pattern as the old approach should also be fixed.
+            The SWIG_CSharpThrowException() function has been removed and replaced with the
+            SWIG_CSharpSetPendingExceptionArgument() and SWIG_CSharpSetPendingException()
+            functions. The original name has been deliberately changed to break old code as
+            the old approach was somewhat flawed. Any user defined exceptions that follow the
+            same pattern as the old approach should also be fixed.
 
             Numerous new .NET framework exceptions are now available for easy throwing from 
             unmanaged code. The complete list is: 
