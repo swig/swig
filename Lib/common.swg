@@ -46,6 +46,7 @@ extern "C" {
 typedef struct _swig_type_info {
   char  *name;                 
   void *(*converter)(void *);
+  char  *str;
   struct _swig_type_info  *next;
   struct _swig_type_info  *prev;
 } _swig_type_info;
