@@ -1589,7 +1589,7 @@ int PHP4::constructorHandler(Node *n) {
 
 		Printf(shadow_code, ") {\n");
 		Printv(nativecall, ");\n", tab4, "$this->_cMemOwn = true;\n", NULL);
-		/* register our shutdown function only ig we are a native
+		/* register our shutdown function only if we are a native
 		 * constructor not an alternative constructor ( which calls
 		 * the native one */
 
@@ -1821,7 +1821,7 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	    gencomma = 1;
 
 	    if(is_shadow(pt)) {
-		Printv(nativecall, "$", arg, "->getCPtr()", NULL);
+		Printv(nativecall, "($", arg,")?$", arg, "->getCPtr():\"NULL\"", NULL);
 	    } else {
 		Printv(nativecall, "$", arg, NULL);
 	    }
