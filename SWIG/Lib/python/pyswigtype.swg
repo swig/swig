@@ -82,14 +82,14 @@
 
 %typemap(varin) SWIGTYPE [ANY] {
   void *temp;
-  int ii;
+  size_t ii;
   $1_basetype *b = 0;
   if ((SWIG_ConvertPtr($input, &temp, $1_descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
     PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
     return 1;
   }
   b = ($1_basetype *) $1;
-  for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) temp + ii);
+  for (ii = 0; ii < (size_t) $1_size; ii++) b[ii] = *(($1_basetype *) temp + ii);
 }
 
 %typemap(varin) SWIGTYPE * {
