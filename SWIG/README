@@ -18,7 +18,7 @@ aiming to replace versions 1.1p5 and 1.1-883. The guilty parties
 working on this are:
 
  Dave Beazley (beazley@cs.uchicago.edu)                 (SWIG core, Python, Tcl, Perl)
- William Fulton (wsf@fultondesigns.co.uk)               (Java)
+ William Fulton (wsf@fultondesigns.co.uk)               (Java, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
  Jason Stewart (jason@openinformatics.com)              (Perl5)
  Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)

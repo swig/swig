@@ -181,6 +181,9 @@ Version 1.3.14 (In progress)
             the pragmas with one of the new directives or typemaps mentioned below and use
             %rename on the variables.
 
+            If you were not using proxy classes, you will have to define a jstype typemap
+            as well as a jtype typemap.
+
 08/08/2002: cheetah (William Fulton)
             [Java] Fix for wrapping two dimension array variables.
 
