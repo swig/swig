@@ -261,20 +261,26 @@ public:
       
       Printf(f_shadow,"\nimport %s\n\n", module);
 
-      if (! modern) {
+      /* if (!modern) */
+      /* always needed, a class can be forced to be no-modern, such as an exception */
+      { 
         // Python-2.2 object hack
         Printv(f_shadow,
-               "def _swig_setattr(self,class_type,name,value):\n",
+               "def _swig_setattr_nondynamic(self,class_type,name,value,static=1):\n",
                tab4, "if (name == \"this\"):\n",
                tab4, tab4, "if isinstance(value, class_type):\n",
                tab4, tab8, "self.__dict__[name] = value.this\n",
                tab4, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n",
                tab4, tab8, "del value.thisown\n",
                tab4, tab8, "return\n",
-               //	   tab8, "if (name == \"this\") or (name == \"thisown\"): self.__dict__[name] = value; return\n",
                tab4, "method = class_type.__swig_setmethods__.get(name,None)\n",
                tab4, "if method: return method(self,value)\n",
-               tab4, "self.__dict__[name] = value\n\n",
+	       tab4, "if (not static) or hasattr(self,name) or (name == \"thisown\"):\n",
+               tab4, tab4, "self.__dict__[name] = value\n",
+	       tab4, "else:\n",
+	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
+               "def _swig_setattr(self,class_type,name,value):\n",
+               tab4, "return _swig_setattr_nondynamic(self,class_type,name,value,0)\n\n",
                NIL);
 
         Printv(f_shadow,
@@ -298,7 +304,18 @@ public:
                  NIL);
         }
       }
-      
+      if (modern) {
+        Printv(f_shadow,
+	       "def _swig_setattr_nondynamic_method(set):\n",
+	       tab4, "def set_attr(self,name,value):\n",
+	       tab4, tab4, "if hasattr(self,name) or (name in (\"this\", \"thisown\")):\n",
+	       tab4, tab4, tab4, "set(self,name,value)\n",
+	       tab4, tab4, "else:\n",
+	       tab4, tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n",
+	       tab4, "return set_attr\n\n\n",
+	       NIL);
+      }
+	
       if (directorsEnabled()) {
         // Try loading weakref.proxy, which is only available in Python 2.1 and higher
         Printv(f_shadow,
@@ -1712,7 +1729,7 @@ public:
       have_constructor = 0;
       have_repr = 0;
       
-      if (Getattr(n,"cplus:exceptionclass")) {
+      if (Getattr(n,"feature:exceptionclass")) {
 	classic = 1;
         modern  = 0;
       }
@@ -1767,10 +1784,16 @@ public:
         if (Len(base_class)) {
           Printf(f_shadow,"%sfor _s in [%s]: __swig_setmethods__.update(_s.__swig_setmethods__)\n",tab4,base_class);
         }
-      
-        Printv(f_shadow,
-               tab4, "__setattr__ = lambda self, name, value: _swig_setattr(self, ", class_name, ", name, value)\n",
-               NIL);
+
+	if (!checkAttribute(n,"feature:python:nondynamic","1")) {
+	  Printv(f_shadow,
+		 tab4, "__setattr__ = lambda self, name, value: _swig_setattr(self, ", class_name, ", name, value)\n",
+		 NIL);
+	} else {
+	  Printv(f_shadow,
+		 tab4, "__setattr__ = lambda self, name, value: _swig_setattr_nondynamic(self, ", class_name, ", name, value)\n",
+		 NIL);
+	}	
 
         Printv(f_shadow,tab4,"__swig_getmethods__ = {}\n",NIL);
         if (Len(base_class)) {
@@ -1780,6 +1803,15 @@ public:
         Printv(f_shadow,
                tab4, "__getattr__ = lambda self, name: _swig_getattr(self, ", class_name, ", name)\n",
                NIL);
+      } else {
+	/* Add static attribute */
+	if (checkAttribute(n,"feature:python:nondynamic","1")) {
+	  Printv(f_shadow_file,
+		 tab4, "__setattr__ = _swig_setattr_nondynamic_method(object.__setattr__)\n",
+		 tab4, "class __metaclass__(type):\n",
+		 tab4, tab4, "__setattr__ = _swig_setattr_nondynamic_method(type.__setattr__)\n",
+		 NIL);
+	}	
       }
     }
     
@@ -1842,7 +1874,8 @@ public:
 	         NIL);
           }
       }
-      
+
+
       /* Now emit methods */
       Printv(f_shadow_file, f_shadow, NIL);
 
