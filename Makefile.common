@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = foreign
+AUTOMAKE_OPTIONS = foreign no-dependencies
 
 SWIG_INCLUDES = -I$(top_srcdir)/Source/DOH/Include
 SWIG_LIBS = $(top_builddir)/Source/DOH/Doh/libdoh.a
