@@ -40,6 +40,7 @@ CPP_TEST_CASES += \
         default_constructor \
 	constant_pointers \
 	cpp_enum \
+        cpp_enum_scope \
 	cpp_static \
 	virtual_destructor \
 	cplusplus_throw \
