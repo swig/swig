@@ -160,6 +160,7 @@ public:
 };
 
 void Swig_default_allocators(Node *n) {
+  if (!n) return;
   Allocate *a = new Allocate;
   a->top(n);
   delete a;
