@@ -56,16 +56,16 @@ private:
 		   const String *doc);
 public :
   GUILE ();
-  void parse_args (int, char *argv[]);
-  void parse ();
+  void main (int, char *argv[]);
+  void top(Node *);
   void create_function (char *, char *, SwigType *, ParmList *);
   void link_variable (char *, char *, SwigType *);
   void declare_const (char *, char *, SwigType *, char *);
-  void initialize ();
-  void headers (void);
-  void close (void);
+
+
+
   void set_module(char *);
-  void set_init (char *);
+
   void create_command (char *, char *) { };
   void cpp_variable(char *name, char *iname, SwigType *t);
   void pragma(char *lang, char *cmd, char *value);

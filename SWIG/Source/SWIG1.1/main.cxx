@@ -34,13 +34,7 @@ extern "C" {
 
 // Global variables
 
-    FILE      *f_runtime;
-    DOH       *f_header;                        // Some commonly used
-    DOH       *f_wrappers;                      // FILE pointers
-    DOH       *f_init;
-    FILE      *f_input;
-    char      InitName[256];
-    char      LibDir[512];                      // Library directory
+    char       LibDir[512];                      // Library directory
     int        ReadOnly;                        // Read-only mode
     Language  *lang;                            // Language method
     int        CPlusPlus = 0;
@@ -55,6 +49,7 @@ extern "C" {
 
     int        error_count = 0;                 // Error count
     int        Verbose = 0;
+
 extern String  *ModuleName;
 extern int ShowTemplates;
 
@@ -92,13 +87,7 @@ int
 check_suffix(char *name) {
   char *c;
   if (!name) return 0;
-  if (strlen(name) == 0) return 0;
-  c = name+strlen(name)-1;
-  while (c != name) {
-    if (*c == '.') break;
-    c--;
-  }
-  if (c == name) return 0;
+  c = Swig_file_suffix(name);
   if ((strcmp(c,".c") == 0) ||
       (strcmp(c,".C") == 0) ||
       (strcmp(c,".cc") == 0) ||
@@ -116,14 +105,8 @@ check_suffix(char *name) {
 // Main program.    Initializes the files and starts the parser.
 //-----------------------------------------------------------------
 
-char  infilename[256];
-char  filename[256];
-char  output_dir[512];
-char  fn_runtime[256];
-
 char *SwigLib;
 static int     freeze = 0;
-
 static String  *lang_config = 0;
 
 /* This function sets the name of the configuration file */
@@ -136,7 +119,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int    i;
   char   *c;
   char    temp[512];
-  char    infile[512];
   char   *outfile_name = 0;
   int     help = 0;
   int     checkout = 0;
@@ -145,18 +127,15 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   char   *includefiles[256];
   int     includecount = 0;
   extern  int check_suffix(char *);
-  extern  void scanner_file(DOHFile *);
+  extern  Node *Swig_cparse(File *);
   DOH    *libfiles = 0;
+  DOH    *cpps = 0 ;
 
   /* Initialize the SWIG core */
   Swig_init();
   
   // Initialize the preprocessor
   Preprocessor_init();
-
-  f_wrappers = 0;
-  f_init = 0;
-  f_header = 0;
 
   lang = l;
   ReadOnly = 0;
@@ -188,7 +167,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Swig_add_directory((DOH *) "." SWIG_FILE_DELIMETER "swig_lib" SWIG_FILE_DELIMETER "config");
   Swig_add_directory((DOH *) LibDir);
   Swig_add_directory((DOH *) "." SWIG_FILE_DELIMETER "swig_lib");
-  sprintf(InitName,"init_wrap");
   
   libfiles = NewList();
 
@@ -291,8 +269,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     Swig_add_directory((DOH *) includefiles[--includecount]);
   }
 
+  // Define the __cplusplus symbol
+  if (CPlusPlus)
+    Preprocessor_define((DOH *) "__cplusplus 1", 0);
+
   // Parse language dependent options
-  lang->parse_args(argc,argv);
+  lang->main(argc,argv);
 
   if (help) SWIG_exit (EXIT_SUCCESS);    // Exit if we're in help mode
 
@@ -307,11 +289,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   }
 
   // If we made it this far, looks good. go for it....
-  // Create names of temporary files that are created
 
-  sprintf(infilename,"%s", argv[argc-1]);
-  input_file = new char[strlen(infilename)+1];
-  strcpy(input_file, infilename);
+  input_file = argv[argc-1];
 
   // If the user has requested to check out a file, handle that
   if (checkout) {
@@ -346,65 +325,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     // Check the suffix for a .c file.  If so, we're going to
     // declare everything we see as "extern"
 
-    ForceExtern = check_suffix(infilename);
-    // Strip off suffix
-
-    c = infilename + strlen(infilename);
-    while (c != infilename) {
-      if (*c == '.') {
-	*c = 0;
-	break;
-      } else {
-	c--;
-      }
-    }
-
-    if (!outfile_name) {
-      if (CPlusPlus)
-        sprintf(fn_runtime,"%s_wrap.cxx",infilename);
-      else
-        sprintf(fn_runtime,"%s_wrap.c",infilename);
-      strcpy(infile,infilename);
-      strcpy(output_dir,"");
-    } else {
-      sprintf(fn_runtime,"%s",outfile_name);
-      // Try to identify the output directory
-      char *cc = outfile_name;
-      char *lastc = outfile_name;
-      const char *delim = SWIG_FILE_DELIMETER;
-      while (*cc) {
-	if (*cc == *delim) lastc = cc+1;
-	cc++;
-      }
-      cc = outfile_name;
-      char *dd = output_dir;
-      while (cc != lastc) {
-	*dd = *cc;
-	dd++;
-	cc++;
-      }
-      *dd = 0;
-      // Patch up the input filename
-      cc = infilename + strlen(infilename);
-      while (cc != infilename) {
-	if (*cc == *delim) {
-	  cc++;
-	  break;
-	}
-	cc--;
-      }
-      strcpy(infile,cc);
-    }
-
-    // Define the __cplusplus symbol
-    if (CPlusPlus)
-      Preprocessor_define((DOH *) "__cplusplus 1", 0);
+    ForceExtern = check_suffix(input_file);
 
     // Run the preprocessor
     if (Verbose)
       printf ("Preprocessing...\n");
     {
-      DOH *cpps;
       int i;
       String *fs = NewString("");
       FILE *df = Swig_open(input_file);
@@ -431,45 +357,36 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	while (freeze);
 	SWIG_exit (EXIT_SUCCESS);
       }
-
-      // Initialize the scanner
       Seek(cpps, 0, SEEK_SET);
-      scanner_file(cpps);
     }
-    if ((f_runtime = fopen(fn_runtime,"w")) == 0) {
-      fprintf(stderr,"Unable to open %s\n", fn_runtime);
-      exit(0);
-    }
-    f_header = NewString("");
-    f_wrappers = NewString("");
-    f_init = NewString("");
 
-    /* Register files with the file handler */
-    Swig_register_filebyname("header",f_header);
-    Swig_register_filebyname("wrapper", f_wrappers);
-    Swig_register_filebyname("init",f_init);
-    Swig_register_filebyname("runtime", NewFileFromFile(f_runtime));
+    /* Register a null file with the file handler */
     Swig_register_filebyname("null", NewString(""));
 
     // Pass control over to the specific language interpreter
-
     if (Verbose) {
       fprintf (stdout, "Starting language-specific parse...\n");
       fflush (stdout);
     }
-    lang->parse();
-    if (Verbose) {
-      fprintf (stdout, "Finished language-specific parse.\n");
-      fflush (stdout);
-    }
-
-    Dump(f_header,f_runtime);
-    Dump(f_wrappers, f_runtime);
-    Wrapper_pretty_print(f_init,f_runtime);
-    fclose(f_runtime);
-    if (checkout) {
-      // File was checked out from the SWIG library.   Remove it now
-      remove(input_file);
+    Node *top = Swig_cparse(cpps);
+    if (top) {
+      if (!Getname(top)) {
+	Printf(stderr,"*** No module name specified using %%module or -module.\n");
+	SWIG_exit(EXIT_FAILURE);
+      } else {
+	/* Set some filename information on the object */
+	Setattr(top,"infile", input_file);
+	if (!outfile_name) {
+	  if (CPlusPlus) {
+	    Setattr(top,"outfile", NewStringf("%s_wrap.cxx", Swig_file_basename(input_file)));
+	  } else {
+	    Setattr(top,"outfile", NewStringf("%s_wrap.c", Swig_file_basename(input_file)));
+	  }
+	} else {
+	  Setattr(top,"outfile", outfile_name);
+	}
+	lang->top(top);
+      }
     }
   }
   if (tm_debug) Swig_typemap_debug();
@@ -484,10 +401,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 // --------------------------------------------------------------------------
 
 void SWIG_exit(int exit_code) {
-  if (f_runtime) {
-    fclose(f_runtime);
-    remove(fn_runtime);
-  }
   while (freeze);
   exit (exit_code);
 }

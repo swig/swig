@@ -131,7 +131,6 @@ namewarn_add(char *name, SwigType *decl, char *warning) {
 static void
 rename_inherit(String *base, String *derived) {
   String *key;
-  String *value;
   String *bprefix;
   String *dprefix;
   char *cbprefix;
@@ -363,6 +362,7 @@ static void merge_addmethods(Node *am) {
      }
      n = nextSibling(n);
    }
+   return 0;
  }
 /* Structures for handling code fragments built for nested classes */
 
@@ -487,6 +487,13 @@ static Node *dump_nested(char *parent) {
   return ret;
 }
 
+Node *Swig_cparse(File *f) {
+  extern void scanner_file(File *);
+  scanner_file(f);
+  top = 0;
+  yyparse();
+  return top;
+}
 
 %}
 
@@ -620,7 +627,7 @@ program        :  interface {
 		   Setattr($1,"classes",classes);
 		   Setname($1,ModuleName);
 		   check_addmethods();
-		   lang->top($1);
+	           top = $1;
                }
                ;
 
@@ -1575,7 +1582,7 @@ cpp_class_decl  :
 	       Node *p, *pp = 0;
 	       if ($8) {
 		 set_nextSibling(n,$8);
-		 Node *p = $8;
+		 p = $8;
 		 while (p) {
 		   pp = p;
 		   Setattr(p,"unnamed",unnamed);
@@ -2014,7 +2021,6 @@ storage_class  : EXTERN { $$ = "extern"; }
    ------------------------------------------------------------------------------ */
 
 parms          : parm ptail {
-                  SwigType *pt = Gettype($1);
 		  if (1) { //(SwigType_type(pt) != T_VOID) {
 		    set_nextSibling($1,$2);
 		    $$ = $1;

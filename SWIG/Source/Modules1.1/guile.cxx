@@ -50,6 +50,11 @@ Guile Options (available with -guile)\n\
   convention (versions <= 1.4), or `hobbit' for hobbit modules.\n\
 \n";
 
+static  File         *f_runtime = 0;
+static  File         *f_header = 0;
+static  File         *f_wrappers = 0;
+static  File         *f_init = 0;
+
 // ---------------------------------------------------------------------
 // GUILE ()
 // ---------------------------------------------------------------------
@@ -78,13 +83,13 @@ GUILE::GUILE ()
 }
 
 // ---------------------------------------------------------------------
-// GUILE::parse_args(int argc, char *argv[])
+// GUILE::main()
 //
 // Parse arguments.
 // ---------------------------------------------------------------------
 
 void
-GUILE::parse_args (int argc, char *argv[])
+GUILE::main (int argc, char *argv[])
 {
   int i, orig_len;
 
@@ -210,21 +215,103 @@ GUILE::parse_args (int argc, char *argv[])
 }
 
 // --------------------------------------------------------------------
-// GUILE::parse()
-//
-// Parse the input file
+// GUILE::top()
 // --------------------------------------------------------------------
 
 void
-GUILE::parse ()
+GUILE::top(Node *n)
 {
-  // Print out GUILE specific headers
 
-  headers();
+  /* Initialize all of the output files */
+  String *outfile = Getattr(n,"outfile");
 
-  // Run the parser
+  f_runtime = NewFile(outfile,"w");
+  if (!f_runtime) {
+    Printf(stderr,"*** Can't open '%s'\n", outfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  f_init = NewString("");
+  f_header = NewString("");
+  f_wrappers = NewString("");
 
-  yyparse();
+  /* Register file targets with the SWIG file handler */
+  Swig_register_filebyname("header",f_header);
+  Swig_register_filebyname("wrapper",f_wrappers);
+  Swig_register_filebyname("runtime",f_runtime);
+  Swig_register_filebyname("init",f_init);
+
+  Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
+  Swig_banner (f_runtime);
+
+  Printf (f_runtime, "/* Implementation : GUILE */\n\n");
+
+  /* Write out directives and declarations */
+
+  if (NoInclude) {
+    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
+  }
+  set_module(Char(Getname(n)));
+
+  if (CPlusPlus) {
+    Printf(f_runtime, "extern \"C\" {\n\n");
+  }
+
+  switch (linkage) {
+  case GUILE_LSTYLE_SIMPLE:
+    /* Simple linkage; we have to export the SWIG_init function. The user can
+       rename the function by a #define. */
+    Printf (f_runtime, "extern void\nSWIG_init (void)\n;\n");
+    Printf (f_init, "extern void\nSWIG_init (void)\n{\n");
+    break;
+  default:
+    /* Other linkage; we make the SWIG_init function static */
+    Printf (f_runtime, "static void\nSWIG_init (void)\n;\n");
+    Printf (f_init, "static void\nSWIG_init (void)\n{\n");
+    break;
+  }
+  Printf (f_init, "\tSWIG_Guile_Init();\n");
+  if (CPlusPlus) {
+    Printf(f_runtime, "\n}\n");
+  }
+
+  Language::top(n);
+  
+  /* Close module */
+  SwigType_emit_type_table (f_runtime, f_wrappers);
+
+  Printf (f_init, "SWIG_Guile_RegisterTypes(swig_types, swig_types_initial);\n");
+  Printf (f_init, "}\n\n");
+  char module_name[256];
+
+  if (!module)
+    sprintf(module_name, "swig");
+  else {
+    if (package)
+      sprintf(module_name,"%s/%s", package,module);
+    else
+      strcpy(module_name,module);
+  }
+  emit_linkage (module_name);
+  
+  if (procdoc) {
+    Delete(procdoc);
+    procdoc = NULL;
+  }
+  if (scmstub) {
+    Delete(scmstub);
+    scmstub = NULL;
+  }
+
+  /* Close all of the files */
+  Dump(f_header,f_runtime);
+  Dump(f_wrappers,f_runtime);
+  Wrapper_pretty_print(f_init,f_runtime);
+  Delete(f_header);
+  Delete(f_wrappers);
+  Delete(f_init);
+  Close(f_runtime);
+  Delete(f_runtime);
+
 }
 
 // ---------------------------------------------------------------------
@@ -243,75 +330,6 @@ GUILE::set_module (char *mod_name)
 
   module = new char [strlen (mod_name) + 1];
   strcpy (module, mod_name);
-}
-
-// ---------------------------------------------------------------------
-// GUILE::set_init(char *iname)
-//
-// Sets the initialization function name.
-// Does nothing if it's already set
-//
-//----------------------------------------------------------------------
-
-void
-GUILE::set_init (char *iname)
-{
-  abort ();                             // for now -ttn
-  set_module (iname);
-}
-
-// ---------------------------------------------------------------------
-// GUILE::headers(void)
-//
-// Generate the appropriate header files for GUILE interface.
-// ----------------------------------------------------------------------
-
-void
-GUILE::headers (void)
-{
-  Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
-  Swig_banner (f_runtime);
-
-  Printf (f_runtime, "/* Implementation : GUILE */\n\n");
-
-  /* Write out directives and declarations */
-
-  if (NoInclude) {
-    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
-  }
-
-}
-
-// --------------------------------------------------------------------
-// GUILE::initialize()
-//
-// Output initialization code that registers functions with the
-// interface.
-// ---------------------------------------------------------------------
-
-void
-GUILE::initialize (void)
-{
-  if (CPlusPlus) {
-    Printf(f_runtime, "extern \"C\" {\n\n");
-  }
-  switch (linkage) {
-  case GUILE_LSTYLE_SIMPLE:
-    /* Simple linkage; we have to export the SWIG_init function. The user can
-       rename the function by a #define. */
-    Printf (f_runtime, "extern void\nSWIG_init (void)\n;\n");
-    Printf (f_init, "extern void\nSWIG_init (void)\n{\n");
-    break;
-  default:
-    /* Other linkage; we make the SWIG_init function static */
-    Printf (f_runtime, "static void\nSWIG_init (void)\n;\n");
-    Printf (f_init, "static void\nSWIG_init (void)\n{\n");
-    break;
-  }
-  Printf (f_init, "\tSWIG_Guile_Init();\n");
-  if (CPlusPlus) {
-    Printf(f_runtime, "\n}\n");
-  }
 }
 
 void
@@ -426,41 +444,6 @@ GUILE::emit_linkage (char *module_name)
   Delete(module_func);
   if (CPlusPlus) {
     Printf(f_init, "\n}\n");
-  }
-}
-
-// ---------------------------------------------------------------------
-// GUILE::close(void)
-//
-// Wrap things up.  Close initialization function.
-// ---------------------------------------------------------------------
-
-void
-GUILE::close (void)
-{
-  SwigType_emit_type_table (f_runtime, f_wrappers);
-
-  Printf (f_init, "SWIG_Guile_RegisterTypes(swig_types, swig_types_initial);\n");
-  Printf (f_init, "}\n\n");
-  char module_name[256];
-
-  if (!module)
-    sprintf(module_name, "swig");
-  else {
-    if (package)
-      sprintf(module_name,"%s/%s", package,module);
-    else
-      strcpy(module_name,module);
-  }
-  emit_linkage (module_name);
-  
-  if (procdoc) {
-    Delete(procdoc);
-    procdoc = NULL;
-  }
-  if (scmstub) {
-    Delete(scmstub);
-    scmstub = NULL;
   }
 }
 

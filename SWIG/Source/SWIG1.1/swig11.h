@@ -35,18 +35,12 @@ extern DOH  *Preprocessor_define(DOHString_or_char *str, int swigmacro);
 #define PLAIN_VIRTUAL   1
 #define PURE_VIRTUAL    2
 
-extern  FILE      *f_runtime;                       // Runtime code
-extern  DOH       *f_header;                        // Headers
-extern  DOH       *f_wrappers;                      // Wrappers
-extern  DOH       *f_init;                          // Initialization code
-extern  FILE      *f_input;
-extern  char      InitName[256];
 extern  char      LibDir[512];                      // Library directory
 extern  int       ReadOnly;
 extern  int       yyparse();
+extern  char     *input_file;
 extern  int       line_number;
 extern  int       start_line;
-extern  char     *input_file;                       // Current input file
 extern  int       CPlusPlus;                        // C++ mode
 extern  int       AddMethods;                       // AddMethods mode
 extern  int       NewObject;                        // NewObject mode
@@ -54,7 +48,6 @@ extern  int       Inline;                           // Inline mode
 extern  int       NoInclude;                        // NoInclude flag
 extern  char     *typemap_lang;                     // Current language name
 extern  int       error_count;
-extern  char      output_dir[512];                  // Output directory
 extern  int       Verbose;
 extern  int       IsVirtual;
 extern  int       Overloaded;
@@ -91,6 +84,7 @@ public:
    * New interface.  SWIG-1.3.7 and newer versions
    * ---------------------------------------------------------------------- */
 
+  virtual void main(int argc, char *argv[]) = 0;
   virtual void top(Node *n);
   
   /* SWIG directives */
@@ -136,14 +130,9 @@ public:
    !! instead
    * ----------------------------------------------------------------------*/
 
-  virtual void parse_args(int argc, char *argv[]) = 0;
-  virtual void parse() = 0;
   virtual void create_function(char *, char *, SwigType *, ParmList *) = 0;
   virtual void link_variable(char *, char *, SwigType *)  = 0;
   virtual void declare_const(char *, char *, SwigType *, char *) = 0;
-  virtual void initialize(void) = 0;
-  virtual void close(void) = 0;
-  virtual void set_module(char *mod_name) = 0;
   virtual void create_command(char *cname, char *iname);
 
   virtual void add_native(char *name, char *iname, SwigType *t, ParmList *l);
@@ -170,7 +159,6 @@ public:
 
   // Import directive
 
-  virtual void import(char *filename);            /* Deprecated */
   virtual void import_start(char *modulename);    /* Import a new module */
   virtual void import_end();                      /* Done with import    */
   virtual int  validIdentifier(String *s);        /* valid identifier? */
@@ -188,7 +176,7 @@ extern  int   SWIG_main(int, char **, Language *);
 extern  int   emit_args(SwigType *, ParmList *, Wrapper *f);
 extern  void  emit_func_call(char *, SwigType *, ParmList *, Wrapper *f);
 extern  void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
-extern int     check_numopt(ParmList *);
+extern int    check_numopt(ParmList *);
 extern void   SWIG_config_file(const String_or_char *);
 
 /* swig11.h ends here */

@@ -40,14 +40,19 @@ static char *module=0;
 static char *mzscheme_path=(char*)"mzscheme";
 static String *init_func_def = 0;
 
+static  File         *f_runtime = 0;
+static  File         *f_header = 0;
+static  File         *f_wrappers = 0;
+static  File         *f_init = 0;
+
 // ---------------------------------------------------------------------
-// MZSCHEME::parse_args(int argc, char *argv[])
+// MZSCHEME::main()
 //
 // Parse arguments.
 // ---------------------------------------------------------------------
 
 void
-MZSCHEME::parse_args (int argc, char *argv[])
+MZSCHEME::main (int argc, char *argv[])
 {
   int i;
 
@@ -107,23 +112,63 @@ MZSCHEME::parse_args (int argc, char *argv[])
 }
 
 // --------------------------------------------------------------------
-// MZSCHEME::parse()
-//
-// Parse the input file
+// MZSCHEME::top()
 // --------------------------------------------------------------------
 
 void
-MZSCHEME::parse ()
+MZSCHEME::top(Node *n)
 {
+
+  /* Initialize all of the output files */
+  String *outfile = Getattr(n,"outfile");
+
+  f_runtime = NewFile(outfile,"w");
+  if (!f_runtime) {
+    Printf(stderr,"*** Can't open '%s'\n", outfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  f_init = NewString("");
+  f_header = NewString("");
+  f_wrappers = NewString("");
+
+  /* Register file targets with the SWIG file handler */
+  Swig_register_filebyname("header",f_header);
+  Swig_register_filebyname("wrapper",f_wrappers);
+  Swig_register_filebyname("runtime",f_runtime);
+  Swig_register_filebyname("init",f_init);
+
+
   init_func_def = NewString("");
 
-  // Print out MZSCHEME specific headers
+  Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
+  Swig_banner (f_runtime);
 
-  headers();
+  if (NoInclude) {
+    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
+  }
 
-  // Run the parser
+  set_module(Char(Getname(n)));
 
-  yyparse();
+  Language::top(n);
+
+  SwigType_emit_type_table (f_runtime, f_wrappers);
+  Printf(f_init, "Scheme_Object *scheme_reload(Scheme_Env *env) {\n");
+  Printf (f_init, "\tSWIG_RegisterTypes(swig_types, swig_types_initial);\n");
+  Printf(f_init, "%s\n", Char(init_func_def));
+  Printf (f_init, "\treturn scheme_void;\n}\n");
+  Printf(f_init, "Scheme_Object *scheme_initialize(Scheme_Env *env) {\n");
+  Printf(f_init, "\treturn scheme_reload(env);\n");
+  Printf (f_init, "}\n");
+
+  /* Close all of the files */
+  Dump(f_header,f_runtime);
+  Dump(f_wrappers,f_runtime);
+  Wrapper_pretty_print(f_init,f_runtime);
+  Delete(f_header);
+  Delete(f_wrappers);
+  Delete(f_init);
+  Close(f_runtime);
+  Delete(f_runtime);
 
 }
 
@@ -146,69 +191,6 @@ MZSCHEME::set_module (char *mod_name)
 
   module = new char [strlen (mod_name) + 1];
   strcpy (module, mod_name);
-}
-
-// ---------------------------------------------------------------------
-// MZSCHEME::set_init(char *iname)
-//
-// Sets the initialization function name.
-// Does nothing if it's already set
-//
-//----------------------------------------------------------------------
-
-void
-MZSCHEME::set_init (char *iname)
-{
-  abort ();                             // for now -ttn
-  set_module (iname);
-}
-
-// ---------------------------------------------------------------------
-// MZSCHEME::headers(void)
-//
-// Generate the appropriate header files for MZSCHEME interface.
-// ----------------------------------------------------------------------
-
-void
-MZSCHEME::headers (void)
-{
-  Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
-  Swig_banner (f_runtime);
-
-  if (NoInclude) {
-    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
-  }
-}
-
-// --------------------------------------------------------------------
-// MZSCHEME::initialize()
-//
-// Output initialization code that registers functions with the
-// interface.
-// ---------------------------------------------------------------------
-
-void
-MZSCHEME::initialize (void)
-{
-}
-
-// ---------------------------------------------------------------------
-// MZSCHEME::close(void)
-//
-// Wrap things up.  Close initialization function.
-// ---------------------------------------------------------------------
-
-void
-MZSCHEME::close (void)
-{
-  SwigType_emit_type_table (f_runtime, f_wrappers);
-  Printf(f_init, "Scheme_Object *scheme_reload(Scheme_Env *env) {\n");
-  Printf (f_init, "\tSWIG_RegisterTypes(swig_types, swig_types_initial);\n");
-  Printf(f_init, "%s\n", Char(init_func_def));
-  Printf (f_init, "\treturn scheme_void;\n}\n");
-  Printf(f_init, "Scheme_Object *scheme_initialize(Scheme_Env *env) {\n");
-  Printf(f_init, "\treturn scheme_reload(env);\n");
-  Printf (f_init, "}\n");
 }
 
 // ----------------------------------------------------------------------

@@ -31,13 +31,11 @@ protected:
 public :
 
   // Don't change any of this
-  virtual void parse_args(int, char *argv[]);
-  virtual void parse();
+  virtual void main(int, char *argv[]);
+  virtual void top(Node *); 
   virtual void create_function(char *, char *, SwigType *, ParmList *);
   virtual void link_variable(char *, char *, SwigType *);
   virtual void declare_const(char *, char *, SwigType *, char *);
-  virtual void initialize(void);
-  virtual void close(void);
   virtual void set_module(char *);
   virtual void add_native(char *, char *, SwigType *, ParmList *);
   virtual void create_command(char *, char *);

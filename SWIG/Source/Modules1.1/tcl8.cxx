@@ -46,13 +46,17 @@ static String    *class_type = 0;
 static String    *real_classname = 0;
 static Hash      *repeatcmd = 0;
 
+static File      *f_header  = 0;
+static File      *f_wrappers = 0;
+static File      *f_init = 0;
+static File      *f_runtime = 0;
 
 /* -----------------------------------------------------------------------------
- * TCL8::parse_args()
+ * TCL8::main()
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::parse_args(int argc, char *argv[]) {
+TCL8::main(int argc, char *argv[]) {
   int i;
   strcpy(LibDir,"tcl");
 
@@ -103,12 +107,31 @@ TCL8::parse_args(int argc, char *argv[]) {
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::parse()
+ * TCL8::top()
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::parse() {
+TCL8::top(Node *n) {
 
+  /* Initialize all of the output files */
+  String *outfile = Getattr(n,"outfile");
+
+  f_runtime = NewFile(outfile,"w");
+  if (!f_runtime) {
+    Printf(stderr,"*** Can't open '%s'\n", outfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  f_init = NewString("");
+  f_header = NewString("");
+  f_wrappers = NewString("");
+
+  /* Register file targets with the SWIG file handler */
+  Swig_register_filebyname("header",f_header);
+  Swig_register_filebyname("wrapper",f_wrappers);
+  Swig_register_filebyname("runtime",f_runtime);
+  Swig_register_filebyname("init",f_init);
+
+  /* Initialize some variables for the object interface */
   mod_init   = NewString("");
   cmd_info   = NewString("");
   var_info   = NewString("");
@@ -122,53 +145,11 @@ TCL8::parse() {
   if (NoInclude) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
-  /*  if (Swig_insert_file("common.swg",f_runtime) == -1) {
-    Printf(stderr,"SWIG : Fatal error. Unable to locate 'common.swg' in SWIG library.\n");
-    SWIG_exit (EXIT_FAILURE);
-  }
-  if (Swig_insert_file("swigtcl8.swg",f_runtime) == -1) {
-    Printf(stderr,"SWIG : Fatal error. Unable to locate 'swigtcl8.swg' in SWIG library.\n");
-    SWIG_exit (EXIT_FAILURE);
-  }
-  */
-  yyparse();
-}
 
-/* -----------------------------------------------------------------------------
- * TCL8::set_module()
- * ----------------------------------------------------------------------------- */
+  /* Set the module name */
+  set_module(Char(Getname(n)));
 
-void
-TCL8::set_module(char *mod_name) {
-  char *c;
-
-  if (module) return;
-  module = NewString(mod_name);
-
-  /* Fix capitalization for Tcl */
-  for (c = Char(module); *c; c++) *c = (char) tolower(*c);
-
-  /* Now create an initialization function */
-  init_name = NewStringf("%s_Init",module);
-  c = Char(init_name);
-  *c = toupper(*c);
-
-  if (!ns_name) ns_name = Copy(module);
-
-  /* If namespaces have been specified, set the prefix to the module name */
-  if ((nspace) && (!prefix)) {
-    prefix = NewStringf("%s_",module);
-  } else {
-    prefix = NewString("");
-  }
-}
-
-/* -----------------------------------------------------------------------------
- * TCL8::initialize()
- * ----------------------------------------------------------------------------- */
-
-void
-TCL8::initialize() {
+  /* Generate more code for initialization */
 
   if ((!ns_name) && (nspace)) {
     Printf(stderr,"Tcl error.   Must specify a namespace.\n");
@@ -217,14 +198,11 @@ TCL8::initialize() {
 	 "for (i = 0; swig_types_initial[i]; i++) {\n",
 	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
 	 "}\n", 0);
-}
 
-/* -----------------------------------------------------------------------------
- * TCL8::close()
- * ----------------------------------------------------------------------------- */
+  /* Start emitting code */
+  Language::top(n);
 
-void
-TCL8::close(void) {
+  /* Done.  Close up the module */
 
   Printv(cmd_info, tab4, "{0, 0, 0}\n", "};\n",0);
   Printv(var_info, tab4, "{0,0,0,0}\n", "};\n",0);
@@ -248,6 +226,44 @@ TCL8::close(void) {
   /* Close the init function and quit */
   Printf(f_init,"return TCL_OK;\n");
   Printf(f_init,"}\n");
+
+  /* Close all of the files */
+  Dump(f_header,f_runtime);
+  Dump(f_wrappers,f_runtime);
+  Wrapper_pretty_print(f_init,f_runtime);
+  Delete(f_header);
+  Delete(f_wrappers);
+  Delete(f_init);
+  Close(f_runtime);
+}
+
+/* -----------------------------------------------------------------------------
+ * TCL8::set_module()
+ * ----------------------------------------------------------------------------- */
+
+void
+TCL8::set_module(char *mod_name) {
+  char *c;
+
+  if (module) return;
+  module = NewString(mod_name);
+
+  /* Fix capitalization for Tcl */
+  for (c = Char(module); *c; c++) *c = (char) tolower(*c);
+
+  /* Now create an initialization function */
+  init_name = NewStringf("%s_Init",module);
+  c = Char(init_name);
+  *c = toupper(*c);
+
+  if (!ns_name) ns_name = Copy(module);
+
+  /* If namespaces have been specified, set the prefix to the module name */
+  if ((nspace) && (!prefix)) {
+    prefix = NewStringf("%s_",module);
+  } else {
+    prefix = NewString("");
+  }
 }
 
 /* -----------------------------------------------------------------------------

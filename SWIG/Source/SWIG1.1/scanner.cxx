@@ -292,7 +292,6 @@ void
 skip_balanced(int startchar, int endchar) {
     char c;
     int  num_levels = 1;
-    int  l;
     int  state = 0;
     char temp[2] = {0,0};
 
@@ -1098,7 +1097,7 @@ extern "C" int yylex(void) {
 	      int state = 0;
 	      int sticky = 0;
 	      int isconversion = 0;
-	      while (c = nextchar()) {
+	      while ((c = nextchar())) {
 		if (((c == '(') || (c == ';')) && state) {
 		  retract(1);
 		  break;

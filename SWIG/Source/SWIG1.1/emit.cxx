@@ -161,7 +161,11 @@ void emit_set_get(char *name, char *iname, SwigType *t) {
   Wrapper *w;
   DOHString *new_iname;
   char    *code = 0;
-    
+  File    *f_header;
+  
+  f_header = Swig_filebyname("header");
+  assert(f_header);
+
   /* First write a function to set the variable of the variable */
   if (!ReadOnly) {
 

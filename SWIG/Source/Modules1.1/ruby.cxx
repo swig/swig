@@ -24,6 +24,11 @@ static char cvsroot[] = "$Header$";
 /* for debug */
 #define P(obj) printf("\"%s\"\n", Char(Str(obj)))
 
+static  File         *f_runtime = 0;
+static  File         *f_header = 0;
+static  File         *f_wrappers = 0;
+static  File         *f_init = 0;
+
 class RClass {
  private:
   String *temp;
@@ -129,12 +134,12 @@ static  Hash *special_methods;	/* Python style special method name table */
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
 
 /* ---------------------------------------------------------------------
- * RUBY::parse_args(int argc, char *argv[])
+ * RUBY::main()
  *
  * Parse command line options and initializes variables.
  * --------------------------------------------------------------------- */
 
-void RUBY::parse_args(int argc, char *argv[]) {
+void RUBY::main(int argc, char *argv[]) {
   /* Look for certain command line options */
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
@@ -190,12 +195,29 @@ static void insert_file(char *filename, File *file) {
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::parse()
- *
- * Start parsing an interface file.
+ * RUBY::top()
  * --------------------------------------------------------------------- */
 
-void RUBY::parse() {
+void RUBY::top(Node *n) {
+
+  /* Initialize all of the output files */
+  String *outfile = Getattr(n,"outfile");
+
+  f_runtime = NewFile(outfile,"w");
+  if (!f_runtime) {
+    Printf(stderr,"*** Can't open '%s'\n", outfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  f_init = NewString("");
+  f_header = NewString("");
+  f_wrappers = NewString("");
+
+  /* Register file targets with the SWIG file handler */
+  Swig_register_filebyname("header",f_header);
+  Swig_register_filebyname("wrapper",f_wrappers);
+  Swig_register_filebyname("runtime",f_runtime);
+  Swig_register_filebyname("init",f_init);
+
   module = 0;
   modvar = 0;
   feature = 0;
@@ -259,9 +281,56 @@ void RUBY::parse() {
   SwigType_setbase(value,(char*)"void");
   SwigType_add_pointer(value);
   SwigType_typedef(value,(char*)"VALUE");
-
-  yyparse();       /* Run the SWIG parser */
   Delete(value);
+
+  set_module(Char(Getname(n)));
+
+  Printf(f_header,"#define SWIG_init    Init_%s\n", feature);
+  Printf(f_header,"#define SWIG_name    \"%s\"\n\n", module);
+  Printf(f_header,"static VALUE %s;\n", modvar);
+  Printf(f_header,"\n%s\n", other_extern);
+
+  /* Start generating the initialization function */
+  Printv(f_init,
+	 "\n",
+	 "#ifdef __cplusplus\n",
+	 "extern \"C\"\n",
+	 "#endif\n",
+	 "void Init_", feature, "(void) {\n",
+	 "int i;\n",
+	 other_init,
+	 "\n",
+	 0);
+
+  Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n",
+	 "_mSWIG = rb_define_module_under(", modvar, ", \"SWIG\");\n",
+	 0);
+  Printv(f_init,
+	 "\n",
+	 "for (i = 0; swig_types_initial[i]; i++) {\n",
+	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
+	 "SWIG_define_class(swig_types[i]);\n",
+	 "}\n",
+	 0);
+  Printf(f_init,"\n");
+  klass = new RClass();
+
+  Language::top(n);
+
+  /* Finish off our init function */
+  Printf(f_init,"}\n");
+  SwigType_emit_type_table(f_header,f_wrappers);
+
+  /* Close all of the files */
+  Dump(f_header,f_runtime);
+  Dump(f_wrappers,f_runtime);
+  Wrapper_pretty_print(f_init,f_runtime);
+  Delete(f_header);
+  Delete(f_wrappers);
+  Delete(f_init);
+  Close(f_runtime);
+  Delete(f_runtime);
+
 }
 
 /* ---------------------------------------------------------------------
@@ -294,64 +363,6 @@ void RUBY::set_module(char *mod_name) {
   modvar = new char[1+strlen(module)+1];
   modvar[0] = 'm';
   strcpy(modvar+1, module);
-}
-
-
-/* ---------------------------------------------------------------------
- * RUBY::initialize(void)
- *
- * Produces an initialization function.   Assumes that the module
- * name has already been specified.
- * --------------------------------------------------------------------- */
-
-void RUBY::initialize() {
-  if (!module) {
-    Printf(stderr,"SWIG : *** Warning. No module name specified.\n");
-    set_module((char*)"swig");         /* Pick a default name */
-  }
-
-  Printf(f_header,"#define SWIG_init    Init_%s\n", feature);
-  Printf(f_header,"#define SWIG_name    \"%s\"\n\n", module);
-  Printf(f_header,"static VALUE %s;\n", modvar);
-  Printf(f_header,"\n%s\n", other_extern);
-
-  /* Start generating the initialization function */
-  Printv(f_init,
-	 "\n",
-	 "#ifdef __cplusplus\n",
-	 "extern \"C\"\n",
-	 "#endif\n",
-	 "void Init_", feature, "(void) {\n",
-	 "int i;\n",
-	 other_init,
-	 "\n",
-	 0);
-
-  Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n",
-	 "_mSWIG = rb_define_module_under(", modvar, ", \"SWIG\");\n",
-	 0);
-  Printv(f_init,
-	 "\n",
-	 "for (i = 0; swig_types_initial[i]; i++) {\n",
-	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
-	 "SWIG_define_class(swig_types[i]);\n",
-	 "}\n",
-	 0);
-  Printf(f_init,"\n");
-  klass = new RClass();
-}
-
-/* ---------------------------------------------------------------------
- * RUBY::close(void)
- *
- * Finish the initialization function. Close any additional files and
- * resources in use.
- * --------------------------------------------------------------------- */
-
-void RUBY::close(void) {
-  /* Finish off our init function */
-  Printf(f_init,"}\n");
-  SwigType_emit_type_table(f_header,f_wrappers);
 }
 
 /* --------------------------------------------------------------------------
@@ -1539,18 +1550,6 @@ void RUBY::pragma(char *lang, char *cmd, char *value) {
     Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
 	    input_file, line_number);
   }
-}
-
-/* ---------------------------------------------------------------------
- * RUBY::import(char *filename)
- *
- * Imports a SWIG module as a separate file.
- *---------------------------------------------------------------------- */
-
-
-void RUBY::import(char *filename) {
-  if (import_file) free(import_file);
-  import_file = Swig_copy_string(filename);
 }
 
 /*

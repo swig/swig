@@ -32,9 +32,3 @@ struct TMParm {
     next = 0;
   }
 };
-
-/* Number of initialization names that can be used */
-
-#define NI_NAMES    512
-
-

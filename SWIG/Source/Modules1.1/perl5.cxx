@@ -46,7 +46,12 @@ static String       *module = 0;
 static String       *interface = 0;
 static String       *cmodule = 0;
 static String       *vinit = 0;
-static FILE         *f_pm = 0;
+static File        *f_runtime = 0;
+static File        *f_header = 0;
+static File        *f_wrappers = 0;
+static File        *f_init = 0;
+static File        *f_pm = 0;
+
 static String       *pm;             /* Package initialization code */
 static String       *magic;          /* Magic variable wrappers     */
 
@@ -90,10 +95,10 @@ static DOH *is_shadow(SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::parse_args()
+ * PERL5::main()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::parse_args(int argc, char *argv[]) {
+PERL5::main(int argc, char *argv[]) {
   int i = 1;
 
   cmodule = NewString("");
@@ -161,10 +166,28 @@ PERL5::parse_args(int argc, char *argv[]) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::parse()
+ * PERL5::top()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::parse() {
+PERL5::top(Node *n) {
+
+  /* Initialize all of the output files */
+  String *outfile = Getattr(n,"outfile");
+
+  f_runtime = NewFile(outfile,"w");
+  if (!f_runtime) {
+    Printf(stderr,"*** Can't open '%s'\n", outfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  f_init = NewString("");
+  f_header = NewString("");
+  f_wrappers = NewString("");
+
+  /* Register file targets with the SWIG file handler */
+  Swig_register_filebyname("header",f_header);
+  Swig_register_filebyname("wrapper",f_wrappers);
+  Swig_register_filebyname("runtime",f_runtime);
+  Swig_register_filebyname("init",f_init);
 
   classes = NewHash();
 
@@ -183,59 +206,9 @@ PERL5::parse() {
   if (NoInclude) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
-  yyparse();
-}
 
+  set_module(Char(Getname(n)));
 
-
-/* -----------------------------------------------------------------------------
- * PERL5::import_start(char *modname)
- * ----------------------------------------------------------------------------- */
-
-void
-PERL5::import_start(char *modname) {
-  if (blessed) {
-    Printf(f_pm,"require %s;\n", modname);
-  }
-  /* Save the old module */
-  if (import_file) {
-    Append(import_stack,import_file);
-  }
-  import_file = NewString(modname);
-}
-
-void 
-PERL5::import_end() {
-  Delete(import_file);
-  if (Len(import_stack)) {
-    import_file = Copy(Getitem(import_stack,Len(import_stack)-1));
-    Delitem(import_stack,Len(import_stack)-1);
-  } else {
-    import_file = 0;
-  }
-}
-
-/* -----------------------------------------------------------------------------
- * PERL5::set_module()
- * ----------------------------------------------------------------------------- */
-void
-PERL5::set_module(char *mod_name) {
-  if (module) return;
-  module = NewString(mod_name);
-
-  /* Create a C module name and put it in 'cmodule' */
-
-  Clear(cmodule);
-  Append(cmodule,module);
-  Replace(cmodule,":","_",DOH_REPLACE_ANY);
-}
-
-/* -----------------------------------------------------------------------------
- * PERL5::initialize()
- * ----------------------------------------------------------------------------- */
-void
-PERL5::initialize()
-{
   char filen[256];
 
   if (!module){
@@ -269,8 +242,8 @@ PERL5::initialize()
       }
       m--;
     }
-    sprintf(filen,"%s%s.pm", output_dir,m);
-    if ((f_pm = fopen(filen,"w")) == 0) {
+    sprintf(filen,"%s%s.pm", Swig_file_dirname(outfile),m);
+    if ((f_pm = NewFile(filen,"w")) == 0) {
       Printf(stderr,"Unable to open %s\n", filen);
       SWIG_exit (EXIT_FAILURE);
     }
@@ -351,13 +324,10 @@ PERL5::initialize()
 	 tab4, "return 0;\n",
 	 "}\n",
 	 0);
-}
 
-/* -----------------------------------------------------------------------------
- * PERL5::close()
- * ----------------------------------------------------------------------------- */
-void
-PERL5::close(void) {
+  /* emit wrappers */
+  Language::top(n);
+
   String *base = NewString("");
 
   /* Dump out variable wrappers */
@@ -477,8 +447,61 @@ PERL5::close(void) {
   }
 
   Printf(f_pm,"1;\n");
-  fclose(f_pm);
+  Close(f_pm);
+  Delete(f_pm);
   Delete(base);
+
+  /* Close all of the files */
+  Dump(f_header,f_runtime);
+  Dump(f_wrappers,f_runtime);
+  Wrapper_pretty_print(f_init,f_runtime);
+  Delete(f_header);
+  Delete(f_wrappers);
+  Delete(f_init);
+  Close(f_runtime);
+  Delete(f_runtime);
+}
+
+/* -----------------------------------------------------------------------------
+ * PERL5::import_start(char *modname)
+ * ----------------------------------------------------------------------------- */
+
+void
+PERL5::import_start(char *modname) {
+  if (blessed) {
+    Printf(f_pm,"require %s;\n", modname);
+  }
+  /* Save the old module */
+  if (import_file) {
+    Append(import_stack,import_file);
+  }
+  import_file = NewString(modname);
+}
+
+void 
+PERL5::import_end() {
+  Delete(import_file);
+  if (Len(import_stack)) {
+    import_file = Copy(Getitem(import_stack,Len(import_stack)-1));
+    Delitem(import_stack,Len(import_stack)-1);
+  } else {
+    import_file = 0;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * PERL5::set_module()
+ * ----------------------------------------------------------------------------- */
+void
+PERL5::set_module(char *mod_name) {
+  if (module) return;
+  module = NewString(mod_name);
+
+  /* Create a C module name and put it in 'cmodule' */
+
+  Clear(cmodule);
+  Append(cmodule,module);
+  Replace(cmodule,":","_",DOH_REPLACE_ANY);
 }
 
 /* -----------------------------------------------------------------------------

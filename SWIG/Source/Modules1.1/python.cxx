@@ -27,7 +27,13 @@ static  int           have_defarg = 0;
 static  int           have_output;
 static  int           use_kw = 0;
 static  int           noopt = 1;
-static  FILE         *f_shadow = 0;
+
+static  File         *f_runtime = 0;
+static  File         *f_header = 0;
+static  File         *f_wrappers = 0;
+static  File         *f_init = 0;
+static  File         *f_shadow = 0;
+
 static  Hash         *hash;
 static  String       *classes;
 static  String       *func;
@@ -59,10 +65,10 @@ static DOH *is_shadow(SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::parse_args()
+ * PYTHON::main()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::parse_args(int argc, char *argv[]) {
+PYTHON::main(int argc, char *argv[]) {
   int i;
   strcpy(LibDir,"python");
 
@@ -125,10 +131,28 @@ PYTHON::parse_args(int argc, char *argv[]) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::parse()
+ * PYTHON::top()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::parse() {
+PYTHON::top(Node *n) {
+
+  /* Initialize all of the output files */
+  String *outfile = Getattr(n,"outfile");
+
+  f_runtime = NewFile(outfile,"w");
+  if (!f_runtime) {
+    Printf(stderr,"*** Can't open '%s'\n", outfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  f_init = NewString("");
+  f_header = NewString("");
+  f_wrappers = NewString("");
+
+  /* Register file targets with the SWIG file handler */
+  Swig_register_filebyname("header",f_header);
+  Swig_register_filebyname("wrapper",f_wrappers);
+  Swig_register_filebyname("runtime",f_runtime);
+  Swig_register_filebyname("init",f_init);
 
   hash           = NewHash();
   const_code     = NewString("");
@@ -145,7 +169,107 @@ PYTHON::parse() {
   Printf(f_runtime,"#define SWIGPYTHON\n");
   if (NoInclude)
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
-  yyparse();
+
+  /* Set module name */
+  set_module(Char(Getname(n)));
+
+  char  filen[256];
+
+  /* If shadow classing is enabled, we're going to change the module name to "modulec" */
+  if (shadow) {
+
+    sprintf(filen,"%s%s.py", Swig_file_dirname(outfile), Char(module));
+    // If we don't have an interface then change the module name X to Xc
+    if (interface) module = interface;
+    else Append(module,"c");
+    if ((f_shadow = NewFile(filen,"w")) == 0) {
+      Printf(stderr,"Unable to open %s\n", filen);
+      SWIG_exit (EXIT_FAILURE);
+    }
+    Swig_register_filebyname("shadow",f_shadow);
+    Printf(f_shadow,"# This file was created automatically by SWIG.\n");
+    Printf(f_shadow,"import %s\n", module);
+
+    // Include some information in the code
+    Printf(f_header,"\n/*-----------------------------------------------\n              @(target):= %s.so\n\
+  ------------------------------------------------*/\n", module);
+
+    if (!noopt)
+      Printf(f_shadow,"import new\n");
+  }
+
+  Printf(f_header,"#define SWIG_init    init%s\n\n", module);
+  Printf(f_header,"#define SWIG_name    \"%s\"\n", module);
+
+  /* Output the start of the init function.   */
+  Printf(f_init,"static PyObject *SWIG_globals;\n");
+  Printf(f_init,"#ifdef __cplusplus\n");
+  Printf(f_init,"extern \"C\" \n");
+  Printf(f_init,"#endif\n");
+  Printf(f_init,"SWIGEXPORT(void) init%s(void) {\n",module);
+  Printf(f_init,"PyObject *m, *d;\n");
+  Printf(f_init,"int i;\n");
+  Printf(f_init,"SWIG_globals = SWIG_newvarlink();\n");
+  Printf(f_init,"m = Py_InitModule((char*)\"%s\", %sMethods);\n", module, module);
+  Printf(f_init,"d = PyModule_GetDict(m);\n");
+  Printv(f_init,
+	 "for (i = 0; swig_types_initial[i]; i++) {\n",
+	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
+	 "}\n",
+	 0);
+
+  Printf(f_wrappers,"#ifdef __cplusplus\n");
+  Printf(f_wrappers,"extern \"C\" {\n");
+  Printf(f_wrappers,"#endif\n");
+  Printf(const_code,"static swig_const_info swig_const_table[] = {\n");
+  Printf(methods,"static PyMethodDef %sMethods[] = {\n", module);
+
+  /* emit code */
+  Language::top(n);
+
+  /* Close language module */
+  Printf(methods,"\t { NULL, NULL }\n");
+  Printf(methods,"};\n");
+  Printf(f_wrappers,"%s\n",methods);
+  Printf(f_wrappers,"#ifdef __cplusplus\n");
+  Printf(f_wrappers,"}\n");
+  Printf(f_wrappers,"#endif\n");
+
+  SwigType_emit_type_table(f_runtime,f_wrappers);
+
+  Printf(const_code, "{0}};\n");
+  Printf(f_wrappers,"%s\n",const_code);
+
+  Printv(f_init, "SWIG_InstallConstants(d,swig_const_table);\n", 0);
+  Printf(f_init,"}\n");
+
+  if (shadow) {
+    Printv(f_shadow,
+	   classes,
+	   "\n\n#-------------- FUNCTION WRAPPERS ------------------\n\n",
+	   func,
+	   "\n\n#-------------- VARIABLE WRAPPERS ------------------\n\n",
+	   vars,
+	   0);
+
+    if (Len(pragma_include) > 0) {
+      Printv(f_shadow,
+	     "\n\n#-------------- USER INCLUDE -----------------------\n\n",
+             pragma_include,
+	     0);
+    }
+    Close(f_shadow);
+    Delete(f_shadow);
+  }
+
+  /* Close all of the files */
+  Dump(f_header,f_runtime);
+  Dump(f_wrappers,f_runtime);
+  Wrapper_pretty_print(f_init,f_runtime);
+  Delete(f_header);
+  Delete(f_wrappers);
+  Delete(f_init);
+  Close(f_runtime);
 }
 
 /* -----------------------------------------------------------------------------
@@ -193,105 +317,6 @@ PYTHON::add_method(char *name, char *function, int kw) {
     Printf(methods,"\t { (char *)\"%s\", %s, METH_VARARGS },\n", name, function);
   else
     Printf(methods,"\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", name, function);
-}
-
-/* -----------------------------------------------------------------------------
- * PYTHON::initialize()
- * ----------------------------------------------------------------------------- */
-void
-PYTHON::initialize(void) {
-  char  filen[256];
-
-  if (!module) {
-    Printf(stderr,"*** Error. No module name specified.\n");
-    SWIG_exit (EXIT_FAILURE);
-  }
-  /* If shadow classing is enabled, we're going to change the module name to "modulec" */
-  if (shadow) {
-
-    sprintf(filen,"%s%s.py", output_dir, Char(module));
-    // If we don't have an interface then change the module name X to Xc
-    if (interface) module = interface;
-    else Append(module,"c");
-    if ((f_shadow = fopen(filen,"w")) == 0) {
-      Printf(stderr,"Unable to open %s\n", filen);
-      SWIG_exit (EXIT_FAILURE);
-    }
-    Printf(f_shadow,"# This file was created automatically by SWIG.\n");
-    Printf(f_shadow,"import %s\n", module);
-
-    // Include some information in the code
-    Printf(f_header,"\n/*-----------------------------------------------\n              @(target):= %s.so\n\
-  ------------------------------------------------*/\n", module);
-
-    if (!noopt)
-      Printf(f_shadow,"import new\n");
-  }
-
-  Printf(f_header,"#define SWIG_init    init%s\n\n", module);
-  Printf(f_header,"#define SWIG_name    \"%s\"\n", module);
-
-  /* Output the start of the init function.   */
-  Printf(f_init,"static PyObject *SWIG_globals;\n");
-  Printf(f_init,"#ifdef __cplusplus\n");
-  Printf(f_init,"extern \"C\" \n");
-  Printf(f_init,"#endif\n");
-  Printf(f_init,"SWIGEXPORT(void) init%s(void) {\n",module);
-  Printf(f_init,"PyObject *m, *d;\n");
-  Printf(f_init,"int i;\n");
-  Printf(f_init,"SWIG_globals = SWIG_newvarlink();\n");
-  Printf(f_init,"m = Py_InitModule((char*)\"%s\", %sMethods);\n", module, module);
-  Printf(f_init,"d = PyModule_GetDict(m);\n");
-  Printv(f_init,
-	 "for (i = 0; swig_types_initial[i]; i++) {\n",
-	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
-	 "}\n",
-	 0);
-
-  Printf(f_wrappers,"#ifdef __cplusplus\n");
-  Printf(f_wrappers,"extern \"C\" {\n");
-  Printf(f_wrappers,"#endif\n");
-  Printf(const_code,"static swig_const_info swig_const_table[] = {\n");
-  Printf(methods,"static PyMethodDef %sMethods[] = {\n", module);
-}
-
-/* -----------------------------------------------------------------------------
- * PYTHON::close()
- * ----------------------------------------------------------------------------- */
-void
-PYTHON::close(void) {
-  Printf(methods,"\t { NULL, NULL }\n");
-  Printf(methods,"};\n");
-  Printf(f_wrappers,"%s\n",methods);
-  Printf(f_wrappers,"#ifdef __cplusplus\n");
-  Printf(f_wrappers,"}\n");
-  Printf(f_wrappers,"#endif\n");
-
-  SwigType_emit_type_table(f_runtime,f_wrappers);
-
-  Printf(const_code, "{0}};\n");
-  Printf(f_wrappers,"%s\n",const_code);
-
-  Printv(f_init, "SWIG_InstallConstants(d,swig_const_table);\n", 0);
-  Printf(f_init,"}\n");
-
-  if (shadow) {
-    Printv(f_shadow,
-	   classes,
-	   "\n\n#-------------- FUNCTION WRAPPERS ------------------\n\n",
-	   func,
-	   "\n\n#-------------- VARIABLE WRAPPERS ------------------\n\n",
-	   vars,
-	   0);
-
-    if (Len(pragma_include) > 0) {
-      Printv(f_shadow,
-	     "\n\n#-------------- USER INCLUDE -----------------------\n\n",
-             pragma_include,
-	     0);
-    }
-    fclose(f_shadow);
-  }
 }
 
 /* -----------------------------------------------------------------------------

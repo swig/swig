@@ -29,11 +29,9 @@ static String  *ClassRename = 0;      /* This is non-NULL if the class has been 
 static String  *ClassTag = 0;         /* Type of class (ie. union, struct, class)  */
 static String  *ClassPrefix = 0;      /* Class prefix */
 static String  *ClassType = 0;        /* Fully qualified type name to use */
-static int      lang_init = 0;
 static int      Abstract = 0;
 static int      has_constructor = 0;
 static int      has_destructor = 0;
-static int      has_copy = 0;
 static int      private_constructor = 0;
 static int      private_destructor = 0;
 static int      base_default_constructor = 0;
@@ -236,17 +234,9 @@ static void cplus_inherit_types(Node *cls, String *clsname) {
 
 void Language::top(Node *n) {
   Node *c;
-  String *name = Getname(n);
-  if (!name) {
-    Printf(stderr,"*** No module name specified using %%module or -module.\n");
-    return;
-  }
-  lang->set_module(Char(name));
-  lang->initialize();
   for (c = firstChild(n); c; c = nextSibling(c)) {
     emit_one(c);
   }
-  lang->close();
 }
 
 /* ----------------------------------------------------------------------
@@ -383,8 +373,6 @@ void Language::moduleDirective(Node *n) {
       lang->import_start(Char(name));
       ImportMode |= IMPORT_MODULE;
     } 
-  } else {
-    lang->set_module(Char(name));
   }
 }
 
@@ -496,6 +484,8 @@ void Language::cDeclaration(Node *n) {
   Parm   *parms   = Getparms(n);
   String *value   = Getvalue(n);
   Node   *over;
+  File   *f_header = 0;
+
   CCode = code;
   emit_set_action(0);
 
@@ -566,6 +556,7 @@ void Language::cDeclaration(Node *n) {
     /* Functions */
     SwigType_push(ty,decl);
     if (!InClass) {
+      f_header = Swig_filebyname("header");
       if ((Cmp(storage,"extern") == 0) || (ForceExtern && !storage)) {
 	Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
       } else if (Cmp(storage,"externc") == 0) {
@@ -626,6 +617,7 @@ void Language::cDeclaration(Node *n) {
     if (Getattr(n,"nested")) ReadOnly = 1;
     if (!InClass) {
       if ((Cmp(storage,"extern") == 0) || ForceExtern) {
+	f_header = Swig_filebyname("header");
 	Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
       }
     }
@@ -735,7 +727,6 @@ void Language::enumvalueDeclaration(Node *n) {
     /* A normal C enum */
     constantWrapper(n);
   } else {
-    Hash *h;
     String *newvalue;
     String *name = Getname(n);
     String *symname = Getsymname(n);
@@ -922,7 +913,6 @@ void Language::destructorDeclaration(Node *n) {
   String *symname = Getsymname(n);
   String *code  = Getattr(n,"code");
   CCode = code;
-  String *storage = Getattr(n,"storage");
 
   if (InClass && (cplus_mode != CPLUS_PUBLIC)) {
     has_destructor = 1;
@@ -951,7 +941,6 @@ void Language::operatorDeclaration(Node *n) {
   String *type = Gettype(n);
   String *decl = Getdecl(n);
   ParmList *parms = Getparms(n);
-  String *storage = Getattr(n,"storage");
   Node *over;
   Printf(stdout,"operator %s %s %s %s\n", name, type, decl, parms);
 
@@ -1106,6 +1095,8 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
   w = Swig_cmethod_wrapper(ClassType, name, t, l, CCode);
   if (AddMethods && CCode) {
     /* Produce an actual C wrapper */
+    File *f_wrappers = Swig_filebyname("wrapper");
+    assert(f_wrappers);
     Wrapper_print(w,f_wrappers);
   } else if (!AddMethods) {
     /* C++ member. Produce code that does the actual work */
@@ -1150,6 +1141,8 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
     }
   } else {
     if (CCode) {
+      File *f_wrappers = Swig_filebyname("wrapper");
+      assert(f_wrappers);
       Wrapper_print(w,f_wrappers);
     }
   }
@@ -1177,6 +1170,8 @@ void Language::cpp_destructor(char *name, char *iname) {
     w = Swig_cdestructor_wrapper(ClassType, CCode);
   }
   if (AddMethods && CCode) {
+    File *f_wrappers = Swig_filebyname("wrapper");
+    assert(f_wrappers);
     Wrapper_print(w,f_wrappers);
     lang->create_function(Wrapper_Getname(w),Char(mrename),Wrapper_Gettype(w), Wrapper_Getparms(w));
   } else if (AddMethods) {
@@ -1243,6 +1238,8 @@ void Language::cpp_variable(char *name, char *iname, SwigType *t) {
 
     // Only generate code if already existing wrapper doesn't exist
     if ((AddMethods) && (CCode)) {
+      File *f_wrappers = Swig_filebyname("wrapper");
+      assert(f_wrappers);
       Wrapper_print(w,f_wrappers);
     } else if (!AddMethods) {
       /* Check for a member in typemap here */
@@ -1269,6 +1266,9 @@ void Language::cpp_variable(char *name, char *iname, SwigType *t) {
     Wrapper   *w;
     w = Swig_cmemberget_wrapper(ClassType,name,t, CCode);
     if ((AddMethods) && (CCode)) {
+      File *f_wrappers = Swig_filebyname("wrapper");
+      assert(f_wrappers);
+
       Wrapper_print(w,f_wrappers);
     } else if (!AddMethods) {
       emit_set_action(Swig_cmemberget_call(name, t));
@@ -1303,6 +1303,8 @@ void Language::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l
     if (!CCode) {
       lang->create_function(Char(cname),Char(mrename), t, l);
     } else {
+      File *f_wrappers = Swig_filebyname("wrapper");
+      assert(f_wrappers);
       Wrapper *w = Swig_cfunction_wrapper(cname, t, l, CCode);
       Wrapper_print(w,f_wrappers);	  
       lang->create_function(Char(cname),Char(mrename), Wrapper_Gettype(w), Wrapper_Getparms(w));
@@ -1377,25 +1379,12 @@ void Language::pragma(char *, char *, char *) {
   /* Does nothing by default */
 }
 
-/* -----------------------------------------------------------------------------
- * Language::import()
- * ----------------------------------------------------------------------------- */
-
-void Language::import(char *) {
-  /* Does nothing by default */
-}
-
 void Language::import_start(char *modulename) {
-  WARNING("lang->import() API is deprecated.  See Source/SWIG1.1/swig11.h.");
-  /* This implements the old behavior */
-  this->import(input_file);
-  this->set_module(modulename);
-  /*  Printf(stdout,"import %s\n", modulename);*/
+  /* Does nothing by default */
 }
 
 void Language::import_end() {
   /* Does nothing by default */
-  /*  Printf(stdout,"end import\n"); */
 }
 
 int Language::validIdentifier(String *s) {
