@@ -1156,22 +1156,15 @@ int Language::classDeclaration(Node *n) {
   }
 
   /* Call classHandler() here */
-  classHandler(n);
+  if (!ImportMode) 
+    classHandler(n);
+  else
+    Language::classHandler(n);
 
   if (Getattr(n,"has_base_default_constructor")) {
     Setattr(n,"has_default_constructor","1");
   }
 
-  if (!ImportMode) {
-    char *baselist[256];
-    int   i = 0;
-    for (i = 0; i < Len(bases); i++) {
-      baselist[i] = Char(Getattr(Getitem(bases,i),"name"));
-    }
-    baselist[i] = 0;
-    //    lang->cpp_inherit(baselist,i);
-    //    lang->cpp_close_class();
-  }
   Hash *ts = SwigType_pop_scope();
   Setattr(n,"typescope",ts);
   InClass = 0;
