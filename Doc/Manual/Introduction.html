@@ -20,6 +20,7 @@
 </ul>
 <li><a href="#Introduction_nn10">Supported C/C++ language features</a>
 <li><a href="#Introduction_nn11">Non-intrusive interface building</a>
+<li><a href="#Introduction_build_system">Incorporating SWIG into a build system</a>
 <li><a href="#Introduction_nn12">Hands off code generation</a>
 <li><a href="#Introduction_nn13">SWIG and freedom</a>
 </ul>
@@ -323,26 +324,52 @@ stresses the very limits of many C++ compilers.
 
 
 When used as intended, SWIG requires minimal (if any) modification to
-existing C code. This makes SWIG extremely easy to use with existing
+existing C or C++ code. This makes SWIG extremely easy to use with existing
 packages and promotes software reuse and modularity. By making
-the C code independent of the high level interface, you can change the
+the C/C++ code independent of the high level interface, you can change the
 interface and reuse the code in other applications.   It is also
 possible to support different types of interfaces depending on the application.
 
-<H2><a name="Introduction_nn12"></a>2.6 Hands off code generation</H2>
+<H2><a name="Introduction_build_system"></a>2.6 Incorporating SWIG into a build system</H2>
+
+
+<p>
+SWIG is a command line tool and as such can be incorporated into any build system that supports invoking external tools/compilers.
+SWIG is most commonly invoked from within a Makefile, but is also known to be invoked from from popular IDEs such as 
+Microsoft Visual Studio.
+</p>
+
+<p>
+There is growing support for SWIG in some build tools, for example <a href="http://www.cmake.org">CMake</a>
+is a cross-platform, open-source build tool with built in support for SWIG. It can detect the SWIG executable,
+many of the target language interpreters and libraries for linking against.
+It can then use this information to generate a makefile/project file for a host of different compilers/IDEs.
+</p>
+
+<p>
+If you are using the GNU Autotools 
+(<a href="http://www.gnu.org/software/autoconf">Autoconf</a>/
+<a href="http://www.gnu.org/software/automake">Automake</a>/
+<a href="http://www.gnu.org/software/libtool">Libtool</a>)
+to configure SWIG use in your project, the SWIG Autoconf macros can be used.
+The primary macro is <tt>ac_pkg_swig</tt>, see
+<a href="http://www.gnu.org/software/ac-archive/htmldoc/ac_pkg_swig.html">http://www.gnu.org/software/ac-archive/htmldoc/ac_pkg_swig.html</a>.
+The <tt>ac_python_devel</tt> Autoconf macro is also helpful for SWIG generated Python interfaces, see the 
+<a href="http://www.gnu.org/software/ac-archive/htmldoc/index.html">Autoconf Macro Archive</a> for further information and other .
+</p>
+
+<H2><a name="Introduction_nn12"></a>2.7 Hands off code generation</H2>
 
 
 SWIG is designed to produce working code that needs no
 hand-modification (in fact, if you look at the output, you probably
-won't want to modify it). Ideally, SWIG should be invoked
-automatically inside a Makefile just as one would call the C
-compiler. You should think of your scripting language interface being
+won't want to modify it). You should think of your target language interface being
 defined entirely by the input to SWIG, not the resulting output
 file. While this approach may limit flexibility for hard-core hackers,
 it allows others to forget about the low-level implementation
 details.
 
-<H2><a name="Introduction_nn13"></a>2.7 SWIG and freedom</H2>
+<H2><a name="Introduction_nn13"></a>2.8 SWIG and freedom</H2>
 
 
 No, this isn't a special section on the sorry state of world politics.
