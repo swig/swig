@@ -36,6 +36,7 @@ SWIGEXPORT(PyObject *)        SWIG_newvarlink();
 SWIGEXPORT(void)              SWIG_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
 SWIGEXPORT(int)               SWIG_ConvertPtr(PyObject *, void **, swig_type_info *, int);
 SWIGEXPORT(void)              SWIG_MakePtr(char *c, void *, swig_type_info *);
+SWIGEXPORT(void)              SWIG_MakePacked(char *c, void *, int, swig_type_info *);
 SWIGEXPORT(PyObject *)        SWIG_NewPointerObj(void *, swig_type_info *);
 SWIGEXPORT(void)              SWIG_InstallConstants(PyObject *d, swig_const_info constants[]);
 
@@ -146,6 +147,7 @@ SWIG_addvarlink(PyObject *p, char *name,
   gv->next = v->vars;
   v->vars = gv;
 }
+
 /* Convert a pointer value */
 SWIGRUNTIME(int)
 SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
@@ -276,7 +278,7 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type) {
     return Py_None;
   }
 #ifdef SWIG_COBJECT_TYPES
-  robj = PyCObject_FromVoidPtrAndDesc((void *) ptr, type->name, NULL);
+  robj = PyCObject_FromVoidPtrAndDesc((void *) ptr, (char *) type->name, NULL);
 #else
   SWIG_MakePtr(result,ptr,type);
   robj = PyString_FromString(result);
@@ -319,5 +321,8 @@ SWIG_InstallConstants(PyObject *d, swig_const_info constants[]) {
 #ifdef __cplusplus
 }
 #endif
+
+
+
 
 
