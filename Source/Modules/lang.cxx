@@ -259,10 +259,12 @@ SwigType *cplus_value_type(SwigType *t) {
   Node *n;
   if (!CPlusPlus) return 0;
   if (SwigType_isclass(t)) {
-    SwigType *td = SwigType_typedef_resolve_all(t);
+    SwigType *ftd = SwigType_typedef_resolve_all(t);
+    SwigType *td = SwigType_strip_qualifiers(ftd);
+    Delete(ftd);
     if ((n = Swig_symbol_clookup(td,0))) {
       if ((Strcmp(nodeType(n),"class") == 0) && (!Getattr(n,"allocate:default_constructor") || (Getattr(n,"allocate:noassign")))) {
-	String *s = NewStringf("SwigValueWrapper< %s >",t);
+	String *s = NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0));
 	Delete(td);
 	return s;
       } else {
@@ -270,7 +272,7 @@ SwigType *cplus_value_type(SwigType *t) {
       }
     }
     if (SwigType_issimple(td) && SwigType_istemplate(td)) {
-      String *s = NewStringf("SwigValueWrapper< %s >",t);
+      String *s = NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0));
       Delete(td);
       return s;
     }
