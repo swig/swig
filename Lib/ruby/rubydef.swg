@@ -191,7 +191,7 @@ SWIG_Ruby_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
 static void
 SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty, int flags) {
   swig_type_info *tc;
-  char  *c;
+  const char  *c;
 
   if (TYPE(obj) != T_STRING) goto type_error;
   c = StringValuePtr(obj);

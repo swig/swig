@@ -162,7 +162,7 @@ SWIG_Tcl_Thisown(void *ptr) {
 
 /* Convert a pointer value */
 static int
-SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_info *ty, int flags) {
+SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, const char *c, void **ptr, swig_type_info *ty, int flags) {
   swig_type_info *tc;
   /* Pointer values must start with leading underscore */
   while (*c != '_') {
@@ -226,7 +226,7 @@ SWIG_Tcl_PointerTypeFromString(char *c) {
 static int
 SWIG_Tcl_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
   swig_type_info *tc;
-  char  *c;
+  const char  *c;
 
   if (!obj) goto type_error;
   c = Tcl_GetStringFromObj(obj,NULL);
