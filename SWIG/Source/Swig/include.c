@@ -178,6 +178,7 @@ DOH *SWIG_read_file(FILE *f) {
   while (fgets(buffer,4095,f)) {
     Append(str,buffer);
   }
+  Append(str,"\n");
   return str;
 }
 
