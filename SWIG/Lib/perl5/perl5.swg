@@ -499,19 +499,22 @@
                   unsigned int, 
                   unsigned long, 
                   unsigned short {
-  sprintf(_swigmsg,"%d",$1);
-  SWIG_croak(_swigmsg);
+  SWIG_SetErrorf("%d", $1); SWIG_fail;
 }
 
-%typemap(throws) SWIGTYPE {
-  SWIG_croak("$1_type");
+/* throws real objects */
+%typemap(throws) SWIGTYPE 
+{
+  SV *esv=sv_newmortal();
+  $&1_ltype copy = new $1_ltype(($1_ltype &)$1);
+  SWIG_MakePtr(esv, (void *) copy,
+	       $&1_descriptor, SWIG_OWNER);
+  SWIG_croakSV(esv);
 }
 
 %typemap(throws) char * {
   SWIG_croak($1);
-  SWIG_fail;
 }
-
 
 /* Export the SWIG initialization function */
 %header %{
