@@ -387,17 +387,19 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     {
       DOH *cpps;
       int i;
+      DOH *fs = NewString("");
       DOH *ds = Swig_include(input_file);
       if (!ds) {
 	Printf(stderr,"Unable to find '%s'\n", input_file);
 	SWIG_exit(1);
       }
-      Seek(ds,0,SEEK_END);
       for (i = 0; i < Len(libfiles); i++) {
-	Printf(ds,"\n%%include \"%s\"\n", Getitem(libfiles,i));
+	Printf(fs,"\n%%include \"%s\"\n", Getitem(libfiles,i));
       }
-      Seek(ds,0,SEEK_SET);
-      cpps = Preprocessor_parse(ds);
+      Append(fs, ds);
+      Delete(ds);
+      Seek(fs,0,SEEK_SET);
+      cpps = Preprocessor_parse(fs);
       if (cpp_only) {
 	Printf(stdout,"%s", cpps);
 	while (freeze);
