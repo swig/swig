@@ -464,7 +464,8 @@ is possible to do a lot more.
 
 <p>
 Before diving in, it needs to be stressed that under normal conditions,
-SWIG does <b>NOT</b> require users to write typemaps.  A common
+SWIG does <b>NOT</b> require users to write typemaps (and even when they are
+used, it is probably better to use them sparingly).  A common
 confusion among some new users to SWIG is that they somehow need to write typemaps
 to handle new typenames when in fact they really only need to use a 
 <tt>typedef</tt> declaration.  For example, if you have a declaration like this,
@@ -590,66 +591,70 @@ the interface file.   It is specified using the <tt>%typemap</tt> directive.  Fo
 a simple typemap might look like this:
 <p>
 <blockquote><pre>%module example
-%typemap(tcl,in) int {
-	$target = atoi($source);
-	printf("Received an integer : %d\n", $target);
+%typemap(python,in) int {
+   $target = (int) PyInt_AsLong($source);
+   if (PyErr_Occurred()) return NULL;
+   printf("received %d\n", $target);
 }
 
 int add(int a, int b);
 </pre></blockquote>
 
 <p>
-In this case, we changed the processing of integers as input arguments
-to functions. When used in a Tcl script, we would get the following
+In this case, the typemap is defining a rule for handling input arguments
+in Python. When used in a Python script, you would get the following
 debugging information:<p>
 
 <p>
-<blockquote><pre>% set a [add 7 13]
-Received an integer : 7
-Received an integer : 13
-
+<blockquote><pre>>>> a = add(7,13)
+received 7
+received 13
 </pre></blockquote>
 
 In the typemap specification, the symbols <tt>$source</tt> and
-<tt>$target</tt> are holding places for C variable names that SWIG is
-going to use when generating wrapper code. In this example,
-<tt>$source</tt> would contain a Tcl string containing the input value
-and <tt>$target</tt> would be the C integer value that is going to be
-passed into the "add" function.<p>
+<tt>$target</tt> are place holders for C variable names that SWIG uses
+when generating wrapper code. In this example, <tt>$source</tt> is the
+Python object containing the input value and <tt>$target</tt> would be
+the C integer value that is going to be passed into the "add"
+function.<p>
 
 <h3> Creating a new typemap</h3>
 
 A new typemap can be created as follows :<p>
 <blockquote><pre>
-%typemap(lang,method) Datatype {
-	... Conversion code ...
+%typemap(lang,method) type {
+    ... Conversion code ...
 }
 
 </pre></blockquote>
 
-<tt>lang</tt> specifies the target language, <tt>method</tt> defines a
-particular conversion method, and <tt>Datatype</tt> gives the
-corresponding C datatype. The code corresponding to the typemap is
-enclosed in braces after the declaration. There are about a dozen
-different kinds of typemaps that are used within SWIG, but we will get
-to that shortly.<p>
+<tt>lang</tt> specifies the target language and <tt>method</tt> defines a
+particular conversion method.  <tt>type</tt> is the actual C++ datatype 
+as it appears in the interface file (it is not the ltype value described
+in the section on the SWIG type system). The code corresponding to the typemap is
+enclosed in braces after the declaration. 
 
 <p>
-A single conversion can be applied to multiple datatypes by giving a
+A single typemap rule can be applied to multiple datatypes by giving a
 comma separated list of datatypes. For example :<p>
 <p>
-<blockquote><pre>%typemap(tcl,in) int, short, long, signed char {
-	$target = ($type) atol($source);
+<blockquote><pre>%typemap(python,in) int, short, long, signed char {
+   $target = ($ltype) PyInt_AsLong($source);
+   if (PyErr_Occurred()) return NULL;
+   printf("received %d\n", $target);
 }
-
 </pre></blockquote>
 
-Here, <tt>$type</tt> will be expanded into the real datatype during
-code generation. Datatypes may also carry names as in<p>
+Here, <tt>$ltype</tt> is expanded into the local datatype used during code
+generation (this is the assignable version of the type described in the
+SWIG type system section).
+
+<p>
+Typemaps may also be defined for specific names as in:
 
 <p>
 <blockquote><pre>%typemap(perl5,in) char **argv {
-	... Turn a perl array into a char ** ...
+   ... Turn a perl array into a char ** ...
 }
 
 </pre></blockquote>
@@ -657,8 +662,9 @@ code generation. Datatypes may also carry names as in<p>
 A "named" typemap will only apply to an object that matches both the C
 datatype and the name. Thus the <tt>char **argv</tt> typemap will only
 be applied to function arguments that exactly match "<tt>char
-**argv</tt>". In some cases, the name may correspond to a function
-name (as is the case for return values).<p>
+**argv</tt>". Although the name is usually the name of a parameter in a 
+function declaration, this depends on the typemap method (sometimes the function name
+itself is used).
 
 <p>
 Finally, there is a shortened form of the typemap directive :<p>
@@ -671,9 +677,10 @@ Finally, there is a shortened form of the typemap directive :<p>
 </pre></blockquote>
 
 When the language name is ommitted, the typemap will be applied to the
-current target language. This form is only recommended for typemap
+current target language. This form is really only recommended for typemap
 methods that are language independent (there are a few). It is not
-recommended if you are building interfaces for multiple languages.<p>
+recommended if you are building interfaces for multiple languages unless
+you are careful to hide the typemap with conditional compilation.
 
 <h3> Deleting a typemap</h3>
 
@@ -681,7 +688,7 @@ A typemap can be deleted by providing no conversion code. For example
 :<p>
 
 <p>
-<blockquote><pre>%typemap(lang,method) Datatype;              // Deletes this typemap
+<blockquote><pre>%typemap(lang,method) type;              // Deletes this typemap
 
 </pre></blockquote>
 
@@ -690,74 +697,81 @@ A typemap can be deleted by providing no conversion code. For example
 A typemap can be copied using the following declaration :<p>
 
 <p>
-<blockquote><pre>%typemap(python,out) unsigned int = int;     // Copies a typemap
-
+<blockquote><pre>%typemap(lang,method) type = srctype;     // Copies a typemap
 </pre></blockquote>
 
-This specifies that the typemap for "<tt>unsigned int</tt>" should be
-the same as the "<tt>int</tt>" typemap.<p> This is most commonly used
-when working with library files.<p>
+This specifies that the typemap for <tt>type</tt> should be the same
+as the <tt>srctype</tt> typemap. Here is an example:
 
-<h3> Typemap matching rules</h3>
+<blockquote>
+<pre>
+%typemap(python,in) long = int;
+</pre>
+</blockquote>
 
-When you specify a typemap, SWIG is going to try and match it with all
-future occurrences of the datatype you specify. The matching process
-is based upon the target language, typemap method, datatype, and
-optional name. Because of this, it is perfectly legal for multiple
-typemaps to exist for a single datatype at any given time. For example
-:<p>
+<h3>Typemap matching rules</h3>
 
-<p>
-<blockquote><pre>%typemap(tcl,in) int * {
-	... Convert an int * ...
-}
-%typemap(tcl,in) int [4] {
-	... Convert an int[4] ...
-}
-%typemap(tcl,in) int out[4] {
-	... Convert an out[4] ...
-}
-%typemap(tcl,in) int *status {
-	... Convert an int *status ...
-}
+When datatypes are processed in an interface file, SWIG tries to apply typemap
+rules as follows:
 
-</pre></blockquote>
-
-These typemaps all involve the "<tt>int *</tt>" datatype in one way or
-another, but are all considered to be distinct. There is an extra
-twist to typemaps regarding the similarity between C pointers and
-arrays. A typemap applied to a pointer will also work for any array of
-the same type. On the other hand, a typemap applied to an array will
-only work for arrays, not pointers. Assuming that you're not
-completely confused at this point, the following rules are applied in
-order to match pointers and arrays :<p>
-
-<p>
 <ul>
-<li>Named arrays
-<li>Unnamed arrays
-<li>Named datatypes
-<li>Unnamed datatypes
+<li>Typemaps that exactly match the type and name (a named typemap).
+<li>Typemaps that exactly match the type only (an unnamed typemap).
+<li>If the type is an array, try to match against typemaps defined with empty array dimensions.
+<li>If the type is equivalent to another type via <tt>typedef</tt>, typemaps
+for the <tt>typedef</tt> type are applied.
 </ul>
+
+When more than one typemap rule might be defined, only the first match
+found is actually used. Also, it is important to note that the types
+must match exactly (including any qualifiers).  Here is an example that
+shows how some of the rules are applied:
+
+<blockquote><pre>
+typedef int Integer;
+
+%typemap(python,in) int *x {
+   ...
+}
+
+%typemap(python,in) int * {
+   ...
+}
+
+%typemap(python,in) Integer *x {
+   ...
+}
+
+void A(int *x);      // int *x rule 
+void B(int *y);      // int * rule
+void C(Integer *);   // int * rule (via typedef)
+void D(Integer *x);  // Integer *x rule
+void E(const int *); // No match. No rules for const int *
+</pre>
+</blockquote>
+
+<b>Compatibility note:</b> SWIG1.1 applied a complex set of type-matching rules in which
+a typemap for <tt>int *</tt> would also match many different variations including
+<tt>int &</tt>, <tt>int []</tt>, and qualified variations.   This feature is revoked
+in SWIG1.3. Typemaps must now exactly match the types and names used in the interface
+file.
+
 <p>
-
-The following interface file shows how these rules are applied.<p>
-<p>
-<blockquote><pre>void foo1(int *); 				// Apply int * typemap
-void foo2(int a[4]);         // Apply int[4] typemap
-void foo3(int out[4]);       // Apply int out[4] typemap
-void foo4(int *status);      // Apply int *status typemap
-void foo5(int a[20]);        // Apply int * typemap (because int [20] is an int *)
-
-</pre></blockquote>
-
-Because SWIG uses a name-based approach, it is possible to attach
-special properties to named parameters. For example, we can make an
-argument of "<tt>int *OUTPUT</tt>" always be treated as an output
-value of a function or make a "<tt>char **argv</tt>" always accept a
-list of string values.<p>
+<b>Compatibility note:</b> Starting in SWIG1.3, typemap matching tries to follow <tt>typedef</tt>
+declarations if possible (as shown in the above example).   This type of matching is
+only performed in one direction.  For example, if you had <tt>typedef int Integer</tt> and then
+defined a typemap for <tt>Integer</tt>, that typemap would <em>not</em> be applied to
+the <tt>int</tt> datatype.  Earlier versions of SWIG did not follow <tt>typedef</tt> declarations
+when matching typemaps.   This feature has primarily been added to assist language
+modules that rely heavily on typemaps (e.g., a typemap for "int" now defines the default
+for integers regardless of what kind of typedef name is being used to actually refer to an integer
+in the source program).
 
 <h2> Common typemap methods</h2>
+
+<b>Note:  All parts beyond here still need more work to bring up to date. --Dave.</b>
+
+<p>
 
 The following methods are supported by most SWIG language
 modules. Individual language may provide any number of other methods
@@ -866,13 +880,13 @@ interface file :<p>
 
 </pre></blockquote>
 
-When SWIG is run, you will get the following warnings :<p>
+When SWIG is run, you may get the following warnings :<p>
 
 <p>
 <blockquote><pre>swig -python  example.i
 Generating wrappers for Python
-example.i : Line 2. Warning. Array member will be read-only.
-example.i : Line 3. Warning. Array member will be read-only.
+example.i:2.  Warning. Array member will be read-only.
+example.i:3.  Warning. Array member will be read-only.
 </pre></blockquote>
 
 <p>
@@ -903,14 +917,14 @@ as follows :<p>
 
 <p>
 <blockquote><pre>// A better typemap for char arrays
-%typemap(memberin) char [ANY] {
+%typemap(memberin) char [] {
 	strncpy($target,$source,$dim0);
 }
 
 </pre></blockquote>
 
-The <tt>ANY</tt> keyword can be used in a typemap to match any array
-dimension. When used, the special variable <tt>$dim0</tt> will contain
+When an empty dimension is used in a typemap, it matches any array dimension.
+When used, the special variable <tt>$dim0</tt> will contain
 the real dimension of the array and can be used as shown above.<p>
 
 <p>
@@ -918,7 +932,7 @@ Multidimensional arrays can also be handled by typemaps. For example :<p>
 <p>
 
 <blockquote><pre>// A typemap for handling any int [][] array
-%typemap(memberin) int [ANY][ANY] {
+%typemap(memberin) int [][] {
 	int i,j;
 	for (i = 0; i &lt; $dim0; i++)
 		for (j = 0; j &lt; $dim1; j++) {
@@ -932,18 +946,6 @@ When multi-dimensional arrays are used, the symbols <tt>$dim0,</tt>
 <tt>$dim1</tt>,<tt> $dim2</tt>, etc... get replaced by the actual
 array dimensions being used. <p>
 <p>
-
-The ANY keyword can be combined with any specific dimension. For example :<p>
-
-<p>
-<blockquote><pre>%typemap(python,in) int [ANY][4] {
-	...
-}
-</pre></blockquote>
-
-A typemap using a specific dimension always has precedence over a more
-general version. For example, <tt>[ANY][4]</tt> will be used
-before<tt>[ANY][ANY]</tt>.<p>
 
 <h2> Typemaps and the SWIG Library</h2>
 
@@ -1066,13 +1068,8 @@ powerful scripting language extensions. <p>
 
 <h2> Typemaps and the future</h2>
 
-The current typemap mechanism, while new, will probably form the basis
-of SWIG 2.0. Rather than having code buried away inside a C++ module,
-it may soon be possible to redefine almost all of SWIG's code
-generation on the fly. Future language modules will rely upon typemaps
-almost exclusively. <p>
-<p>
-
+The current typemap mechanism is in the process of refinement
+and will probably be extended to handle groups of types in a future release.
 
 <!--
 
@@ -1321,6 +1318,6 @@ about the "Point" structure above. <p>
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : August 18, 2001</address>
+<address>SWIG 1.3 - Last Modified : September 23, 2001</address>
 </body>
 </html>
