@@ -532,6 +532,18 @@ PERL5::functionWrapper(Node *n)
     }
   }
 
+  if (varargs) {
+    if (p && (tm = Getattr(p,"tmap:in"))) {
+      String *ln = Getattr(p,"lname");
+      sprintf(source,"ST(%d)",i);
+      Replaceall(tm,"$input", source);
+      Setattr(p,"emit:input", source);
+      Printf(f->code,"    if (items > %d) {\n", i);
+      Printv(f->code, tm, NULL);
+      Printf(f->code,"}\n");
+    }
+  }
+
   /* Insert constraint checking code */
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
