@@ -1,5 +1,10 @@
 %module evil_diamond
 
+%warnfilter(801) foo;		// Ruby, wrong class name
+%warnfilter(801) bar;		// Ruby, wrong class name
+%warnfilter(801) baz;		// Ruby, wrong class name
+%warnfilter(801, 802) spam;	// Ruby, wrong class name & MI
+
 %inline %{
 
 class foo { };

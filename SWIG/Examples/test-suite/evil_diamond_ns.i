@@ -1,5 +1,10 @@
 %module evil_diamond_ns
 
+%warnfilter(801) Blah::foo;		// Ruby, wrong class name
+%warnfilter(801) Blah::bar;		// Ruby, wrong class name
+%warnfilter(801) Blah::baz;		// Ruby, wrong class name
+%warnfilter(801, 802) Blah::spam;	// Ruby, wrong class name & MI
+
 %inline %{
 namespace Blah {
 class foo { };
