@@ -483,9 +483,9 @@
 }
 #endif
 
-%typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE "*(($&1_type)&$input) = &$1;"
-%typemap(javadirectorin) SWIGTYPE "new $javaclassname($jniinput, false)"
-%typemap(javadirectorout) SWIGTYPE "$javaclassname.getCPtr($javacall)"
+%typemap(directorin,descriptor="L$packagepath/$&javaclassname;") SWIGTYPE "*(($&1_type)&$input) = &$1;"
+%typemap(javadirectorin) SWIGTYPE "new $&javaclassname($jniinput, false)"
+%typemap(javadirectorout) SWIGTYPE "$&javaclassname.getCPtr($javacall)"
 
 /* Generic pointers and references */
 %typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
