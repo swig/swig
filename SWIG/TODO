@@ -116,7 +116,8 @@ defer  ready to go.  The primary obstacle lies in the target language
 
 		 %typemap(in) ( int FIRST, double SECOND ) { ... }
 
-	      -> $typemap(in, input=x) int FIRST = foo, double SECOND = bar;
+	      -> $typemap(in, input=x) 
+	      	    ( int FIRST = foo, double SECOND = bar );
 
 	  The advantage of this syntax would be that the formal
 	  arguments (int FIRST, double SECOND) are close to the
