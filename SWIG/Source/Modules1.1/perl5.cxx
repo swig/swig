@@ -31,6 +31,7 @@ Perl5 Options (available with -perl5)\n\
      -package name   - Set package prefix\n\
      -static         - Omit code related to dynamic loading.\n\
      -shadow         - Create shadow classes.\n\
+     -const          - Wrap constants as constants and not variables (implies -shadow).\n\
      -compat         - Compatibility mode.\n\n";
 
 static String *import_file = 0;
@@ -54,6 +55,7 @@ static int          is_static = 0;
 /* The following variables are used to manage Perl5 classes */
 
 static  int      blessed = 0;                /* Enable object oriented features */
+static  int      do_constants = 0;           /* Constant wrapping */
 static  Hash     *classes = 0;               /* A hash table for storing the classes we've seen so far */
 static  int      have_constructor = 0;
 static  int      have_destructor= 0;
@@ -70,6 +72,8 @@ static  String   *blessedmembers = 0;        /* Member data associated with each
 static  int      member_func = 0;            /* Set to 1 when wrapping a member function */
 static  String   *realpackage = 0;           /* Name of real module  */
 static  String   *func_stubs = 0;         /* Function stubs */
+static  String   *const_stubs = 0;        /* Constant stubs */
+static  int       num_consts = 0;        /* Number of constants */
 static  String   *var_stubs = 0;          /* Variable stubs */
 static  String   *member_keys = 0;        /* Keys for all member data */
 static  String   *exported = 0;           /* Exported symbols */
@@ -134,6 +138,10 @@ PERL5::parse_args(int argc, char *argv[]) {
 	  } else if (strcmp(argv[i],"-shadow") == 0) {
 	    blessed = 1;
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-const") == 0) {
+	    do_constants = 1;
+	    blessed = 1;
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-compat") == 0) {
 	    compat = 1;
 	    Swig_mark_arg(i);
@@ -163,6 +171,7 @@ PERL5::parse() {
   pm             = NewString("");
   func_stubs     = NewString("");
   var_stubs      = NewString("");
+  const_stubs    = NewString("");
   exported       = NewString("");
   magic          = NewString("");
   pragma_include = NewString("");
@@ -406,7 +415,7 @@ PERL5::close(void) {
   Printf(f_pm,"var_%s_init();\n", cmodule);
   Printf(f_pm,"%s",pragma_include);
   Printf(f_pm,"package %s;\n", realpackage);
-  Printf(f_pm,"@EXPORT = qw(%s );\n",exported);
+  Printf(f_pm,"@EXPORT = qw( %s);\n",exported);
 
   if (blessed) {
 
@@ -457,6 +466,13 @@ PERL5::close(void) {
     /* Emit package code for different classes */
 
     Printf(f_pm,"%s",pm);
+
+    if (num_consts > 0) {
+      /* Emit constant stubs */
+      Printf(f_pm,"\n# ------- CONSTANT STUBS -------\n\n");
+      Printf(f_pm,"package %s;\n\n",realpackage);
+      Printf(f_pm,"%s",const_stubs);
+    }
 
     /* Emit variable stubs */
 
@@ -1219,12 +1235,21 @@ PERL5::declare_const(char *name, char *iname, SwigType *type, char *value)
 	     "$", iname, "= \\%__", iname, "_hash;\n",
 	     "bless $", iname, ", ", is_shadow(type), ";\n",
 	     0);
+    } else if (do_constants) {
+      Printv(const_stubs,"sub ", name, " { $",
+	     package, "::", name, " }\n", 0);
+      num_consts++;
     } else {
       Printv(var_stubs, "*",iname," = *", package, "::", iname, ";\n", 0);
     }
   }
-  if (export_all)
-    Printf(exported,"$%s ",iname);
+  if (export_all) {
+    if (do_constants && !is_shadow(type)) {
+      Printf(exported,"%s ",name);
+    } else {
+      Printf(exported,"$%s ",iname);
+    }
+  }
 }
 
 /* -----------------------------------------------------------------------------
