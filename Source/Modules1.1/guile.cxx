@@ -61,7 +61,7 @@ GUILE::GUILE ()
   module = NULL;
   package = NULL;
   linkage = GUILE_LSTYLE_SIMPLE;
-  with_smobs = false;
+  with_smobs = 0;
 }
 
 // ---------------------------------------------------------------------
@@ -86,7 +86,7 @@ GUILE::parse_args (int argc, char *argv[])
       }
       else if (strcmp (argv[i], "-with-smobs") == 0) {
 	Swig_mark_arg (i);
-	with_smobs = true;
+	with_smobs = 1;
       }
       else if (strcmp (argv[i], "-prefix") == 0) {
 	if (argv[i + 1]) {
