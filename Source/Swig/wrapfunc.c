@@ -294,7 +294,7 @@ Wrapper_Gettype(Wrapper *w) {
 void
 Wrapper_Settype(Wrapper *w, SwigType *t) {
   Delete(w->_type);
-  w->_type = Copy(t);
+  w->_type = NewString(t);
 }
 
 /* -----------------------------------------------------------------------------

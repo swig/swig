@@ -33,6 +33,10 @@ extern "C" {
 extern  FILE   *swig_log;
 #endif
 
+#define PLAIN_VIRTUAL   1
+#define PURE_VIRTUAL    2
+#define SUPER_VIRTUAL   3
+
 extern  FILE      *f_runtime;                       // Runtime code
 extern  DOH       *f_header;                        // Headers
 extern  DOH       *f_wrappers;                      // Wrappers
