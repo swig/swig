@@ -206,7 +206,7 @@ output values.
     if (argvi >= items) {
 	EXTEND(sp,1);
     }
-    sprintf(temp,"%lld", *($1));
+    sprintf(temp,"%lld", (long long)*($1));
     $result = sv_newmortal();
     sv_setpv($result,temp);
     argvi++;
@@ -217,7 +217,7 @@ output values.
     if (argvi >= items) {
 	EXTEND(sp,1);
     }
-    sprintf(temp,"%llu", *($1));
+    sprintf(temp,"%llu", (unsigned long long)*($1));
     $result = sv_newmortal();
     sv_setpv($result,temp);
     argvi++;

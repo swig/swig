@@ -236,14 +236,14 @@
 
 %typemap(out) const long long & {
   char temp[256];
-  sprintf(temp,"%lld", *($1));
+  sprintf(temp,"%lld", (long long)*($1));
   Tcl_SetObjResult(interp,Tcl_NewStringObj(temp,-1));
 }
 
 %typemap(out) const unsigned long long &
 {
   char temp[256];
-  sprintf(temp,"%llu", *($1));
+  sprintf(temp,"%llu", (unsigned long long)*($1));
   Tcl_SetObjResult(interp,Tcl_NewStringObj(temp,-1));
 }
 
@@ -258,13 +258,13 @@
 
 %typemap(varout) long long {
       char temp[256]; 
-      sprintf(temp,"%lld", $1);
+      sprintf(temp,"%lld", (long long)$1);
       $result = Tcl_NewStringObj(temp,-1);
 }
 
 %typemap(varout) unsigned long long {
       char temp[256];
-      sprintf(temp,"%llu", $1);
+      sprintf(temp,"%llu", (unsigned long long)$1);
       $result = Tcl_NewStringObj(temp,-1);
 }
 
@@ -379,6 +379,10 @@
   if (SWIG_ConvertPtr($input,(void **)&$1,$1_descriptor, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN) != TCL_OK) {
     return (char*)"Type error. Expected $1_ltype";
   }
+}
+
+%typemap(varin,warning="462: Unable to set dimensionless array variable") SWIGTYPE [] {
+  return (char*)"Variable $symname is read-only.";
 }
 
 %typemap(varin) void * {
