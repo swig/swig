@@ -142,6 +142,7 @@ CPP_TEST_CASES += \
 	rname \
 	static_array_member \
 	static_const_member \
+	static_const_member_2 \
 	template \
 	template_base_template \
 	template_classes \
