@@ -376,6 +376,8 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
     if ((s->n_type == N_UNDF) || (s->n_type == N_SO) || /* (s->n_type == N_FUN) || */
 	(s->n_type == N_OBJ)) return i;
 
+    if ((s->n_type == N_FUN) && !(strlen(stabstr+s->n_strx))) return 1;
+
     if (s->n_type == N_LBRAC) {
       nbrace++;
       get_parms = 0;
