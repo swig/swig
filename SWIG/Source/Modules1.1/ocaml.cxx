@@ -387,7 +387,7 @@ class OCAML : public Language {
 		"extern \"C\"\n"
 		"#endif\n"
 		"value _%s_set_delete_fn( value v, value f ) {\n"
-		"  CAMLparam1(v,f);\n"
+		"  CAMLparam2(v,f);\n"
 		"  struct custom_block_contents *new_proxy = \n"
 		"    (struct custom_block_contents *)(Data_custom_val(v));\n"
 		"  if( new_proxy->delete_fn )\n"
