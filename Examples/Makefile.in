@@ -859,10 +859,12 @@ chicken_module: $(SRCS) $(CXXSRCS) $(CHICKSRCS)
 	$(CC) -c $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) $(INCLUDE) \
 		$(CHICKEN_INCLUDE) $(CHICKSRCS)
 	test x = "x$(SRCS)" || \
-		$(CC) -c $(CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
+		$(CC) -c $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) \
+			$(INCLUDE) $(CHICKEN_INCLUDE) \
 			$(ISRCS) $(SRCS)
 	test x = "x$(CXXSRCS)" || \
-		$(CXX) -c $(CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
+		$(CXX) -c $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) \
+			$(INCLUDE) $(CHICKEN_INCLUDE) \
 			$(ICXXSRCS) $(CXXSRCS)
 	$(CXXSHARED) $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@) \
 		$(CHICKSRCS:.c=.@OBJEXT@) \
@@ -884,7 +886,7 @@ chicken_static: csi.c $(SRCS) $(CXXSRCS) $(CHICKSRCS)
 	test x = "x$(CXXSRCS)" || \
 		$(CXX) -c $(CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
 			$(CHICKEN_CFLAGS) $(ICXXSRCS) $(CXXSRCS)
-	$(CXX) -static csi.@OBJEXT@ $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@) \
+	$(CXX) csi.@OBJEXT@ $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@) \
 		$(CHICKSRCS:.c=.@OBJEXT@) \
 		$(LIBS) $(CHICKEN_LIBOPTS) \
 		-o $(TARGET)
