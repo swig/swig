@@ -219,6 +219,7 @@ extern int         SwigType_cmp(String_or_char *pat, SwigType *t);
 extern int         SwigType_array_ndim(SwigType *t);
 extern String     *SwigType_array_getdim(SwigType *t, int n);
 extern void        SwigType_array_setdim(SwigType *t, int n, String_or_char *rep);
+extern SwigType   *SwigType_array_type(SwigType *t);
 extern String     *SwigType_default(SwigType *t);
 extern int         SwigType_type(SwigType *t);
 extern void        SwigType_remember(SwigType *t);
