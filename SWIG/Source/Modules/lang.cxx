@@ -321,31 +321,34 @@ static Parm *nonvoid_parms(Parm *p) {
   return p;
 }
 
-/* This is a hack */
+/* This is a hack.
+ * Note that SwigValueWrapper should only be generated for value types which are classes and
+ * the class does not have a default constructor. It is also used for templated classes
+ * which havn't been passed to SWIG for parsing in case the class does not have a default
+ * constructor. Tip (SWIG-1.3.22 as of writing): Get SWIG to parse your templated class and
+ * use the %template directive (unnamed or not) to help SWIG decide whether or not
+ * SwigValueWrapper should be used, for example 
+ * %template() std::auto_ptr<int>; // unnamed %template does not generate any proxy classes
+ */
 SwigType *cplus_value_type(SwigType *t) {
-  Node *n;
-  if (!CPlusPlus) return 0;
-  if (SwigType_isclass(t)) {
-    SwigType *ftd = SwigType_typedef_resolve_all(t);
-    SwigType *td = SwigType_strip_qualifiers(ftd);
-    Delete(ftd);
-    if ((n = Swig_symbol_clookup(td,0))) {
-      if ((Strcmp(nodeType(n),"class") == 0) && (!Getattr(n,"allocate:default_constructor") || (Getattr(n,"allocate:noassign")))) {
-	String *s = NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0));
-	Delete(td);
-	return s;
-      } else {
-	return 0;
+  Node *n = 0;
+  String *s = 0;
+  if (CPlusPlus) {
+    if (SwigType_isclass(t)) {
+      SwigType *ftd = SwigType_typedef_resolve_all(t);
+      SwigType *td = SwigType_strip_qualifiers(ftd);
+      if ((n = Swig_symbol_clookup(td,0))) {
+        if ((Strcmp(nodeType(n),"class") == 0) && (!Getattr(n,"allocate:default_constructor") || (Getattr(n,"allocate:noassign")))) {
+          s = NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0));
+        }
+      } else if (SwigType_issimple(td) && SwigType_istemplate(td)) {
+        s = NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0));
       }
-    }
-    if (SwigType_issimple(td) && SwigType_istemplate(td)) {
-      String *s = NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0));
+      Delete(ftd);
       Delete(td);
-      return s;
     }
-    Delete(td);
   }
-  return 0;
+  return s;
 }
 
 /* Patch C++ pass-by-value */
