@@ -108,6 +108,10 @@ defer  ready to go.  The primary obstacle lies in the target language
 [DONE] Add warning message if %apply directive is used, but no typemaps
        match the requested type.
 
+****   If a wrapper can't be generated to a function/method for some
+       reason, provide a flag that prevents that function/method from
+       appearing the dispatch function.
+
 ***    Rewrite declaration annotation to better unify %rename and related
        directives.  Add a selector mechanism that allows specific parse tree
        nodes to be identified.  For example:
@@ -125,6 +129,8 @@ defer  ready to go.  The primary obstacle lies in the target language
        SWIG should be able to automatically strip ownership from 
        objects when they are assigned to pointer variables and structure
        members as well as stored in a container (i.e., an array of pointers).
+
+       [ Partially finished for Tcl/Python. ]
 
 **     Restoration of the documentation system.
 
@@ -390,4 +396,5 @@ Other
 -----
 
 ****   Bring Tiger's .NET/CLR module online.
+
 
