@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="spam" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="runtime" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=spam - Win32 Release
+CFG=runtime - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "spam.mak".
+!MESSAGE NMAKE /f "runtime.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "spam.mak" CFG="spam - Win32 Release"
+!MESSAGE NMAKE /f "runtime.mak" CFG="runtime - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "spam - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE "spam - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "runtime - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "runtime - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -29,7 +29,7 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "spam - Win32 Debug"
+!IF  "$(CFG)" == "runtime - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -38,12 +38,12 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
+# PROP Output_Dir ""
 # PROP Intermediate_Dir "Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SPAM_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GR /GX /ZI /Od /I "$(PERL5_INCLUDE)" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SPAM_EXPORTS" /YX /FD /GZ /c
+# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RUNTIME_EXPORTS" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GR /GX /ZI /Od /I "$(RUBY_INCLUDE)" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RUNTIME_EXPORTS" /D NT=1 /D "IMPORT" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
@@ -53,9 +53,10 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "$(PERL5_LIB)" runtime.lib /nologo /dll /debug /machine:I386 /out:"spam.dll" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "$(RUBY_LIB)" /nologo /dll /debug /machine:I386 /out:"runtime.dll" /pdbtype:sept
+# SUBTRACT LINK32 /pdb:none
 
-!ELSEIF  "$(CFG)" == "spam - Win32 Release"
+!ELSEIF  "$(CFG)" == "runtime - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -64,12 +65,12 @@ LINK32=link.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
+# PROP Output_Dir ""
 # PROP Intermediate_Dir "Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SPAM_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GR /GX /O2 /I "$(PERL5_INCLUDE)" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SPAM_EXPORTS" /YX /FD /c
+# ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RUNTIME_EXPORTS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GR /GX /O2 /I "$(RUBY_INCLUDE)" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RUNTIME_EXPORTS" /D NT=1 /D "IMPORT" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
@@ -79,61 +80,58 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "$(PERL5_LIB)" runtime.lib /nologo /dll /machine:I386 /out:"spam.dll"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "$(RUBY_LIB)" /nologo /dll /machine:I386 /out:"runtime.dll"
+# SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
 
 # Begin Target
 
-# Name "spam - Win32 Debug"
-# Name "spam - Win32 Release"
+# Name "runtime - Win32 Debug"
+# Name "runtime - Win32 Release"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\spam_wrap.cxx
+SOURCE=.\runtime_wrap.cxx
 # End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
-# Begin Source File
-
-SOURCE=.\spam.h
-# End Source File
 # End Group
 # Begin Source File
 
-SOURCE=.\spam.i
+SOURCE=.\runtime.i
 
-!IF  "$(CFG)" == "spam - Win32 Debug"
+!IF  "$(CFG)" == "runtime - Win32 Debug"
 
 # Begin Custom Build
-InputPath=.\spam.i
-InputName=spam
+InputPath=.\runtime.i
+InputName=runtime
 
-"$(InputName)_wrap.cxx" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
-	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
-	echo PERL5_LIB: %PERL5_LIB% 
+	echo RUBY_INCLUDE: %RUBY_INCLUDE% 
+	echo RUBY_LIB: %RUBY_LIB% 
 	echo on 
-	..\..\..\swig -noruntime -c++ -perl5 $(InputPath) 
+	..\..\..\swig -runtime -c++ -ruby $(InputPath) 
 	
 # End Custom Build
 
-!ELSEIF  "$(CFG)" == "spam - Win32 Release"
+!ELSEIF  "$(CFG)" == "runtime - Win32 Release"
 
 # Begin Custom Build
-InputPath=.\spam.i
-InputName=spam
+InputPath=.\runtime.i
+InputName=runtime
 
-"$(InputName)_wrap.cxx" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
-	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
-	echo PERL5_LIB: %PERL5_LIB% 
+	echo RUBY_INCLUDE: %RUBY_INCLUDE% 
+	echo RUBY_LIB: %RUBY_LIB% 
 	echo on 
-	..\..\..\swig -noruntime -c++ -perl5 $(InputPath) 
+	..\..\..\swig -runtime -c++ -ruby $(InputPath) 
 	
 # End Custom Build
 

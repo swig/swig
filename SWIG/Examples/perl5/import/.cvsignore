@@ -7,6 +7,7 @@ bar.plg
 *_wrap.c
 *_wrap.cxx
 *.dll
+*.exp
 example.dsw
 example.ncb
 example.opt
