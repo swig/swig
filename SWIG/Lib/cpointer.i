@@ -17,7 +17,7 @@
  *
  *       class type {
  *       public:
- *           type(type value = 0);
+ *           type();
  *          ~type();
  *           type value();
  *           void assign(type value);
@@ -31,11 +31,12 @@
  *
  * In python (with proxies)
  *
- *    >>> a = intp(2)
- *    >>> a.value()
- *    2
+ *    >>> a = intp()
  *    >>> a.assign(10)
- *    >>> b = intp(20)
+ *    >>> a.value()
+ *    10
+ *    >>> b = intp()
+ *    >>> b.assign(20)
  *    >>> print add(a,b)
  *    30
  *
@@ -46,45 +47,49 @@
 
 %define %pointer_class(TYPE, NAME)
 %{
-  typedef TYPE NAME;
+typedef TYPE NAME;
 %}
-  typedef struct {
-     %extend {
-         NAME() {
-  	     TYPE *self;
-#ifdef __cplusplus
-             self = new TYPE();
+
+typedef struct {
+} NAME;
+
+%extend NAME {
+#if __cplusplus
+NAME() {
+  return new TYPE();
+}
+~NAME() {
+  if (self) delete self;
+}
 #else
-             self = (TYPE *) calloc(1, sizeof(TYPE));
+NAME() {
+  return (TYPE *) calloc(1,sizeof(TYPE));
+}
+~NAME() {
+  if (self) free(self);
+}
 #endif
-             return self;
-	 }
-	 ~NAME() {
-#ifdef __cplusplus
-	   if (self) {
-	     delete self;
-	   }
-#else
-	   if (self) {
-	     free(self);
-	   }
-#endif
-	 }
-	 void assign(TYPE value) {
-	   *self = value;
-	 }
-	 TYPE value() {
-	   return *self;
-	 }
-	 TYPE * cast() {
-           return self;
-	 }
-	 static NAME * frompointer(TYPE *t) {
-	   return (NAME *) t;
-         }
-     }
-  } NAME;
-  %types(NAME = TYPE);
+}
+
+%extend NAME {
+
+void assign(TYPE value) {
+  *self = value;
+}
+TYPE value() {
+  return *self;
+}
+TYPE * cast() {
+  return self;
+}
+static NAME * frompointer(TYPE *t) {
+  return (NAME *) t;
+}
+
+}
+
+%types(NAME = TYPE);
+
 %enddef
 
 /* ----------------------------------------------------------------------------- 
@@ -99,11 +104,12 @@
  *
  * In python (with proxies)
  *
- *    >>> a = new_intp(2)
- *    >>> intp_value(a)
- *    2
+ *    >>> a = new_intp()
  *    >>> intp_assign(a,10)
- *    >>> b = new_intp(20)
+ *    >>> intp_value(a)
+ *    10
+ *    >>> b = new_intp()
+ *    >>> intp_assign(b,20)
  *    >>> print add(a,b)
  *    30
  *    >>> delete_intp(a)
@@ -113,41 +119,36 @@
 
 %define %pointer_functions(TYPE,NAME)
 %{
-static 
-TYPE *new_##NAME(TYPE value) {
-  TYPE *self;
+static TYPE *new_##NAME() { %}
 #if __cplusplus
-  self = new TYPE();
+%{  return new TYPE(); %}
 #else
-  self = (TYPE *) calloc(1,sizeof(TYPE));
+%{  return (TYPE *) calloc(1,sizeof(TYPE)); %}
 #endif
-  return self;
-}
-static
-void delete_##NAME(TYPE *self) {
+%{}
+
+static void delete_##NAME(TYPE *self) { %}
 #if __cplusplus
-  if (self) {
-    delete self;
-  }
+%{  if (self) delete self; %}
 #else
-  if (self) {
-    free(self);
-  }
+%{  if (self) free(self); %}
 #endif
+%{}
+
+static void NAME ##_assign(TYPE *self, TYPE value) {
+  *self = value;
 }
-static
-void NAME ##_assign(TYPE *self, TYPE value) {
-   *self = value;
- }
-static
-TYPE NAME ##_value(TYPE *self) {
-   return *self;
+
+static TYPE NAME ##_value(TYPE *self) {
+  return *self;
 }
 %}
-TYPE *new_##NAME(TYPE value = 0);
+
+TYPE *new_##NAME();
 void  delete_##NAME(TYPE *self);
 void  NAME##_assign(TYPE *self, TYPE value);
 TYPE  NAME##_value(TYPE *self);
+
 %enddef
 
 /* -----------------------------------------------------------------------------
