@@ -941,7 +941,7 @@ statement      : INCLUDE STRING LBRACE {
 /* Init directive--to avoid errors in other modules */
 
                | INIT ID initlist {
-		 Printf(stderr,"%s : Line %d. Warning. %init directive is deprecated (ignored).\n", input_file,line_number);
+		 Printf(stderr,"%s : Line %d. Warning. %%init directive is deprecated (ignored).\n", input_file,line_number);
 		 for (i = 0; i < $3.count; i++)
 		   if ($3.names[i]) free($3.names[i]);
 		 free($3.names);
