@@ -1,4 +1,5 @@
 %include <std_ios.i>
+%include <std_basic_string.i>
 %include <std_string.i>
 %include <std_wstring.i>
 
