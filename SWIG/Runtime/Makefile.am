@@ -92,6 +92,7 @@ libpy.c: $(SWIG_TYPECHECK) $(PYTHON_RUNTIME)
 GUILE_INCLUDE = @GUILEINCLUDE@
 GUILE_GH_RUNTIME = $(SWIGLIB)/guile/guile_gh_run.swg
 GUILE_SCM_RUNTIME = $(SWIGLIB)/guile/guile_scm_run.swg
+GUILE_SCM_PRECOMMON = $(SWIGLIB)/guile/precommon.swg
 GUILE_DLNK    = $(GUILELINK)
 
 libswigguile_la_SOURCES = libguile_gh.c
@@ -105,8 +106,8 @@ libswigguilescm_la_SOURCES = libguile_scm.c
 libswigguilescm_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
 libswigguilescm_la_CFLAGS = -DSWIG_GLOBAL $(GUILE_INCLUDE)
 
-libguile_scm.c: $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME) > libguile_scm.c
+libguile_scm.c: $(GUILE_SCM_PRECOMMON) $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME)
+	cat $(GUILE_SCM_PRECOMMON) $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME) > libguile_scm.c
 
 # ----------------------------------------------------------------------
 # Ruby run-time library
@@ -160,15 +161,16 @@ libpike.c: $(SWIG_TYPECHECK) $(PIKE_RUNTIME)
 
 CHICKENOPTS     = @CHICKENOPTS@
 CHICKEN_RUNTIME = $(SWIGLIB)/chicken/chickenrun.swg
+CHICKEN_PRECOMMON = $(SWIGLIB)/chicken/precommon.swg
 CHICKEN_DLNK    = @CHICKENSHAREDLIB@
 
 libswigchicken_la_SOURCES = libchicken.c
 libswigchicken_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(CHICKEN_DLNK)
 libswigchicken_la_CFLAGS  = -DSWIG_GLOBAL $(CHICKEN_INCLUDE)
 
-libchicken.c: $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME)
+libchicken.c: $(CHICKEN_PRECOMMON) $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME)
 	echo '#include "chicken.h"' > libchicken.c
-	cat $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME) >> libchicken.c
+	cat $(CHICKEN_PRECOMMON) $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME) >> libchicken.c
 
 
 
@@ -182,7 +184,7 @@ libchicken.c: $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME)
 # MzScheme run-time library
 # ----------------------------------------------------------------------
 
-MZSCHEME_RUNTIME = $(SWIG_TYPECHECK) $(SWIGLIB)/mzscheme/mzrun.swg
+MZSCHEME_RUNTIME = $(SWIGLIB)/mzscheme/precommon.swg $(SWIG_TYPECHECK) $(SWIGLIB)/mzscheme/mzrun.swg
 MZC = @MZC@
 SO = @SO@
 RELEASESUFFIX   = @release_suffix@
