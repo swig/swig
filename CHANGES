@@ -1,6 +1,8 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
 1/13/00 : loic
+	  Added .cvsignore, Examples/.cvsignore, Source/DOH/Doh/.cvsignore 
+	  Source/SWIG1.1/main.cxx: Fixed -I handling bug
 	  Source/Modules1.1/java.cxx: fixed char* -> const char* warnings that are
 	  errors when compiling with gcc-2.95.2
 	  Source/SWIG1.1/main.cxx: cast const char* to char* for String_replace 
