@@ -9,3 +9,7 @@
 
 #define STRING_CONSTANT "xyzzy"
 
+#define ESC_CONST  '\1'
+#define NULL_CONST '\0'
+
+
