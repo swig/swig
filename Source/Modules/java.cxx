@@ -361,7 +361,7 @@ class JAVA : public Language {
       Printf(f_directors, "/* ---------------------------------------------------\n");
       Printf(f_directors, " * C++ director class methods\n");
       Printf(f_directors, " * --------------------------------------------------- */\n\n");
-      Printf(f_directors, "#include \"%s\"\n\n", outfile_h);
+      Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
     }
 
     String *wrapper_name = NewString("");
@@ -1356,9 +1356,9 @@ class JAVA : public Language {
       if (*Char(destructor_call))
         Replaceall(destruct, "$jnicall", destructor_call);
       else
-        Replaceall(destruct, "$jnicall", "");
+        Replaceall(destruct, "$jnicall", "throw new UnsupportedOperationException(\"C++ destructor does not have public access\")");
       if (*Char(destruct))
-        Printv(proxy_class_def, "\n  ", *Char(destructor_call) ? "public": "protected", " void ", destruct_methodname, "() ", destruct, "\n", NIL);
+        Printv(proxy_class_def, "\n  ", "public void ", destruct_methodname, "() ", destruct, "\n", NIL);
     }
     Delete(attributes);
     Delete(destruct);
