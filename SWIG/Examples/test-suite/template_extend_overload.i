@@ -2,7 +2,6 @@
 
 
 %inline %{
-
   template <class T>
     struct A
     {
