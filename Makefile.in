@@ -274,6 +274,8 @@ INSTALL         = @abs_srcdir@/Tools/config/install-sh -c
 INSTALL_DATA    = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL} -m 755
 MKINSTDIRS      = @abs_srcdir@/Tools/config/mkinstalldirs
+M4_SOURCE_DIR   = @abs_srcdir@/Tools/config
+M4_INSTALL_DIR  = @datadir@/aclocal
 
 install: install-main install-lib install-runtime install-m4
 	@echo "Installation complete"
@@ -321,13 +323,11 @@ install-runtime:
 	@cd $(RUNTIME); $(MAKE) install
 
 
-M4_DIR = @datadir@/aclocal
-
 install-m4:
 	@echo "Installing M4 macros"
-	@$(MKINSTDIRS) $(M4_DIR)
-	@echo "Installing $(M4_DIR)/swig.m4"
-	@$(INSTALL_DATA) swig.m4 $(M4_DIR)/swig.m4
+	@$(MKINSTDIRS) $(M4_INSTALL_DIR)
+	@echo "Installing $(M4_INSTALL_DIR)/swig.m4"
+	@$(INSTALL_DATA) $(M4_SOURCE_DIR)/swig.m4 $(M4_INSTALL_DIR)/swig.m4
 
 
 #####################################################################
@@ -349,8 +349,8 @@ uninstall-runtime:
 	@cd $(RUNTIME); $(MAKE) uninstall
 
 uninstall-m4:
-	@echo "Uninstalling $(M4_DIR)/swig.m4"
-	rm -f $(M4_DIR)/swig.m4;
+	@echo "Uninstalling $(M4_INSTALL_DIR)/swig.m4"
+	rm -f $(M4_INSTALL_DIR)/swig.m4;
 
 ############################################################################
 # DIST and other maintenance
