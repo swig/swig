@@ -6,7 +6,7 @@
 %typemap(ctype) bool *,               bool &               "bool *"
 %typemap(ctype)                       char &               "char *"
 %typemap(ctype) signed char *,        signed char &        "signed char *"
-%typemap(ctype) unsigned char *,      unsigned char &      "unsigned short *"
+%typemap(ctype) unsigned char *,      unsigned char &      "unsigned char *"
 %typemap(ctype) short *,              short &              "short *"
 %typemap(ctype) unsigned short *,     unsigned short &     "unsigned short *"
 %typemap(ctype) int *,                int &                "int *"
