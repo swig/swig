@@ -475,10 +475,11 @@ SwigType_find_scope(Typetab *s, String *nameprefix) {
 }
 
 /* ----------------------------------------------------------------------------- 
- * SwigType_typedef_resolve()
+ * typedef_resolve()
  *
  * Resolves a typedef and returns a new type string.  Returns 0 if there is no
  * typedef mapping.  base is a name without qualification.
+ * Internal function.
  * ----------------------------------------------------------------------------- */
 
 static Typetab  *resolved_scope = 0;
@@ -524,6 +525,10 @@ typedef_resolve(Typetab *s, String *base) {
   return type;
 }
 
+/* ----------------------------------------------------------------------------- 
+ * SwigType_typedef_resolve()
+ * ----------------------------------------------------------------------------- */
+
 SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *base;
   String *type = 0;
@@ -555,7 +560,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 
   base = SwigType_base(t);
 
-  /* Printf(stdout,"base = '%s'\n", base); */
+  /* Printf(stdout,"base = '%s' t='%s'\n", base, t); */
 
   if (SwigType_issimple(base)) {
     s = current_scope;
@@ -576,7 +581,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
       if (Swig_scopename_check(base)) {
 	/* A qualified name. */
 	nameprefix = Swig_scopename_prefix(base);
-	/*	Printf(stdout,"nameprefix = '%s'\n", nameprefix);*/
+	/* Printf(stdout,"nameprefix = '%s'\n", nameprefix); */
 	if (nameprefix) {
 	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
 	  s = SwigType_find_scope(s,nameprefix);
@@ -767,6 +772,7 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
   SwigType *n;
   SwigType *r;
 
+  /* Check to see if the typedef resolve has been done before by checking the cache */
   if (!typedef_all_cache) {
     typedef_all_cache = NewHash();
   }
@@ -774,11 +780,15 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
   if (r) {
     return Copy(r);
   }
+
+  /* Recursively resolve the typedef */
   r = NewString(t);
   while ((n = SwigType_typedef_resolve(r))) {
     Delete(r);
     r = n;
   }
+
+  /* Add the typedef to the cache for next time it is looked up */
   {
     String *key;
     SwigType *rr = Copy(r);
@@ -803,7 +813,6 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
   List   *elements;
   String *result;
   int     i,len;
-
   if (!typedef_qualified_cache) typedef_qualified_cache = NewHash();
   result = Getattr(typedef_qualified_cache,t);
   if (result) {
@@ -820,7 +829,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
       if (!SwigType_istemplate(e)) {
 	String *isenum = 0;
 	if (SwigType_isenum(e)) {
-	  isenum = e;
+	  isenum = NewString("enum ");
 	  e = NewString(Char(e)+5);
 	}
 	resolved_scope = 0;
@@ -830,11 +839,6 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	  if (qname) {
 	    Insert(e,0,"::");
 	    Insert(e,0,qname);
-	    if (isenum) {
-	      Clear(isenum);
-	      Printf(isenum, "enum %s", e);
-	      Delete(e);
-	    }
 	  }
 	} else {
 	  if (Swig_scopename_check(e)) {
@@ -855,7 +859,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	    /* It's a bare name.  It's entirely possible, that the
                name is part of a namespace. We'll check this by unrolling
                out of the current scope */
-	    
+	     
 	    Typetab *cs = current_scope;
 	    while (cs) {
 	      String *qs = SwigType_scope_name(cs);
@@ -874,7 +878,10 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	    }
 	  }
 	}
-	if (isenum) e = isenum;
+
+	if (isenum) {
+          Insert(e,0,isenum);
+        }
 
       } else {
 	/* Template.  We need to qualify template parameters as well as the template itself */
@@ -890,7 +897,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	pi = First(parms);
 	while ((p = pi.item)) {
 	  String *qt = SwigType_typedef_qualified(p);
-	  if ((Strcmp(qt,p) == 0)) { /*  && (!Swig_scopename_check(qt))) { */
+	  if ((Strcmp(qt,p) == 0)) { /*  && (!Swig_scopename_check(qt))) */
 	    /* No change in value.  It is entirely possible that the parameter is an integer value.
 	       If there is a symbol table associated with this scope, we're going to check for this */
 
