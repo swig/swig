@@ -1187,34 +1187,66 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   return s;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_typemap_attach_kwargs()
+ *
+ * If this hash (tm) contains a linked list of parameters under its "kwargs"
+ * attribute, add keys for each of those named keyword arguments to this
+ * parameter for later use.
+ * ----------------------------------------------------------------------------- */
+
 static void
 Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p) {
-  char temp[256];
-
+  String *temp = NewString("");
   Parm *kw = Getattr(tm,"kwargs");
   while (kw) {
-    sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,"name")));
-    Setattr(p,tmop_name(temp), Copy(Getattr(kw,"value")));
+    Clear(temp);
+    Printf(temp,"%s:%s",op,Getattr(kw,"name"));
+    Setattr(p,tmop_name(temp),Copy(Getattr(kw,"value")));
     kw = nextSibling(kw);
+  }
+  Delete(temp);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_typemap_warn()
+ *
+ * If any warning message is attached to this parameter's "tmap:op:warning"
+ * attribute, print that warning message.
+ * ----------------------------------------------------------------------------- */
+
+static void
+Swig_typemap_warn(const String_or_char *op, Parm *p) {
+  String *temp = NewStringf("%s:warning",op);
+  String *w = Getattr(p,tmop_name(temp));
+  Delete(temp);
+  if (w) {
+    Swig_warning(0,Getfile(p),Getline(p),"%s\n",w);
   }
 }
 
 static void
-Swig_typemap_warn(const String_or_char *op, Parm *p) {
-  char temp[256];
-  String *w;
-
-  sprintf(temp,"%s:warning", Char(op));
-  w = Getattr(p,tmop_name(temp));
-  if (w) {
-    Swig_warning(0,Getfile(p), Getline(p), "%s\n", w);
+Swig_typemap_emit_code_fragments(const String_or_char *op, Parm *p) {
+  String *temp = NewStringf("%s:fragment",op);
+  String *f = Getattr(p,tmop_name(temp));
+  if (f) {
+    char  *c, *tok;
+    String *t = Copy(f);
+    c = Char(t);
+    tok = strtok(c,",");
+    while (tok) {
+      Swig_fragment_emit(tok);
+      tok = strtok(NULL,",");
+    }
+    Delete(t);
   }
+  Delete(temp);
 }
 
 /* -----------------------------------------------------------------------------
  * Swig_typemap_attach_parms()
  *
- * Given a parmeter list, this function attaches all of the typemaps for a
+ * Given a parameter list, this function attaches all of the typemaps for a
  * given typemap type
  * ----------------------------------------------------------------------------- */
 
@@ -1306,22 +1338,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     Swig_typemap_warn(op,firstp);
 
     /* Look for code fragments */
-    {
-      String *f;
-      sprintf(temp,"%s:fragment", Char(op));
-      f = Getattr(firstp,tmop_name(temp));
-      if (f) {
-	char  *c, *tok;
-	String *t = Copy(f);
-	c = Char(t);
-	tok = strtok(c,",");
-	while (tok) {
-	  Swig_fragment_emit(tok);
-	  tok = strtok(NULL,",");
-	}
-	Delete(t);
-      }
-    }
+    Swig_typemap_emit_code_fragments(op,firstp);
   }
 }
 
