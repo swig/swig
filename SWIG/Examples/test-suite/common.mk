@@ -110,7 +110,9 @@ C_TEST_CASES += \
 	lib_carrays \
 	lib_cdata \
 	lib_cmalloc \
+	lib_constraints \
 	lib_cpointer \
+	lib_math \
 	long_long \
 	macro_2 \
 	name \
