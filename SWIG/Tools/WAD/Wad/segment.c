@@ -13,8 +13,6 @@
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
-#include <procfs.h>
-#include <sys/mman.h>
 
 /* The segment map is actually stored in an mmap'd data structure so we
    can avoid the use of malloc()/free(). */
@@ -24,15 +22,19 @@ static int         segments_size;   /* Size of mmap'd region */
 static int         nsegments = 0;   /* Number of segments    */
 
 /* This function reads the segment map into memory */
+#ifdef WAD_SOLARIS
+
+/* ------------- Solaris Version ------------------ */
+
 static
 void read_segments() {
   int     fd;
   int     dz;
-  prmap_t pmap;
   int     offset = 0;
   int     i;
   int     n = 0;
   WadSegment *s;
+  prmap_t pmap;
 
   /* Try to load the virtual address map */
   fd = open("/proc/self/map", O_RDONLY);
@@ -49,7 +51,7 @@ void read_segments() {
   close(fd);
 
   dz = open("/dev/zero", O_RDWR, 0644);
-  if (fd < 0) {
+  if (dz < 0) {
     puts("Couldn't open /dev/zero\n");
     return;
   }
@@ -82,6 +84,81 @@ void read_segments() {
   }
   close(fd);
 }
+
+#endif
+
+#ifdef WAD_LINUX
+
+/* ------------- Linux Version ------------------ */
+
+static
+void read_segments() {
+  FILE   *f;
+  int     dz;
+  int     offset = 0;
+  int     i;
+  int     n = 0;
+  char    pbuffer[1024];
+  char    *c;
+  WadSegment *s;
+  
+  /* Try to load the virtual address map */
+  f = fopen("/proc/self/maps", "r");
+  if (!f) return;
+  nsegments = 0;
+  while (1) {
+    if (fgets(pbuffer,1024,f) == NULL) break;
+    nsegments++;
+  }
+  nsegments++;
+  fclose(f);
+
+  dz = open("/dev/zero", O_RDWR, 0644);
+  if (dz < 0) {
+    puts("Couldn't open /dev/zero\n");
+    return;
+  }
+  segments = (WadSegment *) mmap(NULL, nsegments*sizeof(WadSegment), PROT_READ | PROT_WRITE, MAP_PRIVATE, dz, 0);
+  close(dz);
+  segments_size = nsegments*sizeof(WadSegment);
+  
+  f = fopen("/proc/self/maps","r");
+  if (!f) return;
+  i = 0;
+  s = segments;
+  while (1) {
+    c = fgets(pbuffer,1024,f);
+    if (!c) break;
+
+    pbuffer[strlen(pbuffer)-1] = 0;   /* Chop off endline */
+
+    /* Break up the field into records */
+    /*    0-8       : Starting address
+          9-17      : Ending Address
+          18        : r
+          19        : w
+          20        : x
+          21        : p
+          23-31     : Offset 
+          49-       : Filename */
+
+    pbuffer[8] = 0;
+    pbuffer[17] = 0;
+    pbuffer[31] = 0;
+    strcpy(s->mapname, pbuffer+49);
+    strcpy(s->mappath, pbuffer+49);
+
+    s->vaddr = (char *) strtoul(pbuffer,NULL,16);
+    s->size = strtoul(pbuffer+9,NULL,16) - (long) (s->vaddr);
+    s->offset = strtoul(pbuffer+23,NULL,16);
+    s->base = s->vaddr;
+    s->flags  = 0;
+    s++;
+  }
+  fclose(f);
+}
+
+#endif
 
 /* -----------------------------------------------------------------------------
  * wad_segment_release()
@@ -133,7 +210,14 @@ wad_segment_find(char *addr) {
  * ----------------------------------------------------------------------------- */
 
 void
-wad_segment_print(WadSegment *s) {
+wad_segment_print() {
+  int i;
+  WadSegment *s;
+  if (!segments) {
+    read_segments();
+  }
+  s = segments;
+  for (i = 0; i < nsegments; i++, s++) {
     printf("Segment %x:::\n",s);
     printf("   mapname    = %s\n", s->mapname);
     printf("   mappath    = %s\n", s->mappath);
@@ -141,4 +225,5 @@ wad_segment_print(WadSegment *s) {
     printf("   size       = %d\n", s->size);
     printf("   offset     = %d\n", s->offset);
     printf("   flags      = 0x%x\n", s->flags);
+  }
 }

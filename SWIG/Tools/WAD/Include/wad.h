@@ -16,6 +16,10 @@
 #include <string.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <sys/mman.h>
+#ifdef WAD_SOLARIS
+#include <procfs.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,7 +41,7 @@ typedef struct WadSegment {
   char           mappath[MAX_PATH];     /* Full path to mapname           */
 } WadSegment;
 
-extern void        wad_segment_print(WadSegment *s);
+extern void        wad_segment_print();
 extern WadSegment *wad_segment_find(char *addr);
 extern void        wad_segment_release();
 
