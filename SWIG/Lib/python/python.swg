@@ -179,7 +179,7 @@
   $1 = ($type) new char[strlen(temp)+1];
   strcpy((char*)$1,temp);
 }
-%typemap(varin,warning="Setting const char * variable may leak memory") const char * {
+%typemap(varin,warning="451:Setting const char * variable may leak memory") const char * {
   char *temp = (char *) PyString_AsString($input);
   if (PyErr_Occurred()) {
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
@@ -199,7 +199,7 @@
   $1 = ($type) malloc(strlen(temp)+1);
   strcpy((char*)$1,temp);
 }
-%typemap(varin,warning="Setting const char * variable may leak memory") const char * {
+%typemap(varin,warning="451:Setting const char * variable may leak memory") const char * {
   char *temp = (char *) PyString_AsString($input);
   if (PyErr_Occurred()) {
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
@@ -363,19 +363,19 @@
 %rename(__call__)     *::operator();
 
 /* Ignored operators */
-%ignorewarn("operator= ignored") operator=;
-%ignorewarn("operator++ ignored") operator++;
-%ignorewarn("operator-- ignored") operator--;
-%ignorewarn("operator&& ignored") operator&&;
-%ignorewarn("operator|| ignored") operator||;
-%ignorewarn("operator-> ignored") operator->;
-%ignorewarn("operator->* ignored") operator->*;
-%ignorewarn("operator[] ignored (consider using %addmethods)") operator[];
+%ignorewarn("362:operator= ignored") operator=;
+%ignorewarn("383:operator++ ignored") operator++;
+%ignorewarn("384:operator-- ignored") operator--;
+%ignorewarn("381:operator&& ignored") operator&&;
+%ignorewarn("382:operator|| ignored") operator||;
+%ignorewarn("387:operator-> ignored") operator->;
+%ignorewarn("386:operator->* ignored") operator->*;
+%ignorewarn("389:operator[] ignored (consider using %extend)") operator[];
 
 #endif
 
 /* Warnings for certain Python keywords */
-#define PYKW(x) %namewarn(#x " is a python keyword")  #x
+#define PYKW(x) %namewarn("314:" #x " is a python keyword")  #x
 
 PYKW(and);
 PYKW(assert);

@@ -137,7 +137,7 @@
 }
 #endif
 
-%typemap(varin,warning="Setting const char * variable may leak memory") const char *
+%typemap(varin,warning="451:Setting const char * variable may leak memory") const char *
 #ifdef __cplusplus
 {
   char *_a = (char *) SvPV(sv,PL_na);

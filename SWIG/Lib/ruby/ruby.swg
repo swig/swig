@@ -155,7 +155,7 @@
   $1 = ($type) new char[strlen(temp)+1];
   strcpy((char*)$1,temp);
 }
-%typemap(varin,warning="Setting const char * variable may leak memory") const char * {
+%typemap(varin,warning="451:Setting const char * variable may leak memory") const char * {
   char *temp = (char *) STR2CSTR($input);
   $1 = ($type) new char[strlen(temp)+1];
   strcpy((char*)$1,temp);
@@ -167,7 +167,7 @@
   $1 = ($type) malloc(strlen(temp)+1);
   strcpy((char*)$1,temp);
 }
-%typemap(varin,warning="Setting const char * variable may leak memory") const char * {
+%typemap(varin,warning="451:Setting const char * variable may leak memory") const char * {
   char *temp = (char *) STR2CSTR($input);
   $1 = ($type) malloc(strlen(temp)+1);
   strcpy((char*)$1,temp);
@@ -325,24 +325,24 @@ typedef unsigned long VALUE;
 %rename(__call__)     *::operator();
 
 /* Ignored operators */
-%ignorewarn("operator!= ignored")  operator!=;
-%ignorewarn("operator+= ignored")  operator+=;
-%ignorewarn("operator-= ignored")  operator-=;
-%ignorewarn("operator*= ignored")  operator*=;
-%ignorewarn("operator/= ignored")  operator/=;
-%ignorewarn("operator%= ignored")  operator%=;
-%ignorewarn("operator<<= ignored") operator<<=;
-%ignorewarn("operator>>= ignored") operator>>=;
-%ignorewarn("operator&= ignored")  operator&=;
-%ignorewarn("operator|= ignored")  operator|=;
-%ignorewarn("operator^= ignored")  operator^=;
-%ignorewarn("operator= ignored")   operator=;
-%ignorewarn("operator++ ignored")  operator++;
-%ignorewarn("operator-- ignored")  operator--;
-%ignorewarn("operator&& ignored")  operator&&;
-%ignorewarn("operator|| ignored")  operator||;
-%ignorewarn("operator-> ignored")  operator->;
-%ignorewarn("operator->* ignored") operator->*;
-%ignorewarn("operator[] ignored (consider using %addmethods)") operator[];
+%ignorewarn("378:operator!= ignored")  operator!=;
+%ignorewarn("365:operator+= ignored")  operator+=;
+%ignorewarn("366:operator-= ignored")  operator-=;
+%ignorewarn("367:operator*= ignored")  operator*=;
+%ignorewarn("368:operator/= ignored")  operator/=;
+%ignorewarn("369:operator%= ignored")  operator%=;
+%ignorewarn("375:operator<<= ignored") operator<<=;
+%ignorewarn("376:operator>>= ignored") operator>>=;
+%ignorewarn("371:operator&= ignored")  operator&=;
+%ignorewarn("372:operator|= ignored")  operator|=;
+%ignorewarn("370:operator^= ignored")  operator^=;
+%ignorewarn("362:operator= ignored")   operator=;
+%ignorewarn("383:operator++ ignored")  operator++;
+%ignorewarn("384:operator-- ignored")  operator--;
+%ignorewarn("381:operator&& ignored")  operator&&;
+%ignorewarn("382:operator|| ignored")  operator||;
+%ignorewarn("387:operator-> ignored")  operator->;
+%ignorewarn("386:operator->* ignored") operator->*;
+%ignorewarn("389:operator[] ignored (consider using %extend)") operator[];
 
 #endif /* __cplusplus */

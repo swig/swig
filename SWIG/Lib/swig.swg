@@ -9,15 +9,15 @@
 
 /* Deprecated SWIG directives */
 
-#define %disabledoc     %echo "$file:$line. Warning: %disabledoc is deprecated"
-#define %enabledoc      %echo "$file:$line. Warning: %enabledoc is deprecated"
-#define %doconly        %echo "$file:$line. Warning: %doconly is deprecated"
-#define %style          %echo "$file:$line. Warning: %style is deprecated" /##/
-#define %localstyle     %echo "$file:$line. Warning: %localstyle is deprecated" /##/
-#define %title          %echo "$file:$line. Warning: %title is deprecated" /##/
-#define %section        %echo "$file:$line. Warning: %section is deprecated" /##/
-#define %subsection     %echo "$file:$line. Warning: %subsection is deprecated" /##/
-#define %subsubsection  %echo "$file:$line. Warning: %subsubsection is deprecated" /##/
+#define %disabledoc     %warn "104:%disabledoc is deprecated"
+#define %enabledoc      %warn "105:%enabledoc is deprecated"
+#define %doconly        %warn "106:%doconly is deprecated"
+#define %style          %warn "107:%style is deprecated" /##/
+#define %localstyle     %warn "108:%localstyle is deprecated" /##/
+#define %title          %warn "109:%title is deprecated" /##/
+#define %section        %warn "110:%section is deprecated" /##/
+#define %subsection     %warn "111:%subsection is deprecated" /##/
+#define %subsubsection  %warn "112:%subsubsection is deprecated" /##/
 #define %text           %insert("null")
 
 /* Code insertion directives such as %wrapper %{ ... %} */
@@ -29,12 +29,12 @@
 
 /* Class extension */
 
-#define %addmethods  %echo "$file:$line. Warning %addmethods is now %extend" %extend
+#define %addmethods  %warn "113:%addmethods is now %extend" %extend
 
 /* Access control directives */
 
-#define %readonly    %echo "$file:$line. Warning. %readonly is deprecated. Use %immutable; " %feature("immutable","1");
-#define %readwrite   %echo "$file:$line. Warning. %readwrite is deprecated. Use %mutable; " %feature("immutable");
+#define %readonly    %warn "114:%readonly is deprecated. Use %immutable; " %feature("immutable","1");
+#define %readwrite   %warn "115:%readwrite is deprecated. Use %mutable; " %feature("immutable");
 
 #define %immutable   %feature("immutable","1")
 #define %mutable     %feature("immutable")
@@ -74,8 +74,8 @@
 /* Default handling of certain overloaded operators */
 
 #ifdef __cplusplus
-%ignorewarn("operator new ignored")     operator new;
-%ignorewarn("operator delete ignored")  operator delete;
+%ignorewarn("350:operator new ignored")     operator new;
+%ignorewarn("351:operator delete ignored")  operator delete;
 #endif
 
 /* Set up the typemap for handling new return strings */
@@ -94,7 +94,7 @@
   $1 = ($1_type) (new char[strlen($input)+1]);
   strcpy((char *) $1,$input);
 }
-%typemap(memberin,warning="Setting const char * member may leak memory.") const char * {
+%typemap(memberin,warning="451:Setting const char * member may leak memory.") const char * {
   $1 = ($1_type) (new char[strlen($input)+1]);
   strcpy((char *) $1,$input);
 }
@@ -103,7 +103,7 @@
   $1 = ($1_type) (new char[strlen($input)+1]);
   strcpy((char *) $1,$input);
 }
-%typemap(globalin,warning="Setting const char * variable may leak memory.") const char * {
+%typemap(globalin,warning="451:Setting const char * variable may leak memory.") const char * {
   $1 = ($1_type) (new char[strlen($input)+1]);
   strcpy((char *) $1,$input);
 }
@@ -113,7 +113,7 @@
   $1 = ($1_type) malloc(strlen($input)+1);
   strcpy((char*)$1,$input);
 }
-%typemap(memberin,warning="Setting const char * member may leak memory.") const char * {
+%typemap(memberin,warning="451:Setting const char * member may leak memory.") const char * {
   $1 = ($1_type) malloc(strlen($input)+1);
   strcpy((char*)$1,$input);
 }
@@ -122,7 +122,7 @@
   $1 = ($1_type) malloc(strlen($input)+1);
   strcpy((char*)$1,$input);
 }
-%typemap(globalin,warning="Setting const char * variable may leak memory.") const char * {
+%typemap(globalin,warning="451:Setting const char * variable may leak memory.") const char * {
   $1 = ($1_type) malloc(strlen($input)+1);
   strcpy((char*)$1,$input);
 }
@@ -141,7 +141,6 @@
   else $1[0] = 0;
 }
 
-//%typemap(ignore,warning="Variable length arguments discarded.") (...) "";
 %typemap(ignore) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
 
 

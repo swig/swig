@@ -213,7 +213,7 @@
 }
 #endif
 
-%typemap(varin,warning="Setting const char * variable may leak memory") const char *
+%typemap(varin,warning="451:Setting const char * variable may leak memory") const char *
 #ifdef __cplusplus
 {
   char  *temp = Tcl_GetStringFromObj($input,NULL);
@@ -299,8 +299,8 @@
 
 // Some special reserved words in classes
 
-%namewarn("cget is a reserved method name") *::cget;
-%namewarn("configure is a reserved method name") *::configure;
+%namewarn("314:cget is a reserved method name") *::cget;
+%namewarn("314:configure is a reserved method name") *::configure;
 
 /* C++ overloaded operators.
 
