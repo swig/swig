@@ -390,15 +390,15 @@ is_a_pointer (SwigType *t)
    But we don't want to change it now since it is deprecated. */
 
 static char *
-guile_typemap_lookup(const char *op, SwigType *type, String_or_char *pname, String_or_char *source,
+guile_typemap_lookup(const char *op, SwigType *type, const String_or_char *pname, String_or_char *source,
 		     String_or_char *target, Wrapper *f)
 {
   char *tm;
-  tm = Swig_typemap_lookup((char*) op, type, pname, source, target, f);
+  tm = Swig_typemap_lookup((char*) op, type, (char*)pname, source, target, f);
   if (!tm) {
     SwigType *base = SwigType_typedef_resolve_all(type);
     if (strncmp(Char(base), "enum ", 5)==0)
-      tm = Swig_typemap_lookup((char*) op, (char*) "int", pname, source, target, f);
+      tm = Swig_typemap_lookup((char*) op, (char*) "int", (char*)pname, source, target, f);
   }
   return tm;
 }
@@ -408,7 +408,7 @@ guile_typemap_lookup(const char *op, SwigType *type, String_or_char *pname, Stri
 
 static int
 guile_do_typemap(DOHFile *file, const char *op,
-		 SwigType *type, String_or_char *arg,
+		 SwigType *type, const String_or_char *arg,
 		 String_or_char *source, String_or_char *target,
 		 int argnum, DOHString *name, Wrapper *f,
 		 int nonewline_p)
@@ -437,7 +437,7 @@ guile_do_typemap(DOHFile *file, const char *op,
 
 static void
 guile_do_doc_typemap(DOHFile *file, const char *op,
-		     SwigType *type, String_or_char *arg,
+		     SwigType *type, const String_or_char *arg,
 		     int argnum, DOHString *name, Wrapper *f)
 {
   if (!guile_do_typemap(file, op, type, arg,
