@@ -6,6 +6,6 @@ structures/classes, arrays of enums and arrays of pointers.
 %typemap(java, memberin) SWIGTYPE [] {
     int i;
     for (i=0; i<$dim0; i++)
-        $target[i] = $source[i];
+        $1[i] = $input[i];
 }
 

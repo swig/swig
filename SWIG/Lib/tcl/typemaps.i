@@ -73,81 +73,81 @@ or you can use the %apply directive :
 
 %typemap(tcl8,in) double *INPUT(double temp)
 {
-  if (Tcl_GetDoubleFromObj(interp,$source,&temp) == TCL_ERROR) {
+  if (Tcl_GetDoubleFromObj(interp,$input,&temp) == TCL_ERROR) {
     return TCL_ERROR;
   }
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(tcl8,in) float *INPUT(double dvalue, float  temp) 
 {
-  if (Tcl_GetDoubleFromObj(interp,$source,&dvalue) == TCL_ERROR) {
+  if (Tcl_GetDoubleFromObj(interp,$input,&dvalue) == TCL_ERROR) {
     return TCL_ERROR;
   }
   temp = (float) dvalue;
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(tcl8,in) int  *INPUT(int temp)
 {
-  if (Tcl_GetIntFromObj(interp,$source,&temp) == TCL_ERROR) {
+  if (Tcl_GetIntFromObj(interp,$input,&temp) == TCL_ERROR) {
     return TCL_ERROR;
   }
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(tcl8,in) short *INPUT(int ivalue, short temp)
 {
-  if (Tcl_GetIntFromObj(interp,$source,&ivalue) == TCL_ERROR) {
+  if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
   }
   temp = (short) ivalue;
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(tcl8,in) long *INPUT(int ivalue, long temp)
 {
-  if (Tcl_GetIntFromObj(interp,$source,&ivalue) == TCL_ERROR) {
+  if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
   }
   temp = (long) ivalue;
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(tcl8,in) unsigned int  *INPUT(int ivalue, unsigned int temp)
 {
-  if (Tcl_GetIntFromObj(interp,$source,&ivalue) == TCL_ERROR) {
+  if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
   }
   temp = (unsigned int) ivalue;
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(tcl8,in) unsigned short *INPUT(int ivalue, unsigned short temp)
 {
-  if (Tcl_GetIntFromObj(interp,$source,&ivalue) == TCL_ERROR) {
+  if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
   }
   temp = (unsigned short) ivalue;
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(tcl8,in) unsigned long *INPUT(int ivalue, unsigned long temp)
 {
-  if (Tcl_GetIntFromObj(interp,$source,&ivalue) == TCL_ERROR) {
+  if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
   }
   temp = (unsigned long) ivalue;
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(tcl8,in) unsigned char *INPUT(int ivalue, unsigned char temp)
 {
-  if (Tcl_GetIntFromObj(interp,$source,&ivalue) == TCL_ERROR) {
+  if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     return TCL_ERROR;
   }
   temp = (unsigned char) ivalue;
-  $target = &temp;
+  $1 = &temp;
 }
   
 // OUTPUT typemaps.   These typemaps are used for parameters that
@@ -209,7 +209,7 @@ output values.
                      float          *OUTPUT(float temp),
                      double         *OUTPUT(double temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(tcl8,argout) int     *OUTPUT,
@@ -221,7 +221,7 @@ output values.
                      unsigned char  *OUTPUT
 {
   Tcl_Obj *o;
-  o = Tcl_NewIntObj((int) *($source));
+  o = Tcl_NewIntObj((int) *($1));
   Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),o);
 }
 
@@ -229,7 +229,7 @@ output values.
                      double   *OUTPUT
 {
   Tcl_Obj *o;
-  o = Tcl_NewDoubleObj((double) *($source));
+  o = Tcl_NewDoubleObj((double) *($1));
   Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),o);
 }
 
@@ -358,13 +358,13 @@ int Tcl_Result
 #endif
 
 %typemap(tcl8,ignore) Tcl_Interp *interp {
-  $target = interp;
+  $1 = interp;
 }
 
 // If return code is a Tcl_Result, simply pass it on
 
 %typemap(tcl8,out) int Tcl_Result {
-  return $source;
+  return $1;
 }
 
 

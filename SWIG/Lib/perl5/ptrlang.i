@@ -412,7 +412,7 @@ void _ptrfree(SV *_PTRVALUE) {
 %}
 
 %typemap(perl5,in) SV *ptr, SV *value {
-  $target = $source;
+  $1 = $input;
 }
 
 
@@ -421,12 +421,8 @@ void _ptrfree(SV *_PTRVALUE) {
                      SV *ptrcreate,
                      SV *ptradd
 {
-  $target = $source;
+  $result = $1;
   argvi++;
-}
-
-%typemap(perl5,ret) int ptrset {
-  if ($source == -1) return NULL;
 }
 
 SV *ptrvalue(SV *ptr, int index = 0, char *type = 0);

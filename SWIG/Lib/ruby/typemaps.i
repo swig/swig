@@ -75,58 +75,58 @@ or you can use the %apply directive :
 
 %typemap(ruby,in) double *INPUT(double temp)
 {
-  temp = NUM2DBL($source);
-  $target = &temp;
+  temp = NUM2DBL($input);
+  $1 = &temp;
 }
 
 %typemap(ruby,in) float  *INPUT(float temp)
 {
-  temp = (float) NUM2DBL($source);
-  $target = &temp;
+  temp = (float) NUM2DBL($input);
+  $1 = &temp;
 }
 
 %typemap(ruby,in) int            *INPUT(int temp)
 {
-  temp = NUM2INT($source);
-  $target = &temp;
+  temp = NUM2INT($input);
+  $1 = &temp;
 }
 
 %typemap(ruby,in) short          *INPUT(short temp)
 {
-  temp = NUM2SHRT($source);
-  $target = &temp;
+  temp = NUM2SHRT($input);
+  $1 = &temp;
 }
 
 %typemap(ruby,in) long           *INPUT(long temp)
 {
-  temp = NUM2LONG($source);
-  $target = &temp;
+  temp = NUM2LONG($input);
+  $1 = &temp;
 }
 %typemap(ruby,in) unsigned int   *INPUT(unsigned int temp)
 {
-  temp = NUM2UINT($source);
-  $target = &temp;
+  temp = NUM2UINT($input);
+  $1 = &temp;
 }
 %typemap(ruby,in) unsigned short *INPUT(unsigned short temp)
 {
-  temp = NUM2USHRT($source);
-  $target = &temp;
+  temp = NUM2USHRT($input);
+  $1 = &temp;
 }
 %typemap(ruby,in) unsigned long  *INPUT(unsigned long temp)
 {
-  temp = NUM2ULONG($source);
-  $target = &temp;
+  temp = NUM2ULONG($input);
+  $1 = &temp;
 }
 %typemap(ruby,in) unsigned char  *INPUT(unsigned char temp)
 {
-  temp = (unsigned char)NUM2UINT($source);
-  $target = &temp;
+  temp = (unsigned char)NUM2UINT($input);
+  $1 = &temp;
 }
 
 %typemap(ruby,in) signed char  *INPUT(signed char temp)
 {
-  temp = (signed char)NUM2INT($source);
-  $target = &temp;
+  temp = (signed char)NUM2INT($input);
+  $1 = &temp;
 }
                  
 // OUTPUT typemaps.   These typemaps are used for parameters that
@@ -205,7 +205,7 @@ static VALUE output_helper(VALUE target, VALUE o) {
                       float          *OUTPUT(float temp),
                       double         *OUTPUT(double temp)
 {
-    $target = &temp;
+    $1 = &temp;
 }
 
 %typemap(ruby,argout) int            *OUTPUT,
@@ -213,7 +213,7 @@ static VALUE output_helper(VALUE target, VALUE o) {
                       long           *OUTPUT,
                       signed char    *OUTPUT
 {
-    $target = output_helper($target, INT2NUM(*$source));
+    $result = output_helper($result, INT2NUM(*$1));
 }
 
 %typemap(ruby,argout) unsigned int   *OUTPUT,
@@ -221,13 +221,13 @@ static VALUE output_helper(VALUE target, VALUE o) {
                       unsigned long  *OUTPUT,
                       unsigned char  *OUTPUT
 {
-    $target = output_helper($target, UINT2NUM(*$source));
+    $result = output_helper($result, UINT2NUM(*$1));
 }
 
 %typemap(ruby,argout) float    *OUTPUT,
                       double   *OUTPUT
 {
-    $target = output_helper($target, rb_float_new(*$source));
+    $result = output_helper($result, rb_float_new(*$1));
 }
 
 // INOUT
@@ -343,11 +343,11 @@ You can use the %apply directive :
 
 %typemap(ruby,ignore) User **OUTPUT(void *temp)
 {
-  $target = ($type)&temp;
+  $1 = ($type)&temp;
 }
 %typemap(ruby,argout) User **OUTPUT
 {
-  $target = output_helper($target, Wrap_$basetype(*$source));
+  $result = output_helper($result, Wrap_$basetype(*$1));
 }
 
 
@@ -395,69 +395,69 @@ struct timeval rb_time_timeval(VALUE);
 
 %typemap(ruby,in) struct timeval *INPUT (struct timeval temp)
 {
-    if (NIL_P($source))
-	$target = NULL;
+    if (NIL_P($input))
+	$1 = NULL;
     else {
-	temp = rb_time_timeval($source);
-	$target = &temp;
+	temp = rb_time_timeval($input);
+	$1 = &temp;
     }
 }
 
 %typemap(ruby,ignore) struct timeval *OUTPUT(struct timeval temp)
 {
-    $target = &temp;
+    $1 = &temp;
 }
 
 %typemap(ruby,argout) struct timeval *OUTPUT
 {
-    $target = rb_time_new($source->tv_sec, $source->tv_usec);
+    $result = rb_time_new($1->tv_sec, $1->tv_usec);
 }
 
 %typemap(ruby,out) struct timeval *
 {
-    $target = rb_time_new($source->tv_sec, $source->tv_usec);
+    $result = rb_time_new($1->tv_sec, $1->tv_usec);
 }
 
 %typemap(ruby,out) struct timespec *
 {
-    $target = rb_time_new($source->tv_sec, $source->tv_nsec / 1000);
+    $result = rb_time_new($1->tv_sec, $1->tv_nsec / 1000);
 }
 
 // time_t
 %typemap(ruby,in) time_t
 {
-    if (NIL_P($source))
-	$target = (time_t)-1;
+    if (NIL_P($input))
+	$1 = (time_t)-1;
     else
-	$target = NUM2LONG(rb_funcall($source, rb_intern("tv_sec"), 0));
+	$1 = NUM2LONG(rb_funcall($input, rb_intern("tv_sec"), 0));
 }
 
 %typemap(ruby,out) time_t
 {
-    $target = rb_time_new($source, 0);
+    $result = rb_time_new($1, 0);
 }
 
 // argc and argv
 %typemap(ruby,ignore) int PROG_ARGC {
-    $target = RARRAY(rb_argv)->len + 1;
+    $1 = RARRAY(rb_argv)->len + 1;
 }
 
 %typemap(ruby,ignore) char **PROG_ARGV {
     int i, n;
     VALUE ary = rb_eval_string("[$0] + ARGV");
     n = RARRAY(ary)->len;
-    $target = (char **)malloc(n + 1);
+    $1 = (char **)malloc(n + 1);
     for (i = 0; i < n; i++) {
 	VALUE v = rb_obj_as_string(RARRAY(ary)->ptr[i]);
-	$target[i] = (char *)malloc(RSTRING(v)->len + 1);
-	strcpy($target[i], RSTRING(v)->ptr);
+	$1[i] = (char *)malloc(RSTRING(v)->len + 1);
+	strcpy($1[i], RSTRING(v)->ptr);
     }
 }
 
 %typemap(ruby,freearg) char **PROG_ARGV {
     int i, n = RARRAY(rb_argv)->len + 1;
-    for (i = 0; i < n; i++) free($source[i]);
-    free($source);
+    for (i = 0; i < n; i++) free($1[i]);
+    free($1);
 }
 
 // FILE *
@@ -472,20 +472,20 @@ extern "C" {
 %}
 %typemap(ruby,in) FILE *READ {
     OpenFile *of;
-    GetOpenFile($source, of);
+    GetOpenFile($input, of);
     rb_io_check_readable(of);
-    $target = GetReadFile(of);
-    rb_read_check($target);
+    $1 = GetReadFile(of);
+    rb_read_check($1);
 }
 %typemap(ruby,in) FILE *READ_NOCHECK {
     OpenFile *of;
-    GetOpenFile($source, of);
+    GetOpenFile($input, of);
     rb_io_check_readable(of);
-    $target = GetReadFile(of);
+    $1 = GetReadFile(of);
 }
 %typemap(ruby,in) FILE *WRITE {
     OpenFile *of;
-    GetOpenFile($source, of);
+    GetOpenFile($input, of);
     rb_io_check_writable(of);
-    $target = GetWriteFile(of);
+    $1 = GetWriteFile(of);
 }

@@ -401,11 +401,11 @@ int ptrfree(Tcl_Interp *interp, char *ptrvalue) {
                   int ptradd,
                   int ptrfree  
 {
-  return $source;
+  return $1;
 }
 
 %typemap(tcl8,ignore) Tcl_Interp * {
-  $target = interp;
+  $1 = interp;
 }
 
 int ptrvalue(Tcl_Interp *interp, char *ptr, int index = 0, const char *type = 0);

@@ -370,7 +370,7 @@ PyObject *ptrfree(PyObject *_PTRVALUE) {
 
 %}
 %typemap(python,in) PyObject *ptr, PyObject *value {
-  $target = $source;
+  $1 = $input;
 }
 
 %typemap(python,out) PyObject *ptrcast,
@@ -380,11 +380,7 @@ PyObject *ptrfree(PyObject *_PTRVALUE) {
                      PyObject *ptradd,
                      PyObject *ptrfree  
 {
-  $target = $source;
-}
-
-%typemap(python,ret) int ptrset {
-  if ($source == -1) return NULL;
+  $result = $1;
 }
 
 PyObject *ptrvalue(PyObject *ptr, int index = 0, char *type = 0);

@@ -367,7 +367,7 @@ VALUE ptrfree(VALUE _PTRVALUE) {
 
 %}
 %typemap(ruby,in) VALUE ptr, VALUE value {
-  $target = $source;
+  $1 = $input;
 }
 
 %typemap(ruby,out) VALUE ptrcast,
@@ -377,11 +377,7 @@ VALUE ptrfree(VALUE _PTRVALUE) {
                      VALUE ptradd,
                      VALUE ptrfree  
 {
-  $target = $source;
-}
-
-%typemap(ruby,ret) int ptrset {
-  if ($source == -1) return Qnil;
+  $result = $1;
 }
 
 VALUE ptrvalue(VALUE ptr, int index = 0, char *type = 0);

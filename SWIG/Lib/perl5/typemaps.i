@@ -76,52 +76,52 @@ or you can use the %apply directive :
 
 %typemap(perl5,in) double *INPUT(double temp)
 {
-  temp = (double) SvNV($source);
-  $target = &temp;
+  temp = (double) SvNV($input);
+  $1 = &temp;
 }
 
 %typemap(perl5,in) float  *INPUT(float temp)
 {
-  temp = (float) SvNV($source);
-  $target = &temp;
+  temp = (float) SvNV($input);
+  $1 = &temp;
 }
 
 %typemap(perl5,in) int            *INPUT(int temp)
 {
-  temp = (int) SvIV($source);
-  $target = &temp;
+  temp = (int) SvIV($input);
+  $1 = &temp;
 }
 
 %typemap(perl5,in) short          *INPUT(short temp)
 {
-  temp = (short) SvIV($source);
-  $target = &temp;
+  temp = (short) SvIV($input);
+  $1 = &temp;
 }
 
 %typemap(perl5,in) long           *INPUT(long temp)
 {
-  temp = (long) SvIV($source);
-  $target = &temp;
+  temp = (long) SvIV($input);
+  $1 = &temp;
 }
 %typemap(perl5,in) unsigned int   *INPUT(unsigned int temp)
 {
-  temp = (unsigned int) SvIV($source);
-  $target = &temp;
+  temp = (unsigned int) SvIV($input);
+  $1 = &temp;
 }
 %typemap(perl5,in) unsigned short *INPUT(unsigned short temp)
 {
-  temp = (unsigned short) SvIV($source);
-  $target = &temp;
+  temp = (unsigned short) SvIV($input);
+  $1 = &temp;
 }
 %typemap(perl5,in) unsigned long  *INPUT(unsigned long temp)
 {
-  temp = (unsigned long) SvIV($source);
-  $target = &temp;
+  temp = (unsigned long) SvIV($input);
+  $1 = &temp;
 }
 %typemap(perl5,in) unsigned char  *INPUT(unsigned char temp)
 {
-  temp = (unsigned char) SvIV($source);
-  $target = &temp;
+  temp = (unsigned char) SvIV($input);
+  $1 = &temp;
 }
                  
 // OUTPUT typemaps.   These typemaps are used for parameters that
@@ -184,7 +184,7 @@ output values.
                        float          *OUTPUT(float temp),
                        double         *OUTPUT(double temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(perl5,argout) int            *OUTPUT,
@@ -198,8 +198,8 @@ output values.
   if (argvi >= items) {
     EXTEND(sp,1);
   }
-  $target = sv_newmortal();
-  sv_setiv($target,(IV) *($source));
+  $result = sv_newmortal();
+  sv_setiv($result,(IV) *($1));
   argvi++;
 }
 
@@ -209,8 +209,8 @@ output values.
   if (argvi >= items) {
     EXTEND(sp,1);
   }
-  $target = sv_newmortal();
-  sv_setnv($target,(double) *($source));
+  $result = sv_newmortal();
+  sv_setnv($result,(double) *($1));
   argvi++;
 }
 
@@ -351,110 +351,110 @@ as follows :
 %typemap(perl5,in) double *REFERENCE (double dvalue)
 {
   SV *tempsv;
-  if (!SvROK($source)) {
+  if (!SvROK($input)) {
     croak("expected a reference");
   }
-  tempsv = SvRV($source);
+  tempsv = SvRV($input);
   if ((!SvNOK(tempsv)) && (!SvIOK(tempsv))) {
 	printf("Received %d\n", SvTYPE(tempsv));
 	croak("Expected a double reference.");
   }
   dvalue = SvNV(tempsv);
-  $target = &dvalue;
+  $1 = &dvalue;
 }
 
 %typemap(perl5,in) float *REFERENCE (float dvalue)
 {
   SV *tempsv;
-  if (!SvROK($source)) {
+  if (!SvROK($input)) {
     croak("expected a reference");
   }
-  tempsv = SvRV($source);
+  tempsv = SvRV($input);
   if ((!SvNOK(tempsv)) && (!SvIOK(tempsv))) {
     croak("expected a double reference");
   }
   dvalue = (float) SvNV(tempsv);
-  $target = &dvalue;
+  $1 = &dvalue;
 }
 
 %typemap(perl5,in) int *REFERENCE (int dvalue)
 {
   SV *tempsv;
-  if (!SvROK($source)) {
+  if (!SvROK($input)) {
     croak("expected a reference");
   }
-  tempsv = SvRV($source);
+  tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
     croak("expected a integer reference");
   }
   dvalue = SvIV(tempsv);
-  $target = &dvalue;
+  $1 = &dvalue;
 }
 
 %typemap(perl5,in) short *REFERENCE (short dvalue)
 {
   SV *tempsv;
-  if (!SvROK($source)) {
+  if (!SvROK($input)) {
     croak("expected a reference");
   }
-  tempsv = SvRV($source);
+  tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
     croak("expected a integer reference");
   }
   dvalue = (short) SvIV(tempsv);
-  $target = &dvalue;
+  $1 = &dvalue;
 }
 %typemap(perl5,in) long *REFERENCE (long dvalue)
 {
   SV *tempsv;
-  if (!SvROK($source)) {
+  if (!SvROK($input)) {
     croak("expected a reference");
   }
-  tempsv = SvRV($source);
+  tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
     croak("expected a integer reference");
   }
   dvalue = (long) SvIV(tempsv);
-  $target = &dvalue;
+  $1 = &dvalue;
 }
 %typemap(perl5,in) unsigned int *REFERENCE (unsigned int dvalue)
 {
   SV *tempsv;
-  if (!SvROK($source)) {
+  if (!SvROK($input)) {
     croak("expected a reference");
   }
-  tempsv = SvRV($source);
+  tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
     croak("expected a integer reference");
   }
   dvalue = (unsigned int) SvIV(tempsv);
-  $target = &dvalue;
+  $1 = &dvalue;
 }
 %typemap(perl5,in) unsigned short *REFERENCE (unsigned short dvalue)
 {
   SV *tempsv;
-  if (!SvROK($source)) {
+  if (!SvROK($input)) {
     croak("expected a reference");
   }
-  tempsv = SvRV($source);
+  tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
     croak("expected a integer reference");
   }
   dvalue = (unsigned short) SvIV(tempsv);
-  $target = &dvalue;
+  $1 = &dvalue;
 }
 %typemap(perl5,in) unsigned long *REFERENCE (unsigned long dvalue)
 {
   SV *tempsv;
-  if (!SvROK($source)) {
+  if (!SvROK($input)) {
     croak("expected a reference");
   }
-  tempsv = SvRV($source);
+  tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
     croak("expected a integer reference");
   }
   dvalue = (unsigned long) SvIV(tempsv);
-  $target = &dvalue;
+  $1 = &dvalue;
 }
 
 %typemap(perl5,argout) double *REFERENCE,
@@ -462,7 +462,7 @@ as follows :
 {
   SV *tempsv;
   tempsv = SvRV($arg);
-  sv_setnv(tempsv, (double) *$source);
+  sv_setnv(tempsv, (double) *$1);
 }
 
 %typemap(perl5,argout) int            *REFERENCE,
@@ -474,7 +474,7 @@ as follows :
 {
   SV *tempsv;
   tempsv = SvRV($arg);
-  sv_setiv(tempsv, (int) *$source);
+  sv_setiv(tempsv, (int) *$1);
 }
 
 // --------------------------------------------------------------------

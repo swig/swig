@@ -122,7 +122,7 @@
 #endif
 
 /* Special typemap for character array returns */
-%typemap(out) char [ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($source,-1));"
+%typemap(out) char [ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($1,-1));"
 
 
 /* --- Variable output --- */
