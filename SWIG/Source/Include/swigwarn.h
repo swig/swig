@@ -139,6 +139,7 @@
 /* -- Language module specific warnings (800 - 999) -- */
 
 #define WARN_RUBY_WRONG_NAME            801
+#define WARN_RUBY_MULTIPLE_INHERITANCE  802
 
 #define WARN_JAVA_TYPEMAP_JNI_UNDEF     810
 #define WARN_JAVA_TYPEMAP_JTYPE_UNDEF   811

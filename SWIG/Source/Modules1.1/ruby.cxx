@@ -1023,42 +1023,45 @@ RUBY::classHandler(Node *n) {
   List *baselist = Getattr(n,"bases");
   if (baselist && Len(baselist)) {
     Node *base = Firstitem(baselist);
+    char *basename = Char(Getattr(base,"name"));
+    if (SwigType_istemplate(basename)) {
+      basename = Char(SwigType_namestr(basename));
+    }
+    RClass *super = RCLASS(classes, basename);
+    if (super) {
+
+      /* [DB] This code is experimental.   Rather than creating a link-dependency to the
+         base class, you can actually obtain the base class through the SWIG run-time 
+         type checker.  This is because proxy classes register a data structure using
+         SWIG_TypeClientdata().  
+
+         Caveat: This only works if base classes are defined before derived classes.
+         Unlikely to be a problem since I don't think the Ruby module would work
+         otherwise.
+
+      */
+
+      SwigType *btype = NewString(basename);
+      SwigType_add_pointer(btype);
+      SwigType_remember(btype);
+      String   *bmangle = SwigType_manglestr(btype);
+      Insert(bmangle,0,"((swig_class *) SWIGTYPE");
+      Append(bmangle,"->clientdata)->klass");
+      Replaceall(klass->init,"$super", bmangle);
+      Delete(btype);
+      Delete(bmangle);
+
+      /* [DB] Old code 
+      Printv(f_wrappers,"extern swig_class c", super->name, ";\n", NULL);
+      Replaceall(klass->init,"$super",super->vname);
+      */
+    }
+    
+    /* Warn about multiple inheritance if additional base class(es) listed */
+    base = Nextitem(baselist);
     while (base) {
-      char *basename = Char(Getattr(base,"name"));
-      if (SwigType_istemplate(basename)) {
-        basename = Char(SwigType_namestr(basename));
-      }
-      RClass *super = RCLASS(classes, basename);
-      if (super) {
-
-	/* [DB] This code is experimental.   Rather than creating a link-dependency to the
-           base class, you can actually obtain the base class through the SWIG run-time 
-           type checker.  This is because proxy classes register a data structure using
-           SWIG_TypeClientdata().  
-          
-           Caveat: This only works if base classes are defined before derived classes.
-           Unlikely to be a problem since I don't think the Ruby module would work
-           otherwise.
-
-        */
-
-	SwigType *btype = NewString(basename);
-	SwigType_add_pointer(btype);
-	SwigType_remember(btype);
-	String   *bmangle = SwigType_manglestr(btype);
-	Insert(bmangle,0,"((swig_class *) SWIGTYPE");
-	Append(bmangle,"->clientdata)->klass");
-	Replaceall(klass->init,"$super", bmangle);
-	Delete(btype);
-	Delete(bmangle);
-
-	/* [DB] Old code 
-        Printv(f_wrappers,"extern swig_class c", super->name, ";\n", NULL);
-	Replaceall(klass->init,"$super",super->vname);
-	*/
-
-	break;
-      }
+      Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, input_file, line_number, 
+        "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", Getattr(n,"name"), Getattr(base,"name"));
       base = Nextitem(baselist);
     }
   }
