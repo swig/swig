@@ -33,9 +33,9 @@
         jstring j_string = (jstring)JCALL2(GetObjectArrayElement, jenv, $input, i);
         const char *c_string = JCALL2(GetStringUTFChars, jenv, j_string, 0);
 #ifdef __cplusplus
-        $1[i] = new char [strlen((c_string)+1)];
+        $1[i] = new char [strlen(c_string)+1];
 #else
-        $1[i] = (char *)calloc(strlen((c_string)+1), sizeof(const char *));
+        $1[i] = (char *)calloc(strlen(c_string)+1, sizeof(const char *));
 #endif
         strcpy($1[i], c_string);
         JCALL2(ReleaseStringUTFChars, jenv, j_string, c_string);
