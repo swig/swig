@@ -173,6 +173,7 @@ CPP_TEST_CASES += \
 	namespace_typemap \
 	namespace_virtual_method \
 	newobject1 \
+	ordering \
 	overload_copy \
 	overload_extend \
 	overload_rename \
@@ -279,6 +280,7 @@ CPP_TEST_CASES += \
 	typemap_namespace \
 	typemap_ns_using \
 	typemap_numinputs \
+	typemap_variables \
 	typename \
 	union_scope \
 	using1 \
