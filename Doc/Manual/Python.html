@@ -1933,26 +1933,298 @@ implementations lower in the inheritance chain. The upshot is that C++
 classes can be extended in Python and from C++ these extensions look
 exactly like native C++ classes. Neither C++ code nor Python code needs
 to know where a particular method is implemented: the combination of
-proxy classes, director classes, and c wrapper functions takes care of
+proxy classes, director classes, and C wrapper functions takes care of
 all the cross-language method routing transparently.
 
-<a name="n33"></a><H3>19.5.1 Command line options</H3>
+<a name="n33"></a><H3>19.5.1 Enabling directors</H3>
 
+The director feature is disabled by default.  To use directors you
+must make two changes to the interface file.  First, add the "directors"
+option to the %module directive, like this:
+
+<blockquote>
+<pre>
+%module(directors="1") modulename
+</pre>
+</blockquote>
+
+Without this option no director code will be generated.  Second, you
+must use the %feature("director") directive to tell SWIG which classes 
+and methods should get directors.  The %feature directive can be applied 
+globally, to specific classes, and to specific methods, like this:
+
+<blockquote>
+<pre> 
+// generate directors for all classes that have virtual methods
+%feature("director");         
+
+// genarate directors for all virtual methods in class Foo
+%feature("director") Foo;      
+
+// generate a director for just Foo::bar()
+%feature("director") Foo::bar; 
+</pre>
+</blockquote>
+
+You can use the %feature("nodirector") directive to turn off
+directors for specific classes or methods.  So for example,
+
+<blockquote>
+<pre>
+%feature("director") Foo;
+%feature("nodirector") Foo::bar;
+</pre>
+</blockquote>
+
+will generate directors for all virtual methods of class Foo except
+bar().  
+<p>
+
+Directors can also be generated implicitly through inheritance. 
+In the following, class Bar will get a director class that handles
+the methods one() and two() (but not three()):
+
+<blockquote>
+<pre>
+%feature("director") Foo;
+class Foo {
+public:
+    virtual void one();
+    virtual void two();
+};
+
+class Bar: public Foo {
+public:
+    virtual void three();
+};
+</pre>
+</blockquote>
 
 <a name="n34"></a><H3>19.5.2 Director classes</H3>
 
+For each class that has directors enabled, SWIG generates a new class
+that derives from both the class in question and a special
+<tt>__DIRECTOR__</tt> class. These new classes, referred to as director
+classes, can be loosely thought of as the C++ equivalent of the Python
+proxy classes. The director classes store a pointer to their underlying
+Python object and handle various issues related to object ownership.
+Indeed, this is quite similar to the "this" and "thisown" members of the
+Python proxy classes.
+<p>
+
+For simplicity let's ignore the <tt>__DIRECTOR__</tt> class and refer to the
+original C++ class as the director's base class. By default, a director
+class extends all virtual methods in the inheritance chain of its base
+class (see the preceeding section for how to modify this behavior).
+Thus all virtual method calls, whether they originate in C++ or in
+Python via proxy classes, eventually end up in at the implementation in
+the director class. The job of the director methods is to route these
+method calls to the appropriate place in the inheritance chain. By
+"appropriate place" we mean the method that would have been called if
+the C++ base class and its extensions in Python were seemlessly
+integrated. That seemless integration is exactly what the director
+classes provide, transparently skipping over all the messy extension API
+glue that binds the two languages together.
+<p>
+
+In reality, the "appropriate place" is one of only two possibilities:
+C++ or Python. Once this decision is made, the rest is fairly easy. If
+the correct implementation is in C++, then the lowest implementation of
+the method in the C++ inheritance chain is called explicitly. If the
+correct implementation is in Python, the Python API is used to call the
+method of the underlying Python object (after which the usual virtual
+method resolution in Python automatically finds the right
+implementation).
+<p>
+
+Now how does the director decide which language handle the method call?
+The basic rule is to handle the method in Python, unless there's a good
+reason not to. The reason for this is simple: Python has the most
+"extended" implementation of the method. This assertion is guaranteed,
+since at a minimum the Python proxy class implements the method. If the
+method in question has been extended by a class derived from the proxy
+class, that extended implementation will execute exactly as it should.
+If not, the proxy class will route the method call into a C wrapper
+function, expecting that the method will be resolved in C++. The wrapper
+will call the virtual method of the C++ instance, and since the director
+extends this the call will end up right back in the director method. Now
+comes the "good reason not to" part. If the director method blindly
+calls the Python method again, it will create an infinite loop. The way
+that the director method knows not to do this is that the C wrapper
+function tells it. What the C wrapper function does is it compares the
+pointer to the Python object that called the wrapper function to the
+pointer stored by the director. If these are the same, then the C
+wrapper function tells the director to resolve the method by calling up
+the C++ inheritance chain, preventing an infinite loop.
+<p>
+
+One more point needs to be made about the relationship between director
+classes and proxy classe. When a proxy class instance is created in
+Python, SWIG creates an instance of the original C++ class and assigns
+it to <tt>.this</tt>. This is exactly what happens without directors and
+is true even if directors are enabled for the particular class in
+question. When a class <i>derived</i> from a proxy class is created,
+however, SWIG then creates an instance of the corresponding C++ director
+class. The reason for this difference is that user-defined subclasses
+may override or extend methods of the original class, so the director
+class is needed to route calls to these methods correctly. For
+unmodified proxy classes, all methods are ultimately implemented in C++
+so there is no need for the extra overhead involved with routing the
+calls through Python.
 
 <a name="n35"></a><H3>19.5.3 Ownership and object destruction</H3>
 
+Memory management issues are slightly more complicated with directors
+than for proxy classes alone. Python instances hold a pointer to the
+associated C++ director object, and the director in turn holds a pointer
+back to the Python object. By default, proxy classes own their C++
+director object and take care of deleting it when they are garbage
+collected.
+<p>
+
+This relationship can be reversed by calling the special
+<tt>__disown__()</tt> method of the proxy class. After calling this
+method, the <tt>.thisown</tt> flag is set to zero, and the director
+class increments the reference count of the Python object. When the
+director class is deleted it decrements the reference count. Assuming no
+outstanding references to the Python object remain, the Python object
+will be destroyed at the same time. This is a good thing, since
+directors and proxies refer to each other and so must be created and
+destroyed together. Destroying one without destroying the other will
+likely cause your program to segfault.
+<p>
+
+To help ensure that no references to the Python object remain after
+calling <tt>__disown__()</tt>, this method returns a weak reference to
+the Python object. Weak references are only available in Python versions
+2.1 and higher, so for older versions you must exclicitly delete all
+references. Here is an example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    ...
+};
+class FooContainer {
+public:
+    void addFoo(Foo *);
+    ...
+};
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+>>> c = FooContainer()
+>>> a = Foo().__disown()__
+>>> c.addFoo(a)
+>>> b = Foo()
+>>> b = b.__disown()__
+>>> c.addFoo(b)
+>>> c.addFoo(Foo().__disown()__)
+</pre>
+</blockquote>
+
+In this example, we are assuming that FooContainer will take care of
+deleting all the Foo pointers it contains at some point.  Note that no hard
+references to the Foo objects remain in Python.
+<p>
 
 <a name="n36"></a><H3>19.5.4 Exception unrolling</H3>
 
+With directors routing method calls to Python, and proxies routing them
+to C++, the handling of exceptions is an important concern. By default, the
+directors ignore exceptions that occur during method calls that are
+resolved in Python. To handle such exceptions correctly, it is necessary
+to temporarily translate them into C++ exceptions. This can be done with
+the %feature("director:except") directive. The following code should
+suffice in most cases:
+
+<blockquote>
+<pre>
+%feature("director:except") {
+    if ($error != NULL) {
+        throw SWIG_DIRECTOR_METHOD_EXCEPTION();
+    }
+}
+</pre>
+</blockquote>
+
+This code will check the Python error state after each method call from
+a director into Python, and throw a C++ exception if an error occured.
+This exception can be caught in C++ to implement an error handler.
+Currently no information about the Python error is stored in the
+SWIG_DIRECTOR_METHOD_EXCEPTION object, but this will likely change in
+the future.
+<p>
+
+It may be the case that a method call originates in Python, travels up
+to C++ through a proxy class, and then back into Python via a director
+method. If an exception occurs in Python at this point, it would be nice
+for that exception to find its way back to the original caller. This can
+be done by combining a normal %exception directive with the
+<tt>director:except</tt> handler shown above. Here is an example of a
+suitable exception handler:
+
+<blockquote>
+<pre>
+%exception {
+    try { $action }
+    catch (SWIG_DIRECTOR_EXCEPTION &e) { SWIG_fail; }
+}
+</pre>
+</blockquote>
+
+The class SWIG_DIRECTOR_EXCEPTION used in this example is actually a
+base class of SWIG_DIRECTOR_METHOD_EXCEPTION, so it will trap this
+exception. Because the Python error state is still set when
+SWIG_DIRECTOR_METHOD_EXCEPTION is thrown, Python will register the
+exception as soon as the C wrapper function returns.
 
 <a name="n37"></a><H3>19.5.5 Overhead and code bloat</H3>
 
+Enabling directors for a class will generate a new director method for
+every virtual method in the class' inheritance chain. This alone can
+generate a lot of code bloat for large hierarchies. Method arguments
+that require complex conversions to and from target language types can
+result in large director methods. For this reason it is recommended that
+you selectively enable directors only for specific classes that are
+likely to be extended in Python and used in C++.
+<p>
+
+Compared to classes that do not use directors, the call routing in the
+director methods does add some overhead. In particular, at least one
+dynamic cast and one extra function call occur per method call from
+Python. Relative to the speed of Python execution this is probably
+completely negligible. For worst case routing, a method call that
+ultimately resolves in C++ may take one extra detour through Python in
+order to ensure that the method does not have an extended Python
+implementation. This could result in a noticible overhead in some cases.
+<p>
+
+Although directors make it natural to mix native C++ objects with Python
+objects (as director objects) via a common base class pointer, one
+should be aware of the obvious fact that method calls to Python objects
+will be much slower than calls to C++ objects. This situation can be
+optimized by selectively enabling director methods (using the %feature
+directive) for only those methods that are likely to be extended in
+Python.
 
 <a name="n38"></a><H3>19.5.6 Typemaps</H3>
 
+Typemaps for input and output of most of the basic types from director
+classes have been written. These are roughly the reverse of the usual
+input and output typemaps used by the wrapper code. The typemap
+operation names are 'inv', 'outv', and 'argoutv'. The director code does
+not use any of the other kinds of typemaps yet. It is not clear at this
+point which kinds are appropriate and need to be supported. 
+<p>
+
+Typemaps for STL classes are under construction. So far there is support
+for std::string, std::vector, and std::complex, although there's no
+guarantee these are fully functional yet. 
+<p>
 
 <a name="n39"></a><H3>19.5.7 Miscellaneous</H3>
 
