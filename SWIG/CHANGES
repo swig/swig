@@ -17,6 +17,35 @@ tree (maybe).
 Version 1.3.12 (In Progress)
 ============================
 
+03/16/2002: beazley
+            Modified C++ inheritance with a few enhancements.  First, type information
+            needed for casting and type-equivalence is generated even when base-classes
+            aren't defined in the interface.  For example:
+
+                class Foo : public Bar  {    /* Bar unspecified */
+                public:
+                  ...
+                };
+
+               void blah(Bar *b);
+
+            In this case, the blah() function still accepts Foo * even though nothing
+            is really known about Bar.   Previous SWIG versions would just generate
+            a type error.
+
+            Inheritance has also been modified to work through typedef.  For example:
+
+               class Bar {
+               };
+
+               typedef Bar OtherBar;
+               class Foo: public OtherBar {
+               }
+
+            In this case, the base class of OtherBar is correctly resolved back to
+            Bar.   The use of the name OtherBar is lost in this resolution (the wrappers
+            will simply use Bar instead of the typedef name OtherBar).
+           
 03/13/2002: beazley
             %typemap, %apply, and related directives can now appear inside
             class definitions.   
