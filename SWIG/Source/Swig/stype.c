@@ -1200,10 +1200,8 @@ String *SwigType_manglestr_default(SwigType *s) {
   char *c;
   String *result;
 
-  /*  if (SwigType_istypedef(s) && SwigType_issimple(s))
-    result = Copy(s);
-    else */
   result = SwigType_ltype(s);
+
   Replace(result,"struct ","", DOH_REPLACE_ANY);     /* This might be problematic */
   Replace(result,"class ","", DOH_REPLACE_ANY);
   Replace(result,"union ","", DOH_REPLACE_ANY);
@@ -1539,6 +1537,15 @@ int SwigType_type(SwigType *t)
   return T_USER;
 }
 
+/******************************************************************************
+ ***                         * * * WARNING * * *                            ***
+ ***                                                                        ***
+ *** Don't even think about modifying anything below this line unless you   ***
+ *** are completely on top of *EVERY* subtle aspect of the C++ type system  ***
+ *** are you are prepared to suffer endless hours of agony trying to        ***
+ *** debug the SWIG run-time type checker after you break it.               ***
+ ******************************************************************************/
+
 /* -----------------------------------------------------------------------------
  * SwigType_remember()
  *
@@ -1717,18 +1724,19 @@ SwigType_inherit(String *derived, String *base) {
 void SwigType_inherit_equiv(File *out) {
   String *rkey, *bkey, *ckey;
   String *prefix, *base;
-
   Hash   *sub;
   Hash   *rh;
+  List   *rlist;
 
   if (!conversions) conversions = NewHash();
   if (!subclass) subclass = NewHash();
 
   rkey = Firstkey(r_resolved);
   while (rkey) {
-    /* rkey is actually a fully qualified type */
-
+    /* rkey is a fully qualified type.  We strip all of the type constructors off of it just to get the base */
     base = SwigType_base(rkey);
+
+    /* Check to see whether the base is recorded in the subclass table */
     sub = Getattr(subclass,base);
     Delete(base);
     if (!sub) {
@@ -1736,28 +1744,63 @@ void SwigType_inherit_equiv(File *out) {
       continue;
     }
 
+    /* This type has subclasses.  We now need to walk through these subtypes and generate pointer converion functions */
     rh = Getattr(r_resolved, rkey);
-
-    /* Hmmm. We actually got a base-class match. We're going to try and patch things up */
+    rlist = NewList();
+    for (ckey = Firstkey(rh); ckey; ckey = Nextkey(rh)) {
+      Append(rlist,ckey);
+    }
     bkey = Firstkey(sub);
     while (bkey) {
       prefix= SwigType_prefix(rkey);
       Append(prefix,bkey);
       Setattr(rh,SwigType_manglestr(prefix),prefix);
-
       ckey = NewStringf("%s+%s",SwigType_manglestr(prefix), SwigType_manglestr(rkey));
       if (!Getattr(conversions,ckey)) {
-	Printf(out,"static void *%sTo%s(void *x) {\n", SwigType_manglestr(prefix), SwigType_manglestr(rkey));
+	String *convname = NewStringf("%sTo%s", SwigType_manglestr(prefix), SwigType_manglestr(rkey));
+	Printf(out,"static void *%s(void *x) {\n", convname);
 	Printf(out,"    return (void *)((%s) ((%s) x));\n", SwigType_lstr(rkey,0), SwigType_lstr(prefix,0));
 	Printf(out,"}\n");
-	SetInt(conversions,ckey,1);
+	Setattr(conversions,ckey,convname);
+	Delete(ckey);	
+
+	/* This inserts conversions for typedefs */
+	{
+	  Hash *r = Getattr(r_resolved, prefix);
+	  if (r) {
+	    String *rrkey = Firstkey(r);
+	    while (rrkey) {
+	      String *rlkey;
+	      String *rkeymangle;
+
+	      /* Make sure this name equivalence is not due to inheritance */
+
+	      if (Cmp(prefix, Getattr(r,rrkey)) == 0) {
+		rkeymangle = SwigType_manglestr(rkey);
+		ckey = NewStringf("%s+%s", rrkey, rkeymangle);
+		if (!Getattr(conversions, ckey)) {
+		  Setattr(conversions, ckey, convname);
+		}
+		Delete(ckey);
+		for (rlkey = Firstitem(rlist); rlkey; rlkey = Nextitem(rlist)) {
+		  ckey = NewStringf("%s+%s", rrkey, rlkey);
+		  Setattr(conversions, ckey, convname);
+		  Delete(ckey);
+		}
+		Delete(rkeymangle);
+	      }
+	      rrkey = Nextkey(r);
+	    }
+	  }
+	}
+	Delete(convname);
       }
-      Delete(ckey);
       Delete(prefix);
       bkey = Nextkey(sub);
     }
     rkey = Nextkey(r_resolved);
   }
+      
 }
 
 /* -----------------------------------------------------------------------------
@@ -1812,9 +1855,11 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     el = SwigType_equivalent_mangle(key,0,0);
     for (en = Firstitem(el); en; en = Nextitem(el)) {
       String *ckey;
+      String *conv;
       ckey = NewStringf("%s+%s", en, key);
-      if (Getattr(conversions,ckey)) {
-	Printf(types,"{\"%s\", %sTo%s},", en, en, key);
+      conv = Getattr(conversions,ckey);
+      if (conv) {
+	Printf(types,"{\"%s\", %s},", en, conv);
       } else {
 	Printf(types,"{\"%s\"},", en);
       }
