@@ -56,7 +56,7 @@ missingtests: missingcpptests missingctests
 # a file is found which has _runme.php4 appended after the testcase name.
 run_testcase = \
 	if [ -f $*\_runme.php4 ]; then ( \
-	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH php -q -d extension_dir=. $*\_runme.php4;) \
+	  $(MAKE) -f $(TOP)/Makefile SCRIPT=$*\_runme.php4 php4_run;) \
 	fi;
 
 # Clean: remove the generated .php file
