@@ -35,7 +35,6 @@ class JAVA : public Language {
   File   *f_directors_h;
 
   bool   proxy_flag; // Flag for generating proxy classes
-  bool   have_default_constructor_flag;
   bool   native_function_flag;     // Flag for when wrapping a native function
   bool   enum_constant_flag; // Flag for when wrapping an enum or constant
   bool   static_flag; // Flag for when wrapping a static functions or member variables
@@ -103,7 +102,6 @@ class JAVA : public Language {
     f_directors_h(NULL),
 
     proxy_flag(true),
-    have_default_constructor_flag(false),
     native_function_flag(false),
     enum_constant_flag(false),
     static_flag(false),
@@ -1541,15 +1539,6 @@ class JAVA : public Language {
         typemapLookup("javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF), // main body of class
         NIL);
 
-    if(!have_default_constructor_flag) { // All proxy classes need a constructor
-      Printv(proxy_class_def, 
-          "\n",
-          "  protected $javaclassname() {\n",
-          "    this(0, false);\n", 
-          "  }\n",
-          NIL);
-    }
-
     // C++ destructor is wrapped by the delete method
     // Note that the method name is specified in a typemap attribute called methodname
     String *destruct = NewString("");
@@ -1713,7 +1702,6 @@ class JAVA : public Language {
       Clear(proxy_class_def);
       Clear(proxy_class_code);
 
-      have_default_constructor_flag = false;
       destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
     }
@@ -2117,9 +2105,6 @@ class JAVA : public Language {
       }
 
       Printv(proxy_class_code, function_code, "\n", NIL);
-
-      if(!gencomma)  // We must have a default constructor
-        have_default_constructor_flag = true;
 
       Delete(overloaded_name);
       Delete(imcall);
