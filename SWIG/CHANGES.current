@@ -1,5 +1,10 @@
-Version 1.3.20 (In progress)
-============================
+Version 1.3.20 (December 17, 2003)
+==================================
+12/17/2003: beazley
+            Last minute modifications.   Perl5 module now generates shadow classes
+            by default like all of the other modules.  PHP4 wrappers no longer
+            include "config.h". 
+
 12/14/2003: beazley
             Weakened warning message related to constructor names so that an
             unusual nested-class wrapping technique would work again (apparently
