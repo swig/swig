@@ -4,9 +4,11 @@ use example;
 
 # First create some objects using the pointer library.
 print "Testing the pointer library\n";
-$a = example::ptrcreate("int",37);
-$b = example::ptrcreate("int",42);
-$c = example::ptrcreate("int");  
+$a = example::new_intp();
+$b = example::new_intp();
+$c = example::new_intp();
+example::intp_assign($a,37);
+example::intp_assign($b,42);
 
 print "     a = $a\n";
 print "     b = $b\n";
@@ -16,13 +18,13 @@ print "     c = $c\n";
 example::add($a,$b,$c);
 
 # Now get the result
-$r = example::ptrvalue($c);
+$r = example::intp_value($c);
 print "     37 + 42 = $r\n";
 
 # Clean up the pointers
-example::ptrfree($a);
-example::ptrfree($b);
-example::ptrfree($c);
+example::delete_intp($a);
+example::delete_intp($b);
+example::delete_intp($c);
 
 # Now try the typemap library
 # This should be much easier. Now how it is no longer
