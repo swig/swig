@@ -637,7 +637,7 @@ if test -z "$JAVAINCDIR"; then
 
   # Add in default installation directory on Windows for cygwin
   case $ac_sys_system/$ac_sys_release in
-  CYGWIN*) JAVAINCDIR="$JAVAINCDIR c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include";;
+  CYGWIN*) JAVAINCDIR="c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
   *);;
   esac
 fi
