@@ -444,24 +444,6 @@ is_a_pointer (SwigType *t)
   return SwigType_ispointer(SwigType_typedef_resolve_all(t));
 }
 
-/* Same as Swig_typemap_lookup but fall back to `int' when `enum' is
-   requested -- enum handling is somewhat broken in the 1.1 parser.
-   But we don't want to change it now since it is deprecated. */
-
-static String *
-guile_typemap_lookup(const char *op, SwigType *type, const String_or_char *pname, const String_or_char *lname, String_or_char *source,
-		     String_or_char *target, Wrapper *f)
-{
-  String *tm;
-  tm = Swig_typemap_lookup((char*) op, type, (char*)pname, (char *) lname, source, target, f);
-  if (!tm) {
-    SwigType *base = SwigType_typedef_resolve_all(type);
-    if (strncmp(Char(base), "enum ", 5)==0)
-      tm = Swig_typemap_lookup((char*) op, NewSwigType(T_INT), (char*)pname, (char*)lname, source, target, f);
-  }
-  return tm;
-}
-
 /* Lookup a typemap, replace all relevant parameters and write it to
    the given generalized file. Return 0 if no typemap found. */
 
@@ -473,7 +455,7 @@ guile_do_typemap(DOHFile *file, const char *op,
 		 int nonewline_p)
 {
   String *tm;
-  if ((tm = guile_typemap_lookup(op, type, arg, lname,
+  if ((tm = Swig_typemap_lookup(op, type, (char *)arg, (char *)lname,
 				 source, target, f))) {
     String *s = tm;
     char argnum_s[10];
