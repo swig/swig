@@ -1,5 +1,8 @@
 Version 1.3.15 (In progress)
 ================================
+09/05/2002: beazley
+            Fixed [ 605162 ] Typemap local variables. Reported by Lyle Johnson.
+
 09/05/2002: ljohnson (Lyle Johnson)
             [Ruby] More updates to the Ruby module documentation, including
 	    a new typemap example that demonstrates how to collect key-value
