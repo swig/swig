@@ -93,10 +93,9 @@ Swig_wrapped_var_type(SwigType *t) {
 
   if (SwigType_isclass(t)) {
     if (varref) {
-      SwigType_add_qualifier(ty, "const");
+      if (!SwigType_isconst(ty)) SwigType_add_qualifier(ty, "const");
       SwigType_add_reference(ty);
     } else {
-      SwigType_add_qualifier(ty, "const");
       SwigType_add_pointer(ty);
     }
   }
@@ -116,7 +115,7 @@ static String *
 Swig_wrapped_var_assign(SwigType *t, const String_or_char *name) {
   if (SwigType_isclass(t)) {
     if (varref) {
-      String* ty = SwigType_namestr(t);
+      String* ty = SwigType_lstr(t,0);
       return NewStringf("(const %s&)%s",ty, name);
     } else {
       return NewStringf("&%s",name);
