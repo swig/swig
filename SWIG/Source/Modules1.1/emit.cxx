@@ -41,23 +41,20 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
     if (!CPlusPlus || (CPlusPlus && !SwigType_isclass(rt))) {
       Wrapper_add_local(f,"result", SwigType_lstr(rt,"result"));
     } else {
-      String *s = NewStringf("SwigValueWrapper< %s > result", SwigType_lstr(rt,0));
+      /*      String *s = NewStringf("SwigValueWrapper< %s > result", SwigType_lstr(rt,0));
       Wrapper_add_local(f,"result", s);
-      Delete(s);
+      Delete(s); */
+      
+      SwigType *vt = 0;
+      vt = cplus_value_type(rt);
+      if (!vt) {
+	Wrapper_add_local(f,"result", SwigType_lstr(rt,"result"));
+      } else {
+	Wrapper_add_local(f,"result", SwigType_lstr(vt,"result"));
+	Delete(vt);
+      }
     }
   }
-  
-#ifdef OLD
-  if (CPlusPlus) {
-      vt = cplus_value_type(rt);
-    }
-    if (!vt) {
-      Wrapper_add_local(f,"result", SwigType_lstr(rt,"result"));
-    } else {
-      Wrapper_add_local(f,"result", SwigType_lstr(vt,"result"));
-      Delete(vt);
-    }
-#endif
   
   /* Attach typemaps to parameters */
   Swig_typemap_attach_parms("ignore",l,f);

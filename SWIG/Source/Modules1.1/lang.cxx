@@ -252,9 +252,11 @@ SwigType *cplus_value_type(SwigType *t) {
   if (SwigType_isclass(t)) {
     SwigType *td = SwigType_typedef_resolve_all(t);
     if ((n = Swig_symbol_clookup(td,0))) {
-      if (Getattr(n,"allocate:default_constructor")) return 0;
-      String *s = NewStringf("SwigValueWrapper< %s >",t);
-      return s;
+      if (!Getattr(n,"allocate:default_constructor") || (Getattr(n,"allocate:noassign"))) {
+	String *s = NewStringf("SwigValueWrapper< %s >",t);
+	Delete(td);
+	return s;
+      }
     }
     Delete(td);
   }

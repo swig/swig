@@ -183,6 +183,17 @@ public:
     return SWIG_OK;
   }
 
+  virtual int cDeclaration(Node *n) {
+    /* Look for a private assignment operator */
+    if (inclass && (cplus_mode != PUBLIC)) {
+      String *name = Getattr(n,"name");
+      if (Strcmp(name,"operator =") == 0) {
+	Setattr(inclass,"allocate:noassign","1");
+      }
+    }
+    return SWIG_OK;
+  }
+
   virtual int constructorDeclaration(Node *n) {
     if (!inclass) return SWIG_OK;
     Parm   *parms = Getattr(n,"parms");
