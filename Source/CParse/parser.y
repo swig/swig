@@ -1165,6 +1165,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		     Setattr($$,"name",$2);
 		     Setattr($$,"type",NewSwigType($4.type));
 		     Setattr($$,"value",$4.val);
+		     if ($4.rawval) Setattr($$,"rawval", $4.rawval);
 		     Setattr($$,"storage","%constant");
 		     Setattr($$,"feature:immutable","1");
 		     add_symbols($$);
@@ -1188,6 +1189,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   Setattr($$,"name",$3.id);
 		   Setattr($$,"type",$2);
 		   Setattr($$,"value",$4.val);
+		   if ($4.rawval) Setattr($$,"rawval", $4.rawval);
 		   Setattr($$,"storage","%constant");
 		   Setattr($$,"feature:immutable","1");
 		   add_symbols($$);
