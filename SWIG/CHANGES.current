@@ -1,6 +1,14 @@
 Version 1.3.20 (In progress)
 ============================
 
+04/07/2003: cheetah (William Fulton)
+            Remove GCC3 warning when compiling the examples and test-suite:
+
+              cc1plus: warning: changing search order for system directory "/usr/include"
+              cc1plus: warning: as it has already been specified as a non-system directory 
+
+            See SF patch #715531 submitted by Gerald Williams
+
 04/03/2003: cheetah (William Fulton)
             [C#] Improved wrapping of enums and constants. These were previously
             wrapped as C# variables rather than constants. Either these are wrapped
