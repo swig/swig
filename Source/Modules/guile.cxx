@@ -23,6 +23,11 @@ char cvsroot_guile_cxx[] = "$Header$";
  * Definitions for adding functions to Guile
  ***********************************************************************/
 
+/***********************************************************************
+ * GOOPS Support added by John Lenz <jelenz@wisc.edu> in June, 2003
+ * Base code copied from chicken module, writen by Jonah Beckford
+ ***********************************************************************/
+
 #include "swigmod.h"
 
 #ifndef MACSWIG
@@ -32,26 +37,37 @@ char cvsroot_guile_cxx[] = "$Header$";
 
 static const char *guile_usage = (char*)"\
 Guile Options (available with -guile)\n\
-     -ldflags        - Print runtime libraries to link with\n\
-     -prefix <name>  - Use <name> as prefix [default \"gswig_\"]\n\
-     -package <name> - Set the path of the module to <name> [default NULL]\n\
-     -emit-setters   - Emit procedures-with-setters for variables\n\
-                       and structure slots.\n\
-     -procdoc <file> - Output procedure documentation to <file>\n\
+     -ldflags                - Print runtime libraries to link with\n\
+     -prefix <name>          - Use <name> as prefix [default \"gswig_\"]\n\
+     -package <name>         - Set the path of the module to <name>\n\
+                               (default NULL)\n\
+     -emitsetters            - Emit procedures-with-setters for variables\n\
+                               and structure slots.\n\
+     -onlysetters            - Don't emit traditional getter and setter\n\
+                               procedures for structure slots,\n\
+                               only emit procedures-with-setters.\n\
+     -procdoc <file>         - Output procedure documentation to <file>\n\
      -procdocformat <format> - Output procedure documentation in <format>;\n\
                                one of `guile-1.4', `plain', `texinfo'\n\
-     -linkage <lstyle>       - Use linkage protocol <lstyle> [default `module']\n\
-     -scmstub <file> - Output Scheme <file> with module declaration and\n\
-                       exports; only with `passive' and `simple' linkage\n\
-     -gh             - Use the gh_ guile interface. (default) \n\
-     -scm            - Use the scm guile interface.  (guile >=1.6) \n\
-\n\
-  When unspecified, the default <lstyle> is `simple'.  For native Guile\n\
-  module linking (for Guile versions >=1.5.0), use `module'.  Other\n\
-  <lstyle> values are: `passive' for passive linking (no C-level\n\
-  module-handling  code), `ltdlmod' for Guile's old dynamic module\n\
-  convention (versions <= 1.4), or `hobbit' for hobbit modules.\n\
-\n";
+     -linkage <lstyle>       - Use linkage protocol <lstyle> (default `simple')\n\
+                               Use `module' for native Guile module linking\n\
+                               (requires Guile >= 1.5.0).  Use `passive' for\n\
+                               passive linking (no C-level module-handling  code),\n\
+                               `ltdlmod' for Guile's old dynamic module\n\
+                               convention (Guile <= 1.4), or `hobbit' for hobbit\n\
+                               modules.\n\
+     -scmstub <file>         - Output Scheme <file> with module declaration and\n\
+                               exports; only with `passive' and `simple' linkage\n\
+     -gh                     - Use the gh_ Guile API. (Guile <= 1.8, default) \n\
+     -scm                    - Use the scm Guile API.  (Guile >= 1.6) \n\
+     -goops <file>           - Export GOOPS class definitions to <file>\n\
+     -emitslotaccessors      - Emit accessor methods for all GOOPS slots\n\
+     -primsuffix <suffix>    - Name appended to primitive module when exporting\n\
+                               GOOPS classes. (default = \"primitive\")\n\
+     -goopsprefix <prefix>   - Prepend <prefix> to all goops identifiers\n\
+     -useclassprefix         - Prepend the class name to all goops identifiers\n\
+     -exportprimitive        - Add the (export ...) code from scmstub into the\n\
+                               GOOPS file.\n";
 
 static  File         *f_runtime = 0;
 static  File         *f_header = 0;
@@ -73,6 +89,10 @@ static enum {
 static File  *procdoc = 0;
 static File  *scmstub = 0;
 static String *scmtext;
+static File  *goopsfile = 0;
+static String *goopstext;
+static String *goopscode;
+static String *goopsexport;
 
 static enum {
   GUILE_1_4,
@@ -80,8 +100,10 @@ static enum {
   TEXINFO
 } docformat = GUILE_1_4;
 
-static int	 emit_setters = 0;
-static int    struct_member = 0;
+static int     emit_setters = 0;
+static int     only_setters = 0;
+static int     emit_slot_accessors = 0;
+static int     struct_member = 0;
 
 static String *beforereturn = 0;
 static String *return_nothing_doc = 0;
@@ -93,6 +115,19 @@ static String *exported_symbols = 0;
 static int     use_scm_interface = 0;
 static int     exporting_destructor = 0;
 static String *swigtype_ptr = 0;
+
+/* GOOPS stuff */
+static String *primsuffix = 0;
+static Hash   *known_classes = 0;
+static String *class_name = 0;
+static String *short_class_name = 0;
+static String *goops_class_methods;
+static int     in_class = 0;
+static int     have_constructor = 0;
+static int     useclassprefix = 0; // -useclassprefix argument
+static String *goopsprefix = 0; // -goopsprefix argument
+static int     primRenamer = 0; // if (use-modules ((...) :renamer ...) is exported to GOOPS file
+static int     exportprimitive = 0; // -exportprimitive argument
 
 class GUILE : public Language {
 public:
@@ -184,8 +219,20 @@ public:
 	  Swig_mark_arg(i+1);
 	  i++;
 	}
-	else if (strcmp (argv[i], "-emit-setters") == 0) {
+	else if (strcmp (argv[i], "-emit-setters") == 0
+		 || strcmp (argv[i], "-emitsetters") == 0) {
 	  emit_setters = 1;
+	  Swig_mark_arg (i);
+	}
+	else if (strcmp (argv[i], "-only-setters") == 0
+		 || strcmp (argv[i], "-onlysetters") == 0) {
+	  emit_setters = 1;
+	  only_setters = 1;
+	  Swig_mark_arg (i);
+	}
+	else if (strcmp (argv[i], "-emit-slot-accessors") == 0
+		 || strcmp (argv[i], "-emitslotaccessors") == 0) {
+	  emit_slot_accessors = 1;
 	  Swig_mark_arg (i);
 	}
 	else if (strcmp (argv[i], "-scmstub") == 0) {
@@ -198,6 +245,16 @@ public:
 	    Swig_arg_error();
 	  }
 	}
+        else if (strcmp (argv[i], "-goops") == 0) {
+          if (argv[i + 1]) {
+            goopsfile = NewFile(argv[i + 1], (char *) "w");
+            Swig_mark_arg (i);
+            Swig_mark_arg (i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        }
         else if (strcmp(argv[i], "-gh") == 0) {
           use_scm_interface = 0;
           Swig_mark_arg(i);
@@ -206,7 +263,62 @@ public:
           use_scm_interface = 1;
           Swig_mark_arg(i);
         }
+        else if (strcmp(argv[i], "-primsuffix") == 0) {
+          if (argv[i+1]) {
+            primsuffix = NewString(argv[i+1]);
+	    Swig_mark_arg (i);
+	    Swig_mark_arg (i + 1);
+	    i++;
+          } else {
+            Swig_arg_error();
+          }
+        }
+        else if (strcmp(argv[i], "-goopsprefix") == 0) {
+          if (argv[i+1]) {
+            goopsprefix = NewString(argv[i+1]);
+	    Swig_mark_arg (i);
+	    Swig_mark_arg (i + 1);
+	    i++;
+          } else {
+            Swig_arg_error();
+          }
+        }
+        else if (strcmp(argv[i], "-useclassprefix") == 0) {
+          useclassprefix = 1;
+          Swig_mark_arg(i);
+        }
+        else if (strcmp(argv[i], "-exportprimitive") == 0) {
+          exportprimitive = 1;
+          // should use Swig_warning() here?
+          Swig_mark_arg(i);
+        }
       }
+    }
+
+    // set default value for primsuffix
+    if (primsuffix == NULL)
+      primsuffix = NewString("primitive");
+
+    //goops support can only be enabled if passive or module linkage is used
+    if (goopsfile) {
+      if (linkage != GUILE_LSTYLE_PASSIVE && linkage != GUILE_LSTYLE_MODULE) {
+        Printf(stderr, "guile: GOOPS support requires passive or module linkage\n");
+        exit(1);
+      }
+    }
+
+    if (goopsfile) {
+      // -goops implies -emit-setters
+      emit_setters = 1;
+    }
+
+    if ((linkage == GUILE_LSTYLE_PASSIVE && scmstub) || linkage == GUILE_LSTYLE_MODULE)
+      primRenamer = 1;
+
+    if (exportprimitive && primRenamer) {
+      // should use Swig_warning() ?
+      Printf(stderr, 
+          "guile: Warning: -exportprimitive only makes sense with passive linkage without a scmstub.\n");
     }
 
     // Make sure `prefix' ends in an underscore
@@ -254,6 +366,11 @@ public:
     scmtext = NewString("");
     Swig_register_filebyname("scheme", scmtext);
     exported_symbols = NewString("");
+    goopstext = NewString("");
+    Swig_register_filebyname("goops", goopstext);
+    goopscode = NewString("");
+    goopsexport = NewString("");
+    known_classes = NewHash();
     
     Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
     Swig_banner (f_runtime);
@@ -288,7 +405,7 @@ public:
     if (CPlusPlus) {
       Printf(f_runtime, "\n}\n");
     }
-    
+
     Language::top(n);
     
     /* Close module */
@@ -299,17 +416,20 @@ public:
     
     Printf (f_init, "}\n\n");
     Printf (f_init, "#ifdef __cplusplus\n}\n#endif\n");
-    char module_name[256];
+
+    String *module_name = NewString("");
     
     if (!module)
-      sprintf(module_name, "swig");
+      Printv(module_name, "swig", NIL);
     else {
       if (package)
-	sprintf(module_name,"%s/%s", package,module);
+	Printf(module_name,"%s/%s", package, module);
       else
-	strcpy(module_name,module);
+	Printv(module_name,module,NIL);
     }
     emit_linkage (module_name);
+
+    Delete(module_name);
     
     if (procdoc) {
       Delete(procdoc);
@@ -319,7 +439,15 @@ public:
       Delete(scmstub);
       scmstub = NULL;
     }
-    
+    if (goopsfile) {
+      Delete(goopsfile);
+      goopsfile = NULL;
+    }
+    Delete(goopscode);
+    Delete(goopsexport);
+    Delete(goopstext);
+    Delete(known_classes);
+
     /* Close all of the files */
     Dump(f_header,f_runtime);
     Dump(f_wrappers,f_runtime);
@@ -332,7 +460,7 @@ public:
     return SWIG_OK;
   }
   
-  void emit_linkage (char *module_name) {
+  void emit_linkage (String *module_name) {
     String *module_func = NewString("");
     
     if (CPlusPlus) {
@@ -340,6 +468,7 @@ public:
     }
     
     Printv(module_func,module_name,NIL);
+    if (goopsfile)
     Replaceall(module_func,"-", "_");
     
     switch (linkage) {
@@ -389,6 +518,8 @@ public:
       Printf (f_init, "SCM\n%s (void)\n{\n", module_func);
       {
 	String *mod = NewString(module_name);
+        if (goopsfile)
+          Printv(mod,"-",primsuffix,NIL);
 	Replaceall(mod,"/", " ");
 	Printf(f_init, "    SCM module = scm_c_define_module(\"%s\",\n", mod);
 	Printf(f_init, "      SWIG_init_helper, NULL);\n");
@@ -419,6 +550,8 @@ public:
     if (scmstub) {
       /* Emit Scheme stub if requested */
       String *mod = NewString(module_name);
+      if (goopsfile)
+        Printv(mod,"-",primsuffix,NIL);
       Replaceall(mod, "/", " ");
       Printf (scmstub, ";;; -*- buffer-read-only: t -*- vi: set ro: */\n");
       Printf (scmstub, ";;; Automatically generated by SWIG; do not edit.\n\n");
@@ -437,6 +570,30 @@ public:
 	Printf(scmstub, "\n(export %s)\n", ex);
 	Delete(ex);
       }
+    }
+
+    if (goopsfile) {
+      String *mod = NewString(module_name);
+      Replaceall(mod, "/", " ");
+      Printf (goopsfile, ";;; -*- buffer-read-only: t -*- vi: set ro: */\n");
+      Printf (goopsfile, ";;; Automatically generated by SWIG; do not edit.\n\n");
+      Printf (goopsfile, "(define-module (%s))\n", mod);
+      Printf (goopsfile, "%s\n", goopstext);
+      Printf (goopsfile, "(use-modules (oop goops) (Swig common))\n");
+      if (primRenamer) {
+        Printf (goopsfile, "(use-modules ((%s-%s) :renamer (symbol-prefix-proc 'primitive:)))\n", 
+                           mod, primsuffix);
+      }
+      Printf (goopsfile, "%s\n(export %s)", goopscode, goopsexport);
+      if (exportprimitive) {
+        String *ex = NewString(exported_symbols);
+        Replaceall(ex, ", ", "\n        ");
+        Replaceall(ex, "\"", "");
+        Chop(ex);
+        Printf(goopsfile, "\n(export %s)", ex);
+        Delete(ex);
+      }
+      Delete(mod);
     }
     
     Delete(module_func);
@@ -807,11 +964,21 @@ public:
       }
       else Printf(f_init, "SCM getter = ");
       if (use_scm_interface) {
-        Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n",
-              proc_name, numreq, numargs-numreq, wname);
+	/* GOOPS support uses the MEMBER-set and MEMBER-get functions,
+	   so ignore only_setters in this case. */
+	if (only_setters && !goopsfile)
+	  Printf(f_init, "scm_c_make_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n",
+		 proc_name, numreq, numargs-numreq, wname);
+	else
+	  Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n",
+		 proc_name, numreq, numargs-numreq, wname);
       } else {
-      Printf (f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s, %d, %d, 0);\n",
-	      proc_name, wname, numreq, numargs-numreq);
+	if (only_setters && !goopsfile)
+	  Printf(f_init, "scm_make_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n",
+		 proc_name, numreq, numargs-numreq, wname);
+	else
+	  Printf (f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s, %d, %d, 0);\n",
+		  proc_name, wname, numreq, numargs-numreq);
       }
       if (!is_setter) {
 	/* Strip off "-get" */
@@ -894,6 +1061,32 @@ public:
       }
     }
     Printf (exported_symbols, "\"%s\", ", proc_name);
+
+    // export wrapper into goops file
+    if (!in_class) { // only if function is not in a class
+      String *args = NewString("");
+      String *wrapargs = NewString("");
+      buildGoopsArguments(Getattr(n, "parms"), args, wrapargs);
+      
+      String *pb = SwigType_typedef_resolve_all(SwigType_base(Getattr(n, "type")));
+      String *goops_name = goopsNameMapping(proc_name, (char *)"");
+      if (Getattr(known_classes, pb)) {
+        Printv(goopscode, "(define-method (", goops_name, args, ")\n", NIL);
+        Printv(goopscode, "  (make <", pb, "> #:init-smob (", primRenamer ? "primitive:" : "", NIL);
+        Printv(goopscode, proc_name, wrapargs, ")))\n", NIL);
+      } else {
+        Printv(goopscode, "(define-method (", goops_name, args, ")\n", NIL);
+        Printv(goopscode, primRenamer ? "  (primitive:" : "  (", proc_name, wrapargs, "))\n", NIL);
+      }
+      Printf(goopsexport, "%s ", goops_name);
+      Delete(pb);
+      Delete(goops_name);
+      Delete(wrapargs);
+      Delete(args);
+    }
+      
+
+    
     if (procdoc) {
       String *returns_text = NewString("");
       if (num_results == 0) Printv(returns_text, return_nothing_doc, NIL);
@@ -1035,6 +1228,37 @@ public:
 		proc_name);
       }
       Printf (exported_symbols, "\"%s\", ", proc_name);
+
+      // export wrapper into goops file
+      if (!in_class) {  // only if the variable is not part of a class
+        String *class_name = SwigType_typedef_resolve_all(SwigType_base(t));
+        String *goops_name = goopsNameMapping(proc_name, (char*)"");
+	String *primitive_name = NewString("");
+	if (primRenamer) 
+	  Printv(primitive_name, "primitive:", NIL);
+	Printv(primitive_name, proc_name, NIL);
+        if (Getattr(known_classes, class_name)) {
+	  /* Create a procedure or p-w-s that handles the GOOPS object */
+          if (!Getattr(n, "feature:immutable")) {
+            Printv(goopscode, "(define ", goops_name, " (make-procedure-with-setter\n", 
+		   "\t(lambda () (make <", class_name, "> #:init-smob (", primitive_name, ")))\n",
+		   "\t(lambda (new-value) (", primitive_name, " (slot-ref new-value 'smob))))\n",
+		   NIL);
+          }
+	  else {
+	    Printv(goopscode, "(define (", goops_name, ")\n",
+		   "  (make <", class_name, "> #:init-smob (", primitive_name, ")))");
+	  }
+          Printf(goopscode, "\n");
+        } else {
+	  /* Simply re-export the procedure */
+          Printv(goopscode, "(define ", goops_name, " ", primitive_name, ")\n", NIL);
+        }
+        Printf(goopsexport, "%s ", goops_name);
+	Delete(primitive_name);
+        Delete(class_name);
+        Delete(goops_name);
+      }
       
       if (procdoc) {
 	/* Compute documentation */
@@ -1185,23 +1409,245 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * classDeclaration()
+   * ------------------------------------------------------------ */
+  virtual int classDeclaration(Node *n) {
+    Setattr(known_classes, Getattr(n, "sym:name"), n);
+    return Language::classDeclaration(n);
+  }
+
+  /* ------------------------------------------------------------
+   * classHandler()
+   * ------------------------------------------------------------ */
+  virtual int classHandler(Node *n) {
+    /* Create new strings for building up a wrapper function */
+    have_constructor = 0;
+        
+    class_name = NewString("");
+    short_class_name = NewString("");
+    Printv(class_name, "<", Getattr(n,"sym:name"), ">", NIL);
+    Printv(short_class_name, Getattr(n,"sym:name"), NIL);
+    Replaceall(class_name, "_", "-");
+    Replaceall(short_class_name, "_", "-");
+        
+    if (!addSymbol(class_name,n)) return SWIG_ERROR;
+
+    /* Handle inheritance */
+    String *base_class = NewString("<");
+    List *baselist = Getattr(n,"bases");
+    if (baselist && Len(baselist)) {
+      Iterator i = First(baselist);
+      while (i.item) {
+         Printv(base_class,Getattr(i.item, "sym:name"),NIL);
+         i = Next(i);
+         if (i.item) {
+           Printf(base_class, "> <");
+         }
+      }
+    }
+    Printf(base_class, ">");
+    Replaceall(base_class, "_", "-");
+
+    Printv(goopscode,"(define-class ", class_name, " ", NIL);
+    Printf(goopsexport, "%s ", class_name);
+
+    if (Len(base_class) > 2) {
+      Printv(goopscode,"(", base_class, ")\n", NIL);
+    } else {
+      Printv(goopscode,"(<swig>)\n", NIL);
+    }
+    SwigType *t = NewStringf("p.%s", Getattr(n, "name"));
+    swigtype_ptr = SwigType_manglestr(t);
+    Delete(t);
+
+    /* Emit all of the members */
+    goops_class_methods = NewString("");
+
+    in_class = 1;
+    Language::classHandler(n);
+    in_class = 0;
+
+    Printv(goopscode,"  #:metaclass <swig-metaclass>\n",NIL);
+    
+    if (have_constructor)
+      Printv(goopscode,"  #:new-function ", primRenamer ? "primitive:" : "", 
+                       "new-", short_class_name, "\n", NIL);
+    Printf(goopscode,")\n%s\n", goops_class_methods);
+    Delete(goops_class_methods);
+    goops_class_methods = 0;
+
+    Delete(swigtype_ptr);
+    swigtype_ptr = 0;
+
+    Delete(class_name);
+    Delete(short_class_name);
+    class_name = 0;
+    short_class_name = 0;
+
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * buildGoopsArguments()
+   * The ParmList l is parsed and any argument types that are known
+   * classes are wrapped with a (slot-ref)
+   * ------------------------------------------------------------ */
+  void buildGoopsArguments(ParmList *l, String *args, String *wrapargs) {
+    Parm      *p;
+    Node *search;
+    int i;
+
+    /* input arguments */
+    for (i=0, p=l; p; i++) {
+      while (checkAttribute(p,"tmap:in:numinputs","0")) {
+        if (Getattr(p, "tmap:in:next")) {
+          p = Getattr(p,"tmap:in:next");
+        } else {
+          break;
+        }
+      }
+
+      SwigType *pt = Getattr(p,"type");
+      String   *pn = Getattr(p,"name");
+      SwigType *pb = SwigType_typedef_resolve_all(SwigType_base(pt));
+
+      if (strcmp("void", Char(pt)) != 0) {
+        /* do input conversion */
+        if ((search = Getattr(known_classes, pb))) {
+          Printv(wrapargs, " (slot-ref ", pn, " 'smob)", NIL);
+          Printv(args, " (", pn, " <", pb, ">)", NIL);
+        } else {
+          Printv(wrapargs, " ", pn, NIL);
+          Printv(args, " ", pn, NIL);
+        }
+      }
+
+      p = nextSibling(p);
+    }
+
+    Replaceall(args, "_", "-");
+    Replaceall(wrapargs, "_", "-");
+  }
+
+  /* ------------------------------------------------------------
+   * memberfunctionHandler()
+   * ------------------------------------------------------------ */
+  int memberfunctionHandler(Node *n) {
+    String *iname = Getattr(n,"sym:name");
+    SwigType *d     = Getattr(n,"type");
+    String *args;
+    String *wrapargs;
+
+    args = NewString("");
+    wrapargs = NewString("");
+    buildGoopsArguments(Getattr(n, "parms"), args, wrapargs);
+
+    Language::memberfunctionHandler(n);
+
+    String *proc = NewString(iname);
+    Replaceall(proc,"_", "-");
+
+    String *pb = SwigType_typedef_resolve_all(SwigType_base(d));
+    String *goops_name = goopsNameMapping(proc, short_class_name);
+    if (Getattr(known_classes, pb)) {
+      Printv(goops_class_methods, 
+          "(define-method (", goops_name, " (swig_smob ",  class_name, ")", args, ")\n",
+          "  (make <", pb, "> #:init-smob (", primRenamer ? "primitive:" : "", short_class_name, "-", proc,
+          "  (slot-ref swig_smob 'smob)", wrapargs, ")))\n", NIL);
+    } else {
+      Printv(goops_class_methods, 
+          "(define-method (", goops_name, " (swig_smob ", class_name, ")", args, ")\n",
+          primRenamer ? "  (primitive:" : "  (", short_class_name, "-", proc, 
+          "  (slot-ref swig_smob 'smob)", wrapargs, "))\n", NIL);
+    }
+    Printf(goopsexport, "%s ", goops_name);
+    Delete(pb);
+    Delete(goops_name);
+
+    Delete(wrapargs);
+    Delete(args);
+    Delete(proc);
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
    * membervariableHandler()
    * ------------------------------------------------------------ */
-  virtual int membervariableHandler(Node *n) {
+  int membervariableHandler(Node *n)
+  {
+    String *iname = Getattr(n,"sym:name");
+    String *search;
+    String *pb = SwigType_typedef_resolve_all(SwigType_base(Getattr(n, "type")));
+
     if (emit_setters) {
       struct_member = 1;
       Printf(f_init, "{\n");
-      Language::membervariableHandler(n);
+    }
+
+    Language::membervariableHandler(n);
+
+    if (emit_setters) {
       Printf(f_init, "}\n");
       struct_member = 0;
     }
-    else {
-      /* Only emit traditional VAR-get and VAR-set procedures */
-      Language::membervariableHandler(n);
+
+    bool class_found = false;
+    if ((search = Getattr(known_classes, pb))) {
+      class_found = true;
     }
+
+    String *proc = NewString(iname);
+    Replaceall(proc,"_", "-");
+    String *goops_name = goopsNameMapping(proc, short_class_name);
+    
+    Printv(goopscode, "  (", goops_name, " #:allocation", NIL);
+    if (class_found) {
+      Printv(goopscode, " #:swig-virtual-class", NIL);
+    } else {
+      Printv(goopscode, " #:swig-virtual", NIL);
+    }
+    Printv(goopscode, " #:slot-ref ", primRenamer ? "primitive:" : "", 
+                      short_class_name, "-", proc, "-get", NIL);
+    if (!Getattr(n,"feature:immutable")) {
+      Printv(goopscode, " #:slot-set! ", primRenamer ? "primitive:" : "", 
+                        short_class_name, "-", proc, "-set", NIL);
+    }
+    if (class_found) {
+      Printv(goopscode, " #:class <", pb, ">", NIL);
+    }
+    if (emit_slot_accessors) {
+      if (Getattr(n, "feature:immutable")) {
+        Printv(goopscode, " #:getter ", goops_name, NIL);
+      } else {
+        Printv(goopscode, " #:accessor ", goops_name, NIL);
+      }
+      Printf(goopsexport, "%s ", goops_name);
+    }
+    Printv(goopscode, ")\n", NIL);
+    Delete(proc);
+    Delete(goops_name);
     return SWIG_OK;
   }
-  
+
+  /* ------------------------------------------------------------
+   * constructorHandler()
+   * ------------------------------------------------------------ */
+  int constructorHandler(Node *n) {
+    Language::constructorHandler(n);
+    have_constructor = 1;
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * destructorHandler()
+   * ------------------------------------------------------------ */
+  virtual int destructorHandler(Node *n) {
+    exporting_destructor = true;
+    Language::destructorHandler(n);
+    exporting_destructor = false;
+    return SWIG_OK;
+  }
+
   /* ------------------------------------------------------------
    * pragmaDirective()
    * ------------------------------------------------------------ */
@@ -1230,25 +1676,36 @@ public:
     return Language::pragmaDirective(n);
   }
 
-  /* ------------------------------------------------------------
-   * destructorHandler()
-   * ------------------------------------------------------------ */
-
-  virtual int destructorHandler(Node *n) {
-    exporting_destructor = true;
-    Language::destructorHandler(n);
-    exporting_destructor = false;
-    return SWIG_OK;
-  }
   
-  virtual int classHandler(Node *n) {
-    SwigType *t = NewStringf("p.%s", Getattr(n, "name"));
-    swigtype_ptr = SwigType_manglestr(t);
-    Delete(t);
-    Language::classHandler(n);
-    Delete(swigtype_ptr);
-    swigtype_ptr = 0;
-    return SWIG_OK;
+  /* ------------------------------------------------------------
+   * goopsNameMapping()
+   * Maps the identifier from C++ to the GOOPS based * on command 
+   * line paramaters and such.
+   * If class_name = "" that means the mapping is for a function or
+   * variable not attached to any class.
+   * ------------------------------------------------------------ */
+  String *goopsNameMapping(String *name, String_or_char *class_name) {
+    String *n = NewString("");
+    
+    if (Strcmp(class_name, "") == 0) {
+      // not part of a class, so no class name to prefix
+      if (goopsprefix) {
+        Printf(n, "%s%s", goopsprefix, name);
+      } else {
+        Printf(n, "%s", name);
+      }
+    } else {
+      if (useclassprefix) {
+        Printf(n, "%s-%s", class_name, name);
+      } else {
+        if (goopsprefix) {
+          Printf(n, "%s%s", goopsprefix, name);
+        } else {
+          Printf(n, "%s", name);
+        }
+      }
+    }
+    return n;
   }
 
 

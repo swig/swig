@@ -2,6 +2,7 @@
 
 /* Macro for inserting Scheme code into the stub */
 #define %scheme	    %insert("scheme")
+#define %goops      %insert("goops")
 
 /* Return-styles */
 %pragma(guile) return_nothing_doc = "Returns unspecified."
