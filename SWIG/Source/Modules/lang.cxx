@@ -350,11 +350,12 @@ static Parm *nonvoid_parms(Parm *p) {
  */
 SwigType *cplus_value_type(SwigType *t) {
   Node *n = 0;
+  SwigType *w = 0;
   int use_wrapper = 1;
   if (CPlusPlus) {
-    if (SwigType_type(t) == T_USER) {
-      SwigType *ftd = SwigType_typedef_resolve_all(t);
-      SwigType *td = SwigType_strip_qualifiers(ftd);
+    SwigType *ftd = SwigType_typedef_resolve_all(t);
+    SwigType *td = SwigType_strip_qualifiers(ftd);
+    if (SwigType_type(td) == T_USER) {
       if ((n = Swig_symbol_clookup(td,0))) {
 	if (((Strcmp(nodeType(n),"class") == 0) 
 	    && !Getattr(n,"allocate:noassign")
@@ -363,16 +364,18 @@ SwigType *cplus_value_type(SwigType *t) {
 	  use_wrapper = Getattr(n,"feature:valuewrapper") ? 1 : 0;
 	}
       }
-      Delete(ftd);
-      Delete(td);
     } else {
       use_wrapper = 0;
+    }    
+    if (use_wrapper) {
+      String *name = SwigType_str(t,0);
+      w = NewStringf("SwigValueWrapper< %s >",name);
+      Delete(name);
     }
-  } else {
-    use_wrapper = 0;
+    Delete(ftd);
+    Delete(td);    
   }
-  return use_wrapper ?
-    NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0)) : 0;
+  return w;
 }
 
 /* Patch C++ pass-by-value */
@@ -1027,7 +1030,9 @@ Language::callbackfunctionHandler(Node *n) {
   Setattr(n,"type", cbty);
   Setattr(n,"value", calltype);
 
-  constantWrapper(n);
+  Node *ns = Getattr(symbols,cbname);
+  if (!ns) constantWrapper(n);
+
   Delete(cbname);
   Delete(cbty);
 
@@ -1572,7 +1577,6 @@ int Language::unrollVirtualMethods(Node *n,
 	  (is_public(ni) || need_nopublic)) {
 	String *name = Getattr(ni, "name");
 	String *local_decl = SwigType_typedef_resolve_all(decl);
-	
 	Node *method_id = is_destructor ? NewStringf("~destructor") : NewStringf("%s|%s", name, local_decl);
 	/* Make sure that the new method overwrites the existing: */
 	Hash *exists_item = Getattr(vm, method_id);
@@ -1588,8 +1592,11 @@ int Language::unrollVirtualMethods(Node *n,
 	Hash *item = NewHash();
 	Setattr(item, "fqName", fqname);
 	Node *m = Copy(ni);
+	String *mname = NewStringf("%s::%s", Getattr(parent,"name"), name);
+	Swig_features_get(Swig_cparse_features(), 0, mname, Getattr(m,"decl"), m);
 	Setattr(item, "methodNode", m);
 	Setattr(vm, method_id, item);
+	Delete(mname);
 	Delete(fqname);
 	Delete(item);
 	Delete(method_id);
