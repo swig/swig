@@ -16,7 +16,7 @@ public class runme
         try {
             li_std_string.test_value(null);
             throw new Exception("Test 2 failed");
-        } catch (NullReferenceException) {
+        } catch (ArgumentNullException) {
         }
 
         // Checking expected use of %typemap(in) const std::string & {}
@@ -30,7 +30,7 @@ public class runme
         try {
             li_std_string.test_const_reference(null);
             throw new Exception("Test 4 failed");
-        } catch (NullReferenceException) {
+        } catch (ArgumentNullException) {
         }
 
         //
