@@ -496,7 +496,7 @@ static SwigType *strip_arrays(SwigType *type) {
  * ----------------------------------------------------------------------------- */
 
 Hash *
-Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *name) {
+Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *name, SwigType **matchtype) {
   Hash *result = 0, *tm, *tm1, *tma;
   Hash *backup = 0;
   SwigType *noarrays = 0;
@@ -531,7 +531,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
       }
       isarray = SwigType_isarray(ctype);
       if (isarray) {
-	/* If working with arrays, strip away all of the dimensions and replace with "".
+	/* If working with arrays, strip away all of the dimensions and replace with "ANY".
 	   See if that generates a match */
 	if (!noarrays) noarrays = strip_arrays(ctype);
 	tma = Getattr(typemaps[ts],noarrays);
@@ -628,6 +628,9 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
   if (noarrays) Delete(noarrays);
   if (primitive) Delete(primitive);
   if ((unstripped) && (unstripped != type)) Delete(unstripped);
+  if (matchtype) {
+    *matchtype = Copy(ctype);
+  }
   if (type != ctype) Delete(ctype);
   return result;
 }
@@ -641,6 +644,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
 Hash *
 Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch) {
   SwigType *type;
+  SwigType *mtype = 0;
   String   *name;
   String   *newop;
   Hash     *tm, *tm1;
@@ -653,8 +657,12 @@ Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch
   name = Getattr(parms,"name");
 
   /* Try to find a match on the first type */
-  tm = Swig_typemap_search(op, type, name);
+  tm = Swig_typemap_search(op, type, name, &mtype);
   if (tm) {
+    if (mtype && SwigType_isarray(mtype)) {
+      Setattr(parms,"tmap:match", mtype);
+    }
+    Delete(mtype);
     newop = NewStringf("%s-%s+%s:", op, type,name);
     tm1 = Swig_typemap_search_multi(newop, nextSibling(parms), nmatch);
     if (tm1) tm = tm1;
@@ -1027,8 +1035,9 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
 {
   Hash   *tm;
   String *s = 0;
+  SwigType *mtype = 0;
   ParmList *locals;
-  tm = Swig_typemap_search(op,type,pname);
+  tm = Swig_typemap_search(op,type,pname,&mtype);
   if (!tm) return 0;
 
   s = Getattr(tm,"code");
@@ -1043,7 +1052,11 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
   if (locals) locals = CopyParmList(locals);
 
   /* This is wrong.  It replaces locals in place.   Need to fix this */
-  typemap_replace_vars(s,locals,type,pname,lname,1);
+  if (mtype && SwigType_isarray(mtype)) {
+    typemap_replace_vars(s,locals,mtype,pname,lname,1);
+  } else {
+    typemap_replace_vars(s,locals,type,pname,lname,1);
+  }
 
   if (locals && f) {
     typemap_locals(s,locals,f,-1);
@@ -1059,6 +1072,7 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
   Replace(s,"$parmname",pname, DOH_REPLACE_ANY);
   /*  Replace(s,"$name",pname,DOH_REPLACE_ANY); */
   Delete(locals);
+  Delete(mtype);
   return s;
 }
 
@@ -1071,6 +1085,7 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
 String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f)
 {
   SwigType *type;
+  SwigType *mtype = 0;
   String   *pname;
   Hash     *tm;
   String   *s = 0;
@@ -1085,7 +1100,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   if (!type) return 0;
 
   pname = Getattr(node,"name");
-  tm = Swig_typemap_search(op,type,pname);
+  tm = Swig_typemap_search(op,type,pname,&mtype);
   if (!tm) return 0;
 
   s = Getattr(tm,"code");
@@ -1109,8 +1124,11 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     clname = SwigType_namestr((char *)lname);
     lname = clname;
   }
-  typemap_replace_vars(s,locals,type,pname,(char *) lname,1);
-
+  if (mtype && SwigType_isarray(mtype)) {
+    typemap_replace_vars(s,locals,mtype,pname,(char *) lname,1);
+  } else {
+    typemap_replace_vars(s,locals,type,pname,(char *) lname,1);
+  }
   if (locals && f) {
     typemap_locals(s,locals,f,-1);
   }
@@ -1175,6 +1193,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     
   if (cname) Delete(cname);
   if (clname) Delete(clname);
+  if (mtype) Delete(mtype);
   return s;
 }
 
@@ -1226,12 +1245,19 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       SwigType *type;
       String   *pname;
       String   *lname;
+      SwigType *mtype;
 
       type = Getattr(p,"type");
       pname = Getattr(p,"name");
       lname = Getattr(p,"lname");
+      mtype = Getattr(p,"tmap:match");
 
-      typemap_replace_vars(s,locals, type,pname,lname,i+1);
+      if (mtype) {
+	typemap_replace_vars(s,locals, mtype,pname,lname,i+1);
+	Delattr(p,"tmap:match");
+      } else {
+	typemap_replace_vars(s,locals, type,pname,lname,i+1);
+      }
       if (checkAttribute(tm,"type","SWIGTYPE")) {
 	sprintf(temp,"%s:SWIGTYPE", Char(op));
 	Setattr(p,tmop_name(temp),"1");
