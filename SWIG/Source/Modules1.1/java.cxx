@@ -1109,7 +1109,9 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   if((DataType_Gettypecode(t) != T_VOID) && shadowrettype) 
     Printf(nativecall, "))");
   
+/* HdH
   Printf(nativecall,");\n");
+*/
 
   Printf(f_shadow, ") {\n");
   Printf(f_shadow, "\t%s\n", nativecall);
@@ -1228,11 +1230,12 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
       sprintf(arg,"arg%d",i);
     }
 
-      char *jtype = JavaTypeFromTypemap((char*)"jtype", typemap_lang, pt, pn);
-      if(!jtype) jtype = SwigTcToJavaType(pt, 0, 0);
-      char *jstype = JavaTypeFromTypemap((char*)"jstype", typemap_lang, pt, pn);
-      if(!jstype) jstype = SwigTcToJavaType(pt, 0, 1);
-      if(strcmp(jtype, jstype) == 0) jstype = NULL;
+      char *jtype = JavaTypeFromTypemap("jtype", typemap_lang, p->t, p->name);
+      if(!jtype) jtype = SwigTcToJavaType(p->t, 0, 0);
+      char *jstype = JavaTypeFromTypemap("jstype", typemap_lang, p->t, p->name);
+      if(!jstype && p->t->type == T_USER && p->t->is_pointer <= 1) {
+	jstype = GetChar(shadow_classes,p->t->name);
+      }
 
       // Add to java function header
       Printf(f_shadow, "%s %s", (jstype) ? jstype : jtype, arg);
