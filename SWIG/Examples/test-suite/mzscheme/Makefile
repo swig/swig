@@ -30,7 +30,7 @@ include ../common.mk
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
 	if [ -f $*\_runme.scm ]; then ( \
-	  mzscheme -f $*\_runme.scm;) \
+	  mzscheme -r $*\_runme.scm;) \
 	fi;
 
 # Clean
