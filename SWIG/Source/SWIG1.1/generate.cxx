@@ -335,15 +335,25 @@ static void
 start_class(char *cpptype, char *name, List *bases)
 {
   char *iname;
-  int  i;
+  int  i,j;
   init_language();
+  Node *bn;
   SwigType_new_scope();
 
   /* Rip apart the bases list */
   cpp_nbases = bases ? Len(bases) : 0;
-  for (i = 0; i < cpp_nbases; i++) {
-    cpp_bases[i] = Char(Getitem(bases,i));
+  for (i = 0,j=0; i < cpp_nbases; i++) {
+    String *access;
+    bn = Getitem(bases,i);
+    access = Getattr(bn,"access");
+    if (Cmp(access,"public") == 0) {
+      cpp_bases[j++] = Char(Getattr(bn,"name"));
+    } else {
+      Printf(stderr,"%s:%d. %s inheritance not supported.\n", Getfile(bn),Getline(bn), access);
+    }
   }
+  cpp_nbases = j;
+
   iname = make_name(name);
   if ((iname == name) || (strlen(iname) == 0)) {
     cplus_open_class(name,0,cpptype);

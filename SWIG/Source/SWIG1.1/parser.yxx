@@ -416,7 +416,8 @@ static Node *dump_nested(char *parent) {
 %type <pl>       parms  ptail;
 %type <p>        parm;
 %type <tmparm>   typemap_parm tm_list tm_tail;
-%type <id>       cpptype base_specifier access_specifier tm_method;
+%type <id>       cpptype access_specifier tm_method;
+%type <node>     base_specifier
 %type <type>     type type_right opt_signed opt_unsigned cast_type cast_type_right;
 %type <bases>    base_list inherit;
 %type <dtype>    definetype def_args etype;
@@ -2358,11 +2359,19 @@ base_specifier : opt_virtual ID {
 		  $$ = (char *) 0;
                }
 	       | opt_virtual access_specifier opt_virtual ID {
-		 if (strcmp($2,"public") == 0) {
-		   $$ = $4;
-		 } else {
-		   Printf(stderr,"%s:%d. %s inheritance not supported (ignored).\n", input_file,line_number,$2);
-		   $$ = (char *) 0;
+		 $$ = 0;
+		 if (classes) {
+		   Node *cls = Getattr(classes,$4);
+		   if (cls) {
+		     $$ = new_node("inherits");
+		     Setattr($$,"access",$2);
+		     Setattr($$,"name",$4);
+		     Setattr($$,"class",cls);
+		   }
+		 }
+		 if (!$$) {
+		   Printf(stderr,"%s:%d. Nothing known about class '%s' (ignored).\n", 
+			  input_file,line_number,$4);
 		 }
                }
                ;
