@@ -336,6 +336,7 @@ namespace std {
                                        std::pair<T,U>* m) {
             if (SCHEME_PAIRP($input)) {
                 Scheme_Object *first, *second;
+	        T *x;
                 first = scheme_car($input);
                 second = scheme_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
