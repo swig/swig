@@ -80,7 +80,7 @@ public:
 			}
 			if( strcmp( argv[iX], "-help" ) == 0 )
 			{
-				fputs( usage, stderr );
+				fputs( usage, stdout );
 			}
 			if( strcmp( argv[iX], "-xmllite" ) == 0 )
 			{

@@ -108,7 +108,7 @@ public:
 	for (i = 1; i < argc; i++) {
 	    if (argv[i]) {
 		if (strcmp (argv[i], "-help") == 0) {
-		    fputs (usage, stderr);
+		    fputs (usage, stdout);
 		    SWIG_exit (0);
 		} else if (strcmp (argv[i], "-where") == 0) {
 		    PrintIncludeArg();

@@ -143,7 +143,7 @@ public:
     for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	if (strcmp (argv[i], "-help") == 0) {
-	  fputs (guile_usage, stderr);
+	  fputs (guile_usage, stdout);
 	  SWIG_exit (EXIT_SUCCESS);
 	}
 	else if (strcmp (argv[i], "-prefix") == 0) {

@@ -41,7 +41,7 @@ public:
 	  }
 	if( strcmp( argv[iX], "-help" ) == 0 )
 	  {
-	    fputs( usage, stderr );
+	    fputs( usage, stdout );
 	  }
       }
 

@@ -114,7 +114,7 @@ public:
 	  nosafe = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
-	  fputs(usage,stderr);
+	  fputs(usage,stdout);
 	}
       }
     }
