@@ -38,6 +38,7 @@ char cvsroot_main_cxx[] = "$Header$";
     int        NoExtern = 0;
     int        NoExcept = 0;
     char      *SwigLib;
+    int        SwigRuntime = 0;                 // 0 = no option, 1 = -c or -runtime, 2 = -noruntime
 
 
 extern "C" {
@@ -313,11 +314,14 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Wrapper_compact_print_mode_set(1);
 	    Wrapper_virtual_elimination_mode_set(1);
 	    Swig_mark_arg(i);
-	  } else if ((strcmp(argv[i],"-noruntime") == 0) || 
-                     (strcmp(argv[i],"-c") == 0) ||
-                     (strcmp(argv[i], "-runtime") == 0)) {
+	  } else if (strcmp(argv[i], "-runtime") == 0) {
 	      Swig_mark_arg(i);
 	      Swig_warning(WARN_DEPRECATED_OPTC, "SWIG",1, "-c, -runtime, -noruntime command line options are deprecated.\n");
+	      SwigRuntime = 1;
+	  } else if ((strcmp(argv[i],"-c") == 0) || (strcmp(argv[i],"-noruntime") == 0)) {
+	      Swig_mark_arg(i);
+	      Swig_warning(WARN_DEPRECATED_OPTC, "SWIG",1, "-c, -runtime, -noruntime command line options are deprecated.\n");
+	      SwigRuntime = 2;
           } else if ((strcmp(argv[i],"-make_default") == 0) || (strcmp(argv[i],"-makedefault") == 0)) {
 	    GenerateDefault = 1;
 	    Swig_mark_arg(i);

@@ -356,6 +356,13 @@ public:
     Swig_banner (f_runtime);
     
     Printf (f_runtime, "/* Implementation : GUILE */\n\n");
+
+    if (!use_scm_interface) {
+      if (SwigRuntime == 1)
+	Printf(f_runtime, "#define SWIG_GLOBAL\n");
+      if (SwigRuntime == 2)
+        Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
+    }
     
     /* Write out directives and declarations */
     

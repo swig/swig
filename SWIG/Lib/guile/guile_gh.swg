@@ -12,9 +12,9 @@
   static int _swig_init = 0;
 
   if (!_swig_init) {
-    SWIG_Guile_Init();
     SWIG_Guile_RegisterTypes(swig_types, swig_types_initial);
     _swig_init = 1;
   }
 
+  SWIG_Guile_Init();
 %}
