@@ -743,7 +743,7 @@ class CSHARP : public Language {
               "Unmanaged code contains a call to SWIG_exception and C# code does not handle pending exceptions via the canthrow attribute.\n");
         } else if(Strstr(f->code, "SWIG_CSharpSetPendingException")) {
           Swig_warning(WARN_CSHARP_CANTHROW, input_file, line_number, 
-              "Unmanaged code contains a call to SWIG_CSharpSetPendingException and C# code does not handle pending exceptions via the canthrow attribute.\n");
+              "Unmanaged code contains a call to a SWIG_CSharpSetPendingException method and C# code does not handle pending exceptions via the canthrow attribute.\n");
         }
       }
     }
