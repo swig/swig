@@ -2,13 +2,13 @@ New Features and Important Changes, v1.3
 
 Author(s) :  David Beazley
 
-September 3, 2000
+December 9, 2001
 
 1. Introduction
 ---------------
-This document explains some of the most important changes made since
-the release of SWIG1.1.  The goal is to provide information for people
-who want to upgrade an older SWIG interface to the new version.
+This document briefly explains some of the most important changes made
+since the release of SWIG1.1.  The goal is to provide information for
+people who want to upgrade an older SWIG interface to the new version.
 
 Most changes pertain to the internal implementation of SWIG and the
 organization of the core, parser, and language modules.  As a SWIG
@@ -50,9 +50,9 @@ altered SWIG's old behavior.
      In SWIG1.1, this typemap would get applied to 'foo *',
      'foo &', 'const foo *', 'foo []', 'foo[][]', and so forth.
 
-     In SWIG1.3, this typemap *only* gets applied to 'foo *'.
-     It does *NOT* get mapped to the other variants listed
-     above.
+     In SWIG1.3, this typemap *only* gets applied to 'foo *' and
+     'const foo *'. It does *NOT* get mapped to the other 
+     variants listed above.
 
 2.4  Bug fix.  SWIG now correctly handles typemaps of the form
 
@@ -67,6 +67,37 @@ altered SWIG's old behavior.
 2.6  The memberin typemap is now inserted inline in the generated 
      wrapper code.  This provides access to scripting-specific
      variables in the wrapper function.
+
+2.7  SWIG-1.3.10 features a total rewrite of the typemap system.
+     Typemaps now use a different variable naming scheme.  Typemaps
+     for arguments look like this:
+
+       %typemap(in) sometype {
+           $1 = convert value ($input);
+       }
+
+     The variable $1 replaces $target and the variable $input replaces
+     $source.
+
+     For output values, typemaps look like this:
+
+       %typemap(out) sometype {
+          $result = create result ($1);
+       }
+
+     The variable $1 replaces $source and the variable $result replaces
+     $target.
+
+     See Doc/Manual/Typemaps.html for a full description of the new
+     typemap system.
+
+2.8  Multi-argument typemaps are now supported.   This solves a common
+     problem that occurs with functions like this
+
+        void foo(char *buffer, int len);
+
+     where you would like to make the two arguments operate as a single
+     object in the target language.
 
 3. Type checking
 ----------------
@@ -165,6 +196,8 @@ and it is simpler to implement than the old string based approach.
 
 4.5 %checkout directive removed.
 
+4.6 %except and %new are deprecated.
+
 5. Language specific changes
 ----------------------------
 
@@ -184,6 +217,10 @@ and it is simpler to implement than the old string based approach.
     system has been added (requires Guile 1.4).  Procedures-with-setters
     can be generated.
 
+5.6 The Python module now automatically creates shadow class objects from the
+    C wrappers.  This fixes a bunch of hard problems related to typemaps,
+    exception handling, and more.
+
 6. New Features
 ---------------
 
@@ -194,6 +231,17 @@ and it is simpler to implement than the old string based approach.
 6.3 Mzscheme module added.
 
 6.4 Integrated preprocessor.  You can now use C macros in SWIG interface files.
+
+6.5 PHP module added.
+
+6.6 %rename directive is greatly enhanced to deal with overloaded functions.
+
+6.7 Support for simple templates
+
+6.8 Support for overloaded operators.
+
+6.9 %feature directive.
+
 
 
 

@@ -1,127 +1,91 @@
-*** ANNOUNCE: SWIG 1.3.8 ***
+*** ANNOUNCE: SWIG 1.3.10 ***
 
-September 23, 2001
+December 10, 2001
 
 Overview
 --------
 We're pleased to announce the next installment of the SWIG1.3
-redevelopment effort.  The 1.3.8 release is mostly a bug-fix release
-to fix problems discovered in version 1.3.7.   The 1.3.7 release
-included a large number of major enhancements, especially for C++
-extension building.  Some of these changes include:
+redevelopment effort.  The 1.3.10 release includes a large number of
+major enhancements, especially for C++ extension building.  Some of
+these changes include:
 
-* Type system and parsing *
+* Redesigned Typemaps *
 
-SWIG can now parse and handle almost any C/C++ datatype including
-declarations involving const and volatile, pointers to functions,
-pointers to arrays, references, and pointers to C++ members.
-This change means that SWIG can parse virtually any C or C++ header
-file without reporting parse errors due to types and declarations.
+The typemap system has been almost completely rewritten.  The major
+improvement in this release is support for multi-argument typemaps.
+This addresses the problem of wrapping functions where multiple arguments
+might be mapped to a single object in the target language.  For example:
 
-* C++ Templates *
+    void foo(char *buffer, int len);          // String and length
+    void bar(int *ptr, int rows, int cols);   // Pointer and shape
 
-SWIG now provides full support for wrapping C++ template
-instantiations.  The only thing you need to do is supply a valid class
-name in the target language using a special %template directive.
-For example:
+This has been a long requested SWIG feature (for more than 4 years).
+SWIG-1.3.10 is the first release that makes this easy.
 
-    template<class T> class List {
-    ... whatever ...
+* Overloaded Operators *
+
+Overloaded operators can now be wrapped as easily as standard methods.
+Simply give the operators an acceptable name.  For example:
+
+    %rename(__add__) operator+;
+    %rename(__sub__) operator-;
+    ...
+
+Some language modules provide automatic conversion of operators
+to special methods.  However, this is experimental and in progress.
+
+* Enhanced exception handling *
+
+A new %exception directive allows exception handlers to be attached
+to specific declarations.  For example:
+
+   %exception getitem {
+      try {
+         $action
+      } catch(RangeError) {
+         ...
+      }
+    }
+
+    class List {
+    ...
+      T getitem(int index);    <-- Exception handler added here
+    ...
     };
 
-    %template(intList) List<int>;
-    %template(doubleList) List<double>;
+This feature can greatly reduce the amount of generated code and allows
+exception handling to be more finely tuned.
 
-This approach works equally well for both template classes and template
-functions.
+* PHP module *
 
-* Function and method overloading *
-
-SWIG-1.3.7 does not provide automatic resolution of overloaded functions.
-However, the problem is now extremely easy to solve with a
-parameterized extension of the %rename directive.  For example:
-
-    %rename(foo_i) Spam::foo(int);    // Rename foo(int) to foo_i(int)
-    %rename(foo_d) Spam::foo(double); // Rename foo(double) to foo_d(double)
-    ...
-    %include "someheader.h"
-
-When applied to a class, the renaming propagates to all derived
-classes.  Therefore, applying a few name resolution rules to a base
-class will apply those changes across a whole class
-hierarchy. Parameterization also works globally. For example:
-
-    %rename(foo_i) foo(int);    // Rename foo(int) to foo_i(int) everywhere
-
-* Pointers to functions *
-
-There is improved support for pointers to functions and callback
-functions written in C/C++.    Here is a simple example:
-
-   %module example
-   %{
-   #include "example.h"
-   %}
-
-   // Function with a callback 
-   int do_op(int x, int y, int (*op)(int,int));
-
-   // Install some callbacks as "name_op" constants
-   %callback("%s_op")
-   int add(int, int);
-   int sub(int, int);
-   int mul(int, int);
-   int div(int, int);
-   %nocallback
-
-Now in Python,
-
-  >>> import example
-  >>> example.do_op(3,4,example.add_op)   # Use callback
-  7
-  >>> add(3,4)                            # Call function normally
-  7
-
-* Improved %import *
-
-The %import directive has been improved to simplify cross-module
-linking.  The whole import mechanism was redesigned to make it
-easier for language modules to keep track of how modules are
-organized and related to each other.
-
-* Better code generation *
-
-SWIG now generates a little less code than before--especially for C++.
-Most language modules have a variety of other improvements.
+SWIG-1.3.10 is the first release to include support for PHP4.  This work has
+been contributed by Richard Palmer and is still in progress.   
 
 * Improved internals *
 
-This is the first release of SWIG that builds a complete parse tree
-before generating code (effectively becoming a 2-pass compiler).  This
-has allowed us to implement some subtle semantic improvements that
-were not really possible in the earlier release (e.g., not generating
-default constructors for classes with private constructors).  Future
-releases are going to make the parse tree fully available to language
-modules as well as the ability to externally export the parse tree to
-other applications. Stay tuned.
+SWIG is now building a complete parse tree of the interface before generating
+any code.  The whole language module API has also been completely redesigned
+to give the code generators greatly flexibility.   For now, you will only notice
+superficial changes (e.g., the generated wrapper code is better).   However,
+more amazing stuff is on the way.
 
 * Partially updated documentation *
 
 The first part of the SWIG manual has been updated to reflect new
 features.  This is the first documentation update in 4 years.
 However, updating the entire manual is an ongoing process and is not
-yet finished in the 1.3.7 release.  Most new changes and
+yet finished in the 1.3.10 release.  Most new changes and
 incompatibilities are documented however.
 
 Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://download.sourceforge.net/swig/swig-1.3.8.tar.gz
+     http://download.sourceforge.net/swig/swig-1.3.10.tar.gz
 
 Within the next day, a Windows version will also be made available at
 
-     http://download.sourceforge.net/swig/swigwin-1.3.8.zip
+     http://download.sourceforge.net/swig/swigwin-1.3.10.zip
 
 What's broken?
 --------------
@@ -144,6 +108,9 @@ with all Perl configurations such as ActivePerl (It seems to work with
 a standard Perl5.6.1 distribution however).  We are looking for a
 fearless volunteer to help us with future Perl5 support (please skip
 to the end for details).
+
+The Java module is also undergoing some renovation and may not be
+fully functional in this release.
 
 Documentation
 -------------
@@ -191,6 +158,9 @@ Please report problems with this release to swig-dev@cs.uchicago.edu.
 David Beazley 
 William Fulton
 Matthias Köppe
+Lyle Johnson
+Richard Palmer
+Jason Stewart
 Masaki Fukushima
 
 

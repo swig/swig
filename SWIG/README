@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.9 (September 25, 2001)
+Version: 1.3.10 (December 10, 2001)
 
 $Header$
 
@@ -22,7 +22,9 @@ are:
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
  Loic Dachary (loic@ceic.com)                           (Perl5)
  Thien-Thi Nguyen (ttn@glug.org)                        (Testing/Misc)
+ Lyle Johnson (ljohnson@resgen.com)                     (Ruby)
  Masaki Fukushima (fukusima@goto.info.waseda.ac.jp)     (Ruby)
+ Richard Palmer (richard@magicality.org)                (PHP)
 
 Past contributors (see the CHANGES file for a complete list):
 
@@ -47,6 +49,8 @@ What's New?
 ===========
 Here are the most notable changes (so far):
 
+   - Support for C++ overloaded operators.
+
    - Support for C++ templates.
 
    - Improvement support for overloaded functions/methods.
@@ -67,7 +71,7 @@ Here are the most notable changes (so far):
    - The Guile module is stable. It represents C pointers as smobs and
      supports the Guile module system and exceptions.
 
-   - Java, Ruby, and MzScheme modules added.
+   - Java, Ruby, MzScheme, PHP4 modules added.
 
    - Testing framework part of the distribution ("make -k check" support).
 
@@ -155,7 +159,7 @@ Notes:
     before typing 'configure'.    In addition, a full build of SWIG requires
     the use of bison.
 
-(3) 'make -k check' is a new feature that requires at least one of the target
+(2) 'make -k check' is a new feature that requires at least one of the target
     languages to be installed and which performs compile/link level testing
     of the examples.  If it fails, it may mean that you have an uninstalled
     language module or that the file 'Examples/Makefile' has been
