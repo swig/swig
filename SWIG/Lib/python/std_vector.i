@@ -719,7 +719,7 @@ namespace std {
                           SwigNumber_AsDouble,PyFloat_FromDouble);
     specialize_std_vector(float,SwigNumber_Check,\
                           SwigNumber_AsDouble,PyFloat_FromDouble);
-    specialize_std_vector(string,PyString_Check,\
+    specialize_std_vector(std::string,PyString_Check,\
                           SwigString_AsString,SwigString_FromString);
 
 }
