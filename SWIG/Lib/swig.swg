@@ -77,7 +77,13 @@
 #ifdef __cplusplus
 %ignorewarn("350:operator new ignored")     operator new;
 %ignorewarn("351:operator delete ignored")  operator delete;
+%ignorewarn("394:operator new[] ignored")   operator new[];
+%ignorewarn("395:operator delete[] ignored") operator delete[];
+
+/* Smart pointer handling */
+%rename(__deref__) operator->;
 #endif
+
 
 /* Set up the typemap for handling new return strings */
 
