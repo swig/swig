@@ -167,10 +167,11 @@ $1 = &temp; %}
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in, canthrow=1) SWIGTYPE ($&1_type argp)
 %{ argp = ($&1_ltype)$input; 
-   if (!argp) {
-     SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "Attempt to dereference null $1_type");
-   }
-   $1 = *argp; %}
+  if (!argp) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException, "Attempt to dereference null $1_type");
+    return $null;
+  }
+  $1 = *argp; %}
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
 %{$result = new $1_ltype(($1_ltype &)$1); %}
@@ -187,7 +188,8 @@ $1 = &temp; %}
 %typemap(in) SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if(!$1) {
-    SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "$1_type reference is null");
+    SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException, "$1_type reference is null");
+    return $null;
   } %}
 %typemap(out) SWIGTYPE *, SWIGTYPE & %{ $result = (void *)$1; %} 
 %typemap(out) SWIGTYPE (CLASS::*) %{ *($&1_ltype)&$result = $1; %} 
@@ -293,16 +295,19 @@ $1 = &temp; %}
                  unsigned short {
   char error_msg[256];
   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
-  SWIG_CSharpThrowException(SWIG_CSharpException, error_msg);
+  SWIG_CSharpSetPendingException(SWIG_CSharpSystemException, error_msg);
+  return $null;
 }
 
 %typemap(throws, canthrow=1) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
   (void)$1;
-  SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
+  SWIG_CSharpSetPendingException(SWIG_CSharpSystemException, "C++ $1_type exception thrown");
+  return $null;
 %}
 
 %typemap(throws, canthrow=1) char * %{
-  SWIG_CSharpThrowException(SWIG_CSharpException, $1);
+  SWIG_CSharpSetPendingException(SWIG_CSharpSystemException, $1);
+  return $null;
 %}
 
 
@@ -332,10 +337,10 @@ $1 = &temp; %}
 /* The csout typemap is used for converting function return types from the return type
  * used in the PInvoke class to the type returned by the proxy, module or type wrapper class.
  * The $excode special variable is replaced by the excode typemap attribute code if the
- * method can throw any exceptions, otherwise replaced by nothing. */
+ * method can throw any exceptions from unmanaged code, otherwise replaced by nothing. */
 
 // Macro used by the $excode special variable
-%define SWIGEXCODE "\n    if ($modulePINVOKE.ExceptionPending) throw $modulePINVOKE.RetrievePendingException();" %enddef
+%define SWIGEXCODE "\n    if ($modulePINVOKE.SWIGPendingException.Pending) throw $modulePINVOKE.SWIGPendingException.Retrieve();" %enddef
 
 %typemap(csout, excode=SWIGEXCODE) bool,               const bool &               {
     bool ret = $imcall;$excode
@@ -489,11 +494,6 @@ $1 = &temp; %}
     swigCPtr = cPtr;
   }
 
-  protected virtual void swigSetup(IntPtr cPtr, bool cMemoryOwn) {
-    swigCMemOwn = cMemoryOwn;
-    swigCPtr = cPtr;
-  }
-
   internal static IntPtr getCPtr($csclassname obj) {
     return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
   }
@@ -503,12 +503,7 @@ $1 = &temp; %}
 %typemap(csbody_derived) SWIGTYPE %{
   private IntPtr swigCPtr;
 
-  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base((cPtr == IntPtr.Zero) ? cPtr : $modulePINVOKE.$csclassnameUpcast(cPtr), cMemoryOwn) {
-    swigCPtr = cPtr;
-  }
-
-  protected override void swigSetup(IntPtr cPtr, bool cMemoryOwn) {
-    base.swigSetup($modulePINVOKE.$csclassnameUpcast(cPtr), cMemoryOwn);
+  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($modulePINVOKE.$csclassnameUpcast(cPtr), cMemoryOwn) {
     swigCPtr = cPtr;
   }
 
@@ -540,8 +535,7 @@ $1 = &temp; %}
   }
 %}
 
-%typemap(csconstruct, excode=SWIGEXCODE) SWIGTYPE %{: this(IntPtr.Zero, false) {
-    swigSetup($imcall, true);$excode
+%typemap(csconstruct, excode=SWIGEXCODE) SWIGTYPE %{: this($imcall, true) {$excode
   }
 %}
 
@@ -570,8 +564,7 @@ $1 = &temp; %}
 #define %csconstvalue(value)        %feature("cs:constvalue",value)
 #define %csenum(wrapapproach)       %feature("cs:enum","wrapapproach")
 #define %csmethodmodifiers          %feature("cs:methodmodifiers")
-#define %csexception                %feature("except",canthrow=1)
-#define %nocsexception              %feature("except","")
+#define %csnothrowexception         %feature("except")
 
 %pragma(csharp) imclassclassmodifiers="class"
 %pragma(csharp) moduleclassmodifiers="public class"
