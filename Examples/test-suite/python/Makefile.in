@@ -20,6 +20,7 @@ CPP_TEST_CASES += \
 	implicittest \
 	inout \
 	inplaceadd \
+	kwargs \
 	lib_std_except \
 	lib_std_vectora \
 	lib_std_map \
