@@ -118,32 +118,30 @@ SOURCE=.\example.i
 !IF  "$(CFG)" == "example - Win32 Debug"
 
 # Begin Custom Build
-ProjDir=.
 InputPath=.\example.i
 InputName=example
 
-"$(ProjDir)\$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.cxx" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo on 
 	set SWIG_LIB=..\..\..\Lib 
-	..\..\..\swig -c++ -perl5 -o $(ProjDir)\$(InputName)_wrap.c $(InputPath) 
+	..\..\..\swig -c++ -perl5 $(InputPath) 
 	
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "example - Win32 Release"
 
 # Begin Custom Build
-ProjDir=.
 InputPath=.\example.i
 InputName=example
 
-"$(ProjDir)\$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.cxx" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo on 
 	set SWIG_LIB=..\..\..\Lib 
-	..\..\..\swig -c++ -perl5 -o $(ProjDir)\$(InputName)_wrap.c $(InputPath) 
+	..\..\..\swig -c++ -perl5 $(InputPath) 
 	
 # End Custom Build
 

@@ -92,16 +92,20 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\example.c
+SOURCE=.\example.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=.\example_wrap.c
+SOURCE=.\example_wrap.cxx
 # End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\example.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 
@@ -114,34 +118,32 @@ SOURCE=.\example.i
 !IF  "$(CFG)" == "example - Win32 Debug"
 
 # Begin Custom Build
-ProjDir=.
 InputPath=.\example.i
 InputName=example
 
-"$(ProjDir)\$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.cxx" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo TCL_INCLUDE: %TCL_INCLUDE% 
 	echo TCL_LIB: %TCL_LIB% 
 	echo on 
 	set SWIG_LIB=..\..\..\Lib 
-	..\..\..\swig -tcl8 -o $(ProjDir)\$(InputName)_wrap.c $(InputPath) 
+	..\..\..\swig -tcl8 $(InputPath) 
 	
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "example - Win32 Release"
 
 # Begin Custom Build
-ProjDir=.
 InputPath=.\example.i
 InputName=example
 
-"$(ProjDir)\$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.cxx" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo TCL_INCLUDE: %TCL_INCLUDE% 
 	echo TCL_LIB: %TCL_LIB% 
 	echo on 
 	set SWIG_LIB=..\..\..\Lib 
-	..\..\..\swig -tcl8 -o $(ProjDir)\$(InputName)_wrap.c $(InputPath) 
+	..\..\..\swig -c++ -tcl8 $(InputPath) 
 	
 # End Custom Build
 

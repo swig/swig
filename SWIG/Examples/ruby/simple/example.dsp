@@ -114,36 +114,34 @@ SOURCE=.\example.i
 !IF  "$(CFG)" == "example - Win32 Debug"
 
 # Begin Custom Build
-ProjDir=.
 InputPath=.\example.i
 InputName=example
 
-"$(ProjDir)\$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo RUBY_INCLUDE: %RUBY_INCLUDE% 
 	echo RUBY_LIB: %RUBY_LIB% 
 	echo **WARNING** I could not get Ruby (1.6.4) and SWIG to work under Visual Studio (6) 
 	echo on 
 	set SWIG_LIB=..\..\..\Lib 
-	..\..\..\swig -ruby -o $(ProjDir)\$(InputName)_wrap.c $(InputPath) 
+	..\..\..\swig -ruby $(InputPath) 
 	
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "example - Win32 Release"
 
 # Begin Custom Build
-ProjDir=.
 InputPath=.\example.i
 InputName=example
 
-"$(ProjDir)\$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo RUBY_INCLUDE: %RUBY_INCLUDE% 
 	echo RUBY_LIB: %RUBY_LIB% 
 	echo **WARNING** I could not get Ruby (1.6.4) and SWIG to work under Visual Studio (6) 
 	echo on 
 	set SWIG_LIB=..\..\..\Lib 
-	..\..\..\swig -ruby -o $(ProjDir)\$(InputName)_wrap.c $(InputPath) 
+	..\..\..\swig -ruby $(InputPath) 
 	
 # End Custom Build
 

@@ -114,34 +114,32 @@ SOURCE=.\example.i
 !IF  "$(CFG)" == "example - Win32 Debug"
 
 # Begin Custom Build
-ProjDir=.
 InputPath=.\example.i
 InputName=example
 
-"$(ProjDir)\$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo PYTHON_INCLUDE: %PYTHON_INCLUDE% 
 	echo PYTHON_LIB: %PYTHON_LIB% 
 	echo on 
 	set SWIG_LIB=..\..\..\Lib 
-	..\..\..\swig -python -o $(ProjDir)\$(InputName)_wrap.c $(InputPath) 
+	..\..\..\swig -python $(InputPath) 
 	
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "example - Win32 Release"
 
 # Begin Custom Build
-ProjDir=.
 InputPath=.\example.i
 InputName=example
 
-"$(ProjDir)\$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo PYTHON_INCLUDE: %PYTHON_INCLUDE% 
 	echo PYTHON_LIB: %PYTHON_LIB% 
 	echo on 
 	set SWIG_LIB=..\..\..\Lib 
-	..\..\..\swig -python -o $(ProjDir)\$(InputName)_wrap.c $(InputPath) 
+	..\..\..\swig -python $(InputPath) 
 	
 # End Custom Build
 

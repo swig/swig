@@ -124,34 +124,32 @@ SOURCE=.\example.i
 !IF  "$(CFG)" == "example - Win32 Debug"
 
 # Begin Custom Build
-ProjDir=.
 InputPath=.\example.i
 InputName=example
 
-"$(ProjDir)\$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo JAVA_INCLUDE: %JAVA_INCLUDE% 
 	echo JAVA_BIN: %JAVA_BIN% 
 	echo on 
 	set SWIG_LIB=..\..\..\Lib 
-	..\..\..\swig.exe -java -shadow -o $(ProjDir)\$(InputName)_wrap.c $(InputPath) 
+	..\..\..\swig.exe -java -shadow $(InputPath) 
 	
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "example - Win32 Release"
 
 # Begin Custom Build
-ProjDir=.
 InputPath=.\example.i
 InputName=example
 
-"$(ProjDir)\$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo JAVA_INCLUDE: %JAVA_INCLUDE% 
 	echo JAVA_BIN: %JAVA_BIN% 
 	echo on 
 	set SWIG_LIB=..\..\..\Lib 
-	..\..\..\swig.exe -java -shadow -o $(ProjDir)\$(InputName)_wrap.c $(InputPath) 
+	..\..\..\swig.exe -java -shadow $(InputPath) 
 	
 # End Custom Build
 
