@@ -682,6 +682,7 @@ public:
 	  Printf(wrapper->code, "stack_dup();\n");
 	  Printf(wrapper->code, "stack_unlink(args);\n");
 	  Printf(wrapper->code, "%s(1);\n", funcname);
+	  Printf(wrapper->code, "return;\n");
 	  Printf(wrapper->code, "}\n");
 	  Delete(funcname);
 	}
@@ -719,6 +720,7 @@ public:
       funcname = Swig_name_wrapper(Swig_name_get(Swig_name_member(getClassPrefix(), name)));
       Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
       Printf(wrapper->code, "%s(args);\n", funcname);
+      Printf(wrapper->code, "return;\n");
       Printf(wrapper->code, "}\n");
       Delete(funcname);
       n = Nextitem(membervariables);

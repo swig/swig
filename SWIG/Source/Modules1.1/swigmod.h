@@ -204,6 +204,9 @@ public:
   /* Return the current class prefix */
   String *getClassPrefix() const;
 
+  /* Fully qualified type name to use */
+  String *getClassType() const;
+
  private:
   Hash   *symbols;
   Hash   *classtypes;

@@ -1760,3 +1760,11 @@ String * Language::getClassName() const {
 String * Language::getClassPrefix() const {
     return ClassPrefix;
 }
+
+/* -----------------------------------------------------------------------------
+ * Language::getClassType()
+ * ----------------------------------------------------------------------------- */
+
+String * Language::getClassType() const {
+    return ClassType;
+}
