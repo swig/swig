@@ -83,7 +83,8 @@ Swig_overload_rank(Node *n) {
 	  Parm *p1 = nodes[i].parms;
 	  Parm *p2 = nodes[j].parms;
 	  int   differ = 0;
-	  while (p1 && p2) {
+	  int   num_checked = 0;
+	  while (p1 && p2 && (num_checked < nodes[i].argc)) {
 	    //	  Printf(stdout,"p1 = '%s', p2 = '%s'\n", Getattr(p1,"type"), Getattr(p2,"type"));
 	    if (Getattr(p1,"tmap:ignore")) {
 	      p1 = Getattr(p1,"tmap:ignore:next");
@@ -112,6 +113,7 @@ Swig_overload_rank(Node *n) {
 	    else if (!t1 && t2) differ = 1;
 	    else if (t2 && !t1) differ = -1;
 	    else if (!t1 && !t2) differ = -1;
+	    num_checked++;
 	    if (differ > 0) {
 	      Overloaded t = nodes[i];
 	      nodes[i] = nodes[j];
