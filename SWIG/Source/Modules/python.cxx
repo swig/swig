@@ -78,13 +78,13 @@ String *Swig_class_name(Node *n) {
 /* Swig_director_declaration()
  *
  * Generate the full director class declaration, complete with base classes.
- * e.g. "class __DIRECTOR__myclass : public myclass, public Swig::Director {"
+ * e.g. "class SwigDirector_myclass : public myclass, public Swig::Director {"
  *
  */
 
 String *Swig_director_declaration(Node *n) {
   String* classname = Swig_class_name(n);
-  String *directorname = NewStringf("__DIRECTOR__%s", classname);
+  String *directorname = NewStringf("SwigDirector_%s", classname);
   String *base = Getattr(n, "classtype");
   String *declaration = Swig_class_declaration(n, directorname);
   Printf(declaration, " : public %s, public Swig::Director {\n", base);
@@ -1303,7 +1303,7 @@ public:
     /* virtual method definition */
     l = Getattr(n, "parms");
     String *target;
-    String *pclassname = NewStringf("__DIRECTOR__%s", classname);
+    String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
     target = method_decl(decl, qualified_name, l, 0, 0);
     String *rtype = SwigType_str(type, 0);
@@ -1379,7 +1379,7 @@ public:
 	/* special handling for pointers to other C++ director classes.
 	 * ideally this would be left to a typemap, but there is currently no
 	 * way to selectively apply the dynamic_cast<> to classes that have
-	 * directors.  in other words, the type "__DIRECTOR__$1_lname" only exists
+	 * directors.  in other words, the type "SwigDirector_$1_lname" only exists
 	 * for classes with directors.  we avoid the problem here by checking
 	 * module.wrap::directormap, but it's not clear how to get a typemap to
 	 * do something similar.  perhaps a new default typemap (in addition
@@ -1611,7 +1611,7 @@ public:
     String *decl = Getattr(n, "decl");
     String *supername = Swig_class_name(parent);
     String *classname = NewString("");
-    Printf(classname, "__DIRECTOR__%s", supername);
+    Printf(classname, "SwigDirector_%s", supername);
 
     /* insert self and disown parameters */
     Parm *p, *ip;
@@ -1666,11 +1666,11 @@ public:
     classname = Swig_class_name(n);
     {
       Wrapper *w = NewWrapper();
-      Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(PyObject* self, bool disown) : Swig::Director(self, disown) { }", classname, classname);
+      Printf(w->def, "SwigDirector_%s::SwigDirector_%s(PyObject* self, bool disown) : Swig::Director(self, disown) { }", classname, classname);
       Wrapper_print(w, f_directors);
       DelWrapper(w);
     }
-    Printf(f_directors_h, "    __DIRECTOR__%s(PyObject* self, bool disown = false);\n", classname);
+    Printf(f_directors_h, "    SwigDirector_%s(PyObject* self, bool disown = false);\n", classname);
     Delete(classname);
     return Language::classDirectorDefaultConstructor(n);
   }
