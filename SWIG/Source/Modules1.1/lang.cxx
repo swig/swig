@@ -232,12 +232,14 @@ static Parm *nonvoid_parms(Parm *p) {
 SwigType *cplus_value_type(SwigType *t) {
     Node *n;
     if (!CPlusPlus) return 0;
-    if (!ClassHash) return 0;
-    SwigType *td = SwigType_typedef_resolve_all(t);
-    if ((n = Getattr(ClassHash,td))) {
+    if (SwigType_isclass(t)) {
+      SwigType *td = SwigType_typedef_resolve_all(t);
+      if ((n = Swig_symbol_clookup(td,0))) {
 	if (Getattr(n,"allocate:default_constructor")) return 0;
-	String *s = NewStringf("SwigValueWrapper<%s>",t);
+	String *s = NewStringf("SwigValueWrapper< %s >",t);
 	return s;
+      }
+      Delete(td);
     }
     return 0;
 }

@@ -1956,7 +1956,6 @@ cpp_class_decl  :
 		       Delete(base);
 		     }
 		   }
-
                    if (strcmp($2,"class") == 0) {
 		     cplus_mode = CPLUS_PRIVATE;
 		   } else {
@@ -2029,6 +2028,11 @@ cpp_class_decl  :
 		       if (!decltype || !Len(decltype)) {
 			 name = Char(Getattr($9,"name"));
 			 Setattr($$,"tdname",name);
+
+			 /* Use typedef name as class name */
+			 if (class_rename && (Strcmp(class_rename,$3) == 0)) {
+			   class_rename = NewString(name);
+			 }
 			 if (!Getattr(classes,name)) {
 			   Setattr(classes,name,$$);
 			 }
