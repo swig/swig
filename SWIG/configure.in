@@ -754,11 +754,19 @@ case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
         JAVADYNAMICLINKING=" -mno-cygwin -Wl,--add-stdcall-alias"
+        JAVACFLAGS="-mno-cygwin"
     else
         JAVADYNAMICLINKING=""
+        JAVACFLAGS=""
     fi ;;
-*-*-darwin*) JAVADYNAMICLINKING="-dynamiclib -framework JavaVM";;
-*)JAVADYNAMICLINKING="";;
+*-*-darwin*) 
+        JAVADYNAMICLINKING="-dynamiclib -framework JavaVM"
+        JAVACFLAGS=""
+        ;;
+*)
+        JAVADYNAMICLINKING=""
+        JAVACFLAGS=""
+        ;;
 esac
 
 # Java on Windows platforms including Cygwin doesn't use libname.dll, rather name.dll when loading dlls
@@ -789,6 +797,7 @@ AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)
 AC_SUBST(JAVALDSHARED)
 AC_SUBST(JAVACXXSHARED)
+AC_SUBST(JAVACFLAGS)
 
 #----------------------------------------------------------------
 # Look for Guile
@@ -1357,10 +1366,15 @@ case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
         CSHARPDYNAMICLINKING=" -mno-cygwin -Wl,--add-stdcall-alias"
+        CSHARPCFLAGS="-mno-cygwin"
     else
         CSHARPDYNAMICLINKING=""
+        CSHARPCFLAGS=""
     fi ;;
-*)CSHARPDYNAMICLINKING="";;
+*)
+        CSHARPDYNAMICLINKING=""
+        CSHARPCFLAGS=""
+        ;;
 esac
 
 # CSharp on Windows platforms including Cygwin doesn't use libname.dll, rather name.dll when loading dlls
@@ -1376,6 +1390,7 @@ AC_SUBST(CSHARPCYGPATH_W)
 AC_SUBST(CSHARPCOMPILER)
 AC_SUBST(CSHARPDYNAMICLINKING)
 AC_SUBST(CSHARPLIBRARYPREFIX) # Is this going to be used?
+AC_SUBST(CSHARPCFLAGS)
 
 #----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
