@@ -1,5 +1,11 @@
 %module(directors="1") director_enum
 
+%warnfilter(801) EnumDirector::hi; /* Ruby, wrong constant name */
+%warnfilter(801) EnumDirector::hello; /* Ruby, wrong constant name */
+%warnfilter(801) EnumDirector::yo; /* Ruby, wrong constant name */
+%warnfilter(801) EnumDirector::awright; /* Ruby, wrong constant name */
+
+
 %feature("director") Foo;
 
 %rename(Hallo) EnumDirector::Hello;

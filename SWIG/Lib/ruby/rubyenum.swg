@@ -5,8 +5,12 @@
 /* --- Input typemaps --- */
 %typemap(in) enum SWIGTYPE   "$1 = ($1_ltype) NUM2INT($input);";
 
+%typemap(directorout) enum SWIGTYPE "$result = NUM2INT($input);";
+
 /* --- Output typemaps --- */
 %typemap(out) enum SWIGTYPE "$result = INT2NUM($1);";
+
+%typemap(directorin) enum SWIGTYPE "$input = INT2NUM($1);";
 
 /* --- Variable Input --- */
 
