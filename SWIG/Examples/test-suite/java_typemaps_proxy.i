@@ -28,11 +28,22 @@ import java.lang.*; // for Exception
   }
 %}
 
+// Create a new getCPtr() function which takes Java null
+%typemap(javagetcptr) Greeting %{
+  public static long getCPtr($javaclassname obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
+%}
+
+// get rid of the finalize method for Farewell
+%typemap(javafinalize) Farewell "";
+
 
 %inline %{
 class Greeting {
 public:
     void hello() {}
+    static void ciao(Greeting* g) {}
 };
 class Farewell {
 };

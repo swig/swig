@@ -23,6 +23,9 @@ public class java_typemaps_proxy_runme {
     greet.sayhello();
     bye.saybye(new java.math.BigDecimal(java.math.BigInteger.ONE));
 
+    // No finalize method so may as well delete manually
+    bye._delete();
+
     // Check that Greeting is derived from Exception
     try {
       throw new Greeting();
@@ -32,6 +35,11 @@ public class java_typemaps_proxy_runme {
 
     // Check that Greeting has implemented the EventListener interface
     Greeting.cheerio(greet); 
+
+    // The default getCPtr() call in each method will through an exception if null is passed.
+    // Make sure the modified version works with and without null objects.
+    Greeting.ciao(null);
+    Greeting.ciao(greet);
   }
 }
 
