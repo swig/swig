@@ -1168,12 +1168,15 @@ RUBY::copyconstructorHandler(Node *n) {
   
   String *classname = Getattr(n, "name");
   String *symname = Getattr(n, "sym:name");
+  Parm   *parms = Getattr(n,"parms");
+  if (CPlusPlus) patch_parms(parms);
+  
   Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_clone");
   String *mrename = Swig_name_copyconstructor(symname);
   Swig_name_unregister((String_or_char *) "construct");
 
   Setattr(n, "sym:name", mrename);
-  Swig_ConstructorToFunction(n, classname, CPlusPlus, Extend);
+  Swig_ConstructorToFunction(n, classname, CPlusPlus, Getattr(n,"template") ? 0 : Extend);
   current = MEMBER_FUNC;
   functionWrapper(n);
   current = NO_CPP;
