@@ -2844,6 +2844,42 @@ code observes the same namespace conventions as used in the input file.  Thus, i
 conflicts in the input, there will be no conflicts in the generated code. 
 
 <p>
+<b>Note:</b> Namespaces have a subtle effect on the wrapping of conversion operators.  For
+instance, suppose you had an interface like this:
+
+<blockquote>
+<pre>
+namespace foo {
+   class bar;
+   class spam {
+   public;
+        ...
+        operator bar();      // Conversion of spam -> bar
+        ...
+   };
+}
+</pre>
+</blockquote>
+
+To wrap the conversion function, you might be inclined to write this:
+
+<blockquote>
+<pre>
+%rename(tofoo) foo::spam::operator bar();
+</pre>
+</blockquote>
+
+The only problem is that it doesn't work.   The reason it doesn't work is that
+<tt>bar</tt> is not defined in the global scope.  Therefore, to make it work, do this
+instead:
+
+<blockquote>
+<pre>
+%rename(tofoo) foo::spam::operator <b>foo::</b>bar();
+</pre>
+</blockquote>
+
+<p>
 <b>Note:</b> The flattening of namespaces is only intended to serve as
 a basic namespace implementation.  Since namespaces are a new addition
 to SWIG, none of the target language modules are currently programmed
