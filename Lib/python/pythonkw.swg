@@ -106,6 +106,10 @@ PYTHONBN(True);
 PYTHONBN(False);
 PYTHONBN(None);
 
+/* 
+   'self' is also a bad Name
+*/
+PYTHONBN(self);
 
 #undef PYTHONBN
 #undef PYTHONKW
