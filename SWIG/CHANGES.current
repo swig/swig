@@ -1,6 +1,11 @@
 Version 1.3.17 (In progress)
 ============================
 
+11/05/2002: mkoeppe 
+	    [MzScheme] Add an argument (-declaremodule) that generates
+	    code to correctly declare a primitive module extension.
+	    Patch submitted by Bruce Butterfield.
+
 11/02/2002: cheetah (William Fulton)
             [Java] Added patch submitted by Michael Cahill to remove unused parameter
             warnings for the jenv and cls parameters. This patch also also allows one
