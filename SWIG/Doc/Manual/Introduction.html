@@ -4,9 +4,39 @@
 </head>
 
 <body bgcolor="#ffffff">
-<h1>Introduction</h1>
+<a name="n1"></a><H1>1 Introduction</H1>
 
-<h2> What is SWIG?</h2>
+<!-- INDEX -->
+<ul>
+<li><a href="#n2">What is SWIG?</a>
+<li><a href="#n3">Why use SWIG?</a>
+<li><a href="#n4">A SWIG example</a>
+<ul>
+<li><a href="#n5">SWIG interface file</a>
+<li><a href="#n6">The swig command</a>
+<li><a href="#n7">Building a Perl5 module</a>
+<li><a href="#n8">Building a Python module</a>
+<li><a href="#n9">Shortcuts</a>
+<li><a href="#n10">Building libraries and modules</a>
+</ul>
+<li><a href="#n11">C syntax, but not a C compiler</a>
+<li><a href="#n12">Non-intrusive interface building</a>
+<li><a href="#n13">Hands off code generation</a>
+</ul>
+<!-- INDEX -->
+
+
+
+
+
+
+
+
+<a name="n2"></a><H2>1.1 What is SWIG?</H2>
+
+
+
+
 
 SWIG is a software development tool that simplifies the task of
 interfacing different languages to C and C++ programs.  In a
@@ -43,7 +73,11 @@ project, it is particularly well suited to software development in the
 small; especially the research and development work that is commonly found
 in scientific and engineering projects.
 
-<h2> Why use SWIG?</h2>
+<a name="n3"></a><H2>1.2 Why use SWIG?</H2>
+
+
+
+
 
 Although C is great for high-performance number crunching and systems
 programming, trying to make an interactive and highly flexible C
@@ -112,7 +146,11 @@ the tedious and complex chore of making the two languages talk to each
 other.<p>
 <p>
 
-<h2> A SWIG example</h2>
+<a name="n4"></a><H2>1.3 A SWIG example</H2>
+
+
+
+
 
 The best way to illustrate SWIG is with a simple example. Consider the
 following C code: <p>
@@ -140,7 +178,11 @@ variable <tt>My_variable</tt> from Tcl.  You start by making a SWIG
 interface file as shown below (by convention, these files carry a .i
 suffix) : <p>
 
-<h3> SWIG interface file</h3>
+<a name="n5"></a><H3>1.3.1 SWIG interface file</H3>
+
+
+
+
 
 <blockquote><pre>
 /* File : example.i */
@@ -161,7 +203,11 @@ module that will be created by SWIG.  The <tt>%{,%}</tt> block
 provides a location for inserting additional code such as C header
 files or additional C declarations. <p>
 
-<h3> The swig command</h3>
+<a name="n6"></a><H3>1.3.2 The swig command</H3>
+
+
+
+
 
 SWIG is invoked using the <tt>swig</tt> command. We can use this to
 build a Tcl module (under Linux) as follows :<p>
@@ -193,7 +239,11 @@ and variables declared in the SWIG interface.  A look at the file
 <tt>example_wrap.c</tt> reveals a hideous mess.  However, you 
 almost never need to worry about it.<p>
 
-<h3> Building a Perl5 module</h3>
+<a name="n7"></a><H3>1.3.3 Building a Perl5 module</H3>
+
+
+
+
 
 Now, let's turn these functions into a Perl5 module. Without making
 any changes type the following (shown for Solaris):<p>
@@ -218,7 +268,11 @@ unix &gt;
 </pre></blockquote>
 
 
-<h3> Building a Python module</h3>
+<a name="n8"></a><H3>1.3.4 Building a Python module</H3>
+
+
+
+
 
 Finally, let's build a module for Python (shown for Irix).<p>
 
@@ -240,7 +294,11 @@ Type "copyright", "credits" or "license" for more information.
 7.5
 </pre></blockquote>
 
-<h3> Shortcuts</h3>
+<a name="n9"></a><H3>1.3.5 Shortcuts</H3>
+
+
+
+
 
 To the truly lazy programmer, one may wonder why we needed the extra
 interface file at all. As it turns out, you can often do without
@@ -286,7 +344,11 @@ extern int    my_mod(int n, int m);
 
 </pre></blockquote>
 
-<h3> Building libraries and modules</h3>
+<a name="n10"></a><H3>1.3.6 Building libraries and modules</H3>
+
+
+
+
 
 In addition to generating wrapper code, SWIG provides extensive
 support for handling multiple files and building interface
@@ -322,7 +384,11 @@ build up your own personalized environment for building interfaces.
 If changes are made to any of the components, they will appear
 automatically the next time SWIG is run. <p>
 
-<h2> C syntax, but not a C compiler</h2>
+<a name="n11"></a><H2>1.4 C syntax, but not a C compiler</H2>
+
+
+
+
 
 SWIG uses ANSI C syntax, but is not a full ANSI C compiler. By using C
 syntax, SWIG is relatively easy to use with most C programs.  This avoids
@@ -353,7 +419,11 @@ Thus, SWIG may not recognize certain advanced C/C++ constructs.
 Of course, SWIG's parser is always being improved so currently
 unsupported features may be supported in later releases.<p>
 
-<h2> Non-intrusive interface building</h2>
+<a name="n12"></a><H2>1.5 Non-intrusive interface building</H2>
+
+
+
+
 
 When used as intended, SWIG requires minimal modification to
 existing C code. This makes SWIG extremely easy to use with existing
@@ -362,7 +432,11 @@ the C code independent of the high level interface, you can change the
 interface and reuse the code in other applications.   It is also
 possible to support different types of interfaces depending on the application.
 
-<h2> Hands off code generation</h2>
+<a name="n13"></a><H2>1.6 Hands off code generation</H2>
+
+
+
+
 
 SWIG is designed to produce working code that needs no
 hand-modification (in fact, if you look at the output, you probably

@@ -6,24 +6,55 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n0"></a><h1>11 Advanced Topics</h1>
+<a name="n1"></a><H1>12 Advanced Topics</H1>
+
+<!-- INDEX -->
+<ul>
+<li><a href="#n2">Creating multi-module packages</a>
+<ul>
+<li><a href="#n3">Runtime support (and potential problems)</a>
+<li><a href="#n4">Why doesn't C++ inheritance work between modules?</a>
+<li><a href="#n5">The SWIG runtime library</a>
+<li><a href="#n6">A few dynamic loading gotchas</a>
+</ul>
+<li><a href="#n7">Dynamic Loading of C++ modules</a>
+<li><a href="#n8">Inside the SWIG type-checker</a>
+<ul>
+<li><a href="#n9">Type equivalence</a>
+<li><a href="#n10">Type casting</a>
+<li><a href="#n11">Why a name based approach?</a>
+<li><a href="#n12">Performance of the type-checker</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+
+
+
+
+
+
 
 <b>Caution: This chapter is under repair!</b>
 
-<p><ul>
-<li> <a href="#n1">Creating multi-module packages</a>
-<li> <a href="#n2">Dynamic Loading of C++ modules</a>
-<li> <a href="#n3">Inside the SWIG type-checker</a>
-</ul>
+<a name="n2"></a><H2>12.1 Creating multi-module packages</H2>
 
-<a name="n1"></a><h2> Creating multi-module packages</h2>
+
 SWIG can be used to create packages consisting of many different modules. However, there are some technical aspects of doing this and techniques for managing the problem.<p>
-<a name="n4"></a><h3> Runtime support (and potential problems)</h3>
+<a name="n3"></a><H3>12.1.1 Runtime support (and potential problems)</H3>
+
+
+
+
 All SWIG generated modules rely upon a small collection of functions that are used during run-time. These functions are primarily used for pointer type-checking, exception handling, and so on. When you run SWIG, these functions are included in the wrapper file (and declared as static). If you create a system consisting of many modules, each one will have an identical copy of these runtime libraries :<p>
 <center><img src="ch11.1.png"></center><p>
 <p>
 This duplication of runtime libraries is usually harmless since there are no namespace conflicts and memory overhead is minimal. However, there is serious problem related to the fact that modules do not share type-information.  This is particularly a problem when working with C++ (as described next).<p>
-<a name="n5"></a><h3> Why doesn't C++ inheritance work between modules?</h3>
+<a name="n4"></a><H3>12.1.2 Why doesn't C++ inheritance work between modules?</H3>
+
+
+
+
 Consider for a moment the following two interface files :<p>
 <p>
 <blockquote><pre>// File : a.i
@@ -75,7 +106,11 @@ However, from our class definitions we know that "b" is an "a" by inheritance an
 The type information listed shows the acceptable values for various C datatypes.  In the "a" module, we see that "a" can only accept instances of itself.  In the "b" module, we see that "a"  can accept both "a" and "b" instances--which is correct given that a "b"  is an "a" by inheritance.<p>
 <p>
 Unfortunately, this problem is inherent in the method by which SWIG makes modules.  When we made the "a" module, we had no idea what derived classes might be used at a later time. However, it's impossible to produce the proper type information until after we know all of the derived classes.   A nice problem to be sure, but one that can be fixed by making all modules share a single copy of the SWIG run-time library.<p>
-<a name="n6"></a><h3> The SWIG runtime library</h3>
+<a name="n5"></a><H3>12.1.3 The SWIG runtime library</H3>
+
+
+
+
 To reduce overhead and to fix type-handling problems, it is possible to share the SWIG run-time functions between multiple modules. This requires the use of the SWIG runtime library which is optionally built during SWIG installation.  To use the runtime libraries, follow these steps:<p>
 <p>
 1.  Build the SWIG run-time libraries.  The <tt>SWIG/Runtime</tt> directory contains a makefile for doing this. If successfully built, you will end up with 8 files that are usually installed in <tt>/usr/local/lib</tt>.<p>
@@ -123,7 +158,11 @@ When completed you should now end up with a collection of modules like this:<p>
 <p>
 <p>
 In this configuration, the runtime library manages all datatypes and other information between modules.   This management process is dynamic in nature--when new modules are loaded, they contribute information to the run-time system.   In the C++ world, one could incrementally load classes as needed.  As this process occurs, type information is updated and base-classes learn about derived classes as needed.<p>
-<a name="n7"></a><h3> A few dynamic loading gotchas</h3>
+<a name="n6"></a><H3>12.1.4 A few dynamic loading gotchas</H3>
+
+
+
+
 When working with dynamic loading, it is critical to check that only one copy of the run-time library is being loaded into the system.  When working with <tt>.a</tt> library files, problems can sometimes occur so there are a few approaches to the problem.<p>
 <p>
 1.  Rebuild the scripting language executable with the SWIG runtime library attached to it.   This is actually, fairly easy to do using SWIG.  For example :<p>
@@ -181,7 +220,11 @@ A somewhat better approach is to link your module with the proper path encoded. 
 The <tt>-rpath</tt> option encodes the location of shared libraries into your modules and gets around having to set the <tt>LD_LIBRARY_PATH</tt> variable.<p>
 <p>
 If all else fails, pull up the man pages for your linker and start playing around.<p>
-<a name="n2"></a><h2> Dynamic Loading of C++ modules</h2>
+<a name="n7"></a><H2>12.2 Dynamic Loading of C++ modules</H2>
+
+
+
+
 Dynamic loading of C++ modules presents a special problem for many systems. This is because C++ modules often need additional supporting code for proper initialization and operation. Static constructors are also a bit of a problem.<p>
 <p>
 While the process of building C++ modules is, by no means, and exact science, here are a few rules of thumb to follow :<p>
@@ -195,9 +238,17 @@ While the process of building C++ modules is, by no means, and exact science, he
 </ul>
 <p>
 The SWIG distribution contains some additional documentation about C++ modules in the Doc directory as well.<p>
-<a name="n3"></a><h2> Inside the SWIG type-checker</h2>
+<a name="n8"></a><H2>12.3 Inside the SWIG type-checker</H2>
+
+
+
+
 The SWIG runtime type-checker plays a critical role in the correct operation of SWIG modules.   It not only checks the validity of pointer types, but also manages C++ inheritance, and performs proper type-casting of pointers when necessary.  This section provides some insight into what it does, how it works, and why it is the way it is.<p>
-<a name="n8"></a><h3> Type equivalence</h3>
+<a name="n9"></a><H3>12.3.1 Type equivalence</H3>
+
+
+
+
 SWIG uses a name-based approach to managing pointer datatypes. For example, if you are using a pointer like "<tt>double *</tt>", the type-checker will look for a particular string representation of that datatype such as "<tt>_double_p</tt>".   If no match is found, a type-error is reported.<p>
 <p>
 However, the matching process is complicated by the fact that datatypes may use a variety of different names.  For example, the following declarations<p>
@@ -264,7 +315,11 @@ E =&gt; { }
 
 </pre></blockquote>
 The encoding reflects the class hierarchy. For example, any object of type "A" will also accept objects of type B,C, and E because these are all derived from A.  However, it is not legal to go the other way. For example, a function operating on a object from class E will not accept an object from class A.<p>
-<a name="n9"></a><h3> Type casting</h3>
+<a name="n10"></a><H3>12.3.2 Type casting</H3>
+
+
+
+
 When working with C++ classes, SWIG needs to perform proper typecasting between derived and base classes.  This is particularly important when working with multiple inheritance.   To do this, conversion functions are created such as the following :<p>
 <p>
 <blockquote><pre>void *EtoA(void *ptr) {
@@ -275,7 +330,11 @@ When working with C++ classes, SWIG needs to perform proper typecasting between 
 
 </pre></blockquote>
 All pointers are internally represented as void *, but conversion functions are always invoked when pointer values are converted between base and derived classes in a C++ class hierarchy.<p>
-<a name="n10"></a><h3> Why a name based approach?</h3>
+<a name="n11"></a><H3>12.3.3 Why a name based approach?</H3>
+
+
+
+
 SWIG uses a name-based approach to type-checking for a number of reasons :<p>
 <p>
 <ul>
@@ -285,7 +344,11 @@ SWIG uses a name-based approach to type-checking for a number of reasons :<p>
 </ul>
 <p>
 An alternative to a name based scheme would be to generate type-signatures based on the structure of a datatype.   Such a scheme would result in perfect type-checking, but I think it would also result in a very confusing scripting language module.  For this reason, I see SWIG sticking with the name-based approach--at least for the foreseeable future.  <p>
-<a name="n11"></a><h3> Performance of the type-checker</h3>
+<a name="n12"></a><H3>12.3.4 Performance of the type-checker</H3>
+
+
+
+
 The type-checker performs the following steps when matching a datatype :<p>
 <p>
 

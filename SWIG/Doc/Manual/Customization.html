@@ -4,7 +4,30 @@
 </head>
 
 <body bgcolor="#ffffff">
-<h1>Customization Features</h1>
+<a name="n1"></a><H1>8 Customization Features</H1>
+
+<!-- INDEX -->
+<ul>
+<li><a href="#n2">Exception handling with %exception</a>
+<ul>
+<li><a href="#n3">Handling exceptions in C code</a>
+<li><a href="#n4">Exception handling with longjmp()</a>
+<li><a href="#n5">Handling C++ exceptions</a>
+<li><a href="#n6">Defining different exception handlers</a>
+<li><a href="#n7">Applying exception handlers to specific datatypes.</a>
+<li><a href="#n8">Using The SWIG exception library</a>
+</ul>
+<li><a href="#n9">Object ownership and %newobject</a>
+<li><a href="#n10">Features and the %feature directive</a>
+</ul>
+<!-- INDEX -->
+
+
+
+
+
+
+
 
 In many cases, it is desirable to change the default wrapping of
 particular declarations in an interface.  For example, you might want
@@ -14,7 +37,11 @@ describes some of these customization techniques.  First, a discussion
 of exception handling is presented.  Then, a more general-purpose
 customization mechanism known as "features" is described.
 
-<h2>Exception handling with %exception</h2>
+<a name="n2"></a><H2>8.1 Exception handling with %exception</H2>
+
+
+
+
 
 The <tt>%exception</tt> directive allows you to define a general purpose exception
 handler. For example, you can specify the following:
@@ -46,7 +73,11 @@ no code. For example:
 for exception handling.   That directive is still supported but is deprecated--<tt>%exception</tt>
 provides the same functionality, but is substantially more flexible.
 
-<h3> Handling exceptions in C code</h3>
+<a name="n3"></a><H3>8.1.1 Handling exceptions in C code</H3>
+
+
+
+
 
 C has no formal exception handling mechanism so there are several approaches that might be
 used.  A somewhat common technique is to simply set a special error code.  For example:
@@ -104,7 +135,11 @@ as the following (shown for Perl5) :<p>
 <p>
 In this case, when an error occurs, it is translated into a Perl error.
 
-<h3> Exception handling with longjmp()</h3>
+<a name="n4"></a><H3>8.1.2 Exception handling with longjmp()</H3>
+
+
+
+
 
 Exception handling can also be added to C code using the
 <tt>&lt;setjmp.h&gt;</tt> library.  Here is a minimalistic implementation that
@@ -171,7 +206,11 @@ Finally, to create a SWIG exception handler, write the following :<p>
 Note: This implementation is only intended to illustrate the general idea.  To make it work better, you'll need to
 modify it to handle nested <tt>try</tt> declarations.
 
-<h3> Handling C++ exceptions</h3>
+<a name="n5"></a><H3>8.1.3 Handling C++ exceptions</H3>
+
+
+
+
 
 Handling C++ exceptions is also straightforward.  For example: 
 
@@ -202,7 +241,11 @@ class OutOfMemory {};
 </pre>
 </blockquote>
 
-<h3>Defining different exception handlers</h3>
+<a name="n6"></a><H3>8.1.4 Defining different exception handlers</H3>
+
+
+
+
 
 By default, the <tt>%exception</tt> directive creates an exception
 handler that is used for all wrapper functions that follow it.  Unless
@@ -314,7 +357,11 @@ to attach exceptions to specific parts of a header file. For example:
 </pre>
 </blockquote>
 
-<h3> Applying exception handlers to specific datatypes.</h3>
+<a name="n7"></a><H3>8.1.5 Applying exception handlers to specific datatypes.</H3>
+
+
+
+
 
 An alternative approach to using the <tt>%exception</tt> directive is to
 use the "except" typemap.  This allows you to attach an error handler
@@ -359,7 +406,11 @@ declarations.  However, it never really worked that well and the new
 %exception directive is much better.   The except typemap is preserved for now, but
 may be deprecated in future versions.
 
-<h3> Using The SWIG exception library</h3>
+<a name="n8"></a><H3>8.1.6 Using The SWIG exception library</H3>
+
+
+
+
 
 The <tt>exception.i</tt> library file provides support for creating
 language independent exceptions in your interfaces.  To use it, simply
@@ -410,7 +461,11 @@ Since the <tt>SWIG_exception()</tt> function is defined at the C-level
 it can be used elsewhere in SWIG. This includes typemaps and helper
 functions.  
 
-<h2>Object ownership and %newobject</h2>
+<a name="n9"></a><H2>8.2 Object ownership and %newobject</H2>
+
+
+
+
 
 A common problem in some applications is managing proper ownership of objects.  For
 example, consider a function like this:
@@ -503,7 +558,11 @@ char *strdup(const char *s);
 </blockquote>
 The results might not be what you expect.
 
-<h2>Features and the %feature directive</h2>
+<a name="n10"></a><H2>8.3 Features and the %feature directive</H2>
+
+
+
+
 
 Both <tt>%exception</tt> and <tt>%newobject</tt> are examples of a
 more general purpose customization mechanism known as "features."  A
@@ -614,9 +673,5 @@ use will be described in the documentation for specific language modules.
 <address>SWIG 1.3 - Last Modified : December 9, 2001</address>
 </body>
 </html>
-
-
-
-
 
 

@@ -4,7 +4,27 @@
 </head>
 
 <body bgcolor="#ffffff">
-<h1>SWIG library</h1>
+<a name="n1"></a><H1>11 SWIG library</H1>
+
+<!-- INDEX -->
+<ul>
+<li><a href="#n2">The %include directive and library search path</a>
+<li><a href="#n3">C Arrays and Pointers</a>
+<ul>
+<li><a href="#n4">cpointer.i</a>
+<li><a href="#n5">carrays.i</a>
+<li><a href="#n6">cmalloc.i</a>
+<li><a href="#n7">cdata.i</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+
+
+
+
+
+
 
 To help build extension modules, SWIG is packaged with a library of
 support files that you can include in your own interfaces.  These
@@ -19,7 +39,11 @@ these files are now deprecated and have been removed from the distribution.
 Alternative libraries provide similar functionality.  Please read this chapter
 carefully if you used the old libraries.
 
-<h2>The %include directive and library search path</h2>
+<a name="n2"></a><H2>11.1 The %include directive and library search path</H2>
+
+
+
+
 
 Library files are included using the <tt>%include</tt> directive.
 When searching for files, directories are searched in the following order:
@@ -41,7 +65,11 @@ for language-specific implementations of library files.
 You can override the location of the SWIG library by setting the
 <tt>SWIG_LIB</tt> environment variable.<p>
 
-<h2>C Arrays and Pointers</h2>
+<a name="n3"></a><H2>11.2 C Arrays and Pointers</H2>
+
+
+
+
 
 This section describes library modules for manipulating low-level C arrays and pointers. 
 The primary use of these modules is in supporting C declarations that manipulate bare
@@ -50,7 +78,11 @@ used to allocate memory, manufacture pointers, dereference memory, and wrap
 pointers as class-like objects.   Since these functions provide direct access to
 memory, their use is potentially unsafe and you should exercise caution.
 
-<h3>cpointer.i</h3>
+<a name="n4"></a><H3>11.2.1 cpointer.i</H3>
+
+
+
+
 
 The <tt>cpointer.i</tt> module defines macros that can be used to used
 to generate wrappers around simple C pointers.  The primary use of
@@ -208,7 +240,11 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 <P>
 <b>Note:</b> When working with simple pointers, typemaps can often be used to provide more seamless operation.
 
-<h3>carrays.i</h3>
+<a name="n5"></a><H3>11.2.2 carrays.i</H3>
+
+
+
+
 
 This module defines macros that assist in wrapping ordinary C pointers as arrays.
 The module does not provide any safety or an extra layer of wrapping--it merely
@@ -352,7 +388,11 @@ you should consider using a special array object rather than a bare pointer.
 <b>Note:</b> <tt>%array_functions()</tt> and <tt>%array_class()</tt> should not be
 used with types of <tt>char</tt> or <tt>char *</tt>.
 
-<h3>cmalloc.i</h3>
+<a name="n6"></a><H3>11.2.3 cmalloc.i</H3>
+
+
+
+
 
 This module defines macros for wrapping the low-level C memory allocation functions
 <tt>malloc()</tt>, <tt>calloc()</tt>, <tt>realloc()</tt>, and <tt>free()</tt>.
@@ -463,7 +503,11 @@ Now, in a script:
 </pre>
 </blockquote>
 
-<h3>cdata.i</h3>
+<a name="n7"></a><H3>11.2.4 cdata.i</H3>
+
+
+
+
 
 The <tt>cdata.i</tt> module defines functions for converting raw C data to and from strings
 in the target language.  The primary applications of this module would be packing/unpacking of 
@@ -539,5 +583,3 @@ Clearly they are unsafe.
 <address>SWIG 1.3 - Last Modified : May 22, 2002</address>
 </body>
 </html>
-
-

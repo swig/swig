@@ -1,213 +1,836 @@
 
-<html>
-<head>
-<title> SWIG 1.1 Users Manual - Table of Contents </title>
-</head>
-<body bgcolor="#ffffff">
+<HTML>
+<HEAD>
+<TITLE>SWIG Users Manual</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<H1>SWIG Users Manual</H1>
 
-<h1> SWIG 1.1 Users Manual </h1>
+<p>
+Copyright (C) 1998-2002<br>
+University of Chicago<br>
+All Rights Reserved<br>
 
+<p>
+
+<h3><a href="Preface.html">0 Preface</a></h3>
+
+<!-- INDEX -->
 <ul>
-<li> <a href="Copyright.html">Copyright</a>
-<li> <a href="About.html">About this manual</a>
-<li> <a href="Index.html">Alphabetical Topic Index</a>
+<li><a href="Preface.html#n2">Introduction</a>
+<li><a href="Preface.html#n3">Special Introduction for Version 1.3</a>
+<li><a href="Preface.html#n4">SWIG Versions</a>
+<li><a href="Preface.html#n5">SWIG resources</a>
+<ul>
+<li><a href="Preface.html#n6">Prerequisites</a>
+<li><a href="Preface.html#n7">Organization of this manual</a>
+<li><a href="Preface.html#n8">How to avoid reading the manual</a>
 </ul>
-<h2><a href="Preface.html">Preface</a></h2><p><ul>
-<li> <a href="Preface.html#n1">Introduction</a>
-<li> <a href="Preface.html#n2">SWIG resources</a>
-<li> <a href="Preface.html#n3">About this manual</a>
-<li> <a href="Preface.html#n4">Credits</a>
-<li> <a href="Preface.html#n5">What's new?</a>
-<li> <a href="Preface.html#n6">Bug reports</a>
-<li> <a href="Preface.html#n7">SWIG is free</a>
+<li><a href="Preface.html#n9">Credits</a>
+<li><a href="Preface.html#n10">Bug reports</a>
 </ul>
-<h2><a href="Introduction.html">1 Introduction</a></h2><p><ul>
-<li> <a href="Introduction.html#n1">What is SWIG?</a>
-<li> <a href="Introduction.html#n2">Life before SWIG</a>
-<li> <a href="Introduction.html#n3">Life after SWIG</a>
-<li> <a href="Introduction.html#n4">The SWIG package</a>
-<li> <a href="Introduction.html#n5">A SWIG example</a>
-<li> <a href="Introduction.html#n6">C syntax, but not a C compiler</a>
-<li> <a href="Introduction.html#n7">Non-intrusive interface building</a>
-<li> <a href="Introduction.html#n8">Hands off code generation</a>
-<li> <a href="Introduction.html#n9">Event driven C programming</a>
-<li> <a href="Introduction.html#n10">Automatic documentation generation</a>
-<li> <a href="Introduction.html#n11">Summary</a>
-</ul>
-<h2><a href="Windows.html">Getting started on Windows</a></h2><p><ul>
-</ul>
-<h2><a href="Scripting.html">2 Scripting Languages</a></h2><p><ul>
-<li> <a href="Scripting.html#n1">The two language view of the world</a>
-<li> <a href="Scripting.html#n2">How does a scripting language talk to C?</a>
-<li> <a href="Scripting.html#n3">Building scripting language extensions</a>
-<li> <a href="Scripting.html#n4">Shared libraries and dynamic loading</a>
-</ul>
-<h2><a href="SWIG.html">3 SWIG Basics</a></h2><p><ul>
-<li> <a href="SWIG.html#n1">Running SWIG</a>
-<li> <a href="SWIG.html#n2">Simple C functions, variables, and constants</a>
-<li> <a href="SWIG.html#n3">Pointers and complex objects</a>
-<li> <a href="SWIG.html#n4">Getting down to business</a>
-<li> <a href="SWIG.html#n5">Structures, unions, and object oriented C programming</a>
-<li> <a href="SWIG.html#n6">C++ support</a>
-<li> <a href="SWIG.html#n7">Objective-C</a>
-<li> <a href="SWIG.html#n8">Conditional compilation</a>
-<li> <a href="SWIG.html#n9">Code Insertion</a>
-<li> <a href="SWIG.html#n10">A general interface building strategy</a>
-</ul>
-<h2><a href="Library.html">4 Multiple files and the SWIG library</a></h2><p><ul>
-<li> <a href="Library.html#n1">The %include directive</a>
-<li> <a href="Library.html#n2">The %extern directive</a>
-<li> <a href="Library.html#n3">The %import directive</a>
-<li> <a href="Library.html#n4">Including files on the command line</a>
-<li> <a href="Library.html#n5">The SWIG library</a>
-<li> <a href="Library.html#n6">Library example</a>
-<li> <a href="Library.html#n7">Creating Library Files</a>
-<li> <a href="Library.html#n8">Working with library files</a>
-<li> <a href="Library.html#n9">Static initialization of multiple modules</a>
-<li> <a href="Library.html#n10">More about the SWIG library</a>
-</ul>
-<h2><a href="Documentation.html">5 Documentation System</a></h2><p><ul>
-<li> <a href="Documentation.html#n1">Introduction</a>
-<li> <a href="Documentation.html#n2">How it works</a>
-<li> <a href="Documentation.html#n3">Choosing a documentation format</a>
-<li> <a href="Documentation.html#n4">Function usage and argument names</a>
-<li> <a href="Documentation.html#n5">Titles, sections, and subsections</a>
-<li> <a href="Documentation.html#n6">Formatting</a>
-<li> <a href="Documentation.html#n7">Adding Additional Text</a>
-<li> <a href="Documentation.html#n8">Disabling all documentation</a>
-<li> <a href="Documentation.html#n9">An Example</a>
-<li> <a href="Documentation.html#n10">ASCII Documentation</a>
-<li> <a href="Documentation.html#n11">HTML Documentation</a>
-<li> <a href="Documentation.html#n12">LaTeX Documentation</a>
-<li> <a href="Documentation.html#n13">C++ Support</a>
-<li> <a href="Documentation.html#n14">The Final Word?</a>
-</ul>
-<h2><a href="Typemaps.html">6 Pointers, Constraints, and Typemaps</a></h2><p><ul>
-<li> <a href="Typemaps.html#n1">Introduction</a>
-<li> <a href="Typemaps.html#n2">The SWIG Pointer Library</a>
-<li> <a href="Typemaps.html#n3">Introduction to typemaps</a>
-<li> <a href="Typemaps.html#n4">Managing input and output parameters</a>
-<li> <a href="Typemaps.html#n5">Applying constraints to input values</a>
-<li> <a href="Typemaps.html#n6">Writing new typemaps</a>
-<li> <a href="Typemaps.html#n7">Common typemap methods</a>
-<li> <a href="Typemaps.html#n8">Writing typemap code</a>
-<li> <a href="Typemaps.html#n9">Typemaps for handling arrays</a>
-<li> <a href="Typemaps.html#n10">Typemaps and the SWIG Library</a>
-<li> <a href="Typemaps.html#n11">Implementing constraints with typemaps</a>
-<li> <a href="Typemaps.html#n12">Typemap examples</a>
-<li> <a href="Typemaps.html#n13">How to break everything with a typemap</a>
-<li> <a href="Typemaps.html#n14">Typemaps and the future</a>
-</ul>
-<h2><a href="Exceptions.html">7 Exception Handling</a></h2><p><ul>
-<li> <a href="Exceptions.html#n1">The %except directive</a>
-<li> <a href="Exceptions.html#n2">Handling exceptions in C code</a>
-<li> <a href="Exceptions.html#n3">Exception handling with longjmp()</a>
-<li> <a href="Exceptions.html#n4">Handling C++ exceptions</a>
-<li> <a href="Exceptions.html#n5">Defining different exception handlers</a>
-<li> <a href="Exceptions.html#n6">Using The SWIG exception library</a>
-<li> <a href="Exceptions.html#n7">Debugging and other interesting uses for %except</a>
-<li> <a href="Exceptions.html#n8">More Examples</a>
-</ul>
-<h2><a href="Perl5.html">8 SWIG and Perl5</a></h2><p><ul>
-<li> <a href="Perl5.html#n1">Preliminaries</a>
-<li> <a href="Perl5.html#n2">Building Perl Extensions under Windows 95/NT</a>
-<li> <a href="Perl5.html#n3">Modules, packages, and classes</a>
-<li> <a href="Perl5.html#n4">Basic Perl interface</a>
-<li> <a href="Perl5.html#n5">A simple Perl example</a>
-<li> <a href="Perl5.html#n6">Accessing arrays and other strange objects</a>
-<li> <a href="Perl5.html#n7">Implementing methods in Perl</a>
-<li> <a href="Perl5.html#n8">Shadow classes</a>
-<li> <a href="Perl5.html#n9">Getting serious</a>
-<li> <a href="Perl5.html#n10">Wrapping C libraries and other packages</a>
-<li> <a href="Perl5.html#n11">Building a Perl5 interface to MATLAB</a>
-<li> <a href="Perl5.html#n12">Handling output values (the easy way)</a>
-<li> <a href="Perl5.html#n13">Exception handling</a>
-<li> <a href="Perl5.html#n14">Remapping datatypes with typemaps</a>
-<li> <a href="Perl5.html#n15">The gory details on shadow classes</a>
-<li> <a href="Perl5.html#n16">Where to go from here?</a>
-</ul>
-<h2><a href="Python.html">9 SWIG and Python</a></h2><p><ul>
-<li> <a href="Python.html#n1">Preliminaries</a>
-<li> <a href="Python.html#n2">Building Python Extensions under Windows 95/NT</a>
-<li> <a href="Python.html#n3">The low-level Python/C interface</a>
-<li> <a href="Python.html#n4">Python shadow classes</a>
-<li> <a href="Python.html#n5">About the Examples</a>
-<li> <a href="Python.html#n6">Solving a simple heat-equation</a>
-<li> <a href="Python.html#n7">Wrapping a C library</a>
-<li> <a href="Python.html#n8">Putting it all together</a>
-<li> <a href="Python.html#n9">Exception handling</a>
-<li> <a href="Python.html#n10">Remapping C datatypes with typemaps</a>
-<li> <a href="Python.html#n11">Implementing C callback functions in Python</a>
-<li> <a href="Python.html#n12">Other odds and ends</a>
-<li> <a href="Python.html#n13">The gory details of shadow classes</a>
-</ul>
-<h2><a href="Tcl.html">10 SWIG and Tcl</a></h2><p><ul>
-<li> <a href="Tcl.html#n1">Preliminaries</a>
-<li> <a href="Tcl.html#n2">Building Tcl/Tk Extensions under Windows 95/NT</a>
-<li> <a href="Tcl.html#n3">Basic Tcl Interface</a>
-<li> <a href="Tcl.html#n4">The object oriented interface</a>
-<li> <a href="Tcl.html#n5">About the examples</a>
-<li> <a href="Tcl.html#n6">Binary trees in Tcl</a>
-<li> <a href="Tcl.html#n7">Building C/C++ data structures with Tk</a>
-<li> <a href="Tcl.html#n8">Accessing arrays</a>
-<li> <a href="Tcl.html#n9">Building a simple OpenGL module</a>
-<li> <a href="Tcl.html#n10">Exception handling</a>
-<li> <a href="Tcl.html#n11">Typemaps</a>
-<li> <a href="Tcl.html#n12">Configuration management with SWIG</a>
-<li> <a href="Tcl.html#n13">Building new kinds of Tcl interfaces (in Tcl)</a>
-<li> <a href="Tcl.html#n14">Extending the Tcl Netscape Plugin</a>
-<li> <a href="Tcl.html#n15">Tcl8.0 features</a>
-</ul>
-<h2><a href="Guile.html">G SWIG and Guile</a></h2><p><ul>
-<li><a href="Guile.html#G.1">Meaning of "Module"</a>
-<li><a href="Guile.html#G.2">Linkage</a>
-<li><a href="Guile.html#G.3">Underscore Folding</a>
-<li><a href="Guile.html#G.4">Typemaps</a>
-<li><a href="Guile.html#G.5">Smobs</a>
-<li><a href="Guile.html#G.6">Exception Handling</a>
-<li><a href="Guile.html#G.7">Procedure documentation</a>
-<li><a href="Guile.html#G.8">Procedures with setters</a>
-</ul>
-<h2><a href="Java.html">SWIG and Java</a></h2><p><ul>
-<li> <a href="Java.html#n1">Preliminaries</a>
-<li> <a href="Java.html#n2">Building Java Extensions under Windows 95/NT</a>
-<li> <a href="Java.html#n3">The low-level Java/C interface</a>
-<li> <a href="Java.html#n4">Java shadow classes</a>
-<li> <a href="Java.html#n5">Examples</a>
-<li> <a href="Java.html#n6">Exception handling </a>
-<li> <a href="Java.html#n7">Remapping C datatypes with typemaps</a>
-<li> <a href="Java.html#n8">The gory details of shadow classes</a>
-<li> <a href="Java.html#n9">Java pragmas</a>
-<li> <a href="Java.html#n10">Dynamic linking problems</a>
-<li> <a href="Java.html#n11">Tips</a>
-<li> <a href="Java.html#n12">Known bugs</a>
-</ul>
-<h2><a href="Ruby.html">SWIG and Ruby</a></h2><p><ul>
-<li> <a href="Ruby.html#n1">Preliminaries</a>
-<li> <a href="Ruby.html#n2">Building Ruby Extensions under Windows 95/NT</a>
-</ul>
-<h2><a href="Advanced.html">11 Advanced Topics</a></h2><p><ul>
-<li> <a href="Advanced.html#n1">Creating multi-module packages</a>
-<li> <a href="Advanced.html#n2">Dynamic Loading of C++ modules</a>
-<li> <a href="Advanced.html#n3">Inside the SWIG type-checker</a>
-</ul>
-<h2><a href="Extending.html">12 Extending SWIG</a></h2><p><ul>
-<li> <a href="Extending.html#n1">Introduction</a>
-<li> <a href="Extending.html#n2">Compiling a SWIG extension</a>
-<li> <a href="Extending.html#n3">SWIG output</a>
-<li> <a href="Extending.html#n4">The Language class (simple version)</a>
-<li> <a href="Extending.html#n5">A tour of SWIG datatypes</a>
-<li> <a href="Extending.html#n6">Typemaps (from C)</a>
-<li> <a href="Extending.html#n7">File management</a>
-<li> <a href="Extending.html#n8">Naming Services</a>
-<li> <a href="Extending.html#n9">Code Generation Functions</a>
-<li> <a href="Extending.html#n10">Writing a Real Language Module</a>
-<li> <a href="Extending.html#n11">C++ Processing</a>
-<li> <a href="Extending.html#n12">Documentation Processing</a>
-<li> <a href="Extending.html#n13">The Future of SWIG</a>
-</ul>
+<!-- INDEX -->
 
-<p><hr>
-<address>SWIG 1.1 - Last Modified : Mon Aug  4 10:47:18 1997 </address>
-</body>
-</html>
+<h3><a href="Introduction.html">1 Introduction</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Introduction.html#n2">What is SWIG?</a>
+<li><a href="Introduction.html#n3">Why use SWIG?</a>
+<li><a href="Introduction.html#n4">A SWIG example</a>
+<ul>
+<li><a href="Introduction.html#n5">SWIG interface file</a>
+<li><a href="Introduction.html#n6">The swig command</a>
+<li><a href="Introduction.html#n7">Building a Perl5 module</a>
+<li><a href="Introduction.html#n8">Building a Python module</a>
+<li><a href="Introduction.html#n9">Shortcuts</a>
+<li><a href="Introduction.html#n10">Building libraries and modules</a>
+</ul>
+<li><a href="Introduction.html#n11">C syntax, but not a C compiler</a>
+<li><a href="Introduction.html#n12">Non-intrusive interface building</a>
+<li><a href="Introduction.html#n13">Hands off code generation</a>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Windows.html">2 Getting started on Windows </a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Windows.html#n2">Installation on Windows</a>
+<ul>
+<li><a href="Windows.html#n3">Windows Executable</a>
+</ul>
+<li><a href="Windows.html#n4">SWIG Windows Examples</a>
+<ul>
+<li><a href="Windows.html#n5">Instructions for using the Examples with Visual C++</a>
+<ul>
+<li><a href="Windows.html#n6">Python</a>
+<li><a href="Windows.html#n7">TCL</a>
+<li><a href="Windows.html#n8">Perl</a>
+<li><a href="Windows.html#n9">Java</a>
+<li><a href="Windows.html#n10">Ruby</a>
+</ul>
+<li><a href="Windows.html#n11">Instructions for using the Examples with other compilers</a>
+</ul>
+<li><a href="Windows.html#n12">SWIG on Cygwin and Mingw</a>
+<ul>
+<li><a href="Windows.html#n13">Building swig.exe on Windows</a>
+<ul>
+<li><a href="Windows.html#n14">Building swig.exe using Cygwin and Mingw</a>
+<li><a href="Windows.html#n15">Building swig.exe alternatives</a>
+</ul>
+<li><a href="Windows.html#n16">Running the examples on Windows using Cygwin</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Scripting.html">3 Scripting Languages</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Scripting.html#n2">The two language view of the world</a>
+<li><a href="Scripting.html#n3">How does a scripting language talk to C?</a>
+<ul>
+<li><a href="Scripting.html#n4">Wrapper functions</a>
+<li><a href="Scripting.html#n5">Variable linking</a>
+<li><a href="Scripting.html#n6">Constants</a>
+<li><a href="Scripting.html#n7">Structures and classes</a>
+<li><a href="Scripting.html#n8">Shadow classes</a>
+</ul>
+<li><a href="Scripting.html#n9">Building scripting language extensions</a>
+<ul>
+<li><a href="Scripting.html#n10">Shared libraries and dynamic loading</a>
+<li><a href="Scripting.html#n11">Linking with shared libraries</a>
+<li><a href="Scripting.html#n12">Static linking</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="SWIG.html">4 SWIG Basics</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="SWIG.html#n2">Running SWIG</a>
+<ul>
+<li><a href="SWIG.html#n3">Input format</a>
+<li><a href="SWIG.html#n4">SWIG Output</a>
+<li><a href="SWIG.html#n5">Comments</a>
+<li><a href="SWIG.html#n6">C Preprocessor</a>
+<li><a href="SWIG.html#n7">SWIG Directives</a>
+<li><a href="SWIG.html#n8">Parser Limitations</a>
+</ul>
+<li><a href="SWIG.html#n9">Wrapping Simple C Declarations</a>
+<ul>
+<li><a href="SWIG.html#n10">Basic Type Handling</a>
+<li><a href="SWIG.html#n11">Global Variables</a>
+<li><a href="SWIG.html#n12">Constants</a>
+<li><a href="SWIG.html#n13">A brief word about <tt>const</tt></a>
+<li><a href="SWIG.html#n14">A cautionary tale of <tt>char *</tt></a>
+</ul>
+<li><a href="SWIG.html#n15">Pointers and complex objects</a>
+<ul>
+<li><a href="SWIG.html#n16">Simple pointers</a>
+<li><a href="SWIG.html#n17">Run time pointer type checking</a>
+<li><a href="SWIG.html#n18">Derived types, structs, and classes</a>
+<li><a href="SWIG.html#n19">Undefined datatypes</a>
+<li><a href="SWIG.html#n20">Typedef</a>
+</ul>
+<li><a href="SWIG.html#n21">Other Practicalities</a>
+<ul>
+<li><a href="SWIG.html#n22">Passing structures by value</a>
+<li><a href="SWIG.html#n23">Return by value</a>
+<li><a href="SWIG.html#n24">Linking to structure variables</a>
+<li><a href="SWIG.html#n25">Linking to <tt>char *</tt></a>
+<li><a href="SWIG.html#n26">Arrays</a>
+<li><a href="SWIG.html#n27">Creating read-only variables</a>
+<li><a href="SWIG.html#n28">Renaming and ignoring declarations</a>
+<li><a href="SWIG.html#n29">Default/optional arguments</a>
+<li><a href="SWIG.html#n30">Pointers to functions and callbacks</a>
+</ul>
+<li><a href="SWIG.html#n31">Structures and unions</a>
+<ul>
+<li><a href="SWIG.html#n32">Typedef and structures</a>
+<li><a href="SWIG.html#n33">Character strings and structures</a>
+<li><a href="SWIG.html#n34">Array members</a>
+<li><a href="SWIG.html#n35">Structure data members</a>
+<li><a href="SWIG.html#n36">C constructors and destructors </a>
+<li><a href="SWIG.html#n37">Adding member functions to C structures</a>
+<li><a href="SWIG.html#n38">Nested structures</a>
+<li><a href="SWIG.html#n39">Other things to note about structure wrapping</a>
+</ul>
+<li><a href="SWIG.html#n40">Code Insertion</a>
+<ul>
+<li><a href="SWIG.html#n41">The output of SWIG</a>
+<li><a href="SWIG.html#n42">Code insertion blocks</a>
+<li><a href="SWIG.html#n43">Inlined code blocks</a>
+<li><a href="SWIG.html#n44">Initialization blocks</a>
+</ul>
+<li><a href="SWIG.html#n45">An Interface Building Strategy</a>
+<ul>
+<li><a href="SWIG.html#n46">Preparing a C program for SWIG</a>
+<li><a href="SWIG.html#n47">The SWIG interface file</a>
+<li><a href="SWIG.html#n48">Why use separate interface files?</a>
+<li><a href="SWIG.html#n49">Getting the right header files</a>
+<li><a href="SWIG.html#n50">What to do with main()</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="SWIGPlus.html">5 SWIG and C++</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="SWIGPlus.html#n2">Comments on C++ Wrapping</a>
+<li><a href="SWIGPlus.html#n3">Approach</a>
+<li><a href="SWIGPlus.html#n4">Supported C++ features</a>
+<li><a href="SWIGPlus.html#n5">Command line options and compilation</a>
+<li><a href="SWIGPlus.html#n6">Simple C++ wrapping</a>
+<ul>
+<li><a href="SWIGPlus.html#n7">Constructors and destructors</a>
+<li><a href="SWIGPlus.html#n8">Copy constructors</a>
+<li><a href="SWIGPlus.html#n9">Member functions</a>
+<li><a href="SWIGPlus.html#n10">Static members</a>
+<li><a href="SWIGPlus.html#n11">Member functions and default arguments</a>
+<li><a href="SWIGPlus.html#n12">Member data</a>
+</ul>
+<li><a href="SWIGPlus.html#n13">Protection</a>
+<li><a href="SWIGPlus.html#n14">Enums and constants</a>
+<li><a href="SWIGPlus.html#n15">References and pointers</a>
+<li><a href="SWIGPlus.html#n16">Pass and return by value</a>
+<li><a href="SWIGPlus.html#n17">Inheritance</a>
+<li><a href="SWIGPlus.html#n18">A brief discussion of multiple inheritance, pointers,  and type checking</a>
+<li><a href="SWIGPlus.html#n19">Renaming</a>
+<li><a href="SWIGPlus.html#n20">Wrapping Overloaded Functions and Methods</a>
+<li><a href="SWIGPlus.html#n21">Wrapping overloaded operators</a>
+<li><a href="SWIGPlus.html#n22">Class extension</a>
+<li><a href="SWIGPlus.html#n23">Templates</a>
+<li><a href="SWIGPlus.html#n24">Namespaces</a>
+<li><a href="SWIGPlus.html#n25">Pointers to Members</a>
+<li><a href="SWIGPlus.html#n26">Partial class definitions</a>
+<li><a href="SWIGPlus.html#n27">A brief rant about const-correctness</a>
+<li><a href="SWIGPlus.html#n28">Proxy classes</a>
+<li><a href="SWIGPlus.html#n29">Where to go for more information</a>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Preprocessor.html">6 Preprocessing</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Preprocessor.html#n2">File inclusion</a>
+<li><a href="Preprocessor.html#n3">File imports</a>
+<li><a href="Preprocessor.html#n4">Conditional Compilation</a>
+<li><a href="Preprocessor.html#n5">Macro Expansion</a>
+<li><a href="Preprocessor.html#n6">SWIG Macros</a>
+<li><a href="Preprocessor.html#n7">C99 Extensions</a>
+<li><a href="Preprocessor.html#n8">Preprocessing and %{ ... %} blocks</a>
+<li><a href="Preprocessor.html#n9">Preprocessing and { ... }</a>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Typemaps.html">7 Types and Typemaps</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Typemaps.html#n2">Introduction</a>
+<li><a href="Typemaps.html#n3">The Problem</a>
+<li><a href="Typemaps.html#n4">Typemaps</a>
+<li><a href="Typemaps.html#n5">Managing input and output parameters</a>
+<ul>
+<li><a href="Typemaps.html#n6">Input parameters</a>
+<li><a href="Typemaps.html#n7">Output parameters</a>
+<li><a href="Typemaps.html#n8">Input/Output parameters</a>
+<li><a href="Typemaps.html#n9">Using different names</a>
+</ul>
+<li><a href="Typemaps.html#n10">Array handling</a>
+<li><a href="Typemaps.html#n11">Applying constraints to input values</a>
+<ul>
+<li><a href="Typemaps.html#n12">Simple constraint example</a>
+<li><a href="Typemaps.html#n13">Constraint methods</a>
+<li><a href="Typemaps.html#n14">Applying constraints to new datatypes</a>
+</ul>
+<li><a href="Typemaps.html#n15">Writing new typemaps</a>
+<ul>
+<li><a href="Typemaps.html#n16">The SWIG type system</a>
+<li><a href="Typemaps.html#n17">What is a typemap?</a>
+<li><a href="Typemaps.html#n18">Creating a new typemap</a>
+<li><a href="Typemaps.html#n19">Deleting a typemap</a>
+<li><a href="Typemaps.html#n20">Copying a typemap</a>
+<li><a href="Typemaps.html#n21">Typemap matching rules</a>
+</ul>
+<li><a href="Typemaps.html#n22">Common typemap methods</a>
+<li><a href="Typemaps.html#n23">Writing typemap code</a>
+<ul>
+<li><a href="Typemaps.html#n24">Local scope</a>
+<li><a href="Typemaps.html#n25">Creating local variables</a>
+<li><a href="Typemaps.html#n26">Special variables</a>
+<li><a href="Typemaps.html#n27">Typemap Parameters</a>
+</ul>
+<li><a href="Typemaps.html#n28">Typemaps for arrays</a>
+<li><a href="Typemaps.html#n29">Implementing constraints with typemaps</a>
+<li><a href="Typemaps.html#n30">Multi-argument typemaps</a>
+<li><a href="Typemaps.html#n31">The default typemaps</a>
+<li><a href="Typemaps.html#n32">The run-time type checker</a>
+<li><a href="Typemaps.html#n33">More about <tt>%apply</tt> and <tt>%clear</tt></a>
+<li><a href="Typemaps.html#n34">Reducing wrapper code size</a>
+<li><a href="Typemaps.html#n35">Typemaps and C++</a>
+<li><a href="Typemaps.html#n36">Where to go for more information?</a>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Customization.html">8 Customization Features</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Customization.html#n2">Exception handling with %exception</a>
+<ul>
+<li><a href="Customization.html#n3">Handling exceptions in C code</a>
+<li><a href="Customization.html#n4">Exception handling with longjmp()</a>
+<li><a href="Customization.html#n5">Handling C++ exceptions</a>
+<li><a href="Customization.html#n6">Defining different exception handlers</a>
+<li><a href="Customization.html#n7">Applying exception handlers to specific datatypes.</a>
+<li><a href="Customization.html#n8">Using The SWIG exception library</a>
+</ul>
+<li><a href="Customization.html#n9">Object ownership and %newobject</a>
+<li><a href="Customization.html#n10">Features and the %feature directive</a>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Varargs.html">9 Variable Length Arguments</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Varargs.html#n2">Introduction</a>
+<li><a href="Varargs.html#n3">The Problem</a>
+<li><a href="Varargs.html#n4">Default varargs support</a>
+<li><a href="Varargs.html#n5">Argument replacement using %varargs</a>
+<li><a href="Varargs.html#n6">Varargs and typemaps</a>
+<li><a href="Varargs.html#n7">Varargs wrapping with libffi</a>
+<li><a href="Varargs.html#n8">Wrapping of va_list</a>
+<li><a href="Varargs.html#n9">C++ Issues</a>
+<li><a href="Varargs.html#n10">Discussion</a>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Warnings.html">10 Warning Messages</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Warnings.html#n2">Introduction</a>
+<li><a href="Warnings.html#n3">Warning message suppression</a>
+<li><a href="Warnings.html#n4">Enabling additional warnings</a>
+<li><a href="Warnings.html#n5">Issuing a warning message</a>
+<li><a href="Warnings.html#n6">Commentary</a>
+<li><a href="Warnings.html#n7">Warning number reference</a>
+<ul>
+<li><a href="Warnings.html#n8">Deprecated features (100-199)</a>
+<li><a href="Warnings.html#n9">Preprocessor (200-299)</a>
+<li><a href="Warnings.html#n10">C/C++ Parser (300-399)</a>
+<li><a href="Warnings.html#n11">Types and typemaps (400-499) </a>
+<li><a href="Warnings.html#n12">Code generation (500-599)</a>
+<li><a href="Warnings.html#n13">Language module specific (800-899) </a>
+<li><a href="Warnings.html#n14">User defined (900-999)</a>
+</ul>
+<li><a href="Warnings.html#n15">History</a>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Library.html">11 SWIG library</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Library.html#n2">The %include directive and library search path</a>
+<li><a href="Library.html#n3">C Arrays and Pointers</a>
+<ul>
+<li><a href="Library.html#n4">cpointer.i</a>
+<li><a href="Library.html#n5">carrays.i</a>
+<li><a href="Library.html#n6">cmalloc.i</a>
+<li><a href="Library.html#n7">cdata.i</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Advanced.html">12 Advanced Topics</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Advanced.html#n2">Creating multi-module packages</a>
+<ul>
+<li><a href="Advanced.html#n3">Runtime support (and potential problems)</a>
+<li><a href="Advanced.html#n4">Why doesn't C++ inheritance work between modules?</a>
+<li><a href="Advanced.html#n5">The SWIG runtime library</a>
+<li><a href="Advanced.html#n6">A few dynamic loading gotchas</a>
+</ul>
+<li><a href="Advanced.html#n7">Dynamic Loading of C++ modules</a>
+<li><a href="Advanced.html#n8">Inside the SWIG type-checker</a>
+<ul>
+<li><a href="Advanced.html#n9">Type equivalence</a>
+<li><a href="Advanced.html#n10">Type casting</a>
+<li><a href="Advanced.html#n11">Why a name based approach?</a>
+<li><a href="Advanced.html#n12">Performance of the type-checker</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Guile.html">13 SWIG and Guile</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Guile.html#n2">Meaning of "Module"</a>
+<li><a href="Guile.html#n3">Linkage</a>
+<ul>
+<li><a href="Guile.html#n4">Simple Linkage</a>
+<li><a href="Guile.html#n5">Passive Linkage</a>
+<li><a href="Guile.html#n6">Native Guile Module Linkage</a>
+<li><a href="Guile.html#n7">Old Auto-Loading Guile Module Linkage</a>
+<li><a href="Guile.html#n8">Hobbit4D Linkage</a>
+<li><a href="Guile.html#n9">General Remarks on Multiple SWIG Modules</a>
+</ul>
+<li><a href="Guile.html#n10">Underscore Folding</a>
+<li><a href="Guile.html#n11">Typemaps</a>
+<li><a href="Guile.html#n12">Smobs</a>
+<li><a href="Guile.html#n13">Exception Handling</a>
+<li><a href="Guile.html#n14">Procedure documentation</a>
+<li><a href="Guile.html#n15">Procedures with setters</a>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Java.html">14 SWIG and Java</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Java.html#n2">Preliminaries</a>
+<ul>
+<li><a href="Java.html#n3">Running SWIG</a>
+<li><a href="Java.html#n4">Additional Commandline Options</a>
+<li><a href="Java.html#n5">Getting the right header files</a>
+<li><a href="Java.html#n6">Compiling a dynamic module</a>
+<li><a href="Java.html#n7">Using your module</a>
+<li><a href="Java.html#n8">Compilation problems and compiling with C++</a>
+</ul>
+<li><a href="Java.html#n9">Building Java Extensions under Windows 95/NT</a>
+<ul>
+<li><a href="Java.html#n10">Running SWIG from Developer Studio</a>
+<li><a href="Java.html#n11">Using NMAKE</a>
+</ul>
+<li><a href="Java.html#n12">The low-level Java/C interface</a>
+<ul>
+<li><a href="Java.html#n13">Modules and the module class</a>
+<li><a href="Java.html#n14">Functions</a>
+<li><a href="Java.html#n15">Variable Linking</a>
+<li><a href="Java.html#n16">Enums</a>
+<li><a href="Java.html#n17">Constants</a>
+<li><a href="Java.html#n18">Pointers</a>
+<li><a href="Java.html#n19">Structures </a>
+<li><a href="Java.html#n20">C++ Classes</a>
+</ul>
+<li><a href="Java.html#n21">Java shadow classes</a>
+<ul>
+<li><a href="Java.html#n22">A simple example</a>
+<li><a href="Java.html#n23">Why write shadow classes in Java?</a>
+<li><a href="Java.html#n24">Automated shadow class generation</a>
+<li><a href="Java.html#n25">Compiling modules with shadow classes</a>
+<li><a href="Java.html#n26">Where to go for more information</a>
+</ul>
+<li><a href="Java.html#n27">Examples</a>
+<li><a href="Java.html#n28">Exception handling </a>
+<li><a href="Java.html#n29">Remapping C datatypes with typemaps</a>
+<ul>
+<li><a href="Java.html#n30">Default type mapping</a>
+<li><a href="Java.html#n31">What is a typemap?</a>
+<li><a href="Java.html#n32">Java typemaps</a>
+<li><a href="Java.html#n33">Typemap variables</a>
+<li><a href="Java.html#n34">Typemaps for C and C++</a>
+<li><a href="Java.html#n35">Name based type conversion</a>
+<li><a href="Java.html#n36">Converting Java String arrays to char ** </a>
+<li><a href="Java.html#n37">Using typemaps to return arguments</a>
+<li><a href="Java.html#n38">Accessing array structure members</a>
+<li><a href="Java.html#n39">Pointer handling</a>
+</ul>
+<li><a href="Java.html#n40">The gory details of shadow classes</a>
+<ul>
+<li><a href="Java.html#n41">A simple shadow class</a>
+<li><a href="Java.html#n42">Generated class</a>
+<li><a href="Java.html#n43">The this pointer</a>
+<li><a href="Java.html#n44">Object ownership</a>
+<li><a href="Java.html#n45">Constructors and destructors</a>
+<li><a href="Java.html#n46">Member data</a>
+<li><a href="Java.html#n47">Shadow Functions</a>
+<li><a href="Java.html#n48">Shadow class pointer handling</a>
+<li><a href="Java.html#n49">Methods that return new objects</a>
+<li><a href="Java.html#n50">Global variables and functions</a>
+<li><a href="Java.html#n51">Nested objects</a>
+<li><a href="Java.html#n52">Inheritance and shadow classes</a>
+<li><a href="Java.html#n53">Shadow classes and garbage collection</a>
+<li><a href="Java.html#n54">Performance concerns and hints</a>
+</ul>
+<li><a href="Java.html#n55">Java pragmas</a>
+<ul>
+<li><a href="Java.html#n56">Deprecated pragmas</a>
+<li><a href="Java.html#n57">Pragma uses</a>
+<ul>
+<li><a href="Java.html#n58">Derive C++ from Java and visa-versa</a>
+<li><a href="Java.html#n59">JavaDoc and the shadowcode pragma</a>
+<li><a href="Java.html#n60">Tips for using the shadow pragmas</a>
+</ul>
+</ul>
+<li><a href="Java.html#n61">Dynamic linking problems</a>
+<li><a href="Java.html#n62">Using your own JNI methods</a>
+<li><a href="Java.html#n63">Known bugs</a>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Perl5.html">15 SWIG and Perl5</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Perl5.html#n2">Overview</a>
+<li><a href="Perl5.html#n3">Preliminaries</a>
+<ul>
+<li><a href="Perl5.html#n4">Getting the right header files</a>
+<li><a href="Perl5.html#n5">Compiling a dynamic module</a>
+<li><a href="Perl5.html#n6">Building a dynamic module with MakeMaker</a>
+<li><a href="Perl5.html#n7">Building a static version of Perl</a>
+<li><a href="Perl5.html#n8">Using the module</a>
+<li><a href="Perl5.html#n9">Compilation problems and compiling with C++</a>
+<li><a href="Perl5.html#n10">Compiling for 64-bit platforms</a>
+</ul>
+<li><a href="Perl5.html#n11">Building Perl Extensions under Windows</a>
+<ul>
+<li><a href="Perl5.html#n12">Running SWIG from Developer Studio</a>
+<li><a href="Perl5.html#n13">Using other compilers</a>
+</ul>
+<li><a href="Perl5.html#n14">The low-level interface</a>
+<ul>
+<li><a href="Perl5.html#n15">Functions</a>
+<li><a href="Perl5.html#n16">Global variables</a>
+<li><a href="Perl5.html#n17">Constants</a>
+<li><a href="Perl5.html#n18">Pointers</a>
+<li><a href="Perl5.html#n19">Structures</a>
+<li><a href="Perl5.html#n20">C++ classes</a>
+<li><a href="Perl5.html#n21">C++ classes and type-checking</a>
+<li><a href="Perl5.html#n22">C++ overloaded functions</a>
+<li><a href="Perl5.html#n23">Operators</a>
+<li><a href="Perl5.html#n24">Modules and packages</a>
+</ul>
+<li><a href="Perl5.html#n25">Input and output parameters</a>
+<li><a href="Perl5.html#n26">Exception handling </a>
+<li><a href="Perl5.html#n27">Remapping datatypes with typemaps</a>
+<ul>
+<li><a href="Perl5.html#n28">A simple typemap example</a>
+<li><a href="Perl5.html#n29">Perl5 typemaps</a>
+<li><a href="Perl5.html#n30">Typemap variables</a>
+<li><a href="Perl5.html#n31">Useful functions</a>
+</ul>
+<li><a href="Perl5.html#n32">Typemap Examples</a>
+<ul>
+<li><a href="Perl5.html#n33">Converting a Perl5 array to a char ** </a>
+<li><a href="Perl5.html#n34">Return values </a>
+<li><a href="Perl5.html#n35">Returning values from arguments</a>
+<li><a href="Perl5.html#n36">Accessing array structure members</a>
+<li><a href="Perl5.html#n37">Turning Perl references into C pointers</a>
+<li><a href="Perl5.html#n38">Pointer handling</a>
+</ul>
+<li><a href="Perl5.html#n39">Proxy classes</a>
+<ul>
+<li><a href="Perl5.html#n40">Preliminaries</a>
+<li><a href="Perl5.html#n41">Object Ownership</a>
+<li><a href="Perl5.html#n42">Nested Objects</a>
+<li><a href="Perl5.html#n43">Shadow Functions</a>
+<li><a href="Perl5.html#n44">Inheritance</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Php.html">16 SWIG and PHP4</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Php.html#n2">Preliminaries</a>
+<li><a href="Php.html#n3">Building PHP4 Extensions</a>
+<ul>
+<li><a href="Php.html#n4">Building a loadable extension</a>
+<li><a href="Php.html#n5">Basic PHP4 interface</a>
+<li><a href="Php.html#n6">Functions</a>
+<li><a href="Php.html#n7">Global Variables</a>
+<li><a href="Php.html#n8">Pointers </a>
+<li><a href="Php.html#n9">Structures and C++ classes</a>
+<li><a href="Php.html#n10">Constants</a>
+<li><a href="Php.html#n11">Shadow classes</a>
+<li><a href="Php.html#n12">Constructors and Destructers</a>
+<li><a href="Php.html#n13">Static Member Variables</a>
+<li><a href="Php.html#n14">PHP4 Pragmas</a>
+<li><a href="Php.html#n15">Building extensions into php</a>
+<li><a href="Php.html#n16">To be furthered...</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Python.html">17 SWIG and Python</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Python.html#n2">Overview</a>
+<li><a href="Python.html#n3">Preliminaries</a>
+<ul>
+<li><a href="Python.html#n4">Getting the right header files</a>
+<li><a href="Python.html#n5">Compiling a dynamic module</a>
+<li><a href="Python.html#n6">Using distutils</a>
+<li><a href="Python.html#n7">Static linking</a>
+<li><a href="Python.html#n8">Using your module</a>
+<li><a href="Python.html#n9">Compilation of C++ extensions</a>
+<li><a href="Python.html#n10">Compiling for 64-bit platforms</a>
+<li><a href="Python.html#n11">Building Python Extensions under Windows</a>
+</ul>
+<li><a href="Python.html#n12">The low-level procedural interface</a>
+<ul>
+<li><a href="Python.html#n13">Modules</a>
+<li><a href="Python.html#n14">Functions</a>
+<li><a href="Python.html#n15">Variable Linking</a>
+<li><a href="Python.html#n16">Constants</a>
+<li><a href="Python.html#n17">Pointers</a>
+<li><a href="Python.html#n18">Structures</a>
+<li><a href="Python.html#n19">C++ classes</a>
+<li><a href="Python.html#n20">C++ classes and type-checking</a>
+<li><a href="Python.html#n21">C++ overloaded functions</a>
+<li><a href="Python.html#n22">Operators</a>
+</ul>
+<li><a href="Python.html#n23">Input and output parameters</a>
+<li><a href="Python.html#n24">Simple exception handling </a>
+<li><a href="Python.html#n25">Typemaps</a>
+<ul>
+<li><a href="Python.html#n26">What is a typemap?</a>
+<li><a href="Python.html#n27">Python typemaps</a>
+<li><a href="Python.html#n28">Typemap variables</a>
+<li><a href="Python.html#n29">Useful Functions</a>
+</ul>
+<li><a href="Python.html#n30">Typemap Examples</a>
+<ul>
+<li><a href="Python.html#n31">Converting  Python list to a char ** </a>
+<li><a href="Python.html#n32">Expanding a Python object to multiple arguments</a>
+<li><a href="Python.html#n33">Using typemaps to return arguments</a>
+<li><a href="Python.html#n34">Mapping Python tuples into small arrays</a>
+<li><a href="Python.html#n35">Mapping sequences to C arrays</a>
+<li><a href="Python.html#n36">Accessing array structure members</a>
+<li><a href="Python.html#n37">Pointer handling</a>
+</ul>
+<li><a href="Python.html#n38">Other odds and ends</a>
+<ul>
+<li><a href="Python.html#n39">Adding native Python functions to a SWIG module</a>
+</ul>
+<li><a href="Python.html#n40">Python shadow classes</a>
+<ul>
+<li><a href="Python.html#n41">A simple example</a>
+<li><a href="Python.html#n42">Why shadow classes?</a>
+<li><a href="Python.html#n43">Automatic shadow class generation</a>
+<li><a href="Python.html#n44">Compiling modules with shadow classes</a>
+<li><a href="Python.html#n45">Shadow classes and type-checking</a>
+<li><a href="Python.html#n46">A preview</a>
+</ul>
+<li><a href="Python.html#n47">The gory details of shadow classes</a>
+<ul>
+<li><a href="Python.html#n48">A simple shadow class</a>
+<li><a href="Python.html#n49">Module names</a>
+<li><a href="Python.html#n50">Two classes</a>
+<li><a href="Python.html#n51">The this pointer</a>
+<li><a href="Python.html#n52">Object ownership</a>
+<li><a href="Python.html#n53">Constructors and Destructors</a>
+<li><a href="Python.html#n54">Member data</a>
+<li><a href="Python.html#n55">Printing</a>
+<li><a href="Python.html#n56">Shadow Functions</a>
+<li><a href="Python.html#n57">Nested objects</a>
+<li><a href="Python.html#n58">Inheritance and shadow classes</a>
+<li><a href="Python.html#n59">Methods that return new objects</a>
+<li><a href="Python.html#n60">Performance concerns and hints</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Ruby.html">18 SWIG and Ruby</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Ruby.html#n2">Preliminaries</a>
+<ul>
+<li><a href="Ruby.html#n3">Running SWIG</a>
+<li><a href="Ruby.html#n4">Getting the right header files</a>
+<li><a href="Ruby.html#n5">Compiling a dynamic module</a>
+<li><a href="Ruby.html#n6">Using your module</a>
+<li><a href="Ruby.html#n7">Static linking</a>
+<li><a href="Ruby.html#n8">Compilation of C++ extensions</a>
+</ul>
+<li><a href="Ruby.html#n9">Building Ruby Extensions under Windows 95/NT</a>
+<ul>
+<li><a href="Ruby.html#n10">Running SWIG from Developer Studio</a>
+</ul>
+<li><a href="Ruby.html#n11">The Ruby-to-C/C++ Mapping</a>
+<ul>
+<li><a href="Ruby.html#n12">Modules</a>
+<li><a href="Ruby.html#n13">Functions</a>
+<li><a href="Ruby.html#n14">Variable Linking</a>
+<li><a href="Ruby.html#n15">Constants</a>
+<li><a href="Ruby.html#n16">Pointers</a>
+<li><a href="Ruby.html#n17">Structures</a>
+<li><a href="Ruby.html#n18">C++ classes</a>
+<li><a href="Ruby.html#n19">C++ classes and type-checking</a>
+<li><a href="Ruby.html#n20">C++ overloaded functions</a>
+<li><a href="Ruby.html#n21">Operators</a>
+</ul>
+<li><a href="Ruby.html#n22">Input and output parameters</a>
+<li><a href="Ruby.html#n23">Simple exception handling </a>
+<li><a href="Ruby.html#n24">Typemaps</a>
+<ul>
+<li><a href="Ruby.html#n25">What is a typemap?</a>
+<li><a href="Ruby.html#n26">Ruby typemaps</a>
+<li><a href="Ruby.html#n27">Typemap variables</a>
+<li><a href="Ruby.html#n28">Useful Functions</a>
+<ul>
+<li><a href="Ruby.html#n29">C Datatypes to Ruby Objects</a>
+<li><a href="Ruby.html#n30">Ruby Objects to C Datatypes</a>
+<li><a href="Ruby.html#n31">Macros for VALUE</a>
+<li><a href="Ruby.html#n32">Exceptions</a>
+<li><a href="Ruby.html#n33">Iterators</a>
+</ul>
+<li><a href="Ruby.html#n34">Typemap Examples</a>
+<li><a href="Ruby.html#n35">Converting  Ruby list to a char **</a>
+<li><a href="Ruby.html#n36">Pointer handling</a>
+<ul>
+<li><a href="Ruby.html#n37">Ruby Datatype Wrapping</a>
+</ul>
+<li><a href="Ruby.html#n38">Adding native Ruby functions to a SWIG module</a>
+</ul>
+<li><a href="Ruby.html#n39">Operator overloading</a>
+<ul>
+<li><a href="Ruby.html#n40">An example (putting everything together)</a>
+<li><a href="Ruby.html#n41">Expanding the example</a>
+</ul>
+<li><a href="Ruby.html#n42">Advanced Topics</a>
+<ul>
+<li><a href="Ruby.html#n43">Creating Multi-Module Packages</a>
+<li><a href="Ruby.html#n44">Defining Aliases</a>
+<li><a href="Ruby.html#n45">Predicate Methods</a>
+<li><a href="Ruby.html#n46">Interacting with Ruby's Garbage Collector</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Tcl.html">19 SWIG and Tcl</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Tcl.html#n2">Preliminaries</a>
+<ul>
+<li><a href="Tcl.html#n3">Getting the right header files</a>
+<li><a href="Tcl.html#n4">Compiling a dynamic module</a>
+<li><a href="Tcl.html#n5">Static linking</a>
+<li><a href="Tcl.html#n6">Using your module</a>
+<li><a href="Tcl.html#n7">Compilation of C++ extensions</a>
+<li><a href="Tcl.html#n8">Compiling for 64-bit platforms</a>
+<li><a href="Tcl.html#n9">Setting a package prefix</a>
+<li><a href="Tcl.html#n10">Using namespaces</a>
+</ul>
+<li><a href="Tcl.html#n11">Building Tcl/Tk Extensions under Windows 95/NT</a>
+<ul>
+<li><a href="Tcl.html#n12">Running SWIG from Developer Studio</a>
+<li><a href="Tcl.html#n13">Using NMAKE</a>
+</ul>
+<li><a href="Tcl.html#n14">Primitive Tcl Interface</a>
+<ul>
+<li><a href="Tcl.html#n15">Functions</a>
+<li><a href="Tcl.html#n16">Global variables</a>
+<li><a href="Tcl.html#n17">Constants</a>
+<li><a href="Tcl.html#n18">Pointers</a>
+<li><a href="Tcl.html#n19">Structures </a>
+<li><a href="Tcl.html#n20">C++ Classes</a>
+</ul>
+<li><a href="Tcl.html#n21">The object-based interface</a>
+<ul>
+<li><a href="Tcl.html#n22">Creating new objects</a>
+<li><a href="Tcl.html#n23">Invoking member functions</a>
+<li><a href="Tcl.html#n24">Deleting objects</a>
+<li><a href="Tcl.html#n25">Accessing member data</a>
+<li><a href="Tcl.html#n26">Changing member data</a>
+<li><a href="Tcl.html#n27">Managing Object Ownership</a>
+<li><a href="Tcl.html#n28">Relationship with pointers</a>
+<ul>
+<li><a href="Tcl.html#n29">Everything from this point on is out of date-- in progress</a>
+</ul>
+</ul>
+<li><a href="Tcl.html#n30">Examples</a>
+<li><a href="Tcl.html#n31">Accessing arrays</a>
+<li><a href="Tcl.html#n32">Exception handling </a>
+<li><a href="Tcl.html#n33">Typemaps</a>
+<ul>
+<li><a href="Tcl.html#n34">What is a typemap?</a>
+<li><a href="Tcl.html#n35">Tcl typemaps</a>
+<li><a href="Tcl.html#n36">Typemap variables</a>
+<li><a href="Tcl.html#n37">Name based type conversion</a>
+<li><a href="Tcl.html#n38">Converting  a Tcl list to a char ** </a>
+<li><a href="Tcl.html#n39">Remapping constants</a>
+<li><a href="Tcl.html#n40">Returning values in arguments</a>
+<li><a href="Tcl.html#n41">Mapping C structures into Tcl Lists</a>
+<li><a href="Tcl.html#n42">Useful functions</a>
+<li><a href="Tcl.html#n43">Standard  typemaps</a>
+<li><a href="Tcl.html#n44">Pointer handling</a>
+</ul>
+<li><a href="Tcl.html#n45">Configuration management with SWIG</a>
+<ul>
+<li><a href="Tcl.html#n46">Writing a main program and Tcl_AppInit()</a>
+<li><a href="Tcl.html#n47">Creating a new package initialization library</a>
+<li><a href="Tcl.html#n48">Combining Tcl/Tk Extensions</a>
+<li><a href="Tcl.html#n49">Limitations to this approach</a>
+<li><a href="Tcl.html#n50">Dynamic loading </a>
+<li><a href="Tcl.html#n51">Turning a SWIG module into a Tcl Package.</a>
+</ul>
+<li><a href="Tcl.html#n52">Building new kinds of Tcl interfaces (in Tcl)</a>
+<ul>
+<li><a href="Tcl.html#n53">Shadow classes</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Extending.html">20 Extending SWIG</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Extending.html#n2">Introduction</a>
+<li><a href="Extending.html#n3">Prerequisites</a>
+<li><a href="Extending.html#n4">The Big Picture</a>
+<li><a href="Extending.html#n5">Execution Model</a>
+<ul>
+<li><a href="Extending.html#n6">Preprocessing</a>
+<li><a href="Extending.html#n7">Parsing</a>
+<li><a href="Extending.html#n8">Parse Trees</a>
+<li><a href="Extending.html#n9">Attribute namespaces</a>
+<li><a href="Extending.html#n10">Symbol Tables</a>
+<li><a href="Extending.html#n11">The %feature directive</a>
+<li><a href="Extending.html#n12">Code Generation</a>
+<li><a href="Extending.html#n13">SWIG and XML</a>
+</ul>
+<li><a href="Extending.html#n14">Primitive Data Structures</a>
+<ul>
+<li><a href="Extending.html#n15">Strings</a>
+<li><a href="Extending.html#n16">Hashes</a>
+<li><a href="Extending.html#n17">Lists</a>
+<li><a href="Extending.html#n18">Common operations</a>
+<li><a href="Extending.html#n19">I/O</a>
+</ul>
+<li><a href="Extending.html#n20">Type system</a>
+<ul>
+<li><a href="Extending.html#n21">String encoding of types</a>
+<li><a href="Extending.html#n22">Type construction</a>
+<li><a href="Extending.html#n23">Type tests</a>
+<li><a href="Extending.html#n24">Typedef and inheritance</a>
+<li><a href="Extending.html#n25">Output functions</a>
+</ul>
+<li><a href="Extending.html#n26">Parse Tree Navigation</a>
+<li><a href="Extending.html#n27">Writing a Language Module</a>
+<li><a href="Extending.html#n28">Typemaps</a>
+<li><a href="Extending.html#n29">Guide to parse tree nodes</a>
+</ul>
+<!-- INDEX -->
+
+
+</BODY>
+</HTML>
+
