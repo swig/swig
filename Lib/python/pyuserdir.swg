@@ -54,3 +54,60 @@ or the inverse form
 
 #define %pythonnondynamic(FLAG) %feature("python:nondynamic", #FLAG)
 #define %pythondynamic(FLAG) %pythonnondynamic(!FLAG)
+
+
+/*
+
+Use %pythonmaybecall to flag a method like __add__ or __radd__, which
+don't produce an error when called, they just return NotImplemented.
+
+These methods "may be called" if needed.
+
+*/
+
+%define %pythonmaybecall(FLAG) %feature("python:maybecall",#FLAG) %enddef
+
+/*
+  The %pythoncallback feature produce a more natural callback wrap
+  than the  %callback mechanism, ie, it use the original name for
+  the callback and callable objects. 
+
+  Just use it as
+
+    %pythoncallback(1) foo;
+    int foo(int a);
+
+    %pythoncallback(1) A::foo;
+    struct A {
+     static int foo(int a);
+    };
+
+    int bar(int, int (*pf)(int));
+
+  then, you can use it as:
+
+   a = foo(1)
+   b = bar(2, foo)
+
+   c = A.foo(3)
+   d = bar(4, A.foo)
+
+
+   If you use it with a member method
+   %pythoncallback(1) A::foom;
+   struct A {
+      int foom(int a);
+   };
+
+   then you can use it as
+
+     r = a.foom(3)             # eval the method
+     mptr = A.foom_cb_ptr      # returns the callback pointer
+
+   where the '_cb_ptr' termination is added for the callback pointer.
+
+*/
+
+%define %pythoncallback(FLAG) %feature("python:callback",#FLAG) %enddef
+%define %nopythoncallback %feature("python:callback","") %enddef
+

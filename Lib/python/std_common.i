@@ -69,6 +69,7 @@
       PyObject_var(PyObject* obj = 0) : ptr(obj) { }      
       ~PyObject_var() { if (ptr) Py_DECREF(ptr); }      
       operator PyObject*() { return ptr; }
+      PyObject* operator->() const { return ptr; }
     };
   }
 %}
@@ -170,8 +171,7 @@ namespace swigpy {
 	  *val = p;
 	}
       } else {
-	PyErr_Format(PyExc_TypeError, "a '%s *' is expected",
-		     type_name<Type>());
+	SWIG_type_error(type_name<Type>(), obj);
       }
       return res;
     }
@@ -243,13 +243,10 @@ namespace swigpy {
     static Type as(PyObject *obj, bool throw_error) {
       Type v;
       if (!obj || !asval(obj, &v)) {
-	std::string msg = "a value of type '";
-	msg += swigpy::type_name<Type>();
-	msg += "' is expected";
 	if (!PyErr_Occurred()) {
-	  PyErr_SetString(PyExc_TypeError, msg.c_str());
+	  SWIG_type_error(swigpy::type_name<Type>(), obj);
 	}
-	if (throw_error) throw std::invalid_argument(msg);
+	if (throw_error) throw std::invalid_argument("bad type");
       }
       return v;
     }
@@ -271,13 +268,10 @@ namespace swigpy {
       } else {
 	// Uninitialized return value, no Type() constructor required.
 	static Type *v_def = (Type*) malloc(sizeof(Type));
-	std::string msg = "a value of type '";
-	msg += swigpy::type_name<Type>();
-	msg += "' is expected";
 	if (!PyErr_Occurred()) {
-	  PyErr_SetString(PyExc_TypeError, msg.c_str());
+	  SWIG_type_error(swigpy::type_name<Type>(), obj);
 	}
-	if (throw_error) throw std::invalid_argument(msg);
+	if (throw_error) throw std::invalid_argument("bad type");
 	memset(v_def,0,sizeof(Type));
 	return *v_def;
       }
@@ -292,13 +286,10 @@ namespace swigpy {
       if (res) {
 	return v;
       } else {
-	std::string msg = "a value of type '";
-	msg += swigpy::type_name<Type>();
-	msg += "*' is expected";
 	if (!PyErr_Occurred()) {
-	  PyErr_SetString(PyExc_TypeError, msg.c_str());
+	  SWIG_type_error(swigpy::type_name<Type>(), obj);
 	}
-	if (throw_error) throw std::invalid_argument(msg);
+	if (throw_error) throw std::invalid_argument("bad type");
 	return 0;
       }
     }

@@ -28,13 +28,13 @@
 
 %typemap(in,fragment=#SWIG_AsCharPtr)
   Char *, Char const*, Char *const, Char const *const
-  "if (!SWIG_AsCharPtr($input, (Char**)&$1)) SWIG_fail;";
+  "if (!SWIG_AsCharPtr($input, (Char**)&$1)) {SWIG_arg_fail($argnum);SWIG_fail;}";
 
 %typemap(in,fragment=#SWIG_AsCharPtr) 
   Char const*&, Char *const&, Char const *const & 
 {
   $*ltype temp;
-  if (!SWIG_AsCharPtr($input, (Char**)&temp)) SWIG_fail;
+  if (!SWIG_AsCharPtr($input, (Char**)&temp)) {SWIG_arg_fail($argnum);SWIG_fail;}
   $1 = &temp;
 }    
 
@@ -54,11 +54,10 @@
 {
   Char *cptr = 0;
   if (!SWIG_AsNewCharPtr($input, &cptr)) {
-    PyErr_Clear();
-    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
+    SWIG_append_errmsg("C/C++ variable '$name'");
     return 1;
   }
-  if ($1) swig_delete_array($1);
+  if ($1) SWIG_delete_array($1);
   $1 = cptr;
 }
 
@@ -68,8 +67,7 @@
 {
   Char *cptr;
   if (!SWIG_AsNewCharPtr($input, &cptr)) {    
-    PyErr_Clear();
-    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
+    SWIG_append_errmsg("C/C++ variable '$name'");
     return 1;
   }
   $1 = cptr;
@@ -142,7 +140,7 @@
 %typemap(varin,fragment=#SWIG_AsCharArray,
 	 warning="462:Unable to set variable of type Char []") Char []
 {
-  PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name' is read-only");
+  PyErr_SetString(PyExc_AttributeError, "C/C++ variable '$name' is read-only");
   return 1;
 }
 
@@ -171,7 +169,7 @@
   Char [ANY] (Char temp[$1_dim0]), 
   const Char [ANY](Char temp[$1_dim0])
 {  
-  if (!SWIG_AsCharArray($input, temp, $1_dim0)) SWIG_fail;
+  if (!SWIG_AsCharArray($input, temp, $1_dim0)) {SWIG_arg_fail($argnum);SWIG_fail;}
   $1 = temp;
 }
 
@@ -190,8 +188,7 @@
 %typemap(varin,fragment=#SWIG_AsCharArray) Char [ANY]
 {
   if (!SWIG_AsCharArray($input, $1, $1_dim0)) {
-    PyErr_Clear();
-    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
+    SWIG_append_errmsg("C/C++ variable '$name'");
     return 1;
   }
 }
@@ -312,7 +309,7 @@
   (Char *STRING, int LENGTH) (Char *buf, size_t size)
 {
   int res = SWIG_AsCharPtrAndSize($input, &buf, &size);
-  if (!res) SWIG_fail;
+  if (!res) {SWIG_arg_fail($argnum);SWIG_fail;}
   $1 = ($1_ltype) buf;
   $2 = ($2_ltype) size - 1;
 }
@@ -321,7 +318,7 @@
 %typemap(in,fragment=#SWIG_AsCharPtrAndSize)
   (Char *STRING, int SIZE) (Char *buf, size_t size)
 {
-  if (!SWIG_AsCharPtrAndSize($input, &buf, &size)) SWIG_fail;
+  if (!SWIG_AsCharPtrAndSize($input, &buf, &size)) {SWIG_arg_fail($argnum);SWIG_fail;}
   $1 = ($1_ltype) buf;
   $2 = ($2_ltype) size;
 }

@@ -1,40 +1,71 @@
 %{
-/* Auxiliar swig  macros that appear in the header */
+/* -----------------------------------------------------------------------------
+ * Auxiliar swig  macros that appear in the header 
+ * ----------------------------------------------------------------------------- */
 
+/*
+  for internal method declarations
+*/
+#ifdef __cplusplus
+#define SWIGSTATICINLINE(a) static inline a
+#define SWIGSTATIC(a) static a
+#else /* C case */
+#define SWIGSTATICINLINE(a) static a
+#define SWIGSTATIC(a) static a
+#endif /* __cplusplus */
+
+/*
+  Alloc. memory flags
+*/
 #define SWIG_OLDOBJ  1
 #define SWIG_NEWOBJ  SWIG_OLDOBJ + 1
 #define SWIG_PYSTR   SWIG_NEWOBJ + 1
 
+/*
+  swig internal C/C++ API
+*/
 #ifdef __cplusplus
-#define SWIGSTATICINLINE(a) static inline a
-#define SWIGSTATIC(a) static a
-#define swig_new_array(size,Type) (new Type[(size)])
-#define swig_delete(cptr) delete cptr
-#define swig_delete_array(cptr) delete[] cptr
-#define swig_const_cast(a,Type) const_cast<Type >(a)
-#define swig_static_cast(a,Type) static_cast<Type >(a)
-#define swig_reinterpret_cast(a,Type) reinterpret_cast<Type >(a)
-#define swig_new_copy(ptr,Type) (new Type(*ptr))
-#define swig_numeric_cast(a,Type) static_cast<Type >(a)
-
+#define SWIG_new_array(size,Type) (new Type[(size)])
+#define SWIG_delete(cptr) delete cptr
+#define SWIG_delete_array(cptr) delete[] cptr
+#define SWIG_const_cast(a,Type) const_cast<Type >(a)
+#define SWIG_static_cast(a,Type) static_cast<Type >(a)
+#define SWIG_reinterpret_cast(a,Type) reinterpret_cast<Type >(a)
+#define SWIG_new_copy(ptr,Type) (new Type(*ptr))
+#define SWIG_numeric_cast(a,Type) static_cast<Type >(a)
 #else /* C case */
-
-#define SWIGSTATICINLINE(a) static a
-#define SWIGSTATIC(a) static a
-#define swig_new_array(size,Type) ((Type*) malloc((size)*sizeof(Type)))
-#define swig_delete(cptr) free((char*)cptr)
-#define swig_delete_array(cptr) free((char*)cptr)
-#define swig_const_cast(a,Type) (Type)(a)
-#define swig_static_cast(a,Type) (Type)(a)
-#define swig_reinterpret_cast(a,Type) (Type)(a)
-#define swig_numeric_cast(a,Type) (Type)(a)
-#define swig_new_copy(ptr,Type)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
-
+#define SWIG_new_array(size,Type) ((Type*) malloc((size)*sizeof(Type)))
+#define SWIG_delete(cptr) free((char*)cptr)
+#define SWIG_delete_array(cptr) free((char*)cptr)
+#define SWIG_const_cast(a,Type) (Type)(a)
+#define SWIG_static_cast(a,Type) (Type)(a)
+#define SWIG_reinterpret_cast(a,Type) (Type)(a)
+#define SWIG_numeric_cast(a,Type) (Type)(a)
+#define SWIG_new_copy(ptr,Type)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
 #endif /* __cplusplus */
+
+/*
+  Exception handling in wrappers
+*/
+#define SWIG_fail                goto fail
+#define SWIG_arg_fail(arg)       SWIG_Python_ArgFail(arg)
+#define SWIG_append_errmsg(msg)   SWIG_Python_AddErrMesg(msg,0)
+#define SWIG_preppend_errmsg(msg) SWIG_Python_AddErrMesg(msg,1)
+#define SWIG_type_error(type,obj) SWIG_Python_TypeError(type,obj)
+#define SWIG_null_ref(type)       SWIG_Python_NullRef(type)
+
+/*
+  Contract support
+*/
+#define SWIG_contract_assert(expr, msg) \
+ if (!(expr)) { PyErr_SetString(PyExc_RuntimeError, (char *) msg ); goto fail; } else
+
 %}
 
+/* -----------------------------------------------------------------------------
+ * Auxiliar swig  macros used to write typemaps
+ * ----------------------------------------------------------------------------- */
 
-/* Auxiliar swig  macros used to write typemaps */
 #define SWIG_arg(...) __VA_ARGS__
 #define SWIG_str(...) #__VA_ARGS__
 
@@ -62,10 +93,12 @@
 #define SWIG_CCode_frag(...)   SWIG_StringType(TYPECHECK, __VA_ARGS__)
 
 
+/* define a new macro */
 %define SWIG_define(Def, Val)
 %#define Def Val
 %enddef
 
+/* include C++ or C value */
 %define SWIG_cplusplus(cppval, cval)
 #if __cplusplus
 cppval
@@ -75,7 +108,6 @@ cval
 %enddef
 
 /* for loop for macro with one argument */
-
 %define %_formacro_1(macro, arg1,...)
 macro(arg1)
 #if #__VA_ARGS__ != "__fordone__"
@@ -83,12 +115,12 @@ macro(arg1)
 #endif
 %enddef
 
+/* for loop for macro with one argument */
 %define %formacro_1(macro,...)
 %_formacro_1(macro,__VA_ARGS__,__fordone__)
 %enddef
 
 /* for loop for macro with two arguments */
-
 %define %_formacro_2(macro, arg1, arg2, ...)
 macro(arg1, arg2)
 #if #__VA_ARGS__ != "__fordone__"
@@ -96,6 +128,7 @@ macro(arg1, arg2)
 #endif
 %enddef
 
+/* for loop for macro with two arguments */
 %define %formacro_2(macro,...)
 %_formacro_2(macro, __VA_ARGS__, __fordone__)
 %enddef
@@ -112,7 +145,6 @@ macro(arg1, arg2)
 %ignore x;
 #define x 1
 %enddef
-
 
 /*
  %swig_equal_type and %swig_order_type flagged a type of having equal (==,!=)

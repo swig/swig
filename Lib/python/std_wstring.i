@@ -28,7 +28,7 @@ SWIGSTATICINLINE(int)
       if ((res = SWIG_AsWCharPtrAndSize(obj, &buf, &size))) {
 	if (buf) {
 	  if (val) *val = new std::wstring(buf, size - 1);
-	  if (res == SWIG_NEWOBJ) swig_delete_array(buf);
+	  if (res == SWIG_NEWOBJ) SWIG_delete_array(buf);
 	  return SWIG_NEWOBJ;
 	}
       } else {

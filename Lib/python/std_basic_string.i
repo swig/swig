@@ -1,5 +1,6 @@
 %include <exception.i>
 %include <std_container.i>
+%include <std_char_traits.i>
 
 %{
 #include <string>
@@ -178,7 +179,7 @@ namespace std {
     %ignore pop();
     %pysequence_methods_val(std::basic_string<_CharT>);
 
-    #ifdef SWIG_EXPORT_ITERATOR_METHODS
+#ifdef SWIG_EXPORT_ITERATOR_METHODS
     iterator 
     insert(iterator __p, _CharT __c = _CharT());
 
@@ -215,7 +216,7 @@ namespace std {
 
     basic_string& 
     replace(iterator __i1, iterator __i2, const_iterator __k1, const_iterator __k2);
-    #endif
+#endif
 
     std::basic_string<_CharT>& operator +=(const basic_string& v);
 
@@ -223,22 +224,28 @@ namespace std {
     %newobject __radd__;
     %extend {
 
-    std::basic_string<_CharT>* __add__(const basic_string& v) {
-      std::basic_string<_CharT>* res = new std::basic_string<_CharT>(*self);
-      *res += v;      
-      return res;
-    }
+      std::basic_string<_CharT>* __add__(const basic_string& v) {
+	std::basic_string<_CharT>* res = new std::basic_string<_CharT>(*self);
+	*res += v;      
+	return res;
+      }
+      
+      std::basic_string<_CharT>* __radd__(const basic_string& v) {
+	std::basic_string<_CharT>* res = new std::basic_string<_CharT>(v);
+	*res += *self;      
+	return res;
+      }
+      
+      const std::basic_string<_CharT>& __str__() {
+	return *self;
+      }    
 
-    std::basic_string<_CharT>* __radd__(const basic_string& v) {
-      std::basic_string<_CharT>* res = new std::basic_string<_CharT>(v);
-      *res += *self;      
-      return res;
+      std::basic_ostream<_CharT, std::char_traits<_CharT> >&
+	__rlshift__(std::basic_ostream<_CharT, std::char_traits<_CharT> >& out) {
+	out << *self;
+	return out;
+      }
     }
-
-    const std::basic_string<_CharT>& __str__() {
-      return *self;
-    }    
-  }
   };
-
 }
+

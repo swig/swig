@@ -52,7 +52,7 @@ or you can use the %apply directive :
   %typemap(in,fragment=as_frag) Type *INPUT ($*1_ltype temp, int res = 0) {
     if (!SWIG_CheckInputPtr($input,(void **)(&$1),$1_descriptor,$disown)) {
       temp = as_meth($input);
-      if (PyErr_Occurred()) SWIG_fail;
+      if (SWIG_arg_fail($argnum)) SWIG_fail;
       $1 = &temp;
       res = SWIG_NEWOBJ;
     }
@@ -60,11 +60,14 @@ or you can use the %apply directive :
   %typemap(in,fragment=as_frag) Type &INPUT($*1_ltype temp, int res = 0) {
     if (!SWIG_CheckInputPtr($input,(void **)(&$1),$1_descriptor,$disown)) {
       temp = as_meth($input);
-      if (PyErr_Occurred()) SWIG_fail;
+      if (SWIG_arg_fail($argnum)) SWIG_fail;
       $1 = &temp;
       res = SWIG_NEWOBJ;
     }
-    if (!$1) SWIG_fail;
+    if (!$1) {
+      SWIG_null_ref(SWIG_TypePrettyName($1_descriptor));
+    }
+    if (SWIG_arg_fail($argnum)) SWIG_fail;
   }
   %typemap(typecheck,precedence=code,fragment=check_frag) Type *INPUT, Type &INPUT {
     void *ptr;
@@ -73,10 +76,29 @@ or you can use the %apply directive :
 %enddef
 
 %define _PYPTR_INPUT_TYPEMAP(code,asptr_meth,asptr_frag,Type)
-  %typemap(in,fragment=asptr_frag) Type *INPUT(int res = 0)
-    "if (!(res = asptr_meth($input, &$1))) SWIG_fail;";
-  %typemap(in,fragment=asptr_frag) Type &INPUT(int res = 0)
-    "if (!(res = asptr_meth($input, &$1)) || !($1)) SWIG_fail;";
+  %typemap(in,fragment=asptr_frag) Type *INPUT(int res = 0) {  
+    res = asptr_meth($input, &$1);
+    if (!res) {
+      SWIG_type_error(SWIG_TypePrettyName($1_descriptor), $input);
+    } else {
+      if (!$1) {
+	SWIG_null_ref(SWIG_TypePrettyName($1_descriptor));
+      }
+    }    
+    if (SWIG_arg_fail($argnum)) SWIG_fail;
+  }
+
+  %typemap(in,fragment=asptr_frag) Type &INPUT(int res = 0) {  
+    res = asptr_meth($input, &$1);
+    if (!res) {
+      SWIG_type_error(SWIG_TypePrettyName($1_descriptor), $input);
+    } else {
+      if (!$1) {
+	SWIG_null_ref(SWIG_TypePrettyName($1_descriptor));
+      }      
+    }    
+    if (SWIG_arg_fail($argnum)) SWIG_fail;
+  }
   %typemap(freearg) Type *INPUT, Type &INPUT
     "if (res$argnum == SWIG_NEWOBJ) delete $1;";
   %typemap(typecheck,precedence=code,fragment=asptr_frag) Type *INPUT, Type &INPUT

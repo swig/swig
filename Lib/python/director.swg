@@ -11,6 +11,10 @@
 
 #include <string>
 
+extern "C" {
+  struct swig_type_info;
+}
+
 namespace Swig {
   /* base class for director exceptions */
   class DirectorException {
@@ -31,7 +35,7 @@ namespace Swig {
       DirectorTypeMismatchException(const char* msg="") {
         swig_msg = "Swig director type mismatch: ";
         swig_msg += msg;
-        PyErr_SetString(PyExc_TypeError, msg);
+        PyErr_SetString(PyExc_TypeError, getMessage());
       }
   };
 

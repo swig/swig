@@ -9,12 +9,28 @@
   %typemap(in,fragment=pyfrag) __VA_ARGS__ {
     __VA_ARGS__ *ptr = (__VA_ARGS__ *)0;
     int res = asptr_meth($input, &ptr);
-    if (!res || !ptr) SWIG_fail;
+    if (!res) {
+      if (!PyErr_Occurred())
+	SWIG_type_error(SWIG_TypePrettyName($&1_descriptor), $input);
+    } else if (!ptr) {
+      SWIG_null_ref(SWIG_TypePrettyName($&1_descriptor));
+    }
+    if (SWIG_arg_fail($argnum)) SWIG_fail;
     $1 = *ptr;
     if (res == SWIG_NEWOBJ) delete ptr;
   }
-  %typemap(in,fragment=pyfrag) const __VA_ARGS__ & (int res = 0)
-    "if (!(res = asptr_meth($input, &$1)) || !($1)) SWIG_fail;";
+  %typemap(in,fragment=pyfrag) const __VA_ARGS__ & (int res = 0) {
+    __VA_ARGS__ *ptr = (__VA_ARGS__ *)0;
+    res = asptr_meth($input, &ptr);
+    if (!res) {
+      if (!PyErr_Occurred())
+	SWIG_type_error(SWIG_TypePrettyName($1_descriptor), $input);
+    } else if (!ptr) {
+      SWIG_null_ref(SWIG_TypePrettyName($1_descriptor));
+    }
+    if (SWIG_arg_fail($argnum)) SWIG_fail;
+    $1 = ptr;
+  }
 
   %typemap(freearg) const __VA_ARGS__ & 
     "if (res$argnum == SWIG_NEWOBJ) delete $1;";
@@ -26,8 +42,14 @@
   %typemap(varin,fragment=pyfrag) __VA_ARGS__ {
     __VA_ARGS__ *ptr = (__VA_ARGS__ *)0;
     int res = asptr_meth($input, &ptr);
-    if (!res || !ptr) {
-      PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
+    if (!res) {
+      if (!PyErr_Occurred()) 
+	SWIG_type_error(SWIG_TypePrettyName($1_descriptor), $input);
+      SWIG_append_msg(" C/C++ variable '$name'");
+      return 1;
+    } else if (!ptr) {
+      SWIG_null_ref(SWIG_TypePrettyName($1_descriptor));
+      SWIG_append_msg(" C/C++ variable '$name'");
       return 1;
     }
     $1 = *ptr;

@@ -5,7 +5,7 @@
 /* in */
 
 %typemap(in) void * 
-  "if ((SWIG_ConvertPtr($input,&$1,0,SWIG_POINTER_EXCEPTION | $disown)) == -1) SWIG_fail;";
+  "if ((SWIG_ConvertPtr($input,&$1,0,SWIG_POINTER_EXCEPTION | $disown)) == -1) {SWIG_arg_fail($argnum);SWIG_fail;}";
 
 
 /* out */
@@ -18,7 +18,7 @@
   void * temp;
   if ((SWIG_ConvertPtr($input, &temp, 0,
 		       SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN)) == -1) {
-    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
+    SWIG_append_errmsg("C/C++ variable '$name'");
     return 1;
   }
   $1 = ($1_ltype) temp;

@@ -12,23 +12,16 @@
 extern "C" {
 #endif
 
+/* -----------------------------------------------------------------------------
+ * Constant declarations
+ * ----------------------------------------------------------------------------- */
+
+/* Constant Types */
 #define SWIG_PY_INT     1
 #define SWIG_PY_FLOAT   2
 #define SWIG_PY_STRING  3
 #define SWIG_PY_POINTER 4
 #define SWIG_PY_BINARY  5
-
-/* Flags for pointer conversion */
-
-#define SWIG_POINTER_EXCEPTION     0x1
-#define SWIG_POINTER_DISOWN        0x2
-
-/* Exception handling in wrappers */
-#define SWIG_fail   goto fail
-
-#ifndef SWIG_NO_COBJECT_TYPES
-#define SWIG_COBJECT_TYPES
-#endif
 
 /* Constant information structure */
 typedef struct swig_const_info {
@@ -40,42 +33,67 @@ typedef struct swig_const_info {
     swig_type_info **ptype;
 } swig_const_info;
 
+/* -----------------------------------------------------------------------------
+ * Pointer declarations
+ * ----------------------------------------------------------------------------- */
+/*
+  Use SWIG_NO_COBJECT_TYPES to force the use of strings to represent
+  C/C++ pointers in the python side. Very useful for debugging, but
+  not always safe.
+*/
+#if !defined(SWIG_NO_COBJECT_TYPES) && !defined(SWIG_COBJECT_TYPES)
+#define SWIG_COBJECT_TYPES
+#endif
+
+/* Flags for pointer conversion */
+#define SWIG_POINTER_EXCEPTION     0x1
+#define SWIG_POINTER_DISOWN        0x2
+
+
+/* -----------------------------------------------------------------------------
+ * SWIG API.
+ * ----------------------------------------------------------------------------- */
+
 /* Common SWIG API */
-#define SWIG_ConvertPtr(obj, pp, type, flags) \
-  SWIG_Python_ConvertPtr(obj, pp, type, flags)
-#define SWIG_NewPointerObj(p, type, flags) \
-  SWIG_Python_NewPointerObj(p, type, flags)
-#define SWIG_MustGetPtr(p, type, argnum, flags) \
-  SWIG_Python_MustGetPtr(p, type, argnum, flags)
+#define SWIG_ConvertPtr(obj, pp, type, flags)    SWIG_Python_ConvertPtr(obj, pp, type, flags)
+#define SWIG_NewPointerObj(p, type, flags)       SWIG_Python_NewPointerObj(p, type, flags)
+#define SWIG_MustGetPtr(p, type, argnum, flags)  SWIG_Python_MustGetPtr(p, type, argnum, flags)
  
 /* Python-specific SWIG API */
-#define SWIG_newvarlink() \
-  SWIG_Python_newvarlink()
-#define SWIG_addvarlink(p, name, get_attr, set_attr) \
-  SWIG_Python_addvarlink(p, name, get_attr, set_attr)
-#define SWIG_ConvertPacked(obj, ptr, sz, ty, flags) \
-  SWIG_Python_ConvertPacked(obj, ptr, sz, ty, flags)
-#define SWIG_NewPackedObj(ptr, sz, type) \
-  SWIG_Python_NewPackedObj(ptr, sz, type)
-#define SWIG_InstallConstants(d, constants) \
-  SWIG_Python_InstallConstants(d, constants)
+#define SWIG_newvarlink()                             SWIG_Python_newvarlink()
+#define SWIG_addvarlink(p, name, get_attr, set_attr)  SWIG_Python_addvarlink(p, name, get_attr, set_attr)
+#define SWIG_ConvertPacked(obj, ptr, sz, ty, flags)   SWIG_Python_ConvertPacked(obj, ptr, sz, ty, flags)
+#define SWIG_NewPackedObj(ptr, sz, type)              SWIG_Python_NewPackedObj(ptr, sz, type)
+#define SWIG_InstallConstants(d, constants)           SWIG_Python_InstallConstants(d, constants)
 
-typedef double (*py_objasdbl_conv)(PyObject *obj);
 
 #ifdef SWIG_NOINCLUDE
 
-SWIGIMPORT(int)               SWIG_Python_ConvertPtr(PyObject *, void **, swig_type_info *, int);
-SWIGIMPORT(PyObject *)        SWIG_Python_NewPointerObj(void *, swig_type_info *,int own);
-SWIGIMPORT(void *)            SWIG_Python_MustGetPtr(PyObject *, swig_type_info *, int, int);
-SWIGIMPORT(PyObject *)        SWIG_Python_newvarlink(void);
-SWIGIMPORT(void)              SWIG_Python_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
-SWIGIMPORT(int)               SWIG_Python_ConvertPacked(PyObject *, void *, size_t sz, swig_type_info *, int);
-SWIGIMPORT(PyObject *)        SWIG_Python_NewPackedObj(void *, size_t sz, swig_type_info *);
-SWIGIMPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]);
+/* -----------------------------------------------------------------------------
+ * SWIG extern declarations
+ * ----------------------------------------------------------------------------- */
 
 
-#else
+SWIGIMPORT(int)         SWIG_Python_ConvertPtr(PyObject *, void **, swig_type_info *, int);
+SWIGIMPORT(PyObject *)  SWIG_Python_NewPointerObj(void *, swig_type_info *,int own);
+SWIGIMPORT(void *)      SWIG_Python_MustGetPtr(PyObject *, swig_type_info *, int, int);
+SWIGIMPORT(PyObject *)  SWIG_Python_newvarlink(void);
+SWIGIMPORT(void)        SWIG_Python_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
+SWIGIMPORT(int)         SWIG_Python_ConvertPacked(PyObject *, void *, size_t sz, swig_type_info *, int);
+SWIGIMPORT(PyObject *)  SWIG_Python_NewPackedObj(void *, size_t sz, swig_type_info *);
+SWIGIMPORT(void)        SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]);
+SWIGIMPORT(char *)      SWIG_Python_PointerStr(char *buff, void *ptr, const char *name, size_t bsz);
+SWIGIMPORT(void)        SWIG_Python_FixMethods(PyMethodDef *methods,
+		       			     swig_const_info *const_table,
+		       			     swig_type_info **types,
+		       			     swig_type_info **types_initial);
 
+SWIGIMPORT(int)         SWIG_Python_AddErrMesg(const char* mesg, int infront);
+SWIGIMPORT(int)         SWIG_Python_ArgFail(int argnum);
+SWIGIMPORT(void)        SWIG_Python_TypeError(const char *type, PyObject *obj);
+SWIGIMPORT(void)        SWIG_Python_NullRef(const char *type);
+  
+#else /* SWIG_NOINCLUDE */
 
 /* -----------------------------------------------------------------------------
  * global variable support code.
@@ -226,6 +244,79 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
   v->vars = gv;
 }
 
+/* -----------------------------------------------------------------------------
+ * errors manipulation
+ * ----------------------------------------------------------------------------- */
+
+SWIGRUNTIME(void)
+SWIG_Python_TypeError(const char *type, PyObject *obj)
+{
+  const char *otype = (obj ? obj->ob_type->tp_name : 0);
+  if (type) {
+    if (otype) {
+      PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
+		   type, otype);
+    } else {
+      PyErr_Format(PyExc_TypeError, "a '%s' is expected", type);
+    }
+  } else {
+    PyErr_Format(PyExc_TypeError, "unexpected type is received");
+  }
+}
+
+SWIGRUNTIME(void)
+SWIG_Python_NullRef(const char *type)
+{
+  if (type) {
+    PyErr_Format(PyExc_TypeError, "null reference of type '%s' was received",type);
+  } else {
+    PyErr_Format(PyExc_TypeError, "null reference was received");
+  }
+}
+
+/* add information about failing argument */
+SWIGRUNTIME(int)
+SWIG_Python_AddErrMesg(const char* mesg, int infront)
+{
+  if (PyErr_Occurred()) {
+    PyObject *type = 0;
+    PyObject *value = 0;
+    PyObject *traceback = 0;
+    PyErr_Fetch(&type, &value, &traceback);
+    if (value) {
+      PyObject *old_str = PyObject_Str(value);
+      Py_XINCREF(type);
+      PyErr_Clear();
+      if (infront) {
+	PyErr_Format(type, "%s %s", mesg, PyString_AsString(old_str));
+      } else {
+	PyErr_Format(type, "%s %s", PyString_AsString(old_str), mesg);
+      }
+      Py_DECREF(old_str);
+    }
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+SWIGRUNTIME(int)
+SWIG_Python_ArgFail(int argnum)
+{
+  if (PyErr_Occurred()) {
+    char mesg[256];
+    sprintf(mesg, "argument number %d:", argnum);
+    return SWIG_Python_AddErrMesg(mesg, 1);
+  } else {
+    return 0;
+  }
+}
+
+
+/* -----------------------------------------------------------------------------
+ * pointers/data manipulation
+ * ----------------------------------------------------------------------------- */
+
 /* Convert a pointer value */
 SWIGRUNTIME(int)
 SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
@@ -240,6 +331,20 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
     *ptr = 0;
     return 0;
   }
+
+  if (PyCFunction_Check(obj)) {
+    /* here we get the method pointer for callbacks.*/
+    c = strstr((((PyCFunctionObject *)obj) -> m_ml -> ml_doc), "swig_ptr: ");
+    if (c) {
+      c += 10;
+      if (*c == '_') {
+	c++;
+	c = SWIG_UnpackData(c,ptr,sizeof(void *));
+	goto type_check;
+      }
+    }
+    goto type_error;
+  }  
 #ifdef SWIG_COBJECT_TYPES
   if (!(PyCObject_Check(obj))) {
     if (!SWIG_this)
@@ -256,7 +361,7 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
   *ptr = PyCObject_AsVoidPtr(obj);
   c = (char *) PyCObject_GetDesc(obj);
   if (newref) Py_DECREF(obj);
-  goto cobject;
+  goto type_check;
 #else
   if (!(PyString_Check(obj))) {
     if (!SWIG_this)
@@ -287,9 +392,7 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
   if (newref) { Py_DECREF(obj); }
 #endif
 
-#ifdef SWIG_COBJECT_TYPES
-cobject:
-#endif
+type_check:
 
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
@@ -305,12 +408,10 @@ cobject:
 type_error:
   PyErr_Clear();
   if (flags & SWIG_POINTER_EXCEPTION) {
-    if (ty && c) {
-      PyErr_Format(PyExc_TypeError, 
-		   "Type error. Got '%s', expected '%s'",
-		   c, SWIG_TypePrettyName(ty));
+    if (ty) {
+      SWIG_Python_TypeError(SWIG_TypePrettyName(ty), obj);
     } else {
-      PyErr_SetString(PyExc_TypeError,"Expected a pointer");
+      SWIG_Python_TypeError("C/C++ pointer", obj);
     }
   }
   return -1;
@@ -321,11 +422,10 @@ SWIGRUNTIME(void *)
 SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags) {
   void *result;
   if (SWIG_Python_ConvertPtr(obj, &result, ty, flags) == -1) {
+    PyErr_Clear();
     if (flags & SWIG_POINTER_EXCEPTION) {
-      PyErr_Clear();
-      PyErr_Format(PyExc_TypeError, 
-		   "Type error in argument %i: expected a pointer of type '%s'.",
-		   argnum, SWIG_TypePrettyName(ty));
+      SWIG_Python_TypeError(SWIG_TypePrettyName(ty), obj);
+      SWIG_Python_ArgFail(argnum);
     }
   }
   return result;
@@ -350,18 +450,29 @@ SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *t
   return 0;
 
 type_error:
-
-  if (flags) {
-    if (ty && c) {
-      PyErr_Format(PyExc_TypeError, 
-		   "Type error. Got '%s', expected '%s'",
-		   c, SWIG_TypePrettyName(ty));
+  PyErr_Clear();
+  if (flags & SWIG_POINTER_EXCEPTION) {
+    if (ty) {
+      SWIG_Python_TypeError(SWIG_TypePrettyName(ty), obj);
     } else {
-      PyErr_SetString(PyExc_TypeError,"Expected a pointer");
+      SWIG_Python_TypeError("C/C++ packed data", obj);
     }
   }
   return -1;
 }
+
+/* Create a new pointer string */
+SWIGRUNTIME(char *)
+SWIG_Python_PointerStr(char *buff, void *ptr, const char *name, size_t bsz) {
+  char *r = buff;
+  if ((2*sizeof(void *) + 2) > bsz) return 0;
+  *(r++) = '_';
+  r = SWIG_PackData(r,&ptr,sizeof(void *));
+  if (strlen(name) + 1 > (bsz - (r - buff))) return 0;
+  strcpy(r,name);
+  return buff;
+}
+  
 
 /* Create a new pointer object */
 SWIGRUNTIME(PyObject *)
@@ -376,10 +487,7 @@ SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int own) {
 #else
   {
     char result[1024];
-    char *r = result;
-    *(r++) = '_';
-    r = SWIG_PackData(r,&ptr,sizeof(void *));
-    strcpy(r,type->name);
+    SWIG_Python_PointerStr(result, ptr, type->name, 1024);
     robj = PyString_FromString(result);
   }
 #endif
@@ -404,12 +512,17 @@ SWIGRUNTIME(PyObject *)
 SWIG_Python_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
   char result[1024];
   char *r = result;
-  if ((2*sz + 1 + strlen(type->name)) > 1000) return 0;
+  if ((2*sz + 2 + strlen(type->name)) > 1024) return 0;
   *(r++) = '_';
   r = SWIG_PackData(r,ptr,sz);
   strcpy(r,type->name);
   return PyString_FromString(result);
 }
+
+
+/* -----------------------------------------------------------------------------
+ * constants/methods manipulation
+ * ----------------------------------------------------------------------------- */
 
 /* Install Constants */
 SWIGRUNTIME(void)
@@ -449,11 +562,47 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
   }
 }
 
-#endif
+/* Fix SwigMethods to carry the callback ptrs when needed */
+SWIGRUNTIME(void)
+SWIG_Python_FixMethods(PyMethodDef *methods,
+		       swig_const_info *const_table,
+		       swig_type_info **types,
+		       swig_type_info **types_initial) {
+  int i;
+  for (i = 0; methods[i].ml_name; ++i) {
+    char *c = methods[i].ml_doc;
+    if (c && (c = strstr(c, "swig_ptr: "))) {
+      int j;
+      swig_const_info *ci = 0;
+      char *name = c + 10;
+      for (j = 0; const_table[j].type; j++) {
+	if (strncmp(const_table[j].name, name, 
+		    strlen(const_table[j].name)) == 0) {
+	  ci = &(const_table[j]);
+	  break;
+	}
+      }
+      if (ci) {
+	size_t shift = (ci->ptype) - types;
+	swig_type_info *ty = types_initial[shift];
+	size_t ldoc = (c - methods[i].ml_doc);
+	size_t lptr = strlen(ty->name)+2*sizeof(void*)+2;
+	char *ndoc = (char*)malloc(ldoc + lptr + 10);
+	char *buff = ndoc;
+	void *ptr = (ci->type == SWIG_PY_POINTER) ? ci->pvalue: (void *)(ci->lvalue);
+	strncpy(buff, methods[i].ml_doc, ldoc);
+	buff += ldoc;
+	strncpy(buff, "swig_ptr: ", 10);
+	buff += 10;
+	SWIG_Python_PointerStr(buff, ptr, ty->name, lptr);
+	methods[i].ml_doc = ndoc;
+      }
+    }
+  }
+}
 
-/* Contract support */
+#endif /* SWIG_NOINCLUDE */
 
-#define SWIG_contract_assert(expr, msg) if (!(expr)) { PyErr_SetString(PyExc_RuntimeError, (char *) msg ); goto fail; } else
 
 #ifdef __cplusplus
 }

@@ -17,6 +17,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize)
     if (psize) *psize = vptr ? (strlen(vptr) + 1) : 0;
     return SWIG_OLDOBJ;
   } else {
+    PyErr_Clear();
     if (PyString_Check(obj)) {
       if (cptr) {
 	*cptr = PyString_AS_STRING(obj);
@@ -28,7 +29,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize)
     }
   }
   if (cptr) {
-    PyErr_SetString(PyExc_TypeError, "a string is expected");
+    SWIG_type_error("char *", obj);
   }
   return 0;
 }
@@ -45,7 +46,7 @@ SWIG_AsCharPtr(PyObject *obj, char **val)
     return 1;
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a char* is expected");
+    SWIG_type_error("char *", obj);
   }
   return 0;
 }
@@ -58,7 +59,7 @@ SWIG_FromCharPtr(const char* cptr)
   if (cptr) {
     size_t size = strlen(cptr);
     if (size > INT_MAX) {
-      return SWIG_NewPointerObj(swig_const_cast(cptr,char*), 
+      return SWIG_NewPointerObj(SWIG_const_cast(cptr,char*), 
 				SWIG_TypeQuery("char *"), 0);
     } else {
       if (size != 0) {
@@ -83,11 +84,11 @@ SWIG_AsNewCharPtr(PyObject *obj, char **val)
   if (res) {
     if (val) {
       if (csize) {
-	*val = swig_new_array(csize, char);
+	*val = SWIG_new_array(csize, char);
 	memcpy(*val, cptr, --csize);
 	(*val)[csize] = 0;
       } else if (cptr) {
-	*val = swig_new_array(1, char);
+	*val = SWIG_new_array(1, char);
 	(*val)[0] = 0;
       } else {
 	*val = 0;
@@ -96,7 +97,7 @@ SWIG_AsNewCharPtr(PyObject *obj, char **val)
     return SWIG_NEWOBJ;
   } 
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a char* is expected");
+    SWIG_type_error("char *", obj);
   }
   return 0;
 }
@@ -125,8 +126,8 @@ SWIG_AsCharArray(PyObject *obj, char *val, size_t size)
     }
   }
   if (val) {
-    PyErr_Format(PyExc_TypeError, 
-		 "a char array of maximum size %lud is expected", 
+    PyErr_Format(PyExc_TypeError,
+		 "a char array of maximum size %lu is expected", 
 		 (unsigned long) size);
   }
   return 0;
@@ -138,10 +139,10 @@ SWIGSTATICINLINE(PyObject *)
 SWIG_FromCharArray(const char* carray, size_t size)
 {
   if (size > INT_MAX) {
-    SWIG_NewPointerObj(swig_const_cast(carray,char*), SWIG_TypeQuery("char *"), 0);
+    SWIG_NewPointerObj(SWIG_const_cast(carray,char*), SWIG_TypeQuery("char *"), 0);
     return Py_None;    
   } else {
-    return PyString_FromStringAndSize(carray, swig_numeric_cast(size,int));
+    return PyString_FromStringAndSize(carray, SWIG_numeric_cast(size,int));
   }
 }
 }

@@ -19,7 +19,7 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize)
     if (isunicode || PyString_Check(obj)) {
       if (cptr) {
 	int size = isunicode ? PyUnicode_GetSize(obj) : PyString_Size(obj);
-	wchar_t *nptr = swig_new_array(size + 1, wchar_t);
+	wchar_t *nptr = SWIG_new_array(size + 1, wchar_t);
 	PyUnicodeObject *uni = (PyUnicodeObject *)PyUnicode_FromObject(obj);
 	PyUnicode_AsWideChar(uni, nptr, size);
 	nptr[size] = 0;
@@ -33,7 +33,7 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize)
     }
   }
   if (cptr) {
-    PyErr_SetString(PyExc_TypeError, "a wchar_t * is expected");
+    SWIG_type_error("wchar_t *", obj);
   }
   return 0;
 }
@@ -51,7 +51,7 @@ SWIG_AsWCharPtr(PyObject *obj, wchar_t **val)
     return res;
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a wchar_t * is expected");
+    SWIG_type_error("wchar_t *", obj);
   }
   return 0;
 }
@@ -64,7 +64,7 @@ SWIG_FromWCharPtr(const wchar_t * cptr)
   if (cptr) {
     size_t size = wcslen(cptr);
     if (size > INT_MAX) {
-      return SWIG_NewPointerObj(swig_const_cast(cptr,wchar_t *), 
+      return SWIG_NewPointerObj(SWIG_const_cast(cptr,wchar_t *), 
 				SWIG_TypeQuery("wchar_t *"), 0);
     } else {
       return PyUnicode_FromWideChar(cptr, size);
@@ -85,11 +85,11 @@ SWIG_AsNewWCharPtr(PyObject *obj, wchar_t **val)
   if (res) {
     if (val) {
       if (csize) {
-	*val = swig_new_array(csize, wchar_t);
+	*val = SWIG_new_array(csize, wchar_t);
 	memcpy(*val, cptr, (--csize)*sizeof(wchar_t));
 	(*val)[csize] = 0;
       } else if (cptr) {
-	*val = swig_new_array(1, wchar_t);
+	*val = SWIG_new_array(1, wchar_t);
 	(*val)[0] = 0;
       } else {
 	*val = 0;
@@ -98,7 +98,7 @@ SWIG_AsNewWCharPtr(PyObject *obj, wchar_t **val)
     return SWIG_NEWOBJ;
   } 
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a wchar_t * is expected");
+    SWIG_type_error("wchar_t *", obj);
   }
   return 0;
 }
@@ -121,8 +121,8 @@ SWIG_AsWCharArray(PyObject *obj, wchar_t *val, size_t size)
     }
   }
   if (val) {
-    PyErr_Format(PyExc_TypeError, 
-		 "a wchar_t array of maximum size %lud is expected", 
+    PyErr_Format(PyExc_ValueError, 
+		 "a wchar_t array of maximum size %lu is expected", 
 		 (unsigned long) size);
   }
   return 0;
@@ -134,10 +134,10 @@ SWIGSTATICINLINE(PyObject *)
 SWIG_FromWCharArray(const wchar_t * carray, size_t size)
 {
   if (size > INT_MAX) {
-    SWIG_NewPointerObj(swig_const_cast(carray,wchar_t *), SWIG_TypeQuery("wchar_t *"), 0);
+    SWIG_NewPointerObj(SWIG_const_cast(carray,wchar_t *), SWIG_TypeQuery("wchar_t *"), 0);
     return Py_None;    
   } else {
-    return PyUnicode_FromWideChar(carray, swig_numeric_cast(size,int));
+    return PyUnicode_FromWideChar(carray, SWIG_numeric_cast(size,int));
   }
 }
 %}

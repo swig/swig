@@ -3,7 +3,7 @@
  * ------------------------------------------------------------ */
 
 /*
-  Define the SWIGAs/From methods for the basic types.  In many
+  Define the SWIG_As/From methods for the basic types.  In many
   cases, these method are just aliases of the original python As/From
   methods. In the other cases, some extra work is needed.
 */
@@ -50,7 +50,7 @@
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header") {
 SWIGSTATICINLINE(int)
-  SWIG_AsVal(unsigned long)(PyObject * obj, unsigned long *val) 
+  SWIG_AsVal(unsigned long)(PyObject *obj, unsigned long *val) 
 {
   if (PyInt_Check(obj)) {
     long v = PyInt_AS_LONG(obj);
@@ -70,7 +70,7 @@ SWIGSTATICINLINE(int)
     }
   } 
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "an unsigned long is expected");
+    SWIG_type_error("unsigned long", obj);
   }
   return 0;
 }
@@ -144,7 +144,7 @@ SWIGSTATICINLINE(int)
     }
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a double is expected");
+    SWIG_type_error("double", obj);
   }
   return 0;
 }
@@ -169,7 +169,7 @@ SWIGSTATICINLINE(int)
     }
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a long is expected");
+    SWIG_type_error("long", obj);
   }
   return 0;
  }
@@ -183,7 +183,7 @@ SWIGSTATICINLINE(PyObject* )
 {
   return ((value < LONG_MIN) || (value > LONG_MAX)) ?
     PyLong_FromLongLong(value)
-    : PyInt_FromLong(swig_numeric_cast(value,long)); 
+    : PyInt_FromLong(SWIG_numeric_cast(value,long)); 
 }
 }
 
@@ -195,7 +195,7 @@ SWIGSTATICINLINE(PyObject* )
 {
   return (value > LONG_MAX) ?
     PyLong_FromUnsignedLongLong(value) : 
-    PyInt_FromLong(swig_numeric_cast(value,long)); 
+    PyInt_FromLong(SWIG_numeric_cast(value,long)); 
 }
 }
 
@@ -218,7 +218,7 @@ SWIGSTATICINLINE(int)
     return 1;
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a long long is expected");
+    SWIG_type_error("long long", obj);
   }
   return 0;
 }
@@ -247,7 +247,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "an unsigned long long is expected");
+    SWIG_type_error("unsigned long long", obj);
   }  
   return 0;
 }
@@ -259,7 +259,7 @@ SWIGSTATICINLINE(PyObject* )
 {
   return (value > LONG_MAX) ?
     PyLong_FromUnsignedLong(value) 
-    : PyInt_FromLong(swig_numeric_cast(value,long)); 
+    : PyInt_FromLong(SWIG_numeric_cast(value,long)); 
 }
 }
 
@@ -273,7 +273,7 @@ SWIGSTATICINLINE(int)
   long v;
   if (SWIG_AsVal(long)(obj, &v)) {
     if (SWIG_CheckLongInRange(v, SCHAR_MIN, SCHAR_MAX, errmsg)) {
-      if (val) *val = swig_numeric_cast(v, signed char);
+      if (val) *val = SWIG_numeric_cast(v, signed char);
       return 1;
     } else {
       return 0;
@@ -282,7 +282,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }  
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a signed char is expected");
+    SWIG_type_error(errmsg, obj);
   }
   return 0;    
 }
@@ -298,7 +298,7 @@ SWIGSTATICINLINE(int)
   long v;
   if (SWIG_AsVal(long)(obj, &v)) {
     if (SWIG_CheckLongInRange(v, SHRT_MIN, SHRT_MAX, errmsg)) {
-      if (val) *val = swig_numeric_cast(v, short);
+      if (val) *val = SWIG_numeric_cast(v, short);
       return 1;
     } else {
       return 0;
@@ -307,7 +307,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a short is expected");
+    SWIG_type_error(errmsg, obj);
   }
   return 0;    
 }
@@ -326,7 +326,7 @@ SWIGSTATICINLINE(int)
   long v;
   if (SWIG_AsVal(long)(obj, &v)) {
     if (SWIG_CheckLongInRange(v, INT_MIN,INT_MAX, errmsg)) {
-      if (val) *val = swig_numeric_cast(v, int);
+      if (val) *val = SWIG_numeric_cast(v, int);
       return 1;
     } else {
       return 0;
@@ -335,7 +335,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "an int is expected");
+    SWIG_type_error(errmsg, obj);
   }
   return 0;    
 }
@@ -359,14 +359,14 @@ SWIGSTATICINLINE(int)
   unsigned long v;
   if (SWIG_AsVal(unsigned long)(obj, &v)) {
     if (SWIG_CheckUnsignedLongInRange(v, INT_MAX, errmsg)) {
-      if (val) *val = swig_numeric_cast(v, unsigned int);
+      if (val) *val = SWIG_numeric_cast(v, unsigned int);
       return 1;
     }
   } else {
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "an unsigned int is expected");
+    SWIG_type_error(errmsg, obj);
   }
   return 0;    
 }
@@ -399,7 +399,7 @@ SWIGSTATICINLINE(int)
   unsigned long v;
   if (SWIG_AsVal(unsigned long)(obj, &v)) {
     if (SWIG_CheckUnsignedLongInRange(v, UCHAR_MAX,errmsg)) {
-      if (val) *val = swig_numeric_cast(v, unsigned char);
+      if (val) *val = SWIG_numeric_cast(v, unsigned char);
       return 1;
     } else {
       return 0;
@@ -408,7 +408,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "an unsigned char is expected");
+    SWIG_type_error(errmsg, obj);
   }
   return 0;
 }
@@ -424,7 +424,7 @@ SWIGSTATICINLINE(int)
   unsigned long v;
   if (SWIG_AsVal(unsigned long)(obj, &v)) {
     if (SWIG_CheckUnsignedLongInRange(v, USHRT_MAX, errmsg)) {
-      if (val) *val = swig_numeric_cast(v, unsigned short);
+      if (val) *val = SWIG_numeric_cast(v, unsigned short);
       return 1;
     } else {
       return 0;
@@ -433,7 +433,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "an unsigned short is expected");
+    SWIG_type_error(errmsg, obj);
   }
   return 0;
 }
@@ -484,7 +484,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a float is expected");
+    SWIG_type_error(errmsg, obj);
   }
   return 0;
 }
@@ -583,7 +583,7 @@ SWIGSTATICINLINE(int)
     return 1;
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a bool is expected");
+    SWIG_type_error("bool", obj);
   }
   return 0;
 }
