@@ -2580,12 +2580,22 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			      }
 			      p = nextSibling(p);
 			    }
+			    /* Patch argument names with typedef */
+			    {
+			      SwigType *tt;
+			      List *tparms = SwigType_parmlist(fname);
+			      for (tt = Firstitem(tparms); tt; tt = Nextitem(tparms)) {
+				SwigType *ttr = Swig_symbol_typedef_reduce(tt,0);
+				Replaceid(fname,tt, ttr);
+			      }
+			    }
 			    {
 			      String *partials = Getattr(tempn,"partials");
 			      if (!partials) {
 				partials = NewList();
 				Setattr(tempn,"partials",partials);
 			      }
+			      /*			      Printf(stdout,"partial: fname = '%s', '%s'\n", fname, Swig_symbol_typedef_reduce(fname,0)); */
 			      Append(partials,fname);
 			    }
 			    Setattr($$,"partialargs",fname);
