@@ -20,4 +20,4 @@ clean::
 	cd Lib; $(MAKE) clean
 	rm -f config.log config.status config.cache
 
-
+check: all
