@@ -252,10 +252,12 @@ DOH *SwigType_pop(DOH *t)
 
 void SwigType_push(DOH *t, DOH *cons)
 {
+  if (!cons) return;
+  if (!Len(cons)) return;
   assert(DohIsString(t));
   if (Len(t)) {
     int len;
-    char *c = Char(t);
+    char *c = Char(cons);
     if (c[strlen(c)-1] != '.')
       Insert(t,0,".");
   }
