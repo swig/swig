@@ -503,7 +503,9 @@ AC_OUTPUT(
     Source/Modules1.1/Makefile
     Source/Preprocessor/Makefile
     Source/SWIG1.1/Makefile
+    Source/SWIG1.3/Makefile
     Source/Swig/Makefile
     Source/Swim/Makefile
     Source/Xmlparse/Makefile
     )
+
