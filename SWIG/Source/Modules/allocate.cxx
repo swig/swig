@@ -364,8 +364,11 @@ class Allocate : public Dispatcher {
 
   void mark_exception_classes(ParmList *p) {
     while(p) {
-      SwigType *ty = Getattr(p,"type");
+      SwigType *ty = Getattr(p,"type");      
       SwigType *t = SwigType_typedef_resolve_all(ty);
+      if (SwigType_isreference(t) || SwigType_ispointer(t) || SwigType_isarray(t)) {
+	Delete(SwigType_pop(t));
+      }
       Node *c = Swig_symbol_clookup(t,0);
       if (c) {
 	Setattr(c,"cplus:exceptionclass","1");
