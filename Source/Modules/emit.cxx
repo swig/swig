@@ -16,7 +16,6 @@
 
 char cvsroot_emit_cxx[] = "$Header$";
 
-extern SwigType *cplus_value_type(SwigType *t);
 extern int       Swig_contract_mode_get();
 
 /* -----------------------------------------------------------------------------
@@ -306,6 +305,7 @@ void emit_mark_varargs(ParmList *l) {
   }
 }
 
+#if 0
 /* replace_contract_args.  This function replaces argument names in contract
    specifications.   Used in conjunction with the %contract directive. */
 
@@ -320,6 +320,7 @@ void replace_contract_args(Parm *cp, Parm *rp, String *s) {
     rp = nextSibling(rp);
   }
 }
+#endif
 
 /* -----------------------------------------------------------------------------
  * int emit_action()

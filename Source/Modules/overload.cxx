@@ -21,8 +21,6 @@ char cvsroot_overload_cxx[] = "$Header$";
 String *argv_template_string;
 String *argc_template_string;
 
-extern int emit_num_required(ParmList *);
-
 /* -----------------------------------------------------------------------------
  * Swig_overload_rank()
  *

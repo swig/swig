@@ -103,8 +103,6 @@ int main(int argc, char **argv) {
   Language *dl = 0;
   ModuleFactory fac = 0;
 
-  extern int SWIG_main(int, char **, Language *);
-
 #ifdef MACSWIG
   SIOUXSettings.asktosaveonclose = false;
   argc = ccommand(&argv);
