@@ -427,21 +427,24 @@ Swig_MethodToFunction(Node *n, String *classname, int added) {
     Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cmethod_call(name,p)));
   } else {
     String *code;
+    String *mangled;
     String *membername = Swig_name_member(classname, name);
+    mangled = Swig_name_mangle(membername);
     type = Getattr(n,"type");
-    Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cfunction_call(membername,p)));
+    Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cfunction_call(mangled,p)));
 
     /* See if there is any code that we need to emit */
     code = Getattr(n,"code");
     if (code) {
       String *body;
-      String *tmp = NewStringf("%s(%s)", membername, ParmList_str(p));
+      String *tmp = NewStringf("%s(%s)", mangled, ParmList_str(p));
       body = SwigType_str(type,tmp);
       Delete(tmp);
       Printv(body,code,"\n",NULL);
       Setattr(n,"wrap:code",body);
     }
     Delete(membername);
+    Delete(mangled);
   }
   Setattr(n,"parms",p);
   Delete(p);
