@@ -20,6 +20,27 @@
 %}
 
 
+%inline %{
+  class TROOT {
+  protected:
+     void *operator new(size_t l) { return malloc(sizeof(TROOT)); }
+   
+  public:
+    TROOT()
+    {
+    }
+
+    TROOT(const char *name, const char *title, void *initfunc = 0)
+    {
+    }
+  };
+
+  class A : public TROOT
+  {
+  };
+  
+%}
+
 #ifdef SWIGPYTHON
 
 // This case only works in python
@@ -31,5 +52,6 @@
    Bar bar;
    
 %}
+
 
 #endif

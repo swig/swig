@@ -1544,8 +1544,9 @@ int Language::unrollVirtualMethods(Node *n,
     if ((Cmp(nodeType, "cdecl") == 0)|| is_destructor) {
       decl = Getattr(ni, "decl");
       /* extra check for function type and proper access */
-      if (SwigType_isfunction(decl) && 
-	  (is_public(ni) || need_nonpublic_member(ni))) {
+      if (SwigType_isfunction(decl) 
+	  && (is_public(n) || need_nonpublic_member(n))
+	  && (is_public(ni) || need_nonpublic_member(ni))) {
 	String *name = Getattr(ni, "name");
 	String *local_decl = SwigType_typedef_resolve_all(decl);
 	Node *method_id = is_destructor ? NewStringf("~destructor") : NewStringf("%s|%s", name, local_decl);
@@ -1690,6 +1691,7 @@ int Language::classDirectorConstructors(Node *n) {
   int default_ctor = Getattr(parent,"allocate:default_constructor") ? 1 : 0;
   int protected_ctor = 0;
   int constructor = 0;
+
   /* emit constructors */
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
@@ -2731,6 +2733,9 @@ String * Language::getClassType() const {
  * ----------------------------------------------------------------------------- */
 
 int Language::abstractClassTest(Node *n) {
+  /* check for non public operator new */
+  if (Getattr(n,"allocate:nonew")) return 1;
+  /* now check for the rest */
   List *abstract = Getattr(n,"abstract");
   if (!abstract) return 0;
   if (abstract && !directorsEnabled()) return 1;
