@@ -48,7 +48,7 @@ CPP_TEST_CASES += \
 	enum_var \
 	union_scope \
 	default_ns \
-	throws \
+	throw_exception \
 	argout \
 	using_protected \
 	using_private \

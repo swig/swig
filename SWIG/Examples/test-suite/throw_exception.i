@@ -1,4 +1,4 @@
-%module throws
+%module throw_exception
 
 // Tests SWIG's automatic exception mechanism
 
