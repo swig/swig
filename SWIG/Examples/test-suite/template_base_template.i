@@ -2,6 +2,8 @@
 
 %warnfilter(801) traits<double, double>; /* Ruby, wrong class name */
 
+#pragma SWIG nowarn=320
+
 %inline %{
   template <class ArgType, class ResType>
   struct traits
@@ -23,6 +25,10 @@
   {
   };
  
+ template class traits <double, double>;
+ template class Function <double, double>;
+ template class Class <double, double>;
+
 %}
  
 %template(traits_dd) traits <double, double>;
