@@ -9,6 +9,7 @@ typedef int Integer;
 
   struct A
   {  
+    int aa;
   };
 
   Integer importtest1(Integer i) {

@@ -10,6 +10,7 @@ typedef char * TypedefString;
   
   struct B
   {
+    int bb;
   };
 
   TypedefString importtest2(TypedefString str) {
