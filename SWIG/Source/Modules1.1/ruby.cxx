@@ -792,16 +792,18 @@ char *RUBY::validate_const_name(char *name) {
  * --------------------------------------------------------------------- */
 
 int RUBY::constantWrapper(Node *n) {
+  Swig_require(&n, "*sym:name", "type", "value", 0);
+
   char *iname     = GetChar(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
   char  *value    = GetChar(n,"value");
 
-  String *tm;
-
-  if (current == CLASS_CONST)
+  if (current == CLASS_CONST) {
     iname = klass->strip(iname);
+  }
+  SetChar(n, "sym:name", iname);
 
-  tm = Swig_typemap_lookup_new("constant",n,value,0);
+  String *tm = Swig_typemap_lookup_new("constant",n,value,0);
   if (tm) {
     Replaceall(tm,"$source",value);
     Replaceall(tm,"$target",iname);
@@ -818,6 +820,7 @@ int RUBY::constantWrapper(Node *n) {
     Printf(stderr,"%s : Line %d. Unable to create constant %s = %s\n",
 	   input_file, line_number, SwigType_str(type,0), value);
   }
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
