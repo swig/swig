@@ -22,7 +22,8 @@ public class arrays_runme {
     ArrayStruct as = new ArrayStruct();
 
     // Create arrays for all the array types that ArrayStruct can handle
-    byte[] array_c = {10, 20};
+    String array_c = "X";
+    byte[] array_sc = {10, 20};
     short[] array_uc = {101, 201};
     short[] array_s = {1002, 2002};
     int[] array_us = {1003, 2003};
@@ -49,7 +50,10 @@ public class arrays_runme {
 
     // Now set the array members and check that they have been set correctly
     as.setArray_c(array_c);
-    check_byte_array(array_c, as.getArray_c());
+    check_string(array_c, as.getArray_c());
+
+    as.setArray_sc(array_sc);
+    check_byte_array(array_sc, as.getArray_sc());
 
     as.setArray_uc(array_uc);
     check_short_array(array_uc, as.getArray_uc());
@@ -98,6 +102,12 @@ public class arrays_runme {
  }
 
   // Functions to check that the array values were set correctly
+  public static void check_string(String original, String checking) {
+    if (!checking.equals(original)) {
+      System.err.println("Runtime test failed. checking = [" + checking + "]");
+      System.exit(1);
+    }
+  }
   public static void check_byte_array(byte[] original, byte[] checking) {
     for (int i=0; i<original.length; i++) {
       if (checking[i] != original[i]) {

@@ -20,9 +20,6 @@
 
 #ifdef SWIG_NOINCLUDE
 void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg);
-int SWIG_JavaArrayInChar(JNIEnv *jenv, jbyte **jarr, char **carr, jbyteArray input);
-void SWIG_JavaArrayArgoutChar(JNIEnv *jenv, jbyte *jarr, char *carr, jbyteArray input);
-jbyteArray SWIG_JavaArrayOutChar(JNIEnv *jenv, char *result, jsize sz);
 int SWIG_JavaArrayInSchar(JNIEnv *jenv, jbyte **jarr, signed char **carr, jbyteArray input);
 void SWIG_JavaArrayArgoutSchar(JNIEnv *jenv, jbyte *jarr, signed char *carr, jbyteArray input);
 jbyteArray SWIG_JavaArrayOutSchar(JNIEnv *jenv, signed char *result, jsize sz);
@@ -146,17 +143,6 @@ void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const c
     arr[i] = (JTYPE)result[i]; \
   JCALL3(RELEASEARRAYELEMENTS, jenv, jresult, arr, 0); \
   return jresult;
-
-/* char[] support */
-int SWIG_JavaArrayInChar(JNIEnv *jenv, jbyte **jarr, char **carr, jbyteArray input) {
-  SWIG_JavaArrayIn(char, GetByteArrayElements)
-}
-void SWIG_JavaArrayArgoutChar(JNIEnv *jenv, jbyte *jarr, char *carr, jbyteArray input) {
-  SWIG_JavaArrayArgout(jbyte, ReleaseByteArrayElements)
-}
-jbyteArray SWIG_JavaArrayOutChar(JNIEnv *jenv, char *result, jsize sz) {
-  SWIG_JavaArrayOut(jbyte, jbyteArray, NewByteArray, GetByteArrayElements, ReleaseByteArrayElements)
-}
 
 /* signed char[] support */
 int SWIG_JavaArrayInSchar(JNIEnv *jenv, jbyte **jarr, signed char **carr, jbyteArray input) {

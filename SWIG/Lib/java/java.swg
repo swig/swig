@@ -61,7 +61,7 @@
 %typemap(jstype) void               "void"
 
 /* Arrays of primtive types */                     
-%typemap(jni) char[ANY]               "jbyteArray"
+%typemap(jni) char[ANY]               "jstring"
 %typemap(jni) signed char[ANY]        "jbyteArray"
 %typemap(jni) unsigned char[ANY]      "jshortArray"
 %typemap(jni) short[ANY]              "jshortArray"
@@ -75,10 +75,8 @@
 %typemap(jni) float[ANY]              "jfloatArray"
 %typemap(jni) double[ANY]             "jdoubleArray"
 %typemap(jni) bool[ANY]               "jbooleanArray"
-//%typemap(jni="jstring")  char *                     
-//%typemap(jni="void")     void                     
 
-%typemap(jtype) char[ANY]               "byte[]"
+%typemap(jtype) char[ANY]               "String"
 %typemap(jtype) signed char[ANY]        "byte[]"
 %typemap(jtype) unsigned char[ANY]      "short[]"
 %typemap(jtype) short[ANY]              "short[]"
@@ -92,10 +90,8 @@
 %typemap(jtype) float[ANY]              "float[]"
 %typemap(jtype) double[ANY]             "double[]"
 %typemap(jtype) bool[ANY]               "boolean[]"
-//%typemap(jtype="String")  char *                     
-//%typemap(jtype="void")    void                     
 
-%typemap(jstype) char[ANY]               "byte[]"
+%typemap(jstype) char[ANY]               "String"
 %typemap(jstype) signed char[ANY]        "byte[]"
 %typemap(jstype) unsigned char[ANY]      "short[]"
 %typemap(jstype) short[ANY]              "short[]"
@@ -109,8 +105,6 @@
 %typemap(jstype) float[ANY]              "float[]"
 %typemap(jstype) double[ANY]             "double[]"
 %typemap(jstype) bool[ANY]               "boolean[]"
-//%typemap(jstype="String")  char *                     
-//%typemap(jstype="void")    void                     
 
 /* Non primitive types */
 %typemap(jni) SWIGTYPE "jlong"
@@ -285,7 +279,6 @@
 
 /* Generic pointers and references */
 %typemap(in) SWIGTYPE * , SWIGTYPE & %{ $1 = ($1_ltype)*(void**)&$input; %}
-
 %typemap(out) SWIGTYPE * , SWIGTYPE & %{ *($&1_ltype)&$result = $1; %} 
 
 /* Arrays */
@@ -297,13 +290,11 @@
 %typemap(out) bool[ANY] 
 %{$result = SWIG_JavaArrayOutBool(jenv, $1, $dim0); %}
 
-/* char[ANY] */
-%typemap(in) char[ANY] (jbyte *jarr)
-%{ if (!SWIG_JavaArrayInChar(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) char[ANY] 
-%{ SWIG_JavaArrayArgoutChar(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) char[ANY] 
-%{$result = SWIG_JavaArrayOutChar(jenv, $1, $dim0); %}
+/* char[ANY] - treat as String */
+%typemap(in) char[ANY] %{ $1 = ($input) ? ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0) : NULL; %}
+%typemap(argout) char[ANY] ""
+%typemap(freearg) char[ANY] %{ if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); %}
+%typemap(out) char[ANY] %{ if($1) $result = JCALL1(NewStringUTF, jenv, $1); %}
 
 /* signed char[ANY] */
 %typemap(in) signed char[ANY] (jbyte *jarr)
@@ -400,10 +391,6 @@
 %{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, (int*)$1, $input); %}
 %typemap(out) enum SWIGTYPE[ANY] 
 %{$result = SWIG_JavaArrayOutInt(jenv, (int*)$1, $dim0); %}
-
-// todo ********:
-/* check char[] - SWIG treats as a string */
-//arrays of char* - strings
 
 /* Arrays of pointers */
 %typemap(in) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY] (jlong *jarr, jsize sz),
