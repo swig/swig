@@ -1,6 +1,6 @@
 %{
 /* -----------------------------------------------------------------------------
- * parser.yxx
+ * parser.y
  *
  *     YACC parser for SWIG1.1.   This grammar is a broken subset of C/C++.
  *     This file is in the process of being deprecated.
@@ -2272,9 +2272,9 @@ cpp_temp_possible:  c_decl {
                 }
                 | cpp_constructor_decl {
                    $$ = $1;
-		   if ($$) {
+		   /*		   if ($$) {
 		     Setattr($$,"sym:weak","1");
-		   }
+		     }*/
                 }
                 | cpp_template_decl {
 		  $$ = 0;
