@@ -115,7 +115,8 @@ extern int     DohCheck(DOH *ptr);
 extern int     DohFreeCheck(DOH *ptr);
 
 /* Low-level doh methods.  Do not call directly (well, unless you want to). */
-
+extern void    DohError(int level, char *fmt,...);
+extern void    DohDebug(int d);
 extern void    DohDestroy(DOH *obj);
 extern DOH    *DohCopy(DOH *obj);
 extern void    DohClear(DOH *obj);
@@ -123,9 +124,7 @@ extern int     DohCmp(DOH *obj1, DOH *obj2);
 extern DOH    *DohStr(DOH *obj);
 extern int     DohDump(DOH *obj, DOH *out);
 extern DOH    *DohGetattr(DOH *obj, DOH *name);
-extern int     DohGetattrf(DOH *obj, DOH *name, char *fmt, ...);
 extern int     DohSetattr(DOH *obj, DOH *name, DOH *value);
-extern int     DohSetattrf(DOH *obj, DOH *name, char *fmt, ...);
 extern void    DohDelattr(DOH *obj, DOH *name);
 extern int     DohHashval(DOH *obj);
 extern DOH    *DohGetitem(DOH *obj, int index);
@@ -172,9 +171,7 @@ extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
 #define Dump               DohDump
 #define Signature          DohSignature
 #define Getattr            DohGetattr
-#define Getattrf           DohGetattrf
 #define Setattr            DohSetattr
-#define Setattrf           DohSetattrf
 #define Delattr            DohDelattr
 #define Hashval            DohHashval
 #define Getitem            DohGetitem
@@ -282,5 +279,15 @@ extern DOH  *NewVoid(void *ptr, void (*del)(void *));
 
 extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
 #define Split DohSplit
+
+/* -----------------------------------------------------------------------------
+ * Error handling levels.
+ * ----------------------------------------------------------------------------- */
+
+#define DOH_UNSUPPORTED 1
+#define DOH_UNKNOWN     2
+#define DOH_CONVERSION  3
+#define DOH_CALLS       10
+
 
 

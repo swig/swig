@@ -1,11 +1,7 @@
+# Generated automatically from Makefile.in by configure.
 #######################################################################
 # $Header$
-# Simplified Wrapper and Interface Generator (SWIG)
-# 
-# Makefile for version 1.0 Final
-# Dave Beazley
-# August 1, 1996
-#
+# DOH 
 #######################################################################
 
 #.KEEP_STATE:
@@ -13,8 +9,8 @@
 # Set your C++ compiler here.   g++ works on most machines,
 # but you might have to change it depending on your installation.
 #
-CC      = cc -g
-prefix     = /usr/local
+CC      = gcc -O2
+prefix     = /usr/sandbox
 
 # Comment out the following line if you're on an SGI or don't have ranlib!
 RANLIB  = ranlib
@@ -34,8 +30,6 @@ INCLUDE  = -I../Include
 CFLAGS   = 
 SHELL  = /bin/sh
 
-#
-#
 #
 # Rules for creation of a .o file from .cxx
 .SUFFIXES: .c
