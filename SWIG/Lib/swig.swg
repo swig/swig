@@ -34,8 +34,15 @@
 
 /* Directives for callback functions */
 
+/*
 #define %callback(x) %pragma(swig) callback=`x`;
 #define %nocallback  %pragma(swig) nocallback;
+*/
+
+/* Experimental */
+
+#define %callback(x) %feature("callback") `x`;
+#define %nocallback  %feature("callback");
 
 /* Directives for attribute functions */
 
@@ -51,6 +58,10 @@
 
 #define %nodefault     %pragma nodefault
 #define %makedefault   %pragma makedefault
+
+/* New %except directive */
+
+#define %exception %feature(except)
 
 /* Default handling of certain overloaded operators */
 
