@@ -147,6 +147,7 @@ DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
     str = s;
   } else {
     str = NewString((char *) str);
+    Seek(str,0,SEEK_SET);
   }
   line = Getline(str);
   file = Getfile(str);
