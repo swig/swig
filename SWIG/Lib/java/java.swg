@@ -174,8 +174,42 @@
 %typemap(jtype) SWIGTYPE &CLASS "long"
 %typemap(jstype) SWIGTYPE &CLASS "$javaclassname"
 
-/* in typemaps */
+/* The following are the in, out, freearg, argout typemaps. These are the JNI code generating typemaps for converting from Java to C and visa versa. */
 
+/* primitive types */
+%typemap(in) bool,
+             char, 
+             signed char, 
+             unsigned char, 
+             short, 
+             unsigned short, 
+             int, 
+             unsigned int, 
+             long, 
+             unsigned long, 
+             long long, 
+             float, 
+             double, 
+             enum SWIGTYPE
+%{ $1 = ($1_ltype)$input; %}
+
+%typemap(out) bool           %{ $result = (jboolean)$1; %}
+%typemap(out) char           %{ $result = (jbyte)$1; %}
+%typemap(out) signed char    %{ $result = (jbyte)$1; %}
+%typemap(out) unsigned char  %{ $result = (jshort)$1; %}
+%typemap(out) short          %{ $result = (jshort)$1; %}
+%typemap(out) unsigned short %{ $result = (jint)$1; %}
+%typemap(out) int            %{ $result = (jint)$1; %}
+%typemap(out) unsigned int   %{ $result = (jlong)$1; %}
+%typemap(out) long           %{ $result = (jint)$1; %}
+%typemap(out) unsigned long  %{ $result = (jlong)$1; %}
+%typemap(out) long long      %{ $result = (jlong)$1; %}
+%typemap(out) float          %{ $result = (jfloat)$1; %}
+%typemap(out) double         %{ $result = (jdouble)$1; %}
+%typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
+
+
+/* unsigned long long */
 /* Convert from BigInteger using the toByteArray member function */
 %typemap(in) unsigned long long { 
   jclass clazz;
@@ -209,10 +243,6 @@
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
 
-
-/* out typemaps */
-//%typemap(out) long long %{ $result = $1; %}
-
 /* Convert to BigInteger - byte array holds number in 2's complement big endian format */
 %typemap(out) unsigned long long { 
   jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
@@ -235,49 +265,13 @@
 /* char * - treat as String */
 %typemap(in) char * %{ $1 = ($input) ? ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0) : NULL; %}
 %typemap(freearg) char * %{ if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); %}
-%typemap(out) char * %{ if(result) $result = JCALL1(NewStringUTF, jenv, $1); %}
+%typemap(out) char * %{ if($1) $result = JCALL1(NewStringUTF, jenv, $1); %}
 
-// change above result to $result
-
-%typemap(in) char, 
-             signed char, 
-             unsigned char, 
-             short, 
-             unsigned short, 
-             int, 
-             unsigned int, 
-             long, 
-             unsigned long, 
-             long long, 
-             float, 
-             double, 
-             bool               
-%{ $1 = ($1_ltype)$input; %}
-
-
-%typemap(out) char           %{ $result = (jbyte)$1; %}
-%typemap(out) signed char    %{ $result = (jbyte)$1; %}
-%typemap(out) unsigned char  %{ $result = (jshort)$1; %}
-%typemap(out) short          %{ $result = (jshort)$1; %}
-%typemap(out) unsigned short %{ $result = (jint)$1; %}
-%typemap(out) int            %{ $result = (jint)$1; %}
-%typemap(out) unsigned int   %{ $result = (jlong)$1; %}
-%typemap(out) long           %{ $result = (jint)$1; %}
-%typemap(out) unsigned long  %{ $result = (jlong)$1; %}
-%typemap(out) long long      %{ $result = (jlong)$1; %}
-%typemap(out) float          %{ $result = (jfloat)$1; %}
-%typemap(out) double         %{ $result = (jdouble)$1; %}
-%typemap(out) bool           %{ $result = (jboolean)$1; %}
-
-%typemap(in) SWIGTYPE * , SWIGTYPE & %{ $1 = ($1_ltype)*(void**)&$input; %}
-
-%typemap(out) SWIGTYPE * , SWIGTYPE & %{ *($&1_ltype)&$result = $1; %} 
-
+/* Default handling */
 %typemap(in) SWIGTYPE ($&1_type argp)
-%{ argp = ($&1_type)*(void**)&$input; 
+%{ argp = ($&1_ltype)*(void**)&$input; 
    $1 = *argp; %}
 
-   /* check and change all 1_type to 1_ltype in casts  NOT in sizeof functions!! */
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
 %{$&1_type $1ptr = new $1_ltype($1);
@@ -289,6 +283,20 @@
   *($&1_ltype*)&$result = $1ptr;
 }
 #endif
+
+/* Generic pointers and references */
+%typemap(in) SWIGTYPE * , SWIGTYPE & %{ $1 = ($1_ltype)*(void**)&$input; %}
+
+%typemap(out) SWIGTYPE * , SWIGTYPE & %{ *($&1_ltype)&$result = $1; %} 
+
+/* Arrays */
+/* bool[ANY] */
+%typemap(in) bool[ANY] (jboolean *jarr)
+%{ if (!SWIG_JavaArrayInBool(jenv, &jarr, &$1, $input)) return $null; %}
+%typemap(freearg) bool[ANY] 
+%{ SWIG_JavaArrayFreeargBool(jenv, jarr$argnum, $1, $input); %}
+%typemap(out) bool[ANY] 
+%{$result = SWIG_JavaArrayOutBool(jenv, $1, $dim0); %}
 
 /* char[ANY] */
 %typemap(in) char[ANY] (jbyte *jarr)
@@ -386,14 +394,6 @@
 %typemap(out) double[ANY] 
 %{$result = SWIG_JavaArrayOutDouble(jenv, $1, $dim0); %}
 
-/* bool[ANY] */
-%typemap(in) bool[ANY] (jboolean *jarr)
-%{ if (!SWIG_JavaArrayInBool(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) bool[ANY] 
-%{ SWIG_JavaArrayFreeargBool(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) bool[ANY] 
-%{$result = SWIG_JavaArrayOutBool(jenv, $1, $dim0); %}
-
 /* enum SWIGTYPE[ANY] */
 %typemap(in) enum SWIGTYPE[ANY] (jint *jarr)
 %{ if (!SWIG_JavaArrayInInt(jenv, &jarr, (int**)&$1, $input)) return $null; %}
@@ -405,63 +405,9 @@
 /* check char[] - SWIG treats as a string */
 /* what if use unknown type eg __int32 array? - okay if the typedef is parsed - uses what it is typedef'd to typemaps */
 
-//change malloc to calloc in other typemaps.
 //test null pointers in these new typemaps.
 //use freearg in typemaps.i
 //arrays of char* - strings
-
-/* Default array handling. Used for arrays of non primitive types. */
-%typemap(in) SWIGTYPE [] (jlong *jarr, jsize sz)
-{
-  int i;
-  if (!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
-    return $null;
-  }
-  sz = JCALL1(GetArrayLength, jenv, $input);
-  jarr = JCALL2(GetLongArrayElements, jenv, $input, 0);
-  if (!jarr) {
-    return $null;
-  }
-  $1 = ($1_basetype*) calloc(sz, sizeof($1_basetype));
-  if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "calloc failed");
-    return $null;
-  }
-  for (i=0; i<sz; i++) {
-    $1[i] = **($1_basetype**)&jarr[i];
-  }
-}
-
-%typemap(freearg) SWIGTYPE []
-{
-  int i;
-  for (i=0; i<sz$argnum; i++) {
-    jarr$argnum[i] = 0;
-    *($1_basetype**)&jarr$argnum[i] = &$1[i];
-  }
-  JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
-  free($1);
-}
-
-%typemap(out) SWIGTYPE []
-{
-  jlong *arr;
-  int i;
-  $result = JCALL1(NewLongArray, jenv, $dim0);
-  if (!$result) {
-    return $null;
-  }
-  arr = JCALL2(GetLongArrayElements, jenv, $result, 0);
-  if (!arr) {
-    return $null;
-  }
-  for (i=0; i<$dim0; i++) {
-    arr[i] = 0;
-    *($1_basetype**)&arr[i] = &$1[i];
-  }
-  JCALL3(ReleaseLongArrayElements, jenv, $result, arr, 0);
-}
 
 /* Arrays of pointers */
 %typemap(in) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY] (jlong *jarr, jsize sz),
@@ -524,6 +470,60 @@
 
 %apply SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY] { 
     bool *[ANY], char *[ANY], unsigned char *[ANY], short *[ANY], unsigned short *[ANY], int *[ANY], unsigned int *[ANY], long *[ANY], unsigned long *[ANY], long long *[ANY], /*unsigned long long *[ANY],*/ float *[ANY], double *[ANY], void *[ANY] };
+
+
+/* Default array handling. Used for arrays of non primitive types. */
+%typemap(in) SWIGTYPE [] (jlong *jarr, jsize sz)
+{
+  int i;
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
+    return $null;
+  }
+  sz = JCALL1(GetArrayLength, jenv, $input);
+  jarr = JCALL2(GetLongArrayElements, jenv, $input, 0);
+  if (!jarr) {
+    return $null;
+  }
+  $1 = ($1_basetype*) calloc(sz, sizeof($1_basetype));
+  if (!$1) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "calloc failed");
+    return $null;
+  }
+  for (i=0; i<sz; i++) {
+    $1[i] = **($1_basetype**)&jarr[i];
+  }
+}
+
+%typemap(freearg) SWIGTYPE []
+{
+  int i;
+  for (i=0; i<sz$argnum; i++) {
+    jarr$argnum[i] = 0;
+    *($1_basetype**)&jarr$argnum[i] = &$1[i];
+  }
+  JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
+  free($1);
+}
+
+%typemap(out) SWIGTYPE []
+{
+  jlong *arr;
+  int i;
+  $result = JCALL1(NewLongArray, jenv, $dim0);
+  if (!$result) {
+    return $null;
+  }
+  arr = JCALL2(GetLongArrayElements, jenv, $result, 0);
+  if (!arr) {
+    return $null;
+  }
+  for (i=0; i<$dim0; i++) {
+    arr[i] = 0;
+    *($1_basetype**)&arr[i] = &$1[i];
+  }
+  JCALL3(ReleaseLongArrayElements, jenv, $result, arr, 0);
+}
 
 
 %include "java_arrays.i"
