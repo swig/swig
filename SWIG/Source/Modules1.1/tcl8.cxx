@@ -618,13 +618,16 @@ public:
   /* Generate normal wrappers */
     Language::classHandler(n);
 
-    SwigType *t = Copy(Getattr(n,"classtype"));
+    SwigType *t = Copy(Getattr(n,"name"));
     SwigType_add_pointer(t);
   
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
     // SwigType_remember(t);
     String *wrap_class = NewStringf("&_wrap_class_%s", mangled_classname);
     SwigType_remember_clientdata(t,wrap_class);
+
+    t = Copy(Getattr(n,"classtype"));
+    SwigType_add_pointer(t);
 
     // Register the class structure with the type checker
     /*    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_classname); */

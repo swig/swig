@@ -1098,7 +1098,11 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   /* Added to deal with possible table bug */
   fr = SwigType_strip_qualifiers(fr);
 
-  /*  Printf(stdout,"%s ---> %s\n", t, fr); */
+
+  if (Strstr(t,"<") && !(Strstr(t,"<("))) {
+    Printf(stdout,"Bad template type passed to SwigType_remember: %s\n", t);
+    assert(0);
+  }
 
   h = Getattr(r_mangled,mt);
   if (!h) {
@@ -1273,7 +1277,15 @@ SwigType_inherit(String *derived, String *base, String *cast) {
   Hash *h;
   if (!subclass) subclass = NewHash();
   
-  /* Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast); */
+  /*  Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast);*/
+
+  if (SwigType_istemplate(derived)) {
+    derived = SwigType_typedef_resolve_all(derived);
+  }
+  if (SwigType_istemplate(base)) {
+    base = SwigType_typedef_resolve_all(base);
+  }
+
   h = Getattr(subclass,base);
   if (!h) {
     h = NewHash();
@@ -1314,7 +1326,7 @@ SwigType_issubtype(SwigType *t1, SwigType *t2) {
   Delete(ft2);
   Delete(b1);
   Delete(b2);
-  /*  Printf(stdout, "issubtype(%s,%s) --> %d\n", t1, t2, r);*/
+  /* Printf(stdout, "issubtype(%s,%s) --> %d\n", t1, t2, r); */
   return r;
 }
 
@@ -1340,6 +1352,7 @@ void SwigType_inherit_equiv(File *out) {
     base = SwigType_base(rkey);
 
     /* Check to see whether the base is recorded in the subclass table */
+    /* Printf(stdout,"base = '%s'\n", base); */
     sub = Getattr(subclass,base);
     Delete(base);
     if (!sub) {
