@@ -100,7 +100,7 @@ SWIG_TypeRegister(_swig_type_info *ti)
 SWIGSTATICRUNTIME(_swig_type_info *) 
 SWIG_TypeCheck(char *c, _swig_type_info *ty)
 {
-  _swig_type_info *s, *temp2;
+  _swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element always just a name */
   while (s) {
