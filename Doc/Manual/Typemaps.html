@@ -133,7 +133,7 @@ PyObject *wrap_factorial(PyObject *self, PyObject *args) {
     PyObject *obj1;
     PyObject *resultobj;
 
-    if (!PyArg_ParseTuple("O:factorial", &obj1)) return NULL;
+    if (!PyArg_ParseTuple("O:factorial", &amp;obj1)) return NULL;
     <b><font color="#0000ff">arg1 = PyInt_AsLong(obj1);</font></b>
     result = factorial(arg1);
     <b><font color="#0000ff">resultobj = PyInt_FromLong(result);</font></b>
@@ -226,7 +226,7 @@ PyObject *wrap_gcd(PyObject *self, PyObject *args) {
    PyObject *obj2;
    PyObject *resultobj;
 
-   if (!PyArg_ParseTuple("OO:gcd", &obj1, &obj2)) return NULL;
+   if (!PyArg_ParseTuple("OO:gcd", &amp;obj1, &amp;obj2)) return NULL;
 
    /* "in" typemap, argument 1 */<b><font color="#0000ff">   
    {
@@ -314,7 +314,7 @@ example, you could write a typemap like this:
 <pre>
 %typemap(in) <b><font color="#ff0000">double nonnegative</font></b> {
    $1 = PyFloat_AsDouble($input);
-   if ($1 < 0) {
+   if ($1 &lt; 0) {
         PyErr_SetString(PyExc_ValueError,"argument must be nonnegative.");
         return NULL;
    }
@@ -667,7 +667,7 @@ Here are some examples of valid typemap specifications:
 %typemap(in, numinputs=0) int *output (int temp),
                           long *output (long temp)
 {
-   $1 = &temp;
+   $1 = &amp;temp;
 }
 </pre>
 </blockquote>
@@ -817,7 +817,7 @@ namespace std {
 
 class Bar {
 public:
-    typedef const int & const_reference;
+    typedef const int &amp; const_reference;
     %typemap(out) const_reference {
          ...
     }
@@ -1034,13 +1034,13 @@ Row4 [10]
 Row4 rows[ANY]
 Row4 [ANY]
 
-# Reduce Row4 --> Integer[4]
+# Reduce Row4 --&gt; Integer[4]
 Integer rows[10][4]
 Integer [10][4]
 Integer rows[ANY][ANY]
 Integer [ANY][ANY]
 
-# Reduce Integer --> int
+# Reduce Integer --&gt; int
 int rows[10][4]
 int [10][4]
 int rows[ANY][ANY]
@@ -1066,7 +1066,7 @@ In this case, the following typemap patterns are searched for the argument <tt>f
 fooii *x
 fooii *
 
-# Reduce fooii --> foo&lt;Integer,Integer&gt;
+# Reduce fooii --&gt; foo&lt;Integer,Integer&gt;
 foo&lt;Integer,Integer&gt; *x
 foo&lt;Integer,Integer&gt; *
 
@@ -1111,7 +1111,7 @@ specifying rules for variations of the reserved <tt>SWIGTYPE</tt> type.   For ex
 <blockquote>
 <pre>
 %typemap(in) SWIGTYPE *            { ... default pointer handling ...         }
-%typemap(in) SWIGTYPE &            { ... default reference handling ...       }
+%typemap(in) SWIGTYPE &amp;            { ... default reference handling ...       }
 %typemap(in) SWIGTYPE []           { ... default array handling ...           }
 %typemap(in) enum SWIGTYPE         { ... default handling for enum values ... }
 %typemap(in) SWIGTYPE (CLASS::*)   { ... default pointer member handling ...  } 
@@ -1180,8 +1180,8 @@ any typemaps specified for a single type.  For example:
 
 void foo(char *buffer, int len, int count); // (char *buffer, int len)
 void bar(char *buffer, int blah);           // char *buffer
-</blockquote>
 </pre>
+</blockquote>
 
 Multi-argument typemaps are also more restrictive in the way that they are matched.
 Currently, the first argument follows the matching rules described in the previous section,
@@ -1748,7 +1748,7 @@ converted.  For example:
 <blockquote>
 <pre>
 %typemap(check) int positive {
-   if ($1 <= 0) {
+   if ($1 &lt;= 0) {
        SWIG_exception(SWIG_ValueError,"Expected positive value.");
    }
 }
@@ -2243,7 +2243,7 @@ maps perform the conversion described for the above example:
   }
   $1 = PyList_Size($input);
   $2 = (char **) malloc(($1+1)*sizeof(char *));
-  for (i = 0; i < $1; i++) {
+  for (i = 0; i &lt; $1; i++) {
     PyObject *s = PyList_GetItem($input,i);
     if (!PyString_Check(s)) {
         free($2);
@@ -2258,8 +2258,8 @@ maps perform the conversion described for the above example:
 %typemap(freearg) (int argc, char *argv[]) {
    if ($2) free($2);
 }
-</blockquote>
 </pre>
+</blockquote>
 
 A multi-argument map is always specified by surrounding the arguments with parentheses as shown.
 For example:
@@ -2354,7 +2354,7 @@ might write typemaps like this:
        return NULL;
    }
    $2 = PyInt_AsLong($input);
-   if ($2 < 0) {
+   if ($2 &lt; 0) {
        PyErr_SetString(PyExc_ValueError, "Positive integer expected");
        return NULL;
    }
@@ -2364,7 +2364,7 @@ might write typemaps like this:
 // Return the buffer.  Discarding any previous return result
 %typemap(argout) (void *rbuffer, size_t len) {
    Py_XDECREF($result);   /* Blow away any previous result */
-   if (result < 0) {      /* Check for I/O error */
+   if (result &lt; 0) {      /* Check for I/O error */
        free($1);
        PyErr_SetFromErrno(PyExc_IOError);
        return NULL;
@@ -2483,9 +2483,9 @@ of the classes <tt>Foo</tt> and <tt>Bar</tt> as well as its own data members.  F
 
 <blockquote>
 <pre>
-FooBar --> | -----------|  <-- Foo
+FooBar --&gt; | -----------|  &lt;-- Foo
            |   int x    |
-           |------------|  <-- Bar
+           |------------|  &lt;-- Bar
            |   int y    |
            |------------|
            |   int z    |
@@ -2507,7 +2507,7 @@ if you look at the wrapper code for Python, you will see code like this:
 
 <blockquote>
 <pre>
-if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_Foo,1)) == -1) return NULL;                                 
+if ((SWIG_ConvertPtr(obj0,(void **) &amp;arg1, SWIGTYPE_p_Foo,1)) == -1) return NULL;
 </pre>
 </blockquote>
 
@@ -2529,7 +2529,7 @@ similar to this:
 <blockquote>
 <pre>
 %typemap(in) Foo * {
-  if ((SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor)) == -1) return NULL;
+  if ((SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor)) == -1) return NULL;
 }
 </pre>
 </blockquote>
@@ -2558,9 +2558,9 @@ descriptor name for any C datatype.  For example:
 <blockquote>
 <pre>
 %typemap(in) Foo * {
-  if ((SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor)) == -1) {
+  if ((SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor)) == -1) {
      Bar *temp;
-     if ((SWIG_ConvertPtr($input), (void **) &temp, <b>$descriptor(Bar *)</b>) == -1) {
+     if ((SWIG_ConvertPtr($input), (void **) &amp;temp, <b>$descriptor(Bar *)</b>) == -1) {
          return NULL;
      }
      $1 = (Foo *) temp;
@@ -2618,7 +2618,7 @@ void foo(PyObject *o) {
       descr = SWIG_TypeQuery("Foo *");    /* Get the type descriptor structure for Foo */
       assert(descr);
    }
-   if ((SWIG_ConvertPtr(o,(void **) &f, descr) == -1)) {
+   if ((SWIG_ConvertPtr(o,(void **) &amp;f, descr) == -1)) {
        abort();
    }
    ...
@@ -2715,7 +2715,7 @@ _wrap_foo(argc, args[]) {
        }
    }
    if (argc == 2) {
-       if (IsString(args[0]) && IsInteger(args[1])) {
+       if (IsString(args[0]) &amp;&amp; IsInteger(args[1])) {
           return _wrap_foo_2(argc,args);
        }
    }
@@ -2796,33 +2796,33 @@ The follow excerpt from the Python module illustrates this:
  	 unsigned int, unsigned short, unsigned long,
 	 signed char, unsigned char,
 	 long long, unsigned long long,
-	 const int &, const short &, const long &,
- 	 const unsigned int &, const unsigned short &, const unsigned long &,
-	 const long long &, const unsigned long long &,
+	 const int &amp;, const short &amp;, const long &amp;,
+ 	 const unsigned int &amp;, const unsigned short &amp;, const unsigned long &amp;,
+	 const long long &amp;, const unsigned long long &amp;,
 	 enum SWIGTYPE,
-         bool, const bool & 
+         bool, const bool &amp; 
 {
   $1 = (PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)
 	float, double,
-	const float &, const double &
+	const float &amp;, const double &amp;
 {
   $1 = (PyFloat_Check($input) || PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_CHAR) char {
-  $1 = (PyString_Check($input) && (PyString_Size($input) == 1)) ? 1 : 0;
+  $1 = (PyString_Check($input) &amp;&amp; (PyString_Size($input) == 1)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_STRING) char * {
   $1 = PyString_Check($input) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE [] {
   void *ptr;
-  if (SWIG_ConvertPtr($input, (void **) &ptr, $1_descriptor, 0) == -1) {
+  if (SWIG_ConvertPtr($input, (void **) &amp;ptr, $1_descriptor, 0) == -1) {
     $1 = 0;
     PyErr_Clear();
   } else {
@@ -2832,7 +2832,7 @@ The follow excerpt from the Python module illustrates this:
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
-  if (SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, 0) == -1) {
+  if (SWIG_ConvertPtr($input, (void **) &amp;ptr, $&amp;1_descriptor, 0) == -1) {
     $1 = 0;
     PyErr_Clear();
   } else {
@@ -2842,7 +2842,7 @@ The follow excerpt from the Python module illustrates this:
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
-  if (SWIG_ConvertPtr($input, (void **) &ptr, 0, 0) == -1) {
+  if (SWIG_ConvertPtr($input, (void **) &amp;ptr, 0, 0) == -1) {
     $1 = 0;
     PyErr_Clear();
   } else {
@@ -2927,7 +2927,7 @@ a set of typemaps like this:
 <blockquote>
 <pre>
 %typemap(in,numinputs=0) int *OUTPUT (int temp) {
-   $1 = &temp;
+   $1 = &amp;temp;
 }
 %typemap(argout) int *OUTPUT {
    // return value somehow
@@ -2964,11 +2964,11 @@ For example:
 <pre>
 %typemap(in) int *INPUT (int temp) {
    temp = ... get value from $input ...;
-   $1 = &temp;
+   $1 = &amp;temp;
 }
 
 %typemap(check) int *POSITIVE {
-   if (*$1 <= 0) {
+   if (*$1 &lt;= 0) {
       SWIG_exception(SWIG_ValueError,"Expected a positive number!\n");
       return NULL;
    }

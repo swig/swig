@@ -1378,7 +1378,8 @@ or for statically typed languages like Java:
 
 <blockquote>
 <pre>
-example.i:4: Warning(516): Overloaded method foo(long) ignored. Method foo(int) at example.i:3 used.
+example.i:4: Warning(516): Overloaded method foo(long) ignored. Method foo(int)
+at example.i:3 used.
 </pre>
 </blockquote>
 
@@ -1396,7 +1397,7 @@ Ambiguity problems are known to arise in the following situations:
 <li>Floating point conversion.  <tt>float</tt> and <tt>double</tt> can not be disambiguated in some languages.
 
 <p>
-<li>Pointers and references. For example, <tt>Foo *</tt> and <tt>Foo &</tt>.
+<li>Pointers and references. For example, <tt>Foo *</tt> and <tt>Foo &amp;</tt>.
 
 <p>
 <li>Pointers and arrays.  For example, <tt>Foo *</tt> and <tt>Foo [4]</tt>.
@@ -1420,7 +1421,8 @@ When wrapping an overloaded function, there is a chance that you will get an err
 
 <blockquote>
 <pre>
-example.i:3: Warning(467): Overloaded foo(int) not supported (no type checking rule for 'int').
+example.i:3: Warning(467): Overloaded foo(int) not supported (no type checking
+rule for 'int').
 </pre>
 </blockquote>
 
@@ -2225,7 +2227,7 @@ template&lt;class T&gt; class Bar : public Foo&lt;T&gt; {
 The order is important since SWIG uses the instantiation names to
 properly set up the inheritance hierarchy in the resulting wrapper
 code (and base classes need to be wrapped before derived classes).
-Don't worry--if you get the order wrong, SWIG should generate an warning message.
+Don't worry--if you get the order wrong, SWIG should generate a warning message.
 
 <P>
 Occassionally, you may need to tell SWIG about base classes that are defined by templates,
@@ -2408,8 +2410,9 @@ template&lt;class T1, class T2&gt; struct pair {
    T1 first;
    T2 second;
    pair() : first(T1()), second(T2()) { }
-   pair(const T1 &x, const T2 &y) : first(x), second(y) { }
-   template&lt;class U1, class U2&gt; pair(const pair&lt;U1,U2&gt; &x) : first(x.first),second(x.second) { }
+   pair(const T1 &amp;x, const T2 &amp;y) : first(x), second(y) { }
+   template&lt;class U1, class U2&gt; pair(const pair&lt;U1,U2&gt; &amp;x) 
+                                        : first(x.first),second(x.second) { }
 };
 </pre>
 </blockquote>

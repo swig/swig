@@ -1180,8 +1180,6 @@ they are accessed through <tt>cvar</tt> like this:
 </pre>
 </blockquote>
 
-</pre></blockquote>
-
 <a name="n21"></a><H3>22.3.8 C++ inheritance</H3>
 
 
@@ -1342,7 +1340,8 @@ If declarations such as these appear, you will get a warning message like this:
 
 <blockquote>
 <pre>
-example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int) at example.i:11.
+example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int)
+at example.i:11.
 </pre>
 </blockquote>
 
@@ -2811,7 +2810,7 @@ Sometimes a C function expects an array to be passed as a pointer.  For example,
 <pre>
 int sumitems(int *first, int nitems) {
     int i, sum = 0;
-    for (i = 0; i < nitems; i++) {
+    for (i = 0; i &lt; nitems; i++) {
         sum += first[i];
     }
     return sum;
@@ -2977,7 +2976,7 @@ You can refine this by supplying an optional parameter name.  For example:
 
 %typemap(in) int nonnegative {
 	$1 = (int) PyLong_AsLong($input);
-        if ($1 < 0) {
+        if ($1 &lt; 0) {
            PyErr_SetString(PyExc_ValueError,"Expected a nonnegative value.");
            return NULL;
         }
@@ -3501,7 +3500,7 @@ arrays of different sizes.  To do this, you might write a typemap as follows:
       PyErr_SetString(PyExc_ValueError,"Expecting a sequence with $1_dim0 elements");
       return NULL;
   }
-  for (i =0; i < $1_dim0; i++) {
+  for (i =0; i &lt; $1_dim0; i++) {
       PyObject *o = PySequence_GetItem($input,i);
       if (!PyFloat_Check(o)) {
          PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");
@@ -3541,7 +3540,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
       PyErr_SetString(PyExc_ValueError,"Sequence size mismatch");
       return 0;
   }
-  for (i =0; i < size; i++) {
+  for (i =0; i &lt; size; i++) {
       PyObject *o = PySequence_GetItem(input,i);
       if (!PyFloat_Check(o)) {
          PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");
@@ -3604,7 +3603,8 @@ is usually accessed as follows:
 <blockquote>
 <pre>
 Foo *f;
-if (SWIG_ConvertPtr($input, (void **) &f, SWIGTYPE_p_Foo, SWIG_POINTER_EXCEPTION) == -1) return NULL;
+if (SWIG_ConvertPtr($input, (void **) &f, SWIGTYPE_p_Foo, SWIG_POINTER_EXCEPTION) == -1)
+  return NULL;
 
 PyObject *obj;
 obj = SWIG_NewPointerObj(f, SWIGTYPE_p_Foo, 0);
@@ -3617,7 +3617,8 @@ variable <tt>$1_descriptor</tt>.  For example:
 <blockquote>
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION)) == -1) return NULL;
+if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION)) == -1)
+  return NULL;
 }
 </pre>
 </blockquote>
@@ -3629,7 +3630,8 @@ For example:
 <blockquote>
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr($input,(void **) &$1, $descriptor(Foo *), SWIG_POINTER_EXCEPTION)) == -1) return NULL;
+if ((SWIG_ConvertPtr($input,(void **) &$1, $descriptor(Foo *), SWIG_POINTER_EXCEPTION)) == -1)
+  return NULL;
 }
 </pre>
 </blockquote>

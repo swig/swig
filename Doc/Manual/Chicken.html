@@ -42,6 +42,7 @@
       Scheme-to-C compiler supporting most of the language features as
       defined in the <i>Revised^5 Report on Scheme</i>.  Its main
       attributes are that it
+    </p>
       <ol>
 	<li>generates portable C code</li>
 	<li>includes a customizable interpreter</li>
@@ -49,6 +50,7 @@
 	<li>supports full tail-recursion and first-class continuations</li>
       </ol>
 
+    <p>
       When confronted with a large C library, CHICKEN users can use
       SWIG to generate CHICKEN wrappers for the C library.  However,
       the real advantages of using SWIG with CHICKEN are its
@@ -68,7 +70,7 @@
       present in releases of CHICKEN with version number
       <strong>greater than or equal to <tt>1.40</tt></strong>.
 
-      <br></br> CHICKEN can be downloaded from <a
+      <br> CHICKEN can be downloaded from <a
       href="http://www.call-with-current-continuation.org/">http://www.call-with-current-continuation.org/</a>
 
       You may want to look at any of the examples in Examples/chicken/
@@ -137,7 +139,7 @@
       <tt>Foo-Bar->Foo-Baz</tt>.  That is, an underscore is converted
       to a dash and '_to_' is converted to an arrow.
 
-      <br></br>
+      <br>
 
       Additionally, there is a <em>mixed</em> mode that can be
       specified with the <tt>-mixed</tt> option on the SWIG command
@@ -148,7 +150,7 @@
       named <tt>someDeclaration_xyz</tt> will be available as the
       CHICKEN identifier ending with <tt>some-declaration-xyz</tt>.
 
-      <br></br>
+      <br>
 
       You may control what the CHICKEN identifier will be by using the
       <tt>%rename</tt> SWIG directive in the SWIG interface file.
@@ -162,6 +164,7 @@
       (which has been deprecated); instead, it uses a prefix system.
       Specifying the module name as 'example' in SWIG CHICKEN can be
       done using either of:
+    </p>
       <ul>
 	<li>Placing <tt>%module example</tt> in the SWIG interface
 	  file.</li>
@@ -169,10 +172,11 @@
 	  line.</li>
       </ul>
 
+    <p>
       CHICKEN will be able to access the module using the <tt>(declare
 	(uses <i>modulename</i>))</tt> CHICKEN Scheme form.
 
-      <br></br>
+      <br>
 
       Normally, for a C declaration <tt>Foo_Bar</tt> with a module
       name of 'example', the corresponding CHICKEN identifier will be
@@ -180,7 +184,7 @@
       prefixed to the CHICKEN identifier</strong> (following normal
       naming conventions).
 
-      <br></br>
+      <br>
 
       You may explicitly override the prefix with the SWIG command
       line option <tt>-prefix <i>whateverprefix</i></tt>, or you may
@@ -194,6 +198,7 @@
     <p>
       Constants may be created using any of the four constructs in
       the interface file:
+    </p>
       <ol>
 	<li><code>#define MYCONSTANT1 ...</code></li>
 	<li><code>%constant int MYCONSTANT2 = ...</code></li>
@@ -201,6 +206,7 @@
 	<li><code>enum { MYCONSTANT4  = ... };</code></li>
       </ol>
 
+    <p>
       In all cases, the constants may be accessed from with CHICKEN
       using the form <tt>(MYCONSTANT1)</tt>; that is, the constants
       may be accessed using the read-only parameter form.
@@ -249,7 +255,7 @@
       system.  Please consult a Scheme book if you are unfamiliar
       with the concept.
 
-      <br></br>
+      <br>
 
       CHICKEN has a modified version of TinyCLOS, which SWIG CHICKEN
       uses in C++ mode.  SWIG CHICKEN generates a
@@ -260,7 +266,7 @@
       "xxx-clos")</tt> all the metaobject (class) macros your program
       needs.
 
-      <br></br>
+      <br>
 
       SWIG CHICKEN will call the destructor for all TinyCLOS objects
       that are garbage-collected by CHICKEN.  It also allows access to
@@ -337,7 +343,7 @@
       read from <code>Lib/chicken/typemaps.i</code> and
       <code>Lib/chicken/chicken.swg</code>.
 
-      <br></br>
+      <br>
 
       Two Chicken-specific typemaps are supported:
       <code>clos_in</code> and <code>clos_out</code>.  They are for
@@ -373,7 +379,7 @@
       are exposed in the SWIG interface file; it "fully knows" only
       those classes that are not forward declarations.
 
-      <br></br>
+      <br>
 
       A real-world example of the "fully knows" problem is found in
       the VTK visualization library.  All VTK classes are derived from

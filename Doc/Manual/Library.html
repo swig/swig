@@ -174,8 +174,9 @@ struct name {
   ~name();                            // Delete pointer object
    void assign(type value);           // Assign value
    type value();                      // Get value
-   type *cast();                      // Cast the pointer to original type.
-   static name *frompointer(type *);  // Create class wrapper from existing pointer
+   type *cast();                      // Cast the pointer to original type
+   static name *frompointer(type *);  // Create class wrapper from existing
+                                      // pointer
 };
 </pre>
 </blockquote>
@@ -300,7 +301,7 @@ function like this:
 <pre>
 void print_array(double x[10]) {
    int i;
-   for (i = 0; i < 10; i++) {
+   for (i = 0; i &lt; 10; i++) {
       printf("[%d] = %g\n", i, x[i]);
    }
 }
@@ -347,7 +348,8 @@ struct name {
    type getitem(int index);           // Return item
    void setitem(index, type value);   // Set item
    type *cast();                      // Cast to original type
-   static name *frompointer(type *);  // Create class wrapper from existing pointer
+   static name *frompointer(type *);  // Create class wrapper from
+                                      // existing pointer
 };
 </pre>
 </blockquote>
@@ -554,7 +556,8 @@ Python example:
 ...    a[i] = i
 >>> b = cdata(a,40)
 >>> b
-'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t'
+'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04
+\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t'
 >>> c = intArray(10)
 >>> memmove(c,b)
 >>> print c[4]
@@ -1184,14 +1187,14 @@ double average(std::vector&lt;int> v) {
     return std::accumulate(v.begin(),v.end(),0.0)/v.size();
 }
 
-std::vector&lt;double> half(const std::vector&lt;double>& v) {
+std::vector&lt;double> half(const std::vector&lt;double>&amp; v) {
     std::vector&lt;double> w(v);
     for (unsigned int i=0; i&lt;w.size(); i++)
         w[i] /= 2.0;
     return w;
 }
 
-void halve_in_place(std::vector&lt;double>& v) {
+void halve_in_place(std::vector&lt;double>&amp; v) {
     std::transform(v.begin(),v.end(),v.begin(),
                    std::bind2nd(std::divides&lt;double>(),2.0));
 }
@@ -1332,7 +1335,7 @@ For example:
 %exception std::vector::getitem {
     try {
         $action
-    } catch (std::out_of_range& e) {
+    } catch (std::out_of_range&amp; e) {
         SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
 }

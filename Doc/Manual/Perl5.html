@@ -285,7 +285,9 @@ A common error received by first-time users is the following:
 <blockquote>
 <pre>
 use example;
-Can't locate example.pm in @INC (@INC contains: /usr/lib/perl5/5.00503/i386-linux /usr/lib/perl5/5.00503 /usr/lib/perl5/site_perl/5.005/i386-linux /usr/lib/perl5/site_perl/5.005 .) at - line 1.
+Can't locate example.pm in @INC (@INC contains: /usr/lib/perl5/5.00503/i386-lin
+ux /usr/lib/perl5/5.00503 /usr/lib/perl5/site_perl/5.005/i386-linux /usr/lib/pe
+rl5/site_perl/5.005 .) at - line 1.
 BEGIN failed--compilation aborted at - line 1.
 </pre>
 </blockquote>
@@ -446,7 +448,8 @@ it needs to be.  So you should compile the wrapper like:
 </pre></blockquote>
 So you could also compile the wrapper like
 <blockquote><pre>
-% g++ -c example_wrap.cxx -I/usr/lib/perl/5.8.0/CORE `perl -e 'use Config; print $Config{ccflags}'`
+% g++ -c example_wrap.cxx -I/usr/lib/perl/5.8.0/CORE \
+`perl -e 'use Config; print $Config{ccflags}'`
 </pre></blockquote>
 
 <p>
@@ -1975,7 +1978,7 @@ To make the member writable, a "memberin" typemap can be used.
 <p>
 <blockquote><pre>%typemap(memberin) int [SIZE] {
     int i;
-    for (i = 0; i < SIZE; i++) {
+    for (i = 0; i &lt; SIZE; i++) {
         $1[i] = $input[i];
     }
 }
@@ -1992,7 +1995,7 @@ For example:
 
 <blockquote><pre>%typemap(memberin) int [ANY] {
    int i;
-   for (i = 0; i < $1_dim0; i++) {
+   for (i = 0; i &lt; $1_dim0; i++) {
       $1[i] = $input[i];
    }
 }
@@ -2091,7 +2094,7 @@ void *SWIG_MakePtr(SV *obj, void *ptr, swig_type_info *ty, int flags)</tt>
 
 <blockquote>
 Creates a new Perl pointer object.  <tt>obj</tt> is a Perl SV that has been initialized to hold the result,
-<tt>ptr</tt is the pointer to convert, <tt>ty</tt> is the SWIG type descriptor structure that
+<tt>ptr</tt> is the pointer to convert, <tt>ty</tt> is the SWIG type descriptor structure that
 describes the type, and <tt>flags</tt> is a flag that controls properties of the conversion.  <tt>flags</tt> is currently undefined
 and reserved.
 
@@ -2167,7 +2170,7 @@ you provided with the <tt>%module</tt> directive.  Then, in place of the origina
 SWIG creates a collection of high-level Perl wrappers.  In your scripts, you will use these
 high level wrappers.  The wrappers, in turn, interact with the low-level procedural module.
 
-<h3>Structure and class wrappers</h2>
+<h3>Structure and class wrappers</h3>
 
 Suppose you have the following SWIG interface file :<p>
 
