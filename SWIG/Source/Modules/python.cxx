@@ -2778,6 +2778,9 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   if (dirprot_mode() && !is_public(n))
     Printf(w->code, "swig_set_inner(\"%s\", true);\n", name);
 
+  Printf(w->code, "if (!swig_get_self()) {\n");
+  Printf(w->code, "  throw Swig::DirectorException(\"Swig director 'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
+  Printf(w->code, "}\n");  
   if (Len(parse_args) > 0) {
     Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", pyname, parse_args, arglist);
   } else {
