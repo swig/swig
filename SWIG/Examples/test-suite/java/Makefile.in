@@ -14,6 +14,8 @@ C_TEST_CASES = \
 	java_lib_various
 
 CPP_TEST_CASES = \
+	enum_thorough_simple \
+	enum_thorough_typeunsafe \
 	java_constants \
 	java_enums \
 	java_lib_various \
@@ -22,6 +24,9 @@ CPP_TEST_CASES = \
 	java_throws \
 	java_typemaps_proxy \
 	java_typemaps_typewrapper
+
+# This testcase requires Java 1.5
+#	enum_thorough_proper \
 
 include $(srcdir)/../common.mk
 
