@@ -9,7 +9,9 @@
 // since we will use this wrapper with the STL containers, that should
 // be the case.
 //
-
+%{
+#include <iostream>  
+%}
 
 /**** The PySequence C++ Wrap ***/
 
@@ -24,23 +26,29 @@
 %{
 namespace swigpy {
   inline size_t
-  check_index(ptrdiff_t i, size_t size) {
+  check_index(ptrdiff_t i, size_t size, bool insert = false) {
     if ( i < 0 ) {
       if ((size_t) (-i) <= size) 
 	return (size_t) (i + size);
     } else if ( (size_t) i < size ) {
       return (size_t) i;
+    } if (insert) {
+      if (i == size) return i;
     }
+    
     throw std::out_of_range("index out of range");
   }
 
   inline size_t
   slice_index(ptrdiff_t i, size_t size) {
     if ( i < 0 ) {
-      return ((size_t) (-i) <= size) ? (size_t) (i + size) : 0;
+      if ((size_t) (-i) <= size) {
+	return (size_t) (i + size);
+      } else {
+	throw std::out_of_range("index out of range");
+      }
     } else {
-      return ( (size_t) i < size ) ? ((size_t) i) 
-	: (size ? (size_t)(size - 1) : 0);
+      return ( (size_t) i < size ) ? ((size_t) i) : size;
     }
   }
 
@@ -48,7 +56,7 @@ namespace swigpy {
   inline typename Sequence::iterator 
   getpos(Sequence* self, Difference i)  {
     typename Sequence::iterator pos = self->begin(); 
-    std::advance(pos, swigpy::check_index(i, self->size()));
+    std::advance(pos, check_index(i,self->size()));
     return pos;
   }
 
@@ -56,7 +64,7 @@ namespace swigpy {
   inline typename Sequence::const_iterator 
   cgetpos(const Sequence* self, Difference i)  {
     typename Sequence::const_iterator pos = self->begin(); 
-    std::advance(pos, swigpy::check_index(i, self->size()));
+    std::advance(pos, check_index(i,self->size()));
     return pos;
   }
 
@@ -64,10 +72,15 @@ namespace swigpy {
   inline Sequence*
   getslice(const Sequence* self, Difference i, Difference j) { 
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swigpy::slice_index(i, size);
+    typename Sequence::size_type ii = swigpy::check_index(i, size);
     typename Sequence::size_type jj = swigpy::slice_index(j, size);
+    
     if (jj > ii) {
-      return new Sequence(cgetpos(self, ii), cgetpos(self, jj));
+      typename Sequence::const_iterator vb = self->begin();
+      typename Sequence::const_iterator ve = self->begin();
+      std::advance(vb,ii);
+      std::advance(ve,jj);
+      return new Sequence(vb, ve);
     } else {
       return new Sequence();
     }
@@ -77,21 +90,28 @@ namespace swigpy {
   inline void
   setslice(Sequence* self, Difference i, Difference j, const InputSeq& v) {
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swigpy::slice_index(i, size);
+    typename Sequence::size_type ii = swigpy::check_index(i, size, true);
     typename Sequence::size_type jj = swigpy::slice_index(j, size);
     if (jj < ii) jj = ii;
-    typename InputSeq::const_iterator vmid = cgetpos(&v, jj - ii);
-    self->insert(std::copy(v.begin(), vmid, getpos(self,ii)), vmid, v.end());
+    typename Sequence::iterator sb = self->begin();
+    typename InputSeq::const_iterator vmid = v.begin();
+    std::advance(sb,ii);
+    std::advance(vmid, jj - ii);
+    self->insert(std::copy(v.begin(), vmid, sb), vmid, v.end());
   }
  
   template <class Sequence, class Difference>
   inline void
   delslice(Sequence* self, Difference i, Difference j) {
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swigpy::slice_index(i, size);
+    typename Sequence::size_type ii = swigpy::check_index(i, size, true);
     typename Sequence::size_type jj = swigpy::slice_index(j, size);
     if (jj > ii) {
-      self->erase(getpos(self,ii), getpos(self,jj));
+      typename Sequence::iterator sb = self->begin();
+      typename Sequence::iterator se = self->begin();
+      std::advance(sb,ii);
+      std::advance(se,jj);
+      self->erase(sb,se);
     }
   }
 }
@@ -341,41 +361,93 @@ namespace swigpy
   %exception __getitem__ {
     try { $action }
     catch (std::out_of_range& e) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
 	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      } else {
+	SWIG_fail;
+      }
     }
+    SWIG_CATCH_UNKNOWN
   }
 
   %exception __setitem__ {
     try { $action }
     catch (std::out_of_range& e) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
 	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      } else {
+	SWIG_fail;
+      }
     }
+    SWIG_CATCH_UNKNOWN
   }
+
+  %exception __getslice__ {
+    try { $action }
+    catch (std::out_of_range& e) {
+      if (!PyErr_Occurred()) {
+	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      } else {
+	SWIG_fail;
+      }
+    }
+    SWIG_CATCH_UNKNOWN
+  }
+
 
   %exception __setslice__ {
     try { $action }
-    catch (std::invalid_argument& e) {
-      if (!PyErr_Occurred())
-	SWIG_exception(SWIG_TypeError,const_cast<char*>(e.what()));
+    catch (std::out_of_range& e) {
+      if (!PyErr_Occurred()) {
+	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      } else {
+	SWIG_fail;
+      }
     }
+    catch (std::invalid_argument& e) {
+      if (!PyErr_Occurred()) {
+	SWIG_exception(SWIG_TypeError,const_cast<char*>(e.what()));
+      } else {
+	SWIG_fail;
+      }      
+    }
+    SWIG_CATCH_UNKNOWN
   }
 
-%exception __delitem__ {
+  %exception __delslice__ {
     try { $action }
     catch (std::out_of_range& e) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
 	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      } else {
+	SWIG_fail;
+      }
     }
+    SWIG_CATCH_UNKNOWN
+  }
+
+  %exception __delitem__ {
+    try { $action }
+    catch (std::out_of_range& e) {
+      if (!PyErr_Occurred()) {
+	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      } else {
+	SWIG_fail;
+      }
+    }
+    SWIG_CATCH_UNKNOWN
   }
 
   %exception pop  {
     try { $action }
     catch (std::out_of_range& e) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
 	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      } else {
+	SWIG_fail;
+      }
     }
+    SWIG_CATCH_UNKNOWN
   }
 
   %newobject __getslice__;

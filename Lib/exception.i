@@ -340,6 +340,16 @@ static void SWIG_exception(int code, const char *msg) {
     SWIG_exception(SWIG_SystemError, e.what() );
   }
 %enddef
+%define SWIG_CATCH_UNKNOWN
+  catch (std::exception& e) {
+    SWIG_exception(SWIG_SystemError, e.what() );
+  }
+  catch (...) {
+    SWIG_exception(SWIG_UnknownError, "unknown exception");
+  }
+%enddef
+
+
 #endif // __cplusplus
 
 /* exception.i ends here */

@@ -52,3 +52,40 @@ if ArrInt_getitem(vi[0],0) != ArrInt_getitem(vi[1],2):
 
 
 a = halfs([10,8,4,3])
+
+v = IntVector()
+v[0:2] = [1,2]
+if v[0] != 1 or v[1] != 2:
+    raise RuntimeError,"bad setslice"
+
+if v[0:-1][0] != 1:
+    raise RuntimeError,"bad getslice"
+
+if v[0:-2].size() != 0:
+    raise RuntimeError,"bad getslice"
+
+v[0:1] = [2]
+if v[0] != 2:
+    raise RuntimeError,"bad setslice"
+
+v[1:] = [3]
+if v[1] != 3:
+    raise RuntimeError,"bad setslice"
+
+v[2:] = [3]
+if v[2] != 3:
+    raise RuntimeError,"bad setslice"
+
+if v[0:][0] != v[0]:
+    raise RuntimeError,"bad getslice"
+
+
+del v[:]
+if v.size() != 0:
+    raise RuntimeError,"bad getslice"    
+
+del v[:]
+if v.size() != 0:
+    raise RuntimeError,"bad getslice"    
+
+
