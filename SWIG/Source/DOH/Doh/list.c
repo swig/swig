@@ -24,19 +24,9 @@ typedef struct List {
 /* Doubles amount of memory in a list */
 static 
 void more(List *l) {
-    int    i;
-    void   **newitems;
-  
-    newitems = (void **) DohMalloc(l->maxitems*2*sizeof(void *));
-    for (i = 0; i < l->maxitems; i++) {
-	newitems[i] = l->items[i];
-    }
-    for (i = l->maxitems; i < 2*l->maxitems; i++) {
-	newitems[i] = (void *) 0;
-    }
+    l->items = (void **) DohRealloc(l->items, l->maxitems*2*sizeof(void *));
+    assert(l->items);
     l->maxitems *= 2;
-    DohFree(l->items);
-    l->items = newitems;
 }
 
 /* -----------------------------------------------------------------------------
@@ -55,11 +45,9 @@ CopyList(DOH *lo) {
     nl->maxitems = l->maxitems;
     nl->items = (void **) DohMalloc(l->maxitems*sizeof(void *));
     nl->iter = 0;
-    for (i = 0; i < l->maxitems; i++) {
+    for (i = 0; i < l->nitems; i++) {
 	nl->items[i] = l->items[i];
-	if (nl->items[i]) {
-	    Incref(nl->items[i]);
-	}
+	Incref(nl->items[i]);
     }
     nl->file = l->file;
     if (nl->file) Incref(nl->file);
@@ -78,12 +66,9 @@ DelList(DOH *lo) {
     List *l;
     int i;
     l = (List *) lo;
-    assert(l->refcount <= 0);
-    for (i = 0; i < l->nitems; i++) {
+    for (i = 0; i < l->nitems; i++)
 	Delete(l->items[i]);
-    }
     DohFree(l->items);
-    l->items = 0;
     DohObjFree(l);
 }
 
@@ -100,7 +85,6 @@ List_clear(DOH *lo) {
     l = (List *) lo;
     for (i = 0; i < l->nitems; i++) {
 	Delete(l->items[i]);
-	l->items[i] = 0;
     }
     l->nitems = 0;
 }
@@ -122,7 +106,6 @@ List_insert(DOH *lo, int pos, DOH *item) {
   l = (List *) lo;
 
   if (!DohCheck(item)) {
-    DohTrace(DOH_CONVERSION,"Unknown object %x being converted to a string in List_insert.\n", item);
     item = NewString(item);
     Decref(item);
   }
@@ -149,19 +132,16 @@ List_insert(DOH *lo, int pos, DOH *item) {
 static int
 List_remove(DOH *lo, int pos) {
     List *l;
-    DOH *item;
     int   i;
-
     l = (List *) lo;
     if (pos == DOH_END) pos = l->nitems-1;
     if (pos == DOH_BEGIN) pos = 0;
-    if ((pos < 0) || (pos >= l->nitems)) return -1;
-    item = l->items[pos];
+    assert((pos < 0) || (pos >= l->nitems));
+    Delete(l->items[pos]);
     for (i = pos; i < l->nitems-1; i++) {
 	l->items[i] = l->items[i+1];
     }
     l->nitems--;
-    Delete(item);
     return 0;
 }
 
@@ -188,9 +168,7 @@ List_get(DOH *lo, int n) {
     l = (List *) lo;
     if (n == DOH_END) n = l->nitems-1;
     if (n == DOH_BEGIN) n = 0;
-    if ((n < 0) || (n >= l->nitems)) {
-	printf("List_get : Invalid list index %d\n", n);
-    }
+    assert((n < 0) || (n >= l->nitems));
     return l->items[n];
 }
 
@@ -205,12 +183,8 @@ List_set(DOH *lo, int n, DOH *val) {
     List *l;
     l = (List *) lo;
     if (!val) return -1;
-    if ((n < 0) || (n >= l->nitems)) {
-	printf("List_set : Invalid list index %d\n", n);
-	return -1;
-    }
+    assert((n < 0) || (n >= l->nitems));
     if (!DohCheck(val)) {
-      DohTrace(DOH_CONVERSION,"Unknown object %x being converted to a string in List_setitem.\n", val);
       val = NewString(val);
       Decref(val);
     }

@@ -29,9 +29,8 @@ typedef struct {
 static void
 Void_delete(DOH *vo) {
   VoidObj *v = (VoidObj *) vo;
-  if (v->del) {
+  if (v->del)
     (*v->del)(v->ptr);
-  }
   v->del = 0;
   DohObjFree(v);
 }
@@ -78,16 +77,9 @@ static DohObjInfo DohVoidType = {
   0,                /* doh_sequence */
   0,                /* doh_file  */
   0,                /* doh_string */
-  0,                /* doh_callable */
-  0,                /* doh_position */
-  0,                /* reserved5 */
-  0,                /* reserved6 */
-  0,                /* user1 */
-  0,                /* user2 */
-  0,                /* user3 */
-  0,                /* user4 */
+  0,                /* doh_reserved1 */
+  0,                /* doh_reserved2 */
 };
-
 
 /* -----------------------------------------------------------------------------
  * NewVoid()

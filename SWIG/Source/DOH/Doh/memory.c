@@ -85,7 +85,9 @@ DohCheck(const DOH *ptr) {
   Pool *p = Pools;
   char *cptr = (char *) ptr;
   while (p) {
-    if ((cptr >= p->ptr) && (cptr < p->ptr+p->current)) return 1;
+    if ((cptr >= p->ptr) && (cptr < p->ptr+p->current)) {
+      return 1;
+    }
     p = p->next;
   }
   return 0;
@@ -148,31 +150,4 @@ DohObjFree(DOH *ptr) {
   FreeFragments[len] = b;
   b->objinfo = 0;
   b->flags = b->flags | DOH_FLAG_DELETED;
-}
-
-/* -----------------------------------------------------------------------------
- * DohMalloc() - Wrapper around malloc()
- * ----------------------------------------------------------------------------- */
-
-void *
-DohMalloc(size_t nbytes) {
-  return (void *) malloc(nbytes);
-}
-
-/* -----------------------------------------------------------------------------
- * DohRealloc() - Wrapper around realloc()
- * ----------------------------------------------------------------------------- */
-
-void *
-DohRealloc(void *ptr, size_t newsize) {
-  return (void *) realloc(ptr,newsize);
-}
-
-/* -----------------------------------------------------------------------------
- * DohFree() - Wrapper around free()
- * ----------------------------------------------------------------------------- */
-
-void 
-DohFree(void *ptr) {
-  free(ptr);
 }
