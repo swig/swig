@@ -9,7 +9,7 @@
  */
 
 // TODO: change ArgumentOutOfRangeException/char* Exception to ArgumentException in RemoveRange and GetRange and SetRange, Reverse(int, int) too - also add in runtime tests
-// TODO: use of ArgumentOutOfRangeException in enums not correct, should just mention parameter name
+// also check ArgumentNullException is constructed correctly
 
 // MACRO for use within the std::vector class body
 // CSTYPE and CTYPE respectively correspond to the types in the cstype and ctype typemaps
@@ -75,21 +75,20 @@
   }
 
   public void CopyTo(int index, System.Array array, int arrayIndex, int count) {
-    if (array == null) {
+    if (array == null)
       throw new ArgumentNullException("array is null.");
-    }
-    if (index < 0 || arrayIndex < 0 || count < 0) {
-      throw new ArgumentOutOfRangeException("One of index, arrayIndex or count is less than zero.");
-    }
-    if (array.Rank > 1) {
+    if (index < 0)
+      throw new ArgumentOutOfRangeException("index", "Value is less than zero");
+    if (arrayIndex < 0)
+      throw new ArgumentOutOfRangeException("arrayIndex", "Value is less than zero");
+    if (count < 0)
+      throw new ArgumentOutOfRangeException("count", "Value is less than zero");
+    if (array.Rank > 1)
       throw new ArgumentException("Multi dimensional array.");
-    }
-    if (index+count > this.Count || arrayIndex+count > array.Length) {
+    if (index+count > this.Count || arrayIndex+count > array.Length)
       throw new ArgumentException("Number of elements to copy is too large.");
-    }
-    for (int i=0; i<count; i++) {
+    for (int i=0; i<count; i++)
       array.SetValue(getitemcopy(index+i), arrayIndex+i);
-    }
   }
 
   // Type-safe version of IEnumerable.GetEnumerator
@@ -122,15 +121,12 @@
     // Type-safe iterator Current
     public CSTYPE Current {
       get {
-        if (currentIndex == -1) {
+        if (currentIndex == -1)
           throw new InvalidOperationException("Enumeration not started.");
-        }
-        if (currentIndex > currentSize - 1) {
+        if (currentIndex > currentSize - 1)
           throw new InvalidOperationException("Enumeration finished.");
-        }
-        if (currentObject == null) {
+        if (currentObject == null)
           throw new InvalidOperationException("Collection modified.");
-        }
         return (CSTYPE)currentObject;
       }
     }
@@ -211,13 +207,17 @@
       }
       // Takes a deep copy of the elements unlike ArrayList.GetRange
       std::vector<CTYPE > *GetRange(int index, int count) {
-        if (index>=0 && index<(int)self->size()+1)
-          if (count >= 0 && index+count <= (int)self->size())
-            return new std::vector<CTYPE >(self->begin()+index, self->begin()+index+count);
-          else
-            throw "count too large or negative.";
-        else
+printf("GetRange C code: %d %d %d\n", index, count, self->size());
+        if (index < 0)
           throw std::out_of_range("index");
+printf("GetRange index ok: %d %d %d\n", index, count, self->size());
+        if (count < 0)
+          throw std::out_of_range("count");
+printf("GetRange count ok: %d %d %d\n", index, count, self->size());
+        if (index >= (int)self->size()+1 || index+count > (int)self->size())
+          throw "invalid range";
+printf("GetRange everything ok: %d %d %d\n", index, count, self->size());
+        return new std::vector<CTYPE >(self->begin()+index, self->begin()+index+count);
       }
       void Insert(int index, const CTYPE& value) {
         if (index>=0 && index<(int)self->size()+1)
@@ -239,13 +239,17 @@
           throw std::out_of_range("index");
       }
       void RemoveRange(int index, int count) {
-        if (index>=0 && index<(int)self->size()+1)
-          if (count >= 0 && index+count <= (int)self->size())
-            self->erase(self->begin()+index, self->begin()+index+count);
-          else
-            throw "count too large or negative.";
-        else
+printf("RemoveRange C code: %d %d %d\n", index, count, self->size());
+        if (index < 0)
           throw std::out_of_range("index");
+printf("RemoveRange index ok: %d %d %d\n", index, count, self->size());
+        if (count < 0)
+          throw std::out_of_range("count");
+printf("RemoveRange count ok: %d %d %d\n", index, count, self->size());
+        if (index >= (int)self->size()+1 || index+count > (int)self->size())
+          throw "invalid range";
+printf("RemoveRange everything ok: %d %d %d\n", index, count, self->size());
+        self->erase(self->begin()+index, self->begin()+index+count);
       }
       static std::vector<CTYPE > *Repeat(const CTYPE& value, int count) {
         if (count < 0)
@@ -256,23 +260,28 @@
         std::reverse(self->begin(), self->end());
       }
       void Reverse(int index, int count) {
-        if (index>=0 && index<(int)self->size()+1)
-          if (count >= 0 && index+count <= (int)self->size())
-            std::reverse(self->begin()+index, self->begin()+index+count);
-          else
-            throw "count too large or negative.";
-        else
+printf("Reverse C code: %d %d %d\n", index, count, self->size());
+        if (index < 0)
           throw std::out_of_range("index");
+printf("Reverse index ok: %d %d %d\n", index, count, self->size());
+        if (count < 0)
+          throw std::out_of_range("count");
+printf("Reverse count ok: %d %d %d\n", index, count, self->size());
+        if (index >= (int)self->size()+1 || index+count > (int)self->size())
+          throw "invalid range";
+printf("Reverse everything ok: %d %d %d\n", index, count, self->size());
+        std::reverse(self->begin()+index, self->begin()+index+count);
       }
       // Takes a deep copy of the elements unlike ArrayList.SetRange
       void SetRange(int index, const std::vector<CTYPE >& values) {
-        if (index>=0 && index<(int)self->size()+1)
-          if (index+values.size() <= self->size())
-            std::copy(values.begin(), values.end(), self->begin()+index);
-          else
-            throw "too many elements.";
-        else
+printf("SetRange C code: %d %d %d\n", index, values.size(), self->size());
+        if (index < 0)
           throw std::out_of_range("index");
+printf("SetRange index ok: %d %d %d\n", index, values.size(), self->size());
+        if (index+values.size() > self->size())
+          throw std::out_of_range("index");
+printf("SetRange values.size() ok: %d %d %d\n", index, values.size(), self->size());
+        std::copy(values.begin(), values.end(), self->begin()+index);
       }
     }
 %enddef
@@ -327,107 +336,105 @@ namespace std {
 
 
 // Methods which can throw an Exception
-%csexception std::vector::vector(int capacity) {
+%exception std::vector::vector(int capacity) {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   }
 }
 
-%csexception std::vector::getitemcopy {
+%exception std::vector::getitemcopy {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   }
 }
 
-%csexception std::vector::getitem {
+%exception std::vector::getitem {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   }
 }
 
-%csexception std::vector::setitem {
+%exception std::vector::setitem {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   }
 }
 
-%csexception std::vector::GetRange {
+%exception std::vector::GetRange {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   } catch (const char *e) {
-    SWIG_CSharpThrowException(SWIG_CSharpException, e);
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, e, "");
   }
 }
 
-%csexception std::vector::Insert {
+%exception std::vector::Insert {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   }
 }
 
-%csexception std::vector::InsertRange {
+%exception std::vector::InsertRange {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   }
 }
 
-%csexception std::vector::RemoveAt {
+%exception std::vector::RemoveAt {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   }
 }
 
-%csexception std::vector::Repeat {
+%exception std::vector::Repeat {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   }
 }
 
-%csexception std::vector::RemoveRange {
+%exception std::vector::RemoveRange {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   } catch (const char *e) {
-    SWIG_CSharpThrowException(SWIG_CSharpException, e);
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, e, "");
   }
 }
 
-%csexception std::vector::Reverse(int index, int count) {
+%exception std::vector::Reverse(int index, int count) {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   } catch (const char *e) {
-    SWIG_CSharpThrowException(SWIG_CSharpException, e);
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, e, "");
   }
 }
 
-%csexception std::vector::SetRange {
+%exception std::vector::SetRange {
   try {
     $action
   } catch (std::out_of_range& e) {
-    SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, e.what());
-  } catch (const char *e) {
-    SWIG_CSharpThrowException(SWIG_CSharpException, e);
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
   }
 }
 
