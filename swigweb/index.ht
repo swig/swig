@@ -19,6 +19,7 @@ noncommercial use.
 <li> <a href="doc.html">Documentation, papers, and presentations</a>
 <li> <a href="mail.html">Mailing List</a>
 <li> <a href="bugs.html">Bug tracking</a>
+<li> <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SwigWiki!</a>
 </ul>
 
 <h3>Important Notice</h3>
@@ -38,6 +39,10 @@ an abundance of spare time.
 
 <p>
 <h3>News</h3>
+
+<p>
+<b>2001/10/31</b> Announcing <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SwigWiki</a>.   
+Problems with SWIG?  Look here for more information and to contribute.
 
 <p>
 <b>2001/09/28</b> <a href="Doc1.3">Development documentation</a> for SWIG1.3 is now online.  This is a work in progress, but many new SWIG features
