@@ -45,40 +45,40 @@ Version 1.3.23 (in progress)
 
 	    - **** New default type resolution method (stype.c) ***** 
 
-	       It preserves the original mixed types, then it goes 'backward'
-	       first deleting the qualifier, then the inner types		  
-    		 								  
-    		 typedef A *Aptr;						  
-    		 const Aptr&;						  
-    		 r.q(const).Aptr       -> r.q(const).p.SWIGTYPE		  
-    		 r.q(const).p.SWIGTYPE -> r.p.SWIGTYPE			  
-    		 r.p.SWIGTYPE          -> r.SWIGTYPE				  
-    		 r.SWIGTYPE            -> SWIGTYPE				  
-		 								  
-		 								  
-    		 enum Hello {};						  
-    		 const Hello& hi;						  
-    		 r.q(const).Hello          -> r.q(const).enum SWIGTYPE	  
-    		 r.q(const).enum SWIGTYPE  -> r.enum SWIGTYPE		  
-    		 r.enum SWIGTYPE           -> r.SWIGTYPE			  
-    		 r.SWIGTYPE                -> SWIGTYPE			  
-		 								  
-    		 int a[2][4];						  
-    		 a(2).a(4).int           -> a(ANY).a(ANY).SWIGTYPE		  
-    		 a(ANY).a(ANY).SWIGTYPE  -> a(ANY).a().SWIGTYPE		  
-    		 a(ANY).a().SWIGTYPE     -> a(ANY).p.SWIGTYPE		  
-    		 a(ANY).p.SWIGTYPE       -> a(ANY).SWIGTYPE			  
-    		 a(ANY).SWIGTYPE         -> a().SWIGTYPE			  
-    		 a().SWIGTYPE            -> p.SWIGTYPE			  
-    		 p.SWIGTYPE              -> SWIGTYPE
+	      It preserves the original mixed types, then it goes
+	      'backward' first deleting the qualifier, then the inner
+	      types, for example:
+    		 							  
+    		 typedef A *Aptr;				  
+    		 const Aptr&;						
+    		 r.q(const).Aptr       -> r.q(const).p.SWIGTYPE		
+    		 r.q(const).p.SWIGTYPE -> r.p.SWIGTYPE			
+    		 r.p.SWIGTYPE          -> r.SWIGTYPE			
+    		 r.SWIGTYPE            -> SWIGTYPE			
+		 							
+    		 enum Hello {};						
+    		 const Hello& hi;					
+    		 r.q(const).Hello          -> r.q(const).enum SWIGTYPE	
+    		 r.q(const).enum SWIGTYPE  -> r.enum SWIGTYPE		
+    		 r.enum SWIGTYPE           -> r.SWIGTYPE		
+    		 r.SWIGTYPE                -> SWIGTYPE			
+		 							
+    		 int a[2][4];						
+    		 a(2).a(4).int           -> a(ANY).a(ANY).SWIGTYPE	
+    		 a(ANY).a(ANY).SWIGTYPE  -> a(ANY).a().SWIGTYPE		
+    		 a(ANY).a().SWIGTYPE     -> a(ANY).p.SWIGTYPE		
+    		 a(ANY).p.SWIGTYPE       -> a(ANY).SWIGTYPE		
+    		 a(ANY).SWIGTYPE         -> a().SWIGTYPE		
+    		 a().SWIGTYPE            -> p.SWIGTYPE			
+    		 p.SWIGTYPE              -> SWIGTYPE                    
 
-	       before it always stops after finding ref/pointer/enum/array/etc.
+	      before it always stops after finding ref/pointer/enum/array/etc.
 	       
-	       Now, then, you can define (use and apply) 'higher' typemaps such as:
+	      Now, then, you can define (use and apply) 'higher' typemaps such as:
 
-                  %typemap(in) SWIGTYPE* const&  
+                %typemap(in) SWIGTYPE* const&  
 	        %typemap(out) char FIXSIZE[ANY]
-                  %typemap(in) SWIGTYPE* const&  
+                %typemap(in) SWIGTYPE* const&  
 	        %typemap(in) const enum SWIGTYPE&
 	        %typemap(in) SWIGTYPE[ANY][ANY]
 	        %typemap(in) const char (&)[ANY]
@@ -118,9 +118,17 @@ Version 1.3.23 (in progress)
 	      safe to use with %apply.
 
 	    [Python]
-	    - Fix %callbacks/%pythoncallback to work as before
-	      after the def args changes
 
+            - Fix %callback/%pythoncallback work now as before after
+	      the def args changes. Also, %callback now is an alias
+	      for %pythoncallback, so, they do the same.
+
+	    [Python/Ruby]
+	    - %callback is more usable and uniform:
+
+                 %callback("%s_cb") foo();  // for both, python/ruby
+                 %callback("%s_cb");        // for both, python/ruby
+                 %callback(1) foo();        // only in python.
 
 10/17/2004: arty
 	    [OCAML]
