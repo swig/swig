@@ -1291,7 +1291,7 @@ void TCL8::cpp_close_class() {
 
     if (have_destructor) {
       Printv(code, "static void _swig_delete_", class_name, "(void *obj) {\n",
-	     tab4, Swig_name_destroy(class_name), "((", t->print_type(), ") obj);\n",
+	     tab4, Swig_name_destroy(real_classname), "((", t->print_type(), ") obj);\n",
 	     "}\n",0);
     }
 
@@ -1314,7 +1314,7 @@ void TCL8::cpp_close_class() {
     } else {
       Printf(code,",0");
     }
-    Printv(code, ", _swig_", class_name, "_methods, _swig_", class_name, "_attributes };\n", 0);
+    Printv(code, ", _swig_", real_classname, "_methods, _swig_", real_classname, "_attributes };\n", 0);
     Printf(f_wrappers,"%s",code);
 
     Printv(cmd_info, tab4, "{ SWIG_prefix \"", class_name, "\", SwigObjectCmd, &_wrap_class_", class_name, "},\n", 0);
