@@ -694,14 +694,26 @@ The following table lists the default type mapping from Java to C/C++.<p>
 
 <tr>
 <td>long</td>
-<td>long</td>
-<td>jlong</td>
+<td>int</td>
+<td>jint</td>
 </tr>
 
 <tr>
 <td>unsigned long</td>
 <td>long</td>
 <td>jlong</td>
+</tr>
+
+<tr>
+<td>long long</td>
+<td>long</td>
+<td>jlong</td>
+</tr>
+
+<tr>
+<td>unsigned long long</td>
+<td>java.math.BigInteger</td>
+<td>jobject</td>
 </tr>
 
 <tr>
@@ -749,6 +761,14 @@ The Java shadow class, AClass, will contain the following function:
 public void func(int a, long b, SomeClass c, SomeClass d, SomeClass e, SomeClass f[]) {...}
 </blockquote> </pre>
 <p>
+
+The mappings for C int and C long are appropriate for 32 bit applications which
+are used in the current 32bit JVMs. There is no perfect mapping between Java and C as Java doesn't support all the unsigned C data types. However, the mappings allow the full range of C values from Java. 
+<p>
+For future 64bit JVMs you may 
+have to change the C long, but probably not C int mappings. Mappings will be system dependent, for example long will need remapping on Unix LP64 systems (long, pointer 64bits, int 32bits), but not on 
+Microsoft 64bit Windows which will be using a P64 IL32 (pointer 64bits and int, long 32bits) model. This may be automated in a future version of SWIG. Note that the Java write once run anywhere philosophy holds true for all pure Java code when moving to a 64bit JVM. Unfortunately it won't of course hold true for JNI code.
+
 
 <a name="n122"></a><h3> What is a typemap?</h3>
 A typemap is mechanism by which SWIG's processing of a particular C datatype can be overridden.   A simple typemap might look like this :<p>
@@ -909,7 +929,7 @@ The standard SWIG typemap variables as listed elsewhere in this documentation ar
 <p>
 The Java module requires a few additional variable substitutions:
 <p>
-<tt>$javaclassname</tt>   Only in jstype typemaps. Equivalent to $1_basetype, except for unions/structs/classes. Here the type name is used if it has been wrapped by SWIG otherwise a Java long is used.<br>
+<tt>$javaclassname</tt>   Only in jstype typemaps. Similar to $1_basetype, except for unions/structs/classes. Here the type name is used if it has been wrapped by SWIG otherwise a Java long is used. Used primarily to get the Java classname of a wrapped union/struct/class.<br>
 
 <tt>$null </tt> Used in input typemaps to return early from JNI functions that have either void or a non-void return type. Example:
 
@@ -934,13 +954,13 @@ void jni_fn(...) {
 }
 </pre></blockquote>
 
-otherwise $null expands to zero 
+otherwise $null expands to NULL 
 
 <blockquote><pre>
 jobject jni_fn(...) {
     if (error) {
       SWIG_exception(SWIG_IndexError, "Array element error");
-      return 0;
+      return NULL;
     }
   ...
 }
@@ -1235,7 +1255,9 @@ It should be noted that the <tt>[LEN]</tt> array size is attached to the typemap
 During code generation, <tt>$dim0</tt> will be filled in with the real array dimension.  <p>
 
 <a name="n129"></a><h3> Pointer handling</h3>
-Unlike other language modules, the Java SWIG pointer library has not been written. This means that your own pointer handling functions will have to be written, using some of the concepts shown in the typemap examples. All is not lost as this does not apply when using shadow classes and non-primitive data types, as the section on Shadow classes demonstrates.
+Unlike other language modules, the Java SWIG pointer library has not been written. The consequence of this is that there is access to the SWIG runtime type checker which is used by the pointer library. 
+This also means that your own pointer handling functions will have to be written or use some of the concepts shown in the typemap examples. The typemaps.i library file will be useful for pointer handling as previously mentioned. All is not lost as this does not apply when using shadow classes and non-primitive data types, as the section on Shadow classes demonstrates.
+<p>
 
 By now you hopefully have the idea that typemaps are a powerful mechanism for building more specialized applications.  While writing typemaps can be technical, many have already been written for you.  See the Typemaps chapter for more information about using library files.<p>
 
@@ -1917,7 +1939,7 @@ The most common is an incorrect naming of the native library for the name passed
 <br><br>
 Another common reason for the native library not loading is because it is not in your path. On Unix make sure that your <i>LD_LIBRARY_PATH</i> contains the path to the native library. On Windows make sure the <i>path</i> environment variable contains the path to the native library. SWIG code usually works if you have <i>LD_LIBRARY_PATH</i> set to '.' (or no modification to <i>path</i> in Windows).
 <br><br>
-The native library will also not load if there are any unresolved symbols in the compiled C/C++ code. 
+The native library will also not load if there are any unresolved symbols in the compiled C/C++ code. Unresolved symbols will be described if you use the -verbose:jni commandline switch when running java.
 <br><br>
 Ensure that you are using the correct C/C++ compiler and linker combination and options for successful native library loading. The Examples/Makefile must have these set up correctly for your system. The SWIG installation package makes a best attempt at getting these correct but does not get it right 100% of the time.
 <br><br>
@@ -1926,15 +1948,6 @@ Linking problems used to occur when there were underscores in the module name or
 <a name="n11"></a><h2>Tips</h2>
 
 <ul>
-<li>
-Use %name to rename the shadow classes.</li>
-
-<blockquote><pre>
-%name(JPasswd) struct passwd {
-....
-};
-</pre></blockquote>
-<li>
 The %native directive can be used to mix hand written JNI functions with the auto generated functions.
 </ul>
 
