@@ -277,8 +277,10 @@ public:
      * ------------------------------------------------------------ */ 
 
     virtual int moduleDirective(Node *n) {
+      if (!module) {
 	module = n;
-	return SWIG_OK;
+      }
+      return SWIG_OK;
     }
 
     /* ------------------------------------------------------------
@@ -289,6 +291,7 @@ public:
 	String *oldmodule = module;
 	int oldimport = importmode;
 	importmode = 1;
+	module = 0;
 	emit_children(n); 
 	importmode = oldimport;
 	module = oldmodule;
