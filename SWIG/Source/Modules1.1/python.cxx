@@ -27,7 +27,7 @@ static  int           have_defarg = 0;
 static  int           have_output;
 static  int           use_kw = 0;
 static  int           noopt = 1;
-static  FILE         *f_shadow;
+static  FILE         *f_shadow = 0;
 static  Hash         *hash;
 static  String       *classes;
 static  String       *func;
