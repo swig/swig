@@ -4,7 +4,7 @@ SRCS       = example.c
 TARGET     = my_tclsh
 DLTARGET   = example
 INTERFACE  = example.i
-SWIGOPT    = -contracts 
+SWIGOPT    =
 
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
