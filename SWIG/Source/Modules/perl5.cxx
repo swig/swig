@@ -94,6 +94,7 @@ static  int       num_consts = 0;            /* Number of constants */
 static  String   *var_stubs = 0;             /* Variable stubs */
 static  String   *exported = 0;              /* Exported symbols */
 static  String   *pragma_include = 0;
+static  String   *additional_perl_code = 0;  /* Additional Perl code from %perlcode %{ ... %} */
 static  Hash     *operators = 0;
 static  int       have_operators = 0;
 
@@ -203,6 +204,7 @@ public:
     exported       = NewString("");
     magic          = NewString("");
     pragma_include = NewString("");
+    additional_perl_code = NewString("");
 
     command_tab    = NewString("static swig_command_info swig_commands[] = {\n");
     constant_tab   = NewString("static swig_constant_info swig_constants[] = {\n");
@@ -250,6 +252,7 @@ public:
       }
       Delete(filen); filen = NULL;
       Swig_register_filebyname("pm",f_pm);
+      Swig_register_filebyname("perl",f_pm);
     }
     {
       String *tmp = NewString(fullmodule);
@@ -444,6 +447,9 @@ public:
       Printf(f_pm,"package %s;\n\n",fullmodule);
       Printf(f_pm,"%s",var_stubs);
     }
+
+    /* Add additional Perl code at the end */
+    Printf(f_pm,"%s",additional_perl_code);
 
     Printf(f_pm,"1;\n");
     Close(f_pm);
@@ -1421,6 +1427,24 @@ public:
       }
     }
     return Language::pragmaDirective(n);
+  }
+
+  /* ------------------------------------------------------------
+   * insertDirective()
+   * 
+   * Hook for %insert directive.
+   * ------------------------------------------------------------ */
+
+  virtual int insertDirective(Node *n) {
+    String *code = Getattr(n,"code");
+    String *section = Getattr(n,"section");
+
+    if ((!ImportMode) && (Cmp(section,"perl") == 0)) {
+	Printv(additional_perl_code, code, NIL);
+    } else {
+      Language::insertDirective(n);
+    }
+    return SWIG_OK;
   }
 };
   
