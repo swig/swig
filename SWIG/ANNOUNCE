@@ -118,6 +118,10 @@ The release is available for download on Sourceforge at
 
      http://download.sourceforge.net/swig/swig-1.3.7.tar.gz
 
+Within the next day, a Windows version will also be made available at
+
+     http://download.sourceforge.net/swig/swigwin-1.3.7.zip
+
 What's broken?
 --------------
 This is the first release of SWIG that breaks backwards compatibility
