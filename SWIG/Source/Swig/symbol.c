@@ -1325,7 +1325,23 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
     if (Strcmp(storage,"typedef") == 0) {
       SwigType *decl;
       SwigType *rt;
+      SwigType *qt;
+      Symtab *ntab;
       SwigType *nt = Copy(Getattr(n,"type"));
+      
+#if 0
+      /* Fix for case 'typedef struct Hello hello;' */
+      {	
+	const char* dclass[3] = {"struct ", "union ", "class "};
+	int i;
+	for (i=0; i<3; i++) {
+	  char * c = Char(nt);
+	  if (strstr(c, dclass[i]) == c) {
+	    Replace(nt,dclass[i],"", DOH_REPLACE_FIRST);
+	  }
+	}
+      }
+#endif
       decl = Getattr(n,"decl");
       if (decl) {
 	SwigType_push(nt,decl);
@@ -1333,9 +1349,13 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       SwigType_push(nt,prefix);
       Delete(base);
       Delete(prefix);
-      rt = Swig_symbol_typedef_reduce(nt, Getattr(n,"sym:symtab"));
+      ntab = Getattr(n,"sym:symtab");
+      rt = Swig_symbol_typedef_reduce(nt, ntab);
+      /* fix for  'namespace n1 { typedef n2::hello hello; }' */
+      qt = Swig_symbol_type_qualify(rt, ntab);
       Delete(nt);
-      return rt;
+      Delete(rt);
+      return qt;
     }
   }
   Delete(base);
