@@ -12,59 +12,6 @@
 extern "C" {
 #endif
 
-/* -----------------------------------------------------------------------------
- * Constant declarations
- * ----------------------------------------------------------------------------- */
-
-/* Constant Types */
-#define SWIG_PY_INT     1
-#define SWIG_PY_FLOAT   2
-#define SWIG_PY_STRING  3
-#define SWIG_PY_POINTER 4
-#define SWIG_PY_BINARY  5
-
-/* Constant information structure */
-typedef struct swig_const_info {
-    int type;
-    char *name;
-    long lvalue;
-    double dvalue;
-    void   *pvalue;
-    swig_type_info **ptype;
-} swig_const_info;
-
-/* -----------------------------------------------------------------------------
- * Pointer declarations
- * ----------------------------------------------------------------------------- */
-/*
-  Use SWIG_NO_COBJECT_TYPES to force the use of strings to represent
-  C/C++ pointers in the python side. Very useful for debugging, but
-  not always safe.
-*/
-#if !defined(SWIG_NO_COBJECT_TYPES) && !defined(SWIG_COBJECT_TYPES)
-#define SWIG_COBJECT_TYPES
-#endif
-
-/* Flags for pointer conversion */
-#define SWIG_POINTER_EXCEPTION     0x1
-#define SWIG_POINTER_DISOWN        0x2
-
-
-/* -----------------------------------------------------------------------------
- * SWIG API.
- * ----------------------------------------------------------------------------- */
-
-/* Common SWIG API */
-#define SWIG_ConvertPtr(obj, pp, type, flags)    SWIG_Python_ConvertPtr(obj, pp, type, flags)
-#define SWIG_NewPointerObj(p, type, flags)       SWIG_Python_NewPointerObj(p, type, flags)
-#define SWIG_MustGetPtr(p, type, argnum, flags)  SWIG_Python_MustGetPtr(p, type, argnum, flags)
- 
-/* Python-specific SWIG API */
-#define SWIG_newvarlink()                             SWIG_Python_newvarlink()
-#define SWIG_addvarlink(p, name, get_attr, set_attr)  SWIG_Python_addvarlink(p, name, get_attr, set_attr)
-#define SWIG_ConvertPacked(obj, ptr, sz, ty, flags)   SWIG_Python_ConvertPacked(obj, ptr, sz, ty, flags)
-#define SWIG_NewPackedObj(ptr, sz, type)              SWIG_Python_NewPackedObj(ptr, sz, type)
-#define SWIG_InstallConstants(d, constants)           SWIG_Python_InstallConstants(d, constants)
 
 #ifdef SWIG_NOINCLUDE
 
@@ -155,7 +102,7 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
   return 1;
 }
 
-statichere PyTypeObject varlinktype = {
+static PyTypeObject varlinktype = {
   PyObject_HEAD_INIT(0)              
   0,                                  /* Number of items in variable part (ob_size) */
   (char *)"swigvarlink",              /* Type name (tp_name) */
@@ -273,7 +220,6 @@ SWIG_Python_NullRef(const char *type)
   }
 }
 
-/* add information about failing argument */
 SWIGRUNTIME(int)
 SWIG_Python_AddErrMesg(const char* mesg, int infront)
 {
@@ -303,6 +249,7 @@ SWIGRUNTIME(int)
 SWIG_Python_ArgFail(int argnum)
 {
   if (PyErr_Occurred()) {
+    /* add information about failing argument */
     char mesg[256];
     sprintf(mesg, "argument number %d:", argnum);
     return SWIG_Python_AddErrMesg(mesg, 1);
@@ -599,31 +546,6 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
     }
   }
 }
-
-#ifdef SWIG_DISABLE_RUNTIME
-/* lookup type pointer */
-SWIGRUNTIME(void)
-SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle) {
-  PyObject *module, *pointer;
-  void *type_pointer;
-
-  /* first check if module already created */
-  type_pointer = PyCObject_Import("swig_runtime_data", "type_pointer");
-  if (type_pointer) {
-    *type_list_handle = (swig_type_info **) type_pointer;
-  } else {
-    PyErr_Clear();
-    /* create a new module and variable */
-    module = Py_InitModule("swig_runtime_data", NULL);
-    pointer = PyCObject_FromVoidPtr((void *) (*type_list_handle), NULL);
-    if (pointer && module) {
-      PyModule_AddObject(module, "type_pointer", pointer);
-    }
-  }
-}
-#endif /* SWIG_DISABLE_RUNTIME */
-
-
 #endif /* SWIG_NOINCLUDE */
 
 
