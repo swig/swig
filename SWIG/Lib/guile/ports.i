@@ -7,7 +7,7 @@
 %{
   #ifndef _POSIX_SOURCE
   /* This is needed on Solaris for fdopen(). */
-  #  define _POSIX_SOURCE=199506L
+  #  define _POSIX_SOURCE 199506L
   #endif
   #include <stdio.h>
   #include <errno.h>
