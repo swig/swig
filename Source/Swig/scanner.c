@@ -18,16 +18,16 @@ static char cvsroot[] = "$Header$";
 #include <ctype.h>
 
 struct SwigScanner {
-  DOH           *text;                    /* Current token value */
-  DOH           *scanobjs;                /* Objects being scanned */
-  DOH           *str;                     /* Current object being scanned */
+  DOHString     *text;                    /* Current token value */
+  DOHList       *scanobjs;                /* Objects being scanned */
+  DOHString     *str;                     /* Current object being scanned */
   char          *idstart;                 /* Optional identifier start characters */
   int            nexttoken;               /* Next token to be returned */
   int            start_line;              /* Starting line of certain declarations */
   int            string_start;
   int            line;
   int            yylen;                   /* Length of text pushed into text */
-  DOH           *file; 
+  DOHString     *file; 
 };
 
 /* -----------------------------------------------------------------------------
@@ -95,7 +95,7 @@ SwigScanner_clear(SwigScanner *s) {
  * ----------------------------------------------------------------------------- */
 
 void 
-SwigScanner_push(SwigScanner *s, DOH *txt) {
+SwigScanner_push(SwigScanner *s, DOHString *txt) {
   assert(s && txt);
   Push(s->scanobjs,txt);
   if (s->str) Delete(s->str);
@@ -125,7 +125,7 @@ SwigScanner_pushtoken(SwigScanner *s, int nt) {
  * ----------------------------------------------------------------------------- */
 
 void
-SwigScanner_set_location(SwigScanner *s, DOH *file, int line) {
+SwigScanner_set_location(SwigScanner *s, DOHString *file, int line) {
   Setline(s->str,line);
   Setfile(s->str,file);
 }
@@ -136,7 +136,7 @@ SwigScanner_set_location(SwigScanner *s, DOH *file, int line) {
  * Get the current file.
  * ----------------------------------------------------------------------------- */
 
-DOH *
+DOHString *
 SwigScanner_get_file(SwigScanner *s) {
   return Getfile(s->str);
 }
@@ -670,7 +670,7 @@ SwigScanner_token(SwigScanner *s) {
  * Return the lexene associated with the last returned token.
  * ----------------------------------------------------------------------------- */
 
-DOH *
+DOHString *
 SwigScanner_text(SwigScanner *s) {
     return s->text;
 }
