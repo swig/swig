@@ -782,7 +782,7 @@ public:
       }
       if (!ns) {
 	if (!Getattr(n,"access") || ((Strcmp(Getattr(n,"access"),"public") == 0))) {
-	  Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(n), Getline(n), "tp: Nothing known about '%s'.\n", Getattr(n,"uname"));	    
+	  Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(n), Getline(n), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(n,"uname")));	    
 	}
       } else {
 
