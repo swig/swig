@@ -17,10 +17,12 @@
 %}
 
 %insert(mltail) %{
-  let swig_val t v = 
+  let rec swig_val t v = 
     match v with
-      C_enum e -> enum_to_int t v
-    | _ -> Obj.magic v
+        C_enum e -> enum_to_int t v
+      | C_list l -> Swig.C_list (List.map (swig_val t) l)
+      | C_array a -> Swig.C_array (Array.map (swig_val t) a)
+      | _ -> Obj.magic v
 %}
 
 /*#ifndef SWIG_NOINCLUDE*/
