@@ -497,6 +497,24 @@ public:
       }
     }
 
+    if (!Getattr(n,"allocate:has_assign")) {
+      /* No destructor was defined.  We need to check a few things here too */
+      List *bases = Getattr(n,"bases");
+      int allows_assign = 1;
+
+      for (int i = 0; i < Len(bases); i++) {
+	Node *n = Getitem(bases,i);
+	/* If base class does not allow default destructor, we don't allow it either */
+	if (Getattr(n,"allocate:has_assign")) {
+	  allows_assign = !Getattr(n,"allocate:noassign");
+	  Printf(stderr,"name %s %s\n",Getattr(n,"name"),Getattr(n,"allocate:noassign"));
+	}
+      }
+      if (!allows_assign) {
+	Setattr(n,"allocate:noassign","1");
+      }
+    }
+
 
     /* Check if base classes allow smart pointers, but might be hidden */
     if (!Getattr(n,"allocate:smartpointer")) {
@@ -554,9 +572,13 @@ public:
       if (cplus_mode != PUBLIC) {
 	/* Look for a private assignment operator */
 	if (Strcmp(name,"operator =") == 0) {
+	  Setattr(inclass,"allocate:has_assign","1");
 	  Setattr(inclass,"allocate:noassign","1");
 	}
       } else {
+	if (Strcmp(name,"operator =") == 0) {
+	  Setattr(inclass,"allocate:has_assign","1");
+	}
 	/* Look for smart pointer operator */
 	if ((Strcmp(name,"operator ->") == 0) && (!Getattr(n,"feature:ignore"))) {
 	  /* Look for version with no parameters */
