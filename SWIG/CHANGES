@@ -16,6 +16,21 @@ tree (maybe).
 
 Version 1.3.10 (In progress)
 ============================
+9/27/2001: beazley
+           Enhanced the %ignore directive so that warning messages
+           can be issued to users.   This is done using %ignorewarn
+           like this:
+
+             %ignorewarn("operator new ignored") operator new;
+
+           The names and semantics of %ignorewarn is exactly the 
+           same as %ignore. The primary purpose of this directive
+           is for module writers who want to ignore certain types
+           of declarations, but who also want to alert users about it.
+           A user might also use this for debugging (since messages
+           will appear whenever an ignored declaration appears).
+           *** NEW FEATURE ***
+
 9/26/2001: beazley
            Super-experimental support for overloaded operators. 
            This implementation consists of a few different parts.
@@ -45,10 +60,12 @@ Version 1.3.10 (In progress)
            illegal characters are detected, you will see an error
            like this:
  
-                Warning. Can't wrap operator* unless it is renamed to a valid identifier.
+                Warning. Can't wrap operator* unless renamed to a valid identifier.
 
            The only way to fix this is to use %rename or %name to bind
-           the operator to a nice name like "add" or something.
+           the operator to a nice name like "add" or something. Note:
+           the legal identifier characters are determined by the target
+           language.
 
            There are certain issues with friend functions and operators.
            Sometimes, friends are used to define mixed operators such
