@@ -41,6 +41,7 @@ static String *f_entry = 0;
 static char	*c_pkgstr;	// Name of the package
 static char	*php_pkgstr;	// Name of the package
 static char *shadow_classname;
+static char *shadow_lc_classname; // lowercase version, we need it too often
 
 static Wrapper	*f_c;
 static Wrapper  *f_php;
@@ -81,6 +82,9 @@ static String	*shadow_classdef;
 static String 	*shadow_code;
 static int	classdef_emitted = 0;
 static int	have_default_constructor = 0;
+#define NATIVE_CONSTRUCTOR 1
+#define ALTERNATIVE_CONSTRUCTOR 2
+static int	native_constructor=0;
 static int	native_func = 0;	// Set to 1 when wrapping a native function
 static int	enum_flag = 0; // Set to 1 when wrapping an enum
 static int	static_flag = 0; // Set to 1 when wrapping a static functions or member variables
@@ -778,9 +782,35 @@ PHP4::functionWrapper(Node *n) {
   int num_required  = emit_num_required(l);
   numopt = num_arguments - num_required;
 
-  sprintf(args, "%s[%d]", "zval **args", num_arguments); 
+  // we do +1 because we are going to push in this_ptr as arg0 if present
+  // or do we need to?
+  sprintf(args, "%s[%d]", "zval **args", num_arguments+1); 
   
   Wrapper_add_local(f, "args",args);
+
+  // This generated code may be called 
+  // 1) as an object method, or
+  // 2) as a class-method/functin (without a "this_ptr")
+  // Option (1) has "this_ptr" for "this", option (2) needs it as
+  // first parameter
+  // NOTE: possible we don't want to do this for constructors???
+
+  if (native_constructor) {
+    if (native_constructor==NATIVE_CONSTRUCTOR) Printf(f->code, "// NATIVE Constructor\n");
+    else Printf(f->code, "// ALTERNATIVE Constructor\n");
+  }
+  Printf(f->code,"// %s %s\n",iname, name);
+
+  Printf(f->code, "int argbase=0;\n");
+
+  // only let this_ptr count as arg[-1] if we are not a constructor
+  // if we are a constructor and this_ptr is null we are called as a class
+  // method and can make one of us
+  if (native_constructor==0) Printf(f->code,
+        "if (this_ptr && this_ptr->type==IS_OBJECT) {\n"
+        "  // fake this_ptr as first arg (till we can work out how to do it better\n"
+        "  args[argbase++]=&this_ptr;\n"
+        "}\n");
 
   Printf(f->code, "Swig_sync_c();\n\n");/* Keep PHP4 / C vars in sync */
 
@@ -789,25 +819,33 @@ PHP4::functionWrapper(Node *n) {
 
     Printf(f->code,
 	  "arg_count = ZEND_NUM_ARGS();\n"
-    	  "if(arg_count<%d || arg_count>%d)\n"
+    	  "if(arg_count<(%d-argbase) || arg_count>(%d-argbase))\n"
           "\tWRONG_PARAM_COUNT;\n\n",
     	  num_required, num_arguments);
 
     /* Verified args, retrieve them... */
     Printf(f->code,
-	  "if(zend_get_parameters_array_ex(arg_count,args)!=SUCCESS)"
+	  "if(zend_get_parameters_array_ex(arg_count-argbase,args)!=SUCCESS)"
           "\n\t\tWRONG_PARAM_COUNT;\n\n");
 
   } else {
 
    Printf(f->code, 
-	 "if((ZEND_NUM_ARGS() != %d) || (zend_get_parameters_array_ex(%d, args)"
+	 "if(((ZEND_NUM_ARGS() + argbase )!= %d) || (zend_get_parameters_array_ex(%d-argbase, args)"
 	 "!= SUCCESS)) {\n"
    	 "WRONG_PARAM_COUNT;\n}\n\n",
    	 num_arguments, num_arguments);
   }
   
   /* Now convert from php to C variables */
+  // At this point, argcount if used is the number of deliberatly passed args
+  // not including this_ptr even if it is used.
+  // It means error messages may be out by argbase with error
+  // reports.  We can either take argbase into account when raising 
+  // errors, or find a better way of dealing with _thisptr
+  // I would like, if objects are wrapped, to assume _thisptr is always
+  // _this and the and not the first argument
+  // This may mean looking at Lang::memberfunctionhandler
 
   for (i = 0, p = l; i < num_arguments; i++) {
     /* Skip ignored arguments */
@@ -817,7 +855,9 @@ PHP4::functionWrapper(Node *n) {
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
 
-    sprintf(source, "args[%d]", i);
+    // Do we fake this_ptr as arg0, or just possibly shift other args by 1 if we did fake?
+    if (i==0) sprintf(source, "((%d<argbase)?(&this_ptr):(args[%d-argbase]))", i, i);
+    else sprintf(source, "args[%d-argbase]", i);
     sprintf(target, "%s", Char(Getattr(p,"lname")));
     sprintf(argnum, "%d", i+1);
 
@@ -898,11 +938,44 @@ PHP4::functionWrapper(Node *n) {
   
   emit_action(n,f);
 
-  if((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"result",(char*)"return_value",0))) {
+   if((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"result",(char*)"return_value",0))) {
     Replaceall(tm, "$input", "result");
     Replaceall(tm, "$source", "result");
     Replaceall(tm, "$target", "return_value");
     Printf(f->code, "%s\n", tm);
+    // are we returning a wrapable object?
+    // I don't know if this test is comlete, I nicked it
+    if(is_shadow(d) && (SwigType_type(d) != T_ARRAY)) {
+      Printf(f->code,"//THIS IS IT!!!! munge this return value\n");
+      if (native_constructor==NATIVE_CONSTRUCTOR) {
+        Printf(f->code, "if (this_ptr) {\n// NATIVE Constructor, use this_ptr\n");
+        Printf(f->code,"zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n"
+			"*_cPtr = *return_value;\n"
+			"INIT_ZVAL(*return_value);\n"
+                        "add_property_zval(this_ptr,\"_cPtr\",_cPtr);\n"
+			"} else if (! this_ptr) ");
+      }
+      {
+	Printf(f->code, "{\n// ALTERNATIVE Constructor, make an onject wrapper\n");
+        // Make object 
+        String *shadowrettype = NewString("");
+        SwigToPhpType(d, iname, shadowrettype, shadow);
+ 
+        Printf(f->code, "zend_class_entry *ce;\n"
+			"if (zend_hash_find(EG(class_table), \"%(lower)s\", 1+strlen(\"%s\"), (void **) &ce)==FAILURE) { \n"
+			"zend_error(E_ERROR, \"Can't wrap class: %s\");\n"
+			"}\n"
+			"zval *obj; MAKE_STD_ZVAL(obj);\n"
+			"zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n"
+			"*_cPtr = *return_value;\n"
+			"INIT_ZVAL(*return_value);\n"
+                        "object_init_ex(obj,ce);\n"
+                        "add_property_zval(obj,\"_cPtr\",_cPtr);\n"
+                        "*return_value=*obj;\n",
+			shadowrettype, shadowrettype, shadowrettype);
+	Printf(f->code, "}\n");
+      }
+    } // end of if-shadow lark
   } else {
 	Printf(stderr,"%s: Line %d, Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
   }
@@ -1135,6 +1208,14 @@ int PHP4::classHandler(Node *n) {
 		if (!addSymbol(rename,n)) return SWIG_ERROR;
 		shadow_classname = Swig_copy_string(rename);
 
+		// Ugh, this is ugly
+	        char *shadow_lower_classname = strdup(shadow_classname);
+	        char *c;
+	        for(c = shadow_lower_classname; *c != '\0'; c++) {
+	                if(*c >= 'A' && *c <= 'Z')
+	                        *c = *c + 32;
+	        }
+
 		if(Strcmp(shadow_classname, module) == 0) {
 			Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
 			SWIG_exit(1);
@@ -1163,6 +1244,7 @@ int PHP4::classHandler(Node *n) {
 		/* Deal with inheritance */
 		List *baselist = Getattr(n, "bases");
 		int class_count = 1;
+
 		if(baselist) {
 			Node *base = Firstitem(baselist);
 
@@ -1179,47 +1261,48 @@ int PHP4::classHandler(Node *n) {
 				Printf(stderr, "Error: %s inherits from multiple base classes(%s %s). Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n", shadow_classname, base, this_shadow_multinherit);
 		} else { // XXX Must be base class ?
 		  /* Write out class init code */
-
-		  if(!written_base_class) {
+		  // NOTE: written_base_class NOW means ANY base class. 
+		  // i.e. we need to CG(active_class_entry) = NULL;
+		  // ready for the next class
+		  if(1 || !written_base_class) {
+		    if (written_base_class) Printf(s_oinit,"CG(active_class_entry) = NULL;\n");
+		    else Printf(s_oinit, "//WOT, NEW BASE_CLASS\n");
 		    written_base_class = 1;
+
 		    Printf(s_oinit,
-		    "{\nzend_class_entry *ce;\n"
+		    "{ // Define class %s\n"
 		    "CG(class_entry).type = ZEND_USER_CLASS;\n"
 		    "CG(class_entry).name = estrdup(\"%s\");\n"
 		    "CG(class_entry).name_length = strlen(\"%s\");\n"
 		    "CG(class_entry).refcount =(int *)emalloc(sizeof(int));\n"
 		    "*CG(class_entry).refcount = 1;\n"
 		    "CG(class_entry).constants_updated = 0;\n",
-		    package, package);
+		    shadow_classname, shadow_lower_classname, shadow_lower_classname);
 
-		    /* XXX do this ourselves */
-
-		    Printf(s_oinit, 
-		    "zend_str_tolower(CG(class_entry).name, "
-		    "CG(class_entry).name_length);\n");
-	
-		    /* Init class function hash */
-		
+		    // Init class function hash
 		    Printf(s_oinit, 
 		    "zend_hash_init(&CG(class_entry).function_table, 10, NULL,"
 		    "ZEND_FUNCTION_DTOR, 0);\n"
 		    "zend_hash_init(&CG(class_entry).default_properties, 10,"
 		    "NULL, ZVAL_PTR_DTOR, 0);\n");
 
-		    /* XXX Handle inheritance ? */
+		    // XXX Handle inheritance ?
+		    // Do we need to tell php who this classes parent class is
 
+		    // NOTE we also need to write out the per-class propget and propset 
 		    Printf(s_oinit, 
 		    "CG(class_entry).handle_function_call = NULL;\n"
-		    "CG(class_entry).handle_property_set = NULL;\n"
-		    "CG(class_entry).handle_property_get = NULL;\n");
+		    "CG(class_entry).handle_property_set = NULL;// %s_swig_handle_propset;\n"
+		    "CG(class_entry).handle_property_get = NULL;// %s_swig_handle_propget;\n",
+			shadow_classname,shadow_classname);
 
-		    /* Save class in class table */
+		    // Save class in class table
 		    Printf(s_oinit, 
 		    "zend_hash_update(CG(class_table), \"%s\",strlen(\"%s\")+1,"
-		    "&CG(class_entry), sizeof(zend_class_entry), (void **) "
-		    "&CG(active_class_entry));\n}\n", package, package);
+		    "&CG(class_entry), sizeof(CG(class_entry)), (void **) "
+		    "&CG(active_class_entry));\n}\n", 
+		    shadow_lower_classname, shadow_lower_classname);
 		  }
-
 		}
 
 	}
@@ -1267,7 +1350,7 @@ PHP4::memberfunctionHandler(Node *n) {
 		char *realname = iname ? iname : name;
 		String *php_function_name = Swig_name_member(shadow_classname, realname);
 
-		cpp_func(iname, t, l, php_function_name);
+		cpp_func(iname, t, l, realname, php_function_name);
 	}
 	return SWIG_OK;
 }
@@ -1296,7 +1379,7 @@ int PHP4::staticmemberfunctionHandler(Node *n) {
 		String *symname = Getattr(n, "sym:name");
 		String *php_function_name = Swig_name_member(shadow_classname, symname);
 		static_flag = 1;
-		cpp_func(Char(symname), Getattr(n, "type"), Getattr(n, "parms"), php_function_name);
+		cpp_func(Char(symname), Getattr(n, "type"), Getattr(n, "parms"), symname);
 		static_flag = 0;
 	}
 
@@ -1517,10 +1600,12 @@ int PHP4::constructorHandler(Node *n) {
 	char *iname = GetChar(n, "sym:name");
 	ParmList *l = Getattr(n, "parms");
 
+	native_constructor = (strcmp(iname, shadow_classname) == 0)?\
+		NATIVE_CONSTRUCTOR:ALTERNATIVE_CONSTRUCTOR;
+
 	Language::constructorHandler(n);
 
 	if(shadow) {
-		bool native_constructor = strcmp(iname, shadow_classname) == 0;
 		String *nativecall = NewString("");
 		String *php_function_name = NewString(iname);
 		char arg[256];
@@ -1532,12 +1617,12 @@ int PHP4::constructorHandler(Node *n) {
 		 "internal_function->type= ZEND_INTERNAL_FUNCTION;\n"
 		 "internal_function->handler = _wrap_new_%s;\n"
 		 "internal_function->arg_types = NULL;\n"
-		 "internal_function->function_name=estrdup(\"new_%(lower)s\");"
+		 "internal_function->function_name=estrdup(\"%(lower)s\");"
 		 "\nzend_hash_add(&CG(active_class_entry)->function_table, "
-		 "\"new_%(lower)s\", %d, &function, sizeof(zend_function),"
+		 "\"%(lower)s\", %d, &function, sizeof(zend_function),"
 		 "NULL);\n}\n",
 		 iname, php_function_name, php_function_name, 
-		 strlen(Char(php_function_name))+5);
+		 strlen(Char(php_function_name))+1);
 
 //		Printf(shadow_code, " function %s(", shadow_classname);
 //		Php only supports one constructor anyway...
@@ -1578,7 +1663,7 @@ int PHP4::constructorHandler(Node *n) {
 			}
 
 			if(is_shadow(pt)) {
-				Printv(nativecall, "($", arg, ")?$", arg, "->getCPtr():\"NULL\"", NULL);
+				Printv(nativecall, "($", arg,")?$", arg, ":\"NULL\"", NULL);
 			} else 
 				Printv(nativecall, "$", arg, NULL);
 
@@ -1614,6 +1699,7 @@ int PHP4::constructorHandler(Node *n) {
 		Printf(shadow_code, "  }\n\n");
 		Delete(nativecall);
 	}
+	native_constructor = 0;
 	return SWIG_OK;
 }
 
@@ -1713,7 +1799,7 @@ PHP4::typedefHandler(Node *n) {
 }
 
 void 
-PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name) {
+PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name = NULL) {
 	char arg[256];
 	String *nativecall = NewString("");
 	String *user_arrays = NewString("");
@@ -1721,6 +1807,9 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	int gencomma = 0;
 
 	if(!shadow) return;
+
+	// if they didn't provide a handler name, use the realname
+	if (! handler_name) handler_name=php_function_name;
 
 	if(l) {
 	  if(SwigType_type(Getattr(l, "type")) == T_VOID) {
@@ -1739,7 +1828,7 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	 "internal_function->function_name = estrdup(\"%(lower)s\");\n"
 	 "zend_hash_add(&CG(active_class_entry)->function_table, "
 	 "\"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n",
-	 Swig_name_wrapper(php_function_name), php_function_name,
+	 Swig_name_wrapper(handler_name), php_function_name, 
 	 php_function_name, strlen(Char(php_function_name))+1);
 
 	 if(variable_wrapper_flag && !no_sync)  { return; }
@@ -1760,24 +1849,24 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 		  if(static_flag)
 			Printf(nativecall, "$val");
 		  else 
-			Printv(nativecall, "$this->_cPtr", NULL);
+			Printv(nativecall, "$this", NULL);
 		}
 	} else if(SwigType_type(t) == T_VOID) {
 		if(static_flag && !const_flag)
 			Printf(nativecall, "    if($val) {\n");
 		Printv(nativecall,"    ", package, "::",
 			php_function_name,"(",NULL);
-		Printv(nativecall, "$this->_cPtr", NULL);
+		Printv(nativecall, "$this", NULL);
 	} else if(is_shadow(t)) {
 		if(SwigType_type(t) == T_ARRAY) {
-			Printf(nativecall, "    return %s::%s($this->_cPtr", 
+			Printf(nativecall, "    return %s::%s($this", 
 			       package, php_function_name);
 		} else {
 		String *shadowrettype = NewString("");
 		SwigToPhpType(t, iname, shadowrettype, shadow);
 		Printf(nativecall, "    $_sPtr = new %s();\n", shadowrettype);
 		Printf(nativecall, "    $_sPtr->_destroy();\n");
-		Printf(nativecall, "    $_iPtr = %s::%s($this->_cPtr",
+		Printf(nativecall, "    $_iPtr = %s::%s($this",
 		       package, php_function_name);
 		}
 	}
@@ -1825,7 +1914,7 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	    gencomma = 1;
 
 	    if(is_shadow(pt)) {
-		Printv(nativecall, "($", arg,")?$", arg, "->getCPtr():\"NULL\"", NULL);
+		Printv(nativecall, "($", arg,")?$", arg, ":\"NULL\"", NULL);
 	    } else {
 		Printv(nativecall, "$", arg, NULL);
 	    }
