@@ -24,29 +24,59 @@
 
 
 /*
-  Use -DSWIG_DIRECTOR_NORTTI if you prefer to avoid the use of RTTI
-  and dynamic_cast<>. But be aware that directors could stop working
-  when using this option.
+  Use -DSWIG_DIRECTOR_NORTTI if you prefer to avoid the use of the
+  native C++ RTTI and dynamic_cast<>. But be aware that directors
+  could stop working when using this option.
 */
+#ifdef SWIG_DIRECTOR_NORTTI
+/* 
+   When we don't use the native C++ RTTI, we implement a minimal one
+   only for Directors.
+*/
+# ifndef SWIG_DIRECTOR_RTDIR
+# define SWIG_DIRECTOR_RTDIR
+#include <map>
+namespace Swig {
+  class Director;
+  static std::map<void*,Director*>& get_rtdir_map() {
+    static std::map<void*,Director*> rtdir_map;
+    return rtdir_map;
+  }
 
-#if defined(SWIG_DIRECTOR_NORTTI) 
-#  define SWIG_DIRECTOR_CAST(arg) (Swig::Director*)(arg)
+  static inline void set_rtdir(void *vptr, Director *rtdir) {
+    get_rtdir_map()[vptr] = rtdir;
+  }
+
+  static inline Director *get_rtdir(void *vptr) {
+    std::map<void*,Director*>::const_iterator pos = get_rtdir_map().find(vptr);
+    Director *rtdir = (pos != get_rtdir_map().end()) ? pos->second : 0;
+    return rtdir;
+  }
+}
+# endif /* SWIG_DIRECTOR_RTDIR */
+
+# define SWIG_DIRECTOR_CAST(Arg) Swig::get_rtdir(static_cast<void*>(Arg))
+# define SWIG_DIRECTOR_RGTR(Arg1, Arg2) Swig::set_rtdir(static_cast<void*>(Arg1), Arg2)
+
 #else
-#  define SWIG_DIRECTOR_CAST(arg) dynamic_cast<Swig::Director*>(arg)
-#endif
 
+# define SWIG_DIRECTOR_CAST(Arg) dynamic_cast<Swig::Director*>(Arg)
+# define SWIG_DIRECTOR_RGTR(Arg1, Arg2)
+
+#endif /* SWIG_DIRECTOR_NORTTI */
 
 extern "C" {
   struct swig_type_info;
 }
 
 namespace Swig {
+
   /* base class for director exceptions */
   class DirectorException {
   protected:
     std::string swig_msg;
   public:
-    DirectorException(const char* /* msg */ ="") {
+    DirectorException(const char* msg ="") : swig_msg(msg) {
     }
 
     const char *getMessage() const { 
@@ -69,7 +99,13 @@ namespace Swig {
   };
 
   /* any python exception that occurs during a director method call */
-  class DirectorMethodException : public Swig::DirectorException {};
+  class DirectorMethodException : public Swig::DirectorException {
+  public:
+    DirectorMethodException(const char* msg = "") 
+      : DirectorException(msg)
+    {
+    }    
+  };
 
   /* attempt to call a pure virtual method via a director method */
   class DirectorPureVirtualException : public Swig::DirectorException {};
