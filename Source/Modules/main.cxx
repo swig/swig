@@ -54,7 +54,6 @@ extern String  *ModuleName;
 
 static char *usage = (char*)"\
 \nGeneral Options\n\
-     -c              - Produce raw wrapper code (omit support code)\n\
      -c++            - Enable C++ processing\n\
      -co             - Check a file out of the SWIG library\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
@@ -75,8 +74,10 @@ static char *usage = (char*)"\
      -nodefault      - Do not generate constructors/destructors\n\
      -noexcept       - Do not wrap exception specifiers\n\
      -noextern       - Do not generate extern declarations\n\
+     -noruntime      - Do not include SWIG runtime code\n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
      -outdir <dir>   - Set language specific files output directory\n\
+     -runtime        - Make the runtime support code globally visible.\n\
      -small          - Compile in virtual elimination & compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
@@ -363,10 +364,16 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Wrapper_compact_print_mode_set(1);
 	    Wrapper_virtual_elimination_mode_set(1);
 	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-c") == 0) {
+	  } else if ((strcmp(argv[i],"-noruntime") == 0) || (strcmp(argv[i],"-c") == 0)) {
 	      NoInclude=1;
 	      Preprocessor_define((DOH *) "SWIG_NOINCLUDE 1", 0);
 	      Swig_mark_arg(i);
+	      if (strcmp(argv[i],"-c") == 0) {
+		Swig_warning(WARN_DEPRECATED_OPTC, "SWIG",1, "-c command line option is deprecated. Use -noruntime instead.\n");
+	      }
+	  } else if ((strcmp(argv[i],"-runtime") == 0)) {
+	    Preprocessor_define((String *) "SWIG_RUNTIME_MODE 1", 0);
+	    Swig_mark_arg(i);
           } else if ((strcmp(argv[i],"-make_default") == 0) || (strcmp(argv[i],"-makedefault") == 0)) {
 	    GenerateDefault = 1;
 	    Swig_mark_arg(i);
