@@ -507,6 +507,13 @@ int SwigType_isenum(SwigType *t) {
   return 0;
 }
 
+int SwigType_issimple(SwigType *t) {
+  char *c = Char(t);
+  if (!t) return 0;
+  if (strchr(c,'.')) return 0;
+  return 1;
+}
+
 /* -----------------------------------------------------------------------------
  * SwigType_base()
  *
@@ -799,6 +806,7 @@ SwigType_ltype(SwigType *s) {
   List *elements;
   int nelements, i;
   int firstarray = 1;
+  int need_td = 0;
 
   result = NewString("");
   tc = Copy(s);
@@ -807,18 +815,18 @@ SwigType_ltype(SwigType *s) {
     Delete(SwigType_pop(tc));
   }
 
-  /* Resolve any typedef definitions */
-  td = SwigType_typedef_resolve(tc);
-  
-  /* Clean this up */
-  
-  if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isenum(td))) {
-    /* We need to use the typedef type */
-    Delete(tc);
-    tc = td;
-  } else if (td) {
-    Delete(td);
+  if (SwigType_issimple(tc)) {
+    /* Resolve any typedef definitions */
+    td = SwigType_typedef_resolve(tc);
+    if (td && (SwigType_isconst(td)) || SwigType_isarray(td) || SwigType_isenum(td)) {
+      /* We need to use the typedef type */
+      Delete(tc);
+      tc = td;
+    } else if (td) {
+      Delete(td);
+    }
   }
+
   elements = SwigType_split(tc);
   nelements = Len(elements);
   /* Now, walk the type list and start emitting */
@@ -902,18 +910,21 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
     rs = s;
   }
 
-  td = SwigType_typedef_resolve(rs);
-  if ((td) && (SwigType_isconst(td) || SwigType_isarray(td))) {
-    elements = SwigType_split(td);
-  } else if (td && SwigType_isenum(td)) {
-    elements = SwigType_split(rs);
-    clear = 0;
+  if (SwigType_issimple(rs)) {
+    td = SwigType_typedef_resolve(rs);
+    if ((td) && (SwigType_isconst(td) || SwigType_isarray(td))) {
+      elements = SwigType_split(td);
+    } else if (td && SwigType_isenum(td)) {
+      elements = SwigType_split(rs);
+      clear = 0;
+    } else {
+      elements = SwigType_split(rs);
+    } 
+    if (td) Delete(td);
   } else {
     elements = SwigType_split(rs);
   }
-  if (td) Delete(td);
   nelements = Len(elements);
-
   if (nelements > 0) {
     element = Getitem(elements,0);
   }
