@@ -1,7 +1,7 @@
 Version 1.3.22 (in progress)
 ==================================
 
-03/02/3004: mkoeppe (Matthias Koeppe)
+03/02/2004: mkoeppe (Matthias Koeppe)
 	    [Guile] In -scm mode, don't forget to check the type of string arguments.
 
 02/24/2004: cheetah (William Fulton)
