@@ -1,6 +1,28 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/06/2004: mmatus
+	    Fix the __cplusplus macro, and bug 1041170.
+	    Now it is working as supposed, ie, you can safetly use
+
+	      #ifdef __cplusplus
+	      ...
+	    
+	    all over swig, including inside %defines and %{ %} bodies.
+
+	    
+                      *** POTENTIAL INCOMPATIBILITY ***
+
+	    The old trick of using
+
+	      #if __cplusplus
+
+	    doesn't work any more. So, if you have your own typemaps
+	    using that syntax, you will need to migrate them use
+	    "#ifdef __cplusplus".
+
+
+
 10/05/2004: wuzzeb (John Lenz)
             - Reorganize how runtime type information is stored and shared
 	    between modules.  For chicken and mzscheme, I removed
