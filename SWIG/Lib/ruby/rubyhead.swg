@@ -4,7 +4,12 @@
 
 #include "ruby.h"
 
-#define NUM2USHRT(n) (unsigned short) NUM2UINT(n)
+#define NUM2USHRT(n) (\
+    (0 <= NUM2UINT(n) && NUM2UINT(n) <= USHRT_MAX)\
+    ? (unsigned short) NUM2UINT(n) \
+    : (rb_raise(rb_eArgError, "integer %d out of range of `unsigned short'",\
+               NUM2UINT(n)), (short)0)\
+)
 
 #define NUM2SHRT(n) (\
     (SHRT_MIN <= NUM2INT(n) && NUM2INT(n) <= SHRT_MAX)\
