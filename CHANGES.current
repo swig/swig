@@ -1,5 +1,19 @@
 Version 1.3.20 (In progress)
 ============================
+08/29/2003: mrose (Mark Rose)
+            Completed initial support for wrapping abstract classes with directors.
+	    Constructor wrappers will be generated for abstract classes that have
+	    directors, and instances of the director classes will be created regardless
+	    of whether the proxy class has been subclassed in the target language.
+	    No checks are made during construction to ensure that all pure virtual
+	    methods are implemented in the target language.  Instead, calls to
+	    unimplemented methods will throw SWIG_DIRECTOR_PURE_VIRTUAL exceptions in
+	    C++.
+
+	    Integrated Prabhu Ramachandran's typemap patches, which provide director
+	    typemap support for enums and std::size_t, and fix a couple bugs in the 
+	    director std::vector<> typemaps.
+
 08/29/2003: cheetah (William Fulton)
             [C#] Implemented exception handling for throwing C# exceptions from C/C++ code.
             A few delegate functions are available for calling which then throw the C#

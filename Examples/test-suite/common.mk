@@ -101,6 +101,7 @@ CPP_TEST_CASES += \
 	default_constructor \
 	default_ns \
 	default_ref \
+	director_abstract \
 	director_basic \
 	director_exception \
 	director_finalizer \

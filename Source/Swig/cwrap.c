@@ -650,24 +650,38 @@ Swig_ConstructorToFunction(Node *n, String *classname,
     if (cplus) {
       /* if a C++ director class exists, create it rather than the original class */
       if (use_director) {
+  	int abstract = Getattr(n, "abstract") != 0;
 	Node *parent = Swig_methodclass(n);
 	String *name = Getattr(parent, "sym:name");
         String* directorname = NewStringf("__DIRECTOR__%s", name);
 	String* action = NewString("");
 	String* tmp_none_comparison = Copy(none_comparison);
+	String* director_call;
+	String* nodirector_call;
 	
 	Replaceall( tmp_none_comparison, "$arg", "arg1" );
 
-        /* if Python class has been subclassed, create a director instance.  
-	 * otherwise, just create a normal instance.
-         */
-	/* arty: arg1 != Py_None => tmp_none_comparison */
-	Printv(action, "if (",tmp_none_comparison,") {/* subclassed */\n",
-	               Swig_cresult(type, "result", Swig_cppconstructor_director_call(directorname, parms)),
-		       "} else {\n",
-	               Swig_cresult(type, "result", Swig_cppconstructor_nodirector_call(classname, parms)),
-		       "}\n",
-		       NULL);
+	director_call = Swig_cppconstructor_director_call(directorname, parms);
+	nodirector_call = Swig_cppconstructor_nodirector_call(classname, parms);
+	if (abstract) {
+	  /* whether or not the abstract class has been subclassed in python,
+	   * create a director instance (there's no way to create a normal
+	   * instance).  if any of the pure virtual methods haven't been
+	   * implemented in the target language, calls to those methods will
+	   * generate SWIG_DIRECTOR_PURE_VIRTUAL exceptions.
+	   */
+	  Printv(action, Swig_cresult(type, "result", director_call), NULL);
+	} else {
+          /* if the proxy class has been subclassed, create a director instance.  
+	   * otherwise, just create a normal instance.
+           */
+	  Printv(action, 
+            "if (",tmp_none_comparison,") {/* subclassed */\n",
+	    Swig_cresult(type, "result", director_call),
+            "} else {\n", 
+	    Swig_cresult(type, "result", nodirector_call),
+	    "}\n", NULL);
+	}
 	Setattr(n, "wrap:action", action);
 	Delete(tmp_none_comparison);
 	Delete(action);
