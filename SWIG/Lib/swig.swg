@@ -134,15 +134,14 @@
   else $1[0] = 0;
 }
 
-%typemap(ignore,warning="Variable length arguments ignored.") (...) "";
-%typemap(in) (...) "";
+%typemap(ignore,warning="Variable length arguments discarded.") (...) "";
 
 %typemap(ignore) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
 
 
 /*  
  * This template wrapper is used to handle C++ objects that are passed or 
- * returned by value.   Theis is necessary to handle objects that define
+ * returned by value.   This is necessary to handle objects that define
  * no default-constructor (making it difficult for SWIG to properly declare
  * local variables).
  *
