@@ -25,13 +25,22 @@ static char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -static         - Omit code related to dynamic loading.\n\
+     -nopm           - Do not generate the .pm file.\n\
      -proxy          - Create proxy classes.\n\
      -const          - Wrap constants as constants and not variables (implies -shadow).\n\
      -compat         - Compatibility mode.\n\n";
 
 static int     compat = 0;
 
-static int           export_all = 0;
+static int     no_pmfile = 0;
+
+static int     export_all = 0;
+
+/*
+ * pmfile
+ *   set by the -pm flag, overrides the name of the .pm file
+ */
+static String *pmfile = 0;
 
 /*
  * module
@@ -138,6 +147,14 @@ public:
 	  do_constants = 1;
 	  blessed = 1;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nopm") == 0) {
+	    no_pmfile = 1;
+	    Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-pm") == 0) {
+	    Swig_mark_arg(i);
+	    i++;
+	    pmfile = NewString(argv[i]);
+	    Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-compat") == 0) {
 	  compat = 1;
 	  Swig_mark_arg(i);
@@ -215,16 +232,21 @@ public:
    * Need to strip off any prefixes that might be found in
    * the module name */
 
-    {
-      char *m = Char(module) + Len(module);
-      while (m != Char(module)) {
-	if (*m == ':') {
-	  m++;
-	  break;
+    if (no_pmfile) {
+      f_pm = NewString(0);
+    } else {
+      if (pmfile == NULL) {
+	char *m = Char(module) + Len(module);
+	while (m != Char(module)) {
+	  if (*m == ':') {
+	    m++;
+	    break;
+	  }
+	  m--;
 	}
-	m--;
+	pmfile = NewStringf("%s.pm", m);
       }
-      String *filen = NewStringf("%s%s.pm", Swig_file_dirname(outfile),m);
+      String *filen = NewStringf("%s%s", Swig_file_dirname(outfile),pmfile);
       if ((f_pm = NewFile(filen,"w")) == 0) {
 	Printf(stderr,"Unable to open %s\n", filen);
 	SWIG_exit (EXIT_FAILURE);
