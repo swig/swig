@@ -7,7 +7,7 @@ C_TEST_CASES =
 run_testcase = \
 	if [ -f $*\_runme.ml ] ; then \
 		(ocamlc -c $*\_runme.ml ; \
-		ocamlc -custom -g -o runme $*\.cmo $*\_runme.cmo $*\_wrap.o ; \
+		ocamlc -custom -g -cc '$(CXX)' -o runme $*\.cmo $*\_runme.cmo $*\_wrap.o ; \
 		./runme) ; \
 	fi ; 
 
