@@ -10,83 +10,14 @@
  *
  ********************************************************************/
 
-class RClass {
- private:
-  DOHString *temp;
- public:
-  DOHString *name;    // class name (renamed)
-  DOHString *cname;   // original C class/struct name
-  DOHString *vname;   // variable name
-  DOHString *type;
-  DOHString *prefix;
-  DOHString *header;
-  DOHString *init;
-
-  DOHString *aliases;
-  DOHString *includes;
-  DOH *freemethods;
-  DOH *predmethods;
-  int destructor_defined;
-
-  RClass(void) {
-    freemethods = NewHash();
-    predmethods = NewHash();
-    destructor_defined = 0;
-    name = NewString("");
-    cname = NewString("");
-    vname = NewString("");
-    type = NewString("");
-    prefix = NewString("");
-    header = NewString("");
-    init = NewString("");
-    aliases = NewString("");
-    includes = NewString("");
-    temp = NewString("");
-  }
-  ~RClass() {
-    Delete(name);
-    Delete(cname);
-    Delete(vname);
-    Delete(type);
-    Delete(prefix);
-    Delete(header);
-    Delete(init);
-    Delete(aliases);
-    Delete(includes);
-    Delete(freemethods);
-    Delete(predmethods);
-    Delete(temp);
-  }
-
-  void set_name(char *cn, char *rn, char *valn) {
-    Clear(cname);
-    Append(cname,cn);
-    Clear(name);
-    Append(name,valn);
-    Clear(vname);
-    Printf(vname,"c%s",name);
-    Printv(prefix,(rn ? rn : cn), "_", 0);
-  }
-
-  char *strip(char *s) {
-    if (strncmp(s, Char(prefix), Len(prefix)) != 0)
-      return s;
-    Clear(temp);
-    Append(temp,s);
-    Replace(temp,prefix,"",DOH_REPLACE_ANY);
-    return Char(temp);
-  }
-};
-
 class RUBY : public Language {
- private:
-  virtual char *make_wrapper_name(char *cname);
+ protected:
+  virtual String *make_wrapper_name(char *cname);
   virtual char *validate_const_name(char *name);
-  virtual char *ruby_typemap_lookup(char *, SwigType *, char *, char *, char *, Wrapper * = 0);
+  virtual char *ruby_typemap_lookup(char *, SwigType *, String_or_char *, char *, char *, Wrapper * = 0);
   virtual int to_VALUE(SwigType *, char *, DOHString *, int = 0);
   virtual int from_VALUE(SwigType *, char *, DOHString *);
  public:
-  RUBY();
   // Virtual functions required by the SWIG parser
   virtual void parse_args(int, char *argv[]);
   virtual void parse();
@@ -96,8 +27,10 @@ class RUBY : public Language {
   virtual void initialize(void);
   virtual void headers(void);
   virtual void close(void);
-  virtual void set_module(char *,char **);
+  virtual void set_module(char *);
+  virtual void add_native(char *, char *, SwigType *, ParmList *);
   virtual void create_command(char *, char *, int);
+  virtual void import(char *);
 
   // C++ language extensions.
   virtual void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l);
@@ -117,10 +50,6 @@ class RUBY : public Language {
   // Pragma directive 
   virtual void pragma(char *, char *, char *);
   virtual void cpp_pragma(Pragma *);
-
-  // Import directive
-  virtual void import(char *filename);
-
 };
 
 /*
