@@ -129,7 +129,7 @@ List_remove(DOH *lo, int pos) {
     int   i;
     if (pos == DOH_END) pos = l->nitems-1;
     if (pos == DOH_BEGIN) pos = 0;
-    assert((pos < 0) || (pos >= l->nitems));
+    assert(!((pos < 0) || (pos >= l->nitems)));
     Delete(l->items[pos]);
     for (i = pos; i < l->nitems-1; i++) {
 	l->items[i] = l->items[i+1];
@@ -161,7 +161,7 @@ List_get(DOH *lo, int n) {
     List *l = (List *) ObjData(lo);
     if (n == DOH_END) n = l->nitems-1;
     if (n == DOH_BEGIN) n = 0;
-    assert((n < 0) || (n >= l->nitems));
+    assert(!((n < 0) || (n >= l->nitems)));
     return l->items[n];
 }
 
@@ -175,7 +175,7 @@ static int
 List_set(DOH *lo, int n, DOH *val) {
     List *l = (List *) ObjData(lo);
     if (!val) return -1;
-    assert((n < 0) || (n >= l->nitems));
+    assert(!((n < 0) || (n >= l->nitems)));
     if (!DohCheck(val)) {
       val = NewString(val);
       Decref(val);
