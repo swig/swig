@@ -18,7 +18,6 @@ SWIGEXT {
 #endif
 #define value caml_value_t
 #define CAML_VALUE caml_value_t
-#define alloc caml_alloc
 #include <caml/alloc.h>
 #include <caml/custom.h>
 #include <caml/mlvalues.h>
@@ -26,7 +25,6 @@ SWIGEXT {
 #include <caml/callback.h>
 #include <caml/fail.h>
 #include <caml/misc.h>
-#undef alloc
 
 // Adapted from memory.h and mlvalues.h
 
