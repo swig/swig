@@ -1013,7 +1013,7 @@ public:
 	    Printf( f_int_to_enum, "| `%s -> C_enum (\n", name );
 	    Printf( f_mlbody, 
 		    "let _ = Callback.register \"%s_marker\" (`%s)\n",
-		    name );
+		    name, name );
 	    Printf( f_enumtypes_type,"| `%s\n", name );
 	    Setattr(seen_enumvalues,name,"true");
 	}
