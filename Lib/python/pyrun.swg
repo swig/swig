@@ -460,7 +460,7 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 {
   if (type) {
 #if defined(SWIG_COBJECT_TYPES)
-    if (PySwigObject_Check(obj)) {
+    if (obj && PySwigObject_Check(obj)) {
       const char *otype = (const char *) PySwigObject_GetDesc(obj);
       if (otype) {
 	PyErr_Format(PyExc_TypeError, "a '%s' is expected, 'PySwigObject(%s)' is received",
