@@ -152,6 +152,7 @@ CPP_TEST_CASES += \
 	return_value_scope \
 	rname \
 	smart_pointer_const \
+	smart_pointer_const2 \
 	smart_pointer_multi \
 	smart_pointer_multi_typedef \
 	smart_pointer_not \

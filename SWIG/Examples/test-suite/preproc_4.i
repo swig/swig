@@ -1,17 +1,17 @@
 %module preproc_4
 
 %{
-  inline int hello0()
+  int hello0()
   {
     return 0;
   }
 
-  inline int hello1()
+  int hello1()
   {
     return 1;
   }
 
-  inline int hello2()
+  int hello2()
   {
     return 2;
   }  
