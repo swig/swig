@@ -29,10 +29,6 @@ class RUBY : public Language {
   
   virtual int top(Node *n);
   
-  /* C/C++ parsing */
-  
-  virtual int classforwardDeclaration(Node *n);
-
   /* Function handlers */
 
   virtual int memberfunctionHandler(Node *n);
@@ -50,7 +46,8 @@ class RUBY : public Language {
   virtual int copyconstructorHandler(Node *n);
   virtual int destructorHandler(Node *n);
   virtual int classHandler(Node *n);
-  
+  virtual int classDeclaration(Node *n);
+
   /* Miscellaneous */
 
   virtual int validIdentifier(String *s);

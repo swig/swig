@@ -121,7 +121,6 @@ static  Hash *classes;		/* key=cname val=RClass */
 static  RClass *klass;		/* Currently processing class */
 static  Hash *special_methods;	/* Python style special method name table */
 
-
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
 
@@ -951,6 +950,36 @@ RUBY::constantWrapper(Node *n) {
   return SWIG_OK;
 }
 
+/* -----------------------------------------------------------------------------
+ * RUBY::classDeclaration() 
+ *
+ * Records information about classes---even classes that might be defined in
+ * other modules referenced by %import.
+ * ----------------------------------------------------------------------------- */
+
+int
+RUBY::classDeclaration(Node *n) {
+  char *cname = GetChar(n,"name");
+  char *rename = GetChar(n,"sym:name");
+  char *tdname = GetChar(n,"tdname");
+  
+  cname = tdname ? tdname : cname;
+
+  if (SwigType_istemplate(cname)) {
+    cname = Char(SwigType_namestr(cname));
+  }
+  klass = RCLASS(classes, cname);
+  if (!klass) {
+    klass = new RClass();
+    String *valid_name = NewString((rename ? rename : cname));
+    validate_const_name(Char(valid_name), "class");
+    klass->set_name(cname, rename, Char(valid_name));
+    SET_RCLASS(classes, cname, klass);
+    Delete(valid_name);
+  }
+  return Language::classDeclaration(n);
+}
+
 /* ----------------------------------------------------------------------
  * RUBY::classHandler()
  * ---------------------------------------------------------------------- */
@@ -966,15 +995,9 @@ RUBY::classHandler(Node *n) {
   }
 
   klass = RCLASS(classes, cname);
-
-  /* !!! Added by beazley. 8/29/01 */
-  if (!klass) {
-    klass = new RClass();
-    SET_RCLASS(classes,cname,klass);
-  }
+  assert(klass);
   String *valid_name = NewString(rename);
   validate_const_name(Char(valid_name), "class");
-  klass->set_name(cname,rename,Char(valid_name));
 
   Clear(klass->type);
   Printv(klass->type, Getattr(n,"classtype"), NULL);
@@ -1012,8 +1035,33 @@ RUBY::classHandler(Node *n) {
       }
       RClass *super = RCLASS(classes, basename);
       if (super) {
+
+	/* [DB] This code is experimental.   Rather than creating a link-dependency to the
+           base class, you can actually obtain the base class through the SWIG run-time 
+           type checker.  This is because proxy classes register a data structure using
+           SWIG_TypeClientdata().  
+          
+           Caveat: This only works if base classes are defined before derived classes.
+           Unlikely to be a problem since I don't think the Ruby module would work
+           otherwise.
+
+        */
+
+	SwigType *btype = NewString(super->name);
+	SwigType_add_pointer(btype);
+	SwigType_remember(btype);
+	String   *bmangle = SwigType_manglestr(btype);
+	Insert(bmangle,0,"((swig_class *) SWIGTYPE");
+	Append(bmangle,"->clientdata)->klass");
+	Replaceall(klass->init,"$super", bmangle);
+	Delete(btype);
+	Delete(bmangle);
+
+	/* [DB] Old code 
         Printv(f_wrappers,"extern swig_class c", super->name, ";\n", NULL);
 	Replaceall(klass->init,"$super",super->vname);
+	*/
+
 	break;
       }
       base = Nextitem(baselist);
@@ -1244,39 +1292,6 @@ RUBY::staticmembervariableHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* -----------------------------------------------------------------------
- * RUBY::classforwardDeclaration()
- *
- * A forward class declaration
- * ----------------------------------------------------------------------- */
-
-int
-RUBY::classforwardDeclaration(Node *n) {
-  char *cname  = GetChar(n,"name");
-  char *rename = GetChar(n,"sym:name");
-  char *type   = GetChar(n,"kind");
-
-  if (SwigType_istemplate(cname)) {
-    cname = Char(SwigType_namestr(cname));
-  }
-
-  RClass *kls;
-  kls = RCLASS(classes,cname);
-  if (!kls) {
-    kls = new RClass();
-    String *valid_name = NewString((rename ? rename : cname));
-    validate_const_name(Char(valid_name), "class");
-    kls->set_name(cname, rename, Char(valid_name));
-    SET_RCLASS(classes, cname, kls);
-    Delete(valid_name);
-  } 
-  if (type && strlen(type) > 0) {
-    char temp[256];
-    sprintf(temp,"%s %s", type, cname);
-    SET_RCLASS(classes,temp,kls);
-  }
-  return SWIG_OK;
-}
 
 /*
  * Local Variables:
