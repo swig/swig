@@ -1,6 +1,12 @@
 Version 1.3.25 (In progress)
 ============================
 
+02/13/2005: mkoeppe (Matthias Koeppe)
+	    [Guile] Add %typecheck for SWIGTYPE, add %typecheck for ptrdiff_t, fix
+	    typemaps for size_t.
+
+	    [Pike] Merge patch from Torsten Landschoff for improved Pike configuration.
+
 02/12/2005: mkoeppe (Matthias Koeppe)
 	    New configure switches --without-tcl, --without-python etc. allow to
             disable the search for installed languages.
