@@ -21,7 +21,7 @@ private:
 
 protected:
   /* pointer to the wrapped java object */
-  jobject	__self;
+  jobject __self;
   /* Acquire Java VM environment from Java VM */
   JNIEnv *__acquire_jenv() const {
     JNIEnv *env;

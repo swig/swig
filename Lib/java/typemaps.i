@@ -63,15 +63,15 @@ In Java you could then use it like this:
 %typemap(jtype) CTYPE *INPUT "JTYPE"
 %typemap(jstype) CTYPE *INPUT "JTYPE"
 %typemap(javain) CTYPE *INPUT "$javainput"
-%typemap(directorin) CTYPE *INPUT "$jninput"
-%typemap(directorout) CTYPE *INPUT "$javacall"
+%typemap(javadirectorin) CTYPE *INPUT "$jniinput"
+%typemap(javadirectorout) CTYPE *INPUT "$javacall"
 
 %typemap(jni) CTYPE &INPUT "JNITYPE"
 %typemap(jtype) CTYPE &INPUT "JTYPE"
 %typemap(jstype) CTYPE &INPUT "JTYPE"
 %typemap(javain) CTYPE &INPUT "$javainput"
-%typemap(directorin) CTYPE *INPUT "$jniinput"
-%typemap(directorout) CTYPE *INPUT "$javacall"
+%typemap(javadirectorin) CTYPE *INPUT "$jniinput"
+%typemap(javadirectorout) CTYPE *INPUT "$javacall"
 
 %typemap(in) CTYPE *INPUT, CTYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
@@ -197,15 +197,15 @@ value in the single element array. In Java you would use it like this:
 %typemap(jtype) CTYPE *OUTPUT "JTYPE[]"
 %typemap(jstype) CTYPE *OUTPUT "JTYPE[]"
 %typemap(javain) CTYPE *OUTPUT "$javainput"
-%typemap(directorin) CTYPE *OUTPUT "$jniinput"
-%typemap(directorout) CTYPE *OUTPUT "$javacall"
+%typemap(javadirectorin) CTYPE *OUTPUT "$jniinput"
+%typemap(javadirectorout) CTYPE *OUTPUT "$javacall"
 
 %typemap(jni) CTYPE &OUTPUT %{JNITYPE##Array%}
 %typemap(jtype) CTYPE &OUTPUT "JTYPE[]"
 %typemap(jstype) CTYPE &OUTPUT "JTYPE[]"
 %typemap(javain) CTYPE &OUTPUT "$javainput"
-%typemap(directorin) CTYPE &OUTPUT "$jniinput"
-%typemap(directorout) CTYPE &OUTPUT "$javacall"
+%typemap(javadirectorin) CTYPE &OUTPUT "$jniinput"
+%typemap(javadirectorout) CTYPE &OUTPUT "$javacall"
 
 %typemap(in) CTYPE *OUTPUT($*1_ltype temp), CTYPE &OUTPUT($*1_ltype temp)
 {
@@ -332,15 +332,15 @@ of the function return value. This difference is due to Java being a typed langu
 %typemap(jtype) CTYPE *INOUT "JTYPE[]"
 %typemap(jstype) CTYPE *INOUT "JTYPE[]"
 %typemap(javain) CTYPE *INOUT "$javainput"
-%typemap(directorin) CTYPE *INOUT "$jniinput"
-%typemap(directorout) CTYPE *INOUT "$javacall"
+%typemap(javadirectorin) CTYPE *INOUT "$jniinput"
+%typemap(javadirectorout) CTYPE *INOUT "$javacall"
 
 %typemap(jni) CTYPE &INOUT %{JNITYPE##Array%}
 %typemap(jtype) CTYPE &INOUT "JTYPE[]"
 %typemap(jstype) CTYPE &INOUT "JTYPE[]"
 %typemap(javain) CTYPE &INOUT "$javainput"
-%typemap(directorin) CTYPE &INOUT "$jniinput"
-%typemap(directorout) CTYPE &INOUT "$javacall"
+%typemap(javadirectorin) CTYPE &INOUT "$jniinput"
+%typemap(javadirectorout) CTYPE &INOUT "$javacall"
 
 %typemap(in) CTYPE *INOUT, CTYPE &INOUT {
   if (!$input) {
