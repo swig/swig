@@ -18,8 +18,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "swigver.h"
-
 extern "C" {
 #include "swig.h"
 extern Hash  *Preprocessor_define(const String_or_char *str, int swigmacro);
