@@ -33,10 +33,8 @@ CXXSRCS    =
 CSRCS      = 
 TARGETPREFIX = 
 TARGETSUFFIX = 
-SWIGOPT    = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
-INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
-#RUNTIMEDIR = $(top_builddir)/Runtime/.libs
-#DYNAMIC_LIB_PATH = .
+SWIGOPT    = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE) -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
+INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE) -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L. -l$*_runtime
 LIBPREFIX  = lib
 
