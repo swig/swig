@@ -402,6 +402,10 @@ public:
 
     t = Copy(type);
     update_local_type(t);
+    /* Check to see if it's read-only */
+    if (SwigType_isarray(t) || SwigType_isconst(t)) 
+      Status = Status | STAT_READONLY;
+
     if (!is_static) {
       lang->cpp_variable(name,iname,t);
     } else {
@@ -1922,6 +1926,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 
     if (!classrename) classrename = classname;
     strcpy(iname, Char(Swig_name_set(Swig_name_member(classrename, mrename))));
+
 
     // Now check to see if we have already wrapped a variable like this.
 

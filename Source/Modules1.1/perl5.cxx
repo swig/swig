@@ -12,6 +12,9 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
+/* DB: I had to take some features related to package naming out of this to
+   get the new type system to work.   These need to be put back in at some point. */
+
 static char cvsroot[] = "$Header$";
 
 #include "mod11.h"
@@ -20,6 +23,7 @@ static char cvsroot[] = "$Header$";
 static char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
      -module name    - Set module name\n\
+     -interface name - Set interface name\n\
      -package name   - Set package prefix\n\
      -static         - Omit code related to dynamic loading.\n\
      -shadow         - Create shadow classes.\n\
@@ -32,6 +36,7 @@ static int     compat = 0;
 static int           export_all = 0;
 static String       *package = 0;
 static String       *module = 0;
+static String       *interface = 0;
 static String       *cmodule = 0;
 static String       *vinit = 0;
 static FILE         *f_pm = 0;
@@ -95,6 +100,15 @@ PERL5::parse_args(int argc, char *argv[]) {
 	    } else {
 	      Swig_arg_error();
 	    }
+          } else if(strcmp(argv[i],"-interface") == 0) {
+            if (argv[i+1]) {
+              interface = NewString(argv[i+1]);
+              Swig_mark_arg(i);
+              Swig_mark_arg(i+1);
+              i++;
+            } else {
+              Swig_arg_error();
+            }
 	  } else if (strcmp(argv[i],"-module") == 0) {
 	    if (argv[i+1]) {
 	      module = NewString(argv[i+1]);
@@ -212,7 +226,7 @@ PERL5::initialize()
 
   if (blessed) {
     realpackage = package;
-    package = NewStringf("%sc",package);
+    package = interface ? interface : NewStringf("%sc",package);
   } else {
     realpackage = NewString(package);
   }

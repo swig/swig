@@ -129,6 +129,7 @@ static int     freeze = 0;
 static String  *lang_config = 0;
 
 /* This function sets the name of the configuration file */
+
 void SWIG_config_file(const String_or_char *filename) {
   lang_config = NewString(filename);
 }
@@ -229,6 +230,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
               Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c") == 0) {
 	      NoInclude=1;
+	      Preprocessor_define((DOH *) "SWIG_NOINCLUDE 1", 0);
 	      Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-make_default") == 0) {
 	    GenerateDefault = 1;
