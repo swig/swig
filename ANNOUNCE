@@ -1,7 +1,7 @@
 
-*** ANNOUNCE : SWIG1.3 (Alpha 4) ***
+*** ANNOUNCE : SWIG1.3 (Alpha 5) ***
 
-September 4, 2000
+September 22, 2000
 
 Overview
 --------
@@ -16,7 +16,7 @@ Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://download.sourceforge.net/swig/swig1.3a4.tar.gz
+     http://download.sourceforge.net/swig/swig1.3a5.tar.gz
 
 What's new?
 -----------
