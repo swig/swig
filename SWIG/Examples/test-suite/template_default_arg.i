@@ -20,9 +20,18 @@
 	
       
     };
+
+  template <typename T>
+    struct X {
+      X(T t = T());
+      // and also:
+      X(double a, T t = T(0));
+    };
+
 %}
 
 %template(Hello_int) Hello<int>;
+%template(X_int) X<int>;
 
 %inline %{
 
