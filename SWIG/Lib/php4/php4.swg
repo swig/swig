@@ -86,9 +86,9 @@
 /* Typemap for character array returns */
 
 %typemap(out) char [ANY] {
-	"char *s;
+	char *s;
 	s = estrdup($1);
-	RETURN_STRING(s, 1);";
+	RETURN_STRING(s, 1);
 }
 
 /* Typemaps for constants */
