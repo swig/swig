@@ -283,7 +283,7 @@ int    emit_isvarargs(ParmList *);
 void   emit_attach_parmmaps(ParmList *, Wrapper *f);
 void   emit_mark_varargs(ParmList *l);
 void   emit_action(Node *n, Wrapper *f);
-List  *Swig_overload_rank(Node *n);
+void   Swig_overload_check(Node *n);
 String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
 SwigType *cplus_value_type(SwigType *t);
 

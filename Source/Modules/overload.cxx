@@ -21,14 +21,6 @@ char cvsroot_overload_cxx[] = "$Header$";
 String *argv_template_string;
 String *argc_template_string;
 
-/* -----------------------------------------------------------------------------
- * Swig_overload_rank()
- *
- * This function takes an overloaded declaration and creates a list that ranks
- * all overloaded methods in an order that can be used to generate a dispatch 
- * function.
- * ----------------------------------------------------------------------------- */
-
 struct Overloaded {
   Node      *n;          /* Node                               */
   int        argc;       /* Argument count                     */
@@ -36,8 +28,25 @@ struct Overloaded {
   int        error;      /* Ambiguity error                    */
 };
 
-List *
-Swig_overload_rank(Node *n) {
+/* -----------------------------------------------------------------------------
+ * Swig_overload_rank()
+ *
+ * This function takes an overloaded declaration and creates a list that ranks
+ * all overloaded methods in an order that can be used to generate a dispatch 
+ * function.
+ * Slight difference in the way this function is used by scripting languages and
+ * statically typed languages. The script languages call this method via 
+ * Swig_overload_dispatch() - where wrappers for all overloaded methods are generated,
+ * however sometimes the code can never be executed. The non-scripting languages
+ * call this method via Swig_overload_check() for each overloaded method in order
+ * to determine whether or not the method should be wrapped. Note the slight
+ * difference when overloading methods that differ by const only. The
+ * scripting languages will ignore the const method, whereas the non-scripting
+ * languages ignore the first method parsed.
+ * ----------------------------------------------------------------------------- */
+
+static List *
+Swig_overload_rank(Node *n, bool script_lang_wrapping) {
   Overloaded  nodes[MAX_OVERLOAD];
   int         nnodes = 0;
   Node *o = Getattr(n,"sym:overloaded");
@@ -191,25 +200,46 @@ Swig_overload_rank(Node *n) {
 	      if (Strcmp(dq1,dq2) == 0) {
 		
 		if (SwigType_isconst(d1) && !SwigType_isconst(d2)) {
-		  Overloaded t = nodes[i];
-		  nodes[i] = nodes[j];
-		  nodes[j] = t;
+                  if (script_lang_wrapping) {
+                    // Swap nodes so that the const method gets ignored (shadowed by the non-const method)
+                    Overloaded t = nodes[i];
+                    nodes[i] = nodes[j];
+                    nodes[j] = t;
+                  }
 		  differ = 1;
 		  if (!nodes[j].error) {
-		    Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				 "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
-				 Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
-				 Getfile(nodes[i].n), Getline(nodes[i].n));
+                    if (script_lang_wrapping) {
+		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
+				   "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
+				   Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
+				   Getfile(nodes[i].n), Getline(nodes[i].n));
+                    } else {
+                      if (!Getattr(nodes[j].n, "overload:ignore"))
+		        Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
+				     "Overloaded method %s(%s) ignored. Method %s(%s) const at %s:%d used.\n",
+				     Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
+			             Getattr(nodes[i].n,"name"), ParmList_protostr(nodes[i].parms),
+				     Getfile(nodes[i].n), Getline(nodes[i].n));
+                    }
 		  }
 		  nodes[j].error = 1;
 		} else if (!SwigType_isconst(d1) && SwigType_isconst(d2)) {
 		  differ = 1;
 		  if (!nodes[j].error) {
-		    Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				 "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
-				 Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
-				 Getfile(nodes[i].n), Getline(nodes[i].n));
-		  }
+                    if (script_lang_wrapping) {
+		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
+				   "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
+				   Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
+				   Getfile(nodes[i].n), Getline(nodes[i].n));
+                    } else {
+                      if (!Getattr(nodes[j].n, "overload:ignore"))
+		        Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
+				     "Overloaded method %s(%s) const ignored. Method %s(%s) at %s:%d used.\n",
+				     Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
+			             Getattr(nodes[i].n,"name"), ParmList_protostr(nodes[i].parms),
+				     Getfile(nodes[i].n), Getline(nodes[i].n));
+                    }
+                  }
 		  nodes[j].error = 1;
 		}
 	      }
@@ -219,11 +249,24 @@ Swig_overload_rank(Node *n) {
 	  }
 	  if (!differ) {
 	    if (!nodes[j].error) {
-	      Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
-			   "Overloaded %s(%s) is shadowed by %s(%s) at %s:%d.\n",
-			   Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
-			   Getattr(nodes[i].n,"name"), ParmList_protostr(nodes[i].parms),
-			   Getfile(nodes[i].n),Getline(nodes[i].n));
+              if (script_lang_wrapping) {
+	        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
+			     "Overloaded %s(%s)%s is shadowed by %s(%s)%s at %s:%d.\n",
+			     Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
+			     SwigType_isconst(Getattr(nodes[j].n,"decl")) ? " const" : "", 
+			     Getattr(nodes[i].n,"name"), ParmList_protostr(nodes[i].parms),
+			     SwigType_isconst(Getattr(nodes[i].n,"decl")) ? " const" : "", 
+			     Getfile(nodes[i].n),Getline(nodes[i].n));
+              } else {
+                if (!Getattr(nodes[j].n, "overload:ignore"))
+	          Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
+			       "Overloaded method %s(%s)%s ignored. Method %s(%s)%s at %s:%d used.\n",
+			       Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
+			       SwigType_isconst(Getattr(nodes[j].n,"decl")) ? " const" : "", 
+                               Getattr(nodes[i].n,"name"), ParmList_protostr(nodes[i].parms),
+			       SwigType_isconst(Getattr(nodes[i].n,"decl")) ? " const" : "", 
+			       Getfile(nodes[i].n),Getline(nodes[i].n));
+              }
 	      nodes[j].error = 1;
 	    }
 	  }
@@ -235,6 +278,8 @@ Swig_overload_rank(Node *n) {
   {
     int i;
     for (i = 0; i < nnodes; i++) {
+      if (nodes[i].error)
+        Setattr(nodes[i].n, "overload:ignore", "1");
       Append(result,nodes[i].n);
       //      Printf(stdout,"[ %d ] %s\n", i, ParmList_protostr(nodes[i].parms));
       //      Swig_print_node(nodes[i].n);
@@ -242,6 +287,45 @@ Swig_overload_rank(Node *n) {
   }
   return result;
 }
+
+/* -----------------------------------------------------------------------------
+ * print_typecheck()
+ * ----------------------------------------------------------------------------- */
+
+static bool
+print_typecheck(String *f, int j, Parm *pj) {
+  char tmp[256];
+  sprintf(tmp,Char(argv_template_string),j);
+  String *tm = Getattr(pj,"tmap:typecheck");
+  if (tm) {
+    Replaceid(tm,Getattr(pj,"lname"),"_v");
+    Replaceall(tm,"$input", tmp);
+    Printv(f,tm,"\n",NIL);
+    return true;
+  }
+  else
+    return false;
+}
+
+/* -----------------------------------------------------------------------------
+ * ReplaceFormat()
+ * ----------------------------------------------------------------------------- */
+
+static String *
+ReplaceFormat (const String_or_char *fmt, int j) {
+  String *lfmt = NewString (fmt);
+  char buf[50];
+  sprintf (buf, "%d", j);
+  Replaceall (lfmt, "$numargs", buf);
+  int i;
+  String *commaargs = NewString ("");
+  for (i=0; i < j; i++) {
+    Printv (commaargs, ", ", NIL);
+    Printf (commaargs, Char(argv_template_string), i);
+  }
+  Replaceall (lfmt, "$commaargs", commaargs);
+  return lfmt;
+};
 
 /* -----------------------------------------------------------------------------
  * Swig_overload_dispatch()
@@ -261,38 +345,6 @@ Swig_overload_rank(Node *n) {
  * the regular function arguments.
  * ----------------------------------------------------------------------------- */
 
-static bool print_typecheck(String *f, int j, Parm *pj)
-{
-  char tmp[256];
-  sprintf(tmp,Char(argv_template_string),j);
-  String *tm = Getattr(pj,"tmap:typecheck");
-  if (tm) {
-    Replaceid(tm,Getattr(pj,"lname"),"_v");
-    Replaceall(tm,"$input", tmp);
-    Printv(f,tm,"\n",NIL);
-    return true;
-  }
-  else
-    return false;
-}
-
-static String *
-ReplaceFormat (const String_or_char *fmt, int j)
-{
-  String *lfmt = NewString (fmt);
-  char buf[50];
-  sprintf (buf, "%d", j);
-  Replaceall (lfmt, "$numargs", buf);
-  int i;
-  String *commaargs = NewString ("");
-  for (i=0; i < j; i++) {
-    Printv (commaargs, ", ", NIL);
-    Printf (commaargs, Char(argv_template_string), i);
-  }
-  Replaceall (lfmt, "$commaargs", commaargs);
-  return lfmt;
-};
-
 String *
 Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
   int i,j;
@@ -302,7 +354,7 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
   String *f = NewString("");
 
   /* Get a list of methods ranked by precedence values and argument count */
-  List *dispatch = Swig_overload_rank(n);
+  List *dispatch = Swig_overload_rank(n, true);
   int   nfunc = Len(dispatch);
 
   /* Loop over the functions */
@@ -366,3 +418,11 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
   Delete(dispatch);
   return f;
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_overload_check()
+ * ----------------------------------------------------------------------------- */
+void Swig_overload_check(Node *n) {
+    Swig_overload_rank(n, false);
+}
+
