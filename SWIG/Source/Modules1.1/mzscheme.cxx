@@ -92,7 +92,6 @@ public:
     // Add a symbol for this module
     
     Preprocessor_define ("SWIGMZSCHEME 1",0);
-    Preprocessor_define ("SWIG_NO_OVERLOAD 1", 0);    
     
     // Set name of typemaps
     
@@ -100,6 +99,8 @@ public:
 
     // Read in default typemaps */
     SWIG_config_file("mzscheme.i");
+    allow_overloading();
+
   }
   
   /* ------------------------------------------------------------
@@ -148,6 +149,10 @@ public:
     Printf(f_init, "\treturn scheme_reload(env);\n");
     Printf (f_init, "}\n");
     
+    Printf(f_init,"Scheme_Object *scheme_module_name(void) {\n");
+    Printf(f_init,"   return scheme_make_symbol((char*)\"%s\");\n", module);
+    Printf(f_init,"}\n");
+
     /* Close all of the files */
     Dump(f_header,f_runtime);
     Dump(f_wrappers,f_runtime);
@@ -185,8 +190,6 @@ public:
     ParmList *l = Getattr(n,"parms");
     Parm *p;
     
-    if (!addSymbol(iname,n)) return SWIG_ERROR;
-    
     Wrapper *f = NewWrapper();
     String *proc_name = NewString("");
     String *source = NewString("");
@@ -200,9 +203,19 @@ public:
     int i = 0;
     int numargs;
     int numreq;
-    
+    String *overname = 0;
+
     // Make a wrapper name for this
-    char *wname = Char(Swig_name_wrapper(iname));
+    String *wname = Swig_name_wrapper(iname);
+    if (Getattr(n,"sym:overloaded")) {
+      overname = Getattr(n,"sym:overname");
+    } else {
+      if (!addSymbol(iname,n)) return SWIG_ERROR;
+    }
+    if (overname) {
+      Append(wname, overname);
+    }
+    Setattr(n,"wrap:name",wname);
     
     // Build the name for Scheme.
     Printv(proc_name, iname,NULL);
@@ -226,6 +239,7 @@ public:
     
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l,f);
+    Setattr(n,"wrap:parms",l);
     
     numargs = emit_num_arguments(l);
     numreq  = emit_num_required(l);
@@ -360,18 +374,43 @@ public:
     Printv(f->code, "}\n",NULL);
     
     Wrapper_print(f, f_wrappers);
-    
-    // Now register the function
-    char temp[256];
-    sprintf(temp, "%d", numargs);
-    /*  Printv(init_func_def, "scheme_add_global(\"", proc_name,
-	"\", scheme_make_prim_w_arity(", wname,
-	", \"", proc_name, "\", ", temp, ", ", temp,
-	"), env);\n",NULL);
-    */
-    Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),env);\n",
-	   proc_name, wname, proc_name, numreq, numargs);
-    
+   
+    if (!Getattr(n,"sym:overloaded")) {
+ 
+      // Now register the function
+      char temp[256];
+      sprintf(temp, "%d", numargs);
+      Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),env);\n",
+	     proc_name, wname, proc_name, numreq, numargs);
+
+    } else {
+      if (!Getattr(n,"sym:nextSibling")) {
+	/* Emit overloading dispatch function */
+
+	int maxargs;
+	String *tmp = NewString("");
+	String *dispatch = Swig_overload_dispatch(n,"return %s(argc,argv);",&maxargs);
+	
+	/* Generate a dispatch wrapper for all overloaded functions */
+
+	Wrapper *df      = NewWrapper();
+	String  *dname   = Swig_name_wrapper(iname);
+
+	Printv(df->def,	
+	       "static Scheme_Object *\n", dname,
+	       "(int argc, Scheme_Object **argv) {",
+	       NULL);
+	Printv(df->code,dispatch,"\n",NULL);
+	Printf(df->code,"scheme_signal_error(\"No matching function for overloaded '%s'\");\n", iname);
+	Printv(df->code,"}\n",NULL);
+	Wrapper_print(df,f_wrappers);
+	Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),env);\n",
+	     proc_name, dname, proc_name, 0, maxargs);
+	DelWrapper(df);
+	Delete(dispatch);
+	Delete(dname);
+      }
+    }
     
     Delete(proc_name);
     Delete(source);

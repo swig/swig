@@ -222,6 +222,7 @@ public:
       Append(wname, overname);
     }
     Setattr(n,"wrap:name",wname);
+
     Printv(f->def,
 	   "static int\n ", wname, "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
 	   NULL);
