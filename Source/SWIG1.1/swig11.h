@@ -459,11 +459,6 @@ extern void cplus_emit_variable_set(char *classname, char *classtype, char *clas
 
 extern char *cplus_base_class(char *name);
 
-/* Function for building search directories */
-
-extern  int   insert_file(char *, FILE *);
-extern  int   get_file(char *filename, String &str);
-
 /* These are in the new core */
 
 extern "C" {
@@ -473,6 +468,8 @@ extern "C" {
   extern void Swig_check_options();
   extern void Swig_arg_error();
   extern void *Preprocessor_define(void *, int);
+  extern int  Swig_insert_file(const void *filename, void *outfile);
+  extern FILE *Swig_open(const void *filename);
 }
 
 // -----------------------------------------------------------------------

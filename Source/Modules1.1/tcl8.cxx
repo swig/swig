@@ -241,7 +241,7 @@ void TCL8::headers(void)
     fprintf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
 
-  if (insert_file("swigtcl8.swg",f_runtime) == -1) {
+  if (Swig_insert_file("swigtcl8.swg",f_runtime) == -1) {
     fprintf(stderr,"SWIG : Fatal error. Unable to locate 'swigtcl8.swg' in SWIG library.\n");
     SWIG_exit(1);
   }
@@ -1224,7 +1224,7 @@ void TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip)
   if (shadow) {
     static int included_object = 0;
     if (!included_object) {
-      if (insert_file("object.swg",f_header) == -1) {
+      if (Swig_insert_file("object.swg",f_header) == -1) {
 	fprintf(stderr,"SWIG : Fatal error. Unable to locate 'object.swg' in SWIG library.\n");
 	SWIG_exit(1);
       }

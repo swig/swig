@@ -206,93 +206,6 @@ char *emit_local(int i) {
 }
 
 // -----------------------------------------------------------------------------
-// int emit_args(char *d, DataType *rt, ParmList *l, FILE *f)
-//
-// Creates a list of variable declarations for both the return value
-// and function parameters.
-//
-// The return value is always called _result and arguments label as
-// _arg0, _arg1, _arg2, etc...
-//
-// Returns the number of parameters associated with a function.
-// -----------------------------------------------------------------------------
-
-int emit_args(DataType *rt, ParmList *l, FILE *f) {
-
-  Parm *p;
-  int   i;
-  char  temp[64];
-  String def;
-  char  *tm;
-
-  // Declare the return variable
-
-  if ((rt->type != T_VOID) || (rt->is_pointer)) {
-    if ((rt->type == T_USER) && (!rt->is_pointer)) {
-
-      // Special case for return by "value"
-
-      rt->is_pointer++;
-      fprintf(f,"\t %s _result;\n", rt->print_type());
-      rt->is_pointer--;
-    } else {
-
-      // Normal return value
-
-      fprintf(f,"\t %s _result;\n", rt->print_type());
-    }
-  }
-
-  // Emit function arguments
-
-  i = 0;
-  p = l->get_first();
-  while (p != 0) {
-    if ((p->t->type != T_VOID) || (p->t->is_pointer))  {
-      sprintf(temp,"_arg%d", i);
-      if (p->defvalue) {
-	if ((p->t->is_reference) || ((p->t->type == T_USER) && (p->call_type == CALL_REFERENCE)))
-	    fprintf(f,"\t %s _arg%d = &%s;\n", p->t->print_type(),i, p->defvalue);
-	  else
-	    fprintf(f,"\t %s _arg%d = %s;\n", p->t->print_type(),i, p->defvalue);
-      } else {
-	fprintf(f,"\t %s _arg%d;\n", p->t->print_type(),i);
-	tm = typemap_lookup("arginit", typemap_lang, p->t, p->name,"",temp);
-	if (tm) {
-	  def << tm;
-	}
-      }
-
-      // Check for ignore or default typemaps
-
-      tm = typemap_lookup("default",typemap_lang,p->t,p->name,"",temp);
-      if (tm)
-	def << tm;
-      tm = typemap_lookup("ignore",typemap_lang,p->t,p->name,"",temp);
-
-      if (tm) {
-	def << tm;
-	p->ignore = 1;
-      }
-      tm = typemap_check("build",typemap_lang,p->t,p->name);
-      if (tm) {
-	p->ignore = 1;
-      }
-      i++;
-    }
-    p = l->get_next();
-  }
-
-  fprintf(f,"%s",def.get());
-
-  // i now contains number of parameters
-
-  return(i);
-
- }
-
-
-// -----------------------------------------------------------------------------
 // int emit_args(char *d, DataType *rt, ParmList *l, WrapperFunction &f)
 //
 // Creates a list of variable declarations for both the return value
@@ -374,86 +287,6 @@ int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
   // i now contains number of parameters
   return(i);
 }
-
-// -----------------------------------------------------------------------------
-// int emit_func_call(char *decl, DataType *t, ParmList *l, FILE *f)
-//
-// Emits code for a function call.
-// -----------------------------------------------------------------------------
-
-void emit_func_call(char *decl, DataType *t, ParmList *l, FILE *f) {
-
-  int  i;
-  Parm  *p;
-
-//  fprintf(f,"#line %d \"%s\"\n", line_number, input_file);
-  fprintf(f,"\t ");
-
-  // First check if there is a return value
-
-  if ((t->type != T_VOID) || (t->is_pointer)) {
-    if ((t->type == T_USER) && (!t->is_pointer)) {
-
-      // Special case for return by "value"
-      // Caution : This *will* cause a memory leak if not
-      // used properly.
-
-      if (CPlusPlus) {
-	fprintf(f,"_result = new %s(", t->print_type());
-      } else {
-	t->is_pointer++;
-	fprintf(f,"_result = %s malloc(sizeof(", t->print_cast());
-	t->is_pointer--;
-	fprintf(f,"%s));\n", t->print_type());
-	fprintf(f,"\t*(_result) = ");
-      }
-    } else {
-      // Check if this is a C++ reference
-      if (t->is_reference) {
-	t->is_pointer--;
-	fprintf(f,"%s& _result_ref = ", t->print_full());
-	t->is_pointer++;
-      } else {
-
-      // Normal return values
-	fprintf(f,"_result = %s", t->print_cast());
-      }
-    }
-  }
-
-  // Now print out function call
-
-  fprintf(f,"%s(",decl);
-
-  i = 0;
-  p = l->get_first();
-  while(p != 0) {
-    if ((p->t->type != T_VOID) || (p->t->is_pointer)){
-      fprintf(f,"%s",p->t->print_arraycast());
-      if ((!p->t->is_reference) && (p->call_type & CALL_VALUE)) fprintf(f,"&");
-      if ((!(p->call_type & CALL_VALUE)) &&
-	  ((p->t->is_reference) || (p->call_type & CALL_REFERENCE)))
-	fprintf(f,"*");
-      fprintf(f,"_arg%d",i);
-      i++;
-    }
-    p = l->get_next();
-    if (p != 0)
-      fprintf(f,",");
-  }
-
-  fprintf(f,")");
-  if ((t->type == T_USER) && (!t->is_pointer)) {
-    if (CPlusPlus) {
-      fprintf(f,")");
-    }
-  }
-  fprintf(f,";\n");
-  if (t->is_reference) {
-    fprintf(f,"\t _result = %s &_result_ref;\n", t->print_cast());
-  }
-}
-
 
 
 // -----------------------------------------------------------------------------
@@ -560,27 +393,6 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f) {
   } else {
     f.code << fcall;
   }
-}
-
-// -----------------------------------------------------------------------------
-// void emit_hex(FILE *f)
-//
-// Emits the default C-code to handle pointers.   This is normally contained
-// in the SWIG library file 'swigptr.swg'
-// -----------------------------------------------------------------------------
-
-void emit_hex(FILE *f) {
-
-  int stat;
-
-   // Look for a pointer configuration file
-
-   stat = insert_file("swigptr.swg", f);
-
-   if (stat == -1) {
-     fprintf(stderr,"** Fatal error.  Unable to locate 'swigptr.swg'\n");
-     SWIG_exit(1);
-   }
 }
 
 // -----------------------------------------------------------------------------

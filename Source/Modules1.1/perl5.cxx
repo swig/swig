@@ -295,12 +295,12 @@ void PERL5::headers(void)
   emit_banner(f_header);
 
   if (!alt_header) {
-    if (insert_file("headers.swg", f_header) == -1) {
+    if (Swig_insert_file("headers.swg", f_header) == -1) {
       fprintf(stderr,"Perl5 : Fatal error. Unable to locate headers.swg. Possible installation problem.\n");
       SWIG_exit(1);
     }
   } else {
-    if (insert_file(alt_header, f_header) == -1) {
+    if (Swig_insert_file(alt_header, f_header) == -1) {
       fprintf(stderr,"SWIG : Fatal error.  Unable to locate %s.\n",alt_header);
       SWIG_exit(1);
     }
@@ -311,13 +311,13 @@ void PERL5::headers(void)
   }
 
   // Get special SWIG related declarations
-  if (insert_file("perl5.swg", f_header) == -1) {
+  if (Swig_insert_file("perl5.swg", f_header) == -1) {
     fprintf(stderr,"SWIG : Fatal error.  Unable to locate 'perl5.swg' in SWIG library.\n");
     SWIG_exit(1);
   }
 
   // Get special SWIG related declarations
-  if (insert_file("perl5mg.swg", f_header) == -1) {
+  if (Swig_insert_file("perl5mg.swg", f_header) == -1) {
     fprintf(stderr,"SWIG : Fatal error.  Unable to locate 'perl5mg.swg' in SWIG library.\n");
     SWIG_exit(1);
   }
@@ -2225,8 +2225,14 @@ void PERL5::pragma(char *lang, char *code, char *value) {
     } else if (strcmp(code,"include") == 0) {
       // Include a file into the .pm file
       if (value) {
-	if (get_file(value,pragma_include) == -1) {
+	FILE *f = Swig_open(value);
+	if (!f) {
 	  fprintf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number,value);
+	} else {
+	  char buffer[4096];
+	  while (fgets(buffer,4095,f)) {
+	    pragma_include << buffer;
+	  }
 	}
       }
     } else {
