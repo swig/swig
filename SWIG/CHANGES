@@ -14,6 +14,20 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/03/2001: beazley
+           The %name directive now applies to constants created with
+           #define and %constant.  However, most language modules
+           were never written to support this and will have to be
+           modified to make it work.  Tcl, Python, and Perl modules
+           are working now.
+           *** NEW FEATURE ***
+
+8/03/2001: beazley
+           Massive changes and simplification of C declaration parsing.
+           Although SWIG is still not a full C parser, its ability
+           to handle complex datatypes including pointers to functions
+           and pointers to arrays has been vastly improved.  
+
 8/03/2001: cheetah (william fulton)
            * Distribution fixes: autoconf no longer needed to install SWIG.
 
@@ -54,6 +68,10 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
            For example:
 
                 %constant Foo *Bar = &Spam;
+
+           A more subtle case is as follows:
+
+               %constant int (*FOO)(int,int) = blah;
 
            *** POTENTIAL INCOMPATIBILITY ***  Modules that were using
            the %constant directive directly will need to be modified.
