@@ -12,6 +12,10 @@
 
 %}
 
-typedef unsigned int Pixel;
+/* Pixel is typedef'd to unsigned char, and SWIG will translate this
+   type into Scheme characters. We would like to translate Pixels to
+   Scheme integers instead, so: */
+
+SIMPLE_MAP(Pixel, gh_scm2int, gh_int2scm, integer);
 
 %include gifplot.h

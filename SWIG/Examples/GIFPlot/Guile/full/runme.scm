@@ -50,7 +50,7 @@
 		   (c3 (* cscale (- z3 zmin)))
 		   (c4 (* cscale (- z4 zmin)))
 		   (cc (/ (+ c1 c2 c3 c4) 4))
-		   (c  (min (max cc 239) 0)))
+		   (c  (round (max (min cc 239) 0))))
 	      (Plot3D-solidquad p3 x y z1 (+ x dx) y z2 (+ x dx) (+ y dy)
 				z3 x (+ y dy) z4 (+ c 16)))
 	    (y-loop (+ y dy) (+ j 1)))))
