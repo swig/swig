@@ -1157,6 +1157,10 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
  * Swig_typemap_lookup_new()
  *
  * Attach one or more typemaps to a node
+ * op    - typemap name, eg "out", "newfree"
+ * node  - the node to attach the typemaps to
+ * lname -
+ * f     -
  * ----------------------------------------------------------------------------- */
 
 String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f)
@@ -1170,12 +1174,15 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   ParmList *locals;
   ParmList *kw;
   char     temp[256];
-  String   *symname, *qsn;
+  String   *symname;
   String   *cname = 0;
   String   *clname = 0;
+#if 0
+  String   *qsn;
   Symtab   *st;
+#endif
   /* special case, we need to check for 'ref' call 
-     and set the defaul code 'sdef' */
+     and set the default code 'sdef' */
   if (Cmp(op,"newfree") == 0) { 
     sdef = Swig_ref_call(node, lname);
   }
@@ -1184,6 +1191,20 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   if (!type) return sdef;
 
   pname = Getattr(node,"name");
+
+#if 0
+  /* removed for now as it breaks old code and introduces inconsistencies and adds about 25% to the execution time of the test-suite - WSF */
+  This is my plan to fix this longer term:
+  The following debug shows that some typemap lookups use fully qualified names and some do not.
+
+Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NONAME");
+
+  So even the current typemap lookups are inconsistent.
+  The "name" attribute is often changed, particularly in lang.cxx. I hope to either remove this name changing to fix this or introduce
+  a new attribute to use for the name.  Possibly introduce a new attribute called fqname - fully qualified name, that holds the name
+  to use for the Swig_typemap_search.  If this typemap search fails then use the unqualified name.
+  Need to check non-simple return types, eg pointers/references.
+  
   st = Getattr(node,"sym:symtab");
   qsn = st ? Swig_symbol_qualifiedscopename(st) : 0;
   if (qsn && Len(qsn)) {
@@ -1198,10 +1219,11 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   Delete(qsn);
   
   /* look now for simple name, such as
-       
        int *Foo::foo(int bar)   ->  foo
   */
-  if (!tm) tm = Swig_typemap_search(op,type,pname,&mtype);
+  if (!tm)
+#endif
+  tm = Swig_typemap_search(op,type,pname,&mtype);
   if (!tm) return sdef;
 
   s = Getattr(tm,"code");
