@@ -46,6 +46,7 @@ extern "C" {
 #define C_swig_is_ptr(x) (C_truep (C_blockp (x)) && C_truep (C_pointerp (x)))
 #define C_swig_is_swigpointer(x) (C_truep (C_blockp(x)) && C_truep (C_swigpointerp(x)))
 #define C_swig_is_closurep(x) (C_truep (C_blockp(x)) && C_truep(C_closurep(x)))
+#define C_swig_is_long(x) (C_swig_is_fixnum(x) || C_swig_is_flonum(x))
 
 #define SWIG_APPEND_VALUE(object) \
   if (resultobj == C_SCHEME_UNDEFINED) \
@@ -178,6 +179,21 @@ SWIG_Chicken_Barf(int code, C_char *msg, ...)
   }
 }
 
+static void SWIG_Chicken_ThrowException(C_word value) C_noret;
+static void SWIG_Chicken_ThrowException(C_word value)
+{
+  char *aborthook = C_text("\003sysabort");
+  C_word *a = C_alloc(C_SIZEOF_STRING(strlen(aborthook)));
+  C_word abort = C_intern2(&a, aborthook);
+
+  abort = C_block_item(abort, 0);
+  if (C_immediatep(abort))
+    SWIG_Chicken_Panic(C_text("`##sys#abort' is not defiend"));
+
+  C_save(value);
+  C_do_apply(1, abort, C_SCHEME_UNDEFINED);
+}
+
 static void
 SWIG_Chicken_Finalizer(C_word argc, C_word closure, C_word continuation, C_word s)
 {
@@ -251,6 +267,8 @@ SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags
     if (flags & SWIG_POINTER_DISOWN) {
       C_do_unregister_finalizer(s);
     }
+  } else {
+    return 1;
   }
 
   return 0;

@@ -317,7 +317,7 @@ CHICKEN::functionWrapper(Node *n)
   Parm    *p;
   int     i;
   String *wname;
-  char    source[64];
+  String *source;
   Wrapper *f;
   String *mangle = NewString("");
   String *get_pointers;
@@ -399,7 +399,7 @@ CHICKEN::functionWrapper(Node *n)
     String   *ln = Getattr(p,"lname");
     SwigType *pb = SwigType_typedef_resolve_all(SwigType_base(pt));
 
-    sprintf(source,"scm%d",i+1);
+    source = NewStringf("scm%d",i+1);
 
     Printf(f->def, ", C_word scm%d", i+1);
     Printf(declfunc,",C_word");
@@ -421,7 +421,7 @@ CHICKEN::functionWrapper(Node *n)
 	}
 
 	if (i >= num_required)
-	  Printv(get_pointers, "if (argc-2>", i, " && (", source, ")) {\n", NIL);
+	  Printf(get_pointers, "if (argc-2>%i && (%s)) {\n", i, source);
 	Printv(get_pointers,tm,"\n", NIL);
 	if (i >= num_required)
 	  Printv(get_pointers, "}\n", NIL);
@@ -457,6 +457,7 @@ CHICKEN::functionWrapper(Node *n)
           
       } else {
       }
+
       
       p = Getattr(p,"tmap:in:next");
       continue;
@@ -466,6 +467,8 @@ CHICKEN::functionWrapper(Node *n)
 		   SwigType_str(pt,0));
       break;
     }
+
+    Delete(source);
     p = nextSibling(p);
   }
 
@@ -708,7 +711,7 @@ CHICKEN::variableWrapper(Node *n)  {
       
     Wrapper_add_local(f, "resultobj", "C_word resultobj");
 
-    Printf(f->code, "if (argc!=2||argc!=3) C_bad_argc(argc,2);\n");
+    Printf(f->code, "if (argc!=2 && argc!=3) C_bad_argc(argc,2);\n");
 
     /* Check for a setting of the variable value */
     if (!Getattr(n,"feature:immutable")) {
@@ -726,13 +729,19 @@ CHICKEN::variableWrapper(Node *n)  {
       }
       Printf(f->code, "}\n");
     }
+
+    String *varname;
+    if (SwigType_istemplate((char*)name)) {
+      varname = SwigType_namestr((char *)name);
+    } else {
+      varname = name;
+    }
       
     // Now return the value of the variable - regardless
     // of evaluating or setting.
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
-
-      Replaceall(tm,"$source",name);
-      Replaceall(tm,"$varname",name);
+      Replaceall(tm,"$source",varname);
+      Replaceall(tm,"$varname",varname);
       Replaceall(tm,"$target","resultobj");
       Replaceall(tm,"$result","resultobj");
       Printf(f->code, "%s\n", tm);
@@ -805,6 +814,8 @@ CHICKEN::constantWrapper(Node *n)
   Wrapper *f;    
   String *overname = 0;
   String *scmname;
+  String *rvalue;
+  SwigType *nctype;
 
   int     num_required;
   int     num_arguments;
@@ -812,9 +823,10 @@ CHICKEN::constantWrapper(Node *n)
   scmname      = NewString(iname);
   Replaceall(scmname, "_", "-");
 
-  Printf(mangle, "\"%s\"", SwigType_manglestr(t));
-  Printf(source, "swig_const_%s", name);
+  Printf(source, "swig_const_%s", iname);
   Replaceall(source, "::", "__");
+
+  Printf(mangle, "\"%s\"", SwigType_manglestr(t));
 
   if (Getattr(n,"sym:overloaded")) {
     overname = Getattr(n,"sym:overname");
@@ -827,16 +839,29 @@ CHICKEN::constantWrapper(Node *n)
     Append(wname, overname);
   }
 
+  nctype = NewString(t);
+  if (SwigType_isconst(nctype)) {
+    Delete(SwigType_pop(nctype));
+  }
+
+  if (SwigType_type(nctype) == T_STRING) {
+    rvalue = NewStringf("\"%s\"", value);
+  } else if (SwigType_type(nctype) == T_CHAR) {
+    rvalue = NewStringf("\'%s\'", value);
+  } else {
+    rvalue = NewString(value);
+  }
+
   /* Special hook for member pointer */
   if (SwigType_type(t) == T_MPOINTER) {
-    Printf(f_header, "static %s = %s;\n", SwigType_str(t,wname), value);
+    Printf(f_header, "static %s = %s;\n", SwigType_str(t,wname), rvalue);
     value = wname;
   }
   if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
-    Replaceall(tm,"$source",value);
+    Replaceall(tm,"$source",rvalue);
     Replaceall(tm,"$target",source);
     Replaceall(tm,"$result",source);
-    Replaceall(tm,"$value",value);
+    Replaceall(tm,"$value",rvalue);
     Printf(f_header, "%s\n", tm);
   } 
   else {
@@ -920,12 +945,14 @@ CHICKEN::constantWrapper(Node *n)
   }
 
   Delete(wname);
+  Delete(nctype);
   Delete(proc_name);
   Delete(argnum);
   Delete(arg);
   Delete(tm2);
   Delete(mangle);
   Delete(source);
+  Delete(rvalue);
   DelWrapper(f);
   return SWIG_OK;
 }

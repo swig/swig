@@ -78,57 +78,85 @@
   $result = to_scheme (convtype ($varname));
 %}
 
+%typemap(throws) type_
+%{
+  SWIG_Chicken_ThrowException(to_scheme ( convtype ($1)));
+%}
+
 #else
 
 %typemap(out) type_ 
 %{
+  {
   C_word *space = C_alloc(storage_);
   $result = to_scheme (&space, convtype ($1));
+  }
 %}
 
 /* References to primitive types.  Return by value */
 
 %typemap(out) const type_ &
 %{
-  $result = to_scheme (convtype (*$1));
+  {
+  C_word *space = C_alloc(storage_);
+  $result = to_scheme (&space, convtype (*$1));
+  }
 %}
 
 /* --- Variable output --- */
 %typemap(varout) type_ 
 %{
+  {
   C_word *space = C_alloc(storage_);
   $result = to_scheme (&space, convtype ($varname));
+  }
+%}
+
+%typemap(throws) type_
+%{
+  {
+  C_word *space = C_alloc(storage_);
+  SWIG_Chicken_ThrowException(to_scheme (&space, convtype ($1)));
+  }
 %}
 
 #endif
 
 /* --- Constants --- */
 
-#if ("type_" == "char") || ("type_" == "unsigned char") || ("type_" == "signed char")
-%typemap(constcode) type_
-"static const $1_type $result = '$value';"
-#else
 %typemap(constcode) type_
 "static const $1_type $result = $value;"
-#endif
 
 %enddef
 
 SIMPLE_TYPEMAP(int, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-SIMPLE_TYPEMAP(enum SWIGTYPE, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
+//SIMPLE_TYPEMAP(enum SWIGTYPE, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 SIMPLE_TYPEMAP(short, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-SIMPLE_TYPEMAP(long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
-SIMPLE_TYPEMAP(long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
+SIMPLE_TYPEMAP(long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
+SIMPLE_TYPEMAP(long long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
 SIMPLE_TYPEMAP(unsigned int, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 SIMPLE_TYPEMAP(unsigned short, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-SIMPLE_TYPEMAP(unsigned long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
-SIMPLE_TYPEMAP(unsigned long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
-SIMPLE_TYPEMAP(unsigned char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-SIMPLE_TYPEMAP(signed char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
+SIMPLE_TYPEMAP(unsigned long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
+SIMPLE_TYPEMAP(unsigned long long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
+SIMPLE_TYPEMAP(unsigned char, C_character_code, C_make_character, C_swig_is_char, (unsigned int), 0);
+SIMPLE_TYPEMAP(signed char, C_character_code, C_make_character, C_swig_is_char, (int), 0);
 SIMPLE_TYPEMAP(char, C_character_code, C_make_character, C_swig_is_char, (char), 0);
 SIMPLE_TYPEMAP(bool, C_truep, C_mk_bool, C_swig_is_bool, (bool), 0);
 SIMPLE_TYPEMAP(float, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
 SIMPLE_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
+
+/* enum SWIGTYPE */
+%apply int { enum SWIGTYPE };
+%apply const int& { const enum SWIGTYPE& };
+
+%typemap(varin) enum SWIGTYPE
+{
+  if (!C_swig_is_fixnum($input) && sizeof(int) != sizeof($1)) {
+    swig_barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, "enum variable '$name' can not be set");
+  }
+  *((int *)(void *)&$1) = C_unfix($input);
+}
+
 
 /* --- Input arguments --- */
 
@@ -287,6 +315,17 @@ SIMPLE_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double),
   }
 }
 
+%typemap(throws) char *
+{ 
+  if ($1 == NULL) {
+    SWIG_Chicken_ThrowException(C_SCHEME_FALSE);
+  } else {
+    int string_len = strlen($1);
+    C_word *string_space = C_alloc(C_SIZEOF_STRING(string_len));
+    SWIG_Chicken_ThrowException(C_string(&string_space, string_len, (char *) $1));
+  }
+}
+
 /* Void */
 %typemap(out) void
 %{
@@ -416,7 +455,7 @@ $result = C_SCHEME_UNDEFINED;
 /* --- Constants --- */
 
 %typemap(constcode) char *
-"static const char *$result = \"$value\";"
+"static const char *$result = $value;"
 
 %typemap(constcode) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
 "static const void *$result = (void*) $value;"
@@ -513,11 +552,61 @@ $result = C_SCHEME_UNDEFINED;
   $1 = !SWIG_ConvertPtr($input, &ptr, 0, 0);
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE &
+{
+  void *ptr = 0;
+  if (SWIG_ConvertPtr($input, &ptr, $descriptor, 0)) {
+    /* error */
+    $1 = 0;
+  } else {
+    $1 = (ptr != 0);
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE 
+{
+  void *ptr = 0;
+  if (SWIG_ConvertPtr($input, &ptr, $&descriptor, 0)) {
+    /* error */
+    $1 = 0;
+  } else {
+    $1 = (ptr != 0);
+  }
+}
+
+
 /* ------------------------------------------------------------
  * Exception handling
  * ------------------------------------------------------------ */
 
-/* TODO */
+/* ------------------------------------------------------------
+ * --- Exception handling ---
+ * ------------------------------------------------------------ */
+
+%typemap(throws) SWIGTYPE {
+  $&ltype temp = new $ltype($1);
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  C_word ptr = SWIG_NewPointerObj(temp, $&descriptor,1);
+  SWIG_Chicken_ThrowException(ptr);
+}
+
+%typemap(throws) SWIGTYPE * {
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  C_word ptr = SWIG_NewPointerObj((void *) $1, $descriptor, 0);
+  SWIG_Chicken_ThrowException(ptr);
+}
+
+%typemap(throws) SWIGTYPE [ANY] {
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  C_word ptr = SWIG_NewPointerObj((void *) $1, $descriptor, 0);
+  SWIG_Chicken_ThrowException(ptr);
+}
+
+%typemap(throws) SWIGTYPE & {
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  C_word ptr = SWIG_NewPointerObj((void *)&($1),$descriptor,0);
+  SWIG_Chicken_ThrowException(ptr);
+}
 
 /* ------------------------------------------------------------
  * Overloaded operator support
