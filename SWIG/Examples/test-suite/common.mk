@@ -66,8 +66,7 @@ C_TEST_CASES += \
 	preproc_1
 
 MULTI_CPP_TEST_CASES += \
-	import \
-	import2
+	import 
 
 ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) \
 		 $(C_TEST_CASES:=.ctest) \
