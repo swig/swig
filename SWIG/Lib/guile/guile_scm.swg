@@ -8,21 +8,6 @@
 %runtime "precommon.swg"
 %runtime "common.swg"
 
-#ifdef SWIG_RUNTIME_MODE
-/* Hook the runtime module initialization
-   into the shared initialization function SWIG_Guile_Init. */
-%runtime %{
-/* Hook the runtime module initialization
-   into the shared initialization function SWIG_Guile_Init. */
-#include <libguile.h>
-#ifdef __cplusplus
-extern "C"
-#endif
-SCM scm_init_Swig_swigrun_module (void);
-#define SWIG_INIT_RUNTIME_MODULE scm_init_Swig_swigrun_module();
-%}
-#endif
-
 %runtime "guile_scm_run.swg"
 %include "ghinterface.i"
 %include "guile.i"
@@ -56,6 +41,8 @@ SCM scm_init_Swig_swigrun_module (void);
 %init %{
   static int _swig_init = 0;
 
+  SWIG_Guile_Init();
+
   if (!_swig_init) {
     int i;
     for (i = 0; swig_types_initial[i]; i++) {
@@ -66,6 +53,4 @@ SCM scm_init_Swig_swigrun_module (void);
     }
     _swig_init = 1;
   }
-
-  SWIG_Guile_Init();
 %}
