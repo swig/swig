@@ -252,10 +252,25 @@ Swig_overload_rank(Node *n) {
  * the regular function arguments.
  * ----------------------------------------------------------------------------- */
 
+static bool print_typecheck(String *f, int j, Parm *pj)
+{
+  char tmp[256];
+  sprintf(tmp,"argv[%d]",j);
+  String *tm = Getattr(pj,"tmap:typecheck");
+  if (tm) {
+    Replaceid(tm,Getattr(pj,"lname"),"_v");
+    Replaceall(tm,"$input", tmp);
+    Printv(f,tm,"\n",NIL);
+    return true;
+  }
+  else
+    return false;
+}
+
 String *
 Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
   int i,j;
-  char tmp[256];
+  
   *maxargs = 1;
 
   String *f = NewString("");
@@ -284,38 +299,34 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
       Printf(f,"if (argc >= %d) {\n", num_required);
     }
 
-    Printf(f,"int _m = 1;\n");
-    Printf(f,"int _v = 1;\n");
-
+    Printf(f,"int _v;\n");
+    int num_braces = 0;
     j = 0;
     Parm *pj = pi;
     while (pj) {
-      sprintf(tmp,"argv[%d]",j);
       if (Getattr(pj,"tmap:ignore")) {
 	pj = Getattr(pj,"tmap:ignore:next");
 	continue;
       }
-      String *tm = Getattr(pj,"tmap:typecheck");
-      if (tm) {
-	Replaceid(tm,Getattr(pj,"lname"),"_v");
-	Replaceall(tm,"$input", tmp);
-	if (j >= num_required)
-	  Printf(f,"if (argc > %d) {\n",j);
-	Printv(f,tm,"\n",NIL);
-        Printf(f,"_m &= _v;\n");
-	if (j >= num_required)
-	  Printf(f,"}\n",j);
+      if (j >= num_required) {
+	Printf(f, "if (argc <= %d) {\n", j);
+	Printf(f, Char(fmt),Getattr(ni,"wrap:name"));
+	Printf(f, "}\n");
+      }
+      if (print_typecheck(f, j, pj)) {
+	Printf(f, "if (_v) {\n");
+	num_braces++;
       }
       Parm *pk = Getattr(pj,"tmap:in:next");
       if (pk) pj = pk;
       else pj = nextSibling(pj);
       j++;
     }
-    Printf(f,"if (_m && _v) {\n");
-    Printf(f,Char(fmt),Getattr(ni,"wrap:name"));
-    Printf(f,"\n");
-    Printf(f,"}\n");
-    Printf(f,"}\n");
+    Printf(f, Char(fmt),Getattr(ni,"wrap:name"));
+    /* close braces */
+    for (/* empty */; num_braces > 0; num_braces--)
+      Printf(f, "}\n");
+    Printf(f,"}\n"); /* braces closes "if" for this method */
   }
   Delete(dispatch);
   return f;
