@@ -58,7 +58,7 @@ static int swigsort(const void *data1, const void *data2) {
 static int swigcmp(const void *key, const void *data) {
   char *k = (char *) key;
   SwigPtrType **d = (SwigPtrType **) data;
-  return strncmp(k,(*d)->name,(*d)->len);
+  return strcmp(k,(*d)->name);
 }
 
 /* Register a new datatype with the type-checker */
