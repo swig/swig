@@ -92,13 +92,17 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
   } else if (Strcmp(nodeType(n),"class") == 0) {
     /* Patch base classes */
     {
-      List *bases = Getattr(n,"baselist");
-      if (bases) {
-	int i;
-	for (i = 0; i < Len(bases); i++) {
-	  String *name = Copy(Getitem(bases,i));
-	  Setitem(bases,i,name);
-	  Append(typelist,name);
+      char *baselists[] = {"baselist","protectedbaselist","privatebaselist"};
+      int b = 0;
+      for (b = 0; b < 3; ++b) {
+	List *bases = Getattr(n,baselists[b]);
+	if (bases) {
+	  int i;
+	  for (i = 0; i < Len(bases); i++) {
+	    String *name = Copy(Getitem(bases,i));
+	    Setitem(bases,i,name);
+	    Append(typelist,name);
+	  }
 	}
       }
     }

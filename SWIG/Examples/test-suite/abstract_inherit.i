@@ -21,4 +21,42 @@ public:
    Spam() { }
 };
 
+
+template <class Type>
+class NRFilter {
+public:
+  virtual ~NRFilter()
+  {
+  }
+  
+protected:
+  virtual void do_filter() = 0;
+};
+
+template <class Type>
+class NRRCFilter : public NRFilter<Type>
+{
+};
+ 
+
+template <class Type>
+class NRRCFilterpro : protected NRFilter<Type>
+{
+};
+
+
+template <class Type>
+class NRRCFilterpri : private NRFilter<Type>
+{
+};
+
 %}
+
+%template(NRFilter_i) NRFilter<int>;
+
+%template(NRRCFilter_i) NRRCFilter<int>;
+
+%template(NRRCFilterpro_i) NRRCFilterpro<int>;
+
+%template(NRRCFilterpri_i) NRRCFilterpri<int>;
+
