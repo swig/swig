@@ -54,7 +54,7 @@ or you can use the %apply directive :
         double fadd(double *a, double *b);
 
 In Java you could then use it like this:
-        double answer = modulename.fadd(10.0 + 20.0);
+        double answer = modulename.fadd(10.0, 20.0);
 
 */
 
