@@ -322,6 +322,65 @@
 
 %apply unsigned long { size_t };
 
+/* ------------------------------------------------------------
+ * Typechecking rules
+ * ------------------------------------------------------------ */
+
+%typecheck(10)
+	 int, short, long,
+ 	 unsigned int, unsigned short, unsigned long,
+	 signed char, unsigned char,
+	 long long, unsigned long long,
+	 const int &, const short &, const long &,
+	const unsigned int &, const unsigned short &, const unsigned long &,
+	const long long &, const unsigned long long &,
+	enum SWIGTYPE 
+{
+  $1 = SvIOK($input) ? 1 : 0;
+}
+
+%typecheck(20)
+	float, double,
+	const float &, const double &
+{
+  $1 = SvNOK($input) ? 1 : 0;
+}
+
+%typecheck(30) char {
+  $1 = SvPOK($input) ? 1 : 0;
+}
+
+%typecheck(31) char * {
+  $1 = SvPOK($input) ? 1 : 0;
+}
+
+%typecheck(0) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+  void *tmp;
+  if (SWIG_ConvertPtr($input, (void **) &tmp, $1_descriptor, 0) == -1) {
+	$1 = 0;
+  } else {
+        $1 = 1;
+  }
+}
+
+%typecheck(0) SWIGTYPE {
+  void *tmp;
+  if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) == -1) {
+	$1 = 0;
+  } else {
+        $1 = 1;
+  }
+}
+
+%typecheck(1) void * {
+  void *tmp;
+  if (SWIG_ConvertPtr($input, (void **) &tmp, 0, 0) == -1) {
+	$1 = 0;
+  } else {
+        $1 = 1;
+  }
+}
+
 
 /* Export the SWIG initialization function */
 %header %{

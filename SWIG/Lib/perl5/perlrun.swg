@@ -31,6 +31,14 @@ extern "C" {
 }
 #endif
 
+/* Macro to call an XS function */
+#ifdef PERL_OBJECT
+#define SWIG_CALLXS(_name) _name(cv,pPerl)
+#else
+#define SWIG_CALLXS(_name) _name(cv)
+#endif
+
+
 /* Note: SwigMagicFuncHack is a typedef used to get the C++
    compiler to just shut up already */
 

@@ -406,7 +406,8 @@
 	 long long, unsigned long long,
 	 const int &, const short &, const long &,
 	const unsigned int &, const unsigned short &, const unsigned long &,
-	const long long &, const unsigned long long & 
+	const long long &, const unsigned long long &,
+	enum SWIGTYPE 
 {
   $1 = PyInt_Check($input) ? 1 : 0;
 }
@@ -415,10 +416,11 @@
 	float, double,
 	const float &, const double &
 {
-  $1 = PyFloat_Check($input) ? 1 : 0;
+  $1 = (PyFloat_Check($input) || PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }
 
 %typecheck(30) char {
+  $1 = (PyString_Check($input) && (PyString_Size($input) == 1)) ? 1 : 0;
 }
 
 %typecheck(31) char * {
