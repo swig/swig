@@ -1,6 +1,26 @@
 Version 1.3.22 (in progress)
 ==================================
 
+07/08/2004: wsfulton
+            The deprecated runtime library build has been removed. This also removes
+            the dependency on Libtool. Libtool is no longer required to build SWIG.
+            The associated -ldflags SWIG commandline option has also been removed.
+
+            The examples and test-suite testcases that used the runtime library have
+            been updated to use the replacement approach to using SWIG across 
+            multiple modules, that is they use the -noruntime and -runtime commandline
+            options, see Modules.html. Effectively they build their own runtime
+            libraries using -runtime. The examples are import and import_template.
+            The test cases are in the imports and template_typedef_import directories.
+
+            Anyone who wants the original runtime libraries can either run the test-suite
+            or build the examples and use the appropriate shared object/DLL that is
+            generated with the -runtime commandline option. For example libimports_runtime.so
+            (Python calls it lib_imports_runtime.so) is generated after running the 
+            'make imports.multicpptest' testcase in the Examples/test-suite/<lang>
+            directory. Or use libruntime.so / runtime.dll after building the import
+            examples in Examples/<lang>/import.
+
 07/07/2004: mkoeppe
 	    [Allegro CL] Convert character and string literals in constants to 
 	    CL syntax.  Fix FF:DEF-FOREIGN-CALL for mixed-case C functions.
