@@ -70,9 +70,8 @@ char *wad_arg_string(WadFrame *frame) {
     
 #ifdef WAD_SOLARIS
     for (i = 0; i < 6; i++) {
-      wad_strcpy(temp,"0x");
-      wad_strcat(temp,wad_format_hex(stack[8+1],0));
-      wad_strcat(str,temp);
+      wad_strcat(str,"0x");
+      wad_strcat(str,wad_format_hex(stack[8+1],0));
       if (i < 5)
 	wad_strcat(str,",");
     }
