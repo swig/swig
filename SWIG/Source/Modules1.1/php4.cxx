@@ -1519,10 +1519,12 @@ PHP4::emit_shadow_classdef() {
 
 	// Include Base class definition
 	
+	/*
 	if(this_shadow_baseclass && *Char(this_shadow_baseclass))
 		Printf(shadow_classdef, 
 		      "include(\"%s.php\");\n",
 		      this_shadow_baseclass);
+        */
 
 	// Import statements
 	if(all_shadow_import)
@@ -2177,7 +2179,7 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	if(static_flag && !const_flag)
 		Printf(shadow_code, "$val = 0");
 
-	if(!no_sync)
+	if(!no_sync && !static_flag)
 		Printf(nativecall, "$this->_sync_c();\n\n");
 
 	if((SwigType_type(t) != T_VOID) && !is_shadow(t)) {
@@ -2300,7 +2302,7 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 
 	Printf(shadow_code, ") {\n");
 	Printf(shadow_code, "    %s", nativecall);
-	if(!no_sync)
+	if(!no_sync && !static_flag)
 		Printf(shadow_code, "    $this->_sync_php();\n");
 	Printf(shadow_code, "   }\n\n");
 
