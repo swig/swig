@@ -65,10 +65,14 @@ extern "C" {
 
 #ifndef PERL_OBJECT
 extern int SWIG_ConvertPtr(SV *, void **, _swig_type_info *);
+extern void SWIG_MakePtr(SV *, void *, _swig_type_info *);
 #else
 extern int _SWIG_ConvertPtr(CPerlObj *, SV *, void **, _swig_type_info *);
+extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, _swig_type_info *);
 #define SWIG_ConvertPtr(a,b,c) _SWIG_ConvertPtr(pPerl,a,b,c)
+#define SWIG_MakePtr(a,b,c) _SWIG_MakePtr(pPerl,a,b,c)
 #endif
+
 #endif
 
 /* Function for getting a pointer value */
@@ -78,7 +82,7 @@ SWIGSTATICRUNTIME(int)
 SWIG_ConvertPtr(SV *sv, void **ptr, _swig_type_info *_t)
 #else
 #define SWIG_ConvertPtr(a,b,c) _SWIG_GetConvert(pPerl,a,b,c)
-SWIGSTATICRUNTIME(int *)
+SWIGSTATICRUNTIME(int)
 _SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, _swig_type_info *_t)
 #endif
 {
@@ -139,6 +143,17 @@ _SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, _swig_type_info *_t)
   }
   *ptr = (void *) tmp;
   return 0;
+}
+#ifndef PERL_OBJECT
+SWIGSTATICRUNTIME(void) 
+SWIG_MakePtr(SV *sv, void *ptr, _swig_type_info *t)
+#else
+#define SWIG_MakePtr(a,b,c) _SWIG_MakePtr(pPerl,a,b,c)
+SWIGSTATICRUNTIME(int *)
+_SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, _swig_type_info *t)
+#endif
+{
+  sv_setref_pv(sv, t->name, ptr);
 }
 
 /* Magic variable code */
