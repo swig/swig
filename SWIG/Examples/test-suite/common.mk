@@ -176,6 +176,7 @@ CPP_TEST_CASES += \
 	template_default2 \
 	template_default_inherit \
 	template_default_qualify \
+	template_default_vw \
 	template_enum \
 	template_enum_ns_inherit \
 	template_enum_typedef \
