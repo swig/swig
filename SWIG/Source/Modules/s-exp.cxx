@@ -94,10 +94,10 @@ public:
     indent_level += 2;
   }
 
-  void close_paren(bool need_newline = false)
+  void close_paren(bool neednewline = false)
   {
     hanging_parens++;
-    if (need_newline)
+    if (neednewline)
       print_lazy_whitespace();
     indent_level -= 2;
   }
