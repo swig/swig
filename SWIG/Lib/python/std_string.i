@@ -12,6 +12,10 @@
 // However, I think I'll wait until someone asks for it...
 // ------------------------------------------------------------------------
 
+// Use the following macro with modern STL implementations
+//#define SWIG_STD_STRING_MODERN
+
+
 %include exception.i
 %include std_container.i
 
@@ -23,6 +27,13 @@ namespace std {
   template <class _CharT> 
   class basic_string
   {
+#ifdef SWIG_STD_STRING_MODERN
+    %ignore push_back;
+    %ignore clear;
+    %ignore compare;
+    %ignore append;
+#endif
+
   public:
     typedef size_t size_type;    
     typedef ptrdiff_t difference_type;
