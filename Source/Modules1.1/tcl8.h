@@ -26,19 +26,17 @@ private:
 
 public :
   virtual void parse_args(int, char *argv[]);
-  virtual void parse();
+  virtual void initialize(String *);
   virtual void function(DOH *node);
   virtual void variable(DOH *node);
   virtual void constant(DOH *node);
-  virtual void initialize(void);
   virtual void close(void);
-  virtual void set_module(char *);
   virtual void nativefunction(DOH *);
-  virtual void create_command(char *, char *);
+  virtual void create_command(String *, String *);
 
   // Stubs for processing C++ classes in Tcl
 
-  virtual void cpp_open_class(char *classname, char *rename, char *ctype, int strip);
+  virtual void cpp_open_class(DOH *node);
   virtual void cpp_close_class();
   virtual void cpp_memberfunction(DOH *);
   virtual void cpp_variable(DOH *);

@@ -24,41 +24,35 @@
 class PYTHON : public Language {
 protected:
   void    get_pointer(char *src, char *dest, SwigType *t, String *f, char *ret);
-
-  void add_method(char *name, char *function, int kw);
+  void add_method(String *name, String *function, int kw);
   char *usage_func(char *, SwigType *, ParmList *);
-  void emitAddPragmas(String *output, char* name, char* spacing);
+
 public :
 
   // Don't change any of this
   virtual void parse_args(int, char *argv[]);
-  virtual void parse();
+  virtual void initialize(String *); 
   virtual void function(DOH *node);
   virtual void variable(DOH *node);
   virtual void constant(DOH *node);
   virtual void nativefunction(DOH *);
-
-  virtual void initialize(void);
   virtual void close(void);
-  virtual void set_module(char *);
-
-  virtual void create_command(char *, char *);
-  virtual void import(char *);
+  virtual void create_command(String *, String *);
+  virtual void import(String *modname);
 
   // C++ extensions---for creating shadow classes
   
   virtual void cpp_memberfunction(DOH *);
   virtual void cpp_constructor(DOH *);
   virtual void cpp_destructor(DOH *);
-  virtual void cpp_open_class(char *classname, char *rname, char *ctype, int strip);
+  virtual void cpp_open_class(DOH *);
   virtual void cpp_close_class();
-  virtual void cpp_inherit(char **baseclass, int mode = INHERIT_ALL);
+  virtual void cpp_inherit(List *bases, int mode = INHERIT_ALL);
   virtual void cpp_variable(DOH *);
   virtual void cpp_constant(DOH *);
-  virtual void cpp_class_decl(char *, char *,char *);
-  virtual void pragma(char *, char *, char *);
-  virtual void cpp_pragma(Pragma *);
-  virtual void add_typedef(SwigType *t, char *name);
+  virtual void cpp_class_decl(DOH *);
+  virtual void pragma(DOH *node);
+  virtual void add_typedef(SwigType *t, String *name);
 };
 
 #define PYSHADOW_MEMBER  0x2

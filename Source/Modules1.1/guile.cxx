@@ -23,7 +23,7 @@ static char cvsroot[] = "$Header$";
  * Definitions for adding functions to Guile
  ***********************************************************************/
 
-#include "mod11.h"
+#include "swig11.h"
 #include "guile.h"
 
 static char *guile_usage = (char*)"\
@@ -48,9 +48,6 @@ Guile Options (available with -guile)\n\
 
 GUILE::GUILE ()
 {
-  // Set global vars
-
-  typemap_lang = (char*)"guile";
 
   // Set class vars
 
@@ -101,16 +98,6 @@ GUILE::parse_args (int argc, char *argv[])
 	  Swig_mark_arg (i);
 	  Swig_mark_arg (i + 1);
 	  i++;
-	} else {
-	  Swig_arg_error();
-	}
-      }
-      else if (strcmp (argv[i], "-module") == 0) {
-	if (argv[i + 1]) {
-	  set_module (argv[i + 1]);
-	  Swig_mark_arg (i);
-	  Swig_mark_arg (i + 1);
-	  ++i;
 	} else {
 	  Swig_arg_error();
 	}
@@ -166,70 +153,17 @@ GUILE::parse_args (int argc, char *argv[])
 }
 
 // --------------------------------------------------------------------
-// GUILE::parse()
+// GUILE::initialize()
 //
-// Parse the input file
-// --------------------------------------------------------------------
+// Output initialization code that registers functions with the
+// interface.
+// ---------------------------------------------------------------------
 
 void
-GUILE::parse ()
+GUILE::initialize (String *modname)
 {
   printf ("Generating wrappers for Guile\n");
 
-  // Print out GUILE specific headers
-
-  headers();
-
-  // Run the parser
-
-  yyparse();
-}
-
-// ---------------------------------------------------------------------
-// GUILE::set_module(char *mod_name)
-//
-// Sets the module name.
-// Does nothing if it's already set (so it can be overridden as a command
-// line option).
-//
-//----------------------------------------------------------------------
-
-void
-GUILE::set_module (char *mod_name)
-{
-  if (module) {
-    printf ("module already set (%s), returning\n", module);
-    return;
-  }
-
-  module = new char [strlen (mod_name) + 1];
-  strcpy (module, mod_name);
-}
-
-// ---------------------------------------------------------------------
-// GUILE::set_init(char *iname)
-//
-// Sets the initialization function name.
-// Does nothing if it's already set
-//
-//----------------------------------------------------------------------
-
-void
-GUILE::set_init (char *iname)
-{
-  abort ();                             // for now -ttn
-  set_module (iname);
-}
-
-// ---------------------------------------------------------------------
-// GUILE::headers(void)
-//
-// Generate the appropriate header files for GUILE interface.
-// ----------------------------------------------------------------------
-
-void
-GUILE::headers (void)
-{
   Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
   Swig_banner (f_runtime);
 
@@ -240,18 +174,12 @@ GUILE::headers (void)
   if (NoInclude) {
     Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
   }
-}
 
-// --------------------------------------------------------------------
-// GUILE::initialize()
-//
-// Output initialization code that registers functions with the
-// interface.
-// ---------------------------------------------------------------------
+  if (!module) {
+    module = new char[Len(modname)+1];
+    strcpy(module, Char(modname));
+  }
 
-void
-GUILE::initialize (void)
-{
   switch (linkage) {
   case GUILE_LSTYLE_SIMPLE:
     /* Simple linkage; we have to export the SWIG_init function. The user can
@@ -456,8 +384,7 @@ guile_do_doc_typemap(DOHFile *file, const char *op,
 static void
 throw_unhandled_guile_type_error (SwigType *d)
 {
-  Printf (stderr, "%s : Line %d. Unable to handle type %s.\n",input_file, line_number, SwigType_str(d,0));
-  error_count++;
+  Printf (stderr, "%s:%d. Unable to handle type %s.\n",Getfile(d), Getline(d), SwigType_str(d,0));
 }
 
 // ----------------------------------------------------------------------
@@ -518,7 +445,6 @@ GUILE::function (DOH *node) {
     Printf(f,"SCM s_%d", i);
   }
   Printf(f,")\n{\n");
-  Printf(f,"$locals\n");
 
   /* Define the scheme name in C. This define is used by several Guile
      macros. */
@@ -773,7 +699,7 @@ GUILE::variable (DOH *node)
 
     Printf (f_wrappers, "SCM %s(SCM s_0) {\n", var_name);
 
-    if (!(Status & STAT_READONLY) && SwigType_type(t) == T_STRING) {
+    if (!(ReadOnly) && SwigType_type(t) == T_STRING) {
       Printf (f_wrappers, "\t char *_temp;\n");
       Printf (f_wrappers, "\t int  _len;\n");
     }
@@ -785,7 +711,7 @@ GUILE::variable (DOH *node)
 
     // Yup. Extract the type from s_0 and set variable value
 
-    if (Status & STAT_READONLY) {
+    if (ReadOnly) {
       Printf (f_wrappers, "\t\t scm_misc_error(\"%s\", "
 	       "\"Unable to set %s. Variable is read only.\", SCM_EOL);\n",
 	       proc_name, proc_name);
@@ -846,7 +772,7 @@ GUILE::variable (DOH *node)
     // Now add symbol to the Guile interpreter
 
     if (!emit_setters
-	|| Status & STAT_READONLY) {
+	|| ReadOnly) {
       /* Read-only variables become a simple procedure returning the
 	 value. */
       Printf (f_init, "\t gh_new_procedure(\"%s\", %s, 0, 1, 0);\n",
@@ -865,7 +791,7 @@ GUILE::variable (DOH *node)
       /* Compute documentation */
       String *signature = NewString("");
 
-      if (Status & STAT_READONLY) {
+      if (ReadOnly) {
 	Printv(signature, "(", proc_name, ")\n", 0);
 	Printv(signature, "Returns constant ", 0);
 	guile_do_doc_typemap(signature, "varoutdoc", t, NULL,
@@ -890,9 +816,9 @@ GUILE::variable (DOH *node)
     }
 
   } else {
-    Printf (stderr, "%s : Line %d. ** Warning. Unable to link with "
+    Printf (stderr, "%s:%d. ** Warning. Unable to link with "
              " type %s (ignored).\n",
-             input_file, line_number, SwigType_str(t,0));
+             Getfile(node), Getline(node), SwigType_str(t,0));
   }
   Delete(proc_name);
   Delete(f);
@@ -911,7 +837,7 @@ GUILE::constant(DOH *node)
   char   *name;
   SwigType *type;
   char   *value;
-  int OldStatus = Status;      // Save old status flags
+  int OldStatus = ReadOnly;      // Save old status flags
   DOHString *proc_name;
   char   var_name[256];
   DOHString *rvalue;
@@ -923,7 +849,7 @@ GUILE::constant(DOH *node)
   value = GetChar(node,"value");
 
   f = NewWrapper();
-  Status = STAT_READONLY;      // Enable readonly mode.
+  ReadOnly = 1;      // Enable readonly mode.
 
   // Make a static variable;
 
@@ -934,8 +860,8 @@ GUILE::constant(DOH *node)
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
   if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
-    Printf (stderr, "%s : Line %d.  Unsupported constant value.\n",
-             input_file, line_number);
+    Printf (stderr, "%s:%d.  Unsupported constant value.\n",
+             Getfile(node), Getline(node));
     return;
   }
 
@@ -968,7 +894,7 @@ GUILE::constant(DOH *node)
     Setattr(nnode,"name",var_name);
     variable(nnode);
     Delete(nnode);
-    Status = OldStatus;
+    ReadOnly = OldStatus;
   }
   Delete(proc_name);
   Delete(rvalue);

@@ -11,7 +11,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "mod11.h"
+#include "swig11.h"
 #include "python.h"
 
 static  String       *const_code = 0;
@@ -31,7 +31,6 @@ static  String       *classes;
 static  String       *func;
 static  String       *vars;
 static  String       *pragma_include = 0;
-static  String       *import_file = 0;
 static  String       *methods;
 static  char         *class_name;
 
@@ -64,18 +63,8 @@ PYTHON::parse_args(int argc, char *argv[]) {
 
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
-	  if(strcmp(argv[i],"-module") == 0) {
-	    if (argv[i+1]) {
-	      module = NewString(argv[i+1]);
-	      Swig_mark_arg(i);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
-	    }
-
 	  /* Added edz@bsn.com */
-          } else if(strcmp(argv[i],"-interface") == 0) {
+	if(strcmp(argv[i],"-interface") == 0) {
             if (argv[i+1]) {
               interface = NewString(argv[i+1]);
               Swig_mark_arg(i);
@@ -113,14 +102,35 @@ PYTHON::parse_args(int argc, char *argv[]) {
   }
   if (!global_name) global_name = NewString("cvar");
   Preprocessor_define((void *) "SWIGPYTHON", 0);
-  typemap_lang = (char*)"python";
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::parse()
+ * PYTHON::import()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::parse() {
+PYTHON::import(String *modname) {
+  if (shadow) {
+    Printf(f_shadow,"\nfrom %s import *\n", modname);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * PYTHON::add_method()
+ * ----------------------------------------------------------------------------- */
+void
+PYTHON::add_method(String *name, String *function, int kw) {
+  if (!kw)
+    Printf(methods,"\t { \"%s\", %s, METH_VARARGS },\n", name, function);
+  else
+    Printf(methods,"\t { \"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", name, function);
+}
+
+/* -----------------------------------------------------------------------------
+ * PYTHON::initialize()
+ * ----------------------------------------------------------------------------- */
+void
+PYTHON::initialize(String *modname) {
+  char  filen[256];
 
   hash           = NewHash();
   symbols        = NewHash();
@@ -146,62 +156,9 @@ PYTHON::parse() {
     Printf(stderr,"SWIG : Fatal error. Unable to locate python.swg. (Possible installation problem).\n");
     SWIG_exit (EXIT_FAILURE);
   }
-  yyparse();
-}
+  
+  if (!module) module = NewString(modname);
 
-/* -----------------------------------------------------------------------------
- * PYTHON::set_module()
- * ----------------------------------------------------------------------------- */
-void
-PYTHON::set_module(char *mod_name) {
-
-  /* If an "import" method has been set and we're in shadow class mode,
-     output a python command to load the module */
-
-  if (import_file) {
-    if (!(strcmp(Char(import_file),input_file+strlen(input_file)-strlen(Char(import_file))))) {
-      if (shadow) {
-	Printf(f_shadow,"\nfrom %s import *\n", mod_name);
-      }
-      Delete(import_file);
-      import_file = 0;
-    }
-  }
-  if (module) return;
-  module = NewString(mod_name);
-}
-
-/* -----------------------------------------------------------------------------
- * PYTHON::import(char *filename)
- * ----------------------------------------------------------------------------- */
-void
-PYTHON::import(char *filename) {
-  if (import_file) Delete(import_file);
-  import_file = NewString(filename);
-}
-
-/* -----------------------------------------------------------------------------
- * PYTHON::add_method()
- * ----------------------------------------------------------------------------- */
-void
-PYTHON::add_method(char *name, char *function, int kw) {
-  if (!kw)
-    Printf(methods,"\t { \"%s\", %s, METH_VARARGS },\n", name, function);
-  else
-    Printf(methods,"\t { \"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", name, function);
-}
-
-/* -----------------------------------------------------------------------------
- * PYTHON::initialize()
- * ----------------------------------------------------------------------------- */
-void
-PYTHON::initialize(void) {
-  char  filen[256];
-
-  if (!module) {
-    Printf(stderr,"*** Error. No module name specified.\n");
-    SWIG_exit (EXIT_FAILURE);
-  }
   /* If shadow classing is enabled, we're going to change the module name to "modulec" */
   if (shadow) {
 
@@ -314,8 +271,8 @@ PYTHON::get_pointer(char *src, char *dest, SwigType *t, String *f, char *ret) {
  * PYTHON::create_command()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::create_command(char *cname, char *iname) {
-  add_method(iname, Char(Swig_name_wrapper(cname)), use_kw);
+PYTHON::create_command(String *cname, String *iname) {
+  add_method(iname, Swig_name_wrapper(cname), use_kw);
 }
 
 /* -----------------------------------------------------------------------------
@@ -371,7 +328,6 @@ PYTHON::function(DOH *node) {
 	   "(PyObject *self, PyObject *args, PyObject *kwargs) {",
 	   0);
   }
-  Printf(f,"$locals\n");
   Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
 
   /* Get the function usage string for later use */
@@ -505,7 +461,7 @@ PYTHON::function(DOH *node) {
 	  break;
 
 	default :
-	  Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
+	  Printf(stderr,"%s:%d. Unable to use type %s as a function argument.\n",Getfile(node), Getline(node), SwigType_str(pt,0));
 	  break;
 	}
 
@@ -589,7 +545,7 @@ PYTHON::function(DOH *node) {
       Printf(f,"    resultobj = Py_None;\n");
       break;
     default :
-      Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
+      Printf(stderr,"%s:%d. Unable to use return type %s in function %s.\n", Getfile(node), Getline(node), SwigType_str(d,0), name);
       break;
     }
   }
@@ -713,8 +669,7 @@ PYTHON::variable(DOH *node) {
     /* Create a function for setting the value of the variable */
 
     Printf(setf,"static int %s_set(PyObject *val) {\n", wname);
-    Printf(setf,"$locals\n");
-    if (!(Status & STAT_READONLY)) {
+    if (!ReadOnly) {
       if ((tm = Swig_typemap_lookup((char*)"varin",t,name,(char*)"val",name,0))) {
 	Printf(setf,"%s\n",tm);
 	Replace(setf,"$name",iname, DOH_REPLACE_ANY);
@@ -726,39 +681,39 @@ PYTHON::variable(DOH *node) {
 	case T_SCHAR: case T_UCHAR: case T_BOOL:
 	  Wrapper_add_localv(setf,"tval",SwigType_lstr(t,0),"tval",0);
 	  Printv(setf,
-		 tab4, "tval = (", SwigType_lstr(t,0), ") PyInt_AsLong(val);\n",
-		 tab4, "if (PyErr_Occurred()) {\n",
-		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
+		 "tval = (", SwigType_lstr(t,0), ") PyInt_AsLong(val);\n",
+		 "if (PyErr_Occurred()) {\n",
+		 "PyErr_SetString(PyExc_TypeError,\"C variable '",
 		 iname, "'(", SwigType_str(t,0), ")\");\n",
-		 tab8, "return 1; \n",
-		 tab4, "}\n",
-		 tab4, name, " = tval;\n",
+		 "return 1; \n",
+		 "}\n",
+		 name, " = tval;\n",
 		 0);
 	  break;
 
 	case T_FLOAT: case T_DOUBLE:
 	  Wrapper_add_localv(setf,"tval",SwigType_lstr(t,0), "tval",0);
 	  Printv(setf,
-		 tab4, "tval = (", SwigType_lstr(t,0), ") PyFloat_AsDouble(val);\n",
-		 tab4, "if (PyErr_Occurred()) {\n",
-		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
+		 "tval = (", SwigType_lstr(t,0), ") PyFloat_AsDouble(val);\n",
+		 "if (PyErr_Occurred()) {\n",
+		 "PyErr_SetString(PyExc_TypeError,\"C variable '",
 		 iname, "'(", SwigType_str(t,0), ")\");\n",
-		 tab8, "return 1; \n",
-		 tab4, "}\n",
-		 tab4, name, " = tval;\n",
+		 "return 1; \n",
+		 "}\n",
+		 name, " = tval;\n",
 		 0);
 	  break;
 
 	case T_CHAR:
 	  Wrapper_add_local(setf,"tval","char * tval");
 	  Printv(setf,
-		 tab4, "tval = (char *) PyString_AsString(val);\n",
-		 tab4, "if (PyErr_Occurred()) {\n",
-		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
+		 "tval = (char *) PyString_AsString(val);\n",
+		 "if (PyErr_Occurred()) {\n",
+		 "PyErr_SetString(PyExc_TypeError,\"C variable '",
 		 iname, "'(", SwigType_str(t,0), ")\");\n",
-		 tab8, "return 1; \n",
-		 tab4, "}\n",
-		 tab4, name, " = *tval;\n",
+		 "return 1; \n",
+		 "}\n",
+		 name, " = *tval;\n",
 		 0);
 	  break;
 
@@ -766,32 +721,32 @@ PYTHON::variable(DOH *node) {
 	  SwigType_add_pointer(t);
 	  Wrapper_add_localv(setf,"temp",SwigType_lstr(t,0),"temp",0);
 	  get_pointer((char*)"val",(char*)"temp",t,setf,(char*)"1");
-	  Printv(setf, tab4, name, " = *temp;\n", 0);
+	  Printv(setf, name, " = *temp;\n", 0);
 	  SwigType_del_pointer(t);
 	  break;
 
 	case T_STRING:
 	  Wrapper_add_local(setf,"tval","char * tval");
 	  Printv(setf,
-		 tab4, "tval = (char *) PyString_AsString(val);\n",
-		 tab4, "if (PyErr_Occurred()) {\n",
-		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
+		 "tval = (char *) PyString_AsString(val);\n",
+		 "if (PyErr_Occurred()) {\n",
+		 "PyErr_SetString(PyExc_TypeError,\"C variable '",
 		 iname, "'(", SwigType_str(t,0), ")\");\n",
-		 tab8, "return 1; \n",
-		 tab4, "}\n",
+		 "return 1; \n",
+		 "}\n",
 		 0);
 
 	  if (CPlusPlus) {
 	    Printv(setf,
-		   tab4, "if (", name, ") delete [] ", name, ";\n",
-		   tab4, name, " = new char[strlen(tval)+1];\n",
-		   tab4, "strcpy((char *)", name, ",tval);\n",
+		   "if (", name, ") delete [] ", name, ";\n",
+		   name, " = new char[strlen(tval)+1];\n",
+		   "strcpy((char *)", name, ",tval);\n",
 		   0);
 	  } else {
 	    Printv(setf,
-		   tab4, "if (", name, ") free((char*)", name, ");\n",
-		   tab4, name, " = (char *) malloc(strlen(tval)+1);\n",
-		   tab4, "strcpy((char *)", name, ",tval);\n",
+		   "if (", name, ") free((char*)", name, ");\n",
+		   name, " = (char *) malloc(strlen(tval)+1);\n",
+		   "strcpy((char *)", name, ",tval);\n",
 		   0);
 	  }
 	  break;
@@ -811,9 +766,9 @@ PYTHON::variable(DOH *node) {
 	    }
 	    if (!setable) {
 	      Printv(setf,
-		     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
+		     "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
 		     " is read-only.\");\n",
-		     tab4, "return 1;\n",
+		     "return 1;\n",
 		     0);
 	    }
 	    Delete(ta);
@@ -824,20 +779,20 @@ PYTHON::variable(DOH *node) {
 	case T_POINTER: case T_REFERENCE:
 	  Wrapper_add_localv(setf,"temp", SwigType_lstr(t,0), "temp",0);
 	  get_pointer((char*)"val",(char*)"temp",t,setf,(char*)"1");
-	  Printv(setf,tab4, name, " = temp;\n", 0);
+	  Printv(setf, name, " = temp;\n", 0);
 	  break;
 
 	default:
-	  Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, SwigType_str(t,0));
+	  Printf(stderr,"%s:%d. Unable to link with type %s.\n", Getfile(node), Getline(node), SwigType_str(t,0));
 	}
       }
       Printf(setf,"    return 0;\n");
     } else {
       /* Is a readonly variable.  Issue an error */
       Printv(setf,
-	     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
+	     "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
 	     " is read-only.\");\n",
-	     tab4, "return 1;\n",
+	     "return 1;\n",
 	     0);
     }
 
@@ -846,7 +801,6 @@ PYTHON::variable(DOH *node) {
 
     /* Create a function for getting the value of a variable */
     Printf(getf,"static PyObject *%s_get() {\n", wname);
-    Printf(getf,"$locals\n");
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
     if ((tm = Swig_typemap_lookup((char*)"varout",t,name,name,(char*)"pyobj",0))) {
       Printf(getf,"%s\n",tm);
@@ -860,42 +814,51 @@ PYTHON::variable(DOH *node) {
       case T_SHORT: case T_USHORT:
       case T_LONG: case T_ULONG:
       case T_SCHAR: case T_UCHAR: case T_BOOL:
-	Printv(getf, tab4, "pyobj = PyInt_FromLong((long) ", name, ");\n", 0);
+	Printv(getf, "pyobj = PyInt_FromLong((long) ", name, ");\n", 0);
 	break;
       case T_FLOAT: case T_DOUBLE:
-	Printv(getf, tab4, "pyobj = PyFloat_FromDouble((double) ", name, ");\n", 0);
+	Printv(getf, "pyobj = PyFloat_FromDouble((double) ", name, ");\n", 0);
 	break;
       case T_CHAR:
 	Wrapper_add_local(getf,"ptemp","char ptemp[2]");
 	Printv(getf,
-	       tab4, "ptemp[0] = ", name, ";\n",
-	       tab4, "ptemp[1] = 0;\n",
-	       tab4, "pyobj = PyString_FromString(ptemp);\n",
+	       "ptemp[0] = ", name, ";\n",
+	       "ptemp[1] = 0;\n",
+	       "pyobj = PyString_FromString(ptemp);\n",
 	       0);
 	break;
       case T_USER:
 	SwigType_add_pointer(t);
 	SwigType_remember(t);
 	Printv(getf,
-	       tab4, "pyobj = SWIG_NewPointerObj((void *) &", name ,
+	       "pyobj = SWIG_NewPointerObj((void *) &", name ,
 	       ", SWIGTYPE", SwigType_manglestr(t), ");\n",
 	       0);
 	SwigType_del_pointer(t);
 	break;
       case T_STRING:
 	Printv(getf,
-	       tab4, "if (", name, ")\n",
-	       tab8, "pyobj = PyString_FromString(", name, ");\n",
-	       tab4, "else pyobj = PyString_FromString(\"(NULL)\");\n",
+	       "if (", name, ")\n",
+	       "pyobj = PyString_FromString(", name, ");\n",
+	       "else pyobj = PyString_FromString(\"(NULL)\");\n",
 	       0);
 	break;
 
       case T_POINTER: case T_ARRAY: case T_REFERENCE:
-	SwigType_remember(t);
-	Printv(getf,
-	       tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
-	       ", SWIGTYPE", SwigType_manglestr(t), ");\n",
-	       0);
+	{
+	  SwigType *ta = Copy(t);
+	  SwigType_pop(ta);
+	  if (SwigType_type(ta) == T_CHAR) {
+	    Printv(getf,"pyobj = PyString_FromString(", name, ");\n", 0);
+	  } else {
+	    SwigType_remember(t);
+	    Printv(getf,
+		   "pyobj = SWIG_NewPointerObj((void *)", name,
+		   ", SWIGTYPE", SwigType_manglestr(t), ");\n",
+		   0);
+	  }
+	  Delete(ta);
+	}
 	break;
 
       default:
@@ -946,24 +909,24 @@ PYTHON::constant(DOH *node) {
     case T_SHORT: case T_USHORT:
     case T_LONG: case T_ULONG:
     case T_SCHAR: case T_UCHAR:
-      Printv(const_code, tab4, "{ SWIG_PY_INT,     \"", name, "\", (long) ", value, ", 0, 0, 0},\n", 0);
+      Printv(const_code, "{ SWIG_PY_INT,     \"", name, "\", (long) ", value, ", 0, 0, 0},\n", 0);
       break;
     case T_DOUBLE:
     case T_FLOAT:
-      Printv(const_code, tab4, "{ SWIG_PY_FLOAT,   \"", name, "\", 0, (double) ", value, ", 0,0},\n", 0);
+      Printv(const_code, "{ SWIG_PY_FLOAT,   \"", name, "\", 0, (double) ", value, ", 0,0},\n", 0);
       break;
     case T_CHAR :
-      Printf(const_code,"    { SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", name, value);
+      Printf(const_code, "{ SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", name, value);
       break;
     case T_STRING:
-      Printf(const_code,"    { SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", name, value);
+      Printf(const_code,"{ SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", name, value);
       break;
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
       SwigType_remember(type);
-      Printv(const_code, tab4, "{ SWIG_PY_POINTER, \"", name, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", SwigType_manglestr(type), "}, \n", 0);
+      Printv(const_code, "{ SWIG_PY_POINTER, \"", name, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", SwigType_manglestr(type), "}, \n", 0);
       break;
     default:
-      Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+      Printf(stderr,"%s:%d. Unsupported constant value. %s, %d\n", Getfile(node), Getline(node), name, SwigType_type(type));
       return;
       break;
     }
@@ -1039,76 +1002,63 @@ PYTHON::nativefunction(DOH *node) {
  * PYTHON::cpp_class_decl() - Register a class definition
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::cpp_class_decl(char *name, char *rename, char *type) {
-    String *stype;
-    if (shadow) {
-      stype = NewString(name);
-      SwigType_add_pointer(stype);
-      Setattr(hash,stype,rename);
-      Delete(stype);
-      /* Add full name of datatype to the hash table */
-      if (strlen(type) > 0) {
-	stype = NewStringf("%s %s", type, name);
+PYTHON::cpp_class_decl(DOH *node) {
+  String *name = Getname(node);
+  String *rename = Getattr(node,"scriptname");
+  String *ctype  = Getattr(node,"classtype");
+  String *stype;
+  if (shadow) {
+    stype = NewString(name);
+    SwigType_add_pointer(stype);
+    Setattr(hash,stype,rename);
+    Delete(stype);
+    /* Add full name of datatype to the hash table */
+    if (Len(ctype) > 0) {
+	stype = NewStringf("%s %s", ctype, name);
 	SwigType_add_pointer(stype);
 	Setattr(hash,stype,rename);
 	Delete(stype);
-      }
     }
+  }
 }
 
 /* -----------------------------------------------------------------------------
  * PYTHON::pragma()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::pragma(char *lang, char *cmd, char *value) {
+PYTHON::pragma(DOH *node) {
+  String *name;
+  String *value;
+  name = Getattr(node,"name");
+  value = Getattr(node,"value");
 
-    if (strcmp(lang,(char*)"python") == 0) {
-	if (strcmp(cmd,"CODE") == 0) {
-	  if (shadow) {
-	    Printf(f_shadow,"%s\n",value);
-	  }
-	} else if (strcmp(cmd,"code") == 0) {
-	  if (shadow) {
-	    Printf(f_shadow,"%s\n",value);
-	  }
-	} else if (strcmp(cmd,"include") == 0) {
-	  if (shadow) {
-	    if (value) {
-	      FILE *f = Swig_open(value);
-	      if (!f) {
-		Printf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number,value);
-	      } else {
-		char buffer[4096];
-		while (fgets(buffer,4095,f)) {
-		  Printv(pragma_include,buffer,0);
-		}
-	      }
-	    }
-	  }
-	} else {
-	  Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
-	}
+  if (Cmp(name,"code") == 0) {
+    if (shadow) {
+      Printf(f_shadow,"%s\n",value);
     }
+  } else if (Cmp(name,"include") == 0) {
+    if (shadow) {
+      if (value) {
+	FILE *f = Swig_open(value);
+	if (!f) {
+	  Printf(stderr,"%s:%d. Unable to locate file %s\n", Getfile(node), Getline(node),value);
+	} else {
+	  char buffer[4096];
+	  while (fgets(buffer,4095,f)) {
+	    Printv(pragma_include,buffer,0);
+	  }
+	}
+      }
+    }
+  }
 }
 
-struct PyPragma {
-  String  *m_method;
-  String  *m_text;
-  PyPragma  *next;
-  PyPragma(char *method, char *text) {
-    m_method = NewString(method);
-    m_text = NewString(text);
-    next = 0;
-  }
-  ~PyPragma() {
-    Delete(m_method);
-    Delete(m_text);
-    if (next) delete next;
-  }
-};
-
-static PyPragma *pragmas = 0;
-
+#ifdef OLD
+/* C++ pragmas are no longer handled as a special case.  The generic %pragma
+   directive may used in or outside of a class.  Therefore, this functionality
+   should be moved into the pragma method, not handled here.  -- Dave. (12/14/00).
+*/
+   
 /* -----------------------------------------------------------------------------
  * PYTHON::cpp_pragma() - Handle C++ pragmas
  * ----------------------------------------------------------------------------- */
@@ -1176,6 +1126,8 @@ PYTHON::emitAddPragmas(String *output, char* name, char* spacing) {
   }
 }
 
+#endif
+
 /* C++ Support + Shadow Classes */
 
 static  String   *setattr = 0;
@@ -1201,9 +1153,13 @@ static  int       class_renamed = 0;
  * PYTHON::cpp_open_class()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
-  this->Language::cpp_open_class(classname, rname, ctype, strip);
+PYTHON::cpp_open_class(DOH *node) {
+  this->Language::cpp_open_class(node);
 
+  char *classname = GetChar(node,"name");
+  char *rname = GetChar(node,"scriptname");
+  char *ctype = GetChar(node,"classtype");
+  
   if (shadow) {
     /* Create new strings for building up a wrapper function */
     setattr   = NewString("");
@@ -1233,7 +1189,7 @@ PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
   real_classname = Swig_copy_string(classname);
   class_type = Swig_copy_string(ctype);
 
-  cpp_class_decl(real_classname,class_name,class_type);
+  cpp_class_decl(node);
 
   if (shadow) {
     Printv(setattr,
@@ -1353,7 +1309,7 @@ PYTHON::cpp_constructor(DOH *node) {
       else
 	Printv(construct, tab8, "self.this = apply(", module, ".", Swig_name_construct(realname), ",args)\n", 0);
       Printv(construct, tab8, "self.thisown = 1\n", 0);
-      emitAddPragmas(construct,(char*)"__init__",(char*)tab8);
+      //      emitAddPragmas(construct,(char*)"__init__",(char*)tab8);
       have_constructor = 1;
     } else {
       /* Hmmm. We seem to be creating a different constructor.  We're just going to create a
@@ -1394,7 +1350,7 @@ PYTHON::cpp_destructor(DOH *node) {
     else realname = class_renamed ? class_name : name;
 
     Printv(pyclass, tab4, "def __del__(self,", module, "=", module, "):\n", 0);
-    emitAddPragmas(pyclass,(char*)"__del__",(char*)tab8);
+    //   emitAddPragmas(pyclass,(char*)"__del__",(char*)tab8);
     Printv(pyclass, tab8, "if self.thisown == 1 :\n",
 	   tab8, tab4, module, ".", Swig_name_destroy(realname), "(self)\n", 0);
 
@@ -1452,7 +1408,7 @@ PYTHON::cpp_close_class() {
 	     0);
 
       Printv(classes,repr,0);
-      emitAddPragmas(classes,(char*)"__class__",(char*)tab4);
+      //     emitAddPragmas(classes,(char*)"__class__",(char*)tab4);
     }
 
     /* Now build the real class with a normal constructor */
@@ -1480,24 +1436,26 @@ PYTHON::cpp_close_class() {
  * PYTHON::cpp_inherit() - Handle inheritance
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::cpp_inherit(char **baseclass,int) {
+PYTHON::cpp_inherit(List *bases,int) {
   char *bc;
-  int   i = 0, first_base = 0;
+  String *base;
+  int   first_base = 0;
 
   if (!shadow) {
-    this->Language::cpp_inherit(baseclass);
+    this->Language::cpp_inherit(bases);
     return;
   }
 
   /* We'll inherit variables and constants, but not methods */
-  this->Language::cpp_inherit(baseclass, INHERIT_VAR);
+  this->Language::cpp_inherit(bases, INHERIT_VAR);
 
-  if (!baseclass) return;
+  if (!bases) return;
   base_class = NewString("");
 
   /* Now tell the Python module that we're inheriting from a base class */
-  while (baseclass[i]) {
-    String *bs = NewString(baseclass[i]);
+
+  for (base = Firstitem(bases); base; base = Nextitem(bases)) {
+    String *bs = NewString(base);
     SwigType_add_pointer(bs);
     bc = GetChar(hash,bs);
     if (bc) {
@@ -1506,7 +1464,6 @@ PYTHON::cpp_inherit(char **baseclass,int) {
       first_base = 1;
     }
     Delete(bs);
-    i++;
   }
   if (!first_base) {
     Delete(base_class);
@@ -1547,7 +1504,7 @@ PYTHON::cpp_variable(DOH *node) {
     /* Figure out if we've seen this datatype before */
     if (is_shadow(t)) inhash = 1;
 
-    if (Status & STAT_READONLY) {
+    if (ReadOnly) {
       /*      *setattr << tab8 << tab4 << "raise RuntimeError, \'Member is read-only\'\n"; */
     } else {
       Printv(csetattr, tab8, "\"", realname, "\" : ", module, ".", Swig_name_set(Swig_name_member(class_name,realname)), ",\n", 0);
@@ -1594,9 +1551,13 @@ PYTHON::cpp_constant(DOH *node) {
  * PYTHON::add_typedef() - Manage typedef's for shadow classes
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::add_typedef(SwigType *t, char *name) {
+PYTHON::add_typedef(SwigType *t, String *name) {
   if (!shadow) return;
   if (is_shadow(t)) {
-    cpp_class_decl(name,Char(is_shadow(t)),"");
+    DOH *node = NewHash();
+    Setname(node,name);
+    Setattr(node,"scriptname", is_shadow(t));
+    Setattr(node,"classtype","");
+    cpp_class_decl(node);
   }
 }

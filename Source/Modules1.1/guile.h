@@ -43,16 +43,12 @@ private:
 public :
   GUILE ();
   void parse_args (int, char *argv[]);
-  void parse ();
+  void initialize(String *module);
   void function (DOH *node);
   void variable (DOH *node);
   void constant (DOH *node);
-  void initialize ();
-  void headers (void);
   void close (void);
-  void set_module(char *);
-  void set_init (char *);
-  void create_command (char *, char *) { };
+  void create_command (String *, String *) { };
   void cpp_variable(DOH *node);
 };
 
