@@ -1,6 +1,52 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/16/2004: wsfulton
+            Templated functions with default arguments working with new default argument
+            wrapping approach. The new approach no longer fails with the following default
+            argument pattern (previously failed with some primitive types, like 
+            unsigned primitive types):
+
+              template<typename T> int foo(const T& u = T());
+              %template(foo) foo<unsigned int>;
+
+            This relies on the templated function overloading support just added, so all
+            the combinations of overloading by template parameters and normal parameters
+            as well as overloading with default parameters works.
+
+10/16/2004: wsfulton
+            Added support for the large range of templated function overloading that C++
+            supports.
+
+            - Overloaded templated functions, eg
+
+              template<typename T> int overload(T t);
+              template<typename T> int overload(T t, const T &r);
+
+            - Fixes where the templated type is not used in the parameter list, eg
+
+              template<typename T> void xyz();
+              template<> void xyz<double>();
+
+            - Fixes for overloading of plain functions by a templated function:
+
+              void abc(double d);
+              template<typename T> void abc(T t);
+
+            - Overloading by templated parameters fixed:
+
+              template<typename T> void foo(T t) {}
+              template<typename T, typename U> void foo(T t, U u) {}
+
+              %template(foo) foo<double, double>;
+
+            - All combinations of the above also working including specializations, eg:
+
+              void abc(double d);
+              template<typename T> void abc(T t);
+              template<> void abc<double>(double t);
+              template<> void abc(int t);
+
 10/16/2004: wuzzeb (John Lenz)
             - Remove the ability to share type information by using c linking.
               All type sharing happens through a global variable in the target language.
