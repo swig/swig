@@ -430,7 +430,6 @@ public:
 	    "argv = (value *)malloc( argc * sizeof( value ) );\n"
 	    "for( i = 0; i < argc; i++ ) {\n"
 	    "  argv[i] = caml_list_nth(args,i);\n"
-	    "  register_global_root( &argv[i] );\n"
 	    "}\n", NIL );
 
     // Declare return variable and arguments
