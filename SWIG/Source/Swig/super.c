@@ -78,12 +78,12 @@ static int Super_read(DOH *s, void *buffer, int length);
 static long Super_tell(DOH *s);
  static int Super_putc(DOH *s, int ch);
 static int Super_getc(DOH *s);
- static int Super_ungetc(DOH *s, int ch);
+static int Super_ungetc(DOH *s, int ch);
  static int Super_replace(DOH *str, DOH *token, DOH *rep, int flags);    
- static void Super_setfile(DOH *s, DOH *f);
- static void Super_setline(DOH *s, int);
- static DOH * Super_getfile(DOH *s);
- static int Super_getline(DOH *s);
+static void Super_setfile(DOH *s, DOH *f);
+static void Super_setline(DOH *s, int);
+static DOH * Super_getfile(DOH *s);
+static int Super_getline(DOH *s);
  static void Super_chop(DOH *str);
 
 /* internal functions */
@@ -757,8 +757,6 @@ Super_chop(DOH *so) {
    int len, tag, offset;
    Super *s = (Super *) so;
   
-   /* check this one for obiwans */
-
    s->hashkey = -1;
    s->pbi = 0;
 
@@ -775,9 +773,8 @@ Super_chop(DOH *so) {
    tag = Super_get_tag(s, len, &offset);
 
    /* Delete any relevant tags... */
-   while (--s->numtags > tag)
-      Delete(s->tags[s->numtags].filename);
-   s->numtags++;
+   while (s->numtags > tag + 1)
+     Super_delete_tag(s, --s->numtags);
    s->tags[tag].length = offset;
 
    s->len = len;
