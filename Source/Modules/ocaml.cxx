@@ -56,6 +56,8 @@ static  File         *f_mlout = 0;
 static  File         *f_mliout = 0;
 static  File         *f_mlbody = 0;
 static  File         *f_mlibody = 0;
+static  File         *f_mltail = 0;
+static  File         *f_mlitail = 0;
 static  File         *f_enumtypes_type = 0;
 static  File         *f_enumtypes_value = 0;
 static  File         *f_class_ctors = 0;
@@ -225,6 +227,8 @@ public:
 	init_func_def = NewString("");
 	f_mlbody = NewString("");
 	f_mlibody = NewString("");
+	f_mltail = NewString("");
+	f_mlitail = NewString("");
 	f_class_ctors = NewString("");
 	f_class_ctors_end = NewString("");
 	f_enum_to_int = NewString("");
@@ -244,6 +248,8 @@ public:
 	Swig_register_filebyname("runtime",f_runtime);
 	Swig_register_filebyname("mli",f_mlibody);
 	Swig_register_filebyname("ml",f_mlbody);
+	Swig_register_filebyname("mlitail",f_mlitail);
+	Swig_register_filebyname("mltail",f_mltail);
 	Swig_register_filebyname("director",f_directors);
 	Swig_register_filebyname("director_h",f_directors_h);
 	Swig_register_filebyname("classtemplate",f_classtemplate);
@@ -265,7 +271,7 @@ public:
 		"     (let y = _y in match (x : c_enum_type) with\n"
 		"       `unknown -> "
 		"         (match (Obj.magic y) with\n"
-		"           `Int x -> C_int x\n"
+		"           `Int x -> Swig.C_int x\n"
 		"           | _ -> raise (LabelNotFromThisEnum v))\n" );
 
 	Printf( f_int_to_enum,
@@ -305,11 +311,11 @@ public:
 	Language::top(n);
 
 	Printf( f_enum_to_int, 
-		") | _ -> (C_int (get_int v))\n"
+		") | _ -> (Swig.C_int (get_int v))\n"
 		"let _ = Callback.register \"%s_enum_to_int\" enum_to_int\n", 
 		module );
 	Printf( f_mlibody, 
-		"val enum_to_int : c_enum_type -> c_obj -> c_obj\n" );
+		"val enum_to_int : c_enum_type -> c_obj -> Swig.c_obj\n" );
 
 	Printf( f_int_to_enum,
 		"let _ = Callback.register \"%s_int_to_enum\" int_to_enum\n",
@@ -351,12 +357,14 @@ public:
 	Delete(f_enum_to_int);
 	Dump(f_class_ctors,f_mlout);
 	Dump(f_class_ctors_end,f_mlout);
+	Dump(f_mltail,f_mlout);
 	Close(f_mlout);
 	Delete(f_mlout);
 
 	Dump(f_enumtypes_type,f_mliout);
 	Dump(f_enumtypes_value,f_mliout);
 	Dump(f_mlibody,f_mliout);
+	Dump(f_mlitail,f_mliout);
 	Close(f_mliout);
 	Delete(f_mliout);
 
@@ -894,21 +902,21 @@ public:
 	
 	if( Getattr( n, "feature:immutable" ) ) {
 	    Printf( f_mlbody, 
-		    "external _%s : c_obj -> c_obj = \"%s\" \n",
+		    "external _%s : Swig.c_obj -> Swig.c_obj = \"%s\" \n",
 		    mname, var_name );
-	    Printf( f_mlibody, "val _%s : c_obj -> c_obj\n", iname );
+	    Printf( f_mlibody, "val _%s : Swig.c_obj -> Swig.c_obj\n", iname );
 	    if( const_enum ) {
 		Printf( f_enum_to_int, 
-			" | `%s -> _%s C_void\n", 
+			" | `%s -> _%s Swig.C_void\n", 
 			mname, mname );
 		Printf( f_int_to_enum, 
-			" if y = (get_int (_%s C_void)) then `%s else\n",
+			" if y = (get_int (_%s Swig.C_void)) then `%s else\n",
 			mname, mname );
 	    }
 	} else {
-	    Printf( f_mlbody, "external _%s : c_obj -> c_obj = \"%s\"\n",
+	    Printf( f_mlbody, "external _%s : Swig.c_obj -> Swig.c_obj = \"%s\"\n",
 		    mname, var_name );
-	    Printf( f_mlibody, "external _%s : c_obj -> c_obj = \"%s\"\n",
+	    Printf( f_mlibody, "external _%s : Swig.c_obj -> Swig.c_obj = \"%s\"\n",
 		    mname, var_name );
 	}
 
@@ -1182,7 +1190,7 @@ public:
 
 	/* Insert sizeof operator for concrete classes */
 	if( sizeof_feature ) {
-	    Printv(f_class_ctors, "\"sizeof\" , (fun args -> C_int (__",
+	    Printv(f_class_ctors, "\"sizeof\" , (fun args -> Swig.C_int (__",
 		   classname, "_sizeof ())) ;\n", NIL);
 	}
 	/* Handle up-casts in a nice way */
@@ -1421,7 +1429,7 @@ public:
 	if( const_enum ) {
 	    Printf( f_int_to_enum, "`Int y)\n" );
 	    Printf( f_enum_to_int, 
-		    "| `Int x -> C_int x\n"
+		    "| `Int x -> Swig.C_int x\n"
 		    "| _ -> raise (LabelNotFromThisEnum v))\n" );
 	}
 

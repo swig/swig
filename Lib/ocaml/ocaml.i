@@ -12,6 +12,17 @@
 /* Type registration */
 %insert(init) "typeregister.swg"
 
+%insert(mlitail) %{
+  val swig_val : c_enum_type -> c_obj -> Swig.c_obj
+%}
+
+%insert(mltail) %{
+  let swig_val t v = 
+    match v with
+      C_enum e -> enum_to_int t v
+    | _ -> Obj.magic v
+%}
+
 /*#ifndef SWIG_NOINCLUDE*/
 %insert(runtime) "ocaml.swg"
 /*#endif*/
