@@ -10,7 +10,6 @@ set -x
 test -d Tools/config || mkdir Tools/config
 aclocal -I Tools/config
 autoheader
+libtoolize --force --copy
 automake --add-missing --copy --force-missing
 autoconf
-(cd Tools; autoconf)
-
