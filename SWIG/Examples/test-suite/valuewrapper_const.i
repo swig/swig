@@ -21,7 +21,7 @@ public:
         return b;
   } 
   // this one is incorrect     B result; 
-  const B GetB() const {
+  const B GetBconst() const {
         return b;
   }
 }; 
