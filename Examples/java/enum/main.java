@@ -13,27 +13,26 @@ public class main {
   {
     // Print out the value of some enums
     System.out.println("*** color ***");
-    System.out.println("    RED    = " + example.RED);
-    System.out.println("    BLUE   = " + example.BLUE);
-    System.out.println("    GREEN  = " + example.GREEN);
+    System.out.println("    " + color.RED + " = " + color.RED.swigValue());
+    System.out.println("    " + color.BLUE + " = " + color.BLUE.swigValue());
+    System.out.println("    " + color.GREEN + " = " + color.GREEN.swigValue());
 
     System.out.println("\n*** Foo::speed ***");
-    System.out.println("    Foo::IMPULSE   = " + Foo.IMPULSE);
-    System.out.println("    Foo::WARP      = " + Foo.WARP);
-    System.out.println("    Foo::LUDICROUS = " + Foo.LUDICROUS);
+    System.out.println("    Foo::" + Foo.speed.IMPULSE + " = " + Foo.speed.IMPULSE.swigValue());
+    System.out.println("    Foo::" + Foo.speed.WARP + " = " + Foo.speed.WARP.swigValue());
+    System.out.println("    Foo::" + Foo.speed.LUDICROUS + " = " + Foo.speed.LUDICROUS.swigValue());
 
     System.out.println("\nTesting use of enums with functions\n");
 
-    example.enum_test(example.RED, Foo.IMPULSE);
-    example.enum_test(example.BLUE, Foo.WARP);
-    example.enum_test(example.GREEN, Foo.LUDICROUS);
-    example.enum_test(1234,5678);
+    example.enum_test(color.RED, Foo.speed.IMPULSE);
+    example.enum_test(color.BLUE, Foo.speed.WARP);
+    example.enum_test(color.GREEN, Foo.speed.LUDICROUS);
 
     System.out.println( "\nTesting use of enum with class method" );
     Foo f = new Foo();
 
-    f.enum_test(Foo.IMPULSE);
-    f.enum_test(Foo.WARP);
-    f.enum_test(Foo.LUDICROUS);
+    f.enum_test(Foo.speed.IMPULSE);
+    f.enum_test(Foo.speed.WARP);
+    f.enum_test(Foo.speed.LUDICROUS);
   }
 }
