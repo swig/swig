@@ -3,7 +3,7 @@ SWIG       = $(TOP)/../swig
 SRCS       = 
 TARGET     = example
 INTERFACE  = example.i
-SWIGOPT    = -noproxy
+SWIGOPT    =
 
 all::	java
 
