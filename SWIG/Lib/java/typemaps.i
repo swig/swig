@@ -331,7 +331,7 @@ value in the single element array. In Java you would use it like this:
 %typemap(argout) unsigned long      *OUTPUT { JCALL4(SetLongArrayRegion, jenv, $input, 0, 1, (jlong *)&temp$argnum); }
 %typemap(argout) long long          *OUTPUT { JCALL4(SetLongArrayRegion, jenv, $input, 0, 1, (jlong *)&temp$argnum); }
 %typemap(argout) float              *OUTPUT { JCALL4(SetFloatArrayRegion, jenv, $input, 0, 1, (jfloat *)&temp$argnum); }
-%typemap(argout) double             *OUTPUT { JCALL4(SetDoubleArrayRegion, jenv, $input, 0, 1, (fdouble *)&temp$argnum); }
+%typemap(argout) double             *OUTPUT { JCALL4(SetDoubleArrayRegion, jenv, $input, 0, 1, (jdouble *)&temp$argnum); }
 
 /* Convert to BigInteger - byte array holds number in 2's complement big endian format */
 /* Use first element in BigInteger array for output */
