@@ -39,7 +39,7 @@ RefCount(B);
 
 %include "refcount.h"
 
-%newobject B::create();
+%newobject B::create(A* a);
 %newobject B::cloner();
 
 %inline %{
@@ -76,6 +76,11 @@ RefCount(B);
   struct B : RCObj
   {
     B(A* a) : _a(a) {}
+    
+    A* get_a() 
+    {
+      return _a;
+    }
     
     static B* create(A* a)
     {
