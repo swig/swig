@@ -136,7 +136,11 @@ check-gifplot-example:
 	$(skip-ruby) || (cd Examples/GIFPlot/Ruby/simple/Makefile ; $(chk))
 	$(skip-java) || (cd Examples/GIFPlot/Java/Makefile ; $(chk))
 
-check: check-aliveness check-examples check-gifplot-example
+check-c++-examples:
+	$(skip-python) || (cd Examples/C++/Python ; $(chk))
+	$(skip-java) || (cd Examples/C++/Java ; $(chk))
+
+check: check-aliveness check-examples check-gifplot-example check-c++-examples
 
 #####################################################################
 # CLEAN
