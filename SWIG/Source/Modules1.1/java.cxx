@@ -76,7 +76,13 @@ static String *module_method_modifiers = 0; //native method modifiers overridden
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 /* Return NULL if not otherwise the shadow name */
 static String *is_shadow(SwigType *t) {
-  return Getattr(shadow_classes,SwigType_base(t));
+  SwigType *shadow_name = Getattr(shadow_classes,SwigType_base(t));
+  /* See if this type is a typedef */
+  if (!shadow_name) {
+    SwigType *type_resolved = SwigType_typedef_resolve_all(t);
+    shadow_name = Getattr(shadow_classes,SwigType_base(type_resolved));
+  }
+  return shadow_name;
 }
 
 // Return the type of the c array
@@ -844,7 +850,12 @@ int JAVA::constantWrapper(Node *n) {
         String *javaclassname = is_shadow(SwigType_base(Getattr(n,"type")));
         Replaceall(javaclassname, "enum ", "");
         Replaceall(tm,"$javaclassname", javaclassname);
-        Printf(java_type,"%s", tm);
+        if (!Len(tm)) {
+//          Printf(stderr, "Warning: could not determine Java type for %s\n", SwigType_str(type,0));
+          Printf(java_type,"long");
+        }
+        else
+          Printf(java_type,"%s", tm);
       } else {
         Printf(stderr, "No jstype typemap defined for %s\n", SwigType_str(type,0));
       }
@@ -1129,13 +1140,6 @@ int JAVA::classHandler(Node *n) {
       Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
       SWIG_exit(1);
     }
-/*    
-    Setattr(shadow_classes,classname, shadow_classname);
-    if(ctype && strcmp(ctype, "struct") == 0) {
-      sprintf(bigbuf, "struct %s", classname);
-      Setattr(shadow_classes, bigbuf, shadow_classname);
-    }
-   */ 
     sprintf(bigbuf, "%s.java", shadow_classname);
     if(!(f_shadow = fopen(bigbuf, "w"))) {
       Printf(stderr, "Unable to create shadow class file: %s\n", bigbuf);
@@ -1270,7 +1274,12 @@ void JAVA::javashadowfunctionHandler(Node* n, int is_virtual) {
   if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
     String *javaclassname = is_shadow(SwigType_base(Getattr(n,"type")));
     Replaceall(tm,"$javaclassname", javaclassname);
-    Printf(shadowrettype,"%s", tm);
+    if (!Len(tm)) {
+//      Printf(stderr, "Warning: could not determine Java type for %s\n", SwigType_str(t,0));
+      Printf(shadowrettype,"long");
+    }
+    else
+      Printf(shadowrettype,"%s", tm);
   } else {
     Printf(stderr, "No jstype typemap defined for %s\n", SwigType_str(t,0));
   }
@@ -1305,7 +1314,7 @@ void JAVA::javashadowfunctionHandler(Node* n, int is_virtual) {
   int gencomma = !static_flag;
 
 /* Workaround to overcome Getignore(p) not working - p does not always have the Getignore 
-attribute set. Noticeable when javashadowfunctionHandlerk is called from memberfunctionHandler() */
+attribute set. Noticeable when javashadowfunctionHandler is called from memberfunctionHandler() */
 Wrapper* f = NewWrapper();
 emit_args(NULL, l, f);
 DelWrapper(f);
@@ -1326,8 +1335,13 @@ DelWrapper(f);
       if ((tm = Getattr(jstypep,"tmap:jstype"))) {
         String *javaclassname = is_shadow(SwigType_base(pt));
         Replaceall(tm,"$javaclassname", javaclassname);
+        if (!Len(tm)) {
+//          Printf(stderr, "Warning: could not determine Java type for %s\n", SwigType_str(pt,0));
+          Printf(javaparamtype, "long");
+        }
+        else
+          Printf(javaparamtype, "%s", tm);
         jstypep = Getattr(jstypep,"tmap:jstype:next");
-        Printv(javaparamtype, tm, 0);
       } else {
         jstypep = nextSibling(jstypep);
         Printf(stderr, "No jstype typemap defined for %s\n", SwigType_str(pt,0));
@@ -1478,8 +1492,13 @@ int JAVA::constructorHandler(Node *n) {
       if ((tm = Getattr(jstypep,"tmap:jstype"))) {
         String *javaclassname = is_shadow(SwigType_base(pt));
         Replaceall(tm,"$javaclassname", javaclassname);
+        if (!Len(tm)) {
+//          Printf(stderr, "Warning: could not determine Java type for %s\n", SwigType_str(pt,0));
+          Printf(javaparamtype, "long");
+        }
+        else
+          Printf(javaparamtype, "%s", tm);
         jstypep = Getattr(jstypep,"tmap:jstype:next");
-        Printv(javaparamtype, tm, 0);
       } else {
         jstypep = nextSibling(jstypep);
         Printf(stderr, "No jstype typemap defined for %s\n", SwigType_str(pt,0));
@@ -1564,15 +1583,23 @@ int JAVA::classforwardDeclaration(Node *n) {
   String *class_tmap = NewString("CLASS");
   String *array_tmap = NewString("ARRAYSOFCLASSPOINTERS");
   String *swigtype = NewString("SWIGTYPE");
+  String *shadowclassname = Getattr(n,"sym:name");
 
   /* Add to the hash table of shadow classes */
   if (shadow) {
-    String *shadowclassname = Getattr(n,"sym:name");
     Setattr(shadow_classes,name,shadowclassname);
+    if (Cmp(shadowclassname, name) != 0) { /* for matching a few typedef cases */
+      Setattr(shadow_classes,shadowclassname,shadowclassname);
+    }
     if (kind && (Len(kind) > 0)) {
-      String *stype = NewStringf("%s %s",kind,name);
-      Setattr(shadow_classes,stype,shadowclassname);
-      Delete(stype);
+      String *namewithkind = NewStringf("%s %s",kind, name);
+      Setattr(shadow_classes,namewithkind,shadowclassname);
+      Delete(namewithkind);
+      if (Cmp(shadowclassname, name) != 0) { /* for matching a few typedef cases */
+        String *namewithkind = NewStringf("%s %s",kind,shadowclassname);
+        Setattr(shadow_classes,namewithkind,shadowclassname);
+        Delete(namewithkind);
+      }
     }
   }
 
@@ -1582,16 +1609,30 @@ int JAVA::classforwardDeclaration(Node *n) {
   TypemapApply(swigtype, class_tmap, name, reference, 0); //%apply SWIGTYPE &CLASS {name&};
   TypemapApply(swigtype, array_tmap, name, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {name*[ANY]};
 
-  /* More typemap applying for types declared with the kind eg struct, union or class.
+  /* Below matches a few typedef cases */
+  if (Cmp(shadowclassname, name) != 0) {
+    TypemapApply(swigtype, class_tmap, shadowclassname, pointer, 0);   //%apply SWIGTYPE *CLASS {shadowclassname*};
+    TypemapApply(swigtype, class_tmap, shadowclassname, reference, 0); //%apply SWIGTYPE &CLASS {shadowclassname&};
+    TypemapApply(swigtype, array_tmap, shadowclassname, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {shadowclassname*[ANY]};
+  }
+  /* More typemap applying to match types declared with the kind eg struct, union or class.
      For example when type is declared as 'struct name'. */
-  if (Cmp(Getattr(n,"storage"), "typedef") != 0) {
-    String *namewithkind = NewString("");
-    Printf(namewithkind, "%s %s", Getattr(n,"kind"), name);
+  if (kind && (Len(kind) > 0)) {
+    String *namewithkind = NewStringf("%s %s",kind, name);
     TypemapApply(swigtype, class_tmap, namewithkind, pointer, 0);   //%apply SWIGTYPE *CLASS {kind name*};
     TypemapApply(swigtype, class_tmap, namewithkind, reference, 0); //%apply SWIGTYPE &CLASS {kind name&};
     TypemapApply(swigtype, array_tmap, namewithkind, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {kind name*[ANY]};
     Delete(namewithkind);
+    /* Below matches a few typedef cases */
+    if (Cmp(shadowclassname, name) != 0) {
+      String *namewithkind = NewStringf("%s %s",kind, shadowclassname);
+      TypemapApply(swigtype, class_tmap, namewithkind, pointer, 0);   //%apply SWIGTYPE *CLASS {kind shadowclassname*};
+      TypemapApply(swigtype, class_tmap, namewithkind, reference, 0); //%apply SWIGTYPE &CLASS {kind shadowclassname&};
+      TypemapApply(swigtype, array_tmap, namewithkind, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {kind shadowclassname*[ANY]};
+      Delete(namewithkind);
+    }
   }
+
   Delete(class_tmap);
   Delete(array_tmap);
   Delete(swigtype);
