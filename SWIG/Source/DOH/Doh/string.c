@@ -464,6 +464,7 @@ int String_delitem(DOH *so, int pos)
 
   if (s->sp > pos) {
     s->sp--;
+    assert (s->sp >= 0);
 #ifdef DOH_STRING_UPDATE_LINES
     if (s->str[pos] == '\n') s->line--;
 #endif
@@ -547,6 +548,9 @@ String_write(DOH *so, void *buffer, int len) {
 int
 String_seek(DOH *so, long offset, int whence) {
   int    pos, nsp, inc;
+#ifdef DOH_STRING_UPDATE_LINES
+  int prev;
+#endif
   String *s = (String *) so;
   if (whence == SEEK_SET) pos = 0;
   else if (whence == SEEK_CUR) pos = s->sp;
@@ -557,17 +561,25 @@ String_seek(DOH *so, long offset, int whence) {
   else pos = s->sp;
 
   nsp = pos + offset;
-  if (nsp < 0) nsp = 0;
-  if (nsp > s->len) nsp = s->len;
-  if (nsp > s->sp) inc = 1;
-  else inc = -1;
+  if (nsp < 0)
+    nsp = 0;
+  if (s->len > 0 && nsp >= s->len)
+    nsp = s->len-1;
+
+  inc = (nsp > s->sp) ? 1 : -1;
+
 #ifdef DOH_STRING_UPDATE_LINES
   while (s->sp != nsp) {
-    if (s->str[s->sp-1] == '\n') s->line += inc;
+    prev = s->sp + inc;
+    if (prev>=0 && prev<=s->len && s->str[prev] == '\n')
+      s->line += inc;
     s->sp += inc;
   }
-#endif
+#else
   s->sp = nsp;
+#endif
+  assert (s->sp >= 0);
+
   s->pbi = 0;
   return 0;
 }
@@ -618,8 +630,11 @@ int String_getc(DOH *so) {
 
   if (s->pbi) {
     c = (int) s->pb[--s->pbi];
-  } else if (s->sp >= s->len) c = EOF;
-  else c = (int) s->str[s->sp++];
+  }
+  else if (s->sp >= s->len)
+    c = EOF;
+  else
+    c = (int) s->str[s->sp++];
 #ifdef DOH_STRING_UPDATE_LINES
   if (c == '\n') s->line++;
 #endif
@@ -804,7 +819,7 @@ String_chop(DOH *s) {
 
   /* Replace trailing whitespace */
   c = str->str + str->len - 1;
-  while ((str->len >= 0) && (isspace(*c))) {
+  while ((str->len > 0) && (isspace(*c))) {
     if (str->sp >= str->len) {
       str->sp--;
 #ifdef DOH_STRING_UPDATE_LINES
@@ -814,6 +829,7 @@ String_chop(DOH *s) {
     str->len--;
     c--;
   }
+  assert (str->sp >= 0);
   str->hashkey = -1;
   str->pbi = 0;
 }
