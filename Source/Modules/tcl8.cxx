@@ -7,6 +7,17 @@
  *
  * Copyright (C) 1999-2000.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.
+ *
+ * Incr Tcl 3.x support by Alexey Dyachenko (dyachenko@fromru.com) 
+ *
+ * Based on 
+ * itcl.cxx
+ *  Author:  Bob Techentin
+ *           based on tcl8 and python modules by David Beazley
+ *
+ * Module for creating Incr Tcl 3.x shadow classes
+ * and Tcl 8.x native wrapper functions.
+ *
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_tcl8_cxx[] = "$Header$";
@@ -19,6 +30,7 @@ char cvsroot_tcl8_cxx[] = "$Header$";
 
 static const char *usage = (char*)"\
 Tcl 8 Options (available with -tcl)\n\
+     -itcl           - Enable ITcl support\n\
      -ldflags        - Print runtime libraries to link with\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -namespace      - Build module into a Tcl 8 namespace\n\
@@ -36,14 +48,36 @@ static String     *init_name = 0;
 static String     *ns_name = 0;
 static int         have_constructor;
 static int         have_destructor;
+static int         have_base_classes;
 static String     *destructor_action = 0;
 static String     *version = (String *) "0.0";
 static String     *class_name = 0;
+
+static int    have_attributes;
+static int    have_methods;
 
 static File       *f_header  = 0;
 static File       *f_wrappers = 0;
 static File       *f_init = 0;
 static File       *f_runtime = 0;
+
+
+//  Itcl support
+static int    itcl = 0;
+static File   *f_shadow = 0;
+static File   *f_shadow_stubs = 0;
+
+static String *constructor = 0;
+static String *destructor = 0;
+static String *base_classes = 0;
+static String *base_class_init = 0;
+static String *methods = 0;
+static String *imethods = 0;
+static String *attributes = 0;
+static String *attribute_traces = 0;
+static String *iattribute_traces = 0;
+
+
 
 class TCL8 : public Language {
 public:
@@ -74,6 +108,9 @@ public:
 	  }
 	} else if (strcmp(argv[i],"-namespace") == 0) {
 	  nspace = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-itcl") == 0) {
+	  itcl = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
@@ -136,6 +173,32 @@ public:
     ns_name = prefix ? Copy(prefix) : Copy(module);
     if (prefix) Append(prefix,"_");
     
+
+    /* If shadow classing is enabled, we're going to change the module name to "_module" */
+    if (itcl) {
+      char  filen[256];
+      snprintf(filen, 255,"%s%s.itcl", Swig_file_dirname(outfile), Char(module));
+
+      Insert( module,0,"_" );
+
+      if ((f_shadow = NewFile(filen,"w")) == 0) {
+	Printf(stderr,"Unable to open %s\n", filen);
+	SWIG_exit (EXIT_FAILURE);
+      }
+      f_shadow_stubs = NewString("");
+
+      Swig_register_filebyname("shadow",f_shadow);
+      Swig_register_filebyname("itcl",f_shadow);
+
+      Printv(f_shadow,
+	     "# This file was created automatically by SWIG.\n",
+	     "# Don't modify this file, modify the SWIG interface instead.\n",
+	     "# This file is compatible with both classic and new-style classes.\n",
+	     NIL);
+
+      Printv(f_shadow,"\npackage require Itcl\n\n", NIL);
+    };
+    
     /* Generate some macros used throughout code generation */
     
     Printf(f_header,"#define SWIG_init    %s\n", init_name);
@@ -171,6 +234,12 @@ public:
     
     /* Close the init function and quit */
     Printf(f_init,"return TCL_OK;\n}\n");
+    
+    if (itcl) {
+      Printv(f_shadow, f_shadow_stubs, "\n",NIL);
+      Close(f_shadow);
+      Delete(f_shadow);
+    }
     
     /* Close all of the files */
     Printv(f_runtime, f_header, f_wrappers,NIL);
@@ -602,6 +671,22 @@ public:
     have_destructor = 0;
     destructor_action = 0;
 
+    if (itcl) {
+      constructor = NewString("");
+      destructor =  NewString("");
+      base_classes = NewString("");
+      base_class_init = NewString("");
+      methods =  NewString("");
+      imethods =  NewString("");
+      attributes = NewString("");
+      attribute_traces = NewString("");
+      iattribute_traces = NewString("");
+
+      have_base_classes = 0;
+      have_methods = 0;
+      have_attributes = 0;
+    }
+
     class_name = Getattr(n,"sym:name");
     if (!addSymbol(class_name,n)) return SWIG_ERROR;
 
@@ -659,6 +744,11 @@ public:
     /* Handle inheritance */
   
     String *base_class = NewString("");
+
+    if( itcl ) {
+      base_classes    = NewString("");
+    }
+
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist)) {
       Iterator b;
@@ -669,6 +759,11 @@ public:
 	  b = Next(b);
 	  continue;
 	}
+        if( itcl ) {
+          have_base_classes = 1;
+          Printv( base_classes, bname, " ", NIL );
+          Printv( base_class_init , "    ", bname, "Ptr::constructor $ptr\n", NIL );
+        } 
 	String *bmangle = Swig_name_mangle(bname);
 	Printv(f_wrappers,"extern swig_class _wrap_class_", bmangle, ";\n", NIL);
 	Printf(base_class,"&_wrap_class_%s",bmangle);
@@ -677,6 +772,107 @@ public:
 	Delete(bmangle);
       }
     }
+    
+    if( itcl ) {
+      String *ptrclass = NewString("");
+
+      // First, build the pointer base class
+      Printv( ptrclass, "itcl::class ", class_name,"Ptr {\n",  NIL );
+      if( have_base_classes )
+        Printv( ptrclass, "  inherit ", base_classes, "\n", NIL );
+
+      //  Define protected variables for SWIG object pointer
+      Printv( ptrclass, "  protected variable swigobj\n", 
+                        "  protected variable thisown\n", NIL );
+
+      //  Define public variables
+      if ( have_attributes ) {
+        Printv( ptrclass, attributes, NIL );
+
+      // base class swig_getset was being called for complex inheritance trees
+        if ( nspace ) {
+
+          Printv( ptrclass, 
+              "  protected method ", class_name, "_swig_getset {var name1 name2 op} {\n" , NIL );
+
+          Printv( ptrclass, 
+              "    switch -exact -- $op {\n",
+              "      r {set $var [", ns_name, "::", class_name, "_[set var]_get $swigobj]}\n",
+              "      w {", ns_name, "::", class_name, "_${var}_set $swigobj [set $var]}\n",
+              "    }\n",
+              "  }\n" , NIL );
+        } else {
+          Printv( ptrclass,
+              "  protected method ", class_name, "_swig_getset {var name1 name2 op} {\n",
+              "    switch -exact -- $op {\n",
+              "      r {set $var [", class_name, "_[set var]_get $swigobj]}\n",
+              "      w {", class_name, "_${var}_set $swigobj [set $var]}\n",
+              "    }\n",
+              "  }\n", NIL );
+        }
+      }
+
+      //  Add the constructor, which may include
+      //  calls to base class class constructors
+
+      Printv( ptrclass, "  constructor { ptr } {\n", NIL );
+      if( have_base_classes ) {
+        Printv( ptrclass, base_class_init, NIL );
+        Printv( ptrclass, "  } {\n", NIL );
+      }
+
+      Printv( ptrclass, "    set swigobj $ptr\n",
+                        "    set thisown 0\n", NIL );
+
+      if( have_attributes ) {
+        Printv( ptrclass, attribute_traces, NIL );
+      }
+      Printv( ptrclass, "  }\n", NIL );
+
+
+      //  Add destructor
+      Printv( ptrclass, "  destructor {\n",
+                        "    set d_func delete_", class_name, "\n",
+                        "    if { $thisown && ([info command $d_func] != \"\") } {\n"
+                        "      $d_func $swigobj\n",
+                        "    }\n",
+                        "  }\n", NIL );
+
+      //  Add methods
+      if( have_methods ) {
+        Printv( ptrclass, imethods, NIL );
+      };
+
+      //  Close out the pointer class
+      Printv( ptrclass, "}\n\n",  NIL );
+      Printv( f_shadow, ptrclass, NIL );
+      // pointer class end
+
+    
+      //  Create the "real" class.
+      Printv( f_shadow, "itcl::class ", class_name," {\n",  NIL );
+      Printv( f_shadow, "  inherit ", class_name,"Ptr\n",  NIL );
+
+      //  If we have a constructor, then use it.
+      //  If not, then we must have an abstract class without
+      //  any constructor.  So we create a class constructor
+      //  which will fail for this class (but not for inherited
+      //  classes).  Note that the constructor must fail before
+      //  calling the ptrclass constructor.
+
+      if ( have_constructor ) {
+        Printv( f_shadow, constructor, NIL );
+      } else {
+        Printv( f_shadow, "  constructor { } {\n", NIL );
+        Printv( f_shadow, "    # This constructor will fail if called directly\n", NIL );
+        Printv( f_shadow, "    if { [info class] == \"::", class_name, "\" } {\n", NIL );
+        Printv( f_shadow, "      error \"No constructor for class ", class_name, "\"\n", NIL );
+        Printv( f_shadow, "    }\n", NIL );
+        Printv( f_shadow, "  }\n", NIL );
+      }
+
+      Printv( f_shadow, "}\n\n", NIL );
+    };
 
     Printv(f_wrappers,"static swig_class *swig_",mangled_classname,"_bases[] = {", base_class,"0};\n", NIL);
     Delete(base_class);
@@ -695,7 +891,11 @@ public:
       Printf(f_wrappers,",0");
     }
     Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname,"_bases };\n", NIL);
-    Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
+
+    if( !itcl ) {
+      Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
+    };
+
     Delete(t);
     Delete(mangled_classname);
     return SWIG_OK;
@@ -719,6 +919,81 @@ public:
     if (!Getattr(n,"sym:nextSibling")) {
       Printv(methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
     }
+
+    if( itcl ) {
+      ParmList  *l      = Getattr(n,"parms");
+      Parm      *p      = 0;
+      String    *pname  = NewString("");
+
+      // Add this member to our class handler function
+      Printv( imethods, tab2, "method ", realname, " [list ", NIL );
+
+      int pnum = 0;
+      for (p = l; p; p = nextSibling(p)) {
+
+        String    *pn = Getattr(p,"name");
+        String    *dv = Getattr(p,"value");
+        SwigType  *pt = Getattr(p,"type");
+
+              Printv( pname, ",(", pt, ")", NIL );
+        Clear( pname );
+
+        /* Only print an argument if not void */      
+        if (Cmp(pt,"void") != 0) {
+          if( Len( pn ) > 0 ) {
+            Printv( pname, pn, NIL );
+          } else {
+            Printf( pname, "p%d", pnum );
+          }
+
+          if( Len( dv ) > 0 ) {
+            String      *defval = NewString( dv );
+            if( nspace ) {
+              Insert( defval, 0, "::");
+              Insert( defval, 0, ns_name );
+            }
+            if( Strncmp( dv, "(", 1 ) == 0 ) {
+              Insert( defval, 0, "$");
+              Replaceall( defval, "(", "");
+              Replaceall( defval, ")", "");
+            }
+            Printv( imethods, "[list ", pname, " ", defval, "] ", NIL );
+          } else {
+            Printv( imethods, pname, " ", NIL );
+          }
+        }
+        ++pnum;
+      }
+      Printv( imethods, "] ", NIL );
+
+      if( nspace ) {
+        Printv( imethods,"{ ", ns_name, "::", class_name, "_", realname, " $swigobj" , NIL );
+      } else {
+        Printv( imethods,"{ ", class_name, "_", realname, " $swigobj" , NIL );
+      };
+
+      pnum = 0;
+      for (p = l; p; p = nextSibling(p)) {
+
+        String    *pn = Getattr(p,"name");
+        SwigType  *pt = Getattr(p,"type");
+        Clear( pname );
+
+        /* Only print an argument if not void */      
+        if (Cmp(pt,"void") != 0) {
+          if( Len( pn ) > 0 ) {
+            Printv( pname, pn, NIL );
+          } else {
+            Printf( pname, "p%d", pnum );
+          }
+          Printv( imethods, " $", pname, NIL );
+        }
+        ++pnum;
+      }
+      Printv( imethods, " }\n", NIL );
+      have_methods = 1;
+    }
+
     Delete(rname);
     return SWIG_OK;
   }
@@ -743,6 +1018,16 @@ public:
     } else {
       Printf(attr_tab, "0 },\n");
     }
+
+    if( itcl ) {
+      Printv( attributes, "  public variable ", symname, "\n", NIL );
+
+      Printv( attribute_traces, "    trace variable ", symname, 
+          " rw [list ", class_name, "_swig_getset ", symname, "]\n", NIL );
+      Printv( attribute_traces, "    set ", symname, "\n", NIL );
+
+      have_attributes = 1;
+    }
     return SWIG_OK;
   }
 
@@ -752,6 +1037,100 @@ public:
 
   virtual int constructorHandler(Node *n) {
     Language::constructorHandler(n);
+
+    if( itcl ) {
+      String *name  = Getattr(n,"name");
+      String *iname = GetChar(n,"sym:name");
+
+      String  *realname;
+
+      ParmList *l = Getattr(n,"parms");
+      Parm  *p = 0;
+
+      String *pname = NewString("");
+
+      realname = iname ? iname : name;
+
+      if( !have_constructor ) {
+        // Add this member to our class handler function
+        Printf( constructor, "  constructor { " );
+
+        //  Add parameter list
+        int pnum = 0;
+        for (p = l; p; p = nextSibling(p)) 
+        {
+
+          SwigType  *pt = Getattr(p,"type");
+          String    *pn = Getattr(p,"name");
+          String    *dv = Getattr(p,"value");
+          Clear( pname );
+
+          /* Only print an argument if not void */      
+          if (Cmp(pt,"void") != 0) {
+            if( Len( pn ) > 0 ) {
+              Printv( pname, pn, NIL );
+            } else {
+              Printf( pname, "p%d", pnum );
+            }
+
+            if( Len( dv ) > 0 ) {
+              Printv( constructor, "{", pname, " {", dv, "} } ", NIL );
+            } else {
+              Printv( constructor, pname, " ", NIL );
+            }
+          }
+          ++pnum;
+        }
+        Printf( constructor, "} { \n" );
+
+        // [BRE] 08/17/00 Added test to see if we are instantiating this object
+        // type, or, if this constructor is being called as part of the itcl
+        // inheritance heirarchy.
+        // In the former case, we need to call the C++ constructor, in the
+        // latter we don't, or we end up with two C++ objects.
+        // Check to see if we are instantiating a 'realname' or something 
+        // derived from it.
+        //
+        Printv( constructor, "    if { [string equal -nocase \"", realname,
+        "\" \"[namespace tail [info class]]\" ] } {\n", NIL );
+
+        // Call to constructor wrapper and parent Ptr class
+        // [BRE] add -namespace/-prefix support
+        
+        if( nspace ) {
+          Printv( constructor, "      ", realname, "Ptr::constructor [",  
+              ns_name, "::new_", realname, NIL );
+        } else {
+          Printv( constructor, "      ", realname, "Ptr::constructor [new_", realname, NIL );
+        }
+
+        pnum = 0;
+        for (p = l; p; p = nextSibling(p)) {
+
+          SwigType  *pt = Getattr(p,"type");
+          String    *pn = Getattr(p,"name");
+          Clear( pname );
+
+          /* Only print an argument if not void */      
+          if (Cmp(pt,"void") != 0) {
+            if( Len( pn ) > 0 ) {
+              Printv( pname, pn, NIL );
+            } else {
+              Printf( pname, "p%d", pnum );
+            }
+            Printv( constructor, " $", pname, NIL );
+          }
+          ++pnum;
+        }
+
+        Printv( constructor, "]\n", 
+            "    }\n", 
+            "  } {\n", 
+            "    set thisown 1\n", 
+            "  }\n", NIL );
+      }
+    }
+
     have_constructor = 1;
     return SWIG_OK;
   }
