@@ -23,9 +23,8 @@
 
 
 /* -----------------------------------------------------------------------------
- *  Look for user fragments.i file, if not, include empty system one.
+ *  Look for user fragments.i file. If not found, include empty system one.
  * ----------------------------------------------------------------------------- */
-
 
 %include "fragments.i"
 

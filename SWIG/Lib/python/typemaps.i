@@ -164,7 +164,7 @@ phased out in future releases.
 
 #ifdef SWIG_INOUT_NODEF
 /*
-  Apply the INPUT/OUTPUT typemaps to all the C types (int, double) if
+  Apply the INPUT/OUTPUT typemaps to all the C types (int, double, ...) if
   not already defined.
 */
 %define %typemap_inout(Code,AsMeth, CheckMeth, FromMeth, AsFrag, CheckFrag, FromFrag, ...)
