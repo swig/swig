@@ -149,6 +149,10 @@ class JAVA : public Language {
     n_directors(0),
     emitted_connect(false)
     {
+      /* by now, multiple inheritance in directors is disabled, this
+	 should be easy to implement though */
+      director_multiple_inheritance = 0;
+      director_language = 1;
     }
 
   /* -----------------------------------------------------------------------------

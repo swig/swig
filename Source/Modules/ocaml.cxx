@@ -77,6 +77,8 @@ public:
 	   "} else {\n",
 	   "  failwith(\"accessing abstract class or protected constructor\"); \n",
 	   "}\n", NIL);
+    director_multiple_inheritance = 1;
+    director_language = 1;
   }
   
       
