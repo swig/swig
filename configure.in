@@ -1403,14 +1403,27 @@ if test -n "$release_suffix"; then
 fi
 AC_SUBST(release_suffix_libtool)
 
-AC_CONFIG_FILES([			\
-    Makefile				\
-    Source/Makefile			\
-    Examples/Makefile			\
-    Examples/guile/Makefile		\
-    Examples/GIFPlot/Makefile		\
-    Examples/GIFPlot/Lib/Makefile	\
-    Runtime/Makefile			\
+AC_CONFIG_FILES([			        \
+    Makefile				        \
+    Runtime/Makefile			        \
+    Source/Makefile			        \
+    Examples/Makefile			        \
+    Examples/guile/Makefile		        \
+    Examples/GIFPlot/Makefile		        \
+    Examples/GIFPlot/Lib/Makefile	        \
+    Examples/test-suite/chicken/Makefile	\
+    Examples/test-suite/csharp/Makefile	        \
+    Examples/test-suite/guile/Makefile	        \
+    Examples/test-suite/guilescm/Makefile	\
+    Examples/test-suite/java/Makefile	        \
+    Examples/test-suite/mzscheme/Makefile	\
+    Examples/test-suite/ocaml/Makefile	        \
+    Examples/test-suite/perl5/Makefile	        \
+    Examples/test-suite/php4/Makefile	        \
+    Examples/test-suite/pike/Makefile	        \
+    Examples/test-suite/python/Makefile	        \
+    Examples/test-suite/ruby/Makefile	        \
+    Examples/test-suite/tcl/Makefile	        \
 ])
 AC_OUTPUT
 
