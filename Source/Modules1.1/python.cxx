@@ -774,14 +774,39 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
 		   0);
 	  } else {
 	    Printv(setf->code,
-		   tab4, "if (", name, ") free(", name, ");\n",
+		   tab4, "if (", name, ") free((char*)", name, ");\n",
 		   tab4, name, " = (char *) malloc(strlen(tval)+1);\n",
 		   tab4, "strcpy((char *)", name, ",tval);\n",
 		   0);
 	  }
 	  break;
 
-	case T_POINTER: case T_ARRAY: case T_REFERENCE:
+	case T_ARRAY:
+	  {
+	    int setable = 0;
+	    SwigType *aop;
+	    SwigType *ta = Copy(t);
+	    aop = SwigType_pop(ta);
+	    if (SwigType_type(ta) == T_CHAR) {
+	      String *dim = SwigType_array_getdim(aop,0);
+	      if (dim && Len(dim)) {
+		Printf(setf->code, "strncpy(%s,PyString_AsString(val), %s);\n", name,dim);
+		setable = 1;
+	      } 
+	    } 
+	    if (!setable) {
+	      Printv(setf->code,
+		     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
+		     " is read-only.\");\n",
+		     tab4, "return 1;\n",
+		     0);
+	    }
+	    Delete(ta);
+	    Delete(aop);
+	  }
+	  break;
+
+	case T_POINTER: case T_REFERENCE:
 	  Wrapper_add_localv(setf,"temp", SwigType_lstr(t,0), "temp",0);
 	  get_pointer((char*)"val",(char*)"temp",t,setf->code,(char*)"1");
 	  Printv(setf->code,tab4, name, " = temp;\n", 0);
