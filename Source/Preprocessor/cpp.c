@@ -907,9 +907,9 @@ Preprocessor_replace(DOH *s)
 	DOH *e;
 	/* Yes.  There is a macro here */
 	/* See if the macro expects arguments */
-	if (Getattr(m,"args")) {
+	/*	if (Getattr(m,"args")) {
 	  Swig_error(Getfile(id),Getline(id),"Macro arguments expected.\n");
-	}
+	  } */
 	e = expand_macro(id,0);
 	Printf(ns,"%s",e);
 	Delete(e);
