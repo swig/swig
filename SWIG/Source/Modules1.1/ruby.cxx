@@ -873,7 +873,7 @@ char *RUBY::validate_const_name(char *name) {
  * --------------------------------------------------------------------- */
 
 int RUBY::constantWrapper(Node *n) {
-  Swig_require(&n, "*sym:name", "type", "value", 0);
+  Swig_require(&n, "*sym:name", "type", "value", NULL);
 
   char *iname     = GetChar(n,"sym:name");
   SwigType *type  = Getattr(n,"type");

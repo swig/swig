@@ -187,7 +187,7 @@ PYTHON::top(Node *n) {
   Printf(f_wrappers,"#endif\n");
 
   if (shadow) {
-    Printv(f_shadow, f_shadow_stubs, "\n",0);
+    Printv(f_shadow, f_shadow_stubs, "\n",NULL);
     Close(f_shadow);
     Delete(f_shadow);
   }
@@ -282,12 +282,12 @@ PYTHON::functionWrapper(Node *n) {
     Printv(f->def,
 	   "static PyObject *", wname,
 	   "(PyObject *self, PyObject *args) {",
-	   0);
+	   NULL);
   } else {
     Printv(f->def,
 	   "static PyObject *", wname,
 	   "(PyObject *self, PyObject *args, PyObject *kwargs) {",
-	   0);
+	   NULL);
   }
 
   Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
@@ -343,11 +343,11 @@ PYTHON::functionWrapper(Node *n) {
 	Replaceall(tm,"$input", source);
 	Setattr(p,"emit:input", source);   /* Save the location of the object */
 	Putc('O',parse_args);
-	Wrapper_add_localv(f, source, "PyObject *",source, " = 0", 0);
+	Wrapper_add_localv(f, source, "PyObject *",source, " = 0", NULL);
 	Printf(arglist,"&%s",source);
 	if (i >= num_required)
-	  Printv(get_pointers, "if (", source, ")\n", 0);
-	Printv(get_pointers,tm,"\n", 0);
+	  Printv(get_pointers, "if (", source, ")\n", NULL);
+	Printv(get_pointers,tm,"\n", NULL);
       } else {
 	Printf(parse_args,"%s",parse);
 	
@@ -367,22 +367,22 @@ PYTHON::functionWrapper(Node *n) {
   /* finish argument marshalling */
   Printf(kwargs," NULL }");
   if (use_kw) {
-    Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", 0);
+    Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", NULL);
   }
 
   Printf(parse_args,":%s\"", iname);
   Printv(parse_args,
 	 arglist, ")) return NULL;\n",
-	 0);
+	 NULL);
 
   /* Now piece together the first part of the wrapper function */
-  Printv(f->code, parse_args, get_pointers, 0);
+  Printv(f->code, parse_args, get_pointers, NULL);
 
   /* Insert constraint checking code */
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
       Replaceall(tm,"$target",Getattr(p,"lname"));
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
       p = Getattr(p,"tmap:check:next");
     } else {
       p = nextSibling(p);
@@ -393,7 +393,7 @@ PYTHON::functionWrapper(Node *n) {
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
       Replaceall(tm,"$source",Getattr(p,"lname"));
-      Printv(cleanup,tm,"\n",0);
+      Printv(cleanup,tm,"\n",NULL);
       p = Getattr(p,"tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -407,7 +407,7 @@ PYTHON::functionWrapper(Node *n) {
       Replaceall(tm,"$target","resultobj");
       Replaceall(tm,"$arg",Getattr(p,"emit:input"));
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
-      Printv(outarg,tm,"\n",0);
+      Printv(outarg,tm,"\n",NULL);
       p = Getattr(p,"tmap:argout:next");
     } else {
       p = nextSibling(p);
@@ -435,10 +435,10 @@ PYTHON::functionWrapper(Node *n) {
   }
 
   /* Output argument output code */
-  Printv(f->code,outarg,0);
+  Printv(f->code,outarg,NULL);
 
   /* Output cleanup code */
-  Printv(f->code,cleanup,0);
+  Printv(f->code,cleanup,NULL);
 
   /* Look to see if there is any newfree cleanup code */
   if ((NewObject) || (Getattr(n,"feature:new"))) {
@@ -471,7 +471,7 @@ PYTHON::functionWrapper(Node *n) {
 
   /* Create a shadow for this function (if enabled and not in a member function) */
   if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-    Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n\n", 0);
+    Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n\n", NULL);
   }
 
   Delete(parse_args);
@@ -535,7 +535,7 @@ PYTHON::variableWrapper(Node *n) {
 	     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
 	     " is read-only.\");\n",
 	     tab4, "return 1;\n",
-	     0);
+	     NULL);
     }
 
     Printf(setf->code,"}\n");
@@ -601,7 +601,7 @@ PYTHON::constantWrapper(Node *n) {
     return SWIG_NOWRAP;
   }
   if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-    Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n", 0);
+    Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n", NULL);
   }
   return SWIG_OK;
 }
@@ -616,7 +616,7 @@ PYTHON::nativeWrapper(Node *n) {
   char *wrapname = GetChar(n,"wrap:name");
   add_method(name, wrapname,0);
   if (shadow) {
-    Printv(f_shadow_stubs, name, " = ", module, ".", name, "\n\n", 0);
+    Printv(f_shadow_stubs, name, " = ", module, ".", name, "\n\n", NULL);
   }
   return SWIG_OK;
 }
@@ -672,20 +672,20 @@ PYTHON::classHandler(Node *n) {
 	  base = Nextitem(baselist);
 	  continue;
 	}
-	Printv(base_class,bname,0);
+	Printv(base_class,bname,NULL);
 	base = Nextitem(baselist);
 	if (base) {
 	  Putc(',',base_class);
 	}
       }
     }
-    Printv(f_shadow,"class ", class_name, 0);
+    Printv(f_shadow,"class ", class_name, NULL);
     if (Len(base_class)) {
       Printf(f_shadow,"(%s)", base_class);
     }
     Printf(f_shadow,":\n");
 
-    Printv(f_shadow,tab4,"__setmethods__ = {}\n",0);
+    Printv(f_shadow,tab4,"__setmethods__ = {}\n",NULL);
     Printf(f_shadow,"%sfor _s in [%s]: __setmethods__.update(_s.__setmethods__)\n",tab4,base_class);
 
     Printv(f_shadow,
@@ -700,16 +700,16 @@ PYTHON::classHandler(Node *n) {
 	   tab8, "method = ", class_name, ".__setmethods__.get(name,None)\n",
 	   tab8, "if method: return method(self,value)\n",
 	   tab8, "self.__dict__[name] = value\n\n",
-	   0);
+	   NULL);
 
-    Printv(f_shadow,tab4,"__getmethods__ = {}\n",0);
+    Printv(f_shadow,tab4,"__getmethods__ = {}\n",NULL);
     Printf(f_shadow,"%sfor _s in [%s]: __getmethods__.update(_s.__getmethods__)\n",tab4,base_class);
 
     Printv(f_shadow, tab4, "def __getattr__(self,name):\n",
            tab8, "method = ", class_name, ".__getmethods__.get(name,None)\n",
 	   tab8, "if method: return method(self)\n",
 	   tab8, "raise AttributeError,name\n\n",
-	   0);
+	   NULL);
   }
 
   /* Emit all of the members */
@@ -728,14 +728,14 @@ PYTHON::classHandler(Node *n) {
 	     tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
 	     tab4, "Py_INCREF(obj);\n",
 	     tab4, "return Py_BuildValue((char *)\"\");\n",
-	     "}\n",0);
+	     "}\n",NULL);
       String *cname = NewStringf("%s_swigregister", class_name);
       add_method(Char(cname), Char(cname), 0);
       Delete(cname);
       Delete(ct);
     }
     if (!have_constructor) {
-      Printv(f_shadow,tab4,"def __init__(self): raise RuntimeError, \"No constructor defined\"\n",0);
+      Printv(f_shadow,tab4,"def __init__(self): raise RuntimeError, \"No constructor defined\"\n",NULL);
     }
 
     if (!have_repr) {
@@ -743,7 +743,7 @@ PYTHON::classHandler(Node *n) {
       Printv(f_shadow,
 	     tab4, "def __repr__(self):\n",
 	     tab8, "return \"<C ", class_name," instance at %s>\" % (self.this,)\n",
-	     0);
+	     NULL);
     }
     /* Now build the real class with a normal constructor */
     Printv(f_shadow,
@@ -754,7 +754,7 @@ PYTHON::classHandler(Node *n) {
 	   //	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
 	   //	   tab8,"except AttributeError: self.this = this\n"
 	   tab8, "self.__class__ = ", class_name, "\n",
-	   0);
+	   NULL);
 
     Printf(f_shadow,"%s.%s_swigregister(%sPtr)\n", module, class_name, class_name,0);
     shadow_indent = 0;
@@ -783,14 +783,14 @@ PYTHON::memberfunctionHandler(Node *n) {
 
     if (Getattr(n,"feature:shadow")) {
       String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
-      Printv(f_shadow,pycode,"\n",0);
+      Printv(f_shadow,pycode,"\n",NULL);
     } else {
       if (use_kw) {
-	Printv(f_shadow,tab4, "def ", symname, "(*args, **kwargs): ", 0);
-	Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args, kwargs)\n", 0);
+	Printv(f_shadow,tab4, "def ", symname, "(*args, **kwargs): ", NULL);
+	Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args, kwargs)\n", NULL);
       } else {
-	Printv(f_shadow, tab4, "def ", symname, "(*args): ", 0);
-	Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args)\n",0);
+	Printv(f_shadow, tab4, "def ", symname, "(*args): ", NULL);
+	Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args)\n",NULL);
       }
     }
   }
@@ -813,23 +813,23 @@ PYTHON::constructorHandler(Node *n) {
     if (!have_constructor) {
       if (Getattr(n,"feature:shadow")) {
 	String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
-	Printv(f_shadow,pycode,"\n",0);
+	Printv(f_shadow,pycode,"\n",NULL);
       } else {
 	if (use_kw) {
-	  Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", 0);
-	  Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", 0);
+	  Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", NULL);
+	  Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
 	}  else {
-	  Printv(f_shadow, tab4, "def __init__(self,*args):\n",0);
-	  Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", 0);
+	  Printv(f_shadow, tab4, "def __init__(self,*args):\n",NULL);
+	  Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", NULL);
 	}
 	Printv(f_shadow,
 	       tab8, "self.thisown = 1\n",
-	       0);
+	       NULL);
 
 	       /*	       tab8,"try: self.this = this.this; this.thisown=0\n",
-			       tab8,"except AttributeError: self.this = this\n",0); */
+			       tab8,"except AttributeError: self.this = this\n",NULL); */
 	
-	       /*	Printv(f_shadow, tab8, "self.thisown = 1\n", 0); */
+	       /*	Printv(f_shadow, tab8, "self.thisown = 1\n", NULL); */
       }
       have_constructor = 1;
     } else {
@@ -838,20 +838,20 @@ PYTHON::constructorHandler(Node *n) {
 
       if (Getattr(n,"feature:shadow")) {
 	String *pycode = pythoncode(Getattr(n,"feature:shadow"),"");
-	Printv(f_shadow_stubs,pycode,"\n",0);
+	Printv(f_shadow_stubs,pycode,"\n",NULL);
       } else {
 	if (use_kw)
-	  Printv(f_shadow_stubs, "def ", symname, "(*args,**kwargs):\n", 0);
+	  Printv(f_shadow_stubs, "def ", symname, "(*args,**kwargs):\n", NULL);
 	else
-	  Printv(f_shadow_stubs, "def ", symname, "(*args):\n", 0);
+	  Printv(f_shadow_stubs, "def ", symname, "(*args):\n", NULL);
 	
-	Printv(f_shadow_stubs, tab4, "val = apply(", 0);
+	Printv(f_shadow_stubs, tab4, "val = apply(", NULL);
 	if (use_kw)
-	  Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs)\n", 0);
+	  Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
 	else
-	  Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args)\n", 0);
+	  Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args)\n", NULL);
 	Printv(f_shadow_stubs,tab4, "val.thisown = 1\n",
-	       tab4, "return val\n\n", 0);
+	       tab4, "return val\n\n", NULL);
       }
     }
   }
@@ -870,9 +870,9 @@ PYTHON::destructorHandler(Node *n) {
   Language::destructorHandler(n);
   shadow = oldshadow;
   if (shadow) {
-    Printv(f_shadow, tab4, "def __del__(self,", module, "=", module, "):\n", 0);
+    Printv(f_shadow, tab4, "def __del__(self,", module, "=", module, "):\n", NULL);
     Printv(f_shadow, tab8, "if getattr(self,'thisown',0):\n",
-	   tab8, tab4, module, ".", Swig_name_destroy(symname), "(self)\n", 0);
+	   tab8, tab4, module, ".", Swig_name_destroy(symname), "(self)\n", NULL);
   }
   return SWIG_OK;
 }
@@ -891,9 +891,9 @@ PYTHON::membervariableHandler(Node *n) {
 
   if (shadow) {
     if (!ReadOnly) {
-      Printv(f_shadow, tab4, "__setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", 0);
+      Printv(f_shadow, tab4, "__setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", NULL);
     }
-    Printv(f_shadow, tab4, "__getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", 0);
+    Printv(f_shadow, tab4, "__getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NULL);
   }
   return SWIG_OK;
 }
@@ -910,7 +910,7 @@ PYTHON::memberconstantHandler(Node *n) {
   shadow = oldshadow;
 
   if (shadow) {
-     Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(class_name,symname), "\n", 0);
+     Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(class_name,symname), "\n", NULL);
   }
   return SWIG_OK;
 }
@@ -955,9 +955,9 @@ PYTHON::pythoncode(String *code, const String *indent) {
     if (Len(s) > initial) {
       char *c = Char(s);
       c += initial;
-      Printv(out,indent,c,"\n",0);
+      Printv(out,indent,c,"\n",NULL);
     } else {
-      Printv(out,"\n",0);
+      Printv(out,"\n",NULL);
     }
     s = Nextitem(clist);
   }
@@ -979,7 +979,7 @@ int PYTHON::insertDirective(Node *n) {
   if ((!ImportMode) && (Cmp(section,"shadow") == 0)) {
     if (shadow) {
       String *pycode = pythoncode(code,shadow_indent);
-      Printv(f_shadow,pycode,"\n",0);
+      Printv(f_shadow,pycode,"\n",NULL);
       Delete(pycode);
     }
   } else {

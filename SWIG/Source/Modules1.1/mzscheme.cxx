@@ -225,17 +225,17 @@ MZSCHEME::functionWrapper(Node *n) {
   char *wname = Char(Swig_name_wrapper(iname));
 
   // Build the name for Scheme.
-  Printv(proc_name, iname,0);
+  Printv(proc_name, iname,NULL);
   Replace(proc_name, "_", "-", DOH_REPLACE_ANY);
 
   // writing the function wrapper function
-  Printv(f->def, "static Scheme_Object *",  wname, " (", 0);
-  Printv(f->def, "int argc, Scheme_Object **argv", 0);
-  Printv(f->def, ")\n{", 0);
+  Printv(f->def, "static Scheme_Object *",  wname, " (", NULL);
+  Printv(f->def, "int argc, Scheme_Object **argv", NULL);
+  Printv(f->def, ")\n{", NULL);
 
   /* Define the scheme name in C. This define is used by several
      macros. */
-  Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", 0);
+  Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NULL);
 
   // Declare return variable and arguments
   // number of parameters
@@ -272,7 +272,7 @@ MZSCHEME::functionWrapper(Node *n) {
     Clear(arg);
     Printf(source, "argv[%d]", i);
     Printf(target, "%s",ln);
-    Printv(arg, Getattr(p,"name"),0);
+    Printv(arg, Getattr(p,"name"),NULL);
 
     if (i >= numreq) {
       Printf(f->code,"if (argc > %d) {\n",i);
@@ -283,7 +283,7 @@ MZSCHEME::functionWrapper(Node *n) {
       Replace(tm,"$target",target,DOH_REPLACE_ANY);   /* Deprecated */
       Replace(tm,"$input",source,DOH_REPLACE_ANY);
       Setattr(p,"emit:input",source);
-      Printv(f->code, tm, "\n", 0);
+      Printv(f->code, tm, "\n", NULL);
       p = Getattr(p,"tmap:in:next");
     } else {
       // no typemap found
@@ -300,7 +300,7 @@ MZSCHEME::functionWrapper(Node *n) {
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
       Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
       p = Getattr(p,"tmap:check:next");
     } else {
       p = nextSibling(p);
@@ -315,7 +315,7 @@ MZSCHEME::functionWrapper(Node *n) {
       Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);   /* Deprecated */
       Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
       Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
-      Printv(outarg,tm,"\n",0);
+      Printv(outarg,tm,"\n",NULL);
       p = Getattr(p,"tmap:argout:next");
       argout_set = 1;
     } else {
@@ -329,7 +329,7 @@ MZSCHEME::functionWrapper(Node *n) {
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
       Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      Printv(cleanup,tm,"\n",0);
+      Printv(cleanup,tm,"\n",NULL);
       p = Getattr(p,"tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -346,23 +346,23 @@ MZSCHEME::functionWrapper(Node *n) {
     Replaceall(tm,"$source","result");
     Replaceall(tm,"$target","values[0]");
     Replaceall(tm,"$result","values[0]");
-    Printv(f->code, tm, "\n",0);
+    Printv(f->code, tm, "\n",NULL);
   } else {
     throw_unhandled_mzscheme_type_error (d);
   }
 
   // Dump the argument output code
-  Printv(f->code, Char(outarg),0);
+  Printv(f->code, Char(outarg),NULL);
 
   // Dump the argument cleanup code
-  Printv(f->code, Char(cleanup),0);
+  Printv(f->code, Char(cleanup),NULL);
 
   // Look for any remaining cleanup
 
   if ((NewObject) || (Getattr(n,"feature:new"))) {
     if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
       Replaceall(tm,"$source","result");
-      Printv(f->code, tm, "\n",0);
+      Printv(f->code, tm, "\n",NULL);
     }
   }
 
@@ -370,14 +370,14 @@ MZSCHEME::functionWrapper(Node *n) {
 
   if ((tm = Swig_typemap_lookup_new("ret",n,"result",0))) {
     Replaceall(tm,"$source","result");
-    Printv(f->code, tm, "\n",0);
+    Printv(f->code, tm, "\n",NULL);
   }
 
   // Wrap things up (in a manner of speaking)
 
-  Printv(f->code, tab4, "return swig_package_values(lenv, values);\n", 0);
+  Printv(f->code, tab4, "return swig_package_values(lenv, values);\n", NULL);
   Printf(f->code, "#undef FUNC_NAME\n");
-  Printv(f->code, "}\n",0);
+  Printv(f->code, "}\n",NULL);
 
   Wrapper_print(f, f_wrappers);
 
@@ -387,7 +387,7 @@ MZSCHEME::functionWrapper(Node *n) {
   /*  Printv(init_func_def, "scheme_add_global(\"", proc_name,
 	 "\", scheme_make_prim_w_arity(", wname,
 	 ", \"", proc_name, "\", ", temp, ", ", temp,
-	 "), env);\n",0);
+	 "), env);\n",NULL);
   */
   Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),env);\n",
 	 proc_name, wname, proc_name, numreq, numargs);
@@ -438,13 +438,13 @@ MZSCHEME::variableWrapper(Node *n)
   strcpy(var_name, Char(Swig_name_wrapper(iname)));
 
   // Build the name for scheme.
-  Printv(proc_name, iname,0);
+  Printv(proc_name, iname,NULL);
   Replace(proc_name, "_", "-", DOH_REPLACE_ANY);
 
   if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 
     Printf (f->def, "static Scheme_Object *%s(int argc, Scheme_Object** argv) {\n", var_name);
-    Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", 0);
+    Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NULL);
 
     Wrapper_add_local (f, "swig_result", "Scheme_Object *swig_result");
 
@@ -455,7 +455,7 @@ MZSCHEME::variableWrapper(Node *n)
 	Replaceall(tm,"$source","argv[0]");
 	Replaceall(tm,"$target",name);
 	Replaceall(tm,"$input","argv[0]");
-	Printv(f->code, tm, "\n",0);
+	Printv(f->code, tm, "\n",NULL);
       }
       else {
 	throw_unhandled_mzscheme_type_error (t);
@@ -494,7 +494,7 @@ MZSCHEME::variableWrapper(Node *n)
 	   "0",
 	   ", ",
 	   "1",
-	   "), env);\n",0);
+	   "), env);\n",NULL);
 
   } else {
     Printf (stderr, "%s : Line %d. ** Warning. Unable to link with "
@@ -535,7 +535,7 @@ MZSCHEME::constantWrapper(Node *n)
   Printf (var_name, "_wrap_const_%s", Swig_name_mangle(iname));
 
   // Build the name for scheme.
-  Printv(proc_name, iname,0);
+  Printv(proc_name, iname,NULL);
   Replace(proc_name, "_", "-", DOH_REPLACE_ANY);
 
   if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
@@ -546,17 +546,17 @@ MZSCHEME::constantWrapper(Node *n)
 
   // See if there's a typemap
 
-  Printv(rvalue, value,0);
+  Printv(rvalue, value,NULL);
   if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 1)) {
     temp = Copy(rvalue);
     Clear(rvalue);
-    Printv(rvalue, "\"", temp, "\"",0);
+    Printv(rvalue, "\"", temp, "\"",NULL);
   }
   if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 0)) {
     Delete(temp);
     temp = Copy(rvalue);
     Clear(rvalue);
-    Printv(rvalue, "'", temp, "'",0);
+    Printv(rvalue, "'", temp, "'",NULL);
   }
   if ((tm = Swig_typemap_lookup_new("constant",n,name,0))) {
     Replaceall(tm,"$source",rvalue);

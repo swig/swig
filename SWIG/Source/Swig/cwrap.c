@@ -138,7 +138,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       } else {
 	local = Swig_clocal(altty,lname, pvalue);
       }
-      Wrapper_add_localv(w,lname,local,0);
+      Wrapper_add_localv(w,lname,local,NULL);
       i++;
     }
     p = nextSibling(p);
@@ -174,7 +174,7 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
   }
 
   /* Now print out function call */
-  Printv(fcall,decl,0);
+  Printv(fcall,decl,NULL);
 
   /* A sick hack */
   {
@@ -434,7 +434,7 @@ Swig_MethodToFunction(Node *n, String *classname, int added) {
       String *tmp = NewStringf("%s(%s)", membername, ParmList_str(p));
       body = SwigType_str(type,tmp);
       Delete(tmp);
-      Printv(body,code,"\n",0);
+      Printv(body,code,"\n",NULL);
       Setattr(n,"wrap:code",body);
     }
     Delete(membername);
@@ -467,7 +467,7 @@ Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int added)
       String *s = NewStringf("%s(%s)", membername, ParmList_str(parms));
       wrap = SwigType_str(type,s);
       Delete(s);
-      Printv(wrap,code,"\n",0);
+      Printv(wrap,code,"\n",NULL);
       Setattr(n,"wrap:code",wrap);
       Delete(wrap);
     }
@@ -509,7 +509,7 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int added)
     String *code = Getattr(n,"code");
     if (code) {
       String *s = NewStringf("void %s(%s)", membername, ParmList_str(p));
-      Printv(s,code,"\n",0);
+      Printv(s,code,"\n",NULL);
       Setattr(n,"wrap:code",s);
       Delete(s);
     }
@@ -564,7 +564,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int added) {
     String *code = Getattr(n,"code");
     if (code) {
       String *s = NewStringf("void %s(%s)", membername, ParmList_str(parms));
-      Printv(s,code,"\n",0);
+      Printv(s,code,"\n",NULL);
       Setattr(n,"wrap:code",s);
       Delete(s);
     }
@@ -611,7 +611,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int added) {
       String *tmp = NewStringf("%s(%s)", membername, ParmList_str(parms));
       String *s = SwigType_str(ty,tmp);
       Delete(tmp);
-      Printv(s,code,"\n",0);
+      Printv(s,code,"\n",NULL);
       Setattr(n,"wrap:code",s);
       Delete(s);
     }

@@ -330,7 +330,7 @@ int Language::clearDirective(Node *n) {
 
 int Language::constantDirective(Node *n) {
   if (!ImportMode) {
-    Swig_require(&n,"name", "?value",0);
+    Swig_require(&n,"name", "?value",NULL);
     String *name = Getattr(n,"name");
     String *value = Getattr(n,"value");
     if (!value) {
@@ -567,7 +567,7 @@ int Language::cDeclaration(Node *n) {
   if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
   if (Cmp(storage,"typedef") == 0) {
-    Swig_save(&n,"type",0);
+    Swig_save(&n,"type",NULL);
     SwigType *t = Copy(type);
     if (t) {
       SwigType_push(t,decl);
@@ -717,7 +717,7 @@ Language::functionHandler(Node *n) {
 int
 Language::globalfunctionHandler(Node *n) {
 
-  Swig_require(&n,"name","sym:name","type","?parms",0);
+  Swig_require(&n,"name","sym:name","type","?parms",NULL);
 
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
@@ -755,7 +755,7 @@ Language::globalfunctionHandler(Node *n) {
 
 int 
 Language::callbackfunctionHandler(Node *n) {
-  Swig_require(&n,"name","*sym:name","*type","?value",0);
+  Swig_require(&n,"name","*sym:name","*type","?value",NULL);
   String *symname = Getattr(n,"sym:name");
   String *type    = Getattr(n,"type");
   String *name    = Getattr(n,"name");
@@ -785,7 +785,7 @@ Language::callbackfunctionHandler(Node *n) {
 int
 Language::memberfunctionHandler(Node *n) {
 
-  Swig_require(&n,"*name","*sym:name","*type","?parms","?value",0);
+  Swig_require(&n,"*name","*sym:name","*type","?parms","?value",NULL);
 
   String *storage   = Getattr(n,"storage");
   String   *name    = Getattr(n,"name");
@@ -850,8 +850,8 @@ Language::memberfunctionHandler(Node *n) {
 int
 Language::staticmemberfunctionHandler(Node *n) {
 
-  Swig_require(&n,"*name","*sym:name","*type",0);
-  Swig_save(&n,"storage",0);
+  Swig_require(&n,"*name","*sym:name","*type",NULL);
+  Swig_save(&n,"storage",NULL);
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
   SwigType *type    = Getattr(n,"type");
@@ -873,7 +873,7 @@ Language::staticmemberfunctionHandler(Node *n) {
     /* Hmmm. An added static member.  We have to create a little wrapper for this */
     String *tmp = NewStringf("%s(%s)", cname, ParmList_str(parms));
     String *wrap = SwigType_str(type,tmp);
-    Printv(wrap,code,"\n",0);
+    Printv(wrap,code,"\n",NULL);
     Setattr(n,"wrap:code",wrap);
     Delete(tmp);
     Delete(wrap);
@@ -925,8 +925,8 @@ Language::globalvariableHandler(Node *n) {
 int
 Language::membervariableHandler(Node *n) {
 
-  Swig_require(&n,"*name","*sym:name","*type",0);
-  Swig_save(&n,"parms",0);
+  Swig_require(&n,"*name","*sym:name","*type",NULL);
+  Swig_save(&n,"parms",NULL);
 
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
@@ -1039,7 +1039,7 @@ Language::membervariableHandler(Node *n) {
 int 
 Language::staticmembervariableHandler(Node *n)
 {
-  Swig_require(&n,"*name","*sym:name","*type",0);
+  Swig_require(&n,"*name","*sym:name","*type",NULL);
 
   String *name    = Getattr(n,"name");
   String *symname = Getattr(n,"sym:name");
@@ -1089,7 +1089,7 @@ int Language::enumDeclaration(Node *n) {
 int Language::enumvalueDeclaration(Node *n) {
   if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
-  Swig_require(&n,"name", "?value",0);
+  Swig_require(&n,"name", "?value",NULL);
   String *value = Getattr(n,"value");
   String *name  = Getattr(n,"name");
   if (value)
@@ -1112,7 +1112,7 @@ int Language::enumvalueDeclaration(Node *n) {
 
 int Language::memberconstantHandler(Node *n) {
 
-  Swig_require(&n,"*name","*sym:name","*value",0);
+  Swig_require(&n,"*name","*sym:name","*value",NULL);
 
   String *name    = Getattr(n,"name");
   String *symname = Getattr(n,"sym:name");
@@ -1163,7 +1163,7 @@ int Language::classDeclaration(Node *n) {
   char *iname = Char(symname);
   int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
-  Swig_save(&n,"name",0);
+  Swig_save(&n,"name",NULL);
   Setattr(n,"name",classname);
 
   if (Cmp(kind,"class") == 0) {
@@ -1287,7 +1287,7 @@ int Language::constructorDeclaration(Node *n) {
 
 int 
 Language::constructorHandler(Node *n) {
-  Swig_require(&n,"?name","*sym:name","?type","?parms",0);
+  Swig_require(&n,"?name","*sym:name","?type","?parms",NULL);
   String *symname = Getattr(n,"sym:name");
   String *mrename;
 
@@ -1328,8 +1328,8 @@ int Language::destructorDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::destructorHandler(Node *n) {
-  Swig_require(&n,"?name","*sym:name",0);
-  Swig_save(&n,"type","parms",0);
+  Swig_require(&n,"?name","*sym:name",NULL);
+  Swig_save(&n,"type","parms",NULL);
 
   String *symname = Getattr(n,"sym:name");
   String *mrename;
@@ -1406,7 +1406,7 @@ int Language::constantWrapper(Node *n) {
  * Language::variableWrapper()
  * ---------------------------------------------------------------------- */
 int Language::variableWrapper(Node *n) {
-  Swig_require(&n,"*name","*sym:name","*type","?parms",0);
+  Swig_require(&n,"*name","*sym:name","*type","?parms",NULL);
   String *symname    = Getattr(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
   String *name   = Getattr(n,"name");

@@ -147,7 +147,7 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
 
   SwigType_remember(t);
   SwigType *lt = SwigType_ltype(t);
-  Printv(f, "if (SWIG_ConvertPtr(", src, ",(void **) ", dest, ",", 0);
+  Printv(f, "if (SWIG_ConvertPtr(", src, ",(void **) ", dest, ",", NULL);
 
   /* If we're passing a void pointer, we give the pointer conversion a NULL
      pointer, otherwise pass in the expected type. */
@@ -155,7 +155,7 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
   if (Cmp(lt,"p.void") == 0) {
     Printf(f, " 0 ) < 0) {\n");
   } else {
-    Printv(f, "SWIGTYPE", SwigType_manglestr(t), ") < 0) {\n",0);
+    Printv(f, "SWIGTYPE", SwigType_manglestr(t), ") < 0) {\n",NULL);
   }
 
   Printv(f,
@@ -163,7 +163,7 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
 	 " Expected %s\", SWIGTYPE", SwigType_manglestr(t), "->name);\n", ret,
 	 ";\n",
          "}\n",
-         0);
+         NULL);
   Delete(lt);
 }
 
@@ -528,7 +528,7 @@ PHP4::top(Node *n) {
 
   /* Create the .h file too */
   filen = NewString("");
-  Printv(filen, Swig_file_dirname(outfile), "php_", module, ".h", 0);
+  Printv(filen, Swig_file_dirname(outfile), "php_", module, ".h", NULL);
   f_h = NewFile(filen, "w");
   if (!f_h) {
 	Printf(stderr,"Unable to open %s\n", filen);
@@ -685,7 +685,7 @@ PHP4::top(Node *n) {
   Printf(s_header,"    STANDARD_MODULE_PROPERTIES\n");
   Printf(s_header,"};\n\n");
 
-  Printv(f_runtime, s_header, 0);
+  Printv(f_runtime, s_header, NULL);
 
   String *type_table = NewString("");
   SwigType_emit_type_table(f_runtime,type_table);
@@ -701,7 +701,7 @@ PHP4::top(Node *n) {
   Printf(s_header, "/* end header section */\n");
   Printf(s_wrappers, "/* end wrapper section */\n");
  
-  Printv(f_runtime, s_wrappers, s_init, 0);
+  Printv(f_runtime, s_wrappers, s_init, NULL);
   Delete(s_header);
   Delete(s_wrappers);
   Delete(s_init);
@@ -807,7 +807,7 @@ PHP4::functionWrapper(Node *n) {
 
   outarg = NewString("");
 
-  Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", 0);
+  Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", NULL);
 
   emit_args(d, l, f);
   /* Attach standard typemaps */
@@ -924,7 +924,7 @@ PHP4::functionWrapper(Node *n) {
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
       Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
       p = Getattr(p,"tmap:check:next");
     } else {
       p = nextSibling(p);
@@ -935,7 +935,7 @@ PHP4::functionWrapper(Node *n) {
   for (i = 0, p = l; p; i++) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      Printv(cleanup,tm,"\n",0);
+      Printv(cleanup,tm,"\n",NULL);
       p = Getattr(p,"tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -957,7 +957,7 @@ PHP4::functionWrapper(Node *n) {
 	Printf(f->code,"_saved[%d] = %s;\n", num_saved, in);
 	num_saved++;
       }
-      Printv(outarg,tm,"\n",0);
+      Printv(outarg,tm,"\n",NULL);
       p = Getattr(p,"tmap:argout:next");
     } else {
       p = nextSibling(p);
@@ -966,7 +966,7 @@ PHP4::functionWrapper(Node *n) {
 
   if(num_saved) {
     sprintf(temp, "_saved[%d]",num_saved);
-    Wrapper_add_localv(f,"_saved","zval *",temp,0);
+    Wrapper_add_localv(f,"_saved","zval *",temp,NULL);
   }
 
   /* emit function call*/
@@ -1001,12 +1001,12 @@ PHP4::functionWrapper(Node *n) {
 	Printv(f->code,
 	       tab4, "ctemp[0] = result;\n",
 	       tab4, "ctemp[1] = 0;\n",
-	       tab4, "RETURN_STRING(ctemp, 1);\n", 0);
+	       tab4, "RETURN_STRING(ctemp, 1);\n", NULL);
 	break;
       case T_USER:
 	SwigType_add_pointer(d);
 	SwigType_remember(d);
-	Printv(f->code, "SWIG_SetPointerZval(return_value, (void *)result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
+	Printv(f->code, "SWIG_SetPointerZval(return_value, (void *)result, SWIGTYPE", SwigType_manglestr(d), ");\n", NULL);
 	SwigType_del_pointer(d);
 	break;
       case T_STRING:
@@ -1015,7 +1015,7 @@ PHP4::functionWrapper(Node *n) {
 	
       case T_POINTER:
 	SwigType_remember(d);
-	Printv(f->code, tab4, "SWIG_SetPointerZval(return_value, (void *)result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
+	Printv(f->code, tab4, "SWIG_SetPointerZval(return_value, (void *)result, SWIGTYPE", SwigType_manglestr(d), ");\n", NULL);
 	break;
       default:
 	Printf(stderr,"%s: Line %d, Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
@@ -1026,10 +1026,10 @@ PHP4::functionWrapper(Node *n) {
   }
   
   if(outarg)
-    Printv(f->code,outarg,0);
+    Printv(f->code,outarg,NULL);
   
   if(cleanup)
-    Printv(f->code,cleanup,0);
+    Printv(f->code,cleanup,NULL);
   
   if((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char *)"result", (char*)"result",(char*)"",0))) {
     Printf(f->code,"%s\n", tm);
@@ -1357,7 +1357,7 @@ PHP4::variableWrapper(Node *n) {
 	Printf(f_c->code, "{\n %s _temp;\n", SwigType_lstr(t,0));
 	Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
 	get_pointer(name, (char*)"value", (char*)"*z_var", (char*)"&_temp", t, f_c->code,(char*)"return");
-	Printv(f_c->code, tab4, name, " = *(", SwigType_str(t,0), ") _temp;\n", 0);
+	Printv(f_c->code, tab4, name, " = *(", SwigType_str(t,0), ") _temp;\n", NULL);
 	Printf(f_c->code,"}\n");
 	SwigType_del_pointer(t);
 	break;
@@ -1396,7 +1396,7 @@ PHP4::variableWrapper(Node *n) {
 	Wrapper_add_local(f_c, "z_var", "zval **z_var");
 	Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
 	get_pointer(name, (char*)"value", (char*)"*(z_var)", (char*)"&_temp", t,f_c->code, (char*)"return");
-	Printv(f_c->code, tab4, name, " = (", SwigType_str(t,0), ") _temp;\n", 0);
+	Printv(f_c->code, tab4, name, " = (", SwigType_str(t,0), ") _temp;\n", NULL);
 	Printf(f_c->code, "}\n");
 	break;
   default:
@@ -1583,7 +1583,7 @@ PHP4::emit_shadow_classdef() {
 
 		Printv(shadow_classdef,
 		" var $_cPtr;\n",
-		" var $_cMemOwn;\n", 0);
+		" var $_cMemOwn;\n", NULL);
 
 		for(k = Firstkey(shadow_php_vars); k; k = Nextkey(shadow_php_vars)) {
 			Printf(shadow_classdef, " var $%s;\n", Getattr(shadow_php_vars, k));
@@ -1599,7 +1599,7 @@ PHP4::emit_shadow_classdef() {
 		"    $this->_cPtr = $cPtr;\n",
 		"    $this->_cMemOwn = $own;\n",
 		" }\n",
-		"\n", 0);
+		"\n", NULL);
 
 		// No explicit super constructor call as this class does not
 		// have a SWIG base class.
@@ -1608,10 +1608,10 @@ PHP4::emit_shadow_classdef() {
 	Replace(shadow_classdef, "$class", shadow_classname, DOH_REPLACE_ANY);
 
 	if(all_shadow_extra_code)
-		Printv(shadow_classdef, all_shadow_extra_code, 0);
+		Printv(shadow_classdef, all_shadow_extra_code, NULL);
 
 	if(this_shadow_extra_code)
-		Printv(shadow_classdef, this_shadow_extra_code, 0);
+		Printv(shadow_classdef, this_shadow_extra_code, NULL);
 }
 
 
@@ -1712,14 +1712,14 @@ int PHP4::classHandler(Node *n) {
 
 		emit_shadow_classdef();
 
-		Printv(f_phpcode, shadow_classdef, shadow_code, 0);
+		Printv(f_phpcode, shadow_classdef, shadow_code, NULL);
 
 		// Write the enum initialisation code in a static block
 		// These are all the enums defined withing the c++ class.
 
 		// XXX Needed in PHP ?
 		if(strlen(Char(shadow_enum_code)) != 0 )
-			Printv(f_phpcode, "{\n // enum\n", shadow_enum_code, " }\n", 0);
+			Printv(f_phpcode, "{\n // enum\n", shadow_enum_code, " }\n", NULL);
 		Printf(f_phpcode, "}\n");
 
 		free(shadow_classname);
@@ -1828,7 +1828,7 @@ int PHP4::staticmembervariableHandler(Node *n) {
 
 	f = NewWrapper();
 
-	Printv(f->def, "ZEND_NAMED_FUNCTION(", Swig_name_wrapper(iname), ") {\n", 0);
+	Printv(f->def, "ZEND_NAMED_FUNCTION(", Swig_name_wrapper(iname), ") {\n", NULL);
 
 	/* If a argument is given we set the variable. Then we return
 	 * the current value
@@ -2021,18 +2021,18 @@ int PHP4::constructorHandler(Node *n) {
 		// If we are not a constructor and called as a class method
 		// then act like one.
 		Printv(nativecall, tab4, "if(! isset($this)) $this = new ",
-		       shadow_classname, ";\n", 0);
+		       shadow_classname, ";\n", NULL);
 		if(native_constructor) {
 		} else { // non-offical alternative constructor
 			// to protect against double-construcot, first destroy
 			// just-in-case
-			Printv(nativecall, tab4, "$this->_destroy();\n", 0);
+			Printv(nativecall, tab4, "$this->_destroy();\n", NULL);
 		}
 
 		if(iname != NULL)
-			Printv(nativecall, tab4, "$this->_cPtr = ", package, "::", Swig_name_construct(iname), "(", 0);
+			Printv(nativecall, tab4, "$this->_cPtr = ", package, "::", Swig_name_construct(iname), "(", NULL);
 		else
-			Printv(nativecall, tab4, "$this->_cPtr = ", module, "::", Swig_name_construct(shadow_classname), "(", 0);
+			Printv(nativecall, tab4, "$this->_cPtr = ", module, "::", Swig_name_construct(shadow_classname), "(", NULL);
 
 		int pcount = ParmList_len(l);
 		if(pcount == 0) // must have default constructor
@@ -2053,9 +2053,9 @@ int PHP4::constructorHandler(Node *n) {
 			}
 
 			if(is_shadow(pt)) {
-				Printv(nativecall, "$", arg, "->getCPtr()", 0);
+				Printv(nativecall, "$", arg, "->getCPtr()", NULL);
 			} else 
-				Printv(nativecall, "$", arg, 0);
+				Printv(nativecall, "$", arg, NULL);
 
 			/* Add to php shadow function header */
 			Printf(shadow_code, "$%s", arg);
@@ -2067,7 +2067,7 @@ int PHP4::constructorHandler(Node *n) {
 		}
 
 		Printf(shadow_code, ") {\n");
-		Printv(nativecall, ");\n", tab4, "$this->_cMemOwn = true;\n", 0);
+		Printv(nativecall, ");\n", tab4, "$this->_cMemOwn = true;\n", NULL);
 		/* register our shutdown function only ig we are a native
 		 * constructor not an alternative constructor ( which calls
 		 * the native one */
@@ -2075,16 +2075,16 @@ int PHP4::constructorHandler(Node *n) {
 		if(native_constructor)
 			Printv(nativecall, tab4,
 				   "register_shutdown_function(array(&$this,",
-				   "\"_destroy\"));\n", 0);
+				   "\"_destroy\"));\n", NULL);
 
 		/* Store new values in PHP */
 		if(!no_sync) {
 			Printv(nativecall, tab4,
-				   "$this->_sync_php();\n", 0);
+				   "$this->_sync_php();\n", NULL);
 		}
 
 		/* if we are alternatate constructor, return object */
-		if(! native_constructor) Printv(nativecall, tab4, "return $this;\n", 0);
+		if(! native_constructor) Printv(nativecall, tab4, "return $this;\n", NULL);
 		Printf(shadow_code, "%s", nativecall);
 		Printf(shadow_code, "  }\n\n");
 		Delete(nativecall);
@@ -2218,18 +2218,18 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 		if(static_flag && !const_flag)
 			Printf(nativecall, "if($val) {\n");
 		Printf(nativecall, "    return ");
-		Printv(nativecall, package, "::", php_function_name, "(", 0);
+		Printv(nativecall, package, "::", php_function_name, "(", NULL);
 		if(!const_flag) {
 		  if(static_flag)
 			Printf(nativecall, "$val");
 		  else 
-			Printv(nativecall, "$this->_cPtr", 0);
+			Printv(nativecall, "$this->_cPtr", NULL);
 		}
 	} else if(SwigType_type(t) == T_VOID) {
 		if(static_flag && !const_flag)
 			Printf(nativecall, "    if($val) {\n");
-		Printv(nativecall,"    ", package, "::",php_function_name,"(",0);
-		Printv(nativecall, "$this->_cPtr", 0);
+		Printv(nativecall,"    ", package, "::",php_function_name,"(",NULL);
+		Printv(nativecall, "$this->_cPtr", NULL);
 	} else if(is_shadow(t)) {
 		if(SwigType_type(t) == T_ARRAY) {
 			Printf(nativecall, "    return %s::%s($this->_cPtr", 
@@ -2287,9 +2287,9 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	    gencomma = 1;
 
 	    if(is_shadow(pt)) {
-		Printv(nativecall, "$", arg, "->getCPtr()", 0);
+		Printv(nativecall, "$", arg, "->getCPtr()", NULL);
 	    } else {
-		Printv(nativecall, "$", arg, 0);
+		Printv(nativecall, "$", arg, NULL);
 	    }
 
 	    /* Add to php shadow function header */
@@ -2325,7 +2325,7 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 		if(static_flag && !const_flag) {
 		  Printf(nativecall, "    } else {\n");
 		  Printv(nativecall, "    return ", package, "::",
-			 php_function_name, "();\n",0);
+			 php_function_name, "();\n",NULL);
 		}
 	}
 

@@ -182,7 +182,7 @@ void JAVA::writeRegisterNatives()
 
   Printf(f_wrappers,"\n");
   Printf(f_wrappers,"JNINativeMethod nativeMethods[] = {\n");
-  Printv(f_wrappers, registerNativesList, 0);
+  Printv(f_wrappers, registerNativesList, NULL);
   Printf(f_wrappers, "};\n");
 
   Printf(f_wrappers,"\nint numberOfNativeMethods=sizeof(nativeMethods)/sizeof(JNINativeMethod);\n\n");
@@ -193,13 +193,13 @@ void JAVA::writeRegisterNatives()
 	 "jint registerNatives(JNIEnv *jenv) {", "\n",
 	 tab4, "jclass nativeClass = ", JNICALL((char*)"FindClass"),
 	 "\"", jni_pkgstr, module, "\");","\n",
-	 0);
+	 NULL);
 
   Printv(f_wrappers,
 	 tab4, "if (nativeClass == 0)", "\n", tab8, "return -1;", "\n",
 	 tab4, "return ", JNICALL((char*)"RegisterNatives"), "nativeClass, nativeMethods, ", "numberOfNativeMethods);", "\n",
 	 "}", "\n", "\n",
-	 0);
+	 NULL);
 
   // The unregisterNatives function
 
@@ -207,7 +207,7 @@ void JAVA::writeRegisterNatives()
 	 "jint unregisterNatives(JNIEnv *jenv) {", "\n",
 	 tab4, "jclass nativeClass = ", JNICALL((char*)"FindClass"),
 	 "\"", jni_pkgstr, module, "\");","\n",
-	 0);
+	 NULL);
 
   Printv(f_wrappers,
 	 tab4, "if (nativeClass == 0)", "\n", tab8, "return -1;", "\n",
@@ -216,7 +216,7 @@ void JAVA::writeRegisterNatives()
 	 tab4, "// return ", JNICALL((char*)"UnregisterNatives"), "nativeClass);", "\n",
 	 tab4, "return 0;", "\n",
 	 "}", "\n",
-	 0);
+	 NULL);
 }
 
 // ---------------------------------------------------------------------
@@ -329,7 +329,7 @@ int JAVA::top(Node *n) {
     String *s = NewString(package);
     char *jniname = makeValidJniName(Char(s));
     Clear(s);
-    Printv(s, jniname, 0);
+    Printv(s, jniname, NULL);
     free(jniname);
     Replace(s,".","_", DOH_REPLACE_ANY);
     Append(s, "_");
@@ -378,7 +378,7 @@ int JAVA::top(Node *n) {
 
   // Write out all the enums constants
   if (strlen(Char(module_constants_code)) != 0 )
-    Printv(f_java, "  // enums and constants\n", module_constants_code, 0);
+    Printv(f_java, "  // enums and constants\n", module_constants_code, NULL);
 
   // Finish off the java class
   Printf(f_java, "}\n");
@@ -456,17 +456,17 @@ void JAVA::emit_classdef() {
     if (module_baseclass && *Char(module_baseclass))
       Printf(f_java, "extends %s ", module_baseclass);
     if (module_interfaces)
-      Printv(f_java, module_interfaces, " ", 0);
+      Printv(f_java, module_interfaces, " ", NULL);
     Printf(f_java, "{\n", module);
     if (module_extra_code)
-      Printv(f_java, module_extra_code, 0);
+      Printv(f_java, module_extra_code, NULL);
   }
   classdef_emitted = 1;
 }
 
 int JAVA::nativeWrapper(Node *n) {
 
-  Swig_save(&n,"name",0);
+  Swig_save(&n,"name",NULL);
   Setattr(n,"name", Getattr(n,"wrap:name"));
   native_func = 1;
   functionWrapper(n);
@@ -563,15 +563,15 @@ int JAVA::functionWrapper(Node *n) {
   }
 
   if (SwigType_type(t) != T_VOID) {
-	 Wrapper_add_localv(f,"jresult", jnirettype, "jresult = 0",0);
+	 Wrapper_add_localv(f,"jresult", jnirettype, "jresult = 0",NULL);
   }
 
   Printf(f_java, "  %s ", module_method_modifiers);
   Printf(f_java, "native %s %s(", javarettype, iname);
 
   if(!jnic) 
-    Printv(f->def, "extern \"C\"{\n", 0);
-  Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", 0);
+    Printv(f->def, "extern \"C\"{\n", NULL);
+  Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NULL);
 
   // Emit all of the local variables for holding arguments.
   emit_args(t,l,f);
@@ -600,13 +600,13 @@ int JAVA::functionWrapper(Node *n) {
     sprintf(source,"j%s", Char(ln));
 
     if (useRegisterNatives) {
-      Printv(javaParameterSignature, JavaMethodSignature(pt, 0, 0), 0);
+      Printv(javaParameterSignature, JavaMethodSignature(pt, 0, 0), NULL);
     }
 
     /* Get the jni types of the parameter */
     if ((tm = Getattr(jnip,"tmap:jni"))) {
       jnip = Getattr(jnip,"tmap:jni:next");
-      Printv(jni_param_type, tm, 0);
+      Printv(jni_param_type, tm, NULL);
     } else {
       jnip = nextSibling(jnip);
       Printf(stderr, "No jni typemap defined for %s\n", SwigType_str(pt,0));
@@ -615,7 +615,7 @@ int JAVA::functionWrapper(Node *n) {
     /* Get the java types of the parameter */
     if ((tm = Getattr(jtypep,"tmap:jtype"))) {
       jtypep = Getattr(jtypep,"tmap:jtype:next");
-      Printv(javaparamtype, tm, 0);
+      Printv(javaparamtype, tm, NULL);
     } else {
       jtypep = nextSibling(jtypep);
       Printf(stderr, "No jtype typemap defined for %s\n", SwigType_str(pt,0));
@@ -628,7 +628,7 @@ int JAVA::functionWrapper(Node *n) {
     gencomma = 1;
 
     // Add to Jni function header
-    Printv(f->def, ", ", jni_param_type, " ", source, 0);
+    Printv(f->def, ", ", jni_param_type, " ", source, NULL);
 
     // Get typemap for this argument
     if ((tm = Getattr(p,"tmap:in"))) {
@@ -653,7 +653,7 @@ int JAVA::functionWrapper(Node *n) {
       Replaceall(tm,"$target",Getattr(p,"lname")); /* deprecated */
       Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
       p = Getattr(p,"tmap:check:next");
     } else {
       p = nextSibling(p);
@@ -669,7 +669,7 @@ int JAVA::functionWrapper(Node *n) {
       Replaceall(tm,"$source",Getattr(p,"emit:input")); /* deprecated */
       Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
-      Printv(cleanup,tm,"\n",0);
+      Printv(cleanup,tm,"\n",NULL);
       p = Getattr(p,"tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -687,7 +687,7 @@ int JAVA::functionWrapper(Node *n) {
       Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
       Replaceall(tm,"$result","jresult");
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
-      Printv(outarg,tm,"\n",0);
+      Printv(outarg,tm,"\n",NULL);
       p = Getattr(p,"tmap:argout:next");
     } else {
       p = nextSibling(p);
@@ -714,10 +714,10 @@ int JAVA::functionWrapper(Node *n) {
   }
 
   /* Output argument output code */
-  Printv(f->code,outarg,0);
+  Printv(f->code,outarg,NULL);
 
   /* Output cleanup code */
-  Printv(f->code,cleanup,0);
+  Printv(f->code,cleanup,NULL);
 
   /* Look to see if there is any newfree cleanup code */
   if (NewObject || (Getattr(n,"feature:new"))) {
@@ -736,7 +736,7 @@ int JAVA::functionWrapper(Node *n) {
   }
 
   if(SwigType_type(t) != T_VOID)
-    Printv(f->code, tab4, "return jresult;\n", 0);
+    Printv(f->code, tab4, "return jresult;\n", NULL);
   if(!jnic)
     Printf(f->code, "}");
   Printf(f->code, "}\n");
@@ -759,7 +759,7 @@ int JAVA::functionWrapper(Node *n) {
 	   tab4, "{",
 	   "\"", name, "\", \"(", javaParameterSignature, ")", javaReturnSignature, "\", ", wname,
 	   "},\n",
-	   0);
+	   NULL);
 
   }
 
@@ -974,17 +974,17 @@ void JAVA::pragma(char *lang, char *code, char *value) {
   } 
   else if(strcmp(code, "allshadowclassmodifiers") == 0) {
     if(shadow && all_shadow_class_modifiers)
-      Printv(all_shadow_class_modifiers, strvalue, 0);
+      Printv(all_shadow_class_modifiers, strvalue, NULL);
   } 
   else if(strcmp(code, "moduleclassmodifiers") == 0) {
     if(shadow && module_class_modifiers)
-      Printv(module_class_modifiers, strvalue, 0);
+      Printv(module_class_modifiers, strvalue, NULL);
   } 
   else if(strcmp(code, "modulemethodmodifiers") == 0 || strcmp(code, "modifiers") == 0) {
     if(strcmp(code, "modifiers") == 0)
       Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with modulemethodmodifiers pragma.\n", input_file, line_number);
     Clear(module_method_modifiers);
-    Printv(module_method_modifiers, strvalue, 0);
+    Printv(module_method_modifiers, strvalue, NULL);
   } else if (shadow) {
     if (strcmp(code,"shadowcode") == 0) {
       if (f_shadow && shadow_code)
@@ -1016,7 +1016,7 @@ void JAVA::pragma(char *lang, char *code, char *value) {
     } 
     else if (strcmp(code,"shadowclassmodifiers") == 0) {
       if (this_shadow_class_modifiers)
-        Printv(this_shadow_class_modifiers, strvalue, 0);
+        Printv(this_shadow_class_modifiers, strvalue, NULL);
       else
         Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
     }  else {
@@ -1040,13 +1040,13 @@ void JAVA::emit_shadow_classdef() {
 
   // Class modifiers
   if (this_shadow_class_modifiers && *Char(this_shadow_class_modifiers))
-    Printv(shadow_classdef, this_shadow_class_modifiers, 0);
+    Printv(shadow_classdef, this_shadow_class_modifiers, NULL);
   else if (all_shadow_class_modifiers && *Char(all_shadow_class_modifiers))
-    Printv(shadow_classdef, all_shadow_class_modifiers, 0);
+    Printv(shadow_classdef, all_shadow_class_modifiers, NULL);
   else
-    Printv(shadow_classdef, "public", 0);
+    Printv(shadow_classdef, "public", NULL);
   if (abstract_class_flag)
-    Printv(shadow_classdef, " abstract", 0);
+    Printv(shadow_classdef, " abstract", NULL);
   Printf(shadow_classdef, " class $class ");
 
   // Inherited classes
@@ -1061,7 +1061,7 @@ void JAVA::emit_shadow_classdef() {
 
   // Implemented interfaces
   if(this_shadow_interfaces && *Char(this_shadow_interfaces))
-    Printv(shadow_classdef, this_shadow_interfaces, " ", 0);
+    Printv(shadow_classdef, this_shadow_interfaces, " ", NULL);
   Printf(shadow_classdef, "{\n");
 
   //Display warning on attempt to use multiple inheritance
@@ -1080,13 +1080,13 @@ void JAVA::emit_shadow_classdef() {
       "  public $class(long cPointer, boolean cMemoryOwn) {\n",
       "    super(cPointer, cMemoryOwn);\n",
       "  }\n",
-      "\n", 0);
+      "\n", NULL);
 
     if(!have_default_constructor) {
       Printv(shadow_classdef, 
         "  protected $class() {\n",
         "  }\n",
-        "\n", 0);
+        "\n", NULL);
     }
     // Control which super constructor is called - we don't want 2 malloc/new c/c++ calls
     Replace(shadow_code, "$superconstructorcall", "    super(0, false);\n", DOH_REPLACE_ANY);
@@ -1104,7 +1104,7 @@ void JAVA::emit_shadow_classdef() {
       "  public long getCPtr() {\n",
       "    return _cPtr;\n",
       "  }\n",
-      "\n", 0);
+      "\n", NULL);
 
     if(!have_default_constructor) {
       Printv(shadow_classdef, 
@@ -1112,7 +1112,7 @@ void JAVA::emit_shadow_classdef() {
         "    _cPtr = 0;\n",
         "    _cMemOwn = false;\n",
         "  }\n",
-        "\n", 0);
+        "\n", NULL);
     }
     // No explicit super constructor call as this class does not have a SWIG base class.
     Replace(shadow_code, "$superconstructorcall", "", DOH_REPLACE_ANY);
@@ -1121,10 +1121,10 @@ void JAVA::emit_shadow_classdef() {
   Replace(shadow_classdef, "$class", shadow_classname, DOH_REPLACE_ANY);
 
   if (all_shadow_extra_code)
-    Printv(shadow_classdef, all_shadow_extra_code, 0);
+    Printv(shadow_classdef, all_shadow_extra_code, NULL);
 
   if (this_shadow_extra_code)
-    Printv(shadow_classdef, this_shadow_extra_code, 0);
+    Printv(shadow_classdef, this_shadow_extra_code, NULL);
 }
 
 int JAVA::classHandler(Node *n) {
@@ -1164,7 +1164,7 @@ int JAVA::classHandler(Node *n) {
     this_shadow_import = NewString("");
     this_shadow_class_modifiers = NewString("");
     if(all_shadow_interfaces)
-      Printv(this_shadow_interfaces, all_shadow_interfaces, 0);
+      Printv(this_shadow_interfaces, all_shadow_interfaces, NULL);
   }
   Language::classHandler(n);
 
@@ -1176,7 +1176,7 @@ int JAVA::classHandler(Node *n) {
       Node *base = Firstitem(baselist);
       String *basename = is_shadow(Getattr(base,"name"));
       if (basename)
-        Printv(this_shadow_baseclass, basename, 0);
+        Printv(this_shadow_baseclass, basename, NULL);
       base = Nextitem(baselist);
       if (base) {
         Printf(stderr, "Warning: %s inherits from multiple base classes. Multiple inheritance is not supported.\n", shadow_classname);
@@ -1185,11 +1185,11 @@ int JAVA::classHandler(Node *n) {
 
     emit_shadow_classdef();
 
-    Printv(f_shadow, shadow_classdef, shadow_code, 0);
+    Printv(f_shadow, shadow_classdef, shadow_code, NULL);
 
     // Write out all the enums and constants
     if (strlen(Char(shadow_constants_code)) != 0 )
-      Printv(f_shadow, "  // enums and constants\n", shadow_constants_code, 0);
+      Printv(f_shadow, "  // enums and constants\n", shadow_constants_code, NULL);
 
     Printf(f_shadow, "}\n");
     fclose(f_shadow);
@@ -1299,13 +1299,13 @@ void JAVA::javashadowfunctionHandler(Node* n, int is_virtual) {
       Printf(nativecall,"return ");
     }
     if(is_shadow(t)) {
-      Printv(nativecall, "new ", shadowrettype, "(", 0);
+      Printv(nativecall, "new ", shadowrettype, "(", NULL);
     }
   }
 
-  Printv(nativecall, module, ".", java_function_name, "(", 0);
+  Printv(nativecall, module, ".", java_function_name, "(", NULL);
   if (!static_flag)
-    Printv(nativecall, "_cPtr", 0);
+    Printv(nativecall, "_cPtr", NULL);
 
   /* Get number of required and total arguments */
   num_arguments = emit_num_arguments(l);
@@ -1358,15 +1358,15 @@ DelWrapper(f);
         Printf(nativecall, ", ");
 
       if(SwigType_type(pt) == T_ARRAY && is_shadow(get_array_type(pt))) {
-        Printv(user_arrays, tab4, "long[] $arg_cArray = new long[$arg.length];\n", 0);
-        Printv(user_arrays, tab4, "for (int i=0; i<$arg.length; i++)\n", 0);
-        Printv(user_arrays, tab4, "  $arg_cArray[i] = $arg[i].getCPtr();\n", 0);
+        Printv(user_arrays, tab4, "long[] $arg_cArray = new long[$arg.length];\n", NULL);
+        Printv(user_arrays, tab4, "for (int i=0; i<$arg.length; i++)\n", NULL);
+        Printv(user_arrays, tab4, "  $arg_cArray[i] = $arg[i].getCPtr();\n", NULL);
         Replace(user_arrays, "$arg", pn, DOH_REPLACE_ANY);
 
-        Printv(nativecall, arg, "_cArray", 0);
+        Printv(nativecall, arg, "_cArray", NULL);
       } else if (is_shadow(pt)) {
-        Printv(nativecall, arg, ".getCPtr()", 0);
-      } else Printv(nativecall, arg, 0);
+        Printv(nativecall, arg, ".getCPtr()", NULL);
+      } else Printv(nativecall, arg, NULL);
       /* Add to java shadow function header */
       if (gencomma >= 2)
         Printf(shadow_code, ", ");
@@ -1386,17 +1386,17 @@ DelWrapper(f);
     String* array_ret = NewString("");
     String* array_type = NewString("");
     Printf(array_ret,");\n");
-    Printv(array_ret, tab4, "$type[] arrayWrapper = new $type[cArray.length];\n", 0);
-    Printv(array_ret, tab4, "for (int i=0; i<cArray.length; i++)\n", 0);
-    Printv(array_ret, tab4, "  arrayWrapper[i] = new $type(cArray[i], false);\n", 0);
-    Printv(array_ret, tab4, "return arrayWrapper;\n", 0);
+    Printv(array_ret, tab4, "$type[] arrayWrapper = new $type[cArray.length];\n", NULL);
+    Printv(array_ret, tab4, "for (int i=0; i<cArray.length; i++)\n", NULL);
+    Printv(array_ret, tab4, "  arrayWrapper[i] = new $type(cArray[i], false);\n", NULL);
+    Printv(array_ret, tab4, "return arrayWrapper;\n", NULL);
 
     // Hack the jstype typemap apart
-    Printv(array_type, shadowrettype, 0);
+    Printv(array_type, shadowrettype, NULL);
     Replaceall(array_type,"[]", "");
 
     Replace(array_ret, "$type", array_type, DOH_REPLACE_ANY);
-    Printv(nativecall, array_ret, 0);
+    Printv(nativecall, array_ret, NULL);
     Delete(array_ret);
     Delete(array_type);
   }
@@ -1427,7 +1427,7 @@ DelWrapper(f);
   }
   else {
     Printf(shadow_code, ") {\n");
-    Printv(shadow_code, user_arrays, 0);
+    Printv(shadow_code, user_arrays, NULL);
     Printf(shadow_code, "    %s", nativecall);
     Printf(shadow_code, "  }\n\n");
   }
@@ -1456,11 +1456,11 @@ int JAVA::constructorHandler(Node *n) {
   
     Printf(shadow_code, "  public %s(", shadow_classname);
   
-    Printv(nativecall, "$superconstructorcall", 0); // Super call for filling in later.
+    Printv(nativecall, "$superconstructorcall", NULL); // Super call for filling in later.
     if (iname != NULL)
-      Printv(nativecall, tab4, "_cPtr = ", module, ".", Swig_name_construct(iname), "(", 0);
+      Printv(nativecall, tab4, "_cPtr = ", module, ".", Swig_name_construct(iname), "(", NULL);
     else
-      Printv(nativecall, tab4, "_cPtr = ", module, ".", Swig_name_construct(shadow_classname), "(", 0);
+      Printv(nativecall, tab4, "_cPtr = ", module, ".", Swig_name_construct(shadow_classname), "(", NULL);
   
     int pcount = ParmList_len(l);
     if(pcount == 0)  // We must have a default constructor
@@ -1485,8 +1485,8 @@ int JAVA::constructorHandler(Node *n) {
       }
   
       if(is_shadow(pt)) {
-        Printv(nativecall, arg, ".getCPtr()", 0);
-      } else Printv(nativecall, arg, 0);
+        Printv(nativecall, arg, ".getCPtr()", NULL);
+      } else Printv(nativecall, arg, NULL);
   
       /* Get the java type of the parameter */
       if ((tm = Getattr(jstypep,"tmap:jstype"))) {
@@ -1519,7 +1519,7 @@ int JAVA::constructorHandler(Node *n) {
     Printv(nativecall,
   	  ");\n",
   	  tab4, "_cMemOwn = true;\n",
-  	  0);
+  	  NULL);
   
     Printf(shadow_code, "%s", nativecall);
     Printf(shadow_code, "  }\n\n");

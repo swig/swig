@@ -922,7 +922,7 @@ static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
 	}
 	/* Substitute parameter names */
 	/*	Replace(str,"$arg",pname, DOH_REPLACE_ANY);    /* This is deprecated (or should be) */
-	new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), 0);
+	new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), NULL);
 	/* Substitute  */
 	Replace(s,pn,new_name,DOH_REPLACE_ID);
 	Delete(pbase);

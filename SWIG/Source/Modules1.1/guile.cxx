@@ -318,7 +318,7 @@ GUILE::emit_linkage (char *module_name)
     Printf(f_init, "extern \"C\" {\n\n");
   }
 
-  Printv(module_func,module_name,0);
+  Printv(module_func,module_name,NULL);
   Replace(module_func,"-", "_", DOH_REPLACE_ANY);
 
   switch (linkage) {
@@ -451,20 +451,20 @@ GUILE::write_doc(const String *proc_name,
 {
   switch (docformat) {
   case GUILE_1_4:
-    Printv(procdoc, "\f\n", 0);
-    Printv(procdoc, "(", signature, ")\n", 0);
-    Printv(procdoc, doc, "\n", 0);
+    Printv(procdoc, "\f\n", NULL);
+    Printv(procdoc, "(", signature, ")\n", NULL);
+    Printv(procdoc, doc, "\n", NULL);
     break;
   case PLAIN:
-    Printv(procdoc, "\f", proc_name, "\n\n", 0);
-    Printv(procdoc, "(", signature, ")\n", 0);
-    Printv(procdoc, doc, "\n\n", 0);
+    Printv(procdoc, "\f", proc_name, "\n\n", NULL);
+    Printv(procdoc, "(", signature, ")\n", NULL);
+    Printv(procdoc, doc, "\n\n", NULL);
     break;
   case TEXINFO:
-    Printv(procdoc, "\f", proc_name, "\n", 0);
-    Printv(procdoc, "@deffn primitive ", signature, "\n", 0);
-    Printv(procdoc, doc, "\n", 0);
-    Printv(procdoc, "@end deffn\n\n", 0);
+    Printv(procdoc, "\f", proc_name, "\n", NULL);
+    Printv(procdoc, "@deffn primitive ", signature, "\n", NULL);
+    Printv(procdoc, doc, "\n", NULL);
+    Printv(procdoc, "@end deffn\n\n", NULL);
     break;
   }
 }
@@ -525,7 +525,7 @@ GUILE::functionWrapper(Node *n) {
   Swig_typemap_lookup_new("out",n,"result",0);
   
   if ((tm = Getattr(n,"tmap:out:doc"))) {
-    Printv(returns,tm,0);
+    Printv(returns,tm,NULL);
   } else {
     String *s = SwigType_str(d,0);
     Chop(s);
@@ -535,8 +535,8 @@ GUILE::functionWrapper(Node *n) {
 
   /* Open prototype and signature */
 
-  Printv(f->def, "static SCM\n", wname," (", 0);
-  Printv(signature, proc_name, 0);
+  Printv(f->def, "static SCM\n", wname," (", NULL);
+  Printv(signature, proc_name, NULL);
 
   /* Now write code to extract the parameters */
 
@@ -564,14 +564,14 @@ GUILE::functionWrapper(Node *n) {
       Replace(tm,"$target",target,DOH_REPLACE_ANY); /* Deprecated */
       Replace(tm,"$input",source,DOH_REPLACE_ANY);
       Setattr(p,"emit:input", source);
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
 
       if (procdoc) {
 	/* Add to signature */
 	Printf(signature, " ");
 	if ((tm = Getattr(p,"tmap:in:doc"))) {
 	  Replaceall(tm,"$name", pn);
-	  Printv(signature,tm,0);
+	  Printv(signature,tm,NULL);
 	} else {
 	  String *s = SwigType_str(pt,0);
 	  Chop(s);
@@ -592,7 +592,7 @@ GUILE::functionWrapper(Node *n) {
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
       Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
       p = Getattr(p,"tmap:check:next");
     } else {
       p = nextSibling(p);
@@ -607,15 +607,15 @@ GUILE::functionWrapper(Node *n) {
       Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);   /* Deprecated */
       Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
       Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
-      Printv(outarg,tm,"\n",0);
+      Printv(outarg,tm,"\n",NULL);
       if (procdoc) {
 	if ((tm = Getattr(p,"tmap:argout:doc"))) {
 	  Replaceall(tm,"$name",Getattr(p,"name"));
 	  if (Len(returns)) {
-	    Printv(returns," ", tm, 0);
+	    Printv(returns," ", tm, NULL);
 	    returns_list = 1;
 	  } else {
-	    Printv(returns,tm,0);
+	    Printv(returns,tm,NULL);
 	  }
 	}
       }
@@ -629,7 +629,7 @@ GUILE::functionWrapper(Node *n) {
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
       Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      Printv(cleanup,tm,"\n",0);
+      Printv(cleanup,tm,"\n",NULL);
       p = Getattr(p,"tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -642,12 +642,12 @@ GUILE::functionWrapper(Node *n) {
 
   /* Define the scheme name in C. This define is used by several Guile
      macros. */
-  Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", 0);
+  Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NULL);
 
   // Now write code to make the function call
-  Printv(f->code, tab4, "gh_defer_ints();\n", 0);
+  Printv(f->code, tab4, "gh_defer_ints();\n", NULL);
   emit_action(n,f);
-  Printv(f->code, tab4, "gh_allow_ints();\n", 0);
+  Printv(f->code, tab4, "gh_allow_ints();\n", NULL);
 
   // Now have return value, figure out what to do with it.
 
@@ -655,38 +655,38 @@ GUILE::functionWrapper(Node *n) {
     Replaceall(tm,"$result","gswig_result");
     Replaceall(tm,"$target","gswig_result");
     Replaceall(tm,"$source","result");
-    Printv(f->code,tm,"\n",0);
+    Printv(f->code,tm,"\n",NULL);
   }
   else {
     throw_unhandled_guile_type_error (d);
   }
 
   // Dump the argument output code
-  Printv(f->code,outarg,0);
+  Printv(f->code,outarg,NULL);
 
   // Dump the argument cleanup code
-  Printv(f->code,cleanup,0);
+  Printv(f->code,cleanup,NULL);
 
   // Look for any remaining cleanup
 
   if ((NewObject) || (Getattr(n,"feature:new"))) {
     if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
       Replaceall(tm,"$source","result");
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
     }
   }
 
   // Free any memory allocated by the function being wrapped..
   if ((tm = Swig_typemap_lookup_new("ret",n,"result",0))) {
     Replaceall(tm,"$source","result");
-    Printv(f->code,tm,"\n",0);
+    Printv(f->code,tm,"\n",NULL);
   }
 
   // Wrap things up (in a manner of speaking)
 
   if (before_return)
-    Printv(f->code, before_return, "\n", 0);
-  Printv(f->code, "return gswig_result;\n", 0);
+    Printv(f->code, before_return, "\n", NULL);
+  Printv(f->code, "return gswig_result;\n", NULL);
 
   // Undefine the scheme name
 
@@ -699,17 +699,17 @@ GUILE::functionWrapper(Node *n) {
     int i;
     /* gh_new_procedure would complain: too many args */
     /* Build a wrapper wrapper */
-    Printv(f_wrappers, "static SCM\n", wname,"_rest (SCM rest)\n", 0);
-    Printv(f_wrappers, "{\n", 0);
+    Printv(f_wrappers, "static SCM\n", wname,"_rest (SCM rest)\n", NULL);
+    Printv(f_wrappers, "{\n", NULL);
     Printf(f_wrappers, "SCM arg[%d];\n", numargs);
     Printf(f_wrappers, "SWIG_Guile_GetArgs (arg, rest, %d, %d, \"%s\");\n",
 	   numreq, numargs-numreq, proc_name);
-    Printv(f_wrappers, "return ", wname, "(", 0);
-    Printv(f_wrappers, "arg[0]", 0);
+    Printv(f_wrappers, "return ", wname, "(", NULL);
+    Printv(f_wrappers, "arg[0]", NULL);
     for (i = 1; i<numargs; i++)
       Printf(f_wrappers, ", arg[%d]", i);
-    Printv(f_wrappers, ");\n", 0);
-    Printv(f_wrappers, "}\n", 0);
+    Printv(f_wrappers, ");\n", NULL);
+    Printv(f_wrappers, "}\n", NULL);
     /* Register it */
     Printf (f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s_rest, 0, 0, 1);\n",
              proc_name, wname, numreq, numargs-numreq);
@@ -754,10 +754,10 @@ GUILE::functionWrapper(Node *n) {
   Printf (exported_symbols, "\"%s\", ", proc_name);
   if (procdoc) {
     String *returns_text = NewString("");
-    Printv(returns_text, "Returns ", 0);
-    if (Len(returns)==0) Printv(returns_text, "unspecified", 0);
-    else if (returns_list) Printv(returns_text, "list (", returns, ")", 0);
-    else Printv(returns_text, returns, 0);
+    Printv(returns_text, "Returns ", NULL);
+    if (Len(returns)==0) Printv(returns_text, "unspecified", NULL);
+    else if (returns_list) Printv(returns_text, "list (", returns, ")", NULL);
+    else Printv(returns_text, returns, NULL);
     write_doc(proc_name, signature, returns_text);
     Delete(returns_text);
   }
@@ -811,7 +811,7 @@ GUILE::variableWrapper(Node *n)
 
     /* Define the scheme name in C. This define is used by several Guile
        macros. */
-    Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", 0);
+    Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NULL);
 
     Wrapper_add_local (f, "gswig_result", "SCM gswig_result");
 
@@ -822,7 +822,7 @@ GUILE::variableWrapper(Node *n)
 	Replaceall(tm,"$source","s_0");
 	Replaceall(tm,"$input","s_0");
 	Replaceall(tm,"$target",name);
-	Printv(f->code,tm,"\n",0);
+	Printv(f->code,tm,"\n",NULL);
       }
       else {
 	throw_unhandled_guile_type_error (t);
@@ -837,7 +837,7 @@ GUILE::variableWrapper(Node *n)
       Replaceall(tm,"$source",name);
       Replaceall(tm,"$target","gswig_result");
       Replaceall(tm,"$result", "gswig_result");
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
     }
     else {
       throw_unhandled_guile_type_error (t);
@@ -874,10 +874,10 @@ GUILE::variableWrapper(Node *n)
       String *doc = NewString("");
 
       if (ReadOnly) {
-	Printv(signature, proc_name, 0);
-	Printv(doc, "Returns constant ", 0);
+	Printv(signature, proc_name, NULL);
+	Printv(doc, "Returns constant ", NULL);
 	if ((tm = Getattr(n,"tmap:varout:doc"))) {
-	  Printv(doc,tm,0);
+	  Printv(doc,tm,NULL);
 	} else {
 	  String *s = SwigType_str(t,0);
 	  Chop(s);
@@ -887,9 +887,9 @@ GUILE::variableWrapper(Node *n)
       }
       else {
 	Printv(signature, proc_name,
-	       " #:optional ", 0);
+	       " #:optional ", NULL);
 	if ((tm = Getattr(n,"tmap:varin:doc"))) {
-	  Printv(signature,tm,0);
+	  Printv(signature,tm,NULL);
 	} else {
 	  String *s = SwigType_str(t,0);
 	  Chop(s);
@@ -898,10 +898,10 @@ GUILE::variableWrapper(Node *n)
 	}
 
 	Printv(doc, "If NEW-VALUE is provided, "
-	       "set C variable to this value.\n", 0);
-	Printv(doc, "Returns variable value ", 0);
+	       "set C variable to this value.\n", NULL);
+	Printv(doc, "Returns variable value ", NULL);
 	if ((tm = Getattr(n,"tmap:varout:doc"))) {
-	  Printv(doc,tm,0);
+	  Printv(doc,tm,NULL);
 	} else {
 	  String *s = SwigType_str(t,0);
 	  Chop(s);
@@ -984,7 +984,7 @@ GUILE::constantWrapper(Node *n)
     Replaceall(tm,"$source",rvalue);
     Replaceall(tm,"$value",rvalue);
     Replaceall(tm,"$target",name);
-    Printv(f_header,tm,"\n",0);
+    Printv(f_header,tm,"\n",NULL);
   } else {
     // Create variable and assign it a value
     Printf (f_header, "static %s %s = %s;\n", SwigType_lstr(nctype,0),

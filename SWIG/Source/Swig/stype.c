@@ -1941,8 +1941,8 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     List *el;
     String *en;
     Printf(f_forward,"#define  SWIGTYPE%s swig_types[%d] \n", key, i);
-    Printv(types,"static swig_type_info _swigt_", key, "[] = {", 0);
-    Printv(types,"{\"", key, "\", 0, \"", SwigType_str(Getattr(r_ltype,key),0),"\"},", 0);
+    Printv(types,"static swig_type_info _swigt_", key, "[] = {", NULL);
+    Printv(types,"{\"", key, "\", 0, \"", SwigType_str(Getattr(r_ltype,key),0),"\"},", NULL);
     el = SwigType_equivalent_mangle(key,0,0);
     for (en = Firstitem(el); en; en = Nextitem(el)) {
       String *ckey;
@@ -1958,7 +1958,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     }
     Delete(el);
     Printf(types,"{0}};\n");
-    Printv(table, "_swigt_", key, ", \n", 0);
+    Printv(table, "_swigt_", key, ", \n", NULL);
     key = Nextkey(r_mangled);
     i++;
   }

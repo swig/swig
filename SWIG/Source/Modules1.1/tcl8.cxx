@@ -159,11 +159,11 @@ TCL8::top(Node *n) {
   Language::top(n);
 
   /* Done.  Close up the module */
-  Printv(cmd_tab,   tab4, "{0, 0, 0}\n", "};\n",0);
-  Printv(var_tab,   tab4, "{0,0,0,0}\n", "};\n",0);
-  Printv(const_tab, tab4, "{0,0,0,0,0,0}\n", "};\n", 0);
+  Printv(cmd_tab,   tab4, "{0, 0, 0}\n", "};\n",NULL);
+  Printv(var_tab,   tab4, "{0,0,0,0}\n", "};\n",NULL);
+  Printv(const_tab, tab4, "{0,0,0,0,0,0}\n", "};\n", NULL);
 
-  Printv(f_wrappers, cmd_tab, var_tab, const_tab,0);
+  Printv(f_wrappers, cmd_tab, var_tab, const_tab,NULL);
 
   /* Dump the pointer equivalency table */
   SwigType_emit_type_table(f_runtime, f_wrappers);
@@ -174,7 +174,7 @@ TCL8::top(Node *n) {
   Printf(f_init,"return TCL_OK;\n}\n");
 
   /* Close all of the files */
-  Printv(f_runtime, f_header, f_wrappers,0);
+  Printv(f_runtime, f_header, f_wrappers,NULL);
   Wrapper_pretty_print(f_init,f_runtime);
   Delete(f_header);
   Delete(f_wrappers);
@@ -212,7 +212,7 @@ TCL8::functionWrapper(Node *n) {
   f = NewWrapper();
   Printv(f->def,
 	 "static int\n ", Swig_name_wrapper(iname), "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
-	 0);
+	 NULL);
 
   /* Print out variables for storing arguments. */
   emit_args(type,parms, f);
@@ -277,15 +277,15 @@ TCL8::functionWrapper(Node *n) {
   Printf(argstr,":%s\"",usage_string(Char(iname),type,parms));
   Printv(f->code,
 	 "if (SWIG_GetArgs(interp, objc, objv,", argstr, args, ") == TCL_ERROR) return TCL_ERROR;\n",
-	 0);
+	 NULL);
 
-  Printv(f->code,incode,0);
+  Printv(f->code,incode,NULL);
 
   /* Insert constraint checking code */
   for (p = parms; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
       Replaceall(tm,"$target",Getattr(p,"lname"));
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
       p = Getattr(p,"tmap:check:next");
     } else {
       p = nextSibling(p);
@@ -296,7 +296,7 @@ TCL8::functionWrapper(Node *n) {
   for (i = 0, p = parms; p; i++) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
       Replaceall(tm,"$source",Getattr(p,"lname"));
-      Printv(cleanup,tm,"\n",0);
+      Printv(cleanup,tm,"\n",NULL);
       p = Getattr(p,"tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -311,7 +311,7 @@ TCL8::functionWrapper(Node *n) {
       Replaceall(tm,"$result","(Tcl_GetObjResult(interp))");
       Replaceall(tm,"$arg",Getattr(p,"emit:input"));
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
-      Printv(outarg,tm,"\n",0);
+      Printv(outarg,tm,"\n",NULL);
       p = Getattr(p,"tmap:argout:next");
     } else {
       p = nextSibling(p);
@@ -335,10 +335,10 @@ TCL8::functionWrapper(Node *n) {
   }
 
   /* Dump output argument code */
-  Printv(f->code,outarg,0);
+  Printv(f->code,outarg,NULL);
 
   /* Dump the argument cleanup code */
-  Printv(f->code,cleanup,0);
+  Printv(f->code,cleanup,NULL);
 
   /* Look for any remaining cleanup */
   if ((NewObject) || (Getattr(n,"feature:new"))) {
@@ -352,7 +352,7 @@ TCL8::functionWrapper(Node *n) {
     Replaceall(tm,"$source","result");
     Printf(f->code,"%s\n", tm);
   }
-  Printv(f->code, "return TCL_OK;\n}", 0);
+  Printv(f->code, "return TCL_OK;\n}", NULL);
 
   /* Substitute the cleanup code */
   Replaceall(f->code,"$cleanup",cleanup);
@@ -362,7 +362,7 @@ TCL8::functionWrapper(Node *n) {
   Wrapper_print(f,f_wrappers);
 
   /* Register the function with Tcl */
-  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), ", NULL},\n", 0);
+  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), ", NULL},\n", NULL);
 
   Delete(incode);
   Delete(cleanup);
@@ -393,7 +393,7 @@ TCL8::variableWrapper(Node *n) {
   /* Create a function for getting a variable */
   getf = NewWrapper();
   getname = Swig_name_wrapper(Swig_name_get(iname));
-  Printv(getf->def,"static char *",getname,"(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
+  Printv(getf->def,"static char *",getname,"(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NULL);
   Wrapper_add_local(getf,"value", "Tcl_Obj *value = 0");
 
   if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
@@ -419,7 +419,7 @@ TCL8::variableWrapper(Node *n) {
   if (!ReadOnly) {
     setf = NewWrapper();
     setname = Swig_name_wrapper(Swig_name_set(iname));
-    Printv(setf->def,"static char *",setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
+    Printv(setf->def,"static char *",setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",NULL);
     Wrapper_add_local(setf,"value", "Tcl_Obj *value = 0");
     Wrapper_add_local(setf,"name1o", "Tcl_Obj *name1o = 0");
 
@@ -442,20 +442,20 @@ TCL8::variableWrapper(Node *n) {
     DelWrapper(setf);
   } 
 
-  Printv(var_tab, tab4,"{ SWIG_prefix \"", iname, "\", 0, (swig_variable_func) ", getname, ",", 0);
+  Printv(var_tab, tab4,"{ SWIG_prefix \"", iname, "\", 0, (swig_variable_func) ", getname, ",", NULL);
   if (readonly || ReadOnly) {
     static int readonlywrap = 0;
     if (!readonlywrap) {
       Wrapper *ro = NewWrapper();
       Printf(ro->def, "static const char *swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
-      Printv(ro->code, "return (char*) \"Variable is read-only\";\n", "}\n", 0);
+      Printv(ro->code, "return (char*) \"Variable is read-only\";\n", "}\n", NULL);
       Wrapper_print(ro,f_wrappers);
       readonlywrap = 1;
       DelWrapper(ro);
     }
     Printf(var_tab, "(swig_variable_func) swig_readonly},\n");
   } else {
-    Printv(var_tab, "(swig_variable_func) ", setname, "},\n",0);
+    Printv(var_tab, "(swig_variable_func) ", setname, "},\n",NULL);
   }
   
   Delete(setname);
@@ -570,11 +570,11 @@ TCL8::classHandler(Node *n) {
 
   attr_tab = NewString("");
   Printf(attr_tab, "static swig_attribute swig_");
-  Printv(attr_tab, real_classname, "_attributes[] = {\n", 0);
+  Printv(attr_tab, real_classname, "_attributes[] = {\n", NULL);
   
   methods_tab = NewStringf("");
   Printf(methods_tab,"static swig_method swig_");
-  Printv(methods_tab, real_classname, "_methods[] = {\n", 0);
+  Printv(methods_tab, real_classname, "_methods[] = {\n", NULL);
 
   /* Generate normal wrappers */
   Language::classHandler(n);
@@ -588,25 +588,25 @@ TCL8::classHandler(Node *n) {
   // Register the class structure with the type checker
   Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), real_classname);
   if (have_destructor) {
-    Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", 0);
+    Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", NULL);
     if (destructor_action) {
-      Printv(f_wrappers, SwigType_str(t,"arg1"), " = (", SwigType_str(t,0), ") obj;\n", 0);
-      Printv(f_wrappers, destructor_action, 0);
+      Printv(f_wrappers, SwigType_str(t,"arg1"), " = (", SwigType_str(t,0), ") obj;\n", NULL);
+      Printv(f_wrappers, destructor_action, NULL);
     } else {
       if (CPlusPlus) {
-	Printv(f_wrappers,"    delete (", SwigType_str(t,0), ") obj;\n",0);
+	Printv(f_wrappers,"    delete (", SwigType_str(t,0), ") obj;\n",NULL);
       } else {
-	Printv(f_wrappers,"    free((char *) obj);\n",0);
+	Printv(f_wrappers,"    free((char *) obj);\n",NULL);
       }
     }
     Printf(f_wrappers,"}\n");
   }
   
   Printf(methods_tab, "    {0,0}\n};\n");
-  Printv(f_wrappers,methods_tab,0);
+  Printv(f_wrappers,methods_tab,NULL);
   
   Printf(attr_tab, "    {0,0,0}\n};\n");
-  Printv(f_wrappers,attr_tab,0);
+  Printv(f_wrappers,attr_tab,NULL);
   
   /* Handle inheritance */
   
@@ -620,18 +620,18 @@ TCL8::classHandler(Node *n) {
 	base = Nextitem(baselist);
 	continue;
       }
-      Printv(f_wrappers,"extern swig_class _wrap_class_", bname, ";\n", 0);
+      Printv(f_wrappers,"extern swig_class _wrap_class_", bname, ";\n", NULL);
       Printf(base_class,"&_wrap_class_%s",bname);
       base = Nextitem(baselist);
       Putc(',',base_class);
     }
   }
 
-  Printv(f_wrappers,"static swig_class *swig_",real_classname,"_bases[] = {", base_class,"0};\n", 0);
+  Printv(f_wrappers,"static swig_class *swig_",real_classname,"_bases[] = {", base_class,"0};\n", NULL);
   Delete(base_class);
 
   Printv(f_wrappers, "swig_class _wrap_class_", real_classname, " = { \"", class_name,
-	 "\", &SWIGTYPE", SwigType_manglestr(t), ",",0);
+	 "\", &SWIGTYPE", SwigType_manglestr(t), ",",NULL);
   
   if (have_constructor) {
     Printf(f_wrappers,"%s", Swig_name_wrapper(Swig_name_construct(class_name)));
@@ -639,12 +639,12 @@ TCL8::classHandler(Node *n) {
     Printf(f_wrappers,"0");
   }
   if (have_destructor) {
-    Printv(f_wrappers, ", swig_delete_", class_name,0);
+    Printv(f_wrappers, ", swig_delete_", class_name,NULL);
   } else {
     Printf(f_wrappers,",0");
   }
-  Printv(f_wrappers, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes, swig_", real_classname,"_bases };\n", 0);
-  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", real_classname, "},\n", 0);
+  Printv(f_wrappers, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes, swig_", real_classname,"_bases };\n", NULL);
+  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", real_classname, "},\n", NULL);
   Delete(t);
   return SWIG_OK;
 }
@@ -665,7 +665,7 @@ int TCL8::memberfunctionHandler(Node *n) {
 
   realname = iname ? iname : name;
   rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
-  Printv(methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", 0);
+  Printv(methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NULL);
   Delete(rname);
   return SWIG_OK;
 }
@@ -679,13 +679,13 @@ int TCL8::membervariableHandler(Node *n) {
     String *rname;
 
     Language::membervariableHandler(n);
-    Printv(attr_tab, tab4, "{ \"-", symname, "\",", 0);
+    Printv(attr_tab, tab4, "{ \"-", symname, "\",", NULL);
     rname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name,symname)));
-    Printv(attr_tab, rname, ", ", 0);
+    Printv(attr_tab, rname, ", ", NULL);
     Delete(rname);
     if (!ReadOnly) {
       rname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name,symname)));
-      Printv(attr_tab, rname, "},\n",0);
+      Printv(attr_tab, rname, "},\n",NULL);
       Delete(rname);
     } else {
       Printf(attr_tab, "0 },\n");

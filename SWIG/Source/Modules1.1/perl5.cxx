@@ -275,7 +275,7 @@ PERL5::top(Node *n) {
 	 tab4, "croak(\"Value is read-only.\");\n",
 	 tab4, "return 0;\n",
 	 "}\n",
-	 0);
+	 NULL);
 
   Printf(f_wrappers,"#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
 
@@ -290,7 +290,7 @@ PERL5::top(Node *n) {
 	 "\n\n#ifdef PERL_OBJECT\n",
 	 "};\n",
 	 "#endif\n",
-	 0);
+	 NULL);
 
   Printf(f_header,"%s\n", magic);
 
@@ -313,7 +313,7 @@ PERL5::top(Node *n) {
   Delete(type_table);
 
   Printf(constant_tab,"{0}\n};\n");
-  Printv(f_wrappers,constant_tab,0);
+  Printv(f_wrappers,constant_tab,NULL);
 
   Printf(f_wrappers,"#ifdef __cplusplus\n}\n#endif\n");
 
@@ -325,10 +325,10 @@ PERL5::top(Node *n) {
 
   /* Finish off tables */
   Printf(variable_tab, "{0}\n};\n");
-  Printv(f_wrappers,variable_tab,0);
+  Printv(f_wrappers,variable_tab,NULL);
 
   Printf(command_tab,"{0,0}\n};\n");
-  Printv(f_wrappers,command_tab,0);
+  Printv(f_wrappers,command_tab,NULL);
 
 
   Printf(f_pm,"package %s;\n", package);
@@ -350,7 +350,7 @@ PERL5::top(Node *n) {
     Printv(base,
 	   "\n# ---------- BASE METHODS -------------\n\n",
 	   "package ", realpackage, ";\n\n",
-	   0);
+	   NULL);
 
     /* Write out the TIE method */
 
@@ -359,7 +359,7 @@ PERL5::top(Node *n) {
 	   tab4, "my ($classname,$obj) = @_;\n",
 	   tab4, "return bless $obj, $classname;\n",
 	   "}\n\n",
-	   0);
+	   NULL);
 
     /* Output a CLEAR method.   This is just a place-holder, but by providing it we
      * can make declarations such as
@@ -381,7 +381,7 @@ PERL5::top(Node *n) {
 	   tab4, "my $ptr = shift;\n",
 	   tab4, "return tied(%$ptr);\n",
 	   "}\n\n",
-	   0);
+	   NULL);
 
     Printf(f_pm,"%s",base);
 
@@ -476,7 +476,7 @@ PERL5::functionWrapper(Node *n)
   cleanup = NewString("");
   outarg  = NewString("");
 
-  Printv(f->def, "XS(", Swig_name_wrapper(iname), ") {\n", 0);
+  Printv(f->def, "XS(", Swig_name_wrapper(iname), ") {\n", NULL);
 
   emit_args(d, l, f);
   emit_attach_parmmaps(l,f);
@@ -530,7 +530,7 @@ PERL5::functionWrapper(Node *n)
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
       Replaceall(tm,"$target",Getattr(p,"lname"));
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
       p = Getattr(p,"tmap:check:next");
     } else {
       p = nextSibling(p);
@@ -543,7 +543,7 @@ PERL5::functionWrapper(Node *n)
       Replaceall(tm,"$source",Getattr(p,"lname"));
       Replaceall(tm,"$arg",Getattr(p,"emit:input"));
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
-      Printv(cleanup,tm,"\n",0);
+      Printv(cleanup,tm,"\n",NULL);
       p = Getattr(p,"tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -564,7 +564,7 @@ PERL5::functionWrapper(Node *n)
 	Printf(f->code,"_saved[%d] = %s;\n", num_saved, in);
 	num_saved++;
       }
-      Printv(outarg,tm,"\n",0);
+      Printv(outarg,tm,"\n",NULL);
       p = Getattr(p,"tmap:argout:next");
     } else {
       p = nextSibling(p);
@@ -574,7 +574,7 @@ PERL5::functionWrapper(Node *n)
   /* If there were any saved arguments, emit a local variable for them */
   if (num_saved) {
     sprintf(temp,"_saved[%d]",num_saved);
-    Wrapper_add_localv(f,"_saved","SV *",temp,0);
+    Wrapper_add_localv(f,"_saved","SV *",temp,NULL);
   }
 
   /* Now write code to make the function call */
@@ -592,11 +592,11 @@ PERL5::functionWrapper(Node *n)
 
   /* If there were any output args, take care of them. */
 
-  Printv(f->code,outarg,0);
+  Printv(f->code,outarg,NULL);
 
   /* If there was any cleanup, do that. */
 
-  Printv(f->code,cleanup,0);
+  Printv(f->code,cleanup,NULL);
 
   if ((NewObject) || (Getattr(n,"feature:new")))  {
     if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
@@ -646,9 +646,9 @@ PERL5::functionWrapper(Node *n)
 
     Printv(func, "sub ", iname, " {\n",
 	   tab4, "my @args = @_;\n",
-	   0);
+	   NULL);
 
-    Printv(func, tab4, "my $result = ", package, "::", iname, "(@args);\n", 0);
+    Printv(func, tab4, "my $result = ", package, "::", iname, "(@args);\n", NULL);
 
     /* Now check to see what kind of return result was found.
      * If this function is returning a result by 'value', SWIG did an
@@ -656,13 +656,13 @@ PERL5::functionWrapper(Node *n)
      * in Perl so we can garbage collect it. */
 
     if (is_shadow(d)) {
-      Printv(func, tab4, "return undef if (!defined($result));\n", 0);
+      Printv(func, tab4, "return undef if (!defined($result));\n", NULL);
       
       /* If we're returning an object by value, put it's reference
          into our local hash table */
       
       if ((!SwigType_ispointer(d) && !SwigType_isreference(d)) || NewObject) {
-	Printv(func, tab4, "$", is_shadow(d), "::OWNER{$result} = 1;\n", 0);
+	Printv(func, tab4, "$", is_shadow(d), "::OWNER{$result} = 1;\n", NULL);
       }
       
       /* We're returning a Perl "object" of some kind.  Turn it into a tied hash */
@@ -671,12 +671,12 @@ PERL5::functionWrapper(Node *n)
 	     tab4, "tie %resulthash, ref($result), $result;\n",
 	     tab4, "return bless \\%resulthash, ref($result);\n",
 	     "}\n",
-	     0);
+	     NULL);
       
       need_stub = 1;
     } else {
       /* Hmmm.  This doesn't appear to be anything I know about */
-      Printv(func, tab4, "return $result;\n", "}\n", 0);
+      Printv(func, tab4, "return $result;\n", "}\n", NULL);
     }
 
     /* Now check if we needed the stub.  If so, emit it, otherwise
@@ -685,7 +685,7 @@ PERL5::functionWrapper(Node *n)
     if (need_stub) {
       Printf(func_stubs,"%s",func);
     } else {
-      Printv(func_stubs,"*", iname, " = *", package, "::", iname, ";\n", 0);
+      Printv(func_stubs,"*", iname, " = *", package, "::", iname, ";\n", NULL);
     }
     Delete(func);
   }
@@ -724,7 +724,7 @@ int PERL5::variableWrapper(Node *n)
     Printv(setf->code,
 	   tab4, "MAGIC_PPERL\n",
 	   tab4, "mg = mg;\n",
-	   0);
+	   NULL);
 
     /* Check for a few typemaps */
     tm = Swig_typemap_lookup_new("varin",n,name,0);
@@ -750,7 +750,7 @@ int PERL5::variableWrapper(Node *n)
   Printv(getf->code,
 	 tab4, "MAGIC_PPERL\n",
 	 tab4, "mg = mg;\n",
-	 0);
+	 NULL);
 
   if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
     Replaceall(tm,"$target","sv");
@@ -786,10 +786,10 @@ int PERL5::variableWrapper(Node *n)
   }
   /* Now add symbol to the PERL interpreter */
   if (ReadOnly) {
-    Printv(variable_tab, tab4, "{ \"", package, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", val_name,",", tt, " },\n",0);
+    Printv(variable_tab, tab4, "{ \"", package, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", val_name,",", tt, " },\n",NULL);
 
   } else {
-    Printv(variable_tab, tab4, "{ \"", package, "::", iname, "\", MAGIC_CLASS ", set_name, ", MAGIC_CLASS ", val_name, ",", tt, " },\n",0);
+    Printv(variable_tab, tab4, "{ \"", package, "::", iname, "\", MAGIC_CLASS ", set_name, ", MAGIC_CLASS ", val_name, ",", tt, " },\n",NULL);
   }
 
   /* If we're blessed, try to figure out what to do with the variable
@@ -805,9 +805,9 @@ int PERL5::variableWrapper(Node *n)
 	     package, "::", iname, ";\n",
 	     "$", iname, "= \\%__", iname, "_hash;\n",
 	     "bless $", iname, ", ", is_shadow(t), ";\n",
-	     0);
+	     NULL);
     } else {
-      Printv(var_stubs, "*", iname, " = *", package, "::", iname, ";\n", 0);
+      Printv(var_stubs, "*", iname, " = *", package, "::", iname, ";\n", NULL);
     }
   }
   if (export_all)
@@ -861,13 +861,13 @@ PERL5::constantWrapper(Node *n)
 	     package, "::", iname, ";\n",
 	     "$", iname, "= \\%__", iname, "_hash;\n",
 	     "bless $", iname, ", ", is_shadow(type), ";\n",
-	     0);
+	     NULL);
     } else if (do_constants) {
       Printv(const_stubs,"sub ", name, " () { $",
-	     package, "::", name, " }\n", 0);
+	     package, "::", name, " }\n", NULL);
       num_consts++;
     } else {
-      Printv(var_stubs, "*",iname," = *", package, "::", iname, ";\n", 0);
+      Printv(var_stubs, "*",iname," = *", package, "::", iname, ";\n", NULL);
     }
   }
   if (export_all) {
@@ -935,7 +935,7 @@ PERL5::nativeWrapper(Node *n) {
   if (export_all)
     Printf(exported,"%s ",name);
   if (blessed) {
-    Printv(func_stubs,"*", name, " = *", package, "::", name, ";\n", 0);
+    Printv(func_stubs,"*", name, " = *", package, "::", name, ";\n", NULL);
   }
   return SWIG_OK;
 }
@@ -1007,7 +1007,7 @@ PERL5::classHandler(Node *n) {
     Printv(pm,
 	   "\n############# Class : ", fullclassname, " ##############\n",
 	   "\npackage ", fullclassname, ";\n",
-	   0);
+	   NULL);
 
     if (have_operators) {
 	Printf(pm, "use overload\n");
@@ -1016,20 +1016,20 @@ PERL5::classHandler(Node *n) {
 	    char *name = Char(key);
 //	    fprintf(stderr,"found name: <%s>\n", name);
 	    if (strstr(name, "operator_equal_to")) {
-		Printv(pm, tab4, "\"==\" => sub { $_[0]->operator_equal_to($_[1])},\n",0);
+		Printv(pm, tab4, "\"==\" => sub { $_[0]->operator_equal_to($_[1])},\n",NULL);
 	    } else if (strstr(name, "operator_not_equal_to")) {
-		Printv(pm, tab4, "\"!=\" => sub { $_[0]->operator_not_equal_to($_[1])},\n",0);
+		Printv(pm, tab4, "\"!=\" => sub { $_[0]->operator_not_equal_to($_[1])},\n",NULL);
 	    } else if (strstr(name, "operator_assignment")) {
-		Printv(pm, tab4, "\"=\" => sub { $_[0]->operator_assignment($_[1])},\n",0);
+		Printv(pm, tab4, "\"=\" => sub { $_[0]->operator_assignment($_[1])},\n",NULL);
 	    } else {
 		fprintf(stderr,"Unknown operator: %s\n", name);
 	    }
 	}
-	Printv(pm, tab4, "\"fallback\" => 1;\n",0);	    
+	Printv(pm, tab4, "\"fallback\" => 1;\n",NULL);	    
     }
     /* If we are inheriting from a base class, set that up */
 
-    Printv(pm, "@ISA = qw( ",realpackage, 0);
+    Printv(pm, "@ISA = qw( ",realpackage, NULL);
 
     /* Handle inheritance */
     List *baselist = Getattr(n,"bases");
@@ -1041,7 +1041,7 @@ PERL5::classHandler(Node *n) {
 	  base = Nextitem(baselist);
 	  continue;
 	}
-	Printv(pm," ", bname, 0);
+	Printv(pm," ", bname, NULL);
 	base = Nextitem(baselist);
       }
     }
@@ -1052,14 +1052,14 @@ PERL5::classHandler(Node *n) {
     if (have_data_members) {
       Printv(pm,
 	     "%BLESSEDMEMBERS = (\n", blessedmembers, ");\n\n",
-	     0);
+	     NULL);
     }
     if (have_data_members || have_destructor)
       Printf(pm, "%%ITERATORS = ();\n");
 
     /* Dump out the package methods */
 
-    Printv(pm,pcode,0);
+    Printv(pm,pcode,NULL);
     Delete(pcode);
 
     /* Output methods for managing ownership */
@@ -1075,7 +1075,7 @@ PERL5::classHandler(Node *n) {
 	   tab4, "my $ptr = tied(%$self);\n",
 	   tab4, "$OWNER{$ptr} = 1;\n",
 	   tab4, "};\n\n",
-	   0);
+	   NULL);
 
     /* Only output the following methods if a class has member data */
 
@@ -1095,7 +1095,7 @@ PERL5::classHandler(Node *n) {
 	     tab4, "}\n",
 	     tab4, "return $val;\n",
 	     "}\n\n",
-	     0);
+	     NULL);
 
       /* Output a STORE method.   This is also common to all classes (might move to base class) */
 
@@ -1109,7 +1109,7 @@ PERL5::classHandler(Node *n) {
 	     tab8, "$self->$member_func($newval);\n",
 	     tab4, "}\n",
 	     "}\n\n",
-	     0);
+	     NULL);
     }
     Delete(operators);     operators = 0;
   }
@@ -1156,14 +1156,14 @@ PERL5::memberfunctionHandler(Node *n) {
     Printv(func,
       "sub ", symname, " {\n",
       tab4, "my @args = @_;\n",
-      0);
+      NULL);
   
     /* Okay.  We've made argument adjustments, now call into the package */
   
     Printv(func,
       tab4, "my $result = ", package, "::", Swig_name_member(class_name,symname),
           "(@args);\n",
-          0);
+          NULL);
   
     /* Now check to see what kind of return result was found.
      * If this function is returning a result by 'value', SWIG did an
@@ -1171,13 +1171,13 @@ PERL5::memberfunctionHandler(Node *n) {
      * in Perl so we can garbage collect it. */
 
     if (is_shadow(t)) {
-      Printv(func,tab4, "return undef if (!defined($result));\n", 0);
+      Printv(func,tab4, "return undef if (!defined($result));\n", NULL);
   
       /* If we're returning an object by value, put it's reference
          into our local hash table */
   
       if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || NewObject) {
-        Printv(func, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", 0);
+        Printv(func, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", NULL);
       }
   
       /* We're returning a Perl "object" of some kind.  Turn it into
@@ -1188,7 +1188,7 @@ PERL5::memberfunctionHandler(Node *n) {
           tab4, "tie %resulthash, ref($result), $result;\n",
           tab4, "return bless \\%resulthash, ref($result);\n",
           "}\n",
-          0);
+          NULL);
   
       need_wrapper = 1;
     } else {
@@ -1196,13 +1196,13 @@ PERL5::memberfunctionHandler(Node *n) {
       /* Hmmm.  This doesn't appear to be anything I know about so just
          return it unmodified */
   
-      Printv(func, tab4,"return $result;\n", "}\n", 0);
+      Printv(func, tab4,"return $result;\n", "}\n", NULL);
     }
   
     if (need_wrapper) {
-      Printv(pcode,func,0);
+      Printv(pcode,func,NULL);
     } else {
-      Printv(pcode,"*",symname," = *", package, "::", Swig_name_member(class_name,symname), ";\n", 0);
+      Printv(pcode,"*",symname," = *", package, "::", Swig_name_member(class_name,symname), ";\n", NULL);
     }
     Delete(func);
   }
@@ -1239,8 +1239,8 @@ int PERL5::membervariableHandler(Node *n) {
 
   if (blessed) {
 
-    Printv(pcode,"*swig_", symname, "_get = *", package, "::", Swig_name_get(Swig_name_member(class_name,symname)), ";\n", 0);
-    Printv(pcode,"*swig_", symname, "_set = *", package, "::", Swig_name_set(Swig_name_member(class_name,symname)), ";\n", 0);
+    Printv(pcode,"*swig_", symname, "_get = *", package, "::", Swig_name_get(Swig_name_member(class_name,symname)), ";\n", NULL);
+    Printv(pcode,"*swig_", symname, "_set = *", package, "::", Swig_name_set(Swig_name_member(class_name,symname)), ";\n", NULL);
 
     /* Now we need to generate a little Perl code for this */
 
@@ -1250,7 +1250,7 @@ int PERL5::membervariableHandler(Node *n) {
 	 entry to the members list*/
       Printv(blessedmembers,
 	     tab4, symname, " => '", is_shadow(t), "',\n",
-	     0);
+	     NULL);
 
      }
   }
@@ -1280,11 +1280,11 @@ PERL5::constructorHandler(Node *n) {
       Printf(pcode, "sub new {\n");
     } else {
       /* Constructor doesn't match classname so we'll just use the normal name  */
-      Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", 0);
+      Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", NULL);
     }
 
     Printv(pcode, tab4, "my $pkg = shift;\n",
-	   tab4, "my @args = @_;\n", 0);
+	   tab4, "my @args = @_;\n", NULL);
 
     Printv(pcode,
 	   tab4, "my $self = ", package, "::", Swig_name_construct(symname), "(@args);\n",
@@ -1295,7 +1295,7 @@ PERL5::constructorHandler(Node *n) {
 	   tab4, "tie %retval, \"", fullclassname, "\", $self;\n",
 	   tab4, "return bless \\%retval, $pkg;\n",
 	   "}\n\n",
-	   0);
+	   NULL);
 
     have_constructor = 1;
   }
@@ -1321,7 +1321,7 @@ PERL5::destructorHandler(Node *n) {
 	   tab8,  package, "::", Swig_name_destroy(symname), "($self);\n",
 	   tab8, "delete $OWNER{$self};\n",
 	   tab4, "}\n}\n\n",
-	   0);
+	   NULL);
     have_destructor = 1;
   }
   member_func = 0;
@@ -1336,7 +1336,7 @@ PERL5::staticmemberfunctionHandler(Node *n) {
   Language::staticmemberfunctionHandler(n);
   if (blessed) {
     String *symname = Getattr(n,"sym:name");
-    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", 0);
+    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", NULL);
   }
   return SWIG_OK;
 }
@@ -1350,7 +1350,7 @@ PERL5::staticmembervariableHandler(Node *n) {
   Language::staticmembervariableHandler(n);
   if (blessed) {
     String *symname = Getattr(n,"sym:name");
-    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", 0);
+    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", NULL);
   }
   return SWIG_OK;
 }
@@ -1369,7 +1369,7 @@ PERL5::memberconstantHandler(Node *n) {
   blessed = oldblessed;
 
   if (blessed) {
-    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", 0);
+    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", NULL);
   }
   return SWIG_OK;
 }
