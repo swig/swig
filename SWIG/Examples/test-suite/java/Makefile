@@ -6,6 +6,9 @@
 LANGUAGE   = java
 SCRIPTSUFFIX = _runme.java
 
+C_TEST_CASES = \
+	java_lib_arrays
+
 CPP_TEST_CASES = \
 	java_constants \
 	java_pragmas \
