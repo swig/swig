@@ -110,6 +110,15 @@ supertest: super.c		# test the super module
 		-o supertest.o super.c
 	$(CC) supertest.o -ldoh -o supertest
 
+######################################################################
+# TARGET: typetest
+#####################################################################
+# not integrated with the mother ship yet
+typetest: type.c super.o
+	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -g -DTYPE_TEST -c \
+		-o typetest.o type.c
+	$(CC) super.o typetest.o -ldoh -o typetest
+
 clean:
 	rm -f *.o *~ core *.so *.a *_wrap.*
 

@@ -118,7 +118,27 @@ extern void     SwigScanner_idstart(SwigScanner *, char *idchar);
 #define   SWIG_TOKEN_ILLEGAL      98
 #define   SWIG_TOKEN_LAST         99 
 
-/* --- Type system --- */
+/* --- NEW Type system --- */
+
+DOH *Swig_Type_NewInt(int width, int is_const, int is_volatile, 
+		      int is_signed, int is_unsigned);
+DOH *Swig_Type_NewFloat(int width, int exp_width, int is_const,
+			int is_volatile);
+DOH *Swig_Type_NewVoid();
+DOH *Swig_Type_NewChar(int width, int is_const, int is_volatile);
+DOH *Swig_Type_NewName(DOH *name, int is_const, int is_volatile);
+DOH *Swig_Type_NewEnum(DOH *name, DOH *body, 
+		       int is_const, int is_volatile);
+DOH *Swig_Type_NewStruct(DOH *name, DOH *body, 
+			 int is_const, int is_volatile);
+DOH *Swig_Type_NewUnion(DOH *name, DOH *body,
+			int is_const, int is_volatile);
+DOH *Swig_Type_NewArray(DOH *size, DOH *parent)
+DOH *Swig_Type_NewFunction(DOH *parameters, DOH *parent);
+DOH *Swig_Type_NewPointer(int is_const, int is_volatile, DOH *parent);
+
+/* --- OLD Type system --- */
+   /* REMOVE ME SOON */
 
 #define   SWIG_TYPE_BYTE          1
 #define   SWIG_TYPE_UBYTE         2
