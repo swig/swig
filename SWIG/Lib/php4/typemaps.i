@@ -96,24 +96,24 @@
   RETURN_DOUBLE(*($source));
 }
 
-%typemap(php4,in) int *BOTH = int *INPUT;
-%typemap(php4,in) short *BOTH = short *INPUT;
-%typemap(php4,in) long *BOTH = long *INPUT;
-%typemap(php4,in) unsigned *BOTH = unsigned *INPUT;
-%typemap(php4,in) unsigned short *BOTH = unsigned short *INPUT;
-%typemap(php4,in) unsigned long *BOTH = unsigned long *INPUT;
-%typemap(php4,in) unsigned char *BOTH = unsigned char *INPUT;
-%typemap(php4,in) float *BOTH = float *INPUT;
-%typemap(php4,in) double *BOTH = double *INPUT;
+%typemap(php4,in) int *INOUT = int *INPUT;
+%typemap(php4,in) short *INOUT = short *INPUT;
+%typemap(php4,in) long *INOUT = long *INPUT;
+%typemap(php4,in) unsigned *INOUT = unsigned *INPUT;
+%typemap(php4,in) unsigned short *INOUT = unsigned short *INPUT;
+%typemap(php4,in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(php4,in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(php4,in) float *INOUT = float *INPUT;
+%typemap(php4,in) double *INOUT = double *INPUT;
 
-%typemap(php4,argout) int *BOTH = int *INPUT;
-%typemap(php4,argout) short *BOTH = short *INPUT;
-%typemap(php4,argout) long *BOTH = long *INPUT;
-%typemap(php4,argout) unsigned short *BOTH = unsigned short *INPUT;
-%typemap(php4,argout) unsigned long *BOTH = unsigned long *INPUT;
-%typemap(php4,argout) unsigned char *BOTH = unsigned char *INPUT;
-%typemap(php4,argout) float *BOTH = float *INPUT;
-%typemap(php4,argout) double *BOTH = double *INPUT;
+%typemap(php4,argout) int *INOUT = int *OUTPUT;
+%typemap(php4,argout) short *INOUT = short *OUTPUT;
+%typemap(php4,argout) long *INOUT= long *OUTPUT;
+%typemap(php4,argout) unsigned short *INOUT= unsigned short *OUTPUT;
+%typemap(php4,argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(php4,argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(php4,argout) float *INOUT = float *OUTPUT;
+%typemap(php4,argout) double *INOUT= double *OUTPUT;
 
 // REFERENCE
 // Accept Php references as pointers
