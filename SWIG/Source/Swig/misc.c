@@ -45,8 +45,8 @@ Swig_banner(DOHFile *f) {
  * \n\
  * Portions Copyright (c) 1995-2000\n\
  * The University of Utah, The Regents of the University of California, and\n\
- * The University of Chicago.  Permission is granted to use and distribute this\n\
- * file in any manner provided this notice remains intact.\n\
+ * The University of Chicago.  Permission is hereby granted to use, modify, \n\
+ * and distribute this file in any manner provided this notice remains intact.\n\
  * \n\
  * This file is not intended to be easily readable and contains a number of \n\
  * coding conventions designed to improve portability and efficiency. Do not make\n\
