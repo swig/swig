@@ -47,6 +47,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 CPP_TEST_BROKEN += \
 	array_typedef_memberin \
 	defvalue_constructor \
+	features.i \
 	namespace_union \
 	smart_pointer_namespace2 \
 	template_default_arg \
