@@ -22,6 +22,15 @@ int test_file(DOH *node, void *clientdata) {
   return 0;
 }
 
+int test_scope(DOH *node, void *clientdata) {
+  DOH *c;
+  Printf(stdout,"::: Scope\n");
+  Printf(stdout,"   name       = '%s'\n", Getattr(node,"name"));
+  c = Getchild(node);
+  Swig_emit_all(c,clientdata);
+  return 0;
+}
+
 int test_module(DOH *node, void *clientdata) {
   Printf(stdout,"::: Module\n");
   Printf(stdout,"   name       = '%s'\n", Getname(node));
@@ -172,6 +181,7 @@ int test_access(DOH *node, void *clientdata) {
 static SwigRule rules[] = {
   { "file", test_file},
   { "module", test_module},
+  { "scope", test_scope},
   { "insert", test_insert},
   { "pragma", test_pragma},
   { "typemap", test_typemap},

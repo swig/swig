@@ -22,6 +22,10 @@
 
 #include "swig.h"
 
+#ifdef DYNAMIC_MODULES
+#include <dlfcn.h>
+#endif
+
 static char cvsroot[] = "$Header$";
 
 struct Module {
@@ -65,7 +69,9 @@ Swig_register_module(const String_or_char *modname, const String_or_char *startt
 Module *
 Swig_load_module(const String_or_char *modname) {
   Module *m;
+  static int dlcheck = 0;
   m = Modules;
+
   while (m) {
     if (Cmp(m->modname, modname) == 0) {
       /* Create a new entry in the loaded modules table */
@@ -81,7 +87,45 @@ Swig_load_module(const String_or_char *modname) {
     }
     m = m->next;
   }
+  /* Module is not a built-in module.   See if we can dynamically load it */
+
+#ifdef DYNAMIC_MODULES
+  if (dlcheck) return 0;
+  {
+    DOH *filename;
+    void *handle;
+    void (*init)(void) = 0;
+    char initfunc[256];
+    FILE *f;
+    filename = NewStringf("./swig%s.so", modname);
+    f = Swig_open(filename);
+    if (!f) return 0;
+    fclose(f);
+
+    Clear(filename);
+    Append(filename,Swig_last_file());
+    
+    sprintf(initfunc,"%smodule",Char(modname));
+    handle = dlopen(Char(filename), RTLD_NOW | RTLD_GLOBAL);
+    if (!handle) {
+      Printf(stdout,"%s\n", dlerror());
+      return 0;
+    }
+    
+    init = (void (*)(void)) dlsym(handle,initfunc);
+    if (!init) {
+      Printf(stdout,"Dynamic module %s doesn't define %s()\n", initfunc);
+      return 0;
+    }
+    (*init)();   /* Register function */
+    dlcheck = 1;
+    m = Swig_load_module(modname);
+    dlcheck = 0;
+    return m;
+  }
+#else
   return 0;
+#endif
 }
 
 /* -----------------------------------------------------------------------------
