@@ -405,7 +405,7 @@ void emit_action(Node *n, Wrapper *f) {
   /* saves action -> eaction for postcatching exception */
   String *eaction = NewString("");
   
-  /* If we are in C++ mode and there is a throw specifier. We're going to
+  /* If we are in C++ mode and there is an exception specification. We're going to
      enclose the block in a try block */
   if (throws) {
     Printf(eaction,"try {\n");
@@ -419,7 +419,13 @@ void emit_action(Node *n, Wrapper *f) {
     for (Parm *ep = throws; ep; ep = nextSibling(ep)) {
       String *em = Swig_typemap_lookup_new("throws",ep,"_e",0);
       if (em) {
-	Printf(eaction,"catch(%s) {\n", SwigType_str(Getattr(ep,"type"),"&_e"));
+        SwigType *et = Getattr(ep,"type");
+        SwigType *etr = SwigType_typedef_resolve_all(et);
+        if (SwigType_isreference(etr) || SwigType_ispointer(etr)) {
+          Printf(eaction,"catch(%s) {\n", SwigType_str(et, "_e"));
+        } else {
+          Printf(eaction,"catch(%s) {\n", SwigType_str(et, "&_e"));
+        }
 	Printv(eaction,em,"\n",NIL);
 	Printf(eaction,"}\n");
       } else {
