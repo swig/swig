@@ -168,8 +168,9 @@ it is parsing an input file.
 
 Although SWIG can parse most common C/C++ declarations, it does not
 provide a complete C/C++ parser implementation.  Most of these
-limitations pertain to complicated type declarations and certain advanced C++
-features.  Specifically, the following features are not currently supported:
+limitations pertain to very complicated type declarations and certain
+advanced C++ features.  Specifically, the following features are not
+currently supported:
 
 <p>
 <ul>
@@ -207,12 +208,12 @@ int foo::bar(int) {
 </blockquote>
 
 <li>Certain advanced features of C++ such as namespaces and overloaded
-functions are not currently supported. Please see the section on using SWIG
+operators are not currently supported. Please see the section on using SWIG
 with C++ for more information.
 </ul> <p>
 
 In the event of a parsing error, conditional compilation can be used to skip
-over offending code.  For example:
+offending code.  For example:
 
 <blockquote>
 <pre>
@@ -283,9 +284,10 @@ next few sections describes various aspects of this mapping.
 <h3>Basic Type Handling</h3>
 
 In order to build an interface, SWIG has to convert C/C++ datatypes to
-equivalent types in the target language.  Generally speaking, scripting languages provide
-a more limited set of types than C.  Therefore, this process involves a certain
-amount of type manipulation.
+equivalent types in the target language.  Generally speaking,
+scripting languages tend to provide a more limited set of types than C.
+Therefore, this process involves a certain amount of type
+coercion.
 
 <p>
 Most scripting languages provide a single integer type that is implemented using
@@ -334,10 +336,11 @@ need to carefully check the correct operation of your program after
 it has been wrapped with SWIG.
 
 <p>
-Although the SWIG parser supports the <tt>long long</tt> datatype, very few language
-modules currently support it.  This is because <tt>long long</tt> usually exceeds the
-precision available in the target language.  This limitation may be 
-eliminated in future SWIG releases.
+Although the SWIG parser supports the <tt>long long</tt> datatype,
+very few language modules currently support it. This is because
+<tt>long long</tt> usually exceeds the precision available in the
+target language.  This limitation may be eliminated in future SWIG
+releases.
 
 <p>
 SWIG recognizes the following floating point types :<p>
@@ -350,8 +353,8 @@ double
 
 Floating point numbers are mapped to and from the natural
 representation of floats in the target language. This is almost always
-a C <tt>double</tt>. The rarely used datatype of <tt>long double</tt> is not
-supported by SWIG.<p>
+a C <tt>double</tt>. The rarely used datatype of <tt>long double</tt>
+is not supported by SWIG.<p>
 
 <p>
 The <tt>char</tt> datatype is mapped into a NULL terminated ASCII
@@ -364,20 +367,21 @@ char value. Thus if the value "foo" is assigned to a
 
 <p>
 The <tt>char *</tt> datatype is handled as a NULL-terminated ASCII
-string. SWIG maps this into a 8-bit character string in the target scripting
-language. SWIG converts character strings in the target language to
-NULL terminated strings before passing them into C/C++. It is illegal
-for these strings to have embedded NULL bytes.   Therefore, the <tt>char *</tt> datatype
-is not generally suitable for passing binary data (although SWIG's behavior
-can be modified to handle this).
+string. SWIG maps this into a 8-bit character string in the target
+scripting language. SWIG converts character strings in the target
+language to NULL terminated strings before passing them into C/C++. It
+is illegal for these strings to have embedded NULL bytes.  Therefore,
+the <tt>char *</tt> datatype is not generally suitable for passing
+binary data (although SWIG's behavior can be modified to handle this).
 
 <p>
 At this time, SWIG does not provide any special support for Unicode or
 wide-character strings (the C <tt>wchar_t</tt> type).  This is a
-delicate topic that is quite complex and poorly understood by many programmers.
-For those scripting languages that provide Unicode support, Unicode strings are often
-implicitly converted to an 8-bit representation such as UTF-8 whenever they are
-matched to the <tt>char *</tt> type (in which case the SWIG interface will probably work).
+delicate topic that is quite complex and poorly understood by many
+programmers.  For those scripting languages that provide Unicode
+support, Unicode strings are often implicitly converted to an 8-bit
+representation such as UTF-8 whenever they are matched to the <tt>char
+*</tt> type (in which case the SWIG interface will probably work).
 
 <h3>Global Variables</h3>
 
@@ -448,11 +452,12 @@ enum months {JAN, FEB, MAR, APR, MAY, JUN, JUL, AUG,
 
 In <tt>#define</tt> declarations, the type of a constant is inferred
 by syntax. For example, a number with a decimal point is assumed to be
-floating point.   In addition, SWIG must be able to fully resolve all of the
-symbols used in a <tt>#define</tt> in order for a constant to actually be
-created.    This restriction is necessary because <tt>#define</tt> is also
-used to define preprocessor macros that are most definitely not meant to be part of the scripting
-language interface.  For example:
+floating point.  In addition, SWIG must be able to fully resolve all
+of the symbols used in a <tt>#define</tt> in order for a constant to
+actually be created.  This restriction is necessary because
+<tt>#define</tt> is also used to define preprocessor macros that are
+definitely not meant to be part of the scripting language interface.
+For example:
 
 <blockquote>
 <pre>
@@ -463,7 +468,7 @@ EXTERN void foo();
 </blockquote>
 
 In this case, we probably don't want to create a constant called 
-<tt>EXTERN</tt> (what would the value be?).  Generally speaking,
+<tt>EXTERN</tt> (what would the value be?).  In general,
 SWIG will not create constants for macros unless the value can
 be completely determined.  For instance, in the above example,
 the declaration
@@ -492,17 +497,20 @@ needs the original enumeration declaration in order to get the correct
 enum values as assignd by the C compiler.
 
 <p>
-The <tt>%constant</tt> directive is used to more precisely create constants
-corresponding to different C datatypes.  Although it is not usually 
-not needed for simple values, it is more useful when working with
-pointers and other more complex datatypes.
+The <tt>%constant</tt> directive is used to more precisely create
+constants corresponding to different C datatypes.  Although it is not
+usually not needed for simple values, it is more useful when working
+with pointers and other more complex datatypes.  Typically, %constant
+is only used when you want to add constants to the scripting language
+interface that are defined in a normal header file. 
 
 <h3>A brief word about <tt>const</tt></h3>
 
 A common confusion with C programming is the semantic meaning of the
 <tt>const</tt> qualifier in declarations--especially when it is mixed
 with pointers and other type modifiers. In fact, previous versions of SWIG
-handled <tt>const</tt> incorrectly.
+handled <tt>const</tt> incorrectly--a situation that SWIG-1.3.7 and newer
+releases has fixed.
 
 <p>
 Starting with SWIG-1.3, all variable declarations, regardless of any
@@ -535,6 +543,8 @@ const char *e;          // A pointer to a constant character.  The pointer
 </pre>
 </blockquote>
 
+In this case, the pointer <tt>e</tt> can change---it's only the value
+being pointed to that is read-only.
 
 <h2>Pointers and complex objects</h2>
 
@@ -806,7 +816,7 @@ In the target language, the <tt>dot_product()</tt> function now accepts pointers
 to Vectors instead of Vectors.  For the most part, this transformation
 is transparent so you might not notice.
 
-<h3> Return by value</h3>
+<h3>Return by value</h3>
 
 C functions that return structures or classes datatypes by value are more difficult
 to handle. Consider the following function:<p>
@@ -1018,7 +1028,7 @@ A more powerful renaming operation can be performed with the<tt>
 %rename</tt> directive:<p>
 
 <p>
-<blockquote><pre>%rename oldname newname;
+<blockquote><pre>%rename(newname) oldname;
 
 </pre></blockquote>
 
@@ -1030,7 +1040,7 @@ named `print' (which is a keyword in Python), you could rename them
 all to `output' by specifying :<p>
 
 <p>
-<blockquote><pre>%rename print output; // Rename all `print' functions to `output'
+<blockquote><pre>%rename(output) print; // Rename all `print' functions to `output'
 </pre></blockquote>
 
 <p>
@@ -1038,6 +1048,11 @@ SWIG does not currently perform any checks to see if the functions it wraps are
 already defined in the target scripting language. However, if you are
 careful about namespaces and your use of modules, you can usually
 avoid these problems.<p>
+
+<P>
+A more powerful variant of %rename can be used to help 
+wrap C++ overloaded functions and methods.   This is described a little later in the
+C++ section.
 
 <h3>Default/optional arguments</h3>
 
@@ -1717,7 +1732,7 @@ The following C++ features are not currently supported :<p>
 <p>
 <ul>
 <li>Operator overloading
-<li>Function overloading (without renaming)
+<li>Function and method overloading (without renaming)
 <li>Nested classes
 <li>Namespaces
 <li>Complicated templates (probably)
@@ -1760,9 +1775,9 @@ also enables the recognition of C++ keywords. Without the <tt>-c++</tt>
 flag, SWIG will either issue a warning or a large number of syntax
 errors if it encounters C++ code in an interface file.<p>
 
-<h3> Constructors and destructors</h3>
+<h3>Constructors and destructors</h3>
 
-C++ constructors and destructors are internally translated into accessor
+C++ constructors and destructors are translated into accessor
 functions such as the following :<p>
 
 <p>
@@ -1774,20 +1789,35 @@ void delete_List(List *l) {
 }
 
 </pre></blockquote>
-If the original C++ class does not have any constructors or
-destructors, no such functions are generated.   If you want to create
-constructors or destructors, make sure they are defined in the SWIG
-interface file.  Alternative, the <tt>-make_default</tt> option or
-following pragma can be used:
+If a C++ class does not define any public constructors or
+destructors, SWIG will automatically create a default constructor or 
+destructor.   However, there are a few rules that define this behavior:
+
+<ul>
+<li>A default constructor is not created unless all bases classes allow a 
+default constructor.
+
+<p>
+<li>Default constructors and destructors are not created if a class
+defines constructors or destructors in a private: or protected: section.
+
+<p>
+<li>Default constructors and destructors are not created if any base
+class defines a private default constructor or a private destructor.
+</ul>
+
+SWIG should never generate a constructor or destructor for a class in which
+it is illegal to do so.   However, if it is necessary to disable the
+default constructor/destructor creation, the %pragma no_default directive
+can be used:
 
 <blockquote>
 <pre>
-%pragma make_default;
+%pragma nodefault;   // Disable creation of constructor/destructor
 class Foo {
 ...
 };
-
-%pragma nodefault;
+%pragma makedefault;
 </pre>
 </blockquote>
 
@@ -1846,7 +1876,7 @@ public:
 
 Similarly, all data attributes declared as <tt>const</tt> are wrapped as read-only members.
 
-<h3> Protection</h3>
+<h3>Protection</h3>
 
 SWIG can only wrap class members that are declared public. Anything
 specified in a private or protected section will simply be ignored. To
@@ -1859,7 +1889,7 @@ By default, members of a class definition are assumed to be private
 until you explicitly give a `<tt>public:</tt>' declaration (This is
 the same convention used by C++).<p>
 
-<h3> Enums and constants</h3>
+<h3>Enums and constants</h3>
 
 Enumerations and constants placed in a class definition are mapped
 into constants with the classname as a prefix. For example :<p>
@@ -1881,7 +1911,7 @@ Swig_STOUT = Swig::STOUT
 
 Members declared as <tt>const</tt> are wrapped as read-only members and do not create constants.
 
-<h3> References</h3>
+<h3>References</h3>
 
 C++ references are supported, but SWIG handles them internally as pointers. For example,
 a declaration like this :<p>
@@ -1922,7 +1952,7 @@ double *Bar_spam(Bar *obj) {
 </pre>
 </blockquote>
 
-<h3> Inheritance</h3>
+<h3>Inheritance</h3>
 
 SWIG supports basic C++ public inheritance of classes and allows both
 single and multiple inheritance. The SWIG type-checker knows about the
@@ -2018,7 +2048,7 @@ modules also produce a higher level OO interface using a technique
 known as shadow classing.  This approach is described shortly and can be
 used to provide a more natural C++ interface.
 
-<h3> Renaming</h3>
+<h3>Renaming</h3>
 
 C++ member functions and data can be renamed with the <tt>%name</tt>
 directive. The <tt>%name</tt> directive only replaces the member
@@ -2048,14 +2078,536 @@ The <tt>%name </tt>directive can be applied to all members including
 constructors, destructors, static functions, data members, and
 enumeration values.<p>
 <p>
-The class name prefix can be changed by specifying <p>
+The class name prefix can also be changed by specifying <p>
 <p>
 <blockquote><pre>%name(newname) class List {
 ...
 }
 </pre></blockquote>
 
-<h3> Adding new methods</h3>
+<h3>Wrapping Overloaded Functions and Methods</h3>
+
+This section describes the problem of wrapping overloaded C++
+functions and methods.  This has long been a limitation of SWIG that
+has only recently been addressed (primarily because we couldn't quite
+figure out to do it without causing head-explosion).  However, in
+order to understand the reasoning behind the current solution, it is
+important to better understand the problem.
+
+<p>
+In C++, functions and methods can be overloaded by declaring them with
+different type signatures.  For example:
+
+<blockquote>
+<pre>
+void foo(int);
+void foo(double);
+void foo(Bar *b, Spam *s, int );
+</pre>
+</blockquote>
+
+Later, when a call to function <tt>foo()</tt> is made, the
+determination of which function to invoke is made by looking the types
+of the arguments.  For example:
+
+<blockquote>
+<pre>
+int x;
+double y;
+Bar *b;
+Spam *s;
+int z;
+...
+foo(x);        // Calls foo(int)
+foo(y);        // Calls foo(double)
+foo(b,s,z);    // Calls foo(Bar *, Spam *, int)
+</pre>
+</blockquote>
+
+It is important to note that the selection of the overloaded method or
+function is made by the C++ compiler and occurs at <b>compile
+time</b> and not while your program runs.
+
+<p>
+Internally to the C++ compiler, overloaded functions are mapped to unique
+identifiers using a name-mangling technique where the arguments are used to create
+a unique type signature which is appended to the name.  This produces 
+three unique function names that might look like this:
+
+<blockquote>
+<pre>
+void foo__Fi(int);
+void foo__Fd(double);
+void foo__FP3BarP4Spami(Bar *, Spam *, int);
+</pre>
+</blockquote>
+
+The implementation of overloaded methods in C++ is difficult to
+translate directly to a scripting language environment because it
+relies on static type-checking and compile-time binding of
+methods--neither of which map to the dynamically typed
+environment of a scripting language interpreter.  For example,
+in Python, it is simply impossible to define three entirely different
+versions of a function with exactly the same name.    The repeated
+definitions would simply overwrite the previous definition.
+
+<p>
+To solve the overloading problem, let's first look at several approaches that have
+been proposed as solutions, but which are <b>NOT</b> used to solve
+the overloading problem in SWIG.
+
+<ul>
+<li><b>Explicit renaming</b>.  In earlier versions of SWIG, the only
+way to handle overloading was to explicitly rename overloaded methods
+to a unique name using the <tt>%name</tt> directive.  For example:
+
+<blockquote>
+<pre>
+void foo(int);
+%name(foo_d) foo(double);
+%name(foo_barspam) foo(Bar *, Spam *, int);
+</pre>
+</blockquote>
+
+Although this certainly works, it is extremely annoying to explicitly
+annotate every class with a bunch of <tt>%name</tt> directives like that.  It fact,
+it's so annoying that this really isn't a viable solution at all (except in
+cases where there is very little overloading).  Dave sincerely apologizes for ever
+thinking that this approach was a good idea--however, let's try to forget the past :-).
+
+<p>
+<li><b>Name Mangling</b>.  Another approach to overloading would be to
+automatically generate name-mangled versions of the functions.
+Although this would definitely work, it would also make the scripting
+language interface extremely annoying to use.  For instance, does anyone
+really want to type things like this in their program?
+
+<blockquote>
+<pre>
+foo__FP3BarP4Spami(b,s,i);
+</pre>
+</blockquote>
+
+Needless to say, this approach is not used by SWIG.
+
+<p>
+<li><b>Simplified Name Mangling</b>.  An alternative name mangling
+approach would be to generate a simplified name mangling.  For
+example, maybe you could just take the first letter of each type and
+use it as the signature.  For example:
+
+<blockquote>
+<pre>
+void foo(int);                  // becomes foo_i(int)
+void foo(double);               // becomes foo_d(int)
+void foo(Bar *, Spam *, int);   // becomes foo_BSi(int)
+</pre>
+</blockquote>
+
+Although a lot more readable than the fully mangled version, this now has the
+problem of naming clashes.  For instance, what is supposed to happen with these
+two functions?
+
+<blockquote>
+<pre>
+void foo(int i);               // ?????
+void foo(instance *obj);       // ?????
+</pre>
+</blockquote>
+
+Also, what happens if the mangled version happens to match a legitimate identifier
+name used elsewhere in the program?  One could use the <tt>%name</tt> directive to
+resolve such a conflict, but this tends to defeat the whole point. Clearly there is a problem here.
+
+<p>
+<li><b>Numbering</b>.  A really simple solution might be to number all of
+the overloaded methods in order of definition. For example:
+
+<blockquote>
+<pre>
+void foo(int);                  // becomes foo_1(int)
+void foo(double);               // becomes foo_2(int)
+void foo(Bar *, Spam *, int);   // becomes foo_3(int)
+</pre>
+</blockquote>
+
+Unfortunately, the numbering doesn't give any clues about what the
+actual function is.  Also, if the order changes or a new function is
+added, all of the numbers might change--breaking all of the scripts
+written against the interface.  There is also a tiny problem
+of naming methods with inheritance:
+
+<blockquote>
+<pre>
+class X {
+public:
+   virtual void foo(int);                // X_foo_1
+   virtual void foo(double);             // X_foo_2
+};
+
+class Y {
+public:
+   virtual void foo(long);               // Y_foo_1
+   virtual void foo(Bar *, Spam *, int); // Y_foo_2
+};
+
+class Z : public X, public Y {
+public:
+   virtual void foo(double);             // Z_foo_1 ??? Mismatch X_foo_2
+   virtual void foo(Bar *, Spam *, int); // Z_foo_2 ??? 
+  // What happens to X_foo_1 and Y_foo_1 here?
+};
+</pre>
+</blockquote>
+
+Due to the problems of making names consistent across class
+hierarchies, it seems unlikely that a numbering scheme would ever work
+all that well except in very simple cases. 
+
+<p>
+<li><b>Dynamic dispatch</b>.  By far, the most powerful approach to the problem
+would be to implement some kind of dynamic dispatch mechanism in the
+code generator.  For example, you might generate some code roughly 
+equivalent to this pseudocode:
+
+<blockquote>
+<pre>
+wrap_foo(args):
+   if len(args) == 3:
+        if (args[0].type == Bar and 
+           args[1].type == Spam and
+           args[2].type == int):
+               foo((Bar *) arg[0], (Spam *) arg[1], (int) arg[2])
+   else if len(args) == 1:
+        if args[0].type == int:
+               foo((int) args[0])
+        else if args[0].type == double:
+               foo((double) args[0])
+   else:
+        raise "Bad arguments to foo"
+</pre>
+</blockquote>
+
+Unfortunately there are serious problems with this approach as
+well. First, the addition of dynamic dispatch code introduces a huge
+performance hit on the execution time of overloaded methods since the
+arguments to each method call have to first be examined to figure out
+which function to dispatch.  Although the sample code above doesn't
+look too bad, this procedure may involve interaction with the SWIG
+type-checker, typemaps (a SWIG customization scheme), and other more
+advanced parts of the interpreter.  A more nasty problem has to do
+with functions that can accept the same type of scripting object.  For
+example, if you have this,
+
+<blockquote>
+<pre>
+void foo(int);
+void foo(double);
+</pre>
+</blockquote>
+
+the <tt>foo(double)</tt> function will probably accept both a
+scripting language integer and a floating point number as an argument.
+As a result, it's possible for the <tt>foo(double)</tt> function to
+hide the integer function <tt>foo(int)</tt> if arguments aren't
+checked in the correct order.  For instance, if you switch the order
+of the two functions in the interface file, does one suddenly become
+unavailable?  To deal with this problem, you might decide to make all
+of the overloaded functions additionally available through name mangling.  However,
+that now introduces all of the problems of name mangling plus all of
+the problems of dynamic dispatch!  
+
+<p>
+The bottom line is that even though some kind of dynamic dispatch
+scheme may be the "best" way to support overloading, it is extremely
+difficult to implement and it has some serious shortcomings including
+performance, hiding of functions, and poor interaction with some of
+SWIG's customization features.
+
+<p>
+<li><b>Trial Execution</b>.  An approach that is somewhat similar to dynamic dispatch
+would be to implement a trial execution scheme.   In this case, each overloaded
+function would generate a unique wrapper function, possibly with a name-mangled name. 
+For example, something like this:
+
+<blockquote>
+<pre>
+wrap_foo_i(args) {
+    ...
+    foo((int) arg[0]);
+    ...
+}
+wrap_foo_d(args) {
+    ...
+    foo((double) arg[0]);
+    ...
+}
+wrap_foo_BSi(args) {
+    ...
+    foo((Bar *) arg[0], (Spam *) arg[1], (int) arg[2]);
+    ...
+}
+</pre>
+</blockquote>
+
+Next, a top-level wrapper could be written like this:
+
+<blockquote>
+<pre>
+wrap_foo(args) {
+   if (wrap_foo_i(args) == SUCCESS) return SUCCESS;
+   if (wrap_foo_d(args) == SUCCESS) return SUCCESS;
+   if (wrap_foo_BSi(args) == SUCCESS) return SUCCESS;
+   return ERROR, "No matching function foo";
+}
+</pre>
+</blockquote>
+Like dynamic dispatch, this solution suffers a large
+performance penalty from trying to start the execution of each
+possible function.  In fact, the impact may be worse since the only
+way to determine the proper function is to try all possibilities until
+no errors occur (dynamic dispatch could make more intelligent
+choices).  Another problem is that a function might throw an ERROR for
+a different reason than improper arguments (maybe the arguments were
+okay, but something happened during execution).  Therefore, you would
+need to have some kind of special error condition to indicate an error
+in argument conversion.  This approach also relies on name mangling,
+raising the limitations already mentioned.
+
+<p>
+Of all of the schemes mentioned so far, trial execution has the
+highest probability of actually being added to SWIG in the future.
+However, no such support is currently available or planned.
+
+<p>
+<li><b>Don't allow overloading</b>.  Easy to implement and extremely annoying to
+C++ programmers, but not particularly useful.
+</ul>
+
+Alas, what to do about overloading?
+
+<p>
+Starting with SWIG-1.3.7, a very simple enhancement has been added to
+the <tt>%rename</tt> directive to help disambiguate overloaded
+functions and methods.  Normally, the <tt>%rename</tt> directive is
+used to rename a declaration everywhere in an interface file.  For
+example, if you write this,
+
+<blockquote>
+<pre>
+%rename(foo) bar;
+</pre>
+</blockquote>
+
+all occurences of "bar" will be renamed to "foo" (this feature was
+described a little earlier in this chapter in the section "Renaming
+Declarations").  By itself, this doesn't do anything to help fix
+overloaded methods.  However, the <tt>%rename</tt> can now be
+parameterized as shown in this example:
+
+<blockquote>
+<pre>
+/* Forward renaming declarations */
+%rename(foo_i) foo(int); 
+%rename(foo_d) foo(double);
+...
+void foo(int);           // Becomes 'foo_i'
+void foo(char *c);       // Stays 'foo' (not renamed)
+
+class Spam {
+public:
+   void foo(int);      // Becomes 'foo_i'
+   void foo(double);   // Becomes 'foo_d'
+   ...
+};
+</pre>
+</blockquote>
+
+Since, the <tt>%rename</tt> declaration is used to declare a renaming in advance, it can be
+placed at the start of an interface file.  This makes it possible to apply consistent name
+resolution without having to modify header files. For example:
+
+<blockquote>
+<pre>
+%module foo
+
+/* Rename these overloaded functions */
+%rename(foo_i) foo(int); 
+%rename(foo_d) foo(double);
+
+%include "header.h"
+</pre>
+</blockquote>
+
+When used in this simple form, the renaming is applied to all global functions and member functions
+that match the prototype.   If you only want the renaming to apply to a certain scope, the C++
+scope resolution operator (::) can be used.  For example:
+
+<blockquote>
+<pre>
+%rename(foo_i) ::foo(int);      // Only rename foo(int) in the global scope.
+                                // (will not rename class members)
+
+%rename(foo_i) Spam::foo(int);  // Only rename foo(int) if it appears in class Spam
+</pre>
+</blockquote>
+
+When a renaming operator is applied to a class as in <tt>Spam::foo(int)</tt>, it is applied to
+that class and all derived classes.   This can be used to apply a consistent renaming across
+an entire class hierarchy with only a few declarations.  For example:
+
+<blockquote>
+<pre>
+%rename(foo_i) Spam::foo(int);
+%rename(foo_d) SPam::foo(double);
+
+class Spam {
+public:
+   virtual void foo(int);      // Renamed to foo_i
+   virtual void foo(double);   // Renamed to foo_d
+   ...
+};
+
+class Bar : public Spam {
+public:
+   virtual void foo(int);      // Renamed to foo_i
+   virtual void foo(double);   // Renamed to foo_d
+...
+};
+
+class Grok : public Bar {
+public:
+   virtual void foo(int);      // Renamed to foo_i
+   virtual void foo(double);   // Renamed to foo_d
+...
+};
+</pre>
+</blockquote>
+
+A final special form of <tt>%rename</tt> can be used to apply a renaming just to class
+members:
+
+<blockquote>
+<pre>
+%rename(foo_i) *::foo(int);   // Only rename foo(int) if it appears in a class.
+</pre>
+</blockquote>
+
+Note: the *:: syntax is non-standard, but the '*' is meant to be a wildcard
+that matches any class name.
+
+<p>
+Although the <tt>%rename</tt> approach does not automatically solve the overloading
+problem for you (you have to supply a name), SWIG's error messages have been improved to help.
+For example, consider this interface file:
+
+<blockquote>
+<pre>
+%module foo
+
+class Spam {
+public:
+   void foo(int);
+   void foo(double);
+   void foo(Bar *, Spam *, int);
+};
+</pre>
+</blockquote>
+
+If you run SWIG on this file, you will get the following error messages:
+
+<blockquote>
+<pre>
+foo.i:6. Overloaded declaration ignored.  Spam::foo(double )
+foo.i:5. Previous declaration is Spam::foo(int )
+foo.i:7. Overloaded declaration ignored.  Spam::foo(Bar *,Spam *,int )
+foo.i:5. Previous declaration is Spam::foo(int )
+</pre>
+</blockquote>
+
+The error messages indicate the problematic functions along with their
+type signature.  In addition, the previous definition is supplied.
+Therefore, you can just look at these errors and decide how you want
+to handle the overloaded functions.  For example:
+
+<blockquote>
+<pre>
+%module foo
+%rename(foo_d)         Spam::foo(double);               // name foo_d
+%rename(foo_barspam)   Spam::foo(Bar *, Spam *, int);   // name foo_barspam
+...
+class Spam { 
+...
+};
+</pre>
+</blockquote>
+
+And again, for a class hierarchy, you may be able to solve all of the
+problems by just renaming members in the base class--those renamings
+automatically propagate to all derived classes.
+
+<p>
+A few final notes about the enhanced <tt>%rename</tt> directive:
+
+<ul>
+<li>The scope qualifier (::) can also be used on simple names.  For example:
+<blockquote>
+<pre>
+%rename(bar) ::foo;       // Rename foo to bar in global scope only
+%rename(bar) Spam::foo;   // Rename foo to bar in class Spam only
+%rename(bar) *::foo;      // Rename foo in classes only
+</pre>
+</blockquote>
+
+<p>
+<li>Name matching tries to find the most specific match that is
+defined.  A qualified name such as <tt>Spam::foo</tt> always has
+higher precedence than an unqualified name <tt>foo</tt>.
+<tt>Spam::foo</tt> has higher precedence than <tt>*::foo</tt> and
+<tt>*::foo</tt> has higher precedence than <tt>foo</tt>.  A
+parameterized name has higher precedence than an unparameterized name
+within the same scope level.  However, an unparameterized name with a
+scope qualifier has higher precedence than a parameterized name in
+global scope (e.g., a renaming of <tt>Spam::foo</tt> takes precedence
+over a renaming of <tt>foo(int)</tt>).
+
+<p>
+<li>
+The order in which <tt>%rename</tt> directives are defined does not matter
+as long as they appear before the declarations to be renamed.  Thus, there is no difference
+between saying:
+
+<blockquote>
+<pre>
+%rename(bar) foo;
+%rename(foo_i) Spam::foo(int);
+%rename(Foo) Spam::foo;
+</pre>
+</blockquote>
+
+and this
+
+<blockquote>
+<pre>
+%rename(Foo) Spam::foo;
+%rename(bar) foo;
+%rename(foo_i) Spam::foo(int);
+</pre>
+</blockquote>
+
+(the declarations are not stored in a linked list and order has no
+importance).  Of course, a repeated <tt>%rename</tt> directive will
+change the setting for a previous <tt>%rename</tt> directive if exactly the 
+same name, scope,  and parameters are supplied.
+
+<p>
+<li>For multiple inheritance where renaming rules are defined for multiple base classes,
+the first renaming rule found on a depth-first traversal of the class hierarchy 
+is used.
+
+</ul>
+
+<h3>Adding new methods</h3>
 
 New methods can be added to a class using the <tt>%addmethods</tt>
 directive. This directive is primarily used in conjunction with shadow
@@ -2332,45 +2884,36 @@ member pointers.  Normally SWIG tries to keep track of inheritance
 when checking types.  However, no such support is currently provided
 for member pointers.
 
-<h3> Partial class definitions</h3>
+<h3>Partial class definitions</h3>
 
 Since SWIG is still limited in its support of C++, it may be necessary
 to use partial class information in an interface file.  However, since
 SWIG does not need the entire class specification to work, conditional
-compilation can be used to comment out problematic parts.  The most
-problematic limitation at this writing is the lack of support for
-overloaded functions and methods.  For example:
+compilation can be used to comment out problematic parts.  For example, if you had a nested
+class definition, you might do this:
 
 <blockquote>
 <pre>
 class Foo {
 public:
-   void bar(int);
-   void bar(double, double);    // Conflicts with earlier bar
-   ...
-};
-</pre>
-</blockquote>
-
-At this time, the only way to work around this problem is to
-explicitly disambiguate the functions using <tt>%name</tt> like this:
-
-<blockquote>
-<pre>
-class Foo {
-public:
-   void bar(int);
-/* Use an alternative name */
-%name(bar_dd)  void bar(double, double); 
+#ifndef SWIG
+   class Bar {
+   public:
+     ...
+   };
+#endif
+   Foo();
+  ~Foo();
    ...
 };
 </pre>
 </blockquote>
 
 <p>
-Also, as a rule of thumb, SWIG should not be used on raw C++ source files.  SWIG
-does not know how to parse C++ declarations that have been declared outside
-of their class definition.   No such support is planned for future releases.
+Also, as a rule of thumb, SWIG should not be used on raw C++ source
+files.  SWIG does not know how to parse C++ declarations that have
+been declared outside of their class definition.  No such support is
+planned for future releases.
 
 <h2> Code Insertion</h2>
 
@@ -2936,6 +3479,6 @@ version and wrapping that instead.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : August 30, 2001</address>
+<address>SWIG 1.3 - Last Modified : September 3, 2001</address>
 </body>
 </html>
