@@ -70,6 +70,8 @@
 #define WARN_PARSE_TEMPLATE_AMBIG     318
 #define WARN_PARSE_NO_ACCESS          319
 #define WARN_PARSE_EXPLICIT_TEMPLATE  320
+#define WARN_PARSE_BUILTIN_NAME       321
+#define WARN_PARSE_REDUNDANT          322
 
 #define WARN_IGNORE_OPERATOR_NEW        350   /* new */
 #define WARN_IGNORE_OPERATOR_DELETE     351   /* delete */

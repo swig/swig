@@ -376,21 +376,30 @@ static void add_symbols(Node *n) {
 	    String *e = NewString("");
 	    String *en = NewString("");
 	    String *ec = NewString("");
-	    Printf(en,"Identifier '%s' redeclared (ignored)", symname);
+	    int redefined = need_redefined_warn(n,c,inclass);
+	    if (redefined) {
+	      Printf(en,"Identifier '%s' redefined (ignored)",symname);
+	      Printf(ec,"previous definition of '%s'",symname);
+	    } else {
+	      Printf(en,"Redundant redeclaration of '%s'",symname);
+	      Printf(ec,"previous declaration of '%s'",symname);
+	    }
 	    if (Cmp(symname,Getattr(n,"name"))) {
 	      Printf(en," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
 	    }
 	    Printf(en,",");
-	    Printf(ec,"  previous declaration of '%s'", symname);
 	    if (Cmp(symname,Getattr(c,"name"))) {
 	      Printf(ec," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
 	    }
 	    Printf(ec,".");
-	    if (need_redefined_warn(n, c, inclass)) {	      
+	    if (redefined) {
 	      Swig_warning(WARN_PARSE_REDEFINED,Getfile(n),Getline(n),"%s\n",en);
 	      Swig_warning(WARN_PARSE_REDEFINED,Getfile(c),Getline(c),"%s\n",ec);
+	    } else if (!is_friend(n) && !is_friend(c)) {
+	      Swig_warning(WARN_PARSE_REDUNDANT,Getfile(n),Getline(n),"%s\n",en);
+	      Swig_warning(WARN_PARSE_REDUNDANT,Getfile(c),Getline(c),"%s\n",ec);
 	    }
-	    Printf(e,"%s\n%s:%d:%s\n", en, Getfile(c), Getline(c), ec);
+	    Printf(e,"%s\n%s:%d:%s\n",en,Getfile(c),Getline(c),ec);
 	    Setattr(n,"error",e);
 	    Delete(en);
 	    Delete(ec);
@@ -535,8 +544,8 @@ static void merge_extensions(Node *cls, Node *am) {
 	String *e = NewString("");
 	String *en = NewString("");
 	String *ec = NewString("");
-	Printf(ec,"Identifier '%s' redeclared (ignored),\n", symname);
-	Printf(en,"  %%extend definition of '%s'.", symname);
+	Printf(ec,"Identifier '%s' redefined by %extend (ignored),\n", symname);
+	Printf(en,"%%extend definition of '%s'.", symname);
 	Swig_warning(WARN_PARSE_REDEFINED,Getfile(csym), Getline(csym), "%s\n", ec);
 	Swig_warning(WARN_PARSE_REDEFINED,Getfile(n), Getline(n), "%s\n", en);
 	Printf(e,"%s\n%s:%d:%s\n", ec, Getfile(n), Getline(n), en);
@@ -1312,7 +1321,7 @@ includetype    : INCLUDE { $$.type = (char *) "include"; }
 inline_directive : INLINE HBLOCK {
                  String *cpps;
 		 if (Namespaceprefix) {
-		   Swig_error(cparse_file, cparse_start_line, "Error. %%inline directive inside a namespace is disallowed.\n");
+		   Swig_error(cparse_file, cparse_start_line, "%%inline directive inside a namespace is disallowed.\n");
 
 		   $$ = 0;
 		 } else {
@@ -1333,7 +1342,7 @@ inline_directive : INLINE HBLOCK {
                  String *cpps;
 		 skip_balanced('{','}');
 		 if (Namespaceprefix) {
-		   Swig_error(cparse_file, cparse_start_line, "Error. %%inline directive inside a namespace is disallowed.\n");
+		   Swig_error(cparse_file, cparse_start_line, "%%inline directive inside a namespace is disallowed.\n");
 		   
 		   $$ = 0;
 		 } else {
