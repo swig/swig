@@ -739,7 +739,7 @@ if test -n "$GUILE_CONFIG" ; then
 
   AC_ARG_WITH(guile,[  --with-guile=path       Set location of Guile],[
 	GUILEPACKAGE="$withval"], [GUILEPACKAGE=])
-  AC_ARG_WITH(guilencl,[  --with-guileincl=path   Set location of Guile include directory],[
+  AC_ARG_WITH(guileincl,[  --with-guileincl=path   Set location of Guile include directory],[
 	GUILEINCLUDE="$withval"], [GUILEINCLUDE=])
   AC_ARG_WITH(guilelib,[  --with-guilelib=path    Set location of Guile library directory],[
 	GUILELIB="$withval"], [GUILELIB=])
