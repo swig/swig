@@ -696,7 +696,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	if (!f) {
 	  fprintf(stderr,"Unable to create file '%s'\n", outfile);
 	} else {
-	  fprintf(stderr,"'%s' checked out from the SWIG library.\n", input_file);
+	  if (Verbose)
+	    fprintf(stdout,"'%s' checked out from the SWIG library.\n", input_file);
 	  fputs(Char(s),f);
 	  fclose(f);
 	}
