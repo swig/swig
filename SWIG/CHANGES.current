@@ -1,5 +1,24 @@
 Version 1.3.17 (In progress)
 ============================
+11/12/2002: beazley
+            Fixed problem with abstract methods and signatures.  For example:
+
+            class abstract_foo { 
+            public: 
+                virtual int   meth(int meth_param) = 0; 
+            }; 
+ 
+ 
+            class abstract_bar : public abstract_foo { 
+            public: 
+                int meth(int meth_param_1, int meth_param_2) { return 0; }
+            };
+
+            In this case, abstract_bar is still abstract.
+
+            Fixes [ 628438 ] Derived abstract class not abstract.
+            Reported and patched by Scott Michel.
+
 11/11/2002: beazley
             Fixed a matching problem with typemaps and array dimensions.  For example, if you
             had this:
