@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #ifdef WIN32
 #  define DllExport   __declspec( dllexport )
 #else
