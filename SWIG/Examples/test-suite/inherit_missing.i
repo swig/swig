@@ -1,6 +1,8 @@
 // Tests handling of inheritance when a base class isn't provided to SWIG
 %module inherit_missing
 
+%warnfilter(402);
+
 %{
 /* Define the class internally, but don't tell SWIG about it */
 class Foo {

@@ -5,6 +5,7 @@
 
 %warnfilter(802, 813) EB; /* Ruby, Java multiple inheritance */
 %warnfilter(802, 813) AD; /* Ruby, Java multiple inheritance */
+%warnfilter(510) F; /* friend function */
 
 %inline %{
 
