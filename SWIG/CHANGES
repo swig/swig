@@ -79,6 +79,10 @@ Version 1.3.11 (Work in progress)
            systems, but not on Microsoft 64bit Windows which will be using a 
            P64 IL32 model. This may be automated in a future version of SWIG.
 
+01/10/2002:beazley
+           Fixed [ 501677 ] %init block in wrong place. Reported
+           by Luigi Ballabio.
+
 01/09/2002: cheetah (william fulton)
            [Java] Default support for the long long type. signed long long is 
            mapped to a Java long. unsigned long long is mapped to BigInteger.
