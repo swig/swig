@@ -2,6 +2,11 @@ require 'default_constructor'
 
 include Default_constructor
 
+# Ruby 1.6 raises NameError if you try to call Class.new where no constructor
+# is defined; Ruby 1.7 changed this to NoMethodError
+
+NoConstructorError = Kernel.const_defined?("NoMethodError") ? NoMethodError : NameError
+
 # This should be no problem
 a = A.new
 
@@ -22,7 +27,7 @@ b = B.new(3, 4)
 begin
   bb = BB.new
   puts "Whoa. new BB created."
-rescue NoMethodError
+rescue NoConstructorError
   # pass
 end
 
@@ -30,7 +35,7 @@ end
 begin
   c = C.new
   print "Whoa. new C created."
-rescue NoMethodError
+rescue NoConstructorError
   # pass
 end
 
@@ -41,7 +46,7 @@ cc = CC.new
 begin
   d = D.new
   puts "Whoa. new D created"
-rescue NoMethodError
+rescue NoConstructorError
   # pass
 end
 
@@ -49,7 +54,7 @@ end
 begin
   dd = DD.new
   puts "Whoa. new DD created"
-rescue NoMethodError
+rescue NoConstructorError
   # pass
 end
 
@@ -57,7 +62,7 @@ end
 begin
   ad = AD.new
   puts "Whoa. new AD created"
-rescue NoMethodError
+rescue NoConstructorError
   # pass
 end
 
@@ -72,7 +77,7 @@ ee = EE.new
 begin
   eb = EB.new
   puts "Whoa. new EB created"
-rescue NoMethodError
+rescue NoConstructorError
   # pass
 end
 
