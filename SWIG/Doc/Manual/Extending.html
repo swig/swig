@@ -1,3 +1,4 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
 <title>Extending SWIG</title>
@@ -2278,17 +2279,119 @@ int Python::top(Node *n) {
 
 
 <a name="n38"></a><H3>21.10.8 Configuration files</H3>
+<!-- please report bugs in this section to ttn -->
 
+At the time of this writing, SWIG supports nearly a dozen languages,
+which means that for continued sanity in maintaining the configuration
+files, the language modules need to follow some conventions.  These are
+outlined here along with the admission that, yes it is ok to violate
+these conventions in minor ways, as long as you know where to apply the
+proper kludge to keep the overall system regular and running.
+Engineering is the art of compromise, see...<p>
 
-Discuss required changes for the following configuration files:<p>
-<ul>
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<li> configure.in
-<li> Makefile.in
-<li> Examples/Makefile.in
-<li> Runtime/Makefile.in
-<li> Source/Modules1.1/Makefile.in
-</ul>
+Much of the maintenance regularity depends on choosing a suitable
+nickname for your language module (and then using it in a controlled
+way).  Nicknames should be all lower case letters with an optional
+numeric suffix (no underscores, no dashes, no spaces).  Some examples
+are: <TT>foo</TT>, <TT>bar</TT>, <TT>qux99</TT>.<p>
+
+The numeric suffix variant, as in the last example, is somewhat tricky
+to work with because sometimes people expect to refer to the language
+without this number but sometimes that number is extremely relevant
+(especially when it corresponds to langauge implementation versions with
+incompatible interfaces).  New language modules that unavoidably require
+a numeric suffix in their nickname should include that number in all
+uses, or be prepared to kludge.<p>
+
+The nickname is used in four places:
+<TABLE>
+<TR><TD><B>usage</B></TD><TD><B>transform</B></TD></TR>
+<TR><TD>"skip" tag</TD><TD>(none)</TD></TR>
+<TR><TD>Examples/ subdir name</TD><TD>(none)</TD></TR>
+<TR><TD>Examples/GIFPlot/ subdir name</TD>
+    <TD>capitalize (upcase first letter)</TD></TR>
+<TR><TD>Examples/test-suite/ subdir name</TD><TD>(none)</TD></TR>
+<!-- add more uses here (remember to adjust header) -->
+</TABLE>
+<p>
+As you can see, most usages are direct.
+
+<dl>
+
+<dt> <b>configure.in</b>
+<dd> This file is processed by
+<A HREF="http://www.gnu.org/software/autoconf/">autoconf</A>
+to generate the <TT>configure</TT> script.  This is where you
+need to add shell script fragments and autoconf macros to detect the
+presence of whatever development support your language module provides,
+typically directories where headers and libraries can be found, and/or
+utility programs useful for integrating the generated wrapper code.<p>
+
+Use the <TT>AC_ARG_WITH</TT>, <TT>AC_MSG_CHECKING</TT>, <TT>AC_SUBST</TT>
+macros and so forth (see other languages for examples).  Avoid using the
+<TT>[</TT> and <TT>]</TT> character in shell script fragments.  The
+variable names passed to <TT>AC_SUBST</TT> should begin with the nickname,
+entirely upcased.<p>
+
+At the end of the new section is the place to put the aforementioned
+nickname kludges (should they be needed).  See Perl5 and Php4 for
+examples of what to do.  [If this is still unclear after you've read
+the code, ping me and I'll expand on this further.  --ttn]<p>
+
+<dt> <b>Makefile.in</b>
+<dd> Some of the variables AC_SUBSTitutued are essential to the
+support of your language module.  Fashion these into a shell script
+"test" clause and assign that to a skip tag using "-z" and "-o":<p>
+
+<blockquote><tt>
+skip-qux99 = [ -z "@QUX99INCLUDE@" -o -z "@QUX99LIBS" ]
+</tt></blockquote><p>
+
+This means if those vars should ever be empty, qux99 support should
+be considered absent and so it would be a good idea to skip actions that
+might rely on it.<p>
+
+Here is where you may also define an alias (but then you'll need to
+kludge --- don't do this):<p>
+
+<blockquote<tt>
+skip-qux = $(skip-qux99)
+</tt></blockquote><p>
+
+Lastly, you need to modify each of <TT>check-aliveness</TT>,
+<TT>check-examples</TT>, <TT>check-test-suite</TT> and
+<TT>check-gifplot</TT>.  Use the nickname for these, not the alias.
+Note that you can do this even before you have any tests or examples
+set up; the Makefile rules do some sanity checking and skip around
+these kinds of problems.<p>
+
+<dt> <b>Examples/Makefile.in</b>
+<dd> Nothing special here; see comments at top the of this file
+and look to the existing langues for examples.<p>
+
+<dt> <b>Examples/qux99/check.list</b>
+<dd> Do <TT>cp ../python/check.list .</TT> and modify to taste.
+One subdir per line.<p>
+
+<dt> <b>Examples/GIFPlot/Qux99/check.list</b>
+<dd> Do <TT>cp ../Python/check.list .</TT> and modify to taste.
+One subdir per line.<p>
+
+<dt> <b>Runtime/Makefile.in</b>
+<dd> Add another <TT>make</TT> invocation to <TT>all</TT>, and
+a section for your language module.<p>
+
+<dt> <b>Source/Modules1.1/Makefile.in</b>
+<dd> Add appropriate entries for vars <TT>OBJS</TT> and <TT>SRCS</TT>.
+That's it!<p>
+
+</dl>
+
+At some point it would be a good idea to use
+<A HREF="http://www.gnu.org/software/automake/">automake</A>
+to handle some of these configuration tasks, but that point is now
+long past.  If you are interested in working on that, feel free to
+raise the issue in the context of a next-generation clean-slate SWIG.<p>
 
 <a name="n39"></a><H3>21.10.9 Runtime support</H3>
 
