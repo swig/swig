@@ -48,6 +48,10 @@ extern "C" {
 #define SWIG_croak(x)  { if ((_swigerr = (const char *) x)) goto fail; }
 #define SWIG_MAX_ERRMSG 256
 
+/* Contract support */
+
+#define SWIG_contract_assert(expr,msg) if (!(expr)) { SWIG_croak(msg); } else
+
 /* Note: SwigMagicFuncHack is a typedef used to get the C++
    compiler to just shut up already */
 
