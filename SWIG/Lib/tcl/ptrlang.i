@@ -11,34 +11,27 @@
 %{
 #include <ctype.h>
 
-/* Pointer library specific types */
+/* Types used by the library */
+static swig_type_info *SWIG_POINTER_int_p = 0;
+static swig_type_info *SWIG_POINTER_short_p =0;
+static swig_type_info *SWIG_POINTER_long_p = 0;
+static swig_type_info *SWIG_POINTER_float_p = 0;
+static swig_type_info *SWIG_POINTER_double_p = 0;
+static swig_type_info *SWIG_POINTER_char_p = 0;
+static swig_type_info *SWIG_POINTER_char_pp = 0;
+%}
 
-static swig_type_info _swig_pointer_int_p[] = {{"_int_p",0},{"_int_p",0},{0}};
-static swig_type_info _swig_pointer_short_p[] = {{"_short_p",0},{"_short_p",0},{0}};
-static swig_type_info _swig_pointer_long_p[] = {{"_long_p",0},{"_long_p",0},{0}};
-static swig_type_info _swig_pointer_float_p[] = {{"_float_p",0},{"_float_p",0},{0}};
-static swig_type_info _swig_pointer_double_p[] = {{"_double_p",0},{"_double_p",0},{0}};
-static swig_type_info _swig_pointer_char_p[] = {{"_char_p",0},{"_char_p",0},{0}};
-static swig_type_info _swig_pointer_char_pp[] = {{"_char_pp",0},{"_char_pp",0},{0}};
+%init %{
+  SWIG_POINTER_int_p = SWIG_TypeQuery("int *");
+  SWIG_POINTER_short_p = SWIG_TypeQuery("short *");
+  SWIG_POINTER_long_p = SWIG_TypeQuery("long *");
+  SWIG_POINTER_float_p = SWIG_TypeQuery("float *");
+  SWIG_POINTER_double_p = SWIG_TypeQuery("double *");
+  SWIG_POINTER_char_p = SWIG_TypeQuery("char *");
+  SWIG_POINTER_char_pp = SWIG_TypeQuery("char **");
+%}
 
-static swig_type_info *_swig_pointer_types[] = {
-   _swig_pointer_int_p,
-   _swig_pointer_short_p,
-   _swig_pointer_long_p,
-   _swig_pointer_float_p,
-   _swig_pointer_double_p,
-   _swig_pointer_char_p,
-   _swig_pointer_char_pp,
-   0
-};
-
-#define SWIG_POINTER_int_p     _swig_pointer_types[0]
-#define SWIG_POINTER_short_p   _swig_pointer_types[1]
-#define SWIG_POINTER_long_p    _swig_pointer_types[2]
-#define SWIG_POINTER_float_p   _swig_pointer_types[3]
-#define SWIG_POINTER_double_p  _swig_pointer_types[4]
-#define SWIG_POINTER_char_p    _swig_pointer_types[5]
-#define SWIG_POINTER_char_pp   _swig_pointer_types[6]
+%{
 
 /*------------------------------------------------------------------
   ptrcast(value,type)
@@ -654,16 +647,6 @@ void      ptrmap(char *type1, char *type2);
 // Clear the ignore typemap
 //%typemap(tcl,ignore) Tcl_Interp *;
 //%typemap(tcl8,ignore) Tcl_Interp *;
-
-%init %{
-  {
-    int i;
-    for (i = 0; _swig_pointer_types[i]; i++) {
-      _swig_pointer_types[i] = SWIG_TypeRegister(_swig_pointer_types[i]);
-    }
-  }
-
-  %}
     
   
 
