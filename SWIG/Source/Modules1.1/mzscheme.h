@@ -37,5 +37,7 @@ public :
   void set_module (char *);
   void import_start(char *modname);
   void import_end();
+
+  int  validIdentifier(String *s);
 };
 

@@ -25,6 +25,7 @@ static char cvsroot[] = "$Header$";
 
 #include "mod11.h"
 #include "mzscheme.h"
+#include <ctype.h>
 
 static char *mzscheme_usage = (char*)"\
 \n\
@@ -603,6 +604,34 @@ void
 MZSCHEME::import_end() {
 }
 
+// snarfed from guile.cxx
+int 
+MZSCHEME::validIdentifier(String *s) {
+  char *c = Char(s);
+  /* Check whether we have an R5RS identifier.*/
+  /* <identifier> --> <initial> <subsequent>* | <peculiar identifier> */
+  /* <initial> --> <letter> | <special initial> */
+  if (!(isalpha(*c) || (*c == '!') || (*c == '$') || (*c == '%')
+	|| (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
+	|| (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
+	|| (*c == '^') || (*c == '_') || (*c == '~'))) {
+    /* <peculiar identifier> --> + | - | ... */
+    if ((strcmp(c, "+") == 0)
+	|| strcmp(c, "-") == 0
+	|| strcmp(c, "...") == 0) return 1;
+    else return 0;
+  }
+  /* <subsequent> --> <initial> | <digit> | <special subsequent> */
+  while (*c) {
+    if (!(isalnum(*c) || (*c == '!') || (*c == '$') || (*c == '%')
+	  || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
+	  || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
+	  || (*c == '^') || (*c == '_') || (*c == '~') || (*c == '+')
+	  || (*c == '-') || (*c == '.') || (*c == '@'))) return 0;
+    c++;
+  }
+  return 1;
+}
 
 
 
