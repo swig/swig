@@ -508,8 +508,8 @@ template_locate(String *name, Parm *tparms) {
     if (t) {
       String *tbase = SwigType_base(t);
       t = SwigType_default(t);
+      Replaceid(t,"enum SWIGTYPE",tbase);
       Replaceid(t,"SWIGTYPE",tbase);
-      Replaceid(t,"SWIGENUM",tbase);
       Printf(rname,"%s",t);
       Delete(t);
     } else {
