@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Php"></a>23 SWIG and PHP4</H1>
+<H1><a name="Php"></a>24 SWIG and PHP4</H1>
 <!-- INDEX -->
 <ul>
 <li><a href="#Php_nn2">Preliminaries</a>
@@ -49,7 +49,7 @@ that shadow classes are implemented inside the php module in C++ instead
 of in the generated .php file in php.
 </p>
 
-<H2><a name="Php_nn2"></a>23.1 Preliminaries</H2>
+<H2><a name="Php_nn2"></a>24.1 Preliminaries</H2>
 
 
 In order to use this module, you will need to have a copy of the PHP 4.0 (or
@@ -59,7 +59,7 @@ need either the php binary or the Apache php module. If you want to build your
 extension into php directly (without having the overhead of loading it into
 each script), you will need the complete PHP source tree available.
 
-<H2><a name="Php_nn3"></a>23.2 Building PHP4 Extensions</H2>
+<H2><a name="Php_nn3"></a>24.2 Building PHP4 Extensions</H2>
 
 
 <p>
@@ -100,7 +100,7 @@ script.  The first choice is the default, however it can be changed by passing
 the '-phpfull' command line switch to select the second build method.  
 </p>
 
-<H3><a name="Php_nn4"></a>23.2.1 Building a loadable extension</H3>
+<H3><a name="Php_nn4"></a>24.2.1 Building a loadable extension</H3>
 
 
 <p>
@@ -176,10 +176,10 @@ attempts to do the <tt>dl()</tt> call for you:
 A more complicated method which builds the module directly into the <tt>php</tt>
 executable is described <a href="n12">below</a>.
 
-<H3><a name="Php_nn5"></a>23.2.2 Basic PHP4 interface</H3>
+<H3><a name="Php_nn5"></a>24.2.2 Basic PHP4 interface</H3>
 
 
-<H3><a name="Php_nn6"></a>23.2.3 Functions</H3>
+<H3><a name="Php_nn6"></a>24.2.3 Functions</H3>
 
 
 <p>
@@ -205,7 +205,7 @@ $c = bar(3.5);		# Use default argument for 2nd parameter
 
 </pre></blockquote>
 
-<H3><a name="Php_nn7"></a>23.2.4 Global Variables</H3>
+<H3><a name="Php_nn7"></a>24.2.4 Global Variables</H3>
 
 
 <p>
@@ -241,7 +241,7 @@ SWIG supports global variables of all C datatypes including pointers and complex
 objects.
 </p>
 
-<H3><a name="Php_nn8"></a>23.2.5 Pointers </H3>
+<H3><a name="Php_nn8"></a>24.2.5 Pointers </H3>
 
 
 <p>
@@ -255,7 +255,7 @@ You can also explicitly create a NULL pointer as a string "NULL"
 or by passing a null or empty value.
 </p>
 
-<H3><a name="Php_nn9"></a>23.2.6 Structures and C++ classes</H3>
+<H3><a name="Php_nn9"></a>24.2.6 Structures and C++ classes</H3>
 
 
 <p>
@@ -295,7 +295,7 @@ To use the class, simply use these functions. However, SWIG also has a mechanism
 for creating shadow classes that hides these functions and uses an object 
 oriented interface instead - see <a href="n7">below</a>
 
-<H3><a name="Php_nn10"></a>23.2.7 Constants</H3>
+<H3><a name="Php_nn10"></a>24.2.7 Constants</H3>
 
 
 <p>
@@ -404,7 +404,7 @@ both point to the same value, without the case test taking place.
 ( Apologies, this paragraph needs rewritting to make some sense. )
 </p>
 
-<H3><a name="Php_nn11"></a>23.2.8 Shadow classes</H3>
+<H3><a name="Php_nn11"></a>24.2.8 Shadow classes</H3>
 
 
 <p>
@@ -439,7 +439,7 @@ functions like before.
 .... ( more examples on the way ) ....
 </p>
 
-<H3><a name="Php_nn12"></a>23.2.9 Constructors and Destructers</H3>
+<H3><a name="Php_nn12"></a>24.2.9 Constructors and Destructers</H3>
 
 
 <p>
@@ -470,7 +470,7 @@ I am not sure if PHP resources are all freed at the end of a script, or
 when they each go out of scope.
 </p>
 
-<H3><a name="Php_nn13"></a>23.2.10 Static Member Variables</H3>
+<H3><a name="Php_nn13"></a>24.2.10 Static Member Variables</H3>
 
 
 Class variables are not supported in PHP, however class functions are, using
@@ -507,7 +507,7 @@ echo "There has now been " . Ko::threats() . " threats\n";
 
 </pre></blockquote>
 
-<H3><a name="Php_nn14"></a>23.2.11 PHP4 Pragmas</H3>
+<H3><a name="Php_nn14"></a>24.2.11 PHP4 Pragmas</H3>
 
 
 There are a few pragmas understood by the PHP4 module.  The first, 
@@ -536,7 +536,7 @@ function is called.
 	%include "example.h"
 </pre></blockquote>
 
-<H3><a name="Php_nn15"></a>23.2.12 Building extensions into php</H3>
+<H3><a name="Php_nn15"></a>24.2.12 Building extensions into php</H3>
 
 
 <p>
@@ -594,7 +594,7 @@ which contains your new module. You can test it with a php script which
 does not have the 'dl' command as used above.
 </p>
 
-<H3><a name="Php_nn16"></a>23.2.13 To be furthered...</H3>
+<H3><a name="Php_nn16"></a>24.2.13 To be furthered...</H3>
 
 
 </body>
