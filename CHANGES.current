@@ -1,5 +1,50 @@
 Version 1.3.20 (In progress)
 ============================
+
+11/02/2003: mkoeppe (Matthias Koeppe)
+	    Unify the pointer-conversion runtime API.  The standard
+	    functions are:
+	     * SWIG_NewPointerObj (POINTER, TYPE, FLAGS)
+	        -- Create an scripting object that represents a typed
+		   pointer. FLAGS are language specific.
+	     * SWIG_ConvertPtr (INPUT, RESULT, TYPE, FLAGS)
+	        -- Get a pointer from the scripting object INPUT and
+		   store it in the place RESULT.  When a type mismatch 
+		   occurs, return nonzero.
+	     * SWIG_MustGetPtr (INPUT, TYPE, ARGNUM, FLAGS)
+	        -- Get a pointer from the scripting object INPUT and
+		   return it.  When a type mismatch occurs, throw an
+		   exception.  If ARGNUM > 0, report it as the 
+		   argument number that has the type mismatch.
+            [Guile]:    No changes.
+	    [MzScheme]: No changes.
+	    [Perl]:     Add the function SWIG_NewPointerObj.
+		        The function SWIG_MakePtr is kept.
+			The function SWIG_MustGetPtr is currently not
+			supported.
+	    [Python]:   Add the function SWIG_MustGetPtr.
+	    [Ruby]:     Add the function SWIG_MustGetPtr.
+	    [Tcl]:      Remove the "interp" argument of
+		        SWIG_NewInstanceObj, SWIG_ConvertPtr,
+		        SWIG_ConvertPacked, and SWIG_ConvertPtrFromString.
+			The function SWIG_MustGetPtr is currently 
+			not supported.
+	    No changes to Pike because its pointer conversion code did
+	    not look complete.  No changes to PHP4, because I did not
+	    understand its runtime code.  No changes to Chicken
+	    because major changes are expected soon anyway.  No
+	    changes to Java, OCaml, C# because they do not seem to
+	    have a pointer-conversion runtime API.
+
+            *** INCOMPATIBILITY [Tcl] ***
+
+11/02/2003: mkoeppe (Matthias Koeppe)
+	    [Perl5, PHP4, Pike, Python, Ruby, Tcl]: Use the
+	    preprocessor to rename external functions of the SWIG
+	    runtime API to follow the naming convention
+	    SWIG_<language>_<function>.  This should allow linking
+	    more than one interpreter into a program.
+
 10/31/2003: cheetah (William Fulton)
             [C#] Fix since introducing the exception and std::string delegates.
             The fix overcomes linker errors when using more than one SWIG module.
