@@ -629,16 +629,19 @@ public:
     //    t = Copy(Getattr(n,"classtype"));
     //    SwigType_add_pointer(t);
 
+    String *rt = Copy(Getattr(n,"classtype"));
+    SwigType_add_pointer(rt);
+
     // Register the class structure with the type checker
     /*    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_classname); */
     if (have_destructor) {
       Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", NIL);
       if (destructor_action) {
-	Printv(f_wrappers, SwigType_str(t,"arg1"), " = (", SwigType_str(t,0), ") obj;\n", NIL);
+	Printv(f_wrappers, SwigType_str(rt,"arg1"), " = (", SwigType_str(rt,0), ") obj;\n", NIL);
 	Printv(f_wrappers, destructor_action, NIL);
       } else {
 	if (CPlusPlus) {
-	  Printv(f_wrappers,"    delete (", SwigType_str(t,0), ") obj;\n",NIL);
+	  Printv(f_wrappers,"    delete (", SwigType_str(rt,0), ") obj;\n",NIL);
 	} else {
 	  Printv(f_wrappers,"    free((char *) obj);\n",NIL);
 	}
