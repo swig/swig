@@ -1014,7 +1014,7 @@ static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
 	}
 	if (!isglobal) {
 	    /* Substitute  */
-	    Replace(s,pn,new_name,DOH_REPLACE_ID);
+	    Replace(s,pn,new_name,DOH_REPLACE_ID | DOH_REPLACE_NOQUOTE);
 	}
       }
     }
