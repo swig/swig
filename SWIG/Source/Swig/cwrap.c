@@ -584,7 +584,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int added) {
   Delete(t);
 
   ty = Swig_wrapped_var_type(type);
-  p = NewParm(ty,membername);
+  p = NewParm(ty,name);
   set_nextSibling(parms,p);
   Delete(p);
 
