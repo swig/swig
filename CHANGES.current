@@ -1,6 +1,32 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/20/2004: wsfulton
+            1) Compact default arguments feature added. This feature allows one
+              to use the default argument code generation that was used in
+              SWIG-1.3.22 and earlier versions. It produces more compact wrappers
+              as only one wrapper method is generated for any method with default
+              arguments. So the advantage is it generates less code but has the
+              original limitations, like it it does not work with all default arguments
+              and default arguments cannot be taken advantage of in the strongly typed
+              languages (C# and Java). It is implemented via the usual %feature mechanism:
+
+                %feature("compactdefaultargs");
+
+            2) Keyword arguments (kwargs) are working again for default arguments
+               in the languages that support it, ie, Python and Ruby. The new default
+               argument wrapping approach using overloaded methods cannot support kwargs
+               so the compact default argument feature is automatically turned on when
+               kwargs are specified, by %feature("kwargs").
+
+            3) Compact default arguments are also automatically turned on when wrapping
+               C (not C++) code. This is to support the bizarre notion of default arguments
+               for C code.
+
+10/20/2004: wsfulton
+            Overloaded templated functions in namespaces also working now.
+            Templated functions with default arguments in namespaces too.
+
 10/19/2004: mmatus
 
 	    - Allow to disable the new SwigValueWrapper mechanism,
