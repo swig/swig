@@ -81,7 +81,7 @@ extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, swig_type_info *);
 SWIGRUNTIME(int) 
 SWIG_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t)
 #else
-#define SWIG_ConvertPtr(a,b,c) _SWIG_GetConvert(pPerl,a,b,c)
+#define SWIG_ConvertPtr(a,b,c) _SWIG_ConvertPtr(pPerl,a,b,c)
 SWIGRUNTIME(int)
 _SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t)
 #endif
@@ -149,7 +149,7 @@ SWIGRUNTIME(void)
 SWIG_MakePtr(SV *sv, void *ptr, swig_type_info *t)
 #else
 #define SWIG_MakePtr(a,b,c) _SWIG_MakePtr(pPerl,a,b,c)
-SWIGRUNTIME(int *)
+SWIGRUNTIME(void)
 _SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t)
 #endif
 {
