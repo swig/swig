@@ -5,10 +5,10 @@ bar.pm
 spam.pm
 *_wrap.c
 *_wrap.cxx
-example.dll
-example.dsw
-example.ncb
-example.opt
-example.plg
+*.dll
+*.dsw
+*.ncb
+*.opt
+*.plg
 Release
 Debug

@@ -5,3 +5,12 @@ Makefile.in
 lib*.c
 lib*.lo
 lib*.la
+swig*.dsw
+swig*.dll
+swig*.exp
+swig*.lib
+swig*.ncb
+swig*.opt
+swig*.plg
+Release
+Debug
