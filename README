@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.22 (September 4, 2004)
+Version: 1.3.23 (November 6, 2004)
 
 Tagline: SWIG is a compiler that integrates C and C++ with
          languages including Perl, Python, Tcl, Guile, Mzscheme,
@@ -60,7 +60,7 @@ Information about SWIG is also available in Japanese translation at
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!                      IMPORTANT                         !!!!!!!
 !!!!!!!                                                        !!!!!!!
-!!!!!!! Previous SWIG users should read the documentation      !!!!!!!
+!!!!!!! Previous SWIG-1.1 users should read the documentation  !!!!!!!
 !!!!!!! file Doc/Manual/SWIG.html before trying to use SWIG-1.3!!!!!!!
 !!!!!!! on existing SWIG interfaces.  This is the most current !!!!!!!
 !!!!!!! documentation that describes new 1.3 features and      !!!!!!!
@@ -69,6 +69,21 @@ Information about SWIG is also available in Japanese translation at
 
 What's New?
 ===========
+
+SWIG-1.3.23 summary:
+- Improved support for callbacks
+- Python docstring support
+- C++ default argument support for Java and C# added.
+- Improved c++ default argument support for the scripting languages plus
+  option to use original (compact) default arguments.
+- Runtime library changes: Runtime code can now exist in more than one module
+  and so need not be compiled into just one module
+- Further improved support for templates
+- Overloaded templated function support added
+- More powerful default typemaps (mixed default typemaps)
+- Some important %feature, %extend and director code bug fixes
+- Various minor improvements and bug fixes for C#, Chicken, Guile, Java, 
+  MzScheme, Perl, Python and Ruby
 
 SWIG-1.3.22 summary:
 - Improved exception handling and translation of C errors or C++
@@ -89,7 +104,7 @@ SWIG-1.3.22 summary:
 - Various %fragment improvements.
 - RPM fixes.
 - Various minor improvements and bug fixes for C#, Chicken, Guile, Java, 
-  MzScheme, Perl, Php, Ruby and XML.
+  MzScheme, Perl, Php, Python, Ruby and XML.
 
 
 The SWIG-1.3.x development releases offer a huge number of improvements
