@@ -43,6 +43,15 @@ AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
 dnl Checks for header files.
 AC_HEADER_STDC
 
+dnl How to specify include directories that may be system directories.
+# -I should not be used on system directories (GCC)
+if test "$GCC" = yes; then
+    ISYSTEM="-isystem "
+else
+    ISYSTEM="-I"
+fi
+
+
 dnl Checks for library functions.
 
 # Set info about shared libraries.
@@ -346,7 +355,7 @@ AC_ARG_WITH(tclconfig,[  --with-tclconfig=path  Set location of tclConfig.sh],
 AC_ARG_WITH(tcl,[  --with-tcl=path         Set location of Tcl package],[
 	TCLPACKAGE="$withval"], [TCLPACKAGE=])
 AC_ARG_WITH(tclincl,[  --with-tclincl=path     Set location of Tcl include directory],[
-	TCLINCLUDE="-I$withval"], [TCLINCLUDE=])
+	TCLINCLUDE="$ISYSTEM$withval"], [TCLINCLUDE=])
 AC_ARG_WITH(tcllib,[  --with-tcllib=path      Set location of Tcl library directory],[
 	TCLLIB="-L$withval"], [TCLLIB=])
 
@@ -374,13 +383,13 @@ if test x"${TCLCONFIG}" = x ; then
 else
     AC_MSG_RESULT(found $TCLCONFIG/tclConfig.sh)
     . $TCLCONFIG/tclConfig.sh
-    TCLINCLUDE=-I$TCL_PREFIX/include
+    TCLINCLUDE=$ISYSTEM$TCL_PREFIX/include
     TCLLIB=$TCL_LIB_SPEC
 fi
 
 if test -z "$TCLINCLUDE"; then
    if test -n "$TCLPACKAGE"; then
-	TCLINCLUDE="-I$TCLPACKAGE/include"
+	TCLINCLUDE="$ISYSTEM$TCLPACKAGE/include"
    fi
 fi
 
@@ -398,13 +407,12 @@ if test -z "$TCLINCLUDE"; then
 	for i in $dirs ; do
 		if test -r $i/tcl.h; then
 			AC_MSG_RESULT($i)
-			TCLINCLUDE="-I$i"
+			TCLINCLUDE="$ISYSTEM$i"
 			break
 		fi
 	done
 fi
 if test -z "$TCLINCLUDE"; then
-#	TCLINCLUDE="-I/usr/local/include"
     	AC_MSG_RESULT(not found)
 fi
 else
@@ -423,7 +431,6 @@ for i in $dirs ; do
 done
 if test -z "$TCLLIB"; then
 	AC_MSG_RESULT(not found)
-#	TCLLIB="-L/usr/local/lib"
 fi
 else
 AC_MSG_RESULT($TCLLIB)
@@ -592,7 +599,7 @@ if test -n "$PERL"; then
 			AC_MSG_RESULT($PERL5LIB)
 		fi
     AC_MSG_CHECKING(for Perl5 compiler options)
- 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}') 2>/dev/null`
+ 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}' | sed "s/-I/$ISYSTEM/") 2>/dev/null`
  		if test "$PERL5CCFLAGS" = "" ; then
  			AC_MSG_RESULT(not found)
  		else
@@ -604,7 +611,6 @@ if test -n "$PERL"; then
 	fi
 else
        	AC_MSG_RESULT(could not figure out how to run perl5)
-#	PERL5EXT="/usr/local/lib/perl/archname/5.003/CORE"
 fi
 
 # Cygwin (Windows) needs the library for dynamic linking
@@ -646,7 +652,7 @@ AC_MSG_CHECKING(for java include file jni.h)
 AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include directory], [JAVAINCDIR="$withval"], [JAVAINCDIR=])
 
 if test -z "$JAVAINCDIR"; then
-  JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe /usr/include /usr/local/include"
+  JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe"
 
   # Add in default installation directory on Windows for Cygwin
   case $host in
@@ -743,12 +749,11 @@ if test -n "$GUILE_CONFIG" ; then
   for i in $dirs ; do
   	if test -r $i/guile/gh.h; then
   		AC_MSG_RESULT($i)
-  		GUILEINCLUDE="-I$i"
+  		GUILEINCLUDE="$ISYSTEM$i"
   		break
   	fi
   done
   if test -z "$GUILEINCLUDE"; then
-#  	GUILEINCLUDE="-I/usr/local/include"
       	AC_MSG_RESULT(not found)
   fi
 
@@ -763,7 +768,6 @@ if test -n "$GUILE_CONFIG" ; then
   done
   if test -z "$GUILELIB"; then
   	AC_MSG_RESULT(not found)
-#  	GUILELIB="/usr/local/lib"
   fi
 
   GUILELINK="`guile-config link`"
