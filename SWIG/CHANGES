@@ -17,6 +17,10 @@ tree (maybe).
 Version 1.3.13 (In progress)
 ============================
 
+06/14/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added missing bool typemaps for INPUT, OUTPUT and
+	    INOUT in Lib/ruby/typemaps.i.
+
 05/29/2002: cheetah (William Fulton)
             [Java] Fix for a couple of broken pragmas.
 

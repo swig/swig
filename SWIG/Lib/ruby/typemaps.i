@@ -50,6 +50,7 @@ you would use a real value instead.
          unsigned short *INPUT
          unsigned long  *INPUT
          unsigned char  *INPUT
+	 bool           *INPUT
          float          *INPUT
          double         *INPUT
          
@@ -79,56 +80,66 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-%typemap(ruby,in) float  *INPUT(float temp)
+%typemap(ruby,in) float *INPUT(float temp)
 {
   temp = (float) NUM2DBL($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) int            *INPUT(int temp)
+%typemap(ruby,in) int *INPUT(int temp)
 {
   temp = NUM2INT($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) short          *INPUT(short temp)
+%typemap(ruby,in) short *INPUT(short temp)
 {
   temp = NUM2SHRT($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) long           *INPUT(long temp)
+%typemap(ruby,in) long *INPUT(long temp)
 {
   temp = NUM2LONG($input);
   $1 = &temp;
 }
-%typemap(ruby,in) unsigned int   *INPUT(unsigned int temp)
+
+%typemap(ruby,in) unsigned int *INPUT(unsigned int temp)
 {
   temp = NUM2UINT($input);
   $1 = &temp;
 }
+
 %typemap(ruby,in) unsigned short *INPUT(unsigned short temp)
 {
   temp = NUM2USHRT($input);
   $1 = &temp;
 }
-%typemap(ruby,in) unsigned long  *INPUT(unsigned long temp)
+
+%typemap(ruby,in) unsigned long *INPUT(unsigned long temp)
 {
   temp = NUM2ULONG($input);
   $1 = &temp;
 }
-%typemap(ruby,in) unsigned char  *INPUT(unsigned char temp)
+
+%typemap(ruby,in) unsigned char *INPUT(unsigned char temp)
 {
   temp = (unsigned char)NUM2UINT($input);
   $1 = &temp;
 }
 
-%typemap(ruby,in) signed char  *INPUT(signed char temp)
+%typemap(ruby,in) signed char *INPUT(signed char temp)
 {
   temp = (signed char)NUM2INT($input);
   $1 = &temp;
 }
                  
+%typemap(ruby,in) bool *INPUT(bool temp)
+{
+  temp = RTEST($input);
+  $1 = &temp;
+}
+
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as
 // a array element.
@@ -149,6 +160,7 @@ multiple output values, they are returned in the form of a Ruby Array.
          unsigned short *OUTPUT
          unsigned long  *OUTPUT
          unsigned char  *OUTPUT
+	 bool           *OUTPUT
          float          *OUTPUT
          double         *OUTPUT
          
@@ -201,7 +213,8 @@ static VALUE output_helper(VALUE target, VALUE o) {
                       unsigned short *OUTPUT(unsigned short temp),
                       unsigned long  *OUTPUT(unsigned long temp),
                       unsigned char  *OUTPUT(unsigned char temp),
-                      signed char    *OUTPUT(signed char temp),  
+                      signed char    *OUTPUT(signed char temp),
+		      bool           *OUTPUT(bool temp),
                       float          *OUTPUT(float temp),
                       double         *OUTPUT(double temp)
 {
@@ -230,6 +243,11 @@ static VALUE output_helper(VALUE target, VALUE o) {
     $result = output_helper($result, rb_float_new(*$1));
 }
 
+%typemap(ruby,argout) bool *OUTPUT
+{
+    $result = output_helper($result, (*$1) ? Qtrue : Qfalse);
+}
+
 // INOUT
 // Mappings for an argument that is both an input and output
 // parameter
@@ -251,6 +269,7 @@ returned in the form of a Ruby array.
          unsigned short *INOUT
          unsigned long  *INOUT
          unsigned char  *INOUT
+	 bool           *INOUT
          float          *INOUT
          double         *INOUT
          
@@ -292,6 +311,7 @@ phased out in future releases.
 %typemap(ruby,in) unsigned short *INOUT = unsigned short *INPUT;
 %typemap(ruby,in) unsigned long *INOUT = unsigned long *INPUT;
 %typemap(ruby,in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(ruby,in) bool *INOUT = bool *INPUT;
 %typemap(ruby,in) float *INOUT = float *INPUT;
 %typemap(ruby,in) double *INOUT = double *INPUT;
 
@@ -302,6 +322,7 @@ phased out in future releases.
 %typemap(ruby,argout) unsigned short *INOUT = unsigned short *OUTPUT;
 %typemap(ruby,argout) unsigned long *INOUT = unsigned long *OUTPUT;
 %typemap(ruby,argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(ruby,argout) bool *INOUT = bool *OUTPUT;
 %typemap(ruby,argout) float *INOUT = float *OUTPUT;
 %typemap(ruby,argout) double *INOUT = double *OUTPUT;
 
@@ -314,6 +335,7 @@ phased out in future releases.
 %apply unsigned long *INOUT { unsigned long *BOTH };
 %apply unsigned short *INOUT { unsigned short *BOTH };
 %apply unsigned char *INOUT { unsigned char *BOTH };
+%apply bool *INOUT { bool *BOTH };
 %apply float *INOUT { float *BOTH };
 %apply double *INOUT { double *BOTH };
 
