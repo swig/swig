@@ -4,7 +4,7 @@ GIFPlot
 To illustrate various SWIG features, the following examples involve
 building an interface to a small, but somewhat useful graphics library
 for creating 2D and 3D images in the form of GIF files.  The Perl,
-Python, Tcl, Java and Ruby directories contain various examples specific to
+Python, Tcl, Java, Ruby etc. directories contain various examples specific to
 those languages.
 
 This library was originally developed as part of the SPaSM molecular
@@ -23,26 +23,20 @@ Building the Library
 ====================
 
 In order to run the examples, it is first necessary to build the GIFPlot
-C library.  To do this, simply follow these instructions:
+C library.  To do this, simply run make:
 
-	./configure
 	make
-
-On Windows, you can probably just do this:
-
-        cd Lib
-        nmake /f Makefile.msc
 
 Running the Examples
 ====================
 
-Once the library has been built, go the Perl, Python, Tcl, Java or Ruby directory
-to see various SWIG examples.   Each example should have a README file with a
-description.
+Once the library has been built, go to your chosen language directory,
+that is, Perl, Python, Tcl, Java, Ruby etc. Each example should have a
+README file with a description.
 
-The examples are compiled using the makefile located in the top level "Examples"
-directory of the distribution.   If they don't compile, you will need to
-adjust the settings in this file.
+Each example can be compiled using the makefile in each example directory. This
+makefile uses the top level makefile in the "Examples" directory of the distribution.
+If the example doesn't compile, you will need to adjust the settings in this file.
 
 Documentation
 =============
