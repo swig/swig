@@ -26,21 +26,13 @@
 class MZSCHEME : public Language
 {
 private:
-  char   *mzscheme_path;
-  char   *prefix;
-  char   *module;
-  char   *package;
-  int    linkage;
-  void   get_pointer(String &name, int parm, DataType *t, WrapperFunction &f);
-  void   usage_var(char *, DataType *, String &usage);
-  void   usage_func(char *, DataType *, ParmList *, String &usage);
-  void   usage_returns(char *, DataType *, ParmList *, String &usage);
-  void   usage_const(char *, DataType *, char *, String &usage);
-
-  String init_func_def;
+  void   get_pointer(DOHString_or_char *name, int parm, DataType *t, WrapperFunction &f);
+  void   usage_var(char *, DataType *, DOHString *usage);
+  void   usage_func(char *, DataType *, ParmList *, DOHString *usage);
+  void   usage_returns(char *, DataType *, ParmList *, DOHString *usage);
+  void   usage_const(char *, DataType *, char *, DOHString *usage);
 
 public :
-  MZSCHEME ();
   void parse_args (int, char *argv[]);
   void parse ();
   void create_function (char *, char *, DataType *, ParmList *);
