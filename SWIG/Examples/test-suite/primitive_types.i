@@ -471,6 +471,7 @@ macro(size_t,             pfx, sizet)
    }
 
    %test_prim_types_ovr(ovr_decl, ovr);
+   
 
    virtual Test* vtest(Test* t) const throw (Test)
    {

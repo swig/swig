@@ -315,12 +315,11 @@ if error:
   raise RuntimeError, "bad uint typemap"
 
 #
-# this should be an error in C++, but not in C.
 #
 try:
   error = 0
   a = t.var_namet
-  t.var_namet = '12345\0'
+  t.var_namet = '123456'
   error = 1
 except TypeError:
   if a != t.var_namet:

@@ -12,68 +12,50 @@
 // However, I think I'll wait until someone asks for it...
 // ------------------------------------------------------------------------
 
-%include exception.i
-
 %{
 #include <string>
 %}
 
-namespace std {
+/* defining the std::string as/from converters */
 
-    class string;
-
-    /* Overloading check */
-
-    %typemap(typecheck) string = char *;
-    %typemap(typecheck) const string & = char *;
-
-    %typemap(in) string {
-        if (PyString_Check($input))
-            $1 = std::string(PyString_AsString($input),
-                             PyString_Size($input));
-        else
-            SWIG_exception(SWIG_TypeError, "string expected");
-    }
-
-    %typemap(in) const string & (std::string temp) {
-        if (PyString_Check($input)) {
-            temp = std::string(PyString_AsString($input),
-                               PyString_Size($input));
-            $1 = &temp;
-        } else {
-            SWIG_exception(SWIG_TypeError, "string expected");
-        }
-    }
-
-    %typemap(out) string {
-        $result = PyString_FromStringAndSize($1.data(),$1.size());
-    }
-
-    %typemap(out) const string & {
-        $result = PyString_FromStringAndSize($1->data(),$1->size());
-    }
-    
-    %typemap(directorin, parse="s") string, const string &, string & "$1_name.c_str()";
-
-    %typemap(directorin, parse="s") string *, const string * "$1_name->c_str()";
-    
-    %typemap(directorout) string {
-        if (PyString_Check($input))
-            $result = std::string(PyString_AsString($input),
-                                  PyString_Size($input));
-        else
-            throw Swig::DirectorTypeMismatchException("string expected");
-    }
-    
-    %typemap(directorout) const string & (std::string temp) {
-        if (PyString_Check($input)) {
-            temp = std::string(PyString_AsString($input),
-                               PyString_Size($input));
-            $result = &temp;
-        } else {
-            throw Swig::DirectorTypeMismatchException("string expected");
-        }
-    }
-
+%fragment("SWIG_PyObj_AsStdString","header") %{
+static inline std::string
+SWIG_PyObj_AsStdString(PyObject* obj) {
+  static swig_type_info* pchar_info = SWIG_TypeQuery("char *");
+  char* buf = 0 ; size_t size = 0;
+  SWIG_PyObj_AsCharPtrAndSize(obj, pchar_info, &buf, &size);
+  if (PyErr_Occurred() || !buf) {
+    PyErr_Clear();
+    PyErr_SetString(PyExc_TypeError,"a string is expected");
+    return std::string();    
+  }
+  return std::string(buf, size);
 }
+%}
 
+%fragment("SWIG_PyObj_CheckStdString","header") %{
+static inline void
+SWIG_PyObj_CheckStdString(PyObject* obj) {
+  static swig_type_info* pchar_info = SWIG_TypeQuery("char *");
+  char* buf = 0; size_t size = 0;
+  SWIG_PyObj_AsCharPtrAndSize(obj, pchar_info, &buf, &size);
+  if (PyErr_Occurred() || !buf) {
+    PyErr_Clear();
+    PyErr_SetString(PyExc_TypeError,"a string is expected");
+  }
+}
+%}
+
+%fragment("SWIG_PyObj_FromStdString","header") %{
+static inline PyObject* 
+SWIG_PyObj_FromStdString(const std::string& s) {
+  return SWIG_PyObj_FromCharArray(s.data(), s.size());
+}
+%}
+
+
+/* declaring the typemaps */
+
+%typemap_asfromcheck(std::string, STRING, 
+		     SWIG_PyObj_AsStdString, SWIG_PyObj_FromStdString,
+		     SWIG_PyObj_CheckStdString);
