@@ -22,3 +22,5 @@ ref(char, char);
 ref(float, float);
 ref(double, double);
 ref(bool, bool);
+ref(long long, longlong);
+ref(unsigned long long, ulonglong);
