@@ -703,11 +703,21 @@ int Language::cDeclaration(Node *n) {
   Node   *over;
   File   *f_header = 0;
   SwigType *ty, *fullty;
-
-
-  if (CurrentClass && (cplus_mode == CPLUS_PRIVATE)) return SWIG_NOWRAP;
-  if (CurrentClass && (cplus_mode == CPLUS_PROTECTED) &&
-      (!dirprot_mode() || !is_member_director(CurrentClass,n))) return SWIG_NOWRAP;
+  
+  /* discarts nodes following the access control rules */
+  if (cplus_mode != CPLUS_PUBLIC) {
+    /* except for friends, they are not affected by access control */
+    int isfriend = storage && (Cmp(storage,"friend") == 0);
+    if (!isfriend) {
+      if (cplus_mode == CPLUS_PRIVATE) {
+	return SWIG_NOWRAP;
+      } else {  
+	/* and for protected members, we check what director needs */
+	if (!(dirprot_mode() && is_member_director(CurrentClass,n)))
+	  return SWIG_NOWRAP;
+      }
+    }
+  }
   
   if (Cmp(storage,"typedef") == 0) {
     Swig_save("cDeclaration",n,"type",NIL);
@@ -719,11 +729,7 @@ int Language::cDeclaration(Node *n) {
     }
     Swig_restore(n);
     return SWIG_OK;
-  } else if (Cmp(storage,"friend") == 0) {
-    Swig_warning(WARN_LANG_FRIEND_IGNORE, Getfile(n), Getline(n),
-		 "friend function '%s' ignored.\n", name);
-    return SWIG_NOWRAP;
-  } 
+  }
 
   /* If in import mode, we proceed no further */
   if (ImportMode) return SWIG_NOWRAP;
@@ -879,6 +885,8 @@ Language::functionHandler(Node *n) {
     String *storage   = Getattr(n,"storage");
     if (Cmp(storage,"static") == 0) {
       staticmemberfunctionHandler(n);
+    } else if (Cmp(storage,"friend") == 0) {
+      globalfunctionHandler(n);
     } else {
       memberfunctionHandler(n);
     }
@@ -1426,7 +1434,6 @@ int Language::unrollVirtualMethods(Node *n,
                                    int &virtual_destructor) { 
   Node *ni;
   String *nodeType;
-  String *storage;
   String *classname;
   String *decl;
   // recurse through all base classes to build the vtable
@@ -1440,35 +1447,32 @@ int Language::unrollVirtualMethods(Node *n,
   // find the methods that need directors
   classname = Getattr(n, "name");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
-    if (!Cmp(Getattr(ni, "feature:nodirector"), "1")) continue;
+    /* we only need to check the virtual members */
+    if (!checkAttribute(ni, "storage", "virtual")) continue;
     nodeType = Getattr(ni, "nodeType");
-    storage = Getattr(ni, "storage");
-    decl = Getattr(ni, "decl");
-    if (!Cmp(nodeType, "cdecl") && SwigType_isfunction(decl)) {
-      int is_virtual = storage && !Cmp(storage, "virtual");
-      if (is_virtual &&
+    /* we need to add only the methods(cdecl), no destructors */
+    if (Cmp(nodeType, "cdecl") == 0 && 
+	!checkAttribute(ni, "feature:nodirector", "1")) {
+      decl = Getattr(ni, "decl");
+      /* extra check for function type and proper access */
+      if (SwigType_isfunction(decl) && 
 	  (is_public(ni) || (dirprot_mode() && is_protected(ni)))) {
-	Setattr(ni, "feature:director", "1");
-	String *method_id;
 	String *name = Getattr(ni, "name");
-	method_id = NewStringf("%s|%s", name, decl);
-	String *fqname = NewString("");
-	Printf(fqname, "%s::%s", classname, name);
+	String *local_decl = SwigType_typedef_resolve_all(decl);
+	String *method_id = NewStringf("%s|%s", name, local_decl);
+	String *fqname = NewStringf("%s::%s", classname, name);
 	Hash *item = NewHash();
+	Setattr(ni, "feature:director", "1");
 	Setattr(item, "fqName", fqname);
 	Setattr(item, "methodNode", ni);
 	Setattr(vm, method_id, item);
 	Delete(fqname);
 	Delete(item);
 	Delete(method_id);
+	Delete(local_decl);
       } 
-    }
-    else if (!Cmp(nodeType, "destructor")) {
-      if (storage && !Cmp(storage, "virtual")) {
-      	virtual_destructor = 1;
-      }
-    }
-    else {
+    } else if (Cmp(nodeType, "destructor") == 0) {
+      virtual_destructor = 1;
     }
   }
   return SWIG_OK;
