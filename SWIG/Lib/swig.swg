@@ -100,40 +100,72 @@ namespace std {
 #ifdef __cplusplus
 %typemap(memberin) char * {
   if ($1) delete [] $1;
-  $1 = ($1_type) (new char[strlen($input)+1]);
-  strcpy((char *) $1,$input);
+  if ($input) {
+     $1 = ($1_type) (new char[strlen($input)+1]);
+     strcpy((char *) $1,$input);
+  } else {
+     $1 = 0;
+  }
 }
 %typemap(memberin,warning="451:Setting const char * member may leak memory.") const char * {
-  $1 = ($1_type) (new char[strlen($input)+1]);
-  strcpy((char *) $1,$input);
+  if ($input) {
+     $1 = ($1_type) (new char[strlen($input)+1]);
+     strcpy((char *) $1,$input);
+  } else {
+     $1 = 0;
+  }
 }
 %typemap(globalin) char * {
   if ($1) delete [] $1;
-  $1 = ($1_type) (new char[strlen($input)+1]);
-  strcpy((char *) $1,$input);
+  if ($input) {
+     $1 = ($1_type) (new char[strlen($input)+1]);
+     strcpy((char *) $1,$input);
+  } else {
+     $1 = 0;
+  }
 }
 %typemap(globalin,warning="451:Setting const char * variable may leak memory.") const char * {
-  $1 = ($1_type) (new char[strlen($input)+1]);
-  strcpy((char *) $1,$input);
+  if ($input) {
+     $1 = ($1_type) (new char[strlen($input)+1]);
+     strcpy((char *) $1,$input);
+  } else {
+     $1 = 0;
+  }
 }
 #else
 %typemap(memberin) char * {
   if ($1) free((char*)$1);
-  $1 = ($1_type) malloc(strlen($input)+1);
-  strcpy((char*)$1,$input);
+  if ($input) {
+     $1 = ($1_type) malloc(strlen($input)+1);
+     strcpy((char*)$1,$input);
+  } else {
+     $1 = 0;
+  }
 }
 %typemap(memberin,warning="451:Setting const char * member may leak memory.") const char * {
-  $1 = ($1_type) malloc(strlen($input)+1);
-  strcpy((char*)$1,$input);
+  if ($input) {
+     $1 = ($1_type) malloc(strlen($input)+1);
+     strcpy((char*)$1,$input);
+  } else {
+     $1 = 0;
+  }
 }
 %typemap(globalin) char * {
   if ($1) free((char*)$1);
-  $1 = ($1_type) malloc(strlen($input)+1);
-  strcpy((char*)$1,$input);
+  if ($input) {
+     $1 = ($1_type) malloc(strlen($input)+1);
+     strcpy((char*)$1,$input);
+  } else {
+     $1 = 0;
+  }
 }
 %typemap(globalin,warning="451:Setting const char * variable may leak memory.") const char * {
-  $1 = ($1_type) malloc(strlen($input)+1);
-  strcpy((char*)$1,$input);
+  if ($input) {
+     $1 = ($1_type) malloc(strlen($input)+1);
+     strcpy((char*)$1,$input);
+  } else {
+     $1 = 0;
+  }
 }
 
 #endif
