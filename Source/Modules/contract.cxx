@@ -371,55 +371,71 @@ int Contracts::AssertAddTag(Node *n) {
   /* preassert */
   str_assert = NewString(Getattr(n, "feature:preassert"));
   if (Len(str_assert)) {
+    Setattr(n, "feature:preassert", NewStringf("SWIG_contract_assert(%s);\n", str_assert));
+    
+    /*
     tag = NewString(" SWIG_preassert(");
     Append(tag, str_assert);
     Append(tag, ");\n");
-    Setattr(n, "feature:preassert", tag);
+    Setattr(n, "feature:inherit_preassert", tag);
     Delete(tag);
+    */
   }
   Delete(str_assert);
 
   /* inherit_preassert */
   str_assert = NewString(Getattr(n, "feature:inherit_preassert"));
   if (Len(str_assert)) {
+    Setattr(n, "feature:inherit_preassert", NewStringf("SWIG_contract_assert(%s);\n", str_assert));
+    /*
     tag = NewString(" SWIG_inherit_preassert((");
     Append(tag, str_assert);
     Append(tag, "));\n");
     Setattr(n, "feature:inherit_preassert", tag);
     Delete(tag);
+    */
   }
   Delete(str_assert);
   
   /* postassert */
   str_assert = NewString(Getattr(n, "feature:postassert"));
   if (Len(str_assert)) {
+    Setattr(n, "feature:postassert", NewStringf("SWIG_contract_assert(%s);\n", str_assert));
+    /*
     tag = NewString(" SWIG_postassert(");
     Append(tag, str_assert);
     Append(tag, ");\n");
     Setattr(n, "feature:postassert", tag);
-    Delete(tag);
+    Delete(tag); 
+    */
   }
   Delete(str_assert);
   
   /* inherit_postassert */
   str_assert = NewString(Getattr(n, "feature:inherit_postassert"));
   if (Len(str_assert)) {
+    Setattr(n, "feature:inherit_postassert", NewStringf("SWIG_contract_assert(%s);\n", str_assert));
+    /*
     tag = NewString(" SWIG_inherit_postassert((");
     Append(tag, str_assert);
     Append(tag, "));\n");
     Setattr(n, "feature:inherit_postassert", tag);
     Delete(tag);
+    */
   }
   Delete(str_assert);
   
   /* invariant */
   str_assert = NewString(Getattr(n, "feature:invariant"));
   if (Len(str_assert)) {
+    Setattr(n, "feature:invariant", NewStringf("SWIG_contract_assert(%s);\n", str_assert));
+    /*
     tag = NewString(" SWIG_invariant(");
     Append(tag, str_assert);
     Append(tag, ");\n");
     Setattr(n, "feature:invariant", tag);
-    Delete(tag);
+    Delete(tag); 
+    */
   }
   Delete(str_assert);
   return SWIG_OK;
@@ -444,7 +460,7 @@ int Contracts::AssertAddErrorMsg(Node *n) {
   str_assert = NewString(Getattr(n, "feature:inherit_preassert"));
   Replaceall(str_assert, ");\n", "");
   if (Len(str_assert)) {
-    error_msg = NewString("Inherited require assertion violation, ");
+    error_msg = NewString("Require assertion violation (via inheritance), ");
     Printf(error_msg, "in function %s", Getattr(n, "name"));
     Printf(str_assert, ", \"%s\");\n", error_msg);
     Setattr(n, "feature:inherit_preassert", str_assert);
@@ -468,7 +484,7 @@ int Contracts::AssertAddErrorMsg(Node *n) {
   str_assert = NewString(Getattr(n, "feature:inherit_postassert"));
   Replaceall(str_assert, ");\n", "");
   if (Len(str_assert)) {
-    error_msg = NewString("Inherited ensure assertion violation, ");
+    error_msg = NewString("Ensure assertion violation (via inheritance), ");
     Printf(error_msg, "in function of %s", Getattr(n, "name"));
     Printf(str_assert, ", \"%s\");\n", error_msg);
     Setattr(n, "feature:inherit_postassert", str_assert);
