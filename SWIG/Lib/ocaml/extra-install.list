@@ -2,5 +2,4 @@
 # libswigocaml is not needed anymore.
 swigp4.ml
 swig.mli
-swig.cmi
-swig.cmo
+swig.ml
