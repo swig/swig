@@ -341,6 +341,10 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   }
   /* Replace '##' with a special token */
   Replace(macrovalue,"\001\001","\002", DOH_REPLACE_ANY);
+  /* Replace '#@' with a special token */
+  Replace(macrovalue,"\001@","\004", DOH_REPLACE_ANY);
+  /* Replace '##@' with a special token */
+  Replace(macrovalue,"\002@","\005", DOH_REPLACE_ANY);  
 
   /* Go create the macro */
   macro = NewHash();
@@ -673,6 +677,26 @@ expand_macro(String_or_char *name, List *args)
 	}
 	Replace(ns,temp,rep, DOH_REPLACE_ANY);
       }
+
+      /* Non-standard mangle expansions.  
+	 The #@Name is replaced by mangle_arg(Name). */
+      if (strstr(Char(ns),"\004")) {
+	String* marg = Swig_string_mangle(arg);
+	Clear(temp);
+	Printf(temp,"\004%s", aname);
+	Replace(ns, temp, marg, DOH_REPLACE_ID_END);
+	Delete(marg);
+      }
+      if (strstr(Char(ns),"\005")) {
+	String* marg = Swig_string_mangle(arg);
+	Clear(temp);
+	Clear(tempa);
+	Printf(temp,"\005%s", aname);
+	Printf(tempa,"\"%s\"", marg);
+	Replace(ns, temp, tempa, DOH_REPLACE_ID_END);
+	Delete(marg);
+      }
+
       if (isvarargs && i == l-1 && Len(arg) == 0) {
 	/* Zero length varargs macro argument.   We search for commas that might appear before and nuke them */
 	char *a, *s, *t, *name;
@@ -706,6 +730,7 @@ expand_macro(String_or_char *name, List *args)
   }
   Replace(ns,"\002","",DOH_REPLACE_ANY);    /* Get rid of concatenation tokens */
   Replace(ns,"\001","#",DOH_REPLACE_ANY);   /* Put # back (non-standard C) */
+  Replace(ns,"\004","#@",DOH_REPLACE_ANY);   /* Put # back (non-standard C) */
 
   /* Expand this macro even further */
   Setattr(macro,"*expanded*","1"); 
