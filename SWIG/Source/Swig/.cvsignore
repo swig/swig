@@ -1,4 +1,3 @@
-Makefile
 *.flc
 supertest
 *_wrap.*
