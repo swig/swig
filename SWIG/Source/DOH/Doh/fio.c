@@ -490,6 +490,7 @@ DohSplit(DOH *in, const char *chs, int nsplits) {
       nsplits--;
     }
     Append(list,str);
+    Delete(str);
     if (c == EOF) break;
   }
   return list;
