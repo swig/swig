@@ -1004,7 +1004,15 @@ want to import into other modules:
 </pre>
 </blockquote>
 In this example, the procedures <code>foo</code> and <code>bar</code>
-would be exported.
+would be exported.  Alternatively, you can export all bindings with the
+following module-system hack:
+<blockquote>
+<pre>
+(module-map (lambda (sym var)
+	      (module-export! (current-module) (list sym)))
+	    (current-module))
+</pre>
+</blockquote>
 </ul>
 
 If you want to include several SWIG modules, you would need to rename
