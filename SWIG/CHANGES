@@ -16,16 +16,17 @@ tree (maybe).
 
 Version 1.3.12 (In progress)
 ============================
+
+02/18/2002: cheetah (William Fulton)
+            Improved support on Cygwin: Perl, Python, Tcl, Ruby and Java should
+            work out of the box, barring the runtime library. Removed dllwrap 
+            and replaced with newly working gcc -shared instead for Cygwin. 
+            All this will require the new improved binutils 20010802 and later,
+            but the latest Cygwin is usually the best recommendation.
+
 02/15/2002: beazley
             Fixed some problems related to wrapping of global variables
             and Perl shadow classes. Reported by Chia-liang Kao.
-
-02/15/2002: cheetah (William Fulton)
-            Improved support on Cygwin: Java, Perl and Ruby should work out of 
-            the box, barring the runtime library. Removed dllwrap and replaced 
-            with newly working gcc -shared instead for Cygwin. This will 
-            require the new improved binutils 20010802 and later, but the 
-            latest Cygwin is usually the best recommendation.
 
 02/15/2002: ljohnson (Lyle Johnson)
             [Ruby] Made a fix to the code generation for C++ class

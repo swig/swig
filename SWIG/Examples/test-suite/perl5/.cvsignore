@@ -1,2 +1,4 @@
 *wrap*
 *.pm
+*.so
+*.dll
