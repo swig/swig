@@ -19,9 +19,6 @@ static char cvsroot[] = "$Header$";
 #include "swigconfig.h"
 #endif
 
-#include <time.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <ctype.h>
 extern "C" {
 #include "preprocessor.h"
