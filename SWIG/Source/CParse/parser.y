@@ -172,8 +172,12 @@ static String *make_name(String *name,SwigType *decl) {
   if (!name) return 0;
   /* Check to see if the name is in the hash */
   if (!rename_hash) return origname;
-  rn = Swig_name_object_get(rename_hash, Classprefix, name, decl);
-  if (!rn) return origname;
+  if (!destructor) {
+    rn = Swig_name_object_get(rename_hash, Classprefix, name, decl);
+  } else {
+    rn = Swig_name_object_get(rename_hash, Classprefix, Char(name)+1,decl);
+  }
+  if (!rn) return name;
   if (destructor) {
     String *s = NewStringf("~%s", rn);
     return s;
@@ -1206,6 +1210,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		   Setmeta(val,"parms",$5.parms);
 		 }
 		 t = $5.type;
+		 if ($5.parms) Setmeta(val,"parms",$5.parms);
 		 if (!Len(t)) t = 0;
 		 if (t) {
 		   if ($6) SwigType_push(t,$6);
@@ -1248,6 +1253,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		   Setmeta(val,"parms",$7.parms);
 		 }
 		 t = $7.type;
+		 if ($7.parms) Setmeta(val,"parms",$7.parms);
 		 if (!Len(t)) t = 0;
 		 if (t) {
 		   if ($8) SwigType_push(t,$8);
