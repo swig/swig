@@ -1,5 +1,13 @@
 Version 1.3.18 (In progress)
 ============================
+02/21/2003: songyanf (Tiger)
+            Added CSharp (C#) module prototype
+            i.e. csharp.cxx & csharp.h at Source/Modules/.
+            They are for test usage only now and need improvement.
+            The interface also need to be modified.
+
+            *** NEW FEATURE ***
+        
 02/20/2003: songyanf (Tiger)
             Fixed problem with typedef with -fvirtual.
             Similar as beazley's modification today.
