@@ -30,6 +30,8 @@ typedef struct ColorMap {
     ~ColorMap();
 #ifdef SWIGJAVA
     %name(make_default) void        default();
+#elif  SWIGPHP4
+    %name(make_default) void        default();
 #else
     void        default();
 #endif
