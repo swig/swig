@@ -22,15 +22,15 @@
     {
     }
     
-    int _a;
+    int m_a;
     
-    A(int a) :_a(a)
+    A(int a) :m_a(a)
     {
     }
     
     int get_a()
     {
-      return _a;
+      return m_a;
     }
     
   };
