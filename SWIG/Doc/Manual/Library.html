@@ -1,316 +1,199 @@
 <html>
 <head>
-<title>Multiple Files and the SWIG Library</title>
+<title>SWIG Library</title>
 </head>
 
 <body bgcolor="#ffffff">
-<h1>4 Multiple files and the SWIG library</h1>
+<h1>SWIG library</h1>
 
-For increased modularity and convenience, it is often useful to
-break an interface specification up into multiple files or
-modules. This chapter describes SWIG's support for library files.
+To help build extension modules, SWIG is packaged with a library of
+support files that you can include in your own interfaces.  These
+support files often define new SWIG directives or provide utility
+functions that can be used to access parts of the standard C and C++ libraries.
+This chapter provides a reference to the current set of supported library files.
 
-<h2>The %include directive</h2>
+<h2>The %include directive and library search path</h2>
 
-The <tt>%include</tt> directive inserts code from another file into
-the current interface file. It is primarily used to build a package
-from a collection of smaller modules. For example :<p>
-
-<p>
-<blockquote><pre>// File : interface.i
-%module package
-%include "equations.i"
-%include "graphics.i"
-%include "fileio.i"
-%include "data.i"
-%include "network.c"
-%include "../Include/user.h"
-</pre></blockquote>
-
-<p>
-In this case, SWIG creates a single wrapper file for a module <tt>package</tt>
-that contains all of the included declarations.    Repeated <tt>%module</tt> directives
-in other files are simply ignored.
-
-<p>
-The <tt>%include</tt> directive can process SWIG interface files, C
-header files, and C source files (provided they are sufficiently
-clean). When processing a C source file, SWIG automatically
-declares all functions it finds as "extern". Thus, use of a header file
-may not be required in this case.   Running SWIG on C++ source files
-is not recommended due to parser limitations<p>
-
-<h2>The %import directive</h2>
-
-The <tt>%import</tt> directive is used to gather declarations from
-modules that are wrapped in a separate module or from files that you
-don't want to wrap into the current interface.  The primary purpose is
-to collect type information and information about base classes.
-
-<p>
-For example, if you wanted to extract some common typedef declarations from a header
-file, you might write this: 
-
-<blockquote>
-<pre>
-%module foo
-%import "types.h"
-...
-</pre>
-</blockquote>
-
-Similarly, if you are working with multiple SWIG modules, you might write the
-following to pick up C++ base classes.  For example:
-
-<blockquote>
-<pre>
-%module foo
-// Grab the base class
-%import "base.i"
-
-// Define a derived class
-class Foo : public Base {
-...
-};
-</pre>
-</blockquote>
-
-If a file included with <tt>%import</tt> contains a <tt>%module</tt> directive,
-it is sometimes used by the target language module to coordinate the operation
-of more than one SWIG dynamically loaded module.   This is an advanced topic that
-is described in the chapter on the SWIG runtime libraries.
-
-<h2> Including files on the command line</h2>
-
-Like the C or C++ compiler, SWIG can also include library files
-on the command line using the <tt>-l</tt> option as shown<p>
-<p>
-<blockquote><pre>
-# Include a library file at compile time
-% swig -tcl -lwish.i interface.i
-
-</pre></blockquote>
-
-This is particularly useful for debugging and
-building extensions to different kinds of languages. When libraries
-are specified in this manner, they are included after all of the
-declarations in <tt>interface.i</tt> have been wrapped. Thus, this
-does not work if you are trying to include common declarations,
-typemaps, and other files.<p>
-
-<h2>The SWIG library </h2>
-
-SWIG comes with a library of functions that can be used to build up
-more complex interfaces. As you build up a collection of modules, you
-may also find yourself with a large number of interface files. Although
-the <tt>%include</tt> directive can be used to insert files, it also
-searches the files installed in the SWIG library (think of this as the
-SWIG equivalent of the C library). When you use <tt>%include</tt> or <tt>%import</tt>,
-SWIG searches for files in the following order:
+Library files are included using the <tt>%include</tt> directive.
+When searching for files, directories are searched in the following order:
 
 <p>
 <ul>
 <li>The current directory
-<li>Directories specified with the -I option
+<li>Directories specified with the -I command line option
 <li>.<tt>/swig_lib</tt>
 <li><tt>/usr/local/lib/swig_lib</tt> (or wherever you installed SWIG)
 </ul>
 <p>
 
-Within each directory, you can also create subdirectories for each
-target language. If found, SWIG will search these directories first,
-allowing the creation of language-specific implementations of a
-particular library file.<p>
+Within each directory, SWIG first looks for a subdirectory corresponding to a target language (e.g., <tt>python</tt>,
+<tt>tcl</tt>, etc.).   If found, SWIG will search the language specific directory first.  This allows 
+for language-specific implementations of library files.
 <p>
 You can override the location of the SWIG library by setting the
 <tt>SWIG_LIB</tt> environment variable.<p>
 
-<h2> Library example</h2>
+<h2>Arrays and Pointers</h2>
 
-The SWIG library is really a repository of useful modules that can
-be used to build better interfaces. To use a library file, 
-simply use the <tt>%include </tt>directive with the name of a library
-file. For example :<p>
+This section describes library modules for manipulating simple C arrays and pointers. 
+<h3>cpointer.i</h3>
 
-<p>
-<blockquote><pre>%module example
-
-%include pointer.i 				// Grab the SWIG pointer library
-
-// a+b --&gt; c
-extern double add(double a, double b, double *c);
-
-</pre></blockquote>
-
-In this example, we are including the SWIG pointer library that adds
-functions for manipulating C pointers. These added functions become
-part of your module that can be used as needed. For example, we can
-write a Tcl script like this that involves both the <tt>add()</tt>
-function and two functions from the <tt>pointer.i</tt> library :<p>
+The <tt>cpointer.i</tt> module defines macros that can be used to used
+to generate wrappers around simple C pointers.  The primary use of
+this module is in generating pointers to primitive datatypes such as
+<tt>int</tt> and <tt>double</tt>.
 
 <p>
-<blockquote><pre>set c [ptrcreate double 0]    ;# Create a double * for holding the result
-add 4 3.5 $c                  ;# Call our C function
-puts [ptrvalue $c]            ;# Print out the result
-</pre></blockquote>
-
-<h2>Creating Library Files</h2>
-
-It is easy to create your own library files. To illustrate the
-process, we consider two different library files--one to build a new
-<tt>tclsh</tt> program, and one to add a few memory management
-functions.<p>
-
-<h3>tclsh.i</h3>
-
-To build a new <tt>tclsh</tt> application, you need to supply a
-<tt>Tcl_AppInit()</tt> function.  This can be done using the following
-SWIG interface file (simplified somewhat for clarity) :<p>
-
-<blockquote><pre>
-// File : tclsh.i
-%{
-#if TCL_MAJOR_VERSION == 7 &amp;&amp; TCL_MINOR_VERSION &gt;= 4
-int main(int argc, char **argv) {
-  Tcl_Main(argc, argv, Tcl_AppInit);
-  return(0);
-}
-#else
-extern int main();
-#endif
-int Tcl_AppInit(Tcl_Interp *interp){
-  int SWIG_init(Tcl_Interp *); 
-
-  if (Tcl_Init(interp) == TCL_ERROR) 
-    return TCL_ERROR;
-
-  /* Now initialize our functions */
-
-  if (SWIG_init(interp) == TCL_ERROR)
-    return TCL_ERROR;
-
-  return TCL_OK;
-}
-%}
-</pre></blockquote>
-
-In this case, the entire file consists of a single code block. This
-code will be inserted directly into the resulting wrapper file,
-providing us with the needed <tt>Tcl_AppInit()</tt> function.<p>
-
-<h3>malloc.i</h3>
-
-Now suppose we wanted to write a file <tt>malloc.i</tt> that added a
-few memory management functions.  We could do the following :<p>
-<p>
-<blockquote><pre>// File : malloc.i
-%{
-#include &lt;malloc.h&gt;
-%}
-
-%typedef unsigned int size_t
-void *malloc(size_t nbytes);
-void *realloc(void *ptr, size_t nbytes);
-void free(void *);
-</pre></blockquote>
-<p>
-
-In this case, we have a general purpose library that could be used
-whenever we needed access to the <tt>malloc()</tt> functions. Since
-this interface file is language independent, we can use it
-anywhere.<p>
-
-<h3> Placing the files in the library</h3>
-
-Although both of our examples are SWIG interface files, they are quite
-different in functionality since <tt>tclsh.i</tt> would only work with
-Tcl while <tt>malloc.i</tt> would work with any of the target
-languages.  Thus, you should put these files into the SWIG library as
-follows :<p>
-
-<blockquote><pre><tt>
-./swig_lib/malloc.i
-./swig_lib/tcl/tclsh.i
-</tt></pre></blockquote>
-<p>
-
-When used in other interface files, this allows us to use
-<tt>malloc.i</tt> with any target language while <tt>tclsh.i</tt> will
-only be accessible if creating for wrappers for Tcl (ie.  when
-creating a Perl5 module, SWIG will not look in the <tt>tcl</tt>
-subdirectory.<p>
-<p>
-It should be noted that language specific libraries can mask general
-libraries.  For example, if you wanted to make a Perl specific
-modification to <tt>malloc.i</tt>, you could make a special version
-and call it <tt>./swig_lib/perl5/malloc.i</tt>. When using Perl, you'd
-get this version, while all other target languages would use the
-general purpose version.<p>
-
-<h2>Working with library files</h2>
-
-There are a variety of additional methods for working with files in
-the SWIG library described next.<p>
-
-<h3> Wrapping a library file</h3>
-
-If you would like to wrap a file in the SWIG library, simply give SWIG
-the name of the appropriate library file on the command line. For
-example :<p>
+<b><tt>%pointer_functions(type,name)</tt></b>
+<blockquote>
+Generates a collection of four functions for manipulating a pointer <tt>type *</tt>:
 
 <p>
-<blockquote><pre>unix &gt; swig -python pointer.i
-
-</pre></blockquote>
-
-If the file <tt>pointer.i</tt> is not in the current directory, SWIG
-will look it up in the library, generate wrapper code, and place the
-output in the current directory. This technique can be used to quickly
-make a module out of a library file regardless of where you are
-working.<p>
-
-<h3>Checking out library files</h3>
-
-At times, it is useful to check a file out of the library and copy it
-into the working directory. This allows you to modify the file or to
-simply retrieve useful files. To check a file out of the library, run
-SWIG as follows :<p>
-<p>
-<blockquote><pre>unix &gt; swig -co -python array.i
-array.i checked out from the SWIG library
-unix &gt;
-
-</pre></blockquote>
-
-The library file will be placed in the current directory unless a file
-with the same name already exists (in which case nothing is done). <p>
-<p>
-The SWIG library is not restricted to interface files. Suppose you had
-a Perl script that you liked to use a lot. You could place this in
-the SWIG library. Now whenever you wanted to use it, you could
-retrieve it by issuing :<p>
-<p>
-<blockquote><pre>unix &gt; swig -perl5 -co myscript.pl
-myscript.pl checked out from the SWIG library
-</pre></blockquote>
+<tt>type *new_name(type value = 0)</tt>
+<blockquote>
+Creates a new object of type <tt>type</tt>.   <tt>value</tt> is an optional default value.
+</blockquote>
 
 <p>
-Similarly, the library also contains Makefiles to build various extensions.
-For example, if you need a quick Makefile for building Tcl extension, type
-the following:
+<tt>type *delete_name(type *obj)</tt>
+<blockquote>
+Deletes an object type <tt>type</tt>.
+</blockquote>
 
-<blockquote><pre>
-unix&gt; swig -tcl -co Makefile
-Makefile checked out from the SWIG library
+<p>
+<tt>void name_assign(type *obj, type value)</tt>
+<blockquote>
+Assigns <tt>*obj = value</tt>.
+</blockquote>
 
-</pre></blockquote>
+<p>
+<tt>type name_value(type *obj)</tt>
+<blockquote>
+Returns the value of <tt>*obj</tt>.
+</blockquote>
+When using this macro, <tt>type</tt> may be any type and <tt>name</tt> must be a legal identifier in the target
+language.  <tt>name</tt> should not correspond to any other name used in the interface file.
+</blockquote>
 
-During installation, SWIG creates a collection of preconfigured
-Makefiles for various scripting languages. If you need to make a new
-module, just check out one of these Makefiles, make a few changes, and
-you should be ready to compile and extension for your system.<p>
+Here is a simple example of using <tt>%pointer_functions()</tt>:
 
+<blockquote>
+<pre>
+%module example
+%include "cpointer.i"
+
+/* Create some functions for working with "int *" */
+%pointer_functions(int, intp);
+
+/* A function that uses an "int *" */
+void add(int x, int y, int *result);
+</pre>
+</blockquote>
+
+Now, in Python:
+
+<blockquote>
+<pre>
+>>> import example
+>>> c = example.new_intp()     # Create an "int" for storing result
+>>> example.add(3,4,c)         # Call function   
+>>> example.intp_value(c)      # Dereference
+7
+>>> example.delete_intp(c)     # Delete
+</pre>
+</blockquote>
+
+<p>
+<p>
+<b><tt>%pointer_class(type,name)</tt></b>
+<blockquote>
+Encapsulates a pointer of <tt>type *</tt> inside a class-based interface.  This
+interface is as follows:
+
+<blockquote>
+<pre>
+struct name {
+   name(type value = 0);         // Create pointer object
+  ~name();                       // Delete pointer object
+   void assign(type value);      // Assign value
+   type value();                 // Get value
+   type *cast();                 // Cast the pointer to original type.
+};
+</pre>
+</blockquote>
+
+When using this macro, <tt>type</tt> is restricted to a simple type
+name like <tt>int</tt>, <tt>float</tt>, or <tt>Foo</tt>.  Pointers and
+other complicated types are not allowed.  <tt>name</tt> must be a
+valid identifier not already in use.  When a pointer is wrapped as a class,
+the "class"  may be transparently passed to any functions that expects the pointer.
+
+<p>
+If the target language does not support proxy classes, the use of this macro will produce the example
+same functions as <tt>%pointer_functions()</tt> macro.
+
+<p>
+It should be noted that the class interface does introduce a new object or wrap a pointer inside a special
+structure.  Instead, the raw pointer is used directly.
+
+</blockquote>
+
+Here is the same example using a class instead:
+
+<blockquote>
+<pre>
+%module example
+%include "cpointer.i"
+
+/* Wrap a class interface around an "int *" */
+%pointer_class(int, intp);
+
+/* A function that uses an "int *" */
+void add(int x, int y, int *result);
+</pre>
+</blockquote>
+
+Now, in Python (using proxy classes)
+
+<blockquote>
+<pre>
+>>> import example
+>>> c = example.intp()         # Create an "int" for storing result
+>>> example.add(3,4,c)         # Call function   
+>>> c.value()                  # Dereference
+7
+</pre>
+</blockquote>
+
+Of the two macros, <tt>%pointer_class</tt> is probably the most convenient when working with simple
+pointers.  This is because the pointers are access like objects and they can be easily garbage collected
+(destruction of the pointer object destroys the underlying object).
+
+<p>
+<p>
+<b><tt>%pointer_cast(type1, type2, name)</tt></b>
+<blockquote>
+Creates a casting function that converts <tt>type1</tt> to <tt>type2</tt>.  The name of the function is <tt>name</tt>.
+For example:
+
+<blockquote>
+<pre>
+%pointer_cast(int *, unsigned int *, int_to_uint);
+</pre>
+</blockquote>
+
+In this example,  the function <tt>int_to_uint()</tt> would be used to cast types in the target language.
+
+</blockquote>
+
+<p>
+<b>Note:</b> None of these macros can be used to safely work with strings (<tt>char *</tt> or <tt>char **</tt>).
+
+<P>
+<b>Note:</b> When working with simple pointers, typemaps can often be used to provide more seamless operation.
 <p><hr>
-<address>SWIG 1.3 - Last Modified : August 18, 2001</address>
+<address>SWIG 1.3 - Last Modified : May 22, 2002</address>
 </body>
 </html>
+
+
