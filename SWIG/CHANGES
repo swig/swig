@@ -3,6 +3,12 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 5 
 ===================
 
+9/19/00 : mkoeppe
+	  [Guile] Removed "-with-smobs" command-line option, as this is the
+	  default now.  Added "-emit-setters" command-line option,
+	  which turns on generating procedures-with-setters; see
+	  internals.html.
+
 9/18/00 : mkoeppe
 	  Incorporated patch #101430, fixing bugs in the Guile module: 
 	  1. Some arguments were erroneously taken as *optional* arguments when

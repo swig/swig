@@ -36,6 +36,8 @@ private:
     GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
   } linkage;
   File  *procdoc;
+  int	 emit_setters;
+  int    struct_member;
   void   emit_linkage(char *module_name);
 
 public :
@@ -51,6 +53,7 @@ public :
   void set_module(char *);
   void set_init (char *);
   void create_command (char *, char *) { };
+  void cpp_variable(char *name, char *iname, SwigType *t);
 };
 
 /* guile.h ends here */

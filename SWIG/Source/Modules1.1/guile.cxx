@@ -59,6 +59,8 @@ GUILE::GUILE ()
   package = NULL;
   linkage = GUILE_LSTYLE_SIMPLE;
   procdoc = NULL;
+  emit_setters = 0;
+  struct_member = 0;
 }
 
 // ---------------------------------------------------------------------
@@ -80,12 +82,6 @@ GUILE::parse_args (int argc, char *argv[])
       if (strcmp (argv[i], "-help") == 0) {
 	fputs (guile_usage, stderr);
 	SWIG_exit (EXIT_SUCCESS);
-      }
-      // Silent recognition (no side effects) of "-with-smobs" is here
-      // as a convenience to users.  This will be removed after 1.3a4
-      // release.  --ttn, 2000/07/20 13:01:07.
-      else if (strcmp (argv[i], "-with-smobs") == 0) {
-	Swig_mark_arg (i);
       }
       else if (strcmp (argv[i], "-prefix") == 0) {
 	if (argv[i + 1]) {
@@ -146,6 +142,10 @@ GUILE::parse_args (int argc, char *argv[])
 	} else {
 	  Swig_arg_error();
         }
+      }
+      else if (strcmp (argv[i], "-emit-setters") == 0) {
+	emit_setters = 1;
+	Swig_mark_arg (i);
       }
     }
   }
@@ -665,13 +665,44 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     Printv(f_wrappers, ");\n", 0);
     Printv(f_wrappers, "}\n", 0);
     /* Register it */
-    Printf (f_init, "\t gh_new_procedure(\"%s\", %s_rest, 0, 0, 1);\n",
+    Printf (f_init, "gh_new_procedure(\"%s\", %s_rest, 0, 0, 1);\n",
              proc_name, wname, numargs-numopt, numopt);
   }
+  else if (emit_setters && struct_member && strlen(Char(proc_name))>3) {
+    int len = Len(proc_name);
+    const char *pc = Char(proc_name);
+    /* MEMBER-set and MEMBER-get functions. */
+    int is_setter = (pc[len - 3] == 's');
+    if (is_setter) {
+      Printf(f_init, "SCM setter = ");
+      struct_member = 2; /* have a setter */
+    }
+    else Printf(f_init, "SCM getter = ");
+    Printf (f_init, "gh_new_procedure(\"%s\", %s, %d, %d, 0);\n",
+	    proc_name, wname, numargs-numopt, numopt);
+    if (!is_setter) {
+      /* Strip off "-get" */
+      char *pws_name = (char*) malloc(sizeof(char) * (len - 3));
+      strncpy(pws_name, pc, len - 3);
+      pws_name[len - 4] = 0;
+      if (struct_member==2) { 
+	/* There was a setter, so create a procedure with setter */
+	Printf (f_init, "gh_define(\"%s\", "
+		"scm_make_procedure_with_setter(getter, setter));\n",
+		pws_name);
+      }
+      else {
+	/* There was no setter, so make an alias to the getter */
+	Printf (f_init, "gh_define(\"%s\", getter);\n",
+		pws_name);
+      }
+      free(pws_name);
+    }
+  }
   else {
-    // Now register the function
-    Printf (f_init, "\t gh_new_procedure(\"%s\", %s, %d, %d, 0);\n",
-             proc_name, wname, numargs-numopt, numopt);
+    /* Register the function */
+    Printf (f_init, "gh_new_procedure(\"%s\", %s, %d, %d, 0);\n",
+	    proc_name, wname, numargs-numopt, numopt);
   }
   if (procdoc) {
     /* Write out procedure documentation */
@@ -797,8 +828,21 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 
     // Now add symbol to the Guile interpreter
 
-    Printf (f_init, "\t gh_new_procedure(\"%s\", %s, 0, 1, 0);\n",
-             proc_name, var_name);
+    if (!emit_setters
+	|| Status & STAT_READONLY) {
+      /* Read-only variables become a simple procedure returning the
+	 value. */
+      Printf (f_init, "\t gh_new_procedure(\"%s\", %s, 0, 1, 0);\n",
+	      proc_name, var_name);
+    }
+    else {
+      /* Read/write variables become a procedure with setter. */
+      Printf (f_init, "\t{ SCM p = gh_new_procedure(\"%s\", %s, 0, 1, 0);\n",
+	      proc_name, var_name);
+      Printf (f_init, "\t  gh_define(\"%s\", "
+	      "scm_make_procedure_with_setter(p, p)); }\n",
+	      proc_name);
+    }
 
     if (procdoc) {
       /* Compute documentation */
@@ -904,3 +948,17 @@ GUILE::declare_const (char *name, char *, SwigType *type, char *value)
   DelWrapper(f);
 }
 
+void GUILE::cpp_variable(char *name, char *iname, SwigType *t)
+{
+  if (emit_setters) {
+    struct_member = 1;
+    Printf(f_init, "{\n");
+    Language::cpp_variable(name, iname, t);
+    Printf(f_init, "}\n");
+    struct_member = 0;
+  }
+  else {
+    /* Only emit traditional VAR-get and VAR-set procedures */
+    Language::cpp_variable(name, iname, t);
+  }
+}

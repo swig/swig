@@ -58,6 +58,8 @@ beazley@cs.uchicago.edu </br>
 <li><a name="i10.4" href="#10.4">10.4 Typemaps</a>
 <li><a name="i10.5" href="#10.5">10.5 Smobs</a>
 <li><a name="i10.6" href="#10.6">10.6 Exception Handling</a>
+<li><a name="i10.7" href="#10.7">10.7 Procedure documentation</a>
+<li><a name="i10.8" href="#10.8">10.8 Procedures with setters</a>
 </ul>
 <li><a name="i11" href="#11">11. Python Support</a>
 <li><a name="i12" href="#12">12. Perl Support</a>
@@ -1030,11 +1032,7 @@ information is read from <code>Lib/guile/typemaps.i</code>.
 </a>
 
 <p>
-For pointer types, SWIG uses Guile smobs.  This feature used to be
-available only SWIG was invoked with the command-line option
-"-with-smobs", but as of 2000/07/06 (swig-1.3a4) this is the default
-behavior; the command-line option "-with-smobs" is ignored silently.
-We plan to drop silent recognition of this option after 1.3a4.
+For pointer types, SWIG uses Guile smobs.
 
 <p>
 Currently, one wrapper module must be generated without
@@ -1102,7 +1100,7 @@ The default when not specified here is to use "swig-error".
 See Lib/exception.i for details.
 
 <a name="10.7" href="#i10.7">
-<h3>10.7 Guile procedure documentation</h3>
+<h3>10.7 Procedure documentation</h3>
 </a>
 
 <p>If invoked with the command-line option <code>-procdoc
@@ -1125,7 +1123,27 @@ typemaps <code>indoc</code>, <code>outdoc</code>,
 <code>varoutdoc</code>. See <code>Lib/guile/typemaps.i</code> for
 details.
 
+<a name="10.8" href="#i10.8">
+<h3>10.8 Procedures with setters</h3>
+</a>
 
+<p>For global variables, SWIG creates a single wrapper procedure
+<code>(<var>variable</var> :optional value)</code>, which is used for
+both getting and setting the value. For struct members, SWIG creates
+two wrapper procedures <code>(<var>struct</var>-<var>member</var>-get
+pointer)</code> and <code>(<var>struct-member</var>-set pointer value)</code>.
+
+<p>If invoked with the command-line option <code>-emit-setters</code>,
+SWIG will additionally create procedures with setters. For global
+variables, the procedure-with-setter <code><var>variable</var></code>
+is created, so you can use <code>(<var>variable</var>)</code> to get
+the value and <code>(set! (<var>variable</var>)
+<var>value</var>)</code> to set it. For struct members, the
+procedure-with-setter <code><var>struct</var>-<var>member</var></code>
+is created, so you can use <code>(<var>struct</var>-<var>member</var>
+<var>pointer</var>)</code> to get the value and <code>(set!
+(<var>struct</var>-<var>member</var> <var>pointer</var>)
+<var>value</var>)</code> to set it.
 
 <a name="11" href="#i11">
 <h2>11. Python Support</h2>
