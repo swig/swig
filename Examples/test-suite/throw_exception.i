@@ -1,5 +1,8 @@
 %module throw_exception
 
+%warnfilter(801) Namespace::enum1;
+%warnfilter(801) Namespace::enum2;
+
 // Tests SWIG's automatic exception mechanism
 
 %inline %{
