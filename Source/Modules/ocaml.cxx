@@ -1076,6 +1076,12 @@ public:
 	      strchr(ch,')') || strchr(ch,'>'));
     }
 
+    /* We accept all chars in identifiers because we use strings to index
+     * them. */
+    int validIdentifier( String *name ) {
+	return Len(name) > 0 ? 1 : 0; 
+    }
+
     /* classHandler
      * 
      * Create a "class" definition for ocaml.  I thought quite a bit about
@@ -1358,19 +1364,38 @@ public:
      * which means looking up and registering by typedef and enum name. */
     int enumDeclaration(Node *n) {
 	String *name = Getattr(n,"name");
-	String *fully_qualified_name = fully_qualify_enum_name(n,name);
+	String *oname = name ? NewString(name) : NULL;
+	/* name is now fully qualified */
+	String *fully_qualified_name = NewString(name);
 	bool seen_enum = false;
 	if( name_qualifier ) 
 	    Delete(name_qualifier);
+	char *strip_position;
 	name_qualifier = fully_qualify_enum_name(n,NewString(""));
 	
-	seen_enum = name ? 
+	/* Recent changes have distrubed enum and template naming again.
+	 * Will try to keep it consistent by can't guarantee much given
+	 * that these things move around a lot.
+	 *
+	 * I need to figure out a way to isolate this module better.
+	 */
+	if( oname ) {
+	    strip_position = strstr(Char(oname),"::");
+	    
+	    while( strip_position ) {
+		strip_position += 2;
+		oname = NewString( strip_position );
+		strip_position = strstr( Char(oname), "::" );
+	    }
+	}
+
+	seen_enum = oname ? 
 	    (Getattr(seen_enums,fully_qualified_name) ? true : false) : false;
 
-	if( name && !seen_enum ) {
+	if( oname && !seen_enum ) {
 	    const_enum = true;
-	    Printf( f_enum_to_int, "| `%s -> (match (y : c_enum_tag) with\n", name );
-	    Printf( f_int_to_enum, "| `%s -> C_enum (\n", name );
+	    Printf( f_enum_to_int, "| `%s -> (match (y : c_enum_tag) with\n", oname );
+	    Printf( f_int_to_enum, "| `%s -> C_enum (\n", oname );
 	    /* * * * A note about enum name resolution * * * *
 	     * This code should now work, but I think we can do a bit better.
 	     * The problem I'm having is that swig isn't very precise about
@@ -1382,15 +1407,17 @@ public:
 	     * * * */
 	    Printf( f_mlbody, 
 		    "let _ = Callback.register \"%s_marker\" (`%s)\n",
-		    fully_qualified_name, name );
+		    fully_qualified_name, oname );
 	    if( !strncmp(Char(fully_qualified_name),"enum ",5) ) {
 		String *fq_noenum = NewString(Char(fully_qualified_name) + 5);
 		Printf( f_mlbody,
+			"let _ = Callback.register \"%s_marker\" (`%s)\n"
 			"let _ = Callback.register \"%s_marker\" (`%s)\n",
+			fq_noenum, oname,
 			fq_noenum, name );
 	    }
 
-	    Printf( f_enumtypes_type,"| `%s\n", name );
+	    Printf( f_enumtypes_type,"| `%s\n", oname );
 	    Insert(fully_qualified_name,0,"enum ");
 	    Setattr(seen_enums,fully_qualified_name,n);
 	}
@@ -1398,7 +1425,7 @@ public:
 	int ret = Language::enumDeclaration(n);
 	
 	if( const_enum ) {
-	    Printf( f_int_to_enum, "`int y)\n", name );
+	    Printf( f_int_to_enum, "`int y)\n" );
 	    Printf( f_enum_to_int, 
 		    "| `int (x : int) -> C_int x\n"
 		    "| _ -> raise (Failure \"Unknown enum tag\"))\n" );

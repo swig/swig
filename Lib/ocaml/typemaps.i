@@ -216,10 +216,12 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     /* %typemap(how) char * ... */
     $1 = ($ltype)caml_string_val($input);
 }
+/* Again work around the empty array bound bug */
 %typemap(how) char [ANY], signed char [ANY], unsigned char [ANY] {
     /* %typemap(how) char [ANY] ... */
     char *temp = caml_string_val($input);
-    strncpy((char *)$1,temp,$1_dim0);
+    strcpy((char *)$1,temp); 
+    /* strncpy would be better but we might not have an array size */
 }
 %enddef
 
@@ -233,10 +235,11 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     const char *, const signed char *, const unsigned char * {
     $result = caml_val_string((char *)$1);
 }
+/* I'd like to use the length here but can't because it might be empty */
 %typemap(how)
     char [ANY], signed char [ANY], unsigned char [ANY],
     const char [ANY], const signed char [ANY], const unsigned char [ANY] {
-    $result = caml_val_string_len((char *)$1,(int)$1_size);
+    $result = caml_val_string((char *)$1);
 }
 %enddef
 
