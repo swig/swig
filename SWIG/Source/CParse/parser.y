@@ -4135,19 +4135,23 @@ expr           :  exprnum { $$ = $1; }
 
                | LPAREN expr RPAREN expr %prec CAST {
                  $$ = $4;
-		 $$.val = NewStringf("(%s) %s", $2.val, $4.val);
+		 $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $4.val);
  	       }
                | LPAREN expr pointer RPAREN expr %prec CAST {
                  $$ = $5;
-		 $$.val = NewStringf("(%s %s) %s", $2.val, SwigType_str($3,0), $5.val);
+		 SwigType_push($2.val,$3);
+		 $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
  	       }
                | LPAREN expr AND RPAREN expr %prec CAST {
                  $$ = $5;
-		 $$.val = NewStringf("(%s &) %s", $2.val, $5.val);
+		 SwigType_add_reference($2.val);
+		 $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
  	       }
                | LPAREN expr pointer AND RPAREN expr %prec CAST {
                  $$ = $6;
-		 $$.val = NewStringf("(%s %s&) %s", $2.val, SwigType_str($3,0), $6.val);
+		 SwigType_push($2.val,$3);
+		 SwigType_add_reference($2.val);
+		 $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $6.val);
  	       }
                ;
 

@@ -52,6 +52,7 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
   String *decl;
 
   decl = NewString("");
+
   switch(SwigType_type(t)) {
   case T_REFERENCE:
     if (value) {
@@ -67,10 +68,11 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
     break;
 
   default:
-    if (value)
-      Printf(decl,"%s = %s", SwigType_lstr(t,name), value);
-    else
+    if (value) {
+      Printf(decl,"%s = (%s) %s", SwigType_lstr(t,name), SwigType_lstr(t,0), SwigType_lcaststr(t,value));
+    } else {
       Printf(decl,"%s", SwigType_lstr(t,name));
+    }
   }
   return decl;
 }
