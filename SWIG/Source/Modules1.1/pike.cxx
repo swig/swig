@@ -162,7 +162,7 @@ public:
    * ------------------------------------------------------------ */
   
   int is_member_function(Node *n) const {
-    return CPlusPlus && !is_constructor(n);
+    return CPlusPlus && getCurrentClass() && !is_constructor(n);
   }
 
   /* ------------------------------------------------------------
@@ -172,9 +172,11 @@ public:
   void add_method(Node *n, String *name, String *function, String *description) {
     if (is_member_function(n)) {
       name = strip(name);
+    } else if (is_constructor(n)) {
+      name = NewString("create");
     }
     Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", name, function, description);
-    if (is_member_function(n)) {
+    if (is_member_function(n) || is_constructor(n)) {
       Delete(name);
     }
   }
@@ -322,25 +324,30 @@ public:
     Printf(f->code, "pop_n_elems(args);\n");
 
     /* Return the function value */
-    Wrapper_add_local(f, "resultobj", "struct object *resultobj");
-    Printv(description, ", ", NULL);
-    if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
-      Replaceall(tm,"$source", "result");
-      Replaceall(tm,"$target", "resultobj");
-      Replaceall(tm,"$result", "resultobj");
-      if (Getattr(n,"feature:new")) {
-	Replaceall(tm,"$owner","1");
+    if (!is_constructor(n)) {
+      Wrapper_add_local(f, "resultobj", "struct object *resultobj");
+      Printv(description, ", ", NULL);
+      if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+	Replaceall(tm,"$source", "result");
+	Replaceall(tm,"$target", "resultobj");
+	Replaceall(tm,"$result", "resultobj");
+	if (Getattr(n,"feature:new")) {
+	  Replaceall(tm,"$owner","1");
+	} else {
+	  Replaceall(tm,"$owner","0");
+	}
+	String *pikedesc = Getattr(n, "tmap:out:pikedesc");
+	if (pikedesc) {
+	  Printv(description, pikedesc, NULL);
+	}
+	Printf(f->code,"%s\n", tm);
       } else {
-	Replaceall(tm,"$owner","0");
+	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
+		     "Unable to use return type %s in function %s.\n", SwigType_str(d,0), name);
       }
-      String *pikedesc = Getattr(n, "tmap:out:pikedesc");
-      if (pikedesc) {
-	Printv(description, pikedesc, NULL);
-      }
-      Printf(f->code,"%s\n", tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
-		   "Unable to use return type %s in function %s.\n", SwigType_str(d,0), name);
+      Printv(f->code, "THIS = (void *) result;\n", NULL);
+      Printv(description, ", tVoid", NULL);
     }
 
     /* Output argument output code */
@@ -492,7 +499,27 @@ public:
     PrefixPlusUnderscore = NewStringf("%s_", getClassPrefix());
 
     Printv(f_init, "start_new_program();\n", "ADD_STORAGE(swig_object_wrapper);\n", NULL);
+
+    /* Handle inheritance */
+    List *baselist = Getattr(n,"bases");
+    if (baselist && Len(baselist) > 0) {
+      Node *base = Firstitem(baselist);
+      char *basename = Char(Getattr(base,"name"));
+      if (SwigType_istemplate(basename)) {
+        basename = Char(SwigType_namestr(basename));
+      }
+      SwigType *basetype = NewString(basename);
+      SwigType_add_pointer(basetype);
+      SwigType_remember(basetype);
+      String *basemangle = SwigType_manglestr(basetype);
+      Printf(f_init, "low_inherit((struct program *) SWIGTYPE%s->clientdata, 0, 0, 0, 0, 0);\n", basemangle);
+      base = Nextitem(baselist);
+      Delete(basemangle);
+      Delete(basetype);
+    }
+        
     Language::classHandler(n);
+    
     Printf(f_init, "add_program_constant(\"%s\", pr = end_program(), 0);\n", symname);
     
     SwigType *tt = NewString(symname);
