@@ -14,10 +14,68 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
-9/29/2001: beazley
+8/30/2001: beazley
+           Added support for data-member to member-function 
+           transformation.  For example, suppose you had a
+           structure like this:
+
+                struct Vector {
+                    double x,y;
+                };
+
+           Now suppose that you wanted to access x and y 
+           through a member function interface instead 
+           of the usual SWIG behavior. For example:
+
+              f.set_x(3.4)      # instead of f.x = 3.4
+              x = f.get_x()     # instead of x = f.x
+
+           To do this, simply use the new %attributefunc
+           directive.  For example:
+
+              %attributefunc(get_%s,set_%s)
+              struct Vector {
+                 double x,y;
+              };
+              %noattributefunc
+
+           The arguments to %attributefunc are C-style printf
+           format strings that determine the naming convention
+           to use.  %s is replaced with the actual name of the
+           data member. SWIG provides a number of printf
+           extensions that might help.  For example, if you
+           wanted to title case all of the attributes, you
+           could do this:
+
+              %attributefunc(get%(title)s,set%(title)s);
+
+           This will turn an attribute 'bar' to 'getBar()' and 'setBar()'.
+
+           (someone requested this long ago, but I finally figured
+           how to implement it in a straightforward manner).
+           *** NEW FEATURE ***
+           
+8/30/2001: beazley
+           SWIG now automatically generates default constructors
+           and destructors if none are defined.  This used to be
+           enabled with a command line switch -make_default, but
+           most people want these functions anyways.  To turn
+           off this behavior use the -no_default option or include
+           the following pragma in the interface file:
+ 
+                 %pragma no_default;
+  
+           This may break certain interfaces that defined their
+           own constructors/destructors using the same naming
+           convention as SWIG.  If so, you will get duplicate
+           symbols when compiling the SWIG wrapper file.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+8/29/2001: beazley
            Changes to Perl5 shadow class code generation.  Iterators
            are no longer supported (FIRSTKEY, NEXTKEY).  Also, attribute
-           access has been changed to rely on inheritance.  
+           access has been changed to rely on inheritance in order
+           to provide better behavior across modules.  
 
 8/28/2001: beazley
            Various obscure improvements to the type system and classes.
