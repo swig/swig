@@ -443,9 +443,13 @@ static void add_symbols(Node *n) {
     } else {
       Node *c;
       if ((wrn) && (Len(wrn))) {
-	SWIG_WARN_NODE_BEGIN(n);
-	Swig_warning(0,Getfile(n),Getline(n), "%s\n", wrn);
-	SWIG_WARN_NODE_END(n);
+	String *metaname = symname;
+	if (!Getmeta(metaname,"already_warned")) {
+	  SWIG_WARN_NODE_BEGIN(n);
+	  Swig_warning(0,Getfile(n),Getline(n), "%s\n", wrn);
+	  SWIG_WARN_NODE_END(n);
+	  Setmeta(metaname,"already_warned","1");
+	}
       }
       c = Swig_symbol_add(symname,n);
 
