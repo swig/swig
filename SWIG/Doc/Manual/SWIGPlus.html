@@ -112,7 +112,6 @@ The following C++ features are not currently supported :<p>
 <li>Automatic function and method overloading (requires renaming)
 <li>Nested classes
 <li>Overloaded versions of certain operators (new, delete, etc.)
-<li>Template partial specialization.
 </ul>
 
 <p>
@@ -2176,7 +2175,38 @@ directives such as <tt>%typemap</tt>, <tt>%extend</tt>, and so forth can be atta
 to a specialization to provide customization for specific types.
 
 <p>
-Partial template specialization is not currently supported by SWIG.
+Partial template specialization is partially supported by SWIG.   For example, this
+code defines a template that is applied when the template argument is a pointer.
+
+<blockquote>
+<pre>
+template&lt;class T&gt; class List&lt;T*&gt; {
+private:
+    T *data;
+    int nitems;
+    int maxitems;
+public:
+    List(int max);
+    ~List();
+    void append(int obj);
+    int length();
+    T get(int n);
+};
+</pre>
+</blockquote>
+
+SWIG should be able to handle most simple uses of partial specialization.  However, it may fail
+to match templates properly in more complicated cases.  For example, if you have this code,
+
+<blockquote>
+<pre>
+template&lt;class T1, class T2&gt; class Foo&lt;T1, T2 *&gt; { };
+</pre>
+</blockquote>
+
+SWIG isn't able to match it properly for instantiations like <tt>Foo&lt;int *, int *&gt;</tt>.
+This problem is not due to parsing, but due to the fact that SWIG does not presently implement all
+of the C++ argument deduction rules.
 
 <p>
 Member function templates are supported.  The underlying principle is the same
