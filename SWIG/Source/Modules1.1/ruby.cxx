@@ -75,12 +75,12 @@ class RClass {
     Printv(prefix,(rn ? rn : cn), "_", NIL);
   }
 
-  char *strip(char *s) {
-    if (strncmp(s, Char(prefix), Len(prefix)) != 0)
-      return s;
+  char *strip(const String_or_char *s) {
     Clear(temp);
-    Append(temp,s);
-    Replaceall(temp,prefix,"");
+    Append(temp, s);
+    if (Strncmp(s, prefix, Len(prefix)) == 0) {
+      Replaceall(temp,prefix,"");
+    }
     return Char(temp);
   }
 };
@@ -377,7 +377,7 @@ public:
    *              iname = Name of function in scripting language
    * --------------------------------------------------------------------- */
 
-  void create_command(Node *n, char *iname) {
+  void create_command(Node *n, const String_or_char *iname) {
 
     String *wname = Swig_name_wrapper(iname);
     if (CPlusPlus) {
@@ -606,12 +606,11 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
-    char *iname = GetChar(n,"sym:name");
+    String *symname = Copy(Getattr(n,"sym:name"));
     SwigType *t = Getattr(n,"type");
     ParmList *l = Getattr(n,"parms");
     String *tm;
     
-    char mname[256], inamebuf[256];
     int need_result = 0;
     
     /* Ruby needs no destructor wrapper */
@@ -631,7 +630,7 @@ public:
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
     } else {
-      if (!addSymbol(iname, n))
+      if (!addSymbol(symname, n))
         return SWIG_ERROR;
     }
 
@@ -639,23 +638,14 @@ public:
     String *outarg = NewString("");
     Wrapper *f = NewWrapper();
 
-    switch (current) {
-    case MEMBER_FUNC:
-    case MEMBER_VAR:
-    case STATIC_FUNC:
-      strcpy(mname, klass->strip(iname));
-      break;
-    }
-  
     /* Rename predicate methods */
     if (Getattr(n, "feature:predicate")) {
-      sprintf(inamebuf,"%s?",iname);
-      iname = inamebuf;
+      Append(symname, "?");
     }
 
     /* Determine the name of the SWIG wrapper function */
     char wname[256];
-    strcpy(wname, Char(Swig_name_wrapper(iname)));
+    strcpy(wname, Char(Swig_name_wrapper(symname)));
     if (overname && current != CONSTRUCTOR_ALLOCATE) {
       strcat(wname, Char(overname));
     }
@@ -786,10 +776,10 @@ public:
 
     /* Now register the function with the interpreter */
     if (!Swig_symbol_isoverloaded(n)) {
-      create_command(n, iname);
+      create_command(n, symname);
     } else {
       if (current == CONSTRUCTOR_ALLOCATE) {
-        create_command(n, iname);
+        create_command(n, symname);
       } else {
 	Setattr(n, "wrap:name", wname);
 	if (!Getattr(n, "sym:nextSibling"))
@@ -800,6 +790,7 @@ public:
     Delete(cleanup);
     Delete(outarg);
     DelWrapper(f);
+    Delete(symname);
   
     return SWIG_OK;
   }
