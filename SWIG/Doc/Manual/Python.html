@@ -785,7 +785,7 @@ also telling the C compiler about it, the wrapper code won't compile.
 <p>
 Note:  declarations declared as <tt>const</tt> are wrapped as read-only variables and
 will be accessed using the <tt>cvar</tt> object described in the previous section.  They
-are not wrapped as constants.
+are not wrapped as constants.   For further discussion about this, see the <a href="SWIG.html">SWIG Basics</a> chapter.
 
 <p>
 Constants are not guaranteed to remain constant in Python---the name
@@ -1126,7 +1126,7 @@ Class data members are accessed in the same manner as C structures.
 Static class members present a special problem for Python.  Prior to Python-2.2, 
 Python classes had no support for static methods and no version of Python
 supports static member variables in a manner that SWIG can utilize.  Therefore, 
-generates wrappers that try to work around some of these issues.  To illustrate,
+SWIG generates wrappers that try to work around some of these issues.  To illustrate,
 suppose you have a class like this:
 
 <blockquote>
@@ -1185,7 +1185,7 @@ class Bar : public Foo {
 </blockquote>
 
 those classes are wrapped into a hierarchy of Python classes that reflect the same inheritance
-structure.   All of the usual Python utility will work normally:
+structure.   All of the usual Python utility functions work normally:
 
 <blockquote>
 <pre>
@@ -1351,7 +1351,7 @@ void spam(short);   // Ignored
 </blockquote>
 
 SWIG resolves overloaded functions and methods using a disambiguation scheme that ranks and sorts
-declarations according to some type-precedence rules.    The order in which declarations appear
+declarations according to a set of type-precedence rules.    The order in which declarations appear
 in the input does not matter except in situations where ambiguity arises--in this case, the
 first declaration takes precedence.
 
@@ -1465,6 +1465,23 @@ it works in Python as follows:
 </pre>
 </blockquote>
 
+If your program has more than one namespace, name conflicts (if any) can be resolved using <tt>%rename</tt>
+For example:
+
+<blockquote>
+<pre>
+%rename(Bar_spam) Bar::spam;
+
+namespace Foo {
+    int spam();
+}
+
+namespace Bar {
+    int spam();
+}
+</pre>
+</blockquote>
+
 If you have more than one namespace and your want to keep their
 symbols separate, consider wrapping them as separate SWIG modules.
 For example, make the module name the same as the namespace and create
@@ -1473,7 +1490,6 @@ utilizes thousands of small deeply nested namespaces each with
 identical symbol names, well, then you get what you deserve.
 
 <a name="n25"></a><H3>18.3.13 C++ templates</H3>
-
 
 C++ templates don't present a huge problem for SWIG.  However, in order
 to create wrappers, you have to tell SWIG to create wrappers for a particular
@@ -1515,8 +1531,8 @@ In Python:
 </pre>
 </blockquote>
 
-Obviously, there is more to template wrapping than what is shown in this example.
-More details can be found in the "SWIG and C++" section.   Some more complicated
+Obviously, there is more to template wrapping than shown in this example.
+More details can be found in the <a href="SWIGPlus.html">SWIG and C++</a> chapter.   Some more complicated
 examples will appear later.
 
 <h3>C++ Smart Pointers</h3>
@@ -1638,9 +1654,9 @@ int Foo_spam(Foo *f, int arg1) {
 </pre>
 </blockquote>
 
-These wrappers can be found in low-level extension module (e.g., <tt>_example</tt>).
+These wrappers can be found in the low-level extension module (e.g., <tt>_example</tt>).
 <p>
-Using these wrappers, SWIG then generates a high-level Python proxy class like this (shown 
+Using these wrappers, SWIG generates a high-level Python proxy class like this (shown 
 for Python 2.2):
 
 <blockquote>
@@ -2483,7 +2499,56 @@ package binary data, etc.
 
 <a name="n33"></a><H3>18.5.2 String handling</H3>
 
-<h3>Binary data</h3>
+If a C function has an argument of <tt>char *</tt>, then a Python string
+can be passed as input.  For example:
+
+<blockquote>
+<pre>
+// C
+void foo(char *s);
+
+# Python
+>>> foo("Hello")
+</pre>
+</blockquote>
+
+When a Python string is passed as a parameter, the C function receives a pointer to the raw
+data contained in the string.  Since Python strings are immutable, it is illegal
+for your program to change the value.  In fact, doing so will probably crash the Python
+interpreter.
+
+<p>
+If your program modifies the input parameter or uses it to return data, consider
+using the <tt>cstring.i</tt> library file described in the <a href="Library.html">SWIG Library</a> chapter.
+
+<p>
+When functions return a <tt>char *</tt>, it is assumed to be a NULL-terminated string. 
+Data is copied into a new Python string and returned.
+
+<p>
+If your program needs to work with binary data, you can use a typemap
+to expand a Python string into a pointer/length argument pair.   As luck would have it, 
+just such a typemap is already defined. Just do this:
+
+<blockquote>
+<pre>
+%apply (char *STRING, int LENGTH) { (char *data, int size) };
+...
+int parity(char *data, int size, int initial);
+</pre>
+</blockquote>
+
+Now in Python:
+
+<blockquote>
+<pre>
+>>> parity("e\x09ffss\x00\x00\x01\nx", 0)
+</pre>
+</blockquote>
+
+If you need to return binary data, you might use the
+<tt>cstring.i</tt> library file.  The <tt>cdata.i</tt> library can
+also be used to extra binary data from arbitrary pointers.
 
 <a name="n34"></a><H3>18.5.3 Arrays</H3>
 

@@ -1272,6 +1272,55 @@ details and the public API exposed to the interpreter vary.
 <p>
 <b>Note:</b> <tt>std_vector.i</tt> was written by Luigi "The Amazing" Ballabio.  
 
+
+<h2>Utility Libraries</h2>
+
+<h3>exception.i</h3>
+
+The <tt>exception.i</tt> library provides a language-independent function for raising a run-time
+exception in the target language.
+
+<p>
+<b><tt>SWIG_exception(int code, const char *message)</tt></b>
+<blockquote>
+Raises an exception in the target language.  <tt>code</tt> is one of the following symbolic
+constants:
+
+<blockquote>
+<pre>
+SWIG_MemoryError
+SWIG_IOError
+SWIG_RuntimeError
+SWIG_IndexError
+SWIG_TypeError
+SWIG_DivisionByZero
+SWIG_OverflowError
+SWIG_SyntaxError
+SWIG_ValueError
+SWIG_SystemError
+</pre>
+</blockquote>
+
+<tt>message</tt> is a string indicating more information about the problem.
+</blockquote>
+
+The primary use of this module is in writing language-independent exception handlers.
+For example:
+
+<blockquote>
+<pre>
+%include "exception.i"
+%exception std::vector::getitem {
+    try {
+        $action
+    } catch (std::out_of_range& e) {
+        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+    }
+}
+</pre>
+</blockquote>
+
+
 <p><hr>
 <address>SWIG 1.3 - Last Modified : May 29, 2002</address>
 </body>
