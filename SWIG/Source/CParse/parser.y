@@ -1489,9 +1489,15 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 if ($3) {
 		   Setattr($$,"name",$3);
 		   ty = NewStringf("enum %s", $3);
-		 } else {
+		 } else if ($7.id){
 		   unnamed = make_unnamed();
 		   ty = NewStringf("enum %s", unnamed);
+		   Setattr($$,"unnamed",unnamed);
+           // WF 20/12/2001: Cannot get sym:name and symtab set without setting name - fix!
+           // I don't think sym:name should be set.
+		   Setattr($$,"name",$7.id);
+		   Setattr($$,"tdname",$7.id);
+		   Setattr($$,"storage",$1);
 		 }
 		 appendChild($$,$5);
 		 n = new_node("cdecl");
