@@ -1,6 +1,13 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/22/2004: wsfulton
+            [Java] Patch #1049496 from Scott Michel fixes directors methods with 
+            enums when wrapped with typesafe or proper Java enums.
+
+10/21/2004: wsfulton
+            Fixes for default arguments in director constructors (Python, Ruby, Ocaml).
+
 10/21/2004: mmatus
 	    - [Python] Add the '-cpluscast' option to enable the 'new'
 	      C++ casting operators, such as 'static_cast', inside the
