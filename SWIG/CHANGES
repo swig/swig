@@ -18,6 +18,15 @@ Version 1.3.11 (January 31, 2002)
 =================================
 
 01/30/2002: beazley
+            Fix to pass/return by value for C++ objects that define
+            no default constructor.  Changes to the typemap system
+            made it impossible to wrap C++ objects with no default
+            constructor.   This has been fixed, but the solution 
+            involves some clever template magic contributed by 
+            William Fulton.  Please see the comments in the file
+            Lib/swig.swg for further details.    
+
+01/30/2002: beazley
             Global variables and member data of type "const char *"
             can be set, but the old value is silently discarded without
             any garbage collection.   This may generate a memory leak.
@@ -30,8 +39,8 @@ Version 1.3.11 (January 31, 2002)
             SWIG can dynamically allocate a new value and make foo point
             to it.   To fix this memory leak, you can probably do this:
 
-               %clear const char *;
-               %apply char * {const char *};
+               %clear const char *foo;
+               %apply char * {const char *foo};
 
             *** POTENTIAL INCOMPATIBILITY ***
             
@@ -54,11 +63,29 @@ Version 1.3.11 (January 31, 2002)
             selected typemaps.  For example, if you wanted to disable
             a typemap feature for some type, you could do this.
 
-             // Do not allow global variables of type 'const char *' to
-             // to be set.
-             %typemap(varin) const char * "pass";
+               // Do not allow global variables of type 'const char *' to be set.
+               %typemap(varin) const char * "pass";
 
-           *** NEW FEATURE ***
+            It might also be possible to use this to do subtle and
+            strange things with typemaps.  For example, if you wanted to
+            make 'blah *' an output value and 'const blah *' an input
+            parameter, you might do this:
+
+                %typemap(ignore) blah *(blah temp) {
+                    $1 = &temp;
+                }
+                %typemap(argout) blah * {
+                    ... return a value ...
+                }
+                /* Block unqualified typemaps defined above */
+                %typemap(ignore) const blah * "pass";
+                %typemap(argout) const blah * "pass";
+                %typemap(in)     const blah * {
+                    ... get input value ...
+                }
+
+             (This potential applications of typemaps suggested by Greg Stein).
+            *** NEW FEATURE ***
 
 01/29/2002: cheetah (william fulton)
            [Java] Bug fix: No enumerations were wrapped when the -shadow 
