@@ -121,6 +121,7 @@
 #define WARN_IGNORE_OPERATOR_UAND       393   /* & */
 #define WARN_IGNORE_OPERATOR_NEWARR     394   /* new [] */
 #define WARN_IGNORE_OEPRATOR_DELARR     395   /* delete [] */
+#define WARN_IGNORE_OEPRATOR_REF        396   /* operator *() */
 
 /* 394-399 are reserved */
 
