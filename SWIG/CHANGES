@@ -17,6 +17,9 @@ tree (maybe).
 Version 1.3.10 (In progress)
 ============================
 
+12/08/2001: cheetah (william fulton)
+           Fix for Ruby to work using Visual C++.
+
 12/06/2001:beazley
            Fixed [ #465687 ] unsigned short parameters fail.
            Reported by Gerald Williams.
