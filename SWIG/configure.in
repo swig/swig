@@ -1211,11 +1211,24 @@ else
   CSHARPCOMPILER="$CSHARPCOMPILERBIN"
 fi
 
+CSHARPPATHSEPARATOR="/"
 if test -z "$CSHARPBIN" ; then
+  CSHARPCILINTERPRETER=""
   if test "cscc" = "$CSHARPCOMPILER" ; then
     AC_CHECK_PROGS(CSHARPCILINTERPRETER, ilrun)
   else
-    CSHARPCILINTERPRETER=""
+    if test "mcs" = "$CSHARPCOMPILER"; then
+      # mono interpreter (ver 0.26 doesn't seem to work on Windows platforms)
+      case $host in
+      *-*-cygwin* | *-*-mingw*)
+        ;;
+      *)AC_CHECK_PROGS(CSHARPCILINTERPRETER, mint);;
+      esac
+    else 
+      if test "csc" = "$CSHARPCOMPILER"; then
+          CSHARPPATHSEPARATOR = "\\"
+      fi
+    fi
   fi
 else
   CSHARPCILINTERPRETER="$CSHARPBIN"
@@ -1240,6 +1253,7 @@ esac
 
 
 AC_SUBST(CSHARPCILINTERPRETER)
+AC_SUBST(CSHARPPATHSEPARATOR)
 AC_SUBST(CSHARPCOMPILER)
 AC_SUBST(CSHARPDYNAMICLINKING)
 AC_SUBST(CSHARPLIBRARYPREFIX) # Is this going to be used?
