@@ -6,7 +6,7 @@
 
 %module test
 
-%typemap(in) const int *const { $target = NULL; }
+%typemap(in) const int *const { $1 = NULL; }
 
 %inline %{
 void foo(const int *const i) {}

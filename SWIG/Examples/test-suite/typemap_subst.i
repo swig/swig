@@ -38,7 +38,7 @@
     void *stardesc = SWIGTYPE$*mangle;
     void *ampdesc = SWIGTYPE$&mangle;
   }
-  $target = ($ltype) temp;
+  $1 = ($ltype) temp;
 }
 
 #ifndef SWIGJAVA
