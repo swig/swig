@@ -316,7 +316,7 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own) {
   robj = PyCObject_FromVoidPtrAndDesc((void *) ptr, (char *) type->name, NULL);
 #else
   {
-    char result[512];
+    char result[1024];
     char *r = result;
     *(r++) = '_';
     r = SWIG_PackData(r,&ptr,sizeof(void *));
