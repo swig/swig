@@ -82,10 +82,6 @@ static String	  *class_type = 0;
 static String	  *realpackage = 0;
 static String	  *package = 0;
 
-#ifdef DEPRECATED
-static Hash	*shadow_classes;
-#endif
-
 static Hash	*shadow_php_vars;
 static Hash	*shadow_c_vars;
 static String	*shadow_classdef;
@@ -136,16 +132,6 @@ String *PHP4::is_shadow(SwigType *t) {
   }
   return r;
 }
-
-#ifdef DEPRECATED
-String *PHP4::is_shadow(SwigType *t) {
-	String *r;
-	SwigType *lt = SwigType_ltype(t);
-	r = Getattr(shadow_classes,lt);
-	Delete(lt);
-	return r;
-}
-#endif
 
 // Return the type of the c array
 static SwigType *get_array_type(SwigType *t) {
@@ -537,10 +523,6 @@ PHP4::top(Node *n) {
   Swig_register_filebyname("init",s_init);
   Swig_register_filebyname("header",s_header);
   Swig_register_filebyname("wrapper",s_wrappers);
-
-#ifdef DEPRECATED
-  shadow_classes = NewHash();
-#endif
 
   shadow_classdef = NewString("");
   shadow_code = NewString("");
@@ -1272,90 +1254,6 @@ void PHP4::pragma(char *lang, char *type, char *value) {
        }
 }
 
-void
-PHP4::emit_shadow_classdef() {
-	String *baseclass = NULL;
-
-	// Include Base class definition
-	
-	// Import statements
-	if(all_shadow_import)
-		Printf(shadow_classdef, "%s", all_shadow_import);
-	if(this_shadow_import)
-		Printf(shadow_classdef, "%s", this_shadow_import);
-	Printf(shadow_classdef, "\n");
-
-	// Class modifiers XXX not in php
-	
-	Printf(shadow_classdef, "class $class ");
-
-	// Inherited classes
-	if(this_shadow_baseclass && *Char(this_shadow_baseclass)) {
-		Printf(shadow_classdef, "extends %s ", this_shadow_baseclass);
-		baseclass = this_shadow_baseclass;
-	}
-	if(all_shadow_baseclass && *Char(all_shadow_baseclass)) {
-		Printf(shadow_classdef, "extends %s ", all_shadow_baseclass);
-		baseclass = all_shadow_baseclass;
-	}
-
-	Printf(shadow_classdef, "{\n");
-
-	// XXX No interfaces (?)
-	
-	// Display warning on attempt to use multiple inheritance
-	
-	char *search_str = Char(shadow_classdef);
-	int count = 0;
-	while((search_str = strstr(search_str, "extends"))) {
-		search_str += strlen("extends");
-		count++;
-	}
-	if(count > 1)
-		Printf(stderr, "Warning for shadow class %s: Multiple inheritance is not supported in PHP4.\n", shadow_classname);
-
-	// Different code depending on whether or not the base class is a
-	// SWIG shadow class.
-	
-	if(baseclass && is_shadow(baseclass)) {
-		// Control which super constructor is called -
-		// we don't want 2 malloc/new c/c++ calls
-	} else {
-		String *k;
-
-		Printv(shadow_classdef,
-		" var $_cPtr;\n",
-		" var $_cMemOwn;\n", NULL);
-
-		for(k = Firstkey(shadow_php_vars); k; k = Nextkey(shadow_php_vars)) {
-			Printf(shadow_classdef, " var $%s;\n", Getattr(shadow_php_vars, k));
-		}
-
-		Printv(shadow_classdef,
-		"\n",
-		" function getCPtr() {\n",
-		"    return $this->_cPtr;\n",
-		" }\n",
-		"\n",
-		" function setCPtr($cPtr, $own) {\n",
-		"    $this->_cPtr = $cPtr;\n",
-		"    $this->_cMemOwn = $own;\n",
-		" }\n",
-		"\n", NULL);
-
-		// No explicit super constructor call as this class does not
-		// have a SWIG base class.
-	}
-
-	Replace(shadow_classdef, "$class", shadow_classname, DOH_REPLACE_ANY);
-
-	if(all_shadow_extra_code)
-		Printv(shadow_classdef, all_shadow_extra_code, NULL);
-
-	if(this_shadow_extra_code)
-		Printv(shadow_classdef, this_shadow_extra_code, NULL);
-}
-
 int PHP4::classDeclaration(Node *n) {
   String *symname = Getattr(n,"sym:name");
   Setattr(n,"php:proxy",symname);
@@ -1383,15 +1281,6 @@ int PHP4::classHandler(Node *n) {
 			Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
 			SWIG_exit(1);
 		}
-
-#ifdef DEPRECATED		
-		Setattr(shadow_classes, classname, shadow_classname);
-
-		if(ctype && strcmp(ctype, "struct") == 0) {
-			sprintf(bigbuf, "struct %s", classname);
-			Setattr(shadow_classes, bigbuf, shadow_classname);
-		}
-#endif
 
 		Clear(shadow_classdef);
 		Clear(shadow_code);
@@ -1461,18 +1350,15 @@ int PHP4::classHandler(Node *n) {
 	Language::classHandler(n);
 
 	if(shadow) {
-
-		emit_shadow_classdef();
-
 		Printv(f_phpcode, shadow_classdef, shadow_code, NULL);
 
 		// Write the enum initialisation code in a static block
 		// These are all the enums defined withing the c++ class.
 
+		// PHP Needs to handle shadow enums properly still***
 		// XXX Needed in PHP ?
 		if(strlen(Char(shadow_enum_code)) != 0 )
 			Printv(f_phpcode, "{\n // enum\n", shadow_enum_code, " }\n", NULL);
-		Printf(f_phpcode, "}\n");
 
 		free(shadow_classname);
 		shadow_classname = NULL;
@@ -1764,87 +1650,15 @@ int PHP4::constructorHandler(Node *n) {
 	Language::constructorHandler(n);
 
 	if(shadow) {
-		String *nativecall = NewString("");
 		String *php_function_name = NewString(iname);
 		char arg[256];
 
-	// But we also need one per wrapped-class
-	if (cs_entry) Printf(cs_entry,
-	    "	ZEND_NAMED_FE(%(lower)s,\n"
-	    "		_wrap_new_%s, NULL)\n", php_function_name,iname);
-
-		Printf(shadow_code, " function %s(", php_function_name);
-		// If we are not a constructor and called as a class method
-		// then act like one.
-		Printv(nativecall, tab4, "if(! isset($this)) $this = new ",
-		       shadow_classname, ";\n", NULL);
-		if(native_constructor) {
-		} else { // non-offical alternative constructor
-			// to protect against double-construcot, first destroy
-			// just-in-case
-			Printv(nativecall, tab4, "$this->_destroy();\n", NULL);
-		}
-
-		if(iname != NULL)
-			Printv(nativecall, tab4, "$this->_cPtr = ", package, "::", Swig_name_construct(iname), "(", NULL);
-		else
-			Printv(nativecall, tab4, "$this->_cPtr = ", module, "::", Swig_name_construct(shadow_classname), "(", NULL);
-
-		int pcount = ParmList_len(l);
-		if(pcount == 0) // must have default constructor
-			have_default_constructor = 1;
-
-		/* Output each parameter */
-		Parm *p = l;
-		for (int i = 0; i < pcount ; i++, p = nextSibling(p)) {
-			SwigType *pt = Getattr(p, "type");
-			String *pn = Getattr(p, "name");
-
-	/* Produce string representation of source and target arguments */
-
-			if(pn && *(Char(pn)))
-				strcpy(arg, Char(pn));
-			else {
-				sprintf(arg, "arg%d", i);
-			}
-
-			if(is_shadow(pt)) {
-				Printv(nativecall, "($", arg,")?$", arg, ":\"NULL\"", NULL);
-			} else 
-				Printv(nativecall, "$", arg, NULL);
-
-			/* Add to php shadow function header */
-			Printf(shadow_code, "$%s", arg);
-
-			if(i != pcount-1) {
-				Printf(nativecall, ", ");
-				Printf(shadow_code, ", ");
-			}
-		}
-
-		Printf(shadow_code, ") {\n");
-		Printv(nativecall, ");\n", tab4, "$this->_cMemOwn = true;\n", NULL);
-		/* register our shutdown function only if we are a native
-		 * constructor not an alternative constructor ( which calls
-		 * the native one */
-
-		if(native_constructor)
-			Printv(nativecall, tab4,
-				   "register_shutdown_function(array(&$this,",
-				   "\"_destroy\"));\n", NULL);
-
-		/* Store new values in PHP */
-		if(!no_sync) {
-			Printv(nativecall, tab4,
-				   "$this->_sync_php();\n", NULL);
-		}
-
-		/* if we are alternatate constructor, return object */
-		if(! native_constructor) Printv(nativecall, tab4, "return $this;\n", NULL);
-		Printf(shadow_code, "%s", nativecall);
-		Printf(shadow_code, "  }\n\n");
-		Delete(nativecall);
+		// But we also need one per wrapped-class
+		if (cs_entry) Printf(cs_entry,
+		    "	ZEND_NAMED_FE(%(lower)s,\n"
+		    "		_wrap_new_%s, NULL)\n", iname,iname);
 	}
+
 	native_constructor = 0;
 	return SWIG_OK;
 }
@@ -1873,45 +1687,9 @@ PHP4::memberconstantHandler(Node *n) {
 	return SWIG_OK;
 }
 
-#ifdef DEPRECATED
-int
-PHP4::classforwardDeclaration(Node *n) {
-	String *name = Getattr(n, "name");
-	String *rename = Getattr(n, "sym:name");
-	String *type = Getattr(n, "kind");
-	String *stype;
-
-	if(shadow) {
-		stype = NewString(name);
-		SwigType_add_pointer(stype);
-		Setattr(shadow_classes, stype, rename);
-		Delete(stype);
-		if(Len(type) > 0) {
-			stype = NewStringf("%s %s", type, name);
-			SwigType_add_pointer(stype);
-			Setattr(shadow_classes, stype, rename);
-			Delete(stype);
-		}
-	}
-	return SWIG_OK;
-}
-
-int
-PHP4::typedefHandler(Node *n) {
-	SwigType *t = Getattr(n, "type");
-	String *name = Getattr(n, "name");
-	if(!shadow) return SWIG_OK;
-	if(is_shadow(t)) {
-		Setattr(shadow_classes, name, is_shadow(t));
-	}
-	return SWIG_OK;
-}
-#endif
-
 void 
 PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name) {
 	char arg[256];
-	String *nativecall = NewString("");
 	String *user_arrays = NewString("");
 	String *lower;
 	int gencomma = 0;
@@ -1933,53 +1711,9 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name,
 	    "	ZEND_NAMED_FE(%s,\n"
 	    "		%s, NULL)\n", php_function_name,Swig_name_wrapper(handler_name));
 
-	 if(variable_wrapper_flag && !no_sync)  { return; }
-
-	Printf(shadow_code, "function %s(", iname);
-	if(static_flag && !const_flag)
-		Printf(shadow_code, "$val = 0");
-
-	if(!no_sync && !static_flag)
-		Printf(nativecall, "$this->_sync_c();\n\n");
-
-	if((SwigType_type(t) != T_VOID) && !is_shadow(t)) {
-		if(static_flag && !const_flag)
-			Printf(nativecall, "if($val) {\n");
-		Printf(nativecall, "    return ");
-		Printv(nativecall, package, "::", php_function_name, "(", NULL);
-		if(!const_flag) {
-		  if(static_flag)
-			Printf(nativecall, "$val");
-		  else 
-			Printv(nativecall, "$this", NULL);
-		}
-	} else if(SwigType_type(t) == T_VOID) {
-		if(static_flag && !const_flag)
-			Printf(nativecall, "    if($val) {\n");
-		Printv(nativecall,"    ", package, "::",
-			php_function_name,"(",NULL);
-		Printv(nativecall, "$this", NULL);
-	} else if(is_shadow(t)) {
-		if(SwigType_type(t) == T_ARRAY) {
-			Printf(nativecall, "    return %s::%s($this", 
-			       package, php_function_name);
-		} else {
-		String *shadowrettype = NewString("");
-		SwigToPhpType(t, iname, shadowrettype, shadow);
-		Printf(nativecall, "    $_sPtr = new %s();\n", shadowrettype);
-		Printf(nativecall, "    $_sPtr->_destroy();\n");
-		Printf(nativecall, "    $_iPtr = %s::%s($this",
-		       package, php_function_name);
-		}
-	}
-
-
+	if(variable_wrapper_flag && !no_sync)  { return; }
 
 	int pcount = ParmList_len(l);
-
-	/* Output each parameter */
-
-	Parm *p = l;
 
 	/* Workaround to overcome Getignore(p) not working - p does not always
 	 * have the Getignore attribute set. Noticeable when cpp_func is called
@@ -1992,83 +1726,4 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name,
 
 	/*Workaround end */
 
-	for(int i= 0; i < pcount; i++, p = nextSibling(p)) {
-	  if(Getattr(p, "ignore")) continue;
-
-	  if(!(variable_wrapper_flag && i==0))
-	  {
-	    SwigType *pt = Getattr(p, "type");
-	    String   *pn = Getattr(p, "name");
-
-	    /* Produce string repesentation of source and target arguments */
-
-	    if(pn && *(Char(pn)))
-		strcpy(arg, Char(pn));
-	    else {
-		sprintf(arg, "arg%d", i);
-	    }
-
-	    Printf(nativecall, ", ");
-
-	    if(gencomma) 
-		    Printf(shadow_code, ",");
-
-	    gencomma = 1;
-
-	    if(is_shadow(pt)) {
-		Printv(nativecall, "($", arg,")?$", arg, ":\"NULL\"", NULL);
-	    } else {
-		Printv(nativecall, "$", arg, NULL);
-	    }
-
-	    /* Add to php shadow function header */
-
-	    Printf(shadow_code, "$%s", arg);
-
-	}
-      }
-      
-      if(SwigType_type(t) == T_ARRAY && is_shadow(get_array_type(t))) {
-	      Printf(nativecall, ");\n");
-      } else if(is_shadow(t)) {
-	switch(SwigType_type(t)) {
-		case T_USER:
-			Printf(nativecall, 
-			");\n"
-			"    $_sPtr->setCPtr($_iPtr, true);\n"
-			"    return $_sPtr;\n");
-			break;
-
-		case T_REFERENCE:
-		case T_POINTER:
-			Printf(nativecall,
-			");\n"
-			"    $_sPtr->setCPtr($_iPtr, false);\n"
-			"    return $_sPtr;\n");
-			break;
-		default:
-			Printf(stderr, 
-			"Internal Error: unknown shadow_type: %\n", 
-			SwigType_str(t,0));
-			break;
-	 }
-	} else {
-		Printf(nativecall,");\n");
-		if(static_flag && !const_flag) {
-		  Printf(nativecall, "    } else {\n");
-		  Printv(nativecall, "    return ", package, "::",
-			 php_function_name, "();\n",NULL);
-		}
-	}
-
-	if(static_flag &&!const_flag)
-		Printf(nativecall, "}\n");
-
-	Printf(shadow_code, ") {\n");
-	Printf(shadow_code, "    %s", nativecall);
-	if(!no_sync && !static_flag)
-		Printf(shadow_code, "    $this->_sync_php();\n");
-	Printf(shadow_code, "   }\n\n");
-
-      Delete(nativecall);
 }
