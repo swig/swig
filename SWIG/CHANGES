@@ -7,12 +7,371 @@ In this CVS branch "rel-1-3", fixes in the SWIG core and improvements
 to the language modules take place, starting from the stable release
 1.3.6.
 
-This branch is also the basis for the "swig1.3" Debian package
-(currently unofficial, available from
-http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian). 
+This branch is also the basis for the unofficial "swig1.3" Debian
+package that is available from:
+http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian
 
 Eventually this branch will be merged back to the trunk of the CVS
 tree (maybe).
+
+Version 1.3.11 (January 31, 2002)
+=================================
+
+01/30/2002: beazley
+            Fix to pass/return by value for C++ objects that define
+            no default constructor.  Changes to the typemap system
+            made it impossible to wrap C++ objects with no default
+            constructor.   This has been fixed, but the solution 
+            involves some clever template magic contributed by 
+            William Fulton.  Please see the comments in the file
+            Lib/swig.swg for further details.  This solution is
+            experimental and may be refined in a future release.
+
+01/30/2002: beazley
+            Global variables and member data of type "const char *"
+            can be set, but the old value is silently discarded without
+            any garbage collection.   This may generate a memory leak.
+            This change is needed to more safely handle variables
+            like this:
+
+                   const char *foo = "Hello World\n";
+
+            In this case, it's not safe to free the old value.  However,
+            SWIG can dynamically allocate a new value and make foo point
+            to it.   To fix this memory leak, you can probably do this:
+
+               %clear const char *foo;
+               %apply char * {const char *foo};
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            
+01/30/2002: beazley
+            Two minor typemap enhancements have been added.  First,
+            typemaps can issue a warning message by including a special
+            warning attribute. For example:
+
+             %typemap(in,warning="I'm going to do something dangerous") ...
+
+            The warning message will show up whenever the typemap is
+            applied.
+
+            Second, a typemap can force a no-match by defining
+
+             %typemap(in) sometype "pass";
+
+            If this is used, the typemap system will *not* record a
+            typemap match for "sometype".   This can be used to block
+            selected typemaps.  For example, if you wanted to disable
+            a typemap feature for some type, you could do this.
+
+               // Do not allow global variables of type 'const char *' to be set.
+               %typemap(varin) const char * "pass";
+
+            It might also be possible to use this to do subtle and
+            strange things with typemaps.  For example, if you wanted to
+            make 'blah *' an output value and 'const blah *' an input
+            parameter, you might do this:
+
+                %typemap(ignore) blah *(blah temp) {
+                    $1 = &temp;
+                }
+                %typemap(argout) blah * {
+                    ... return a value ...
+                }
+                /* Block unqualified typemaps defined above */
+                %typemap(ignore) const blah * "pass";
+                %typemap(argout) const blah * "pass";
+                %typemap(in)     const blah * {
+                    ... get input value ...
+                }
+
+             (This potential applications of typemaps suggested by Greg Stein).
+            *** NEW FEATURE ***
+
+01/29/2002: cheetah (william fulton)
+           [Java] Bug fix: No enumerations were wrapped when the -shadow 
+           commandline option was not specified. Reported by Israel Taller.
+
+01/28/2002: cheetah (william fulton)
+           [Java] Global arrays are successfully wrapped. In fact they started
+           mostly working in SWIG-1.3.10.
+
+01/28/2002:richardp
+	   Added first attempt at C++ and -shadow support for PHP4 module,
+	   please test and mail me if any problems/ideas on improving it.
+
+	   There is a known problem with uninitialized member variables,
+	   please see Examples/php4/sync/README for details.
+
+	   Also more PHP documentation added to Doc/Manual/Php.html
+
+01/27/2002:beazley
+           The ANSI C size_t type is now recognized as an integer by default.
+
+01/26/2002:beazley
+           long long and unsigned long long support added to many language modules.
+           This is not a portable feature and will require compiler support
+           for the long long type.  In target languages that do not support
+           long long (e.g., Tcl and Perl), numbers are converted to a string
+           of digits.  This prevents their use in arithmetic calculations, but
+           still allows values to be set from a string.  
+
+           long long support requires the use of the strtoll() and strtoull()
+           functions as well as the 'lld' and 'llu' format specifiers
+           of sprintf().
+
+01/26/2002:beazley
+           Fixed [ #501827 ] Delete method is not called.   The Tcl
+           module wasn't correctly calling destructors when they
+           were defined using %addmethods.  This has been fixed.
+           Reported by Reinhard Fobbe.
+
+01/26/2002: beazley
+           Better support for long long and unsigned long long.  Typemaps
+           have been included in a number of modules for handling these types.
+           In addition, the parser has been modified to accept long long
+           literals such as 1234LL and 1234ULL.
+
+01/27/2002: cheetah (william fulton)
+           [Java] A C char[] is mapped to a Java String which is the default 
+           SWIG handling of char[] and char*. It used to be mapped to byte[]. 
+           Note that a C signed char[] array is mapped to byte[].
+
+           *** POTENTIAL INCOMPATIBILITY ***
+
+01/25/2002: beazley
+           Fixed a problem with return-by-value, C++, and
+           objects that define no default constructor.
+           Reported by Joel Reed.
+
+01/25/2002: cheetah (william fulton)
+           [Java] Overhaul of the Java module. The C code generation is now 
+           done from typemaps.
+
+01/24/2002: cheetah (william fulton)
+           [Java] Support for arrays of enum pointers
+
+01/20/2002: cheetah (william fulton)
+           [Java] Error checking for null Java objects being passed to native 
+           functions.  Exception thrown now whereas before the JVM crashed.
+
+01/18/2002: cheetah (william fulton)
+           [Java] Corrected behaviour for functions that take arrays. For 
+           example, when this c function: 
+
+           void arrayfn(int array[]);
+           
+           is wrapped the corresponding native function
+
+           public final static native void arrayfn(int[] array);
+
+           is produced. Previously if the C function made any changes to the 
+           array elements, these were not reflected back into the Java array. 
+           This has now been corrected so that the changes are propogated back
+           to Java and the calling function will see these changes. This is 
+           how pure Java functions work, ie arrays are passed by reference.
+
+01/15/2002:mkoeppe
+           [Guile] New file cplusplus.i with C++ typemaps contributed
+           by Marcio Luis Teixeira <marciot@holly.colostate.edu>.
+
+01/11/2002: cheetah (william fulton)
+           [Java] Changed mapping of C long to Java type. Was mapped to Java
+           long, now mapped to Java int. If you want the previous mapping to 
+           Java long use this approach in your interface file:
+           
+             %clear long;
+             %typemap(jni) long             "jlong"
+             %typemap(jtype) long           "long"
+             %typemap(jstype) long          "long"
+
+             %clear long[ANY];
+             %typemap(jni) long[ANY]        "jlongArray"
+             %typemap(jtype) long[ANY]      "long[]"
+             %typemap(jstype) long[ANY]     "long[]"
+             %typemap(in) long[ANY]         {write me for array support}
+             %typemap(out) long[ANY]        {write me for array support}
+             %typemap(argout) long[ANY]     {write me for array support}
+             %typemap(freearg) long[ANY]    {write me for array support}
+
+           *** POTENTIAL INCOMPATIBILITY ***
+
+           This new mapping is more appropriate when interfacing to 32 bit 
+           applications which are used in the current 32-bit JVMs. For future 
+           64-bit JVMs you may have to change these mappings - eg on Unix LP64 
+           systems, but not on Microsoft 64bit Windows which will be using a 
+           P64 IL32 model. This may be automated in a future version of SWIG.
+
+01/10/2002:beazley
+           Fixed [ 501677 ] %init block in wrong place. Reported
+           by Luigi Ballabio.
+
+01/09/2002: cheetah (william fulton)
+           [Java] Default support for the long long type. signed long long is 
+           mapped to a Java long. unsigned long long is mapped to BigInteger.
+
+01/09/2002:beazley
+           Experimental change to parser to better support mixing of
+           int, long, short, unsigned, float, and double.   The parser
+           should now support types like this:
+    
+                short unsigned int
+                int   unsigned short
+                unsigned short int
+                unsigned int short
+
+            This change also enables a type of 'long double' (previously
+            unsupported) to be used.
+            *** NEW FEATURE ***
+
+01/05/2002: cheetah (william fulton)
+           [Java] Casting fix for when function return type is a pointer as 
+           reported by Gary Pennington 2002-01-05. The upper 32bits of the 
+           64 bit jlong will have contained junk for 32bit pointers.
+
+01/05/2002: cheetah (william fulton)
+           [Java] Better pointer handling in Java is possible as the 
+           INPUT, OUTPUT and INOUT typemaps have been added into typemaps.i.
+
+01/05/2002: cheetah (william fulton)
+           [Java] $null can be used in input typemaps to return early from JNI 
+           functions that have either void or a non-void return type. Example:
+
+             %typemap(check) int * %{ 
+               if (error) {
+                 SWIG_exception(SWIG_IndexError, "Array element error");
+                 return $null;
+               }
+             %}
+
+           If the typemap gets put into a function with void as return, $null 
+           will expand to nothing:
+
+             void jni_fn(...) {
+                 if (error) {
+                   SWIG_exception(SWIG_IndexError, "Array element error");
+                   return ;
+                 }
+               ...
+             }
+
+           otherwise $null expands to zero, where javareturntype is either a 
+           pointer or a primitive type:
+
+             javareturntype jni_fn(...) {
+                 if (error) {
+                   SWIG_exception(SWIG_IndexError, "Array element error");
+                   return 0;
+                 }
+               ...
+             }
+
+01/02/2002: cheetah (william fulton)
+           [Java] The Java module incorrectly used argout typemaps for 
+           strings. This is now corrected and the code now resides
+           in the freearg typemap. The argout array typemaps have been split into 
+           argout and freearg typemaps. This correction may require some user 
+           written typemaps to be modified. 
+           *** POTENTIAL INCOMPATIBILITY ***
+
+12/28/2001: cheetah (william fulton)
+           [Java] Multi typemaps now working for Java see multimap example.
+           [Java] Fix for recently introduced bug - freearg typemap code was appearing
+           before the function call.
+
+12/28/2001: cheetah (william fulton)
+           [Java] JCALL macro for JNI calls that work in both C and C++ typemaps
+           have been replaced with JCALL0, JCALL1, JCALL2, JCALL3 and JCALL4 
+           macros.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+12/22/2001:beazley
+           Resolved some inconsistent behavior with %rename and class renaming.
+           If you specify the following:
+ 
+               %rename(Foo)  Bar;
+
+               class Bar {
+               public:
+                    Bar();
+                    ~Bar();
+               }
+
+           Then the %rename directive applies to the class itself, the constructor,
+           and the destructor (all will be renamed to Foo).
+
+           If a class defines more than one constructor, the overloaded variants
+           can still be renamed by specifying parameters to %rename.  For example:
+
+               %rename(Bar_copy) Bar(Bar &);
+               class Bar {
+               public:
+                     Bar();
+                     Bar(Bar &);
+                    ~Bar();
+               };
+
+           There are still some odd corner cases.  If you specify
+
+               %rename(Foo) ::Bar;
+
+           then only the name of the class is changed and the constructor/destructor
+           names are left unmodified.  If you specify 
+
+               %rename(Foo) *::Bar;
+
+           then the names of the constructor/destructor functions are modified but
+           the name of the class is not.
+
+12/21/2001: cheetah (william fulton)
+           [Java] jni, jtype and jstype typemaps no longer hardcoded but real 
+           typemaps. New variable substitution, $javaclassname, can be used in
+           the jstype typemaps. It is replaced with the Java shadow class name
+           where applicable.
+           [Java] Fix for recently introduced bug to do with inheritance when 
+           using %import.
+           [Java] A few more bug fixes, todo with %rename and using the kind
+           with the type, eg 
+           void fn(union uni myuni, struct str mystr, class cl mycl);
+
+12/20/2001:beazley
+           Fixed [ #494524 ] Preprocessor bug - apostrophe and #subst.
+
+12/20/2001:beazley
+           Added SWIG_VERSION preprocessor symbol.   This is a hexadecimal
+           integer such as 0x010311 (corresponding to SWIG-1.3.11).  This can
+           be used in the interface as follows:
+
+               #if SWIG_VERSION >= 0x010311
+               /* Use some fancy new feature */
+               #endif
+
+           Note: The version symbol is not defined in the generated SWIG
+           wrapper file.
+
+           *** NEW FEATURE ***
+
+12/20/2001:mkoeppe
+	   [MzScheme]: Renamed mzswig_make_boolean to
+	   swig_make_boolean, as the latter is used in the typemaps.
+	   Reported by Luigi Ballabio.
+
+12/17/2001:mkoeppe
+	   [Guile]: Rewrote list-vector.i using multi-dispatch
+	   typemaps.  Updated pointer-in-out.i.  Make the
+	   deprecated typemap-substitution of "$source" in "argout"
+	   work as before.
+
+12/16/2001:mkoeppe
+	   [Guile]: Fixed macros %values_as_list, %values_as_vector,
+	   %multiple_values to use the proper %pragma syntax.  New
+	   Guile example/test "multivalue"; new Guile run-test for
+	   test-suite item "list-vector" (currently broken).
+
+12/14/2001:mkoeppe
+	   [Guile]: Fixed typemap-substition bug for "varin".  Relaxed
+	   valid-identifier check to allow all R5RS identifiers.
+
 
 Version 1.3.10 (December 10, 2001)
 ==================================

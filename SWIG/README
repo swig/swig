@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.10 (December 10, 2001)
+Version: 1.3.11 (February 1, 2002)
 
 $Header$
 
@@ -26,6 +26,7 @@ working on this are:
  Lyle Johnson (ljohnson@resgen.com)                     (Ruby)
  Masaki Fukushima (fukusima@goto.info.waseda.ac.jp)     (Ruby)
  Richard Palmer (richard@magicality.org)                (PHP)
+ Luigi Ballabio (ballabio@mac.com)                      (Macintosh port)
 
 Past contributors include:
 
@@ -188,6 +189,13 @@ Notes:
     such as broken C++ compiler.  Even if 'make -k check' fails, there is a 
     pretty good chance SWIG still works correctly---you will just have
     to mess around with one of the examples and some makefiles first.
+
+(3) The testing suite executed by 'make -k check' is designed to stress-test
+    many parts of the implementation including obscure corner cases. If some
+    of these tests fail or generate warning messages, there is no reason for
+    alarm---the test may be related to some new SWIG feature or a difficult bug
+    that we're trying to resolve.  Chances are that SWIG will work just fine
+    for you.  
 
 Examples
 ========
