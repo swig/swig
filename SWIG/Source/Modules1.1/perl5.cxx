@@ -306,7 +306,7 @@ PERL5::initialize()
   Printf(f_header,"extern \"C\"\n");
   Printf(f_header,"#endif\n");
   Printf(f_header,"#ifndef PERL_OBJECT\n");
-  Printf(f_header,"SWIGEXPORT(void) SWIG_init (CV* cv);\n");
+  Printf(f_header,"XS(SWIG_init);\n");
   Printf(f_header,"#else\n");
   Printf(f_header,"SWIGEXPORT(void) SWIG_init (CV *cv, CPerlObj *);\n");
   Printf(f_header,"#endif\n");
