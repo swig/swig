@@ -24,4 +24,11 @@ struct StructWithEnums {
     enum SOME_ENUM& enum_test8() { return some_enum; };
 };
 
+
+ struct Foo
+ {
+   enum {Hi, Hello } hola;
+   
+ };
+
 %}
