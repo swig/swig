@@ -124,6 +124,8 @@ int Dispatcher::emit_one(Node *n) {
     ret = enumDeclaration(n);
   } else if (strcmp(tag,"enumitem") == 0) {
     ret = enumvalueDeclaration(n);
+  } else if (strcmp(tag,"enumforward") == 0) {
+    ret = enumforwardDeclaration(n);
   } else if (strcmp(tag,"class") == 0) {
     ret = classDeclaration(n);
   } else if (strcmp(tag,"classforward") == 0) {
@@ -236,6 +238,7 @@ int Dispatcher::cDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::externDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::enumDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::enumvalueDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::enumforwardDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::classDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::templateDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::classforwardDeclaration(Node *n) { return defaultHandler(n); }
@@ -1384,6 +1387,15 @@ int Language::enumvalueDeclaration(Node *n) {
   
   Delete(tmpValue);
   Swig_restore(n);
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::enumforwardDeclaration()
+ * ---------------------------------------------------------------------- */
+
+int Language::enumforwardDeclaration(Node *n) {
+  (void)n;
   return SWIG_OK;
 }
 
