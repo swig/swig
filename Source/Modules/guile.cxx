@@ -703,6 +703,7 @@ public:
     String *returns = NewString("");
     String *method_signature = NewString("");
     String *primitive_args = NewString("");
+    Hash *scheme_arg_names = NewHash();
     int num_results = 1;
     String *tmp = NewString("");
     String *tm;
@@ -823,10 +824,10 @@ public:
 	    SwigType *pn = Getattr(p,"name");
 	    String *argname;
 	    scheme_argnum++;
-	    if (pn)
+	    if (pn && !Getattr(scheme_arg_names, pn))
 	      argname = pn;
 	    else {
-	      /* Anonymous arg -- choose a name that cannot clash */
+	      /* Anonymous arg or re-used argument name -- choose a name that cannot clash */
 	      argname = NewStringf("%%arg%d", scheme_argnum);
 	    }
 	    if (strcmp("void", Char(pt)) != 0) {
@@ -838,6 +839,7 @@ public:
 		Printv(method_signature, " ", argname, NIL);
 	      }
 	      Printv(primitive_args, " ", argname, NIL);
+	      Setattr(scheme_arg_names, argname, p);
 	    }
 	    if (!pn) {
 	      Delete(argname);
@@ -1181,6 +1183,7 @@ public:
     Delete(doc_body);
     Delete(returns);
     Delete(tmp);
+    Delete(scheme_arg_names);
     DelWrapper(f);
     return SWIG_OK;
   }
