@@ -42,7 +42,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
-	cast_operator \
 	namespace_nested \
 	template_default_arg \
 	template_extend_overload \
@@ -75,6 +74,7 @@ CPP_TEST_CASES += \
 	bool_default \
 	bools \
 	casts \
+	cast_operator \
 	class_ignore \
 	const_const_2 \
 	constant_pointers \
