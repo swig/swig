@@ -21,7 +21,7 @@ extern "C" {
 
 typedef struct swig_globalvar {   
   char       *name;                  /* Name of global variable */
-  PyObject *(*get_attr)();           /* Return the current value */
+  PyObject *(*get_attr)(void);       /* Return the current value */
   int       (*set_attr)(PyObject *); /* Set the value */
   struct swig_globalvar *next;
 } swig_globalvar;
@@ -77,7 +77,7 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
 }
 
 SWIGINTERN PyTypeObject*
-swig_varlink_type() {
+swig_varlink_type(void) {
   static char varlink__doc__[] = "Swig var link object";
   static PyTypeObject varlink_type
 #if !defined(__cplusplus)

@@ -152,7 +152,7 @@ PySwigObject_dealloc(PySwigObject *self)
 }
 
 SWIGRUNTIME PyTypeObject*
-PySwigObject_type() {
+PySwigObject_type(void) {
   static char pyswigobject_type__doc__[] = 
     "Swig object carries a C/C++ instance pointer";
   
@@ -339,7 +339,7 @@ PySwigPacked_dealloc(PySwigPacked *self)
 }
 
 SWIGRUNTIME PyTypeObject*
-PySwigPacked_type() {
+PySwigPacked_type(void) {
   static char pyswigpacked_type__doc__[] = 
     "Swig object carries a C/C++ instance pointer";
   static PyTypeObject pyswigpacked_type

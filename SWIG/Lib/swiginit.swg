@@ -122,7 +122,7 @@ SWIG_InitializeModule(void *clientdata) {
 * SWIG_TypeClientData(type, clientdata) a second time.
 */
 SWIGRUNTIME void
-SWIG_PropagateClientData() {
+SWIG_PropagateClientData(void) {
   size_t i;
   swig_cast_info *equiv;
   static int init_run = 0;
