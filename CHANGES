@@ -2,6 +2,1147 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 See CHANGES.current for current version.
 
+Version 1.3.23 (November 11, 2004)
+=================================
+
+12/05/2004: wsfulton
+            Patch #982753 from Fabrice Salvaire: Adds dependencies generation for
+            constructing makefiles. New command line options -MF -MD -MMD to work
+            with the current options -M and -MM. These options are named the same
+            and work the same as in gcc.
+
+12/05/2004: wsfulton
+            %ignore/%rename changes for methods with default arguments to mirror
+            %feature behaviour. See previous entry.
+
+                      *** POTENTIAL INCOMPATIBILITY ***
+
+11/04/2004: wsfulton
+            %feature improvements for fine tuning when wrapping methods with
+            default arguments. Any %feature targeting a method with default arguments
+            will apply to all the extra overloaded methods that SWIG generates if the
+            default arguments are specified in the feature. If the default arguments are
+            not specified in the feature, then the feature will match that exact
+            wrapper method only and not the extra overloaded methods that SWIG generates.
+            For example:
+
+              %feature("except") void hello(int i=0, double d=0.0);
+              void hello(int i=0, double d=0.0);
+
+           will apply the feature to all three wrapper methods, that is:
+
+              void hello(int i, double d);
+              void hello(int i);
+              void hello();
+
+           If the default arguments are not specified in the feature:
+
+              %feature("except") void hello(int i, double d);
+              void hello(int i=0, double d=0.0);
+
+           then the feature will only apply to this wrapper method:
+
+              void hello(int i, double d);
+
+           and not these wrapper methods:
+
+              void hello(int i);
+              void hello();
+
+           This has been introduced to make %feature more powerful to ease the migration
+           to new default arguments wrapping approach.
+
+                      *** POTENTIAL INCOMPATIBILITY ***
+
+           If you previously had a %feature and didn't specify the default arguments,
+           you will have to add them in now or you can obtain the original behaviour
+           by using %feature("compactdefaultargs").
+
+11/04/2004: wsfulton
+            [C#] Typemaps for std::vector added into std_vector.i. The proxy classes
+            generated are modelled on the .NET ArrayList class. This isn't quite
+            ready for general consumption yet, but will work with vectors of primitive
+            types and some classes.
+
+10/3/2004: wuzzeb (John Lenz)
+            [GUILE] The -scm interface is now the default.  The old GH interface can
+	    still be enabled by passing -gh to SWIG.
+
+10/2/2004: mmatus
+
+	    - More fixes for namespace + class declarations.
+	      As an extra bonus, we get %template support for static/members class
+	      methods, ie, now you can say:
+
+	        namespace space {
+                 struct A			    
+	         {				    
+	           template <class Y>	    
+	           static void fooT(Y y) { }
+	         };	
+		}			    
+	      	      			    
+	        struct B			    
+	        {				    
+	          template <class Y>		    
+	          void barT(Y y) {} 
+	        };                           
+
+		%template(foo) space::A::fooT<double>;
+		%template(foo) space::A::fooT<int>;
+		%template(foo) space::A::fooT<char>;
+                                                                                
+		%template(bar) B::barT<double>;
+		%template(bar) B::barT<int>;
+		%template(bar) B::barT<char>;
+
+	      and call
+
+	        A.foo(1)
+		b = B()
+		b.bar(1)
+	      
+	      note the the methods are emitted inside the classes,
+	      and hence, the %template name refers to the 'member'
+	      method name, not a global namespace name.
+
+10/31/2004: mmatus
+	    - Solve namespace + class declarations, as in
+
+	       namespace foo {
+                 struct Bar;
+		 struct Foo {
+                 };
+               }
+
+               struct foo::Bar : Foo {
+               };
+
+	       see namespace_class.i for more examples.
+
+            - Fix %template directive to properly use namespaces,
+              including the case:
+
+		   namespace one
+		   {
+		       template <typename T>
+		       struct Ptr {};
+                   }
+
+		   namespace one
+		   {		  
+		       struct Obj1 {};
+		       typedef Ptr<Obj1> Obj1_ptr;
+  		       %template(Obj1_ptr) Ptr<Obj1>; 
+		   }				  
+		   				  
+		   namespace two  
+		   {
+		       struct Obj2 {};	
+		       typedef one::Ptr<Obj2> Obj2_ptr;
+		       %template(Obj2_ptr) one::Ptr<Obj2>;
+		   }
+
+	      this is done by using the namespace name 'one' to create
+              a namespace node to emit the template instantiation,
+              just as before, but the template parameters are resolved
+              and qualified in the current namespace ('one' or 'two').
+              This is same way that typedef works. 
+
+	      This resolve the smart_pointer_namespace2.i case, and at
+              the same time, several other ones where before swig was
+              generating the
+
+	        "Can't instantiate template 'xx' inside namespace 'yy'"
+	      
+	      error message. In fact, that error doesn't exist
+	      anymore. You can only get an error if you use a bad
+	      namespace name or so.
+
+10/30/2004: mmatus
+	    - [ruby] Directors fixes:
+	      - enums and std::strings are working now (several
+	        reports in bug track system)
+	      - added patch 1025861 for director + exceptions
+		
+              *** Attention ***: ruby with directors + protected
+              members work with version 1.7+. Older versions seems to
+              have a broken signature for'rb_protect'.
+		
+	      If you need to use an old version, look at
+
+	      http://excruby.sourceforge.net/docs/html/ruby__hacks_8hpp-source.html
+  	      for workarounds.
+	      
+            - [ruby] Fix memory allocation problem in typemap (bug 1037259)
+
+	    - [tcl] Fix (enums|constants) + namespace option 
+	            (reported by jason.m.surprise@intel.com).
+
+            - [perl] Add patch 962168 for multiple inheretance
+	    
+	    - Fix 'defined' as variable name.
+
+10/29/2004: wsfulton
+            Seg fault fix for global scope operator used for friend methods:
+
+              class B {
+                friend void ::globalscope();
+                ...
+              };
+
+10/28/2004:mmatus
+	    - Added module and swig option "templatereduce" to force swig
+	      to reduce any type needed with templates, ie, in these cases
+
+                %module("templatereduce") test
+
+                template <class T> struct A { };
+
+                typedef int Int;
+	        %template(A_Int) A<Int>  ==>  %template(A_Int) A<int>
+
+                typedef B* Bp;
+	        %template(A_Bp) A<Bp>  ==>  %template(A_Bp) A<B*>
+
+              swig reduces the types Int and Bp to their primitives
+              int and B*. This is closer to the usual compiler
+              resolution mechanism, and it is really needed sometimes
+              when you mix templates + typedefs + specializations.
+
+	      Don't use it if you don't have any problem already,
+	      since the type reduction can interfere with some
+	      user typemaps, specially if you defined something like
+
+		   typedef int Int;
+		   %typemap(in) Int ...;
+
+              in this case, when you use the "templatereduce" option,
+	      swig will ignore the user typemap, since the "typedef int Int"
+	      will take precedence, and the usual "int" typemap will be
+	      applied. 
+
+	      Note that the previous case is not common, and should be
+	      avoided, ie, is not recommended to use a typedef and a
+	      typemap at the same time, specially if you are going to
+	      use templates + specializations.
+
+	    - Directors:
+
+	        virtual destructor is always emitted now, this doesn't
+	        cause any harm, and could solve some nasty and
+	        mysterious errors, like the one mentioned by Scott.
+
+		also the destructor is not in-lined, so, that can solve
+		some other mysterious errors when mixing directors +
+		imports + embedded applications + some specific compilers.
+		
+10/27/2004: wsfulton
+            [C#] typemaps.i library file with INPUT, OUTPUT and INOUT typemaps added.
+
+10/27/2004: wsfulton
+            [Java] std::wstring typemap fixes in std_string.i from Russell Keith-Magee.
+
+10/25/2004: mmatus 
+
+	    - Using + namespace is working now (using_namespace.i).
+
+	    - Derived + nested classes is working now
+	      (deriver_nested.i), but of course, we are still waiting
+	      for the nested class support.
+	    
+	    - Directors:
+	      - unnamed parameters support,
+
+	      - protected constructor support (automatic and with
+                dirprot mode),
+
+	      - detection of really needed protected declarations
+                (members and constructors) now is done automatically.
+                Even if you don't use the 'dirprot' mode, swig will
+                wrap what is minimally needed (and protected) for the
+                code to compile.
+		
+		what is public, as usual, is always wrapped, and if
+		you use the 'dirport'
+		
+
+	    - Final fixes for the OSS to compile with SWIG 1.3.23 (my
+	      very very ugly C++ + templates + everything mounters wrap).
+
+10/25/2004: wsfulton
+            [C#] New commandline option -dllimport. This enables one to specify
+            the name of the DLL for the DllImport attribute. Normally this name
+            comes from the module name, so now it is possible to override this:
+
+              swig -csharp -dllimport xyz example.i
+
+            will generate for all the wrapped PInvoke methods:
+
+              [DllImport("xyz", EntryPoint="...")]
+              public static extern ...
+
+            The wrappers from many different SWIG invocations can thus be compiled
+            into one DLL.
+
+            A new special variable $dllimport can also be used in typemaps, pragmas,
+            features etc. This will get translated into the value specified by -dllimport
+            if specified, otherwise the module name.
+
+10/22/2004: wsfulton
+            [Java] Patch #1049496 from Scott Michel fixes directors methods with 
+            enums when wrapped with typesafe or proper Java enums.
+
+10/21/2004: wsfulton
+            Fixes for default arguments in director constructors (Python, Ruby, Ocaml).
+
+10/21/2004: mmatus
+	    - [Python] Add the '-cpluscast' option to enable the 'new'
+	      C++ casting operators, such as 'static_cast', inside the
+	      typemaps. By default swig use the old C cast style, even
+	      when parsing C++.
+	      
+	    - [Python] Add the '-new_vwm' option to enable the new
+              SwigValueWrapper mode. Now this is mainly for testing
+              that the typemaps are really safe for any future
+              solution, but you can use it if you have a very strange
+              error with default cosntructors missing + %apply +
+              %typemap, and if everything else fails (see
+              valuwrapper_opaque.i for alternative and current
+              solutions). If you are a user that don't know what is
+              SwigValueWrapper, don't even try it.
+
+	    - [Python] Add the '-noh' option to be used with directors
+	      and when you prefer to disable the generation of the
+	      director header file. If not used, swig will work as
+	      usual generating both the wrap.cxx and wrap.h files. If
+	      you use it, swig will only generate wrap.cxx.
+
+10/21/2004: wuzzeb (John Lenz)
+            - If you define SWIG_TYPE_TABLE when compiling a wrapper file,
+	      the runtime types will be stored in the given type table name.
+	      Using this, you can seperate different modules to share their
+	      own type systems.  -DSWIG_TYPE_TABLE=Mytable
+
+	    - [Python] If you define SWIG_STATIC_RUNTIME then the type information
+	      will be static to this wrapper.  Nothing will be shared with any
+	      other modules
+
+	    - [Python] If you define SWIG_LINK_RUNTIME, then instead of using
+	      the new way of sharing type information, the wrapper will expect
+	      to be linked against the Lib/linkruntime.c file.  Any modules compiled
+	      with SWIG_LINK_RUNTIME and linked against linkruntime.c will all
+	      share type information.
+
+10/20/2004: mmatus
+	    - [Python] Initial fix for python/import example. Please
+	      update the Makefile (autoconf, configure, etc, expert),
+	      since now probably is only working with g++, icc and a
+	      few other compilers that have the -shared option.
+
+	      We need to create additional shared libraries for the
+	      virtual destructors. Old and usually forgotten C++
+	      requirement.
+	      
+	      Same fix need to be used in perl, I think.
+
+            - [Python] Fix generation of header file for directors,
+              now directors.swg is also included, so, it can be really
+	      used from C++, and it solves some problem with compiler
+	      that require that, even with the simple swig inclusion.  
+
+            - [Python] Reordering the methods and moving some bodies
+              outside the class declaration. This is needed due to
+              some gcc-2.96 internal compiler errors. It seems the
+              PYTHON class is getting too large to been declared and
+              defined at the same time.
+
+	    - Add the -oh option to change the output header file name
+              if needed:
+
+                 swig -c++ -python test.i -o test.CC -oh test.HH
+	      
+              this is mainly needed when using directors, and if the
+              current default header file name is not good for you,
+              which is generated as follow:	      
+
+                 swig -c++ -python test.i             => test_wrap.h
+                 swig -c++ -python test.i -o test.CC  => test.h
+
+
+10/20/2004: wsfulton
+            1) Compact default arguments feature added. This feature allows one
+              to use the default argument code generation that was used in
+              SWIG-1.3.22 and earlier versions. It produces more compact wrappers
+              as only one wrapper method is generated for any method with default
+              arguments. So the advantage is it generates less code but has the
+              original limitations, like it it does not work with all default arguments
+              and default arguments cannot be taken advantage of in the strongly typed
+              languages (C# and Java). It is implemented via the usual %feature mechanism:
+
+                %feature("compactdefaultargs");
+
+            2) Keyword arguments (kwargs) are working again for default arguments
+               in the languages that support it, ie, Python and Ruby. The new default
+               argument wrapping approach using overloaded methods cannot support kwargs
+               so the compact default argument feature is automatically turned on when
+               kwargs are specified, by %feature("kwargs").
+
+            3) Compact default arguments are also automatically turned on when wrapping
+               C (not C++) code. This is to support the bizarre notion of default arguments
+               for C code.
+
+10/20/2004: wsfulton
+            Overloaded templated functions in namespaces also working now.
+            Templated functions with default arguments in namespaces too.
+
+10/19/2004: mmatus
+
+	    - Allow to disable the new SwigValueWrapper mechanism,
+	      if you add the following line in your language main.
+
+		 /* Turn on safe value wrapper use mode */
+                 Swig_value_wrapper_mode(1);
+
+	      
+	      Now is only active in python. All the other languages
+	      are using the old resolution, but they  can also use the
+	      "valuewrapper"/"novaluewrapper" features to fix some
+	      of the old broken cases. Note, however,  that not all 
+	      the broken cases can be solved in that way.
+
+	      The new mechanism seems to be working fine in perl, ruby
+	      and tcl, but failing in some typemaps in java.
+
+	      Hence, is upto the language maintainer to test it, and
+	      decide to enable it or not.
+
+	      Look at the valuewrapper_opaque.i for examples.
+
+	    - Fix more SwigValueWrapper cases when the new mechanism
+	      is active. Now it also check for local typemap
+	      variables, see valuewrapper_opaque.i for an example when
+	      this is needed. But again, this extra checking will only
+	      be activated when using the new value wrapper mode.
+
+	    - [Python] Fix variable wrapping of classes with private
+	      assign operators. It should be easy to fix in all the 
+	      other modules, instead of checking
+
+	         if (!Getattr(n,"immutable")) ...
+	
+	      you need to verify
+
+	         if (is_assignable(n)) ...
+
+	      Look at the private_assign.i for an example.
+
+10/18/2004: mmatus
+	    - %features "director"/"nodirector" now work as expected.
+            - General fixes in %feature to resolve function decl
+	      properly,
+	      
+	        %feature("hello") foo();
+	        char foo() ->  f()    // was working
+	        char *foo() -> f().p  // it wasn't
+ 
+
+            - Template + specialization + default template args now is
+	      working, (don't confuse with template + default arg
+	      values, that was solved before), now this ugly case is
+	      working:
+
+	        template <class T, class A = Alloc<T> >
+		struct Vector
+		{
+		   Vector(T a){}
+		};		   
+
+		template <>
+		struct Vector<double>
+		{
+		  Vector(){}
+		  int foo() { return 0; }
+                };
+
+	        %template(V_c) Vector<char, Alloc<char> >;
+	        %template(V_i) Vector<int>;    // picks Vector<int,Alloc<int> >
+	        %template(V_d) Vector<double>; // picks the specialization
+	      
+              this is needed for automatic STL support (later will
+              be).
+
+	    - Fix the template + typedef errors in test-suite, which
+              probably will fix another group of strange template +
+              namespaces + typedefs errors.
+
+	    - %warnfilter is working better now, parser.y tries to use
+	      them when needed.
+
+	    - **** New default type resolution method (stype.c) ***** 
+
+	      It preserves the original mixed types, then it goes
+	      'backward' first deleting the qualifier, then the inner
+	      types, for example:
+    		 							  
+    		 typedef A *Aptr;				  
+    		 const Aptr&;						
+    		 r.q(const).Aptr       -> r.q(const).p.SWIGTYPE		
+    		 r.q(const).p.SWIGTYPE -> r.p.SWIGTYPE			
+    		 r.p.SWIGTYPE          -> r.SWIGTYPE			
+    		 r.SWIGTYPE            -> SWIGTYPE			
+		 							
+    		 enum Hello {};						
+    		 const Hello& hi;					
+    		 r.q(const).Hello          -> r.q(const).enum SWIGTYPE	
+    		 r.q(const).enum SWIGTYPE  -> r.enum SWIGTYPE		
+    		 r.enum SWIGTYPE           -> r.SWIGTYPE		
+    		 r.SWIGTYPE                -> SWIGTYPE			
+		 							
+    		 int a[2][4];						
+    		 a(2).a(4).int           -> a(ANY).a(ANY).SWIGTYPE	
+    		 a(ANY).a(ANY).SWIGTYPE  -> a(ANY).a().SWIGTYPE		
+    		 a(ANY).a().SWIGTYPE     -> a(ANY).p.SWIGTYPE		
+    		 a(ANY).p.SWIGTYPE       -> a(ANY).SWIGTYPE		
+    		 a(ANY).SWIGTYPE         -> a().SWIGTYPE		
+    		 a().SWIGTYPE            -> p.SWIGTYPE			
+    		 p.SWIGTYPE              -> SWIGTYPE                    
+
+	      before it always stops after finding ref/pointer/enum/array/etc.
+	       
+	      Now, then, you can define (use and apply) 'higher' typemaps such as:
+
+                %typemap(in) SWIGTYPE* const&  
+	        %typemap(out) char FIXSIZE[ANY]
+                %typemap(in) SWIGTYPE* const&  
+	        %typemap(in) const enum SWIGTYPE&
+	        %typemap(in) SWIGTYPE[ANY][ANY]
+	        %typemap(in) const char (&)[ANY]
+	       
+	      It is possible with this change that previous typemaps
+	      that were defined (but ignored), now will start to work.
+
+	      Also, it is necessary check for the '%typemap(varin) SWIGTYPE[]',
+	      before it was usually not defined (but char[] was),
+	      and that can produce some inconsistencies.
+
+                      *** POTENTIAL INCOMPATIBILITY ***
+
+	      This change was needed for STL, since std::vector<enum Hello> 
+	      std::vector<A*>, etc, will always generate methods that
+	      mix const references with the vector type.
+
+	      Now that is working, all the std::container<T*>
+	      specialization will not be needed anymore, well, in
+	      theory. 
+
+	      In the practice, everythin is working as before until
+	      the proper mixed types are defined and the libraries
+	      simplified to use them.
+
+	    - Change the behavior of extern "java"/"fortran"/"etc", 
+	      now swig produces a warning, and use extern "C" instead.
+	      The warning can also be disable with the "-w 313" flag.
+	      (WARN_PARSE_UNDEFINED_EXTERN).
+
+	    - SwigValueWrapper is now more selective (lang.cxx).
+
+            [Perl/Tcl]
+	    - Fix some typemaps (perl/tcl) to work properly with
+	      SwigValueWrapper. This was not a problem with
+	      SwigValueWrapper, but with the typemaps that now are
+	      safe to use with %apply.
+
+	    [Python]
+
+            - Fix %callback/%pythoncallback work now as before after
+	      the def args changes. Also, %callback now is an alias
+	      for %pythoncallback, so, they do the same.
+
+	    [Python/Ruby]
+	    - %callback is more usable and uniform:
+
+                 %callback("%s_cb") foo();  // for both, python/ruby
+                 %callback("%s_cb");        // for both, python/ruby
+                 %callback(1) foo();        // only in python.
+
+10/17/2004: arty
+	    [OCAML]
+	    - Tweak to enum typing for soundness in the presence of multiple
+	      modules.
+	    - global functions are now unambiguous in multiple loaded modules.
+	    - Fixed test case code to build multimodule test cases correctly.
+	    - There is no way to share overload resolution across modules
+	      because of soundness issues.  If the user wants to call some
+	      function foo from an arbitrary module bar, they will have to
+	      use Bar._foo to call it correctly.  Later I will fix the 
+	      camlp4 module to do something clever in this case.  
+            - Promided performance overhaul of class mechanism.
+	    - Removed symbol hack for ocaml-3.07 and below which is not needed
+	      for ocaml-3.08 and above.
+
+10/16/2004: wuzzeb (John Lenz)
+            [CHICKEN]
+	    - Completly change how chicken.cxx handles CLOS and generic code.
+	      chicken no longer exports -clos.scm and -generic.scm.  The clos
+	      code is exported directly into the module.scm file if -proxy is passed.
+	    - The code now always exports a unit.  Running the test-suite is now
+	      majorly broken, and needs to be fixed.
+	    - CLOS now generates virtual slots for member variables similar to how
+	      GOOPS support works in the guile module.
+	    - chicken no longer prefixes symbols by the module name, and no longer
+	      forces all names to lower case.  It now has -useclassprefix and -closprefix
+	      similar to how guile handles GOOPS names.
+
+10/16/2004: wsfulton
+            Templated functions with default arguments working with new default argument
+            wrapping approach. The new approach no longer fails with the following default
+            argument pattern (previously failed with some primitive types, like 
+            unsigned primitive types):
+
+              template<typename T> int foo(const T& u = T());
+              %template(foo) foo<unsigned int>;
+
+            This relies on the templated function overloading support just added, so all
+            the combinations of overloading by template parameters and normal parameters
+            as well as overloading with default parameters works.
+
+10/16/2004: wsfulton
+            Added support for the large range of templated function overloading that C++
+            supports.
+
+            - Overloaded templated functions, eg
+
+              template<typename T> int overload(T t);
+              template<typename T> int overload(T t, const T &r);
+
+            - Fixes where the templated type is not used in the parameter list, eg
+
+              template<typename T> void xyz();
+              template<> void xyz<double>();
+
+            - Fixes for overloading of plain functions by a templated function:
+
+              void abc(double d);
+              template<typename T> void abc(T t);
+
+            - Overloading by templated parameters fixed:
+
+              template<typename T> void foo(T t) {}
+              template<typename T, typename U> void foo(T t, U u) {}
+
+              %template(foo) foo<double, double>;
+
+            - All combinations of the above also working including specializations, eg:
+
+              void abc(double d);
+              template<typename T> void abc(T t);
+              template<> void abc<double>(double t);
+              template<> void abc(int t);
+
+10/16/2004: wuzzeb (John Lenz)
+            - Remove the ability to share type information by using c linking.
+              All type sharing happens through a global variable in the target language.
+                + Remove SWIG_NOIMPORT, SWIG_RUNTIME, and related defines.
+                + Depreciate -runtime, -noruntime command line options
+                + Update test-suite common.mk to correctly build multicpptest
+                + Remove reference to precommon.swg
+                + Update the guile_gh interface to share data by a global var instead
+                  of c linkage.
+
+            - Remove Advanced.html, since everything in it is now obsolete
+
+10/09/2004: mmatus
+	    - Split the python std/STL C++ library files, now
+	      all the language independent definitions are under
+	      the directory
+	      
+		Lib/std
+
+	      and hence, can be used from other languages.
+
+	    - Add more documentation to the Python STL, and
+	      clean unnecessary code.
+
+	    - Add initial C99 complex support, and some fixes
+	      for long double.
+
+10/08/2004: mmatus
+	    - Fix the SwigValueWrapper for opaque types, now it is 
+	      applied for opaque templates and classes, for which we
+	      don't know if there is or not a default constructor, ie
+
+                 struct A { 
+                   A(int);
+                 };
+ 
+              Still, if you know that you class has a default
+              constructor, and for some very very particular reason
+              you want to avoid the SwigValueWrapper, and you don't
+              want or can't expose the class to swig, now you can
+              say
+
+                 %feature("novaluewrapper") A;    
+                 class A;
+               
+              or the other way around, if the class has a default
+              constructor, but you want to use the value wrapper, you
+              can say
+
+                 %feature("valuewrapper") A;
+                 struct A { 
+                   A();
+		   ....
+                 };   
+      
+	    - Fix for char > 128, ie
+
+                const char tilde_a = '\341';
+
+            - Add patch 1041858 for $lextype, which carries the 
+              literal type of a symbol. See lextype.i in the
+              test-suite for more details.
+
+                            
+ 
+
+10/07/2004: wsfulton
+	    {Ruby, Java] Fix director + 'empty' throws
+
+		    struct A {
+		      A() throw();
+		      virtual ~A() throw();
+		      int foo() throw();
+		    };
+
+
+10/06/2004: wuzzeb (John Lenz)
+            [TCL]
+            - Fix bug reported by William A. Hoffman propagating clientdata
+            between modules.  Added clientdata_prop.multicpptest to check for
+            this bug.  The fix involved the following changes:
+                + SwigType_clientdata_collect does not need to check
+                types in r_resolved because we only want to propagate clientdata
+                to typedefed classes, and r_mangled already takes care of typedefs.
+
+                + SWIG_TypeRegister now copies the clientdata field correctly
+
+                + Move SWIG_Guile_PropagateClientData function from guile module
+                into common.swg, because we need to call it from both guile and tcl.
+
+                + Add base_names to swig_class to delay the lookup of bases.  SWIG
+                now exports the base names and only when the base swig_class is
+                needed is SWIG_TypeQuery(name)->clientdata looked up.
+
+            - conversion_ns_template testsuite test was failing because
+            the name of the wrapped constructor function was not calculated
+            correctly for structs.  Fixed.
+
+10/06/2004: wsfulton
+            Fixes for default arguments used in directors - in virtual
+            methods and director constructors.
+
+10/06/2004: mmatus
+	    Fix the __cplusplus macro, and bug 1041170.
+	    Now it is working as supposed, ie, you can safely use
+
+	      #ifdef __cplusplus
+	      ...
+	    
+	    all over swig, including inside %defines and %{ %} bodies.
+
+	    
+                      *** POTENTIAL INCOMPATIBILITY ***
+
+	    The old trick of using
+
+	      #if __cplusplus
+
+	    doesn't work any more. So, if you have your own typemaps
+	    using that syntax, you will need to migrate them to use
+	    "#ifdef __cplusplus".
+
+10/05/2004: wuzzeb (John Lenz)
+            - Reorganize how runtime type information is stored and shared
+	    between modules.  For chicken and mzscheme, I removed
+	    the ability to use runtime libraries, while perl, tcl, python, and
+	    ruby default to using the new method but can go back to the old
+	    method by declaring SWIG_ALLOW_RUNTIME.
+
+	    - line 582 in mzscheme.cxx was generating a segfault on 
+	    imports.multicpptest, so I fixed it.
+
+10/05/2004: wsfulton
+            Fixes for %extend and overloaded static methods with default
+            arguments.
+
+10/05/2004: mmatus
+	    - [python] Fix director + method with 'empty' throw, ie
+
+		    struct A {
+		      virtual int foo() throw();
+		    };
+		    
+	      other languages should also easy to fix, look for
+	      Getattr(n,"throw") in python.cxx.
+
+	    - Fix director + destructor with 'empty' throw
+
+		    struct A {
+		      virtual ~A() throw();
+		    };
+
+	    - Now SWIG_FEATURES parse all and the same  options you
+              can pass to swig in the command line.
+	      
+	    - New command line flag: -features <list>, as in
+
+	        swig -features autodoc=3,director
+
+	      ie, any global feature can be initialized from the
+	      command line. This is mainly for testing, but users
+	      can also take advantage of it.
+
+10/04/2004: mmatus
+	    - Properly qualify type in syntax as 'long(2)' or 'Foo()',
+	      this solve old problem with default args, and probably
+	      other problems around. However, the default arg problem
+	      was also already solved by William (see bellow).
+
+	    - Fix feature_set and feature_get methods. Before
+	      they look from particular to general and keep the first
+	      feature found. This didn't work well with templates.
+	      Now the methods look from general to particular, and
+	      override any found feature.
+
+            - Previously a feature could not be applied to constructors
+              or destructors that weren't explicitly declared in the class.
+              This is now fixed, for example:
+
+                %feature("featurename") Foo() "..."
+                %feature("featurename") ~Foo() "..."
+                class Foo {
+                  // implicit Foo() and ~Foo()
+                };
+
+	    - Fix missing features for default const/dest, by really
+	      'creating' the methods and applying the features.
+
+	    - Fix return_const_value.i case by adding SwigValueWrapper<const T>
+	      specialization.
+
+	    - Fix %extend + overload, including overloading actual
+              class methods. 
+
+	    - Adding more cases in related files in the test-suite.  
+
+10/04/2004: wsfulton
+            Changes to the way default arguments are wrapped. Previously a single
+            method was generated for each method that had default arguments. If
+            a method had 5 arguments, say, of which 1 had a default argument
+            then the call to the wrapped method would pass 5 arguments. The default
+            value was copied into the wrapper method and used if the scripting
+            language passed just 4 arguments. However, this was flawed as the
+            default argument sometimes does not have global access, for example
+            SWIG would generate code that couldn't compile when wrapping:
+
+              class Tricky {
+              public:
+                void foo(int val = privatevalue);
+                void bar(int val = Tricky::getDefault());
+              private:
+                static int getDefault();
+                enum { privatevalue = 200 };
+              };
+
+            Also bugs in resolving symbols generated code that wouldn't compile, for example
+            (probably fixable though):
+
+              namespace Space {
+                class Klass {
+                };
+                Klass constructorcall(const Klass& k = Klass());
+              }
+
+            The approach also does not work for statically typed languages (C# and Java)
+            as these languages do not allow methods to have variable number of arguments.
+            Although C# has a mechanism to pass a variable number of arguments they
+            must be of the same type and are more like varargs.
+
+            The new approach solves the above problems and wraps methods with default
+            arguments as if the method was overloaded. So SWIG will now treat
+
+              void foo(int val=0);
+
+            as if it had parsed:
+
+              void foo(int);
+              void foo();
+
+            The code generated is then exactly the same as if SWIG had parsed the two
+            overloaded methods. The scripting languages count the arguments passed and call
+            the appropriate method, just like overloaded methods. C# and Java are now able
+            to properly wrap methods with default arguments by generating extra methods,
+            again as if the method was overloaded, so for:
+
+              void bar(string s="hello", double d=10.0, int i=0);
+
+            the following proxy methods are generated:
+
+              void bar(string s, double d, int i);
+              void bar(string s, double d);
+              void bar(string s);
+              void bar();
+
+            The new approach comes with a couple of minor knock on effects.
+
+            1) SWIG support for default arguments for C (not C++) code no longer works.
+            Previously you could have this interface:
+
+              %{
+              void foo(int val);
+              %}
+              void foo(int val=0);
+
+            and call the wrapped method from a scripting language and pass no arguments
+            whereupon the default of 0 was used. You can get the same behaviour for C
+            code by using the "default" typemap:
+
+              %typemap(default) int val "$1 = 0;";
+              %{
+              void foo(int val);
+              %}
+              void foo(int val);
+
+            or you could of course compile your code as C++ if you want C++ features :) :
+
+              %{
+              void foo(int val=0);
+              %}
+              void foo(int val=0);
+
+            A couple of SWIG's libraries used this C extension and these have been modified
+            to use the "default" typemap. The "default" typemap is thus unchanged (and still
+            is not and is not fully supported by C# and Java, and is likely to remain so).
+
+
+            2) All features (%feature, %rename, %ignore etc) no longer work as if the method
+            with default arguments is just one method. For example, previously
+
+              %ignore foo(int);
+
+            would have ignored the method completely. Now it will only ignore foo(int) but
+            not the extra foo() method. Instead use:
+
+              %ignore foo;
+
+            to ignore them all. or
+
+              %ignore foo(int);
+              %ignore foo();
+
+            This of course allows one to fine tune the wrapping, for example one could use:
+
+              %rename(fooint) foo(int);
+              %rename(foodefaults) foo();
+              void foo(int val=0);
+
+            and call them from any language like so:
+
+              fooint(200)
+              foodefaults()
+
+            or for example ignore the extra overloaded method, so the defaults cannot be used:
+
+              %ignore foo();
+              void foo(int val=0);
+
+                      *** POTENTIAL INCOMPATIBILITY ***
+
+10/2/2004: mmatus
+	   [Python]
+	   - More cleaning up and uniformation on the Python Lib
+
+	   - Added Robin's docstring patch, plus some fixes, plus
+	     some extensions, see autodoc.i example in the test-suite,
+	     and try using %feature("autodoc","extended").
+	    
+	     This patch is not a complete solution for the
+	     documentation problem, just enough to inform python about
+	     the parameter list.
+
+	     The expected swig documentation support is far far away yet.
+	     
+
+10/1/2004: mmatus
+	   - Fix the %callback feature (only used in ruby and python examples,
+	     by now, but it should be generic), now member callbacks
+	     are working again
+	     
+	   - Fix wrapping of functions pointers like
+
+		 std::ostream& std::endl(std::ostream&);
+
+	     ie, the ones that return references or enums.
+	 
+	   [Python] Add the %pythoncallback directive, which is 
+	   an improved version of %callback, ie,
+
+	     %pythoncallback(1) foo;
+	     %pythoncallback(1) A::bar;
+	     %pythoncallback(1) A::barm;
+
+	     int foo(int a) {
+	         return a;
+	     }
+  
+	     struct A 
+	     {
+	       static int bar(int a);
+	       int barm(int a);
+
+	     };
+
+             int foobar(int a, int (*pf)(int a));
+
+	   in python you can use
+
+             foo(2)
+	     foobar(2,foo)
+             A.bar(2)
+	     foobar(2,A.bar)
+          
+           ie, no additional pointer elements are created, and
+	   the original 'foo' and 'A.bar' can be used as parameters.
+
+	   In the case of member fucntion however, still you need
+	   to use the special variable Class::<fnc_name>_cb_ptr, ie:
+
+ 	     foobarm(3, a, A.barm_cb_ptr)
+	   
+	   we will try to fix this situation also, but later.  
+
+	   [Python] Add more elements from the STL library, now
+	   you can use
+
+	     import std
+	     std.cout << "hello " << 123 << std.endl
+
+	   [Python] Fix in/out return mechanism, now swig will behave
+	   as 1.3.21 but using a python list when needed. The problem
+	   is that the types std::pair,std::vector,etc, use tuples,
+	   and they interfer with the previous inout tuple type.
+
+	   By using lists we solve the conflicts, swig acts as before,
+	   but returns a list when more than one parameter are using
+	   the OUT typemap. See the new inout.i example in the
+	   test-suite.
+
+            *** POTENTIAL INCOMPATIBILITY FOR PYTHON MODULE ***
+		   
+           [Python] Much better error messages for bad arguments, now
+	   you always get the argument number where the error occurred.
+
+09/27/2004: wsfulton
+            Patch from Bill Clarke -
+            1) Warning emitted when -importall and -includeall is used together,
+               with -includeall taking precedence.
+            2) Ensure SWIGIMPORTED is always defined when a file is being
+               imported with %import. Note that this is not the same as SWIGIMPORT,
+               which gets defined in all generated wrapper files.
+
+09/26/2004: mmatus
+
+	    - add %feature("exceptionclass") to identify a class used
+	      as exception. Before swig identified and marked a class
+	      using the "cplus:exceptionclass" attribute. However, the
+	      class needed to appear on an throw() statement.  Now
+	      swig keeps trying to identify the exception classes, as
+	      before, but it also allows the user to mark a class by
+	      using the %feature explicitly. (mostly relevant for
+	      python and chicken)
+
+	    [Python]
+
+	    - fix -modern option + exceptions, which mix old class
+	      style with the new one. So, we always need to emit
+	      the "nonmodern" python code.
+
+	    - add the "python:nondynamic" feature and its handler
+
+	      now if you have
+	      
+	      %pythonnondynamic(1) A;
+	      
+	      struct A {
+	       int a;
+	       int b;
+	      };
+
+	      then, in the python side
+	      
+	      aa = A()
+	      
+	      aa.a = 1 # ok
+	      aa.b = 2 # ok
+	      aa.c = 3 # error, the class can not be extended dynamically.
+
+	    
+	    Since this is a feature, you can use
+
+	      %pythonnondynamic(1);
+
+            or 
+
+	      %pythondynamic(0);
+   
+	    to force all the wrapped classes to be "nondynamic" ones.
+
+	    The default, as in regular python, is that all the wrapped
+	    classes are dynamics. So, careful with your spelling.
+
+09/14/2004: mmatus 
+	    - Support the -I- option.
+
+	    - Differentiate between %include <file> and %include "file".
+	      This fix several corner cases.
+
+	    
+	    [Python] Several patches:
+
+	    - Normalize the Lib file names: 
+		*.swg internal files, 
+		*.i   user files.
+
+	    - Fix Char[ANY] typemaps, so they also delete any extra '\0' chars,
+	      now they behave as before (1.3.21). Still, you can use
+	      the SWIG_PRESERVE_CARRAY_SIZE macro if you need to
+	      preserve the original size (see pystrbase.swg).
+
+	    - Add the Char FIXSIZE[ANY] typemaps, to preserve the
+              original C array sizes (see above). Though, you can't
+              use them yet since %apply and arrays are not working
+              together.
+
+            - Add pyfragments.swg, now the user can add fragments
+	      to override the default ones.
+
+09/10/2004: wsfulton
+            Patch from Bill Clarke which fixes spurious preprocessor bug which
+            shows on Solaris and gcc, eg:
+                Warning(202): Could not evaluate '!defined(SWIGJAVA) &&
+                !(defined(SWIGCSHARP)'
+            Also fixes a bug where '#if "a" == "b" == 1' wouldn't have worked 
+
+09/10/2004: wsfulton
+            Restored multiple build directories for the test-suite. Patch from
+            Bill Clarke.
+
+09/06/2004: wsfulton
+            Added the missing runtime.dsp Visual Studio project files for the
+            import examples to work.
+
+
 Version 1.3.22 (September 4, 2004)
 ==================================
 
