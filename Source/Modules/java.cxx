@@ -3114,14 +3114,12 @@ class JAVA : public Language {
              * intermediate's upcall code */
             if ((tm = Getattr(p, "tmap:jtype")) != NULL) {
               String   *din;
-              Node     *canon_node = canonicalizeType(n, pt);
-              String   *canon_type = (canon_node ? Getattr(canon_node, "sym:name") : pt);
               
               din = Copy(Getattr(p, "tmap:javadirectorin"));
 
               if (din != NULL) {
                 Replaceall(din, "$module", module_class_name);
-                Replaceall(din, "$javaclassname", canon_type);
+                substituteClassname(pt, din);
                 Replaceall(din, "$jniinput", ln);
 
                 Printf(imw->def, ", %s %s", tm, ln);
@@ -3238,12 +3236,10 @@ class JAVA : public Language {
     if (!is_void) {
       Parm   *tp = NewParm(return_type, empty_str);
       String *base_type = SwigType_base(return_type);
-      Node *canon_node = canonicalizeType(n, return_type);
-      String *canon_type = (canon_node ? Getattr(canon_node, "sym:name") : base_type);
 
       tm = Swig_typemap_lookup_new("javadirectorout", tp, "", 0);
       if (tm != NULL) {
-        Replaceall(tm, "$javaclassname", canon_type);
+     	  substituteClassname(base_type, tm);
         Replaceall(tm, "$javacall", upcall);
 
         Printf(imw->code, "return %s;\n", tm);
