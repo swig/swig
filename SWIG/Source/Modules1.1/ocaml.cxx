@@ -1372,13 +1372,7 @@ class OCAML : public Language {
     int namespaceDeclaration(Node *n) {
 	if(Getattr(n,"alias")) return SWIG_OK;
 	if(Getattr(n,"name")) {
-	    int rv;
-
-	    //Printf(stderr,"Namespace name is %s\n",GetChar(n,"name"));
-
-	    emit_children(n);
-
-	    return rv;
+	    return emit_children(n);
 	} else return Language::namespaceDeclaration(n);
     }
 
