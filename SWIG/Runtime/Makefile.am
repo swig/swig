@@ -193,7 +193,10 @@ MZC = @MZC@
 SO = @SO@
 RELEASESUFFIX   = @release_suffix@
 
-libswigmz.la: .libs/libswigmz$(RELEASESUFFIX)$(SO)
+# Add in non Libtool targets
+if !SKIP_MZSCHEME
+all-local: .libs/libswigmz$(RELEASESUFFIX)$(SO)
+endif
 
 .libs/libswigmz$(RELEASESUFFIX)$(SO): $(MZSCHEME_RUNTIME)
 	rm -f libmz.c
