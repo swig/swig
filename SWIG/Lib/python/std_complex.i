@@ -5,59 +5,75 @@
 
 %{
 #include <complex>
-%} 
 
-namespace std 
+static inline int
+SwigComplex_Check(PyObject *o)
 {
-  template <class T> class complex;  
+  return (PyComplex_Check(o) || PyFloat_Check(o) || PyInt_Check(o)) ? 1 : 0;
+}
+ 
+template <class __Complex>
+__Complex
+SwigComplex_As(PyObject *o)
+{
+  if (PyComplex_Check(o)) {
+    return __Complex(PyComplex_RealAsDouble(o), PyComplex_ImagAsDouble(o));
+  } else if (PyFloat_Check(o)) {
+    return __Complex(PyFloat_AsDouble(o), 0);
+  } else if (PyInt_Check(o)) {
+    return __Complex(PyInt_AsLong(o), 0);
+  } else {
+    PyErr_SetString(PyExc_TypeError, "Expecting a complex or compatible type");
+    return __Complex(0,0);
+  }
+}
+
+static inline std::complex<double>
+SwigComplex_AsComplexDouble(PyObject *o)
+{
+  return SwigComplex_As<std::complex<double> >(o);
+}
+ 
+ 
+%}
+
+
+%define swig_specialize_complex(Complex)
   
-  %define specialize_std_complex(T)
-  
-  %typemap(in) complex<T> {
-    if (PyComplex_Check($input)) {
-      $1 = std::complex<T>(PyComplex_RealAsDouble($input),
-			   PyComplex_ImagAsDouble($input));
-    } else if (PyFloat_Check($input)) {
-      $1 = std::complex<T>(PyFloat_AsDouble($input), 0);
-    } else if (PyInt_Check($input)) {
-      $1 = std::complex<T>(PyInt_AsLong($input), 0);
-    }
-    else {
-      PyErr_SetString(PyExc_TypeError,"Expected a complex");
-      SWIG_fail;
-    }
-  }  
-  
-  %typemap(in) const complex<T>& (std::complex<T> temp) {
-    if (PyComplex_Check($input)) {
-      temp = std::complex<T>(PyComplex_RealAsDouble($input),
-			     PyComplex_ImagAsDouble($input));
-      $1 = &temp;
-    } else if (PyFloat_Check($input)) {
-      temp = std::complex<T>(PyFloat_AsDouble($input), 0);
-      $1 = &temp;
-    } else if (PyInt_Check($input)) {
-      temp = std::complex<T>(PyInt_AsLong($input), 0);
-      $1 = &temp;
-    } else {	
-      PyErr_SetString(PyExc_TypeError,"Expected a complex");
-      SWIG_fail;
-    }
+  %typecheck(SWIG_TYPECHECK_COMPLEX)
+  Complex, const Complex&
+  {
+    $1 = SwigComplex_Check($input);
   }
   
-  %typemap(out) complex<T> {
+  %typemap(in) Complex {
+    $1 = SwigComplex_As< Complex >($input);
+    if (PyErr_Occurred()) SWIG_fail;
+  }  
+  
+  %typemap(in) const Complex& (Complex temp) {
+    temp = SwigComplex_As< Complex >($input);
+    if (PyErr_Occurred()) SWIG_fail;
+    $1 = &temp;
+  }
+  
+  %typemap(out) Complex {
     $result = PyComplex_FromDoubles($1.real(), $1.imag());
   }
   
-  %typemap(out) const complex<T> & {
+  %typemap(out) const Complex & {
     $result = PyComplex_FromDoubles($1->real(), $1->imag());
   }
 
-  %enddef  
+%enddef  
      
-  specialize_std_complex(double);
-  specialize_std_complex(float);
+namespace std
+{
+  template <class T> class complex;  
 }
+
+swig_specialize_complex(std::complex<float>);
+swig_specialize_complex(std::complex<double>);
   
 #endif // SWIG
 
