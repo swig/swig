@@ -2,6 +2,8 @@
  * Test Java director typemaps and features
  */
 
+%warnfilter(470); /* Thread/reentrant unsafe wrapping, consider returning by value instead. */
+
 %module(directors="1") java_director
 
 %typemap(javafinalize) SWIGTYPE %{
@@ -64,7 +66,7 @@ private:
 %include "std_string.i"
 
 %feature("director") Quux;
-SWIG_DIRECTOR_OWNED(Quux)
+//SWIG_DIRECTOR_OWNED(Quux)
 
 class Quux {
 public:
