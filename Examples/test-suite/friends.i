@@ -3,7 +3,7 @@
 #include <istream>
 %}
 
-#pragma SWIG nowarn=-503
+%warnfilter(503);
 
   
 %inline 

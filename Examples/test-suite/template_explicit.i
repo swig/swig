@@ -4,7 +4,7 @@
 %warnfilter(801) vector<int>;         /* Ruby, wrong class name */
 %warnfilter(801) vector<double>;      /* Ruby, wrong class name */
 %warnfilter(801) vector<int (*)[10]>; /* Ruby, wrong class name */
-#pragma SWIG nowarn=320
+%warnfilter(320);
 
 /* Let's just grab the original header file here */
 

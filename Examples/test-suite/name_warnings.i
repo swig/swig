@@ -10,7 +10,7 @@
 */
 
 /* activate all the name warnings */
-#pragma SWIG nowarn=+315,+321,-403
+%warnfilter(+315,+321,-403);
 
 %inline 
 {

@@ -82,9 +82,9 @@
 // Try your language module with and without 
 // these nowarn flags.
 //
-#pragma SWIG nowarn=451
- //#pragma SWIG nowarn=515
- //#pragma SWIG nowarn=509
+%warnfilter(451);
+//%warnfilter(515);
+//%warnfilter(509);
 
 %{
 #include <stddef.h>

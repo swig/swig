@@ -27,6 +27,8 @@ typedef struct pool {
   int            len;            /* Length of pool */
   int            blen;           /* Byte length of pool */
   int            current;        /* Current position for next allocation */
+  char*          pbeg;           /* Beg of pool */
+  char*          pend;           /* End of pool */
   struct  pool  *next;           /* Next pool */
 } Pool;
 
@@ -49,6 +51,8 @@ CreatePool() {
   p->len = PoolSize;
   p->blen = PoolSize*sizeof(DohBase);
   p->current = 0;
+  p->pbeg = ((char *)p->ptr);
+  p->pend = p->pbeg + p->blen;
   p->next = Pools;
   Pools = p;
 }
@@ -74,12 +78,10 @@ InitPools() {
 
 int 
 DohCheck(const DOH *ptr) {
-  Pool *p = Pools;
+  register Pool *p = Pools;
   register char *cptr = (char *) ptr;
-  register char *pptr;
   while (p) {
-    pptr = (char *) p->ptr;
-    if ((cptr >= pptr) && (cptr < (pptr + p->blen))) return 1;
+    if ((cptr >= p->pbeg) && (cptr < p->pend)) return 1;
     /*
     pptr = (char *) p->ptr;
     if ((cptr >= pptr) && (cptr < (pptr+(p->current*sizeof(DohBase))))) return 1; */

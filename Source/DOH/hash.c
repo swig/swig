@@ -249,13 +249,18 @@ static DOH *
 Hash_getattr(DOH *ho, DOH *k) {
     int hv;
     HashNode *n;
+    DohObjInfo *k_type;
+    DohBase *nk;
+
     Hash *h = (Hash *) ObjData(ho);
 
     if (!DohCheck(k)) k = find_key(k);
     hv = Hashval(k) % h->hashsize;
     n = h->hashtable[hv];
+    k_type = ((DohBase*)k)->type;
     while (n) {
-      if (Cmp(n->key, k) == 0) return n->object;
+      nk = n->key;
+      if ((k_type == nk->type) && ((k_type->doh_cmp)(k, nk) == 0)) return n->object;
       n = n->next;
     }
     return 0;

@@ -142,7 +142,9 @@ int
 DohHashval(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
-  if (DohCheck(b)) {
+  /* obj is already checked and/or converted into DohBase* */
+  /*  if (DohCheck(b)) */
+  {
     objinfo = b->type;
     if (objinfo->doh_hashval) {
       return (objinfo->doh_hashval)(b);
@@ -173,17 +175,33 @@ DohData(const DOH *obj) {
  * DohCmp()
  * ----------------------------------------------------------------------------- */
 
+#define RawData(b) ((b->type->doh_data) ? (b->type->doh_data)(b) : 0)
+
+/*
+static void *
+RawData(DohBase *b) {
+  DohObjInfo *objinfo = b->type;
+  return (objinfo->doh_data) ? (objinfo->doh_data)(b) : 0;
+}
+*/
+
+
 int
 DohCmp(const DOH *obj1, const DOH *obj2) {
   DohBase *b1, *b2;
   DohObjInfo *b1info, *b2info;
+  int c1, c2;
   b1 = (DohBase *) obj1;
   b2 = (DohBase *) obj2;
-  if ((!DohCheck(b1)) || (!DohCheck(b2))) {
+  c1 = DohCheck(b1);
+  c2 = DohCheck(b2);
+  /* most of the times, obj2 is a plain c string */  
+  if (!c1 || !c2) {
     if ((b1 == 0) && (b2 == 0)) return 0;
     if (b1 && !b2) return 1;
     if (!b1 &&  b2) return -1;
-    return strcmp((char *) DohData(b1),(char *) DohData(b2));
+    return strcmp((char *) (c1 ? RawData(b1) : (void*) obj1),
+		  (char *) (c2 ? RawData(b2) : (void*) obj2));
   }
   b1info = b1->type;
   b2info = b2->type;
