@@ -29,6 +29,8 @@ extern void  Preprocessor_init();
 extern DOH  *Preprocessor_parse(DOH *s);
 extern void  Preprocessor_include_all(int);
 extern void  Preprocessor_import_all(int);
+extern int   Preprocessor_errors(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -25,6 +25,7 @@ static int       include_all = 0;        /* Follow all includes */
 static int       import_all = 0;         /* Follow all includes, but as %import statements */
 static int       single_include = 1;     /* Only include each file once */
 static int       silent_errors = 0;
+static int       fatal_errors = 0;         
 static DOHHash  *included_files = 0;
 
 /* Handle an error */
@@ -40,6 +41,11 @@ static void cpp_error(DOHString *file, int line, char *fmt, ...) {
   }
   vPrintf(stderr,fmt,ap);
   va_end(ap);
+  fatal_errors++;
+}
+
+int Preprocessor_errors(void) {
+  return fatal_errors;
 }
 
 /* Test a character to see if it starts an identifier */
