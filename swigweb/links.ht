@@ -23,6 +23,7 @@ The <a href ="http://www.python.org"> Python </a> homepage. <br>
 <a href="http://www.sco.com/Technology/tcl/Tcl.html"> Tcl/Tk Information </a> <br>
 <a href="http://www.gnu.org/software/guile/guile.html">Guile</a> homepage. <br>
 <a href="http://www.ruby-lang.org/">Ruby</a> homepage. <br>
+<a href="http://java.sun.com/">Java</a> homepage at Sun. <br>
 </ul>
 
 <h3> Code generators and other interesting packages</h3>
@@ -48,7 +49,10 @@ A wrapper generator for interfacing C++ with [incr Tcl].<br>
 
 <a href="http://cens.ioc.ee/projects/f2py2e">f2py</a>. An interface generator for binding Fortran and Python.<br>
 
-<a href="http://www.boost.org/libs/python/doc/index.html">Boost Python Library</a>. Includes a powerful interface generator for wrapping C++ classes with a Python interface.
+<a href="http://www.boost.org/libs/python/doc/index.html">Boost Python Library</a>. Includes a powerful interface generator for wrapping C++ classes with a Python interface.<br>
+<a href="http://www.execpc.com/~deaven/Dave/Software/cxxwrap/">cxxwrap</a>. Java JNI wrapper code generator for C++.<br>
+<a href="http://www.excelsior-usa.com/xfunction.html">xFunction</a>. Java native code access library.<br>
+<a href="http://www.gnu.org/software/gcc/java/index.html">GCJ</a>. Gnu Compiler for Java - Part of GCC 3.0 and later. C++ and Java can be easily mixed together - Java objects are C++ objects and all Java classes are C++ classes using CNI, the alternative to JNI.<br>
 </ul>
 
 <h3> Other interesting links</h3>
