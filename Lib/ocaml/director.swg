@@ -9,13 +9,37 @@
  * Original Author : Mark Rose (mrose@stm.lbl.gov)
  ************************************************************************/
 
-%insert(runtime) %{
-
 #ifdef __cplusplus
 
 #include <string>
 
 namespace Swig {
+  /* base class for director exceptions */
+  class DirectorException {
+    protected:
+      std::string swig_msg;
+    public:
+      DirectorException(const char* msg="") {
+      }
+      const char *getMessage() const { 
+        return swig_msg.c_str(); 
+      }
+      virtual ~DirectorException() {}
+  };
+
+  /* type mismatch in the return value from a python method call */
+  class DirectorTypeMismatchException : public Swig::DirectorException {
+    public:
+      DirectorTypeMismatchException(const char* msg="") {
+      }
+  };
+
+  /* any python exception that occurs during a director method call */
+  class DirectorMethodException : public Swig::DirectorException {};
+
+  /* attempt to call a pure virtual method via a director method */
+  class DirectorPureVirtualException : public Swig::DirectorException {};
+
   /* simple thread abstraction for pthreads on win32 */
 #ifdef __THREAD__
 #define __PTHREAD__
@@ -37,8 +61,7 @@ namespace Swig {
       CAML_VALUE swig_self;
       /* flag indicating whether the object is owned by ocaml or c++ */
       mutable bool swig_disown_flag;
-      /* shared flag for breaking recursive director calls */
-      static bool swig_up;
+      mutable bool swig_up;
 
 #ifdef __PTHREAD__
       /* locks for sharing the swig_up flag in a threaded environment */
@@ -50,19 +73,20 @@ namespace Swig {
       /* reset the swig_up flag once the routing direction has been determined */
 #ifdef __PTHREAD__
       void swig_clear_up() const { 
-        Swig::Director::swig_up = false; 
+        swig_up = false; 
         Swig::Director::swig_mutex_active = false;
         pthread_mutex_unlock(&swig_mutex_up);
       }
+
 #else
       void swig_clear_up() const { 
-        Swig::Director::swig_up = false; 
+        swig_up = false; 
       }
 #endif
 
     public:
       /* wrap a ocaml object, optionally taking ownership */
-      Director(CAML_VALUE self, bool disown = false) : swig_self(self), swig_disown_flag(disown) {
+      Director(CAML_VALUE self, bool disown = false) : swig_self(self), swig_disown_flag(disown), swig_up( false ) {
         register_global_root(&swig_self);
       }
 
@@ -76,27 +100,28 @@ namespace Swig {
 
       /* return a pointer to the wrapped ocaml object */
       CAML_VALUE swig_get_self() const { 
-        return callback(*caml_named_value("caml_director_get_self"),swig_self); 
+	  return swig_self;
       }
 
       /* get the swig_up flag to determine if the method call should be routed
        * to the c++ base class or through the wrapped ocaml object
        */
 #ifdef __PTHREAD__
-      bool swig_get_up() const { 
+      bool swig_get_up( bool clear = true ) const { 
         if (Swig::Director::swig_mutex_active) {
           if (pthread_equal(Swig::Director::swig_mutex_thread, pthread_self())) {
             bool up = swig_up;
-            swig_clear_up();
+            if( clear ) swig_clear_up();
             return up;
           }
         }
         return false;
       }
+
 #else 
-      bool swig_get_up() const { 
+      bool swig_get_up( bool clear = true ) const { 
         bool up = swig_up;
-        swig_up = false;
+        if( clear ) swig_up = false;
         return up;
       }
 #endif
@@ -109,11 +134,11 @@ namespace Swig {
         pthread_mutex_lock(&Swig::Director::swig_mutex_up);
         Swig::Director::swig_mutex_thread = pthread_self();
         Swig::Director::swig_mutex_active = true;
-        Swig::Director::swig_up = true; 
+        swig_up = true; 
       }
 #else 
       void swig_set_up() const { 
-        Swig::Director::swig_up = true; 
+        swig_up = true; 
       }
 #endif
 
@@ -127,8 +152,6 @@ namespace Swig {
       }
   };
 
-  bool Swig::Director::swig_up = false;
-
 #ifdef __PTHREAD__
   MUTEX_INIT(Swig::Director::swig_mutex_up);
   pthread_t Swig::Director::swig_mutex_thread;
@@ -138,49 +161,3 @@ namespace Swig {
 }
 
 #endif /* __cplusplus */
-
-%}
-
-%insert(mli) %{
-    val new_derived_object: 
-        (c_obj -> c_obj) ->
-        (c_obj -> string -> c_obj -> c_obj) ->
-        c_obj -> c_obj
-%}
-
-%insert(ml) %{
-let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject obj)
-let _ = Callback.register "swig_runmethod" invoke
-
-let fnhelper fin f arg =
-  let args = match arg with C_list l -> l | C_void -> [] | _ -> [ arg ] in
-    match f args with
-	[] -> C_void
-      | [ x ] -> (if fin then Gc.finalise 
-		    (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
-      | lst -> C_list lst
-
-let addr_of obj = (invoke obj) "&" C_void
-let _ = Callback.register "caml_obj_ptr" addr_of
-
-let new_derived_object cfun x_class args =
-  begin
-    let get_object ob =
-      match !ob with
-          None ->
-    raise (NotObject C_void)
-        | Some o -> o in
-    let class_fun class_f ob_r =
-    (fun meth args -> class_f (get_object ob_r) meth args) in
-    let ob_ref = ref None in
-    let new_class = class_fun x_class ob_ref in
-    let obj =
-    cfun (match args with
-                C_list argl ->
-          (C_list ((C_director_core (C_obj new_class,ob_ref)) :: argl))
-          | a -> (C_list [ C_director_core 
-                           (C_obj new_class,ob_ref)  ; a ])) in
-    ob_ref := Some obj ;
-      obj
-  end
-%}

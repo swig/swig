@@ -258,9 +258,10 @@ public:
 		"let enum_to_int x v =\n"
 		"  match v with C_enum y -> (\n"
 		"  match (x : c_enum_type) with\n"
-		"   `unknown -> (match (y : c_enum_tag) with\n"
-		"     `int (x : int) -> C_int x\n"
-		"   | _ -> (raise (LabelNotFromThisEnum v)))\n" );
+		"   `unknown -> "
+		"    (match (y : c_enum_tag) with\n"
+		"      `int (x : int) -> C_int x\n"
+		"    | _ -> raise (LabelNotFromThisEnum v))\n" );
 
 	Printf( f_int_to_enum,
 		"let int_to_enum x y =\n"
@@ -268,6 +269,11 @@ public:
 		"      `unknown -> C_enum (`int y)\n" );
 
 	Swig_banner (f_runtime);
+
+	if( directorsEnabled() ) {
+	    Printf( f_runtime, "#define SWIG_DIRECTORS\n");
+	    Swig_insert_file("director.swg", f_directors_h);
+	}
     
 	if (NoInclude) {
 	    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
@@ -276,7 +282,10 @@ public:
 	/* Produce the enum_to_int and int_to_enum functions */
     
 	Printf(f_enumtypes_type,"type c_enum_type = [ \n  `unknown\n" );
-	Printf(f_enumtypes_value,"type c_enum_tag = [ \n  `int of int\n" );
+	Printf(f_enumtypes_value,
+	       "type c_enum_tag = [\n"
+	       "  `SWIGFake\n"
+	       "| `int of int\n" );
     
 	String *mlfile = NewString("");
 	String *mlifile = NewString("");
@@ -436,8 +445,6 @@ public:
 	int numargs;
 	int numreq;
 	int newobj = Getattr(n,"feature:new") ? 1 : 0;
-	Node *classNode = Swig_methodclass(n);
-	int hasVirtual = (classNode && (Getattr(classNode, "hasVirtual") != 0));
 	String *nodeType = Getattr(n, "nodeType");
 	int constructor = !Cmp(nodeType, "constructor");
 	String *storage = Getattr(n,"storage");
@@ -659,10 +666,13 @@ public:
 
 	if (CPlusPlus && directorsEnabled()) {
 	    if (!is_smart_pointer()) {
-		if (/*directorbase &&*/ hasVirtual && !constructor && isVirtual) {
+		if (/*directorbase &&*/ !constructor && isVirtual) {
 		    Wrapper_add_local(f, "director", "Swig::Director *director = 0");
 		    Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
-		    Printf(f->code, "if (director && (director->swig_get_self()==argv[0])) director->swig_set_up();\n");
+			   
+		    Printf(f->code, 
+			   "if (director && !director->swig_get_up(false))"
+			   "director->swig_set_up();\n");
 		}
 	    }
 	}
@@ -834,81 +844,75 @@ public:
 	// Build the name for scheme.
 	Printv(proc_name, iname, NIL);
 	
-	if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
-	    
-	    Printf (f->def, 
-		    "SWIGEXT CAML_VALUE %s(CAML_VALUE args) {\n", var_name);
-	    // Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
-	    
-	    Wrapper_add_local (f, "swig_result", "CAML_VALUE swig_result");
-	    
-	    if (!Getattr(n,"feature:immutable")) {
-		/* Check for a setting of the variable value */
-		Printf (f->code, "if (args != Val_int(0)) {\n");
-		if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
-		    Replaceall(tm,"$source","args");
-		    Replaceall(tm,"$target",name);
-		    Replaceall(tm,"$input","args");
-		    Printv(f->code, tm, "\n",NIL);
-		} else if ((tm = Swig_typemap_lookup_new("in",n,name,0))) {
-		    Replaceall(tm,"$source","args");
-		    Replaceall(tm,"$target",name);
-		    Replaceall(tm,"$input","args");
-		    Printv(f->code, tm, "\n",NIL);
-		} else {
-		    throw_unhandled_ocaml_type_error (t, "varin/in");
-		}
-		Printf (f->code, "}\n");
-	    }
-	    
-	    // Now return the value of the variable (regardless
-	    // of evaluating or setting)
-	    
-	    if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
-		Replaceall(tm,"$source",name);
-		Replaceall(tm,"$target","swig_result");
-		Replaceall(tm,"$result","swig_result");
-		Printf (f->code, "%s\n", tm);
-	    } else if ((tm   = Swig_typemap_lookup_new("out",n,name,0))) {
-		Replaceall(tm,"$source",name);
-		Replaceall(tm,"$target","swig_result");
-		Replaceall(tm,"$result","swig_result");
-		Printf (f->code, "%s\n", tm);
-		
+	Printf (f->def, 
+		"SWIGEXT CAML_VALUE %s(CAML_VALUE args) {\n", var_name);
+	// Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
+	
+	Wrapper_add_local (f, "swig_result", "CAML_VALUE swig_result");
+	
+	if (!Getattr(n,"feature:immutable")) {
+	    /* Check for a setting of the variable value */
+	    Printf (f->code, "if (args != Val_int(0)) {\n");
+	    if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
+		Replaceall(tm,"$source","args");
+		Replaceall(tm,"$target",name);
+		Replaceall(tm,"$input","args");
+		Printv(f->code, tm, "\n",NIL);
+	    } else if ((tm = Swig_typemap_lookup_new("in",n,name,0))) {
+		Replaceall(tm,"$source","args");
+		Replaceall(tm,"$target",name);
+		Replaceall(tm,"$input","args");
+		Printv(f->code, tm, "\n",NIL);
 	    } else {
-		throw_unhandled_ocaml_type_error (t, "varout/out");
+		throw_unhandled_ocaml_type_error (t, "varin/in");
 	    }
-	    
-	    Printf (f->code, "\nreturn swig_result;\n");
 	    Printf (f->code, "}\n");
+	}
 	    
-	    Wrapper_print (f, f_wrappers);
+	// Now return the value of the variable (regardless
+	// of evaluating or setting)
+	
+	if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
+	    Replaceall(tm,"$source",name);
+	    Replaceall(tm,"$target","swig_result");
+	    Replaceall(tm,"$result","swig_result");
+	    Printf (f->code, "%s\n", tm);
+	} else if ((tm   = Swig_typemap_lookup_new("out",n,name,0))) {
+	    Replaceall(tm,"$source",name);
+	    Replaceall(tm,"$target","swig_result");
+	    Replaceall(tm,"$result","swig_result");
+	    Printf (f->code, "%s\n", tm);
 	    
-	    // Now add symbol to the Ocaml interpreter
-	    
-	    if( Getattr( n, "feature:immutable" ) ) {
-		Printf( f_mlbody, 
-			"external __%s : c_obj -> c_obj = \"%s\" \n"
-			"let _%s = __%s C_void\n",
-			mname, var_name, mname, mname );
-		Printf( f_mlibody, "val _%s : c_obj\n", iname );
-		if( const_enum ) {
-		    Printf( f_enum_to_int, 
-			    " | `%s -> _%s\n", 
-			    mname, mname );
-		    Printf( f_int_to_enum, 
-			    " if y = (get_int _%s) then `%s else\n",
-			    mname, mname );
-		}
-	    } else {
-		Printf( f_mlbody, "external _%s : c_obj -> c_obj = \"%s\"\n",
-			mname, var_name );
-		Printf( f_mlibody, "external _%s : c_obj -> c_obj = \"%s\"\n",
-			mname, var_name );
+	} else {
+	    throw_unhandled_ocaml_type_error (t, "varout/out");
+	}
+	
+	Printf (f->code, "\nreturn swig_result;\n");
+	Printf (f->code, "}\n");
+	
+	Wrapper_print (f, f_wrappers);
+	
+	// Now add symbol to the Ocaml interpreter
+	
+	if( Getattr( n, "feature:immutable" ) ) {
+	    Printf( f_mlbody, 
+		    "external __%s : c_obj -> c_obj = \"%s\" \n"
+		    "let _%s = __%s C_void\n",
+		    mname, var_name, mname, mname );
+	    Printf( f_mlibody, "val _%s : c_obj\n", iname );
+	    if( const_enum ) {
+		Printf( f_enum_to_int, 
+			" | `%s -> _%s\n", 
+			mname, mname );
+		Printf( f_int_to_enum, 
+			" if y = (get_int _%s) then `%s else\n",
+			mname, mname );
 	    }
 	} else {
-	    Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
-			 "Unsupported variable type %s (ignored).\n", SwigType_str(t,0));
+	    Printf( f_mlbody, "external _%s : c_obj -> c_obj = \"%s\"\n",
+		    mname, var_name );
+	    Printf( f_mlibody, "external _%s : c_obj -> c_obj = \"%s\"\n",
+		    mname, var_name );
 	}
 
 	Delete(proc_name);
@@ -1417,6 +1421,8 @@ public:
     int classDirectorMethod(Node *n, Node *parent, String *super) {
 	int is_void = 0;
 	int is_pointer = 0;
+	String *storage;
+	String *value;
 	String *decl;
 	String *type;
 	String *name;
@@ -1429,10 +1435,19 @@ public:
 	String *return_type;
 	int status = SWIG_OK;
 	int idx;
+	bool pure_virtual = false;
 
+	storage = Getattr(n, "storage");
+	value = Getattr(n, "value");
 	classname = Getattr(parent, "sym:name");
 	type = Getattr(n, "type");
 	name = Getattr(n, "name");
+
+	if (Cmp(storage,"virtual") == 0) {
+	    if (Cmp(value,"0") == 0) {
+		pure_virtual = true;
+	    }
+	}
 
 	w = NewWrapper();
 	declaration = NewString("");
@@ -1589,9 +1604,15 @@ public:
 	Printf(w->code,"args = Val_unit;\n");
 
 	/* direct call to superclass if _up is set */
-	Printf(w->code, "if (swig_get_up()) {\n");
-	Printf(w->code,   "CAMLreturn(%s);\n", Swig_method_call(super,l));
-	Printf(w->code, "}\n");
+	if( pure_virtual ) {
+	    Printf(w->code, "if (swig_get_up()) {\n");
+	    Printf(w->code, "  throw Swig::DirectorPureVirtualException();\n");
+	    Printf(w->code, "}\n");
+	} else {
+	    Printf(w->code, "if (swig_get_up()) {\n");
+	    Printf(w->code,   "CAMLreturn(%s);\n", Swig_method_call(super,l));
+	    Printf(w->code, "}\n");
+	}
     
 	/* wrap complex arguments to values */
 	Printv(w->code, wrap_args, NIL);
@@ -1604,8 +1625,8 @@ public:
 	       "swig_result = Val_unit;\n",0);
 	Printf(w->code, 
 	       "swig_result = "
-	       "callback2(callback(*caml_named_value(\"swig_runmethod\"),"
-	       "swig_get_self()),copy_string(\"%s\"),args);\n",
+	       "callback3(*caml_named_value(\"swig_runmethod\"),"
+	       "swig_get_self(),copy_string(\"%s\"),args);\n",
 	       Getattr(n,"name"));
 	/* exception handling */
 	tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
@@ -1635,38 +1656,31 @@ public:
 
 	idx = 0;
 
-	/* marshal return value */
-	if (!is_void) {
-	    /* this seems really silly.  the node's type excludes 
-	     * qualifier/pointer/reference markers, which have to be retrieved 
-	     * from the decl field to construct return_type.  but the typemap
-	     * lookup routine uses the node's type, so we have to swap in and
-	     * out the correct type.  it's not just me, similar silliness also
-	     * occurs in Language::cDeclaration().
-	     */
-	    Setattr(n, "type", return_type);
-	    tm = Swig_typemap_lookup_new("directorout", n, "c_result", w);
-	    Setattr(n, "type", type);
-	    if (tm == 0) {
-		String *name = NewString("c_result");
-		tm = Swig_typemap_search("directorout", return_type, name, NULL);
-		Delete(name);
-	    }
-	    if (tm != 0) {
-		Replaceall(tm, "$input", "swig_result");
-		/* TODO check this */
-		if (Getattr(n,"wrap:disown")) {
-		    Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
-		} else {
-		    Replaceall(tm,"$disown","0");
-		}
-		Replaceall(tm, "$result", "c_result");
-		Printv(w->code, tm, "\n", NIL);
+	/* this seems really silly.  the node's type excludes 
+	 * qualifier/pointer/reference markers, which have to be retrieved 
+	 * from the decl field to construct return_type.  but the typemap
+	 * lookup routine uses the node's type, so we have to swap in and
+	 * out the correct type.  it's not just me, similar silliness also
+	 * occurs in Language::cDeclaration().
+	 */
+	Setattr(n, "type", return_type);
+	tm = Swig_typemap_lookup_new("directorout", n, "c_result", w);
+	Setattr(n, "type", type);
+	if (tm == 0) {
+	    String *name = NewString("c_result");
+	    tm = Swig_typemap_search("directorout", return_type, name, NULL);
+	    Delete(name);
+	}
+	if (tm != 0) {
+	    Replaceall(tm, "$input", "swig_result");
+	    /* TODO check this */
+	    if (Getattr(n,"wrap:disown")) {
+		Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
 	    } else {
-		Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
-			     "Unable to return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), classname, name);
-		status = SWIG_ERROR;
+		Replaceall(tm,"$disown","0");
 	    }
+	    Replaceall(tm, "$result", "c_result");
+	    Printv(w->code, tm, "\n", NIL);
 	}
 	  
 	/* marshal outputs */

@@ -1,5 +1,6 @@
 (* This example is meant to reach every case in cstring.i *)
 
+open Swig
 open Example
 
 let _ = _takes_std_string (C_string "foo")

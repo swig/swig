@@ -23,16 +23,22 @@ type 'a c_obj_t =
   | C_enum of 'a
   | C_director_core of 'a c_obj_t * 'a c_obj_t option ref
 
-type empty_enum = [ `Int of int ]
+type empty_enum = [ `SWIGFake | `Int of int ]
 
 exception BadArgs of string
 exception BadMethodName of string * string
 exception NotObject of empty_enum c_obj_t
 exception NotEnumType of empty_enum c_obj_t
 exception LabelNotFromThisEnum of empty_enum c_obj_t
+exception InvalidDirectorCall of empty_enum c_obj_t
 
-let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject (Obj.magic obj))
+let rec invoke obj = 
+  match obj with 
+      C_obj o -> o 
+    | C_director_core (o,r) -> invoke o
+    | _ -> raise (NotObject (Obj.magic obj))
 let _ = Callback.register "swig_runmethod" invoke
+
 let fnhelper fin f arg =
   let args = match arg with C_list l -> l | C_void -> [] | _ -> [ arg ] in
     match f args with
@@ -95,14 +101,12 @@ let disown_object obj =
       C_director_core (o,r) -> r := None
     | _ -> raise (Failure "Not a director core object")
 let _ = Callback.register "caml_obj_disown" disown_object
-let director_get_self obj = 
+let addr_of obj = 
   match obj with
-      C_obj o -> obj
-    | C_director_core (self,r) -> self
-    | _ -> raise (Failure "Not a director core object")
-let _ = Callback.register "caml_director_get_self" director_get_self
-      
-let addr_of obj = (invoke obj) "&" C_void
+      C_obj _ -> (invoke obj) "&" C_void
+    | C_director_core (self,r) -> (invoke self) "&" C_void
+    | C_ptr _ -> obj
+    | _ -> raise (Failure "Not a pointer.")
 let _ = Callback.register "caml_obj_ptr" addr_of
 
 let convert_c_obj a = Obj.magic a
@@ -122,3 +126,23 @@ let make_uint i = C_uint (Int32.of_int i)
 let make_int32 i = C_int32 (Int32.of_int i)
 let make_int64 i = C_int64 (Int64.of_int i)
 
+let new_derived_object cfun x_class args =
+  begin
+    let get_object ob =
+      match !ob with
+          None ->
+    raise (NotObject C_void)
+        | Some o -> o in
+    let ob_ref = ref None in
+    let class_fun class_f ob_r =
+      (fun meth args -> class_f (get_object ob_r) meth args) in
+    let new_class = class_fun x_class ob_ref in
+    let dircore = C_director_core (C_obj new_class,ob_ref) in
+    let obj =
+    cfun (match args with
+            C_list argl -> (C_list ((dircore :: argl)))
+	  | C_void -> (C_list [ dircore ])
+          | a -> (C_list [ dircore ; a ])) in
+    ob_ref := Some obj ;
+      obj
+  end
