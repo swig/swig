@@ -122,6 +122,7 @@ Swig_name_get(String_or_char *vname) {
     Append(r,f);
   }
   Replace(r,"%v",vname, DOH_REPLACE_ANY);
+  Replace(r,"::","_", DOH_REPLACE_ANY);
   return Swig_temp_result(r);
 }
 
@@ -145,6 +146,7 @@ Swig_name_set(String_or_char *vname) {
     Append(r,f);
   }
   Replace(r,"%v",vname, DOH_REPLACE_ANY);
+  Replace(r,"::","_", DOH_REPLACE_ANY);
   return Swig_temp_result(r);
 }
 

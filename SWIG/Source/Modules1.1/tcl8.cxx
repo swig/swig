@@ -978,6 +978,9 @@ TCL8::cpp_close_class() {
     t = NewStringf("%s%s", class_type, real_classname);
     SwigType_add_pointer(t);
 
+    // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
+    SwigType_remember(t);
+
     if (have_destructor) {
       Printv(code, "static void swig_delete_", class_name, "(void *obj) {\n", 0);
       if (CPlusPlus) {

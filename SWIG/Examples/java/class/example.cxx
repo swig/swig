@@ -9,8 +9,7 @@ void Shape::move(double dx, double dy) {
   y += dy;
 }
 
-int nshapes = 0; //global variable temporarily replacing static member variable due to static member variable bug in swig core
-//int Shape::nshapes = 0;
+int Shape::nshapes = 0;
 
 double Circle::area() {
   return M_PI*radius*radius;

@@ -28,8 +28,7 @@ public class main {
     
     // ----- Access a static member -----
     
-    System.out.println( "\n----- Static member variables broken. Using a global variable instead -----" );
-    System.out.println( "\nA total of " + example.get_nshapes() + " shapes were created" );
+    System.out.println( "\nA total of " + Shape.getNshapes() + " shapes were created" );
     
     // ----- Member data access -----
     
@@ -70,7 +69,7 @@ public class main {
     c._delete();
     s._delete();
     
-    System.out.println( example.get_nshapes() + " shapes remain" );
+    System.out.println( Shape.getNshapes() + " shapes remain" );
     System.out.println( "Goodbye" );
   }
 }

@@ -1,6 +1,5 @@
 /* File : example.h */
 
-extern int nshapes; //global variable temporarily replacing static member variable due to static member variable bug in swig core
 class Shape {
 public:
   Shape() {
@@ -13,7 +12,7 @@ public:
   void    move(double dx, double dy);
   virtual double area() = 0;
   virtual double perimeter() = 0;
-//  static  int nshapes;
+  static  int nshapes;
 };
 
 class Circle : public Shape {

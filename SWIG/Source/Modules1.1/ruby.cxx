@@ -709,7 +709,6 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
 
   /* create getter */
   getfname = NewString(Swig_name_get(name));
-  Replace(getfname,"::", "_", DOH_REPLACE_ANY); /* FIXME: Swig_name_get bug? */
   Printv(getf->def, "static VALUE\n", getfname, "(", 0);
   Printf(getf->def, "VALUE self");
   Printf(getf->def, ") {");
@@ -745,7 +744,6 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
     char *target;
 
     setfname = NewString(Swig_name_set(name));
-    Replace(setfname,"::", "_", DOH_REPLACE_ANY); /* FIXME: Swig_name_get bug? */
     Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", 0);
     Printf(setf->def, "VALUE _val) {");
 

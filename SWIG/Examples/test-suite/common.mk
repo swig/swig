@@ -36,6 +36,7 @@ INTERFACE  = $*.i
 CPP_TEST_CASES = \
 constant_pointers \
 cpp_enum \
+cpp_static \
 virtual_destructor
 
 # C test cases. (Can be run individually using make testcase.ctest.)

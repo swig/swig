@@ -59,7 +59,7 @@ static int    have_default_constructor = 0;
 static int    native_func = 0;     // Set to 1 when wrapping a native function
 static int    enum_flag = 0; // Set to 1 when wrapping an enum
 static int    static_flag = 0; // Set to 1 when wrapping a static functions or member variables
-static int    variable_wrapper_flag = 0; // Set to 1 when wrapping a member variable
+static int    variable_wrapper_flag = 0; // Set to 1 when wrapping a nonstatic member variable
 static int    wrapping_member = 0; // Set to 1 when wrapping a member variable/enum/const
 static int    jnic = -1;          // 1: use c syntax jni; 0: use c++ syntax jni
 static int    nofinalize = 0;          // for generating finalize methods
@@ -1745,16 +1745,13 @@ void JAVA::cpp_variable(char *name, char *iname, SwigType *t) {
 void JAVA::cpp_static_var(char *name, char *iname, SwigType *t) {
   shadow_variable_name = Swig_copy_string((iname) ? iname : name);
 
-/*
   wrapping_member = 1;
   static_flag = 1;
-  variable_wrapper_flag = 1;
   this->Language::cpp_static_var(name, iname, t);
   wrapping_member = 0;
   static_flag = 0;
-  variable_wrapper_flag = 0;
-*/
-  Printf(stderr, "Ignoring %s::%s. Static member variables are broken in SWIG!\n", shadow_classname, shadow_variable_name);
+
+//  Printf(stderr, "Ignoring %s::%s. Static member variables are broken in SWIG!\n", shadow_classname, shadow_variable_name);
 }
 
 void JAVA::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
