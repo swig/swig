@@ -41,6 +41,12 @@ import java.lang.*; // for Exception
 // Make the pointer constructor public
 %typemap(javaptrconstructormodifiers) NS::Farewell "public";
 
+// Test typemaps are being found for templated classes
+%typemap(javacode) NS::Adieu<int**> %{
+  public static void adieu() {
+  }
+%}
+
 
 %inline %{
 namespace NS {
@@ -51,5 +57,8 @@ namespace NS {
     };
     class Farewell {
     };
+    template<class T> class Adieu {};
 }
 %}
+
+%template(AdieuIntPtrPtr) NS::Adieu<int**>;
