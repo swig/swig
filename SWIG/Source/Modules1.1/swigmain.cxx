@@ -30,13 +30,12 @@ static char cvsroot[] = "$Header$";
 #include "mod11.h"
 #include "tcl8.h"
 #include "python.h"
-
-
 #include "perl5.h"
 #include "guile.h"
 #include "java.h"
 #include "mzscheme.h"
 #include "ruby.h"
+#include "php4.h"
 
 /* #include "htoi.h" */
 
@@ -50,16 +49,18 @@ static char cvsroot[] = "$Header$";
 #define SWIG_LANG PYTHON
 #endif
 
+/* Note: this list is in alphabetical order */
 static char  *usage = (char*)"\
 swig <options> filename\n\n\
 Target Language Options:\n\
-     -tcl            - Generate Tcl wrappers.\n\
-     -python         - Generate Python wrappers.\n\
-     -perl           - Generate Perl wrappers.\n\
-     -java           - Generate Java wrappers.\n\
      -guile          - Generate Guile wrappers.\n\
+     -java           - Generate Java wrappers.\n\
      -mzscheme       - Generate Mzscheme wrappers.\n\
-     -ruby           - Generate Ruby wrappers.\n";
+     -perl           - Generate Perl wrappers.\n\
+     -php            - Generate PHP wrappers.\n\
+     -python         - Generate Python wrappers.\n\
+     -ruby           - Generate Ruby wrappers.\n\
+     -tcl            - Generate Tcl wrappers.\n";
 
 //-----------------------------------------------------------------
 // main()
@@ -104,6 +105,9 @@ int main(int argc, char **argv) {
 	  } else if (strcmp(argv[i],"-ruby") == 0) {
 	      dl = new RUBY;
 	      Swig_mark_arg(i);
+	  } else if ((strcmp(argv[i],"-php") == 0) || (strcmp(argv[i],"-php4") == 0)) {
+	    dl = new PHP4;
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-nolang") == 0) {
 	    dl = new Language;
 	    Swig_mark_arg(i);
