@@ -444,8 +444,12 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   int i;
 
   /* Ruby needs no destructor wrapper */
-  if (current == DESTRUCTOR)
+  if (current == DESTRUCTOR) {
+    Wrapper *dummy = NewWrapper();
+    emit_func_call(name,t,l,dummy);
+    DelWrapper(dummy);
     return;
+  }
 
   char mname[256], inamebuf[256];
   int predicate = 0, need_result = 0;
