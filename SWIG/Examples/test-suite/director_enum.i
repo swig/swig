@@ -20,12 +20,13 @@
 
   
 %}
+%feature("director");
 
 %inline %{
 enum FType{ SA = -1, NA=0, EA=1};
 
 struct A{
-    A(const double a = 0.0, const double b = 1.0, const FType c=NA)
+    A(const double a, const double b, const FType c)
     {}    
 
     virtual ~A() {}
@@ -34,7 +35,7 @@ struct A{
 };
 
 struct B : public A{
-    B(const double a = 0.0, const double b = 1.0, const FType c=NA)
+    B(const double a, const double b, const FType c)
         : A(a, b, c) 
     {}    
 };
@@ -43,7 +44,7 @@ struct B : public A{
 
 %inline %{
 struct A2{
-    A2(const FType c=NA) {}    
+    A2(const FType c = NA) {}    
 
     virtual ~A2() {}
     
@@ -51,7 +52,7 @@ struct A2{
 };
 
 struct B2 : public A2{
-    B2(const FType c=NA) : A2(c) {}
+    B2(const FType c) : A2(c) {}
 };
 
  
