@@ -464,6 +464,9 @@ class OCAML : public Language {
 	Replaceall(out,"(","P_");
 	Replaceall(out,")","_p");
 	Replaceall(out,">","_t");
+	Replaceall(out,",","X");
+	Replaceall(out,".","O");
+	Replaceall(out," ","_");
 	Replaceall(out,"~","");
 
 	if( in_vwrap == VWRAP_SET ) 
@@ -502,6 +505,9 @@ class OCAML : public Language {
 	Replaceall(out,"(","P_");
 	Replaceall(out,")","_p");
 	Replaceall(out,">","_t");
+	Replaceall(out,",","X");
+	Replaceall(out,".","O");
+	Replaceall(out," ","_");
 
 	lcase(out);
 
@@ -523,6 +529,9 @@ class OCAML : public Language {
 	Replaceall(out,"(","P_");
 	Replaceall(out,")","_p");
 	Replaceall(out,">","_t");
+	Replaceall(out,",","X");
+	Replaceall(out,".","O");
+	Replaceall(out," ","_");
 
 	lcase(out);
 
@@ -1109,9 +1118,10 @@ class OCAML : public Language {
 	    {
 		/* Hack alert: will cleanup later -- Dave */
 		Node *n = NewHash();
-		Setattr(n,"name",name);
+		Setattr(n,"origname",name);
+		Setattr(n,"name",var_name);
+		Setattr(n,"type",type);
 		Setattr(n,"sym:name",iname);
-		Setattr(n,"type", type);
 		Setattr(n,"feature:immutable","true");
 
 		in_vwrap = VWRAP_GET;
@@ -1132,7 +1142,7 @@ class OCAML : public Language {
 			   f_pvariant_value,get_function);
 
 		Delete(get_function);
-		Delete(n);
+		//Delete(n);
 	    }
 	}
 	Delete(rvalue);
