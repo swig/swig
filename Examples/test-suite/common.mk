@@ -119,6 +119,7 @@ CPP_TEST_CASES += \
 	director_basic \
 	director_detect \
 	director_default \
+	director_enum \
 	director_exception \
 	director_frob \
 	director_finalizer \
@@ -288,6 +289,7 @@ CPP_TEST_CASES += \
 	valuewrapper_base \
 	valuewrapper_const \
 	valuewrapper_default \
+	valuewrapper_opaque \
 	varargs \
 	virtual_destructor \
 	virtual_poly \

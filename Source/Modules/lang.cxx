@@ -329,26 +329,51 @@ static Parm *nonvoid_parms(Parm *p) {
  * use the %template directive (unnamed or not) to help SWIG decide whether or not
  * SwigValueWrapper should be used, for example 
  * %template() std::auto_ptr<int>; // unnamed %template does not generate any proxy classes
+ *
+ * Upate: We turn the logic back, 
+ * now we don't use the wrapper only when:
+ *  1.- We are not in CPlusPlus, ie, is C code
+ *  2.- Is not a user type, ie, is int,short, ....
+ *  3.- Is a class, but we are sure that has a default constructor.
+ *
+ * any other case means we have no idea about what is going on, so, 
+ * we play safe and weuse the wrapper.
+ *
+ * Now there are two ways to know if there is a default_constructor:
+ *  1.- swig detects it and set allocate:default_constructor
+ *  2.- the user specify it by using %feature("novaluewrapper"),
+ *      just for the very ugly corner cases of opaque types, in that
+ *      case the user need to type
+ *
+ *        class MyOpaqueClass;
+ *        %feature("novaluewrapper") MyOpaqueClass;
  */
 SwigType *cplus_value_type(SwigType *t) {
   Node *n = 0;
-  String *s = 0;
+  int use_wrapper = 1;
   if (CPlusPlus) {
-    if (SwigType_isclass(t)) {
+    if (SwigType_type(t) == T_USER) {
       SwigType *ftd = SwigType_typedef_resolve_all(t);
       SwigType *td = SwigType_strip_qualifiers(ftd);
       if ((n = Swig_symbol_clookup(td,0))) {
-        if ((Strcmp(nodeType(n),"class") == 0) && (!Getattr(n,"allocate:default_constructor") || (Getattr(n,"allocate:noassign")))) {
-          s = NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0));
-        }
-      } else if (SwigType_issimple(td) && SwigType_istemplate(td)) {
-        s = NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0));
+	if (((Strcmp(nodeType(n),"class") == 0) 
+	    && !Getattr(n,"allocate:noassign")
+	    && (Getattr(n,"allocate:default_constructor")))
+	    || (Getattr(n,"feature:novaluewrapper")
+		&& !Getattr(n,"feature:valuewrapper"))) {
+	  use_wrapper = 0;
+	}
       }
       Delete(ftd);
       Delete(td);
+    } else {
+      use_wrapper = 0;
     }
+  } else {
+    use_wrapper = 0;
   }
-  return s;
+  return use_wrapper ?
+    NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0)) : 0;
 }
 
 /* Patch C++ pass-by-value */
@@ -1229,7 +1254,9 @@ Language::membervariableHandler(Node *n) {
 	target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
 	tm = Swig_typemap_lookup_new("memberin",n,target,0);
       }
-      Swig_MembersetToFunction(n,ClassType,Extend | SmartPointer);
+      int flags = Extend | SmartPointer;
+      //if (CPlusPlus) flags |= CWRAP_VAR_REFERENCE;
+      Swig_MembersetToFunction(n,ClassType, flags);
       if (!Extend) {
 	/* Check for a member in typemap here */
 
