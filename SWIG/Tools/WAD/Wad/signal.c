@@ -255,6 +255,9 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   char      *retname = 0;
   unsigned long current_brk;
 
+
+  wad_release_memory();
+
   wad_nlr_func = 0;
 
   context = (ucontext_t *) vcontext;

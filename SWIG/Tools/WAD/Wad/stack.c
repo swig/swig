@@ -65,6 +65,8 @@ static WadFrame *
 stack_unwind(unsigned long *pc, unsigned long *sp, unsigned long *fp) {
   WadSegment *sp_seg, *fp_seg;
   WadFrame   *f;
+  unsigned   long fake_fp;
+
   if (wad_debug_mode & DEBUG_UNWIND) {
     wad_printf("::: stack unwind :  pc = %x, sp = %x, fp = %x\n", *pc, *sp, *fp);
   }
@@ -72,10 +74,22 @@ stack_unwind(unsigned long *pc, unsigned long *sp, unsigned long *fp) {
   /* Verify that the sp and fp are in mapped memory */
   sp_seg = wad_segment_find((void *) *sp);
   fp_seg = wad_segment_find((void *) *fp);
-  
-  if (!(sp_seg && fp_seg && (sp_seg == fp_seg))) {
-    /* Either the stack pointer or frame pointer is invalid.  Or, the stack pointer
-       and frame pointer are in different memory regions. */
+
+  /* Make sure the stack pointer is in memory */
+  if (!sp_seg) {
+    return 0;
+  }
+
+  if (!fp_seg) {
+    /* Hmmm. If no frame pointer, we must be off the top of the call stack */
+    fake_fp = (unsigned long) (sp_seg->vaddr + sp_seg->size);
+    fp_seg = sp_seg;
+  } else {
+    fake_fp = *fp;
+  }
+  if (sp_seg != fp_seg) {
+    /* Whoa. Stack pointer and frame pointer are in different memory segments. */
+    wad_printf("WAD: Warning. Stack pointer and frame pointer are in different regions.\n");
     return 0;
   }
 
@@ -87,9 +101,9 @@ stack_unwind(unsigned long *pc, unsigned long *sp, unsigned long *fp) {
   f = new_frame();
   f->pc = *pc;
   f->sp = *sp;
-  f->fp = *fp;
+  f->fp = fake_fp;
   f->segment = wad_segment_find((void *) *pc);
-  f->stack_size = *fp - *sp;
+  f->stack_size = fake_fp - *sp;
   
   /* Make a copy of the call stack */
   f->stack = (char *) wad_malloc(f->stack_size);
@@ -173,44 +187,44 @@ void wad_stack_debug(WadFrame *frame) {
     /* Walk the exception frames and try to find a return point */
     while (frame) {
       /* Print out detailed stack trace information */
-      printf("::: Stack frame - 0x%08x :::\n", frame);
-      printf("    pc           = %x\n", frame->pc);
-      printf("    sp           = %x\n", frame->sp);
-      printf("    fp           = %x\n", frame->fp);
-      printf("    stack        = %x\n", frame->stack);
-      printf("    size         = %x\n", frame->stack_size);
-      printf("    segment      = %x (%s)\n", frame->segment, frame->segment ? frame->segment->mappath : "?");
-      printf("    object       = %x (%s)\n", frame->object, frame->object ? frame->object->path : "?");
+      wad_printf("::: Stack frame - 0x%08x :::\n", frame);
+      wad_printf("    pc           = %x\n", frame->pc);
+      wad_printf("    sp           = %x\n", frame->sp);
+      wad_printf("    fp           = %x\n", frame->fp);
+      wad_printf("    stack        = %x\n", frame->stack);
+      wad_printf("    size         = %x\n", frame->stack_size);
+      wad_printf("    segment      = %x (%s)\n", frame->segment, frame->segment ? frame->segment->mappath : "?");
+      wad_printf("    object       = %x (%s)\n", frame->object, frame->object ? frame->object->path : "?");
 
       if (frame->sym_name) {
-	printf("    sym_name     = %s\n", frame->sym_name);
-	printf("    sym_base     = %x\n", frame->sym_base);
-	printf("    sym_size     = %x\n", frame->sym_size);
-	printf("    sym_bind     = %x\n", frame->sym_bind);
-	printf("    sym_file     = %s\n", frame->sym_file ? frame->sym_file : "");
+	wad_printf("    sym_name     = %s\n", frame->sym_name);
+	wad_printf("    sym_base     = %x\n", frame->sym_base);
+	wad_printf("    sym_size     = %x\n", frame->sym_size);
+	wad_printf("    sym_bind     = %x\n", frame->sym_bind);
+	wad_printf("    sym_file     = %s\n", frame->sym_file ? frame->sym_file : "");
       }
 
       if (frame->loc_srcfile) {
-	printf("    loc_srcfile  = %s\n", frame->loc_srcfile);
+	wad_printf("    loc_srcfile  = %s\n", frame->loc_srcfile);
       }
 
       if (frame->loc_objfile) {
-	printf("    loc_objfile  = %s\n", frame->loc_objfile);
+	wad_printf("    loc_objfile  = %s\n", frame->loc_objfile);
       }
-      printf("    loc_line     = %d\n", frame->loc_line);
+      wad_printf("    loc_line     = %d\n", frame->loc_line);
 
 
-      printf("    debug_nargs  = %d\n", frame->debug_nargs);
+      wad_printf("    debug_nargs  = %d\n", frame->debug_nargs);
       if (frame->debug_args) {
 	int i = 0;
 	WadLocal *p = frame->debug_args;
-	printf("    debug_args = [ \n");
+	wad_printf("    debug_args = [ \n");
 	while (p) {
-	  printf("        arg[%d] : name = '%s', loc = %d, type = %d, stack = %d, reg = %d, line=%d, ptr=%x(%d)\n", i, p->name, p->loc, p->type, p->stack,p->reg,p->line,p->ptr,p->size);
+	  wad_printf("        arg[%d] : name = '%s', loc = %d, type = %d, stack = %d, reg = %d, line=%d, ptr=%x(%d)\n", i, p->name, p->loc, p->type, p->stack,p->reg,p->line,p->ptr,p->size);
 	  p = p->next;
 	}
       }
-      printf("    ]\n");
+      wad_printf("    ]\n");
 
       frame = frame->next;
     }

@@ -96,7 +96,7 @@ void *wad_malloc(int nbytes) {
     wm = wm->next;
   }
   if (!wm) {
-    wad_printf("wad_malloc: new page\n", nbytes);
+    /*    wad_printf("wad_malloc: new page\n", nbytes);*/
     wm = (WadMemory *) wad_page_alloc(1);
     if (!wm) return 0;
     wm->npages = 1;

@@ -107,7 +107,7 @@ wad_segment_find(void *vaddr) {
  * ----------------------------------------------------------------------------- */
 
 int wad_segment_valid(void *vaddr) {
-  return wad_segment_find ? 1 : 0;
+  return wad_segment_find(vaddr) ? 1 : 0;
 }
 
 
