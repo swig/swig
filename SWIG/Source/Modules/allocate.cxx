@@ -19,12 +19,96 @@
 char cvsroot_allocate_cxx[] = "$Header$";
 
 #include "swigmod.h"
+static int virtual_elimination_mode = 0;   /* set to 0 on default */
+
+/* Set virtual_elimination_mode */
+void Wrapper_virtual_elimination_mode_set(int flag) {
+  virtual_elimination_mode = flag;
+}
 
 class Allocate : public Dispatcher {
   Node  *inclass;
   enum AccessMode { PUBLIC, PRIVATE, PROTECTED };
   AccessMode cplus_mode;
   int extendmode;
+
+  /* Checks if a virtual function is the same as inherited from the bases */
+  int function_is_defined_in_bases(Node *c, Node *bases) {
+    int i;
+    Node *b, *temp;
+    String *name, *type, *decl;
+
+    if (!bases)
+      return 0;
+    
+    name = Getattr(c, "name");
+    type = Getattr(c, "type");
+    decl = Getattr(c, "decl");
+
+    /* Width first search */
+    for (int i = 0; i < Len(bases); i++) {
+      b = Getitem(bases,i);
+      temp = firstChild (b);
+      while (temp) {
+	if ( (checkAttribute(temp, "storage", "virtual")) &&
+	     (checkAttribute(temp, "name", name)) &&
+	     (checkAttribute(temp, "type", type)) &&
+	     (checkAttribute(temp, "decl", decl)) ) {
+	  Setattr(c, "Tiger: defined_in_base", "1");
+	  Setattr(c, "feature:ignore", "1");
+	  return 1;
+	}
+	temp = nextSibling(temp);
+      }
+    }
+    for (int i = 0; i < Len(bases); i++) {
+      b = Getitem(bases,i);
+      if (function_is_defined_in_bases(c, Getattr(b, "bases")))
+	return 1;
+    }
+    return 0;
+  }
+
+  /* Checks if a class has the same virtual functions as the bases have */
+  int class_is_defined_in_bases(Node *n) {
+    Node *c, *bases; /* bases is the closest ancestors of class n */
+    int defined = 0;
+
+    bases = Getattr(n, "bases");
+
+    if (!bases) return 0;
+
+    c = firstChild(n); /* c is the members of class n */
+    while (c) {
+      if (checkAttribute(c, "storage", "virtual")) {
+	if (function_is_defined_in_bases(c, bases))
+	  defined = 1;
+      }
+      c = nextSibling(c);
+    }
+    
+    if (defined)
+      return 1;
+    else return 0;
+  }
+
+  /* Checks if a class member is the same as inherited from the class bases */
+  int class_member_is_defined_in_bases(Node *member, Node *classnode) {
+    Node *bases; /* bases is the closest ancestors of classnode */
+    int defined = 0;
+
+    bases = Getattr(classnode, "bases");
+    if (!bases) return 0;
+
+    if (checkAttribute(member, "storage", "virtual")) {
+      if (function_is_defined_in_bases(member, bases))
+	defined = 1;
+    }
+
+    if (defined)
+      return 1;
+    else return 0;
+  }
 
   /* Checks to see if a class is abstract through inheritance */
   int is_abstract_inherit(Node *n, Node *base = 0, int first = 0) {
@@ -324,6 +408,11 @@ public:
     mark_exception_classes(Getattr(n,"throws"));
 
     if (inclass) {
+      /* check whether the member node n is defined in class node inclass's bases */
+      if (virtual_elimination_mode)
+	if (checkAttribute(n, "storage", "virtual"))
+	  class_member_is_defined_in_bases(n, inclass);
+
       String *name = Getattr(n,"name");
       if (cplus_mode != PUBLIC) {
 	/* Look for a private assignment operator */
@@ -450,4 +539,3 @@ void Swig_default_allocators(Node *n) {
 
 
   
-
