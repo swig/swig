@@ -12,46 +12,46 @@
 <li><a href="#n2">Preliminaries</a>
 <ul>
 <li><a href="#n3">Running SWIG</a>
-<li><a href="#n4">Getting the right header files</a>
-<li><a href="#n5">Compiling the code</a>
-<li><a href="#n6">The camlp4 module</a>
-<li><a href="#n7">Current thoughts on best practice for Ocaml</a>
-<li><a href="#n8">Using your module</a>
-<li><a href="#n9">Compilation problems and compiling with C++</a>
+<li><a href="#n4">Compiling the code</a>
+<li><a href="#n5">The camlp4 module</a>
+<li><a href="#n6">Using your module</a>
+<li><a href="#n7">Compilation problems and compiling with C++</a>
 </ul>
-<li><a href="#n10">The low-level Ocaml/C interface</a>
+<li><a href="#n8">The low-level Ocaml/C interface</a>
 <ul>
-<li><a href="#n11">The generated module</a>
-<li><a href="#n12">Enums</a>
-<li><a href="#n13">Arrays</a>
+<li><a href="#n9">The generated module</a>
+<li><a href="#n10">Enums</a>
+<li><a href="#n11">Arrays</a>
 <ul>
-<li><a href="#n14">Simple types of bounded arrays</a>
-<li><a href="#n15">Complex and unbounded arrays</a>
-<li><a href="#n16">Using an object</a>
-<li><a href="#n17">Example typemap for a function taking float * and int</a>
+<li><a href="#n12">Simple types of bounded arrays</a>
+<li><a href="#n13">Complex and unbounded arrays</a>
+<li><a href="#n14">Using an object</a>
+<li><a href="#n15">Example typemap for a function taking float * and int</a>
 </ul>
-<li><a href="#n18">C++ Classes</a>
+<li><a href="#n16">C++ Classes</a>
 <ul>
-<li><a href="#n19">STL vector and string Example</a>
-<li><a href="#n20">C++ Class Example</a>
-<li><a href="#n21">Compiling the example</a>
-<li><a href="#n22">Sample Session</a>
+<li><a href="#n17">STL vector and string Example</a>
+<li><a href="#n18">C++ Class Example</a>
+<li><a href="#n19">Compiling the example</a>
+<li><a href="#n20">Sample Session</a>
 </ul>
-<li><a href="#n23">Director Classes</a>
+<li><a href="#n21">Director Classes</a>
 <ul>
-<li><a href="#n24">Director Introduction</a>
-<li><a href="#n25">Overriding Methods in Ocaml</a>
-<li><a href="#n26">Director Usage Example</a>
-<li><a href="#n27">Creating director objects</a>
-<li><a href="#n28">Typemaps for directors, <tt>directorin, directorout, directorargout</tt></a>
-<li><a href="#n29"><tt>directorin</tt> typemap</a>
-<li><a href="#n30"><tt>directorout</tt> typemap</a>
-<li><a href="#n31"><tt>directorargout</tt> typemap</a>
+<li><a href="#n22">Director Introduction</a>
+<li><a href="#n23">Overriding Methods in Ocaml</a>
+<li><a href="#n24">Director Usage Example</a>
+<li><a href="#n25">Creating director objects</a>
+<li><a href="#n26">Typemaps for directors, <tt>directorin, directorout, directorargout</tt></a>
+<li><a href="#n27"><tt>directorin</tt> typemap</a>
+<li><a href="#n28"><tt>directorout</tt> typemap</a>
+<li><a href="#n29"><tt>directorargout</tt> typemap</a>
 </ul>
-<li><a href="#n32">Exceptions</a>
+<li><a href="#n30">Exceptions</a>
 </ul>
 </ul>
 <!-- INDEX -->
+
+
 
                 This chapter describes SWIG's
 support of Ocaml.  Ocaml     is a relatively recent addition to the ML family,
@@ -78,7 +78,7 @@ If you're not familiar with the Objective Caml language, you can visit
 
                   SWIG 1.3 works with Ocaml 3.04 and above.  Given the choice,
    you  should  use the latest stable release.  The SWIG Ocaml module has
-been   tested  on Linux (m68k,MIPS,Intel) and Cygwin on Windows.  The
+been   tested  on Linux (x86,PPC,Sparc) and Cygwin on Windows.  The
 best  way to determine    whether your system will work is to compile the
 examples  and test-suite  which  come with SWIG.  You can do this by running
 <tt>make  check</tt> from  the  SWIG root directory after installing SWIG.
@@ -109,26 +109,28 @@ you will compile the file  <tt>example_wrap.c</tt> with <tt>ocamlc</tt> or
 the resulting .ml and .mli files as well, and do the final link with -custom
 (not needed for native link). </p>
                
-<a name="n4"></a><H3>16.1.2 Getting the right header files</H3>
+<a name="n4"></a><H3>16.1.2 Compiling the code</H3>
 
 
-                  You may need the libswigocaml.h file that comes with the
- distribution     to  be included.  It provides several useful functions
-that  almost all  programs    that use SWIG will need.  It is located in
-$(prefix)/include/libswigocaml.h       where $(prefix) is usually /usr/local,
-but could be /usr.  This is set    at   configure time.  The functions most
-frequently used in here are isnull and nullptr for creating and checking
-null pointers.
-        
-<a name="n5"></a><H3>16.1.3 Compiling the code</H3>
-
+The O'Caml SWIG module now requires you to compile a module (<tt>Swig</tt>) 
+separately.  In addition to aggregating common SWIG functionality, the Swig
+module contains the data structure that represents C/C++ values.  This allows
+easier data sharing between modules if two or more are combined, because
+the type of each SWIG'ed module's c_obj is derived from Swig.c_obj_t.  This
+also allows SWIG to acquire new conversions painlessly, as well as giving
+the user more freedom with respect to custom typing.
 
                   Use <tt>ocamlc</tt> or <tt>ocamlopt</tt> to compile your
  SWIG   interface   like:             
 <p> </p>
                        
 <blockquote>                                    
-  <pre>% ocamlc -c -ccopt "-I/usr/include/foo -I/usr/local/include" example_wrap.c<br>% ocamlc -c example.mli<br>% ocamlc -c example.ml<br></pre>
+  <pre>
+% swig -ocaml -co swig.mli ; swig -ocaml co swig.ml
+% ocamlc -c swig.mli ; ocamlc -c swig.ml
+% ocamlc -c -ccopt "-I/usr/include/foo" example_wrap.c
+% ocamlc -c example.mli
+% ocamlc -c example.ml
             </blockquote>
                          
 <p> <tt>ocamlc</tt> is aware of .c files and knows how to handle them. Unfortunately,
@@ -139,13 +141,15 @@ null pointers.
   <pre>% cp example_wrap.cxx example_wrap.cxx.c<br>% ocamlc -c ... -ccopt -xc++ example_wrap.cxx.c<br>% ...<br></pre>
             </blockquote>
 
-<a name="n6"></a><H3>16.1.4 The camlp4 module</H3>
+<a name="n5"></a><H3>16.1.3 The camlp4 module</H3>
 
 
-The camlp4 module (swig.ml -&gt; swig.cmo) contains a simple rewriter which
+The camlp4 module (swigp4.ml -&gt; swigp4.cmo) contains a simple rewriter which
 makes C++ code blend more seamlessly with objective caml code.  It's use is
-optional.  The source file is included in the Lib/ocaml directory of the 
-SWIG source distribution.
+optional, but encouraged.  The source file is included in the Lib/ocaml
+directory of the SWIG source distribution.  You can checkout this file with 
+<tt>"swig -ocaml -co swigp4.ml"</tt>.  You should compile the file with 
+<tt>"ocamlc -I `camlp4 -where` -pp 'camlp4o pa_extend.cmo q_MLast.cmo' -c swigp4.ml"</tt>
 <p>
 The basic principle of the module is to recognize certain non-caml expressions
 and convert them for use with C++ code as interfaced by SWIG.  The camlp4
@@ -158,7 +162,7 @@ Here are the main rewriting rules:
 <tr><th>Input</th><th>Rewritten to</th></tr>
 <tr><td>f'( ... ) as in<br> atoi'("0") or<br> _exit'(0)</td>
 <td>f(C_list [ ... ]) as in<br> atoi (C_list [ C_string "0" ]) or<br> _exit (C_list [ C_int 0 ])</td></tr>
-<tr><td>object -> "method" ( ... )</td><td>(invoke object) "method" (C_list [ ... ])</td></tr>
+<tr><td>object -> method ( ... )</td><td>(invoke object) "method" (C_list [ ... ])</td></tr>
 <tr><td>
 object <i>'binop</i> argument as in<br>
 a '+= b</td>
@@ -173,60 +177,41 @@ and &gt;&gt;, they are replaced by lsl and lsr in operator names.
 </td><td>
 (invoke a) "!" C_void</td></tr>
 <tr><td>
-<b>Smart pointer access like this</b>
-object '-> "method" ( args )
+<b>Smart pointer access like this</b><br>
+object '-> method ( args )<br>
 </td><td>
 (invoke (invoke object "->" C_void))
 </td></tr>
 <tr><td>
-<b>Invoke syntax</b>
+<b>Invoke syntax</b><br>
 object . '( ... )
 </td><td>
 (invoke object) "()" (C_list [ ... ])
 </td></tr>
 <tr><td>
-<b>Array syntax</b>
+<b>Array syntax</b><br>
 object '[ 10 ]
 </td><td>
 (invoke object) "[]" (C_int 10)
 </td></tr>
+<tr><td>
+<b>Assignment syntax</b><br>
+let a = '10 and b = '"foo" and c = '1.0 and d = 'true
+</td><td>
+let a = C_int 10 and b = C_string "foo" and c = C_double 1.0 and d = C_bool true
+</td></tr>
+<tr><td>
+<b>Cast syntax</b><br>
+let a = _atoi '("2") as int<br>
+let b = (getenv "PATH") to string<br>
+This works for int, string, float, bool
+</td><td>
+let a = get_int (_atoi (C_string "2"))<br>
+let b = C_string (getenv "PATH")
+</td></tr>
 </table>
 
-<a name="n7"></a><H3>16.1.5 Current thoughts on best practice for Ocaml</H3>
-
-
-            Because the VC compiler (cl) needs link options specified
- after all compiler options, and ocamlc doesn't really understand
- that, I think that this is the best way to link ocaml code with C++
- code.  I formulated this method to make it easy for co-workers who
- rely on MSDev to create GUIs, etc..  to live in harmony with the
- ocaml parts of the application.
-        
-<p> Let's say you have ocaml sources foo.ml and bar.ml and interface frob.i;
-     </p>
-                 
-<blockquote><pre>
-swig -ocaml -c++ frob.i
-ocamlc -custom -c frob.mli
-ocamlc -custom -c frob.ml
-cp frob_wrap.cxx frob_wrap.c
-ocamlc -custom -c -I$(FROBLIB)/include frob_wrap.c
-ocamlc -custom -c foo.ml
-ocamlc -custom -c bar.ml
-ocamlc -pack -o foobar.cmo foo.cmo bar.cmo frob.cmo
-ocamlc -custom -output-obj -o foobar.obj foobar.cmo
-</pre></blockquote>
-                   
-<p> At this point, foobar.obj can be included in your MSVC project and
-     linked against other code.  This is how you link it: </p>
-                 
-<blockquote><pre>
-link /OUT:big_program.exe \
-    other1.obj other2.obj foobar.obj frob_wrap.obj \
-    $(OCAMLLIB)/ocamlrun.lib $(FROBLIB)/lib/frob.lib
-</pre></blockquote>
-                   
-<a name="n8"></a><H3>16.1.6 Using your module</H3>
+<a name="n6"></a><H3>16.1.4 Using your module</H3>
 
 
                    You can test-drive your module by building a
@@ -236,7 +221,7 @@ toplevel ocaml interpreter.  Consult the ocaml manual for details.
       option to build your functions into the primitive list. This
       option is not needed when you build native code.
 
-<a name="n9"></a><H3>16.1.7 Compilation problems and compiling with C++</H3>
+<a name="n7"></a><H3>16.1.5 Compilation problems and compiling with C++</H3>
 
 
                    As mentioned above, .cxx files need special
@@ -245,7 +230,7 @@ that uses <tt>class</tt> as a non-keyword, and C code that is too
 liberal with pointer types may not compile under the C++ compiler.
 Most code meant to be compiled as C++ will not have problems.
 
-<a name="n10"></a><H2>16.2 The low-level Ocaml/C interface</H2>
+<a name="n8"></a><H2>16.2 The low-level Ocaml/C interface</H2>
 
 
          In order to provide access to overloaded functions, and
@@ -332,7 +317,7 @@ is that  you  must append them to the return list with swig_result = caml_list_a
     value items pass through directly, but you must make your own type
     signature for a function that uses value in this way.
 
-<a name="n11"></a><H3>16.2.1 The generated module</H3>
+<a name="n9"></a><H3>16.2.1 The generated module</H3>
 
 
 The SWIG <tt>%module</tt> directive specifies the name of the Ocaml
@@ -362,7 +347,7 @@ which should run when the module is loaded may be inserted here.
 it describes the output SWIG will generate for class definitions.
 </table>
                
-<a name="n12"></a><H3>16.2.2 Enums</H3>
+<a name="n10"></a><H3>16.2.2 Enums</H3>
 
 
 SWIG will wrap enumerations as polymorphic variants in the output
@@ -418,10 +403,10 @@ val x : Enum_test.c_obj = C_enum `a
        
 <p> </p>
 
-<a name="n13"></a><H3>16.2.3 Arrays</H3>
+<a name="n11"></a><H3>16.2.3 Arrays</H3>
 
 
-<a name="n14"></a><H4>16.2.3.1 Simple types of bounded arrays</H4>
+<a name="n12"></a><H4>16.2.3.1 Simple types of bounded arrays</H4>
 
 
 <p>
@@ -441,7 +426,7 @@ arrays of simple types with known bounds in your code, but this only works
 for arrays whose bounds are completely specified.
 </p>
 
-<a name="n15"></a><H4>16.2.3.2 Complex and unbounded arrays</H4>
+<a name="n13"></a><H4>16.2.3.2 Complex and unbounded arrays</H4>
 
 
 <p>
@@ -454,7 +439,7 @@ SWIG can't predict which of these methods will be used in the array,
 so you have to specify it for yourself in the form of a typemap.
 </p>
 
-<a name="n16"></a><H4>16.2.3.3 Using an object</H4>
+<a name="n14"></a><H4>16.2.3.3 Using an object</H4>
 
 
 <p>
@@ -468,7 +453,7 @@ Consider writing an object when the ending condition of your array is complex,
 such as using a required centinel, etc.
 </p>
 
-<a name="n17"></a><H4>16.2.3.4 Example typemap for a function taking float * and int</H4>
+<a name="n15"></a><H4>16.2.3.4 Example typemap for a function taking float * and int</H4>
 
 
 <p>
@@ -518,7 +503,7 @@ void printfloats( float *tab, int len );
 </pre></td></tr></table>
 
 
-<a name="n18"></a><H3>16.2.4 C++ Classes</H3>
+<a name="n16"></a><H3>16.2.4 C++ Classes</H3>
 
 
 C++ classes, along with structs and unions are represented by C_obj
@@ -554,7 +539,7 @@ the underlying pointer, so using create_[x]_from_ptr alters the
 returned value for the same object.
 <p>
 
-<a name="n19"></a><H4>16.2.4.1 STL vector and string Example</H4>
+<a name="n17"></a><H4>16.2.4.1 STL vector and string Example</H4>
 
 
 Standard typemaps are now provided for STL vector and string.  More are in
@@ -584,40 +569,49 @@ namespace std {
 
 Since there's a makefile in that directory, the example is easy to build.<p>
 Here's a sample transcript of an interactive session using a string vector
-after making a toplevel like this:
-<pre>ocamlmktop -custom -cclib -g -ccopt -g -g \
-   example_wrap.o example.cmo -o example_top -cclib -lstdc++
-</pre><p>
+after making a toplevel (make toplevel).  This example uses the camlp4 
+module.
+
 <blockquote><pre>
 bash-2.05a$ ./example_top 
         Objective Caml version 3.06
 
+        Camlp4 Parsing version 3.06
+
+# open Swig ;;
 # open Example ;;
-# let x = new_StringVector C_void ;;
+# let x = new_StringVector '() ;;
 val x : Example.c_obj = C_obj <fun>
-# (invoke x) ":methods" C_void ;;
+# x -> ":methods" () ;;
 - : Example.c_obj =
 C_list
  [C_string "nop"; C_string "size"; C_string "empty"; C_string "clear";
   C_string "push_back"; C_string "[]"; C_string "="; C_string "set";
   C_string "~"; C_string "&"; C_string ":parents"; C_string ":classof";
   C_string ":methods"]
-# (invoke x) "push_back" (C_string "foo") ;;
+# x -> push_back ("foo") ;;
 - : Example.c_obj = C_void
-# (invoke x) "push_back" (C_string "bar") ;;
+# x -> push_back ("bar") ;;
 - : Example.c_obj = C_void
-# (invoke x) "push_back" (C_string "baz") ;;
+# x -> push_back ("baz") ;;
 - : Example.c_obj = C_void
-# (invoke x) "[]" (C_int 1) ;;
+# x '[1] ;;
 - : Example.c_obj = C_string "bar"
-# (invoke x) "set" (C_list [ C_int 1 ; C_string "spam" ]) ;;
+# x -> set (1,"spam") ;;
 - : Example.c_obj = C_void
-# (invoke x) "[]" (C_int 1) ;;
+# x '[1] ;;
 - : Example.c_obj = C_string "spam"
+# for i = 0 to (x -> size() as int) - 1 do 
+    print_endline ((x '[i to int]) as string) 
+  done ;;
+foo
+bar
+baz
+- : unit = ()
 # 
 </pre></blockquote>
 
-<a name="n20"></a><H4>16.2.4.2 C++ Class Example</H4>
+<a name="n18"></a><H4>16.2.4.2 C++ Class Example</H4>
 
 
 Here's a simple example using Trolltech's Qt Library:
@@ -644,67 +638,53 @@ public:
 };
 </pre></td></tr></table><p>
 
-<a name="n21"></a><H4>16.2.4.3 Compiling the example</H4>
+<a name="n19"></a><H4>16.2.4.3 Compiling the example</H4>
 
 
 <blockquote><pre>
 bash-2.05a$ QTPATH=/your/qt/path
+bash-2.05a$ for file in swig.mli swig.ml swigp4.ml ; do swig -ocaml -co $file ; done
+bash-2.05a$ ocamlc -c swig.mli ; ocamlc -c swig.ml
+bash-2.05a$ ocamlc -I `camlp4 -where` -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml
 bash-2.05a$ swig -ocaml -c++ -I$QTPATH/include  qt.i
 bash-2.05a$ mv qt_wrap.cxx qt_wrap.c
 bash-2.05a$ ocamlc -c -ccopt -xc++ -ccopt -g -g -ccopt -I$QTPATH/include qt_wrap.c 
 bash-2.05a$ ocamlc -c qt.mli
 bash-2.05a$ ocamlc -c qt.ml
-bash-2.05a$ ocamlmktop -custom qt_wrap.o qt.cmo -o qt_top -cclib -L$QTPATH/lib -cclib -lqt
+bash-2.05a$ ocamlmktop -custom swig.cmo -I `camlp4 -where` \
+  camlp4o.cma swigp4.cmo qt_wrap.o qt.cmo -o qt_top -cclib \
+  -L$QTPATH/lib -cclib -lqt
 </pre></blockquote>
 
-<a name="n22"></a><H4>16.2.4.4 Sample Session</H4>
+<a name="n20"></a><H4>16.2.4.4 Sample Session</H4>
 
 
 <blockquote><pre>
 bash-2.05a$ ./qt_top 
         Objective Caml version 3.06
 
-# open Qt ;;
-# let a = new_QApplication (C_list [ C_int 0; C_int 0 ]) ;;
-val a : Qt.c_obj = C_obj <fun>
-# let hello = new_QPushButton (C_list [ C_string "hi" ; C_int 0 ]) ;;
-val hello : Qt.c_obj = C_obj <fun>
-# (invoke hello) "resize" (C_list [ C_int 100 ; C_int 30 ]) ;;
-- : Qt.c_obj = C_void
-# (invoke hello) "show" C_void ;;
-- : Qt.c_obj = C_void
-# (invoke a) "exec" C_void ;;
-</pre></blockquote><p>
-
-Or with the camlp4 module:
-
-<blockquote><pre>
-bash-2.05a$ ./qt_top 
-        Objective Caml version 3.06
-
-# #load "camlp4o.cma" ;;
         Camlp4 Parsing version 3.06
 
-# #load "./swig.cmo" ;;
+# open Swig ;;
 # open Qt ;;
 # let a = new_QApplication '(0,0) ;;
 val a : Qt.c_obj = C_obj <fun>
 # let hello = new_QPushButton '("hi",0) ;;
 val hello : Qt.c_obj = C_obj <fun>
-# hello -> "resize" (100,30) ;;
+# hello -> resize (100,30) ;;
 - : Qt.c_obj = C_void
-# hello -> "show" () ;;
+# hello -> show () ;;
 - : Qt.c_obj = C_void
-# a -> "exec" () ;;
+# a -> exec () ;;
 </pre></blockquote><p>
 
-In either case, assuming you have a working installation of QT, you will
-see a window containing the string "hi" in a button.  
+Assuming you have a working installation of QT, you will see a window
+containing the string "hi" in a button.  
 
-<a name="n23"></a><H3>16.2.5 Director Classes</H3>
+<a name="n21"></a><H3>16.2.5 Director Classes</H3>
 
 
-<a name="n24"></a><H4>16.2.5.1 Director Introduction</H4>
+<a name="n22"></a><H4>16.2.5.1 Director Introduction</H4>
 
 
 Director classes are classes which allow Ocaml code to override the public
@@ -726,7 +706,7 @@ class foo {
 };
 </p></blockquote></pre>
 
-<a name="n25"></a><H4>16.2.5.2 Overriding Methods in Ocaml</H4>
+<a name="n23"></a><H4>16.2.5.2 Overriding Methods in Ocaml</H4>
 
 
 <p>
@@ -750,12 +730,13 @@ In this example, I'll examine the objective caml code involved in providing
 an overloaded class.  This example is contained in Examples/ocaml/shapes.
 <p>
 
-<a name="n26"></a><H4>16.2.5.3 Director Usage Example</H4>
+<a name="n24"></a><H4>16.2.5.3 Director Usage Example</H4>
 
 
 <table border="1" bgcolor="#dddddd"><tr><th><center>example_prog.ml</center>
 </th></tr>
 <tr><td><pre>
+open Swig
 open Example
 
 ...
@@ -765,8 +746,9 @@ let triangle_class pts ob meth args =
       "cover" ->
         (match args with
              C_list [ x_arg ; y_arg ] ->
-               C_bool (point_in_triangle 
-                         pts (get_float x_arg) (get_float y_arg))
+	     let xa = x_arg as float
+	     and ya = y_arg as float in
+	       (point_in_triangle pts xa ya) to bool
            | _ -> raise (Failure "cover needs two double arguments."))
     | _ -> (invoke ob) meth args ;;
 
@@ -774,9 +756,9 @@ let triangle =
   new_derived_object 
     new_shape
     (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.0)))
-    C_void ;;
+    '() ;;
 
-let _ = _draw_shape_coverage (C_list [ triangle ; C_int 60 ; C_int 20 ]) ;;
+let _ = _draw_shape_coverage '(triangle, C_int 60, C_int 20) ;;
 </pre></td></tr>
 </table>
 <p>
@@ -788,15 +770,10 @@ you are given the arguments as a c_obj and the method name as a string, and
 you must intercept the method you are interested in and provide whatever
 return value you need.  Bear in mind that the underlying C++ code needs the
 right return type, or an exception will be thrown.  This exception will
-generally be Failure, or NotObject.  That having been said, your method
-will be called whenever the underlying method that it depends on will be
-called, but only when the __up pointer is not set.  Therefore, if you need
-to rely on other methods from your own object, that you also have overrides
-for, you'll need to call them yourself, rather than relying on the normal
-method interface, because the underlying code won't call you back a second
-time.  This mechanism prevents infinite recursion on method calls, and allows
-the catchall case at the end of the example code to succeed in calling a
-method of the underlying object.
+generally be Failure, or NotObject.  You must call other ocaml methods that
+you rely on yourself.  Due to the way directors are implemented, method
+calls on your object from with ocaml code will always invoke C++ methods
+even if they are overridden in ocaml.
 <p>
 In the example, the draw_shape_coverage function plots the indicated number
 of points as either covered (<tt>x</tt>) or uncovered (<tt> </tt>) between
@@ -807,7 +784,7 @@ a tricky shape implementation, such as a boolean combination, to be expressed
 in a more effortless style in ocaml, while leaving the "engine" part of the
 program in C++.
 <p>
-<a name="n27"></a><H4>16.2.5.4 Creating director objects</H4>
+<a name="n25"></a><H4>16.2.5.4 Creating director objects</H4>
 
 
 The definition of the actual object triangle can be described this way:
@@ -816,7 +793,7 @@ let triangle =
   new_derived_object 
     new_shape
     (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.0)))
-    C_void
+    '()
 </p></blockquote></pre>
 <p>
 The first argument to <tt>new_derived_object</tt>, new_shape is the method
@@ -837,9 +814,11 @@ is an option ref that will have its value extracted before becoming the
 <tt>None</tt> if the C++ object underlying is ever destroyed, and will
 consequently trigger an exception when any method is called on the object
 after that point (the actual raise is from an inner function used by
-new_derived_object, and throws NotObject).
+new_derived_object, and throws NotObject).  This prevents a deleted C++
+object from causing a core dump, as long as the object is destroyed
+properly.
 
-<a name="n28"></a><H4>16.2.5.5 Typemaps for directors, <tt>directorin, directorout, directorargout</tt></H4>
+<a name="n26"></a><H4>16.2.5.5 Typemaps for directors, <tt>directorin, directorout, directorargout</tt></H4>
 
 
 <p>
@@ -849,7 +828,7 @@ direction is reversed.  They provide for you to provide argout values, as
 well as a function return value in the same way you provide function arguments,
 and to receive arguments the same way you normally receive function returns.
 </P>
-<a name="n29"></a><H4>16.2.5.6 <tt>directorin</tt> typemap</H4>
+<a name="n27"></a><H4>16.2.5.6 <tt>directorin</tt> typemap</H4>
 
 
 <p>
@@ -860,7 +839,7 @@ code receives when you are called.  In general, a simple <tt>directorin</tt> typ
 can use the same body as a simple <tt>out</tt> typemap.
 </p>
 
-<a name="n30"></a><H4>16.2.5.7 <tt>directorout</tt> typemap</H4>
+<a name="n28"></a><H4>16.2.5.7 <tt>directorout</tt> typemap</H4>
 
 
 <p>
@@ -871,7 +850,7 @@ for the same type, except when there are special requirements for object
 ownership, etc.
 </p>
 
-<a name="n31"></a><H4>16.2.5.8 <tt>directorargout</tt> typemap</H4>
+<a name="n29"></a><H4>16.2.5.8 <tt>directorargout</tt> typemap</H4>
 
 
 <p>
@@ -888,7 +867,7 @@ In the event that you don't specify all of the necessary values, integral
 values will read zero, and struct or object returns have undefined results.
 </p>
 
-<a name="n32"></a><H3>16.2.6 Exceptions</H3>
+<a name="n30"></a><H3>16.2.6 Exceptions</H3>
 
 
 Catching exceptions is now supported using SWIG's %exception feature.  A simple
