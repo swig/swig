@@ -52,6 +52,7 @@ static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
 static int      extendmode   = 0;
 static int      dirprot_mode  = 0;
+static int      tempext_mode  = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -307,6 +308,12 @@ static void add_symbols(Node *n) {
 	only_csymbol = !need_protected(n, dirprot_mode);
       } else {
 	Setattr(n,"access", "private");
+	if ((Cmp(Getattr(n,"storage"),"virtual") == 0) 
+	    && (Cmp(Getattr(n,"value"),"0") == 0)) {
+	  only_csymbol = !need_protected(n, dirprot_mode);
+	} else {
+	  Setattr(n,"feature:ignore","1");
+	}    
       }
       if (only_csymbol) {
 	/* Only add to C symbol table and continue */
@@ -2062,9 +2069,12 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			String *nname = NewStringf("__dummy_%d__", cnt++);
 			Swig_cparse_template_expand($$,nname,temparms);
 			Setattr($$,"sym:name",nname);
-			/* Setattr($$,"feature:ignore","1"); */
-			Setattr($$,"feature:onlychildren",
-				"typemap,typemapitem,typemapcopy,typedef,types,fragment");
+			if (!Swig_template_extmode()) {
+			  Setattr($$,"feature:ignore","1");
+			} else {
+			  Setattr($$,"feature:onlychildren",
+				  "typemap,typemapitem,typemapcopy,typedef,types,fragment");
+			}
 		      }
 		      Delattr($$,"templatetype");
 		      Setattr($$,"template",n);

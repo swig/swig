@@ -49,6 +49,7 @@ static const char *usage1 = (const char*)"\
 \nGeneral Options\n\
      -c++            - Enable C++ processing\n\
      -co             - Check a file out of the SWIG library\n\
+     -directors      - Turn on director mode for all the classes, mainly for testing \n\
      -dirprot        - Turn on wrapping of protected members for director classes\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
      -E              - Preprocess only, does not generate wrapper code\n\
@@ -278,8 +279,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Swig_contract_mode_set(1);
   Preprocessor_define(vers,0);
 
-  /* Turn on director protected mode */
+  /* Turn off directors mode */
+  Wrapper_director_mode_set(0);
   Wrapper_director_protected_mode_set(0);
+
+  /* Turn off template extmode */
+  Wrapper_template_extmode_set(0);
 
 
   // Check for SWIG_LIB environment variable
@@ -324,10 +329,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	Wrapper_compact_print_mode_set(1);
       } else if (strcmp(temp, "-fvirtual") == 0) {
 	Wrapper_virtual_elimination_mode_set(1);
+      } else if (strcmp(temp,"-directors") == 0) {
+	Wrapper_director_mode_set(1);
+	Wrapper_director_protected_mode_set(1);
       } else if (strcmp(temp,"-dirprot") == 0) {
-	  Wrapper_director_protected_mode_set(1);
+	Wrapper_director_protected_mode_set(1);
       } else if (strcmp(temp,"-nodirprot") == 0) {
-	  Wrapper_director_protected_mode_set(0);
+	Wrapper_director_protected_mode_set(0);
       } else if (strcmp(temp, "-small") == 0) {
 	Wrapper_compact_print_mode_set(1);
 	Wrapper_virtual_elimination_mode_set(1);
@@ -365,6 +373,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-fvirtual") == 0) {
 	    Wrapper_virtual_elimination_mode_set(1);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-directors") == 0) {
+	    Wrapper_director_mode_set(1);
+	    Wrapper_director_protected_mode_set(1);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-dirprot") == 0) {
 	    Wrapper_director_protected_mode_set(1);

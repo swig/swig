@@ -75,6 +75,9 @@ public:
 
     SWIG_library_directory("python");
   
+    /* Turn on template extmode */
+    Wrapper_template_extmode_set(1);
+
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
 	if(strcmp(argv[i],"-interface") == 0) {
@@ -748,7 +751,7 @@ public:
         if (/*directorbase &&*/ !constructor && !destructor && isVirtual) {
           Wrapper_add_local(f, "director", "Swig::Director *director = 0");
           Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
-	  if (dirprot_mode() && is_protected(n)) {
+	  if (dirprot_mode() && !is_public(n)) {
             Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) {\n", name);
 	    Printf(f->code, "PyErr_SetString(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
 	    Printf(f->code, "SWIG_fail;\n");
@@ -1394,7 +1397,7 @@ public:
     String  *pyname = Getattr(n,"sym:name");
 
     /* pass the method call on to the Python object */
-    if (dirprot_mode() && is_protected(n))
+    if (dirprot_mode() && !is_public(n))
       Printf(w->code, "swig_set_inner(\"%s\", true);\n", name);
 
     if (Len(parse_args) > 0) {
@@ -1403,7 +1406,7 @@ public:
       Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), \"%s\", NULL);\n", pyname);
     }
     Printv(xdecref, "Py_XDECREF(result);\n", NULL);
-    if (dirprot_mode() && is_protected(n))
+    if (dirprot_mode() && !is_public(n))
       Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
 
     /* exception handling */

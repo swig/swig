@@ -18,17 +18,32 @@ char cvsroot_lang_cxx[] = "$Header$";
 #include "cparse.h"
 #include <ctype.h>
 
+static int director_mode = 0;   /* set to 0 on default */
 static int director_protected_mode = 0;   /* set to 0 on default */
+static int template_extmode = 0;   /* set to 0 on default */
 
 /* Set director_protected_mode */
+void Wrapper_director_mode_set(int flag) {
+  director_mode = flag;
+}
+
 void Wrapper_director_protected_mode_set(int flag) {
   director_protected_mode = flag;
+}
+
+void Wrapper_template_extmode_set(int flag) {
+  template_extmode = flag;
 }
 
 extern "C" {
   int Swig_need_protected() 
   {
     return director_protected_mode;
+  }
+
+  int Swig_template_extmode() 
+  {
+    return template_extmode;
   }
 }
 
@@ -721,13 +736,10 @@ int Language::cDeclaration(Node *n) {
     /* except for friends, they are not affected by access control */
     int isfriend = storage && (Cmp(storage,"friend") == 0);
     if (!isfriend) {
-      if (cplus_mode == CPLUS_PRIVATE) {
+      /* and for protected/private members, we check what director needs */
+      if ((cplus_mode == CPLUS_PRIVATE) && (IsVirtual != PURE_VIRTUAL)) return SWIG_NOWRAP; 
+      if (!(dirprot_mode() && is_member_director(CurrentClass,n)))
 	return SWIG_NOWRAP;
-      } else {  
-	/* and for protected members, we check what director needs */
-	if (!(dirprot_mode() && is_member_director(CurrentClass,n)))
-	  return SWIG_NOWRAP;
-      }
     }
   }
   
@@ -1473,8 +1485,12 @@ int Language::unrollVirtualMethods(Node *n,
     if ((Cmp(nodeType, "cdecl") == 0)) {
       decl = Getattr(ni, "decl");
       /* extra check for function type and proper access */
+      int need_nopublic = dirprot_mode() && 
+	(is_protected(ni) || (is_private(ni) 
+			      && (Cmp(Getattr(ni,"value"),"0") == 0)));
+
       if (SwigType_isfunction(decl) && 
-	  (is_public(ni) || (dirprot_mode() && is_protected(ni)))) {
+	  (is_public(ni) || need_nopublic)) {
 	String *name = Getattr(ni, "name");
 	String *local_decl = SwigType_typedef_resolve_all(decl);
 	Node *method_id = NewStringf("%s|%s", name, local_decl);
@@ -1515,7 +1531,7 @@ int Language::unrollVirtualMethods(Node *n,
     for (k = First(vm); k.key; k = Next(k)) {
       Node *m = Getattr(k.item, "methodNode");
       /* retrieve the director features */
-      int mdir = checkAttribute(m, "feature:director", "1");
+      int mdir = checkAttribute(m, "feature:director", "1") || director_mode;
       int mndir = checkAttribute(m, "feature:nodirector", "1");
       /* 'nodirector' has precedence over 'director' */
       int dir = (mdir || mndir) ? (mdir && !mndir) : 1;
@@ -1769,7 +1785,11 @@ int Language::classDeclaration(Node *n) {
 
   /* Call classHandler() here */
   if (!ImportMode) {
-    if (directorsEnabled() && Getattr(n, "feature:director")) {
+    int ndir = checkAttribute(n, "feature:director", "1") || director_mode;
+    int nndir = checkAttribute(n, "feature:nodirector", "1");
+    /* 'nodirector' has precedence over 'director' */
+    int dir = (ndir || nndir) ? (ndir && !nndir) : 1;
+    if (directorsEnabled() && dir) {
       classDirector(n);
     }
     classHandler(n);
@@ -1844,10 +1864,13 @@ int Language::classHandler(Node *n) {
 	Node* parentnode = Getattr(method, "parentNode");
 	String* methodname = Getattr(method,"sym:name");
 	String* wrapname = NewStringf("%s_%s", symname,methodname);
+	int need_private = (is_private(method) 
+			    && (Cmp(Getattr(method,"storage"),"virtual") == 0) 
+			    && (Cmp(Getattr(method,"value"),"0") == 0));
 	if (!Getattr(symbols,wrapname) 
 	    && !Cmp(director,"1") 
 	    && (n != parentnode) 
-	    && is_protected(method)) {
+	    && (is_protected(method) || need_private)) {
 	  Node* m = Copy(method);
 	  String* mdecl = Getattr(m,"decl");
 	  Setattr(m,"parentNode", n);
@@ -2375,7 +2398,7 @@ void Language::allow_directors(int val) {
  * ----------------------------------------------------------------------------- */
  
 int Language::directorsEnabled() const {
-  return directors && CPlusPlus;
+  return (directors || director_mode) && CPlusPlus;
 }
 
 /* -----------------------------------------------------------------------------
