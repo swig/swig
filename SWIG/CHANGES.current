@@ -1,6 +1,14 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/07/2004: wsfulton
+	    {Ruby, Java] Fix director + destructor with 'empty' throw
+
+		    struct A {
+		      virtual ~A() throw();
+		    };
+
+
 10/06/2004: wuzzeb (John Lenz)
             [TCL]
             - Fix bug reported by William A. Hoffman propagating clientdata
