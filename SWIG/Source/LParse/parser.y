@@ -205,7 +205,7 @@ static int promote(int t1, int t2) {
 
 /* SWIG directives */
 %token <tok> ADDMETHODS ALPHA_MODE APPLY CHECKOUT CLEAR CONSTANT DOCONLY DOC_DISABLE DOC_ENABLE ECHO EXCEPT
-%token <tok> ILLEGAL IMPORT INCLUDE INIT INLINE LOCALSTYLE MACRO MACRO MODULE NAME NATIVE NEW PRAGMA
+%token <tok> ILLEGAL IMPORT INCLUDE INIT INLINE LOCALSTYLE MACRO MODULE NAME NATIVE NEW PRAGMA
 %token <tok> RAW_MODE READONLY READWRITE RENAME SECTION STYLE SUBSECTION SUBSUBSECTION TEXT TITLE
 %token <tok> TYPE TYPEMAP USERDIRECTIVE WEXTERN WRAPPER
 
@@ -856,7 +856,7 @@ stail          : SEMI { }
 		 DOH *o;
 		 LParseType *t = (LParseType *) Copy(Active_type);
 		 t->is_pointer += $2.is_pointer;
-		 if ($3.text > 0) {
+		 if ($3.text) {
 		     t->is_pointer++;
 		     t->arraystr = copy_string(Char($3.text));
 		 }
