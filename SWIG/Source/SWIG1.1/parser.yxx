@@ -191,7 +191,6 @@ static char *make_name(char *name,String *decl) {
   if (!name) return 0;
   /* Check to see if the name is in the hash */
   if (!rename_hash) return name;
-  
 
   if (Classprefix) {
     if (Len(Classprefix)) {
@@ -247,6 +246,7 @@ static void add_symbols(Node *n) {
       Delete(fdecl);
       Delete(fun);
     }
+
     String *storage = Getstorage(n);
     if (!symname) {
       n = nextSibling(n);
@@ -559,9 +559,9 @@ static Node *dump_nested(char *parent) {
 %type <node>     enumlist edecl;
 
 /* C++ declarations */
-%type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_other ;
+%type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl;
 %type <node>     cpp_members cpp_member;
-%type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_operator ;
+%type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl ;
 %type <node>     cpp_swig_directive cpp_template_decl cpp_nested cpp_opt_declarators ;
 
 /* Misc */
@@ -688,6 +688,7 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
 		 current_class = cls;
 	       }
+	       Classprefix = NewString($2);
 	     } cpp_members RBRACE {
                $$ = new_node("addmethods");
 	       Setname($$,$2);
@@ -711,6 +712,8 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 		 Swig_symbol_setscope(prev_symtab);
 	       }
 	       current_class = 0;
+	       Delete(Classprefix);
+	       Classprefix = 0;
 	       prev_symtab = 0;
 	       $$ = 0;
 	     }
@@ -1032,7 +1035,7 @@ rename_directive : RENAME declarator idstring SEMI {
 		}
                 $$ = 0;
               }
-               ;
+              ;
 
 /* ------------------------------------------------------------
    %typemap(method) type { ... }
@@ -1344,7 +1347,6 @@ c_destructor_decl : storage_class ID DCOLON NOT ID LPAREN parms RPAREN cpp_end {
 cpp_declaration : cpp_class_decl { $$ = $1; }
                 | cpp_forward_class_decl { $$ = $1; }
                 | cpp_template_decl { $$ = $1; }
-                | cpp_other { $$ = $1; }
              ;
 
 cpp_class_decl  :
@@ -1633,19 +1635,6 @@ template_parms  : parms {
                 }
                 ;
 
-/* Operator overloading catch */
-
-cpp_other      : storage_class type abstract_declarator OPERATOR LPAREN parms RPAREN cpp_end {
-                  $$ = 0;
-                   Printf(stderr,"%s:%d. Operator '%s' not supported (ignored).\n", input_file, line_number,$4);
-	     }
-
-               | storage_class type OPERATOR LPAREN parms RPAREN cpp_end {
-                  $$ = 0;
-                   Printf(stderr,"%s:%d. Operator '%s' not supported (ignored).\n", input_file, line_number,$3);
-	     }
-             ;
-
 cpp_members  : cpp_member cpp_members {
                    $$ = $1;
 		   if ($$) {
@@ -1691,7 +1680,6 @@ cpp_member   : c_declaration { $$ = $1; }
              | cpp_constructor_decl { $$ = $1; }
              | cpp_destructor_decl { $$ = $1; }
              | cpp_protection_decl { $$ = $1; }
-             | cpp_operator { $$ = $1; } 
              | cpp_swig_directive { $$ = $1; }
              | cpp_forward_class_decl { $$ = $1; }
              | cpp_nested { $$ = $1; }
@@ -1707,7 +1695,6 @@ cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
 	       SwigType *decl = NewString("");
 	       SwigType_add_function(decl,l);
 	       Setdecl($$,decl);
-
 	       if (Len(CCode)) {
 		 Setattr($$,"code",Copy(CCode));
 	       }
@@ -1766,19 +1753,6 @@ cpp_protection_decl : PUBLIC COLON {
 	      }
               ;
 
-/* An operator: Illegal */
-cpp_operator  : storage_class type parameter_declarator OPERATOR LPAREN parms RPAREN cpp_end {
-                   $$ = new_node("operator");
-		   Setname($$,$4);
-		   Settype($$,$2);
-		   Setdecl($$,$3.type);
-		   Setparms($$,$6);
-		   Setattr($$,"storage",$1);
-		   if (Len(CCode)) {
-		     Setattr($$,"code",Copy(CCode));
-		   }
-	      }
-              ;
 
 /* ----------------------------------------------------------------------
    Nested structure.    This is a sick "hack".   If we encounter
@@ -2712,6 +2686,12 @@ idcolon        : ID idcolontail {
                | NONID DCOLON ID {
 		 $$ = NewStringf("::%s",$3);
                }
+               | OPERATOR {
+                 $$ = NewString($1);
+	       }
+               | NONID DCOLON OPERATOR {
+                 $$ = NewStringf("::%s",$3);
+               }
                ;
 
 idcolontail    : DCOLON ID idcolontail {
@@ -2719,6 +2699,9 @@ idcolontail    : DCOLON ID idcolontail {
 		   Delete($3);
                }
               | DCOLON ID {
+                   $$ = NewStringf("::%s",$2);
+               }
+               | DCOLON OPERATOR {
                    $$ = NewStringf("::%s",$2);
                }
                ;

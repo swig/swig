@@ -161,6 +161,16 @@ static Parm *nonvoid_parms(Parm *p) {
   return p;
 }
 
+/* Check if a proper C/C++ identifier */
+static int is_identifier(String *s) {
+  char *c = Char(s);
+  while (*c) {
+    if (!(isalnum(*c) || (*c == '_') || (*c == ':'))) return 0;
+    c++;
+  }
+  return 1;
+}
+
 /* --------------------------------------------------------------------------
  * swig_pragma()
  *
@@ -545,7 +555,12 @@ void Language::cDeclaration(Node *n) {
     Printf(stderr,"%s:%d. Warning. Qualified declaration %s ignored.\n", input_file, line_number, name);    
     return;
   }
-
+  
+  if (symname && !is_identifier(symname) && (Cmp(symname,name) == 0)) {
+    Printf(stderr,"%s:%d. Warning. Can't wrap %s unless it is renamed to a valid identifier.\n",
+	   input_file, line_number, symname);
+    return;
+  }
   if (Cmp(storage,"virtual") == 0) {
     if (Cmp(value,"0") == 0) {
       IsVirtual = PURE_VIRTUAL;
@@ -942,7 +957,38 @@ void Language::destructorDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::operatorDeclaration(Node *n) {
+  String *name = Getname(n);
+  String *type = Gettype(n);
+  String *decl = Getdecl(n);
+  ParmList *parms = Getparms(n);
+  String *storage = Getattr(n,"storage");
+  Node *over;
+  Printf(stdout,"operator %s %s %s %s\n", name, type, decl, parms);
 
+  /* Overloaded symbol check */
+  over = Swig_symbol_isoverloaded(n);
+  if (over && (over != n)) {
+    SwigType *tc = Copy(decl);
+    SwigType *td = SwigType_pop(tc);
+    String   *oname;
+    String   *cname;
+    if (InClass) {
+      oname = NewStringf("%s::%s",ClassName,name);
+      cname = NewStringf("%s::%s",ClassName,Getname(over));
+    } else {
+      oname = NewString(name);
+      cname = NewString(Getname(over));
+    }
+    Printf(stderr,"%s:%d. Overloaded declaration ignored.  %s\n",
+	   input_file,line_number, SwigType_str(td,oname));
+    
+    Printf(stdout,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(Getdecl(over),cname));
+    Delete(tc);
+    Delete(td);
+    Delete(oname);
+    Delete(cname);
+    return;
+  }
 }
 
 /* ----------------------------------------------------------------------
