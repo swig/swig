@@ -1,5 +1,21 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+1/11/00 : Dave Beazley
+          Deleted the LATEX module.  Sorry... Didn't know anyone
+          who was using it.  Besides, I'm looking to simplify
+          the documentation system.
+          *** POTENTIAL INCOMPATIBILITY ***
+
+1/11/00 : Dave Beazley
+          Modified the ASCII documentation module to use a .txt
+          suffix for its output file instead of .doc.
+
+1/11/00 : Dave Beazley
+          Added the long-lost SWIG preprocessor back to the system.
+          It should be enabled by default.  Raw preprocessed output
+          can be viewed using swig -E file.i.
+          *** NEW FEATURE ***
+
 1/11/00 : Dave Beazley & Dustin Mitchell
           Completely reorganized the SWIG directory structure.  The
           basic organization is now:
