@@ -376,9 +376,6 @@ void emit_action(Node *n, Wrapper *f) {
     String* dirdecl = NewStringf("%s *darg = 0", dirname);    
     Wrapper_add_local(f, "darg", dirdecl);
     Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n",dirname); 
-    Printf(f->code, "if (!darg) SWIG_exception(SWIG_RuntimeError,"
-	            "\"accessing protected member %s in %s\");\n",
-	   Getattr(n,"name"), symname);
     Replace(action, "arg1", "darg", DOH_REPLACE_FIRST);
     Delete(dirname);
     Delete(dirdecl);
