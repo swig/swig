@@ -1,6 +1,8 @@
 %module lib_std_vector
 
 %include "std_vector.i"
+%include "cpointer.i"
+%include "carrays.i"
 
 %{
 #include <algorithm>
@@ -74,3 +76,6 @@ struct B : public A {
 %}
 %template(VecB) std::vector<Test::B>; 
 %template(VecA) std::vector<Test::A*>; 
+
+%pointer_class(int,PtrInt)
+%array_functions(int,ArrInt)
