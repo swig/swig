@@ -2,11 +2,83 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 Version 1.3 Alpha 6 (Work in progress)
 ======================================
+
+9/30/00 : beazley
+          %except and %typemap directives no longer take a language specifier.
+          For example:
+
+               %typemap(python,in) type { ... }
+
+          should be changed to
+
+               %typemap(in) type { ... }
+
+          If it is ever necessary to include typemaps for multiple languages,
+          use conditional compilation instead:
+
+          #ifdef SWIGPYTHON
+          %typemap(in) type { ... }
+          #endif
+          *** POTENTIAL INCOMPATIBILITY ***
+          
+9/30/00 : beazley
+          %native directive no longer applies to a single entry, but rather
+          defines a new scope.  For example:
+
+          %native {
+               ... bunch of native declarations ...
+          }
+          *** POTENTIAL INCOMPATIBILITY ***
+
+9/30/00 : beazley
+          Most SWIG directives are now defined in terms of pragmas and
+          preprocessor macros.  For example:
+
+              %readonly
+
+          is now really parsed as
+
+              %pragma "readonly";
+
+          This scheme has been included to make the SWIG parser smaller
+          and more configurable.
+
+9/29/00 : beazley
+          %pragma directive syntax changed to the following:
+
+              %pragma(lang) name value;
+
+          (The "=" is gone and it must be terminated by a semicolon).
+          *** POTENTIAL INCOMPATIBILITY ***
+
+9/29/00 : beazley
+          All of the old code inclusion directives %init %{ ... %}, %wrapper %{ ... %},
+          %runtime %{ ... %} and so forth have been consolidated into a single SWIG
+          directive:
+
+               %insert("section")  %{ code %}
+               
+          or
+
+               %insert("section") "filename"
+
+          Motivation: this design is simpler (the parser is smaller) and it is
+          extensible--language modules can define their own code sections for
+          shadow classes or whatever.
+
+          The old SWIG directives such as %wrapper %{ ... %} are now really 
+          defined as preprocessor macros. For example:
+
+               #define %wrapper %insert("wrapper")
+
 9/25/00 : beazley
           Modified the preprocessor so that macro names can start with a '%'.
           This may allow new SWIG "directives" to be defined as macros instead
           of having to be hard-coded into the parser.  More details later.
           *** EXPERIMENTAL FEATURE ***
+
+:::: NOTE :::: All CHANGES entries newer than the 1.3a5 release refer to the new
+core, new parser, and redesigned module system.
           
 Version 1.3 Alpha 5 (September 22, 2000)
 ========================================

@@ -48,6 +48,7 @@ experiment: Swig Preprocessor LParse Experiment DOH Modules
 
 swig13: Swig Preprocessor LParse SWIG1.3 DOH Modules
 	$(CXX) -o $(TARGET) \
+	$(SOURCE)/Modules/libmodules.a \
 	$(SOURCE)/SWIG1.3/libswig13.a \
 	$(SOURCE)/LParse/liblparse.a \
 	$(SOURCE)/Preprocessor/libcpp.a \
