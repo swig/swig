@@ -660,9 +660,10 @@ public:
     Printf(s_header,
 	   "#define SWIG_init	init%s\n\n"
 	   "#define SWIG_name	\"%s\"\n"
-	   "#ifdef HAVE_CONFIG_H\n"
+	   /*	   "#ifdef HAVE_CONFIG_H\n"
 	   "#include \"config.h\"\n"
 	   "#endif\n\n"
+	   */
 	   "#ifdef __cplusplus\n"
 	   "extern \"C\" {\n"
 	   "#endif\n"
