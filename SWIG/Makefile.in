@@ -490,6 +490,13 @@ install-lib:
             ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/ruby/$$i; \
 	    done;
 
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/php4
+	@cd $(srcdir)/Lib/php4; for i in *.i *.swg; \
+	    do \
+	    echo "Installing Lib/php4/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/php4/$$i; \
+	    done;
+
 install-runtime:
 	@cd Runtime; $(MAKE) install
 
