@@ -19,6 +19,7 @@
    }
 %}
 
+#pragma SWIG nowarn=350 // operator new
 
 %inline %{
   class TROOT {
