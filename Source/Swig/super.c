@@ -74,7 +74,7 @@ static int Super_delitem(DOH *s, int where);
 static DOH *Super_str(DOH *s);
 static int Super_read(DOH *s, void *buffer, int length);
  static int Super_write(DOH *s, void *buffer, int length);
- static int Super_seek(DOH *s, long offset, int whence);
+static int Super_seek(DOH *s, long offset, int whence);
 static long Super_tell(DOH *s);
  static int Super_putc(DOH *s, int ch);
 static int Super_getc(DOH *s);
@@ -593,7 +593,7 @@ Super_seek(DOH *so, long offset, int whence)
    Super *s = (Super *) so;
    s->pbi = 0;
 
-   if (whence == SEEK_SET) offset = -s->sp;
+   if (whence == SEEK_SET) offset = offset - s->sp;
    else if (whence == SEEK_END) offset = s->len - s->sp - offset;
 
    if (offset + s->sp < 0)
@@ -793,29 +793,77 @@ Super_move(Super *s, int delta)
    int curtag_offset = s->curtag_offset;
    int line = s->line;
 
-   if (delta > s->len - s->sp)
+   if (s->sp + delta > s->len)
       delta = s->len - s->sp;
+   else if (s->sp + delta < 0)
+      delta = - s->sp;
 
-   while (1)
+   if (delta > 0)
    {
-      int remaining = s->tags[s->curtag].length - curtag_offset;
-      
-      if (delta >= remaining)
+      while (1)
       {
-	 delta -= remaining;
-	 s->sp += remaining;
-	 s->curtag++;
-	 line = s->tags[s->curtag].line;
-	 curtag_offset = 0;
+	 int remaining = s->tags[s->curtag].length - curtag_offset;
+      
+	 if (delta >= remaining)
+	 {
+	    delta -= remaining;
+	    s->sp += remaining;
+	    s->curtag++;
+	    line = s->tags[s->curtag].line;
+	    curtag_offset = 0;
+	 }
+	 else
+	 {
+	    line += Super_count_newlines(s->str + s->sp, delta);
+	    curtag_offset += delta;
+	    s->sp += delta;
+
+	    break;
+	 }
+      }
+   }
+   else
+   {
+      delta = -delta;
+      if (delta < curtag_offset)
+      {
+	 /* short-circuit if we won't cross a tag boundary */
+
+	 curtag_offset -= delta;
+	 s->sp -= delta;
+	 line -= Super_count_newlines(s->str + s->sp, delta);
       }
       else
-      {
-	 line += Super_count_newlines(s->str + s->sp, delta);
-	 curtag_offset += delta;
-	 s->sp += delta;
+	 while (1)
+	 {
+	    int remaining = curtag_offset;
+      
+	    if (delta > remaining)
+	    {
+	       delta -= remaining;
+	       s->sp -= remaining;
+	       s->curtag--;
+	       curtag_offset = s->tags[s->curtag].length;
+	    }
+	    else if (delta == remaining)
+	    {
+	       s->sp -= delta;
+	       curtag_offset = 0;
+	       line = s->tags[s->curtag].line;
 
-	 break;
-      }
+	       break;
+	    }
+	    else
+	    {
+	       curtag_offset -= delta;
+	       s->sp -= delta;
+	       line = s->tags[s->curtag].line +
+		  Super_count_newlines(s->str + s->sp - curtag_offset, 
+				       curtag_offset);
+
+	       break;
+	    }
+	 }
    }
 
    s->curtag_offset = curtag_offset;
@@ -832,6 +880,13 @@ Super_get_tag(Super *s, int pos, int *offset)
 {
    int tag = 0;
    SSTag *tags = s->tags;
+
+   if (pos == s->len)		/* special case */
+   {
+      int lasttag = s->numtags - 1;
+      if (offset) *offset = s->tags[lasttag].length;
+      return lasttag;
+   }
 
    while (pos >= tags->length)
    {
@@ -931,6 +986,8 @@ Super_string_insert(Super *s, int pos, char *str, int len,
    if (pos < 0) pos = 0;
    else if (pos > s->len) pos = s->len;
 
+   tag = Super_get_tag(s, pos, &offset);
+
    /* do the insertion */
    Super_add_space(s, len);
    if (pos < s->len)
@@ -940,7 +997,6 @@ Super_string_insert(Super *s, int pos, char *str, int len,
    s->str[s->len] = 0;
 
    /* insert new tags for this string if necessary */
-   tag = Super_get_tag(s, pos, &offset);
    if (filename)
    {
       int left_len = offset;
@@ -1025,6 +1081,8 @@ Super_super_insert(Super *s, int pos, Super *str)
    len = str->len;
    if (len == 0) return;
 
+   tag = Super_get_tag(s, pos, &offset);
+
    /* do the insertion */
    Super_add_space(s, len);
    if (pos < s->len)
@@ -1034,7 +1092,6 @@ Super_super_insert(Super *s, int pos, Super *str)
    s->str[s->len] = 0;
 
    /* collect some factoids about the new layout of the tags */
-   tag = Super_get_tag(s, pos, &offset);
    left_len = offset;
    right_len = s->tags[tag].length - offset;
    right_filename = s->tags[tag].filename;
@@ -1055,7 +1112,6 @@ Super_super_insert(Super *s, int pos, Super *str)
    {
       new_tags--;
       Delete(s->tags[tag].filename);
-      tag--;			/* back up so we overwrite it. */
    }
    if (right_len == 0)
       new_tags--;
@@ -1067,6 +1123,10 @@ Super_super_insert(Super *s, int pos, Super *str)
       s->tags = (SSTag *)DohRealloc(s->tags, s->maxtags * sizeof(SSTag));
       assert(s->tags);
    }
+
+   /* and move the existing tags forward. */
+   memmove(s->tags + tag + new_tags, s->tags + tag, 
+	   (s->numtags - tag) * sizeof(SSTag));
       
    /* and start writing in the data */
    if (left_len)
@@ -1335,12 +1395,11 @@ Super_raw_replace(Super *str, char *token, int flags,
 #ifdef SUPER_TEST
 #include <stdio.h>
 
-static void annotate(DOH *hyd)
+static void annotate(DOH *hyd, int pos)
 {
   int len, i;
   len = Len(hyd);
-  Seek(hyd, SEEK_SET, 0);
-  for (i = 0; i < len; i++)
+  for (i = pos; i < len; i++)
     {
       DOH *file;
       int line;
@@ -1348,12 +1407,17 @@ static void annotate(DOH *hyd)
       char d;
       int pos;
 
+      if (i % 2)
+	 Seek(hyd, 0, SEEK_SET);
+      else
+	 Seek(hyd, 0, SEEK_END);
+
+      Seek(hyd, i, SEEK_SET);
+
       file = Getfile(hyd);
       line = Getline(hyd);
       pos = Tell(hyd);
       c[0] = Getc(hyd);
-      d = Getc(hyd);
-      Ungetc(d, hyd);
       if (c[0] < ' ')
 	{
 	  c[2] = 0;
@@ -1369,15 +1433,14 @@ static void annotate(DOH *hyd)
 
 int main(int argc, char **argv)
 {
-   DOH *g = NewSuper("Hello\ncruel\nworld\nas", "hey", 100);
-   DOH *b = NewSuper("namaste\nadios\nseeya!\nas", "bye", 20);
-   DOH *hyd = NewSuper("so,\nhow\nare\nyou\ndoing?\nad", "hyd", 200);
-   DOH *str = NewString("####\n####");
-   Setfile(str, "str");
-   Setline(str, 10000);
+   DOH *abcd = NewSuper("AB\nCD", "abcd", 20);
+   DOH *ijkl = NewSuper("IJ\nKL\nMN", "ijkl", 30);
  
-   Insert(hyd, 23, b);
-   annotate(hyd);
-   return Len(hyd);
+   Insert(ijkl, 6, abcd);
+   Insert(ijkl, 5, abcd);
+   Seek(ijkl, atoi(argv[1]), SEEK_SET);
+   annotate(ijkl, atoi(argv[2]));
+
+   return 0;
 }
 #endif
