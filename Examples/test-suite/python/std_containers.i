@@ -1,10 +1,5 @@
 %module std_containers
 
-//
-// activate the automatic comparison methods generation (==,!=,...) 
-//
-#define SWIG_STD_EXTEND_COMPARISON
-
 %include std_vector.i
 %include std_string.i
 %include std_deque.i

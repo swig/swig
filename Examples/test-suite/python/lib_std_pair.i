@@ -3,7 +3,6 @@
 //
 // activate the automatic comparison methods generation (==,!=,...) 
 //
-#define SWIG_STD_EXTEND_COMPARISON
 
 %include std_pair.i
 %include std_string.i
@@ -25,10 +24,11 @@
   };
 %}
 
+%std_comp_methods(std::pair<std::string, int>);
+
 namespace std {
   %template(CIntPair) pair<const int, const int>;
   %template() pair<double, double>;
-  %template(String) basic_string<char>;
   %template(IntPair) pair<int, int>;
   %template(SIPair) pair<std::string, int>;
   %template(CIPair) pair<std::complex<double>, int>;

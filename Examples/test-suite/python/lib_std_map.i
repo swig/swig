@@ -1,9 +1,8 @@
 %module lib_std_map
 
-//#define SWIG_STD_EXTEND_COMPARISON
-///
 %include std_pair.i
 %include std_map.i
+%include std_multimap.i
 
 %inline %{
 struct A{
@@ -21,6 +20,7 @@ namespace std
   %template(pairii) pair<int, int>;
   %template(pairA) pair<int, A*>;
   %template(mapA) map<int, A*>;
+  %template(mmapA) multimap<int, A*>;
 
   %template(paircA1) pair<const int, A*>;
   %template(paircA2) pair<const int, const A*>;
