@@ -36,6 +36,8 @@ static String     *init_name = 0;
 static String     *ns_name = 0;
 static int         have_constructor;
 static int         have_destructor;
+static String     *destructor_action = 0;
+
 static String     *version = (String *) "0.0";
 
 static String     *class_name = 0;
@@ -561,6 +563,7 @@ TCL8::classHandler(Node *n) {
   
   have_constructor = 0;
   have_destructor = 0;
+  destructor_action = 0;
 
   class_name = Getattr(n,"sym:name");
   real_classname = Getattr(n,"name");
@@ -586,10 +589,15 @@ TCL8::classHandler(Node *n) {
   Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), real_classname);
   if (have_destructor) {
     Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", 0);
-    if (CPlusPlus) {
-      Printv(f_wrappers,"    delete (", SwigType_str(t,0), ") obj;\n",0);
+    if (destructor_action) {
+      Printv(f_wrappers, SwigType_str(t,"arg1"), " = (", SwigType_str(t,0), ") obj;\n", 0);
+      Printv(f_wrappers, destructor_action, 0);
     } else {
-      Printv(f_wrappers,"    free((char *) obj);\n",0);
+      if (CPlusPlus) {
+	Printv(f_wrappers,"    delete (", SwigType_str(t,0), ") obj;\n",0);
+      } else {
+	Printv(f_wrappers,"    free((char *) obj);\n",0);
+      }
     }
     Printf(f_wrappers,"}\n");
   }
@@ -704,6 +712,7 @@ int
 TCL8::destructorHandler(Node *n) {
   Language::destructorHandler(n);
   have_destructor = 1;
+  destructor_action = Getattr(n,"wrap:action");
   return SWIG_OK;
 }
 
