@@ -44,6 +44,7 @@ CPP_TEST_CASES = \
 	template-whitespace \
 	anonymous-arg \
 	static-array-member
+#	long-long
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES   = \
@@ -51,7 +52,6 @@ C_TEST_CASES   = \
 	sizeof_pointer \
 	unions \
 	macro-2 \
-#	long-long \
 	const-const \
 	char-constant \
 	name \
