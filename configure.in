@@ -476,6 +476,8 @@ if test ! -r Source/SWILL/configure; then
 	autoconf
 	cd ../..
 fi
+
+cd Tools; ./ltconfig --enable-dlopen ltmain.sh; cd ..
    
 AC_CONFIG_SUBDIRS(Source/SWILL Source/DOH)
 
@@ -483,4 +485,4 @@ AC_OUTPUT(Makefile Source/Swig/Makefile
     Source/Preprocessor/Makefile Source/SWIG1.1/Makefile 
     Source/Modules1.1/Makefile Source/LParse/Makefile 
     Source/Experiment/Makefile Source/Swim/Makefile Examples/Makefile Source/Include/swigconfig.h
-    Source/Expat/Makefile Source/Xmlparse/Makefile )
+    Source/Expat/Makefile Source/Xmlparse/Makefile Runtime/Makefile)
