@@ -777,7 +777,7 @@ void canonical_template(String *s) {
 %type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
 %type <decl>     abstract_declarator direct_abstract_declarator;
 %type <tmap>     typemap_type;
-%type <str>      idcolon idcolontail idtemplate stringbrace stringbracesemi;
+%type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate stringbrace stringbracesemi;
 %type <id>       string;
 %type <tmplstr>  template_parms;
 %type <ivalue>   cpp_vend;
@@ -1608,7 +1608,7 @@ types_directive : TYPES LPAREN parms RPAREN SEMI {
    %template(name) tname<args>;
    ------------------------------------------------------------ */
 
-template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GREATERTHAN SEMI {
+template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p, *tp;
 		  Node *n;
 		  String *ts;
@@ -1637,7 +1637,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GRE
 		  SwigType_add_template(args,$7);
 		  
 		  /* Look for specialization first */
-		  n = Swig_symbol_clookup(templateargs,0);
+		  n = Swig_symbol_clookup_local(templateargs,0);
 		  /*		  Printf(stdout,"checking %s\n", templateargs); */
 		  if (n) {
 		    /* Whoa. Found a specialization.   We just insert into to
@@ -1671,7 +1671,6 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GRE
 		    /* Try to locate the template node */
 		    n = Swig_symbol_clookup($5,0);
 		    if (n && (Strcmp(nodeType(n),"template") == 0)) {
-		      
 		      Parm *tparms = Getattr(n,"templateparms");
 		      if (ParmList_len($7) > ParmList_len(tparms)) {
 			Swig_error(input_file, line_number, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
@@ -1714,6 +1713,8 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GRE
 			}
 			/*			Printf(stderr,"TEMPL: %s %s\n", nodeType(n), Getattr(n,"templatetype")); */
 			$$ = copy_node(n);
+			/* We need to set the node name based on name used to instantiate */
+			Setattr($$,"name",$5);
 			Delattr($$,"sym:typename");
 			Swig_cparse_template_expand($$,$3,temparms);
 			Delete(temparms);
@@ -1830,7 +1831,9 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      } else {
 		set_nextSibling($$,$5);
 	      }
-	      add_symbols($$);
+	      if ($$) {
+		add_symbols($$);
+	      }
            }
            ;
 
@@ -2232,7 +2235,7 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
 cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possible {
                       $$ = $5;
 		      /* Check if the class is a template specialization */
-		      if (($$) && (Strstr(Getattr($$,"name"),"<"))) {
+		      if (($$) && (Strstr(Getattr($$,"name"),"<")) && (Strncmp(Getattr($$,"name"),"operator ",9) != 0)) {
 			Setattr($$,"specialization","1");
 			$$ = 0; /* Do not place in parse tree, only a template specialization */
 		      }
@@ -2243,7 +2246,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			  Setattr($$,"sym:typename","1");
 			  add_symbols($$);
 		      } else {
-			  if ($3.parms) {
+			  if (($3.parms) && ($5)) {
 			    Swig_warning(WARN_PARSE_TEMPLATE_PARTIAL,input_file, line_number,"Template partial specialization not supported.\n");
 			  }
 		      }
@@ -2254,14 +2257,21 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 
 cpp_temp_possible:  c_decl {
 		  $$ = $1;
-		  Setattr($$,"sym:weak","1");
+                  if ($$) {
+		    Setattr($$,"sym:weak","1");
+		  }
                 }
                 | cpp_class_decl {
                    $$ = $1;
                 }
                 | cpp_constructor_decl {
                    $$ = $1;
-		   Setattr($$,"sym:weak","1");
+		   if ($$) {
+		     Setattr($$,"sym:weak","1");
+		   }
+                }
+                | cpp_template_decl {
+		  $$ = 0;
                 }
                 ;
 
@@ -2307,7 +2317,7 @@ template_parms  : rawparms {
 cpp_using_decl : USING idcolon SEMI {
                   Node *n = Swig_symbol_clookup($2,0);
                   if (!n) {
-		    Swig_error(input_file, line_number, "Nothing known about '%s'.\n", $2);
+		    Swig_warning(WARN_PARSE_USING_UNDEF, input_file, line_number, "Nothing known about '%s'.\n", $2);
 		    $$ = 0;
 		  } else {
 		    $$ = new_node("using");
@@ -2492,6 +2502,7 @@ cpp_member   : c_declaration { $$ = $1; }
 */
   
 cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
+              if (Classprefix) {
 		 SwigType *decl = NewString("");
 		 $$ = new_node("constructor");
 
@@ -2517,7 +2528,10 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		   Setattr($$,"code",Copy(scanner_ccode));
 		 }
 		 Setattr($$,"feature:new","1");
-	       }
+	      } else {
+		$$ = 0;
+              }
+              }
               ;
 
 /* A destructor (hopefully) */
@@ -3802,7 +3816,7 @@ idtemplate    : ID template_decl {
               }
               ;
 
-/*
+/* Identifier, but no templates */
 idcolonnt     : ID idcolontailnt { 
                   $$ = 0;
 		  if (!$$) $$ = NewStringf("%s%s", $1,$2);
@@ -3841,7 +3855,6 @@ idcolontailnt   : DCOLON ID idcolontailnt {
                }
                ;
 
-*/
 /* Concatenated strings */
 string         : string STRING { 
                    $$ = (char *) malloc(strlen($1)+strlen($2)+1);

@@ -418,8 +418,8 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   /*  Printf(stdout,"+ %s --> %s\n", base,type); */
 
     if (type && (Strcmp(base,type) == 0)) {
-	Delete(base);
-	return 0;
+      Delete(base);
+      return 0;
     }
 
     /* If the type is a template, and no typedef was found, we need to check the

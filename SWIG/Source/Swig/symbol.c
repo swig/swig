@@ -779,18 +779,15 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
       Node *n = Swig_symbol_clookup(e,st);
       if (n) {
 	String *name = Getattr(n,"name");
-	if (name) {
-	  if (Strstr(name,"::")) {
-	    Clear(e);
-	    Append(e,name);
-	  } else {
-	    String *qname = Swig_symbol_qualified(n);
-	    if (Len(qname)) {
-	      Insert(e,0,"::");
-	      Insert(e,0,qname);
-	    }
-	    Delete(qname);
+	Clear(e);
+	Append(e,name);
+	{
+	  String *qname = Swig_symbol_qualified(n);
+	  if (Len(qname)) {
+	    Insert(e,0,"::");
+	    Insert(e,0,qname);
 	  }
+	  Delete(qname);
 	}
       }
       if (Strncmp(e,"::",2) == 0) {
@@ -820,6 +817,4 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
   Delete(elements);
   return result;
 }
-
-
 

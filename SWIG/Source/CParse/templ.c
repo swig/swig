@@ -68,7 +68,7 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     Append(patchlist,v);
     Append(cpatchlist,code);
     
-    add_parms(Getattr(n,"parms"), patchlist, typelist);
+    add_parms(Getattr(n,"parms"), cpatchlist, typelist);
   } else if (Strcmp(nodeType(n),"class") == 0) {
     /* Patch base classes */
     {
@@ -92,24 +92,26 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     }
   } else if (Strcmp(nodeType(n),"constructor") == 0) {
     String *name = Getattr(n,"name");
-
     if (!Getattr(n,"templatetype")) {
-	if (Strstr(name,"<")) {
-	    Append(patchlist,Getattr(n,"name"));
-	} else {
-	    Append(name,templateargs);
-	}
-	name = Getattr(n,"sym:name");
-	if (name && (Strstr(name,"<"))) {
-	    Setattr(n,"sym:name", Copy(tname));
-	} else {
-	    Replace(name,tname,rname, DOH_REPLACE_ANY);
-	}
-	Setattr(n,"sym:name",name);
+      if (Strstr(tname,name)) {
+	Replaceid(name,name,tname);
+      }
+      if (Strstr(name,"<")) {
+	Append(patchlist,Getattr(n,"name"));
+      } else {
+	Append(name,templateargs);
+      }
+      name = Getattr(n,"sym:name");
+      if (name && (Strstr(name,"<"))) {
+	Setattr(n,"sym:name", Copy(tname));
+      } else {
+	Replace(name,tname,rname, DOH_REPLACE_ANY);
+      }
+      Setattr(n,"sym:name",name);
     }
     Append(cpatchlist,Getattr(n,"code"));
     Append(typelist, Getattr(n,"decl"));
-    add_parms(Getattr(n,"parms"), patchlist, typelist);
+    add_parms(Getattr(n,"parms"), cpatchlist, typelist);
   } else if (Strcmp(nodeType(n),"destructor") == 0) {
     String *name = Getattr(n,"name");
     if (Strstr(name,"<")) {
@@ -131,8 +133,8 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     Append(cpatchlist,Getattr(n,"code"));
     Append(typelist, Getattr(n,"type"));
     Append(typelist, Getattr(n,"decl"));
-    add_parms(Getattr(n,"parms"), patchlist, typelist);
-    add_parms(Getattr(n,"pattern"), patchlist, typelist);
+    add_parms(Getattr(n,"parms"), cpatchlist, typelist);
+    add_parms(Getattr(n,"pattern"), cpatchlist, typelist);
     cn = firstChild(n);
     while (cn) {
       cparse_template_expand(cn,tname, rname, templateargs, patchlist, typelist, cpatchlist);

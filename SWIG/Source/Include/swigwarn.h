@@ -57,6 +57,7 @@
 #define WARN_PARSE_NESTED_CLASS       312
 #define WARN_PARSE_UNDEFINED_EXTERN   313
 #define WARN_PARSE_KEYWORD            314
+#define WARN_PARSE_USING_UNDEF        315
 
 #define WARN_IGNORE_OPERATOR_NEW        350   /* new */
 #define WARN_IGNORE_OPERATOR_DELETE     351   /* delete */

@@ -366,12 +366,8 @@ PYTHON::functionWrapper(Node *n) {
 	Printv(get_pointers,tm,"\n", NULL);
 	if (i >= num_required)
 	  Printv(get_pointers, "}\n", NULL);
-	
       } else {
 	Printf(parse_args,"%s",parse);
-	
-	/* Add arglist code here */
-	
 	Printf(arglist,"&%s", ln);
       }
       p = Getattr(p,"tmap:in:next");
