@@ -114,6 +114,57 @@ extern "C" {
 %typemap(out)      size_t = long;
 
 /* ------------------------------------------------------------
+ * Overloaded operator support
+ * ------------------------------------------------------------ */
+
+#ifdef __cplusplus
+%rename("`+")      *::operator+;
+%rename("`-")      *::operator-;
+%rename("`*")      *::operator*;
+%rename("`/")      *::operator/;
+%rename("`%")      *::operator%;
+%rename("`<<")     *::operator<<;
+%rename("`>>")     *::operator>>;
+%rename("`&")      *::operator&;
+%rename("`|")      *::operator|;
+%rename("`^")      *::operator^;
+%rename("`~")      *::operator~;
+%rename("`<")      *::operator<;
+%rename("`>")      *::operator>;
+%rename("`==")     *::operator==;
+
+/* Special cases */
+%rename("`()")     *::operator();
+
+/* Ignored operators */
+%ignorewarn("362:operator= ignored") operator=;
+%ignorewarn("365:operator+= ignored") operator+=;
+%ignorewarn("366:operator-= ignored") operator-=;
+%ignorewarn("367:operator*= ignored") operator*=;
+%ignorewarn("368:operator/= ignored") operator/=;
+%ignorewarn("369:operator%= ignored") operator%=;
+%ignorewarn("370:operator^= ignored") operator^=;
+%ignorewarn("371:operator&= ignored") operator&=;
+%ignorewarn("372:operator|= ignored") operator|=;
+%ignorewarn("375:operator<<= ignored") operator<<=;
+%ignorewarn("376:operator>>= ignored") operator>>=;
+%ignorewarn("378:operator!= ignored") operator!=;
+%ignorewarn("379:operator<= ignored") operator<=;
+%ignorewarn("380:operator>= ignored") operator>=;
+%ignorewarn("381:operator&& ignored") operator&&;
+%ignorewarn("382:operator|| ignored") operator||;
+%ignorewarn("383:operator++ ignored") operator++;
+%ignorewarn("384:operator-- ignored") operator--;
+%ignorewarn("386:operator->* ignored") operator->*;
+%ignorewarn("389:operator[] ignored (consider using %extend)") operator[];
+%ignorewarn("390:operator+() ignored") operator+();
+%ignorewarn("390:operator+() const ignored") operator+() const;
+%ignorewarn("391:operator-() ignored") operator-();
+%ignorewarn("391:operator-() const ignored") operator-() const;
+
+#endif
+
+/* ------------------------------------------------------------
  * The start of the Pike initialization function
  * ------------------------------------------------------------ */
 
