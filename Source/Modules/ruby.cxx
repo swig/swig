@@ -588,13 +588,17 @@ public:
     String *temp = NewString("");
     
     switch (current) {
-    case MEMBER_FUNC:
-      if (multipleInheritance) {
-        Printv(klass->init, tab4, "rb_define_method(", klass->mImpl, ", \"",
-               iname, "\", ", wname, ", -1);\n", NIL);
+    case MEMBER_FUNC: 
+      if (multipleInheritance) {	
+	const char* rb_define_method = !is_protected(n) ?
+	  "rb_define_method" : "rb_define_protected_method";
+	Printv(klass->init, tab4, rb_define_method,"(", klass->mImpl, ", \"",
+	       iname, "\", ", wname, ", -1);\n", NIL);
       } else {
-        Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
-               iname, "\", ", wname, ", -1);\n", NIL);
+	const char* rb_define_method = !is_protected(n) ?
+	  "rb_define_method" : "rb_define_protected_method";
+	Printv(klass->init, tab4, rb_define_method, "(", klass->vname, ", \"",
+	       iname, "\", ", wname, ", -1);\n", NIL);
       }
       break;
     case CONSTRUCTOR_ALLOCATE:
