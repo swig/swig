@@ -47,6 +47,7 @@ Parm *CopyParm(Parm *p) {
   String   *value;
   String   *ignore;
   String   *alttype;
+  String   *byname;
 
   Parm *np = NewHash();
   t = Getattr(p,"type");
@@ -55,6 +56,7 @@ Parm *CopyParm(Parm *p) {
   value = Getattr(p,"value");
   ignore = Getattr(p,"ignore");
   alttype = Getattr(p,"alttype");
+  byname = Getattr(p, "arg:byname");
 
   if (t) 
     Setattr(np,"type",Copy(t));
@@ -68,6 +70,8 @@ Parm *CopyParm(Parm *p) {
     Setattr(np,"ignore", Copy(ignore));
   if (alttype) 
     Setattr(np,"alttype", Copy(alttype));
+  if (byname)
+    Setattr(np, "arg:byname", Copy(byname));
       
   Setfile(np,Getfile(p));
   Setline(np,Getline(p));
