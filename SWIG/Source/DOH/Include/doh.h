@@ -106,7 +106,6 @@ typedef struct DohObjInfo {
   DOH       *(*doh_str)(DOH *obj);             /* Make a full string */
   void      *(*doh_data)(DOH *obj);            /* Return raw data    */
   int        (*doh_dump)(DOH *obj, DOH *out);  /* Serialize on out   */
-  DOH       *(*doh_load)(DOH *in);             /* Unserialize from in */
 
   /* Length and hash values */
   int       (*doh_len)(DOH *obj);          
@@ -156,7 +155,6 @@ typedef struct DohObjInfo {
   extern DOH    *DohStr(DOH *obj);
   extern void   *DohData(DOH *obj);
   extern int     DohDump(DOH *obj, DOH *out);
-  extern DOH    *DohLoad(DOH *in);
   extern int     DohLen(DOH *obj);
   extern int     DohHashval(DOH *obj);
   extern int     DohCmp(DOH *obj1, DOH *obj2);
@@ -204,13 +202,16 @@ typedef struct DohObjInfo {
   extern DOH    *DohGetfile(DOH *obj);
   extern void    DohSetfile(DOH *obj, DOH *file);
 
+  /* String Methods */
+
+  extern int     DohReplace(DOH *src, DOH *token, DOH *rep, int flags);
+  extern void    DohChop(DOH *src);
+
   /* Utility functions */
 
   extern void    DohEncoding(char *name, DOH *(*fn)(DOH *s));
   extern int     DohPrintf(DOH *obj, char *format, ...);
   extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
-  extern int     DohReplace(DOH *src, DOH *token, DOH *rep, int flags);
-  extern void    DohChop(DOH *src);
   extern DOH    *DohReadline(DOH *in);
 
   /* Miscellaneous */
