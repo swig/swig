@@ -49,33 +49,33 @@ private:
   /* reset the _up flag once the routing direction has been determined */
 #ifdef __PTHREAD__
     void __clear_up() const { 
-	__DIRECTOR__::_up = 0; 
-	__DIRECTOR__::_mutex_active = 0;
-	pthread_mutex_unlock(&_mutex_up);
+        __DIRECTOR__::_up = 0; 
+        __DIRECTOR__::_mutex_active = 0;
+        pthread_mutex_unlock(&_mutex_up);
     }
 #else
     void __clear_up() const { 
-	__DIRECTOR__::_up = 0; 
+        __DIRECTOR__::_up = 0; 
     }
 #endif
 
 public:
     /* wrap a ocaml object, optionally taking ownership */
     __DIRECTOR__(CAML_VALUE self, int disown): _self(self), _disown(disown) {
-	register_global_root(&_self);
+        register_global_root(&_self);
     }
     
     /* discard our reference at destruction */
     virtual ~__DIRECTOR__() {
-	remove_global_root(&_self);
-	__disown(); 
+        remove_global_root(&_self);
+        __disown(); 
         // Disown is safe here because we're just divorcing a reference that
-	// points to us.  
+        // points to us.  
     }
     
     /* return a pointer to the wrapped ocaml object */
     CAML_VALUE __get_self() const { 
-	return callback(*caml_named_value("caml_director_get_self"),_self); 
+        return callback(*caml_named_value("caml_director_get_self"),_self); 
     }
 
     /* get the _up flag to determine if the method call should be routed
@@ -83,20 +83,20 @@ public:
      */
 #ifdef __PTHREAD__
     int __get_up() const { 
-	if (__DIRECTOR__::_mutex_active) {
-	    if (pthread_equal(__DIRECTOR__::_mutex_thread, pthread_self())) {
-		int up = _up;
-		__clear_up();
-		return up;
-	    }
-	}
-	return 0;
+        if (__DIRECTOR__::_mutex_active) {
+            if (pthread_equal(__DIRECTOR__::_mutex_thread, pthread_self())) {
+                int up = _up;
+                __clear_up();
+                return up;
+            }
+        }
+        return 0;
     }
 #else 
     int __get_up() const { 
-	int up = _up;
-	_up = 0;
-	return up;
+        int up = _up;
+        _up = 0;
+        return up;
     }
 #endif
     
@@ -105,24 +105,24 @@ public:
      */
 #ifdef __PTHREAD__
     void __set_up() const { 
-	pthread_mutex_lock(&__DIRECTOR__::_mutex_up);
-	__DIRECTOR__::_mutex_thread = pthread_self();
-	__DIRECTOR__::_mutex_active = 1;
-	__DIRECTOR__::_up = 1; 
+        pthread_mutex_lock(&__DIRECTOR__::_mutex_up);
+        __DIRECTOR__::_mutex_thread = pthread_self();
+        __DIRECTOR__::_mutex_active = 1;
+        __DIRECTOR__::_up = 1; 
     }
 #else 
     void __set_up() const { 
-	__DIRECTOR__::_up = 1; 
+        __DIRECTOR__::_up = 1; 
     }
 #endif
     
     /* acquire ownership of the wrapped ocaml object (the sense of "disown"
      * is from ocaml) */
     void __disown() const { 
-	if (!_disown) { 
-	    _disown=1;
-	    callback(*caml_named_value("caml_obj_disown"),_self);
-	} 
+        if (!_disown) { 
+            _disown=1;
+            callback(*caml_named_value("caml_obj_disown"),_self);
+        } 
     }
 };
 
@@ -140,9 +140,9 @@ int __DIRECTOR__::_mutex_active = 0;
 
 %insert(mli) %{
     val new_derived_object: 
-	(c_obj -> c_obj) ->
-	(c_obj -> string -> c_obj -> c_obj) ->
-	c_obj -> c_obj
+        (c_obj -> c_obj) ->
+        (c_obj -> string -> c_obj -> c_obj) ->
+        c_obj -> c_obj
 %}
 
 %insert(ml) %{
@@ -160,9 +160,9 @@ let new_derived_object cfun x_class args =
     let obj =
     cfun (match args with
                 C_list argl ->
-	  (C_list ((C_director_core (C_obj new_class,ob_ref)) :: argl))
-	  | a -> (C_list [ C_director_core 
-			   (C_obj new_class,ob_ref)  ; a ])) in
+          (C_list ((C_director_core (C_obj new_class,ob_ref)) :: argl))
+          | a -> (C_list [ C_director_core 
+                           (C_obj new_class,ob_ref)  ; a ])) in
     ob_ref := Some obj ;
       obj
   end

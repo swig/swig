@@ -115,7 +115,7 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
 statichere PyTypeObject varlinktype = {
   PyObject_HEAD_INIT(0)              
   0,
-  (char *)"swigvarlink",                      /* Type name    */
+  (char *)"swigvarlink",              /* Type name    */
   sizeof(swig_varlinkobject),         /* Basic size   */
   0,                                  /* Itemsize     */
   0,                                  /* Deallocator  */ 
@@ -143,8 +143,7 @@ SWIG_newvarlink(void) {
 }
 
 SWIGRUNTIME(void)
-SWIG_addvarlink(PyObject *p, char *name,
-	   PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
+SWIG_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
   swig_varlinkobject *v;
   swig_globalvar *gv;
   v= (swig_varlinkobject *) p;
@@ -277,7 +276,7 @@ type_error:
   if (flags & SWIG_POINTER_EXCEPTION) {
     if (ty && c) {
       char *temp = (char *) malloc(64+strlen(ty->name)+strlen(c));
-      sprintf(temp,"Type error. Got %s, expected %s", c, ty->name);	
+      sprintf(temp,"Type error. Got %s, expected %s", c, ty->name);
       PyErr_SetString(PyExc_TypeError, temp);
       free((char *) temp);
     } else {
@@ -310,7 +309,7 @@ type_error:
   if (flags) {
     if (ty && c) {
       char *temp = (char *) malloc(64+strlen(ty->name)+strlen(c));
-      sprintf(temp,"Type error. Got %s, expected %s", c, ty->name);	
+      sprintf(temp,"Type error. Got %s, expected %s", c, ty->name);
       PyErr_SetString(PyExc_TypeError, temp);
       free((char *) temp);
     } else {
@@ -349,9 +348,9 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own) {
     Py_DECREF(args);
     if (inst) {
       if (own) {
-	PyObject *n = PyInt_FromLong(1);
-	PyObject_SetAttrString(inst,(char*)"thisown",n);
-	Py_DECREF(n);
+        PyObject *n = PyInt_FromLong(1);
+        PyObject_SetAttrString(inst,(char*)"thisown",n);
+        Py_DECREF(n);
       }
       robj = inst;
     }

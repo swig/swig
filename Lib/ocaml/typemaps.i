@@ -126,7 +126,7 @@
 %typemap(varin) C_NAME & {
     $1 = MZ_TO_C($input);
 }
-%typemap(outv) C_NAME {
+%typemap(directorout) C_NAME {
     $1 = MZ_TO_C($input);
 }
 %typemap(in) C_NAME *INPUT ($*1_ltype temp) {
@@ -157,7 +157,7 @@
 %typemap(argout) C_NAME & {
     swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
 }
-%typemap(inv) C_NAME {
+%typemap(directorin) C_NAME {
     args = caml_list_append(args,C_TO_MZ($1_name));
 }
 %enddef
@@ -225,7 +225,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %char_ptr_in(in);
 %char_ptr_in(varin);
-%char_ptr_in(outv);
+%char_ptr_in(directorout);
 
 %define %char_ptr_out(how) 
 %typemap(how) 
@@ -242,7 +242,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %char_ptr_out(out);
 %char_ptr_out(varout);
-%char_ptr_out(invv);
+%char_ptr_out(directorin);
 
 %define %swigtype_ptr_in(how)
 %typemap(how) SWIGTYPE * {
@@ -276,10 +276,10 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %swigtype_ptr_in(in);
 %swigtype_ptr_in(varin);
-%swigtype_ptr_in(outv);
+%swigtype_ptr_in(directorout);
 %swigtype_ptr_out(out);
 %swigtype_ptr_out(varout);
-%swigtype_ptr_out(inv);
+%swigtype_ptr_out(directorin);
 
 /* C++ References */
 

@@ -30,7 +30,7 @@
 %typemap(freearg) char **STRING_IN 
 %{ free($1); %}
 
-%typemap(inv, parse="Ljava/lang/String;") char **STRING_IN
+%typemap(directorin, parse="Ljava/lang/String;") char **STRING_IN
 %{ $input = JCALL1(NewStringUTF, jenv, *$1); %}
 
 /* char **STRING_OUT - result must be a null terminated string */
@@ -47,7 +47,7 @@
   }
 }
 
-%typemap(inv,parse="Ljava/lang/String;") char **STRING_OUT
+%typemap(directorin,parse="Ljava/lang/String;") char **STRING_OUT
 %{ $input = JCALL1(NewStringUTF, jenv, *$1); %}
 
 /* char **STRING_RET - a NULL terminated array of char* */
@@ -75,7 +75,7 @@
   } 
 }
 
-%typemap(inv,parse="Ljava/lang/String;") char **STRING_RET
+%typemap(directorin,parse="Ljava/lang/String;") char **STRING_RET
 %{ $input = JCALL1(NewStringUTF, jenv, *$1; %}
 
 /* float *FLOAT_ARRAY_RETURN */
@@ -106,9 +106,9 @@
    } 
 }
 
-%typemap(inv,parse="[F") float *FLOATARRAYRETURN
+%typemap(directorin,parse="[F") float *FLOATARRAYRETURN
 %{
-#error "Need inv typemape for FLOATARRAYRETURN, array input size is unknown."
+#error "Need directorin typemape for FLOATARRAYRETURN, array input size is unknown."
 %}
 
 /* char *BYTE */
@@ -125,9 +125,9 @@
     JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *) $1, 0); 
 }
 
-%typemap(inv,parse="[B") char *BYTE
+%typemap(directorin,parse="[B") char *BYTE
 %{
-#error "Need inv typemape for BYTE, array input size is unknown."
+#error "Need directorin typemape for BYTE, array input size is unknown."
 %}
 
 /* Prevent default freearg typemap from being used */

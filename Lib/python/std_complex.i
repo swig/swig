@@ -67,22 +67,22 @@ SwigComplex_AsComplexDouble(PyObject *o)
   
   // C++ proxy class typemaps
 
-  %typemap(inv) Complex {
+  %typemap(directorin) Complex {
     $input =  PyComplex_FromDoubles($1_name.real(), $1_name.imag());
   }
   
-  %typemap(inv) const Complex & {
+  %typemap(directorin) const Complex & {
     $input =  PyComplex_FromDoubles($1_name.real(), $1_name.imag());
   }
   
-  %typemap(outv) Complex {
+  %typemap(directorout) Complex {
     $result = SwigComplex_As< Complex >($input);
     if (PyErr_Occurred()) {
       throw SWIG_DIRECTOR_TYPE_MISMATCH("Expecting a complex or compatible type");
     }
   }  
   
-  %typemap(outv) const complex<T>& (Complex temp) {
+  %typemap(directorout) const complex<T>& (Complex temp) {
     temp = SwigComplex_As< Complex >($input);
     if (PyErr_Occurred()) {
       throw SWIG_DIRECTOR_TYPE_MISMATCH("Expecting a complex or compatible type");

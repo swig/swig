@@ -140,7 +140,7 @@
 #define WARN_TYPEMAP_VAR_UNDEF        466
 #define WARN_TYPEMAP_TYPECHECK        467
 #define WARN_TYPEMAP_THROW            468
-#define WARN_TYPEMAP_INV_UNDEF        469
+#define WARN_TYPEMAP_DIRECTORIN_UNDEF 469
 
 /* -- General code generation -- */
 

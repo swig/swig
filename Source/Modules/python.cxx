@@ -1320,9 +1320,9 @@ public:
     String* parse_args = NewString("");
 
     Swig_typemap_attach_parms("in", l, w);
-    Swig_typemap_attach_parms("inv", l, w);
-    Swig_typemap_attach_parms("outv", l, w);
-    Swig_typemap_attach_parms("argoutv", l, w);
+    Swig_typemap_attach_parms("directorin", l, w);
+    Swig_typemap_attach_parms("directorout", l, w);
+    Swig_typemap_attach_parms("directorargout", l, w);
 
     Parm* p;
     int num_arguments = emit_num_arguments(l);
@@ -1349,14 +1349,14 @@ public:
       }
       */
 
-      if (Getattr(p, "tmap:argoutv") != 0) outputs++;
+      if (Getattr(p, "tmap:directorargout") != 0) outputs++;
       
       String* pname = Getattr(p, "name");
       String* ptype = Getattr(p, "type");
       
       Putc(',',arglist);
-      if ((tm = Getattr(p, "tmap:inv")) != 0) {
-	String* parse = Getattr(p, "tmap:inv:parse");
+      if ((tm = Getattr(p, "tmap:directorin")) != 0) {
+	String* parse = Getattr(p, "tmap:directorin:parse");
 	if (!parse) {
 	  sprintf(source, "obj%d", idx++);
 	  Replaceall(tm, "$input", source);
@@ -1372,7 +1372,7 @@ public:
 	  if (Len(tm) == 0) Append(tm, pname);
 	  Printf(arglist, "%s", tm);
 	}
-	p = Getattr(p, "tmap:inv:next");
+	p = Getattr(p, "tmap:directorin:next");
 	continue;
       } else
       if (Cmp(ptype, "void")) {
@@ -1436,7 +1436,7 @@ public:
 	  Delete(mangle);
 	  Delete(nonconst);
 	} else {
-	  Swig_warning(WARN_TYPEMAP_INV_UNDEF, input_file, line_number,
+	  Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
 		       "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0), classname, name);
           status = SWIG_NOWRAP;
 	  break;
@@ -1523,11 +1523,11 @@ public:
        * it's not just me, similar silliness also occurs in Language::cDeclaration().
        */
       Setattr(n, "type", return_type);
-      tm = Swig_typemap_lookup_new("outv", n, "result", w);
+      tm = Swig_typemap_lookup_new("directorout", n, "result", w);
       Setattr(n, "type", type);
       if (tm == 0) {
         String *name = NewString("result");
-        tm = Swig_typemap_search("outv", return_type, name, NULL);
+        tm = Swig_typemap_search("directorout", return_type, name, NULL);
 	Delete(name);
       }
       if (tm != 0) {
@@ -1554,7 +1554,7 @@ public:
 	  
     /* marshal outputs */
     for (p = l; p; ) {
-      if ((tm = Getattr(p, "tmap:argoutv")) != 0) {
+      if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
 	if (outputs > 1) {
 	  Printf(w->code, "output = PyTuple_GetItem(result, %d);\n", idx++);
 	  Replaceall(tm, "$input", "output");
@@ -1563,7 +1563,7 @@ public:
 	}
 	Replaceall(tm, "$result", Getattr(p, "name"));
 	Printv(w->code, tm, "\n", NIL);
-	p = Getattr(p, "tmap:argoutv:next");
+	p = Getattr(p, "tmap:directorargout:next");
       } else {
 	p = nextSibling(p);
       }

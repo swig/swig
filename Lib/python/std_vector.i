@@ -106,7 +106,7 @@ namespace std {
                 SWIG_fail;
             }
         }
-        %typemap(outv) vector<T> (std::vector<T>* v) {
+        %typemap(directorout) vector<T> (std::vector<T>* v) {
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
@@ -164,7 +164,7 @@ namespace std {
                 SWIG_fail;
             }
         }
-        %typemap(outv) const vector<T>& (std::vector<T> temp,
+        %typemap(directorout) const vector<T>& (std::vector<T> temp,
                                          std::vector<T>* v),
                        const vector<T>* (std::vector<T> temp,
                                          std::vector<T>* v) {
@@ -183,7 +183,7 @@ namespace std {
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
-	        	throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
+                        throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
@@ -202,7 +202,7 @@ namespace std {
                                                    $descriptor(T *), 1));
             }
         }
-        %typemap(inv) vector<T> {
+        %typemap(directorin) vector<T> {
             $input = PyTuple_New($1_name.size());
             for (unsigned int i=0; i<$1_name.size(); i++) {
                 T* ptr = new T((($1_type &)$1_name)[i]);
@@ -334,7 +334,7 @@ namespace std {
                         self->insert(self->begin()+i,v.begin(),v.end());
                     } else {
                         self->insert(self->end(),v.begin(),v.end());
-	            }
+                    }
                 }
             }
             void __delitem__(int i) {
@@ -388,7 +388,7 @@ namespace std {
                 SWIG_fail;
             }
         }
-        %typemap(outv) vector<T*> (std::vector<T*>* v) {
+        %typemap(directorout) vector<T*> (std::vector<T*>* v) {
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
@@ -445,7 +445,7 @@ namespace std {
                 SWIG_fail;
             }
         }
-        %typemap(outv) const vector<T *>& (std::vector<T *> temp,
+        %typemap(directorout) const vector<T *>& (std::vector<T *> temp,
                                          std::vector<T *>* v),
                        const vector<T *>* (std::vector<T *> temp,
                                          std::vector<T *>* v) {
@@ -483,7 +483,7 @@ namespace std {
                                                    $descriptor(T*), 0));
             }
         }
-        %typemap(inv) vector<T*> {
+        %typemap(directorin) vector<T*> {
             $input = PyTuple_New($1_name.size());
             for (unsigned int i=0; i<$1_name.size(); i++) {
                 T *ptr = (($1_type &)$1_name)[i];
@@ -665,7 +665,7 @@ namespace std {
                 SWIG_fail;
             }
         }
-        %typemap(outv) vector<T> (std::vector<T>* v) {
+        %typemap(directorout) vector<T> (std::vector<T>* v) {
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
@@ -718,7 +718,7 @@ namespace std {
                 SWIG_fail;
             }
         }
-        %typemap(outv) const vector<T>& (std::vector<T> temp,
+        %typemap(directorout) const vector<T>& (std::vector<T> temp,
                                          std::vector<T>* v),
                        const vector<T>* (std::vector<T> temp,
                                          std::vector<T>* v) {
@@ -735,7 +735,7 @@ namespace std {
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
-                	throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
+                        throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
@@ -751,7 +751,7 @@ namespace std {
                 PyTuple_SetItem($result,i,
                                 CONVERT_TO((($1_type &)$1)[i]));
         }
-        %typemap(inv) vector<T> {
+        %typemap(directorin) vector<T> {
             $input = PyTuple_New($1_name.size());
             for (unsigned int i=0; i<$1_name.size(); i++)
                 PyTuple_SetItem($input,i,

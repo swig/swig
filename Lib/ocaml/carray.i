@@ -35,11 +35,11 @@ type _value = c_obj
 %define %make_simple_array_typemap(type,out_f,in_f)
 %array_tmap_out(out,type,out_f);
 %array_tmap_out(varout,type,out_f);
-%array_tmap_out(inv,type,out_f);
+%array_tmap_out(directorin,type,out_f);
 
 %array_tmap_in(in,type,in_f);
 %array_tmap_in(varin,type,in_f);
-%array_tmap_in(outv,type,in_f);
+%array_tmap_in(directorout,type,in_f);
 %enddef
 
 %make_simple_array_typemap(bool,caml_val_bool,caml_long_val);

@@ -54,18 +54,18 @@ namespace std {
         $result = rb_str_new2($1->c_str());
     }
 
-    %typemap(inv) string, const string &, string & "$1_name.c_str()";
+    %typemap(directorin) string, const string &, string & "$1_name.c_str()";
 
-    %typemap(inv) string *, const string * "$1_name->c_str()";
+    %typemap(directorin) string *, const string * "$1_name->c_str()";
     
-    %typemap(outv) string {
+    %typemap(directorout) string {
         if (TYPE($input) == T_STRING)
             $result = std::string(StringValuePtr($input));
         else
             throw SWIG_DIRECTOR_TYPE_MISMATCH("string expected");
     }
     
-    %typemap(outv) const string & (std::string temp) {
+    %typemap(directorout) const string & (std::string temp) {
         if (TYPE($input) == T_STRING) {
             temp = std::string(StringValuePtr($input));
             $result = &temp;

@@ -99,7 +99,7 @@
 <li><a href="#n66">What are directors?</a>
 <li><a href="#n67">Director-specific typemaps</a>
 <ul>
-<li><a href="#n68">%typemap(inv)</a>
+<li><a href="#n68">%typemap(directorin)</a>
 <li><a href="#n69">%typemap(javadirectorin)</a>
 <li><a href="#n70">%typemap(javadirectorout)</a>
 </ul>
@@ -4159,21 +4159,21 @@ public class director_derived extends director_example
 
 <p>
 The Java directors feature requires the <a
-href="#java_directors_inv"><code>%typemap(inv)</code></a>, the <a
+href="#java_directors_inv"><code>%typemap(directorin)</code></a>, the <a
 href="#java_directors_din"><code>%typemap(javadirectorin)</code></a> and the <a
 href="#java_directors_dout"><code>%typemap(javadirectorout)</code></a> type maps in
 order to work properly.
 </p>
 
-<a name="n68"></a><H4>15.9.2.1 %typemap(inv)</H4>
+<a name="n68"></a><H4>15.9.2.1 %typemap(directorin)</H4>
 
 
 <p>
-  The <code>%typemap(inv)</code> type map is used for converting arguments
+  The <code>%typemap(directorin)</code> type map is used for converting arguments
   in the C++ director class to the appropriate JNI type before the upcall
   to Java. This typemap also specifies the JNI field descriptor for the 
   type. For example, integers are converted as follows:
-  <pre>%typemap(inv,parse="I") int "$input = (jint) $1;"</pre>
+  <pre>%typemap(directorin,parse="I") int "$input = (jint) $1;"</pre>
   <code>$input</code> is the SWIG name of the JNI temporary variable passed to
   Java in the upcall.  The <code>parse="I"</code> will put an <code>I</code>
   into the JNI field descriptor that identifies the Java method that will be
@@ -4183,7 +4183,7 @@ order to work properly.
   <p>
   A typemap for C character strings is:
   <br>
-  <pre>%typemap(inv,parse="Ljava/lang/String;") char *
+  <pre>%typemap(directorin,parse="Ljava/lang/String;") char *
 %{ $input = jenv-&gt;NewStringUTF($1); %}</pre>
   </p>
   <p>
