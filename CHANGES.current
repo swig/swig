@@ -1,9 +1,9 @@
 Version 1.3.20 (In progress)
 ============================
 12/07/2003: mmatus (Marcelo Matus)
-	    The director protected member support had been
+	    The director protected member support has been
 	    completly moved out from python.cxx, and now
-	    resides in the common lang.cxx, emmit.cxx and
+	    resides in the common lang.cxx, emit.cxx and
 	    allocate.cxx files. 
 
 	    This means it should work for all the other languages
@@ -28,52 +28,62 @@ Version 1.3.20 (In progress)
 	    - Now the virtual members with no explicit declarator
 	    are properly identified:
 	    
-	    struct A  {
-	     virtual int f() = 0;
-	    };
+                struct A  {
+                 virtual int f() = 0;
+                };
 
-	    struct B {
-	      int f();
-	    };
+                struct B : A {
+                  int f();
+                };
 
 	    Here, B::f() is virtual, and the director and the
 	    virtual elimination mechanism now recognize that.
 
-	    
+            - [C#] This fix also fixes the problem where 'override' was not being 
+            used on any overridden virtual method, so for struct B above, 
+            this C# code is generated:
+
+                public class B : A {
+                  ...
+                  public override int f() {
+                    ...
+                  }
+                  ...
+                }
+
 	    - Initial support for protected virtual methods. They are now
 	    properly emitted when using with director (python only by
 	    now).
 	    
-	    %feature("director") A;    
-	    struct A  {
-            protected:
-	     virtual int f1() = 0;
-	    };
+                %feature("director") A;    
+                struct A  {
+                protected:
+                 virtual int f1() = 0;
+                };
 
-	    %feature("director") B;
-	    struct B : A{
-            protected:
-	      int f1();
-	      virtual f2();
-	    };
+                %feature("director") B;
+                struct B : A{
+                protected:
+                  int f1();
+                  virtual f2();
+                };
 
 	    This can be dissabled by using the '-nodirprot' option.
 
 	    - The feature 'nodirector' is working now at the top level,
 	    so, it must work for all the languages:
 
-	    %feature("director") A;
-	    %feature("nodirector") A::f2;
+                %feature("director") A;
+                %feature("nodirector") A::f2;
 
-	    struct A {
-	     virtual int f1();
-	     virtual int f2();
-	    };
-	    
+                struct A {
+                 virtual int f1();
+                 virtual int f2();
+                };
+                
 	    in this case, only 'f1' is exported to the director class.
 	    
 	    - Added director support for const TYPE& arguments (python).
-
 
 12/02/2003: cheetah (William Fulton)
             [Java] Fix for INOUT and OUTPUT typemaps in typemaps.i for when the JNI type 
