@@ -275,7 +275,7 @@ static int promote(int t1, int t2) {
 %type <node>   tm_args tm_parm tm_tail tm_list
 %type <tmname> tm_name
 %type <tok>    tm_method
-%type <node>   statement swig_directive c_declaration
+%type <node>   statement swig_directive c_declaration constant_directive
 %type <node>   file_include code_block except_directive pragma_directive typemap_directive scope_directive type_directive
 %type <node>   variable_decl function_decl enum_decl typedef_decl stail edecl typedeflist
 %type <nodelist>   enumlist interface
@@ -345,11 +345,25 @@ swig_directive : MODULE idstring {
 		 LParse_set_location($7.filename,$7.line-1);
                  $$ = $9.node;
 	       }
-               | CONSTANT ID definetype SEMI {
+               | constant_directive {
+		 $$ = $1;
+               }
+               | echo_directive { $$ = 0; }
+               | file_include { $$ = $1; }
+               | code_block { $$ = $1; }
+               | except_directive { $$ = $1; }
+               | pragma_directive { $$ = $1; }
+               | typemap_directive { $$ = $1; }
+               | scope_directive {$$ = $1; }
+               | type_directive { $$ = $1; }
+               ;
+
+constant_directive:
+                CONSTANT ID EQUAL definetype SEMI {
 		  $$ = new_node("swig:constant",$2.filename, $2.line);
 		  Setattr($$,ATTR_NAME,$2.text);
-		  Setattr($$,ATTR_VALUE,$3.text);
-		  switch($3.ivalue) {
+		  Setattr($$,ATTR_VALUE,$4.text);
+		  switch($4.ivalue) {
 		  case LPARSE_T_DOUBLE:
 		    Setattr($$,ATTR_TYPE,"double");
 		    break;
@@ -379,8 +393,8 @@ swig_directive : MODULE idstring {
 		    break;
 		  case LPARSE_T_CHAR:
 		    Setattr($$,ATTR_TYPE,"char");
-		    Delitem($3.text,0);
-		    Delitem($3.text,DOH_END);
+		    Delitem($4.text,0);
+		    Delitem($4.text,DOH_END);
 		    break;
 		  case LPARSE_T_STRING:
 		    Setattr($$,ATTR_TYPE,"p.char");
@@ -389,14 +403,12 @@ swig_directive : MODULE idstring {
 		    break;
 		  }
                }
-               | echo_directive { $$ = 0; }
-               | file_include { $$ = $1; }
-               | code_block { $$ = $1; }
-               | except_directive { $$ = $1; }
-               | pragma_directive { $$ = $1; }
-               | typemap_directive { $$ = $1; }
-               | scope_directive {$$ = $1; }
-               | type_directive { $$ = $1; }
+               | CONSTANT LPAREN parm RPAREN ID def_args SEMI {
+		 $$ = new_node("swig:constant", $5.filename, $5.line);
+		 Setattr($$,ATTR_NAME,$5.text);
+		 Setattr($$,ATTR_VALUE,$6.text);
+		 Setattr($$,ATTR_TYPE,Gettype($3));
+               }
                ;
 
 scope_directive: SCOPE LBRACE interface RBRACE {
@@ -1460,8 +1472,7 @@ pname          : ID def_args {
 
 def_args       : EQUAL definetype { $$ = $2; }
                | EQUAL AND ID {
-		 $$.text = NewString("");
-		 Printf($$.text,"&%s",$3.text);
+		 $$.text = NewStringf("&%s", $3.text);
 		 $$.ivalue = LPARSE_T_USER;
 	       }
                | EQUAL LBRACE {
@@ -1671,7 +1682,11 @@ definetype     :  expr {
                     $$.text = $1.text;
                     $$.ivalue = LPARSE_T_STRING;
 		}
-                ;
+                | ID {
+		  $$.text = $1.text;
+                  $$.ivalue = LPARSE_T_ERROR;
+                }
+               ;
   
 expr           :  NUM_INT { 
                   $$.text = $1.text;

@@ -1057,6 +1057,18 @@ String *SwigType_manglestr(SwigType *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_strip_qualifiers()
+ *
+ * Rips all qualifiers out of a type.
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_strip_qualifiers(SwigType *ty) {
+  /* Sick hack alert */
+  Replace(ty,"q(const).","", DOH_REPLACE_ANY);
+  Replace(ty,"q(volatile).", "", DOH_REPLACE_ANY);
+}
+
+/* -----------------------------------------------------------------------------
  * Scope handling
  *
  * These functions are used to manipulate typedefs and scopes.
@@ -1220,7 +1232,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   level = scope_level;
   while (level >= 0) {
     /* See if we know about this type */
-    type = Getattr(scopes[scope_level],base);
+    type = Getattr(scopes[level],base);
     if (type) break;
     level--;
   }
@@ -1264,7 +1276,7 @@ int SwigType_istypedef(SwigType *t) {
   level = scope_level;
   while (level >= 0) {
     /* See if we know about this type */
-    type = Getattr(scopes[scope_level],base);
+    type = Getattr(scopes[level],base);
     if (type) {
       return 1;
     }

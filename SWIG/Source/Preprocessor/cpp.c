@@ -988,9 +988,9 @@ Preprocessor_parse(DOH *s)
 	      /*	      Printf(stdout,"checking '%s'\n", v1); */
 	      if (!check_id(v1)) {
 		if (Len(comment) == 0)
-		  Printf(ns,"%%constant %s %s;\n", Getattr(m,"name"), v1);
+		  Printf(ns,"%%constant %s = %s;\n", Getattr(m,"name"), v1);
 		else
-		  Printf(ns,"%%constant %s %s; /*%s*/\n", Getattr(m,"name"),v1,comment);
+		  Printf(ns,"%%constant %s = %s; /*%s*/\n", Getattr(m,"name"),v1,comment);
 		cpp_lines--;
 	      }
 	      Delete(v1);
