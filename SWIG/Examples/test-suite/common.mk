@@ -42,6 +42,13 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 
+CPP_TEST_BROKEN = \
+	namespace_nested \
+	template_default_arg \
+	using_namespace
+
+CPP_TEST_CASES += $(CPP_TEST_BROKEN)
+
 CPP_TEST_CASES += \
 	abstract_inherit \
 	abstract_inherit_ok \
@@ -103,7 +110,6 @@ CPP_TEST_CASES += \
 	name_inherit \
 	namespace_enum \
 	namespace_extend \
-	namespace_nested \
 	namespace_template \
 	namespace_typemap \
 	newobject1 \
@@ -191,7 +197,6 @@ CPP_TEST_CASES += \
 	using_composition \
 	using_extend \
 	using_inherit \
-	using_namespace \
 	using_private \
 	using_protected \
 	valuewrapper_base \
