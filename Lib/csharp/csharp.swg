@@ -401,12 +401,56 @@ $1 = &temp; %}
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public"
+%typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
 %typemap(cscode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing System;\n"
 %typemap(csinterfaces)                SWIGTYPE "IDisposable"
 %typemap(csinterfaces_derived)                  SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(csptrconstructormodifiers) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "internal"
+
+// Proxy classes (base classes, ie, not derived classes)
+%typemap(csbody) SWIGTYPE %{
+  private IntPtr swigCPtr;
+  protected bool swigCMemOwn;
+
+  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+  }
+
+  internal static IntPtr getCPtr($csclassname obj) {
+    return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
+  }
+%}
+
+// Derived proxy classes
+%typemap(csbody_derived) SWIGTYPE %{
+  private IntPtr swigCPtr;
+
+  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($modulePINVOKE.$csclassnameUpcast(cPtr), cMemoryOwn) {
+    swigCPtr = cPtr;
+  }
+
+  internal static IntPtr getCPtr($csclassname obj) {
+    return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
+  }
+%}
+
+// Typewrapper classes
+%typemap(csbody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+  private IntPtr swigCPtr;
+
+  internal $csclassname(IntPtr cPtr, bool bFutureUse) {
+    swigCPtr = cPtr;
+  }
+
+  protected $csclassname() {
+    swigCPtr = IntPtr.Zero;
+  }
+
+  internal static IntPtr getCPtr($csclassname obj) {
+    return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
+  }
+%}
 
 %typemap(csfinalize) SWIGTYPE %{
   ~$csclassname() {
@@ -434,15 +478,15 @@ $1 = &temp; %}
   }
 
 %typemap(csgetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
-  internal static IntPtr getCPtr($csclassname obj) {
-    return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
-  }
 %}
 
 /* C# specific directives */
 #define %csconst(flag)     %feature("cs:const","flag")
 #define %csenum(wrapapproach)   %feature("cs:enum","wrapapproach")
 #define %csmethodmodifiers %feature("cs:methodmodifiers")
+
+%pragma(csharp) imclassclassmodifiers="class"
+%pragma(csharp) moduleclassmodifiers="public class"
 
 %pragma(csharp) moduleimports=%{
 using System;
