@@ -31,6 +31,7 @@ static String  *AttributeFunctionSet = 0;
 static String  *ActionFunc = 0;
 static int      cplus_mode = 0;
 static Node    *CurrentClass = 0;
+static Hash    *ClassHash = 0;
 
 extern    int           GenerateDefault;
 extern    int           ForceExtern;
@@ -144,6 +145,32 @@ static Parm *nonvoid_parms(Parm *p) {
   return p;
 }
 
+/* Patch C++ pass-by-value reference. Might not work for typedef */
+static void patch_parms(Parm *p) {
+  if (!ClassHash) return;
+  while (p) {
+    SwigType *t = Getattr(p,"type");
+    SwigType *td = SwigType_typedef_resolve_all(t);
+    if (Getattr(ClassHash,td)) {
+      Setattr(p,"origtype", Copy(t));
+      SwigType_add_reference(t);
+    }
+    p = nextSibling(p);
+  }
+}
+
+/* Unpatch pass-by-value references */
+static void unpatch_parms(Parm *p) {
+  if (!ClassHash) return;
+  while (p) {
+    SwigType *t = Getattr(p,"origtype");
+    if (t) {
+      Setattr(p,"type",t);
+    }
+    p = nextSibling(p);
+  }
+}
+
 /* --------------------------------------------------------------------------
  * swig_pragma()
  *
@@ -226,6 +253,7 @@ static void cplus_inherit_types(Node *cls, String *clsname, int import) {
 
 int Language::top(Node *n) {
   Node *c;
+  ClassHash = Getattr(n,"classes");
   for (c = firstChild(n); c; c = nextSibling(c)) {
     emit_one(c);
   }
@@ -658,6 +686,9 @@ int Language::cDeclaration(Node *n) {
 
 int
 Language::functionHandler(Node *n) {
+  Parm *p;
+  p = Getattr(n,"parms");
+  if (CPlusPlus) patch_parms(p);
   if (!CurrentClass) {
     globalfunctionHandler(n);
   } else {
@@ -668,6 +699,7 @@ Language::functionHandler(Node *n) {
       memberfunctionHandler(n);
     }
   }
+  if (CPlusPlus) unpatch_parms(p);
   return SWIG_OK;
 }
 
