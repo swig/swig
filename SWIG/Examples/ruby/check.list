@@ -7,7 +7,7 @@ funcptr2
 functor
 hashargs
 import
-template
+import_template
 mpointer
 multimap
 operator
