@@ -28,6 +28,7 @@ Tcl 8.0 Options (available with -tcl)\n\
 static String     *mod_init = 0;
 static String     *cmd_info = 0;
 static String     *var_info = 0;
+static String     *const_code = 0;
 static String     *methods = 0;
 static String     *attributes = 0;
 static String     *cpp_bases = 0;
@@ -127,6 +128,7 @@ TCL8::top(Node *n) {
   var_info   = NewString("");
   methods    = NewString("");
   attributes = NewString("");
+  const_code = NewString("");
   repeatcmd  = NewHash();
 
   Swig_banner(f_runtime);
@@ -184,6 +186,8 @@ TCL8::top(Node *n) {
 
   Printf(cmd_info, "\nstatic swig_command_info swig_commands[] = {\n");
   Printf(var_info, "\nstatic swig_var_info swig_variables[] = {\n");
+  Printf(const_code, "\nstatic swig_const_info swig_constants[] = {\n");
+
   Printv(f_init,
 	 "for (i = 0; swig_types_initial[i]; i++) {\n",
 	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
@@ -196,9 +200,11 @@ TCL8::top(Node *n) {
 
   Printv(cmd_info, tab4, "{0, 0, 0}\n", "};\n",0);
   Printv(var_info, tab4, "{0,0,0,0}\n", "};\n",0);
+  Printv(const_code, tab4, "{0,0,0,0,0,0}\n", "};\n", 0);
 
   Printf(f_wrappers,"%s", cmd_info);
   Printf(f_wrappers,"%s", var_info);
+  Printf(f_wrappers,"%s", const_code);
 
   Printf(f_init,"for (i = 0; swig_commands[i].name; i++) {\n");
   Printf(f_init,"Tcl_CreateObjCommand(interp, (char *) swig_commands[i].name, (swig_wrapper_func) swig_commands[i].wrapper, swig_commands[i].clientdata, NULL);\n");
@@ -209,6 +215,7 @@ TCL8::top(Node *n) {
   Printf(f_init,"Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_READS | TCL_GLOBAL_ONLY, swig_variables[i].get, (ClientData) swig_variables[i].addr);\n");
   Printf(f_init,"Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_WRITES | TCL_GLOBAL_ONLY, swig_variables[i].set, (ClientData) swig_variables[i].addr);\n");
   Printf(f_init,"}\n");
+  Printf(f_init,"SWIG_InstallConstants(interp, swig_constants);\n");
 
   /* Dump the pointer equivalency table */
   SwigType_emit_type_table(f_runtime, f_wrappers);
@@ -326,109 +333,36 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
     if (i == num_required) Putc('|',argstr);
     if ((tm = Getattr(p,"tmap:in"))) {
-      Replace(tm,"$target",ln,DOH_REPLACE_ANY);
-      Replace(tm,"$source",source,DOH_REPLACE_ANY);
-      Replace(tm,"$input",source,DOH_REPLACE_ANY);
-      Setattr(p,"emit:input",source);
-      Putc('o',argstr);
-      Printf(args,",0");
-      Printf(incode,"%s\n", tm);
+      String *parse = Getattr(p,"tmap:in:parse");
+      if (!parse) {
+	Replace(tm,"$target",ln,DOH_REPLACE_ANY);
+	Replace(tm,"$source",source,DOH_REPLACE_ANY);
+	Replace(tm,"$input",source,DOH_REPLACE_ANY);
+	Setattr(p,"emit:input",source);
+	Putc('o',argstr);
+	Printf(args,",0");
+	if (i >= num_required)
+	  Printf(incode, "if (objc > %d)\n", i);
+	Printf(incode,"%s\n", tm);
+      } else {
+	Printf(argstr,"%s",parse);
+	Printf(args,",&%s",ln);
+	if (Strcmp(parse,"p") == 0) {
+	  SwigType *lt = Swig_clocal_type(pt);
+	  SwigType_remember(pt);
+	  if (Cmp(lt,"p.void") == 0) {
+	    Printf(args,",0");
+	  } else {
+	    Printf(args,",SWIGTYPE%s", SwigType_manglestr(pt));
+	  }
+	  Delete(lt);
+	}
+      }
       p = Getattr(p,"tmap:in:next");
       continue;
     } else {
-      Setattr(p,"emit:input",source);
-      switch(SwigType_type(pt)) {
-      case T_INT:
-      case T_UINT:
-	Putc('i', argstr);
-	Printf(args,",&%s",target);
-	break;
-	
-      case T_BOOL:
-	Putc('i',argstr);
-	{
-	  char tb[32];
-	  sprintf(tb,"tempb%d",i);
-	  Wrapper_add_localv(f,tb,"int",tb,0);
-	  Printf(args,",&%s",tb);
-	  Printv(incode, target, " = (bool) ", tb, ";\n", 0);
-	}
-	break;
-	
-      case T_SHORT:
-      case T_USHORT:
-	Putc('h',argstr);
-	Printf(args,",&%s",target);
-	break;
-	
-      case T_LONG:
-      case T_ULONG:
-	Putc('l',argstr);
-	Printf(args,",&%s",target);
-	break;
-	
-      case T_SCHAR:
-      case T_UCHAR:
-	Putc('b',argstr);
-	Printf(args,",&%s", target);
-	break;
-	
-      case T_FLOAT:
-	Putc('f',argstr);
-	Printf(args,",&%s", target);
-	break;
-	
-      case T_DOUBLE:
-	Putc('d',argstr);
-	Printf(args,",&%s", target);
-	break;
-	
-      case T_CHAR :
-	Putc('c',argstr);
-	Printf(args,",&%s",target);
-	break;
-	
-      case T_VOID :
-	break;
-	
-      case T_USER:
-	{
-	  SwigType_add_pointer(pt);
-	  SwigType_remember(pt);
-	  char argp[20];
-	  sprintf(argp,"argp%d", i);
-	  Wrapper_add_localv(f,argp, SwigType_lstr(pt,argp),0);
-	  Putc('p',argstr);
-	  Printv(args, ",&", argp, ", SWIGTYPE", SwigType_manglestr(pt), 0);
-	  SwigType_del_pointer(pt);
-	  Printf(incode,"%s = *%s;\n", target, argp);
-	}
-	break;
-	
-      case T_STRING:
-	Putc('s',argstr);
-	Printf(args,",&%s",target);
-	break;
-	
-      case T_POINTER: case T_ARRAY: case T_REFERENCE:
-	{
-	  SwigType *lt;
-	  SwigType_remember(pt);
-	  Putc('p',argstr);
-	  lt = Swig_clocal_type(pt);
-	  if (Cmp(lt,"p.void") == 0) {
-	    Printv(args, ",&", target, ", 0", 0);
-	  } else {
-	    Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
-	  }
-	  Delete(lt);
-	  break;
-	}
-      default :
-	Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
-	       input_file, line_number, SwigType_str(pt,0));
-	break;
-      }
+      Printf(stderr,"%s:%d: Unable to use type %s as a function argument.\n",
+	     input_file, line_number, SwigType_str(pt,0));
     }
     p = nextSibling(p);
   }
@@ -487,66 +421,8 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     Printf(f->code,"%s\n", tm);
     Delete(tm);
   } else {
-    switch(SwigType_type(d)) {
-      case T_BOOL:
-      case T_INT:
-      case T_SHORT:
-      case T_LONG :
-      case T_SCHAR:
-      case T_UINT:
-      case T_USHORT:
-      case T_ULONG:
-      case T_UCHAR:
-	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));\n",0);
-	break;
-
-	/* Is a single character.  We return it as a string */
-      case T_CHAR :
-	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewStringObj(&result,1));\n",0);
-	break;
-
-      case T_DOUBLE :
-      case T_FLOAT :
-	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) result));\n",0);
-	break;
-
-      case T_USER :
-
-	/* Okay. We're returning malloced memory at this point.
-	   Probably dangerous, but safe programming is for wimps. */
-
-	if (CPlusPlus) {
-	  Printf(f->code,"resultobj = new %s(result);\n", SwigType_lstr(d,0));
-	} else {
-	  Printf(f->code,"resultobj = (%s *) malloc(sizeof(%s));\n", SwigType_lstr(d,0), SwigType_str(d,0));
-	  Printf(f->code,"memmove(resultobj,&result,sizeof(%s));\n", SwigType_str(d,0));
-	}
-	SwigType_add_pointer(d);
-	SwigType_remember(d);
-	Wrapper_add_local(f,"resultobj", SwigType_lstr(d,"resultobj"));
-	Printv(f->code, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) resultobj,SWIGTYPE",
-	       SwigType_manglestr(d), "));\n", 0);
-	SwigType_del_pointer(d);
-	break;
-
-    case T_STRING:
-	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));\n",0);
-	break;
-    case T_POINTER: case T_REFERENCE: case T_ARRAY:
-	SwigType_remember(d);
-	Printv(f->code, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) result,SWIGTYPE",
-	       SwigType_manglestr(d), "));\n",
-	       0);
-	break;
-
-    case T_VOID:
-      break;
-
-    default :
-      Printf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
-	     input_file, line_number, SwigType_str(d,0), name);
-      break;
-    }
+    Printf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
+	   input_file, line_number, SwigType_str(d,0), name);
   }
 
   /* Dump output argument code */
@@ -818,113 +694,27 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 
 void
 TCL8::declare_const(char *name, char *iname, SwigType *type, char *value) {
-  int OldReadOnly = ReadOnly;
-  SwigType *t;
-  char      var_name[256];
-  String   *tm;
-  String   *rvalue;
-  ReadOnly = 1;
+  String *tm;
 
-  /* Make a static variable */
-  sprintf(var_name,"_wrap_const_%s",name);
-
-  if (SwigType_type(type) == T_STRING) {
-    rvalue = NewStringf("\"%s\"",value);
-  } else if (SwigType_type(type) == T_CHAR) {
-    rvalue = NewStringf("\'%s\'",value);
-  } else {
-    rvalue = NewString(value);
+  /* Special hook for member pointer */
+  if (SwigType_type(type) == T_MPOINTER) {
+    String *wname = Swig_name_wrapper(iname);
+    Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type,wname), value);
+    value = Char(wname);
   }
-  if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,Char(rvalue),name,0))) {
-    Printf(f_init,"%s\n",tm);
+  if ((tm = Swig_typemap_lookup((char*)"consttab",type,name,name,value,name,0))) {
+    Replace(tm,"$name", iname, DOH_REPLACE_ANY);
+    Replace(tm,"$value",value, DOH_REPLACE_ANY);
+    Printf(const_code,"%s,\n", tm);
     Delete(tm);
+  } else if ((tm = Swig_typemap_lookup((char *)"constcode", type, name, name, value, name, 0))) {
+    Replace(tm,"$name", iname, DOH_REPLACE_ANY);
+    Replace(tm,"$value",value, DOH_REPLACE_ANY);
+    Printf(f_init, "%s\n", tm);
   } else {
-    /* Create variable and assign it a value */
-    switch(SwigType_type(type)) {
-    case T_BOOL: case T_INT: case T_DOUBLE:
-      Printf(f_header,"static %s %s = %s;\n", SwigType_str(type,0), var_name, value);
-      link_variable(var_name,iname,type);
-      break;
-
-    case T_SHORT:
-    case T_LONG:
-    case T_SCHAR:
-      Printf(f_header,"static %s %s = %s;\n", SwigType_str(type,0), var_name, value);
-      Printf(f_header,"static char *%s_char;\n", var_name);
-      if (CPlusPlus)
-	Printf(f_init,"\t %s_char = new char[32];\n",var_name);
-      else
-	Printf(f_init,"\t %s_char = (char *) malloc(32);\n",var_name);
-
-      Printf(f_init,"\t sprintf(%s_char,\"%%ld\", (long) %s);\n", var_name, var_name);
-      sprintf(var_name,"%s_char",var_name);
-      t = NewString("char");
-      SwigType_add_pointer(t);
-      link_variable(var_name,iname,t);
-      Delete(t);
-      break;
-
-    case T_UINT:
-    case T_USHORT:
-    case T_ULONG:
-    case T_UCHAR:
-      Printf(f_header,"static %s %s = %s;\n", SwigType_str(type,0), var_name, value);
-      Printf(f_header,"static char *%s_char;\n", var_name);
-      if (CPlusPlus)
-	Printf(f_init,"\t %s_char = new char[32];\n",var_name);
-      else
-	Printf(f_init,"\t %s_char = (char *) malloc(32);\n",var_name);
-
-      Printf(f_init,"\t sprintf(%s_char,\"%%lu\", (unsigned long) %s);\n", var_name, var_name);
-      sprintf(var_name,"%s_char",var_name);
-      t = NewSwigType(T_CHAR);
-      SwigType_add_pointer(t);
-      link_variable(var_name,iname,t);
-      Delete(t);
-      break;
-
-    case T_FLOAT:
-      Printf(f_header,"static %s %s = (%s) (%s);\n", SwigType_lstr(type,0), var_name, SwigType_lstr(type,0), value);
-      link_variable(var_name,iname,type);
-      break;
-
-    case T_CHAR:
-      SwigType_add_pointer(type);
-      Printf(f_header,"static %s %s = \"%s\";\n", SwigType_lstr(type,0), var_name, value);
-      link_variable(var_name,iname,type);
-      SwigType_del_pointer(type);
-      break;
-
-    case T_STRING:
-      Printf(f_header,"static %s %s = \"%s\";\n", SwigType_lstr(type,0), var_name, value);
-      link_variable(var_name,iname,type);
-      break;
-
-    case T_POINTER: case T_ARRAY: case T_REFERENCE:
-      Printf(f_header,"static %s = %s;\n", SwigType_lstr(type,var_name), value);
-      Printf(f_header,"static char *%s_char;\n", var_name);
-      if (CPlusPlus)
-	Printf(f_init,"\t %s_char = new char[%d];\n",var_name,(int) Len(SwigType_manglestr(type))+ 20);
-      else
-	Printf(f_init,"\t %s_char = (char *) malloc(%d);\n",var_name, (int) Len(SwigType_manglestr(type))+ 20);
-
-      t = NewSwigType(T_CHAR);
-      SwigType_add_pointer(t);
-      SwigType_remember(type);
-      Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
-	     var_name, var_name, SwigType_manglestr(type));
-      sprintf(var_name,"%s_char",var_name);
-      link_variable(var_name,iname,t);
-      Delete(t);
-      break;
-
-    default:
-      Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
-      break;
-    }
+    Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+    return;
   }
-  Delete(rvalue);
-  ReadOnly = OldReadOnly;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1158,5 +948,3 @@ int TCL8::validIdentifier(String *s) {
   }
   return 1;
 }
-
-
