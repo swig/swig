@@ -805,14 +805,25 @@ class JAVA : public Language {
     String *tm;
     String *shadowrettype = NewString("");
     String *constants_code = NewString("");
+    SwigType *original_type = t;
 
     if (!addSymbol(symname,n)) return SWIG_ERROR;
+
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
+
+    /* Adjust the enum type for the Swig_typemap_lookup. We want the same jstype typemap for all the enum items.
+     * The type of each enum item depends on what value it is assigned, but is usually a C int. */
+    if (is_enum_item) {
+      t = NewStringf("enum %s", Getattr(parentNode(n), "sym:name"));
+      Setattr(n,"type", t);
+    }
 
     /* Attach the non-standard typemaps to the parameter list. */
     Swig_typemap_attach_parms("jstype", l, NULL);
 
     /* Get Java return types */
     bool is_return_type_java_class = false;
+    
     if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
       is_return_type_java_class = substituteJavaclassname(t, tm);
       Printf(shadowrettype, "%s", tm);
@@ -836,8 +847,6 @@ class JAVA : public Language {
     // enums are wrapped using a public final static int in java.
     // Other constants are wrapped using a public final static [jstype] in Java.
     Printf(constants_code, "  public final static %s %s = ", shadowrettype, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
-
-    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
     // The %javaconst directive determines how the constant value is obtained
     String *javaconst = Getattr(n,"feature:java:const");
@@ -868,6 +877,10 @@ class JAVA : public Language {
       Printv(module_constants_code, constants_code, NIL);
 
     Swig_restore(&n);
+    if (is_enum_item) {
+      Delete(Getattr(n,"type"));
+      Setattr(n,"type", original_type);
+    }
     Delete(new_value);
     Delete(shadowrettype);
     Delete(constants_code);
