@@ -71,7 +71,7 @@ void emit_extern_var(char *decl, DataType *t, int extern_type, FILE *f) {
   char *arr = 0;
 
   if (t->arraystr) arr = t->arraystr;
-  else arr = "";
+  else arr = (char*)"";
 
   switch(extern_type) {
 
@@ -230,13 +230,13 @@ int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
 
       // Special case for return by "value"
       rt->is_pointer++;
-      f.add_local(rt->print_type(), "_result");
+      f.add_local(rt->print_type(), (char*)"_result");
       rt->is_pointer--;
     } else {
 
       // Normal return value
 
-      f.add_local(rt->print_type(), "_result");
+      f.add_local(rt->print_type(), (char*)"_result");
     }
   }
 
@@ -261,21 +261,21 @@ int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
 	  dv = deftmp.get();
 	}
 	f.add_local(p->t->print_type(), temp, dv);
-	tm = typemap_lookup("arginit", typemap_lang, p->t,p->name,"",temp,&f);
+	tm = typemap_lookup((char*)"arginit", typemap_lang, p->t,p->name,(char*)"",temp,&f);
 	if (tm) {
 	  f.code << tm << "\n";
 	}
       }
       // Check for ignore or default typemaps
-      tm = typemap_lookup("default",typemap_lang,p->t,p->name,"",temp,&f);
+      tm = typemap_lookup((char*)"default",typemap_lang,p->t,p->name,(char*)"",temp,&f);
       if (tm)
 	f.code << tm << "\n";
-      tm = typemap_lookup("ignore",typemap_lang,p->t,p->name,"",temp,&f);
+      tm = typemap_lookup((char*)"ignore",typemap_lang,p->t,p->name,(char*)"",temp,&f);
       if (tm) {
 	f.code << tm << "\n";
 	p->ignore = 1;
       }
-      tm = typemap_check("build",typemap_lang,p->t,p->name);
+      tm = typemap_check((char*)"build",typemap_lang,p->t,p->name);
       if (tm) {
 	p->ignore = 1;
       }
@@ -379,13 +379,13 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f) {
   }
   // Check for exception handling
 
-  if ((tm = typemap_lookup("except",typemap_lang,t,decl,"_result",""))) {
+  if ((tm = typemap_lookup((char*)"except",typemap_lang,t,decl,(char*)"_result",(char*)""))) {
     // Found a type-specific mapping
     exc << tm;
     exc.replace("$function",fcall);
     exc.replace("$name",decl);
     f.code << exc;
-  } else if ((tm = fragment_lookup("except",typemap_lang, t->id))) {
+  } else if ((tm = fragment_lookup((char*)"except",typemap_lang, t->id))) {
     exc << tm;
     exc.replace("$function",fcall);
     exc.replace("$name",decl);

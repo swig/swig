@@ -1617,7 +1617,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       p->call_type = 0;
       
       sprintf(p->t->name,"%s%s", classtype,classname);
-      p->name = "self";
+      p->name = (char*)"self";
       newparms->insert(p,0);       // Attach parameter to beginning of list
       
       // Now wrap the thing.  The name of the function is iname
@@ -1903,7 +1903,7 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
     p->t->id = cpp_id;
     p->call_type = 0;
     sprintf(p->t->name,"%s%s", classtype, classname);
-    p->name = "self";
+    p->name = (char*)"self";
     l->insert(p,0);
     
     type = new DataType;
@@ -2162,7 +2162,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 
 	// Now write a function to get the value of the variable
 
-	tm = typemap_lookup("memberout",typemap_lang,type,mname,source,"result");
+	tm = typemap_lookup((char*)"memberout",typemap_lang,type,mname,source,(char*)"result");
 
 	if ((type->type == T_USER) && (!type->is_pointer)) {
 	  type->is_pointer++;
@@ -2206,7 +2206,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
       p->t->is_pointer = 1;
       p->t->id = cpp_id;
       p->call_type = 0;	
-      p->name = "self";
+      p->name = (char*)"self";
       sprintf(p->t->name,"%s%s", classtype,classname);
       l->insert(p,0);
 
@@ -2338,7 +2338,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	target << "obj->" << mname;
 	
 	// Lookup any typemaps that might exist
-	tm = typemap_lookup("memberin",typemap_lang,type,mname,"val",target);
+	tm = typemap_lookup((char*)"memberin",typemap_lang,type,mname,(char*)"val",target);
 	
 	// First write a function to set the variable 
 
@@ -2348,7 +2348,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	    is_user = 1;
 	  }
 	  wrap << "static " << type->print_type() << " " << cname << "("
-	       << classtype << classname << " *obj, " << type->print_real("val") << ") {\n";
+	       << classtype << classname << " *obj, " << type->print_real((char*)"val") << ") {\n";
 	  if (is_user) {
 	    type->is_pointer--;
 	  }
@@ -2380,7 +2380,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	      if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
 		String temp;
 		wrap << "static " << type->print_type() << " " << cname << "("
-		     << classtype << classname << " *obj, " << type->print_real("val") << ") {\n";
+		     << classtype << classname << " *obj, " << type->print_real((char*)"val") << ") {\n";
 		temp << "obj->" << mname;
 		if (CPlusPlus) {
 		  wrap << tab4 << "if (" << temp << ") delete [] " << temp << ";\n"
@@ -2428,7 +2428,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       p->t->is_pointer = 1;
       p->t->id = cpp_id;
       sprintf(p->t->name,"%s%s", classtype,classname);
-      p->name = "self";
+      p->name = (char*)"self";
       l->insert(p,0);
       
       if ((type->type == T_USER) && (!type->is_pointer)) {

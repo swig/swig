@@ -163,7 +163,7 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
   char temp[512];
 
   // Form the application name
-  if (!pname) pname = "";
+  if (!pname) pname = (char*)"";
   sprintf(temp,"%s$%s",type->print_type(),pname);
 
   // See if there is a method already defined
@@ -217,7 +217,7 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
 
 void typemap_clear_apply(DataType *type, char *pname) {
   char temp[512];
-  if (!pname) pname = "";
+  if (!pname) pname = (char*)"";
   sprintf(temp,"%s$%s", type->print_type(), pname);
   application_hash.remove(temp);
 }
@@ -370,7 +370,7 @@ void typemap_register_default(char *op, char *lang, int type, int ptr, char *arr
 
   // Now, go register this as a default type
 
-  typemap_register(op,lang,t,"SWIG_DEFAULT_TYPE",code,args);
+  typemap_register(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",code,args);
   delete t;
 }
 
@@ -423,7 +423,7 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
 
   // Check for unnamed array of specific dimensions
   if (!tm) {
-    key = typemap_string(lang,type,"",type->arraystr,op);
+    key = typemap_string(lang,type,(char*)"",type->arraystr,op);
     tm = typemap_search(key,type->id);
   } 
 
@@ -449,7 +449,7 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
       key = typemap_string(lang,type,pname,type->arraystr,op);
       tm = typemap_search(key,type->id);
       if (!tm) {
-	key = typemap_string(lang,type,"",type->arraystr,op);
+	key = typemap_string(lang,type,(char*)"",type->arraystr,op);
 	tm = typemap_search(key,type->id);
       }
       type->arraystr = origarr;
@@ -605,7 +605,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
 
   // Check for unnamed type
   if (!tm) {
-    key = typemap_string(lang,type,"",0,op);
+    key = typemap_string(lang,type,(char*)"",0,op);
     tm = typemap_search(key,type->id);
     if (tm)
       str << tm->code;
@@ -646,7 +646,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
 
   // If there were locals and no wrapper function, print a warning
   if ((tm->args) && !f) {
-    if (!pname) pname = "";
+    if (!pname) pname = (char*)"";
     fprintf(stderr,"%s:%d: Warning. '%%typemap(%s,%s) %s %s' being applied with ignored locals.\n",
 	    input_file, line_number, lang,op, type->print_type(), pname);
   }
@@ -681,7 +681,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
   if ((!result) && (pname)) {
     int drop_pointer = 0;
     ppname = pname;
-    if (!ppname) ppname = "";
+    if (!ppname) ppname = (char*)"";
     
     // The idea : We're going to cycle through applications and
     // drop pointers off until we get a match.   
@@ -748,7 +748,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
   if (!result) {
     DataType *t = new DataType(type);
     t->primitive(); // Knock it down to its basic type
-    result = typemap_lookup_internal(op,lang,t,"SWIG_DEFAULT_TYPE",source,target,f);
+    result = typemap_lookup_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",source,target,f);
     if (result) {
       delete t;
       return result;
@@ -762,7 +762,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
       if (t->arraystr) delete [] t->arraystr;
       t->arraystr = 0;
       t->primitive();
-      result = typemap_lookup_internal(op,lang,t,"SWIG_DEFAULT_TYPE",source,target,f);
+      result = typemap_lookup_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",source,target,f);
     }
     delete t;
   }
@@ -803,13 +803,13 @@ char *typemap_check_internal(char *op, char *lang, DataType *type, char *pname) 
 
   // Check for unnamed array
   if ((!tm) && (type->arraystr)) {
-    key = typemap_string(lang,type,"",type->arraystr,op);
+    key = typemap_string(lang,type,(char*)"",type->arraystr,op);
     tm = typemap_search(key,type->id);
   } 
 
   // Check for unname type
   if (!tm) {
-    key = typemap_string(lang,type,"",0,op);
+    key = typemap_string(lang,type,(char*)"",0,op);
     tm = typemap_search(key,type->id);
   }
   if (!tm) return 0;
@@ -837,7 +837,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
   if (!result) {
     int drop_pointer = 0;
     ppname = pname;
-    if (!ppname) ppname = "";
+    if (!ppname) ppname = (char*)"";
     
     // The idea : We're going to cycle through applications and
     // drop pointers off until we get a match.   
@@ -900,7 +900,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
   if (!result) {
     DataType *t = new DataType(type);
     t->primitive(); // Knock it down to its basic type
-    result = typemap_check_internal(op,lang,t,"SWIG_DEFAULT_TYPE");
+    result = typemap_check_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE");
     if (result) {
       delete t;
       return result;
@@ -913,7 +913,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
       if (t->arraystr) delete [] t->arraystr;
       t->arraystr = 0;
       t->primitive();
-      result = typemap_check_internal(op,lang,t,"SWIG_DEFAULT_TYPE");
+      result = typemap_check_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE");
     }
     delete t;
   }
