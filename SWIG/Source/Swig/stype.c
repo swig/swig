@@ -970,6 +970,7 @@ SwigType_ltype(SwigType *s) {
   Delete(tc);
   result_qualified = SwigType_typedef_qualified(result);
   Delete(result);
+  /*  Printf(stdout,"ltype(%s) --> %s\n", s, result_qualified);*/
   return result_qualified;
 }
 
@@ -1164,9 +1165,9 @@ String *SwigType_manglestr_default(SwigType *s) {
   char *c;
   String *result;
 
-  if (SwigType_istypedef(s))
+  /*  if (SwigType_istypedef(s) && SwigType_issimple(s))
     result = Copy(s);
-  else
+    else */
     result = SwigType_ltype(s);
   Replace(result,"struct ","", DOH_REPLACE_ANY);
   Replace(result,"class ","", DOH_REPLACE_ANY);
