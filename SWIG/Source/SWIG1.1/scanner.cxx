@@ -1240,8 +1240,14 @@ extern "C" int yylex(void) {
         if (strcmp(yytext,"%rename") == 0) return(RENAME);
 	if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
 	if (strcmp(yytext,"%externfile") == 0) return(WEXTERN);
-	if (strcmp(yytext,"%val") == 0) return(CVALUE);
-	if (strcmp(yytext,"%out") == 0) return(COUT);
+	if (strcmp(yytext,"%val") == 0) {
+	  fprintf(stderr,"%s:%d %%val directive deprecated (ignored).\n", input_file, line_number);
+	  return (yylex());
+	}
+	if (strcmp(yytext,"%out") == 0) {
+	  fprintf(stderr,"%s:%d %%out directive deprecated (ignored).\n", input_file, line_number);
+	  return(yylex());
+	}
 	if (strcmp(yytext,"%constant") == 0) return(CONSTANT);
 	if (strcmp(yytext,"%macro") == 0) return(SWIGMACRO);
 

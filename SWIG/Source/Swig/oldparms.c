@@ -34,7 +34,6 @@ Parm *NewParm(DataType *type, char *n) {
     p->_type = 0;
   }
   p->_name = Swig_copy_string(n);
-  p->call_type = 0;
   p->_defvalue = 0;
   p->ignore = 0;
   return p;
@@ -48,7 +47,6 @@ Parm *CopyParm(Parm *p) {
   Parm *np = (Parm *) malloc(sizeof(Parm));
   if (p->_type) np->_type = CopyDataType(p->_type);
   np->_name = Swig_copy_string(p->_name);
-  np->call_type = p->call_type;
   np->_defvalue = Swig_copy_string(p->_defvalue);
   np->ignore = p->ignore;
   return np;
@@ -278,9 +276,7 @@ Parm * ParmList_next(ParmList *l) {
  * void ParmList_print_types(DOHFile *f)
  *
  * Prints a comma separated list of all of the parameter types.
- * This is for generating valid C prototypes.   Has to do some
- * manipulation of pointer types depending on how the call_type
- * variable has been set.
+ * This is for generating valid C prototypes. 
  * ---------------------------------------------------------------------- */
 
 void ParmList_print_types(ParmList *l, DOHFile *f) {
@@ -291,21 +287,7 @@ void ParmList_print_types(ParmList *l, DOHFile *f) {
   pn = 0;
   while(pn < l->nparms) {
     t = Parm_Gettype(l->parms[pn]);
-    is_pointer = t->is_pointer;
-    /*    if (t->is_reference) {
-      if (t->is_pointer) {
-	t->is_pointer--;
-	Printf(f,"%s&", DataType_str(t,0));
-	t->is_pointer++;
-      } else {
-	Printf(f,"%s&", DataType_str(t,0));
-      }
-      } else { */
-      if (l->parms[pn]->call_type & CALL_VALUE) t->is_pointer++;
-      if (l->parms[pn]->call_type & CALL_REFERENCE) t->is_pointer--;
-      Printf(f,"%s", DataType_str(t,0));
-      t->is_pointer = is_pointer;
-      /*    }*/
+    Printf(f,"%s", DataType_str(t,0));
     pn++;
     if (pn < l->nparms)
       Printf(f,",");
@@ -326,30 +308,11 @@ void ParmList_print_args(ParmList *l, DOHFile *f) {
   pn = 0;
   while(pn < l->nparms) {
     t = Parm_Gettype(l->parms[pn]);
-    is_pointer = t->is_pointer;
-    /*    if (t->is_reference) {
-      if (t->is_pointer) {
-	t->is_pointer--;
-	Printf(f,"%s&", DataType_print_full(t));
-	t->is_pointer++;
-      } else {
-	Printf(f,"%s&", DataType_print_full(t));
-      }
-    } else {
-    */
-
-      if (l->parms[pn]->call_type & CALL_VALUE) t->is_pointer++;
-      if (l->parms[pn]->call_type & CALL_REFERENCE) t->is_pointer--;
-      Printf(f,"%s", DataType_str(t,0));
-
-      t->is_pointer = is_pointer;
-      /*
-    }
-      */
-    Printf(f,"%s",Parm_Getname(l->parms[pn]));
+    Printf(f,"%s", DataType_str(t,Parm_Getname(l->parms[pn])));
     pn++;
     if (pn < l->nparms)
       Printf(f,",");
   }
 }
+
 

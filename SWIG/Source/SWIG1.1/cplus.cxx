@@ -1598,11 +1598,11 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	    DataType *pt = Parm_Gettype(p);
 	    if ((pt->type != T_VOID) || (pt->is_pointer)) {
 	      Printf(wrap,",");
-	      if ((p->call_type & CALL_REFERENCE) || (pt->is_reference)) {
+	      if (pt->is_reference) {
 		pt->is_pointer--;
 	      } 
 	      Printf(wrap, DataType_print_full(pt));
-	      if ((p->call_type & CALL_REFERENCE) || (pt->is_reference)) {
+	      if (pt->is_reference) {
 		pt->is_pointer++;
 	           if (pt->is_reference)
 		     Printf(wrap,"&");
@@ -1630,7 +1630,6 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	Parm_Settype(p,pt);
 	DelDataType(pt);
       }
-      p->call_type = 0;
       Parm_Setname(p,(char*)"self");
       ParmList_insert(newparms,p,0);       // Attach parameter to beginning of list
       
@@ -1932,7 +1931,6 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
       Parm_Settype(p,pt);
       DelDataType(pt);
     }
-    p->call_type = 0;
     Parm_Setname(p,(char*)"self");
     ParmList_insert(l,p,0);
     
@@ -2058,13 +2056,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 	  DataType *pt = Parm_Gettype(p);
 	  
 	  if ((pt->type != T_VOID) || (pt->is_pointer)) {
-	    if (p->call_type & CALL_REFERENCE) {
-	      pt->is_pointer--;
-	    }
 	    Printf(wrap, DataType_str(pt,Parm_Getname(p)));
-	    if (p->call_type & CALL_REFERENCE) {
-	      pt->is_pointer++;
-	    }
 	    p = ParmList_next(l);
 	    if (p) {
 	      Printf(wrap,",");
@@ -2252,7 +2244,6 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 	DelDataType(pt);
       }
       Parm_Setname(p,(char*)"self");
-      p->call_type = 0;	
 
       ParmList_insert(l,p,0);
 
@@ -2475,7 +2466,6 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	Parm_Settype(p,pt);
 	DelDataType(pt);
       }
-      p->call_type = 0;	
       if (mrename) 
 	Parm_Setname(p,mrename);
       else
@@ -2491,7 +2481,6 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	Parm_Settype(p,pt);
 	DelDataType(pt);
       }
-      p->call_type = 0;	
       Parm_Setname(p,(char*)"self");
       ParmList_insert(l,p,0);
       

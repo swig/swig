@@ -293,13 +293,8 @@ extern void      typeeq_addtypedef(char *name, char *eqname, DataType *t);
 
 /* --- Deprecated parameter list structure */
 
-#define CALL_VALUE      0x01
-#define CALL_REFERENCE  0x02
-#define CALL_OUTPUT     0x04
-
 typedef struct Parm {
   DataType   *_type;            /* Datatype of this parameter */
-  int        call_type;         /* Call type (value or reference or value) */
   char       *_name;            /* Name of parameter (optional) */
   char       *_defvalue;        /* Default value (as a string) */
   int        ignore;            /* Ignore flag */
