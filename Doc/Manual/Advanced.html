@@ -36,10 +36,14 @@
 
 
 SWIG can be used to create packages consisting of many different modules. However, there are some technical aspects of doing this and techniques for managing the problem.<p>
+This chapter doesn't apply to those languages that use static type checking, rather than runtime type checking, such as Java and C#.
 <a name="n3"></a><H3>13.1.1 Runtime support (and potential problems)</H3>
 
 
-All SWIG generated modules rely upon a small collection of functions that are used during run-time. These functions are primarily used for pointer type-checking, exception handling, and so on. When you run SWIG, these functions are included in the wrapper file (and declared as static). If you create a system consisting of many modules, each one will have an identical copy of these runtime libraries :<p>
+Most SWIG generated modules rely upon a small collection of functions that are used during run-time.
+These functions are primarily used for pointer type-checking, exception handling, and so on. 
+When you run SWIG, these functions are included in the wrapper file (and declared as static). 
+If you create a system consisting of many modules, each one will have an identical copy of these runtime libraries :<p>
 <center><img src="ch11.1.png"></center><p>
 <p>
 This duplication of runtime libraries is usually harmless since there are no namespace conflicts and memory overhead is minimal. However, there is serious problem related to the fact that modules do not share type-information.  This is particularly a problem when working with C++ (as described next).<p>
@@ -102,7 +106,11 @@ Unfortunately, this problem is inherent in the method by which SWIG makes module
 
 To reduce overhead and to fix type-handling problems, it is possible to share the SWIG run-time functions between multiple modules. This requires the use of the SWIG runtime library which is optionally built during SWIG installation.  To use the runtime libraries, follow these steps:<p>
 <p>
-1.  Build the SWIG run-time libraries.  The <tt>SWIG/Runtime</tt> directory contains a makefile for doing this. If successfully built, you will end up with 8 files that are usually installed in <tt>/usr/local/lib</tt>.<p>
+1.  Build the SWIG run-time libraries.  
+The <tt>SWIG/Runtime</tt> directory contains a makefile for doing this for Unix users. 
+Some of the runtime libraries can also be built under Windows by following the instructions in the <a href="Windows.html">Windows</a> documentation. 
+If successfully built, you will end up with a number of files that are usually installed in <tt>/usr/local/lib</tt>. 
+The Perl, Python, Tcl and Ruby library files are listed below:<p>
 <p>
 <blockquote><pre>
 libswigpl.a                  # Perl library (static)
@@ -115,7 +123,7 @@ libswigrb.a                  # Ruby library (static)
 libswigrb.so                 # Ruby library (shared)
 </pre></blockquote>
 <p>
-Note that certain libraries may be missing due to missing packages or unsupported features (like dynamic loading) on your machine.<p>
+Note that certain libraries may be missing due to missing packages or unsupported features (like dynamic loading) on your machine. Also some languages don't use the runtime libraries at all as they implement static type checking rather than dynamic type checking, for example, Java and C#.<p>
 <p>
 2.   Compile all SWIG modules using the <tt>-c</tt> option.   For example :<p>
 <p>
@@ -138,7 +146,7 @@ or if building a new executable (static linking)<p>
 <p>
 <blockquote><pre>
 % <b>swig -c -tcl -ltclsh.i a.i</b>
-% <b>gcc a_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigtcl -lm -o mytclsh</b>
+% <b>gcc a_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigtcl8 -lm -o mytclsh</b>
 
 </pre></blockquote>
 <p>
@@ -169,7 +177,7 @@ Now, run SWIG and compile as follows:<p>
 <p>
 <blockquote><pre>
 % <b>swig -c -tcl mytclsh.i</b>
-% <b>gcc mytclsh_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigtcl -ldl -lm \
+% <b>gcc mytclsh_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigtcl8 -ldl -lm \
       -o tclsh</b>
 </pre></blockquote>
 This produces a new executable "<tt>tclsh</tt>" that contains a copy of the SWIG runtime library. The weird <tt>__embedfunc()</tt> function is needed to force the functions in the runtime library to be included in the final executable.<p>
@@ -181,28 +189,36 @@ To make new dynamically loadable SWIG modules, simply compile as follows :<p>
 % <b>gcc -c example_wrap.c -I/usr/local/include</b>
 % <b>ld -shared example_wrap.o -o example.so</b>
 </pre></blockquote>
-Linking against the <tt>swigtcl</tt> library is no longer necessary as all of the functions are now included in the <tt>tclsh</tt> executable and will be resolved when your module is loaded.<p>
+Linking against the <tt>swigtcl8</tt> library is no longer necessary as all of the functions are now included in the <tt>tclsh</tt> executable and will be resolved when your module is loaded. 
+However, some operating systems, like Windows, will still require linking with the libraries so that there are no unresolved symbols.<p>
 <p>
 2.  Using shared library versions of the runtime library<p>
 <p>
-If supported on your machine, the runtime libraries will be built as shared libraries (indicated by a <tt>.so</tt>, <tt>.sl</tt>, or .<tt>dll</tt> suffix). To compile using the runtime libraries, you link process should look something like this:<p>
+If supported on your machine, the runtime libraries will be built as shared libraries (for example a <tt>.so</tt>, <tt>.sl</tt>, or .<tt>dll</tt> suffix). To compile using the runtime libraries, your link process should look something like this:<p>
+
 <blockquote><pre>
-% <b>ld -shared swigtcl_wrap.o -o libswigtcl.so</b>             # Irix
-% <b>gcc -shared swigtcl_wrap.o -o libswigtcl.so</b>            # Linux
-% <b>ld -G swigtcl_wrap.o -o libswigtcl.so</b>                  # Solaris
+% <b>ld -shared example_wrap.o -o libexample.so</b>             # Irix
+% <b>gcc -shared example_wrap.o -o libexample.so</b>            # Linux
+% <b>ld -G example_wrap.o -o libexample.so</b>                  # Solaris
+&gt; <b>cl /LD example_wrap.obj /o example.dll swigtcl8.lib tcl83.lib /link /LIBPATH:c:\SWIG\Runtime /LIBPATH:c:\Tcl\lib</b> # Windows VC++
 </pre></blockquote>
-In order for the <tt>libswigtcl.so</tt> library to work, it needs to be placed in a location where the dynamic loader can find it. Typically this is a system library directory (ie. <tt>/usr/local/lib</tt> or <tt>/usr/lib</tt>).<p>
+
+In order for the <tt>libexample.so</tt> library to work, it needs to be placed in a location where the dynamic loader can find it. 
+Typically this is a system library directory (eg. <tt>/usr/local/lib</tt> or <tt>/usr/lib</tt>).<p>
 <p>
 When running with the shared libary version, you may get error messages such as the following:<p>
 <p>
-<blockquote><pre>Unable to locate libswigtcl.so</pre></blockquote>
-This indicates that the loader was unable to find the shared libary at run-time. To find shared libaries, the loader looks through a collection of predetermined paths. If the <tt>libswigtcl.so</tt> file is not in any of these directories, it results in an error. On most machines, you can change the loader search path by changing the Unix environment variable <tt>LD_LIBRARY_PATH</tt>, e.g.<p>
+<blockquote><pre>Unable to locate libexample.so</pre></blockquote>
+This indicates that the loader was unable to find the shared libary at run-time. 
+To find shared libaries, the loader looks through a collection of predetermined paths. 
+If the shared library file is not in any of these directories, it results in an error. 
+On most machines, you can change the loader search path by changing the path (Windows) or environment variable <tt>LD_LIBRARY_PATH</tt> (Unix), e.g.<p>
 <p>
 <blockquote><pre>% <b>setenv LD_LIBRARY_PATH .:/home/beazley/packages/lib</b></pre></blockquote>
 A somewhat better approach is to link your module with the proper path encoded. This is typically done using the `<tt>-rpath</tt>' or `<tt>-R</tt>' option to your linker (see the man page). For example:<p>
 <p>
 <blockquote><pre>% <b>ld -shared example_wrap.o example.o -rpath /home/beazley/packages/lib \
-       -L/home/beazley/packages/lib -lswigtcl.so -o example.so</b>
+       -L/home/beazley/packages/lib -lswigtcl8.so -o example.so</b>
 </pre></blockquote>
 The <tt>-rpath</tt> option encodes the location of shared libraries into your modules and gets around having to set the <tt>LD_LIBRARY_PATH</tt> variable.<p>
 <p>
