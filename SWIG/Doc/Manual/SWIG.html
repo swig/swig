@@ -2206,8 +2206,8 @@ For example:
 template<class T> T max(T a, T b) { return a > b ? a : b; }
 
 // Make some different versions of this function
-%template(maxint) max<int>;
-%template(maxdouble) max<double>;
+%template(maxint) max&lt;int&gt;;
+%template(maxdouble) max&lt;double&gt;;
 </pre>
 </blockquote>
 
@@ -2253,7 +2253,7 @@ additional methods to a specific instantiation. For example:
 
 <blockquote>
 <pre>
-%template(intList) List<int>;
+%template(intList) List&lt;int&gt;;
 
 %addmethods intList {
     void blah() {
