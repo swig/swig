@@ -402,37 +402,4 @@ static int NAME(TYPE x) {
 %}
 %enddef
 
-
-/* 
-   Auxiliary methods for assigning unnamed type C++ variables, where
-   swig doesn't know the casting type, but C++ can derived it:
-
-     struct Foo { enum {Hi, Hello } hola; };
-
-   Activate the following for compilers that do not support unnamed
-   template parameters (under your own risk).
-
-   #define SWIG_UNNAMED_USE_MEMCPY
-*/
-%insert("runtime") %{
-#ifdef __cplusplus
-/* here, the C++ compilers that do not accept unnamed template parameters */
-#if defined(_SGI_COMPILER_VERSION)
-#ifdef SWIG_UNNAMED_USE_MEMCPY
-/* dangerous assigment, but for enums could work */
-#define swig_assign_unnamed(eval, val) memcpy(&(eval),&(val), sizeof(eval))
-#else
-#define swig_assign_unnamed(eval, val) printf("unnamed member assigment not sopperted")
-#endif
-#else
-template <class T, class V>
-inline
-void swig_assign_unnamed(T& eval, const V& val)
-{
-  eval = static_cast<T>(val);
-}
-#endif
-#else
-#define swig_assign_unnamed(eval, val) eval = val
-#endif
-%}
+%include unnamed.swg
