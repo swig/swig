@@ -78,7 +78,6 @@ static  String   *func_stubs = 0;            /* Function stubs */
 static  String   *const_stubs = 0;           /* Constant stubs */
 static  int       num_consts = 0;            /* Number of constants */
 static  String   *var_stubs = 0;             /* Variable stubs */
-static  String   *member_keys = 0;           /* Keys for all member data */
 static  String   *exported = 0;              /* Exported symbols */
 static  String   *pragma_include = 0;
 static  Hash     *operators = 0;
@@ -993,7 +992,6 @@ PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
     class_type = NewString(ctype);
     pcode = NewString("");
     blessedmembers = NewString("");
-    member_keys = NewString("");
 
     /* Add some symbols to the hash tables */
     cpp_class_decl(Char(classname),Char(class_name),Char(ctype));
@@ -1231,9 +1229,6 @@ int PERL5::membervariableDeclaration(Node *n) {
   member_func = 0;
 
   if (blessed) {
-
-    /* Store name of key for future reference */
-    Printf(member_keys,"'%s', ", symname);
 
     Printv(pcode,"*swig_", symname, "_get = *", package, "::", Swig_name_get(Swig_name_member(class_name,symname)), ";\n", 0);
     Printv(pcode,"*swig_", symname, "_set = *", package, "::", Swig_name_set(Swig_name_member(class_name,symname)), ";\n", 0);

@@ -239,7 +239,8 @@ GUILE::top(Node *n)
   if (NoInclude) {
     Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
   }
-  set_module(Char(Getattr(n,"name")));
+  
+  module = Swig_copy_string(Char(Getattr(n,"name")));
 
   if (CPlusPlus) {
     Printf(f_runtime, "extern \"C\" {\n\n");
@@ -301,24 +302,6 @@ GUILE::top(Node *n)
   Close(f_runtime);
   Delete(f_runtime);
   return SWIG_OK;
-}
-
-// ---------------------------------------------------------------------
-// GUILE::set_module(char *mod_name)
-//
-// Sets the module name.
-// Does nothing if it's already set (so it can be overridden as a command
-// line option).
-//
-//----------------------------------------------------------------------
-
-void
-GUILE::set_module (char *mod_name)
-{
-  if (module) return;
-
-  module = new char [strlen (mod_name) + 1];
-  strcpy (module, mod_name);
 }
 
 void
@@ -444,54 +427,6 @@ is_a_pointer (SwigType *t)
   return SwigType_ispointer(SwigType_typedef_resolve_all(t));
 }
 
-/* Lookup a typemap, replace all relevant parameters and write it to
-   the given generalized file. Return 0 if no typemap found. */
-
-static int
-guile_do_typemap(DOHFile *file, const char *op,
-		 SwigType *type, const String_or_char *arg, const String_or_char *lname,
-		 String_or_char *source, String_or_char *target,
-		 int argnum, DOHString *name, Wrapper *f,
-		 int nonewline_p)
-{
-  String *tm;
-  if ((tm = Swig_typemap_lookup(op, type, (char *)arg, (char *)lname,
-				 source, target, f))) {
-    String *s = tm;
-    char argnum_s[10];
-    sprintf(argnum_s, "%d", argnum);
-    Replace(s,"$argnum", argnum_s, DOH_REPLACE_ANY);
-    Replace(s,"$arg",    arg,      DOH_REPLACE_ANY);
-    Replace(s,"$name",   name,     DOH_REPLACE_ANY);
-    if (nonewline_p)
-      Printv(file, s, 0);
-    else Printv(file, s, "\n", 0);
-    Delete(s);
-    return 1;
-  }
-  else return 0;
-}
-
-/* Lookup a documentation typemap, replace all relevant parameters and
-   write it to the given generalized file, providing a sensible
-   default value. */
-
-static void
-guile_do_doc_typemap(DOHFile *file, const char *op,
-		     SwigType *type, const String_or_char *arg, const String_or_char *lname,
-		     int argnum, DOHString *name, Wrapper *f)
-{
-  if (!guile_do_typemap(file, op, type, arg, lname,
-			NULL, NULL, argnum, name, f, 1)) {
-    /* FIXME: Can't we provide this default via a typemap as well? */
-    String *s = NewString(SwigType_str(type, 0));
-    Chop(s);
-    if (arg) Printf(file, "(%s <%s>)", arg, s);
-    else Printf(file, "<%s>", s);
-    Delete(s);
-  }
-}
-
 /* Report an error handling the given type. */
 
 static void
@@ -580,9 +515,19 @@ GUILE::functionWrapper(Node *n) {
   Wrapper_add_local (f,"gswig_result", "SCM gswig_result");
   Wrapper_add_local (f,"gswig_list_p", "int gswig_list_p = 0");
 
-  if (procdoc)
-    guile_do_doc_typemap(returns, "outdoc", d, "", NULL,
-			 0, proc_name, f);
+  /* Get the output typemap so we can start generating documentation.  Don't
+     worry, the returned string is saved as 'tmap:out' */
+
+  Swig_typemap_lookup_new("out",n,"result",0);
+  
+  if ((tm = Getattr(n,"tmap:out:doc"))) {
+    Printv(returns,tm,0);
+  } else {
+    String *s = SwigType_str(d,0);
+    Chop(s);
+    Printf(returns,"<%s>",s);
+    Delete(s);
+  }
 
   /* Open prototype and signature */
 
@@ -616,18 +561,24 @@ GUILE::functionWrapper(Node *n) {
       Replace(tm,"$input",source,DOH_REPLACE_ANY);
       Setattr(p,"emit:input", source);
       Printv(f->code,tm,"\n",0);
+
+      if (procdoc) {
+	/* Add to signature */
+	Printf(signature, " ");
+	if ((tm = Getattr(p,"tmap:in:doc"))) {
+	  Replaceall(tm,"$name", pn);
+	  Printv(signature,tm,0);
+	} else {
+	  String *s = SwigType_str(pt,0);
+	  Chop(s);
+	  Printf(signature,"(%s <%s>)", pn, s);
+	  Delete(s);
+	}
+      }
       p = Getattr(p,"tmap:in:next");
     } else {
       throw_unhandled_guile_type_error (pt);
       p = nextSibling(p);
-    }
-
-    /* DB: need to fix this part to work with multi-arg maps */
-    if (procdoc) {
-      /* Add to signature */
-      Printf(signature, " ");
-      guile_do_doc_typemap(signature, "indoc", pt, pn, ln,
-			   numargs, proc_name, f);
     }
     if (opt_p)
       Printf(f->code,"    }\n");
@@ -653,27 +604,22 @@ GUILE::functionWrapper(Node *n) {
       Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
       Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
       Printv(outarg,tm,"\n",0);
+      if (procdoc) {
+	if ((tm = Getattr(p,"tmap:argout:doc"))) {
+	  Replaceall(tm,"$name",Getattr(p,"name"));
+	  if (Len(returns)) {
+	    Printv(returns," ", tm, 0);
+	    returns_list = 1;
+	  } else {
+	    Printv(returns,tm,0);
+	  }
+	}
+      }
       p = Getattr(p,"tmap:argout:next");
     } else {
       p = nextSibling(p);
     }
   }
-#ifdef BROKEN
-  if (procdoc) {
-    /* Document output arguments */
-    Clear(tmp);
-    if (guile_do_typemap(tmp, "argoutdoc", pt, pn, ln,
-			 source, target, numargs, proc_name, f, 1)) {
-      if (Len(returns) == 0) { /* unspecified -> singleton */
-	Printv(returns, tmp, 0);
-      }
-      else { /* append to list */
-	Printv(returns, " ", tmp, 0);
-	returns_list = 1;
-      }
-    }
-  }
-#endif
 
   /* Insert cleanup code */
   for (p = l; p;) {
@@ -701,10 +647,11 @@ GUILE::functionWrapper(Node *n) {
 
   // Now have return value, figure out what to do with it.
 
-  if (guile_do_typemap(f->code, "out", d, name, (char*)"result",
-		       (char*)"result", (char*)"gswig_result",
-		       0, proc_name, f, 0)) {
-    /* nothing */
+  if ((tm = Getattr(n,"tmap:out"))) {
+    Replaceall(tm,"$result","gswig_result");
+    Replaceall(tm,"$target","gswig_result");
+    Replaceall(tm,"$source","result");
+    Printv(f->code,tm,"\n",0);
   }
   else {
     throw_unhandled_guile_type_error (d);
@@ -719,14 +666,17 @@ GUILE::functionWrapper(Node *n) {
   // Look for any remaining cleanup
 
   if (NewObject) {
-    guile_do_typemap(f->code, "newfree", d, iname, (char*)"result",
-		     (char*)"result", (char*)"", 0, proc_name, f, 0);
+    if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
+      Replaceall(tm,"$source","result");
+      Printv(f->code,tm,"\n",0);
+    }
   }
 
   // Free any memory allocated by the function being wrapped..
-
-  guile_do_typemap(f->code, "ret", d, name, (char*)"result",
-		   (char*)"result", (char*)"", 0, proc_name, f, 0);
+  if ((tm = Swig_typemap_lookup_new("ret",n,"result",0))) {
+    Replaceall(tm,"$source","result");
+    Printv(f->code,tm,"\n",0);
+  }
 
   // Wrap things up (in a manner of speaking)
 
@@ -840,6 +790,7 @@ GUILE::variableWrapper(Node *n)
   DOHString *proc_name;
   char  var_name[256];
   Wrapper *f;
+  String  *tm;
 
   f = NewWrapper();
   // evaluation function names
@@ -863,9 +814,11 @@ GUILE::variableWrapper(Node *n)
     if (!ReadOnly) {
       /* Check for a setting of the variable value */
       Printf (f->code, "if (s_0 != GH_NOT_PASSED) {\n");
-      if (guile_do_typemap(f->code, "varin",
-			   t, name, name, (char*) "s_0", name, 1, name, f, 0)) {
-	/* nothing */
+      if ((tm = Swig_typemap_lookup_new("varin",n,"s_0",0))) {
+	Replaceall(tm,"$source","s_0");
+	Replaceall(tm,"$input","s_0");
+	Replaceall(tm,"$target",name);
+	Printv(f->code,tm,"\n",0);
       }
       else {
 	throw_unhandled_guile_type_error (t);
@@ -876,10 +829,11 @@ GUILE::variableWrapper(Node *n)
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if (guile_do_typemap (f->code, "varout",
-			  t, name, name, name, (char*)"gswig_result",
-			  0, name, f, 1)) {
-      /* nothing */
+    if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
+      Replaceall(tm,"$source",name);
+      Replaceall(tm,"$target","gswig_result");
+      Replaceall(tm,"$result", "gswig_result");
+      Printv(f->code,tm,"\n",0);
     }
     else {
       throw_unhandled_guile_type_error (t);
@@ -918,19 +872,38 @@ GUILE::variableWrapper(Node *n)
       if (ReadOnly) {
 	Printv(signature, proc_name, 0);
 	Printv(doc, "Returns constant ", 0);
-	guile_do_doc_typemap(doc, "varoutdoc", t, NULL, "",
-			     0, proc_name, f);
+	if ((tm = Getattr(n,"tmap:varout:doc"))) {
+	  Printv(doc,tm,0);
+	} else {
+	  String *s = SwigType_str(t,0);
+	  Chop(s);
+	  Printf(doc,"<%s>",s);
+	  Delete(s);
+	}
       }
       else {
 	Printv(signature, proc_name,
 	       " #:optional ", 0);
-	guile_do_doc_typemap(signature, "varindoc", t, "new-value", "",
-			     1, proc_name, f);
+	if ((tm = Getattr(n,"tmap:varin:doc"))) {
+	  Printv(signature,tm,0);
+	} else {
+	  String *s = SwigType_str(t,0);
+	  Chop(s);
+	  Printf(signature,"new-value <%s>",s);
+	  Delete(s);
+	}
+
 	Printv(doc, "If NEW-VALUE is provided, "
 	       "set C variable to this value.\n", 0);
 	Printv(doc, "Returns variable value ", 0);
-	guile_do_doc_typemap(doc, "varoutdoc", t, NULL, "",
-			     0, proc_name, f);
+	if ((tm = Getattr(n,"tmap:varout:doc"))) {
+	  Printv(doc,tm,0);
+	} else {
+	  String *s = SwigType_str(t,0);
+	  Chop(s);
+	  Printf(doc,"<%s>",s);
+	  Delete(s);
+	}
       }
       write_doc(proc_name, signature, doc);
       Delete(signature);
@@ -967,6 +940,7 @@ GUILE::constantWrapper(Node *n)
   DOHString *rvalue;
   Wrapper *f;
   SwigType *nctype;
+  String   *tm;
 
   f = NewWrapper();
   ReadOnly = 1;     // Enable readonly mode.
@@ -1001,9 +975,12 @@ GUILE::constantWrapper(Node *n)
   } else {
     rvalue = NewString(value);
   }
-  if (guile_do_typemap(f_header, "const", nctype, name, name,
-		       Char(rvalue), name, 0, name, f, 0)) {
-    /* nothing */
+
+  if ((tm = Swig_typemap_lookup_new("constant",n,name,0))) {
+    Replaceall(tm,"$source",rvalue);
+    Replaceall(tm,"$value",rvalue);
+    Replaceall(tm,"$target",name);
+    Printv(f_header,tm,"\n",0);
   } else {
     // Create variable and assign it a value
     Printf (f_header, "static %s %s = %s;\n", SwigType_lstr(nctype,0),
@@ -1051,14 +1028,6 @@ void GUILE::pragma(char *lang, char *cmd, char *value)
       before_return = value ? NewString(value) : NULL;
     }
   }
-}
-
-void
-GUILE::import_start(char *modname) {
-}
-
-void 
-GUILE::import_end() {
 }
 
 

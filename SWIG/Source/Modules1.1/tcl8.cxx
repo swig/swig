@@ -554,14 +554,6 @@ TCL8::add_native(char *name, char *funcname, SwigType *, ParmList *) {
 void
 TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip) {
   this->Language::cpp_open_class(classname,rename,ctype,strip);
-  static int included_object = 0;
-  if (!included_object) {
-    if (Swig_insert_file("object.swg",f_header) == -1) {
-      Printf(stderr,"SWIG : Fatal error. Unable to locate 'object.swg' in SWIG library.\n");
-      SWIG_exit (EXIT_FAILURE);
-    }
-    included_object = 1;
-  }
   
   Clear(attr_tab);
   Printf(attr_tab, "static swig_attribute swig_");
@@ -595,6 +587,9 @@ TCL8::cpp_close_class() {
   
   // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
   SwigType_remember(t);
+
+  // Register the class structure with the type checker
+  Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), real_classname);
   
   if (have_destructor) {
     Printv(code, "static void swig_delete_", class_name, "(void *obj) {\n", 0);
@@ -630,7 +625,10 @@ TCL8::cpp_close_class() {
   }
   Printv(code, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes, swig_", real_classname,"_bases };\n", 0);
   Printf(f_wrappers,"%s",code);
-  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SwigObjectCmd, &_wrap_class_", real_classname, "},\n", 0);
+  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", real_classname, "},\n", 0);
+
+
+
   Delete(code);
 }
 

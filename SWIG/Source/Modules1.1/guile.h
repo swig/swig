@@ -63,10 +63,7 @@ public :
   virtual int variableWrapper(Node *);
   virtual int membervariableDeclaration(Node *);
 
-  void set_module(char *);
   void pragma(char *lang, char *cmd, char *value);
-  void import_start(char *modname);
-  void import_end();
   int  validIdentifier(String *s);
 };
 

@@ -325,7 +325,7 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
   SwigType *type = 0, *name;
   Hash     *tm, *sm;
 
-  /*  Printf(stdout,"apply : %s --> %s\n", ParmList_str(src), ParmList_str(dest));*/
+  /*  Printf(stdout,"apply : %s --> %s\n", ParmList_str(src), ParmList_str(dest)); */
 
   /* Create type signature of source */
   ssig = NewString("");
@@ -350,7 +350,7 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
   tm = Getattr(typemaps[tm_scope],Getattr(lastdp,"type"));
   if (!tm) {
     tm = NewHash();
-    Setattr(typemaps[tm_scope],Copy(type),tm);
+    Setattr(typemaps[tm_scope],Getattr(lastdp,"type"),tm);
     Delete(tm);
   }
   name = Getattr(lastdp,"name");
@@ -1022,7 +1022,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   kw = Getattr(tm,"kwargs");
   while (kw) {
     sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,"name")));
-    Setattr(node,tmop_name(temp), Getattr(kw,"value"));
+    Setattr(node,tmop_name(temp), Copy(Getattr(kw,"value")));
     kw = nextSibling(kw);
   }
   return s;
@@ -1104,7 +1104,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     kw = Getattr(tm,"kwargs");
     while (kw) {
       sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,"name")));
-      Setattr(firstp,tmop_name(temp), Getattr(kw,"value"));
+      Setattr(firstp,tmop_name(temp), Copy(Getattr(kw,"value")));
       kw = nextSibling(kw);
     }
   }
