@@ -269,22 +269,23 @@ Ruby
 
 Java
 ----
-****   Improved pointer handling to take advantage of Java's static type
+[done] Improved pointer handling to take advantage of Java's static type
        checking. Currently all pointers are a Java long and these could
        be changed to use a Java class wrapper.
 
-****   Better support for global variables and functions when using proxy 
+[done] Better support for global variables and functions when using proxy 
        classes. They could be put into a global proxy class to improve on 
        current syntax:
        A a = new A(module.global_function(b.getCPtrB()), true);
        to use something like:
        A a = Globals.global_function(b);
 
-***    Implement function overloading.
+[done] Implement function overloading.
 
-***    Implement replacements for the deprecation of the %pragma directive.
+[done] Implement replacements for the deprecation of the %pragma directive.
 
-*      Consider using typemaps for proxy class code generation.
+*      Consider using typemaps for proxy class code generation. [partially
+       implemented]
 
 PHP
 ---
