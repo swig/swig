@@ -1042,12 +1042,18 @@ int yylook(void) {
 
 	case 9:
 	  if ((c = nextchar()) == 0) return (0);
-	  if (c == '\'') {
+	  if (c == '\\') state = 91;
+	  else if (c == '\'') {
 	    yytext[yylen-1] = 0;
 	    yylval.id = copy_string(yytext+1);
 	    return(CHARCONST);
 	  }
 	  break;
+	case 91:
+	  if ((c = nextchar()) == 0) return 0;
+	  state = 9;
+	  break;
+
 
 	case 100:
 	  if ((c = nextchar()) == 0) return (0);
