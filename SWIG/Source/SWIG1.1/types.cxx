@@ -965,18 +965,18 @@ void typeeq_mangle(char *n1, char *n2, char *cast=0) {
   
 void typeeq_standard(void) {
   
-  typeeq_mangle("int", "signed int");
-  typeeq_mangle("int", "unsigned int");
-  typeeq_mangle("signed int", "int");
-  typeeq_mangle("unsigned int", "int");
-  typeeq_mangle("short","signed short");
-  typeeq_mangle("signed short","short");
-  typeeq_mangle("short","unsigned short");
-  typeeq_mangle("unsigned short","short");
-  typeeq_mangle("long","signed long");
-  typeeq_mangle("signed long","long");
-  typeeq_mangle("long","unsigned long");
-  typeeq_mangle("unsigned long","long");
+  typeeq_mangle((char*)"int", (char*)"signed int");
+  typeeq_mangle((char*)"int", (char*)"unsigned int");
+  typeeq_mangle((char*)"signed int", (char*)"int");
+  typeeq_mangle((char*)"unsigned int", (char*)"int");
+  typeeq_mangle((char*)"short",(char*)"signed short");
+  typeeq_mangle((char*)"signed short",(char*)"short");
+  typeeq_mangle((char*)"short",(char*)"unsigned short");
+  typeeq_mangle((char*)"unsigned short",(char*)"short");
+  typeeq_mangle((char*)"long",(char*)"signed long");
+  typeeq_mangle((char*)"signed long",(char*)"long");
+  typeeq_mangle((char*)"long",(char*)"unsigned long");
+  typeeq_mangle((char*)"unsigned long",(char*)"long");
 
 }
 

@@ -248,12 +248,12 @@ int ParmList::numopt() {
     if (parms[i]->defvalue) {
       n++;
       state = 1;
-    } else if (typemap_check("default",typemap_lang,parms[i]->t,parms[i]->name)) {
+    } else if (typemap_check((char*)"default",typemap_lang,parms[i]->t,parms[i]->name)) {
       n++;
       state = 1;
-    } else if (typemap_check("ignore",typemap_lang,parms[i]->t,parms[i]->name)) {
+    } else if (typemap_check((char*)"ignore",typemap_lang,parms[i]->t,parms[i]->name)) {
       n++;
-    } else if (typemap_check("build",typemap_lang,parms[i]->t,parms[i]->name)) {
+    } else if (typemap_check((char*)"build",typemap_lang,parms[i]->t,parms[i]->name)) {
       n++;
     } else {
       if (state) {
