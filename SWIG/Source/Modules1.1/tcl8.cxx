@@ -283,12 +283,12 @@ TCL8::functionWrapper(Node *n) {
     Putc(';',argstr);
     /* If variable length arguments we need to emit the in typemap here */
     if (p && (tm = Getattr(p,"tmap:in"))) {
-      SwigType *ln = Getattr(p,"lname");
+      String *ln = Getattr(p,"lname");
       sprintf(source,"objv[%d]", i+1);
-      Printf(incode, "if (objc > %d) ", num_arguments);
+      Printf(incode, "if (objc > %d) {\n", num_arguments);
       Replaceall(tm,"$input",source);
       Printv(incode,tm,NULL);
-      Printf(incode,"\n");
+      Printf(incode,"}\n");
     }
   }
 
