@@ -13,6 +13,8 @@
  * functions altogether.
  */
 
+%ignore Bar;
+
 %ignore Bar::Bar(Bar *);
 %ignore Bar::Bar(long);
 
@@ -23,4 +25,4 @@
 %ignore ::foo(int);
 
 /* Let's just grab the original header file here */
-//%include "example.h"
+%include "example.h"

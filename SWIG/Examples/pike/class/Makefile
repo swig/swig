@@ -5,13 +5,15 @@ TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
 
-all::
+all:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' pike_cpp
 
-static::
+static:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='mypike' INTERFACE='$(INTERFACE)' pike_cpp_static
 
-clean::
+clean:
 	-rm -f example_wrap.cxx example_wrap.o example.o example.so
+
+check: all

@@ -3,17 +3,17 @@ SWIG       = $(TOP)/../swig
 CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
-LIBS       = -lm
+LIBS       = -lstdc++ -lm
 
 all::
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' ruby_cpp
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' pike_cpp
 
 static::
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
-	TARGET='myruby' INTERFACE='$(INTERFACE)' ruby_cpp_static
+	TARGET='mypike' INTERFACE='$(INTERFACE)' pike_cpp_static
 
 clean::
-	rm -f *_wrap* *.o *~ *.so myruby .~* core
+	rm -f *_wrap* *.o *~ *.so mypike .~* core
 
 check: all

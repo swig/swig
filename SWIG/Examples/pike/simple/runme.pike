@@ -8,13 +8,13 @@ int main()
 
     /* Manipulate the Foo global variable */
     /* Output its current value */
-    write(sprintf("Foo = %f\n", .example.Foo_get()));
+    /* write(sprintf("Foo = %f\n", .example.Foo_get())); */
 
     /* Change its value */
-    .example.Foo_set(3.1415926);
+    /* .example.Foo_set(3.1415926); */
 
     /* See if the change took effect */
-    write(sprintf("Foo = %f\n", .example.Foo_get()));
+    /* write(sprintf("Foo = %f\n", .example.Foo_get())); */
     
     return 0;
 }

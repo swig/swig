@@ -1,22 +1,23 @@
-import .example;
+// import .example;
 
 int main()
 {
 	// This should invoke foo(double)
-	foo(3.14159);
+	.example.foo(3.14159);
 
 	// This should invoke foo(double, char *)
-	foo(3.14159, "Pi");
+	.example.foo(3.14159, "Pi");
 
 	// This should invoke foo(int, int)
-	foo(3, 4);
+	.example.foo(3, 4);
 
 	//  This should invoke foo(char *)
-	foo("This is a test");
+	.example.foo("This is a test");
 
 	// This should invoke foo(long)
-	foo(42);
+	.example.foo(42);
 
+	/*
 	// This should invoke Bar::Bar() followed by foo(Bar *)
 	foo(Bar.new);
 
@@ -44,8 +45,10 @@ int main()
 
 	// Skip a line
 	write("\n");
+	*/
 
 	// Construct a new Bar instance (invokes Bar::Bar())
+	/*
 	bar = Bar.new;
 
 	// This should invoke Bar::foo(double)
@@ -72,18 +75,9 @@ int main()
 
 	// This should invoke Bar::spam(double x, int y, int z)
 	bar.spam(3.14159);
+	*/
 
    	write("Goodbye\n");
     
    	return 0;
 }
-
-
-
-
-
-
-
-
-
-

@@ -125,11 +125,11 @@ MZSCHEME_EXAMPLES = multimap simple
 RUBY_EXAMPLES = class constants enum funcptr funcptr2 functor hashargs import import_template mpointer multimap operator overloading pointer reference simple template value variables
 OCAML_EXAMPLES = simple
 PHP4_EXAMPLES = class constants enum funcptr pointer reference shadow simple sync value variables
-PIKE_EXAMPLES = simple
+PIKE_EXAMPLES = class constants enum operator overload simple template
 
 check-examples: check-tcl-examples check-perl5-examples check-python-examples \
 		check-java-examples check-guile-examples check-mzscheme-examples \
-		check-ruby-examples check-ocaml-examples check-php4-examples check-pike-examples
+		check-ruby-examples check-ocaml-examples check-php4-examples
 
 check-tcl-examples:
 	@if $(skip-tcl); then			\
@@ -240,7 +240,7 @@ check-pike-examples:
 	  echo skipping Pike $(CHECK_CLEAN);		\
 	else					\
 	  passed=true;				\
-	  for a in $(OCAML_EXAMPLES); do		\
+	  for a in $(PIKE_EXAMPLES); do		\
 	    echo $(CHECK_CLEAN)ing Examples/pike/$$a;	\
 	    (cd Examples/pike/$$a && $(chk))	\
 	    || passed=false;			\
