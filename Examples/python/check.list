@@ -7,7 +7,6 @@ enum
 exception
 exceptshadow
 extend
-funcattr
 funcptr
 funcptr2
 functor
@@ -24,6 +23,5 @@ simple
 smartptr
 std_vector
 template
-value
 varargs
 variables
