@@ -1,6 +1,6 @@
-<?
+<?php
 
-dl("libexample.so");
+require "example.php";
 
 # Call our gcd() function
 

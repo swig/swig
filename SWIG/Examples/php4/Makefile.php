@@ -1,7 +1,18 @@
+CRUD=acinclude.m4 aclocal.m4 config.cache config.h config.h.in config.log \
+     config.m4 config.nice config.status config.sub configure configure.in \
+     config_vars.mk config.guess CREDITS dynlib.m4 *.so *.lo *.o *.slo \
+     install-sh libs.mk libtool ltmain.sh Makefile Makefile.in missing \
+     mkinstalldirs php_example.h php_example.la *_wrap.c* example.php \
+     build modules .deps .libs
+
 all: check
 
 check: BUILD.sh
 	./BUILD.sh
+
+# This one is fun!  How do we know what shouldn't be there?
+clean:
+	rm -fr $(CRUD)
 
 BUILD.sh:
 	echo "-------------------------------------------------"
