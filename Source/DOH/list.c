@@ -361,13 +361,13 @@ DohNewList() {
     return DohObjMalloc(&DohListType,l);
 }
 
-static int (*List_sort_compare_func)(DOH *, DOH *);
+static int (*List_sort_compare_func)(const DOH *, const DOH *);
 static int List_qsort_compare(const void *a, const void *b) {
   return List_sort_compare_func(*((DOH **)a), *((DOH **)b));
 }
 
 /* Sort a list */
-void DohSortList(DOH *lo, int (*cmp)(DOH *, DOH *)) {
+void DohSortList(DOH *lo, int (*cmp)(const DOH *, const DOH *)) {
   List *l = (List *) ObjData(lo);
   if (cmp) {
     List_sort_compare_func = cmp;

@@ -292,7 +292,7 @@ extern int      DohCopyto(DOHFile *input, DOHFile *output);
  * ----------------------------------------------------------------------------- */
 
 extern DOHList  *DohNewList();
-extern void DohSortList(DOH *lo, int (*cmp)(DOH *, DOH *));
+extern void DohSortList(DOH *lo, int (*cmp)(const DOH *, const DOH *));
 
 /* -----------------------------------------------------------------------------
  * Hash
