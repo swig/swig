@@ -23,15 +23,24 @@
 %typemap(in,parse="h") short "";
 %typemap(in,parse="l") long "";
 %typemap(in,parse="b") signed char "";
+
 %typemap(in) unsigned int, unsigned short, unsigned long, unsigned char 
 	"$1 = ($1_ltype) PyInt_AsLong($input);
+         if (PyErr_Occurred()) return NULL;";
+
+%typemap(in) long long 
+        "$1 = (long long) PyLong_AsLongLong($input);
+         if (PyErr_Occurred()) return NULL;";
+
+
+%typemap(in) unsigned long long 
+        "$1 = (unsigned long long) PyLong_AsUnsignedLongLong($input);
          if (PyErr_Occurred()) return NULL;";
 
 %typemap(in,parse="f") float "";
 %typemap(in,parse="d") double "";
 %typemap(in,parse="c") char "";
 %typemap(in,parse="s") char * "";
-
 
 /* Boolean values.  Have to convert from a long since */
 %typemap(in) bool "$1 = (bool) PyInt_AsLong($input);
@@ -67,6 +76,8 @@
                       bool, enum SWIGTYPE
        "$result = PyInt_FromLong((long)$1);";
 
+%typemap(out) long long     "$result = PyLong_FromLongLong($1);";
+%typemap(out) unsigned long long "$result = PyLong_FromUnsignedLongLong($1);";
 %typemap(out) float, double "$result = PyFloat_FromDouble($1);";
 %typemap(out) char *        "$result = $1 ? PyString_FromString($1) : Py_BuildValue((char*)\"\");";
 %typemap(out) char          "$result = Py_BuildValue((char*)\"c\",$1);";
@@ -112,6 +123,24 @@
   $1 = ($1_ltype) temp;
 }
 
+%typemap(varin) long long {
+   long long temp = PyLong_AsLongLong($input);
+   if (PyErr_Occurred()) {
+      PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+      return 1;
+   }
+   $1 = temp;
+}
+
+%typemap(varin) unsigned long long {
+   unsigned long long temp = PyLong_AsUnsignedLongLong($input);
+   if (PyErr_Occurred()) {
+      PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+      return 1;
+   }
+   $1 = temp;
+}
+   
 %typemap(varin) float, double {
   double temp = PyFloat_AsDouble($input);
   if (PyErr_Occurred()) {
@@ -216,6 +245,8 @@
                       bool, enum SWIGTYPE
        "$result = PyInt_FromLong((long)$1);";
 
+%typemap(varout) long long     "$result = PyLong_FromLongLong($1);";
+%typemap(varout) unsigned long long "$result = PyLong_FromUnsignedLongLong($1);";
 %typemap(varout) float, double "$result = PyFloat_FromDouble($1);";
 %typemap(varout) char *        "$result = $1 ? PyString_FromString($1) : Py_BuildValue((char*)\"\");";
 %typemap(varout) char          "$result = Py_BuildValue((char*)\"c\",$1);";
@@ -250,6 +281,9 @@
 
 %typemap(consttab) SWIGTYPE (CLASS::*) 
        { SWIG_PY_BINARY,  (char *)"$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
+
+%typemap(constcode) long long "PyDict_SetItemString(d,\"$symname\", PyLong_FromLongLong($value));";
+%typemap(constcode) unsigned long long "PyDict_SetItemString(d,\"$symname\", PyLong_FromUnsignedLongLong($value));";
 
 /* Overloaded operator support */
 #ifdef __cplusplus
