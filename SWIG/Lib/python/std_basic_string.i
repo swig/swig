@@ -1,4 +1,4 @@
-#if !defined(SWIG_STD_STRING) && !defined(SWIG_STD_WSTRING)
+#if !defined(SWIG_STD_STRING) 
 #define SWIG_STD_BASIC_STRING
 
 %include <pycontainer.swg>
@@ -45,6 +45,13 @@ SWIGINTERNINLINE PyObject*
   }
 }
 
+%include <std/std_basic_string.i>
+%typemap_asptrfromn(SWIG_CCode(STRING), std::basic_string<char>);
+
+#endif
+
+
+#if !defined(SWIG_STD_WSTRING)
 
 %fragment(SWIG_AsPtr_frag(std::basic_string<wchar_t>),"header",
 	  fragment="SWIG_AsWCharPtrAndSize") {
@@ -87,11 +94,6 @@ SWIGINTERNINLINE PyObject*
   }
 }
 
-
-
-%include <std/std_basic_string.i>
-
-%typemap_asptrfromn(SWIG_CCode(STRING), std::basic_string<char>);
 %typemap_asptrfromn(SWIG_CCode(UNISTRING), std::basic_string<wchar_t>);
 
 #endif
