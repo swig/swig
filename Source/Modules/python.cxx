@@ -1270,8 +1270,17 @@ public:
     String *tm;
     String *wrap_args;
     String *return_type;
+    String *value = Getattr(n, "value");
+    String *storage = Getattr(n,"storage");
+    bool pure_virtual = false;
     int status = SWIG_OK;
     int idx;
+
+    if (Cmp(storage,"virtual") == 0) {
+      if (Cmp(value,"0") == 0) {
+        pure_virtual = true;
+      }
+    }
 
     classname = Getattr(parent, "sym:name");
     type = Getattr(n, "type");
@@ -1446,7 +1455,11 @@ public:
 
     /* direct call to superclass if _up is set */
     Printf(w->code, "if (__get_up()) {\n");
-    Printf(w->code,   "return %s;\n", Swig_method_call(super,l));
+    if (pure_virtual) {
+    	Printf(w->code, "throw SWIG_DIRECTOR_PURE_VIRTUAL_EXCEPTION();\n");
+    } else {
+    	Printf(w->code, "return %s;\n", Swig_method_call(super,l));
+    }
     Printf(w->code, "}\n");
     
     /* check that have a wrapped Python object */

@@ -1,5 +1,14 @@
 Version 1.3.18 (In progress)
 ============================
+03/13/2003: mrose (Mark Rose)
+            Fixed a bug in the virtual method unrolling for directors. 
+	    The order of unrolling is now from base to derived, to ensure
+	    that the most derived implementation of a director method is
+	    found.
+
+	    Director methods for pure virtual methods now throw
+	    DIRECTOR_PURE_VIRTUAL_EXCEPTION if _up is set.
+
 03/11/2003: beazley
             Fixed subtle bug in the application of SwigValueWrapper<> to
             template classes with default constructors.  Reported by
