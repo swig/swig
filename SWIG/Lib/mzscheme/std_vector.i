@@ -139,6 +139,85 @@ namespace std {
                 els[i] = SWIG_MakePtr(x,$descriptor(T *));
             }
         }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (SCHEME_VECTORP($input)) {
+                unsigned int size = SCHEME_VEC_SIZE($input);
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    Scheme_Object** items = SCHEME_VEC_ELS($input);
+                    if (SWIG_GetPtr(items[0],(void**) &x,
+                                    $descriptor(T *)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else if (SCHEME_NULLP($input)) {
+                /* again, an empty sequence can be of any type */
+                $1 = 1;
+            } else if (SCHEME_PAIRP($input)) {
+                /* check the first element only */
+                T* x;
+                Scheme_Object *head = scheme_car($input);
+                if (SWIG_GetPtr(head,(void**) &x,
+                                $descriptor(T *)) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_GetPtr($input,(void **) &v, 
+                                $&1_descriptor) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
+            /* native sequence? */
+            if (SCHEME_VECTORP($input)) {
+                unsigned int size = SCHEME_VEC_SIZE($input);
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    Scheme_Object** items = SCHEME_VEC_ELS($input);
+                    if (SWIG_GetPtr(items[0],(void**) &x,
+                                    $descriptor(T *)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else if (SCHEME_NULLP($input)) {
+                /* again, an empty sequence can be of any type */
+                $1 = 1;
+            } else if (SCHEME_PAIRP($input)) {
+                /* check the first element only */
+                T* x;
+                Scheme_Object *head = scheme_car($input);
+                if (SWIG_GetPtr(head,(void**) &x,
+                                $descriptor(T *)) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_GetPtr($input,(void **) &v, 
+                                $1_descriptor) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
       public:
         vector(unsigned int size = 0);
         %rename(length) size;
@@ -255,6 +334,63 @@ namespace std {
             Scheme_Object** els = SCHEME_VEC_ELS($result);
             for (unsigned int i=0; i<$1.size(); i++)
                 els[i] = CONVERT_TO((($1_type &)$1)[i]);
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (SCHEME_VECTORP($input)) {
+                unsigned int size = SCHEME_VEC_SIZE($input);
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    Scheme_Object** items = SCHEME_VEC_ELS($input);
+                    $1 = CHECK(items[0]) ? 1 : 0;
+                }
+            } else if (SCHEME_NULLP($input)) {
+                /* again, an empty sequence can be of any type */
+                $1 = 1;
+            } else if (SCHEME_PAIRP($input)) {
+                /* check the first element only */
+                T* x;
+                Scheme_Object *head = scheme_car($input);
+                $1 = CHECK(head) ? 1 : 0;
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                $1 = (SWIG_GetPtr($input,(void **) &v, 
+                                  $&1_descriptor) != -1) ? 1 : 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
+            /* native sequence? */
+            if (SCHEME_VECTORP($input)) {
+                unsigned int size = SCHEME_VEC_SIZE($input);
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    Scheme_Object** items = SCHEME_VEC_ELS($input);
+                    $1 = CHECK(items[0]) ? 1 : 0;
+                }
+            } else if (SCHEME_NULLP($input)) {
+                /* again, an empty sequence can be of any type */
+                $1 = 1;
+            } else if (SCHEME_PAIRP($input)) {
+                /* check the first element only */
+                T* x;
+                Scheme_Object *head = scheme_car($input);
+                $1 = CHECK(head) ? 1 : 0;
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                $1 = (SWIG_GetPtr($input,(void **) &v, 
+                                  $1_descriptor) != -1) ? 1 : 0;
+            }
         }
       public:
         vector(unsigned int size = 0);

@@ -136,7 +136,8 @@ namespace std {
                     $1 = 0;
             }
         }
-        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T> & {
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;
@@ -283,7 +284,8 @@ namespace std {
                     $1 = 0;
             }
         }
-        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T> & {
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
             /* native sequence? */
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;

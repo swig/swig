@@ -176,7 +176,8 @@ namespace std {
                     $1 = 0;
             }
         }
-        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T> & {
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
             /* native sequence? */
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
@@ -389,7 +390,8 @@ namespace std {
                     $1 = 0;
             }
         }
-        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T> & {
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
             /* native sequence? */
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
@@ -592,7 +594,8 @@ namespace std {
                     $1 = 0;
             }
         }
-        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T> & {
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
             /* native sequence? */
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
