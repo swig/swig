@@ -541,6 +541,8 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
 	  if (result && Getattr(result,"code")) goto ret_result;
 	  if (result) backup = result;
 	}
+	Delete(noarrays);
+	noarrays = 0;
       }
       
       /* No match so far.   If the type is unstripped, we'll strip its
