@@ -28,7 +28,6 @@ extern PyObject *new_wadobject(WadFrame *f,int);
 static WadReturnFunc retpts[] = {
   {"call_builtin", 0},
   {"_PyImport_LoadDynamicModule", 0},
-  {"PyEval_CallObjectWithKeywords", 0},
   {"PyEval_EvalCode", 0},
   {"PyObject_GetAttrString", 0},
   {"PyObject_SetAttrString", -1},
