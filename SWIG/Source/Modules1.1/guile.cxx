@@ -550,9 +550,10 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   String *returns = NewString("");
   int returns_list = 0;
   String *tmp = NewString("");
+  String *tm;
   int i;
   int numargs = 0;
-  int numopt = 0;
+  int numreq = 0;
 
   // Make a wrapper name for this
   {
@@ -565,6 +566,13 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   /* Emit locals etc. into f->code; figure out which args to ignore */
   emit_args (d, l, f);
+
+  /* Attach the standard typemaps */
+  emit_attach_parmmaps(l,f);
+
+  /* Get number of required and total arguments */
+  numargs = emit_num_arguments(l);
+  numreq  = emit_num_required(l);
 
   /* Declare return variable */
 
@@ -582,75 +590,99 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   /* Now write code to extract the parameters */
 
-  for (p = l, i = 0; p; p=nextSibling(p), i++) {
+  for (i = 0, p = l; i < numargs; i++) {
+    while (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    }
+
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
     String   *ln = Getattr(p,"lname");
-    int opt_p = (Getattr(p,"value")
-		 || Swig_typemap_search((char*)"default",pt,pn));
+    int opt_p = (i >= numreq);
 
     // Produce names of source and target
     sprintf(source,"s_%d",i);
-    sprintf(target,"%s", Char(Getattr(p,"lname")));
+    sprintf(target,"%s", Char(ln));
 
-    // Handle parameter types.
-
-    if (Getattr(p,"ignore"))
-      Printv(f->code, "/* ", pn, " ignored... */\n", 0);
-    else {
-      if (numargs!=0) Printf(f->def,", ");
-      Printf(f->def,"SCM s_%d", i);
-      if (opt_p) {
-	numopt++;
-	Printf(f->code,"    if (s_%d != GH_NOT_PASSED) {\n", i);
-      }
-      ++numargs;
-      if (guile_do_typemap(f->code, "in", pt, pn, ln,
-			   source, target, numargs, proc_name, f, 0)) {
-	/* nothing to do */
-      }
-      else {
-        throw_unhandled_guile_type_error (pt);
-      }
-      if (procdoc) {
-	/* Add to signature */
-	Printf(signature, " ");
-	guile_do_doc_typemap(signature, "indoc", pt, pn, ln,
-			     numargs, proc_name, f);
-      }
-      if (opt_p)
-	Printf(f->code,"    }\n");
+    if (i!=0) Printf(f->def,", ");
+    Printf(f->def,"SCM s_%d", i);
+    if (opt_p) {
+      Printf(f->code,"    if (s_%d != GH_NOT_PASSED) {\n", i);
+    }
+    if ((tm = Getattr(p,"tmap:in"))) {
+      Replace(tm,"$source",source,DOH_REPLACE_ANY); /* Deprecated */
+      Replace(tm,"$target",target,DOH_REPLACE_ANY); /* Deprecated */
+      Replace(tm,"$input",source,DOH_REPLACE_ANY);
+      Setattr(p,"emit:input", source);
+      Printv(f->code,tm,"\n",0);
+      p = Getattr(p,"tmap:in:next");
+    } else {
+      throw_unhandled_guile_type_error (pt);
+      p = nextSibling(p);
     }
 
-    /* Check if there are any constraints. */
-
-    guile_do_typemap(f->code, "check", pt, pn, ln,
-		     source, target, numargs, proc_name, f, 0);
-
-    /* Pass output arguments back to the caller. */
-
-    guile_do_typemap(outarg, "argout", pt, pn, ln,
-		     source, target, numargs, proc_name, f, 0);
-
+    /* DB: need to fix this part to work with multi-arg maps */
     if (procdoc) {
-      /* Document output arguments */
-      Clear(tmp);
-      if (guile_do_typemap(tmp, "argoutdoc", pt, pn, ln,
-			   source, target, numargs, proc_name, f, 1)) {
-	if (Len(returns) == 0) { /* unspecified -> singleton */
-	  Printv(returns, tmp, 0);
-	}
-	else { /* append to list */
-	  Printv(returns, " ", tmp, 0);
-	  returns_list = 1;
-	}
+      /* Add to signature */
+      Printf(signature, " ");
+      guile_do_doc_typemap(signature, "indoc", pt, pn, ln,
+			   numargs, proc_name, f);
+    }
+    if (opt_p)
+      Printf(f->code,"    }\n");
+  }
+
+  /* Insert constraint checking code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:check"))) {
+      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Printv(f->code,tm,"\n",0);
+      p = Getattr(p,"tmap:check:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+  /* Pass output arguments back to the caller. */
+
+  /* Insert argument output code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:argout"))) {
+      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);   /* Deprecated */
+      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);   /* Deprecated */
+      Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Printv(outarg,tm,"\n",0);
+      p = Getattr(p,"tmap:argout:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+#ifdef BROKEN
+  if (procdoc) {
+    /* Document output arguments */
+    Clear(tmp);
+    if (guile_do_typemap(tmp, "argoutdoc", pt, pn, ln,
+			 source, target, numargs, proc_name, f, 1)) {
+      if (Len(returns) == 0) { /* unspecified -> singleton */
+	Printv(returns, tmp, 0);
+      }
+      else { /* append to list */
+	Printv(returns, " ", tmp, 0);
+	returns_list = 1;
       }
     }
+  }
+#endif
 
-    // free up any memory allocated for the arguments.
-
-    guile_do_typemap(cleanup, "freearg", pt, pn, ln,
-		     source, target, numargs, proc_name, f, 0);
+  /* Insert cleanup code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:freearg"))) {
+      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Printv(cleanup,tm,"\n",0);
+      p = Getattr(p,"tmap:freearg:next");
+    } else {
+      p = nextSibling(p);
+    }
   }
 
   /* Close prototype */
@@ -716,7 +748,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     Printv(f_wrappers, "{\n", 0);
     Printf(f_wrappers, "SCM arg[%d];\n", numargs);
     Printf(f_wrappers, "SWIG_Guile_GetArgs (arg, rest, %d, %d, \"%s\");\n",
-	   numargs-numopt, numopt, proc_name);
+	   numreq, numargs-numreq, proc_name);
     Printv(f_wrappers, "return ", wname, "(", 0);
     Printv(f_wrappers, "arg[0]", 0);
     for (i = 1; i<numargs; i++)
@@ -725,7 +757,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     Printv(f_wrappers, "}\n", 0);
     /* Register it */
     Printf (f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s_rest, 0, 0, 1);\n",
-             proc_name, wname, numargs-numopt, numopt);
+             proc_name, wname, numreq, numargs-numreq);
   }
   else if (emit_setters && struct_member && strlen(Char(proc_name))>3) {
     int len = Len(proc_name);
@@ -738,7 +770,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     }
     else Printf(f_init, "SCM getter = ");
     Printf (f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s, %d, %d, 0);\n",
-	    proc_name, wname, numargs-numopt, numopt);
+	    proc_name, wname, numreq, numargs-numreq);
     if (!is_setter) {
       /* Strip off "-get" */
       char *pws_name = (char*) malloc(sizeof(char) * (len - 3));
@@ -762,7 +794,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   else {
     /* Register the function */
     Printf (f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s, %d, %d, 0);\n",
-	    proc_name, wname, numargs-numopt, numopt);
+	    proc_name, wname, numreq, numargs-numreq);
   }
   Printf (exported_symbols, "\"%s\", ", proc_name);
   if (procdoc) {
