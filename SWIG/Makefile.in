@@ -289,13 +289,13 @@ JAVA_GIFPLOT_EXAMPLES = full shadow simple
 GUILE_GIFPLOT_EXAMPLES = full simple
 RUBY_GIFPLOT_EXAMPLES = full shadow simple
 
-check-gifplot-examples: gifplot-library check-tcl-gifplot check-perl-gifplot check-python-gifplot check-java-gifplot check-guile-gifplot check-ruby-gifplot
+check-gifplot-examples: check-tcl-gifplot check-perl-gifplot check-python-gifplot check-java-gifplot check-guile-gifplot check-ruby-gifplot
 
 gifplot-library:
 	@echo $(CHECK_CLEAN)ing Examples/GIFPlot/Lib
 	@cd Examples/GIFPlot/Lib ; $(MAKE) -k -s $(CHECK_CLEAN)
 
-check-tcl-gifplot:
+check-tcl-gifplot: gifplot-library
 	@if $(skip-tcl); then			\
 	  echo skipping Tcl $(CHECK_CLEAN);		\
 	else					\
@@ -308,7 +308,7 @@ check-tcl-gifplot:
 	  test $$passed = true;			\
 	fi
 
-check-perl-gifplot:
+check-perl-gifplot: gifplot-library
 	@if $(skip-perl); then			\
 	  echo skipping Perl $(CHECK_CLEAN);		\
 	else					\
@@ -321,7 +321,7 @@ check-perl-gifplot:
 	  test $$passed = true;			\
 	fi
 
-check-python-gifplot:
+check-python-gifplot: gifplot-library
 	@if $(skip-python); then			\
 	  echo skipping Python $(CHECK_CLEAN);			\
 	else						\
@@ -334,7 +334,7 @@ check-python-gifplot:
 	  test $$passed = true;				\
 	fi
 
-check-java-gifplot:
+check-java-gifplot: gifplot-library
 	@if $(skip-java); then			\
 	  echo skipping Java $(CHECK_CLEAN);		\
 	else					\
@@ -347,7 +347,7 @@ check-java-gifplot:
 	  test $$passed = true;			\
 	fi
 
-check-guile-gifplot:
+check-guile-gifplot: gifplot-library
 	@if $(skip-guile); then			\
 	  echo skipping Guile $(CHECK_CLEAN);		\
 	else					\
@@ -360,7 +360,7 @@ check-guile-gifplot:
 	  test $$passed = true;			\
 	fi
 
-check-ruby-gifplot:
+check-ruby-gifplot: gifplot-library
 	@if $(skip-ruby); then			\
 	  echo skipping Ruby $(CHECK_CLEAN);		\
 	else					\
