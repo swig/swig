@@ -1,5 +1,8 @@
 Version 1.3.18 (In progress)
 ============================
+03/15/2003: mrose (Mark Rose)
+            Cleaned up two signed versus unsigned comparisons in python/std_vector.i.
+	    
 03/15/2003: cheetah (William Fulton)
             [C#] Global variables are wrapped using properties instead of get and set methods.
             Member variable wrapping bug fixes, for example wrapping pointers work now.
