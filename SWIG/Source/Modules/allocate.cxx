@@ -99,19 +99,23 @@ class Allocate : public Dispatcher {
 	       (!Strcmp(local_type, base_type)
 		|| SwigType_issubtype(local_type, base_type)) &&
 	       (!Strcmp(local_decl, base_decl)) ) {
-            // Indicate a virtual method in the derived class, that is, not the virtual method definition in a base class
-	    Setattr(c, "storage", "virtual");
-	    Setattr(c, "virtual:derived", "1"); 
-	    // record the virtual base type in case some language needs it
-	    Setattr(c, "virtual:type", Getattr(temp, "type")); 
-	    if (virtual_elimination_mode && !Strcmp(local_type, base_type))
-	      Setattr(c, "feature:ignore", "1");
-	    
-	    Delete(base_decl);
-	    Delete(base_type);
-	    Delete(local_decl);
-	    Delete(local_type);
-	    return 1;
+            // Indicate a virtual method in the derived class, that
+            // is, not the virtual method definition in a base class
+            Setattr(c, "storage", "virtual");
+            Setattr(c, "virtual:derived", "1"); 
+            // record the virtual base type in case some language
+            // needs it
+            if (Strcmp(local_type, base_type) == 0) {
+              if (virtual_elimination_mode) Setattr(c,"feature:ignore", "1");
+            } else {
+              Setattr(c, "virtual:type", Getattr(temp, "type"));
+            }
+
+            Delete(base_decl);
+            Delete(base_type);
+            Delete(local_decl);
+            Delete(local_type);
+            return 1;
 	  }
 	  Delete(base_decl);
 	  Delete(base_type);
