@@ -18,6 +18,10 @@
 
 #ifndef GIFPLOT_H
 
+#ifdef SWIG
+%pragma no_default
+#endif
+
 /* Pixel is 8-bits */
 
 typedef unsigned char Pixel;
