@@ -13,6 +13,11 @@
 
       // This doesn't
       Hello(size_type n = size_type(0) ) { }
+
+      enum Hi { hi, hello };
+
+      void foo(Hi h = hi) { }
+	
       
     };
 %}

@@ -14,15 +14,15 @@ public:
     }
 };
 
-class FooPtr {
+class Foo_ptr {
     Foo *_ptr;
 public:
-    FooPtr(Foo *p): _ptr(p) {}
-    static FooPtr getPtr() {
-        return FooPtr(new Foo(17));
+    Foo_ptr(Foo *p): _ptr(p) {}
+    static Foo_ptr getPtr() {
+        return Foo_ptr(new Foo(17));
     }
-    static const FooPtr getConstPtr() {
-        return FooPtr(new Foo(17));
+    static const Foo_ptr getConstPtr() {
+        return Foo_ptr(new Foo(17));
     }
     const Foo *operator->() {
         return _ptr;

@@ -1853,6 +1853,51 @@ int Language::classDeclaration(Node *n) {
 /* ----------------------------------------------------------------------
  * Language::classHandler()
  * ---------------------------------------------------------------------- */
+static Node *makeConstructor(Node *n) 
+{
+  Node *cn = Copy(n);
+  String *name = Getattr(n,"name");
+  String *rname = 0;
+  String *dname = NewStringf("%s::",name);
+  
+  if (SwigType_istemplate(name)) {
+    rname = SwigType_templateprefix(name);
+    name = rname;
+  }
+  String *lname = Swig_scopename_last(name);
+  Append(dname,lname);
+  Setattr(cn,"feature:new","1");
+  Setattr(cn,"decl","f().");
+  Swig_features_get(Swig_cparse_features(), 0, dname, Getattr(cn,"decl"), cn);
+  Delete(rname);
+  Delete(dname);
+  Delete(lname);
+
+  return cn;
+}
+
+static Node *makeDestructor(Node *n) 
+{
+  Node *cn = Copy(n);
+  String *name = Getattr(n,"name");
+  String *rname = 0;
+  String *dname = NewStringf("%s::~",name);
+  
+  if (SwigType_istemplate(name)) {
+    rname = SwigType_templateprefix(name);
+    name = rname;
+  }
+  String *lname = Swig_scopename_last(name);
+  Append(dname,lname);
+  Setattr(cn,"decl","f().");
+  Swig_features_get(Swig_cparse_features(), 0, dname, Getattr(cn,"decl"), cn);
+  Delete(rname);
+  Delete(dname);
+  Delete(lname);
+
+  return cn;
+}
+
 
 int Language::classHandler(Node *n) {
 
@@ -1879,13 +1924,15 @@ int Language::classHandler(Node *n) {
     if (!Getattr(n,"has_constructor") && !Getattr(n,"allocate:has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
       /* Note: will need to change this to support different kinds of classes */
       if (!Abstract || hasDirector) {
-	Setattr(CurrentClass,"feature:new","1");
-	constructorHandler(CurrentClass);
-	Delattr(CurrentClass,"feature:new");
+	Node *cn = makeConstructor(CurrentClass);
+	constructorHandler(cn);
+	Delete(cn);
       }
     }
     if (!Getattr(n,"has_destructor") && (!Getattr(n,"allocate:has_destructor")) && (Getattr(n,"allocate:default_destructor"))) {
-      destructorHandler(CurrentClass);
+      Node *cn = makeDestructor(CurrentClass);
+      destructorHandler(cn);
+      Delete(cn);
     }
   }
 

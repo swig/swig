@@ -16,14 +16,10 @@
 	return 0;
       }
 
-      C(int a = 0)
+      C(int a)
       {
       }
       
-    protected:
-      C()
-      {
-      }
     };
   
 
@@ -35,14 +31,10 @@
 	return 0;
       }
       
-      C(double a = 0)
+      C(double a)
       {
       }
       
-    protected:
-      C()
-      {
-      }
     };
   
       
