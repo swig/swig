@@ -1,5 +1,4 @@
-/* Typemaps for pointers.  Note: the SWIG run-time type checker works
-   even if a pointer happens to be mapped to a Ruby class */
+/* --- Input typemaps --- */
 
 %typemap(in) SWIGTYPE *,
              SWIGTYPE []
@@ -113,14 +112,7 @@
 
 %typemap(constant) SWIGTYPE (CLASS::*) "rb_define_const($module, \"$symname\", SWIG_NewPackedObj((void *) &$1, sizeof($type), $1_descriptor));";
 
-/*****************************************************************************
- *
- * Inverse argument typemaps are for marshaling C/C++ parameters to call Python
- * methods from C++ proxy wrapper classes.
- *
- *****************************************************************************/
-
-/* directorin typemaps */
+/* --- directorin typemaps --- */
 
 /* --- directorout typemaps --- */
 %typemap(directorout) SWIGTYPE *,
@@ -143,15 +135,11 @@
 }
 
 /* ------------------------------------------------------------
- * Exception handling
+ * Exception handling.
+ * Note that in Ruby, we can only raise an exception class and
+ * not some arbitrary object as in Python.
  * ------------------------------------------------------------ */
 
-%typemap(throws) SWIGTYPE {
-  $&1_ltype temp = new $1_ltype($1);
-  if ($&1_descriptor->clientdata) {
-    rb_exc_raise(rb_exc_new3(((swig_class *) ($&1_descriptor->clientdata))->klass, rb_obj_as_string(SWIG_NewPointerObj(temp, $&1_descriptor, 1))));
-  } else {
-    rb_exc_raise(rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(SWIG_NewPointerObj(temp, $&1_descriptor, 1))));
-  }
-}
+%typemap(throws) SWIGTYPE, SWIGTYPE *, SWIGTYPE [ANY], SWIGTYPE &
+  "rb_raise(rb_eRuntimeError, \"$1_type\");";
 
