@@ -44,6 +44,10 @@ system, and it does not rely on unreliable techniques like attempting
 to execute overloaded methods in order until one executes
 successfully.  It's better.
 
+The Java module is different in its implementation and simply supplies 
+overloaded Java methods for each overloaded C++ method.
+
+
 * C++ Smart pointer support */
 
 If a class implements operator->(), SWIG automatically makes all of
@@ -75,7 +79,11 @@ Of course, smart-pointer template classes also work.
 
 Many improvements have been made to the language modules.  Examples
 include support for Python 2.2 new-style classes, an improved Tcl
-object interface, changes to PHP and Java object wrapping, and more.
+object interface, changes to PHP object wrapping, and more. The Java
+module has undergone a complete overhaul to improve static type 
+checking of wrapped C/C++ code. Please see the CHANGES file for 
+details and backwards compatibility issues.
+
 
 * New Modules *
 
