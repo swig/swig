@@ -1065,8 +1065,16 @@ int RUBY::constructorHandler(Node *n) {
     current = NO_CPP;
     klass->constructor_defined = 1;
   } else {
-    char *symname = GetChar(n,"sym:name");
-    fprintf(stderr, "Warning: Overloaded constructor \"%s\" ignored.\n", symname);
+    Swig_require(&n,"?name","*sym:name","?type","?parms",NULL);
+    String *classname = Getattr(n,"name");
+    String *symname = Getattr(n,"sym:name");
+    String *mrename = Swig_name_member(classname, symname);
+    Setattr(n, "sym:name", mrename);
+    Swig_ConstructorToFunction(n, classname, CPlusPlus, AddMethods);
+    current = STATIC_FUNC;
+    functionWrapper(n);
+    current = NO_CPP;
+    Swig_restore(&n);
   }
   return SWIG_OK;
 }
@@ -1237,11 +1245,6 @@ void RUBY::pragma(char *lang, char *cmd, char *value) {
       Setattr(klass->predmethods, tok, tok);
       tok = strtok(0, " \t");
     }
-  } else if (strcmp(cmd, "debug") == 0) {
-    Printf(f_header, "/* %s */\n", value);
-    Printf(f_wrappers, "/* %s */\n", value);
-    Printf(f_init, "/* %s */\n", value);
-    Printf(stderr, "%s\n", value);
   } else {
     Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
 	    input_file, line_number);

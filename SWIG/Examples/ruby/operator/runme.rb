@@ -14,7 +14,7 @@ puts "c   = #{c}"
 puts "a*b = #{a*b}"
 puts "a-c = #{a-c}"
 
-#e = ComplexCopy(a-c)
+e = Complex.ComplexCopy(a-c)
 e = a - c
 puts "e   = #{e}"
 
