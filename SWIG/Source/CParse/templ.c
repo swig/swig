@@ -281,6 +281,18 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
       if (!p) p = tp;
     }
   }
+  /* Patch bases */
+  {
+    List *bases = Getattr(n,"baselist");
+    if (bases) {
+      String *b;
+      for (b = Firstitem(bases); b; b = Nextitem(bases)) {
+	String *qn = Swig_symbol_type_qualify(b,0);
+	Clear(b);
+	Append(b,qn);
+      }
+    }
+  }
   Delete(patchlist);
   Delete(cpatchlist);
   Delete(typelist);

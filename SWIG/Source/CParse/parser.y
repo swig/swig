@@ -1893,7 +1893,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		      Setline($$,cparse_line);
 		      Delete(temparms);
 		      
-
 		      add_symbols_copy($$);
 		      if (Strcmp(nodeType($$),"class") == 0) {
 
