@@ -66,6 +66,7 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
     }
     if (t != temp) {
       msg++;
+      *t = 0;
       wnum = atoi(temp);
     }
   }
