@@ -418,6 +418,6 @@ srcrpm: swig.spec
 	cp swig.spec $(srpm)
 	tar -cf - $(srpm) | gzip --best > $(srpm).tar.gz
 	rm -fr $(srpm)
-	rpm -ts $(srpm).tar.gz
+	rpmbuild -ts $(srpm).tar.gz
 
 # Makefile ends here
