@@ -194,10 +194,10 @@ Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	      String *dq1 = Copy(d1);
 	      String *dq2 = Copy(d2);
 	      if (SwigType_isconst(d1)) {
-		SwigType_pop(dq1);
+		Delete(SwigType_pop(dq1));
 	      }
 	      if (SwigType_isconst(d2)) {
-		SwigType_pop(dq2);
+		Delete(SwigType_pop(dq2));
 	      }
 	      if (Strcmp(dq1,dq2) == 0) {
 		

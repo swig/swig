@@ -819,7 +819,9 @@ int Language::cDeclaration(Node *n) {
 
 	       Printf(f_header,"extern %s", SwigType_str(ty,name));
 	    */
-	    Printf(f_header,"%s", SwigType_str(ty,name));
+	    String *str = SwigType_str(ty,name);
+	    Printf(f_header,"%s", str);
+	    Delete(str);
 	    {
 	      DOH *t = Getattr(n,"throws");
 	      if (t) {
@@ -835,14 +837,18 @@ int Language::cDeclaration(Node *n) {
 	    Printf(f_header,";\n");
 	  } else if (Cmp(storage,"externc") == 0) {
 	    /* here 'extern "C"' is needed */
-	    Printf(f_header, "extern \"C\" %s;\n", SwigType_str(ty,name));
+	    String *str = SwigType_str(ty,name);
+	    Printf(f_header, "extern \"C\" %s;\n", str);
+	    Delete(str);
 	  }
 	}
       }
     }
     /* This needs to check qualifiers */
     if (SwigType_isqualifier(ty)) {
-      Setattr(n,"qualifier", SwigType_pop(ty));
+      SwigType *qual = SwigType_pop(ty);
+      Setattr(n,"qualifier", qual);
+      Delete(qual);
     }
     Delete(SwigType_pop_function(ty));
     DohIncref(type);
@@ -861,7 +867,9 @@ int Language::cDeclaration(Node *n) {
 	f_header = Swig_filebyname("header");
 	if (!NoExtern) {
 	  if (f_header) {
-	    Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
+	    String *str = SwigType_str(ty,name);
+	    Printf(f_header,"extern %s;\n", str);
+	    Delete(str);
 	  }
 	}
       }
@@ -875,6 +883,7 @@ int Language::cDeclaration(Node *n) {
       if (SwigType_isconst(tya)) {
 	Setattr(n,"feature:immutable","1");
       }
+      Delete(tya);
     }
     DohIncref(type);
     Setattr(n,"type",ty);
@@ -1616,7 +1625,7 @@ int Language::unrollVirtualMethods(Node *n,
         SwigType *ty = NewString(Getattr(m,"type"));
         SwigType_push(ty,decl);
         if (SwigType_isqualifier(ty)) {
-          SwigType_pop(ty);
+          Delete(SwigType_pop(ty));
         }
         Delete(SwigType_pop_function(ty));
         Setattr(m,"returntype", ty);
@@ -2404,8 +2413,9 @@ int Language::constantWrapper(Node *n) {
   String   *name  = Getattr(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
   String   *value = Getattr(n,"value");
-
-  Printf(stdout,"constantWrapper   : %s = %s\n", SwigType_str(type,name), value);
+  String   *str = SwigType_str(type,name);
+  Printf(stdout,"constantWrapper   : %s = %s\n", str, value);
+  Delete(str);
   return SWIG_OK;
 }
 
@@ -2564,7 +2574,9 @@ Language::classLookup(SwigType *s) {
       if ((Len(prefix) == 0) ||               /* Simple type */
           (Strcmp(prefix,"p.") == 0) ||       /* pointer     */ 
           (Strcmp(prefix,"r.") == 0)) {       /* reference   */
-        Setattr(classtypes,Copy(s),n);
+	SwigType *cs = Copy(s);
+        Setattr(classtypes,cs,n);
+	Delete(cs);
       } else {
         n = 0;
       }
@@ -2906,13 +2918,15 @@ int Language::is_assignable(Node *n)
       if ((Strcmp(nodeType(cn),"class") == 0)) {
 	if (Getattr(cn,"allocate:noassign")) {
 	  Setattr(n,"feature:immutable","1");
+	  Delete(ftd);
+	  Delete(td);
 	  return 0;
-	} else {
-	  return 1;
 	}
       }    
     }
   }
+  Delete(ftd);
+  Delete(td);
   return 1;
 }
 

@@ -1666,7 +1666,9 @@ public:
   /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
       String *wname = Swig_name_wrapper(iname);
-      Printf(f_header, "static %s = %s;\n", SwigType_str(type,wname), value);
+      String *str = SwigType_str(type,wname);
+      Printf(f_header, "static %s = %s;\n", str, value);
+      Delete(str);
       value = wname;
     }
     if ((tm = Swig_typemap_lookup_new("consttab",n,name,0))) {
@@ -2598,9 +2600,10 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	  Append(w->def, ", ");
 	  Append(declaration, ", ");
 	}
-
-	Printf(w->def, "%s", SwigType_str(Getattr(p, "type"),0));
-	Printf(declaration, "%s", SwigType_str(Getattr(p, "type"),0));
+	String *str = SwigType_str(Getattr(p, "type"),0);
+	Printf(w->def, "%s", str);
+	Printf(declaration, "%s", str);
+	Delete(str);
       }
     }
 
