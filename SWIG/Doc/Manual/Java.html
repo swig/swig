@@ -593,7 +593,7 @@ The functions associated with this class can throw a C++ range exception for an 
 
 // This overrides anything in the %except(java) typemap
 // Used for JNI calls that return void
-%typemap(java,except) void {
+%typemap(except) void {
   try {
     $function
   }
@@ -750,7 +750,7 @@ A typemap is mechanism by which SWIG's processing of a particular C datatype can
 <blockquote><pre>
 %module example
 
-%typemap(java,in) int {
+%typemap(in) int {
   $target = $source;
   printf("Received an integer : %d\n",  $target);
 }
@@ -758,7 +758,7 @@ A typemap is mechanism by which SWIG's processing of a particular C datatype can
 extern int fact(int n);
 </pre></blockquote>
 <p>
-Typemaps require a language  name,  method name, datatype, and conversion code.  For Java, "java" should be used as the language name. The "in" method in this example refers to an input argument of a function. The datatype `int' tells SWIG that we are remapping integers.  The supplied code is used to convert from a <tt>jint</tt> to the corresponding C datatype, <tt>int</tt>.  Within the supporting C code, the variable <tt>$source</tt> contains the source data (the JNI jint in this case) and <tt>$target</tt> contains the destination of a conversion.  <p>
+Typemaps require a method name, datatype, and conversion code.  The "in" method in this example refers to an input argument of a function. The datatype `int' tells SWIG that we are remapping integers.  The supplied code is used to convert from a <tt>jint</tt> to the corresponding C datatype, <tt>int</tt>.  Within the supporting C code, the variable <tt>$source</tt> contains the source data (the JNI jint in this case) and <tt>$target</tt> contains the destination of a conversion.  <p>
 <p>
 When this example is compiled into a Java module, it can be used as follows:<p>
 <p>
@@ -785,12 +785,12 @@ The typemaps available to the Java module include the common typemaps listed in 
 </tr>
 
 <tr>
-<td>typemap(java,jtype)</td>
+<td>typemap(jtype)</td>
 <td>Override the default mapping of basic types from C to Java. Always provide jni, in, argout and out typemaps if you use this typemap.</td>
 </tr>
 
 <tr>
-<td>typemap(java,jni)</td>
+<td>typemap(jni)</td>
 <td>Override the default mapping of basic types from C to jni. Always provide jtype, in, argout and out typemaps if you use this typemap.</td>
 </tr>
 </table>
@@ -873,7 +873,7 @@ is released afterwards</td>
 </table>
 
 <p>
-If a typemap(java,in) is written, the typemap(java,argout) must also
+If a %typemap(in) is written, the %typemap(argout) must also
 be written, because the default 'argout' code depends on the default
 'in' code.</li>
 
@@ -892,17 +892,17 @@ Typemaps are based both on the datatype and an optional name attached to a datat
 <blockquote><pre>%module foo
 
 // This typemap will be applied to all char ** function arguments
-%typemap(java,in) char ** { ... }
+%typemap(in) char ** { ... }
 
 // This typemap is applied only to char ** arguments named `argv'
-%typemap(java,in) char **argv { ... }
+%typemap(in) char **argv { ... }
 
 </pre></blockquote>
 In this example, two typemaps are applied to the <tt>char **</tt> datatype.  However, the second typemap will only be applied to arguments named `<tt>argv</tt>'.  A named typemap will always override an unnamed typemap.<p>
 <p>
 Due to the name-based nature of typemaps, it is important to note that typemaps are independent of typedef declarations.  For example :<p>
 <p>
-<blockquote><pre>%typemap(java, in) double {
+<blockquote><pre>%typemap(in) double {
 	... get a double ...
 }
 void foo(double);            // Uses the above typemap
@@ -912,7 +912,7 @@ void bar(Real);              // Does not use the above typemap (double != Real)
 </pre></blockquote>
 To get around this problem, the <tt>%apply</tt> directive can be used as follows :<p>
 <blockquote><pre>
-%typemap(java,in) double {
+%typemap(in) double {
 	... get a double ...
 }
 void foo(double);
@@ -928,7 +928,7 @@ A common problem in many C programs is the processing of command line arguments,
 %module example
 
 /* This tells SWIG to treat char ** as a special case when used as a parameter in a function call */
-%typemap(java,in) char** (jint size) {
+%typemap(in) char** (jint size) {
     jboolean isCopy;
     int i = 0;
     size = (*jenv)-&gt;GetArrayLength(jenv, $source);
@@ -947,7 +947,7 @@ A common problem in many C programs is the processing of command line arguments,
 }
 
 /* This cleans up the memory we malloc'd before the function call */
-%typemap(java,freearg) char** {
+%typemap(freearg) char** {
     int i;
     for (i=0; i&lt;size-1; i++)
       free($target[i]);
@@ -955,7 +955,7 @@ A common problem in many C programs is the processing of command line arguments,
 }
 
 /* This allows a C function to return a char ** as a Java String array */
-%typemap(java,out) char** {
+%typemap(out) char** {
     int i;
     int len=0;
     jstring temp_string;
@@ -973,10 +973,10 @@ A common problem in many C programs is the processing of command line arguments,
 }
 
 /* This tells SWIG what Java type to use */
-%typemap(java,jtype) char** {String[]}
+%typemap(jtype) char** "String[]"
 
 /* This tells SWIG what the matching JNI type for the Java type is */
-%typemap(java,jni) char** {jobjectArray}
+%typemap(jni) char** "jobjectArray"
 
 /* Now a few test functions */
 %inline %{
@@ -1074,7 +1074,7 @@ This typemap will make any double* function parameters with name 'OutValue' take
 argument of MyDouble instead of double*. Requires -shadow commandline option. This will 
 allow the calling function to read the double* value after returning from the function.
 */
-%typemap(java,in) double *OutValue {
+%typemap(in) double *OutValue {
     jclass clazz = jenv-&gt;FindClass("MyDouble");
     jfieldID fid = jenv-&gt;GetFieldID(clazz, "_cPtr", "J");
     jlong cPtr = jenv-&gt;GetLongField($source, fid);
@@ -1084,10 +1084,10 @@ allow the calling function to read the double* value after returning from the fu
 }
 
 /* This tells SWIG what Java type to use */
-%typemap(java,jtype) double* OutValue {MyDouble}
+%typemap(jtype) double* OutValue "MyDouble"
 
 /* This tells SWIG what the matching JNI type for the Java type is */
-%typemap(java,jni) double* OutValue {jobject}
+%typemap(jni) double* OutValue "jobject"
 
 /* Now we apply the typemap to the named variables */
 %apply double* OutValue { double *out1, double* out2 };
@@ -1141,7 +1141,7 @@ typedef struct {
 By default, the Java module supplies the memberin typemap in the Lib/java/java_arrays file to set array members. It is generic, but not particularly efficient as it copies one array member at a time. You may want to override it for the above Data struct as follows:<p>
 <p>
 <blockquote><pre>
-%typemap(java, memberin) int[LEN] {
+%typemap(memberin) int[LEN] {
   /* Copy at most LEN characters into $target */
   memcpy($target,$source,sizeof(int)*LEN);
 }
