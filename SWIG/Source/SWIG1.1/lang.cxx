@@ -13,10 +13,10 @@
  * can be used and distributed.
  *******************************************************************************/
 
+static char cvsroot[] = "$Header$";
+
 #include "internal.h"
 #include <ctype.h>
-
-static char cvsroot[] = "$Header$";
 
 // -----------------------------------------------------------------------
 // $Header$

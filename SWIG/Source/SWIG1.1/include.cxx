@@ -13,12 +13,12 @@
  * can be used and distributed.
  *******************************************************************************/
 
+static char cvsroot[] = "$Header$";
+
 #include "internal.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-
-static char cvsroot[] = "$Header$";
 
 /*******************************************************************************
  * $Header$
@@ -26,7 +26,6 @@ static char cvsroot[] = "$Header$";
  * File : include.cxx
  *
  * Code for including files into a wrapper file.
- *
  *******************************************************************************/
 
 /* Delimeter used in accessing files and directories */
@@ -60,12 +59,6 @@ Inode  *include_list = 0;
 // void add_directory(char *dirname)
 //
 // Adds a directory to the SWIG search path.
-// 
-// Inputs : dirname  = Pathname
-//
-// Output : None
-//
-// Side Effects : Adds dirname to linked list of pathnames.
 // -----------------------------------------------------------------------------
 
 void add_directory(char *dirname) {
@@ -92,12 +85,6 @@ void add_directory(char *dirname) {
 // 
 // Adds an include file to the list of processed files.  If already present,
 // returns 1. 
-//
-// Inputs : name  = filename
-//
-// Output : 0 on success, 1 on failure.
-//
-// Side Effects : Adds name to linked list.
 // -----------------------------------------------------------------------------
 
 int add_iname(char *name) {
@@ -127,15 +114,6 @@ int add_iname(char *name) {
 // 
 // Checks the suffix of an include file to see if we need to handle it
 // differently.  C and C++ source files need a little extra help.
-//
-// Inputs : name  = include file name.
-//
-// Output : None
-//
-// Side Effects : 
-//          Sets ForceExtern status variable if a C/C++ source file
-//          is detected.
-//
 // -----------------------------------------------------------------------------
 
 void check_suffix(char *name) {
@@ -172,12 +150,6 @@ void check_suffix(char *name) {
 // int include_file(char *name)
 // 
 // Includes a new SWIG wrapper file. Returns -1 if file not found.
-//
-// Inputs : name  = filename
-//
-// Output : 0 on success. -1 on failure.
-//
-// Side Effects : sets scanner to read from new file.
 // -----------------------------------------------------------------------------
 
 int include_file(char *name) {
@@ -246,13 +218,6 @@ static char  buffer[1024];
 // void copy_data(FILE *f1, FILE *f2)
 //
 // Copies data from file f1 to file f2.
-// 
-// Inputs : f1  = FILE 1
-//          f2  = FILE 2
-//
-// Output : None
-//
-// Side Effects : Closes file f1 upon exit.
 // -----------------------------------------------------------------------------
 
 void copy_data(FILE *f1, FILE *f2) {
@@ -267,13 +232,6 @@ void copy_data(FILE *f1, FILE *f2) {
 // void copy_data(FILE *f1, String *s2)
 //
 // Copies data from file f1 to String s2.
-// 
-// Inputs : f1  = FILE 1
-//          s2  = String
-//
-// Output : None
-//
-// Side Effects : Closes file f1 upon exit.
 // -----------------------------------------------------------------------------
 
 void copy_data(FILE *f1, String &s2) {
@@ -288,13 +246,6 @@ void copy_data(FILE *f1, String &s2) {
 // int insert_file(char *name, FILE *f)
 //
 // Looks for a file and inserts into file f.
-//
-// Inputs : name  = filename
-//          f     = FILE
-//
-// Output : 0 on success, -1 on failure.
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 int insert_file(char *name, FILE *f_out) {
@@ -347,14 +298,6 @@ int insert_file(char *name, FILE *f_out) {
 // void swig_append(char *filename, FILE *f)
 // 
 // Appends the contents of filename to stream f.
-//
-// Inputs : 
-//          filename  = File to append
-//          f         = FILE handle 
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void swig_append(char *filename, FILE *f) {
@@ -377,13 +320,6 @@ void swig_append(char *filename, FILE *f) {
 // int get_file(char *name, String &str)
 //
 // Looks for a file and converts it into a String.  
-//
-// Inputs : name  = filename
-//          str   = String
-//
-// Output : 0 on success, -1 on failure.
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 int get_file(char *name, String &str) {
@@ -437,12 +373,6 @@ static int   nlibs = 0;
 //
 // Adds a filename to the list of libraries.   This is usually only called by
 // the SWIG main program.
-//
-// Inputs : name  = library name
-//
-// Outputs: None
-//
-// Side Effects : Adds the library name to the libs array above
 // -----------------------------------------------------------------------------
 
 void library_add(char *name) {
@@ -464,16 +394,6 @@ void library_add(char *name) {
 // void library_insert()
 // 
 // Starts parsing all of the SWIG library files.
-// 
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : Opens and attaches all of the specified library files to
-//                the scanner.
-//
-// Bugs : Opens all of the files.   Will fail if there are too many open files.
-//
 // -----------------------------------------------------------------------------
 
 void library_insert() {
@@ -492,14 +412,6 @@ void library_insert() {
 // Tries to check a file out of the SWIG library. If found, it will save it in
 // the current directory.   This is a useful mechanism for using SWIG as a code
 // manager and for extracting library files.
-//
-// Inputs : filename = Library file
-//          dest     = Destination file
-//
-// Output : 0 on success
-//         -1 on failure.
-//
-// Side Effects :  None
 // -----------------------------------------------------------------------------
 
 int checkout_file(char *filename,char *dest) {
@@ -549,16 +461,8 @@ int checkout_file(char *filename,char *dest) {
 // int checkin_file(char *dir, char *lang, char *source,char *dest) 
 // 
 // Attempts to check a file into the SWIG library.  
-//
-// Inputs : dir      = Location of the SWIG library.
-//          lang     = Language specific subdirectory.
-//          source   = Source file.
-//          dest     = Destination file.
-//
 // Output : 0 on success
 //         -1 on failure.
-//
-// Side Effects :  None
 // -----------------------------------------------------------------------------
 
 int checkin_file(char *dir, char *lang, char *source, char *dest) {
