@@ -433,7 +433,6 @@ public:
     Wrapper *f       = NewWrapper();
     String  *symname = Getattr(n,"sym:name");
     String  *wname   = Swig_name_wrapper(symname);
-  
 
     Printv(f->def,	
 	   "struct array *", wname,
@@ -811,3 +810,8 @@ extern "C" Language *
 swig_pike(void) {
   return new PIKE();
 }
+
+
+
+
+
