@@ -205,6 +205,64 @@ String *Swig_string_mangle(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_scopename_prefix()
+ *
+ * Take a qualified name like "A::B::C" and return the scope name.
+ * In this case, "A::B".   Returns NULL if there is no base.
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_scopename_prefix(String *s) {
+  char tmp[512];
+  char   *c, *cc;
+  String *b;
+  if (!Strstr(s,"::")) return 0;
+  strcpy(tmp,Char(s));
+  c = tmp;
+  cc = c;
+  while (c) {
+    c = strstr(c,"::");
+    if (c) {
+      cc = c;
+      c += 2;
+    }
+  }
+  *cc = 0;
+  if (cc != tmp) {
+    return NewString(tmp);
+  } else {
+    return 0;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_scopename_base()
+ *
+ * Take a qualified name like "A::B::C" and returns the base.  In this
+ * case, "C". 
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_scopename_base(String *s) {
+  char tmp[512];
+  char   *c, *cc;
+  String *b;
+  if (!Strstr(s,"::")) return NewString(s);
+  strcpy(tmp,Char(s));
+  c = tmp;
+  cc = c;
+  while (c) {
+    c = strstr(c,"::");
+    if (c) {
+      cc = c;
+      c += 2;
+    }
+  }
+  return NewString(cc+2);
+}
+
+
+/* -----------------------------------------------------------------------------
  * Swig_init()
  *
  * Initialize the SWIG core
@@ -224,4 +282,8 @@ Swig_init() {
 
   /* Initialize symbol table */
   Swig_symbol_init();
+
+  /* Initialize type system */
+  SwigType_typesystem_init();
+
 }

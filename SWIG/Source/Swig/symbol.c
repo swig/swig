@@ -315,6 +315,22 @@ Swig_symbol_alias(String_or_char *aliasname, Symtab *s) {
   Setattr(symtabs,qname,s);
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_inherit()
+ *
+ * Inherit symbols from another scope.
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_inherit(Symtab *s) {
+  List *inherit = Getattr(current_symtab,"inherit");
+  if (!inherit) {
+    inherit = NewList();
+    Setattr(current_symtab,"inherit", inherit);
+  }
+  assert(s != current_symtab);
+  Append(inherit,s);
+}
+
 /* ----------------------------------------------------------------------------- 
  * Swig_symbol_add()
  *
@@ -467,6 +483,36 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
  * ----------------------------------------------------------------------------- */
 
 static Node *
+symbol_lookup(String_or_char *name, Symtab *symtab) {
+  Node *n;
+  List *inherit;
+  Hash *sym = Getattr(symtab,"csymtab");
+  
+  if (Getmark(symtab)) return 0;
+  Setmark(symtab,1);
+
+  n = Getattr(sym,name);
+  if (n) {
+    Setmark(symtab,0);
+    return n;
+  }
+  inherit = Getattr(symtab,"inherit");
+  if (inherit) {
+    int  i,len;
+    len = Len(inherit);
+    for (i = 0; i < len; i++) {
+      n = symbol_lookup(name, Getitem(inherit,i));
+      if (n) {
+	Setmark(symtab,0);
+	return n;
+      }
+    }
+  }
+  Setmark(symtab,0);
+  return 0;
+}
+
+static Node *
 symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, int local) {
 
   /* This is a little funky, we search by fully qualified names */
@@ -511,9 +557,8 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
 
     /* Found a scope match */
     if (st) {
-      Hash *sym = Getattr(st,"symtab");
       if (!name) return st;
-      n = Getattr(sym,name);
+      n = symbol_lookup(name, st);
     }
 
     if (!n) {
@@ -531,16 +576,16 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
  * Swig_symbol_clookup()
  *
  * Look up a symbol in the symbol table.   This uses the C name, not scripting
- * names.
+ * names.   Note: If we come across a using a directive, we follow it to
+ * to get the real node.
  * ----------------------------------------------------------------------------- */
 
 Node *
 Swig_symbol_clookup(String_or_char *name, Symtab *n) {
-  Hash *h,*hsym;
-  Hash *s;
+  Hash *hsym;
+  Node *s = 0;
 
   if (!n) {
-    h = ccurrent;
     hsym = current_symtab;
   } else {
     if (Strcmp(nodeType(n),"symboltable")) {
@@ -549,23 +594,29 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
     assert(n);
     if (n) {
       hsym = n;
-      h = Getattr(hsym,"csymtab");
     }
   }
 
   if (Strstr(name,"::")) {
-    if (Strncmp(name,"::",2) == 0) return symbol_lookup_qualified(Char(name)+2,global_scope,0,0);
-    else return symbol_lookup_qualified(name,hsym,0,0);
+    if (Strncmp(name,"::",2) == 0) s = symbol_lookup_qualified(Char(name)+2,global_scope,0,0);
+    else s = symbol_lookup_qualified(name,hsym,0,0);
+    if (!s) return 0;
   }
+  if (!s) {
+    while (hsym) {
+      s = symbol_lookup(name,hsym);
+      if (s) break;
+      hsym = parentNode(hsym);
+      if (!hsym) break;
+    }
+  }
+  if (!s) return 0;
 
-  while (h) {
-    s = Getattr(h,name);
-    if (s) return s;
-    hsym = parentNode(hsym);
-    if (!hsym) break;
-    h = Getattr(hsym,"csymtab");
+  /* Check if s is a 'using' node */
+  while (Strcmp(nodeType(s),"using") == 0) {
+    s = Getattr(s,"node");
   }
-  return 0;
+  return s;
 }
 
 Node *
@@ -672,6 +723,69 @@ Swig_symbol_isoverloaded(Node *n) {
   return Getattr(n,"sym:overloaded");
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_type_qualify()
+ *
+ * Create a fully qualified type name
+ * ----------------------------------------------------------------------------- */
+
+SwigType *
+Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
+  List   *elements;
+  String *result;
+  int     i,len;
+  String  *name;
+
+  result = NewString("");
+  elements = SwigType_split(t);
+  len = Len(elements);
+  for (i = 0; i < len; i++) {
+    String *e = Getitem(elements,i);
+    if (SwigType_issimple(e)) {
+      Node *n = Swig_symbol_clookup(e,st);
+      if (n) {
+	String *name = Getattr(n,"name");
+	if (name) {
+	  if (Strstr(name,"::")) {
+	    Clear(e);
+	    Append(e,name);
+	  } else {
+	    String *qname = Swig_symbol_qualified(n);
+	    if (Len(qname)) {
+	      Insert(e,0,"::");
+	      Insert(e,0,qname);
+	    }
+	    Delete(qname);
+	  }
+	}
+      }
+      if (Strncmp(e,"::",2) == 0) {
+	Delitem(e,0);
+	Delitem(e,0);
+      }
+      Append(result,e);
+    } else if (SwigType_isfunction(e)) {
+      List *parms = SwigType_parmlist(e);
+      String *s = NewString("f(");
+      String *p;
+      p = Firstitem(parms);
+      while (p) {
+	Append(s,Swig_symbol_type_qualify(p,st));
+	p = Nextitem(parms);
+	if (p) {
+	  Append(s,",");
+	}
+      }
+      Append(s,").");
+      Append(result,s);
+      Delete(s);
+    } else {
+      Append(result,e);
+    }
+  }
+  Delete(elements);
+  return result;
+}
 
 
 

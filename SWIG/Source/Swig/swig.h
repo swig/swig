@@ -39,6 +39,7 @@ typedef  DOH     Parm;
 typedef  DOH     ParmList;
 typedef  DOH     Node;
 typedef  DOH     Symtab;
+typedef  DOH     Typetab;
 typedef  DOH     SwigType;
 
 /* --- Legacy DataType interface.  These type codes are provided solely 
@@ -221,49 +222,54 @@ extern int         SwigType_isvarargs(SwigType *t);
 extern SwigType   *SwigType_strip_qualifiers(SwigType *t);
 extern String     *SwigType_base(SwigType *t);
 extern String     *SwigType_prefix(SwigType *t);
-
-extern int         SwigType_typedef(SwigType *type, String_or_char *name);
-extern void        SwigType_typedef_class(String_or_char *name);
-extern void        SwigType_inherit(String *subclass, String *baseclass);
-extern void        SwigType_new_scope();
-extern void        SwigType_reset_scopes();
-extern void        SwigType_set_scope_name(String_or_char *name);
-extern void        SwigType_merge_scope(Hash *scope);
-extern Hash       *SwigType_pop_scope();
-extern void        SwigType_push_scope(Hash *h);
-extern void        SwigType_print_scope();
-extern SwigType   *SwigType_typedef_resolve(SwigType *t);
-extern SwigType   *SwigType_typedef_resolve_all(SwigType *t);
-extern SwigType   *SwigType_typedef_qualified(SwigType *t);
-extern int         SwigType_istypedef(SwigType *t);
 extern int         SwigType_array_ndim(SwigType *t);
 extern String     *SwigType_array_getdim(SwigType *t, int n);
 extern void        SwigType_array_setdim(SwigType *t, int n, String_or_char *rep);
 extern SwigType   *SwigType_array_type(SwigType *t);
 extern String     *SwigType_default(SwigType *t);
-extern int         SwigType_type(SwigType *t);
+
+/* --- Type-system managment --- */
+extern void        SwigType_typesystem_init();
+extern int         SwigType_typedef(SwigType *type, String_or_char *name);
+extern int         SwigType_typedef_class(String_or_char *name);
+extern void        SwigType_inherit(String *subclass, String *baseclass);
+extern void        SwigType_new_scope();
+extern void        SwigType_reset_scopes();
+extern void        SwigType_set_scope_name(String_or_char *name);
+extern void        SwigType_inherit_scope(Typetab *scope);
+extern Typetab    *SwigType_pop_scope();
+extern Typetab    *SwigType_set_scope(Typetab *h);
+extern void        SwigType_print_scope(Typetab *t);
+extern SwigType   *SwigType_typedef_resolve(SwigType *t);
+extern SwigType   *SwigType_typedef_resolve_all(SwigType *t);
+extern SwigType   *SwigType_typedef_qualified(SwigType *t);
+extern int         SwigType_istypedef(SwigType *t);
+
 extern void        SwigType_remember(SwigType *t);
 extern void        SwigType_emit_type_table(File *f_headers, File *f_table);
+extern int         SwigType_type(SwigType *t);
 
 /* --- Symbol table module --- */
 
-extern void    Swig_symbol_init();
-extern void    Swig_symbol_setscopename(const String_or_char *name);
-extern String *Swig_symbol_getscopename();
-extern String *Swig_symbol_qualifiedscopename(Symtab *symtab);
-extern Symtab *Swig_symbol_newscope();
-extern Symtab *Swig_symbol_setscope(Symtab *);
-extern Symtab *Swig_symbol_getscope(const String_or_char *symname);
-extern Symtab *Swig_symbol_current();
-extern Symtab *Swig_symbol_popscope();
-extern Node   *Swig_symbol_add(String_or_char *symname, Node *node);
-extern Node   *Swig_symbol_clookup(String_or_char *symname, Symtab *tab);
-extern Symtab *Swig_symbol_cscope(String_or_char *symname, Symtab *tab);
-extern Node   *Swig_symbol_clookup_local(String_or_char *symname, Symtab *tab);
-extern String *Swig_symbol_qualified(Node *node);
-extern Node   *Swig_symbol_isoverloaded(Node *node);
-extern void    Swig_symbol_remove(Node *node);
-extern void    Swig_symbol_alias(String_or_char *aliasname, Symtab *tab);
+extern void     Swig_symbol_init();
+extern void     Swig_symbol_setscopename(const String_or_char *name);
+extern String   *Swig_symbol_getscopename();
+extern String   *Swig_symbol_qualifiedscopename(Symtab *symtab);
+extern Symtab   *Swig_symbol_newscope();
+extern Symtab   *Swig_symbol_setscope(Symtab *);
+extern Symtab   *Swig_symbol_getscope(const String_or_char *symname);
+extern Symtab   *Swig_symbol_current();
+extern Symtab   *Swig_symbol_popscope();
+extern Node     *Swig_symbol_add(String_or_char *symname, Node *node);
+extern Node     *Swig_symbol_clookup(String_or_char *symname, Symtab *tab);
+extern Symtab   *Swig_symbol_cscope(String_or_char *symname, Symtab *tab);
+extern Node     *Swig_symbol_clookup_local(String_or_char *symname, Symtab *tab);
+extern String   *Swig_symbol_qualified(Node *node);
+extern Node     *Swig_symbol_isoverloaded(Node *node);
+extern void      Swig_symbol_remove(Node *node);
+extern void      Swig_symbol_alias(String_or_char *aliasname, Symtab *tab);
+extern void      Swig_symbol_inherit(Symtab *tab);
+extern SwigType *Swig_symbol_type_qualify(SwigType *ty, Symtab *tab);
 
 /* --- Parameters and Parameter Lists --- */
 
@@ -353,6 +359,8 @@ extern char      *Swig_copy_string(const char *c);
 extern void       Swig_banner(File *f);
 extern String    *Swig_string_escape(String *s);
 extern String    *Swig_string_mangle(String *s);
+extern String    *Swig_scopename_prefix(String *s);
+extern String    *Swig_scopename_base(String *s);
 extern void       Swig_init();
 extern void       Swig_warn(const char *filename, int line, const char *msg);
 
