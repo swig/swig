@@ -459,12 +459,12 @@ DohCopyto(DOH *in, DOH *out) {
 /* -----------------------------------------------------------------------------
  * DohSplit()
  *
- * Split an input stream into a list of strings delimeted by characters in a 
- * string.  Optionally accepts a maximum number of splits to perform.
+ * Split an input stream into a list of strings delimited by the specified
+ * character.  Optionally accepts a maximum number of splits to perform.
  * ----------------------------------------------------------------------------- */
 
 DOH *
-DohSplit(DOH *in, const char *chs, int nsplits) {
+DohSplit(DOH *in, char ch, int nsplits) {
   DOH *list;
   DOH *str;
   int c;
@@ -479,12 +479,12 @@ DohSplit(DOH *in, const char *chs, int nsplits) {
     str = NewString("");
     do {
       c = Getc(in);
-    } while ((c != EOF) && (c == *chs));
+    } while ((c != EOF) && (c == ch));
     if (c != EOF) {
       Putc(c,str);
       while (1) {
 	c = Getc(in);
-	if ((c == EOF) || ((c == *chs) && (nsplits != 0))) break;
+	if ((c == EOF) || ((c == ch) && (nsplits != 0))) break;
 	Putc(c,str);
       }
       nsplits--;

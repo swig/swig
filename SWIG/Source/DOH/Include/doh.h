@@ -288,7 +288,7 @@ extern DOHHash   *DohNewHash();
  * ----------------------------------------------------------------------------- */
 
 extern DOHVoid  *DohNewVoid(void *ptr, void (*del)(void *));
-extern DOHList  *DohSplit(DOHFile *input, const char *chs, int nsplits);
+extern DOHList  *DohSplit(DOHFile *input, char ch, int nsplits);
 extern DOH      *DohNone;
 
 #ifndef DOH_LONG_NAMES

@@ -1200,7 +1200,7 @@ public:
       Delitem(temp,DOH_END);
     }
     /* Split the input text into lines */
-    List *clist = DohSplit(temp,"\n",-1);
+    List *clist = DohSplit(temp,'\n',-1);
     Delete(temp);
     int   initial = 0;
     String *s;

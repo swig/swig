@@ -1823,7 +1823,7 @@ class JAVA : public Language {
       }
 
       // Put the exception classes in the throws clause into a temporary List
-      List *temp_classes_list = Split(throws,",",INT_MAX);
+      List *temp_classes_list = Split(throws,',',INT_MAX);
 
       // Add the exception classes to the node throws list, but don't duplicate if already in list
       if (temp_classes_list && Len(temp_classes_list) > 0) {

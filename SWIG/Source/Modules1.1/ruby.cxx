@@ -101,7 +101,7 @@ Ruby Options (available with -ruby)\n\
 class RUBY : public Language {
 private:
 
-  char *module;
+  String *module;
   String *modvar;
   String *feature;
   int current;
@@ -294,9 +294,29 @@ public:
 	   NIL);
 
     Printv(f_init, tab4, "SWIG_InitRuntime();\n", NIL);
-  
-    Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n",
-	   NIL);
+
+    /* Account for nested modules */
+    List *modules = Split(module,':',INT_MAX);
+    if (modules != 0 && Len(modules) > 0) {
+      String *mv = 0;
+      String *m = Firstitem(modules);
+      while (m != 0) {
+        if (Len(m) > 0) {
+	  if (mv != 0) {
+            Printv(f_init, tab4, modvar,
+	      " = rb_define_module_under(", modvar, ", \"", m, "\");\n", NIL);
+	  } else {
+            Printv(f_init, tab4, modvar,
+	      " = rb_define_module(\"", m, "\");\n", NIL);
+	    mv = NewString(modvar);
+	  }
+	}
+	m = Nextitem(modules);
+      }
+      Delete(mv);
+      Delete(modules);
+    }
+
     Printv(f_init,
 	   "\n",
 	   "for (i = 0; swig_types_initial[i]; i++) {\n",
@@ -343,16 +363,38 @@ public:
    * be overridden as a command line option).
    *---------------------------------------------------------------------- */
 
-  void set_module(const char *mod_name) {
-    if (!module) {
-      if (!feature) {
-	feature = NewString(mod_name);
+  void set_module(const char *s) {
+    String *mod_name = NewString(s);
+    if (module == 0) {
+      /* Start with the empty string */
+      module = NewString("");
+      
+      /* Account for nested modules */
+      List *modules = Split(mod_name,':',INT_MAX);
+      if (modules != 0 && Len(modules) > 0) {
+        String *last = 0;
+	String *m = Firstitem(modules);
+	while (m != 0) {
+	  if (Len(m) > 0) {
+	    String *cap = NewString(m);
+	    (Char(cap))[0] = toupper((Char(cap))[0]);
+	    if (last != 0) {
+	      Append(module, "::");
+	    }
+	    Append(module, cap);
+	    last = m;
+	  }
+	  m = Nextitem(modules);
+	}
+	if (feature == 0) {
+	  feature = Copy(last);
+	}
+	(Char(last))[0] = toupper((Char(last))[0]);
+	modvar = NewStringf("m%s", last);
+	Delete(modules);
       }
-      module = new char[strlen(mod_name)+1];
-      strcpy(module, mod_name);
-      module[0] = toupper(module[0]);
-      modvar = NewStringf("m%s", module);
     }
+    Delete(mod_name);
   }
   
   /* --------------------------------------------------------------------------
@@ -424,7 +466,7 @@ public:
     /* Process the comma-separated list of aliases (if any) */
     String *aliasv = Getattr(n,"feature:alias");
     if (aliasv) {
-      List *aliases = Split(aliasv,",",INT_MAX);
+      List *aliases = Split(aliasv,',',INT_MAX);
       if (aliases && Len(aliases) > 0) {
 	String *alias = Firstitem(aliases);
 	while (alias) {
@@ -1107,7 +1149,7 @@ public:
     /* Process the comma-separated list of mixed-in module names (if any) */
     String *mixin = Getattr(n,"feature:mixin");
     if (mixin) {
-      List *modules = Split(mixin,",",INT_MAX);
+      List *modules = Split(mixin,',',INT_MAX);
       if (modules && Len(modules) > 0) {
 	String *mod = Firstitem(modules);
 	while (mod) {
