@@ -1,5 +1,9 @@
 Version 1.3.20 (In progress)
 ============================
+09/01/2003: beazley
+            Fixed [ 798205 ] Segfault in SWIG_ConvertPtr.
+            Reported by Prabhu Ramachandran.
+
 08/30/2003: mrose (Mark Rose)
             Modified the director typemaps in python/std_complex.i to use the 
 	    new-style macro and conversion functions, which eliminated some
