@@ -68,6 +68,11 @@
         <Files>
             <Include>
                 <File
+                    RelPath = "color.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "example.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -78,12 +83,12 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "runme.cs"
+                    RelPath = "Foo.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "Foo.cs"
+                    RelPath = "runme.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
