@@ -5,8 +5,21 @@
  *    
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Copyright (C) 2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Copyright (C) 2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * ----------------------------------------------------------------------------- */
 
 #include <stdio.h>
@@ -49,18 +62,24 @@ extern "C" {
 
 extern int   wad_memory_init();
 extern void *wad_malloc(int nbytes);
-extern void  wad_release_memory();
 extern char *wad_strdup(const char *c);
 extern void  wad_memory_debug();
+extern void  wad_memcpy(void *t, const void *s, unsigned len);
 
   /* --- Low level string handling --- */
 
 extern char *wad_string_lookup(char *s);
 extern void  wad_string_debug();
+extern char *wad_strcpy(char *t, const char *s);
+extern char *wad_strcat(char *t, const char *s);
+extern int   wad_strlen(const char *s);
 
 /* --- I/O, Debugging --- */
 
 extern void wad_printf(const char *fmt, ...);
+extern char *wad_format_hex(unsigned long u, int leading);
+extern char *wad_format_unsigned(unsigned long u, int width);
+extern char *wad_format_signed(long s, int width);
 
 /* --- Memory segments --- */
 typedef struct WadSegment {
@@ -161,6 +180,7 @@ typedef struct WadFrame {
   /* Symbol table information for PC */
 
   char              *sym_name;        /* Symbol name          */
+  int                sym_nlen;        /* Symbol name length   */
   char              *sym_file;        /* Source file (if any) */
   unsigned long      sym_base;        /* Symbol base address  */
   unsigned long      sym_size;        /* Symbol size          */
@@ -173,6 +193,7 @@ typedef struct WadFrame {
   int                loc_line;        /* Source line */
 
   /* Debugging information */
+  int                debug_check;     /* Checked debugging information */
   int                debug_nargs;     /* Number of arguments */
   WadLocal          *debug_args;      /* Arguments           */
   WadLocal          *debug_lastarg;   /* Last argument       */

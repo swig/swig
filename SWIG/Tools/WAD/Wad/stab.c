@@ -6,8 +6,21 @@
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Copyright (C) 2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Copyright (C) 2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
@@ -147,7 +160,6 @@ static void type_add(char *name, char *value) {
  add_more:
   if (vr) {
     /* There is a mapping to another type */
-    /*    printf("adding '%s', '%s'\n", v, vr); */
     type_add(v,vr);
   }
 }
@@ -274,7 +286,7 @@ static void types_print() {
   for (i = 0; i < HASH_SIZE; i++) {
     s = lnames[i];
     while (s) {
-      printf("%20s  %s\n", s->name, s->value);
+      wad_printf("%20s  %s\n", s->name, s->value);
       s = s->next;
     }
   }
@@ -318,7 +330,6 @@ stab_symbol(Stab *s, char *stabstr) {
   char *pstr;
   char name[1024]; 
   char value[65536];
-  int a;
 
   str = stabstr+s->n_strx;
   pstr = stab_string_parm(str);
@@ -331,7 +342,7 @@ stab_symbol(Stab *s, char *stabstr) {
     /*    printf("stab lsym:  other=%d, desc=%d, value=%d, str='%s'\n", s->n_other,s->n_desc,s->n_value,
 	  stabstr+s->n_strx); */
     /*    wad_printf("name = '%s', pstr='%s'\n", name, pstr+2); */
-    strcpy(value,pstr+2);
+    wad_strcpy(value,pstr+2);
     type_add(name,value);
   }
 }
@@ -343,7 +354,7 @@ stab_symbol(Stab *s, char *stabstr) {
  * Collect stabs data for a function definition.
  * ----------------------------------------------------------------------------- */
 
-static void
+static int
 scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
   int i;
   unsigned long offset;
@@ -362,7 +373,7 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
     }
     
     if ((s->n_type == N_UNDF) || (s->n_type == N_SO) || (s->n_type == N_FUN) ||
-	(s->n_type == N_OBJ)) return;
+	(s->n_type == N_OBJ)) return i;
 
     if (s->n_type == N_LBRAC) {
       get_parms = 0;
@@ -372,7 +383,7 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
 
     if (s->n_type == N_LSYM) {
       /* This might be a local variable definition */
-      /*      printf("local: n_value = %d, offset = %d\n", s->n_value, offset);*/
+      /*      wad_printf("local: n_value = %d, offset = %d\n", s->n_value, offset);*/
       if (s->n_desc <= f->loc_line)
       {
 	/* Okay. We can pay attention to it */
@@ -426,7 +437,7 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
 	  t = type_resolve(tname);
 	  arg->type = type_typecode(t);
 	  if (wad_debug_mode & DEBUG_STABS) {
-	    printf("type_resolve '%s' -> '%s' (%d)\n", tname, t, arg->type);
+	    wad_printf("type_resolve '%s' -> '%s' (%d)\n", tname, t, arg->type);
 	  }
 	}
 	if (f->debug_locals) {
@@ -523,7 +534,7 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
 	t = type_resolve(tname);
 	arg->type = type_typecode(t);
 	if (wad_debug_mode & DEBUG_STABS) {
-	  printf("type_resolve '%s' -> '%s' (%d)\n", tname, t, arg->type);
+	  wad_printf("type_resolve '%s' -> '%s' (%d)\n", tname, t, arg->type);
 	}
       }
       if (f->debug_args) {
@@ -537,6 +548,7 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
       f->debug_nargs++;
     }
   }
+  return i;
 }
 
 /* Given a stabs data segment (obtained somehow), this function tries to
@@ -557,18 +569,14 @@ int
 wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
   Stab *s;
   int   ns;
-  int   infunc;
-  int   slen;
   int   i;
   int   found = 0;
-  int   filefound = 0;
 
   char  *file, *lastfile = 0;
-  int   chk = 0;
-  WadLocal *arg;
 
   char   srcfile[MAX_PATH];
   char   objfile[MAX_PATH];
+
 
   /* It appears to be necessary to clear the types table on each new stabs section */
 
@@ -579,7 +587,6 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
   s = (Stab *) sp;            /* Stabs data      */
   ns = size/sizeof(Stab);     /* number of stabs */
 
-  slen = strlen(f->sym_name);
   srcfile[0] = 0;
   objfile[0] = 0;
 
@@ -597,7 +604,8 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
       /* New stabs section.  We need to be a little careful here. Do a recursive 
 	 search of the subsection. */
 
-      if (wad_search_stab(s+1,s->n_desc*sizeof(Stab), stabstr, f)) return 1;
+      /* if (wad_search_stab(s+1,s->n_desc*sizeof(Stab), stabstr, f)) return 1; */
+      wad_search_stab(s+1,s->n_desc*sizeof(Stab), stabstr, f);
 
       /* On solaris, each stabs section seems to increment the stab string pointer.  On Linux,
          the linker seems to do a certain amount of optimization that results in a single
@@ -616,9 +624,9 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
       /* Look for directory */
       file = stabstr+s->n_strx;
       if (strlen(file) && (file[strlen(file)-1] == '/')) {
-	strcpy(srcfile,file);
+	wad_strcpy(srcfile,file);
       } else {
-	strcat(srcfile,file);
+	wad_strcat(srcfile,file);
       }
       objfile[0] = 0;
       /* If we have a file match, we might be looking for a local symbol.   If so,
@@ -626,37 +634,54 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
 
       /* We're going to check for a file match. Maybe we're looking for a local symbol */
       if (f->sym_file && strcmp(f->sym_file,file) == 0) {
-	filefound = 1;
 	found = 1;
       }
       lastfile = file;
     } else if (s->n_type == N_OBJ) {
       /* Object file specifier */
       if (objfile[0]) {
-	strcat(objfile,"/");
+	wad_strcat(objfile,"/");
       }
-      strcat(objfile,stabstr+s->n_strx);
+      wad_strcat(objfile,stabstr+s->n_strx);
     } else if (s->n_type == N_FUN) {
-      if (match_stab_symbol(f->sym_name, stabstr+s->n_strx, slen)) {
-	if (!f->sym_file || (strcmp(f->sym_file,lastfile) == 0)) {
-	  /* Go find debugging information for the function */
-	  scan_function(s+1, stabstr, ns -i - 1, f);
-	  f->loc_srcfile = wad_string_lookup(srcfile);
-	  f->loc_objfile = wad_string_lookup(objfile);
-	  /*	  f->loc_srcfile = wad_strdup(srcfile);
-		  f->loc_objfile = wad_strdup(objfile); */
 
-	  return 1;
+      /* Due to the bogosity and performance issues of managing stabs types, we are going to check
+	 the current frame as well as all remaining unchecked stack frames for a match.  Generally,
+         it is much faster for us to scan the stabs data once checking N stack frames than it
+         is to check N stack frames, scanning the stabs data each time.
+       */
+
+      WadFrame *g;
+      g = f;
+      while (g) {
+	if ((!g->sym_name) || (g->debug_check)) {
+	  g = g->next;
+	  continue;
 	}
+	if (match_stab_symbol(g->sym_name, stabstr+s->n_strx, g->sym_nlen)) {
+	  if (!g->sym_file || (strcmp(g->sym_file,lastfile) == 0)) {
+	    int n;
+	    /* Go find debugging information for the function */
+	    n = scan_function(s+1, stabstr, ns -i - 1, g);
+	    g->loc_srcfile = wad_string_lookup(srcfile);
+	    g->loc_objfile = wad_string_lookup(objfile);
+	    g->debug_check = 1; 
+	  }
+	}
+	g = g->next;
       }
     }
   }
-  if (found) {
+  /* If found, but no other debugging information was filled in, go ahead and copy the
+     source and objfile information */
+  
+  if ((found) && (!f->debug_check)) {
     f->loc_srcfile = wad_string_lookup(srcfile);
     f->loc_objfile = wad_string_lookup(objfile);
-    /*    f->loc_srcfile = wad_strdup(srcfile);
-	  f->loc_objfile = wad_strdup(objfile); */
-
   }
   return found;
 }
+
+
+
+

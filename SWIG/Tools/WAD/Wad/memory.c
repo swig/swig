@@ -10,8 +10,21 @@
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Copyright (C) 2001.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Copyright (C) 2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
@@ -23,7 +36,6 @@ typedef struct _WadMemory {
 } WadMemory;
 
 static WadMemory *current = 0;                /* Current memory block        */
-static WadMemory *persistent = 0;             /* Persistent memory data      */
 static int        pagesize = 0;               /* System page size            */
 static int        devzero = 0;
 static int        npalloc = 8;                 /* Number of pages per alloc   */
@@ -111,26 +123,6 @@ void *wad_malloc(int nbytes) {
 }  
 
 /* -----------------------------------------------------------------------------
- * wad_release_memory()
- *
- * Releases all memory previously allocated by wad_malloc().  This is inherently
- * dangerous.
- * ----------------------------------------------------------------------------- */
-
-void wad_release_memory() {
-  WadMemory *wm, *next;
-
-  return;
-  wm = current;
-  while (wm) {
-    next = wm->next;
-    munmap((char *) wm, wm->npages*pagesize);
-    wm = next;
-  }
-  current = 0;
-}    
-
-/* -----------------------------------------------------------------------------
  * wad_strdup()
  *
  * Duplicate a string 
@@ -140,8 +132,21 @@ char *wad_strdup(const char *c) {
   char *t;
   if (!c) c = "";
   t = (char *) wad_malloc(strlen(c)+1);
-  strcpy(t,c);
+  wad_strcpy(t,c);
   return t;
+}
+
+/* -----------------------------------------------------------------------------
+ * wad_memcpy()
+ * ----------------------------------------------------------------------------- */
+
+void wad_memcpy(void *t, const void *s, unsigned len) {
+  char *tc, *sc;
+  int i;
+  tc = (char *) t;
+  sc = (char *) s;
+  for (i = 0; i < len; i++, tc++, sc++)
+    *tc = *sc;
 }
 
 /* -----------------------------------------------------------------------------
@@ -159,6 +164,6 @@ void wad_memory_debug() {
       inuse += m->last;
       m = m->next;
     }
-    printf("WAD: memory allocated %d bytes (%d bytes used).\n", total_alloc, inuse);
+    wad_printf("WAD: memory allocated %d bytes (%d bytes used).\n", total_alloc, inuse);
   }
 }

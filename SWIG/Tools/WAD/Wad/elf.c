@@ -7,8 +7,21 @@
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Copyright (C) 2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Copyright (C) 2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
@@ -20,11 +33,8 @@
 #endif
 
 /* --- What's needed here (high level interface) :
-
      - Mapping of addresses to symbols
      - Mapping of symbols to file+line
-     - Parameter passing information?
-
 */
 
 
@@ -37,8 +47,6 @@
 
 int
 wad_elf_check(WadObjectFile *wo) {
-  int t;
-
   if (strncmp((char *)wo->ptr,ELFMAG, SELFMAG) != 0)
     return 0;
   
@@ -247,6 +255,7 @@ int elf_search_section_sym(WadFrame *f, char *secname, char *strname) {
       if (sym[i].st_shndx == 0) continue;
 #endif
       f->sym_name = name;
+      f->sym_nlen = strlen(name);
       f->sym_base = base + sym[i].st_value;
       f->sym_size = sym[i].st_size;
       if (ELF32_ST_BIND(sym[i].st_info) == STB_LOCAL) {
@@ -330,7 +339,7 @@ wad_elf_debug_info(WadFrame *f) {
       WadObjectFile *wo1, *wold;
       /* Hmmm. Might be in a different file */
       char objfile[MAX_PATH];
-      strcpy(objfile, f->loc_objfile);
+      wad_strcpy(objfile, f->loc_objfile);
       wo1 = wad_object_load(objfile);
       if (wo1) {
 	wold = f->object;
@@ -398,8 +407,11 @@ wad_find_symbol(WadFrame *f) {
 
 void
 wad_find_debug(WadFrame *f) {
-  if (f->object) 
+  if (f->debug_check) return;
+  if (f->object) {
     wad_elf_debug_info(f);
+  }
+  f->debug_check = 1;
 }
 
 

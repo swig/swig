@@ -10,8 +10,21 @@
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Copyright (C) 2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Copyright (C) 2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
@@ -27,8 +40,6 @@ void wad_build_vars(WadFrame *f) {
   char *nstack = 0;
   char *pstack = 0;
   WadLocal  *loc;
-  int   laststack = 0;
-  WadLocal  *lastloc = 0;
   int   n;
 
   stack = (char *) f->stack;
@@ -99,9 +110,9 @@ char *wad_format_int(char *ptr, int nbytes, int sgn) {
     value = (value << 8) + *s;
   }
   if (sgn) {
-    sprintf(fmt,"%ld", (long) value);
+    return wad_format_signed((long) value,-1);
   } else {
-    sprintf(fmt,"%lu", value);
+    return wad_format_unsigned((unsigned long) value, -1);
   }
   return fmt;
 }
@@ -117,32 +128,35 @@ char *wad_format_var(WadLocal *l) {
 
   switch(l->type) {
   case WAD_TYPE_INT32:
-    strcpy(buffer,wad_format_int(l->ptr,4,1));
+    wad_strcpy(buffer,wad_format_int(l->ptr,4,1));
     break;
   case WAD_TYPE_UINT32:
-    strcpy(buffer,wad_format_int(l->ptr,4,0));
+    wad_strcpy(buffer,wad_format_int(l->ptr,4,0));
     break;
   case WAD_TYPE_INT16:
-    strcpy(buffer,wad_format_int(l->ptr,2,1));
+    wad_strcpy(buffer,wad_format_int(l->ptr,2,1));
     break;
   case WAD_TYPE_UINT16:
-    strcpy(buffer,wad_format_int(l->ptr,2,0));
+    wad_strcpy(buffer,wad_format_int(l->ptr,2,0));
     break;
   case WAD_TYPE_INT8:
-    strcpy(buffer,wad_format_int(l->ptr,1,1));
+    wad_strcpy(buffer,wad_format_int(l->ptr,1,1));
     break;
   case WAD_TYPE_UINT8:
-    strcpy(buffer,wad_format_int(l->ptr,1,0));
+    wad_strcpy(buffer,wad_format_int(l->ptr,1,0));
     break;
   case WAD_TYPE_CHAR:
-    sprintf(buffer,"'%c'", *((char *)l->ptr));
+    buffer[0] = '\'';
+    buffer[1] = *((char *) l->ptr);
+    buffer[2] = '\'';
+    buffer[3] = 0;
     break;
   case WAD_TYPE_FLOAT:
-    memcpy(&fval,l->ptr,sizeof(float));
+    wad_memcpy(&fval,l->ptr,sizeof(float));
     sprintf(buffer,"%g",fval);
     break;
   case WAD_TYPE_DOUBLE:
-    memcpy(&dval,l->ptr,sizeof(double));
+    wad_memcpy(&dval,l->ptr,sizeof(double));
     sprintf(buffer,"%g",dval);
     break;
   case WAD_TYPE_UNKNOWN:
@@ -155,6 +169,7 @@ char *wad_format_var(WadLocal *l) {
       int    leading = 1;
       char  *c;
       char  *ptr;
+
 #ifdef WAD_LITTLE_ENDIAN
       ptr = ((char *) l->ptr) + 3;
       incr = -1;
@@ -162,9 +177,9 @@ char *wad_format_var(WadLocal *l) {
       ptr = (char *) l->ptr;
       incr =1 ;
 #endif
-      strcat(buffer,"0x");
+      wad_strcat(buffer,"0x");
       c = buffer+2;
-      for (i = 0; i < 4; i++) {
+      for (i = 0; i < sizeof(void *); i++) {
 	b = (int) *ptr;
 	if (!leading || (b)) {
 	  if (!leading || (b & 0xf0))
@@ -195,38 +210,36 @@ long wad_local_as_long(WadLocal *loc) {
 
   switch(loc->type) {
   case WAD_TYPE_INT32:
-    memcpy(&i32,loc->ptr,4);
+    wad_memcpy(&i32,loc->ptr,4);
     value = (long) i32;
     break;
   case WAD_TYPE_UINT32:
-    memcpy(&u32,loc->ptr,4);
+    wad_memcpy(&u32,loc->ptr,4);
     value = (long) u32;
     break;
   case WAD_TYPE_INT16:
-    memcpy(&i16,loc->ptr,2);
+    wad_memcpy(&i16,loc->ptr,2);
     value = (long) i16;
     break;
   case WAD_TYPE_UINT16:
-    memcpy(&u16,loc->ptr,2);
+    wad_memcpy(&u16,loc->ptr,2);
     value = (long) u16;
     break;
   case WAD_TYPE_INT8:
   case WAD_TYPE_CHAR:
-    memcpy(&i8, loc->ptr,1);
+    wad_memcpy(&i8, loc->ptr,1);
     value = (long) i8;
     break;
   case WAD_TYPE_UINT8:
-    memcpy(&u8, loc->ptr,1);
+    wad_memcpy(&u8, loc->ptr,1);
     value = (long) u8;
     break;
   default:
-    memcpy(&u32,loc->ptr,4);
+    wad_memcpy(&u32,loc->ptr,4);
     value = (long) u32;
   }
   return value;
 }
-
-
 
 /* Convert a wad local variable to a long */
 double wad_local_as_double(WadLocal *loc) {
@@ -235,10 +248,10 @@ double wad_local_as_double(WadLocal *loc) {
 
   switch(loc->type) {
   case WAD_TYPE_DOUBLE:
-    memcpy(&value,loc->ptr,8);
+    wad_memcpy(&value,loc->ptr,8);
     break;
   case WAD_TYPE_FLOAT:
-    memcpy(&fval,loc->ptr,4);
+    wad_memcpy(&fval,loc->ptr,4);
     value = (double) fval;
     break;
   default:

@@ -5,8 +5,21 @@
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Copyright (C) 2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Copyright (C) 2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
@@ -309,20 +322,17 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   p_sp = (unsigned long) (*sp);
 #ifdef WAD_LINUX
   p_fp = (unsigned long) (*fp);
-  /* printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp); */
 #endif
 #ifdef WAD_SOLARIS
   p_fp = (unsigned long) *(((long *) p_sp) + 14);
 #endif
-  /*  printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp);*/
-
   
   if (wad_debug_mode & DEBUG_SIGNAL) {
-    printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp);
+    wad_printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp);
   }
 
   if (wad_stacked_signal) {
-    printf("Fault in wad at pc = %x, sp = %x\n", p_pc, p_sp);
+    wad_printf("Fault in wad at pc = %x, sp = %x\n", p_pc, p_sp);
     exit(1);
   }
   wad_stacked_signal++;
@@ -330,11 +340,10 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 
   if (!frame) {
     /* We're really hosed.  Not possible to generate a stack trace */
-    printf("WAD: Unable to generate stack trace.\n");
-    printf("WAD: Maybe the call stack has been corrupted by buffer overflow.\n");
+    wad_printf("WAD: Unable to generate stack trace.\n");
+    wad_printf("WAD: Maybe the call stack has been corrupted by buffer overflow.\n");
     wad_signal_clear();
     return;
-    /*    exit(1); */
   }
 
   {
@@ -342,12 +351,15 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     while (f) {
       wad_find_object(f);
       wad_find_symbol(f);
+      f = f->next;
+    }
+    f = frame;
+    while (f) {
       wad_find_debug(f);
       wad_build_vars(f);
       f = f->next;
     }
   }
-
   wad_heap_overflow = 0;
   if (sig == SIGSEGV) {
     if (addr >= current_brk) wad_heap_overflow = 1;
@@ -428,10 +440,10 @@ void wad_signal_init() {
   static stack_t  sigstk;
 
   if (wad_debug_mode & DEBUG_INIT) {
-    printf("WAD: Initializing signal handler.\n");
+    wad_printf("WAD: Initializing signal handler.\n");
   }
-
   /* This is buggy in Linux and threads.  disabled by default */
+
 #ifndef WAD_LINUX
   /* Set up an alternative stack */
 
@@ -470,7 +482,7 @@ void wad_signal_init() {
   
   return;
  werror:
-  printf("WAD: Couldn't install signal handler!\n");
+  wad_printf("WAD: Couldn't install signal handler!\n");
 }
 
 /* -----------------------------------------------------------------------------
@@ -484,3 +496,6 @@ void wad_signal_clear() {
   signal(SIGFPE, SIG_DFL);
   signal(SIGABRT, SIG_DFL);  
 }
+
+
+

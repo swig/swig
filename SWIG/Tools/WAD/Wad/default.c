@@ -5,8 +5,21 @@
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Copyright (C) 2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Copyright (C) 2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
@@ -20,7 +33,6 @@
  
 char *wad_arg_string(WadFrame *frame) {
   static char str[1024];
-  static char temp[64];
   WadLocal *wp;
   long    *stack;
   long    *nextstack;
@@ -58,20 +70,21 @@ char *wad_arg_string(WadFrame *frame) {
     
 #ifdef WAD_SOLARIS
     for (i = 0; i < 6; i++) {
-      sprintf(temp,"0x%x", stack[8+i]);
-      strcat(str,temp);
+      wad_strcpy(temp,"0x");
+      wad_strcat(temp,wad_format_hex(stack[8+1],0));
+      wad_strcat(str,temp);
       if (i < 5)
-	strcat(str,",");
+	wad_strcat(str,",");
     }
 #endif
   } else {
     /* We were able to get some argument information out the debugging table */
     wp = frame->debug_args;
     for (i = 0; i < frame->debug_nargs; i++, wp = wp->next) {
-      strcat(str,wp->name);
-      strcat(str,"=");
-      strcat(str,wad_format_var(wp));
-      if (i < (frame->debug_nargs-1)) strcat(str,",");
+      wad_strcat(str,wp->name);
+      wad_strcat(str,"=");
+      wad_strcat(str,wad_format_var(wp));
+      if (i < (frame->debug_nargs-1)) wad_strcat(str,",");
     }
   }
   return str;
@@ -120,7 +133,7 @@ char *wad_load_source(char *path, int line) {
       return 0;
     }
     close(fd);
-    strcpy(src_path,path);
+    wad_strcpy(src_path,path);
   } 
   n = 0;
   start = src_file;
@@ -156,7 +169,6 @@ void wad_release_source() {
 
 char *wad_debug_src_string(WadFrame *f, int window) {
   static char temp[16384];
-  char ntemp[64];
 
   if (f->loc_srcfile && strlen(f->loc_srcfile) && (f->loc_line > 0)) {
     char *line, *c;
@@ -167,22 +179,22 @@ char *wad_debug_src_string(WadFrame *f, int window) {
     if (first < 1) first = 1;
     line = wad_load_source(f->loc_srcfile,first);
     if (line) {
-      strcpy(temp,f->loc_srcfile);
-      strcat(temp,", line ");
-      sprintf(ntemp,"%d\n\n", f->loc_line);
-      strcat(temp,ntemp);
+      wad_strcpy(temp,f->loc_srcfile);
+      wad_strcat(temp,", line ");
+      wad_strcat(temp,wad_format_signed(f->loc_line,-1));
+      wad_strcat(temp,"\n\n");
       for (i = first; i <= last; i++) {
-	if (i == f->loc_line) strcat(temp," => ");
-	else                  strcat(temp,"    ");
+	if (i == f->loc_line) wad_strcat(temp," => ");
+	else                  wad_strcat(temp,"    ");
 	c = strchr(line,'\n');
 	if (c) {
 	  *c = 0;
-	  strcat(temp,line);
-	  strcat(temp,"\n");
+	  wad_strcat(temp,line);
+	  wad_strcat(temp,"\n");
 	  *c = '\n';
 	} else {
-	  strcat(temp,line);
-	  strcat(temp,"\n");
+	  wad_strcat(temp,line);
+	  wad_strcat(temp,"\n");
 	  break;
 	}
 	line = c+1;
@@ -204,31 +216,34 @@ char *wad_debug_src_string(WadFrame *f, int window) {
 void 
 wad_debug_make_strings(WadFrame *f) {
   static char msg[16384];
-  char temp[1024];
   while (f) {
-    sprintf(msg,"#%-3d 0x%08x in ", f->frameno, f->pc);
-    strcat(msg, f->sym_name ? f->sym_name : "?");
-    strcat(msg,"(");
-    strcat(msg,wad_arg_string(f));
-    strcat(msg,")");
+    wad_strcpy(msg,"#");
+    wad_strcat(msg,wad_format_signed(f->frameno,3));
+    wad_strcat(msg," 0x");
+    wad_strcat(msg,wad_format_hex(f->pc,1));
+    wad_strcat(msg," in ");
+    wad_strcat(msg, f->sym_name ? f->sym_name : "?");
+    wad_strcat(msg,"(");
+    wad_strcat(msg,wad_arg_string(f));
+    wad_strcat(msg,")");
     if (f->loc_srcfile && strlen(f->loc_srcfile)) {
-      strcat(msg," in '");
-      strcat(msg, wad_strip_dir(f->loc_srcfile));
-      strcat(msg,"'");
+      wad_strcat(msg," in '");
+      wad_strcat(msg, wad_strip_dir(f->loc_srcfile));
+      wad_strcat(msg,"'");
       if (f->loc_line > 0) {
-	sprintf(temp,", line %d", f->loc_line);
-	strcat(msg,temp);
+	wad_strcat(msg,", line ");
+	wad_strcat(msg,wad_format_signed(f->loc_line,-1));
 	/* Try to locate the source file */
 	wad_debug_src_string(f, WAD_SRC_WINDOW);
       }
     } else {
       if (f->loc_objfile && strlen(f->loc_objfile)) {
-	strcat(msg," from '");
-	strcat(msg, wad_strip_dir(f->loc_objfile));
-	strcat(msg,"'");
+	wad_strcat(msg," from '");
+	wad_strcat(msg, wad_strip_dir(f->loc_objfile));
+	wad_strcat(msg,"'");
       }
     }
-    strcat(msg,"\n");
+    wad_strcat(msg,"\n");
     f->debug_str = wad_strdup(msg);
     f = f->next;
   }
@@ -239,8 +254,6 @@ wad_debug_make_strings(WadFrame *f) {
  * ----------------------------------------------------------------------------- */
 
 void wad_default_callback(int signo, WadFrame *f, char *ret) {
-  char *fd;
-  WadFrame *fline = 0;
   char  *srcstr = 0;
 
   switch(signo) {

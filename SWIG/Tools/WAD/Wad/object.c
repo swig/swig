@@ -15,8 +15,21 @@
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Copyright (C) 2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Copyright (C) 2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
@@ -34,7 +47,6 @@ static WadFile     *wad_files = 0;              /* Linked list of loaded files *
 /* private function to manage the loading of raw files into memory */
 static WadFile *
 load_file(const char *path) {
-  int i;
   int fd;
   WadFile *wf = wad_files;
 
@@ -84,7 +96,6 @@ static WadObjectFile *wad_objects = 0;              /* Linked list of object fil
 
 void
 wad_object_reset() {
-  int i;
   WadFile *f = wad_files;
   if (wad_debug_mode & DEBUG_OBJECT) {
     wad_printf("wad: Releasing all files.\n");
@@ -112,7 +123,6 @@ WadObjectFile *
 wad_object_load(const char *path) {
   WadObjectFile *wo;
   WadFile *wf;
-  int i;
   WadObjectFile  *wad_arobject_load(const char *path, const char *name);
 
   if (wad_debug_mode & DEBUG_OBJECT) {
@@ -139,7 +149,7 @@ wad_object_load(const char *path) {
     char *c;
     c = strchr(path,'(');
     if (c) {
-      strcpy(realfile,path);
+      wad_strcpy(realfile,path);
       c = strchr(realfile,'(');
       *c = 0;
       objfile = c+1;
@@ -181,9 +191,6 @@ WadObjectFile *
 wad_arobject_load(const char *arpath, const char *robjname) {
   WadObjectFile *wo;
   WadFile       *wf;
-  int nf;
-  int fd;
-  int i;
   int arlen;
   char *arptr;
   struct ar_hdr  *ah;
@@ -193,8 +200,8 @@ wad_arobject_load(const char *arpath, const char *robjname) {
   int   sobjname;
   char  objname[MAX_PATH];
 
-  strcpy(objname,robjname);
-  strcat(objname,"/");
+  wad_strcpy(objname,robjname);
+  wad_strcat(objname,"/");
   sobjname = strlen(objname);
 
   wf = load_file(arpath);
