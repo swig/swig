@@ -920,8 +920,14 @@ PHP4::functionWrapper(Node *n) {
   if (native_constructor==0) Printf(f->code,
         "if (this_ptr && this_ptr->type==IS_OBJECT) {\n"
         "  // fake this_ptr as first arg (till we can work out how to do it better\n"
-        "  args[argbase++]=&this_ptr;\n"
+        "  argbase++;\n"
         "}\n");
+
+  // I'd like to write out:
+  //"  //args[argbase++]=&this_ptr;\n"
+  // but zend_get_parameters_array_ex can't then be told to leave
+  // the first slot alone, so we have to check whether or not to access
+  // this_ptr explicitly in each case where we normally just read args[]
 
   if(numopt > 0) {
     Wrapper_add_local(f, "arg_count", "int arg_count");
