@@ -6,63 +6,63 @@
 <body bgcolor="#ffffff">
 <a name="n1"></a><H1>15 SWIG and Perl5</H1>
 <!-- INDEX -->
-<ul>
-<li><a href="#n2">Overview</a>
-<li><a href="#n3">Preliminaries</a>
-<ul>
-<li><a href="#n4">Getting the right header files</a>
-<li><a href="#n5">Compiling a dynamic module</a>
-<li><a href="#n6">Building a dynamic module with MakeMaker</a>
-<li><a href="#n7">Building a static version of Perl</a>
-<li><a href="#n8">Using the module</a>
-<li><a href="#n9">Compilation problems and compiling with C++</a>
-<li><a href="#n10">Compiling for 64-bit platforms</a>
-</ul>
-<li><a href="#n11">Building Perl Extensions under Windows</a>
-<ul>
-<li><a href="#n12">Running SWIG from Developer Studio</a>
-<li><a href="#n13">Using other compilers</a>
-</ul>
-<li><a href="#n14">The low-level interface</a>
-<ul>
-<li><a href="#n15">Functions</a>
-<li><a href="#n16">Global variables</a>
-<li><a href="#n17">Constants</a>
-<li><a href="#n18">Pointers</a>
-<li><a href="#n19">Structures</a>
-<li><a href="#n20">C++ classes</a>
-<li><a href="#n21">C++ classes and type-checking</a>
-<li><a href="#n22">C++ overloaded functions</a>
-<li><a href="#n23">Operators</a>
-<li><a href="#n24">Modules and packages</a>
-</ul>
-<li><a href="#n25">Input and output parameters</a>
-<li><a href="#n26">Exception handling </a>
-<li><a href="#n27">Remapping datatypes with typemaps</a>
-<ul>
-<li><a href="#n28">A simple typemap example</a>
-<li><a href="#n29">Perl5 typemaps</a>
-<li><a href="#n30">Typemap variables</a>
-<li><a href="#n31">Useful functions</a>
-</ul>
-<li><a href="#n32">Typemap Examples</a>
-<ul>
-<li><a href="#n33">Converting a Perl5 array to a char ** </a>
-<li><a href="#n34">Return values </a>
-<li><a href="#n35">Returning values from arguments</a>
-<li><a href="#n36">Accessing array structure members</a>
-<li><a href="#n37">Turning Perl references into C pointers</a>
-<li><a href="#n38">Pointer handling</a>
-</ul>
-<li><a href="#n39">Proxy classes</a>
-<ul>
-<li><a href="#n40">Preliminaries</a>
-<li><a href="#n41">Object Ownership</a>
-<li><a href="#n42">Nested Objects</a>
-<li><a href="#n43">Shadow Functions</a>
-<li><a href="#n44">Inheritance</a>
-</ul>
-</ul>
+      <ul>
+	<li><a href="#n2">Overview</a></li>
+	<li><a href="#n3">Preliminaries</a></li>
+	<ul>
+	  <li><a href="#n4">Getting the right header files</a></li>
+	  <li><a href="#n5">Compiling a dynamic module</a></li>
+	  <li><a href="#n6">Building a dynamic module with MakeMaker</a></li>
+	  <li><a href="#n7">Building a static version of Perl</a></li>
+	  <li><a href="#n8">Using the module</a></li>
+	  <li><a href="#n9">Compilation problems and compiling with C++</a></li>
+	  <li><a href="#n10">Compiling for 64-bit platforms</a></li>
+	</ul>
+	<li><a href="#n11">Building Perl Extensions under Windows</a></li>
+	<ul>
+	  <li><a href="#n12">Running SWIG from Developer Studio</a></li>
+	  <li><a href="#n13">Using other compilers</a></li>
+	</ul>
+	<li><a href="#n14">The low-level interface</a></li>
+	<ul>
+	  <li><a href="#n15">Functions</a></li>
+	  <li><a href="#n16">Global variables</a></li>
+	  <li><a href="#n17">Constants</a></li>
+	  <li><a href="#n18">Pointers</a></li>
+	  <li><a href="#n19">Structures</a></li>
+	  <li><a href="#n20">C++ classes</a></li>
+	  <li><a href="#n21">C++ classes and type-checking</a></li>
+	  <li><a href="#n22">C++ overloaded functions</a></li>
+	  <li><a href="#n23">Operators</a></li>
+	  <li><a href="#n24">Modules and packages</a></li>
+	</ul>
+	<li><a href="#n25">Input and output parameters</a></li>
+	<li><a href="#n26">Exception handling </a></li>
+	<li><a href="#n27">Remapping datatypes with typemaps</a></li>
+	<ul>
+	  <li><a href="#n28">A simple typemap example</a></li>
+	  <li><a href="#n29">Perl5 typemaps</a></li>
+	  <li><a href="#n30">Typemap variables</a></li>
+	  <li><a href="#n31">Useful functions</a></li>
+	</ul>
+	<li><a href="#n32">Typemap Examples</a></li>
+	<ul>
+	  <li><a href="#n33">Converting a Perl5 array to a char ** </a></li>
+	  <li><a href="#n34">Return values </a></li>
+	  <li><a href="#n35">Returning values from arguments</a></li>
+	  <li><a href="#n36">Accessing array structure members</a></li>
+	  <li><a href="#n37">Turning Perl references into C pointers</a></li>
+	  <li><a href="#n38">Pointer handling</a></li>
+	</ul>
+	<li><a href="#n39">Proxy classes</a></li>
+	<ul>
+	  <li><a href="#n40">Preliminaries</a></li>
+	  <li><a href="#n41">Object Ownership</a></li>
+	  <li><a href="#n42">Nested Objects</a></li>
+	  <li><a href="#n43">Shadow Functions</a></li>
+	  <li><a href="#n44">Inheritance</a></li>
+	</ul>
+      </ul>
 <!-- INDEX -->
 
 
@@ -1077,9 +1077,23 @@ that it is independent of files. Any number of files may be part of
 the same package--or a package may be broken up into a collection of
 modules if you prefer to think about it in this way.<p>
 
-<p>
-By default, SWIG installs its functions into a package with the same
-name as the module. This can be changed by giving SWIG the -package
+<p> SWIG installs its functions into a package with the same name as
+the module. </p>
+
+<p><b>Incompatible Change:</b> previous versions of SWIG enabled you to
+change the name of the package by using the -package option, this
+feature has been removed in order to properly support modules that
+used nested namespaces, e.g. Foo::Bar::Baz. To give your module a
+nested namespace simply provide the fully qualified name in your
+%module directive: </p>
+
+<blockquote><pre>%module "Foo::Bar::Baz"
+</pre></blockquote>
+
+<p><b>NOTE:</b> the double quotes are necessary.
+
+<!--
+This can be changed by giving SWIG the -package
 option :<p>
 
 <p>
@@ -1094,7 +1108,7 @@ all of the functions in that module will be installed into the package
 <blockquote><pre>use example;   # Load the module like before
 print Foo::fact(4),"\n";        # Call a function in package FooBar
 </pre></blockquote>
-
+-->
 
 <a name="n25"></a><H2>15.5 Input and output parameters</H2>
 
