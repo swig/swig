@@ -63,7 +63,7 @@ static Hash    *templatetypes = 0;
 static String  *templatename = 0;        /* Name of the template used during expansion */
 static String  *templateiname = 0;       /* Instantiation name of the template being parsed */
 static String  *templateargs = 0;
-
+static Hash    *templatemaps = 0;        /* Mapping of templates to %template directive */
 
 int      ShowTemplates = 0;    /* Debugging mode */
 
@@ -602,7 +602,7 @@ static void canonical_template(String *s) {
 %type <id>       cpptype access_specifier;
 %type <node>     base_specifier
 %type <type>     type rawtype type_right opt_signed opt_unsigned cast_type cast_type_right;
-%type <bases>    base_list inherit;
+%type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype;
 %type <dtype>    expr;
 %type <id>       ename ;
@@ -1384,6 +1384,9 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		  templateargs = NewStringf("%s<%s>", $5, sargs);
 		  canonical_template(templateargs);
 		  
+		  if (!templatemaps) templatemaps = NewHash();
+		  Setattr(templatemaps, templateargs, $3);
+
 		  Printf(ts,"%%}\n");
                   Printf(ts,"%%_template_%s(%s,%s,%s)\n",$5,$3,args,sargs);
 		  Printf(ts,"%%endtemplate;\n");
@@ -1833,7 +1836,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		   }
 		   $$ = 0;
                 }
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype ID inherit LBRACE {
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype ID raw_inherit LBRACE {
 		     skip_balanced('{','}'); 
 		} SEMI {
 		  if ($3.rparms) {
@@ -2946,7 +2949,32 @@ cast_type_right: TYPE_INT { $$ = $1; }
                ;
 
 
-inherit        : COLON base_list { $$ = $2; }
+inherit        : raw_inherit {
+		 $$ = 0;
+                 if ($1) {
+		   String *name;
+                   for (name = Firstitem($1); name; name = Nextitem($1)) {
+		     Node *cls = 0;
+		     if (classes) {
+		       /* The name might be the same as a template map */
+		       if (templatemaps) {
+			 String *altname = Getattr(templatemaps,name);
+			 if (altname) name = altname;
+		       }
+		       cls = Getattr(classes,name);
+		     }
+		     if (!cls) {
+		       Printf(stderr,"%s:%d. Nothing known about class '%s' (ignored).\n", input_file, line_number, name);
+		     } else {
+		       if (!$$) $$ = NewList();
+		       Append($$,cls);
+		     }
+		   }
+		 }
+               }
+               ;
+
+raw_inherit     : COLON base_list { $$ = $2; }
                 | empty { $$ = 0; }
                 ;
 
@@ -2961,29 +2989,24 @@ base_list      : base_specifier {
                }
                ;
 
-base_specifier : opt_virtual ID {
+base_specifier : opt_virtual idcolon template_decl {
                   Printf(stderr,"%s:%d. No access specifier given for base class %s (ignored).\n",input_file,line_number,$2);
 		  $$ = (char *) 0;
                }
-	       | opt_virtual access_specifier opt_virtual ID {
+	       | opt_virtual access_specifier opt_virtual idcolon template_decl {
 		 $$ = 0;
 	         if (strcmp($2,"public") == 0) {
+		   $$ = NewStringf("%s%s",$4,$5);
+		   /*
 		   if (classes) {
 		     Node *cls = Getattr(classes,$4);
 		     $$ = cls;
-		     /*
-		     if (cls) {
-		       $$ = new_node("inherits");
-		       Setattr($$,"access",$2);
-		       Setattr($$,"name",$4);
-		       Setattr($$,"class",cls);
-		     }
-		     */
 		   }
 		   if (!$$) {
 		     Printf(stderr,"%s:%d. Nothing known about class '%s' (ignored).\n", 
 			    input_file,line_number,$4);
 		   }
+		   */
 		 }
                }
                ;
