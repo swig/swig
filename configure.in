@@ -1363,7 +1363,7 @@ if test -z "$CSHARPBIN" ; then
         fi
       fi
 
-      AC_CHECK_PROGS(CSHARPCILINTERPRETER, mint)
+      AC_CHECK_PROGS(CSHARPCILINTERPRETER, mono) # Mono JIT
     else 
       if test "csc" = "$CSHARPCOMPILER"; then
           CSHARPPATHSEPARATOR="\\\\"
