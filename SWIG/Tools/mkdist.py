@@ -76,6 +76,9 @@ os.system("cd "+dirname+"/Examples/GIFPlot; autoconf")
 os.system("cd "+dirname+"/Tools/WAD; autoconf")
 os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser.c; mv y.tab.h parser.h")
 
+# Remove autoconf files
+os.system("find "+dirname+" -name autom4te.cache -exec rm -rf {} \\;");
+
 # Build documentation
 os.system("cd "+dirname+"/Doc/Manual; python maketoc.py; rm *.bak")
 
