@@ -766,7 +766,7 @@
   return $null;
 }
 
-%typemap(throws) SWIGTYPE {
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE * {
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
   return $null;
 }
