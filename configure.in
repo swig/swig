@@ -1091,6 +1091,48 @@ AC_SUBST(CHICKENOPTS)
 AC_SUBST(CHICKENLIB)
 
 #----------------------------------------------------------------
+# Look for csharp
+#----------------------------------------------------------------
+
+AC_ARG_WITH(cil-interpreter, [  --with-cil-interpreter=path        Set location of CIL interpreter for CSharp],[CSHARPBIN="$withval"], [CSHARPBIN=])
+AC_ARG_WITH(csharp-compiler, [  --with-csharp-compiler=path       Set location of CSharp compiler],[CSHARPCOMPILERBIN="$withval"], [CSHARPCOMPILERBIN=])
+
+if test -z "$CSHARPBIN" ; then
+  AC_CHECK_PROGS(CSHARPCILINTERPRETER, ilrun)
+else
+  CSHARPCILINTERPRETER="$CSHARPBIN"
+fi
+
+if test -z "$CSHARPCOMPILERBIN" ; then
+  AC_CHECK_PROGS(CSHARPCOMPILER, cscc msc csc)
+else
+  CSHARPCOMPILER="$CSHARPCOMPILERBIN"
+fi
+
+# Cygwin requires the Windows standard (Pascal) calling convention as it is a Windows executable and not a Cygwin built executable
+case $host in
+*-*-cygwin* | *-*-mingw*)
+    if test "$GCC" = yes; then
+        CSHARPDYNAMICLINKING=" -Wl,--add-stdcall-alias"
+    else
+        CSHARPDYNAMICLINKING=""
+    fi ;;
+*)CSHARPDYNAMICLINKING="";;
+esac
+
+# CSharp on Windows platforms including Cygwin doesn't use libname.dll, rather name.dll when loading dlls
+case $host in
+*-*-cygwin* | *-*-mingw*) CSHARPLIBRARYPREFIX="";;
+*)CSHARPLIBRARYPREFIX="lib";;
+esac
+
+
+AC_SUBST(CSHARPCILINTERPRETER)
+AC_SUBST(CSHARPCOMPILER)
+AC_SUBST(CSHARPDYNAMICLINKING)
+AC_SUBST(CSHARPLIBRARYPREFIX) # Is this going to be used?
+
+#----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
 
