@@ -975,7 +975,7 @@ void SwigType_array_setdim(SwigType *t, int n, String_or_char *rep) {
   char *c = Char(t);
 
   start = c;
-  if (strncmp(c,"a(",2)) abort;
+  if (strncmp(c,"a(",2)) abort();
 
   while (c && (strncmp(c,"a(",2) == 0) && (n > 0)) {
     c = strchr(c,'.');
