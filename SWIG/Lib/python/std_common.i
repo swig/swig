@@ -13,7 +13,7 @@
 PyObject* SwigInt_FromBool(bool b) {
     return PyInt_FromLong(b ? 1L : 0L);
 }
-double SwigNumber_Check(PyObject* o) {
+int SwigNumber_Check(PyObject* o) {
     return PyFloat_Check(o) || PyInt_Check(o) || PyLong_Check(o);
 }
 double SwigNumber_AsDouble(PyObject* o) {
