@@ -100,14 +100,14 @@ SWIG_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
         }
     }
     if ((c = SWIG_MangleStr(obj)) == NULL) {
-      if (flags)
+      if (flags & SWIG_POINTER_EXCEPTION)
         rb_raise(rb_eTypeError, "Expected %s", ty->str);
       else
         return -1;
     }
     tc = SWIG_TypeCheck(c, ty);
     if (!tc) {
-      if (flags)
+      if (flags & SWIG_POINTER_EXCEPTION)
         rb_raise(rb_eTypeError, "Expected %s", ty->str);
       else
         return -1;
