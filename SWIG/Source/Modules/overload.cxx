@@ -325,7 +325,7 @@ ReplaceFormat (const String_or_char *fmt, int j) {
   }
   Replaceall (lfmt, "$commaargs", commaargs);
   return lfmt;
-};
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_overload_dispatch()
