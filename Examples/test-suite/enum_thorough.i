@@ -115,20 +115,20 @@ template<typename T> struct TemplateClass {
   enum scientists                           scientistsTest2(enum scientists e) { return e; }
   const scientists                          scientistsTest3(const scientists e) { return e; }
   const enum scientists                     scientistsTest4(const enum scientists e) { return e; }
-  TemplateClass<T>::scientists              scientistsTest5(TemplateClass<T>::scientists e) { return e; }
-  const TemplateClass<T>::scientists        scientistsTest6(const TemplateClass<T>::scientists e) { return e; }
+  typename TemplateClass<T>::scientists     scientistsTest5(typename TemplateClass<T>::scientists e) { return e; }
+  const typename TemplateClass<T>::scientists        scientistsTest6(const typename TemplateClass<T>::scientists e) { return e; }
   enum TemplateClass<T>::scientists         scientistsTest7(enum TemplateClass<T>::scientists e) { return e; }
   const enum TemplateClass<T>::scientists   scientistsTest8(const enum TemplateClass<T>::scientists e) { return e; }
-  TemplateClass::scientists                 scientistsTest9(TemplateClass::scientists e) { return e; }
+  typename TemplateClass::scientists        scientistsTest9(typename TemplateClass::scientists e) { return e; }
 //  enum TemplateClass::scientists            scientistsTestA(enum TemplateClass::scientists e) { return e; }
-  const TemplateClass::scientists           scientistsTestB(const TemplateClass::scientists e) { return e; }
+  const typename TemplateClass::scientists  scientistsTestB(const typename TemplateClass::scientists e) { return e; }
 //  const enum TemplateClass::scientists      scientistsTestC(const enum TemplateClass::scientists e) { return e; }
   scientiststd1                             scientistsTestD(scientiststd1 e) { return e; }
   scientiststd2                             scientistsTestE(scientiststd2 e) { return e; }
   scientiststd3                             scientistsTestF(scientiststd3 e) { return e; }
-  TemplateClass<T>::scientiststd1           scientistsTestG(TemplateClass<T>::scientiststd1 e) { return e; }
-  TemplateClass<T>::scientiststd2           scientistsTestH(TemplateClass<T>::scientiststd2 e) { return e; }
-  TemplateClass<T>::scientiststd3           scientistsTestI(TemplateClass<T>::scientiststd3 e) { return e; }
+  typename TemplateClass<T>::scientiststd1  scientistsTestG(typename TemplateClass<T>::scientiststd1 e) { return e; }
+  typename TemplateClass<T>::scientiststd2  scientistsTestH(typename TemplateClass<T>::scientiststd2 e) { return e; }
+  typename TemplateClass<T>::scientiststd3  scientistsTestI(typename TemplateClass<T>::scientiststd3 e) { return e; }
 };
 
 TemplateClass<int>::scientists              scientistsTest1(TemplateClass<int>::scientists e) { return e; }
@@ -150,28 +150,28 @@ template<typename T> struct TClass {
   enum scientists                           scientistsNameTest2(enum scientists e) { return e; }
   const scientists                          scientistsNameTest3(const scientists e) { return e; }
   const enum scientists                     scientistsNameTest4(const enum scientists e) { return e; }
-  TClass<T>::scientists                     scientistsNameTest5(TClass<T>::scientists e) { return e; }
-  const TClass<T>::scientists               scientistsNameTest6(const TClass<T>::scientists e) { return e; }
+  typename TClass<T>::scientists            scientistsNameTest5(typename TClass<T>::scientists e) { return e; }
+  const typename TClass<T>::scientists      scientistsNameTest6(const typename TClass<T>::scientists e) { return e; }
   enum TClass<T>::scientists                scientistsNameTest7(enum TClass<T>::scientists e) { return e; }
   const enum TClass<T>::scientists          scientistsNameTest8(const enum TClass<T>::scientists e) { return e; }
-  TClass::scientists                        scientistsNameTest9(TClass::scientists e) { return e; }
+  typename TClass::scientists               scientistsNameTest9(typename TClass::scientists e) { return e; }
 //  enum TClass::scientists                   scientistsNameTestA(enum TClass::scientists e) { return e; }
-  const TClass::scientists                  scientistsNameTestB(const TClass::scientists e) { return e; }
+  const typename TClass::scientists         scientistsNameTestB(const typename TClass::scientists e) { return e; }
 //  const enum TClass::scientists             scientistsNameTestC(const enum TClass::scientists e) { return e; }
   scientiststd1                             scientistsNameTestD(scientiststd1 e) { return e; }
   scientiststd2                             scientistsNameTestE(scientiststd2 e) { return e; }
   scientiststd3                             scientistsNameTestF(scientiststd3 e) { return e; }
-  TClass<T>::scientiststd1                  scientistsNameTestG(TClass<T>::scientiststd1 e) { return e; }
-  TClass<T>::scientiststd2                  scientistsNameTestH(TClass<T>::scientiststd2 e) { return e; }
-  TClass<T>::scientiststd3                  scientistsNameTestI(TClass<T>::scientiststd3 e) { return e; }
+  typename TClass<T>::scientiststd1         scientistsNameTestG(typename TClass<T>::scientiststd1 e) { return e; }
+  typename TClass<T>::scientiststd2         scientistsNameTestH(typename TClass<T>::scientiststd2 e) { return e; }
+  typename TClass<T>::scientiststd3         scientistsNameTestI(typename TClass<T>::scientiststd3 e) { return e; }
 
-  Name::TClass<T>::scientists               scientistsNameSpaceTest1(Name::TClass<T>::scientists e) { return e; }
-  const Name::TClass<T>::scientists         scientistsNameSpaceTest2(const Name::TClass<T>::scientists e) { return e; }
+  typename Name::TClass<T>::scientists      scientistsNameSpaceTest1(typename Name::TClass<T>::scientists e) { return e; }
+  const typename Name::TClass<T>::scientists         scientistsNameSpaceTest2(const typename Name::TClass<T>::scientists e) { return e; }
   enum Name::TClass<T>::scientists          scientistsNameSpaceTest3(enum Name::TClass<T>::scientists e) { return e; }
   const enum Name::TClass<T>::scientists    scientistsNameSpaceTest4(const enum Name::TClass<T>::scientists e) { return e; }
-  Name::TClass<T>::scientiststd1            scientistsNameSpaceTest5(Name::TClass<T>::scientiststd1 e) { return e; }
-  Name::TClass<T>::scientiststd2            scientistsNameSpaceTest6(Name::TClass<T>::scientiststd2 e) { return e; }
-  Name::TClass<T>::scientiststd3            scientistsNameSpaceTest7(Name::TClass<T>::scientiststd3 e) { return e; }
+  typename Name::TClass<T>::scientiststd1   scientistsNameSpaceTest5(typename Name::TClass<T>::scientiststd1 e) { return e; }
+  typename Name::TClass<T>::scientiststd2   scientistsNameSpaceTest6(typename Name::TClass<T>::scientiststd2 e) { return e; }
+  typename Name::TClass<T>::scientiststd3   scientistsNameSpaceTest7(typename Name::TClass<T>::scientiststd3 e) { return e; }
 
   // Test TemplateClass::scientists rather then TClass::scientists
   ::TemplateClass<int>::scientists              scientistsOtherTest1(::TemplateClass<int>::scientists e) { return e; }
@@ -443,19 +443,12 @@ namespace curly {
 
 struct Obscure {
   enum {};
-  enum {,};
   enum Zero {};
-  enum ZeroTrail {,};
   enum One {one};
-  enum OneTrail {onetrail,};
   enum Two {two, twoagain};
-  enum TwoTrail {twotrail, twotrailagain,};
   typedef enum {};
-  typedef enum {,};
   typedef enum Empty {};
-  typedef enum EmptyTrail {,};
   typedef enum {} AlsoEmpty;
-  typedef enum {,} AlsoEmptyTrail;
 };
 
 // Unnamed enum instance
@@ -467,4 +460,5 @@ struct Instances {
 };
 
 %}
+
 
