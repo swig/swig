@@ -70,8 +70,6 @@
 %ignorewarn("384:operator-- ignored") *::operator--;
 %ignorewarn("386:operator->* ignored") *::operator->*;
 %ignorewarn("389:operator[] ignored (consider using %extend)") *::operator[];
-%ignorewarn("396:operator*() ignored") *::operator*();
-%ignorewarn("396:operator*() const ignored") *::operator*() const;
 
 
 
