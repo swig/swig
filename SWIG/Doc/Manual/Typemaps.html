@@ -33,7 +33,7 @@ internals and low-level code generator.  Furthermore, typemaps are
 generally not required to build a simple interface when first starting
 out.  Therefore, the material in this chapter will appeal more to
 users who have already built a few simple interfaces, but would like 
-incorporate a few more advanced features.
+to do more.
 
 
 <h2>The Problem</h2>
@@ -143,7 +143,7 @@ Even in our earlier example, there are many possible
 interpretations of the <tt>char *argv[]</tt> argument.  For example, is the
 array supposed to be NULL-terminated?  Are the elements of the array modified
 by the underlying C function?  Does the first element have any special meaning such
-as the name of a program?  
+as the name of a program or function?  
 
 <p>
 The only thing that SWIG really knows about both of these cases is
@@ -170,13 +170,8 @@ suppose you had a C function like this :<p>
 From reading the source code, it is clear that the function is storing
 a value in the <tt>double *result</tt> parameter.   However, since SWIG
 does not examine source code, you need to give it additional information
-for the wrapper code to mimic this behavior.  Using a typemap, you can transform
-<tt>double *result</tt> into an output value and generate wrapper code that handles it as such.
-
-<p>
-The most gentle introduction to typemaps is to start with some
-of the predefined typemaps contained in the file <tt>typemaps.i</tt>
-(contained in the SWIG library).  For example:
+for the wrapper code to mimic this behavior.  To do this, you can use the
+<tt>typemaps.i</tt> library file and write interface code like this:
 
 <p>
 <blockquote><pre>// Simple example using typemaps
@@ -188,8 +183,8 @@ extern void add(double a, double b, double *result);
 </pre></blockquote>
 
 The <tt>%apply</tt> directive tells SWIG that you are going to apply
-a typemap rule to a new datatype. The "<tt>double *OUTPUT</tt>" specification is the
-name of a rule that knows how to return an output value from an argument of type
+a typemap rule to a type. The "<tt>double *OUTPUT</tt>" specification is the
+name of a rule that defines how to return an output value from an argument of type
 <tt>double *</tt>. This rule gets applied to all of the datatypes
 listed in curly braces-- in this case "<tt>double *result</tt>".<p>
 
@@ -212,7 +207,26 @@ since it is no longer necessary to manufacture a special <tt>double
 *</tt> object and pass it to the function somehow.
 
 <p>
-Such transformations can even be extended to multiple return values.
+Once a typemap has been applied to a type, it stays in effect for all future occurrences
+of the type and name.  For example, you could write the following:
+
+<p>
+<blockquote><pre>
+%module example
+%include "typemaps.i"
+
+%apply double *OUTPUT { double *result };
+extern void add(double a, double b, double *result);
+extern void sub(double a, double b, double *result);
+extern void mul(double a, double b, double *result);
+extern void div(double a, double b, double *result);
+...
+</pre></blockquote>
+
+In this case, the <tt>double *OUTPUT</tt> rule is applied to all of the functions that follow.
+
+<p>
+Typemap transformations can even be extended to multiple return values.
 For example, consider this code:
 
 <blockquote>
@@ -236,14 +250,6 @@ In this case, the function returns multiple values, allowing it to be used like 
 >>>
 </pre>
 </blockquote>
-
-<p>
-Once defined, a typemap rule applies to all future occurrences of a
-matching type and name.  For instance, in the earlier example, all
-occurrences of <tt>double *result</tt> will be treated as an output
-parameter.   Thus, if an interface uses a consistent
-naming scheme, a typemap can be used to consistently apply special handling
-rules across an entire set of declarations.
 
 <p>
 It should also be noted that although the <tt>%apply</tt> directive is
@@ -452,6 +458,10 @@ To clear a rule, the <tt>%clear</tt> directive is used:
 Typemap declarations are lexically scoped so a typemap takes effect from the point of definition to the end of the
 file or a matching <tt>%clear</tt> declaration.
 
+<h2>Array handling</h2>
+
+Write me.
+
 <h2>Applying constraints to input values</h2>
 
 In addition to changing the handling of various input values, it is
@@ -613,6 +623,7 @@ by the following rules:
 <li>All qualifiers (<tt>const</tt>, <tt>volatile</tt>, etc.) are stripped.
 <li>C++ References are converted to pointers.
 <li>Arrays are converted to a pointer to an array of one less dimension.
+<li>Enumeration types are converted to an <tt>int</tt>.
 </ul>
 
 For example:
@@ -662,7 +673,7 @@ a simple typemap might look like this:
 
 <p>
 <blockquote><pre>%module example
-%typemap(python,in) int {
+%typemap(in) int {
    $1 = (int) PyInt_AsLong($input);
    if (PyErr_Occurred()) return NULL;
    printf("received %d\n", $1);
@@ -698,7 +709,7 @@ how to result integers back to Python
 
 <blockquote>
 <pre>
-%typemap(python,out) int {
+%typemap(out) int {
    $result = PyInt_FromLong($1);
 }
 </pre>
@@ -716,7 +727,7 @@ of consecutive types.  For example, a typemap can be written as follows:
 
 <blockquote>
 <pre>
-%typemap(python,int) (char *buffer, int len) {
+%typemap(int) (char *buffer, int len) {
    $1 = PyString_AsString($input);
    $2 = PyString_Size($input);
 }
@@ -728,10 +739,10 @@ int count(char *buffer, int len, char *pattern);
 </blockquote>
 
 In this case, the pattern <tt>(char *buffer, int len)</tt> is handled
-as a single rule.  Within the typemap code, <tt>$1</tt> and
+as a single object.  Within the typemap code, <tt>$1</tt> and
 <tt>$2</tt> are used to refer to each part of the pattern.  For
-instance, <tt>$1</tt> refers to a variable of type <tt>char *</tt> and
-<tt>$2</tt> refers to a variable of type <tt>int</tt> (for the the
+instance, <tt>$1</tt> is a variable of type <tt>char *</tt> and
+<tt>$2</tt> is a variable of type <tt>int</tt> (for the the
 curious, this naming scheme is roughly taken from yacc). The use of
 multi-argument maps is an advanced topic and is described a little
 later.
@@ -753,16 +764,16 @@ Objects returned to the target language are referenced by <tt>$result</tt>.
 
 A new typemap is specified as follows :<p>
 <blockquote><pre>
-%typemap(lang,method) type {
+%typemap(method) type {
     ... Conversion code ...
 }
-
 // Alternative version
-%typemap(lang,method) type "Conversion Code";
-</pre></blockquote>
+%typemap(method) type "Conversion code";
+</pre>
+</blockquote>
 
-<tt>lang</tt> specifies the target language and <tt>method</tt> defines a
-particular conversion method.  <tt>type</tt> is the actual C++ datatype 
+<tt>method</tt> defines a
+particular conversion method and <tt>type</tt> is the actual C++ datatype 
 as it appears in the interface file (it is not the ltype value described
 in the section on the SWIG type system). The code attached to the typemap
 is supplied in braces or a quoted string after the declaration.  If braces
@@ -772,10 +783,32 @@ If code is supplied in quotes, it is inlined into the generated wrappers with
 no other surrounding code.
 
 <p>
+Since typemap conversion code is almost always dependent on the target
+language, it is fairly common to surround typemap specifications with
+conditional compilation--especially if a module is being designed for
+use with multiple target languages.  For example:
+
+<blockquote>
+<pre>
+#ifdef SWIGPYTHON
+%typemap(in) int {
+   $1 = (int) PyInt_AsLong($input);
+}
+...
+#endif
+#ifdef SWIGPERL5
+%typemap(in) int {
+   $1 = (int) SvIV($input);
+}
+#endif
+</pre>
+</blockquote>
+
+<p>
 A single typemap rule can be applied to a list of matching datatypes by using a
 comma separated list. For example :<p>
 <p>
-<blockquote><pre>%typemap(python,in) int, short, long, signed char {
+<blockquote><pre>%typemap(in) int, short, long, signed char {
    $1 = ($1_ltype) PyInt_AsLong($input);
    if (PyErr_Occurred()) return NULL;
    printf("received %d\n", $1);
@@ -793,8 +826,8 @@ is not the same as a multi-argument typemap.
 Typemaps may also be attached to specific declarator names as in:
 
 <p>
-<blockquote><pre>%typemap(perl5,in) char **argv {
-   ... Turn a perl array into a char ** ...
+<blockquote><pre>%typemap(in) char **argv {
+   ... Turn an array into a char ** ...
 }
 
 </pre></blockquote>
@@ -812,7 +845,7 @@ types in parentheses.   For example:
 
 <blockquote>
 <pre>
-%typemap(python,in) (char *buffer, int len) {
+%typemap(in) (char *buffer, int len) {
    ...
 }
 </pre>
@@ -821,28 +854,12 @@ types in parentheses.   For example:
 In this case, the typemap only applies to function/method arguments where the argument pair
 <tt>char *buffer, int len</tt> appears. 
 
-<p>
-Finally, there is a shortened form of the typemap directive :<p>
-
-<p>
-<blockquote><pre>%typemap(method) Datatype {
-	...
-}
-
-</pre></blockquote>
-
-When the language name is ommitted, the typemap will be applied to the
-current target language. This form is really only recommended for typemap
-methods that are language independent (of which there are a few). It is not
-recommended if you are building interfaces for multiple languages unless
-you are careful to hide the typemap with conditional compilation.
-
 <h3> Deleting a typemap</h3>
 
 A typemap can be deleted by providing no conversion code. For example:<p>
 
 <p>
-<blockquote><pre>%typemap(lang,method) type;              // Deletes this typemap
+<blockquote><pre>%typemap(method) type;              // Deletes this typemap
 
 </pre></blockquote>
 
@@ -851,7 +868,7 @@ A typemap can be deleted by providing no conversion code. For example:<p>
 A typemap can be copied using the following declaration :<p>
 
 <p>
-<blockquote><pre>%typemap(lang,method) type = srctype;     // Copies a typemap
+<blockquote><pre>%typemap(method) type = srctype;     // Copies a typemap
 </pre></blockquote>
 
 This specifies that the typemap for <tt>type</tt> should be the same
@@ -859,13 +876,13 @@ as the <tt>srctype</tt> typemap. Here is an example:
 
 <blockquote>
 <pre>
-%typemap(python,in) long = int;
+%typemap(in) long = int;
 
 // Copy a typemap with names
-%typemap(python,in) int_64 *output = long *output;
+%typemap(in) int_64 *output = long *output;
 
 // Copy a multi-argument typemap
-%typemap(python,in) (char *data, int size) = (char *buffer, int len);
+%typemap(in) (char *data, int size) = (char *buffer, int len);
 </pre>
 </blockquote>
 
@@ -891,15 +908,15 @@ shows how some of the rules are applied:
 <blockquote><pre>
 typedef int Integer;
 
-%typemap(python,in) int *x {
+%typemap(in) int *x {
    ... typemap 1
 }
 
-%typemap(python,in) int * {
+%typemap(in) int * {
    ... typemap 2
 }
 
-%typemap(python,in) Integer *x {
+%typemap(in) Integer *x {
    ... typemap 3
 }
 
@@ -917,11 +934,11 @@ any typemaps specified for a single type.  For example:
 
 <blockquote>
 <pre>
-%typemap(python,in) (char *buffer, int len) {
+%typemap(in) (char *buffer, int len) {
    // typemap 1
 }
 
-%typemap(python,in) char *buffer {
+%typemap(in) char *buffer {
    // typemap 2
 }
 
@@ -956,47 +973,47 @@ conversion.   The following list contains other commonly used methods that are
 supported by most language modules:
 
 <ul>
-<li><tt>%typemap(lang,in)</tt><br>
+<li><tt>%typemap(in)</tt><br>
 Marshal function arguments from the target language to a C representation.
 
 <p>
-<li><tt>%typemap(lang,out)</tt><br>
+<li><tt>%typemap(out)</tt><br>
 Convert a function return value to an object in the target language.
 
 <p>
-<li><tt>%typemap(lang,ret)</tt><br>
+<li><tt>%typemap(ret)</tt><br>
 Used to clean up the return value of a function.   For example,
 if you needed to deallocate memory.  
 
 <p>
-<li><tt>%typemap(lang,freearg)</tt><br>
+<li><tt>%typemap(freearg)</tt><br>
 Used to clean up argument values. For example, if memory
 was allocated to hold an argument prior to calling a function.
 
 <p>
-<li><tt>%typemap(lang,argout)</tt><br>
+<li><tt>%typemap(argout)</tt><br>
 Used to handle arguments that hold output values.  This code
 is used to extract the output values and generate result objects in the target language.
 
 <p>
-<li><tt>%typemap(lang,ignore)</tt><br>
+<li><tt>%typemap(ignore)</tt><br>
 Ignore an argument.
 
 <p>
-<li><tt>%typemap(lang,default)</tt><br>
+<li><tt>%typemap(default)</tt><br>
 Set a default value for an argument (making the argument optional).
 
 <p>
-<li><tt>%typemap(lang,arginit)</tt><br>
+<li><tt>%typemap(arginit)</tt><br>
 Initializes an argument to have a specific value prior to argument conversion.
 
 <p>
-<li><tt>%typemap(lang,check)</tt><br>
+<li><tt>%typemap(check)</tt><br>
 Allows an argument to be checked for a valid value.  For example, if
 you wantd to disallow a NULL pointer or constrain an argument value to positive numbers.
 
 <p>
-<li><tt>%typemap(lang,memberin)</tt><br>
+<li><tt>%typemap(memberin)</tt><br>
 Used to supply special code for setting structure and class
 data members.   Most commonly used to set array members.
 </ul>
@@ -1144,7 +1161,7 @@ could write this:
 
 <blockquote>
 <pre>
-%typemap(perl5,in) int {
+%typemap(in) int {
    int temp;
    temp = (int) SvIV($input);
    $1 = temp;
@@ -1164,7 +1181,7 @@ in the scope of the entire wrapper function. This can be done by
 specifying a typemap with parameters as follows :<p>
 
 <p>
-<blockquote><pre>%typemap(python,in) int *INPUT(int temp) {
+<blockquote><pre>%typemap(in) int *INPUT(int temp) {
     temp = (int) PyInt_AsLong($input);
     $1 = &amp;temp;
 }
@@ -1173,7 +1190,7 @@ specifying a typemap with parameters as follows :<p>
 
 In this case, <tt>temp</tt> becomes a local variable in
 the scope of the entire wrapper function. When you set it to a value,
-that values persists for the duration of the wrapper function and gets
+that value persists for the duration of the wrapper function and gets
 cleaned up automatically on exit. This is particularly useful when
 a typemap needs to create a temporary value, but doesn't want to rely on heap allocation.
 
@@ -1221,7 +1238,7 @@ wrap_foo() {
 <p>
 Some typemaps do not recognize local variables (or they may simply not
 apply). At this time, only the "in", "argout", "default", and "ignore"
-typemaps support local variables (typemaps that only apply to conversion of arguments).<p>
+typemaps support local variables (typemaps that apply to conversion of arguments).<p>
 
 <p>
 It is also important to note that the primary use of local variables
@@ -1234,7 +1251,7 @@ to them.  For example, you could do this:
 
 <blockquote>
 <pre>
-%typemap(python,in) int *(int temp) {
+%typemap(in) int *(int temp) {
    temp = (int) PyInt_AsLong($input);
    $1 = &temp;
 }
@@ -1371,7 +1388,7 @@ if you write this
 
 <blockquote>
 <pre>
-%typemap(python,in) int *INPUT {
+%typemap(in) int *INPUT {
 
 }
 </pre>
@@ -1381,7 +1398,7 @@ then $1 refers to <tt>int *INPUT</tt>.  If you have a typemap like this,
 
 <blockquote>
 <pre>
-%typemap(python,in) (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   ...
 }
 </pre>
@@ -1395,7 +1412,7 @@ This is useful when a typemap might match multiple C datatype.  For example:
 
 <blockquote>
 <pre>
-%typemap(python,in)  int, short, long {
+%typemap(in)  int, short, long {
    $1 = ($1_ltype) PyInt_AsLong($input);
 }
 </pre>
@@ -1407,14 +1424,14 @@ In this case, <tt>$1_ltype</tt> is replaced with the datatype that is actually m
 Variables such as <tt>$&1_type</tt> and <tt>$*1_type</tt> are used to
 safely modify the type by removing or adding pointers.  Although not
 needed in most typemaps, these substitutions are sometimes needed to properly
-work with typemaps that convert values between pointers and values.
+work with typemaps that convert values between pointers and values.  
 
 <p>
 If necessary, type related substitutions can also be used when declaring locals.  For example:
 
 <blockquote>
 <pre>
-%typemap(python) int * ($*1_type temp) {
+%typemap(in) int * ($*1_type temp) {
     temp = PyInt_AsLong($input);
     $1 = &temp;
 }
@@ -1492,7 +1509,7 @@ similar to this:
 <blockquote>
 <pre>
 
-%typemap(python,in) float value[4] (float temp[4]) {
+%typemap(in) float value[4] (float temp[4]) {
   int i;
   if (!PySequence_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a sequence");
@@ -1533,7 +1550,7 @@ If you wanted to generalize the typemap to apply to arrays of all dimensions you
 
 <blockquote>
 <pre>
-%typemap(python,in) float value[ANY] (float temp[$1_dim0]) {
+%typemap(in) float value[ANY] (float temp[$1_dim0]) {
   int i;
   if (!PySequence_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a sequence");
@@ -1573,7 +1590,7 @@ as shown.   To work with heap allocated data, the following technique can be use
 
 <blockquote>
 <pre>
-%typemap(python,in) float value[ANY] {
+%typemap(in) float value[ANY] {
   int i;
   if (!PySequence_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a sequence");
@@ -1594,7 +1611,7 @@ as shown.   To work with heap allocated data, the following technique can be use
     }
   }
 }
-%typemap(python,freearg) float value[ANY] {
+%typemap(freearg) float value[ANY] {
    if ($1) free($1);
 }
 </pre>
@@ -1657,9 +1674,6 @@ the following usage:
 </pre>
 </blockquote>
 
-<b>Note:</b> Since the memberin typemap is usually only used to copy data, it is often specified without any target language
-as shown above.
-
 <p>
 Related to structure member input, it may be desirable to return structure members as a new kind of
 object.  For example, in this example, you will get very odd program behavior where the structure member
@@ -1679,7 +1693,7 @@ To fix this, you can write an "out" typemap.   For example:
 
 <blockquote>
 <pre>
-%typemap(python,out) float [ANY] {
+%typemap(out) float [ANY] {
   int i;
   $result = PyList_New($1_dim0);
   for (i = 0; i &lt; $1_dim0; i++) {
@@ -1729,7 +1743,7 @@ checking the values of function arguments. For example :<p>
 <p>
 <blockquote><pre>%module math
 
-%typemap(perl5,check) double posdouble {
+%typemap(check) double posdouble {
 	if ($1 &lt; 0) {
 		croak("Expecting a positive number");
 	}
@@ -1748,7 +1762,7 @@ your program terminated with an error message.<p>
 This kind of checking can be particularly useful when working with
 pointers. For example :<p>
 <p>
-<blockquote><pre>%typemap(python,check) Vector * {
+<blockquote><pre>%typemap(check) Vector * {
     if ($1 == 0) {
         PyErr_SetString(PyExc_TypeError,"NULL Pointer not allowed");
         return NULL;
@@ -1798,7 +1812,7 @@ maps perform the conversion described for the above example: the above conversio
 
 <blockquote>
 <pre>
-%typemap(python,in) (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   int i;
   if (!PyList_Check($input)) {
     PyErr_SetString(PyExc_ValueError, "Expecting a list");
@@ -1818,7 +1832,7 @@ maps perform the conversion described for the above example: the above conversio
   $2[i] = 0;
 }
 
-%typemap(python,freearg) (int argc, char *argv[]) {
+%typemap(freearg) (int argc, char *argv[]) {
    if ($2) free($2);
 }
 </blockquote>
@@ -1829,7 +1843,7 @@ For example:
 
 <blockquote>
 <pre>
-%typemap(python,in) (int argc, char *argv[]) { ... }
+%typemap(in) (int argc, char *argv[]) { ... }
 </pre>
 </blockquote>
 
@@ -1901,7 +1915,7 @@ might write typemaps like this:
 <blockquote>
 <pre>
 // typemap for an outgoing buffer
-%typemap(python,in) (void *wbuffer, size_t len) {
+%typemap(in) (void *wbuffer, size_t len) {
    if (!PyString_Check($input)) {
        PyErr_SetString(PyExc_ValueError, "Expecting a string");
        return NULL;
@@ -1911,7 +1925,7 @@ might write typemaps like this:
 }
 
 // typemap for an incoming buffer
-%typemap(python,in) (void *rbuffer, size_t len) {
+%typemap(in) (void *rbuffer, size_t len) {
    if (!PyInt_Check($input)) {
        PyErr_SetString(PyExc_ValueError, "Expecting an integer");
        return NULL;
@@ -1925,7 +1939,7 @@ might write typemaps like this:
 }
 
 // Return the buffer.  Discarding any previous return result
-%typemap(python,argout) (void *rbuffer, size_t len) {
+%typemap(argout) (void *rbuffer, size_t len) {
    Py_XDECREF($result);   /* Blow away any previous result */
    if (result < 0) {      /* Check for I/O error */
        free($1);
@@ -1980,7 +1994,7 @@ this, you could write a multi-argument typemap like this:
 
 <blockquote>
 <pre>
-%typemap(python,in) (double *mat, int rows, int columns) {
+%typemap(in) (double *mat, int rows, int columns) {
     MatrixObject *a;
     a = GetMatrixFromObject($input);     /* Get matrix somehow */
 
