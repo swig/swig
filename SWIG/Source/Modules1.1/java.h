@@ -15,7 +15,6 @@ public :
   virtual int constantWrapper(Node *);
   virtual int variableWrapper(Node *);
   virtual int nativeWrapper(Node *);
-
   virtual int staticmemberfunctionHandler(Node *);
   virtual int staticmembervariableHandler(Node *);
   virtual int membervariableHandler(Node *);
@@ -24,13 +23,10 @@ public :
   virtual int memberfunctionHandler(Node *);
   virtual int constructorHandler(Node *);
   virtual int destructorHandler(Node *);
-
   virtual int classHandler(Node *);
   virtual int classforwardDeclaration(Node *);
-  virtual int typedefHandler(Node *);
 
   virtual void set_module(char *);                 /* Deprecated */
-
   virtual void pragma(char *lang, char *code, char *value);
 
   /* Java Module methods */

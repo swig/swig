@@ -75,13 +75,8 @@ static String *module_method_modifiers = 0; //native method modifiers overridden
 
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 /* Return NULL if not otherwise the shadow name */
-
 static String *is_shadow(SwigType *t) {
-  String *r;
-  SwigType *lt = SwigType_ltype(t);
-  r = Getattr(shadow_classes,lt);
-  Delete(lt);
-  return r;
+  return Getattr(shadow_classes,SwigType_base(t));
 }
 
 // Return the type of the c array
@@ -1291,17 +1286,6 @@ void JAVA::pragma(char *lang, char *code, char *value) {
   Delete(strvalue);
 }
 
-int JAVA::typedefHandler(Node *n) {
-  SwigType *t = Getattr(n,"type");
-  String   *name = Getattr(n,"name");
-  if(!shadow) return SWIG_OK;
-  if (is_shadow(t)) {
-    /* DB: This may be broken */
-    Setattr(shadow_classes,name,is_shadow(t));
-  }
-  return SWIG_OK;
-}
-
 void JAVA::emit_shadow_classdef() {
   String* baseclass = NULL;
 
@@ -1414,13 +1398,13 @@ int JAVA::classHandler(Node *n) {
       Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
       SWIG_exit(1);
     }
-    
+/*    
     Setattr(shadow_classes,classname, shadow_classname);
     if(ctype && strcmp(ctype, "struct") == 0) {
       sprintf(bigbuf, "struct %s", classname);
       Setattr(shadow_classes, bigbuf, shadow_classname);
     }
-    
+   */ 
     sprintf(bigbuf, "%s.java", shadow_classname);
     if(!(f_shadow = fopen(bigbuf, "w"))) {
       Printf(stderr, "Unable to create shadow class file: %s\n", bigbuf);
@@ -1854,54 +1838,17 @@ void JAVA::TypemapApplyClass(String* name, int pointer_flag)
 
 int JAVA::classforwardDeclaration(Node *n) {
   String *name = Getattr(n,"name");
-  String *symname = Getattr(n,"sym:name");
-//  String *rename = Getattr(n,"sym:name");
-//  String *type   = Getattr(n,"kind");
   String *kind   = Getattr(n,"kind");
 
- 
-  // what about typedef declarations????? fix **************
-
-
-
-//  String *stype;
-/* Register the class as one for which there will be a java shadow class */
+  /* Add to the hash table of shadow classes */
   if (shadow) {
-    String *stype;
-    String *fullname;
-    stype = NewString(name);
-    SwigType_add_pointer(stype);
-//    if ((!compat) && (!Strchr(symname,':'))) {
-//      fullname = NewStringf("%s::%s",actualpackage,symname);
-//    } else {
-      fullname = NewString(symname);
-//    }
-//    Setattr(n,"java:class", fullname);
-    Setattr(shadow_classes,stype,fullname);
-    Setattr(shadow_classes,name,fullname);
-    Delete(stype);
-//Printf(stdout, "classforwardDeclaration: %s [%s] [%s] ", fullname, stype, name);
+    String *shadowclassname = Getattr(n,"sym:name");
+    Setattr(shadow_classes,name,shadowclassname);
     if (kind && (Len(kind) > 0)) {
-      stype = NewStringf("%s %s",kind,name);
-      SwigType_add_pointer(stype);
-      Setattr(shadow_classes,stype,fullname);
-//Printf(stdout, "[%s] ", stype);
+      String *stype = NewStringf("%s %s",kind,name);
+      Setattr(shadow_classes,stype,shadowclassname);
       Delete(stype);
     }
-//Printf(stdout, "is_shadow: %s\n", is_shadow(NewString("foo")));
-//Printf(stdout, "\n");
-/*
-    stype = NewString(name);
-    SwigType_add_pointer(stype);
-    Setattr(shadow_classes,stype,rename);
-    Delete(stype);
-    if (Len(type) > 0) {
-      stype = NewStringf("%s %s",type,name);
-      SwigType_add_pointer(stype);
-      Setattr(shadow_classes,stype,rename);
-      Delete(stype);
-    }
-*/
   }
 
   /* The Java typemaps need the following typemaps to exist for handling pointers
@@ -1927,11 +1874,7 @@ int JAVA::classforwardDeclaration(Node *n) {
 }
 
 int JAVA::membervariableHandler(Node *n) {
-  char *name = GetChar(n,"name");
-  char *iname = GetChar(n,"sym:name");
-
-  shadow_variable_name = Swig_copy_string((iname) ? iname : name);
-
+  shadow_variable_name = GetChar(n,"sym:name");
   wrapping_member = 1;
   variable_wrapper_flag = 1;
   Language::membervariableHandler(n);
