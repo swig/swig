@@ -254,6 +254,24 @@ public:
       }
     }
 
+
+    /* Check if base classes allow smart pointers, but might be hidden */
+    if (!Getattr(n,"allocate:smartpointer")) {
+      Node *sp = Swig_symbol_clookup((char*)"operator ->",0);
+      if (sp) {
+        /* Look for parent */
+	Node *p = parentNode(sp);
+	if (Strcmp(nodeType(p),"extend") == 0) {
+	  p = parentNode(p);
+	}
+	if (Strcmp(nodeType(p),"class") == 0) {
+	  if (Getattr(p,"feature:ignore")) {
+	    Setattr(n,"allocate:smartpointer",Getattr(p,"allocate:smartpointer"));
+	  }
+	}
+      }
+    }
+
     /* Only care about default behavior.  Remove temporary values */
     Setattr(n,"allocate:visit","1");
     inclass = 0;
