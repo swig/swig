@@ -60,6 +60,78 @@ Version 1.3.20 (In progress)
 	    python language. Java and Ocalm will need to add the
 	    "reprotection" latter.
 
+12/10/2003: mmatus (Marcelo Matus)
+
+	    The following case (reported by Lyle Johnson) was fixed:
+
+	      %rename(x) Foo::y();
+ 
+	      class Foo { 
+	      public:
+	        void y();
+
+	      protected:
+	        int x;
+	      };
+
+	   swig warned that the symbol 'x' was already defined, and
+           the renaming fails. 'x' was not emitted, since it is
+           protected, but it was kept in the symbol table with too
+           much information.
+
+	   Now swig works for all the cases (plain, director and
+	   dirprot) again. This was fixed by allowing the parser.y to
+	   decide much closer what to do with 'x'. Before all the
+	   discarding or generation was resolved at the lang.cxx
+	   stage. Also the changes in parser.y to implement the
+	   director protected mode are now much more encapsulated, and
+	   they get disabled if the mode is not enabled. Before the
+	   deactivation was done at the generation stage (lang.cxx).
+
+	   By the other hand, if the director mode is enabled, and
+	   %rename is done, reusing a protected member name, there is
+	   a pathological case:
+
+	     %rename(x) Foo::y();
+ 
+             class Foo : public A {
+	     public:
+	       void y();
+
+	     protected:
+	       int x;            /* works */
+	       static  int x;    /* works */
+	       static  void x(); /* works */
+	       typedef void x(); /* works */
+
+	       virtual void x(); /* always fails, as it should, since
+                                    Foo::x() will be emitted in the
+                                    director */
+
+	       void x(); /* always fails, but sometimes it shouldn't,
+                            since the Foo::x() will not be emitted if
+                            it is not virtual */
+
+	     };
+
+	   The last case is not always right because at the parser.py
+	   stage it is not possible to decide if the protected member
+	   Foo::x() could or not conflict with the renamed Foo::y(),
+	   since Foo::x() could be virtual by inheritance.
+
+	   I guess this just an intrinsic limitation, and no much can
+	   be done about it without resorting into larger changes to
+	   postpone, under certain conditions, the multiply symbol
+	   detection (lang.cxx stage).
+	   
+	   So, by now, it is just considered a well known "feature" in
+	   the director protected mode. The good news is that it seems
+	   to be a rare case, and it can be avoided by the user by
+	   hiding 'x' before renaming 'y':
+
+	     %rename(_x) Foo::x();
+	     %rename(x) Foo::y();
+	   
 
 12/08/2003: mmatus (Marcelo Matus)
 	    The virtual method detections now properly
