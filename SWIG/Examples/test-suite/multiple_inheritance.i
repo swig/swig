@@ -11,6 +11,10 @@ It tests basic multiple inheritance */
 #pragma SWIG nowarn=813; // Java doesn't support multiple  inheritance
 #endif
 
+#ifdef SWIGCSHARP
+#pragma SWIG nowarn=833; // C# doesn't support multiple  inheritance
+#endif
+
 %inline %{
 
 class Bar {
