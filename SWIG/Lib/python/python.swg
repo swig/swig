@@ -453,12 +453,11 @@
 
 %typemap(inv, parse="O") PyObject* "";
 
-/*
-%typemap(inv, parse="s") SWIGTYPE  {
+
+/* // this is rather dangerous
+%typemap(inv) SWIGTYPE  {
 {
-  $&1_ltype resultptr;
-  resultptr = new $1_ltype(($1_ltype &) $1);
-  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
+  $input = SWIG_NewPointerObj((void *) &$1_name, $&1_descriptor, $owner);
 }
 }
 */
@@ -480,13 +479,11 @@
 }
 */
 
-/*
-%typemap(inv, parse="s") void "0";
-*/
-/*
+/* // not currently needed, see python.cxx
 %typemap(inv) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
 	$input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, $owner);
 }
+%typemap(inv, parse="s") void "0";
 */
 
 
@@ -518,6 +515,9 @@ OUTV_TYPEMAP(bool, PyInt_AsLong);
 OUTV_TYPEMAP(PyObject *, );
 OUTV_TYPEMAP(char *, PyString_AsString);
 
+/* Object returned by value. Convert from a pointer */
+%typemap(outv) SWIGTYPE  ($&ltype argp)
+       "if ((SWIG_ConvertPtr($input,(void **) &argp, $&descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\"); $result = *argp;";
 
 %typemap(outv) SWIGTYPE *, 
                SWIGTYPE &, 
