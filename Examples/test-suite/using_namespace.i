@@ -1,9 +1,9 @@
-%module using_namespace
+%module(ruby_minherit="1") using_namespace
 
 %warnfilter(801) hi::hi0;	/* Ruby, wrong class name */
 %warnfilter(801) hi::hi1;	/* Ruby, wrong class name */
 
-%warnfilter(802, 813) Hi<hello::Hello, hi::hi0>; // Ruby, Java multiple inheritance
+%warnfilter(813) Hi<hello::Hello, hi::hi0>; // Ruby, Java multiple inheritance
 
 %inline %{
   namespace hello
