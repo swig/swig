@@ -1,5 +1,7 @@
 %module template_arg_replace
 
+%warnfilter(801) Matrix<float, 3, 3>;	/* Ruby, wrong class name */
+
 %inline %{
 
 template <typename T, int r, int c> class Matrix { 
@@ -9,5 +11,4 @@ public:
 %} 
 
 %template (matrix33f) Matrix<float,3, 3>; 
- 
 
