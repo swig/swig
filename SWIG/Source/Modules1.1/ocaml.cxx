@@ -938,12 +938,8 @@ class OCAML : public Language {
 // Create the wrapper function header (uncurried)
 // ----------------------------------------------------------------------
 
-    int createUncurriedFunctionHeader(Wrapper *f, String *wrap_name, Node *n) {
-	int i;
-	SwigType *d = Getattr(n,"type");
-	ParmList *l = Getattr(n,"parms");
-	Parm *p;
-	
+    void createUncurriedFunctionHeader(Wrapper *f, 
+				       String *wrap_name, Node *n) {
 	// writing the function wrapper function
 	Printf(f->def, 
 	       "#ifdef __cplusplus\n"
@@ -960,9 +956,8 @@ class OCAML : public Language {
 // Create the wrapper function header (uncurried)
 // ----------------------------------------------------------------------
 
-    int createCurriedFunctionHeader(Wrapper *f, String *wrap_name, Node *n) {
+    void createCurriedFunctionHeader(Wrapper *f, String *wrap_name, Node *n) {
 	int i = 0;
-	SwigType *d = Getattr(n,"type");
 	ParmList *l = Getattr(n,"parms");
 	Parm *p;
 	int numargs;
@@ -1009,10 +1004,9 @@ class OCAML : public Language {
 // Create bytecode function wrapper...
 // ----------------------------------------------------------------------
 
-    int createCurriedBytecodeFunctionHeader(Wrapper *f, 
-					    String *wrap_name, Node *n) {
+    void createCurriedBytecodeFunctionHeader(Wrapper *f, 
+					     String *wrap_name, Node *n) {
 	int i = 0;
-	SwigType *d = Getattr(n,"type");
 	ParmList *l = Getattr(n,"parms");
 	Parm *p;
 	int numargs;
