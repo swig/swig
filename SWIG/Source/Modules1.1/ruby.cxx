@@ -617,6 +617,15 @@ public:
     if (current == DESTRUCTOR)
       return SWIG_NOWRAP;
     
+    /* If the C++ class constructor is overloaded, we only want to
+     * write out the "new" singleton method once since it is always
+     * the same. (It's the "initialize" method that will handle the
+     * overloading). */
+
+    if (current == CONSTRUCTOR_ALLOCATE &&
+        Swig_symbol_isoverloaded(n) &&
+	Getattr(n, "sym:nextSibling") != 0) return SWIG_OK;
+    
     String *overname = 0;
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
@@ -646,7 +655,7 @@ public:
     /* Determine the name of the SWIG wrapper function */
     char wname[256];
     strcpy(wname, Char(Swig_name_wrapper(iname)));
-    if (overname) {
+    if (overname && current != CONSTRUCTOR_ALLOCATE) {
       strcat(wname, Char(overname));
     }
   
@@ -775,12 +784,16 @@ public:
     Wrapper_print(f, f_wrappers);
 
     /* Now register the function with the interpreter */
-    if (!Getattr(n, "sym:overloaded")) {
+    if (!Swig_symbol_isoverloaded(n)) {
       create_command(n, iname);
     } else {
-      Setattr(n, "wrap:name", wname);
-      if (!Getattr(n, "sym:nextSibling"))
-        dispatchFunction(n);
+      if (current == CONSTRUCTOR_ALLOCATE) {
+        create_command(n, iname);
+      } else {
+	Setattr(n, "wrap:name", wname);
+	if (!Getattr(n, "sym:nextSibling"))
+          dispatchFunction(n);
+      }
     }
     
     Delete(cleanup);
@@ -1078,7 +1091,7 @@ public:
 
     Language::classHandler(n);
 
-  /* Handle inheritance */
+    /* Handle inheritance */
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist)) {
       Node *base = Firstitem(baselist);
@@ -1188,62 +1201,20 @@ public:
    * -------------------------------------------------------------------- */
 
   virtual int constructorHandler(Node *n) {
-    if (!klass->constructor_defined) {
-      /* First wrap the new singleton method */
-      current = CONSTRUCTOR_ALLOCATE;
-      Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
-      Language::constructorHandler(n);
-    
+    /* First wrap the new singleton method */
+    current = CONSTRUCTOR_ALLOCATE;
+    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
+    Language::constructorHandler(n);
+
     /* Now do the instance initialize method */
-      current = CONSTRUCTOR_INITIALIZE;
-      Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
-      Language::constructorHandler(n);
-    
-      /* Done */
-      Swig_name_unregister((String_or_char *) "construct");
-      current = NO_CPP;
-      klass->constructor_defined = 1;
-    } else {
-      Swig_require(&n,"?name","*sym:name","?type","?parms",NULL);
-      /*    String *classname = Getattr(n,"name"); */  
-      String *classname = klass->name;    /* Made this change: -- Dave */
-      String *symname = Getattr(n,"sym:name");
-      String *mrename = Swig_name_member(classname, symname);
-      Setattr(n, "sym:name", mrename);
-      Swig_ConstructorToFunction(n, classname, CPlusPlus, Extend);
-      current = STATIC_FUNC;
-      functionWrapper(n);
-      current = NO_CPP;
-      Swig_restore(&n);
-    }
-    return SWIG_OK;
-  }
+    current = CONSTRUCTOR_INITIALIZE;
+    Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
+    Language::constructorHandler(n);
 
-  /* ----------------------------------------------------------------------
-   * copyconstructorHandler()
-   * ---------------------------------------------------------------------- */
-
-  virtual int copyconstructorHandler(Node *n) {
-    Swig_require(&n,"?name","*sym:name","?type","?parms", NULL);
-  
-    String *classname = Getattr(n, "name");
-    String *symname = Getattr(n, "sym:name");
-    Parm   *parms = Getattr(n,"parms");
-    if (CPlusPlus) patch_parms(parms);
-  
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_clone");
-    String *mrename = Swig_name_copyconstructor(symname);
+    /* Done */
     Swig_name_unregister((String_or_char *) "construct");
-
-    Setattr(n, "sym:name", mrename);
-    Swig_ConstructorToFunction(n, classname, CPlusPlus, Getattr(n,"template") ? 0 : Extend);
-    current = MEMBER_FUNC;
-    functionWrapper(n);
     current = NO_CPP;
-    Delete(mrename);
-  
-    Swig_restore(&n);
-  
+    klass->constructor_defined = 1;
     return SWIG_OK;
   }
 
