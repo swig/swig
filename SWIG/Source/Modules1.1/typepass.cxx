@@ -227,7 +227,7 @@ class TypePass : public Dispatcher {
       }
       nn = Getattr(nn,"sym:nextSibling");
     }
-    if (!first) {
+    if (!first || (first && !Getattr(first,"sym:nextSibling"))) {
       Delattr(n,"sym:overloaded");
     }
   }
