@@ -6,22 +6,103 @@ University of Chicago
 Chicago, IL  60637
 beazley@cs.uchicago.edu
 
-Copyright (C) 2000
+Copyright (C) 2001
 University of Chicago
 All Rights Reserved
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!                     READ THIS NOW                           !!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+THIS IS EXPERIMENTAL UNSUPPORTED SOFTWARE THAT UTILIZES A HORRIBLE MIX
+OF LOW-LEVEL SYSTEMS PROGRAMMING, C, C++, AND ASSEMBLY CODE.  IT IS
+NOT PORTABLE, IT HAS NOT BEEN RIGOROUSLY TESTED, AND IT MIGHT NOT WORK
+AT ALL.  PLEASE KEEP AWAY FROM SMALL CHILDREN, PETS, NUCLEAR REACTORS,
+AIR-TRAFFIC CONTROL, VOTING MACHINES, AND MEDICAL EQUIPMENT.  SIDE
+EFFECTS MAY INCLUDE NAUSEA, VOMITING, AND HEADACHE.  OTHER THAN THIS,
+IT'S PERFECTLY SAFE.
+ 
 1. Introduction
 
-WAD is an embedded error-recovery mechanism that allows fatal errors
-such as SIGSEGV, SIGBUS, and SIGFPE to converted into exceptions for
-use in scripting languages and similar systems.
+WAD is an embedded error-recovery mechanism that attempts to convert
+fatal errors such as SIGSEGV, SIGBUS, and SIGFPE into sensible error messages
+and exceptions.  It is specifically designed to support scripting language
+environments although it can also be used with stand-alone C programs.
+
+The primary goal of this system is to explore alternative approaches
+to mixed scripting-compiled debugging.  Feedback is
+welcome. Contributions and modifications are even more welcome.
+
+2. Compilation and Installation
+
+WAD is not particularly portable (for obvious reasons).  At this time,
+only two platforms are supported: SPARC Solaris and i386-Linux.  To
+build the Solaris version, type 'make solaris'.  To build the Linux
+version, type 'make linux'.   
+
+The build process creates the following shared libraries:
+
+    libwad.so        -  Standalone WAD.  Can be linked with C/C++
+                        programs.
+
+    libwadpy.so      -  Python WAD.  Can be linked to Python extension
+                        modules or imported on its own as 'import libwadpy'
+
+    libwadtcl.so     -  Tcl WAD.  Can be linked to Tcl extension
+                        modules or loaded as 'load libwadtcl.so'.
+
+    libwadpl.so      -  Perl WAD.  Can be linked to Perl extension
+                        modules.
+
+To install the libraries, simply type 'make install'.  This copies the libraries
+to /usr/local/lib (unless you modify the makefile).
+
+Notes:
+
+     -  Not all of these libraries are currently available on all platforms.
+        Most development work has taken place on Solaris.
+
+     -  You may need to modify the Makefile to point to the installed locations
+        of various scripting language libraries.   Eventually this will be
+        put under autoconf, but that's for later.
+
+     -  WAD only supports systems with ELF-format executables and stabs
+        format debugging tables.  This is fairly common on many systems.
+        However, it also means that WAD does not work with newer compilers
+        and debugging formats such as DWARF2.
+
+3. Using WAD
+
+WAD has no functional API nor does it have any command line options so
+it's pretty easy to use---simply link the appropriate WAD library with
+your C code.  For example:
+
+   % cc blah.c -lwad
+
+Once linked, fatal errors will now produce stack traces. For example:
+
+% ./a.out seg
+starting.
+Segmentation fault.
+#2   0x400571eb in __libc_start_main() in 'libc-start.c', line 90
+#1   0x08048b39 in main(argc=0x2,argv=0xbffffce4) in 'debug.c', line 62
+#0   0x080489b3 in seg_crash(n=0x0) in 'debug.c', line 9
+
+/r0/beazley/Projects/WAD/Wad/debug.c, line 9
+
+      int *a = 0;
+      if (n > 0) seg_crash(n-1);
+ =>   *a = 3;
+      return 1;
+    }
 
 
-Debugging Modes
----------------
-The following WAD debugging modes can be set through the use of environment
-variables:
+4. Debugging Modes
+
+Due to WAD's experimental nature, a number of debugging modes can be set
+through the use of environment variables.   These variables control WAD's
+runtime behavior and cause the system to dump debugging information for
+various stages of error recovery.
 
 WAD_DEBUG_SEGMENT       -  Displays information about the virtual memory
                            map and mapping of addresses to segments.
@@ -47,3 +128,18 @@ WAD_DEBUG_INIT          -  Print initialization information.
 WAD_NOSTACK             -  Do NOT use an alternative signal handling stack.
                            This may be necessary on certain Linux systems when
                            threads are being used.
+
+WAD_ONESHOT             -  Disable WAD signal handler after first signal has
+                           been received.
+
+
+5.  Documentation
+
+No official documentation exists at this time.  However, the Papers directory contains
+two conference papers that describe WAD's design and high-level operation.
+
+Dave Beazley
+December 28, 2000
+
+
+
