@@ -1772,10 +1772,10 @@ int Language::classDirectorDestructor(Node *n) {
   String *classname= Swig_class_name(getCurrentClass());
   if (Getattr(n,"throw")) {
     Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw ();\n", classname);
-    Printf(f_directors, "SwigDirector_%s::~SwigDirector_%s() throw () {}\n", classname, classname);
+    Printf(f_directors, "SwigDirector_%s::~SwigDirector_%s() throw () {\n}\n\n", classname, classname);
   } else {
     Printf(f_directors_h, "    virtual ~SwigDirector_%s();\n", classname);
-    Printf(f_directors, "SwigDirector_%s::~SwigDirector_%s() {}\n", classname, classname);
+    Printf(f_directors, "SwigDirector_%s::~SwigDirector_%s() {\n}\n\n", classname, classname);
   }
   Delete(classname);
   return SWIG_OK;

@@ -3197,7 +3197,7 @@ class JAVA : public Language {
     Delete(target);
 
     target = Swig_method_decl(decl, name, l, 0, 1);
-    Printf(declaration, "  virtual %s %s", rtype, target);
+    Printf(declaration, "    virtual %s %s", rtype, target);
     Delete(rtype);
     Delete(target);
 
@@ -3418,7 +3418,7 @@ class JAVA : public Language {
       /* constructor header */
       {
         String *target = Swig_method_decl(decl, classname, parms, 0, 1);
-        Printf(f_directors_h, "  %s;\n", target);
+        Printf(f_directors_h, "    %s;\n", target);
         Delete(target);
       }
     }
@@ -3445,7 +3445,7 @@ class JAVA : public Language {
     Printf(w->code, "}\n");
     Wrapper_print(w, f_directors);
 
-    Printf(f_directors_h, "  SwigDirector_%s(JNIEnv *jenv);\n", classname);
+    Printf(f_directors_h, "    SwigDirector_%s(JNIEnv *jenv);\n", classname);
     DelWrapper(w);
     Delete(dirclass_type);
     Delete(classtype);
@@ -3460,8 +3460,6 @@ class JAVA : public Language {
    * ------------------------------------------------------------ */
 
   int classDirectorInit(Node *n) {
-/*    String *director_classname = directorClassName(n);*/
-
     Delete(none_comparison);
     none_comparison = NewString("");            // not used
 
@@ -3472,20 +3470,7 @@ class JAVA : public Language {
 
     Printf(f_directors_h, "%s {\n", Getattr(n, "director:decl"));
     Printf(f_directors_h, "\npublic:\n");
-/*    Printf(f_directors_h, "  virtual ~%s();\n", director_classname);*/
-    Printf(f_directors_h, "  void swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls);\n");
-
-    /* Emit the destructor (this is basically a hack for G++ and shared libraries, at
-       least on the FreeBSD platform, if not for others. It also doesn't hurt to put
-       "default" destructors into the code, even if they don't appear to do anything.) */
-
-    /* This hack has been removed so that correct code is emitted for working compilers, see the director_exception.i testcase.
-     * Otherwise a search up all destructors is probably needed to understand exception specifications. Not easy with multiple inheritance. */
-
-    /*
-    Printf(f_directors, "%s::~%s() {\n", director_classname, director_classname);
-    Printf(f_directors, "}\n\n");
-    */
+    Printf(f_directors_h, "    void swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls);\n");
 
     /* Keep track of the director methods for this class */
     first_class_dmethod = curr_class_dmethod = n_dmethods;
@@ -3544,11 +3529,11 @@ class JAVA : public Language {
     if (n_methods) {
       /* Emit the swig_overrides() method and the swig_override array */
       Printf(f_directors_h, "public:\n");
-      Printf(f_directors_h, "  bool swig_overrides(int n) {\n");
-      Printf(f_directors_h, "    return (n < %d ? swig_override[n] : false);\n", n_methods);
-      Printf(f_directors_h, "  }\n");
+      Printf(f_directors_h, "    bool swig_overrides(int n) {\n");
+      Printf(f_directors_h, "      return (n < %d ? swig_override[n] : false);\n", n_methods);
+      Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "protected:\n");
-      Printf(f_directors_h, "  bool swig_override[%d];\n", n_methods);
+      Printf(f_directors_h, "    bool swig_override[%d];\n", n_methods);
 
       /* Emit the code to look up the class's methods, initialize the override array */
 
@@ -3565,9 +3550,9 @@ class JAVA : public Language {
       Printf(w->code, "}\n");
     } else {
       Printf(f_directors_h, "public:\n");
-      Printf(f_directors_h, "  bool swig_overrides(int n) {\n");
-      Printf(f_directors_h, "    return false;\n");
-      Printf(f_directors_h, "  }\n");
+      Printf(f_directors_h, "    bool swig_overrides(int n) {\n");
+      Printf(f_directors_h, "      return false;\n");
+      Printf(f_directors_h, "    }\n");
     }
 
     Printf(f_directors_h, "};\n\n");
