@@ -43,9 +43,9 @@
 </ul>
 <li><a href="#n28">Further details on the generated Java classes</a>
 <ul>
-<li><a href="#n29">The JNI class</a>
+<li><a href="#n29">The intermediary JNI class</a>
 <ul>
-<li><a href="#n30">The JNI class pragmas</a>
+<li><a href="#n30">The intermediary JNI class pragmas</a>
 </ul>
 <li><a href="#n31">The Java module class</a>
 <ul>
@@ -201,7 +201,7 @@ $ ld -G example_wrap.o  -o libexample.so
 Unfortunately, the process of building a shared object file varies on every single machine so you may need to read up on the man pages for your C compiler and linker.<p>
 <p>
 When building a dynamic module, the name of the output file is important. 
-If the name of your SWIG module is "<tt>example</tt>", the name of the corresponding object file should be "<tt>libexample.so</tt>" (or equivalent depending on your machine, see <a href="#n66">Dynamic linking problems</a> for more information). 
+If the name of your SWIG module is "<tt>example</tt>", the name of the corresponding object file should be "<tt>libexample.so</tt>" (or equivalent depending on your machine, see <a href="#dynamic_linking_problems">Dynamic linking problems</a> for more information). 
 The name of the module is specified using the <tt>%module</tt> directive or<tt> -module</tt> command line option.<p>
 <p>
 
@@ -275,7 +275,7 @@ Now, assuming all went well, SWIG will be automatically invoked when you build y
 When doing a build, any changes made to the interface file will result in SWIG being automatically invoked to produce a new version of the wrapper file.  
 The Java classes that SWIG output should also be compiled into .class files. 
 To run the native code in the DLL (example.dll), make sure that it is in your path then run your Java program which uses it, as described in the previous section. 
-If the library fails to load have a look at <a href="#n66">Dynamic linking problems</a>.
+If the library fails to load have a look at <a href="#dynamic_linking_problems">Dynamic linking problems</a>.
 <p>
 
 <a name="n11"></a><H3>15.2.2 Using NMAKE</H3>
@@ -347,8 +347,8 @@ This section briefly covers the essential aspects of this wrapping.
 The SWIG <tt>%module</tt> directive specifies the name of the Java
 module. When you specify `<tt>%module example</tt>', the <i>module name</i>
 determines the name of some of the generated files in the module.
-The generated code consists of a <i>module class</i> file <tt>example.java</tt>, a
-<i>JNI class</i> file, <tt>exampleJNI.java</tt> as well as numerous other Java <i>proxy class</i> files.
+The generated code consists of a <i>module class</i> file <tt>example.java</tt>, an
+<i>intermediary JNI class</i> file, <tt>exampleJNI.java</tt> as well as numerous other Java <i>proxy class</i> files.
 Each proxy class is named after the structs, unions and classes you are wrapping.
 When choosing a module name, make sure you don't use the same name as one of the generated
 proxy class files nor a Java keyword. Sometimes a C/C++ type cannot be wrapped by a proxy class, for 
@@ -1257,9 +1257,9 @@ in situations where no proxies are generated.  This provides a very
 natural, type safe Java interface to the C/C++ code and fits in with the Java programing paradigm.
 However, a number of low-level details were omitted.  This section provides a brief overview
 of how the proxy classes work and then covers the type wrapper classes.
-First the crucial JNI class is considered.
+First the crucial intermediary JNI class is considered.
 
-<a name="n29"></a><H3>15.4.1 The JNI class</H3>
+<a name="n29"></a><H3>15.4.1 The intermediary JNI class</H3>
 
 
 In the <a href="SWIG.html">"SWIG basics"</a> and <a href="SWIGPlus.html">"SWIG and C++"</a> chapters,
@@ -1314,7 +1314,7 @@ JNIEXPORT void JNICALL Java_exampleJNI_egg(JNIEnv *jenv, jclass jcls, jlong jarg
 </pre>
 </blockquote>
 
-For every JNI C function there has to be a static native Java function. These appear in the JNI class:
+For every JNI C function there has to be a static native Java function. These appear in the intermediary JNI class:
 
 <blockquote>
 <pre>
@@ -1329,7 +1329,8 @@ class exampleJNI {
 </pre>
 </blockquote>
 
-The JNI class contains the complete Java - C/C++ interface so all function calls go via the JNI class.
+This class contains the complete Java - C/C++ interface so all function calls go via this class. 
+As this class acts as a go-between for all JNI calls to C/C++ code from the Java <a href="#java_proxy_classes">proxy classes</a>, <a href="#type_wrapper_classes">type wrapper classes</a> and <a href="#java_module_class">module class</a>, it is known as the intermediary JNI class.
 <p>
 
 You may notice that SWIG uses a Java long wherever a pointer or class object needs traversing the Java-C/C++ boundary.
@@ -1337,10 +1338,10 @@ This approach leads to minimal JNI code which makes for better performance as JN
 SWIG uses Java code wherever possible as it is compiled into byte code which requires fewer string operations.
 
 <p>
-The functions in the JNI class cannot be accessed outside of its package. Access to them is gained through the module class for globals otherwise the appropriate proxy class.
+The functions in the intermediary JNI class cannot be accessed outside of its package. Access to them is gained through the module class for globals otherwise the appropriate proxy class.
 
 <p>
-The name of the JNI class can be changed from its default which is the module name with JNI appended after it. The module directive attribute <tt>jniclassname</tt> is used to achieve this:
+The name of the intermediary JNI class can be changed from its default which is the module name with JNI appended after it. The module directive attribute <tt>jniclassname</tt> is used to achieve this:
 
 <blockquote>
 <pre>
@@ -1351,10 +1352,10 @@ The name of the JNI class can be changed from its default which is the module na
 If <tt>name</tt> is the same as <tt>modulename</tt> then the module class name gets changed
 from <tt>modulename</tt> to <tt>modulenameModule</tt>.
 
-<a name="n30"></a><H4>15.4.1.1 The JNI class pragmas</H4>
+<a name="n30"></a><H4>15.4.1.1 The intermediary JNI class pragmas</H4>
 
 
-The JNI class can be tailored through the use of pragmas, but is not commonly done. The list of pragmas for the JNI class is:
+The intermediary JNI class can be tailored through the use of pragmas, but is not commonly done. The pragmas for this class are:
 
 <p>
 <table BORDER>
@@ -1364,24 +1365,24 @@ The JNI class can be tailored through the use of pragmas, but is not commonly do
 </tr>
 
 <tr>
-    <td>jniclassbase            </td> <td>Base class for the JNI class</td>
+    <td>jniclassbase            </td> <td>Base class for the intermediary JNI class</td>
 </tr>
 <tr>
-    <td>jniclassclassmodifiers  </td> <td>Class modifiers for the JNI class</td>
+    <td>jniclassclassmodifiers  </td> <td>Class modifiers for the intermediary JNI class</td>
 </tr>
 <tr>
-    <td>jniclasscode            </td> <td>Java code is copied verbatim into the JNI class</td>
+    <td>jniclasscode            </td> <td>Java code is copied verbatim into the intermediary JNI class</td>
 </tr>
 <tr>
-    <td>jniclassimports         </td> <td>Java code, usually one or more import statements, placed before the JNI class definition</td>
+    <td>jniclassimports         </td> <td>Java code, usually one or more import statements, placed before the intermediary JNI class definition</td>
 </tr>
 <tr>
-    <td>jniclassinterfaces      </td> <td>Comma separated interface classes for the JNI class</td>
+    <td>jniclassinterfaces      </td> <td>Comma separated interface classes for the intermediary JNI class</td>
 </tr>
 </table>
 
 <p>
-The pragma code appears in the generated JNI class where you would expect:
+The pragma code appears in the generated intermediary JNI class where you would expect:
 
 <blockquote>
 <pre>
@@ -1411,7 +1412,7 @@ The <tt>jniclasscode</tt> pragma is quite useful for adding in a static block fo
 </blockquote>
 
 Pragmas will take either <tt>""</tt> or <tt>%{ %}</tt> as delimeters. 
-For example, let's change the JNI class access attribute to public. 
+For example, let's change the intermediary JNI class access attribute to public. 
 
 <blockquote>
 <pre>
@@ -1419,8 +1420,9 @@ For example, let's change the JNI class access attribute to public.
 </pre>
 </blockquote>
 
-All the methods in the JNI class will then be callable outside of the package as the method modifiers are public by default.
+All the methods in the intermediary JNI class will then be callable outside of the package as the method modifiers are public by default.
 
+<a name="java_module_class"></a>
 <a name="n31"></a><H3>15.4.2 The Java module class</H3>
 
 
@@ -1444,12 +1446,12 @@ example.egg(new Foo());
 </pre>
 </blockquote>
 
-The primary reason for having the module class wrapping the calls in the JNI class is to implement static type checking. In this case only a <tt>Foo</tt> can be passed to the <tt>egg</tt> function, whereas any <tt>long</tt> can be passed to the <tt>egg</tt> function in the JNI class.
+The primary reason for having the module class wrapping the calls in the intermediary JNI class is to implement static type checking. In this case only a <tt>Foo</tt> can be passed to the <tt>egg</tt> function, whereas any <tt>long</tt> can be passed to the <tt>egg</tt> function in the intermediary JNI class.
 
 <a name="n32"></a><H4>15.4.2.1 The Java module class pragmas</H4>
 
 
-The module class can be tailored through the use of pragmas, in the same manner as the JNI class. The pragmas are similarly named and are used in the same way. The complete list follows:
+The module class can be tailored through the use of pragmas, in the same manner as the intermediary JNI class. The pragmas are similarly named and are used in the same way. The complete list follows:
 
 <p>
 <table BORDER>
@@ -1489,6 +1491,7 @@ The pragma code appears in the generated module class like this:
 </pre>
 </blockquote>
 
+<a name="java_proxy_classes"></a>
 <a name="n33"></a><H3>15.4.3 Java proxy classes</H3>
 
 
@@ -1544,7 +1547,7 @@ public class Foo {
 
 This class merely holds a pointer to the underlying C++ object (<tt>swigCPtr</tt>).
 It also contains all the methods in the C++ class it is proxying plus getters and setters for public
-member variables. These functions call the native methods in the JNI class. 
+member variables. These functions call the native methods in the intermediary JNI class. 
 The advantage of having this extra layer is the type safety that the proxy class functions offer. 
 It adds static type checking which leads to fewer surprises at runtime. 
 For example, you can see that if you attempt to use the <tt> spam() </tt> 
@@ -1765,9 +1768,9 @@ public class Derived extends Base {
     if(swigCPtr != 0 && swigCMemOwn) {
       exampleJNI.delete_Derived(swigCPtr);
       swigCMemOwn = false;
-      super.delete();
     }
     swigCPtr = 0;
+    super.delete();
   }
 
   protected static long getCPtr(Derived obj) {
@@ -1808,7 +1811,7 @@ When a program exits, the garbage collector does not always call the finalizers.
 Depending on what the finalizers do and which operating system you use, this may or may not be a problem. 
 <p>
 
-If the <tt>delete()</tt> call into JNI code is just for memory handling, there is not a problem when run on Windows and Unix. 
+If the <tt>delete()</tt> call into JNI code is just for memory handling, there is not a problem when run on most operating systems, for example Windows and Unix. 
 Say your JNI code creates memory on the heap which your finalizers should clean up, the finalizers may or may not be called before the program exits. 
 In Windows and Unix all memory that a process uses is returned to the system on exit, so this isn't a problem. 
 This is not the case in some operating systems like vxWorks. 
@@ -1862,10 +1865,11 @@ The SWIG generated code ensures that the memory is not deleted twice, in the eve
 <li>
 Write your own object manager in Java. 
 You could derive all SWIG classes from a single base class which could track which objects have had their finalizers run, then call the rest of them on program termination.
-The section on <a href=#n48>Java typemaps</a> details how to specify a pure Java base class.
+The section on <a href="#java_typemaps">Java typemaps</a> details how to specify a pure Java base class.
 </li>
 </ol>
 
+<a name="type_wrapper_classes"></a>
 <a name="n37"></a><H3>15.4.4 Type wrapper classes</H3>
 
 
@@ -1892,7 +1896,7 @@ public class SWIGTYPE_p_int {
 The methods do not have public access, so by default it is impossible to do anything with objects of this class other than 
 pass them around. The methods in the class are part of the inner workings of SWIG. 
 If you need to mess around with pointers you will have to use some typemaps specific to the Java module to achieve this.
-The section on <a href=#n48>Java typemaps</a> details how to modify the generated code.
+The section on <a href="#java_typemaps">Java typemaps</a> details how to modify the generated code.
 
 <p>
 Note that if you use a pointer or reference to a proxy class in a function then no type wrapper class is generated because the proxy class can be used
@@ -2128,7 +2132,7 @@ The <tt> $action </tt> is a SWIG special variable and is replaced by the C/C++ f
 The <tt> return $null; </tt> handles all native method return types, namely those that have a void return and those that do not. 
 This is useful for typemaps that will be used in native method returning all return types. 
 See the section on
-<a href="#n53">Java special variables</a> for further explanation.
+<a href="#special_variables">Java special variables</a> for further explanation.
 
 <p>
 C++ exceptions are also easy to handle.  
@@ -2155,7 +2159,7 @@ public:
 </blockquote>
 
 The examples above first use the C JNI calling syntax then the C++ JNI calling syntax. The C++ calling syntax will not compile as C and also visa versa.
-It is however possible to write JNI calls which will compile under both C and C++ and is covered in the <a href="#n54">Typemaps for both C and C++ compilation</a> section. 
+It is however possible to write JNI calls which will compile under both C and C++ and is covered in the <a href="#typemaps_for_c_and_c++">Typemaps for both C and C++ compilation</a> section. 
 
 <p>
 The language-independent <tt>exception.i</tt> library file can also be used
@@ -2568,6 +2572,7 @@ On the other hand, this low-level approach is extremely efficient and
 well suited for applications in which you need to create buffers,
 package binary data, etc.
 
+<a name="java_typemaps"></a>
 <a name="n48"></a><H2>15.7 Java typemaps</H2>
 
 
@@ -2587,6 +2592,7 @@ Before proceeding, it should be stressed that typemaps are not a required
 part of using SWIG---the default wrapping behavior is enough in most cases.
 Typemaps are only used if you want to change some aspect of the generated code.
 
+<a name="default_primitive_type_mappings"></a>
 <a name="n49"></a><H3>15.7.1 Default primitive type mappings</H3>
 
 
@@ -2703,7 +2709,7 @@ The module class method would be:
 <blockquote> <pre>
 public static void func(int a, String b, int c, java.math.BigInteger d) {...}
 </blockquote> </pre>
-The JNI class would use the same types:
+The intermediary JNI class would use the same types:
 <blockquote> <pre>
 public final static native void func(int jarg1, String jarg2, int jarg3, java.math.BigInteger jarg4);
 </blockquote> </pre>
@@ -2846,12 +2852,12 @@ The most important of these implement the mapping of C/C++ types to Java types:
 
 <tr>
 <td>jni</td>
-<td>JNI types. These provide the default mapping of types from C/C++ to JNI for use in the JNI (C/C++) code.</td>
+<td>JNI C types. These provide the default mapping of types from C/C++ to JNI for use in the JNI (C/C++) code.</td>
 </tr>
 
 <tr>
 <td>jtype</td>
-<td>Java JNI class types. These provide the default mapping of types from C/C++ to Java for use in the JNI class.</td>
+<td>Java intermediary types. These provide the default mapping of types from C/C++ to Java for use in the native functions in the intermediary JNI class. The type must be the equivalent Java type for the JNI C type specified in the "jni" typemap.</td>
 </tr>
 
 <tr>
@@ -2862,16 +2868,16 @@ The most important of these implement the mapping of C/C++ types to Java types:
 <tr>
 <td>javain</td>
 <td>Conversion from jstype to jtype. 
-    These are Java code typemaps which transform the type used in the Java module class, proxy classes and type wrapper classes (as specified in the jstype typemap)
-    to the type used in the Java JNI class (as specified in the jtype typemap).
+    These are Java code typemaps which transform the type used in the Java module class, proxy classes and type wrapper classes (as specified in the "jstype" typemap)
+    to the type used in the Java intermediary JNI class (as specified in the "jtype" typemap).
     In other words the typemap provides the conversion to the native method call parameter types.</td>
 </tr>
 
 <tr>
 <td>javaout</td>
 <td>Conversion from jtype to jstype.
-    These are Java code typemaps which transform the type used in the Java JNI class (as specified in the jtype typemap) to 
-    the Java type used in the Java module class, proxy classes and type wrapper classes (as specified in the jstype typemap).
+    These are Java code typemaps which transform the type used in the Java intermediary JNI class (as specified in the "jtype" typemap) to 
+    the Java type used in the Java module class, proxy classes and type wrapper classes (as specified in the "jstype" typemap).
     In other words the typemap provides the conversion from the native method call return type. </td>
 </tr>
 </table>
@@ -2889,7 +2895,7 @@ The "freearg" typemap sometimes releases memory allocated by the "in" typemap.
 The "argout" typemap sometimes sets values in function parameters which are passed by reference in Java. 
 
 <p>The default code generated by SWIG for the Java module comes from the typemaps in the <tt>java.swg</tt> library file which implements the 
-<a href="#n49">Default primitive type mappings</a>
+<a href="#default_primitive_type_mappings">Default primitive type mappings</a>
 covered earlier.
 There are other type mapping typemaps in the Java library. 
 These are listed below:
@@ -2902,48 +2908,6 @@ These are listed below:
 <td><b>Kind</b></td>
 <td><b>Java Type</b></td>
 <td><b>Function</b></td>
-</tr>
-
-<tr VALIGN=TOP>
-<td>char *</td>
-<td>BYTE</td>
-<td>various.i</td>
-<td>input
-<br>output</td>
-<td>byte[]</td>
-
-<td VALIGN=TOP>Java byte array is converted to char array which
-is released afterwards</td>
-</tr>
-
-<tr>
-<td>char **</td>
-<td>STRING_IN</td>
-<td>various.i</td>
-<td>input</td>
-<td>String[]</td>
-<td>\0 terminated array of \0 terminated strings
-<br>the array is malloc-ed and released afterwards</td>
-</tr>
-
-<tr>
-<td>char **</td>
-<td>STRING_OUT</td>
-<td>various.i</td>
-<td>output</td>
-<td>String[]</td>
-<td>&amp;char *
-<br>the argument is the address of an '\0' terminated string</td>
-</tr>
-
-<tr>
-<td>char **</td>
-<td>STRING_RET</td>
-<td>various.i</td>
-<td>return</td>
-<td>String[]</td>
-<td>\0 terminated array of \0 terminated strings
-<br>the array is not free'd.</td>
 </tr>
 
 <tr>
@@ -3005,8 +2969,49 @@ is released afterwards</td>
 <td>int[]</td>
 <td>Use for mapping C arrays to Java arrays.</td>
 </tr>
+
+<tr VALIGN=TOP>
+<td>char *</td>
+<td>BYTE</td>
+<td>various.i</td>
+<td>input</td>
+<td>byte[]</td>
+
+<td VALIGN=TOP>Java byte array is converted to char array</td>
+</tr>
+
+<tr>
+<td>char **</td>
+<td>STRING_IN</td>
+<td>various.i</td>
+<td>input</td>
+<td>String[]</td>
+<td>\0 terminated array of \0 terminated strings</td>
+</tr>
+
+<tr>
+<td>char **</td>
+<td>STRING_OUT</td>
+<td>various.i</td>
+<td>output</td>
+<td>String[]</td>
+<td>&amp;char *
+<br>the argument is the address of a \0 terminated string</td>
+</tr>
+
+<tr>
+<td>char **</td>
+<td>STRING_RET</td>
+<td>various.i</td>
+<td>return</td>
+<td>String[]</td>
+<td>\0 terminated array of \0 terminated strings
+<br>the array is not free'd.</td>
+</tr>
+
 </table>
 
+<a name="special_variables"></a>
 <a name="n53"></a><H3>15.7.5 Java special variables</H3>
 
 
@@ -3062,7 +3067,7 @@ JNIEXPORT jobject JNICALL Java_jnifn(...) {
 
 <b><tt>$javainput, $jnicall and $owner</tt></b><br>
 The $javainput special variable is used in "javaout" typemaps and $jnicall and $owner are used in "javain" typemaps.
-$jnicall is analogous to $action in %exception. It is replaced by the call to the native method in the JNI class.
+$jnicall is analogous to $action in %exception. It is replaced by the call to the native method in the intermediary JNI class.
 $owner is replaced by either <tt>true</tt> if %newobject has been used, otherwise <tt>false</tt>.
 $javainput is analogous to the $input special variable. It is replaced by the parameter name.
 <p>
@@ -3106,7 +3111,7 @@ public static Class bar(Class cls, int ush) {
 }
 </pre></blockquote>
 
-
+<a name="typemaps_for_c_and_c++"></a>
 <a name="n54"></a><H3>15.7.6 Typemaps for both C and C++ compilation</H3>
 
 
@@ -3158,6 +3163,20 @@ class modifiers for the Java class: default is "public"
 Java code is copied verbatim to the Java class: empty default
 </blockquote>
 
+<tt>%typemap(javadestruct)</tt> <br>
+<blockquote>
+destructor wrapper - the <tt>delete()</tt> method (proxy classes only),
+used for all classes except those which have a base class
+: default calls C++ destructor (or frees C memory) and resets <tt>swigCPtr</tt> and <tt>swigCMemOwn</tt> flags
+</blockquote>
+
+<tt>%typemap(javadestruct_derived)</tt>
+<blockquote>
+destructor wrapper - the <tt>delete()</tt> method (proxy classes only),
+same as "javadestruct" but only used for derived classes
+: default calls C++ destructor (or frees C memory) and resets <tt>swigCPtr</tt> and <tt>swigCMemOwn</tt> flags
+</blockquote>
+
 <tt>%typemap(javaimports)</tt>
 <blockquote>
 import statements for Java class: empty default
@@ -3192,7 +3211,7 @@ In summary the contents of the typemaps make up a proxy class like this:
 [ javafinalize typemap ]
 [ javaptrconstructormodifiers ] proxyclassname(long cPtr, boolean cMemoryOwn) {...}
 ... Other SWIG generated constructors ...
-... SWIG generated delete() method  ...
+public void delete() [ javadestruct OR javadestruct_derived ]
 [ javagetcptr typemap ]
 [ javacode typemap ]
 ... proxy functions ...
@@ -3230,7 +3249,7 @@ Note that <tt>SWIGTYPE</tt> will target all proxy classes, but not all type wrap
 
 <blockquote>
 <pre>
-%typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
+%typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
   public static long getCPtr($javaclassname obj) {
     return obj.swigCPtr;
   }
@@ -3781,9 +3800,9 @@ Here is an example which uses a common base class for all proxy classes and type
 
 <blockquote>
 <pre>
-%typemap(javabase) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "SWIG"
+%typemap(javabase) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "SWIG"
 
-%typemap(javacode) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
+%typemap(javacode) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
   protected long getPointer() {
     return swigCPtr;
   }
@@ -3832,7 +3851,7 @@ When it is resurrected JavaDoc comments will be fully supported.
 If you can't wait for the full documentation system a couple of workarounds are available. 
 The <tt>%javamethodmodifiers</tt> feature can be used for adding proxy class method comments and module class method comments. 
 The "javaimports" typemap can be hijacked for adding in proxy class JavaDoc comments. 
-The <tt>jniclassimports</tt> or <tt>jniclassclassmodifiers</tt> pragmas can also be used for adding JNI class comments and likewise the <tt>moduleimports</tt> or <tt>moduleclassmodifiers</tt> pragmas for the module class. 
+The <tt>jniclassimports</tt> or <tt>jniclassclassmodifiers</tt> pragmas can also be used for adding intermediary JNI class comments and likewise the <tt>moduleimports</tt> or <tt>moduleclassmodifiers</tt> pragmas for the module class. 
 Here is an example adding in a proxy class and method comment:
 
 <blockquote>
@@ -3880,7 +3899,7 @@ public class Barmy {
 
 It is possible to run SWIG in a mode that does not produce proxy classes by using the -noproxy commandline option.
 The interface is rather primitive when wrapping structures or classes and is accessed through function calls to the module class.
-All the functions in the module class are wrapped by functions with identical names as those in the JNI class.
+All the functions in the module class are wrapped by functions with identical names as those in the intermediary JNI class.
 <p>
 
 Consider the example we looked at when examining proxy classes:
@@ -3926,6 +3945,7 @@ Unlike proxy classes, there is no attempt at tracking memory.
 All destructors have to be called manually for example the <tt>delete_Foo(foo)</tt> call above.
 
 
+<a name="dynamic_linking_problems"></a>
 <a name="n66"></a><H3>15.9.3 Dynamic linking problems</H3>
 
 
@@ -3970,7 +3990,7 @@ JNIEXPORT void JNICALL Java_packageName_moduleName_HandRolled(JNIEnv *, jclass, 
 %}
 </pre></blockquote>
 
-No C JNI function will be generated and the <tt>Java_packageName_moduleName_HandRolled</tt> function will be accessible using the SWIG generated Java native method call in the JNI class which will look like this:
+No C JNI function will be generated and the <tt>Java_packageName_moduleName_HandRolled</tt> function will be accessible using the SWIG generated Java native method call in the intermediary JNI class which will look like this:
 
 <blockquote><pre>
   public final static native void HandRolled(int jarg1, String jarg2);
@@ -4005,7 +4025,8 @@ Java classes without any finalizers generally speed up code execution as there i
 %typemap(javafinalize) SWIGTYPE ""
 </pre></blockquote>
 
-However, you will have to be careful about memory management and make sure that you code in a call to the <tt>delete()</tt> member function. This method calls the C++ destructor or <tt>free()</tt> for C code.
+However, you will have to be careful about memory management and make sure that you code in a call to the <tt>delete()</tt> member function. 
+This method calls the C++ destructor or <tt>free()</tt> for C code.
 <p>
 
 
