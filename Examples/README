@@ -1,0 +1,9 @@
+SWIG Examples
+
+The "perl5", "python", and "tcl" directories contain a very simple
+example.  The "GIFPlot" contains a more complicated example
+that illustrates many of SWIG's more advanced capabilities.
+
+(2/11/00) Note: The examples directory is currently incomplete.
+
+
