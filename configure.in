@@ -594,6 +594,71 @@ AC_SUBST(GUILEINCLUDE)
 AC_SUBST(GUILELIB)
 AC_SUBST(GUILELINK)
 
+#----------------------------------------------------------------
+# Look for Ruby
+#----------------------------------------------------------------
+
+RUBYBIN=nope
+
+AC_ARG_WITH(ruby,[  --with-ruby=path        Set location of Ruby executable],[ RUBYBIN="$withval"], [RUBYBIN=nope])
+
+# First figure out what the name of Ruby is
+
+if test "$RUBYBIN" = nope; then
+AC_CHECK_PROGS(RUBY, ruby, nope)
+else
+RUBY="$RUBYBIN"
+fi
+AC_MSG_CHECKING(for Ruby header files)
+if test "$RUBY" != nope; then
+	RUBYDIR=`($RUBY -rmkmf -e 'print $archdir') 2>/dev/null`
+	if test "$RUBYDIR" != ""; then
+		dirs="$RUBYDIR"
+		RUBYINCLUDE=none
+		for i in $dirs; do
+			if test -r $i/ruby.h; then
+				AC_MSG_RESULT($i)
+				RUBYINCLUDE="-I$i"
+				break;
+			fi
+		done
+		if test "$RUBYINCLUDE" = none; then
+			RUBYINCLUDE="-I$RUBYDIR"
+			AC_MSG_RESULT(could not locate ruby.h...using $RUBYINCLUDE)
+		fi
+
+		AC_MSG_CHECKING(for Ruby library)
+		RUBYLIB=none
+		for i in $dirs; do
+			if test -r $i/libruby.a; then
+				AC_MSG_RESULT($i)
+				RUBYLIB="$i"
+				break;
+			fi
+		done
+		if test "$RUBYLIB" = none; then
+			RUBYLIB="$RUBYDIR"
+			AC_MSG_RESULT(could not locate libruby.a...using $RUBYLIB)
+		fi
+	else
+		AC_MSG_RESULT(unable to determine ruby configuration)
+		RUBYINCLUDE="-I$RUBYDIR"
+		RUBYLIB="$RUBYDIR"
+	fi
+	RUBYLINK=`($RUBY -rrbconfig -e 'print Config::CONFIG[["RUBY_INSTALL_NAME"]]') 2>/dev/null`
+	RUBYLINK="-l$RUBYLINK"
+	RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBS"]]') 2>/dev/null`"
+else
+       	AC_MSG_RESULT(could not figure out how to run ruby)
+	RUBYINCLUDE="-I/usr/local/lib/ruby/1.4/arch"
+	RUBYLIB="-I/usr/local/lib/ruby/1.4/arch"
+	RUBYLINK="-lruby -lm"
+fi
+
+AC_SUBST(RUBYINCLUDE)
+AC_SUBST(RUBYLIB)
+AC_SUBST(RUBYLINK)
+
 
 #----------------------------------------------------------------
 # Miscellaneous
