@@ -1325,7 +1325,7 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
   }
   if (Strcmp(nodeType(n),"cdecl") == 0) {
     String *storage = Getattr(n,"storage");
-    if (storage && Strcmp(storage,"typedef") == 0) {
+    if (storage && (Strcmp(storage,"typedef") == 0)) {
       SwigType *decl;
       SwigType *rt;
       SwigType *qt;
