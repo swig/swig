@@ -113,13 +113,48 @@ wad_search_stab(void *sp, int size, char *stabstr, char *symbol, unsigned long o
       if (match_stab_symbol(symbol, stabstr+s->n_strx, slen)) {
 	infunc = 1;
 	debug.found = 1;
+	debug.nargs = 0;
       } else {
 	infunc = 0;
       }
     } else if (debug.found && (s->n_type == 0x44) && (infunc)) {
+
+      /* Line number location */
+
       if (s->n_value <= offset) {
 	debug.line_number = s->n_desc;
       } else return &debug;
+    } else if (debug.found && ((s->n_type == 0xa0) || (s->n_type == 0x40)) && (infunc)) {
+      /* Parameter counting */
+      char *pname;
+      char *c;
+      int   len;
+      pname = stabstr+s->n_strx;
+      c = strchr(pname,':');
+      if (c) {
+	len = (c-pname);
+      } else {
+	len = strlen(pname);
+      }
+
+      /* Check if already used */
+      /* In this case, the first stab simply identifies an argument.  The second
+         one identifies its location for the debugger */
+
+      if (debug.nargs > 0) {
+	if (strcmp(debug.parms[debug.nargs-1].name, pname) == 0)
+	  debug.nargs--;
+      }
+      strncpy(debug.parms[debug.nargs].name,pname,len);
+      debug.parms[debug.nargs].name[len] = 0;
+
+      if (s->n_type == 0x40)
+	debug.parms[debug.nargs].loc = PARM_REGISTER;
+      else
+	debug.parms[debug.nargs].loc = PARM_STACK;
+
+      debug.parms[debug.nargs].value = s->n_value;
+      debug.nargs++;
     }
   }
   if (debug.found) return &debug;
