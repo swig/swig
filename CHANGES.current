@@ -1,5 +1,8 @@
 Version 1.3.20 (In progress)
 ============================
+09/01/2003: Tiger
+            Added inheritance support for design by contract feature.
+
 09/01/2003: beazley
             Fixed [ 786394 ] Patch for generated perl code does not compile under RedHat9.
             Reported by Scott Finneran.
