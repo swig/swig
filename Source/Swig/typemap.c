@@ -709,7 +709,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
   varname = &var[strlen(var)];
     
   /* If the original datatype was an array. We're going to go through and substitute
-     it's array dimensions */
+     its array dimensions */
     
   if (SwigType_isarray(type)) {
     String *size;
@@ -1187,6 +1187,30 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   return s;
 }
 
+static void
+Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p) {
+  char temp[256];
+
+  Parm *kw = Getattr(tm,"kwargs");
+  while (kw) {
+    sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,"name")));
+    Setattr(p,tmop_name(temp), Copy(Getattr(kw,"value")));
+    kw = nextSibling(kw);
+  }
+}
+
+static void
+Swig_typemap_warn(const String_or_char *op, Parm *p) {
+  char temp[256];
+  String *w;
+
+  sprintf(temp,"%s:warning", Char(op));
+  w = Getattr(p,tmop_name(temp));
+  if (w) {
+    Swig_warning(0,Getfile(p), Getline(p), "%s\n", w);
+  }
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_typemap_attach_parms()
  *
@@ -1204,7 +1228,6 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
   ParmList *locals;
   int   argnum = 0;
   char  temp[256];
-  Parm  *kw;
 
   p = parms;
   while (p) {
@@ -1241,7 +1264,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       pname = Getattr(p,"name");
       lname = Getattr(p,"lname");
       mtype = Getattr(p,"tmap:match");
-
+      
       if (mtype) {
 	typemap_replace_vars(s,locals, mtype,pname,lname,i+1);
 	Delattr(p,"tmap:match");
@@ -1277,20 +1300,11 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     Setattr(firstp,tmop_name(temp),p);
 
     /* Attach kwargs */
-    kw = Getattr(tm,"kwargs");
-    while (kw) {
-      sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,"name")));
-      Setattr(firstp,tmop_name(temp), Copy(Getattr(kw,"value")));
-      kw = nextSibling(kw);
-    }
-    {
-      String *w;
-      sprintf(temp,"%s:warning", Char(op));
-      w = Getattr(firstp,tmop_name(temp));
-      if (w) {
-	Swig_warning(0,Getfile(firstp), Getline(firstp), "%s\n", w);
-      }
-    }
+    Swig_typemap_attach_kwargs(tm,op,firstp);
+    
+    /* Print warnings, if any */
+    Swig_typemap_warn(op,firstp);
+
     /* Look for code fragments */
     {
       String *f;
