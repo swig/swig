@@ -66,7 +66,7 @@ SWIG interface file or a header file without actually generating any wrapper cod
 Such information generally includes type declarations (e.g., <tt>typedef</tt>) as well as
 C++ classes that might be used as base-classes for class declarations in the interface.
 The use of <tt>%import</tt> is also important when SWIG is used to generate
-extensions as a collection of related modules.   This is advanced topic and is described
+extensions as a collection of related modules.   This is an advanced topic and is described
 in a later chapter.
 
 <P>
@@ -86,6 +86,7 @@ by SWIG when it is parsing the interface:
 
 <blockquote><pre>
 SWIG                            Always defined when SWIG is processing a file
+SWIGIMPORT                      Defined when SWIG is importing a file with <tt>%import</tt>
 SWIGMAC                         Defined when running SWIG on the Macintosh
 SWIGWIN                         Defined when running SWIG under Windows
 SWIG_VERSION                    Hexadecimal number containing SWIG version,
