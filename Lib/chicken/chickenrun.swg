@@ -225,8 +225,10 @@ SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **
   else {
     C_word cptr = C_swigmpointer(data, ptr, type);
     /* add finalizer to object */
+    #ifndef SWIG_CHICKEN_NO_COLLECTION
     if (owner)
       C_do_register_finalizer(cptr, (C_word) finalizer_obj);
+    #endif
 
     /* wrap the result inside a proxy class if one is available */
     if (cdata && cdata->gc_proxy_create) {
