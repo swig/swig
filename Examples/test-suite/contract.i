@@ -2,6 +2,10 @@
 
 %warnfilter(813,833) C; /* C#, Java multiple inheritance */
 
+#ifdef SWIGCSHARP
+%ignore B::bar; // otherwise get a warning: `C.bar' no suitable methods found to override
+#endif
+
 %contract test_preassert(int a, int b) {
 require:
 	a > 0;
