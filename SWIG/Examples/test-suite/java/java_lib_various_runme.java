@@ -39,6 +39,30 @@ public class java_lib_various_runme {
       if ( !langs[i].equals(langscheck[i]) )
         throw new RuntimeException("Languages read failed " + i + " " + langs[i] + "|" + langscheck[i]);
 
+    // STRING_RET test
+    {
+      String stringOutArray[] = { "" };
+      java_lib_various.char_ptr_ptr_out(stringOutArray);
+      if (!stringOutArray[0].equals("returned string"))
+        throw new RuntimeException("Test failed: expected: returned string. got: " + stringOutArray[0]);
+    }
+
+    // STRING_RET null array test. Check that exception is thrown.
+    try {
+      String stringOutArray[] = null;
+      java_lib_various.char_ptr_ptr_out(stringOutArray);
+      throw new RuntimeException("Test failed: null array");
+    } catch (NullPointerException e) {
+    }
+
+    // STRING_RET empty array test. Check that exception is thrown.
+    try {
+      String stringOutArray[] = {};
+      java_lib_various.char_ptr_ptr_out(stringOutArray);
+      throw new RuntimeException("Test failed: empty array");
+    } catch (IndexOutOfBoundsException e) {
+    }
+
     // BYTE typemap check
     byte b[] = new byte[20];
     java_lib_various.charout(b);

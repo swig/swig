@@ -7,6 +7,7 @@
 %apply char **STRING_ARRAY { char **get_names };
 %apply char **STRING_ARRAY { char **languages };
 %apply char *BYTE { char *chars };
+%apply char **STRING_OUT { char **string_ptr };
 
 %{
 char *langs[] = { "Hungarian", "Afrikaans", "Norwegian", 0 };
@@ -39,6 +40,11 @@ char **get_names() {
 void charout(char *chars) {
     if(chars != NULL)
         sprintf(chars, "by jove");
+}
+
+void char_ptr_ptr_out(char **string_ptr) {
+    static char ret[] = "returned string";
+    *string_ptr = ret;
 }
 
 %}
