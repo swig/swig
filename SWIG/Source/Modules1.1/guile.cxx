@@ -60,7 +60,7 @@ GUILE::GUILE ()
   prefix = "gswig_";
   module = NULL;
   package = NULL;
-  linkage = GUILE_LSTYLE_LTDLMOD;
+  linkage = GUILE_LSTYLE_SIMPLE;
   with_smobs = false;
 }
 
@@ -268,7 +268,7 @@ GUILE::headers (void)
 void
 GUILE::initialize (void)
 {
-  fprintf (f_init, "static void\nSWIG_init (void)\n{\n");
+  fprintf (f_init, "SWIGSTATIC void\nSWIG_init (void)\n{\n", st_decl);
   fprintf (f_init, "\tSWIG_Guile_Init();\n");
 }
 
