@@ -107,19 +107,19 @@
 
 /* --- Variable output --- */
 
-%typemap(varget) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
+%typemap(varout) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
     "$result = Tcl_NewIntObj((long) $1);";
 
-%typemap(varget) double,float "$result = Tcl_NewDoubleObj((double) $1);";
-%typemap(varget) char * "$result = Tcl_NewStringObj((char*) $1,-1);";
-%typemap(varget) char [ANY] "$result = Tcl_NewStringObj((char *) $1,-1);";
-%typemap(varget) char "$result = Tcl_NewStringObj(&$1,1);";
-%typemap(varget) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor);";
-%typemap(varget) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor);";
+%typemap(varout) double,float "$result = Tcl_NewDoubleObj((double) $1);";
+%typemap(varout) char * "$result = Tcl_NewStringObj((char*) $1,-1);";
+%typemap(varout) char [ANY] "$result = Tcl_NewStringObj((char *) $1,-1);";
+%typemap(varout) char "$result = Tcl_NewStringObj(&$1,1);";
+%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor);";
+%typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor);";
 
 /* -- Variable input --- */
 
-%typemap(varset) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
+%typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
 {
   long temp;
   if (Tcl_GetLongFromObj(interp, $input, &temp) != TCL_OK) {
@@ -128,7 +128,7 @@
   $1 = ($1_type) temp;
 }
 
-%typemap(varset) double, float {
+%typemap(varin) double, float {
   double temp;
   if (Tcl_GetDoubleFromObj(interp, $input, &temp) != TCL_OK) {
     return "Type error. expected a double.";
@@ -136,7 +136,7 @@
   $1 = ($1_type) temp;
 }
 
-%typemap(varset) char *
+%typemap(varin) char *
 #ifdef __cplusplus
 {
   char  *temp = Tcl_GetStringFromObj($input,NULL);
@@ -153,18 +153,18 @@
 }
 #endif
 
-%typemap(varset) char [ANY] {
+%typemap(varin) char [ANY] {
   char *temp = Tcl_GetStringFromObj($input,NULL);
   strncpy((char*)$1,temp,$1_dim0);
 }
 
-%typemap(varset) char 
+%typemap(varin) char 
 {
   char *temp = Tcl_GetStringFromObj($input,NULL);
   $1 = *temp;
 }
 
-%typemap(varset) SWIGTYPE * {
+%typemap(varin) SWIGTYPE * {
   void *temp;
   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor) != TCL_OK) {
     return "Type error. Expected $1_ltype";
@@ -172,7 +172,7 @@
   $1 = ($1_type) temp;
 }
 
-%typemap(varset) SWIGTYPE & {
+%typemap(varin) SWIGTYPE & {
   void *temp;
   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor) != TCL_OK) {
     return "Type error. Expected $1_ltype";
@@ -180,7 +180,7 @@
   $1 = *(($&1_type) temp);
 }
 
-%typemap(varset) SWIGTYPE {
+%typemap(varin) SWIGTYPE {
   void *temp;
   if (SWIG_ConvertPtr(interp,$input,&temp,$&1_descriptor) != TCL_OK) {
     return "Type error. Expected $&1_ltype";
@@ -191,19 +191,19 @@
 /* --- Constants --- */
 
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
-       { SWIG_TCL_INT,     (char *)"$name", (long) $value, 0, 0, 0}
+       { SWIG_TCL_INT,     (char *)"$symname", (long) $value, 0, 0, 0}
 
 %typemap(consttab) float, double
-       { SWIG_TCL_FLOAT,   (char*)"$name", 0, (double) $value, 0, 0}
+       { SWIG_TCL_FLOAT,   (char*)"$symname", 0, (double) $value, 0, 0}
 
 %typemap(consttab) char, char *
-       { SWIG_TCL_STRING,  (char*)"$name", 0, 0, (void *)"$value", 0}
+       { SWIG_TCL_STRING,  (char*)"$symname", 0, 0, (void *)"$value", 0}
 
 %typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
-       { SWIG_TCL_POINTER, (char*)"$name", 0, 0, (void *)$value, &$1_descriptor}
+       { SWIG_TCL_POINTER, (char*)"$symname", 0, 0, (void *)$value, &$1_descriptor}
 
 %typemap(consttab) SWIGTYPE (CLASS::*) 
-       { SWIG_TCL_BINARY,  (char *)"$name", sizeof($type), 0, (void *)&$value, &$1_descriptor}
+       { SWIG_TCL_BINARY,  (char *)"$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
 
 
 // Some special reserved words in classes

@@ -46,9 +46,10 @@ extern "C" {
 #endif
 
 typedef struct swig_type_info {
-  const char  *name;                 
-  swig_converter_func converter;
-  const char  *str;
+  const char             *name;                 
+  swig_converter_func     converter;
+  const char             *str;
+  void                   *clientdata;	
   struct swig_type_info  *next;
   struct swig_type_info  *prev;
 } swig_type_info;

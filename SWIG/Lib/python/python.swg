@@ -202,19 +202,19 @@
 /* --- Constants --- */
 
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
-       { SWIG_PY_INT,     (char *)"$name", (long) $value, 0, 0, 0}
+       { SWIG_PY_INT,     (char *)"$symname", (long) $value, 0, 0, 0}
 
 %typemap(consttab) float, double
-       { SWIG_PY_FLOAT,   (char*)"$name", 0, (double) $value, 0, 0}
+       { SWIG_PY_FLOAT,   (char*)"$symname", 0, (double) $value, 0, 0}
 
 %typemap(consttab) char, char *
-       { SWIG_PY_STRING,  (char*)"$name", 0, 0, (void *)"$value", 0}
+       { SWIG_PY_STRING,  (char*)"$symname", 0, 0, (void *)"$value", 0}
 
 %typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
-       { SWIG_PY_POINTER, (char*)"$name", 0, 0, (void *)$value, &$1_descriptor}
+       { SWIG_PY_POINTER, (char*)"$symname", 0, 0, (void *)$value, &$1_descriptor}
 
 %typemap(consttab) SWIGTYPE (CLASS::*) 
-       { SWIG_PY_BINARY,  (char *)"$name", sizeof($type), 0, (void *)&$value, &$1_descriptor}
+       { SWIG_PY_BINARY,  (char *)"$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
 
 /* Overloaded operator support */
 #ifdef __cplusplus
