@@ -126,9 +126,13 @@ static int name_mangle(String *r) {
 
 String *
 Swig_name_mangle(const String_or_char *s) {
+#if 0
   String *r = NewString(s);
   name_mangle(r);
   return r;
+#else
+  return Swig_string_mangle(s);
+#endif
 }
 
 /* -----------------------------------------------------------------------------
