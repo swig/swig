@@ -324,7 +324,7 @@ int DohCopyto(DOH *in, DOH *out) {
       cw = buffer;
       while (nwrite) {
 	wret = Write(out,cw,nwrite);
-	if (wret < 0) return nbytes;
+	if (wret < 0) return -1;
 	nwrite = nwrite - wret;
 	cw += wret;
       }

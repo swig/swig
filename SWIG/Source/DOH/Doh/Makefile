@@ -9,8 +9,8 @@
 # Set your C++ compiler here.   g++ works on most machines,
 # but you might have to change it depending on your installation.
 #
-CC      = gcc
-prefix     = /home/beazley/Projects
+CC      = cc
+prefix     = /usr/local
 
 # Comment out the following line if you're on an SGI or don't have ranlib!
 RANLIB  = ranlib

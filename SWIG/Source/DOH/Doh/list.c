@@ -343,7 +343,7 @@ List_dump(DOH *lo, DOH *out) {
   List *l = (List *) lo;
   for (i = 0; i < l->nitems; i++) {
     ret = Dump(l->items[i],out);
-    if (ret < 0) return -1;
+    if (ret < 0) ret;
     nsent += ret;
   }
   return nsent;
