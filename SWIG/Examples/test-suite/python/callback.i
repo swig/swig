@@ -12,6 +12,10 @@
     return a;
   }
   
+  int foof(int a) {
+    return 3*a;
+  }  
+  
   struct A 
   {
     static int bar(int a) {
@@ -23,12 +27,9 @@
       return -a;
     }
 
-    friend int foof(int a) 
-    {
-      return 3*a;
-    }    
+    //friend int foof(int a);
   };
-  
+
 
   extern "C" int foobar(int a, int (*pf)(int a)) {
     return pf(a);

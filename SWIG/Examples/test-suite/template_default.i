@@ -181,7 +181,10 @@ namespace ns1 {
     typedef void (*TFunc2)(CTemplate<CFoo> arg);   // OK
     typedef void (*TFunc3)(CTemplate<CFoo>* arg);  // OK
 
-    int foo(TFunc1 a, TFunc2 b, TFunc3 c);
+    int foo(TFunc1 a, TFunc2 b, TFunc3 c) 
+    {
+      return 0;
+    }
   }  
 %}
 
