@@ -1,5 +1,47 @@
 Version 1.3.20 (In progress)
 ============================
+09/11/2003: beazley
+            (Internals)
+            Major refactoring of iteration over lists and hashes.  The
+            DOH library now uses iterators.  They work like this:
+
+                List *l = (some list);
+
+                Iterator i;
+                for (i = First(l); i.item; i = Next(i)) {
+                    // i.item contains the actual list item.
+                    // i.item is NULL at end of list
+                    ...
+                }
+
+                Hash *h = (some hash);
+                Iterator j;
+                for (j = First(h); j.item; j = Next(j)) {
+                    // j.item contains hash table item
+                    // j.key  contains hash table key
+                    // Both j.item and j.key are NULL at end
+                    ...
+                }
+ 
+            The old iteration functions Firstitem(), Nextitem(), Firstkey(),
+            and Nextkey() are gone.  
+
+            The new iterators are simpler, result in better memory use,
+            and may be faster.  Also, there are no longer any problems
+            iterating over the same list/hash in multiple places at
+            the same time.  For example, this is fine:
+
+                 Iterator i,j;
+                 for (i = First(l); i.item; i = Next(i)) {
+                    for (j = First(l); j.item; j = Next(j)) {
+                         ...
+                    }
+                 }
+
+            (This never worked in previous versions).
+            *** POTENTIAL INCOMPATIBILITY ***.  This will probably break 
+            third party extensions to SWIG (or give them further encouragement
+            to join the SWIG CVS-tree :-).
 
 09/10/2003: mkoeppe (Matthias Koeppe)
 	    [Guile] Fix memory leaks in the "list-vector.i" typemaps.
