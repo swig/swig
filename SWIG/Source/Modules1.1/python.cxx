@@ -865,12 +865,12 @@ PYTHON::cpp_close_class() {
 	   "class ", class_name, "Ptr(", class_name, "):\n",
 	   tab4, "def __init__(self,this):\n",
 	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
-	   tab8,"except AttributeError: self.this = this; self.thisown = 0\n"
+	   tab8,"except AttributeError: self.this = this\n"
 	   tab8, "self.__class__ = ", class_name, "\n",
 	   "\n", additional, "\n",
 	   0);
 
-    Printf(f_shadow,"%s.%s_swigregister(%s)\n", module, class_name, class_name,0);
+    Printf(f_shadow,"%s.%s_swigregister(%sPtr)\n", module, class_name, class_name,0);
     Delete(pyclass);
     Delete(setattr);
     Delete(getattr);
