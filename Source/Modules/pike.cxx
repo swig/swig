@@ -235,7 +235,7 @@ public:
    * ------------------------------------------------------------ */
 
   void add_method(Node *n, const DOHString_or_char *name, const DOHString_or_char *function, const DOHString_or_char *description) {
-    String *rename;
+    String *rename = NULL;
     switch (current) {
       case NO_CPP:
         rename = NewString(name);
