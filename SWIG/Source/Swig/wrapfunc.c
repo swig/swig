@@ -124,7 +124,7 @@ Wrapper_pretty_print(String *str, File *f) {
       c = Getc(str);
       if (c != EOF) {
 	Putc(c,ts);
-	if (c == '/') {                     /* C++ comment */
+	if (c == '/') {         /* C++ comment */
 	  while ((c = Getc(str)) != EOF) {
 	    if (c == '\n') {
 	      Ungetc(c,str);
@@ -132,7 +132,21 @@ Wrapper_pretty_print(String *str, File *f) {
 	    }
 	    Putc(c,ts);
 	  }
-	}
+	} else if (c == '*') {  /* C comment */
+          int endstar = 0;
+	  while ((c = Getc(str)) != EOF) {
+	    if (endstar && c == '/') {  /* end of C comment */
+	      Putc(c,ts);
+	      break;
+	    }
+            endstar = (c == '*');
+	    Putc(c,ts);
+            if (c == '\n') { /* multi-line C comment. Could be improved slightly. */
+              for (i = 0; i < level; i++)
+	        Putc(' ',ts);
+            }
+	  }
+        }
       }
     } else {
       if (!empty || !isspace(c)) {
