@@ -13,24 +13,22 @@
  * can be used and distributed.
  ****************************************************************************/
 
-#ifndef _SWIGCPP_H
-#define _SWIGCPP_H
+#ifndef _PREPROCESSOR_H
+#define _PREPROCESSOR_H
 
-#include "swigcore.h"
+#include "swig.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern int   SWIG_expr(DOH *s, int *error);
-extern char *SWIG_expr_error(void);
-extern void  SWIG_expr_init();
-
-extern DOH *SWIG_cpp_define(DOH *str, int swigmacro);
-extern void SWIG_cpp_undef(DOH *name);
-extern void SWIG_cpp_init();
-extern DOH *SWIG_cpp_parse(DOH *s);
-extern void SWIG_cpp_include_all(int);
+extern int   Preprocessor_expr(DOH *s, int *error);
+extern char *Preprocessor_expr_error(void);
+extern DOH  *Preprocessor_define(DOH *str, int swigmacro);
+extern void  Preprocessor_undef(DOH *name);
+extern void  Preprocessor_init();
+extern DOH  *Preprocessor_parse(DOH *s);
+extern void  Preprocessor_include_all(int);
 
 #ifdef __cplusplus
 }
