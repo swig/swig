@@ -1,6 +1,3 @@
-#ifndef __python_complex_common_i__
-#define __python_complex_common_i__
-
 /*
   Defines the As/From conversors for double/float complex, you need to
   provide complex Type, the Name you want to use in the conversors,
@@ -103,4 +100,3 @@ SWIGSTATICINLINE(int)
 %swig_cplxdbl_conv(Type, Constructor, Real, Imag)
 
 
-#endif //__python_complex_common_i__

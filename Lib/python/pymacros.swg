@@ -102,24 +102,24 @@ macro(arg1, arg2)
 #define x 1
 %enddef
 
-%define %_apply_if(x,macro) 
+%define %_evalif(x,macro) 
 #if x == 1
 macro
 #endif
 %enddef
 
-%define %_apply_if2(x,y,macro) 
+%define %_evalif_2(x,y,macro) 
 #if x == 1 && #y == 1
 macro
 #endif
 %enddef
 
-%define %apply_if(x,...) 
-  %_apply_if(SWIG_arg(x),SWIG_arg(__VA_ARGS__)) 
+%define %evalif(x,...) 
+  %_evalif(SWIG_arg(x),SWIG_arg(__VA_ARGS__)) 
 %enddef
 
-%define %apply_if2(x,y,...) 
-  %_apply_if2(SWIG_arg(x),SWIG_arg(y),SWIG_arg(__VA_ARGS__)) 
+%define %evalif_2(x,y,...) 
+  %_evalif_2(SWIG_arg(x),SWIG_arg(y),SWIG_arg(__VA_ARGS__)) 
 %enddef
 
 #define %swig_equal_type(...) %swig_mark_flag(SWIG_EqualType(__VA_ARGS__))

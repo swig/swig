@@ -617,13 +617,17 @@ Macro(SWIG_CCode(CHAR),    char);
 
 
 /* ------------------------------------------------------------
- * equal and order types definition
+ * equal and order types definition.
+ * these are needed to decide when we the comparison
+ * operators ==, !=, <=, etc, can be used.
  * ------------------------------------------------------------ */
 
+/* the operators ==, != can used with these types */
 %swig_equal_type(bool);
 %swig_equal_type(std::complex<float>);
 %swig_equal_type(std::complex<double>);
 
+/* the operators <,>,<=,=> can used with these types */
 %swig_order_type(std::basic_string<char>);
 %swig_order_type(signed char);
 %swig_order_type(unsigned char);
