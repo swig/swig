@@ -216,7 +216,7 @@ extension module is imported by requiring the <b>etc</b> feature:
 require 'etc'
 
 # ... but the module name begins with an uppercase letter
-puts "Your login name: #{Etc::getlogin}"
+puts "Your login name: #{Etc.getlogin}"
 </blockquote></pre>
 
 To stay consistent with this practice, you should always specify a
@@ -361,8 +361,14 @@ in your SWIG interface files to Ruby constructs.
 
 
 The SWIG <tt>%module</tt> directive specifies the name of the Ruby module. If
-you specify `<tt>%module example</tt>', then everything is wrapped into a Ruby
-'<tt>Example</tt>' module.  When choosing a module name, do not use the same
+you specify:
+<blockquote><pre>%module example</pre></blockquote>
+then everything is wrapped into a Ruby module named <tt>Example</tt> that is
+nested directly under the global module. You can specify a more deeply nested
+module by specifying the fully-qualified module name in quotes, e.g.
+<blockquote><pre>%module "Foo::Bar::Spam"</pre></blockquote>
+
+When choosing a module name, do not use the same
 name as a built-in Ruby command or standard module name, the results may be
 unpredictable.
 
