@@ -3,6 +3,14 @@ It tests basic multiple inheritance */
 
 %module multiple_inheritance
 
+#ifdef SWIGRUBY
+#pragma SWIG nowarn=802; // Ruby doesn't support multiple  inheritance
+#endif
+
+#ifdef SWIGJAVA
+#pragma SWIG nowarn=813; // Java doesn't support multiple  inheritance
+#endif
+
 %inline %{
 
 class Bar {
