@@ -26,6 +26,7 @@ all:
 	-$(MAKE) ruby
 	-$(MAKE) guile
 	-$(MAKE) mzscheme
+	-$(MAKE) php4
 
 install:
 	@echo "Installing runtime libraries"
