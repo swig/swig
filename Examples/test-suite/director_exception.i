@@ -49,12 +49,12 @@ class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION {};
 #ifdef SWIGRUBY
 
 %feature("director:except") {
-    throw SWIG_DIRECTOR_METHOD_EXCEPTION();
+    throw SWIG_DIRECTOR_METHOD_EXCEPTION($error);
 }
 
 %exception {
   try { $action }
-  catch (SWIG_DIRECTOR_EXCEPTION &e) { rb_raise(e.getType(), e.getMessage()); }
+  catch (SWIG_DIRECTOR_EXCEPTION &e) { rb_exc_raise(e.getError()); }
 }
 
 #endif
