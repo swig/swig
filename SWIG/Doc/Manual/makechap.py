@@ -36,6 +36,8 @@ result = [ ]
 index = "<!-- INDEX -->\n<ul>\n"
 
 skip = 0
+skipspace = 0
+
 for s in lines:
     if s == "<!-- INDEX -->":
         if not skip:
@@ -45,22 +47,31 @@ for s in lines:
         continue;
     if skip:
         continue
-        
+
+    if not s and skipspace:
+        continue
+
+    if skipspace:
+        result.append("")
+        result.append("")
+        skipspace = 0
+    
     m = h1.match(s)
     if m:
         nameindex += 1
-        result.append("""<a name="n%d"></a><H1>%d %s</H1>\n""" % (nameindex,num,m.group(1)))
+        result.append("""<a name="n%d"></a><H1>%d %s</H1>""" % (nameindex,num,m.group(1)))
         result.append("@INDEX@")
         section = 0
         subsection = 0
         subsubsection = 0
         name = m.group(1)
+        skipspace = 1
         continue
     m = h2.match(s)
     if m:
         nameindex += 1
         section += 1
-        result.append("""<a name="n%d"></a><H2>%d.%d %s</H2>\n""" % (nameindex,num,section, m.group(1)))
+        result.append("""<a name="n%d"></a><H2>%d.%d %s</H2>""" % (nameindex,num,section, m.group(1)))
         if subsubsection:
             index += "</ul>\n"
         if subsection:
@@ -68,12 +79,13 @@ for s in lines:
         index += """<li><a href="#n%d">%s</a>\n""" % (nameindex,m.group(1))
         subsection = 0
         subsubsection = 0
+        skipspace = 1        
         continue
     m = h3.match(s)
     if m:
         nameindex += 1
         subsection += 1
-        result.append("""<a name="n%d"></a><H3>%d.%d.%d %s</H3>\n""" % (nameindex,num,section, subsection, m.group(1)))
+        result.append("""<a name="n%d"></a><H3>%d.%d.%d %s</H3>""" % (nameindex,num,section, subsection, m.group(1)))
 
         if subsubsection:
             index += "</ul>\n"
@@ -83,15 +95,17 @@ for s in lines:
         index += """<li><a href="#n%d">%s</a>\n""" % (nameindex,m.group(1))
 
         subsubsection = 0
+        skipspace = 1        
         continue
     m = h4.match(s)
     if m:
         nameindex += 1
         subsubsection += 1
-        result.append("""<a name="n%d"></a><H4>%d.%d.%d.%d %s</H4>\n""" % (nameindex,num,section, subsection, subsubsection, m.group(1)))
+        result.append("""<a name="n%d"></a><H4>%d.%d.%d.%d %s</H4>""" % (nameindex,num,section, subsection, subsubsection, m.group(1)))
         if subsubsection == 1:
             index += "<ul>\n"
         index += """<li><a href="#n%d">%s</a>\n""" % (nameindex,m.group(1))
+        skipspace = 1        
         continue
         
     result.append(s)

@@ -5,7 +5,6 @@
 
 <body bgcolor="#ffffff">
 <a name="n1"></a><H1>19 SWIG and Tcl</H1>
-
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Preliminaries</a>
@@ -42,42 +41,28 @@
 <li><a href="#n26">Changing member data</a>
 <li><a href="#n27">Managing Object Ownership</a>
 <li><a href="#n28">Relationship with pointers</a>
-<ul>
-<li><a href="#n29">Everything from this point on is out of date-- in progress</a>
 </ul>
-</ul>
-<li><a href="#n30">Examples</a>
-<li><a href="#n31">Accessing arrays</a>
-<li><a href="#n32">Exception handling </a>
-<li><a href="#n33">Typemaps</a>
+<li><a href="#n29">Input and output parameters</a>
+<li><a href="#n30">Exception handling </a>
+<li><a href="#n31">Typemaps</a>
 <ul>
-<li><a href="#n34">What is a typemap?</a>
-<li><a href="#n35">Tcl typemaps</a>
-<li><a href="#n36">Typemap variables</a>
-<li><a href="#n37">Name based type conversion</a>
-<li><a href="#n38">Converting  a Tcl list to a char ** </a>
-<li><a href="#n39">Remapping constants</a>
-<li><a href="#n40">Returning values in arguments</a>
-<li><a href="#n41">Mapping C structures into Tcl Lists</a>
-<li><a href="#n42">Useful functions</a>
-<li><a href="#n43">Standard  typemaps</a>
-<li><a href="#n44">Pointer handling</a>
+<li><a href="#n32">What is a typemap?</a>
+<li><a href="#n33">Tcl typemaps</a>
+<li><a href="#n34">Typemap variables</a>
+<li><a href="#n35">Converting  a Tcl list to a char ** </a>
+<li><a href="#n36">Returning values in arguments</a>
+<li><a href="#n37">Useful functions</a>
+<li><a href="#n38">Standard  typemaps</a>
+<li><a href="#n39">Pointer handling</a>
 </ul>
-<li><a href="#n45">Configuration management with SWIG</a>
+<li><a href="#n40">Turning a SWIG module into a Tcl Package.</a>
+<li><a href="#n41">Building new kinds of Tcl interfaces (in Tcl)</a>
 <ul>
-<li><a href="#n46">Writing a main program and Tcl_AppInit()</a>
-<li><a href="#n47">Creating a new package initialization library</a>
-<li><a href="#n48">Combining Tcl/Tk Extensions</a>
-<li><a href="#n49">Limitations to this approach</a>
-<li><a href="#n50">Dynamic loading </a>
-<li><a href="#n51">Turning a SWIG module into a Tcl Package.</a>
-</ul>
-<li><a href="#n52">Building new kinds of Tcl interfaces (in Tcl)</a>
-<ul>
-<li><a href="#n53">Shadow classes</a>
+<li><a href="#n42">Shadow classes</a>
 </ul>
 </ul>
 <!-- INDEX -->
+
 
 
 <b>Caution: This chapter is under repair!</b>
@@ -508,6 +493,7 @@ MSDOS &gt; tclsh80
 </pre></blockquote>
 
 <a name="n13"></a><H3>19.2.2 Using NMAKE</H3>
+
 
 Alternatively, SWIG extensions can be built by writing a Makefile for
 NMAKE.  To do this, make sure the environment variables for MSVC++ are
@@ -1036,6 +1022,7 @@ the Tcl variable is destroyed without calling the corresponding C/C++ destructor
 
 <a name="n28"></a><H3>19.4.7 Relationship with pointers</H3>
 
+
 The object oriented interface is mostly compatible with all of the
 functions that accept pointer values as arguments. Here are a couple
 of things to keep in mind :<p>
@@ -1085,111 +1072,173 @@ List_print $l                # Call static method (uses pointer value as before)
 </pre></blockquote>
 <p>
 
-
-<hr>
-<a name="n29"></a><H4>19.4.7.1 Everything from this point on is out of date-- in progress</H4>
+<a name="n29"></a><H2>19.5 Input and output parameters</H2>
 
 
-<a name="n30"></a><H2>19.5 Examples</H2>
+A common problem in some C programs is handling parameters passed as simple pointers.  For
+example:
 
+<blockquote>
+<pre>
+void add(int x, int y, int *result) {
+   *result = x + y;
+}
+</pre>
+</blockquote>
 
-<a name="n31"></a><H2>19.6 Accessing arrays</H2>
+or perhaps
 
+<blockquote>
+<pre>
+int sub(int *x, int *y) {
+   return *x+*y;
+}
+</pre>
+</blockquote>
 
-In some cases, C functions may involve arrays and other objects.  In
-these instances, you may have to write helper functions to provide
-access.  For example, suppose you have a C function like this :<p>
+The easiest way to handle these situations is to use the <tt>typemaps.i</tt> file.  For example:
+
+<blockquote>
+<pre>
+%module example
+%include "typemaps.i"
+
+void add(int, int, int *OUTPUT);
+int  sub(int *INPUT, int *INPUT);
+</pre>
+</blockquote>
+
+In Tcl, this allows you to pass simple values instead of pointer.  For example:
+
+<blockquote>
+<pre>
+set a [add 3 4]
+puts $a
+7
+</pre>
+</blockquote>
+
+Notice how the <tt>INPUT</tt> parameters allow integer values to be passed instead of pointers
+and how the <tt>OUTPUT</tt> parameter creates a return result.
+
 <p>
-<blockquote><pre>// Add vector a+b -&gt; c
-void vector_add(double *a, double *b, double *c, int size);
+If you don't want to use the names <tt>INPUT</tt> or <tt>OUTPUT</tt>, use the <tt>%apply</tt>
+directive.  For example:
 
-</pre></blockquote>
+<blockquote>
+<pre>
+%module example
+%include "typemaps.i"
 
-SWIG is quite literal in its interpretation of <tt>double *</tt>--it
-is a pointer to a <tt>double</tt>. To provide access, a few helper
-functions can be written such as the following :<p>
+%apply int *OUTPUT { int *result };
+%apply int *INPUT  { int *x, int *y};
+
+void add(int x, int y, int *result);
+int  sub(int *x, int *y);
+</pre>
+</blockquote>
 
 <p>
-<blockquote><pre>// SWIG helper functions for double arrays
-%inline %{
-double *new_double(int size) {
-	return (double *) malloc(size*sizeof(double));
+If a function mutates one of its parameters like this,
+
+<blockquote>
+<pre>
+void negate(int *x) {
+   *x = -(*x);
 }
-void delete_double(double *a) {
-	free a;
-}
-double get_double(double *a, int index) {
-	return a[index];
-}
-void set_double(double *a, int index, double val) {
-	a[index] = val;
-}
-%}
-</pre></blockquote>
+</pre>
+</blockquote>
+
+you can use <tt>INOUT</tt> like this:
+
+<blockquote>
+<pre>
+%include "typemaps.i"
+...
+void negate(int *INOUT);
+</pre>
+</blockquote>
+
+In Tcl, a mutated parameter shows up as a return value.  For example:
+
+<blockquote>
+<pre>
+set a [negate 3]
+puts $a
+-3
+</pre>
+</blockquote>
+
 <p>
-Using our C functions might work like this :<p>
-<p>
-<blockquote><pre># Tcl code to create some arrays and add them
+The most common use of these special typemap rules is to handle functions that
+return more than one value.   For example, sometimes a function returns a result
+as well as a special error code:
 
-set a [new_double 200]
-set b [new_double 200]
-set c [new_double 200]
+<blockquote>
+<pre>
+/* send message, return number of bytes sent, along with success code */
+int send_message(char *text, int len, int *success);
+</pre>
+</blockquote>
 
-# Fill a and b with some values
-for {set i 0} {$i &lt; 200} {incr i 1} {
-	set_double $a $i 0.0
-	set_double $b $i $i
-}
+To wrap such a function, simply use the <tt>OUTPUT</tt> rule above. For example:
 
-# Add them and store result in c
-vector_add $a $b $c 200
+<blockquote>
+<pre>
+%module example
+%include "typemaps.i"
+%apply int *OUTPUT { int *success };
+...
+int send_message(char *text, int *success);
+</pre>
+</blockquote>
 
-</pre></blockquote>
+When used in Tcl, the function will return multiple values as a list.  
 
-The functions <tt>get_double</tt> and <tt>set_double</tt> can be used
-to access individual elements of an array.  To convert from Tcl lists
-to C arrays, one could write a few functions in Tcl such as the
-following :<p>
-<p>
-<blockquote><pre># Tcl Procedure to turn a list into a C array
-proc Tcl2Array {l} {
-	set len [llength $l]
-	set a [new_double $len]
-	set i 0
-	foreach item $l {
-		set_double $a $i $item
-		incr i 1
-	}
-	return $a
-}
+<blockquote>
+<pre>
+set r [send_message "Hello World"]
+set bytes [lindex $r 0]
+set success [lindex $r 1]
+</pre>
+</blockquote>
 
-# Tcl Procedure to turn a C array into a Tcl List
-proc Array2Tcl {a size} {
-	set l {}
-	for {set i 0} {$i &lt; size} {incr i 1} {
-		lappend $l [get_double $a $i]
-	}
-	return $l
-}
+Another common use of multiple return values are in query functions.  For example:
 
-</pre></blockquote>
+<blockquote>
+<pre>
+void get_dimensions(Matrix *m, int *rows, int *columns);
+</pre>
+</blockquote>
 
-While not optimal, one could use these to turn a Tcl list into a C
-representation.  The C representation could be used repeatedly in a
-variety of C functions without having to repeatedly convert from
-strings (Of course, if the Tcl list changed one would want to update
-the C version).  Likewise, it is relatively simple to go back from C
-into Tcl.  This is not the only way to manage arrays--typemaps can be
-used as well.  The SWIG library file `<tt>array.i</tt>' also contains
-a variety of pre-written helper functions for managing different kinds
-of arrays.<p>
+To wrap this, you might use the following:
 
-<a name="n32"></a><H2>19.7 Exception handling </H2>
+<blockquote>
+<pre>
+%module example
+%include "typemaps.i"
+%apply int *OUTPUT { int *rows, int *columns };
+...
+void get_dimensions(Matrix *m, int *rows, *columns);
+</pre>
+</blockquote>
+
+Now, in Perl:
+
+<blockquote>
+<pre>
+set dim [get_dimensions $m]
+set r  [lindex $dim 0]
+set c  [lindex $dim 1]
+</pre>
+</blockquote>
+
+<a name="n30"></a><H2>19.6 Exception handling </H2>
 
 
-The <tt>%except</tt> directive can be used to create a user-definable
+The <tt>%exception</tt> directive can be used to create a user-definable
 exception handler in charge of converting exceptions in your C/C++
-program into Tcl exceptions.  The chapter on exception handling
+program into Tcl exceptions.  The chapter on customization features
 contains more details, but suppose you extended the array example into
 a C++ class like the following :<p>
 
@@ -1240,22 +1289,9 @@ exception for an out-of-bounds array access.  We can catch this in our
 Tcl extension by specifying the following in an interface file :<p>
 
 <p>
-<blockquote><pre>%except(tcl) {
+<blockquote><pre>%exception {
   try {
-    $function                // Gets substituted by actual function call
-  }
-  catch (RangeError) {
-    interp-&gt;result = "Array index out-of-bounds";
-    return TCL_ERROR;
-  }
-}
-
-</pre></blockquote>
-or in Tcl 8.0<p>
-<p>
-<blockquote><pre>%except(tcl8) {
-  try {
-    $function                // Gets substituted by actual function call
+    $action                // Gets substituted by actual function call
   }
   catch (RangeError) {
     Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
@@ -1264,135 +1300,326 @@ or in Tcl 8.0<p>
 }
 
 </pre></blockquote>
-When the C++ class throws a <tt>RangeError</tt> exception, our wrapper
-functions will catch it, turn it into a Tcl exception, and allow a
-graceful death as opposed to just having some sort of mysterious
-program crash.  We are not limited to C++ exception handling.  Please
-see the chapter on exception handling for more details on other
-possibilities, including a method for language-independent exception
-handling..<p>
 
-<a name="n33"></a><H2>19.8 Typemaps</H2>
+<p>
+As shown, the exception handling code will be added to every wrapper function.
+Since this is somewhat inefficient.  You might consider refining the 
+exception handler to only apply to specific methods like this:
+
+<blockquote>
+<pre>
+%exception getitem {
+  try {
+    $action
+  }
+  catch (RangeError) {
+    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    return TCL_ERROR;
+  }
+}
+
+%exception setitem {
+  try {
+    $action
+  }
+  catch (RangeError) {
+    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    return TCL_ERROR;
+  }
+}
+</pre>
+</blockquote>
+
+In this case, the exception handler is only attached to methods and functions
+named <tt>getitem</tt> and <tt>setitem</tt>.
+
+<p>
+If you had a lot of different methods, you can avoid extra typing by using a macro.
+For example:
+
+<blockquote>
+<pre>
+%define RANGE_ERROR
+{
+  try {
+    $action
+  }
+  catch (RangeError) {
+    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    return TCL_ERROR;
+  }
+}
+%enddef
+
+%exception getitem RANGE_ERROR;
+%exception setitem RANGE_ERROR;
+</pre>
+</blockquote>
+
+Since SWIG's exception handling is user-definable, you are not limited to C++ exception handling.
+See the chapter on "<a href="Customization.html">Customization Features</a>" for more examples.
+
+<a name="n31"></a><H2>19.7 Typemaps</H2>
 
 
-This section describes how SWIG's treatment of various C/C++ datatypes
-can be remapped using the <tt>%typemap</tt> directive.  While not
-required, this section assumes some familiarity with Tcl's C API.  The
-reader is advised to consult a Tcl book.  A glance at the chapter on
-SWIG typemaps will also be useful.  <p>
+This section describes how you can modify SWIG's default wrapping behavior
+for various C/C++ datatypes using the <tt>%typemap</tt> directive.   This
+is an advanced topic that assumes familiarity with the Tcl C API as well
+as the material in the "<a href="Typemaps.html">Typemaps</a>" chapter.
 
-<a name="n34"></a><H3>19.8.1 What is a typemap?</H3>
+<p>
+Before proceeding, it should be stressed that typemaps are not a required 
+part of using SWIG---the default wrapping behavior is enough in most cases.
+Typemaps are only used if you want to change some aspect of the primitive
+C-Tcl interface.
+
+<a name="n32"></a><H3>19.7.1 What is a typemap?</H3>
 
 
-A typemap is mechanism by which SWIG's processing of a particular C
-datatype can be changed.  A simple typemap might look like this :<p>
+A typemap is nothing more than a code generation rule that is attached to 
+a specific C datatype.   For example, to convert integers from Tcl to C,
+you might define a typemap like this:
+
 <p>
 <blockquote><pre>%module example
 
-%typemap(tcl,in) int {
-	$target = (int) atoi($source);
-	printf("Received an integer : %d\n",$target);
+%typemap(in) int {
+        if (Tcl_GetIntFromObj(interp,$input,&$1) == TCL_ERROR) return TCL_ERROR;
+	printf("Received an integer : %d\n",$1);
 }
-...
 extern int fact(int n);
 </pre></blockquote>
+
 <p>
-Typemaps require a language name, method name, datatype, and
-conversion code.  For Tcl, "tcl" should be used as the language name.
-For Tcl 8.0, "tcl8" should be used if you are using the native object
-interface. The "in" method in this example refers to an input argument
-of a function. The datatype `int' tells SWIG that we are remapping
-integers.  The supplied code is used to convert from a Tcl string to
-the corresponding C datatype.  Within the supporting C code, the
-variable <tt>$source</tt> contains the source data (a string in this
-case) and <tt>$target</tt> contains the destination of a conversion (a
-C local variable).  <p>
+Typemaps are always associated with some specific aspect of code generation.
+In this case, the "in" method refers to the conversion of input arguments
+to C/C++.  The datatype <tt>int</tt> is the datatype to which the typemap
+will be applied.  The supplied C code is used to convert values.  In this
+code a number of special variable prefaced by a <tt>$</tt> are used.  The
+<tt>$1</tt> variable is placeholder for a local variable of type <tt>int</tt>.
+The <tt>$input</tt> variable is the input object of type <tt>Tcl_Obj *</tt>.
+
 <p>
-When the example is compiled into a Tcl module, it will operate as
-follows :<p>
+When this example is compiled into a Tcl module, it operates as follows:
+
 <p>
-<blockquote><pre>% fact 6
+<blockquote><pre>% load ./example.so
+% fact 6
 Received an integer : 6
 720
-%
 </pre></blockquote>
 <p>
-A full discussion of typemaps can be found in the main SWIG users
-reference.  We will primarily be concerned with Tcl typemaps here.<p>
 
-<a name="n35"></a><H3>19.8.2 Tcl typemaps</H3>
+In this example, the typemap is applied to all occurrences of the <tt>int</tt> datatype.
+You can refine this by supplying an optional parameter name.  For example:
 
+<blockquote><pre>%module example
 
-The following typemap methods are available to Tcl modules :<p>
-
-<p>
-<tt>%typemap(tcl,in)</tt>	Converts a string to input function arguments<p>
-<tt>%typemap(tcl,out)</tt>	Converts return value of a C function to a string<p>
-<tt>%typemap(tcl,freearg)</tt>	Cleans up a function argument (if necessary)<p>
-<tt>%typemap(tcl,argout)</tt>	Output argument processing<p>
-<tt>%typemap(tcl,ret)</tt>	Cleanup of function return values<p>
-<tt>%typemap(tcl,const)</tt>	Creation of Tcl constants<p>
-<tt>%typemap(memberin)</tt>	Setting of C++ member data<p>
-<tt>%typemap(memberout)</tt>	Return of C++ member data<p>
-<tt>%typemap(tcl, check)</tt>	Check value of function arguments.<p>
-<a name="n36"></a><H3>19.8.3 Typemap variables</H3>
-
-The following variables may be used within the C code used in a typemap:<p>
-<p>
-<tt>$source</tt>	Source value of a conversion<p>
-<tt>$target</tt>	Target of conversion (where the result should be stored)<p>
-<tt>$type</tt>	C datatype being remapped<p>
-<tt>$mangle</tt>	Mangled version of data (used for pointer type-checking)<p>
-<tt>$value</tt>	Value of a constant (const typemap only)<p>
-<tt>$arg</tt>	Original function argument (usually a string)<p>
-<a name="n37"></a><H3>19.8.4 Name based type conversion</H3>
-
-Typemaps are based both on the datatype and an optional name attached to a datatype.   For example :<p>
-<p>
-<blockquote><pre>%module foo
-
-// This typemap will be applied to all char ** function arguments
-%typemap(tcl,in) char ** { ... }
-
-// This typemap is applied only to char ** arguments named `argv'
-%typemap(tcl,in) char **argv { ... }
-
-</pre></blockquote>
-
-In this example, two typemaps are applied to the <tt>char **</tt>
-datatype.  However, the second typemap will only be applied to
-arguments named `<tt>argv</tt>'.  A named typemap will always override
-an unnamed typemap.<p>
-
-<p>
-Due to the name-based nature of typemaps, it is important to note that
-typemaps are independent of typedef declarations.  For example :<p>
-
-<p>
-<blockquote><pre>%typemap(tcl, in) double {
-	... get a double ...
+%typemap(in) int n {
+        if (Tcl_GetIntFromObj(interp,$input,&$1) == TCL_ERROR) return TCL_ERROR;
+	printf("n = %d\n",$1);
 }
-void foo(double);            // Uses the above typemap
-typedef double Real;
-void bar(Real);              // Does not use the above typemap (double != Real)
-
+extern int fact(int n);
 </pre></blockquote>
 
-To get around this problem, the <tt>%apply</tt> directive can be used
-as follows :<p>
+In this case, the typemap code is only attached to arguments that exactly match <tt>int n</tt>.
 
-<blockquote><pre>
-%typemap(tcl,in) double {
-	... get a double ...
+<p>
+The application of a typemap to specific datatypes and argument names involves
+more than simple text-matching--typemaps are fully integrated into the
+SWIG type-system.   When you define a typemap for <tt>int</tt>, that typemap
+applies to <tt>int</tt> and qualified variations such as <tt>const int</tt>.  In addition,
+the typemap system follows <tt>typedef</tt> declarations.  For example:
+
+<blockquote>
+<pre>
+%typemap(in) int n {
+        if (Tcl_GetIntFromObj(interp,$input,&$1) == TCL_ERROR) return TCL_ERROR;
+	printf("n = %d\n",$1);
 }
-void foo(double);
+typedef int Integer;
+extern int fact(Integer n);    // Above typemap is applied
+</pre>
+</blockquote>
 
-typedef double Real;         // Uses typemap
-%apply double { Real };      // Applies all "double" typemaps to Real.
-void bar(Real);              // Now uses the same typemap.
-</pre></blockquote>
+However, the matching of <tt>typedef</tt> only occurs in one direction.  If you
+defined a typemap for <tt>Integer</tt>, it is not applied to arguments of
+type <tt>int</tt>.
 
-<a name="n38"></a><H3>19.8.5 Converting  a Tcl list to a char ** </H3>
+<p>
+Typemaps can also be defined for groups of consecutive arguments.  For example:
+
+<blockquote>
+<pre>
+%typemap(in) (char *str, int len) {
+    $1 = Tcl_GetStringFromObj($input,&$2);
+};
+
+int count(char c, char *str, int len);
+</pre>
+</blockquote>
+
+When a multi-argument typemap is defined, the arguments are always handled as a single
+Tcl object.  This allows the function to be used like this (notice how the length
+parameter is ommitted):
+
+<blockquote>
+<pre>
+% count e "Hello World"
+1
+</pre>
+</blockquote>
+
+<a name="n33"></a><H3>19.7.2 Tcl typemaps</H3>
+
+
+The previous section illustrated an "in" typemap for converting Tcl objects to C.
+A variety of different typemap methods are defined by the Tcl module.  For example,
+to convert a C integer back into a Tcl object, you might define an "out" typemap
+like this:
+
+<blockquote>
+<pre>
+%typemap(out) int {
+    Tcl_SetObjResult(interp,Tcl_NewIntObj($1));
+}
+</pre>
+</blockquote>
+
+The following list details all of the typemap methods that can be used by the Tcl module:
+<p>
+<tt>%typemap(in)	</tt>
+<blockquote>
+Converts Tcl objects to input function arguments<p>
+</blockquote>
+
+<tt>%typemap(out)</tt>
+<blockquote>
+Converts return value of a C function to a Tcl object<p>
+</blockquote>
+
+<tt>%typemap(varin)</tt>
+<blockquote>
+Assigns a C global variable from a Tcl object<p>
+</blockquote>
+
+<tt>%typemap(varout)</tt>
+<blockquote>
+Returns a C global variable as a Tcl object<p>
+</blockquote>
+
+<tt>%typemap(freearg)</tt>
+<blockquote>
+Cleans up a function argument (if necessary)<p>
+</blockquote>
+
+<tt>%typemap(argout)</tt>
+<blockquote>
+Output argument processing<p>
+</blockquote>
+
+<tt>%typemap(ret)</tt>
+<blockquote>
+Cleanup of function return values<p>
+</blockquote>
+
+<tt>%typemap(consttab)</tt>
+<blockquote>
+Creation of Tcl constants (constant table)<p>
+</blockquote>
+
+<tt>%typemap(constcode)</tt> 
+<blockquote>
+Creation of Tcl constants (init function)
+</blockquote>
+
+<tt>%typemap(memberin)</tt>
+<blockquote>
+Setting of structure/class member data<p>
+</blockquote>
+
+<tt>%typemap(globalin)</tt>
+<blockquote>
+Setting of C global variables<p>
+</blockquote>
+
+<tt>%typemap(check)</tt>
+<blockquote>
+Checks function input values.<p>
+</blockquote>
+
+<tt>%typemap(default)</tt>
+<blockquote>
+Set a default value for an argument (making it optional).
+</blockquote>
+
+<tt>%typemap(ignore)</tt>
+<blockquote>
+Ignore an argument, but initialize its value.
+</blockquote>
+
+<tt>%typemap(arginit)</tt>
+<blockquote>
+Initialize an argument to a value before any conversions occur.
+</blockquote>
+
+Examples of these methods will appear shortly.
+
+<a name="n34"></a><H3>19.7.3 Typemap variables</H3>
+
+
+Within typemap code, a number of special variables prefaced with a <tt>$</tt> may appear.
+A full list of variables can be found in the "<a href="Typemaps.html">Typemaps</a>" chapter.
+This is a list of the most common variables:
+
+<p>
+<tt>$1</tt>
+<blockquote>
+A C local variable corresponding to the actual type specified in the
+<tt>%typemap</tt> directive.  For input values, this is a C local variable
+that's supposed to hold an argument value.  For output values, this is
+the raw result that's supposed to be returned to Tcl.
+</blockquote>
+
+<p>
+<tt>$input</tt>
+<blockquote>
+ A <tt>Tcl_Obj *</tt> holding a raw Tcl object with an argument or variable value.
+</blockquote>
+
+<p>
+<tt>$result</tt>
+<blockquote>
+A <tt>Tcl_Obj *</tt> that holds the result to be returned to Tcl.
+</blockquote>
+<p>
+
+<tt>$1_name</tt>
+<blockquote>
+The parameter name that was matched. 
+</blockquote>
+<p>
+
+<tt>$1_type</tt>
+<blockquote>
+The actual C datatype matched by the typemap.
+</blockquote>
+<p>
+
+<tt>$1_ltype</tt>
+<blockquote>
+An assignable version of the datatype matched by the typemap (a type that can appear on the left-hand-side of
+a C assignment operation).  This type is stripped of qualifiers and may be an altered version of <tt>$1_type</tt>.
+All arguments and local variables in wrapper functions are declared using this type so that their values can be
+properly assigned.
+</blockquote>
+
+<tt>$symname</tt>
+<blockquote>
+The Tcl name of the wrapper function being created.
+</blockquote>
+
+<a name="n35"></a><H3>19.7.4 Converting  a Tcl list to a char ** </H3>
 
 
 A common problem in many C programs is the processing of command line
@@ -1404,27 +1631,28 @@ used as a <tt>char **</tt> object.<p>
 <blockquote><pre>%module argv
 
 // This tells SWIG to treat char ** as a special case
-%typemap(tcl,in) char ** {
-        int tempc;
-        if (Tcl_SplitList(interp,$source,&amp;tempc,&amp;$target) == TCL_ERROR) 
-		return TCL_ERROR;
+%typemap(in) char ** {
+     Tcl_Obj **listobjv;
+     int       nitems;
+     int       i;
+     if (Tcl_ListObjGetElements(interp, $input, &nitems, &listobjv) == TCL_ERROR) {
+        return TCL_ERROR;
+     }
+     $1 = (char **) malloc((nitems+1)*sizeof(char *));
+     for (i = 0; i < nitems; i++) {
+        $1[i] = Tcl_GetStringFromObj(listobjv[i],0);
+     }
+     $1[i] = 0;
 }
 
 // This gives SWIG some cleanup code that will get called after the function call
-%typemap(tcl,freearg) char ** {
-        free((char *) $source);
+%typemap(freearg) char ** {
+     if ($1) {
+        free($1);
+     }
 }
 
-// Return a char ** as a Tcl list
-%typemap(tcl,out) char ** {
-        int i = 0;
-        while ($source[i]) {
-             Tcl_AppendElement(interp,$source[i]);
-             i++;
-        }
-}
-
-// Now a few test functions
+// Now a test functions
 %inline %{
 int print_args(char **argv) {
     int i = 0;
@@ -1434,112 +1662,21 @@ int print_args(char **argv) {
     }
     return i;
 }
-
-
-// Returns a char ** list
-char **get_args() {
-    static char *values[] = { "Dave", "Mike", "Susan", "John", "Michelle", 0};
-    return &amp;values[0];
-}
-
-// A global variable
-char *args[] = { "123", "54", "-2", "0", "NULL", 0 };
-
 %}
 %include tclsh.i
 
 </pre></blockquote>
 
-When compiled, we can use our functions as follows :<p>
+In Tcl:
 <p>
 <blockquote><pre>% print_args {John Guido Larry}
 argv[0] = John
 argv[1] = Guido
 argv[2] = Larry
 3
-% puts [get_args]
-Dave Mike Susan John Michelle
-% puts [args_get]
-123 54 -2 0 NULL
-%
 </pre></blockquote>
 
-<p>
-Perhaps the only tricky part of this example is the implicit memory
-allocation that is performed by the <tt>Tcl_SplitList</tt> function.
-To prevent a memory leak, we can use the SWIG "freearg" typemap to
-clean up the argument value after the function call is made. In this
-case, we simply free up the memory that <tt>Tcl_SplitList</tt>
-allocated for us.<p>
-
-<a name="n39"></a><H3>19.8.6 Remapping constants</H3>
-
-
-By default, SWIG installs C constants as Tcl read-only variables.
-Unfortunately, this has the undesirable side effect that constants
-need to be declared as "global" when used in subroutines.  For example
-:<p>
-
-<p>
-<blockquote><pre>proc clearscreen { } {
-	global GL_COLOR_BUFFER_BIT
-	glClear $GL_COLOR_BUFFER_BIT
-}
-
-</pre></blockquote>
-
-If you have hundreds of functions however, this quickly gets annoying.   Here's a fix using hash tables and SWIG typemaps :<p>
-
-<p>
-<blockquote><pre>// Declare some Tcl hash table variables
-%{
-static Tcl_HashTable  constTable;      /* Hash table          */
-static int           *swigconst;       /* Temporary variable  */
-static Tcl_HashEntry *entryPtr;        /* Hash entry          */
-static int            dummy;           /* dummy value         */
-%}
-
-// Initialize the hash table (This goes in the initialization function)
-
-%init %{
-  Tcl_InitHashTable(&amp;constTable,TCL_STRING_KEYS);
-%}
-
-// A Typemap for creating constant values
-// $source = the value of the constant
-// $target = the name of the constant
-
-%typemap(tcl,const) int, unsigned int, long, unsigned long {
-  entryPtr = Tcl_CreateHashEntry(&amp;constTable,"$target",&amp;dummy);
-  swigconst = (int *) malloc(sizeof(int));
-  *swigconst = $source;
-  Tcl_SetHashValue(entryPtr, swigconst);
-  /* Make it so constants can also be used as variables */
-  Tcl_LinkVar(interp,"$target", (char *) swigconst, TCL_LINK_INT | TCL_LINK_READ_ONLY);
-};
-
-// Now change integer handling to look for names in addition to values
-%typemap(tcl,in) int, unsigned int, long, unsigned long {
-  Tcl_HashEntry *entryPtr;
-  entryPtr = Tcl_FindHashEntry(&amp;constTable,$source);
-  if (entryPtr) {
-    $target = ($type) (*((int *) Tcl_GetHashValue(entryPtr)));
-  } else {
-    $target = ($type) atoi($source);
-  }
-}
-
-</pre></blockquote>
-In our Tcl code, we can now access constants by name without using the
-"global" keyword as follows :<p>
-<p>
-<blockquote><pre>proc clearscreen { } {
-	glClear GL_COLOR_BUFFER_BIT
-}
-
-</pre></blockquote>
-
-<a name="n40"></a><H3>19.8.7 Returning values in arguments</H3>
+<a name="n36"></a><H3>19.7.5 Returning values in arguments</H3>
 
 
 The "argout" typemap can be used to return a value originating from a
@@ -1547,17 +1684,15 @@ function argument. For example :<p>
 
 <p>
 <blockquote><pre>// A typemap defining how to return an argument by appending it to the result
-%typemap(tcl,argout) double *outvalue {
-        char dtemp[TCL_DOUBLE_SPACE];
-        Tcl_PrintDouble(interp,*($source),dtemp);
-        Tcl_AppendElement(interp, dtemp);
+%typemap(argout) double *outvalue {
+     Tcl_Obj *o = Tcl_NewDoubleObj($1);
+     Tcl_ListObjAppendElement(interp,$result,o);
 }
 
 // A typemap telling SWIG to ignore an argument for input
 // However, we still need to pass a pointer to the C function
-%typemap(tcl,ignore) double *outvalue {
-	static double temp;         /* A temporary holding place */
-	$target = &amp;temp;
+%typemap(ignore) double *outvalue (double temp) {
+     $1 = &temp;
 }
 
 // Now a function returning two values
@@ -1578,132 +1713,12 @@ result, a Tcl function using these typemaps will work like this :<p>
 0 8
 %
 </pre></blockquote>
-<p>
-An alternative approach to this is to return values in a Tcl variable
-as follows :<p>
 
-<p>
-<blockquote><pre>%typemap(tcl,argout) double *outvalue {
-	char temp[TCL_DOUBLE_SPACE];
-	Tcl_PrintDouble(interp,*($source),dtemp);
-	Tcl_SetVar(interp,$arg,temp,0);
-}
-%typemap(tcl,in) double *outvalue {
-	static double temp;
-	$target = &amp;temp;
-}
-
-</pre></blockquote>
-
-Our Tcl script can now do the following :<p>
-
-<p>
-<blockquote><pre>% set status [mypow 2 3 a]
-% puts $status
-0
-% puts $a
-8.0
-%
-</pre></blockquote>
-
-Here, we have passed the name of a Tcl variable to our C wrapper
-function which then places the return value in that variable.  This is
-now very close to the way in which a C function calling this function
-would work.<p>
-
-<a name="n41"></a><H3>19.8.8 Mapping C structures into Tcl Lists</H3>
-
-
-Suppose you have a C structure like this :<p>
-<p>
-<blockquote><pre>typedef struct {
-  char  login[16];            /* Login ID  */
-  int   uid;                  /* User ID   */
-  int   gid;                  /* Group ID  */
-  char  name[32];             /* User name */
-  char  home[256];            /* Home directory */
-} User;
-
-</pre></blockquote>
-
-By default, SWIG will simply treat all occurrences of "<tt>User</tt>"
-as a pointer.  Thus, functions like this :<p>
-
-<p>
-<blockquote><pre>extern void add_user(User u);
-extern User *lookup_user(char *name);
-
-</pre></blockquote>
-
-will work, but they will be weird.  In fact, they may not work at all
-unless you write helper functions to create users and extract data.  A
-typemap can be used to fix this problem however.  For example :<p>
-
-<p>
-<blockquote><pre>// This works for both "User" and "User *"
-%typemap(tcl,in) User * {
-	int tempc;
-	char **tempa;
-	static User temp;
-	if (Tcl_SplitList(interp,$source,&amp;tempc,&amp;tempa) == TCL_ERROR) return TCL_ERROR;
-	if (tempc != 5) {
-		free((char *) tempa);
-		interp-&gt;result = "Not a valid User record";
-		return TCL_ERROR;
-	}
-	/* Split out the different fields */
-	strncpy(temp.login,tempa[0],16);
-	temp.uid = atoi(tempa[1]);
-	temp.gid = atoi(tempa[2]);
-	strncpy(temp.name,tempa[3],32);
-	strncpy(temp.home,tempa[4],256);
-	$target = &amp;temp;
-	free((char *) tempa);
-}
-
-// Describe how we want to return a user record
-%typemap(tcl,out) User * {
-	char temp[20];
-	if ($source) {
-	Tcl_AppendElement(interp,$source-&gt;login);
-	sprintf(temp,"%d",$source-&gt;uid);
-	Tcl_AppendElement(interp,temp);
-	sprintf(temp,"%d",$source-&gt;gid);
-	Tcl_AppendElement(interp,temp);
-	Tcl_AppendElement(interp,$source-&gt;name);
-	Tcl_AppendElement(interp,$source-&gt;home);
-	}
-}
-</pre></blockquote>
-<p>
-These function marshall Tcl lists to and from our <tt>User</tt> data
-structure. This allows a more natural implementation that we can use
-as follows :<p>
-<p>
-
-<blockquote><pre>% add_user {beazley 500 500 "Dave Beazley" "/home/beazley"}
-% lookup_user beazley
-beazley 500 500 {Dave Beazley} /home/beazley
-
-</pre></blockquote>
-This is a much cleaner interface (although at the cost of some
-performance). The only caution I offer is that the pointer view of the
-world is pervasive throughout SWIG. Remapping complex datatypes like
-this will usually work, but every now and then you might find that it
-breaks. For example, if we needed to manipulate arrays of Users (also
-mapped as a "<tt>User *</tt>"), the typemaps defined here would break
-down and something else would be needed.  Changing the representation
-in this manner may also break the object-oriented interface. <p>
-
-<a name="n42"></a><H3>19.8.9 Useful functions</H3>
+<a name="n37"></a><H3>19.7.6 Useful functions</H3>
 
 
 The following tables provide some functions that may be useful in
-writing Tcl typemaps. Both Tcl 7.x and Tcl 8.x are covered.  For Tcl
-7.x, everything is a string so the interface is relatively simple. For
-Tcl 8, everything is now a Tcl object so a more precise set of
-functions is required. Given the alpha-release status of Tcl 8, the
-functions described here may change in future releases.<p>
+writing Tcl typemaps. 
 
 <p>
 <b>Integers</b>
@@ -1762,7 +1777,7 @@ int      Tcl_IsShared(Tcl_Obj *obj);
 </pre>
 </blockquote>
 
-<a name="n43"></a><H3>19.8.10 Standard  typemaps</H3>
+<a name="n38"></a><H3>19.7.7 Standard  typemaps</H3>
 
 
 The following typemaps show how to convert a few common kinds of
@@ -1835,388 +1850,89 @@ work)<p>
 </pre>
 </blockquote>
 
-<a name="n44"></a><H3>19.8.11 Pointer handling</H3>
+<a name="n39"></a><H3>19.7.8 Pointer handling</H3>
 
 
-<b>REWRITE THIS!</B>
-<p>
-
-SWIG pointers are mapped into Python strings containing the
+SWIG pointers are mapped into Tcl strings containing the
 hexadecimal value and type.  The following functions can be used to
 create and read pointer values.<p>
 
 <p>
-These functions can be used in typemaps as well. For example, the
-following typemap makes an argument of "<tt>char *buffer</tt>" accept
-a pointer instead of a NULL-terminated ASCII string.<p>
+<tt>
+int SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *obj, void **ptr, swig_type_info *ty, int flags)</tt>
 
 <p>
-<blockquote><pre>%typemap(tcl,in) char *buffer {
-	if (SWIG_GetPtr($source, (void **) &amp;$target, "$mangle")) {
-		Tcl_SetResult(interp,"Type error. Not a pointer", TCL_STATIC);
-		return TCL_ERROR;
-	}
+<blockquote>
+Converts a Tcl object <tt>obj</tt> to a C pointer.  The result of the conversion is placed
+into the pointer located at <tt>ptr</tt>.  <tt>ty</tt> is a SWIG type descriptor structure.
+<tt>flags</tt> is used to handle error checking and other aspects of conversion.  It is currently
+reserved for future expansion. Returns 0 on success and -1 on error.
+</blockquote>
+
+<p>
+<tt>
+Tcl_Obj *SWIG_NewPointerObj(void *ptr, swig_type_info *ty, int flags)</tt>
+<p>
+
+<blockquote>
+Creates a new Tcl pointer object.  <tt>ptr</tt> is the pointer to convert, <tt>ty</tt> is the SWIG type descriptor structure that
+describes the type, and <tt>own</tt> is a flag reserved for future expansion.
+</blockquote>
+
+Both of these functions require the use of a special SWIG
+type-descriptor structure.  This structure contains information about
+the mangled name of the datatype, type-equivalence information, as
+well as information about converting pointer values under C++
+inheritance.   For a type of <tt>Foo *</tt>, the type descriptor structure
+is usually accessed as follows:
+
+<blockquote>
+<pre>
+Foo *f;
+if (SWIG_ConvertPtr(interp,$input, (void **) &f, SWIGTYPE_p_Foo, 0) == -1) return NULL;
+
+Tcl_Obj *;
+obj = SWIG_NewPointerObj(f, SWIGTYPE_p_Foo, 0);
+</pre>
+</blockquote>
+
+In a typemap, the type descriptor should always be accessed using the special typemap
+variable <tt>$1_descriptor</tt>.  For example:
+
+<blockquote>
+<pre>
+%typemap(in) Foo * {
+   if ((SWIG_ConvertPtr(interp, $input,(void **) &$1, $1_descriptor,0)) == -1) return NULL;
 }
+</pre>
+</blockquote>
 
-</pre></blockquote>
-Note that the <tt>$mangle</tt> variable generates the type string
-associated with the datatype used in the typemap.<p>
 <p>
-By now you hopefully have the idea that typemaps are a powerful
-mechanism for building more specialized applications.  While writing
-typemaps can be technical, many have already been written for you.
-See the SWIG library reference for more information.<p>
+If necessary, the descriptor for any type can be obtained using the <tt>$descriptor()</tt> macro in a typemap.
+For example:
 
-<a name="n45"></a><H2>19.9 Configuration management with SWIG</H2>
-
-
-After you start to work with Tcl for awhile, you suddenly realize that
-there are an unimaginable number of extensions, tools, and other
-packages.  To make matters worse, there are about 20 billion different
-versions of Tcl, not all of which are compatible with each extension
-(this is to make life interesting of course).<p>
-<p>
-While SWIG is certainly not a magical solution to the configuration
-management problem, it can help out alot in a number of key areas :<p>
-<p>
-
-<ul>
-<li>SWIG generated code can be used with all versions of Tcl/Tk newer
-than 7.3/3.6. This includes the Tcl Netscape Plugin and Tcl 8.0a2.
-
-<li>The SWIG library mechanism can be used to manage various code
-fragments and initialization functions.
-
-<li>SWIG generated code usually requires no modification so it is
-relatively easy to switch between different Tcl versions as necessary
-or upgrade to a newer version when the time comes (of course, the Sun
-Tcl/Tk team might have changed other things to keep you occupied)
-</ul>
-
-<a name="n46"></a><H3>19.9.1 Writing a main program and Tcl_AppInit()</H3>
-
-
-The traditional method of creating a new Tcl extension required a
-programmer to write a special function called <tt>Tcl_AppInit()</tt>
-that would initialize your extension and start the Tcl interpreter.  A
-typical <tt>Tcl_AppInit()</tt> function looks like the following :<p>
-<p>
-<blockquote><pre>/* main.c */
-#include &lt;tcl.h&gt;
-
-main(int argc, char *argv[]) {
-	Tcl_Main(argc,argv);
-	exit(0);
+<blockquote>
+<pre>
+%typemap(in) Foo * {
+   if ((SWIG_ConvertPtr(interp,$input,(void **) &$1, $descriptor(Foo *), 0)) == -1) return NULL;
 }
+</pre>
+</blockquote>
 
-int Tcl_AppInit(Tcl_Interp *interp) {
-	if (Tcl_Init(interp) == TCL_ERROR) {
-		return TCL_ERROR;
-	}
-	
-	/* Initialize your extension */
-	if (Your_Init(interp) == TCL_ERROR) {
-		return TCL_ERROR;
-	}
-
-	tcl_RcFileName = "~/.myapp.tcl";
-	return TCL_OK;
-}
-
-</pre></blockquote>
-While relatively simple to write, there are tons of problems with
-doing this.  First, each extension that you use typically has their
-own <tt>Tcl_AppInit()</tt> function.  This forces you to write a
-special one to initialize everything by hand.  Secondly, the process
-of writing a main program and initializing the interpreter varies
-between different versions of Tcl and different platforms.  For
-example, in Tcl 7.4, the variable "<tt>tcl_RcFileName</tt>" is a C
-variable while in Tcl7.5 and newer versions its a Tcl variable
-instead.  Similarly, the <tt>Tcl_AppInit</tt> function written for a
-Unix machine might not compile correctly on a Mac or Windows
-machine.<p>
-
-<p>
-In SWIG, it is almost never necessary to write a
-<tt>Tcl_AppInit()</tt> function because this is now done by SWIG
-library files such as <tt>tclsh.i</tt> or <tt>wish.i</tt>.  To give a
-better idea of what these files do, here's the code from the SWIG
-<tt>tclsh.i</tt> file which is roughly comparable to the above code<p>
-
-<blockquote><pre>
-// tclsh.i : SWIG library file for rebuilding tclsh
-%{
-
-/* A TCL_AppInit() function that lets you build a new copy
- * of tclsh.
- *
- * The macro SWIG_init contains the name of the initialization
- * function in the wrapper file.
- */
-
-#ifndef SWIG_RcFileName
-char *SWIG_RcFileName = "~/.myapprc";
-#endif
-
-int Tcl_AppInit(Tcl_Interp *interp){
-
-  if (Tcl_Init(interp) == TCL_ERROR)
-    return TCL_ERROR;
-
-  /* Now initialize our functions */
-  if (SWIG_init(interp) == TCL_ERROR)
-    return TCL_ERROR;
-
-#if TCL_MAJOR_VERSION &gt; 7 || TCL_MAJOR_VERSION == 7 &amp;&amp; TCL_MINOR_VERSION &gt;= 5
-   Tcl_SetVar(interp,"tcl_rcFileName",SWIG_RcFileName,TCL_GLOBAL_ONLY);
-#else
-   tcl_RcFileName = SWIG_RcFileName;
-#endif
-  return TCL_OK;
-}
-
-#if TCL_MAJOR_VERSION &gt; 7 || TCL_MAJOR_VERSION == 7 &amp;&amp; TCL_MINOR_VERSION &gt;= 4
-int main(int argc, char **argv) {
-  Tcl_Main(argc, argv, Tcl_AppInit);
-  return(0);
-
-}
-#else
-extern int main();
-#endif
-
-%}
-</pre></blockquote>
-<p>
-This file is essentially the same as a normal <tt>Tcl_AppInit()</tt>
-function except that it supports a variety of Tcl versions.  When
-included into an interface file, the symbol <tt>SWIG_init</tt>
-contains the actual name of the initialization function (This symbol
-is defined by SWIG when it creates the wrapper code).  Similarly, a
-startup file can be defined by simply defining the symbol
-<tt>SWIG_RcFileName</tt>.  Thus, a typical interface file might look
-like this :<p>
-
-<p>
-<blockquote><pre>%module graph
-%{
-#include "graph.h"
-#define SWIG_RcFileName "graph.tcl"
-%}
-
-%include tclsh.i
-
-... declarations ...
-
-
-</pre></blockquote>
-By including the <tt>tclsh.i</tt>, you automatically get a
-<tt>Tcl_AppInit()</tt> function.  A variety of library files are also
-available.  <tt>wish.i</tt> can be used to build a new wish
-executable, <tt>expect.i</tt> contains the main program for Expect,
-and <tt>ish.i</tt>, <tt>itclsh.i</tt>, <tt>iwish.i</tt>, and
-<tt>itkwish.i</tt> contain initializations for various incarnations of
-[incr Tcl].<p>
-
-<a name="n47"></a><H3>19.9.2 Creating a new package initialization library</H3>
-
-
-If a particular Tcl extension requires special initialization, you can
-create a special SWIG library file to initialize it.  For example, a
-library file to extend Expect looks like the following :<p>
-
-<p>
-<blockquote><pre>
-// expect.i : SWIG Library file for Expect
-%{
-
-/* main.c - main() and some logging routines for expect
-
-Written by: Don Libes, NIST, 2/6/90
-
-Design and implementation of this program was paid for by U.S. tax
-dollars.  Therefore it is public domain.  However, the author and NIST
-would appreciate credit if this program or parts of it are used.
-*/
-
-#include "expect_cf.h"
-#include &lt;stdio.h&gt;
-#include INCLUDE_TCL
-#include "expect_tcl.h"
-
-void
-main(argc, argv)
-int argc;
-char *argv[];
-{
-        int rc = 0;
-        Tcl_Interp *interp = Tcl_CreateInterp();
-        int SWIG_init(Tcl_Interp *);
-
-        if (Tcl_Init(interp) == TCL_ERROR) {
-                fprintf(stderr,"Tcl_Init failed: %s\n",interp-&gt;result);
-                exit(1);
-        }
-        if (Exp_Init(interp) == TCL_ERROR) {
-                fprintf(stderr,"Exp_Init failed: %s\n",interp-&gt;result);
-                exit(1);
-        }
-
-        /* SWIG initialization. --- 2/11/96  */
-        if (SWIG_init(interp) == TCL_ERROR) {
-                fprintf(stderr,"SWIG initialization failed: %s\n", interp-&gt;result);
-                exit(1);
-        }
-
-        exp_parse_argv(interp,argc,argv);
-        /* become interactive if requested or "nothing to do" */
-        if (exp_interactive)
-                (void) exp_interpreter(interp);
-        else if (exp_cmdfile)
-                rc = exp_interpret_cmdfile(interp,exp_cmdfile);
-        else if (exp_cmdfilename)
-                rc = exp_interpret_cmdfilename(interp,exp_cmdfilename);
-
-        /* assert(exp_cmdlinecmds != 0) */
-        exp_exit(interp,rc);
-        /*NOTREACHED*/
-}
-%}
-</pre></blockquote>
-<p>
-In the event that you need to write a new library file such as this,
-the process usually isn't too difficult.  Start by grabbing the
-original <tt>Tcl_AppInit()</tt> function for the package.  Enclose it
-in a <tt>%{,%}</tt> block.  Now add a line that makes a call to
-<tt>SWIG_init()</tt>.  This will automatically resolve to the real
-initialization function when compiled.<p>
-
-<a name="n48"></a><H3>19.9.3 Combining Tcl/Tk Extensions</H3>
-
-
-A slightly different problem concerns the mixing of various
-extensions.  Most extensions don't require any special initialization
-other than calling their initialization function.  To do this, we also
-use SWIG library mechanism.  For example :<p>
-
-<p>
-<blockquote><pre>// blt.i : SWIG library file for initializing the BLT extension
-%{
-#ifdef __cplusplus 
-extern "C" {
-#endif
-extern int Blt_Init(Tcl_Interp *);
-#ifdef __cplusplus
-}
-#endif
-%}
-%init %{
-	if (Blt_Init(interp) == TCL_ERROR) {
-		return TCL_ERROR;
-	}
-%}
-
-
-// tix.i : SWIG library file for initializing the Tix extension
-%{
-#ifdef __cplusplus 
-extern "C" {
-#endif
-extern int Tix_Init(Tcl_Interp *);
-#ifdef __cplusplus
-}
-#endif
-%}
-%init %{
-	if (Tix_Init(interp) == TCL_ERROR) {
-		return TCL_ERROR;
-	}
-%}
-
-</pre></blockquote>
-Both files declare the proper initialization function (to be C++
-friendly, this should be done using <tt>extern "C"</tt>).  A call to
-the initialization function is then placed inside a <tt>%init %{
-... %}</tt> block.  <p>
-
-<p>
-To use our library files and build a new version of wish, we might now
-do the following :<p>
-
-<p>
-<blockquote><pre>// mywish.i : wish with a bunch of stuff added to it
-%include wish.i
-%include blt.i
-%include tix.i
-
-... additional declarations ...
-
-</pre></blockquote>
-Of course, the really cool part about all of this is that the file
-`<tt>mywish.i</tt>' can itself, serve as a library file.  Thus, when
-building various versions of Tcl, we can place everything we want to
-use a special file and use it in all of our other interface files :<p>
-
-<p>
-<blockquote><pre>// interface.i
-%module mymodule
-
-%include mywish.i              // Build our version of Tcl with extensions
-
-... C declarations ...
-
-</pre></blockquote>
-or we can grab it on the command line :<p>
-<p>
-<blockquote><pre>unix &gt; swig -tcl -lmywish.i interface.i
-
-</pre></blockquote>
-
-<a name="n49"></a><H3>19.9.4 Limitations to this approach</H3>
-
-
-This interface generation approach is limited by the compatibility of
-each extension you use.  If any one extension is incompatible with the
-version of Tcl you are using, you may be out of luck.  It is also
-critical to pay careful attention to libraries and include files.  An
-extension library compiled against an older version of Tcl may fail
-when linked with a newer version.  <p>
-
-<a name="n50"></a><H3>19.9.5 Dynamic loading </H3>
-
-
-Newer versions of Tcl support dynamic loading.  With dynamic loading,
-you compile each extension into a separate module that can be loaded
-at run time.  This simplifies a number of compilation and extension
-building problems at the expense of creating new ones.  Most notably,
-the dynamic loading process varies widely between machines and is not
-even supported in some cases.  It also does not work well with C++
-programs that use static constructors.  Modules linked with older
-versions of Tcl may not work with newer versions as well (although
-SWIG only really uses the basic Tcl C interface).  As a result, I
-usually find myself using both dynamic and static linking as
-appropriate. <p>
-
-<a name="n51"></a><H3>19.9.6 Turning a SWIG module into a Tcl Package.</H3>
+<a name="n40"></a><H2>19.8 Turning a SWIG module into a Tcl Package.</H2>
 
 
 Tcl 7.4 introduced the idea of an extension package.  By default, SWIG
-does not create "packages", but it is relatively easy to do.  To make
-a C extension into a Tcl package, you need to provide a call to
-<tt>Tcl_PkgProvide() </tt>in the module initialization
-function<tt>.</tt> This can be done in an interface file as follows
-:<p>
+generates all of the code necessary to create a package. To set the package version,
+simply use the <tt>-pkgversion</tt> option. For example:
 
-<p>
-<blockquote><pre>%init %{
-        Tcl_PkgProvide(interp,"example","0.0");
-%}
-</pre></blockquote>
-<p>
-Where "example" is the name of the package and "0.0" is the version of
-the package.  <p>
-<p>
-Next, after building the SWIG generated module, you need to execute
+<blockquote>
+<pre>
+% swig -tcl -pkgversion 2.3 example.i
+</pre>
+</blockquote>
+
+After building the SWIG generated module, you need to execute
 the "<tt>pkg_mkIndex</tt>" command inside tclsh.  For example :<p>
 
 <blockquote><pre>
@@ -2264,7 +1980,7 @@ As a final note, most SWIG examples do not yet use the
 <tt>package</tt> commands. For simple extensions it may be easier just
 to use the <tt>load</tt> command instead.<p>
 
-<a name="n52"></a><H2>19.10 Building new kinds of Tcl interfaces (in Tcl)</H2>
+<a name="n41"></a><H2>19.9 Building new kinds of Tcl interfaces (in Tcl)</H2>
 
 
 One of the most interesting aspects of Tcl and SWIG is that you can
@@ -2356,7 +2072,7 @@ the Tcl code would simply return with an error so there is very little
 danger of blowing something up (although it is easily accomplished
 with an out of bounds array access).<p>
 
-<a name="n53"></a><H3>19.10.1 Shadow classes</H3>
+<a name="n42"></a><H3>19.9.1 Shadow classes</H3>
 
 
 A similar approach can be applied to shadow classes.  The following
@@ -2472,6 +2188,6 @@ interesting things.<p>
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : January 31, 2002</address>
+<address>SWIG 1.3 - Last Modified : May 28, 2002</address>
 </body>
 </html>

@@ -5,7 +5,6 @@
 
 <body bgcolor="#ffffff">
 <a name="n1"></a><H1>11 SWIG library</H1>
-
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">The %include directive and library search path</a>
@@ -18,11 +17,6 @@
 </ul>
 </ul>
 <!-- INDEX -->
-
-
-
-
-
 
 
 
@@ -40,9 +34,6 @@ Alternative libraries provide similar functionality.  Please read this chapter
 carefully if you used the old libraries.
 
 <a name="n2"></a><H2>11.1 The %include directive and library search path</H2>
-
-
-
 
 
 Library files are included using the <tt>%include</tt> directive.
@@ -68,9 +59,6 @@ You can override the location of the SWIG library by setting the
 <a name="n3"></a><H2>11.2 C Arrays and Pointers</H2>
 
 
-
-
-
 This section describes library modules for manipulating low-level C arrays and pointers. 
 The primary use of these modules is in supporting C declarations that manipulate bare
 pointers such as <tt>int *</tt>, <tt>double *</tt>, or <tt>void *</tt>.  The modules can be
@@ -79,9 +67,6 @@ pointers as class-like objects.   Since these functions provide direct access to
 memory, their use is potentially unsafe and you should exercise caution.
 
 <a name="n4"></a><H3>11.2.1 cpointer.i</H3>
-
-
-
 
 
 The <tt>cpointer.i</tt> module defines macros that can be used to used
@@ -243,9 +228,6 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 <a name="n5"></a><H3>11.2.2 carrays.i</H3>
 
 
-
-
-
 This module defines macros that assist in wrapping ordinary C pointers as arrays.
 The module does not provide any safety or an extra layer of wrapping--it merely
 provides functionality for creating, destroying, and modifying the contents of
@@ -391,9 +373,6 @@ used with types of <tt>char</tt> or <tt>char *</tt>.
 <a name="n6"></a><H3>11.2.3 cmalloc.i</H3>
 
 
-
-
-
 This module defines macros for wrapping the low-level C memory allocation functions
 <tt>malloc()</tt>, <tt>calloc()</tt>, <tt>realloc()</tt>, and <tt>free()</tt>.
 
@@ -504,9 +483,6 @@ Now, in a script:
 </blockquote>
 
 <a name="n7"></a><H3>11.2.4 cdata.i</H3>
-
-
-
 
 
 The <tt>cdata.i</tt> module defines functions for converting raw C data to and from strings

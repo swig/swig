@@ -5,7 +5,6 @@
 
 <body bgcolor="#ffffff">
 <a name="n1"></a><H1>20 Extending SWIG</H1>
-
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Introduction</a>
@@ -47,16 +46,9 @@
 
 
 
-
-
-
-
-
 <b>Caution: This chapter is being rewritten! (11/25/01)</b>
 
 <a name="n2"></a><H2>20.1 Introduction</H2>
-
-
 
 
 This chapter describes SWIG's internal organization and the process by which
@@ -66,9 +58,6 @@ on its internal organization.   The information in this chapter is mostly up to
 date, but changes are ongoing.   Expect to find a few inconsistencies.
 
 <a name="n3"></a><H2>20.2 Prerequisites</H2>
-
-
-
 
 
 In order to extend SWIG, it is useful to have the following background:
@@ -89,9 +78,6 @@ Language" by Kernighan and Ritchie (a.k.a, "K&R") and the "C++
 Annotated Reference Manual" by Stroustrup (a.k.a, the "ARM") will be of great use.
 
 <a name="n4"></a><H2>20.3 The Big Picture</H2>
-
-
-
 
 
 SWIG is a special purpose compiler that parses C++ declarations to
@@ -124,9 +110,6 @@ role in making the system work.  For example, both typemaps and declaration anno
 based on pattern matching and interact heavily with the underlying type system.
 
 <a name="n5"></a><H2>20.4 Execution Model</H2>
-
-
-
 
 
 When you run SWIG on an interface, processing is handled in stages by a series of system components:
@@ -166,9 +149,6 @@ invoked during this stage of compilation.
 The next few sections briefly describe some of these stages.
 
 <a name="n6"></a><H3>20.4.1 Preprocessing</H3>
-
-
-
 
 
 The preprocessor plays a critical role in the SWIG implementation.  This is because a lot
@@ -240,9 +220,6 @@ will show how macros have been expanded as well as everything else that goes int
 the low-level construction of the wrapper code. 
 
 <a name="n7"></a><H3>20.4.2 Parsing</H3>
-
-
-
 
 
 The current C++ parser handles a subset of C++.  Most incompatibilities with C are due to
@@ -332,9 +309,6 @@ returning a <tt>foo</tt> and taking types <tt>a</tt> and <tt>b</tt> as
 arguments).
 
 <a name="n8"></a><H3>20.4.3 Parse Trees</H3>
-
-
-
 
 
 The SWIG parser produces a complete parse tree of the input file before any wrapper code
@@ -701,9 +675,6 @@ $ swig -c++ -python -dump_tree example.i
 <a name="n9"></a><H3>20.4.4 Attribute namespaces</H3>
 
 
-
-
-
 When attributes are added to parse tree nodes, their names may be
 prepended with a namespace qualifier.  For example, the attributes
 <tt>sym:name</tt> and <tt>sym:symtab</tt> are attributes related to
@@ -718,9 +689,6 @@ that matches the name of the target language.  For example, <tt>python:foo</tt> 
 <tt>perl:foo</tt>.
 
 <a name="n10"></a><H3>20.4.5 Symbol Tables</H3>
-
-
-
 
 
 During parsing, all symbols are managed in the space of the target
@@ -803,9 +771,6 @@ example.i:5. Previous declaration is foo_i(int )
 <a name="n11"></a><H3>20.4.6 The %feature directive</H3>
 
 
-
-
-
 A number of SWIG directives such as <tt>%exception</tt> are implemented using the
 low-level <tt>%feature</tt> directive.  For example:
 
@@ -853,9 +818,6 @@ is usually just a raw unparsed string.   For example, the exception code above i
 stored without any modifications.
 
 <a name="n12"></a><H3>20.4.7 Code Generation</H3>
-
-
-
 
 
 Language modules work by defining handler functions that know how to respond to
@@ -968,9 +930,6 @@ The role of these functions is described shortly.
 <a name="n13"></a><H3>20.4.8 SWIG and XML</H3>
 
 
-
-
-
 Much of SWIG's current parser design was originally motivated by
 interest in using XML to represent SWIG parse trees.  Although XML is
 not currently used in any direct manner, the parse tree structure, use
@@ -985,9 +944,6 @@ your mind as a model.
 
 
 <a name="n14"></a><H2>20.5 Primitive Data Structures</H2>
-
-
-
 
 
 Most of SWIG is constructed using three basic data structures:
@@ -1024,9 +980,6 @@ typedef Hash   Typetab;
 </blockquote>
 
 <a name="n15"></a><H3>20.5.1 Strings</H3>
-
-
-
 
 
 <p>
@@ -1138,9 +1091,6 @@ Returns the number of replacements made (if any).
 <a name="n16"></a><H3>20.5.2 Hashes</H3>
 
 
-
-
-
 <p>
 <b><tt>Hash *NewHash()</tt></b>
 <blockquote>
@@ -1214,9 +1164,6 @@ Returns the list of hash table keys.
 
 
 <a name="n17"></a><H3>20.5.3 Lists</H3>
-
-
-
 
 
 <p>
@@ -1303,9 +1250,6 @@ and is used to create a String object.
 <a name="n18"></a><H3>20.5.4 Common operations</H3>
 
 
-
-
-
 The following operations are applicable to all datatypes.
 
 <p>
@@ -1347,9 +1291,6 @@ Gets the line number associated with <tt>x</tt>.
 </blockquote>
 
 <a name="n19"></a><H3>20.5.5 I/O</H3>
-
-
-
 
 
 Special I/O functions are used for all internal I/O.  These operations
@@ -1458,17 +1399,11 @@ Similarly, the preprocessor and parser all operate on string-files.
 <a name="n20"></a><H2>20.6 Type system</H2>
 
 
-
-
-
 SWIG implements the complete C++ type system including typedef, inheritance,
 pointers, references, and pointers to members.   A detailed discussion of
 type theory is impossible here.   However, let's cover the highlights.
 
 <a name="n21"></a><H3>20.6.1 String encoding of types</H3>
-
-
-
 
 
 <p>
@@ -1557,9 +1492,6 @@ make the final type, the two parts are just joined together using
 string concatenation.
 
 <a name="n22"></a><H3>20.6.2 Type construction</H3>
-
-
-
 
 
 The following functions are used to construct types.  You should use
@@ -1661,9 +1593,6 @@ Returns the prefix of a type. For example, if <tt>ty</tt> is
 <a name="n23"></a><H3>20.6.3 Type tests</H3>
 
 
-
-
-
 The following functions can be used to test properties of a datatype.
 
 <p>
@@ -1727,9 +1656,6 @@ Checks if <tt>ty</tt> is a templatized type.
 </blockquote>
 
 <a name="n24"></a><H3>20.6.4 Typedef and inheritance</H3>
-
-
-
 
 
 The behavior of <tt>typedef</tt> declaration is to introduce a type alias.
@@ -1817,32 +1743,16 @@ will consist only of primitive typenames.
 <a name="n25"></a><H3>20.6.5 Output functions</H3>
 
 
-
-
-
-
 <a name="n26"></a><H2>20.7 Parse Tree Navigation</H2>
-
-
-
 
 
 <a name="n27"></a><H2>20.8 Writing a Language Module</H2>
 
 
-
-
-
 <a name="n28"></a><H2>20.9 Typemaps</H2>
 
 
-
-
-
 <a name="n29"></a><H2>20.10 Guide to parse tree nodes</H2>
-
-
-
 
 
 This section describes the different parse tree nodes and their attributes.

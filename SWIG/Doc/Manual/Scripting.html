@@ -5,7 +5,6 @@
 
 <body bgcolor="#ffffff">
 <a name="n1"></a><H1>3 Scripting Languages</H1>
-
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">The two language view of the world</a>
@@ -28,19 +27,11 @@
 
 
 
-
-
-
-
-
 This chapter provides a brief overview of scripting language extension
 programming and the mechanisms by which scripting language interpreters
 access C and C++ code.
 
 <a name="n2"></a><H2>3.1 The two language view of the world</H2>
-
-
-
 
 
 When a scripting language is used to control a C program, the
@@ -72,9 +63,6 @@ arrays. <p>
 <a name="n3"></a><H2>3.2 How does a scripting language talk to C?</H2>
 
 
-
-
-
 Scripting languages are built around a parser that knows how
 to execute commands and scripts.  Within this parser, there is a
 mechanism for executing commands and accessing variables.
@@ -95,9 +83,6 @@ function, arguments, and so forth.  The next few sections illustrate
 the process.
 
 <a name="n4"></a><H3>3.2.1 Wrapper functions</H3>
-
-
-
 
 
 Suppose you have an ordinary C function like this :<p>
@@ -171,9 +156,6 @@ different.<p>
 <a name="n5"></a><H3>3.2.2 Variable linking</H3>
 
 
-
-
-
 Variable linking refers to the problem of mapping a 
 C/C++ global variable to a variable in the scripting
 language interpeter. For example, suppose you had the following
@@ -208,9 +190,6 @@ the value.
 <a name="n6"></a><H3>3.2.3 Constants</H3>
 
 
-
-
-
 In many cases, a C program or library may define a large collection of
 constants.  For example:
 
@@ -226,9 +205,6 @@ functions for creating variables so installing constants is usually
 a trivial exercise.
 
 <a name="n7"></a><H3>3.2.4 Structures and classes</H3>
-
-
-
 
 
 Although scripting languages have no trouble accessing simple
@@ -282,9 +258,6 @@ internals of an object, the interpreter does not need to know anything
 about the actual representation of a <tt>Vector</tt>.
 
 <a name="n8"></a><H3>3.2.5 Shadow classes</H3>
-
-
-
 
 
 In certain cases, it is possible to use the low-level accessor functions
@@ -344,9 +317,6 @@ as if you are simply manipulating a C/C++ object.
 <a name="n9"></a><H2>3.3 Building scripting language extensions</H2>
 
 
-
-
-
 The final step in using a scripting language with your C/C++
 application is adding your extensions to the scripting language
 itself. There are two primary approaches for doing
@@ -356,9 +326,6 @@ recompile the scripting language interpreter with your extensions
 added to it.
 
 <a name="n10"></a><H3>3.3.1 Shared libraries and dynamic loading</H3>
-
-
-
 
 
 To create a shared library or DLL, you often need to look at the
@@ -406,9 +373,6 @@ changing the link line to the following :<p>
 <a name="n11"></a><H3>3.3.2 Linking with shared libraries</H3>
 
 
-
-
-
 When building extensions as shared libraries, it is not uncommon for
 your extension to rely upon other shared libraries on your machine. In
 order for the extension to work, it needs to be able to find all of
@@ -453,9 +417,6 @@ the path using linker options instead.
 </ul>
 
 <a name="n12"></a><H3>3.3.3 Static linking</H3>
-
-
-
 
 
 With static linking, you rebuild the scripting language interpreter

@@ -6,7 +6,6 @@
 
 <body bgcolor="#ffffff">
 <a name="n1"></a><H1>18 SWIG and Ruby</H1>
-
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Preliminaries</a>
@@ -75,19 +74,12 @@
 
 
 
-
-
-
-
 <p>
 
 This chapter describes SWIG's support of Ruby.  
 
 <hr>
 <a name="n2"></a><H2>18.1 Preliminaries</H2>
-
-
-
 
 
 SWIG 1.3 is known to work with Ruby 1.6 and 1.7.  Given the choice, you should
@@ -100,8 +92,6 @@ earlier chapters.  At the very least, make sure you also read the "<a
 href="SWIG.html">SWIG Basics</a>" chapter.
 
 <a name="n3"></a><H3>18.1.1 Running SWIG</H3>
-
-
 
 
 <p>
@@ -122,9 +112,6 @@ Ruby extension module.  To finish building the module, you need to compile this
 file and link it with the rest of your program.
 
 <a name="n4"></a><H3>18.1.2 Getting the right header files</H3>
-
-
-
 
 
 In order to compile the wrapper code, the compiler needs the <tt>ruby.h</tt>
@@ -152,9 +139,6 @@ $ <b>ruby -e 'puts $:.join("\n")'</b>
 </blockquote>
 
 <a name="n5"></a><H3>18.1.3 Compiling a dynamic module</H3>
-
-
-
 
 
 Ruby extension modules are typically compiled into shared libraries that the
@@ -216,9 +200,6 @@ SWIG Wiki</a> for additional information.<p>
 <a name="n6"></a><H3>18.1.4 Using your module</H3>
 
 
-
-
-
 Ruby <i>module</i> names must be capitalized, but the convention for Ruby
 <i>feature</i> names is to use lowercase names. So, for example, the <b>Etc</b>
 extension module is imported by requiring the <b>etc</b> feature:
@@ -246,9 +227,6 @@ Ruby module name "Example".
 <a name="n7"></a><H3>18.1.5 Static linking</H3>
 
 
-
-
-
 An alternative approach to dynamic linking is to rebuild the Ruby
 interpreter with your extension module added to it.  In the past,
 this approach was sometimes necessary due to limitations in dynamic loading
@@ -265,9 +243,6 @@ adding your directory to the list of extensions in the file, and finally rebuild
 <a name="n8"></a><H3>18.1.6 Compilation of C++ extensions</H3>
 
 
-
-
-
 <p>
 On most machines, C++ extension modules should be linked using the C++
 compiler.  For example:
@@ -281,9 +256,6 @@ $ <b>g++ -shared example.o example_wrap.o -o example.so</b>
 
 <hr>
 <a name="n9"></a><H2>18.2 Building Ruby Extensions under Windows 95/NT</H2>
-
-
-
 
 
 Building a SWIG extension to Ruby under Windows 95/NT is roughly similar to the
@@ -305,9 +277,6 @@ you may need to download the source distribution to the Ruby package, as you
 will need the Ruby header files.<p>
 
 <a name="n10"></a><H3>18.2.1 Running SWIG from Developer Studio</H3>
-
-
-
 
 
 If you are developing your application within Microsoft developer studio, SWIG
@@ -378,16 +347,10 @@ Foo = 3.0
 <a name="n11"></a><H2>18.3 The Ruby-to-C/C++ Mapping</H2>
 
 
-
-
-
 This section describes the basics of how SWIG maps C or C++ declarations
 in your SWIG interface files to Ruby constructs.
 
 <a name="n12"></a><H3>18.3.1 Modules</H3>
-
-
-
 
 
 The SWIG <tt>%module</tt> directive specifies the name of the Ruby module. If
@@ -397,9 +360,6 @@ use the same name as a built-in Ruby command or standard module name.
 Otherwise, the results may be unpredictable.
 
 <a name="n13"></a><H3>18.3.2 Functions</H3>
-
-
-
 
 
 Global functions are wrapped as Ruby module methods. For example, given
@@ -433,9 +393,6 @@ irb(main):002:0&gt; <b>Example.fact(4)</b>
 </pre></blockquote>
 
 <a name="n14"></a><H3>18.3.3 Variable Linking</H3>
-
-
-
 
 
 C/C++ global variables are wrapped as a pair of singleton methods for the
@@ -499,9 +456,6 @@ disabled using <tt>%mutable</tt>.
 <a name="n15"></a><H3>18.3.4 Constants</H3>
 
 
-
-
-
 C/C++ constants are wrapped as module constants initialized to the
 appropriate value. To create a constant, use <tt>#define</tt> or the
 <tt>%constant</tt> directive.  For example:
@@ -529,9 +483,6 @@ irb(main):002:0&gt; <b>Example::PI</b>
 <a name="n16"></a><H3>18.3.5 Pointers</H3>
 
 
-
-
-
 "Opaque" pointers to arbitrary C/C++ types (i.e. types that aren't explicitly declared
 in your SWIG interface file) are wrapped as data objects. So, for example,
 conside a SWIG interface file containing only the declarations:<p>
@@ -549,9 +500,6 @@ irb(main):001:0&gt; <b>foo = Example::get_foo()</b>
 A <tt>NULL</tt> pointer is always represented by the Ruby <tt>nil</tt> object.
 
 <a name="n17"></a><H3>18.3.6 Structures</H3>
-
-
-
 
 
 C/C++ structs are wrapped as Ruby classes, with accessor methods (i.e. "getters"
@@ -667,9 +615,6 @@ void Bar_f_set(Bar *b, Foo *val) {
 <a name="n18"></a><H3>18.3.7 C++ classes</H3>
 
 
-
-
-
 Like structs, C++ classes are wrapped by creating a new Ruby class of the same
 name with accessor methods for the (public) class member data. Additionally,
 public member functions for the class are wrapped as Ruby instance methods,
@@ -720,9 +665,6 @@ Ale
 <a name="n19"></a><H3>18.3.8 C++ classes and type-checking</H3>
 
 
-
-
-
 The SWIG type-checker is fully aware of C++ inheritance.  Therefore, if you have
 classes like this
 
@@ -761,9 +703,6 @@ Example.spam(parent)
 </blockquote>
 
 <a name="n20"></a><H3>18.3.9 C++ overloaded functions</H3>
-
-
-
 
 
 If you have a C++ program with overloaded functions or methods, you will need
@@ -862,9 +801,6 @@ For more information, please refer to the <a href="SWIGPlus.html">"SWIG and C++"
 <a name="n21"></a><H3>18.3.10 Operators</H3>
 
 
-
-
-
 For the most part, overloaded operators are handled automatically by SWIG
 and don't require any special treatment on your part. So if your class
 declares an overloaded addition operator, e.g.
@@ -909,9 +845,6 @@ little later.
 
 <hr>
 <a name="n22"></a><H2>18.4 Input and output parameters</H2>
-
-
-
 
 
 A common problem in some C programs is handling parameters passed as simple
@@ -1071,9 +1004,6 @@ r, c = Example.get_dimensions(m)
 
 <hr>
 <a name="n23"></a><H2>18.5 Simple exception handling </H2>
-
-
-
 
 
 The SWIG <tt>%exception</tt> directive can be used to define a user-definable
@@ -1277,9 +1207,6 @@ SystemExit
 <a name="n24"></a><H2>18.6 Typemaps</H2>
 
 
-
-
-
 This section describes how you can modify SWIG's default wrapping behavior
 for various C/C++ datatypes using the <tt>%typemap</tt> directive.   This
 is an advanced topic that assumes familiarity with the Ruby C API as well
@@ -1292,9 +1219,6 @@ Typemaps are only used if you want to change some aspect of the primitive
 C-Ruby interface.
 
 <a name="n25"></a><H3>18.6.1 What is a typemap?</H3>
-
-
-
 
 
 A typemap is nothing more than a code generation rule that is attached to 
@@ -1397,9 +1321,6 @@ puts Example.count('o','Hello World')
 <a name="n26"></a><H3>18.6.2 Ruby typemaps</H3>
 
 
-
-
-
 The previous section illustrated an "in" typemap for converting Ruby objects to
 C.  A variety of different typemap methods are defined by the Ruby module.  For
 example, to convert a C integer back into a Ruby object, you might define an
@@ -1486,9 +1407,6 @@ Examples of these methods will appear shortly.
 <a name="n27"></a><H3>18.6.3 Typemap variables</H3>
 
 
-
-
-
 Within typemap code, a number of special variables prefaced with a <tt>$</tt>
 may appear.  A full list of variables can be found in the "<a
 href="Typemaps.html">Typemaps</a>" chapter.  This is a list of the most common
@@ -1546,9 +1464,6 @@ The Ruby name of the wrapper function being created.
 <a name="n28"></a><H3>18.6.4 Useful Functions</H3>
 
 
-
-
-
 When you write a typemap, you usually have to work directly with Ruby objects.
 The following functions may prove to be useful.  (These functions plus many
 more can be found in the "Programming Ruby" book written by David Thomas
@@ -1556,9 +1471,6 @@ and Andrew Hunt.)
 
 <p>
 <a name="n29"></a><H4>18.6.4.1 C Datatypes to Ruby Objects</H4>
-
-
-
 
 
 <blockquote>
@@ -1572,9 +1484,6 @@ rb_float_new(double)  - double to Float
 </blockquote>
 
 <a name="n30"></a><H4>18.6.4.2 Ruby Objects to C Datatypes</H4>
-
-
-
 
 
 <blockquote>
@@ -1597,8 +1506,6 @@ unsigned long FIX2ULONG(Numeric)
 <a name="n31"></a><H4>18.6.4.3 Macros for VALUE</H4>
 
 
-
-
 <p>
 <tt>RSTRING(str)-&gt;len</tt>
 <blockquote>length of the Ruby string</blockquote>
@@ -1616,8 +1523,6 @@ unsigned long FIX2ULONG(Numeric)
 <blockquote>pointer to array storage</blockquote>
 
 <a name="n32"></a><H4>18.6.4.4 Exceptions</H4>
-
-
 
 
 <p>
@@ -1695,8 +1600,6 @@ unsigned long FIX2ULONG(Numeric)
 <a name="n33"></a><H4>18.6.4.5 Iterators</H4>
 
 
-
-
 <p>
 <tt>void rb_iter_break()</tt>
 <blockquote>
@@ -1744,16 +1647,10 @@ unsigned long FIX2ULONG(Numeric)
 <a name="n34"></a><H3>18.6.5 Typemap Examples</H3>
 
 
-
-
-
 This section includes a few examples of typemaps.  For more examples, you
 might look at the examples in the <tt>Example/ruby</tt> directory.
 
 <a name="n35"></a><H3>18.6.6 Converting  Ruby list to a char **</H3>
-
-
-
 
 
 A common problem in many C programs is the processing of command line
@@ -1816,9 +1713,6 @@ used to later release this memory after the execution of the C function.
 <a name="n36"></a><H3>18.6.7 Pointer handling</H3>
 
 
-
-
-
 Occasionally, it might be necessary to convert pointer values that have been
 stored using the SWIG typed-pointer representation.  Since there are several
 ways in which pointers can be represented, the following two functions are used
@@ -1875,8 +1769,6 @@ typemap variable <tt>$1_descriptor</tt>.  For example:
 <a name="n37"></a><H4>18.6.7.1 Ruby Datatype Wrapping</H4>
 
 
-
-
 <p>
 <tt>VALUE Data_Wrap_Struct(VALUE class, void (*mark)(void *), void (*free)(void *), void *ptr)</tt>
 <blockquote>
@@ -1897,16 +1789,10 @@ typemap variable <tt>$1_descriptor</tt>.  For example:
 <a name="n38"></a><H3>18.6.8 Adding native Ruby functions to a SWIG module</H3>
 
 
-
-
-
 Adding native Ruby methods with <tt>%native</tt> is not supported.
 
 <hr>
 <a name="n39"></a><H2>18.7 Operator overloading</H2>
-
-
-
 
 
 SWIG allows operator overloading with, by using the <tt>%addmethod</tt> or
@@ -1965,9 +1851,6 @@ __ge__        - &gt;=
 Note that although SWIG supports the <tt>__eq__</tt> magic method name for defining an equivalence operator, there is no separate method for handling <i>inequality</i> since Ruby parses the expression <i>a != b</i> as <i>!(a == b)</i>.
 
 <a name="n40"></a><H3>18.7.1 An example (putting everything together)</H3>
-
-
-
 
 
 One way to illustrate the use of operator overloading, as well as the wrapping
@@ -2075,9 +1958,6 @@ irb(main):014:0> <b>puts "s_list[0] = #{s_list[0]}"</b>
 <a name="n41"></a><H3>18.7.2 Expanding the example</H3>
 
 
-
-
-
 To expand on the previous example, the following shows how to create a vector
 of a C++ class object:
 
@@ -2118,11 +1998,7 @@ should free it, not Ruby.
 <a name="n42"></a><H2>18.8 Advanced Topics</H2>
 
 
-
-
 <a name="n43"></a><H3>18.8.1 Creating Multi-Module Packages</H3>
-
-
 
 
 The chapter on <a href="Advanced.html">Advanced Topics</a> discusses the basic
@@ -2272,8 +2148,6 @@ as a subclass of <tt>Shape</tt>.
 <a name="n44"></a><H3>18.8.2 Defining Aliases</H3>
 
 
-
-
 It's a fairly common practice in the Ruby built-ins and standard library to
 provide aliases for method names. For example, <em>Array#size</em> is an
 alias for <em>Array#length</em>. If you'd like to provide an alias for one
@@ -2334,8 +2208,6 @@ Features and other Customizations"</a>) for more details).
 <a name="n45"></a><H3>18.8.3 Predicate Methods</H3>
 
 
-
-
 Predicate methods in Ruby are those which return either <tt>true</tt> or
 <tt>false</tt>. By convention, these methods' names end in a question mark; some
 examples from built-in Ruby classes include <em>Array#empty?</em> (which
@@ -2384,9 +2256,6 @@ kinds of features apply (see the chapter on <a href="Customization.html">"Except
 Features and other Customizations"</a>) for more details).
 
 <a name="n46"></a><H3>18.8.4 Interacting with Ruby's Garbage Collector</H3>
-
-
-
 
 
 <b>This section is still unfinished!</b><p>

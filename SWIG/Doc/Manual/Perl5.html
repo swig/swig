@@ -5,7 +5,6 @@
 
 <body bgcolor="#ffffff">
 <a name="n1"></a><H1>15 SWIG and Perl5</H1>
-
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Overview</a>
@@ -68,11 +67,6 @@
 
 
 
-
-
-
-
-
 <b>Caution: This chapter is under repair!</b>
 
 <p>
@@ -84,9 +78,6 @@ later. Earlier versions are problematic and SWIG generated extensions
 may not compile or run correctly.<p>
 
 <a name="n2"></a><H2>15.1 Overview</H2>
-
-
-
 
 
 To build Perl extension modules, SWIG uses a layered approach.  At
@@ -107,9 +98,6 @@ options are found near the end of the chapter.
 <a name="n3"></a><H2>15.2 Preliminaries</H2>
 
 
-
-
-
 To build a Perl5 module, run Swig using the <tt>-perl</tt> option as
 follows :<p>
 
@@ -128,9 +116,6 @@ To build the module, you will need to compile the file
 <tt>example_wrap.c</tt> and link it with the rest of your program.
 
 <a name="n4"></a><H3>15.2.1 Getting the right header files</H3>
-
-
-
 
 
 In order to compile, SWIG extensions need the following Perl5 header files :<p>
@@ -162,9 +147,6 @@ loaded, an easy way to find out is to run Perl itself.
 <a name="n5"></a><H3>15.2.2 Compiling a dynamic module</H3>
 
 
-
-
-
 The preferred approach to building an extension module is to compile it into
 a shared object file or DLL.   To do this, you will need to compile your program
 using comands like this (shown for Linux):
@@ -190,9 +172,6 @@ the target should be named `<tt>example.so</tt>',
 `<tt>example.sl</tt>', or the appropriate dynamic module name on your system.
 
 <a name="n6"></a><H3>15.2.3 Building a dynamic module with MakeMaker</H3>
-
-
-
 
 
 It is also possible to use Perl to build dynamically loadable modules
@@ -225,9 +204,6 @@ found in "Programming Perl, 2nd ed." by Larry Wall, Tom Christiansen,
 and Randal Schwartz.<p>
 
 <a name="n7"></a><H3>15.2.4 Building a static version of Perl</H3>
-
-
-
 
 
 If you machine does not support dynamic loading or if you've tried to
@@ -291,9 +267,6 @@ added to it.  Depending on your machine, you may need to link with
 additional libraries such as <tt>-lsocket, -lnsl, -ldl</tt>, etc.
 
 <a name="n8"></a><H3>15.2.5 Using the module</H3>
-
-
-
 
 
 To use the module, simply use the Perl <tt>use</tt> statement.  If
@@ -427,9 +400,6 @@ read the man pages).
 <a name="n9"></a><H3>15.2.6 Compilation problems and compiling with C++</H3>
 
 
-
-
-
 Compilation of C++ extensions has traditionally been a tricky problem.
 Since the Perl interpreter is written in C, you need to take steps to
 make sure C++ is properly initialized and that modules are compiled
@@ -514,9 +484,6 @@ you experience this problem, you can try the following :<p>
 <a name="n10"></a><H3>15.2.7 Compiling for 64-bit platforms</H3>
 
 
-
-
-
 On platforms that support 64-bit applications (Solaris, Irix, etc.),
 special care is required when building extension modules.  On these
 machines, 64-bit applications are compiled and linked using a different
@@ -540,9 +507,6 @@ linking standard (e.g., -o32 and -n32 on Irix).
 <a name="n11"></a><H2>15.3 Building Perl Extensions under Windows</H2>
 
 
-
-
-
 Building a SWIG extension to Perl under Windows is roughly
 similar to the process used with Unix.  Normally, you will want to
 produce a DLL that can be loaded into the Perl interpreter.  This
@@ -550,9 +514,6 @@ section assumes you are using SWIG with Microsoft Visual C++
 although the procedure may be similar with other compilers.  
 
 <a name="n12"></a><H3>15.3.1 Running SWIG from Developer Studio</H3>
-
-
-
 
 
 If you are developing your application within Microsoft developer
@@ -616,16 +577,10 @@ print "$a\n";
 <a name="n13"></a><H3>15.3.2 Using other compilers</H3>
 
 
-
-
-
 SWIG is known to work with Cygwin and may work with other compilers on Windows.
 For general hints and suggestions refer to the <a href="Windows.html">Windows</a> chapter.
 
 <a name="n14"></a><H2>15.4 The low-level interface</H2>
-
-
-
 
 
 At its core, the Perl module uses a simple low-level interface
@@ -634,8 +589,6 @@ can be used to control your application.  However, it is also used to
 construct more user-friendly proxy classes as described in the next section.
 
 <a name="n15"></a><H3>15.4.1 Functions</H3>
-
-
 
 
 C functions are converted into new Perl built-in commands (or
@@ -654,9 +607,6 @@ $a = &amp;example::fact(2);
 </pre></blockquote>
 
 <a name="n16"></a><H3>15.4.2 Global variables</H3>
-
-
-
 
 
 Global variables are handled using Perl's magic
@@ -712,9 +662,6 @@ extern char *path;       // Declared later in the input
 <a name="n17"></a><H3>15.4.3 Constants</H3>
 
 
-
-
-
 Constants are wrapped as read-only Perl variables.  For example:
 
 <blockquote>
@@ -736,9 +683,6 @@ $example::FOO = 2;           # Error
 </blockquote>
 
 <a name="n18"></a><H3>15.4.4 Pointers</H3>
-
-
-
 
 
 SWIG represents pointers as blessed references.  A blessed reference
@@ -838,9 +782,6 @@ as XS and <tt>xsubpp</tt>.  Given the advancement of the SWIG typesystem and the
 SWIG and XS, this is no longer supported.
 
 <a name="n19"></a><H3>15.4.5 Structures</H3>
-
-
-
 
 
 Access to the contents of a structure are provided through a set of low-level
@@ -964,9 +905,6 @@ void Bar_f_set(Bar *b, Foo *val) {
 <a name="n20"></a><H3>15.4.6 C++ classes</H3>
 
 
-
-
-
 C++ classes are wrapped by building a set of low level accessor functions. 
 Consider the following class :<p>
 
@@ -1025,9 +963,6 @@ can be built using these low-level accessors.  This is described shortly.
 <a name="n21"></a><H3>15.4.7 C++ classes and type-checking</H3>
 
 
-
-
-
 The SWIG type-checker is fully aware of C++ inheritance.  Therefore, if you have
 classes like this
 
@@ -1056,9 +991,6 @@ If necesssary, the type-checker also adjusts the value of the pointer (as is nec
 multiple inheritance is used).
 
 <a name="n22"></a><H3>15.4.8 C++ overloaded functions</H3>
-
-
-
 
 
 If you have a C++ program with overloaded functions or methods, you will need to disambiguate
@@ -1099,9 +1031,6 @@ Please refer to the "SWIG Basics" chapter for more information.
 <a name="n23"></a><H3>15.4.9 Operators</H3>
 
 
-
-
-
 C++ operators can also be wrapped using the <tt>%rename</tt> directive.  All you need to do is
 give the operator the name of a valid Perl identifier.  For example:
 
@@ -1127,9 +1056,6 @@ $c = example::add_complex($a,$b);
 Some preliminary work on mapping C++ operators into Perl operators has been completed. This is covered later.
 
 <a name="n24"></a><H3>15.4.10 Modules and packages</H3>
-
-
-
 
 
 When you create a SWIG extension, everything gets placed into
@@ -1171,9 +1097,6 @@ print Foo::fact(4),"\n";        # Call a function in package FooBar
 
 
 <a name="n25"></a><H2>15.5 Input and output parameters</H2>
-
-
-
 
 
 A common problem in some C programs is handling parameters passed as simple pointers.  For
@@ -1362,9 +1285,6 @@ print "$c\n";
 <a name="n26"></a><H2>15.6 Exception handling </H2>
 
 
-
-
-
 The SWIG <tt>%exception</tt> directive can be used to create a
 user-definable exception handler for converting exceptions in your
 C/C++ program into Perl exceptions.  The chapter on customization features
@@ -1514,9 +1434,6 @@ functionality, but it has additional capabilities that make it more powerful.
 <a name="n27"></a><H2>15.7 Remapping datatypes with typemaps</H2>
 
 
-
-
-
 This section describes how you can modify SWIG's default wrapping behavior
 for various C/C++ datatypes using the <tt>%typemap</tt> directive.   This
 is an advanced topic that assumes familiarity with the Perl C API as well
@@ -1529,9 +1446,6 @@ Typemaps are only used if you want to change some aspect of the primitive
 C-Perl interface.
 
 <a name="n28"></a><H3>15.7.1 A simple typemap example</H3>
-
-
-
 
 
 A typemap is nothing more than a code generation rule that is attached to 
@@ -1624,10 +1538,6 @@ example::count("e","Hello World");
 <a name="n29"></a><H3>15.7.2 Perl5 typemaps</H3>
 
 
-
-
-
-
 The previous section illustrated an "in" typemap for converting Perl objects to C.
 A variety of different typemap methods are defined by the Perl module.  For example,
 to convert a C integer back into a Perl object, you might define an "out" typemap
@@ -1708,9 +1618,6 @@ Check value of input parameter.<p>
 <a name="n30"></a><H3>15.7.3 Typemap variables</H3>
 
 
-
-
-
 Within typemap code, a number of special variables prefaced with a <tt>$</tt> may appear.
 A full list of variables can be found in the "<a href="Typemaps.html">Typemaps</a>" chapter.
 This is a list of the most common variables:
@@ -1763,9 +1670,6 @@ The Perl name of the wrapper function being created.
 </blockquote>
 
 <a name="n31"></a><H3>15.7.4 Useful functions</H3>
-
-
-
 
 
 When writing typemaps, it is necessary to work directly with Perl5
@@ -1828,17 +1732,11 @@ int       sv_isa(SV *, char *0;
 <a name="n32"></a><H2>15.8 Typemap Examples</H2>
 
 
-
-
-
 This section includes a few examples of typemaps.  For more examples, you
 might look at the files "<tt>perl5.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
 <a name="n33"></a><H3>15.8.1 Converting a Perl5 array to a char ** </H3>
-
-
-
 
 
 A common problem in many C programs is the processing of command line
@@ -1929,9 +1827,6 @@ print @$b,"\n";                                  # Print it out
 <a name="n34"></a><H3>15.8.2 Return values </H3>
 
 
-
-
-
 Return values are placed on the argument stack of each wrapper
 function.  The current value of the argument stack pointer is
 contained in a variable <tt>argvi</tt>.  Whenever a new output value
@@ -1956,9 +1851,6 @@ can be done using the <tt>EXTEND()</tt> macro as in :<p>
 </pre></blockquote>
 
 <a name="n35"></a><H3>15.8.3 Returning values from arguments</H3>
-
-
-
 
 
 Sometimes it is desirable for a function to return a value in one of
@@ -2012,9 +1904,6 @@ print "multout(7,13) = @r\n";
 <a name="n36"></a><H3>15.8.4 Accessing array structure members</H3>
 
 
-
-
-
 Consider the following data structure :<p>
 <p>
 <blockquote><pre>#define SIZE  8
@@ -2065,9 +1954,6 @@ the "in" typemap in the previous section would be used to convert an
 to copy the converted array into a C data structure.
 
 <a name="n37"></a><H3>15.8.5 Turning Perl references into C pointers</H3>
-
-
-
 
 
 A frequent confusion on the SWIG mailing list is errors caused by the
@@ -2126,9 +2012,6 @@ print "$c\n";
 </pre></blockquote>
 
 <a name="n38"></a><H3>15.8.6 Pointer handling</H3>
-
-
-
 
 
 Occasionally, it might be necessary to convert pointer values that have
@@ -2203,9 +2086,6 @@ For example:
 <a name="n39"></a><H2>15.9 Proxy classes</H2>
 
 
-
-
-
 <b>Out of date. Needs update.</b>
 
 <p>
@@ -2217,9 +2097,6 @@ to the underlying code.  This section describes the implementation
 details of the proxy interface.
 
 <a name="n40"></a><H3>15.9.1 Preliminaries</H3>
-
-
-
 
 
 To generate proxy classes, you need to use the <tt>-proxy</tt> command line option.
@@ -2356,9 +2233,6 @@ $v-&gt;DESTROY();
 <a name="n41"></a><H3>15.9.2 Object Ownership</H3>
 
 
-
-
-
 In order for shadow classes to work properly, it is necessary for Perl
 to manage some mechanism of object ownership.  Here's the crux of the
 problem---suppose you had a function like this :<p>
@@ -2432,9 +2306,6 @@ sophisticated languages.<p>
 <a name="n42"></a><H3>15.9.3 Nested Objects</H3>
 
 
-
-
-
 Suppose that we have a new object that looks like this :<p>
 <p>
 <blockquote><pre>struct Particle {
@@ -2478,9 +2349,6 @@ $p-&gt;{f}-&gt;{x} = 0.0;
 <a name="n43"></a><H3>15.9.4 Shadow Functions</H3>
 
 
-
-
-
 When functions take arguments involving a complex object, it is
 sometimes necessary to write a shadow function.  For example :<p>
 
@@ -2509,9 +2377,6 @@ This function replaces the original function, but operates in an
 identical manner.<p>
 
 <a name="n44"></a><H3>15.9.5 Inheritance</H3>
-
-
-
 
 
 Simple C++ inheritance is handled using the Perl <tt>@ISA</tt> array

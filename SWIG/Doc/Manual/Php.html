@@ -6,7 +6,6 @@
 
 <body bgcolor="#ffffff">
 <a name="n1"></a><H1>16 SWIG and PHP4</H1>
-
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Preliminaries</a>
@@ -31,11 +30,6 @@
 
 
 
-
-
-
-
-
 <b>Caution: This chapter (and module!) is still under construction</b>
 
 In this chapter, we discuss SWIG's support of PHP4. The PHP4 module is 
@@ -51,8 +45,6 @@ of in the generated .php file in php.
 <a name="n2"></a><H2>16.1 Preliminaries</H2>
 
 
-
-
 In order to use this module, you will need to have a copy of the PHP 4.0 (or
 above) include files to compile the SWIG generated files. You can find these
 files by running <tt>'php-config --includes'</tt>. To test the modules you will
@@ -61,8 +53,6 @@ extension into php directly (without having the overhead of loading it into
 each script), you will need the complete PHP source tree available.
 
 <a name="n3"></a><H2>16.2 Building PHP4 Extensions</H2>
-
-
 
 
 To build a PHP4 extension, run swig using the <tt>-php4</tt> option as follows :
@@ -96,9 +86,6 @@ script.  The first choice is the default, however it can be changed by passing
 the '-phpfull' command line switch to select the second build method.  
 
 <a name="n4"></a><H3>16.2.1 Building a loadable extension</H3>
-
-
-
 
 
 To build a dynamic module for PHP, you have two options.  You can use the
@@ -161,12 +148,7 @@ executable is described <a href="n12">below</a>.
 <a name="n5"></a><H3>16.2.2 Basic PHP4 interface</H3>
 
 
-
-
-
 <a name="n6"></a><H3>16.2.3 Functions</H3>
-
-
 
 
 C functions are converted into PHP functions. Default/optional arguments are
@@ -188,8 +170,6 @@ $c = bar(3.5);		# Use default argument for 2nd parameter
 </pre></blockquote>
 
 <a name="n7"></a><H3>16.2.4 Global Variables</H3>
-
-
 
 
 Global variables are difficult for PHP to handle, unlike Perl, their is no
@@ -220,7 +200,6 @@ objects.<p>
 <a name="n8"></a><H3>16.2.5 Pointers </H3>
 
 
-
 Pointers to C/C++ objects <b>no longer</b> represented as character 
 strings such as:<tt>_523d3f4_Circle_p</tt>, instead they are represented
 as PHP resources, rather like MySQL connection handles.
@@ -229,8 +208,6 @@ You can also explicitly create a NULL pointer as a string "NULL"
 or by passing a null or empty value.
 
 <a name="n9"></a><H3>16.2.6 Structures and C++ classes</H3>
-
-
 
 
 For structures and classes, SWIG produces accessor fuction for each member function and data. For example :<p>
@@ -264,8 +241,6 @@ for creating shadow classes that hides these functions and uses an object
 oriented interface instead - see <a href="n7">below</a>
 
 <a name="n10"></a><H3>16.2.7 Constants</H3>
-
-
 
 
 These work in much the same way as in C/C++, constants can be defined by using
@@ -364,8 +339,6 @@ both point to the same value, without the case test taking place.
 <a name="n11"></a><H3>16.2.8 Shadow classes</H3>
 
 
-
-
 To avoid having to call the various accessor function to get at structures or
 class members, we can turn C structs and C++ classes into PHP classes that
 can be be used directly in PHP scripts as objects and object methods. This is done by writing additional PHP code that builds PHP classes on top of the low-level SWIG interface. These PHP classes "shadow" an underlying C/C++ class.
@@ -387,8 +360,6 @@ functions like before.
 .... ( more examples on the way ) ....
 
 <a name="n12"></a><H3>16.2.9 Constructors and Destructers</H3>
-
-
 
 
 Constructors are used in PHP as in C++, they are called when the object is
@@ -413,9 +384,6 @@ I am not sure if PHP resources are all freed at the end of a script, or
 when they each go out of scope.
 
 <a name="n13"></a><H3>16.2.10 Static Member Variables</H3>
-
-
-
 
 
 Class variables are not supported in PHP, however class functions are, using
@@ -452,7 +420,6 @@ echo "There has now been " . Ko::threats() . " threats\n";
 <a name="n14"></a><H3>16.2.11 PHP4 Pragmas</H3>
 
 
-
 There are a few pragmas understood by the PHP4 module.  The first, 
 <b>include</b> adds a file to be included by the generated PHP module.  The
 second, <b>code</b> adds literal code to the generated PHP module.  The third,
@@ -480,9 +447,6 @@ function is called.
 </pre></blockquote>
 
 <a name="n15"></a><H3>16.2.12 Building extensions into php</H3>
-
-
-
 
 
 This method, selected with the <tt>-phpfull</tt> command line switch, involves
@@ -525,8 +489,6 @@ compiles correctly, you should end up with a php executable/library
 which contains your new module. You can test it with a php script which
 does not have the 'dl' command as used above.
 <a name="n16"></a><H3>16.2.13 To be furthered...</H3>
-
-
 
 
 </body>

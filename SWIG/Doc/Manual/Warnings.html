@@ -5,7 +5,6 @@
 
 <body bgcolor="#ffffff">
 <a name="n1"></a><H1>10 Warning Messages</H1>
-
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Introduction</a>
@@ -29,15 +28,7 @@
 
 
 
-
-
-
-
-
 <a name="n2"></a><H2>10.1 Introduction</H2>
-
-
-
 
 
 During compilation, SWIG may generate a variety of warning messages.  For example:
@@ -54,9 +45,6 @@ where the generated wrapper code will probably compile, but it may not
 work like you expect.
 
 <a name="n3"></a><H2>10.2 Warning message suppression</H2>
-
-
-
 
 
 All warning messages have a numeric code that is shown in the warning message itself.
@@ -137,9 +125,6 @@ your interface.  Ignore the warning messages at your own peril.
 <a name="n4"></a><H2>10.3 Enabling additional warnings</H2>
 
 
-
-
-
 Some warning messages are disabled by default and are generated only
 to provide additional diagnostics.  All warning messages can be
 enabled using the <tt>-Wall</tt> option. For example:
@@ -184,9 +169,6 @@ made using <tt>-w</tt> or <tt>#pragma</tt>.
 <a name="n5"></a><H2>10.4 Issuing a warning message</H2>
 
 
-
-
-
 Warning messages can be issued from an interface file using a number of directives.  The
 <tt>%warn</tt> directive is the most simple:
 
@@ -225,9 +207,6 @@ In this case, the warning message will be printed whenever the typemap is actual
 <a name="n6"></a><H2>10.5 Commentary</H2>
 
 
-
-
-
 The ability to suppress warning messages is really only provided for
 advanced users and is not recommended in normal use.  There are no
 plans to provide symbolic names or options that identify specific
@@ -244,13 +223,7 @@ the input file to fix the problem.
 <a name="n7"></a><H2>10.6 Warning number reference</H2>
 
 
-
-
-
 <a name="n8"></a><H3>10.6.1 Deprecated features (100-199)</H3>
-
-
-
 
 
 <ul>
@@ -274,17 +247,12 @@ the input file to fix the problem.
 <a name="n9"></a><H3>10.6.2 Preprocessor (200-299)</H3>
 
 
-
-
 <ul>
 <li>201. Unable to find 'filename'.
 <li>202. Could not evaluate 'expr'.
 </ul>
 
 <a name="n10"></a><H3>10.6.3 C/C++ Parser (300-399)</H3>
-
-
-
 
 
 <ul>
@@ -355,9 +323,6 @@ the input file to fix the problem.
 <a name="n11"></a><H3>10.6.4 Types and typemaps (400-499) </H3>
 
 
-
-
-
 <ul>
 <li>401. Nothing known about class 'name'. Ignored.
 <li>450. Deprecated typemap feature ($source/$target).
@@ -375,9 +340,6 @@ the input file to fix the problem.
 <a name="n12"></a><H3>10.6.5 Code generation (500-599)</H3>
 
 
-
-
-
 <ul>
 <li>501. Overloaded declaration ignored. <em>decl</em>
 <li>502. Overloaded constructor ignored. <em>decl</em>
@@ -391,8 +353,6 @@ the input file to fix the problem.
 <a name="n13"></a><H3>10.6.6 Language module specific (800-899) </H3>
 
 
-
-
 <ul>
 <li>801. Wrong name (corrected to '<em>name</em>').  (Ruby).
 <li>810. No jni typemap defined for <em>type</em>  (Java).
@@ -404,15 +364,9 @@ the input file to fix the problem.
 <a name="n14"></a><H3>10.6.7 User defined (900-999)</H3>
 
 
-
-
-
 These numbers can be used by your own application.
 
 <a name="n15"></a><H2>10.7 History</H2>
-
-
-
 
 
 The ability to control warning messages was first added to SWIG-1.3.12.

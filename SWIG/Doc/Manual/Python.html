@@ -5,7 +5,6 @@
 
 <body bgcolor="#ffffff">
 <a name="n1"></a><H1>17 SWIG and Python</H1>
-
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Overview</a>
@@ -86,11 +85,6 @@
 
 
 
-
-
-
-
-
 <b>Caution: This chapter is under repair!</b>
 
 <p>
@@ -109,9 +103,6 @@ in less depth than is found in earlier chapters.  At the very least,
 make sure you read the "<a href="SWIG.html">SWIG Basics</a>" chapter.
 
 <a name="n2"></a><H2>17.1 Overview</H2>
-
-
-
 
 
 To build Python extension modules, SWIG uses a layered approach.  At
@@ -142,9 +133,6 @@ options are found near the end of the chapter.
 <a name="n3"></a><H2>17.2 Preliminaries</H2>
 
 
-
-
-
 To build a Python module, run SWIG using the <tt>-python</tt> option :<p>
 
 <p>
@@ -164,9 +152,6 @@ build a Python extension module.  To finish building the module, you
 need to compile this file and link it with the rest of your program.
 
 <a name="n4"></a><H3>17.2.1 Getting the right header files</H3>
-
-
-
 
 
 In order to compile the wrapper code, the compiler needs the <tt>Python.h</tt> header file.
@@ -194,9 +179,6 @@ Type "copyright", "credits" or "license" for more information.
 </blockquote>
 
 <a name="n5"></a><H3>17.2.2 Compiling a dynamic module</H3>
-
-
-
 
 
 The preferred approach to building an extension module is to compile it into
@@ -228,13 +210,7 @@ The name of the module is specified using the <tt>%module</tt> directive or the
 <a name="n6"></a><H3>17.2.3 Using distutils</H3>
 
 
-
-
-
 <a name="n7"></a><H3>17.2.4 Static linking</H3>
-
-
-
 
 
 An alternative approach to dynamic linking is to rebuild the Python
@@ -303,9 +279,6 @@ If using static linking, you might want to rely on a different approach
 (perhaps using distutils).
 
 <a name="n8"></a><H3>17.2.5 Using your module</H3>
-
-
-
 
 
 To use your module, simply use the Python <tt>import</tt> statement.  If
@@ -422,9 +395,6 @@ the man pages).
 <a name="n9"></a><H3>17.2.6 Compilation of C++ extensions</H3>
 
 
-
-
-
 Compilation of C++ extensions has traditionally been a tricky problem.
 Since the Python interpreter is written in C, you need to take steps to
 make sure C++ is properly initialized and that modules are compiled
@@ -498,9 +468,6 @@ might want to investigate using a more formal standard such as COM.
 <a name="n10"></a><H3>17.2.7 Compiling for 64-bit platforms</H3>
 
 
-
-
-
 On platforms that support 64-bit applications (Solaris, Irix, etc.),
 special care is required when building extension modules.  On these
 machines, 64-bit applications are compiled and linked using a different
@@ -522,9 +489,6 @@ also introduce problems on platforms that support more than one
 linking standard (e.g., -o32 and -n32 on Irix).
 
 <a name="n11"></a><H3>17.2.8 Building Python Extensions under Windows</H3>
-
-
-
 
 
 Building a SWIG extension to Python under Windows is roughly
@@ -609,18 +573,12 @@ SWIG Wiki</a>.
 <a name="n12"></a><H2>17.3 The low-level procedural interface</H2>
 
 
-
-
-
 At its core, the Python module uses a simple low-level interface
 to C function, variables, constants, and classes.  This low-level interface
 can be used to control your application.  However, it is also used to
 construct more user-friendly proxy classes as described in the next section.
 
 <a name="n13"></a><H3>17.3.1 Modules</H3>
-
-
-
 
 
 The SWIG <tt>%module</tt> directive specifies the name of the Python
@@ -631,9 +589,6 @@ Python command or standard module name.  Otherwise, the results may be
 unpredictable.
 
 <a name="n14"></a><H3>17.3.2 Functions</H3>
-
-
-
 
 
 Global functions are wrapped as new Python built-in functions.  For example,
@@ -654,9 +609,6 @@ creates a built-in function <tt>example.fact(n)</tt> that works like this:<p>
 </pre></blockquote>
 
 <a name="n15"></a><H3>17.3.3 Variable Linking</H3>
-
-
-
 
 
 C/C++ global variables are fully supported by SWIG.  However, the underlying
@@ -760,9 +712,6 @@ if there are no global variables in a module.<p>
 <a name="n16"></a><H3>17.3.4 Constants</H3>
 
 
-
-
-
 C/C++ constants are installed as Python objects containing the
 appropriate value.  To create a constant, use <tt>#define</tt> or the
 <tt>%constant</tt> directive.  For example:
@@ -788,9 +737,6 @@ other object.  Unfortunately, there is no easy way for SWIG to
 generate code that prevents this.  You will just have to be careful.
 
 <a name="n17"></a><H3>17.3.5 Pointers</H3>
-
-
-
 
 
 Pointers to C/C++ objects are represented as encoded character strings such as
@@ -894,9 +840,6 @@ C-style cast may return a bogus result whereas as the C++-style cast will return
 <tt>None</tt> if the conversion can't be performed.
 
 <a name="n18"></a><H3>17.3.6 Structures</H3>
-
-
-
 
 
 Access to the contents of a structure are provided through a set of low-level
@@ -1023,9 +966,6 @@ void Bar_f_set(Bar *b, Foo *val) {
 <a name="n19"></a><H3>17.3.7 C++ classes</H3>
 
 
-
-
-
 C++ classes are wrapped by building a set of low level accessor functions. 
 Consider the following class :<p>
 
@@ -1087,9 +1027,6 @@ can be built using these low-level accessors.  This is described shortly.
 <a name="n20"></a><H3>17.3.8 C++ classes and type-checking</H3>
 
 
-
-
-
 The SWIG type-checker is fully aware of C++ inheritance.  Therefore, if you have
 classes like this
 
@@ -1118,9 +1055,6 @@ If necesssary, the type-checker also adjusts the value of the pointer (as is nec
 multiple inheritance is used).
 
 <a name="n21"></a><H3>17.3.9 C++ overloaded functions</H3>
-
-
-
 
 
 If you have a C++ program with overloaded functions or methods, you will need to disambiguate
@@ -1161,9 +1095,6 @@ Please refer to the "SWIG Basics" chapter for more information.
 <a name="n22"></a><H3>17.3.10 Operators</H3>
 
 
-
-
-
 C++ operators can also be wrapped using the <tt>%rename</tt> directive.  All you need to do is
 give the operator the name of a valid Python identifier.  For example:
 
@@ -1188,9 +1119,6 @@ Now, in Python, you can do this:
 More details about wrapping C++ operators into Python operators is discussed a little later.
 
 <a name="n23"></a><H2>17.4 Input and output parameters</H2>
-
-
-
 
 
 A common problem in some C programs is handling parameters passed as simple pointers.  For
@@ -1360,9 +1288,6 @@ Now, in Python:
 </blockquote>
 
 <a name="n24"></a><H2>17.5 Simple exception handling </H2>
-
-
-
 
 
 The SWIG <tt>%exception</tt> directive can be used to define a
@@ -1589,9 +1514,6 @@ functionality, but it has additional capabilities that make it more powerful.
 <a name="n25"></a><H2>17.6 Typemaps</H2>
 
 
-
-
-
 This section describes how you can modify SWIG's default wrapping behavior
 for various C/C++ datatypes using the <tt>%typemap</tt> directive.   This
 is an advanced topic that assumes familiarity with the Python C API as well
@@ -1604,9 +1526,6 @@ Typemaps are only used if you want to change some aspect of the primitive
 C-Python interface.
 
 <a name="n26"></a><H3>17.6.1 What is a typemap?</H3>
-
-
-
 
 
 A typemap is nothing more than a code generation rule that is attached to 
@@ -1708,9 +1627,6 @@ parameter is ommitted):
 <a name="n27"></a><H3>17.6.2 Python typemaps</H3>
 
 
-
-
-
 The previous section illustrated an "in" typemap for converting Python objects to C.
 A variety of different typemap methods are defined by the Python module.  For example,
 to convert a C integer back into a Python object, you might define an "out" typemap
@@ -1806,9 +1722,6 @@ Examples of these methods will appear shortly.
 <a name="n28"></a><H3>17.6.3 Typemap variables</H3>
 
 
-
-
-
 Within typemap code, a number of special variables prefaced with a <tt>$</tt> may appear.
 A full list of variables can be found in the "<a href="Typemaps.html">Typemaps</a>" chapter.
 This is a list of the most common variables:
@@ -1861,9 +1774,6 @@ The Python name of the wrapper function being created.
 </blockquote>
 
 <a name="n29"></a><H3>17.6.4 Useful Functions</H3>
-
-
-
 
 
 When you write a typemap, you usually have to work directly with Python objects.
@@ -1963,17 +1873,11 @@ write me
 <a name="n30"></a><H2>17.7 Typemap Examples</H2>
 
 
-
-
-
 This section includes a few examples of typemaps.  For more examples, you
 might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
 <a name="n31"></a><H3>17.7.1 Converting  Python list to a char ** </H3>
-
-
-
 
 
 A common problem in many C programs is the processing of command line
@@ -2049,9 +1953,6 @@ the C function.
 <a name="n32"></a><H3>17.7.2 Expanding a Python object to multiple arguments</H3>
 
 
-
-
-
 Suppose that you had a collection of C functions with arguments
 such as the following:
 
@@ -2120,9 +2021,6 @@ to supply the argument count.  This is automatically set by the typemap code.  F
 </blockquote>
 
 <a name="n33"></a><H3>17.7.3 Using typemaps to return arguments</H3>
-
-
-
 
 
 A common problem in some C programs is that values may be returned in
@@ -2203,9 +2101,6 @@ function can now be used as follows:
 <a name="n34"></a><H3>17.7.4 Mapping Python tuples into small arrays</H3>
 
 
-
-
-
 In some applications, it is sometimes desirable to pass small arrays
 of numbers as arguments. For example :<p>
 
@@ -2245,9 +2140,6 @@ array, such an approach would not be recommended for huge arrays, but
 for small structures, this approach works fine.<p>
 
 <a name="n35"></a><H3>17.7.5 Mapping sequences to C arrays</H3>
-
-
-
 
 
 Suppose that you wanted to generalize the previous example to handle C
@@ -2329,9 +2221,6 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 <a name="n36"></a><H3>17.7.6 Accessing array structure members</H3>
 
 
-
-
-
 Consider the following data structure :<p>
 <p>
 <blockquote><pre>#define SIZE  8
@@ -2382,9 +2271,6 @@ the "in" typemap in the previous section would be used to convert an
 to copy the converted array into a C data structure.
 
 <a name="n37"></a><H3>17.7.7 Pointer handling</H3>
-
-
-
 
 
 Occasionally, it might be necessary to convert pointer values that have
@@ -2467,13 +2353,7 @@ class object (if applicable).
 <a name="n38"></a><H2>17.8 Other odds and ends</H2>
 
 
-
-
-
 <a name="n39"></a><H3>17.8.1 Adding native Python functions to a SWIG module</H3>
-
-
-
 
 
 Sometimes it is desirable to add a native Python method to a SWIG
@@ -2511,18 +2391,12 @@ or<p>
 <a name="n40"></a><H2>17.9 Python shadow classes</H2>
 
 
-
-
-
 Using the low-level C interface, it is possible to create a Python
 class that works like the original C++ class.  In this case, the
 Python class is said to shadow the original C++ class.  It's really
 just a wrapper around the C++ original class.
 
 <a name="n41"></a><H3>17.9.1 A simple example</H3>
-
-
-
 
 
 One way to illustrate a shadow class is to write one by hand.  For example:
@@ -2575,9 +2449,6 @@ small amount of Python coding.
 <a name="n42"></a><H3>17.9.2 Why shadow classes?</H3>
 
 
-
-
-
 Shadow classes are not the only approach to wrapping C++ classes.  An alternative
 approach would be to wrap classes as new Python types in C.  However, this requires
 a substantial amount of complicated C wrapper code.  Furthermore, this approach makes
@@ -2598,9 +2469,6 @@ any of the low-level C extension code.   The main downside to this
 approach is worse performance--a concern for some users.  
 
 <a name="n43"></a><H3>17.9.3 Automatic shadow class generation</H3>
-
-
-
 
 
 SWIG can automatically generate shadow classes if you use the
@@ -2668,9 +2536,6 @@ classes provide all of the needed access.
 <a name="n44"></a><H3>17.9.4 Compiling modules with shadow classes</H3>
 
 
-
-
-
 To compile a module involving shadow classes, you can use the same
 procedure as before except that the module name now has an extra
 `<tt>c</tt>' appended to the name. Thus, an interface file like this
@@ -2695,9 +2560,6 @@ Notice the naming of `<tt>examplecmodule.so</tt>' as opposed to
 shadow classes.<p>
 
 <a name="n45"></a><H3>17.9.5 Shadow classes and type-checking</H3>
-
-
-
 
 
 Because shadow classes are used so frequently, the SWIG type-checker is
@@ -2752,9 +2614,6 @@ Further details of type-checking and shadow classes will be described later. Sta
 <a name="n46"></a><H3>17.9.6 A preview</H3>
 
 
-
-
-
 Shadow classes are one of SWIG's most powerful features.  However, to better understand some of the
 finer points, some other SWIG features need to first be described.  Therefore, we return to the
 topic of shadow classes a little later in this chapter.
@@ -2762,16 +2621,10 @@ topic of shadow classes a little later in this chapter.
 <a name="n47"></a><H2>17.10 The gory details of shadow classes</H2>
 
 
-
-
-
 This section describes the process by which SWIG creates shadow
 classes and some of the more subtle aspects of using them.<p>
 
 <a name="n48"></a><H3>17.10.1 A simple shadow class</H3>
-
-
-
 
 
 Consider the following declaration from our previous example :<p>
@@ -2831,9 +2684,6 @@ class Grid2d(Grid2dPtr):
 <a name="n49"></a><H3>17.10.2 Module names</H3>
 
 
-
-
-
 Shadow classes are built using the low-level SWIG generated C
 interface.  This interface is named "modulec" where "module" is the
 name of the module specified in a SWIG interface file.  The Python
@@ -2841,9 +2691,6 @@ code for the shadow classes is created in a file "module.py".  This is
 the file that should be loaded when a user wants to use the module.<p>
 
 <a name="n50"></a><H3>17.10.3 Two classes</H3>
-
-
-
 
 
 For each structure or class found in an interface file, SWIG creates
@@ -2889,9 +2736,6 @@ that there are two classes working behind the scenes.<p>
 <a name="n51"></a><H3>17.10.4 The this pointer</H3>
 
 
-
-
-
 Within each shadow class, the member "<tt>this</tt>" contains the
 actual C/C++ pointer to the object.  You can check this out yourself
 by typing something like this :<p>
@@ -2908,9 +2752,6 @@ Direct manipulation of the "<tt>this</tt>" pointer is generally
 discouraged. In fact forget that you read this.<p>
 
 <a name="n52"></a><H3>17.10.5 Object ownership</H3>
-
-
-
 
 
 Ownership is a critical issue when mixing C++ and Python.  For
@@ -2937,9 +2778,6 @@ never call the C/C++ destructor.<p>
 <a name="n53"></a><H3>17.10.6 Constructors and Destructors</H3>
 
 
-
-
-
 C++ constructors and destructors will be mapped into Python's
 <tt>__init__</tt> and <tt>__del__</tt> methods respectively.  Shadow
 classes always contain these methods even if no constructors or
@@ -2950,16 +2788,10 @@ is set.<p>
 <a name="n54"></a><H3>17.10.7 Member data</H3>
 
 
-
-
-
 Member data of an object is accessed through Python's
 <tt>__getattr__</tt> and <tt>__setattr__</tt> methods.<p>
 
 <a name="n55"></a><H3>17.10.8 Printing</H3>
-
-
-
 
 
 SWIG automatically creates a Python<tt> __repr__</tt> method for each
@@ -2967,9 +2799,6 @@ class.  This forces the class to be relatively well-behaved when
 printing or being used interactively in the Python interpreter.<p>
 
 <a name="n56"></a><H3>17.10.9 Shadow Functions</H3>
-
-
-
 
 
 Suppose you have the following declarations in an interface file :<p>
@@ -3017,9 +2846,6 @@ necessary to use the low-level C interface when working with shadow
 classes.<p>
 
 <a name="n57"></a><H3>17.10.10 Nested objects</H3>
-
-
-
 
 
 SWIG shadow classes support nesting of complex objects.  For example,
@@ -3139,9 +2965,6 @@ of each embedded structure.<p>
 <a name="n58"></a><H3>17.10.11 Inheritance and shadow classes</H3>
 
 
-
-
-
 Since shadow classes are implemented in Python, you can use any of the
 automatically generated classes as a base class for more Python
 classes.  However, you need to be extremely careful when using
@@ -3156,9 +2979,6 @@ used to solve alot of problems, but it hurts quite alot if you
 accidently drop it on your foot.... <p>
 
 <a name="n59"></a><H3>17.10.12 Methods that return new objects</H3>
-
-
-
 
 
 By default SWIG assumes that constructors are the only functions
@@ -3200,9 +3020,6 @@ returning a new object.  The Python module will assign proper
 ownership of the object when this is used.<p>
 
 <a name="n60"></a><H3>17.10.13 Performance concerns and hints</H3>
-
-
-
 
 
 Shadow classing is primarily intended to be a convenient way of
