@@ -96,10 +96,10 @@ Most language modules have a variety of other improvements.
 * Improved internals *
 
 This is the first release of SWIG that builds a complete parse tree
-before generating code (effectively becoming a 2-pass compiler.  This
+before generating code (effectively becoming a 2-pass compiler).  This
 has allowed us to implement some subtle semantic improvements that
 were not really possible in the earlier release (e.g., not generating
-default constructors for classes private constructors).  Future
+default constructors for classes with private constructors).  Future
 releases are going to make the parse tree fully available to language
 modules as well as the ability to externally export the parse tree to
 other applications. Stay tuned.
