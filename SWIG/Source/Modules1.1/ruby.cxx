@@ -20,6 +20,7 @@ static char cvsroot[] = "$Header$";
 
 #include <ctype.h>
 #include <string.h>
+#include <limits.h> /* for INT_MAX */
 
 class RClass {
  private:
@@ -393,15 +394,10 @@ public:
     String *s = NewString("");
     String *temp = NewString("");
     
-    String *alias = Getattr(n,"feature:alias");
-    
     switch (current) {
     case MEMBER_FUNC:
       Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
 	     iname, "\", ", wname, ", -1);\n", NIL);
-      if (alias) {
-	Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias, "\", \"", iname, "\");\n", NIL);
-      }
       break;
     case CONSTRUCTOR_ALLOCATE:
       Printv(s, tab4, "rb_define_singleton_method(", klass->vname,
@@ -430,6 +426,23 @@ public:
       Printv(f_init,s,NIL);
       break;
     }
+    
+    /* Process the comma-separated list of aliases (if any) */
+    String *aliasv = Getattr(n,"feature:alias");
+    if (aliasv) {
+      List *aliases = Split(aliasv,",",INT_MAX);
+      if (aliases && Len(aliases) > 0) {
+	String *alias = Firstitem(aliases);
+	while (alias) {
+          if (Len(alias) > 0) {
+            Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias, "\", \"", iname, "\");\n", NIL);
+	  }
+	  alias = Nextitem(aliases);
+	}
+      }
+      Delete(aliases);
+    }
+
     Delete(temp);
     Delete(s);
     Delete(wname);
@@ -1093,6 +1106,22 @@ public:
       Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &c%s);\n", tm, valid_name);
       Delete(tm);
       Delete(tt);    
+    }
+    
+    /* Process the comma-separated list of mixed-in module names (if any) */
+    String *mixin = Getattr(n,"feature:mixin");
+    if (mixin) {
+      List *modules = Split(mixin,",",INT_MAX);
+      if (modules && Len(modules) > 0) {
+	String *module = Firstitem(modules);
+	while (module) {
+          if (Len(module) > 0) {
+            Printf(klass->init, "rb_include_module(%s, rb_eval_string(\"%s\"));\n", klass->vname, module);
+	  }
+	  module = Nextitem(modules);
+	}
+      }
+      Delete(modules);
     }
 
     Printv(klass->init, "$allocator",NIL);

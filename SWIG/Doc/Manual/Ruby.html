@@ -68,7 +68,8 @@
 <li><a href="#n44">Creating Multi-Module Packages</a>
 <li><a href="#n45">Defining Aliases</a>
 <li><a href="#n46">Predicate Methods</a>
-<li><a href="#n47">Interacting with Ruby's Garbage Collector</a>
+<li><a href="#n47">Specifying Mixin Modules</a>
+<li><a href="#n48">Interacting with Ruby's Garbage Collector</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -2253,6 +2254,13 @@ public:
 </pre>
 </blockquote>
 
+Multiple aliases can be associated with a method by providing a comma-separated list of
+aliases to the <tt>%alias</tt> directive, e.g.
+
+<blockquote>
+<pre>%alias MyArray::length "amount,quantity,size";</pre>
+</blockquote>
+
 From an end-user's standpoint, there's no functional difference between these
 two approaches; i.e. they should get the same result from calling either
 <em>MyArray#size</em> or <em>MyArray#length</em>. However, when the
@@ -2260,7 +2268,7 @@ two approaches; i.e. they should get the same result from calling either
 wrapper code that's usually associated with added methods like our
 <em>MyArray::size()</em> example.<p>
 
-Note that the <tt>%alias</tt> directive is implemented using SWIG's' "features"
+Note that the <tt>%alias</tt> directive is implemented using SWIG's "features"
 mechanism and so the same name matching rules used for other kinds of features
 apply (see the chapter on <a href="Customization.html">"Customization Features"</a>)
 for more details).
@@ -2311,12 +2319,83 @@ irb(main):001:0> <b>Example::is_it_safe?</b>
 true
 </pre>
 </blockquote>
-Note that the <tt>%predicate</tt> directive is implemented using SWIG's'
+Note that the <tt>%predicate</tt> directive is implemented using SWIG's
 "features" mechanism and so the same name matching rules used for other kinds
 of features apply (see the chapter on <a href="Customization.html">"Customization
 Features"</a>) for more details).
 
-<a name="n47"></a><H3>19.8.4 Interacting with Ruby's Garbage Collector</H3>
+<a name="n47"></a><H3>19.8.4 Specifying Mixin Modules</H3>
+
+The Ruby language doesn't support multiple inheritance, but it does allow you
+to mix one or more modules into a class using Ruby's <tt>include</tt> method.
+For example, if you have a Ruby class that defines an <em>each</em> instance
+method, e.g.<p>
+
+<blockquote>
+<pre>
+class Set
+  def initialize
+    @members = []
+  end
+  
+  def each
+    @members.each { |m| yield m }
+  end
+end
+</pre>
+</blockquote>
+
+then you can mix-in Ruby's <tt>Enumerable</tt> module to easily add a lot
+of functionality to your class:<p>
+
+<blockquote>
+<pre>
+class Set
+  <b>include Enumerable</b>
+  
+  def initialize
+    @members = []
+  end
+  
+  def each
+    @members.each { |m| yield m }
+  end
+end
+</pre>
+</blockquote>
+
+To get the same benefit for your SWIG-wrapped classes, you can use the <tt>%mixin</tt>
+directive to specify the names of one or more modules that should be mixed-in to
+a class. For the above example, the SWIG interface specification might look like this:
+
+<blockquote>
+<pre>
+%mixin Set "Enumerable";
+
+class Set {
+public:
+  // Constructor
+  Set();
+  
+  // Iterates through set members
+  void each();
+};
+</pre>
+</blockquote>
+
+Multiple modules can be mixed into a class by providing a comma-separated list of
+module names to the <tt>%mixin</tt> directive, e.g.
+
+<blockquote>
+<pre>%mixin Set "Fee,Fi,Fo,Fum";</pre>
+</blockquote>
+
+Note that the <tt>%mixin</tt> directive is implemented using SWIG's
+"features" mechanism and so the same name matching rules used for other kinds
+of features apply (see the chapter on <a href="Customization.html">"Customization
+Features"</a>) for more details).
+
+<a name="n48"></a><H3>19.8.5 Interacting with Ruby's Garbage Collector</H3>
 
 
 <b>This section is still unfinished!</b><p>
