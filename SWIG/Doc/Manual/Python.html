@@ -6,6 +6,8 @@
 <body bgcolor="#ffffff">
 <h1>9 SWIG and Python</h1>
 
+<b>Caution: This chapter is under repair!</b>
+
 <p>
 
 This chapter describes SWIG's support of Python.  SWIG is compatible
@@ -710,7 +712,7 @@ same as the logical memory address of the underlying object.  Instead
 it is the raw byte encoding of the pointer value.  The encoding will
 vary depending on the native byte-ordering of the platform (i.e.,
 big-endian vs. little-endian).  Similarly, don't try to manually cast
-a pointer to a new type by simply replacing the type-string.  This is
+a pointer to a new type by simply replacing the type-string.  This
 may not work like you expect, it is particularly dangerous when
 casting C++ objects, and it won't work if you switch to a new pointer
 representation such as CObjects.  If you need to cast a pointer or
@@ -737,8 +739,7 @@ Foo *IncrFoo(Foo *f, int i) {
 </pre>
 </blockquote>
 
-If you need to type-cast a lot of objects, it may indicate a serious 
-weakness in your design.  Also, if working with C++, you should always try
+Also, if working with C++, you should always try
 to use the new C++ style casts.  For example, in the above code, the
 C-style cast may return a bogus result whereas as the C++-style cast will return
 <tt>None</tt> if the conversion can't be performed.
@@ -1189,7 +1190,7 @@ Now, in Python:
 
 The SWIG <tt>%exception</tt> directive can be used to define a
 user-definable exception handler that can convert C/C++ errors into Python exceptions.
-The chapter on exception handling contains more details, but suppose you have a C++ class like
+The chapter on customization features contains more details, but suppose you have a C++ class like
 the following :<p>
 
 <blockquote><pre>
@@ -1426,6 +1427,7 @@ C-Python interface.
 A typemap is nothing more than a code generation rule that is attached to 
 a specific C datatype.   For example, to convert integers from Python to C,
 you might define a typemap like this:
+
 <p>
 <blockquote><pre>%module example
 
@@ -1444,6 +1446,7 @@ will be applied.  The supplied C code is used to convert values.  In this
 code a number of special variable prefaced by a <tt>$</tt> are used.  The
 <tt>$1</tt> variable is placeholder for a local variable of type <tt>int</tt>.
 The <tt>$input</tt> variable is the input object of type <tt>PyObject *</tt>.
+
 <p>
 When this example is compiled into a Python module, it operates as follows:
 
@@ -1760,7 +1763,7 @@ write me
 </pre>
 </blockquote>
 
-<h3>Typemap Examples</h3>
+<h2>Typemap Examples</h2>
 
 This section includes a few examples of typemaps.  For more examples, you
 might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in
@@ -2208,6 +2211,18 @@ variable <tt>$1_descriptor</tt>.  For example:
 <pre>
 %typemap(in) Foo * {
    if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,1)) == -1) return NULL;
+}
+</pre>
+</blockquote>
+
+<p>
+If necessary, the descriptor for any type can be obtained using the <tt>$descriptor()</tt> macro in a typemap.
+For example:
+
+<blockquote>
+<pre>
+%typemap(in) Foo * {
+   if ((SWIG_ConvertPtr($input,(void **) &$1, $descriptor(Foo *), 1)) == -1) return NULL;
 }
 </pre>
 </blockquote>
