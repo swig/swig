@@ -7,11 +7,11 @@ namespace foo {
    enum { BSIZE = 512 };
    class Bar {
    public:
-      enum { CSIZE = 768 };
+      enum { CCSIZE = 768 };
       int  adata[ASIZE];
       int  bdata[BSIZE];
-      int  cdata[CSIZE];
-      void blah(int x[ASIZE], int y[BSIZE], int z[CSIZE]) { };
+      int  cdata[CCSIZE];
+      void blah(int x[ASIZE], int y[BSIZE], int z[CCSIZE]) { };
    };
 }
 

@@ -13,8 +13,8 @@
       };      
     }
 
-    template <class _T1>
-    struct Hi : _T1
+    template < class T1 >
+    struct Hi : T1
     {
     };
   }
@@ -45,8 +45,8 @@ namespace hello
   
   namespace oss
   {
-    template <class _T>
-    struct hi1 : _T
+    template <class T1>
+    struct hi1 : T1
     {
     };    
   }
