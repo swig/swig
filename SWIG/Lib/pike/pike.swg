@@ -8,12 +8,17 @@
 %insert(runtime) "pikerun.swg";         // Pike run-time code
 
 %insert(runtime) %{
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "global.h"
 #include "interpret.h"
-#include "program.h"
 
 /* This must be included last! */
 #include "module_magic.h"
+#ifdef __cplusplus
+}
+#endif
 %}
 
 /************************* Input Typemaps *****************************/
@@ -107,3 +112,24 @@
 }
 
 %typemap(out)      size_t = long;
+
+/* ------------------------------------------------------------
+ * The start of the Pike initialization function
+ * ------------------------------------------------------------ */
+
+%init %{
+#ifdef __cplusplus
+extern "C"
+#endif
+SWIGEXPORT(void) pike_module_exit(void) {}
+
+#ifdef __cplusplus
+extern "C"
+#endif
+SWIGEXPORT(void) pike_module_init(void) {
+    struct program *pr;
+    int i;
+    for (i = 0; swig_types_initial[i]; i++) {
+        swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
+    }
+%}

@@ -101,25 +101,6 @@ public:
     Printf(f_header, "#define SWIG_init    pike_module_init\n");
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
 
-    /* Generate the exit function (empty) */
-    Printv(f_init,
-           "\n",
-	   "#ifdef __cplusplus\n",
-	   "extern \"C\"\n",
-	   "#endif\n",
-           "void pike_module_exit(void) {}\n",
-	   NULL);
-
-    /* Start generating the initialization function */
-    Printv(f_init,
-	   "\n",
-	   "#ifdef __cplusplus\n",
-	   "extern \"C\"\n",
-	   "#endif\n",
-	   "void pike_module_init(void) {\n",
-           "struct program *pr;\n",
-	   NULL);
-
     /* Emit code for children */
     Language::top(n);
     
@@ -422,6 +403,23 @@ public:
   virtual int nativeWrapper(Node *n) {
     return Language::nativeWrapper(n);
   }  
+
+  /* ------------------------------------------------------------
+   * enumDeclaration()
+   * ------------------------------------------------------------ */
+  
+  virtual int enumDeclaration(Node *n) {
+    return Language::enumDeclaration(n);
+  }
+
+  /* ------------------------------------------------------------
+   * enumvalueDeclaration()
+   * ------------------------------------------------------------ */
+   
+  virtual int enumvalueDeclaration(Node *n) {
+    return Language::enumvalueDeclaration(n);
+  }
+
   /* ------------------------------------------------------------
    * classDeclaration()
    * ------------------------------------------------------------ */
@@ -493,7 +491,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    return Language::memberconstantHandler(n);
+    return constantWrapper(n);
   }
 };
 

@@ -8,12 +8,18 @@
  * Author : Lyle Johnson (lyle@users.sourceforge.net)
  ************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "object.h"
 #include "program.h"
+#ifdef __cplusplus
+}
+#endif
 
 /* Stores information about a wrapped object */
 typedef struct swig_object_wrapper {
-    void *obj;
+    void *self;
 } swig_object_wrapper;
 
 #ifdef SWIG_NOINCLUDE
