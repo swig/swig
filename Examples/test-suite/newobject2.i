@@ -15,7 +15,9 @@ int g_fooCount = 0;
 
 %inline %{
 /* Struct definition */
-typedef struct {} Foo;
+typedef struct {
+  int dummy;
+} Foo;
 
 /* Make one */
 Foo *makeFoo() {

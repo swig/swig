@@ -2,6 +2,7 @@
 
 %inline %{
 typedef struct Foo {
+  int dummy;
 } Foo;
 %}
 
