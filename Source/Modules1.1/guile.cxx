@@ -82,6 +82,12 @@ GUILE::parse_args (int argc, char *argv[])
 	fputs (guile_usage, stderr);
 	SWIG_exit (0);
       }
+      // Silent recognition (no side effects) of "-with-smobs" is here
+      // as a convenience to users.  This will be removed after 1.3a4
+      // release.  --ttn, 2000/07/20 13:01:07.
+      else if (strcmp (argv[i], "-with-smobs") == 0) {
+	Swig_mark_arg (i);
+      }
       else if (strcmp (argv[i], "-prefix") == 0) {
 	if (argv[i + 1]) {
 	  prefix = new char[strlen (argv[i + 1]) + 2];
