@@ -44,7 +44,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 CPP_TEST_BROKEN += \
 	cast_operator \
 	arrayref \
-	abstract_typedef \
 	namespace_nested \
 	template_default_arg \
 	template_extend_overload \
@@ -63,6 +62,7 @@ CPP_TEST_CASES += \
 	abstract_inherit \
 	abstract_inherit_ok \
 	abstract_signature \
+	abstract_typedef \
 	add_link \
 	anonymous_arg \
 	argout \
