@@ -230,7 +230,7 @@ GUILE::set_init (char *iname)
 void
 GUILE::headers (void)
 {
-  Printf(f_runtime, "/* -*- buffer-read-only: t -*- */\n");
+  Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
   Swig_banner (f_runtime);
 
   Printf (f_runtime, "/* Implementation : GUILE */\n\n");
@@ -368,7 +368,7 @@ get_pointer (char *iname, int parm, SwigType *t,
 
 /* Return true iff T is a pointer type */
 
-static bool
+static int
 is_a_pointer (SwigType *t)
 {
   return SwigType_ispointer(SwigType_typedef_resolve_all(t));
@@ -457,6 +457,9 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   proc_name = NewString(iname);
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
+  /* Emit locals etc. into f->code; figure out which args to ignore */
+  emit_args (d, l, f);
+
   /* Now write the wrapper function itself */
 
   Printv(f->def, "static SCM\n", wname," (", 0);
@@ -488,7 +491,6 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   
   // Declare return variable and arguments
 
-  emit_args (d, l, f);
   int numargs = 0;
   int numopt = 0;
 
