@@ -693,7 +693,8 @@
     ""
 
 %typecheck(SWIG_TYPECHECK_INT128) /* Java BigInteger */
-    unsigned long long
+    unsigned long long,
+    const unsigned long long &
     ""
 
 %typecheck(SWIG_TYPECHECK_FLOAT) /* Java float */
@@ -960,9 +961,12 @@
   }
 
 /* Java specific directives */
-#define %javaconst(flag)     %feature("java:const","flag")
-#define %javaenum(wrapapproach)   %feature("java:enum","wrapapproach")
-#define %javamethodmodifiers %feature("java:methodmodifiers")
+#define %javaconst(flag)            %feature("java:const","flag")
+#define %javaconstvalue(value)      %feature("java:constvalue",value)
+#define %javaenum(wrapapproach)     %feature("java:enum","wrapapproach")
+#define %javamethodmodifiers        %feature("java:methodmodifiers")
+#define %javaexception(exceptionclasses) %feature("except",throws=exceptionclasses)
+#define %nojavaexception                 %feature("except","",throws="")
 
 %pragma(java) jniclassclassmodifiers="class"
 %pragma(java) moduleclassmodifiers="public class"
