@@ -215,6 +215,7 @@ public:
   virtual  Node *classLookup(SwigType *s);                  /* Class lookup      */
   virtual  Node *enumLookup(SwigType *s);                   /* Enum lookup       */
   virtual  int  abstractClassTest(Node *n);	            /* Is class really abstract? */
+  virtual  int  is_assignable(Node *n);	                   /* Is variable assignable? */
   
   /* Allow director related code generation */
   void allow_directors(int val = 1);
@@ -235,9 +236,6 @@ public:
   void setOverloadResolutionTemplates(String *argc, String *argv);
 
  protected:
-  /* Patch C++ pass-by-value */
-  static void patch_parms(Parm *p);
-
   /* Allow multiple-input typemaps */
   void   allow_multiple_input(int val = 1);
 

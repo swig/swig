@@ -121,6 +121,23 @@ static String *k_inherit = 0;
 static String *k_parent = 0;
 static String *k_value = 0;
 
+/* 
+   Enable this one if your language fully support SwigValueWrapper<T>.
+   
+   Leaving at '0' keeps the old swig behavior, which is not
+   always safe, but is well known.
+
+   Setting at '1' activates the new scheme, which is always safe but
+   it requires all the typemaps ready for that.
+  
+*/
+static int value_wrapper_mode = 0;
+int Swig_value_wrapper_mode(int mode) 
+{
+  value_wrapper_mode = mode;
+  return mode;
+}
+
 
 static void flush_cache() {
   typedef_resolve_cache = 0;
@@ -1192,6 +1209,89 @@ int SwigType_type(SwigType *t)
     return r;
   } 
   return T_USER;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_alttype()
+ *
+ * Returns the alternative value type needed in C++ for class value
+ * types. When swig is not sure about using a plain $ltype value,
+ * since the class doesn't have a default constructor, or it can't be
+ * assigned, you will get back 'SwigValueWrapper<type >'.
+ *
+ * This is the default behavior unless:
+ *
+ *  1.- swig detects a default_constructor and 'setallocate:default_constructor'
+ *      attribute.
+ *
+ *  2.- swig doesn't mark 'type' as noassignable.
+ *
+ *  3.- the user specify that the value wrapper is not needed by using
+ *      the %feature("novaluewrapper"), in that case the user need to type
+ *
+ *        %feature("novaluewrapper") MyOpaqueClass;
+ *        class MyOpaqueClass;
+ *
+ * Users can also force the use of the value wrapper by using the
+ * %feature("valuewrapper"). 
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
+  if (!cparse_cplusplus) return 0;
+  if (value_wrapper_mode == 0) {
+    /* old partial use of SwigValueTypes, it can fail for opaque types */
+    Node *n;
+    int use_wrapper = 0;
+    if (local_tmap) return 0;
+    if (!use_wrapper && SwigType_isclass(t)) {
+      SwigType *ftd = SwigType_typedef_resolve_all(t);
+      SwigType *td = SwigType_strip_qualifiers(ftd);
+      Delete(ftd);
+      if ((n = Swig_symbol_clookup(td,0)) && !Getattr(n,"feature:novaluewrapper")) {
+	if (Getattr(n,"feature:valuewrapper")) {
+	  use_wrapper = 1;
+	} else {
+	  if ((Strcmp(nodeType(n),"class") == 0) 
+	      && (!Getattr(n,"allocate:default_constructor") 
+		  || (Getattr(n,"allocate:noassign")))) {
+	    use_wrapper = 1;
+	  }
+	}
+      }
+      if (SwigType_issimple(td) && SwigType_istemplate(td)) {
+	use_wrapper = 1;
+      }
+      Delete(td);
+    }
+    return (use_wrapper ? NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0)): 0);
+  } else {
+    /*  safe use of SwigValueTypes, it can fail with some typemaps */
+    SwigType *w = 0;
+    Node *n = 0;
+    int use_wrapper = 1;
+    SwigType *ftd = SwigType_typedef_resolve_all(t);
+    SwigType *td = SwigType_strip_qualifiers(ftd);
+    if (SwigType_type(td) == T_USER) {
+      if ((n = Swig_symbol_clookup(td,0))) {
+	if (((Strcmp(nodeType(n),"class") == 0) 
+	     && !Getattr(n,"allocate:noassign")
+	     && (Getattr(n,"allocate:default_constructor")))
+	    || (Getattr(n,"feature:novaluewrapper"))) {
+	  use_wrapper = Getattr(n,"feature:valuewrapper") ? 1 : 0;
+	}
+      }
+    } else {
+      use_wrapper = 0;
+    }    
+    if (use_wrapper) {
+      String *name = SwigType_str(t,0);
+      w = NewStringf("SwigValueWrapper<%s >",name);
+      Delete(name);
+    }
+    Delete(ftd);
+    Delete(td);
+    return w;    
+  }
 }
 
 /******************************************************************************
