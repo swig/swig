@@ -149,7 +149,7 @@
 //%apply const int& { const Hello&  };
 
 %apply void* { pint };
-%apply const void*& { const pint& };
+%apply void* const& { const pint& };
   
 
 //
