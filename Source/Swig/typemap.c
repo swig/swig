@@ -77,11 +77,6 @@ Swig_typemap_register(char *op, SwigType *type, String_or_char *pname, String_or
   Hash *tm1;
   Hash *tm2;
 
-  if ((pname) && (Cmp(pname,"SWIG_DEFAULT_TYPE") == 0)) {
-    type = SwigType_default(type);
-    Swig_temp_result(type);
-  }
-
   /* See if this type has been seen before */
   tm = Getattr(typemaps[tm_scope],type);
   if (!tm) {
@@ -100,11 +95,27 @@ Swig_typemap_register(char *op, SwigType *type, String_or_char *pname, String_or
     }
     tm = tm1;
   }
-  tm2 = NewHash();
+  tm2 = Getattr(tm,op);
+  if (tm2) {
+    SwigType *tm_type;
+    String   *tm_pname;
+    tm_type = Getattr(tm2,"type");
+    tm_pname = Getattr(tm2,"pname");
+    if (Cmp(tm_type,type) || Cmp(tm_pname,pname)) {
+      tm2 = 0;
+    }
+  }
+  if (!tm2) {
+    tm2 = NewHash();
+    Setattr(tm,op,tm2);
+    Delete(tm2);
+  }
   Setattr(tm2,"code",NewString(code));
+  Setattr(tm2,"type",NewString(type));
+  if (pname) {
+    Setattr(tm2,"pname", NewString(pname));
+  }
   Setattr(tm2,"locals", CopyParmList(locals));
-  Setattr(tm,op,tm2);
-  Delete(tm2);
 }
 
 /* -----------------------------------------------------------------------------
@@ -261,6 +272,7 @@ Swig_typemap_search(char *op, SwigType *type, String_or_char *name) {
   Hash *result = 0, *tm, *tm1, *tma;
   SwigType *noarrays = 0;
   SwigType *primitive = 0;
+  SwigType *ctype = 0;
   int ts;
   int isarray;
   char *cname = 0;
@@ -269,57 +281,65 @@ Swig_typemap_search(char *op, SwigType *type, String_or_char *name) {
   isarray = SwigType_isarray(type);
   ts = tm_scope;
   while (ts >= 0) {
-    /* Try to get an exact type-match */
-    tm = Getattr(typemaps[ts],type);
-    if (tm && cname) {
-      tm1 = Getattr(tm,cname);
-      if (tm1) {
-	result = Getattr(tm1,op);          /* See if there is a type-name match */
-	if (result) goto ret_result;
-      }
-    }
-    if (tm) {
-      result = Getattr(tm,op);            /* See if there is simply a type match */
-      if (result) goto ret_result;
-    }
-
-    if (isarray) {
-      /* If working with arrays, strip away all of the dimensions and replace with ANY.
-	 See if that generates a match */
-      if (!noarrays) noarrays = strip_arrays(type);
-      tma = Getattr(typemaps[ts],noarrays);
-      if (tma && cname) {
-	tm1 = Getattr(tma,cname);
+    ctype = type;
+    while (ctype) {
+      /* Try to get an exact type-match */
+      tm = Getattr(typemaps[ts],ctype);
+      if (tm && cname) {
+	tm1 = Getattr(tm,cname);
 	if (tm1) {
-	  result = Getattr(tm1,op);       /* type-name match */
+	  result = Getattr(tm1,op);          /* See if there is a type-name match */
 	  if (result) goto ret_result;
 	}
       }
-      if (tma) {
-	result = Getattr(tma,op);        /* type match */
+      if (tm) {
+	result = Getattr(tm,op);            /* See if there is simply a type match */
 	if (result) goto ret_result;
       }
+      
+      if (isarray) {
+	/* If working with arrays, strip away all of the dimensions and replace with ANY.
+	   See if that generates a match */
+	if (!noarrays) noarrays = strip_arrays(ctype);
+	tma = Getattr(typemaps[ts],noarrays);
+	if (tma && cname) {
+	  tm1 = Getattr(tma,cname);
+	  if (tm1) {
+	    result = Getattr(tm1,op);       /* type-name match */
+	    if (result) goto ret_result;
+	  }
+	}
+	if (tma) {
+	  result = Getattr(tma,op);        /* type match */
+	  if (result) goto ret_result;
+	}
+      }
+      
+      /* No match so far.  If this type had a typedef declaration, maybe there are
+         some typemaps for that */
+      {
+	SwigType *nt = SwigType_typedef_resolve(ctype);
+	if (ctype != type) Delete(ctype);
+	ctype = nt;
+      }
     }
-    /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default 
-       mapping */
-
-    if (!primitive) {
+    
+    /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default mapping */
+    if (!primitive)
       primitive = SwigType_default(type);
-    }
     tm = Getattr(typemaps[ts],primitive);
     if (tm) {
-      tm1 = Getattr(tm,"-SWIG_DEFAULT_TYPE");
-      if (tm1) {
-	result = Getattr(tm1,op);
-	if (result) goto ret_result;
-      }
+      result = Getattr(tm,op);
+      if (result) goto ret_result;
     }
-    ts--;
+    if (ctype != type) Delete(ctype);
+    ts--;         /* Hmmm. Nothing found in this scope.  Guess we'll go try another scope */
   }
   
  ret_result:
   if (noarrays) Delete(noarrays);
   if (primitive) Delete(primitive);
+  if (type != ctype) Delete(ctype);
   return result;
 }
 
@@ -417,7 +437,7 @@ char *Swig_typemap_lookup(char *op, SwigType *type, String_or_char *pname, Strin
   Replace(s,"$target",target,DOH_REPLACE_ANY);
   Replace(s,"$type",SwigType_str(type,0),DOH_REPLACE_ANY);
   {
-    SwigType *ltype = SwigType_ltype(type);
+    SwigType *ltype = Swig_clocal_type(type);
     Replace(s,"$ltype",SwigType_str(ltype,0), DOH_REPLACE_ANY);
     Delete(ltype);
   }
