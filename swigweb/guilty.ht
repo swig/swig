@@ -1,0 +1,42 @@
+Guilty Parties
+
+<p><img src="images/guilty.png" alt="Guilty Parties">
+
+<p><b>The primaries</b>
+
+<ul>
+<li>Dave Beazley, (a.k.a., "Mr. Swig")
+<li>Dustin Mitchell (SWIG core).
+<li>Harco de Hilster (Java)
+<li>Loic Dachary (Perl)
+<li>Thien-Thi Nguyen (Guile)
+<li>Ian Cooke (SWIG core).
+<li>Hasan Baran Kovuk (SWIG core).
+</ul>
+
+<p><b>Aiding and Abetting</b>
+<ul>
+<li>David Ascher (quality control).
+<li>John Buckman (original port to NT).
+<li>Kevin Butler (further NT support).
+<li>Dominique Dumont (Perl5 module debugging).
+<li>Pier Giorgio Esposito (Borland Makefiles).
+<li>David Fletcher (Perl5 shadow class design).
+<li>Gary Holt (Perl5 shadow class design)
+</ul>
+
+<p><b>Friends</b>
+<ul>
+<li>The F street crew
+<li>Peter Lomdahl
+<li>Chris Myers
+<li>John Schmidt
+<li>Tim Germann
+<li>Paul Dubois
+<li>Kurtis Bleeker
+<li>Larry Virden
+<li>Peter-Pike Sloan
+<li>Patrick Tullmann
+</ul>
+
+Apologies to anyone missed....

@@ -1,0 +1,55 @@
+Download SWIG
+<p>
+<img src="images/download.png" alt="Download">
+
+<p>
+SWIG is distributed as source code from the following locations:
+
+<ul>
+<li> <a href="http://sourceforge.net/project/?group_id=1645">SourceForge</a> (New!)
+<li> <a href="ftp://ftp.swig.org/pub">ftp.swig.org/pub</a> (Master site). 
+<li> <a href="ftp://swig.cs.uchicago.edu/pub/SWIG">swig.cs.uchicago.edu/pub/SWIG</a> (Development site).
+<li> <a href="ftp://ftp.cs.utah.edu/pub/beazley/SWIG">ftp.cs.utah.edu/pub/beazley/SWIG</a> (Utah)
+<li> <a href="ftp://ftp.mcc.ac.uk/pub/mvc/swig">ftp.mcc.ac.uk/pub/mvc/swig</a> (UK)
+<li> <a href="ftp://ftp.rge.com/pub/languages/swig/">ftp.rge.com/pub/languages/swig</a> (New York).
+<li> <a href="ftp://ftp.python.org/pub/python/contrib/System/">ftp.python.org/pub/python/contrib/System</a> (Python contributed software).
+<li> <a href="http://www.perl.com/CPAN//authors/Dave_Beazley">CPAN (Comprehensive Perl Archive Network)</a>
+</ul>
+
+You can also find SWIG in the following locations :
+
+<ul>
+<li> <a href="http://cgi.debian.org/www-master/debian.org/Packages/stable/interpreters/swig.html">Debian GNU/Linux</a>.
+<li> <a href="http://www.freebsd.org/ports/devel.html">FreeBSD</a>.
+<li> <a href="http://www.oreilly.com/catalog/python/noframes.html">Programming Python</a> (Included on CD-ROM).
+<li> <a href="http://www.mkp.com/books_catalog/0-12261-205-1.asp">Tcl/Tk for Real Programmers</a> (Included on CD-ROM).
+</ul>
+
+Note : If you received SWIG on CD-ROM, you may want to upgrade to the latest release.
+
+
+<h3> The Latest Release </h3>
+
+<b>Note (1/18/00) </b>SWIG1.1p5 has a number of compilation issues
+with ANSI C++ compilers and will probably generate a lot of compiler
+warnings.  Sorry.
+
+<p>
+<a href="ftp://ftp.swig.org/pub/swig1.1p5.tar.gz">SWIG 1.1p5</a>
+is the latest stable release (2/5/98). The following files are available :
+
+<ul>
+<li> <a href="ftp://ftp.swig.org/pub/swig1.1p5.tar.gz">swig1.1p5.tar.gz</a>. The full distribution including documentation and examples.
+<li> <a href="ftp://ftp.swig.org/pub/swigdoc1.1_pdf.tar.gz">swigdoc1.1_pdf.tar.gz</a>. PDF documentation (included in the full distribution).
+<li> <a href="ftp://ftp.swig.org/pub/swigdoc1.1_ps.tar.gz">swigdoc1.1_ps.tar.gz</a>. Postscript documentation.
+<li> <a href="ftp://ftp.swig.org/pub/MacSWIG1.1p2.sea.hqx">MacSWIG1.1p2.sea.hqx</a>. SWIG for the Power Macintosh (experimental).
+<li>
+<a href="compat.html"> Currently supported platforms</a>.
+</ul>
+
+<h3> Maintenance Releases </h3>
+
+The latest <a href="ftp://swig.cs.uchicago.edu/pub/SWIG/latest.tar.gz">maintenance release</a> can
+be obtained from the University of Chicago.  This release incorporates all of the latest bug
+fixes to Swig1.1.   Please try this version if you are experiencing any problems with Swig1.1p5.
+

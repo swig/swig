@@ -1,0 +1,61 @@
+SWIG Related Links
+
+<p>
+<img src="images/links.png">
+
+<H3> Language related links </h3>
+
+<ul>
+
+The <a href="http://www.scriptics.com"> Tcl/Tk </a> homepage at Scriptics<br>
+The <a href ="http://www.python.org"> Python </a> homepage. <br>
+<a href="http://www.perl.org"> The Perl Institute</a> <br>
+<a href="http://republic.perl.com"> The Programming Republic of Perl</a>. <br>
+<a href="http://www.perl.com/CPAN/CPAN.html"> CPAN (Comprehensive Perl Archive Network)</a> <br>
+<a href="http://starship.python.net"> Starship Python</a> <br>
+
+<a href="http://www.neosoft.com/tcl/default.html"> Tcl/Tk Contributed Sources Archive </a> <br>
+<a href="http://www.sco.com/Technology/tcl/Tcl.html"> Tcl/Tk Information </a> <br>
+<a href="http://www.gnu.org/software/guile/guile.html">Guile</a> homepage. <br>
+</ul>
+
+<h3> Code generators and other interesting packages</h3>
+
+<ul>
+The <a href="ftp://parcftp.parc.xerox.com/pub/ilu/ilu.html"> ILU </a> homepage (Xerox PARC) <br>
+<a href="http://www.uni-frankfurt.de/~fp/Tools/tclobj"> TclObj </a> </br>
+<a href="http://www.amath.washington.edu/~lf/software/tcl++">Modular Tcl</a></br>
+<a href="http://lnc.usc.edu/~holt/matwrap/">Matwrap</a>. A wrapper
+generator for matrix languages. <br>
+<a href="http://www.river-bank.demon.co.uk/software">SIP</a>. A wrapper generator
+for integrating C++ libraries with Python. <br>
+<a href="http://xfiles.llnl.gov/python.htm">CXX</a>. A C++ friendly extension API for Python.<br>
+<a href="http://xfiles.llnl.gov/python.htm">pyfort</a>. A wrapper generator for interfacing Fortran with Python.<br>
+<a href="http://www.acl.lanl.gov/siloon">SILOON</a>. A wrapper generation tool 
+with some ambitious goals for C++.<br>
+<a href="http://www9.informatik.uni-erlangen.de/eng/research/rendering/vision/itcl/">Itcl++</a>. 
+A wrapper generator for interfacing C++ with [incr Tcl].<br>
+
+<a href="http://www.hlla.is.tsukuba.ac.jp/~chiba">OpenC++</a>.  A very cool compiler project that lets you crawl inside C++ parse trees and more. <br>
+<a href="http://www.stack.nl/~dimitri/doxygen">Doxygen</a>. Generate documentation and more for C/C++ programs.<br>
+
+</ul>
+
+<h3> Other interesting links</h3>
+
+<ul>
+
+John Ousterhout's <a href="http://www.scriptics.com/people/john.ousterhout/scripting.html"> paper </a> on scripting languages
+(appeared in IEEE Computer). <br>
+<A HREF="http://SAL.KachinaTech.COM/"> SAL - Scientific Applications on Linux</a>. <br>
+<a href="http://www.usenix.org">USENIX</a> <br>
+
+</ul>
+
+<b>I am always on the lookout for projects that are either related to SWIG 
+or which provide alternative solutions to the problem of wrapping C/C++ code.
+Please drop me a line if there are other projects that
+should be linked here. -- Dave</b>
+
+
+

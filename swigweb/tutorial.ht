@@ -1,0 +1,221 @@
+SWIG Tutorial
+
+<p>
+<img src="images/tutorial.png">
+
+<p>
+So you want to get going in a hurry?  To illustrate the use of SWIG,
+suppose you have some C functions you want added to Tcl, Perl, and Python.
+Specifically, let's say you have them in a file 'example.c'
+
+<ul><tt><pre>
+/* File : example.c */
+
+#include &lt;time.h&gt
+double My_variable = 3.0;
+
+int fact(int n) {
+    if (n &lt;= 1) return 1;
+    else return n*fact(n-1);
+}
+
+int my_mod(int x, int y) {
+    return (x%y);
+}
+	
+char *get_time()
+{
+    time_t ltime;
+    time(&amp;ltime);
+    return ctime(&amp;ltime);
+}
+
+</pre></tt></ul>
+
+<h3> Interface file </h3>
+
+Now, in order to add these files to your favorite scripting language, you need to write an
+"interface file" which is the input to SWIG.  An interface file for these
+C functions might look like this :
+
+<ul><tt><pre>
+/* example.i */
+%module example
+%{
+/* Put header files here (optional) */
+%}
+
+extern double My_variable;
+extern int fact(int n);
+extern int my_mod(int x, int y);
+extern char *get_time();
+</pre></tt></ul>
+
+<h3> Building a Tcl module </h3>
+
+At the UNIX prompt, type the following (shown for Linux):
+
+<blockquote>
+<pre><tt>
+unix % swig -tcl example.i
+Making wrappers for Tcl
+unix % gcc -fpic -c example.c example_wrap.c \
+       -I/usr/local/include 
+unix % gcc -shared example.o example_wrap.o -o example.so
+unix % tclsh
+% load ./example.so example
+% puts $My_variable
+3.0
+% fact 5
+120
+% my_mod 7 3
+1
+% get_time
+Sun Feb 11 23:01:07 1996
+
+% 
+</tt></pre></blockquote>
+
+The <tt> swig </tt> command produces a file <a href = "tutorial/example_wrap.html">
+<tt> example_wrap.c </tt> </a> that should be compiled and linked with
+the rest of the program.  In this case, we have built a dynamically 
+loadable extension that can be loaded into the Tcl interpreter using
+the 'load' command.   
+
+<p>
+If your machine does not support dynamic loading, it is also easy to 
+build a new version of the tclsh interpreter as follows :
+
+<blockquote>
+<pre><tt>
+unix % swig -tcl -ltclsh.i example.i
+unix % gcc example.c example_wrap.c -I/usr/local/include \
+       -L/usr/local/lib -ltcl -lsocket -ldl -lm -o my_tclsh
+unix % my_tclsh
+% puts $My_variable
+3.0
+% fact 5
+120
+%
+</tt></pre></blockquote>
+
+In this case, the new version of
+tclsh is functionally identical to the original, but has new functions
+added to it.
+
+<h3> Building a Python module </h3>
+
+Turning C code into a Python module is also easy.  Simply do the following (shown for Irix):
+
+<blockquote> <tt> <pre>
+
+unix % swig -python example.i
+Making wrappers for Python
+unix % gcc -c example.c example_wrap.c \
+       -I/usr/local/include/python1.4 \
+       -I/usr/local/lib/python1.4/config
+unix % ld -shared example.o example_wrap.o -o examplemodule.so 
+</pre> </tt> </blockquote>
+
+We can now use the Python module as follows : 
+<blockquote> <tt> <pre>
+>>> import example
+>>> example.fact(5)
+120
+>>> example.my_mod(7,3)
+1
+>>> example.get_time()
+'Sun Feb 11 23:01:07 1996'
+>>>
+</pre>
+</tt> </blockquote>
+
+<h3> Building a Perl module </h3>
+Finally, you can build a Perl5 module as follows (shown for Solaris):
+
+<blockquote><tt><pre>
+unix % swig -perl5 example.i
+Making wrappers for Perl5
+unix % gcc -c example.c example_wrap.c \
+       -I/usr/lib/perl/solaris/5.003/CORE 
+unix % ld -G example.o example_wrap.o -o example.so
+unix % perl
+use example;
+print $example::My_variable,"\n";
+print example::fact(5),"\n";
+print example.get_time(),"\n";
+&lt;ctrl-d&gt;
+3.0
+120
+Sun Feb 11 23:01:07 1996
+unix % 
+</pre></tt></blockquote>
+
+
+<h3> SWIG for the truly lazy </h3>
+
+As it turns out, it is not always necessary to write a special interface
+file.  If your C code is relatively clean, you can just run SWIG directly
+on the source like this :
+
+<blockquote>
+<tt> <pre>
+unix % swig -tcl -module example example.c
+unix % gcc -c example.c example_wrap.c -I/usr/local/include
+unix % ld -shared example.o example_wrap.o -o example.so
+</pre></tt></blockquote>
+
+<h3> Adding Documentation </h3>
+
+Documentation can now be added using C/C++ comments.  For example :
+
+<ul><tt><pre>
+/* example.i */
+
+%title "Simple Example"
+%{
+/* Put header files here */
+%}
+
+%section "My Commands"
+extern double My_variable; // This is an interesting variable
+extern int fact(int n);    // Computes n factorial
+extern int my_mod(int x, int y); // Calculates x % y
+extern char *get_time();
+/* Returns the current time as a string */
+</pre></tt></ul>
+
+We can now run SWIG using : <br>
+<ul> <tt> % swig -tcl -dhtml example.i </tt> </ul>
+
+This will produce a documentation file <a href="tutorial/example_wrap_tcl.html"> <tt> example_wrap.html </tt> </a>. 
+
+<br><br>
+The documentation system produces documentation using the syntax of the
+target language.  Thus, if you used Perl5 instead of Tcl, the documentation
+file might look like <a href="tutorial/example_wrap_perl5.html"> this </a>.  <br> <br>
+
+Documentation can also be produced in ASCII and LaTeX formats.  
+The C/C++ comments containing documentation can span multiple lines and
+can include embedded LaTeX or HTML if desired.
+
+<h3> Running SWIG under Windows NT </h3>
+
+SWIG also works perfectly well under Windows NT/95 systems.  SWIG
+is typically invoked from the command prompt and can be used with
+NMAKE.   Modules are typically compiled in the form of a DLL that
+can be dynamically loaded into Tcl,Python, or Perl.   With a little
+work, SWIG can also be used as a custom build option within 
+MS Developer Studio.  
+
+<h3> That's it (well, mostly) </h3>
+
+That's about everything you need to know. Here's the short checklist :
+
+<ul>
+<li> Make sure you specify a module name.
+<li> Use ANSI C/C++ syntax
+<li> Figure out how to compile a shared library module (may require reading a few man 
+pages for your compiler).
+<li> Relax.
+</ul>

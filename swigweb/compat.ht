@@ -1,0 +1,76 @@
+SWIG Compatibility
+
+<p>
+<img src="images/compat.png" alt="Compatibility">
+
+<p>
+SWIG is known to work on the following platforms :
+
+<ul>
+<li> Unix 
+
+<blockquote>
+SWIG is configured and built using an autoconf script so it is
+relatively easy to install on almost any flavor of Unix.  However, most of
+SWIG's development has taken place under Linux and Solaris.
+While the configuration script tries to determine the proper settings
+for your machine, some tweaking may be required to compile the
+examples included in the distribution (especially if you are using a 
+version of Unix such as AIX or HPUX).
+</blockquote>
+
+<li> Windows 95/98/NT
+
+<blockquote>
+SWIG can be compiled with Visual C++ 4.x/5.x/6.x or with the Borland C++ 5.x
+compiler.   However, SWIG has only been officially tested using the
+Visual C++ compiler.   You may also need to determine which compiler
+has been used to compile the various scripting languages that you will
+be using.   In general, using SWIG with a different C++ compiler than
+the one that was used to compile the target scripting language may
+not work (for example, trying to create a Tcl/Tk module using the
+Borland compiler when Tcl/Tk has been compiled with Visual C++).  
+Given that SWIG is primarily developed under Unix, the Windows
+version should be viewed as being somewhat experimental.  SWIG has
+only been tested under Windows-NT.  However, Windows 95/98 systems
+also appear to work.
+
+</blockquote>
+
+<li> Macintosh
+
+<blockquote>
+A highly experimental version of SWIG has been compiled using
+Metrowerks Code Warrior 10.  Given the limited availability and
+experience with the Macintosh, this version of SWIG should only
+be used by exceptionally brave users. SWIG has not been fully tested with Python or
+Perl on the Macintosh although some users have reported success.
+</blockquote>
+</ul>
+
+You can read the
+installation instructions included in the distribution <a href="INSTALL">here.</a>
+
+<h3> Supported Scripting Languages </h3>
+
+The following scripting languages are currently supported 
+
+<ul>
+<li> Tcl 8.0 and newer versions.
+<li> Python 1.3 and newer.
+<li> Perl 5.003 or newer.
+</ul>
+
+Any newer versions of these languages should be assumed to be
+supported unless otherwise indicated.   
+
+<h3> Compilation Requirements </h3>
+
+SWIG is implemented in C++ and is distributed in source form.
+You will need a working C++ compiler (i.e., g++) to build SWIG and at
+least one of the supported scripting languages to use it (or else it
+isn't going to be very useful).  SWIG does not depend upon any of the
+supported scripting languages for its own compilation.  Finally,
+although SWIG is written in C++, a C++ compiler is not required to use
+SWIG--it works just fine with both ANSI C and C++.
+

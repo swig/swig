@@ -1,0 +1,101 @@
+Executive Summary
+
+<p>
+<img src="images/exec.png" alt="Executive Summary">
+
+<p>
+<center>
+<em>
+"Don't keep doing what doesn't work" -- Anonymous
+<br>
+<p>
+"Keep it simple stupid" -- Anonymous
+<br>
+</em>
+</center>
+
+<p>
+SWIG is an interface compiler that connects programs written in C,
+C++, and Objective-C with scripting languages including <a href="http://www.perl.org">Perl</a>,
+<a href="http://www.python.org">Python</a>, and 
+<a href="http://www.scriptics.com">Tcl/Tk</a>.  It works by taking the declarations commonly found in C/C++ header
+files and using them to generate the glue code (wrappers) that scripting
+languages need to access the underlying C/C++ code.
+
+<p>
+John Ousterhout has written an excellent 
+<a href="http://www.scriptics.com/people/john.ousterhout/scripting.html">paper</a>
+that describes the
+benefits of scripting languages.   SWIG makes it even easier to
+use scripting languages by automating the process of connecting scripting
+languages to C/C++ code.
+
+<p>SWIG is used in a number of ways:
+
+<ul>
+<li><b>Building better C/C++ programs</b>.   Using SWIG, you can easily replace the main()
+function of a C program with a scripting interpreter.   This adds flexibility,
+simplifies development, and makes it easier to build extensible applications.
+When used with Tk, it also becomes possible to build simple graphical user interfaces.
+
+<p>
+<li><b>Rapid prototyping and debugging</b>.  SWIG allows C/C++ programs to be placed in
+a scripting environment that can be used for testing and debugging.
+For example, you might test a library with a collection of scripts or use the scripting
+interpreter as an interactive debugger.   Since SWIG requires no modifications to the
+underlying C code, it can be used even if the final product does not rely upon scripting.
+
+<p>
+<li><b>Systems integration</b>.  Scripting languages excel at controlling and gluing
+software components together.  With SWIG, different C/C++ programs can be turned into
+scripting language extension modules.   These modules can then be combined together
+to create new and interesting applications.
+</ul>
+
+SWIG is sometimes compared to other scripting language extension building tools
+and compilers for interface definition languages (IDL) such as CORBA IDL.
+However, SWIG has a number of distinguishing features.
+
+<p>
+<ul>
+<li><b>ANSI C/C++ syntax</b>.  SWIG parses a form of ANSI C 
+syntax that has been extended with a number of special directives.
+This makes it extremely easy to use since scripting interfaces
+can usually be built by grabbing a header file and tweaking
+it a little bit.
+
+<p>
+<li><b>Complete automation</b>.  SWIG produces a fully functional
+scripting language module and is not a stub-generator.  It is rarely necessary to modify the output of SWIG.
+
+<p>
+<li><b>Multiple languages</b>.  SWIG can produce extension modules
+for a variety of different scripting languages.  Most scripting language
+extension building tools are specific to a single language.
+
+<p>
+<li><b>Designed to work with existing C/C++ code</b>.  SWIG requires little, if any, modifications
+to existing code.  Nor is it necessary to create special wrappers or stubs.
+This allows existing applications to be easily migrated to a scripting interface.
+It also allows you to maintain a clean separation  of the C/C++ implementation and its 
+(often optional) scripting interface.
+
+<p>
+<li><b>Extensibility</b>.   SWIG gives you the full power to shoot
+yourself in the foot.  It can be extended and customized in any number
+of interesting ways.  Since C/C++ applications vary widely, SWIG is
+designed to be adaptable to your application, not the other way around.
+</ul>
+
+A number of <a href="doc.html">papers and tutorials</a> describing SWIG are available.
+You can also view a simple <a href="tutorial.html">tutorial</a> to see an
+example of SWIG in action.
+
+<p>
+Find out <a href="projects.html">who</a> is using SWIG and what
+they <a href="propaganda.html">said</a> about it (from the March, 1998
+user survey).
+
+
+
+

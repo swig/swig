@@ -1,0 +1,40 @@
+SWIG History
+
+<p>
+<img src="images/history.png" alt="History">
+
+<p>
+SWIG was originally developed in 1995 at
+Los Alamos National Laboratory.  The first version was the extension
+building mechanism for a customized scripting language that was never
+released to the public (and which was later abandoned in favor of
+Python).  In early 1996, development moved to the University of Utah
+where SWIG was rewritten in C++ and expanded to cover Tcl, Perl, and
+Guile.  The first alpha release occurred in February, 1996.  Python
+support was added somewhat later and version 1.0 was finalized in
+September 1996.  Version 1.1 was released a year later in September,
+1997.  Since then, a few minor updates to the 1.1 release have
+appeared (the latest occuring in February, 1998).
+
+<p>
+Since late 1997, SWIG development has largely languished since I had
+to deal with the most decidely unpleasant task of writing my
+dissertation, looking for employment, moving halfway across the
+country, and sorting out the chaos of being a new assistant professor.
+Although there have been a few attempts to produce SWIG2.0 in that
+time, none of these efforts have yet to be successful (although I'm
+not giving up on it just yet).
+
+<p>
+Most recently, efforts have started to produce what will become
+SWIG1.3.  This is an upgrade to SWIG1.1 that concentrates on the
+quality of wrapper code generation.  In particular, SWIG1.3 includes a
+number of improvements that result in substantially less wrapper code
+than version 1.1.  I'm hoping to have 1.3 released in beta by the end
+of 1999.
+
+
+<p>
+-- Dave Beazley, November 27, 1999.
+
+

@@ -1,0 +1,57 @@
+Simplified Wrapper and Interface Generator
+<p>
+<img src="images/swig12.png" alt="Simplified Wrapper and Interface Generator">
+
+<p>
+SWIG is a software development tool that connects programs written
+in C, C++, and Objective-C with a variety of high-level programming languages. 
+SWIG is primarily used with common scripting languages such as 
+Perl,
+Python,
+and Tcl/Tk,
+but has also been extended to include languages such
+as Java,
+Eiffel,
+and Guile.
+SWIG is most commonly used to create high-level
+interpreted programming environments, systems integration, and as a tool for building
+user interfaces.  SWIG may be freely used, distributed, and modified for 
+commercial or noncommercial use.
+
+<ul>
+<li> <a href="download.html">Download</a> the latest version.
+<li> <a href="doc.html">Documentation, papers, and presentations</a>
+<li> <a href="faq.html">Frequently asked (and sometimes answered) questions</a>
+<li> <a href="mail.html">Mailing List</a>
+<li> <a href="bugs.html">Bug tracking</a>
+<li> <a href="projects.html">Projects</a> using SWIG.
+<li> <a href="http://islab.cs.uchicago.edu/swig">Development site</a> at the University of Chicago.
+</ul>
+
+
+<p>
+<h3>News</h3>
+
+<p>
+(3/1/00) SWIG1.3a2 has been released!  Download now from <a
+href="http://download.sourceforge.net/swig/swig1.3a2.tar.gz">SourceForge</a>.
+Note: this is an unstable release and is not recommended for
+first-time users.  Download <a
+href="http://download.sourceforge.net/swig/swig1.1p5.tar.gz">SWIG1.1p5</a> instead.
+
+<p>
+(3/1/00) A short article about SWIG appears in the March, 2000 issue of The Linux Journal.
+
+<p>
+(11/26/99) The <a href="http://islab.cs.uchicago.edu/python">Python Essential Reference</a> has been released.  Please support the PSA by purchasing through the <a href="http://www.python.org/psa/bookstore">PSA bookstore</a>.
+
+<p>
+(6/8/99) Perl users will almost certainly want to download the latest <a href="ftp://swig.cs.uchicago.edu/pub/SWIG/latest.tar.gz">maintenance release</a>.   A number of changes in Perl's C API have made newer versions of Perl incompatible with older versions
+of Swig.  The maintenance release should work with recent Perl5 development and ActiveState Perl for Win32 releases.
+<p>
+</blockquote>
+
+
+
+
+
