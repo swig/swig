@@ -31,9 +31,11 @@ short full_of_exceptions(int num) {
 
 
 %typemap(throws, throws="IllegalAccessException") int {
+    (void)$1;
     jclass excep = jenv->FindClass("java/lang/IllegalAccessException");
-    if (excep)
+    if (excep) {
         jenv->ThrowNew(excep, "Test exception");
+    }
     return $null;
 }
 %inline %{

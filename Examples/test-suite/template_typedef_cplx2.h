@@ -19,10 +19,10 @@ namespace vfncs {
   };    
     
   template <class ArgType, class ResType>
-  class UnaryFunction;
+  struct UnaryFunction;
     
   template <class ArgType, class ResType>
-  class ArithUnaryFunction;  
+  struct ArithUnaryFunction;  
     
   template <class ArgType, class ResType>
   struct UnaryFunction : UnaryFunctionBase

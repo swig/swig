@@ -10,7 +10,7 @@
 %{
 
 
-  class A;
+  struct A;
   struct B
   {
     B(int i) : v(i) 

@@ -13,7 +13,7 @@
   };
   
   template <FieldDim Dim>
-    class Facet;
+    struct Facet;
   
 
   template <FieldDim Dim>

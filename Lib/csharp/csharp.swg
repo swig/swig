@@ -297,6 +297,7 @@ $1 = &temp; %}
 }
 
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
+  (void)$1;
   SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
 %}
 

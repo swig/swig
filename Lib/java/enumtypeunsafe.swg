@@ -19,6 +19,7 @@
 %typecheck(SWIG_TYPECHECK_INT32) enum SWIGTYPE ""
 
 %typemap(throws) enum SWIGTYPE %{
+  (void)$1;
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
 %}
 

@@ -39,7 +39,7 @@
   int hello(int);
   inline int hello(int) { return 0; }
   
-  class B;
+  struct B;
   
   struct A
   {
