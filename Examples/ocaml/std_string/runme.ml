@@ -13,10 +13,10 @@ let _ =
     print_newline () ;
     
     print_string "the new string contains " ;
-    print_int (get_int ((invoke z) "size" C_void)) ;
+    print_int (z -> size () as int) ;
     print_string " : [ " ;
-    for i = 0 to pred (get_int ((invoke z) "size" C_void)) do
-      print_int (get_int ((invoke z) "[]" (C_int i))) ;
+    for i = 0 to (pred ((z -> size ()) as int)) do
+      print_int ((z '[i to int]) as int) ;
       print_string "; " ;
     done ;
     print_string "]" ;
