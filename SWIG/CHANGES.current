@@ -21,7 +21,26 @@ Version 1.3.15 (In progress)
                 };
 
             Now SWIG wraps FooBar::blah as an overloaded method that uses all
-            accessible versions of blah().    See section 15.2.2 in Stroustrup, 3rd Ed.
+            accessible versions of blah().  See section 15.2.2 in Stroustrup, 3rd Ed.
+
+            SWIG also supports access change through using declarations.  For example:
+
+                class Foo {
+                protected:
+                     int x;
+                     int blah(int x);
+                };
+
+                class Bar : public Foo {
+                public:
+                     using Foo::x;
+                     using Foo::blah;
+                };
+
+
+            Caveat:   SWIG does not actually check to see if declarations imported
+            via 'using' are in the inheritance hierarchy.  If this occurs, the
+            wrapper code won't compile anyways---not sure it's worth worrying about.
           
 08/18/2002: beazley
             Modified overloading dispatch to not include nodes with an "error" attribute.
