@@ -12,7 +12,9 @@
 char cvsroot_misc_c[] = "$Header$";
 
 #include "swig.h"
-#include "swigver.h"
+#ifndef MACSWIG
+#include "swigconfig.h"
+#endif
 #include <ctype.h>
 
 /* -----------------------------------------------------------------------------
@@ -48,7 +50,7 @@ Swig_banner(File *f) {
  * coding conventions designed to improve portability and efficiency. Do not make\n\
  * changes to this file unless you know what you are doing--modify the SWIG \n\
  * interface file instead. \n\
- * ----------------------------------------------------------------------------- */\n\n", SWIG_VERSION);
+ * ----------------------------------------------------------------------------- */\n\n", PACKAGE_VERSION);
 
 }
 
