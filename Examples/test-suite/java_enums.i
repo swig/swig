@@ -3,7 +3,9 @@
 
 %module java_enums
 
-// Some pragmas to add in an interface to the module class - checks that the java_enumsConstants interface class is also 'implemented'
+%include "enumtypeunsafe.swg"
+
+// Some pragmas to add in an interface to the module class
 %pragma(java) moduleinterfaces="Serializable"
 %pragma(java) moduleimports=%{
 import java.io.*; // For Serializable
@@ -11,6 +13,9 @@ import java.io.*; // For Serializable
 
 // Set default Java const code generation
 %javaconst(1);
+
+// Change the default generation so that these enums are generated into an interface instead of a class
+%typemap(javaclassmodifiers) enum stuff "public interface"
 
 %inline %{
 enum stuff { FIDDLE = 2*100,  STICKS = 5+8, BONGO, DRUMS };
@@ -27,7 +32,6 @@ enum stuff { FIDDLE = 2*100,  STICKS = 5+8, BONGO, DRUMS };
 %typemap(javaout) enum nonsense {
     return $jnicall;
   }
-
 
 %inline %{
 enum nonsense { POPPYCOCK, JUNK };
