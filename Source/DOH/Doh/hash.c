@@ -317,7 +317,6 @@ Hash_getattr(DOH *ho, DOH *k) {
     HashNode *n;
     Hash *h;
 
-
     h = (Hash *) ho;
     hv = Hashval(k) % h->hashsize;
     n = h->hashtable[hv];

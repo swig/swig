@@ -238,9 +238,24 @@ int
 String_cmp(DOH *so1, DOH *so2)
 {
     String *s1, *s2;
+    char *c1, *c2;
+    int  maxlen,i,ret;
     s1 = (String *) so1;
     s2 = (String *) so2;
-    return strcmp(s1->str,s2->str);
+    maxlen = s1->len;
+    if (s2->len < maxlen) maxlen = s2->len;
+    c1 = s1->str;
+    c2 = s2->str;
+    for (i = 0; i < maxlen; i++) {
+      if (*c1 != *c2) break;
+    }
+    if (i < maxlen) {
+      if (*c1 < *c2) return -1;
+      else return 1;
+    }
+    if (s1->len == s2->len) return 0;
+    if (s1->len > s2->len) return 1;
+    return -1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -251,7 +266,7 @@ int String_hash(DOH *so) {
   String *s = (String *) so;
   char *c;
   int   i, h = 0, len;
-  if (s->hashkey >= 0) return s->hashkey;
+  /*  if (s->hashkey >= 0) return s->hashkey; */
   c = s->str;
   len = s->len > 50 ? 50 : s->len;
   for (i = 0; i < len; i++) {
@@ -400,6 +415,7 @@ String_insert(DOH *so, int pos, DOH *str)
 int String_delitem(DOH *so, int pos)
 {
   String *s = (String *) so;
+  s->hashkey = -1;
   if (pos == DOH_END) pos = s->len-1;
   if (pos == DOH_BEGIN) pos = 0;
 
@@ -461,13 +477,14 @@ int
 String_write(DOH *so, void *buffer, int len) {
   int    reallen, newlen, newmaxsize;
   String *s = (String *) so;
-  newlen = s->sp + len + 1;
+  s->hashkey = -1;
+  newlen = s->sp + len+1;
   if (newlen > s->maxsize) {
     assert(s->str = (char *) realloc(s->str,newlen));
     s->maxsize = newlen;
     s->len = s->sp + len;
   }
-  if (newlen > s->len) s->len = newlen;
+  if ((s->sp+len) > s->len) s->len = s->sp + len;
   memmove(s->str+s->sp,buffer,len);
   s->sp += len;
   s->pbi = 0;
@@ -516,6 +533,7 @@ String_tell(DOH *so) {
 int
 String_putc(DOH *so, int ch) {
   String *s = (String *) so;
+  s->hashkey = -1;
   if (s->sp >= s->len) {
     String_addchar(s,(char) ch);
   } else {
@@ -534,6 +552,7 @@ String_putc(DOH *so, int ch) {
 
 int String_getc(DOH *so) {
   String *s = (String *) so;
+
   if (s->pbi) {
     return (int) s->pb[--s->pbi];
   }

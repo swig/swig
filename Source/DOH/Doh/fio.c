@@ -292,6 +292,23 @@ int DohPrintf(DOH *obj, char *format, ...) {
   return ret;
 }
 
+/* DohCopyto(DOH *in, DOH *out) */
+
+int DohCopyto(DOH *in, DOH *out) {
+  int nbytes = 0, ret;
+  char buffer[16384];
+
+  while (1) {
+    ret = Read(in,buffer,16384);
+    if (ret > 0) {
+      Write(out,buffer,ret);
+      nbytes += ret;
+    } else {
+      return nbytes;
+    }
+  }
+}
+
 /* Split by a character */
 
 DOH *DohSplit(DOH *in, char *chs, int nsplits) {

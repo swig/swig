@@ -34,13 +34,13 @@ typedef struct List {
 /* Forward references */
 
 DOH      *CopyList(DOH *);
-void     DelList(DOH *);
-void     List_clear(DOH *);
+void      DelList(DOH *);
+void      List_clear(DOH *);
 DOH      *List_get(DOH *, int pos);
-int      List_set(DOH *, int pos, DOH *obj);
-int      List_insert(DOH *, int pos, DOH *item);
-int      List_remove(DOH *, int pos);
-int      List_len(DOH *);
+int       List_set(DOH *, int pos, DOH *obj);
+int       List_insert(DOH *, int pos, DOH *item);
+int       List_remove(DOH *, int pos);
+int       List_len(DOH *);
 DOH      *List_first(DOH *);
 DOH      *List_next(DOH *);
 DOH      *List_str(DOH *);
@@ -349,7 +349,6 @@ List_dump(DOH *lo, DOH *out) {
   return nsent;
 }
 
-#ifdef SORT
 /* -----------------------------------------------------------------------------
  * void List_sort(DOH *DOH)
  *
@@ -369,8 +368,3 @@ void List_sort(DOH *so) {
   l = (List *) so;
   qsort(l->items,l->nitems,sizeof(DOH *), objcmp);
 }
-#endif
-
-
-
-
