@@ -642,8 +642,8 @@ Vector *wrap_cross_product(Vector *a, Vector *b) {
 }</pre>
 </blockquote>
 
-In order for the wrapper code to compile, <tt>Vector</tt> must define a copy constructor, a 
-default constructor, and allow assignment.
+In order for the wrapper code to compile, <tt>Vector</tt> must define a copy constructor and a 
+default constructor.
 
 <p>
 If <tt>Vector</tt> is defined as class in the interface, but it does
@@ -1801,10 +1801,10 @@ are ignored as well as conversion operators.
 <li>The semantics of certain C++ operators may not match those in the target language.
 </ul>
 
-<h2>Adding new methods</h2>
+<h2>Class extension</h2>
 
 New methods can be added to a class using the <tt>%extend</tt>
-directive. This directive is primarily used in conjunction with shadow
+directive. This directive is primarily used in conjunction with proxy
 classes to add additional functionality to an existing class. For
 example :<p>
 <p>
@@ -1848,7 +1848,8 @@ command. <p>
 </pre></blockquote>
 
 The<tt> %extend</tt> directive follows all of the same conventions
-as its use with C structures.<p>
+as its use with C structures. Please refer to the <a href="SWIG.html">SWIG Basics</a>
+chapter for further details.
 
 <p>
 <b>Compatibility note:</b>  The <tt>%extend</tt> directive is a new
@@ -2435,7 +2436,7 @@ SWIG still allows the # operator to be used to generate a string from a template
 
 Support for C++ namespaces is a relatively late addition to SWIG,
 first appearing in SWIG-1.3.12.  Before describing the implementation,
-it is worth nothing that the semantics of C++ namespaces is highly
+it is worth nothing that the semantics of C++ namespaces is extremely
 non-trivial--especially with regard to the C++ type system and class
 machinery.  At a most basic level, namespaces are sometimes used to 
 encapsulate common functionality.  For example:
@@ -2575,7 +2576,9 @@ a namespace.  For instance, it would not be unreasonable to assume
 that a programmer might make a separate extension module for each C++
 namespace.  In this case, it would be redundant to prepend everything
 with an additional namespace prefix when the module itself already
-serves as a namespace in the target language.
+serves as a namespace in the target language.   Or put another way, if 
+you want SWIG to keep namespaces separate, simply wrap each namespace with its
+own SWIG interface.
 
 <p>
 Because namespaces are flattened, it is possible for symbols defined in different
@@ -2707,7 +2710,7 @@ To fix the problem, make sure you use fully qualified names.  For example:
 <b>Note:</b> SWIG does <em>not</em> propagate <tt>using</tt> declarations to
 the resulting wrapper code.   If these declarations appear in an interface,
 they should <em>also</em> appear in any header files that might have been 
-included in a <tt>%{ ... %}</tt> section.  In other words, don't extra insert
+included in a <tt>%{ ... %}</tt> section.  In other words, don't insert extra
 <tt>using</tt> declarations into a SWIG interface unless they also appear
 in the underlying C++ code.
 
@@ -2737,6 +2740,26 @@ namespace foo {
 }
 </pre>
 </blockquote>
+
+<p>
+<b>Note:</b> When the <tt>%extend</tt> directive is used inside a namespace, the namespace name is
+included in the generated functions. For example, if you have code like this,
+
+<blockquote>
+<pre>
+namespace foo {
+   class bar {
+   public:
+        %extend {
+           int blah(int x);
+        };
+   };
+}
+</pre>
+</blockquote>
+
+the added method <tt>blah()</tt> is mapped to a function <tt>int foo_bar_blah(foo::bar *self, int x)</tt>.
+This function resides in the global namespace.
 
 <p>
 <b>Note:</b> Although namespaces are flattened in the target language, the SWIG generated wrapper

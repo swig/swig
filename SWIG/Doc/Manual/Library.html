@@ -8,7 +8,7 @@
 
 To help build extension modules, SWIG is packaged with a library of
 support files that you can include in your own interfaces.  These
-support files often define new SWIG directives or provide utility
+files often define new SWIG directives or provide utility
 functions that can be used to access parts of the standard C and C++ libraries.
 This chapter provides a reference to the current set of supported library files.
 
@@ -27,9 +27,10 @@ When searching for files, directories are searched in the following order:
 <p>
 <ul>
 <li>The current directory
-<li>Directories specified with the -I command line option
+<li>Directories specified with the <tt>-I</tt> command line option
 <li>.<tt>/swig_lib</tt>
 <li><tt>/usr/local/lib/swig_lib</tt> (or wherever you installed SWIG)
+<li>On Windows, SWIG also looks for the library relative to the location of <tt>swig.exe</tt>.
 </ul>
 <p>
 
@@ -47,7 +48,7 @@ The primary use of these modules is in supporting C declarations that manipulate
 pointers such as <tt>int *</tt>, <tt>double *</tt>, or <tt>void *</tt>.  The modules can be
 used to allocate memory, manufacture pointers, dereference memory, and wrap
 pointers as class-like objects.   Since these functions provide direct access to
-memory, their use in an extension module is unsafe and you should exercise caution.
+memory, their use is potentially unsafe and you should exercise caution.
 
 <h3>cpointer.i</h3>
 
@@ -64,7 +65,8 @@ Generates a collection of four functions for manipulating a pointer <tt>type *</
 <p>
 <tt>type *new_name()</tt>
 <blockquote>
-Creates a new object of type <tt>type</tt>.
+Creates a new object of type <tt>type</tt> and returns a pointer to it.  In C, the
+object is created using <tt>calloc()</tt>. In C++, <tt>new</tt> is used.
 </blockquote>
 
 <p>
@@ -126,12 +128,12 @@ interface is as follows:
 <blockquote>
 <pre>
 struct name {
-   name();                             // Create pointer object
-  ~name();                             // Delete pointer object
-   void assign(type value);            // Assign value
-   type value();                       // Get value
-   type *cast();                       // Cast the pointer to original type.
-   static name *frompointer(type *);   // Create class wrapper from existing pointer
+   name();                            // Create pointer object
+  ~name();                            // Delete pointer object
+   void assign(type value);           // Assign value
+   type value();                      // Get value
+   type *cast();                      // Cast the pointer to original type.
+   static name *frompointer(type *);  // Create class wrapper from existing pointer
 };
 </pre>
 </blockquote>
@@ -140,7 +142,7 @@ When using this macro, <tt>type</tt> is restricted to a simple type
 name like <tt>int</tt>, <tt>float</tt>, or <tt>Foo</tt>.  Pointers and
 other complicated types are not allowed.  <tt>name</tt> must be a
 valid identifier not already in use.  When a pointer is wrapped as a class,
-the "class"  may be transparently passed to any functions that expects the pointer.
+the "class"  may be transparently passed to any function that expects the pointer.
 
 <p>
 If the target language does not support proxy classes, the use of this macro will produce the example
@@ -208,7 +210,7 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 
 <h3>carrays.i</h3>
 
-This module deines macros that assist in wrapping ordinary C pointers as arrays.
+This module defines macros that assist in wrapping ordinary C pointers as arrays.
 The module does not provide any safety or an extra layer of wrapping--it merely
 provides functionality for creating, destroying, and modifying the contents of
 raw C array data.
@@ -221,13 +223,14 @@ Creates four functions.
 <p>
 <tt>type *new_name(int nelements)</tt>
 <blockquote>
-Creates a new array of objects of type <tt>type</tt>. 
+Creates a new array of objects of type <tt>type</tt>.   In C, the array is allocated using
+<tt>calloc()</tt>.  In C++, <tt>new []</tt> is used.
 </blockquote>
 
 <p>
 <tt>type *delete_name(type *ary)</tt>
 <blockquote>
-Deletes an array.
+Deletes an array. In C, <tt>free()</tt> is used.  In C++, <tt>delete []</tt> is used.
 </blockquote>
 
 <p>
@@ -296,12 +299,12 @@ interface is as follows:
 <blockquote>
 <pre>
 struct name {
-   name(int nelements);                    // Create an array
-  ~name();                                 // Delete array
-   type getitem(int index);                // Return item
-   void setitem(index, type value);        // Set item
-   type *cast();                           // Cast to original type
-   static name *frompointer(type *);       // Create class wrapper from existing pointer
+   name(int nelements);               // Create an array
+  ~name();                            // Delete array
+   type getitem(int index);           // Return item
+   void setitem(index, type value);   // Set item
+   type *cast();                      // Cast to original type
+   static name *frompointer(type *);  // Create class wrapper from existing pointer
 };
 </pre>
 </blockquote>
@@ -310,7 +313,7 @@ When using this macro, <tt>type</tt> is restricted to a simple type
 name like <tt>int</tt> or <tt>float</tt>. Pointers and
 other complicated types are not allowed.  <tt>name</tt> must be a
 valid identifier not already in use.  When a pointer is wrapped as a class,
-it can be transparently passed to any functions that expects the pointer.
+it can be transparently passed to any function that expects the pointer.
 
 </blockquote>
 
@@ -383,9 +386,12 @@ If <tt>type</tt> is <tt>void</tt>, then the size parameter <tt>sz</tt> is requir
 <blockquote>
 Creates a wrapper around <tt>realloc()</tt> with the following prototype:
 <blockquote><pre>
-<em>type</em> *realloc_<em>name</em>(<em>type</em> *ptr, int newsize);
+<em>type</em> *realloc_<em>name</em>(<em>type</em> *ptr, int nitems);
 </pre>
 </blockquote>
+Note: unlike the C <tt>realloc()</tt>, the wrapper generated by this macro implicitly includes the
+size of the corresponding type.   For example, <tt>realloc_int(p, 100)</tt> reallocates <tt>p</tt> so that
+it holds 100 integers.
 </blockquote>
 
 <p>
@@ -460,13 +466,16 @@ Now, in a script:
 <h3>cdata.i</h3>
 
 The <tt>cdata.i</tt> module defines functions for converting raw C data to and from strings
-in the target language.  The target language must support strings with embedded binary data
-for this to work.
+in the target language.  The primary applications of this module would be packing/unpacking of 
+binary data structures---for instance, if you needed to extract data from a buffer.
+The target language must support strings with embedded binary data
+in order for this to work.
 
 <p>
 <b><tt>char *cdata(void *ptr, int nbytes)</tt></b>
 <blockquote>
-Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string.
+Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string.   <tt>ptr</tt> can be any 
+pointer.
 </blockquote>
 
 <p>
@@ -523,7 +532,7 @@ char *cdata_<em>name</em>(int nitems)
 <tt>nitems</tt> is the number of items of the given type to extract.
 </blockquote>
 
-<b>Note:</b> These functions provide direct access to C memory and can be used to overwrite data.
+<b>Note:</b> These functions provide direct access to memory and can be used to overwrite data.
 Clearly they are unsafe.
 
 <p><hr>
