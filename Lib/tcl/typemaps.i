@@ -153,7 +153,7 @@ or you can use the %apply directive :
   if (Tcl_GetIntFromObj(interp,$input,&ivalue) == TCL_ERROR) {
     SWIG_fail;
   }
-  temp = (bool) ivalue;
+  temp = ivalue ? true : false;
   $1 = &temp;
 }
   
