@@ -18,6 +18,7 @@ struct A{
 namespace std
 {
   %template(pairii) pair<int, int>;
+  %template(pairAA) pair<int, A>;
   %template(pairA) pair<int, A*>;
   %template(mapA) map<int, A*>;
   %template(mmapA) multimap<int, A*>;
