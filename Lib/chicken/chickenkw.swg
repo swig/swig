@@ -3,28 +3,29 @@
 
 /* Warnings for certain CHICKEN keywords. From Section 7.1.1 of
    Revised^5 Report on the Algorithmic Language Scheme */
-#define CHICKW(x) %namewarn("314:" #x " is a R^5RS syntatic keyword")  #x
+#define CHICKENKW(x) %namewarn("314:" #x " is a R^5RS syntatic keyword")  #x
 
-CHICKW(else);
-CHICKW(=>);
-CHICKW(define);
-CHICKW(unquote);
-CHICKW(unquote-splicing);
-CHICKW(quote);
-CHICKW(lambda);
-CHICKW(if);
-CHICKW(set!);
-CHICKW(begin);
-CHICKW(cond);
-CHICKW(and);
-CHICKW(or);
-CHICKW(case);
-CHICKW(let);
-CHICKW(let*);
-CHICKW(letrec);
-CHICKW(do);
-CHICKW(delay);
-CHICKW(quasiquote);
+CHICKENKW(else);
+CHICKENKW(=>);
+CHICKENKW(define);
+CHICKENKW(unquote);
+CHICKENKW(unquote-splicing);
+CHICKENKW(quote);
+CHICKENKW(lambda);
+CHICKENKW(if);
+CHICKENKW(set!);
+CHICKENKW(begin);
+CHICKENKW(cond);
+CHICKENKW(and);
+CHICKENKW(or);
+CHICKENKW(case);
+CHICKENKW(let);
+CHICKENKW(let*);
+CHICKENKW(letrec);
+CHICKENKW(do);
+CHICKENKW(delay);
+CHICKENKW(quasiquote);
 
+#undef CHICKENKW 
 
 #endif //__chicken_chickenkw_swg__

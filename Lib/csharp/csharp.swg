@@ -467,3 +467,6 @@ using System.Runtime.InteropServices;
 
 %apply long { size_t };
 
+/* csharp keywords */
+/* please test and activate */
+//%include "csharpkw.swg"

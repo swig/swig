@@ -87,7 +87,10 @@ CSHARPKW(void);
 CSHARPKW(volatile);
 CSHARPKW(while);
 
+
 /* swig seems to managing this one right */
 // CSHARPKW(string);
+
+#undef CSHARPKW
 
 #endif //__csharp_csharpkw_swg__

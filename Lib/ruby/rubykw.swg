@@ -53,4 +53,6 @@ RUBYKW(until);
 /* swig doesn't like this one */
 // RUBYKW(defined);
 
+#undef RUBYKW
+
 #endif //__ruby_rubykw_swg__
