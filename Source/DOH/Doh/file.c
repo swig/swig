@@ -160,6 +160,7 @@ static DohObjInfo DohFileType = {
     0,               /* doh_str      */
     0,               /* doh_data     */
     0,               /* doh_dump     */
+    0,               /* doh_load     */
     0,               /* doh_len      */
     0,               /* doh_hash     */
     0,               /* doh_cmp      */

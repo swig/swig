@@ -106,6 +106,7 @@ typedef struct DohObjInfo {
   DOH       *(*doh_str)(DOH *obj);             /* Make a full string */
   void      *(*doh_data)(DOH *obj);            /* Return raw data    */
   int        (*doh_dump)(DOH *obj, DOH *out);  /* Serialize on out   */
+  DOH       *(*doh_load)(DOH *in);             /* Unserialize from in */
 
   /* Length and hash values */
   int       (*doh_len)(DOH *obj);          

@@ -345,6 +345,7 @@ static DohObjInfo ListType = {
     List_str,        /* doh_str */
     0,               /* doh_data */
     List_dump,       /* doh_dump */
+    0,               /* doh_load */
     List_len,        /* doh_len */
     0,               /* doh_hash    */
     0,               /* doh_cmp */
