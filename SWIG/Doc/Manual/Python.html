@@ -1837,7 +1837,7 @@ To work around this, it is always possible to flip the ownership flag. For examp
 It is also possible to deal with situations like this using
 typemaps--an advanced topic discussed later.
 
-<h3>Python 2.2 and classic classes</h2>
+<h3>Python 2.2 and classic classes</h3>
 
 SWIG makes every attempt to preserve backwards compatibility with
 older versions of Python to the extent that it is possible.  However,
@@ -2135,7 +2135,7 @@ C++ exceptions are also easy to handle.  For example, you can write code like th
 %exception getitem {
    try {
       $action
-   } catch {std::out_of_range &e) {
+   } catch (std::out_of_range &e) {
       PyErr_SetString(PyExc_IndexError, const_cast<char*>(e.what()));
       return NULL;
    }
@@ -2212,7 +2212,7 @@ or perhaps
 <blockquote>
 <pre>
 int sub(int *x, int *y) {
-   return *x+*y;
+   return *x-*y;
 }
 </pre>
 </blockquote>
@@ -2440,7 +2440,8 @@ int sumitems(int *first, int nitems) {
         sum += first[i];
     }
     return sum;
-}</pre>
+}
+</pre>
 </blockquote>
 
 To wrap this into Python, you need to pass an array pointer as the first argument. 
