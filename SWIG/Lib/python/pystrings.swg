@@ -4,9 +4,6 @@
  * ------------------------------------------------------------ */
 
 %types(char *);
-%{
-#define SWIG_PYSTR SWIG_NEWOBJ + 1
-%} 
 %fragment("SWIG_AsCharPtrAndSize","header") %{
 /* returns SWIG_OLDOBJ if the input is a raw char*, SWIG_PYSTR if is a PyString */
 SWIGSTATIC(int)
@@ -15,7 +12,6 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize)
   static swig_type_info* pchar_info = 0;
   char* vptr = 0;
   if (!pchar_info) pchar_info = SWIG_TypeQuery("char *");
-
   if (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_info, 0) != -1) {
     if (cptr) *cptr = vptr;
     if (psize) *psize = vptr ? (strlen(vptr) + 1) : 0;
@@ -41,7 +37,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize)
 %fragment("SWIG_AsCharPtr","header",
 	  fragment="SWIG_AsCharPtrAndSize") %{
 SWIGSTATICINLINE(int)
-  SWIG_AsCharPtr(PyObject *obj, char **val)
+SWIG_AsCharPtr(PyObject *obj, char **val)
 {
   char* cptr = 0;
   if (SWIG_AsCharPtrAndSize(obj, &cptr, (size_t*)(0))) {
@@ -80,7 +76,7 @@ SWIG_FromCharPtr(const char* cptr)
 %fragment("SWIG_AsNewCharPtr","header",
 	  fragment="SWIG_AsCharPtrAndSize") %{
 SWIGSTATIC(int)
-  SWIG_AsNewCharPtr(PyObject *obj, char **val)
+SWIG_AsNewCharPtr(PyObject *obj, char **val)
 {
   char* cptr = 0; size_t csize = 0;
   int res = SWIG_AsCharPtrAndSize(obj, &cptr, &csize);
