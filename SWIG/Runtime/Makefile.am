@@ -196,6 +196,8 @@ RELEASESUFFIX   = @release_suffix@
 # Add in non Libtool targets
 if !SKIP_MZSCHEME
 all-local: .libs/libswigmz$(RELEASESUFFIX)$(SO)
+else
+all-local:
 endif
 
 .libs/libswigmz$(RELEASESUFFIX)$(SO): $(MZSCHEME_RUNTIME)
