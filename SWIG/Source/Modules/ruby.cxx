@@ -642,7 +642,7 @@ public:
   }
 
   /* ---------------------------------------------------------------------
-   * insertCleanupCode(ParmList *l, String *cleanup)
+   * insertArgOutputCode(ParmList *l, String *outarg, int& need_result)
    *
    * Checks each of the parameters in the parameter list for a "argout"
    * typemap and (if it finds one) inserts the typemapping code into
@@ -861,16 +861,22 @@ public:
     /* Wrap things up (in a manner of speaking) */
     if (need_result) {
       if (current == CONSTRUCTOR_ALLOCATE) {
-	Printv(f->code, tab4, "return vresult;\n}\n", NIL);
+	Printv(f->code, tab4, "return vresult;\n", NIL);
       } else if (current == CONSTRUCTOR_INITIALIZE) {
-	Printv(f->code, tab4, "return self;\n}\n", NIL);
+	Printv(f->code, tab4, "return self;\n", NIL);
       } else {
 	Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
-	Printv(f->code, tab4, "return vresult;\n}\n", NIL);
+	Printv(f->code, tab4, "return vresult;\n", NIL);
       }
     } else {
-      Printv(f->code, tab4, "return Qnil;\n}\n", NIL);
+      Printv(f->code, tab4, "return Qnil;\n", NIL);
     }
+
+    /* Error handling code */
+    Printf(f->code,"fail:\n");
+    Printv(f->code,cleanup,NIL);
+    Printf(f->code,"rb_raise(rb_eRuntimeError,\"failure occurred\");\n"); /* not quite right! */
+    Printf(f->code,"}\n");
 
     /* Substitute the cleanup code */
     Replaceall(f->code,"$cleanup",cleanup);
@@ -1240,7 +1246,7 @@ public:
     }
     Replaceall(klass->header,"$freeproto", "");
   }
-
+  
   /* ----------------------------------------------------------------------
    * classHandler()
    * ---------------------------------------------------------------------- */
