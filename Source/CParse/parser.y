@@ -1162,23 +1162,23 @@ echo_directive : ECHO HBLOCK {
 except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
                     skip_balanced('{','}');
 		    $$ = 0;
-		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.");
+		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
 	       }
 
                | EXCEPT LBRACE {
                     skip_balanced('{','}');
 		    $$ = 0;
-		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.");
+		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
                }
 
                | EXCEPT LPAREN ID RPAREN SEMI {
 		 $$ = 0;
-		 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.");
+		 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
                }
 
                | EXCEPT SEMI {
 		 $$ = 0;
-		 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.");
+		 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
 	       }
                ;
 
