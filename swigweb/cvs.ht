@@ -42,19 +42,11 @@ CVS password: &lt;enter 'cvs' here&gt
 The password to the cvs account is 'cvs'.
 
 <p>
-<li>The latest stable version of SWIG can be retrieved using
+<li>The latest development version of SWIG can be retrieved using
 
 <p>
 <pre>
 % cvs checkout -r rel-1-3 SWIG
-</pre>
-</p>
-
-<p>
-<li>The latest development version of SWIG can be retrieved using
-<p>
-<pre>
-% cvs checkout -r rel-1-5 SWIG
 </pre>
 </p>
 

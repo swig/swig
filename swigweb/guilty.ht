@@ -6,9 +6,13 @@ Guilty Parties
 
 <ul>
 <li>Dave Beazley, (a.k.a., "Mr. Swig")
-<li>Thien-Thi Nguyen (Guile)
-<li>Matthias Köppe (Guile)
 <li>William Fulton (Java)
+<li>Matthias Köppe (Guile)
+<li>Richard Palmer (PHP)
+<li>Lyle Johnson (Ruby)
+<li>Luigi Ballabio (Macintosh port)
+<li>Jason Stewart (Perl)
+<li>Thien-Thi Nguyen (Guile)
 <li>Loic Dachary (Perl)
 <li>Oleg Tolmatcev (Mzscheme)
 <li>Masaki Fukushima (Ruby)
