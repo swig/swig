@@ -545,10 +545,10 @@ in foo.i.  This may change in the future.
 <h3>Smobs</h3>
 
 <p>
-For pointer types, SWIG can use Guile smobs if given the command-line
-option "-with-smobs".  Ultimately this will be the default (and only)
-behavior and the command-line option will no longer be supported.
-Ideally, "-with-smobs" will not even make it to beta.
+For pointer types, SWIG uses Guile smobs.  This feature used to be
+available only SWIG was invoked with the command-line option
+"-with-smobs", but as of 2000/07/06 (swig-1.1a4) this is the default
+behavior; the command-line option "-with-smobs" is ignored silently.
 
 <p>
 Currently, one wrapper module must be generated without
