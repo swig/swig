@@ -381,11 +381,19 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	  break;
 
 	case T_POINTER: case T_ARRAY: case T_REFERENCE:
-	  SwigType_remember(pt);
-	  Putc('p',argstr);
-	  Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
-	  break;
-
+	  {
+	    SwigType *lt;
+	    SwigType_remember(pt);
+	    Putc('p',argstr);
+	    lt = Swig_clocal_type(pt);
+	    if (Cmp(lt,"p.void") == 0) {
+	      Printv(args, ",&", target, ", 0", 0);
+	    } else {
+	      Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
+	    }
+	    Delete(lt);
+	    break;
+	  }
 	default :
 	  Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
 		 input_file, line_number, SwigType_str(pt,0));
