@@ -40,6 +40,7 @@ public :
   virtual void cpp_close_class();
   virtual void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l);
+  virtual void cpp_static_var(char *name, char *iname, SwigType *t);
   virtual void cpp_variable(char *name, char *iname, SwigType *t);
   virtual void cpp_constructor(char *name, char *iname, ParmList *l);
   virtual void cpp_destructor(char *name, char *newname);

@@ -1435,8 +1435,8 @@ PERL5::cpp_close_class() {
       Printv(pm,
 	     "sub FETCH {\n",
 	     tab4, "my ($self,$field) = @_;\n",
-	     tab4, "my $member_func = \"", package, "::", Swig_name_get(Swig_name_member(class_name,(char*)"${field}")), "\";\n",
-	     tab4, "my $val = &$member_func($self);\n",
+	     tab4, "my $member_func = \"swig_${field}_get\";\n",
+	     tab4, "my $val = $self->$member_func();\n",
 	     tab4, "if (exists $BLESSEDMEMBERS{$field}) {\n",
 	     tab8, "return undef if (!defined($val));\n",
 	     tab8, "my %retval;\n",
@@ -1452,15 +1452,17 @@ PERL5::cpp_close_class() {
       Printv(pm,
 	     "sub STORE {\n",
 	     tab4, "my ($self,$field,$newval) = @_;\n",
-	     tab4, "my $member_func = \"", package, "::", Swig_name_set(Swig_name_member(class_name,(char*)"${field}")), "\";\n",
+	     tab4, "my $member_func = \"swig_${field}_set\";\n",
 	     tab4, "if (exists $BLESSEDMEMBERS{$field}) {\n",
-	     tab8, "&$member_func($self,tied(%{$newval}));\n",
+	     tab8, "$self->$member_func(tied(%{$newval}));\n",
 	     tab4, "} else {\n",
-	     tab8, "&$member_func($self,$newval);\n",
+	     tab8, "$self->$member_func($newval);\n",
 	     tab4, "}\n",
 	     "}\n\n",
 	     0);
 
+
+#ifdef OLD
       /* Output a FIRSTKEY method.   This is to allow iteration over a structure's keys. */
 
       Printv(pm,
@@ -1487,6 +1489,8 @@ PERL5::cpp_close_class() {
 	     tab4, "}\n",
 	     "}\n\n",
 	     0);
+#endif
+
     }
   }
 }
@@ -1644,6 +1648,9 @@ void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
     /* Store name of key for future reference */
     Printf(member_keys,"'%s', ", realname);
 
+    Printv(pcode,"*swig_", realname, "_get = *", package, "::", Swig_name_get(Swig_name_member(class_name,realname)), ";\n", 0);
+    Printv(pcode,"*swig_", realname, "_set = *", package, "::", Swig_name_set(Swig_name_member(class_name,realname)), ";\n", 0);
+
     /* Now we need to generate a little Perl code for this */
 
     if (is_shadow(t)) {
@@ -1786,7 +1793,23 @@ PERL5::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
     if (iname) realname = name;
     else realname = iname;
 
-    Printv(pcode, "*", realname, " = *", realpackage, "::", Swig_name_member(class_name,realname), ";\n", 0);
+    Printv(pcode, "*", realname, " = *", package, "::", Swig_name_member(class_name,realname), ";\n", 0);
+  }
+}
+
+
+/* -----------------------------------------------------------------------------
+ * PERL5::cpp_static_var()
+ * ----------------------------------------------------------------------------- */
+void
+PERL5::cpp_static_var(char *name, char *iname, SwigType *t) {
+  this->Language::cpp_static_var(name,iname,t);
+
+  if (blessed) {
+    char *realname;
+    if (iname) realname = name;
+    else realname = iname;
+    Printv(pcode, "*", realname, " = *", package, "::", Swig_name_member(class_name,realname), ";\n", 0);
   }
 }
 
