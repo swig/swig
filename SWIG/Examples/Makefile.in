@@ -1,0 +1,253 @@
+# ------------------------------------------------------------
+# SWIG Makefile Template
+# 
+# This file is used by all of the examples to build modules 
+# and other things.   You can use this as a starting point
+# for building your own modules.
+#
+# How to use this Makefile:
+#
+# 1.   Assuming you ran 'configure', some values in this Makefile
+#      will be set automatically for you.    Configure will try to
+#      guess how to do certain things such as build shared libraries,
+#      etc... Unfortunately, it's not perfect so you may need to
+#      change some things by hand (see next).
+#
+# 2.   Take a look at the prefixes below.   Since SWIG works with
+#      multiple target languages, you may need to find out where
+#      certain packages have been installed.   Set the prefixes
+#      accordingly.   I've set the prefixes assuming that SWIG has
+#      been installed in the same directory as the target languages.
+#
+# 3.   To use this makefile, simply set SRCS, INTERFACE, INCLUDE, LIBS, 
+#      TARGET, and do a 
+#           $(MAKE) -f Makefile.template.in SRCS='$(SRCS)' \
+#           INCLUDE='$(INCLUDE) LIBS='$(LIBS)' INTERFACE='$(INTERFACE)' \
+#           TARGET='$(TARGET)' method 
+#
+#      'method' describes what is being built.
+#
+#---------------------------------------------------------------
+
+TARGET     = 
+CC         = @CC@
+CXX        = @CXX@
+CFLAGS     = 
+prefix     = @prefix@
+exec_prefix= @exec_prefix@
+SRCS       =
+INCLUDE    =
+LIBS       =
+INTERFACE  =
+SWIGOPT    = 
+SWIG       = SWIG
+
+LIBM       = @LIBM@
+LIBC       = @LIBC@
+LIBCRYPT   = @LIBCRYPT@
+SYSLIBS    = $(LIBM) $(LIBC) $(LIBCRYPT)
+
+# X11 options
+
+XLIB       = @XLIBSW@
+XINCLUDE   = @XINCLUDES@
+
+ISRCS      = $(INTERFACE:.i=_wrap.c)
+
+##################################################################
+# Dynamic loading for C++
+# If you are going to be building dynamic loadable modules in C++,
+# you may need to edit this line appropriately.
+#
+# This line works for g++, but I'm not sure what it might be
+# for other C++ compilers
+##################################################################
+
+CPP_DLLIBS = #-L/usr/local/lib/gcc-lib/sparc-sun-solaris2.5.1/2.7.2 \
+             -L/usr/local/lib -lg++ -lstdc++ -lgcc
+ 
+
+# Symbols used for using shared libraries
+SO=		@SO@
+LDSHARED=	@LDSHARED@
+CCSHARED=	@CCSHARED@
+CXXSHARED=      @LDSHARED@
+
+# This is used for building shared libraries with a number of C++ 
+# compilers.   If it doesn't work,  comment it out.
+
+CXXSHARED=      @CXX@ -shared
+
+OBJS      = $(SRCS:.c=.o) 
+IOBJS     = $(ISRCS:.c=.o)
+
+##################################################################
+#####                       Tcl/Tk                          ######
+##################################################################
+
+# Set these to your local copy of Tcl/Tk.
+
+TCL_INCLUDE = @TCLINCLUDE@
+TCL_LIB     = @TCLLIB@
+TCL_OPTS    = -ltcl @LIBS@          
+TK_OPTS     = -ltk -ltcl @LIBS@ 
+
+# -----------------------------------------------------------
+# Build a new version of the tclsh shell
+# -----------------------------------------------------------
+
+
+tclsh: $(SRCS) 
+	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACE)
+	$(CC) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
+	$(TCL_LIB)  $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
+
+tclsh_cpp: $(SRCS) 
+	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACE)
+	$(CXX) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
+	$(TCL_LIB) $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
+
+# -----------------------------------------------------------
+# Build a new copy of wish
+# -----------------------------------------------------------
+
+wish: $(SRCS)
+	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACE)
+	$(CC) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
+	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
+
+
+wish_cpp: $(SRCS) 
+	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACE)
+	$(CXX) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
+	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
+
+# -----------------------------------------------------------
+# Build a Tcl dynamic loadable module (you might need to tweak this)
+# -----------------------------------------------------------
+
+tcldl:  $(SRCS)
+	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
+
+# -----------------------------------------------------------
+# Build a Tcl7.5 dynamic loadable module for C++
+# -----------------------------------------------------------
+
+tcldl_cpp: $(SRCS)
+	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+
+##################################################################
+#####                       PERL 5                          ######
+##################################################################
+
+# You need to set this variable to the Perl5 directory containing the
+# files "perl.h", "EXTERN.h" and "XSUB.h".   With Perl5.003, it's
+# usually something like /usr/local/lib/perl5/arch-osname/5.003/CORE.
+
+PERL5_INCLUDE= @PERL5EXT@
+
+
+# ----------------------------------------------------------------
+# Build a Perl5 dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+perl5: $(SRCS)
+	$(SWIG) -perl5 $(SWIGOPT) $(INTERFACE)
+	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE) 
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a Perl5 dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+perl5_cpp: $(SRCS)
+	$(SWIG) -perl5 -c++ $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE) 
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a module from existing XS C source code.   (ie. from xsubpp).
+# ----------------------------------------------------------------
+perl5_xs: $(SRCS)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDE) -I$(PERL5_INCLUDE) 
+	$(LDSHARED) $(OBJS) $(LIBS) -o $(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a statically linked Perl5 executable
+# ----------------------------------------------------------------
+
+PERL5_LIB    = -L$(PERL5_INCLUDE) -lperl @LIBS@ $(SYSLIBS)
+
+perl5_static: $(SRCS)
+	$(SWIG) -perl5 -static -lperlmain.i $(SWIGOPT) $(INTERFACE)
+	$(CC) $(CFLAGS) -Dbool=char $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
+
+perl5_static_cpp: $(SRCS)
+	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) $(INTERFACE)
+	$(CXX) $(CFLAGS) -Dexplicit= $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
+
+
+##################################################################
+#####                       PYTHON                          ######
+##################################################################
+
+# Make sure these locate your Python installation
+PYTHON_INCLUDE= -DHAVE_CONFIG_H @PYINCLUDE@
+PYTHON_LIB    = @PYLIB@
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+python: $(SRCS)
+	$(SWIG) -python $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PYTHON_INCLUDE)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)module$(SO)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+python_cpp: $(SRCS)
+	$(SWIG) -c++ -python $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PYTHON_INCLUDE)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
+
+# -----------------------------------------------------------------
+# Build statically linked Python interpreter
+#
+# These should only be used in conjunction with the %include embed.i
+# library file
+# -----------------------------------------------------------------
+
+#TKINTER = -L/usr/X11R6.3/lib -L/usr/local/compat/lib -ltk4.0 -ltcl7.4 -lX11 
+TKINTER = 
+PYTHON_LIBOPTS = @PYLINK@ @LIBS@ $(TKINTER) $(SYSLIBS)
+
+python_static: $(SRCS)
+	$(SWIG) -python -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(CC) $(CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(PYTHON_INCLUDE) $(LIBS) -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+
+python_static_cpp: $(SRCS)
+	$(SWIG) -c++ -python -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+
+
+##################################################################
+#####                       SWIG                            ######
+##################################################################
+
+# Build a new SWIG extension
+
+SWIGINCLUDE = -I${prefix}/include
+SWIGLIB     = -L${exec_prefix}/lib
+
+swig: $(SRCS)
+	$(CXX) $(SRCS) $(SWIGINCLUDE) $(INCLUDE) $(SWIGLIB) $(LIBS) -lswig -o $(TARGET)
+

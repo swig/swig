@@ -1,0 +1,10 @@
+This is a simple Tcl example.  Type 'make' to
+compile a dynamically loadable extension.
+
+'make tcl8' creates a dynamically loadable Tcl 8.x
+extension.
+
+'make static' creates a statically linked 'tclsh' executable.
+
+'make static8' create a statically linked 'tclsh8.0' executable.
+
