@@ -16,6 +16,84 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+03/18/2002: beazley (** ADVANCED USERS ONLY **)
+            Added support for dynamic casting in return values.  A somewhat
+            common problem in certain C++ programs is functions that hide
+            the identity of underlying objects when they are returned 
+            from methods and functions.  For example, a program might include
+            some generic method like this:
+
+                      Node *getNode();
+
+            However, Node * may just be base class to a whole hierarchy
+            of different objects.   Instead of returning this generic Node *,
+            it might be nice to automatically downcast the object into the
+            appropriate type using some kind dynamic cast.
+
+            Assuming you understand the peril involved, a downcast can now
+            be performed using the following function in the run-time type
+            checker:
+
+              swig_type_info *SWIG_TypeDynamicCast(swig_type_info *, void **ptr);
+
+            This function checks to see if the type can be converted to another
+            type.  If so, a different type descriptor (for the converted type)
+            is returned.   This type descriptor would then be used to create
+            a pointer in the target language.
+
+            To use this, you would write a typemap similar to this:
+
+              %typemap(out) Node * {
+                swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+                $result = SWIG_NewPointerObj($1, ty);
+              }
+
+            Alternatively,
+
+              %typemap(out) Node * = SWIGTYPE *DYNAMIC;
+
+            To make the typemap have any effect, you have to write a supporting 
+            function that knows how to perform downcasting. For example:
+
+              %{
+              static swig_type_info *
+              Node_dynamic_cast(void **ptr) {
+                 Node **nptr;
+                 Element *e = dynamic_cast<Element *>(*nptr);
+                 if (e) {
+                    *ptr = (void *) e;
+                    return SWIGTYPE_p_Element;
+                 }
+                 Data *d = dynamic_cast<Data *>(*nptr);
+                 if (d) {
+                    *ptr = (void *) d;
+                    return SWIGTYPE_p_Data;
+                 }
+                 return 0;
+              }
+              %}
+
+            There is no restriction on how types are determined. dynamic_cast<>
+            uses C++ RTTI.  However, if you had some other mechanism for determining
+            the type, you could use that here.  Note: it is important to save
+            the new pointer value back into the argument as shown.  When downcasting,
+            the value of the pointer could change. 
+
+            Finally, to make the casting function available, you have to register
+            it with the run-time type checker. Put this macro in your interface file.
+
+               DYNAMIC_CAST(SWIGTYPE_p_Node, Node_dynamic_cast);
+
+            Note: this feature does not introduce a performance penalty on 
+            normal SWIG operation.  The feature is only enabled by writing
+            a new typemap that explicitly calls SWIG_TypeDynamicCast() to
+            make a conversion. 
+  
+            Examples/test-suite/dynamic_cast.i contains a simple example.
+            This feature is not supported in the Java module due to differences
+            in the type-checking implementation.
+
+            *** EXPERIMENTAL FEATURE ***
 
 03/16/2002: beazley
             Modified C++ inheritance with a few enhancements.  First, type information
