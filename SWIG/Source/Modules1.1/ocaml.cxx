@@ -62,12 +62,18 @@ typedef struct _ocaml_namespace_stack {
     String *f_pvariant_to_int;
     String *f_modclass;
 
+    Hash *seen_names;
+    Hash *seen_methods;
+
     String *real_f_pvariant_def;
     String *real_f_module;
     String *real_f_pvariant_from_int;
     String *real_f_pvariant_to_int;
     String *real_f_modclass;
     
+    Hash *real_seen_names;
+    Hash *real_seen_methods;
+
     struct _ocaml_namespace_stack *next;
 } ocaml_namespace_stack;
 
@@ -699,18 +705,25 @@ class OCAML : public Language {
 	cur->f_pvariant_to_int = NewString("");
 	cur->f_modclass = NewString("");
 	cur->ns_name = ns_name;
+	cur->seen_names = NewHash();
+	cur->seen_methods = NewHash();
 
 	cur->real_f_pvariant_def = f_pvariant_def;
 	cur->real_f_module = f_module;
 	cur->real_f_pvariant_from_int = f_pvariant_from_int;
 	cur->real_f_pvariant_to_int = f_pvariant_to_int;
 	cur->real_f_modclass = f_modclass;
+	cur->real_seen_names = seen_names;
+	cur->real_seen_methods = seen_methods;
 
 	f_pvariant_def = cur->f_pvariant_def;
 	f_module = cur->f_module;
 	f_pvariant_from_int = cur->f_pvariant_from_int;
 	f_pvariant_to_int = cur->f_pvariant_to_int;
 	f_modclass = cur->f_modclass;
+
+	seen_names = cur->seen_names;
+	seen_methods = cur->seen_methods;
 
 	cur->next = ns_stack;
 	ns_stack = cur;
@@ -729,6 +742,14 @@ class OCAML : public Language {
 	Dump(cur->f_modclass,cur->real_f_module);
 	Dump(cur->f_pvariant_from_int,cur->real_f_module);
 	Dump(cur->f_pvariant_to_int,cur->real_f_module);
+
+	Delete(cur->f_pvariant_def);
+	Delete(cur->f_module);
+	Delete(cur->f_modclass);
+	Delete(cur->f_pvariant_from_int);
+	Delete(cur->f_pvariant_to_int);
+	Delete(cur->seen_names);
+	Delete(cur->seen_methods);
 	
 	Printf(cur->real_f_module,"end\n");
     
@@ -737,7 +758,9 @@ class OCAML : public Language {
 	f_pvariant_from_int = cur->real_f_pvariant_from_int;
 	f_pvariant_to_int = cur->real_f_pvariant_to_int;
 	f_modclass = cur->real_f_modclass;
-	
+	seen_names = cur->real_seen_names;
+	seen_methods = cur->real_seen_methods;
+
 	ns_stack = cur->next;
 	delete cur;
     }
