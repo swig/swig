@@ -157,7 +157,7 @@ SWIG_UnpackData(char *c, void *ptr, int sz) {
   register int d;
   unsigned char *u = (unsigned char *) ptr;
   int i;
-  if (strlen(c) < (2*sz)) return c;
+  if ((int)strlen(c) < (2*sz)) return c;
   for (i = 0; i < sz; i++, u++) {
     d = *(c++);
     if ((d >= '0') && (d <= '9'))
