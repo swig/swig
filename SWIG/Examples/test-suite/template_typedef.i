@@ -133,9 +133,10 @@ namespace vfncs {
   %template(make_Identity_real) make_Identity<real >;
 
   /* [beazley] Added this part */
+  %template() unary_func_traits<float,real>;
   %template(UnaryFunction_float_real) UnaryFunction<float,real>;
   %template(ArithUnaryFunction_float_real) ArithUnaryFunction<float,real>;
-  %template() unary_func_traits<float,real>;
+
   /* */
 
   %template() arith_traits<real, float >;
