@@ -326,13 +326,6 @@ type_error:
 	  goto type_check;
 	}
       }
-    } else if (PyInt_Check(obj)) {
-      /* here we check for the only accepted zero value */
-      long v = PyInt_AsLong(obj);
-      if (v == 0) {
-	*ptr = 0;
-	return 0;
-      }
     }
   }
   if (flags & SWIG_POINTER_EXCEPTION) {
