@@ -27,6 +27,8 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 	     in C++ mode.
 	   * [Guile]: Added some support for arrays and C++
 	     references, fixing the "constant_pointers" test case.
+	   * Moved most tests from the old Guile-specific test-suite
+	     to the new test-suite.
 
 7/26/2001: cheetah (william fulton)
 	   * Test-suite added.
