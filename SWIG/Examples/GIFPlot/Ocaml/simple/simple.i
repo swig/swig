@@ -1,7 +1,7 @@
 /* This example shows a very simple interface wrapping a few 
    primitive declarations */
 
-%module gifplot
+%module simple
 %{
 #include "gifplot.h"
 %}
