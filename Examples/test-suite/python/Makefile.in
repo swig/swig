@@ -16,6 +16,7 @@ CPP_TEST_CASES += \
 	director_stl \
 	implicittest \
 	lib_std_vectora \
+	lib_std_map \
 	std_containers
 
 #
