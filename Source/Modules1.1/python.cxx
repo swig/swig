@@ -363,7 +363,6 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	   "(PyObject *self, PyObject *args, PyObject *kwargs) {",
 	   0);
   }
-  Printf(f->code,"    self = self;\n");
 
   Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
 
