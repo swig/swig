@@ -340,6 +340,19 @@ static void merge_addmethods(Node *am) {
    }
    return 0;
  }
+
+ /* Make a classname */
+
+ static String *make_class_name(String *name) {
+   String *nname = 0;
+   if (Namespaceprefix) {
+     nname= NewStringf("%s::%s", Namespaceprefix, name);
+   } else {
+     nname = NewString(name);
+   }
+   return nname;
+ }
+
 /* Structures for handling code fragments built for nested classes */
 
 typedef struct Nested {
@@ -745,15 +758,17 @@ swig_directive : addmethods_directive { $$ = $1; }
    %addmethods classname { ... } 
    ------------------------------------------------------------ */
 
-addmethods_directive : ADDMETHODS ID LBRACE {
+addmethods_directive : ADDMETHODS idcolon LBRACE {
                Node *cls;
+	       String *clsname;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
 	       if (!addmethods) addmethods = NewHash();
-	       cls = Getattr(classes,$2);
+	       clsname = make_class_name($2);
+	       cls = Getattr(classes,clsname);
 	       if (!cls) {
 		 /* No previous definition. Create a new scope */
-		 Node *am = Getattr(addmethods,$2);
+		 Node *am = Getattr(addmethods,clsname);
 		 if (!am) {
 		   Swig_symbol_newscope();
 		   prev_symtab = 0;
@@ -768,32 +783,36 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 	       }
 	       Classprefix = NewString($2);
 	       Namespaceprefix= Swig_symbol_qualifiedscopename(0);
+	       Delete(clsname);
 	     } cpp_members RBRACE {
+               String *clsname;
                $$ = new_node("addmethods");
-	       Setattr($$,"name",$2);
 	       Setattr($$,"symtab",Swig_symbol_popscope());
+	       if (prev_symtab) {
+		 Swig_symbol_setscope(prev_symtab);
+	       }
+	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+               clsname = make_class_name($2);
+	       Setattr($$,"name",clsname);
 	       if (current_class) {
 		 /* We add the addmethods to the previously defined class */
 		 appendChild($$,$5);
 		 appendChild(current_class,$$);
 	       } else {
 		 /* We store the addmethods in the addmethods hash */
-		 Node *am = Getattr(addmethods,$2);
+		 Node *am = Getattr(addmethods,clsname);
 		 if (am) {
 		   /* Append the members to the previous add methods */
 		   appendChild(am,$5);
 		 } else {
 		   appendChild($$,$5);
-		   Setattr(addmethods,$2,$$);
+		   Setattr(addmethods,clsname,$$);
 		 }
-	       }
-	       if (prev_symtab) {
-		 Swig_symbol_setscope(prev_symtab);
 	       }
 	       current_class = 0;
 	       Delete(Classprefix);
+	       Delete(clsname);
 	       Classprefix = 0;
-	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       prev_symtab = 0;
 	       $$ = 0;
 	     }
@@ -1832,15 +1851,17 @@ cpp_class_decl  :
 		 
 		 /* This bit of code merges in a previously defined %addmethod directive (if any) */
 		 if (addmethods) {
-		   Node *am = Getattr(addmethods,$3);
+		   String *clsname = Swig_symbol_qualifiedscopename(0);
+		   Node *am = Getattr(addmethods,clsname);
 		   if (am) {
 		     merge_addmethods(am);
 		     appendChild($$,am);
-		     Delattr(addmethods,$3);
+		     Delattr(addmethods,clsname);
 		   }
+		   Delete(clsname);
 		 }
 		 if (!classes) classes = NewHash();
-		 Setattr(classes,$3,$$);
+		 Setattr(classes,Swig_symbol_qualifiedscopename(0),$$);
 		 
 		 Setattr($$,"symtab",Swig_symbol_popscope());
 		 appendChild($$,$7);
@@ -1958,16 +1979,18 @@ cpp_class_decl  :
 
 		     /* Check for previous addmethods */
 		     if (addmethods) {
-		       Node *am = Getattr(addmethods,name);
+		       String *clsname = Swig_symbol_qualifiedscopename(0);
+		       Node *am = Getattr(addmethods,clsname);
 		       if (am) {
 			 /* Merge the addmethods into the symbol table */
 			 merge_addmethods(am);
 			 appendChild($$,am);
-			 Delattr(addmethods,name);
+			 Delattr(addmethods,clsname);
 		       }
+		       Delete(clsname);
 		     }
 		     if (!classes) classes = NewHash();
-		     Setattr(classes,name,$$);
+		     Setattr(classes,Swig_symbol_qualifiedscopename(0),$$);
 		   } else {
 		     Swig_symbol_setscopename((char*)"<unnamed>");
 		   }
@@ -3291,14 +3314,12 @@ inherit        : raw_inherit {
 		   /* Patch names for templates */
 		   String *name;
                    for (name = Firstitem($1); name; name = Nextitem($1)) {
-		     if (classes) {
-		       /* The name might be the same as a template map */
-		       if (templatemaps) {
-			 String *altname = Getattr(templatemaps,name);
-			 if (altname) {
-			   Clear(name);
-			   Append(name,altname);
-			 }
+		     /* The name might be the same as a template map */
+		     if (templatemaps) {
+		       String *altname = Getattr(templatemaps,name);
+		       if (altname) {
+			 Clear(name);
+			 Append(name,altname);
 		       }
 		     }
 		   }
