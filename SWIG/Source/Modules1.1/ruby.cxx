@@ -51,6 +51,7 @@ class RClass {
     constructor_defined = 0;
     destructor_defined = 0;
   }
+  
   ~RClass() {
     Delete(name);
     Delete(cname);
@@ -63,7 +64,7 @@ class RClass {
     Delete(temp);
   }
 
-  void set_name(char *cn, char *rn, char *valn) {
+  void set_name(const String_or_char *cn, const String_or_char *rn, const String_or_char *valn) {
     Clear(cname);
     Append(cname,cn);
     Delete(mname);
@@ -1051,24 +1052,22 @@ public:
    * ----------------------------------------------------------------------------- */
 
   virtual int classDeclaration(Node *n) {
-    char *cname = GetChar(n,"name");
-    char *rename = GetChar(n,"sym:name");
-    char *tdname = GetChar(n,"tdname");
+    String *name = Getattr(n,"name");
+    String *symname = Getattr(n,"sym:name");
+    String *tdname = Getattr(n,"tdname");
   
-    cname = tdname ? tdname : cname;
-
-    if (SwigType_istemplate(cname)) {
-      cname = Char(SwigType_namestr(cname));
-    }
-    klass = RCLASS(classes, cname);
+    name = tdname ? tdname : name;
+    String *namestr = SwigType_namestr(name);
+    klass = RCLASS(classes, Char(namestr));
     if (!klass) {
       klass = new RClass();
-      String *valid_name = NewString((rename ? rename : cname));
+      String *valid_name = NewString(symname ? symname : namestr);
       validate_const_name(Char(valid_name), "class");
-      klass->set_name(cname, rename, Char(valid_name));
-      SET_RCLASS(classes, cname, klass);
+      klass->set_name(namestr, symname, valid_name);
+      SET_RCLASS(classes, Char(namestr), klass);
       Delete(valid_name);
     }
+    Delete(namestr);
     return Language::classDeclaration(n);
   }
 
@@ -1078,16 +1077,14 @@ public:
 
   virtual int classHandler(Node *n) {
 
-    char *cname = GetChar(n,"name");
-    char *rename = GetChar(n,"sym:name");
-  
-    if (SwigType_istemplate(cname)) {
-      cname = Char(SwigType_namestr(cname));
-    }
+    String *name = Getattr(n,"name");
+    String *symname = Getattr(n,"sym:name");
+    String *namestr = SwigType_namestr(name); // does template expansion
 
-    klass = RCLASS(classes, cname);
+    klass = RCLASS(classes, Char(namestr));
     assert(klass);
-    String *valid_name = NewString(rename);
+    Delete(namestr);
+    String *valid_name = NewString(symname);
     validate_const_name(Char(valid_name), "class");
 
     Clear(klass->type);
@@ -1097,15 +1094,14 @@ public:
     Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
 	   ", \"", klass->name, "\", $super);\n", NIL);
 
-    {
-      SwigType *tt = NewString(cname);
-      SwigType_add_pointer(tt);
-      SwigType_remember(tt);
-      String *tm = SwigType_manglestr(tt);
-      Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &c%s);\n", tm, valid_name);
-      Delete(tm);
-      Delete(tt);    
-    }
+    SwigType *tt = NewString(name);
+    SwigType_add_pointer(tt);
+    SwigType_remember(tt);
+    String *tm = SwigType_manglestr(tt);
+    Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &c%s);\n", tm, valid_name);
+    Delete(tm);
+    Delete(tt);
+    Delete(valid_name);
     
     /* Process the comma-separated list of mixed-in module names (if any) */
     String *mixin = Getattr(n,"feature:mixin");
@@ -1136,45 +1132,28 @@ public:
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist)) {
       Node *base = Firstitem(baselist);
-      char *basename = Char(Getattr(base,"name"));
-      if (SwigType_istemplate(basename)) {
-	basename = Char(SwigType_namestr(basename));
-      }
-      RClass *super = RCLASS(classes, basename);
+      String *basename = Getattr(base,"name");
+      String *basenamestr = SwigType_namestr(basename);
+      RClass *super = RCLASS(classes, Char(basenamestr));
+      Delete(basenamestr);
       if (super) {
-
-	/* [DB] This code is experimental.   Rather than creating a link-dependency to the
-	   base class, you can actually obtain the base class through the SWIG run-time 
-	   type checker.  This is because proxy classes register a data structure using
-	   SWIG_TypeClientdata().  
-
-	   Caveat: This only works if base classes are defined before derived classes.
-	   Unlikely to be a problem since I don't think the Ruby module would work
-	   otherwise.
-
-	*/
-
 	SwigType *btype = NewString(basename);
 	SwigType_add_pointer(btype);
 	SwigType_remember(btype);
-	String   *bmangle = SwigType_manglestr(btype);
+	String *bmangle = SwigType_manglestr(btype);
 	Insert(bmangle,0,"((swig_class *) SWIGTYPE");
 	Append(bmangle,"->clientdata)->klass");
-	Replaceall(klass->init,"$super", bmangle);
-	Delete(btype);
+	Replaceall(klass->init,"$super",bmangle);
 	Delete(bmangle);
-
-	/* [DB] Old code 
-	   Printv(f_wrappers,"extern swig_class c", super->name, ";\n", NIL);
-	   Replaceall(klass->init,"$super",super->vname);
-	*/
+	Delete(btype);
       }
     
       /* Warn about multiple inheritance if additional base class(es) listed */
       base = Nextitem(baselist);
       while (base) {
+	basename = Getattr(n,"name");
 	Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, input_file, line_number, 
-		     "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", Getattr(n,"name"), Getattr(base,"name"));
+		     "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", basename, basename);
 	base = Nextitem(baselist);
       }
     }
@@ -1187,6 +1166,7 @@ public:
       Printf(klass->init, "c%s.mark = 0;\n", klass->name);
     }
 
+    /* Check to see if a %freefunc was specified */
     String *freefunc = Getattr(n, "feature:freefunc");
     if (freefunc) {
       Printf(klass->init, "c%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
@@ -1205,6 +1185,7 @@ public:
     Replaceall(klass->init,"$allocator", s);
     Replaceall(klass->init,"$initializer", "");
     Replaceall(klass->init,"$super", "rb_cObject");
+    Delete(s);
 
     Printv(f_init,klass->init,NIL);
     klass = 0;
