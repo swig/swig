@@ -159,6 +159,7 @@ int SwigType_typedef(SwigType *type, String_or_char *name) {
 
 int SwigType_typedef_class(String_or_char *name) {
   String *cname;
+  /*  Printf(stdout,"class : '%s'\n", name); */
   if (Getattr(current_typetab, name)) return -1;   /* Already defined */
   cname = NewString(name);
   Setmeta(cname,"class","1");
@@ -377,7 +378,7 @@ SwigType_find_scope(Typetab *s, String *nameprefix) {
   String  *nnameprefix = 0;
   static   int check_parent = 1;
 
-  /*  Printf(stdout,"find_scope: %x '%s'\n", s, nameprefix);*/
+  /*  Printf(stdout,"find_scope: %x '%s'\n", s, nameprefix); */
 
   if (SwigType_istemplate(nameprefix)) {
     nnameprefix = SwigType_typedef_resolve_all(nameprefix);

@@ -470,6 +470,7 @@ Swig_cparse_template_locate(String *name, Parm *tparms) {
   Delete(rname);
   Delete(mpartials);
   if ((template_debug) && (n)) {
+    Printf(stdout,"Node: %x\n", n);
       Swig_print_node(n);
   }
   Delete(parms);

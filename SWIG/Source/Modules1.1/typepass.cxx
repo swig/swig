@@ -462,9 +462,14 @@ public:
     String *name = Getattr(n,"name");
     String *ttype = Getattr(n,"templatetype");
     if (Strcmp(ttype,"class") == 0) {
-      SwigType_typedef_class(name);
+      String *rname = SwigType_typedef_resolve_all(name);
+      SwigType_typedef_class(rname);
+      Delete(rname);
     } else if (Strcmp(ttype,"classforward") == 0) {
-      SwigType_typedef_class(name);
+      String *rname = SwigType_typedef_resolve_all(name);
+      SwigType_typedef_class(rname);
+      Delete(rname);
+      /*      SwigType_typedef_class(name);*/
     }
     return SWIG_OK;
   }

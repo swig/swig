@@ -1858,7 +1858,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		      SwigType *ty = Getattr(p,"type");
 		      if (ty) {
 			ty = Swig_symbol_type_qualify(ty,0);
-			ty = Swig_symbol_typedef_reduce(ty,0);
+			/* ty = Swig_symbol_typedef_reduce(ty,0); */
 			Setattr(p,"type",ty);
 		      }
 		    }
@@ -2604,6 +2604,18 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  }
 			  Delete(tlist);
 			  Delete(targs);
+			} else {
+			  /* Need to resolve exact specialization name */
+			  List *tparms;
+			  String *fname;
+			  SwigType *tt;
+			  fname = Copy(tname);
+			  tparms = SwigType_parmlist(fname);
+			  for (tt = Firstitem(tparms); tt; tt = Nextitem(tparms)) {
+			    SwigType *ttr = Swig_symbol_typedef_reduce(tt,0);
+			    Replaceid(fname,tt, ttr);
+			  }
+			  Swig_symbol_cadd(fname,$$);
 			}
 		      }  else if ($$) {
 			Setattr($$,"templatetype",nodeType($6));
