@@ -2310,6 +2310,9 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
              | feature_directive { $$ = $1; }
              | varargs_directive { $$ = $1; }
              | insert_directive { $$ = $1; }
+             | typemap_directive { $$ = $1; }
+             | apply_directive { $$ = $1; }
+             | clear_directive { $$ = $1; }
              ;
 
 cpp_end        : cpp_const SEMI {
