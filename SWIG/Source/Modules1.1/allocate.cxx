@@ -24,6 +24,7 @@ class Allocate : public Dispatcher {
   Node  *inclass;
   enum AccessMode { PUBLIC, PRIVATE, PROTECTED };
   AccessMode cplus_mode;
+  int extendmode;
 
   /* Checks to see if a class is abstract through inheritance */
   int is_abstract_inherit(Node *n, Node *base = 0) {
@@ -63,6 +64,7 @@ public:
   virtual int top(Node *n) {
     cplus_mode = PUBLIC;
     inclass = 0;
+    extendmode = 0;
     emit_children(n);
     return SWIG_OK;
   }
@@ -71,7 +73,12 @@ public:
   virtual int includeDirective(Node *n) { return emit_children(n); }
   virtual int externDeclaration(Node *n) { return emit_children(n); }
   virtual int namespaceDeclaration(Node *n) { return emit_children(n); }
-
+  virtual int extendDirective(Node *n) {
+      extendmode = 1;
+      emit_children(n);
+      extendmode = 0;
+      return SWIG_OK;
+  }
   virtual int classDeclaration(Node *n) {
     if (!CPlusPlus) {
       /* Always have default constructors/destructors in C */
@@ -179,17 +186,19 @@ public:
   virtual int constructorDeclaration(Node *n) {
     if (!inclass) return SWIG_OK;
     Parm   *parms = Getattr(n,"parms");
-    if (!ParmList_numrequired(parms)) {
-      /* Class does define a default constructor */
-      /* However, we had better see where it is defined */
-      if (cplus_mode == PUBLIC) {
-	Setattr(inclass,"allocate:default_constructor","1");
-      } else if (cplus_mode == PROTECTED) {
-	Setattr(inclass,"allocate:default_base_constructor","1");
-      }
+    if (!extendmode) {
+	if (!ParmList_numrequired(parms)) {
+	    /* Class does define a default constructor */
+	    /* However, we had better see where it is defined */
+	    if (cplus_mode == PUBLIC) {
+		Setattr(inclass,"allocate:default_constructor","1");
+	    } else if (cplus_mode == PROTECTED) {
+		Setattr(inclass,"allocate:default_base_constructor","1");
+	    }
+	}
+	/* Class defines some kind of constructor. May or may not be public */
+	Setattr(inclass,"allocate:has_constructor","1");
     }
-    /* Class defines some kind of constructor. May or may not be public */
-    Setattr(inclass,"allocate:has_constructor","1");
 
     /* See if this is a copy constructor */
     if (parms && (ParmList_numrequired(parms) == 1)) {
@@ -218,11 +227,13 @@ public:
 
   virtual int destructorDeclaration(Node *n) {
     if (!inclass) return SWIG_OK;
-    Setattr(inclass,"allocate:has_destructor","1");
-    if (cplus_mode == PUBLIC) {
-      Setattr(inclass,"allocate:default_destructor","1");
-    } else if (cplus_mode == PROTECTED) {
-      Setattr(inclass,"allocate:default_base_destructor","1");
+    if (!extendmode) {
+	Setattr(inclass,"allocate:has_destructor","1");
+	if (cplus_mode == PUBLIC) {
+	    Setattr(inclass,"allocate:default_destructor","1");
+	} else if (cplus_mode == PROTECTED) {
+	    Setattr(inclass,"allocate:default_base_destructor","1");
+	}
     }
     return SWIG_OK;
   }

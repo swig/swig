@@ -354,12 +354,20 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
      in C namespaces are errors, but these will be caught by the C++ compiler
      when compiling the wrapper code */
 
+  /* There are a few options for weak symbols.  A "weak" symbol 
+     is any symbol that can be replaced by another symbol in the C symbol
+     table.  An example would be a forward class declaration.  A forward
+     class sits in the symbol table until a real class declaration comes along.
+   */
+
   {
     String *name = Getattr(n,"name");
     if (name) {
       cn = Getattr(ccurrent,name);
-      if ((!cn) || Getattr(cn,"sym:weak")) {
+      if ((!cn) || (Getattr(cn,"sym:weak") && !Getattr(cn,"sym:typename"))) {
 	Setattr(ccurrent,name,n);
+      } else if (cn && Getattr(n,"sym:typename")) {
+        Setattr(ccurrent,name,n);
       }
     }
   }

@@ -417,8 +417,10 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     
   /*  Printf(stdout,"+ %s --> %s\n", base,type); */
 
-    if (type && (Strcmp(base,type) == 0)) type = 0;
-  /*  if (type && (Getmeta(type,"class"))) type = 0; */
+    if (type && (Strcmp(base,type) == 0)) {
+	Delete(base);
+	return 0;
+    }
 
     /* If the type is a template, and no typedef was found, we need to check the
      template arguments one by one to see if they can be resolved. */
@@ -697,6 +699,7 @@ SwigType_isclass(SwigType *t) {
   qty = SwigType_typedef_resolve_all(t);
   qtys = SwigType_strip_qualifiers(qty);
   if (SwigType_issimple(qtys)) {
+
     String *td = SwigType_typedef_resolve(qtys);
     if (resolved_scope) {
       isclass = 1;

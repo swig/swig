@@ -11,8 +11,6 @@
 
 #include "swig.h"
 
-extern void canonical_template(String *s);
-
 static void add_parms(ParmList *p, List *patchlist, List *typelist) {
   while (p) {
     SwigType *ty = Getattr(p,"type");
@@ -47,6 +45,9 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
       expanded = 0;
       return ret;
     } else {
+	/* Called when template appears inside another template */
+	/* Member templates */
+
       set_nodeType(n,Getattr(n,"templatetype"));
       ret = cparse_template_expand(n,tname, rname, templateargs, patchlist,typelist, cpatchlist);
       set_nodeType(n,"template");
@@ -91,20 +92,23 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     }
   } else if (Strcmp(nodeType(n),"constructor") == 0) {
     String *name = Getattr(n,"name");
-    if (Strstr(name,"<")) {
-      Append(patchlist,Getattr(n,"name"));
-    } else {
-      Append(name,templateargs);
-    }
-    name = Getattr(n,"sym:name");
-    if (Strstr(name,"<")) {
-      Setattr(n,"sym:name", Copy(tname));
-    } else {
-      Replace(name,tname,rname, DOH_REPLACE_ANY);
+
+    if (!Getattr(n,"templatetype")) {
+	if (Strstr(name,"<")) {
+	    Append(patchlist,Getattr(n,"name"));
+	} else {
+	    Append(name,templateargs);
+	}
+	name = Getattr(n,"sym:name");
+	if (name && (Strstr(name,"<"))) {
+	    Setattr(n,"sym:name", Copy(tname));
+	} else {
+	    Replace(name,tname,rname, DOH_REPLACE_ANY);
+	}
+	Setattr(n,"sym:name",name);
     }
     Append(cpatchlist,Getattr(n,"code"));
     Append(typelist, Getattr(n,"decl"));
-    Setattr(n,"sym:name",name);
     add_parms(Getattr(n,"parms"), patchlist, typelist);
   } else if (Strcmp(nodeType(n),"destructor") == 0) {
     String *name = Getattr(n,"name");
@@ -148,28 +152,12 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   cpatchlist = NewList();
   typelist = NewList();
 
-#if 0
-  templateargs = NewString("< ");
-  p = tparms;
-  while (p) {
-    String *value = Getattr(p,"value");
-    if (!value) value = SwigType_str(Getattr(p,"type"),0);
-    Printf(templateargs,"%s", value);
-    p = nextSibling(p);
-    if (p) {
-      Printf(templateargs,",");
-    }
-  }
-  Printf(templateargs," >");
-  canonical_template(templateargs);
-#else
   {
     String *tmp = NewString("");
     SwigType_add_template(tmp,tparms);
     templateargs = Copy(tmp);
     Delete(tmp);
   }
-#endif
 
   tname = Copy(Getattr(n,"name"));
   cparse_template_expand(n,tname, rname, templateargs, patchlist, typelist, cpatchlist);
@@ -212,7 +200,6 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	String *s = Getitem(typelist,i);
 	Replace(s,name,value, DOH_REPLACE_ID);
 	SwigType_typename_replace(s,tname,iname);
-	/*	canonical_template(s); */
       }
       if (!tydef) {
 	tydef = value;

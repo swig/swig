@@ -511,7 +511,11 @@ Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int added)
 {
   ParmList *parms;
   SwigType *type;
-  String *membername = Swig_name_construct(classname);
+  String   *membername;
+  String   *mangled;
+  membername = Swig_name_construct(classname);
+  mangled = Swig_name_mangle(membername);
+
   parms = CopyParmList(nonvoid_parms(Getattr(n,"parms")));
   type  = NewString(classname);
   SwigType_add_pointer(type);
@@ -520,14 +524,14 @@ Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int added)
     String *code = Getattr(n,"code");
     if (code) {
       String *wrap;
-      String *s = NewStringf("%s(%s)", membername, ParmList_str(parms));
+      String *s = NewStringf("%s(%s)", mangled, ParmList_str(parms));
       wrap = SwigType_str(type,s);
       Delete(s);
       Printv(wrap,code,"\n",NULL);
       Setattr(n,"wrap:code",wrap);
       Delete(wrap);
     }
-    Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cfunction_call(membername,parms)));
+    Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cfunction_call(mangled,parms)));
   } else {
     if (cplus) {
       Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cppconstructor_call(classname,parms)));
@@ -539,6 +543,8 @@ Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int added)
   Setattr(n,"parms", parms);
   Delete(type);
   Delete(parms);
+  Delete(mangled);
+  Delete(membername);
   return SWIG_OK;
 }
 
@@ -561,16 +567,19 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int added)
   type = NewString("void");
 
   if (added) {
-    String   *membername = Swig_name_destroy(classname);
-    String *code = Getattr(n,"code");
+    String *membername, *mangled, *code;
+    membername = Swig_name_destroy(classname);
+    mangled = Swig_name_mangle(membername);
+    code = Getattr(n,"code");
     if (code) {
-      String *s = NewStringf("void %s(%s)", membername, ParmList_str(p));
+      String *s = NewStringf("void %s(%s)", mangled, ParmList_str(p));
       Printv(s,code,"\n",NULL);
       Setattr(n,"wrap:code",s);
       Delete(s);
     }
-    Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cfunction_call(membername,p)));
+    Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cfunction_call(mangled,p)));
     Delete(membername);
+    Delete(mangled);
   } else {
     if (cplus) {
       Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cppdestructor_call()));
@@ -600,11 +609,13 @@ Swig_MembersetToFunction(Node *n, String *classname, int added) {
   SwigType *ty;
   SwigType *type;
   String   *membername;
+  String   *mangled;
 
   name = Getattr(n,"name");
   type = Getattr(n,"type");
 
   membername = Swig_name_member(classname, Swig_name_set(name));
+  mangled = Swig_name_mangle(membername);
 
   t = NewString(classname);
   SwigType_add_pointer(t);
@@ -619,12 +630,12 @@ Swig_MembersetToFunction(Node *n, String *classname, int added) {
   if (added) {
     String *code = Getattr(n,"code");
     if (code) {
-      String *s = NewStringf("void %s(%s)", membername, ParmList_str(parms));
+      String *s = NewStringf("void %s(%s)", mangled, ParmList_str(parms));
       Printv(s,code,"\n",NULL);
       Setattr(n,"wrap:code",s);
       Delete(s);
     }
-    Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cfunction_call(membername,parms)));
+    Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cfunction_call(mangled,parms)));
   } else {
     Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cmemberset_call(name,type)));
   }
@@ -632,6 +643,8 @@ Swig_MembersetToFunction(Node *n, String *classname, int added) {
   Setattr(n,"parms", parms);
   Delete(parms);
   Delete(ty);
+  Delete(membername);
+  Delete(mangled);
   return SWIG_OK;
 }
 
@@ -649,11 +662,12 @@ Swig_MembergetToFunction(Node *n, String *classname, int added) {
   SwigType *ty;
   SwigType *type;
   String   *membername;
-
+  String   *mangled;
   name = Getattr(n,"name");
   type = Getattr(n,"type");
 
   membername = Swig_name_member(classname, Swig_name_get(name));
+  mangled = Swig_name_mangle(membername);
 
   t = NewString(classname);
   SwigType_add_pointer(t);
@@ -664,14 +678,14 @@ Swig_MembergetToFunction(Node *n, String *classname, int added) {
   if (added) {
     String *code = Getattr(n,"code");
     if (code) {
-      String *tmp = NewStringf("%s(%s)", membername, ParmList_str(parms));
+      String *tmp = NewStringf("%s(%s)", mangled, ParmList_str(parms));
       String *s = SwigType_str(ty,tmp);
       Delete(tmp);
       Printv(s,code,"\n",NULL);
       Setattr(n,"wrap:code",s);
       Delete(s);
     }
-    Setattr(n,"wrap:action", Swig_cresult(ty,"result",Swig_cfunction_call(membername,parms)));
+    Setattr(n,"wrap:action", Swig_cresult(ty,"result",Swig_cfunction_call(mangled,parms)));
   } else {
     Setattr(n,"wrap:action", Swig_cresult(ty,"result",Swig_cmemberget_call(name,type)));
   }
@@ -679,6 +693,8 @@ Swig_MembergetToFunction(Node *n, String *classname, int added) {
   Setattr(n,"parms", parms);
   Delete(parms);
   Delete(ty);
+  Delete(membername);
+  Delete(mangled);
   return SWIG_OK;
 }
 

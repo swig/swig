@@ -871,7 +871,7 @@ Language::memberfunctionHandler(Node *n) {
 
     String *fname = Swig_name_member(ClassPrefix, symname);
     /* Transformation */
-    Swig_MethodToFunction(n,ClassType, Extend);
+    Swig_MethodToFunction(n,ClassType, Getattr(n,"template") ? 0 : Extend);
     Setattr(n,"sym:name",fname);
     functionWrapper(n);
 
@@ -1355,6 +1355,7 @@ int Language::constructorDeclaration(Node *n) {
 	  if (name && (Cmp(name,ClassName))) {
 	    Swig_warning(WARN_LANG_RETURN_TYPE, input_file,line_number,"Function %s must have a return type.\n", 
 			 name);
+	    Swig_restore(&n);
 	    return SWIG_NOWRAP;
 	  }
 	  constructorHandler(n);
@@ -1377,7 +1378,7 @@ Language::constructorHandler(Node *n) {
 
     mrename = Swig_name_construct(symname);
 
-    Swig_ConstructorToFunction(n,ClassType,CPlusPlus,Extend);
+    Swig_ConstructorToFunction(n,ClassType,CPlusPlus,Getattr(n,"template") ? 0 :Extend);
     Setattr(n,"sym:name", mrename);
     functionWrapper(n);
     Delete(mrename);
@@ -1396,7 +1397,7 @@ Language::copyconstructorHandler(Node *n) {
   String *mrename;
 
   mrename = Swig_name_copyconstructor(symname);
-  Swig_ConstructorToFunction(n,ClassType, CPlusPlus, Extend);
+  Swig_ConstructorToFunction(n,ClassType, CPlusPlus, Getattr(n,"template") ? 0 : Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);

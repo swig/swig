@@ -326,7 +326,7 @@ static void add_symbols(Node *n) {
       }
       if (Strcmp(nodeType(n),"enum") != 0) {
 	c = Swig_symbol_add(symname,n);
-	if ((c != n) && (!Getattr(n,"sym:weak"))) {
+	if ((c != n) && (!(Getattr(n,"sym:weak")))) {
 	  String *e = NewString("");
 	  Printf(e,"Identifier '%s' redeclared (ignored).", symname);
 	  if (Cmp(symname,Getattr(n,"name"))) {
@@ -376,6 +376,8 @@ void add_symbols_copy(Node *n) {
       }
       Delete(add_oldname);
       add_oldname = 0;
+    } else {
+	add_symbols_copy(firstChild(n));
     }
     n = nextSibling(n);
   }
@@ -1675,9 +1677,13 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GRE
 			$$ = 0;
 		      }
 		    } else {
-		      Swig_warning(WARN_PARSE_TEMPLATE_REPEAT,input_file, line_number, "Template '%s' was already wrapped as '%s' (ignored)\n", 
-				   SwigType_namestr(templateargs), Getattr(n,"sym:name"));
-		      $$ = 0;
+			if (Strcmp(nodeType(n),"constructor") != 0) {
+			    Swig_warning(WARN_PARSE_TEMPLATE_REPEAT,input_file, line_number, "Template '%s' was already wrapped as '%s' (ignored)\n", 
+					 SwigType_namestr(templateargs), Getattr(n,"sym:name"));
+			    $$ = 0;
+			} else {
+			    n = 0;
+			}
 		    }
 		  } 
 		  if (!n) {
@@ -1728,10 +1734,14 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GRE
 			    def_supplied = 1;
 			  }
 			}
+			/*			Printf(stderr,"TEMPL: %s %s\n", nodeType(n), Getattr(n,"templatetype")); */
 			$$ = copy_node(n);
+			Delattr($$,"sym:typename");
 			Swig_cparse_template_expand($$,$3,temparms);
 			Delete(temparms);
 			Setattr($$,"sym:name", $3);
+			Delattr($$,"templatetype");
+			Setattr($$,"template","1");
 			add_symbols_copy($$);
 			
 			if (Strcmp(nodeType($$),"class") == 0) {
@@ -1755,7 +1765,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GRE
 			  Setattr(classes,Swig_symbol_qualifiedscopename($$),$$);
 			}
 			/* Make a code insertion block to include typedefs */
-			{
+			if (0) {
 			  Node *ins = new_node("insert");
 			  Setattr(ins,"code",ts);
 			  Delete(ts);
@@ -1766,6 +1776,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GRE
 		    } else {
 		      if (n) {
 			Swig_error(input_file, line_number, "'%s' is not defined as a template.\n", $5);
+			Printf(stderr,"%s\n", nodeType(n));
 		      } else {
 			Swig_error(input_file, line_number, "Template '%s' undefined.\n", $5);
 		      }
@@ -2249,6 +2260,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			  Setattr($$,"templatetype",nodeType($5));
 			  set_nodeType($$,"template");
 			  Setattr($$,"templateparms", $3.parms);
+			  Setattr($$,"sym:typename","1");
 			  add_symbols($$);
 		      } else {
 			  if ($3.parms) {
@@ -2262,10 +2274,16 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 
 cpp_temp_possible:  c_decl {
 		  $$ = $1;
+		  Setattr($$,"sym:weak","1");
                 }
                 | cpp_class_decl {
                    $$ = $1;
-                };
+                }
+                | cpp_constructor_decl {
+                   $$ = $1;
+		   Setattr($$,"sym:weak","1");
+                }
+                ;
 
 template_parms  : rawparms {
 		   /* Rip out the parameter names */
@@ -2438,9 +2456,14 @@ cpp_members  : cpp_member cpp_members {
 		   }
              }
              | EXTEND LBRACE cpp_members RBRACE cpp_members {
-	       $$ = new_node("extend");
-	       appendChild($$,$3);
-	       set_nextSibling($$,$5);
+		 if (cplus_mode == CPLUS_PUBLIC) {
+		     $$ = new_node("extend");
+		     appendChild($$,$3);
+		     set_nextSibling($$,$5);
+		 } else {
+		     Swig_error(input_file,line_number,"%%extend can only be used in a public section\n");
+		     $$ = 0;
+		 }
 	     }
              | empty { $$ = 0;}
 	     | error {
@@ -2464,7 +2487,10 @@ cpp_members  : cpp_member cpp_members {
 /* A class member.  May be data or a function. Static or virtual as well */
 
 cpp_member   : c_declaration { $$ = $1; }
-             | cpp_constructor_decl { $$ = $1; }
+             | cpp_constructor_decl { 
+                 $$ = $1; 
+		 add_symbols($$);
+             }
              | cpp_destructor_decl { $$ = $1; }
              | cpp_protection_decl { $$ = $1; }
              | cpp_swig_directive { $$ = $1; }
@@ -2511,7 +2537,6 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		   Setattr($$,"code",Copy(scanner_ccode));
 		 }
 		 Setattr($$,"feature:new","1");
-		 add_symbols($$);
 	       }
               ;
 
