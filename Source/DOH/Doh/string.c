@@ -152,11 +152,13 @@ int String_hash(DOH *so) {
 
 static void
 add(String *s, const char *newstr) {
-  int   newlen, newmaxsize, l, i;
+  int   oldlen, newlen, newmaxsize, l, i, sp;
+  char *tc;
   if (!newstr) return;
   s->hashkey = -1;
   l = (int) strlen(newstr);
-  newlen = s->len+l + 1;
+  oldlen = s->len;
+  newlen = oldlen+l + 1;
   if (newlen >= s->maxsize-1) {
     newmaxsize = 2*s->maxsize;
     if (newlen >= newmaxsize -1) newmaxsize = newlen + 1;
@@ -164,12 +166,15 @@ add(String *s, const char *newstr) {
     assert(s->str);
     s->maxsize = newmaxsize;
   }
-  strcpy(s->str+s->len,newstr);
-  if (s->sp >= s->len) {
-    for (i = s->sp; i < s->len+l; i++) {
-      if (s->str[i] == '\n') s->line++;
+  tc = s->str;
+  strcpy(tc+oldlen,newstr);
+  sp = s->sp;
+  if (sp >= oldlen) {
+    tc += sp;
+    for (i = sp; i < oldlen+l; i++,tc++) {
+      if (*tc == '\n') s->line++;
     }
-    s->sp = s->len+l;
+    s->sp = oldlen+l;
   }
   s->len += l;
 }
@@ -395,11 +400,28 @@ String_tell(DOH *so) {
 
 int
 String_putc(DOH *so, int ch) {
+  register int len, maxsize, sp;
   String *s = (String *) ObjData(so);
-  if (s->sp >= s->len) {
-    String_addchar(s,(char) ch);
+  s->hashkey = -1;
+  len = s->len;
+  sp = s->sp;
+  if (sp >= len) {
+    register char *tc;
+    maxsize = s->maxsize;
+    if (len > (maxsize-2)) {
+      s->str = (char *) DohRealloc(s->str,2*maxsize);
+      assert(s->str);
+      s->maxsize = 2*maxsize;
+    }
+    tc = s->str + len;
+    *(tc++) = ch;
+    if (sp >= len) {
+      s->sp = len+1;
+      *tc = 0;
+      if (ch == '\n') s->line++;
+    }
+    s->len = len+1;
   } else {
-    s->hashkey = -1;
     s->str[s->sp++] = (char) ch;
     if (ch == '\n') s->line++;
   }
