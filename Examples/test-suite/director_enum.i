@@ -20,14 +20,20 @@ namespace EnumDirector {
 
   class Foo {
   public:
+    enum Bye {
+      ciao, aufwiedersehen = 100, adios
+    };
     virtual ~Foo() {}
     virtual Hello say_hi(Hello h){ return h;}
     virtual Hello say_hello(Hello){ return hello;}
     virtual Hello say_hi(A *a){ return hi;}
+    virtual Bye say_bye(Bye b){ return b;}
     virtual const Hello & say_hi_ref(const Hello & h){ return h;}
 
     Hello ping(Hello h){ return say_hi(h);}
     const Hello & ping_ref(const Hello &h){ return say_hi_ref(h);}
+    Bye ping_member_enum(Bye b){ return say_bye(b);}
+
   };
 }
 %}
