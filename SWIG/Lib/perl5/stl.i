@@ -1,9 +1,9 @@
 //
 // SWIG typemaps for STL types
-// Luigi Ballabio and Manu ???
-// Apr 26, 2002
+// Luigi Ballabio
+// May 7, 2002
 //
-// Tcl implementation
+// Perl implementation
 
 
 // ------------------------------------------------------------------------
@@ -24,20 +24,28 @@ namespace std {
     class string;
 
     %typemap(in) string {
-        $1 = std::string(Tcl_GetString($input));
+        if (!SvOK((SV*) $input)) 
+            $1 = std::string();
+        else 
+            $1 = std::string((char *) SvPV($input, PL_na));
     }
 
     %typemap(in) const string & (std::string temp) {
-        temp = std::string(Tcl_GetString($input));
+        if (!SvOK((SV*) $input)) 
+            temp = std::string();
+        else 
+            temp = std::string((char *) SvPV($input, PL_na));
         $1 = &temp;
     }
 
     %typemap(out) string {
-        Tcl_SetStringObj($result,(char*)$1.c_str(),$1.length());
+        $result = sv_newmortal();
+        sv_setpv((SV*)ST(argvi++), const_cast<char*>($1.c_str());
     }
 
     %typemap(out) const string & {
-        Tcl_SetStringObj($result,(char*)$1->c_str(),$1->length());
+        $result = sv_newmortal();
+        sv_setpv((SV*)ST(argvi++), const_cast<char*>($1->c_str());
     }
 
 }
@@ -67,20 +75,20 @@ namespace std {
 // std::vector
 // 
 // The aim of all that follows would be to integrate std::vector with 
-// Tcl as much as possible, namely, to allow the user to pass and 
-// be returned Tcl lists.
+// Perl as much as possible, namely, to allow the user to pass and 
+// be returned Perl lists.
 // const declarations are used to guess the intent of the function being
 // exported; therefore, the following rationale is applied:
 // 
 //   -- f(std::vector<T>), f(const std::vector<T>&), f(const std::vector<T>*):
-//      the parameter being read-only, either a Tcl sequence or a
+//      the parameter being read-only, either a Perl sequence or a
 //      previously wrapped std::vector<T> can be passed.
 //   -- f(std::vector<T>&), f(std::vector<T>*):
 //      the parameter must be modified; therefore, only a wrapped std::vector
 //      can be passed.
 //   -- std::vector<T> f():
-//      the vector is returned by copy; therefore, a Tcl sequence of T:s 
-//      is returned which is most easily used in other Tcl functions
+//      the vector is returned by copy; therefore, a Perl sequence of T:s 
+//      is returned which is most easily used in other Perl functions
 //   -- std::vector<T>& f(), std::vector<T>* f(), const std::vector<T>& f(),
 //      const std::vector<T>* f():
 //      the vector is returned by reference; therefore, a wrapped std::vector
