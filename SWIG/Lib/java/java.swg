@@ -773,6 +773,30 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
     SWIGTYPE []
     ""
 
+
+/* Exception handling */
+
+%typemap("throw") int, 
+                  long, 
+                  short, 
+                  unsigned int, 
+                  unsigned long, 
+                  unsigned short {
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ Exception thrown: $1_type");
+  return $null;
+}
+
+%typemap("throw") SWIGTYPE {
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ Exception thrown: $1_type");
+  return $null;
+}
+
+%typemap("throw") char * {
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
+  return $null;
+}
+
+
 /* Some ANSI C typemaps */
 
 %apply long { size_t };
