@@ -2048,7 +2048,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 
 
 cpp_temp_end    : SEMI { }
-                | LBRACE { skip_balanced('{','}') }
+                | LBRACE { skip_balanced('{','}'); }
                 ;
 
 template_parms  : rawparms {
