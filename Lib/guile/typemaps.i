@@ -276,10 +276,6 @@ typedef unsigned long SCM;
 %typemap (out) SCM "$result=$1;";
 %typecheck(SWIG_TYPECHECK_POINTER) SCM "$1=1;";
 
-/* Some ANSI C typemaps */
-
-%apply unsigned long { size_t };
-
 /* ------------------------------------------------------------
  * String & length
  * ------------------------------------------------------------ */
@@ -301,9 +297,13 @@ typedef unsigned long SCM;
  	 unsigned int, unsigned short, unsigned long,
 	 signed char, unsigned char,
 	 long long, unsigned long long,
+         size_t, ptrdiff_t,
+         std::size_t, std::ptrdiff_t,
 	 const int &, const short &, const long &,
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const long long &, const unsigned long long &,
+         const size_t &, const ptrdiff_t &,
+         const std::size_t &, const std::ptrdiff_t &,
 	 enum SWIGTYPE
 {
   $1 = SCM_NFALSEP(scm_integer_p($input)) ? 1 : 0;
@@ -330,7 +330,7 @@ typedef unsigned long SCM;
   $1 = SCM_STRINGP($input) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE {
   void *ptr;
   $1 = !SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0);
 }
