@@ -3308,7 +3308,7 @@ typemap_parm   : type maybestars maybeconst maybeand typemap_name {
 		  free($5); 
 		}
 /* Following makes a shift/reduce conflict with above */
-                | type LPAREN stars typemap_name RPAREN LPAREN parms RPAREN {
+/*                | type LPAREN stars typemap_name RPAREN LPAREN parms RPAREN {
                   Printf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
 		  FatalError();
                   $$ = NewTMParm();
@@ -3321,7 +3321,7 @@ typemap_parm   : type maybestars maybeconst maybeand typemap_name {
 		  Delete($1);
 		  free($4);
 		  Delete($7);
-		}
+		} */
 		;
 
 typemap_name    : ID typemap_args {
