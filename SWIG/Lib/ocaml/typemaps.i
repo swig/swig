@@ -38,13 +38,18 @@
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
+%typemap(varin) SWIGTYPE & {
+    /* %typemap(varin) SWIGTYPE & */
+    $1 = *(($ltype) caml_ptr_val($input,$1_descriptor));
+}
+
 %typemap(out) SWIGTYPE & {
     /* %typemap(out) SWIGTYPE & */
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *) $1,$1_descriptor));
+	$result = callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
     } else {
-	$result = caml_val_ptr ((void *) $1,$1_descriptor);
+	$result = caml_val_ptr ((void *) &$1,$1_descriptor);
     }
 }
 
@@ -107,27 +112,12 @@
    for simple types. */
 
 %define SIMPLE_MAP(C_NAME, C_TO_MZ, MZ_TO_C)
+/* In */
 %typemap(in) C_NAME {
     $1 = MZ_TO_C($input);
 }
 %typemap(varin) C_NAME {
     $1 = MZ_TO_C($input);
-}
-%typemap(out) C_NAME {
-    $result = C_TO_MZ($1);
-}
-%typemap(varout) C_NAME {
-    $result = C_TO_MZ($1);
-}
-%typemap(in) C_NAME *INPUT ($*1_ltype temp) {
-    temp = ($*1_ltype) MZ_TO_C($input);
-    $1 = &temp;
-}
-%typemap(in,numinputs=0) C_NAME *OUTPUT ($*1_ltype temp) {
-    $1 = &temp;
-}
-%typemap(argout) C_NAME *OUTPUT {
-    swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
 }
 %typemap(in) C_NAME & ($*1_ltype temp) {
     temp = ($*1_ltype) MZ_TO_C($input);
@@ -138,6 +128,31 @@
 }
 %typemap(outv) C_NAME {
     $1 = MZ_TO_C($input);
+}
+%typemap(in) C_NAME *INPUT ($*1_ltype temp) {
+    temp = ($*1_ltype) MZ_TO_C($input);
+    $1 = &temp;
+}
+%typemap(in,numinputs=0) C_NAME *OUTPUT ($*1_ltype temp) {
+    $1 = &temp;
+}
+/* Out */
+%typemap(out) C_NAME {
+    $result = C_TO_MZ($1);
+}
+%typemap(varout) C_NAME {
+    $result = C_TO_MZ($1);
+}
+%typemap(varout) C_NAME & {
+    /* %typemap(varout) C_NAME & (generic) */
+    $result = C_TO_MZ($1);
+}
+%typemap(argout) C_NAME *OUTPUT {
+    swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
+}
+%typemap(out) C_NAME & {
+    /* %typemap(out) C_NAME & (generic) */
+    $result = C_TO_MZ(*$1);
 }
 %typemap(argout) C_NAME & {
     swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
@@ -150,6 +165,7 @@
 SIMPLE_MAP(bool, caml_val_bool, caml_long_val);
 SIMPLE_MAP(oc_bool, caml_val_bool, caml_long_val);
 SIMPLE_MAP(char, caml_val_char, caml_long_val);
+SIMPLE_MAP(signed char, caml_val_char, caml_long_val);
 SIMPLE_MAP(unsigned char, caml_val_uchar, caml_long_val);
 SIMPLE_MAP(int, caml_val_int, caml_long_val);
 SIMPLE_MAP(short, caml_val_short, caml_long_val);
