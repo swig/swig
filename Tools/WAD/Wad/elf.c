@@ -307,7 +307,7 @@ wad_elf_debug_info(WadObject *wo, char *symbol, unsigned long offset) {
 	wd = wad_debug_info(wo1,symbol,offset);
 	wad_object_release(wo1);
       } else {
-	printf("couldn't load %s\n", objfile);
+	/*	printf("couldn't load %s\n", objfile); */
       }
       if (!wd) return wad_search_stab(stab,stabsize,stabstr,symbol,offset);
       return wd;

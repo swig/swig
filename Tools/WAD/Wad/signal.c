@@ -15,72 +15,6 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-static char *strip_dir(char *name) {
-  char *c;
-  c = name + strlen(name);
-  while (c != name) {
-    if (*c == '/') {
-      c++;
-      return c;
-    }
-    c--;
-  }
-  return name;
-}
-
-/* -----------------------------------------------------------------------------
- * Default callback
- * ----------------------------------------------------------------------------- */
-
-void wad_default_callback(int signo, void *framedata) {
-  char *fd;
-  WadFrame *f;
-  switch(signo) {
-  case SIGSEGV:
-    printf("Segmentation fault.\n");
-    break;
-  case SIGBUS:
-    printf("Bus error.\n");
-    break;
-  case SIGABRT:
-    printf("Abort.\n");
-    break;
-  default:
-    printf("Signal %d\n", signo);
-    break;
-  }
-  fd = (char *) framedata;
-  f = (WadFrame *) fd;
-  while (f->size) {
-    printf("#%-3d 0x%08x in %s()", f->frameno, f->pc, *(fd + f->sym_off) ? fd+f->sym_off : "?");
-    if (strlen(fd+f->src_off)) {
-      printf(" in '%s'", strip_dir(fd+f->src_off));
-      if (f->line_number >= 0) {
-	printf(", line %d", f->line_number);
-      }
-    } else {
-      if (strlen(fd+f->obj_off)) {
-	printf(" from '%s'", fd+f->obj_off);
-      }
-    }
-    printf("\n");
-    fd = fd + f->size;
-    f = (WadFrame *) fd;
-  }
-}
-
-
-
-/* Perform one level of stack unwinding */
-unsigned long *stack_unwind(unsigned long *sp) {
-  unsigned long  *new_sp;
-  unsigned long  ret_addr;
-  int i;
-  new_sp = (unsigned long *) *(sp+14);
-  ret_addr = *(sp+15);
-  return (unsigned long *) new_sp;
-}
-
 /* Data structures for containing information about non-local returns */
 
 typedef struct nonlocal {
@@ -100,9 +34,9 @@ void wad_set_return(char *name, long value) {
   return_points = nl;
 }
 
-static void (*sig_callback)(int signo, void *data) = 0;
+static void (*sig_callback)(int signo, WadFrame *data, char *ret) = 0;
 
-void wad_set_callback(void (*s)(int,void *)) {
+void wad_set_callback(void (*s)(int,WadFrame *,char *ret)) {
   sig_callback = s;
 }
 
@@ -116,6 +50,11 @@ void wad_set_callback(void (*s)(int,void *)) {
 static int            nlr_levels = 0;
 static int  *volatile nlr_p = &nlr_levels;
 static long           nlr_value = 0;
+
+/* Set the return value from another module */
+void wad_set_return_value(long value) {
+  nlr_value = value;
+}
 
 static void nonlocalret() {
   long a;
@@ -147,37 +86,19 @@ static void nonlocalret() {
 }
 
 void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
-  int current;
   greg_t  *pc;
   greg_t  *npc;
-  greg_t  *ret;
   greg_t  *sp;
-  int i;
-  unsigned long   *user_fp;  
-  unsigned long   *addr;
+  unsigned long   addr;
   ucontext_t      *context;
-  unsigned long   *p_sp;        /* process stack pointer   */
-  unsigned long   *p_pc;        /* Process program counter */
-  WadSegment      *ws;
-  WadObject       *wo;
-  int      nlevels;
+  unsigned long   p_sp;        /* process stack pointer   */
+  unsigned long   p_pc;        /* Process program counter */
+  int      nlevels = 0;
   int      found = 0;
   void     _returnsignal();
-  int      n = 0;
-  char     framefile[256];
-  int      ffile;
-  WadFrame        frame;
-  void    *framedata;
-  int   fsize = 0;              /* Total frame size */
-  sprintf(framefile,"/tmp/wad.%d", getpid());
-
-  /* Open the output file for the traceback */
-
-  ffile = open(framefile, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-  
-  if (ffile < 0) {
-    printf("can't open %s\n", framefile);
-  }
+  WadFrame  *frame, *origframe;
+  char      *framedata;
+  char      *retname = 0;
 
   context = (ucontext_t *) vcontext;
 
@@ -185,103 +106,44 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   pc = &((context->uc_mcontext).gregs[REG_PC]);
   npc = &((context->uc_mcontext).gregs[REG_nPC]);
   sp = &((context->uc_mcontext).gregs[REG_SP]);
-  ret = &((context->uc_mcontext).gregs[REG_O7]);
 
   /* Get some information out of the signal handler stack */
-  user_fp = (unsigned long *) _get_fp();   /* Current frame pointer */
-  addr = (unsigned long *) si->si_addr;
+  addr = (unsigned long) si->si_addr;
+  p_pc = (unsigned long) (*pc);
+  p_sp = (unsigned long) (*sp);
 
-  /* Try to do a stack traceback */
-  nlevels = 0;
-  p_pc = (unsigned long *) (*pc);
-  p_sp = (unsigned long *) (*sp);
-
-  while (p_pc) {
-    ws = wad_segment_find((wadaddr_t) p_pc);
-    if (!ws) {
-      printf("No segment found for %x\n", p_pc);
-    } else {
-      WadObject *wo;
-      char *name;
-
-      int   symsize = 0;            /* Symbol size */
-      int   srcsize = 0;
-      int   objsize = 0;
-      char  *srcname = 0;
-      char  *objname = 0;
-      char  *symname = 0;
-      int    pad = 0;
-
-      unsigned long value;
-      wo = wad_object_load(ws->mappath);
-      if (strcmp(ws->mapname,"a.out") == 0) ws->vaddr= 0;
-      name = wad_find_symbol(wo,(void *) p_pc, (unsigned long) ws->vaddr, &value);
-      
-      /* Build up some information about the exception frame */
-      frame.frameno = n;
-      frame.pc = (long) p_pc;
-      frame.sp = (long) p_sp;
-      n++;
-      if (name) {
-	nonlocal *nl;
-	symsize = strlen(name)+1;
-	symname = name;
-	nl = return_points;
-	while (nl) {
-	  if (strcmp(name,nl->symname) == 0) {
-	    found = 1;
-	    nlr_value = nl->value;
-	  }
-	  nl = nl->next;
-	}
-	{
-	  WadDebug *wd;
-	  wd = wad_debug_info(wo,name, (unsigned long) p_pc - (unsigned long) ws->vaddr - value);
-	  if (wd) {
-	    srcname = wd->srcfile;
-	    srcsize = strlen(srcname)+1;
-	    objname = wd->objfile;
-	    objsize = strlen(objname)+1;
-	    frame.line_number = wd->line_number;
-	  }
-	}
-      }
-      /* Build up the exception frame object */
-      frame.size = sizeof(WadFrame) + symsize + srcsize + objsize;
-      pad = 8 - (frame.size % 8);
-      frame.size += pad;
-
-      frame.data[0] = 0;
-      frame.data[1] = 0;
-      
-      /* Build up the offsets */
-      if (!name) {
-	frame.sym_off = sizeof(WadFrame) - 8;
-	frame.src_off = sizeof(WadFrame) - 8;
-	frame.obj_off = sizeof(WadFrame) - 8;
-      } else {
-	frame.sym_off = sizeof(WadFrame);
-	frame.src_off = sizeof(WadFrame)+symsize;
-	frame.obj_off = sizeof(WadFrame)+symsize+srcsize;
-      }
-      write(ffile,&frame,sizeof(WadFrame));
-      if (symname) {
-	write(ffile,symname,symsize);
-	write(ffile,srcname,srcsize);
-	write(ffile,objname,objsize);
-      }
-      write(ffile,frame.data, pad);
-      wad_object_release(wo);
-    }
-    if (!found) nlevels++;
-    p_pc = (unsigned long *) *(p_sp+15);
-    p_sp = stack_unwind(p_sp);
-    if (found) break;
+  frame = wad_stack_trace(p_pc, p_sp, 0);
+  origframe =frame;
+  if (!frame) {
+    /* We're really hosed here */
+    return;
   }
-  /* Write terminator */
-  frame.size = 0;
-  write(ffile,&frame,sizeof(WadFrame));
-  close(ffile);
+  
+  /* Walk the exception frames and try to find a return point */
+
+  framedata = (char *) frame;
+
+  while (frame->size) {
+    nonlocal *nl = return_points;
+    nl = return_points;
+    while (nl) {
+      if (strcmp(framedata + frame->sym_off,nl->symname) == 0) {
+	found = 1;
+	nlr_value = nl->value;
+	retname = nl->symname;
+	break;
+      }
+      nl = nl->next;
+    }
+    framedata = framedata + frame->size;
+    frame = (WadFrame *) framedata;
+    if (found) {
+      frame->last = 1;   /* Cut off top of the stack trace */
+      break;
+    }
+    nlevels++;
+  }
+
 
   if (found) {
     nlr_levels = nlevels - 1;
@@ -289,44 +151,20 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     nlr_levels = 0;
   }
 
-  /* Go mmap the debug file */
-  ffile = open(framefile, O_RDONLY, 0644);  
-  fsize = lseek(ffile,0,SEEK_END);
-  lseek(ffile,0,SEEK_SET);
-  
-  framedata = mmap(NULL, fsize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, ffile, 0);
-
   if (sig_callback) {
-    (*sig_callback)(sig,framedata);
+    (*sig_callback)(sig,origframe,retname);
   } else {
     /* No signal handler defined.  Go invoke the default */
-    wad_default_callback(sig, framedata);
+    wad_default_callback(sig, origframe,retname);
   }
 
   /* If we found a function to which we should return, we jump to
      an alternative piece of code that unwinds the stack and 
      initiates a non-local return. */
 
-  munmap(framedata,fsize);
-  close(ffile);
-  unlink(framefile);
   if (nlr_levels > 0) {
     *(pc) = (greg_t) _returnsignal;
     *(npc) = *(pc) + 4;
     return;
   }
 }
-
-static void
-asm_stuff()
-{
-    asm("	.globl _get_sp");
-    asm("_get_sp:");
-    asm("	retl");
-    asm("	mov	%sp, %o0");
-    asm("	.globl _get_fp");
-    asm("_get_fp:");
-    asm("	retl");
-    asm("	mov	%fp, %o0");
-}
-
