@@ -30,6 +30,11 @@
 #define STACK_SIZE 4*SIGSTKSZ
 char wad_sig_stack[STACK_SIZE];
 
+/* This variable is set if the signal handler thinks that the
+   heap has overflowed */
+
+int wad_heap_overflow = 0;
+
 static wad_stacked_signal = 0;
 
 static void (*sig_callback)(int signo, WadFrame *data, char *ret) = 0;
@@ -45,26 +50,26 @@ void wad_set_callback(void (*s)(int,WadFrame *,char *ret)) {
    return to the caller as if the function had actually completed
    normally. */
 
-int            nlr_levels = 0;
-volatile int  *volatile nlr_p = &nlr_levels;
-long           nlr_value = 0;
-void          (*nlr_func)(void) = 0;
+int            wad_nlr_levels = 0;
+static volatile int  *volatile nlr_p = &wad_nlr_levels;
+long           wad_nlr_value = 0;
+void          (*wad_nlr_func)(void) = 0;
 
 /* Set the return value from another module */
 void wad_set_return_value(long value) {
-  nlr_value = value;
+  wad_nlr_value = value;
 }
 
 /* Set the return function */
 void wad_set_return_func(void(*f)(void)) {
-  nlr_func = f;
+  wad_nlr_func = f;
 }
 
 #ifdef WAD_SOLARIS
 static void nonlocalret() {
   long a;
   
-  a = nlr_value;
+  a = wad_nlr_value;
   /* We never call this procedure as a function.  This code
      causes an immediate return if someone does this */
 
@@ -81,15 +86,15 @@ static void nonlocalret() {
     asm("restore");
   }
 
-  asm("sethi %hi(nlr_value), %o0");
-  asm("or %o0, %lo(nlr_value), %o0");
+  asm("sethi %hi(wad_nlr_value), %o0");
+  asm("or %o0, %lo(wad_nlr_value), %o0");
   asm("ld [%o0], %i0");
 
   /* If there is a non-local return function.  We're going to go ahead
      and transfer control to it */
   
-  if (nlr_func) 
-    (*nlr_func)();
+  if (wad_nlr_func) 
+    (*wad_nlr_func)();
 
   asm("jmp %i7 + 8");
   asm("restore");
@@ -105,10 +110,10 @@ static void nonlocalret() {
     asm("leave");
   }
 
-  if (nlr_func) 
-    (*nlr_func)();
+  if (wad_nlr_func) 
+    (*wad_nlr_func)();
 
-  asm("movl nlr_value, %eax");
+  asm("movl wad_nlr_value, %eax");
   asm("leave");
   asm("ret");
 }
@@ -131,17 +136,20 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   WadFrame  *frame, *origframe;
   char      *framedata;
   char      *retname = 0;
+  unsigned long current_brk;
 
-  nlr_func = 0;
+  wad_nlr_func = 0;
 
   if (!wad_stacked_signal)
     wad_object_init();
 
   context = (ucontext_t *) vcontext;
-
+ 
   if (wad_debug_mode & DEBUG_SIGNAL) {
     printf("WAD: siginfo = %x, context = %x\n", si, vcontext);
   }
+  
+  current_brk = (long) sbrk(0);
 
   /* Get some information about the current context */
 
@@ -160,6 +168,9 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   
   /* Get some information out of the signal handler stack */
   addr = (unsigned long) si->si_addr;
+
+  /* See if this might be a stack overflow */
+
   p_pc = (unsigned long) (*pc);
   p_sp = (unsigned long) (*sp);
 #ifdef WAD_LINUX
@@ -167,6 +178,11 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   /*  printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp); */
 #endif
   /*  printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp);*/
+
+  
+  if (wad_debug_mode & DEBUG_SIGNAL) {
+    printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp);
+  }
 
   if (wad_stacked_signal) {
     printf("Fault in wad at pc = %x, sp = %x\n", p_pc, p_sp);
@@ -179,6 +195,10 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     /* We're really hosed here */
     wad_stacked_signal--;
     return;
+  }
+  wad_heap_overflow = 0;
+  if (sig == SIGSEGV) {
+    if (addr >= current_brk) wad_heap_overflow = 1;
   }
 
 
@@ -218,7 +238,7 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     WadReturnFunc *wr = wad_check_return(framedata+frame->sym_off);
     if (wr) {
       found = 1;
-      nlr_value = wr->value;
+      wad_nlr_value = wr->value;
       retname = wr->name;
     }
     framedata = framedata + frame->size;
@@ -232,9 +252,9 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 
 
   if (found) {
-    nlr_levels = nlevels - 1;
+    wad_nlr_levels = nlevels - 1;
   } else {
-    nlr_levels = 0;
+    wad_nlr_levels = 0;
   }
 
   if (sig_callback) {
@@ -242,6 +262,7 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   } else {
     /* No signal handler defined.  Go invoke the default */
     wad_default_callback(sig, origframe,retname);
+    wad_release_trace();
   }
 
   if (wad_debug_mode & DEBUG_HOLD) while(1);
@@ -252,7 +273,7 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
      an alternative piece of code that unwinds the stack and 
      initiates a non-local return. */
 
-  if (nlr_levels > 0) {
+  if (wad_nlr_levels > 0) {
     *(pc) = (greg_t) _returnsignal;
 #ifdef WAD_SOLARIS
     *(npc) = *(pc) + 4;

@@ -42,7 +42,12 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   case SIGABRT:
     type = (char*)"Abort.";
     break;
+  case SIGFPE:
+    type = (char*)"Floating point exception.";
+    break;
   default:
+    type = (char*)"Unknown.";
+
     break;
   }
   fd = (char *) frame;
@@ -117,6 +122,16 @@ static void handler(int signo, WadFrame *frame, char *ret) {
       strcat(message,"\n");
     }
   }
+
+  if (wad_heap_overflow) {
+    write(2, "WAD: Heap overflow detected.\n", 30);
+    wad_default_callback(signo, frame, ret);
+  }
+
+  /* Note: if the heap is blown, there is a very good chance that this
+  function will not succeed and we'll dump core.  However, the check
+  above should dump a stack trace to stderr just in case we don't make it
+  back. */
 
   /* Try to get the Tcl interpreter through magic */
   if (ret) {
