@@ -277,7 +277,11 @@
 }
 
 /* Special case for string array variables */
-%typemap(varin) char [ANY]      "strncpy($1,StringValuePtr($input),$1_dim0);";
+%typemap(varin) char[] {
+  size_t size = sizeof($1);
+  strncpy($1,StringValuePtr($input),size);
+}
+%typemap(varin) char[ANY]   "strncpy($1,StringValuePtr($input),$1_dim0);";
 
 
 /* Typemaps for pointers.  Note: the SWIG run-time type checker works
