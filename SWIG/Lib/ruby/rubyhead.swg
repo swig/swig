@@ -4,7 +4,8 @@
 
 #include "ruby.h"
 
-#define NUM2USHRT(n) NUM2UINT(n)
+#define NUM2USHRT(n) (unsigned short) NUM2UINT(n)
+
 #define NUM2SHRT(n) (\
     (SHRT_MIN <= NUM2INT(n) && NUM2INT(n) <= SHRT_MAX)\
     ? (short)NUM2INT(n)\
