@@ -308,9 +308,6 @@ public:
 		    } else {
 			Swig_arg_error();
 		    }
-		} else if (strcmp (argv[i], "-ldflags") == 0) {
-		    printf("%s\n", SWIG_OCAML_RUNTIME);
-		    SWIG_exit (EXIT_SUCCESS);
 		}
 	    }
 	}
