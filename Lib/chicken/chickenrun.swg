@@ -60,13 +60,17 @@ extern "C" {
     resultobjlast = tmp; \
   }
 
+#define SWIG_POINTER_DISOWN 1
+
 enum {
   SWIG_BARF1_BAD_ARGUMENT_TYPE /* 1 arg */,
   SWIG_BARF1_ARGUMENT_NULL /* 1 arg */
 };
 
+typedef C_word (*swig_chicken_destructor)(C_word,C_word,C_word,C_word);
 typedef struct swig_chicken_clientdata {
   void *gc_proxy_create;
+  swig_chicken_destructor destroy;
 } swig_chicken_clientdata;
   
 static char *
@@ -166,6 +170,26 @@ SWIG_Chicken_Barf(int code, C_char *msg, ...)
   }
 }
 
+static void
+SWIG_Chicken_Finalizer(C_word argc, C_word closure, C_word continuation, C_word s)
+{
+  swig_type_info *type;
+  swig_chicken_clientdata *cdata;
+
+  if (argc == 3 && s != C_SCHEME_FALSE && C_swig_is_swigpointer(s)) {
+    type = (swig_type_info *) C_block_item(s, 1);
+    if (type) {
+      cdata = (swig_chicken_clientdata *) type->clientdata;
+      if (cdata && cdata->destroy) {
+	/* this will not return, but will continue correctly */
+        cdata->destroy(3,closure,continuation,s);
+      }
+    }
+  }
+  C_kontinue(continuation, C_SCHEME_UNDEFINED);
+}
+static C_word finalizer_obj[2] = {(C_word) (C_CLOSURE_TYPE|1), (C_word) SWIG_Chicken_Finalizer};
+
 static C_word
 SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **data)
 {
@@ -175,6 +199,11 @@ SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **
     return C_SCHEME_FALSE;
   else {
     C_word cptr = C_swigmpointer(data, ptr, type);
+    /* add finalizer to object */
+    if (owner)
+      C_do_register_finalizer(cptr, (C_word) finalizer_obj);
+
+    /* wrap the result inside a proxy class if one is available */
     if (cdata && cdata->gc_proxy_create) {
       C_word closure = CHICKEN_gc_root_ref(cdata->gc_proxy_create);
       if (C_swig_is_closurep(closure)) {
@@ -195,24 +224,28 @@ SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags
 
   if (s == C_SCHEME_FALSE) {
     *result = NULL;
-    return 0;
   } else if (C_swig_is_swigpointer(s)) {
+    /* try and convert type */
     from = (swig_type_info *) C_block_item(s, 1);
     if (!from) return 1;
     if (type) {
       cast = SWIG_TypeCheckStruct(from, type);
       if (cast) {
         *result = SWIG_TypeCast(cast, (void *) C_block_item(s, 0));
-        return 0;
       } else {
         return 1;
       }
     } else {
       *result = (void *) C_block_item(s, 0);
-      return 0;
+    }
+
+    /* check if we are disowning this object */
+    if (flags & SWIG_POINTER_DISOWN) {
+      C_do_unregister_finalizer(s);
     }
   }
-  return 1;
+
+  return 0;
 }
 
 static SWIGINLINE void *

@@ -150,7 +150,11 @@ SIMPLE_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double),
 
 /* Pointers, references, and arrays */
 %typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE &  {
-   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
+   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, $disown);
+}
+
+%typemap(in) SWIGTYPE *DISOWN {
+  $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, SWIG_POINTER_DISOWN);
 }
 
 /* Void pointer.  Accepts any kind of pointer */
@@ -159,7 +163,7 @@ SIMPLE_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double),
 }
 
 %typemap(varin) SWIGTYPE * {
-  $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0);
+  $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, SWIG_POINTER_DISOWN);
 }
 
 %typemap(varin) SWIGTYPE & {
@@ -587,7 +591,7 @@ SWIGEXPORT(void) SWIG_init(int, C_word, C_word) C_noret;
 %insert(init) %{
 /* CHICKEN initialization function */
 SWIGEXPORT(void)
-SWIG_init(int argc, C_word closure, C_word continuation) {
+SWIG_init(C_word argc, C_word closure, C_word continuation) {
   int       i;
   C_word sym;
   C_word tmp;
