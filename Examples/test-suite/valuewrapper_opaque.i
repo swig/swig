@@ -172,6 +172,7 @@ public:
   
   Foobar method()
   {
+    return Foobar();
   }
   
 };
