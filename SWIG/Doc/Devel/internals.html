@@ -48,7 +48,7 @@ beazley@cs.uchicago.edu </br>
 <li><a name="i5" href="#5">5. Difference Between SWIG 1.1 and SWIG 1.3</a>
 <li><a name="i6" href="#6">6. Plans for SWIG 2.0</a>
 <li><a name="i7" href="#7">7. C/C++ Wrapper Support Functions</a>
-<li><a name="i8" href="#8">8. Reserved</a>
+<li><a name="i8" href="#8">8. Symbol Naming Guidelines for Generated C/C++ Code</a>
 <li><a name="i9" href="#9">9. Reserved</a>
 <li><a name="i10" href="#10">10. Guile Support</a>
 <li><a name="i11" href="#11">11. Python Support</a>
@@ -919,8 +919,51 @@ for specifying local variable declarations and argument conversions.
 
 
 <a name="8" href="#i8">
-<h2>8. Reserved</h2>
+<h2>8. Symbol Naming Guidelines for Generated C/C++ Code</h2>
 </a>
+The C++ standard (ISO/IEC 14882:1998(E)) states:
+<blockquote>
+<pre>
+<i>
+17.4.3.1.2 Global names [lib.global.names]
+
+1 Certain sets of names and function signatures are always reserved to the implementation:
+
+    * Each name that contains a double underscore (__) or begins with an underscore followed 
+      by an upper case letter (2.11) is reserved to the implementation for any use.
+    * Each name that begins with an underscore is reserved to the implementation for use as 
+      a name in the global namespace.165)
+
+    165) Such names are also reserved in namespace ::std (17.4.3.1). [back to text] 
+</i>
+</pre>
+</blockquote>
+
+When generating code it is important not to generate symbols that might clash with the code being wrapped. It is tempting to flout the standard or just use a symbol which starts with a single underscore followed by a lowercase letter in order to avoid name clashes. However even these legal symbols can also clash with symbols being wrapped. The following guidelines should be used when generating code in order to meet the standard and make it highly unlikely that symbol clashes will occur:
+<p>
+
+For C++ code that doesn't attempt to mangle a symbol being wrapped (for example SWIG convenience functions):
+<ul>
+    <li> Put symbols in the <tt>Swig</tt> namespace, for example class <tt>Swig::Director</tt>. Qualify using the <tt>Swig</tt> namespace whenever the symbol is referenced, even within the <tt>Swig</tt> namespace, for example <tt>new Swig::Director()</tt> not <tt>new Director()</tt>.</li>
+    <li> Use <tt>swig_</tt> as a prefix for all member variables and member functions that are involved in an inheritance chain with wrapped classes, for example <tt>Swig::Director::swig_get_up()</tt> and <tt>bool Swig::Director::swig_up</tt>.</li>
+    <li> Alternatively class names can be prefixed with <tt>Swig</tt> in the global namespace for example <tt>template&lt;class T&gt; class SwigValueWrapper</tt>.</li>
+</ul>
+<p>
+
+For code compiled as C or C++ that doesn't attempt to mangle a symbol being wrapped (for example SWIG convenience functions):
+<ul>
+    <li> Use <tt>SWIG_</tt> as a prefix for structures for example <tt>SWIG_JavaExceptions_t</tt>.</li>
+    <li> Use <tt>SWIG_</tt> as a prefix for global functions for example <tt>SWIG_TypeRegister</tt>. </li>
+    <li> Use <tt>SWIG_</tt> as a prefix for macros for example <tt>#define SWIG_PY_INT 1</tt></li>
+</ul>
+
+For code compiled as C or C++ that attempts to mangle a wrapped symbol:
+<ul>
+    <li> Use <tt>SWIGxxx</tt> or <tt>Swigxxx</tt> as a prefix where xxx is chosen which would make <tt>SWIGxxx</tt>/<tt>Swigxxx</tt> a unique symbol in the global namespace, for example <tt>class SwigDirectorFoo</tt> when wrapping <tt>class Foo</tt>. Don't use a trailing underscore for the prefix as this may generate a double underscore when wrapping a symbol which starts with a single underscore.</li>
+</ul>
+
+In the past SWIG has generated many symbols which flout the standard especially double underscores. In fact they may not all be rooted out yet, so please fix them when you see them.
+
 
 <a name="9" href="#i9">
 <h2>9. Reserved</h2>
