@@ -10,6 +10,7 @@
   int spam(int x) { return x; }
   int spam(int x, int y) { return x + y ; }
   int spam(int x, int y,int z) { return x + y ; }
+  int spam(Foo f, double d = 10.0) { return 0; }
 };
 
 %inline %{
@@ -45,6 +46,7 @@ public:
   int spam(int x) { return x; }
   int spam(int x, int y) { return x + y ; }
   int spam(int x, int y,int z) { return x + y ; }
+  int spam(Bar b, double d = 10.0) { return 0; }
 };
 
 
@@ -58,6 +60,7 @@ public:
   int spam(int x) { return x; }
   int spam(int x, int y) { return x + y ; }
   int spam(int x, int y,int z) { return x + y ; }
+  int spam(Foo f, double d = 10.0) { return 0; }
 };
 
 %inline %{
@@ -98,6 +101,7 @@ public:
   int spam(int x) { return x; }
   int spam(int x, int y) { return x + y ; }
   int spam(int x, int y,int z) { return x + y ; }
+  int spam(Bar b, double d = 10.0) { return 0; }
 };
 
 %template(BarTi) BarT<int>;
