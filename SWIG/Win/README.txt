@@ -1,1 +1,1 @@
-Please see the Windows.html file for instructions on SWIG for Windows including running the examples.
+Please see the Doc/Manual/Windows.html file in the main manual for instructions for using and installing SWIG on Windows including running the examples.

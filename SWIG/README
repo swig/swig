@@ -113,8 +113,8 @@ well advised to read this.
 
 Windows
 =======
-Please see the Win/Windows.html file for instructions on obtaining 
-and using SWIG on Windows.
+Please see the Doc/Manual/Windows.html file for instructions on obtaining 
+a prebuilt windows executable and using SWIG on Windows.
 
 Unix Installation
 =================
@@ -170,7 +170,7 @@ The Examples directory contains a variety of examples of using SWIG
 and it has some browsable documentation.  Simply point your browser to
 the file "Example/index.html".
 
-The Examples directory now includes Visual C++ project files for
+The Examples directory now includes Visual C++ project (.dsp) files for
 building some of the examples on Windows (new in SWIG1.3.7).
 
 Troubleshooting
