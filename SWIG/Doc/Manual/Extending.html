@@ -4,7 +4,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>20 Extending SWIG</H1>
+<a name="n1"></a><H1>21 Extending SWIG</H1>
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Introduction</a>
@@ -29,18 +29,33 @@
 <li><a href="#n18">Common operations</a>
 <li><a href="#n19">I/O</a>
 </ul>
-<li><a href="#n20">Type system</a>
+<li><a href="#n20">Navigating and manipulating parse trees</a>
+<li><a href="#n21">Working with attributes</a>
+<li><a href="#n22">Type system</a>
 <ul>
-<li><a href="#n21">String encoding of types</a>
-<li><a href="#n22">Type construction</a>
-<li><a href="#n23">Type tests</a>
-<li><a href="#n24">Typedef and inheritance</a>
-<li><a href="#n25">Output functions</a>
+<li><a href="#n23">String encoding of types</a>
+<li><a href="#n24">Type construction</a>
+<li><a href="#n25">Type tests</a>
+<li><a href="#n26">Typedef and inheritance</a>
+<li><a href="#n27">Lvalues</a>
+<li><a href="#n28">Output functions</a>
 </ul>
-<li><a href="#n26">Parse Tree Navigation</a>
-<li><a href="#n27">Writing a Language Module</a>
-<li><a href="#n28">Typemaps</a>
-<li><a href="#n29">Guide to parse tree nodes</a>
+<li><a href="#n29">Parameters</a>
+<li><a href="#n30">Writing a Language Module</a>
+<ul>
+<li><a href="#n31">Execution model</a>
+<li><a href="#n32">Starting out</a>
+<li><a href="#n33">Command line options</a>
+<li><a href="#n34">Configuration and preprocessing</a>
+<li><a href="#n35">Entry point to code generation</a>
+<li><a href="#n36">Module I/O and wrapper skeleton</a>
+<li><a href="#n37">Low-level code generators</a>
+</ul>
+<li><a href="#n38">Typemaps</a>
+<ul>
+<li><a href="#n39">Proxy classes</a>
+</ul>
+<li><a href="#n40">Guide to parse tree nodes</a>
 </ul>
 <!-- INDEX -->
 
@@ -48,7 +63,7 @@
 
 <b>Caution: This chapter is being rewritten! (11/25/01)</b>
 
-<a name="n2"></a><H2>20.1 Introduction</H2>
+<a name="n2"></a><H2>21.1 Introduction</H2>
 
 
 This chapter describes SWIG's internal organization and the process by which
@@ -61,7 +76,8 @@ date, but changes are ongoing.   Expect a few inconsistencies.
 Also, this chapter is not meant to be a hand-holding tutorial.  As a starting point,
 you should probably look at one of SWIG's existing modules.
 
-<a name="n3"></a><H2>20.2 Prerequisites</H2>
+<a name="n3"></a><H2>21.2 Prerequisites</H2>
+
 
 In order to extend SWIG, it is useful to have the following background:
 
@@ -86,7 +102,7 @@ extension of the C++ <em>type</em> system.  At first glance, this might not be
 obvious, but almost all SWIG directives as well as the low-level generation of
 wrapper code are driven by C++ datatypes.
 
-<a name="n4"></a><H2>20.3 The Big Picture</H2>
+<a name="n4"></a><H2>21.3 The Big Picture</H2>
 
 
 SWIG is a special purpose compiler that parses C++ declarations to
@@ -119,7 +135,7 @@ fundamental concepts.  The type system and pattern matching rules also play a cr
 role in making the system work.  For example, both typemaps and declaration annotation are
 based on pattern matching and interact heavily with the underlying type system.
 
-<a name="n5"></a><H2>20.4 Execution Model</H2>
+<a name="n5"></a><H2>21.4 Execution Model</H2>
 
 
 When you run SWIG on an interface, processing is handled in stages by a series of system components:
@@ -159,7 +175,7 @@ stage of compilation.
 
 The next few sections briefly describe some of these stages.
 
-<a name="n6"></a><H3>20.4.1 Preprocessing</H3>
+<a name="n6"></a><H3>21.4.1 Preprocessing</H3>
 
 
 The preprocessor plays a critical role in the SWIG implementation.  This is because a lot
@@ -231,7 +247,7 @@ probably isn't too useful in general, but it will show how macros have
 been expanded as well as everything else that goes into the low-level
 construction of the wrapper code.
 
-<a name="n7"></a><H3>20.4.2 Parsing</H3>
+<a name="n7"></a><H3>21.4.2 Parsing</H3>
 
 
 The current C++ parser handles a subset of C++.  Most incompatibilities with C are due to
@@ -316,7 +332,8 @@ interprets the above code as an abstract declarator for a function
 returning a <tt>foo</tt> and taking types <tt>a</tt> and <tt>b</tt> as
 arguments).
 
-<a name="n8"></a><H3>20.4.3 Parse Trees</H3>
+<a name="n8"></a><H3>21.4.3 Parse Trees</H3>
+
 
 The SWIG parser produces a complete parse tree of the input file before any wrapper code
 is actually generated.  Each item in the tree is known as a "Node".   Each node is identified
@@ -564,7 +581,8 @@ $ swig -c++ -python -dump_tree example.i
 </pre>
 </blockquote>
 
-<a name="n9"></a><H3>20.4.4 Attribute namespaces</H3>
+<a name="n9"></a><H3>21.4.4 Attribute namespaces</H3>
+
 
 Attributes of parse tree nodes are often prepended with a namespace qualifier.
 For example, the attributes
@@ -579,7 +597,8 @@ of wrapper code.  The convention for doing this is to place these attributes in 
 that matches the name of the target language.  For example, <tt>python:foo</tt> or
 <tt>perl:foo</tt>.
 
-<a name="n10"></a><H3>20.4.5 Symbol Tables</H3>
+<a name="n10"></a><H3>21.4.5 Symbol Tables</H3>
+
 
 During parsing, all symbols are managed in the space of the target
 language.  The <tt>sym:name</tt> attribute of each node contains the symbol name
@@ -658,7 +677,8 @@ example.i:5. Previous declaration is foo_i(int )
 </pre>
 </blockquote>
 
-<a name="n11"></a><H3>20.4.6 The %feature directive</H3>
+<a name="n11"></a><H3>21.4.6 The %feature directive</H3>
+
 
 A number of SWIG directives such as <tt>%exception</tt> are implemented using the
 low-level <tt>%feature</tt> directive.  For example:
@@ -707,7 +727,8 @@ data stored in a feature attribute is usually just a raw unparsed string.
 For example, the exception code above is simply
 stored without any modifications.
 
-<a name="n12"></a><H3>20.4.7 Code Generation</H3>
+<a name="n12"></a><H3>21.4.7 Code Generation</H3>
+
 
 Language modules work by defining handler functions that know how to respond to
 different types of parse-tree nodes.  These handlers simply look at the
@@ -814,7 +835,8 @@ public :
 
 The role of these functions is described shortly.
 
-<a name="n13"></a><H3>20.4.8 SWIG and XML</H3>
+<a name="n13"></a><H3>21.4.8 SWIG and XML</H3>
+
 
 Much of SWIG's current parser design was originally motivated by
 interest in using XML to represent SWIG parse trees.  Although XML is
@@ -824,7 +846,8 @@ by aspects of XML parsing.  Therefore, in trying to understand SWIG's
 internal data structures, it may be useful keep XML in the back of
 your mind as a model.
 
-<a name="n14"></a><H2>20.5 Primitive Data Structures</H2>
+<a name="n14"></a><H2>21.5 Primitive Data Structures</H2>
+
 
 Most of SWIG is constructed using three basic data structures:
 strings, hashes, and lists.  These data structures are dynamic in same way as
@@ -863,7 +886,8 @@ typedef Hash   Typetab;
 </pre>
 </blockquote>
 
-<a name="n15"></a><H3>20.5.1 Strings</H3>
+<a name="n15"></a><H3>21.5.1 Strings</H3>
+
 
 <p>
 <b><tt>String *NewString(const String_or_char *val)</tt></b>
@@ -970,7 +994,8 @@ DOH_REPLACE_FIRST     - Replace first occurrence only.
 Returns the number of replacements made (if any).
 </blockquote>
 
-<a name="n16"></a><H3>20.5.2 Hashes</H3>
+<a name="n16"></a><H3>21.5.2 Hashes</H3>
+
 
 <p>
 <b><tt>Hash *NewHash()</tt></b>
@@ -1044,7 +1069,8 @@ Returns the list of hash table keys.
 </blockquote>
 
 
-<a name="n17"></a><H3>20.5.3 Lists</H3>
+<a name="n17"></a><H3>21.5.3 Lists</H3>
+
 
 <p>
 <b><tt>List *NewList()</tt></b>
@@ -1127,7 +1153,8 @@ If <tt>t</tt> is not a standard object, it is assumed to be a <tt>char *</tt>
 and is used to create a String object.
 </blockquote>
 
-<a name="n18"></a><H3>20.5.4 Common operations</H3>
+<a name="n18"></a><H3>21.5.4 Common operations</H3>
+
 
 The following operations are applicable to all datatypes.
 
@@ -1169,7 +1196,8 @@ objects and report errors.
 Gets the line number associated with <tt>x</tt>.
 </blockquote>
 
-<a name="n19"></a><H3>20.5.5 I/O</H3>
+<a name="n19"></a><H3>21.5.5 I/O</H3>
+
 
 Special I/O functions are used for all internal I/O.  These operations
 work on C <tt>FILE *</tt> objects, String objects, and special <tt>File</tt> objects
@@ -1275,7 +1303,8 @@ Printf(f, "%s\n", s);
 
 Similarly, the preprocessor and parser all operate on string-files.
 
-<h2>Navigating and manipulating parse trees</h2>
+<a name="n20"></a><H2>21.6 Navigating and manipulating parse trees</H2>
+
 
 Parse trees are built as collections of hash tables.   Each node is a hash table in which
 arbitrary attributes can be stored.  Certain attributes in the hash table provide links to
@@ -1376,7 +1405,8 @@ Deletes a node from the parse tree.  Deletion reconnects siblings and properly u
 the parent so that sibling nodes are unaffected.
 </blockquote>
 
-<h2>Working with attributes</h2>
+<a name="n21"></a><H2>21.7 Working with attributes</H2>
+
 
 Since parse tree nodes are just hash tables, attributes are accessed using the <tt>Getattr()</tt>,
 <tt>Setattr()</tt>, and <tt>Delattr()</tt> operations.  For example:
@@ -1464,13 +1494,15 @@ built-in consistency checks that verify proper nesting of calls.  The node point
 must refer to a stack-allocated local variable.  The use of these functions is
 generally only required when performing node transformations. 
 
-<a name="n20"></a><H2>20.6 Type system</H2>
+<a name="n22"></a><H2>21.8 Type system</H2>
+
 
 SWIG implements the complete C++ type system including typedef, inheritance,
 pointers, references, and pointers to members.   A detailed discussion of
 type theory is impossible here.   However, let's cover the highlights.
 
-<a name="n21"></a><H3>20.6.1 String encoding of types</H3>
+<a name="n23"></a><H3>21.8.1 String encoding of types</H3>
+
 
 <p>
 All types in SWIG consist of a base datatype and a collection of type
@@ -1557,7 +1589,8 @@ is processed in a few pieces.  In this case, you have the base type
 make the final type, the two parts are just joined together using
 string concatenation.
 
-<a name="n22"></a><H3>20.6.2 Type construction</H3>
+<a name="n24"></a><H3>21.8.2 Type construction</H3>
+
 
 The following functions are used to construct types.  You should use
 these functions instead of trying to build the type strings yourself.
@@ -1663,7 +1696,7 @@ Returns the prefix of a type. For example, if <tt>ty</tt> is
 <tt>ty</tt> is unmodified.
 </blockquote>
 
-<a name="n23"></a><H3>20.6.3 Type tests</H3>
+<a name="n25"></a><H3>21.8.3 Type tests</H3>
 
 
 The following functions can be used to test properties of a datatype.
@@ -1728,7 +1761,7 @@ Checks if <tt>ty</tt> is a varargs type.
 Checks if <tt>ty</tt> is a templatized type. 
 </blockquote>
 
-<a name="n24"></a><H3>20.6.4 Typedef and inheritance</H3>
+<a name="n26"></a><H3>21.8.4 Typedef and inheritance</H3>
 
 
 The behavior of <tt>typedef</tt> declaration is to introduce a type alias.
@@ -1813,7 +1846,8 @@ Fully reduces <tt>ty</tt> according to typedef rules.  Resulting datatype
 will consist only of primitive typenames.
 </blockquote>
 
-<h3>Lvalues</h3>
+<a name="n27"></a><H3>21.8.5 Lvalues</H3>
+
 
 When generating wrapper code, it is necessary to emit datatypes that can
 be used on the left-hand side of an assignment operator (an lvalue). However,
@@ -1843,7 +1877,8 @@ Literal y;    // type = 'Literal', ltype='p.char'
 </pre>
 </blockquote>
 
-<a name="n25"></a><H3>20.6.5 Output functions</H3>
+<a name="n28"></a><H3>21.8.6 Output functions</H3>
+
 
 The following functions produce strings that are suitable for output.
 
@@ -1892,7 +1927,8 @@ SWIG, but is most commonly associated with type-descriptor objects
 that appear in wrappers (e.g., <tt>SWIGTYPE_p_double</tt>).
 </blockquote>
 
-<h2>Parameters</h2>
+<a name="n29"></a><H2>21.9 Parameters</H2>
+
 
 Several type-related functions involve parameter lists.  These include
 functions and templates.  Parameter list are represented as a list of
@@ -1970,7 +2006,8 @@ included.  Used to emit prototypes.
 Returns the number of required (non-optional) arguments in <tt>p</tt>.
 </blockquote>
 
-<a name="n27"></a><H2>20.8 Writing a Language Module</H2>
+<a name="n30"></a><H2>21.10 Writing a Language Module</H2>
+
 
 This section briefly outlines the steps needed to create a bare-bones
 language module.  For more advanced techniques, you should look at the implementation
@@ -1978,14 +2015,16 @@ of existing modules.   Since the code is relatively easy to read, this section
 describes the creation of a minimal Python module.   You should be able to extrapolate
 this to other languages.
 
-<h3>Execution model</h3>
+<a name="n31"></a><H3>21.10.1 Execution model</H3>
+
 
 Code generation modules are defined by inheriting from the <tt>Language</tt> class,
 currently defined in the <tt>Source/Modules1.1</tt> directory of SWIG.  Starting from
 the parsing of command line options, all aspects of code generation are controlled by
 different methods of the <tt>Language</tt> that must be defined by your module.
 
-<h3>Starting out</h3>
+<a name="n32"></a><H3>21.10.2 Starting out</H3>
+
 
 To define a new module, first create a dummy class like this:
 
@@ -2035,7 +2074,8 @@ Rebuild SWIG with your module added.    Try running it with the command-line opt
 activates your module.  For example, <tt>swig -python foo.i</tt>.   The messages from your
 new module should appear.
 
-<h3>Command line options</h3>
+<a name="n33"></a><H3>21.10.3 Command line options</H3>
+
 
 When SWIG starts, the command line options are passed to your language module.  This occurs 
 before any other processing occurs (preprocessing, parsing, etc.).   To capture the
@@ -2088,7 +2128,8 @@ If a module recognizes an option, it should always call <tt>Swig_mark_arg()</tt>
 to mark the option as valid.   If you forget to do this, SWIG will terminate with an
 unrecognized command line option error.
 
-<h3>Configuration and preprocessing</h3>
+<a name="n34"></a><H3>21.10.4 Configuration and preprocessing</H3>
+
 
 In addition to looking at command line options, the <tt>main()</tt> method is responsible
 for some initial configuration of the SWIG library and preprocessor.   To do this,
@@ -2130,7 +2171,8 @@ Just to review, your language module should now consist of three files--a header
 file <tt>python.h</tt>, an implementation file <tt>python.cxx</tt>, and a
 configuration file <tt>python.swg</tt>.
 
-<h3>Entry point to code generation</h3>
+<a name="n35"></a><H3>21.10.5 Entry point to code generation</H3>
+
 
 SWIG is a multi-pass compiler.  Once the <tt>main()</tt> method has
 been invoked, the language module does not execute again until
@@ -2183,15 +2225,20 @@ int Python::top(Node *n) {
 </blockquote>
 </pre>
 
-<h3>Module I/O and wrapper skeleton</h3>
+<a name="n36"></a><H3>21.10.6 Module I/O and wrapper skeleton</H3>
 
-<h3>Low-level code generators</h3>
 
-<a name="n28"></a><H2>20.9 Typemaps</H2>
+<a name="n37"></a><H3>21.10.7 Low-level code generators</H3>
 
-<h3>Proxy classes</h3>
 
-<a name="n29"></a><H2>20.10 Guide to parse tree nodes</H2>
+<a name="n38"></a><H2>21.11 Typemaps</H2>
+
+
+<a name="n39"></a><H3>21.11.1 Proxy classes</H3>
+
+
+<a name="n40"></a><H2>21.12 Guide to parse tree nodes</H2>
+
 
 This section describes the different parse tree nodes and their attributes.
 

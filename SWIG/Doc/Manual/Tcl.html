@@ -4,7 +4,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>19 SWIG and Tcl</H1>
+<a name="n1"></a><H1>20 SWIG and Tcl</H1>
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Preliminaries</a>
@@ -72,7 +72,7 @@ This chapter discusses SWIG's support of Tcl. SWIG currently requires
 Tcl 8.0 or a later release.   Earlier releases of SWIG supported Tcl 7.x, but
 this is no longer supported.
 
-<a name="n2"></a><H2>19.1 Preliminaries</H2>
+<a name="n2"></a><H2>20.1 Preliminaries</H2>
 
 
 To build a Tcl module, run SWIG using the <tt>-tcl</tt> option :<p>
@@ -93,7 +93,7 @@ This creates a file <tt>example_wrap.c</tt> or
 build a Tcl extension module.  To finish building the module, you 
 need to compile this file and link it with the rest of your program.
 
-<a name="n3"></a><H3>19.1.1 Getting the right header files</H3>
+<a name="n3"></a><H3>20.1.1 Getting the right header files</H3>
 
 
 In order to compile the wrapper code, the compiler needs the <tt>tcl.h</tt> header file.
@@ -107,7 +107,7 @@ Be aware that some Tcl versions install this header file with a version number a
 this is the case, you should probably make a symbolic link so that <tt>tcl.h</tt> points to the correct
 header file.
 
-<a name="n4"></a><H3>19.1.2 Compiling a dynamic module</H3>
+<a name="n4"></a><H3>20.1.2 Compiling a dynamic module</H3>
 
 
 The preferred approach to building an extension module is to compile it into
@@ -136,7 +136,7 @@ name of the corresponding object file should be
 The name of the module is specified using the <tt>%module</tt> directive or the 
 <tt> -module</tt> command line option.<p>
 
-<a name="n5"></a><H3>19.1.3 Static linking</H3>
+<a name="n5"></a><H3>20.1.3 Static linking</H3>
 
 
 An alternative approach to dynamic linking is to rebuild the Tcl
@@ -192,7 +192,7 @@ However, the performance gained by static linking tends to be rather
 minimal in most situations (and quite frankly not worth the extra
 hassle in the opinion of this author). 
 
-<a name="n6"></a><H3>19.1.4 Using your module</H3>
+<a name="n6"></a><H3>20.1.4 Using your module</H3>
 
 
 To use your module, simply use the Tcl <tt>load</tt> command.  If
@@ -301,7 +301,7 @@ Finally, you can use a command such as <tt>ldconfig</tt> to add additional searc
 to the default system configuration (this requires root access and you will need to read
 the man pages). 
 
-<a name="n7"></a><H3>19.1.5 Compilation of C++ extensions</H3>
+<a name="n7"></a><H3>20.1.5 Compilation of C++ extensions</H3>
 
 
 Compilation of C++ extensions has traditionally been a tricky problem.
@@ -374,7 +374,7 @@ you will need to take steps to avoid segmentation faults and other
 erratic program behavior.   If working with lots of software components, you
 might want to investigate using a more formal standard such as COM.
 
-<a name="n8"></a><H3>19.1.6 Compiling for 64-bit platforms</H3>
+<a name="n8"></a><H3>20.1.6 Compiling for 64-bit platforms</H3>
 
 
 On platforms that support 64-bit applications (Solaris, Irix, etc.),
@@ -397,7 +397,7 @@ that software.  This may prevent the use of 64-bit extensions.  It may
 also introduce problems on platforms that support more than one
 linking standard (e.g., -o32 and -n32 on Irix).
 
-<a name="n9"></a><H3>19.1.7 Setting a package prefix</H3>
+<a name="n9"></a><H3>20.1.7 Setting a package prefix</H3>
 
 
 To avoid namespace problems, you can instruct SWIG to append a package
@@ -411,7 +411,7 @@ If you have a function "<tt>bar</tt>" in the SWIG file, the prefix
 option will append the prefix to the name when creating a command and
 call it "<tt>Foo_bar</tt>". <p>
 
-<a name="n10"></a><H3>19.1.8 Using namespaces</H3>
+<a name="n10"></a><H3>20.1.8 Using namespaces</H3>
 
 
 Alternatively, you can have SWIG install your module into a Tcl
@@ -426,7 +426,7 @@ name, but you can override it using the <tt>-prefix</tt> option.<p>
 When the<tt> -namespace</tt> option is used, objects in the module
 are always accessed with the namespace name such as <tt>Foo::bar</tt>.
 
-<a name="n11"></a><H2>19.2 Building Tcl/Tk Extensions under Windows 95/NT</H2>
+<a name="n11"></a><H2>20.2 Building Tcl/Tk Extensions under Windows 95/NT</H2>
 
 
 Building a SWIG extension to Tcl/Tk under Windows 95/NT is roughly
@@ -435,7 +435,7 @@ produce a DLL that can be loaded into tclsh or wish.  This section
 covers the process of using SWIG with Microsoft Visual C++.
 although the procedure may be similar with other compilers.<p>
 
-<a name="n12"></a><H3>19.2.1 Running SWIG from Developer Studio</H3>
+<a name="n12"></a><H3>20.2.1 Running SWIG from Developer Studio</H3>
 
 
 If you are developing your application within Microsoft developer
@@ -492,7 +492,7 @@ MSDOS &gt; tclsh80
 %
 </pre></blockquote>
 
-<a name="n13"></a><H3>19.2.2 Using NMAKE</H3>
+<a name="n13"></a><H3>20.2.2 Using NMAKE</H3>
 
 
 Alternatively, SWIG extensions can be built by writing a Makefile for
@@ -549,12 +549,12 @@ first).  This is a pretty minimal Makefile, but hopefully its enough
 to get you started.  With a little practice, you'll be making lots of
 Tcl extensions.<p>
 
-<a name="n14"></a><H2>19.3 Primitive Tcl Interface</H2>
+<a name="n14"></a><H2>20.3 Primitive Tcl Interface</H2>
 
 
 This section describes the basic Tcl interface.   The object-based interface is described shortly.
 
-<a name="n15"></a><H3>19.3.1 Functions</H3>
+<a name="n15"></a><H3>20.3.1 Functions</H3>
 
 
 C functions are turned into new Tcl commands with the same usage as
@@ -578,7 +578,7 @@ set b [bar 3.5]              # Note : default argument is used
 
 There isn't much more to say...this is pretty straightforward.<p>
 
-<a name="n16"></a><H3>19.3.2 Global variables</H3>
+<a name="n16"></a><H3>20.3.2 Global variables</H3>
 
 
 For global variables, SWIG uses Tcl's variable tracing mechanism to
@@ -602,7 +602,7 @@ Variable tracing is currently supported for all C/C++ datatypes.  In older versi
 of SWIG, only variables of type <tt>int</tt>, <tt>double</tt>, and <tt>char *</tt> could
 be linked.  All other types were accessed using special function calls.   
 
-<a name="n17"></a><H3>19.3.3 Constants</H3>
+<a name="n17"></a><H3>20.3.3 Constants</H3>
 
 
 Constants are installed as new Tcl variables. For example:
@@ -665,7 +665,7 @@ proc blah {} {
 When an identifier name is given, it is used to perform an implicit hash-table lookup of the value during argument 
 conversion.  This allows the <tt>global</tt> statement to be ommitted.
 
-<a name="n18"></a><H3>19.3.4 Pointers</H3>
+<a name="n18"></a><H3>20.3.4 Pointers</H3>
 
 
 Pointers to C/C++ objects are represented as character strings such as
@@ -718,7 +718,7 @@ to use the new C++ style casts.  For example, in the above code, the
 C-style cast may return a bogus result whereas as the C++-style cast will return
 <tt>NULL</tt> if the conversion can't be performed.
 
-<a name="n19"></a><H3>19.3.5 Structures </H3>
+<a name="n19"></a><H3>20.3.5 Structures </H3>
 
 
 SWIG generates a basic low-level interface to C structures. For
@@ -754,7 +754,7 @@ example :<p>
 <p>
 Similar access is provided for unions and the data members of C++ classes.<p>
 
-<a name="n20"></a><H3>19.3.6 C++ Classes</H3>
+<a name="n20"></a><H3>20.3.6 C++ Classes</H3>
 
 
 C++ classes are handled by building a set of low level accessor
@@ -821,7 +821,7 @@ be shown in some of the later examples. SWIG also generates an
 object-based interface that can be used in addition to the basic
 interface just described here.<p>
 
-<a name="n21"></a><H2>19.4 The object-based interface</H2>
+<a name="n21"></a><H2>20.4 The object-based interface</H2>
 
 
 In addition to the low-level accessors, SWIG also generates an object-based interface to C 
@@ -849,7 +849,7 @@ Using the object oriented interface requires no additional
 modifications or recompilation of the SWIG module (the functions are
 just used differently).<p>
 
-<a name="n22"></a><H3>19.4.1 Creating new objects</H3>
+<a name="n22"></a><H3>20.4.1 Creating new objects</H3>
 
 
 The name of the class becomes a new command for creating an
@@ -899,7 +899,7 @@ The second approach is to allow you to pick a name for an object such
 as "foo".  The different types of constructors are really just
 a mechanism for using either approach.<p>
 
-<a name="n23"></a><H3>19.4.2 Invoking member functions</H3>
+<a name="n23"></a><H3>20.4.2 Invoking member functions</H3>
 
 
 Member functions are invoked using the name of the object followed by
@@ -926,7 +926,7 @@ Or if you let SWIG generate the name of the object, it works like this:
 %
 </pre></blockquote>
 
-<a name="n24"></a><H3>19.4.3 Deleting objects</H3>
+<a name="n24"></a><H3>20.4.3 Deleting objects</H3>
 
 
 Since objects are created by adding new Tcl commands, they can be
@@ -948,7 +948,7 @@ For example:
 If applicable, SWIG will automatically call the corresponding C/C++ destructor
 when the object is destroyed.
 
-<a name="n25"></a><H3>19.4.4 Accessing member data</H3>
+<a name="n25"></a><H3>20.4.4 Accessing member data</H3>
 
 
 Member data of an object can be accessed using the <tt>cget</tt>
@@ -974,7 +974,7 @@ be legal<p>
 % List_print [l cget -this]         # Print it out using low-level function
 </pre></blockquote>
 
-<a name="n26"></a><H3>19.4.5 Changing member data</H3>
+<a name="n26"></a><H3>20.4.5 Changing member data</H3>
 
 
 To change the value of member data, the <tt>configure</tt> method can be used. For example :<p>
@@ -997,7 +997,7 @@ you can change the value of all or some of the members as follows :<p>
 <p>
 The order of attributes does not matter.  <p>
 
-<a name="n27"></a><H3>19.4.6 Managing Object Ownership</H3>
+<a name="n27"></a><H3>20.4.6 Managing Object Ownership</H3>
 
 
 By default, objects created from Tcl are owned by the Tcl interpreter and
@@ -1020,7 +1020,7 @@ To handle object ownership, two object methods are available:
 When Tcl owns an object, it is released when the Tcl variable is destroyed.  Otherwise,
 the Tcl variable is destroyed without calling the corresponding C/C++ destructor.
 
-<a name="n28"></a><H3>19.4.7 Relationship with pointers</H3>
+<a name="n28"></a><H3>20.4.7 Relationship with pointers</H3>
 
 
 The object oriented interface is mostly compatible with all of the
@@ -1072,7 +1072,7 @@ List_print $l                # Call static method (uses pointer value as before)
 </pre></blockquote>
 <p>
 
-<a name="n29"></a><H2>19.5 Input and output parameters</H2>
+<a name="n29"></a><H2>20.5 Input and output parameters</H2>
 
 
 A common problem in some C programs is handling parameters passed as simple pointers.  For
@@ -1233,7 +1233,7 @@ set c  [lindex $dim 1]
 </pre>
 </blockquote>
 
-<a name="n30"></a><H2>19.6 Exception handling </H2>
+<a name="n30"></a><H2>20.6 Exception handling </H2>
 
 
 The <tt>%exception</tt> directive can be used to create a user-definable
@@ -1359,7 +1359,7 @@ For example:
 Since SWIG's exception handling is user-definable, you are not limited to C++ exception handling.
 See the chapter on "<a href="Customization.html">Customization Features</a>" for more examples.
 
-<a name="n31"></a><H2>19.7 Typemaps</H2>
+<a name="n31"></a><H2>20.7 Typemaps</H2>
 
 
 This section describes how you can modify SWIG's default wrapping behavior
@@ -1373,7 +1373,7 @@ part of using SWIG---the default wrapping behavior is enough in most cases.
 Typemaps are only used if you want to change some aspect of the primitive
 C-Tcl interface.
 
-<a name="n32"></a><H3>19.7.1 What is a typemap?</H3>
+<a name="n32"></a><H3>20.7.1 What is a typemap?</H3>
 
 
 A typemap is nothing more than a code generation rule that is attached to 
@@ -1470,7 +1470,7 @@ parameter is ommitted):
 </pre>
 </blockquote>
 
-<a name="n33"></a><H3>19.7.2 Tcl typemaps</H3>
+<a name="n33"></a><H3>20.7.2 Tcl typemaps</H3>
 
 
 The previous section illustrated an "in" typemap for converting Tcl objects to C.
@@ -1565,7 +1565,7 @@ Initialize an argument to a value before any conversions occur.
 
 Examples of these methods will appear shortly.
 
-<a name="n34"></a><H3>19.7.3 Typemap variables</H3>
+<a name="n34"></a><H3>20.7.3 Typemap variables</H3>
 
 
 Within typemap code, a number of special variables prefaced with a <tt>$</tt> may appear.
@@ -1619,7 +1619,7 @@ properly assigned.
 The Tcl name of the wrapper function being created.
 </blockquote>
 
-<a name="n35"></a><H3>19.7.4 Converting  a Tcl list to a char ** </H3>
+<a name="n35"></a><H3>20.7.4 Converting  a Tcl list to a char ** </H3>
 
 
 A common problem in many C programs is the processing of command line
@@ -1676,7 +1676,7 @@ argv[2] = Larry
 3
 </pre></blockquote>
 
-<a name="n36"></a><H3>19.7.5 Returning values in arguments</H3>
+<a name="n36"></a><H3>20.7.5 Returning values in arguments</H3>
 
 
 The "argout" typemap can be used to return a value originating from a
@@ -1714,7 +1714,7 @@ result, a Tcl function using these typemaps will work like this :<p>
 %
 </pre></blockquote>
 
-<a name="n37"></a><H3>19.7.6 Useful functions</H3>
+<a name="n37"></a><H3>20.7.6 Useful functions</H3>
 
 
 The following tables provide some functions that may be useful in
@@ -1777,7 +1777,7 @@ int      Tcl_IsShared(Tcl_Obj *obj);
 </pre>
 </blockquote>
 
-<a name="n38"></a><H3>19.7.7 Standard  typemaps</H3>
+<a name="n38"></a><H3>20.7.7 Standard  typemaps</H3>
 
 
 The following typemaps show how to convert a few common kinds of
@@ -1850,7 +1850,7 @@ work)<p>
 </pre>
 </blockquote>
 
-<a name="n39"></a><H3>19.7.8 Pointer handling</H3>
+<a name="n39"></a><H3>20.7.8 Pointer handling</H3>
 
 
 SWIG pointers are mapped into Tcl strings containing the
@@ -1919,7 +1919,7 @@ For example:
 </pre>
 </blockquote>
 
-<a name="n40"></a><H2>19.8 Turning a SWIG module into a Tcl Package.</H2>
+<a name="n40"></a><H2>20.8 Turning a SWIG module into a Tcl Package.</H2>
 
 
 Tcl 7.4 introduced the idea of an extension package.  By default, SWIG
@@ -1980,7 +1980,7 @@ As a final note, most SWIG examples do not yet use the
 <tt>package</tt> commands. For simple extensions it may be easier just
 to use the <tt>load</tt> command instead.<p>
 
-<a name="n41"></a><H2>19.9 Building new kinds of Tcl interfaces (in Tcl)</H2>
+<a name="n41"></a><H2>20.9 Building new kinds of Tcl interfaces (in Tcl)</H2>
 
 
 One of the most interesting aspects of Tcl and SWIG is that you can
@@ -2072,7 +2072,7 @@ the Tcl code would simply return with an error so there is very little
 danger of blowing something up (although it is easily accomplished
 with an out of bounds array access).<p>
 
-<a name="n42"></a><H3>19.9.1 Shadow classes</H3>
+<a name="n42"></a><H3>20.9.1 Shadow classes</H3>
 
 
 A similar approach can be applied to shadow classes.  The following

@@ -15,6 +15,11 @@
 <li><a href="#n6">cmalloc.i</a>
 <li><a href="#n7">cdata.i</a>
 </ul>
+<li><a href="#n8">C++ Library</a>
+<ul>
+<li><a href="#n9">std_string.i</a>
+<li><a href="#n10">std_vector.i</a>
+</ul>
 </ul>
 <!-- INDEX -->
 
@@ -563,13 +568,15 @@ char *cdata_<em>name</em>(int nitems)
 <b>Note:</b> These functions provide direct access to memory and can be used to overwrite data.
 Clearly they are unsafe.
 
-<h2>C++ Library</h2>
+<a name="n8"></a><H2>11.3 C++ Library</H2>
+
 
 The library modules in this section provide access to parts of the standard C++ library.
 All of these modules are new in SWIG-1.3.12 and are only the beginning phase of more complete
 C++ library support including support for the STL.  
 
-<h3>std_string.i</h3>
+<a name="n9"></a><H3>11.3.1 std_string.i</H3>
+
 
 The <tt>std_string.i</tt> library provides typemaps for converting C++ <tt>std::string</tt>
 objects to and from strings in the target scripting language.  For example:
@@ -616,7 +623,8 @@ void foo(string s, const String &t);     // std_string typemaps still applied
 <b>Note:</b> The <tt>std_string</tt> library is incompatible with Perl on some platforms.
 We're looking into it.
 
-<h3>std_vector.i</h3>
+<a name="n10"></a><H3>11.3.2 std_vector.i</H3>
+
 
 The <tt>std_vector.i</tt> library provides support for the C++ <tt>vector</tt> class in the STL.
 Using this library involves the use of the <tt>%template</tt> directive.  All you need to do is to

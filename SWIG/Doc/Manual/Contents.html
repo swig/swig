@@ -190,21 +190,29 @@
 </ul>
 <li><a href="SWIGPlus.html#n13">Protection</a>
 <li><a href="SWIGPlus.html#n14">Enums and constants</a>
-<li><a href="SWIGPlus.html#n15">References and pointers</a>
-<li><a href="SWIGPlus.html#n16">Pass and return by value</a>
-<li><a href="SWIGPlus.html#n17">Inheritance</a>
-<li><a href="SWIGPlus.html#n18">A brief discussion of multiple inheritance, pointers,  and type checking</a>
-<li><a href="SWIGPlus.html#n19">Renaming</a>
-<li><a href="SWIGPlus.html#n20">Wrapping Overloaded Functions and Methods</a>
-<li><a href="SWIGPlus.html#n21">Wrapping overloaded operators</a>
-<li><a href="SWIGPlus.html#n22">Class extension</a>
-<li><a href="SWIGPlus.html#n23">Templates</a>
-<li><a href="SWIGPlus.html#n24">Namespaces</a>
-<li><a href="SWIGPlus.html#n25">Pointers to Members</a>
-<li><a href="SWIGPlus.html#n26">Partial class definitions</a>
-<li><a href="SWIGPlus.html#n27">A brief rant about const-correctness</a>
-<li><a href="SWIGPlus.html#n28">Proxy classes</a>
-<li><a href="SWIGPlus.html#n29">Where to go for more information</a>
+<li><a href="SWIGPlus.html#n15">Friends</a>
+<li><a href="SWIGPlus.html#n16">References and pointers</a>
+<li><a href="SWIGPlus.html#n17">Pass and return by value</a>
+<li><a href="SWIGPlus.html#n18">Inheritance</a>
+<li><a href="SWIGPlus.html#n19">A brief discussion of multiple inheritance, pointers,  and type checking</a>
+<li><a href="SWIGPlus.html#n20">Renaming</a>
+<li><a href="SWIGPlus.html#n21">Wrapping Overloaded Functions and Methods</a>
+<ul>
+<li><a href="SWIGPlus.html#n22">Dispatch function generation</a>
+<li><a href="SWIGPlus.html#n23">Ambiguity in Overloading</a>
+<li><a href="SWIGPlus.html#n24">Ambiguity resolution and renaming</a>
+<li><a href="SWIGPlus.html#n25">Comments on overloading</a>
+</ul>
+<li><a href="SWIGPlus.html#n26">Wrapping overloaded operators</a>
+<li><a href="SWIGPlus.html#n27">Class extension</a>
+<li><a href="SWIGPlus.html#n28">Templates</a>
+<li><a href="SWIGPlus.html#n29">Namespaces</a>
+<li><a href="SWIGPlus.html#n30">Pointers to Members</a>
+<li><a href="SWIGPlus.html#n31">Smart pointers and operator-&gt;()</a>
+<li><a href="SWIGPlus.html#n32">Partial class definitions</a>
+<li><a href="SWIGPlus.html#n33">A brief rant about const-correctness</a>
+<li><a href="SWIGPlus.html#n34">Proxy classes</a>
+<li><a href="SWIGPlus.html#n35">Where to go for more information</a>
 </ul>
 <!-- INDEX -->
 
@@ -342,6 +350,11 @@
 <li><a href="Library.html#n6">cmalloc.i</a>
 <li><a href="Library.html#n7">cdata.i</a>
 </ul>
+<li><a href="Library.html#n8">C++ Library</a>
+<ul>
+<li><a href="Library.html#n9">std_string.i</a>
+<li><a href="Library.html#n10">std_vector.i</a>
+</ul>
 </ul>
 <!-- INDEX -->
 
@@ -403,7 +416,7 @@
 <li><a href="Java.html#n7">Using your module</a>
 <li><a href="Java.html#n8">Compilation problems and compiling with C++</a>
 </ul>
-<li><a href="Java.html#n9">Building Java Extensions under Windows 95/NT</a>
+<li><a href="Java.html#n9">Building Java Extensions under Windows</a>
 <ul>
 <li><a href="Java.html#n10">Running SWIG from Developer Studio</a>
 <li><a href="Java.html#n11">Using NMAKE</a>
@@ -419,12 +432,12 @@
 <li><a href="Java.html#n19">Structures </a>
 <li><a href="Java.html#n20">C++ Classes</a>
 </ul>
-<li><a href="Java.html#n21">Java shadow classes</a>
+<li><a href="Java.html#n21">Java proxy classes</a>
 <ul>
 <li><a href="Java.html#n22">A simple example</a>
-<li><a href="Java.html#n23">Why write shadow classes in Java?</a>
-<li><a href="Java.html#n24">Automated shadow class generation</a>
-<li><a href="Java.html#n25">Compiling modules with shadow classes</a>
+<li><a href="Java.html#n23">Why write proxy classes in Java?</a>
+<li><a href="Java.html#n24">Automated proxy class generation</a>
+<li><a href="Java.html#n25">Compiling modules with proxy classes</a>
 <li><a href="Java.html#n26">Where to go for more information</a>
 </ul>
 <li><a href="Java.html#n27">Examples</a>
@@ -442,21 +455,21 @@
 <li><a href="Java.html#n38">Accessing array structure members</a>
 <li><a href="Java.html#n39">Pointer handling</a>
 </ul>
-<li><a href="Java.html#n40">The gory details of shadow classes</a>
+<li><a href="Java.html#n40">The gory details of proxy classes</a>
 <ul>
-<li><a href="Java.html#n41">A simple shadow class</a>
+<li><a href="Java.html#n41">A simple proxy class</a>
 <li><a href="Java.html#n42">Generated class</a>
 <li><a href="Java.html#n43">The this pointer</a>
 <li><a href="Java.html#n44">Object ownership</a>
 <li><a href="Java.html#n45">Constructors and destructors</a>
 <li><a href="Java.html#n46">Member data</a>
-<li><a href="Java.html#n47">Shadow Functions</a>
-<li><a href="Java.html#n48">Shadow class pointer handling</a>
+<li><a href="Java.html#n47">Proxy functions</a>
+<li><a href="Java.html#n48">Proxy class pointer handling</a>
 <li><a href="Java.html#n49">Methods that return new objects</a>
 <li><a href="Java.html#n50">Global variables and functions</a>
 <li><a href="Java.html#n51">Nested objects</a>
-<li><a href="Java.html#n52">Inheritance and shadow classes</a>
-<li><a href="Java.html#n53">Shadow classes and garbage collection</a>
+<li><a href="Java.html#n52">Inheritance and proxy classes</a>
+<li><a href="Java.html#n53">Proxy classes and garbage collection</a>
 <li><a href="Java.html#n54">Performance concerns and hints</a>
 </ul>
 <li><a href="Java.html#n55">Java pragmas</a>
@@ -475,7 +488,42 @@
 </ul>
 <!-- INDEX -->
 
-<h3><a href="Perl5.html">15 SWIG and Perl5</a></h3>
+<h3><a href="Ocaml.html">15 SWIG and Ocaml</a></h3>
+
+<!-- INDEX -->
+<ul>
+<li><a href="Ocaml.html#n2">Preliminaries</a>
+<ul>
+<li><a href="Ocaml.html#n3">Running SWIG</a>
+<li><a href="Ocaml.html#n4">Additional Command Line Options</a>
+<li><a href="Ocaml.html#n5">Getting the right header files</a>
+<li><a href="Ocaml.html#n6">Compiling the code</a>
+<li><a href="Ocaml.html#n7">Using your module</a>
+<li><a href="Ocaml.html#n8">Compilation problems and compiling with C++</a>
+</ul>
+<li><a href="Ocaml.html#n9">The low-level Ocaml/C interface</a>
+<ul>
+<li><a href="Ocaml.html#n10">The generated module</a>
+<li><a href="Ocaml.html#n11">Types</a>
+<li><a href="Ocaml.html#n12">Functions</a>
+<li><a href="Ocaml.html#n13">Variable Linking</a>
+<li><a href="Ocaml.html#n14">Enums</a>
+<li><a href="Ocaml.html#n15">C++ Classes</a>
+<ul>
+<li><a href="Ocaml.html#n16">No flags, function wrapping</a>
+<li><a href="Ocaml.html#n17">-objects</a>
+<li><a href="Ocaml.html#n18">-objects -onlyobjects</a>
+<li><a href="Ocaml.html#n19">-classmod</a>
+</ul>
+<li><a href="Ocaml.html#n20">Overloaded functions</a>
+<li><a href="Ocaml.html#n21">Operator overloading</a>
+<li><a href="Ocaml.html#n22">Ocaml typemaps</a>
+<li><a href="Ocaml.html#n23">Exceptions</a>
+</ul>
+</ul>
+<!-- INDEX -->
+
+<h3><a href="Perl5.html">16 SWIG and Perl5</a></h3>
 
 <!-- INDEX -->
 <ul>
@@ -537,7 +585,7 @@
 </ul>
 <!-- INDEX -->
 
-<h3><a href="Php.html">16 SWIG and PHP4</a></h3>
+<h3><a href="Php.html">17 SWIG and PHP4</a></h3>
 
 <!-- INDEX -->
 <ul>
@@ -561,7 +609,7 @@
 </ul>
 <!-- INDEX -->
 
-<h3><a href="Python.html">17 SWIG and Python</a></h3>
+<h3><a href="Python.html">18 SWIG and Python</a></h3>
 
 <!-- INDEX -->
 <ul>
@@ -641,7 +689,7 @@
 </ul>
 <!-- INDEX -->
 
-<h3><a href="Ruby.html">18 SWIG and Ruby</a></h3>
+<h3><a href="Ruby.html">19 SWIG and Ruby</a></h3>
 
 <!-- INDEX -->
 <ul>
@@ -698,18 +746,19 @@
 <ul>
 <li><a href="Ruby.html#n40">An example (putting everything together)</a>
 <li><a href="Ruby.html#n41">Expanding the example</a>
+<li><a href="Ruby.html#n42">STL Vector to Ruby Array</a>
 </ul>
-<li><a href="Ruby.html#n42">Advanced Topics</a>
+<li><a href="Ruby.html#n43">Advanced Topics</a>
 <ul>
-<li><a href="Ruby.html#n43">Creating Multi-Module Packages</a>
-<li><a href="Ruby.html#n44">Defining Aliases</a>
-<li><a href="Ruby.html#n45">Predicate Methods</a>
-<li><a href="Ruby.html#n46">Interacting with Ruby's Garbage Collector</a>
+<li><a href="Ruby.html#n44">Creating Multi-Module Packages</a>
+<li><a href="Ruby.html#n45">Defining Aliases</a>
+<li><a href="Ruby.html#n46">Predicate Methods</a>
+<li><a href="Ruby.html#n47">Interacting with Ruby's Garbage Collector</a>
 </ul>
 </ul>
 <!-- INDEX -->
 
-<h3><a href="Tcl.html">19 SWIG and Tcl</a></h3>
+<h3><a href="Tcl.html">20 SWIG and Tcl</a></h3>
 
 <!-- INDEX -->
 <ul>
@@ -769,7 +818,7 @@
 </ul>
 <!-- INDEX -->
 
-<h3><a href="Extending.html">20 Extending SWIG</a></h3>
+<h3><a href="Extending.html">21 Extending SWIG</a></h3>
 
 <!-- INDEX -->
 <ul>
@@ -795,18 +844,33 @@
 <li><a href="Extending.html#n18">Common operations</a>
 <li><a href="Extending.html#n19">I/O</a>
 </ul>
-<li><a href="Extending.html#n20">Type system</a>
+<li><a href="Extending.html#n20">Navigating and manipulating parse trees</a>
+<li><a href="Extending.html#n21">Working with attributes</a>
+<li><a href="Extending.html#n22">Type system</a>
 <ul>
-<li><a href="Extending.html#n21">String encoding of types</a>
-<li><a href="Extending.html#n22">Type construction</a>
-<li><a href="Extending.html#n23">Type tests</a>
-<li><a href="Extending.html#n24">Typedef and inheritance</a>
-<li><a href="Extending.html#n25">Output functions</a>
+<li><a href="Extending.html#n23">String encoding of types</a>
+<li><a href="Extending.html#n24">Type construction</a>
+<li><a href="Extending.html#n25">Type tests</a>
+<li><a href="Extending.html#n26">Typedef and inheritance</a>
+<li><a href="Extending.html#n27">Lvalues</a>
+<li><a href="Extending.html#n28">Output functions</a>
 </ul>
-<li><a href="Extending.html#n26">Parse Tree Navigation</a>
-<li><a href="Extending.html#n27">Writing a Language Module</a>
-<li><a href="Extending.html#n28">Typemaps</a>
-<li><a href="Extending.html#n29">Guide to parse tree nodes</a>
+<li><a href="Extending.html#n29">Parameters</a>
+<li><a href="Extending.html#n30">Writing a Language Module</a>
+<ul>
+<li><a href="Extending.html#n31">Execution model</a>
+<li><a href="Extending.html#n32">Starting out</a>
+<li><a href="Extending.html#n33">Command line options</a>
+<li><a href="Extending.html#n34">Configuration and preprocessing</a>
+<li><a href="Extending.html#n35">Entry point to code generation</a>
+<li><a href="Extending.html#n36">Module I/O and wrapper skeleton</a>
+<li><a href="Extending.html#n37">Low-level code generators</a>
+</ul>
+<li><a href="Extending.html#n38">Typemaps</a>
+<ul>
+<li><a href="Extending.html#n39">Proxy classes</a>
+</ul>
+<li><a href="Extending.html#n40">Guide to parse tree nodes</a>
 </ul>
 <!-- INDEX -->
 

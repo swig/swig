@@ -22,21 +22,29 @@
 </ul>
 <li><a href="#n13">Protection</a>
 <li><a href="#n14">Enums and constants</a>
-<li><a href="#n15">References and pointers</a>
-<li><a href="#n16">Pass and return by value</a>
-<li><a href="#n17">Inheritance</a>
-<li><a href="#n18">A brief discussion of multiple inheritance, pointers,  and type checking</a>
-<li><a href="#n19">Renaming</a>
-<li><a href="#n20">Wrapping Overloaded Functions and Methods</a>
-<li><a href="#n21">Wrapping overloaded operators</a>
-<li><a href="#n22">Class extension</a>
-<li><a href="#n23">Templates</a>
-<li><a href="#n24">Namespaces</a>
-<li><a href="#n25">Pointers to Members</a>
-<li><a href="#n26">Partial class definitions</a>
-<li><a href="#n27">A brief rant about const-correctness</a>
-<li><a href="#n28">Proxy classes</a>
-<li><a href="#n29">Where to go for more information</a>
+<li><a href="#n15">Friends</a>
+<li><a href="#n16">References and pointers</a>
+<li><a href="#n17">Pass and return by value</a>
+<li><a href="#n18">Inheritance</a>
+<li><a href="#n19">A brief discussion of multiple inheritance, pointers,  and type checking</a>
+<li><a href="#n20">Renaming</a>
+<li><a href="#n21">Wrapping Overloaded Functions and Methods</a>
+<ul>
+<li><a href="#n22">Dispatch function generation</a>
+<li><a href="#n23">Ambiguity in Overloading</a>
+<li><a href="#n24">Ambiguity resolution and renaming</a>
+<li><a href="#n25">Comments on overloading</a>
+</ul>
+<li><a href="#n26">Wrapping overloaded operators</a>
+<li><a href="#n27">Class extension</a>
+<li><a href="#n28">Templates</a>
+<li><a href="#n29">Namespaces</a>
+<li><a href="#n30">Pointers to Members</a>
+<li><a href="#n31">Smart pointers and operator-&gt;()</a>
+<li><a href="#n32">Partial class definitions</a>
+<li><a href="#n33">A brief rant about const-correctness</a>
+<li><a href="#n34">Proxy classes</a>
+<li><a href="#n35">Where to go for more information</a>
 </ul>
 <!-- INDEX -->
 
@@ -48,6 +56,7 @@ how SWIG wraps ANSI C.  Support for C++ builds upon ANSI C
 wrapping and that material will be useful in understanding this chapter.
 
 <a name="n2"></a><H2>5.1 Comments on C++ Wrapping</H2>
+
 
 Because of its complexity and the fact that C++ can be
 difficult to integrate with itself let alone other languages, SWIG 
@@ -86,6 +95,7 @@ yourself in the foot.  You will just have to be careful.
 
 <a name="n3"></a><H2>5.2 Approach</H2>
 
+
 To wrap C++, SWIG uses a layered approach to code generation.  
 At the lowest level, SWIG generates a collection of procedural ANSI-C style
 wrappers.   These wrappers take care of basic type conversion,
@@ -123,6 +133,7 @@ this chapter.  However, more detailed coverage can be found in the documentation
 for each target language.
 
 <a name="n4"></a><H2>5.3 Supported C++ features</H2>
+
 
 SWIG's currently supports the following C++ features :<p>
 <p>
@@ -287,6 +298,7 @@ those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
 
 <a name="n8"></a><H3>5.5.2 Copy constructors</H3>
 
+
 If a class defines more than one constructor, its behavior depends on the capabilities of the
 target language.  If overloading is supported, the copy constructor is accessible using
 the normal constructor function.  For example, if you have this:
@@ -392,6 +404,7 @@ Usually, static members are accessed as functions with names in which the class 
 prepended with an underscore. For example, <tt>List_print</tt>.
 
 <a name="n11"></a><H3>5.5.5 Member functions and default arguments</H3>
+
 
 SWIG allows member functions to accept default arguments.  For example:
 
@@ -589,7 +602,8 @@ Swig_STOUT = Swig::STOUT
 
 Members declared as <tt>const</tt> are wrapped as read-only members and do not create constants.
 
-<h2>Friends</h2>
+<a name="n15"></a><H2>5.8 Friends</H2>
+
 
 Friend declarations are ignored by SWIG.   For example, if you have this code:
 
@@ -625,7 +639,8 @@ declaration does not define a method that operates on an instance of
 an object nor does it define a declaration in the scope of the class.  
 Therefore, it would make no sense for SWIG to create wrappers as such.
 
-<a name="n15"></a><H2>5.8 References and pointers</H2>
+<a name="n16"></a><H2>5.9 References and pointers</H2>
+
 
 C++ references are supported, but SWIG transforms them back into pointers. For example,
 a declaration like this :<p>
@@ -703,7 +718,7 @@ cause your program to crash.
 more seamless integration with more advanced C++ wrapping applications---especially related to 
 templates and the STL.  This was first added in SWIG-1.3.12.
 
-<a name="n16"></a><H2>5.9 Pass and return by value</H2>
+<a name="n17"></a><H2>5.10 Pass and return by value</H2>
 
 
 Occasionally, a C++ program will pass and return class objects by value.  For example, a function
@@ -774,7 +789,7 @@ It is not used for C++ pointers or references.
 <b>Note:</b> The performance of pass-by-value is especially bad for large objects and should be avoided
 if possible (consider using references instead).
 
-<a name="n17"></a><H2>5.10 Inheritance</H2>
+<a name="n18"></a><H2>5.11 Inheritance</H2>
 
 
 SWIG supports C++ public inheritance of classes and allows both
@@ -938,7 +953,7 @@ when advanced features like proxy classes are used.  Future versions
 of SWIG may apply further optimizations such as not regenerating 
 wrapper functions for virtual members that are already defined in a base class.
 
-<a name="n18"></a><H2>5.11 A brief discussion of multiple inheritance, pointers,  and type checking</H2>
+<a name="n19"></a><H2>5.12 A brief discussion of multiple inheritance, pointers,  and type checking</H2>
 
 
 When a target scripting language refers to a C++ object, it normally
@@ -1045,7 +1060,7 @@ more virtual functions).
 <p>
 The bottom line: learn to live with type-tagged pointers.
 
-<a name="n19"></a><H2>5.12 Renaming</H2>
+<a name="n20"></a><H2>5.13 Renaming</H2>
 
 
 C++ member functions and data can be renamed with the <tt>%name</tt>
@@ -1088,7 +1103,8 @@ overloaded methods, it really doesn't work very well because it
 requires a lot of additional markup in your interface.  Keep reading
 for a better solution.
 
-<a name="n20"></a><H2>5.13 Wrapping Overloaded Functions and Methods</H2>
+<a name="n21"></a><H2>5.14 Wrapping Overloaded Functions and Methods</H2>
+
 
 In many language modules, SWIG provides partial support for overloaded functions, methods, and
 constructors.  For example, if you supply SWIG with overloaded functions like this:
@@ -1142,7 +1158,8 @@ it might be used like this
 </pre>
 </blockquote>
 
-<h3>Dispatch function generation</h3>
+<a name="n22"></a><H3>5.14.1 Dispatch function generation</H3>
+
 
 The implementation of overloaded functions and methods is somewhat
 complicated due to the dynamic nature of scripting languages.  Unlike
@@ -1248,7 +1265,8 @@ checked in the same order as they appear in this ranking.
 <p>
 If you're still confused, don't worry about it---SWIG is probably doing the right thing.
 
-<h3>Ambiguity in Overloading</h3>
+<a name="n23"></a><H3>5.14.2 Ambiguity in Overloading</H3>
+
 
 Regrettably, SWIG is not able to support every possible use of valid C++ overloading.  Consider
 the following example:
@@ -1334,7 +1352,8 @@ foo.i:5. Previous declaration is Spam::foo(int )
 it means that the target language module has not yet implemented support for overloaded
 functions and methods.  The only way to fix the problem is to read the next section.
 
-<h3>Ambiguity resolution and renaming</h3>
+<a name="n24"></a><H3>5.14.3 Ambiguity resolution and renaming</H3>
+
 
 If an ambiguity in overload resolution occurs or if a module doesn't
 allow overloading, there are a few strategies for dealing with the
@@ -1609,7 +1628,8 @@ above:
 </blockquote>
 </ul>
 
-<h3>Comments on overloading</h3>
+<a name="n25"></a><H3>5.14.4 Comments on overloading</H3>
+
 
 Support for overloaded methods was first added in SWIG-1.3.14.   The implementation
 is somewhat unusual when compared to similar tools.  For instance, the order in which
@@ -1622,7 +1642,8 @@ module.  Therefore, the degree of overloading support may vary from language to 
 As a general rule, statically typed languages like Java are able to provide more support
 than dynamically typed languages like Perl, Python, Ruby, and Tcl.
 
-<a name="n21"></a><H2>5.14 Wrapping overloaded operators</H2>
+<a name="n26"></a><H2>5.15 Wrapping overloaded operators</H2>
+
 
 Starting in SWIG-1.3.10, C++ overloaded operator declarations can be wrapped. 
 For example, consider a class like this:
@@ -1783,7 +1804,7 @@ are ignored as well as conversion operators.
 <li>The semantics of certain C++ operators may not match those in the target language.
 </ul>
 
-<a name="n22"></a><H2>5.15 Class extension</H2>
+<a name="n27"></a><H2>5.16 Class extension</H2>
 
 
 New methods can be added to a class using the <tt>%extend</tt>
@@ -1840,7 +1861,7 @@ name for the <tt>%addmethods</tt> directive.  Since <tt>%addmethods</tt> could
 be used to extend a structure with more than just methods, a more suitable
 directive name has been chosen.
 
-<a name="n23"></a><H2>5.16 Templates</H2>
+<a name="n28"></a><H2>5.17 Templates</H2>
 
 
 In all versions of SWIG, template type names may appear anywhere a type
@@ -2487,7 +2508,7 @@ as the class name.  For example:
 
 Similar changes apply to typemaps and other customization features.
 
-<a name="n24"></a><H2>5.17 Namespaces</H2>
+<a name="n29"></a><H2>5.18 Namespaces</H2>
 
 
 Support for C++ namespaces is a relatively late addition to SWIG,
@@ -2831,7 +2852,7 @@ more advanced namespace support.
 
 
 
-<a name="n25"></a><H2>5.18 Pointers to Members</H2>
+<a name="n30"></a><H2>5.19 Pointers to Members</H2>
 
 
 Starting with SWIG1.3.7, there is limited parsing support for pointers to C++ class members.
@@ -2873,7 +2894,8 @@ member pointers.  Normally SWIG tries to keep track of inheritance
 when checking types.  However, no such support is currently provided
 for member pointers.
 
-<h2>Smart pointers and operator-&gt;()</h2>
+<a name="n31"></a><H2>5.20 Smart pointers and operator-&gt;()</H2>
+
 
 In some C++ programs, objects are often encapsulated by smart-pointers
 or proxy classes.   This is sometimes done to implement automatic memory management (reference counting) or
@@ -3059,7 +3081,8 @@ p = f.__deref__()       # Raw pointer from operator->
 <p>
 <b>Note:</b> Smart pointer support was first added in SWIG-1.3.14.
 
-<a name="n26"></a><H2>5.19 Partial class definitions</H2>
+<a name="n32"></a><H2>5.21 Partial class definitions</H2>
+
 
 Since SWIG is still limited in its support of C++, it may be necessary
 to use partial class information in an interface file.  However, since
@@ -3088,7 +3111,8 @@ public:
 Also, as a rule of thumb, SWIG should not be used on raw C++ source
 files. 
 
-<a name="n27"></a><H2>5.20 A brief rant about const-correctness</H2>
+<a name="n33"></a><H2>5.22 A brief rant about const-correctness</H2>
+
 
 A common issue when working with C++ programs is dealing with all
 possible ways in which the <tt>const</tt> qualifier (or lack thereof)
@@ -3137,11 +3161,12 @@ for most SWIG projects.    Of course, you might want to consider
 using another tool if maintaining constness is the most important part
 of your project.
 
-<a name="n28"></a><H2>5.21 Proxy classes</H2>
+<a name="n34"></a><H2>5.23 Proxy classes</H2>
+
 
 Write me.
 
-<a name="n29"></a><H2>5.22 Where to go for more information</H2>
+<a name="n35"></a><H2>5.24 Where to go for more information</H2>
 
 
 If you're wrapping serious C++ code, you might want to pick up a copy
