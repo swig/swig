@@ -113,14 +113,28 @@ static Hash   *features_hash = 0;
 
 static void
 rename_add(char *name, SwigType *decl, char *newname) {
+  String *nname;
   if (!rename_hash) rename_hash = NewHash();
-  Swig_name_object_set(rename_hash,name,decl,NewString(newname));
+  if (Classprefix) {
+    nname = NewStringf("%s::%s",Classprefix, name);
+  } else {
+    nname = NewString(name);
+  }
+  Swig_name_object_set(rename_hash,nname,decl,NewString(newname));
+  Delete(nname);
 }
 
 static void
 namewarn_add(char *name, SwigType *decl, char *warning) {
+  String *nname;
   if (!namewarn_hash) namewarn_hash = NewHash();
-  Swig_name_object_set(namewarn_hash,name,decl,NewString(warning));
+  if (Classprefix) {
+    nname = NewStringf("%s::%s",Classprefix, name);
+  } else {
+    nname = NewString(name);
+  }
+  Swig_name_object_set(namewarn_hash,nname,decl,NewString(warning));
+  Delete(nname);
 }
 
 static void
@@ -1081,9 +1095,12 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
                  String *fname;
                  Hash *n;
                  String *val;
+		 String *name;
 		 SwigType *t;
                  if (!features_hash) features_hash = NewHash();
 		 fname = NewStringf("feature:%s",$3);
+		 if (Classprefix) name = NewStringf("%s::%s", $5.id);
+		 else name = NewString($5.id);
 		 val = NewString($7);
 		 t = $5.type;
 		 if (!Len(t)) t = 0;
@@ -1092,21 +1109,22 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		   if (SwigType_isfunction(t)) {
 		     SwigType *decl = SwigType_pop_function(t);
 		     if (SwigType_ispointer(t)) {
-		       String *nname = NewStringf("*%s",$5.id);
+		       String *nname = NewStringf("*%s",name);
 		       Swig_feature_set(features_hash, nname, decl, fname, val);
 		       Delete(nname);
 		     } else {
-		       Swig_feature_set(features_hash, $5.id, decl, fname, val);
+		       Swig_feature_set(features_hash, name, decl, fname, val);
 		     }
 		   } else if (SwigType_ispointer(t)) {
-		     String *nname = NewStringf("*%s",$5.id);
+		     String *nname = NewStringf("*%s",name);
 		     Swig_feature_set(features_hash,nname,0,fname,val);
 		     Delete(nname);
 		   }
 		 } else {
-		   Swig_feature_set(features_hash,$5.id,0,fname,val);
+		   Swig_feature_set(features_hash,name,0,fname,val);
 		 }
 		 Delete(fname);
+		 Delete(name);
 		 $$ = 0;
               }
               ;
@@ -1986,6 +2004,9 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
 	       $$ = new_node("new");
 	       appendChild($$,$2);
              }
+/* rename directive */
+             | rename_directive { $$ = $1; }
+             | feature_directive { $$ = $1; }
              ;
 
 cpp_end        : cpp_const SEMI {
