@@ -282,6 +282,11 @@ c_varfunc_decl(int storage, SwigType *type, char *name, SwigType *decltype, Parm
   if (ImportMode) return;
   if ((storage == STORAGE_STATIC) && (!Inline)) return;
 
+  if (strstr(name,"::")) {
+    Printf(stderr,"%s:%d. Warning. Qualified declaration %s ignored.\n", input_file, line_number, name);
+    return;
+  }
+
   init_language();
 
   char *iname = make_name(name);
@@ -349,6 +354,11 @@ cplus_varfunc_decl(int storage, SwigType *type, char *id, SwigType *decltype, Pa
 
   if (cplus_mode != CPLUS_PUBLIC) return;
   if (storage == STORAGE_FRIEND) return;
+  if (strstr(id,"::")) {
+    Printf(stderr,"%s:%d. Warning. Qualified declaration %s ignored.\n", input_file, line_number, id);
+    return;
+  }
+
   /*  Printf(stdout,"vardecl: %s %s %s %s\n", id, type, decltype, parms); */
   ty = Copy(type);
   iname = make_name(id);
