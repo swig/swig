@@ -1,14 +1,17 @@
 #######################################################################
+# $Header$
 # Makefile for php4 test-suite
 #######################################################################
 
-LANGUAGE   = php4
+LANGUAGE     = php4
 SCRIPTSUFFIX = _runme.php4
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
 
-include ../common.mk
+include $(srcdir)/../common.mk
 
 # Overridden variables here
-SWIGOPT    = -I$(TOP)/../Lib -I$(TOP)/$(TEST_SUITE) 
 TARGETPREFIX = php_
 
 makecpptests:
@@ -55,8 +58,8 @@ missingtests: missingcpptests missingctests
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.php4 appended after the testcase name.
 run_testcase = \
-	if [ -f $*\_runme.php4 ]; then ( \
-	  $(MAKE) -f $(TOP)/Makefile SCRIPT=$*\_runme.php4 php4_run;) \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SCRIPT=$(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) php4_run;) \
 	fi;
 
 # Clean: remove the generated .php file
@@ -64,4 +67,4 @@ run_testcase = \
 	@rm -f $*.php;
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile php4_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile php4_clean
