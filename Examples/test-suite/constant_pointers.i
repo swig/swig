@@ -69,7 +69,7 @@ public:
     ReturnValuesTest() : int3(NULL) {}
 };
 
-const int* globalRet1() {return &GlobalInt;};
-int* const globalRet2() {return &GlobalInt;};
+const int* globalRet1() {return &GlobalInt;}
+int* const globalRet2() {return &GlobalInt;}
 
 %}

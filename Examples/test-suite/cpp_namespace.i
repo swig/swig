@@ -17,14 +17,14 @@
 
     class Test {
     public:
-      Test() { };
-      ~Test() { };
+      Test() { }
+      ~Test() { }
       char *method() {
 	return (char *) "Test::method";
       }
     };
     typedef Test *TestPtr;
-    void weird(Bad x, ::Bad y) { };
+    void weird(Bad x, ::Bad y) { }
   }
 
   char *do_method(example::TestPtr t) {
