@@ -92,6 +92,7 @@ class Dispatcher {
   virtual int externDeclaration(Node *n);
   virtual int enumDeclaration(Node *n);
   virtual int enumvalueDeclaration(Node *n);
+  virtual int enumforwardDeclaration(Node *n);
   virtual int classDeclaration(Node *n);
   virtual int classforwardDeclaration(Node *n);
   virtual int constructorDeclaration(Node *n);
@@ -148,6 +149,7 @@ public:
   virtual int externDeclaration(Node *n);
   virtual int enumDeclaration(Node *n);
   virtual int enumvalueDeclaration(Node *n);
+  virtual int enumforwardDeclaration(Node *n);
   virtual int classDeclaration(Node *n);
   virtual int classforwardDeclaration(Node *n);
   virtual int constructorDeclaration(Node *n);

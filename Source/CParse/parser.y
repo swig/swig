@@ -962,7 +962,7 @@ static void new_feature(const char *featurename, String *val, Hash *featureattri
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
-%type <node>     c_declaration c_decl c_decl_tail c_enum_decl c_constructor_decl ;
+%type <node>     c_declaration c_decl c_decl_tail c_enum_decl c_enum_forward_decl c_constructor_decl ;
 %type <node>     enumlist edecl;
 
 /* C++ declarations */
@@ -2172,6 +2172,7 @@ c_declaration   : c_decl {
    	            }
                 }
                 | c_enum_decl { $$ = $1; }
+                | c_enum_forward_decl { $$ = $1; }
                            
 /* A an extern C type declaration.  Does nothing, but is ignored */
 
@@ -2295,6 +2296,21 @@ initializer   : def_args {
               }
               ;
 
+
+/* ------------------------------------------------------------
+   enum Name;
+   ------------------------------------------------------------ */
+
+c_enum_forward_decl : storage_class ENUM ID SEMI {
+		   SwigType *ty = 0;
+		   $$ = new_node("enumforward");
+		   ty = NewStringf("enum %s", $3);
+		   Setattr($$,"name",$3);
+		   Setattr($$,"type",ty);
+		   Setattr($$,"sym:weak", "1");
+		   add_symbols($$);
+	      }
+              ;
 
 /* ------------------------------------------------------------
    enum { ... }

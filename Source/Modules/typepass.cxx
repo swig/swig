@@ -796,6 +796,17 @@ class TypePass : private Dispatcher {
   }
 
   /* ------------------------------------------------------------
+   * enumforwardDeclaration()
+   * ------------------------------------------------------------ */ 
+
+  virtual int enumforwardDeclaration(Node *n) {
+
+    // Use enumDeclaration() to do all the hard work.
+    // Note that no children can be emitted in a forward declaration as there aren't any.
+    return enumDeclaration(n);
+  }
+
+  /* ------------------------------------------------------------
    * usingDeclaration()
    * ------------------------------------------------------------ */
 
