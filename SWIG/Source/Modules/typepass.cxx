@@ -127,16 +127,18 @@ class TypePass : private Dispatcher {
     }
     Swig_symbol_setscope(currentsym);
   }
-  
+
   /* generate C++ inheritance type-relationships */
-  void cplus_inherit_types(Node *first, Node *cls, String *clsname, String *cast = 0) {
+  void cplus_inherit_types_impl(Node *first, Node *cls, String*clsname,
+				const char *bases, const char *baselist,
+				int ispublic, String *cast = 0) {
       
     if (first == cls) return;  /* The Marcelo check */
     if (!cls) cls = first;
 
-    List *ilist = Getattr(cls,"bases");
+    List *ilist = Getattr(cls,bases);
     if (!ilist) {
-      List *nlist = Getattr(cls,"baselist");
+      List *nlist = Getattr(cls,baselist);
       if (nlist) {
 	int     len = Len(nlist);
 	int i;
@@ -197,7 +199,7 @@ class TypePass : private Dispatcher {
 	  if (tname) Delete(tname);
 	  if (!bcls) {
 	    if (!clsforward) {
-	      if (!Getmeta(bname,"already_warned")) {
+	      if (ispublic && !Getmeta(bname,"already_warned")) {
 		Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(cls),Getline(cls),"Nothing known about base class '%s'. Ignored.\n", SwigType_namestr(bname));
 		if (Strchr(bname,'<')) {
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(cls), Getline(cls), "Maybe you forgot to instantiate '%s' using %%template.\n", SwigType_namestr(bname));
@@ -210,7 +212,7 @@ class TypePass : private Dispatcher {
 	}
       }
       if (ilist) {
-	Setattr(cls,"bases",ilist);
+	Setattr(cls,bases,ilist);
       }
     }
     if (!ilist) return;
@@ -240,8 +242,34 @@ class TypePass : private Dispatcher {
 
       /* Recursively hit base classes */
       String *newcast = NewStringf("(%s *)%s", SwigType_namestr(Getattr(bclass,"name")), cast);
-      cplus_inherit_types(first,bclass,clsname, newcast);
+      cplus_inherit_types_impl(first,bclass,clsname,bases,baselist,ispublic,newcast);
       Delete(newcast);
+    }
+  }
+
+  void append_list(List *lb, List *la) {
+    if (la && lb) {
+      for (Iterator bi = First(la); bi.item; bi = Next(bi)) {
+	Append(lb,bi.item);
+      }
+    }
+  }
+
+  void cplus_inherit_types(Node *first, Node *cls, String *clsname, String *cast = 0) {
+    cplus_inherit_types_impl(first, cls, clsname, "bases", "baselist", 1, cast);
+    cplus_inherit_types_impl(first, cls, clsname, "protectedbases","protectedbaselist", 0, cast);
+    cplus_inherit_types_impl(first, cls, clsname, "privatebases"  ,"privatebaselist", 0, cast);
+
+    if (!cls) cls = first;
+
+    List *allbases = NewList();
+    append_list(allbases,Getattr(cls,"bases"));
+    append_list(allbases,Getattr(cls,"protectedbases"));
+    append_list(allbases,Getattr(cls,"privatebases"));
+    if (Len(allbases)) {
+      Setattr(cls,"allbases",allbases);
+    } else {
+      Delete(allbases);
     }
   }
 
