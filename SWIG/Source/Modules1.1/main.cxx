@@ -150,6 +150,7 @@ install_opts(int argc, char *argv[]) {
 char *SwigLib;
 static int     freeze = 0;
 static String  *lang_config = 0;
+static char    *cpp_extension = (char *) "cxx";
 
 /* This function sets the name of the configuration file */
 
@@ -159,6 +160,10 @@ void SWIG_config_file(const String_or_char *filename) {
 
 void SWIG_library_directory(const char *filename) {
   strcpy(LibDir,filename);
+}
+
+void SWIG_config_cppext(const char *ext) {
+  cpp_extension = (char *) ext;
 }
 
 extern  "C" Node *Swig_cparse(File *);
@@ -517,7 +522,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	Setattr(top,"infile", input_file);
 	if (!outfile_name) {
 	  if (CPlusPlus) {
-	    Setattr(top,"outfile", NewStringf("%s_wrap.cxx", Swig_file_basename(input_file)));
+	    Setattr(top,"outfile", NewStringf("%s_wrap.%s", Swig_file_basename(input_file),cpp_extension));
 	  } else {
 	    Setattr(top,"outfile", NewStringf("%s_wrap.c", Swig_file_basename(input_file)));
 	  }
