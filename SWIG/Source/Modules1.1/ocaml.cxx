@@ -42,7 +42,7 @@ static char *ocaml_usage = (char*)
      "-help           - Print this help\n"
      "-objects        - Use objects\n"
      "-onlyobjects    - Only export an object interface to a C++ object\n"
-     "-nsmod          - Treat classes and namespaces as modules\n"
+     "-classmod       - Treat classes as modules\n"
      "-modwrap name   - Wrap in module 'Name'\n"
      "-mlout name     - Specify the ML output file name\n"
      "\n");
@@ -52,6 +52,24 @@ static const char *ocaml_path = "ocaml";
 
 #define VWRAP_SET 1
 #define VWRAP_GET 2
+
+typedef struct _ocaml_namespace_stack {
+    String *ns_name;
+
+    String *f_pvariant_def;
+    String *f_module;
+    String *f_pvariant_from_int;
+    String *f_pvariant_to_int;
+    String *f_modclass;
+
+    String *real_f_pvariant_def;
+    String *real_f_module;
+    String *real_f_pvariant_from_int;
+    String *real_f_pvariant_to_int;
+    String *real_f_modclass;
+    
+    struct _ocaml_namespace_stack *next;
+} ocaml_namespace_stack;
 
 static int in_constructor = 0;   /* Is this function a constructor */
 static int in_destructor = 0;    /* Is this function a destructor */
@@ -64,7 +82,7 @@ static int objects = 0;		 /* Use objects. */
 static int onlyobjects = 0;	 /* Do not export functions that back
 				    methods. */
 static int mliout = 0;		 /* Are we in .mli file */
-static int namespace_as_module = 0; /* Namespaces as modules */
+static int class_as_module = 0; /* Namespaces as modules */
 
 static String *classname = NULL; /* Name of the current class */
 
@@ -104,6 +122,8 @@ static Hash *seen_classes = NULL;     /* Classes emitted so far. */
 static Hash *seen_names = NULL;       /* The list of seen names */
 static Hash *seen_methods = NULL;     /* Seen methods */
 static Hash *seen_wrappers = NULL;    /* Seen wrappers */
+
+static ocaml_namespace_stack *ns_stack = 0; /* Namespace stack */
 
 static char *simple_types[][2] = {
     { "_bool", "bool" },
@@ -178,8 +198,8 @@ class OCAML : public Language {
 			Swig_arg_error();
 		    }
 		} 
-		else if (strcmp (argv[i], "-nsmod") == 0) {
-		    namespace_as_module = 1;
+		else if (strcmp (argv[i], "-classmod") == 0) {
+		    class_as_module = 1;
 		    Swig_mark_arg(i);
 		}
 	    }
@@ -258,7 +278,8 @@ class OCAML : public Language {
 	
 	classmode = 0;
 	const_enum = 0;
-	
+	ns_stack = 0;
+
 	if( !outfile || !modfile ) {
 	    Printf(stderr,"%s name was not set.\n", 
 		   (!outfile) ? "Output file" : "Module file");
@@ -372,12 +393,13 @@ class OCAML : public Language {
 	Dump(f_pvariant_def,f_module_file);
 	Dump(f_module_type,f_module_file);
 	Dump(f_module,f_module_file);
+
 	Dump(f_modclass,f_module_file);
-	
+
 	// *** Polymorphic variant support ***
 	Dump(f_pvariant_from_int,f_module_file);
 	Dump(f_pvariant_to_int,f_module_file);
-	
+
 	/* Close all of the files */
 	if( wrapmod )
 	    Printf(f_module_file,"end\n",wrapmod);
@@ -479,7 +501,7 @@ class OCAML : public Language {
 
 	/* Modules as namespaces essentially means that names are never
 	   qualified */
-	if( namespace_as_module ) {
+	if( class_as_module ) {
 	    char *last_comp = strstr(Char(out),"::");
 	    if( !last_comp ) last_comp = Char(out);
 	    
@@ -553,6 +575,14 @@ class OCAML : public Language {
 
     String *get_ml_module_name( Node *n ) {
 	String *out = get_method_name(n);
+	char *last_comp = strstr(Char(out),"::");
+	if( !last_comp ) last_comp = Char(out);
+
+	while( *last_comp == ':' ) last_comp++;
+	
+	String *newout = NewString(last_comp);
+	Delete(out);
+	out = newout;
 
 	ucase(out);
 
@@ -655,6 +685,61 @@ class OCAML : public Language {
 	Delete(delete_fn);
 	Delete(dcaml_deref);
 	Delete(dcaml_delete);
+    }
+
+    void pushNamespace(Node *n) {
+	String *ns_name = get_ml_module_name(n);
+	ocaml_namespace_stack *cur = new ocaml_namespace_stack;
+
+	memset( cur, 0, sizeof( ocaml_namespace_stack ) );
+		
+	cur->f_module = NewString("");
+	cur->f_pvariant_def = NewString("");
+	cur->f_pvariant_from_int = NewString("");
+	cur->f_pvariant_to_int = NewString("");
+	cur->f_modclass = NewString("");
+	cur->ns_name = ns_name;
+
+	cur->real_f_pvariant_def = f_pvariant_def;
+	cur->real_f_module = f_module;
+	cur->real_f_pvariant_from_int = f_pvariant_from_int;
+	cur->real_f_pvariant_to_int = f_pvariant_to_int;
+	cur->real_f_modclass = f_modclass;
+
+	f_pvariant_def = cur->f_pvariant_def;
+	f_module = cur->f_module;
+	f_pvariant_from_int = cur->f_pvariant_from_int;
+	f_pvariant_to_int = cur->f_pvariant_to_int;
+	f_modclass = cur->f_modclass;
+
+	cur->next = ns_stack;
+	ns_stack = cur;
+    }
+
+    void popNamespace() {
+	ocaml_namespace_stack *cur = ns_stack;
+
+	if( mliout ) 
+	    Printf(cur->real_f_module,"module %s : sig\n",cur->ns_name);
+	else
+	    Printf(cur->real_f_module,"module %s = struct\n",cur->ns_name);
+	
+	Dump(cur->f_pvariant_def,cur->real_f_module);
+	Dump(cur->f_module,cur->real_f_module);
+	Dump(cur->f_modclass,cur->real_f_module);
+	Dump(cur->f_pvariant_from_int,cur->real_f_module);
+	Dump(cur->f_pvariant_to_int,cur->real_f_module);
+	
+	Printf(cur->real_f_module,"end\n");
+    
+	f_pvariant_def = cur->real_f_pvariant_def;
+	f_module = cur->real_f_module;
+	f_pvariant_from_int = cur->real_f_pvariant_from_int;
+	f_pvariant_to_int = cur->real_f_pvariant_to_int;
+	f_modclass = cur->real_f_modclass;
+	
+	ns_stack = cur->next;
+	delete cur;
     }
 
 /* Return true iff T is a pointer type */
@@ -1304,33 +1389,10 @@ class OCAML : public Language {
 
     int classHandler(Node *n) {
 	int rv = 0;
-
 	if( classname ) Delete(classname);
 	classname = get_ml_class_name(GetChar(n,"name"));
 
-	if( namespace_as_module ) {
-	    if( mliout ) 
-		Printf(f_module,
-		       "module %s : sig\n",
-		       get_ml_module_name(n));
-	    else
-		Printf(f_module,
-		       "module %s = struct\n",
-		       get_ml_module_name(n));
-	}
-
-	/* Overrides to re-order module specific stuff */
-	String *real_f_module = f_module;
-	f_module = NewString("");
-
-	String *real_f_pvariant_def = f_pvariant_def;
-	f_pvariant_def = NewString("");
-
-	String *real_f_pvariant_from_int = f_pvariant_from_int;
-	f_pvariant_from_int = NewString("");
-
-	String *real_f_pvariant_to_int = f_pvariant_to_int;
-	f_pvariant_to_int = NewString("");
+	pushNamespace(n);
 
 	if( strlen(Char(classname)) && objects ) {	
 	    classmode = 1;
@@ -1397,18 +1459,7 @@ class OCAML : public Language {
 	    rv = Language::classHandler(n);
 	}
 
-	Dump(f_pvariant_def,real_f_module);
-	Dump(f_module,real_f_module);
-	Dump(f_pvariant_from_int,real_f_module);
-	Dump(f_pvariant_to_int,real_f_module);
-
-	f_module = real_f_module;
-	f_pvariant_def = real_f_pvariant_def;
-	f_pvariant_from_int = real_f_pvariant_from_int;
-	f_pvariant_to_int = real_f_pvariant_to_int;
-
-	if( namespace_as_module ) 
-	    Printf(f_module,"end\n");
+	popNamespace();
 
 	return rv;
     }
@@ -1440,26 +1491,21 @@ class OCAML : public Language {
 	return SWIG_OK;
     }
 
+    // Note that a namespace cannot be used as a module because namespaces
+    // can be disjoint, and interdependent.  Disjoint or interdepedent
+    // modules are strictly not allowed in Ocaml.
+    //
+    // Class interdependence I work around by writing types (except enums)
+    // at module scope for the whole output.  Any other type of 
+    // interdependence is expressed in C++ source, not visible to the ocaml
+    // system.
+
     int namespaceDeclaration(Node *n) {
 	if(Getattr(n,"alias")) return SWIG_OK;
 	if(Getattr(n,"name")) {
 	    int rv;
-
-	    if( namespace_as_module ) {
-		if( mliout ) 
-		    Printf(f_module,
-			   "module %s : sig\n",
-			   get_ml_module_name(n));
-		else
-		    Printf(f_module,
-			   "module %s = struct\n",
-			   get_ml_module_name(n));
-	    }
-
+	    
 	    rv = emit_children(n);
-
-	    if( namespace_as_module )
-		Printf(f_module,"end\n");
 
 	    return rv;
 	} else return Language::namespaceDeclaration(n);
