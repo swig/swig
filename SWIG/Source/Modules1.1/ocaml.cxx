@@ -1096,14 +1096,17 @@ class OCAML : public Language {
 	if( strcmp(Char(d),"void") ) 
 	    Printv(f->def,"\t",SwigType_str(d,"result"),";\n",0);
 	Printf(f->def,
-	       "\tCAMLlocal(swig_result);\n"
-	       "\tvalue *swig_func;\n"
+	       "\tCAMLparam0();\n"
+	       "\tCAMLlocal1(swig_result);\n"
 	       "\tvalue args[%d];\n"
-	       "\tint numargs = %d\n"
+	       "\tvalue *swig_func;\n"
+	       "\tint numargs = %d;\n"
 	       "\tint i;\n"
-	       "\tfor( i = 0; i < numargs; i++ ) "
-	       "args[i] = Val_unit;\n"
-	       "\tCAMLxparamN(args,numargs);\n",
+	       "\tfor( i = 0; i < numargs; i++ ) {\n"
+	       "\t\targs[i] = Val_unit;\n"
+	       "\t\tregister_global_root(&args[i]);\n"
+	       "\t}\n"
+	       "\t\n",
 	       numargs ? numargs : 1,
 	       numargs ? numargs : 1 );
 
@@ -1143,16 +1146,16 @@ class OCAML : public Language {
 	       "\tswig_func = caml_named_value(\"",
 	       Getattr(n,"feature:camlcb"),
 	       "\");\n"
-	       "if( !swig_func ) failwith(\"Function ",
+	       "\tif( !swig_func ) {\n"
+	       "\t\tfor( i = 0; i < numargs; i++ ) "
+	       "remove_global_root(&args[i]);\n"
+	       "\t\tfailwith(\"Function ",
 	       Getattr(n,"feature:camlcb"),
-	       " not implemented.\");\n",0);
+	       " not implemented.\");\n",
+	       "\t}\n",0);
 
-	if( strcmp(Char(d),"void") )
-	    Printf(f->code,"\tresult = callbackN(*swig_func,%d,args);\n",
-		   numargs ? numargs : 1 );
-	else
-	    Printf(f->code,"\tcallbackN(*swig_func,%d,args);\n",
-		   numargs ? numargs : 1 );
+	Printf(f->code,"\tswig_result = callbackN(*swig_func,%d,args);\n",
+	       numargs ? numargs : 1 );
 
 	Setattr(n,"type",dcaml);
 
@@ -1165,11 +1168,22 @@ class OCAML : public Language {
 		
 		Printv(f->code, tm, "\n",0);
 	    } else {
+		    Printf(f->code,
+			   "\tfor( i = 0; i < numargs; i++ ) "
+			   "remove_global_root(&args[i]);\n");
 		throw_unhandled_ocaml_type_error (dcaml);
 	    }
 	    
-	    Printf(f->code,"\tCAMLreturn(swig_result);\n");
-	}
+	    Printf(f->code,
+		   "\tfor( i = 0; i < numargs; i++ ) "
+		   "remove_global_root(&args[i]);\n"
+		   "CAMLreturn(swig_result);\n");
+	} else {
+	    Printf(f->code,
+		   "\tfor( i = 0; i < numargs; i++ ) "
+		   "remove_global_root(&args[i]);\n"
+		   "\tCAMLreturn0;\n");
+        }
 
 	Printf(f->code,"}\n");
 
