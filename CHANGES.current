@@ -2,6 +2,9 @@ Version 1.3.22 (in progress)
 ==================================
 
 07/23/2004: wsfulton
+            [C#] Bug #917601 Maping C++ bool fix from Mark Traudt
+
+07/23/2004: wsfulton
             RPM fixes for latest CVS version including removal of runtime
             library.
 
