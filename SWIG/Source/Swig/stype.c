@@ -1486,7 +1486,6 @@ void SwigType_inherit_equiv(File *out) {
     base = SwigType_base(rkey);
     sub = Getattr(subclass,base);
     if (!sub) {
-      Delete(base);
       rkey = Nextkey(r_resolved);
       continue;
     }
