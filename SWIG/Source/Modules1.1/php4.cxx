@@ -919,7 +919,7 @@ public:
 
     // if shadow and variable wrapper we want to snag the main contents
     // of this function to stick in to the property handler....    
-    if(shadow && variable_wrapper_flag && !enum_flag) {
+    if (mvr) { //shadow && variable_wrapper_flag && !enum_flag) {
       String *member_function_name = NewString("");
       String *php_function_name = NewString(iname);
       if(strcmp(iname, Char(Swig_name_set(Swig_name_member(shadow_classname, name)))) == 0) {
@@ -964,7 +964,7 @@ public:
       emit_attach_parmmaps(l,f);
 
       // Get type of first arg, thing to be destructed
-      /* Skip ignored arguments */
+      // Skip ignored arguments
       {
         p=l;
         while (Getattr(p,"tmap:ignore")) {
@@ -979,10 +979,9 @@ public:
 	     "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n"
 	     ,SwigType_manglestr(pt), shadow_classname);
       }
-      
       emit_action(n,df);
-      Printf(df->code,
-	     "}\n");
+
+      Printf(df->code,"}\n");
 
       Wrapper_print(df,s_wrappers);
     }
