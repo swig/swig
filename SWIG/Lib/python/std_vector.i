@@ -165,6 +165,7 @@ namespace std {
                         $1 = 1;
                     else
                         $1 = 0;
+                    Py_DECREF(o);
                 }
             } else {
                 /* wrapped vector? */
@@ -195,6 +196,7 @@ namespace std {
                         $1 = 1;
                     else
                         $1 = 0;
+                    Py_DECREF(o);
                 }
             } else {
                 /* wrapped vector? */
@@ -380,6 +382,7 @@ namespace std {
                         $1 = 1;
                     else
                         $1 = 0;
+                    Py_DECREF(o);
                 }
             } else {
                 /* wrapped vector? */
@@ -410,6 +413,7 @@ namespace std {
                         $1 = 1;
                     else
                         $1 = 0;
+                    Py_DECREF(o);
                 }
             } else {
                 /* wrapped vector? */
@@ -585,6 +589,7 @@ namespace std {
                         $1 = 1;
                     else
                         $1 = 0;
+                    Py_DECREF(o);
                 }
             } else {
                 /* wrapped vector? */
@@ -613,6 +618,7 @@ namespace std {
                         $1 = 1;
                     else
                         $1 = 0;
+                    Py_DECREF(o);
                 }
             } else {
                 /* wrapped vector? */
