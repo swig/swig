@@ -86,6 +86,11 @@
 %typemap(out) SWIGTYPE*, SWIGTYPE &, SWIGTYPE []
         "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor,$owner);";
 
+%typemap(out) SWIGTYPE*DYNAMIC, SWIGTYPE &DYNAMIC {
+        swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+        $result = SWIG_NewPointerObj((void *) $1, ty,$owner);
+}
+
 %typemap(out) void "";
 
 /* Primitive types--return by value */

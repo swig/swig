@@ -53,6 +53,11 @@
 %typemap(out) SWIGTYPE * {
     $result = SWIG_Guile_MakePtr ($1, $descriptor);
 }
+
+%typemap(out) SWIGTYPE *DYNAMIC {
+    swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,(void **) &$1);
+    $result = SWIG_Guile_MakePtr ($1, ty);
+}
     
 %typemap(varout) SWIGTYPE * {
     $result = SWIG_Guile_MakePtr ($1, $descriptor);
@@ -116,6 +121,11 @@
 
 %typemap(out) SWIGTYPE & {
   $result = SWIG_Guile_MakePtr ($1, $descriptor);
+}
+
+%typemap(out) SWIGTYPE &DYNAMIC {
+    swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,(void **) &$1);
+    $result = SWIG_Guile_MakePtr ($1, ty);
 }
 
 #endif

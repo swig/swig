@@ -97,6 +97,11 @@
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
      "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) $1, $1_descriptor));";
 
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
+     swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,(void **) &$1);
+     Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) $1, ty));
+}
+
 %typemap(out) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE INSTANCE[]
      "Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp, (void *) $1, $1_descriptor,0));";
 

@@ -67,6 +67,11 @@
 %typemap(out) SWIGTYPE *, SWIGTYPE [], SWIGTYPE &
 	"SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor);";
 
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
+        swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+	SWIG_SetPointerZval(return_value, (void *)$1, ty);
+}
+
 %typemap(out) SWIGTYPE
 #ifdef __cplusplus
 {

@@ -85,6 +85,7 @@
     "ST(argvi) = sv_newmortal();
      SWIG_MakePtr(ST(argvi++), (void *) $1, $1_descriptor);";
 
+
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
 {
@@ -100,6 +101,14 @@
   SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor);
 }
 #endif
+
+/* Dynamic casts */
+
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
+  swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+  ST(argvi) = sv_newmortal();
+  SWIG_MakePtr(ST(argvi++), (void *) $1, ty);
+}
 
 %typemap(out) void "";
 

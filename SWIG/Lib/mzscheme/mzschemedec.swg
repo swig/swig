@@ -38,12 +38,14 @@ swig_package_values(int num, Scheme_Object **values);
 
   
 typedef struct SwigPtrType SwigPtrType;
+typedef struct swig_type_info *(*swig_dycast_func)(void **);
 
 typedef struct swig_type_info {
   const char  *name;
   void *(*converter)(void *);
   const char  *str;
   SwigPtrType *ptrtype;
+  swig_dycast_func        dcast;
 } swig_type_info;
 
 SWIGSTATIC SwigPtrType *
@@ -51,6 +53,10 @@ SWIG_RegisterType (const char *type, const char *prettyname);
 
 SWIGSTATIC void
 SWIG_RegisterMapping (const char *origtype, const char *newtype, void *(*cast)(void *));
+
+/* Dynamic pointer casting. Down an inheritance hierarchy */
+SWIGSTATIC swig_type_info * 
+SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr);
   
 SWIGSTATIC Scheme_Object *
 SWIG_MakePtr(void *c_pointer, swig_type_info *type);

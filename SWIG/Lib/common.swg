@@ -49,11 +49,13 @@ extern "C" {
 #endif
 
 typedef void *(*swig_converter_func)(void *);
+typedef struct swig_type_info *(*swig_dycast_func)(void **);
 
 typedef struct swig_type_info {
   const char             *name;                 
   swig_converter_func     converter;
   const char             *str;
+  swig_dycast_func        dcast;
   struct swig_type_info  *next;
   struct swig_type_info  *prev;
   void                   *clientdata;	
@@ -63,9 +65,10 @@ typedef struct swig_type_info {
 
 SWIGIMPORT(swig_type_info *) SWIG_TypeRegister(swig_type_info *);
 SWIGIMPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
-SWIGIMPORT(void *) SWIG_TypeCast(swig_type_info *, void *);
+SWIGIMPORT(void *)           SWIG_TypeCast(swig_type_info *, void *);
+SWIGIMPORT(swig_type_info *) SWIG_TypeDynamicCast(swig_type_info *, void **);
 SWIGIMPORT(swig_type_info *) SWIG_TypeQuery(const char *);
-SWIGIMPORT(void) SWIG_TypeClientData(swig_type_info *, void *);
+SWIGIMPORT(void)             SWIG_TypeClientData(swig_type_info *, void *);
 
 #else
 
@@ -135,12 +138,25 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
   return 0;
 }
 
-/* Cast a pointer (needed for C++ inheritance */
+/* Cast a pointer up an inheritance hierarchy */
 SWIGRUNTIME(void *) 
 SWIG_TypeCast(swig_type_info *ty, void *ptr) 
 {
   if ((!ty) || (!ty->converter)) return ptr;
   return (*ty->converter)(ptr);
+}
+
+/* Dynamic pointer casting. Down an inheritance hierarchy */
+SWIGRUNTIME(swig_type_info *) 
+SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) 
+{
+  swig_type_info *lastty = ty;
+  if (!ty || !ty->dcast) return ty;
+  while (ty && (ty->dcast)) {
+     ty = (*ty->dcast)(ptr);
+     if (ty) lastty = ty;
+  }
+  return lastty;
 }
 
 /* Search for a swig_type_info structure */

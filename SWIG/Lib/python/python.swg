@@ -85,6 +85,13 @@
 /* Pointers, references, and arrays */
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, $owner);";
 
+/* Dynamic casts */
+
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
+   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+   $result = SWIG_NewPointerObj((void *) $1, ty, $owner);
+}
+
 /* Member pointer */
 %typemap(out) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor);";
 

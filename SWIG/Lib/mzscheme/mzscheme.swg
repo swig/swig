@@ -229,6 +229,20 @@ void SWIG_RegisterTypes(swig_type_info **table,
   }    
 }
 
+
+/* Dynamic pointer casting. Down an inheritance hierarchy */
+SWIGSTATIC swig_type_info * 
+SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) 
+{
+  swig_type_info *lastty = ty;
+  if (!ty || !ty->dcast) return ty;
+  while (ty && (ty->dcast)) {
+     ty = (*ty->dcast)(ptr);
+     if (ty) lastty = ty;
+  }
+  return lastty;
+}
+
 static Scheme_Object *
 swig_package_values(int num, Scheme_Object **values)
 {

@@ -87,6 +87,7 @@ GSWIG_scm2char (SCM s)
 /* Type system */
 
 typedef void *(*swig_converter_func)(void *);
+typedef struct swig_type_info *(*swig_dycast_func)(void **);
 
 typedef struct SwigPtrType SwigPtrType;
 
@@ -95,6 +96,7 @@ typedef struct swig_type_info {
   swig_converter_func converter;
   const char  *str;
   size_t tag;
+  swig_dycast_func        dcast;
 } swig_type_info;
 
 SWIGSTATIC void
@@ -110,6 +112,11 @@ SWIG_Guile_RegisterTypes (swig_type_info **table,
 SWIGSTATIC void
 SWIG_RegisterMapping (const char *origtype, const char *newtype,
                       swig_converter_func cast);
+
+
+/* Dynamic pointer casting. Down an inheritance hierarchy */
+SWIGSTATIC swig_type_info * 
+SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr);
 
 /* Register SWIG smobs with Guile.  */
 SWIGSTATIC void

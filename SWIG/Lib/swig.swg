@@ -206,4 +206,13 @@ public:
 %}
 #endif
 
+/* Macro for setting a dynamic cast function */
+%define DYNAMIC_CAST(mangle,func)
+%init %{
+   mangle->dcast = (swig_dycast_func) func;
+%}
+%enddef
+
+
+
 

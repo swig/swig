@@ -177,6 +177,19 @@ SWIG_Cast (void *source, size_t source_type,
   }
 }
 
+/* Dynamic pointer casting. Down an inheritance hierarchy */
+SWIGSTATIC swig_type_info * 
+SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) 
+{
+  swig_type_info *lastty = ty;
+  if (!ty || !ty->dcast) return ty;
+  while (ty && (ty->dcast)) {
+     ty = (*ty->dcast)(ptr);
+     if (ty) lastty = ty;
+  }
+  return lastty;
+}
+
 /* Function for getting a pointer value */
 
 static unsigned long swig_tag = 0;
