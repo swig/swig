@@ -77,7 +77,6 @@ static Hash	*shadow_php_vars;
 static Hash	*shadow_c_vars;
 static String	*shadow_classdef;
 static String 	*shadow_code;
-static char	*shadow_variable_name = 0;
 static int	classdef_emitted = 0;
 static int	have_default_constructor = 0;
 static int	native_func = 0;	// Set to 1 when wrapping a native function
@@ -251,13 +250,14 @@ void create_extra_files(void) {
 	}
 
 	Printf(f_extra,
-	    "# $Id$\n\n");
-	Printf(f_extra, "LTLIBRARY_NAME          = lib%s.la\n", module);
-	Printf(f_extra, "LTLIBRARY_SOURCES       = %s_wrap.c\n", module);
-	Printf(f_extra, "LTLIBRARY_SHARED_NAME   = %s.la\n", module);
-	Printf(f_extra, "LTLIBRARY_SHARED_LIBADD = $(%s_SHARED_LIBADD)\n\n",
-	    cap_module);
-	Printf(f_extra, "include $(top_srcdir)/build/dynlib.mk\n");
+	     "# $Id$\n\n"
+	     "LTLIBRARY_NAME          = lib%s.la\n"
+	     "LTLIBRARY_SOURCES       = %s_wrap.%s\n"
+	     "LTLIBRARY_SHARED_NAME   = %s.la\n"
+	     "LTLIBRARY_SHARED_LIBADD = $(%s_SHARED_LIBADD)\n\n"
+	     "include $(top_srcdir)/build/dynlib.mk\n",
+	module, module, (CPlusPlus?"cxx":"c"), module, cap_module);
+
 	Close(f_extra);
 
 	/* Now config.m4 */
@@ -268,115 +268,68 @@ void create_extra_files(void) {
 	}
 
 	Printf(f_extra,
-	    "dnl $Id$\n");
-	Printf(f_extra,
-	    "dnl config.m4 for extension %s\n\n", module);
-	Printf(f_extra,
-	    "dnl Comments in this file start with the string 'dnl'.\n");
-	Printf(f_extra,
-	    "dnl Remove where necessary. This file will not work\n");
-	Printf(f_extra,
-	    "dnl without editing.\n\n");
-
-	Printf(f_extra,
-	    "dnl If your extension references somthing external, use:\n\n");
-	Printf(f_extra,
-	    "dnl PHP_ARG_WITH(%s, for %s support,\n", module, module);
-	Printf(f_extra,
-	    "dnl Make sure that the comment is aligned:\n");
-	Printf(f_extra,
+	    "dnl $Id$\n"
+	    "dnl config.m4 for extension %s\n\n"
+	    "dnl Comments in this file start with the string 'dnl'.\n"
+	    "dnl Remove where necessary. This file will not work\n"
+	    "dnl without editing.\n\n"
+	    "dnl If your extension references somthing external, use:\n\n"
+	    "dnl PHP_ARG_WITH(%s, for %s support,\n"
+	    "dnl Make sure that the comment is aligned:\n"
 	    "dnl [  --with-%s           Include %s support])\n\n",
-	    module, module);
+	    module, module, module, module, module);
 
 	Printf(f_extra,
-	    "dnl Otherwise use enable:\n\n");
-	Printf(f_extra,
-	    "PHP_ARG_ENABLE(%s, whether to enable %s support,\n",
-	        module, module);
-	Printf(f_extra,
-	    "dnl Make sure that the comment is aligned:\n");
-	Printf(f_extra,
-	    "[  --enable-%s     Enable %s support])\n\n", module, module);
-
-	Printf(f_extra,
-	    "if test \"$PHP_%s\" != \"no\"; then\n", cap_module);
-	Printf(f_extra,
-	    "  dnl Write more examples of tests here\n\n");
-	Printf(f_extra,
-	    "  dnl # --with-%s -> check with-path\n", module);
-	Printf(f_extra,
+	    "dnl Otherwise use enable:\n\n"
+	    "PHP_ARG_ENABLE(%s, whether to enable %s support,\n"
+	    "dnl Make sure that the comment is aligned:\n"
+	    "[  --enable-%s     Enable %s support])\n\n"
+	    "if test \"$PHP_%s\" != \"no\"; then\n"
+	    "  dnl Write more examples of tests here\n\n"
+	    "  dnl # --with-%s -> check with-path\n"
 	    "  dnl # you might want to change this\n"
-	    "  dnl SEARCH_PATH=\"/usr/local /usr\"\n");
-	Printf(f_extra,
+	    "  dnl SEARCH_PATH=\"/usr/local /usr\"\n"
 	    "  dnl # you most likely want to change this\n"
-	    "  dnl SEARCH_FOR=\"/include/%s.h\"\n", module);
-	Printf(f_extra,
+	    "  dnl SEARCH_FOR=\"/include/%s.h\"\n"
 	    "  dnl # path given as parameter\n"
-	    "  dnl if test -r $PHP_%s/; then\n", module);
-	Printf(f_extra,
-	    "  dnl   %s_DIR=$PHP_%s\n", cap_module, cap_module);
-	Printf(f_extra,
-	    "  dnl else # search default path list\n");
-	Printf(f_extra,
-	    "  dnl   AC_MSG_CHECKING(for %s files in default path)\n", module);
-	Printf(f_extra,
-	    "  dnl   for i in $SEARCH_PATH; do\n");
-	Printf(f_extra,
-	    "  dnl     if test -r $i/$SEARCH_FOR; then\n");
-	Printf(f_extra,
-	    "  dnl       %s_DIR=$i\n", cap_module);
-	Printf(f_extra,
-	    "  dnl       AC_MSG_RESULT(found in $i)\n");
-	Printf(f_extra,
-	    "  dnl     fi\n");
-	Printf(f_extra,
-	    "  dnl   done\n");
-	Printf(f_extra,
-	    "  dnl fi\n");
-	Printf(f_extra,
-	    "  dnl\n");
-	Printf(f_extra,
-	    "  dnl if test -z \"$%s_DIR\"; then\n", cap_module);
-	Printf(f_extra,
-	    "  dnl   AC_MSG_RESULT(not found)\n");
-	Printf(f_extra,
-	    "  dnl   AC_MSG_ERROR(Please reinstall the %s distribution)\n",
-	    module);
-	Printf(f_extra,
-	    "  dnl fi\n\n");
-	Printf(f_extra,
-	    "  dnl # --with-%s -> add include path\n", module);
-	Printf(f_extra,
-	    "  dnl PHP_ADD_INCLUDE($%s_DIR/include)\n\n", cap_module);
-	Printf(f_extra,
-	    "  dnl #--with-%s -> check for lib and symbol presence\n", module);
-	Printf(f_extra,
-	    "  dnl LIBNAME=%s # you may want to change this\n", module);
-	Printf(f_extra,
-	    "  dnl LIBSYMBOL=%s #  you most likely want to change this\n",
-	    module);
-	Printf(f_extra,
-	    "  dnl old_LIBS=$LIBS\n");
-	Printf(f_extra,
-	    "  dnl LIBS=\"$LIBS -L$%s_DIR/lib -lm -ldl\"\n", cap_module);
-	Printf(f_extra,
-	    "  dnl AC_CHECK_LIB($LIBNAME, $LIBSYMBOL, [AC_DEFINE(HAVE_%sLIB,1,[ ])],\n",
-	    cap_module);
-	Printf(f_extra,
-	    "  dnl [AC_MSG_ERROR(wrong %s lib version or lib not found)])\n",
-	    module);
-	Printf(f_extra,
-	    "  dnl LIBS=$old_LIBS\n");
-	Printf(f_extra,
-	    "  dnl\n");
-	Printf(f_extra,
-	    "  dnl PHP_SUBST(%s_SHARED_LIBADD)\n", cap_module);
-	Printf(f_extra,
-	    "  dnl PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $%s_DIR/lib, SAPRFC_SHARED_LIBADD)\n\n",
-	    cap_module);
-	Printf(f_extra,
-	    "  PHP_EXTENSION(%s, $ext_shared)\n", module);
-	Printf(f_extra,"fi\n");
+	    "  dnl if test -r $PHP_%s/; then\n"
+	    "  dnl   %s_DIR=$PHP_%s\n"
+	    "  dnl else # search default path list\n"
+	    "  dnl   AC_MSG_CHECKING(for %s files in default path)\n"
+	    "  dnl   for i in $SEARCH_PATH; do\n"
+	    "  dnl     if test -r $i/$SEARCH_FOR; then\n"
+	    "  dnl       %s_DIR=$i\n"
+	    "  dnl       AC_MSG_RESULT(found in $i)\n"
+	    "  dnl     fi\n"
+	    "  dnl   done\n"
+	    "  dnl fi\n"
+	    "  dnl\n"
+	    "  dnl if test -z \"$%s_DIR\"; then\n"
+	    "  dnl   AC_MSG_RESULT(not found)\n"
+	    "  dnl   AC_MSG_ERROR(Please reinstall the %s distribution)\n"
+	    "  dnl fi\n\n"
+	    "  dnl # --with-%s -> add include path\n"
+	    "  dnl PHP_ADD_INCLUDE($%s_DIR/include)\n\n"
+	    "  dnl #--with-%s -> check for lib and symbol presence\n"
+	    "  dnl LIBNAME=%s # you may want to change this\n"
+	    "  dnl LIBSYMBOL=%s #  you most likely want to change this\n"
+	    "  dnl old_LIBS=$LIBS\n"
+	    "  dnl LIBS=\"$LIBS -L$%s_DIR/lib -lm -ldl\"\n"
+	    "  dnl AC_CHECK_LIB($LIBNAME, $LIBSYMBOL, [AC_DEFINE(HAVE_%sLIB,1,"
+	    "  [ ])],\n"
+	    "  dnl [AC_MSG_ERROR(wrong %s lib version or lib not found)])\n"
+	    "  dnl LIBS=$old_LIBS\n"
+	    "  dnl\n"
+	    "  dnl PHP_SUBST(%s_SHARED_LIBADD)\n"
+	    "  dnl PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $%s_DIR/lib, "
+	    "  SAPRFC_SHARED_LIBADD)\n\n"
+	    "  PHP_EXTENSION(%s, $ext_shared)\n"
+	    "  fi\n",
+	    module, module, module, module, cap_module, module, module, module,
+	    cap_module, cap_module, module, cap_module, cap_module, module,
+	    module, cap_module, module, module, module, cap_module, cap_module,
+	    module, cap_module, cap_module, module);
+
 	Close(f_extra);
 
 	/*  CREDITS */
@@ -520,6 +473,7 @@ PHP4::top(Node *n) {
       "#endif\n"
       "#include \"php.h\"\n"
       "#include \"php_ini.h\"\n"
+      "#include \"ext/standard/info.h\"\n"
       "#include \"php_%s.h\"\n"
       "#ifdef __cplusplus\n"
       "}\n"
@@ -580,13 +534,17 @@ PHP4::top(Node *n) {
   if (gen_extra)
 	Printf(s_init,"#endif\n\n");
 
-  Printf(s_init,"PHP_MINIT_FUNCTION(%s)\n{\n", module);
-  Printf(s_init,"    return SUCCESS;\n");
-  Printf(s_init,"}\n");
+  Printf(s_init,
+	"PHP_MINIT_FUNCTION(%s)\n{\n"
+  	"    return SUCCESS;\n"
+  	"}\n",
+	module);
 
-  Printf(s_init,"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n", module);
-  Printf(s_init,"    return SUCCESS;\n");
-  Printf(s_init,"}\n");
+  Printf(s_init,
+	"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n"
+  	"    return SUCCESS;\n"
+  	"}\n",
+	module);
 
 
   /* finish our init section */
@@ -627,63 +585,73 @@ PHP4::top(Node *n) {
   Printf(s_init, "    return SUCCESS;\n");
   Printf(s_init,"}\n");
 
-  Printf(s_init,"PHP_RSHUTDOWN_FUNCTION(%s)\n{\n", module);
-  Printf(s_init,"    return SUCCESS;\n");
-  Printf(s_init,"}\n");
+  Printf(s_init,
+	"PHP_RSHUTDOWN_FUNCTION(%s)\n{\n"
+  	"    return SUCCESS;\n"
+  	"}\n",
+	module);
 
-  Printf(s_init,"PHP_MINFO_FUNCTION(%s)\n{\n", module);
-  Printf(s_init,"%s", pragma_phpinfo);
-  Printf(s_init,"}\n");
-  Printf(s_init, "/* end init section */\n");
+  Printf(s_init,
+	"PHP_MINFO_FUNCTION(%s)\n{\n"
+  	"%s"
+  	"}\n"
+  	"/* end init section */\n",
+	module, pragma_phpinfo);
 
   /* Complete header file */
 
   Printf(f_h,
-    "/*If you declare any globals in php_%s.h uncomment this:\n", module);
-  Printf(f_h,"ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
-  Printf(f_h,"ZEND_END_MODULE_GLOBALS(%s)\n", module);
-  Printf(f_h,"*/\n");
+    "/*If you declare any globals in php_%s.h uncomment this:\n"
+    "ZEND_BEGIN_MODULE_GLOBALS(%s)\n"
+    "ZEND_END_MODULE_GLOBALS(%s)\n"
+    "*/\n",
+    module, module, module);
 
-  Printf(f_h,"#ifdef ZTS\n");
-  Printf(f_h,"#define %s_D  zend_%s_globals *%s_globals\n", cap_module,
-    module, module);
-  Printf(f_h,"#define %s_DC  , %s_D\n",  cap_module, cap_module);
-  Printf(f_h,"#define %s_C  %s_globals\n", cap_module, module);
-  Printf(f_h,"#define %s_CC  , %s_C\n", cap_module, cap_module);
-  Printf(f_h,"#define %s_SG(v)  (%s_globals->v)\n", cap_module, module);
-  Printf(f_h,"#define %s_FETCH()  zend_%s_globals *%s_globals "
-    "= ts_resource(%s_globals_id)\n", cap_module, module, module, module);
-  Printf(f_h,"#else\n");
-  Printf(f_h,"#define %s_D\n", cap_module);  
-  Printf(f_h,"#define %s_DC\n", cap_module);
-  Printf(f_h,"#define %s_C\n", cap_module);
-  Printf(f_h,"#define %s_CC\n", cap_module);
-  Printf(f_h,"#define %s_SG(v)  (%s_globals.v)\n", cap_module, module);
-  Printf(f_h,"#define %s_FETCH()\n", cap_module);
-  Printf(f_h,"#endif\n\n");
-  Printf(f_h,"#endif /* PHP_%s_H */\n", cap_module);
+  Printf(f_h,
+  "#ifdef ZTS\n"
+  "#define %s_D  zend_%s_globals *%s_globals\n"
+  "#define %s_DC  , %s_D\n"
+  "#define %s_C  %s_globals\n"
+  "#define %s_CC  , %s_C\n"
+  "#define %s_SG(v)  (%s_globals->v)\n"
+  "#define %s_FETCH()  zend_%s_globals *%s_globals "
+  "= ts_resource(%s_globals_id)\n"
+  "#else\n"
+  "#define %s_D\n"
+  "#define %s_DC\n"
+  "#define %s_C\n"
+  "#define %s_CC\n"
+  "#define %s_SG(v)  (%s_globals.v)\n"
+  "#define %s_FETCH()\n"
+  "#endif\n\n"
+  "#endif /* PHP_%s_H */\n",
+  cap_module, module, module, cap_module, cap_module, cap_module, module,
+  cap_module, cap_module, cap_module, module, cap_module, module, module,
+  module, cap_module, cap_module, cap_module, cap_module, cap_module, module,
+  cap_module, cap_module);
 	
   Close(f_h);
 
-  Printf(s_header, "%s", s_entry);
-
-  Printf(s_header,"	{NULL, NULL, NULL}\n};\n\n");
-  Printf(s_header,"zend_module_entry %s_module_entry = {\n", module);
-  Printf(s_header,"#if ZEND_MODULE_API_NO > 20010900\n");
-  Printf(s_header,"    STANDARD_MODULE_HEADER,\n");
-  Printf(s_header,"#endif\n");
-  Printf(s_header,"    \"%s\",\n", module);
-  Printf(s_header,"    %s_functions,\n", module);
-  Printf(s_header,"    PHP_MINIT(%s),\n", module);
-  Printf(s_header,"    PHP_MSHUTDOWN(%s),\n", module);
-  Printf(s_header,"    PHP_RINIT(%s),\n", module);
-  Printf(s_header,"    PHP_RSHUTDOWN(%s),\n", module);
-  Printf(s_header,"    PHP_MINFO(%s),\n", module);
-  Printf(s_header,"#if ZEND_MODULE_API_NO > 20010900\n");
-  Printf(s_header,"    NO_VERSION_YET,\n");
-  Printf(s_header,"#endif\n");
-  Printf(s_header,"    STANDARD_MODULE_PROPERTIES\n");
-  Printf(s_header,"};\n\n");
+  Printf(s_header, 
+	"%s"
+  	"	{NULL, NULL, NULL}\n};\n\n"
+  	"zend_module_entry %s_module_entry = {\n"
+  	"#if ZEND_MODULE_API_NO > 20010900\n"
+  	"    STANDARD_MODULE_HEADER,\n"
+  	"#endif\n"
+  	"    \"%s\",\n"
+  	"    %s_functions,\n"
+  	"    PHP_MINIT(%s),\n"
+  	"    PHP_MSHUTDOWN(%s),\n"
+  	"    PHP_RINIT(%s),\n"
+  	"    PHP_RSHUTDOWN(%s),\n"
+  	"    PHP_MINFO(%s),\n"
+  	"#if ZEND_MODULE_API_NO > 20010900\n"
+  	"    NO_VERSION_YET,\n"
+  	"#endif\n"
+  	"    STANDARD_MODULE_PROPERTIES\n"
+  	"};\n\n",
+	s_entry, module, module, module, module, module, module, module,module);
 
   Printv(f_runtime, s_header, NULL);
 
@@ -716,29 +684,6 @@ PHP4::top(Node *n) {
 
   return SWIG_OK;
 }
-
-
-#if 0
-void
-PHP4::set_module(char *mod_name) {
-	char *c;
-	if(module) return;
-	module = NewString(mod_name);
-	cap_module = Copy(module);
-	for(c = Char(cap_module); *c != '\0'; c++) {
-		if((*c >= 'a') && (*c <= 'z'))
-			*c-=32;	
-	}
-}
-
-#endif
-
-/*
-void
-PHP4::add_method(char *name, char *function, int kw) {
-	fprintf(stderr, "Would add method %s\n", name);
-}
-*/
 
 /* Just need to append function names to function table to register with
    PHP
@@ -776,10 +721,10 @@ PHP4::functionWrapper(Node *n) {
   int need_save, num_saved = 0;
   String *cleanup, *outarg;
 
-  if(shadow && wrapping_member && !enum_flag) {
+  if(shadow && variable_wrapper_flag && !enum_flag) {
     String *member_function_name = NewString("");
     String *php_function_name = NewString(iname);
-    if(strcmp(iname, Char(Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name)))) == 0) {
+    if(strcmp(iname, Char(Swig_name_set(Swig_name_member(shadow_classname, name)))) == 0) {
 	Printf(member_function_name, "set");
     	if(!no_sync) {
 	  Setattr(shadow_c_vars, php_function_name, name);
@@ -789,8 +734,8 @@ PHP4::functionWrapper(Node *n) {
 	if(!no_sync) 
 	   Setattr(shadow_php_vars, php_function_name, name);
     }
-    Putc(toupper((int )*shadow_variable_name), member_function_name);
-    Printf(member_function_name, "%s", shadow_variable_name+1);
+    Putc(toupper((int )*iname), member_function_name);
+    Printf(member_function_name, "%s", iname+1);
 
     cpp_func(Char(member_function_name), d, l, php_function_name);
 
@@ -798,7 +743,12 @@ PHP4::functionWrapper(Node *n) {
     Delete(member_function_name);
   }
 
-  if(!shadow)
+   /* If shadow not set all functions exported. If shadow set only
+    * non-wrapped functions exported ( the wrapped ones are accessed
+    * through the class. )
+   */
+
+  if(!shadow || !wrapping_member)
 	  create_command(iname, Char(Swig_name_wrapper(iname)));
 
   outarg = cleanup = NULL;
@@ -825,17 +775,25 @@ PHP4::functionWrapper(Node *n) {
 
   if(numopt > 0) {
     Wrapper_add_local(f, "arg_count", "int arg_count");
-    Printf(f->code,"arg_count = ZEND_NUM_ARGS();\n");
-    Printf(f->code,"if(arg_count<%d || arg_count>%d)\n",num_required,num_arguments);
-    Printf(f->code,"\tWRONG_PARAM_COUNT;\n\n");
+
+    Printf(f->code,
+	  "arg_count = ZEND_NUM_ARGS();\n"
+    	  "if(arg_count<%d || arg_count>%d)\n"
+          "\tWRONG_PARAM_COUNT;\n\n",
+    	  num_required, num_arguments);
 
     /* Verified args, retrieve them... */
-    Printf(f->code,"if(zend_get_parameters_array_ex(arg_count,args)!=SUCCESS)");
-    Printf(f->code, "\n\t\tWRONG_PARAM_COUNT;\n\n");
+    Printf(f->code,
+	  "if(zend_get_parameters_array_ex(arg_count,args)!=SUCCESS)"
+          "\n\t\tWRONG_PARAM_COUNT;\n\n");
 
   } else {
-   Printf(f->code, "if((ZEND_NUM_ARGS() != %d) || (zend_get_parameters_array_ex(%d, args) != SUCCESS)) {\n", num_arguments, num_arguments);
-   Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");
+
+   Printf(f->code, 
+	 "if((ZEND_NUM_ARGS() != %d) || (zend_get_parameters_array_ex(%d, args)"
+	 "!= SUCCESS)) {\n"
+   	 "WRONG_PARAM_COUNT;\n}\n\n",
+   	 num_arguments, num_arguments);
   }
   
   /* Now convert from php to C variables */
@@ -880,21 +838,34 @@ PHP4::functionWrapper(Node *n) {
       case T_USHORT :
       case T_ULONG :
       case T_UCHAR :
-	Printf(f->code,"convert_to_long_ex(args[%d]);\n", i);
-	Printf(f->code,"%s =(%s)Z_LVAL_PP(args[%d]);\n", target, SwigType_lstr(pt,0),i);
+
+	Printf(f->code,
+	      "convert_to_long_ex(args[%d]);\n"
+	      "%s =(%s)Z_LVAL_PP(args[%d]);\n",
+	      i, target, SwigType_lstr(pt,0),i);
 	break;
+
       case T_CHAR :
-	Printf(f->code,"convert_to_string_ex(args[%d]);\n", i);
-	Printf(f->code,"\t%s = (char) *Z_STRVAL_PP(args[%d]);\n", target, i);
+
+	Printf(f->code,
+	      "convert_to_string_ex(args[%d]);\n"
+	      "\t%s = (char) *Z_STRVAL_PP(args[%d]);\n", 
+	      i, target, i);
 	break;
+
       case T_DOUBLE :
       case T_FLOAT :
-	Printf(f->code,"convert_to_double_ex(args[%d]);\n", i);
-	Printf(f->code,"\t%s = (%s)Z_DVAL_PP(args[%d]);\n", target, SwigType_lstr(pt,0), i);
+
+	Printf(f->code,
+	      "convert_to_double_ex(args[%d]);\n"
+	      "\t%s = (%s)Z_DVAL_PP(args[%d]);\n", 
+	      i, target, SwigType_lstr(pt,0), i);
 	break;
+
       case T_VOID :
 	break;
       case T_USER :
+
 	SwigType_add_pointer(pt);
 	sprintf(temp,"argument %d", i+1);
 	Printf(f->code,"convert_to_string_ex(args[%d]);\n", i);
@@ -902,14 +873,19 @@ PHP4::functionWrapper(Node *n) {
 	SwigType_del_pointer(pt);
 	break;
       case T_POINTER: case T_ARRAY: case T_REFERENCE:
+
 	sprintf(temp,"argument %d", i+1);
 	Printf(f->code,"convert_to_string_ex(args[%d]);\n", i);
 	get_pointer(iname,temp,source,target, pt, f->code, (char *)"");
 	break;
       case T_STRING:
-	Printf(f->code,"convert_to_string_ex(args[%d]);\n", i);
-	Printf(f->code,"\t%s = (char *)Z_STRVAL_PP(args[%d]);\n", target, i);
+
+	Printf(f->code,
+	      "convert_to_string_ex(args[%d]);\n"
+	      "\t%s = (char *)Z_STRVAL_PP(args[%d]);\n", 
+	      i, target, i);
 	break;
+
       default :
 	Printf(stderr,"%s : Line %d, Unable to use type %s as a function argument.\n", input_file, line_number, SwigType_str(pt,0));
 	break;
@@ -1178,18 +1154,21 @@ PHP4::variableWrapper(Node *n) {
 	break;
   case T_POINTER:
   case T_REFERENCE:
-	Printf(s_vinit, "{\n\tzval *z_var;\n");
-	Printf(s_vinit, "\tMAKE_STD_ZVAL(z_var);\n");
-	Printf(s_vinit, "\tSWIG_SetPointerZval(z_var, (void*)%s, SWIGTYPE%s);\n", name,SwigType_manglestr(t));
-	Printf(s_vinit, "\tzend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var, sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
-	Printf(s_vinit,
-	    "{\n"
-	    "    zval *z_var;\n"
-	    "    MAKE_STD_ZVAL(z_var);\n"
-	    "    SWIG_SetPointerZval(z_var, (void*)%s, SWIGTYPE%s);\n"
-            "    zend_hash_add(&EG(symbol_table), \"%s\", %d,"
-	    "        (void *)&z_var, sizeof(zval *), NULL);\n"
-	    "}\n", name, SwigType_manglestr(t), name, strlen(name)+1);
+	Printf(s_vinit, 
+	      "{\n\tzval *z_var;\n"
+	      "\tMAKE_STD_ZVAL(z_var);\n"
+	      "\tSWIG_SetPointerZval(z_var, (void*)%s, SWIGTYPE%s);\n"
+	      "\tzend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var,"
+	      "sizeof(zval *), NULL);\n}\n"
+	      "{\n"
+	      "    zval *z_var;\n"
+	      "    MAKE_STD_ZVAL(z_var);\n"
+	      "    SWIG_SetPointerZval(z_var, (void*)%s, SWIGTYPE%s);\n"
+              "    zend_hash_add(&EG(symbol_table), \"%s\", %d,"
+	      "        (void *)&z_var, sizeof(zval *), NULL);\n"
+	      "}\n",
+	      name, SwigType_manglestr(t), name, strlen(name)+1,
+	      name, SwigType_manglestr(t), name, strlen(name)+1);
 
 	break;
   default:
@@ -1211,53 +1190,74 @@ PHP4::variableWrapper(Node *n) {
   case T_SCHAR:
   case T_UCHAR:
 	Wrapper_add_local(f_php, "z_var", "zval **z_var");
-	Printf(f_php->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	Printf(f_php->code, "if(%s != (%s)((*z_var)->value.lval)) {\n", name, SwigType_lstr(t, 0));
-	Printf(f_php->code, "(*z_var)->value.lval = (long)%s;\n", name);
-	Printf(f_php->code, "}\n");
+
+	Printf(f_php->code, 
+	      "zend_hash_find(&EG(symbol_table),\"%s\",%d,(void **)&z_var);\n"
+	      "if(%s != (%s)((*z_var)->value.lval)) {\n"
+	      "(*z_var)->value.lval = (long)%s;\n"
+	      "}\n",
+	      name, strlen(name)+1, name, SwigType_lstr(t, 0), name);
 	break;
 
   case T_DOUBLE:
   case T_FLOAT:
 	Wrapper_add_local(f_php, "z_var", "zval **z_var");
-	Printf(f_php->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	Printf(f_php->code, "if(%s != (%s)((*z_var)->value.dval)) {\n", name, SwigType_lstr(t, 0));
-	Printf(f_php->code, "(*z_var)->value.dval = (double)%s;\n", name);
-	Printf(f_php->code, "}\n");
+
+	Printf(f_php->code, 
+	     "zend_hash_find(&EG(symbol_table),\"%s\",%d, (void **)&z_var);\n"
+	     "if(%s != (%s)((*z_var)->value.dval)) {\n"
+	     "(*z_var)->value.dval = (double)%s;\n"
+	     "}\n",
+	     name, strlen(name)+1, name, SwigType_lstr(t, 0), name);
+
 	break;
   case T_CHAR:
 	Wrapper_add_local(f_php, "z_var", "zval **z_var");
-	Printf(f_php->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	Printf(f_php->code, "if(%s != *((*z_var)->value.str.val)) {\n", name);
-	Printf(f_php->code, "char c[2];\n");
-	Printf(f_php->code, "efree((*z_var)->value.str.val);\n"); 
-	Printf(f_php->code, "c[0] = %s;\n", name);
-	Printf(f_php->code, "c[1] = 0;\n");
-	Printf(f_php->code, "(*z_var)->value.str.val = estrdup(c);\n");
-	Printf(f_php->code, "}\n");
+
+	Printf(f_php->code, 
+	      "zend_hash_find(&EG(symbol_table), \"%s\",%d,(void **)&z_var);\n"
+	      "if(%s != *((*z_var)->value.str.val)) {\n"
+	      "char c[2];\n"
+	      "efree((*z_var)->value.str.val);\n"
+	      "c[0] = %s;\n"
+	      "c[1] = 0;\n"
+	      "(*z_var)->value.str.val = estrdup(c);\n"
+	      "}\n",
+	      name, strlen(name)+1, name, name);
+
 	break;
   case T_STRING:
 	Wrapper_add_local(f_php, "z_var", "zval **z_var");
 	Wrapper_add_local(f_php, "s1", "char *s1");
-	Printf(f_php->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	Printf(f_php->code, "s1 = Z_STRVAL_PP(z_var);\n");
-	Printf(f_php->code, "if((s1 == NULL) || (%s == NULL) || zend_binary_strcmp(s1, strlen(s1), %s, strlen(%s) )) {\n", name, name, name);
-	Printf(f_php->code, "if(s1)\n");
-	Printf(f_php->code, "efree(s1);\n");
-	Printf(f_php->code, "if(%s) {\n", name);
-	Printf(f_php->code, "(*z_var)->value.str.val = estrdup(%s);\n", name);
-	Printf(f_php->code, "(*z_var)->value.str.len = strlen(%s)+1;\n", name);
-	Printf(f_php->code, "} else {\n");
-	Printf(f_php->code, "(*z_var)->value.str.val = 0;\n");
-	Printf(f_php->code, "(*z_var)->value.str.len = 0;\n");
-	Printf(f_php->code, "}\n}\n");
+
+	Printf(f_php->code, 
+		"zend_hash_find(&EG(symbol_table),\"%s\",%d,(void **)&z_var);\n"
+		"s1 = Z_STRVAL_PP(z_var);\n"
+		"if((s1 == NULL) || (%s == NULL) || zend_binary_strcmp(s1, "
+		"strlen(s1), %s, strlen(%s) )) {\n"
+		"if(s1)\n"
+		"efree(s1);\n"
+		"if(%s) {\n"
+		"(*z_var)->value.str.val = estrdup(%s);\n"
+		"(*z_var)->value.str.len = strlen(%s)+1;\n"
+		"} else {\n"
+		"(*z_var)->value.str.val = 0;\n"
+		"(*z_var)->value.str.len = 0;\n"
+		"}\n}\n",
+		name, strlen(name)+1, name, name, name, name, name, name);
 	break;
+
   case T_USER:
 	SwigType_add_pointer(t);
 	Wrapper_add_local(f_php, "z_var", "zval **z_var");
-	Printf(f_php->code, "{\nzend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	Printf(f_php->code, "SWIG_SetPointerZval(*z_var, (void*)&%s, SWIGTYPE%s);\n", name, SwigType_manglestr(t));
-	Printf(f_php->code, "}\n");
+
+	Printf(f_php->code, 
+		"{\nzend_hash_find(&EG(symbol_table), \"%s\", %d, "
+		"(void **)&z_var);\n"
+		"SWIG_SetPointerZval(*z_var, (void*)&%s, SWIGTYPE%s);\n"
+		"}\n",
+		name, strlen(name)+1, name, SwigType_manglestr(t));
+
 	SwigType_del_pointer(t);
 	break;
   case T_ARRAY:
@@ -1270,21 +1270,28 @@ PHP4::variableWrapper(Node *n) {
 		String *dim = SwigType_array_getdim(aop, 0);
 		Wrapper_add_local(f_php, "z_var", "zval **z_var");
 		Wrapper_add_local(f_php, "s1", "char *s1");
-		Printf(f_php->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-		Printf(f_php->code, "s1 = Z_STRVAL_PP(z_var);\n");
-		Printf(f_php->code, "if((s1 == NULL) || zend_binary_strcmp(s1, strlen(s1), %s, strlen(%s) )) {\n", name, name);
-		Printf(f_php->code, "if(%s) {\n", name);
-		Printf(f_php->code, "(*z_var)->value.str.val = estrdup(%s);\n", name);
-		Printf(f_php->code, "(*z_var)->value.str.len = strlen(%s)+1;\n", name);
-		Printf(f_php->code, "} else {\n");
-		Printf(f_php->code, "(*z_var)->value.str.val = 0;\n");
-		Printf(f_php->code, "(*z_var)->value.str.len = 0;\n");
-		Printf(f_php->code, "}\n}\n");
+
+		Printf(f_php->code, 
+		"zend_hash_find(&EG(symbol_table),\"%s\",%d,(void **)&z_var);\n"
+		"s1 = Z_STRVAL_PP(z_var);\n"
+		"if((s1 == NULL) || zend_binary_strcmp(s1, strlen(s1), %s,"
+		"strlen(%s) )) {\n"
+		"if(%s) {\n"
+		"(*z_var)->value.str.val = estrdup(%s);\n"
+		"(*z_var)->value.str.len = strlen(%s)+1;\n"
+		"} else {\n"
+		"(*z_var)->value.str.val = 0;\n"
+		"(*z_var)->value.str.len = 0;\n"
+		"}\n}\n",
+		name, strlen(name)+1, name, name, name, name, name);
+
 	} else {
 		Wrapper_add_local(f_php, "z_var", "zval **z_var");
-		Printf(f_php->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-		Printf(f_php->code, "if(%s) {\n", name);
-		Printf(f_php->code, "SWIG_SetPointerZval(*z_var, (void*)%s, SWIGTYPE);\n", name, SwigType_manglestr(t));
+		Printf(f_php->code, 
+		"zend_hash_find(&EG(symbol_table),\"%s\",%d,(void **)&z_var);\n"
+		"if(%s) {\n"
+		"SWIG_SetPointerZval(*z_var, (void*)%s, SWIGTYPE);\n",
+		name, strlen(name)+1, name, name, SwigType_manglestr(t));
 		/* Arrays are not modified directly by PHP vars */
 	}
 	Delete(ta);
@@ -1294,8 +1301,10 @@ PHP4::variableWrapper(Node *n) {
   case T_POINTER:
   case T_REFERENCE:
 	Wrapper_add_local(f_php, "z_var", "zval **z_var");
-	Printf(f_php->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	Printf(f_php->code, "SWIG_SetPointerZval(*z_var, (void *)%s, SWIGTYPE%s);\n", name, SwigType_manglestr(t));
+	Printf(f_php->code, 
+		"zend_hash_find(&EG(symbol_table),\"%s\",%d,(void **)&z_var);\n"
+		"SWIG_SetPointerZval(*z_var, (void *)%s, SWIGTYPE%s);\n", 
+		name, strlen(name)+1, name, SwigType_manglestr(t));
 	break;
   default:
 	/* error */
@@ -1317,48 +1326,68 @@ PHP4::variableWrapper(Node *n) {
   case T_SCHAR:
   case T_UCHAR:
 	Wrapper_add_local(f_c, "z_var", "zval **z_var");
-	Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	Printf(f_c->code, "if(%s != (%s)((*z_var)->value.lval)) {\n", name, SwigType_lstr(t, 0));
-	Printf(f_c->code, "%s = Z_LVAL_PP(z_var);\n", name);
-	Printf(f_c->code, "}\n");
+
+	Printf(f_c->code, 
+		"zend_hash_find(&EG(symbol_table),\"%s\",%d,(void **)&z_var);\n"
+		"if(%s != (%s)((*z_var)->value.lval)) {\n"
+		"%s = Z_LVAL_PP(z_var);\n"
+		"}\n",
+		name, strlen(name)+1, name, SwigType_lstr(t, 0), name);
 	break;
+
   case T_DOUBLE:
   case T_FLOAT:
 	Wrapper_add_local(f_c, "z_var", "zval **z_var");
-	Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	Printf(f_c->code, "if(%s != (%s)((*z_var)->value.dval)) {\n", name, SwigType_lstr(t, 0));
-	Printf(f_c->code, "%s = Z_DVAL_PP(z_var);\n", name);
-	Printf(f_c->code, "\n}\n");
+
+	Printf(f_c->code,
+		"zend_hash_find(&EG(symbol_table),\"%s\",%d,(void **)&z_var);\n"
+		"if(%s != (%s)((*z_var)->value.dval)) {\n",
+		"%s = Z_DVAL_PP(z_var);\n"
+		"\n}\n",
+		name, strlen(name)+1, name, SwigType_lstr(t, 0), name);
 	break;
+
   case T_CHAR:
 	Wrapper_add_local(f_c, "z_var", "zval **z_var");
-	Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	Printf(f_c->code, "if(%s != *((*z_var)->value.str.val)) {\n", name);
-	Printf(f_c->code, "%s = *((*z_var)->value.str.val);\n", name);
-	Printf(f_c->code, "\n}\n");
+
+	Printf(f_c->code,
+		"zend_hash_find(&EG(symbol_table),\"%s\",%d,(void **)&z_var);\n"
+		"if(%s != *((*z_var)->value.str.val)) {\n"
+		"%s = *((*z_var)->value.str.val);\n"
+		"\n}\n",
+		name, strlen(name)+1, name, name);
 	break;
 
   case T_STRING:
 	Wrapper_add_local(f_c, "z_var", "zval **z_var");
 	Wrapper_add_local(f_c, "s1", "char *s1");
-	Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	Printf(f_c->code, "s1 = Z_STRVAL_PP(z_var);\n");
-	Printf(f_c->code, "if((s1 == NULL) || (%s == NULL) || zend_binary_strcmp(s1, strlen(s1), %s, strlen(%s) )) {\n", name, name, name);
-	Printf(f_c->code, "if(s1)\n");
-	Printf(f_c->code, "%s = estrdup(s1);\n", name, name);
-	Printf(f_c->code, "else\n");
-	Printf(f_c->code, "%s = NULL;\n", name);
-	Printf(f_c->code, "}\n");
+
+	Printf(f_c->code, 
+		"zend_hash_find(&EG(symbol_table),\"%s\",%d,(void **)&z_var);\n"
+		"s1 = Z_STRVAL_PP(z_var);\n"
+		"if((s1 == NULL) || (%s == NULL) || "
+		"zend_binary_strcmp(s1, strlen(s1), %s, strlen(%s) )) {\n"
+		"if(s1)\n"
+		"%s = estrdup(s1);\n"
+		"else\n"
+		"%s = NULL;\n"
+		"}\n",
+		name, strlen(name)+1, name, name, name, name, name, name);
 	break;
 
   case T_USER:
 	SwigType_add_pointer(t);
 	Wrapper_add_local(f_c, "z_var", "zval **z_var");
-	Printf(f_c->code, "{\n %s _temp;\n", SwigType_lstr(t,0));
-	Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
+	Printf(f_c->code, 
+		"{\n %s _temp;\n"
+		"zend_hash_find(&EG(symbol_table),\"%s\",%d,(void **)&z_var);\n"
+		, SwigType_lstr(t, 0), name, strlen(name)+1);
+
 	get_pointer(name, (char*)"value", (char*)"*z_var", (char*)"&_temp", t, f_c->code,(char*)"return");
-	Printv(f_c->code, tab4, name, " = *(", SwigType_str(t,0), ") _temp;\n", NULL);
-	Printf(f_c->code,"}\n");
+
+	Printv(f_c->code, 
+	    tab4, name, " = *(", SwigType_str(t,0), ") _temp;\n", "}\n",  NULL);
+
 	SwigType_del_pointer(t);
 	break;
   case T_ARRAY:
@@ -1371,18 +1400,27 @@ PHP4::variableWrapper(Node *n) {
 		String *dim = SwigType_array_getdim(aop, 0);
 		Wrapper_add_local(f_c, "z_var", "zval **z_var");
 		Wrapper_add_local(f_c, "s1", "char *s1");
-		Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-		Printf(f_c->code, "s1 = Z_STRVAL_PP(z_var);\n");
-		Printf(f_c->code, "if((s1 == NULL) || (%s == NULL) || zend_binary_strcmp(s1, strlen(s1), %s, strlen(%s) )) {\n", name, name, name);
-		Printf(f_c->code, "if(s1) {\n");
-		Printf(f_c->code, "strncpy(%s, s1, %s);\n", name, Char(dim));
-		Printf(f_c->code, "}\n}\n");
+
+		Printf(f_c->code, 
+			"zend_hash_find(&EG(symbol_table), \"%s\", %d, "
+			"(void **)&z_var);\n"
+			"s1 = Z_STRVAL_PP(z_var);\n"
+			"if((s1 == NULL) || (%s == NULL) || "
+			"zend_binary_strcmp(s1,strlen(s1),%s,strlen(%s))) {\n"
+			"if(s1) {\n"
+			"strncpy(%s, s1, %s);\n"
+			"}\n}\n",
+			name, strlen(name)+1, name, name, name, name,Char(dim));
 	} else {
 		Wrapper_add_local(f_c, "z_var", "zval **z_var");
-		Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-		Printf(f_c->code, "if(%s) {\n", name);
-		Printf(f_c->code, "SWIG_SetPointerZval(*z_var, (void*)%s, SWIGTYPE%s);\n", name, SwigType_manglestr(t));
-		Printf(f_c->code, "}\n");
+
+		Printf(f_c->code, 
+			"zend_hash_find(&EG(symbol_table),\"%s\",%d,"
+			"(void **)&z_var);\n"
+			"if(%s) {\n"
+			"SWIG_SetPointerZval(*z_var, (void*)%s, SWIGTYPE%s);\n"
+			"}\n",
+			name,strlen(name)+1,name, name, SwigType_manglestr(t));
 		/* Arrays are not modified directly by PHP vars */
 	}
 	Delete(ta);
@@ -1391,13 +1429,22 @@ PHP4::variableWrapper(Node *n) {
 	break;
   case T_POINTER:
   case T_REFERENCE:
-	Printf(f_c->code, "{\n");
-	Printf(f_c->code, "%s _temp;\n", SwigType_lstr(t,0));
+	Printf(f_c->code, 
+		"{\n"
+		"%s _temp;\n",
+		SwigType_lstr(t,0));
+
 	Wrapper_add_local(f_c, "z_var", "zval **z_var");
-	Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
+
+	Printf(f_c->code, 
+		"zend_hash_find(&EG(symbol_table), \"%s\", %d,"
+		"(void **)&z_var);\n",
+		name, strlen(name)+1);
+
 	get_pointer(name, (char*)"value", (char*)"*(z_var)", (char*)"&_temp", t,f_c->code, (char*)"return");
-	Printv(f_c->code, tab4, name, " = (", SwigType_str(t,0), ") _temp;\n", NULL);
-	Printf(f_c->code, "}\n");
+
+	Printv(f_c->code, tab4, name, " = (", 
+		SwigType_str(t,0), ") _temp;\n", "}\n", NULL);
 	break;
   default:
 	/* error */
@@ -1671,40 +1718,47 @@ int PHP4::classHandler(Node *n) {
 
 		  if(!written_base_class) {
 		    written_base_class = 1;
-		    Printf(s_oinit,"{\nzend_class_entry *ce;\n");
-		    Printf(s_oinit,"CG(class_entry).type = ZEND_USER_CLASS;\n");
-		    Printf(s_oinit, "CG(class_entry).name = estrdup(\"%s\");\n", package);
-		    Printf(s_oinit, "CG(class_entry).name_length = strlen(\"%s\");\n", package);
-		    Printf(s_oinit, "CG(class_entry).refcount = (int *) emalloc(sizeof(int));\n");
-		    Printf(s_oinit, "*CG(class_entry).refcount = 1;\n");
-		    Printf(s_oinit, "CG(class_entry).constants_updated = 0;\n");
+		    Printf(s_oinit,
+		    "{\nzend_class_entry *ce;\n"
+		    "CG(class_entry).type = ZEND_USER_CLASS;\n"
+		    "CG(class_entry).name = estrdup(\"%s\");\n"
+		    "CG(class_entry).name_length = strlen(\"%s\");\n"
+		    "CG(class_entry).refcount =(int *)emalloc(sizeof(int));\n"
+		    "*CG(class_entry).refcount = 1;\n"
+		    "CG(class_entry).constants_updated = 0;\n",
+		    package, package);
 
 		    /* XXX do this ourselves */
 
-		    Printf(s_oinit, "zend_str_tolower(CG(class_entry).name, CG(class_entry).name_length);\n");
+		    Printf(s_oinit, 
+		    "zend_str_tolower(CG(class_entry).name, "
+		    "CG(class_entry).name_length);\n");
 	
 		    /* Init class function hash */
 		
-		    Printf(s_oinit, "zend_hash_init(&CG(class_entry).function_table, 10, NULL, ZEND_FUNCTION_DTOR, 0);\n");
-		    Printf(s_oinit, "zend_hash_init(&CG(class_entry).default_properties, 10, NULL, ZVAL_PTR_DTOR, 0);\n");
+		    Printf(s_oinit, 
+		    "zend_hash_init(&CG(class_entry).function_table, 10, NULL,"
+		    "ZEND_FUNCTION_DTOR, 0);\n"
+		    "zend_hash_init(&CG(class_entry).default_properties, 10,"
+		    "NULL, ZVAL_PTR_DTOR, 0);\n");
 
 		    /* XXX Handle inheritance ? */
 
-		    Printf(s_oinit, "CG(class_entry).handle_function_call = NULL;\n");
-		    Printf(s_oinit, "CG(class_entry).handle_property_set = NULL;\n");
-		    Printf(s_oinit, "CG(class_entry).handle_property_get = NULL;\n");
+		    Printf(s_oinit, 
+		    "CG(class_entry).handle_function_call = NULL;\n"
+		    "CG(class_entry).handle_property_set = NULL;\n"
+		    "CG(class_entry).handle_property_get = NULL;\n");
 
 		    /* Save class in class table */
-		    Printf(s_oinit, "zend_hash_update(CG(class_table), \"%s\", strlen(\"%s\")+1, &CG(class_entry), sizeof(zend_class_entry), (void **) &CG(active_class_entry));\n", package, package);
-
-		    Printf(s_oinit, "}\n");
-
+		    Printf(s_oinit, 
+		    "zend_hash_update(CG(class_table), \"%s\",strlen(\"%s\")+1,"
+		    "&CG(class_entry), sizeof(zend_class_entry), (void **) "
+		    "&CG(active_class_entry));\n}\n", package, package);
 		  }
 
 		}
 
 	}
-
 
 	Language::classHandler(n);
 
@@ -1749,17 +1803,6 @@ PHP4::memberfunctionHandler(Node *n) {
 		String *php_function_name = Swig_name_member(shadow_classname, realname);
 
 		cpp_func(iname, t, l, php_function_name);
-		/*
-
-	Printf(s_oinit, "{\nzend_function function;\n");
-	Printf(s_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
-	Printf(s_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
-	Printf(s_oinit, "internal_function->handler = %s;\n", Swig_name_wrapper(iname));
-	Printf(s_oinit, "internal_function->arg_types = NULL;\n");
-	Printf(s_oinit, "internal_function->function_name = estrdup(\"%s\");\n", Swig_name_wrapper(iname));
-	Printf(s_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%s\", %d, &function, sizeof(zend_function), NULL);\n}\n", Swig_name_wrapper(name), strlen(Char(Swig_name_wrapper(name)))+1);
-
-	*/
 	}
 	return SWIG_OK;
 }
@@ -1770,8 +1813,6 @@ PHP4::membervariableHandler(Node *n) {
 	char *iname = GetChar(n, "sym:name");
 	SwigType *t = Getattr(n, "type");
 
-
-	shadow_variable_name = Swig_copy_string((iname) ? iname : name);
 
 	wrapping_member = 1;
 	variable_wrapper_flag = 1;
@@ -1798,7 +1839,6 @@ int PHP4::staticmemberfunctionHandler(Node *n) {
 }
 
 int PHP4::staticmembervariableHandler(Node *n) {
-	shadow_variable_name = GetChar(n, "sym:name");
 	SwigType *d = Getattr(n, "type");
 	ParmList *l = Getattr(n, "parms");
 	char *iname = GetChar(n, "sym:name");
@@ -1834,11 +1874,12 @@ int PHP4::staticmembervariableHandler(Node *n) {
 	 * the current value
 	*/
 
-	Printf(f->code, "zval **args[1];\n");
-	Printf(f->code, "int argcount;\n\n");
+	Printf(f->code, 
+	"zval **args[1];\n"
+	"int argcount;\n\n"
+	"argcount = ZEND_NUM_ARGS();\n"
+	"if(argcount > %d) WRONG_PARAM_COUNT;\n\n", (const_flag? 0 : 1));
 
-	Printf(f->code, "argcount = ZEND_NUM_ARGS();\n");
-	Printf(f->code, "if(argcount > %d) WRONG_PARAM_COUNT;\n\n", (const_flag? 0 : 1));
 	if(!const_flag) {
 	  Printf(f->code, "if(argcount) {\n");
 
@@ -1854,17 +1895,21 @@ int PHP4::staticmembervariableHandler(Node *n) {
 		case T_USHORT:
 		case T_ULONG:
 		case T_UCHAR:
-			Printf(f->code, "convert_to_long_ex(args[0]);\n");
-			Printf(f->code, "%s::%s = Z_LVAL_PP(args[0]);\n", class_name, iname);
+			Printf(f->code, 
+			"convert_to_long_ex(args[0]);\n"
+			"%s::%s = Z_LVAL_PP(args[0]);\n", class_name, iname);
 			break;
 		case T_CHAR:
-			Printf(f->code, "convert_to_string_ex(args[0]);\n");
-			Printf(f->code, "%s::%s = estrdup(Z_STRVAL(args[0]));\n");
+			Printf(f->code, 
+			"convert_to_string_ex(args[0]);\n"
+			"%s::%s = estrdup(Z_STRVAL(args[0]));\n");
 			break;
 		case T_DOUBLE:
 		case T_FLOAT:
-			Printf(f->code, "convert_to_double_ex(args[0]);\n");
-			Printf(f->code, "%s::%s = Z_DVAL_PP(args[0]);\n", class_name, iname);
+			Printf(f->code, 
+			"convert_to_double_ex(args[0]);\n"
+			"%s::%s = Z_DVAL_PP(args[0]);\n", 
+			class_name, iname);
 			break;
 		case T_VOID:
 			break;
@@ -1897,21 +1942,28 @@ int PHP4::staticmembervariableHandler(Node *n) {
 		case T_USHORT:
 		case T_ULONG:
 		case T_UCHAR:
-			Printf(f->code, "RETURN_LONG(%s::%s);\n", class_name, iname);
+			Printf(f->code, 
+			"RETURN_LONG(%s::%s);\n", class_name, iname);
 			break;
 		case T_DOUBLE:
 		case T_FLOAT:
-			Printf(f->code, "RETURN_DOUBLE(%s);\n", static_name);
+			Printf(f->code, 
+			"RETURN_DOUBLE(%s);\n", static_name);
 			break;
 		case T_CHAR:
-			Printf(f->code, "{\nchar ctemp[2];\n");
-			Printf(f->code, "ctemp[0] = %s;\n", static_name);
-			Printf(f->code, "ctemp[1] = 0;\n");
-			Printf(f->code, "RETURN_STRING(ctemp, 1);\n}\n");
+			Printf(f->code,
+			"{\nchar ctemp[2];\n"
+			"ctemp[0] = %s;\n"
+			"ctemp[1] = 0;\n"
+			"RETURN_STRING(ctemp, 1);\n}\n",
+			static_name);
 			break;
+
 		case T_USER:
 		case T_POINTER:
-			Printf(f->code, "SWIG_SetPointerZval(return_value, (void *)%s, SWIGTYPE%s);\n", static_name, SwigType_manglestr(d));
+			Printf(f->code, 
+			"SWIG_SetPointerZval(return_value, (void *)%s, "
+			"SWIGTYPE%s);\n", static_name, SwigType_manglestr(d));
 			break;
 		case  T_STRING:
 			Printf(f->code, "RETURN_STRING(%s, 1);\n", static_name);
@@ -2007,13 +2059,20 @@ int PHP4::constructorHandler(Node *n) {
 		String *php_function_name = NewString(iname);
 		char arg[256];
 
-		 Printf(s_oinit, "{\nzend_function function;\n");
-		 Printf(s_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
-		 Printf(s_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
-		 Printf(s_oinit, "internal_function->handler = _wrap_new_%s;\n", iname);
-		 Printf(s_oinit, "internal_function->arg_types = NULL;\n");
-		 Printf(s_oinit, "internal_function->function_name = estrdup(\"new_%(lower)s\");\n", php_function_name);
-		 Printf(s_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"new_%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+5);
+		 Printf(s_oinit, 
+		 "{\nzend_function function;\n"
+		 "zend_internal_function *internal_function = "
+		 "(zend_internal_function *)&function;\n"
+		 "internal_function->type= ZEND_INTERNAL_FUNCTION;\n"
+		 "internal_function->handler = _wrap_new_%s;\n"
+		 "internal_function->arg_types = NULL;\n"
+		 "internal_function->function_name=estrdup(\"new_%(lower)s\");"
+		 "\nzend_hash_add(&CG(active_class_entry)->function_table, "
+		 "\"new_%(lower)s\", %d, &function, sizeof(zend_function),"
+		 "NULL);\n}\n",
+		 iname, php_function_name, php_function_name, 
+		 strlen(Char(php_function_name))+5);
+
 //		Printf(shadow_code, " function %s(", shadow_classname);
 //		Php only supports one constructor anyway...
 
@@ -2097,12 +2156,14 @@ int PHP4::destructorHandler(Node *n) {
 	Language::destructorHandler(n);
 
 	if(shadow) {
-	  Printf(shadow_code, " function _destroy() {\n");
-	  Printf(shadow_code, "   if($this->_cPtr && $this->_cMemOwn) {\n");
-	  Printf(shadow_code, "     %s::%s($this->_cPtr);\n", package, Swig_name_destroy(shadow_classname));
-	  Printf(shadow_code, "     $this->_cPtr = 0;\n");
-	  Printf(shadow_code, "   }\n");
-	  Printf(shadow_code, " }\n\n");
+	  Printf(shadow_code,
+	  	" function _destroy() {\n"
+	  	"   if($this->_cPtr && $this->_cMemOwn) {\n"
+	  	"     %s::%s($this->_cPtr);\n"
+	  	"     $this->_cPtr = 0;\n"
+	  	"   }\n"
+	  	" }\n\n",
+		package, Swig_name_destroy(shadow_classname));
 
 	  if(!no_sync) {
 	    String *k;
@@ -2129,20 +2190,23 @@ int PHP4::destructorHandler(Node *n) {
 
 	  String *iname = Swig_name_destroy(GetChar(n, "sym:name"));
 
-	  Printf(s_oinit, "{\nzend_function function;\n");
-	  Printf(s_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
-	  Printf(s_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
-	  Printf(s_oinit, "internal_function->handler = %s;\n", Swig_name_wrapper(iname));
-	  Printf(s_oinit, "internal_function->arg_types = NULL;\n");
-	  Printf(s_oinit, "internal_function->function_name = estrdup(\"%(lower)s\");\n", iname);
-	  Printf(s_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", iname, strlen(Char(iname))+1);
+	  Printf(s_oinit, 
+	  "{\nzend_function function;\n"
+	  "zend_internal_function *internal_function = "
+	  "(zend_internal_function *)&function;\n"
+	  "internal_function->type= ZEND_INTERNAL_FUNCTION;\n"
+	  "internal_function->handler = %s;\n"
+	  "internal_function->arg_types = NULL;\n"
+	  "internal_function->function_name = estrdup(\"%(lower)s\");\n"
+	  "zend_hash_add(&CG(active_class_entry)->function_table, "
+	  "\"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", 
+	  Swig_name_wrapper(iname), iname, iname, strlen(Char(iname))+1);
 	}
 	return SWIG_OK;
 }
 
 int
 PHP4::memberconstantHandler(Node *n) {
-	shadow_variable_name = GetChar(n, "sym:name");
 	wrapping_member = 1;
 	Language::memberconstantHandler(n);
 	wrapping_member = 0;
@@ -2199,13 +2263,18 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	}
 
 	 
-	 Printf(s_oinit, "{\nzend_function function;\n");
-	 Printf(s_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
-	 Printf(s_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
-	 Printf(s_oinit, "internal_function->handler = %s;\n", Swig_name_wrapper(php_function_name));
-	 Printf(s_oinit, "internal_function->arg_types = NULL;\n");
-	 Printf(s_oinit, "internal_function->function_name = estrdup(\"%(lower)s\");\n", php_function_name);
-	 Printf(s_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+1);
+	 Printf(s_oinit, 
+	 "{\nzend_function function;\n"
+	 "zend_internal_function *internal_function = "
+	 "(zend_internal_function *)&function;\n"
+	 "internal_function->type= ZEND_INTERNAL_FUNCTION;\n"
+	 "internal_function->handler = %s;\n"
+	 "internal_function->arg_types = NULL;\n"
+	 "internal_function->function_name = estrdup(\"%(lower)s\");\n"
+	 "zend_hash_add(&CG(active_class_entry)->function_table, "
+	 "\"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n",
+	 Swig_name_wrapper(php_function_name), php_function_name,
+	 php_function_name, strlen(Char(php_function_name))+1);
 
 	Printf(shadow_code, "function %s(", iname);
 	if(static_flag && !const_flag)
@@ -2228,7 +2297,8 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	} else if(SwigType_type(t) == T_VOID) {
 		if(static_flag && !const_flag)
 			Printf(nativecall, "    if($val) {\n");
-		Printv(nativecall,"    ", package, "::",php_function_name,"(",NULL);
+		Printv(nativecall,"    ", package, "::",
+			php_function_name,"(",NULL);
 		Printv(nativecall, "$this->_cPtr", NULL);
 	} else if(is_shadow(t)) {
 		if(SwigType_type(t) == T_ARRAY) {
@@ -2304,20 +2374,23 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
       } else if(is_shadow(t)) {
 	switch(SwigType_type(t)) {
 		case T_USER:
-			Printf(nativecall, ");\n");
 			Printf(nativecall, 
-			       "    $_sPtr->setCPtr($_iPtr, true);\n");
-			Printf(nativecall, "    return $_sPtr;\n");
+			");\n"
+			"    $_sPtr->setCPtr($_iPtr, true);\n"
+			"    return $_sPtr;\n");
 			break;
+
 		case T_REFERENCE:
 		case T_POINTER:
-			Printf(nativecall, ");\n");
-			Printf(nativecall, 
-			       "    $_sPtr->setCPtr($_iPtr, false);\n");
-			Printf(nativecall, "    return $_sPtr;\n");
+			Printf(nativecall,
+			");\n"
+			"    $_sPtr->setCPtr($_iPtr, false);\n"
+			"    return $_sPtr;\n");
 			break;
 		default:
-			Printf(stderr, "Internal Error: unknown shadow_type: %\n", SwigType_str(t,0));
+			Printf(stderr, 
+			"Internal Error: unknown shadow_type: %\n", 
+			SwigType_str(t,0));
 			break;
 	 }
 	} else {
