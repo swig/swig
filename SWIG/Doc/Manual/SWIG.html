@@ -168,7 +168,7 @@ it is parsing an input file.
 
 Although SWIG can parse most common C/C++ declarations, it does not
 provide a complete C/C++ parser implementation.  Most of these
-limitations pertain to complicated type declarations and advanced C++
+limitations pertain to complicated type declarations and certain advanced C++
 features.  Specifically, the following features are not currently supported:
 
 <p>
@@ -577,7 +577,10 @@ dereferenced (at least not without additional help).
 
 <p>
 The scripting language representation of a pointer value should never be
-manipulated directly (although nothing prevents this). Furthermore, SWIG does not
+manipulated directly.   Even though the values shown above look like hexadecimal
+addresses, the numbers used may differ from the actual machine address (e.g.,
+on little-endian machines, the digits may appear in reverse order).
+Furthermore, SWIG does not
 normally map pointers into high-level objects such as associative
 arrays or lists (for example, converting an
 <tt>int *</tt> into an list of integers). There are several reasons
@@ -1188,9 +1191,6 @@ does not normally allow callback functions to be written in the target language,
 can be accomplished with the use of typemaps and other advanced SWIG features.
 Generally speaking, this is accomplished by writing a C stub that serves as the
 callback but which transfers control back to the scripting language interpreter.
-In addition, SWIG does not currently support pointers to C++ member functions.  No
-such support is planned at this time due to the fact that such pointers can't
-be easily interchanged with standard C pointers.
 
 <h2>Structures, unions, and object oriented C programming</h2>
 
@@ -1708,6 +1708,7 @@ SWIG supports the following C++ features :<p>
 <li>Static functions
 <li>References
 <li>Simple templates
+<li>Pointers to members
 </ul>
 
 <p>
@@ -1717,10 +1718,8 @@ The following C++ features are not currently supported :<p>
 <ul>
 <li>Operator overloading
 <li>Function overloading (without renaming)
-<li>Friends
 <li>Nested classes
 <li>Namespaces
-<li>Pointers to member functions
 <li>Complicated templates
 </ul>
 
@@ -2273,6 +2272,46 @@ Since the C++ compiler will <em>definitely</em> check this when it
 compiles the resulting wrapper file, there is no practical reason for
 SWIG to duplicate this functionality (besides, none of the SWIG
 developers are quite that masochistic).
+
+<h3>Pointers to Members</h3>
+
+Starting with SWIG1.3.7, there is limited parsing support for pointers to C++ class members.
+For example:
+
+<blockquote>
+<pre>
+double do_op(Object *o, double (Object::*callback)(double,double));
+extern double (Object::*fooptr)(double,double);
+%constant double (Object::*FOO)(double,double) = &Object::foo;
+</pre>
+</blockquote>
+
+Although these kinds of pointers can be parsed and represented by the
+SWIG type system, few language modules know how to handle them due to
+implementation differences from standard C pointers.  Readers are
+<em>strongly</em> advised to consult an advanced text such as the "The
+Annotated C++ Manual" for specific details.
+
+<p>
+When pointers to members are supported, the pointer value might appear as a special
+string like this:
+
+<blockquote>
+<pre>
+>>> print example.FOO
+_ff0d54a800000000_m_Object__f_double_double__double
+>>>
+</pre>
+</blockquote>
+
+In this case, the hexadecimal digits represent the entire value of the
+pointer which usually consists of multiple words on most machines. 
+
+<p>
+SWIG's type-checking mechanism is also more limited when working with
+member pointers.  Normally SWIG tries to keep track of inheritance
+when checking types.  However, no such support is currently provided
+for member pointers.
 
 <h3> Partial class definitions</h3>
 
