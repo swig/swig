@@ -173,7 +173,7 @@ DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
 	goto macro_error;
       }
       break;
-    } else if (isidchar(c)) {
+    } else if (isidchar(c) || (c == '%')) {
       Putc(c,macroname);
     } else if (isspace(c)) {
       break;
@@ -513,7 +513,7 @@ Preprocessor_replace(DOH *s)
   while ((c = Getc(s)) != EOF) {
     switch (state) {
     case 0:
-      if (isidentifier(c)) {
+      if (isidentifier(c) || (c == '%')) {
 	Clear(id);
 	copy_location(s,id);
 	Putc(c,id);
