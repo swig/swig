@@ -14,6 +14,8 @@ SWIG release.  The guilty parties working on this are:
 
   -  Dave Beazley (beazley@cs.uchicago.edu)             (SWIG core)
   -  Dustin Mitchell (djmitche@cs.uchicago.edu)         (SWIG core)
+  -  Ian Cooke (iancooke@cs.uchicago.edu)               (SWIG core)
+  -  Bryan King (bwking@midway.uchicago.edu)            (SWIG core)
   -  Loic Dachary (loic@ceic.com)                       (Perl5)
   -  Harco de Hilster (Harco.de.Hilster@ATComputing.nl) (Java)
 
