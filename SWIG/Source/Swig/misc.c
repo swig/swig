@@ -197,7 +197,53 @@ String *Swig_string_title(String *s) {
   }
   return ns;
 }
-     
+
+/* -----------------------------------------------------------------------------
+ * Swig_string_typecode()
+ *
+ * Takes a string with possible type-escapes in it and replaces them with
+ * real C datatypes.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_typecode(String *s) {
+  String *ns;
+  int c;
+  String *tc;
+  ns = NewString("");
+  while ((c = Getc(s)) != EOF) {
+    if (c == '`') {
+      tc = NewString("");
+      while ((c = Getc(s)) != EOF) {
+	if (c == '`') break;
+	Putc(c,tc);
+      }
+      Printf(ns,"%s",SwigType_str(tc,0));
+    } else {
+      Putc(c,ns);
+      if (c == '\'') {
+	while ((c = Getc(s)) != EOF) {
+	  Putc(c,ns);
+	  if (c == '\'') break;
+	  if (c == '\\') {
+	    c = Getc(s);
+	    Putc(c,ns);
+	  }
+	}
+      } else if (c == '\"') {
+	while ((c = Getc(s)) != EOF) {
+	  Putc(c,ns);
+	  if (c == '\"') break;
+	  if (c == '\\') {
+	    c = Getc(s);
+	    Putc(c,ns);
+	  }
+	}
+      }
+    }
+  }
+  return ns;
+}
+      
 /* -----------------------------------------------------------------------------
  * Swig_string_mangle()
  * 
@@ -227,6 +273,7 @@ Swig_init() {
   DohEncoding("upper", Swig_string_upper);
   DohEncoding("lower", Swig_string_lower);
   DohEncoding("title", Swig_string_title);
+  DohEncoding("typecode",Swig_string_typecode);
 
   /* Initialize typemaps */
   Swig_typemap_init();
