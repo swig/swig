@@ -1058,7 +1058,7 @@ int
 Language::membervariableHandler(Node *n) {
 
   Swig_require("membervariableHandler",n,"*name","*sym:name","*type",NIL);
-  Swig_save("membervariableHandler",n,"parms",NIL);
+  Swig_save("membervariableHandler",n,"parms","feature:immutable",NIL);
 
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
@@ -1071,6 +1071,13 @@ Language::membervariableHandler(Node *n) {
 
   if (!(Extend | SmartPointer)) {
     Delattr(n,"feature:except");
+  }
+
+  /* If a smart-pointer and it's a constant access, we have to set immutable */
+  if (SmartPointer) {
+    if (Getattr(CurrentClass,"allocate:smartpointerconst")) {
+      Setattr(n,"feature:immutable","1");
+    }
   }
 
   if (!AttributeFunctionGet) {
@@ -1672,7 +1679,6 @@ int Language::classHandler(Node *n) {
     SmartPointer = CWRAP_SMART_POINTER;
     Node *c;
     for (c = Firstitem(methods); c; c= Nextitem(methods)) {
-      /*      Swig_print_node(c); */
       emit_one(c);
     }
     SmartPointer = 0;
