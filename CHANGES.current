@@ -1,6 +1,17 @@
 Version 1.3.22 (in progress)
 ==================================
 
+5/24/2004:  dancy
+
+	* Allegro CL module:  Now using some macros (defined in
+	Lib/allegrocl/allegrocl.swg), swig-defconstant and swig-defun, for
+	defining constants and foreign functions.  This makes the
+	generated file a bit neater.    
+
+	Now strips a layer of parenthesis from constants.
+
+	Uses (* :void) instead of :foreign-address now.
+
 05/20/2004: wsfulton
             Unnamed enum global variables are now supported in addition
             to the recently added support for unnamed enum member variables.
