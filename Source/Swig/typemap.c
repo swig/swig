@@ -731,10 +731,12 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
   /* If the original datatype was an array. We're going to go through and substitute
      its array dimensions */
     
-  if (SwigType_isarray(type)) {
+  if (SwigType_isarray(type) || SwigType_isarray(ftype)) {
     String *size;
-    int  ndim = SwigType_array_ndim(type);
+    int ndim;
     int i;
+    if (!SwigType_isarray(type)) type = ftype;
+    ndim = SwigType_array_ndim(type);
     size = NewString("");
     for (i = 0; i < ndim; i++) {
       String *dim = SwigType_array_getdim(type,i);
