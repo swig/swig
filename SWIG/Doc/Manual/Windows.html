@@ -11,7 +11,6 @@
 <li><a href="#n2">Installation on Windows</a>
 <ul>
 <li><a href="#n3">Windows Executable</a>
-<li><a href="#n4">Runtime Libraries</a>
 </ul>
 <li><a href="#n5">SWIG Windows Examples</a>
 <ul>
@@ -42,7 +41,7 @@
 
 
 This chapter describes SWIG usage on Microsoft Windows. 
-Installing SWIG and running the examples is covered as well as building the SWIG executable and runtime libraries.
+Installing SWIG and running the examples is covered as well as building the SWIG executable.
 Usage within the Unix like environments MinGW and Cygwin is also detailed.
 
 
@@ -61,27 +60,6 @@ SWIG does not come with the usual Windows type installation program, however it 
 The swigwin distribution contains the SWIG Windows executable, swig.exe, which will run on 32 bit versions of Windows, ie Windows 95/98/ME/NT/2000/XP. 
 If you want to build your own swig.exe have a look at <a href="#swig_exe">Building swig.exe on Windows</a>.
 <p>
-
-<a name="n4"></a><H3>2.1.2 Runtime Libraries</H3>
-
-
-The vast majority of users do not use the SWIG runtime libraries so feel free to ignore this section.
-The <a href="Advanced.html">Advanced Topics</a> chapter has further details on the runtime libraries.
-<p>
-
-The runtime libraries which can be built have a Visual C++ project file (.dsp) file in the top level Runtime directory.
-Before starting Visual C++, set the environment variables for your target language as described in the <a href="#examples">SWIG Windows Examples</a> section.
-Next start Visual C++ and load the project file for your target language.
-Visual Studio will create a workspace file for you.
-Ensure the Release build is selected then do a Rebuild All from the Build menu; the required environment variables are displayed with their current values.
-If all goes well the runtime library dll will appear in the Runtime directory.
-<p>
-
-Whenever using the runtime library, link against the <tt>.lib</tt> file which also is generated into this directory.
-Ensure the dll is in the Windows path when executing your program requiring the dll.
-<p>
-
-Note that the runtime libraries can also be built on Cygwin and is automatically done as part of the general build process on Cygwin.
 
 
 <a name="examples"></a>
@@ -210,7 +188,6 @@ Normally this is not needed, so most people will want to ignore this section.
 Note that SWIG can also be built using Cygwin.
 However, the SWIG will then require the Cygwin DLL when executing. 
 Follow the Unix instructions in the README file in the SWIG root directory.
-The runtime libraries are also built as part of this build process.
 Note that the Cygwin environment will also allow one to regenerate the autotool generated files which are supplied with the release distribution. 
 These files are generated using the <tt>autogen.sh</tt> script and will only need regenerating in circumstances such as changing the build system.
 <p>

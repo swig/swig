@@ -67,8 +67,6 @@ The "-gh" wrapper generation can be used for older versions of guile.  Thus even
 the guile GH wrapper code generation will be depreciated (as guile 1.6 and above become more common) and the
 SCM interface will become the default.  The SCM and GH interface differ greatly in how they store
 pointers and have completely different run-time code. See below for more info.  
-<code>make runtime</code> will now produce two libraries, libguile (with the GH interface) and libguilescm
-(with the SCM interface)</p>
 
 <p>The GH interface to guile is deprecated.  Read more about why in the 
 <a href="http://www.gnu.org/software/guile/docs/guile-ref/GH-deprecation.html">Guile manual</a>.
@@ -295,21 +293,16 @@ experimental; the (hobbit4d link) conventions are not well understood.
 
 
 If you want to use multiple SWIG modules, they have to share some 
-run-time data for the typing system. You have two options:
+run-time data for the typing system. 
 
-<ul>
-<li>Either generate all but one wrapper module with
-the <code>-c</code> command-line argument.  Compile all wrapper files
-with the C compiler switch <code>-DSWIG_GLOBAL</code>.
-
-<li>Or generate all wrapper modules with the <code>-c</code>
-command-line argument and compile all wrapper files with the C
-compiler switch <code>-DSWIG_GLOBAL</code>. Then link against the
-runtime library <code>libswigguile</code> or <code>libswigguilescm</code>, which is built by
-<code>make runtime</code>. The needed linker flags are reported by
-SWIG if you invoke it with the <code>-guile -ldflags</code>
-command-line arguments.
-</ul>
+At least one of your modules must be compiled with the <code>-runtime</code>
+command line switch so that one of the modules contains the runtime code. 
+The remaining modules must be compiled with the
+<code>-noruntime</code> commandline switch and linked with the module
+with the runtime code. You could create an empty swig module and use that
+to generate the runtime code instead of placing the runtime code into a 
+module with code that is being wrapped. See the
+<a href="#Modules.html">Working with Modules</a> chapter for further details.
 
 <a name="n11"></a><H2>16.4 Underscore Folding</H2>
 

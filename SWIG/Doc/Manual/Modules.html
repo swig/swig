@@ -19,11 +19,11 @@
 
 When first working with SWIG, users commonly start by creating a
 single module.  That is, you might define a single SWIG interface that
-wraps some set of C code.  You then compile all of the generated
+wraps some set of C/C++ code.  You then compile all of the generated
 wrapper code into a module and use it.   For large applications, however,
 this approach is problematic---the size of the generated wrapper code
 can be rather large.  Moreover, it is probably easier to manage the
-scripting interface when it is broken up into smaller pieces.
+target language interface when it is broken up into smaller pieces.
 
 <p>
 This chapter describes the problem of using SWIG in programs
@@ -32,11 +32,14 @@ where you want to create a collection of modules.
 <a name="n2"></a><H2>14.1 The SWIG runtime code</H2>
 
 
-All SWIG-generated wrapper modules include a set of functions
+Many of SWIG's target languages generate a set of functions
 commonly known as the "SWIG runtime."   These functions are 
 primarily related to the runtime type system which checks pointer
 types and performs other tasks such as proper casting of pointer
-values in C++.
+values in C++. As a general rule, the statically typed target languages,
+such as Java, use the language's built in static type checking and
+have no need for a SWIG runtime. All the dynamically typed / interpreted
+languages rely on the SWIG runtime.
 
 <p>
 By default, the runtime functions are private to each SWIG-generated
@@ -87,7 +90,7 @@ supplying the <tt>-noruntime</tt> option like this:
 
 To use the modules, you compile and link everything as before, but you
 need to make sure that module A is loaded before all of the other
-modules are used---otherwise you will unresolved symbols.
+modules are used---otherwise you will get unresolved symbols.
 
 <p>
 Now, the bad news:  This approach may or may not work depending on the platform you
@@ -102,7 +105,16 @@ and you get errors about unresolved SWIG_* functions.
 
 <p>
 The second way to work with multiple modules is to create a special runtime library module.
-To do this, you first build a runtime library like this:
+To do this, you first need to create an empty SWIG interface file, say swigrun.i, containing
+just the %module directive, for example:
+
+<blockquote>
+<pre>
+%module swigrun
+</pre>
+</blockquote>
+
+Next, build a runtime library like this:
 
 <blockquote>
 <pre>
@@ -112,6 +124,7 @@ To do this, you first build a runtime library like this:
 % gcc -shared swigrun_wrap.o -o libswigrunpy.so
 </pre>
 </blockquote>
+
 
 Now, you compile all of the normal SWIG modules using the <tt>-noruntime</tt> option:
 
@@ -135,7 +148,7 @@ runtime library above.  For example (Linux) :
 </blockquote>
 
 Again, all of the details will vary depending on what compiler you use, the platform, target language,
-and so forth.  The key point is that the runtime needs to be contained in a shared/dynamic library and
+and so forth.  The key point is that the runtime needs to be contained in a shared/dynamic library (DLL) and
 you need to link all of the modules against that library.
 
 <p>
@@ -160,6 +173,6 @@ an outside reference.  John Levine's "Linkers and Loaders" is highly recommended
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : November 22, 2003</address>
+<address>SWIG 1.3 - Last Modified : July 9, 2004</address>
 </body>
 </html>
