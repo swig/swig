@@ -580,7 +580,15 @@ int Language::typesDirective(Node *n) {
     Parm  *parms = Getattr(n,"parms");
     while (parms) {
 	SwigType *t = Getattr(parms,"type");
-	SwigType_remember(t);
+	String   *v = Getattr(parms,"value");
+	if (!v) {
+	  SwigType_remember(t);
+	} else {
+	  Printf(stdout,"t = '%s', v = '%s'\n", t,v);
+	  if (SwigType_issimple(t)) {
+	    SwigType_inherit(t,v);
+	  }
+	}
 	parms = nextSibling(parms);
     }
     return SWIG_OK;
