@@ -16,7 +16,7 @@ let _ = if Array.length Sys.argv < 3 then
 
 let x = int_of_string Sys.argv.(1)
 let y = int_of_string Sys.argv.(2)
-let (xf,yf) = match _factor (C_list [ C_int x ; C_int y ]) with
+let (xf,yf) = match _factor '((x to int),(y to int)) with
     C_list [ C_int a ; C_int b ] -> a,b
   | _ -> raise BadReturn
 let _ = print_endline
