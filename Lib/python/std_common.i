@@ -268,6 +268,7 @@ namespace swigpy {
 	  PyErr_SetString(PyExc_TypeError, msg.c_str());
 	}
 	if (throw_error) throw std::invalid_argument(msg);
+	memset(v_def,0,sizeof(Type));
 	return *v_def;
       }
     }
@@ -277,14 +278,13 @@ namespace swigpy {
   struct traits_as<Type*, pointer_category> {
     static Type* as(PyObject *obj, bool throw_error) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : 0) && v;
+      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : 0);
       if (res) {
 	return v;
       } else {
-	// Uninitialized return value, no Type() constructor required.
 	std::string msg = "a value of type '";
 	msg += swigpy::type_name<Type>();
-	msg += "' is expected";
+	msg += "*' is expected";
 	if (!PyErr_Occurred()) {
 	  PyErr_SetString(PyExc_TypeError, msg.c_str());
 	}
