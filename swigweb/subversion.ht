@@ -2,15 +2,23 @@ SWIG Subversion
 
 <p><img src="images/subversion.png" alt="Subversion">
 
-<p>
-Oh, stop being so serious...
-
 <ul>
+<li>The newly-revised SWIG mission statement:
+
+<p>
+<center>
+<em>
+"We are building a wrapper generator of extraordinary magnitude."
+<br>
+</em>
+</center>
+
+<p>
 <li>The ever-so-impressive SWIG <a href="screenshot.html">screenshot</a>.
 <li><a href="visual.html">Visual SWIG 2000++</a>--the version for funding agents and managers.
+<li>The greatly simplified <a href="copyfun.html">copyright</a>.
 </ul>
 
-The SWIG site is <a href="http://burnallgifs.org">GIF Free</a>.
 
 
 
