@@ -1,5 +1,16 @@
 Version 1.3.20 (In progress)
 ============================
+
+05/19/2003: cheetah (William Fulton)
+            Build tweaks. There were a few preprocessor definitions which were
+            specified in the Makefile for passing on the commandline when compiling.
+            These are now all defined in swigconfig.h. Autoconf doesn't normally 
+            allow installation directories to be defined in this config header file, 
+            but an autoconf archive macro enables this. This macro along with future 
+            autoconf macros are going to be put in the Tools/config directory.
+
+            'swig -version' now reports the target build platform.
+
 05/11/2003: cheetah (William Fulton)
             [C# and Java] Fix to the following typemaps:
 
