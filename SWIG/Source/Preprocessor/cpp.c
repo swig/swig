@@ -1096,9 +1096,7 @@ Preprocessor_parse(String *s)
     case 0:        /* Initial state - in first column */
       /* Look for C preprocessor directives.   Otherwise, go directly to state 1 */
       if (c == '#') {
-	replace_defined = 1;
 	add_chunk(ns,chunk,allow);
-	replace_defined = 0;
 	copy_location(s,chunk);
 	cpp_lines = 1;
 	state = 40;
@@ -1337,6 +1335,7 @@ Preprocessor_parse(String *s)
 	  }
 	}
       } else if (Cmp(id,"if") == 0) {
+	replace_defined = 1;
 	cond_lines[level] = Getline(id);
 	level++;
 	if (allow) {
@@ -1358,7 +1357,9 @@ Preprocessor_parse(String *s)
   	  }
   	  mask = 1;
   	}
+	replace_defined = 0;
       } else if (Cmp(id,"elif") == 0) {
+	replace_defined = 1;
   	if (level == 0) {
   	  Swig_error(Getfile(s),Getline(id),"Misplaced #elif.\n");
   	} else {
@@ -1385,6 +1386,7 @@ Preprocessor_parse(String *s)
   	    }
   	  }
   	}
+	replace_defined = 0;
       } else if (Cmp(id,"line") == 0) {
       } else if (Cmp(id,"include") == 0) {
   	if (((include_all) || (import_all)) && (allow)) {
@@ -1457,9 +1459,7 @@ Preprocessor_parse(String *s)
       }
       /* %#cpp -  an embedded C preprocessor directive (we strip off the %)  */
       else if (c == '#') {
-	replace_defined = 1;
 	add_chunk(ns,chunk,allow);
-	replace_defined = 0;
   	Putc(c,chunk);
   	state = 107;
       } else if (isidentifier(c)) {
