@@ -1,5 +1,12 @@
 Version 1.3.20 (In progress)
 ============================
+04/23/2003: mrose (Mark Rose)
+            Fixed symname error in director calls to Python methods
+	    that extend C++ operators.
+
+	    Stopped director destructor wrappers from calling __set_up,
+	    which was leaving the director flag in an inconsistent state.
+
 04/23/2003: beazley
             Fixed problem with namespace resolution and nested namespaces.
             Reported by Alfred Lorber (and Marcelo Matus).
