@@ -1238,6 +1238,7 @@ int yylex(void) {
 	  /* Ignored keywords */
 	  
 	  if (strcmp(yytext,"volatile") == 0) return(VOLATILE);
+	  if (strcmp(yytext,"register") == 0) return(REGISTER);
 	  
 	  /* SWIG directives */
 	} else {

@@ -1248,7 +1248,7 @@ static void default_arguments(Node *n) {
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
-%token CONST_QUAL VOLATILE STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
+%token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
@@ -4581,17 +4581,18 @@ pointer    : STAR type_qualifier pointer {
            ;
 
 type_qualifier : type_qualifier_raw { 
-                  $$ = NewString("");
-	          SwigType_add_qualifier($$,$1);
+	          $$ = NewString("");
+	          if ($1) SwigType_add_qualifier($$,$1);
                }
                | type_qualifier_raw type_qualifier { 
-                  $$ = $2; 
-                  SwigType_add_qualifier($$,$1);
+		  $$ = $2; 
+	          if ($1) SwigType_add_qualifier($$,$1);
                }
                ;
 
 type_qualifier_raw :  CONST_QUAL { $$ = "const"; }
                    |  VOLATILE { $$ = "volatile"; }
+                   |  REGISTER { $$ = 0; }
                    ;
 
 /* Data type must be a built in type or an identifier for user-defined types
