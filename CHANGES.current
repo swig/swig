@@ -1,6 +1,14 @@
 Version 1.3.23 (working version)
 =================================
 
+12/08/2004: wsfulton
+            [Java] Fixes to arrays_java.i so that one can apply the array
+            typemaps to functions taking pointers as input, eg
+
+                %include "arrays_java.i"
+                %apply int[] {int*};
+                void foo(int *a);
+
 12/05/2004: wsfulton
             [Java] Director mods contributed by Scott Michel. New typemaps
             directordisconnect and directordisconnect_derived for the 
