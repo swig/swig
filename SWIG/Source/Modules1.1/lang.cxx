@@ -1311,7 +1311,7 @@ int Language::constructorDeclaration(Node *n) {
     /* Name adjustment for %name */
     Swig_save(&n,"sym:name",NULL);
 
-    if ((Strcmp(name,symname) == 0) || (Strcmp(symname,ClassPrefix) != 0)) {
+    if ((Strcmp(name,symname) == 0) && (Strcmp(symname,ClassPrefix) != 0)) {
       Setattr(n,"sym:name", ClassPrefix);
     }
     /* Only create a constructor if the class is not abstract */
