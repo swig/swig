@@ -3117,6 +3117,154 @@ p = f.__deref__()       # Raw pointer from operator->
 <p>
 <b>Note:</b> Smart pointer support was first added in SWIG-1.3.14.
 
+
+<h2>Using declarations and inheritance</h2>
+
+<tt>using</tt> declarations are sometimes used to adjust access to members of
+base classes.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+      int  blah(int x);
+};
+
+class Bar {
+public:
+      double blah(double x);
+};
+
+class FooBar : public Foo, public Bar {
+public:
+      using Foo::blah;  
+      using Bar::blah;
+      char *blah(const char *x);
+};
+</pre>
+</blockquote>
+
+In this example, the <tt>using</tt> declarations make different
+versions of the overloaded <tt>blah()</tt> method accessible from the
+derived class.  For example:
+
+<blockquote>
+<pre>
+FooBar *f;
+f->blah(3);         // Ok. Invokes Foo::blah(int)
+f->blah(3.5);       // Ok. Invokes Bar::blah(double)
+f->blah("hello");   // Ok. Invokes FooBar::blah(const char *);
+</pre>
+</blockquote>
+
+SWIG emulates the same functionality when creating wrappers.  For example, if
+you wrap this code in Python, the module works just like you would expect:
+
+<blockquote>
+<pre>
+>>> import example
+>>> f = example.FooBar()
+>>> f.blah(3)
+>>> f.blah(3.5)
+>>> f.blah("hello")
+</pre>
+</blockquote>
+
+<tt>using</tt> declarations can also be used to change access when applicable.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+protected:
+    int x;
+    int blah(int x);
+};
+
+class Bar : public Foo {
+public:
+    using Foo::x;       // Make x public
+    using Foo::blah;    // Make blah public
+};
+</pre>
+</blockquote>
+
+This also works in SWIG---the exposed declarations will be wrapped normally.
+
+<p>
+When <tt>using</tt> declarations are used as shown in these examples, declarations
+from the base classes are copied into the derived class and wrapped normally.  When
+copied, the declarations retain any properties that might have been attached using
+<tt>%rename</tt>, <tt>%ignore</tt>, or <tt>%feature</tt>.  Thus, if a method is
+ignored in a base class, it will also be ignored by a <tt>using</tt> declaration.
+
+<p>
+Because a <tt>using</tt> declaration does not provide fine-grained
+control over the declarations that get imported, it may be difficult
+to manage such declarations in applications that make heavy use of
+SWIG customization features.  If you can't get <tt>using</tt> to work
+correctly, you can always change the interface to the following:
+
+<blockquote>
+<pre>
+
+class FooBar : public Foo, public Bar {
+public:
+#ifndef SWIG
+      using Foo::blah;  
+      using Bar::blah;
+#else
+      int blah(int x);         // explicitly tell SWIG about other declarations
+      double blah(double x);
+#endif
+
+      char *blah(const char *x);
+};
+</pre>
+</blockquote>
+
+<b>Notes:</b>
+
+<ul>
+<li>If a derived class redefines a method defined in a base class, then a <tt>using</tt> declaration
+won't cause a conflict.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+       int blah(int );
+       double blah(double);
+};
+
+class Bar : public Foo {
+public:
+       using Foo::blah;    // Only imports blah(double);
+       int blah(int);
+};
+</pre>
+</blockquote>
+
+<li>Resolving ambiguity in overloading may prevent declarations from being
+imported by <tt>using</tt>.  For example:
+
+<blockquote>
+<pre>
+%rename(blah_long) Foo::blah(long);
+class Foo {
+public:
+     int blah(int);
+     long blah(long);  // Renamed to blah_long
+};
+
+class Bar : public Foo {
+public:
+     using Foo::blah;     // Only imports blah(int)
+     double blah(double x);
+};
+</pre>
+</blockquote>
+</ul>
+
 <a name="n32"></a><H2>5.21 Partial class definitions</H2>
 
 
