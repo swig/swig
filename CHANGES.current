@@ -2,6 +2,12 @@ Version 1.3.23 (working version)
 =================================
 
 11/25/2004: wsfulton
+            [Java] Numerous director bug fixes so that the correct java types
+            and canonicalized types in the JNI code are emitted. Use of the
+            $javaclassname special variables in the director typemaps now
+            consistent with the non-director typemaps.
+
+11/25/2004: wsfulton
             const enum SWIGTYPE & typemaps added. These wrap const enum references
             as if they were passed by value. Const enum references thus work the
             same as const reference primitive types such as const double &, 
