@@ -4,6 +4,28 @@
 #include <utility>
 %}
 
+
+%define %pypair_methods(pair)
+%extend {      
+%pythoncode {
+def __len__(self):
+  return 2
+def __getitem__(self, index):
+  if not (index % 2): 
+    return self.first
+  else:
+    return self.second
+def __setitem__(self, index, val):
+  if not (index % 2): 
+    self.first = val
+  else:
+    self.second = val
+def __repr__(self):
+  return str((self.first, self.second))
+}
+}
+%enddef
+
 %fragment("StdPairTraits","header",
 	  fragment="StdTraits",fragment="PyObject_var") {
   namespace swigpy {
@@ -85,13 +107,7 @@ namespace std {
     T first;
     U second;
 
-    %extend
-    {      
-      %pythoncode {
-	def __repr__(self):
-	  return "(%s, %s)" %(str(self.first),str(self.second))
-      }
-    }    
+    %pypair_methods(pair)
   };
 
   // ***
@@ -125,6 +141,8 @@ namespace std {
 
     T first;
     U* second;
+
+    %pypair_methods(pair)
   };
 
   template <class T, class U > struct pair<T*, U> {      
@@ -154,6 +172,8 @@ namespace std {
 
     T* first;
     U second;
+
+    %pypair_methods(pair)
   };
 
   template <class T, class U > struct pair<T*, U*> {
@@ -180,6 +200,8 @@ namespace std {
 
     T* first;
     U* second;
+
+    %pypair_methods(pair)
   };
 
 }
