@@ -479,7 +479,9 @@ class OCAML : public Language {
 	                            // possibility of overlapping names.
     }
 
+    // Buiding using1 example in test-suite 
     void ucase(String *out) {
+	while( (Char(out))[0] == '_' ) Replace(out,"_","",0);
 	if( !isupper((Char(out))[0]) )
 	    (Char(out))[0] = toupper((Char(out))[0]);
     }
