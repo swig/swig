@@ -2042,15 +2042,6 @@ cpp_class_decl  :
 		 add_symbols($$);
 		 if ($9)
 		   add_symbols($9);
-
-		 /* Check if the class is a template specialization */
-		 if (!templatemode) {
-		   if (Strstr(Classprefix,"<")) {
-		     Setattr($$,"specialization","1");
-		     /*		     Printf(stdout,"Specialization '%s'\n", Classprefix); */
-		     $$ = 0; /* Do not place in parse tree, only a template specialization */
-		   }
-		 }
 		 Classprefix = 0;
 		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 
@@ -2182,9 +2173,13 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
    template<...> decl
    ------------------------------------------------------------ */
 
-/* function template */
 cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possible {
                       $$ = $5;
+		      /* Check if the class is a template specialization */
+		      if (($$) && (Strstr(Getattr($$,"name"),"<"))) {
+			Setattr($$,"specialization","1");
+			$$ = 0; /* Do not place in parse tree, only a template specialization */
+		      }
 		      if ($$) {
 			  Setattr($$,"templatetype",nodeType($5));
 			  set_nodeType($$,"template");
