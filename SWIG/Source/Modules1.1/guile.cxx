@@ -266,12 +266,6 @@ GUILE::initialize (void)
   Printf (f_init, "\tSWIG_Guile_Init();\n");
 }
 
-// ---------------------------------------------------------------------
-// GUILE::close(void)
-//
-// Wrap things up.  Close initialization function.
-// ---------------------------------------------------------------------
-
 void
 GUILE::emit_linkage (char *module_name)
 {
@@ -312,6 +306,12 @@ GUILE::emit_linkage (char *module_name)
   Delete(module_func);
 }
 
+// ---------------------------------------------------------------------
+// GUILE::close(void)
+//
+// Wrap things up.  Close initialization function.
+// ---------------------------------------------------------------------
+
 void
 GUILE::close (void)
 {
@@ -338,7 +338,7 @@ GUILE::close (void)
 }
 
 // ----------------------------------------------------------------------
-// get_pointer(int parm, SwigType *t, FIXME: )
+// get_pointer()
 //
 // Emits code to get a pointer from a parameter and do type checking.
 // parm is the parameter number.   This function is only used
@@ -354,7 +354,7 @@ get_pointer (char *iname, int parm, SwigType *t,
   /* Pointers are smobs */
   Printf(f->code, "    if (SWIG_Guile_GetPtr(s_%d,(void **) &arg%d", parm, parm);
   if (SwigType_type(t) == T_VOID)
-    Printf(f->code, ", 0)) {\n");
+    Printf(f->code, ", NULL)) {\n");
   else
     Printv(f->code, ", SWIGTYPE", SwigType_manglestr(t), ")) {\n", 0);
   /* Raise exception */
@@ -373,7 +373,6 @@ is_a_pointer (SwigType *t)
 {
   return SwigType_ispointer(SwigType_typedef_resolve_all(t));
 }
-
 
 /* Same as Swig_typemap_lookup but fall back to `int' when `enum' is
    requested -- enum handling is somewhat broken in the 1.1 parser.
@@ -394,7 +393,7 @@ guile_typemap_lookup(const char *op, SwigType *type, String_or_char *pname, Stri
 }  
 
 /* Lookup a typemap, replace all relevant parameters and write it to
-   the given generalized file. */
+   the given generalized file. Return 0 if no typemap found. */
 
 static int
 guile_do_typemap(DOHFile *file, const char *op,
@@ -420,7 +419,29 @@ guile_do_typemap(DOHFile *file, const char *op,
   }
   else return 0;
 }
-		 
+
+/* Lookup a documentation typemap, replace all relevant parameters and
+   write it to the given generalized file, providing a sensible
+   default value. */
+
+static void
+guile_do_doc_typemap(DOHFile *file, const char *op,
+		     SwigType *type, String_or_char *arg,
+		     int argnum, DOHString *name, Wrapper *f)
+{
+  if (!guile_do_typemap(file, op, type, arg,
+			NULL, NULL, argnum, name, f, 1)) {
+    /* FIXME: Can't we provide this default via a typemap as well? */
+    String *s = NewString(SwigType_str(type, 0));
+    Chop(s);
+    if (arg) Printf(file, "(%s <%s>)", arg, s);
+    else Printf(file, "<%s>", s);
+    Delete(s);
+  }
+}
+
+/* Report an error handling the given type. */
+
 static void
 throw_unhandled_guile_type_error (SwigType *d)
 {
@@ -448,6 +469,9 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   String *returns = NewString("");
   int returns_list = 0;
   String *tmp = NewString("");
+  int i;
+  int numargs = 0;
+  int numopt = 0;
 
   // Make a wrapper name for this
   char * wname = new char [strlen (prefix) + strlen (iname) + 2];
@@ -460,56 +484,20 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   /* Emit locals etc. into f->code; figure out which args to ignore */
   emit_args (d, l, f);
 
-  /* Now write the wrapper function itself */
-
-  Printv(f->def, "static SCM\n", wname," (", 0);
-
-  int i = 0;
-  int first_arg = 1;
-  for (p = l; p != 0; ++i, p = Getnext(p)) {
-    SwigType *pt = Gettype(p);
-
-    if (Getignore(p))
-      continue;
-    if (SwigType_type(pt) != T_VOID) {
-      if (!first_arg)
-	Printf(f->def,", ");
-      Printf(f->def,"SCM s_%d", i);
-      first_arg = 0;
-    }
-  }
-
-  Printf(f->def, ")\n{\n");
-
-  /* Define the scheme name in C */
-  /* FIXME: This is only needed for the code in exception.i since
-     typemaps can always use $name. I propose to define a new macro
-     SWIG_exception_in(ERROR, MESSAGE, FUNCTION) and use it instead of
-     SWIG_exception(ERROR, MESSAGE). */
-
-  Printv(f->def, "#define SCHEME_NAME \"", proc_name, "\"\n", 0);
-  
-  // Declare return variable and arguments
-
-  int numargs = 0;
-  int numopt = 0;
+  /* Declare return variable */
 
   Wrapper_add_local (f,"gswig_result", "SCM gswig_result");
 
-  if (procdoc) {
-    if (!guile_do_typemap(returns, "outdoc", d, name,
-			  (char*)"result", (char*)"gswig_result",
-			  0, proc_name, f, 1)) {
-      String *s = NewString(SwigType_str(d, 0));
-      Chop(s);
-      Printf(returns, "<%s>", s);
-      Delete(s);
-    }
-  }
-  
-  /* Now write code to extract the parameters */
+  if (procdoc)
+    guile_do_doc_typemap(returns, "outdoc", d, NULL,
+			 0, proc_name, f);
 
+  /* Open prototype and signature */
+  
+  Printv(f->def, "static SCM\n", wname," (", 0);
   Printv(signature, "(", proc_name, 0);
+
+  /* Now write code to extract the parameters */
 
   for (p = l, i = 0; p; p=Getnext(p), i++) {
     SwigType *pt = Gettype(p);
@@ -524,6 +512,8 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     if (Getignore(p))
       Printv(f->code, "/* ", pn, " ignored... */\n", 0);
     else {
+      if (numargs!=0) Printf(f->def,", ");
+      Printf(f->def,"SCM s_%d", i);
       ++numargs;
       if (guile_do_typemap(f->code, "in", pt, pn,
 			   source, target, numargs, proc_name, f, 0)) {
@@ -538,13 +528,8 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       if (procdoc) {
 	/* Add to signature */
 	Printf(signature, " ");
-	if (!guile_do_typemap(signature, "indoc", pt, pn,
-			      source, target, numargs, proc_name, f, 1)) {
-	  String *s = NewString(SwigType_str(pt, 0));
-	  Chop(s);
-	  Printf(signature, "(%s <%s>)", pn, s);
-	  Delete(s);
-	}
+	guile_do_doc_typemap(signature, "indoc", pt, pn,
+			     numargs, proc_name, f);
       }
     }
 
@@ -579,7 +564,17 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 		     source, target, numargs, proc_name, f, 0);
   }
 
+  /* Close prototype and signature */
+  
   Printv(signature, ")\n", 0);
+  Printf(f->def, ")\n{\n");
+  
+  /* Define the scheme name in C */
+  /* FIXME: This is only needed for the code in exception.i since
+     typemaps can always use $name. I propose to define a new macro
+     SWIG_exception_in(ERROR, MESSAGE, FUNCTION) and use it instead of
+     SWIG_exception(ERROR, MESSAGE). */
+  Printv(f->def, "#define SCHEME_NAME \"", proc_name, "\"\n", 0);
   
   // Now write code to make the function call
   Printv(f->code, tab4, "gh_defer_ints();\n", 0);
@@ -732,7 +727,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
         Printf (f_wrappers, "\t if (SWIG_Guile_GetPtr(s_0, "
                  "(void **) &%s, ", name);
         if (SwigType_type(t) == T_VOID)
-          Printf (f_wrappers, "(char *) 0)) {\n");
+          Printf (f_wrappers, "NULL)) {\n");
         else
           Printf (f_wrappers, "SWIGTYPE%s)) {\n", SwigType_manglestr(t));
 	/* Raise exception */
@@ -772,6 +767,34 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 
     Printf (f_init, "\t gh_new_procedure(\"%s\", %s, 0, 1, 0);\n",
              proc_name, var_name);
+
+    if (procdoc) {
+      /* Compute documentation */
+      String *signature = NewString("");
+      
+      if (Status & STAT_READONLY) {
+	Printv(signature, "(", proc_name, ")\n", 0);
+	Printv(signature, "Returns constant ", 0);
+	guile_do_doc_typemap(signature, "varoutdoc", t, NULL,
+			     0, proc_name, f);
+	Printv(signature, "\n", 0);
+      }
+      else {
+	Printv(signature, "(", proc_name,
+	       " #:optional ", 0);
+	guile_do_doc_typemap(signature, "varindoc", t, "new-value",
+			     1, proc_name, f);
+	Printv(signature, ")\n", 0);
+	Printv(signature, "If NEW-VALUE is provided, "
+	       "set C variable to this value.\n", 0);
+	Printv(signature, "Returns variable value ", 0);
+	guile_do_doc_typemap(signature, "varoutdoc", t, NULL,
+			     0, proc_name, f);
+	Printv(signature, "\n", 0);
+      }
+      Printv(procdoc, "\f\n", signature, 0);
+      Delete(signature);
+    }
 
   } else {
     Printf (stderr, "%s : Line %d. ** Warning. Unable to link with "
@@ -849,30 +872,3 @@ GUILE::declare_const (char *name, char *, SwigType *type, char *value)
   DelWrapper(f);
 }
 
-// ----------------------------------------------------------------------
-// GUILE::usage_var(char *iname, SwigType *t, String &usage)
-//
-// Produces a usage string for a Guile variable.
-// ----------------------------------------------------------------------
-
-static void
-usage_var (char *iname, SwigType *t, DOHString *usage)
-{
-
-  Printv(usage, "(", iname, " [value])", 0);
-  if ((SwigType_type(t) == T_USER) || (SwigType_type(t) == T_VOID)) {
-    Printf(usage," - unsupported");
-  }
-}
-
-// ----------------------------------------------------------------------
-// GUILE::usage_const(char *iname, SwigType *type, char *value, String &usage)
-//
-// Produces a usage string for a Guile constant
-// ----------------------------------------------------------------------
-
-static void
-usage_const (char *iname, SwigType *, char *value, DOHString *usage)
-{
-  Printv(usage, "(", iname, " ", value, ")", 0);
-}
