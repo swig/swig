@@ -1820,7 +1820,9 @@ PERL5::cpp_inherit(char **baseclass, int) {
   base_class = NewString("");
   while (baseclass[i]) {
     /* See if this is a class we know about */
-    bc = Char(is_shadow(baseclass[i]));
+    String *b = NewString(baseclass[i]);
+    bc = Char(is_shadow(b));
+    Delete(b);
     if (bc) {
       if (have_first) Putc(' ', base_class);
       Printf(base_class,bc);
