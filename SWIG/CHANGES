@@ -14,6 +14,11 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/23/2001: mkoeppe
+	   Improved the MzScheme module by porting Guile's pointer
+	   type checking system and making type dispatch
+	   typemap-driven. 
+
 8/22/2001: beazley
            Entirely new symbol table processing.   SWIG should be able to
            report much better error messages for multiple declarations. 
