@@ -33,17 +33,26 @@ static int      lang_init = 0;
 static int      Abstract = 0;
 static int      has_constructor = 0;
 static int      has_destructor = 0;
+static int      private_constructor = 0;
+static int      private_destructor = 0;
+
 static String  *Callback = 0;
 int             IsVirtual = 0;
 static String  *AttributeFunctionGet = 0;
 static String  *AttributeFunctionSet = 0;
 static String  *ActionFunc = 0;
+static int      cplus_mode = 0;
 
 /* import modes */
 
 #define  IMPORT_MODE     1
 #define  IMPORT_MODULE   2
 
+/* C++ access modes */
+
+#define CPLUS_PUBLIC     0
+#define CPLUS_PROTECTED  1
+#define CPLUS_PRIVATE    2
 
 /* ----------------------------------------------------------------------
    emit_one()
@@ -125,6 +134,8 @@ void emit_one(Node *n) {
       lang->destructorDeclaration(n);
     } else if (strcmp(tag,"operator") == 0) {
       lang->operatorDeclaration(n);
+    } else if (strcmp(tag,"access") == 0) {
+      lang->accessDeclaration(n);
     } else {
       Printf(stderr,"%s:%d. Unrecognized parse tree node type '%s'\n", input_file, line_number, tag);
     }
@@ -199,6 +210,10 @@ static void cplus_inherit_types(Node *cls, String *clsname) {
     Node *bname = Getname(n);
     Node *bclass = Getattr(n,"class");
     Hash *scopes = Getattr(bclass,"typescope");
+    
+    private_constructor |= GetInt(bclass,"private_constructor");
+    private_destructor |= GetInt(bclass,"private_destructor");
+
     SwigType_inherit(clsname,bname);
     String *btype = Copy(bname);
     SwigType_add_pointer(btype);
@@ -478,6 +493,9 @@ void Language::cDeclaration(Node *n) {
   Node   *over;
   CCode = code;
   emit_set_action(0);
+
+  if (InClass && (cplus_mode != CPLUS_PUBLIC)) return;
+
   if (Cmp(storage,"typedef") == 0) {
     SwigType *t = Copy(type);
     if (t) {
@@ -499,16 +517,22 @@ void Language::cDeclaration(Node *n) {
     SwigType *tc = Copy(decl);
     SwigType *td = SwigType_pop(tc);
     String   *oname;
+    String   *cname;
     if (InClass) {
       oname = NewStringf("%s::%s",ClassName,name);
+      cname = NewStringf("%s::%s",ClassName,Getname(over));
     } else {
       oname = NewString(name);
+      cname = NewString(Getname(over));
     }
-    Printf(stderr,"%s:%d. Warning. Overloaded declaration ignored.  %s\n",
+    Printf(stderr,"%s:%d. Overloaded declaration ignored.  %s\n",
 	   input_file,line_number, SwigType_str(td,oname));
+    
+    Printf(stdout,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(Getdecl(over),cname));
     Delete(tc);
     Delete(td);
     Delete(oname);
+    Delete(cname);
     return;
   }
   
@@ -695,6 +719,8 @@ void Language::enumDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::enumvalueDeclaration(Node *n) {
+  if (InClass && (cplus_mode != CPLUS_PUBLIC)) return;
+
   if (!InClass) {
     /* A normal C enum */
     constantWrapper(n);
@@ -728,6 +754,13 @@ void Language::classDeclaration(Node *n) {
   char *iname = Char(symname);
   int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
+
+  if (Cmp(kind,"class") == 0) {
+    cplus_mode = CPLUS_PRIVATE;
+  } else {
+    cplus_mode = CPLUS_PUBLIC;
+  }
+
   this->cpp_class_decl(classname,iname, Char(kind));
   SwigType_new_scope();
   if (name) SwigType_set_scope_name(name);
@@ -739,6 +772,8 @@ void Language::classDeclaration(Node *n) {
   Abstract = GetInt(n,"abstract");
   has_constructor = 0;
   has_destructor = 0;
+  private_constructor = 0;
+  private_destructor = 0;
 
   /* Inherit type definitions into the class */
   if (CPlusPlus && name) {
@@ -751,14 +786,21 @@ void Language::classDeclaration(Node *n) {
     emit_one(c);
   }
 
+  if (private_constructor) {
+    SetInt(n,"private_constructor",1);
+  }
+  if (private_destructor) {
+    SetInt(n,"private_destructor",1);
+  }
+
   if (!ImportMode) {
     if (GenerateDefault) {
       CCode = 0;
-      if (!has_constructor) {
+      if ((!has_constructor) && (!private_constructor)) {
 	/* Generate default constructor */
 	this->cpp_constructor(classname,iname,0);
       } 
-      if (!has_destructor) {
+      if ((!has_destructor) && (!private_destructor)) {
 	/* Generate default destructor */
 	this->cpp_destructor(classname,iname);
       }
@@ -800,6 +842,15 @@ void Language::constructorDeclaration(Node *n) {
   String *code  = Getattr(n,"code");
   CCode = code;
 
+  if (InClass && (cplus_mode != CPLUS_PUBLIC)) {
+    if (!has_constructor) {
+      private_constructor = 1;
+    }
+    has_constructor = 1;
+    return;
+  }
+  private_constructor = 0;
+
   if (ImportMode) return;
   if (Cmp(symname,name) == 0) symname = 0;
   if (!Abstract) {
@@ -807,8 +858,12 @@ void Language::constructorDeclaration(Node *n) {
     over = Swig_symbol_isoverloaded(n);
     if ((over) && (over != n)) {
       String *oname = NewStringf("%s::%s", ClassName, name);
+      String *cname = NewStringf("%s::%s", ClassName, Getname(over));
       SwigType *decl = Getdecl(n);
-      Printf(stderr,"%s:%d. Warning. Overloaded constructor ignored.  %s\n", input_file,line_number, SwigType_str(decl,oname));
+      Printf(stderr,"%s:%d. Overloaded constructor ignored.  %s\n", input_file,line_number, SwigType_str(decl,oname));
+      Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over),SwigType_str(Getdecl(over),cname));
+      Delete(oname);
+      Delete(cname);
     } else {
       lang->cpp_constructor(Char(name),Char(symname),nonvoid_parms(parms));
     }
@@ -827,6 +882,12 @@ void Language::destructorDeclaration(Node *n) {
   CCode = code;
   String *storage = Getattr(n,"storage");
 
+  if (InClass && (cplus_mode != CPLUS_PUBLIC)) {
+    has_destructor = 1;
+    private_destructor = 1;
+    return;
+  }
+  private_destructor = 0;
   if (ImportMode) return;
 
   char *cname = Char(name);
@@ -845,7 +906,20 @@ void Language::operatorDeclaration(Node *n) {
 
 }
 
+/* ----------------------------------------------------------------------
+ * Language::accessDeclaration()
+ * ---------------------------------------------------------------------- */
 
+void Language::accessDeclaration(Node *n) {
+  String *kind = Getattr(n,"kind");
+  if (Cmp(kind,"public") == 0) {
+    cplus_mode = CPLUS_PUBLIC;
+  } else if (Cmp(kind,"private") == 0) {
+    cplus_mode = CPLUS_PRIVATE;
+  } else if (Cmp(kind,"protected") == 0) {
+    cplus_mode = CPLUS_PROTECTED;
+  }
+}
 
 /* ----------------------------------------------------------------------
  * Language::constantWrapper()
