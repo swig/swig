@@ -20,6 +20,7 @@ extern "C" {
 /* Stores information about a wrapped object */
 typedef struct swig_object_wrapper {
     void *self;
+    swig_type_info *type;
 } swig_object_wrapper;
 
 #ifdef THIS
@@ -29,18 +30,34 @@ typedef struct swig_object_wrapper {
 
 #define SWIG_ConvertPtr SWIG_Pike_ConvertPtr
 #define SWIG_NewPointerObj SWIG_Pike_NewPointerObj
+#define SWIG_GetModule(clientdata) SWIG_Pike_GetModule()
+#define SWIG_SetModule(clientdata, pointer) SWIG_Pike_SetModule(pointer)
+
+/* These need to be filled in before type sharing between modules will work */
+static swig_module_info *SWIG_Pike_GetModule() {
+  return 0;
+}
+
+static void SWIG_Pike_SetModule(swig_module_info *pointer) {
+
+}
 
 /* Convert a pointer value */
 static int
 SWIG_Pike_ConvertPtr(struct object *obj, void **ptr, swig_type_info *ty, int flags) {
-    char *storage;
     struct program *pr;
+    swig_cast_info *tc;
+    swig_object_wrapper *obj_wrapper;
+    
     if (ty) {
         pr = (struct program *) ty->clientdata;
-        storage = get_storage(obj, pr);
-        if (storage) {
-            *ptr = ((swig_object_wrapper *) storage)->self;
-	    return 0;
+        obj_wrapper = (swig_object_wrapper *) get_storage(obj, pr);
+        if (obj_wrapper && obj_wrapper->type) {
+            tc = SWIG_TypeCheckStruct(obj_wrapper->type, ty);
+            if (tc) {
+                *ptr = SWIG_TypeCast(tc, obj_wrapper->self);
+                return 0;
+            }
         }
     }
     return -1;

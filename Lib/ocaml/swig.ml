@@ -143,16 +143,14 @@ let new_derived_object cfun x_class args =
   end
   
 let swig_current_type_info = ref C_void
-let find_type_info obj = 
-  match obj with
-    C_ptr _ -> if !swig_current_type_info = C_void 
-                 then begin
-                   swig_current_type_info := obj ;
-                   obj
-                 end else
-                   !swig_current_type_info
-    | _ -> raise (Failure "Internal error: passed non pointer to find_type_info")
+let find_type_info obj = !swig_current_type_info 
 let _ = Callback.register "swig_find_type_info" find_type_info
+let set_type_info obj =
+  match obj with
+    C_ptr _ -> swig_current_type_info := obj ;
+               obj
+    | _ -> raise (Failure "Internal error: passed non pointer to set_type_info")
+let _ = Callback.register "swig_set_type_info" set_type_info
 
 let class_master_list = Hashtbl.create 20
 let register_class_byname nm co = 

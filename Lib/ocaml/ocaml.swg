@@ -58,8 +58,8 @@ extern "C" {
 		*ptr = source;
 		return 0;
 	    } else {
-		swig_type_info *tc = 
-		    SWIG_TypeCheck( (char *)source_type->name, dest_type );
+		swig_cast_info *tc = 
+		    SWIG_TypeCheckStruct(source_type, dest_type );
 #ifdef TYPE_CAST_VERBOSE
 		fprintf( stderr, "Typecheck -> %s\n",
 			 tc ? tc->str : "<none>" );
@@ -371,11 +371,12 @@ extern "C" {
 	CAMLreturn(vv);
     }
 
-    SWIGSTATIC CAML_VALUE caml_val_obj( void *v, char *object_type ) {
+    #define caml_val_obj(v, name) caml_val_obj_helper(v, SWIG_TypeQuery((name)), name)
+    SWIGSTATIC CAML_VALUE caml_val_obj_helper( void *v, swig_type_info *type, char *name) {
 	CAMLparam0();
 	CAMLreturn(callback2(*caml_named_value("caml_create_object_fn"),
-			     caml_val_ptr(v,SWIG_TypeQuery(object_type)),
-			     copy_string(object_type)));
+			     caml_val_ptr(v,type),
+			     copy_string(name)));
     }
 
     SWIGSTATIC long caml_long_val_full( CAML_VALUE v, char *name ) {
@@ -575,14 +576,21 @@ extern "C" {
 	}	
     }
 
-    static void SWIG_Ocaml_LookupTypePointer() {
-      CAML_VALUE mod_pointer, pointer;
+    static swig_module_info *SWIG_Ocaml_GetModule() {
+      CAML_VALUE pointer;
 
-      mod_pointer = caml_val_ptr(swig_type_list_handle, NULL);
-      pointer = callback(*caml_named_value("swig_find_type_info"), mod_pointer);
-      if (SWIG_Tag_val(pointer) == C_ptr) {
-        swig_type_list_handle = (swig_type_info **)(void *)(long)SWIG_Int64_val(SWIG_Field(pointer,0));
+      pointer = callback(*caml_named_value("swig_find_type_info"), caml_val_int(0));
+      if (Is_block(pointer) && SWIG_Tag_val(pointer) == C_ptr) {
+        return (swig_module_info *)(void *)(long)SWIG_Int64_val(SWIG_Field(pointer,0));
       }
+      return 0;
+    }
+
+    static void SWIG_Ocaml_SetModule(swig_module_info *pointer) {
+      CAML_VALUE mod_pointer;
+
+      mod_pointer = caml_val_ptr(pointer, NULL);
+      callback(*caml_named_value("swig_set_type_info"), mod_pointer);
     }
 
 #ifdef __cplusplus
@@ -590,7 +598,7 @@ extern "C" {
 #endif
 #undef value
 
-
 /* ocaml keywords */
-/* please test and activate */
+/* There's no need to use this, because of my rewriting machinery.  C++
+ * words never collide with ocaml keywords */
 //%include "ocamlkw.swg"

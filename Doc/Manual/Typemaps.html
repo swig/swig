@@ -2540,6 +2540,24 @@ ordering (and perform conversions if needed).
 
 <H2><a name="runtime_type_checker"></a>10.8 The run-time type checker</H2>
 
+Most scripting languages need type information at run-time.  This type information
+can include how to construct types, how to garbage collect types, and the inheritance
+relationships between types.  If the language interface does not provide its own type
+information storage, the generated SWIG code needs to provide it.<br><br>
+
+Requirements for the type system:<br>
+<li>Store inheritance and type equivalence information and be able to correctly 
+re-create the type pointer.</li>
+<li>Share type information between modules.</li>
+<li>Modules can be loaded in any order, irregardless of actual type
+dependency.</li>
+<li>Avoid the use of dynamically allocated memory, and library/system calls in general.</li>
+<li>Provide a reasonably fast implementation, minimizing the lookup time for all
+language modules.</li>
+<li>Custom, language specific information can be attached to types.</li>
+<li>Modules can be unloaded from the type system.</li>
+
+<H3>8.8.1 Implementation</H3>
 
 <p>
 The run-time type checker is used by many, but not all, of SWIG's supported target languages.
@@ -2628,7 +2646,90 @@ pointer.  However, the exact name and calling conventions of the conversion
 function depends on the target language (see language specific chapters for details). 
 
 <p>
-When pointers are converted in a typemap, the typemap code often looks
+The actual type code is in swigrun.swg, and gets inserted near the top of the generated
+swig wrapper file.  The phrase "a type X that can cast into a type Y" means
+that given a type X, it can be converted into a type Y.  In other words, X is a derived
+class of Y or X is a typedef of Y.  The structure to store type information looks like this:
+
+<blockquote>
+<pre>
+/* Structure to store information on one type */
+typedef struct swig_type_info {
+  const char *name;             /* mangled name of this type */
+  const char *str;              /* human readable name for this type */
+  swig_dycast_func dcast;       /* dynamic cast function down a hierarchy */
+  struct swig_cast_info *cast;  /* Linked list of types that can cast into this type */
+  void *clientdata;             /* Language specific type data */
+} swig_type_info;
+
+/* Structure to store a type and conversion function used for casting */
+typedef struct swig_cast_info {
+  swig_type_info *type;          /* pointer to type that is equivalent to this type */
+  swig_converter_func converter; /* function to cast the void pointers */
+  struct swig_cast_info *next;   /* pointer to next cast in linked list */
+  struct swig_cast_info *prev;   /* pointer to the previous cast */
+} swig_cast_info;
+</pre>
+</blockquote>
+
+Each <tt>swig_type_info</tt> stores a linked list of types that it is equivalent to.  Each entry in this
+doubly linked list stores a pointer back to another swig_type_info structure,
+along with a pointer to a conversion function.  This conversion function is used
+to solve the above problem of the FooBar class, correctly returning a pointer to
+the type we want.
+
+<p>
+The basic problem we need to solve is verifying and building arguments passed to functions.
+So going back to the <tt>SWIG_ConvertPtr()</tt> function example from above, we are
+expecting a <tt>Foo *</tt> and need to
+check if <tt>obj0</tt> is in fact a <tt>Foo *</tt>.  From before, <tt>SWIGTYPE_p_Foo</tt> is just
+a pointer to the <tt>swig_type_info</tt> structure describing <tt>Foo *</tt>.  So we loop though the
+linked list of <tt>swig_cast_info</tt> structures attached to <tt>SWIGTYPE_p_Foo</tt>.  If we see that the type of <tt>obj0</tt> is in the
+linked list, we pass the object through the associated conversion function and
+then return a positive.  If we reach the end of the linked list without a match,
+then <tt>obj0</tt> can not be converted to a <tt>Foo *</tt> and an error is generated.
+
+<p>
+Another issue needing to be addressed is sharing type information between multiple modules.
+More explicitly, we need
+to have ONE <tt>swig_type_info</tt> for each type.  If two modules both use the type, the
+second module loaded must lookup and use the swig_type_info structure from the module already loaded.
+Because no dynamic memory is used and the circular dependencies of the
+casting information, loading the type information is somewhat tricky, and not explained here.
+A complete description is in the <tt>common.swg</tt> file (and near the top of any generated file).
+<br><br>
+Each module has one swig_module_info structure which looks like this:
+
+<blockquote>
+<pre>
+/* Structure used to store module information
+ * Each module generates one structure like this, and the runtime collects
+ * all of these structures and stores them in a circularly linked list.*/
+typedef struct swig_module_info {
+  swig_type_info **types;         /* Array of pointers to swig_type_info structures that are in this module */
+  int size;                       /* Number of types in this module */
+  struct swig_module_info *next;  /* Pointer to next element in circularly linked list */
+  swig_type_info **type_initial;  /* Array of initially generated type structures */
+  swig_cast_info **cast_initial;  /* Array of initially generated casting structures */
+  void *clientdata;               /* Language specific module data */
+} swig_module_info;
+</pre>
+</blockquote>
+
+Each module stores an array of pointers to <tt>swig_type_info</tt> structures and the number of
+types in this module.  So when a second module is loaded, it finds the <tt>swig_module_info</tt>
+structure for the first module and searches the array of types. If any of its own
+types are in the first module and have already been loaded, it uses those <tt>swig_type_info</tt>
+structures rather than creating new ones.  These <tt>swig_module_info</tt> 
+structures are chained together in a circularly linked list.
+
+<a name="n43"></a><H3>8.8.2 Usage</H3>
+<p>This section covers how to use these functions from typemaps.  To learn how to
+call these functions from external files (not the generated _wrap.c file), see
+the <a href="Modules.html#external_run_time">External access to the run-time system</a>
+section.</p>
+
+<p>When pointers are converted in a typemap, the typemap code often looks
 similar to this:
 </p>
 

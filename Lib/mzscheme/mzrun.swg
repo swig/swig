@@ -23,6 +23,11 @@ extern "C" {
 #define SWIG_MustGetPtr(s, type, argnum, flags) \
   SWIG_MzScheme_MustGetPtr(s, type, argnum, flags, FUNC_NAME, argc, argv)
 
+/* Runtime API */
+#define SWIG_GetModule(clientdata) SWIG_MzScheme_GetModule((Scheme_Env *)(clientdata))
+#define SWIG_SetModule(clientdata, pointer) SWIG_MzScheme_SetModule((Scheme_Env *) (clientdata), pointer)
+#define SWIG_MODULE_CLIENTDATA_TYPE Scheme_Env *
+
 /* MzScheme-specific SWIG API */
   
 #define SWIG_malloc(size) SWIG_MzScheme_Malloc(size, FUNC_NAME)
@@ -39,41 +44,7 @@ struct swig_mz_proxy {
   void *object;
 };
 
-/* The interpreter will store a pointer to this structure in a global
-   variable called swig-runtime-data-type-pointer.  The instance of this
-   struct is only used if no other module has yet been loaded */
-struct swig_mzscheme_runtime_data {
-  swig_type_info **handle;
-  Scheme_Type type;
-};
-static struct swig_mzscheme_runtime_data swig_mzscheme_runtime_data;
-
 static Scheme_Type swig_type;
-
-static void 
-SWIG_MzScheme_LookupTypePointer(Scheme_Env *env) {
-  Scheme_Object *pointer, *symbol;
-  struct swig_mzscheme_runtime_data *data;
-
-  /* first check if pointer already created */
-  symbol = scheme_intern_symbol("swig-runtime-data-type-pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
-  pointer = scheme_lookup_global(symbol, env);
-  if (pointer && SCHEME_CPTRP(pointer)) {
-      data = (struct swig_mzscheme_runtime_data *) SCHEME_CPTR_VAL(pointer);
-      swig_type_list_handle = data->handle;
-      swig_type = data->type;
-  } else {
-    /* create a new type for wrapped pointer values */
-    swig_type = scheme_make_type((char *)"swig");
-    swig_mzscheme_runtime_data.handle = swig_type_list_handle;
-    swig_mzscheme_runtime_data.type = swig_type;
-    
-    /* create a new pointer */
-    pointer = scheme_make_cptr((void *) &swig_mzscheme_runtime_data, "swig_mzscheme_runtime_data");
-    scheme_add_global_symbol(symbol, pointer, env);
-  }
-}
-
 
 static void 
 mz_free_swig(void *p, void *data) {
@@ -102,7 +73,7 @@ SWIG_MzScheme_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
 
 static int
 SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, int flags) {
-  swig_type_info *cast;
+  swig_cast_info *cast;
 
   if (SCHEME_NULLP(s)) {
     *result = NULL;
@@ -192,7 +163,58 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
 
     return new_type;
 }
+
+/* The interpreter will store a pointer to this structure in a global
+   variable called swig-runtime-data-type-pointer.  The instance of this
+   struct is only used if no other module has yet been loaded */
+struct swig_mzscheme_runtime_data {
+  swig_module_info *module_head;
+  Scheme_Type type;
+};
+static struct swig_mzscheme_runtime_data swig_mzscheme_runtime_data;
+
+
+static swig_module_info *
+SWIG_MzScheme_GetModule(Scheme_Env *env) {
+  Scheme_Object *pointer, *symbol;
+  struct swig_mzscheme_runtime_data *data;
+
+  /* first check if pointer already created */
+  symbol = scheme_intern_symbol("swig-runtime-data-type-pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
+  pointer = scheme_lookup_global(symbol, env);
+  if (pointer && SCHEME_CPTRP(pointer)) {
+      data = (struct swig_mzscheme_runtime_data *) SCHEME_CPTR_VAL(pointer);
+      swig_type = data->type;
+      return data->module_head;
+  } else {
+      return NULL;
+  }
+}
+
+static void
+SWIG_MzScheme_SetModule(Scheme_Env *env, swig_module_info *module) {
+  Scheme_Object *pointer, *symbol;
+  struct swig_mzscheme_runtime_data *data;
+
+  /* first check if pointer already created */
+  symbol = scheme_intern_symbol("swig-runtime-data-type-pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
+  pointer = scheme_lookup_global(symbol, env);
+  if (pointer && SCHEME_CPTRP(pointer)) {
+    data = (struct swig_mzscheme_runtime_data *) SCHEME_CPTR_VAL(pointer);
+    swig_type = data->type;
+    data->module_head = module;
+  } else {
+    /* create a new type for wrapped pointer values */
+    swig_type = scheme_make_type((char *)"swig");
+    swig_mzscheme_runtime_data.module_head = module;
+    swig_mzscheme_runtime_data.type = swig_type;
     
+    /* create a new pointer */
+    pointer = scheme_make_cptr((void *) &swig_mzscheme_runtime_data, "swig_mzscheme_runtime_data");
+    scheme_add_global_symbol(symbol, pointer, env);
+  }
+}
+
 #ifdef __cplusplus
 }
 #endif

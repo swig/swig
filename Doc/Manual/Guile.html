@@ -388,28 +388,36 @@ If the Scheme object passed was not a SWIG smob representing a compatible
 pointer, a <code>wrong-type-arg</code> exception is raised.
 
 <H3><a name="Guile_nn13"></a>18.6.1 GH Smobs</H3>
-
-
 <p>
 In earlier versions of SWIG, C pointers were represented as Scheme
 strings containing a hexadecimal rendering of the pointer value and a
 mangled type name.  As Guile allows registering user types, so-called
 "smobs" (small objects), a much cleaner representation has been
 implemented now.  The details will be discussed in the following.
+</p>
 
-<p>
-A smob is a cons cell where the lower half of the CAR contains the
-smob type tag, while the upper half of the CAR and the whole CDR are
-available.  <code>SWIG_Guile_Init()</code> registers a smob type named
-"swig" with Guile; its type tag is stored in the variable
-<code>swig_tag</code>.  The upper half of the CAR store an index into
-a table of all C pointer types seen so far, to which new types seen
-are appended.  The CDR stores the pointer value.  
+<p> A smob is a cons cell where the lower half of the CAR contains the smob type
+tag, while the upper half of the CAR and the whole CDR are available. Every
+module creates its own smob type in the clientdata field of the module. So the
+lower 16 bits of the car of the smob store the tag and the upper 16 bits store
+the index this type is in the array. We can then, given a smob, find its
+swig_type_info struct by using the tag (lower 16 bits of car) to find which
+module this type is in (since each tag is unique for the module). Then we use
+the upper 16 bits to index into the array of types attached to this module.
+Looking up the module from the tag is worst case O(# of modules) but average
+case O(1). This is because the modules are stored in a circularly linked list,
+and when we start searching the modules for the tag, we start looking with the
+module that the function doing the lookup is in. SWIG_Guile_ConvertPtr() takes
+as its first argument the swig_module_info * of the calling function, which is
+where we start comparing tags. Most types will be looked up in the same module
+that created them, so the first module we check will most likely be correct.
+Once we have a swig_type_info structure, we loop through the linked list of
+casts, using pointer comparisons.</p>
 
 <H3><a name="Guile_nn14"></a>18.6.2 SCM Smobs</H3>
 
 
-<p>The SCM interface (using the "-scm" argument to swig) uses common.swg.
+<p>The SCM interface (using the "-scm" argument to swig) uses swigrun.swg.
 The whole type system, when it is first initialized, creates two smobs named "swig" and "collected_swig".
 The swig smob is used for non-garbage collected smobs, while the collected_swig smob is used as described
 below.  Each smob has the same format, which is a double cell created by SCM_NEWSMOB2()

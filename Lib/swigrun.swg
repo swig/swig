@@ -8,7 +8,7 @@
 
 /* This should only be incremented when either the layout of swig_type_info changes,
    or for whatever reason, the runtime changes incompatibly */
-#define SWIG_RUNTIME_VERSION "1"
+#define SWIG_RUNTIME_VERSION "2"
 
 /* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
 #ifdef SWIG_TYPE_TABLE
@@ -44,6 +44,17 @@
 #define SWIGRUNTIMEINLINE SWIGRUNTIME SWIGINLINE
 #endif
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+#  if !defined(STATIC_LINKED)
+#    define SWIGEXPORT(a) __declspec(dllexport) a
+#  else
+#    define SWIGEXPORT(a) a
+#  endif
+#else
+#  define SWIGEXPORT(a) a
+#endif
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -51,15 +62,35 @@ extern "C" {
 typedef void *(*swig_converter_func)(void *);
 typedef struct swig_type_info *(*swig_dycast_func)(void **);
 
+/* Structure to store inforomation on one type */
 typedef struct swig_type_info {
-  const char             *name;
-  swig_converter_func     converter;
-  const char             *str;
-  void                   *clientdata;
-  swig_dycast_func        dcast;
-  struct swig_type_info  *next;
-  struct swig_type_info  *prev;
+  const char             *name;			/* mangled name of this type */
+  const char             *str;			/* human readable name of this type */
+  swig_dycast_func        dcast;		/* dynamic cast function down a hierarchy */
+  struct swig_cast_info  *cast;			/* linked list of types that can cast into this type */
+  void                   *clientdata;		/* language specific type data */
 } swig_type_info;
+
+/* Structure to store a type and conversion function used for casting */
+typedef struct swig_cast_info {
+  swig_type_info         *type;			/* pointer to type that is equivalent to this type */
+  swig_converter_func     converter;		/* function to cast the void pointers */
+  struct swig_cast_info  *next;			/* pointer to next cast in linked list */
+  struct swig_cast_info  *prev;			/* pointer to the previous cast */
+} swig_cast_info;
+
+/* Structure used to store module information
+ * Each module generates one structure like this, and the runtime collects
+ * all of these structures and stores them in a circularly linked list.*/
+typedef struct swig_module_info {
+  swig_type_info         **types;		/* Array of pointers to swig_type_info structures that are in this module */
+  int                      size;		/* Number of types in this module */
+  struct swig_module_info *next;		/* Pointer to next element in circularly linked list */
+  swig_type_info         **type_initial;	/* Array of initially generated type structures */
+  swig_cast_info         **cast_initial;	/* Array of initially generated casting structures */
+  void                    *clientdata;		/* Language specific module data */
+} swig_module_info;
+
 
 /* 
   Compare two type names skipping the space characters, therefore
@@ -81,6 +112,7 @@ SWIG_TypeNameComp(const char *f1, const char *l1,
 
 /*
   Check type equivalence in a name list like <name1>|<name2>|...
+  Return 0 if not equal, 1 if equal
 */
 SWIGRUNTIME int
 SWIG_TypeEquiv(const char *nb, const char *tb) {
@@ -98,89 +130,70 @@ SWIG_TypeEquiv(const char *nb, const char *tb) {
 }
 
 /*
-  Register a type mapping with the type-checking
+  Check type equivalence in a name list like <name1>|<name2>|...
+  Return 0 if equal, -1 if nb < tb, 1 if nb > tb
 */
-SWIGRUNTIME swig_type_info *
-SWIG_TypeRegisterTL(swig_type_info **tl, swig_type_info *ti) {
-  swig_type_info *tc, *head, *ret, *next;
-  /* Check to see if this type has already been registered */
-  tc = *tl;
-  while (tc) {
-    /* check simple type equivalence */
-    int typeequiv = (strcmp(tc->name, ti->name) == 0);   
-    /* check full type equivalence, resolving typedefs */
-    if (!typeequiv) {
-      /* only if tc is not a typedef (no '|' on it) */
-      if (tc->str && ti->str && !strstr(tc->str,"|")) {
-	typeequiv = SWIG_TypeEquiv(ti->str,tc->str);
-      }
+SWIGRUNTIME int
+SWIG_TypeCompare(const char *nb, const char *tb) {
+  int equiv = 0;
+  const char* te = tb + strlen(tb);
+  const char* ne = nb;
+  while (!equiv && *ne) {
+    for (nb = ne; *ne; ++ne) {
+      if (*ne == '|') break;
     }
-    if (typeequiv) {
-      /* Already exists in the table.  Just add additional types to the list */
-      if (ti->clientdata) tc->clientdata = ti->clientdata;
-      head = tc;
-      next = tc->next;
-      goto l1;
-    }
-    tc = tc->prev;
+    equiv = SWIG_TypeNameComp(nb, ne, tb, te) == 0;
+    if (*ne) ++ne;
   }
-  head = ti;
-  next = 0;
-
-  /* Place in list */
-  ti->prev = *tl;
-  *tl = ti;
-
-  /* Build linked lists */
-  l1:
-  ret = head;
-  tc = ti + 1;
-  /* Patch up the rest of the links */
-  while (tc->name) {
-    head->next = tc;
-    tc->prev = head;
-    head = tc;
-    tc++;
-  }
-  if (next) next->prev = head;
-  head->next = next;
-
-  return ret;
+  return equiv;
 }
+
+
+/* think of this as a c++ template<> or a scheme macro */
+#define SWIG_TypeCheck_Template(comparison, ty) \
+  do { \
+    swig_cast_info *iter; \
+    if (!ty) return 0; \
+    iter = ty->cast; \
+    while (iter) { \
+      if (comparison) { \
+        if (iter == ty->cast) return iter; \
+\
+        /* Move iter to the top of the linked list */ \
+        iter->prev->next = iter->next; \
+        if (iter->next) \
+          iter->next->prev = iter->prev; \
+        iter->next = ty->cast; \
+        iter->prev = 0; \
+        if (ty->cast) ty->cast->prev = iter; \
+        ty->cast = iter; \
+\
+        return iter; \
+      } \
+      iter = iter->next; \
+    } \
+    return 0; \
+  } while(0)
 
 /*
   Check the typename
 */
-SWIGRUNTIME swig_type_info *
+SWIGRUNTIME swig_cast_info *
 SWIG_TypeCheck(const char *c, swig_type_info *ty) {
-  swig_type_info *s;
-  if (!ty) return 0;        /* Void pointer */
-  s = ty->next;             /* First element always just a name */
-  do {
-    if (strcmp(s->name,c) == 0) {
-      if (s == ty->next) return s;
-      /* Move s to the top of the linked list */
-      s->prev->next = s->next;
-      if (s->next) {
-        s->next->prev = s->prev;
-      }
-      /* Insert s as second element in the list */
-      s->next = ty->next;
-      if (ty->next) ty->next->prev = s;
-      ty->next = s;
-      s->prev = ty;
-      return s;
-    }
-    s = s->next;
-  } while (s && (s != ty->next));
-  return 0;
+  SWIG_TypeCheck_Template(strcmp(iter->type->name, c) == 0, ty);
+}
+
+/* Same as previous function, except strcmp is replaced with a pointer comparison */
+SWIGRUNTIME swig_cast_info *
+SWIG_TypeCheckStruct(swig_type_info *from, swig_type_info *into) {
+  SWIG_TypeCheck_Template(iter->type == from, into);
 }
 
 /*
   Cast a pointer up an inheritance hierarchy
 */
 SWIGRUNTIMEINLINE void *
-SWIG_TypeCast(swig_type_info *ty, void *ptr) {
+SWIG_TypeCast(swig_cast_info *ty, void *ptr) {
   return ((!ty) || (!ty->converter)) ? ptr : (*ty->converter)(ptr);
 }
 
@@ -227,42 +240,99 @@ SWIG_TypePrettyName(const swig_type_info *type) {
     return type->name;
 }
 
-/*
-  Search for a swig_type_info structure
-*/
-SWIGRUNTIME swig_type_info *
-SWIG_TypeQueryTL(swig_type_info *tl, const char *name) {
-  swig_type_info *ty = tl;
-  while (ty) {
-    if (ty->str && (SWIG_TypeEquiv(ty->str,name))) return ty;
-    if (ty->name && (strcmp(name,ty->name) == 0)) return ty;
-    ty = ty->prev;
-  }
-  return 0;
-}
-
 /* 
    Set the clientdata field for a type
 */
 SWIGRUNTIME void
-SWIG_TypeClientDataTL(swig_type_info *tl, swig_type_info *ti, void *clientdata) {
-  swig_type_info *tc, *equiv;
+SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
+  swig_cast_info *cast;
+  
   if (ti->clientdata) return;
   /* if (ti->clientdata == clientdata) return; */
   ti->clientdata = clientdata;
-  equiv = ti->next;
-  while (equiv) {
-    if (!equiv->converter) {
-      tc = tl;
-      while (tc) {
-        if ((strcmp(tc->name, equiv->name) == 0))
-          SWIG_TypeClientDataTL(tl,tc,clientdata);
-        tc = tc->prev;
-      }
-    }
-    equiv = equiv->next;
+
+  cast = ti->cast;
+  while (cast) {
+    if (!cast->converter)
+      SWIG_TypeClientData(cast->type, clientdata);
+    cast = cast->next;
   }
 }
+
+/*
+  Search for a swig_type_info structure only by mangled name
+  Search is a O(log #types)
+  
+  We start searching at module start, and finish searching when start == end.  
+  Note: if start == end at the beginning of the function, we go all the way around
+  the circular list.
+*/
+SWIGRUNTIME swig_type_info *
+SWIG_MangledTypeQueryModule(swig_module_info *start, 
+                            swig_module_info *end, 
+		            const char *name) {
+  swig_module_info *iter;
+  int l, r, i, compare;
+
+  iter = start;
+  do {
+    l = 0;
+    r = iter->size - 1;
+    while (l <= r) {
+      i = (l + r) / 2;
+
+      if (!(iter->types[i]->name)) break; /* should never happen */
+
+      compare = strcmp(name, iter->types[i]->name);
+      if (compare == 0)
+        return iter->types[i];
+      else if (compare < 0)
+        r = i - 1;
+      else if (compare > 0)
+        l = i + 1;
+    }
+    iter = iter->next;
+  } while (iter != end);
+
+  return 0;
+}
+
+/*
+  Search for a swig_type_info structure for either a mangled name or a human readable name.
+  It first searches the mangled names of the types, which is a O(log #types)
+  If a type is not found it then searches the human readable names, which is O(#types).
+  
+  We start searching at module start, and finish searching when start == end.  
+  Note: if start == end at the beginning of the function, we go all the way around
+  the circular list.
+*/
+SWIGRUNTIME swig_type_info *
+SWIG_TypeQueryModule(swig_module_info *start, 
+                     swig_module_info *end, 
+		     const char *name) {
+  swig_module_info *iter;
+  swig_type_info *ret;
+  int i;
+
+  /* STEP 1: Search the name field using binary search */
+  ret = SWIG_MangledTypeQueryModule(start, end, name);
+  if (ret) return ret;
+
+  /* STEP 2: If the type hasn't been found, do a complete search
+             of the str field (the human readable name) */
+  iter = start;
+  do {
+    for (i = 0; i < iter->size; ++i) {
+      if (iter->types[i]->str && (SWIG_TypeEquiv(iter->types[i]->str, name)))
+        return iter->types[i];
+    }
+    iter = iter->next;
+  } while (iter != end);
+  
+  /* neither found a match */
+  return 0;
+}
+
 
 /* 
    Pack binary data into a string
@@ -307,30 +377,6 @@ SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     *u = uu;
   }
   return c;
-}
-
-/*
-  This function will propagate the clientdata field of type to any new
-  swig_type_info structures that have been added into the list of
-  equivalent types.  It is like calling SWIG_TypeClientData(type,
-  clientdata) a second time.
-*/
-SWIGRUNTIME void
-SWIG_PropagateClientDataTL(swig_type_info *tl, swig_type_info *type) {
-  swig_type_info *equiv = type->next;
-  swig_type_info *tc;
-  if (!type->clientdata) return;
-  while (equiv) {
-    if (!equiv->converter) {
-      tc = tl;
-      while (tc) {
-        if ((strcmp(tc->name, equiv->name) == 0) && !tc->clientdata)
-          SWIG_TypeClientDataTL(tl,tc, type->clientdata);
-        tc = tc->prev;
-      }
-    }
-    equiv = equiv->next;
-  }
 }
 
 /* 

@@ -155,30 +155,28 @@ public:
     
     SwigType_emit_type_table (f_runtime, f_wrappers);
     if (!noinit) {
-    Printf(f_init, "Scheme_Object *scheme_reload(Scheme_Env *env) {\n");
-    if (declaremodule) {
-      Printf(f_init, "\tScheme_Env *menv = scheme_primitive_module(scheme_intern_symbol(\"%s\"), env);\n", module);
-    }
-    else {
-      Printf(f_init, "\tScheme_Env *menv = env;\n");
-    }
-    Printf(f_init, "%s\n", Char(init_func_def));
-	if (declaremodule) {
-		Printf(f_init, "\tscheme_finish_primitive_module(menv);\n");
-	}
-    Printf (f_init, "\treturn scheme_void;\n}\n");
-    Printf(f_init, "Scheme_Object *scheme_initialize(Scheme_Env *env) {\n");
-    Printf(f_init, "\treturn scheme_reload(env);\n");
-    Printf (f_init, "}\n");
+      if (declaremodule) {
+        Printf(f_init, "#define SWIG_MZSCHEME_CREATE_MENV(env) scheme_primitive_module(scheme_intern_symbol(\"%s\"), env)\n", module);
+      }
+      else {
+	Printf(f_init,"#define SWIG_MZSCHEME_CREATE_MENV(env) (env)\n");
+      }
+      Printf(f_init, "%s\n", Char(init_func_def));
+      if (declaremodule) {
+        Printf(f_init, "\tscheme_finish_primitive_module(menv);\n");
+      }
+      Printf (f_init, "\treturn scheme_void;\n}\n");
+      Printf(f_init, "Scheme_Object *scheme_initialize(Scheme_Env *env) {\n");
+      Printf(f_init, "\treturn scheme_reload(env);\n");
+      Printf (f_init, "}\n");
     
-    Printf(f_init,"Scheme_Object *scheme_module_name(void) {\n");
-	if (declaremodule) {
-		Printf(f_init, "   return scheme_intern_symbol((char*)\"%s\");\n", module);
-	}
-	else {
-		Printf(f_init,"   return scheme_make_symbol((char*)\"%s\");\n", module);
-	}
-    Printf(f_init,"}\n");
+      Printf(f_init,"Scheme_Object *scheme_module_name(void) {\n");
+      if (declaremodule) {
+        Printf(f_init, "   return scheme_intern_symbol((char*)\"%s\");\n", module);
+      } else {
+        Printf(f_init,"   return scheme_make_symbol((char*)\"%s\");\n", module);
+      }
+      Printf(f_init,"}\n");
     }
 
     /* Close all of the files */

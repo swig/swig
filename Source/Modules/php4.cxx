@@ -733,12 +733,8 @@ public:
      * things are being called in the wrong order
      */
     
-    Printf(s_init,"PHP_MINIT_FUNCTION(%s)\n{\n", module);
-    Printf(s_init,
-	   "    int i;\n"
-	   "    for (i = 0; swig_types_initial[i]; i++) {\n"
-	   "        swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n"
-	   "    }\n");
+    Printf(s_init,"#define SWIG_php_minit PHP_MINIT_FUNCTION(%s)\n", module);
+
     /* Emit all of the code */
     Language::top(n);
 

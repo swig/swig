@@ -292,6 +292,7 @@ extern int      DohCopyto(DOHFile *input, DOHFile *output);
  * ----------------------------------------------------------------------------- */
 
 extern DOHList  *DohNewList();
+extern void DohSortList(DOH *lo, int (*cmp)(DOH *, DOH *));
 
 /* -----------------------------------------------------------------------------
  * Hash
@@ -388,6 +389,7 @@ extern void      DohMemoryDebug(void);
 #define First              DohFirst
 #define Next               DohNext
 #define Iterator           DohIterator
+#define SortList           DohSortList
 #endif
 
 #ifdef NIL

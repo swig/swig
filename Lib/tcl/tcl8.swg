@@ -5,7 +5,6 @@
  * ----------------------------------------------------------------------------- */
 
 %runtime "swigrun.swg"       // Common C API type-checking code
-%runtime "common.swg"
 %runtime "swigtcl8.swg"
 
 /* -----------------------------------------------------------------------------
@@ -632,10 +631,11 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *);
 
 /* Start the initialization function */
 
+%insert(init) "swiginit.swg"
+
 %init %{
 SWIGEXPORT(int) SWIG_init(Tcl_Interp *interp) {
     int i;
-    static int _init = 0;
     if (interp == 0) return TCL_ERROR;
 #ifdef USE_TCL_STUBS
     if (Tcl_InitStubs(interp, (char*)"8.1", 0) == NULL) {
@@ -648,16 +648,10 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *interp) {
 #ifdef SWIG_namespace
     Tcl_Eval(interp, "namespace eval " SWIG_namespace " { }");
 #endif
-    if (!_init) {
-       SWIG_Tcl_LookupTypePointer(interp);
-       for (i = 0; swig_types_initial[i]; i++) {
-          swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
-       }
-       for (i = 0; swig_types_initial[i]; i++) {
-          SWIG_PropagateClientData(swig_types[i]);
-       }
-       _init = 1;
-    }
+
+    SWIG_InitializeModule((void *) interp);
+    SWIG_PropagateClientData();
+
     for (i = 0; swig_commands[i].name; i++) {
       Tcl_CreateObjCommand(interp, (char *) swig_commands[i].name, (swig_wrapper_func) swig_commands[i].wrapper, swig_commands[i].clientdata, NULL);
     }

@@ -3,14 +3,18 @@
    This file is parsed by SWIG before reading any other interface
    file. */
 
+%runtime %{
+#define SWIGSTATIC static
+%}
+
 /* Insert common stuff */
 %insert(runtime) "swigrun.swg"
-%insert(runtime) "common.swg"
 
 /* Include headers */
 %insert(runtime) "ocamldec.swg"
 
 /* Type registration */
+%insert(init) "swiginit.swg"
 %insert(init) "typeregister.swg"
 
 %insert(mlitail) %{

@@ -18,6 +18,9 @@
 #define SWIG_ConvertPacked(obj, ptr, sz, ty, flags)   SWIG_Python_ConvertPacked(obj, ptr, sz, ty, flags)
 #define SWIG_NewPackedObj(ptr, sz, type)              SWIG_Python_NewPackedObj(ptr, sz, type)
 
+/* Runtime API */
+#define SWIG_GetModule(clientdata) SWIG_Python_GetModule()
+#define SWIG_SetModule(clientdata, pointer) SWIG_Python_SetModule(pointer)
 
 /* -----------------------------------------------------------------------------
  * Pointer declarations
@@ -522,7 +525,7 @@ SWIG_Python_ArgFail(int argnum)
 /* Convert a pointer value */
 SWIGRUNTIME int
 SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
-  swig_type_info *tc;
+  swig_cast_info *tc;
   const char *c = 0;
   static PyObject *SWIG_this = 0;
   int    newref = 0;
@@ -629,7 +632,7 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
 /* Convert a packed value value */
 SWIGRUNTIME int
 SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *ty, int flags) {
-  swig_type_info *tc;
+  swig_cast_info *tc;
   const char *c = 0;
 
 #if defined(SWIG_COBJECT_TYPES) && !defined(SWIG_COBJECT_PYTHON)
@@ -720,8 +723,8 @@ SWIG_Python_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
 void *SWIG_ReturnGlobalTypeList(void *);
 #endif
 
-SWIGRUNTIME swig_type_info **
-SWIG_Python_GetTypeListHandle() {
+SWIGRUNTIME swig_module_info *
+SWIG_Python_GetModule() {
   static void *type_pointer = (void *)0;
   /* first check if module already created */
   if (!type_pointer) {
@@ -736,19 +739,21 @@ SWIG_Python_GetTypeListHandle() {
     }
   }
 #endif
-  return (swig_type_info **) type_pointer;
+  return (swig_module_info *) type_pointer;
 }
 
-/*
-  Search for a swig_type_info structure
- */
-SWIGRUNTIMEINLINE swig_type_info *
-SWIG_Python_GetTypeList() {
-  swig_type_info **tlh = SWIG_Python_GetTypeListHandle();
-  return tlh ? *tlh : (swig_type_info*)0;
-}
+static void
+SWIG_Python_SetModule(swig_module_info *swig_module) {
+  static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} };/* Sentinel */
 
-#define SWIG_Runtime_GetTypeList SWIG_Python_GetTypeList 
+  PyObject *module = Py_InitModule((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION,
+				   swig_empty_runtime_method_table);
+  PyObject *pointer = PyCObject_FromVoidPtr((void *) swig_module, NULL);
+  if (pointer && module) {
+    PyModule_AddObject(module, (char*)"type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
+  }
+} 
+
 
 #ifdef __cplusplus
 }

@@ -433,12 +433,12 @@ MZSCHEME_SO = @MZSCHEME_SO@
 
 mzscheme: $(SRCS)
 	$(SWIG) -mzscheme $(SWIGOPT) $(INTERFACE)
-	$(MZC) ++ccf "$(INCLUDES)" --cc $(ISRCS) $(SRCS)
+	$(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ISRCS) $(SRCS)
 	$(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS)
 
 mzscheme_cpp: $(SRCS)
 	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
-	$(MZC) ++ccf "$(INCLUDES)" --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS) 
 
 # -----------------------------------------------------------------

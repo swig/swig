@@ -6,9 +6,10 @@
  */
 
 %runtime "swigrun.swg"             // Common C API type-checking code
-%runtime "common.swg"		// common type checking code
 %runtime "php4run.swg"		// Php4 runtime functions
 %include "utils.i"		// building blocks
+
+%init "swiginit.swg"
 
 /* Typemaps for input parameters by value */
 
@@ -501,6 +502,11 @@ deliberate error cos this code looks bogus to me
 /* Some ANSI C typemaps */
 
 %apply unsigned long { size_t };
+
+%init %{
+  SWIG_php_minit {
+    SWIG_InitializeModule(0);
+%}
 
 /* php kewords */
 /* please test and activate */

@@ -142,6 +142,10 @@ extern "C" {
      SWIG_Perl_ConvertPacked(obj, p, s, type, flags)
 #endif
 
+/* Runtime API */
+#define SWIG_GetModule(clientdata) SWIG_Perl_GetModule()
+#define SWIG_SetModule(clientdata, pointer) SWIG_Perl_SetModule(pointer)
+
 /* Perl-specific API */
 #ifdef PERL_OBJECT
 #  define SWIG_MakePtr(sv, ptr, type, flags) \
@@ -166,63 +170,16 @@ extern "C" {
 #  define SWIG_MAYBE_PERL_OBJECT
 #endif
 
-static swig_type_info **
-SWIG_Perl_GetTypeListHandle() {
-  static void *type_pointer = (void *)0;
-  SV *pointer;
-
-  /* first check if pointer already created */
-  if (!type_pointer) {
-    pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, FALSE);
-    if (pointer && SvOK(pointer)) {
-      type_pointer = INT2PTR(swig_type_info **, SvIV(pointer));
-    }
-  }
-
-  return (swig_type_info **) type_pointer;
-}
-
-/*
-  Search for a swig_type_info structure
- */
-SWIGRUNTIMEINLINE swig_type_info *
-SWIG_Perl_GetTypeList() {
-  swig_type_info **tlh = SWIG_Perl_GetTypeListHandle();
-  return tlh ? *tlh : (swig_type_info*)0;
-}
-
-#define SWIG_Runtime_GetTypeList SWIG_Perl_GetTypeList 
-
-static swig_type_info *
+static swig_cast_info *
 SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty) {
-  swig_type_info *s;
-  if (!ty) return 0;        /* Void pointer */
-  s = ty->next;             /* First element always just a name */
-  do {
-    if (sv_derived_from(rv, (char *) s->name)) {
-      if (s == ty->next) return s;
-      /* Move s to the top of the linked list */
-      s->prev->next = s->next;
-      if (s->next) {
-        s->next->prev = s->prev;
-      }
-      /* Insert s as second element in the list */
-      s->next = ty->next;
-      if (ty->next) ty->next->prev = s;
-      ty->next = s;
-      s->prev = ty;
-      return s;
-    }
-    s = s->next;
-  } while (s && (s != ty->next));
-  return 0;
+  SWIG_TypeCheck_Template(sv_derived_from(rv, (char *) iter->type->name), ty);
 }
 
 /* Function for getting a pointer value */
 
 static int
 SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *_t, int flags) {
-  swig_type_info *tc;
+  swig_cast_info *tc;
   void *voidptr = (void *)0;
 
   /* If magical, apply more magic */
@@ -332,7 +289,7 @@ static void
 /* Convert a packed value value */
 static int
 SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
-  swig_type_info *tc;
+  swig_cast_info *tc;
   const char  *c = 0;
 
   if ((!obj) || (!SvOK(obj))) return -1;
@@ -437,6 +394,27 @@ static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (C
 }
 
 
+static swig_module_info *
+SWIG_Perl_GetModule() {
+  static void *type_pointer = (void *)0;
+  SV *pointer;
 
+  /* first check if pointer already created */
+  if (!type_pointer) {
+    pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, FALSE);
+    if (pointer && SvOK(pointer)) {
+      type_pointer = INT2PTR(swig_type_info **, SvIV(pointer));
+    }
+  }
 
+  return (swig_module_info *) type_pointer;
+}
 
+static void
+SWIG_Perl_SetModule(swig_module_info *module) {
+  SV *pointer;
+
+  /* create a new pointer */
+  pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TRUE);
+  sv_setiv(pointer, PTR2IV(module));
+}

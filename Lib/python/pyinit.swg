@@ -2,6 +2,8 @@
  * The start of the Python initialization function 
  * ------------------------------------------------------------ */
 
+%insert(init) "swiginit.swg"
+
 %init %{
 
 #ifdef __cplusplus
@@ -263,33 +265,6 @@ PyModule_AddObject(PyObject *m, char *name, PyObject *o)
 }
 #endif
 
-static swig_type_info **
-SWIG_Python_SetTypeListHandle(swig_type_info **type_list_handle) {
-  static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} };/* Sentinel */
-
-  PyObject *module = Py_InitModule((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION,
-				   swig_empty_runtime_method_table);
-  PyObject *pointer = PyCObject_FromVoidPtr((void *) type_list_handle, NULL);
-  if (pointer && module) {
-    PyModule_AddObject(module, (char*)"type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
-  }
-  return type_list_handle;
-} 
-
-static swig_type_info **
-SWIG_Python_LookupTypePointer(swig_type_info **type_list_handle) {
-  swig_type_info **type_pointer;
-
-  /* first check if module already created */
-  type_pointer = SWIG_Python_GetTypeListHandle();
-  if (type_pointer) {
-    return type_pointer;
-  } else {
-    /* create a new module and variable */
-    return SWIG_Python_SetTypeListHandle(type_list_handle);
-  }
-}
-
 #ifdef __cplusplus
 }
 #endif
@@ -298,42 +273,22 @@ SWIG_Python_LookupTypePointer(swig_type_info **type_list_handle) {
  *  Partial Init method
  * -----------------------------------------------------------------------------*/
 
-#ifdef SWIG_LINK_RUNTIME
-#ifdef __cplusplus
-extern "C"
-#endif
-SWIGEXPORT(void *) SWIG_ReturnGlobalTypeList(void *);
-#endif
- 
 #ifdef __cplusplus
 extern "C"
 #endif
 SWIGEXPORT(void) SWIG_init(void) {
   static PyObject *SWIG_globals = 0; 
-  static int       typeinit = 0;
   PyObject *m, *d;
   int       i;
   if (!SWIG_globals) SWIG_globals = SWIG_newvarlink();
 
   /* Fix SwigMethods to carry the callback ptrs when needed */
-  SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_types_initial);
+  SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
   
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
   d = PyModule_GetDict(m);
 
-  if (!typeinit) {
-#ifdef SWIG_LINK_RUNTIME
-    swig_type_list_handle = (swig_type_info **) SWIG_ReturnGlobalTypeList(swig_type_list_handle);
-#else
-#  ifndef SWIG_STATIC_RUNTIME
-    swig_type_list_handle = SWIG_Python_LookupTypePointer(swig_type_list_handle);
-#  endif
-#endif
-    for (i = 0; swig_types_initial[i]; i++) {
-      swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
-    }
-    typeinit = 1;
-  }
+  SWIG_InitializeModule(0);
   SWIG_InstallConstants(d,swig_const_table);
 %}
 

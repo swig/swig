@@ -17,31 +17,9 @@ SWIGEXPORT(void) SWIG_init (CV *cv, CPerlObj *);
 
 /* Module initialization function */
 
+%insert(init) "swiginit.swg"
+
 %init %{
-
-static void SWIG_Perl_SetTypeListHandle(swig_type_info **handle) {
-  SV *pointer;
-    
-  /* create a new pointer */
-  pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TRUE);
-  sv_setiv(pointer, PTR2IV(swig_type_list_handle));
-}
-
-static swig_type_info **
-SWIG_Perl_LookupTypePointer(swig_type_info **type_list_handle) {
-  swig_type_info **type_pointer;
-
-  /* first check if module already created */
-  type_pointer = SWIG_Perl_GetTypeListHandle();
-  if (type_pointer) {
-    return type_pointer;
-  } else {
-    /* create a new module and variable */
-    SWIG_Perl_SetTypeListHandle(type_list_handle);
-    return type_list_handle;
-  }
-}
-
 
 #ifdef __cplusplus
 extern "C"
@@ -50,14 +28,8 @@ extern "C"
 XS(SWIG_init) {
     dXSARGS;
     int i;
-    static int _init = 0;
-    if (!_init) {
-       swig_type_list_handle = SWIG_Perl_LookupTypePointer(swig_type_list_handle);
-       for (i = 0; swig_types_initial[i]; i++) {
-	 swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
-       }	
-       _init = 1;
-    }
+
+    SWIG_InitializeModule(0);
 
     /* Install commands */
     for (i = 0; swig_commands[i].name; i++) {

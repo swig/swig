@@ -4,7 +4,6 @@
 
 /* Include headers */
 %runtime "swigrun.swg"     // Common C API type-checking code
-%runtime "common.swg"
 %runtime "mzrun.swg"
 
 %define SWIG_APPEND_VALUE(value)
@@ -22,15 +21,11 @@
 /* Read in standard typemaps. */
 %include "typemaps.i"
 
-%init %{
-  static int _swig_init = 0;
+%insert(init) "swiginit.swg"
 
-  if (!_swig_init) {
-    int i;
-    SWIG_MzScheme_LookupTypePointer(env);
-    for (i = 0; swig_types_initial[i]; i++) {
-      swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
-    }
-    _swig_init = 1;
-  }
+%init %{
+Scheme_Object *scheme_reload(Scheme_Env *env) {
+  Scheme_Env *menv = SWIG_MZSCHEME_CREATE_MENV(env);
+
+  SWIG_InitializeModule((void *) env);
 %}
