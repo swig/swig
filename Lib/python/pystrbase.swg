@@ -136,18 +136,8 @@
  *  Unknown size const Character array Char[ANY] handling
  * ------------------------------------------------------------ */
 
-%typemap(in) Char [] = Char *;
-%typemap(in) const Char [] = Char *;
-%typemap(out) Char [] = Char *;
-%typemap(out) const Char [] = const Char *;
-%typemap(varout) Char [] = Char *;
-%typemap(varout) const Char [] = const Char *;
-%typemap(constcode) Char [] = Char *;
-%typemap(directorin) Char [] = Char *;
-%typemap(directorin) const Char [] = Char *;
-%typemap(directorout) Char [] = Char *;
-%typemap(typecheck) Char [] = Char *;
-%typemap(typecheck) const Char [] = Char *;
+%apply Char* { Char [] };
+%apply const Char* { const Char [] };
 
 %typemap(varin,fragment=#SWIG_AsCharArray) Char []
 {
@@ -158,16 +148,6 @@
     return 1;
   }
 }
-
-%typemap(varout,fragment=#SWIG_FromCharArray) const Char []
-{
-  size_t size = sizeof($1);
-#ifndef SWIG_PRESERVE_CARRAY_SIZE
-  while (size && ($1[size - 1] == '\0')) --size;
-#endif
-  $result = SWIG_FromCharArray($1, size);
-}
-
 
 
 /* ------------------------------------------------------------
