@@ -1,4 +1,7 @@
 (* -*- tuareg -*- *)
+
+type enum = [ `Int of int ]
+
 type 'a c_obj_t = 
     C_void
   | C_bool of bool
@@ -20,13 +23,13 @@ type 'a c_obj_t =
   | C_enum of 'a
   | C_director_core of 'a c_obj_t * 'a c_obj_t option ref
 
-type empty_enum = [ `SWIGFake | `Int of int ]
+type c_obj = enum c_obj_t
 
-exception InvalidDirectorCall of empty_enum c_obj_t
+exception InvalidDirectorCall of c_obj
+exception NoSuchClass of string
 
-val invoke : 'a c_obj_t -> (string -> 'a c_obj_t -> 'a c_obj_t)
-val convert_c_obj : 'a c_obj_t -> 'b c_obj_t
-val fnhelper : bool -> ('a c_obj_t list -> 'a c_obj_t list) -> 'a c_obj_t -> 'a c_obj_t
+val invoke : ('a c_obj_t) -> (string -> 'a c_obj_t -> 'a c_obj_t)
+val fnhelper : 'a c_obj_t -> 'a c_obj_t list
 
 val get_int : 'a c_obj_t -> int
 val get_float : 'a c_obj_t -> float
@@ -54,3 +57,5 @@ val new_derived_object:
   ('a c_obj_t -> string -> 'a c_obj_t -> 'a c_obj_t) ->
   'a c_obj_t -> 'a c_obj_t
   
+val register_class_byname : string -> ('a c_obj_t -> 'a c_obj_t) -> unit
+val create_class : string -> 'a c_obj_t -> 'a c_obj_t

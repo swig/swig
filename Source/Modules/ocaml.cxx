@@ -259,18 +259,19 @@ public:
 	Printf( f_mlbody, "let module_name = \"%s\"\n", module );
 	Printf( f_mlibody, "val module_name : string\n" );
 	Printf( f_enum_to_int, 
-		"let enum_to_int x v =\n"
-		"  match v with C_enum y -> (\n"
-		"  match (x : c_enum_type) with\n"
-		"   `unknown -> "
-		"    (match (y : c_enum_tag) with\n"
-		"      `int (x : int) -> C_int x\n"
-		"    | _ -> raise (LabelNotFromThisEnum v))\n" );
+		"let enum_to_int x (v : c_obj) =\n"
+		"   match v with\n"
+		"     C_enum _y ->\n"
+		"     (let y = _y in match (x : c_enum_type) with\n"
+		"       `unknown -> "
+		"         (match (Obj.magic y) with\n"
+		"           `Int x -> C_int x\n"
+		"           | _ -> raise (LabelNotFromThisEnum v))\n" );
 
 	Printf( f_int_to_enum,
 		"let int_to_enum x y =\n"
 		"    match (x : c_enum_type) with\n"
-		"      `unknown -> C_enum (`int y)\n" );
+		"      `unknown -> C_enum (`Int y)\n" );
 
 	Swig_banner (f_runtime);
 
@@ -281,12 +282,9 @@ public:
     
 	/* Produce the enum_to_int and int_to_enum functions */
     
-	Printf(f_enumtypes_type,"type c_enum_type = [ \n  `unknown\n" );
-	Printf(f_enumtypes_value,
-	       "type c_enum_tag = [\n"
-	       "  `SWIGFake\n"
-	       "| `int of int\n" );
-    
+	Printf(f_enumtypes_type,"open Swig\n"
+	       "type c_enum_type = [ \n  `unknown\n" );
+	Printf(f_enumtypes_value,"type c_enum_value = [ \n  `Int of int\n" );
 	String *mlfile = NewString("");
 	String *mlifile = NewString("");
 
@@ -328,7 +326,8 @@ public:
 		"let _ = f_init ()\n",
 		module, module );
 	Printf( f_enumtypes_type, "]\n" );
-	Printf( f_enumtypes_value, "]\n" );
+	Printf( f_enumtypes_value, "]\n\n"
+		"type c_obj = c_enum_value c_obj_t\n" );
 
 	SwigType_emit_type_table (f_runtime, f_wrappers);
 	/* Close all of the files */
@@ -462,8 +461,11 @@ public:
 	if (overname) {
 	    Append(wname, overname);
 	}
+	/* Do this to disambiguate functions emitted from different modules */
+	Append(wname, module);
+
 	Setattr(n,"wrap:name",wname);
-    
+
 	// Build the name for Scheme.
 	Printv(proc_name,"_",iname,NIL);
 	String *mangled_name = mangleNameForCaml(proc_name);
@@ -731,7 +733,6 @@ public:
 	    if( !Getattr(n,"sym:nextSibling") ) {
 		int maxargs;
 		Wrapper *df = NewWrapper();
-		String *dname = Swig_name_wrapper(iname);
 		String *dispatch = 
 		    Swig_overload_dispatch(n,
 					   "free(argv);\n"
@@ -740,9 +741,15 @@ public:
 
 		Wrapper_add_local(df, "_v", "int _v = 0");
 		Wrapper_add_local(df, "argv", "CAML_VALUE *argv");
+		
+		/* Undifferentiate name .. this is the dispatch function */
+		wname = Swig_name_wrapper(iname);
+		/* Do this to disambiguate functions emitted from different
+		 * modules */
+		Append(wname, module);
 
 		Printv(df->def,
-		       "SWIGEXT CAML_VALUE ",dname,"(CAML_VALUE args) {\n"
+		       "SWIGEXT CAML_VALUE ",wname,"(CAML_VALUE args) {\n"
 		       "  CAMLparam1(args);\n"
 		       "  int i;\n"
 		       "  int argc = caml_list_length(args);\n",NIL);
@@ -756,34 +763,25 @@ public:
 		Printv(df->code,"}\n",NIL);
 		Wrapper_print(df,f_wrappers);
 
-		Printf(f_mlbody, 
-		       "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n"
-		       "let %s = fnhelper %s %s_f\n",
-		       mangled_name, dname, mangled_name, 
-		       newobj ? "true" : "false",
-		       mangled_name );
-		if( !classmode || in_constructor || in_destructor ||
-		    static_member_function ) 
-		    Printf(f_mlibody,
-			   "(* overload *)\n"
-			   "val %s : c_obj -> c_obj\n", mangled_name );
-
 		DelWrapper(df);
 		Delete(dispatch);
-		Delete(dname);
 	    }
-	} else {
-	    Printf(f_mlbody, 
-		   "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n"
-		   "let %s = fnhelper %s %s_f\n",
-		   mangled_name, wname, mangled_name, newobj ? "true" : "false", 
-		   mangled_name );
-	    if( !classmode || in_constructor || in_destructor ||
-		static_member_function ) 
-		Printf(f_mlibody,
-		       "(* Non-overload *)\n"
-		       "val %s : c_obj -> c_obj\n", mangled_name );
 	}
+
+	Printf(f_mlbody, 
+	       "external %s_f : c_obj list -> c_obj list = \"%s\" ;;\n"
+	       "let %s arg = match %s_f (fnhelper arg) with\n"
+	       "  [] -> C_void\n"
+	       "| [x] -> (if %s then Gc.finalise \n"
+	       "  (fun x -> ignore ((invoke x) \"~\" C_void)) x) ; x\n"
+	       "| lst -> C_list lst ;;\n",
+	       mangled_name, wname, 
+	       mangled_name, mangled_name, newobj ? "true" : "false");
+	
+	if( !classmode || in_constructor || in_destructor ||
+	    static_member_function ) 
+	    Printf(f_mlibody,
+		   "val %s : c_obj -> c_obj\n", mangled_name );
    
 	Delete(proc_name);
 	Delete(source);
@@ -896,16 +894,15 @@ public:
 	
 	if( Getattr( n, "feature:immutable" ) ) {
 	    Printf( f_mlbody, 
-		    "external __%s : c_obj -> c_obj = \"%s\" \n"
-		    "let _%s = __%s C_void\n",
-		    mname, var_name, mname, mname );
-	    Printf( f_mlibody, "val _%s : c_obj\n", iname );
+		    "external _%s : c_obj -> c_obj = \"%s\" \n",
+		    mname, var_name );
+	    Printf( f_mlibody, "val _%s : c_obj -> c_obj\n", iname );
 	    if( const_enum ) {
 		Printf( f_enum_to_int, 
-			" | `%s -> _%s\n", 
+			" | `%s -> _%s C_void\n", 
 			mname, mname );
 		Printf( f_int_to_enum, 
-			" if y = (get_int _%s) then `%s else\n",
+			" if y = (get_int (_%s C_void)) then `%s else\n",
 			mname, mname );
 	    }
 	} else {
@@ -1194,13 +1191,14 @@ public:
 	  Iterator b;
 	  b = First(baselist);
 	  while (b.item) {
-	    String *bname = Getattr(b.item, "ocaml:ctor");
+	    String *bname = Getattr(b.item, "name");
 	    if (bname) {
+	      String *base_create = NewString("");
+	      Printv(base_create,"(Swig.create_class \"",bname,"\")",NIL);
 	      Printv(f_class_ctors,
-		     "   \"::",bname,"\", (fun args -> "
-		     "create_",bname,"_from_ptr raw_ptr) ;\n",NIL);
-	      Printv( base_classes, "create_", bname, "_from_ptr ;\n", 
-		      NIL );
+		     "   \"::",bname,"\", (fun args -> ",
+		     base_create," args) ;\n",NIL);
+	      Printv( base_classes, base_create, " ;\n", NIL );
 	    }
 	    b = Next(b);
 	  }
@@ -1390,7 +1388,7 @@ public:
 
 	if( oname && !seen_enum ) {
 	    const_enum = true;
-	    Printf( f_enum_to_int, "| `%s -> (match (y : c_enum_tag) with\n", oname );
+	    Printf( f_enum_to_int, "| `%s -> (match (Obj.magic y) with\n", oname );
 	    Printf( f_int_to_enum, "| `%s -> C_enum (\n", oname );
 	    /* * * * A note about enum name resolution * * * *
 	     * This code should now work, but I think we can do a bit better.
@@ -1421,10 +1419,10 @@ public:
 	int ret = Language::enumDeclaration(n);
 	
 	if( const_enum ) {
-	    Printf( f_int_to_enum, "`int y)\n" );
+	    Printf( f_int_to_enum, "`Int y)\n" );
 	    Printf( f_enum_to_int, 
-		    "| `int (x : int) -> C_int x\n"
-		    "| _ -> raise (Failure \"Unknown enum tag\"))\n" );
+		    "| `Int x -> C_int x\n"
+		    "| _ -> raise (LabelNotFromThisEnum v))\n" );
 	}
 
 	const_enum = false;

@@ -2,6 +2,8 @@
 open Int32
 open Int64
 
+type enum = [ `Int of int ]
+
 type 'a c_obj_t = 
     C_void
   | C_bool of bool
@@ -23,15 +25,15 @@ type 'a c_obj_t =
   | C_enum of 'a
   | C_director_core of 'a c_obj_t * 'a c_obj_t option ref
 
-type empty_enum = [ `SWIGFake | `Int of int ]
+type c_obj = enum c_obj_t
 
 exception BadArgs of string
 exception BadMethodName of string * string
-exception NotObject of empty_enum c_obj_t
-exception NotEnumType of empty_enum c_obj_t
-exception LabelNotFromThisEnum of empty_enum c_obj_t
-exception InvalidDirectorCall of empty_enum c_obj_t
-
+exception NotObject of c_obj
+exception NotEnumType of c_obj
+exception LabelNotFromThisEnum of c_obj
+exception InvalidDirectorCall of c_obj
+exception NoSuchClass of string
 let rec invoke obj = 
   match obj with 
       C_obj o -> o 
@@ -39,13 +41,8 @@ let rec invoke obj =
     | _ -> raise (NotObject (Obj.magic obj))
 let _ = Callback.register "swig_runmethod" invoke
 
-let fnhelper fin f arg =
-  let args = match arg with C_list l -> l | C_void -> [] | _ -> [ arg ] in
-    match f args with
-	[] -> C_void
-      | [ x ] -> (if fin then Gc.finalise 
-		    (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
-      | lst -> C_list lst
+let fnhelper arg =
+  match arg with C_list l -> l | C_void -> [] | _ -> [ arg ]
 
 let rec get_int x = 
   match x with
@@ -109,8 +106,6 @@ let addr_of obj =
     | _ -> raise (Failure "Not a pointer.")
 let _ = Callback.register "caml_obj_ptr" addr_of
 
-let convert_c_obj a = Obj.magic a
-
 let make_float f = C_float f
 let make_double f = C_double f
 let make_string s = C_string s
@@ -146,3 +141,21 @@ let new_derived_object cfun x_class args =
     ob_ref := Some obj ;
       obj
   end
+  
+let swig_current_type_info = ref C_void
+let find_type_info obj = 
+  match obj with
+    C_ptr _ -> if !swig_current_type_info = C_void 
+                 then begin
+                   swig_current_type_info := obj ;
+                   obj
+                 end else
+                   !swig_current_type_info
+    | _ -> raise (Failure "Internal error: passed non pointer to find_type_info")
+let _ = Callback.register "swig_find_type_info" find_type_info
+
+let class_master_list = Hashtbl.create 20
+let register_class_byname nm co = 
+  Hashtbl.replace class_master_list nm (Obj.magic co)
+let create_class nm arg = 
+  try (Obj.magic (Hashtbl.find class_master_list nm)) arg with _ -> raise (NoSuchClass nm)

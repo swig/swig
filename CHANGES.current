@@ -1,6 +1,21 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/17/2004: arty
+	    [OCAML]
+	    - Tweak to enum typing for soundness in the presence of multiple
+	      modules.
+	    - global functions are now unambiguous in multiple loaded modules.
+	    - Fixed test case code to build multimodule test cases correctly.
+	    - There is no way to share overload resolution across modules
+	      because of soundness issues.  If the user wants to call some
+	      function foo from an arbitrary module bar, they will have to
+	      use Bar._foo to call it correctly.  Later I will fix the 
+	      camlp4 module to do something clever in this case.  
+            - Promided performance overhaul of class mechanism.
+	    - Removed symbol hack for ocaml-3.07 and below which is not needed
+	      for ocaml-3.08 and above.
+
 10/16/2004: wuzzeb (John Lenz)
             [CHICKEN]
 	    - Completly change how chicken.cxx handles CLOS and generic code.
