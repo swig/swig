@@ -129,6 +129,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int importDirective(Node *n) {
+        String *modname = Getattr(n,"module");
+    if (modname) {
+      Printf(f_init,"pike_require(\"%s\");\n", modname);
+    }
     return Language::importDirective(n);
   }
   
@@ -402,7 +406,9 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * dispatchFunction()
+   * dispatchFunc      
+   *
+   * Emit overloading dispatch function
    * ------------------------------------------------------------ */
 
   void dispatchFunction(Node *n) {
@@ -545,6 +551,8 @@ public:
 
   /* ------------------------------------------------------------
    * constructorHandler()
+   *
+   * Method for adding C++ member constructor
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
@@ -569,6 +577,8 @@ public:
 
   /* ------------------------------------------------------------
    * memberconstantHandler()
+   *
+   * Create a C++ constant
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
@@ -584,3 +594,7 @@ extern "C" Language *
 swig_pike(void) {
   return new PIKE();
 }
+
+
+
+
