@@ -1,6 +1,6 @@
 AC_INIT
 AC_CONFIG_SRCDIR([ltmain.sh])
-AC_PREREQ(2.53)
+AC_PREREQ(2.54)
 
 ##-----------------------------------------------------------------------------
 ## libtool configuration
