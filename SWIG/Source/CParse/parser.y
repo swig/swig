@@ -554,7 +554,7 @@ static void patch_template_code(String *s) {
 %token <id> STRING
 %token <loc> INCLUDE IMPORT INSERT
 %token <str> CHARCONST 
-%token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG
+%token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF TYPE_RAW
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
@@ -2948,6 +2948,8 @@ expr           :  NUM_INT { $$ = $1; }
                |  NUM_UNSIGNED { $$ = $1; }
                |  NUM_LONG { $$ = $1; }
                |  NUM_ULONG { $$ = $1; }
+               |  NUM_LONGLONG { $$ = $1; }
+               |  NUM_ULONGLONG { $$ = $1; }
                |  SIZEOF LPAREN type parameter_declarator RPAREN {
   		  SwigType_push($3,$4.type);
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
