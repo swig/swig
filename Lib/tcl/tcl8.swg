@@ -39,7 +39,7 @@
    is no guarantee that a bool is the same size as an int so we have to do this */
 
 %typemap(in) bool (int tempb) "if (Tcl_GetIntFromObj(interp,$input,&tempb) == TCL_ERROR) SWIG_fail;
-                               $1 = (bool) tempb;";
+                               $1 = tempb ? true : false;";
 
 /* These will pass an integer as an unsigned long.  However, the implementation is crippled due
    to limited precision in Tcl */
@@ -83,8 +83,7 @@
              const unsigned short & (unsigned short temp),
              const unsigned long & (unsigned long temp),
              const signed char & (signed char temp),
-             const unsigned char & (unsigned char temp),
-             const bool & (bool temp)
+             const unsigned char & (unsigned char temp)
 {
   long ltemp;
   if (Tcl_GetLongFromObj(interp, $input, &ltemp) != TCL_OK) {
@@ -93,6 +92,17 @@
   temp = ($*1_ltype) ltemp;
   $1 = &temp;
 }
+
+%typemap(in) const bool & (bool temp)
+{
+  long ltemp;
+  if (Tcl_GetLongFromObj(interp, $input, &ltemp) != TCL_OK) {
+    SWIG_fail;
+  }
+  temp = ltemp ? true : false;
+  $1 = &temp;
+}
+
 
 %typemap(in) const float & (float temp),
 	     const double & (double temp)
@@ -270,13 +280,22 @@
 
 /* -- Variable input --- */
 
-%typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE
+%typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, enum SWIGTYPE
 {
   long temp;
   if (Tcl_GetLongFromObj(interp, $input, &temp) != TCL_OK) {
     return (char*) "Type error. expected an integer";
   }
   $1 = ($1_type) temp;
+}
+
+%typemap(varin) bool
+{
+  long temp;
+  if (Tcl_GetLongFromObj(interp, $input, &temp) != TCL_OK) {
+    return (char*) "Type error. expected an integer";
+  }
+  $1 = temp ? true : false;
 }
 
 %typemap(varin) long long "$1 = (long long) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);";
@@ -433,7 +452,7 @@
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const long long &, const unsigned long long &,
 	 enum SWIGTYPE,
-	bool, const bool & 
+	 bool, const bool & 
 {
   long tmp;
   if (Tcl_GetLongFromObj(NULL,$input,&tmp) == TCL_ERROR) $1 = 0;
