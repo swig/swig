@@ -95,28 +95,6 @@ String *convert_literal(String *num_param, String *type) {
 	return res;
 }
 
-typedef struct type_mapping {
-  char *c_type, *lisp_type;
-} type_mapping;
-
-/* Need a way for the user to specify where a char is really a character
-   or where it is an 8-bit number.  Similarly, is a char * a string pointer
-   or a pointer to an array of 8-bit numbers */
-type_mapping type_mappings[]={
-  { "void" , ":void" },
-  { "char", ":char"}, 
-  { "signed char", ":char" },
-  { "unsigned char", ":unsigned-char" },
-  { "short", ":short" },
-  { "unsigned short", ":unsigned-short" },
-  { "int", ":int" },
-  { "unsigned int", ":unsigned-int" },
-  { "unsigned long", ":unsigned-int" },
-  { "float", ":float" },
-  { "double", ":double" },
-  { NULL, NULL }
-};
-
 struct {
   int count;
   String **entries;
@@ -147,52 +125,60 @@ void add_defined_foreign_type(String *type) {
 }
 
 
-String *convert_type(SwigType *ty) {
-  SwigType *tr=SwigType_typedef_resolve_all(ty);
-  char *type_reduced=Char(tr);
-  int i;
-
-  //Printf(stdout,"convert_type %s\n", ty);
-  if (SwigType_isconst(tr)) {
-	  SwigType_pop(tr);
-	  type_reduced=Char(tr);
+String *get_ffi_type(SwigType *ty, String_or_char *name) {
+  Hash *typemap = Swig_typemap_search("ffitype", ty, name, 0);
+  if (typemap) {
+	  String *typespec = Getattr(typemap, "code");
+	  return NewString(typespec);
   }
+  else {
+	  SwigType *tr=SwigType_typedef_resolve_all(ty);
+	  char *type_reduced=Char(tr);
+	  int i;
 
+	  //Printf(stdout,"convert_type %s\n", ty);
+	  if (SwigType_isconst(tr)) {
+		  SwigType_pop(tr);
+		  type_reduced=Char(tr);
+	  }
 
-  if (SwigType_ispointer(type_reduced) || SwigType_isarray(ty) ||
-      !strncmp(type_reduced, "p.f", 3)) {
+	  if (SwigType_ispointer(type_reduced) || SwigType_isarray(ty) ||
+	      !strncmp(type_reduced, "p.f", 3)) {
 #if 1
-	  return NewString("(* :void)");
+		  return NewString("(* :void)");
 #else
-	  return NewString(":foreign-address");
+		  return NewString(":foreign-address");
 #endif
-  }
+	  }
   
-  for(i=0; type_mappings[i].c_type; i++) {
-    if (!strcmp(type_reduced, type_mappings[i].c_type)) {
-      return NewString(type_mappings[i].lisp_type);
-    }
-  }
+	  for(i=0; i<defined_foreign_types.count; i++) {
+		  if (!Strcmp(ty, defined_foreign_types.entries[i])) {
+			  return NewStringf("#.(%s \"%s\" :type :type)",
+					    identifier_converter, 
+					    ty);
+		  }
+	  }
   
-  for(i=0; i<defined_foreign_types.count; i++) {
-    if (!Strcmp(ty, defined_foreign_types.entries[i])) {
-      return NewStringf("#.(%s \"%s\" :type :type)",
-			identifier_converter, 
-			ty);
-    }
+	  if (!Strncmp(type_reduced, "enum ", 5)) {
+		  return NewString(":int");
+	  }
+
+	  Printf(stderr, "Unsupported data type: %s (was: %s)\n", type_reduced, ty);
+	  SWIG_exit(EXIT_FAILURE);
   }
-  
-  if (!Strncmp(type_reduced, "enum ", 5)) {
-    return NewString(":int");
-  }
-
-  Printf(stderr, "Unsupported data type: %s (was: %s)\n", type_reduced, ty);
-  SWIG_exit(EXIT_FAILURE);
-
-  return NewString("this should never happen");
-
 }
 
+String *get_lisp_type(SwigType *ty, String_or_char *name)
+{
+  Hash *typemap = Swig_typemap_search("lisptype", ty, name, 0);
+  if (typemap) {
+    String *typespec = Getattr(typemap, "code");
+    return NewString(typespec);
+  }
+  else {
+    return NewString("");
+  }
+}
 
 void ALLEGROCL :: main(int argc, char *argv[]) {
   int i;
@@ -299,9 +285,10 @@ int ALLEGROCL :: functionWrapper(Node *n) {
     varargs=1;
   } else {
     for (p=pl; p; p=nextSibling(p), argnum++) {
-      String *argname=Getattr(p, "sym:name");
+      String *argname=Getattr(p, "name");
       SwigType *argtype=Getattr(p, "type");
-      String *lisptype=convert_type(argtype);
+      String *ffitype=get_ffi_type(argtype, argname);
+      String *lisptype=get_lisp_type(argtype, argname);
       int tempargname=0;
       
       if (!argname) {
@@ -312,9 +299,10 @@ int ALLEGROCL :: functionWrapper(Node *n) {
       if (!first) {
 	Printf(f_cl, "\n   ");
       }
-      Printf(f_cl, "(%s %s)", argname, lisptype);
+      Printf(f_cl, "(%s %s %s)", argname, ffitype, lisptype);
       first=0;
       
+      Delete(ffitype);
       Delete(lisptype);
       if (tempargname) 
 	Delete(argname);
@@ -322,8 +310,9 @@ int ALLEGROCL :: functionWrapper(Node *n) {
     }
   }
   Printf(f_cl, ")\n"); /* finish arg list */
-  Printf(f_cl, "  :returning (%s)\n  :strings-convert t\n  :call-direct %s\n  :optimize-for-space t)\n", 
-	 convert_type(Getattr(n, "type")),
+  Printf(f_cl, "  :returning (%s %s)\n  :strings-convert t\n  :call-direct %s\n  :optimize-for-space t)\n", 
+	 get_ffi_type(Getattr(n, "type"), "result"),
+	 get_lisp_type(Getattr(n, "type"), "result"),
 	 varargs ? "nil"  : "t");
 
   
@@ -381,7 +370,7 @@ int ALLEGROCL :: classDeclaration(Node *n) {
 
     
     /* Printf(stdout, "Converting %s in %s\n", type, name); */
-    lisp_type=convert_type(type);
+    lisp_type=get_ffi_type(type, Getattr(c, "sym:name"));
 
     Printf(f_cl, 
 	   "  (#.(%s \"%s\" :type :slot) %s)\n", 
