@@ -26,7 +26,7 @@ AM_CXXFLAGS =	-I$(SOURCE_DIR)/Include		\
 AM_YFLAGS = -d
 
 BUILT_SOURCES = CParse/parser.h
-swig_SOURCES = 	CParse/cscanner.c		\
+eswig_SOURCES =	CParse/cscanner.c		\
 		CParse/parser.y			\
 		CParse/templ.c			\
 		CParse/util.c			\
@@ -81,14 +81,14 @@ swig_SOURCES = 	CParse/cscanner.c		\
 		Swig/warn.c			\
 		Swig/wrapfunc.c
 
-bin_PROGRAMS = swig
-swig_LDADD   = @SWIGLIBS@
+bin_PROGRAMS = eswig
+eswig_LDADD   = @SWIGLIBS@
 
 # The executable is copied to the root directory for installation and running the test-suite.
 # This occurs on each invocation of make and is a step towards providing support for multiple 
 # build directories.
 all-local:
-	cp swig@EXEEXT@ ../swig@release_suffix@@EXEEXT@
+	cp eswig@EXEEXT@ ../swig@release_suffix@@EXEEXT@
 
 clean-local:
 	rm -f ../swig@release_suffix@@EXEEXT@
