@@ -14,7 +14,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "swig11.h"
+#include "swigmod.h"
 #include <ctype.h>
 
 /* Some status variables used during parsing */

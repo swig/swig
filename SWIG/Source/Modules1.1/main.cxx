@@ -19,7 +19,7 @@ static char cvsroot[] = "$Header$";
 #include <windows.h>
 #endif
 
-#include "swig11.h"
+#include "swigmod.h"
 #ifndef MACSWIG
 #include "swigconfig.h"
 #endif

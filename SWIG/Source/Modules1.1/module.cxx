@@ -9,7 +9,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-#include "swig11.h"
+#include "swigmod.h"
 
 struct Module {
   ModuleFactory   fac;

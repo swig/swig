@@ -26,7 +26,7 @@ static char cvsroot[] = "$Header$";
 #include "swigconfig.h"
 #endif
 
-#include "swig11.h"
+#include "swigmod.h"
 
 /* Module factories.  These functions are used to instantiate 
    the built-in language modules.    If adding a new language

@@ -18,7 +18,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "swig11.h"
+#include "swigmod.h"
 
 class Allocate : public Dispatcher {
   Node  *inclass;

@@ -23,7 +23,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "swig11.h"
+#include "swigmod.h"
 
 struct normal_node {
     Symtab *symtab;

@@ -11,7 +11,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "swig11.h"
+#include "swigmod.h"
 
 #ifndef MACSWIG
 #include "swigconfig.h"
@@ -125,7 +125,7 @@ public:
     f_header = NewString("");
     f_wrappers = NewString("");
 
-  /* Register file targets with the SWIG file handler */
+    /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header",f_header);
     Swig_register_filebyname("wrapper",f_wrappers);
     Swig_register_filebyname("runtime",f_runtime);
