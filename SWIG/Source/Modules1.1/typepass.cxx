@@ -24,6 +24,9 @@ class TypePass : public Dispatcher {
   Node   *inclass;
   String *module;
   int    importmode;
+  List  *normalize;
+
+  /* Normalize a parameter list */
 
   void normalize_parms(ParmList *p) {
     while (p) {
@@ -33,7 +36,16 @@ class TypePass : public Dispatcher {
     }
   }
 
-/* generate C++ inheritance type-relationships */
+  void normalize_later(ParmList *p) {
+    while (p) {
+      SwigType *ty = Getattr(p,"type");
+      Append(normalize,ty);
+      p = nextSibling(p);
+    }
+  }
+
+  /* generate C++ inheritance type-relationships */
+
   void cplus_inherit_types(Node *cls, String *clsname) {
     List *ilist = Getattr(cls,"bases");
     
@@ -64,6 +76,7 @@ public:
     importmode = 0;
     module = 0;
     inclass = 0;
+    normalize = 0;
     emit_children(n);
     return SWIG_OK;
   }
@@ -96,6 +109,8 @@ public:
     String *unnamed = Getattr(n,"unnamed");
     String *storage = Getattr(n,"storage");
     Node   *oldinclass = inclass;
+    List   *olist = normalize;
+    normalize = NewList();
 
     char *classname = tdname ? Char(tdname) : Char(name);
     char *iname = Char(symname);
@@ -116,8 +131,21 @@ public:
     
     inclass = n;
     emit_children(n);
-    inclass = oldinclass;
 
+    /* Walk through entries in normalize list and patch them up */
+    {
+      SwigType *t;
+      for (t = Firstitem(normalize); t; t = Nextitem(normalize)) {
+	SwigType *nt = SwigType_typedef_qualified(t);
+	Clear(t);
+	Append(t,nt);
+	Delete(nt);
+      }
+      Delete(normalize);
+      normalize = olist;
+    }
+
+    inclass = oldinclass;
     Hash *ts = SwigType_pop_scope();
     Setattr(n,"typescope",ts);
     Setattr(n,"module",module);
@@ -125,7 +153,6 @@ public:
   }
 
   virtual int cDeclaration(Node *n) {
-    
     /* Search for var args */
     if (Getattr(n,"feature:varargs")) {
       ParmList *v = Getattr(n,"feature:varargs");
@@ -147,7 +174,6 @@ public:
     }
 
     /* Normalize types. */
-
     SwigType *ty = Getattr(n,"type");
     Setattr(n,"type",SwigType_typedef_qualified(ty));
     SwigType *decl = Getattr(n,"decl");
@@ -176,6 +202,14 @@ public:
     return SWIG_OK;
   }
 
+  virtual int constantDirective(Node *n) {
+    SwigType *ty = Getattr(n,"type");
+    if (ty) {
+      Setattr(n,"type",SwigType_typedef_qualified(ty));
+    }
+    return SWIG_OK;
+  }
+
   virtual int enumDeclaration(Node *n) {
     String *name = Getattr(n,"name");
     if (name) {
@@ -185,10 +219,53 @@ public:
     }
     return SWIG_OK;
   }
-  virtual int constantDirective(Node *n) {
-    SwigType *ty = Getattr(n,"type");
-    if (ty) {
-      Setattr(n,"type",SwigType_typedef_qualified(ty));
+
+  virtual int typemapDirective(Node *n) {
+    if (inclass) {
+      Node *items = firstChild(n);
+      while (items) {
+	Parm *pattern = Getattr(items,"pattern");
+	Parm *parms   = Getattr(items,"parms");
+	normalize_later(pattern);
+	normalize_later(parms);
+	items = nextSibling(items);
+      }
+    }
+    return SWIG_OK;
+  }
+  virtual int typemapcopyDirective(Node *n) {
+    if (inclass) {
+      Node *items = firstChild(n);
+      ParmList *pattern = Getattr(n,"pattern");
+      normalize_later(pattern);
+      while (items) {
+	ParmList *npattern = Getattr(items,"pattern");
+	normalize_later(npattern);
+	items = nextSibling(items);
+      }
+    }
+    return SWIG_OK;
+  }
+  virtual int applyDirective(Node *n) {
+    if (inclass) {
+      ParmList *pattern = Getattr(n,"pattern");
+      normalize_later(pattern);
+      Node *items = firstChild(n);
+      while (items) {
+	Parm *apattern = Getattr(items,"pattern");
+	normalize_later(apattern);
+	items = nextSibling(items);
+      }
+    }
+    return SWIG_OK;
+  }
+  virtual int clearDirective(Node *n) {
+    if (inclass) {
+      Node *p;
+      for (p = firstChild(n); p; p = nextSibling(p)) {
+	ParmList *pattern = Getattr(p,"pattern");
+	normalize_later(pattern);
+      }
     }
     return SWIG_OK;
   }
