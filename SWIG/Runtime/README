@@ -1,0 +1,16 @@
+Runtime Libraries
+-----------------
+
+The SWIG runtime libraries are built in this directory.
+
+Unix
+----
+Run make. This can also be done from the top level directory by running
+'make runtime' and is automatically done when building the swig executable.
+
+Windows
+-------
+Choose which runtime library needs building and load the Visual Studio 6
+project file and build it. For example, use swigpy.dsp for Python. The 
+runtime libraries can also be built using Cygwin.
+
