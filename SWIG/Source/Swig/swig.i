@@ -678,7 +678,7 @@ extern int SuperString_check(DOH *);
 
 %subsection "Strings"
 /* String constructor */
-extern DOH   *NewString(const char *c);
+extern DOH   *NewString(const DOH *c);
 /* Is this a string? */
 extern int    String_check(const DOH *);
 
