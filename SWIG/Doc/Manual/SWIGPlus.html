@@ -589,12 +589,12 @@ Foo *Bar_spam(Bar *obj) {
 </pre>
 </blockquote>
 
-However, functions that return references to primitive datatypes (<tt>int</tt>, <tt>short</tt>, etc.) normally
+However, functions that return <tt>const</tt> references to primitive datatypes (<tt>int</tt>, <tt>short</tt>, etc.) normally
 return the result as a value rather than a pointer.  For example, a function like this,
 
 <blockquote>
 <pre>
-int &bar();
+const int &bar();
 </pre>
 </blockquote>
 

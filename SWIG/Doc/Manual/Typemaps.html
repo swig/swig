@@ -2233,6 +2233,30 @@ actually used in the interface.  This greatly reduces the size of the
 type tables and improves efficiency. 
 
 <p>
+Occassionally, you might need to write a typemap that needs to convert
+pointers of other types.  To handle this, a special macro substition
+<tt>$descriptor(type)</tt> can be used to generate the SWIG type
+descriptor name for any C datatype.  For example:
+
+<blockquote>
+<pre>
+%typemap(in) Foo * {
+  if ((SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor)) == -1) {
+     Bar *temp;
+     if ((SWIG_ConvertPtr($input), (void **) &temp, <b>$descriptor(Bar *)</b>) == -1) {
+         return NULL;
+     }
+     $1 = (Foo *) temp;
+  }
+}
+</pre>
+</blockquote>
+
+The primary use of <tt>$descriptor(type)</tt> is when writing typemaps for container
+objects and other complex data structures.  There are some restrictions on the argument---namely it must
+be a fully defined C datatype.  It can not be any of the special typemap variables.
+
+<p>
 In certain cases, SWIG may not generate type-descriptors like you expect.  For example,
 if you are converting pointers in some non-standard way or working with an unusual
 combination of interface files and modules, you may find that SWIG omits information

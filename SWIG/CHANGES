@@ -16,13 +16,35 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+05/12/2002: beazley
+            New macro expansion in typemaps.  The sequence:
+
+                $descriptor(type)
+
+            Will expand into the SWIG type descriptor structor for
+            the given type.  Type may be any abstract datatype.
+            For example:
+
+                $descriptor(int *)
+                $descriptor(int (*)(int,double))
+                $descriptor(vector<int> *)
+
+            Caveat: It is *NOT* currently legal to use other typemap
+            substitution variables in the macro.  For example 
+            $descriptor($1_type).
+
+            The primary purpose of this modification is to better
+            support typemaps for container objects or to allow typemaps
+            that might be performing type conversions.
+            *** NEW FEATURE ***
+
 05/11/2002: beazley
             The wrapping of references to primitive types has been
             changed as follows:
 
             Arguments of type 'const primitive &' are now passed
             by value as opposed to pointers.  Return values of
-            type 'primitive &' are returned as values instead of
+            type 'const primitive &' are returned as values instead of
             pointers.
 
             'primitive' is any one of int, short, long, long long,
@@ -2558,7 +2580,7 @@ Version 1.3.8 (September 23, 2001)
            Two new directives control the creation of default
            constructors and destructors:
 
-                %nodefault  
+                %nodefault
                 %makedefault
 
            These replace %pragma nodefault and %pragma makedefault.
