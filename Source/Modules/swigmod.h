@@ -200,7 +200,8 @@ public:
                                    Node *parent, 
                                    Hash *vm, 
                                    int default_director, 
-                                   int &virtual_destructor);
+                                   int &virtual_destructor,
+				   int protectedbase = 0);
   virtual int classDirectorConstructor(Node *n);
   virtual int classDirectorDefaultConstructor(Node *n);
   virtual int classDirectorMethod(Node *n, Node *parent, String *super);
@@ -278,6 +279,12 @@ public:
 
   /* Director 'protected' constructor "template" code*/
   String *director_prot_ctor_code;
+
+  /* Director allows multiple inheritance */
+  int director_multiple_inheritance;
+
+  /* Director language module */
+  int director_language;
 
  private:
   Hash   *symbols;

@@ -96,8 +96,6 @@ void cparse_normalize_void(Node *n) {
 
 int need_protected(Node* n, int dirprot_mode)
 {
-  if (!(Swig_need_protected() || dirprot_mode)) return 0;
-
   /* First, 'n' looks like a function */
   if ((Strcmp(nodeType(n),"cdecl") == 0) &&
       SwigType_isfunction(Getattr(n,"decl"))) {

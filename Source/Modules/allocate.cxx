@@ -135,7 +135,7 @@ class Allocate : public Dispatcher {
     Delete(local_type);
     for (int j = 0; j < Len(bases); j++) {
       b = Getitem(bases,j);
-      if (function_is_defined_in_bases(c, Getattr(b, "bases")))
+      if (function_is_defined_in_bases(c, Getattr(b, "allbases")))
 	return 1;
     }
     return 0;
@@ -147,7 +147,7 @@ class Allocate : public Dispatcher {
     Node *c, *bases; /* bases is the closest ancestors of class n */
     int defined = 0;
 
-    bases = Getattr(n, "bases");
+    bases = Getattr(n, "allbases");
 
     if (!bases) return 0;
 
@@ -170,7 +170,7 @@ class Allocate : public Dispatcher {
     Node *bases; /* bases is the closest ancestors of classnode */
     int defined = 0;
 
-    bases = Getattr(classnode, "bases");
+    bases = Getattr(classnode, "allbases");
     if (!bases) return 0;
 
     //if (checkAttribute(member, "storage", "virtual"))
@@ -211,52 +211,28 @@ class Allocate : public Dispatcher {
 	String *base_decl = Getattr(nn,"decl");
 	if (base_decl) base_decl = SwigType_typedef_resolve_all(base_decl);
 	if (Strstr(name,"~")) continue;   /* Don't care about destructors */
-    /*
-	int implemented = 0;
-	Node *dn = Swig_symbol_clookup_local(name,0);
-	if (!dn) {
-	  Printf(stdout,"node: %x '%s'. base: %x '%s'. member '%s'\n", n, Getattr(n,"name"), base, Getattr(base,"name"), name);
-	}
-	assert(dn != 0);   // Assertion of doom
-	*/
+
 	if (SwigType_isfunction(base_decl)) {
 	  search_decl = SwigType_pop_function(base_decl);
 	}
 	Node *dn = Swig_symbol_clookup_local_check(name,0,check_implemented);
 	Delete(search_decl);
 	Delete(base_decl);
-	/*
-	while (dn && !implemented) {
-	  String *local_decl = Getattr(dn,"decl");
-	  if (local_decl) local_decl = SwigType_typedef_resolve_all(local_decl);
-	  if (local_decl && !Strcmp(local_decl, base_decl)) {
-	    if (Getattr(dn,"abstract")) return 1;
-	    implemented++;
-	  }
-	  Delete(local_decl);
-	  dn = Getattr(dn,"csym:nextSibling");
-	}
-	*/
-
-
-
-	/*	if (!implemented && (Getattr(nn,"abstract"))) {
-	  return 1;
-	}
-	*/
 
 	if (!dn) {
-	  Setattr(n,"abstract:firstnode",nn);
-	  return 1;
+	  List *abstract = Getattr(n,"abstract");
+	  if (!abstract) {
+	    abstract = NewList();
+	    Setattr(n,"abstract",abstract);
+	  } else {
+	    if (!Getattr(n,"abstract:firstnode"))
+	      Setattr(n,"abstract:firstnode",nn);
+	  }
+	  Append(abstract,nn);
 	}
-	/*
-	if (dn && (Getattr(dn,"abstract"))) {
-	  return 1;
-	} 
-	*/
       }
     }
-    List *bases = Getattr(base,"bases");
+    List *bases = Getattr(base,"allbases");
     if (!bases) return 0;
     for (int i = 0; i < Len(bases); i++) {
       if (is_abstract_inherit(n,Getitem(bases,i))) {
@@ -440,19 +416,25 @@ public:
     /* Check if the class is abstract via inheritance.   This might occur if a class didn't have
        any pure virtual methods of its own, but it didn't implement all of the pure methods in
        a base class */
-
-    if (is_abstract_inherit(n)) {
-      if ((!Getattr(n,"abstract")) && ((Getattr(n,"allocate:public_constructor") || (!Getattr(n,"feature:nodefault") && !Getattr(n,"allocate:has_constructor"))))) {
+    
+    if (!Getattr(n,"abstract") && is_abstract_inherit(n)) {
+      if (((Getattr(n,"allocate:public_constructor") || (!Getattr(n,"feature:nodefault") && !Getattr(n,"allocate:has_constructor"))))) {
 	if (!Getattr(n,"feature:notabstract")) {
 	  Node *na = Getattr(n,"abstract:firstnode");
-	  Swig_warning(WARN_TYPE_ABSTRACT, Getfile(n), Getline(n),
-		       "Class '%s' might be abstract, "
-		       "no constructors generated,\n",
-		       SwigType_namestr(Getattr(n,"name")));
-	  Swig_warning(WARN_TYPE_ABSTRACT, Getfile(na), Getline(na),
-		       " method '%s' might not be implemented.",
-		       SwigType_namestr(Getattr(na,"name")));
-	  Setattr(n,"abstract",NewList());
+	  if (na) {
+	    Swig_warning(WARN_TYPE_ABSTRACT, Getfile(n), Getline(n),
+			 "Class '%s' might be abstract, "
+			 "no constructors generated,\n",
+			 SwigType_namestr(Getattr(n,"name")));
+	    Swig_warning(WARN_TYPE_ABSTRACT, Getfile(na), Getline(na),
+			 " method '%s' might not be implemented.",
+			 SwigType_namestr(Getattr(na,"name")));
+	    if (!Getattr(n,"abstract")) {
+	      List *abstract = NewList();
+	      Append(abstract,na);
+	      Setattr(n,"abstract",abstract);
+	    }
+	  }
 	}
       }
     }
@@ -465,7 +447,7 @@ public:
       } 
       if (!Getattr(n,"allocate:default_constructor")) {
 	/* Check base classes */
-	List *bases = Getattr(n,"bases");
+	List *bases = Getattr(n,"allbases");
 	int   allows_default = 1;
 	
 	for (int i = 0; i < Len(bases); i++) {
@@ -482,7 +464,7 @@ public:
     }
     if (!Getattr(n,"allocate:has_destructor")) {
       /* No destructor was defined.  We need to check a few things here too */
-      List *bases = Getattr(n,"bases");
+      List *bases = Getattr(n,"allbases");
       int allows_destruct = 1;
 
       for (int i = 0; i < Len(bases); i++) {
@@ -499,7 +481,7 @@ public:
 
     if (!Getattr(n,"allocate:has_assign")) {
       /* No destructor was defined.  We need to check a few things here too */
-      List *bases = Getattr(n,"bases");
+      List *bases = Getattr(n,"allbases");
       int allows_assign = 1;
 
       for (int i = 0; i < Len(bases); i++) {
@@ -516,7 +498,7 @@ public:
 
     if (!Getattr(n,"allocate:has_new")) {
       /* No destructor was defined.  We need to check a few things here too */
-      List *bases = Getattr(n,"bases");
+      List *bases = Getattr(n,"allbases");
       int allows_new = 1;
 
       for (int i = 0; i < Len(bases); i++) {
