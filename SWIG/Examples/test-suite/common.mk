@@ -275,7 +275,7 @@ C_TEST_CASES += \
 	defines \
 	enums \
 	function_typedef \
-	inctest.i \
+	inctest \
 	lib_carrays \
 	lib_cdata \
 	lib_cmalloc \
