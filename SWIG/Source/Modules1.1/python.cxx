@@ -885,14 +885,32 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
 	       0);
 	break;
 
-      case T_POINTER: case T_ARRAY: case T_REFERENCE:
+      case T_POINTER: case T_REFERENCE:
 	SwigType_remember(t);
 	Printv(getf->code,
 	       tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
 	       ", SWIGTYPE", SwigType_manglestr(t), ");\n",
 	       0);
 	break;
-
+      case T_ARRAY:
+	{
+	  SwigType_remember(t);
+	  SwigType *ta = Copy(t);
+	  SwigType *aop = SwigType_pop(ta);
+	  if (SwigType_type(ta) == T_CHAR) {
+	    Printv(getf->code,
+		   tab4, "pyobj = PyString_FromString(", name, ");\n",
+		   0);
+	  } else {
+	    Printv(getf->code,
+		   tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
+		   ", SWIGTYPE", SwigType_manglestr(t), ");\n",
+		   0);
+	  }
+	  Delete(ta);
+	  Delete(aop);
+	}
+	break;
       default:
 	Printf(stderr,"Unable to link with type %s\n", SwigType_str(t,0));
 	break;
