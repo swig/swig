@@ -25,6 +25,7 @@ class TypePass : public Dispatcher {
   String *module;
   int    importmode;
   List  *normalize;
+  Hash  *classhash;
 
   /* Normalize a parameter list */
 
@@ -45,16 +46,49 @@ class TypePass : public Dispatcher {
   }
 
   /* generate C++ inheritance type-relationships */
-
   void cplus_inherit_types(Node *cls, String *clsname) {
+
     List *ilist = Getattr(cls,"bases");
-    
+    if (!ilist) {
+      List *nlist = Getattr(cls,"baselist");
+      if (nlist) {
+	int     len = Len(nlist);
+	int i;
+	for (i = 0; i < len; i++) {
+	  Node *cls = 0;
+	  String *bname = Getitem(nlist,i);
+	  String *sname = bname;
+	  /* Typedef resolve the name */
+	  while (sname) {
+	    cls = Getattr(classhash,sname);
+	    if (cls) {
+	      if (!ilist) ilist = NewList();
+	      Append(ilist,cls);
+	    }
+	    String *nname = SwigType_typedef_resolve(sname);
+	    if (sname != bname) Delete(sname);
+	    sname = nname;
+	  }
+	  if (!cls) {
+	    if (!Getmeta(bname,"already_warned")) {
+	      Printf(stderr,"%s:%d. Nothing known about class '%s'. Ignored.\n", Getfile(bname),Getline(bname), bname);
+	      if (Strchr(bname,'<')) {
+		Printf(stderr,"%s:%d. Maybe you forgot to instantiate '%s' using %%template.\n", Getfile(bname), Getline(bname), bname);
+	      }
+	      Setmeta(bname,"already_warned","1");
+	    }
+	    SwigType_inherit(clsname,bname);
+	  }
+	}
+      }
+      if (ilist) Setattr(cls,"bases",ilist);
+    }
     if (!ilist) return;
     int len = Len(ilist);
     int i;
     for (i = 0; i < len; i++) {
       Node *n = Getitem(ilist,i);
-      Node *bname = Getattr(n,"name");
+      String *bname = Getattr(n,"name");
       Node *bclass = n; /* Getattr(n,"class"); */
       Hash *scopes = Getattr(bclass,"typescope");
       SwigType_inherit(clsname,bname);
@@ -77,6 +111,7 @@ public:
     module = 0;
     inclass = 0;
     normalize = 0;
+    classhash = Getattr(n,"classes");
     emit_children(n);
     return SWIG_OK;
   }
