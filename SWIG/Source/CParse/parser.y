@@ -846,7 +846,7 @@ void canonical_template(String *s) {
 %type <id>       template_decl;
 %type <str>      type_qualifier cpp_const ;
 %type <id>       type_qualifier_raw;
-%type <id>       idstring;
+%type <id>       idstring idstringopt;
 %type <id>       pragma_lang;
 %type <str>      pragma_arg;
 %type <loc>      includetype;
@@ -1760,7 +1760,7 @@ types_directive : TYPES LPAREN parms RPAREN SEMI {
    %template(name) tname<args>;
    ------------------------------------------------------------ */
 
-template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
+template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p, *tp;
 		  Node *n;
 		  Node *nspace = 0, *nspace_inner = 0;
@@ -1895,16 +1895,23 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		      } else {
 			Setattr($$,"sym:typename","1");
 		      }
-		      Swig_cparse_template_expand($$,$3,temparms);
-		      Setattr($$,"sym:name", $3);
+		      if ($3) {
+			Swig_cparse_template_expand($$,$3,temparms);
+			Setattr($$,"sym:name",$3);
+		      } else {
+			static int cnt = 0;
+			String *nname = NewStringf("__dummy_%d__", cnt++);
+			Swig_cparse_template_expand($$,nname,temparms);
+			Setattr($$,"sym:name",nname);
+			Setattr($$,"feature:ignore","1");
+		      }
 		      Delattr($$,"templatetype");
 		      Setattr($$,"template",n);
 		      Setfile($$,cparse_file);
 		      Setline($$,cparse_line);
 		      Delete(temparms);
-
-		      add_symbols_copy($$);
 		      
+		      add_symbols_copy($$);
 		      if (Strcmp(nodeType($$),"class") == 0) {
 			/* Merge in addmethods for this class */
 			
@@ -1926,14 +1933,14 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 			Setattr(classes,Swig_symbol_qualifiedscopename($$),$$);
 		      }
 		    }
+		    if ($$ && nspace) {
+		      appendChild(nspace_inner,$$);
+		      $$ = nspace;
+		    }
+		    Swig_symbol_setscope(tscope);
+		    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		  }
-		  if ($$ && nspace) {
-		    appendChild(nspace_inner,$$);
-		    $$ = nspace;
-		  }
-		  Swig_symbol_setscope(tscope);
-		  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-               }
+}
                ;
 
 /* ------------------------------------------------------------
@@ -4060,6 +4067,10 @@ idstring       : ID { $$ = $1; }
                | string { $$ = $1; }
                ;
 
+idstringopt    : idstring { $$ = $1; }
+               | empty { $$ = 0; }
+               ;
+ 
 idcolon        : idtemplate idcolontail { 
                   $$ = 0;
 		  if (!$$) $$ = NewStringf("%s%s", $1,$2);

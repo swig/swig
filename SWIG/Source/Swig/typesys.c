@@ -536,7 +536,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   if (newtype) {
     Delete(type);
   }
-  /* Printf(stdout,"%s --> %s\n", t,r); */
+  /*Printf(stdout,"%s --> %s\n", t,r);*/
   return r;
 }
 
