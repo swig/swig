@@ -14,10 +14,24 @@
 
 
 %inline %{
+  class A;
+  
+  int foo(A* self) 
+  {
+    return 0;
+  }
   
   struct A
   {
-    int foo() 
+    static int bar(int, A* self)
+    {
+      return 1;
+    }
+    
+    int val;
+    
+    
+    int foo(A* self, A* b) 
     {
       return 1;
     }
