@@ -363,7 +363,8 @@ SwigType_add_reference(SwigType *t) {
 void
 SwigType_del_reference(SwigType *t) {
   char *c = Char(t);
-  assert(strncmp(c,"r.",2) == 0);
+  int check = strncmp(c,"r.",2);
+  assert(check == 0);
   Delslice(t,0,2);
 }
 
@@ -452,7 +453,8 @@ SwigType_add_qualifier(SwigType *t, String *qual) {
 void
 SwigType_del_qualifier(SwigType *t) {
   char *c = Char(t);
-  assert(strncmp(c,"q(",2) == 0);
+  int check = strncmp(c,"q(",2);
+  assert(check == 0);
   Delslice(t,0,element_size(Char(t)));
 }
 
@@ -487,7 +489,8 @@ SwigType_add_memberpointer(SwigType *t, String_or_char *name) {
 void
 SwigType_del_memberpointer(SwigType *t) {
   char *c = Char(t);
-  assert(strncmp(c,"m(",2) == 0);
+  int check = strncmp(c,"m(",2);
+  assert(check == 0);
   Delslice(t,0,element_size(c));
 }
 
@@ -530,7 +533,8 @@ SwigType_add_array(SwigType *t, String *size) {
 void
 SwigType_del_array(SwigType *t) {
   char *c = Char(t);
-  assert(strncmp(c,"a(",2) == 0);
+  int check = strncmp(c,"a(",2);
+  assert(check == 0);
   Delslice(t,0,element_size(c));
 }
 
