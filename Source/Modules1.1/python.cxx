@@ -99,7 +99,7 @@ void PYTHON::parse_args(int argc, char *argv[]) {
       }
   }
   // Create a symbol for this language
-  add_symbol("SWIGPYTHON",0,0);
+  SWIG_cpp_define((void *) "SWIGPYTHON", 0);
 
   // Set name of typemaps
 

@@ -101,6 +101,9 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   try {
 #endif
 
+  // Initialize the preprocessor
+  SWIG_cpp_init();
+
   f_wrappers = 0;
   f_init = 0;
   f_header = 0;
@@ -117,12 +120,12 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   // Set up some default symbols (available in both SWIG interface files
   // and C files)
 
-  add_symbol("SWIG",0,0);            // Define the SWIG symbol
+  SWIG_cpp_define((DOH *) "SWIG 1", 0);
 #ifdef MACSWIG
-  add_symbol("SWIGMAC",0,0);
+  SWIG_cpp_define((DOH *) "SWIGMAC 1", 0);
 #endif
 #ifdef SWIGWIN32
-  add_symbol("SWIGWIN32",0,0);
+  SWIG_cpp_define((DOH *) "SWIGWIN32 1", 0);
 #endif
   
   // Check for SWIG_LIB environment variable
@@ -135,6 +138,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   
   SwigLib = copy_string(LibDir);        // Make a copy of the real library location
 #ifdef MACSWIG
+  /* This needs to be fixed */
   sprintf(temp,"%s:config", LibDir);
   add_directory(temp);
   add_directory(":swig_lib:config");
@@ -154,9 +158,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 
   libfiles = NewList();
 
-  // Initialize the preprocessor
-  SWIG_cpp_init();
-
   // Get options
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -167,9 +168,8 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	  } else if (strncmp(argv[i],"-D",2) == 0) {
 	    DOH *d = NewString(argv[i]+2);
 	    String_replace(d,"="," ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
-	    SWIG_cpp_define(d,0);
+	    SWIG_cpp_define((DOH *) d,0);
 	    // Create a symbol
-	    add_symbol(argv[i]+2, (DataType *) 0, (char *) 0);
 	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-strict") == 0) {
 	    if (argv[i+1]) {
@@ -384,6 +384,10 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     
     sprintf(title,"%s", fn_runtime);
     
+    // Define the __cplusplus symbol
+    if (CPlusPlus) 
+      SWIG_cpp_define((DOH *) "__cplusplus 1", 0);
+
     // Open up files
 
     /* Preprocess.  Ugh */
@@ -460,10 +464,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 
       delete temp_t;
     }
-
-    // Define the __cplusplus symbol
-    if (CPlusPlus)
-      add_symbol("__cplusplus",0,0);           
 
     // If in Objective-C mode.  Load in a configuration file
 

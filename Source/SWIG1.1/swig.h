@@ -569,6 +569,8 @@ extern "C" {
   extern void SWIG_mark_arg(int n);
   extern void SWIG_check_options();
   extern void SWIG_arg_error();
+
+  extern void *SWIG_cpp_define(void *, int);
 }
 
 // -----------------------------------------------------------------------

@@ -153,3 +153,4 @@ int update_symbol(char *name, DataType *type, char *value) {
 void remove_symbol(char *name) {
   SymHash.remove(name);
 }
+

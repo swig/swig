@@ -105,8 +105,8 @@ void TCL8::parse_args(int argc, char *argv[]) {
 
   // Create a symbol SWIGTCL
 
-  add_symbol("SWIGTCL",0,0);
-  add_symbol("SWIGTCL8",0,0);
+  SWIG_cpp_define((void *) "SWIGTCL 1",0);
+  SWIG_cpp_define((void *) "SWIGTCL8 1", 0);
 
   // Set name of typemaps
 
