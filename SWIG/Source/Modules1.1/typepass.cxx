@@ -21,8 +21,17 @@ static char cvsroot[] = "$Header$";
 
 
 class TypePass : public Dispatcher {
-  Node  *inclass;
+  Node   *inclass;
+  String *module;
   int    importmode;
+
+  void normalize_parms(ParmList *p) {
+    while (p) {
+      SwigType *ty = Getattr(p,"type");
+      Setattr(p,"type", SwigType_typedef_qualified(ty));
+      p = nextSibling(p);
+    }
+  }
 
 /* generate C++ inheritance type-relationships */
   void cplus_inherit_types(Node *cls, String *clsname) {
@@ -53,20 +62,30 @@ class TypePass : public Dispatcher {
 public:
   virtual int top(Node *n) {
     importmode = 0;
+    module = 0;
+    inclass = 0;
     emit_children(n);
     return SWIG_OK;
   }
 
+  virtual int moduleDirective(Node *n) {
+    module = Getattr(n,"name");
+    return SWIG_OK;
+  }
+
   virtual int importDirective(Node *n) { 
+    String *oldmodule = module;
     int oldimport = importmode;
     importmode = 1;
     emit_children(n); 
     importmode = oldimport;
+    module = oldmodule;
     return SWIG_OK;
   }
 
   virtual int includeDirective(Node *n) { return emit_children(n); }
   virtual int externDeclaration(Node *n) { return emit_children(n); }
+  virtual int addmethodsDirective(Node *n) { return emit_children(n); }
 
   virtual int classDeclaration(Node *n) {
     String *kind = Getattr(n,"kind");
@@ -76,6 +95,7 @@ public:
     String *symname = Getattr(n,"sym:name");
     String *unnamed = Getattr(n,"unnamed");
     String *storage = Getattr(n,"storage");
+    Node   *oldinclass = inclass;
 
     char *classname = tdname ? Char(tdname) : Char(name);
     char *iname = Char(symname);
@@ -93,28 +113,66 @@ public:
     if (name) {
       cplus_inherit_types(n,name);
     }
-
+    
+    inclass = n;
     emit_children(n);
+    inclass = oldinclass;
 
     Hash *ts = SwigType_pop_scope();
     Setattr(n,"typescope",ts);
+    Setattr(n,"module",module);
     return SWIG_OK;
   }
 
   virtual int cDeclaration(Node *n) {
+    
+    /* Search for var args */
+    if (Getattr(n,"feature:varargs")) {
+      ParmList *v = Getattr(n,"feature:varargs");
+      Parm     *p = Getattr(n,"parms");
+      Parm     *pp = 0;
+      while (p) {
+	SwigType *t = Getattr(p,"type");
+	if (Strcmp(t,"v(...)") == 0) {
+	  if (pp) {
+	    set_nextSibling(pp,Copy(v));
+	  } else {
+	    Setattr(n,"parms", Copy(v));
+	  }
+	  break;
+	}
+	pp = p;
+	p = nextSibling(p);
+      }
+    }
+
+    /* Normalize types. */
+
+    SwigType *ty = Getattr(n,"type");
+    Setattr(n,"type",SwigType_typedef_qualified(ty));
+    SwigType *decl = Getattr(n,"decl");
+    if (decl) 
+      Setattr(n,"decl", SwigType_typedef_qualified(decl));
+    normalize_parms(Getattr(n,"parms"));
+
     String *storage = Getattr(n,"storage");
     if (!storage) return SWIG_OK;
     if (!(Strcmp(storage,"typedef") == 0)) {
       return SWIG_OK;
     }
 
-    SwigType *ty   = Getattr(n,"type");
     String   *name = Getattr(n,"name");
-    SwigType  *decl = Getattr(n,"decl");
+    ty   = Getattr(n,"type");
+    decl = Getattr(n,"decl");
 
     SwigType *t = Copy(ty);
     SwigType_push(t,decl);
     SwigType_typedef(t,name);
+    return SWIG_OK;
+  }
+
+  virtual int constructorDeclaration(Node *n) {
+    normalize_parms(Getattr(n,"parms"));
     return SWIG_OK;
   }
 
@@ -127,7 +185,13 @@ public:
     }
     return SWIG_OK;
   }
-
+  virtual int constantDirective(Node *n) {
+    SwigType *ty = Getattr(n,"type");
+    if (ty) {
+      Setattr(n,"type",SwigType_typedef_qualified(ty));
+    }
+    return SWIG_OK;
+  }
 };
 
 void Swig_process_types(Node *n) {

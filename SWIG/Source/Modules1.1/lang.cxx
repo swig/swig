@@ -1173,11 +1173,13 @@ int Language::classDeclaration(Node *n) {
   }
   classforwardDeclaration(n);
 
+  /*
   Hash *ts = Getattr(n,"typescope");
   if (ts) {
     SwigType_push_scope(ts);
   }
-  
+  */
+
   ClassName = NewString(classname);
   ClassPrefix = NewString(iname);
   if (strip) {
@@ -1198,7 +1200,9 @@ int Language::classDeclaration(Node *n) {
   else
     Language::classHandler(n);
 
+  /*
   if (ts) SwigType_pop_scope();
+  */
 
   InClass = 0;
   CurrentClass = 0;

@@ -941,8 +941,12 @@ SwigType_str(SwigType *s, const String_or_char *id)
       Append(result,")");
       Delete(parms);
     } else {
-      Insert(result,0," ");
-      Insert(result,0,element);
+      if (Strcmp(element,"v(...)") == 0) {
+	Insert(result,0,"...");
+      } else {
+	Insert(result,0," ");
+	Insert(result,0,element);
+      }
     }
     element = nextelement;
   }
@@ -1009,10 +1013,7 @@ SwigType_ltype(SwigType *s) {
   }
   Delete(elements);
   Delete(tc);
-  result_qualified = SwigType_typedef_qualified(result);
-  Delete(result);
-  /*  Printf(stdout,"ltype(%s) --> %s\n", s, result_qualified); */
-  return result_qualified;
+  return result;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1150,11 +1151,8 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       Insert(result,0,element);
       clear = 0;
     } else {
-      SwigType *q;
       Insert(result,0," ");
-      q = SwigType_typedef_qualified(element);
-      Insert(result,0,q);
-      Delete(q);
+      Insert(result,0,element);
     }
     element = nextelement;
   }
@@ -1477,6 +1475,10 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	  }
 	}
 	level--;
+      }
+      if (Strncmp(e,"::",2) == 0) {
+	Delitem(e,0);
+	Delitem(e,0);
       }
       Append(result,e);
     } else if (SwigType_isfunction(e)) {

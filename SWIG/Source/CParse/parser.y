@@ -600,7 +600,7 @@ static void patch_template_type(String *s) {
 %token NATIVE INLINE
 %token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE ENDTEMPLATE STARTTEMPLATE GENCODE
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
-%token TYPES
+%token TYPES PARMS
 %token NONID DSTAR
 %token <ivalue> TEMPLATE
 %token <str> OPERATOR
@@ -1209,7 +1209,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 fname = NewStringf("feature:%s",$3);
 		 if (Classprefix) name = NewStringf("%s::%s", $5.id);
 		 else name = NewString($5.id);
-		 val = $7 ? NewString($7) : 0;
+		 val = $7 ? Copy($7) : 0;
 		 if ($5.parms) {
 		   Setmeta(val,"parms",$5.parms);
 		 }
@@ -1299,8 +1299,8 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
               ;
 
 stringbracesemi : stringbrace { $$ = $1; }
-/*                | HBLOCK { $$ = $1; }                */
                 | SEMI { $$ = 0; }
+                | PARMS LPAREN parms RPAREN SEMI { $$ = $3; } 
                 ;
 
  
@@ -2319,13 +2319,23 @@ ptail          : COMMA parm ptail {
 parm           : rawtype parameter_declarator {
                    SwigType_push($1,$2.type);
 		   $$ = NewParm($1,$2.id);
+		   Setfile($$,input_file);
+		   Setline($$,line_number);
 		   if ($2.defarg)
 		     Setattr($$,"value",$2.defarg);
 		}
 
                 | PERIOD PERIOD PERIOD {
+		  SwigType *t = NewString("v(...)");
+		  $$ = NewParm(t, 0);
+		  Setfile($$,input_file);
+		  Setline($$,line_number);
+
+
+		  /*
                   cparse_error(input_file, line_number, "Variable length arguments not supported (ignored).\n");
-		  $$ = NewParm(NewSwigType(T_INT),(char *) "varargs");
+		  $$ = NewParm(NewSwigType(T_INT),(char *) "varargs"); */
+
 		}
 		;
 

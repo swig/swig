@@ -1250,6 +1250,7 @@ int yylex(void) {
 	  if (strcmp(yytext,"%apply") == 0) return(APPLY);
 	  if (strcmp(yytext,"%clear") == 0) return(CLEAR);
 	  if (strcmp(yytext,"%types") == 0) return(TYPES);
+	  if (strcmp(yytext,"%parms") == 0) return(PARMS);
 	  if (strcmp(yytext,"%template") == 0) return (SWIGTEMPLATE);
 	  if (strcmp(yytext,"%endtemplate") == 0) return (ENDTEMPLATE);
 	  if (strcmp(yytext,"%starttemplate") == 0) return (STARTTEMPLATE);
