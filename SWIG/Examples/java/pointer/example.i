@@ -4,13 +4,10 @@
 /* This example illustrates a couple of different techniques
    for manipulating C pointers */
 
-#ifndef SWIGJAVA
-// pointer library not yet written for Java!
-
 /* First we'll use the pointer library */
 extern void add(int *x, int *y, int *result);
-%include pointer.i
-#endif
+%include cpointer.i
+%pointer_functions(int, intp);
 
 /* Next we'll use some typemaps */
 

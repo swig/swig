@@ -26,8 +26,11 @@ void add(int *x, int *y, int *r) {
 </blockquote>
 
 By default, SWIG wraps this function exactly as specified and creates
-an interface that expects pointer objects for arguments.  The only
-problem is how does one go about creating these objects from a Java program?
+an interface that expects pointer objects for arguments.  
+SWIG wraps a C pointer with a type wrapper class, for example, SWIGTYPE_p_int for an int*.
+The only problem is how does one go about creating these objects from a Java program?
+<p>
+
 
 <h2>Possible Solutions</h2>
 
@@ -52,52 +55,46 @@ void delete_int(int *i) {
 </pre>
 </blockquote>
 
-By default SWIG wraps a C pointer with a Java long. Now in a Java program you would do this:
-
-<blockquote>
-<pre>
-long a = new_int(37);
-long b = new_int(42);
-long c = new_int(0);
-add(a,b,c);
-int r = get_int(c);
-System.out.println("Result =" + r);
-delete_int(a);
-delete_int(b);
-delete_int(c);
-</pre>
-</blockquote>
-
 <p>
-<li>Use the SWIG pointer library.  [Sorry, but the Java module has not yet implemented this.] <br> 
+<li>The SWIG pointer library provides an easier way. <br> 
 For example, in the interface file 
 you would do this:
 
 <blockquote>
 <pre>
-%include "pointer.i"
-</pre>
-</blockquote?
-
-and from Java you would do this:
-
-<blockquote>
-<pre>
-String a = ptrcreate("int",37);
-String b = ptrcreate("int",42);
-String c = ptrcreate("int");
-add(a,b,c);
-int r = ptrvalue(c);
-System.out.println("Result =" + r);
-ptrfree(a);
-ptrfree(b);
-ptrfree(c);
+%include cpointer.i
+%pointer_functions(int, intp);
 </pre>
 </blockquote>
 
-The advantage to using the pointer library is that it unifies some of the helper
-functions behind a common set of names.  For example, the same set of functions work
-with int, double, float, and other fundamental types.
+and from Java you would use pointers like this:
+
+<blockquote>
+<pre>
+SWIGTYPE_p_int a = example.new_intp();
+SWIGTYPE_p_int b = example.new_intp();
+SWIGTYPE_p_int c = example.new_intp();
+example.intp_assign(a,37);
+example.intp_assign(b,42);
+
+// Note that getCPtr() has package access by default
+System.out.println("     a =" + Long.toHexString(SWIGTYPE_p_int.getCPtr(a)));
+System.out.println("     b =" + Long.toHexString(SWIGTYPE_p_int.getCPtr(b)));
+System.out.println("     c =" + Long.toHexString(SWIGTYPE_p_int.getCPtr(c)));
+
+// Call the add() function with some pointers
+example.add(a,b,c);
+
+// Now get the result
+int res = example.intp_value(c);
+System.out.println("     37 + 42 =" + res);
+
+// Clean up the pointers
+example.delete_intp(a);
+example.delete_intp(b);
+example.delete_intp(c);
+</pre>
+</blockquote>
 
 <p>
 <li>Use the SWIG typemap library.  This library allows you to completely
@@ -119,7 +116,7 @@ example.sub(37,42,r);
 System.out.println("Result =" + r[0]);
 </pre>
 </blockquote>
-Needless to say, this is substantially easier.
+Needless to say, this is substantially easier although a bit unusual.
 
 <p>
 <li>A final alternative is to use the typemaps library in combination
@@ -160,13 +157,8 @@ etc...) the complexity of pointer handling can be as complicated as you want to
 make it.
 
 <p>
-<li>More documentation on the typemaps.i and pointer.i library files can be
+<li>More documentation on the typemaps.i and cpointer.i library files can be
 found in the SWIG user manual.  The files also contain documentation.
-
-<p>
-<li>The pointer.i library is designed primarily for convenience.  If you
-are concerned about performance, you probably want to use a different
-approach.
 
 </ul>
 
