@@ -68,6 +68,10 @@ defer  ready to go.  The primary obstacle lies in the target language
        could generate a conflict (if both the namespace and non-namespace version
        are wrapped).
 
+****   Modify exception handling code not to apply to attribute access.  Should
+       reduce the amount of wrapper code substantially when a global exception
+       handler is used.
+
 ****   Typemap environments.  Stay tuned.
 
 [DONE] If a wrapper can't be generated to a function/method for some
@@ -76,6 +80,9 @@ defer  ready to go.  The primary obstacle lies in the target language
 
        If a language module sets the "error" attribute of a node, it is
        not included in the dispatch function.
+
+***    Investigate the enhancement of exception handling to match against exceptions
+       specified with throw specifiers.
 
 ***    Rewrite declaration annotation to better unify %rename and related
        directives.  Add a selector mechanism that allows specific parse tree
@@ -346,4 +353,5 @@ Other
 
 ****   Bring Tiger's .NET/CLR module online.
 
+****   Learn more wicked Jazz chords.
 
