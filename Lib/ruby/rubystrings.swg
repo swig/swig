@@ -1,4 +1,5 @@
 /* --- Input Values --- */
+
 %typemap(in) char *          "$1 = StringValuePtr($input);";
 %typemap(in) char [ANY]      "$1 = StringValuePtr($input);";
 
@@ -59,9 +60,10 @@
 #endif /* __cplusplus */
 
 /* Special case for string array variables */
-%typemap(varin) char[] {
-  size_t size = sizeof($1);
-  strncpy($1,StringValuePtr($input),size);
+%typemap(varin,
+         warning="462:Unable to set variable of type char []") char[]
+{
+  rb_raise(rb_eTypeError, "C/C++ variable '$name' is read-only.");
 }
 
 %typemap(varin) char[ANY] "strncpy($1,StringValuePtr($input),$1_dim0);";
