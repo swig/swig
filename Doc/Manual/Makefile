@@ -46,7 +46,7 @@ clean:
 	rm -f swigpdf.book
 	rm -f SWIGDocumentation.html
 	rm -f SWIGDocumentation.pdf
-	rm *.bak
+	rm -f *.bak
 
 test:
 	  grep "href=\".*\.html\"" index.html
