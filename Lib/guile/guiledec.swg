@@ -50,6 +50,7 @@ typedef struct SwigPtrType SwigPtrType;
 typedef struct _swig_type_info {
   char  *name;
   void *(*converter)(void *);
+  char  *str;
   size_t tag;
 } _swig_type_info;
 
