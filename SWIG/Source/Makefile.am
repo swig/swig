@@ -4,19 +4,22 @@
 AUTOMAKE_OPTIONS = foreign nostdinc subdir-objects 1.7.2
 
 SOURCE_DIR=$(top_srcdir)/Source
+BUILD_SOURCE_DIR=$(top_builddir)/Source
 
 SWIG_CXX_DEFS =	-DSWIG_LIB=\"$(swig_lib)\" 	\
 		-DLIBDIR=\"$(libdir)\" 		\
 		-DRELEASE_SUFFIX=\"$(release_suffix)\" @SWILL@
 
-AM_CFLAGS =	-I$(SOURCE_DIR)/Include		\
+AM_CFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
+		-I$(SOURCE_DIR)/Include		\
 		-I$(SOURCE_DIR)/DOH		\
 		-I$(SOURCE_DIR)/CParse		\
 		-I$(SOURCE_DIR)/Preprocessor	\
 		-I$(SOURCE_DIR)/Swig		\
 		-I$(SOURCE_DIR)/Modules
 
-AM_CXXFLAGS =	-I$(SOURCE_DIR)/Include		\
+AM_CXXFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
+		-I$(SOURCE_DIR)/Include		\
 		-I$(SOURCE_DIR)/DOH		\
 		-I$(SOURCE_DIR)/Preprocessor	\
 		-I$(SOURCE_DIR)/Swig		\
