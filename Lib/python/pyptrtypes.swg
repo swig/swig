@@ -43,13 +43,14 @@
     Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
     if (!res) {
-      if (!PyErr_Occurred()) 
+      if (!PyErr_Occurred()) {
 	SWIG_type_error("$basetype", $input);
-      SWIG_append_msg(" C/C++ variable '$name'");
+      }
+      SWIG_append_errmsg(" C/C++ variable '$name'");
       return 1;
     } else if (!ptr) {
       SWIG_null_ref("$basetype");
-      SWIG_append_msg(" C/C++ variable '$name'");
+      SWIG_append_errmsg(" C/C++ variable '$name'");
       return 1;
     }
     $1 = *ptr;
@@ -69,6 +70,7 @@
     $result = &temp;
     if (res == SWIG_NEWOBJ) delete ptr;
   }
+
   %typemap(directorout,fragment=pyfrag) Type {
     Type *ptr = 0;
     int res = $input ? asptr_meth($input, &ptr) : 0;
@@ -77,7 +79,8 @@
     $result = *ptr;
     if (res == SWIG_NEWOBJ) delete ptr;
   }
-%typemap(directorout,fragment=pyfrag,warning="470:Possible thread/reentrant unsafe wrapping, consider using a plain '"#Type"' return type instead.") const Type& {
+
+  %typemap(directorout,fragment=pyfrag,warning="470:Possible thread/reentrant unsafe wrapping, consider using a plain '"#Type"' return type instead.") const Type& {
     Type *ptr = 0;
     int res = $input ? asptr_meth($input, &ptr) : 0;
     if (!res || !ptr) 
@@ -92,7 +95,9 @@
       $result = ptr;
     }
   }
+
   %typemap(directorout,fragment=pyfrag) Type &DIRECTOROUT = Type
+
 %enddef
 
 /* typecheck */
