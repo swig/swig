@@ -9,8 +9,8 @@ CCSHARED    = @CCSHARED@
 LDSHARED    = @LDSHARED@
 INCLUDE     = -I. -I../DOH/Include
 
-SRCS = scanner.c include.c getopt.c misc.c super.c
-OBJS = scanner.o include.o getopt.o misc.o super.o
+SRCS = types.c scanner.c include.c getopt.c misc.c super.c
+OBJS = types.o scanner.o include.o getopt.o misc.o super.o
 
 .c.o: 
 	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
