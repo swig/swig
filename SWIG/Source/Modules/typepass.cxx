@@ -178,7 +178,8 @@ class TypePass : private Dispatcher {
 		  } 
 		}
 		if (Strcmp(nodeType(bcls),"classforward") != 0) {
-		  Swig_error(Getfile(bname),Getline(bname),"'%s' is not a class. \n",bname);
+		  Swig_error(Getfile(cls),Getline(cls),"'%s' does not have a valid base class.\n", Getattr(cls,"name"));
+		  Swig_error(Getfile(bcls),Getline(bcls),"'%s' is not a valid base class.\n", bname);
 		} else {
 		  Swig_warning(WARN_TYPE_INCOMPLETE,Getfile(cls),Getline(cls),"Base class '%s' is incomplete.\n", bname);
 		  Swig_warning(WARN_TYPE_INCOMPLETE,Getfile(bcls),Getline(bcls),"Only forward declaration '%s' was found.\n", bname);
@@ -190,7 +191,8 @@ class TypePass : private Dispatcher {
 		  if (!ilist) ilist = NewList();
 		  Append(ilist,bcls);
 		} else {
-		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS,Getfile(bcls),Getline(bcls),"class '%s' must be defined before it is used as a base class.\n", bname);
+		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS,Getfile(cls),Getline(cls),"Base class '%s' undefined.\n", bname);
+		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS,Getfile(bcls),Getline(bcls),"'%s' must be defined before it is used as a base class.\n", bname);
 		}
 	      }
 	    }
