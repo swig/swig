@@ -7,7 +7,7 @@ INTERFACE  = gifplot.i
 LIBS       = -L../.. -lgifplot -lm
 INCLUDE    = -I../../Include
 MLFILE     = gifplot.ml
-IOBJS      = gifplot_wrap.o gifplot.cmo runme.cmo
+IOBJS      = runme.cmo
 PROGFILE   = runme.ml
 
 all:: static

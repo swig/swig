@@ -162,13 +162,13 @@ check: all
 
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG="$(SWIG)" \
-	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" \
+	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
 	$(MAKE) -f $(TOP)/Makefile CSRCS="$(CSRCS)" SWIG="$(SWIG)" \
-	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" \
+	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)
 
@@ -177,7 +177,7 @@ swig_and_compile_multi_cpp = \
 	  $(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG="$(SWIG)" \
 	  INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" RUNTIMEDIR="$(RUNTIMEDIR)" \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" \
-	  $(LANGUAGE)$(VARIANT)_multi_cpp; \
+	  NOLINK=true $(LANGUAGE)$(VARIANT)_multi_cpp; \
 	done
 
 setup = \

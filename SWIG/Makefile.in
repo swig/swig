@@ -115,10 +115,11 @@ JAVA_EXAMPLES = class constants enum multimap native pointer reference simple te
 GUILE_EXAMPLES = constants matrix simple port multimap multivalue
 MZSCHEME_EXAMPLES = multimap simple
 RUBY_EXAMPLES = class constants enum funcptr funcptr2 functor import import_template mpointer multimap operator pointer reference simple template value variables
+OCAML_EXAMPLES = simple
 
 check-examples: check-tcl-examples check-perl5-examples check-python-examples \
 		check-java-examples check-guile-examples check-mzscheme-examples \
-		check-ruby-examples
+		check-ruby-examples check-ocaml-examples
 
 check-tcl-examples:
 	@if $(skip-tcl); then			\
@@ -211,9 +212,22 @@ check-ruby-examples:
 	  test $$passed = true;			\
 	fi
 
+check-ocaml-examples:
+	@if $(skip-ocaml); then			\
+	  echo skipping Ruby $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  for a in $(OCAML_EXAMPLES); do		\
+	    echo $(CHECK_CLEAN)ing Examples/ocaml/$$a;	\
+	    (cd Examples/ocaml/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
 check-test-suite: check-tcl-test-suite check-perl5-test-suite check-python-test-suite \
 		check-java-test-suite check-guile-test-suite check-mzscheme-test-suite \
-		check-ruby-test-suite
+		check-ruby-test-suite check-ocaml-test-suite
 
 check-tcl-test-suite:
 	@if $(skip-tcl); then			\
@@ -285,14 +299,25 @@ check-ruby-test-suite:
 	  test $$passed = true;			\
 	fi
 
+check-ocaml-test-suite:
+	@if $(skip-ocaml); then			\
+	  echo skipping Ocaml test-suite $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  (cd Examples/test-suite/ocaml && $(chk))	\
+	  || passed=false;			\
+	  test $$passed = true;			\
+	fi
+
 TCL_GIFPLOT_EXAMPLES = full mandel simple
 PERL_GIFPLOT_EXAMPLES = full shadow simple
 PYTHON_GIFPLOT_EXAMPLES = full shadow simple
 JAVA_GIFPLOT_EXAMPLES = full shadow simple
 GUILE_GIFPLOT_EXAMPLES = full simple
 RUBY_GIFPLOT_EXAMPLES = full shadow simple
+OCAML_GIFPLOT_EXAMPLES = full simple
 
-check-gifplot-examples: check-tcl-gifplot check-perl-gifplot check-python-gifplot check-java-gifplot check-guile-gifplot check-ruby-gifplot
+check-gifplot-examples: check-tcl-gifplot check-perl-gifplot check-python-gifplot check-java-gifplot check-guile-gifplot check-ruby-gifplot check-ocaml-gifplot
 
 gifplot-library:
 	@echo $(CHECK_CLEAN)ing Examples/GIFPlot/Lib
@@ -371,6 +396,19 @@ check-ruby-gifplot: gifplot-library
 	  for a in $(RUBY_GIFPLOT_EXAMPLES); do	\
 	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Ruby/$$a;	\
 	    (cd Examples/GIFPlot/Ruby/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
+check-ocaml-gifplot: gifplot-library
+	@if $(skip-ocaml); then			\
+	  echo skipping Ocaml $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  for a in $(OCAML_GIFPLOT_EXAMPLES); do	\
+	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Ocaml/$$a;	\
+	    (cd Examples/GIFPlot/Ocaml/$$a && $(chk))	\
 	    || passed=false;			\
 	  done;					\
 	  test $$passed = true;			\
@@ -540,7 +578,7 @@ install-lib:
 	    done;
 
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/ocaml
-	@cd $(srcdir)/Lib/ocaml; for i in *.i *.swg; \
+	@cd $(srcdir)/Lib/ocaml; for i in *.h *.i *.swg; \
 	    do \
 	    echo "Installing Lib/ocaml/$$i"; \
             ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/ocaml/$$i; \
