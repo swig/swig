@@ -27,12 +27,13 @@ class Allocate : public Dispatcher {
   int extendmode;
 
   /* Checks to see if a class is abstract through inheritance */
-  int is_abstract_inherit(Node *n, Node *base = 0) {
+  int is_abstract_inherit(Node *n, Node *base = 0, int first = 0) {
+    if (!first && (base == n)) return 0;
     if (!base) {
       /* Root node */
       Symtab *stab = Getattr(n,"symtab");         /* Get symbol table for node */
       Symtab *oldtab = Swig_symbol_setscope(stab);
-      int ret = is_abstract_inherit(n,n);
+      int ret = is_abstract_inherit(n,n,1);
       Swig_symbol_setscope(oldtab);
       return ret;
     }
@@ -152,7 +153,7 @@ public:
   virtual int classDeclaration(Node *n) {
     Symtab *symtab = Swig_symbol_current();
     Swig_symbol_setscope(Getattr(n,"symtab"));
-    
+
     if (!CPlusPlus) {
       /* Always have default constructors/destructors in C */
       Setattr(n,"allocate:default_constructor","1");
@@ -160,6 +161,8 @@ public:
     }
 
     if (Getattr(n,"allocate:visit")) return SWIG_OK;
+    Setattr(n,"allocate:visit","1");
+    
     /* Always visit base classes first */
     {
       List *bases = Getattr(n,"bases");

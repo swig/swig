@@ -116,7 +116,10 @@ class TypePass : public Dispatcher {
     }
   
     /* generate C++ inheritance type-relationships */
-    void cplus_inherit_types(Node *cls, String *clsname) {
+    void cplus_inherit_types(Node *first, Node *cls, String *clsname) {
+      
+      if (first == cls) return;  /* The Marcelo check */
+      if (!cls) cls = first;
 
 	List *ilist = Getattr(cls,"bases");
 	if (!ilist) {
@@ -166,7 +169,7 @@ class TypePass : public Dispatcher {
 				if (!ilist) ilist = NewList();
 				Append(ilist,bcls);
 			      } else {
-				Swig_error(Getfile(bname),Getline(bname),"class '%s' must be defined before it is used as a base class.\n", bname);
+				Swig_error(Getfile(bcls),Getline(bcls),"class '%s' must be defined before it is used as a base class.\n", bname);
 			      }
 			    }
 			}
@@ -218,7 +221,7 @@ class TypePass : public Dispatcher {
 	    Swig_symbol_setscope(s);
 
             /* Recursively hit base classes */
-	    cplus_inherit_types(bclass,clsname);
+	    cplus_inherit_types(first,bclass,clsname);
 	}
     }
 
@@ -376,7 +379,7 @@ public:
 
 	/* Inherit type definitions into the class */
 	if (name) {
-	    cplus_inherit_types(n, nname ? nname : (fname ? fname : name));
+	    cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
 	}
     
 	inclass = n;
