@@ -31,10 +31,16 @@ void wad_set_callback(void (*s)(int,WadFrame *,char *ret)) {
 static int            nlr_levels = 0;
 static volatile int  *volatile nlr_p = &nlr_levels;
 static long           nlr_value = 0;
+static void          (*nlr_func)(void) = 0;
 
 /* Set the return value from another module */
 void wad_set_return_value(long value) {
   nlr_value = value;
+}
+
+/* Set the return function */
+void wad_set_return_func(void(*f)(void)) {
+  nlr_func = f;
 }
 
 #ifdef WAD_SOLARIS
@@ -62,6 +68,12 @@ static void nonlocalret() {
   asm("or %o0, %lo(nlr_value), %o0");
   asm("ld [%o0], %i0");
 
+  /* If there is a non-local return function.  We're going to go ahead
+     and transfer control to it */
+  
+  if (nlr_func) 
+    (*nlr_func)();
+
   asm("jmp %i7 + 8");
   asm("restore");
   asm(".size	_returnsignal,(.-_returnsignal)");
@@ -75,6 +87,10 @@ static void nonlocalret() {
     (*nlr_p)--;
     asm("leave");
   }
+
+  if (nlr_func) 
+    (*nlr_func)();
+
   asm("movl nlr_value, %eax");
   asm("leave");
   asm("ret");
@@ -98,6 +114,8 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   WadFrame  *frame, *origframe;
   char      *framedata;
   char      *retname = 0;
+
+  nlr_func = 0;
 
   wad_object_init();
 

@@ -8,6 +8,7 @@ LIBS =
 #PYINCLUDE = -I/usr/local/include/python2.0
 PYINCLUDE = -I/usr/local/include/python1.5
 TCLINCLUDE = -I/usr/local/include
+PERLINCLUDE = -I/usr/local/lib/perl5/5.6.0/sun4-solaris/CORE
 
 all::
 	CC -Kpic -c $(OPT) $(INCLUDE) main.cxx
@@ -27,6 +28,13 @@ tcl::
 	CC -G $(OBJS) wadtcl.o -o wad.so $(LIBS)
 	cp wad.so libwadtcl.so
 	cp libwadtcl.so ..
+
+perl::
+	makehandler.py
+	cc -c $(OPT) $(INCLUDE) $(SRCS)
+	CC -Kpic -c $(INCLUDE) $(PERLINCLUDE) wadpl.cxx
+	CC -G $(OBJS) wadpl.o -o libwadpl.so $(LIBS)
+	cp libwadpl.so ..
 
 linux::
 	g++ -fpic -c -DWAD_LINUX $(INCLUDE) main.cxx
