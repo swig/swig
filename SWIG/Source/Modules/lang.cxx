@@ -1478,6 +1478,20 @@ int Language::unrollVirtualMethods(Node *n,
       virtual_destructor = 1;
     }
   }
+
+  /*
+    We delete all the nodirector methods.  This prevents the
+    generation of 'empty' director classes.
+    
+    But this has to be done outside the previous loop!.
+   */
+  Iterator k;
+  for (k = First(vm); k.key; k = Next(k)) {
+    String *method = Getattr(k.item, "methodNode");
+    if (!Cmp(Getattr(method, "feature:nodirector"), "1"))
+      Delattr(vm, k.key);
+  }
+
   return SWIG_OK;
 }
 
