@@ -2,6 +2,22 @@ Version 1.3.20 (In progress)
 ============================
 
 11/02/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Merge new set of GOOPS changes by John Lenz.
+	    GOOPS objects are now manipulated directly by the C code.
+	    Some fixes to typemap-GOOPS interaction.
+
+11/02/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Remove the file argument to -scmstub and -goops.
+	    The Scheme files are now always called MODULE.scm or
+	    MODULE-primitive.scm, where MODULE is the module name and 
+	    "primitive" can be changed by the -primsuffix option.
+	    The Scheme files are now placed in the directory given by
+	    the -outdir option, or the current directory.
+	    (Patch by John Lenz, slightly modified.)
+
+	    *** INCOMPATIBILITY [Guile] ***
+
+11/02/2003: mkoeppe (Matthias Koeppe)
 	    Unify the pointer-conversion runtime API.  The standard
 	    functions are:
 	     * SWIG_NewPointerObj (POINTER, TYPE, FLAGS)

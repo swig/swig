@@ -393,12 +393,14 @@ PHP
 Guile
 -----
 
-**     Rename slot setters from CLASS-SLOT-set to CLASS-SLOT-set!
+**     Maybe rename slot setters from CLASS-SLOT-set to CLASS-SLOT-set!
        to match Scheme convention for naming of mutators.
 
 **     Support keyword args.
 
-**     Support GOOPS shadow classes.
+[DONE] Support GOOPS shadow classes.
+
+**     Director Support!
 
 [DONE] Support garbage collection.
 
@@ -407,7 +409,8 @@ Guile
        GOOPS metaclasses?)
 
 **     Maybe communicate the type system between object modules via Scheme
-       variables, rather than a shared object.
+       variables, rather than a shared object.  This would remove the
+       need of a shared SWIG runtime library.
 
 **     Provide a clean way to construct type predicates.
 
