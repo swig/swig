@@ -180,18 +180,19 @@ Klass constructorcall(const Klass& k = Klass()) { return k; }
 }
 %}
 
-// const methods 
-// runtime test needed to check that the const method is called
-struct ConstMethods {
-  int coo(double d = 0.0) const;
-};
-
 %{
 struct ConstMethods {
   int coo(double d = 0.0) { return 10; }
   int coo(double d = 0.0) const { return 20; }
 };
 %}
+
+// const methods 
+// runtime test needed to check that the const method is called
+struct ConstMethods {
+  int coo(double d = 0.0) const;
+};
+
 
 
 // Default args with C linkage
