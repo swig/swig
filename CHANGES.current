@@ -1,5 +1,9 @@
 Version 1.3.18 (In progress)
 ============================
+03/17/2003: mrose (Mark Rose)
+            Fixed the return statement for director base class calls that have no
+            return value.
+
 03/15/2003: beazley
             Fixed a problem with const smart-pointer wrapping.  For example:
 

@@ -1457,7 +1457,12 @@ public:
     if (pure_virtual) {
     	Printf(w->code, "throw SWIG_DIRECTOR_PURE_VIRTUAL_EXCEPTION();\n");
     } else {
-    	Printf(w->code, "return %s;\n", Swig_method_call(super,l));
+    	if (is_void) {
+    	  Printf(w->code, "%s;\n", Swig_method_call(super,l));
+    	  Printf(w->code, "return;\n", Swig_method_call(super,l));
+	} else {
+    	  Printf(w->code, "return %s;\n", Swig_method_call(super,l));
+	}
     }
     Printf(w->code, "}\n");
     
