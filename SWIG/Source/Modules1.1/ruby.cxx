@@ -710,7 +710,13 @@ public:
 
     /* Now write code to make the function call */
     if (current != CONSTRUCTOR_ALLOCATE) {
-      emit_action(n, f);
+      if (current == CONSTRUCTOR_INITIALIZE) {
+	String *action = Getattr(n,"wrap:action");
+	if (action) {
+	  Append(action,"DATA_PTR(self) = result;");
+	}
+      }
+      emit_action(n,f);
     }
 
     int newobj = 0;
@@ -743,7 +749,7 @@ public:
       Printf(f->code, "rb_obj_call_init(vresult, argc, argv);\n");
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       need_result = 1;
-      Printf(f->code, "DATA_PTR(self) = result;\n");
+      // Printf(f->code, "DATA_PTR(self) = result;\n");
     }
 
     /* Dump argument output code; */
