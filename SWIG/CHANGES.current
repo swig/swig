@@ -1,5 +1,12 @@
 Version 1.3.20 (In progress)
 ============================
+09/05/2003: cheetah (William Fulton)
+            [Java] Directors implemented for Java. In summary this is a big new feature 
+            which supports upcalls from C++ to Java. Code is generated to support C++ 
+            callbacks to call into Java and true polymorphic behaviour for Java classes 
+            derived from C++ classes. See java.html for details. Contributed by 
+            Scott Michel.
+
 09/05/2003: Tiger
             Created contract example directory at /SWIG/Examples/contract
             Added simple contract examples (simple_c & simple_cxx)
