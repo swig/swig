@@ -1,5 +1,24 @@
 Version 1.3.18 (In progress)
 ============================
+03/15/2003: beazley
+            Fixed a problem with const smart-pointer wrapping.  For example:
+
+                 class Foo {
+                 public:
+                    int x;
+                    void bar() const;
+                    void spam();
+                };
+
+                class Blah {
+                ...
+                   const Foo *operator->();
+                ...
+                };
+
+            In this case, only "x" and "bar" are visible from Blah (since application
+            of spam violates constness).  Moreover, access to "x" is read-only.
+           
 03/15/2003: mrose (Mark Rose)
             Cleaned up two signed versus unsigned comparisons in python/std_vector.i.
 	    
