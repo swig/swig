@@ -3,15 +3,17 @@ SWIG       = $(TOP)/../preinst-swig
 SWIGOPT    =
 LIBS       =
 
-all::
+all:: 
+	$(CXX) -shared -o cbase.so cbase.cxx
+	$(CXX) -shared -o cbar.so cbar.cxx
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	LIBS='$(LIBS)' TARGET='base' INTERFACE='base.i' python_cpp
+	LIBS='$(LIBS) cbase.so' TARGET='base' INTERFACE='base.i' python_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	LIBS='$(LIBS)' TARGET='foo' INTERFACE='foo.i' python_cpp
+	LIBS='$(LIBS) cbase.so' TARGET='foo' INTERFACE='foo.i' python_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	LIBS='$(LIBS)' TARGET='bar' INTERFACE='bar.i' python_cpp
+	LIBS='$(LIBS) cbase.so cbar.so' TARGET='bar' INTERFACE='bar.i' python_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	LIBS='$(LIBS)' TARGET='spam' INTERFACE='spam.i' python_cpp
+	LIBS='$(LIBS) cbase.so cbar.so' TARGET='spam' INTERFACE='spam.i' python_cpp
 
 
 clean::
