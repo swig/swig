@@ -8,18 +8,22 @@ VPATH = @srcdir@
 SHELL    = /bin/sh
 CXX      = @CXX@
 CFLAGS   = @CFLAGS@
-YACC     = @YACC@ 
+YACC     = @YACC@
 AR       = @AR@
 RANLIB   = @RANLIB@
 
 TARGET   = libmodules11.a
 OBJS     = swigmain.o tcl8.o perl5.o python.o pycpp.o guile.o java.o
 SRCS     = swigmain.cxx tcl8.cxx perl5.cxx python.cxx pycpp.cxx guile.cxx java.cxx
-INCLUDE  = -I$(srcdir)/../Include -I$(srcdir)/../SWIG1.1 -I$(srcdir)/../SWIG1.3 -I$(srcdir)/../DOH/Include
+INCLUDE  = -I$(srcdir)/../Include		\
+	   -I$(srcdir)/../SWIG1.1		\
+	   -I$(srcdir)/../SWIG1.3		\
+           -I$(srcdir)/../DOH/Include		\
+           -I../Include
 
 # Rules for creation of a .o file from .cxx
 .SUFFIXES: .cxx
-.cxx.o: 
+.cxx.o:
 	$(CXX) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
 
 
@@ -33,4 +37,4 @@ clean::
 	rm -f *.o *~ $(TARGET)
 
 nuke::
-	rm -f Makefile *~ #* core a.out 
+	rm -f Makefile *~ #* core a.out
