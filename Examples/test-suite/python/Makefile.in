@@ -15,6 +15,7 @@ CPP_TEST_CASES += \
 	complextest \
 	director_stl \
 	implicittest \
+	inplaceadd \
 	lib_std_vectora \
 	lib_std_map \
 	lib_std_wstring \
