@@ -398,10 +398,12 @@ char value. Thus if the value "foo" is assigned to a
 The <tt>char *</tt> datatype is handled as a NULL-terminated ASCII
 string. SWIG maps this into a 8-bit character string in the target
 scripting language. SWIG converts character strings in the target
-language to NULL terminated strings before passing them into C/C++. It
-is illegal for these strings to have embedded NULL bytes.  Therefore,
-the <tt>char *</tt> datatype is not generally suitable for passing
-binary data (although typemaps can be used to handle this).
+language to NULL terminated strings before passing them into
+C/C++. The default handling of these strings does not allow them to
+have embedded NULL bytes.  Therefore, the <tt>char *</tt> datatype is
+not generally suitable for passing binary data.  However, it is
+possible to change this behavior by defining a SWIG typemap.  See the chapter
+on <a href="Typemaps.html">Typemaps</a> for details about this.
 
 <p>
 At this time, SWIG does not provide any special support for Unicode or
@@ -1081,6 +1083,36 @@ variable as an array:
 char VERSION[64] = "1.0";
 </pre>
 </blockquote>
+
+When variables of type <tt>const char *</tt> are declared, SWIG still generates functions for setting and
+getting the value.  However, the default behavior does <em>not</em> release the previous contents (resulting in
+a possible memory leak).  In fact, you may get a warning message such as this when wrapping such a variable:
+
+<blockquote>
+<pre>
+example.i:20. Typemap warning. Setting const char * variable may leak memory
+</pre>
+</blockquote>
+
+The reason for this behavior is that <tt>const char *</tt> variables are often used to point to string literals.
+For example:
+
+<blockquote>
+<pre>
+const char *foo = "Hello World\n";
+</pre>
+</blockquote>
+
+Therefore, it's a really bad idea to call <tt>free()</tt> on such a
+pointer.  On the other hand, it <em>is</em> legal to change the
+pointer to point to some other value.  When setting a variable of this
+type, SWIG allocates a new string (using malloc or new) and changes
+the pointer to point to the new value.  However, repeated
+modifications of the value will result in a memory leak since the old
+value is not released. 
+
+
+
 
 <h3> Arrays</h3>
 
