@@ -246,7 +246,7 @@
         if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
             croak("Type error in argument $argnum of $symname. Expected $1_mangle");
         }
-        $1 = *($1_ltype) temp;
+        $1 = ($1_ltype) temp;
 }
 
 %typemap(varin) SWIGTYPE [ANY] {
