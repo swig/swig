@@ -28,7 +28,7 @@
 #define SWIGRUNTIME(x) static x
 
 #ifndef SWIGINLINE
-#if defined(__cplusplus) || defined(__GNUC__)
+#if defined(__cplusplus) || (defined(__GNUC__) && !defined(__STRICT_ANSI__))
 #  define SWIGINLINE inline
 #else
 #  define SWIGINLINE
