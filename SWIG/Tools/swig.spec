@@ -1,4 +1,7 @@
-%define ver          1.3.7
+# You can make the package from CVS by something like:
+# tar -cvzf swig-1.3.11cvs.tar.gz SWIG-1.3.11cvs && rpm -tb swig-1.3.11cvs.tar.gz
+
+%define ver          1.3.11cvs
 %define rel          1
 %define prefix       /usr
 %define home_page    http://swig.sourceforge.net/
@@ -28,6 +31,8 @@ that scripting languages need to access the underlying C/C++ code
 %setup -q -n SWIG-%{version}
 
 %build
+# so we can build package from cvs source too
+[ ! -r configure ] && ./autogen.sh
 %configure
 make
 

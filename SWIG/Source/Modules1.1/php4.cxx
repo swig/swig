@@ -288,7 +288,7 @@ void create_extra_files(void) {
 
 	Printf(f_extra,
 	     "# $Id$\n\n"
-	     "LTLIBRARY_NAME          = %s.la\n",
+	     "LTLIBRARY_NAME          = php_%s.la\n",
             module);
 
         // CPP has more and different entires to C in Makefile.in
@@ -298,7 +298,7 @@ void create_extra_files(void) {
                             "LTLIBRARY_OBJECTS_X = $(LTLIBRARY_SOURCES_CPP:.cpp=.lo)\n"
                            ,outputfile);
   
-	Printf(f_extra,"LTLIBRARY_SHARED_NAME   = %s.la\n"
+	Printf(f_extra,"LTLIBRARY_SHARED_NAME   = php_%s.la\n"
 	     "LTLIBRARY_SHARED_LIBADD = $(%(upper)s_SHARED_LIBADD)\n\n"
 	     "include $(top_srcdir)/build/dynlib.mk\n",
 	module,module);
