@@ -76,21 +76,21 @@ SWIG_ConvertPtr(VALUE obj, swig_type_info *ty)
   void *ptr = 0;
   swig_type_info *tc;
 
-  if (ty->clientdata) {
-    if (NIL_P(obj)) ptr = NULL;
-    else {
-
-      if (!rb_obj_is_kind_of(obj, ((swig_class *) (ty->clientdata))->klass))
-	rb_raise(rb_eTypeError, "wrong argument type (expected %s)", ty->str);
-
-      Data_Get_Struct(obj, void, ptr);
-      if (!ptr) rb_raise(rb_eRuntimeError, "This %s already released", ty->str);
-    }
-  } else {
-    if ((c = SWIG_MangleStr(obj)) == NULL)
-      rb_raise(rb_eTypeError, "Expected %s", ty->str);	
+  /* Grab the pointer */
+  if (NIL_P(obj))
+    ptr = NULL;
+  else
     Data_Get_Struct(obj, void, ptr);
-    if (ty) {
+  
+  /* Do type-checking if type info was provided */
+  if (ty) {
+    if (ty->clientdata) {
+        if (!rb_obj_is_kind_of(obj, ((swig_class *) (ty->clientdata))->klass))
+          rb_raise(rb_eTypeError, "wrong argument type (expected %s)", ty->str);
+        if (!ptr) rb_raise(rb_eRuntimeError, "This %s already released", ty->str);
+    } else {
+      if ((c = SWIG_MangleStr(obj)) == NULL)
+        rb_raise(rb_eTypeError, "Expected %s", ty->str);	
       tc = SWIG_TypeCheck(c, ty);
       if (!tc) rb_raise(rb_eTypeError, "Expected %s", ty->str);
       ptr = SWIG_TypeCast(tc, ptr);
