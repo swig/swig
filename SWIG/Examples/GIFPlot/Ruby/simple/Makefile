@@ -1,7 +1,7 @@
 TOP        = ../../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    = 
-SRCS       = 
+SWIGOPT    =
+SRCS       =
 TARGET     = simple
 INTERFACE  = simple.i
 LIBS       = -L../.. -lgifplot
@@ -20,4 +20,4 @@ static::
 clean::
 	rm -f *_wrap* *.o *~ *.so myruby .~* core *.gif
 
-
+check: all

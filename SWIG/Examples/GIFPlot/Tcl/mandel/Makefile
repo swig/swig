@@ -1,7 +1,7 @@
 TOP        = ../../..
 SWIG       = $(TOP)/../swig
 SWIGOPT    = -I../../Interface
-SRCS       = 
+SRCS       =
 TARGET     = gifplot
 INTERFACE  = mandel.i
 LIBS       = -L../.. -lgifplot
@@ -20,4 +20,4 @@ static::
 clean::
 	rm -f *_wrap* *.o *~ *.so mywish  .~* core *.gif
 
-
+check: all

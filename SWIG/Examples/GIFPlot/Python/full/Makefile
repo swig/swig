@@ -1,7 +1,7 @@
 TOP        = ../../..
 SWIG       = $(TOP)/../swig
 SWIGOPT    = -I../../Include
-SRCS       = 
+SRCS       =
 TARGET     = gifplot
 INTERFACE  = gifplot.i
 LIBS       = -L../.. -lgifplot
@@ -20,4 +20,4 @@ static::
 clean::
 	rm -f *_wrap* *.o *~ *.so mypython *.pyc .~* core *.gif
 
-
+check: all
