@@ -199,7 +199,7 @@ SWIG_ZTS_ConvertResourcePtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
   p = value->ptr;
   if (type==-1) return -1;
 
-  type_name=zend_rsrc_list_get_rsrc_type(z->value.lval);
+  type_name=zend_rsrc_list_get_rsrc_type(z->value.lval TSRMLS_CC);
 
   return SWIG_ZTS_ConvertResourceData(p,type,type_name,ptr,ty TSRMLS_CC);
 }
