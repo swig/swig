@@ -4,7 +4,7 @@ Copyright (C) 1998-2000 : The University of Chicago
 Copyright (C) 1995-1998 : University of Utah and the Regents
                           of the University of California
 
-January 11, 2000 ($Header$)
+$Header$
 
 Tagline: SWIG is a compiler that integrates C, C++, and Objective-C
          with scripting languages including Perl, Python, and Tcl.
