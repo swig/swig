@@ -10,7 +10,6 @@ funcptr
 funcptr2
 functor
 import
-import
 template
 mpointer
 multimap

@@ -1378,6 +1378,19 @@ int Language::unrollVirtualMethods(Node *n,
     if (Getattr(n, "feature:director")) default_director = 1;
     if (Getattr(n, "feature:nodirector")) default_director = -1;
   }
+  // recurse through all base classes to build the vtable
+  List* bl = Getattr(n, "bases");
+  if (bl) {
+    Node* bi;
+    for (bi = Firstitem(bl); bi; bi = Nextitem(bl)) {
+      int virtual_base = 0;
+      unrollVirtualMethods(bi, parent, vm, default_director, virtual_destructor, virtual_base);
+      if (virtual_base) {
+        has_virtual = 1;
+      }
+    }
+  }
+  // find the methods that need directors
   classname = Getattr(n, "name");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
@@ -1397,7 +1410,16 @@ int Language::unrollVirtualMethods(Node *n,
 	  	if (Getattr(ni, "feature:director")) director = 1;
 	  	if (Getattr(ni, "feature:nodirector")) director = 0;
 	  }
-          if ((director == 1) && !Getattr(vm, method_id)) {
+	  // if this method has a director in a base class, we must
+	  // either override it or remove it (otherwise the director
+	  // method will use the wrong class for superclass calls)
+	  if (Getattr(vm, method_id)) {
+	    if (director == 0) director = 1;
+	    else if (director < 0) {
+	      Delattr(vm, method_id);
+	    }
+	  }
+          if (director == 1) {
             String *fqname = NewString("");
             Printf(fqname, "%s::%s", classname, name);
 	    Hash *item = NewHash();
@@ -1417,17 +1439,6 @@ int Language::unrollVirtualMethods(Node *n,
       }
     }
     else {
-    }
-  }
-  List* bl = Getattr(n, "bases");
-  if (bl) {
-    Node* bi;
-    for (bi = Firstitem(bl); bi; bi = Nextitem(bl)) {
-      int virtual_base = 0;
-      unrollVirtualMethods(bi, parent, vm, default_director, virtual_destructor, virtual_base);
-      if (virtual_base) {
-        has_virtual = 1;
-      }
     }
   }
   if (has_virtual) {

@@ -35,6 +35,10 @@ public:
 /* any python exception that occurs during a director method call */
 class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION { };
 
+/* attempt to call a pure virtual method via a director method */
+class SWIG_DIRECTOR_PURE_VIRTUAL_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION { };
+
+
 /* simple thread abstraction for pthreads or win32 */
 #ifdef __THREAD__
   #define __PTHREAD__
