@@ -341,13 +341,17 @@ Swig_cconstructor_call(String_or_char *name) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
+Swig_cppconstructor_base_call(String_or_char *name, ParmList *parms, int skip_self, int disown) {
   String *func;
   String *nname;
   int i = 0;
   int comma = 0;
   Parm *p = parms;
   SwigType *pt;
+  if (skip_self) {
+    if (p) p = nextSibling(p);
+    i++;
+  }
   nname = SwigType_namestr(name);
   func = NewString("");
   Printf(func,"new %s(", nname);
@@ -363,11 +367,29 @@ Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
     }
     p = nextSibling(p);
   }
+  if (disown >= 0) {
+    if (comma) Printf(func, ",");
+    Printf(func, "%d", disown);
+  }
   Printf(func,")");
   Delete(nname);
   return func;
 }
 
+String *
+Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
+  return Swig_cppconstructor_base_call(name, parms, 0, -1);
+}
+
+String *
+Swig_cppconstructor_nodirector_call(String_or_char *name, ParmList *parms) {
+  return Swig_cppconstructor_base_call(name, parms, 1, -1);
+}
+
+String *
+Swig_cppconstructor_director_call(String_or_char *name, ParmList *parms) {
+  return Swig_cppconstructor_base_call(name, parms, 0, 0);
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_cdestructor_call()
@@ -473,7 +495,7 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
   name      = Getattr(n,"name");
   qualifier = Getattr(n,"qualifier");
   parms     = CopyParmList(nonvoid_parms(Getattr(n,"parms")));
-  
+ 
   type = NewString(classname);
   if (qualifier) {
     SwigType_push(type,qualifier);
@@ -525,6 +547,62 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_methodclass()
+ *
+ * This function returns the class node for a given method or class.
+ * ----------------------------------------------------------------------------- */
+
+Node*
+Swig_methodclass(Node *n) {
+  Node* type = Getattr(n, "nodeType");
+  if (!Cmp(type, "class")) return n;
+  return Getattr(n, "parentNode");
+}
+
+int
+Swig_directorbase(Node *n) {
+  Node *classNode = Swig_methodclass(n);
+  return (classNode && (Getattr(classNode, "directorBase") != 0));
+}
+
+int
+Swig_directorclass(Node *n) {
+  Node *classNode = Swig_methodclass(n);
+  return (Getattr(classNode, "vtable") != 0);
+}
+
+int
+Swig_directormethod(Node *n) {
+  Node *classNode = Swig_methodclass(n);
+  if (classNode) {
+    Node *vtable = Getattr(classNode, "vtable");
+    if (vtable) {
+      String *name = Getattr(n, "name");
+      String *decl = Getattr(n, "decl");
+      String *method_id = NewStringf("%s|%s", name, decl);
+      Hash *item = Getattr(vtable, method_id);
+      Delete(method_id);
+      if (item) {
+        return (Getattr(item, "director") != 0);
+      }
+    }
+  }
+  return 0;
+}
+
+Node *
+Swig_directormap(Node *module, String *type) {
+  int is_void = !Cmp(type, "void");
+  if (!is_void && module) {
+    String* base = SwigType_base(type);
+    Node *directormap = Getattr(module, "wrap:directormap");
+    if (directormap) return Getattr(directormap, base);
+  }
+  return 0;
+}
+
+	
+/* -----------------------------------------------------------------------------
  * Swig_ConstructorToFunction()
  *
  * This function creates a C wrapper for a C constructor function. 
@@ -537,10 +615,17 @@ Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int flags)
   SwigType *type;
   String   *membername;
   String   *mangled;
+  Node     *classNode;
+  int      use_director;
+  
+  classNode = Swig_methodclass(n);
+  use_director = Swig_directorclass(n);
+  
   membername = Swig_name_construct(classname);
   mangled = Swig_name_mangle(membername);
 
   parms = CopyParmList(nonvoid_parms(Getattr(n,"parms")));
+
   type  = NewString(classname);
   SwigType_add_pointer(type);
 
@@ -558,7 +643,27 @@ Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int flags)
     Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cfunction_call(mangled,parms)));
   } else {
     if (cplus) {
-      Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cppconstructor_call(classname,parms)));
+      /* if a C++ director class exists, create it rather than the original class */
+      if (use_director) {
+	Node *parent = Swig_methodclass(n);
+	String *name = Getattr(parent, "sym:name");
+        String* directorname = NewStringf("__DIRECTOR__%s", name);
+	String* action = NewString("");
+        /* if Python class has been subclassed, create a director instance.  
+	 * otherwise, just create a normal instance.
+         */
+	Printv(action, "if (arg1 != Py_None) { // subclassed\n",
+	               Swig_cresult(type, "result", Swig_cppconstructor_director_call(directorname, parms)),
+		       "} else {\n",
+	               Swig_cresult(type, "result", Swig_cppconstructor_nodirector_call(classname, parms)),
+		       "}\n",
+		       NULL);
+	Setattr(n, "wrap:action", action);
+	Delete(action);
+        Delete(directorname);
+      } else {
+        Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cppconstructor_call(classname,parms)));
+      }
     } else {
       Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cconstructor_call(classname)));
     }
@@ -583,7 +688,8 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags)
 {
   SwigType *type;
   Parm     *p;
-
+  Node     *classNode;
+ 
   type  = NewString(classname);
   SwigType_add_pointer(type);
   p = NewParm(type,"self");
@@ -606,7 +712,9 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags)
     Delete(mangled);
   } else {
     if (cplus) {
-      Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cppdestructor_call()));
+      String* action = NewString("");
+      Printf(action, "%s;\n", Swig_cppdestructor_call());
+      Setattr(n,"wrap:action", action);
     } else {
       Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cdestructor_call()));
     }

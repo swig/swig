@@ -213,8 +213,10 @@ extern String     *SwigType_lcaststr(SwigType *s, const String_or_char *id);
 extern String     *SwigType_manglestr(SwigType *t);
 extern SwigType   *SwigType_ltype(SwigType *t);
 extern int         SwigType_ispointer(SwigType *t);
+extern int         SwigType_ispointer_return(SwigType *t);
 extern int         SwigType_ismemberpointer(SwigType *t);
 extern int         SwigType_isreference(SwigType *t);
+extern int         SwigType_isreference_return(SwigType *t);
 extern int         SwigType_isarray(SwigType *t);
 extern int         SwigType_isfunction(SwigType *t);
 extern int         SwigType_isqualifier(SwigType *t);
@@ -378,6 +380,7 @@ extern String  *Swig_name_set(const String_or_char *vname);
 extern String  *Swig_name_construct(const String_or_char *classname);
 extern String  *Swig_name_copyconstructor(const String_or_char *classname);
 extern String  *Swig_name_destroy(const String_or_char *classname);
+extern String  *Swig_name_disown(const String_or_char *classname);
 
 /* --- parameterized rename functions --- */
 
@@ -442,6 +445,13 @@ extern int        Swig_VarsetToFunction(Node *n);
 
 #define  CWRAP_EXTEND             0x01
 #define  CWRAP_SMART_POINTER      0x02
+
+/* --- Director Helpers --- */
+extern Node      *Swig_methodclass(Node *n);
+extern int        Swig_directorbase(Node *n);
+extern int        Swig_directorclass(Node *n);
+extern int        Swig_directormethod(Node *n);
+extern Node      *Swig_directormap(Node *n, String *type);
 
 /* --- Legacy Typemap API (somewhat simplified, ha!) --- */
 

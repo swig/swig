@@ -203,6 +203,7 @@ Language::Language() {
   classtypes = NewHash();
   overloading = 0;
   multiinput = 0;
+  directors = 0;
 }
 
 Language::~Language() {
@@ -1293,6 +1294,265 @@ int Language::typedefHandler(Node *) {
 }
 
 /* ----------------------------------------------------------------------
+ * Language::classDirectorMethod()
+ * ---------------------------------------------------------------------- */
+
+int Language::classDirectorMethod(Node *n, Node *parent, String* super) {
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::classDirectorConstructor()
+ * ---------------------------------------------------------------------- */
+
+int Language::classDirectorConstructor(Node *n) {
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::classDirectorDefaultConstructor()
+ * ---------------------------------------------------------------------- */
+
+int Language::classDirectorDefaultConstructor(Node *n) {
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::tagDirectorBases()
+ * ---------------------------------------------------------------------- */
+
+int Language::tagDirectorBases(Node *n) {
+  List* bl;
+  if (Getattr(n, "directorBase")) return SWIG_OK;
+  if (Getattr(n, "hasVirtual") == 0) return SWIG_OK;
+  Setattr(n, "directorBase", "1");
+  bl = Getattr(n, "bases");
+  if (bl) {
+    Node* bi;
+    for (bi = Firstitem(bl); bi; bi = Nextitem(bl)) {
+      tagDirectorBases(bi);
+    }
+  }
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::unrollVirtualMethods()
+ * ---------------------------------------------------------------------- */
+
+int Language::unrollVirtualMethods(Node *n, 
+                                   Node *parent, 
+                                   Hash *vm, 
+                                   int default_director, 
+                                   int &virtual_destructor, 
+                                   int &has_virtual) {
+  int only_virtual = (Getattr(parent, "director:nonvirtual") == 0);
+  int top = (n == parent);
+  has_virtual = 0;
+  Node *ni;
+  String *type;
+  String *nodeType;
+  String *cdecl;
+  String *storage;
+  String *classname;
+  String *decl;
+  // default_director < 0 turns off director generation for this class and all its superclasses
+  if (default_director >= 0) {
+    if (Getattr(n, "feature:director")) default_director = 1;
+    if (Getattr(n, "feature:nodirector")) default_director = -1;
+  }
+  classname = Getattr(n, "name");
+  for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
+    nodeType = Getattr(ni, "nodeType");
+    storage = Getattr(ni, "storage");
+    cdecl = Getattr(ni, "cdecl");
+    decl = Getattr(ni, "decl");
+    if (!Cmp(nodeType, "cdecl") && SwigType_isfunction(decl)) {
+      int is_virtual = storage && !Cmp(storage, "virtual");
+      if (is_virtual) has_virtual = 1;
+      String* access = Getattr(ni, "access");
+      if (!access || !Cmp(access, "public")) {
+        if (!only_virtual || is_virtual) {
+          String *method_id;
+          String *name = Getattr(ni, "name");
+	  method_id = NewStringf("%s|%s", name, decl);
+	  int director = default_director;
+	  if (director >= 0) {
+	  	if (Getattr(ni, "feature:director")) director = 1;
+	  	if (Getattr(ni, "feature:nodirector")) director = 0;
+	  }
+          if ((director == 1) && !Getattr(vm, method_id)) {
+            String *fqname = NewString("");
+            Printf(fqname, "%s::%s", classname, name);
+	    Hash *item = NewHash();
+	    Setattr(item, "fqName", fqname);
+	    Setattr(item, "methodNode", ni);
+	    Setattr(vm, method_id, item);
+            Delete(fqname);
+	    Delete(item);
+          }
+	  Delete(method_id);
+        }
+      } 
+    }
+    else if (!Cmp(nodeType, "destructor")) {
+      if (storage && !Cmp(storage, "virtual")) {
+      	virtual_destructor = 1;
+      }
+    }
+    else {
+    }
+  }
+  List* bl = Getattr(n, "bases");
+  if (bl) {
+    Node* bi;
+    for (bi = Firstitem(bl); bi; bi = Nextitem(bl)) {
+      int virtual_base = 0;
+      unrollVirtualMethods(bi, parent, vm, default_director, virtual_destructor, virtual_base);
+      if (virtual_base) {
+        has_virtual = 1;
+      }
+    }
+  }
+  if (has_virtual) {
+    Setattr(n, "hasVirtual", "1");
+  }
+  return SWIG_OK;
+}
+
+
+/* ----------------------------------------------------------------------
+ * Language::classDirectorDisown()
+ * ---------------------------------------------------------------------- */
+
+int Language::classDirectorDisown(Node *n) {
+  Node *disown = NewHash();
+  String *mrename;
+  String *symname = Getattr(n,"sym:name");
+  mrename = Swig_name_disown(symname); //Getattr(n, "name"));
+  String *type = NewString(ClassType);
+  String *name = NewString("self");
+  SwigType_add_pointer(type);
+  Parm *p = NewParm(type, name);
+  Delete(name);
+  Delete(type);
+  type = NewString("void");
+  String *action = NewString("");
+  Printv(action, "{\n",
+                 "__DIRECTOR__ *director = dynamic_cast<__DIRECTOR__*>(arg1);\n",
+                 "if (director) director->__disown();\n",
+		 "}\n",
+		 NULL);
+  Setattr(disown, "wrap:action", action);
+  Setattr(disown,"name", mrename);
+  Setattr(disown,"sym:name", mrename);
+  Setattr(disown,"type",type);
+  Setattr(disown,"parms", p);
+  Delete(action);
+  Delete(mrename);
+  Delete(type);
+  Delete(p);
+  
+  functionWrapper(disown);
+  Delete(disown);
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::classDirectorConstructors()
+ * ---------------------------------------------------------------------- */
+
+int Language::classDirectorConstructors(Node *n) {
+  Node *ni;
+  String *nodeType;
+  int constructor = 0;
+  for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
+    nodeType = Getattr(ni, "nodeType");
+    if (!Cmp(nodeType, "constructor")) { 
+      classDirectorConstructor(ni);
+      constructor = 1;
+    }
+  }
+  if (!constructor) {
+    classDirectorDefaultConstructor(n);
+  }
+}
+
+/* ----------------------------------------------------------------------
+ * Language::classDirectorMethods()
+ * ---------------------------------------------------------------------- */
+
+int Language::classDirectorMethods(Node *n) {
+  Node *vtable = Getattr(n, "vtable");
+  Node *item;
+  String *key;
+  for (key = Firstkey(vtable); key != 0; key = Nextkey(vtable)) { 
+    item = Getattr(vtable, key);
+    String *method = Getattr(item, "methodNode");
+    String *fqname = Getattr(item, "fqName");
+    if (classDirectorMethod(method, n, fqname) == SWIG_OK) {
+       Setattr(item, "director", "1");
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+ * Language::classDirectorInit()
+ * ---------------------------------------------------------------------- */
+
+int Language::classDirectorInit(Node *n) {
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::classDirectorEnd()
+ * ---------------------------------------------------------------------- */
+
+int Language::classDirectorEnd(Node *n) {
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::classDirector()
+ * ---------------------------------------------------------------------- */
+
+int Language::classDirector(Node *n) {
+  Node *module = Getattr(n,"module");
+  String *classtype = Getattr(n, "classtype");
+  Hash *directormap = 0;
+  if (module) {
+    directormap = Getattr(module, "wrap:directormap");
+    if (directormap == 0) {
+      directormap = NewHash();
+      Setattr(module, "wrap:directormap", directormap);
+    }
+  }
+  Hash* vtable = NewHash();
+  int virtual_destructor = 0;
+  int has_virtual = 0;
+  unrollVirtualMethods(n, n, vtable, 0, virtual_destructor, has_virtual);
+  if (Len(vtable) > 0) {
+    if (!virtual_destructor) {
+      String *classtype = Getattr(n, "classtype");
+      Swig_warning(WARN_LANG_DIRECTOR_VDESTRUCT, input_file, line_number, 
+                   "Director base class %s has no virtual destructor.\n",
+		   classtype);
+    }
+    Setattr(n, "vtable", vtable);
+    tagDirectorBases(n);
+    classDirectorInit(n);
+    classDirectorConstructors(n);
+    classDirectorMethods(n);
+    classDirectorEnd(n);
+    if (directormap != 0) {
+      Setattr(directormap, classtype, n);
+    }
+  }
+  Delete(vtable);
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
  * Language::classDeclaration()
  * ---------------------------------------------------------------------- */
 
@@ -1339,6 +1599,12 @@ int Language::classDeclaration(Node *n) {
   }
   Setattr(n,"classtype", SwigType_namestr(ClassType));
 
+/*
+  if (CPlusPlus) {
+    classDirector(n);
+  }
+*/
+  
   InClass = 1;
   CurrentClass = n;
 
@@ -1349,10 +1615,14 @@ int Language::classDeclaration(Node *n) {
   }
 
   /* Call classHandler() here */
-  if (!ImportMode) 
+  if (!ImportMode) {
+    if (CPlusPlus && directorsEnabled()) {
+      classDirector(n);
+    }
     classHandler(n);
-  else
+  } else {
     Language::classHandler(n);
+  }
 
   InClass = 0;
   CurrentClass = 0;
@@ -1399,6 +1669,12 @@ int Language::classHandler(Node *n) {
       destructorHandler(CurrentClass);
     }
   }
+
+  /* emit director disown method */
+  if (Getattr(n, "vtable")) {
+  	classDirectorDisown(n);
+  }
+
   return SWIG_OK;
 }
 
@@ -1814,6 +2090,30 @@ void Language::allow_overloading(int val) {
 
 void Language::allow_multiple_input(int val) {
   multiinput = val;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::allow_directors()
+ * ----------------------------------------------------------------------------- */
+
+void Language::allow_directors(int val) {
+  directors = val;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::directorsEnabled()
+ * ----------------------------------------------------------------------------- */
+ 
+int Language::directorsEnabled() const {
+  return directors;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::is_smart_pointer()
+ * ----------------------------------------------------------------------------- */
+
+int Language::is_smart_pointer() const {
+    return SmartPointer;
 }
 
 /* -----------------------------------------------------------------------------

@@ -140,6 +140,7 @@
 #define WARN_TYPEMAP_VAR_UNDEF        466
 #define WARN_TYPEMAP_TYPECHECK        467
 #define WARN_TYPEMAP_THROW            468
+#define WARN_TYPEMAP_INV_UNDEF        469
 
 /* -- General code generation -- */
 
@@ -156,6 +157,8 @@
 #define WARN_LANG_OVERLOAD_KEYWORD    511
 #define WARN_LANG_OVERLOAD_CONST      512
 #define WARN_LANG_CLASS_UNNAMED       513
+#define WARN_LANG_DIRECTOR_VDESTRUCT  514
+#define WARN_LANG_DISCARD_CONST       515
 
 /* -- Reserved (600-799) -- */
 

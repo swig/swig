@@ -347,6 +347,7 @@ SwigType_function_parms(SwigType *t) {
   return firstp;
 }
 
+
 /* -----------------------------------------------------------------------------
  * SwigType_add_template()
  *
@@ -561,6 +562,7 @@ String *SwigType_parm(SwigType *t) {
 
 /* -----------------------------------------------------------------------------
  * SwigType_ispointer()
+ * SwigType_ispointer_return()
  * SwigType_isarray()
  * SwigType_isreference()
  * SwigType_isfunction()
@@ -580,6 +582,30 @@ int SwigType_ispointer(SwigType *t) {
   }
   if (strncmp(c,"p.",2) == 0) {
     return 1;
+  }
+  return 0;
+}
+
+int SwigType_ispointer_return(SwigType *t) {
+  char* c;
+  int idx;
+  if (!t) return 0;
+  c = Char(t);
+  idx = strlen(c)-4;
+  if (idx >= 0) {
+       return (strcmp(c+idx, ").p.") == 0);
+  }
+  return 0;
+}
+
+int SwigType_isreference_return(SwigType *t) {
+  char* c;
+  int idx;
+  if (!t) return 0;
+  c = Char(t);
+  idx = strlen(c)-4;
+  if (idx >= 0) {
+       return (strcmp(c+idx, ").r.") == 0);
   }
   return 0;
 }

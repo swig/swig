@@ -178,22 +178,47 @@ public:
   virtual int functionWrapper(Node *n);
   virtual int nativeWrapper(Node *n);
 
+  /* C++ director class generation */
+  virtual int classDirector(Node *n);
+  virtual int classDirectorInit(Node *n);
+  virtual int classDirectorEnd(Node *n);
+  virtual int tagDirectorBases(Node *n);
+  virtual int unrollVirtualMethods(Node *n, 
+                                   Node *parent, 
+                                   Hash *vm, 
+                                   int default_director, 
+                                   int &virtual_destructor, 
+                                   int &has_virtual);
+  virtual int classDirectorConstructor(Node *n);
+  virtual int classDirectorDefaultConstructor(Node *n);
+  virtual int classDirectorMethod(Node *n, Node *parent, String *super);
+  virtual int classDirectorConstructors(Node *n);
+  virtual int classDirectorMethods(Node *n);
+  virtual int classDirectorDisown(Node *n);
+
   /* Miscellaneous */
 
   virtual  int  validIdentifier(String *s);        /* valid identifier? */
   virtual  int  addSymbol(String *s, Node *n);     /* Add symbol        */
   virtual  Node *symbolLookup(String *s);          /* Symbol lookup     */
   virtual  Node *classLookup(SwigType *s);         /* Class lookup      */
+  
+  /* Allow director related code generation */
+  void allow_directors(int val = 1);
+  
+  /* Return true if directors are enabled */
+  int directorsEnabled() const;
+
 
  protected:
   /* Patch C++ pass-by-value */
   static void patch_parms(Parm *p);
 
-  /* Allow overloaded functions */
-  void   allow_overloading(int val = 1);
-
   /* Allow multiple-input typemaps */
   void   allow_multiple_input(int val = 1);
+
+  /* Allow overloaded functions */
+  void   allow_overloading(int val = 1);
 
   /* Wrapping class query */
   int is_wrapping_class();
@@ -210,11 +235,16 @@ public:
   /* Fully qualified type name to use */
   String *getClassType() const;
 
+  /* Return true if the current method is part of a smart-pointer */
+  int is_smart_pointer() const;
+
  private:
   Hash   *symbols;
   Hash   *classtypes;
   int     overloading;
   int     multiinput;
+  int     directors;
+  
 };
 
 extern  int   SWIG_main(int, char **, Language *);
