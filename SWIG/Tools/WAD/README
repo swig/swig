@@ -182,6 +182,8 @@ Linux:
          defined in threaded programs.   There is no known fix to
          this at this time.
 
+  -  WAD does not work if it is compiled as PIC code.  The WAD libraries
+     should be compiled without the -fpic option.
 
 6.  Language dependent issues
 
