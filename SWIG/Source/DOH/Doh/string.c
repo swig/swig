@@ -142,10 +142,13 @@ int String_dump(DOH *so, DOH *out) {
  * NewString(const char *c) - Create a new string
  * ----------------------------------------------------------------------------- */
 DOH *
-NewString(char *s)
+NewString(DOH *so)
 {
     int l = 0, max;
     String *str;
+    char *s;
+    if (DohCheck(so)) s = Char(so);
+    else s = (char *) so;
     str = (String *) DohObjMalloc(sizeof(String));
     str->objinfo = &StringType;
     DohXInit(str);
@@ -170,6 +173,24 @@ NewString(char *s)
 	str->len = 0;
     }
     return (DOH *) str;
+}
+
+/* -----------------------------------------------------------------------------
+ * NewStringf(DOH *fmt, ...)
+ *
+ * Create a new string from a list of objects.
+ * ----------------------------------------------------------------------------- */
+
+DOH *
+NewStringf(DOH *fmt, ...)
+{
+  va_list ap;
+  DOH *r;
+  va_start(ap,fmt);
+  r = NewString("");
+  DohvPrintf(r,Char(fmt),ap);
+  va_end(ap);
+  return r;
 }
 
 /* -----------------------------------------------------------------------------
