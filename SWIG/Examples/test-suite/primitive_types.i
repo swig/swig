@@ -472,6 +472,12 @@ macro(size_t,             pfx, sizet)
 
    %test_prim_types_ovr(ovr_decl, ovr);
 
+   virtual Test* vtest(Test* t) const throw (Test)
+   {
+     return t;
+   }
+   
+
  }; 
 
  int v_check() 
@@ -483,3 +489,10 @@ macro(size_t,             pfx, sizet)
  }
 
 }
+
+
+%apply SWIGTYPE* { char *};
+  
+%include "carrays.i"
+%array_functions(char,pchar);
+

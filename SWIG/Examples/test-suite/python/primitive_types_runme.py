@@ -202,10 +202,8 @@ targs=('hi','hola')
 if t.mainv(targs,1) != 'hola':
   raise RuntimeError, "bad main typemap"
 
-
 if t.strlen('hile') != 4:
   raise RuntimeError, "bad string typemap"
-
 
 
 cvar.var_char = '\0'
@@ -241,4 +239,100 @@ if cvar.var_pcharc != '':
   raise RuntimeError, "bad char empty case"
 
 
+#
+# creating a raw char*
+#
+pc = new_pchar(5)
+pchar_setitem(pc, 0, 'h')
+pchar_setitem(pc, 1, 'o')
+pchar_setitem(pc, 2, 'l')
+pchar_setitem(pc, 3, 'a')
+pchar_setitem(pc, 4, 0)
 
+
+cvar.var_pchar = pc
+if cvar.var_pchar != "hola":
+  raise RuntimeError, "bad char empty case"
+
+cvar.var_namet = pc
+if cvar.var_namet != "hola\0":
+  raise RuntimeError, "bad char empty case"
+
+targs=('hi', pc)
+if t.mainv(targs,1) != 'hola':
+  raise RuntimeError, "bad main typemap"
+
+#
+# Now when things should fail
+#
+
+try:
+  error = 0
+  t.mainv('hello',1)
+  error = 1
+except TypeError:
+  pass
+if error:
+  raise RuntimeError, "bad main typemap"
+
+
+try:
+  error = 0
+  a = t.var_uchar
+  t.var_uchar = 10000
+  error = 1
+except OverflowError:
+  if a != t.var_uchar:
+    error = 1
+  pass
+if error:
+  raise RuntimeError, "bad uchar typemap"
+
+
+
+try:
+  error = 0
+  a = t.var_char
+  t.var_char = '23'
+  error = 1
+except TypeError:
+  if a != t.var_char:
+    error = 1
+  pass 
+if error:
+  raise RuntimeError, "bad char typemap"
+
+try:
+  error = 0
+  a = t.var_uint
+  t.var_uint = -1
+  error = 1
+except TypeError:
+  if a != t.var_uint:
+    error = 1
+  pass 
+if error:
+  raise RuntimeError, "bad uint typemap"
+
+#
+# this should be an error in C++, but not in C.
+#
+try:
+  error = 0
+  a = t.var_namet
+  t.var_namet = '12345\0'
+  error = 1
+except TypeError:
+  if a != t.var_namet:
+    error = 1
+  pass 
+if error:
+  raise RuntimeError, "bad namet typemap"
+
+#
+#
+#
+t2 = p.vtest(t)
+if "%s" % (t2,) !=  "%s" % (t,):
+  raise RuntimeError, "bad SWIGTYPE* typemap"
+  
