@@ -3,6 +3,9 @@
 
 %module default_constructor
 
+%warnfilter(813) EB; /* Java multiple inheritance */
+%warnfilter(813) AD; /* Java multiple inheritance */
+
 %inline %{
 
 /* A class with a public default constructor */
@@ -48,17 +51,15 @@ public:
    void foo() { };
 };
 
-/* This class definitely does not get a default constructor/destructor */
+/* This class does not get a default constructor */
 class DD: public D {
 	
 };
 
-#ifndef SWIGJAVA
-/* No defaults.  A is okay, but D is not */
+/* No default constructor.  A is okay, but D is not */
 class AD: public A, public D {
 
 };
-#endif
 
 /* This class has a default constructor because of optional arguments */
 class E {
@@ -72,11 +73,9 @@ class EE : public E {
 
 /* This class should not get a default constructor. B doesn't have one */
 
-#ifndef SWIGJAVA
 class EB : public E, public B {
 
 };
-#endif
 
 /* A class with a private destructor */
 
