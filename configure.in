@@ -1218,6 +1218,7 @@ AC_SUBST(OCAMLMKTOP)
 #----------------------------------------------------------------
 
 # Identify the name of the Pike executable
+# Priority: configure option, automatic search
 PIKEBIN=
 AC_ARG_WITH(pike, AS_HELP_STRING([--without-pike], [Disable Pike])
 AS_HELP_STRING([--with-pike=path], [Set location of Pike executable]),[ PIKEBIN="$withval"], [PIKEBIN=])
@@ -1228,35 +1229,49 @@ AC_MSG_NOTICE([Disabling Pike])
 else
 
 if test -z "$PIKEBIN"; then
-	AC_CHECK_PROGS(PIKE, pike)
+	AC_CHECK_PROGS(PIKE, pike pike7.6 pike7.4 pike7.2)
 else
 	PIKE="$PIKEBIN"
 fi
 
-# Check for a --with-pikeincl option to configure
-PIKEINCLUDE=
-AC_ARG_WITH(pikeincl,[  --with-pikeincl=path    Set location of Pike include directory],[
-	PIKEINCLUDE="-I$withval"], [PIKEINCLUDE=])
 
-AC_MSG_CHECKING(for Pike header files)
-if test -z "$PIKEINCLUDE"; then
-if test -n "$PIKE"; then
+# Check for pike-config
+# Priority: configure option, guessed from $PIKE, search from list
+AC_ARG_WITH(pike-config, AS_HELP_STRING([--with-pike-config=path], 
+  	[Set location of pike-config script]),
+  [PIKECONFIG="$withval"], [PIKECONFIG=""])
+
+if test -z "$PIKECONFIG" -a -n "$PIKE"; then
+	AC_CHECK_PROGS(PIKECONFIG, $PIKE-config pike-config \
+		pike7.6-config pike7.4-config pike7.2-config)
+fi
+
+# Check for a --with-pikeincl option to configure
+# Priority: configure option, info from $PIKECONFIG, guessed by pike script
+AC_ARG_WITH(pikeincl, AS_HELP_STRING([--with-pikeincl=path], 
+	[Set location of Pike include directory]),
+  [PIKEINCLUDE="-I$withval"], [PIKEINCLUDE=])
+
+AC_MSG_CHECKING([for Pike header files])
+if test -z "$PIKEINCLUDE" -a -n "$PIKECONFIG"; then
+	PIKEINCLUDE=`$PIKECONFIG --cflags`
+fi
+if test -z "$PIKEINCLUDE" -a -n "$PIKE"; then
 	PIKEPATH=`which $PIKE`
 	PIKEINCLUDE=`$PIKE Tools/check-include-path.pike $PIKEPATH`
- 	AC_MSG_RESULT($PIKEINCLUDE)
 	PIKEINCLUDE="-I$PIKEINCLUDE"
 fi
+
 if test -z "$PIKEINCLUDE"; then
     	AC_MSG_RESULT(not found)
-fi
 else
         AC_MSG_RESULT($PIKEINCLUDE)
 fi
 fi
 
 AC_SUBST(PIKEINCLUDE)
-AC_SUBST(PIKECCDLFLAGS)
-AC_SUBST(PIKEDYNAMICLINKING)
+AC_SUBST(PIKECCDLFLAGS)		dnl XXX: where is this used/defined?
+AC_SUBST(PIKEDYNAMICLINKING)	dnl XXX: where is this used/defined?
 
 #----------------------------------------------------------------
 # Look for CHICKEN
