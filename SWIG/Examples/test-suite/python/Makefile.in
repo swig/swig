@@ -22,10 +22,10 @@ CPP_TEST_CASES += \
 	inout \
 	inplaceadd \
 	kwargs \
-	lib_std_except \
-	lib_std_vectora \
-	lib_std_map \
-	lib_std_wstring \
+	li_std_except \
+	li_std_vectora \
+	li_std_map \
+	li_std_wstring \
 	nondynamic \
 	primitive_types \
 	std_containers \
