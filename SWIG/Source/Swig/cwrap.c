@@ -657,8 +657,8 @@ Swig_ConstructorToFunction(Node *n, String *classname,
         /* if Python class has been subclassed, create a director instance.  
 	 * otherwise, just create a normal instance.
          */
-	// arty: arg1 != Py_None => tmp_none_comparison
-	Printv(action, "if (",tmp_none_comparison,") { // subclassed\n",
+	/* arty: arg1 != Py_None => tmp_none_comparison */
+	Printv(action, "if (",tmp_none_comparison,") /* subclassed */\n",
 	               Swig_cresult(type, "result", Swig_cppconstructor_director_call(directorname, parms)),
 		       "} else {\n",
 	               Swig_cresult(type, "result", Swig_cppconstructor_nodirector_call(classname, parms)),
