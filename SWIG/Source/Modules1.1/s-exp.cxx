@@ -45,9 +45,11 @@ public:
       }
   }
 
-  DOHHash *print_cycle_hash;
-  int print_cycle_count;
+  DOHHash *print_circle_hash;
+  int print_circle_count;
   int hanging_parens;
+  bool need_whitespace;
+  bool need_newline;
 
   /* Top of the parse tree */
   virtual int top(Node *n) 
@@ -65,22 +67,20 @@ public:
       }
     Language::top(n);
     Printf( out, ";;; Lisp parse tree produced by SWIG\n" );
-    print_cycle_hash = DohNewHash();
-    print_cycle_count = 0;
+    print_circle_hash = DohNewHash();
+    print_circle_count = 0;
     hanging_parens = 0;
+    need_whitespace = 0;
+    need_newline = 0;
     Sexp_print_node(n);
     flush_parens();
     return SWIG_OK;
   }
 
-  void print_indent(int l) 
+  void print_indent() 
   {
     int i;
     for (i = 0; i < indent_level; i++) 
-      {
-	Printf(out, " ");
-      }
-    if (l) 
       {
 	Printf(out, " ");
       }
@@ -91,11 +91,15 @@ public:
     flush_parens();
     Printf(out, "(");
     if (oper) Printf(out, "%s ", oper);
+    indent_level += 2;
   }
 
-  void close_paren()
+  void close_paren(bool need_newline = false)
   {
     hanging_parens++;
+    if (need_newline)
+      print_lazy_whitespace();
+    indent_level -= 2;
   }
 
   void flush_parens()
@@ -104,9 +108,30 @@ public:
     if (hanging_parens) {
       for (i = 0; i<hanging_parens; i++)
 	Printf(out, ")");
-      Printf(out, "\n");
       hanging_parens = 0;
+      need_newline = true;
+      need_whitespace = true;
     }
+    if (need_newline) {
+      Printf(out, "\n");
+      print_indent();
+      need_newline = false;
+      need_whitespace = false;
+    }
+    else if (need_whitespace) {
+      Printf(out, " ");
+      need_whitespace = false;
+    }
+  }
+
+  void print_lazy_whitespace()
+  {
+    need_whitespace = 1;
+  }
+
+  void print_lazy_newline()
+  {
+    need_newline = 1;
   }
 
   bool internal_key_p(DOH *key)
@@ -158,19 +183,20 @@ public:
     // An object can be printed in list-mode or object-mode; LIST_P toggles.
     // return TRUE if OBJ still needs to be printed
   {
+    flush_parens();
     // Following is a silly hack.  It works around the limitation of
     // DOH's hash tables that only work with string keys!
     char address[16];
     sprintf(address, "%x%c", (unsigned int)obj, list_p ? 'L' : 'O');
-    DOH *placeholder = Getattr(print_cycle_hash, address);
+    DOH *placeholder = Getattr(print_circle_hash, address);
     if (placeholder) {
       Printv(out, placeholder, NIL);
       return false;
     }
     else {
-      String *placeholder = NewStringf("#%d#", ++print_cycle_count);
-      Setattr(print_cycle_hash, address, placeholder);
-      Printf(out, "#%d=", print_cycle_count);
+      String *placeholder = NewStringf("#%d#", ++print_circle_count);
+      Setattr(print_circle_hash, address, placeholder);
+      Printf(out, "#%d=", print_circle_count);
       return true;
     }
   }  
@@ -214,10 +240,9 @@ public:
       open_paren(NIL);
       for (; obj; obj = nextSibling(obj)) {
 	Sexp_print_doh(obj);
-	flush_parens();
-	Printf(out, " ");      
+	print_lazy_whitespace();
       }
-      close_paren();
+      close_paren(true);
     }
   }
 
@@ -235,16 +260,15 @@ public:
 	      DOH *value = Getattr(obj, k);
 	      Sexp_print_as_keyword(k);
 	      Sexp_print_value_of_key(value, k);
-	      flush_parens(); Printf(out, " ");
+	      print_lazy_whitespace();
 	    }
 	  }	
-	  close_paren();
+	  close_paren(true);
 	}
 	else Sexp_print_doh(obj);
-	flush_parens();
-	Printf(out, " ");      
+	print_lazy_whitespace();
       }
-      close_paren();
+      close_paren(true);
     }
   }
 
@@ -292,6 +316,7 @@ public:
   void Sexp_print_as_keyword(const DOH *k)
   {
     /* Print key, replacing ":" with "-" because : is CL's package prefix */
+    flush_parens();
     String *key = NewString(k);
     Replaceall(key, ":", "-");
     Replaceall(key, "_", "-");
@@ -304,7 +329,6 @@ public:
     /* attributes map names to objects */
     String *k;
     bool first;
-    //indent_level += 4;		
     for (k = Firstkey(obj), first = true; k; k = Nextkey(obj), first=false) {
       if (!internal_key_p(k)) {
 	DOH *value = Getattr(obj, k);
@@ -343,8 +367,8 @@ public:
     /* ... and child nodes. */
     cobj = firstChild(obj);
     if (cobj) {
+      print_lazy_newline();
       flush_parens();
-      Printf(out, "\n");
       Sexp_print_as_keyword("children");
       open_paren(NIL);
       for (; cobj; cobj = nextSibling(cobj)) {
