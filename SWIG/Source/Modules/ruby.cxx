@@ -2118,14 +2118,14 @@ public:
     // Get any exception classes in the throws typemap
     ParmList *throw_parm_list = 0;
 
-    if ((throw_parm_list = Getattr(n,"throws"))) {
+    if ((throw_parm_list = Getattr(n,"throws")) || Getattr(n,"throw")) {
       Parm      *p;
       int       gencomma = 0;
 
       Append(w->def, " throw(");
       Append(declaration, " throw(");
 
-      Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+      if (throw_parm_list) Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p=nextSibling(p)) {
         if ((tm = Getattr(p,"tmap:throws"))) {
           if (gencomma++) {
