@@ -447,6 +447,17 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
       if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
       if (!rn) rn = get_object(n,0);
       Delete(tname);
+      /* A template-based class lookup */
+      if (SwigType_istemplate(prefix)) {
+	String *rname = SwigType_templateprefix(prefix);
+	tname = NewStringf("%s::%s",rname,name);
+	n = Getattr(namehash,tname);
+	rn = get_object(n,decl);
+	if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
+	if (!rn) rn = get_object(n,0);
+	Delete(tname);
+	Delete(rname);
+      }
     }
     /* A wildcard-based class lookup */
     if (!rn) {
@@ -556,12 +567,14 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   SwigType *rname = 0;
   if (!features) return;
 
-
+  /* MM: This removed to more tightly control feature/name matching */
+  /*
   if ((decl) && (SwigType_isqualifier(decl))) {
     ncdecl = strchr(Char(decl),'.');
     ncdecl++;
   }
-  
+  */
+
   /* very specific hack for template constructors/destructors */
   if (name && SwigType_istemplate(name) &&
       ((Strcmp(nodeType(node),"constructor") == 0)
@@ -571,27 +584,9 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
     Replaceall(rdecl,name,rname);
     decl = rdecl;
     name = rname;
-  }  
-
-  /*
-    very specific hack for functions that return pointers/references,
-    in the long term, %feature should check the entire declaration,
-    including the returning type, but for now, these declarations
-
-       char f();    -> decl:  f().
-       char* f();   -> decl:  f().p.
-       char& f();   -> decl:  f().r.  ?
-
-    are working again, since we get ride of the extra 'p./r.'
-  */
-  if (SwigType_isfunction(decl)) {
-    rdecl = Copy(decl);
-    decl = SwigType_pop(rdecl);
-    Delete(rdecl);
-    rdecl = decl;
   }
   
-  /* Printf(stdout,"feature_get: %s %s %s\n", prefix, name, decl);  */
+  /* Printf(stdout,"feature_get: %s %s %s\n", prefix, name, decl);*/
 
 
   /* Global features */
@@ -633,6 +628,22 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
       Delete(tname);      
       /* A specific class lookup */
       if (Len(prefix)) {
+	/* A template-based class lookup */
+	if (SwigType_istemplate(prefix)) {
+	  String *rname = SwigType_templateprefix(prefix);
+	  tname = NewStringf("%s::%s",rname,name);
+	  n = Getattr(features,tname);
+	  rn = get_object(n,0);
+	  merge_features(rn,node);
+	  if (ncdecl) {
+	    rn = get_object(n,ncdecl);
+	    merge_features(rn,node);
+	  }
+	  rn = get_object(n,decl);
+	  merge_features(rn,node);
+	  Delete(tname);
+	  Delete(rname);
+	}
 	tname = NewStringf("%s::%s",prefix,name);
 	n = Getattr(features,tname);
 	rn = get_object(n,0);

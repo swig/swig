@@ -68,3 +68,60 @@ public:
 
 %template(TemplateInt) Template<int>; 
 
+
+%newobject One::getSquare() const; 
+
+%inline %{
+
+struct Square
+{
+  Square(int)
+  {
+  } 
+};
+  
+struct One {
+  Square *getSquare() const { return new Square(10); }
+};
+%}
+
+%newobject Two::getSquare(); 
+
+%inline %{
+struct Two {
+  Square *getSquare() const { return new Square(10); }
+};
+
+char *foo() {return 0;}
+ 
+%}
+
+
+%exception {
+// default %exception
+}
+
+%exception std::Vector::get {
+// get %exception
+}
+
+%inline %{
+
+namespace std {
+    
+    template<class T> class Vector {
+      public:
+        void push_back(const T& x) {}
+#ifdef SWIG
+        %extend {
+            T& get(int i) {
+                throw std::out_of_range("Vector index out of range");
+            }
+        }
+#endif
+    };
+}
+
+%}
+
+%template(VectorInt) std::Vector<int>;
