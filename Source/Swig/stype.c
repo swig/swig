@@ -146,209 +146,6 @@ SwigType *NewSwigType(int t) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_add_pointer()
- *
- * Adds a pointer constructor to a type
- * ----------------------------------------------------------------------------- */
-
-void
-SwigType_add_pointer(SwigType *t) {
-  Insert(t,0,"p.");
-}
-
-void 
-SwigType_del_pointer(SwigType *t) {
-  char *c = Char(t);
-  if (strncmp(c,"q(",2) == 0) {
-    Delete(SwigType_pop(t));
-    c = Char(t);
-  }
-  if (strncmp(c,"p.",2)) {
-    printf("Fatal error. SwigType_del_pointer applied to non-pointer.\n");
-    abort();
-  }
-  Replace(t,"p.","", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_add_memberpointer()
- * 
- * Add a pointer to a member to a type
- * ----------------------------------------------------------------------------- */
-
-void
-SwigType_add_memberpointer(SwigType *t, String_or_char *name) {
-  String *temp = NewStringf("m(%s).", name);
-  Insert(t,0,temp);
-  Delete(temp);
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_add_array()
- *
- * Adds an array constructor to a type
- * ----------------------------------------------------------------------------- */
-
-void
-SwigType_add_array(SwigType *t, String *size) {
-  char temp[256];
-  sprintf(temp,"a(%s).", Char(size));
-  Insert(t,0,temp);
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_pop_arrays()
- *
- * Pop all arrays off as a single item
- * ----------------------------------------------------------------------------- */
-
-SwigType *
-SwigType_pop_arrays(SwigType *t) {
-  String *ta;
-  if (!SwigType_isarray(t)) return 0;
-  ta = NewString("");
-  while (SwigType_isarray(t)) {
-    SwigType *td = SwigType_pop(t);
-    Append(ta,td);
-    Delete(td);
-  }
-  return ta;
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_add_reference()
- *
- * Adds a reference constructor to a type.
- * ----------------------------------------------------------------------------- */
-
-void
-SwigType_add_reference(SwigType *t) {
-  Insert(t,0,"r.");
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_add_qualifier()
- *
- * Adds a qualifier to a type
- * ----------------------------------------------------------------------------- */
-
-void
-SwigType_add_qualifier(SwigType *t, String *qual) {
-  char temp[256];
-  if (!SwigType_isqualifier(t)) {
-    sprintf(temp,"q(%s).",Char(qual));
-    Insert(t,0,temp);
-  } else {
-    /* Already has a qualifier on it.   We are going to generate a 
-       canonical qualifier string */
-    String *qt;
-    char   *c, *qc;
-    String *newq;
-    
-    qt = SwigType_pop(t);          /* Rip off the old qualifier */
-    /* See if the added qualifier is already there */
-    if (strstr(Char(qt),Char(qual))) {
-      /* Already added this qualifier */
-      SwigType_push(t,qt);
-      Delete(qt);
-      return;
-    }
-    /* We need to add the qualifier to the qualifier list */
-    /* To do this, we keep the qualifiers in alphabetical order */
-    newq = NewString("q(");
-    qc = Char(qual);
-    c = Char(qt)+2;
-    c = strtok(c," ).");
-    while (c) {
-      if (!strlen(c)) {
-	c = strtok(NULL," ).");
-	continue;
-      }
-      if (qc) {
-	if (strcmp(c,qc) < 0) {
-	  Printf(newq,"%s",c);
-	} else {
-	  Printf(newq,"%s %s", qc,c);
-	  qc = 0;
-	}
-      } else {
-	Printf(newq,"%s",c);
-      }
-      c = strtok(NULL," ).");
-      if (c) Putc(' ',newq);
-    }
-    if (qc) {
-      Printf(newq," %s",qc);
-    }
-    Putc(')',newq);
-    Putc('.',newq);
-    SwigType_push(t,newq);
-    Delete(newq);
-    Delete(qt);
-  }
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_add_function()
- *
- * Adds a function to a type. Accepts a list of abstract types as parameters.
- * These abstract types should be passed as a list of type-strings.
- * ----------------------------------------------------------------------------- */
-
-void
-SwigType_add_function(SwigType *t, ParmList *parms) {
-  String *pstr;
-  Parm   *p;
-
-  Insert(t,0,").");
-  pstr = NewString("f(");
-  p = parms;
-  for (p = parms; p; p = nextSibling(p)) {
-    if (p != parms) Putc(',',pstr);
-    Printf(pstr,"%s", Getattr(p,"type"));
-  }
-  Insert(t,0,pstr);
-  Delete(pstr);
-}
-
-SwigType *
-SwigType_pop_function(SwigType *t) {
-  SwigType *f = 0;
-  SwigType *g = 0;
-  char *c = Char(t);
-  if (strncmp(c,"q(",2) == 0) {
-    f = SwigType_pop(t);
-    c = Char(t);
-  }
-  if (strncmp(c,"f(",2)) {
-    printf("Fatal error. SwigType_pop_function applied to non-function.\n");
-    abort();
-  }
-  g = SwigType_pop(t);
-  if (f) SwigType_push(g,f);
-  Delete(f);
-  return g;
-}
-
-ParmList *
-SwigType_function_parms(SwigType *t) {
-  List *l = SwigType_parmlist(t);
-  Hash *p, *pp = 0, *firstp = 0;
-  DOH  *obj;
-  for (obj = Firstitem(l); obj; obj = Nextitem(l)) {
-    p = NewParm(obj,0);
-    if (!firstp) firstp = p;
-    if (pp) {
-      set_nextSibling(pp,p);
-    }
-    pp = p;
-  }
-  Delete(l);
-  return firstp;
-}
-
-
-/* -----------------------------------------------------------------------------
  * SwigType_add_template()
  *
  * Adds a template to a type.   This template is encoded in the SWIG type
@@ -378,93 +175,6 @@ SwigType_add_template(SwigType *t, ParmList *parms) {
 }
 
 /* -----------------------------------------------------------------------------
- * static isolate_element()
- *
- * Isolate a single element of a type string (delimeted by periods)
- * ----------------------------------------------------------------------------- */
-
-static String *
-isolate_element(char *c) {
-  String *result = NewString("");
-  while (*c) {
-    if (*c == '.') {
-      Putc(*c,result);
-      return result;
-    } else if (*c == '(') {
-      int nparen = 1;
-      Putc(*c,result);
-      c++;
-      while(*c) {
-	Putc(*c,result);
-	if (*c == '(') nparen++;
-	if (*c == ')') {
-	  nparen--;
-	  if (nparen == 0) break;
-	}
-	c++;
-      }
-    } else {
-      Putc(*c,result);
-    }
-    if (*c) c++;
-  }
-  return result;
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_split()
- *
- * Splits a type into it's component parts and returns a list of string.
- * ----------------------------------------------------------------------------- */
-
-List *SwigType_split(SwigType *t) {
-  DOH     *item;
-  List *list;
-  char *c;
-  int len;
-
-  c = Char(t);
-
-  list = NewList();
-  while (*c) {
-    item = isolate_element(c);
-    len = Len(item);
-    if (len) {
-      Append(list,item);
-      Delete(item);
-    } else {
-      Delete(item);
-      break;
-    }
-    c = c + len;
-    if (*c == '.') c++;
-  }
-  return list;
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_pop()
- *
- * Pop off the first type-constructor object and updates the type
- * ----------------------------------------------------------------------------- */
-
-String *SwigType_pop(SwigType *t)
-{
-  String *result;
-  char      *c;
-
-  if (Len(t) == 0) return 0;
-  c = Char(t);
-  result = isolate_element(c);
-  Replace(t,result,"",DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
-  c = Char(t);
-  if (*c == '.') {
-    Delitem(t,0);
-  }
-  return result;
-}
-
-/* -----------------------------------------------------------------------------
  * SwigType_push()
  *
  * Push a type constructor onto the type
@@ -484,83 +194,6 @@ void SwigType_push(SwigType *t, String *cons)
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_parmlist()
- *
- * Splits a comma separated list of components into strings.
- * ----------------------------------------------------------------------------- */
-
-List *SwigType_parmlist(const String *p) {
-  DOH     *item;
-  List *list;
-  char *c;
-
-  c = Char(p);
-  while (*c && (*c != '(') && (*c != '.')) c++;
-  if (!*c || (*c == '.')) return 0;
-  c++;
-  list = NewList();
-  item = NewString("");
-  while (*c) {
-    if (*c == ',') {
-      Append(list,item);
-      Delete(item);
-      item = NewString("");
-    } else if (*c == '(') {
-      int nparens = 1;
-      Putc(*c,item);
-      c++;
-      while (*c) {
-	Putc(*c,item);
-	if (*c == '(') nparens++;
-	if (*c == ')') {
-	  nparens--;
-	  if (nparens == 0) break;
-	}
-	c++;
-      }
-    } else if (*c == ')') {
-      break;
-    } else {
-      Putc(*c,item);
-    }
-    if (*c)
-      c++;
-  }
-  Append(list,item);
-  Delete(item);
-  return list;
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_parm()
- *
- * Returns the parameter of an operator as a string
- * ----------------------------------------------------------------------------- */
-
-String *SwigType_parm(SwigType *t) {
-  String *result;
-  char *c;
-  int  nparens = 0;
-
-  c = Char(t);
-  while (*c && (*c != '(') && (*c != '.')) c++;
-  if (!*c || (*c == '.')) return 0;
-  c++;
-  result = NewString("");
-  while (*c) {
-    if (*c == ')') {
-      if (nparens == 0) return result;
-      nparens--;
-    } else if (*c == '(') {
-      nparens++;
-    }
-    Putc(*c,result);
-    c++;
-  }
-  return result;
-}
-
-/* -----------------------------------------------------------------------------
  * SwigType_ispointer()
  * SwigType_ispointer_return()
  * SwigType_isarray()
@@ -570,21 +203,6 @@ String *SwigType_parm(SwigType *t) {
  *
  * Testing functions for querying a raw datatype
  * ----------------------------------------------------------------------------- */
-
-int SwigType_ispointer(SwigType *t) {
-  char *c;
-  if (!t) return 0;
-  c = Char(t);
-  if (strncmp(c,"q(",2) == 0) {
-    c = strchr(c,'.');
-    if (!c) return 0;
-    c++;
-  }
-  if (strncmp(c,"p.",2) == 0) {
-    return 1;
-  }
-  return 0;
-}
 
 int SwigType_ispointer_return(SwigType *t) {
   char* c;
@@ -606,64 +224,6 @@ int SwigType_isreference_return(SwigType *t) {
   idx = strlen(c)-4;
   if (idx >= 0) {
        return (strcmp(c+idx, ").r.") == 0);
-  }
-  return 0;
-}
-
-int SwigType_ismemberpointer(SwigType *t) {
-  char *c;
-  if (!t) return 0;
-  c = Char(t);
-  if (strncmp(c,"m(",2) == 0) {
-    return 1;
-  }
-  return 0;
-}
-
-int SwigType_isreference(SwigType *t) {
-  char *c;
-  if (!t) return 0;
-  c = Char(t);
-  if (strncmp(c,"r.",2) == 0) {
-    return 1;
-  }
-  return 0;
-}
-
-int SwigType_isarray(SwigType *t) {
-  char *c;
-  if (!t) return 0;
-  c = Char(t);
-  if (strncmp(c,"a(",2) == 0) {
-    return 1;
-  }
-  return 0;
-}
-
-int SwigType_isfunction(SwigType *t) {
-  char *c;
-  if (!t) {
-    return 0;
-  }
-  c = Char(t);
-  if (strncmp(c,"q(",2) == 0) {
-    /* Might be a 'const' function.  Try to skip over the 'const' */
-    c = strchr(c,'.');
-    if (c) c++;
-    else return 0;
-  }
-  if (strncmp(c,"f(",2) == 0) {
-    return 1;
-  }
-  return 0;
-}
-
-int SwigType_isqualifier(SwigType *t) {
-  char *c;
-  if (!t) return 0;
-  c = Char(t);
-  if (strncmp(c,"q(",2) == 0) {
-    return 1;
   }
   return 0;
 }
@@ -959,91 +519,6 @@ SwigType_strip_qualifiers(SwigType *t) {
     Delete(value);
   }
   return r;
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_array_ndim()
- *
- * Returns the number of dimensions of an array.
- * ----------------------------------------------------------------------------- */
-
-int SwigType_array_ndim(SwigType *t) {
-  int ndim = 0;
-  char *c = Char(t);
-
-  while (c && (strncmp(c,"a(",2) == 0)) {
-    c = strchr(c,'.');
-    c++;
-    ndim++;
-  }
-  return ndim;
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_array_getdim()
- *
- * Get the value of the nth dimension.
- * ----------------------------------------------------------------------------- */
-
-String *SwigType_array_getdim(SwigType *t, int n) {
-  char *c = Char(t);
-  while (c && (strncmp(c,"a(",2) == 0) && (n > 0)) {
-    c = strchr(c,'.');
-    c++;
-    n--;
-  }
-  if (n == 0) return SwigType_parm(c);
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_array_setdim()
- *
- * Replace the nth dimension of an array to a new value.
- * ----------------------------------------------------------------------------- */
-
-void SwigType_array_setdim(SwigType *t, int n, String_or_char *rep) {
-  String *result = 0;
-  char temp;
-  char *start;
-  char *c = Char(t);
-
-  start = c;
-  if (strncmp(c,"a(",2)) abort();
-
-  while (c && (strncmp(c,"a(",2) == 0) && (n > 0)) {
-    c = strchr(c,'.');
-    c++;
-    n--;
-  }
-  if (n == 0) {
-    temp = *c;
-    *c = 0;
-    result = NewString(start);
-    Printf(result,"a(%s)",rep);
-    *c = temp;
-    c = strchr(c,'.');
-    Append(result,c);
-  }
-  Clear(t);
-  Append(t,result);
-  Delete(result);
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_array_type()
- *
- * Return the base type of an array
- * ----------------------------------------------------------------------------- */
-
-SwigType *
-SwigType_array_type(SwigType *ty) {
-  SwigType *t;
-  t = Copy(ty);
-  while (SwigType_isarray(t)) {
-    Delete(SwigType_pop(t));
-  }
-  return t;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1497,7 +972,7 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
   } else if (SwigType_isreference(s)) {
     Printf(result,"(%s)", SwigType_str(s,0));
     if (name) 
-      Printf(result,"%s", name);
+      Printv(result,name,NIL);
   } else if (SwigType_isqualifier(s)) {
     Printf(result,"(%s)%s", SwigType_lstr(s,0),name);
   } else {
@@ -1599,11 +1074,11 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  List *tparms = SwigType_parmlist(e);
 	  int j;
 	  String *nt = SwigType_templateprefix(e);
-	  Printf(nt,"<(");
+	  Printv(nt,"<(",NIL);
 	  for (j = 0; j < Len(tparms); j++) {
 	    SwigType_typename_replace(Getitem(tparms,j), pat, rep);
-	    Printf(nt,"%s",Getitem(tparms,j));
-	    if (j < (Len(tparms)-1)) Printf(nt,",");
+	    Printv(nt,Getitem(tparms,j),NIL);
+	    if (j < (Len(tparms)-1)) Putc(',',nt);
 	  }
 	  tsuffix = SwigType_templatesuffix(e);
 	  Printf(nt,")>%s", tsuffix);
@@ -1620,7 +1095,7 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	SwigType_typename_replace(rest,pat,rep);
 	SwigType_typename_replace(first,pat,rep);
 	Clear(e);
-	Printf(e,"%s::%s", first,rest);
+	Printv(e,first,"::",rest,NIL);
 	Delete(first);
 	Delete(rest);
       }
@@ -1628,13 +1103,13 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       int j;
       List *fparms = SwigType_parmlist(e);
       Clear(e);
-      Printf(e,"f(");
+      Printv(e,"f(",NIL);
       for (j = 0; j < Len(fparms); j++) {
 	SwigType_typename_replace(Getitem(fparms,j), pat, rep);
-	Printf(e,"%s",Getitem(fparms,j));
-	if (j < (Len(fparms)-1)) Printf(e,",");
+	Printv(e,Getitem(fparms,j),NIL);
+	if (j < (Len(fparms)-1)) Putc(',',e);
       }
-      Printf(e,").");
+      Printv(e,").",NIL);
       Delete(fparms);
     }
     Append(nt,e);

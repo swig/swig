@@ -79,6 +79,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Swig/stype.c			\
 		Swig/symbol.c			\
 		Swig/tree.c			\
+		Swig/typeobj.c			\
 		Swig/typemap.c			\
 		Swig/typesys.c			\
 		Swig/warn.c			\

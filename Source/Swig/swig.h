@@ -190,6 +190,7 @@ extern void         SwigScanner_idstart(SwigScanner *, char *idchar);
 /* --- Functions for manipulating the string-based type encoding --- */
 
 extern SwigType   *NewSwigType(int typecode);
+extern void        SwigType_del_element(SwigType *t);
 extern void        SwigType_add_pointer(SwigType *t);
 extern void        SwigType_add_memberpointer(SwigType *t, String_or_char *qual);
 extern void        SwigType_del_pointer(SwigType *t);
