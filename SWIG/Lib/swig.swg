@@ -473,3 +473,37 @@ static int NAME(TYPE x) {
 #endif
 %}
 
+
+/* Common labels and attributes for the internal SWIG methods */
+%insert("runtime") %{
+/* inline attribute */
+#ifndef SWIGINLINE
+#if defined(__cplusplus) || (defined(__GNUC__) && !defined(__STRICT_ANSI__))
+#  define SWIGINLINE inline
+#else
+#  define SWIGINLINE
+#endif
+#endif
+
+/* attritbute passed for some compilers to avoid unused method warnings */
+#ifndef SWIGUNUSED
+#ifdef __GNUC__
+#define SWIGUNUSED __attribute__ ((unused)) 
+#else
+#define SWIGUNUSED 
+#endif
+#endif
+
+/* internal SWIG method */
+#ifndef SWIGINTERN
+#define SWIGINTERN static SWIGUNUSED
+#endif
+
+
+/* internal inline SWIG method */
+#ifndef SWIGINTERNINLINE
+#define SWIGINTERNINLINE SWIGINTERN SWIGINLINE
+#endif
+
+%}
+

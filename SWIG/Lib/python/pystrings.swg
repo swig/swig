@@ -37,7 +37,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize)
 
 %fragment("SWIG_AsCharPtr","header",
 	  fragment="SWIG_AsCharPtrAndSize") {
-SWIGINTERNSHORT int
+SWIGINTERNINLINE int
 SWIG_AsCharPtr(PyObject *obj, char **val)
 {
   if (SWIG_AsCharPtrAndSize(obj, val, (size_t*)(0))) {
@@ -134,7 +134,7 @@ SWIG_AsCharArray(PyObject *obj, char *val, size_t size)
 }
 
 %fragment("SWIG_FromCharArray","header") {
-SWIGINTERNSHORT PyObject *
+SWIGINTERNINLINE PyObject *
 SWIG_FromCharArray(const char* carray, size_t size)
 {
   if (size > INT_MAX) {

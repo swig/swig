@@ -78,7 +78,7 @@ namespace swig {
       if (val) {
 	Type *p = 0;
 	int res = traits_asptr<Type>::asptr(obj, &p);
-	if (res && p) {
+	if ((res != 0) && p) {
 	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
 	  *(const_cast<noconst_type*>(val)) = *p;
 	  if (res == SWIG_NEWOBJ) delete p;

@@ -11,7 +11,7 @@
 %define %swig_fromcplx_conv(Type, Real, Imag)
 %fragment(SWIG_From_frag(Type),"header")
 %{
-SWIGINTERNSHORT PyObject*
+SWIGINTERNINLINE PyObject*
   SWIG_From(Type)(SWIG_cplusplus(const Type&, Type) c)
 {
   return PyComplex_FromDoubles(Real(c), Imag(c));

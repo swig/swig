@@ -115,7 +115,7 @@
 %define %typemap_asptrfrom(CheckCode, AsPtrMeth, FromMeth, AsPtrFrag, FromFrag, Type...)
   %fragment(SWIG_AsVal_frag(Type),"header",
 	    fragment=SWIG_AsPtr_frag(Type)) %{
-  SWIGINTERNSHORT int
+  SWIGINTERNINLINE int
     SWIG_AsVal(Type)(PyObject* obj, Type *val)
     {
       Type *v = (Type *)0;
@@ -130,7 +130,7 @@
   %}
   %fragment(SWIG_As_frag(Type),"header",
 	    fragment=SWIG_AsVal_frag(Type)) %{
-  SWIGINTERNSHORT Type
+  SWIGINTERNINLINE Type
     SWIG_As(Type)(PyObject* obj)
     {
       Type v;

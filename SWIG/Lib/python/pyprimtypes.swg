@@ -103,7 +103,7 @@ SWIGINTERN int
 
 %fragment("SWIG_CheckUnsignedLongInRange","header",
 	  fragment="<limits.h>") {
-SWIGINTERNSHORT int
+SWIGINTERNINLINE int
   SWIG_CheckUnsignedLongInRange(unsigned long value,
 				unsigned long max_value,
 				const char *errmsg) 
@@ -178,7 +178,7 @@ SWIGINTERN int
 
 %fragment(SWIG_From_frag(long long),"header",
 	  fragment="<limits.h>") {
-SWIGINTERNSHORT PyObject* 
+SWIGINTERNINLINE PyObject* 
   SWIG_From(long long)(long long value)
 {
   return ((value < LONG_MIN) || (value > LONG_MAX)) ?
@@ -190,7 +190,7 @@ SWIGINTERNSHORT PyObject*
 
 %fragment(SWIG_From_frag(unsigned long long),"header",
 	  fragment="<limits.h>") {
-SWIGINTERNSHORT PyObject* 
+SWIGINTERNINLINE PyObject* 
   SWIG_From(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
@@ -254,7 +254,7 @@ SWIGINTERN int
 }
 
 %fragment(SWIG_From_frag(unsigned long),"header") {
-SWIGINTERNSHORT PyObject* 
+SWIGINTERNINLINE PyObject* 
   SWIG_From(unsigned long)(unsigned long value)
 {
   return (value > LONG_MAX) ?
@@ -340,7 +340,7 @@ SWIGINTERN int
   return 0;    
 }
 %#else
-SWIGINTERNSHORT int
+SWIGINTERNINLINE int
   SWIG_AsVal(int)(PyObject *obj, int *val)
 {
   return SWIG_AsVal(long)(obj,(long*)val);
@@ -371,7 +371,7 @@ SWIGINTERN int
   return 0;    
 }
 %#else
-SWIGINTERNSHORT unsigned int
+SWIGINTERNINLINE unsigned int
   SWIG_AsVal(unsigned int)(PyObject *obj, unsigned int *val)
 {
   return SWIG_AsVal(unsigned long)(obj,(unsigned long *)val);
@@ -491,7 +491,7 @@ SWIGINTERN int
 }
 
 %fragment(SWIG_From_frag(char),"header") {
-SWIGINTERNSHORT PyObject*
+SWIGINTERNINLINE PyObject*
   SWIG_From(char)(char c) 
 { 
   return PyString_FromStringAndSize(&c,1);
@@ -522,7 +522,7 @@ SWIGINTERN int
 }
 
 %fragment(SWIG_From_frag(wchar_t),"header") {
-SWIGINTERNSHORT PyObject*
+SWIGINTERNINLINE PyObject*
   SWIG_From(wchar_t)(wchar_t c) 
 { 
   return PyUnicode_FromWideChar(&c, 1);
@@ -554,7 +554,7 @@ SWIGINTERN int
 }
 
 %fragment(SWIG_From_frag(bool),"header") {
-SWIGINTERNSHORT PyObject*
+SWIGINTERNINLINE PyObject*
   SWIG_From(bool)(bool value)
 {
   PyObject *obj = value ? Py_True : Py_False;

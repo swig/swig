@@ -38,7 +38,7 @@
 
 %fragment(SWIG_From_frag(std::basic_string<char>),"header",
 	  fragment="SWIG_FromCharArray") {
-SWIGINTERNSHORT PyObject*
+SWIGINTERNINLINE PyObject*
   SWIG_From(std::basic_string<char>)(const std::string& s)
   {
     return SWIG_FromCharArray(s.data(), s.size());
@@ -80,7 +80,7 @@ SWIGINTERN int
 
 %fragment(SWIG_From_frag(std::basic_string<wchar_t>),"header",
 	  fragment="SWIG_FromWCharArray") {
-SWIGINTERNSHORT PyObject*
+SWIGINTERNINLINE PyObject*
   SWIG_From(std::basic_string<wchar_t>)(const std::wstring& s)
   {
     return SWIG_FromWCharArray(s.data(), s.size());
