@@ -40,6 +40,7 @@ extern DOH  *SWIG_include(DOH *name);
 #define  FILE_DELIMETER   "/"
 
 /* --- Command line parsing --- */
+
 extern void  SWIG_init_args(int argc, char **argv);
 extern void  SWIG_mark_arg(int n);
 extern void  SWIG_check_options();
@@ -113,6 +114,7 @@ extern int      Scanner_get_line(Scanner *);
 #define   TOKEN_ILLEGAL      98
 #define   TOKEN_LAST         99 
 
+/* --- Misc --- */
 
 extern char *copy_string(const char *c);
 
