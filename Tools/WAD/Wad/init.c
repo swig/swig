@@ -40,7 +40,7 @@ void wad_init() {
     sigaddset(&newvec.sa_mask, SIGABRT);
     sigaddset(&newvec.sa_mask, SIGILL);
     sigaddset(&newvec.sa_mask, SIGFPE);
-    newvec.sa_flags = SA_SIGINFO | SA_ONSTACK;
+    newvec.sa_flags = SA_SIGINFO | SA_ONSTACK /* | SA_RESETHAND */;
     newvec.sa_sigaction = ((void (*)(int,siginfo_t *, void *)) wad_signalhandler);
     sigaction(SIGSEGV, &newvec, NULL);
     sigaction(SIGBUS, &newvec, NULL);

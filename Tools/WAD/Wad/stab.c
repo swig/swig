@@ -120,8 +120,7 @@ wad_search_stab(void *sp, int size, char *stabstr, char *symbol, unsigned long o
     } else if (debug.found && (s->n_type == 0x44) && (infunc)) {
 
       /* Line number location */
-
-      if (s->n_value <= offset) {
+      if (s->n_value < offset) {
 	debug.line_number = s->n_desc;
       } else return &debug;
     } else if (debug.found && ((s->n_type == 0xa0) || (s->n_type == 0x40)) && (infunc)) {

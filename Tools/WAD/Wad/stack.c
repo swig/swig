@@ -63,12 +63,12 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 
   while (p_sp) {
     /* Add check for stack validity here */
-    ws = wad_segment_find((wadaddr_t) p_sp);
+    ws = wad_segment_find((char *) p_sp);
     if (!ws) {
       /* If the stack is bad, we are really hosed here */
       break;
     }
-    ws = wad_segment_find((wadaddr_t) p_pc);
+    ws = wad_segment_find((char *) p_pc);
     {
       int   symsize = 0;
       int   srcsize = 0;
@@ -85,7 +85,6 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       if (ws) {
 	wo = wad_object_load(ws->mappath);
 	/* Special hack needed for base address */
-	if (strcmp(ws->mapname,"a.out") == 0) ws->vaddr= 0;
       }
       else {
 	wo = 0;
@@ -93,13 +92,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       
       /* Try to find the symbol corresponding to this PC */
       if (wo) {
-	symname = wad_find_symbol(wo, (void *) p_pc, (unsigned long) ws->vaddr, &value);
-	/*	if (!symname) {
-	  Dl_info dli;
-	  if (dladdr((void *) p_pc, &dli) >= 0) {
-	    symname = (char *) dli.dli_sname;
-	  }
-	  }*/
+	symname = wad_find_symbol(wo, (void *) p_pc, (unsigned long) ws->base, &value);
       } else {
 	symname = 0;
       }
@@ -117,7 +110,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 	symsize = strlen(symname)+1;
 	
 	/* Try to gather some debugging information about this symbol */
-	wd = wad_debug_info(wo,symname, p_pc - (unsigned long) ws->vaddr - value);
+	wd = wad_debug_info(wo,symname, p_pc - (unsigned long) ws->base - value);
 	if (wd) {
 	  srcname = wd->srcfile;
 	  srcsize = strlen(srcname)+1;
@@ -222,6 +215,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   lseek(ffile,0,SEEK_SET);
   trace_addr = mmap(NULL, trace_len, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, ffile, 0);
   close(ffile);
+  wad_segment_release();
   return (WadFrame *) trace_addr;
 }
 
@@ -242,7 +236,6 @@ long wad_steal_arg(WadFrame *f, char *symbol, int argno, int *error) {
   WadFrame *lastf = 0;
 
   fd = (char *) f;
-
 
   *error = 0;
   /* Start searching */

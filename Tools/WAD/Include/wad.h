@@ -25,29 +25,21 @@ extern "C" {
 #define MAX_PATH 1024
 #endif
 
-/* Typedef's for various addresses and sizes */
-typedef char *        wadaddr_t;
-typedef unsigned long wadlen_t;
-
-/* Memory management */
-extern void *wadmalloc(unsigned int);
-extern void  wadfree(void *ptr);
+/* Memory segment management */
 
 typedef struct WadSegment {
-  wadaddr_t      vaddr;                 /* Virtual address start          */
-  wadlen_t       size;                  /* Size of the segment (bytes)    */
+  char          *base;                  /* Base address for symbol lookup */
+  char          *vaddr;                 /* Virtual address start          */
+  unsigned long  size;                  /* Size of the segment (bytes)    */
   int            flags;                 /* Memory access permissions      */
-  wadlen_t       offset;                /* Offset into mapped object      */
+  unsigned long  offset;                /* Offset into mapped object      */
   char           mapname[MAX_PATH];     /* Filename mapped to this region */
   char           mappath[MAX_PATH];     /* Full path to mapname           */
-  int            identifier;            /* identifier (if SysV shmem)     */
-  long           wad;                   /* Private wad data (if any)      */
 } WadSegment;
 
-extern void wad_segment_print(WadSegment *s);
-extern WadSegment *wad_segment_find(wadaddr_t addr);
-extern WadSegment *wad_segment_first();
-extern WadSegment *wad_segment_next();
+extern void        wad_segment_print(WadSegment *s);
+extern WadSegment *wad_segment_find(char *addr);
+extern void        wad_segment_release();
 
 /* Structure for managing object files */
 typedef struct WadObject {

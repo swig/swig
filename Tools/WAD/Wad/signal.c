@@ -120,16 +120,6 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   addr = (unsigned long) si->si_addr;
   p_pc = (unsigned long) (*pc);
   p_sp = (unsigned long) (*sp);
-
-
-  /*  {
-    Dl_info dli;
-    if (dladdr((void *) p_pc, &dli) >= 0) {
-      printf("dli_fname = %s\n", dli.dli_fname);
-      printf("dli_sname = %s\n", dli.dli_sname);
-    }
-  }
-  */
   frame = wad_stack_trace(p_pc, p_sp, 0);
   origframe =frame;
   if (!frame) {
@@ -138,7 +128,6 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   }
   
   /* Walk the exception frames and try to find a return point */
-
   framedata = (char *) frame;
 
   while (frame->size) {
