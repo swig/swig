@@ -316,14 +316,16 @@ public:
     if (blessed) {
       Node     *cls;
       for (cls = Firstitem(classlist); cls; cls = Nextitem(classlist)) {
-	SwigType *type = Copy(Getattr(cls,"classtype"));
-	SwigType_add_pointer(type);
-	String *mangle = NewStringf("\"%s\"", SwigType_manglestr(type));
-	String *rep = NewStringf("\"%s\"", Getattr(cls,"perl5:proxy"));
-	Replaceall(type_table,mangle,rep);
-	Delete(mangle);
-	Delete(rep);
-	Delete(type);
+	if (Getattr(cls,"perl5:proxy")) {
+	  SwigType *type = Copy(Getattr(cls,"classtype"));
+	  SwigType_add_pointer(type);
+	  String *mangle = NewStringf("\"%s\"", SwigType_manglestr(type));
+	  String *rep = NewStringf("\"%s\"", Getattr(cls,"perl5:proxy"));
+	  Replaceall(type_table,mangle,rep);
+	  Delete(mangle);
+	  Delete(rep);
+	  Delete(type);
+	}
       }
     }
 
@@ -1058,6 +1060,11 @@ public:
     String *actualpackage;
     Node   *clsmodule = Getattr(n,"module");
     
+    if (!clsmodule) {
+      /* imported module does not define a module name.   Oh well */
+      return;
+    }
+
     /* Do some work on the class name */
     actualpackage = Getattr(clsmodule,"name");
     if ((!compat) && (!Strchr(symname,':'))) {
