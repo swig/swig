@@ -35,7 +35,7 @@ typedef struct {
 	const int      array_const_i[ARRAY_LEN];
 } ArrayStruct;
 
-void fn_taking_arrays(SimpleStruct arrays[ARRAY_LEN]) {}
+void fn_taking_arrays(SimpleStruct array_struct[ARRAY_LEN]) {}
 
 /* Pointer helper functions used in the Java run test */
 int* newintpointer() {
