@@ -2,6 +2,7 @@
 // This is the java_typemaps_proxy runtime testcase. Contrived example checks that the pure Java code from the Java typemaps compiles.
 
 import java_typemaps_proxy.*;
+import java.lang.reflect.*;
 
 public class java_typemaps_proxy_runme {
 
@@ -43,6 +44,20 @@ public class java_typemaps_proxy_runme {
 
     // Create a NULL pointer for Farewell using the constructor with changed modifiers
     Farewell nullFarewell = new Farewell(0, false);
+
+    // Check the %javamethodmodifiers feature
+    try {
+
+      Method methodmodifiertest = nullFarewell.getClass().getDeclaredMethod("methodmodifiertest", null);
+      if ( !Modifier.isPrivate(methodmodifiertest.getModifiers()) )
+        throw new RuntimeException("NS::Farewell::methodmodifiertest not private" );
+
+    } catch (NoSuchMethodException n) {
+      throw new RuntimeException("NoSuchmethodException caught. Test failed.");
+    } catch (SecurityException s) {
+      throw new RuntimeException("SecurityException caught. Test failed.");
+    }
+
   }
 }
 
