@@ -38,7 +38,20 @@ with ANSI C++ compilers and will probably generate a lot of compiler
 warnings.  Sorry.
 
 <p>
+<a href="http://download.sourceforge.net/swig/swig1.3a4.tar.gz">SWIG 1.3a4</a>
+is the latest development release (9/4/00).
+
+<p>
 <a href="http://download.sourceforge.net/swig/swig1.1p5.tar.gz">SWIG 1.1p5</a>
 is the latest stable release (2/5/98). 
+
+<p>
+<a href="http://download.sourceforge.net/swig/swig1.1-883.tar.gz">SWIG1.1-883</a> is the last maintenance version of SWIG1.1 (12/99).  This isn't really a
+"release", but the last nightly build that was completed before 
+development work shifted to SWIG1.3.  It fixes a number of bugs in
+SWIG1.1p5.
+
+
+
 
 

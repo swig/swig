@@ -21,7 +21,7 @@ languages with C/C++ code.
 <p>You might use SWIG in a number of ways:
 
 <ul>
-<li><b>Building more interesting C/C++ programs</b>.   Using SWIG, you can replace the main()
+<li><b>Building more powerful C/C++ programs</b>.   Using SWIG, you can replace the main()
 function of a C program with a scripting interpreter from which you can control your
 application.  This adds quite a lot of flexibility and makes it easier to build
 extensible programs. When combined with Tk, you can also build graphical user interfaces.
@@ -38,6 +38,13 @@ underlying C code, it can be used even if the final product does not rely upon s
 software components together.  With SWIG, different C/C++ programs can be turned into
 scripting language extension modules.   These modules can then be combined together
 to create new and interesting applications.
+
+<p>
+<li><b>Construction of scripting language extension modules</b>.  SWIG can
+be used to turn common C/C++ libraries into components for use in
+popular scripting languages.   However, before doing this, you might
+want to do a search to see if someone else has already made 
+such a module.
 </ul>
 
 SWIG is sometimes compared to interface definition language (IDL)
@@ -60,6 +67,13 @@ simply compile and run.  You don't have to fill in any stubs or write
 special code as you do with RPC-like systems.
 
 <p>
+<li><b>SWIG does not define a protocol nor is it a component
+framework.</b> SWIG does not define mechanisms or enforce rules
+regarding the way in which software components are supposed to
+interact with each other.  All it does is provide the glue needed to
+hook C code to other languages.
+
+<p>
 <li><b>Designed to work with existing C/C++ code</b>.  SWIG requires little, if any, modifications
 to existing code.  For the most part, it encourages you to keep a clean separation between
 C/C++ and its scripting interface.
@@ -74,4 +88,9 @@ A number of <a href="doc.html">papers and tutorials</a> describing SWIG are avai
 You can also view a simple <a href="tutorial.html">tutorial</a> to see an
 example of SWIG in action.
 
-
+<p>
+SWIG has been freely available in various forms since February, 1996
+and a large number of developers have made contributions.  Today, SWIG
+remains an all-volunteer effort.  Approximately 560 people subscribe
+to the SWIG mailing list (swig@cs.uchicago.edu) and a public CVS
+repository is available at the University of Chicago. 

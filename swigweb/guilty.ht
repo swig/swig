@@ -6,12 +6,12 @@ Guilty Parties
 
 <ul>
 <li>Dave Beazley, (a.k.a., "Mr. Swig")
-<li>Dustin Mitchell (SWIG core).
+<li>Thien-Thi Nguyen (Guile)
+<li>Matthias Köppe (Guile)
 <li>Harco de Hilster (Java)
 <li>Loic Dachary (Perl)
-<li>Thien-Thi Nguyen (Guile)
-<li>Ian Cooke (SWIG core).
-<li>Hasan Baran Kovuk (SWIG core).
+<li>Oleg Tolmatcev (Mzscheme)
+<li>Masaki Fukushima (Ruby)
 </ul>
 
 <p><b>Aiding and Abetting</b>
@@ -24,6 +24,9 @@ Guilty Parties
 <li>Pier Giorgio Esposito (Borland Makefiles).
 <li>David Fletcher (Perl5 shadow class design).
 <li>Gary Holt (Perl5 shadow class design)
+<li>Dustin Mitchell.
+<li>Ian Cooke.
+<li>Hasan Baran Kovuk.
 </ul>
 
 <p><b>Friends</b>
@@ -41,3 +44,6 @@ Guilty Parties
 </ul>
 
 Apologies to anyone missed....
+
+
+

@@ -6,8 +6,8 @@ Simplified Wrapper and Interface Generator
 SWIG is a software development tool that connects programs written in
 C, C++, and Objective-C with a variety of high-level programming
 languages.  SWIG is primarily used with common scripting languages
-such as Perl, Python, and Tcl/Tk, but has also been extended to
-include languages such as Java, Eiffel, and Guile.  SWIG is most
+such as Perl, Python, Tcl/Tk, Ruby, and Guile but has also been extended to
+include languages such as Java and Eiffel.  SWIG is most
 commonly used to create high-level interpreted programming
 environments and as a tool for building user interfaces.  SWIG may be
 freely used, distributed, and modified for commercial and
@@ -23,12 +23,13 @@ noncommercial use.
 <h3>Important Notice</h3>
 
 SWIG is currently in a state of redevelopment in which it is being
-completely restructured and purged of C++.  This work can be found in the SWIG1.3 series of
-releases.   If you are concerned about stability or are a first-time user, you may want to
-download some variant of SWIG1.1 instead.  Caveat--SWIG1.1 may not be compatible with
-recent releases of certain scripting languages such as Perl 5.6 and Guile.
-Note: These changes only pertain to the implementation of SWIG (the new version
-continues to support C++ wrappers).
+reimplemented in ANSI C.  This work can be found in the SWIG1.3 series
+of releases.  If you are concerned about stability or are a first-time
+user, you may want to download some variant of SWIG1.1 instead.
+Caveat--SWIG1.1 may not be compatible with recent releases of certain
+scripting languages such as Perl 5.6 and Guile.  Note: These changes
+only pertain to the implementation of SWIG (the new version continues
+to support C++ wrappers).
 
 <p>
 SWIG is an all volunteer effort.  We are always looking for fearless people with 
@@ -36,6 +37,15 @@ an abundance of spare time.
 
 <p>
 <h3>News</h3>
+
+<p>
+(9/4/00) <a
+href="http://download.sourceforge.net/swig/swig1.3a4.tar.gz">SWIG1.3a4</a>
+has been released.  This release has too many changes to list here,
+but it fixes a lot of bugs in SWIG1.3a3, includes new language modules
+for Ruby and Mzscheme, and has some new examples.  Note: this is a somewhat
+unstable release and is not recommended for first time users.
+Download <a href="http://download.sourceforge.net/swig/swig1.1-883.tar.gz">SWIG1.1</a> instead.
 
 <p>
 (7/10/00) A version of SWIG1.3a3 compiled for Windows NT has been contributed by
@@ -46,9 +56,7 @@ Klaus Wiederänders.  Download <a href="http://download.sourceforge.net/swig/Swig
 
 <p>
 (6/18/00) <a href="http://download.sourceforge.net/swig/swig1.3a3.tar.gz">SWIG1.3a3</a> has been released. This fixes a number of bugs in 1.3a2 and
-includes more code cleanup.  Note: this is an unstable release and is not recommended for
-first-time users.  Download <a
-href="http://download.sourceforge.net/swig/swig1.1-883.tar.gz">SWIG1.1</a> instead.
+includes more code cleanup. 
 
 <p>
 (11/26/99) The <a href="http://islab.cs.uchicago.edu/python">Python Essential Reference</a> has been released.  Please support the PSA by purchasing through the <a href="http://www.python.org/psa/bookstore">PSA bookstore</a>.
