@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>SWIG and Pike</title>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+</head>
+<body>
+<h1>SWIG and Pike<br>
+</h1>
+This chapter describes SWIG support for Pike. As of this writing, the
+SWIG  Pike module is still under development and is not considered
+ready for prime  time. The Pike module is being developed against the
+Pike 7.4.10 release  and may not be compatible with previous versions
+of Pike.<p>
+
+This chapter covers most SWIG features, but certain low-level details
+are  covered in less depth than in earlier chapters.  At the very
+least, make sure you read the "<a
+ href="file:///home/jlj/src/SWIG/Doc/Manual/SWIG.html">SWIG Basics</a>"
+chapter.<br>
+<h2>Preliminaries</h2>
+<h3>Running SWIG</h3>
+Suppose that you defined a SWIG module such as the following:
+<blockquote>
+  <pre>%module example<br><br>%{<br>#include "example.h"<br>%}<br><br>int fact(int n);<br></pre>
+</blockquote>
+To build a C extension module for Pike, run SWIG using the <tt>-pike</tt> option :
+<blockquote>
+  <pre>$ <b>swig -pike example.i</b><br></pre>
+</blockquote>
+If you're building a C++ extension, be sure to add the <tt>-c++</tt> option:
+<blockquote>
+  <pre>$ <b>swig -c++ -pike example.i</b><br></pre>
+</blockquote>
+This creates a single source file named <tt>example_wrap.c</tt> (or <tt>example_wrap.cxx</tt>, if you
+ran SWIG with the <tt>-c++</tt> option).
+The SWIG-generated source file contains the low-level wrappers that need
+to be compiled and linked with the rest of your C/C++ application to
+create an extension module.<p>
+
+The name of the wrapper file is derived from the name of the input
+file.  For example, if the input file is <tt>example.i</tt>, the name
+of the wrapper file is <tt>example_wrap.c</tt>. To change this, you
+can use the <tt>-o</tt> option:
+<blockquote>
+  <pre>$ <b>swig -pike -o pseudonym.c example.i</b><br></pre>
+</blockquote>
+<h3>Getting the right header files</h3>
+In order to compile the C/C++ wrappers, the compiler needs to know the
+path to the Pike header files. These files are usually contained in a
+directory such as
+<p> </p>
+<blockquote>
+  <pre>/usr/local/pike/7.4.10/include/pike<br></pre>
+</blockquote>
+There doesn't seem to be any way to get Pike itself to reveal the
+location of these files, so you may need to hunt around for them.
+You're looking for files with the names <tt>global.h</tt>, <tt>program.h</tt>
+and so on.
+
+<h3>Using your module</h3>
+To use your module, simply use Pike's <tt>import</tt> statement:
+
+<blockquote><pre>
+$ <b>pike</b>
+Pike v7.4 release 10 running Hilfe v3.5 (Incremental Pike Frontend)
+&gt; <b>import example;</b>
+&gt; <b>fact(4);</b>
+(1) Result: 24
+</pre></blockquote>
+
+<h2>Basic C/C++ Mapping</h2>
+
+<h3>Modules</h3>
+All of the code for a given SWIG module is wrapped into a single Pike
+module. Since the name of the shared library that implements your
+module ultimately determines the module's name (as far as Pike is
+concerned), SWIG's <tt>%module</tt> directive doesn't really have any
+significance.
+
+<h3>Functions</h3>
+Global functions are wrapped as new Pike built-in functions. For
+example,
+
+<blockquote><pre>
+%module example
+
+int fact(int n);
+</pre></blockquote>
+
+creates a new built-in function <tt>example.fact(n)</tt> that works
+exactly as you'd expect it to:
+
+<blockquote><pre>
+&gt; <b>import example;</b>
+&gt; <b>fact(4);</b>
+(1) Result: 24
+</pre></blockquote>
+
+<h3>Global variables</h3>
+
+Global variables are currently wrapped as a pair of of functions, one to get
+the current value of the variable and another to set it. For example, the
+declaration
+
+<blockquote><pre>
+%module example
+
+double Foo;
+</pre></blockquote>
+
+will result in two functions, <tt>Foo_get()</tt> and <tt>Foo_set()</tt>:
+
+<blockquote><pre>
+&gt; <b>import example;</b>
+&gt; <b>Foo_get();</b>
+(1) Result: 3.000000
+&gt; <b>Foo_set(3.14159);</b>
+(2) Result: 0
+&gt; <b>Foo_get();</b>
+(3) Result: 3.141590
+</pre></blockquote>
+
+<h3>Constants and enumerated types</h3>
+
+Enumerated types in C/C++ declarations are wrapped as Pike constants,
+not as Pike enums.
+
