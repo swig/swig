@@ -614,15 +614,66 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 
 /* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
  * that cannot be overloaded in Java as more than one C++ type maps to a single Java type */
-%typemap(typecheck,precedence="1") unsigned char, short                                         "" /* Java short */
-%typemap(typecheck,precedence="2") unsigned short, int, long, enum SWIGTYPE                     "" /* Java int */
-%typemap(typecheck,precedence="3") unsigned int, unsigned long, long long                       "" /* Java long */
-%typemap(typecheck,precedence="4") unsigned char[ANY], short[ANY]                               "" /* Java short[] */
-%typemap(typecheck,precedence="5") unsigned short[ANY], int[ANY], long[ANY], enum SWIGTYPE[ANY] "" /* Java int[] */
-%typemap(typecheck,precedence="6") unsigned int[ANY], unsigned long[ANY], long long[ANY]        "" /* Java long[] */
+/* Java short */
+%typecheck(10) unsigned char, 
+               short, 
+               const unsigned char &, 
+               const short &
+               ""
 
+/* Java int */
+%typecheck(20) unsigned short, 
+               int, 
+               long, 
+               enum SWIGTYPE, 
+               const unsigned short &, 
+               const int &, const long &
+               ""
+
+/* Java long */
+%typecheck(30) unsigned int, 
+               unsigned long, 
+               long long, 
+               const unsigned int &, 
+               const unsigned long &, 
+               const long long &
+               ""
+
+/* Java short[] */
+%typecheck(40) unsigned char[ANY], 
+               short[ANY]
+               ""
+
+/* Java int[] */
+%typecheck(50) unsigned short[ANY], 
+               int[ANY], 
+               long[ANY], 
+               enum SWIGTYPE[ANY]
+               ""
+
+/* Java long[] */
+%typecheck(60) unsigned int[ANY], 
+               unsigned long[ANY], 
+               long long[ANY]
+               ""
+
+/* Default */
+%typecheck(0) SWIGTYPE, 
+              SWIGTYPE *, 
+              SWIGTYPE &, 
+              SWIGTYPE []
+              ""
 
 /* Some ANSI C typemaps */
 
 %apply long { size_t };
+
+
+/* Java specific directives */
+
+#define %javaimports         %feature("java:imports")
+#define %javaclassmodifiers  %feature("java:classmodifiers")
+#define %javabase            %feature("java:base")
+#define %javainterfaces      %feature("java:interfaces")
+#define %javacode            %feature("java:code")
 
