@@ -2,6 +2,36 @@ Version 1.3.22 (in progress)
 ==================================
 
 03/21/2004: mmatus
+	    [Python] Makes the following 'var' cases more uniform:
+
+                std::string ga;
+ 
+                struct A {
+                  static std::string sa;
+                  std::string ma;
+                };
+
+
+            now the three variables (ga, sa, ma) can be assigned as:
+
+
+                  cvar.ga = "hello";
+                  A.sa = "hello";
+                  a.ma = "hello";
+
+            ie, now 'ma' will also use a std::string typemap 'in' if
+            defined, before it was only accepting a 'p_std_string'
+            pointer.  Note, however, that 'ma' will not use the
+            'varin/varout' typemaps (that probably could be more
+            natural), but it will pick up the 'in' typemap for const
+            std::string& (which is easier).
+
+	    The changes in cwrap.c and lang.cxx will probably fix the
+	    behaviour in other languages that do not overload the
+	    membervarHandler method "too much".
+ 
+            
+03/21/2004: mmatus
 	    [Python] Disabling the default instantiations like:
 
 	      %template() std::pair<int,int>;
