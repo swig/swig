@@ -14,3 +14,20 @@ template<class T> int foo<T>::test = 0;
 %template(foo_i) foo<int>;
 %template(foo_d) foo<double>;
 
+
+%inline %{
+namespace toto {
+  class Foo {
+  public:
+      template<class T>
+      static double bar(int i) {
+	return 1.0;
+      };
+
+    private:
+      int i;
+  };
+} 
+%}
+
+%template(bar_double) toto::Foo::bar<double>; 
