@@ -256,12 +256,15 @@
 %typemap(varout) char * "$result = Tcl_NewStringObj((char*) $1,-1);";
 %typemap(varout) char [ANY] "$result = Tcl_NewStringObj((char *) $1,-1);";
 %typemap(varout) char "$result = Tcl_NewStringObj(&$1,1);";
-%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor,0);";
+%typemap(varout) SWIGTYPE *, SWIGTYPE []  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor,0);";
+%typemap(varout) SWIGTYPE & "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor,0);";
 
-%typemap(varout) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE INSTANCE[]
+%typemap(varout) SWIGTYPE *INSTANCE, SWIGTYPE INSTANCE[]
     "$result = SWIG_NewInstanceObj(interp, (void *) $1, $1_descriptor,0);";
 
-%typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor,0);";
+%typemap(varout) SWIGTYPE &INSTANCE
+    "$result = SWIG_NewInstanceObj(interp, (void *) &$1, $1_descriptor,0);";
+
 %typemap(varout) SWIGTYPE INSTANCE "$result = SWIG_NewInstanceObj(interp, (void *) &$1, $&1_descriptor,0);";
 %typemap(varout) SWIGTYPE "$result = SWIG_NewInstanceObj(interp, (void *) &$1, $&1_descriptor,0);";
 
@@ -351,7 +354,7 @@
   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
     return (char*)"Type error. Expected $1_ltype";
   }
-  $1 = *(($&1_type) temp);
+  $1 = *($1_ltype) temp;
 }
 
 %typemap(varin) SWIGTYPE {
