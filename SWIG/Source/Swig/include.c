@@ -295,7 +295,7 @@ Swig_file_dirname(const String_or_char *filename)
   }
   c = tmp + strlen(tmp) -1;
   while (*c != *delim) c--;
-  *c = 0;
+  *(++c) = 0;
   return tmp;
 }
       
