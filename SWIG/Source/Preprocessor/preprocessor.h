@@ -20,12 +20,12 @@
 extern "C" {
 #endif
 
-extern int   Preprocessor_expr(DOH *s, int *error);
+extern int   Preprocessor_expr(DOHString *s, int *error);
 extern char *Preprocessor_expr_error(void);
-extern DOH  *Preprocessor_define(DOH *str, int swigmacro);
-extern void  Preprocessor_undef(DOH *name);
+extern DOH  *Preprocessor_define(DOHString_or_char *str, int swigmacro);
+extern void  Preprocessor_undef(DOHString_or_char *name);
 extern void  Preprocessor_init();
-extern DOH  *Preprocessor_parse(DOH *s);
+extern DOH  *Preprocessor_parse(DOHString *s);
 extern void  Preprocessor_include_all(int);
 
 #ifdef __cplusplus
