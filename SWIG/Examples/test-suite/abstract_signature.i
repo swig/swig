@@ -1,5 +1,8 @@
 %module abstract_signature
 
+%warnfilter(801) abstract_foo;	// Ruby, wrong class name
+%warnfilter(801) abstract_bar;	// Ruby, wrong class name
+
 %inline %{ 
 class abstract_foo 
 { 
