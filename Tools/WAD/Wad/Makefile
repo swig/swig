@@ -25,6 +25,9 @@ tcl::
 	cp wad.so libwadtcl.so
 	cp libwadtcl.so ..
 
+linux::
+	cc -DWAD_LINUX $(INCLUDE) segment.c debug.c
+
 debug::
 	cc -g debug.c $(INCLUDE) -L. -R. -lwad
 
