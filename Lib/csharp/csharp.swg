@@ -180,8 +180,7 @@ $1 = &temp; %}
 %typemap(in) SWIGTYPE ($&1_type argp)
 %{ argp = *($&1_ltype*)&$input; 
    if (!argp) {
-//     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
-     return $null;
+     SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "Attempt to dereference null $1_type");
    }
    $1 = *argp; %}
 %typemap(out) SWIGTYPE 
@@ -199,8 +198,7 @@ $1 = &temp; %}
 %typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if(!$1) {
-    //SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
-    return $null;
+    SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "$1_type reference is null");
   } %}
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE (CLASS::*) %{ *($&1_ltype)&$result = $1; %} 
 
@@ -300,18 +298,15 @@ $1 = &temp; %}
                  unsigned short {
   char error_msg[256];
   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
-  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, error_msg);
-  return $null;
+  SWIG_CSharpThrowException(SWIG_CSharpException, error_msg);
 }
 
 %typemap(throws) SWIGTYPE {
-  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
-  return $null;
+  SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
 }
 
 %typemap(throws) char * {
-  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
-  return $null;
+  SWIG_CSharpThrowException(SWIG_CSharpException, $1);
 }
 
 
