@@ -21,9 +21,6 @@
 char cvsroot_pike_cxx[] = "$Header$";
 
 #include "swigmod.h"
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
 
 #include <ctype.h> // for isalnum()
 
@@ -880,7 +877,9 @@ public:
  * swig_pike()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_pike(void) {
+static Language * new_swig_pike() {
   return new PIKE();
+}
+extern "C" Language * swig_pike(void) {
+  return new_swig_pike();
 }

@@ -12,9 +12,6 @@
 char cvsroot_misc_c[] = "$Header$";
 
 #include "swig.h"
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
 #include <ctype.h>
 
 /* -----------------------------------------------------------------------------

@@ -17,10 +17,6 @@ char cvsroot_php4_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
-
 #include <ctype.h>
 
 
@@ -894,7 +890,7 @@ public:
 */
 
   void create_command(char *cname, char *iname) {
-//    char *lower_cname = strdup(cname);
+//    char *lower_cname = Swig_copy_string(cname);
 //    char *c;
     
 //    for(c = lower_cname; *c != '\0'; c++) {
@@ -2115,8 +2111,7 @@ void typetrace(SwigType *ty, String *mangled, String *clientdata) {
   if (r_prevtracefunc) (*r_prevtracefunc)(ty, mangled, (String *) clientdata);
 }
 
-extern "C" Language *
-swig_php(void) {
+static Language * new_swig_php() {
   maininstance=new PHP4();
   if (! r_prevtracefunc) {
     r_prevtracefunc=SwigType_remember_trace(typetrace);
@@ -2126,4 +2121,6 @@ swig_php(void) {
   }
   return maininstance;
 }
-
+extern "C" Language * swig_php(void) {
+  return new_swig_php();
+}

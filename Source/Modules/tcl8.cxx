@@ -24,10 +24,6 @@ char cvsroot_tcl8_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
-
 static const char *usage = (char*)"\
 Tcl 8 Options (available with -tcl)\n\
      -itcl           - Enable ITcl support\n\
@@ -1220,9 +1216,11 @@ public:
  * swig_tcl()    - Instantiate module
  * ---------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_tcl(void) {
+static Language * new_swig_tcl() {
   return new TCL8();
+}
+extern "C" Language * swig_tcl(void) {
+  return new_swig_tcl();
 }
 
 

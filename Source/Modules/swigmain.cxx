@@ -22,10 +22,6 @@
 
 char cvsroot_swigmain_cxx[] = "$Header$";
 
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
-
 #include "swigmod.h"
 
 /* Module factories.  These functions are used to instantiate 

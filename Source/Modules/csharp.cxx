@@ -14,9 +14,6 @@ char cvsroot_csharp_cxx[] = "$Header$";
 
 #include <limits.h> // for INT_MAX
 #include "swigmod.h"
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
 #include <ctype.h>
 
 class CSHARP : public Language {
@@ -2021,9 +2018,11 @@ class CSHARP : public Language {
  * swig_csharp()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_csharp(void) {
+static Language * new_swig_csharp() {
   return new CSHARP();
+}
+extern "C" Language * swig_csharp(void) {
+  return new_swig_csharp();
 }
 
 /* -----------------------------------------------------------------------------

@@ -1030,7 +1030,9 @@ int DohStrncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n) 
 }
 
 char *DohStrstr(const DOHString_or_char *s1, const DOHString_or_char *s2) {
-  return strstr(Char(s1),Char(s2));
+  char* p1 = Char(s1);
+  char* p2 = Char(s2);
+  return p2 == 0 || *p2 == '\0' ? p1 : strstr(p1,p2);
 }
 
 char *DohStrchr(const DOHString_or_char *s1, int ch) {

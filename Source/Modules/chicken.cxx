@@ -23,10 +23,6 @@ char cvsroot_chicken_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
-
 #include <ctype.h>
 
 static const char *chicken_usage = (char*)"\
@@ -134,9 +130,11 @@ protected:
  * swig_chicken()    - Instantiate module
  * ----------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_chicken(void) {
+static Language * new_swig_chicken() {
   return new CHICKEN();
+}
+extern "C" Language * swig_chicken(void) {
+  return new_swig_chicken();
 }
 
 void 

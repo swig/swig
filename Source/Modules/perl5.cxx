@@ -17,10 +17,6 @@ char cvsroot_perl5_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
-
 static const char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
      -ldflags        - Print runtime libraries to link with\n\
@@ -1436,7 +1432,9 @@ public:
  * swig_perl5()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_perl5(void) {
+static Language * new_swig_perl5() {
   return new PERL5();
+}
+extern "C" Language * swig_perl5(void) {
+  return new_swig_perl5();
 }
