@@ -118,27 +118,10 @@ class JAVA : public Language {
     if (proxy_flag) {
       Node *n = classLookup(t);
       if (n) {
-        if (!Getattr(n,"java:addedtypemaps")) addClassTypemaps(n);
-        return Getattr(n,"java:proxy");
+        return Getattr(n,"sym:name");
       }
     }
     return NULL;
-  }
-
-  /* -----------------------------------------------------------------------------
-   * getArrayType()
-   *
-   * Return the type of the c array
-   * ----------------------------------------------------------------------------- */
-
-  SwigType *getArrayType(SwigType *t) {
-    SwigType *ta = NULL;
-    if (SwigType_isarray(t)) {
-      SwigType *aop;
-      ta = Copy(t);
-      aop = SwigType_pop(ta);
-    }
-    return ta;
   }
 
   /* -----------------------------------------------------------------------------
@@ -466,8 +449,6 @@ class JAVA : public Language {
     ParmList *l = Getattr(n,"parms");
     String    *tm;
     Parm      *p;
-    Parm      *jnip;
-    Parm      *jtypep;
     int       i;
     String    *jnirettype = NewString("");
     String    *javarettype = NewString("");
@@ -481,16 +462,6 @@ class JAVA : public Language {
 
     if (!Getattr(n,"sym:overloaded")) {
       if (!addSymbol(Getattr(n,"sym:name"),n)) return SWIG_ERROR;
-    }
-
-    /* This is a gross hack.  To get typemaps properly installed, we have to check for
-       shadows on all types first */
-
-    if (proxy_flag) {
-      is_shadow(t);
-      for (p = l; p; p = nextSibling(p)) {
-        is_shadow(Getattr(p,"type"));
-      }
     }
 
     /* 
@@ -571,16 +542,10 @@ class JAVA : public Language {
     int gencomma = 0;
 
     // Now walk the function parameter list and generate code to get arguments
-    for (i = 0, p=l, jnip=l, jtypep=l; i < num_arguments; i++) {
+    for (i = 0, p=l; i < num_arguments; i++) {
       
       while (checkAttribute(p,"tmap:in:numinputs","0")) {
         p = Getattr(p,"tmap:in:next");
-      }
-      while (checkAttribute(jnip,"tmap:in:numinputs","0")) {
-        jnip = Getattr(jnip,"tmap:in:next");
-      }
-      while (checkAttribute(jtypep,"tmap:in:numinputs","0")) {
-        jtypep = Getattr(jtypep,"tmap:in:next");
       }
 
       SwigType *pt = Getattr(p,"type");
@@ -592,21 +557,17 @@ class JAVA : public Language {
       Printf(arg,"j%s", ln);
 
       /* Get the jni types of the parameter */
-      if ((tm = Getattr(jnip,"tmap:jni"))) {
-        jnip = Getattr(jnip,"tmap:jni:next");
+      if ((tm = Getattr(p,"tmap:jni"))) {
         Printv(jni_param_type, tm, NIL);
       } else {
-        jnip = nextSibling(jnip);
         Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, 
             "No jni typemap defined for %s\n", SwigType_str(pt,0));
       }
 
       /* Get the java types of the parameter */
-      if ((tm = Getattr(jtypep,"tmap:jtype"))) {
-        jtypep = Getattr(jtypep,"tmap:jtype:next");
+      if ((tm = Getattr(p,"tmap:jtype"))) {
         Printv(javaparamtype, tm, NIL);
       } else {
-        jtypep = nextSibling(jtypep);
         Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
             "No jtype typemap defined for %s\n", SwigType_str(pt,0));
       }
@@ -810,30 +771,6 @@ class JAVA : public Language {
     global_variable_flag = true;
     int ret = Language::globalvariableHandler(n);
     global_variable_flag = false;
-    return ret;
-  }
-
-
-  /* -----------------------------------------------------------------------
-   * enumDeclaration()
-   * ------------------------------------------------------------------------ */
-
-  virtual int enumDeclaration(Node *n) {
-    String *name = Getattr(n,"sym:name");
-    String *s1 = NewStringf("enum %s", name);
-    String *s2 = NewStringf("%s", name);
-    String *swigtype = NewString("enum SWIGTYPE");
-
-    /* Apply typemaps for handling arrays of enums and arrays of enum pointers for all known enums*/
-    typemapApply(swigtype, NULL, s1, none, true);    //%apply enum SWIGTYPE[ANY] {enum name[ANY]};
-    typemapApply(swigtype, NULL, s2, none, true);    //%apply enum SWIGTYPE[ANY] {name[ANY]};
-
-    int ret = Language::enumDeclaration(n);
-
-    Delete(s1);
-    Delete(s2);
-    Delete(swigtype);
-
     return ret;
   }
 
@@ -1216,7 +1153,7 @@ class JAVA : public Language {
       String *filen = NewStringf("%s.java", shadow_classname);
       f_shadow = NewFile(filen,"w");
       if(!f_shadow) {
-        Printf(stderr, "Unable to create shadow class file: %s\n", filen);
+        Printf(stderr, "Unable to create proxy class file: %s\n", filen);
         SWIG_exit(EXIT_FAILURE);
       }
       Delete(filen); filen = NULL;
@@ -1312,14 +1249,11 @@ class JAVA : public Language {
     String    *java_function_name = Getattr(n,"java:funcname");
     String    *java_shadow_function_name = Getattr(n,"java:shadowfuncname");
     String    *tm;
-    Parm      *jstypep;
     Parm      *p;
     int       i;
     String    *nativecall = NewString("");
     String    *shadowrettype = NewString("");
     String    *user_arrays = NewString("");
-    //int       num_arguments = 0;
-    //int       num_required = 0;
 
     if(!proxy_flag) return;
 
@@ -1330,33 +1264,24 @@ class JAVA : public Language {
     }
 
     /* Attach the non-standard typemaps to the parameter list */
+    Swig_typemap_attach_parms("in", l, NULL);
     Swig_typemap_attach_parms("jstype", l, NULL);
-    Swig_typemap_attach_parms("in", l, NULL);         /* Should be "in"????? */
+    Swig_typemap_attach_parms("javain", l, NULL);
 
     /* Get Java return types */
-    bool is_return_type_java_class = false;
     if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
-      is_return_type_java_class = substituteJavaclassname(t, tm);
+      substituteJavaclassname(t, tm);
       Printf(shadowrettype, "%s", tm);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
           "No jstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
+    /* Start generating the shadow function */
     Printf(shadow_code, "  %s ", Getattr(n,"feature:java:methodmodifiers"));
     if (static_flag)
       Printf(shadow_code, "static ");
     Printf(shadow_code, "%s %s(", shadowrettype, java_shadow_function_name);
-
-    if(SwigType_isarray(t) && is_shadow(getArrayType(t)) && SwigType_array_ndim(t) == 1) {
-      Printf(nativecall, "long[] cArray = ");
-    }
-    else {
-      if(SwigType_type(t) != T_VOID)
-        Printf(nativecall,"return ");
-      if(is_return_type_java_class)
-        Printv(nativecall, "new ", shadowrettype, "(", NIL);
-    }
 
     Printv(nativecall, jniclass_name, ".", java_function_name, "(", NIL);
     if (!static_flag)
@@ -1365,20 +1290,13 @@ class JAVA : public Language {
     int gencomma = !static_flag;
 
     /* Output each parameter */
-    for (i = 0, p=l, jstypep=l; p && jstypep; i++) {
+    for (i = 0, p=l; p; i++) {
 
       /* Ignored parameters */
-      bool continue_flag = false;
       if (checkAttribute(p,"tmap:in:numinputs","0")) {
         p = Getattr(p,"tmap:in:next");
-        continue_flag = true;
-      }
-      if (checkAttribute(jstypep,"tmap:in:numinputs","0")) {
-        jstypep = Getattr(jstypep,"tmap:in:next");
-        continue_flag = true;
-      }
-      if (continue_flag)
         continue;
+      }
 
       /* Ignore the 'this' argument for variable wrappers */
       if (!(variable_wrapper_flag && i==0)) 
@@ -1387,13 +1305,10 @@ class JAVA : public Language {
         String   *javaparamtype = NewString("");
 
         /* Get the java type of the parameter */
-        bool is_java_class = false;
-        if ((tm = Getattr(jstypep,"tmap:jstype"))) {
-          is_java_class = substituteJavaclassname(pt, tm);
+        if ((tm = Getattr(p,"tmap:jstype"))) {
+          substituteJavaclassname(pt, tm);
           Printf(javaparamtype, "%s", tm);
-          jstypep = Getattr(jstypep,"tmap:jstype:next");
         } else {
-          jstypep = nextSibling(jstypep);
           Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
               "No jstype typemap defined for %s\n", SwigType_str(pt,0));
         }
@@ -1401,7 +1316,17 @@ class JAVA : public Language {
         if (gencomma)
           Printf(nativecall, ", ");
 
-        String *arg = generateShadowParameters(n, p, i, is_java_class, user_arrays, nativecall, javaparamtype);
+        String *arg = makeParameterName(n, p, i);
+
+        // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in native function (in JNI class)
+        if ((tm = Getattr(p,"tmap:javain"))) {
+          substituteJavaclassname(pt, tm);
+          Replaceall(tm, "$javainput", arg);
+          Printv(nativecall, tm, NIL);
+        } else {
+          Swig_warning(WARN_JAVA_TYPEMAP_JAVAIN_UNDEF, input_file, line_number, 
+              "No javain typemap defined for %s\n", SwigType_str(pt,0));
+        }
 
         /* Add to java shadow function header */
         if (gencomma >= 2)
@@ -1412,52 +1337,26 @@ class JAVA : public Language {
         Delete(arg);
         Delete(javaparamtype);
       }
-      else {
-        jstypep = nextSibling(jstypep);
-      }
-      p = nextSibling(p);
+      p = Getattr(p,"tmap:in:next");
     }
 
-    if(SwigType_isarray(t) && is_shadow(getArrayType(t)) && SwigType_array_ndim(t) == 1) {
-      String *array_ret = NewString("");
-      Printf(array_ret,");\n");
-      Printv(array_ret, "    $type[] arrayWrapper = new $type[cArray.length];\n", NIL);
-      Printv(array_ret, "    for (int i=0; i<cArray.length; i++)\n", NIL);
-      Printv(array_ret, "      arrayWrapper[i] = new $type(cArray[i], false);\n", NIL);
-      Printv(array_ret, "    return arrayWrapper;\n", NIL);
-
-      Replaceall(array_ret, "$type", is_shadow(getArrayType(t)));
-      Printv(nativecall, array_ret, NIL);
-      Delete(array_ret);
-    }
-    else {
-      if(is_return_type_java_class) {
-        switch(SwigType_type(t)) {
-          case T_USER:
-            Printf(nativecall, "), true");
-            break;
-          case T_ARRAY:
-          case T_REFERENCE:
-          case T_POINTER:
-            if (Getattr(n,"feature:new")) // %newobject indicating Java must take responsibility for memory ownership
-              Printf(nativecall, "), true");
-            else
-              Printf(nativecall, "), false");
-            break;
-          default:
-            Printf(stderr, "Internal Error: unknown shadow type: %s\n", SwigType_str(t,0));
-            break;
-        }
-      }
-      Printf(nativecall,");\n");
-    }
-
+    Printf(nativecall, ")");
     Printf(shadow_code, ")");
     generateThrowsClause(n, shadow_code);
-    Printf(shadow_code, " {\n");
-    Printv(shadow_code, user_arrays, NIL);
-    Printf(shadow_code, "    %s", nativecall);
-    Printf(shadow_code, "  }\n\n");
+
+    // Transform return type used in native function (in JNI class) to type used in Java wrapper function (in proxy class)
+    if ((tm = Swig_typemap_lookup_new("javaout",n,"",0))) {
+      if (Getattr(n,"feature:new"))
+        Replaceall(tm,"$owner","true");
+      else
+        Replaceall(tm,"$owner","false");
+      substituteJavaclassname(t, tm);
+      Replaceall(tm, "$jnicall", nativecall);
+      Printf(shadow_code, " %s\n\n", tm);
+    } else {
+      Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
+          "No javaout typemap defined for %s\n", SwigType_str(t,0));
+    }
 
     Delete(shadowrettype);
     Delete(nativecall);
@@ -1472,12 +1371,9 @@ class JAVA : public Language {
 
     ParmList *l = Getattr(n,"parms");
     String    *tm;
-    Parm      *jstypep;
     Parm      *p;
     int       i;
     String    *user_arrays = NewString("");
-    //int       num_arguments = 0;
-    //int       num_required = 0;
 
     Language::constructorHandler(n);
 
@@ -1489,46 +1385,47 @@ class JAVA : public Language {
       Printv(nativecall, "this(", jniclass_name, ".", Swig_name_construct(overloaded_name), "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
+      Swig_typemap_attach_parms("in", l, NULL);
       Swig_typemap_attach_parms("jstype", l, NULL);
-      Swig_typemap_attach_parms("in", l, NULL);       /* in??? */
+      Swig_typemap_attach_parms("javain", l, NULL);
 
       int gencomma = 0;
 
       /* Output each parameter */
-      for (i = 0, p=l, jstypep=l; p && jstypep; i++) {
+      for (i = 0, p=l; p; i++) {
 
         /* Ignored parameters */
-        bool continue_flag = false;
-	if (checkAttribute(p,"tmap:in:numinputs","0")) {
+        if (checkAttribute(p,"tmap:in:numinputs","0")) {
           p = Getattr(p,"tmap:in:next");
-          continue_flag = true;
-        }
-        if (checkAttribute(jstypep,"tmap:in:numinputs","0")) {
-          jstypep = Getattr(jstypep,"tmap:in:next");
-          continue_flag = true;
-        }
-        if (continue_flag)
           continue;
+        }
 
         SwigType *pt = Getattr(p,"type");
         String   *javaparamtype = NewString("");
 
         /* Get the java type of the parameter */
-        bool is_java_class = false;
-        if ((tm = Getattr(jstypep,"tmap:jstype"))) {
-          is_java_class = substituteJavaclassname(pt, tm);
+        if ((tm = Getattr(p,"tmap:jstype"))) {
+          substituteJavaclassname(pt, tm);
           Printf(javaparamtype, "%s", tm);
-          jstypep = Getattr(jstypep,"tmap:jstype:next");
         } else {
-          jstypep = nextSibling(jstypep);
           Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
               "No jstype typemap defined for %s\n", SwigType_str(pt,0));
         }
 
-        if(gencomma)
+        if (gencomma)
           Printf(nativecall, ", ");
 
-        String *arg = generateShadowParameters(n, p, i, is_java_class, user_arrays, nativecall, javaparamtype);
+        String *arg = makeParameterName(n, p, i);
+
+        // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in native function (in JNI class)
+        if ((tm = Getattr(p,"tmap:javain"))) {
+          substituteJavaclassname(pt, tm);
+          Replaceall(tm, "$javainput", arg);
+          Printv(nativecall, tm, NIL);
+        } else {
+          Swig_warning(WARN_JAVA_TYPEMAP_JAVAIN_UNDEF, input_file, line_number, 
+              "No javain typemap defined for %s\n", SwigType_str(pt,0));
+        }
 
         /* Add to java shadow function header */
         if(gencomma)
@@ -1538,7 +1435,7 @@ class JAVA : public Language {
 
         Delete(arg);
         Delete(javaparamtype);
-        p = nextSibling(p);
+        p = Getattr(p,"tmap:in:next");
       }
 
       Printf(nativecall, "), true);\n");
@@ -1574,86 +1471,6 @@ class JAVA : public Language {
       Printv(destructor_call, "      ", jniclass_name, ".", Swig_name_destroy(symname), "(swigCPtr);\n", NIL);
     }
     return SWIG_OK;
-  }
-
-  /* -----------------------------------------------------------------------------
-   * typemapApply()
-   *
-   * This function does the equivalent of
-   * %apply type *tmap { name * };  when additions=pointer or
-   * %apply type &tmap { name & };  when additions=reference
-   * %apply type tmap[ANY] { name [ANY] }; when array_flag set etc...
-   * ----------------------------------------------------------------------------- */
-
-  void typemapApply(String *type, String *tmap, String *name, type_additions additions, bool array_flag)
-  {
-    String *nametemp = Copy(name);
-    String *swigtypetemp = Copy(type);
-
-    if (additions == pointer) {
-      SwigType_add_pointer(swigtypetemp);
-      SwigType_add_pointer(nametemp);
-    }
-    if (additions == reference) {
-      SwigType_add_reference(swigtypetemp);
-      SwigType_add_reference(nametemp);
-    }
-    if (array_flag) {
-      SwigType_add_array(swigtypetemp, (char *)"ANY");
-      SwigType_add_array(nametemp, (char *)"ANY");
-    }
-
-    Parm *srcpat = NewParm(swigtypetemp,tmap);
-    Parm *destpat = NewParm(nametemp,0);
-    Swig_typemap_apply(srcpat,destpat);
-    Delete(nametemp);
-    Delete(swigtypetemp);
-  }
-
-  /* -----------------------------------------------------------------------------
-   * addClassTypemaps()
-   * ----------------------------------------------------------------------------- */
-
-  void addClassTypemaps(Node *n) {
-    if (proxy_flag) {
-      String *name = Getattr(n,"name");
-      String *kind = Getattr(n,"kind");
-      String *array_tmap = NewString("ARRAYSOFCLASSPOINTERS");
-      String *arrayclass_tmap = NewString("ARRAYSOFCLASSES");
-      String *swigtype = NewString("SWIGTYPE");
-      String *shadowclassname = Getattr(n,"sym:name");
-      String *tdname = Getattr(n,"tdname");
-
-      name = tdname ? tdname : name;
-
-      Setattr(n,"java:proxy", shadowclassname);
-
-      /* Apply typemaps for handling arrays of all known classes/structs/unions. This is a workaround because the SWIGTYPE [] typemap does 
-       * not make it possible to distinguish between classes that SWIG has parsed (knows about) and those that have not been parsed. */
-      typemapApply(swigtype, arrayclass_tmap, name, none, true); //%apply SWIGTYPE ARRAYSOFCLASSES[ANY] {name[ANY]};
-      typemapApply(swigtype, array_tmap, name, pointer, true);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {name*[ANY]};
-
-      /* More typemap applying to match types declared with the kind eg struct, union or class.
-         For example when type is declared as 'struct name'. */
-      if (kind && (Len(kind) > 0)) {
-        String *namewithkind = NewStringf("%s %s",kind, name);
-        typemapApply(swigtype, arrayclass_tmap, namewithkind, none, true); //%apply SWIGTYPE ARRAYSOFCLASSES[ANY] {kind name[ANY]};
-        typemapApply(swigtype, array_tmap, namewithkind, pointer, true);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {kind name*[ANY]};
-        Delete(namewithkind);
-      }
-      Delete(array_tmap);
-      Delete(arrayclass_tmap);
-      Delete(swigtype);
-      Setattr(n,"java:addedtypemaps","1");
-    }
-  }
-
-  /* ----------------------------------------------------------------------
-   * classDeclaration()
-   * ---------------------------------------------------------------------- */
-  virtual int classDeclaration(Node *n) {
-    if (!Getattr(n,"java:addedtypemaps")) addClassTypemaps(n);
-    return Language::classDeclaration(n);
   }
 
   /* ----------------------------------------------------------------------
@@ -1721,7 +1538,6 @@ class JAVA : public Language {
     SwigType  *t = Getattr(n,"type");
     ParmList  *l = Getattr(n,"parms");
     String    *tm;
-    Parm      *jstypep;
     Parm      *p;
     int       i;
     String    *nativecall = NewString("");
@@ -1740,11 +1556,11 @@ class JAVA : public Language {
 
     /* Attach the non-standard typemaps to the parameter list */
     Swig_typemap_attach_parms("jstype", l, NULL);
+    Swig_typemap_attach_parms("javain", l, NULL);
 
     /* Get Java return types */
-    bool is_return_type_java_class = false;
     if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
-      is_return_type_java_class = substituteJavaclassname(t, tm);
+      substituteJavaclassname(t, tm);
       Printf(shadowrettype, "%s", tm);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
@@ -1765,18 +1581,8 @@ class JAVA : public Language {
       func_name = Copy(Getattr(n,"sym:name"));
     }
 
+    /* Start generating the function */
     Printf(module_class_code, "  %s static %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadowrettype, func_name);
-
-    if(SwigType_isarray(t) && is_shadow(getArrayType(t)) && SwigType_array_ndim(t) == 1) {
-      Printf(nativecall, "long[] cArray = ");
-    }
-    else {
-      if(SwigType_type(t) != T_VOID)
-        Printf(nativecall,"return ");
-      if(is_return_type_java_class)
-        Printv(nativecall, "new ", shadowrettype, "(", NIL);
-    }
-
     Printv(nativecall, jniclass_name, ".", overloaded_name, "(", NIL);
 
     /* Get number of required and total arguments */
@@ -1786,26 +1592,21 @@ class JAVA : public Language {
     int gencomma = 0;
 
     /* Output each parameter */
-    for (i = 0, p=l, jstypep=l; i < num_arguments; i++) {
+    for (i = 0, p=l; i < num_arguments; i++) {
 
+      /* Ignored parameters */
       while (checkAttribute(p,"tmap:in:numinputs","0")) {
         p = Getattr(p,"tmap:in:next");
-      }
-      while (checkAttribute(jstypep,"tmap:in:numinputs","0")) {
-        jstypep = Getattr(jstypep,"tmap:in:next");
       }
 
       SwigType *pt = Getattr(p,"type");
       String   *javaparamtype = NewString("");
 
       /* Get the java type of the parameter */
-      bool is_java_class = false;
-      if ((tm = Getattr(jstypep,"tmap:jstype"))) {
-        is_java_class = substituteJavaclassname(pt, tm);
+      if ((tm = Getattr(p,"tmap:jstype"))) {
+        substituteJavaclassname(pt, tm);
         Printf(javaparamtype, "%s", tm);
-        jstypep = Getattr(jstypep,"tmap:jstype:next");
       } else {
-        jstypep = nextSibling(jstypep);
         Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
             "No jstype typemap defined for %s\n", SwigType_str(pt,0));
       }
@@ -1813,7 +1614,17 @@ class JAVA : public Language {
       if (gencomma)
         Printf(nativecall, ", ");
 
-      String *arg = generateShadowParameters(n, p, i, is_java_class, user_arrays, nativecall, javaparamtype);
+      String *arg = makeParameterName(n, p, i);
+
+      // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in native function (in JNI class)
+      if ((tm = Getattr(p,"tmap:javain"))) {
+        substituteJavaclassname(pt, tm);
+        Replaceall(tm, "$javainput", arg);
+        Printv(nativecall, tm, NIL);
+      } else {
+        Swig_warning(WARN_JAVA_TYPEMAP_JAVAIN_UNDEF, input_file, line_number, 
+            "No javain typemap defined for %s\n", SwigType_str(pt,0));
+      }
 
       /* Add to java shadow function header */
       if (gencomma >= 2)
@@ -1821,51 +1632,28 @@ class JAVA : public Language {
       gencomma = 2;
       Printf(module_class_code, "%s %s", javaparamtype, arg);
 
-      p = nextSibling(p);
+      p = Getattr(p,"tmap:in:next");
       Delete(arg);
       Delete(javaparamtype);
     }
 
-    if(SwigType_isarray(t) && is_shadow(getArrayType(t)) && SwigType_array_ndim(t) == 1) {
-      String *array_ret = NewString("");
-      Printf(array_ret,");\n");
-      Printv(array_ret, "    $type[] arrayWrapper = new $type[cArray.length];\n", NIL);
-      Printv(array_ret, "    for (int i=0; i<cArray.length; i++)\n", NIL);
-      Printv(array_ret, "      arrayWrapper[i] = new $type(cArray[i], false);\n", NIL);
-      Printv(array_ret, "    return arrayWrapper;\n", NIL);
-
-      Replaceall(array_ret, "$type", is_shadow(getArrayType(t)));
-      Printv(nativecall, array_ret, NIL);
-      Delete(array_ret);
-    }
-    else {
-      if(is_return_type_java_class) {
-        switch(SwigType_type(t)) {
-          case T_USER:
-            Printf(nativecall, "), true");
-            break;
-          case T_ARRAY:
-          case T_REFERENCE:
-          case T_POINTER:
-            if (Getattr(n,"feature:new")) // %newobject indicating Java must take responsibility for memory ownership
-              Printf(nativecall, "), true");
-            else
-              Printf(nativecall, "), false");
-            break;
-          default:
-            Printf(stderr, "Internal Error: unknown shadow type: %s\n", SwigType_str(t,0));
-            break;
-        }
-      }
-      Printf(nativecall,");\n");
-    }
-
+    Printf(nativecall, ")");
     Printf(module_class_code, ")");
     generateThrowsClause(n, module_class_code);
-    Printf(module_class_code, " {\n");
-    Printv(module_class_code, user_arrays, NIL);
-    Printf(module_class_code, "    %s", nativecall);
-    Printf(module_class_code, "  }\n\n");
+
+    // Transform return type used in native function (in JNI class) to type used in Java wrapper function (in module class)
+    if ((tm = Swig_typemap_lookup_new("javaout",n,"",0))) {
+      if (Getattr(n,"feature:new"))
+        Replaceall(tm,"$owner","true");
+      else
+        Replaceall(tm,"$owner","false");
+      substituteJavaclassname(t, tm);
+      Replaceall(tm, "$jnicall", nativecall);
+      Printf(module_class_code, " %s\n\n", tm);
+    } else {
+      Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
+          "No javaout typemap defined for %s\n", SwigType_str(t,0));
+    }
 
     Delete(shadowrettype);
     Delete(nativecall);
@@ -1876,9 +1664,9 @@ class JAVA : public Language {
   /* -----------------------------------------------------------------------------
    * substituteJavaclassname()
    *
-   * Substitute $javaclassname with either the shadow class name for classes/structs/unions that SWIG knows about
-   * otherwise use the $descriptor name for the Java class name. Note that the $&javaclassname substition
-   * is the same as a $&descriptor substition, ie one pointer added to descriptor name.
+   * Substitute $javaclassname with either the shadow class name for classes/structs/unions that SWIG knows about.
+   * Otherwise use the $descriptor name for the Java class name. Note that the $&javaclassname substitution
+   * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
    * Inputs:
    *   pt - parameter type
    *   tm - jstype typemap
@@ -1891,27 +1679,14 @@ class JAVA : public Language {
   bool substituteJavaclassname(SwigType *pt, String *tm) {
     bool is_java_class = false;
     if (Strstr(tm, "$javaclassname") || Strstr(tm,"$&javaclassname")) {
-      String *javaclassname = NULL;
-      if(SwigType_isarray(pt) && is_shadow(getArrayType(pt)) && SwigType_array_ndim(pt) == 1)
-        javaclassname = is_shadow(getArrayType(pt));
-      else
-        javaclassname = is_shadow(pt);
+      String *javaclassname = is_shadow(pt);
       if (javaclassname) {
-        Replaceall(tm,"$&javaclassname", javaclassname); // is shadow() works for pointers to classes too
+        Replaceall(tm,"$&javaclassname", javaclassname); // is_shadow() works for pointers to classes too
         Replaceall(tm,"$javaclassname", javaclassname);
       }
       else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
         String *descriptor = NULL;
-        SwigType *type = NULL;
-        if(SwigType_isarray(pt)) {
-          SwigType *temp_type = SwigType_typedef_resolve_all(getArrayType(pt));
-          if (is_shadow(temp_type))
-            type = Copy(is_shadow(temp_type));
-          else
-            type = Copy(SwigType_typedef_resolve_all(pt));
-        }
-        else
-          type = Copy(SwigType_typedef_resolve_all(pt));
+        SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
 
         if (Strstr(tm, "$&javaclassname")) {
           SwigType_add_pointer(type);
@@ -1934,25 +1709,17 @@ class JAVA : public Language {
   }
 
   /* -----------------------------------------------------------------------------
-   * generateShadowParameters()
+   * makeParameterName()
    *
-   * Helper function for generating the shadow / module class wrapper functions.
    * Inputs: 
    *   n - Node
    *   p - parameter node
    *   arg_num - parameter argument number
-   *   is_java_class - flag indicating whether wrapped as a Java class or primitive type
-   *   javaparamtype - Java parameter type
-   * Outputs:
-   *   user_arrays - any additional code for accessing arrays
-   *   nativecall - the jni interface function call
    * Return:
    *   arg - a unique parameter name
    * ----------------------------------------------------------------------------- */
 
-  String *generateShadowParameters(Node *n, Parm *p, int arg_num, bool is_java_class, String *user_arrays, String *nativecall, String *javaparamtype) {
-
-    SwigType *pt = Getattr(p,"type");
+  String *makeParameterName(Node *n, Parm *p, int arg_num) {
 
     // Use C parameter name unless it is a duplicate or an empty parameter name
     String   *pn = Getattr(p,"name");
@@ -1964,18 +1731,6 @@ class JAVA : public Language {
       plist = nextSibling(plist);
     }
     String *arg = (!pn || (count > 1)) ? NewStringf("arg%d",arg_num) : Copy(Getattr(p,"name"));
-
-    // Generate code which wraps the JNI long (c pointer) with a Java class
-    if(SwigType_isarray(pt) && is_shadow(getArrayType(pt)) && SwigType_array_ndim(pt) == 1) {
-      Printv(user_arrays, "    long[] $arg_cArray = new long[$arg.length];\n", NIL);
-      Printv(user_arrays, "    for (int i=0; i<$arg.length; i++)\n", NIL);
-      Printv(user_arrays, "      $arg_cArray[i] = ",is_shadow(getArrayType(pt)),".getCPtr($arg[i]);\n", NIL);
-      Replaceall(user_arrays, "$arg", arg);
-      Printv(nativecall, arg, "_cArray", NIL);
-    } else if (is_java_class) {
-      Printv(nativecall, javaparamtype,".getCPtr(",arg,")", NIL);
-    } else 
-      Printv(nativecall, arg, NIL);
 
     return arg;
   }

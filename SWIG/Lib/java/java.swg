@@ -188,30 +188,6 @@
 %typemap(jtype) enum SWIGTYPE "int"
 %typemap(jstype) enum SWIGTYPE "int"
 
-/* Arrays of proxy classes. These typemaps make it possible to treat an array of 
- * class/struct/unions as an array of Java classes. These typemaps are applied in the source
- * code for all class/struct/union declarations, that is the equivalent of:
- * %apply SWIGTYPE ARRAYSOFCLASSES[ANY] { name [ANY] }; */
-%typemap(jni) SWIGTYPE ARRAYSOFCLASSES[ANY] "jlongArray"
-%typemap(jtype) SWIGTYPE ARRAYSOFCLASSES[ANY] "long[]"
-%typemap(jstype) SWIGTYPE ARRAYSOFCLASSES[ANY] "$javaclassname[]"
-
-/* Arrays of pointers to proxy classes. These typemaps make it possible to treat an array of c pointers to 
- * class/struct/union as an array of Java classes. These typemaps are applied in the source
- * code for all class/struct/union declarations, that is the equivalent of:
- * %apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] { name *[ANY] }; */
-%typemap(jni) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] "jlongArray"
-%typemap(jtype) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] "long[]"
-%typemap(jstype) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] "$javaclassname[]"
-
-/* Arrays of enums. SWIG does not have a default for arrays of enums, eg enum SWIGTYPE []. The following 
- * typemaps are applied in the source code for all enum declarations, that is the equivalent of:
- * %apply enum SWIGTYPE[ANY] {name[ANY]}; */
-%typemap(jni) enum SWIGTYPE[ANY] "jintArray"
-%typemap(jtype) enum SWIGTYPE[ANY] "int[]"
-%typemap(jstype) enum SWIGTYPE[ANY] "int[]"
-
-
 /* The following are the in, out, freearg, argout typemaps. These are the JNI code generating typemaps for converting from Java to C and visa versa. */
 
 /* primitive types */
@@ -470,146 +446,6 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 %typemap(freearg) char[ANY] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
 %typemap(out) char[ANY] { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
 
-/* enum SWIGTYPE[ANY] */
-%typemap(in) enum SWIGTYPE[ANY] (jint *jarr)
-%{ if (!SWIG_JavaArrayInInt(jenv, &jarr, (int**)&$1, $input)) return $null; %}
-%typemap(argout) enum SWIGTYPE[ANY] 
-%{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, (int*)$1, $input); %}
-%typemap(out) enum SWIGTYPE[ANY] 
-%{$result = SWIG_JavaArrayOutInt(jenv, (int*)$1, $1_dim0); %}
-%typemap(freearg) enum SWIGTYPE[ANY] 
-#ifdef __cplusplus
-%{ delete [] $1; %}
-#else
-%{ free($1); %}
-#endif
-
-/* Arrays of pointers to proxy classes */
-%typemap(in) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] (jlong *jarr, jsize sz)
-{
-  int i;
-  if (!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
-    return $null;
-  }
-  sz = JCALL1(GetArrayLength, jenv, $input);
-  jarr = JCALL2(GetLongArrayElements, jenv, $input, 0);
-  if (!jarr) {
-    return $null;
-  }
-#ifdef __cplusplus
-  $1 = new $*1_ltype[sz];
-#else
-  $1 = ($1_ltype) calloc(sz, sizeof($*1_ltype));
-#endif
-  if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
-    return $null;
-  }
-  for (i=0; i<sz; i++) {
-    $1[i] = *($1_ltype)&jarr[i];
-  }
-}
-
-%typemap(argout) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY]
-{
-  int i;
-  for (i=0; i<sz$argnum; i++) {
-    jarr$argnum[i] = 0;
-    *($1_ltype)&jarr$argnum[i] = $1[i];
-  }
-  JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
-}
-
-%typemap(out) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY]
-{
-  jlong *arr;
-  int i;
-  $result = JCALL1(NewLongArray, jenv, $1_dim0);
-  if (!$result) {
-    return $null;
-  }
-  arr = JCALL2(GetLongArrayElements, jenv, $result, 0);
-  if (!arr) {
-    return $null;
-  }
-  for (i=0; i<$1_dim0; i++) {
-    arr[i] = 0;
-    *($1_ltype)&arr[i] = $1[i];
-  }
-  JCALL3(ReleaseLongArrayElements, jenv, $result, arr, 0);
-}
-
-%typemap(freearg) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY]
-#ifdef __cplusplus
-%{ delete [] $1; %}
-#else
-%{ free($1); %}
-#endif
-
-/* Arrays of proxy classes */
-%typemap(in) SWIGTYPE ARRAYSOFCLASSES[ANY] (jlong *jarr, jsize sz)
-{
-  int i;
-  if (!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
-    return $null;
-  }
-  sz = JCALL1(GetArrayLength, jenv, $input);
-  jarr = JCALL2(GetLongArrayElements, jenv, $input, 0);
-  if (!jarr) {
-    return $null;
-  }
-#ifdef __cplusplus
-  $1 = new $*1_ltype[sz];
-#else
-  $1 = ($1_ltype) calloc(sz, sizeof($*1_ltype));
-#endif
-  if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
-    return $null;
-  }
-  for (i=0; i<sz; i++) {
-    $1[i] = **($&1_ltype)&jarr[i];
-  }
-}
-
-%typemap(argout) SWIGTYPE ARRAYSOFCLASSES[ANY]
-{
-  int i;
-  for (i=0; i<sz$argnum; i++) {
-    jarr$argnum[i] = 0;
-    *($&1_ltype)&jarr$argnum[i] = &$1[i];
-  }
-  JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
-}
-
-%typemap(out) SWIGTYPE ARRAYSOFCLASSES[ANY]
-{
-  jlong *arr;
-  int i;
-  $result = JCALL1(NewLongArray, jenv, $1_dim0);
-  if (!$result) {
-    return $null;
-  }
-  arr = JCALL2(GetLongArrayElements, jenv, $result, 0);
-  if (!arr) {
-    return $null;
-  }
-  for (i=0; i<$1_dim0; i++) {
-    arr[i] = 0;
-    *($&1_ltype)&arr[i] = &$1[i];
-  }
-  JCALL3(ReleaseLongArrayElements, jenv, $result, arr, 0);
-}
-
-%typemap(freearg) SWIGTYPE ARRAYSOFCLASSES[ANY]
-#ifdef __cplusplus
-%{ delete [] $1; %}
-#else
-%{ free($1); %}
-#endif
-
 /* JNI types */
 %typemap(in) jboolean,
              jchar,
@@ -761,8 +597,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
     jintArray,
     unsigned short[ANY], 
     int[ANY], 
-    long[ANY], 
-    enum SWIGTYPE[ANY]
+    long[ANY]
     ""
 
 %typecheck(SWIG_TYPECHECK_INT64_ARRAY) /* Java long[] */
@@ -797,11 +632,11 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 /* Exception handling */
 
 %typemap(throws) int, 
-                  long, 
-                  short, 
-                  unsigned int, 
-                  unsigned long, 
-                  unsigned short {
+                 long, 
+                 short, 
+                 unsigned int, 
+                 unsigned long, 
+                 unsigned short {
   char error_msg[256];
   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, error_msg);
@@ -826,6 +661,91 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 
 /* Typemaps for code generation in proxy classes and Java type wrapper classes */
 
+/* The javain typemap is used for converting function parameter types from the type 
+ * used in the proxy or type wrapper class to the type used in the JNI class. */
+%typemap(javain) bool,               const bool &,
+                 char,               const char &,
+                 signed char,        const signed char &,
+                 unsigned char,      const unsigned char &,
+                 short,              const short &,
+                 unsigned short,     const unsigned short &,
+                 int,                const int &,
+                 unsigned int,       const unsigned int &,
+                 long,               const long &,
+                 unsigned long,      const unsigned long &,
+                 long long,          const long long &,
+                 unsigned long long, const unsigned long long &,
+                 float,              const float &,
+                 double,             const double &,
+                 char *,
+                 enum SWIGTYPE 
+    "$javainput"
+%typemap(javain) bool[ANY],
+                 char[ANY],
+                 signed char[ANY],
+                 unsigned char[ANY],
+                 short[ANY],
+                 unsigned short[ANY],
+                 int[ANY],
+                 unsigned int[ANY],
+                 long[ANY],
+                 unsigned long[ANY],
+                 long long[ANY],
+/*               unsigned long long[ANY], */
+                 float[ANY],
+                 double[ANY]
+    "$javainput"
+%typemap(javain) void "" /* is this one necessary ? */
+%typemap(javain) SWIGTYPE "$&javaclassname.getCPtr($javainput)"
+%typemap(javain) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$javaclassname.getCPtr($javainput)"
+
+/* The javaout typemap is used for converting function return types from the return type
+ * used in the JNI class to the type returned by the proxy or type wrapper class. */
+%typemap(javaout) bool,               const bool &,
+                  char,               const char &,
+                  signed char,        const signed char &,
+                  unsigned char,      const unsigned char &,
+                  short,              const short &,
+                  unsigned short,     const unsigned short &,
+                  int,                const int &,
+                  unsigned int,       const unsigned int &,
+                  long,               const long &,
+                  unsigned long,      const unsigned long &,
+                  long long,          const long long &,
+                  unsigned long long, const unsigned long long &,
+                  float,              const float &,
+                  double,             const double &,
+                  char *,
+                  enum SWIGTYPE {
+    return $jnicall;
+  }
+%typemap(javaout) bool[ANY],
+                  char[ANY],
+                  signed char[ANY],
+                  unsigned char[ANY],
+                  short[ANY],
+                  unsigned short[ANY],
+                  int[ANY],
+                  unsigned int[ANY],
+                  long[ANY],
+                  unsigned long[ANY],
+                  long long[ANY],
+/*                unsigned long long[ANY], */
+                  float[ANY],
+                  double[ANY] {
+    return $jnicall;
+  }
+%typemap(javaout) void {
+    $jnicall;
+  }
+%typemap(javaout) SWIGTYPE {
+    return new $&javaclassname($jnicall, true);
+  }
+%typemap(javaout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+    return new $javaclassname($jnicall, $owner);
+  }
+
+/* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] ""
 %typemap(javaclassmodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "public"
 %typemap(javacode)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] ""
