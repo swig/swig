@@ -1,20 +1,19 @@
 						-*- outline -*-
 
-* for release 1.3.7 (or 1.4.0?)
+* for release 1.3.8 (or 1.4.0?)
 
 ** Revive the documentation
 
-** Discuss the %pragma directive syntax change from CVS head.  
-   Why is the syntax changing all the time?  Can't we just stick to
-   the syntax in 1.3a5? 
-
-** Maybe port other parser-related stuff from CVS head
-
-** Maybe get the 10/14/00 ("output file handling and shadow classes") change from CVS head 
+** Maybe port Wrapper DOH-ification from CVS head
 
 ** Fix all the bugs on SourceForge
 
-** Incorporate all the patches on SourceForge
+** Add facilities to attach documentation strings to procedures.
+   There is a patch by twburton on SF for the Python language module,
+   but it needs to be done for all language modules.
+
+** Add support for type annotations, see mkoeppe's message:
+   http://mailman.cs.uchicago.edu/pipermail/swig/2001-June/002652.html
 
 * for the unstable 1.5 series
 
@@ -31,9 +30,6 @@
 **     All of the SWIG 1.1p5 examples need to be verified.  Changes
        in type handling and internal data structures may have broken
        a variety of things.
-
-** [Guile] New %pragma "documentation", which allows to attach documentation
-   strings to a procedure.
 
 ** [Guile] Maybe support keyword args
 
@@ -73,4 +69,6 @@
    and a SWIG interface file.
 
    void add(SWIG_OUTPUT(int) *z, int x, int y)
+
+** Unify Guile and MzScheme support, add support for more Scheme systems.
 
