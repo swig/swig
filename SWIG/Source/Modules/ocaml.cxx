@@ -21,13 +21,17 @@ char cvsroot_ocaml_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
+#ifndef MACSWIG
+#include "swigconfig.h"
+#endif
+
 #include <ctype.h>
 
-static const char *ocaml_usage = (char*)"\
+static const char *usage = (char*)"\
 \n\
 Ocaml Options (available with -ocaml)\n\
--help           - Print this help\n\
--prefix name    - Set a prefix to be appended to all names\n\
+     -ldflags        - Print runtime libraries to link with\n\
+     -prefix name    - Set a prefix to be appended to all names\n\
 \n";
 
 static int classmode = 0;
@@ -76,10 +80,9 @@ public:
     for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	if (strcmp (argv[i], "-help") == 0) {
-	  fputs (ocaml_usage, stderr);
+	  fputs (usage, stderr);
 	  SWIG_exit (0);
-	}
-	else if (strcmp (argv[i], "-prefix") == 0) {
+	} else if (strcmp (argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
 	    prefix = new char[strlen(argv[i + 1]) + 2];
 	    strcpy(prefix, argv[i + 1]);
@@ -89,6 +92,9 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
+	} else if (strcmp (argv[i], "-ldflags") == 0) {
+	  printf("%s\n", SWIG_OCAML_RUNTIME);
+	  SWIG_exit (EXIT_SUCCESS);
 	}
       }
     }

@@ -9,6 +9,11 @@ char cvsroot_pike_cxx[] = "$Header$";
 #include "swigconfig.h"
 #endif
 
+static const char *usage = (char *)"\
+Pike Options (available with -pike)\n\
+     -ldflags        - Print runtime libraries to link with\n\
+\n";
+
 class PIKE : public Language {
 private:
 
@@ -62,7 +67,9 @@ public:
     /* Look for certain command line options */
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
-        if (strcmp (argv[i], "-ldflags") == 0) {
+	if (strcmp(argv[i],"-help") == 0) {
+	  fputs(usage,stderr);
+	} else if (strcmp (argv[i], "-ldflags") == 0) {
 	  printf("%s\n", SWIG_PIKE_RUNTIME);
 	  SWIG_exit(EXIT_SUCCESS);
 	}
