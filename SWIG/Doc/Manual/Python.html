@@ -19,66 +19,57 @@
 <li><a href="#n10">Compiling for 64-bit platforms</a>
 <li><a href="#n11">Building Python Extensions under Windows</a>
 </ul>
-<li><a href="#n12">The low-level procedural interface</a>
+<li><a href="#n12">A tour of basic C/C++ wrapping</a>
 <ul>
 <li><a href="#n13">Modules</a>
 <li><a href="#n14">Functions</a>
-<li><a href="#n15">Variable Linking</a>
-<li><a href="#n16">Constants</a>
+<li><a href="#n15">Global variables</a>
+<li><a href="#n16">Constants and enums</a>
 <li><a href="#n17">Pointers</a>
 <li><a href="#n18">Structures</a>
 <li><a href="#n19">C++ classes</a>
-<li><a href="#n20">C++ classes and type-checking</a>
-<li><a href="#n21">C++ overloaded functions</a>
-<li><a href="#n22">Operators</a>
+<li><a href="#n20">C++ inheritance</a>
+<li><a href="#n21">Pointers, references, values, and arrays</a>
+<li><a href="#n22">C++ overloaded functions</a>
+<li><a href="#n23">C++ operators</a>
+<li><a href="#n24">C++ namespaces</a>
+<li><a href="#n25">C++ templates</a>
 </ul>
-<li><a href="#n23">Input and output parameters</a>
-<li><a href="#n24">Simple exception handling </a>
-<li><a href="#n25">Typemaps</a>
+<li><a href="#n26">Common customization features</a>
 <ul>
-<li><a href="#n26">What is a typemap?</a>
-<li><a href="#n27">Python typemaps</a>
-<li><a href="#n28">Typemap variables</a>
-<li><a href="#n29">Useful Functions</a>
+<li><a href="#n27">C/C++ helper functions</a>
+<li><a href="#n28">Adding additional Python code</a>
+<li><a href="#n29">Class extension with %extend</a>
+<li><a href="#n30">Exception handling with %exception</a>
 </ul>
-<li><a href="#n30">Typemap Examples</a>
+<li><a href="#n31">Tips and techniques</a>
 <ul>
-<li><a href="#n31">Converting  Python list to a char ** </a>
-<li><a href="#n32">Expanding a Python object to multiple arguments</a>
-<li><a href="#n33">Using typemaps to return arguments</a>
-<li><a href="#n34">Mapping Python tuples into small arrays</a>
-<li><a href="#n35">Mapping sequences to C arrays</a>
-<li><a href="#n36">Accessing array structure members</a>
-<li><a href="#n37">Pointer handling</a>
+<li><a href="#n32">Input and output parameters</a>
+<li><a href="#n33">String handling</a>
+<li><a href="#n34">Arrays</a>
+<li><a href="#n35">String arrays</a>
+<li><a href="#n36">STL wrappers</a>
 </ul>
-<li><a href="#n38">Other odds and ends</a>
+<li><a href="#n37">Typemaps</a>
 <ul>
-<li><a href="#n39">Adding native Python functions to a SWIG module</a>
+<li><a href="#n38">What is a typemap?</a>
+<li><a href="#n39">Python typemaps</a>
+<li><a href="#n40">Typemap variables</a>
+<li><a href="#n41">Useful Functions</a>
 </ul>
-<li><a href="#n40">Python shadow classes</a>
+<li><a href="#n42">Typemap Examples</a>
 <ul>
-<li><a href="#n41">A simple example</a>
-<li><a href="#n42">Why shadow classes?</a>
-<li><a href="#n43">Automatic shadow class generation</a>
-<li><a href="#n44">Compiling modules with shadow classes</a>
-<li><a href="#n45">Shadow classes and type-checking</a>
-<li><a href="#n46">A preview</a>
+<li><a href="#n43">Converting  Python list to a char ** </a>
+<li><a href="#n44">Expanding a Python object to multiple arguments</a>
+<li><a href="#n45">Using typemaps to return arguments</a>
+<li><a href="#n46">Mapping Python tuples into small arrays</a>
+<li><a href="#n47">Mapping sequences to C arrays</a>
+<li><a href="#n48">Accessing array structure members</a>
+<li><a href="#n49">Pointer handling</a>
 </ul>
-<li><a href="#n47">The gory details of shadow classes</a>
+<li><a href="#n50">Other odds and ends</a>
 <ul>
-<li><a href="#n48">A simple shadow class</a>
-<li><a href="#n49">Module names</a>
-<li><a href="#n50">Two classes</a>
-<li><a href="#n51">The this pointer</a>
-<li><a href="#n52">Object ownership</a>
-<li><a href="#n53">Constructors and Destructors</a>
-<li><a href="#n54">Member data</a>
-<li><a href="#n55">Printing</a>
-<li><a href="#n56">Shadow Functions</a>
-<li><a href="#n57">Nested objects</a>
-<li><a href="#n58">Inheritance and shadow classes</a>
-<li><a href="#n59">Methods that return new objects</a>
-<li><a href="#n60">Performance concerns and hints</a>
+<li><a href="#n51">Adding native Python functions to a SWIG module</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -98,34 +89,36 @@ your mileage might vary.  For the best results, consider using Python
 2.0 or newer.
 
 <p>
-This chapter covers most SWIG features, but general features are cover
-in less depth than is found in earlier chapters.  At the very least,
-make sure you read the "<a href="SWIG.html">SWIG Basics</a>" chapter.
+This chapter covers most SWIG features, but certain low-level details
+are covered in less depth than is found in earlier chapters.  At the
+very least, make sure you read the "<a href="SWIG.html">SWIG
+Basics</a>" chapter.
 
 <a name="n2"></a><H2>18.1 Overview</H2>
 
+
 To build Python extension modules, SWIG uses a layered approach in which
 parts of the extension module are defined in C and other parts are 
-defined in Python.   As a general rule, the C layer contains low-level 
-wrappers whereas the Python parts of the module provide high level
-features.   
+defined in Python.  The C layer contains low-level wrappers whereas Python code
+is used to define high-level features.
 
 <p>
 This layered approach recognizes the fact that certain aspects of
 extension building are better accomplished in each language (instead
-of trying to do everything in C). This approach also provides much
-more flexibility in customization because you can enhance the extension
-module with code in C or code in Python.   
+of trying to do everything in C). Furthermore, by generating code in both
+languages, you get a lot more flexibility since you can enhance the extension
+module with support code in either language.
 
 <p>
-In describing Python interface, this chapter starts by covering the
+In describing the Python interface, this chapter starts by covering the
 basics of configuration, compiling, and installing Python modules.
-Next, the interfaces to common C and C++ programming features are
+Next, the Python interface to common C and C++ programming features is
 described.  Advanced customization features such as typemaps are then
 described followed by a discussion of low-level implementation
 details.
 
 <a name="n3"></a><H2>18.2 Preliminaries</H2>
+
 
 Suppose that you defined a SWIG module such as the following:
 
@@ -135,7 +128,7 @@ Suppose that you defined a SWIG module such as the following:
 %{
 #include "header.h"
 %}
-int gcd(int x,int y);
+int fact(int n);
 </pre>
 </blockquote>
 
@@ -154,12 +147,19 @@ If building a C++ extension, add the <tt>-c++</tt> option:
 <p>
 This creates two different files; a C/C++ source file <tt>example_wrap.c</tt> or
 <tt>example_wrap.cxx</tt> and a Python source file <tt>example.py</tt>.   The generated
-C source code contains the low-level wrappers that need to be compiled and linked with the
-rest of your application to create an extension module.
-The Python source file contains high-level support code. This is the file that you will 
-import to actually use the module.
+C source file contains the low-level wrappers that need to be compiled and linked with the
+rest of your C/C++ application to create an extension module. The Python source file contains 
+high-level support code. This is the file that you will import to use the module.
+
+<p>
+The name the wrapper file is derived from the name of the input file.  For example, if the
+input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>.
+To change this, you can use the <tt>-o</tt> option.   The name of the Python file is derived
+from the module name specified with <tt>%module</tt>.  If the module name is <tt>example</tt>, then
+a file <tt>example.py</tt> is created.
 
 <a name="n4"></a><H3>18.2.1 Getting the right header files</H3>
+
 
 In order to compile the C/C++ wrappers, the compiler needs the <tt>Python.h</tt> header file.
 This file is usually contained in a directory such as 
@@ -187,6 +187,7 @@ Type "copyright", "credits" or "license" for more information.
 
 <a name="n5"></a><H3>18.2.2 Compiling a dynamic module</H3>
 
+
 The preferred approach to building an extension module is to compile it into
 a shared object file or DLL.   To do this, you will need to compile your program
 using comands like this (shown for Linux):
@@ -207,21 +208,26 @@ check the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SWIG Wiki</a> fo
 additional information.
 <p>
 When linking the module, <b>the name of the output file has to match the name
-of the module prefixed by an underscore</b>.  If the name of your SWIG module is "<tt>example</tt>", the
+of the module prefixed by an underscore</b>.  If the name of your module is "<tt>example</tt>", then the
 name of the corresponding object file should be
 "<tt>_example.so</tt>" or "<tt>_examplemodule.so</tt>".
 The name of the module is specified using the <tt>%module</tt> directive or the 
 <tt> -module</tt> command line option.<p>
 
-<b>Compatibility Note:</b> In SWIG-1.3.13 and earlier releases, module names did not
-include the leading underscore.  This has been changed in SWIG-1.3.14 and is consistent
-with other Python extension modules.  For example, the <tt>socket</tt> module actually 
-consists of two files; <tt>socket.py</tt> and <tt>_socket.so</tt>.
+<b>Compatibility Note:</b> In SWIG-1.3.13 and earlier releases, module
+names did not include the leading underscore.  This is because modules
+were normally created as C-only extensions without the extra Python
+support file (instead, creating Python code was supported as optional
+feature).  This has been changed in SWIG-1.3.14 and is consistent with
+other Python extension modules.  For example, the <tt>socket</tt>
+module actually consists of two files; <tt>socket.py</tt> and
+<tt>_socket.so</tt>.  Many other built-in modules follow a similar convention.
 
 <a name="n6"></a><H3>18.2.3 Using distutils</H3>
 
 
 <a name="n7"></a><H3>18.2.4 Static linking</H3>
+
 
 An alternative approach to dynamic linking is to rebuild the Python
 interpreter with your extension module added to it.  In the past,
@@ -289,6 +295,7 @@ If using static linking, you might want to rely on a different approach
 (perhaps using distutils).
 
 <a name="n8"></a><H3>18.2.5 Using your module</H3>
+
 
 To use your module, simply use the Python <tt>import</tt> statement. If
 all goes well, you will be able to this:
@@ -424,6 +431,7 @@ read the man pages).
 
 <a name="n9"></a><H3>18.2.6 Compilation of C++ extensions</H3>
 
+
 Compilation of C++ extensions has traditionally been a tricky problem.
 Since the Python interpreter is written in C, you need to take steps to
 make sure C++ is properly initialized and that modules are compiled
@@ -496,6 +504,7 @@ might want to investigate using a more formal standard such as COM.
 
 <a name="n10"></a><H3>18.2.7 Compiling for 64-bit platforms</H3>
 
+
 On platforms that support 64-bit applications (Solaris, Irix, etc.),
 special care is required when building extension modules.  On these
 machines, 64-bit applications are compiled and linked using a different
@@ -517,6 +526,7 @@ also introduce problems on platforms that support more than one
 linking standard (e.g., -o32 and -n32 on Irix).
 
 <a name="n11"></a><H3>18.2.8 Building Python Extensions under Windows</H3>
+
 
 Building a SWIG extension to Python under Windows is roughly
 similar to the process used with Unix.   You will need to create a
@@ -597,13 +607,15 @@ compilers tends to be rather problematic.  For the latest information,
 you may want to consult the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">
 SWIG Wiki</a>.
 
-<a name="n12"></a><H2>18.3 A Tour of Basic C/C++ Wrapping Features</h2>
+<a name="n12"></a><H2>18.3 A tour of basic C/C++ wrapping</H2>
+
 
 By default, the Python module tries to build a very natural Python interface
 to your C/C++ code.  Functions are wrapped as functions, classes are wrapped as classes, and so forth.
 This section briefly covers the essential features.
 
 <a name="n13"></a><H3>18.3.1 Modules</H3>
+
 
 The SWIG <tt>%module</tt> directive specifies the name of the Python
 module. If you specify `<tt>%module example</tt>', then everything is
@@ -614,6 +626,7 @@ module name, make sure you don't use the same name as a built-in
 Python command or standard module name.  
 
 <a name="n14"></a><H3>18.3.2 Functions</H3>
+
 
 Global functions are wrapped as new Python built-in functions.  For example,
 
@@ -633,7 +646,8 @@ like you think it does:<p>
 &gt;&gt;&gt;
 </pre></blockquote>
 
-<a name="n15"></a><H3>18.3.3 Variable Linking</H3>
+<a name="n15"></a><H3>18.3.3 Global variables</H3>
+
 
 C/C++ global variables are fully supported by SWIG.  However, the underlying
 mechanism is somewhat different than you might expect due to the way that
@@ -716,7 +730,7 @@ The <tt>%immutable</tt> directive stays in effect until it is explicitly disable
 <tt>%mutable</tt>.
 
 <p>
-If you just want to make a specific variable immutable, just supply declaration name.  For example:
+If you just want to make a specific variable immutable, supply a declaration name.  For example:
 
 <blockquote>
 <pre>
@@ -727,7 +741,7 @@ extern char *path;      // Read-only (due to %immutable)
 </blockquote>
 
 <p>
-If you would like to use a name other than "<tt>cvar</tt>", it can be
+If you would like to access variables using a name other than "<tt>cvar</tt>", it can be
 changed using the <tt>-globals</tt> option :<p>
 
 <p>
@@ -744,10 +758,11 @@ module loaded. To prevent this, you might consider renaming
 that starts with a leading underscore. SWIG does not create <tt>cvar</tt>
 if there are no global variables in a module.<p>
 
-<a name="n16"></a><H3>18.3.4 Constants</H3>
+<a name="n16"></a><H3>18.3.4 Constants and enums</H3>
+
 
 C/C++ constants are installed as Python objects containing the
-appropriate value.  To create a constant, use <tt>#define</tt> or the
+appropriate value.  To create a constant, use <tt>#define</tt>, <tt>enum</tt>, or the
 <tt>%constant</tt> directive.  For example:
 
 <blockquote>
@@ -755,11 +770,18 @@ appropriate value.  To create a constant, use <tt>#define</tt> or the
 #define PI 3.14159
 #define VERSION "1.0"
 
+enum Beverage { ALE, LAGER, STOUT, PILSNER };
+
 %constant int FOO = 42;
 %constant const char *path = "/usr/local";
 </pre>
 </blockquote>
 
+For enums, make sure that the definition of the enumeration actually appears in a header
+file or in the wrapper file somehow---if you just stick an enum in a SWIG interface without
+also telling the C compiler about it, the wrapper code won't compile.
+
+<p>
 Note:  declarations declared as <tt>const</tt> are wrapped as read-only variables and
 will be accessed using the <tt>cvar</tt> object described in the previous section.  They
 are not wrapped as constants.
@@ -772,8 +794,9 @@ generate code that prevents this.  You will just have to be careful.
 
 <a name="n17"></a><H3>18.3.5 Pointers</H3>
 
+
 C/C++ pointers are fully supported by SWIG.  Furthermore, SWIG has no problem working with
-incomplete information.  For example, here is a rather simple interface:
+incomplete type information.  Here is a rather simple interface:
 
 <blockquote>
 <pre>
@@ -785,7 +808,7 @@ int fclose(FILE *);
 </pre>
 </blockquote>
 
-When wrapped, you will be able to do very natural sorts of things in Python. For example:
+When wrapped, you will be able to use the functions in a natural way from Python. For example:
 
 <blockquote>
 <pre>
@@ -796,8 +819,8 @@ When wrapped, you will be able to do very natural sorts of things in Python. For
 </pre>
 </blockquote>
 
-If this has made you feel a little uneasy, be assured that there is no
-magic involved.  Underneath the covers, pointers to C/C++ objects are
+If this makes you uneasy, be assured that there is no
+deep magic involved.  Underneath the covers, pointers to C/C++ objects are
 simply represented as opaque values--normally an encoded character
 string like this:
 
@@ -809,8 +832,8 @@ _c0671108_p_FILE
 </pre></blockquote>
 
 This pointer value can be freely passed around to different C functions that
-expect an object of type <tt>FILE *</tt>.  The only thing you can't do is look
-inside the object from Python.  Of course, that isn't much of an issue in this example.
+expect to receive an object of type <tt>FILE *</tt>.  The only thing you can't do is 
+dereference the pointer from Python. Of course, that isn't much of an issue in this example.
 
 <p>
 As an alternative to strings, SWIG can also encode pointers as a
@@ -831,8 +854,6 @@ code with the <tt>-DSWIG_COBJECT_TYPES</tt> option.  For example:
 % gcc -shared example.o example_wrap.o -o _example.so
 </pre></blockquote>
 
-In both representations, the NULL pointer is represented by the Python <tt>None</tt> object.
-
 <p>
 The choice of whether or not to use strings or CObjects is mostly a matter
 of personal preference.  There is no significant performance difference between
@@ -844,29 +865,27 @@ if you are using CObjects, you will get code that works like this:
 <blockquote>
 <pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; a = example.new_Circle(10)
-&gt;&gt;&gt; b = example.new_Square(20)
-&gt;&gt;&gt; a
+&gt;&gt;&gt; f = example.fopen("junk","w")
+&gt;&gt;&gt; f
 &lt;PyCObject object at 0x80c5e60&gt;
-&gt;&gt;&gt; b
-&lt;PyCObject object at 0x8107800&gt;
 &gt;&gt;&gt; 
 </pre>
 </blockquote>
 
-Notice how no clues regarding the type of <tt>a</tt> and <tt>b</tt> is shown. On the other hand,
+Notice how no clues regarding the actual type of <tt>f</tt> is shown. On the other hand,
 the string representation produces the following:
 
 <blockquote>
 <pre>
-&gt;&gt;&gt; a
-'_88671008_p_Circle'
-&gt;&gt;&gt; b
-'_605f0c08_p_Square'
-&gt;&gt;&gt; 
+&gt;&gt;&gt; f
+'_c0671108_p_FILE'
+&gt;&gt;&gt;
 </pre>
 </blockquote>
 
+For either pointer representation, the NULL pointer is represented by <tt>None</tt>.
+
+<p>
 As much as you might be inclined to modify a pointer value directly
 from Python, don't.  The hexadecimal encoding is not necessarily the
 same as the logical memory address of the underlying object.  Instead
@@ -907,7 +926,8 @@ C-style cast may return a bogus result whereas as the C++-style cast will return
 
 <a name="n18"></a><H3>18.3.6 Structures</H3>
 
-If you wrap a C structure, it will be wrapped by a Python class.  This provides
+
+If you wrap a C structure, it will be wrapped by a Python proxy class.  This provides
 a very natural interface.  For example,
 
 <p>
@@ -917,7 +937,7 @@ a very natural interface.  For example,
 
 </pre></blockquote>
 
-can be used as follows in Python:
+can be used as follows:
 <p>
 <blockquote><pre>
 &gt;&gt;&gt; v = example.Vector()
@@ -932,7 +952,7 @@ can be used as follows in Python:
 Similar access is provided for unions and the data members of C++ classes.<p>
 
 <p>
-If you print out the value of <tt>v</tt> in the above example, you will get
+If you print out the value of <tt>v</tt> in the above example, you will see
 something like this:
 
 <blockquote>
@@ -942,9 +962,9 @@ something like this:
 </pre>
 </blockquote>
 
-This object is actually a Python instance that has been wrapped around your low-level
-C structure.  This instance doesn't actually do anything--it just serves as a proxy to
-the low-level C object.   The pointer to the C object can be found in the the <tt>.this</tt>
+This object is actually a Python instance that has been wrapped around a pointer to the low-level
+C structure.  This instance doesn't actually do anything--it just serves as a proxy.
+The pointer to the C object can be found in the the <tt>.this</tt>
 attribute.  For example:
 
 <blockquote>
@@ -958,9 +978,10 @@ _18e31408_p_Vector
 Since Python is garbage collected, structures that are created from Python (using <tt>Vector()</tt>) are
 automatically destroyed by the interpreter when no longer in use (i.e., when there are no Python references
 to the object). It possible to change the ownership of an object by setting the value of the 
-<tt>.thisown</tt> attribute.  When set to 1, Python releases the object when no longer in use.  When set to zero
-(or not set at all), Python will never delete the underlying C object (perhaps the C module knows how to take care of it
-on its own).   Details of memory management are covered a little later.
+<tt>.thisown</tt> attribute.  When set to 1, Python releases the object. When set to 0
+(or not set at all), Python may delete the proxy instance, but it won't delete the
+underlying C object (perhaps the C module is smart enough to take care of this on its own).
+Details of memory management are covered a little later.
 
 <p>
 <tt>const</tt> members of a structure are read-only. Data members
@@ -984,11 +1005,50 @@ When <tt>char *</tt> members of a structure are wrapped, the contents are assume
 dynamically allocated using <tt>malloc</tt> or <tt>new</tt> (depending on whether or not
 SWIG is run with the -c++ option).   When the structure member is set, the old contents will be 
 released and a new value created.   If this is not the behavior you want, you will have to use
-a typemap (described shortly).
+a typemap (described later).
 
 <p>
-When structure members are wrapped, they are handled as pointers.   For example, suppose
-you have two structures like this:
+If a structure contains arrays, access to those arrays is managed through pointers.  For
+example, consider this:
+
+<blockquote>
+<pre>
+struct Bar {
+    int  x[16];
+};
+</pre>
+</blockquote>
+
+If accessed in Python, you will see behavior like this:
+
+<blockquote>
+<pre>
+>>> b = example.Bar()
+>>> print b.x
+_801861a4_p_int
+>>> 
+</pre>
+</blockquote>
+
+This pointer can be passed around to functions that expect to receive
+an <tt>int *</tt> (just like C).   You can also, set the value of an array member using
+another pointer.  For example:
+
+<blockquote>
+<pre>
+>>> c = example.Bar()
+>>> c.x = b.x             # Copy contents of b.x to c.x
+</pre>
+</blockquote>
+
+For assignment, SWIG copies the entire contents of the array starting with the data pointed
+to by <tt>b.x</tt>.   In this example, 16 integers would be copied.  Like C, SWIG makes
+no assumptions about bounds checking---if you pass a bad pointer, you may get a segmentation
+fault or access violation.
+
+<p>
+When a member of a structure is itself a structure, it is handled as a
+pointer.  For example, suppose you have two structures like this:
 
 <blockquote>
 <pre>
@@ -1002,7 +1062,7 @@ struct Bar {
 </pre>
 </blockquote>
 
-Now, suppose that you access the <tt>f</tt> attribute of <tt>Bar</tt>.  For example:
+Now, suppose that you access the <tt>f</tt> attribute of <tt>Bar</tt> like this:
 
 <blockquote>
 <pre>
@@ -1011,8 +1071,8 @@ Now, suppose that you access the <tt>f</tt> attribute of <tt>Bar</tt>.  For exam
 </pre>
 </blockquote>
 
-In this case, <tt>x</tt> is a pointer that would have the same value as would be generated
-in this C code:
+In this case, <tt>x</tt> is a pointer that points to the <tt>Foo</tt> that is inside <tt>b</tt>.
+This is the same value as generated by this C code:
 
 <blockquote>
 <pre>
@@ -1021,8 +1081,8 @@ Foo *x = &b->f;       /* Points inside b */
 </pre>
 </blockquote>
 
-This means that member access works exactly like you expect.  For instance, these two statements
-would perform exactly the same operation:
+Because the pointer points inside the structure, you can modify the contents and 
+everything works just like you would expect. For example:
 
 <blockquote>
 <pre>
@@ -1035,7 +1095,8 @@ would perform exactly the same operation:
 
 <a name="n19"></a><H3>18.3.7 C++ classes</H3>
 
-C++ classes are wrapped much like structures.  For example, if you have this class,
+
+C++ classes are wrapped by Python classes as well. For example, if you have this class,
 
 <p>
 <blockquote><pre>class List {
@@ -1047,7 +1108,6 @@ public:
   void remove(char *item);
   char *get(int n);
   int  length;
-static void print(List *l);
 };
 </pre></blockquote>
 
@@ -1058,17 +1118,45 @@ you can use it in Python like this:
 &gt;&gt;&gt; l.insert("Ale")
 &gt;&gt;&gt; l.insert("Stout")
 &gt;&gt;&gt; l.insert("Lager")
-&gt;&gt;&gt; example.List_print(l)
-Lager
-Stout
-Ale
+&gt;&gt;&gt; l.get(1)
+'Stout'
 &gt;&gt;&gt; print l.length
 3
 &gt;&gt;&gt;
+</pre></blockquote>
+
+Class data members work the same way as for C structures.   Static class members are wrapped
+in the same way as global variables and global functions.  For example, if you have a class
+like this,
+
+<blockquote>
+<pre>
+class Spam {
+public:
+   static int nobjs;
+   static void debug();
+};
+</pre>
+</blockquote>
+
+Then these declarations are accessed as follows:
+
+<blockquote>
+<pre>
+>>> print example.cvar.Spam_nobjs
+7
+>>> example.Spam_debug()
+</pre>
+</blockquote>
+
+In Python 2.2 and more recent releases, static class functions may be
+wrapped as part of the class instead.  For example, you can say
+<tt>example.Spam.debug()</tt>.  This is not yet supported for static data members.
 
 </pre></blockquote>
 
-<a name="n20"></a><H3>18.3.8 C++ classes and type-checking</H3>
+<a name="n20"></a><H3>18.3.8 C++ inheritance</H3>
+
 
 SWIG is fully aware of issues related to C++ inheritance.  Therefore, if you have
 classes like this
@@ -1096,7 +1184,56 @@ void spam(Foo *f);
 then the function <tt>spam()</tt> accepts <tt>Foo *</tt> or a pointer to any class derived from <tt>Foo</tt>.
 It is safe to use multiple inheritance with SWIG.
 
-<a name="n21"></a><H3>18.3.9 C++ overloaded functions</H3>
+<a name="n21"></a><H3>18.3.9 Pointers, references, values, and arrays</H3>
+
+
+In C++, there are many different ways a function might receive
+and manipulate objects.  For example:
+
+<blockquote>
+<pre>
+void spam1(Foo *x);      // Pass by pointer
+void spam2(Foo &x);      // Pass by reference
+void spam3(Foo x);       // Pass by value
+void spam4(Foo x[]);     // Array of objects
+</pre>
+</blockquote>
+
+In Python, there is no detailed distinction like this--specifically,
+there are only "objects".  There are no pointers, references, arrays,
+and so forth.  Because of this, SWIG unifies all of these types
+together in the wrapper code.  For instance, if you actually had the
+above functions, it would be perfectly legal to do this:
+
+<blockquote>
+<pre>
+>>> f = Foo()           # Create a Foo
+>>> spam1(f)            # Ok. Pointer
+>>> spam2(f)            # Ok. Reference
+>>> spam3(f)            # Ok. Value.
+>>> spam4(f)            # Ok. Array (1 element)
+</pre>
+</blockquote>
+
+Similar behavior occurs for return values.  For example, if you had
+functions like this,
+
+<blockquote>
+<pre>
+Foo *spam5();
+Foo &spam6();
+Foo  spam7();
+</pre>
+</blockquote>
+
+then all three functions will return a pointer to some <tt>Foo</tt> object.
+The first two functions return a pointer, but don't give Python ownership of
+the returned object.  Since the third function (spam7) returns a value, newly
+allocated memory is used to hold the result.  Python will release this memory 
+when the return value is garbage collected.
+
+<a name="n22"></a><H3>18.3.10 C++ overloaded functions</H3>
+
 
 C++ overloaded functions, methods, and constructors are mostly supported by SWIG.  For example,
 if you have two functions like this:
@@ -1140,7 +1277,7 @@ you can write Python code like this:
 </blockquote>
 
 Overloading support is not quite as flexible as in C++. Sometimes there are methods that SWIG
-can't disambiguate such as this:
+can't disambiguate. For example:
 
 <blockquote>
 <pre>
@@ -1149,7 +1286,7 @@ void spam(short);
 </pre>
 </blockquote>
 
-If this occurs, you will get a warning message like this:
+If declarations such as this appear, you will get a warning message like this:
 
 <blockquote>
 <pre>
@@ -1181,11 +1318,527 @@ void spam(short);   // Ignored
 
 Please refer to the "SWIG and C++" chapter for more information about overloading. 
 
-<a name="n22"></a><H3>18.3.10 Operators</H3>
+<a name="n23"></a><H3>18.3.11 C++ operators</H3>
 
-Rewrite
 
-<a name="n23"></a><H2>18.4 Input and output parameters</H2>
+Certain C++ overloaded operators can be handled automatically by SWIG.  For example,
+consider a class like this:
+
+<blockquote>
+<pre>
+class Complex {
+private:
+  double rpart, ipart;
+public:
+  Complex(double r = 0, double i = 0) : rpart(r), ipart(i) { }
+  Complex(const Complex &c) : rpart(c.rpart), ipart(c.ipart) { }
+  Complex &operator=(const Complex &c);
+  Complex operator+(const Complex &c) const;
+  Complex operator-(const Complex &c) const;
+  Complex operator*(const Complex &c) const;
+  Complex operator-() const;
+  
+  double re() const { return rpart; }
+  double im() const { return ipart; }
+};
+</pre>
+</blockquote>
+
+When wrapped, it works like you expect:
+
+<blockquote>
+<pre>
+>>> c = Complex(3,4)
+>>> d = Complex(7,8)
+>>> e = c + d
+>>> e.re()
+10.0
+>>> e.im()
+12.0
+</pre>
+</blockquote>
+
+One restriction with operator overloading support is that SWIG is not
+able to fully handle operators that aren't defined as part of the class.
+For example, if you also had code like this
+
+<blockquote>
+<pre>
+class Complex {
+...
+friend Complex operator+(double, const Complex &c);
+...
+};
+</pre>
+</blockquote>
+
+then SWIG doesn't know what to do with the friend function--in fact,
+it simply ignores it and issues a warning.   You can still wrap the operator,
+but you may have to do it as a function.  For example:
+
+<blockquote>
+<pre>
+%rename(Complex_add_dc) operator+(double, const Complex &);
+...
+Complex operator+(double, const Complex &c);
+</pre>
+</blockquote>
+
+There are ways to make this operator appear as part of the class using the <tt>%extend</tt> directive.
+Keep reading.
+
+<p>
+Also, be aware that certain operators don't map cleanly to Python.  For instance,
+overloaded assignment operators don't map to Python semantics and will be ignored.
+
+<a name="n24"></a><H3>18.3.12 C++ namespaces</H3>
+
+
+SWIG is aware of C++ namespaces, but namespace names do not appear in
+the module nor do namespaces result in a module that is broken up into
+submodules or packages.  For example, if you have a file like this,
+
+<blockquote>
+<pre>
+%module example
+
+namespace foo {
+   int fact(int n);
+   struct Vector {
+       double x,y,z;
+   };
+};
+</pre>
+</blockquote>
+
+it works in Python as follows:
+
+<blockquote>
+<pre>
+>>> import example
+>>> example.fact(3)
+6
+>>> v = example.Vector()
+>>> v.x = 3.4
+>>> print v.y
+0.0
+>>>
+</pre>
+</blockquote>
+
+If you have more than one namespace and your want to keep their
+symbols separate, consider wrapping them as separate SWIG modules.
+For example, make the module name the same as the namespace and create
+extension modules for each namespace separately.  If your program
+utilizes thousands of small deeply nested namespaces each with
+identical symbol names, well, then you get what you deserve.
+
+<a name="n25"></a><H3>18.3.13 C++ templates</H3>
+
+
+C++ templates don't present a huge problem for SWIG.  However, in order
+to create wrappers, you have to tell SWIG to create wrappers for a particular
+template instantiation.  To do this, you use the <tt>%template</tt> directive.
+For example:
+
+<blockquote>
+<pre>
+%module example
+%{
+#include "pair.h"
+%}
+
+template&lt;class T1, class T2&gt;
+struct pair {
+   typedef T1 first_type;
+   typedef T2 second_type;
+   T1 first;
+   T2 second;
+   pair();
+   pair(const T1&, const T2&);
+  ~pair();
+};
+
+%template(pairii) pair&lt;int,int&gt;;
+</pre>
+</blockquote>
+
+In Python:
+
+<blockquote>
+<pre>
+>>> import example
+>>> p = example.pairii(3,4)
+>>> p.first
+3
+>>> p.second
+4
+</pre>
+</blockquote>
+
+Obviously, there is more to template wrapping than what is shown in this example.
+More details can be found in the "SWIG and C++" section.   Some more complicated
+examples will appear later.
+
+<a name="n26"></a><H2>18.4 Common customization features</H2>
+
+
+The last section presented the absolute basics of C/C++ wrapping. If you do nothing
+but feed SWIG a header file, you will get an interface that mimics the behavior
+described.  However, sometimes this isn't enough to produce a nice module.  Certain
+types of functionality might be missing or the interface to certain functions might
+be awkward.  This section describes some common SWIG features that are used
+to improve your the interface to an extension module.
+
+<a name="n27"></a><H3>18.4.1 C/C++ helper functions</H3>
+
+
+Sometimes when you create a module, it is missing certain bits of functionality. For
+example, if you had a function like this
+
+<blockquote>
+<pre>
+void set_transform(Image *im, double m[4][4]);
+</pre>
+</blockquote>
+
+it would be accessible from Python, but there may be no easy way to call it.
+For example, you might get errors like this:
+
+<blockquote>
+<pre>
+>>> a = [
+...   [1,0,0,0],
+...   [0,1,0,0],
+...   [0,0,1,0],
+...   [0,0,0,1]]
+>>> set_transform(im,a)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+TypeError: Type error. Expected _p_a_4__double
+</pre>
+</blockquote>
+
+The problem here is that there is no easy way to construct and manipulate a suitable
+<tt>double [4][4]</tt> type to use.   To fix this, you can write some extra C helper
+functions.  Just use the <tt>%inline</tt> directive. For example:
+
+<blockquote>
+<pre>
+%inline %{
+double (*new_mat44())[4] {
+   return (double (*)[4]) malloc(16*sizeof(double));
+}
+void free_mat44(double (*x)[4]) {
+   free(x);
+}
+void mat44_set(double x[4][4], int i, int j, double v) {
+   x[i][j] = v;
+}
+double mat44_get(double x[4][4], int i, int j) {
+   return x[i][j];
+}
+%}
+</pre>
+</blockquote>
+
+From Python, you could then write code like this:
+
+<blockquote>
+<pre>
+>>> a = new_mat44()
+>>> mat44_set(a,0,0,1.0)
+>>> mat44_set(a,1,1,1.0)
+>>> mat44_set(a,2,2,1.0)
+...
+>>> set_transform(im,a)
+>>>
+</pre>
+</blockquote>
+
+Admittedly, this is not the most elegant looking approach.  However, it works and it wasn't too
+hard to implement.  It is possible to clean this up using Python code, typemaps, and other
+customization features.
+
+<a name="n28"></a><H3>18.4.2 Adding additional Python code</H3>
+
+
+If writing support code in C isn't enough, it is also possible to write code in
+Python.  This code gets inserted in to the <tt>.py</tt> file created by SWIG.   One
+use of Python code might be to supply a high-level interface to certain functions.
+For example:
+
+<blockquote>
+<pre>
+%pythoncode %{
+def set_transform(im,x):
+   a = new_mat44()
+   for i in range(4):
+       for j in range(4):
+           mat44_set(a,i,j,x[i][j])
+   _example.set_transform(im,a)
+   free_mat44(a)
+%}
+</pre>
+</blockquote>
+
+In this example, the module now provides a high-level Python interface built on top of
+low-level helper functions.  For example, this code now seems to work:
+
+<blockquote>
+<pre>
+>>> a = [
+...   [1,0,0,0],
+...   [0,1,0,0],
+...   [0,0,1,0],
+...   [0,0,0,1]]
+>>> set_transform(im,a)
+>>>
+</pre>
+</blockquote>
+
+Admittedly, this whole scheme for wrapping the two-dimension array
+argument probably appears to be rather ad-hoc.  Besides, shouldn't a
+Python list or a Numeric Python array just work normally?
+We'll get to those examples soon enough.  For now, think of this example
+as an illustration of what can be done without having to rely on any
+of the more advanced customization features.
+
+<a name="n29"></a><H3>18.4.3 Class extension with %extend</H3>
+
+
+One of the more interesting features of SWIG is that it can extend
+structures and classes with new methods--at least in the Python interface.
+Here is a simple example:
+
+<blockquote>
+<pre>
+%module example
+%{
+#include "someheader.h"
+%}
+
+struct Vector {
+   double x,y,z;
+};
+
+%extend Vector {
+   char *__str__() {
+       static char tmp[1024];
+       sprintf(tmp,"Vector(%g,%g,%g)", self->x,self->y,self->z);
+       return tmp;
+   }
+   Vector(double x, double y, double z) {
+       Vector *v = (Vector *) malloc(sizeof(Vector));
+       v->x = x;
+       v->y = y;
+       v->z = z;
+       return v;
+   }
+};
+</pre>
+</blockquote>
+
+Now, in Python
+
+<blockquote>
+<pre>
+>>> v = example.Vector(2,3,4)
+>>> print v
+Vector(2,3,4)
+>>>
+</pre>
+</blockquote>
+
+As you can see, <tt>%extend</tt> is a rather interesting directive. Furthermore, you can use
+it for far more evil tasks than this.  For example, if you wanted to overload
+a Python operator, you might do this:
+
+<blockquote>
+<pre>
+%extend Vector {
+    Vector __add__(Vector *other) {
+         Vector v;
+         v.x = self->x + other->x;
+         v.y = self->y + other->y;
+         v.z = self->z + other->z;
+         return v;
+    }
+};
+</pre>
+</blockquote>
+
+Use it like this:
+
+<blockquote>
+<pre>
+>>> import example
+>>> v = example.Vector(2,3,4)
+>>> w = example.Vector(10,11,12)
+>>> print v+w
+Vector(12,14,16)
+>>> 
+</pre>
+</blockquote>
+
+<tt>%extend</tt> works with both C and C++ code.  It does not modify the underlying object
+in any way---the extensions only show up in the Python interface.
+
+<a name="n30"></a><H3>18.4.4 Exception handling with %exception</H3>
+
+
+If a C or C++ function throws an error, you may want to convert that error into a Python
+exception. To do this, you can use the <tt>%exception</tt> directive.  <tt>%exception</tt>
+simply lets you rewrite part of the generated wrapper code to include an error check.
+
+<p>
+In C, a function often indicates an error by returning a status code (a negative number
+or a NULL pointer perhaps).  Here is a simple example of how you might handle that:
+
+<blockquote>
+<pre>
+%exception malloc {
+  $action;
+  if (!result) {
+     PyErr_SetString(PyExc_MemoryError,"Not enough memory");
+     return NULL;
+  }
+}
+void *malloc(size_t nbytes);
+</pre>
+</blockquote>
+
+In Python,
+
+<blockquote>
+<pre>
+>>> a = example.malloc(2000000000)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+MemoryError: Not enough memory
+>>>
+</pre>
+</blockquote>
+
+If a library provides some kind of general error handling framework, you can also use
+that.  For example:
+
+<blockquote>
+<pre>
+%exception {
+   $action;
+   if (err_occurred()) {
+      PyErr_SetString(PyExc_RuntimeError, err_message());
+      return NULL;
+   }
+}
+</pre>
+</blockquote>
+
+No declaration name is given to <tt>%exception</tt>, it is applied to all wrapper functions.
+
+<p>
+C++ exceptions are also easy to handle.  For example, you can write code like this:
+
+<blockquote>
+<pre>
+%exception getitem {
+   try {
+      $action
+   } catch {std::out_of_range &e) {
+      PyErr_SetString(PyExc_IndexError, const_cast<char*>(e.what()));
+      return NULL;
+   }
+}
+
+class Base {
+public:
+     Foo *getitem(int index);      // Exception handled added
+     ...
+};
+</pre>
+</blockquote>
+
+<p>
+When raising a Python exception from C, use the <tt>PyErr_SetString()</tt>
+function as shown above.  The following exception types can be used as the first argument.
+
+<blockquote>
+<pre>
+PyExc_ArithmeticError
+PyExc_AssertionError
+PyExc_AttributeError
+PyExc_EnvironmentError
+PyExc_EOFError
+PyExc_Exception
+PyExc_FloatingPointError
+PyExc_ImportError
+PyExc_IndexError
+PyExc_IOError
+PyExc_KeyError
+PyExc_KeyboardInterrupt
+PyExc_LookupError
+PyExc_MemoryError
+PyExc_NameError
+PyExc_NotImplementedError
+PyExc_OSError
+PyExc_OverflowError
+PyExc_RuntimeError
+PyExc_StandardError
+PyExc_SyntaxError
+PyExc_SystemError
+PyExc_TypeError
+PyExc_UnicodeError
+PyExc_ValueError
+PyExc_ZeroDivisionError
+</pre>
+</blockquote>
+
+These exceptions are actually organized into an hierarchy as shown below.  Consult the Python
+Essential Reference for more details (shameless plug):
+
+<blockquote>
+<pre>
+PyExc_Exception
+    PyExc_SystemExit
+    PyExc_StandardError
+       PyExc_ArithmeticError
+           PyExc_FloatingPointError
+           PyExc_OverflowError
+           PyExc_ZeroDivisionError
+       PyExc_AssertionError
+       PyExc_AttributeError
+       PyExc_EnvironmentError
+           PyExc_IOError  
+           PyExc_OSError
+       PyExc_EOFError
+       PyExc_ImportError
+       PyExc_KeyboardInterrupt
+       PyExc_LookupError
+           PyExc_IndexError
+           PyExc_KeyError
+       PyExc_MemoryError
+       PyExc_NameError
+       PyExc_RuntimeError
+           PyExc_NotImplementedError
+       PyExc_SyntaxError
+       PyExc_SystemError
+       PyExc_TypeError
+       PyExc_ValueError
+           PyExc_UnicodeError
+</pre>
+</blockquote>
+
+There is also a language-independent <tt>exception.i</tt> library file that can be used
+to raise exceptions.
+
+<a name="n31"></a><H2>18.5 Tips and techniques</H2>
+
+
+This section covers some of the more common wrapping problems.  Topics include dealing with
+input and output parameters, strings, and arrays.
+  
+<a name="n32"></a><H3>18.5.1 Input and output parameters</H3>
 
 
 A common problem in some C programs is handling parameters passed as simple pointers.  For
@@ -1354,231 +2007,19 @@ Now, in Python:
 </pre>
 </blockquote>
 
-<a name="n24"></a><H2>18.5 Simple exception handling </H2>
+<a name="n33"></a><H3>18.5.2 String handling</H3>
 
 
-The SWIG <tt>%exception</tt> directive can be used to define a
-user-definable exception handler that can convert C/C++ errors into Python exceptions.
-The chapter on customization features contains more details, but suppose you have a C++ class like
-the following :<p>
+<a name="n34"></a><H3>18.5.3 Arrays</H3>
 
-<blockquote><pre>
-class RangeError {};   // Used for an exception
 
-class DoubleArray {
-  private:
-    int n;
-    double *ptr;
-  public:
-    // Create a new array of fixed size
-    DoubleArray(int size) {
-      ptr = new double[size];
-      n = size;
-    }
-    // Destroy an array
-    ~DoubleArray() {
-       delete ptr;
-    }
-    // Return the length of the array
-    int   length() {
-      return n;
-    }
+<a name="n35"></a><H3>18.5.4 String arrays</H3>
 
-    // Get an item from the array and perform bounds checking.
-    double getitem(int i) {
-      if ((i &gt;= 0) &amp;&amp; (i &lt; n))
-        return ptr[i];
-      else
-        throw RangeError();
-    }
-    // Set an item in the array and perform bounds checking.
-    void setitem(int i, double val) {
-      if ((i &gt;= 0) &amp;&amp; (i &lt; n))
-        ptr[i] = val;
-      else {
-        throw RangeError();
-      }
-    }
-  };
-</pre></blockquote>
-<p>
 
-Since several methods in this class can throw an exception
-for an out-of-bounds access, you might want to catch
-this in the Python extension by writing the following in an
-interface file:
+<a name="n36"></a><H3>18.5.5 STL wrappers</H3>
 
-<p>
-<blockquote><pre>%exception {
-  try {
-    $action
-  }
-  catch (RangeError) {
-    PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
-    return NULL;
-  }
-}
 
-class DoubleArray {
-...
-};
-</pre></blockquote>
-
-The exception handling code is inserted directly into generated wrapper
-functions.  The <tt>$action</tt> variable is replaced with the C/C++
-code being executed by the wrapper.  When an exception handler
-is defined, errors can be caught and used to gracefully raise a Python
-exception instead of forcing the entire program to terminate with an uncaught
-error.
-
-<p>
-As shown, the exception handling code will be added to every wrapper function.
-Since this is somewhat inefficient.  You might consider refining the 
-exception handler to only apply to specific methods like this:
-
-<blockquote>
-<pre>
-%exception getitem {
-  try {
-    $action
-  }
-  catch (RangeError) {
-    PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
-    return NULL;
-  }
-}
-
-%exception setitem {
-  try {
-    $action
-  }
-  catch (RangeError) {
-    PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
-    return NULL;
-  }
-}
-</pre>
-</blockquote>
-
-In this case, the exception handler is only attached to methods and functions
-named <tt>getitem</tt> and <tt>setitem</tt>.
-
-<p>
-If you had a lot of different methods, you can avoid extra typing by using a macro.
-For example:
-
-<blockquote>
-<pre>
-%define RANGE_ERROR
-{
-  try {
-    $action
-  }
-  catch (RangeError) {
-    PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
-    return NULL;
-  }
-}
-%enddef
-
-%exception getitem RANGE_ERROR;
-%exception setitem RANGE_ERROR;
-</pre>
-</blockquote>
-
-Since SWIG's exception handling is user-definable, you are not limited to C++ exception handling.
-See the chapter on "<a href="Customization.html">Customization Features</a>" for more examples.
-
-<p>
-When raising a Python exception from C, use the <tt>PyErr_SetString()</tt>
-function as shown above.  The following exception types can be used as the first argument.
-
-<blockquote>
-<pre>
-PyExc_ArithmeticError
-PyExc_AssertionError
-PyExc_AttributeError
-PyExc_EnvironmentError
-PyExc_EOFError
-PyExc_Exception
-PyExc_FloatingPointError
-PyExc_ImportError
-PyExc_IndexError
-PyExc_IOError
-PyExc_KeyError
-PyExc_KeyboardInterrupt
-PyExc_LookupError
-PyExc_MemoryError
-PyExc_NameError
-PyExc_NotImplementedError
-PyExc_OSError
-PyExc_OverflowError
-PyExc_RuntimeError
-PyExc_StandardError
-PyExc_SyntaxError
-PyExc_SystemError
-PyExc_TypeError
-PyExc_UnicodeError
-PyExc_ValueError
-PyExc_ZeroDivisionError
-</pre>
-</blockquote>
-
-These exceptions are actually organized into an hierarchy as shown below.  Consult the Python
-Essential Reference for more details (shameless plug):
-
-<blockquote>
-<pre>
-PyExc_Exception
-    PyExc_SystemExit
-    PyExc_StandardError
-       PyExc_ArithmeticError
-           PyExc_FloatingPointError
-           PyExc_OverflowError
-           PyExc_ZeroDivisionError
-       PyExc_AssertionError
-       PyExc_AttributeError
-       PyExc_EnvironmentError
-           PyExc_IOError  
-           PyExc_OSError
-       PyExc_EOFError
-       PyExc_ImportError
-       PyExc_KeyboardInterrupt
-       PyExc_LookupError
-           PyExc_IndexError
-           PyExc_KeyError
-       PyExc_MemoryError
-       PyExc_NameError
-       PyExc_RuntimeError
-           PyExc_NotImplementedError
-       PyExc_SyntaxError
-       PyExc_SystemError
-       PyExc_TypeError
-       PyExc_ValueError
-           PyExc_UnicodeError
-</pre>
-</blockquote>
-
-<p>
-<b>Compatibility note:</b> In SWIG1.1, exceptions were defined using the older <tt>%except</tt> directive:
-<blockquote>
-<pre>
-%except(python) {
-  try {
-    $action
-  }
-  catch (RangeError) {
-    PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
-    return NULL;
-  }
-}
-</pre>
-</blockquote>
-
-This is still supported, but it is deprecated.  The newer <tt>%exception</tt> directive provides the same
-functionality, but it has additional capabilities that make it more powerful.
-
-<a name="n25"></a><H2>18.6 Typemaps</H2>
+<a name="n37"></a><H2>18.6 Typemaps</H2>
 
 
 This section describes how you can modify SWIG's default wrapping behavior
@@ -1592,7 +2033,7 @@ part of using SWIG---the default wrapping behavior is enough in most cases.
 Typemaps are only used if you want to change some aspect of the primitive
 C-Python interface.
 
-<a name="n26"></a><H3>18.6.1 What is a typemap?</H3>
+<a name="n38"></a><H3>18.6.1 What is a typemap?</H3>
 
 
 A typemap is nothing more than a code generation rule that is attached to 
@@ -1691,7 +2132,7 @@ parameter is ommitted):
 </pre>
 </blockquote>
 
-<a name="n27"></a><H3>18.6.2 Python typemaps</H3>
+<a name="n39"></a><H3>18.6.2 Python typemaps</H3>
 
 
 The previous section illustrated an "in" typemap for converting Python objects to C.
@@ -1786,7 +2227,7 @@ Initialize an argument to a value before any conversions occur.
 
 Examples of these methods will appear shortly.
 
-<a name="n28"></a><H3>18.6.3 Typemap variables</H3>
+<a name="n40"></a><H3>18.6.3 Typemap variables</H3>
 
 
 Within typemap code, a number of special variables prefaced with a <tt>$</tt> may appear.
@@ -1840,7 +2281,7 @@ properly assigned.
 The Python name of the wrapper function being created.
 </blockquote>
 
-<a name="n29"></a><H3>18.6.4 Useful Functions</H3>
+<a name="n41"></a><H3>18.6.4 Useful Functions</H3>
 
 
 When you write a typemap, you usually have to work directly with Python objects.
@@ -1937,14 +2378,14 @@ write me
 </pre>
 </blockquote>
 
-<a name="n30"></a><H2>18.7 Typemap Examples</H2>
+<a name="n42"></a><H2>18.7 Typemap Examples</H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
 might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
-<a name="n31"></a><H3>18.7.1 Converting  Python list to a char ** </H3>
+<a name="n43"></a><H3>18.7.1 Converting  Python list to a char ** </H3>
 
 
 A common problem in many C programs is the processing of command line
@@ -2017,7 +2458,7 @@ memory allocation is used to allocate memory for the array, the
 "freearg" typemap is used to later release this memory after the execution of
 the C function. 
 
-<a name="n32"></a><H3>18.7.2 Expanding a Python object to multiple arguments</H3>
+<a name="n44"></a><H3>18.7.2 Expanding a Python object to multiple arguments</H3>
 
 
 Suppose that you had a collection of C functions with arguments
@@ -2087,7 +2528,7 @@ to supply the argument count.  This is automatically set by the typemap code.  F
 </pre>
 </blockquote>
 
-<a name="n33"></a><H3>18.7.3 Using typemaps to return arguments</H3>
+<a name="n45"></a><H3>18.7.3 Using typemaps to return arguments</H3>
 
 
 A common problem in some C programs is that values may be returned in
@@ -2165,7 +2606,7 @@ function can now be used as follows:
 &gt;&gt;&gt;
 </pre></blockquote>
 
-<a name="n34"></a><H3>18.7.4 Mapping Python tuples into small arrays</H3>
+<a name="n46"></a><H3>18.7.4 Mapping Python tuples into small arrays</H3>
 
 
 In some applications, it is sometimes desirable to pass small arrays
@@ -2206,7 +2647,7 @@ Since our mapping copies the contents of a Python tuple into a C
 array, such an approach would not be recommended for huge arrays, but
 for small structures, this approach works fine.<p>
 
-<a name="n35"></a><H3>18.7.5 Mapping sequences to C arrays</H3>
+<a name="n47"></a><H3>18.7.5 Mapping sequences to C arrays</H3>
 
 
 Suppose that you wanted to generalize the previous example to handle C
@@ -2285,7 +2726,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 </pre>
 </blockquote>
 
-<a name="n36"></a><H3>18.7.6 Accessing array structure members</H3>
+<a name="n48"></a><H3>18.7.6 Accessing array structure members</H3>
 
 
 Consider the following data structure :<p>
@@ -2337,7 +2778,7 @@ the "in" typemap in the previous section would be used to convert an
 <tt>int[]</tt> array to C whereas the "memberin" typemap would be used
 to copy the converted array into a C data structure.
 
-<a name="n37"></a><H3>18.7.7 Pointer handling</H3>
+<a name="n49"></a><H3>18.7.7 Pointer handling</H3>
 
 
 Occasionally, it might be necessary to convert pointer values that have
@@ -2417,10 +2858,10 @@ that has a <tt>this</tt> attribute.  In addition,
 <tt>SWIG_NewPointerObj()</tt> can automatically generate a shadow
 class object (if applicable).
 
-<a name="n38"></a><H2>18.8 Other odds and ends</H2>
+<a name="n50"></a><H2>18.8 Other odds and ends</H2>
 
 
-<a name="n39"></a><H3>18.8.1 Adding native Python functions to a SWIG module</H3>
+<a name="n51"></a><H3>18.8.1 Adding native Python functions to a SWIG module</H3>
 
 
 Sometimes it is desirable to add a native Python method to a SWIG
@@ -2454,697 +2895,6 @@ or<p>
 <p>
 <blockquote><pre>%native(system) extern PyObject *spam_system(PyObject *self, PyObject *args);
 </pre></blockquote>
-
-<a name="n40"></a><H2>18.9 Python shadow classes</H2>
-
-
-Using the low-level C interface, it is possible to create a Python
-class that works like the original C++ class.  In this case, the
-Python class is said to shadow the original C++ class.  It's really
-just a wrapper around the C++ original class.
-
-<a name="n41"></a><H3>18.9.1 A simple example</H3>
-
-
-One way to illustrate a shadow class is to write one by hand.  For example:
-
-<p>
-<blockquote><pre>
-class List:
-    def __init__(self):
-        self.this = new_List()
-    def __del__(self):
-        delete_List(self.this)
-    def search(self,item):
-        return List_search(self.this,item)
-    def insert(self,item):
-        List_insert(self.this,item)
-    def remove(self,item):
-        List_remove(self.this,item)
-    def get(self,n):
-        return List_get(self.this,n)
-    def __getattr__(self,name):
-        if name == "length" : return List_length_get(self.this))
-        else : return self.__dict__[name]
-    def __setattr__(self,name,value):
-        if name == "length": List_length_set(self.this,value)
-        else : self.__dict__[name] = value
-</pre></blockquote>
-<p>
-In the shadow class, a reference to the underlying C++ object is kept in the
-<tt>.this</tt> attribute.  Methods are then written so that they pass the
-<tt>.this</tt> attribute along with the other arguments to the low-level accessor
-function created by SWIG.  This, in turn, allows the class to be used like this:
-<blockquote><pre>
-
-&gt;&gt;&gt; l = List()
-&gt;&gt;&gt; l.insert("Ale")
-&gt;&gt;&gt; l.insert("Stout")
-&gt;&gt;&gt; l.insert("Lager")
-&gt;&gt;&gt; List_print(l.this)
-Lager
-Stout
-Ale
-&gt;&gt;&gt; l.length
-3
-</pre></blockquote>
-<p>
-
-Clearly, this is a much nicer interface than before--and it only required a
-small amount of Python coding.
-
-<a name="n42"></a><H3>18.9.2 Why shadow classes?</H3>
-
-
-Shadow classes are not the only approach to wrapping C++ classes.  An alternative
-approach would be to wrap classes as new Python types in C.  However, this requires
-a substantial amount of complicated C wrapper code.  Furthermore, this approach makes
-it difficult to correctly handle inheritance and other advanced language features.
-Another more serious problem is that until recently, Python types created in C could
-not be subclassed or used in the same way as you would use a real Python class.
-As a result, C++ classes wrapped in this manner are crippled versions
-of what you would obtain by writing a real class in Python.
-
-<p>
-Shadow classes allow C++ objects to be easily wrapped by a real Python
-class.  This means that all of the normal features such as inheritance
-work like you would expect.  The fact that such classes are written in
-Python also simplifies coding since it is much easier to write a class
-interface in Python than it is in C.   Such classes are also much
-easier to modify since changes can be made without having to recompile
-any of the low-level C extension code.   The main downside to this
-approach is worse performance--a concern for some users.  
-
-<a name="n43"></a><H3>18.9.3 Automatic shadow class generation</H3>
-
-
-SWIG can automatically generate shadow classes if you use the
-<tt>-shadow</tt> option :<p>
-
-<p>
-<blockquote><pre>swig -python -shadow interface.i
-
-</pre></blockquote>
-This generates the usual wrapper file along with an extra file 
-<tt>module.py</tt> that contains the Python shadow-class code.  The
-name of this file is the same as specified by the <tt>%module</tt> directive.
-
-<p>
-Since the shadow class code needs to be placed in a different module
-than the low-level C wrappers, the primitive interface is placed into
-a Python extension module named <tt>modulec</tt> (a 'c' is appended to 
-the module name).   When a user imports the module, the <tt>module.py</tt>
-is loaded.   This file, in turn, imports the low-level C wrapper module
-to gain access to the accessor functions.  For example, in the list example,
-the shadow file might look roughly like this:
-
-<blockquote>
-<pre>
-# example
-import examplec
-
-class List:
-    def __init__(self):
-        self.this = examplec.new_List()
-    def __del__(self):
-        examplec.delete_List(self.this)
-    def search(self,item):
-        return examplec.List_search(self.this,item)
-    def insert(self,item):
-        examplec.List_insert(self.this,item)
-    def remove(self,item):
-        examplec.List_remove(self.this,item)
-    def get(self,n):
-        return examplec.List_get(self.this,n)
-    def __getattr__(self,name):
-        if name == "length" : return examplec.List_length_get(self.this))
-        else : return self.__dict__[name]
-    def __setattr__(self,name,value):
-        if name == "length": examplec.List_length_set(self.this,value)
-        else : self.__dict__[name] = value
-</blockquote>
-</pre>
-
-The choice of appending a 'c' to the module name is somewhat non-standard and may cause
-a module name conflict in certain cases.  To fix this, you can run SWIG with the
-<tt>-interface</tt> option to change the name of the C module file.  For example, this
-places the low-level C interface into a module named <tt>_example</tt>:
-
-<blockquote>
-<pre>
-$ swig -python -shadow -c++ -interface _example example.i
-</pre>
-</blockquote>
-
-When shadow classes are used, most users don't notice the existence of the low-level
-C accessors.  In fact, there is very little reason to use the low-level functions directly as shadow
-classes provide all of the needed access.
-
-<a name="n44"></a><H3>18.9.4 Compiling modules with shadow classes</H3>
-
-
-To compile a module involving shadow classes, you can use the same
-procedure as before except that the module name now has an extra
-`<tt>c</tt>' appended to the name. Thus, an interface file like this
-
-<p>
-<p>
-<blockquote><pre>%module example
-... a bunch of declarations ...
-
-</pre></blockquote>
-might be compiled as follows :<p>
-<p>
-<blockquote><pre>% swig -python -shadow example.i
-% gcc -c example.c example_wrap.c -I/usr/local/include/python1.4 \
-	-I/usr/local/lib/python1.4/config -DHAVE_CONFIG_H
-% ld -shared example.o example_wrap.o -o examplecmodule.so
-
-</pre></blockquote>
-
-Notice the naming of `<tt>examplecmodule.so</tt>' as opposed to
-`<tt>examplemodule.so</tt>' that would have been created without
-shadow classes.<p>
-
-<a name="n45"></a><H3>18.9.5 Shadow classes and type-checking</H3>
-
-
-Because shadow classes are used so frequently, the SWIG type-checker is
-programmed to accept a raw-pointer or any object that contains a <tt>this</tt> attribute
-(which is assumed to be a raw-pointer).   Thus, the earlier example can be simplified
-as follows:
-
-<blockquote>
-<pre>
-class List:
-    def __init__(self):
-        self.this = new_List()
-    def __del__(self):
-        delete_List(self)                  # Notice how self is passed instead of
-    def search(self,item):                 # self.this
-        return List_search(self,item)
-    def insert(self,item):
-        List_insert(self,item)
-    def remove(self,item):
-        List_remove(self,item)
-    def get(self,n):
-        return List_get(self,n)
-    def __getattr__(self,name):
-        if name == "length" : return List_length_get(self))
-        else : return self.__dict__[name]
-    def __setattr__(self,name,value):
-        if name == "length": List_length_set(self,value)
-        else : self.__dict__[name] = value
-</pre>
-</blockquote>
-
-You can also observe this behavior of the type checker with a little experimentation. For example:
-
-<blockquote>
-<pre>
->>> import example
->>> a = example.new_List()
->>> a
-'_90651008_p_List'
->>> example.List_insert(a,"Ale")
->>> class Blah: pass
-...
->>> b = Blah()
->>> b.this = a
->>> example.List_insert(b,"Lager")
->>>                        
-</pre>
-</blockquote>
-
-Further details of type-checking and shadow classes will be described later. Stay tuned.
-
-<a name="n46"></a><H3>18.9.6 A preview</H3>
-
-
-Shadow classes are one of SWIG's most powerful features.  However, to better understand some of the
-finer points, some other SWIG features need to first be described.  Therefore, we return to the
-topic of shadow classes a little later in this chapter.
-
-<a name="n47"></a><H2>18.10 The gory details of shadow classes</H2>
-
-
-This section describes the process by which SWIG creates shadow
-classes and some of the more subtle aspects of using them.<p>
-
-<a name="n48"></a><H3>18.10.1 A simple shadow class</H3>
-
-
-Consider the following declaration from our previous example :<p>
-
-<p>
-<blockquote><pre>%module pde
-struct Grid2d {
-  Grid2d(int ni, int nj);
-  ~Grid2d();
-  double **data;
-  int      xpoints;
-  int      ypoints;
-};
-</pre></blockquote>
-<p>
-
-The SWIG generated class for this structure looks like the following:<p>
-<p>
-
-<blockquote><pre># This file was created automatically by SWIG.
-import pdec
-class Grid2dPtr :
-    def __init__(self,this):
-        self.this = this
-        self.thisown = 0
-    def __del__(self):
-        if self.thisown == 1 :
-            pdec.delete_Grid2d(self.this)
-    def __setattr__(self,name,value):
-        if name == "data" :
-            pdec.Grid2d_data_set(self.this,value)
-            return
-        if name == "xpoints" :
-            pdec.Grid2d_xpoints_set(self.this,value)
-            return
-        if name == "ypoints" :
-            pdec.Grid2d_ypoints_set(self.this,value)
-            return
-        self.__dict__[name] = value
-    def __getattr__(self,name):
-        if name == "data" : 
-            return pdec.Grid2d_data_get(self.this)
-        if name == "xpoints" : 
-            return pdec.Grid2d_xpoints_get(self.this)
-        if name == "ypoints" : 
-            return pdec.Grid2d_ypoints_get(self.this)
-        return self.__dict__[name]
-    def __repr__(self):
-        return "&lt;C Grid2d instance&gt;"
-class Grid2d(Grid2dPtr):
-    def __init__(self,arg0,arg1) :
-        self.this = pdec.new_Grid2d(arg0,arg1)
-        self.thisown = 1
-
-</pre></blockquote>
-
-<a name="n49"></a><H3>18.10.2 Module names</H3>
-
-
-Shadow classes are built using the low-level SWIG generated C
-interface.  This interface is named "modulec" where "module" is the
-name of the module specified in a SWIG interface file.  The Python
-code for the shadow classes is created in a file "module.py".  This is
-the file that should be loaded when a user wants to use the module.<p>
-
-<a name="n50"></a><H3>18.10.3 Two classes</H3>
-
-
-For each structure or class found in an interface file, SWIG creates
-two Python classes.  If a class is named "<tt>Grid2d</tt>", one of
-these classes will be named "<tt>Grid2dPtr</tt>" and the other named
-"<tt>Grid2d</tt>".  The <tt>Grid2dPtr</tt> class is used to turn wrap
-a Python class around an already preexisting <tt>Grid2d</tt> pointer.
-For example :<p>
-
-<p>
-<blockquote><pre>&gt;&gt;&gt; gptr = create_grid2d()         # Returns a Grid2d from somewhere
-&gt;&gt;&gt; g = Grid2dPtr(gptr)            # Turn it into a Python class
-&gt;&gt;&gt; g.xpoints
-50
-&gt;&gt;&gt;
-
-</pre></blockquote>
-
-The <tt>Grid2d</tt> class, on the other hand, is used when you want to
-create a new <tt>Grid2d</tt> object from Python.  In reality, it
-inherits all of the attributes of a <tt>Grid2dPtr</tt>, except that
-its constructor calls the corresponding C++ constructor to create a
-new object.  Thus, in Python, this would look something like the
-following :<p>
-
-<p>
-<blockquote><pre>&gt;&gt;&gt; g = Grid2d(50,50)           # Create a new Grid2d
-&gt;&gt;&gt; g.xpoints
-50
-&gt;&gt;&gt;
-
-</pre></blockquote>
-
-This two class model is a tradeoff.  In order to support C/C++
-properly, it is necessary to be able to create Python objects from
-both pre-existing C++ objects and to create entirely new C++ objects
-in Python.  While this might be accomplished using a single class, it
-would complicate the handling of constructors considerably.  The two
-class model, on the other hand, works, is consistent, and is
-relatively easy to use.  In practice, you probably won't even be aware
-that there are two classes working behind the scenes.<p>
-
-<a name="n51"></a><H3>18.10.4 The this pointer</H3>
-
-
-Within each shadow class, the member "<tt>this</tt>" contains the
-actual C/C++ pointer to the object.  You can check this out yourself
-by typing something like this :<p>
-
-<p>
-<blockquote><pre>&gt;&gt;&gt; g = Grid2d(50,50)
-&gt;&gt;&gt; print g.this
-_1008fe8_Grid2d_p
-&gt;&gt;&gt;
-</pre></blockquote>
-
-<p>
-Direct manipulation of the "<tt>this</tt>" pointer is generally
-discouraged. In fact forget that you read this.<p>
-
-<a name="n52"></a><H3>18.10.5 Object ownership</H3>
-
-
-Ownership is a critical issue when mixing C++ and Python.  For
-example, suppose I create a new object in C++, but later use it to
-create a Python object.  If that object is being used elsewhere in the
-C++ code, we clearly don't want Python to delete the C++ object when
-the Python object is deleted.  Similarly, what if I create a new
-object in Python, but C++ saves a pointer to it and starts using it
-repeatedly.  Clearly, we need some notion of who owns what.  Since
-sorting out all of the possibilities is probably impossible, SWIG
-shadow classes always have an attribute "<tt>thisown</tt>" that
-indicates whether or not Python owns an object.  Whenever an object is
-created in Python, Python will be given ownership by setting
-<tt>thisown </tt> to <tt> 1</tt>.  When a Python class is created from
-a pre-existing C/C++ pointer, ownership is assumed to belong to the
-C/C++ code and <tt>thisown</tt> will be set to 0.<p>
-
-<p>
-Ownership of an object can be changed as necessary by changing the
-value of <tt>thisown</tt>.  When set, Python will call the C/C++
-destructor when the object is deleted.  If it is zero, Python will
-never call the C/C++ destructor.<p>
-
-<a name="n53"></a><H3>18.10.6 Constructors and Destructors</H3>
-
-
-C++ constructors and destructors will be mapped into Python's
-<tt>__init__</tt> and <tt>__del__</tt> methods respectively.  Shadow
-classes always contain these methods even if no constructors or
-destructors were available in the SWIG interface file.  The Python
-destructor will only call a C/C++ destructor if <tt>self.thisown</tt>
-is set.<p>
-
-<a name="n54"></a><H3>18.10.7 Member data</H3>
-
-
-Member data of an object is accessed through Python's
-<tt>__getattr__</tt> and <tt>__setattr__</tt> methods.<p>
-
-<a name="n55"></a><H3>18.10.8 Printing</H3>
-
-
-SWIG automatically creates a Python<tt> __repr__</tt> method for each
-class.  This forces the class to be relatively well-behaved when
-printing or being used interactively in the Python interpreter.<p>
-
-<a name="n56"></a><H3>18.10.9 Shadow Functions</H3>
-
-
-Suppose you have the following declarations in an interface file :<p>
-<p>
-<blockquote><pre>%module vector
-struct Vector {
-	Vector();
-	~Vector();
-	double x,y,z;
-};
-
-Vector addv(Vector a, Vector b);
-
-</pre></blockquote>
-By default, the function <tt>addv</tt> will operate on <tt>Vector</tt>
-pointers, not Python classes.  However, the SWIG Python module is
-smart enough to know that <tt>Vector</tt> has been wrapped into a
-Python class so it will create the following replacement for the
-<tt>addv()</tt> function.<p>
-
-<p>
-<blockquote><pre>def addv(a,b):
-	result = VectorPtr(vectorc.addv(a.this,b.this))
-	result.thisown = 1
-	return result
-
-</pre></blockquote>
-Function arguments are modified to use the "this" pointer of a Python
-Vector object.  The result is a pointer to the result which has been
-allocated by malloc or new (this behavior is described in the chapter
-on SWIG basics), so we simply create a new VectorPtr with the return
-value.  Since the result involved an implicit malloc, we set the
-ownership to 1 indicating that the result is to be owned by Python and
-that it should be deleted when the Python object is deleted.  As a
-result, operations like this are perfectly legal and result in no
-memory leaks :<p>
-
-<p>
-<blockquote><pre>&gt;&gt;&gt; v = add(add(add(add(a,b),c),d),e)
-
-</pre></blockquote>
-Substitution of complex datatypes occurs for all functions and member
-functions involving structure or class definitions.  It is rarely
-necessary to use the low-level C interface when working with shadow
-classes.<p>
-
-<a name="n57"></a><H3>18.10.10 Nested objects</H3>
-
-
-SWIG shadow classes support nesting of complex objects.  For example,
-suppose you had the following interface file :<p>
-<p>
-<blockquote><pre>%module particle
-
-typedef struct {
-  Vector();
-  double x,y,z;
-} Vector;
-
-typedef struct {
-  Particle();
- ~Particle();
-  Vector r;
-  Vector v;
-  Vector f;
-  int    type;
-} Particle;
-
-</pre></blockquote>
-<p>
-In this case you will be able to access members as follows :<p>
-<p>
-<blockquote><pre>&gt;&gt;&gt; p = Particle()
-&gt;&gt;&gt; p.r.x = 0.0
-&gt;&gt;&gt; p.r.y = -1.5
-&gt;&gt;&gt; p.r.z = 2.0
-&gt;&gt;&gt; p.v = addv(v1,v2)
-&gt;&gt;&gt; ...
-
-</pre></blockquote>
-Nesting of objects is implemented using Python's<tt> __setattr__</tt>
-and <tt>__getattr__</tt> functions. In this case, they would look like
-this :<p>
-<p>
-<blockquote><pre>class ParticlePtr:
-	...
-	def __getattr__(self,name):
-		if name == "r":
-			return particlec.VectorPtr(Particle_r_get(self.this))
-		elif name == "v":
-			return particlec.VectorPtr(Particle_v_get(self.this))
-		...
-	
-	def __setattr__(self,name,value):
-		if name == "r":
-			particlec.Particle_r_set(self.this,value.this)
-		elif name == "v":
-			particlec.Particle_v_set(self.this,value.this)
-		...
-
-</pre></blockquote>
-The attributes of any given object are only converted into a Python
-object when referenced. This approach is more memory efficient, faster
-if you have a large collection of objects that aren't examined very
-often, and works with recursive structure definitions such as :<p>
-<p>
-<blockquote><pre>struct Node {
-	char *name;
-	struct Node *next;
-};
-</pre></blockquote>
-<p>
-Nested structures such as the following are also supported by
-SWIG. These types of structures tend to arise frequently in database
-and information processing applications.<p>
-<p>
-<blockquote><pre>typedef struct {  
-	unsigned int dataType;
-	union {
-		int       intval;
-		double    doubleval;
-		char     *charval;
-		void     *ptrvalue;
-		long      longval;
-		struct {
-			int    i;
-			double f;
-			void   *v;
-			char name[32];
-              } v;
-	} u;
-} ValueStruct;
-
-</pre></blockquote>
-Access is provided in an entirely natural manner,<p>
-<p>
-<blockquote><pre>&gt;&gt;&gt; v = new_ValueStruct()       # Create a ValueStruct somehow
-&gt;&gt;&gt; v.dataType
-1
-&gt;&gt;&gt; v.u.intval
-45
-&gt;&gt;&gt; v.u.longval
-45
-&gt;&gt;&gt; v.u.v.v = _0_void_p
-&gt;&gt;&gt;
-
-</pre></blockquote>
-To support the embedded structure definitions, SWIG has to extract the
-internal structure definitions and use them to create new Python
-classes.  In this example, the following shadow classes are created
-:<p>
-<p>
-<blockquote><pre># Class corresponding to union u member
-class ValueStruct_u :
-	...
-# Class corresponding to struct v member of union u
-class ValueStruct_u_v :
-	...
-</pre></blockquote>
-<p>
-The names of the new classes are formed by appending the member names
-of each embedded structure.<p>
-
-<a name="n58"></a><H3>18.10.11 Inheritance and shadow classes</H3>
-
-
-Since shadow classes are implemented in Python, you can use any of the
-automatically generated classes as a base class for more Python
-classes.  However, you need to be extremely careful when using
-multiple inheritance.  When multiple inheritance is used, at most ONE
-SWIG generated shadow class can be involved.  If multiple SWIG
-generated classes are used in a multiple inheritance hierarchy, you
-will get name clashes on the <tt>this</tt> pointer, the
-<tt>__getattr__</tt> and <tt>__setattr__</tt> functions won't work
-properly and the whole thing will probably crash and burn. Perhaps
-it's best to think of multiple inheritance as a big hammer that can be
-used to solve alot of problems, but it hurts quite alot if you
-accidently drop it on your foot.... <p>
-
-<a name="n59"></a><H3>18.10.12 Methods that return new objects</H3>
-
-
-By default SWIG assumes that constructors are the only functions
-returning new objects to Python.  However, you may have other
-functions that return new objects as well.  For example :<p>
-
-<blockquote><pre>
-Vector *cross_product(Vector *v1, Vector *v2) {
-	Vector *result = new Vector();
-	result = ... compute cross product ...
-	return result;
-}
-
-</pre></blockquote>
-When the value is returned to Python, we want Python to assume
-ownership.  The brute force way to do this is to simply change the
-value of thisown.  For example :<p>
-<p>
-<blockquote><pre>&gt;&gt;&gt; v = cross_product(a,b)
-&gt;&gt;&gt; v.thisown = 1                        # Now Python owns it
-
-</pre></blockquote>
-Unfortunately, this is ugly and it doesn't work if we use the result
-as a temporary value :<p>
-<p>
-<blockquote><pre>w = vector_add(cross_product(a,b),c)     # Results in a memory leak
-</pre></blockquote>
-<p>
-However, you can provide a hint to SWIG when working with such a
-function as shown :<p>
-<p>
-<blockquote><pre>// C Function returning a new object
-%new Vector *cross_product(Vector *v1, Vector *v2);
-
-</pre></blockquote>
-
-The <tt>%new</tt> directive only provides a hint that the function is
-returning a new object.  The Python module will assign proper
-ownership of the object when this is used.<p>
-
-<a name="n60"></a><H3>18.10.13 Performance concerns and hints</H3>
-
-
-Shadow classing is primarily intended to be a convenient way of
-accessing C/C++ objects from Python.  However, if you're directly
-manipulating huge arrays of complex objects from Python, performance
-may suffer greatly.  In these cases, you should consider implementing
-the functions in C or thinking of ways to optimize the problem.<p>
-<p>
-There are a number of ways to optimize programs that use shadow
-classes.  Consider the following two code fragments involving the
-<tt>Particle</tt> data structure in a previous example :<p>
-<p>
-<blockquote><pre>def force1(p1,p2):
-	dx = p2.r.x - p1.r.x
-	dy = p2.r.y - p1.r.y
-	dz = p2.r.z - p1.r.z
-	r2 = dx*dx + dy*dy + dz*dz
-	f = 1.0/(r2*math.sqrt(r2))
-	p1.f.x = p1.f.x + f*dx
-	p2.f.x = p2.f.x - f*dx
-	p1.f.y = p1.f.y + f*dy
-	p2.f.y = p2.f.y - f*dy
-	p1.f.z = p1.f.z + f*dz
-	p2.f.z = p2.f.z - f*dz
-
-def force2(p1,p2):
-	r1 = p1.r
-	r2 = p2.r
-	dx = r2.x - r1.x
-	dy = r2.y - r1.y
-	dz = r2.z - r1.z
-	r2 = dx*dx + dy*dy + dz*dz
-	f = 1.0/(r2*math.sqrt(r2))
-	f1 = p1.f
-	f2 = p2.f
-	f1.x = f1.x + f*dx
-	f2.x = f2.x - f*dx
-	f1.y = f1.y + f*dy
-	f2.y = f2.y - f*dy
-	f1.z = f1.z + f*dz
-	f2.z = f2.z - f*dz
-
-</pre></blockquote>
-The first calculation simply works with each Particle structure
-directly.  Unfortunately, it performs alot of dereferencing of
-objects.  If the calculation is restructured to use temporary
-variables as shown in force2, it will run significantly faster--in
-fact, on my machine, the second code fragment runs more than twice as
-fast as the first one.<p>
-<p>
-If performance is even more critical you can use the low-level C
-interface which eliminates all of the overhead of going through
-Python's class mechanism (at the expense of coding simplicity). When
-Python shadow classes are used, the low level C interface can still be
-used by importing the `modulec' module where `module' is the name of
-the module you used in the SWIG interface file.<p>
-
-<p><hr>
 
 <address>SWIG 1.3 - Last Modified : January 27, 2002</address>
 </body>
