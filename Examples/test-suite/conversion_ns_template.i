@@ -2,12 +2,24 @@
 %{ 
  namespace oss 
  { 
+   struct Hi
+   {
+     Hi(){}     
+     Hi(int){}     
+   };
+
    enum Test {One, Two}; 
+
    template <Test> 
    struct Foo { 
+     Foo(){}
    }; 
+
    template <Test T>   
    struct Bar { 
+     Bar(){ }
+     Bar(int){ }
+     
      operator int() { return 0; }
      operator int&() { static int num = 0; return num; }
      operator Foo<T>() { return Foo<T>(); }
@@ -20,20 +32,35 @@
  { 
    enum Test {One, Two}; 
  
+   // these works 
+   %ignore Hi::Hi(); 
+   %rename(create) Hi::Hi(int); 
+
+   struct Hi 
+   {
+     Hi();
+     Hi(int);
+   };
+
    template <Test> 
    struct Foo { 
+     Foo();
    }; 
  
-   // these two works 
+   // these works 
    %rename(hello1) Bar<One>::operator int&(); 
    %ignore Bar<One>::operator int(); 
- 
-   // these don't 
    %rename(hello2) Bar<One>::operator Foo<oss::One>&(); 
-   %ignore Bar<One>::operator Foo<oss::One>(); 
+   %ignore Bar<One>::operator Foo<oss::One>();
+    
+   // these don't
+   %ignore Bar<One>::Bar(); 
+   %rename(create) Bar<One>::Bar(int); 
  
    template <Test T>   
    struct Bar { 
+     Bar();
+     Bar(int);
      operator int(); 
      operator int&(); 
      operator Foo<T>(); 
