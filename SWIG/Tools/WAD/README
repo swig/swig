@@ -327,10 +327,13 @@ The scripts debug.py, debug.tcl, debug.pl can be used to test these extensions.
 
 8.  Documentation
 
-No official documentation exists at this time.  However, the Papers
-directory contains two conference papers that describe WAD's design
-and high-level operation.  Slides from the Python9 talk are also
-included.
+No official documentation exists at this time.  However, details
+of WAD's design and implementation can be found in papers presented
+at the Ninth International Python Conference and the 2000 USENIX
+Technical Conference.  Both papers can be obtained at:
+
+   http://systems.cs.uchicago.edu/wad
+
 
 9. To-Do
 
