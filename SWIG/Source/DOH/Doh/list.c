@@ -44,6 +44,7 @@ int      List_len(DOH *);
 DOH      *List_first(DOH *);
 DOH      *List_next(DOH *);
 DOH      *List_str(DOH *);
+int       List_dump(DOH *, DOH *);
 
 #define MAXLISTITEMS 8
 
@@ -52,7 +53,6 @@ static DohSequenceMethods ListSeqMethods = {
   List_set,
   List_remove,
   List_insert,
-  0,
   List_first,
   List_next,
 };
@@ -65,6 +65,7 @@ static DohObjInfo ListType = {
     List_clear,      /* sm_clear */
     List_str,        /* sm_str */
     0,               /* doh_data */
+    List_dump,       /* doh_dump */
     List_len,        /* sm_len */
     0,               /* sm_hash    */
     0,               /* doh_cmp */
@@ -326,11 +327,24 @@ List_str(DOH *lo)
     List *l = (List *) lo;
     s = NewString("");
     for (i = 0; i < l->nitems; i++) {
-      Appendf(s, "%o", l->items[i]);
+      Printf(s, "%o", l->items[i]);
       if ((i+1) < l->nitems)
-	Append(s,", ");
+	Printf(s,", ");
     }
     return s;
+}
+
+int 
+List_dump(DOH *lo, DOH *out) {
+  int nsent = 0;
+  int i,ret;
+  List *l = (List *) lo;
+  for (i = 0; i < l->nitems; i++) {
+    ret = Dump(l->items[i],out);
+    if (ret < 0) return -1;
+    nsent += ret;
+  }
+  return nsent;
 }
 
 #ifdef SORT

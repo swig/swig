@@ -89,6 +89,7 @@ static DohObjInfo HashType = {
     Hash_clear,      /* sm_clear */
     Hash_str,        /* sm_str */
     0,               /* doh_data */
+    0,               /* doh_dump */
     Hash_len,        /* sm_len */
     0,               /* sm_hash    */
     0,               /* doh_cmp */
@@ -446,15 +447,15 @@ Hash_str(DOH *ho) {
     Append(s,"}\n");
 #else
     s = NewString("Hash");
-    Appendf(s,"(%x) {",h);
+    Printf(s,"(%x) {",h);
     for (i = 0; i < h->hashsize; i++) {
 	n = h->hashtable[i];
 	while (n) {
-	    Appendf(s,"'%o',", n->key);
+	    Printf(s,"'%o',", n->key);
 	    n = n->next;
 	}
     }
-    Appendf(s,"}");
+    Printf(s,"}");
 #endif
     return s;
 }
