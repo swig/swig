@@ -164,6 +164,13 @@ namespace Swig {
         }
       }
 
+      /* methods to implement pseudo protected director members */
+      virtual bool swig_get_inner(const char* name) const {
+        return true;
+      }
+
+      virtual void swig_set_inner(const char* name, bool val) const {
+      }
   };
 
   bool Swig::Director::swig_up = false;

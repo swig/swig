@@ -1,5 +1,66 @@
 Version 1.3.20 (In progress)
 ============================
+12/10/2003: mmatus (Marcelo Matus)
+
+            [python] Implementing the runtime "reprotected" director
+	    members, if you have:
+    
+                %feature("director") B;
+
+                class Bar {
+                public:
+                  virtual ~Bar();
+                  virtual int hello() { return do_hello();)
+
+                protected:
+                  virtual int do_hi() {return 0;}
+                  virtual int do_hello() {return 0;}
+                };
+
+            then, at the python side
+
+                import my_module
+
+                class Foo(my_module.Bar):
+                  def do_hello(self):
+                    return 1
+                  pass
+                 
+	        b = Bar() # Pure C++ Director class
+                f = Foo() # C++ Director + python methods
+
+                b.hello() # Ok, and it calls C++ Bar::do_hello()
+                f.hello() # Ok, and it calls Python Foo::do_hello()
+
+                b.do_hi() # RuntimeError, do_hi() is protected!!
+                f.do_hi() # RuntimeError, do_hi() is protected!!
+ 
+                b.do_hello() # RuntimeError, do_hello() is protected!!
+                f.do_hello() # Ok, since it its redefined in python.
+
+            Here Bar.do_hello is always protected, but Foo.do_hello
+            is "public", because it is redefined in python. Before,
+	    all the 'do_hello' methods were public.
+
+	    This seems to be a good compromise between C++ and python
+	    philosophies, ie, all the director protected methods keep
+	    protected at the user side (C++ way) until they are
+	    redefined (python way, were all defined methods are always
+	    public). And this is not only a good compromise, it also
+	    seems to be the only way to do it :).
+
+	    Now ruby has native director protected members, and python
+	    pure runtime support. I guess these are the two possible
+	    extreme cases. And hopefully, they could be used as
+	    templates to modify the other languages that support
+	    directors, so they can "reprotect" the protected director
+	    members at the target language side.
+
+	    This finished the director protected support for the 
+	    python language. Java and Ocalm will need to add the
+	    "reprotection" latter.
+
+
 12/08/2003: mmatus (Marcelo Matus)
 	    The virtual method detections now properly
 	    treats the following cases:
