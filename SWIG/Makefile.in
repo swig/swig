@@ -63,7 +63,9 @@ DOH: Source/Include/swigconfig.h
 Source/Include/swigconfig.h: Source/Include/swigconfig.h.in Makefile.in config.status
 	sed 's|@-swig_lib-@|$(SWIG_LIB)|g;s|@-exec_prefix-@|$(exec_prefix)|g;s|@-release_suffix-@|$(RELEASESUFFIX)|g' Source/Include/swigconfig.h.in > $@
 
-####
+#####################################################################
+# All the languages SWIG speaks (when it wants to)
+#####################################################################
 
 skip-tcl	= [ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
 skip-perl	= [ -z "@PERL@" -o -z "@PERL5EXT@" ]
@@ -81,444 +83,140 @@ skip-pike       = [ -z "@PIKE@" -o -z "@PIKEINCLUDE@" ]
 #####################################################################
 
 runtime:
-	@-$(skip-tcl) || (cd Runtime; $(MAKE) tcl)
-	@-$(skip-python) || (cd Runtime; $(MAKE) python)
-	@-$(skip-perl) || (cd Runtime; $(MAKE) perl5)
-	@-$(skip-ruby) || (cd Runtime; $(MAKE) ruby)
-	@-$(skip-guile) || (cd Runtime; $(MAKE) guile)
+	@-$(skip-tcl)      || (cd Runtime; $(MAKE) tcl)
+	@-$(skip-python)   || (cd Runtime; $(MAKE) python)
+	@-$(skip-perl)     || (cd Runtime; $(MAKE) perl5)
+	@-$(skip-ruby)     || (cd Runtime; $(MAKE) ruby)
+	@-$(skip-guile)    || (cd Runtime; $(MAKE) guile)
 	@-$(skip-mzscheme) || (cd Runtime; $(MAKE) mzscheme)
-	@-$(skip-php4) || (cd Runtime; $(MAKE) php4)
-	@-$(skip-ocaml) || (cd Runtime; $(MAKE) ocaml)
-	@-$(skip-pike) || (cd Runtime; $(MAKE) pike)
+	@-$(skip-php4)     || (cd Runtime; $(MAKE) php4)
+	@-$(skip-ocaml)    || (cd Runtime; $(MAKE) ocaml)
+	@-$(skip-pike)     || (cd Runtime; $(MAKE) pike)
 
 #####################################################################
 # CHECK
 #####################################################################
 
-CHECK_CLEAN = check
+ACTION = check
 
-chk-swiglib = @ROOT_DIR@/Lib
-chk-runtimelib = @ROOT_DIR@/Runtime/.libs
-chk = $(MAKE) -k -s SWIG_LIB=$(chk-swiglib) SWIG=@ROOT_DIR@/$(TARGET) RUNTIMEDIR=$(chk-runtimelib) $(CHECK_CLEAN)
-phpchk = $(MAKE) -f ../Makefile.php -k -s SWIG_LIB=$(chk-swiglib) SWIG=@ROOT_DIR@/$(TARGET) RUNTIMEDIR=$(chk-runtimelib) $(CHECK_CLEAN)
+chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/Lib
+chk-set-runtimelib	= RUNTIMEDIR=@ROOT_DIR@/Runtime/.libs
+chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
+
+chk-set-env = $(chk-set-swiglib) $(chk-set-swig) $(chk-set-runtimelib)
+
+chk = $(MAKE) -k -s $(chk-set-env) $(ACTION)
 
 check-aliveness:
 	test -x ./$(TARGET)
 	./$(TARGET) -version
 	./$(TARGET) -help
-	@$(skip-tcl) || ./$(TARGET) -tcl -help
-	@$(skip-perl) || ./$(TARGET) -perl -help
-	@$(skip-python) || ./$(TARGET) -python -help
-	@$(skip-java) || ./$(TARGET) -java -help
-	@$(skip-guile) || ./$(TARGET) -guile -help
+	@$(skip-tcl)      || ./$(TARGET) -tcl      -help
+	@$(skip-perl)     || ./$(TARGET) -perl     -help
+	@$(skip-python)   || ./$(TARGET) -python   -help
+	@$(skip-java)     || ./$(TARGET) -java     -help
+	@$(skip-guile)    || ./$(TARGET) -guile    -help
 	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
-	@$(skip-ruby) || ./$(TARGET) -ruby -help
-	@$(skip-ocaml) || ./$(TARGET) -ocaml -help
-	@$(skip-php4) || ./$(TARGET) -php4 -help
-	@$(skip-pike) || ./$(TARGET) -pike -help
+	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
+	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
+	@$(skip-php4)     || ./$(TARGET) -php4     -help
+	@$(skip-pike)     || ./$(TARGET) -pike     -help
 
-TCL_EXAMPLES = class constants enum funcptr import multimap operator pointer reference simple value variables
-PERL5_EXAMPLES = class constants constants2 funcptr import multimap pointer reference shadow simple value variables
-PYTHON_EXAMPLES = class constants enum exceptshadow funcattr funcptr funcptr2 functor import import_template mpointer multimap operator pointer reference shadow simple template value variables
-JAVA_EXAMPLES = class constants enum funcptr multimap native pointer reference simple template typemap variables
-GUILE_EXAMPLES = constants matrix simple port multimap multivalue
-MZSCHEME_EXAMPLES = multimap simple
-RUBY_EXAMPLES = class constants enum funcptr funcptr2 functor hashargs import import_template mpointer multimap operator overloading pointer reference simple template value variables
-OCAML_EXAMPLES = simple
-PHP4_EXAMPLES = class constants enum funcptr pointer reference shadow simple sync value variables
-PIKE_EXAMPLES = class constants enum operator overload simple template
+check-examples:					\
+	check-tcl-examples			\
+	check-perl-examples			\
+	check-python-examples			\
+	check-java-examples			\
+	check-guile-examples			\
+	check-mzscheme-examples			\
+	check-ruby-examples			\
+	check-ocaml-examples			\
+	check-php4-examples			\
+	check-pike-examples
 
-check-examples: check-tcl-examples check-perl5-examples check-python-examples \
-		check-java-examples check-guile-examples check-mzscheme-examples \
-		check-ruby-examples check-ocaml-examples check-php4-examples
+check-%-examples:
+	@passed=true;						\
+	dir="Examples/$*";					\
+	if $(skip-$*); then					\
+	  echo skipping $* $(ACTION);				\
+	elif [ ! -f $$dir/check.list ]; then			\
+	  echo skipping $* $(ACTION) "(no $$dir/check.list)";	\
+	else							\
+	  all=`sed '/^#/d' $$dir/check.list`;			\
+	  for a in $$all; do					\
+	    echo $(ACTION)ing $$dir/$$a;			\
+	    (cd $$dir/$$a && $(chk))				\
+	    || passed=false;					\
+	  done;							\
+	fi;							\
+	test $$passed = true
 
-check-tcl-examples:
-	@if $(skip-tcl); then			\
-	  echo skipping Tcl $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(TCL_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/tcl/$$a;	\
-	    (cd Examples/tcl/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
+check-test-suite:				\
+	check-tcl-test-suite			\
+	check-perl-test-suite			\
+	check-python-test-suite			\
+	check-java-test-suite			\
+	check-guile-test-suite			\
+	check-mzscheme-test-suite		\
+	check-ruby-test-suite			\
+	check-ocaml-test-suite			\
+	check-php4-test-suite			\
+	check-pike-test-suite
 
-check-perl5-examples:
-	@if $(skip-perl); then			\
-	  echo skipping Perl $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(PERL5_EXAMPLES); do	\
-	    echo $(CHECK_CLEAN)ing Examples/perl5/$$a;	\
-	    (cd Examples/perl5/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-python-examples:
-	@if $(skip-python); then			\
-	  echo skipping Python $(CHECK_CLEAN);			\
-	else						\
-	  passed=true;					\
-	  for a in $(PYTHON_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/python/$$a;		\
-	    (cd Examples/python/$$a && $(chk))		\
-	    || passed=false;				\
-	  done;						\
-	  test $$passed = true;				\
-	fi
-
-check-java-examples:
-	@if $(skip-java); then			\
-	  echo skipping Java $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(JAVA_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/java/$$a;	\
-	    (cd Examples/java/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-guile-examples:
-	@if $(skip-guile); then			\
-	  echo skipping Guile $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(GUILE_EXAMPLES); do	\
-	    echo $(CHECK_CLEAN)ing Examples/guile/$$a;	\
-	    (cd Examples/guile/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-mzscheme-examples:
-	@if $(skip-mzscheme); then			\
-	  echo skipping MzScheme $(CHECK_CLEAN);			\
-	else						\
-	  passed=true;					\
-	  for a in $(MZSCHEME_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/mzscheme/$$a;	\
-	    (cd Examples/mzscheme/$$a && $(chk))	\
-	    || passed=false;				\
-	  done;						\
-	  test $$passed = true;				\
-	fi
-
-check-ruby-examples:
-	@if $(skip-ruby); then			\
-	  echo skipping Ruby $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(RUBY_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/ruby/$$a;	\
-	    (cd Examples/ruby/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-ocaml-examples:
-	@if $(skip-ocaml); then			\
-	  echo skipping ocaml $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(OCAML_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/ocaml/$$a;	\
-	    (cd Examples/ocaml/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-pike-examples:
-	@if $(skip-pike); then			\
-	  echo skipping Pike $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(PIKE_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/pike/$$a;	\
-	    (cd Examples/pike/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-oldcheck-php4-examples:
-	@if $(skip-php4); then			\
-	  echo skipping php4 $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(PHP4_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/php4/$$a;	\
-	    (cd Examples/php4/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-php4-examples:
-	@if $(skip-php4); then			\
-	  echo skipping php4 $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(PHP4_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/php4/$$a;	\
-	    (cd Examples/php4/$$a && $(phpchk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-test-suite: check-tcl-test-suite check-perl5-test-suite check-python-test-suite \
-		check-java-test-suite check-guile-test-suite check-mzscheme-test-suite \
-		check-ruby-test-suite check-ocaml-test-suite check-php4-test-suite
-
-check-tcl-test-suite:
-	@if $(skip-tcl); then			\
-	  echo skipping Tcl test-suite $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  (cd Examples/test-suite/tcl && $(chk))	\
-	  || passed=false;			\
-	  test $$passed = true;			\
-	fi
-
-check-perl5-test-suite:
-	@if $(skip-perl); then			\
-	  echo skipping Perl5 test-suite $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  (cd Examples/test-suite/perl5 && $(chk))	\
-	  || passed=false;			\
-	  test $$passed = true;			\
-	fi
-
-check-python-test-suite:
-	@if $(skip-python); then			\
-	  echo skipping Python test-suite $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  (cd Examples/test-suite/python && $(chk))	\
-	  || passed=false;			\
-	  test $$passed = true;			\
-	fi
-
-check-java-test-suite:
-	@if $(skip-java); then			\
-	  echo skipping Java test-suite $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  (cd Examples/test-suite/java && $(chk))	\
-	  || passed=false;			\
-	  test $$passed = true;			\
-	fi
-
-check-guile-test-suite:
-	@if $(skip-guile); then			\
-	  echo skipping Guile test-suite $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  (cd Examples/test-suite/guile && $(chk))	\
-	  || passed=false;			\
-	  test $$passed = true;			\
-	fi
-
-check-mzscheme-test-suite:
-	@if $(skip-mzscheme); then			\
-	  echo skipping Mzscheme test-suite $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  (cd Examples/test-suite/mzscheme && $(chk))	\
-	  || passed=false;			\
-	  test $$passed = true;			\
-	fi
-
-check-ruby-test-suite:
-	@if $(skip-ruby); then			\
-	  echo skipping Ruby test-suite $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  (cd Examples/test-suite/ruby && $(chk))	\
-	  || passed=false;			\
-	  test $$passed = true;			\
-	fi
-
-check-ocaml-test-suite:
-	@if $(skip-ocaml); then			\
-	  echo skipping Ocaml test-suite $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  (cd Examples/test-suite/ocaml && $(chk))	\
-	  || passed=false;			\
-	  test $$passed = true;			\
-	fi
-
-check-pike-test-suite:
-	@if $(skip-pike); then			\
-	  echo skipping Pike test-suite $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  (cd Examples/test-suite/pike && $(chk))	\
-	  || passed=false;			\
-	  test $$passed = true;			\
-	fi
-
-check-php4-test-suite:
-	@if $(skip-php4); then			\
-	  echo skipping php4 test-suite $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  (cd Examples/test-suite/php4 && $(chk))	\
-	  || passed=false;			\
-	  test $$passed = true;			\
-	fi
-
-TCL_GIFPLOT_EXAMPLES = full mandel simple
-PERL_GIFPLOT_EXAMPLES = full shadow simple
-PYTHON_GIFPLOT_EXAMPLES = full shadow simple
-JAVA_GIFPLOT_EXAMPLES = full shadow simple
-GUILE_GIFPLOT_EXAMPLES = full simple
-RUBY_GIFPLOT_EXAMPLES = full shadow simple
-OCAML_GIFPLOT_EXAMPLES = full simple
-PIKE_GIFPLOT_EXAMPLES = simple
-PHP4_GIFPLOT_EXAMPLES = full simple
-
-check-gifplot-examples: check-tcl-gifplot check-perl-gifplot check-python-gifplot check-java-gifplot check-guile-gifplot check-ruby-gifplot check-ocaml-gifplot check-php4-gifplot
+check-%-test-suite:
+	@passed=true;							\
+	dir="Examples/test-suite/$*";					\
+	if $(skip-$*); then						\
+	  echo skipping $* test-suite $(ACTION);			\
+	elif [ ! -d $$dir ]; then					\
+	  echo skipping $* test-suite $(ACTION) "(no dir $$dir)";	\
+	else								\
+	  (cd $$dir && $(chk))						\
+	  || passed=false;						\
+	fi;								\
+	test $$passed = true
 
 gifplot-library:
-	@echo $(CHECK_CLEAN)ing Examples/GIFPlot/Lib
-	@cd Examples/GIFPlot/Lib ; $(MAKE) -k -s $(CHECK_CLEAN)
+	@echo $(ACTION)ing Examples/GIFPlot/Lib
+	@cd Examples/GIFPlot/Lib ; $(MAKE) -k -s $(ACTION)
 
-check-tcl-gifplot: gifplot-library
-	@if $(skip-tcl); then			\
-	  echo skipping Tcl $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(TCL_GIFPLOT_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Tcl/$$a;	\
-	    (cd Examples/GIFPlot/Tcl/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
+check-gifplot:					\
+	check-tcl-gifplot			\
+	check-perl-gifplot			\
+	check-python-gifplot			\
+	check-java-gifplot			\
+	check-guile-gifplot			\
+	check-mzscheme-gifplot			\
+	check-ruby-gifplot			\
+	check-ocaml-gifplot			\
+	check-php4-gifplot			\
+	check-pike-gifplot
 
-check-perl-gifplot: gifplot-library
-	@if $(skip-perl); then			\
-	  echo skipping Perl $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(PERL_GIFPLOT_EXAMPLES); do	\
-	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Perl/$$a;	\
-	    (cd Examples/GIFPlot/Perl/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
+check-%-gifplot: gifplot-library
+	@passed=true;						\
+	up=`Tools/capitalize $*`;				\
+	dir="Examples/GIFPlot/$$up";				\
+	if $(skip-$*); then					\
+	  echo skipping $$up $(ACTION);				\
+	elif [ ! -f $$dir/check.list ]; then			\
+	  echo skipping $$up $(ACTION) "(no $$dir/check.list)";	\
+	else							\
+	  all=`sed '/^#/d' $$dir/check.list`;			\
+	  for a in $$all; do					\
+	    echo $(ACTION)ing $$dir/$$a;			\
+	    (cd $$dir/$$a && $(chk))				\
+	    || passed=false;					\
+	  done;							\
+	fi;							\
+	test $$passed = true
 
-check-python-gifplot: gifplot-library
-	@if $(skip-python); then			\
-	  echo skipping Python $(CHECK_CLEAN);			\
-	else						\
-	  passed=true;					\
-	  for a in $(PYTHON_GIFPLOT_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Python/$$a;		\
-	    (cd Examples/GIFPlot/Python/$$a && $(chk))		\
-	    || passed=false;				\
-	  done;						\
-	  test $$passed = true;				\
-	fi
-
-check-java-gifplot: gifplot-library
-	@if $(skip-java); then			\
-	  echo skipping Java $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(JAVA_GIFPLOT_EXAMPLES); do		\
-	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Java/$$a;	\
-	    (cd Examples/GIFPlot/Java/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-guile-gifplot: gifplot-library
-	@if $(skip-guile); then			\
-	  echo skipping Guile $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(GUILE_GIFPLOT_EXAMPLES); do	\
-	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Guile/$$a;	\
-	    (cd Examples/GIFPlot/Guile/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-ruby-gifplot: gifplot-library
-	@if $(skip-ruby); then			\
-	  echo skipping Ruby $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(RUBY_GIFPLOT_EXAMPLES); do	\
-	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Ruby/$$a;	\
-	    (cd Examples/GIFPlot/Ruby/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-ocaml-gifplot: gifplot-library
-	@if $(skip-ocaml); then			\
-	  echo skipping Ocaml $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(OCAML_GIFPLOT_EXAMPLES); do	\
-	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Ocaml/$$a;	\
-	    (cd Examples/GIFPlot/Ocaml/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-pike-gifplot: gifplot-library
-	@if $(skip-pike); then			\
-	  echo skipping Pike $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(PIKE_GIFPLOT_EXAMPLES); do	\
-	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Pike/$$a;	\
-	    (cd Examples/GIFPlot/Pike/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check-php4-gifplot: gifplot-library
-	@if $(skip-php4); then			\
-	  echo skipping php4 $(CHECK_CLEAN);		\
-	else					\
-	  passed=true;				\
-	  for a in $(PHP4_GIFPLOT_EXAMPLES); do	\
-	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Php/$$a;	\
-	    (cd Examples/GIFPlot/Php/$$a && $(chk))	\
-	    || passed=false;			\
-	  done;					\
-	  test $$passed = true;			\
-	fi
-
-check: check-aliveness check-examples check-gifplot-examples check-test-suite
+check: check-aliveness check-examples check-gifplot check-test-suite
 
 #####################################################################
 # CLEAN
 #####################################################################
 
-clean: clean-objects clean-examples clean-gifplot-examples clean-test-suite 
+clean: clean-objects clean-examples clean-gifplot clean-test-suite
 
 clean-objects:
 	@for i in $(SOURCEDIRS) ; \
@@ -539,69 +237,69 @@ distclean: clean
 	rm -f $(distclean-dead)
 
 clean-examples:
-	@$(MAKE) -k -s check-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-examples ACTION=clean
 
-clean-gifplot-examples:
-	@$(MAKE) -k -s check-gifplot-examples CHECK_CLEAN=clean
+clean-gifplot:
+	@$(MAKE) -k -s check-gifplot ACTION=clean
 
 clean-test-suite:
 	@echo cleaning Examples/test-suite
-	@$(MAKE) -k -s check-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-test-suite ACTION=clean
 
 
 clean-tcl-examples:
-	@$(MAKE) -k -s check-tcl-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-tcl-examples ACTION=clean
 
 clean-perl5-examples:
-	@$(MAKE) -k -s check-perl5-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-perl5-examples ACTION=clean
 
 clean-python-examples:
-	@$(MAKE) -k -s check-python-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-python-examples ACTION=clean
 
 clean-java-examples:
-	@$(MAKE) -k -s check-java-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-java-examples ACTION=clean
 
 clean-guile-examples:
-	@$(MAKE) -k -s check-guile-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-guile-examples ACTION=clean
 
 clean-mzscheme-examples:
-	@$(MAKE) -k -s check-mzscheme-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-mzscheme-examples ACTION=clean
 
 clean-ruby-examples:
-	@$(MAKE) -k -s check-ruby-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-ruby-examples ACTION=clean
 
 clean-pike-examples:
-	@$(MAKE) -k -s check-pike-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-pike-examples ACTION=clean
 
 clean-php4-examples:
-	@$(MAKE) -k -s check-php4-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-php4-examples ACTION=clean
 
 clean-tcl-test-suite:
-	@$(MAKE) -k -s check-tcl-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-tcl-test-suite ACTION=clean
 
 clean-perl5-test-suite:
-	@$(MAKE) -k -s check-perl5-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-perl5-test-suite ACTION=clean
 
 clean-python-test-suite:
-	@$(MAKE) -k -s check-python-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-python-test-suite ACTION=clean
 
 clean-java-test-suite:
-	@$(MAKE) -k -s check-java-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-java-test-suite ACTION=clean
 
 clean-guile-test-suite:
-	@$(MAKE) -k -s check-guile-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-guile-test-suite ACTION=clean
 
 clean-mzscheme-test-suite:
-	@$(MAKE) -k -s check-mzscheme-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-mzscheme-test-suite ACTION=clean
 
 clean-ruby-test-suite:
-	@$(MAKE) -k -s check-ruby-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-ruby-test-suite ACTION=clean
 
 clean-pike-test-suite:
-	@$(MAKE) -k -s check-pike-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-pike-test-suite ACTION=clean
 
 clean-php4-test-suite:
-	@$(MAKE) -k -s check-php4-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-php4-test-suite ACTION=clean
 
 
 
@@ -709,27 +407,27 @@ install-runtime:
 	@cd Runtime; $(MAKE) install
 
 
-##################################################################### 
-# TARGETS: uninstall & friends 
-##################################################################### 
+#####################################################################
+# TARGETS: uninstall & friends
+#####################################################################
 
-uninstall: uninstall-main uninstall-lib uninstall-runtime 
-	@echo "Uninstall complete" 
+uninstall: uninstall-main uninstall-lib uninstall-runtime
+	@echo "Uninstall complete"
 
-uninstall-main: 
-	@echo "Uninstalling $(BIN_DIR)/swig" 
+uninstall-main:
+	@echo "Uninstalling $(BIN_DIR)/swig"
 	@if [ -f swig.exe ]; then                                               \
 		rm -f $(DESTDIR)$(BIN_DIR)/swig.exe;   \
 	else                                                                    \
 		rm -f $(DESTDIR)$(BIN_DIR)/$(TARGET);  \
-	fi 
+	fi
 
-uninstall-lib: 
-	@echo "Uninstalling the SWIG library" 
-	rm -rf $(DESTDIR)$(SWIG_LIB)/; 
+uninstall-lib:
+	@echo "Uninstalling the SWIG library"
+	rm -rf $(DESTDIR)$(SWIG_LIB)/;
 
-uninstall-runtime: 
-	@cd Runtime; $(MAKE) uninstall 
+uninstall-runtime:
+	@cd Runtime; $(MAKE) uninstall
 
 
 ############################################################################
