@@ -60,43 +60,43 @@ public class runme
       try {
         default_args.exceptionspec();
         throw new Exception("exceptionspec 1 failed");
-      } catch (Exception e) {
+      } catch (Exception) {
       }
       try {
         default_args.exceptionspec(-1);
         throw new Exception("exceptionspec 2 failed");
-      } catch (Exception e) {
+      } catch (Exception) {
       }
       try {
         default_args.exceptionspec(100);
         throw new Exception("exceptionspec 3 failed");
-      } catch (Exception e) {
+      } catch (Exception) {
       }
       Except ex = new Except(false);
       try {
         ex.exspec();
         throw new Exception("exspec 1 failed");
-      } catch (Exception e) {
+      } catch (Exception) {
       }
       try {
         ex.exspec(-1);
         throw new Exception("exspec 2 failed");
-      } catch (Exception e) {
+      } catch (Exception) {
       }
       try {
         ex.exspec(100);
         throw new Exception("exspec 3 failed");
-      } catch (Exception e) {
+      } catch (Exception) {
       }
       try {
         ex = new Except(true);
         throw new Exception("Except constructor 1 failed");
-      } catch (Exception e) {
+      } catch (Exception) {
       }
       try {
         ex = new Except(true, -2);
         throw new Exception("Except constructor 2 failed");
-      } catch (Exception e) {
+      } catch (Exception) {
       }
 
       // Default parameters in static class methods
