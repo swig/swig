@@ -307,25 +307,15 @@ phased out in future releases.
 
 // Backwards compatibility
 
-%typemap(ruby,in) int *BOTH = int *INOUT;
-%typemap(ruby,in) short *BOTH = short *INOUT;
-%typemap(ruby,in) long *BOTH = long *INOUT;
-%typemap(ruby,in) unsigned *BOTH = unsigned *INOUT;
-%typemap(ruby,in) unsigned short *BOTH = unsigned short *INOUT;
-%typemap(ruby,in) unsigned long *BOTH = unsigned long *INOUT;
-%typemap(ruby,in) unsigned char *BOTH = unsigned char *INOUT;
-%typemap(ruby,in) float *BOTH = float *INOUT;
-%typemap(ruby,in) double *BOTH = double *INOUT;
-
-%typemap(ruby,argout) int *BOTH = int *INOUT;
-%typemap(ruby,argout) short *BOTH = short *INOUT;
-%typemap(ruby,argout) long *BOTH = long *INOUT;
-%typemap(ruby,argout) unsigned *BOTH = unsigned *INOUT;
-%typemap(ruby,argout) unsigned short *BOTH = unsigned short *INOUT;
-%typemap(ruby,argout) unsigned long *BOTH = unsigned long *INOUT;
-%typemap(ruby,argout) unsigned char *BOTH = unsigned char *INOUT;
-%typemap(ruby,argout) float *BOTH = float *INOUT;
-%typemap(ruby,argout) double *BOTH = double *INOUT;
+%apply int *INOUT { int *BOTH };
+%apply short *INOUT { short *BOTH };
+%apply long *INOUT { long *BOTH };
+%apply unsigned int *INOUT { unsigned int *BOTH };
+%apply unsigned long *INOUT { unsigned long *BOTH };
+%apply unsigned short *INOUT { unsigned short *BOTH };
+%apply unsigned char *INOUT { unsigned char *BOTH };
+%apply float *INOUT { float *BOTH };
+%apply double *INOUT { double *BOTH };
 
 // --------------------------------------------------------------------
 // OUTPUT typemaps for user defined type.

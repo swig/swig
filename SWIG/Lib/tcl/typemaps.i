@@ -246,15 +246,15 @@ an input and output value.  This combines the behavior of both the
 "INPUT" and "OUTPUT" methods described earlier.  Output values are
 returned in the form of a Tcl list.
 
-         int            *BOTH
-         short          *BOTH
-         long           *BOTH
-         unsigned int   *BOTH
-         unsigned short *BOTH
-         unsigned long  *BOTH
-         unsigned char  *BOTH
-         float          *BOTH
-         double         *BOTH
+         int            *INOUT
+         short          *INOUT
+         long           *INOUT
+         unsigned int   *INOUT
+         unsigned short *INOUT
+         unsigned long  *INOUT
+         unsigned char  *INOUT
+         float          *INOUT
+         double         *INOUT
          
 For example, suppose you were trying to wrap the following function :
 
@@ -265,12 +265,12 @@ For example, suppose you were trying to wrap the following function :
 You could wrap it with SWIG as follows :
 
         %include typemaps.i
-        void neg(double *BOTH);
+        void neg(double *INOUT);
 
 or you can use the %apply directive :
 
         %include typemaps.i
-        %apply double *BOTH { double *x };
+        %apply double *INOUT { double *x };
         void neg(double *x);
 
 Unlike C, this mapping does not directly modify the input value (since
@@ -285,25 +285,35 @@ to a Tcl variable you might do this :
 #endif
 
 
-%typemap(tcl8,in) int *BOTH = int *INPUT;
-%typemap(tcl8,in) short *BOTH = short *INPUT;
-%typemap(tcl8,in) long *BOTH = long *INPUT;
-%typemap(tcl8,in) unsigned int *BOTH = unsigned int *INPUT;
-%typemap(tcl8,in) unsigned short *BOTH = unsigned short *INPUT;
-%typemap(tcl8,in) unsigned long *BOTH = unsigned long *INPUT;
-%typemap(tcl8,in) unsigned char *BOTH = unsigned char *INPUT;
-%typemap(tcl8,in) float *BOTH = float *INPUT;
-%typemap(tcl8,in) double *BOTH = double *INPUT;
+%typemap(tcl8,in) int *INOUT = int *INPUT;
+%typemap(tcl8,in) short *INOUT = short *INPUT;
+%typemap(tcl8,in) long *INOUT = long *INPUT;
+%typemap(tcl8,in) unsigned int *INOUT = unsigned int *INPUT;
+%typemap(tcl8,in) unsigned short *INOUT = unsigned short *INPUT;
+%typemap(tcl8,in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(tcl8,in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(tcl8,in) float *INOUT = float *INPUT;
+%typemap(tcl8,in) double *INOUT = double *INPUT;
 
-%typemap(tcl8,argout) int *BOTH = int *OUTPUT;
-%typemap(tcl8,argout) short *BOTH = short *OUTPUT;
-%typemap(tcl8,argout) long *BOTH = long *OUTPUT;
-%typemap(tcl8,argout) unsigned int *BOTH = unsigned int *OUTPUT;
-%typemap(tcl8,argout) unsigned short *BOTH = unsigned short *OUTPUT;
-%typemap(tcl8,argout) unsigned long *BOTH = unsigned long *OUTPUT;
-%typemap(tcl8,argout) unsigned char *BOTH = unsigned char *OUTPUT;
-%typemap(tcl8,argout) float *BOTH = float *OUTPUT;
-%typemap(tcl8,argout) double *BOTH = double *OUTPUT;
+%typemap(tcl8,argout) int *INOUT = int *OUTPUT;
+%typemap(tcl8,argout) short *INOUT = short *OUTPUT;
+%typemap(tcl8,argout) long *INOUT = long *OUTPUT;
+%typemap(tcl8,argout) unsigned int *INOUT = unsigned int *OUTPUT;
+%typemap(tcl8,argout) unsigned short *INOUT = unsigned short *OUTPUT;
+%typemap(tcl8,argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(tcl8,argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(tcl8,argout) float *INOUT = float *OUTPUT;
+%typemap(tcl8,argout) double *INOUT = double *OUTPUT;
+
+%apply int *INOUT { int *BOTH };
+%apply short *INOUT { short *BOTH };
+%apply long *INOUT { long *BOTH };
+%apply unsigned int *INOUT { unsigned int *BOTH };
+%apply unsigned long *INOUT { unsigned long *BOTH };
+%apply unsigned short *INOUT { unsigned short *BOTH };
+%apply unsigned char *INOUT { unsigned char *BOTH };
+%apply float *INOUT { float *BOTH };
+%apply double *INOUT { double *BOTH };
 
 // --------------------------------------------------------------------
 // Special types

@@ -214,7 +214,7 @@ output values.
   argvi++;
 }
 
-// BOTH
+// INOUT
 // Mappings for an argument that is both an input and output
 // parameter
 
@@ -228,15 +228,15 @@ an input and output value.  This combines the behavior of both the
 "INPUT" and "OUTPUT" methods described earlier.  Output values are
 returned in the form of a Tcl list.
 
-         int            *BOTH
-         short          *BOTH
-         long           *BOTH
-         unsigned int   *BOTH
-         unsigned short *BOTH
-         unsigned long  *BOTH
-         unsigned char  *BOTH
-         float          *BOTH
-         double         *BOTH
+         int            *INOUT
+         short          *INOUT
+         long           *INOUT
+         unsigned int   *INOUT
+         unsigned short *INOUT
+         unsigned long  *INOUT
+         unsigned char  *INOUT
+         float          *INOUT
+         double         *INOUT
          
 For example, suppose you were trying to wrap the following function :
 
@@ -247,12 +247,12 @@ For example, suppose you were trying to wrap the following function :
 You could wrap it with SWIG as follows :
 
         %include typemaps.i
-        void neg(double *BOTH);
+        void neg(double *INOUT);
 
 or you can use the %apply directive :
 
         %include typemaps.i
-        %apply double *BOTH { double *x };
+        %apply double *INOUT { double *x };
         void neg(double *x);
 
 Unlike C, this mapping does not directly modify the input value.
@@ -266,25 +266,35 @@ do this :
 
 #endif
 
-%typemap(perl5,in) int *BOTH = int *INPUT;
-%typemap(perl5,in) short *BOTH = short *INPUT;
-%typemap(perl5,in) long *BOTH = long *INPUT;
-%typemap(perl5,in) unsigned *BOTH = unsigned *INPUT;
-%typemap(perl5,in) unsigned short *BOTH = unsigned short *INPUT;
-%typemap(perl5,in) unsigned long *BOTH = unsigned long *INPUT;
-%typemap(perl5,in) unsigned char *BOTH = unsigned char *INPUT;
-%typemap(perl5,in) float *BOTH = float *INPUT;
-%typemap(perl5,in) double *BOTH = double *INPUT;
+%typemap(perl5,in) int *INOUT = int *INPUT;
+%typemap(perl5,in) short *INOUT = short *INPUT;
+%typemap(perl5,in) long *INOUT = long *INPUT;
+%typemap(perl5,in) unsigned *INOUT = unsigned *INPUT;
+%typemap(perl5,in) unsigned short *INOUT = unsigned short *INPUT;
+%typemap(perl5,in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(perl5,in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(perl5,in) float *INOUT = float *INPUT;
+%typemap(perl5,in) double *INOUT = double *INPUT;
 
-%typemap(perl5,argout) int *BOTH = int *OUTPUT;
-%typemap(perl5,argout) short *BOTH = short *OUTPUT;
-%typemap(perl5,argout) long *BOTH = long *OUTPUT;
-%typemap(perl5,argout) unsigned *BOTH = unsigned *OUTPUT;
-%typemap(perl5,argout) unsigned short *BOTH = unsigned short *OUTPUT;
-%typemap(perl5,argout) unsigned long *BOTH = unsigned long *OUTPUT;
-%typemap(perl5,argout) unsigned char *BOTH = unsigned char *OUTPUT;
-%typemap(perl5,argout) float *BOTH = float *OUTPUT;
-%typemap(perl5,argout) double *BOTH = double *OUTPUT;
+%typemap(perl5,argout) int *INOUT = int *OUTPUT;
+%typemap(perl5,argout) short *INOUT = short *OUTPUT;
+%typemap(perl5,argout) long *INOUT = long *OUTPUT;
+%typemap(perl5,argout) unsigned *INOUT = unsigned *OUTPUT;
+%typemap(perl5,argout) unsigned short *INOUT = unsigned short *OUTPUT;
+%typemap(perl5,argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(perl5,argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(perl5,argout) float *INOUT = float *OUTPUT;
+%typemap(perl5,argout) double *INOUT = double *OUTPUT;
+
+%apply int *INOUT { int *BOTH };
+%apply short *INOUT { short *BOTH };
+%apply long *INOUT { long *BOTH };
+%apply unsigned int *INOUT { unsigned int *BOTH };
+%apply unsigned long *INOUT { unsigned long *BOTH };
+%apply unsigned short *INOUT { unsigned short *BOTH };
+%apply unsigned char *INOUT { unsigned char *BOTH };
+%apply float *INOUT { float *BOTH };
+%apply double *INOUT { double *BOTH };
 
 // REFERENCE
 // Accept Perl references as pointers
@@ -327,7 +337,7 @@ or you can use the %apply directive :
         %apply double *REFERENCE { double *x };
         void neg(double *x);
 
-Unlike the BOTH mapping described previous, this approach directly
+Unlike the INOUT mapping described previous, this approach directly
 modifies the value of a Perl reference.  Thus, you could use it
 as follows :
 

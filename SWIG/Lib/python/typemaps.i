@@ -479,45 +479,25 @@ phased out in future releases.
 
 // Backwards compatibility
 
-%typemap(python,in) int *BOTH = int *INOUT;
-%typemap(python,in) short *BOTH = short *INOUT;
-%typemap(python,in) long *BOTH = long *INOUT;
-%typemap(python,in) unsigned *BOTH = unsigned *INOUT;
-%typemap(python,in) unsigned short *BOTH = unsigned short *INOUT;
-%typemap(python,in) unsigned long *BOTH = unsigned long *INOUT;
-%typemap(python,in) unsigned char *BOTH = unsigned char *INOUT;
-%typemap(python,in) float *BOTH = float *INOUT;
-%typemap(python,in) double *BOTH = double *INOUT;
+%apply int *INOUT { int *BOTH };
+%apply short *INOUT { short *BOTH };
+%apply long *INOUT { long *BOTH };
+%apply unsigned int *INOUT { unsigned int *BOTH };
+%apply unsigned long *INOUT { unsigned long *BOTH };
+%apply unsigned short *INOUT { unsigned short *BOTH };
+%apply unsigned char *INOUT { unsigned char *BOTH };
+%apply float *INOUT { float *BOTH };
+%apply double *INOUT { double *BOTH };
 
-%typemap(python,argout) int *BOTH = int *INOUT;
-%typemap(python,argout) short *BOTH = short *INOUT;
-%typemap(python,argout) long *BOTH = long *INOUT;
-%typemap(python,argout) unsigned *BOTH = unsigned *INOUT;
-%typemap(python,argout) unsigned short *BOTH = unsigned short *INOUT;
-%typemap(python,argout) unsigned long *BOTH = unsigned long *INOUT;
-%typemap(python,argout) unsigned char *BOTH = unsigned char *INOUT;
-%typemap(python,argout) float *BOTH = float *INOUT;
-%typemap(python,argout) double *BOTH = double *INOUT;
-
-%typemap(python,in) int *T_BOTH = int *T_INOUT;
-%typemap(python,in) short *T_BOTH = short *T_INOUT;
-%typemap(python,in) long *T_BOTH = long *T_INOUT;
-%typemap(python,in) unsigned *T_BOTH = unsigned *T_INOUT;
-%typemap(python,in) unsigned short *T_BOTH = unsigned short *T_INOUT;
-%typemap(python,in) unsigned long *T_BOTH = unsigned long *T_INOUT;
-%typemap(python,in) unsigned char *T_BOTH = unsigned char *T_INOUT;
-%typemap(python,in) float *T_BOTH = float *T_INOUT;
-%typemap(python,in) double *T_BOTH = double *T_INOUT;
-
-%typemap(python,argout) int *T_BOTH = int *T_INOUT;
-%typemap(python,argout) short *T_BOTH = short *T_INOUT;
-%typemap(python,argout) long *T_BOTH = long *T_INOUT;
-%typemap(python,argout) unsigned *T_BOTH = unsigned *T_INOUT;
-%typemap(python,argout) unsigned short *T_BOTH = unsigned short *T_INOUT;
-%typemap(python,argout) unsigned long *T_BOTH = unsigned long *T_INOUT;
-%typemap(python,argout) unsigned char *T_BOTH = unsigned char *T_INOUT;
-%typemap(python,argout) float *T_BOTH = float *T_INOUT;
-%typemap(python,argout) double *T_BOTH = double *T_INOUT;
+%apply int *T_INOUT { int *T_BOTH };
+%apply short *T_INOUT { short *T_BOTH };
+%apply long *T_INOUT { long *T_BOTH };
+%apply unsigned int *T_INOUT { unsigned int *T_BOTH };
+%apply unsigned long *T_INOUT { unsigned long *T_BOTH };
+%apply unsigned short *T_INOUT { unsigned short *T_BOTH };
+%apply unsigned char *T_INOUT { unsigned char *T_BOTH };
+%apply float *T_INOUT { float *T_BOTH };
+%apply double *T_INOUT { double *T_BOTH };
 
 // --------------------------------------------------------------------
 // Special types

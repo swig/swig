@@ -44,7 +44,7 @@
 
 /* %ignore directive */
 
-#define %ignore   %rename($ignore)
+#define %ignore         %rename($ignore)
 #define %ignorewarn(x)  %rename("$ignore:" x)
 
 /* Generation of default constructors/destructors */
