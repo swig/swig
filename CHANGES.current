@@ -1,5 +1,16 @@
 Version 1.3.20 (In progress)
 ============================
+11/28/2003: cheetah (William Fulton)
+            Fixed [ 848335 ] Directors: #include wrapper .h file - was incorrectly
+            adding a directory to the generated #include "foo_wrap.h" statement
+            in some situations.
+
+11/28/2003: cheetah (William Fulton)
+            [Java] Fixed [ 849064 ] JAVA : Access modifier for derived class wrong.
+            The delete() method is always public now. It used to be protected whenever a 
+            destructor was non public. An UnsupportedOperationException runtime 
+            exception is thrown instead of making delete() protected now.
+
 11/28/2003: beazley
             [Perl5] Added support for C++ pointers to members.
 
