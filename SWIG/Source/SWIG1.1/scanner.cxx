@@ -1150,13 +1150,3 @@ extern "C" int yylex(void) {
       return(l);
     }
 }
-
-// --------------------------------------------------------------
-// scanner_clear_start()
-//
-// Clears the start of a declaration
-// --------------------------------------------------------------
-
-void scanner_clear_start() {
-  start_line = 0;
-}
