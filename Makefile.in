@@ -4,7 +4,7 @@
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
-srcdir      = @ROOT_DIR@
+srcdir      = @srcdir@
 
 ##############################################################################
 # Compiler and system configuration
@@ -74,6 +74,9 @@ SWILL:
 DOH:
 	@cd $(SOURCE)/DOH; $(MAKE)
 
+.PHONY: SWIG1.1 Modules1.1 Swig Preprocessor LParse \
+        Experiment Swim SWILL DOH
+
 #####################################################################
 # Runtime libraries
 #####################################################################
@@ -86,10 +89,10 @@ runtime:
 #####################################################################
 
 clean:
-	@for i in `ls $(SOURCE)`; \
+	@for i in $(SOURCEDIRS) ; \
 	do \
 	   if [ -d $(SOURCE)/$$i -a -f $(SOURCE)/$$i/Makefile ]; then \
-		cd $(SOURCE)/$$i; $(MAKE) clean; cd $(srcdir); \
+		(cd $(SOURCE)/$$i; $(MAKE) clean) ; \
 	   fi \
 	done;
 	@cd Runtime; $(MAKE) clean
