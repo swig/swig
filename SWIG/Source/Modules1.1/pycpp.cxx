@@ -144,18 +144,18 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
     // Now add it to the class
 
     if (use_kw)
-      *pyclass << tab4 << "def " << realname << "(*_args, **_kwargs):\n";
+      *pyclass << tab4 << "def " << realname << "(*args, **kwargs):\n";
     else
-      *pyclass << tab4 << "def " << realname << "(*_args):\n";
+      *pyclass << tab4 << "def " << realname << "(*args):\n";
     
     // Create a doc string
     if (docstring && doc_entry) {
       *pyclass << tab8 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
     }
     if (use_kw)
-      *pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",_args, _kwargs)\n";
+      *pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",args, kwargs)\n";
     else
-      *pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",_args)\n";
+      *pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",args)\n";
       
     // Check to see if the return type is an object
     if ((hash.lookup(t->name)) && (t->is_pointer <= 1)) {
@@ -222,17 +222,17 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
       // Create a new constructor 
 
       if (use_kw)
-	*construct << tab4 << "def __init__(self,*_args,**_kwargs):\n";
+	*construct << tab4 << "def __init__(self,*args,**kwargs):\n";
       else
-	*construct << tab4 << "def __init__(self,*_args):\n";
+	*construct << tab4 << "def __init__(self,*args):\n";
 
       if (docstring && doc_entry) 
 	*construct << tab8 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
 
       if (use_kw)
-	*construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",_args,_kwargs)\n";
+	*construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",args,kwargs)\n";
       else
-	*construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",_args)\n";
+	*construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",args)\n";
       *construct << tab8 << "self.thisown = 1\n";
       emitAddPragmas(*construct,"__init__",tab8);
       have_constructor = 1;
@@ -242,15 +242,15 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
       // function for it.
 
       if (use_kw)
-	*additional << "def " << realname << "(*_args,**_kwargs):\n";
+	*additional << "def " << realname << "(*args,**kwargs):\n";
       else
-	*additional << "def " << realname << "(*_args):\n";
+	*additional << "def " << realname << "(*args):\n";
 
       *additional << tab4 << "val = " << class_name << "Ptr(apply(";
       if (use_kw)
-	*additional << module << "." << name_construct(realname) << ",_args,_kwargs))\n";
+	*additional << module << "." << name_construct(realname) << ",args,kwargs))\n";
       else
-	*additional << module << "." << name_construct(realname) << ",_args))\n";
+	*additional << module << "." << name_construct(realname) << ",args))\n";
       *additional << tab4 << "val.thisown = 1\n"
 		  << tab4 << "return val\n\n";
     }
