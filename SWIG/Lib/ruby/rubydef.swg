@@ -93,30 +93,26 @@ SWIG_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
   /* Do type-checking if type info was provided */
   if (ty) {
     if (ty->clientdata) {
-        if (!rb_obj_is_kind_of(obj, ((swig_class *) (ty->clientdata))->klass)) {
-          if (flags)
-	    rb_raise(rb_eTypeError, "wrong argument type (expected %s)", ty->str);
-	  else
-	    return -1;
-	}
-        if (*ptr == 0)
-	  rb_raise(rb_eRuntimeError, "This %s already released", ty->str);
-    } else {
-      if ((c = SWIG_MangleStr(obj)) == NULL) {
-        if (flags)
-	  rb_raise(rb_eTypeError, "Expected %s", ty->str);
-	else
-	  return -1;
-      }
-      tc = SWIG_TypeCheck(c, ty);
-      if (!tc) {
-        if (flags)
-	  rb_raise(rb_eTypeError, "Expected %s", ty->str);
-	else
-	  return -1;
-      }
-      *ptr = SWIG_TypeCast(tc, *ptr);
+        if (rb_obj_is_kind_of(obj, ((swig_class *) (ty->clientdata))->klass)) {
+          if (*ptr == 0)
+            rb_raise(rb_eRuntimeError, "This %s already released", ty->str);
+          return 0;
+        }
     }
+    if ((c = SWIG_MangleStr(obj)) == NULL) {
+      if (flags)
+        rb_raise(rb_eTypeError, "Expected %s", ty->str);
+      else
+        return -1;
+    }
+    tc = SWIG_TypeCheck(c, ty);
+    if (!tc) {
+      if (flags)
+        rb_raise(rb_eTypeError, "Expected %s", ty->str);
+      else
+        return -1;
+    }
+    *ptr = SWIG_TypeCast(tc, *ptr);
   }
   return 0;
 }
