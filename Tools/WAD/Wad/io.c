@@ -30,18 +30,21 @@
    rely upon malloc() and related functions */
 
 char *wad_format_hex(unsigned long u, int leading) {
-  static char digits[] = "0123456789abcdef";
   static char result[64];
   int i;
   char *c;
   c = &result[63];
   *c = 0;
-  for (i = 0; i < (sizeof(unsigned long) << 1); i++) {
-    int digit;
-    if (!u || leading) {
-      digit = u & 0xf;
-      *(--c) = digits[digit];
+  for (i = 0; i < (sizeof(unsigned long)*2); i++) {
+    int d;
+    d = (int) (u & 0xf);
+    c--;
+    if (d < 10) {
+      *c = '0' + d;
+    } else {
+      *c = 'a' + (d-10);
     }
+    if (!u && !leading) break;
     u = u >> 4;
   }
   return c;

@@ -317,6 +317,7 @@ wad_elf_debug_info(WadFrame *f) {
     stab = wad_elf_section_data(f->object,nstab);
     stabsize = wad_elf_section_size(f->object,nstab);
     stabstr = (char *) wad_elf_section_data(f->object,nstabstr);
+
     
     if (wad_search_stab(stab,stabsize,stabstr, f)) return 1;
   }
@@ -327,18 +328,22 @@ wad_elf_debug_info(WadFrame *f) {
     stab = wad_elf_section_data(f->object,nstabexcl);
     stabsize = wad_elf_section_size(f->object, nstabexcl);
     stabstr = (char *) wad_elf_section_data(f->object, nstabexclstr);
+
     if (wad_search_stab(stab,stabsize,stabstr, f)) return 1;
   }
 
   /* Look in the .stab.index section. A Solaris oddity? */
   if (nstabindex > 0) {
+
     stab = wad_elf_section_data(f->object,nstabindex);
     stabsize = wad_elf_section_size(f->object, nstabindex);
     stabstr = (char *) wad_elf_section_data(f->object, nstabindexstr);
+
     if (wad_search_stab(stab,stabsize,stabstr, f)) {
-      WadObjectFile *wo1, *wold;
       /* Hmmm. Might be in a different file */
+      WadObjectFile *wo1, *wold;
       char objfile[MAX_PATH];
+      /*      printf("DEBUG %s\n", f->sym_name); */
       wad_strcpy(objfile, f->loc_objfile);
       wo1 = wad_object_load(objfile);
       if (wo1) {
@@ -407,11 +412,11 @@ wad_find_symbol(WadFrame *f) {
 
 void
 wad_find_debug(WadFrame *f) {
-  if (f->debug_check) return;
+  /*  if (f->debug_check) return; */
   if (f->object) {
     wad_elf_debug_info(f);
   }
-  f->debug_check = 1;
+  /*  f->debug_check = 1; */
 }
 
 

@@ -45,7 +45,7 @@ typedef struct Stab {
 #define N_LSYM      0x80          /* Local symbol      */
 #define N_PSYM      0xa0          /* Parameter         */
 #define N_LBRAC     0xc0          /* Left brace        */
-
+#define N_RBRAC     0xe0          /* Right brace       */
 
 /* -----------------------------------------------------------------------------
  * stabs type handler
@@ -359,6 +359,7 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
   int i;
   unsigned long offset;
   int      get_parms = 1;
+  int      nbrace = 0;
 
   offset = f->pc - f->sym_base;
   if (wad_debug_mode & DEBUG_STABS) {
@@ -372,13 +373,17 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
       
     }
     
-    if ((s->n_type == N_UNDF) || (s->n_type == N_SO) || (s->n_type == N_FUN) ||
+    if ((s->n_type == N_UNDF) || (s->n_type == N_SO) || /* (s->n_type == N_FUN) || */
 	(s->n_type == N_OBJ)) return i;
 
     if (s->n_type == N_LBRAC) {
+      nbrace++;
       get_parms = 0;
     }
-
+    if (s->n_type == N_RBRAC) {
+      nbrace--;
+      if (nbrace <= 0) return i;
+    }
     /* Local variable declaration */
 
     if (s->n_type == N_LSYM) {
@@ -454,7 +459,7 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
 
     if (s->n_type == N_SLINE) {
       get_parms = 0;
-      if (s->n_value < offset) {
+      if (s->n_value <= offset) {
 	f->loc_line = s->n_desc;
       }
     } else if (((s->n_type == N_PSYM) || (s->n_type == N_RSYM)) && get_parms) {
@@ -577,7 +582,6 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
   char   srcfile[MAX_PATH];
   char   objfile[MAX_PATH];
 
-
   /* It appears to be necessary to clear the types table on each new stabs section */
 
   init_hash();
@@ -592,8 +596,8 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
 
   for (i = 0; i < ns; i++, s++) {
     if (wad_debug_mode & DEBUG_STABS) {
-      wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
-	     stabstr+s->n_strx);
+      /*      wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
+	      stabstr+s->n_strx); */
       
 	     }
     if (s->n_type == N_LSYM) {
@@ -604,8 +608,9 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
       /* New stabs section.  We need to be a little careful here. Do a recursive 
 	 search of the subsection. */
 
-      /* if (wad_search_stab(s+1,s->n_desc*sizeof(Stab), stabstr, f)) return 1; */
-      wad_search_stab(s+1,s->n_desc*sizeof(Stab), stabstr, f);
+      if (wad_search_stab(s+1,s->n_desc*sizeof(Stab), stabstr, f)) {
+	return 1;
+      }
 
       /* On solaris, each stabs section seems to increment the stab string pointer.  On Linux,
          the linker seems to do a certain amount of optimization that results in a single
@@ -644,31 +649,15 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
       }
       wad_strcat(objfile,stabstr+s->n_strx);
     } else if (s->n_type == N_FUN) {
-
-      /* Due to the bogosity and performance issues of managing stabs types, we are going to check
-	 the current frame as well as all remaining unchecked stack frames for a match.  Generally,
-         it is much faster for us to scan the stabs data once checking N stack frames than it
-         is to check N stack frames, scanning the stabs data each time.
-       */
-
-      WadFrame *g;
-      g = f;
-      while (g) {
-	if ((!g->sym_name) || (g->debug_check)) {
-	  g = g->next;
-	  continue;
-	}
-	if (match_stab_symbol(g->sym_name, stabstr+s->n_strx, g->sym_nlen)) {
-	  if (!g->sym_file || (strcmp(g->sym_file,lastfile) == 0)) {
+      if (match_stab_symbol(f->sym_name, stabstr+s->n_strx, f->sym_nlen)) {
+	  if (!f->sym_file || (strcmp(f->sym_file,lastfile) == 0)) {
 	    int n;
 	    /* Go find debugging information for the function */
-	    n = scan_function(s+1, stabstr, ns -i - 1, g);
-	    g->loc_srcfile = wad_string_lookup(srcfile);
-	    g->loc_objfile = wad_string_lookup(objfile);
-	    g->debug_check = 1; 
+	    n = scan_function(s+1, stabstr, ns -i - 1, f);
+	    f->loc_srcfile = wad_string_lookup(srcfile);
+	    f->loc_objfile = wad_string_lookup(objfile);
+	    return 1;
 	  }
-	}
-	g = g->next;
       }
     }
   }

@@ -155,8 +155,10 @@ wad_segment_read() {
 
   while (1) {
     s = (WadSegment *) wad_malloc(sizeof(WadSegment));    
+  skip:
     n = segment_read(fs,s);
     if (n <= 0) break;
+    if (wad_file_check(s->vaddr)) goto skip;  /* Skip files we already loaded */
     s->next = 0;
     if (!lasts) {
       segments = s;

@@ -435,6 +435,7 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 void wad_signal_init() {
   struct sigaction newvec;
   static stack_t  sigstk;
+  static int      initstack = 0;
 
   if (wad_debug_mode & DEBUG_INIT) {
     wad_printf("WAD: Initializing signal handler.\n");
@@ -442,15 +443,19 @@ void wad_signal_init() {
   /* This is buggy in Linux and threads.  disabled by default */
 
 #ifndef WAD_LINUX
-  /* Set up an alternative stack */
 
-  sigstk.ss_sp = (char *) wad_sig_stack;
-  sigstk.ss_size = STACK_SIZE;
-  sigstk.ss_flags = 0;
-  if (!(wad_debug_mode & DEBUG_NOSTACK)) {
-    if (sigaltstack(&sigstk, (stack_t*)0) < 0) {
-      perror("sigaltstack");
+  if (!initstack) {
+    /* Set up an alternative stack */
+    
+    sigstk.ss_sp = (char *) wad_sig_stack;
+    sigstk.ss_size = STACK_SIZE;
+    sigstk.ss_flags = 0;
+    if (!(wad_debug_mode & DEBUG_NOSTACK)) {
+      if (sigaltstack(&sigstk, (stack_t*)0) < 0) {
+	perror("sigaltstack");
+      }
     }
+    initstack=1;
   }
 #endif
 
