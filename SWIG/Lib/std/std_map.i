@@ -80,42 +80,45 @@
 
 namespace std {
 
-  template<class K, class T> class map {
+  template<class _Key, class _Tp, class _Compare = std::less<_Key >,
+	   class _Alloc = std::allocator<std::pair<const _Key, _Tp > > >
+  class map {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef K key_type;
-    typedef T mapped_type;
-    typedef std::pair<const K, T> value_type;
+    typedef _Key key_type;
+    typedef _Tp mapped_type;
+    typedef std::pair<const _Key, _Tp> value_type;
 
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
+    typedef _Alloc allocator_type;
 
-    %traits_swigtype(K);
-    %traits_swigtype(T);	    
+    %traits_swigtype(_Key);
+    %traits_swigtype(_Tp);	    
 
-    %fragment(SWIG_Traits_frag(std::map<K, T >), "header",
-	      fragment=SWIG_Traits_frag(std::pair<K, T >),
+    %fragment(SWIG_Traits_frag(std::map<_Key, _Tp, _Compare, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(std::pair<_Key, _Tp >),
 	      fragment="StdMapTraits") {
       namespace swig {
-	template <>  struct traits<std::map<K, T > > {
+	template <>  struct traits<std::map<_Key, _Tp, _Compare, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::map<" #K "," #T " >";
+	    return "std::map<" #_Key "," #_Tp "," #_Compare "," #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_MAP, std::map<K, T >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_MAP, std::map<_Key, _Tp, _Compare, _Alloc >);
   
     %std_map_methods(map);
 
 #ifdef %swig_map_methods
     // Add swig/language extra methods
-    %swig_map_methods(std::map<K, T >);
+    %swig_map_methods(std::map<_Key, _Tp, _Compare, _Alloc >);
 #endif
   };
 

@@ -297,12 +297,12 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
 	tydef = Getattr(p,"typedef");
 
 	if (name) {
-	  if (!value) {
-	    value = Getattr(p,"type");
-	    valuestr = SwigType_str(value,0);
-	  } else {
-	    valuestr = SwigType_namestr(value);
+	  if (!value) value = Getattr(p,"type");
+	  if (SwigType_istemplate(value)) {
+	    value = Swig_cparse_template_deftype(value, 0);
 	  }
+	  
+	  valuestr = SwigType_str(value,0);
 	  assert(value);
 	  /* Need to patch default arguments */
 	  {

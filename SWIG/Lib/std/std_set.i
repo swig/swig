@@ -5,7 +5,7 @@
 %include <std_container.i>
 
 // Set
-%define %std_set_methods_common(set)
+%define %std_set_methods_common(set...)
   %std_container_methods(set);
   
   size_type erase(const key_type& x);
@@ -26,7 +26,7 @@
 #endif
 %enddef
 
-%define %std_set_methods(set)
+%define %std_set_methods(set...)
   %std_set_methods_common(set);
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
   pair<iterator,bool> insert(const value_type& __x);
@@ -64,39 +64,42 @@
 
 namespace std {
 
-  template<class T > class set {
+  template <class _Key, class _Compare = less<_Key>,
+	    class _Alloc = allocator<_Key> >
+  class set {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T value_type;
-    typedef T key_type;
+    typedef _Key value_type;
+    typedef _Key key_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
+    typedef _Alloc allocator_type;
 
-    %traits_swigtype(T);
+    %traits_swigtype(_Key);
 
-    %fragment(SWIG_Traits_frag(std::set<T >), "header",
-	      fragment=SWIG_Traits_frag(T),
+    %fragment(SWIG_Traits_frag(std::set<_Key, _Compare, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(_Key),
 	      fragment="StdSetTraits") {
       namespace swig {
-	template <>  struct traits<std::set<T > > {
+	template <>  struct traits<std::set<_Key, _Compare, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::set<" #T " >";
+	    return "std::set<" #_Key "," #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_SET, std::set<T >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_SET, std::set<_Key, _Compare, _Alloc >);
   
     %std_set_methods(set);
 
 #ifdef %swig_set_methods
     // Add swig/language extra methods
-    %swig_set_methods(std::set<T >);
+    %swig_set_methods(std::set<_Key, _Compare, _Alloc >);
 #endif
   };
 }

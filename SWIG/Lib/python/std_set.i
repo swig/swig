@@ -34,7 +34,7 @@
   }
 %}
 
-%define %swig_set_methods(set)
+%define %swig_set_methods(set...)
   %swig_container_methods(set);
 
   %extend  {

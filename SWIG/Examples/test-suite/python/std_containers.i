@@ -44,10 +44,12 @@
 %template(list_i) std::list<int>;
 %template(deque_i) std::deque<int>;
 
+%template(vector_b) std::vector<bool>;
 %template(vector_i) std::vector<int>;
 %template(vector_c) std::vector<std::complex<double> >;
 %template(vector_ui) std::vector<unsigned int>;
 
+%template(bmatrix) std::vector<std::vector<bool> >;
 %template(imatrix) std::vector<std::vector<int> >;
 %template(cmatrix) std::vector<std::vector<std::complex<double> > >;
 
@@ -56,7 +58,13 @@
 %inline 
 {
   typedef std::vector<std::vector<int> >  imatrix;
-  imatrix mident(const imatrix& v)
+  imatrix midenti(const imatrix& v)
+  {
+    return v;
+  }
+
+  typedef std::vector<std::vector<bool> >  bmatrix;
+  bmatrix midentb(const bmatrix& v)
   {
     return v;
   }
