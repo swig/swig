@@ -453,8 +453,8 @@ class CSHARP : public Language {
       Putc(toupper((int) *Char(variable_name)), getter_setter_name);
       Printf(getter_setter_name, "%s", Char(variable_name)+1);
 
-      Setattr(n,"csharp:proxyfuncname", getter_setter_name);
-      Setattr(n,"csharp:imfuncname", symname);
+      Setattr(n,"proxyfuncname", getter_setter_name);
+      Setattr(n,"imfuncname", symname);
 
       proxyClassFunctionHandler(n);
       Delete(getter_setter_name);
@@ -1161,8 +1161,8 @@ class CSHARP : public Language {
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
       String *intermediary_function_name = Swig_name_member(proxy_class_name, overloaded_name);
-      Setattr(n,"csharp:proxyfuncname", Getattr(n, "sym:name"));
-      Setattr(n,"csharp:imfuncname", intermediary_function_name);
+      Setattr(n,"proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n,"imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
@@ -1181,8 +1181,8 @@ class CSHARP : public Language {
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
       String *intermediary_function_name = Swig_name_member(proxy_class_name, overloaded_name);
-      Setattr(n,"csharp:proxyfuncname", Getattr(n,"sym:name"));
-      Setattr(n,"csharp:imfuncname", intermediary_function_name);
+      Setattr(n,"proxyfuncname", Getattr(n,"sym:name"));
+      Setattr(n,"imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
@@ -1198,16 +1198,16 @@ class CSHARP : public Language {
    * Function called for creating a C# wrapper function around a c++ function in the 
    * proxy class. Used for both static and non-static C++ class functions.
    * C++ class static functions map to C# static functions.
-   * Two extra attributes in the Node must be available. These are "csharp:proxyfuncname" - 
-   * the name of the C# class proxy function, which in turn will call "csharp:imfuncname" - 
+   * Two extra attributes in the Node must be available. These are "proxyfuncname" - 
+   * the name of the C# class proxy function, which in turn will call "imfuncname" - 
    * the intermediary (PInvoke) function name in the intermediary class.
    * ----------------------------------------------------------------------------- */
 
   void proxyClassFunctionHandler(Node *n) {
     SwigType  *t = Getattr(n,"type");
     ParmList  *l = Getattr(n,"parms");
-    String    *intermediary_function_name = Getattr(n,"csharp:imfuncname");
-    String    *proxy_function_name = Getattr(n,"csharp:proxyfuncname");
+    String    *intermediary_function_name = Getattr(n,"imfuncname");
+    String    *proxy_function_name = Getattr(n,"proxyfuncname");
     String    *tm;
     Parm      *p;
     int       i;
