@@ -788,10 +788,8 @@ PHP4::functionWrapper(Node *n) {
     Delete(member_function_name);
   }
 
-  if(!shadow) {
-	  Printf(stderr, "linking function %s\n", name);
+  if(!shadow)
 	  create_command(iname, Char(Swig_name_wrapper(iname)));
-  }
 
   outarg = cleanup = NULL;
   f 	= NewWrapper();
