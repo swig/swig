@@ -300,6 +300,7 @@ int String_delitem(DOH *so, int pos)
 DOH *
 String_str(DOH *so) {
   String *s = (String *) ObjData(so);
+  s->str[s->len] = 0;
   return NewString(s->str);
 }
 
@@ -343,6 +344,7 @@ String_write(DOH *so, void *buffer, int len) {
   if ((s->sp+len) > s->len) s->len = s->sp + len;
   memmove(s->str+s->sp,buffer,len);
   s->sp += len;
+  s->str[s->len] = 0;
   return len;
 }
 
@@ -733,6 +735,7 @@ String_chop(DOH *so) {
     str->len--;
     c--;
   }
+  str->str[str->len] = 0; 
   assert (str->sp >= 0);
   str->hashkey = -1;
 }
