@@ -1160,7 +1160,7 @@ public:
     outarg       = NewString("");
     kwargs       = NewString("");
     
-    Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
+    Wrapper_add_local(f,"resultobj", "PyObject *resultobj = NULL");
 
   /* Write code to extract function parameters. */
     emit_args(d, l, f);
@@ -1626,7 +1626,7 @@ public:
 
     /* Create a function for getting the value of a variable */
     Printf(getf->def,"static PyObject *%s_get(void) {", wname);
-    Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
+    Wrapper_add_local(getf,"pyobj", "PyObject *pyobj = NULL");
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       Replaceall(tm,"$source",name);
       Replaceall(tm,"$target","pyobj");

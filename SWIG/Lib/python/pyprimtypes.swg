@@ -541,7 +541,7 @@ SWIGINTERN int
   long v;
   if (SWIG_AsVal(long)(obj, &v)) {
     if (SWIG_CheckLongInRange(v, WCHAR_MIN, WCHAR_MAX, errmsg)) {
-      if (val) *val = v;
+      if (val) *val = SWIG_numeric_cast(v, wchar_t);
       return 1;
     } else {
       return 0;
