@@ -53,6 +53,13 @@ class TypePass : public Dispatcher {
 	    Append(ty,qty);
 	    }
     */
+
+    if (CPlusPlus) {
+	Replaceall(ty,"struct ","");
+	Replaceall(ty,"union ","");
+	Replaceall(ty,"class ","");
+    }
+
     qty = SwigType_typedef_qualified(ty);
     /*    Printf(stdout,"%s --> %s\n", ty, qty);*/
     Clear(ty);
