@@ -465,6 +465,9 @@ static DOH *Swig_Type_tag_str(DOH *o)
  * Swig_Type_tag_hash(DOH *o);
  * ------------------------------------------------------------------------- */
 
+/* helpful macro */
+#define SafeHashval(x) (x ? Hashval(x) : 0)
+
 static int Swig_Type_tag_hash(DOH *o)
 {
    Swig_Type_tag *tag = TagData(o);
@@ -513,39 +516,34 @@ static int Swig_Type_tag_hash(DOH *o)
       tag->hashkey = 
 	 Hashval(tag->name);
       break;
-#ifdef THIS_IS_BROKEN
-/* Please do not use the ternary ? operator.  It's too error prone, no one can read
-   it, and I don't like it.  Plus, with it nested like this, I have no idea
-   what this code is supposed be doing.  -- Dave */
    case Swig_Type_Enum:
       tag->hashkey = 
-	 (tag->name) ? Hashval(tag->name) : 0 +
-	 (tag->attributes) ? Hashval(tag->attributes) : 0 + 5 << 10;
+	 SafeHashval(tag->name) +
+	 SafeHashval(tag->attributes) +
+	 5 << 10;
       break;
    case Swig_Type_Struct:
       tag->hashkey = 
-	 (tag->name) ? Hashval(tag->name) : 0 +
-	 (tag->attributes) ? Hashval(tag->attributes) : 0 +
+	 SafeHashval(tag->name) +
+	 SafeHashval(tag->attributes) +
 	 6 << 10;
       break;
    case Swig_Type_Union:
       tag->hashkey = 
-	 (tag->name) ? Hashval(tag->name) : 0 +
-	 (tag->attributes) ? Hashval(tag->attributes) : 0 +
+	 SafeHashval(tag->name) +
+	 SafeHashval(tag->attributes) +
 	 7 << 10;
       break;
    case Swig_Type_Array:
       tag->hashkey = 
-	 (tag->attributes) ? Hashval(tag->attributes) : 0 +
+	 SafeHashval(tag->attributes) +
 	 8 << 10;
       break;
    case Swig_Type_Function:
       tag->hashkey = 
-	 (tag->attributes) ? Hashval(tag->attributes) : 0 +
+	 SafeHashval(tag->attributes) +
 	 9 << 10;
       break;
-#endif
-
    case Swig_Type_Pointer:
       tag->hashkey = 
 	 (tag->is_const << 8) +
@@ -561,6 +559,9 @@ static int Swig_Type_tag_hash(DOH *o)
    if (tag->hashkey == -1) tag->hashkey = 1;
    return tag->hashkey;
 }
+
+/* no longer a helpful macro :) */
+#undef SafeHashval
 
 /* -------------------------------------------------------------------------
  * static int
