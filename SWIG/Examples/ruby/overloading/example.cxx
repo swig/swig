@@ -113,3 +113,13 @@ void foo(Bar *x) {
     std::cout << "Called foo(Bar *) with x = " << x << std::endl;
 }
 
+// Overloaded global spam() functions
+void spam(int x, int y, int z) {
+    std::cout << "Called spam(int, int, int) with x, y, z = " << x << ", " << y << ", " << z << std::endl;
+}
+
+void spam(double x, int y, int z) {
+    std::cout << "Called spam(double, int, int) with x, y, z = " << x << ", " << y << ", " << z << std::endl;
+}
+
+

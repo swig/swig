@@ -1,22 +1,38 @@
 require 'example'
 
 # This should invoke foo(double)
-Example::foo(3.14159)
+Example.foo(3.14159)
 
 # This should invoke foo(double, char *)
-Example::foo(3.14159, "Pi")
+Example.foo(3.14159, "Pi")
 
 # This should invoke foo(int, int)
-Example::foo(3, 4)
+Example.foo(3, 4)
 
 # This should invoke foo(char *)
-Example::foo("This is a test")
+Example.foo("This is a test")
 
 # This should invoke foo(long)
-Example::foo(42)
+Example.foo(42)
 
 # This should invoke Bar::Bar() followed by foo(Bar *)
-Example::foo(Example::Bar.new)
+Example.foo(Example::Bar.new)
+
+# Skip a line
+puts ""
+
+# Each of the following three calls should invoke spam(int, int, int)
+Example.spam(3)
+Example.spam(3, 4)
+Example.spam(3, 4, 5)
+
+# Skip a line
+puts ""
+
+# Each of the following three calls should invoke spam(double, int, int)
+Example.spam(3.0)
+Example.spam(3.0, 4)
+Example.spam(3.0, 4, 5)
 
 # Skip a line
 puts ""
