@@ -324,10 +324,15 @@ typedef unsigned long SCM;
 	 const int &, const short &, const long &,
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const long long &, const unsigned long long &,
-	 enum SWIGTYPE,
-         bool, const bool & 
+	 enum SWIGTYPE
 {
   $1 = SCM_NFALSEP(scm_integer_p($input)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_BOOL)
+	bool, bool&, const bool&
+{
+  $1 = SCM_BOOLP($input) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)
