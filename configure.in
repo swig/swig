@@ -38,6 +38,15 @@ AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 AC_CHECK_PROGS(AR, ar aal, ar)
 AC_SUBST(AR)
 AC_LIBTOOL_WIN32_DLL
+
+# On Mac OS-X, static runtime libraries don't seem to build (and are
+# probably a bad idea anyways).  This turns this off in libtool.
+
+case $host in
+   *-*-darwin*) AC_DISABLE_STATIC;;
+   *);;
+esac
+
 AC_PROG_LIBTOOL
 AC_COMPILE_WARNINGS # Increase warning levels
 
@@ -225,7 +234,6 @@ then
 fi
 AC_MSG_RESULT($LINKFORSHARED)
 
-
 # This variation is needed on OS-X because there is no (apparent) consistency in shared libary naming.
 # Sometimes .bundle works, but sometimes .so is needed.  It depends on the target language
 
@@ -253,7 +261,14 @@ case $host in
    *) TCL_CXXSHARED=$CXXSHARED;;
 esac
 
+# On Mac OS-X, the -no-defined option to libtool doesn't seem to work.
+# This fixes it
 
+AC_SUBST(LIBTOOL_NO_UNDEFINED)
+case $host in
+   *-*-darwin*) LIBTOOL_NO_UNDEFINED="";;
+   *) LIBTOOL_NO_UNDEFINED="-no-undefined";;
+esac
 
 echo ""
 echo "Checking for installed packages."
