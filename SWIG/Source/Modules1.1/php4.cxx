@@ -30,6 +30,7 @@ PHP4 Options (available with -php4)\n\
 	-withincs libs	- With -phpfull writes needed incs in config.m4\n\
 	-withlibs libs	- With -phpfull writes needed libs in config.m4\n\n";
 
+static String *NOTCLASS=NewString("Not a class");
 static Node *classnode=0;
 static String *module = 0;
 static String *cap_module = 0;
@@ -136,36 +137,44 @@ SwigPHP_emit_resource_registrations() {
 
   if (!zend_types) return;
   key = Firstkey(zend_types);
+
   if (key) Printf(s_oinit,"\n// Register resource destructors for pointer types\n");
   while (key) if (1 /* is pointer type*/) {
     Node *class_node;
     if (class_node=Getattr(zend_types,key)) {
-      classname = Getattr(class_node,"name");
-      if (! (shadow_classname = Getattr(class_node,"sym:name"))) shadow_classname=classname;
-    } else Printf(stderr,"No node\n");
+      // Write out destructor function header
+      Printf(s_wrappers,"//NEW Destructor style\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n",key);
 
-    // Write out destructor
-    Printf(s_wrappers,"//NEW Destructor style\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n",
-                   key);
+      // write out body
+      if (class_node!=NOTCLASS) {
+        classname = Getattr(class_node,"name");
+        if (! (shadow_classname = Getattr(class_node,"sym:name"))) shadow_classname=classname;
+        // Do we have a known destructor for this type?
+        if (destructor = Getattr(class_node,"destructor")) {
+          Printf(s_wrappers,"// has destructor: %s\n",destructor);
+          Printf(s_wrappers,"%s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n",destructor,key);
+        } else {
+          Printf(s_wrappers,"//bah! No destructor for this wrapped class!!\n");
+        }
+      } else {
+          Printf(s_wrappers,"//bah! No destructor for this simple type!!\n");
+      }
 
-    // Do we have a known destructor for this type?
-    if (class_node && (destructor = Getattr(class_node,"destructor"))) {
-      Printf(s_wrappers,"// has destructor: %s\n",destructor);
-      Printf(s_wrappers,"%s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n",destructor,key);
+      // close function
+      Printf(s_wrappers,"}\n");
 
-    } else {
-      Printf(s_wrappers,"//bah! No destructor for this wrapped type!!\n");
-    }
-    Printf(s_wrappers,"}\n");
+      // declare le_swig_<mangled> to store php registration
+      Printf(s_vdecl,"static int le_swig_%s=0; // handle for %s\n", key, shadow_classname);
 
-    Printf(s_vdecl,"static int le_swig_%s=0; // handle for %s\n", key, shadow_classname);
-
-    Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
+      // register with php
+      Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
 	     "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
 	     key,key,key);
 
-    Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n",
+      // store php type in class struct
+      Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n",
            key,key);
+    }
     key = Nextkey(zend_types);
   }
 }
@@ -1830,6 +1839,8 @@ void typetrace(SwigType *ty, String *mangled, String *clientdata) {
       // nodes for the same SwigType
       Setattr(zend_types,mangled,class_node);
     }
+  } else { // a non-class pointer
+    Setattr(zend_types,mangled,NOTCLASS);
   }
   if (r_prevtracefunc) (*r_prevtracefunc)(ty, mangled, (String *) clientdata);
 }
