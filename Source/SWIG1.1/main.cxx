@@ -79,11 +79,11 @@ static char *usage = "\
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
-// 
+//
 // Checks the suffix of a file to see if we should emit extern declarations.
 // -----------------------------------------------------------------------------
 
-int 
+int
 check_suffix(char *name) {
   char *c;
   if (!name) return 0;
@@ -262,6 +262,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  }
       }
   }
+  if (Verbose)
+    printf ("LibDir: %s\n", LibDir);
 
   while (includecount > 0) {
     Swig_add_directory((DOH *) includefiles[--includecount]);
@@ -295,6 +297,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     char *outfile = input_file;
     if (outfile_name)
       outfile = outfile_name;
+
+    if (Verbose)
+      printf ("Handling checkout...\n");
 
     s = Swig_include(input_file);
     if (!s) {
@@ -380,6 +385,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Preprocessor_define((DOH *) "__cplusplus 1", 0);
 
     // Run the preprocessor
+    if (Verbose)
+      printf ("Preprocessing...\n");
     {
       DOH *cpps;
       FILE *f;
@@ -411,6 +418,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     // Initialize the scanner
+    if (Verbose)
+      printf ("Scanning...\n");
     LEX_in = f_input;
     scanner_file(LEX_in);
 
@@ -462,7 +471,15 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     // Pass control over to the specific language interpreter
 
+    if (Verbose) {
+      fprintf (stdout, "Starting language-specific parse...\n");
+      fflush (stdout);
+    }
     lang->parse();
+    if (Verbose) {
+      fprintf (stdout, "Finished language-specific parse.\n");
+      fflush (stdout);
+    }
 
     fclose(f_header);
     fclose(f_wrappers);
@@ -475,6 +492,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     fclose(f_runtime);
 
     // Remove temporary files
+    if (Verbose)
+      printf ("Cleaning up...\n");
 
     remove(fn_cpp);
     remove(fn_header);
