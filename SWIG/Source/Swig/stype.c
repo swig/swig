@@ -929,7 +929,6 @@ SwigType_ltype(SwigType *s) {
   while (SwigType_isqualifier(tc)) {
     Delete(SwigType_pop(tc));
   }
-
   if (SwigType_issimple(tc)) {
     /* Resolve any typedef definitions */
     td = SwigType_typedef_resolve(tc);
@@ -941,7 +940,6 @@ SwigType_ltype(SwigType *s) {
       Delete(td);
     }
   }
-
   elements = SwigType_split(tc);
   nelements = Len(elements);
   /* Now, walk the type list and start emitting */

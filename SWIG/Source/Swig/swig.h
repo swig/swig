@@ -389,7 +389,8 @@ extern Wrapper   *Swig_cmethod_wrapper(String_or_char *classname,
 				       String_or_char *methodname,
 				       SwigType *rtype,
 				       ParmList *parms,
-				       String_or_char *code);
+				       String_or_char *code,
+                                       String_or_char *qualifier);
 
 extern Wrapper   *Swig_cdestructor_wrapper(String_or_char *classname,
                                            String_or_char *code);

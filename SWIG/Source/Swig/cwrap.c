@@ -132,8 +132,8 @@ Swig_wrapped_var_type(SwigType *t) {
 String *
 Swig_clocal_deref(SwigType *t, String_or_char *name) {
   switch(SwigType_type(t)) {
-  case T_USER:
-    return Swig_temp_result(NewStringf("*%s",name));
+    case T_USER:
+    return Swig_temp_result(NewStringf("*%s", name));
     break;
   case T_VOID:
     return Swig_temp_result(NewString(""));
@@ -367,7 +367,8 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
 
   func = NewString("");
   if (!p) return Swig_temp_result(func);
-  Printf(func,"%s->%s(", Swig_cparm_name(p,0), name);
+  pt = Gettype(p);
+  Printf(func,"(%s)->%s(", SwigType_rcaststr(pt,Swig_cparm_name(p,0)), name);
   i++;
   p = nextSibling(p);
   while (p) {
@@ -588,7 +589,8 @@ Swig_cmethod_wrapper(String_or_char *classname,
 		     String_or_char *methodname,
 		     SwigType *rtype,
 		     ParmList *parms,
-		     String_or_char *code)
+		     String_or_char *code,
+                     String *qualifier)
 {
   Wrapper *w;
   ParmList *l;
@@ -602,6 +604,9 @@ Swig_cmethod_wrapper(String_or_char *classname,
 
   l = CopyParmList(nonvoid_parms(parms));
   t = NewString(classname);
+  if (qualifier) {
+    SwigType_push(t,qualifier);
+  }
   SwigType_add_pointer(t);
   p = NewParm(t,"self");
   set_nextSibling(p,l);

@@ -40,6 +40,7 @@ static String  *AttributeFunctionGet = 0;
 static String  *AttributeFunctionSet = 0;
 static String  *ActionFunc = 0;
 static int      cplus_mode = 0;
+static String  *MemberQualifier = 0;                    /* Hack alert */
 
 extern    int           GenerateDefault;
 extern    int           ForceExtern;
@@ -488,6 +489,7 @@ void Language::cDeclaration(Node *n) {
   Node   *over;
   File   *f_header = 0;
 
+  MemberQualifier = 0;
   CCode = code;
   emit_set_action(0);
 
@@ -565,6 +567,11 @@ void Language::cDeclaration(Node *n) {
 	Printf(f_header,"extern \"C\" %s;\n", SwigType_str(ty,name));
       }
     }
+    
+    /* This needs to check qualifiers */
+    if (SwigType_isqualifier(ty)) {
+      MemberQualifier = SwigType_pop(ty);
+    }
     Delete(SwigType_pop_function(ty));
 
     /* Static functions */
@@ -611,6 +618,10 @@ void Language::cDeclaration(Node *n) {
 	  lang->cpp_member_func(Char(name),Char(symname),ty,nonvoid_parms(parms));
 	}
       }
+    }
+    if (MemberQualifier) {
+      Delete(MemberQualifier);
+      MemberQualifier = 0;
     }
   } else {
     /* Some kind of variable declaration */
@@ -1094,7 +1105,7 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
   /* Create the actual function name */
 
   fname = Copy(Swig_name_member(ClassPrefix, iname ? iname : name));
-  w = Swig_cmethod_wrapper(ClassType, name, t, l, CCode);
+  w = Swig_cmethod_wrapper(ClassType, name, t, l, CCode, MemberQualifier);     /* Hack alert */
   if (AddMethods && CCode) {
     /* Produce an actual C wrapper */
     File *f_wrappers = Swig_filebyname("wrapper");
@@ -1102,10 +1113,11 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
     Wrapper_print(w,f_wrappers);
   } else if (!AddMethods) {
     /* C++ member. Produce code that does the actual work */
-    if (!ActionFunc)
+    if (!ActionFunc) {
       emit_set_action(Swig_cmethod_call(name, Wrapper_Getparms(w)));
-    else
+    } else {
       emit_set_action(ActionFunc);
+    }
   }
   lang->create_function(Wrapper_Getname(w), Char(fname), Wrapper_Gettype(w), Wrapper_Getparms(w));
   DelWrapper(w);
