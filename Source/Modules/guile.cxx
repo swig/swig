@@ -35,7 +35,6 @@ char cvsroot_guile_cxx[] = "$Header$";
 // Note string broken in half for compilers that can't handle long strings
 static const char *guile_usage = (char*)"\
 Guile Options (available with -guile)\n\
-     -ldflags                - Print runtime libraries to link with\n\
      -prefix <name>          - Use <name> as prefix [default \"gswig_\"]\n\
      -package <name>         - Set the path of the module to <name>\n\
                                (default NULL)\n\
@@ -168,10 +167,6 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
-	}
-	else if (strcmp (argv[i], "-ldflags") == 0) {
-	  printf("%s\n", use_scm_interface ? SWIG_GUILESCM_RUNTIME : SWIG_GUILE_RUNTIME);
-	  SWIG_exit (EXIT_SUCCESS);
 	}
 	else if (strcmp (argv[i], "-Linkage") == 0
 		 || strcmp (argv[i], "-linkage") == 0) {

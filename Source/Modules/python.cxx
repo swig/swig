@@ -53,7 +53,6 @@ static  String   *real_classname;
 
 static const char *usage = (char *)"\
 Python Options (available with -python)\n\
-     -ldflags        - Print runtime libraries to link with\n\
      -globals <name> - Set <name> used to access C global variable [default: 'cvar']\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n\
@@ -123,9 +122,6 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
-	} else if (strcmp (argv[i], "-ldflags") == 0) {
-	  printf("%s\n", SWIG_PYTHON_RUNTIME);
-	  SWIG_exit (EXIT_SUCCESS);
 	}
       }
     }

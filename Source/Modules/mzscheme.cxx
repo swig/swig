@@ -29,7 +29,6 @@ char cvsroot_mzscheme_cxx[] = "$Header$";
 
 static const char *usage = (char*)"\
 Mzscheme Options (available with -mzscheme)\n\
-     -ldflags        - Print runtime libraries to link with\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -declaremodule  - Create extension that declares a module\n\
      -noinit         - Do not emit scheme_initialize, scheme_reload,\n\
@@ -86,9 +85,6 @@ public:
 	} else if (strcmp (argv[i], "-noinit") == 0) {
 	  noinit = true;
 	  Swig_mark_arg (i);
-	} else if (strcmp (argv[i], "-ldflags") == 0) {
-	  printf("%s\n", SWIG_MZSCHEME_RUNTIME);
-	  SWIG_exit (EXIT_SUCCESS);
 	}
       }
     }

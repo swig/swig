@@ -27,7 +27,6 @@ char cvsroot_tcl8_cxx[] = "$Header$";
 static const char *usage = (char*)"\
 Tcl 8 Options (available with -tcl)\n\
      -itcl           - Enable ITcl support\n\
-     -ldflags        - Print runtime libraries to link with\n\
      -nosafe         - Leave out SafeInit module function.\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -namespace      - Build module into a Tcl 8 namespace\n\
@@ -115,9 +114,6 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
-	} else if (strcmp (argv[i], "-ldflags") == 0) {
-	  printf("%s\n", SWIG_TCL_RUNTIME);
-	  SWIG_exit (EXIT_SUCCESS);
 	}
       }
     }

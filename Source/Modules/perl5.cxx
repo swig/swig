@@ -19,7 +19,6 @@ char cvsroot_perl5_cxx[] = "$Header$";
 
 static const char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
-     -ldflags        - Print runtime libraries to link with\n\
      -static         - Omit code related to dynamic loading\n\
      -nopm           - Do not generate the .pm file\n\
      -proxy          - Create proxy classes\n\
@@ -160,9 +159,6 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
-	} else if (strcmp (argv[i], "-ldflags") == 0) {
-	  printf("%s\n", SWIG_PERL_RUNTIME);
-	  SWIG_exit (EXIT_SUCCESS);
 	}
       }
     }
