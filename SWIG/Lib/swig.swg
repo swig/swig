@@ -47,11 +47,6 @@
 #define %callback(x) %feature("callback",`x`)
 #define %nocallback  %feature("callback","")
 
-/* Directives for attribute functions */
-
-#define %attributefunc(_x,_y)  %pragma(swig)   attributefunction=`_x`":"`_y`;
-#define %noattributefunc       %pragma(swig)   noattributefunction;
-
 /* %ignore directive */
 
 #define %ignore         %rename($ignore)
