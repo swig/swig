@@ -63,6 +63,8 @@ extern "C" {
  *
  * ------------------------------------------------------------------------ */
 
+static ParmList *last_args = 0;
+
 /* Structure for holding a typemap */
 
 struct TypeMap {
@@ -585,6 +587,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   char *key = 0;
   TypeMap *tm = 0;
 
+  last_args = 0;
   if (!str) str = NewString("");
   if (!lang) {
     return 0;
@@ -644,14 +647,15 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   }
 
   /* If there were locals and no wrapper function, print a warning */
-  if ((tm->args) && !f) {
+  /*  if ((tm->args) && !f) {
     if (!pname) pname = (char*)"";
     fprintf(stderr,"%s:%d: Warning. '%%typemap(%s,%s) %s %s' being applied with ignored locals.\n",
 	    input_file, line_number, lang,op, DataType_str(type,0), pname);
   }
-
+  */
   /* Return character string */
-
+  
+  last_args = tm->args;
   return Char(str);
 }
 
@@ -1142,5 +1146,93 @@ int check_numopt(ParmList *l) {
   }
   return n;
 }
+
+
+/* -----------------------------------------------------------------------------
+ * typemap_match_parms()
+ *
+ * Match typemaps for a list of parameters.  This function is only a hack to
+ * ease the migration to the new SWIG typemap system.  Returns a DOH list
+ * of hash table objects containing all of the matches.
+ * ----------------------------------------------------------------------------- */
+
+static void extend(ParmList *l, ParmList *e) {
+  Parm *p;
+  if (!(l && e)) return;
+  p = Firstitem(e);
+  while (p) {
+    Append(l,CopyParm(p));
+    p = Nextitem(e);
+  }
+}
+
+DOHList *
+typemap_match_parms(ParmList *l) {
+  
+  DOHList *tl;
+  DOHHash *tm;
+  Parm    *p;
+  ParmList *nl;
+
+  char    *s;
+
+  tl = NewList();
+
+  p = Firstitem(l);
+  while (p) {
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
+    ParmList *vars = 0;
+
+    tm = NewHash();
+    vars = NewList();
+
+    /* Look up all of the argument related typemaps */
+    /* "in"      */
+    if ((s = typemap_lookup((char*)"in",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
+      Setattr(tm,"in",s);
+      extend(vars,last_args);
+    }
+
+    /* "ignore"  */
+    if ((s = typemap_lookup((char*)"ignore",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
+      Setattr(tm,"ignore",s);
+      extend(vars,last_args);
+    }
+
+    /* "argout"  */
+    if ((s = typemap_lookup((char*)"argout",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
+      Setattr(tm,"argout",s);
+      extend(vars,last_args);
+    }
+
+    /* "default" */
+    if ((s = typemap_lookup((char*)"default",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
+      Setattr(tm,"default",s);
+      extend(vars,last_args);
+    }
+
+    /* "check"   */
+    if ((s = typemap_lookup((char*)"check",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
+      Setattr(tm,"check",s);
+      extend(vars,last_args);
+    }
+
+    /* "arginit" */
+    if ((s = typemap_lookup((char*)"arginit",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
+      Setattr(tm,"arginit",s);
+      extend(vars,last_args);
+    }
+
+    Setattr(tm,"locals", vars);
+
+    Append(tl,tm);
+    Delete(vars);
+    Delete(tm);
+    p = Nextitem(l);
+  }
+  return tl;
+}
+
 
 
