@@ -19,7 +19,7 @@ namespace test {
       }
       char *c_str() {
         return data;
-      };
+      }
    };
 
    /* A minimalistic complex class */
@@ -211,14 +211,14 @@ namespace Split {
 	}
     }	
 #endif
-};
+}
     
 %inline %{
     namespace Split {
 	typedef int PosInteger;
 	PosInteger ttest1(PosInteger x) {
 	    return x;
-	};
+	}
     }
 %}
 

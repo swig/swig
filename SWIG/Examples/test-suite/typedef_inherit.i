@@ -25,7 +25,11 @@ char *do_blah(FooObj *f) {
   return f->blah();
 }
 
-typedef struct {
+typedef struct spam {
+  virtual ~spam()
+  {
+  }
+  
    virtual char *blah() {     
        return (char *) "Spam::blah";
    }
@@ -38,7 +42,7 @@ struct Grok : public Spam {
    }
 };
 
-char *do_blah2(Spam *s) {
+static char * do_blah2(Spam *s) {
    return s->blah();
 }
 %}
