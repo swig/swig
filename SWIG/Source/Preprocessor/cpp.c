@@ -221,7 +221,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 	argname = NewString("");
       } else if (isidchar(c) || (c == '.')) {
 	Putc(c,argname);
-      } else if (!isspace(c)) {
+      } else if (!(isspace(c) || (c == '\\'))) {
 	Swig_error(Getfile(str),Getline(str),"Illegal character in macro argument name\n");
 	goto macro_error;
       }
