@@ -146,7 +146,7 @@ _SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int fl
 {
   char *_c;
   swig_type_info *tc;
-  IV   tmp;
+  void *voidptr = (void *)0;
 
   /* If magical, apply more magic */
   if (SvGMAGICAL(sv))
@@ -155,24 +155,26 @@ _SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int fl
   /* Check to see if this is an object */
   if (sv_isobject(sv)) {
     SV *tsv = (SV*) SvRV(sv);
+    IV tmp = 0;
     if ((SvTYPE(tsv) == SVt_PVHV)) {
       MAGIC *mg;
       if (SvMAGICAL(tsv)) {
-	mg = mg_find(tsv,'P');
-	if (mg) {
-	  SV *rsv = mg->mg_obj;
-	  if (sv_isobject(rsv)) {
-	    tmp = SvIV((SV*)SvRV(rsv));
-	  }
-	}
+        mg = mg_find(tsv,'P');
+        if (mg) {
+          SV *rsv = mg->mg_obj;
+          if (sv_isobject(rsv)) {
+            tmp = SvIV((SV*)SvRV(rsv));
+          }
+        }
       } else {
-	return -1;
+        return -1;
       }
     } else {
       tmp = SvIV((SV*)SvRV(sv));
     }
+    voidptr = (void *)tmp;
     if (!_t) {
-      *(ptr) = (void *) tmp;
+      *(ptr) = voidptr;
       return 0;
     }
   } else if (! SvOK(sv)) {            /* Check for undef */
@@ -193,13 +195,13 @@ _SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int fl
     _c = HvNAME(SvSTASH(SvRV(sv)));
     tc = SWIG_TypeCheck(_c,_t);
     if (!tc) {
-      *ptr = (void *) tmp;
+      *ptr = voidptr;
       return -1;
     }
-    *ptr = SWIG_TypeCast(tc,(void *)tmp);
+    *ptr = SWIG_TypeCast(tc,voidptr);
     return 0;
   }
-  *ptr = (void *) tmp;
+  *ptr = voidptr;
   return 0;
 }
 #ifndef PERL_OBJECT
