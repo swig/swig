@@ -308,7 +308,7 @@ void ASCII::separator() {
 void ASCII::init(char *filename) {
   char f[256];
 
-  sprintf(f,"%s.doc",filename);
+  sprintf(f,"%s.txt",filename);
   sprintf(fn,"%s",filename);
   f_doc = fopen(f,"w");
   if (f_doc == NULL) {
@@ -328,7 +328,7 @@ void ASCII::close(void) {
 
   fclose(f_doc);
   if (Verbose) 
-    fprintf(stderr,"Documentation written to %s.doc\n", fn);
+    fprintf(stderr,"Documentation written to %s.txt\n", fn);
 
 }
 
