@@ -101,6 +101,11 @@ Both these steps will be necessary if you have a fresh CVS checkout or if the bu
 Check that the appropriate versions of your autotools (Autoconf, Automake and Libtool) are installed properly. 
 The autotools are in a state of flux and there are backward compatibility issues which are solved in different ways on different operating systems.
 </li>
+
+<li>
+Check that all the autotool bootstrap programs which are executed when running <tt>./autogen.sh</tt> are up to date and match your installed autotool versions.
+For example <tt>aclocal --version</tt> should report a matching version of Automake, Libtool or Autoconf, something like "aclocal (GNU automake) 1.7.6".
+</li>
 </ol>
 
 If you are still having problems, send an email to <a href="mailto:swig-dev@cs.uchicago.edu">swig-dev@cs.uchicago.edu</a>.
