@@ -188,29 +188,9 @@ to write a helper function. For example:
 <p>
 <li>Namespaces.  Not supported at all. Won't be supported until SWIG2.0 (if at all).
 
-<p>
-<li>Templates.  Not supported at all. SWIG throws out anything that looks like a template.
-You can work around the problem by aliasing a template class behind a typedef however. 
-For example:
-
-<blockquote>
-<pre>
-%{
-typedef vector<int> IntVector;
-%}
-
-class IntVector {
-public:
-    ... methods ...
-};
-</pre>
-</blockquote>
 </ul>
 <p>
-<li>There is no guarantee that an extremely complex C++ application will be able to compile
-as a Ruby extension.  Sorry.
 
-<p>
 <li>Dave's snide remark: Like a large bottle of strong Tequilla, it's better to
 use C++	in moderation.
 
