@@ -317,10 +317,6 @@ of your Ruby module (i.e.. example.dll). Next add the Ruby library file to your
 link libraries under Object/Library modules.  For example "mswin32-ruby16.lib.
 You also need to add the path to the library under the Input tab - Additional
 library path.
-<li>Finally still under the Link tab, add the dll entry point in the Project
-Options: Use "/EXPORT:Init_example" for when you have set the swig module name
-to 'example'. In general use "/EXPORT:Init_<module>", where <module> is the
-swig module name (specified using %module in your interface file).
 <li>Build your project.
 
 </ul>
