@@ -22,7 +22,8 @@ refines the implementation.
 
 Richard Palmer has made substantial progress on creating a PHP4 module
 for SWIG.  The 1.3.11 release includes many more examples, tests, and
-documentation for PHP4 support.
+documentation for PHP4 support. It also now includes support for
+C++ and -shadow.
 
 * Enhanced Java Module *
 
