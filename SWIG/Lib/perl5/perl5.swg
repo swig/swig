@@ -4,6 +4,7 @@
  * Perl 5 configuration file
  * ----------------------------------------------------------------------------- */
 
+%runtime "swigrun.swg"        // Common C API type-checking code
 %runtime "common.swg"         // common type checking code
 %runtime "perlrun.swg"        // Perl runtime functions
 %runtime "noembed.h"          // undefine Perl5 macros

@@ -10,6 +10,7 @@
 #include "chicken.h"
 %}
 
+%insert(runtime) "swigrun.swg";            // Common C API type-checking code
 %insert(runtime) "common.swg";          // Common type-checking code
 %insert(runtime) "chickenrun.swg";      // CHICKEN run-time code
 
