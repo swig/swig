@@ -12,7 +12,7 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_typesys_c[] = "$Header$";
 
 #include "swig.h"
 

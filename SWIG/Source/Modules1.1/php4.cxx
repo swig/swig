@@ -13,7 +13,7 @@
  *
  */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_php4_cxx[] = "$Header$";
 
 #include <ctype.h>
 

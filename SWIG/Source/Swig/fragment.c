@@ -14,7 +14,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_fragment_c[] = "$Header$";
 
 #include "swig.h"
 

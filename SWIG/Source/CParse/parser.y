@@ -17,7 +17,7 @@
 
 #define yylex yylex
 
-static char cvsroot[] = "$Header$";
+char cvsroot_parser_y[] = "$Header$";
 
 #include "cparse.h"
 #include "preprocessor.h"

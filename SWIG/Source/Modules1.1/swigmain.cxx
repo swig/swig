@@ -20,7 +20,7 @@
  * can be used and distributed.
  *******************************************************************************/
 
-static char cvsroot[] = "$Header$";
+char cvsroot_swigmain_cxx[] = "$Header$";
 
 #ifndef MACSWIG
 #include "swigconfig.h"

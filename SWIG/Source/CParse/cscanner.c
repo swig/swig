@@ -12,7 +12,7 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_cscanner_c[] = "$Header$";
 
 #include "cparse.h"
 #include "parser.h"

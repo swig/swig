@@ -14,7 +14,7 @@
 #include <stdarg.h>
 #include <assert.h>
 
-static char cvsroot[] = "$Header$";
+char cvsroot_tree_c[] = "$Header$";
 
 /* -----------------------------------------------------------------------------
  * Swig_print_tags()

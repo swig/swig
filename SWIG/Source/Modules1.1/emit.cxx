@@ -14,7 +14,7 @@
 
 #include "swigmod.h"
 
-static char cvsroot[] = "$Header$";
+char cvsroot_emit_cxx[] = "$Header$";
 
 extern SwigType *cplus_value_type(SwigType *t);
 

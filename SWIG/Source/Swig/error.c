@@ -14,7 +14,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-static char cvsroot[] = "$Header$";
+char cvsroot_error_c[] = "$Header$";
 
 /* -----------------------------------------------------------------------------
  * Commentary on the warning filter.

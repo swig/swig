@@ -11,7 +11,7 @@
 
 /* Derived from xml.cxx 1.1.2.2 */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_s_exp_cxx[] = "$Header$";
 static const char *usage = "\
 S-Exp Options (available with -sexp)\n\
      -typemaplang lang - Typemap language.\n\n";

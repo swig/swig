@@ -10,7 +10,7 @@
  *
  ********************************************************************/
 
-static char cvsroot[] = "$Header$";
+char cvsroot_ruby_cxx[] = "$Header$";
 
 #include "swigmod.h"
 

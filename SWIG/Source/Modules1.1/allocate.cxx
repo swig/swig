@@ -16,7 +16,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_allocate_cxx[] = "$Header$";
 
 #include "swigmod.h"
 

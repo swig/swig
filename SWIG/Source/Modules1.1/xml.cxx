@@ -10,7 +10,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_xml_cxx[] = "$Header$";
 static const char *usage = "\
 XML Options (available with -xml)\n\
      -xml output.xml - Use output.xml as output file (extension .xml mandatory)\n\

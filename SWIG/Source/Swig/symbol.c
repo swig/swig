@@ -9,7 +9,7 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_symbol_c[] = "$Header$";
 
 #include "swig.h"
 #include "swigwarn.h"

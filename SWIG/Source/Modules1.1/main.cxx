@@ -12,7 +12,7 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_main_cxx[] = "$Header$";
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN

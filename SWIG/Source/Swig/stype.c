@@ -10,7 +10,7 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_stype_c[] = "$Header$";
 
 #include "swig.h"
 #include <ctype.h>

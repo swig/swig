@@ -2,7 +2,7 @@
  * Pike language module for SWIG
  ***********************************************************************/
  
-static char cvsroot[] = "$Header$";
+char cvsroot_pike_cxx[] = "$Header$";
 
 #include "swigmod.h"
 #ifndef MACSWIG
