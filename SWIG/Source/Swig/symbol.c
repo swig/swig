@@ -722,8 +722,12 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   }
   
   if (Swig_scopename_check(name)) {
-    if (Strncmp(name,"::",2) == 0) s = symbol_lookup_qualified(Char(name)+2,global_scope,0,0);
-    else {
+    if (Strncmp(name,"::",2) == 0) {
+      String *nname = NewString(Char(name)+2);
+      if (Swig_scopename_check(nname)) {
+	s = symbol_lookup_qualified(nname,global_scope,0,0);
+      }
+    } else {
       String *prefix = Swig_scopename_prefix(name);
       if (prefix) {
 	s = symbol_lookup_qualified(name,hsym,0,0);

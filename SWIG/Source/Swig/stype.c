@@ -812,7 +812,7 @@ String *SwigType_prefix(SwigType *t) {
 SwigType *SwigType_templateprefix(SwigType *t) {
   char *c;
   String *r;
-  String *s = Copy(t);
+  String *s = NewString(t);
   c = Char(s);
   while (*c) {
     if (*c == '<') {
