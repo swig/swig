@@ -14,8 +14,22 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian
 Eventually this branch will be merged back to the trunk of the CVS
 tree (maybe).
 
-Work in progress
-================
+Version 1.3.11 (Work in progress)
+=================================
+
+12/20/2001:beazley
+           Fixed [ #494524 ] Preprocessor bug - apostrophe and #subst.
+
+12/20/2001:beazley
+           Added SWIG_VERSION preprocessor symbol.   This is a hexadecimal
+           integer such as 0x010311 (corresponding to SWIG-1.3.11).  This can
+           be used in the interface as follows:
+
+               #if SWIG_VERSION >= 0x010311
+               /* Use some fancy new feature */
+               #endif
+
+           *** NEW FEATURE ***
 
 12/20/2001:mkoeppe
 	   [MzScheme]: Renamed mzswig_make_boolean to
