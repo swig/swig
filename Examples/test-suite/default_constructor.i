@@ -102,8 +102,26 @@ protected:
 class GG : public G { 
 };
 
+template <class T>
+class HH_T 
+{
+
+
+public:
+
+  HH_T(int i,int j)
+  {
+  }
+  
+
+protected:
+  HH_T();
+  
+};
+ 
+ 
 %}
  
 
-
+%template(HH) HH_T<int>;
 

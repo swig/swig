@@ -94,3 +94,8 @@ except AttributeError:
 gg = dc.new_GG
 del_gg = dc.delete_GG
 
+
+import default_constructor
+hh = default_constructor.HH(1,1)
+print hh
+
