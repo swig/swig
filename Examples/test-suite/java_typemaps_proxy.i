@@ -47,6 +47,8 @@ import java.lang.*; // for Exception
   }
 %}
 
+// Check the %javamethodmodifiers feature
+%javamethodmodifiers NS::Farewell::methodmodifiertest() "private";
 
 %inline %{
 namespace NS {
@@ -56,9 +58,13 @@ namespace NS {
         static void ciao(Greeting* g) {}
     };
     class Farewell {
+    public:
+        void methodmodifiertest() {}
     };
     template<class T> class Adieu {};
 }
 %}
 
 %template(AdieuIntPtrPtr) NS::Adieu<int**>;
+
+
