@@ -1,5 +1,12 @@
 Version 1.3.20 (In progress)
 ============================
+09/01/2003: Tiger
+            Created contract example directory at /SWIG/Examples/contract
+            Added simple contract examples (simple_c & simple_cxx)
+            Modified contract module's output format
+
+            *** NEW FEATURE ***
+
 09/01/2003: cheetah (William Fulton)
             Test-suite build improvements:
             - Multiple build directories working for the test suite, so it is now
