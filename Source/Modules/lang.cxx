@@ -1014,7 +1014,12 @@ Language::staticmemberfunctionHandler(Node *n) {
   String   *cname, *mrename;
 
   if (!Extend) {
-    cname = NewStringf("%s::%s",ClassName,name);
+    String *sname = Getattr(Getattr(n,"cplus:staticbase"),"name");
+    if (sname) {
+      cname = NewStringf("%s::%s",sname,name);
+    } else {
+      cname = NewStringf("%s::%s",ClassName,name);
+    }
   } else {
     cname = Copy(Swig_name_member(ClassPrefix,name));    
   }
