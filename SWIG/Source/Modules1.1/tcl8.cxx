@@ -285,9 +285,9 @@ TCL8::functionWrapper(Node *n) {
     if (p && (tm = Getattr(p,"tmap:in"))) {
       String *ln = Getattr(p,"lname");
       sprintf(source,"objv[%d]", i+1);
-      Printf(incode, "if (objc > %d) {\n", num_arguments);
+      Printf(incode,"if (objc > %d) {\n", i);
       Replaceall(tm,"$input",source);
-      Printv(incode,tm,NULL);
+      Printv(incode,tm,"\n", NULL);
       Printf(incode,"}\n");
     }
   }

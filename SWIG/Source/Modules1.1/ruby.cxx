@@ -448,6 +448,7 @@ void RUBY::marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrap
   char source[256], target[256];
   
   int use_self = (current == MEMBER_FUNC || current == MEMBER_VAR) ? 1 : 0;
+  int varargs = emit_isvarargs(l);
 
   for (i = 0, p = l; i < numarg; i++) {
     /* Skip ignored arguments */
@@ -483,6 +484,17 @@ void RUBY::marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrap
       p = nextSibling(p);
     }
     if (i >= numreq) {
+      Printf(f->code,"}\n");
+    }
+  }
+  /* Trailing varargs */
+  if (varargs) {
+    if (p && (tm = Getattr(p,"tmap:in"))) {
+      sprintf(source,"argv[%d]",i-start);
+      Replaceall(tm,"$input",source);
+      Setattr(p,"emit:input",source);
+      Printf(f->code,"if (argc > %d) {\n", i-start);
+      Printv(f->code,tm,"\n",NULL);
       Printf(f->code,"}\n");
     }
   }
@@ -613,6 +625,8 @@ int RUBY::functionWrapper(Node *n) {
   /* Get number of arguments */
   int numarg = emit_num_arguments(l);
   int numreq = emit_num_required(l);
+  int varargs = emit_isvarargs(l);
+
   int start = (current == MEMBER_FUNC || current == MEMBER_VAR) ? 1 : 0;
 
   /* Generate wrapper safe for all argument list sizes */
@@ -621,7 +635,11 @@ int RUBY::functionWrapper(Node *n) {
   Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NULL);
 
   if (current != CONSTRUCTOR_NEW) {
-    Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
+    if (!varargs) {
+      Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
+    } else {
+      Printf(f->code,"if (argc < %d)\n", numreq-start);
+    }
     Printf(f->code,"rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc);\n",numreq-start);
   }
 

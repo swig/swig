@@ -538,8 +538,8 @@ PERL5::functionWrapper(Node *n)
       sprintf(source,"ST(%d)",i);
       Replaceall(tm,"$input", source);
       Setattr(p,"emit:input", source);
-      Printf(f->code,"    if (items > %d) {\n", i);
-      Printv(f->code, tm, NULL);
+      Printf(f->code,"if (items >= %d) {\n", i);
+      Printv(f->code, tm, "\n", NULL);
       Printf(f->code,"}\n");
     }
   }

@@ -267,7 +267,8 @@ PYTHON::functionWrapper(Node *n) {
 
   int     num_required;
   int     num_arguments;
-  
+  int     varargs = 0;
+
   f = NewWrapper();
   parse_args   = NewString("");
   arglist      = NewString("");
@@ -275,20 +276,6 @@ PYTHON::functionWrapper(Node *n) {
   cleanup      = NewString("");
   outarg       = NewString("");
   kwargs       = NewString("");
-
-  strcpy(wname,Char(Swig_name_wrapper(iname)));
-
-  if (!use_kw) {
-    Printv(f->def,
-	   "static PyObject *", wname,
-	   "(PyObject *self, PyObject *args) {",
-	   NULL);
-  } else {
-    Printv(f->def,
-	   "static PyObject *", wname,
-	   "(PyObject *self, PyObject *args, PyObject *kwargs) {",
-	   NULL);
-  }
 
   Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
 
@@ -298,16 +285,42 @@ PYTHON::functionWrapper(Node *n) {
   /* Attach the standard typemaps */
   emit_attach_parmmaps(l,f);
 
+  /* Get number of required and total arguments */
+  num_arguments = emit_num_arguments(l);
+  num_required  = emit_num_required(l);
+  varargs = emit_isvarargs(l);
+
+  strcpy(wname,Char(Swig_name_wrapper(iname)));
+
+  if (!use_kw) {
+    if (!varargs) {
+      Printv(f->def,
+	     "static PyObject *", wname,
+	     "(PyObject *self, PyObject *args) {",
+	     NULL);
+    } else {
+      Printv(f->def,
+	     "static PyObject *", wname, "__varargs__", 
+	     "(PyObject *self, PyObject *args, PyObject *varargs) {",
+	     NULL);
+    }
+  } else {
+    if (varargs) {
+      Printf(stderr,"%s:%d.  Can't wrap varargs with keyword arguments enabled\n", input_file, line_number);
+      varargs = 0;
+    }
+    Printv(f->def,
+	   "static PyObject *", wname,
+	   "(PyObject *self, PyObject *args, PyObject *kwargs) {",
+	   NULL);
+  }
+
   if (!use_kw) {
     Printf(parse_args,"    if(!PyArg_ParseTuple(args,(char *)\"");
   } else {
     Printf(parse_args,"    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)\"");
     Printf(arglist,",kwnames");
   }
-
-  /* Get number of required and total arguments */
-  num_arguments = emit_num_arguments(l);
-  num_required  = emit_num_required(l);
 
   /* Generate code for argument marshalling */
 
@@ -377,6 +390,15 @@ PYTHON::functionWrapper(Node *n) {
 
   /* Now piece together the first part of the wrapper function */
   Printv(f->code, parse_args, get_pointers, NULL);
+
+  /* Check for trailing varargs */
+  if (varargs) {
+    if (p && (tm = Getattr(p,"tmap:in"))) {
+      String *ln = Getattr(p,"lname");
+      Replaceall(tm,"$input", "varargs");
+      Printv(f->code,tm,"\n",NULL);
+    }
+  }
 
   /* Insert constraint checking code */
   for (p = l; p;) {
@@ -465,6 +487,28 @@ PYTHON::functionWrapper(Node *n) {
 
   /* Dump the function out */
   Wrapper_print(f,f_wrappers);
+
+  /* If varargs.  Need to emit a varargs stub */
+  if (varargs) {
+    DelWrapper(f);
+    f = NewWrapper();
+    Printv(f->def,
+	   "static PyObject *", wname,
+	   "(PyObject *self, PyObject *args) {",
+	   NULL);
+    Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
+    Wrapper_add_local(f,"varargs", "PyObject *varargs");
+    Wrapper_add_local(f,"newargs", "PyObject *newargs");
+    Printf(f->code,"newargs = PyTuple_GetSlice(args,0,%d);\n", num_arguments);
+    Printf(f->code,"varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args)+1);\n", num_arguments);
+    Printf(f->code,"resultobj = %s__varargs__(self,newargs,varargs);\n", wname);
+    Printf(f->code,"Py_XDECREF(newargs);\n");
+    Printf(f->code,"Py_XDECREF(varargs);\n");
+    Printf(f->code,"return resultobj;\n");
+    Printf(f->code,"}\n");
+    Wrapper_print(f,f_wrappers);
+  }
+
 
   /* Now register the function with the interpreter.   */
   add_method(iname, wname, use_kw);

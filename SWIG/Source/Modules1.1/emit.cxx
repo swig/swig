@@ -175,8 +175,9 @@ int emit_num_arguments(ParmList *parms) {
     }
   }
   if (parms && (p = Getattr(parms,"emit:varargs"))) {
-    if (Len(p) ==  1)
+    if (!nextSibling(p)) {
       nargs--;
+    }
   }
   return nargs;
 }
@@ -210,8 +211,9 @@ int emit_num_required(ParmList *parms) {
   }
   /* Might want an error message if any arguments that follow don't have defaults */
   if (parms && (p = Getattr(parms,"emit:varargs"))) {
-    if (Len(p) ==  1)
+    if (!nextSibling(p)) {
       nargs--;
+    }
   }
   return nargs;
 }
