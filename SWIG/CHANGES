@@ -17,9 +17,16 @@ tree (maybe).
 Work in progress
 ================
 
+12/20/2001:mkoeppe
+	   [MzScheme]: Renamed mzswig_make_boolean to
+	   swig_make_boolean, as the latter is used in the typemaps.
+	   Reported by Luigi Ballabio.
+
 12/17/2001:mkoeppe
 	   [Guile]: Rewrote list-vector.i using multi-dispatch
-	   typemaps. 
+	   typemaps.  Updated pointer-in-out.i.  Make the
+	   deprecated typemap-substitution of "$source" in "argout"
+	   work as before.
 
 12/16/2001:mkoeppe
 	   [Guile]: Fixed macros %values_as_list, %values_as_vector,

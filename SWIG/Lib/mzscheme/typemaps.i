@@ -113,7 +113,7 @@
 %enddef
 
 SIMPLE_MAP(bool, SCHEME_BOOLP, SCHEME_TRUEP,
-	   mzswig_make_boolean, boolean);
+	   swig_make_boolean, boolean);
 SIMPLE_MAP(char, SCHEME_CHARP, SCHEME_CHAR_VAL,
 	   scheme_make_character, character);
 SIMPLE_MAP(unsigned char, SCHEME_CHARP, SCHEME_CHAR_VAL,
