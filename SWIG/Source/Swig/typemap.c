@@ -594,7 +594,7 @@ void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lnam
 
   /* Parameter name substitution */
   if (index == 1) {
-    Replace(s,"$name",pname, DOH_REPLACE_ANY);
+    Replace(s,"$parmname",pname, DOH_REPLACE_ANY);
   }
   strcpy(varname,"name");
   Replace(s,var,pname,DOH_REPLACE_ANY);
@@ -862,7 +862,7 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
     if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
   }
   Replace(s,"$parmname",pname, DOH_REPLACE_ANY);
-  Replace(s,"$name",pname,DOH_REPLACE_ANY);
+  /*  Replace(s,"$name",pname,DOH_REPLACE_ANY); */
   return s;
 }
 
