@@ -1,78 +1,146 @@
-						-*- outline -*-
+SWIG TO-DO    
 
-* for release 1.3.8 (or 1.4.0?)
+Release: SWIG-1.3.13    (Late July, 2002)
+-----------------------------------------------------------------------------
 
-** Revive the documentation
+****    = High Priority
+***     = Implement if possible.
+**      = Will implement if time. 
+*       = Implement if bored (or deemed necessary).
 
-** Maybe port Wrapper DOH-ification from CVS head
+CORE:
 
-** Fix all the bugs on SourceForge
+****   Add support for nested classes.   The type system should be
+       ready to go.  The primary obstacle lies in the target language
+       modules (which were never programmed with nested classes in
+       mind).  There are also issues with nested C structures.  For
+       example:
 
-** Add facilities to attach documentation strings to procedures.
-   There is a patch by twburton on SF for the Python language module,
-   but it needs to be done for all language modules.
+             struct Foo {
+                 struct {
+                     int x,y;
+                 } z;
+             };
 
-** Add support for type annotations, see mkoeppe's message:
-   http://mailman.cs.uchicago.edu/pipermail/swig/2001-June/002652.html
+       This is one of the last remaining "hard" problems in the SWIG
+       core, but it is important that we solve it.  
 
-* for the unstable 1.5 series
+***    Support for overloaded functions.   It is probably possible to
+       add some kind of support for this.  Overloading has been supported
+       internally for quite some time---the warning messages are there
+       simply as a stop-gap measure (since no language modules support
+       overloading).    We would keep the the existing %rename support.
 
-**     Maybe use libtool rather than all the home-grown compile/link stuff
+***    Support for smart-pointers and proxies.  This is primarily to
+       support classes that implement the -> operator and which are used
+       to dispatch on another class.   I think it would be cool if
+       SWIG could automatically detect and handle this case.   For example, 
+       if you had this:
 
-**     The behavior of SWIG with respect to call/return-by-value needs
-       to be verified for all language modules.  Previously, the
-       parser automatically performed the conversion of pass-by-value
-       to pass-by-reference.  Unfortunately, this confused typemap
-       handling and other aspects of the system.   I have removed
-       this behavior.  However, in doing so, the handling of user
-       defined types is passed on to the language modules.
+            class FooProxy {
+               ...
+               Foo *operator->();
+               ...
+            };
 
-**     All of the SWIG 1.1p5 examples need to be verified.  Changes
-       in type handling and internal data structures may have broken
-       a variety of things.
+       Perhaps SWIG could automagically locate Foo and arrange for its
+       methods to be associated with FooProxy.  This is really not too
+       bad.   The proxy methods could be wrapped normally with only
+       one minor modification in the wrapper code.   If the class Foo had
+       a method "bar" it would be invoked as this, through the proxy:
 
-** [Guile] Rename slot setters from CLASS-SLOT-set to CLASS-SLOT-set!
+            FooProxy *arg1;     // Object pointer (to proxy)
+            (*arg1)->bar();  
+             ^
+            extra "*" added here.
 
-** [Guile] Maybe support keyword args
+       I think automatic wrapping of methods would be much nicer than
+       requiring the use of a special directive.
 
-** [Guile] Maybe support GOOPS shadow classes
+***    Rewrite declaration annotation to better unify %rename and related
+       directives.  Add a selector mechanism that allows specific parse tree
+       nodes to be identified.  For example:
 
-** [Guile] Support garbage collection.
+             %feature("foo", nodetype="class") Foo { ... some code ... };
 
-*** %new annotation decides whether a pointer smob can be gc'ed.
+       Consider use of wildcards.   Namespace/nested scope support in
+       %feature is currently weak.  It works, but is fragile.  Consider
+       an implementation that is better integrated with symbol table
+       management.  Continue to consolidate SWIG directives to %feature.
 
-*** New smob type `swig-gc'; instances created with
-    SWIG_Guile_MakeCollectablePtr.  %new versions of the pointer
-    typemaps use this function rather than SWIG_Guile_MakePtr.
+***    Bring Aquinas' contract/assertion checking code online.
 
-*** New typemaps "destructor", "gcmarker".  Their values are taken as
-    identifiers for functions taking one argument: a pointer to the
-    object to be destroyed, or whose SCM-valued subobjects are to be
-    marked.  After creating the pointer equivalence table, we iterate
-    again over the remembered pointer types, emitting code that puts
-    the functions into our type table.  No additional functions are
-    generated.
+***    Add more intelligent information related to object ownership.
+       SWIG should be able to automatically strip ownership from 
+       objects when they are assigned to pointer variables and structure
+       members as well as stored in a container (i.e., an array of pointers).
 
-*** The default for all pointer types would be: 
-    %typemap(destructor) SWIGPOINTER * "free";
+**     Restoration of the documentation system.
 
-*** A special annotation, e.g. FREED, can be attached to the arguments
-    of destructor functions, so that explicitly freed structs won't be
-    collected by the GC again. Like this:
+**     Restoration of Objective-C support.
 
-    %typemap(argout) SWIGPOINTER *FREED {
-      smob-tag($source) = swig; /* non-gc */
-      smob-data($source) = NULL;
-    }
-    void free_foo(struct foo *FREED);
-    
-** Make a tricky header file defining annotations invisible to the C compiler. 
-   The idea is to prepare one file that serves both as a C header file 
-   and a SWIG interface file.
+**     Unification of symbol tables and type system scopes.  In a sense
+       they capture the same information so it is not necessary to have
+       both.  The existence of two symbol management systems is mostly
+       historical. 
 
-   void add(SWIG_OUTPUT(int) *z, int x, int y)
+*      Fix template partial specialization matching rules.   SWIG does not
+       implement the proper C++ type deduction rules, but it does handle
+       the most common cases.   This is likely to be hard and implementing
+       it is really only for completeness.
 
-** Unify Guile and MzScheme support, add support for more Scheme systems.
+Library
+-------
 
-** [Guile]: Make SWIG's types first class.
+****   Add more support for the C++ standard library.  std::complex and other
+       core datatypes.   Refine support for STL vector.   Add more STL objects.
+
+****   Continue to expand the set of recognized typemaps.
+
+Python
+------
+
+****   Support for Python-2.2 style classes.
+
+****   Ability to wrap certain classes as Python built-in types.
+
+Perl
+----
+
+****  Rewrite runtime pointer type checking to better integrate
+      shadow classes.   Creation of shadow classes should be done
+      in C instead of Perl.   This will fix a number of problems
+      related to typemaps and reduce the amount of Perl wrapper code.
+
+Tcl
+---
+
+Ruby
+----
+
+Java
+----
+
+PHP
+---
+
+Guile
+-----
+
+Mzscheme
+--------
+
+Documentation
+-------------
+
+**** Extending SWIG (and internals).
+
+***  Perl, Python, Tcl modules.
+
+**   Add section on WAD.
+
+Other
+-----
+
+****  Bring Tiger's .NET/CLR module online.
 
