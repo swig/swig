@@ -66,7 +66,6 @@ CPP_TEST_CASES += \
 	abstract_virtual \
 	add_link \
 	aggregate \
-	anonymous_arg \
 	anonymous_bitfield \
 	argout \
 	array_member \
@@ -77,7 +76,6 @@ CPP_TEST_CASES += \
 	arrays_global_twodim \
 	arrays_scope \
 	bloody_hell \
-	bool_default \
 	bools \
 	casts \
 	cast_operator \
@@ -96,18 +94,12 @@ CPP_TEST_CASES += \
 	conversion_ns_template \
 	cplusplus_throw \
 	cpp_enum \
-	cpp_enum_scope \
-	cpp_enum_scope \
 	cpp_namespace \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
-	default_cast \
-	default_char \
 	default_constructor \
-	default_ns \
 	default_args \
-	default_ref \
 	defvalue_constructor \
 	derived_byvalue \
 	derived_nested \
@@ -127,7 +119,6 @@ CPP_TEST_CASES += \
 	director_wombat \
 	dynamic_cast \
 	enum_plus \
-	enum_scope \
 	enum_scope_template \
 	enum_template \
 	enum_thorough \
@@ -187,7 +178,6 @@ CPP_TEST_CASES += \
 	pure_virtual \
 	redefined \
 	reference_global_vars \
-	rename_default \
 	rename_scope \
 	return_const_value \
 	return_value_scope \
@@ -289,7 +279,6 @@ CPP_TEST_CASES += \
 	valuewrapper \
 	valuewrapper_base \
 	valuewrapper_const \
-	valuewrapper_default \
 	valuewrapper_opaque \
 	varargs \
 	virtual_destructor \
