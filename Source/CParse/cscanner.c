@@ -764,6 +764,8 @@ int yylook(void) {
 	    return DSTAR;
 	  } else if (c == '~') {
 	    return DCNOT;
+	  } else if (isspace(c)) {
+	    /* Keep scanning ahead.  Might be :: * or :: ~ */
 	  } else {
 	    retract(1);
 	    if (!last_id) {
@@ -773,6 +775,7 @@ int yylook(void) {
 	      return DCOLON;
 	    }
 	  }
+	  break;
 
 	case 60: /* shift operators */
 	  if ((c = nextchar()) == 0) return (0);
