@@ -1,6 +1,11 @@
 Version 1.3.20 (In progress)
 ============================
 11/25/2003: beazley
+            [Perl5] Incorporated [ 841074 ] better croaking (PATCH).  This fixes some problems
+            with strings and provides some new error functions. 
+            Contributed by Salvador Fandino Garcia.
+            
+11/25/2003: beazley
             Fixed [ 791835 ] Default argument with cast: txt = (char *)"txt" syntax Error.
             The parser should now accept things like this:
 
