@@ -1911,25 +1911,27 @@ public:
     Setattr(p, "value", "false");
     set_nextSibling(ip, p);
     
-    /* constructor */
-    {
-      Wrapper *w = NewWrapper();
-      String *call;
-      String *basetype = Getattr(parent, "classtype");
-      String *target = Swig_method_decl(decl, classname, parms, 0, 0);
-      call = Swig_csuperclass_call(0, basetype, superparms);
-      Printf(w->def, "%s::%s: %s, Swig::Director(self, disown) { }", classname, target, call);
-      Delete(target);
-      Wrapper_print(w, f_directors);
-      Delete(call);
-      DelWrapper(w);
-    }
-    
-    /* constructor header */
-    {
-      String *target = Swig_method_decl(decl, classname, parms, 0, 1);
-      Printf(f_directors_h, "    %s;\n", target);
-      Delete(target);
+    if (!Getattr(n,"defaultargs")) {
+      /* constructor */
+      {
+        Wrapper *w = NewWrapper();
+        String *call;
+        String *basetype = Getattr(parent, "classtype");
+        String *target = Swig_method_decl(decl, classname, parms, 0, 0);
+        call = Swig_csuperclass_call(0, basetype, superparms);
+        Printf(w->def, "%s::%s: %s, Swig::Director(self, disown) { }", classname, target, call);
+        Delete(target);
+        Wrapper_print(w, f_directors);
+        Delete(call);
+        DelWrapper(w);
+      }
+      
+      /* constructor header */
+      {
+        String *target = Swig_method_decl(decl, classname, parms, 0, 1);
+        Printf(f_directors_h, "    %s;\n", target);
+        Delete(target);
+      }
     }
 
     Delete(sub);
@@ -1953,7 +1955,7 @@ public:
   }
   
   /* ---------------------------------------------------------------
-   * classDirectorMethod()
+   * exceptionSafeMethodCall()
    *
    * Emit a virtual director method to pass a method call on to the 
    * underlying Ruby instance.
@@ -2377,8 +2379,10 @@ public:
 
     /* emit the director method */
     if (status == SWIG_OK) {
-      Wrapper_print(w, f_directors);
-      Printv(f_directors_h, declaration, NIL);
+      if (!Getattr(n,"defaultargs")) {
+        Wrapper_print(w, f_directors);
+        Printv(f_directors_h, declaration, NIL);
+      }
     }
 
     /* clean up */

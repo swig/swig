@@ -3308,11 +3308,14 @@ class JAVA : public Language {
     if (status == SWIG_OK && output_director) {
       if(!is_void) {
         Replaceall(w->code,"$null", qualified_return);
-      } else
+      } else {
         Replaceall(w->code,"$null","");
-      Wrapper_print(w, f_directors);
+      }
       Wrapper_print(imw, imclass_directors);
-      Printv(f_directors_h, declaration, NIL);
+      if (!Getattr(n,"defaultargs")) {
+        Wrapper_print(w, f_directors);
+        Printv(f_directors_h, declaration, NIL);
+      }
     }
 
     Delete(qualified_return);
@@ -3382,28 +3385,30 @@ class JAVA : public Language {
 
     directorPrefixArgs(n);
 
-    /* constructor */
-    {
-      String *basetype = Getattr(parent, "classtype");
-      String *target = Swig_method_decl(decl, classname, parms, 0, 0);
-      String *call = Swig_csuperclass_call(0, basetype, superparms);
-      String *classtype = SwigType_namestr(Getattr(n, "name"));
-      String *dirclass_type = SwigType_namestr(Getattr(n, "sym:name"));
+    if (!Getattr(n,"defaultargs")) {
+      /* constructor */
+      {
+        String *basetype = Getattr(parent, "classtype");
+        String *target = Swig_method_decl(decl, classname, parms, 0, 0);
+        String *call = Swig_csuperclass_call(0, basetype, superparms);
+        String *classtype = SwigType_namestr(Getattr(n, "name"));
+        String *dirclass_type = SwigType_namestr(Getattr(n, "sym:name"));
 
-      Printf(f_directors, "%s::%s: %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
-      Printf(f_directors, "}\n\n");
+        Printf(f_directors, "%s::%s: %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
+        Printf(f_directors, "}\n\n");
 
-      Delete(dirclass_type);
-      Delete(classtype);
-      Delete(target);
-      Delete(call);
-    }
-   
-    /* constructor header */
-    {
-      String *target = Swig_method_decl(decl, classname, parms, 0, 1);
-      Printf(f_directors_h, "  %s;\n", target);
-      Delete(target);
+        Delete(dirclass_type);
+        Delete(classtype);
+        Delete(target);
+        Delete(call);
+      }
+
+      /* constructor header */
+      {
+        String *target = Swig_method_decl(decl, classname, parms, 0, 1);
+        Printf(f_directors_h, "  %s;\n", target);
+        Delete(target);
+      }
     }
 
     Delete(sub);
