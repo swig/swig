@@ -1047,23 +1047,23 @@ class CSHARP : public Language {
     }
 
     // Pure Java interfaces
-    const String *pure_java_interfaces = javaTypemapLookup("javainterfaces", classDeclarationName, WARN_NONE);
+    const String *pure_java_interfaces = javaTypemapLookup(derived ? "csinterfaces_derived" : "csinterfaces_base", classDeclarationName, WARN_NONE);
 
     // Start writing the shadow class
     Printv(shadow_classdef,
         javaTypemapLookup("javaimports", classDeclarationName, WARN_NONE), // Import statements
         "\n",
         javaTypemapLookup("javaclassmodifiers", classDeclarationName, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
-        " class $javaclassname : ",       // Class name and bases
+        " class $javaclassname",       // Class name and bases
+        (derived || *Char(pure_java_baseclass) || *Char(pure_java_interfaces)) ?
+        " : " : 
+        "",
         baseclass,
         pure_java_baseclass,
-        (derived || *Char(pure_java_baseclass)) ?
+        ((derived || *Char(pure_java_baseclass)) && *Char(pure_java_interfaces)) ? // Pure Java interfaces
         ", " :
         "",
         pure_java_interfaces,
-        *Char(pure_java_interfaces) ?  // Pure Java interfaces
-        ", IDisposable" :
-        "IDisposable",
         " {\n",
         "  private IntPtr swigCPtr;\n",  // Member variables for memory handling
         derived ? 
@@ -1088,7 +1088,7 @@ class CSHARP : public Language {
           NIL);
     }
 
-    // C++ destructor is wrapped by the delete method
+    // C++ destructor is wrapped by the Dispose method
     String *destruct = NewString("");
     const String *tm = NULL;
     if (derived)
@@ -1096,7 +1096,7 @@ class CSHARP : public Language {
     else
       tm = javaTypemapLookup("csdestruct_base", classDeclarationName, WARN_NONE);
 
-    // Emit the finalize and delete methods
+    // Emit the finalize and Dispose methods
     if (*Char(destructor_call) && tm) {
       Printv(destruct, tm, NIL);
       Replaceall(destruct, "$jnicall", destructor_call);
@@ -1105,7 +1105,7 @@ class CSHARP : public Language {
           javaTypemapLookup("csfinalize", classDeclarationName, WARN_NONE),
           "\n",
           NIL);
-      // delete method
+      // Dispose method
       if (*Char(destruct)) {
         Printv(shadow_classdef, "  public ", derived ? "override" : "virtual", " void Dispose() ", destruct, "\n", NIL);
       }
