@@ -558,6 +558,15 @@ static void merge_extensions(Node *am) {
    } else {
      nname = NewString(name);
    }
+   if (SwigType_istemplate(nname)) {
+     String *prefix, *args, *qargs;
+     prefix = SwigType_templateprefix(nname);
+     args   = SwigType_templateargs(nname);
+     qargs  = Swig_symbol_type_qualify(args,0);
+     Append(prefix,qargs);
+     Delete(nname);
+     nname = prefix;
+   }
    return nname;
  }
 
@@ -999,6 +1008,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 	       if (!classes) classes = NewHash();
 	       if (!extendhash) extendhash = NewHash();
 	       clsname = make_class_name($3);
+	       /*	       Printf(stdout,"clsname = '%s'\n",clsname);*/
 	       cls = Getattr(classes,clsname);
 	       if (!cls) {
 		 /* No previous definition. Create a new scope */
