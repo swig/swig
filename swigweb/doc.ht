@@ -4,14 +4,13 @@ SWIG Documentation, Presentations, and Papers
 
 <p>
 
-<H3>SWIG1.3</h3>
+<H3>SWIG-1.3</h3>
 <ul>
 
-<li> <a href="Doc1.3/index.html">Development Documentation</a> for latest release (SWIG-1.3.21).
-<li> Also available in <a href="swigdoc.pdf">PDF</a> and <a href="swigdoc.ps">postscript</a> (SWIG-1.3.11).
+<li> <a href="Doc1.3/index.html">Development Documentation</a> for latest release.
 </ul>
 
-<h3>SWIG1.1</h3>
+<h3>SWIG-1.1</h3>
 <ul>
 <li> <a href="Doc1.1/HTML/Contents.html">Online Users Manual</a>.
 <li> Also available in <a href="Doc1.1/PDF/SWIGManual.pdf">PDF</a> (318 pages).

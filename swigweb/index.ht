@@ -10,9 +10,9 @@ C and C++ with a variety of high-level programming
 languages.  SWIG is primarily used with common scripting languages
 such as Perl, Python, Tcl/Tk, and Ruby, however the list of 
 <a href="compat.html#SupportedLanguages">supported languages</a> also includes 
-non-scripting languages such as Java, OCAML and C#. Also several
-interpreted and compiled Scheme implementations (Guile, MzScheme,
-Chicken) are supported. SWIG is most
+non-scripting languages such as C#, Java, Modula-3 and OCAML. Also several
+interpreted and compiled Scheme implementations (Chicken, Guile, MzScheme)
+are supported. SWIG is most
 commonly used to create high-level interpreted or compiled programming
 environments, user interfaces, and as a tool for testing and prototyping C/C++
 software.  SWIG can also export its parse tree in the form of XML and
@@ -33,8 +33,16 @@ and non-commercial use.
 
 
 <p>
+<b>2004/09/04</b>
+SWIG-1.3.22 has been released.  This release continues the ongoing improvements and bug fixes in SWIG.
+The major areas of improvement are in exception handling, enums and the STL. New languages with this
+release are Allegro CL and Modula-3. The documentation has been revamped and it is now
+available in the following formats: single html page, multiple html pages and a pdf
+document.
+
+<p>
 <b>2004/01/11</b>
-<a href="survey.html">SWIG-1.3.21</a> has been released.  This is a minor bug fix release.
+SWIG-1.3.21 has been released.  This is a minor bug fix release.
 
 <p>
 <b>2003/12/17</b>
@@ -44,6 +52,11 @@ improved C++ support, directors, contracts, and more.
 <p>
 <b>2003/12/17</b>
 An article by Phil Tomson about SWIG and Ruby appears in the January 2004 issue of <a href="http://www.cuj.com">C/C++ Users Journal.</a>
+
+<p>
+<b>2003/10/27</b>
+The Code Generation Network undertakes an
+<a href="http://www.codegeneration.net/tiki-read_article.php?articleId=33">interview</a> talking about SWIG.
 
 <p>
 <b>2003/03/28</b>
@@ -136,7 +149,7 @@ See the <a href="survey.html">download</a> page for release notes and versions f
 
 
 <P>
-<b>2001/12/10</b> The <a href="Doc1.3">development documentation</a> for SWIG1.3 has been extensively updated.  Not yet finished, but includes coverage of most
+<b>2001/12/10</b> The <a href="Doc1.3">development documentation</a> for SWIG-1.3 has been extensively updated.  Not yet finished, but includes coverage of most
 new SWIG features including the redesigned typemap system and
 improved exception handling.             
 
@@ -145,7 +158,7 @@ improved exception handling.
 Problems with SWIG?  Look here for more information and to contribute.
 
 <p>
-<b>2001/09/28</b> <a href="Doc1.3">Development documentation</a> for SWIG1.3 is now online.  This is a work in progress, but many new SWIG features
+<b>2001/09/28</b> <a href="Doc1.3">Development documentation</a> for SWIG-1.3 is now online.  This is a work in progress, but many new SWIG features
 are described.
 
 <p>
@@ -184,7 +197,7 @@ has been released.  This release has too many changes to list here,
 but it fixes a lot of bugs in SWIG1.3a3 and SWIG1.3a4, includes new language modules
 for Ruby and Mzscheme, and has some new examples.  Note: this is a somewhat
 unstable release and may not be suitable for first time users.
-Download SWIG1.1 instead.
+Download SWIG-1.1 instead.
 
 <p>
 </blockquote>

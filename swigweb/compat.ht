@@ -70,8 +70,9 @@ The following languages are also supported in SWIG 1.3.6 onwards.
 </ul>
 
 PHP support was added in SWIG 1.3.11.<br>
-Objective Caml (Ocaml) support was added in SWIG 1.3.14.<br>
-Support for C# and the Chicken scheme compiler was added in SWIG 1.3.18.
+Objective Caml (Ocaml) and Pike support was added in SWIG 1.3.14.<br>
+Support for C# and the Chicken scheme compiler was added in SWIG 1.3.18.<br>
+Support for Allegro and CL and Modula-3 was added in SWIG-1.3.22.<br>
 <p>
 
 Any newer versions of these languages should be assumed to be
