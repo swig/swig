@@ -22,6 +22,7 @@ AC_PROG_CXX
 AC_PROG_YACC
 AC_EXEEXT
 AC_OBJEXT
+AC_PROG_RANLIB
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 AC_CHECK_PROGS(AR, ar aal, ar)
 AC_SUBST(AR)
@@ -892,9 +893,7 @@ fi
 CFLAGS=$guilesafe_CFLAGS
 LDFLAGS=$guilesafe_LDFLAGS
 
-AM_CONDITIONAL(GUILE_GH_INTERFACE, test -n "$GUILE_GH_INTERFACE")
 AC_SUBST(GUILE_GH_INTERFACE)
-AM_CONDITIONAL(GUILE_SCM_INTERFACE, test -n "$GUILE_SCM_INTERFACE")
 AC_SUBST(GUILE_SCM_INTERFACE)
 
 #----------------------------------------------------------------
@@ -1377,7 +1376,6 @@ SKIP_TCL=
 if test -z "$TCLINCLUDE" || test -z "$TCLLIB" ; then
     SKIP_TCL="1"
 fi
-AM_CONDITIONAL(SKIP_TCL, test -n "$SKIP_TCL")
 AC_SUBST(SKIP_TCL)
 
 
@@ -1385,7 +1383,6 @@ SKIP_PERL5=
 if test -z "$PERL" || test -z "$PERL5EXT" ; then
     SKIP_PERL5="1"
 fi
-AM_CONDITIONAL(SKIP_PERL5, test -n "$SKIP_PERL5")
 AC_SUBST(SKIP_PERL5)
 
 
@@ -1393,7 +1390,6 @@ SKIP_PYTHON=
 if test -z "$PYINCLUDE" || test -z "$PYLIB" ; then
     SKIP_PYTHON="1"
 fi
-AM_CONDITIONAL(SKIP_PYTHON, test -n "$SKIP_PYTHON")
 AC_SUBST(SKIP_PYTHON)
 
 
@@ -1401,7 +1397,6 @@ SKIP_JAVA=
 if test -z "$JAVA" || test -z "$JAVAC" || test -z "$JAVAINC" ; then
     SKIP_JAVA="1"
 fi
-AM_CONDITIONAL(SKIP_JAVA, test -n "$SKIP_JAVA")
 AC_SUBST(SKIP_JAVA)
 
 
@@ -1409,14 +1404,12 @@ SKIP_GUILE=
 if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" || test -z "$GUILE_GH_INTERFACE"; then
     SKIP_GUILE="1"
 fi
-AM_CONDITIONAL(SKIP_GUILE, test -n "$SKIP_GUILE")
 AC_SUBST(SKIP_GUILE)
 
 SKIP_GUILESCM=
 if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" || test -z "$GUILE_SCM_INTERFACE"; then
     SKIP_GUILESCM="1"
 fi
-AM_CONDITIONAL(SKIP_GUILESCM, test -n "$SKIP_GUILESCM")
 AC_SUBST(SKIP_GUILESCM)
 
 
@@ -1424,7 +1417,6 @@ SKIP_MZSCHEME=
 if test -z "$MZC" ; then
     SKIP_MZSCHEME="1"
 fi
-AM_CONDITIONAL(SKIP_MZSCHEME, test -n "$SKIP_MZSCHEME")
 AC_SUBST(SKIP_MZSCHEME)
 
 
@@ -1432,7 +1424,6 @@ SKIP_RUBY=
 if test -z "$RUBY" || test -z "$RUBYINCLUDE" || test -z "$RUBYLIB" ; then
     SKIP_RUBY="1"
 fi
-AM_CONDITIONAL(SKIP_RUBY, test -n "$SKIP_RUBY")
 AC_SUBST(SKIP_RUBY)
 
 
@@ -1440,7 +1431,6 @@ SKIP_PHP4=
 if test -z "$PHP4" || test -z "$PHP4INC" ; then
     SKIP_PHP4="1"
 fi
-AM_CONDITIONAL(SKIP_PHP4, test -n "$SKIP_PHP4")
 AC_SUBST(SKIP_PHP4)
 
 
@@ -1448,7 +1438,6 @@ SKIP_OCAML=
 if test -z "$OCAMLBIN" || test -z "$OCAMLINC" ; then
     SKIP_OCAML="1"
 fi
-AM_CONDITIONAL(SKIP_OCAML, test -n "$SKIP_OCAML")
 AC_SUBST(SKIP_OCAML)
 
 
@@ -1456,7 +1445,6 @@ SKIP_PIKE="1" # Always skipped!
 if test -z "$PIKE" || test -z "$PIKEINCLUDE" ; then
     SKIP_PIKE="1"
 fi
-AM_CONDITIONAL(SKIP_PIKE, test -n "$SKIP_PIKE")
 AC_SUBST(SKIP_PIKE)
 
 
@@ -1464,7 +1452,6 @@ SKIP_CHICKEN=
 if test -z "$CHICKEN" || test -z "$CHICKENHOME" || test -z "$CHICKENLIB" ; then
     SKIP_CHICKEN="1"
 fi
-AM_CONDITIONAL(SKIP_CHICKEN, test -n "$SKIP_CHICKEN")
 AC_SUBST(SKIP_CHICKEN)
 
 
@@ -1476,8 +1463,11 @@ else
       SKIP_CSHARP="1"
     fi
 fi
-AM_CONDITIONAL(SKIP_CSHARP, test -n "$SKIP_CSHARP")
 AC_SUBST(SKIP_CSHARP)
+
+SKIP_MODULA3="1" # Always skipped!
+AC_SUBST(SKIP_MODULA3)
+
 
 #----------------------------------------------------------------
 # Miscellaneous
@@ -1517,6 +1507,7 @@ AC_DEFINE_UNQUOTED(RELEASE_SUFFIX, "$release_suffix", [Executable release suffix
 
 AC_CONFIG_FILES([			        \
     Makefile				        \
+    swig.spec				        \
     Source/Makefile			        \
     Examples/Makefile			        \
     Examples/guile/Makefile		        \
