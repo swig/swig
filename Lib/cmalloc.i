@@ -34,11 +34,11 @@
 #else
 %name(malloc_##TYPE)
 #endif
-TYPE *malloc(int nbytes
 #if #TYPE != "void"
-= sizeof(TYPE)
+%typemap(default) int nbytes "$1 = (int) sizeof(TYPE);"
 #endif
-);
+TYPE *malloc(int nbytes);
+%typemap(default) int nbytes;
 %enddef
 
 %define %calloc(TYPE,...)
@@ -47,13 +47,15 @@ TYPE *malloc(int nbytes
 #else
 %name(calloc_##TYPE)
 #endif
-TYPE *calloc(int nobj = 1, int sz = 
 #if #TYPE != "void"
-sizeof(TYPE)
+%typemap(default) int sz "$1 = (int) sizeof(TYPE);"
 #else
-1
+%typemap(default) int sz "$1 = 1;"
 #endif
-);
+%typemap(default) int nobj "$1 = 1;"
+TYPE *calloc(int nobj, int sz);
+%typemap(default) int sz;
+%typemap(default) int nobj;
 %enddef
 
 %define %realloc(TYPE,...)

@@ -74,12 +74,17 @@ static SWIGCDATA cdata_##__VA_ARGS__(TYPE *ptr, int nelements) {
    return d;
 }
 }
+
+%typemap(default) int nelements "$1 = 1;"
+
 #if #__VA_ARGS__ == ""
-SWIGCDATA cdata_##TYPE(TYPE *ptr, int nelements = 1);
+SWIGCDATA cdata_##TYPE(TYPE *ptr, int nelements);
 #else
-SWIGCDATA cdata_##__VA_ARGS__(TYPE *ptr, int nelements = 1);
+SWIGCDATA cdata_##__VA_ARGS__(TYPE *ptr, int nelements);
 #endif
 %enddef
+
+%typemap(default) int nelements;
 
 %name(cdata)
 %cdata(void);
