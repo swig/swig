@@ -160,7 +160,7 @@ namespace std {
                 /* wrapped vector? */
                 std::vector<T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
-                                    $1_descriptor,1) != -1)
+                                    $1_descriptor,0) != -1)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -306,7 +306,7 @@ namespace std {
                 /* wrapped vector? */
                 std::vector<T* >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
-                                    $1_descriptor,1) != -1)
+                                    $1_descriptor,0) != -1)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -452,7 +452,7 @@ namespace std {
                 /* wrapped vector? */
                 std::vector<T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
-                                    $1_descriptor,1) != -1)
+                                    $1_descriptor,0) != -1)
                     $1 = 1;
                 else
                     $1 = 0;
