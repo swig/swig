@@ -116,13 +116,13 @@ Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	    if ((!t1) && (!nodes[i].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[i].n), Getline(nodes[i].n),
 			   "Overloaded %s(%s) not supported (no type checking rule for '%s').\n", 
-			   Getattr(nodes[i].n,"name"),ParmList_str(Getattr(nodes[i].n,"parms")),
+			   Getattr(nodes[i].n,"name"),ParmList_str_defaultargs(Getattr(nodes[i].n,"parms")),
 			   SwigType_str(Getattr(p1,"type"),0));
 	      nodes[i].error = 1;
 	    } else if ((!t2) && (!nodes[j].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[j].n), Getline(nodes[j].n),
 			   "Overloaded %s(%s) not supported (no type checking rule for '%s').\n", 
-			   Getattr(nodes[j].n,"name"),ParmList_str(Getattr(nodes[j].n,"parms")),
+			   Getattr(nodes[j].n,"name"),ParmList_str_defaultargs(Getattr(nodes[j].n,"parms")),
 			   SwigType_str(Getattr(p2,"type"),0));
 	      nodes[j].error = 1;
 	    }
