@@ -390,7 +390,7 @@ fi
 
 AC_MSG_CHECKING(for Python header files)
 
-dirs="$PYINCLUDE $PYINCLUDE/python1.5 $PYINCLUDE/python1.4 $PYINCLUDE/Py $prefix/include/python1.5 $prefix/include/python1.4 /usr/local/include/python1.5 /usr/include/python1.5 /usr/local/include/python1.4 /usr/include/python1.4 $prefix/include/Py /usr/local/include/Py /usr/include/Py"
+dirs="$PYINCLUDE $PYINCLUDE/python1.6 $PYINCLUDE/python1.5 $PYINCLUDE/python1.4 $PYINCLUDE/Py $prefix=/include/python1.6 $prefix/include/python1.5 $prefix/include/python1.4 /usr/local/include/python1.6 /usr/local/include/python1.5 /usr/include/python1.5 /usr/local/include/python1.4 /usr/include/python1.4 $prefix/include/Py /usr/local/include/Py /usr/include/Py"
 for i in $dirs ; do
 	if test -r $i/Python.h; then
 		AC_MSG_RESULT($i)
@@ -404,9 +404,16 @@ if test -z "$PYINCLUDE"; then
 fi
 
 AC_MSG_CHECKING(for Python library)
-dirs="$PYLIB $PYLIB/config $PYLIB/lib $PYLIB/python1.5/config $PYLIB/python1.4/config $PYLIB/python/lib $prefix/lib/python1.5/config $prefix/lib/python1.4/config /usr/local/lib/python1.5/config /usr/lib/python1.5 /usr/local/lib/python1.4/config /usr/lib/python1.4 $prefix/lib/python/lib /usr/local/lib/python/lib /usr/lib/python/lib /home/sci/local/lib/python"
+dirs="$PYLIB $PYLIB/config $PYLIB/lib $PYLIB/python1.6/config $PYLIB/python1.5/config $PYLIB/python1.4/config $PYLIB/python/lib $prefix/lib/python1.6/config $prefix/lib/python1.5/config $prefix/lib/python1.4/config /usr/local/lib/python1.6/config /usr/local/lib/python1.5/config /usr/lib/python1.5 /usr/local/lib/python1.4/config /usr/lib/python1.4 $prefix/lib/python/lib /usr/local/lib/python/lib /usr/lib/python/lib /home/sci/local/lib/python"
 
 for i in $dirs ; do
+	if test -r $i/libpython1.6.a; then
+	    AC_MSG_RESULT($i)
+	    PYLIB="$i"
+	    PYINCLUDE="$PYINCLUDE -I$i"
+            PYLINK="-lpython1.6"
+	    break
+	fi
 	if test -r $i/libpython1.5.a; then
 	    AC_MSG_RESULT($i)
 	    PYLIB="$i"
