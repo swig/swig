@@ -490,7 +490,7 @@ AC_MSG_CHECKING(for java include file jni.h)
 AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include directory], [JAVAINCDIR="$withval"], [JAVAINCDIR=nope])
 
 if test "$JAVAINCDIR" = nope; then
-  JAVAINCDIR="/usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe /usr/include /usr/local/include"
+  JAVAINCDIR="/usr/jdk*/include /usr/local/jdk*/include /opt/jdk*/include /usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe /usr/include /usr/local/include"
 fi
 
 JAVAINC=""
@@ -506,9 +506,9 @@ done
 if test "$JAVAINC" = "" ; then
   AC_MSG_RESULT(not found)
 else
-  # now look for <arch>/md.h
-  AC_MSG_CHECKING(for java include file md.h)
-  JAVAMDDIR=`find $JAVAINCDIR -name md.h -print`
+  # now look for <arch>/jni_md.h
+  AC_MSG_CHECKING(for java include file jni_md.h)
+  JAVAMDDIR=`find $JAVAINCDIR -name jni_md.h -print`
   if test "$JAVAMDDIR" = "" ; then
     AC_MSG_RESULT(not found)
   else
