@@ -383,8 +383,12 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
     Setattr(ccurrent,name,n);
     append = cn;
   } else if (cn && (Strcmp(nodeType(cn),"templateparm") == 0)) {
-    Swig_error(Getfile(n),Getline(n),"Error. Declaration of '%s' shadows template parameter at %s:%d\n",
-	       name,Getfile(cn),Getline(cn));
+    Swig_error(Getfile(n),Getline(n),
+	       "Declaration of '%s' shadows template parameter,\n",
+	       name);
+    Swig_error(Getfile(cn),Getline(cn),
+	       "previous template parameter declaration '%s'.\n",
+	       name);
     return;
   } else if (cn) {
     append = n;
