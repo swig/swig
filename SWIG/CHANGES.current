@@ -1,6 +1,9 @@
 Version 1.3.20 (In progress)
 ============================
 11/30/2003: cheetah (William Fulton)
+            Fixed [ 545058 ] configure's --with-tclincl has no effect
+
+11/30/2003: cheetah (William Fulton)
             [Java] Fixed [ 766409 ] missing symbol SWIG_JavaThrowException during module load
             SWIGs internal functions are all static as there is no need for different SWIG
             generated modules to share any code at runtime.
