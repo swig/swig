@@ -345,6 +345,9 @@ Version 1.3.11 (January 31, 2002)
                /* Use some fancy new feature */
                #endif
 
+           Note: The version symbol is not defined in the generated SWIG
+           wrapper file.
+
            *** NEW FEATURE ***
 
 12/20/2001:mkoeppe
