@@ -23,6 +23,7 @@ RANLIB      = @RANLIB@
 # instead of `exec_prefix' or, derivatively, `libdir'.
 SWIG_LIB    = @swig_lib@
 BIN_DIR     = @bindir@
+INCLUDE_DIR = $(prefix)/include
 RELEASESUFFIX = @release_suffix@
 TARGET      = swig$(RELEASESUFFIX)
 SOURCE      = Source
@@ -694,7 +695,7 @@ install-lib:
 	@cd $(srcdir)/Lib/ocaml; for i in *.h; \
 	    do \
 	    echo "Installing Lib/ocaml/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/../../include/$$i; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/ocaml/$$i; \
 	    done;
 
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/pike
