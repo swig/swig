@@ -1103,11 +1103,13 @@ int yylex(void) {
 	      int state = 0;
 	      int sticky = 0;
 	      int isconversion = 0;
+	      int count = 0;
 	      while ((c = nextchar())) {
 		if (((c == '(') || (c == ';')) && state) {
 		  retract(1);
 		  break;
 		}
+		count++;
 		if (!isspace(c)) {
 		  if ((!state) && (isalpha(c))) isconversion = 1;
 		  if (!state && !sticky) Putc(' ',s);
@@ -1119,11 +1121,13 @@ int yylex(void) {
 		  sticky = 1;
 		}
 	      }
+	      Chop(s);
 	      yylval.str = s;
 	      if (isconversion) {
 		char *t = Char(s) + 9;
 		if (!((strcmp(t,"new") == 0) || (strcmp(t,"delete") == 0))) {
-		  retract(strlen(t));
+		  /*		  retract(strlen(t));*/
+		  retract(count);
 		  return COPERATOR;
 		}
 	      }
