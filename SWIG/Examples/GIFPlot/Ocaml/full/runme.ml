@@ -23,20 +23,23 @@ let zmax =  5.0
 let nxpoints = 60
 let nypoints = 60
 
-let cmap = new_ColorMap "cmap"
-let frame = new_FrameBuffer (Int32.of_int 500) (Int32.of_int 500)
-let _ = _FrameBuffer_clear frame _BLACK
+let cmap = _new_ColorMap (C_string "cmap")
+let frame = _new_FrameBuffer (C_list [ C_int 500 ;
+				      C_int 500 ]) 
+let _ = _FrameBuffer_clear (C_list [ frame ; _BLACK ])
 
-let p2 = new_Plot3D frame xmin ymin zmin xmax ymax zmax
-let _ = _Plot3D_lookat p2 (2.0 *. (zmax -. zmin))
-let _ = _Plot3D_autoperspective p2 40.0
-let _ = _Plot3D_rotu p2 60.0
-let _ = _Plot3D_rotr p2 30.0
-let _ = _Plot3D_rotd p2 10.0
+let p2 = _new_Plot3D (C_list [ frame ; 
+			       C_float xmin ; C_float ymin ; C_float zmin ; 
+			       C_float xmax ; C_float ymax ; C_float zmax ])
+let _ = _Plot3D_lookat (C_list [ p2 ; C_float (2.0 *. (zmax -. zmin)) ])
+let _ = _Plot3D_autoperspective (C_list [ p2 ; C_float 40.0 ])
+let _ = _Plot3D_rotu (C_list [ p2 ; C_float 60.0 ])
+let _ = _Plot3D_rotr (C_list [ p2 ; C_float 30.0 ])
+let _ = _Plot3D_rotd (C_list [ p2 ; C_float 10.0 ])
 
 let drawsolid () =
   begin
-    _Plot3D_clear p2 _BLACK ;
+    _Plot3D_clear (C_list [ p2 ; _BLACK ]) ;
     _Plot3D_start p2 ;
     let dx = ((xmax -. xmin) /. (float_of_int nxpoints))
     and dy = ((ymax -. ymin) /. (float_of_int nypoints)) 
@@ -57,13 +60,16 @@ let drawsolid () =
 		and c4 = cscale *. (z4 -. zmin) in
 		let cc = (c1 +. c2 +. c3 +. c4) /. 4.0 in
 		let c =  (max (min (int_of_float cc) 239) 0) in
-		_Plot3D_solidquad p2 
-		  x y z1 
-		  (x +. dx) y z2 
-		  (x +. dx) (y +. dy) z3 
-		  x (y +. dx) z4 
-		  (c + 16) ;
-		y_loop (y +. dy) (j + 1) 
+		  _Plot3D_solidquad 
+		    (C_list (p2 ::
+			       (List.map 
+				  (fun x -> C_float x)
+				  [ x ; y ; z1 ;
+				    (x +. dx) ; y ; z2 ;
+				    (x +. dx) ; (y +. dy) ; z3 ;
+				    x ; (y +. dx) ; z4 ;
+				    (float_of_int (c + 16)) ]))) ;
+		  y_loop (y +. dy) (j + 1) 
 	    end in
 	  begin
 	    y_loop ymin 0 ;
@@ -76,5 +82,5 @@ let drawsolid () =
 let _ = print_endline "Making a nice 3D plot..."
 let _ = drawsolid ()
 
-let _ = _FrameBuffer_writeGIF frame cmap "image.gif"
+let _ = _FrameBuffer_writeGIF (C_list [ frame ; cmap ; C_string "image.gif" ])
 let _ = print_endline "Write image.gif"
