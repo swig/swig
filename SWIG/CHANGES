@@ -16,6 +16,7 @@ tree (maybe).
 
 Version 1.3.14 (In progress)
 ============================
+
 07/18/2002: beazley
             Modified wrapping of uninstantiated templates returned by
             value.  Just to be safe, they are now wrapped by SwigValueWrapper<>
@@ -27,6 +28,40 @@ Version 1.3.14 (In progress)
 
             but you didn't instantiate Foo<int> using %template.  
             We should probably add a warning for this.
+
+07/17/2002: beazley
+            Added an error check to detect shadowed template paramaters.
+            For example:
+
+                  template<class T> class Foo {
+                  public:
+                        int T;
+                  };
+
+            This results in an error, not a warning.  This warning is
+            also needed to fix some rather insidious problems like
+            this:
+
+                 struct T {
+                      int  blah;
+                 };
+
+                 template<class T> class Foo {
+                 public:
+                      typedef T Traits;    // Which T is this????
+                 };
+
+            In this case, the template parameter T shadows the outer
+            structure (which is what you want).
+
+07/16/2002: beazley
+            Improved support for templates with integer arguments.  SWIG is
+            much more aware of situations such as this:
+
+                const int Size = 100;
+
+                %template(Foo100) Foo<100>;
+                void bar(Foo<Size> *x);   // Knows that Foo<Size> is the same as Foo<100>;
 
 07/15/2002: beazley
             Fixed bug with %feature/%ignore/%rename and namespaces.
