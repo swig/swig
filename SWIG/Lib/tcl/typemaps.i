@@ -380,7 +380,6 @@ to a Tcl variable you might do this :
 %typemap(argout) long long *INOUT = long long *OUTPUT;
 %typemap(argout) unsigned long long *INOUT = unsigned long long *OUTPUT;
 
-
 %typemap(argout) int &INOUT = int &OUTPUT;
 %typemap(argout) short &INOUT = short &OUTPUT;
 %typemap(argout) long &INOUT = long &OUTPUT;
