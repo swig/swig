@@ -1,6 +1,32 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/25/2004: mmatus 
+
+	    - Using + namespace is working now (using_namespace.i).
+
+	    - Derived + nested classes is working now
+              (deriver_nested.i), but the fix introduces an extra
+              shit/reduce. Do we keep the fix? (see parser.y).
+	    
+	    - Directors:
+	      - unnamed parameters support,
+
+	      - protected constructor support (automatic and with
+                dirprot mode),
+
+	      - detection of really needed protected declarations
+                (members and constructors), now, even if you don't use
+                the 'dirprot' mode, swig will wrap what is minimally
+                needed (and protected) for the code to compile.
+		
+		what is public, as usual, is always wrapped, and if
+		you use the 'dirport'
+		
+
+	    - Final fixes for the OSS to compile with SWIG 1.3.23 (my
+	      very very ugly C++ + templates + everything mounters wrap).
+
 10/25/2004: wsfulton
             [C#] New commandline option -dllimport. This enables one to specify
             the name of the DLL for the DllImport attribute. Normally this name
