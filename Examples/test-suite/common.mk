@@ -25,7 +25,7 @@
 #######################################################################
 # Variables
 #######################################################################
-SWIG       = $(top_builddir)swig
+SWIG       = $(top_builddir)preinst-swig
 SWIG_LIB   = $(top_srcdir)/Lib
 TEST_SUITE = test-suite
 EXAMPLES   = Examples
@@ -307,6 +307,7 @@ C_TEST_CASES += \
 	sizeof_pointer \
 	sneaky1 \
 	struct_rename \
+	tag_no_clash_with_variable \
 	typemap_subst \
 	unions
 
