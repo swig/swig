@@ -49,11 +49,7 @@ beazley@cs.uchicago.edu </br>
 <li><a name="i6" href="#6">6. Plans for SWIG 2.0</a>
 <li><a name="i7" href="#7">7. C/C++ Wrapper Support Functions</a>
 <li><a name="i8" href="#8">8. Symbol Naming Guidelines for Generated C/C++ Code</a>
-<li><a name="i9" href="#9">9. Reserved</a>
-<li><a name="i10" href="#10">10. Guile Support</a>
-<li><a name="i11" href="#11">11. Python Support</a>
-<li><a name="i12" href="#12">12. Perl Support</a>
-<li><a name="i13" href="#13">13. Java Support</a>
+<li><a name="i9" href="#9">9. Debugging SWIG</a>
 </ul>
 
 <a name="1" href="#i1">
@@ -966,36 +962,54 @@ In the past SWIG has generated many symbols which flout the standard especially 
 
 
 <a name="9" href="#i9">
-<h2>9. Reserved</h2>
+<h2>9. Debugging SWIG</h2>
 </a>
+Warning. Debugging SWIG is for the very patient.
+<p>
 
-<a name="10" href="#i10">
-<h2>10. Guile Support</h2>
-</a>
+The DOH types are all typedefined to void. 
+Consequently, it is impossible for debuggers to extract any information about DOH objects.
+Most debuggers will be able to display useful variable information when an object is cast to the appropriate type.
+Below are some tips for displaying some of the DOH objects.
+Be sure to compile with compiler optimisations turned off before attempting the casts shown in a debugger window else they are unlikely to work.
+Even displaying the underlying string in a String* doesn't work straight off in all debuggers due to the multiple definition of String as a struct and a void.
+<p>
 
-The information that used to live here has moved to the user
-documentation, file <code>Guile.html</code>.
+Below are a list of common SWIG types.
+With each is the cast that can be used in the debugger to extract the underlying type information and the underlying char * string.
 
-<a name="11" href="#i11">
-<h2>11. Python Support</h2>
-</a>
+<ul>
 
-[TODO]
+<p>
+<li>String *s;</li>
+<br>
+(String *)((DohBase *)s)->data
+<br>
+The underlying char * string can be displayed with
+<br>
+((String *)((DohBase *)s)->data)->str
 
-<a name="12" href="#i12">
-<h2>12. Perl Support</h2>
-</a>
+<p>
+<li>SwigType *t;</li>
+<br>
+(String *)((DohBase *)t)->data
+<br>
+The underlying char * string can be displayed with
+<br>
+((String *)((DohBase *)t)->data)->str
 
-[TODO]
+<p>
+<li>String_or_char *sc;</li>
+Either <br>
+((String *)((DohBase *)sc)->data)->str
+<br> or <br>
+(char *)sc
+<br> will work depending on whether the underlying type is really a String * or char *.
 
-<a name="13" href="#i13">
-<h2>13. Java Support</h2>
-</a>
-
-[TODO]
+</ul>
 
 <hr>
-Copyright (C) 1999-2001
+Copyright (C) 1999-2004
 <a href="mailto:swig-dev@cs.uchicago.edu">SWIG Development Team</a>
 
 </body>
