@@ -11,54 +11,49 @@
 
 #include "swigmod.h"
 
-static char *usage = (char*)"\
-  Java Options\n\
-  -package <name>  - set name of the package\n\
-  -proxy           - generate proxy classes\n";
-
-static  Hash  *swig_types_hash = 0;
-static  File  *f_runtime = 0;
-static  File  *f_header = 0;
-static  File  *f_wrappers = 0;
-static  File  *f_init = 0;
-
-static int    shadow = 0; // Set to 1 when generating shadow classes
-static int    have_default_constructor = 0;
-static int    native_func = 0;     // Set to 1 when wrapping a native function
-static int    enum_constant_flag = 0; // Set to 1 when wrapping an enum or constant
-static int    static_flag = 0; // Set to 1 when wrapping a static functions or member variables
-static int    variable_wrapper_flag = 0; // Set to 1 when wrapping a nonstatic member variable
-static int    wrapping_member = 0; // Set to 1 when wrapping a member variable/enum/const
-
-static String *jniclass = 0;  // JNI class name
-static String *module_class_name = 0;  // module class name
-static String *jniclass_class_code = 0; // JNI class Java code - that is the native methods
-static String *shadow_classdef = 0;
-static String *shadow_code = 0;
-static String *module_class_code = 0;
-static String *shadow_classname = 0;
-static String *shadow_variable_name = 0; //Name of a c struct variable or c++ public member variable (may or may not be const)
-static String *shadow_constants_code = 0;
-static String *module_constants_code = 0;
-static String *package = 0; // Package name
-static String *jnipackage = 0; // JNI package name
-static String *jniclass_import = 0; //jniclass import from %pragma
-static String *module_import = 0; //module import from %pragma
-static String *jniclass_baseclass = 0; //inheritance for jniclass class from %pragma
-static String *module_baseclass = 0; //inheritance for module class from %pragma
-static String *jniclass_interfaces = 0; //interfaces for jniclass class from %pragma
-static String *module_interfaces = 0; //interfaces for module class from %pragma
-static String *jniclass_class_modifiers = 0; //class modifiers for jniclass class overriden by %pragma
-static String *module_class_modifiers = 0; //class modifiers for module class overriden by %pragma
-static String *jniclass_method_modifiers = 0; //native method modifiers overridden by %pragma
-static String *wrapper_conversion_code = 0; //C++ casts for inheritance hierarchies JNI code
-static String *jniclass_cppcasts_code = 0; //C++ casts up inheritance hierarchies JNI class Java code
-static String *destructor_call = 0; //Destructor (delete) call if any
-
-enum type_additions {none, pointer, reference};
-
 class JAVA : public Language {
-  const String *empty_string;
+  static const char *usage;
+  const  String *empty_string;
+
+  Hash   *swig_types_hash;
+  File   *f_runtime;
+  File   *f_header;
+  File   *f_wrappers;
+  File   *f_init;
+
+  bool   proxy_flag; // Flag for generating shadow classes
+  bool   have_default_constructor_flag;
+  bool   native_function_flag;     // Flag for when wrapping a native function
+  bool   enum_constant_flag; // Flag for when wrapping an enum or constant
+  bool   static_flag; // Flag for when wrapping a static functions or member variables
+  bool   variable_wrapper_flag; // Flag for when wrapping a nonstatic member variable
+  bool   wrapping_member_flag; // Flag for when wrapping a member variable/enum/const
+
+  String *jniclass;  // JNI class name
+  String *module_class_name;  // module class name
+  String *jniclass_class_code; // JNI class Java code - that is the native methods
+  String *shadow_classdef;
+  String *shadow_code;
+  String *module_class_code;
+  String *shadow_classname;
+  String *shadow_variable_name; //Name of a c struct variable or c++ public member variable (may or may not be const)
+  String *shadow_constants_code;
+  String *module_constants_code;
+  String *package; // Package name
+  String *jnipackage; // JNI package name
+  String *jniclass_imports; //jniclass import from %pragma
+  String *module_imports; //module imports from %pragma
+  String *jniclass_baseclass; //inheritance for jniclass class from %pragma
+  String *module_baseclass; //inheritance for module class from %pragma
+  String *jniclass_interfaces; //interfaces for jniclass class from %pragma
+  String *module_interfaces; //interfaces for module class from %pragma
+  String *jniclass_class_modifiers; //class modifiers for jniclass class overriden by %pragma
+  String *module_class_modifiers; //class modifiers for module class overriden by %pragma
+  String *wrapper_conversion_code; //C++ casts for inheritance hierarchies JNI code
+  String *jniclass_cppcasts_code; //C++ casts up inheritance hierarchies JNI class Java code
+  String *destructor_call; //Destructor (delete) call if any
+
+  enum type_additions {none, pointer, reference};
 
   public:
 
@@ -67,25 +62,65 @@ class JAVA : public Language {
    * ----------------------------------------------------------------------------- */
 
   JAVA() : 
-    empty_string(NewString("")) {
+    empty_string(NewString("")),
+
+    swig_types_hash(NULL),
+    f_runtime(NULL),
+    f_header(NULL),
+    f_wrappers(NULL),
+    f_init(NULL),
+
+    proxy_flag(false),
+    have_default_constructor_flag(false),
+    native_function_flag(false),
+    enum_constant_flag(false),
+    static_flag(false),
+    variable_wrapper_flag(false),
+    wrapping_member_flag(false),
+
+    jniclass(NULL),
+    module_class_name(NULL),
+    jniclass_class_code(NULL),
+    shadow_classdef(NULL),
+    shadow_code(NULL),
+    module_class_code(NULL),
+    shadow_classname(NULL),
+    shadow_variable_name(NULL),
+    shadow_constants_code(NULL),
+    module_constants_code(NULL),
+    package(NULL),
+    jnipackage(NULL),
+    jniclass_imports(NULL),
+    module_imports(NULL),
+    jniclass_baseclass(NULL),
+    module_baseclass(NULL),
+    jniclass_interfaces(NULL),
+    module_interfaces(NULL),
+    jniclass_class_modifiers(NULL),
+    module_class_modifiers(NULL),
+    wrapper_conversion_code(NULL),
+    jniclass_cppcasts_code(NULL),
+    destructor_call(NULL)
+
+    {
     }
 
   /* -----------------------------------------------------------------------------
    * is_shadow()
    *
-   * Test to see if a type corresponds to something wrapped with a shadow class
+   * Test to see if a type corresponds to something wrapped with a shadow/proxy class
    * Return NULL if not otherwise the shadow name
    * ----------------------------------------------------------------------------- */
 
   String *is_shadow(SwigType *t) {
-    if (shadow) {
+    if (proxy_flag) {
       Node *n = classLookup(t);
       if (n) {
         if (!Getattr(n,"java:addedtypemaps")) addClassTypemaps(n);
         return Getattr(n,"java:proxy");
       }
     }
-    return 0;
+    return NULL;
   }
 
   /* -----------------------------------------------------------------------------
@@ -95,8 +130,8 @@ class JAVA : public Language {
    * ----------------------------------------------------------------------------- */
 
   SwigType *getArrayType(SwigType *t) {
-    SwigType *ta = 0;
-    if (SwigType_type(t) == T_ARRAY) {
+    SwigType *ta = NULL;
+    if (SwigType_isarray(t)) {
       SwigType *aop;
       ta = Copy(t);
       aop = SwigType_pop(ta);
@@ -137,7 +172,7 @@ class JAVA : public Language {
           }
         } else if ((strcmp(argv[i],"-shadow") == 0) || ((strcmp(argv[i],"-proxy") == 0))) {
           Swig_mark_arg(i);
-          shadow = 1;
+          proxy_flag = true;
         } else if (strcmp(argv[i],"-jnic") == 0) {
           Swig_mark_arg(i);
           Printf(stderr,"Deprecated command line option: -jnic. C JNI calling convention now used when -c++ not specified.\n");
@@ -195,15 +230,14 @@ class JAVA : public Language {
     module_constants_code = NewString("");
     jniclass_baseclass = NewString("");
     jniclass_interfaces = NewString("");
-    jniclass_class_modifiers = NewString("");
+    jniclass_class_modifiers = NewString("public");
     module_class_name = Copy(Getattr(n,"name"));
     module_class_code = NewString("");
     module_baseclass = NewString("");
     module_interfaces = NewString("");
-    module_import = NewString("");
-    module_class_modifiers = NewString("");
-    jniclass_import = NewString("");
-    jniclass_method_modifiers = NewString("public final static");
+    module_imports = NewString("");
+    module_class_modifiers = NewString("public");
+    jniclass_imports = NewString("");
     jniclass_cppcasts_code = NewString("");
     wrapper_conversion_code = NewString("");
     if (!package) package = NewString("");
@@ -215,7 +249,7 @@ class JAVA : public Language {
       Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
     }
 
-    String* wrapper_name = NewString("");
+    String *wrapper_name = NewString("");
 
     if(Len(package)) {
       String *jniname = makeValidJniName(package);
@@ -243,44 +277,43 @@ class JAVA : public Language {
     Language::top(n);
 
     // Generate the Java JNI class
-    String *filen = NewStringf("%s.java", jniclass);
-    File *f_java = NewFile(filen,"w");
-    if(!f_java) {
-      Printf(stderr,"Unable to open %s\n", filen);
-      SWIG_exit(EXIT_FAILURE);
-    }
-    Delete(filen); filen = NULL;
-
-    // Start writing out the Java JNI class
-    if(Len(package) > 0)
-      Printf(f_java, "package %s;\n\n", package);
-
-    emitBanner(f_java);
-    if(jniclass_import)
-      Printf(f_java, "%s\n", jniclass_import);
-
-    if (jniclass_class_modifiers && *Char(jniclass_class_modifiers))
-      Printf(f_java, "%s", jniclass_class_modifiers);
-    else
-      Printf(f_java, "public");
-    Printf(f_java, " class %s ", jniclass);
-
-    if (jniclass_baseclass && *Char(jniclass_baseclass))
-      Printf(f_java, "extends %s ", jniclass_baseclass);
-    if (jniclass_interfaces)
-      Printv(f_java, jniclass_interfaces, " ", NULL);
-    Printf(f_java, "{\n");
-
-    // Add the native methods
-    Printv(f_java, jniclass_class_code, NULL);
-    Printv(f_java,jniclass_cppcasts_code,NULL);
-
-    // Finish off the Java class
-    Printf(f_java, "}\n");
-    Close(f_java);
-
     {
-      // Generate the Java module class
+      String *filen = NewStringf("%s.java", jniclass);
+      File *f_java = NewFile(filen,"w");
+      if(!f_java) {
+        Printf(stderr,"Unable to open %s\n", filen);
+        SWIG_exit(EXIT_FAILURE);
+      }
+      Delete(filen); filen = NULL;
+
+      // Start writing out the Java JNI class
+      if(Len(package) > 0)
+        Printf(f_java, "package %s;\n\n", package);
+
+      emitBanner(f_java);
+      if(jniclass_imports)
+        Printf(f_java, "%s\n", jniclass_imports);
+
+      Printf(f_java, "%s", jniclass_class_modifiers);
+      Printf(f_java, " class %s ", jniclass);
+
+      if (jniclass_baseclass && *Char(jniclass_baseclass))
+        Printf(f_java, "extends %s ", jniclass_baseclass);
+      if (Len(jniclass_interfaces) > 0)
+        Printv(f_java, "implements ", jniclass_interfaces, " ", NULL);
+      Printf(f_java, "{\n");
+
+      // Add the native methods
+      Printv(f_java, jniclass_class_code, NULL);
+      Printv(f_java, jniclass_cppcasts_code, NULL);
+
+      // Finish off the Java class
+      Printf(f_java, "}\n");
+      Close(f_java);
+    }
+
+    // Generate the Java module class
+    {
       String *filen = NewStringf("%s.java", module_class_name);
       File *f_module = NewFile(filen,"w");
       if(!f_module) {
@@ -294,26 +327,23 @@ class JAVA : public Language {
         Printf(f_module, "package %s;\n\n", package);
 
       emitBanner(f_module);
-      if(module_import)
-        Printf(f_module, "%s\n", module_import);
+      if(module_imports)
+        Printf(f_module, "%s\n", module_imports);
 
-      if (module_class_modifiers && *Char(module_class_modifiers))
-        Printf(f_module, "%s", module_class_modifiers);
-      else
-        Printf(f_module, "public");
+      Printf(f_module, "%s", module_class_modifiers);
       Printf(f_module, " class %s ", module_class_name);
 
       if (module_baseclass && *Char(module_baseclass))
         Printf(f_module, "extends %s ", module_baseclass);
-      if (module_interfaces)
-        Printv(f_module, module_interfaces, " ", NULL);
+      if (Len(module_interfaces) > 0)
+        Printv(f_module, "implements ", module_interfaces, " ", NULL);
       Printf(f_module, "{\n");
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NULL);
 
       // Write out all the enums constants
-      if (strlen(Char(module_constants_code)) != 0 )
+      if (Len(module_constants_code) != 0 )
         Printv(f_module, "  // enums and constants\n", module_constants_code, NULL);
 
       // Finish off the Java class
@@ -345,10 +375,9 @@ class JAVA : public Language {
     Delete(module_class_code); module_class_code = NULL;
     Delete(module_baseclass); module_baseclass = NULL;
     Delete(module_interfaces); module_interfaces = NULL;
-    Delete(module_import); module_import = NULL;
+    Delete(module_imports); module_imports = NULL;
     Delete(module_class_modifiers); module_class_modifiers = NULL;
-    Delete(jniclass_import); jniclass_import = NULL;
-    Delete(jniclass_method_modifiers); jniclass_method_modifiers = NULL;
+    Delete(jniclass_imports); jniclass_imports = NULL;
     Delete(jniclass_cppcasts_code); jniclass_cppcasts_code = NULL;
     Delete(wrapper_conversion_code); wrapper_conversion_code = NULL;
     Delete(package); package = NULL;
@@ -389,10 +418,10 @@ class JAVA : public Language {
     if (Getattr(n,"type")) {
       Swig_save(&n,"name",NULL);
       Setattr(n,"name", Getattr(n,"wrap:name"));
-      native_func = 1;
+      native_function_flag = true;
       functionWrapper(n);
       Swig_restore(&n);
-      native_func = 0;
+      native_function_flag = false;
     } else {
       Printf(stderr,"%s : Line %d. No return type for %%native method %s.\n", input_file, line_number, Getattr(n,"wrap:name"));
     }
@@ -426,7 +455,7 @@ class JAVA : public Language {
     /* This is a gross hack.  To get typemaps properly installed, we have to check for
        shadows on all types first */
 
-    if (shadow) {
+    if (proxy_flag) {
       is_shadow(t);
       for (p = l; p; p = nextSibling(p)) {
         is_shadow(Getattr(p,"type"));
@@ -438,7 +467,7 @@ class JAVA : public Language {
        member variables. That is this generates the getters/setters for member variables.
        Not for enums and constants.
        */
-    if(shadow && wrapping_member && !enum_constant_flag) {
+    if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       String *member_function_name = NewString("");
       if(Cmp(symname, Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name))) == 0)
         Printf(member_function_name,"set");
@@ -492,8 +521,7 @@ class JAVA : public Language {
       Wrapper_add_localv(f,"jresult", jnirettype, "jresult = 0",NULL);
     }
 
-    Printf(jniclass_class_code, "  %s ", jniclass_method_modifiers);
-    Printf(jniclass_class_code, "native %s %s(", javarettype, overloaded_name);
+    Printf(jniclass_class_code, "  public final static native %s %s(", javarettype, overloaded_name);
 
     Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NULL);
 
@@ -622,8 +650,7 @@ class JAVA : public Language {
     Printf(jniclass_class_code, ");\n");
     Printf(f->def,") {");
 
-    if (Getattr(n, "value") && Cmp(Getattr(n, "storage"), "%constant") == 0)
-    {
+    if (Cmp(nodeType(n), "constant") == 0) {
       // Wrapping a constant hack
       Swig_save(&n,"wrap:action",NULL);
 
@@ -633,14 +660,14 @@ class JAVA : public Language {
     }
 
     // Now write code to make the function call
-    if(!native_func)
+    if(!native_function_flag)
       emit_action(n,f);
 
-    if (Getattr(n, "value") && Cmp(Getattr(n, "storage"), "%constant") == 0)
+    if (Cmp(nodeType(n), "constant") == 0)
       Swig_restore(&n);
 
     /* Return value if necessary  */
-    if((SwigType_type(t) != T_VOID) && !native_func) {
+    if((SwigType_type(t) != T_VOID) && !native_function_flag) {
       if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
         Replaceall(tm,"$source", "result"); /* deprecated */
         Replaceall(tm,"$target", "jresult"); /* deprecated */
@@ -667,7 +694,7 @@ class JAVA : public Language {
     }
 
     /* See if there is any return cleanup code */
-    if((SwigType_type(t) != T_VOID) && !native_func) {
+    if((SwigType_type(t) != T_VOID) && !native_function_flag) {
       if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
         Replaceall(tm,"$source","result"); /* deprecated */
         Printf(f->code,"%s\n",tm);
@@ -687,7 +714,7 @@ class JAVA : public Language {
       Replaceall(f->code,"$null","");
 
     /* Dump the function out */
-    if(!native_func)
+    if(!native_function_flag)
       Wrapper_print(f,f_wrappers);
 
     /* Emit warnings for the few cases that can't be overloaded in Java */
@@ -696,7 +723,7 @@ class JAVA : public Language {
         Swig_overload_rank(n);
     }
 
-    if(!(shadow && is_wrapping_class()) && !enum_constant_flag) {
+    if(!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       jniclassFunctionHandler(n);
     }
 
@@ -728,17 +755,21 @@ class JAVA : public Language {
 
   virtual int enumDeclaration(Node *n) {
     String *name = Getattr(n,"sym:name");
-    String* s1 = NewStringf("enum %s", name);
-    String* s2 = NewStringf("%s", name);
+    String *s1 = NewStringf("enum %s", name);
+    String *s2 = NewStringf("%s", name);
     String *swigtype = NewString("enum SWIGTYPE");
 
     /* Apply typemaps for handling arrays of enums and arrays of enum pointers for all known enums*/
-    typemapApply(swigtype, NULL, s1, none, 1);    //%apply enum SWIGTYPE[ANY] {enum name[ANY]};
-    typemapApply(swigtype, NULL, s2, none, 1);    //%apply enum SWIGTYPE[ANY] {name[ANY]};
-    return Language::enumDeclaration(n);
+    typemapApply(swigtype, NULL, s1, none, true);    //%apply enum SWIGTYPE[ANY] {enum name[ANY]};
+    typemapApply(swigtype, NULL, s2, none, true);    //%apply enum SWIGTYPE[ANY] {name[ANY]};
+
+    int ret = Language::enumDeclaration(n);
+
     Delete(s1);
     Delete(s2);
     Delete(swigtype);
+
+    return ret;
   }
 
   /* -----------------------------------------------------------------------
@@ -748,7 +779,6 @@ class JAVA : public Language {
   virtual int constantWrapper(Node *n) {
     String *symname = Getattr(n,"sym:name");
     SwigType *t     = Getattr(n,"type");
-    String *value   = Getattr(n,"value");
     ParmList  *l    = Getattr(n,"parms");
     String *tm;
     String *shadowrettype = NewString("");
@@ -756,7 +786,7 @@ class JAVA : public Language {
 
     Swig_typemap_attach_parms("jstype", l, 0);
 
-    int is_return_type_java_class = 0;
+    bool is_return_type_java_class = false;
     if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
       is_return_type_java_class = substituteJavaclassname(t, tm);
       Printf(shadowrettype, "%s", tm);
@@ -779,7 +809,7 @@ class JAVA : public Language {
 
     // enums are wrapped using a public final static int in java.
     // Other constants are wrapped using a public final static [jstype] in Java.
-    Printf(constants_code, "  public final static %s %s = ", shadowrettype, ((shadow && wrapping_member) ? shadow_variable_name : symname));
+    Printf(constants_code, "  public final static %s %s = ", shadowrettype, ((proxy_flag && wrapping_member_flag) ? shadow_variable_name : symname));
 
     // The %javaconst directive determines how the constant value is obtained
     String *javaconst = Getattr(n,"feature:java:const");
@@ -792,15 +822,15 @@ class JAVA : public Language {
         Printf(constants_code, "%s.%s();\n", jniclass, Swig_name_get(symname));
 
       // Each constant and enum value is wrapped with a separate JNI function call
-      enum_constant_flag = 1;
+      enum_constant_flag = true;
       variableWrapper(n);
-      enum_constant_flag = 0;
+      enum_constant_flag = false;
     } else {
       // Alternative constant handling will use the C syntax to make a true Java constant and hope that it compiles as Java code
       Printf(constants_code, "%s;\n", Getattr(n,"value"));
     }
 
-    if(shadow && wrapping_member)
+    if(proxy_flag && wrapping_member_flag)
       Printv(shadow_constants_code, constants_code, NULL);
     else
       Printv(module_constants_code, constants_code, NULL);
@@ -816,27 +846,17 @@ class JAVA : public Language {
    * pragmaDirective()
    *
    * Valid Pragmas:
-   * These pragmas start with 'allshadow' or 'jniclass'
-   * jniclassbase       - base (extends) for the java jniclass class
-   * x   allshadowbase      - base (extends) for all java shadow classes
-   * jniclasscode       - text (java code) is copied verbatim to the java jniclass class
-   * x   allshadowcode      - text (java code) is copied verbatim to all java shadow classes
-   * jniclassclassmodifiers   - class modifiers for the jniclass class
-   * x   allshadowclassmodifiers  - class modifiers for all shadow classes
-   * jniclassimport     - import statement generation for the java jniclass class
-   * x   allshadowimport    - import statement generation for all java shadow classes
-   * jniclassinterface  - interface (implements) for the jniclass class
-   * x   allshadowinterface - interface (implements) for all shadow classes
-   * jniclassmethodmodifiers  - replaces the generated native calls' default modifiers
+   * jniclassbase            - base (extends) for the jniclass
+   * jniclassclassmodifiers  - class modifiers for the jniclass
+   * jniclasscode            - text (java code) is copied verbatim to the jniclass
+   * jniclassimports         - import statements for the jniclass
+   * jniclassinterfaces      - interface (implements) for the jniclass
    *
-   * C++ pragmas: pragmas declared within a class or c struct for the shadow class. 
-   * These pragmas start with 'shadow'
-   * Valid pragmas:
-   * x    shadowbase      - base (extends) for all java shadow classes
-   * x    shadowcode      - text (java code) is copied verbatim to the shadow class
-   * x    shadowclassmodifiers  - class modifiers for the shadow class
-   * x    shadowimport    - import statement generation for the shadow class
-   * x    shadowinterface - interfaces (extends) for the shadow class
+   * modulebase              - base (extends) for the module class
+   * moduleclassmodifiers    - class modifiers for the module class
+   * modulecode              - text (java code) is copied verbatim to the module class
+   * moduleimports           - import statements for the module class
+   * moduleinterfaces        - interface (implements) for the module class
    *
    * ----------------------------------------------------------------------------- */
 
@@ -846,110 +866,96 @@ class JAVA : public Language {
       String *code = Getattr(n,"name");
       String *value = Getattr(n,"value");
 
-      if(Strcmp(lang, "java") != 0) return Language::pragmaDirective(n);
+      if(Strcmp(lang, "java") == 0) {
 
-      String *strvalue = NewString(value);
-      Replaceall(strvalue,"\\\"", "\"");
+        String *strvalue = NewString(value);
+        Replaceall(strvalue,"\\\"", "\"");
 
-      if(Strcmp(code, "jniclassimport") == 0) {
-        Printf(jniclass_import, "import %s;\n", strvalue);
-      } 
-      else if(Strcmp(code, "allshadowimport") == 0) {
-        //    if(shadow && all_shadow_import)
-        //      Printf(all_shadow_import, "import %s;\n", strvalue);
-      } 
-      else if(Strcmp(code, "import") == 0) {
-        Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please replace with jniclassimport, shadowimport and/or allshadowimport pragmas.\n", input_file, line_number);
-      }
-      else if(Strcmp(code, "jniclasscode") == 0 || Strcmp(code, "jniclass") == 0) {
-        if(Strcmp(code, "jniclass") == 0)
-          Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with jniclasscode pragma.\n", input_file, line_number);
-        Printf(jniclass_class_code, "%s\n", strvalue);
-      } 
-      else if(Strcmp(code, "allshadowcode") == 0 || Strcmp(code, "shadow") == 0) {
-        //    if(shadow && all_shadow_extra_code) {
-        //      if(Strcmp(code, "shadow") == 0)
-        //        Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with allshadowcode pragma.\n", input_file, line_number);
-        //      Printf(all_shadow_extra_code, "%s\n", strvalue);
-        //    }
-      } 
-      else if(Strcmp(code, "jniclassbase") == 0) {
-        if(shadow && jniclass_baseclass)
-          Printf(jniclass_baseclass, "%s", strvalue);
-      } 
-      else if(Strcmp(code, "allshadowbase") == 0) {
-        //    if(shadow && all_shadow_baseclass)
-        //      Printf(all_shadow_baseclass, "%s", strvalue);
-      } 
-      else if(Strcmp(code, "jniclassinterface") == 0) {
-        if(shadow && jniclass_interfaces)
-          if (!*Char(jniclass_interfaces))
-            Printf(jniclass_interfaces, "implements %s", strvalue);
-          else
-            Printf(jniclass_interfaces, ", %s", strvalue);
-      } 
-      else if(Strcmp(code, "allshadowinterface") == 0) {
-        //    if(shadow && all_shadow_interfaces) {
-        //      if (!*Char(all_shadow_interfaces))
-        //        Printf(all_shadow_interfaces, " implements %s", strvalue);
-        //      else
-        //        Printf(all_shadow_interfaces, ", %s", strvalue);
-        //    }
-      } 
-      else if(Strcmp(code, "allshadowclassmodifiers") == 0) {
-        //    if(shadow && all_shadow_class_modifiers)
-        //      Printv(all_shadow_class_modifiers, strvalue, NULL);
-      } 
-      else if(Strcmp(code, "jniclassclassmodifiers") == 0) {
-        if(shadow && jniclass_class_modifiers)
-          Printv(jniclass_class_modifiers, strvalue, NULL);
-      } 
-      else if(Strcmp(code, "jniclassmethodmodifiers") == 0 || Strcmp(code, "modifiers") == 0) {
-        if(Strcmp(code, "modifiers") == 0)
-          Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with jniclassmethodmodifiers pragma.\n", input_file, line_number);
-        Clear(jniclass_method_modifiers);
-        Printv(jniclass_method_modifiers, strvalue, NULL);
-      } else if (shadow) {
-        if (Strcmp(code,"shadowcode") == 0) {
-          if (shadow_code)
-            Printf(shadow_code, "%s\n", strvalue);
-          else
-            Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+        if(Strcmp(code, "jniclassbase") == 0) {
+          Delete(jniclass_baseclass);
+          jniclass_baseclass = Copy(strvalue);
         } 
-        else if (Strcmp(code,"shadowimport") == 0) {
-          //      if (this_shadow_import)
-          //        Printf(this_shadow_import, "import %s;\n", strvalue);
-          //      else
-          //        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+        else if(Strcmp(code, "jniclassclassmodifiers") == 0) {
+          Delete(jniclass_class_modifiers);
+          jniclass_class_modifiers = Copy(strvalue);
         } 
-        else if (Strcmp(code,"shadowbase") == 0) {
-          //      if (this_shadow_baseclass)
-          //        Printf(this_shadow_baseclass, "%s", strvalue);
-          //      else
-          //        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+        else if(Strcmp(code, "jniclasscode") == 0) {
+          Printf(jniclass_class_code, "%s", strvalue);
         } 
-        else if (Strcmp(code,"shadowinterface") == 0) {
-          //      if (this_shadow_interfaces) {
-          //        if (!*Char(this_shadow_interfaces))
-          //          Printf(this_shadow_interfaces, " implements %s", strvalue);
-          //        else
-          //          Printf(this_shadow_interfaces, ", %s", strvalue);
-          //      }
-          //      else
-          //        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+        else if(Strcmp(code, "jniclassimports") == 0) {
+          Delete(jniclass_imports);
+          jniclass_imports = Copy(strvalue);
         } 
-        else if (Strcmp(code,"shadowclassmodifiers") == 0) {
-          //      if (this_shadow_class_modifiers)
-          //        Printv(this_shadow_class_modifiers, strvalue, NULL);
-          //      else
-          //        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
-        }  else {
+        else if(Strcmp(code, "jniclassinterfaces") == 0) {
+          Delete(jniclass_interfaces);
+          jniclass_interfaces = Copy(strvalue);
+        } 
+        else if(Strcmp(code, "modulebase") == 0) {
+          Delete(module_baseclass);
+          module_baseclass = Copy(strvalue);
+        } 
+        else if(Strcmp(code, "moduleclassmodifiers") == 0) {
+          Delete(module_class_modifiers);
+          module_class_modifiers = Copy(strvalue);
+        } 
+        else if(Strcmp(code, "modulecode") == 0) {
+          Printf(module_class_code, "%s", strvalue);
+        } 
+        else if(Strcmp(code, "moduleimports") == 0) {
+          Delete(module_imports);
+          module_imports = Copy(strvalue);
+        } 
+        else if(Strcmp(code, "moduleinterfaces") == 0) {
+          Delete(module_interfaces);
+          module_interfaces = Copy(strvalue);
+        } 
+        else if(Strcmp(code, "moduleimport") == 0) {
+          Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use the moduleimports pragma.\n", input_file, line_number);
+        } 
+        else if(Strcmp(code, "moduleinterface") == 0) {
+          Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use the moduleinterfaces pragma.\n", input_file, line_number);
+        } 
+        else if(Strcmp(code, "modulemethodmodifiers") == 0) {
+          Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %javamethodmodifiers.\n", input_file, line_number);
+        } 
+        else if(Strcmp(code, "allshadowimport") == 0) {
+          Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javaimports).\n", input_file, line_number);
+        } 
+        else if(Strcmp(code, "allshadowcode") == 0) {
+          Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javacode).\n", input_file, line_number);
+        } 
+        else if(Strcmp(code, "allshadowbase") == 0) {
+          Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javabase).\n", input_file, line_number);
+        } 
+        else if(Strcmp(code, "allshadowinterface") == 0) {
+          Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javainterfaces).\n", input_file, line_number);
+        } 
+        else if(Strcmp(code, "allshadowclassmodifiers") == 0) {
+          Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javaclassmodifiers).\n", input_file, line_number);
+        } 
+        else if (proxy_flag) {
+          if (Strcmp(code,"shadowcode") == 0) {
+            Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javacode).\n", input_file, line_number);
+          } 
+          else if (Strcmp(code,"shadowimport") == 0) {
+            Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javaimports).\n", input_file, line_number);
+          } 
+          else if (Strcmp(code,"shadowbase") == 0) {
+            Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javabase).\n", input_file, line_number);
+          } 
+          else if (Strcmp(code,"shadowinterface") == 0) {
+            Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javainterfaces).\n", input_file, line_number);
+          } 
+          else if (Strcmp(code,"shadowclassmodifiers") == 0) {
+            Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please use %typemap(javaclassmodifiers).\n", input_file, line_number);
+          }  else {
+            Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+          }
+        } else {
           Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
         }
-      } else {
-        Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+        Delete(strvalue);
       }
-      Delete(strvalue);
     }
     return Language::pragmaDirective(n);
   }
@@ -960,9 +966,9 @@ class JAVA : public Language {
 
   void emitShadowClassDefAndCPPCasts(Node *n) {
     String *c_classname = SwigType_namestr(Getattr(n,"name"));
-    String *c_baseclass = 0;
-    String *baseclass = 0;
-    String *c_baseclassname = 0;
+    String *c_baseclass = NULL;
+    String *baseclass = NULL;
+    String *c_baseclassname = NULL;
 
     /* Deal with inheritance */
     List *baselist = Getattr(n,"bases");
@@ -980,12 +986,12 @@ class JAVA : public Language {
       }
     }
 
-    int derived = baseclass && is_shadow(c_baseclassname); 
+    bool derived = baseclass && is_shadow(c_baseclassname); 
     if (!baseclass)
       baseclass = NewString("");
 
     // Inheritance from pure Java classes
-    const String* pure_java_baseclass = javaTypemapLookup("javabase", shadow_classname, WARN_NONE);
+    const String *pure_java_baseclass = javaTypemapLookup("javabase", shadow_classname, WARN_NONE);
     if (Len(pure_java_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
           "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, pure_java_baseclass);
@@ -1023,7 +1029,7 @@ class JAVA : public Language {
         "  }\n",
         NULL);
 
-    if(!have_default_constructor) { // All Java classes need a constructor
+    if(!have_default_constructor_flag) { // All Java classes need a constructor
       Printv(shadow_classdef, 
           "\n",
           "  protected $javaclassname() {\n",
@@ -1065,7 +1071,7 @@ class JAVA : public Language {
 
     // Add JNI code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if(derived){
-      Printv(jniclass_cppcasts_code,"  ", jniclass_method_modifiers, " native long ",
+      Printv(jniclass_cppcasts_code,"  public final static native long ",
           "SWIG$javaclassnameTo$baseclass(long jarg1);\n",
           NULL);
 
@@ -1095,7 +1101,7 @@ class JAVA : public Language {
       Replaceall(wrapper_conversion_code, "$jnijniclass", jnijniclass);
 
       /*
-         if (!shadow) {
+         if (!proxy_flag) {
          Printv(module_class_code, 
          "  public static $baseclass SWIG$javaclassnameTo$baseclass($javaclassname obj) {\n",
          "    return new $baseclass($jniclass.SWIG$javaclassnameTo$baseclass($javaclassname.getCPtr(obj)), false);\n",
@@ -1123,7 +1129,7 @@ class JAVA : public Language {
   virtual int classHandler(Node *n) {
 
     File *f_shadow = NULL;
-    if (shadow) {
+    if (proxy_flag) {
       shadow_classname = NewString(Getattr(n,"sym:name"));
 
       if (Cmp(shadow_classname, jniclass) == 0) {
@@ -1152,20 +1158,20 @@ class JAVA : public Language {
       Clear(shadow_classdef);
       Clear(shadow_code);
 
-      have_default_constructor = 0;
+      have_default_constructor_flag = false;
       destructor_call = NewString("");
       shadow_constants_code = NewString("");
     }
     Language::classHandler(n);
 
-    if (shadow) {
+    if (proxy_flag) {
 
       emitShadowClassDefAndCPPCasts(n);
 
       Printv(f_shadow, shadow_classdef, shadow_code, NULL);
 
       // Write out all the enums and constants
-      if (strlen(Char(shadow_constants_code)) != 0 )
+      if (Len(shadow_constants_code) != 0 )
         Printv(f_shadow, "  // enums and constants\n", shadow_constants_code, NULL);
 
       Printf(f_shadow, "}\n");
@@ -1186,9 +1192,9 @@ class JAVA : public Language {
   virtual int memberfunctionHandler(Node *n) {
     Language::memberfunctionHandler(n);
 
-    if (shadow) {
-      String* overloaded_name = getOverloadedName(n);
-      String* java_function_name = Swig_name_member(shadow_classname, overloaded_name);
+    if (proxy_flag) {
+      String *overloaded_name = getOverloadedName(n);
+      String *java_function_name = Swig_name_member(shadow_classname, overloaded_name);
       Setattr(n,"java:shadowfuncname", Getattr(n, "sym:name"));
       Setattr(n,"java:funcname", java_function_name);
       javaShadowFunctionHandler(n);
@@ -1203,18 +1209,18 @@ class JAVA : public Language {
 
   virtual int staticmemberfunctionHandler(Node *n) {
 
-    static_flag = 1;
+    static_flag = true;
     Language::staticmemberfunctionHandler(n);
 
-    if (shadow) {
-      String* overloaded_name = getOverloadedName(n);
-      String* java_function_name = Swig_name_member(shadow_classname, overloaded_name);
+    if (proxy_flag) {
+      String *overloaded_name = getOverloadedName(n);
+      String *java_function_name = Swig_name_member(shadow_classname, overloaded_name);
       Setattr(n,"java:shadowfuncname", Getattr(n,"sym:name"));
       Setattr(n,"java:funcname", java_function_name);
       javaShadowFunctionHandler(n);
       Delete(overloaded_name);
     }
-    static_flag = 0;
+    static_flag = false;
 
     return SWIG_OK;
   }
@@ -1229,11 +1235,11 @@ class JAVA : public Language {
    * function, which in turn will call "java:funcname" - the java native function name which wraps the c++ function.
    * ----------------------------------------------------------------------------- */
 
-  void javaShadowFunctionHandler(Node* n) {
+  void javaShadowFunctionHandler(Node *n) {
     SwigType  *t = Getattr(n,"type");
     ParmList  *l = Getattr(n,"parms");
-    String*   java_function_name = Getattr(n,"java:funcname");
-    String*   java_shadow_function_name = Getattr(n,"java:shadowfuncname");
+    String    *java_function_name = Getattr(n,"java:funcname");
+    String    *java_shadow_function_name = Getattr(n,"java:shadowfuncname");
     String    *tm;
     Parm      *jstypep;
     Parm      *p;
@@ -1244,7 +1250,7 @@ class JAVA : public Language {
     int       num_arguments = 0;
     int       num_required = 0;
 
-    if(!shadow) return;
+    if(!proxy_flag) return;
 
     if (l) {
       if (SwigType_type(Getattr(l,"type")) == T_VOID) {
@@ -1256,7 +1262,7 @@ class JAVA : public Language {
      * The non-standard typemaps must first be attached to the parameter list. */
     Swig_typemap_attach_parms("jstype", l, 0);
 
-    int is_return_type_java_class = 0;
+    bool is_return_type_java_class = false;
     if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
       is_return_type_java_class = substituteJavaclassname(t, tm);
       Printf(shadowrettype, "%s", tm);
@@ -1265,12 +1271,12 @@ class JAVA : public Language {
           "No jstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    Printf(shadow_code, "  public ");
+    Printf(shadow_code, "  %s ", Getattr(n,"feature:java:methodmodifiers"));
     if (static_flag)
       Printf(shadow_code, "static ");
     Printf(shadow_code, "%s %s(", shadowrettype, java_shadow_function_name);
 
-    if(SwigType_type(t) == T_ARRAY && is_shadow(getArrayType(t))) {
+    if(SwigType_isarray(t) && is_shadow(getArrayType(t))) {
       Printf(nativecall, "long[] cArray = ");
     }
     else {
@@ -1297,7 +1303,7 @@ class JAVA : public Language {
        p = Getattr(p,"tmap:ignore:next");
        }
        */
-    Wrapper* f = NewWrapper();
+    Wrapper *f = NewWrapper();
     emit_args(NULL, l, f);
     DelWrapper(f);
     /* Workaround end */
@@ -1313,7 +1319,7 @@ class JAVA : public Language {
         String   *javaparamtype = NewString("");
 
         /* Get the java type of the parameter */
-        int is_java_class = 0;
+        bool is_java_class = false;
         if ((tm = Getattr(jstypep,"tmap:jstype"))) {
           is_java_class = substituteJavaclassname(pt, tm);
           Printf(javaparamtype, "%s", tm);
@@ -1344,8 +1350,8 @@ class JAVA : public Language {
       p = nextSibling(p);
     }
 
-    if(SwigType_type(t) == T_ARRAY && is_shadow(getArrayType(t))) {
-      String* array_ret = NewString("");
+    if(SwigType_isarray(t) && is_shadow(getArrayType(t))) {
+      String *array_ret = NewString("");
       Printf(array_ret,");\n");
       Printv(array_ret, "    $type[] arrayWrapper = new $type[cArray.length];\n", NULL);
       Printv(array_ret, "    for (int i=0; i<cArray.length; i++)\n", NULL);
@@ -1405,16 +1411,16 @@ class JAVA : public Language {
 
     Language::constructorHandler(n);
 
-    if(shadow) {
+    if(proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
       String *nativecall = NewString("");
 
-      Printf(shadow_code, "  public %s(", shadow_classname);
+      Printf(shadow_code, "  %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadow_classname);
       Printv(nativecall, "this(", jniclass, ".", Swig_name_construct(overloaded_name), "(", NULL);
 
       int pcount = ParmList_len(l);
       if(pcount == 0)  // We must have a default constructor
-        have_default_constructor = 1;
+        have_default_constructor_flag = true;
 
       Swig_typemap_attach_parms("jstype", l, 0);
 
@@ -1423,12 +1429,11 @@ class JAVA : public Language {
       num_required  = emit_num_required(l);
 
       for (i = 0, p=l, jstypep=l; i < num_arguments; i++) {
-        /* need to check for ignore in here  and add in gencomma logic ***************************************************************************** */
         SwigType *pt = Getattr(p,"type");
         String   *javaparamtype = NewString("");
 
         /* Get the java type of the parameter */
-        int is_java_class = 0;
+        bool is_java_class = false;
         if ((tm = Getattr(jstypep,"tmap:jstype"))) {
           is_java_class = substituteJavaclassname(pt, tm);
           Printf(javaparamtype, "%s", tm);
@@ -1477,7 +1482,7 @@ class JAVA : public Language {
     Language::destructorHandler(n);
     String *symname = Getattr(n,"sym:name");
 
-    if(shadow) {
+    if(proxy_flag) {
       Printv(destructor_call, "      ", jniclass, ".", Swig_name_destroy(symname), "(swigCPtr);\n", NULL);
     }
     return SWIG_OK;
@@ -1492,10 +1497,10 @@ class JAVA : public Language {
    * %apply type tmap[ANY] { name [ANY] }; when array_flag set etc...
    * ----------------------------------------------------------------------------- */
 
-  void typemapApply(String *type, String *tmap, String *name, type_additions additions, int array_flag)
+  void typemapApply(String *type, String *tmap, String *name, type_additions additions, bool array_flag)
   {
-    String* nametemp = Copy(name);
-    String* swigtypetemp = Copy(type);
+    String *nametemp = Copy(name);
+    String *swigtypetemp = Copy(type);
 
     if (additions == pointer) {
       SwigType_add_pointer(swigtypetemp);
@@ -1522,7 +1527,7 @@ class JAVA : public Language {
    * ----------------------------------------------------------------------------- */
 
   void addClassTypemaps(Node *n) {
-    if (shadow) {
+    if (proxy_flag) {
       String *name = Getattr(n,"name");
       String *kind = Getattr(n,"kind");
       String *array_tmap = NewString("ARRAYSOFCLASSPOINTERS");
@@ -1537,15 +1542,15 @@ class JAVA : public Language {
 
       /* Apply typemaps for handling arrays of all known classes/structs/unions. This is a workaround because the SWIGTYPE [] typemap does 
        * not make it possible to distinguish between classes that SWIG has parsed (knows about) and those that have not been parsed. */
-      typemapApply(swigtype, arrayclass_tmap, name, none, 1); //%apply SWIGTYPE ARRAYSOFCLASSES[ANY] {name[ANY]};
-      typemapApply(swigtype, array_tmap, name, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {name*[ANY]};
+      typemapApply(swigtype, arrayclass_tmap, name, none, true); //%apply SWIGTYPE ARRAYSOFCLASSES[ANY] {name[ANY]};
+      typemapApply(swigtype, array_tmap, name, pointer, true);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {name*[ANY]};
 
       /* More typemap applying to match types declared with the kind eg struct, union or class.
          For example when type is declared as 'struct name'. */
       if (kind && (Len(kind) > 0)) {
         String *namewithkind = NewStringf("%s %s",kind, name);
-        typemapApply(swigtype, arrayclass_tmap, namewithkind, none, 1); //%apply SWIGTYPE ARRAYSOFCLASSES[ANY] {kind name[ANY]};
-        typemapApply(swigtype, array_tmap, namewithkind, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {kind name*[ANY]};
+        typemapApply(swigtype, arrayclass_tmap, namewithkind, none, true); //%apply SWIGTYPE ARRAYSOFCLASSES[ANY] {kind name[ANY]};
+        typemapApply(swigtype, array_tmap, namewithkind, pointer, true);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {kind name*[ANY]};
         Delete(namewithkind);
       }
       Delete(array_tmap);
@@ -1569,11 +1574,11 @@ class JAVA : public Language {
 
   virtual int membervariableHandler(Node *n) {
     shadow_variable_name = Getattr(n,"sym:name");
-    wrapping_member = 1;
-    variable_wrapper_flag = 1;
+    wrapping_member_flag = true;
+    variable_wrapper_flag = true;
     Language::membervariableHandler(n);
-    wrapping_member = 0;
-    variable_wrapper_flag = 0;
+    wrapping_member_flag = false;
+    variable_wrapper_flag = false;
     return SWIG_OK;
   }
 
@@ -1583,11 +1588,11 @@ class JAVA : public Language {
 
   virtual int staticmembervariableHandler(Node *n) {
     shadow_variable_name = Getattr(n,"sym:name");
-    wrapping_member = 1;
-    static_flag = 1;
+    wrapping_member_flag = true;
+    static_flag = true;
     Language::staticmembervariableHandler(n);
-    wrapping_member = 0;
-    static_flag = 0;
+    wrapping_member_flag = false;
+    static_flag = false;
     return SWIG_OK;
   }
 
@@ -1597,9 +1602,9 @@ class JAVA : public Language {
 
   virtual int memberconstantHandler(Node *n) {
     shadow_variable_name = Getattr(n,"sym:name");
-    wrapping_member = 1;
+    wrapping_member_flag = true;
     Language::memberconstantHandler(n);
-    wrapping_member = 0;
+    wrapping_member_flag = false;
     return SWIG_OK;
   }
 
@@ -1607,7 +1612,7 @@ class JAVA : public Language {
    * getOverloadedName()
    * ----------------------------------------------------------------------------- */
 
-  String * getOverloadedName(Node *n) {
+  String *getOverloadedName(Node *n) {
 
     /* Although the JNI is designed to handle overloaded Java functions, a Java long is used for all classes in the SWIG
      * JNI native interface. The JNI native interface function is thus mangled when overloaded to give a unique name. */
@@ -1648,7 +1653,7 @@ class JAVA : public Language {
      * The non-standard typemaps must first be attached to the parameter list. */
     Swig_typemap_attach_parms("jstype", l, 0);
 
-    int is_return_type_java_class = 0;
+    bool is_return_type_java_class = false;
     if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
       is_return_type_java_class = substituteJavaclassname(t, tm);
       Printf(shadowrettype, "%s", tm);
@@ -1657,9 +1662,9 @@ class JAVA : public Language {
           "No jstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    Printf(module_class_code, "  public static %s %s(", shadowrettype, Getattr(n,"sym:name"));
+    Printf(module_class_code, "  %s static %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadowrettype, Getattr(n,"sym:name"));
 
-    if(SwigType_type(t) == T_ARRAY && is_shadow(getArrayType(t))) {
+    if(SwigType_isarray(t) && is_shadow(getArrayType(t))) {
       Printf(nativecall, "long[] cArray = ");
     }
     else {
@@ -1684,7 +1689,7 @@ class JAVA : public Language {
        p = Getattr(p,"tmap:ignore:next");
        }
     */
-    Wrapper* f = NewWrapper();
+    Wrapper *f = NewWrapper();
     emit_args(NULL, l, f);
     DelWrapper(f);
     /* Workaround end */
@@ -1696,7 +1701,7 @@ class JAVA : public Language {
       String   *javaparamtype = NewString("");
 
       /* Get the java type of the parameter */
-      int is_java_class = 0;
+      bool is_java_class = false;
       if ((tm = Getattr(jstypep,"tmap:jstype"))) {
         is_java_class = substituteJavaclassname(pt, tm);
         Printf(javaparamtype, "%s", tm);
@@ -1723,8 +1728,8 @@ class JAVA : public Language {
       Delete(javaparamtype);
     }
 
-    if(SwigType_type(t) == T_ARRAY && is_shadow(getArrayType(t))) {
-      String* array_ret = NewString("");
+    if(SwigType_isarray(t) && is_shadow(getArrayType(t))) {
+      String *array_ret = NewString("");
       Printf(array_ret,");\n");
       Printv(array_ret, "    $type[] arrayWrapper = new $type[cArray.length];\n", NULL);
       Printv(array_ret, "    for (int i=0; i<cArray.length; i++)\n", NULL);
@@ -1774,19 +1779,19 @@ class JAVA : public Language {
    * otherwise use the $descriptor name for the Java class name. Note that the $&javaclassname substition
    * is the same as a $&descriptor substition, ie one pointer added to descriptor name.
    * Inputs:
-   * pt - parameter type
-   * tm - jstype typemap
+   *   pt - parameter type
+   *   tm - jstype typemap
    * Outputs:
-   * tm - jstype typemap with $javaclassname substitution
+   *   tm - jstype typemap with $javaclassname substitution
    * Return:
-   * is_java_class - flag indicating if a substitution was performed
+   *   is_java_class - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
 
-  int substituteJavaclassname(SwigType *pt, String *tm) {
-    int is_java_class = 0;
+  bool substituteJavaclassname(SwigType *pt, String *tm) {
+    bool is_java_class = false;
     if (Strstr(tm, "$javaclassname") || Strstr(tm,"$&javaclassname")) {
       String *javaclassname = NULL;
-      if(SwigType_type(pt) == T_ARRAY && is_shadow(getArrayType(pt)))
+      if(SwigType_isarray(pt) && is_shadow(getArrayType(pt)))
         javaclassname = is_shadow(getArrayType(pt));
       else
         javaclassname = is_shadow(pt);
@@ -1796,9 +1801,9 @@ class JAVA : public Language {
       }
       else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
         String *descriptor = NULL;
-        SwigType* type = NULL;
-        if(SwigType_type(pt) == T_ARRAY) {
-          SwigType* temp_type = SwigType_typedef_resolve_all(getArrayType(pt));
+        SwigType *type = NULL;
+        if(SwigType_isarray(pt)) {
+          SwigType *temp_type = SwigType_typedef_resolve_all(getArrayType(pt));
           if (is_shadow(temp_type))
             type = Copy(is_shadow(temp_type));
           else
@@ -1822,7 +1827,7 @@ class JAVA : public Language {
         Delete(descriptor);
         Delete(type);
       }
-      is_java_class = 1;
+      is_java_class = true;
     }
     return is_java_class;
   }
@@ -1832,18 +1837,19 @@ class JAVA : public Language {
    *
    * Helper function for generating the shadow / module class wrapper functions.
    * Inputs: 
-   * n - Node
-   * p - parameter node
-   * arg_num - parameter argument number
-   * is_java_class - flag indicating whether wrapped as a Java class or primitive type
+   *   n - Node
+   *   p - parameter node
+   *   arg_num - parameter argument number
+   *   is_java_class - flag indicating whether wrapped as a Java class or primitive type
+   *   javaparamtype - Java parameter type
    * Outputs:
-   * user_arrays - any additional code for accessing arrays
-   * nativecall - the jni interface function call
+   *   user_arrays - any additional code for accessing arrays
+   *   nativecall - the jni interface function call
    * Return:
-   * arg - a unique parameter name
+   *   arg - a unique parameter name
    * ----------------------------------------------------------------------------- */
 
-  String *generateShadowParameters(Node *n, Parm *p, int arg_num, int is_java_class, String *user_arrays, String *nativecall, String* javaparamtype) {
+  String *generateShadowParameters(Node *n, Parm *p, int arg_num, bool is_java_class, String *user_arrays, String *nativecall, String *javaparamtype) {
 
     SwigType *pt = Getattr(p,"type");
 
@@ -1859,11 +1865,11 @@ class JAVA : public Language {
     String *arg = (!pn || (count > 1)) ? NewStringf("arg%d",arg_num) : Copy(Getattr(p,"name"));
 
     // Generate code which wraps the JNI long (c pointer) with a Java class
-    if(SwigType_type(pt) == T_ARRAY && is_shadow(getArrayType(pt))) {
+    if(SwigType_isarray(pt) && is_shadow(getArrayType(pt))) {
       Printv(user_arrays, "    long[] $arg_cArray = new long[$arg.length];\n", NULL);
       Printv(user_arrays, "    for (int i=0; i<$arg.length; i++)\n", NULL);
       Printv(user_arrays, "      $arg_cArray[i] = ",is_shadow(getArrayType(pt)),".getCPtr($arg[i]);\n", NULL);
-      Replace(user_arrays, "$arg", arg, DOH_REPLACE_ANY);
+      Replaceall(user_arrays, "$arg", arg);
       Printv(nativecall, arg, "_cArray", NULL);
     } else if (is_java_class) {
       Printv(nativecall, javaparamtype,".getCPtr(",arg,")", NULL);
@@ -1888,14 +1894,14 @@ class JAVA : public Language {
       Printf(f_swigtype, "package %s;\n\n", package);
 
     // Pure Java baseclass and interfaces
-    const String* pure_java_baseclass = javaTypemapLookup("javabase", javaclassname, WARN_NONE);
-    const String *pure_java_interfaces = javaTypemapLookup("javainterfaces", javaclassname, WARN_NONE);
+    const String *pure_java_baseclass = javaTypemapLookup("javabase", type, WARN_NONE);
+    const String *pure_java_interfaces = javaTypemapLookup("javainterfaces", type, WARN_NONE);
 
     // Emit the class
     Printv(swigtype,
-        javaTypemapLookup("javaimports", javaclassname, WARN_NONE), // Import statements
+        javaTypemapLookup("javaimports", type, WARN_NONE), // Import statements
         "\n",
-        javaTypemapLookup("javaclassmodifiers", javaclassname, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
+        javaTypemapLookup("javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
         " class $javaclassname",       // Class name and bases
         *Char(pure_java_baseclass) ?
         " extends " : 
@@ -1915,8 +1921,8 @@ class JAVA : public Language {
         "  public $javaclassname() {\n", // Default constructor
         "    swigCPtr = 0;\n",
         "  }\n",
-        javaTypemapLookup("javagetcptr", javaclassname, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
-        javaTypemapLookup("javacode", javaclassname, WARN_NONE), // extra Java code
+        javaTypemapLookup("javagetcptr", type, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
+        javaTypemapLookup("javacode", type, WARN_NONE), // extra Java code
         "}\n",
         "\n",
         NULL);
@@ -1943,9 +1949,8 @@ class JAVA : public Language {
 
     if (!code) {
       code = empty_string;
-      if (warning)
-        Swig_warning(warning, input_file, line_number, 
-            "No %s typemap defined for %s\n", op, type);
+      if (warning != WARN_NONE)
+        Swig_warning(warning, input_file, line_number, "No %s typemap defined for %s\n", op, type);
     }
 
     return code;
@@ -1962,39 +1967,34 @@ swig_java(void) {
   return new JAVA();
 }
 
+/* -----------------------------------------------------------------------------
+ * Static member variables
+ * ----------------------------------------------------------------------------- */
+
+const char *JAVA::usage = (char*)"\
+Java Options (available with -java)\n\
+     -package <name> - set name of the Java package\n\
+     -proxy          - generate proxy classes\n";
+
 
 
 
 /* TODO
- * strlen -> Len
  * fix arrays in constructor
- * change all 0 to NULL
- * use Replaceall and SwigType_isarray instead of T_ARRAY
- * SwigType *JAVA::getArrayType(SwigType *t) might be in the internals now
- * change name of is_shadow()??
- * Change variable names to reflect new names that will go in documentation - eg JNI interface class.
- * Make all variables private not file scope
- * Use nodeType(n), "constant") instead of other hack
- *
- * Generate SWIGAToB C++ casting functions for classes in inheritance chain when -noproxy being used. - tidy up emitShadowClassDefAndCPPCasts wrt shadow flag.
- *
- * change -shadow to -proxy (-noproxy) in all makefiles
- * fix comment in -nofinalize deprecated commandline option
- *
- *         Possible to remove is_shadow and replace with SwigType_isclass() or classLookup ??
+ * Generate SWIGAToB C++ casting functions for classes in inheritance chain when -noproxy being used. - tidy up emitShadowClassDefAndCPPCasts wrt proxy_flag.
+ * Fixes for ignore in constructor and add in gencomma logic 
+ * change -shadow to -noproxy as default - including in Makefiles
+ * Possible to remove is_shadow (change name if not) and replace with SwigType_isclass() or classLookup ??
+ * public/protected for jniclass and creating a null pointer
  *
  * Should generate a non-wrapped base class to wrapped derived class c++ conversion function.
  *
  * Check classes with underscores will work correctly, especially in inheritance chain, ie new SWIGAToB() calls.
  *
  * Think about using custom typemaps and whether it will all hang together - will the primitive and jni interface classes be okay?
- * module class needs changing to JNIinterface and primitive class needs changing to module class
- *
- * check pointer library
  *
  * Things to solve:
  * Backward compatibility - need pragmas to rename class
- * Single base class for all the SWIGTYPEs? - not possible with proxy classes.
  *
  * Document these fixes:
  *  Square** was incorrectly using a Square in shadow class, should be a long (or new SWIGTYPE_p_p_Square.)
@@ -2012,14 +2012,15 @@ swig_java(void) {
  *  void* pointers - use wrapper constructor -> new SWIGTYPE_p_void(cls.getCPtr(), false);
  *  null pointers - use wrapper constructor -> new cls(0, false);
  *  constants using %javaconst
+ *  Single base class for all the type wrapper classes SWIGTYPEs - not possible with proxy classes, but show how it can be done.
  *
  *  the following pragmas have changed name from moduleXXX to jniclassXXX
  modulebase
  modulecode
  moduleclassmodifiers
- moduleimport
- moduleinterface
- modulemethodmodifiers
+ moduleimport => moduleimports
+ moduleinterface => moduleinterfaces
+ modulemethodmodifiers - gone user %javamethodmodifiers
 
  Suggestions for documentation:
  public boolean equals($javaclassname obj) {
@@ -2038,9 +2039,14 @@ swig_java(void) {
 *  %native - will have to change JNI function name to include modulenameJNI rather than just modulename [this falls under the pragma to change the JNI interface class name]
 *  eg JNIEXPORT jstring JNICALL Java_exampleJNI_point_1toString2(JNIEnv *jenv, jclass jcls, jlong jpoint);
 *     JNIEXPORT jstring JNICALL Java_example_point_1toString2(JNIEnv *jenv, jclass jcls, jlong jpoint);
+*  %pragma jiggling. moduleXXXX pragmas need replacing with jniclassXXXX.
 *
+* CHANGES file:
+* New directive %javamethodmodifiers. This directive works like other %feature based directives and allows one to modify the default method modifiers from "public". For example the following will make the foo(int a) method synchronized:
+*
+* %javamethodmodifiers foo(int a) "public synchronized";
+*
+* Note that this is an improved replacement for the modulemethodmodifiers pragma which is now deprecated.
 *
 */
-
-
 
