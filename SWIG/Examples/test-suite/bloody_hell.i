@@ -1,5 +1,7 @@
 %module bloody_hell
 
+%warnfilter(801) kMaxIOCTLSpaceParmsSize;
+
 #define kMaxIOCTLSpaceParmsSize 128 
 
 %{
