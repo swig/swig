@@ -320,8 +320,6 @@ static Node *first_nontemplate(Node *n) {
  * Handle swig pragma directives.  
  * -------------------------------------------------------------------------- */
 
-extern void emit_constant_aggregation(String *s);
-
 void swig_pragma(char *lang, char *name, char *value) {
   if (strcmp(lang,"swig") == 0) {
     if ((strcmp(name,"make_default") == 0) || ((strcmp(name,"makedefault") == 0))) {

@@ -14,13 +14,16 @@
  * $Header$
  * ----------------------------------------------------------------------------- */
 
+#ifndef SWIGMOD_H_
+#define SWIGMOD_H_
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 extern "C" {
 #include "swig.h"
-extern Hash  *Preprocessor_define(const String_or_char *str, int swigmacro);
+Hash  *Preprocessor_define(const String_or_char *str, int swigmacro);
 }
 
 #include "swigwarn.h"
@@ -263,32 +266,42 @@ public:
   
 };
 
-extern  int   SWIG_main(int, char **, Language *);
-extern  void  emit_args(SwigType *, ParmList *, Wrapper *f);
-extern  void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
-extern  void  SWIG_config_file(const String_or_char *);
-extern const String *SWIG_output_directory();
-extern  void  SWIG_config_cppext(const char *ext);
+int   SWIG_main(int, char **, Language *);
+void  emit_args(SwigType *, ParmList *, Wrapper *f);
+void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
+void  SWIG_config_file(const String_or_char *);
+const String *SWIG_output_directory();
+void  SWIG_config_cppext(const char *ext);
 
-extern "C"    void  SWIG_typemap_lang(const char *);
-extern void   SWIG_library_directory(const char *);
-extern int    emit_num_arguments(ParmList *);
-extern int    emit_num_required(ParmList *);
-extern int    emit_isvarargs(ParmList *);
-extern void   emit_attach_parmmaps(ParmList *, Wrapper *f);
-extern void   emit_mark_varargs(ParmList *l);
-extern void   emit_action(Node *n, Wrapper *f);
-extern List  *Swig_overload_rank(Node *n);
-extern String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
+void   SWIG_library_directory(const char *);
+int    emit_num_arguments(ParmList *);
+int    emit_num_required(ParmList *);
+int    emit_isvarargs(ParmList *);
+void   emit_attach_parmmaps(ParmList *, Wrapper *f);
+void   emit_mark_varargs(ParmList *l);
+void   emit_action(Node *n, Wrapper *f);
+List  *Swig_overload_rank(Node *n);
+String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
+SwigType *cplus_value_type(SwigType *t);
+
+/* directors.cxx start */
+String *Swig_csuperclass_call(String* base, String* method, ParmList* l);
+String *Swig_class_declaration(Node *n, String *name);
+String *Swig_class_name(Node *n);
+String *Swig_method_call(String_or_char *name, ParmList *parms);
+String *Swig_method_decl(SwigType *s, const String_or_char *id, List *args, int strip, int values);
+String *Swig_director_declaration(Node *n);
+/* directors.cxx end */
 
 extern "C" {
+  void  SWIG_typemap_lang(const char *);
   typedef Language *(*ModuleFactory)(void);
 }
 
-extern void   Swig_register_module(const char *name, ModuleFactory fac);
-extern ModuleFactory Swig_find_module(const char *name);
+void   Swig_register_module(const char *name, ModuleFactory fac);
+ModuleFactory Swig_find_module(const char *name);
 
-/* swig11.h ends here */
+#endif
 
 
 
