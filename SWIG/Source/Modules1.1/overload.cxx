@@ -299,7 +299,10 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
       Printf(f,"if (argc >= %d) {\n", num_required);
     }
 
-    Printf(f,"int _v;\n");
+    if (num_arguments) {
+      Printf(f,"int _v;\n");
+    }
+    
     int num_braces = 0;
     j = 0;
     Parm *pj = pi;
