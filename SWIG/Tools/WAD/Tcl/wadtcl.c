@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------- 
- * wadtcl.cxx
+ * wadtcl.c
  *
  *     Dynamically loadable Tcl module for wad.
  * 
@@ -19,9 +19,9 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   static char temp[1024];
   int  len = 0;
   char *name;
-  char *fd;
   WadFrame *f;
   WadFrame *fline = 0;
+  char *srcstr= 0;
   Tcl_Interp *interp;
   int err;
   char  *type;
@@ -49,84 +49,23 @@ static void handler(int signo, WadFrame *frame, char *ret) {
     type = (char*)"Unknown.";
     break;
   }
-  fd = (char *) frame;
-  f = (WadFrame *) fd;
 
+  f = frame;
   /* Find the last exception frame */
   while (!f->last) {
-    fd = fd + f->size;
-    f = (WadFrame *) fd;
+    f= f->next;
   }
   /* Now work backwards */
-  fd = fd - f->lastsize;
-  f = (WadFrame *) fd;
-  while (1) {
-    sprintf(temp,"#%-3d 0x%08x in ", f->frameno, f->pc);
-    strcat(message,temp);
-    strcat(message,*(fd + f->sym_off) ? fd+f->sym_off : "?");
-    strcat(message,"()");
-    if (strlen(SRCFILE(f))) {
-      strcat(message," in '");
-      strcat(message, wad_strip_dir(SRCFILE(f)));
-      strcat(message,"'");
-      if (f->line_number > 0) {
-	sprintf(temp,", line %d", f->line_number);
-	strcat(message,temp);
-	{
-	  int fd;
-	  fd = open(SRCFILE(f), O_RDONLY);
-	  if (fd > 0) {
-	    fline = f;
-	  } 
-	  close(fd);
-	}
-      }
-    } else {
-      if (strlen(fd+f->obj_off)) {
-	strcat(message," from '");
-	strcat(message, wad_strip_dir(OBJFILE(f)));
-	strcat(message,"'");
-      }
-    }
-    strcat(message,"\n");
-    if (!f->lastsize) break;
-    fd = fd - f->lastsize;
-    f = (WadFrame *) fd;
+  f = f->prev;
+  while (f) {
+    strcat(message, f->debug_str);
+    if (f->debug_srcstr) srcstr = f->debug_srcstr;
+    f = f->prev;
   }
-  if (fline) {
-    int first;
-    int last;
-    char *line, *c;
-    int i;
-    first = fline->line_number - 2;
-    last  = fline->line_number + 2;
-    if (first < 1) first = 1;
-    
-    line = wad_load_source(SRCFILE(fline),first);
-    if (line) {
-      strcat(message,"\n");
-      strcat(message, SRCFILE(fline));
-      sprintf(temp,", line %d\n\n", fline->line_number);
-      strcat(message, temp);
-      for (i = first; i <= last; i++) {
-	if (i == fline->line_number) strcat(message," => ");
-	else                         strcat(message,"    ");
-	c = strchr(line,'\n');
-	if (c) {
-	  *c = 0;
-	  strcat(message,line);
-	  strcat(message,"\n");
-	  *c = '\n';
-	} else {
-	  strcat(message,line);
-	  strcat(message,"\n");
-	  break;
-	}
-	line = c+1;
-      }
-      wad_release_source();
-      strcat(message,"\n");
-    }
+  if (srcstr) {
+    strcat(message,"\n");
+    strcat(message, srcstr);
+    strcat(message,"\n");
   }
 
   if (wad_heap_overflow) {
@@ -147,10 +86,9 @@ static void handler(int signo, WadFrame *frame, char *ret) {
       Tcl_AddErrorInfo(interp,message);
     }
   }
-  wad_release_trace();
 }
 
-static void tclwadinit() {
+void tclwadinit() {
   printf("WAD Enabled\n");
   wad_init();
   wad_set_callback(handler);
@@ -158,19 +96,6 @@ static void tclwadinit() {
   wad_set_return("EvalObjv", TCL_ERROR);
 }
 
-/* This hack is used to auto-initialize wad regardless of whether we are
-   used as an imported module or as a link-library for another module */
-   
-class wadinitializer {
-public:
-  wadinitializer() {
-    tclwadinit();
-  }
-};
-
-static wadinitializer wi;
-
-extern "C"
 int Wad_Init(Tcl_Interp *interp) {
   return TCL_OK;
 }

@@ -6,15 +6,15 @@
 #######################################################################
 
 # These are the files that make up the WAD core
-SRCS = type.c python.c
-OBJS = type.o python.o
+SRCS = wadtcl.c
+OBJS = wadtcl.o
 INCLUDE = -I../Include -I.  $(SINCLUDE)
 WADOPT     = @WADOPT@
 
-# Location of your Python installation
-PYINCLUDE = @PYINCLUDE@
-PYSRCS    = wadpyinit.cxx
-PYOBJS    = wadpyinit.o
+# Location of your Tcl installation
+TCLINCLUDE = @TCLINCLUDE@
+TCLSRCS    = wadtclinit.cxx
+TCLOBJS    = wadtclinit.o
 
 # C Compiler
 CC = @CC@
@@ -34,17 +34,17 @@ CXXLINK = @CXXLINK@
 	$(CXX) $(CXXFLAGS) $(WADOPT) $(INCLUDE) -c -o $*.o $<
 
 .c.o:
-	$(CC) $(CFLAGS) $(PYINCLUDE) $(WADOPT) $(INCLUDE) -c -o $*.o $<
+	$(CC) $(CFLAGS) $(TCLINCLUDE) $(WADOPT) $(INCLUDE) -c -o $*.o $<
 
-python: $(OBJS) $(PYOBJS)
-	$(CXXLINK) $(OBJS) $(PYOBJS) -o libwadpy.so -L.. -lwadcore
-	cp libwadpy.so ..
+tcl: $(OBJS) $(TCLOBJS)
+	$(CXXLINK) $(OBJS) $(TCLOBJS) -o libwadtcl.so -L.. -lwadcore
+	cp libwadtcl.so ..
 
 wc::
 	wc $(SRCS)
 
 semi::
-	@egrep ";" $(SRCS) $(PYSRCS) | wc
+	@egrep ";" $(SRCS) $(TCLSRCS) | wc
 
 clean::
 	rm -f *.o *.so *~ 

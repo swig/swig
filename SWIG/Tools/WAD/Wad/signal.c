@@ -384,11 +384,12 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     wad_restore_i386_registers(origframe, wad_nlr_levels);
 #endif
   } else {
-    wad_nlr_levels = 0;
+    wad_nlr_levels = -1;
   }
 
   wad_string_debug();
   wad_memory_debug();
+
 
   if (sig_callback) {
     (*sig_callback)(sig,origframe,retname);
@@ -404,7 +405,7 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
      an alternative piece of code that unwinds the stack and 
      initiates a non-local return. */
 
-  if (wad_nlr_levels > 0) {
+  if (wad_nlr_levels >= 0) {
     *(pc) = (greg_t) _returnsignal;
 #ifdef WAD_SOLARIS
     *(npc) = *(pc) + 4;

@@ -12,15 +12,6 @@ WADOBJS = string.o vars.o io.o memory.o return.o default.o stack.o stab.o elf.o 
 INCLUDE = -I../Include -I.  $(SINCLUDE)
 WADOPT     = -DWAD_SOLARIS
 
-# Location of your Python installation
-PYINCLUDE = -I/usr/local/include/python2.0
-PYCSRCS   = wadpyinit.cxx
-PYOBJS    = wadpy.o
-
-# Location of your Tcl installation
-TCLINCLUDE = -I/usr/local/include
-TCLSRCS    = wadtcl.cxx
-TCLOBJS    = wadtcl.o
 
 # Location of your Perl installation
 PERLINCLUDE = -I/usr/perl5/5.00503/sun4-solaris/CORE
@@ -56,14 +47,6 @@ wad:    $(WADOBJS) main.o
 	cp libwad.so ..
 	cp libwadcore.a ..
 
-python: $(WADOBJS) $(PYOBJS)
-	$(CXXLINK) $(WADOBJS) $(PYOBJS) -o libwadpy.so
-	cp libwadpy.so ..
-
-tcl: $(WADOBJS) $(TCLOBJS)
-	$(CXXLINK) $(WADOBJS) $(TCLOBJS) -o libwadtcl.so
-	cp libwadtcl.so ..
-
 perl: wad_perl_handler.c $(WADOBJS) $(PERLOBJS)
 	$(CXXLINK) $(WADOBJS) $(PERLOBJS) -o libwadpl.so
 	cp libwadpl.so ..
@@ -81,8 +64,7 @@ wc::
 	wc $(SRCS)
 
 semi::
-	egrep ";" $(WADSRCS) plat/*.c | wc
-
+	@egrep ";" $(WADSRCS) plat/*.c | wc
 
 clean::
 	rm -f *.o *.so *~ 

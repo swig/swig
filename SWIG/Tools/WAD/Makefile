@@ -15,7 +15,7 @@ TCLINCLUDE = -I/usr/local/include
 # Location of your Perl installation
 PERLINCLUDE = -I/usr/perl5/5.00503/sun4-solaris/CORE
 
-all: wad python tcl perl
+all: wad python tcl #perl
 
 wad:
 	@cd Wad; $(MAKE) wad
@@ -24,7 +24,7 @@ python:
 	@cd Python; $(MAKE) SINCLUDE='$(PYINCLUDE)' python
 
 tcl:
-	@cd Wad; $(MAKE) SINCLUDE='$(TCLINCLUDE)' tcl
+	@cd Tcl; $(MAKE) SINCLUDE='$(TCLINCLUDE)' tcl
 
 perl:
 	@cd Wad; $(MAKE) SINCLUDE='$(PERLINCLUDE)' perl
@@ -33,7 +33,15 @@ install:
 	cp libwad*.so $(LIB)
 	chmod a+rx $(LIB)/libwad*.so
 
+semi:
+	@cd Wad; $(MAKE) semi
+	@cd Python; $(MAKE) semi
+	@cd Tcl; $(MAKE) semi
+
 clean:
 	@cd Wad; $(MAKE) clean
+	@cd Python; $(MAKE) clean
+	@cd Tcl; $(MAKE) clean
+	@cd Test; $(MAKE) clean
 	rm *.so
 
