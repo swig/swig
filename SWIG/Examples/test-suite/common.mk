@@ -111,6 +111,7 @@ CPP_TEST_CASES += \
 	director_abstract \
 	director_basic \
 	director_exception \
+	director_detect \
 	director_finalizer \
 	director_unroll \
 	director_wombat \
