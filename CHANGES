@@ -3,6 +3,32 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+8/29/00 : beazley
+          Added new %insert directive that inserts the contents of a file
+          into a portion of the output wrapper file.  This is only intended
+          for use by writers of language modules.  Works as follows:
+
+               %insert(headers)  "file.swg";       
+               %insert(runtime)  "file.swg";
+               %insert(wrappers) "file.swg";
+               %insert(init)     "file.swg";
+
+          *** NEW FEATURE ***
+
+8/29/00 : beazley
+          Added new %runtime directive which includes code into the runtime
+          portion of the wrapper code. For example:
+                 
+              %runtime %{
+                    ... some internal runtime code ...
+              %}
+
+          There is no practical reason for ordinary users to use this
+          feature (almost everything can be done using %{ ... %} 
+          instead).   However, writers of language modules may want to
+          use this in language configuration files.
+          *** NEW FEATURE ***
+          
 8/28/00 : beazley
           Typemaps can now be specified using string literals like
           this:
