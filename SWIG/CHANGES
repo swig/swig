@@ -14,6 +14,19 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/02/2001: beazley
+           Removed two undocumented parsing features.  SWIG no longer
+           supports out-of-class static function or variable
+           declarations.  For example:
+
+                static int Foo::bar;
+
+           This feature may return if there is sufficient demand. 
+           However, since SWIG is most often used with header files,
+           it is more likely for these definitions to be included
+           in the class definition.
+           *** POTENTIAL INCOMPATIBILITY ***
+
 8/02/2001: cheetah (william fulton)
 	   * Cleanup of the GIFPlot examples. Upgraded Java GIFPlot example.
 
