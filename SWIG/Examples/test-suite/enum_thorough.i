@@ -1,5 +1,35 @@
 %module "enum_thorough"
 
+// Suppress warning messages from the Ruby module for all of the following...
+%warnfilter(801) red;
+%warnfilter(801) blue;
+%warnfilter(801) blue;
+%warnfilter(801) SpeedClass::slow;
+%warnfilter(801) SpeedClass::medium;
+%warnfilter(801) SpeedClass::fast;
+%warnfilter(801) TemplateClass::einstein;
+%warnfilter(801) TemplateClass::galileo;
+%warnfilter(801) Name::TClass::faraday;
+%warnfilter(801) Name::TClass::bell;
+%warnfilter(801) argh;
+%warnfilter(801) OldNameStruct::whizz;
+%warnfilter(801) OldNameStruct::bang;
+%warnfilter(801) OldNameStruct::pop;
+%warnfilter(801) OldNameStruct::simple1;
+%warnfilter(801) OldNameStruct::singlename1;
+%warnfilter(801) OldNameStruct::doublename1;
+%warnfilter(801) TreesClass::oak;
+%warnfilter(801) TreesClass::fir;
+%warnfilter(801) TreesClass::pine;
+%warnfilter(801) curly::greasy::HairStruct::blonde;
+%warnfilter(801) curly::greasy::HairStruct::ginger;
+%warnfilter(801) Obscure::one;
+%warnfilter(801) Obscure::onetrail;
+%warnfilter(801) Obscure::two;
+%warnfilter(801) Obscure::twoagain;
+%warnfilter(801) Obscure::twotrail;
+%warnfilter(801) Obscure::twotrailagain;
+
 %inline %{
 
 enum { AnonEnum1, AnonEnum2 };
