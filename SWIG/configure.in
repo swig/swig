@@ -471,8 +471,8 @@ AC_SUBST(PERL5EXT)
 # Look for java
 #----------------------------------------------------------------
 
-AC_ARG_WITH(java, [  --with-java=path        Set location of java executable],[JAVABIN="$withval"], [JAVABIN=nope])
-AC_ARG_WITH(javac, [  --with-javac=path        	Set location of javac executable],[JAVACBIN="$withval"], [JAVACBIN=nope])
+AC_ARG_WITH(java, [  --with-java=path        Set location of Java],[JAVABIN="$withval"], [JAVABIN=nope])
+AC_ARG_WITH(javac, [  --with-javac=path       Set location of Javac],[JAVACBIN="$withval"], [JAVACBIN=nope])
 
 if test "$JAVABIN" = nope ; then
   AC_CHECK_PROGS(JAVA, java kaffe guavac, nope)
@@ -487,21 +487,23 @@ else
 fi
 
 AC_MSG_CHECKING(for java include file jni.h)
-AC_ARG_WITH(java, [  --with-java-include=path	Set location of java include files], [JAVAINCDIR="$withval"], [JAVAINCDIR=nope])
+AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include directory], [JAVAINCDIR="$withval"], [JAVAINCDIR=nope])
 
 if test "$JAVAINCDIR" = nope; then
-  dirs="/usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe"
-  for d in $dirs ; do
-    if test -r $d/jni.h ; then
-      AC_MSG_RESULT($d)
-      JAVAINCDIR=$d
-      JAVAINC="-I$d"
-      break
-    fi
-  done
+  JAVAINCDIR="/usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe /usr/include /usr/local/include"
 fi
 
-if test "$JAVAINCDIR" = nope ; then
+JAVAINC=""
+for d in $JAVAINCDIR ; do
+  if test -r $d/jni.h ; then
+    AC_MSG_RESULT($d)
+    JAVAINCDIR=$d
+    JAVAINC="-I$d"
+    break
+  fi
+done
+
+if test "$JAVAINC" = "" ; then
   AC_MSG_RESULT(not found)
 else
   # now look for <arch>/md.h

@@ -1009,7 +1009,7 @@ void JAVA::cpp_close_class() {
 
 void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   String           arg;
-  String           nativecall  = "";
+  String           nativecall;
 
   this->Language::cpp_member_func(name,iname,t,l);
 
@@ -1154,7 +1154,7 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
   if(!shadow) return;
   if(!shadow_classdef_emitted) emit_shadow_classdef();
 
-  String nativecall = "";
+  String nativecall;
   String arg;
 
   fprintf(f_shadow, "  public %s(", shadow_classname);
