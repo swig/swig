@@ -1286,7 +1286,7 @@ public:
 
 	Printf( fully_qualified_name, "%s", name );
 
-	return normalizeTemplatedClassName(fully_qualified_name);
+	return fully_qualified_name;
     }
 
     /* Benedikt Grundmann inspired --> Enum wrap styles */
