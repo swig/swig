@@ -1,31 +1,43 @@
-*** ANNOUNCE: SWIG 1.3.16 ***
+*** ANNOUNCE: SWIG 1.3.18 ***
 
 http://www.swig.org
 
-October 14, 2002
+March 22, 2003
 
-We're pleased to announce SWIG 1.3.16, the latest installment in the
-SWIG development effort.  SWIG-1.3.16 is mostly a bug-fix release to
-SWIG-1.3.15. 
+We're pleased to announce SWIG 1.3.18, the latest installment in the
+SWIG development effort.  SWIG-1.3.18 includes a number of bug fixes,
+several new language modules, an improved build environment, and
+many other exciting new features.
 
 What is SWIG?
 -------------
 SWIG is a software development tool that reads C/C++ header files and
 generates the wrapper code needed to make C and C++ code accessible
 from other languages including Perl, Python, Tcl, Ruby, PHP, Java,
-Guile, Mzscheme, and Ocaml.  Major applications of SWIG include
-generation of scripting language extension modules, rapid prototyping,
-testing, and user interface development for large C/C++ systems. 
+Guile, Mzscheme, Ocaml, Chicken Scheme, and C#.  Major applications of
+SWIG include generation of scripting language extension modules, rapid
+prototyping, testing, and user interface development for large C/C++
+systems.
 
 Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-1.3.16.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-1.3.18.tar.gz
 
 Within the next day, a Windows version will also be made available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-1.3.16.zip
+     http://prdownloads.sourceforge.net/swig/swigwin-1.3.18.zip
+
+New Features:
+-------------
+Several new language modules have been added, including support for C#
+and Chicken Scheme.  In addition, Mark's polymorphism patch has been
+incorporated.  This gives certain modules the ability to extend C++
+classes with virtual methods implemented the target language
+itself---an especially useful addition if you are working with code
+that involves callbacks.   Finally, a number of minor patches, bug fixes, and
+improvements have been made.  
 
 Release numbers
 ---------------
