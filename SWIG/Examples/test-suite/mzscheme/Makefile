@@ -30,12 +30,12 @@ include ../common.mk
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
 	if [ -f $*\_runme.scm ]; then ( \
-	  mzscheme -r $*\_runme.scm;) \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH mzscheme -r $*\_runme.scm;) \
 	fi;
 
 # Clean
 %.clean:
-	@rm -f $*-guile
+	
 
 clean:
 	@rm -f *_wrap* *.o *.so *~ ~* core

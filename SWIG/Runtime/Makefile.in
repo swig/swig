@@ -25,6 +25,7 @@ all:
 	-$(MAKE) tcl
 	-$(MAKE) ruby
 	-$(MAKE) guile
+	-$(MAKE) mzscheme
 
 install:
 	@echo "Installing runtime libraries"
@@ -87,7 +88,7 @@ PERL5_RUNTIME = $(SWIGLIB)/perl5/perl5.swg
 
 perl5: libswigpl$(RELEASESUFFIX).la
 
-libswigpl$(RELEASESUFFIX).la:
+libswigpl$(RELEASESUFFIX).la: $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNTIME)
 	@rm -f libperl.c
 #	cat $(srcdir)/perlrun.h >> libperl.c
 	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNTIME) >> libperl.c
@@ -123,9 +124,28 @@ GUILE_RUNTIME = $(SWIGLIB)/guile/guiledec.swg $(SWIGLIB)/guile/guile.swg
 
 guile: libswigguile$(RELEASESUFFIX).la
 
-libswigguile$(RELEASESUFFIX).la:
+libswigguile$(RELEASESUFFIX).la: $(GUILE_RUNTIME)
 	rm -f libguile.c
 	cat $(srcdir)/$(GUILE_RUNTIME) >> libguile.c
 	$(LIBTOOL) $(CC) -c $(GUILE_INCLUDE) -DSWIG_GLOBAL libguile.c
 	$(LIBTOOL) $(CC) -o libswigguile$(RELEASESUFFIX).la libguile.lo -rpath $(LIB_DIR) -avoid-version 
+
+# ----------------------------------------------------------------------
+# MzScheme run-time library
+# ----------------------------------------------------------------------
+
+MZSCHEME_RUNTIME = $(SWIGLIB)/mzscheme/mzschemedec.swg $(SWIGLIB)/mzscheme/mzscheme.swg
+MZC = @MZC@
+SO = @SO@
+
+# MzScheme shared
+
+mzscheme: libswigmz$(RELEASESUFFIX).la
+
+libswigmz$(RELEASESUFFIX).la: $(MZSCHEME_RUNTIME)
+	rm -f libmz.c
+	cat $(srcdir)/$(MZSCHEME_RUNTIME) >> libmz.c
+	-mkdir .libs
+	$(MZC) ++ccf "-DSWIG_GLOBAL" --cc libmz.c
+	$(MZC) --ld .libs/libswigmz$(RELEASESUFFIX)$(SO) libmz.o 
 

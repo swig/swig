@@ -428,12 +428,12 @@ MZC = test -n "@MZC@" && @MZC@
 
 mzscheme: $(SRCS)
 	$(SWIG) -mzscheme $(SWIGOPT) $(INTERFACE)
-	$(MZC) --cc $(ISRCS) $(SRCS)
+	$(MZC) ++ccf "$(INCLUDE)" --cc $(ISRCS) $(SRCS)
 	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS)
 
 mzscheme_cpp: $(SRCS)
 	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
-	$(MZC) --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(MZC) ++ccf "$(INCLUDE)" --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(CPP_DLLIBS) 
 
 # ----------------------------------------------------------------
@@ -444,12 +444,12 @@ MZSCHEME_RUNTIME=-L$(RUNTIMEDIR) -lswigmz@release_suffix@
 
 mzscheme_multi: $(SRCS)
 	$(SWIG) -c -mzscheme $(SWIGOPT) $(INTERFACE)
-	$(MZC) --cc $(ISRCS) $(SRCS)
+	$(MZC) ++ccf "$(INCLUDE)" --cc $(ISRCS) $(SRCS)
 	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME)
 
 mzscheme_multi_cpp: $(SRCS)
 	$(SWIG) -c -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
-	$(MZC) --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(MZC) ++ccf "$(INCLUDE)" --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME) $(CPP_DLLIBS) 
 
 ##################################################################
