@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>SWIG Library</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Library"></a>8 SWIG library</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Library_nn2">The %include directive and library search path</a>
 <li><a href="#Library_nn3">C Arrays and Pointers</a>
@@ -33,15 +35,18 @@
 <li><a href="#Library_nn17">exception.i</a>
 </ul>
 </ul>
+</div>
 <!-- INDEX -->
 
 
 
+<p>
 To help build extension modules, SWIG is packaged with a library of
 support files that you can include in your own interfaces.  These
 files often define new SWIG directives or provide utility
 functions that can be used to access parts of the standard C and C++ libraries.
 This chapter provides a reference to the current set of supported library files.
+</p>
 
 <p>
 <b>Compatibility note:</b> Older versions of SWIG included a number of
@@ -54,8 +59,10 @@ carefully if you used the old libraries.
 <H2><a name="Library_nn2"></a>8.1 The %include directive and library search path</H2>
 
 
+<p>
 Library files are included using the <tt>%include</tt> directive.
 When searching for files, directories are searched in the following order:
+</p>
 
 <ul>
 <li>The current directory
@@ -79,77 +86,86 @@ You can override the location of the SWIG library by setting the
 <H2><a name="Library_nn3"></a>8.2 C Arrays and Pointers</H2>
 
 
+<p>
 This section describes library modules for manipulating low-level C arrays and pointers. 
 The primary use of these modules is in supporting C declarations that manipulate bare
 pointers such as <tt>int *</tt>, <tt>double *</tt>, or <tt>void *</tt>.  The modules can be
 used to allocate memory, manufacture pointers, dereference memory, and wrap
 pointers as class-like objects.   Since these functions provide direct access to
 memory, their use is potentially unsafe and you should exercise caution.
+</p>
 
 <H3><a name="Library_nn4"></a>8.2.1 cpointer.i</H3>
 
 
+<p>
 The <tt>cpointer.i</tt> module defines macros that can be used to used
 to generate wrappers around simple C pointers.  The primary use of
 this module is in generating pointers to primitive datatypes such as
 <tt>int</tt> and <tt>double</tt>.
+</p>
 
 <p>
 <b><tt>%pointer_functions(type,name)</tt></b>
 </p>
 
-<blockquote>
-Generates a collection of four functions for manipulating a pointer <tt>type *</tt>:
+<div class="indent">
+<p>Generates a collection of four functions for manipulating a pointer <tt>type *</tt>:</p>
 
 <p>
 <tt>type *new_name()</tt>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Creates a new object of type <tt>type</tt> and returns a pointer to it.  In C, the
 object is created using <tt>calloc()</tt>. In C++, <tt>new</tt> is used.
-</blockquote>
+</p></div>
 
 <p>
 <tt>type *copy_name(type value)</tt>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Creates a new object of type <tt>type</tt> and returns a pointer to it. 
 An initial value is set by copying it from <tt>value</tt>. In C, the
 object is created using <tt>calloc()</tt>. In C++, <tt>new</tt> is used.
-</blockquote>
+</p></div>
 
 <p>
 <tt>type *delete_name(type *obj)</tt>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Deletes an object type <tt>type</tt>.
-</blockquote>
+<p></div>
 
 <p>
 <tt>void name_assign(type *obj, type value)</tt>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Assigns <tt>*obj = value</tt>.
-</blockquote>
+</p></div>
 
 <p>
 <tt>type name_value(type *obj)</tt>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Returns the value of <tt>*obj</tt>.
-</blockquote>
+</p></div>
+
+<p>
 When using this macro, <tt>type</tt> may be any type and <tt>name</tt> must be a legal identifier in the target
 language.  <tt>name</tt> should not correspond to any other name used in the interface file.
-</blockquote>
+</p>
 
+
+<p>
 Here is a simple example of using <tt>%pointer_functions()</tt>:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %include "cpointer.i"
@@ -160,11 +176,13 @@ Here is a simple example of using <tt>%pointer_functions()</tt>:
 /* A function that uses an "int *" */
 void add(int x, int y, int *result);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Now, in Python:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; c = example.new_intp()     # Create an "int" for storing result
@@ -173,17 +191,22 @@ Now, in Python:
 7
 &gt;&gt;&gt; example.delete_intp(c)     # Delete
 </pre>
-</blockquote>
+</div>
+
+</div>
 
 <p>
 <b><tt>%pointer_class(type,name)</tt></b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Wraps a pointer of <tt>type *</tt> inside a class-based interface.  This
 interface is as follows:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 struct name {
    name();                            // Create pointer object
@@ -195,13 +218,15 @@ struct name {
                                       // pointer
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 When using this macro, <tt>type</tt> is restricted to a simple type
 name like <tt>int</tt>, <tt>float</tt>, or <tt>Foo</tt>.  Pointers and
 other complicated types are not allowed.  <tt>name</tt> must be a
 valid identifier not already in use.  When a pointer is wrapped as a class,
 the "class"  may be transparently passed to any function that expects the pointer.
+</p>
 
 <p>
 If the target language does not support proxy classes, the use of this macro will produce the example
@@ -215,11 +240,12 @@ structure.  Instead, the raw pointer is used directly.
 </p>
 
 
-</blockquote>
 
+<p>
 Here is the same example using a class instead:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %include "cpointer.i"
@@ -230,11 +256,13 @@ Here is the same example using a class instead:
 /* A function that uses an "int *" */
 void add(int x, int y, int *result);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Now, in Python (using proxy classes)
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; c = example.intp()         # Create an "int" for storing result
@@ -242,29 +270,38 @@ Now, in Python (using proxy classes)
 &gt;&gt;&gt; c.value()                  # Dereference
 7
 </pre>
-</blockquote>
+</div>
 
+<p>
 Of the two macros, <tt>%pointer_class</tt> is probably the most convenient when working with simple
 pointers.  This is because the pointers are access like objects and they can be easily garbage collected
 (destruction of the pointer object destroys the underlying object).
+</p>
+
+</div>
 
 <p>
 <b><tt>%pointer_cast(type1, type2, name)</tt></b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Creates a casting function that converts <tt>type1</tt> to <tt>type2</tt>.  The name of the function is <tt>name</tt>.
 For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %pointer_cast(int *, unsigned int *, int_to_uint);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this example,  the function <tt>int_to_uint()</tt> would be used to cast types in the target language.
+</p>
 
-</blockquote>
+</div>
 
 <p>
 <b>Note:</b> None of these macros can be used to safely work with strings (<tt>char *</tt> or <tt>char **</tt>).
@@ -277,61 +314,65 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 <H3><a name="Library_nn5"></a>8.2.2 carrays.i</H3>
 
 
+<p>
 This module defines macros that assist in wrapping ordinary C pointers as arrays.
 The module does not provide any safety or an extra layer of wrapping--it merely
 provides functionality for creating, destroying, and modifying the contents of
 raw C array data.
+</p>
 
 <p>
 <b><tt>%array_functions(type,name)</tt></b>
 </p>
 
-<blockquote>
-Creates four functions.
+<div class="indent">
+<p>Creates four functions.</p>
 
 <p>
 <tt>type *new_name(int nelements)</tt>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Creates a new array of objects of type <tt>type</tt>.   In C, the array is allocated using
 <tt>calloc()</tt>.  In C++, <tt>new []</tt> is used.
-</blockquote>
+</p></div>
 
 <p>
 <tt>type *delete_name(type *ary)</tt>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Deletes an array. In C, <tt>free()</tt> is used.  In C++, <tt>delete []</tt> is used.
-</blockquote>
+</p></div>
 
 <p>
 <tt>type name_getitem(type *ary, int index)</tt>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Returns the value <tt>ary[index]</tt>.
-</blockquote>
+</p></div>
 
 <p>
 <tt>void name_setitem(type *ary, int index, type value)</tt>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Assigns <tt>ary[index] = value</tt>.
-</blockquote>
+</p></div>
+
+<p>
 When using this macro, <tt>type</tt> may be any type and <tt>name</tt>
 must be a legal identifier in the target language.  <tt>name</tt>
 should not correspond to any other name used in the interface file.
-</blockquote>
+</p>
 
 <p>
 Here is an example of <tt>%array_functions()</tt>.  Suppose you had a 
 function like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 void print_array(double x[10]) {
    int i;
@@ -340,11 +381,13 @@ void print_array(double x[10]) {
    }
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 To wrap it, you might write this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 
@@ -353,11 +396,13 @@ To wrap it, you might write this:
 
 void print_array(double x[10]);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Now, in a scripting language, you might write this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 a = new_doubleArray(10)           # Create an array
 for i in range(0,10):
@@ -365,14 +410,19 @@ for i in range(0,10):
 print_array(a)                    # Pass to C
 delete_doubleArray(a)             # Destroy array
 </pre>
-</blockquote>
+</div>
+
+</div>
 
 <b><tt>%array_class(type,name)</tt></b>
-<blockquote>
+<div class="indent">
+
+<p>
 Wraps a pointer of <tt>type *</tt> inside a class-based interface.  This
 interface is as follows:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 struct name {
    name(int nelements);               // Create an array
@@ -384,22 +434,23 @@ struct name {
                                       // existing pointer
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 When using this macro, <tt>type</tt> is restricted to a simple type
 name like <tt>int</tt> or <tt>float</tt>. Pointers and
 other complicated types are not allowed.  <tt>name</tt> must be a
 valid identifier not already in use.  When a pointer is wrapped as a class,
 it can be transparently passed to any function that expects the pointer.
+</p>
 
-</blockquote>
 
 <p>
 When combined with proxy classes, the <tt>%array_class()</tt> macro can be especially useful. 
 For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %include "carrays.i"
@@ -407,11 +458,13 @@ For example:
 
 void print_array(double x[10]);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Allows you to do this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 import example
 c = example.doubleArray(10)  # Create double[10]
@@ -419,7 +472,9 @@ for i in range(0,10):
     c[i] = 2*i               # Assign values
 example.print_array(c)       # Pass to C
 </pre>
-</blockquote>
+</div>
+
+</div>
 
 <p>
 <b>Note:</b> These macros do not encapsulate C arrays inside a special data structure
@@ -435,89 +490,123 @@ used with types of <tt>char</tt> or <tt>char *</tt>.
 <H3><a name="Library_nn6"></a>8.2.3 cmalloc.i</H3>
 
 
+<p>
 This module defines macros for wrapping the low-level C memory allocation functions
 <tt>malloc()</tt>, <tt>calloc()</tt>, <tt>realloc()</tt>, and <tt>free()</tt>.
+</p>
 
 <p>
 <b><tt>%malloc(type [,name=type])</tt></b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Creates a wrapper around <tt>malloc()</tt> with the following prototype:
-<blockquote><pre>
+</p>
+
+<div class="code"><pre>
 <em>type</em> *malloc_<em>name</em>(int nbytes = sizeof(<em>type</em>));
 </pre>
-</blockquote>
+</div>
+
+<p>
 If <tt>type</tt> is <tt>void</tt>, then the size parameter <tt>nbytes</tt> is required.
 The <tt>name</tt> parameter only needs to be specified when wrapping a type that
 is not a valid identifier (e.g., "<tt>int *</tt>", "<tt>double **</tt>", etc.).
-</blockquote>
+</p>
+
+</div>
 
 <p>
 <b><tt>%calloc(type [,name=type])</tt></b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Creates a wrapper around <tt>calloc()</tt> with the following prototype:
-<blockquote><pre>
+</p>
+
+<div class="code"><pre>
 <em>type</em> *calloc_<em>name</em>(int nobj =1, int sz = sizeof(<em>type</em>));
 </pre>
-</blockquote>
+</div>
+
+<p>
 If <tt>type</tt> is <tt>void</tt>, then the size parameter <tt>sz</tt> is required.
-</blockquote>
+</p>
+
+</div>
 
 <p>
 <b><tt>%realloc(type [,name=type])</tt></b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Creates a wrapper around <tt>realloc()</tt> with the following prototype:
-<blockquote><pre>
+</p>
+
+<div class="code"><pre>
 <em>type</em> *realloc_<em>name</em>(<em>type</em> *ptr, int nitems);
 </pre>
-</blockquote>
+</div>
+
+<p>
 Note: unlike the C <tt>realloc()</tt>, the wrapper generated by this macro implicitly includes the
 size of the corresponding type.   For example, <tt>realloc_int(p, 100)</tt> reallocates <tt>p</tt> so that
 it holds 100 integers.
-</blockquote>
+</p>
+
+</div>
 
 <p>
 <b><tt>%free(type [,name=type])</tt></b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Creates a wrapper around <tt>free()</tt> with the following prototype:
-<blockquote><pre>
+</p>
+
+<div class="code"><pre>
 void free_<em>name</em>(<em>type</em> *ptr);
 </pre>
-</blockquote>
-</blockquote>
+</div>
+</div>
 
 <p>
 <b><tt>%sizeof(type [,name=type])</tt></b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Creates the constant:
-<blockquote><pre>
+</p>
+
+<div class="code"><pre>
 %constant int sizeof_<em>name</em> = sizeof(<em>type</em>);
 </pre>
-</blockquote>
-</blockquote>
+</div>
+</div>
 
 <p>
 <b><tt>%allocators(type [,name=type])</tt></b>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Generates wrappers for all five of the above operations.
-</blockquote>
+</p></div>
 
 <p>
 Here is a simple example that illustrates the use of these macros:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 // SWIG interface
 %module example
@@ -531,11 +620,13 @@ Here is a simple example that illustrates the use of these macros:
 
 %allocators(double);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Now, in a script:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; from example import *
 &gt;&gt;&gt; a = malloc_int()
@@ -555,40 +646,44 @@ Now, in a script:
 8
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
 <H3><a name="Library_nn7"></a>8.2.4 cdata.i</H3>
 
 
+<p>
 The <tt>cdata.i</tt> module defines functions for converting raw C data to and from strings
 in the target language.  The primary applications of this module would be packing/unpacking of 
 binary data structures---for instance, if you needed to extract data from a buffer.
 The target language must support strings with embedded binary data
 in order for this to work.
+</p>
 
 <p>
 <b><tt>char *cdata(void *ptr, int nbytes)</tt></b>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string.   <tt>ptr</tt> can be any 
 pointer.
-</blockquote>
+</p></div>
 
 <p>
 <b><tt>void memmove(void *ptr, char *s)</tt></b>
 </p>
 
-<blockquote>
+<div class="indent"><p>
 Copies all of the string data in <tt>s</tt> into the memory pointed to by 
 <tt>ptr</tt>.  The string may contain embedded NULL bytes.  The length of 
 the string is implicitly determined in the underlying wrapper code.
-</blockquote>
+</p></div>
 
+<p>
 One use of these functions is packing and unpacking data from memory. 
 Here is a short example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 // SWIG interface
 %module example
@@ -597,11 +692,13 @@ Here is a short example:
 
 %array_class(int, intArray);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Python example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; a = intArray(10)
 &gt;&gt;&gt; for i in range(0,10):
@@ -616,30 +713,43 @@ Python example:
 4
 &gt;&gt;&gt; 
 </pre>
-</blockquote>
+</div>
 
+<p>
 Since the size of data is not always known, the following macro is also defined:
+</p>
 
 <p>
 <b><tt>%cdata(type [,name=type])</tt></b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Generates the following function for extracting C data for a given type.
-<blockquote>
+</p>
+
+<div class="code">
 <pre>
 char *cdata_<em>name</em>(int nitems)
 </pre>
-</blockquote>
-<tt>nitems</tt> is the number of items of the given type to extract.
-</blockquote>
+</div>
 
+<p>
+<tt>nitems</tt> is the number of items of the given type to extract.
+</p>
+
+</div>
+
+<p>
 <b>Note:</b> These functions provide direct access to memory and can be used to overwrite data.
 Clearly they are unsafe.
+</p>
 
 <H2><a name="Library_nn8"></a>8.3 C String Handling</H2>
 
 
+<p>
 A common problem when working with C programs is dealing with
 functions that manipulate raw character data using <tt>char *</tt>.
 In part, problems arise because there are different interpretations of
@@ -647,6 +757,7 @@ In part, problems arise because there are different interpretations of
 point to binary data.  Moreover, functions that manipulate raw strings
 may mutate data, perform implicit memory allocations, or utilize
 fixed-sized buffers.
+</p>
 
 <p>
 The problems (and perils) of using <tt>char *</tt> are
@@ -658,29 +769,35 @@ for manipulating raw C strings.
 <H3><a name="Library_nn9"></a>8.3.1 Default string handling</H3>
 
 
+<p>
 Suppose you have a C function with this prototype:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 char *foo(char *s);
 </pre>
-</blockquote>
+</div>
 
+<p>
 The default wrapping behavior for this function is to set <tt>s</tt>
 to a raw <tt>char *</tt> that refers to the internal string data in the
 target language.  In other words, if you were using a language like Tcl,
 and you wrote this,
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % foo Hello
 </pre>
-</blockquote>
+</div>
 
+<p>
 then <tt>s</tt> would point to the representation of "Hello" inside
 the Tcl interpreter.  When returning a <tt>char *</tt>, SWIG assumes
 that it is a NULL-terminated string and makes a copy of it.  This
 gives the target language its own copy of the result.
+</p>
 
 <p>
 There are obvious problems with the default behavior.  First, since
@@ -693,42 +810,52 @@ not work well with binary data. Instead, strings are assumed to be NULL-terminat
 <H3><a name="Library_nn10"></a>8.3.2 Passing binary data</H3>
 
 
+<p>
 If you have a function that expects binary data,
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 int parity(char *str, int len, int initial);
 </pre>
-</blockquote>
+</div>
 
+<p>
 you can wrap the parameters <tt>(char *str, int len)</tt> as a single
 argument using a typemap.   Just do this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %apply (char *STRING, int LENGTH) { (char *str, int len) };
 ...
 int parity(char *str, int len, int initial);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Now, in the target language, you can use binary string data like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; s = "H\x00\x15eg\x09\x20"
 &gt;&gt;&gt; parity(s,0)
 </pre>
-</blockquote>
+</div>
 
+<p>
 In the wrapper function, the passed string will be expanded to a pointer and length parameter.
+</p>
 
 <H3><a name="Library_nn11"></a>8.3.3 Using %newobject to release memory</H3>
 
 
+<p>
 If you have a function that allocates memory like this,
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 char *foo() {
    char *result = (char *) malloc(...);
@@ -736,35 +863,41 @@ char *foo() {
    return result;
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 then the SWIG generated wrappers will have a memory leak--the returned data will be copied
 into a string object and the old contents ignored.  
+</p>
 
 <p>
 To fix the memory leak, use the <tt>%newobject</tt> directive.
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %newobject foo;
 ...
 char *foo();
 </pre>
-</blockquote>
+</div>
 
+<p>
 This will release the result.
+</p>
 
 <H3><a name="Library_nn12"></a>8.3.4 cstring.i</H3>
 
 
+<p>
 The <tt>cstring.i</tt> library file provides a collection of macros
 for dealing with functions that either mutate string arguments or
 which try to output string data through their arguments.  An
 example of such a function might be this rather questionable
 implementation:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void get_path(char *s) {
     // Potential buffer overflow---uh, oh.
@@ -779,11 +912,13 @@ void get_path(char *s) {
     ...
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 (Off topic rant: If your program really has functions like this, you
 would be well-advised to replace them with safer alternatives
 involving bounds checking).
+</p>
 
 <p>
 The macros defined in this module all expand to various combinations of
@@ -794,101 +929,121 @@ typemaps.  Therefore, the same pattern matching rules and ideas apply.
 <b>%cstring_bounded_output(parm, maxsize)</b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Turns parameter <tt><em>parm</em></tt> into an output value.  The
 output string is assumed to be NULL-terminated and smaller than
 <tt><em>maxsize</em></tt> characters.  Here is an example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %cstring_bounded_output(char *path, 1024);
 ...
 void get_path(char *path);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In the target language:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; get_path()
 /home/beazley/packages/Foo/Bar
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
+<p>
 Internally, the wrapper function allocates a small buffer (on the stack) of the
 requested size and passes it as the pointer value.  Data stored in the buffer is then
 returned as a function return value.
 If the function already returns a value, then the return value and the output string
 are returned together (multiple return values).  <b>If more than <tt><em>maxsize</em></tt>
 bytes are written, your program will crash with a buffer overflow!</b>
+</p>
 
-</blockquote>
+</div>
 
 <p>
 <b>%cstring_chunk_output(parm, chunksize)</b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Turns parameter <tt><em>parm</em></tt> into an output value.  The
 output string is always <tt><em>chunksize</em></tt> and may contain
 binary data.  Here is an example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %cstring_chunk_output(char *packet, PACKETSIZE);
 ...
 void get_packet(char *packet);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In the target language:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; get_packet()
 '\xa9Y:\xf6\xd7\xe1\x87\xdbH;y\x97\x7f"\xd3\x99\x14V\xec\x06\xea\xa2\x88'
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
+<p>
 This macro is essentially identical to <tt>%cstring_bounded_output</tt>.  The
 only difference is that the result is always <tt><em>chunksize</em></tt> characters.
 Furthermore, the result can contain binary data.
 <b>If more than <tt><em>maxsize</em></tt>
 bytes are written, your program will crash with a buffer overflow!</b>
+</p>
 
-</blockquote>
+</div>
 
 <p>
 <b>%cstring_bounded_mutable(parm, maxsize)</b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Turns parameter <tt><em>parm</em></tt> into a mutable string argument.
 The input string is assumed to be NULL-terminated and smaller than
 <tt><em>maxsize</em></tt> characters. The output string is also assumed
 to be NULL-terminated and less than <tt><em>maxsize</em></tt> characters.
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %cstring_bounded_mutable(char *ustr, 1024);
 ...
 void make_upper(char *ustr);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In the target language:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; make_upper("hello world")
 'HELLO WORLD'
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
+<p>
 Internally, this macro is almost exactly the same as
 <tt>%cstring_bounded_output</tt>.  The only difference is that the
 parameter accepts an input value that is used to initialize the
@@ -897,21 +1052,26 @@ does not mutate the string value passed---instead it makes a copy of the
 input value, mutates it, and returns it as a result.
 <b>If more than <tt><em>maxsize</em></tt> bytes are
 written, your program will crash with a buffer overflow!</b>
-</blockquote>
+</p>
+
+</div>
 
 <p>
 <b>%cstring_mutable(parm [, expansion])</b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Turns parameter <tt><em>parm</em></tt> into a mutable string argument.
 The input string is assumed to be NULL-terminated.  An optional
 parameter <tt><em>expansion</em></tt> specifies the number of
 extra characters by which the string might grow when it is modified.
 The output string is assumed to be NULL-terminated and less than
 the size of the input string plus any expansion characters.
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %cstring_mutable(char *ustr);
 ...
@@ -921,11 +1081,13 @@ void make_upper(char *ustr);
 ...
 void attach_header(char *hstr);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In the target language:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; make_upper("hello world")
 'HELLO WORLD'
@@ -933,8 +1095,9 @@ In the target language:
 'header: Hello world'
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
+<p>
 This macro differs from <tt>%cstring_bounded_mutable()</tt> in that a
 buffer is dynamically allocated (on the heap using
 <tt>malloc/new</tt>).  This buffer is always large enough to store a
@@ -945,42 +1108,52 @@ does not directly mutate the string value passed---instead it makes a copy of th
 input value, mutates it, and returns it as a result.
 <b>If the function expands the result by more than <tt><em>expansion</em></tt> extra
 bytes, then the program will crash with a buffer overflow!</b>
-</blockquote>
+</p>
+
+</div>
 
 
 <p>
 <b>%cstring_output_maxsize(parm, maxparm)</b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 This macro is used to handle bounded character output functions where
 both a <tt>char *</tt> and a maximum length parameter are provided.
 As input, a user simply supplies the maximum length.
 The return value is assumed to be a NULL-terminated string.
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %cstring_output_maxsize(char *path, int maxpath);
 ...
 void get_path(char *path, int maxpath);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In the target language:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; get_path(1024)
 '/home/beazley/Packages/Foo/Bar'
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
+<p>
 This macro provides a safer alternative for functions that need to
 write string data into a buffer.  User supplied buffer size is
 used to dynamically allocate memory on heap.  Results are placed
 into that buffer and returned as a string object.
-</blockquote>
+</p>
+
+</div>
 
 
 
@@ -988,25 +1161,30 @@ into that buffer and returned as a string object.
 <b>%cstring_output_withsize(parm, maxparm)</b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 This macro is used to handle bounded character output functions where
 both a <tt>char *</tt> and a pointer <tt>int *</tt> are passed.  Initially,
 the <tt>int *</tt> parameter points to a value containing the maximum size.
 On return, this value is assumed to contain the actual number of bytes.
 As input, a user simply supplies the maximum length.  The output value is a
 string that may contain binary data.
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %cstring_output_withsize(char *data, int *maxdata);
 ...
 void get_data(char *data, int *maxdata);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In the target language:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; get_data(1024)
 'x627388912'
@@ -1014,64 +1192,77 @@ In the target language:
 'xyzzy'
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
+<p>
 This macro is a somewhat more powerful version of <tt>%cstring_output_chunk()</tt>.  Memory
 is dynamically allocated and can be arbitrary large.  Furthermore, a function can control
 how much data is actually returned by changing the value of the <tt>maxparm</tt> argument.
-</blockquote>
+</p>
+
+</div>
 
 
 <p>
 <b>%cstring_output_allocate(parm, release)</b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 This macro is used to return strings that are allocated within the program and
 returned in a parameter of type <tt>char **</tt>.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void foo(char **s) {
     *s = (char *) malloc(64);
     sprintf(*s, "Hello world\n");
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 The returned string is assumed to be NULL-terminated.  <tt><em>release</em></tt>
 specifies how the allocated memory is to be released (if applicable).  Here is an
 example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %cstring_output_allocate(char **s, free(*$1));
 ...
 void foo(char **s);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In the target language:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; foo()
 'Hello world\n'
 &gt;&gt;&gt;
 </pre>
-</blockquote>
-</blockquote>
+</div>
+</div>
 
 
 <p>
 <b>%cstring_output_allocate_size(parm, szparm, release)</b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 This macro is used to return strings that are allocated within the program and
 returned in two parameters of type <tt>char **</tt> and <tt>int *</tt>.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void foo(char **s, int *sz) {
     *s = (char *) malloc(64);
@@ -1080,52 +1271,63 @@ void foo(char **s, int *sz) {
     ...
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 The returned string may contain binary data. <tt><em>release</em></tt>
 specifies how the allocated memory is to be released (if applicable).  Here is an
 example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %cstring_output_allocate_size(char **s, int *slen, free(*$1));
 ...
 void foo(char **s, int *slen);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In the target language:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; foo()
 '\xa9Y:\xf6\xd7\xe1\x87\xdbH;y\x97\x7f"\xd3\x99\x14V\xec\x06\xea\xa2\x88'
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
+<p>
 This is the safest and most reliable way to return binary string data in 
 SWIG.  If you have functions that conform to another prototype, you might
 consider wrapping them with a helper function.   For example, if you had this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 char  *get_data(int *len);
 </pre>
-</blockquote>
+</div>
 
+<p>
 You could wrap it with a function like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void my_get_data(char **result, int *len) {
    *result = get_data(len);
 }
 </pre>
-</blockquote>
-</blockquote>
+</div>
+</div>
 
+<p>
 <b>Comments:</b>
+</p>
+
 <ul>
 <li>Support for the <tt>cstring.i</tt> module depends on the target language. Not all
 SWIG modules currently support this library.
@@ -1147,17 +1349,21 @@ structure or class instead.
 <H2><a name="Library_nn13"></a>8.4 C++ Library</H2>
 
 
+<p>
 The library modules in this section provide access to parts of the standard C++ library.
 All of these modules are new in SWIG-1.3.12 and are only the beginning phase of more complete
 C++ library support including support for the STL.  
+</p>
 
 <H3><a name="Library_nn14"></a>8.4.1 std_string.i</H3>
 
 
+<p>
 The <tt>std_string.i</tt> library provides typemaps for converting C++ <tt>std::string</tt>
 objects to and from strings in the target scripting language.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %include "std_string.i"
@@ -1165,27 +1371,31 @@ objects to and from strings in the target scripting language.  For example:
 std::string foo();
 void        bar(const std::string &amp;x);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In the target language:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 x = foo();                # Returns a string object
 bar("Hello World");       # Pass string as std::string
 </pre>
-</blockquote>
+</div>
 
+<p>
 This module only supports types <tt>std::string</tt> and
 <tt>const std::string &amp;</tt>.    Pointers and non-const references
 are left unmodified and returned as SWIG pointers.
+</p>
 
 <p>
 This library file is fully aware of C++ namespaces.  If you export <tt>std::string</tt> or rename
 it with a typedef, make sure you include those declarations in your interface.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %include "std_string.i"
@@ -1195,19 +1405,23 @@ typedef std::string String;
 ...
 void foo(string s, const String &amp;t);     // std_string typemaps still applied
 </pre>
-</blockquote>
+</div>
 
+<p>
 <b>Note:</b> The <tt>std_string</tt> library is incompatible with Perl on some platforms.
 We're looking into it.
+</p>
 
 <H3><a name="Library_nn15"></a>8.4.2 std_vector.i</H3>
 
 
+<p>
 The <tt>std_vector.i</tt> library provides support for the C++ <tt>vector</tt> class in the STL.
 Using this library involves the use of the <tt>%template</tt> directive.  All you need to do is to
 instantiate different versions of <tt>vector</tt> for the types that you want to use.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %include "std_vector.i"
@@ -1217,9 +1431,11 @@ namespace std {
    %template(vectord) vector&lt;double&gt;;
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 When a template <tt>vector&lt;X&gt;</tt> is instantiated a number of things happen:
+</p>
 
 <ul>
 <li>A class that exposes the C++ API is created in the target language .
@@ -1248,9 +1464,11 @@ may be defined.  This depends on the target language.
 </li>
 </ul>
 
+<p>
 To illustrate the use of this library, consider the following functions:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 /* File : example.h */
 
@@ -1275,11 +1493,13 @@ void halve_in_place(std::vector&lt;double&gt;&amp; v) {
                    std::bind2nd(std::divides&lt;double&gt;(),2.0));
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 To wrap with SWIG, you might write the following:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %{
@@ -1296,11 +1516,13 @@ namespace std {
 // Include the header file with above prototypes
 %include "example.h"
 </pre>
-</blockquote>
+</div>
 
+<p>
 Now, to illustrate the behavior in the scripting interpreter, consider this Python example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; from example import *
 &gt;&gt;&gt; iv = IntVector(4)         # Create an vector&lt;int&gt;
@@ -1335,12 +1557,14 @@ Traceback (most recent call last):
 IndexError: vector index out of range
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
+<p>
 This library module is fully aware of C++ namespaces.  If you use vectors with other names, 
 make sure you include the appropriate <tt>using</tt> or typedef directives.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %include "std_vector.i"
 
@@ -1353,7 +1577,7 @@ typedef std::vector Vector;
 
 void foo(vector&lt;int&gt; *x, const Vector &amp;x);
 </pre>
-</blockquote>
+</div>
 
 <p>
 <b>Note:</b> This module makes use of several advanced SWIG features including templatized typemaps
@@ -1378,18 +1602,23 @@ details and the public API exposed to the interpreter vary.
 <H3><a name="Library_nn17"></a>8.5.1 exception.i</H3>
 
 
+<p>
 The <tt>exception.i</tt> library provides a language-independent function for raising a run-time
 exception in the target language.
+</p>
 
 <p>
 <b><tt>SWIG_exception(int code, const char *message)</tt></b>
 </p>
 
-<blockquote>
+<div class="indent">
+
+<p>
 Raises an exception in the target language.  <tt>code</tt> is one of the following symbolic
 constants:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 SWIG_MemoryError
 SWIG_IOError
@@ -1402,15 +1631,20 @@ SWIG_SyntaxError
 SWIG_ValueError
 SWIG_SystemError
 </pre>
-</blockquote>
+</div>
 
+<p>
 <tt>message</tt> is a string indicating more information about the problem.
-</blockquote>
+</p>
 
+</div>
+
+<p>
 The primary use of this module is in writing language-independent exception handlers.
 For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %include "exception.i"
 %exception std::vector::getitem {
@@ -1421,7 +1655,7 @@ For example:
     }
 }
 </pre>
-</blockquote>
+</div>
 
 
 </body>

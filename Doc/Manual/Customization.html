@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>Customization Features</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Customization"></a>11 Customization Features</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#exception">Exception handling with %exception</a>
 <ul>
@@ -23,10 +25,12 @@
 <li><a href="#features_example">Feature example</a>
 </ul>
 </ul>
+</div>
 <!-- INDEX -->
 
 
 
+<p>
 In many cases, it is desirable to change the default wrapping of
 particular declarations in an interface.  For example, you might want
 to provide hooks for catching C++ exceptions, add assertions, or
@@ -34,6 +38,7 @@ provide hints to the underlying code generator.  This chapter
 describes some of these customization techniques.  First, a discussion
 of exception handling is presented.  Then, a more general-purpose
 customization mechanism known as "features" is described.
+</p>
 
 <H2><a name="exception"></a>11.1 Exception handling with %exception</H2>
 
@@ -43,7 +48,7 @@ The <tt>%exception</tt> directive allows you to define a general purpose excepti
 handler. For example, you can specify the following:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %exception {
     try {
         $action
@@ -53,7 +58,7 @@ handler. For example, you can specify the following:
         return NULL;
     }
 }
-</pre></blockquote>
+</pre></div>
 
 <p>
 When defined, the code enclosed in braces is inserted directly into the low-level wrapper
@@ -63,9 +68,9 @@ remains in effect until it is explicitly deleted.  This is done by using either 
 or <tt>%noexception</tt> with no code. For example:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %exception;   // Deletes any previously defined handler
-</pre></blockquote>
+</pre></div>
 
 <p>
 <b>Compatibility note:</b>  Previous versions of SWIG used a special directive <tt>%except</tt>
@@ -81,7 +86,7 @@ C has no formal exception handling mechanism so there are several approaches tha
 used.  A somewhat common technique is to simply set a special error code.  For example:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 /* File : except.c */
 
 static char error_message[256];
@@ -100,14 +105,14 @@ char *check_exception() {
 	else return NULL;
 }
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 To use these functions, functions simply call
 <tt>throw_exception()</tt> to indicate an error occurred. For example
 :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 double inv(double x) {
 	if (x != 0) return 1.0/x;
 	else {
@@ -116,13 +121,13 @@ double inv(double x) {
 	}
 }
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 To catch the exception, you can write a simple exception handler such
 as the following (shown for Perl5) :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %exception {
     char *err;
     clear_exception();
@@ -131,7 +136,7 @@ as the following (shown for Perl5) :</p>
        croak(err);
     }
 }
-</pre></blockquote>
+</pre></div>
 
 <p>
 In this case, when an error occurs, it is translated into a Perl error.
@@ -140,11 +145,13 @@ In this case, when an error occurs, it is translated into a Perl error.
 <H3><a name="Customization_nn4"></a>11.1.2 Exception handling with longjmp()</H3>
 
 
+<p>
 Exception handling can also be added to C code using the
 <tt>&lt;setjmp.h&gt;</tt> library.  Here is a minimalistic implementation that
 relies on the C preprocessor :
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 /* File : except.c
    Just the declaration of a few global variables we're going to use */
 
@@ -168,23 +175,23 @@ extern int exception_status;
 #define DivisionByZero 2
 #define OutOfMemory    3
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 Now, within a C program, you can do the following :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 double inv(double x) {
 	if (x) return 1.0/x;
 	else throw(DivisionByZero);
 }
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 Finally, to create a SWIG exception handler, write the following :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %{
 #include "except.h"
 %}
@@ -202,10 +209,12 @@ Finally, to create a SWIG exception handler, write the following :</p>
 		croak("Unknown exception");
 	}
 }
-</pre></blockquote>
+</pre></div>
 
+<p>
 Note: This implementation is only intended to illustrate the general idea.  To make it work better, you'll need to
 modify it to handle nested <tt>try</tt> declarations.
+</p>
 
 <H3><a name="Customization_nn5"></a>11.1.3 Handling C++ exceptions</H3>
 
@@ -214,7 +223,7 @@ modify it to handle nested <tt>try</tt> declarations.
 Handling C++ exceptions is also straightforward.  For example: 
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %exception {
 	try {
 		$action
@@ -229,27 +238,29 @@ Handling C++ exceptions is also straightforward.  For example:
 	}
 }
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 The exception types need to be declared as classes elsewhere, possibly
 in a header file :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 class RangeError {};
 class DivisionByZero {};
 class OutOfMemory {};
 </pre>
-</blockquote>
+</div>
 
 <H3><a name="Customization_nn6"></a>11.1.4 Defining different exception handlers</H3>
 
 
+<p>
 By default, the <tt>%exception</tt> directive creates an exception
 handler that is used for all wrapper functions that follow it.  Unless
 there is a well-defined (and simple) error handling mechanism in place,
 defining one universal exception handler may be unwieldy and result
 in excessive code bloat since the handler is inlined into each wrapper function.
+</p>
 
 <p>
 To fix this, you can be more selective about how you use the
@@ -257,7 +268,7 @@ To fix this, you can be more selective about how you use the
 critical pieces of code.  For example:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %exception {
 	... your exception handler ...
 }
@@ -266,12 +277,14 @@ critical pieces of code.  For example:
 %exception;
 
 /* Define non-critical operations that don't throw exceptions */
-</pre></blockquote>
+</pre></div>
 
+<p>
 More precise control over exception handling can be obtained by attaching an exception handler
 to specific declaration name. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %exception allocate {
     try {
@@ -282,8 +295,9 @@ to specific declaration name. For example:
     }
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this case, the exception handler is only attached to declarations
 named "allocate".  This would include both global and member
 functions.  The names supplied to <tt>%exception</tt> follow the same
@@ -291,8 +305,9 @@ rules as for <tt>%rename</tt> described in the section on
 <a href="SWIGPlus.html#ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>.
 For example, if you wanted to define
 an exception handler for a specific class, you might write this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %exception Object::allocate {
     try {
@@ -303,16 +318,18 @@ an exception handler for a specific class, you might write this:
     }
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 When a class prefix is supplied, the exception handler is applied to the corresponding declaration
 in the specified class as well as for identically named functions appearing in derived classes.  
+</p>
 
 <p>
 <tt>%exception</tt> can even be used to pinpoint a precise declaration when overloading is used. For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %exception Object::allocate(int) {
     try {
@@ -323,12 +340,14 @@ in the specified class as well as for identically named functions appearing in d
     }
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 Attaching exceptions to specific declarations is a good way to reduce code bloat.  It can also be a useful way 
 to attach exceptions to specific parts of a header file. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %{
@@ -357,8 +376,9 @@ to attach exceptions to specific parts of a header file. For example:
 // Read a raw header file
 %include "someheader.h"
 </pre>
-</blockquote>
+</div>
 
+<p>
 <b>Compatibility note:</b> The <tt>%exception</tt> directive replaces
 the functionality provided by the deprecated "except" typemap.
 The typemap would allow exceptions to be thrown in the target 
@@ -366,6 +386,7 @@ language based on the return type of a function and
 was intended to be a mechanism for pinpointing specific
 declarations.  However, it never really worked that well and the new
 %exception directive is much better.
+</p>
 
 <H3><a name="Customization_nn7"></a>11.1.5 Using The SWIG exception library</H3>
 
@@ -377,7 +398,7 @@ put an "<tt>%include exception.i</tt>" in your interface file.  This
 creates a function<tt> SWIG_exception()</tt> that can be used to raise
 common scripting language exceptions in a portable manner.  For example :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 // Language independent exception handler
 %include exception.i       
 
@@ -395,14 +416,14 @@ common scripting language exceptions in a portable manner.  For example :</p>
     }
 }
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 As arguments, <tt>SWIG_exception()</tt> takes an error type code (an
 integer) and an error message string.  The currently supported error
 types are :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 SWIG_MemoryError
 SWIG_IOError
 SWIG_RuntimeError
@@ -414,7 +435,7 @@ SWIG_SyntaxError
 SWIG_ValueError
 SWIG_SystemError
 SWIG_UnknownError
-</pre></blockquote>
+</pre></div>
 
 <p>
 Since the <tt>SWIG_exception()</tt> function is defined at the C-level
@@ -425,53 +446,61 @@ functions.
 <H2><a name="ownership"></a>11.2 Object ownership and %newobject</H2>
 
 
+<p>
 A common problem in some applications is managing proper ownership of objects.  For
 example, consider a function like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 Foo *blah() {
    Foo *f = new Foo();
    return f;
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 If you wrap the function <tt>blah()</tt>, SWIG has no idea that the
 return value is a newly allocated object.  As a result, the resulting
 extension module may produce a memory leak (SWIG is conservative and
 will never delete objects unless it knows for certain that the
 returned object was newly created).
+</p>
 
 <p>
 To fix this, you can provide an extra hint to the code generator using
 the <tt>%newobject</tt> directive.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %newobject blah;
 Foo *blah();
 </pre>
-</blockquote>
+</div>
 
+<p>
 <tt>%newobject</tt> works exactly like <tt>%rename</tt> and <tt>%exception</tt>.  In other words,
 you can attach it to class members and parameterized declarations as before.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %newobject ::blah();                   // Only applies to global blah
 %newobject Object::blah(int,double);   // Only blah(int,double) in Object
 %newobject *::copy;                    // Copy method in all classes
 ...
 </pre>
-</blockquote>
+</div>
 
+<p>
 When <tt>%newobject</tt> is supplied, many language modules will
 arrange to take ownership of the return value.  This allows the value
 to be automatically garbage-collected when it is no longer in use.  However,
 this depends entirely on the target language (a language module may also choose to ignore
 the <tt>%newobject</tt> directive).
+</p>
 
 <p>
 Closely related to <tt>%newobject</tt> is a special typemap.  The "newfree" typemap
@@ -480,7 +509,7 @@ methods for which <tt>%newobject</tt> has been applied and is commonly used to c
 results.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(newfree) char * "free($1);";
 ...
@@ -488,48 +517,54 @@ results.  For example:
 ...
 char *strdup(const char *s);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this case, the result of the function is a string in the target language.  Since this string
 is a copy of the original result, the data returned by <tt>strdup()</tt> is no longer needed.  
 The "newfree" typemap in the example simply releases this memory.
+</p>
 
 <p>
 <b>Compatibility note:</b>  Previous versions of SWIG had a special <tt>%new</tt> directive.  However, unlike <tt>%newobject</tt>,
 it only applied to the next declaration.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %new char *strdup(const char *s);
 </pre>
-</blockquote>
+</div>
 
+<p>
 For now this is still supported but is deprecated.  
+</p>
 
 <p>
 <b>How to shoot yourself in the foot:</b>  The <tt>%newobject</tt> directive is not a declaration modifier like the old
 <tt>%new</tt> directive.   Don't write code like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %newobject
 char *strdup(const char *s);
 </pre>
-</blockquote>
+</div>
 The results might not be what you expect.
 
 <H2><a name="features"></a>11.3 Features and the %feature directive</H2>
 
 
+<p>
 Both <tt>%exception</tt> and <tt>%newobject</tt> are examples of a
 more general purpose customization mechanism known as "features."  A
 feature is simply a user-definable property that is attached to
 specific declarations in an interface file.  Features are attached
 using the <tt>%feature</tt> directive. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %feature("except") Object::allocate {
     try {
@@ -542,22 +577,26 @@ using the <tt>%feature</tt> directive. For example:
 
 %feature("new","1") *::copy;
 </pre>
-</blockquote>
+</div>
 
+<p>
 In fact, the <tt>%exception</tt> and <tt>%newobject</tt> directives are really nothing more than macros 
 involving <tt>%feature</tt>:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 #define %exception %feature("except")
 #define %newobject %feature("new","1")
 </pre>
-</blockquote>
+</div>
 
+<p>
 The <tt>%feature</tt> directive follows the same name matching rules
 as the <tt>%rename</tt> directive (which is in fact just a special
 form of <tt>%feature</tt>).   This means that features can be applied with
 pinpoint accuracy to specific declarations if needed.
+</p>
 
 <p>
 When a feature is defined, it is given a name and a value.   Most commonly, the
@@ -571,11 +610,11 @@ A feature stays in effect until it is explicitly disabled.  A feature is disable
 supplying a <tt>%feature</tt> directive with no value.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %feature("except") Object::allocate;    // Removes any previously defined feature
 </pre>
-</blockquote>
+</div>
 
 <p>
 If no declaration name is given, a global feature is defined.  This feature is then
@@ -583,7 +622,7 @@ attached to <em>every</em> declaration that follows.  This is how global excepti
 are defined.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 /* Define a global exception handler */
 %feature("except") {
@@ -598,40 +637,46 @@ are defined.  For example:
 /* Disable the exception handler */
 %feature("except");
 </pre>
-</blockquote>
+</div>
 
+<p>
 The <tt>%feature</tt> directive can be used with different syntax.
 The following are all equivalent:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %feature("except") Object::method { $action };
 %feature("except") Object::method %{ $action %};
 %feature("except") Object::method " $action ";
 %feature("except","$action") Object::method;
 </pre>
-</blockquote>
+</div>
 
+<p>
 The syntax in the first variation will generate the <tt>{ }</tt> delimeters used whereas the other variations will not.
 The <tt>%feature</tt> directive also accepts XML style attributes in the same way that typemaps will.
 Any number of attributes can be specified.
 The following is the generic syntax for features:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %feature("name","value", attribute1="AttibuteValue1") symbol;
 %feature("name", attribute1="AttibuteValue1") symbol {value};
 %feature("name", attribute1="AttibuteValue1") symbol %{value%};
 %feature("name", attribute1="AttibuteValue1") symbol "value";
 </pre>
-</blockquote>
+</div>
 
+<p>
 More than one attribute can be specified using a comma separated list. 
 The Java module is an example that uses attributes in <tt>%feature("except")</tt>.
 The <tt>throws</tt> attribute specifies the name of a Java class to add to a proxy method's throws clause.
 In the following example, <tt>MyExceptionClass</tt> is the name of the Java class for adding to the throws clause.
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %feature("except", throws="MyExceptionClass") Object::method { 
    try {
@@ -641,7 +686,7 @@ In the following example, <tt>MyExceptionClass</tt> is the name of the Java clas
    }
 };
 </pre>
-</blockquote>
+</div>
 
 <p>
 Further details can be obtained from the <a href="Java.html#exception_handling">Java exception handling</a> section.
@@ -661,56 +706,56 @@ wrapper method only and not the extra overloaded methods that SWIG generates.
 For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %feature("except") void hello(int i=0, double d=0.0);
 void hello(int i=0, double d=0.0);
 </pre>
-</blockquote>
+</div>
 
 <p>
 will apply the feature to all three wrapper methods, that is:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 void hello(int i, double d);
 void hello(int i);
 void hello();
 </pre>
-</blockquote>
+</div>
 
 <p>
 If the default arguments are not specified in the feature:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %feature("except") void hello(int i, double d);
 void hello(int i=0, double d=0.0);
 </pre>
-</blockquote>
+</div>
 
 <p>
 then the feature will only apply to this wrapper method:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 void hello(int i, double d);
 </pre>
-</blockquote>
+</div>
 
 <p>
 and not these wrapper methods:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 void hello(int i);
 void hello();
 </pre>
-</blockquote>
+</div>
 
 <p>
 If <a href="SWIGPlus.html#SWIGPlus_default_args">compactdefaultargs</a> are being used, then the difference between
@@ -731,7 +776,7 @@ declarations with additional information for use by specific target language mod
 in the Python module. You might use <tt>%feature</tt> to rewrite proxy/shadow class code as follows:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %rename(bar_id) bar(int,double);
@@ -751,9 +796,11 @@ public:
     int bar(int x, double y);
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 Further details of <tt>%feature</tt> usage is described in the documentation for specific language modules.
+</p>
 
 </body>
 </html>

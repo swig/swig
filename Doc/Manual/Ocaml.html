@@ -2,12 +2,13 @@
 <html>
 <head>
   <title>SWIG and Ocaml</title>
-    
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
   <body bgcolor="#ffffff">
           <a name="n1"></a>         
 <H1><a name="Ocaml"></a>22 SWIG and Ocaml</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Ocaml_nn2">Preliminaries</a>
 <ul>
@@ -52,10 +53,12 @@
 <li><a href="#Ocaml_nn31">Exceptions</a>
 </ul>
 </ul>
+</div>
 <!-- INDEX -->
 
 
 
+<p>
                 This chapter describes SWIG's
 support of Ocaml.  Ocaml     is a relatively recent addition to the ML family,
 and is a recent   addition     to SWIG.  It's the second compiled, typed
@@ -70,6 +73,7 @@ way with Ocaml, by  providing   the necessary,   but repetetive  glue code
 which creates and uses Ocaml values  to communicate   with C and C++ code.
  In addition, SWIG also produces the needed Ocaml source   that binds
 variants, functions,  classes, etc.
+</p>
 
 <p>
 If you're not familiar with the Objective Caml language, you can visit
@@ -79,6 +83,7 @@ If you're not familiar with the Objective Caml language, you can visit
 <H2><a name="Ocaml_nn2"></a>22.1 Preliminaries</H2>
 
 
+<p>
                   SWIG 1.3 works with Ocaml 3.04 and above.  Given the choice,
    you  should  use the latest stable release.  The SWIG Ocaml module has
 been   tested  on Linux (x86,PPC,Sparc) and Cygwin on Windows.  The
@@ -92,20 +97,23 @@ usual -lxxx  against libxxx.so, as well as with Gerd Stolpmann's
 </a>.  The ocaml_dynamic and ocaml_dynamic_cpp targets in the
 file Examples/Makefile illustrate how to compile and link SWIG modules that
 will be loaded dynamically.  This has only been tested on Linux so far.
+</p>
 
 <H3><a name="Ocaml_nn3"></a>22.1.1 Running SWIG</H3>
 
 
+<p>
                   The basics of getting a SWIG Ocaml module up and running
  can   be  seen  from one of SWIG's example Makefiles, but is also described
  here.   To  build  an Ocaml module, run SWIG using the <tt>-ocaml</tt>
 option. 
+</p>
 
-<blockquote>                                    
+<div class="code">                                    
   <pre>
 %swig -ocaml example.i
   </pre>
-</blockquote>
+</div>
                          
 <p> This will produce 3 files. The file <tt>example_wrap.c</tt> contains
 all of the C code needed to build an Ocaml module.  To build the module,
@@ -130,7 +138,7 @@ the user more freedom with respect to custom typing.
  SWIG   interface   like:             
 </p>
                        
-<blockquote>                                    
+<div class="code">                                    
   <pre>
 % swig -ocaml -co swig.mli ; swig -ocaml co swig.ml
 % ocamlc -c swig.mli ; ocamlc -c swig.ml
@@ -138,17 +146,17 @@ the user more freedom with respect to custom typing.
 % ocamlc -c example.mli
 % ocamlc -c example.ml
   </pre>
-</blockquote>
+</div>
                          
 <p> <tt>ocamlc</tt> is aware of .c files and knows how to handle them. Unfortunately,
       it does not know about .cxx, .cc, or .cpp files, so when SWIG is invoked
      in C++ mode, you must: </p>
                        
-<blockquote>                                    
+<div class="code">                                    
   <pre>
 % cp example_wrap.cxx example_wrap.cxx.c<br>% ocamlc -c ... -ccopt -xc++ example_wrap.cxx.c<br>% ...<br>
   </pre>
-</blockquote>
+</div>
 
 <H3><a name="Ocaml_nn5"></a>22.1.3 The camlp4 module</H3>
 
@@ -268,7 +276,7 @@ caml_list_append function, or with functions and macros provided by
 objective caml.<br>
 </p>
                  
-<blockquote><pre>
+<div class="code"><pre>
 type c_obj =
     C_void
   | C_bool of bool
@@ -288,8 +296,11 @@ type c_obj =
   | C_obj of (string -&gt; c_obj -&gt; c_obj)
   | C_string of string
   | C_enum of c_enum_t
-</pre></blockquote>
-        A few functions exist which generate and return these:<br>
+</pre></div>
+
+<p>
+        A few functions exist which generate and return these:
+</p>
                
 <ul>
           <li>caml_ptr_val receives a c_obj and returns a void *. &nbsp;This
@@ -397,19 +408,19 @@ enum_to_int and int_to_enum functions take an enum type label as an
 argument.  Example:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module enum_test
 %{
 enum c_enum_type { a = 1, b, c = 4, d = 8 };
 %}
 enum c_enum_type { a = 1, b, c = 4, d = 8 };
-</pre></blockquote>
+</pre></div>
 
 <p>               
 The output mli contains:
 </p>          
 
-<blockquote><pre>
+<div class="code"><pre>
 type c_enum_type = [
   `unknown
 | `c_enum_type
@@ -424,9 +435,13 @@ type c_enum_tag = [
 val int_to_enum c_enum_type -&gt; int -&gt; c_obj
 val enum_to_int c_enum_type -&gt; c_obj -&gt; c_obj
 </pre>
-     </blockquote>
+     </div>
+
+<p>
    So it's possible to do this:   
-<blockquote>      
+</p>
+
+<div class="code">      
   <pre>
 bash-2.05a$ ocamlmktop -custom enum_test_wrap.o enum_test.cmo -o enum_test_top
 bash-2.05a$ ./enum_test_top 
@@ -440,11 +455,12 @@ val x : Enum_test.c_obj = C_enum `a
 # int_to_enum `c_enum_type 4 ;;
 - : Enum_test.c_obj = C_enum `c
 </pre>
-  </blockquote>
+  </div>
 
 <H4><a name="Ocaml_nn11"></a>22.2.2.1 Enum typing in Ocaml</H4>
 
 
+<p>
 The ocaml SWIG module now has support for loading and using multiple SWIG
 modules at the same time.  This enhances modularity, but presents problems
 when used with a language which assumes that each module's types are complete
@@ -452,6 +468,7 @@ at compile time.  In order to achieve total soundness enum types are now
 isolated per-module.  The type issue matters when values are shared between
 functions imported from different modules.  You must convert values to master
 values using the swig_val function before sharing them with another module.
+</p>
 
 <H3><a name="Ocaml_nn12"></a>22.2.3 Arrays</H3>
 
@@ -558,6 +575,7 @@ void printfloats( float *tab, int len );
 <H3><a name="Ocaml_nn17"></a>22.2.4 C++ Classes</H3>
 
 
+<p>
 C++ classes, along with structs and unions are represented by C_obj
 (string -&gt; c_obj -&gt; c_obj) wrapped closures. &nbsp;These objects
 contain a method list, and a type, which allow them to be used like
@@ -567,6 +585,7 @@ an object has is represented as a string in the object's method table,
 and each method table exists in memory only once.  &nbsp;In addition
 to any other operators an object might have, certain builtin ones are
 provided by SWIG:  (all of these take no arguments (C_void))
+</p>
 
 <table summary="SWIG provided operators">
 <tr><td>"~"</td><td>Delete this object</td></tr>
@@ -589,18 +608,23 @@ Called with one argument, the member variable is set to the value of the
 argument.  With zero arguments, the value is returned.
 </td></tr>
 </table>
+
+<p>
 Note that this string belongs to the wrapper object, and not
 the underlying pointer, so using create_[x]_from_ptr alters the
 returned value for the same object.
+</p>
 
 <H4><a name="Ocaml_nn18"></a>22.2.4.1 STL vector and string Example</H4>
 
 
+<p>
 Standard typemaps are now provided for STL vector and string.  More are in
 the works.  STL strings are passed just like normal strings, and returned
 as strings.  STL string references don't mutate the original string, (which
 might be surprising), because Ocaml strings are mutable but have fixed
 length.  Instead, use multiple returns, as in the argout_ref example.
+</p>
 
 <table border="1" bgcolor="#dddddd" summary="STL vector and string example">
 <tr><th><center>example.i</center></th></tr>
@@ -632,7 +656,7 @@ after making a toplevel (make toplevel).  This example uses the camlp4
 module.
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 bash-2.05a$ ./example_top 
         Objective Caml version 3.06
 
@@ -669,12 +693,14 @@ bar
 baz
 - : unit = ()
 # 
-</pre></blockquote>
+</pre></div>
 
 <H4><a name="Ocaml_nn19"></a>22.2.4.2 C++ Class Example</H4>
 
 
+<p>
 Here's a simple example using Trolltech's Qt Library:
+</p>
 
 <table border="1" bgcolor="#dddddd" summary="Qt Library example">
   <tr><th><center>qt.i</center></th></tr>
@@ -702,7 +728,7 @@ public:
 <H4><a name="Ocaml_nn20"></a>22.2.4.3 Compiling the example</H4>
 
 
-<blockquote><pre>
+<div class="code"><pre>
 bash-2.05a$ QTPATH=/your/qt/path
 bash-2.05a$ for file in swig.mli swig.ml swigp4.ml ; do swig -ocaml -co $file ; done
 bash-2.05a$ ocamlc -c swig.mli ; ocamlc -c swig.ml
@@ -715,12 +741,12 @@ bash-2.05a$ ocamlc -c qt.ml
 bash-2.05a$ ocamlmktop -custom swig.cmo -I `camlp4 -where` \
   camlp4o.cma swigp4.cmo qt_wrap.o qt.cmo -o qt_top -cclib \
   -L$QTPATH/lib -cclib -lqt
-</pre></blockquote>
+</pre></div>
 
 <H4><a name="Ocaml_nn21"></a>22.2.4.4 Sample Session</H4>
 
 
-<blockquote><pre>
+<div class="code"><pre>
 bash-2.05a$ ./qt_top 
         Objective Caml version 3.06
 
@@ -737,7 +763,7 @@ val hello : Qt.c_obj = C_obj &lt;fun&gt;
 # hello -&gt; show () ;;
 - : Qt.c_obj = C_void
 # a -&gt; exec () ;;
-</pre></blockquote>
+</pre></div>
 
 <p>
 Assuming you have a working installation of QT, you will see a window
@@ -762,7 +788,7 @@ You can turn on director classes by using an optional module argument like
 this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module(directors="1")
 
 ...
@@ -772,7 +798,7 @@ this:
 class foo {
   ...
 };
-</pre></blockquote>
+</pre></div>
 
 <H4><a name="Ocaml_nn24"></a>22.2.5.2 Overriding Methods in Ocaml</H4>
 
@@ -864,14 +890,17 @@ program in C++.
 <H4><a name="Ocaml_nn26"></a>22.2.5.4 Creating director objects</H4>
 
 
+<p>
 The definition of the actual object triangle can be described this way:
-<blockquote><pre>
+</p>
+
+<div class="code"><pre>
 let triangle =
   new_derived_object 
     new_shape
     (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.0)))
     '()
-</pre></blockquote>
+</pre></div>
 
 <p>
 The first argument to <tt>new_derived_object</tt>, new_shape is the method
@@ -952,9 +981,11 @@ values will read zero, and struct or object returns have undefined results.
 <H3><a name="Ocaml_nn31"></a>22.2.6 Exceptions</H3>
 
 
+<p>
 Catching exceptions is now supported using SWIG's %exception feature.  A simple
 but not too useful example is provided by the throw_exception testcase in
 Examples/test-suite.  You can provide your own exceptions, too.
+</p>
 
 </body>
 </html>

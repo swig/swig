@@ -2,19 +2,24 @@
 <html>
 <head>
 <title>SWIG and C#</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 <body bgcolor="#FFFFFF">
 <H1><a name="CSharp"></a>16 SWIG and C#</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
+</div>
 <!-- INDEX -->
 
 
 
+<p>
 The purpose of the C# module is to offer an automated way of accessing existing C/C++ code from .NET languages.
 The wrapper code implementation uses the Platform Invoke (PINVOKE) interface to access natively compiled C/C++ code.
 The PINVOKE interface has been chosen over Microsoft's Managed C++ interface as it is portable to both Microsoft Windows and non-Microsoft platforms.
 PINVOKE is part of the ECMA/ISO C# specification.
 Swig C# works equally well on non-Microsoft operating systems such as Linux, Solaris and Apple Mac using Mono and Portable.NET.
+</p>
 
 <p>
 The C# module is very similar to the Java module, so until some documentation has been written,
@@ -75,9 +80,9 @@ Likewise there is no need for an equivalent to <tt>%javaexception</tt>.
 </li>
 
 <li>
-Typemap equivalent names:
+<p>Typemap equivalent names:</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 jni                         -&gt; ctype
 jtype                       -&gt; imtype
 jstype                      -&gt; cstype
@@ -92,48 +97,48 @@ javabody                    -&gt; csbody
 javafinalize                -&gt; csfinalize
 javadestruct                -&gt; csdestruct
 javadestruct_derived        -&gt; csdestruct_derived
-</pre></blockquote>
+</pre></div>
 
 </li>
 
 <li>
-Additional typemaps:
+<p>Additional typemaps:</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 csvarin                     C# code property set typemap
 csvarout                    C# code property get typemap
-</pre></blockquote>
+</pre></div>
 
 </li>
 
 <li>
-Feature equivalent names:
-<blockquote><pre>
+<p>Feature equivalent names:</p>
+<div class="code"><pre>
 %javaconst                  -&gt; %csconst
 %javaconstvalue             -&gt; %csconstvalue
 %javamethodmodifiers        -&gt; %csmethodmodifiers
-</pre></blockquote>
+</pre></div>
 </li>
 
 <li>
-Pragma equivalent names:
-<blockquote><pre>
+<p>Pragma equivalent names:</p>
+<div class="code"><pre>
 %pragma(java)               -&gt; %pragma(csharp)
 jniclassbase                -&gt; imclassbase
 jniclassclassmodifiers      -&gt; imclassclassmodifiers
 jniclasscode                -&gt; imclasscode
 jniclassimports             -&gt; imclassimports
 jniclassinterfaces          -&gt; imclassinterfaces
-</pre></blockquote>
+</pre></div>
 </li>
 
 <li>
-Special variable equivalent names:
-<blockquote><pre>
+<p>Special variable equivalent names:</p>
+<div class="code"><pre>
 $javaclassname              -&gt; $csclassname
 $javainput                  -&gt; $csinput
 $jnicall                    -&gt; $imcall
-</pre></blockquote>
+</pre></div>
 </li>
 
 </ul>
@@ -145,7 +150,9 @@ The special variable will get translated into the value specified by the <tt>-dl
 if specified, otherwise it is equivalent to the <b>$module</b> special variable.
 </p>
 
+<p>
 The intermediary classname has <tt>PINVOKE</tt> appended after the module name instead of <tt>JNI</tt>, for example <tt>modulenamePINVOKE</tt>.
+</p>
 
 <p>
 The directory <tt>Examples/csharp</tt> has a number of simple examples. 

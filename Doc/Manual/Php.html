@@ -3,11 +3,13 @@
 <html>
 <head>
 <title>SWIG and PHP4</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Php"></a>24 SWIG and PHP4</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Php_nn2">Preliminaries</a>
 <li><a href="#Php_nn3">Building PHP4 Extensions</a>
@@ -27,6 +29,7 @@
 <li><a href="#Php_nn16">To be furthered...</a>
 </ul>
 </ul>
+</div>
 <!-- INDEX -->
 
 
@@ -52,12 +55,14 @@ of in the generated .php file in php.
 <H2><a name="Php_nn2"></a>24.1 Preliminaries</H2>
 
 
+<p>
 In order to use this module, you will need to have a copy of the PHP 4.0 (or
 above) include files to compile the SWIG generated files. You can find these
 files by running <tt>'php-config --includes'</tt>. To test the modules you will
 need either the php binary or the Apache php module. If you want to build your
 extension into php directly (without having the overhead of loading it into
 each script), you will need the complete PHP source tree available.
+</p>
 
 <H2><a name="Php_nn3"></a>24.2 Building PHP4 Extensions</H2>
 
@@ -66,9 +71,9 @@ each script), you will need the complete PHP source tree available.
 To build a PHP4 extension, run swig using the <tt>-php4</tt> option as follows :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 swig -php4 example.i
-</pre></blockquote>
+</pre></div>
 
 <p>
 This will produce 3 files by default. The first file, <tt>example_wrap.c</tt>
@@ -112,10 +117,10 @@ To build a dynamic module for PHP, you have two options.  You can use the
 To build manually, use a compile string similar to this (different for each
 OS):
 </p>
-<blockquote><pre>
+<div class="code"><pre>
 	cc -I.. $(PHPINC) -fpic -c example_wrap.c
 	cc -shared example_wrap.o -o libexample.so
-</pre></blockquote>
+</pre></div>
 
 <p>
 To build with phpize, after you have run swig you will need
@@ -132,9 +137,9 @@ If you like SWIG can generate simple extra tests for libraries and header
 files for you.
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 	swig -php4 -phpfull -withlibs "xapian omquery" --withincs "om.h"
-</pre></blockquote>
+</pre></div>
 
 <p>
 Will include in the config.m4 search for libxapian.a or libxapian.so and
@@ -164,17 +169,23 @@ To test the extension from a PHP script, you need to load it first. You do
 this by putting the line,
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 	dl("/path/to/modulename.so");	// Load the module
-</pre></blockquote>
+</pre></div>
+
+<p>
 at the start of each PHP file.  SWIG also generates a php module, which
 attempts to do the <tt>dl()</tt> call for you:
-<blockquote><pre>
-	include("example.php");
-</pre></blockquote>
+</p>
 
+<div class="code"><pre>
+	include("example.php");
+</pre></div>
+
+<p>
 A more complicated method which builds the module directly into the <tt>php</tt>
 executable is described <a href="n12">below</a>.
+</p>
 
 <H3><a name="Php_nn5"></a>24.2.2 Basic PHP4 interface</H3>
 
@@ -187,23 +198,23 @@ C functions are converted into PHP functions. Default/optional arguments are
 also allowed. An interface file like this :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module default
 int foo(int a);
 double bar(double, double b = 3.0);
 ...
-</pre></blockquote>
+</pre></div>
 
 <p>
 Will be accessed in PHP like this :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 dl("default.so"); $a = foo(2);
 $b = bar(3.5, -1.5);
 $c = bar(3.5);		# Use default argument for 2nd parameter
 
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Php_nn7"></a>24.2.4 Global Variables</H3>
 
@@ -217,24 +228,24 @@ ensuring changes made in PHP are updated in C ( and vice versa. ) Because this
 is handled for you, you can modify the variables in PHP as normal, e.g.
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example;
 ...
 double seki = 2;
 ...
 int example_func(void);
-</pre></blockquote>
+</pre></div>
 
 <p>
 is accessed as follow :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 dl("example.so");
 print $seki;
 $seki = $seki * 2;	# Does not affect C variable, still equal to 2
 example_func();		# Syncs C variable to PHP Variable, now both 4
-</pre></blockquote>
+</pre></div>
 
 <p>
 SWIG supports global variables of all C datatypes including pointers and complex
@@ -262,7 +273,7 @@ or by passing a null or empty value.
 For structures and classes, SWIG produces accessor fuction for each member function and data. For example :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module vector
 
 class Vector {
@@ -273,13 +284,13 @@ public:
 	double magnitude();
 };
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 This gets turned into the following collection of PHP functions :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 Vector_x_set($obj);
 Vector_x_get($obj);
 Vector_y_set($obj);
@@ -290,10 +301,13 @@ new_Vector();
 delete_Vector($obj);
 Vector_magnitude($obj);
 
-</pre></blockquote>
+</pre></div>
+
+<p>
 To use the class, simply use these functions. However, SWIG also has a mechanism
 for creating proxy classes that hides these functions and uses an object 
 oriented interface instead - see <a href="n7">below</a>
+</p>
 
 <H3><a name="Php_nn10"></a>24.2.7 Constants</H3>
 
@@ -305,20 +319,20 @@ directive.  These will then be available from your PHP script as a PHP constant,
 (e.g. no dollar sign is needed to access them. ) For example, with a swig file like this,
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 
 #define PI 3.14159
 
 %constant int E  = 2.71828
 </pre>
-</blockquote>
+</div>
 
 <p>
 you can access from in your php script like this,
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 dl("libexample.so");
 
 echo "PI = " . PI . "\n";
@@ -326,7 +340,7 @@ echo "PI = " . PI . "\n";
 echo "E = " . E . "\n";
 
 </pre>
-</blockquote>
+</div>
 
 <p>
 There are two peculiarities with using constants in PHP4. The first is that
@@ -334,18 +348,18 @@ if you try to use an undeclared constant, it will evaulate to a string
 set to the constants name. For example,
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 
 #define EASY_TO_MISPELL	0
 </pre>
-</blockquote>
+</div>
 
 <p>
 accessed incorrectly in PHP,
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 dl("libexample.so");
 
@@ -356,7 +370,7 @@ if(EASY_TO_MISPEL) {
 }
 
 </pre>
-</blockquote>
+</div>
 
 <p>
 will issue a warning about the undeclared constant, but will then evalute
@@ -369,26 +383,26 @@ The second 'feature' is that although constants are case sensitive (by default),
 you cannot declare a constant twice with alternative cases. E.g.,
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 
 #define TEST	Hello
 #define Test	World
 </pre>
-</blockquote>
+</div>
 
 <p>
 accessed from PHP,
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 dl("libexample.so");
 
 echo TEST, Test;
 </pre>
-</blockquote>
+</div>
 
 <p>
 will output "Hello Test" rather than "Hello World". This is because internally,
@@ -417,9 +431,9 @@ can be be used directly in PHP scripts as objects and object methods. This is do
 To have SWIG create proxy classes, use the <tt>-proxy</tt> option :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % swig -php4 -proxy tbc.i
-</pre></blockquote>
+</pre></div>
 
 <p>
 This will produce the same files as before except that the final module 
@@ -473,11 +487,13 @@ when they each go out of scope.
 <H3><a name="Php_nn13"></a>24.2.10 Static Member Variables</H3>
 
 
+<p>
 Class variables are not supported in PHP, however class functions are, using
 '::' syntax. Static member variables are therefore accessed using a class 
 function with the same name, which returns the current value of the class variable. For example
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 
 class Ko {
@@ -485,38 +501,43 @@ class Ko {
 	...
 };
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 would be accessed in PHP as,
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 dl("libexample.so");
 
 echo "There has now been " . Ko::threats() . " threats\n";
 
-</pre></blockquote>
+</pre></div>
 
+<p>
 To set the static member variable, pass the value as the argument to the class function, e.g.
-<blockquote><pre>
+</p>
+
+<div class="code"><pre>
 
 Ko::threats(10);
 
 echo "There has now been " . Ko::threats() . " threats\n";
 
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Php_nn14"></a>24.2.11 PHP4 Pragmas</H3>
 
 
+<p>
 There are a few pragmas understood by the PHP4 module.  The first, 
 <b>include</b> adds a file to be included by the generated PHP module.  The
 second, <b>code</b> adds literal code to the generated PHP module.  The third,
 <b>phpinfo</b> inserts code to the function called when PHP's phpinfo()
 function is called.
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 	/* example.i */
 
 	%pragma(php4) include="foo.php"
@@ -534,7 +555,7 @@ function is called.
 	"
 
 	%include "example.h"
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Php_nn15"></a>24.2.12 Building extensions into php</H3>
 
@@ -568,9 +589,9 @@ In most cases <tt>Makefile.in</tt> will be complete, especially if you
 make use of <tt>-withlibs</tt> and <tt>-withincs</tt>
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 	swig -php4 -phpfull -withlibs "xapian omquery" --withincs "om.h"
-</pre></blockquote>
+</pre></div>
 
 <p>
 Will include in the config.m4 and Makefile.in search for libxapian.a or 

@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>Scripting Languages</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Scripting"></a>4 Scripting Languages</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Scripting_nn2">The two language view of the world</a>
 <li><a href="#Scripting_nn3">How does a scripting language talk to C?</a>
@@ -24,13 +26,16 @@
 <li><a href="#Scripting_nn12">Static linking</a>
 </ul>
 </ul>
+</div>
 <!-- INDEX -->
 
 
 
+<p>
 This chapter provides a brief overview of scripting language extension
 programming and the mechanisms by which scripting language interpreters
 access C and C++ code.
+</p>
 
 <H2><a name="Scripting_nn2"></a>4.1 The two language view of the world</H2>
 
@@ -66,6 +71,7 @@ arrays. </p>
 <H2><a name="Scripting_nn3"></a>4.2 How does a scripting language talk to C?</H2>
 
 
+<p>
 Scripting languages are built around a parser that knows how
 to execute commands and scripts.  Within this parser, there is a
 mechanism for executing commands and accessing variables.
@@ -75,6 +81,7 @@ possible to add new commands and variables.   To do this,
 most languages define a special API for adding new commands.
 Furthermore, a special foreign function interface defines how these
 new commands are supposed to hook into the interpreter.
+</p>
 
 <p>
 Typically, when you add a new command to a scripting interpreter
@@ -92,12 +99,12 @@ the process.
 <p>
 Suppose you have an ordinary C function like this :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 int fact(int n) {
 	if (n &lt;= 1) return 1;
 	else return n*fact(n-1);
 }
-</pre></blockquote>
+</pre></div>
 
 <p>
 In order to access this function from a scripting language, it is
@@ -115,7 +122,7 @@ wrapper function must do three things :</p>
 As an example, the Tcl wrapper function for the <tt>fact()</tt>
 function above example might look like the following : </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 int wrap_fact(ClientData clientData, Tcl_Interp *interp,
 		int argc, char *argv[]) {
 	int result;
@@ -130,7 +137,7 @@ int wrap_fact(ClientData clientData, Tcl_Interp *interp,
 	return TCL_OK;
 }
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 Once you have created a wrapper function, the final step is to tell the
@@ -139,13 +146,13 @@ initialization function called by the language when the module is
 loaded. For example, adding the above function to the Tcl interpreter
 requires code like the following :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 int Wrap_Init(Tcl_Interp *interp) {
 	Tcl_CreateCommand(interp, "fact", wrap_fact, (ClientData) NULL,
 				(Tcl_CmdDeleteProc *) NULL);
 	return TCL_OK;
 }
-</pre></blockquote>
+</pre></div>
 
 <p>
 When executed, Tcl will now have a new command called "<tt>fact</tt>"
@@ -167,17 +174,17 @@ C/C++ global variable to a variable in the scripting
 language interpeter. For example, suppose you had the following
 variable:</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 double Foo = 3.5;
-</pre></blockquote>
+</pre></div>
 
 <p>
 It might be nice to access it from a script as follows (shown for Perl):</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 $a = $Foo * 2.3;   # Evaluation
 $Foo = $a + 2.0;   # Assignment
-</pre></blockquote>
+</pre></div>
 
 <p>
 To provide such access, variables are commonly manipulated using a
@@ -197,24 +204,28 @@ the value.
 <H3><a name="Scripting_nn6"></a>4.2.3 Constants</H3>
 
 
+<p>
 In many cases, a C program or library may define a large collection of
 constants.  For example:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 #define RED   0xff0000
 #define BLUE  0x0000ff
 #define GREEN 0x00ff00
-</pre></blockquote>
-
+</pre></div>
+<p>
 To make constants available, their values can be stored in scripting
 language variables such as <tt>$RED</tt>, <tt>$BLUE</tt>, and
 <tt>$GREEN</tt>.  Virtually all scripting languages provide C
 functions for creating variables so installing constants is usually
 a trivial exercise.
+</p>
 
 <H3><a name="Scripting_nn7"></a>4.2.4 Structures and classes</H3>
 
 
+<p>
 Although scripting languages have no trouble accessing simple
 functions and variables, accessing C/C++ structures and classes
 present a different problem.  This is because the implementation
@@ -222,6 +233,7 @@ of structures is largely related to the problem of
 data representation and layout.  Furthermore, certain language features
 are difficult to map to an interpreter.  For instance, what
 does C++ inheritance mean in a Perl interface?
+</p>
 
 <p>
 The most straightforward technique for handling structures is to
@@ -229,17 +241,20 @@ implement a collection of accessor functions that hide the underlying
 representation of a structure.  For example, 
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 struct Vector {
 	Vector();
 	~Vector();
 	double x,y,z;
 };
 
-</pre></blockquote>
-can be transformed into the following set of functions :
+</pre></div>
 
-<blockquote><pre>
+<p>
+can be transformed into the following set of functions :
+</p>
+
+<div class="code"><pre>
 Vector *new_Vector();
 void delete_Vector(Vector *v);
 double Vector_x_get(Vector *v);
@@ -249,17 +264,18 @@ void Vector_x_set(Vector *v, double x);
 void Vector_y_set(Vector *v, double y);
 void Vector_z_set(Vector *v, double z);
 
-</pre></blockquote>
-
+</pre></div>
+<p>
 Now, from an interpreter these function might be used as follows:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % set v [new_Vector]
 % Vector_x_set $v 3.5
 % Vector_y_get $v
 % delete_Vector $v
 % ...
-</pre></blockquote>
+</pre></div>
 
 <p>
 Since accessor functions provide a mechanism for accessing the
@@ -279,47 +295,48 @@ that looks like the original structure (that is, it proxies the real
 C++ class). For example, if you
 have the following C definition :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 class Vector {
 public:
 	Vector();
 	~Vector();
 	double x,y,z;
 };
-</pre></blockquote>
+</pre></div>
 
 <p>
 A proxy classing mechanism would allow you to access the structure in
 a more natural manner from the interpreter. For example, in Python, you might want to do this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 &gt;&gt;&gt; v = Vector()
 &gt;&gt;&gt; v.x = 3
 &gt;&gt;&gt; v.y = 4
 &gt;&gt;&gt; v.z = -13
 &gt;&gt;&gt; ...
 &gt;&gt;&gt; del v
-</pre></blockquote>
+</pre></div>
 
 <p>
 Similarly, in Perl5 you may want the interface to work like this:</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 $v = new Vector;
 $v-&gt;{x} = 3;
 $v-&gt;{y} = 4;
 $v-&gt;{z} = -13;
 
-</pre></blockquote>
-
+</pre></div>
+<p>
 Finally, in Tcl :
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 Vector v
 v configure -x 3 -y 4 -z 13
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 When proxy classes are used, two objects are at really work--one in
@@ -349,7 +366,7 @@ To create a shared library or DLL, you often need to look at the
 manual pages for your compiler and linker.  However, the procedure
 for a few common machines is shown below:</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 # Build a shared library for Solaris
 gcc -c example.c example_wrap.c -I/usr/local/include
 ld -G example.o example_wrap.o -o example.so
@@ -362,7 +379,7 @@ gcc -shared example.o example_wrap.o -o example.so
 gcc -c example.c example_wrap.c -I/usr/local/include
 ld -shared example.o example_wrap.o -o example.so
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 To use your shared library, you simply use the corresponding command
@@ -370,12 +387,12 @@ in the scripting language (load, import, use, etc...). This will
 import your module and allow you to start using it. For example:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % load ./example.so
 % fact 4
 24
 %
-</pre></blockquote>
+</pre></div>
 
 <p>
 When working with C++ codes, the process of building shared libraries
@@ -384,9 +401,9 @@ additional code in order to operate correctly. On many machines, you
 can build a shared C++ module by following the above procedures, but
 changing the link line to the following :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 c++ -shared example.o example_wrap.o -o example.so
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Scripting_nn11"></a>4.3.2 Linking with shared libraries</H3>
 
@@ -398,7 +415,7 @@ order for the extension to work, it needs to be able to find all of
 these libraries at run-time. Otherwise, you may get an error such as
 the following :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 &gt;&gt;&gt; import graph
 Traceback (innermost last):
   File "&lt;stdin&gt;", line 1, in ?
@@ -408,7 +425,7 @@ ImportError:  1101:/home/sci/data1/beazley/bin/python: rld: Fatal Error: cannot
 successfully map soname 'libgraph.so' under any of the filenames /usr/lib/libgraph.so:/
 lib/libgraph.so:/lib/cmplrs/cc/libgraph.so:/usr/lib/cmplrs/cc/libgraph.so:
 &gt;&gt;&gt;
-</pre></blockquote>
+</pre></div>
 <p>
 
 What this error means is that the extension module created by SWIG

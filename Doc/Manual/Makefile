@@ -26,8 +26,9 @@ check:
 	  all=`sed '/^#/d' chapters`; for a in $$all; do tidy -errors --gnu-emacs yes -quiet $$a; done;
 
 generate: swightml.book swigpdf.book
-	htmldoc --batch swightml.book
+	htmldoc --batch swightml.book || true
 	htmldoc --batch swigpdf.book
+	python fixstyle.py SWIGDocumentation.html
 
 swightml.book:
 	echo "#HTMLDOC 1.8.23" > swightml.book

@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>SWIG and Tcl</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Tcl"></a>28 SWIG and Tcl</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Tcl_nn2">Preliminaries</a>
 <ul>
@@ -65,11 +67,14 @@
 <li><a href="#Tcl_nn45">Proxy classes</a>
 </ul>
 </ul>
+</div>
 <!-- INDEX -->
 
 
 
+<p>
 <b>Caution: This chapter is under repair!</b>
+</p>
 
 <p>
 This chapter discusses SWIG's support of Tcl. SWIG currently requires
@@ -84,17 +89,17 @@ this is no longer supported.
 To build a Tcl module, run SWIG using the <tt>-tcl</tt> option :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 $ swig -tcl example.i
-</pre></blockquote>
+</pre></div>
 
 <p>
 If building a C++ extension, add the <tt>-c++</tt> option:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 $ swig -c++ -tcl example.i
-</pre></blockquote>
+</pre></div>
 
 <p>
 This creates a file <tt>example_wrap.c</tt> or
@@ -111,13 +116,15 @@ In order to compile the wrapper code, the compiler needs the <tt>tcl.h</tt> head
 This file is usually contained in the directory
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 /usr/local/include
-</pre></blockquote>
+</pre></div>
 
+<p>
 Be aware that some Tcl versions install this header file with a version number attached to it.  If
 this is the case, you should probably make a symbolic link so that <tt>tcl.h</tt> points to the correct
 header file.
+</p>
 
 <H3><a name="Tcl_nn4"></a>28.1.2 Compiling a dynamic module</H3>
 
@@ -128,12 +135,12 @@ a shared object file or DLL.   To do this, you will need to compile your program
 using comands like this (shown for Linux):
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 $ swig -tcl example.i
 $ gcc -c example.c
 $ gcc -c example_wrap.c -I/usr/local/include
 $ gcc -shared example.o example_wrap.o -o example.so
-</pre></blockquote>
+</pre></div>
 
 <p>
 The exact commands for doing this vary from platform to platform. 
@@ -174,7 +181,7 @@ can be used to rebuild the <tt>tclsh</tt> and <tt>wish</tt> interpreters respect
 For example:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 
 extern int fact(int);
@@ -183,7 +190,7 @@ extern double My_variable;
 
 %include tclsh.i       // Include code for rebuilding tclsh
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 The <tt>tclsh.i</tt> library file includes supporting code that
@@ -191,7 +198,7 @@ contains everything needed to rebuild tclsh. To rebuild the interpreter,
 you simply do something like this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 $ swig -tcl example.i
 $ gcc example.c example_wrap.c \
         -Xlinker -export-dynamic \
@@ -199,7 +206,7 @@ $ gcc example.c example_wrap.c \
 	-L/usr/local/lib -ltcl -lm -ldl \
 	-o mytclsh
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 You will need to supply the same libraries that were used to build Tcl the first
@@ -226,23 +233,25 @@ To use your module, simply use the Tcl <tt>load</tt> command.  If
 all goes well, you will be able to this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 $ tclsh
 % load ./example.so
 % fact 4
 24
 %
-</pre></blockquote>
+</pre></div>
 
+<p>
 A common error received by first-time users is the following:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % load ./example.so
 couldn't find procedure Example_Init
 % 
 </pre>
-</blockquote>
+</div>
 
 <p>
 This error is almost always caused when the name of the shared object file doesn't
@@ -256,13 +265,13 @@ wrapper code with the rest of your application when creating the extension modul
 Another common error is something similar to the following:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 % load ./example.so
 couldn't load file "./example.so": ./example.so: undefined symbol: fact
 % 
 </pre>
-</blockquote>
+</div>
 
 <p>
 This error usually indicates that you forgot to include some object
@@ -286,55 +295,63 @@ the <tt>%ignore</tt> directive to ignore the declaration.
 Finally, suppose that your extension module is linked with another library like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 $ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib -lfoo \
       -o example.so
 </pre>
-</blockquote>
+</div>
 
+<p>
 If the <tt>foo</tt> library is compiled as a shared library, you might get the following
 problem when you try to use your module:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % load ./example.so
 couldn't load file "./example.so": libfoo.so: cannot open shared object file:
 No such file or directory
 %        
 </pre>
-</blockquote>
+</div>
 
+<p>
 This error is generated because the dynamic linker can't locate the
 <tt>libfoo.so</tt> library.  When shared libraries are loaded, the
 system normally only checks a few standard locations such as
 <tt>/usr/lib</tt> and <tt>/usr/local/lib</tt>.   To fix this problem,
 there are several things you can do.  First, you can recompile your extension
 module with extra path information. For example, on Linux you can do this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 $ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib -lfoo \
       -Xlinker -rpath /home/beazley/projects/lib \
       -o example.so
 </pre>
-</blockquote>
+</div>
 
+<p>
 Alternatively, you can set the <tt>LD_LIBRARY_PATH</tt> environment variable to
 include the directory with your shared libraries. 
 If setting <tt>LD_LIBRARY_PATH</tt>, be aware that setting this variable can introduce
 a noticeable performance impact on all other applications that you run.
 To set it only for Tcl, you might want to do this instead:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 $ env LD_LIBRARY_PATH=/home/beazley/projects/lib tclsh
 </pre>
-</blockquote>
+</div>
 
+<p>
 Finally, you can use a command such as <tt>ldconfig</tt> to add additional search paths
 to the default system configuration (this requires root access and you will need to read
 the man pages). 
+</p>
 
 <H3><a name="Tcl_nn7"></a>28.1.5 Compilation of C++ extensions</H3>
 
@@ -351,12 +368,12 @@ On most machines, C++ extension modules should be linked using the C++
 compiler.  For example:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % swig -c++ -tcl example.i
 % g++ -c example.cxx
 % g++ -c example_wrap.cxx -I/usr/local/include
 % g++ -shared example.o example_wrap.o -o example.so
-</pre></blockquote>
+</pre></div>
 
 <p>
 In addition to this, you may need to include additional library
@@ -364,12 +381,12 @@ files to make it work.  For example, if you are using the Sun C++ compiler on
 Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % swig -c++ -tcl example.i
 % CC -c example.cxx
 % CC -c example_wrap.cxx -I/usr/local/include
 % CC -G example.o example_wrap.o -L/opt/SUNWspro/lib -o example.so -lCrun
-</pre></blockquote>
+</pre></div>
 
 <p>
 Of course, the extra libraries to use are completely non-portable---you will 
@@ -393,7 +410,7 @@ you some clues about what you might have to include when you link your
 extension module. For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 $ ldd swig
         libstdc++-libc6.1-1.so.2 =&gt; /usr/lib/libstdc++-libc6.1-1.so.2 (0x40019000)
@@ -402,7 +419,7 @@ $ ldd swig
         /lib/ld-linux.so.2 =&gt; /lib/ld-linux.so.2 (0x40000000)
 $
 </pre>
-</blockquote>
+</div>
 
 <p>
 As a final complication, a major weakness of C++ is that it does not
@@ -455,9 +472,9 @@ prefix to all of your functions and variables. This is done using the
 -prefix option as follows :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 swig -tcl -prefix Foo example.i
-</pre></blockquote>
+</pre></div>
 
 <p>
 If you have a function "<tt>bar</tt>" in the SWIG file, the prefix
@@ -473,9 +490,9 @@ Alternatively, you can have SWIG install your module into a Tcl
 namespace by specifying the <tt>-namespace</tt> option :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 swig -tcl -namespace example.i
-</pre></blockquote>
+</pre></div>
 
 <p>
 By default, the name of the namespace will be the same as the module
@@ -548,13 +565,13 @@ the wrapper file.  To run your new Tcl extension, simply run
 For example :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 MSDOS &gt; tclsh80
 % load example.dll
 % fact 4
 24
 %
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Tcl_nn13"></a>28.2.2 Using NMAKE</H3>
 
@@ -566,7 +583,7 @@ available and the MSVC++ tools are in your path.  Now, just write a
 short Makefile like this :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 # Makefile for building various SWIG generated extensions
 
 SRCS          = example.c
@@ -610,7 +627,7 @@ tcl::
 	set LIB=$(TOOLS)\lib
 	$(LINK) $(LOPT) -out:example.dll $(LIBS) $(TCLLIB) example.obj example_wrap.obj
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 To build the extension, run NMAKE (you may need to run vcvars32
@@ -647,20 +664,22 @@ you specify a module name like <tt>%module md5</tt>, you'll find that the
 load command no longer seems to work:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 % load ./md5.so
 couldn't find procedure Md_Init
 </pre>
-</blockquote>
+</div>
 
+<p>
 To fix this, supply an extra argument to <tt>load</tt> like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % load ./md5.so md5
 </pre>
-</blockquote>
+</div>
 
 <H3><a name="Tcl_nn16"></a>28.3.2 Functions</H3>
 
@@ -669,57 +688,59 @@ To fix this, supply an extra argument to <tt>load</tt> like this:
 Global functions are wrapped as new Tcl built-in commands.  For example,
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 int fact(int n);
-</pre></blockquote>
+</pre></div>
 
 <p>
 creates a built-in function <tt>fact</tt> that works exactly
 like you think it does:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % load ./example.so
 % fact 4
 24
 % set x [fact 6]
 %
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Tcl_nn17"></a>28.3.3 Global variables</H3>
 
 
+<p>
 C/C++ global variables are wrapped by Tcl global variables.  For example:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 // SWIG interface file with global variables
 %module example
 ...
 extern double density;
 ...
-</pre></blockquote>
+</pre></div>
 
 <p>
 Now look at the Tcl interface:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % puts $density          # Output value of C global variable
 1.0
 % set density 0.95       # Change value
-</pre></blockquote>
+</pre></div>
 
 <p>
 If you make an error in variable assignment, you will get an
 error message.  For example:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % set density "hello"
 can't set "density": Type error. expected a double.
 %
-</pre></blockquote>
+</pre></div>
 
 <p>
 If a variable is declared as <tt>const</tt>, it is wrapped as a
@@ -731,37 +752,41 @@ error.
 To make ordinary variables read-only, you can use the <tt>%immutable</tt> directive. For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %immutable;
 extern char *path;
 %mutable;
 </pre>
-</blockquote>
+</div>
 
+<p>
 The <tt>%immutable</tt> directive stays in effect until it is explicitly disabled using
 <tt>%mutable</tt>.
+</p>
 
 <p>
 If you just want to make a specific variable immutable, supply a declaration name.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %immutable path;
 ...
 extern char *path;      // Read-only (due to %immutable)
 </pre>
-</blockquote>
+</div>
 
 <H3><a name="Tcl_nn18"></a>28.3.4 Constants and enums</H3>
 
 
+<p>
 C/C++ constants are installed as global Tcl variables containing the
 appropriate value.  To create a constant, use <tt>#define</tt>, <tt>enum</tt>, or the
 <tt>%constant</tt> directive.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 #define PI 3.14159
 #define VERSION "1.0"
@@ -771,7 +796,7 @@ enum Beverage { ALE, LAGER, STOUT, PILSNER };
 %constant int FOO = 42;
 %constant const char *path = "/usr/local";
 </pre>
-</blockquote>
+</div>
 
 <p>
 For enums, make sure that the definition of the enumeration actually appears in a header
@@ -795,48 +820,56 @@ A peculiarity of installing constants as variables is that it is necessary to us
 access constants in procedure bodies.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 proc blah {} {
    global FOO
    bar $FOO
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 If a program relies on a lot of constants, this can be extremely annoying.  To fix the problem, consider using the
 following typemap rule:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %apply int CONSTANT { int x };
 #define FOO 42
 ...
 void bar(int x);
 </pre>
-</blockquote>
+</div>
 
+<p>
 When applied to an input argument, the <tt>CONSTANT</tt> rule allows a constant to be passed to a function using
 its actual value or a symbolic identifier name.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 proc blah {} {
    bar FOO
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 When an identifier name is given, it is used to perform an implicit hash-table lookup of the value during argument 
 conversion.  This allows the <tt>global</tt> statement to be ommitted.
+</p>
 
 <H3><a name="Tcl_nn19"></a>28.3.5 Pointers</H3>
 
 
+<p>
 C/C++ pointers are fully supported by SWIG.  Furthermore, SWIG has no problem working with
 incomplete type information.  Here is a rather simple interface:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 
@@ -844,19 +877,21 @@ FILE *fopen(const char *filename, const char *mode);
 int fputs(const char *, FILE *);
 int fclose(FILE *);
 </pre>
-</blockquote>
+</div>
 
+<p>
 When wrapped, you will be able to use the functions in a natural way from Tcl. 
 For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % load ./example.so
 % set f [fopen junk w]
 % fputs "Hello World\n" $f
 % fclose $f
 </pre>
-</blockquote>
+</div>
 
 <p>
 If this makes you uneasy, rest assured that there is no
@@ -865,11 +900,11 @@ simply represented as opaque values--normally an encoded character
 string like this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % puts $f
 _c0671108_p_FILE
 % 
-</pre></blockquote>
+</pre></div>
 
 <p>
 This pointer value can be freely passed around to different C functions that
@@ -895,7 +930,7 @@ change its value, consider writing some helper functions instead.  For
 example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %inline %{
 /* C-style cast */
@@ -913,7 +948,7 @@ Foo *IncrFoo(Foo *f, int i) {
 }
 %}
 </pre>
-</blockquote>
+</div>
 
 <p>
 Also, if working with C++, you should always try
@@ -930,24 +965,24 @@ If you wrap a C structure, it is wrapped by a Tcl interface that somewhat resemb
 This provides a very natural interface.  For example,
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 struct Vector {
 	double x,y,z;
 };
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 is used as follows:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % Vector v
 % v configure -x 3.5 -y 7.2
 % puts "[v cget -x] [v cget -y] [v cget -z]"
 3.5 7.2 0.0
 % 
-</pre></blockquote>
+</pre></div>
 
 <p>
 Similar access is provided for unions and the data members of C++ classes.
@@ -959,12 +994,12 @@ underneath the covers, there's a pointer to a raw C structure.  This can be obta
 by looking at the <tt>-this</tt> attribute.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 % puts [v cget -this]
 _88e31408_p_Vector
 </pre>
-</blockquote>
+</div>
 
 <p>
 Further details about the relationship between the Tcl and the underlying C structure
@@ -976,7 +1011,7 @@ are covered a little later.
 can also be forced to be read-only using the <tt>%immutable</tt> directive. For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 struct Foo {
    ...
@@ -987,7 +1022,7 @@ struct Foo {
    ...
 };
 </pre>
-</blockquote>
+</div>
 
 <p>
 When <tt>char *</tt> members of a structure are wrapped, the contents are assumed to be
@@ -1002,35 +1037,39 @@ If a structure contains arrays, access to those arrays is managed through pointe
 example, consider this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 struct Bar {
     int  x[16];
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 If accessed in Tcl, you will see behavior like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Bar b
 % puts [b cget -x]
 _801861a4_p_int
 % 
 </pre>
-</blockquote>
+</div>
 
+<p>
 This pointer can be passed around to functions that expect to receive
 an <tt>int *</tt> (just like C).   You can also set the value of an array member using
 another pointer.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Bar c
 % c configure -x [b cget -x]   # Copy contents of b.x to c.x
 </pre>
-</blockquote>
+</div>
 
 <p>
 For array assignment, SWIG copies the entire contents of the array starting with the data pointed
@@ -1044,7 +1083,7 @@ When a member of a structure is itself a structure, it is handled as a
 pointer.  For example, suppose you have two structures like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 struct Foo {
    int a;
@@ -1054,44 +1093,52 @@ struct Bar {
    Foo f;
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 Now, suppose that you access the <tt>f</tt> attribute of <tt>Bar</tt> like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Bar b
 % set x [b cget -f]
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this case, <tt>x</tt> is a pointer that points to the <tt>Foo</tt> that is inside <tt>b</tt>.
 This is the same value as generated by this C code:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 Bar b;
 Foo *x = &amp;b-&gt;f;       /* Points inside b */
 </pre>
-</blockquote>
+</div>
 
+<p>
 However, one peculiarity of accessing a substructure like this is that the returned
 value does work quite like you might expect.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Bar b
 % set x [b cget -f]
 % x cget -a
 invalid command name "x"
 </pre>
-</blockquote>
+</div>
 
+<p>
 This is because the returned value was not created in a normal way from the interpreter (x is 
 not a command object). To make it function normally, just
 evaluate the variable like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Bar b
 % set x [b cget -f]
@@ -1099,12 +1146,14 @@ evaluate the variable like this:
 0
 %
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this example, <tt>x</tt> points inside the original structure.  This means that modifications
 work just like you would expect.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 
 % Bar b
@@ -1112,39 +1161,47 @@ work just like you would expect.  For example:
 % $x configure -a 3            # Modifies contents of f (inside b)
 % [b cget -f] -configure -a 3  # Same thing
 </pre>
-</blockquote>
+</div>
 
+<p>
 In many of these structure examples, a simple name like "v" or "b" has been given
 to wrapped structures.  If necessary, this name can be passed to functions
 that expect to receive an object.  For example, if you have a function like this,
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void blah(Foo *f);
 </pre>
-</blockquote>
+</div>
 
+<p>
 you can call the function in Tcl as follows:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Foo x            # Create a Foo object 
 % blah x           # Pass the object to a function
 </pre>
-</blockquote>
+</div>
 
+<p>
 It is also possible to call the function using the raw pointer value. For
 instance:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % blah [x cget -this]   # Pass object to a function
 </pre>
-</blockquote>
+</div>
 
+<p>
 It is also possible to create and use objects using variables.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % set b [Bar]            # Create a Bar
 % $b cget -f             # Member access
@@ -1152,29 +1209,35 @@ It is also possible to create and use objects using variables.  For example:
 _108fea88_p_Bar
 %
 </pre>
-</blockquote>
+</div>
 
+<p>
 Finally, to destroy objects created from Tcl, you can either let the object
 name go out of scope or you can explicitly delete the object.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Foo f                 # Create object f
 % rename f ""
 </pre>
-</blockquote>
+</div>
 
+<p>
 or
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Foo f                 # Create object f
 % f -delete
 </pre>
-</blockquote>
+</div>
 
+<p>
 Note: Tcl only destroys the underlying object if it has ownership.  See the
 memory management section that appears shortly.
+</p>
 
 <H3><a name="Tcl_nn21"></a>28.3.7 C++ classes</H3>
 
@@ -1183,7 +1246,7 @@ memory management section that appears shortly.
 C++ classes are wrapped as an extension of structure wrapping. For example, if you have this class,
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 class List {
 public:
   List();
@@ -1194,11 +1257,13 @@ public:
   char *get(int n);
   int  length;
 };
-</pre></blockquote>
+</pre></div>
 
+<p>
 you can use it in Tcl like this:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % List x
 % x insert Ale
 % x insert Stout
@@ -1208,7 +1273,7 @@ Stout
 % puts [l cget -length]
 3
 %
-</pre></blockquote>
+</pre></div>
 
 <p>
 Class data members are accessed in the same manner as C structures.  
@@ -1219,7 +1284,7 @@ Static class members are accessed as global functions or variables.
 To illustrate, suppose you have a class like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 class Spam {
 public:
@@ -1228,24 +1293,28 @@ public:
 
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 In Tcl, the static member is accessed as follows:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Spam_foo        # Spam::foo()
 % puts $Spam_bar  # Spam::bar
 </pre>
-</blockquote>
+</div>
 
 <H3><a name="Tcl_nn22"></a>28.3.8 C++ inheritance</H3>
 
 
+<p>
 SWIG is fully aware of issues related to C++ inheritance.  Therefore, if you have
 classes like this
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 class Foo {
 ...
@@ -1255,28 +1324,32 @@ class Bar : public Foo {
 ...
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 An object of type <tt>Bar</tt> can be used where a <tt>Foo</tt> is expected.  For
 example, if you have this function:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void spam(Foo *f);
 </pre>
-</blockquote>
+</div>
 
+<p>
 then the function <tt>spam()</tt> accepts a <tt>Foo *</tt> or a pointer to any class derived from <tt>Foo</tt>.
 For instance:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Foo f      # Create a Foo
 % Bar b      # Create a Bar
 % spam f     # OK
 % spam b     # OK
 </pre>
-</blockquote>
+</div>
 
 <p>
 It is safe to use multiple inheritance with SWIG.
@@ -1285,24 +1358,28 @@ It is safe to use multiple inheritance with SWIG.
 <H3><a name="Tcl_nn23"></a>28.3.9 Pointers, references, values, and arrays</H3>
 
 
+<p>
 In C++, there are many different ways a function might receive
 and manipulate objects.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void spam1(Foo *x);      // Pass by pointer
 void spam2(Foo &amp;x);      // Pass by reference
 void spam3(Foo x);       // Pass by value
 void spam4(Foo x[]);     // Array of objects
 </pre>
-</blockquote>
+</div>
 
+<p>
 In Tcl, there is no detailed distinction like this.
 Because of this, SWIG unifies all of these types
 together in the wrapper code.  For instance, if you actually had the
 above functions, it is perfectly legal to do this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Foo f             # Create a Foo
 % spam1 f           # Ok. Pointer
@@ -1310,49 +1387,59 @@ above functions, it is perfectly legal to do this:
 % spam3 f           # Ok. Value.
 % spam4 f           # Ok. Array (1 element)
 </pre>
-</blockquote>
+</div>
 
+<p>
 Similar behavior occurs for return values.  For example, if you had
 functions like this,
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 Foo *spam5();
 Foo &amp;spam6();
 Foo  spam7();
 </pre>
-</blockquote>
+</div>
 
+<p>
 then all three functions will return a pointer to some <tt>Foo</tt> object.
 Since the third function (spam7) returns a value, newly allocated memory is used 
 to hold the result and a pointer is returned (Tcl will release this memory 
 when the return value is garbage collected).
+</p>
 
 <H3><a name="Tcl_nn24"></a>28.3.10 C++ overloaded functions</H3>
 
 
+<p>
 C++ overloaded functions, methods, and constructors are mostly supported by SWIG.  For example,
 if you have two functions like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void foo(int);
 void foo(char *c);
 </pre>
-</blockquote>
+</div>
 
+<p>
 You can use them in Tcl in a straightforward manner:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % foo 3            # foo(int)
 % foo Hello        # foo(char *c)
 </pre>
-</blockquote>
+</div>
 
+<p>
 Similarly, if you have a class like this,
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 class Foo {
 public:
@@ -1361,66 +1448,78 @@ public:
     ...
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 you can write Tcl code like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Foo f                # Create a Foo
 % Foo g f              # Copy f
 </pre>
-</blockquote>
+</div>
 
+<p>
 Overloading support is not quite as flexible as in C++. Sometimes there are methods that SWIG
 can't disambiguate. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void spam(int);
 void spam(short);
 </pre>
-</blockquote>
+</div>
 
+<p>
 or
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void foo(Bar *b);
 void foo(Bar &amp;b);
 </pre>
-</blockquote>
+</div>
 
+<p>
 If declarations such as these appear, you will get a warning message like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int)
 at example.i:11.
 </pre>
-</blockquote>
+</div>
 
+<p>
 To fix this, you either need to ignore or rename one of the methods.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %rename(spam_short) spam(short);
 ...
 void spam(int);    
 void spam(short);   // Accessed as spam_short
 </pre>
-</blockquote>
+</div>
 
+<p>
 or
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %ignore spam(short);
 ...
 void spam(int);    
 void spam(short);   // Ignored
 </pre>
-</blockquote>
+</div>
 
 <p>
 SWIG resolves overloaded functions and methods using a disambiguation scheme that ranks and sorts
@@ -1436,10 +1535,12 @@ Please refer to the "SWIG and C++" chapter for more information about overloadin
 <H3><a name="Tcl_nn25"></a>28.3.11 C++ operators</H3>
 
 
+<p>
 Certain C++ overloaded operators can be handled automatically by SWIG.  For example,
 consider a class like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 class Complex {
 private:
@@ -1457,11 +1558,13 @@ public:
   double im() const { return ipart; }
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 When wrapped, it works like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Complex c 3 4
 % Complex d 7 8
@@ -1471,16 +1574,18 @@ When wrapped, it works like this:
 % $e im
 12.0
 </pre>
-</blockquote>
+</div>
 
+<p>
 It should be stressed that operators in SWIG have no relationship to operators
 in Tcl.  In fact, the only thing that's happening here is that an operator like
 <tt>operator +</tt> has been renamed to a method <tt>+</tt>.    Therefore, the
 statement <tt>[c + d]</tt> is really just invoking the <tt>+</tt> method on <tt>c</tt>.
 When more than operator is defined (with different arguments), the standard
 method overloading facilities are used.  Here is a rather odd looking example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Complex c 3 4
 % Complex d 7 8
@@ -1492,13 +1597,15 @@ method overloading facilities are used.  Here is a rather odd looking example:
 -3.0 -4.0
 %
 </pre>
-</blockquote>
+</div>
 
+<p>
 One restriction with operator overloading support is that SWIG is not
 able to fully handle operators that aren't defined as part of the class.
 For example, if you had code like this
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 class Complex {
 ...
@@ -1506,31 +1613,37 @@ friend Complex operator+(double, const Complex &amp;c);
 ...
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 then SWIG doesn't know what to do with the friend function--in fact,
 it simply ignores it and issues a warning.   You can still wrap the operator,
 but you may have to encapsulate it in a special function.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %rename(Complex_add_dc) operator+(double, const Complex &amp;);
 ...
 Complex operator+(double, const Complex &amp;c);
 </pre>
-</blockquote>
+</div>
 
+<p>
 There are ways to make this operator appear as part of the class using the <tt>%extend</tt> directive.
 Keep reading.
+</p>
 
 <H3><a name="Tcl_nn26"></a>28.3.12 C++ namespaces</H3>
 
 
+<p>
 SWIG is aware of C++ namespaces, but namespace names do not appear in
 the module nor do namespaces result in a module that is broken up into
 submodules or packages.  For example, if you have a file like this,
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 
@@ -1541,11 +1654,13 @@ namespace foo {
    };
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 it works in Tcl as follows:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % load ./example.so
 % fact 3
@@ -1553,12 +1668,14 @@ it works in Tcl as follows:
 % Vector v
 % v configure -x 3.4
 </pre>
-</blockquote>
+</div>
 
+<p>
 If your program has more than one namespace, name conflicts (if any) can be resolved using <tt>%rename</tt>
 For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %rename(Bar_spam) Bar::spam;
 
@@ -1570,24 +1687,28 @@ namespace Bar {
     int spam();
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 If you have more than one namespace and your want to keep their
 symbols separate, consider wrapping them as separate SWIG modules.
 For example, make the module name the same as the namespace and create
 extension modules for each namespace separately.  If your program
 utilizes thousands of small deeply nested namespaces each with
 identical symbol names, well, then you get what you deserve.
+</p>
 
 <H3><a name="Tcl_nn27"></a>28.3.13 C++ templates</H3>
 
 
+<p>
 C++ templates don't present a huge problem for SWIG.  However, in order
 to create wrappers, you have to tell SWIG to create wrappers for a particular
 template instantiation.  To do this, you use the <tt>%template</tt> directive.
 For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %{
@@ -1607,11 +1728,13 @@ struct pair {
 
 %template(pairii) pair&lt;int,int&gt;;
 </pre>
-</blockquote>
+</div>
 
+<p>
 In Tcl:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % pairii p 3 4
 % p cget -first
@@ -1619,20 +1742,24 @@ In Tcl:
 % p cget -second
 4
 </pre>
-</blockquote>
+</div>
 
+<p>
 Obviously, there is more to template wrapping than shown in this example.
 More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a> chapter.   Some more complicated
 examples will appear later.
+</p>
 
 <H3><a name="Tcl_nn28"></a>28.3.14 C++ Smart Pointers</H3>
 
 
+<p>
 In certain C++ programs, it is common to use classes that have been wrapped by
 so-called "smart pointers."   Generally, this involves the use of a template class
 that implements <tt>operator-&gt;()</tt> like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 template&lt;class T&gt; class SmartPtr {
    ...
@@ -1640,11 +1767,13 @@ template&lt;class T&gt; class SmartPtr {
    ...
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 Then, if you have a class like this,
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 class Foo {
 public:
@@ -1652,54 +1781,63 @@ public:
      int bar();
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 A smart pointer would be used in C++ as follows:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 SmartPtr&lt;Foo&gt; p = CreateFoo();   // Created somehow (not shown)
 ...
 p-&gt;x = 3;                        // Foo::x
 int y = p-&gt;bar();                // Foo::bar
 </pre>
-</blockquote>
+</div>
 
+<p>
 To wrap this in Tcl, simply tell SWIG about the <tt>SmartPtr</tt> class and the low-level
 <tt>Foo</tt> object.  Make sure you instantiate <tt>SmartPtr</tt> using <tt>%template</tt> if necessary.
 For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 ...
 %template(SmartPtrFoo) SmartPtr&lt;Foo&gt;;
 ...
 </pre>
-</blockquote>
+</div>
 
+<p>
 Now, in Tcl, everything should just "work":
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % set p [CreateFoo]                  # Create a smart-pointer somehow
 % $p configure -x 3                  # Foo::x
 % $p bar                             # Foo::bar
 </pre>
-</blockquote>
+</div>
 
+<p>
 If you ever need to access the underlying pointer returned by <tt>operator-&gt;()</tt> itself,
 simply use the <tt>__deref__()</tt> method.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % set f [$p __deref__]    # Returns underlying Foo *
 </pre>
-</blockquote>
+</div>
 
 <H2><a name="Tcl_nn29"></a>28.4 Further details on the Tcl class interface</H2>
 
 
+<p>
 In the previous section, a high-level view of Tcl wrapping was
 presented.  A key component of this wrapping is that structures and
 classes are wrapped by Tcl class-like objects. This provides a very
@@ -1707,15 +1845,18 @@ natural Tcl interface and allows SWIG to support a number of
 advanced features such as operator overloading.   However, a number
 of low-level details were omitted.  This section provides a brief overview
 of how the proxy classes work.
+</p>
 
 <H3><a name="Tcl_nn30"></a>28.4.1 Proxy classes</H3>
 
 
+<p>
 In the <a href="SWIG.html#SWIG">"SWIG basics"</a> and <a href="SWIGPlus.html#SWIGPlus">"SWIG and C++"</a> chapters,
 details of low-level structure and class wrapping are described.  To summarize those chapters, if you
 have a class like this
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 class Foo {
 public:
@@ -1723,11 +1864,13 @@ public:
      int spam(int);
      ...
 </pre>
-</blockquote>
+</div>
 
+<p>
 then SWIG transforms it into a set of low-level procedural wrappers. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 Foo *new_Foo() {
     return new Foo();
@@ -1745,11 +1888,13 @@ int Foo_spam(Foo *f, int arg1) {
     return f-&gt;spam(arg1);
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 These wrappers are actually found in the Tcl extension module.  For example, you can certainly do this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % load ./example.so
 % set f [new_Foo]
@@ -1759,11 +1904,13 @@ These wrappers are actually found in the Tcl extension module.  For example, you
 1
 %
 </pre>
-</blockquote>
+</div>
 
+<p>
 However, in addition to this, the classname <tt>Foo</tt> is used as an object constructor
 function.   This allows objects to be encapsulated objects that look a lot like Tk widgets
 as shown in the last section.
+</p>
 
 <H3><a name="Tcl_nn31"></a>28.4.2 Memory management</H3>
 
@@ -1781,7 +1928,7 @@ When an object is created by a constructor or returned by value, Tcl automatical
 ownership of the result.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 class Foo {
 public:
@@ -1789,11 +1936,13 @@ public:
     Foo bar();
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 In Tcl:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Foo f
 % f cget -thisown
@@ -1802,12 +1951,14 @@ In Tcl:
 % $g cget -thisown
 1
 </pre>
-</blockquote>
+</div>
 
+<p>
 On the other hand, when pointers are returned to Tcl, there is often no way to know where
 they came from.  Therefore, the ownership is set to zero.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 class Foo {
 public:
@@ -1816,9 +1967,11 @@ public:
     ...
 };
 </pre>
-</blockquote>
+</div>
 
-<blockquote>
+<br>
+
+<div class="code">
 <pre>
 % Foo f
 % set s [f spam]
@@ -1826,7 +1979,7 @@ public:
 0
 % 
 </pre>
-</blockquote>
+</div>
 
 <p>
 This behavior is especially important for classes that act as
@@ -1840,7 +1993,7 @@ Related to containers, ownership issues can arise whenever an object is assigned
 or global variable.  For example, consider this interface:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 
@@ -1851,12 +2004,14 @@ struct Foo {
 
 Foo *head = 0;
 </pre>
-</blockquote>
+</div>
 
+<p>
 When wrapped in Tcl, careful observation will reveal that ownership changes whenever an object
 is assigned to a global variable.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Foo f
 % f cget -thisown
@@ -1865,12 +2020,14 @@ is assigned to a global variable.  For example:
 % f cget -thisown
 0
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this case, C is now holding a reference to the object---you probably don't want Tcl to destroy it.
 Similarly, this occurs for members.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Foo f
 % Foo g
@@ -1883,7 +2040,7 @@ Similarly, this occurs for members.  For example:
 0
 %
 </pre>
-</blockquote>
+</div>
 
 <p>
 For the most part, memory management issues remain hidden.  However,
@@ -1891,7 +2048,7 @@ there are occasionally situations where you might have to manually
 change the ownership of an object.  For instance, consider code like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 class Node {
    Object *value;
@@ -1900,11 +2057,13 @@ public:
    ...
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 Now, consider the following Tcl code:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % Object v                 # Create an object
 % Node n                   # Create a node
@@ -1913,7 +2072,7 @@ Now, consider the following Tcl code:
 1
 % 
 </pre>
-</blockquote>
+</div>
 
 <p>
 In this case, the object <tt>n</tt> is holding a reference to
@@ -1928,44 +2087,52 @@ you're lucky, you will only get a segmentation fault.
 To work around this, it is always possible to flip the ownership flag. For example,
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 % v -disown              # Give ownership to C/C++
 % v -acquire             # Acquire ownership
 </pre>
-</blockquote>
+</div>
 
+<p>
 It is also possible to deal with situations like this using
 typemaps--an advanced topic discussed later.
+</p>
 
 
 <H2><a name="Tcl_nn32"></a>28.5 Input and output parameters</H2>
 
 
+<p>
 A common problem in some C programs is handling parameters passed as simple pointers.  For
 example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void add(int x, int y, int *result) {
    *result = x + y;
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 or perhaps
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 int sub(int *x, int *y) {
    return *x+*y;
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 The easiest way to handle these situations is to use the <tt>typemaps.i</tt> file.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %include "typemaps.i"
@@ -1973,17 +2140,19 @@ The easiest way to handle these situations is to use the <tt>typemaps.i</tt> fil
 void add(int, int, int *OUTPUT);
 int  sub(int *INPUT, int *INPUT);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In Tcl, this allows you to pass simple values instead of pointer.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 set a [add 3 4]
 puts $a
 7
 </pre>
-</blockquote>
+</div>
 
 <p>
 Notice how the <tt>INPUT</tt> parameters allow integer values to be passed instead of pointers
@@ -1995,7 +2164,7 @@ If you don't want to use the names <tt>INPUT</tt> or <tt>OUTPUT</tt>, use the <t
 directive.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %include "typemaps.i"
@@ -2006,39 +2175,43 @@ directive.  For example:
 void add(int x, int y, int *result);
 int  sub(int *x, int *y);
 </pre>
-</blockquote>
+</div>
 
 <p>
 If a function mutates one of its parameters like this,
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 void negate(int *x) {
    *x = -(*x);
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 you can use <tt>INOUT</tt> like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %include "typemaps.i"
 ...
 void negate(int *INOUT);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In Tcl, a mutated parameter shows up as a return value.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 set a [negate 3]
 puts $a
 -3
 </pre>
-</blockquote>
+</div>
 
 <p>
 The most common use of these special typemap rules is to handle functions that
@@ -2046,16 +2219,18 @@ return more than one value.   For example, sometimes a function returns a result
 as well as a special error code:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 /* send message, return number of bytes sent, along with success code */
 int send_message(char *text, int len, int *success);
 </pre>
-</blockquote>
+</div>
 
+<p>
 To wrap such a function, simply use the <tt>OUTPUT</tt> rule above. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %include "typemaps.i"
@@ -2063,29 +2238,35 @@ To wrap such a function, simply use the <tt>OUTPUT</tt> rule above. For example:
 ...
 int send_message(char *text, int *success);
 </pre>
-</blockquote>
+</div>
 
+<p>
 When used in Tcl, the function will return multiple values as a list.  
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 set r [send_message "Hello World"]
 set bytes [lindex $r 0]
 set success [lindex $r 1]
 </pre>
-</blockquote>
+</div>
 
+<p>
 Another common use of multiple return values are in query functions.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void get_dimensions(Matrix *m, int *rows, int *columns);
 </pre>
-</blockquote>
+</div>
 
+<p>
 To wrap this, you might use the following:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %include "typemaps.i"
@@ -2093,17 +2274,19 @@ To wrap this, you might use the following:
 ...
 void get_dimensions(Matrix *m, int *rows, *columns);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Now, in Perl:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 set dim [get_dimensions $m]
 set r  [lindex $dim 0]
 set c  [lindex $dim 1]
 </pre>
-</blockquote>
+</div>
 
 <H2><a name="Tcl_nn33"></a>28.6 Exception handling </H2>
 
@@ -2116,7 +2299,7 @@ contains more details, but suppose you extended the array example into
 a C++ class like the following :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 class RangeError {};   // Used for an exception
 
 class DoubleArray {
@@ -2155,7 +2338,7 @@ class DoubleArray {
       }
     }
   };
-</pre></blockquote>
+</pre></div>
 
 <p>
 The functions associated with this class can throw a C++ range
@@ -2163,7 +2346,7 @@ exception for an out-of-bounds array access.  We can catch this in our
 Tcl extension by specifying the following in an interface file :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %exception {
   try {
     $action                // Gets substituted by actual function call
@@ -2173,7 +2356,7 @@ Tcl extension by specifying the following in an interface file :
     return TCL_ERROR;
   }
 }
-</pre></blockquote>
+</pre></div>
 
 <p>
 As shown, the exception handling code will be added to every wrapper function.
@@ -2181,7 +2364,7 @@ Since this is somewhat inefficient.  You might consider refining the
 exception handler to only apply to specific methods like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %exception getitem {
   try {
@@ -2203,7 +2386,7 @@ exception handler to only apply to specific methods like this:
   }
 }
 </pre>
-</blockquote>
+</div>
 
 <p>
 In this case, the exception handler is only attached to methods and functions
@@ -2215,7 +2398,7 @@ If you had a lot of different methods, you can avoid extra typing by using a mac
 For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %define RANGE_ERROR
 {
@@ -2232,10 +2415,12 @@ For example:
 %exception getitem RANGE_ERROR;
 %exception setitem RANGE_ERROR;
 </pre>
-</blockquote>
+</div>
 
+<p>
 Since SWIG's exception handling is user-definable, you are not limited to C++ exception handling.
 See the chapter on "<a href="Customization.html#Customization">Customization Features</a>" for more examples.
+</p>
 
 <H2><a name="Tcl_nn34"></a>28.7 Typemaps</H2>
 
@@ -2263,7 +2448,7 @@ a specific C datatype.   For example, to convert integers from Tcl to C,
 you might define a typemap like this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 
 %typemap(in) int {
@@ -2271,7 +2456,7 @@ you might define a typemap like this:
 	printf("Received an integer : %d\n",$1);
 }
 extern int fact(int n);
-</pre></blockquote>
+</pre></div>
 
 <p>
 Typemaps are always associated with some specific aspect of code generation.
@@ -2287,19 +2472,19 @@ The <tt>$input</tt> variable is the input object of type <tt>Tcl_Obj *</tt>.
 When this example is compiled into a Tcl module, it operates as follows:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % load ./example.so
 % fact 6
 Received an integer : 6
 720
-</pre></blockquote>
+</pre></div>
 
 <p>
 In this example, the typemap is applied to all occurrences of the <tt>int</tt> datatype.
 You can refine this by supplying an optional parameter name.  For example:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 
 %typemap(in) int n {
@@ -2307,7 +2492,7 @@ You can refine this by supplying an optional parameter name.  For example:
 	printf("n = %d\n",$1);
 }
 extern int fact(int n);
-</pre></blockquote>
+</pre></div>
 
 <p>
 In this case, the typemap code is only attached to arguments that exactly match <tt>int n</tt>.
@@ -2321,7 +2506,7 @@ applies to <tt>int</tt> and qualified variations such as <tt>const int</tt>.  In
 the typemap system follows <tt>typedef</tt> declarations.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(in) int n {
         if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR) return TCL_ERROR;
@@ -2330,17 +2515,19 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 typedef int Integer;
 extern int fact(Integer n);    // Above typemap is applied
 </pre>
-</blockquote>
+</div>
 
+<p>
 However, the matching of <tt>typedef</tt> only occurs in one direction.  If you
 defined a typemap for <tt>Integer</tt>, it is not applied to arguments of
 type <tt>int</tt>.
+</p>
 
 <p>
 Typemaps can also be defined for groups of consecutive arguments.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(in) (char *str, int len) {
     $1 = Tcl_GetStringFromObj($input,&amp;$2);
@@ -2348,34 +2535,38 @@ Typemaps can also be defined for groups of consecutive arguments.  For example:
 
 int count(char c, char *str, int len);
 </pre>
-</blockquote>
+</div>
 
+<p>
 When a multi-argument typemap is defined, the arguments are always handled as a single
 Tcl object.  This allows the function to be used like this (notice how the length
 parameter is ommitted):
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % count e "Hello World"
 1
 </pre>
-</blockquote>
+</div>
 
 <H3><a name="Tcl_nn36"></a>28.7.2 Tcl typemaps</H3>
 
 
+<p>
 The previous section illustrated an "in" typemap for converting Tcl objects to C.
 A variety of different typemap methods are defined by the Tcl module.  For example,
 to convert a C integer back into a Tcl object, you might define an "out" typemap
 like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(out) int {
     Tcl_SetObjResult(interp,Tcl_NewIntObj($1));
 }
 </pre>
-</blockquote>
+</div>
 
 <p>
 The following list details all of the typemap methods that can be used by the Tcl module:
@@ -2385,113 +2576,113 @@ The following list details all of the typemap methods that can be used by the Tc
 <tt>%typemap(in)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Converts Tcl objects to input function arguments
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(out)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Converts return value of a C function to a Tcl object
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(varin)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Assigns a C global variable from a Tcl object
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(varout)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Returns a C global variable as a Tcl object
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(freearg)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Cleans up a function argument (if necessary)
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(argout)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Output argument processing
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(ret)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Cleanup of function return values
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(consttab)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Creation of Tcl constants (constant table)
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(constcode)</tt> 
 </p>
 
-<blockquote>
+<div class="indent">
 Creation of Tcl constants (init function)
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(memberin)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Setting of structure/class member data
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(globalin)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Setting of C global variables
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(check)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Checks function input values.
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(default)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Set a default value for an argument (making it optional).
-</blockquote>
+</div>
 
 <p>
 <tt>%typemap(arginit)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Initialize an argument to a value before any conversions occur.
-</blockquote>
+</div>
 
 <p>
 Examples of these methods will appear shortly.
@@ -2510,63 +2701,63 @@ This is a list of the most common variables:
 <tt>$1</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 A C local variable corresponding to the actual type specified in the
 <tt>%typemap</tt> directive.  For input values, this is a C local variable
 that's supposed to hold an argument value.  For output values, this is
 the raw result that's supposed to be returned to Tcl.
-</blockquote>
+</div>
 
 <p>
 <tt>$input</tt>
 </p>
 
-<blockquote>
+<div class="indent">
  A <tt>Tcl_Obj *</tt> holding a raw Tcl object with an argument or variable value.
-</blockquote>
+</div>
 
 <p>
 <tt>$result</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 A <tt>Tcl_Obj *</tt> that holds the result to be returned to Tcl.
-</blockquote>
+</div>
 
 <p>
 <tt>$1_name</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 The parameter name that was matched. 
-</blockquote>
+</div>
 
 <p>
 <tt>$1_type</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 The actual C datatype matched by the typemap.
-</blockquote>
+</div>
 
 <p>
 <tt>$1_ltype</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 An assignable version of the datatype matched by the typemap (a type that can appear on the left-hand-side of
 a C assignment operation).  This type is stripped of qualifiers and may be an altered version of <tt>$1_type</tt>.
 All arguments and local variables in wrapper functions are declared using this type so that their values can be
 properly assigned.
-</blockquote>
+</div>
 
 <p>
 <tt>$symname</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 The Tcl name of the wrapper function being created.
-</blockquote>
+</div>
 
 <H3><a name="Tcl_nn38"></a>28.7.4 Converting  a Tcl list to a char ** </H3>
 
@@ -2578,7 +2769,7 @@ strings.  The following SWIG interface file allows a Tcl list to be
 used as a <tt>char **</tt> object.
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module argv
 
 // This tells SWIG to treat char ** as a special case
@@ -2616,19 +2807,19 @@ int print_args(char **argv) {
 %}
 %include tclsh.i
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 In Tcl:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % print_args {John Guido Larry}
 argv[0] = John
 argv[1] = Guido
 argv[2] = Larry
 3
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Tcl_nn39"></a>28.7.5 Returning values in arguments</H3>
 
@@ -2638,7 +2829,7 @@ The "argout" typemap can be used to return a value originating from a
 function argument. For example :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 // A typemap defining how to return an argument by appending it to the result
 %typemap(argout) double *outvalue {
      Tcl_Obj *o = Tcl_NewDoubleObj($1);
@@ -2657,7 +2848,7 @@ int mypow(double a, double b, double *outvalue) {
         *outvalue = pow(a,b);
         return 0;
 };
-</pre></blockquote>
+</pre></div>
 
 <p>
 When wrapped, SWIG matches the <tt>argout</tt> typemap to the
@@ -2666,11 +2857,11 @@ to simply ignore this argument when generating wrapper code.  As a
 result, a Tcl function using these typemaps will work like this :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 % mypow 2 3     # Returns two values, a status value and the result
 0 8
 %
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Tcl_nn40"></a>28.7.6 Useful functions</H3>
 
@@ -2684,44 +2875,44 @@ writing Tcl typemaps.
 <b>Integers</b>
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 Tcl_Obj   *Tcl_NewIntObj(int Value);
 void       Tcl_SetIntObj(Tcl_Obj *obj, int Value);
 int        Tcl_GetIntFromObj(Tcl_Interp *, Tcl_Obj *obj, int *ip);
 </pre>
-</blockquote>
+</div>
 
 <p>
 <b>Floating Point</b>
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 Tcl_Obj  *Tcl_NewDoubleObj(double Value);
 void      Tcl_SetDoubleObj(Tcl_Obj *obj, double value);
 int       Tcl_GetDoubleFromObj(Tcl_Interp *, Tcl_Obj *o, double *dp);
 </pre>
-</blockquote>
+</div>
 
 <p>
 <b>Strings</b>
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 Tcl_Obj  *Tcl_NewStringObj(char *str, int len);
 void      Tcl_SetStringObj(Tcl_Obj *obj, char *str, int len);
 char     *Tcl_GetStringFromObj(Tcl_Obj *obj, int *len);
 void      Tcl_AppendToObj(Tcl_Obj *obj, char *str, int len);
 </pre>
-</blockquote>
+</div>
 
 <p>
 <b>Lists</b>
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 Tcl_Obj  *Tcl_NewListObj(int objc, Tcl_Obj *objv);
 int       Tcl_ListObjAppendList(Tcl_Interp *, Tcl_Obj *listPtr, Tcl_Obj *elemListPtr);
@@ -2734,18 +2925,20 @@ int       Tcl_ListObjIndex(Tcl_Interp *, Tcl_Obj *listPtr, int index,
 int       Tcl_ListObjReplace(Tcl_Interp *, Tcl_Obj *listPtr, int first, int count,
                              int objc, Tcl_Obj *objv);
 </pre>
-</blockquote>
+</div>
 
+<p>
 <b>Objects</b>
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 Tcl_Obj *Tcl_DuplicateObj(Tcl_Obj *obj);
 void     Tcl_IncrRefCount(Tcl_Obj *obj);
 void     Tcl_DecrRefCount(Tcl_Obj *obj);
 int      Tcl_IsShared(Tcl_Obj *obj);
 </pre>
-</blockquote>
+</div>
 
 <H3><a name="Tcl_nn41"></a>28.7.7 Standard  typemaps</H3>
 
@@ -2757,9 +2950,11 @@ work)
 </p>
 
 
+<p>
 <b>Integer conversion</b>
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(in) int, short, long {
    int temp;
@@ -2768,19 +2963,23 @@ work)
    $1 = ($1_ltype) temp;
 }
 </pre>
-</blockquote>
+</div>
 
-<blockquote>
+<br>
+
+<div class="code">
 <pre>
 %typemap(out) int, short, long {
    Tcl_SetIntObj($result,(int) $1);
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 <b>Floating point conversion</b>
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(in) float, double {
    double temp;
@@ -2789,19 +2988,23 @@ work)
    $1 = ($1_ltype) temp;
 }
 </pre>
-</blockquote>
+</div>
 
-<blockquote>
+<br>
+
+<div class="code">
 <pre>
 %typemap(out) float, double {
    Tcl_SetDoubleObj($result, $1);
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 <b>String Conversion</b>
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(in) char * {
    int len;
@@ -2809,15 +3012,17 @@ work)
    }
 }
 </pre>
-</blockquote>
+</div>
 
-<blockquote>
+<br>
+
+<div class="code">
 <pre>
 %typemap(out) char * {
    Tcl_SetStringObj($result,$1);
 }
 </pre>
-</blockquote>
+</div>
 
 <H3><a name="Tcl_nn42"></a>28.7.8 Pointer handling</H3>
 
@@ -2833,22 +3038,22 @@ create and read pointer values.
 int SWIG_ConvertPtr(Tcl_Obj *obj, void **ptr, swig_type_info *ty, int flags)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Converts a Tcl object <tt>obj</tt> to a C pointer.  The result of the conversion is placed
 into the pointer located at <tt>ptr</tt>.  <tt>ty</tt> is a SWIG type descriptor structure.
 <tt>flags</tt> is used to handle error checking and other aspects of conversion.  It is currently
 reserved for future expansion. Returns 0 on success and -1 on error.
-</blockquote>
+</div>
 
 <p>
 <tt>
 Tcl_Obj *SWIG_NewPointerObj(void *ptr, swig_type_info *ty, int flags)</tt>
 </p>
 
-<blockquote>
+<div class="indent">
 Creates a new Tcl pointer object.  <tt>ptr</tt> is the pointer to convert, <tt>ty</tt> is the SWIG type descriptor structure that
 describes the type, and <tt>own</tt> is a flag reserved for future expansion.
-</blockquote>
+</div>
 
 <p>
 Both of these functions require the use of a special SWIG
@@ -2859,7 +3064,7 @@ inheritance.   For a type of <tt>Foo *</tt>, the type descriptor structure
 is usually accessed as follows:
 </p>
 
-<blockquote>
+<div class="indent">
 <pre>
 Foo *f;
 if (SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, 0) == -1) return NULL;
@@ -2867,55 +3072,59 @@ if (SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, 0) == -1) return N
 Tcl_Obj *;
 obj = SWIG_NewPointerObj(f, SWIGTYPE_p_Foo, 0);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In a typemap, the type descriptor should always be accessed using the special typemap
 variable <tt>$1_descriptor</tt>.  For example:
+</p>
 
-<blockquote>
+<div class="indent">
 <pre>
 %typemap(in) Foo * {
    if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $1_descriptor,0)) == -1) return NULL;
 }
 </pre>
-</blockquote>
+</div>
 
 <p>
 If necessary, the descriptor for any type can be obtained using the <tt>$descriptor()</tt> macro in a typemap.
 For example:
 </p>
 
-<blockquote>
+<div class="indent">
 <pre>
 %typemap(in) Foo * {
    if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $descriptor(Foo *), 0)) == -1) return NULL;
 }
 </pre>
-</blockquote>
+</div>
 
 <H2><a name="Tcl_nn43"></a>28.8 Turning a SWIG module into a Tcl Package.</H2>
 
 
+<p>
 Tcl 7.4 introduced the idea of an extension package.  By default, SWIG
 generates all of the code necessary to create a package. To set the package version,
 simply use the <tt>-pkgversion</tt> option. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % swig -tcl -pkgversion 2.3 example.i
 </pre>
-</blockquote>
+</div>
 
 <p>
 After building the SWIG generated module, you need to execute
 the "<tt>pkg_mkIndex</tt>" command inside tclsh.  For example :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 unix &gt; tclsh
 % pkg_mkIndex . example.so
 % exit
-</pre></blockquote>
+</pre></div>
 
 <p>
 This creates a file "<tt>pkgIndex.tcl</tt>" with information about the
@@ -2923,11 +3132,11 @@ package.  To use your package, you now need to move it to its own
 subdirectory which has the same name as the package. For example :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 ./example/
 	   pkgIndex.tcl           # The file created by pkg_mkIndex
 	   example.so             # The SWIG generated module
-</pre></blockquote>
+</pre></div>
 
 <p>
 Finally, assuming that you're not entirely confused at this point,
@@ -2937,25 +3146,25 @@ directories contained in either the <tt>tcl_library</tt> or
 package as follows :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 unix &gt; tclsh
 % package require example
 % fact 4
 24
 %
-</pre></blockquote>
+</pre></div>
 
 <p>
 If  you're working with an example in the current directory and this doesn't work, do this instead :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 unix &gt; tclsh
 % lappend auto_path .
 % package require example
 % fact 4
 24
-</pre></blockquote>
+</pre></div>
 
 <p>
 As a final note, most SWIG examples do not yet use the
@@ -2973,7 +3182,7 @@ SWIG accessor functions.  For example, suppose you had a library of
 helper functions to access arrays :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 /* File : array.i */
 %module array
 
@@ -3004,14 +3213,14 @@ int set_int(int *a, int index, int val) {
 }
 %}
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 While these could be called directly, we could also write a Tcl script
 like this :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 proc Array {type size} {
     set ptr [new_$type $size]
     set code {
@@ -3027,13 +3236,13 @@ proc Array {type size} {
     uplevel "proc $ptr args {set ptr $ptr; set type $type;$code}"
     return $ptr
 }
-</pre></blockquote>
+</pre></div>
 
 <p>
 Our script allows easy array access as follows :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 set a [Array double 100]                   ;# Create a double [100]
 for {set i 0} {$i &lt; 100} {incr i 1} {      ;# Clear the array
 	$a set $i 0.0
@@ -3050,7 +3259,7 @@ set ib [$ia get 10]                        ;# Get an individual element
 
 $a delete                                  ;# Destroy a
 $ia delete                                 ;# Destroy ia
-</pre></blockquote>
+</pre></div>
 
 <p>
 The cool thing about this approach is that it makes a common interface
@@ -3074,7 +3283,7 @@ object oriented interface).  When running Tcl, simply source this
 file.  Now, objects can be used in a more or less natural fashion.
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 # swig_c++.tcl
 # Provides a simple object oriented interface using
 # SWIG's low level interface.
@@ -3129,14 +3338,14 @@ proc delete {handle_r} {
     #
     uplevel unset $handle_r
 }
-</pre></blockquote>
+</pre></div>
 
 <p>
 To use this file, we simply source it and execute commands such as
 "new" and "delete" to manipulate objects.  For example :
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 // list.i
 %module List
 %{
@@ -3156,13 +3365,13 @@ public:
   int  length;          // The current length of the list
 static void print(List *l);  // Print out the contents of the list
 };
-</pre></blockquote>
+</pre></div>
 
 <p>
 Now a Tcl script using the interface...
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 load ./list.so list       ; # Load the module
 source swig_c++.tcl       ; # Source the object file
 
@@ -3174,7 +3383,7 @@ $l remove Dave
 puts $l length_get
 
 delete l
-</pre></blockquote>
+</pre></div>
 
 <p>
 The cool thing about this example is that it works with any C++ object

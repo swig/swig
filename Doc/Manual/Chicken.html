@@ -3,12 +3,14 @@
 <html>
 <head>
 <title>SWIG and Chicken</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 
 <H1><a name="Chicken"></a>17 SWIG and Chicken</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Chicken_nn2">Preliminaries</a>
 <ul>
@@ -33,6 +35,7 @@
 <li><a href="#Chicken_nn16">Pointers</a>
 <li><a href="#Chicken_nn17">Unsupported features and known problems</a>
 </ul>
+</div>
 <!-- INDEX -->
 
 
@@ -90,9 +93,9 @@
       the -chicken option.
       </p>
 
-      <blockquote>
+      <div class="code">
 	<pre>% swig -chicken example.i</pre>
-      </blockquote>
+      </div>
 
       <p>
       To allow the wrapper to take advantage of future CHICKEN code
@@ -102,9 +105,9 @@
       be compiled to C using your system's CHICKEN compiler.
       </p>
 
-      <blockquote>
+      <div class="code">
 	<pre>% chicken example.scm -output-file oexample.c</pre>
-      </blockquote>
+      </div>
 
       <p>
       So for the C mode of SWIG CHICKEN, <tt>example_wrap.c</tt> and
@@ -120,9 +123,9 @@
       the -chicken -c++ option.
       </p>
 
-      <blockquote>
+      <div class="code">
 	<pre>% swig -chicken -c++ example.i</pre>
-      </blockquote>
+      </div>
 
       <p>
       This will generate <tt>example_wrap.cxx</tt> and
@@ -130,9 +133,9 @@
       compiled to C using your system's CHICKEN compiler.
       </p>
 
-      <blockquote>
+      <div class="code">
 	<pre>% chicken example.scm -output-file oexample.c</pre>
-      </blockquote>
+      </div>
 
       <p>
       So for the C++ mode of SWIG CHICKEN, <tt>example_wrap.cxx</tt>
@@ -163,6 +166,7 @@
 <H3><a name="Chicken_nn7"></a>17.2.2 Modules</H3>
 
 
+      <p>
       The name of the module must be declared one of two ways:
       <ul>
 	<li>Placing <tt>%module example</tt> in the SWIG interface
@@ -170,6 +174,8 @@
 	<li>Using <tt>-module example</tt> on the SWIG command
 	  line.</li>
       </ul>
+
+      <p>
       The generated example.scm file then exports <code>(declare (unit modulename))</code>.
       If you do not want SWIG to export the <code>(declare (unit modulename))</code>, pass
       the -nounit option to SWIG.
@@ -230,13 +236,13 @@
       <p>
       The author of TinyCLOS, Gregor Kiczales, describes TinyCLOS as:
       </p>
-      <blockquote>
+      <div class="code">
 	Tiny CLOS is a Scheme implementation of a `kernelized' CLOS, with a
 	metaobject protocol. The implementation is even simpler than
 	the simple CLOS found in `The Art of the Metaobject Protocol,'
 	weighing in at around 850 lines of code, including (some)
 	comments and documentation.
-      </blockquote>
+      </div>
 
       <p>
       Almost all good Scheme books describe how to use metaobjects and
@@ -306,13 +312,13 @@
       in example.i and the C functions being wrapped are in example_impl.c.
     </p>
 
-   <blockquote>
+   <div class="code">
    <pre>
    $ swig -chicken example.i
    $ csc -svk example.scm example_impl.c example_wrap.c
    $ csi example.so test_script.scm
    </pre>
-   </blockquote>
+   </div>
 
     <p>
       You must be careful not to name the example_impl.c file example.c because
@@ -330,13 +336,13 @@
 
    <p>Again, we can easily use csc to build a binary.</p>
 
-   <blockquote>
+   <div class="code">
    <pre>
    $ swig -chicken example.i
    $ csc -vk example.scm example_impl.c example_wrap.c test_script.scm -o example
    $ ./example
    </pre>
-   </blockquote>
+   </div>
 
 <H2><a name="Chicken_nn15"></a>17.6 Typemaps</H2>
 

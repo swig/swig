@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>Warning Messages</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Warnings"></a>14 Warning Messages</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Warnings_nn2">Introduction</a>
 <li><a href="#Warnings_nn3">Warning message suppression</a>
@@ -27,6 +29,7 @@
 </ul>
 <li><a href="#Warnings_nn17">History</a>
 </ul>
+</div>
 <!-- INDEX -->
 
 
@@ -34,48 +37,58 @@
 <H2><a name="Warnings_nn2"></a>14.1 Introduction</H2>
 
 
+<p>
 During compilation, SWIG may generate a variety of warning messages.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 example.i:16: Warning(501): Overloaded declaration ignored.  bar(double)
 example.i:15: Warning(501): Previous declaration is bar(int)
 </pre>
-</blockquote>
+</div>
 
+<p>
 Typically, warning messages indicate non-fatal problems with the input
 where the generated wrapper code will probably compile, but it may not
 work like you expect.
+</p>
 
 <H2><a name="Warnings_nn3"></a>14.2 Warning message suppression</H2>
 
 
+<p>
 All warning messages have a numeric code that is shown in the warning message itself.
 To suppress the printing of a warning message, a number of techniques can be used.
 First, you can run SWIG with the <tt>-w</tt> command line option. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % swig -python -w501 example.i
 % swig -python -w501,505,401 example.i
 </pre>
-</blockquote>
+</div>
 
+<p>
 Alternatively, warnings can be suppressed by inserting a special preprocessor pragma
 into the input file:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 #pragma SWIG nowarn=501
 #pragma SWIG nowarn=501,505,401
 </pre>
-</blockquote>
+</div>
 
+<p>
 Finally, code-generation warnings can be disabled on a declaration by declaration basis using
 the <tt>%warnfilter</tt> directive.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %module example
 %warnfilter(501) foo;
@@ -83,13 +96,15 @@ the <tt>%warnfilter</tt> directive.  For example:
 int foo(int);
 int foo(double);              // Silently ignored.
 </pre>
-</blockquote>
+</div>
 
+<p>
 The <tt>%warnfilter</tt> directive has the same semantics as other declaration modifiers like 
 <tt>%rename</tt>, <tt>%ignore</tt>, and <tt>%feature</tt>.  For example, if you wanted to
 suppress a warning for a method in a class hierarchy, you could do this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %warnfilter(501) Object::foo;
 class Object {
@@ -106,11 +121,13 @@ public:
    ...
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 Warnings can be suppressed for an entire class by supplying a class name.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %warnfilter(501) Object;
 
@@ -119,104 +136,126 @@ public:
    ...                      // All 501 warnings ignored in class
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 There is no option to suppress all SWIG warning messages.  The warning messages are there
 for a reason---to tell you that something may be <em>broken</em> in
 your interface.  Ignore the warning messages at your own peril.
+</p>
 
 <H2><a name="Warnings_nn4"></a>14.3 Enabling additional warnings</H2>
 
 
+<p>
 Some warning messages are disabled by default and are generated only
 to provide additional diagnostics.  All warning messages can be
 enabled using the <tt>-Wall</tt> option. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 % swig -Wall -python example.i
 </pre>
-</blockquote>
+</div>
 
+<p>
 When <tt>-Wall</tt> is used, all other warning filters are disabled.
+</p>
 
 <p>
 To selectively turn on extra warning messages, you can use the directives and options in the
 previous section--simply add a "+" to all warning numbers.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 % swig -w+309,+452 example.i
 </pre>
-</blockquote>
+</div>
 
+<p>
 or
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 #pragma SWIG nowarn=+309,+452
 </pre>
-</blockquote>
+</div>
 
+<p>
 or
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %warnfilter(+309,+452) foo;
 </pre>
-</blockquote>
+</div>
 
+<p>
 Note: selective enabling of warnings with <tt>%warnfilter</tt> overrides any global settings you might have
 made using <tt>-w</tt> or <tt>#pragma</tt>.
+</p>
 
 <H2><a name="Warnings_nn5"></a>14.4 Issuing a warning message</H2>
 
 
+<p>
 Warning messages can be issued from an interface file using a number of directives.  The
 <tt>%warn</tt> directive is the most simple:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %warn "750:This is your last warning!"
 </pre>
-</blockquote>
+</div>
 
+<p>
 All warning messages are optionally prefixed by the warning number to use.  If you are generating
 your own warnings, make sure you don't use numbers defined in the table at the end of this section.
+</p>
 
 <p>
 The <tt>%ignorewarn</tt> directive is the same as <tt>%ignore</tt> except that it issues a
 warning message whenever a matching declaration is found. For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %ignorewarn("362:operator= ignored") operator=;
 </pre>
-</blockquote>
+</div>
 
+<p>
 Warning messages can be associated with typemaps using the
 <tt>warning</tt> attribute of a typemap declaration. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(in, warning="751:You are really going to regret this") blah * {
    ...
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this case, the warning message will be printed whenever the typemap is actually used.
+</p>
 
 <H2><a name="Warnings_nn6"></a>14.5 Commentary</H2>
 
 
+<p>
 The ability to suppress warning messages is really only provided for
 advanced users and is not recommended in normal use.  There are no
 plans to provide symbolic names or options that identify specific
 types or groups of warning messages---the numbers must be used
 explicitly.
+</p>
 
 <p>
 Certain types of SWIG problems are errors.  These usually arise due to
@@ -228,26 +267,30 @@ messages.
 <H2><a name="Warnings_nn7"></a>14.6 Warnings as errors</H2>
 
 
+<p>
 Warnings can be handled as errors by using the <tt>-Werror</tt> command line
 option. This will cause SWIG to exit with a non successful exit code if a
 warning is encountered.
+</p>
 
 <H2><a name="Warnings_nn8"></a>14.7 Message output format</H2>
 
 
+<p>
 The output format for both warnings and errors can be selected for
 integration with your favourite IDE/editor. Editors and IDEs can usually parse 
 error messages and if in the appropriate format will easily take you 
 directly to the source of the error. The standard format is used by 
 default except on Windows where the Microsoft format is used by default.
 These can be overridden using command line options, for example:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 $ swig -python -Fstandard example.i
 example.i:4: Syntax error in input.
 $ swig -python -Fmicrosoft example.i
 example.i(4): Syntax error in input.
-</pre></blockquote>
+</pre></div>
 
 <H2><a name="Warnings_nn9"></a>14.8 Warning number reference</H2>
 
@@ -447,12 +490,16 @@ example.i(4): Syntax error in input.
 <H3><a name="Warnings_nn16"></a>14.8.7 User defined (900-999)</H3>
 
 
+<p>
 These numbers can be used by your own application.
+</p>
 
 <H2><a name="Warnings_nn17"></a>14.9 History</H2>
 
 
+<p>
 The ability to control warning messages was first added to SWIG-1.3.12.
+</p>
 
 </body>
 </html>
