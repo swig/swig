@@ -199,7 +199,7 @@ SWIG_UnpackData(char *c, void *ptr, int sz) {
 SWIGRUNTIME(int)
 SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   swig_type_info *tc;
-  char  *c;
+  char  *c = 0;
   static PyObject *SWIG_this = 0;
   int    newref = 0;
   PyObject  *pyobj = 0;
@@ -291,7 +291,7 @@ type_error:
 SWIGRUNTIME(int)
 SWIG_ConvertPacked(PyObject *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
   swig_type_info *tc;
-  char  *c;
+  char  *c = 0;
 
   if ((!obj) || (!PyString_Check(obj))) goto type_error;
   c = PyString_AsString(obj);
