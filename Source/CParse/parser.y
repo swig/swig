@@ -956,8 +956,8 @@ declaration    : swig_directive { $$ = $1; }
    		      add_symbols($$);
                   }
                   $$ = $1; 
-               }
-               ;
+	       }              
+              ;
 
 
 /* ======================================================================
@@ -2658,6 +2658,10 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 		      }
 		      if (error) $$ = 0;
                   }
+                | TEMPLATE cpptype idcolon {
+		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
+                   $$ = 0; 
+                }
                 ;
 
 cpp_temp_possible:  c_decl {
