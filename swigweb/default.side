@@ -18,7 +18,7 @@
 <tr><td bgcolor="#000000" align=center><font color="#ffffff"><b>Exits</b></font></td></tr>
 <tr><td><a href="http://www.perl.com">Perl</a></td></tr>
 <tr><td><a href="http://www.python.org">Python</a></td></tr>
-<tr><td><a href="http://dev.scriptics.com">Tcl/Tk</a></td></tr>
+<tr><td><a href="http://www.tcl.tk">Tcl/Tk</a></td></tr>
 <tr><td><a href="http://www.gnu.org/software/guile/guile.html">Guile</a></td></tr>
 <tr><td><a href="http://www.cs.rice.edu/CS/PLT/packages/mzscheme/">MzScheme</a></td></tr>
 <tr><td><a href="http://www.ruby-lang.org">Ruby</a></td></tr>
