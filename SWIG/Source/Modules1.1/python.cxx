@@ -954,7 +954,7 @@ public:
 	} else {
 	  /* Hmmm. We seem to be creating a different constructor.  We're just going to create a
 	     function for it. */
-	  
+
 	  if (Getattr(n,"feature:shadow")) {
 	    String *pycode = pythoncode(Getattr(n,"feature:shadow"),"");
 	    Printv(f_shadow_stubs,pycode,"\n",NULL);
@@ -1067,7 +1067,10 @@ public:
 	  initial++;
 	  c++;
 	}
-	break;
+	if (*c && !isspace(*c)) break;
+	else {
+	  initial = 0;
+	}
       }
     }
     while (s) {
