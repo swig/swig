@@ -121,12 +121,12 @@ usage = "\
 Ruby Options (available with -ruby)\n\
      -globalmodule   - Wrap everything into the global module\n\
      -minherit       - Attempt to support multiple inheritance\n\
+     -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -feature <name> - Set feature name to <name> (used by `require')\n";
 
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
-
 
 class RUBY : public Language {
 private:
@@ -134,6 +134,7 @@ private:
   String *module;
   String *modvar;
   String *feature;
+  String *prefix;
   int current;
   Hash *classes;		/* key=cname val=RClass */
   RClass *klass;		/* Currently processing class */
@@ -176,6 +177,7 @@ public:
     module = 0;
     modvar = 0;
     feature = 0;
+    prefix = 0;
     current = NO_CPP;
     classes = 0;
     klass = 0;
@@ -219,6 +221,16 @@ public:
 	} else if (strcmp(argv[i],"-minherit") == 0) {
           multipleInheritance = true;
 	  Swig_mark_arg(i);
+        } else if (strcmp(argv[i],"-prefix") == 0) {
+          if (argv[i+1]) {
+            char *name = argv[i+1];
+            prefix = NewString(name);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i+1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  Printf(stderr,"%s\n", usage);
 	}
@@ -480,6 +492,10 @@ public:
   virtual int importDirective(Node *n) {
     String *modname = Getattr(n,"module");
     if (modname) {
+      if (prefix) {
+        Insert(modname, 0, prefix);
+      }
+      
       List *modules = Split(modname,':',INT_MAX);
       if (modules && Len(modules) > 0) {
         modname = NewString("");
@@ -515,6 +531,10 @@ public:
     if (module == 0) {
       /* Start with the empty string */
       module = NewString("");
+
+      if (prefix) {
+        Insert(mod_name, 0, prefix);
+      }
       
       /* Account for nested modules */
       List *modules = Split(mod_name,':',INT_MAX);
