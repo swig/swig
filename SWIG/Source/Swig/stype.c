@@ -279,7 +279,7 @@ int SwigType_issimple(SwigType *t) {
  *     Arrays:        a().SWIGTYPE
  *     Types:         SWIGTYPE
  *     MemberPointer: m(CLASS).SWIGTYPE
- *     Enums:         enum SWIGENUM
+ *     Enums:         enum SWIGTYPE
  *
  * Note: if this function is applied to a primitive type, it returns NULL.  This
  * allows recursive application for special types like arrays.
