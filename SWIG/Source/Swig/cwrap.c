@@ -129,7 +129,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
   while (p != 0) {
     lname  = Swig_cparm_name(p,i);
     pt     = Getattr(p,"type");
-    if (SwigType_type(pt) != T_VOID) {
+    if ((SwigType_type(pt) != T_VOID) && (!SwigType_isvarargs(pt))) {
       pname  = Getattr(p,"name");
       pvalue = Getattr(p,"value");
       altty = Getattr(p,"alttype");
@@ -204,6 +204,7 @@ String *
 Swig_cfunction_call(String_or_char *name, ParmList *parms) {
   DOH *func;
   int i = 0;
+  int comma = 0;
   Parm *p = parms;
   SwigType *pt;
 
@@ -212,14 +213,15 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
   while (p) {
     String *pname;
     pt = Getattr(p,"type");
-    if (SwigType_type(pt) != T_VOID) {
+
+    if ((SwigType_type(pt) != T_VOID) && (!SwigType_isvarargs(pt))) {
+      if (comma) Printf(func,",");
       pname = Swig_cparm_name(p,i);
       Printf(func,"%s", SwigType_rcaststr(pt, pname));
+      comma = 1;
       i++;
     }
     p = nextSibling(p);
-    if (p) 
-      Printf(func,",");
   }
   Printf(func,")");
   return func;
@@ -240,6 +242,7 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
   int i = 0;
   Parm *p = parms;
   SwigType *pt;
+  int comma = 0;
 
   func = NewString("");
   if (!p) return func;
@@ -250,14 +253,14 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
   while (p) {
     String *pname;
     pt = Getattr(p,"type");
-    if (SwigType_type(pt) != T_VOID) {
+    if ((SwigType_type(pt) != T_VOID) && (!SwigType_isvarargs(pt))) {
+      if (comma) Printf(func,",");
       pname = Swig_cparm_name(p,i);
       Printf(func,"%s", SwigType_rcaststr(pt, pname));
+      comma = 1;
       i++;
     }
     p = nextSibling(p);
-    if (p) 
-      Printf(func,",");
   }
   Printf(func,")");
   return func;
@@ -295,6 +298,7 @@ String *
 Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
   DOH *func;
   int i = 0;
+  int comma = 0;
   Parm *p = parms;
   SwigType *pt;
   func = NewString("");
@@ -302,14 +306,14 @@ Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
   while (p) {
     String *pname;
     pt = Getattr(p,"type");
-    if (SwigType_type(pt) != T_VOID) {
+    if ((SwigType_type(pt) != T_VOID) && (!SwigType_isvarargs(pt))) {
+      if (comma) Printf(func,",");
       pname = Swig_cparm_name(p,i);
       Printf(func,"%s", SwigType_rcaststr(pt, pname));
+      comma = 1;
       i++;
     }
     p = nextSibling(p);
-    if (p) 
-      Printf(func,",");
   }
   Printf(func,")");
   return func;
