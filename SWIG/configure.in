@@ -393,6 +393,7 @@ fi
 AC_SUBST(XINCLUDES)
 AC_SUBST(XLIBSW)
 
+AC_ARG_WITH(alllang, AS_HELP_STRING([--without-alllang], [Disable all languages]), with_alllang="$withval")
 
 #--------------------------------------------------------------------
 #	Try to locate the Tcl package
@@ -414,7 +415,7 @@ AC_ARG_WITH(tcllib,[  --with-tcllib=path      Set location of Tcl library direct
 	TCLLIB="-L$withval"], [TCLLIB=])
 
 # First, check for "--without-tcl" or "--with-tcl=no".
-if test x"${TCLPACKAGE}" = xno ; then 
+if test x"${TCLPACKAGE}" = xno -o x"${with_alllang}" = xno; then 
 AC_MSG_NOTICE([Disabling Tcl])
 else
 AC_MSG_CHECKING([for Tcl configuration])
@@ -544,7 +545,7 @@ AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Disable Python])
 AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBIN="$withval"], [PYBIN=])
 
 # First, check for "--without-python" or "--with-python=no".
-if test x"${PYBIN}" = xno ; then 
+if test x"${PYBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Python])
 else
 # First figure out the name of the Python executable
@@ -644,7 +645,7 @@ AC_ARG_WITH(perl5, AS_HELP_STRING([--without-perl5], [Disable Perl5])
 AS_HELP_STRING([--with-perl5=path], [Set location of Perl5 executable]),[ PERLBIN="$withval"], [PERLBIN=])
 
 # First, check for "--without-perl5" or "--with-perl5=no".
-if test x"${PERLBIN}" = xno ; then 
+if test x"${PERLBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Perl5])
 else
 
@@ -719,7 +720,7 @@ AS_HELP_STRING([--with-java=path], [Set location of Java executable]),[JAVABIN="
 AC_ARG_WITH(javac, [  --with-javac=path       Set location of Javac executable],[JAVACBIN="$withval"], [JAVACBIN=])
 
 # First, check for "--without-java" or "--with-java=no".
-if test x"${JAVABIN}" = xno ; then 
+if test x"${JAVABIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Java])
 else
 
@@ -848,7 +849,7 @@ AC_ARG_WITH(guilelib,[  --with-guilelib=path    Set location of Guile library di
 	GUILELIB="$withval"])
 
 # First, check for "--without-guile" or "--with-guile=no".
-if test x"${GUILE}" = xno ; then 
+if test x"${GUILE}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Guile])
 else
 
@@ -956,7 +957,7 @@ AS_HELP_STRING([--with-mzscheme=path], [Set location of MzScheme executable]),[ 
 AC_ARG_WITH(mzc, AS_HELP_STRING([--with-mzc=path], [Set location of MzScheme's mzc]), [ MZCBIN="$withval"], [MZCBIN=])
 
 # First, check for "--without-mzscheme" or "--with-mzscheme=no".
-if test x"${MZSCHEMEBIN}" = xno ; then 
+if test x"${MZSCHEMEBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling MzScheme])
 else
 
@@ -990,7 +991,7 @@ AC_ARG_WITH(ruby, AS_HELP_STRING([--without-ruby], [Disable Ruby])
 AS_HELP_STRING([--with-ruby=path], [Set location of Ruby executable]),[ RUBYBIN="$withval"], [RUBYBIN=])
 
 # First, check for "--without-ruby" or "--with-ruby=no".
-if test x"${RUBYBIN}" = xno ; then 
+if test x"${RUBYBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Ruby])
 else
 
@@ -1091,7 +1092,7 @@ AC_ARG_WITH(php4, AS_HELP_STRING([--without-php4], [Disable PHP4])
 AS_HELP_STRING([--with-php4=path], [Set location of PHP4 executable]),[ PHP4BIN="$withval"], [PHP4BIN=])
 
 # First, check for "--without-php4" or "--with-php4=no".
-if test x"${PHP4BIN}" = xno ; then 
+if test x"${PHP4BIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling PHP4])
 else
 
@@ -1141,7 +1142,7 @@ AC_ARG_WITH(ocamlfind,[  --with-ocamlfind=path   Set location of ocamlfind],[OCA
 AC_ARG_WITH(ocamlmktop,[  --with-ocamlmktop=path  Set location of ocamlmktop executable],[ OCAMLMKTOP="$withval"], [OCAMLMKTOP=])
 
 # First, check for "--without-ocaml" or "--with-ocaml=no".
-if test x"${OCAMLBIN}" = xno ; then 
+if test x"${OCAMLBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling OCaml])
 else
 
@@ -1224,7 +1225,7 @@ AC_ARG_WITH(pike, AS_HELP_STRING([--without-pike], [Disable Pike])
 AS_HELP_STRING([--with-pike=path], [Set location of Pike executable]),[ PIKEBIN="$withval"], [PIKEBIN=])
 
 # First, check for "--without-pike" or "--with-pike=no".
-if test x"${PIKEBIN}" = xno ; then 
+if test x"${PIKEBIN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Pike])
 else
 
@@ -1288,7 +1289,7 @@ AC_ARG_WITH(chicken, AS_HELP_STRING([--without-chicken], [Disable CHICKEN])
 AS_HELP_STRING([--with-chicken=path], [Set location of CHICKEN executable]),[ CHICKEN="$withval"], [CHICKEN=])
 
 # First, check for "--without-chicken" or "--with-chicken=no".
-if test x"${CHICKEN}" = xno ; then 
+if test x"${CHICKEN}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling CHICKEN])
 else
 
@@ -1422,7 +1423,7 @@ AC_ARG_WITH(cil-interpreter, [  --with-cil-interpreter=path     Set location of 
 AC_ARG_WITH(csharp-compiler, [  --with-csharp-compiler=path     Set location of CSharp compiler],[CSHARPCOMPILERBIN="$withval"], [CSHARPCOMPILERBIN=])
 
 # First, check for "--without-csharp" or "--with-csharp=no".
-if test x"${with_csharp}" = xno ; then 
+if test x"${with_csharp}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling CSharp])
 else
 
