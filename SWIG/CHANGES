@@ -16,6 +16,12 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+09/08/2002: samjam (Sam Liddicott)
+            Many changes to php module.  Shadow classes are now implemented
+            entirely in native C and no need for php-code shadow wrappers
+            Populated template config.m4 and Makefile.in as needed by
+            phpize are generated.
+
 05/08/2002: ljohnson (Lyle Johnson)
             [Ruby] A copy constructor is now turned into a "clone"
             instance method (see Dave's change for copy constructors
