@@ -28,7 +28,7 @@ public class main {
     // It returns a new allocated object.
     
     System.out.println( "Adding a+b" );
-    Vector c = new Vector (example.addv(a.getCPtr(),b.getCPtr()), false);
+    Vector c = new Vector (example.addv(a.getCPtrVector(),b.getCPtrVector()), false);
     System.out.println( "    a+b = " + c.print() );
     
     // Note: Unless we free the result, a memory leak will occur
@@ -55,7 +55,7 @@ public class main {
     // This will work, but it will cause a memory leak!
     // This is the low level way of using Java with SWIG and isn't very readable!
     
-    example.VectorArray_set(va.getCPtr(),2,example.addv(a.getCPtr(),b.getCPtr()));
+    example.VectorArray_set(va.getCPtrVectorArray(),2,example.addv(a.getCPtrVector(),b.getCPtrVector()));
     
     // The non-leaky way to do it. This is the high level way of using Java with SWIG.
     // This relies on the garbage collector for freeing memory
@@ -63,7 +63,7 @@ public class main {
     // c++ class. The code would then instead be:
     // c = Vector.addv(a,b); 
     
-    c = new Vector(example.addv(a.getCPtr(),b.getCPtr()), true);
+    c = new Vector(example.addv(a.getCPtrVector(),b.getCPtrVector()), true);
     va.set(3,c);
     
     // Get some values from the array
