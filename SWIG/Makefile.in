@@ -75,6 +75,13 @@ DOH:
 	@cd $(SOURCE)/DOH; $(MAKE)
 
 #####################################################################
+# Runtime libraries
+#####################################################################
+
+runtime:
+	@cd Runtime; $(MAKE)
+
+#####################################################################
 # CLEAN
 #####################################################################
 
@@ -85,6 +92,8 @@ clean:
 		cd $(SOURCE)/$$i; $(MAKE) clean; cd $(srcdir); \
 	   fi \
 	done;
+	@cd Runtime; $(MAKE) clean
+
  
 #####################################################################
 # TARGETS: install & friends
@@ -94,7 +103,7 @@ INSTALL        = ./install-sh -c
 INSTALL_DATA   = ${INSTALL} -m 644
 INSTALL_PROGRAM= ${INSTALL} -m 755
 
-install: install-main install-lib
+install: install-main install-lib install-runtime
 	@echo "Installation complete"
 
 install-main:
@@ -156,3 +165,6 @@ install-lib:
 	    echo "Installing Lib/guile/$$i"; \
             ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/guile/$$i; \
 	    done;
+
+install-runtime:
+	@cd Runtime; $(MAKE) install
