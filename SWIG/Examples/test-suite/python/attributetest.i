@@ -5,9 +5,11 @@
 %attribute(A, int, a, get_a, set_a);
 %attribute_ref(A, int, b);
 
+%attribute_ref(Param<int>, int, value);
+
 
 %attribute(A, int, c, get_c);  /* read-only */
-%attribute_ref(A, int, d, b);  /* different attribute name 'd' */
+%attribute_ref(A, int, b, d);  /* different attribute name 'd' */
 
 %inline
 {
@@ -46,5 +48,28 @@
     int _b;
     int _c;
   };
+
+  template <class C>
+  struct Param 
+  {
+    Param(C v) : _v(v)
+    {
+    }
+
+    const int& value() const 
+    {
+      return _v;
+    }
+    
+    int& value() 
+    {
+      return _v;
+    }    
+  private:
+    C _v;
+  };  
 }
+
+%template(Param_i) Param<int>;
+
 
