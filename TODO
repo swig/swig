@@ -213,7 +213,7 @@ Ruby
 Java
 ----
 
-****   Default argument support. Default arguments are effectively ignored 
+[DONE] Default argument support. Default arguments are effectively ignored 
        at present. An overridden method for each default argument could be 
        generated thereby enabling one to call methods with default arguments.
 
@@ -228,7 +228,7 @@ C#
 ****   Fix exception handling. Currently memory leaks occur when a C# exception
        is thrown from C/C++.
 
-****   Default argument support - see Java above.
+[DONE] Default argument support - see Java above.
 
 PHP
 ---
