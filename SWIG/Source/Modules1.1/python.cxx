@@ -584,7 +584,7 @@ public:
     
     Replaceall(dispatch,"$args","self,args");
     Printv(f->code,dispatch,"\n",NULL);
-    Printf(f->code,"PyErr_SetString(PyExc_TypeError,\"No match for overloaded '%s'\");\n", symname);
+    Printf(f->code,"PyErr_SetString(PyExc_TypeError,\"No matching function for overloaded '%s'\");\n", symname);
     Printf(f->code,"return NULL;\n");
     Printv(f->code,"}\n",NULL);
     Wrapper_print(f,f_wrappers);

@@ -131,6 +131,7 @@
 #define WARN_TYPEMAP_CONST_UNDEF      464
 #define WARN_TYPEMAP_UNDEF            465
 #define WARN_TYPEMAP_VAR_UNDEF        466
+#define WARN_TYPEMAP_TYPECHECK        467
 
 /* -- General code generation -- */
 
@@ -142,6 +143,7 @@
 #define WARN_LANG_VARARGS_KEYWORD     506
 #define WARN_LANG_NATIVE_UNIMPL       507
 #define WARN_LANG_DEREF_SHADOW        508
+#define WARN_LANG_OVERLOAD_SHADOW     509
 
 /* -- Reserved (600-799) -- */
 

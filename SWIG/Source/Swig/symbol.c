@@ -568,7 +568,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     /* Well, we made it this far.  Guess we can drop the symbol in place */
     Setattr(n,"sym:symtab",current_symtab);
     Setattr(n,"sym:name",symname);
-    Setattr(n,"sym:overname", NewStringf("_%d", pn));
+    Setattr(n,"sym:overname", NewStringf("__SWIG_%d", pn));
     Setattr(cl,"sym:nextSibling",n);
     Setattr(n,"sym:previousSibling",cl);
     Setattr(cl,"sym:overloaded",c);
@@ -579,7 +579,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   /* No conflict.  Just add it */
   Setattr(n,"sym:symtab",current_symtab);
   Setattr(n,"sym:name",symname);
-  Setattr(n,"sym:overname", NewStringf("_%d", pn));
+  Setattr(n,"sym:overname", NewStringf("__SWIG_%d", pn));
   Setattr(current,symname,n);
   return n;
 }

@@ -60,7 +60,7 @@ Swig_overload_rank(Node *n) {
     c = Getattr(c,"sym:nextSibling");
   }
 
-  /* Sort the declarations by argument count */
+  /* Sort the declarations by required argument count */
   {
     int i,j;
     for (i = 0; i < nnodes; i++) {
@@ -73,43 +73,6 @@ Swig_overload_rank(Node *n) {
       }
     }
   }
-  
-  /* For declarations with the same argument count, we have to get
-     precedence levels */
-#if 0
-  {
-    int i,j;
-    for (i = 0; i < (nnodes-1); i++) {
-      if (nodes[i].argc == nodes[i+1].argc) {
-	for (j = i; ((j < nnodes) && (nodes[j].argc == nodes[i].argc)); j++) {
-	  Parm *p = nodes[i].parms;
-	  while (p) {
-	    if (Getattr(p,"tmap:ignore")) {
-	      p = Getattr(p,"tmap:ignore:next");
-	      continue;
-	    }
-	    /* Get argument precedence level */
-	    String *prec = Getattr(p,"tmap:typecheck:precedence");
-	    if (!prec) {
-	      Printf(stdout,"Can't disambiguate '%s' %s\n", Getattr(nodes[i].n,"name"),
-		     ParmList_str(Getattr(nodes[i].n,"parms")));
-	    } 
-	    
-	    //	Printf(stdout,"%s. prec = '%s'\n", Getattr(p,"type"), prec); 
-	    if (!prec) {
-	      Setattr(p,"tmap:typecheck:precedence","0");
-	    }
-	    if (Getattr(p,"tmap:in:next")) {
-	      p = Getattr(p,"tmap:in:next");
-	    } else {
-	      p = nextSibling(p);
-	    }
-	  }
-	}
-      }
-    }
-  }
-#endif
 
   /* Sort the declarations by argument types */
   {
@@ -133,13 +96,17 @@ Swig_overload_rank(Node *n) {
 	    String *t1 = Getattr(p1,"tmap:typecheck:precedence");
 	    String *t2 = Getattr(p2,"tmap:typecheck:precedence");
 	    if ((!t1) && (!nodes[i].error)) {
-	      Printf(stdout,"No typecheck rule defined for overloaded %s(%s) at argument '%s'\n", 
-		     Getattr(nodes[i].n,"name"),ParmList_str(Getattr(nodes[i].n,"parms")),
-		     SwigType_str(Getattr(p1,"type"),Getattr(p1,"name")));
+	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[i].n), Getline(nodes[i].n),
+			   "Overloaded %s(%s) not supported (no type checking rule for '%s').\n", 
+			   Getattr(nodes[i].n,"name"),ParmList_str(Getattr(nodes[i].n,"parms")),
+			   SwigType_str(Getattr(p1,"type"),0));
+	      nodes[i].error = 1;
 	    } else if ((!t2) && (!nodes[j].error)) {
-	      Printf(stdout,"No typecheck rule defined for overloaded %s(%s) at argument '%s'\n", 
-		     Getattr(nodes[j].n,"name"),ParmList_str(Getattr(nodes[j].n,"parms")),
-		     SwigType_str(Getattr(p2,"type"),Getattr(p2,"name")));
+	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[j].n), Getline(nodes[j].n),
+			   "Overloaded %s(%s) not supported (no type checking rule for '%s').\n", 
+			   Getattr(nodes[j].n,"name"),ParmList_str(Getattr(nodes[j].n,"parms")),
+			   SwigType_str(Getattr(p2,"type"),0));
+	      nodes[j].error = 1;
 	    }
 	    if (t1 && t2) differ = Strcmp(t1,t2);
 	    else if (!t1 && t2) differ = 1;
@@ -150,8 +117,16 @@ Swig_overload_rank(Node *n) {
 	      nodes[j] = t;
 	      break;
 	    } else if ((differ == 0) && (Strcmp(t1,"0") == 0)) {
-	      t1 = Getattr(p1,"type");
-	      t2 = Getattr(p2,"type");
+	      t1 = Getattr(p1,"ltype");
+	      if (!t1) {
+		t1 = SwigType_ltype(Getattr(p1,"type"));
+		Setattr(p1,"ltype",t1);
+	      }
+	      t2 = Getattr(p2,"ltype");
+	      if (!t2) {
+		t2 = SwigType_ltype(Getattr(p2,"type"));
+		Setattr(p2,"ltype",t2);
+	      }
 	      if (Strcmp(t1,t2) != 0) {
 		differ = 1;
 		break;
@@ -170,8 +145,11 @@ Swig_overload_rank(Node *n) {
 	  }
 	  if (!differ) {
 	    if (!nodes[j].error) {
-	      Printf(stdout,"Overloaded %s(%s) is ambiguous\n",
-		     Getattr(nodes[j].n,"name"), ParmList_str(Getattr(nodes[j].n,"parms")));
+	      Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
+			   "Overloaded %s(%s) is shadowed by %s(%s) at %s:%d.\n",
+			   Getattr(nodes[j].n,"name"), ParmList_str(Getattr(nodes[j].n,"parms")),
+			   Getattr(nodes[i].n,"name"), ParmList_str(Getattr(nodes[i].n,"parms")),
+			   Getfile(nodes[i].n),Getline(nodes[i].n));
 	      nodes[j].error = 1;
 	    }
 	  }
