@@ -1,5 +1,14 @@
 Version 1.3.18 (In progress)
 ============================
+02/12/2003: beazley
+            Fixed [ 685410 ] C++ Explicit template instantiation causes SWIG to exit.
+            Fixes a syntax error with declarations similar to this:
+
+                 template class std::vector<int>;
+
+            SWIG now ignores the instantiation and generates a warning message.
+            We might do more later.  Reported by Thomas Williamson.
+
 02/11/2003: beazley
             Fixed more very subtle preprocessor corner cases related to recursive
             macro expansion.  For example:
