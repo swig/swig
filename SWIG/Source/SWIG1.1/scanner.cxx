@@ -55,6 +55,80 @@ static  int    num_brace = 0;
 static  int    last_brace = 0;
 extern  int    Error;
 
+/* ----------------------------------------------------------------------
+ * locator()
+ *
+ * Support for locator strings.   These are strings of the form
+ * @filename,line,id@ emitted by the SWIG preprocessor.  They
+ * are primarily used for macro line number reporting 
+ * ---------------------------------------------------------------------- */
+
+typedef struct Locator {
+  char           *filename;
+  int             line_number;
+  struct Locator *next;
+} Locator;
+
+static Locator *locs = 0;
+  
+static void
+scanner_locator(String *loc) {
+  char c;
+  Locator *l;
+  Seek(loc,1,SEEK_SET);
+  c = Getc(loc);
+  if (c == '@') {
+    /* Empty locator.  We pop the last location off */
+    if (locs) {
+      delete [] input_file;
+      input_file = locs->filename;
+      line_number = locs->line_number;
+      l = locs->next;
+      delete locs;
+      locs = l;
+    }
+    /*    Printf(stderr,"location: %s:%d\n",input_file,line_number);*/
+    return;
+  }
+
+  /* We're going to push a new location */
+  l = new Locator;
+  l->filename = input_file;
+  l->line_number = line_number;
+  l->next = locs;
+  locs = l;
+  
+  /* Now, parse the new location out of the locator string */
+  
+  String *fn = NewString("");
+  Putc(c,fn);
+  
+  while ((c = Getc(loc)) != EOF) {
+    if ((c == '@') || (c == ',')) break;
+    Putc(c,fn);
+  }
+
+  input_file = Swig_copy_string(Char(fn));
+  Clear(fn);
+  
+  line_number = 1;
+  /* Get the line number */
+  while ((c = Getc(loc)) != EOF) {
+    if ((c == '@') || (c == ',')) break;
+    Putc(c,fn);
+  }
+
+  line_number = atoi(Char(fn));
+  Clear(fn);
+
+  /* Get the rest of it */
+  while (( c= Getc(loc)) != EOF) {
+    if (c == '@') break;
+    Putc(c,fn);
+  }
+  /*  Printf(stderr,"location: %s:%d\n",input_file,line_number); */
+  Delete(fn);
+}
 
 /**************************************************************
  * scanner_init()
@@ -537,13 +611,11 @@ int yylook(void) {
 	  if (c == '/') {
 	    comment_start = line_number;
 	    Clear(comment);
-	    Printf(comment,"  ");
 	    state = 10;        // C++ style comment
 	  } else if (c == '*') {
 	    comment_start = line_number;
 	    Clear(comment);
-	    Printf(comment,"  ");
-	    state = 11;   // C style comment
+	    state = 12;   // C style comment
 	  } else {
 	    retract(1);
 	    return(SLASH);
@@ -567,21 +639,22 @@ int yylook(void) {
 	    yylen = 0;
 	  }
 	  break;
-	case 11: /* C style comment block */
+
+	case 12: /* C style comment block */
 	  if ((c = nextchar()) == 0) {
 	    Printf(stderr,"%s : EOF. Unterminated comment detected.\n", input_file);
 	    FatalError();
 	    return 0;
 	  }
 	  if (c == '*') {
-	    state = 12;
+	    state = 13;
 	  } else {
 	    Putc(c,comment);
 	    yylen = 0;
-	    state = 11;
+	    state = 12;
 	  }
 	  break;
-	case 12: /* Still in C style comment */
+	case 13: /* Still in C style comment */
 	  if ((c = nextchar()) == 0) {
 	    Printf(stderr,"%s : EOF. Unterminated comment detected.\n", input_file);
 	    FatalError();
@@ -589,9 +662,19 @@ int yylook(void) {
 	  }
 	  if (c == '*') {
 	    Putc(c,comment);
-	    state = 12;
+	    state = 13;
 	  } else if (c == '/') {
-	    Printf(comment,"  \n");
+
+	    /* Look for locator markers */
+	    {
+	      char *loc = Char(comment);
+	      if (Len(comment)) {
+		if ((*loc == '@') && (*(loc+Len(comment)-1) == '@')) {
+		  /* Locator */
+		  scanner_locator(comment);
+		}
+	      }
+	    }
 	    //	    yycomment(Char(comment),comment_start,column_start);
 	    yylen = 0;
 	    state = 0;
@@ -599,7 +682,7 @@ int yylook(void) {
 	    Putc('*',comment);
 	    Putc(c,comment);
 	    yylen = 0;
-	    state = 11;
+	    state = 12;
 	  }
 	  break;
 
@@ -636,8 +719,7 @@ int yylook(void) {
 	    state = 40;   /* Include block */
 	    Clear(header);
 	    start_line = line_number;
-	  }
-	  else if ((isalpha(c)) || (c == '_')) state = 7;
+	  } else if ((isalpha(c)) || (c == '_')) state = 7;
 	  else {
 	    retract(1);
 	    state = 99;
