@@ -306,11 +306,8 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
     Replaceall(func,"this", SwigType_rcaststr(pt, Swig_cparm_name(p,0)));
   }
 
-  if (SwigType_istemplate(name)) {
-      Printf(func,"template %s(", nname);
-  } else {
-      Printf(func,"%s(", nname);
-  }
+  Printf(func,"%s(", nname);
+
   i++;
   p = nextSibling(p);
   while (p) {
