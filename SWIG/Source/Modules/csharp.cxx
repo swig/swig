@@ -846,14 +846,15 @@ class CSHARP : public Language {
       Setattr(n, "value", new_value);
     }
 
-    // enums are wrapped using a public final static int in java.
-    // Other constants are wrapped using a public final static [jstype] in Java.
-    Printf(constants_code, "  public static %s %s = ", shadowrettype, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
-
     // The %javaconst directive determines how the constant value is obtained
     String *javaconst = Getattr(n,"feature:java:const");
+    bool javaconst_flag = javaconst && Cmp(javaconst, "0") != 0;
 
-    if ((is_enum_item && Getattr(n,"enumvalue") == 0) || !javaconst || Cmp(javaconst, "0") == 0) {
+    // enums are wrapped using a public final static int in java.
+    // Other constants are wrapped using a public final static [jstype] in Java.
+    Printf(constants_code, "  public %s %s %s = ", (javaconst_flag ? "const" : "static readonly"), shadowrettype, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
+
+    if ((is_enum_item && Getattr(n,"enumvalue") == 0) || !javaconst_flag) {
       // Enums without value and default constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
 
       if(is_return_type_java_class) // This handles function pointers using the %constant directive
