@@ -44,13 +44,11 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize)
 SWIGINTERN int
 SWIG_AsWCharPtr(PyObject *obj, wchar_t **val)
 {
-  wchar_t * cptr = 0;
-  int res = 0;
-  if ((res = SWIG_AsWCharPtrAndSize(obj, &cptr, (size_t*)(0)))) {
-    if (val) *val = cptr;
-    return res;
+  if (SWIG_AsWCharPtrAndSize(obj, val, (size_t*)(0))) {
+    return 1;
   }
   if (val) {
+    PyErr_Clear();
     SWIG_type_error("wchar_t *", obj);
   }
   return 0;

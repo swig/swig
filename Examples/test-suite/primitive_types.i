@@ -545,6 +545,19 @@ macro(size_t,             pfx, sizet)
 }
 
 
+%inline %{
+
+  const char* char_foo(float f, const char *s) {
+    return s;
+  }
+  
+  int char_foo(double d, int i) {
+    return i;
+  }
+  
+%}
+
+
 %apply SWIGTYPE* { char *};
   
 %include "carrays.i"

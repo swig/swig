@@ -344,3 +344,12 @@ f2 = fptr_ref(f)
 if f1._a != f2._a:
   raise RuntimeError, "bad const ptr& typemap"
   
+
+v = char_foo(1,3)
+if v !=3:
+  raise RuntimeError, "bad int typemap"
+
+s = char_foo(1,"hello")
+if s !="hello":
+  raise RuntimeError, "bad char* typemap"
+  

@@ -40,12 +40,11 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize)
 SWIGINTERNSHORT int
 SWIG_AsCharPtr(PyObject *obj, char **val)
 {
-  char* cptr = 0;
-  if (SWIG_AsCharPtrAndSize(obj, &cptr, (size_t*)(0))) {
-    if (val) *val = cptr;
+  if (SWIG_AsCharPtrAndSize(obj, val, (size_t*)(0))) {
     return 1;
   }
   if (val) {
+    PyErr_Clear();
     SWIG_type_error("char *", obj);
   }
   return 0;
