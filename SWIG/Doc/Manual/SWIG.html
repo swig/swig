@@ -369,7 +369,7 @@ of these numbers to be represented.  However, it does not allow
 should also be noted that since <tt>long long</tt> support is not part
 of the ANSI C standard, it is not universally supported by all C
 compilers.  Make sure you are using a compiler that supports <tt>long
-long</tt> before trying to this type with SWIG.
+long</tt> before trying to use this type with SWIG.
 
 <p>
 SWIG recognizes the following floating point types :<p>
@@ -629,6 +629,38 @@ const int    spam = 42;
 </pre>
 </blockquote>
 
+<h3>A cautionary tale of <tt>char *</tt></h3>
+
+Before going any further, there is one bit of caution involving
+<tt>char *</tt> that must now be mentioned.  When strings are passed
+from a scripting language to a C <tt>char *</tt>, the pointer usually
+points to string data stored inside the interpreter.  It is almost
+always a really bad idea to modify this data.  Furthermore, some
+languages may explicitly disallow it.  For instance, in Python,
+strings are supposed be immutable.   If you violate this, you will probably
+receive a vast amount of wrath when you unleash your module on the world.
+
+<p>
+The primary source of problems are functions that might modify string data in place.
+A classic example would be a function like this:
+
+<blockquote>
+<pre>
+char *strcat(char *s, const char *t)
+</pre>
+</blockquote>
+
+Although SWIG will certainly generate a wrapper for this, its behavior
+will be undefined.  In fact, it will probably cause your application
+to crash with a segmentation fault or other memory related problem.
+This is because <tt>s</tt> refers to some internal data in the target
+language---data that you shouldn't be touching.
+
+<p>
+The bottom line: don't rely on <tt>char *</tt> for anything other than read-only 
+input values.   However, it must be noted that you could change the behavior of SWIG
+using <a href="Typemaps.html">typemaps</a>.  
+
 <h2>Pointers and complex objects</h2>
 
 Most C programs manipulate arrays, structures, and other types of objects.  This section
@@ -643,7 +675,8 @@ double ***
 char **
 </pre></blockquote>
 <p>
-are fully supported by SWIG.  SWIG encodes pointers into a
+are fully supported by SWIG.  Rather than trying to convert the data being pointed to into a scripting
+representation, SWIG simply encodes the pointer itself into a
 representation that contains the actual value of the pointer and a type-tag.
 Thus, the SWIG representation of the above
 pointers (in Tcl), might look like this:<p>
@@ -662,14 +695,14 @@ encoded with type information.<p>
 All pointers are treated as opaque objects by SWIG. Thus, a pointer
 may be returned by a function and passed around to other C functions
 as needed.  For all practical purposes, the scripting language
-interface works in exactly the same way as you would manipulate the
+interface works in exactly the same way as you would use the
 pointer in a C program.  The only difference is that there is no mechanism for
 dereferencing the pointer since this would require the target language
 to understand the memory layout of the underlying object.
 
 <p>
 The scripting language representation of a pointer value should never be
-manipulated directly.   Even though the values shown above look like hexadecimal
+manipulated directly.   Even though the values shown look like hexadecimal
 addresses, the numbers used may differ from the actual machine address (e.g.,
 on little-endian machines, the digits may appear in reverse order).
 Furthermore, SWIG does not
@@ -683,8 +716,7 @@ why SWIG does not do this:<p>
 <li>There is not enough information in a C declaration to properly map
 pointers into higher level constructs. For example, an <tt>int *</tt>
 may indeed be an array of integers, but if it contains ten million
-elements, converting it into a list would
-probably be best avoided.
+elements, converting it into a list object is probably a bad idea.
 
 <p>
 <li>The underlying semantics associated with a pointer is not known
