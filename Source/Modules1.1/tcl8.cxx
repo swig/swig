@@ -1196,7 +1196,7 @@ char *TCL8::usage_const(char *name, DataType *, char *value) {
 
 void TCL8::add_native(char *name, char *funcname, DataType *, ParmList *) {
 
-  fprintf(f_init,"\t Tcl_CreateCommand(%s, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",interp_name, name, funcname);
+  fprintf(f_init,"\t Tcl_CreateObjCommand(%s, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",interp_name, name, funcname);
     
 }
  
