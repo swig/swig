@@ -284,8 +284,11 @@
 	"$result = rb_str_new2($1);";
 
 /* Pointers, references, and arrays */
-%typemap(varout) SWIGTYPE*, SWIGTYPE &, SWIGTYPE []
+%typemap(varout) SWIGTYPE*, SWIGTYPE []
         "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor,0);";
+
+%typemap(varout) SWIGTYPE &
+        "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor,0);";
 
 /* Void */
 %typemap(varout) void "$result = Qnil;";
