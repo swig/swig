@@ -49,7 +49,6 @@ class JAVA : public Language {
   bool   global_variable_flag; // Flag for when wrapping a global variable
   bool   member_func_flag;      // flag set when wrapping a member function
 
-  String *module;               // module name
   String *imclass_name;  // intermediary class name
   String *module_class_name;  // module class name
   String *imclass_class_code; // intermediary class code
@@ -255,9 +254,8 @@ class JAVA : public Language {
    * --------------------------------------------------------------------- */
 
   virtual int top(Node *n) {
-    // Make the intermediary class and module class names. The
-    // intermediary class name can be set in the module directive.
 
+    // Get any options set in the module directive
     Node* optionsnode = Getattr( Getattr(n,"module"), "options");
 
     if (optionsnode) {
@@ -292,7 +290,7 @@ class JAVA : public Language {
     if (directorsEnabled()) {
       f_runtime_h = NewFile(outfile_h,"w");
       if (!f_runtime_h) {
-        Printf(stderr,"*** Can't open '%s'\n", outfile_h);
+        Printf(stderr,"Unable to open %s\n", outfile_h);
         SWIG_exit(EXIT_FAILURE);
       }
     }
@@ -313,6 +311,7 @@ class JAVA : public Language {
 
     swig_types_hash = NewHash();
 
+    // Make the intermediary class and module class names. The intermediary class name can be set in the module directive.
     if (!imclass_name) {
       imclass_name = NewStringf("%sJNI", Getattr(n,"name"));
       module_class_name = Copy(Getattr(n,"name"));
@@ -324,19 +323,18 @@ class JAVA : public Language {
         module_class_name = Copy(Getattr(n,"name"));
     }
 
-    module = Copy(Getattr(n,"name"));
     imclass_class_code = NewString("");
     proxy_class_def = NewString("");
     proxy_class_code = NewString("");
     module_class_constants_code = NewString("");
     imclass_baseclass = NewString("");
     imclass_interfaces = NewString("");
-    imclass_class_modifiers = NewString(""); // package access only to the intermediary class by default
+    imclass_class_modifiers = NewString("");
     module_class_code = NewString("");
     module_baseclass = NewString("");
     module_interfaces = NewString("");
     module_imports = NewString("");
-    module_class_modifiers = NewString("public");
+    module_class_modifiers = NewString("");
     imclass_imports = NewString("");
     imclass_cppcasts_code = NewString("");
     imclass_directors = NewString("");
@@ -358,13 +356,11 @@ class JAVA : public Language {
 
     if (directorsEnabled()) {
       Printf(f_runtime,"#define SWIG_DIRECTORS\n");
-    }
 
-    /* Emit initial director header and director code: */
-    if (directorsEnabled()) {
+      /* Emit initial director header and director code: */
       Swig_banner(f_directors_h);
-      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
-      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
+      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_class_name);
+      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_class_name);
 
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
@@ -428,7 +424,7 @@ class JAVA : public Language {
 
       if (Len(imclass_class_modifiers) > 0)
         Printf(f_im, "%s ", imclass_class_modifiers);
-      Printf(f_im, "class %s ", imclass_name);
+      Printf(f_im, "%s ", imclass_name);
 
       if (imclass_baseclass && *Char(imclass_baseclass))
         Printf(f_im, "extends %s ", imclass_baseclass);
@@ -437,6 +433,7 @@ class JAVA : public Language {
       Printf(f_im, "{\n");
 
       // Add the intermediary class methods
+      Replaceall(imclass_class_code, "$module", module_class_name);
       Printv(f_im, imclass_class_code, NIL);
       Printv(f_im, imclass_cppcasts_code, NIL);
       if (Len(imclass_directors) > 0) {
@@ -478,7 +475,7 @@ class JAVA : public Language {
 
       if (Len(module_class_modifiers) > 0)
         Printf(f_module, "%s ", module_class_modifiers);
-      Printf(f_module, "class %s ", module_class_name);
+      Printf(f_module, "%s ", module_class_name);
 
       if (module_baseclass && *Char(module_baseclass))
         Printf(f_module, "extends %s ", module_baseclass);
@@ -492,6 +489,9 @@ class JAVA : public Language {
           Printv(f_module, "implements ", Getattr(n, "name"), "Constants ", NIL);
       }
       Printf(f_module, "{\n");
+
+      Replaceall(module_class_code, "$module", module_class_name);
+      Replaceall(module_class_constants_code, "$module", module_class_name);
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
@@ -520,9 +520,7 @@ class JAVA : public Language {
       if(module_imports)
         Printf(f_module, "%s\n", module_imports);
 
-      if (Len(module_class_modifiers) > 0)
-        Printf(f_module, "%s ", module_class_modifiers);
-      Printf(f_module, "interface %sConstants {\n", module_class_name);
+      Printf(f_module, "public interface %sConstants {\n", module_class_name);
 
       // Write out all the global constants
       Printv(f_module, module_class_constants_code, NIL);
@@ -544,17 +542,6 @@ class JAVA : public Language {
     // Output a Java type wrapper class for each SWIG type
     for (Iterator swig_type = First(swig_types_hash); swig_type.key; swig_type = Next(swig_type)) {
       emitTypeWrapperClass(swig_type.key, swig_type.item);
-    }
-
-    /* Close all of the files */
-    Dump(f_header,f_runtime);
-
-    if (directorsEnabled()) {
-      Dump(f_directors, f_runtime);
-      Dump(f_directors_h, f_runtime_h);
-
-      Printf(f_runtime_h, "\n");
-      Printf(f_runtime_h, "#endif\n");
     }
 
     Delete(swig_types_hash); swig_types_hash = NULL;
@@ -584,13 +571,21 @@ class JAVA : public Language {
     n_dmethods = 0;
     emitted_connect = false;
 
-    if (f_runtime_h) {
+    /* Close all of the files */
+    Dump(f_header,f_runtime);
+
+    if (directorsEnabled()) {
+      Dump(f_directors, f_runtime);
+      Dump(f_directors_h, f_runtime_h);
+
+      Printf(f_runtime_h, "\n");
+      Printf(f_runtime_h, "#endif\n");
+
       Close(f_runtime_h);
       Delete(f_runtime_h); f_runtime_h = NULL;
+      Delete(f_directors); f_directors = NULL;
+      Delete(f_directors_h); f_directors_h = NULL;
     }
-
-    Delete(f_directors); f_directors = NULL;
-    Delete(f_directors_h); f_directors_h = NULL;
 
     Dump(f_wrappers,f_runtime);
     Wrapper_pretty_print(f_init,f_runtime);
@@ -757,6 +752,7 @@ class JAVA : public Language {
     Swig_typemap_attach_parms("jni", l, f);
     Swig_typemap_attach_parms("jtype", l, f);
 
+    /* Get return types */
     if ((tm = Swig_typemap_lookup_new("jni",n,"",0))) {
       Printf(c_return_type,"%s", tm);
     } else {
@@ -1112,7 +1108,7 @@ class JAVA : public Language {
             (enum_feature == ProperEnum) ? 
             ";\n" :
             "",
-            typemapLookup("javagetcptr", typemap_lookup_type, WARN_NONE), // getCPtr method (will probably never be used, but what the heck)
+            typemapLookup("javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF), // main body of class
             typemapLookup("javacode", typemap_lookup_type, WARN_NONE), // extra Java code
             "}\n",
             "\n",
@@ -1352,6 +1348,16 @@ class JAVA : public Language {
   }
 
   /* -----------------------------------------------------------------------------
+   * insertDirective()
+   * ----------------------------------------------------------------------------- */
+
+  virtual int insertDirective(Node *n) {
+    String *code = Getattr(n,"code");
+    Replaceall(code, "$module", module_class_name);
+    return Language::insertDirective(n);
+  }
+
+  /* -----------------------------------------------------------------------------
    * pragmaDirective()
    *
    * Valid Pragmas:
@@ -1516,7 +1522,7 @@ class JAVA : public Language {
         typemapLookup("javaimports", typemap_lookup_type, WARN_NONE), // Import statements
         "\n",
         typemapLookup("javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
-        " class $javaclassname",       // Class name and bases
+        " $javaclassname",       // Class name and bases
         (derived || *Char(pure_baseclass)) ?
         " extends " : 
         "",
@@ -1526,20 +1532,10 @@ class JAVA : public Language {
         " implements " :
         "",
         pure_interfaces,
-        " {\n",
-        "  private long swigCPtr;\n",  // Member variables for memory handling
-        derived ? 
-        "" : 
-        "  protected boolean swigCMemOwn;\n",
-        "\n",
-        "  ",
-        typemapLookup("javaptrconstructormodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
-        " $javaclassname(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
-        derived ? 
-        "    super($imclassname.SWIG$javaclassnameTo$baseclass(cPtr), cMemoryOwn);\n" : 
-        "    swigCMemOwn = cMemoryOwn;\n",
-        "    swigCPtr = cPtr;\n",
-        "  }\n",
+        " {",
+        derived ?
+        typemapLookup("javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) : // main body of class
+        typemapLookup("javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF), // main body of class
         NIL);
 
     if(!have_default_constructor_flag) { // All proxy classes need a constructor
@@ -1589,9 +1585,8 @@ class JAVA : public Language {
     Delete(attributes);
     Delete(destruct);
 
-    // Emit various other methods
+    // Emit extra user code
     Printv(proxy_class_def, 
-        typemapLookup("javagetcptr", typemap_lookup_type, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
         typemapLookup("javacode", typemap_lookup_type, WARN_NONE), // extra Java code
         "\n",
         NIL);
@@ -1608,23 +1603,17 @@ class JAVA : public Language {
     Replaceall(proxy_class_code, "$javaclassname", proxy_class_name);
     Replaceall(proxy_class_def,  "$javaclassname", proxy_class_name);
 
-    Replaceall(proxy_class_def,  "$baseclass", baseclass);
-    Replaceall(proxy_class_code, "$baseclass", baseclass);
-
-    Replaceall(proxy_class_def,  "$imclassname", imclass_name);
-    Replaceall(proxy_class_code, "$imclassname", imclass_name);
+    Replaceall(proxy_class_def,  "$module", module_class_name);
+    Replaceall(proxy_class_code, "$module", module_class_name);
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if(derived){
-      Printv(imclass_cppcasts_code,"  public final static native long ",
-          "SWIG$javaclassnameTo$baseclass(long jarg1);\n",
-          NIL);
+      Printv(imclass_cppcasts_code,"  public final static native long SWIG$javaclassnameUpcast(long jarg1);\n", NIL);
 
       Replaceall(imclass_cppcasts_code, "$javaclassname", proxy_class_name);
-      Replaceall(imclass_cppcasts_code, "$baseclass", baseclass);
 
       Printv(upcasts_code,
-          "JNIEXPORT jlong JNICALL Java_$jnipackage$imimclass_SWIG$imclazznameTo$imbaseclass",
+          "JNIEXPORT jlong JNICALL Java_$jnipackage$imimclass_SWIG$imclazznameUpcast",
           "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
           "    jlong baseptr = 0;\n"
           "    (void)jenv;\n"
@@ -1637,15 +1626,12 @@ class JAVA : public Language {
 
       String *imimclass  = makeValidJniName(imclass_name);
       String *imclazzname = makeValidJniName(proxy_class_name);
-      String *imbaseclass = makeValidJniName(baseclass);
-      Replaceall(upcasts_code, "$imbaseclass", imbaseclass);
       Replaceall(upcasts_code, "$cbaseclass",  c_baseclass);
       Replaceall(upcasts_code, "$imclazzname", imclazzname);
       Replaceall(upcasts_code, "$cclass",      c_classname);
       Replaceall(upcasts_code, "$jnipackage",  jnipackage);
       Replaceall(upcasts_code, "$imimclass",   imimclass);
 
-      Delete(imbaseclass);
       Delete(imclazzname);
       Delete(imimclass);
     }
@@ -1702,6 +1688,9 @@ class JAVA : public Language {
 
       emitProxyClassDefAndCPPCasts(n);
 
+      Replaceall(proxy_class_def, "$module", module_class_name);
+      Replaceall(proxy_class_code, "$module", module_class_name);
+      Replaceall(proxy_class_constants_code, "$module", module_class_name);
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
       // Write out all the constants
@@ -1862,7 +1851,7 @@ class JAVA : public Language {
 
     emit_mark_varargs(l);
 
-    int        gencomma = !static_flag;
+    int gencomma = !static_flag;
 
     /* Output each parameter */
     for (i = 0, p=l; p; i++) {
@@ -1933,7 +1922,6 @@ class JAVA : public Language {
       else
         Replaceall(tm,"$owner","false");
       substituteClassname(t, tm);
-      Replaceall(tm, "$imclassname", imclass_name);
       Replaceall(tm, "$jnicall", imcall);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
@@ -2164,7 +2152,6 @@ class JAVA : public Language {
      * a Java long is used for all classes in the SWIG intermediary class.
      * The intermediary class methods are thus mangled when overloaded to give
      * a unique name. */
-
     String *overloaded_name = NewStringf("%s", Getattr(n,"sym:name"));
 
     if (Getattr(n,"sym:overloaded")) {
@@ -2297,7 +2284,6 @@ class JAVA : public Language {
       else
         Replaceall(tm,"$owner","false");
       substituteClassname(t, tm);
-      Replaceall(tm, "$imclassname", imclass_name);
       Replaceall(tm, "$jnicall", imcall);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
@@ -2515,7 +2501,7 @@ class JAVA : public Language {
         typemapLookup("javaimports", type, WARN_NONE), // Import statements
         "\n",
         typemapLookup("javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
-        " class $javaclassname",       // Class name and bases
+        " $javaclassname",       // Class name and bases
         *Char(pure_baseclass) ?
         " extends " : 
         "",
@@ -2524,29 +2510,19 @@ class JAVA : public Language {
         " implements " :
         "",
         pure_interfaces,
-        " {\n",
-        "  private long swigCPtr;\n",
-        "\n",
-        "  ",
-        typemapLookup("javaptrconstructormodifiers", type, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
-        " $javaclassname(long cPtr, boolean bFutureUse) {\n", // Constructor used for wrapping pointers
-        "    swigCPtr = cPtr;\n",
-        "  }\n",
-        "\n",
-        "  protected $javaclassname() {\n", // Default constructor
-        "    swigCPtr = 0;\n",
-        "  }\n",
-        typemapLookup("javagetcptr", type, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
+        " {",
+        typemapLookup("javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF), // main body of class
         typemapLookup("javacode", type, WARN_NONE), // extra Java code
         "}\n",
         "\n",
         NIL);
 
-        Replaceall(swigtype, "$javaclassname", classname);
-        Printv(f_swigtype, swigtype, NIL);
+    Replaceall(swigtype, "$javaclassname", classname);
+    Replaceall(swigtype, "$module", module_class_name);
+    Printv(f_swigtype, swigtype, NIL);
 
-        Close(f_swigtype);
-        Delete(swigtype);
+    Close(f_swigtype);
+    Delete(swigtype);
   }
 
   /* -----------------------------------------------------------------------------
@@ -3125,7 +3101,7 @@ class JAVA : public Language {
               din = Copy(Getattr(p, "tmap:javadirectorin"));
 
               if (din != NULL) {
-                Replaceall(din, "$imclassname", imclass_name);
+                Replaceall(din, "$module", module_class_name);
                 Replaceall(din, "$javaclassname", canon_type);
                 Replaceall(din, "$jniinput", ln);
 
