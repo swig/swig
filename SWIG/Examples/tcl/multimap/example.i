@@ -61,7 +61,7 @@ extern void capitalize(char *str, int len);
    double a = $1*$1 + $2*$2;
    if (a > 1.0) {
 	SWIG_exception(SWIG_ValueError,"$1_name and $2_name must be in unit circle");
-        return NULL;
+        return TCL_ERROR;
    }
 }
 
