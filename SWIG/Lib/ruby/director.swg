@@ -11,7 +11,6 @@
 
 #ifdef __cplusplus
 
-#include <assert.h>
 #include <string>
 
 struct swig_body_args
@@ -99,11 +98,6 @@ private:
 #endif
 
 public:
-  /* the default constructor should not be called */
-  __DIRECTOR__() { 
-    assert(false); 
-  }
-  
   /* wrap a Ruby object, optionally taking ownership */
   __DIRECTOR__(VALUE self, bool disown) : _self(self), _disown(disown) {
   }
@@ -159,7 +153,6 @@ public:
   /* acquire ownership of the wrapped Ruby object (the sense of "disown"
    * is from Ruby) */
   void __disown() const { 
-    assert(_self); 
     if (!_disown) { 
       _disown = true;
     } 

@@ -73,7 +73,6 @@ private:
 
   /* decrement the reference count of the wrapped python object */
   void __decref() const { 
-    assert(_self); 
     if (_disown) {
       Py_DECREF(_self); 
     }
@@ -93,11 +92,6 @@ private:
 #endif
 
 public:
-  /* the default constructor should not be called */
-  __DIRECTOR__() { 
-    assert(0); 
-  }
-  
   /* wrap a python object, optionally taking ownership */
   __DIRECTOR__(PyObject* self, int disown): _self(self), _disown(disown) {
     __incref();
@@ -155,7 +149,6 @@ public:
   /* acquire ownership of the wrapped python object (the sense of "disown"
    * is from python) */
   void __disown() const { 
-    assert(_self); 
     if (!_disown) { 
       _disown=1;
        __incref(); 
@@ -164,7 +157,6 @@ public:
 
   /* increase the reference count of the wrapped python object */
   void __incref() const { 
-    assert(_self); 
     if (_disown) {
       Py_INCREF(_self); 
     }

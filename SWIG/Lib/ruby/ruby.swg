@@ -431,7 +431,6 @@
 		} else {
 			$input = proxy->__get_self();
 		}
-		assert($input);
 	}
 }
 %typemap(inv) SWIGTYPE * {
