@@ -187,7 +187,7 @@ public:
     // Following is a silly hack.  It works around the limitation of
     // DOH's hash tables that only work with string keys!
     char address[16];
-    sprintf(address, "%x%c", (unsigned int)obj, list_p ? 'L' : 'O');
+    sprintf(address, "%x%c", (unsigned long)obj, list_p ? 'L' : 'O');
     DOH *placeholder = Getattr(print_circle_hash, address);
     if (placeholder) {
       Printv(out, placeholder, NIL);
