@@ -513,12 +513,21 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    
 	    // Signed Integers
 	  
-	  case T_BOOL:
 	  case T_INT:
 	  case T_SINT:
 	  case T_UINT:
 	    argstr << "i";
 	    args << ",&" << target;
+	    break;
+	  case T_BOOL:
+	    argstr << "i";
+	    {
+	      char tb[32];
+	      sprintf(tb,"tempb%d",i);
+	      f.add_local("int",tb);
+	      args << ",&" << tb;
+	      incode << tab4 << target << " = (bool) " << tb << ";\n";
+	    }
 	    break;
 	  case T_SHORT:
 	  case T_SSHORT:
