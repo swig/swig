@@ -1444,6 +1444,7 @@ int Language::accessDeclaration(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 int Language::namespaceDeclaration(Node *n) {
+    String *name;
     if (Getattr(n,"alias")) return SWIG_OK;
     emit_children(n);
     return SWIG_OK;

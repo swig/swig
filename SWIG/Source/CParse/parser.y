@@ -1547,7 +1547,11 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		    } else if (ParmList_len($7) < ParmList_numrequired(tparms)) {
 		      Printf(stderr,"%s:%d. Not enough template parameters specified. %d required\n", input_file, line_number, ParmList_numrequired(tparms));
 		    } else {
-		      ts = NewString("%inline %{\n");
+		      ts = NewString("");
+		      if (Namespaceprefix) {
+			  Printf(ts,"%%{ namespace %s {\n %%}\n", Namespaceprefix);
+		      }
+		      Printf(ts,"%%inline %%{\n");
 		      args = NewString("");
 		      sargs = NewString("");
 		      /* Create typedef's and arguments */
@@ -1588,6 +1592,9 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		      Printf(ts,"%%}\n");
 		      Printf(ts,"%%starttemplate;\n");
 		      Printf(ts,"%s(%s,%s,%s)\n",Getattr(n,"macroname"),$3,args,sargs);
+		      if (Namespaceprefix) {
+			  Printf(ts,"%%{ }\n %%}");
+		      }
 		      Delete(args);
 		      Delete(sargs);
 		      Setfile(ts,input_file);
@@ -2149,7 +2156,11 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     Insert(macroname,0,"%");
 		     Printf(macrocode, "%s(__name,%s,%s)\n", macroname,$3.rparms,$3.sparms);
 		     Printf(macrocode,"%%gencode %%{\n");
-		     Printf(macrocode,"typedef %s< %s > __name;\n", $6,$3.sparms);
+		     if (Namespaceprefix) {
+			 Printf(macrocode,"typedef %s::%s< %s > __name;\n", Namespaceprefix, $6,$3.sparms);
+		     } else {
+			 Printf(macrocode,"typedef %s< %s > __name;\n", $6,$3.sparms);
+		     }
 		     Printf(macrocode,"%%}\n");
 		     Printf(macrocode,"class __name ");
 		     if ($7) {
@@ -2176,8 +2187,13 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     Printf(macrocode," %s;\n", scanner_ccode);
 		     /* Include a reverse typedef to associate templated version with renamed version */
 		     Printf(macrocode,"%%endtemplate;\n");
-		     Printf(macrocode,"typedef __name %s< %s >;\n", $6,$3.sparms);
-		     Printf(macrocode,"%%types(%s< %s > *);\n", $6, $3.sparms);
+		     if (Namespaceprefix) {
+			 Printf(macrocode,"typedef __name %s::%s< %s >;\n", Namespaceprefix, $6,$3.sparms);
+			 Printf(macrocode,"%%types(%s::%s< %s > *);\n", Namespaceprefix, $6, $3.sparms);
+		     } else {
+			 Printf(macrocode,"typedef __name %s< %s >;\n", $6,$3.sparms);
+			 Printf(macrocode,"%%types(%s< %s > *);\n", $6, $3.sparms);
+		     }
 
 		     /*		     Printf(stdout,"%s\n", macrocode); */
 		     Seek(macrocode,0, SEEK_SET);
