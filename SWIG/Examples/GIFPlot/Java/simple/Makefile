@@ -2,7 +2,7 @@ TOP        = ../../..
 SWIG       = $(TOP)/../swig
 SWIGOPT    =
 SRCS       =
-TARGET     = libsimple
+TARGET     = simple
 INTERFACE  = simple.i
 LIBS       = -L../.. -lgifplot
 INCLUDE    = -I../../Include
@@ -15,8 +15,7 @@ all::
 
 
 clean::
-	mv runme.java runme.java.tmp
-	rm -f *_wrap* *.o core *~ *.so *.class *.java *.gif
-	mv runme.java.tmp runme.java
+	$(MAKE) -f $(TOP)/Makefile java_clean
+	rm -f *.gif
 
 check: all

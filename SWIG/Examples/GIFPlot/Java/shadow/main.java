@@ -2,7 +2,7 @@
 import gifplot.*;
 import java.lang.Math;
 
-public class runme {
+public class main {
 
   static {
     try {
@@ -29,7 +29,7 @@ public class runme {
     
     ColorMap cmap = new ColorMap("cmap");
     FrameBuffer frame = new FrameBuffer(500,500);
-    frame.clear((short)gifplot.get_BLACK());
+    frame.clear((short)gifplot.BLACK);
     
     Plot3D p3 = new Plot3D(frame,xmin,ymin,zmin,xmax,ymax,zmax);
     p3.lookat(2*(zmax-zmin));
@@ -39,7 +39,7 @@ public class runme {
     p3.rotd(10);
     
     System.out.println( "Making a nice 3D plot..." );
-    p3.clear((short)gifplot.get_BLACK());
+    p3.clear((short)gifplot.BLACK);
     p3.start();
     double dx = 1.0*(xmax-xmin)/nxpoints;
     double dy = 1.0*(ymax-ymin)/nypoints;

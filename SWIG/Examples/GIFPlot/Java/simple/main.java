@@ -1,6 +1,6 @@
 import simple;
 
-public class runme {
+public class main {
 
   static {
     try {
