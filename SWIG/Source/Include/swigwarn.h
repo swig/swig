@@ -145,6 +145,7 @@
 #define WARN_LANG_NATIVE_UNIMPL       507
 #define WARN_LANG_DEREF_SHADOW        508
 #define WARN_LANG_OVERLOAD_SHADOW     509
+#define WARN_LANG_FRIEND_IGNORE       510
 
 /* -- Reserved (600-799) -- */
 
