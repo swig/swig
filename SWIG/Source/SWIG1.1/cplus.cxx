@@ -1698,9 +1698,9 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
       lang->create_function(Wrapper_Getname(w),iname,Wrapper_Gettype(w), Wrapper_Getparms(w));
     } else {
       if (CPlusPlus) 
-	emit_set_action(Swig_cppdestructor_call(fclassname));
+	emit_set_action(Swig_cppdestructor_call());
       else
-	emit_set_action(Swig_cdestructor_call(fclassname));
+	emit_set_action(Swig_cdestructor_call());
       lang->create_function(cname, iname, Wrapper_Gettype(w), Wrapper_Getparms(w));      
     }
     DelWrapper(w);
