@@ -27,6 +27,7 @@ Perl5 Options (available with -perl5)\n\
      -static         - Omit code related to dynamic loading\n\
      -nopm           - Do not generate the .pm file\n\
      -proxy          - Create proxy classes\n\
+     -noproxy        - Don't create proxy classes\n\
      -const          - Wrap constants as constants and not variables (implies -proxy)\n\
      -compat         - Compatibility mode\n\n";
 
@@ -79,7 +80,7 @@ static int          is_static = 0;
 
 /* The following variables are used to manage Perl5 classes */
 
-static  int        blessed = 0;                /* Enable object oriented features */
+static  int        blessed = 1;                /* Enable object oriented features */
 static  int        do_constants = 0;           /* Constant wrapping */
 static  List       *classlist = 0;             /* List of classes */
 static  int        have_constructor = 0;
@@ -142,6 +143,9 @@ public:
 	  Swig_mark_arg(i);
 	} else if ((strcmp(argv[i],"-shadow") == 0) || ((strcmp(argv[i],"-proxy") == 0))) {
 	  blessed = 1;
+	  Swig_mark_arg(i);
+	} else if ((strcmp(argv[i],"-noproxy") == 0)) {
+	  blessed =0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-const") == 0) {
 	  do_constants = 1;
