@@ -708,8 +708,10 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
      it's array dimensions */
     
   if (SwigType_isarray(type)) {
+    String *size;
     int  ndim = SwigType_array_ndim(type);
     int i;
+    size = NewString("");
     for (i = 0; i < ndim; i++) {
       String *dim = SwigType_array_getdim(type,i);
       if (index == 1) {
@@ -721,8 +723,14 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
       sprintf(varname,"dim%d",i);
       Replace(s,var,dim,DOH_REPLACE_ANY);
       replace_local_types(locals,var,dim);	
+      if (Len(size)) Putc('*',size);
+      Append(size,dim);
       Delete(dim);
     }
+    sprintf(varname,"size");
+    Replace(s,var,size,DOH_REPLACE_ANY);
+    replace_local_types(locals,var,size);	    
+    Delete(size);
   }
 
   /* Parameter name substitution */
@@ -902,7 +910,15 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
     Delete(amp_type);
 
     /* Base type */
-    base_type = SwigType_base(type);
+    if (SwigType_isarray(type)) {
+      SwigType *bt = Copy(type);
+      Delete(SwigType_pop_arrays(bt));
+      base_type = SwigType_str(bt,0);
+      Delete(bt);
+    } else {
+      base_type = SwigType_base(type);
+    }
+
     if (index == 1) {
       Replace(s,"$basetype", base_type, DOH_REPLACE_ANY);
       replace_local_types(locals,"$basetype", base_type);
