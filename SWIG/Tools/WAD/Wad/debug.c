@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
   } else if (strcmp(argv[1],"ret") == 0) {
     call_func(4,seg_crash);
   } else if (strcmp(argv[1],"test") == 0) {
-    test(-4,seg_crash);
+    test(-1000,seg_crash);
   } else if (strcmp(argv[1],"double") == 0) {
     double_crash(3.14159,2.1828);
   } else if (strcmp(argv[1],"math") == 0) {

@@ -14,6 +14,9 @@
 #include <sys/mman.h>
 #include <dlfcn.h>
 
+/* This needs to be changed so that the value is dynamically determined 
+   Might also get weird problems with stacks located in different regions. */
+
 #ifdef WAD_SOLARIS
 #define STACK_BASE   0xffbf0000
 #endif
@@ -21,8 +24,12 @@
 #define STACK_BASE   0xc0000000
 #endif
 
-/* Given a stack pointer, this function performs a single level of stack 
-   unwinding */
+/* -----------------------------------------------------------------------------
+ * stack_unwind()
+ *
+ * Perform a single level of stack unwinding given the stack pointer, frame pointer
+ * and program counter.
+ * ----------------------------------------------------------------------------- */
 
 static void
 stack_unwind(unsigned long *sp, unsigned long *pc, unsigned long *fp) {
@@ -49,51 +56,34 @@ stack_unwind(unsigned long *sp, unsigned long *pc, unsigned long *fp) {
 #endif
 }
 
-static void *trace_addr = 0;
-static int   trace_len  = 0;
-
-/* Perform a stack unwinding given the current value of the pc, stack pointer,
-   and frame pointer.  Returns a pointer to a wad exception frame structure
-   which is actually a large memory mapped file. */
-
-static char            framefile[256];
+/* -----------------------------------------------------------------------------
+ * wad_stack_trace()
+ *
+ * Create a stack trace of the process. Returns a linked list of stack frames
+ * with debugging information and other details.
+ * ----------------------------------------------------------------------------- */
 
 WadFrame *
 wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
-  WadSegment      *ws, *segments;
-  WadObjectFile       *wo;
-  WadFrame        frame;
+  WadSegment      *ws;
+  WadObjectFile   *wo;
+  WadFrame        *firstframe=0, *lastframe=0, *frame=0;
   WadDebug        wd;
   WadSymbol       wsym;
-  int             nlevels;
 
-  int             ffile;
   unsigned long   p_pc;
   unsigned long   p_sp;
   unsigned long   p_fp;
   unsigned long   p_lastsp;
-
   int             n = 0;
-  int             lastsize = 0;
-  int             firstframe = 1;
 
   /* Read the segments */
-
   if (wad_segment_read() < 0) {
     wad_printf("WAD: Unable to read segment map\n");
     return 0;
   }
-
-  /* Open the frame file for output */
-  tmpnam(framefile);
-  ffile = open(framefile, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-  if (ffile < 0) {
-    wad_printf("can't open %s\n", framefile);
-    return 0;
-  }
-
   /* Try to do a stack traceback */
-  nlevels = 0;
+
   p_pc = pc;
   p_sp = sp;
   p_fp = fp;
@@ -110,21 +100,13 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
     }
     ws = wad_segment_find((void *) p_pc);
     {
-      int   symsize = 0;
-      int   srcsize = 0;
-      int   objsize = 0;
-      int   stacksize = 0;
-      int   argsize = 0;
-      char  *srcname = 0;
-      char  *objname = 0;
-      char  *symname = 0;
-      int    pad = 0;
+      int      stacksize = 0;
+      char     *symname = 0;
       unsigned long value;
       
       /* Try to load the object file for this address */
       if (ws) {
 	wo = wad_object_load(ws->mappath);
-	/* Special hack needed for base address */
       }
       else {
 	wo = 0;
@@ -136,53 +118,51 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       } else {
 	symname = 0;
       }
-
-
-      /*      if (symname) symname = wad_cplus_demangle(&wsym); */
-
       value = wsym.value;
-      
 
-      /* Build up some information about the exception frame */
-      frame.frameno = n;
-      frame.last = 0;
-      frame.lastsize = lastsize;
-      frame.pc = p_pc;
-      frame.sp = p_sp;
-      frame.nargs = -1;
-      frame.arg_off = 0;
-      frame.sym_base = value + (long) ws->base;
+      frame = (WadFrame *) wad_malloc(sizeof(WadFrame));
+      frame->frameno = n;
+      frame->pc = p_pc;
+      frame->sp = p_sp;
+      frame->nlocals = -1;
+      frame->nargs = -1;
+      frame->objfile = 0;
+      frame->srcfile = 0;
+      frame->psp = 0;
+      frame->next = 0;
+      frame->prev = lastframe;
+      frame->last = 0;
+      if (lastframe) {
+	lastframe->next = frame;
+	lastframe = frame;
+      } else {
+	lastframe = frame;
+	firstframe = frame;
+      }
+      frame->symbol = wad_strdup(symname);
+      frame->sym_base = value + (long) ws->base;
       n++;
       if (symname) {
-	symsize = strlen(symname)+1;
-	
-	/*	wad_printf("C++: '%s' ---> '%s'\n", symname, wad_cplus_demangle(&wsym));*/
-	
 	/* Try to gather some debugging information about this symbol */
 	if (wad_debug_info(wo,&wsym, p_pc - (unsigned long) ws->base - value, &wd)) {
-	  srcname = wd.srcfile;
-	  srcsize = strlen(srcname)+1;
-	  objname = wd.objfile;
-	  objsize = strlen(objname)+1;
-	  frame.nargs = wd.nargs;
+	  frame->srcfile = wad_strdup(wd.srcfile);
+	  frame->objfile = wad_strdup(wd.objfile);
+	  frame->args = wd.args;
+	  frame->lastarg = wd.lastarg;
+	  frame->nargs = wd.nargs;
+
+	  /*frame.nargs = wd.nargs;
 	  if (wd.nargs > 0) {
 	    argsize = sizeof(WadParm)*wd.nargs;
 	  }
-	  /*
-	  if (wd.nargs >=0) {
-	    int i;
-	    wad_printf("%s\n",symname);
-	    for (i = 0; i < wd.nargs; i++) {
-	      wad_printf("  [%d] = '%s', %d, %d\n", i, wd.parms[i].name, wd.parms[i].type, wd.parms[i].value);
-	    }
-	  }
 	  */
-	  frame.line_number = wd.line_number;
+	  frame->line_number = wd.line_number;
 	}
       }
 
-
 #ifdef WAD_SOLARIS
+
+#ifdef OLD         /* Might not be necessary. Registers stored on stack already */
       /* Before unwinding the stack, copy the locals and %o registers from previous frame */
       if (!firstframe) {
 	int i;
@@ -193,16 +173,16 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 	}
       }
 #endif
-      firstframe = 0;
+
+#endif
       /* Determine stack frame size */
       p_lastsp = p_sp;
-
       stack_unwind(&p_sp, &p_pc, &p_fp);
 
       if (p_sp) {
 	stacksize = p_sp - p_lastsp;
       } else {
-	stacksize = STACK_BASE - p_lastsp;    /* Sick hack alert. Need to get stack top from somewhere */
+	stacksize = STACK_BASE - p_lastsp;
       }
 
       /* Sanity check */
@@ -211,101 +191,40 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       }
 
       /* Set the frame pointer and stack size */
-
-      /*      frame.fp = p_sp;  */
-      frame.fp = p_sp;
-      frame.stack_size = stacksize;
-
-      /* Build the exception frame object we'll write */
-      frame.size = sizeof(WadFrame) + symsize + srcsize + objsize + stacksize + argsize;
-      pad = 8 - (frame.size % 8);  
-      frame.size += pad;
-
-      frame.data[0] = 0;
-      frame.data[1] = 0;
+      frame->fp = p_sp;
+      frame->stack_size = stacksize;
       
-      /* Build up the offsets */
-      if (!symname) {
-	frame.sym_off = sizeof(WadFrame) - 8;
-	frame.src_off = sizeof(WadFrame) - 8;
-	frame.obj_off = sizeof(WadFrame) - 8;
-	frame.stack_off = sizeof(WadFrame) + argsize;
-	frame.arg_off   = 0;
-      } else {
-	frame.arg_off = sizeof(WadFrame);
-	frame.stack_off = sizeof(WadFrame) + argsize;
-	frame.sym_off = frame.stack_off + stacksize;
-	frame.src_off = frame.sym_off + symsize;
-	frame.obj_off = frame.src_off + srcsize;
+      /* Copy stack data */
+      frame->psp = (char *) wad_malloc(stacksize);
+      if (frame->psp) {
+	memcpy(frame->psp, (void *) p_lastsp, stacksize);
       }
-
-      write(ffile,&frame,sizeof(WadFrame));
-      /* Write the argument data */
-      if (argsize > 0) {
-	write(ffile, (void *) wd.parms, argsize);
-      }
-      /* Write the stack data */
-      if (stacksize > 0) {
-	write(ffile, (void *) p_lastsp, stacksize);
-      }
-      if (symname) {
-	write(ffile,symname,symsize);
-	write(ffile,srcname,srcsize);
-	write(ffile,objname,objsize);
-      }
-      write(ffile,frame.data, pad);
-      lastsize = frame.size;
     }
   }
-
-  /* Write terminator */
-  frame.size = 0;
-  frame.last = 1;
-  frame.lastsize = lastsize;
-  frame.stack_size = 0;
-  write(ffile,&frame,sizeof(WadFrame));
-  close(ffile);
-
-  /* mmap the debug file back into memory */
-
-  ffile = open(framefile, O_RDONLY, 0644);  
-  trace_len = lseek(ffile,0,SEEK_END);
-  lseek(ffile,0,SEEK_SET);
-  trace_addr = mmap(NULL, trace_len, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, ffile, 0);
-  close(ffile);
-  return (WadFrame *) trace_addr;
+  lastframe->last = 1;
+  return firstframe;
 }
 
 void wad_release_trace() {
-  char name[256];
-  munmap(trace_addr, trace_len);
-  unlink(framefile);
-  trace_addr = 0;
-  trace_len = 0;
 }
 
 /* This function steals an argument out of a frame further up the call stack :-) */
-
 long wad_steal_arg(WadFrame *f, char *symbol, int argno, int *error) {
-  char *fd;
   long *regs;
   WadFrame *lastf = 0;
 
-  fd = (char *) f;
-
   *error = 0;
   /* Start searching */
-  while (f->size) {
-    if (strcmp(SYMBOL(f),symbol) == 0) {
+  while (f) {
+    if (f->symbol && (strcmp(f->symbol,symbol) == 0)) {
       /* Got a match */
       if (lastf) {
-	regs = STACK(f);
+	regs = (long *) f->psp;
 	return regs[8+argno];
       }
     }
     lastf = f;
-    fd = fd + f->size;
-    f = (WadFrame *) fd;
+    f = f->next;
   }
   *error = -1;
   return 0;
@@ -313,31 +232,27 @@ long wad_steal_arg(WadFrame *f, char *symbol, int argno, int *error) {
 
 
 long wad_steal_outarg(WadFrame *f, char *symbol, int argno, int *error) {
-  char *fd;
   long *regs;
   WadFrame *lastf = 0;
 
-  fd = (char *) f;
-
   *error = 0;
   /* Start searching */
-  while (f->size) {
-    if (strcmp(SYMBOL(f),symbol) == 0) {
+  while (f) {
+    if (f->symbol && (strcmp(f->symbol,symbol) == 0)) {
       /* Got a match */
       if (lastf) {
 #ifdef WAD_SOLARIS
-	regs = STACK(lastf);
+	regs = (long *) lastf->psp;
 	return regs[8+argno];
 #endif
 #ifdef WAD_LINUX
-	regs = STACK(f);
+	regs = (long *) f->psp;
 	return regs[argno+2];
 #endif
       }
     }
     lastf = f;
-    fd = fd + f->size;
-    f = (WadFrame *) fd;
+    f = f->next;
   }
   *error = -1;
   return 0;

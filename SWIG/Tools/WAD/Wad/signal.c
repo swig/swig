@@ -12,7 +12,7 @@
 #include "wad.h"
 
 /* For some odd reason, certain linux distributions do not seem to define the
-   ESP, EIP, and EBP registers.  This is a hack */
+   register constants in a way that is easily accessible to us.  This is a hack */
 
 #ifdef WAD_LINUX
 #ifndef ESP
@@ -330,52 +330,48 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 
   if (wad_debug_mode & DEBUG_STACK) {
     /* Walk the exception frames and try to find a return point */
-    framedata = (char *) frame;
-    
-    while (frame->size) {
+    while (frame) {
       int i;
-      WadParm *p;
+      WadLocal *p;
       /* Print out detailed stack trace information */
       printf("::: Stack frame - 0x%08x :::\n", frame);
       printf("    sp           = %x\n", frame->sp);
       printf("    fp           = %x\n", frame->fp);
       printf("    size         = %x\n", frame->stack_size);
       printf("    pc           = %x (base = %x)\n", frame->pc, frame->sym_base);
-      printf("    symbol       = '%s'\n", SYMBOL(frame));
-      printf("    srcfile      = '%s'\n", SRCFILE(frame));
-      printf("    objfile      = '%s'\n", OBJFILE(frame));
+      printf("    symbol       = '%s'\n", frame->symbol ? frame->symbol : "?");
+      printf("    srcfile      = '%s'\n", frame->srcfile ? frame->srcfile : "");
+      printf("    objfile      = '%s'\n", frame->objfile ? frame->objfile : "");
       printf("    numargs      = %d\n", frame->nargs);
       printf("    arguments [\n");
-      p = ARGUMENTS(frame);
-      for (i = 0; i < frame->nargs; i++, p++) {
-	printf("        arg[%d] : name = '%s', loc = %d, type = %d, value = %d\n", i, p->name, p->loc, p->type, p->value);
+      p = frame->args;
+      i = 0;
+      while (p) {
+	printf("        arg[%d] : name = '%s', loc = %d, type = %d, value = %d\n", i, p->name, p->loc, p->type, p->position);
+	p = p->next;
+	i++;
       }
       printf("    ]\n");
-      framedata = framedata + frame->size;
-      frame = (WadFrame *) framedata;
+      frame = frame->next;
     }
     frame = origframe;
   }
 
   /* Walk the exception frames and try to find a return point */
-  framedata = (char *) frame;
-
-  while (frame->size) {
-    WadReturnFunc *wr = wad_check_return(framedata+frame->sym_off);
+  while (frame) {
+    WadReturnFunc *wr = wad_check_return(frame->symbol);
     if (wr) {
       found = 1;
       wad_nlr_value = wr->value;
       retname = wr->name;
     }
-    framedata = framedata + frame->size;
-    frame = (WadFrame *) framedata;
+    frame = frame->next;
     if (found) {
       frame->last = 1;   /* Cut off top of the stack trace */
       break;
     }
     nlevels++;
   }
-
 
   if (found) {
     wad_nlr_levels = nlevels - 1;
