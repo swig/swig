@@ -36,7 +36,7 @@ int wad_memory_init() {
   pagesize = getpagesize();
   devzero = open("/dev/zero", O_RDWR);
   if (devzero < 0) {
-    printf("WAD: couldn't open /dev/zero.\n");
+    wad_printf("WAD: couldn't open /dev/zero.\n");
     return -1;
   }
   return 0;
@@ -70,7 +70,7 @@ void *wad_malloc(int nbytes) {
   WadMemory *wm;
   char      *c;
   int npages;
-  printf("wad_malloc: %d\n", nbytes);
+  /*  wad_printf("wad_malloc: %d\n", nbytes); */
   if (nbytes >= (pagesize >> 2)) {
     /* Large allocation. */
     npages = ((nbytes + sizeof(WadMemory))/pagesize) + 1;
@@ -94,6 +94,7 @@ void *wad_malloc(int nbytes) {
     }
   }
   if (!wm) {
+    wad_printf("wad_malloc: new page\n", nbytes);
     wm = (WadMemory *) wad_page_alloc(1);
     if (!wm) return 0;
     wm->npages = 1;

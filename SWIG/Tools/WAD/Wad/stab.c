@@ -27,7 +27,7 @@ typedef struct Stab {
    extra information delimetered by a colon */
 
 int match_stab_symbol(char *symbol, char *stabtext, int slen) {
-  /*  printf("matching: %s -> %s\n", symbol, stabtext); */
+  /*  wad_printf("matching: %s -> %s\n", symbol, stabtext); */
   if (strcmp(symbol,stabtext) == 0) {
     return 1;
   }
@@ -74,9 +74,9 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
   for (i = 0; i < ns; i++, s++) {
     /*#define DEBUG_DEBUG */
     if (wad_debug_mode & DEBUG_STABS) {
-      /*      printf("   %10d %10x %10d %10d %10d: '%x'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
+      /*      wad_printf("   %10d %10x %10d %10d %10d: '%x'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
 	      stabstr+s->n_strx); */
-      printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
+      wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
 	     stabstr+s->n_strx);
       
     }

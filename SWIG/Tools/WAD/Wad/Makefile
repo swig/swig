@@ -7,8 +7,8 @@
 #######################################################################
 
 # These are the files that make up the WAD core
-WADSRCS = memory.c return.c default.c stack.c stab.c elf.c object.c init.c segment.c signal.c
-WADOBJS = memory.o return.o default.o stack.o stab.o elf.o object.o signal.o segment.o init.o
+WADSRCS = io.c memory.c return.c default.c stack.c stab.c elf.c object.c init.c segment.c signal.c
+WADOBJS = io.o memory.o return.o default.o stack.o stab.o elf.o object.o signal.o segment.o init.o
 INCLUDE = -I../Include -I.  $(SINCLUDE)
 WADOPT     = -DWAD_LINUX
 
@@ -76,7 +76,7 @@ wc::
 	wc $(SRCS)
 
 semi::
-	egrep ";" $(SRCS) wadpy.cxx | wc
+	egrep ";" $(WADSRCS) | wc
 
 
 clean::

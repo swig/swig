@@ -259,9 +259,6 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 
   wad_nlr_func = 0;
 
-  if (!wad_stacked_signal)
-    wad_object_init();
-
   context = (ucontext_t *) vcontext;
  
   if (wad_debug_mode & DEBUG_SIGNAL) {
@@ -398,8 +395,6 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   }
 
   if (wad_debug_mode & DEBUG_HOLD) while(1);
-
-  wad_object_cleanup();
 
   /* If we found a function to which we should return, we jump to
      an alternative piece of code that unwinds the stack and 

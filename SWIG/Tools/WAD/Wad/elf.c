@@ -240,7 +240,7 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, WadSymbol 
       localfile = name;
     }
     if (wad_debug_mode & DEBUG_SYMBOL_SEARCH) {
-      printf("%x(%x): %s   %x + %x, %x, %x\n", base, vaddr, name, sym[i].st_value, sym[i].st_size, sym[i].st_info, sym[i].st_shndx);
+      wad_printf("%x(%x): %s   %x + %x, %x, %x\n", base, vaddr, name, sym[i].st_value, sym[i].st_size, sym[i].st_info, sym[i].st_shndx);
     }
 
     if (((base + sym[i].st_value) <= vaddr) && (vaddr <= (base+sym[i].st_value + sym[i].st_size))) {
@@ -281,7 +281,7 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, WadSymbol 
       localfile = name;
     }
     if (wad_debug_mode & DEBUG_SYMBOL_SEARCH) {
-      printf("%x(%x): %s   %x + %x, %x, %x\n", base, vaddr, name, sym[i].st_value, sym[i].st_size, sym[i].st_info, sym[i].st_shndx);
+      wad_printf("%x(%x): %s   %x + %x, %x, %x\n", base, vaddr, name, sym[i].st_value, sym[i].st_size, sym[i].st_info, sym[i].st_shndx);
     }
     if (((base + sym[i].st_value) <= vaddr) && (vaddr <= (base+sym[i].st_value + sym[i].st_size))) {
 #ifdef WAD_LINUX
@@ -324,12 +324,12 @@ wad_elf_debug_info(WadObjectFile *wo, WadSymbol *wsym, unsigned long offset, Wad
   nstabexclstr = wad_elf_section_byname(wo,".stab.exclstr");
 
 #ifdef DEBUG_DEBUG
-  printf("nstab         = %d\n", nstab);
-  printf("nstabstr      = %d\n", nstabstr);
-  printf("nstabindex    = %d\n", nstabindex);
-  printf("nstabindexstr = %d\n", nstabindexstr);
-  printf("nstabexcl     = %d\n", nstabexcl);
-  printf("nstabexclstr  = %d\n", nstabexclstr);
+  wad_printf("nstab         = %d\n", nstab);
+  wad_printf("nstabstr      = %d\n", nstabstr);
+  wad_printf("nstabindex    = %d\n", nstabindex);
+  wad_printf("nstabindexstr = %d\n", nstabindexstr);
+  wad_printf("nstabexcl     = %d\n", nstabexcl);
+  wad_printf("nstabexclstr  = %d\n", nstabexclstr);
 #endif 
 
   /* Now start searching stabs */
@@ -365,9 +365,8 @@ wad_elf_debug_info(WadObjectFile *wo, WadSymbol *wsym, unsigned long offset, Wad
       wo1 = wad_object_load(objfile);
       if (wo1) {
 	ret = wad_debug_info(wo1,wsym,offset,wd);
-	wad_object_release(wo1);
       } else {
-	/*	printf("couldn't load %s\n", objfile); */
+	/*	wad_printf("couldn't load %s\n", objfile); */
       }
       if (!ret) return wad_search_stab(stab,stabsize,stabstr,wsym, offset,wd);
       return ret;
@@ -385,13 +384,13 @@ wad_elf_debug_info(WadObjectFile *wo, WadSymbol *wsym, unsigned long offset, Wad
 void
 wad_elf_debug(WadObjectFile *wo) {
   int i;
-  printf("ELF Debug : obj = %x (%s)\n", wo, wo->path);
-  printf("   phdrcnt      = %d\n", wad_elf_phdrcnt(wo));
-  printf("   phdrpos      = %x\n", wad_elf_phdrpos(wo));
-  printf("   shdrcnt      = %d\n", wad_elf_shdrcnt(wo));
-  printf("   shdrpos      = %x\n", wad_elf_shdrpos(wo));
+  wad_printf("ELF Debug : obj = %x (%s)\n", wo, wo->path);
+  wad_printf("   phdrcnt      = %d\n", wad_elf_phdrcnt(wo));
+  wad_printf("   phdrpos      = %x\n", wad_elf_phdrpos(wo));
+  wad_printf("   shdrcnt      = %d\n", wad_elf_shdrcnt(wo));
+  wad_printf("   shdrpos      = %x\n", wad_elf_shdrpos(wo));
   for (i = 0; i < wad_elf_shdrcnt(wo); i++) {
-    printf("      section '%s': data = 0x%x, size = %d\n", 
+    wad_printf("      section '%s': data = 0x%x, size = %d\n", 
 	   wad_elf_section_name(wo,i),
 	   wad_elf_section_data(wo,i),
 	   wad_elf_section_size(wo,i));
@@ -413,20 +412,20 @@ wad_find_symbol(WadObjectFile *wo, void *ptr, unsigned base, WadSymbol *ws) {
   ws->bind = 0;
   ws->value = 0;
   if (wad_debug_mode & DEBUG_SYMBOL) {
-    printf("wad: Searching for 0x%08x --> ", ptr);
+    wad_printf("wad: Searching for 0x%08x --> ", ptr);
   }
   r = wad_elf_find_symbol(wo,ptr,base,ws);
   if (r) {
     if (wad_debug_mode & DEBUG_SYMBOL) {
-      printf("%s", ws->name);
+      wad_printf("%s", ws->name);
       if (ws->file)
-	printf(" in '%s'\n", ws->file);
+	wad_printf(" in '%s'\n", ws->file);
       else
-	printf("\n");
+	wad_printf("\n");
     }
   } else {
     if (wad_debug_mode & DEBUG_SYMBOL) {
-      printf("?\n");
+      wad_printf("?\n");
     }
   }
   return r;
