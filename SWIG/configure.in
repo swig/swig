@@ -9,12 +9,11 @@ AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE
 
 dnl Some extra defines for the config file
-AH_TOP([
+AH_BOTTOM([
 /* Default language */
 #define SWIG_LANG               "-tcl"
 
-/* Values returned by SWIG when invoked with the -ldflags option.
- * Define LIBDIR and RELEASESUFFIX on the compilation command line in the Makefile when needed. */
+/* Values returned by SWIG when invoked with the -ldflags option */
 #define SWIG_GUILE_RUNTIME      "-L" LIBDIR " -lswigguile" RELEASE_SUFFIX
 #define SWIG_MZSCHEME_RUNTIME   "-L" LIBDIR " -lswigmz" RELEASE_SUFFIX
 #define SWIG_OCAML_RUNTIME      "-L" LIBDIR " -lswigocaml" RELEASE_SUFFIX
@@ -40,6 +39,9 @@ AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
+AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$build"], [Platform that SWIG is built for])
+AC_DEFINE_DIR(LIBDIR, libdir, [Runtime library installation directory])
+
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -1321,8 +1323,9 @@ AC_SUBST(ac_aux_dir)
 # Configure SWIG_LIB path
 
 AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
-  [swig_lib="$withval"], [swig_lib="\$(libdir)/swig1.3"])
+  [swig_lib="$withval"], [swig_lib="${libdir}/swig1.3"])
 AC_SUBST(swig_lib)
+AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent libraries])
 
 # Configure RELEASESUFFIX (for setups having both SWIG 1.1 and 1.3 on a system...)
 
@@ -1330,6 +1333,7 @@ AC_ARG_WITH(release-suffix,
   [  --with-release-suffix=SUFFIX    Attach SUFFIX to the binary and the runtime libs. ],
   [release_suffix="$withval"], [release_suffix=""])
 AC_SUBST(release_suffix)
+AC_DEFINE_UNQUOTED(RELEASE_SUFFIX, "$release_suffix", [Executable and runtime libraries release suffix for co-existence with older versions])
 
 release_suffix_libtool=
 if test -n "$release_suffix"; then
