@@ -557,6 +557,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   for (i = 0; i < pcount ; i++, p = nextSibling(p)) {
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
+    String   *ln = Getattr(p,"lname");
 
     /* Produce string representation of source and target arguments */
     int selfp = (use_self && i == 0);
@@ -575,7 +576,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
       }
 
       /* Get typemap for this argument */
-      tm = ruby_typemap_lookup((char*)"in",pt,pn,source,target,f);
+      tm = ruby_typemap_lookup((char*)"in",pt,pn,ln,source,target,f);
       if (tm) {
 	String *s = NewString(tm);
 	Printv(f->code, s, 0);
@@ -591,7 +592,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     }
 
     /* Check to see if there was any sort of a constaint typemap */
-    tm = ruby_typemap_lookup((char*)"check",pt,pn,source,target);
+    tm = ruby_typemap_lookup((char*)"check",pt,pn,ln,source,target);
     if (tm) {
       String *s = NewString(tm);
       Printv(f->code, s, 0);
@@ -600,7 +601,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     }
 
     /* Check if there was any cleanup code (save it for later) */
-    tm = ruby_typemap_lookup((char*)"freearg",pt,pn,target,source);
+    tm = ruby_typemap_lookup((char*)"freearg",pt,pn,ln,target,source);
     if (tm) {
       String *s = NewString(tm);
       Printv(cleanup,s,0);
@@ -608,7 +609,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
       Delete(s);
     }
 
-    tm = ruby_typemap_lookup((char*)"argout",pt,pn,target,(char*)"vresult");
+    tm = ruby_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"vresult");
     if (tm) {
       String *s = NewString(tm);
       need_result = 1;
@@ -628,7 +629,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     if (predicate) {
       Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", 0);
     } else {
-      tm = ruby_typemap_lookup((char*)"out",t,name,(char*)"result",(char*)"vresult");
+      tm = ruby_typemap_lookup((char*)"out",t,name,(char*)"result",(char*)"result",(char*)"vresult");
       if (tm) {
 	String *s = NewString(tm);
 	Printv(f->code, s, 0);
@@ -648,7 +649,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 
   /* Look for any remaining cleanup.  This processes the %new directive */
   if (NewObject) {
-    tm = ruby_typemap_lookup((char*)"newfree",t,name,(char*)"result",(char*)"");
+    tm = ruby_typemap_lookup((char*)"newfree",t,name,(char*)"result",(char*)"result",(char*)"");
     if (tm) {
       String *s = NewString(tm);
       Printv(f->code,s, 0);
@@ -662,7 +663,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   }
 
   /* Special processing on return value. */
-  tm = ruby_typemap_lookup((char*)"ret",t,name,(char*)"result",(char*)"");
+  tm = ruby_typemap_lookup((char*)"ret",t,name,(char*)"result",(char*)"result",(char*)"");
   if (tm) {
     String *s = NewString(tm);
     Printv(f->code,s, 0);
@@ -723,9 +724,9 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
     source = name;
   }
 
-  tm = ruby_typemap_lookup((char*)"varout",t,name,source,(char*)"_val");
+  tm = ruby_typemap_lookup((char*)"varout",t,name,name,source,(char*)"_val");
   if (!tm)
-    tm = ruby_typemap_lookup((char*)"out",t,name,source,(char*)"_val");
+    tm = ruby_typemap_lookup((char*)"out",t,name,name,source,(char*)"_val");
   if (tm) {
     String *s = NewString(tm);
     Printv(getf->code,s, 0);
@@ -756,9 +757,9 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
       target = name;
     }
 
-    tm = ruby_typemap_lookup((char*)"varin",t,name,(char*)"_val",target);
+    tm = ruby_typemap_lookup((char*)"varin",t,name,name,(char*)"_val",target);
     if (!tm)
-      tm = ruby_typemap_lookup((char*)"in",t,name,(char*)"_val",target);
+      tm = ruby_typemap_lookup((char*)"in",t,name,name,(char*)"_val",target);
     if (tm) {
       String *s = NewString(tm);
       Printv(setf->code,s,0);
@@ -864,7 +865,7 @@ void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
   if (current == CLASS_CONST)
     iname = klass->strip(iname);
 
-  tm = ruby_typemap_lookup((char*)"const",type,name,value,iname);
+  tm = ruby_typemap_lookup((char*)"const",type,name,name,value,iname);
   if (tm) {
     String *str = NewString(tm);
     Replace(str,"$value",value, DOH_REPLACE_ANY);
@@ -894,7 +895,7 @@ void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
  *              f      = a wrapper function object (optional)
  * --------------------------------------------------------------------- */
 
-char *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname, char *source, char *target, Wrapper *f) {
+char *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname, String_or_char *lname, char *source, char *target, Wrapper *f) {
   static String *s = 0;
   char *tm;
   String *target_replace = NewString(target);
@@ -930,7 +931,7 @@ char *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname,
       add_pointer = 0;
     }
 
-    tm = Swig_typemap_lookup(op, type, pname, source, target, f);
+    tm = Swig_typemap_lookup(op, type, pname, lname, source, target, f);
     if (tm) {
       Delete(target_replace);
       Printv(s, tm, "\n", 0);

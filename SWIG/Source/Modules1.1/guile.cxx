@@ -449,15 +449,15 @@ is_a_pointer (SwigType *t)
    But we don't want to change it now since it is deprecated. */
 
 static char *
-guile_typemap_lookup(const char *op, SwigType *type, const String_or_char *pname, String_or_char *source,
+guile_typemap_lookup(const char *op, SwigType *type, const String_or_char *pname, const String_or_char *lname, String_or_char *source,
 		     String_or_char *target, Wrapper *f)
 {
   char *tm;
-  tm = Swig_typemap_lookup((char*) op, type, (char*)pname, source, target, f);
+  tm = Swig_typemap_lookup((char*) op, type, (char*)pname, (char *) lname, source, target, f);
   if (!tm) {
     SwigType *base = SwigType_typedef_resolve_all(type);
     if (strncmp(Char(base), "enum ", 5)==0)
-      tm = Swig_typemap_lookup((char*) op, NewSwigType(T_INT), (char*)pname, source, target, f);
+      tm = Swig_typemap_lookup((char*) op, NewSwigType(T_INT), (char*)pname, (char*)lname, source, target, f);
   }
   return tm;
 }
@@ -467,13 +467,13 @@ guile_typemap_lookup(const char *op, SwigType *type, const String_or_char *pname
 
 static int
 guile_do_typemap(DOHFile *file, const char *op,
-		 SwigType *type, const String_or_char *arg,
+		 SwigType *type, const String_or_char *arg, const String_or_char *lname,
 		 String_or_char *source, String_or_char *target,
 		 int argnum, DOHString *name, Wrapper *f,
 		 int nonewline_p)
 {
   char *tm;
-  if ((tm = guile_typemap_lookup(op, type, arg,
+  if ((tm = guile_typemap_lookup(op, type, arg, lname,
 				 source, target, f))) {
     String *s = NewString(tm);
     char argnum_s[10];
@@ -496,10 +496,10 @@ guile_do_typemap(DOHFile *file, const char *op,
 
 static void
 guile_do_doc_typemap(DOHFile *file, const char *op,
-		     SwigType *type, const String_or_char *arg,
+		     SwigType *type, const String_or_char *arg, const String_or_char *lname,
 		     int argnum, DOHString *name, Wrapper *f)
 {
-  if (!guile_do_typemap(file, op, type, arg,
+  if (!guile_do_typemap(file, op, type, arg, lname,
 			NULL, NULL, argnum, name, f, 1)) {
     /* FIXME: Can't we provide this default via a typemap as well? */
     String *s = NewString(SwigType_str(type, 0));
@@ -590,7 +590,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   Wrapper_add_local (f,"gswig_list_p", "int gswig_list_p = 0");
 
   if (procdoc)
-    guile_do_doc_typemap(returns, "outdoc", d, NULL,
+    guile_do_doc_typemap(returns, "outdoc", d, "", NULL,
 			 0, proc_name, f);
 
   /* Open prototype and signature */
@@ -603,6 +603,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   for (p = l, i = 0; p; p=nextSibling(p), i++) {
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
+    String   *ln = Getattr(p,"lname");
     int opt_p = (Getattr(p,"value")
 		 || Swig_typemap_search((char*)"default",pt,pn));
 
@@ -622,7 +623,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 	Printf(f->code,"    if (s_%d != GH_NOT_PASSED) {\n", i);
       }
       ++numargs;
-      if (guile_do_typemap(f->code, "in", pt, pn,
+      if (guile_do_typemap(f->code, "in", pt, pn, ln,
 			   source, target, numargs, proc_name, f, 0)) {
 	/* nothing to do */
       }
@@ -632,7 +633,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       if (procdoc) {
 	/* Add to signature */
 	Printf(signature, " ");
-	guile_do_doc_typemap(signature, "indoc", pt, pn,
+	guile_do_doc_typemap(signature, "indoc", pt, pn, ln,
 			     numargs, proc_name, f);
       }
       if (opt_p)
@@ -641,18 +642,18 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
     /* Check if there are any constraints. */
 
-    guile_do_typemap(f->code, "check", pt, pn,
+    guile_do_typemap(f->code, "check", pt, pn, ln,
 		     source, target, numargs, proc_name, f, 0);
 
     /* Pass output arguments back to the caller. */
 
-    guile_do_typemap(outarg, "argout", pt, pn,
+    guile_do_typemap(outarg, "argout", pt, pn, ln,
 		     source, target, numargs, proc_name, f, 0);
 
     if (procdoc) {
       /* Document output arguments */
       Clear(tmp);
-      if (guile_do_typemap(tmp, "argoutdoc", pt, pn,
+      if (guile_do_typemap(tmp, "argoutdoc", pt, pn, ln,
 			   source, target, numargs, proc_name, f, 1)) {
 	if (Len(returns) == 0) { /* unspecified -> singleton */
 	  Printv(returns, tmp, 0);
@@ -666,7 +667,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
     // free up any memory allocated for the arguments.
 
-    guile_do_typemap(cleanup, "freearg", pt, pn,
+    guile_do_typemap(cleanup, "freearg", pt, pn, ln,
 		     source, target, numargs, proc_name, f, 0);
   }
 
@@ -685,7 +686,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   // Now have return value, figure out what to do with it.
 
-  if (guile_do_typemap(f->code, "out", d, name,
+  if (guile_do_typemap(f->code, "out", d, name, (char*)"result",
 		       (char*)"result", (char*)"gswig_result",
 		       0, proc_name, f, 0)) {
     /* nothing */
@@ -703,13 +704,13 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   // Look for any remaining cleanup
 
   if (NewObject) {
-    guile_do_typemap(f->code, "newfree", d, iname,
+    guile_do_typemap(f->code, "newfree", d, iname, (char*)"result",
 		     (char*)"result", (char*)"", 0, proc_name, f, 0);
   }
 
   // Free any memory allocated by the function being wrapped..
 
-  guile_do_typemap(f->code, "ret", d, name,
+  guile_do_typemap(f->code, "ret", d, name, (char*)"result",
 		   (char*)"result", (char*)"", 0, proc_name, f, 0);
 
   // Wrap things up (in a manner of speaking)
@@ -843,7 +844,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
       /* Check for a setting of the variable value */
       Printf (f->code, "if (s_0 != GH_NOT_PASSED) {\n");
       if (guile_do_typemap(f->code, "varin",
-			   t, name, (char*) "s_0", name, 1, name, f, 0)) {
+			   t, name, name, (char*) "s_0", name, 1, name, f, 0)) {
 	/* nothing */
       }
       else {
@@ -856,7 +857,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
     // of evaluating or setting)
 
     if (guile_do_typemap (f->code, "varout",
-			  t, name, name, (char*)"gswig_result",
+			  t, name, name, name, (char*)"gswig_result",
 			  0, name, f, 1)) {
       /* nothing */
     }
@@ -897,18 +898,18 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
       if (ReadOnly) {
 	Printv(signature, proc_name, 0);
 	Printv(doc, "Returns constant ", 0);
-	guile_do_doc_typemap(doc, "varoutdoc", t, NULL,
+	guile_do_doc_typemap(doc, "varoutdoc", t, NULL, "",
 			     0, proc_name, f);
       }
       else {
 	Printv(signature, proc_name,
 	       " #:optional ", 0);
-	guile_do_doc_typemap(signature, "varindoc", t, "new-value",
+	guile_do_doc_typemap(signature, "varindoc", t, "new-value", "",
 			     1, proc_name, f);
 	Printv(doc, "If NEW-VALUE is provided, "
 	       "set C variable to this value.\n", 0);
 	Printv(doc, "Returns variable value ", 0);
-	guile_do_doc_typemap(doc, "varoutdoc", t, NULL,
+	guile_do_doc_typemap(doc, "varoutdoc", t, NULL, "",
 			     0, proc_name, f);
       }
       write_doc(proc_name, signature, doc);
@@ -975,7 +976,7 @@ GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
   } else {
     rvalue = NewString(value);
   }
-  if (guile_do_typemap(f_header, "const", nctype, name,
+  if (guile_do_typemap(f_header, "const", nctype, name, name,
 		       Char(rvalue), name, 0, name, f, 0)) {
     /* nothing */
   } else {

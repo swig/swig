@@ -409,6 +409,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
     String   *pv = Getattr(p,"value");
+    String   *ln = Getattr(p,"lname");
 
     sprintf(source,"obj%d",i);
     sprintf(target,Char(Getattr(p,"lname")));
@@ -555,18 +556,18 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     }
 
     /* Check if there was any constraint code */
-    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,source,target,0))) {
+    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,ln,source,target,0))) {
       Printf(check,"%s\n",tm);
       Replace(check,"$argnum", argnum, DOH_REPLACE_ANY);
     }
     /* Check if there was any cleanup code */
-    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,target,source,0))) {
+    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,ln,target,source,0))) {
       Printf(cleanup,"%s\n",tm);
       Replace(cleanup,"$argnum", argnum, DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
     }
     /* Check for output arguments */
-    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,target,(char*)"resultobj",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"resultobj",0))) {
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$argnum",argnum,DOH_REPLACE_ANY);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
@@ -593,7 +594,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   emit_func_call(name,d,l,f);
 
   /* Return the function value */
-  if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"resultobj",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char *)"result",(char*)"result",(char*)"resultobj",0))) {
     Printf(f->code,"%s\n", tm);
   } else {
     switch(SwigType_type(d)) {
@@ -646,13 +647,13 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
   /* Look to see if there is any newfree cleanup code */
   if (NewObject) {
-    if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
       Printf(f->code,"%s\n",tm);
     }
   }
 
   /* See if there is any return cleanup code */
-  if ((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char*)"result",(char*)"",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
     Printf(f->code,"%s\n",tm);
   }
 
@@ -752,7 +753,7 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
 
     Printf(setf->def,"static int %s_set(PyObject *val) {", wname);
     if (!ReadOnly) {
-      if ((tm = Swig_typemap_lookup((char*)"varin",t,name,(char*)"val",name,0))) {
+      if ((tm = Swig_typemap_lookup((char*)"varin",t,name,name,(char*)"val",name,0))) {
 	Printf(setf->code,"%s\n",tm);
 	Replace(setf->code,"$name",iname, DOH_REPLACE_ANY);
       } else {
@@ -892,10 +893,10 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
     /* Create a function for getting the value of a variable */
     Printf(getf->def,"static PyObject *%s_get() {", wname);
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
-    if ((tm = Swig_typemap_lookup((char*)"varout",t,name,name,(char*)"pyobj",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"varout",t,name,name, name,(char*)"pyobj",0))) {
       Printf(getf->code,"%s\n",tm);
       Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
-    } else if ((tm = Swig_typemap_lookup((char*)"out",t,name,name,(char*)"pyobj",0))) {
+    } else if ((tm = Swig_typemap_lookup((char*)"out",t,name,name,name,(char*)"pyobj",0))) {
       Printf(getf->code,"%s\n",tm);
       Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
     } else {
@@ -1001,7 +1002,7 @@ void
 PYTHON::declare_const(char *name, char *iname, SwigType *type, char *value) {
   char   *tm;
 
-  if ((tm = Swig_typemap_lookup((char*)"const",type,name,value,name,0))) {
+  if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,value,name,0))) {
     Printf(const_code,"%s\n", tm);
   } else {
     switch(SwigType_type(type)) {

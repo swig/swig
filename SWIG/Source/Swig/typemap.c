@@ -317,7 +317,7 @@ Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms) {
   String   *name;
   Parm     *p;
   String   *newop;
-  Hash *tm;
+  Hash *tm = 0;
   
   newop = NewString(op);
   p = parms;
@@ -330,7 +330,8 @@ Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms) {
     if (p) 
       Printf(newop,"-%s:", type);
   }
-  Delattr(tm,tmop_name(newop));
+  if (tm)
+    Delattr(tm,tmop_name(newop));
   Delete(newop);
 }
 
@@ -555,6 +556,211 @@ Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch
   return tm;
 }
 
+
+/* -----------------------------------------------------------------------------
+ * typemap_replace_vars()
+ *
+ * Replaces typemap variables on a string.  index is the $n variable.
+ * type and pname are the type and parameter name.
+ * ----------------------------------------------------------------------------- */
+
+static
+void typemap_replace_vars(String *s, SwigType *type, String *pname, String *lname, int index) 
+{
+  char var[512];
+  char *varname;
+
+  sprintf(var,"$%d_",index);
+  varname = &var[strlen(var)];
+    
+  /* If the original datatype was an array. We're going to go through and substitute
+     it's array dimensions */
+    
+  if (SwigType_isarray(type)) {
+    int  ndim = SwigType_array_ndim(type);
+    int i;
+    for (i = 0; i < ndim; i++) {
+      String *dim = SwigType_array_getdim(type,i);
+      if (!index) {
+	char t[32];
+	sprintf(t,"$dim%d",i);
+	Replace(s,t,dim,DOH_REPLACE_ANY);
+      }
+      sprintf(varname,"dim%d",i);
+      Replace(s,var,dim,DOH_REPLACE_ANY);
+      Delete(dim);
+    }
+  }
+
+  /* Parameter name substitution */
+  if (!index) {
+    Replace(s,"$name",pname, DOH_REPLACE_ANY);
+  }
+  strcpy(varname,"name");
+  Replace(s,var,pname,DOH_REPLACE_ANY);
+
+  /* Type-related stuff */
+  {
+    SwigType *star_type, *amp_type, *base_type;
+    SwigType *ltype, *star_ltype, *amp_ltype;
+    String *mangle, *star_mangle, *amp_mangle, *base_mangle;
+    String *descriptor, *star_descriptor, *amp_descriptor;
+    String *ts;
+    char   *sc;
+
+    sc = Char(s);
+
+    if (strstr(sc,"type")) {
+      /* Given type : $type */
+      ts = SwigType_str(type,0);
+      if (!index)
+	Replace(s, "$type", ts, DOH_REPLACE_ANY);
+      strcpy(varname,"type");
+      Replace(s,var,ts,DOH_REPLACE_ANY);
+      Delete(ts);
+      sc = Char(s);
+    }
+    if (strstr(sc,"ltype")) {
+      /* Local type:  $ltype */
+      ltype = Swig_clocal_type(type);
+      ts = SwigType_str(ltype,0);
+      if (!index)
+	Replace(s, "$ltype", ts, DOH_REPLACE_ANY);
+      strcpy(varname,"ltype");
+      Replace(s,var,ts,DOH_REPLACE_ANY);
+      Delete(ts);
+      Delete(ltype);
+      sc = Char(s);
+    }
+    if (strstr(sc,"mangle") || strstr(sc,"descriptor")) {
+      /* Mangled type */
+      
+      mangle = SwigType_manglestr(type);
+      if (!index)
+	Replace(s, "$mangle", mangle, DOH_REPLACE_ANY);
+      strcpy(varname,"mangle");
+      Replace(s,var,mangle,DOH_REPLACE_ANY);
+    
+      descriptor = NewStringf("SWIGTYPE%s", mangle);
+      if (!index)
+	if (Replace(s, "$descriptor", descriptor, DOH_REPLACE_ANY))
+	  SwigType_remember(type);
+      
+      strcpy(varname,"descriptor");
+      if (Replace(s,var,descriptor,DOH_REPLACE_ANY))
+	SwigType_remember(type);
+      
+      Delete(descriptor);
+      Delete(mangle);
+    }
+    
+    /* One pointer level removed */
+    /* This creates variables of the form
+          $*n_type
+          $*n_ltype
+    */
+
+
+    if (SwigType_ispointer(type)) {
+      star_type = Copy(type);
+      SwigType_del_pointer(star_type);
+      ts = SwigType_str(star_type,0);
+      if (!index) 
+	Replace(s, "$*type", ts, DOH_REPLACE_ANY);
+      sprintf(varname,"$*%d_type",index);
+      Replace(s,varname,ts,DOH_REPLACE_ANY);
+      Delete(ts);
+      
+      star_ltype = Swig_clocal_type(star_type);
+      ts = SwigType_str(star_ltype,0);
+      if (!index)
+	Replace(s, "$*ltype", ts, DOH_REPLACE_ANY);
+      sprintf(varname,"$*%d_ltype",index);
+      Replace(s,varname,ts,DOH_REPLACE_ANY);
+      Delete(ts);
+      Delete(star_ltype);
+      
+      star_mangle = SwigType_manglestr(star_type);
+      if (!index) 
+	Replace(s, "$*mangle", star_mangle, DOH_REPLACE_ANY);
+      
+      sprintf(varname,"$*%d_mangle",index);
+      Replace(s,varname,star_mangle,DOH_REPLACE_ANY);
+      
+      star_descriptor = NewStringf("SWIGTYPE%s", star_mangle);
+      if (!index)
+	if (Replace(s, "$*descriptor",
+		    star_descriptor, DOH_REPLACE_ANY))
+	  SwigType_remember(star_type);
+      sprintf(varname,"$*%d_descriptor",index);
+      if (Replace(s,varname,star_descriptor,DOH_REPLACE_ANY))
+	SwigType_remember(star_type);
+      
+      Delete(star_descriptor);
+      Delete(star_mangle);
+    }
+    else {
+      /* TODO: Signal error if one of the $* substitutions is
+	 requested */
+    }
+    /* One pointer level added */
+    amp_type = Copy(type);
+    SwigType_add_pointer(amp_type);
+    ts = SwigType_str(amp_type,0);
+    if (!index) 
+      Replace(s, "$&type", ts, DOH_REPLACE_ANY);
+    sprintf(varname,"$&%d_type",index);
+    Replace(s,varname,ts,DOH_REPLACE_ANY);
+    Delete(ts);
+    
+    amp_ltype = Swig_clocal_type(amp_type);
+    ts = SwigType_str(amp_ltype,0);
+    
+    if (!index)
+      Replace(s, "$&ltype", ts, DOH_REPLACE_ANY);
+    sprintf(varname,"$&%d_ltype",index);
+    Replace(s,varname,ts,DOH_REPLACE_ANY);
+    Delete(ts);
+    Delete(amp_ltype);
+    
+    amp_mangle = SwigType_manglestr(amp_type);
+    if (!index) 
+      Replace(s, "$&mangle", amp_mangle, DOH_REPLACE_ANY);
+    sprintf(varname,"$&%d_mangle",index);
+    Replace(s,varname,amp_mangle,DOH_REPLACE_ANY);
+    
+    amp_descriptor = NewStringf("SWIGTYPE%s", amp_mangle);
+    if (!index) 
+      if (Replace(s, "$&descriptor",
+		  amp_descriptor, DOH_REPLACE_ANY))
+	SwigType_remember(amp_type);
+    sprintf(varname,"$&%d_descriptor",index);
+    if (Replace(s,varname,amp_descriptor,DOH_REPLACE_ANY))
+      SwigType_remember(amp_type);
+    
+    Delete(amp_descriptor);
+    Delete(amp_mangle);
+    
+    /* Base type */
+    base_type = SwigType_base(type);
+    if (!index)
+      Replace(s,"$basetype", base_type, DOH_REPLACE_ANY);
+    strcpy(varname,"basetype");
+    Replace(s,var,base_type,DOH_REPLACE_ANY);
+    
+    base_mangle = SwigType_manglestr(base_type);
+    if (!index)
+      Replace(s,"$basemangle", base_mangle, DOH_REPLACE_ANY);
+    strcpy(varname,"basemangle");
+    Replace(s,var,base_mangle,DOH_REPLACE_ANY);
+    Delete(base_mangle);
+    Delete(base_type);
+  }
+  /* Replace the bare $n variable */
+  sprintf(var,"$%d",index);
+  Replace(s,var,lname,DOH_REPLACE_ANY);
+}
+
 /* ------------------------------------------------------------------------
  * static typemap_locals()
  *
@@ -622,7 +828,8 @@ static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, Par
  * Perform a typemap lookup (ala SWIG1.1)
  * ----------------------------------------------------------------------------- */
 
-char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *source,
+char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname,
+			  String_or_char *lname, String_or_char *source,
 			  String_or_char *target, Wrapper *f) 
 {
   Hash   *tm;
@@ -640,23 +847,8 @@ char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_ch
   if (locals && f) {
     typemap_locals(type,pname,s,locals,f);
   }
-
-  /* If the original datatype was an array. We're going to go through and substitute
-     it's array dimensions */
-
-  if (SwigType_isarray(type)) {
-    char temp[10];
-    int  ndim = SwigType_array_ndim(type);
-    int i;
-    for (i = 0; i < ndim; i++) {
-      DOHString *dim = SwigType_array_getdim(type,i);
-      sprintf(temp,"$dim%d",i);
-      if (f)
-	Replace(f->locals,temp,dim, DOH_REPLACE_ANY);
-      Replace(s,temp,dim,DOH_REPLACE_ANY);
-    }
-  }
-  
+  typemap_replace_vars(s,type,pname,lname,0);
+   
   /* Now perform character replacements */
   Replace(s,"$source",source,DOH_REPLACE_ANY);
   Replace(s,"$target",target,DOH_REPLACE_ANY);
@@ -666,63 +858,6 @@ char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_ch
   }
   Replace(s,"$parmname",pname, DOH_REPLACE_ANY);
   Replace(s,"$name",pname,DOH_REPLACE_ANY);
-
-  /* Type-related stuff */
-  {
-    SwigType *star_type, *amp_type, *base_type;
-    SwigType *ltype, *star_ltype, *amp_ltype, *base_ltype;
-    String *mangle, *star_mangle, *amp_mangle, *base_mangle;
-    String *descriptor, *star_descriptor, *amp_descriptor;
-
-    /* Given type */
-    Replace(s, "$type", SwigType_str(type, 0), DOH_REPLACE_ANY);
-    ltype = Swig_clocal_type(type);
-    Replace(s, "$ltype", SwigType_str(ltype, 0), DOH_REPLACE_ANY);
-    mangle = SwigType_manglestr(type);
-    Replace(s, "$mangle", mangle, DOH_REPLACE_ANY);
-    descriptor = NewStringf("SWIGTYPE%s", mangle);
-    if (Replace(s, "$descriptor",
-		descriptor, DOH_REPLACE_ANY))
-      SwigType_remember(type);
-    Delete(descriptor);
-    /* One pointer level removed */
-    if (SwigType_ispointer(type)) {
-      star_type = Copy(type);
-      SwigType_del_pointer(star_type);
-      Replace(s, "$*type", SwigType_str(star_type, 0), DOH_REPLACE_ANY);
-      star_ltype = Swig_clocal_type(star_type);
-      Replace(s, "$*ltype", SwigType_str(star_ltype, 0), DOH_REPLACE_ANY);
-      star_mangle = SwigType_manglestr(star_type);
-      Replace(s, "$*mangle", star_mangle, DOH_REPLACE_ANY);
-      star_descriptor = NewStringf("SWIGTYPE%s", star_mangle);
-      if (Replace(s, "$*descriptor",
-		  star_descriptor, DOH_REPLACE_ANY))
-	SwigType_remember(star_type);
-      Delete(star_descriptor);
-    }
-    else {
-      /* TODO: Signal error if one of the $* substitutions is
-	 requested */
-    }
-    /* One pointer level added */
-    amp_type = Copy(type);
-    SwigType_add_pointer(amp_type);
-    Replace(s, "$&type", SwigType_str(amp_type, 0), DOH_REPLACE_ANY);
-    amp_ltype = Swig_clocal_type(amp_type);
-    Replace(s, "$&ltype", SwigType_str(amp_ltype, 0), DOH_REPLACE_ANY);
-    amp_mangle = SwigType_manglestr(amp_type);
-    Replace(s, "$&mangle", amp_mangle, DOH_REPLACE_ANY);
-    amp_descriptor = NewStringf("SWIGTYPE%s", amp_mangle);
-    if (Replace(s, "$&descriptor",
-		amp_descriptor, DOH_REPLACE_ANY))
-      SwigType_remember(amp_type);
-    Delete(amp_descriptor);
-    /* Base type */
-    base_type = SwigType_base(type);
-    Replace(s,"$basetype", base_type, DOH_REPLACE_ANY);
-    base_mangle = SwigType_manglestr(base_type);
-    Replace(s,"$basemangle", base_mangle, DOH_REPLACE_ANY);
-  }
   return Char(s);
 }
 
@@ -742,8 +877,6 @@ char *Swig_typemap_lookup_multi(const String_or_char *op, ParmList *parms, Strin
   String    *target;
   ParmList  *locals;
   int        argnum = 0;
-  char       temp[1024];
-  char       *tempname;
 
   tm = Swig_typemap_search_multi(op,parms,nmatch);
   if (!tm) return 0;
@@ -762,199 +895,22 @@ char *Swig_typemap_lookup_multi(const String_or_char *op, ParmList *parms, Strin
     type = Getattr(parms,"type");
     pname = Getattr(parms,"name");
     target = Getattr(parms,"lname");
-    sprintf(temp,"$%d.",argnum);
-    tempname = &temp[strlen(temp)];
 
     if (locals && f && !argnum) {
       typemap_locals(type,pname,s,locals,f);
     }
     
-    /* If the original datatype was an array. We're going to go through and substitute
-       it's array dimensions */
-    
-    if (SwigType_isarray(type)) {
-      int  ndim = SwigType_array_ndim(type);
-      int i;
-      for (i = 0; i < ndim; i++) {
-	DOHString *dim = SwigType_array_getdim(type,i);
-	if (!argnum) { /* backwards compatibility */
-	  char t[32];
-	  sprintf(t,"$dim%d",i);
-	  if (f)
-	    Replace(f->locals,t,dim, DOH_REPLACE_ANY);
-	  Replace(s,t,dim,DOH_REPLACE_ANY);
-	}
-	sprintf(tempname,"dim%d",i);
-	if (f)
-	  Replace(f->locals,temp,dim, DOH_REPLACE_ANY);
-	Replace(s,temp,dim,DOH_REPLACE_ANY);
-      }
-    }
+    typemap_replace_vars(s,type,pname,target,argnum);
 
-    /* Now perform character replacements */
+    /* Now perform character replacements (compatibility mode) */
 
     if (!argnum) {
       String *tmname;
       Replace(s,"$source",source,DOH_REPLACE_ANY);
       Replace(s,"$target",target,DOH_REPLACE_ANY);
-      Replace(s,"$parmname",pname, DOH_REPLACE_ANY);
       Replace(s,"$name",pname, DOH_REPLACE_ANY);
       tmname = Getattr(tm,"typemap");
       if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
-    }
-
-    /* $n.target substitution */
-    strcpy(tempname,"target");
-    Replace(s,temp,target,DOH_REPLACE_ANY);
-
-    /* $n.parmname substitution */
-    strcpy(tempname,"parmname");
-    Replace(s,temp,pname, DOH_REPLACE_ANY);
-    
-    strcpy(tempname,"name");
-    Replace(s,temp,pname,DOH_REPLACE_ANY);
-
-    /* Type-related stuff */
-    {
-      SwigType *star_type, *amp_type, *base_type;
-      SwigType *ltype, *star_ltype, *amp_ltype, *base_ltype;
-      String *mangle, *star_mangle, *amp_mangle, *base_mangle;
-      String *descriptor, *star_descriptor, *amp_descriptor;
-      String *ts;
-
-      /* Given type : $type */
-      ts = SwigType_str(type,0);
-      if (!argnum)
-	Replace(s, "$type", ts, DOH_REPLACE_ANY);
-      strcpy(tempname,"type");
-      Replace(s,temp,ts,DOH_REPLACE_ANY);
-      Delete(ts);
-      
-      /* Local type:  $ltype */
-      ltype = Swig_clocal_type(type);
-      ts = SwigType_str(ltype,0);
-      if (!argnum)
-	Replace(s, "$ltype", ts, DOH_REPLACE_ANY);
-      strcpy(tempname,"ltype");
-      Replace(s,temp,ts,DOH_REPLACE_ANY);
-      Delete(ts);
-      Delete(ltype);
-
-      /* Mangled type */
-
-      mangle = SwigType_manglestr(type);
-      if (!argnum)
-	Replace(s, "$mangle", mangle, DOH_REPLACE_ANY);
-      strcpy(tempname,"mangle");
-      Replace(s,temp,mangle,DOH_REPLACE_ANY);
-
-      descriptor = NewStringf("SWIGTYPE%s", mangle);
-      if (!argnum)
-	if (Replace(s, "$descriptor", descriptor, DOH_REPLACE_ANY))
-	  SwigType_remember(type);
-      
-      strcpy(tempname,"descriptor");
-      if (Replace(s,temp,descriptor,DOH_REPLACE_ANY))
-	SwigType_remember(type);
-      
-      Delete(descriptor);
-      Delete(mangle);
-
-      /* One pointer level removed */
-      if (SwigType_ispointer(type)) {
-	star_type = Copy(type);
-	SwigType_del_pointer(star_type);
-	ts = SwigType_str(star_type,0);
-	if (!argnum) 
-	  Replace(s, "$*type", ts, DOH_REPLACE_ANY);
-	strcpy(tempname,"*type");
-	Replace(s,temp,ts,DOH_REPLACE_ANY);
-	Delete(ts);
-
-	star_ltype = Swig_clocal_type(star_type);
-	ts = SwigType_str(star_ltype,0);
-	if (!argnum)
-	  Replace(s, "$*ltype", ts, DOH_REPLACE_ANY);
-	strcpy(tempname,"*ltype");
-	Replace(s,temp,ts,DOH_REPLACE_ANY);
-	Delete(ts);
-	Delete(star_ltype);
-
-	star_mangle = SwigType_manglestr(star_type);
-	if (!argnum) 
-	  Replace(s, "$*mangle", star_mangle, DOH_REPLACE_ANY);
-	
-	strcpy(tempname,"*mangle");
-	Replace(s,temp,star_mangle,DOH_REPLACE_ANY);
-
-	star_descriptor = NewStringf("SWIGTYPE%s", star_mangle);
-	if (!argnum)
-	  if (Replace(s, "$*descriptor",
-		      star_descriptor, DOH_REPLACE_ANY))
-	    SwigType_remember(star_type);
-	strcpy(tempname,"*descriptor");
-	if (Replace(s,temp,star_descriptor,DOH_REPLACE_ANY))
-	  SwigType_remember(star_type);
-
-	Delete(star_descriptor);
-	Delete(star_mangle);
-      }
-      else {
-	/* TODO: Signal error if one of the $* substitutions is
-	   requested */
-      }
-      /* One pointer level added */
-      amp_type = Copy(type);
-      SwigType_add_pointer(amp_type);
-      ts = SwigType_str(amp_type,0);
-      if (!argnum) 
-	Replace(s, "$&type", ts, DOH_REPLACE_ANY);
-      strcpy(tempname,"&type");
-      Replace(s,temp,ts,DOH_REPLACE_ANY);
-      Delete(ts);
-      
-      amp_ltype = Swig_clocal_type(amp_type);
-      ts = SwigType_str(amp_ltype,0);
-
-      if (!argnum)
-	Replace(s, "$&ltype", ts, DOH_REPLACE_ANY);
-      strcpy(tempname,"&ltype");
-      Replace(s,temp,ts,DOH_REPLACE_ANY);
-      Delete(ts);
-      Delete(amp_ltype);
-
-      amp_mangle = SwigType_manglestr(amp_type);
-      if (!argnum) 
-	Replace(s, "$&mangle", amp_mangle, DOH_REPLACE_ANY);
-      strcpy(tempname,"&mangle");
-      Replace(s,temp,amp_mangle,DOH_REPLACE_ANY);
-
-      amp_descriptor = NewStringf("SWIGTYPE%s", amp_mangle);
-      if (!argnum) 
-	if (Replace(s, "$&descriptor",
-		    amp_descriptor, DOH_REPLACE_ANY))
-	  SwigType_remember(amp_type);
-      strcpy(tempname,"&descriptor");
-      if (Replace(s,temp,amp_descriptor,DOH_REPLACE_ANY))
-	SwigType_remember(amp_type);
-
-      Delete(amp_descriptor);
-      Delete(amp_mangle);
-
-      /* Base type */
-      base_type = SwigType_base(type);
-      if (!argnum)
-	Replace(s,"$basetype", base_type, DOH_REPLACE_ANY);
-      strcpy(tempname,"basetype");
-      Replace(s,temp,base_type,DOH_REPLACE_ANY);
-
-      base_mangle = SwigType_manglestr(base_type);
-      if (!argnum)
-	Replace(s,"$basemangle", base_mangle, DOH_REPLACE_ANY);
-      strcpy(tempname,"basemangle");
-      Replace(s,temp,base_mangle,DOH_REPLACE_ANY);
-      Delete(base_mangle);
-      Delete(base_type);
     }
     parms = nextSibling(parms);
     argnum++;

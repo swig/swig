@@ -119,9 +119,9 @@ The type returned is the java shadow type when shadow_flag=1.
 void JAVA::SwigToJavaType(SwigType *t, String_or_char *pname, String* java_type, int shadow_flag) {
   char *jtype = 0;
   if (shadow_flag)
-    jtype = JavaTypeFromTypemap((char*)"jstype", t, pname);
+    jtype = JavaTypeFromTypemap((char*)"jstype", t, pname,(char*)"");
   if (!jtype)
-    jtype = JavaTypeFromTypemap((char*)"jtype", t, pname);
+    jtype = JavaTypeFromTypemap((char*)"jtype", t, pname,(char*)"");
 
   if(jtype) {
     Printf(java_type, jtype);
@@ -175,7 +175,7 @@ void JAVA::SwigToJavaType(SwigType *t, String_or_char *pname, String* java_type,
 
 /* Return JNI type in jni_type. */
 void JAVA::SwigToJNIType(SwigType *t, String_or_char *pname, String* jni_type) {
-  char *jtype = JavaTypeFromTypemap((char*)"jni", t, pname);
+  char *jtype = JavaTypeFromTypemap((char*)"jni", t, pname,(char*)"");
 
   if(jtype) {
     Printf(jni_type, jtype);
@@ -297,10 +297,10 @@ char *JAVA::JavaMethodSignature(SwigType *t, int ret, int inShadow) {
   return NULL;
 }
 
-char *JAVA::JavaTypeFromTypemap(char *op, SwigType *t, String_or_char *pname) {
+char *JAVA::JavaTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *lname) {
   char *tm;
   char *c = bigbuf;
-  if(!(tm = Swig_typemap_lookup(op, t, pname, (char*)"", (char*)"", NULL))) return NULL;
+  if(!(tm = Swig_typemap_lookup(op, t, pname, lname, (char*)"", (char*)"", NULL))) return NULL;
   while(*tm && (isspace(*tm) || *tm == '{')) tm++;
   while(*tm && *tm != '}') *c++ = *tm++;
   *c='\0';
@@ -730,6 +730,7 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
   for (int i = 0; i < pcount ; i++, p = nextSibling(p)) {
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
+    String   *ln = Getattr(p,"lname");
     String   *javaparamtype = NewString("");
     String   *jni_param_type = NewString("");
 
@@ -757,7 +758,7 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
       Printv(f->def, ", ", jni_param_type, " ", source, 0);
 
       // Get typemap for this argument
-      tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f);
+      tm = Swig_typemap_lookup((char*)"in",pt,pn,ln,source,target,f);
       if (tm) {
         Printf(f->code,"%s\n", tm);
         Replace(f->code,"$arg",source, DOH_REPLACE_ANY);
@@ -839,20 +840,20 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
       }
 
     // Check to see if there was any sort of a constaint typemap
-    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,source,target,NULL))) {
+    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,ln,source,target,NULL))) {
       // Yep.  Use it instead of the default
       Printf(f->code,"%s\n", tm);
       Replace(f->code,"$arg",source, DOH_REPLACE_ANY);
     }
 
     // Check if there was any cleanup code (save it for later)
-    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,source,target,NULL))) {
+    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,ln,source,target,NULL))) {
       // Yep.  Use it instead of the default
       Printf(cleanup,"%s\n", tm);
       Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
     }
 
-    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,source,target,NULL))) {
+    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,ln,source,target,NULL))) {
       // Yep.  Use it instead of the default
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
@@ -918,7 +919,7 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
   // Return value if necessary
 
   if((SwigType_type(t) != T_VOID) && !native_func) {
-    if ((tm = Swig_typemap_lookup((char*)"out",t,iname,(char*)"result",(char*)"jresult",NULL))) {
+    if ((tm = Swig_typemap_lookup((char*)"out",t,iname,(char*)"result",(char*)"result",(char*)"jresult",NULL))) {
       Printf(f->code,"%s\n", tm);
     } else {
         switch(SwigType_type(t)) {
@@ -1019,13 +1020,13 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
   // Look for any remaining cleanup
 
   if (NewObject) {
-    if ((tm = Swig_typemap_lookup((char*)"newfree",t,iname,(char*)"result",(char*)"",NULL))) {
+    if ((tm = Swig_typemap_lookup((char*)"newfree",t,iname,(char*)"result",(char*)"result",(char*)"",NULL))) {
       Printf(f->code,"%s\n", tm);
     }
   }
 
   if((SwigType_type(t) != T_VOID) && !native_func) {
-    if ((tm = Swig_typemap_lookup((char*)"ret",t,iname,(char*)"result",(char*)"jresult", NULL))) {
+    if ((tm = Swig_typemap_lookup((char*)"ret",t,iname,(char*)"result",(char*)"result",(char*)"jresult", NULL))) {
       Printf(f->code,"%s\n", tm);
     }
   }
@@ -1097,7 +1098,7 @@ void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
     jname = name;
   }
 
-  if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,iname,NULL))) {
+  if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,name,iname,NULL))) {
     String *str = NewString(tm);
     Replace(str,"$value",value, DOH_REPLACE_ANY);
     Printf(jout,"  %s\n\n", str);

@@ -569,6 +569,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   for (p = l; p; p = nextSibling(p)) {
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
+    String   *ln = Getattr(p,"lname");
 
     /* Produce string representation of source and target arguments */
     sprintf(source,"ST(%d)",j);
@@ -581,7 +582,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
       if (j>= (pcount-numopt))
 	Printf(f->code,"    if (items > %d) {\n", j);
 
-      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {
+      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,ln,source,target,f))) {
 	Printf(f->code,"%s\n",tm);
 	Replace(f->code,"$argnum",argnum,DOH_REPLACE_ANY);
 	Replace(f->code,"$arg",source,DOH_REPLACE_ANY);
@@ -643,19 +644,19 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
     }
 
     /* Check if there is any constraint code */
-    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,source,target,0))) {
+    if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,ln,source,target,0))) {
       Printf(f->code,"%s\n", tm);
       Replace(f->code,"$argnum",argnum, DOH_REPLACE_ANY);
     }
     need_save = 0;
 
-    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,target,temp,0))) {
+    if ((tm = Swig_typemap_lookup((char*)"freearg",pt,pn,ln,target,temp,0))) {
       Printf(cleanup,"%s\n", tm);
       Replace(cleanup,"$argnum",argnum,DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",temp,DOH_REPLACE_ANY);
       need_save = 1;
     }
-    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,target,(char*)"ST(argvi)",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"ST(argvi)",0))) {
       String *tempstr = NewString(tm);
       Replace(tempstr,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(tempstr,"$arg",temp, DOH_REPLACE_ANY);
@@ -682,7 +683,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 
   emit_func_call(name,d,l,f);
 
-  if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"ST(argvi)",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"result",(char*)"ST(argvi)",0))) {
     Printf(f->code, "%s\n", tm);
   } else {
     if (SwigType_type(d) != T_VOID) {
@@ -740,12 +741,12 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   Printv(f->code,cleanup,0);
 
   if (NewObject) {
-    if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
       Printf(f->code,"%s\n",tm);
     }
   }
 
-  if ((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char*)"result",(char*)"",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
     Printf(f->code,"%s\n", tm);
   }
 
@@ -805,7 +806,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	char sourceNtarget[256];
 	sprintf(sourceNtarget,"$args[%d]",i);
 
-	if ((tm = Swig_typemap_lookup((char*)"perl5in",pt,(char*)"",sourceNtarget,sourceNtarget,0))) {
+	if ((tm = Swig_typemap_lookup((char*)"perl5in",pt,(char*)"",sourceNtarget,sourceNtarget,sourceNtarget,0))) {
 	  Printf(func,"%s\n", tm);
 	} else if (is_shadow(pt)) {
 	  /*
@@ -829,7 +830,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
      * implicit malloc/new.   We'll mark the object like it was created
      * in Perl so we can garbage collect it. */
 
-    if ((tm = Swig_typemap_lookup((char*)"perl5out",d,(char*)"",name,(char*)"sv",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"perl5out",d,(char*)"",name,name,(char*)"sv",0))) {
       Printv(func,
 	     tm, "\n",
 	     tab4, "return $result;\n",
@@ -909,9 +910,9 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 	   0);
 
     /* Check for a few typemaps */
-    if ((tm = Swig_typemap_lookup((char*)"varin",t,(char*)"",(char*)"sv",name,0))) {
+    if ((tm = Swig_typemap_lookup((char*)"varin",t,(char*)"",name,(char*)"sv",name,0))) {
       Printf(setf->code,"%s\n", tm);
-    } else if ((tm = Swig_typemap_lookup((char*)"in",t,(char*)"",(char*)"sv",name,0))) {
+    } else if ((tm = Swig_typemap_lookup((char*)"in",t,(char*)"",name, (char*)"sv",name,0))) {
       Printf(setf->code,"%s\n", tm);
     } else {
       switch(SwigType_type(t)) {
@@ -1001,7 +1002,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 	 tab4, "mg = mg;\n",
 	 0);
 
-  if ((tm = Swig_typemap_lookup((char*)"varout",t,(char*)"",name, (char*)"sv",0))) {
+  if ((tm = Swig_typemap_lookup((char*)"varout",t,(char*)"",name, name, (char*)"sv",0))) {
     Printf(getf->code,"%s\n", tm);
   } else {
     switch(SwigType_type(t)) {
@@ -1177,7 +1178,7 @@ PERL5::declare_const(char *name, char *iname, SwigType *type, char *value)
   static  int have_char_func = 0;
   static  int have_ref_func = 0;
 
-  if ((tm = Swig_typemap_lookup((char*)"const",type,name,value,name,0))) {
+  if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,value,name,0))) {
     Printf(f_init,"%s\n",tm);
   } else {
     switch(SwigType_type(type)) {
@@ -1574,7 +1575,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
         char sourceNtarget[512];
         sprintf(sourceNtarget, "$args[%d]", i);
   
-        if ((tm = Swig_typemap_lookup((char*)"perl5in",pt,(char*)"",sourceNtarget,sourceNtarget,0))) {
+        if ((tm = Swig_typemap_lookup((char*)"perl5in",pt,(char*)"",sourceNtarget, sourceNtarget,sourceNtarget,0))) {
       Printf(func,"%s\n",tm);
       need_wrapper = 1;
         }
@@ -1595,7 +1596,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
      * implicit malloc/new.   We'll mark the object like it was created
      * in Perl so we can garbage collect it. */
   
-    if ((tm = Swig_typemap_lookup((char*)"perl5out",t,(char*)"",name,(char*)"sv",0))) {
+    if ((tm = Swig_typemap_lookup((char*)"perl5out",t,(char*)"",name,name,(char*)"sv",0))) {
       Printv(func,
           tm, "\n",
           tab4,"return $result;\n",

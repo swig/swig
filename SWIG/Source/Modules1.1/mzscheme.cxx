@@ -217,15 +217,16 @@ is_a_pointer (SwigType *t)
    But we don't want to change it now since it is deprecated. */
 
 static char *
-mzscheme_typemap_lookup(const char *op, SwigType *type, const String_or_char *pname, String_or_char *source,
-		     String_or_char *target, Wrapper *f)
+mzscheme_typemap_lookup(const char *op, SwigType *type, const String_or_char *pname, const String_or_char *lname,
+			String_or_char *source,
+			String_or_char *target, Wrapper *f)
 {
   char *tm;
-  tm = Swig_typemap_lookup((char*) op, type, (char*)pname, source, target, f);
+  tm = Swig_typemap_lookup((char*) op, type, (char*)pname, (char*)lname, source, target, f);
   if (!tm) {
     SwigType *base = SwigType_typedef_resolve_all(type);
     if (strncmp(Char(base), "enum ", 5)==0)
-      tm = Swig_typemap_lookup((char*) op, NewSwigType(T_INT), (char*)pname, source, target, f);
+      tm = Swig_typemap_lookup((char*) op, NewSwigType(T_INT), (char*)pname, (char*)lname, source, target, f);
   }
   return tm;
 }
@@ -280,6 +281,10 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   // Now write code to extract the parameters (this is super ugly)
 
   for(p = l; p; p = nextSibling(p)) {
+    SwigType *pt = Getattr(p,"type");
+    String   *pn = Getattr(p,"name");
+    String   *ln = Getattr(p,"lname");
+
     // Produce names of source and target
     Clear(source);
     Clear(target);
@@ -293,23 +298,21 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     // Handle parameter types.
 
     if (Getattr(p,"ignore")) 
-      Printv(f->code, "/* ", Char(Getattr(p,"name")), " ignored... */\n", 0);
+      Printv(f->code, "/* ", pn, " ignored... */\n", 0);
     else {
       ++numargs;
-      if ((tm = mzscheme_typemap_lookup ("in",
-				     Getattr(p,"type"), Getattr(p,"name"), source, target, f))) {
+      if ((tm = mzscheme_typemap_lookup ("in", pt, pn, ln, source, target, f))) {
 	Printv(f->code, tm, "\n", 0);
 	mreplace (f->code, argnum, arg, proc_name);
       }
       // no typemap found
       // check if typedef and resolve
-      else throw_unhandled_mzscheme_type_error (Getattr(p,"type"));
+      else throw_unhandled_mzscheme_type_error (pt);
     }
 
     // Check if there are any constraints.
 
-    if ((tm = mzscheme_typemap_lookup ("check", 
-				   Getattr(p,"type"), Getattr(p,"name"), source, target, f))) {
+    if ((tm = mzscheme_typemap_lookup ("check", pt, pn, ln, source, target, f))) {
       // Yep.  Use it instead of the default
       Printv(f->code, tm, "\n", 0);
       mreplace (f->code, argnum, arg, proc_name);
@@ -317,8 +320,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
     // Pass output arguments back to the caller.
 
-    if ((tm = mzscheme_typemap_lookup ("argout", 
-				   Getattr(p,"type"), Getattr(p,"name"), source, target, f))) {
+    if ((tm = mzscheme_typemap_lookup ("argout", pt, pn, ln, source, target, f))) {
       // Yep.  Use it instead of the default
       Printv(outarg, tm, "\n",0);
       mreplace (outarg, argnum, arg, proc_name);
@@ -326,8 +328,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     }
 
     // Free up any memory allocated for the arguments.
-    if ((tm = mzscheme_typemap_lookup ("freearg",
-				   Getattr(p,"type"), Getattr(p,"name"), source, target, f))) {
+    if ((tm = mzscheme_typemap_lookup ("freearg", pt, pn, ln, source, target, f))) {
       // Yep.  Use it instead of the default
       Printv(cleanup, tm, "\n",0);
       mreplace (cleanup, argnum, arg, proc_name);
@@ -342,7 +343,8 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   // Now have return value, figure out what to do with it.
 
   if ((tm = mzscheme_typemap_lookup ("out",
-				      d, name, (char*)"result", (char*)"values[0]", f))) {
+				     d, name, (char*)"result",
+				     (char*)"result", (char*)"values[0]", f))) {
     Printv(f->code, tm, "\n",0);
     mreplace (f->code, argnum, arg, proc_name);
   }
@@ -360,7 +362,8 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   if (NewObject) {
     if ((tm = mzscheme_typemap_lookup ("newfree",
-				   d, iname, (char*)"result", (char*)"", f))) {
+				       d, iname, (char*)"result",
+				       (char*)"result", (char*)"", f))) {
       Printv(f->code, tm, "\n",0);
       mreplace (f->code, argnum, arg, proc_name);
     }
@@ -369,7 +372,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   // Free any memory allocated by the function being wrapped..
 
   if ((tm = mzscheme_typemap_lookup ("ret",
-				 d, name, (char*)"result", (char*)"", f))) {
+				 d, name, (char*)"result",(char*)"result", (char*)"", f))) {
     // Yep.  Use it instead of the default
     Printv(f->code, tm, "\n",0);
     mreplace (f->code, argnum, arg, proc_name);
@@ -445,7 +448,7 @@ MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
       /* Check for a setting of the variable value */
       Printf (f->code, "if (argc) {\n");
       if ((tm = mzscheme_typemap_lookup ("varin",
-					 t, name, (char*)"argv[0]", name,0))) {
+					 t, name, name, (char*)"argv[0]", name,0))) {
 	Printv(tm2, tm,0);
 	mreplace(tm2, argnum, arg, proc_name);
 	Printv(f->code, tm2, "\n",0);
@@ -460,7 +463,7 @@ MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
     // of evaluating or setting)
 
     if ((tm = mzscheme_typemap_lookup ("varout",
-				       t, name, name, (char*)"swig_result",0))) {
+				       t, name, name, name, (char*)"swig_result",0))) {
       Printf (f->code, "%s\n", tm);
     }
     else {
@@ -546,7 +549,7 @@ MZSCHEME::declare_const (char *name, char *iname, SwigType *type, char *value)
     Clear(rvalue);
     Printv(rvalue, "'", temp, "'",0);
   }
-  if ((tm = mzscheme_typemap_lookup ("const", type, name,
+  if ((tm = mzscheme_typemap_lookup ("const", type, name, name, 
 				 rvalue, name,0))) {
     // Yep.  Use it instead of the default
     Printf (f_init, "%s\n", tm);

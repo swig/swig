@@ -43,7 +43,7 @@ public :
   void SwigToJNIType(SwigType *t, String_or_char *pname, String* jni_type);
   void SwigToJavaType(SwigType *t, String_or_char *pname, String* java_type, int shadow_flag);
   char *SwigToJavaArrayType(SwigType *t);
-  char *JavaTypeFromTypemap(char *op, SwigType *t, String_or_char *pname);
+  char *JavaTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *lname);
   char *makeValidJniName(const char *name);
   char *JavaMethodSignature(SwigType *t, int ret, int inShadow);
   void writeRegisterNatives();
