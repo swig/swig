@@ -99,6 +99,31 @@ check_suffix(char *name) {
   return 0;
 }
 
+// -----------------------------------------------------------------------------
+// install_opts(int argc, char *argv[])
+// Install all command line options as preprocessor symbols
+// ----------------------------------------------------------------------------- 
+
+static void
+install_opts(int argc, char *argv[]) {
+  int i;
+  for (i = 1; i < (argc-1); i++) {
+    if (argv[i]) {
+      if ((*argv[i] == '-') && (!isupper(*(argv[i]+1)))) {
+	String *opt = NewStringf("SWIGOPT%(upper)s", argv[i]);
+	Replaceall(opt,"-","_");
+	if (((i+1) < (argc-1)) && (argv[i+1]) && (*argv[i+1] != '-')) {
+	  Printf(opt," %s", argv[i+1]);
+	  i++;
+	} else {
+	  Printf(opt," 1");
+	}
+	/*	Printf(stdout,"%s\n", opt);*/
+	Preprocessor_define(opt, 0);
+      }
+    }
+  }
+}
 //-----------------------------------------------------------------
 // main()
 //
@@ -118,7 +143,8 @@ void SWIG_config_file(const String_or_char *filename) {
 void SWIG_library_directory(const char *filename) {
   strcpy(LibDir,filename);
 }
-  extern  "C" Node *Swig_cparse(File *);
+
+extern  "C" Node *Swig_cparse(File *);
 
 int SWIG_main(int argc, char *argv[], Language *l) {
   int    i;
@@ -306,6 +332,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   // Check all of the options to make sure we're cool.
   Swig_check_options();
+
+  install_opts(argc, argv);
 
   // Add language dependent directory to the search path
   {

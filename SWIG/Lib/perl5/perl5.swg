@@ -155,29 +155,50 @@
        { SWIG_BINARY,  (char *) SWIG_prefix "$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
 
 
-/* Install all of the commands */
-
-%init %{
-  for (i = 0; swig_commands[i].name; i++) {
-    newXS((char*) swig_commands[i].name,swig_commands[i].wrapper, __FILE__);
-  }
+/* Export the SWIG initialization function */
+%header %{
+#ifdef __cplusplus
+extern "C"
+#endif
+#ifndef PERL_OBJECT
+#ifndef MULTIPLICITY
+SWIGEXPORT(void) SWIG_init (CV* cv);
+#else
+SWIGEXPORT(void) SWIG_init (pTHXo_ CV* cv);
+#endif
+#else
+SWIGEXPORT(void) SWIG_init (CV *cv, CPerlObj *);
+#endif
 %}
 
-/* Install all of the variables */
+/* Module initialization function */
 
 %init %{
-  for (i = 0; swig_variables[i].name; i++) {
-    SV *sv;
-    sv = perl_get_sv((char*) swig_variables[i].name, TRUE | 0x2);
-    sv_setiv(sv, (IV) 0);
-    swig_create_magic(sv, (char *) swig_variables[i].name, swig_variables[i].set, swig_variables[i].get);
-  }
-%}
+#ifdef __cplusplus
+extern "C"
+#endif
 
-/* Install all of the constants */
+XS(SWIG_init) {
+    dXSARGS;
+    int i;
+    for (i = 0; swig_types_initial[i]; i++) {
+	 swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
+    }	
 
-%init %{
-    /* Install Constants */
+    /* Install commands */
+    for (i = 0; swig_commands[i].name; i++) {
+      newXS((char*) swig_commands[i].name,swig_commands[i].wrapper, __FILE__);
+    }
+
+    /* Install variables */
+    for (i = 0; swig_variables[i].name; i++) {
+      SV *sv;
+      sv = perl_get_sv((char*) swig_variables[i].name, TRUE | 0x2);
+      sv_setiv(sv, (IV) 0);
+      swig_create_magic(sv, (char *) swig_variables[i].name, swig_variables[i].set, swig_variables[i].get);
+    }
+
+    /* Install constant */
     for (i = 0; swig_constants[i].type; i++) {
       SV *sv;
       sv = perl_get_sv((char*)swig_constants[i].name, TRUE | 0x2);
