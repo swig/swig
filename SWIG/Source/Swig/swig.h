@@ -256,8 +256,6 @@ extern int         SwigType_issubtype(SwigType *subtype, SwigType *basetype);
 extern void        SwigType_scope_alias(String *aliasname, Typetab *t);
 extern void        SwigType_using_scope(Typetab *t);
 extern void        SwigType_new_scope(String_or_char *name);
-extern void        SwigType_reset_scopes();
-extern void        SwigType_set_scope_name(String_or_char *name);
 extern void        SwigType_inherit_scope(Typetab *scope);
 extern Typetab    *SwigType_pop_scope();
 extern Typetab    *SwigType_set_scope(Typetab *h);
@@ -347,7 +345,6 @@ extern int  Swig_save(const char *ns, Node *node,...);
 extern void Swig_restore(Node *node);
 
 /* Debugging of parse trees */
-extern void Swig_debug_emit(int);
 extern void Swig_print_tags(File *obj, Node *root);
 extern void Swig_print_tree(Node *obj);
 extern void Swig_print_node(Node *obj);
@@ -478,7 +475,6 @@ extern String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, Str
 
 extern String *Swig_typemap_lookup_new(const String_or_char *op, Node *n, const String_or_char *lname, Wrapper *f);
 extern void Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p);
-extern String *Swig_typemap_lookup_multi(const String_or_char *op, ParmList *parms, String_or_char *source, Wrapper *f, int *nmatch);
 extern void   Swig_typemap_new_scope();
 extern Hash  *Swig_typemap_pop_scope();
 
