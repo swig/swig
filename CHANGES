@@ -1,15 +1,5 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-The Stable Development Branch
-=============================
-
-In this CVS branch "rel-1-3", fixes in the SWIG core and improvements
-to the language modules take place, starting from the stable release
-1.3.6.
-
-Eventually this branch will be merged back to the trunk of the CVS
-tree (maybe).
-
 Version 1.3.18 (In progress)
 ============================
 
