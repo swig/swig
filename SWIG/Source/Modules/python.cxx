@@ -44,7 +44,7 @@ static  int           in_class = 0;
 static  int           classic = 0;
 static  int           modern = 0;
 static  int           apply = 0;
-static  int           new_repr = 0;
+static  int           new_repr = 1;
 
 /* C++ Support + Shadow Classes */
 
@@ -71,6 +71,7 @@ Python Options (available with -python)\n\
      -modern         - Use modern python features only, without compatibility code\n\
      -apply          - Use apply() in proxy classes\n\
      -new_repr       - Use more informative version of __repr__ in proxy classes\n\
+     -old_repr       - Use shorter version of __repr__ in proxy classes\n\
      -noexcept       - No automatic exception handling\n\
      -noproxy        - Don't generate proxy classes \n\n";
 
@@ -117,6 +118,9 @@ public:
           Swig_mark_arg(i);
         } else if (strcmp(argv[i],"-new_repr") == 0) {
           new_repr = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i],"-old_repr") == 0) {
+          new_repr = 0;
           Swig_mark_arg(i);
 	} else if ((strcmp(argv[i],"-noproxy") == 0)) {
 	  shadow = 0;
@@ -462,15 +466,51 @@ public:
     return str;
   }
 
+  enum autodoc_l {
+    NO_AUTODOC           = -2, // no autodoc
+    STRING_AUTODOC       = -1, // use provided string
+    NAMES_AUTODOC        =  0, // only parameter names
+    TYPES_AUTODOC        =  1, // parameter names and types
+    EXTEND_AUTODOC       =  2, // extended documentation and parameter names
+    EXTEND_TYPES_AUTODOC =  3  // extended documentation and parameter types + names
+  };
+  
+  
+  /*
+    Autodoc Levels:
+      -2 
+      -1  
+       0  
+       1  
+       2  
+       3  
+  */
+  autodoc_l autodoc_level(String *autodoc) {
+    autodoc_l dlevel = NO_AUTODOC;
+    if (autodoc) {
+      char  *c = Char(autodoc);
+      if (c && isdigit(c[0])) {
+	dlevel = (autodoc_l) atoi(c);
+      } else {
+	if (strcmp(c,"extended")== 0) {
+	  dlevel = EXTEND_AUTODOC; 
+	} else {
+	  dlevel = STRING_AUTODOC;
+	}
+      }
+    }
+    return dlevel;
+  }
+  
 
   int functionHandler(Node *n) {
     if (checkAttribute(n,"feature:python:callback","1")) {
       Setattr(n,"feature:callback","%s_cb_ptr");
-      if (checkAttribute(n,"feature:autodoc","extended")) {
+      autodoc_l dlevel = autodoc_level(Getattr(n, "feature:autodoc"));
+      if (dlevel != NO_AUTODOC && dlevel > TYPES_AUTODOC) {
 	Setattr(n,"feature:autodoc","1");
       }
     }
-    
     return Language::functionHandler(n);
   }
   
@@ -626,20 +666,29 @@ public:
     while (n) {
       bool showTypes = false;
       bool skipAuto = false;
-      
-      // check how should the parameters be rendered?
-      String* autodoc = Getattr(n, "feature:autodoc");
-      if (Strcmp(autodoc, "0") == 0)
+      String *autodoc =  Getattr(n,"feature:autodoc");
+      autodoc_l dlevel = autodoc_level(autodoc);
+      switch (dlevel) {
+      case NO_AUTODOC:
+	break;
+      case NAMES_AUTODOC:
         showTypes = false;
-      else if (Strcmp(autodoc, "1") == 0)
+	break;
+      case TYPES_AUTODOC:
         showTypes = true;
-      else if (Strcmp(autodoc, "extended") == 0) {
+	break;
+      case EXTEND_AUTODOC:
 	extended = 1;
         showTypes = false;
-      } else {
-        // if not "0" or "1" then autodoc is already the string that should be used
+	break;
+      case EXTEND_TYPES_AUTODOC:
+	extended = 1;
+        showTypes = true;
+	break;
+      case STRING_AUTODOC:
         Printf(doc, "%s", autodoc);
         skipAuto = true;
+	break;
       }
 
       if (!skipAuto) {
@@ -664,9 +713,12 @@ public:
         
         switch ( ad_type ) {
         case AUTODOC_CLASS:
-          Printf(doc, "Automatic wrap of C/C++ '%s' type", class_name);
-	  break;	  
-
+	  if (CPlusPlus) {
+	    Printf(doc, "Proxy of C++ %s class", class_name);
+	  } else {
+	    Printf(doc, "Proxy of C %s struct", class_name);
+	  }
+	  break;
         case AUTODOC_CTOR:
           if ( Strcmp(class_name, symname) == 0) {
             String* paramList = make_autodocParmList(n, showTypes);
