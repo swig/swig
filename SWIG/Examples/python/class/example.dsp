@@ -126,7 +126,6 @@ InputName=example
 	echo PYTHON_INCLUDE: %PYTHON_INCLUDE% 
 	echo PYTHON_LIB: %PYTHON_LIB% 
 	echo on 
-	set SWIG_LIB=..\..\..\Lib 
 	..\..\..\swig -c++ -python $(InputPath) 
 	
 # End Custom Build
@@ -142,7 +141,6 @@ InputName=example
 	echo PYTHON_INCLUDE: %PYTHON_INCLUDE% 
 	echo PYTHON_LIB: %PYTHON_LIB% 
 	echo on 
-	set SWIG_LIB=..\..\..\Lib 
 	..\..\..\swig -c++ -python $(InputPath) 
 	
 # End Custom Build

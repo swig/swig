@@ -123,7 +123,6 @@ InputName=example
 	echo RUBY_LIB: %RUBY_LIB% 
 	echo **WARNING** I could not get Ruby (1.6.4) and SWIG to work under Visual Studio (6) 
 	echo on 
-	set SWIG_LIB=..\..\..\Lib 
 	..\..\..\swig -ruby $(InputPath) 
 	
 # End Custom Build
@@ -140,7 +139,6 @@ InputName=example
 	echo RUBY_LIB: %RUBY_LIB% 
 	echo **WARNING** I could not get Ruby (1.6.4) and SWIG to work under Visual Studio (6) 
 	echo on 
-	set SWIG_LIB=..\..\..\Lib 
 	..\..\..\swig -ruby $(InputPath) 
 	
 # End Custom Build

@@ -122,7 +122,6 @@ InputName=example
 	echo TCL_INCLUDE: %TCL_INCLUDE% 
 	echo TCL_LIB: %TCL_LIB% 
 	echo on 
-	set SWIG_LIB=..\..\..\Lib 
 	..\..\..\swig -tcl8 $(InputPath) 
 	
 # End Custom Build
@@ -138,7 +137,6 @@ InputName=example
 	echo TCL_INCLUDE: %TCL_INCLUDE% 
 	echo TCL_LIB: %TCL_LIB% 
 	echo on 
-	set SWIG_LIB=..\..\..\Lib 
 	..\..\..\swig -tcl8 $(InputPath) 
 	
 # End Custom Build

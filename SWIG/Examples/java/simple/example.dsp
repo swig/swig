@@ -132,7 +132,6 @@ InputName=example
 	echo JAVA_INCLUDE: %JAVA_INCLUDE% 
 	echo JAVA_BIN: %JAVA_BIN% 
 	echo on 
-	set SWIG_LIB=..\..\..\Lib 
 	..\..\..\swig.exe -java -shadow $(InputPath) 
 	
 # End Custom Build
@@ -148,7 +147,6 @@ InputName=example
 	echo JAVA_INCLUDE: %JAVA_INCLUDE% 
 	echo JAVA_BIN: %JAVA_BIN% 
 	echo on 
-	set SWIG_LIB=..\..\..\Lib 
 	..\..\..\swig.exe -java -shadow $(InputPath) 
 	
 # End Custom Build

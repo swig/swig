@@ -121,7 +121,6 @@ InputName=example
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo on 
-	set SWIG_LIB=..\..\..\Lib 
 	..\..\..\swig -perl5 $(InputPath) 
 	
 # End Custom Build
@@ -136,7 +135,6 @@ InputName=example
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo on 
-	set SWIG_LIB=..\..\..\Lib 
 	..\..\..\swig -perl5 $(InputPath) 
 	
 # End Custom Build
