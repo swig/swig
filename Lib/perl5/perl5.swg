@@ -232,6 +232,16 @@
         }
 }
 
+%typemap(varin) SWIGTYPE [ANY] {
+	int  i;
+        $1_basetype *temp;
+        $1_basetype *b = ($1_basetype *) $1;
+        if (SWIG_ConvertPtr($input, (void **) &temp, $1_descriptor,0) < 0) {
+            croak("Type error in argument $argnum of $symname. Expected $1_mangle");
+        }
+        for (i = 0; i < $1_size; i++) b[i] = temp[i];
+}
+
 %typemap(varin) SWIGTYPE & {
         void *temp;
         if (SWIG_ConvertPtr($input, (void **) &temp, $1_descriptor,0) < 0) {
@@ -324,6 +334,9 @@
 
 %typemap(varin) char [ANY]
      "strncpy($1, (char *) SvPV(sv,PL_na), $1_dim0);";
+
+%typemap(varin,warning="462: Unable to set variable of type char []") char []
+     { croak("Variable $symname is read-only."); }
 
 %typemap(varin) enum SWIGTYPE
      "$1 = ($1_type) SvIV($input);";
