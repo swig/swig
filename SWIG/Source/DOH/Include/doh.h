@@ -40,11 +40,11 @@ typedef void DOH;
 
 /* Mapping Objects */
 typedef struct {
-  DOH    *(*doh_getattr)(DOH *obj, DOH *name);              /* Get attribute */
-  int     (*doh_setattr)(DOH *obj, DOH *name, DOH *value);  /* Set attribute */
-  int     (*doh_delattr)(DOH *obj, DOH *name);              /* Del attribute */
-  DOH    *(*doh_firstkey)(DOH *obj);                        /* First key     */
-  DOH    *(*doh_nextkey)(DOH *obj);                         /* Next key      */
+  DOH    *(*doh_getattr)(DOH *obj, DOH *name);                             /* Get attribute */
+  int     (*doh_setattr)(DOH *obj, DOH *name, DOH *value);                 /* Set attribute */
+  int     (*doh_delattr)(DOH *obj, DOH *name);                             /* Del attribute */
+  DOH    *(*doh_firstkey)(DOH *obj);                                       /* First key     */
+  DOH    *(*doh_nextkey)(DOH *obj);                                        /* Next key      */
 } DohMappingMethods;
 
 /* Sequence methods */
@@ -112,7 +112,9 @@ extern void    DohClear(DOH *obj);
 extern int     DohCmp(DOH *obj1, DOH *obj2);
 extern DOH    *DohStr(DOH *obj);
 extern DOH    *DohGetattr(DOH *obj, DOH *name);
+extern int     DohGetattrf(DOH *obj, DOH *name, char *fmt, ...);
 extern int     DohSetattr(DOH *obj, DOH *name, DOH *value);
+extern int     DohSetattrf(DOH *obj, DOH *name, char *fmt, ...);
 extern void    DohDelattr(DOH *obj, DOH *name);
 extern int     DohHashval(DOH *obj);
 extern DOH    *DohGetitem(DOH *obj, int index);
@@ -156,7 +158,9 @@ extern int     DohvScanf(DOH *obj, char *format, va_list ap);
 #define Str                DohStr
 #define Signature          DohSignature
 #define Getattr            DohGetattr
+#define Getattrf           DohGetattrf
 #define Setattr            DohSetattr
+#define Setattrf           DohSetattrf
 #define Delattr            DohDelattr
 #define Hashval            DohHashval
 #define Getitem            DohGetitem
@@ -220,7 +224,6 @@ typedef struct {
 extern DOH   *NewString(char *c);
 extern int    String_check(DOH *s);
 extern void   String_replace(DOH *s, DOH *token, DOH *rep, int flags);
-extern DohObjInfo *String_type();
 
 /* String replacement flags */
 
@@ -235,7 +238,7 @@ extern DohObjInfo *String_type();
 
 extern DOH *NewFile(char *file, char *mode);
 extern DOH *NewFileFromFile(FILE *f);
-extern DohObjInfo *File_type();
+
 /* -----------------------------------------------------------------------------
  * List
  * ----------------------------------------------------------------------------- */
@@ -243,7 +246,6 @@ extern DohObjInfo *File_type();
 extern DOH  *NewList();
 extern int  List_check(DOH *);
 extern void List_sort(DOH *);
-extern DohObjInfo *List_type();
 
 /* -----------------------------------------------------------------------------
  * Hash
@@ -252,7 +254,6 @@ extern DohObjInfo *List_type();
 extern DOH   *NewHash();
 extern int    Hash_check(DOH *h);
 extern DOH   *Hash_keys(DOH *);
-extern DohObjInfo *Hash_type();
 
 
 
