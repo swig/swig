@@ -1,6 +1,11 @@
 Version 1.3.16 (In progress)
 ==================================
 
+09/10/2002: ttn
+	    [Guile] Converted Examples/guile/simple "make check"
+	    behavior to actually check execution results.  Reduced
+	    iteration counts so that the test doesn't take too long.
+
 09/10/2002: beazley
             SWIG-1.3.15 released.
 
