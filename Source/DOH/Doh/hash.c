@@ -1,12 +1,12 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * hash.c
  *
  *     Implements a simple hash table object.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
@@ -15,7 +15,7 @@ static char cvsroot[] = "$Header$";
 
 /* Hash node */
 typedef struct HashNode {
-    DOH                  *key;            
+    DOH                  *key;
     DOH                  *object;
     struct HashNode     *next;
 } HashNode;
@@ -41,7 +41,8 @@ typedef struct KeyValue {
 static KeyValue *root = 0;
 
 /* Find or create a key in the interned key table */
-static DOH *find_key(char *c) {
+static DOH *find_key (DOH *doh_c) {
+  char *c = (char *) doh_c;
   KeyValue *r, *s;
   int d = 0;
   r = root;
@@ -95,7 +96,7 @@ static void DelNode(HashNode *hn) {
  * Delete a hash table.
  * ----------------------------------------------------------------------------- */
 
-static void 
+static void
 DelHash(DOH *ho) {
     Hash *h;
     HashNode *n,*next;
@@ -112,7 +113,7 @@ DelHash(DOH *ho) {
 	}
     }
     DohFree(h->hashtable);
-    h->hashtable = 0; 
+    h->hashtable = 0;
     h->hashsize = 0;
     Delete(h->file);
     DohObjFree(h);
@@ -166,7 +167,7 @@ static void resize(Hash *h) {
 	}
 	p = p + 2;
     }
-  
+
     table = (HashNode **) DohMalloc(newsize*sizeof(HashNode *));
     for (i = 0; i < newsize; i++ ) {
 	table[i] = 0;
@@ -196,7 +197,7 @@ static void resize(Hash *h) {
  * exists.
  * ----------------------------------------------------------------------------- */
 
-static int  
+static int
 Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     int hv;
     HashNode *n, *prev;
@@ -385,14 +386,14 @@ Hash_str(DOH *ho) {
     h->flags = h->flags & ~DOH_FLAG_PRINT;
     return s;
 }
-      
+
 /* -----------------------------------------------------------------------------
  * Hash_len()
  *
  * Return number of entries in the hash table.
  * ----------------------------------------------------------------------------- */
 
-static int 
+static int
 Hash_len(DOH *ho) {
   Hash *h = (Hash *) ho;
   return h->nitems;
