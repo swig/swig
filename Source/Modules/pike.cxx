@@ -9,6 +9,13 @@
  *   struct svalue), we're just calling the appropriate push_XXX
  *   (e.g. push_int) to push the return value onto the stack.
  *
+ * - Pike classes can't have static member functions or data, so we need
+ *   to find some other appropriate mapping for C++ static member functions
+ *   and data.
+ *
+ * - Pike doesn't seem to provide any default way to print the memory
+ *   address, etc. for extension objects. Should we do something here?
+ *
  ***********************************************************************/
  
 char cvsroot_pike_cxx[] = "$Header$";
@@ -32,6 +39,8 @@ private:
   File *f_header;
   File *f_wrappers;
   File *f_init;
+  File *f_classInit;
+
   String *PrefixPlusUnderscore;
   int current;
   
@@ -60,6 +69,7 @@ public:
     f_header = 0;
     f_wrappers = 0;
     f_init = 0;
+    f_classInit = 0;
     PrefixPlusUnderscore = 0;
     current = NO_CPP;
   }
@@ -118,6 +128,7 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
     f_init = NewString("");
+    f_classInit = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
 
@@ -126,6 +137,7 @@ public:
     Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
+    Swig_register_filebyname("classInit", f_classInit);
 
     /* Standard stuff for the SWIG runtime section */    
     Swig_banner(f_runtime);
@@ -154,9 +166,12 @@ public:
     Dump(f_header, f_runtime);
     Dump(f_wrappers, f_runtime);
     Wrapper_pretty_print(f_init, f_runtime);
+
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
+    Delete(f_classInit);
+
     Close(f_runtime);
     Delete(f_runtime);
 
@@ -221,12 +236,28 @@ public:
 
   void add_method(Node *n, const DOHString_or_char *name, const DOHString_or_char *function, const DOHString_or_char *description) {
     String *rename;
-    if (current != NO_CPP) {
-      rename = strip(name);
-    } else {
-      rename = NewString(name);
+    switch (current) {
+      case NO_CPP:
+        rename = NewString(name);
+        Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
+        break;
+      case STATIC_FUNC:
+      case STATIC_VAR:
+        rename = NewString(name);
+        Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
+        break;
+      case CONSTRUCTOR:
+      case DESTRUCTOR:
+      case MEMBER_FUNC:
+      case MEMBER_VAR:
+        rename = strip(name);
+        Printf(f_classInit, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
+        break;
+      case CLASS_CONST:
+        assert(false); // shouldn't have gotten here for CLASS_CONST nodes
+      default:
+        assert(false); // what is this?
     }
-    Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
     Delete(rename);
   }
 
@@ -606,7 +637,7 @@ public:
       
     PrefixPlusUnderscore = NewStringf("%s_", getClassPrefix());
 
-    Printf(f_init, "start_new_program();\n");
+    Printf(f_classInit, "start_new_program();\n");
 
     /* Handle inheritance */
     List *baselist = Getattr(n,"bases");
@@ -621,13 +652,13 @@ public:
         SwigType_add_pointer(basetype);
         SwigType_remember(basetype);
         String *basemangle = SwigType_manglestr(basetype);
-        Printf(f_init, "low_inherit((struct program *) SWIGTYPE%s->clientdata, 0, 0, 0, 0, 0);\n", basemangle);
+        Printf(f_classInit, "low_inherit((struct program *) SWIGTYPE%s->clientdata, 0, 0, 0, 0, 0);\n", basemangle);
 	Delete(basemangle);
 	Delete(basetype);
         base = Nextitem(baselist);
       }
     } else {
-      Printf(f_init, "ADD_STORAGE(swig_object_wrapper);\n");
+      Printf(f_classInit, "ADD_STORAGE(swig_object_wrapper);\n");
     }
         
     Language::classHandler(n);
@@ -640,8 +671,10 @@ public:
     }
     */
     
-    /* Done, close the class */
-    Printf(f_init, "add_program_constant(\"%s\", pr = end_program(), 0);\n", symname);
+    /* Done, close the class and dump its definition to the init function */
+    Printf(f_classInit, "add_program_constant(\"%s\", pr = end_program(), 0);\n", symname);
+    Dump(f_classInit, f_init);
+    Clear(f_classInit);
     
     SwigType *tt = NewString(symname);
     SwigType_add_pointer(tt);

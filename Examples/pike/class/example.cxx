@@ -11,7 +11,6 @@ int Shape::nshapes = 0;
 
 // Constructor
 Shape::Shape() {
-  // printf("Shape::Shape(), this = 0x%08x\n", this);
   nshapes++;
 }
 
@@ -23,26 +22,25 @@ void Shape::move(double dx, double dy) {
 
 // Destructor
 Shape::~Shape() {
-  // printf("Shape::~Shape(), this = 0x%08x\n", this);
   nshapes--;
 }
 
 // Circle area
-double Circle::area() {
+double Circle::area() const {
   return M_PI*radius*radius;
 }
 
 // Circle perimeter
-double Circle::perimeter() {
+double Circle::perimeter() const {
   return 2*M_PI*radius;
 }
 
 // Square area
-double Square::area() {
+double Square::area() const {
   return width*width;
 }
 
 // Square perimeter
-double Square::perimeter() {
+double Square::perimeter() const {
   return 4*width;
 }

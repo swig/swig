@@ -1,4 +1,5 @@
 # see top-level Makefile.in
+class
 constants
 enum
 simple
