@@ -11,6 +11,21 @@
 
 #include "wad.h"
 
+/* For some odd reason, certain linux distributions do not seem to define the
+   ESP, EIP, and EBP registers.  This is a hack */
+
+#ifdef WAD_LINUX
+#ifndef ESP
+#define ESP      7
+#endif
+#ifndef EBP
+#define EBP      6
+#endif
+#ifndef EIP
+#define EIP      14
+#endif
+#endif
+
 /* Signal handling stack */
 #define STACK_SIZE 4*SIGSTKSZ
 char wad_sig_stack[STACK_SIZE];
