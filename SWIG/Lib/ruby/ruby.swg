@@ -40,10 +40,10 @@
 %typemap(in) char [ANY]      "$1 = STR2CSTR($input);";
 %typemap(in) enum SWIGTYPE   "$1 = ($1_ltype) NUM2INT($input);";
 
-/* Long long.  This is probably broken because it truncates the value */
+/* Long long */
 
-%typemap(in) long long          "$1 = ($1_ltype) NUM2LONG($input);";
-%typemap(in) unsigned long long "$1 = ($1_ltype) NUM2ULONG($input);";
+%typemap(in) long long          "$1 = ($1_ltype) NUM2LL($input);";
+%typemap(in) unsigned long long "$1 = ($1_ltype) NUM2ULL($input);";
 
 /* Typemaps for pointers.  Note: the SWIG run-time type checker works
    even if a pointer happens to be mapped to a Ruby class */
@@ -105,11 +105,11 @@
          $1 = &temp;";
 
 %typemap(in) const long long & (long long temp) 
-        "temp = ($*1_ltype) NUM2LONG($input);
+        "temp = ($*1_ltype) NUM2LL($input);
          $1 = &temp;";
 
 %typemap(in) const unsigned long long & (unsigned long long temp) 
-        "temp = ($*1_ltype) NUM2ULONG($input);
+        "temp = ($*1_ltype) NUM2ULL($input);
          $1 = &temp;";
 
 %typemap(in) const char &(char temp) {
@@ -127,10 +127,10 @@
 	"$result = UINT2NUM($1);";
 
 
-/* Long long.  Note: broken due to precision problems */
+/* Long long */
 
-%typemap(out) long long  "$result = INT2NUM((long) $1);";
-%typemap(out) unsigned long long "$result = UINT2NUM((unsigned long) $1);";
+%typemap(out) long long  "$result = LL2NUM($1);";
+%typemap(out) unsigned long long "$result = ULL2NUM($1);";
 
 /* Floating point output values */
 %typemap(out) double, float
@@ -204,10 +204,10 @@
       "$result = rb_float_new((double) *($1));";
 
 %typemap(out) const long long &
-      "$result = INT2NUM((long) *($1));";
+      "$result = LL2NUM(*($1));";
 
 %typemap(out) const unsigned long long &
-      "$result = UINT2NUM((unsigned long) *($1));";
+      "$result = ULL2NUM(*($1));";
 
 %typemap(out) const char &
       "$result = rb_str_new($1, 1);";
@@ -226,8 +226,8 @@
 %typemap(varin) float, double   "$1 = ($1_ltype) NUM2DBL($input);";
 %typemap(varin) bool            "$1 = RTEST($input);";
 
-%typemap(varin) long long       "$1 = (long long) NUM2LONG($input);";
-%typemap(varin) unsigned long long "$1 = (unsigned long long) NUM2ULONG($input);";
+%typemap(varin) long long       "$1 = NUM2LL($input);";
+%typemap(varin) unsigned long long "$1 = NUM2ULL($input);";
 
 /* A string */
 #ifdef __cplusplus
@@ -294,8 +294,8 @@
 %typemap(varout) unsigned int, unsigned short, unsigned long, unsigned char
 	"$result = UINT2NUM($1);";
 
-%typemap(varout) long long "$result = INT2NUM((long) $1);";
-%typemap(varout) unsigned long long "$result = UINT2NUM((unsigned long) $1);";
+%typemap(varout) long long "$result = LL2NUM($1);";
+%typemap(varout) unsigned long long "$result = ULL2NUM($1);";
 
 /* Floats and doubles */
 %typemap(varout) double, float
@@ -340,10 +340,10 @@
 	"rb_define_const($module,\"$symname\", UINT2NUM($1));";
 
 %typemap(constant) long long
-	"rb_define_const($module,\"$symname\", INT2NUM((long) $1));";        
+	"rb_define_const($module,\"$symname\", LL2NUM($1));";        
 
 %typemap(constant) unsigned long long
-	"rb_define_const($module,\"$symname\", UINT2NUM((unsigned long) $1));";        
+	"rb_define_const($module,\"$symname\", ULL2NUM($1));";        
 
 %typemap(constant) double, float
 	"rb_define_const($module,\"$symname\", rb_float_new($1));";

@@ -12,6 +12,26 @@
                NUM2INT(n)), (short)0)\
 )
 
+/* Ruby 1.7 defines NUM2LL(), LL2NUM() and ULL2NUM() macros */
+#ifndef NUM2LL
+#define NUM2LL(x) NUM2LONG((x))
+#endif
+#ifndef LL2NUM
+#define LL2NUM(x) INT2NUM((long) (x))
+#endif
+#ifndef ULL2NUM
+#define ULL2NUM(x) UINT2NUM((unsigned long) (x))
+#endif
+
+/* Ruby 1.7 doesn't (yet) define NUM2ULL() */
+#ifndef NUM2ULL
+#if HAVE_LONG_LONG
+#define NUM2ULL(x) rb_num2ull((x))
+#else
+#define NUM2ULL(x) NUM2ULONG(x)
+#endif
+#endif
+
 /*
  * Need to be very careful about how these macros are defined, especially
  * when compiling C++ code or C code with an ANSI C compiler.
