@@ -413,8 +413,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
     /* Look for an input typemap */
     if ((tm = Getattr(p,"tmap:in"))) {
-      /*      Printf(stdout,":::\n%s\n:::\n",tm); */
-      String *parse = Getattr(p,"tmap:parse");
+      String *parse = Getattr(p,"tmap:in:parse");
       if (!parse) {
 	Replace(tm,"$source",source,DOH_REPLACE_ANY);   /* Deprecated */
 	Replace(tm,"$target",ln,DOH_REPLACE_ANY);       /* Deprecated */
@@ -429,8 +428,6 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       } else {
 	Printf(parse_args,"%s",parse);
 	Printf(arglist,"&%s", ln);
-	if (Len(tm))
-	  Printv(get_pointers,tm, "\n", 0);
       }
       p = Getattr(p,"tmap:in:next");
       continue;
