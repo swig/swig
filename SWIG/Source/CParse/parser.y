@@ -2307,6 +2307,7 @@ cpp_class_decl  :
 	       Setattr($$,"storage",$1);
 	       Setattr($$,"unnamed",unnamed);
 	       Setattr($$,"allows_typedef","1");
+
 	       /* Check for pure-abstract class */
 	       Setattr($$,"abstract", pure_abstract($5));
 
