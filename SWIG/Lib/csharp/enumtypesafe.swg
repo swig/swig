@@ -13,9 +13,9 @@
 
 %typecheck(SWIG_TYPECHECK_INT32) enum SWIGTYPE ""
 
-%typemap(throws) enum SWIGTYPE {
+%typemap(throws) enum SWIGTYPE %{
   SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
-}
+%}
 
 %typemap(csin) enum SWIGTYPE "$csinput.swigValue"
 %typemap(csout) enum SWIGTYPE {
@@ -27,7 +27,7 @@
       return $csclassname.swigToEnum($imcall);
     } %}
 
-%typemap(csclassmodifiers) enum SWIGTYPE "public class"
+%typemap(csclassmodifiers) enum SWIGTYPE "public sealed class"
 
 /*
  * The swigToEnum method is used to find the C# enum from a C++ enum integer value. The default one here takes 
@@ -42,23 +42,30 @@
   public static $csclassname swigToEnum(int swigValue) {
     if (swigValue < swigValues.Length && swigValues[swigValue].swigValue == swigValue)
       return swigValues[swigValue];
-    for (int i = 0; i<swigValues.Length; i++)
+    for (int i = 0; i < swigValues.Length; i++)
       if (swigValues[i].swigValue == swigValue)
         return swigValues[i];
     throw new System.ArgumentOutOfRangeException("No enum $csclassname with value " + swigValue);
   }
 
-  private $csclassname() {
-    this.swigValue = next++;
+  public override string ToString() {
+    return swigName;
   }
 
-  private $csclassname(int swigValue) {
+  private $csclassname(string swigName) {
+    this.swigName = swigName;
+    this.swigValue = swigNext++;
+  }
+
+  private $csclassname(string swigName, int swigValue) {
+    this.swigName = swigName;
     this.swigValue = swigValue;
-    next = swigValue+1;
+    swigNext = swigValue+1;
   }
 
   private static $csclassname[] swigValues = { $enumvalues };
-  private static int next = 0;
+  private static int swigNext = 0;
+  private readonly string swigName;
 %}
 
 %csenum(typesafe);
