@@ -5,11 +5,7 @@
 ;;;
 ;;; Written by Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
 
-;;(require 'port)				; from CLOCC
-(load "/usr/share/common-lisp/source/port/ext.lisp")
-(load "/usr/share/common-lisp/source/port/proc.lisp")
-(load "/usr/share/common-lisp/source/port/sys.lisp")
-(load "/usr/share/common-lisp/source/port/shell.lisp")
+(require 'port)				; from CLOCC
 
 (in-package :cl-user)
 
@@ -28,6 +24,7 @@
   (let ((temp-file-name "/tmp/swig.lsp"))
     (let ((process
 	   (port:run-prog (namestring *swig-program*)
+			  :output t
 			  :args `("-sexp"
 				  ,@(mapcar (lambda (dir)
 				       (concatenate 'string
@@ -274,6 +271,7 @@ is no representation."
 
 ;; Test instances
 
+#+ignore
 (defvar *gifplot-interface*
   (run-swig (merge-pathnames "Examples/GIFPlot/Interface/gifplot.i"
 			     *swig-source-directory*)
@@ -319,7 +317,7 @@ is no representation."
 
 (compile-file "/tmp/swig-uffi.lisp")
 
-(load-file "/tmp/swig-uffi.lisp")
+(load "/tmp/swig-uffi.lisp")
 
 (uffi:load-foreign-library (merge-pathnames "Examples/GIFPlot/libgifplot.a"
 					    *swig-source-directory*))
