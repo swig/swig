@@ -911,6 +911,7 @@ SWIG_cpp_parse(DOH *s)
       break;
     case 46:
       if (c == '\n') {
+	Ungetc(c,s);
 	cpp_lines++;
 	state = 50;
       } else Putc(c,comment);
