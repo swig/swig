@@ -1494,7 +1494,7 @@ void SwigType_inherit_equiv(File *out) {
 
       ckey = NewStringf("%s+%s",SwigType_manglestr(prefix), SwigType_manglestr(rkey));
       if (!Getattr(conversions,ckey)) {
-	Printf(out,"static %sTo%s(void *x) {\n", SwigType_manglestr(prefix), SwigType_manglestr(rkey));
+	Printf(out,"static void *%sTo%s(void *x) {\n", SwigType_manglestr(prefix), SwigType_manglestr(rkey));
 	Printf(out,"    return (void *)((%s) ((%s) x));\n", SwigType_lstr(rkey,0), SwigType_lstr(prefix,0));
 	Printf(out,"}\n");
 	SetInt(conversions,ckey,1);
