@@ -157,7 +157,6 @@ $ swig -java example.i
 $ gcc -c example.c example_wrap.c -I/c/jdk1.3.1/include -I/c/jdk1.3.1/include/win32
 $ gcc -shared example.o  example_wrap.o -Wl,--add-stdcall-alias  -o example.dll
 $ cat main.java
-import example;
 public class main {
   public static void main(String argv[]) {
     System.loadLibrary("example");
