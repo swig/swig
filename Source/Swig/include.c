@@ -19,8 +19,7 @@ static char cvsroot[] = "$Header$";
 
 static List      *directories = 0;        /* List of include directories */
 static String    *lastpath = 0;           /* Last file that was included */
-static int           bytes_read = 0;         /* Bytes read */
-
+static int        bytes_read = 0;         /* Bytes read */
 static String    *swiglib = 0;            /* Location of SWIG library */
 
 /* -----------------------------------------------------------------------------

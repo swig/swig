@@ -362,11 +362,21 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     if (!outfile_name) {
+      char *cc = infilename + strlen(infilename);
+      while (cc != infilename) {
+	if (*cc == '/') {
+	  cc++;
+	  break;
+	}
+	cc--;
+      }
       sprintf(fn_runtime,"%s_wrap.c",infilename);
       strcpy(infile,infilename);
-      strcpy(output_dir,"");
+      outfile_name = fn_runtime;
     } else {
       sprintf(fn_runtime,"%s",outfile_name);
+    }
+    {
       // Try to identify the output directory
       char *cc = outfile_name;
       char *lastc = outfile_name;
