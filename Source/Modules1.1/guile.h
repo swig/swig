@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*****************************************************************************
  * Simplified Wrapper and Interface Generator  (SWIG)
  *
  * Author : David Beazley
@@ -11,7 +11,7 @@
  *
  * Please read the file LICENSE for the copyright and terms by which SWIG
  * can be used and distributed.
- *******************************************************************************/
+ *****************************************************************************/
 
 /**************************************************************************
  * $Header$
@@ -29,7 +29,11 @@ private:
   char   *prefix;
   char   *module;
   char   *package;
-  int    linkage;
+  enum {
+    GUILE_LSTYLE_SIMPLE,                // call `SWIG_init()'
+    GUILE_LSTYLE_LTDLMOD,               // "native" guile?
+    GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
+  } linkage;
   bool	 with_smobs;
   void   get_pointer(char *iname, int parm, DataType *t,
 		     WrapperFunction &f, const String &proc_name,
@@ -38,6 +42,7 @@ private:
   void   usage_func(char *, DataType *, ParmList *, String &usage);
   void   usage_returns(char *, DataType *, ParmList *, String &usage);
   void   usage_const(char *, DataType *, char *, String &usage);
+  void   emit_linkage(String &module_name);
 
 public :
   GUILE ();
@@ -53,3 +58,5 @@ public :
   void set_init (char *);
   void create_command (char *, char *) { };
 };
+
+/* guile.h ends here */
