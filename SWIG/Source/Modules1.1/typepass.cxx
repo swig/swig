@@ -60,8 +60,7 @@ class TypePass : public Dispatcher {
 	    SwigType *ty = Getattr(p,"type");
 	    normalize_type(ty);
 	    String *value = Getattr(p,"value");
-	    if (value) {
-	      /*	      Printf(stdout,"value = '%s'\n", value); */
+	    if ((value) && (!Swig_scopename_check(value))) {
 	      Node *n = Swig_symbol_clookup(value,0);
 	      if (n) {
 		String *q = Swig_symbol_qualified(n);
