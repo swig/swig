@@ -4,19 +4,25 @@
 # LParse
 #####################################################################
 
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
 CC          = @CC@
 CFLAGS      = @CFLAGS@
 AR          = @AR@
 RANLIB      = @RANLIB@
 YACC        = @YACC@
 
-INCLUDE     = -I. -I../Swig -I../DOH/Include -I../Preprocessor
+INCLUDE     = -I$(srcdir)/.                     \
+              -I$(srcdir)/../Swig               \
+              -I$(srcdir)/../DOH/Include        \
+              -I$(srcdir)/../Preprocessor
 
 SRCS = cscanner.c
 OBJS = parser.o cscanner.o
 TARGET = liblparse.a
 
-.c.o: 
+.c.o:
 	$(CC) $(CFLAGS) $(INCLUDE) -c -o $*.o $<
 
 all: $(TARGET)
@@ -28,26 +34,10 @@ $(TARGET): $(OBJS)
 parser.o: parser.c
 	$(CC) $(CFLAGS) $(INCLUDE) -c -o $*.o $<
 
-parser.c: parser.y   
+parser.c: parser.y
 	$(YACC) @YFLAGS@ parser.y
 	@cp y.tab.h lyacc.h
 	@cp y.tab.c parser.c
 
 clean:
 	rm -f *.o *~ core *.so *.a y.tab*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

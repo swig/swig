@@ -2,6 +2,9 @@
 # $Header$
 #----------------------------------------------------------------
 
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
 SRCS          = expr.c cpp.c
 OBJS          = expr.o cpp.o
 
@@ -12,10 +15,10 @@ CC            = @CC@
 AR            = @AR@
 RANLIB        = @RANLIB@
 CFLAGS        = @CFLAGS@
-INCLUDE       = -I. -I../Swig -I../DOH/Include
+INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../Swig -I$(srcdir)/../DOH/Include
 TARGET        = libcpp.a
 
-.c.o: 
+.c.o:
 	$(CC) $(CFLAGS) $(INCLUDE) -c -o $*.o $<
 
 all: $(TARGET)
