@@ -504,11 +504,11 @@ class JAVA : public Language {
     String *wname = Swig_name_wrapper(jniname);
     Delete(jniname);
 
-    /* Get the jni and java types of the return. 
-     * The non-standard typemaps must first be attached to the parameter list. */
+    /* Attach the non-standard typemaps to the parameter list. */
     Swig_typemap_attach_parms("jni", l, f);
     Swig_typemap_attach_parms("jtype", l, f);
 
+    /* Get Java return types */
     if ((tm = Swig_typemap_lookup_new("jni",n,"",0))) {
       Printf(jnirettype,"%s", tm);
     } else {
@@ -536,6 +536,7 @@ class JAVA : public Language {
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l,f);
+    Setattr(n,"wrap:parms",l);
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
@@ -548,6 +549,12 @@ class JAVA : public Language {
 
       while (Getattr(p,"tmap:ignore")) {
         p = Getattr(p,"tmap:ignore:next");
+      }
+      while (Getattr(jnip,"tmap:ignore")) {
+        jnip = Getattr(jnip,"tmap:ignore:next");
+      }
+      while (Getattr(jtypep,"tmap:ignore")) {
+        jtypep = Getattr(jtypep,"tmap:ignore:next");
       }
 
       SwigType *pt = Getattr(p,"type");
@@ -621,9 +628,6 @@ class JAVA : public Language {
 
     /* Insert cleanup code */
     for (p = l; p;) {
-      while (Getattr(p,"tmap:ignore")) {
-        p = Getattr(p,"tmap:ignore:next");
-      }
       if ((tm = Getattr(p,"tmap:freearg"))) {
         Replaceall(tm,"$source",Getattr(p,"emit:input")); /* deprecated */
         Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
@@ -637,9 +641,6 @@ class JAVA : public Language {
 
     /* Insert argument output code */
     for (p = l; p;) {
-      while (Getattr(p,"tmap:ignore")) {
-        p = Getattr(p,"tmap:ignore:next");
-      }
       if ((tm = Getattr(p,"tmap:argout"))) {
         Replaceall(tm,"$source",Getattr(p,"emit:input")); /* deprecated */
         Replaceall(tm,"$target",Getattr(p,"lname")); /* deprecated */
@@ -790,8 +791,10 @@ class JAVA : public Language {
     String *shadowrettype = NewString("");
     String *constants_code = NewString("");
 
-    Swig_typemap_attach_parms("jstype", l, 0);
+    /* Attach the non-standard typemaps to the parameter list. */
+    Swig_typemap_attach_parms("jstype", l, NULL);
 
+    /* Get Java return types */
     bool is_return_type_java_class = false;
     if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
       is_return_type_java_class = substituteJavaclassname(t, tm);
@@ -1027,7 +1030,7 @@ class JAVA : public Language {
         "" : 
         "  protected boolean swigCMemOwn;\n",
         "\n",
-        "  public $javaclassname(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
+        "  protected $javaclassname(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
         derived ? 
         "    super($jniclass.SWIG$javaclassnameTo$baseclass(cPtr), cMemoryOwn);\n" : 
         "    swigCMemOwn = cMemoryOwn;\n",
@@ -1264,10 +1267,11 @@ class JAVA : public Language {
       }
     }
 
-    /* Get java shadow types of the return. 
-     * The non-standard typemaps must first be attached to the parameter list. */
-    Swig_typemap_attach_parms("jstype", l, 0);
+    /* Attach the non-standard typemaps to the parameter list */
+    Swig_typemap_attach_parms("jstype", l, NULL);
+    Swig_typemap_attach_parms("ignore", l, NULL);
 
+    /* Get Java return types */
     bool is_return_type_java_class = false;
     if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
       is_return_type_java_class = substituteJavaclassname(t, tm);
@@ -1296,27 +1300,23 @@ class JAVA : public Language {
     if (!static_flag)
       Printv(nativecall, "swigCPtr", NULL);
 
-    /* Get number of required and total arguments */
-    num_arguments = emit_num_arguments(l);
-    num_required  = emit_num_required(l);
-
     int gencomma = !static_flag;
 
-    /* Workaround to overcome Getignore(p) not working - p does not always have the Getignore 
-       attribute set. Noticeable when javaShadowFunctionHandler is called from memberfunctionHandler() */
-    /* maybe this will work if put below ?
-       while (Getattr(p,"tmap:ignore")) {
-       p = Getattr(p,"tmap:ignore:next");
-       }
-       */
-    Wrapper *f = NewWrapper();
-    emit_args(NULL, l, f);
-    DelWrapper(f);
-    /* Workaround end */
-
     /* Output each parameter */
-    for (i = 0, p=l, jstypep=l; i < num_arguments; i++) {
-      if(Getattr(p,"ignore")) continue;
+    for (i = 0, p=l, jstypep=l; p && jstypep; i++) {
+
+      /* Ignored parameters */
+      bool continue_flag = false;
+      if (Getattr(p,"tmap:ignore")) {
+        p = Getattr(p,"tmap:ignore:next");
+        continue_flag = true;
+      }
+      if (Getattr(jstypep,"tmap:ignore")) {
+        jstypep = Getattr(jstypep,"tmap:ignore:next");
+        continue_flag = true;
+      }
+      if (continue_flag)
+        continue;
 
       /* Ignore the 'this' argument for variable wrappers */
       if (!(variable_wrapper_flag && i==0)) 
@@ -1377,7 +1377,7 @@ class JAVA : public Language {
           case T_ARRAY:
           case T_REFERENCE:
           case T_POINTER:
-            if (NewObject) // %new indicating Java must take responsibility for memory ownership
+            if (NewObject || (Getattr(n,"feature:new"))) // %newobject indicating Java must take responsibility for memory ownership
               Printf(nativecall, "), true");
             else
               Printf(nativecall, "), false");
@@ -1424,17 +1424,28 @@ class JAVA : public Language {
       Printf(shadow_code, "  %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadow_classname);
       Printv(nativecall, "this(", jniclass, ".", Swig_name_construct(overloaded_name), "(", NULL);
 
-      int pcount = ParmList_len(l);
-      if(pcount == 0)  // We must have a default constructor
-        have_default_constructor_flag = true;
+      /* Attach the non-standard typemaps to the parameter list */
+      Swig_typemap_attach_parms("jstype", l, NULL);
+      Swig_typemap_attach_parms("ignore", l, NULL);
 
-      Swig_typemap_attach_parms("jstype", l, 0);
+      int gencomma = 0;
 
-      /* Get number of required and total arguments */
-      num_arguments = emit_num_arguments(l);
-      num_required  = emit_num_required(l);
+      /* Output each parameter */
+      for (i = 0, p=l, jstypep=l; p && jstypep; i++) {
 
-      for (i = 0, p=l, jstypep=l; i < num_arguments; i++) {
+        /* Ignored parameters */
+        bool continue_flag = false;
+        if (Getattr(p,"tmap:ignore")) {
+          p = Getattr(p,"tmap:ignore:next");
+          continue_flag = true;
+        }
+        if (Getattr(jstypep,"tmap:ignore")) {
+          jstypep = Getattr(jstypep,"tmap:ignore:next");
+          continue_flag = true;
+        }
+        if (continue_flag)
+          continue;
+
         SwigType *pt = Getattr(p,"type");
         String   *javaparamtype = NewString("");
 
@@ -1450,15 +1461,17 @@ class JAVA : public Language {
               "No jstype typemap defined for %s\n", SwigType_str(pt,0));
         }
 
+        if(gencomma)
+          Printf(nativecall, ", ");
+
         String *arg = generateShadowParameters(n, p, i, is_java_class, user_arrays, nativecall, javaparamtype);
 
         /* Add to java shadow function header */
-        Printf(shadow_code, "%s %s", javaparamtype, arg);
-
-        if(i != pcount-1) {
-          Printf(nativecall, ", ");
+        if(gencomma)
           Printf(shadow_code, ", ");
-        }
+        Printf(shadow_code, "%s %s", javaparamtype, arg);
+        gencomma = 1;
+
         Delete(arg);
         Delete(javaparamtype);
         p = nextSibling(p);
@@ -1470,6 +1483,9 @@ class JAVA : public Language {
       Printv(shadow_code, user_arrays, NULL);
       Printf(shadow_code, "    %s", nativecall);
       Printf(shadow_code, "  }\n\n");
+
+      if(!gencomma)  // We must have a default constructor
+        have_default_constructor_flag = true;
 
       Delete(overloaded_name);
       Delete(nativecall);
@@ -1635,7 +1651,7 @@ class JAVA : public Language {
    * jniclassFunctionHandler()
    * ----------------------------------------------------------------------------- */
 
-  void JAVA::jniclassFunctionHandler(Node *n) {
+  void jniclassFunctionHandler(Node *n) {
     SwigType  *t = Getattr(n,"type");
     ParmList  *l = Getattr(n,"parms");
     String    *tm;
@@ -1655,10 +1671,10 @@ class JAVA : public Language {
       }
     }
 
-    /* Get java shadow types of the return. 
-     * The non-standard typemaps must first be attached to the parameter list. */
-    Swig_typemap_attach_parms("jstype", l, 0);
+    /* Attach the non-standard typemaps to the parameter list */
+    Swig_typemap_attach_parms("jstype", l, NULL);
 
+    /* Get Java return types */
     bool is_return_type_java_class = false;
     if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
       is_return_type_java_class = substituteJavaclassname(t, tm);
@@ -1688,21 +1704,16 @@ class JAVA : public Language {
 
     int gencomma = 0;
 
-    /* Workaround to overcome Getignore(p) not working - p does not always have the Getignore 
-       attribute set. Noticeable when called from memberfunctionHandler() */
-    /* maybe this will work if put below ?
-       while (Getattr(p,"tmap:ignore")) {
-       p = Getattr(p,"tmap:ignore:next");
-       }
-    */
-    Wrapper *f = NewWrapper();
-    emit_args(NULL, l, f);
-    DelWrapper(f);
-    /* Workaround end */
-
     /* Output each parameter */
     for (i = 0, p=l, jstypep=l; i < num_arguments; i++) {
-      if(Getattr(p,"ignore")) continue;
+
+      while (Getattr(p,"tmap:ignore")) {
+        p = Getattr(p,"tmap:ignore:next");
+      }
+      while (Getattr(jstypep,"tmap:ignore")) {
+        jstypep = Getattr(jstypep,"tmap:ignore:next");
+      }
+
       SwigType *pt = Getattr(p,"type");
       String   *javaparamtype = NewString("");
 
@@ -1755,7 +1766,7 @@ class JAVA : public Language {
           case T_ARRAY:
           case T_REFERENCE:
           case T_POINTER:
-            if (NewObject) // %new indicating Java must take responsibility for memory ownership
+            if (NewObject || (Getattr(n,"feature:new"))) // %newobject indicating Java must take responsibility for memory ownership
               Printf(nativecall, "), true");
             else
               Printf(nativecall, "), false");
@@ -1920,11 +1931,11 @@ class JAVA : public Language {
         " {\n",
         "  private long swigCPtr;\n",
         "\n",
-        "  public $javaclassname(long cPtr, boolean bFutureUse) {\n", // Constructor used for wrapping pointers
+        "  protected $javaclassname(long cPtr, boolean bFutureUse) {\n", // Constructor used for wrapping pointers
         "    swigCPtr = cPtr;\n",
         "  }\n",
         "\n",
-        "  public $javaclassname() {\n", // Default constructor
+        "  protected $javaclassname() {\n", // Default constructor
         "    swigCPtr = 0;\n",
         "  }\n",
         javaTypemapLookup("javagetcptr", type, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
