@@ -3309,7 +3309,7 @@ string         : string STRING {
                ; 
 
 stringbrace    : string {
-		 $$ = $1;
+		 $$ = NewString($1);
                }
                | LBRACE {
                   skip_balanced('{','}');
