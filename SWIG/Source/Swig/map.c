@@ -67,7 +67,7 @@ Swig_map_add(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, DOH 
   DOHHash *nameset;
   DOHHash *p, *n;
   /* Locate the appropriate nameset */
-  
+
   nameset = Getattr(ruleset,rulename);
   if (!nameset) {
     /* Hmmm.  First time we've seen this.  Let's add it to our mapping table */
@@ -107,6 +107,205 @@ Swig_map_add(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, DOH 
   Setattr(n,"*obj*",obj);
   return;
 }
+
+
+typedef struct MatchObject {
+  DOH     *ruleset;             /* Hash table of rules */
+  DOHHash *p;                   /* Parameter on which checking starts */
+  int  depth;                   /* Depth of the match  */
+  struct MatchObject *next;     /* Next match object   */
+} MatchObject;
+
+
+static MatchObject *matchstack = 0;
+
+/* -----------------------------------------------------------------------------
+ * Swig_map_match()
+ *
+ * Perform a longest map match for a list of parameters and a set of mapping rules.
+ * Returns the corresponding rule object and the number of parameters that were
+ * matched.
+ * ----------------------------------------------------------------------------- */
+
+DOH *
+Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, int *nmatch)
+{
+  DOHHash *nameset;
+  MatchObject *mo;
+
+  DOH    *bestobj = 0;
+  int    bestdepth = -1;
+
+  /* Get the nameset */
+  nameset = Getattr(ruleset,rulename);
+  if (!nameset) return 0;
+
+  mo = (MatchObject *) malloc(sizeof(MatchObject));
+  mo->ruleset = nameset;
+  mo->depth = 0;
+  mo->p = parms;
+  mo->next = 0;
+
+  matchstack = mo;
+
+  /* Loop over all candidates until we find the best one */
+
+  while (matchstack) {
+    DOHHash   *rs;
+    DOHHash   *p;
+    int        depth = 0;
+    DOH       *obj;
+    DOHString *key;
+    DOHString *ty;
+    DOHString *name;
+    DOHString *nm;
+    int       matched = 0;
+
+    mo = matchstack;
+    /* See if there is a match at this level */
+    rs = mo->ruleset;
+    obj = Getattr(rs,"*obj*");
+    if (obj) {
+      if (mo->depth > bestdepth) {
+	bestdepth = mo->depth;
+	bestobj = obj;
+      }
+    }
+    p = mo->p;
+
+    /* No more parameters.  Oh well */
+    if (!p) {
+      matchstack = mo->next;
+      free(mo);
+      continue;
+    }
+
+    /* Generate some keys for checking the next parameter */
+
+    depth = mo->depth;
+    name = Getattr(p,"name");
+    ty = Getattr(p,"type");
+
+
+    if (!SwigType_isarray(ty)) {
+      key = NewStringf("-%s",ty);
+      /* See if there is a generic name match for this type */
+      nm = Getattr(rs,key);
+      if (nm) {
+	/* Yes! Add to our stack. Just reuse mo for this */
+	mo->ruleset = nm;
+	mo->p = Swig_next(p);
+	mo->depth++;
+	mo = 0;
+	matched++;
+      }
+      
+      /* See if there is a specific name match for this type */
+      Clear(key);
+      Printf(key,"%s-%s",name,ty);
+      nm = Getattr(rs,key);
+      if (nm) {
+	if (!mo) {
+	  mo = (MatchObject *) malloc(sizeof(MatchObject));
+	  mo->next = matchstack;
+	  matchstack = mo;
+	}
+	mo->ruleset = nm;
+	mo->p = Swig_next(p);
+	mo->depth = depth+1;
+	matched++;
+      }
+      Delete(key);
+    } else {
+      /* The next parameter is an array.  This is pretty nasty because we have to do a bunch of checks
+         related to array indices */
+
+      int ndim;
+      int i, j, k, n;
+      int ncheck;
+      DOHString  *ntype;
+
+      key = NewString("");
+
+      /* Drop the mo record.  This is too complicated */
+      matchstack = mo->next;
+      free(mo);
+      mo = 0;
+
+      /* Get the number of array dimensions */
+      ndim = SwigType_array_ndim(ty);
+
+      /* First, we test all of the generic-unnamed parameters */
+      ncheck = 1 << ndim;
+
+      j = ncheck-1;
+      for (i = 0; i < ncheck; i++, j--) {
+	int k = j;
+	ntype = Copy(ty);
+	for (n = 0; n < ndim; n++, k = k >> 1) {
+	  if (k & 1) {
+	    SwigType_array_setdim(ntype,n,"");
+	  }
+	}
+	Clear(key);
+	Printf(key,"-%s",ntype);
+	Printf(stdout,"matcharray : %s\n", key);
+	nm = Getattr(rs,key);
+	if (nm) {
+	  mo = (MatchObject *) malloc(sizeof(MatchObject));
+	  mo->ruleset = nm;
+	  mo->p = Swig_next(p);
+	  mo->depth = depth+1;
+	  mo->next = matchstack;
+	  matchstack = mo;
+	  matched++;
+	  mo = 0;
+	}
+	Delete(ntype);
+      }
+
+      /* Next check all of the named parameters */
+      ncheck = 1 << ndim;
+
+      j = ncheck-1;
+      for (i = 0; i < ncheck; i++, j--) {
+	int k = j;
+	ntype = Copy(ty);
+	for (n = 0; n < ndim; n++, k = k >> 1) {
+	  if (k & 1) {
+	    SwigType_array_setdim(ntype,n,"");
+	  }
+	}
+	Clear(key);
+	Printf(key,"%s-%s",name,ntype);
+	Printf(stdout,"matcharray : %s\n", key);
+	nm = Getattr(rs,key);
+	if (nm) {
+	  mo = (MatchObject *) malloc(sizeof(MatchObject));
+	  mo->ruleset = nm;
+	  mo->p = Swig_next(p);
+	  mo->depth = depth+1;
+	  mo->next = matchstack;
+	  matchstack = mo;
+	  matched++;
+	  mo = 0;
+	}
+	Delete(ntype);
+      }
+      Delete(key);
+    }
+    if ((!matched) && mo) {
+      matchstack = mo->next;
+      free(mo);
+    }
+  }
+  if (bestobj) {
+    *nmatch = bestdepth;
+  }
+  return bestobj;
+}
+
+#ifdef OLD
 
 /* -----------------------------------------------------------------------------
  * Swig_map_match()
@@ -194,6 +393,7 @@ Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, in
   return best;
 }
 
+#endif
 
 
 

@@ -174,7 +174,7 @@ emit_function(DOH *obj, void *clientdata) {
 	int nd;
 	nd = SwigType_array_ndim(ptype);
 	for (i = 0; i < nd; i++) {
-	  Printf(stdout,"array[%d] = %s\n", i, SwigType_array_getdim(ptype,i));
+	  Printf(stdout,"array[%d] = %S\n", i, SwigType_array_getdim(ptype,i));
 	}
       }
 
@@ -417,7 +417,7 @@ emit_map(DOH *obj, void *clientdata) {
   parms = Getattr(obj,"parms");
   rules = Getattr(obj,"child");
 
-  Swig_map_add(Rules,rulename,parms,rules);
+  Swig_map_add(Rules,rulename,parms,obj);
 }
 
 /* -------- Entry point -------- */
