@@ -26,7 +26,7 @@ LIBSRCS = callable.c void.c fio.c memory.c base.c file.c list.c hash.c string.c
 LIBHEADERS = ../Include/doh.h
 LIB      = ../libdoh.a
 INCLUDE  = -I../Include
-CFLAGS   = 
+CFLAGS   = -DDOH_STRING_UPDATE_LINES
 SHELL  = /bin/sh
 
 #
