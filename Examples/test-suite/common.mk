@@ -47,7 +47,7 @@ CPP_TEST_BROKEN += \
 	template_specialization_enum \
 	using_namespace
 
-# Broken C test cases. (Can be run individually using make testcase.cpptest.)
+# Broken C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_BROKEN += 
 
 
@@ -276,7 +276,7 @@ C_TEST_CASES += \
 	unions
 
 
-# Multi-module C++ test cases . (Can be run individually using make testcase.ctest.)
+# Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest.)
 MULTI_CPP_TEST_CASES += \
 	imports \
 	template_typedef_import
