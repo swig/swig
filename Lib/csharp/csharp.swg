@@ -26,7 +26,6 @@
 %typemap(ctype) unsigned long long, const unsigned long long & "unsigned long long"
 %typemap(ctype) float,              const float &              "float"
 %typemap(ctype) double,             const double &             "double"
-%typemap(ctype) char *                                         "char *"
 %typemap(ctype) void                                           "void"
 
 %typemap(imtype) bool,               const bool &               "bool"
@@ -43,7 +42,6 @@
 %typemap(imtype) unsigned long long, const unsigned long long & "ulong"
 %typemap(imtype) float,              const float &              "float"
 %typemap(imtype) double,             const double &             "double"
-%typemap(imtype) char *                                         "string"
 %typemap(imtype) void                                           "void"
 
 %typemap(cstype) bool,               const bool &               "bool"
@@ -60,12 +58,11 @@
 %typemap(cstype) unsigned long long, const unsigned long long & "ulong"
 %typemap(cstype) float,              const float &              "float"
 %typemap(cstype) double,             const double &             "double"
-%typemap(cstype) char *                                         "string"
 %typemap(cstype) void                                           "void"
 
-%typemap(ctype) char[ANY]               "char *"
-%typemap(imtype) char[ANY]               "string"
-%typemap(cstype) char[ANY]               "string"
+%typemap(ctype) char *, char[ANY], char[]   "char *"
+%typemap(imtype) char *, char[ANY], char[]   "string"
+%typemap(cstype) char *, char[ANY], char[]   "string"
 
 /* Non primitive types */
 %typemap(ctype) SWIGTYPE "void *"
@@ -200,9 +197,9 @@ $1 = &temp; %}
 %typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)$input; %}
 %typemap(out) SWIGTYPE [] %{ $result = $1; %} 
 
-/* char[ANY] - treat as String */
-%typemap(in) char[ANY] %{ $1 = $input; %}
-%typemap(out) char[ANY] %{ $result = $1; %}
+/* char arrays - treat as String */
+%typemap(in) char[ANY], char[] %{ $1 = $input; %}
+%typemap(out) char[ANY], char[] %{ $result = SWIG_csharp_string_callback($1); %}
 
 
 /* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
@@ -274,7 +271,8 @@ $1 = &temp; %}
 
 %typecheck(SWIG_TYPECHECK_STRING)
     char *,
-    char[ANY]
+    char[ANY],
+    char[]
     ""
 
 %typecheck(SWIG_TYPECHECK_POINTER)
@@ -324,10 +322,9 @@ $1 = &temp; %}
                  long long,          const long long &,
                  unsigned long long, const unsigned long long &,
                  float,              const float &,
-                 double,             const double &,
-                 char *,
-                 char[ANY]
+                 double,             const double &
     "$csinput"
+%typemap(csin) char *, char[ANY], char[] "$csinput"
 %typemap(csin) SWIGTYPE "$&csclassname.getCPtr($csinput)"
 %typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "$csclassname.getCPtr($csinput)"
 
@@ -346,9 +343,10 @@ $1 = &temp; %}
                   long long,          const long long &,
                   unsigned long long, const unsigned long long &,
                   float,              const float &,
-                  double,             const double &,
-                  char *,
-                  char[ANY] {
+                  double,             const double & {
+    return $imcall;
+  }
+%typemap(csout) char *, char[ANY], char[] {
     return $imcall;
   }
 %typemap(csout) void {
@@ -371,6 +369,10 @@ $1 = &temp; %}
       $imcall;
     } %}
 
+%typemap(csvarin) char *, char[ANY], char[] %{
+    set {
+      $imcall;
+    } %}
 %typemap(csvarout) bool,               const bool &,
                    char,               const char &,
                    signed char,        const signed char &,
@@ -384,13 +386,15 @@ $1 = &temp; %}
                    long long,          const long long &,
                    unsigned long long, const unsigned long long &,
                    float,              const float &,
-                   double,             const double &,
-                   char *,
-                   char[ANY] %{
+                   double,             const double & %{
     get {
       return $imcall;
     } %}
 
+%typemap(csvarout) char *, char[ANY], char[] %{
+    get {
+      return $imcall;
+    } %}
 %typemap(csvarout) void %{
     get {
       $imcall;
@@ -516,4 +520,34 @@ using System.Runtime.InteropServices;
 
 // Default enum handling
 %include "enums.swg"
+
+/*
+// Alternative char * typemaps
+%pragma(csharp) imclasscode=%{
+  public class SWIGStringMarshal {
+    public readonly IntPtr ptr;
+    public SWIGStringMarshal(string str) {
+      ptr = System.Runtime.InteropServices.Marshal.StringToHGlobalAnsi(str);
+    }
+    ~SWIGStringMarshal() {
+      System.Runtime.InteropServices.Marshal.FreeHGlobal(ptr);
+    }
+  }
+%}
+
+%typemap(imtype) char *, char[ANY], char[]   "IntPtr"
+%typemap(out) char[ANY], char[] %{ $result = $1; %}
+%typemap(csin) char *, char[ANY], char[] "new $modulePINVOKE.SWIGStringMarshal($csinput).ptr"
+%typemap(csout) char *, char[ANY], char[] {
+    return System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);
+  }
+%typemap(csvarin) char *, char[ANY], char[] %{
+    set {
+      new $modulePINVOKE.SwigStringMarshal($imcall).ptr;
+    } %}
+%typemap(csvarout) char *, char[ANY], char[] %{
+    get {
+      return System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);
+    } %}
+*/
 
