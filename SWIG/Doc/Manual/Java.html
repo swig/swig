@@ -4494,15 +4494,15 @@ For example:
 </pre>
 </blockquote>
 
-Assume that the Foo class is part of the Java package <i>wombat.foo</i> but the above interface file is part of the Java package <i>wombat.example</i>.
-Without the "javapackage" typemap, SWIG will assume that the Foo class belongs to <i>wombat.example</i> class.
+Assume that the Foo class is part of the Java package <i>com.wombat.foo</i> but the above interface file is part of the Java package <i>com.wombat.example</i>.
+Without the "javapackage" typemap, SWIG will assume that the Foo class belongs to <i>com.wombat.example</i> class.
 The corrected interface file looks like:
 
 <blockquote>
 <pre>
 // class Foo is handled in a different interface file:
 %import "Foo.i"
-%typemap("javapackage") Foo "wombat.foo";
+%typemap("javapackage") Foo, Foo *, Foo &amp; "com.wombat.foo";
 %feature("director") Example;
 
 %inline {
@@ -4518,7 +4518,10 @@ The corrected interface file looks like:
 </blockquote>
 
 <p>
-Practically speaking, you should create a separate SWIG interface file, which is %import-ed into each SWIG interface file, when you have multiple Java packages:
+SWIG looks up the package based on the <b>actual</b> type (plain Foo, Foo pointer and Foo reference), so it is important to associate all three types with the desired package.
+Practically speaking, you should create a separate SWIG interface file, which is %import-ed into each SWIG interface file, when you have multiple Java packages.
+Note the helper macros below, <code>OTHER_PACKAGE_SPEC</code> and <code>ANOTHER_PACKAGE_SPEC</code>, which reduce the amount of extra typing.
+"<code>TYPE...</code>" is useful when passing templated types to the macro, since multiargument template types appear to the SWIG preprocessor as multiple macro arguments.
 </p>
 
 <blockquote>
@@ -4526,8 +4529,16 @@ Practically speaking, you should create a separate SWIG interface file, which is
 %typemap("javapackage") SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;
                                             "package.for.most.classes";
 
-%typemap("javapackage") Package_2_class_one "package.for.other.classes";
-%typemap("javapackage") Package_3_class_two "package.for.another.set";
+%define OTHER_PACKAGE_SPEC(TYPE...)
+%typemap("javapackage") TYPE, TYPE *, TYPE &amp; "package.for.other.classes";
+%enddef
+
+%define ANOTHER_PACKAGE_SPEC(TYPE...)
+%typemap("javapackage") TYPE, TYPE *, TYPE &amp; "package.for.another.set";
+%enddef
+
+OTHER_PACKAGE_SPEC(Package_2_class_one)
+ANOTHER_PACKAGE_SPEC(Package_3_class_two)
 /* etc */
 </pre>
 </blockquote>
