@@ -23,34 +23,36 @@
  * ----------------------------------------------------------------------------- */
 
 %define %array_functions(TYPE,NAME)
-%inline %{
-static
-TYPE *new_##NAME(int nelements) {
-   TYPE *ary;
+%{
+static TYPE *new_##NAME(int nelements) { %}
 #if __cplusplus
-   ary = new TYPE[nelements];
+%{  return new TYPE[nelements]; %}
 #else
-   ary = (TYPE *) calloc(nelements,sizeof(TYPE));
+%{  return (TYPE *) calloc(nelements,sizeof(TYPE)); %}
 #endif
-   return ary;
-}
-static
-void delete_##NAME(TYPE *ary) {
+%{}
+
+static void delete_##NAME(TYPE *ary) { %}
 #if __cplusplus
-    delete [] ary;
+%{  delete [] ary; %}
 #else
-    free(ary);
+%{  free(ary); %}
 #endif
-}
-static
-TYPE NAME##_getitem(TYPE *ary, int index) {
+%{}
+
+static TYPE NAME##_getitem(TYPE *ary, int index) {
     return ary[index];
 }
-static
-void NAME##_setitem(TYPE *ary, int index, TYPE value) {
+static void NAME##_setitem(TYPE *ary, int index, TYPE value) {
     ary[index] = value;
 }
 %}
+
+TYPE *new_##NAME(int nelements);
+void delete_##NAME(TYPE *ary);
+TYPE NAME##_getitem(TYPE *ary, int index);
+void NAME##_setitem(TYPE *ary, int index, TYPE value);
+
 %enddef
 
 
@@ -65,6 +67,9 @@ void NAME##_setitem(TYPE *ary, int index, TYPE value) {
  *             ~NAME();
  *              TYPE getitem(int index);
  *              void setitem(int index, TYPE value);
+ *              TYPE * cast();
+ *              static NAME *frompointer(TYPE *t);
+  *         }
  *
  * ----------------------------------------------------------------------------- */
 
@@ -73,42 +78,49 @@ void NAME##_setitem(TYPE *ary, int index, TYPE value) {
 typedef TYPE NAME;
 %}
 typedef struct NAME {
-    /* Put language specific enhancements here */
+  /* Put language specific enhancements here */
 
 #if SWIGPYTHON
-    %rename(__getitem__) getitem;
-    %rename(__setitem__) setitem;
+  %rename(__getitem__) getitem;
+  %rename(__setitem__) setitem;
+#endif
+} NAME;
+
+%extend NAME {
+
+#if __cplusplus
+NAME(int nelements) {
+  return new TYPE[nelements];
+}
+~NAME() {
+  delete [] self;
+}
+#else
+NAME(int nelements) {
+  return (TYPE *) calloc(nelements,sizeof(TYPE));
+}
+~NAME() {
+  free(self);
+}
 #endif
 
-    %extend {
-	NAME(int nelements) {
-	    TYPE *self;
-#if __cplusplus
-	    self = new TYPE[nelements];
-#else
-	    self = (TYPE *) calloc(nelements,sizeof(TYPE));
-#endif
-	    return self;
-	}
-	~NAME() {
-#if __cplusplus
-	    delete [] self;
-#else
-	    free(self);
-#endif
-	}
-	TYPE getitem(int index) {
-	    return self[index];
-	}
-	void setitem(int index, TYPE value) {
-	    self[index] = value;
-	}
-	static NAME *frompointer(TYPE *t) {
-	    return (NAME *) t;
-	}
-    };
-} NAME;
+TYPE getitem(int index) {
+  return self[index];
+}
+void setitem(int index, TYPE value) {
+  self[index] = value;
+}
+TYPE * cast() {
+  return self;
+}
+static NAME *frompointer(TYPE *t) {
+  return (NAME *) t;
+}
+
+};
+
 %types(NAME = TYPE);
+
 %enddef
 	    
 
