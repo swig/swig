@@ -9,7 +9,7 @@
 
 // Typemap for character array returns
 
-%typemap(tcl8,out) char [ANY], const char[ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($source,-1));"
+%typemap(tcl8,out) char [ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($source,-1));"
 
 // Some special reserved words in classes
 

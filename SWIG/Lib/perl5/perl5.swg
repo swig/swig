@@ -9,4 +9,4 @@
 
 // Typemap for character array returns
 
-%typemap(perl5,out) char [ANY], const char[ANY] "ST(argvi) = sv_newmortal();\n sv_setpv((SV*)ST(argvi++),(char *) result);";
+%typemap(perl5,out) char [ANY] "ST(argvi) = sv_newmortal();\n sv_setpv((SV*)ST(argvi++),(char *) result);";

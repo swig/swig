@@ -9,7 +9,7 @@
 
 /* Special typemap for character array return values */
 
-%typemap(python,out) char [], const char [] "$target = PyString_FromString($source);";
+%typemap(python,out) char [ANY], const char [ANY] "$target = PyString_FromString($source);";
 
 /* Overloaded operator support */
 
