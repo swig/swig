@@ -1,3 +1,18 @@
+//
+// Use this macro if you prefer to preserve the size of char 
+// arrays, ie
+//  ------------------------------------------
+//       C Side             =>   Python Side
+//  ------------------------------------------
+//   char name[5] = "hola"  =>   'hola\0'
+//
+// the default behaviour is 
+//
+//   char name[5] = "hola"  =>   'hola'
+//
+//
+//#define SWIG_PRESERVE_CARRAY_SIZE
+
 /* ------------------------------------------------------------
  *  String typemaps for type Char (char or wchar_t)
  * ------------------------------------------------------------ */
@@ -136,7 +151,8 @@
 
 %typemap(varin,fragment=#SWIG_AsCharArray) Char []
 {
-  if (!SWIG_AsCharArray($input, $1, sizeof($1))) {
+  size_t size = sizeof($1);
+  if (!SWIG_AsCharArray($input, $1, size)) {
     PyErr_Clear();
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
@@ -144,7 +160,14 @@
 }
 
 %typemap(varout,fragment=#SWIG_FromCharArray) const Char []
- "$result = SWIG_FromCharArray($1, sizeof($1));";
+{
+  size_t size = sizeof($1);
+#ifndef SWIG_PRESERVE_CARRAY_SIZE
+  while (size && ($1[size - 1] == '\0')) --size;
+#endif
+  $result = SWIG_FromCharArray($1, size);
+}
+
 
 
 /* ------------------------------------------------------------
@@ -197,7 +220,9 @@
   Char [ANY], const Char [ANY] 
 {
   size_t size = $1_dim0;
-  //while (size && ($1[size - 1] == '\0')) --size;
+#ifndef SWIG_PRESERVE_CARRAY_SIZE
+  while (size && ($1[size - 1] == '\0')) --size;
+#endif
   $result = SWIG_FromCharArray($1, size);
 }
 
