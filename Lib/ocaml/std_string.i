@@ -131,8 +131,7 @@ namespace std {
     }
 }
 
-%template (StringVector) std::vector<string >;
-
+#ifdef ENABLE_CHARPTR_ARRAY
 char **c_charptr_array( const std::vector <string > &str_v );
 
 %{
@@ -145,6 +144,10 @@ char **c_charptr_array( const std::vector <string > &str_v );
     return out;
   }
 %}
+#endif
+
+#ifdef ENABLE_STRING_VECTOR
+%template (StringVector) std::vector<string >;
 
 %insert(ml) %{
   (* Some STL convenience items *)
@@ -160,3 +163,4 @@ char **c_charptr_array( const std::vector <string > &str_v );
 %insert(mli) %{
   val c_string_array: string array -> c_obj
 %}
+#endif
