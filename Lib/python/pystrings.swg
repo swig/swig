@@ -18,7 +18,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* size)
   if (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_info, 0) != -1) {
     if (cptr) *cptr = vptr;
     if (size) *size = vptr ? (strlen(vptr) + 1) : 0;
-    return 1;
+    return SWIG_OLDPTR;
   } else {
     if (PyString_Check(obj)) {
 #if PY_VERSION_HEX >= 0x02000000
@@ -29,7 +29,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* size)
 #endif
       if (cptr) *cptr = vptr;
       if (size) *size = vsize;
-      return 2;
+      return SWIG_NEWPTR;
     }
   }
   if (cptr || size) {

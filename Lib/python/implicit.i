@@ -47,7 +47,7 @@
 %define %implicit_code(...)
   if (swigpy::check<__VA_ARGS__ >(obj)) {
     if (val) *val = new value_type(swigpy::as<__VA_ARGS__ >(obj));
-    return 2;
+    return SWIG_NEWPTR;
   }
 %enddef
 
@@ -73,7 +73,7 @@ namespace swigpy {
     static swig_type_info* desc = SWIG_TypeQuery("Type *");
     if ((SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0) != -1)) {
       if (val) *val = vptr;
-      return 1;
+      return SWIG_OLDPTR;
     } else {
       if (PyErr_Occurred()) PyErr_Clear();
       %formacro_1(%implicit_code,__VA_ARGS__)
@@ -112,7 +112,7 @@ namespace swigpy {
     static swig_type_info* desc = SWIG_TypeQuery("Type *");
     if ((SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0) != -1)) {
       if (val) *val = vptr;
-      return 1;
+      return SWIG_OLDPTR;
     } else {
       if (PyErr_Occurred()) PyErr_Clear();
       %implicit_code(Imp1);
@@ -153,7 +153,7 @@ namespace swigpy {
     static swig_type_info* desc = SWIG_TypeQuery("Type *");
     if ((SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0) != -1)) {
       if (val) *val = vptr;
-      return 1;
+      return SWIG_OLDPTR;
     } else {
       if (PyErr_Occurred()) PyErr_Clear();
       %implicit_code(Imp1);
@@ -197,7 +197,7 @@ namespace swigpy {
     static swig_type_info* desc = SWIG_TypeQuery("Type *");
     if ((SWIG_ConvertPtr(obj, (void **)&vptr, desc, 0) != -1)) {
       if (val) *val = vptr;
-      return 1;
+      return SWIG_OLDPTR;
     } else {
       if (PyErr_Occurred()) PyErr_Clear();
       %implicit_code(Imp1);

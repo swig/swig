@@ -35,6 +35,7 @@
 %include "pyobject.swg"
 %include "pystrings.swg"
 %include "pyvaltypes.swg"
+%include "pyptrtypes.swg"
 %include "pyprimtypes.swg"
 %include "pymisctypes.swg"
 

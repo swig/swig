@@ -37,7 +37,13 @@ namespace swigpy
     operator T () const 
     {
       swigpy::PyObject_var item = PySequence_GetItem(_seq, _index);
-      return swigpy::as<T>(item);
+      try {
+	return swigpy::as<T>(item, true);
+      } catch (std::exception& e) {
+	PyErr_Format(PyExc_TypeError, 
+		     "error in sequence element %d: %s", _index, e.what());
+	throw;
+      }
     }
     
     PySequence_Ref& operator=(const T& v) 

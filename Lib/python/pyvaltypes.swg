@@ -45,7 +45,7 @@
    "$result = pyobj_from((__VA_ARGS__)$1);";
 %enddef
 
-/* Primitive types */
+/* constant installation code */
 %define PYVAL_CONSTCODE_TYPEMAP(pyobj_from,pyfrag,...)
   %typemap(constcode,fragment=pyfrag) __VA_ARGS__ 
      "PyDict_SetItemString(d,\"$symname\", pyobj_from((__VA_ARGS__)$value));";

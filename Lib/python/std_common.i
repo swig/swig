@@ -143,7 +143,7 @@ namespace swigpy {
 	int res = asptr(obj, &p);
 	if (res) {
 	  *val = *p;
-	  if (res > 1) delete p;
+	  if (res == SWIG_NEWPTR) delete p;
 	}
 	return res;
       } else {
@@ -167,16 +167,16 @@ namespace swigpy {
   struct traits_as<Type, value_category>
   {
     typedef Type value_type;
-    static value_type as(PyObject *obj) {
+    static value_type as(PyObject *obj, bool throw_error) {
       value_type v;
-      if (!asval(obj, &v)) {
-	std::string msg= "a value of type '";
+      if (!obj || !asval(obj, &v)) {
+	std::string msg = "a value of type '";
 	msg += swigpy::type_name<Type>();
 	msg += "' is expected";
 	if (!PyErr_Occurred()) {
 	  PyErr_SetString(PyExc_TypeError, msg.c_str());
 	}
-	throw std::invalid_argument(msg);
+	if (throw_error) throw std::invalid_argument(msg);
       }
       return v;
     }
@@ -186,9 +186,9 @@ namespace swigpy {
   struct traits_as<Type, pointer_category>
   {
     typedef Type value_type;
-    static value_type as(PyObject *obj) {
+    static value_type as(PyObject *obj, bool throw_error) {
       value_type *v = 0;
-      int res = asptr(obj, &v);
+      int res = obj ? asptr(obj, &v) : 0;
       if (res) {
 	if (res > 1) {
 	  value_type r(*v);
@@ -198,20 +198,20 @@ namespace swigpy {
 	  return *v;
 	}
       } else {
-	std::string msg= "a value of type '";
+	std::string msg = "a value of type '";
 	msg += swigpy::type_name<Type>();
 	msg += "' is expected";
 	if (!PyErr_Occurred()) {
 	  PyErr_SetString(PyExc_TypeError, msg.c_str());
 	}
-	throw std::invalid_argument(msg);
+	if (throw_error) throw std::invalid_argument(msg);
       }
     }
   };
     
   template <class Type>
-  inline Type as(PyObject *obj) {
-    return traits_as<Type, typename traits<Type>::category>::as(obj);
+  inline Type as(PyObject *obj, bool te = false) {
+    return traits_as<Type, typename traits<Type>::category>::as(obj, te);
   }
 
   template <class Type, class Category> 
@@ -224,7 +224,7 @@ namespace swigpy {
   {
     typedef Type value_type;
     static bool check(PyObject *obj) {
-      return asval(obj, (value_type *)(0));
+      return obj && asval(obj, (value_type *)(0));
     }
   };
 
@@ -233,7 +233,7 @@ namespace swigpy {
   {
     typedef Type value_type;
     static bool check(PyObject *obj) {
-      return asptr(obj, (value_type **)(0));
+      return obj && asptr(obj, (value_type **)(0));
     }
   };
 
