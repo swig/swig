@@ -616,8 +616,6 @@ public:
     int numargs;
     int numreq;
     int newobj = Getattr(n,"feature:new") ? 1 : 0;
-    int director = Swig_directormethod(n);
-    int directorbase = Swig_directorbase(n);
     Node *classNode = Swig_methodclass(n);
     int hasVirtual = (classNode && (Getattr(classNode, "hasVirtual") != 0));
     String *nodeType = Getattr(n, "nodeType");
@@ -1542,7 +1540,6 @@ public:
 	 * to SWIGTYPE) called DIRECTORTYPE?
 	 */
 	if (SwigType_ispointer(ptype) || SwigType_isreference(ptype)) {
-	  String *base = SwigType_base(ptype);
 	  Node *module = Getattr(parent, "module");
 	  Node *target = Swig_directormap(module, ptype);
 	  sprintf(source, "obj%d", idx++);

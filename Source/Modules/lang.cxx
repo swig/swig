@@ -1358,7 +1358,6 @@ int Language::unrollVirtualMethods(Node *n,
                                    Hash *vm, 
                                    int default_director, 
                                    int &virtual_destructor) { 
-  int top = (n == parent);
   Node *ni;
   String *nodeType;
   String *storage;
