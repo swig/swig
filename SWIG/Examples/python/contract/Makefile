@@ -3,7 +3,7 @@ SWIG       = $(TOP)/../swig
 SRCS       = example.c
 TARGET     = example
 INTERFACE  = example.i
-SWIGOPT    = -contracts 
+SWIGOPT    = 
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' python
