@@ -921,6 +921,318 @@ The rest of this chapter describes some of the internal data structures and
 various code generation tasks in more detail.
 
 
+<h2>Guide to parse tree nodes</h2>
+
+This section describes the different parse tree nodes and their attributes.
+
+<p>
+<b>cdecl</b>
+
+<blockquote>
+Describes general C declarations including variables, functions, and typedefs.
+A declaration is parsed as "storage T D" where storage is a storage class, T is a base type,
+and D is a declarator.
+
+<pre>
+"name"          - Declarator name
+"type"          - Base type T
+"decl"          - Declarator type (abstract)
+"storage"       - Storage class (static, extern, typedef, etc.)
+"parms"         - Function parameters (if a function)
+"code"          - Function body code (if supplied)
+"value"         - Default value (if supplied)
+</pre>
+
+</blockquote>
+
+<p>
+<b>constructor</b>
+<blockquote>
+C++ constructor declaration.
+
+<pre>
+"name"          - Name of constructor
+"parms"         - Parameters
+"decl"          - Declarator (function with parameters)
+"code"          - Function body code (if any)
+"feature:new"   - Set to indicate return of new object.
+</pre>
+</blockquote>
+
+
+<p>
+<b>destructor</b>
+<blockquote>
+C++ destructor declaration.
+
+<pre>
+"name"          - Name of destructor
+"code"          - Function body code (if any)
+"storage"       - Storage class (set if virtual)
+"value"         - Default value (set if pure virtual).
+</pre>
+</blockquote>
+
+
+<p>
+<b>access</b>
+<blockquote>
+C++ access change.
+
+<pre>
+"kind"          - public, protected, private
+</pre>
+</blockquote>
+
+
+<p>
+<b>constant</b>
+<blockquote>
+Constant created by %constant or #define.
+
+<pre>
+"name"          - Name of constant.
+"type"          - Base type.
+"value"         - Value.
+"storage"       - Set to %constant
+"feature:immutable" - Set to indicate read-only
+</pre>
+</blockquote>
+
+<p>
+<b>class</b>
+<blockquote>
+C++ class definition or C structure definition.
+
+<pre>
+"name"          - Name of the class.
+"kind"          - Class kind ("struct", "union", "class")
+"symtab"        - Enclosing symbol table.
+"tdname"        - Typedef name. Use for typedef struct { ... } A.
+"abstract"      - Set if class has pure virtual methods.
+"baselist"      - List of base class names.
+"storage"       - Storage class (if any)
+"unnamed"       - Set if class is unnamed.
+</pre>
+</blockquote>
+
+
+<p>
+<b>enum</b>
+<blockquote>
+Enumeration.
+
+<pre>
+"name"          - Name of the enum (if supplied).
+"storage"       - Storage class (if any)
+"tdname"        - Typedef name (typedef enum { ... } name).
+"unnamed"       - Set if enum is unnamed.
+</pre>
+</blockquote>
+
+
+<p>
+<b>enumitem</b>
+<blockquote>
+Enumeration value.
+
+<pre>
+"name"          - Name of the enum value.
+"type"          - Type (integer or char)
+"value"         - Enum value (if given)
+"feature:immutable" - Set to indicate read-only
+</pre>
+</blockquote>
+
+<p>
+<b>namespace</b>
+<blockquote>
+C++ namespace.
+
+<pre>
+"name"          - Name of the namespace.
+"symtab"        - Symbol table for enclosed scope.
+"unnamed"       - Set if unnamed namespace
+"alias"         - Alias name. Set for namespace A = B;
+</pre>
+</blockquote>
+
+
+<p>
+<b>using</b>
+<blockquote>
+C++ using directive.
+
+<pre>
+"name"          - Name of the object being referred to.
+"uname"         - Qualified name actually given to using.
+"node"          - Node being referenced.
+"namespace"     - Namespace name being reference (using namespace name)
+</pre>
+</blockquote>
+
+
+<p>
+<b>classforward</b>
+<blockquote>
+A forward C++ class declaration.
+
+<pre>
+"name"          - Name of the class.
+"kind"          - Class kind ("union", "struct", "class")
+</pre>
+</blockquote>
+
+
+<p>
+<b>insert</b>
+<blockquote>
+Code insertion directive.  For example, %{ ... %} or 
+%insert(section).
+
+<pre>
+"code"          - Inserted code
+"section"       - Section name ("header", "wrapper", etc.)
+</pre>
+</blockquote>
+
+<p>
+<b>top</b>
+<blockquote>
+Top of the parse tree.
+
+<pre>
+"module"        - Module name
+</pre>
+</blockquote>
+
+<p>
+<b>addmethods</b>
+<blockquote>
+%addmethods directive.
+
+<pre>
+"name"          - Module name
+"symtab"        - Symbol table of enclosed scope.
+</pre>
+</blockquote>
+
+<p>
+<b>apply</b>
+<blockquote>
+%apply pattern { patternlist }.
+
+<pre>
+"pattern"       - Source pattern.
+"symtab"        - Symbol table of enclosed scope.
+</pre>
+</blockquote>
+
+<p>
+<b>clear</b>
+<blockquote>
+%clear patternlist;
+
+<pre>
+"firstChild"    - Patterns to clear
+</pre>
+</blockquote>
+
+<p>
+<b>include</b>
+<blockquote>
+%include directive.
+
+<pre>
+"name"         - Filename
+"firstChild"   - Children
+</pre>
+</blockquote>
+
+<p>
+<b>include</b>
+<blockquote>
+%import directive.
+
+<pre>
+"name"         - Filename
+"firstChild"   - Children
+</pre>
+</blockquote>
+
+
+<p>
+<b>module</b>
+<blockquote>
+%module directive.
+
+<pre>
+"name"         - Name of the module
+</pre>
+</blockquote>
+
+
+<p>
+<b>typemap</b>
+<blockquote>
+%typemap directive.
+
+<pre>
+"method"       - Typemap method name.
+"code"         - Typemap code.
+"kwargs"       - Keyword arguments (if any)
+"firstChild"   - Typemap patterns
+</pre>
+</blockquote>
+
+<p>
+<b>typemapcopy</b>
+<blockquote>
+%typemap directive with copy.
+
+<pre>
+"method"       - Typemap method name.
+"pattern"      - Typemap source pattern.
+"firstChild"   - Typemap patterns
+</pre>
+</blockquote>
+
+
+<p>
+<b>typemapitem</b>
+<blockquote>
+%typemap pattern. Used with %apply, %clear, %typemap.
+
+<pre>
+"pattern"      - Typemap pattern (a parameter list)
+"parms"        - Typemap parameters.
+</pre>
+</blockquote>
+
+<p>
+<b>types</b>
+<blockquote>
+%types directive.
+
+<pre>
+"parms"        - List of parameter types.
+</pre>
+</blockquote>
+
+
+<p>
+<b>extern</b>
+<blockquote>
+extern "X" { ... } declaration.
+
+<pre>
+"name"       - Name "C", "Fortran", etc.
+</pre>
+</blockquote>
+
+
+
+
 <hr>
 
 <address>SWIG 1.3 - Last Modified : January 22, 2002</address>
