@@ -11,9 +11,9 @@ public class main {
   }
 
   public static void main(String argv[]) {
-    long p = example.point_create(1, 2);
+    SWIGTYPE_p_Point p = example.point_create(1, 2);
     System.out.println("auto wrapped  : " + example.point_toString1(p));
     System.out.println("manual wrapped: " + example.point_toString2(p));
-    example.free(p); //clean up c allocated memory
+    example.free(new SWIGTYPE_p_void(p.getCPtr(), false)); //clean up c allocated memory
   }
 }

@@ -39,11 +39,12 @@ void f2(char *BYTE);
 
 /* alternative approach uses a StringBuffer typemap for argout */
 
-/* what type to use in java source code */
-%typemap(jtype) char *SBUF "StringBuffer"
-
 /* what is the corresponding jni type */
 %typemap(jni) char *SBUF "jobject"
+
+/* what types to use in java source code */
+%typemap(jtype) char *SBUF "StringBuffer"
+%typemap(jstype) char *SBUF "StringBuffer"
 
 /* how to convert java type to requested c type */
 %typemap(in) char *SBUF {

@@ -50,10 +50,10 @@ public class main {
     System.out.println( "cvar      =" + (char)example.get_cvar() );
     System.out.println( "strvar    =" + example.get_strvar() );
     System.out.println( "cstrvar   =" + example.get_cstrvar() );
-    System.out.println( "iptrvar   =" + Long.toHexString(example.get_iptrvar()) );
+    System.out.println( "iptrvar   =" + Long.toHexString(example.get_iptrvar().getCPtr()) );
     System.out.println( "name      =" + example.get_name() );
-    System.out.println( "ptptr     =" + Long.toHexString(example.get_ptptr()) + example.Point_print(example.get_ptptr()) );
-    System.out.println( "pt        =" + Long.toHexString(example.get_pt()) + example.Point_print(example.get_pt()) );
+    System.out.println( "ptptr     =" + Long.toHexString(example.get_ptptr().getCPtr()) + example.Point_print(example.get_ptptr()) );
+    System.out.println( "pt        =" + Long.toHexString(example.get_pt().getCPtr()) + example.Point_print(example.get_pt()) );
 
     System.out.println( "\nVariables (values printed from C)" );
 

@@ -28,20 +28,21 @@ public class main {
     // It returns a new allocated object.
     
     System.out.println( "Adding a+b" );
-    Vector c = new Vector (example.addv(a.getCPtrVector(),b.getCPtrVector()), false);
+    Vector c = example.addv(a,b);
     System.out.println( "    a+b = " + c.print() );
     
-    // Note: Unless we free the result, a memory leak will occur
-    // This is because we used 'false' for cMemoryOwn in the constructor of c.
-    // If we had used 'true', the memory management is best left to the garbage collector.
+    // Note: Unless we free the result, a memory leak will occur if the -proxy commandline
+    // is not used as the proxy classes define finalizers which call the _delete() method. When
+    // -proxy is specified the memory management is then controlled by the garbage collector.
     // You can still call _delete(). It will free the c++ memory immediately, but not the 
     // Java memory! You then must be careful not to call any member functions as it will 
-    // use a NULL c pointer on the underlying c++ object.
+    // use a NULL c pointer on the underlying c++ object. We set the Java object to null
+    // which will then throw a Java exception should we attempt to use it again.
     c._delete();
+    c = null;
     
     // ----- Create a vector array -----
     
-    // Note: Using the high-level interface here
     System.out.println( "Creating an array of vectors" );
     VectorArray va = new VectorArray(10);
     System.out.println( "    va = " + va.toString() );
@@ -52,20 +53,11 @@ public class main {
     va.set(0,a);
     va.set(1,b);
     
-    // This will work, but it will cause a memory leak!
-    // This is the low level way of using Java with SWIG and isn't very readable!
+    // This works, but it would cause a memory leak if -proxy wasn't specified!
     
-    example.VectorArray_set(va.getCPtrVectorArray(),2,example.addv(a.getCPtrVector(),b.getCPtrVector()));
+    va.set(2,example.addv(a,b));
     
-    // The non-leaky way to do it. This is the high level way of using Java with SWIG.
-    // This relies on the garbage collector for freeing memory
-    // An even better way would have been possible if addv was a static function in the 
-    // c++ class. The code would then instead be:
-    // c = Vector.addv(a,b); 
-    
-    c = new Vector(example.addv(a.getCPtrVector(),b.getCPtrVector()), true);
-    va.set(3,c);
-    
+
     // Get some values from the array
     
     System.out.println( "Getting some array values" );

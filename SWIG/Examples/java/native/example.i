@@ -18,7 +18,7 @@ Point *point_create(int x, int y) {
   return p;
 }
 
-/* this function will be wrapped by jswig */
+/* this function will be wrapped by SWIG */
 char *point_toString1(Point *p) {
   static char buf[80];
 
@@ -28,7 +28,7 @@ char *point_toString1(Point *p) {
 }
 
 /* this one we wrapped manually*/
-JNIEXPORT jstring JNICALL Java_example_point_1toString2(JNIEnv *jenv, jclass jcls, jlong jpoint) {
+JNIEXPORT jstring JNICALL Java_exampleJNI_point_1toString2(JNIEnv *jenv, jclass jcls, jlong jpoint) {
     Point * p;
     char buf[80];
     jstring result;
