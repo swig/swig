@@ -21,7 +21,7 @@ void draw_shape_coverage( shape *s, int div_x, int div_y ) {
 
 void draw_depth_map( volume *v, int div_x, int div_y ) {
     double i,j;
-    char depth_map_chars[] = "#*+;:,. ";
+    char depth_map_chars[] = "#*+o;:,. ";
     double lowbound, highbound;
     double current = 0.0;
     bool bounds_set = false;

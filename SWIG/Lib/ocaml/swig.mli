@@ -20,8 +20,13 @@ type 'a c_obj_t =
   | C_enum of 'a
   | C_director_core of 'a c_obj_t * 'a c_obj_t option ref
 
+type empty_enum = [ `SWIGFake | `Int of int ]
+
+exception InvalidDirectorCall of empty_enum c_obj_t
+
 val invoke : 'a c_obj_t -> (string -> 'a c_obj_t -> 'a c_obj_t)
 val convert_c_obj : 'a c_obj_t -> 'b c_obj_t
+val fnhelper : bool -> ('a c_obj_t list -> 'a c_obj_t list) -> 'a c_obj_t -> 'a c_obj_t
 
 val get_int : 'a c_obj_t -> int
 val get_float : 'a c_obj_t -> float
@@ -44,3 +49,8 @@ val make_uint : int -> 'a c_obj_t
 val make_int32 : int -> 'a c_obj_t
 val make_int64 : int -> 'a c_obj_t
 
+val new_derived_object: 
+  ('a c_obj_t -> 'a c_obj_t) ->
+  ('a c_obj_t -> string -> 'a c_obj_t -> 'a c_obj_t) ->
+  'a c_obj_t -> 'a c_obj_t
+  

@@ -162,6 +162,7 @@ extern "C" {
 	    fprintf( stderr, "]\n" );
 	    v = SWIG_Field(v,1);
 	}
+	CAMLreturn0;
     }
 
     SWIGSTATIC CAML_VALUE caml_list_nth( CAML_VALUE lst, int n ) {
@@ -341,7 +342,7 @@ extern "C" {
 	CAMLparam0();
 	SWIG_CAMLlocal1(fv);
 	fv = caml_swig_alloc(1,C_float);
-	SWIG_Store_field(fv,0,copy_double(f));
+	SWIG_Store_field(fv,0,copy_double((double)f));
 	CAMLreturn(fv);
     }
 
@@ -509,6 +510,15 @@ extern "C" {
 
     SWIGSTATIC char *caml_string_val( CAML_VALUE v ) {
 	return (char *)caml_ptr_val( v, 0 );
+    }
+
+    SWIGSTATIC int caml_string_len( CAML_VALUE v ) {
+	switch( SWIG_Tag_val(v) ) {
+	case C_string:
+	    return string_length(SWIG_Field(v,0));
+	default:
+	    return strlen((char *)caml_ptr_val(v,0));
+	}
     }
 
     SWIGSTATIC int caml_bool_check( CAML_VALUE v ) {

@@ -140,6 +140,7 @@ CAMLextern int64 Int64_val(caml_value_t v);
     static void *caml_ptr_val( CAML_VALUE v, swig_type_info *descriptor );
 
     static char *caml_string_val( CAML_VALUE v );
+    static int caml_string_len( CAML_VALUE v );
 
 #ifdef __cplusplus
 }
