@@ -2167,6 +2167,11 @@ public:
   virtual int staticmemberfunctionHandler(Node *n) {
     String *symname = Getattr(n,"sym:name");
     Language::staticmemberfunctionHandler(n);
+
+    if (Getattr(n,"sym:nextSibling")) {
+      return SWIG_OK;
+    }
+    
     if (shadow) {
       if ( !classic && !Getattr(n,"feature:python:callback") && have_addtofunc(n)) {
         int kw = (check_kwargs(n) && !Getattr(n,"sym:overloaded")) ? 1 : 0;
