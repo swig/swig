@@ -12,7 +12,11 @@ SWIGOPT    = -I$(TOP)/../Lib -I$(TOP)/$(TEST_SUITE)
 TARGETPREFIX = php_
 
 runtests:
-	bash -ec 'ls *_runme.php4 | sed -e "s/_runme.php4/.cpptest/" | while read file; do make clean && make $$file; done'
+	@bash -ec 'ls *_runme.php4 | sed -e "s/_runme.php4/.cpptest/" | while read file; do make clean && make $$file; done'
+
+# write out tests without a _runme.php4
+missingtests:
+	@bash -ec 'for test in $(CPP_TEST_CASES) ; do test -f $${test}_runme.php4 || echo $${test}; done'
 
 # Rules for the different types of tests
 %.cpptest: 
