@@ -23,16 +23,15 @@ static char cvsroot[] = "$Header$";
 #endif
 
 static int   PoolSize = DOH_POOL_SIZE;
-
 DOH    *DohNone = 0;    /* The DOH None object */
 
 static DohBase *FreeFragments[DOH_MAX_FRAG];   /* Array of free memory fragments */
 
 typedef struct pool {
-  char          *ptr;           /* Start of pool */
-  int            len;           /* Length of pool */
-  int            current;       /* Current position for next allocation */
-  struct  pool  *next;          /* Next pool */
+  char          *ptr;            /* Start of pool */
+  int            len;            /* Length of pool */
+  int            current;        /* Current position for next allocation */
+  struct  pool  *next;           /* Next pool */
 } Pool;
 
 static Pool    *Pools = 0;
