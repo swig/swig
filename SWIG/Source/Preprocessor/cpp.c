@@ -197,6 +197,7 @@ DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
     while ((c = Getc(argstr)) != EOF) {
       if (c == ',') {
 	Append(arglist,argname);
+	Delete(argname);
 	argname = NewString("");
       } else if (isidchar(c)) {
 	Putc(c,argname);
@@ -207,6 +208,7 @@ DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
     }
     if (Len(argname)) {
       Append(arglist,argname);
+      Delete(argname);
     }
   }
   
@@ -221,16 +223,19 @@ DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
   while(strstr(Char(macrovalue)," \001")) {
     Replace(macrovalue," \001","\001", DOH_REPLACE_NOQUOTE);
   }
-  
   /* Replace '##' with a special token */
   Replace(macrovalue,"\001\001","\002", DOH_REPLACE_NOQUOTE);
   
   /* Go create the macro */
   macro = NewHash();
   Setattr(macro,"name", macroname);
-  if (arglist) 
+  Delete(macroname);
+  if (arglist) {
     Setattr(macro,"args",arglist);
+    Delete(arglist);
+  }
   Setattr(macro,"value",macrovalue);
+  Delete(macrovalue);
   Setline(macro,line);
   Setfile(macro,file);
   if (swigmacro) {
@@ -242,10 +247,14 @@ DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
       cpp_error(Getfile(str),Getline(str),"Macro '%s' redefined. Previous definition in \'%s\', Line %d\n", macroname, Getfile(m1), Getline(m1));
   }
   Setattr(symbols,macroname,macro);
+  Delete(str);
+  Delete(argstr);
   return macro;
   
  macro_error:
-    return 0;
+  Delete(str);
+  Delete(argstr);
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -323,6 +332,7 @@ find_args(DOHString *s)
     Chop(str);
     if (Len(args) || Len(str))
       Append(args,str);
+    Delete(str);
 
     /*    if (Len(str) && (c != ')'))
 	  Append(args,str); */
@@ -452,8 +462,11 @@ expand_macro(DOHString_or_char *name, DOHList *args)
   Replace(ns,"\002","",DOH_REPLACE_ANY);    /* Get rid of concatenation tokens */
   Replace(ns,"\001","#",DOH_REPLACE_ANY);   /* Put # back (non-standard C) */ 
 
+
   /* Expand this macro even further */
   e = Preprocessor_replace(ns);
+
+  Delete(ns);
   Delattr(macro,"*expanded*");
   if (Getattr(macro,"swigmacro")) {
     DOHString *g;
@@ -465,6 +478,7 @@ expand_macro(DOHString_or_char *name, DOHList *args)
     Printf(f,"%s\n", g);
     Printf(f,"}\n");
     Delete(g);
+    Delete(e);
     e = f;
   }
   Delete(temp);
@@ -545,6 +559,7 @@ Preprocessor_replace(DOH *s)
 	      Putc(c,arg);
 	    }
 	    Append(args,arg);
+	    Delete(arg);
 	  }
 	  if (!args) {
 	    cpp_error(Getfile(id),Getline(id),"No arguments given to defined()\n");
@@ -559,6 +574,7 @@ Preprocessor_replace(DOH *s)
 	  }
 	  if (i < Len(args)) Putc('0',ns);
 	  else Putc('1',ns);
+	  Delete(args);
 	  state = 0;
 	  break;
 	}
@@ -939,8 +955,11 @@ Preprocessor_parse(DOH *s)
 		  Printf(ns,"%%constant %s %s; /*%s*/\n", Getattr(m,"name"),v1,comment);
 		cpp_lines--;
 	      }
+	      Delete(v1);
 	    }
-	  } 
+	    Delete(v);
+	  }
+	  Delete(m);
 	}
       } else if (Cmp(id,"undef") == 0) {
 	if (allow) Preprocessor_undef(value);
@@ -1037,6 +1056,7 @@ Preprocessor_parse(DOH *s)
 	    Delete(s2);
   	  } 
 	  Delete(s1);
+ 	  Delete(fn);
   	} 
       } else if (Cmp(id,"pragma") == 0) { 
       } else { 
@@ -1193,6 +1213,8 @@ Preprocessor_parse(DOH *s)
   Delete(value);
   Delete(comment);
   Delete(chunk);
+
+  /*  fprintf(stderr,"cpp: %d\n", Len(Getattr(cpp,"symbols"))); */
   return ns;
 }
 
