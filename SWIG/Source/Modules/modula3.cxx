@@ -96,6 +96,8 @@ char cvsroot_modula3_cxx[] =
    - Is there a function that creates a C representation of a SWIG type string?
 
   ToDo:
+   - create WeakRefs only for resources returned by function marked with %newobject
+      -> part of output conversion
    - clean typemap conception
       - should a multi-typemap for m3wrapouttype skip the corresponding input parameters?
         when yes - How to handle inout-arguments? In this case like in-argument.
@@ -3431,7 +3433,7 @@ MODULA3 ():
       }
     }
 
-    /* Create local variables e.g. for converted input values. */
+    /* Declare local variables e.g. for converted input values. */
     {
       String *tm = getMappedTypeNew (n, "m3wrapretvar", "", false);
       if (tm != NIL) {
@@ -3461,7 +3463,7 @@ MODULA3 ():
       }
     }
 
-    /* Converted input values from Modula 3 to C. */
+    /* Convert input values from Modula 3 to C. */
     {
       Parm *p = l;
       while (p != NIL) {
