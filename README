@@ -20,21 +20,20 @@ SWIG release.  The guilty parties working on this are:
   -  Catalin Dumitrescu (cldumitr@cs.uchicago.edu)      (SWIG core)
 
 ***********************************************************************
-*****             IMPORTANT NOTICE -- READ THIS NOW!              *****
+*****       IMPORTANT NOTICE -- READ THIS NOW (OR ELSE)           *****
 ***********************************************************************
 
-If you downloaded SWIG as a prepackaged release such as SWIG1.3a3, be
+If you downloaded SWIG as a prepackaged release such as SWIG1.3a4, be
 advised that this distribution represents a snapshot of the most
-stable part of the SWIG CVS repository.  As this is an unstable
+"stable" part of the SWIG CVS repository.  As this is an unstable
 release, there is a pretty good chance that a number of features are
 broken or under repair.  Currently, SWIG is undergoing a large
 redevelopment effort in which it is being converted from C++ to ANSI
-C.  As a result, the source code is a little disorganized at the
-moment.  The SWIG1.3 series of releases should be viewed as
-transitional releases leading to the eventual release of
-SWIG2.0. First-time users may want to start with SWIG1.1p5 which is
-significantly more stable (and includes a wider range of documentation
-and examples).
+C.  As a result, the source code is very disorganized at the moment.
+The SWIG1.3 series of releases should be viewed as transitional
+releases leading to the eventual release of SWIG2.0. First-time users
+should probably start with SWIG1.1p5 which is significantly more
+stable (and includes a wider range of documentation and examples).
 
 *** WE NEED YOUR HELP! ***
 
@@ -42,6 +41,21 @@ Please report any errors and submit patches (if possible)!  Not only
 are we making radical changes to the system, we only have access to a
 limited variety of hardware (Linux, Solaris, and Windows). All contributions
 help.
+
+*** Backwards Compatibility ***
+
+Although we are making every attempt preserve backwards compatibility
+with interfaces written for SWIG1.1, SWIG1.3 incorporates a number of
+very substantial modifications to things such as type handling,
+typemaps, and wrapper code generation.  Therefore, if you are making
+extensive use of advanced SWIG features, interfaces written for
+SWIG1.1 may not work.  We apologize for the inconvenience, but these
+changes are needed in order to remove a variety of annoying "features"
+of SWIG1.1.  
+
+In addition, SWIG1.3 makes no attempt to be compatible with SWIG1.1 at
+the C++ API level so language modules written for SWIG1.1 will most
+definitely not work with this release.  
 
 What's New?
 ===========
@@ -57,6 +71,8 @@ Here are the most notable changes (so far):
 
    - The Guile module is stable. It represents C pointers as smobs and
      supports the Guile module system and exceptions. 
+
+   - Ruby and mzscheme modules added.
 
    - A lot of minor bug fixes and cleanup.
 
@@ -74,7 +90,8 @@ Here are a few missing features
 What's Broken?
 ==============
 
-   - Objective C support doesn't work right now.
+   - Objective C support doesn't work right now.  No ETA as to
+     when it will return.
 
    - SWIG requires an ANSI C compiler.
 
