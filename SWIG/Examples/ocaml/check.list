@@ -6,3 +6,4 @@ stl
 argout_ref
 shapes
 contract
+scoped_enum
