@@ -18,9 +18,10 @@ LIBS        = @LIBS@
 AR          = @AR@
 RANLIB      = @RANLIB@
 
+# Note: Files in `SWIG_LIB' are machine independent so we use `prefix'
+# instead of `exec_prefix' or, derivatively, `libdir'.
 SWIG_LIB    = $(prefix)/lib/swig1.3
-BIN_DIR     = $(exec_prefix)/bin
-LIB_DIR     = $(exec_prefix)/lib
+BIN_DIR     = @bindir@
 TARGET      = swig
 SOURCE      = Source
 SOURCEDIRS  = `ls $(SOURCE)`
@@ -123,77 +124,58 @@ clean:
 # TARGETS: install & friends
 #####################################################################
 
-INSTALL        = ./install-sh -c
-INSTALL_DATA   = ${INSTALL} -m 644
-INSTALL_PROGRAM= ${INSTALL} -m 755
+INSTALL         = install-sh -c
+INSTALL_DATA    = ${INSTALL} -m 644
+INSTALL_PROGRAM = $(srcdir)/${INSTALL} -m 755
+MKINSTDIRS      = $(srcdir)/mkinstalldirs
 
 install: install-main install-lib install-runtime
 	@echo "Installation complete"
 
 install-main:
-	@for i in $(LIB_DIR) $(BIN_DIR); \
-	do \
-	  if [ ! -d $$i ] ; then \
-	         mkdir $$i; \
-                 echo "Making directory $$i"; \
-                 chmod 755 $$i;\
-                 else true; \
-             fi; \
-            done;
 	@echo "Installing $(BIN_DIR)/swig"
-	@if [ -f swig.exe ]; then \
-		$(INSTALL_PROGRAM) swig.exe $(BIN_DIR)/swig.exe; \
-	else \
-		$(INSTALL_PROGRAM) swig $(BIN_DIR)/swig; \
+	@$(MKINSTDIRS) $(BIN_DIR)
+	@if [ -f swig.exe ]; then					\
+		$(INSTALL_PROGRAM) swig.exe $(BIN_DIR)/swig.exe;	\
+	else								\
+		$(INSTALL_PROGRAM) swig $(BIN_DIR)/swig;		\
 	fi
 
 install-lib:
-	@for i in $(SWIG_LIB) ; \
-	do \
-	  if [ ! -d $$i ] ; then \
-	         mkdir $$i; \
-                 echo "Making directory $$i"; \
-                 chmod 755 $$i;\
-                 else true; \
-             fi; \
-            done;
 	@echo "Installing the SWIG library"
+	@$(MKINSTDIRS) $(SWIG_LIB)
 #	cd $(SWIG_LIB); rm -rf *
-	@for i in $(SWIG_LIB)/tcl $(SWIG_LIB)/perl5 $(SWIG_LIB)/python $(SWIG_LIB)/guile $(SWIG_LIB)/java ; \
-	do \
-	  if [ ! -d $$i ] ; then \
-	         mkdir $$i; \
-                 echo "Making directory $$i"; \
-                 chmod 755 $$i;\
-                 else true; \
-             fi; \
-            done;
-	@cd Lib; for i in *.i *.swg; \
+	@cd $(srcdir)/Lib; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/$$i"; \
             ../$(INSTALL_DATA) $$i $(SWIG_LIB)/$$i; \
 	    done;
-	@cd Lib/tcl; for i in *.i *.swg; \
+	@$(MKINSTDIRS) $(SWIG_LIB)/tcl
+	@cd $(srcdir)/Lib/tcl; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/tcl/$$i"; \
             ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/tcl/$$i; \
 	    done;
-	@cd Lib/perl5; for i in *.i *.swg Makefile.pl; \
+	@$(MKINSTDIRS) $(SWIG_LIB)/perl5
+	@cd $(srcdir)/Lib/perl5; for i in *.i *.swg Makefile.pl; \
 	    do \
 	    echo "Installing Lib/perl5/$$i"; \
             ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/perl5/$$i; \
 	    done;
-	@cd Lib/python; for i in *.i *.swg; \
+	@$(MKINSTDIRS) $(SWIG_LIB)/python
+	@cd $(srcdir)/Lib/python; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/python/$$i"; \
             ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/python/$$i; \
 	    done;
-	@cd Lib/guile; for i in *.i *.swg; \
+	@$(MKINSTDIRS) $(SWIG_LIB)/guile
+	@cd $(srcdir)/Lib/guile; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/guile/$$i"; \
             ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/guile/$$i; \
 	    done;
-	@cd Lib/java; for i in *.i *.swg; \
+	@$(MKINSTDIRS) $(SWIG_LIB)/java
+	@cd $(srcdir)/Lib/java; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/java/$$i"; \
             ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/java/$$i; \
