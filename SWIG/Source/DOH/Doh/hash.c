@@ -40,17 +40,62 @@ typedef struct Hash {
     HashNode           *current;
 } Hash;
 
+
+/* -----------------------------------------------------------------------------
+   Key interning.    This is used for getattr,setattr functions.
+
+   The following structure maps raw char * entries to string objects.  
+   ----------------------------------------------------------------------------- */
+
+typedef struct KeyValue {
+    char   *cstr;
+    DOH    *sstr;
+    struct KeyValue *left;
+    struct KeyValue *right;
+} KeyValue;
+
+static KeyValue *root = 0;
+
+static DOH *find_key(char *c) {
+  KeyValue *r, *s;
+  int d = 0;
+  r = root;
+  s = 0;
+  while (r) {
+    s = r;
+    d = strcmp(r->cstr,c);
+    if (d == 0) return r->sstr;
+    if (d < 0) r = r->left;
+    else r = r->right;
+  }
+  /*   fprintf(stderr,"Interning '%s'\n", c); */
+  r = (KeyValue *) DohMalloc(sizeof(KeyValue));
+  r->cstr = (char *) DohMalloc(strlen(c)+1);
+  strcpy(r->cstr,c);
+  r->sstr = NewString(c);
+  DohIntern(r->sstr);
+  r->left = 0;
+  r->right = 0;
+  if (!s) { root = r; }
+  else {
+    if (d < 0) s->left = r;
+    else s->right = r;
+  }
+  return r->sstr;
+}
+
 /* Forward references */
 DOH    *CopyHash(DOH *h);
-void   DelHash(DOH *h);
-void   Hash_clear(DOH *);
-int    Hash_setattr(DOH *, DOH *k, DOH *obj);
+void    DelHash(DOH *h);
+void    Hash_clear(DOH *);
+void    Hash_scope(DOH *, int);
+int     Hash_setattr(DOH *, DOH *k, DOH *obj);
 DOH    *Hash_getattr(DOH *h, DOH *k);
 int     Hash_delattr(DOH *h, DOH *k);
 DOH    *Hash_firstkey(DOH *h);
 DOH    *Hash_nextkey(DOH *h);
 DOH    *Hash_str(DOH *h);
-int    Hash_len(DOH *h);
+int     Hash_len(DOH *h);
 
 #define HASH_INIT_SIZE   7
 
@@ -87,6 +132,7 @@ static DohObjInfo HashType = {
     DelHash,         /* doh_del */
     CopyHash,        /* doh_copy */
     Hash_clear,      /* doh_clear */
+    Hash_scope,      /* doh_scope */
     Hash_str,        /* doh_str */
     0,               /* doh_data */
     0,               /* doh_dump */
@@ -121,7 +167,6 @@ DOH *NewHash() {
     Hash *h;
     int   i;
     h = (Hash *) DohObjMalloc(sizeof(Hash));
-    DohInit(h);
     h->hashsize = HASH_INIT_SIZE;
     h->hashtable = (HashNode **) DohMalloc(h->hashsize*sizeof(HashNode *));
     for (i = 0; i < h->hashsize; i++) {
@@ -142,11 +187,9 @@ DOH *CopyHash(DOH *ho) {
     Hash *h, *nh;
     HashNode *n;
     int   i;
-    DOH *key;
 
     h = (Hash *) ho;
     nh = (Hash *) DohObjMalloc(sizeof(Hash));
-    DohInit(nh);
 
     nh->hashsize = h->hashsize;
     nh->hashtable = (HashNode **) DohMalloc(nh->hashsize*sizeof(HashNode *));
@@ -159,7 +202,7 @@ DOH *CopyHash(DOH *ho) {
     nh->objinfo = h->objinfo;
 
     for (i = 0; i < h->hashsize; i++) {
-	if (n = h->hashtable[i]) {
+	if ((n = h->hashtable[i])) {
 	    while (n) {
 		Hash_setattr(nh, n->key, n->object);
 		n = n->next;
@@ -181,7 +224,7 @@ void DelHash(DOH *ho)
 
     h = (Hash *) ho;
     for (i = 0; i < h->hashsize; i++) {
-	if (n = h->hashtable[i]) {
+	if ((n = h->hashtable[i])) {
 	    while (n) {
 		next = n->next;
 		DelNode(n);
@@ -190,6 +233,8 @@ void DelHash(DOH *ho)
 	}
     }
     DohFree(h->hashtable);
+    h->hashtable = 0; 
+    h->hashsize = 0;
     DohObjFree(h);
 }
 
@@ -205,7 +250,7 @@ void Hash_clear(DOH *ho)
 
     h = (Hash *) ho;
     for (i = 0; i < h->hashsize; i++) {
-	if (n = h->hashtable[i]) {
+	if ((n = h->hashtable[i])) {
 	    while (n) {
 		next = n->next;
 		DelNode(n);
@@ -215,6 +260,31 @@ void Hash_clear(DOH *ho)
 	h->hashtable[i] = 0;
     }
     h->nitems = 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Hash_scope(DOH *ho, int s) - Clear all entries in a hash table
+ * ----------------------------------------------------------------------------- */
+
+void Hash_scope(DOH *ho, int s)
+{
+    Hash *h;
+    HashNode *n;
+    int i;
+    h = (Hash *) ho;
+    if (h->flags & DOH_FLAG_SETSCOPE) return;
+    if (s < h->scope) h->scope = s;
+    h->flags = h->flags | DOH_FLAG_SETSCOPE;
+    for (i = 0; i < h->hashsize; i++) {
+	if ((n = h->hashtable[i])) {
+	  while (n) {
+	    Setscope(n->object,s);
+	    Setscope(n->key,s);
+	    n = n->next;
+	  }
+	}
+    }
+    h->flags = h->flags & ~DOH_FLAG_SETSCOPE;
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -275,6 +345,10 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     HashNode *n, *prev;
     Hash *h;
 
+    if (!DohCheck(k)) k = find_key(k);
+    if (!DohCheck(obj)) {
+      obj = NewString((char *) obj);
+    }
     h = (Hash *) ho;
     hv = (Hashval(k)) % h->hashsize;
     n = h->hashtable[hv];
@@ -299,6 +373,8 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     }
     /* Add this to the table */
     n = NewNode(k,obj);
+    Setscope(n->key,h->scope);
+    Setscope(n->object,h->scope);
     if (prev) prev->next = n;
     else h->hashtable[hv] = n;
     h->nitems++;
@@ -316,6 +392,7 @@ Hash_getattr(DOH *ho, DOH *k) {
     HashNode *n;
     Hash *h;
 
+    if (!DohCheck(k)) k = find_key(k);
     h = (Hash *) ho;
     hv = Hashval(k) % h->hashsize;
     n = h->hashtable[hv];
@@ -337,6 +414,7 @@ Hash_delattr(DOH *ho, DOH *k)
     int hv;
     Hash *h;
 
+    if (!DohCheck(k)) k = find_key(k);
     h = (Hash *) ho;
     hv = Hashval(k) % h->hashsize;
     n = h->hashtable[hv];
@@ -434,6 +512,11 @@ Hash_str(DOH *ho) {
 
     h = (Hash *) ho;
     s = NewString("");
+    if (h->flags & DOH_FLAG_PRINT) {
+      Printf(s,"Hash(0x%x)",h);
+      return s;
+    }
+    h->flags = h->flags | DOH_FLAG_PRINT;
     Printf(s,"Hash {\n");
     for (i = 0; i < h->hashsize; i++) {
 	n = h->hashtable[i];
@@ -443,18 +526,7 @@ Hash_str(DOH *ho) {
 	}
     }
     Printf(s,"}\n");
-#ifdef old
-    s = NewString("Hash");
-    Printf(s,"(%x) {",h);
-    for (i = 0; i < h->hashsize; i++) {
-	n = h->hashtable[i];
-	while (n) {
-	    Printf(s,"'%o',", n->key);
-	    n = n->next;
-	}
-    }
-    Printf(s,"}");
-#endif
+    h->flags = h->flags & ~DOH_FLAG_PRINT;
     return s;
 }
       

@@ -36,6 +36,7 @@ typedef struct List {
 DOH      *CopyList(DOH *);
 void      DelList(DOH *);
 void      List_clear(DOH *);
+void      List_scope(DOH *, int s);
 DOH      *List_get(DOH *, int pos);
 int       List_set(DOH *, int pos, DOH *obj);
 int       List_insert(DOH *, int pos, DOH *item);
@@ -63,6 +64,7 @@ static DohObjInfo ListType = {
     DelList,         /* doh_del */
     CopyList,        /* doh_copy */
     List_clear,      /* doh_clear */
+    List_scope,      /* doh_scope */
     List_str,        /* doh_str */
     0,               /* doh_data */
     List_dump,       /* doh_dump */
@@ -72,6 +74,7 @@ static DohObjInfo ListType = {
     0,               /* doh_cmp */
     0,               /* doh_mapping */
     &ListSeqMethods, /* doh_sequence */
+    0,               /* doh_file */
     0,               /* doh_string */
     0,               /* doh_callable */
 };
@@ -120,7 +123,6 @@ NewList() {
     List *l;
     int   i;
     l = (List *) DohObjMalloc(sizeof(List));
-    DohInit(l);
     l->objinfo = &ListType;
     l->nitems = 0;
     l->maxitems = MAXLISTITEMS;
@@ -142,7 +144,6 @@ CopyList(DOH *lo) {
     int i;
     l = (List *) lo;
     nl = (List *) DohObjMalloc(sizeof(List));
-    DohInit(nl);
     nl->objinfo = l->objinfo;
     nl->nitems = l->nitems;
     nl->maxitems = l->maxitems;
@@ -171,6 +172,7 @@ DelList(DOH *lo) {
 	Delete(l->items[i]);
     }
     DohFree(l->items);
+    l->items = 0;
     DohObjFree(l);
 }
 
@@ -191,6 +193,23 @@ List_clear(DOH *lo) {
 }
 
 /* -----------------------------------------------------------------------------
+ * void List_scope(DOH *lo, int s)
+ * ----------------------------------------------------------------------------- */
+void
+List_scope(DOH *lo, int s) {
+  List *l;
+  int i;
+  l = (List *) lo;
+  if (l->flags & DOH_FLAG_SETSCOPE) return;
+  l->flags = l->flags | DOH_FLAG_SETSCOPE;
+  if (s < l->scope) l->scope = (unsigned char) s;
+  for (i = 0; i < l->nitems; i++) {
+    Setscope(l->items[i],s);
+  }
+  l->flags = l->flags & ~DOH_FLAG_SETSCOPE;
+}
+
+/* -----------------------------------------------------------------------------
  * void List_insert(DOH *lo, int pos, DOH *item) - Insert an element
  * ----------------------------------------------------------------------------- */
 
@@ -201,7 +220,7 @@ List_insert(DOH *lo, int pos, DOH *item)
     DohBase *b;
     int i;
 
-    if (!item) return;
+    if (!item) return -1;
     b = (DohBase *) item;
     l = (List *) lo;
 
@@ -214,6 +233,7 @@ List_insert(DOH *lo, int pos, DOH *item)
     }
     l->items[pos] = item;
     b->refcount++;
+    Setscope(b,l->scope);
     l->nitems++;
     return 0;
 }
@@ -232,7 +252,7 @@ List_remove(DOH *lo, int pos)
     l = (List *) lo;
     if (pos == DOH_END) pos = l->nitems-1;
     if (pos == DOH_BEGIN) pos = 0;
-    if ((pos < 0) || (pos >= l->nitems)) return;
+    if ((pos < 0) || (pos >= l->nitems)) return -1;
     item = l->items[pos];
     for (i = pos; i < l->nitems-1; i++) {
 	l->items[i] = l->items[i+1];
@@ -285,6 +305,7 @@ List_set(DOH *lo, int n, DOH *val)
     Delete(l->items[n]);
     l->items[n] = val;
     Incref(val);
+    Setscope(val,l->scope);
     return 0;
 }
 
@@ -324,6 +345,11 @@ List_str(DOH *lo)
 
     List *l = (List *) lo;
     s = NewString("");
+    if (l->flags & DOH_FLAG_PRINT) {
+      Printf(s,"List(0x%x)",l);
+      return s;
+    }
+    l->flags = l->flags | DOH_FLAG_PRINT;
     Printf(s,"List[ ");
     for (i = 0; i < l->nitems; i++) {
       Printf(s, "%s", l->items[i]);
@@ -331,6 +357,7 @@ List_str(DOH *lo)
 	Printf(s,", ");
     }
     Printf(s," ]\n");
+    l->flags = l->flags & ~DOH_FLAG_PRINT;
     return s;
 }
 
@@ -341,7 +368,7 @@ List_dump(DOH *lo, DOH *out) {
   List *l = (List *) lo;
   for (i = 0; i < l->nitems; i++) {
     ret = Dump(l->items[i],out);
-    if (ret < 0) ret;
+    if (ret < 0) return -1;
     nsent += ret;
   }
   return nsent;

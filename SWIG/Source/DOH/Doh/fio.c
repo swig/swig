@@ -77,18 +77,18 @@ DohvPrintf(DOH *so, char *format, va_list ap)
   char *p = format;
   char  newformat[256];
   char  obuffer[OBUFLEN];
-  char *fmt;
+  char *fmt = 0;
   char  temp[64];
   int   widthval = 0;
   int   precval = 0;
   int   maxwidth;
-  char  *w, *prec;
+  char  *w = 0;
   int   ivalue;
   double dvalue;
   void  *pvalue;
   char  *stemp;
   int   nbytes = 0;
-  char  encoder[128], *ec;
+  char  encoder[128], *ec = 0;
 
   while (*p) {
     switch(state) {

@@ -103,6 +103,7 @@ typedef struct DohObjInfo {
   void      (*doh_del)(DOH *obj);              /* Delete object      */
   DOH      *(*doh_copy)(DOH *obj);             /* Copy and object    */
   void      (*doh_clear)(DOH *obj);            /* Clear an object    */
+  void      (*doh_scope)(DOH *obj, int s);     /* Change the scope on an object */
 
   /* Output methods */
   DOH       *(*doh_str)(DOH *obj);             /* Make a full string */
@@ -133,6 +134,7 @@ typedef struct DohObjInfo {
 
 /* Memory management */
 extern void   *DohMalloc(size_t size);     
+extern void   *DohRealloc(void *, size_t size);
 extern void   *DohObjMalloc(size_t size);
 extern void    DohFree(DOH *ptr);
 extern void    DohObjFree(DOH *ptr);
@@ -142,6 +144,11 @@ extern int     DohFreeCheck(DOH *ptr);
 extern int     DohMemoryUse();
 extern int     DohMemoryHigh();
 extern int     DohPoolSize(int);
+extern int     DohNewScope();
+extern void    DohDelScope(int);
+extern void    DohGarbageCollect();
+extern void    DohSetScope(DOH *, int scp);
+extern void    DohIntern(DOH *);
 
 /* Low-level doh methods.  Do not call directly (well, unless you want to). */
 extern void    DohError(int level, char *fmt,...);
@@ -184,7 +191,7 @@ extern void    DohSetDouble(DOH *obj, DOH *name, double);
 
 extern int     DohWrite(DOH *obj, void *buffer, int length);
 extern int     DohRead(DOH *obj, void *buffer, int length);
-extern int     DohSeek(DOH *obj, long offser, int whence);
+extern int     DohSeek(DOH *obj, long offset, int whence);
 extern long    DohTell(DOH *obj);
 extern int     DohGetc(DOH *obj);
 extern int     DohPutc(int ch, DOH *obj);
@@ -196,6 +203,7 @@ extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
 /* extern int     DohScanf(DOH *obj, char *format, ...);
    extern int     DohvScanf(DOH *obj, char *format, va_list ap); */
 
+extern int     DohReplace(DOH *src, DOH *token, DOH *rep, int flags);
 extern DOH    *DohReadline(DOH *in);
 
 #ifndef DOH_LONG_NAMES
@@ -247,6 +255,9 @@ extern DOH    *DohReadline(DOH *in);
 #define Firstitem          DohFirstitem
 #define Nextitem           DohNextitem
 #define Readline           DohReadline
+#define Replace            DohReplace
+#define NewScope           DohNewScope
+#define DelScope           DohDelScope
 
 #endif
 
@@ -258,8 +269,11 @@ extern DOH    *DohReadline(DOH *in);
 
 #define  DOHCOMMON      \
    DohObjInfo    *objinfo; \
+   DOH           *nextptr; \
    int            refcount; \
-   int            line; \
+   short          line; \
+   unsigned char  flags; \
+   unsigned char  scope; \
    DOH           *file 
 
 typedef struct {
@@ -267,17 +281,31 @@ typedef struct {
 } DohBase;
 
 /* Macros for decrefing and increfing (safe for null objects). */
-#define Decref(a)        if (a) ((DohBase *) a)->refcount--;
-#define Incref(a)        if (a) ((DohBase *) a)->refcount++;
+#define Decref(a)        if (a) ((DohBase *) a)->refcount--
+#define Incref(a)        if (a) ((DohBase *) a)->refcount++
+#define Refcount(a)      ((DohBase *) a)->refcount
+
+#define Getscope(a)      ((DohBase *) a)->scope
+#define Setscope(a,s)    DohSetScope(a,s)
+
 #define Objname(a)       ((DohBase *) a)->objinfo->objname
 
+/* Flags for various internal operations */
+
+#define DOH_FLAG_SETSCOPE    0x01
+#define DOH_FLAG_PRINT       0x02
+#define DOH_FLAG_DELSCOPE    0x04
+#define DOH_FLAG_GC          0x08
+#define DOH_FLAG_INTERN      0x10
+  
 /* -----------------------------------------------------------------------------
  * Strings.   
  * ----------------------------------------------------------------------------- */
 
 extern DOH   *NewString(char *c);
 extern int    String_check(DOH *s);
-extern void   String_replace(DOH *s, DOH *token, DOH *rep, int flags);
+extern int    String_replace(DOH *s, DOH *token, DOH *rep, int flags);
+extern void   String_chop(DOH *s);
 
 /* String replacement flags */
 
@@ -321,6 +349,8 @@ extern DOH  *NewVoid(void *ptr, void (*del)(void *));
 
 extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
 #define Split DohSplit
+
+extern DOH *DohNone;
 
 /* -----------------------------------------------------------------------------
  * Error handling levels.
