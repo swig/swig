@@ -1,7 +1,22 @@
 Version 1.3.20 (In progress)
 ============================
 
-10/03/2003: mkoeppe
+10/05/2003: mkoeppe (Matthias Koeppe)
+	    [Guile, MzScheme, Chicken]: Remove symbol clashes between
+	    the runtime libraries by renaming all extern common.swg
+	    functions with the preprocessor.
+
+10/05/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Added basic GOOPS support, contributed by John Lenz.
+	    See the documentation for details.
+	    
+            *** NEW FEATURE ***
+
+10/04/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] New option, -only-setters, which disables
+	    traditional getter and setter procedures for structure slots.
+
+10/03/2003: mkoeppe (Matthias Koeppe)
 	    [Guile] Added run test for reference_global_vars by John Lenz.
 
 09/30/2003: beazley
