@@ -166,6 +166,8 @@ void RUBY::parse_args(int argc, char *argv[]) {
 
   /* Add typemap definitions */
   typemap_lang = (char*)"ruby";
+
+  SWIG_config_file("ruby.i");
 }
 
 
@@ -344,23 +346,26 @@ void RUBY::close(void) {
   SwigType_emit_type_table(f_header,f_wrappers);
 }
 
-/* ---------------------------------------------------------------------
- * RUBY::make_wrapper_name(char *cname)
- *
- * Creates a name for a wrapper function
- *              cname = Name of the C function
- * --------------------------------------------------------------------- */
-
-String *RUBY::make_wrapper_name(char *cname) {
-  return Swig_name_wrapper(cname);
-}
-
 /* --------------------------------------------------------------------------
  * RUBY::add_native()
  * -------------------------------------------------------------------------- */
 void
 RUBY::add_native(char *name, char *funcname, SwigType *, ParmList *) {
   Printf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, funcname);
+}
+
+/* ---------------------------------------------------------------------
+ * RUBY::make_wrapper_name(char *cname)
+ *
+ * Creates a name for a wrapper function
+ *              iname = Name of the function in scripting language
+ * --------------------------------------------------------------------- */
+
+String *RUBY::make_wrapper_name(char *iname) {
+  String *wname = Swig_name_wrapper(iname);
+  Replace(wname, "?", "_p", DOH_REPLACE_ANY);
+  Replace(wname, "!", "_bang", DOH_REPLACE_ANY);
+  return wname;
 }
 
 /* ---------------------------------------------------------------------
@@ -373,7 +378,7 @@ RUBY::add_native(char *name, char *funcname, SwigType *, ParmList *) {
  * --------------------------------------------------------------------- */
 
 void RUBY::create_command(char *cname, char *iname, int argc) {
-  String *wname = make_wrapper_name(cname);
+  String *wname = make_wrapper_name(iname);
   if (CPlusPlus) {
     Insert(wname,0,"VALUEFUNC(");
     Append(wname,")");
@@ -442,9 +447,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   if (current == DESTRUCTOR)
     return;
 
-  String *wname = make_wrapper_name(name);
   char mname[256], inamebuf[256];
-  int predicate = 0;
+  int predicate = 0, need_result = 0;
 
   cleanup = NewString("");
   outarg = NewString("");
@@ -462,6 +466,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     }
     break;
   }
+  String *wname = make_wrapper_name(iname);
 
   /* Get number of arguments */
   int numarg = ParmList_numarg(l);
@@ -518,14 +523,17 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
       }
     }
   }
-  Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
   int pcount = emit_args(t,l,f);
 
   /* Emit count to check the number of arguments */
   if (vararg) {
-    Printf(f->code,"    rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numoptreal);
-    p = l;
-    for (i = 0; i < start; i++) p = Getnext(p);
+    int numscan = 0;
+    for (p = l, i = 0; i < start; i++) p = Getnext(p);
+    for (i = start; p; i++, p = Getnext(p)) {
+      if (!Getignore(p)) numscan++;
+    }
+    Printf(f->code,"rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numscan - (numarg-numoptreal));
+    for (p = l, i = 0; i < start; i++) p = Getnext(p);
     for (i = start; p; i++, p = Getnext(p)) {
       if (!Getignore(p)) {
 	Printf(f->code,", &varg%d", i);
@@ -563,7 +571,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
       tm = ruby_typemap_lookup((char*)"in",pt,pn,source,target,f);
       if (tm) {
 	String *s = NewString(tm);
-	Printv(f->code, s, "\n", 0);
+	Printv(f->code, s, 0);
 	Replace(f->code, "$arg", source, DOH_REPLACE_ANY);
 	Delete(s);
       } else {
@@ -579,7 +587,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     tm = ruby_typemap_lookup((char*)"check",pt,pn,source,target);
     if (tm) {
       String *s = NewString(tm);
-      Printv(f->code, s, "\n", 0);
+      Printv(f->code, s, 0);
       Replace(f->code, "$arg", source, DOH_REPLACE_ANY);
       Delete(s);
     }
@@ -588,7 +596,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     tm = ruby_typemap_lookup((char*)"freearg",pt,pn,target,source);
     if (tm) {
       String *s = NewString(tm);
-      Printv(cleanup,s,"\n",0);
+      Printv(cleanup,s,0);
       Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
       Delete(s);
     }
@@ -596,7 +604,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     tm = ruby_typemap_lookup((char*)"argout",pt,pn,target,(char*)"vresult");
     if (tm) {
       String *s = NewString(tm);
-      Printv(outarg, s, "\n", 0);
+      need_result = 1;
+      Printv(outarg, s, 0);
       Replace(outarg, "$arg", source, DOH_REPLACE_ANY);
       Delete(s);
     }
@@ -608,13 +617,14 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 
   /* Return value if necessary */
   if (SwigType_type(t) != T_VOID) {
+    need_result = 1;
     if (predicate) {
       Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", 0);
     } else {
       tm = ruby_typemap_lookup((char*)"out",t,name,(char*)"result",(char*)"vresult");
       if (tm) {
 	String *s = NewString(tm);
-	Printv(f->code, s, "\n", 0);
+	Printv(f->code, s, 0);
 	Delete(s);
       } else {
 	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
@@ -634,7 +644,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     tm = ruby_typemap_lookup((char*)"newfree",t,name,(char*)"result",(char*)"");
     if (tm) {
       String *s = NewString(tm);
-      Printv(f->code,s,"\n", 0);
+      Printv(f->code,s, 0);
       Delete(s);
     }
   }
@@ -648,11 +658,16 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   tm = ruby_typemap_lookup((char*)"ret",t,name,(char*)"result",(char*)"");
   if (tm) {
     String *s = NewString(tm);
-    Printv(f->code,s,"\n", 0);
+    Printv(f->code,s, 0);
   }
 
   /* Wrap things up (in a manner of speaking) */
-  Printv(f->code, tab4, "return vresult;\n}\n", 0);
+  if (need_result) {
+    Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
+    Printv(f->code, tab4, "return vresult;\n}\n", 0);
+  } else {
+    Printv(f->code, tab4, "return Qnil;\n}\n", 0);
+  }
 
   /* Substitute the cleanup code */
   Replace(f->code,"$cleanup",cleanup, DOH_REPLACE_ANY);
@@ -677,7 +692,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
  * --------------------------------------------------------------------- */
 
 void RUBY::link_variable(char *name, char *iname, SwigType *t) {
-  char *tm;
+  char *tm, *source;
 
   String *getfname, *setfname;
   Wrapper *getf, *setf;
@@ -692,20 +707,23 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
   Printf(getf->def, "VALUE self");
   Printf(getf->def, ") {");
   Wrapper_add_local(getf,"_val","VALUE _val");
-  tm = ruby_typemap_lookup((char*)"varout",t,name,name,(char*)"_val");
+
+  if (SwigType_type(t) == T_USER) {
+    /* Hack this into a pointer */
+    String *pname = NewString("");
+    Printv(pname, "&", name, 0);
+    source = Char(pname);
+  } else {
+    source = name;
+  }
+
+  tm = ruby_typemap_lookup((char*)"varout",t,name,source,(char*)"_val");
   if (!tm)
-    tm = ruby_typemap_lookup((char*)"out",t,name,name,(char*)"_val");
+    tm = ruby_typemap_lookup((char*)"out",t,name,source,(char*)"_val");
   if (tm) {
     String *s = NewString(tm);
-    Printv(getf->code,s,"\n", 0);
+    Printv(getf->code,s, 0);
     Delete(s);
-  } else if (SwigType_type(t) == T_USER) {
-    /* Hack this into a pointer */
-    SwigType_add_pointer(t);
-    SwigType_remember(t);
-    Printv(getf->code, tab4, "_val = SWIG_NewPointerObj((void *)&", name,
-	   ", SWIGTYPE", SwigType_manglestr(t), ");\n", 0);
-    SwigType_del_pointer(t);
   } else {
     Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	    input_file,line_number,SwigType_str(t,0));
@@ -717,29 +735,35 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
     setfname = NewString("NULL");
   } else {
     /* create setter */
+    char *target;
+
     setfname = NewString(Swig_name_set(name));
     Replace(setfname,"::", "_", DOH_REPLACE_ANY); /* FIXME: Swig_name_get bug? */
     Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", 0);
     Printf(setf->def, "VALUE _val) {");
-    tm = ruby_typemap_lookup((char*)"varin",t,name,(char*)"_val",name);
-    if (!tm)
-      tm = ruby_typemap_lookup((char*)"in",t,name,(char*)"_val",name);
-    if (tm) {
-      String *s = NewString(tm);
-      Printv(setf->code,s,"\n",0);
-      Delete(s);
-    } else if (SwigType_type(t) == T_USER) {
-      SwigType_remember(t);
+
+    if (SwigType_type(t) == T_USER) {
       SwigType_add_pointer(t);
       Wrapper_add_localv(setf,"temp",SwigType_lstr(t,0), "temp",0);
-      Printv(setf->code, tab4, "temp = (", SwigType_lstr(t,0), ")",
-	     "SWIG_ConvertPtr(_val, SWIGTYPE", SwigType_manglestr(t), ");\n",
-	     0);
-      Printv(setf->code, tab4, name, " = *temp;\n",0);
       SwigType_del_pointer(t);
+      target = "temp";
+    } else {
+      target = name;
+    }
+
+    tm = ruby_typemap_lookup((char*)"varin",t,name,(char*)"_val",target);
+    if (!tm)
+      tm = ruby_typemap_lookup((char*)"in",t,name,(char*)"_val",target);
+    if (tm) {
+      String *s = NewString(tm);
+      Printv(setf->code,s,0);
+      Delete(s);
     } else {
       Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	      input_file,line_number,SwigType_str(t,0));
+    }
+    if (SwigType_type(t) == T_USER) {
+      Printv(setf->code, name, " = *temp;\n",0);
     }
     Printv(setf->code, tab4, "return _val;\n",0);
     Printf(setf->code,"}\n");
@@ -841,10 +865,10 @@ void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
     Replace(str,"$value",value, DOH_REPLACE_ANY);
     if (current == CLASS_CONST) {
       Replace(str,"$module", klass->vname, DOH_REPLACE_ANY);
-      Printv(klass->init, str, "\n", 0);
+      Printv(klass->init, str, 0);
     } else {
       Replace(str,"$module", modvar, DOH_REPLACE_ANY);
-      Printf(f_init,"%s\n", str);
+      Printf(f_init,"%s", str);
     }
     Delete(str);
   } else {
@@ -870,6 +894,13 @@ char *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname,
   char *tm;
   String *target_replace = NewString(target);
   target = Char(target_replace);
+  int type_code, add_pointer = 0;
+
+  if (SwigType_type(type) == T_USER)
+    add_pointer = 1;
+  if (add_pointer)
+    SwigType_add_pointer(type);
+  type_code = SwigType_type(type);
 
   RClass *cls = RCLASS(classes, SwigType_base(type));
 
@@ -878,48 +909,69 @@ char *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname,
 
   if ((strcmp("out", op) == 0 || strcmp("in", op) == 0)
       && Cmp(SwigType_base(type), "VALUE") == 0) {
-    Printf(s,"$target = $source;");
-  } else if (strcmp("out", op) == 0 && (SwigType_type(type) == T_POINTER) && cls) {
+    Printf(s,"$target = $source;\n");
+  } else if (strcmp("out", op) == 0
+	     && (type_code == T_POINTER || type_code == T_REFERENCE)
+	     && cls) {
     const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
-    Printv(s, "$target = Wrap_", cls->cname, "(", vname, ", $source);",0);
-  } else if (strcmp("in", op)==0 && (SwigType_type(type) == T_POINTER) && cls) {
-    Printv(s, "Get_", cls->cname, "($source, $target);", 0);
+    Printv(s, "$target = Wrap_", cls->cname, "(", vname, ", $source);\n",0);
+  } else if (strcmp("in", op)==0
+	     && (type_code == T_POINTER || type_code == T_REFERENCE)
+	     && cls) {
+    Printv(s, "Get_", cls->cname, "($source, $target);\n", 0);
   } else {
+    if (add_pointer) {
+      SwigType_del_pointer(type);
+      add_pointer = 0;
+    }
+
     tm = Swig_typemap_lookup(op, type, pname, source, target, f);
     if (tm) {
       Delete(target_replace);
-      return tm;
-    }
-    Clear(s);
-    if (strcmp("in", op) == 0) {
-      String *v = NewString("");
-      if (from_VALUE(type, (char*)"$source", v))
-	Printv(s, "$target = ", v, ";", 0);
-      Delete(v);
-    } else if (strcmp("out", op) == 0) {
-      String *v = NewString("");
-      if (to_VALUE(type, (char*)"$source", v))
-	Printv(s, "$target = ", v, ";", 0);
-      Delete(v);
-    } else if (strcmp("const", op) == 0) {
-      String *v = NewString("");
-      if (to_VALUE(type, (char*)"$value", v, 1)) {
-	Printv(s, "rb_define_const($module, \"$target\", ", v, ");", 0);
-	validate_const_name(target);
+      Printv(s, tm, "\n", 0);
+    } else {
+      Clear(s);
+      if (strcmp("in", op) == 0) {
+	String *v = NewString("");
+	if (from_VALUE(type, (char*)"$source", (char*)"$target", v))
+	  Printv(s, v, "\n", 0);
+	Delete(v);
+      } else if (strcmp("out", op) == 0) {
+	String *v = NewString("");
+	if (to_VALUE(type, (char*)"$source", v))
+	  Printv(s, "$target = ", v, ";\n", 0);
+	Delete(v);
+      } else if (strcmp("const", op) == 0) {
+	String *v = NewString("");
+	if (to_VALUE(type, (char*)"$value", v, 1)) {
+	  Printv(s, "rb_define_const($module, \"$target\", ", v, ");\n", 0);
+	  validate_const_name(target);
+	}
+	Delete(v);
       }
-      Delete(v);
     }
   }
-  if (Len(s) == 0) {
-    return NULL;
-  }
-
   if (source && strlen(source) > 0)
     Replace(s,"$source",source, DOH_REPLACE_ANY);
   if (target && strlen(target) > 0)
     Replace(s,"$target",target, DOH_REPLACE_ANY);
   Replace(s,"$type", SwigType_str(type,0), DOH_REPLACE_ANY);
+
+  if (add_pointer) {
+    SwigType_del_pointer(type);
+    add_pointer = 0;
+  }
+
+  if (Len(s) == 0)
+    return NULL;
   return Char(s);
+}
+
+
+static void
+convert_pointer(char *src, SwigType *t, String *f) {
+  SwigType_remember(t);
+  Printv(f, "SWIG_NewPointerObj((void *)", src, ", SWIGTYPE", SwigType_manglestr(t), ")", 0);
 }
 
 /* ---------------------------------------------------------------------
@@ -963,9 +1015,25 @@ int RUBY::to_VALUE(SwigType *type, char *value, String *str, int raw) {
     else
       Printv(str, "rb_str_new2(", value, ")", 0);
     break;
-  case T_POINTER: case T_ARRAY: case T_REFERENCE:
-    SwigType_remember(type);
-    Printv(str, "SWIG_NewPointerObj((void *)", value, ", SWIGTYPE", SwigType_manglestr(type), ")", 0);
+  case T_ARRAY:
+    {
+      SwigType *aop;
+      SwigType *ta = Copy(type);
+      aop = SwigType_pop(ta);
+      if (SwigType_type(ta) == T_CHAR) {
+	Printf(str, "rb_str_new2(%s)", value);
+	break;
+      }
+      convert_pointer(value, type, str);
+      break;
+    }
+  case T_POINTER: case T_REFERENCE:
+    convert_pointer(value, type, str);
+    break;
+  case T_USER:
+    SwigType_add_pointer(type);
+    convert_pointer(value, type, str);
+    SwigType_del_pointer(type);
     break;
   default:
     break;
@@ -975,52 +1043,89 @@ int RUBY::to_VALUE(SwigType *type, char *value, String *str, int raw) {
   return 1;
 }
 
+
+static void
+get_pointer(char *src, char *dest, SwigType *t, String *f) {
+  SwigType *lt;
+
+  SwigType_remember(t);
+  Printv(f, dest, " = (", SwigType_lstr(t,0), ")SWIG_ConvertPtr(", src, ", ", 0);
+
+  lt = Swig_clocal_type(t);
+  if (Cmp(lt,"p.void") == 0) {
+    Printv(f, "0);", 0);
+  } else {
+    Printv(f, "SWIGTYPE", SwigType_manglestr(t), ");", 0);
+  }
+  Delete(lt);
+}
+
 /* ---------------------------------------------------------------------
  * RUBY::from_VALUE(SwigType *type, char *value)
  *
  * extract VALUE
  *              type  = Datatype of the C value
  *              value = Ruby VALUE (as a string)
+ *              target= target C variable (as a string)
  *              str   = resulting code (as a string)
  * --------------------------------------------------------------------- */
 
-int RUBY::from_VALUE(SwigType *type, char *value, String *str) {
+int RUBY::from_VALUE(SwigType *type, char *value, char *target, String *str) {
   Clear(str);
   switch(SwigType_type(type)) {
   case T_INT:
-    Printv(str, "NUM2INT(", value, ")", 0);
+    Printv(str, target, " = NUM2INT(", value, ");", 0);
     break;
   case T_LONG:
-    Printv(str, "NUM2LONG(", value, ")", 0);
+    Printv(str, target, " = NUM2LONG(", value, ");", 0);
     break;
   case T_SHORT:
-    Printv(str, "NUM2SHRT(", value, ")", 0);
+    Printv(str, target, " = NUM2SHRT(", value, ");", 0);
     break;
   case T_UINT:
-    Printv(str, "NUM2UINT(", value, ")", 0);
+    Printv(str, target, " = NUM2UINT(", value, ");", 0);
     break;
   case T_ULONG:
-    Printv(str, "NUM2ULONG(", value, ")", 0);
+    Printv(str, target, " = NUM2ULONG(", value, ");", 0);
     break;
   case T_USHORT:
-    Printv(str, "NUM2USHRT(", value, ")", 0);
+    Printv(str, target, " = NUM2USHRT(", value, ");", 0);
     break;
   case T_DOUBLE:
   case T_FLOAT:
-    Printv(str, "NUM2DBL(", value, ")", 0);
+    Printv(str, target, " = NUM2DBL(", value, ");", 0);
     break;
   case T_CHAR: case T_SCHAR: case T_UCHAR:
-    Printv(str, "NUM2CHR(", value, ")", 0);
+    Printv(str, target, " = NUM2CHR(", value, ");", 0);
     break;
   case T_BOOL:
-    Printv(str,"RTEST(", value, ")", 0);
+    Printv(str, target, " = RTEST(", value, ");", 0);
     break;
   case T_STRING:
-    Printv(str, "STR2CSTR(", value, ")", 0);
+    Printv(str, target, " = STR2CSTR(", value, ");", 0);
     break;
-  case T_POINTER: case T_ARRAY: case T_REFERENCE:
-    SwigType_remember(type);
-    Printv(str, "(", SwigType_lstr(type,0), ")SWIG_ConvertPtr(", value, ", SWIGTYPE", SwigType_manglestr(type), ")", 0);
+  case T_ARRAY:
+    {
+      SwigType *aop;
+      SwigType *ta = Copy(type);
+      aop = SwigType_pop(ta);
+      if (SwigType_type(ta) == T_CHAR) {
+	String *dim = SwigType_array_getdim(aop,0);
+	if (dim && Len(dim)) {
+	  Printf(str, "strncpy(%s, STR2CSTR(%s), %s);", target, value, dim);
+	}
+	break;
+      }
+      get_pointer(value, target, type, str);
+      break;
+    }
+  case T_POINTER: case T_REFERENCE:
+    get_pointer(value, target, type, str);
+    break;
+  case T_USER:
+    SwigType_add_pointer(type);
+    get_pointer(value, target, type, str);
+    SwigType_del_pointer(type);
     break;
   default:
     break;
@@ -1060,7 +1165,7 @@ void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
     Printv(klass->type, ctype, " ", klass->cname,0);
   }
 
-  Printv(klass->header, "\nVALUE ", klass->vname, ";\n", 0);
+  Printv(klass->header, "\nstatic VALUE ", klass->vname, ";\n", 0);
   Printv(klass->init, "\n", tab4, 0);
   Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
 	 ", \"", klass->name, "\", $super);\n", 0);
@@ -1330,9 +1435,11 @@ void RUBY::cpp_class_decl(char *cname, char *rename, char *type) {
     sprintf(temp,"%s %s", type, cname);
     SET_RCLASS(classes, temp, klass);
   }
+  /*
   char s[256];
   sprintf(s,"extern VALUE %s;\n", Char(klass->vname));
   Printf(f_header, s);
+  */
   klass = new RClass();
   Delete(valid_name);
 }

@@ -16,7 +16,7 @@ class RUBY : public Language {
   virtual char *validate_const_name(char *name);
   virtual char *ruby_typemap_lookup(char *, SwigType *, String_or_char *, char *, char *, Wrapper * = 0);
   virtual int to_VALUE(SwigType *, char *, DOHString *, int = 0);
-  virtual int from_VALUE(SwigType *, char *, DOHString *);
+  virtual int from_VALUE(SwigType *, char *, char *, DOHString *);
  public:
   /* Virtual functions required by the SWIG parser */
   virtual void parse_args(int, char *argv[]);
