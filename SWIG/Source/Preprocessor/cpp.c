@@ -652,6 +652,7 @@ Preprocessor_replace(DOH *s)
 	    DOH *arg = 0;
 	    args = NewList();
 	    arg = NewString("");
+	    if (isidchar(c)) Putc(c,arg);
 	    while ((c = Getc(s)) != EOF) {
 	      if (!isidchar(c)) {
 		Seek(s,-1,SEEK_CUR);
