@@ -4312,12 +4312,18 @@ expr           :  exprnum { $$ = $1; }
 		 /* Check if value is in scope */
 		 n = Swig_symbol_clookup($1,0);
 		 if (n) {
-		   if (Getattr(n,"access")) {
-		     if (cplus_mode == CPLUS_PUBLIC) {
-		       Swig_warning(WARN_PARSE_PRIVATE,cparse_file, cparse_line, "'%s' is private in this context.\n", $1);
-		       $$.type = T_ERROR;
+		   if (Getattr(n,"access") && (cplus_mode == CPLUS_PUBLIC)) {
+		     Swig_warning(WARN_PARSE_PRIVATE,cparse_file, cparse_line, "'%s' is private in this context.\n", $1);
+		     $$.type = T_ERROR;
+		   } else {
+		     /* A band-aid for enum values used in expressions. */
+		     if (Strcmp(nodeType(n),"enumitem") == 0) {
+		       String *q = Swig_symbol_qualified(n);
+		       if (q) {
+			 $$.val = NewStringf("%s::%s", q, Getattr(n,"name"));
+			 Delete(q);
+		       }
 		     }
-
 		   }
 		 }
                }
