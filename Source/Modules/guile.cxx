@@ -116,7 +116,6 @@ static String *swigtype_ptr = 0;
 
 /* GOOPS stuff */
 static String *primsuffix = 0;
-static Hash   *known_classes = 0;
 static String *class_name = 0;
 static String *short_class_name = 0;
 static String *goops_class_methods;
@@ -357,7 +356,6 @@ public:
     Swig_register_filebyname("goops", goopstext);
     goopscode = NewString("");
     goopsexport = NewString("");
-    known_classes = NewHash();
     
     Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
     Swig_banner (f_runtime);
@@ -425,7 +423,6 @@ public:
     Delete(goopscode);
     Delete(goopsexport);
     Delete(goopstext);
-    Delete(known_classes);
 
     /* Close all of the files */
     Dump(f_header,f_runtime);
@@ -832,9 +829,12 @@ public:
 	    }
 	    if (strcmp("void", Char(pt)) != 0) {
 	      Node *search;
+	      Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
+	      String *goopsclassname = (class_node == NULL) ? NULL :
+		Getattr(class_node, "guile:goopsclassname");
 	      /* do input conversion */
-	      if ((search = Getattr(known_classes, pb))) {
-		Printv(method_signature, " (", argname, " <", pb, ">)", NIL);
+	      if (goopsclassname) {
+		Printv(method_signature, " (", argname, " ", goopsclassname, ")", NIL);
 	      } else {
 		Printv(method_signature, " ", argname, NIL);
 	      }
@@ -1464,7 +1464,8 @@ public:
    * classDeclaration()
    * ------------------------------------------------------------ */
   virtual int classDeclaration(Node *n) {
-    Setattr(known_classes, Getattr(n, "sym:name"), n);
+    String *class_name = NewStringf("<%s>", Getattr(n, "sym:name"));
+    Setattr(n, "guile:goopsclassname", class_name);
     return Language::classDeclaration(n);
   }
 
