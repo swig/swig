@@ -24,20 +24,16 @@ noncommercial use.
 <li> <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SwigWiki!</a>
 </ul>
 
-<h3>SWIG-1.3.12, SWIG-2.0 and Beyond!</h3>
-
-After nearly three years of redevelopment, the SWIG-1.3.x effort is
-nearly complete.  Read all about it in <a href="future.html">Dave's
-message</a> about SWIG's past, present, and future--and the
-realization that SWIG is more easily described as an extension to the 
-C++ type system (as opposed to an extension of C++ parsing).
-
-<p>
-SWIG is an all volunteer effort.  We are always looking for fearless people with 
-an abundance of spare time.
-
 <p>
 <h3>News</h3>
+
+<p>
+<b>2002/08/12</b>
+<a href="http://prdownloads.sourceforge.net/swig/swig-1.3.14.tar.gz">SWIG-1.3.14</a> has been
+released.  SWIG development continues to break new ground--this release features
+full support for overloaded methods and functions, C++ smart pointers, and more.  It also
+includes new language modules for Ocaml and XML as well as a variety of enhancements to
+existing modules.
 
 <p>
 <b>2002/07/19</b>
