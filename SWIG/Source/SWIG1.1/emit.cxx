@@ -88,7 +88,11 @@ static DOH *fcall = 0;
 
 void emit_set_action(DOHString_or_char *decl) {
   if (fcall) Delete (fcall);
-  fcall = NewString(decl);
+  if (decl) {
+    fcall = NewString(decl);
+  } else {
+    fcall = 0;
+  }
 }
 
 void emit_func_call(char *decl, SwigType *t, ParmList *l, Wrapper *f) {

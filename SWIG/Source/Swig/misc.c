@@ -88,7 +88,7 @@ void Swig_section(File *f, const String_or_char *name) {
  * Note: SWIG1.1 did something similar to this in a less-organized manner.
  * ----------------------------------------------------------------------------- */
 
-#define MAX_RESULT  512
+#define MAX_RESULT  1024
 
 static DOH       *results[MAX_RESULT];
 static int        results_index = 0;

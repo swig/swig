@@ -49,7 +49,7 @@ extern "C" {
     int        Inline = 0;                      // Inline mode
     int        ForceExtern = 0;                 // Force extern mode
     int        ImportMode = 0;
-    int        GenerateDefault = 0;            // Generate default constructors
+    int        GenerateDefault = 1;             // Generate default constructors
     char      *Config = 0;
     int        NoInclude = 0;
 
@@ -69,7 +69,8 @@ static char *usage = (char*)"\
      -includeall     - Follow all #include statements\n\
      -importall      - Follow all #include statements as imports\n\
      -l<ifile>       - Include SWIG library file.\n\
-     -make_default   - Create default constructors/destructors\n\
+     -make_default   - Create default constructors/destructors (the default)\n\
+     -no_default     - Do not generate constructors/destructors\n\
      -module         - Set module name\n\
      -o outfile      - Set name of the output file.\n\
      -swiglib        - Report location of SWIG library and exit\n\
@@ -212,7 +213,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
 	      Preprocessor_define((DOH *) "__cplusplus 1", 0);
-	      GenerateDefault = 1;
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c") == 0) {
 	      NoInclude=1;
@@ -220,6 +220,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	      Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-make_default") == 0) {
 	    GenerateDefault = 1;
+	    Swig_mark_arg(i);
+          } else if (strcmp(argv[i],"-no_default") == 0) {
+	    GenerateDefault = 0;
 	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-swiglib") == 0) {
 	    printf("%s\n", LibDir);

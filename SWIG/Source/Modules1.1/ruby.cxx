@@ -1293,6 +1293,7 @@ void RUBY::cpp_inherit(char **baseclass, int mode) {
 
 void RUBY::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   current = MEMBER_FUNC;
+  /*  Printf(stdout,"%s %s %s\n", name, iname, t); */
   this->Language::cpp_member_func(name, iname, t, l);
   current = NO_CPP;
 }

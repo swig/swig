@@ -459,6 +459,7 @@ void Language::cDeclaration(Node *n) {
   String *value   = Getvalue(n);
   Node   *over;
   CCode = code;
+  emit_set_action(0);
   if (Cmp(storage,"typedef") == 0) {
     SwigType *t = Copy(type);
     if (t) {
@@ -883,7 +884,7 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
   /* Generate the C wrapper function name and interpreter name of this function*/
   /* Create the actual function name */
 
-  fname = Swig_name_member(ClassPrefix, iname ? iname : name);
+  fname = Copy(Swig_name_member(ClassPrefix, iname ? iname : name));
   w = Swig_cmethod_wrapper(ClassType, name, t, l, CCode);
   if (AddMethods && CCode) {
     /* Produce an actual C wrapper */
@@ -894,6 +895,7 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
   }
   lang->create_function(Wrapper_Getname(w), Char(fname), Wrapper_Gettype(w), Wrapper_Getparms(w));
   DelWrapper(w);
+  Delete(fname);
 }
 
 /* -----------------------------------------------------------------------------
@@ -910,8 +912,8 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
 	    input_file, line_number, name);
     return;
   }
-  cname = Swig_name_construct(ClassName);
-  mrename = Swig_name_construct(iname ? iname : ClassPrefix);
+  cname = Copy(Swig_name_construct(ClassName));
+  mrename = Copy(Swig_name_construct(iname ? iname : ClassPrefix));
 
   if (CPlusPlus) {
     w = Swig_cppconstructor_wrapper(ClassType, l, CCode);
@@ -932,6 +934,8 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
   }
   lang->create_function(Wrapper_Getname(w), Char(mrename), Wrapper_Gettype(w), Wrapper_Getparms(w));
   DelWrapper(w);
+  Delete(cname);
+  Delete(mrename);
 }
 
 /* -----------------------------------------------------------------------------
@@ -943,8 +947,8 @@ void Language::cpp_destructor(char *name, char *iname) {
   String *mrename;
   Wrapper *w;
 
-  cname = Swig_name_destroy(ClassPrefix);
-  mrename = Swig_name_destroy(iname ? iname : name);
+  cname = Copy(Swig_name_destroy(ClassPrefix));
+  mrename = Copy(Swig_name_destroy(iname ? iname : name));
 
   if (CPlusPlus) {
     w = Swig_cppdestructor_wrapper(ClassType,CCode);
@@ -965,6 +969,8 @@ void Language::cpp_destructor(char *name, char *iname) {
     lang->create_function(Char(cname), Char(mrename), Wrapper_Gettype(w), Wrapper_Getparms(w));      
   }
   DelWrapper(w);
+  Delete(cname);
+  Delete(mrename);
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -1000,11 +1006,11 @@ void Language::cpp_variable(char *name, char *iname, SwigType *t) {
   String *cname_get, *cname_set;
   String *mrename_get, *mrename_set;
 
-  cname_get = Swig_name_get(Swig_name_member(ClassPrefix,name));
-  cname_set = Swig_name_set(Swig_name_member(ClassPrefix,name));
+  cname_get = Copy(Swig_name_get(Swig_name_member(ClassPrefix,name)));
+  cname_set = Copy(Swig_name_set(Swig_name_member(ClassPrefix,name)));
   
-  mrename_get = Swig_name_get(Swig_name_member(ClassPrefix, iname ? iname : name));
-  mrename_set = Swig_name_set(Swig_name_member(ClassPrefix, iname ? iname : name));
+  mrename_get = Copy(Swig_name_get(Swig_name_member(ClassPrefix, iname ? iname : name)));
+  mrename_set = Copy(Swig_name_set(Swig_name_member(ClassPrefix, iname ? iname : name)));
 
   /* Create a function to set the value of the variable */
 
@@ -1048,6 +1054,10 @@ void Language::cpp_variable(char *name, char *iname, SwigType *t) {
     lang->create_function(Wrapper_Getname(w),Char(mrename_get), Wrapper_Gettype(w), Wrapper_Getparms(w));
     DelWrapper(w);
   }
+  Delete(cname_get);
+  Delete(cname_set);
+  Delete(mrename_get);
+  Delete(mrename_set);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1061,9 +1071,9 @@ void Language::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l
   if (!AddMethods) {
     cname = NewStringf("%s::%s",ClassPrefix,name);
   } else {
-    cname = Swig_name_member(ClassPrefix,name);    
+    cname = Copy(Swig_name_member(ClassPrefix,name));    
   }
-  mrename = Swig_name_member(ClassPrefix,iname ? iname: name);
+  mrename = Copy(Swig_name_member(ClassPrefix,iname ? iname: name));
   if (!AddMethods) {
     // Not an added method 
     lang->create_function(Char(cname),Char(mrename), t, l);
@@ -1077,6 +1087,8 @@ void Language::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l
       DelWrapper(w);
     }
   }
+  Delete(cname);
+  Delete(mrename);
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -1088,7 +1100,7 @@ void Language::cpp_declare_const(char *name, char *iname, SwigType *type, char *
   String *mrename;
   String *new_value;
 
-  mrename = Swig_name_member(ClassPrefix, iname ? iname : name);
+  mrename = Copy(Swig_name_member(ClassPrefix, iname ? iname : name));
 
   /* Declare a constant */
   if (!value) {
@@ -1097,6 +1109,8 @@ void Language::cpp_declare_const(char *name, char *iname, SwigType *type, char *
     new_value = NewString(value);
   }
   lang->declare_const(Char(mrename),Char(mrename),type,Char(new_value));
+  Delete(mrename);
+  Delete(new_value);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1108,11 +1122,13 @@ void Language::cpp_static_var(char *name, char *iname, SwigType *t) {
   String *mrename;
 
   /* Create the variable name */
-  mrename = Swig_name_member(ClassPrefix, iname ? iname : name);
+  mrename = Copy(Swig_name_member(ClassPrefix, iname ? iname : name));
   cname = NewStringf("%s::%s", ClassName,name);
 
   /* Link with this variable */
   lang->link_variable(Char(cname), Char(mrename),t);
+  Delete(mrename);
+  Delete(cname);
 }
 
 /* -----------------------------------------------------------------------------
