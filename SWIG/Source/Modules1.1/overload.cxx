@@ -47,8 +47,12 @@ Swig_overload_rank(Node *n) {
   c = o;
   while (c) {
     storage = Getattr(c,"storage");
-    if (Cmp(storage,"friend") == 0 || Strcmp(nodeType(c),"template") == 0) {
-      c = Getattr(n,"sym:nextSibling");
+    if (storage && Strcmp(storage,"friend") == 0) {
+      c = Getattr(c,"sym:nextSibling");
+      continue;
+    }
+    if (Strcmp(nodeType(c),"template") == 0) {
+      c = Getattr(c,"sym:nextSibling");
       continue;
     }
     if (!Getattr(c,"error") && !Getattr(c,"feature:ignore")) {
@@ -61,7 +65,7 @@ Swig_overload_rank(Node *n) {
     }
     c = Getattr(c,"sym:nextSibling");
   }
-
+  
   /* Sort the declarations by required argument count */
   {
     int i,j;
