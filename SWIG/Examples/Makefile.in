@@ -76,7 +76,6 @@ CXXSHARED=      @CXXSHARED@
 
 # This is used for building shared libraries with a number of C++
 # compilers.   If it doesn't work,  comment it out.
-
 @TRYLINKINGWITHCXX@
 
 OBJS      = $(SRCS:.c=.o) $(CXXSRCS:.cxx=.o)
@@ -231,6 +230,9 @@ perl5_static_cpp: $(SRCS)
 PYTHON_INCLUDE= -DHAVE_CONFIG_H @PYINCLUDE@
 PYTHON_LIB    = @PYLIB@
 
+# Extra Python specific dynamic linking options
+PYTHON_DLNK   = @PYTHONDYNAMICLINKING@
+
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
@@ -238,7 +240,7 @@ PYTHON_LIB    = @PYLIB@
 python: $(SRCS)
 	$(SWIG) -python $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PYTHON_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)module$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(TARGET)module$(SO)
 
 # -----------------------------------------------------------------
 # Build a C++ dynamically loadable module
@@ -247,7 +249,7 @@ python: $(SRCS)
 python_cpp: $(SRCS)
 	$(SWIG) -c++ -python $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PYTHON_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
 
 # -----------------------------------------------------------------
 # Build a dynamically loadable module, linked against SWIG Runtime lib
@@ -258,12 +260,12 @@ PYTHON_RUNTIME=-L$(RUNTIMEDIR) -lswigpy@release_suffix@
 python_multi: $(SRCS)
 	$(SWIG) -c -python $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PYTHON_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) $(PYTHON_RUNTIME) -o $(TARGET)module$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(PYTHON_RUNTIME) -o $(TARGET)module$(SO)
 
 python_multi_cpp: $(SRCS)
 	$(SWIG) -c -c++ -python $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PYTHON_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(PYTHON_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(PYTHON_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
 
 
 # -----------------------------------------------------------------
@@ -287,6 +289,12 @@ python_static_cpp: $(SRCS)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
 	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
+# -----------------------------------------------------------------
+# Cleaning the python examples
+# -----------------------------------------------------------------
+
+python_clean:
+	rm -f *_wrap* *.o *~ *$(SO) mypython *.pyc .~* core
 
 ##################################################################
 #####                       GUILE                           ######
@@ -380,8 +388,11 @@ guile_simple_cpp: $(SRCS)
 # You need to set this variable to the java directories containing the
 # files "jni.h" and "md.h"
 # usually something like /usr/java/include and /usr/java/include/<arch-osname>.
-
 JAVA_INCLUDE= @JAVAINC@
+
+# Extra Java specific dynamic linking options
+JAVA_DLNK  = @JAVADYNAMICLINKING@
+JAVALIBPREFIX = @JAVALIBRARYPREFIX@
 
 # ----------------------------------------------------------------
 # Build a java dynamically loadable module (C)
@@ -390,7 +401,7 @@ JAVA_INCLUDE= @JAVAINC@
 java: $(SRCS)
 	$(SWIG) -java $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVALIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a java dynamically loadable module (C++)
@@ -399,7 +410,7 @@ java: $(SRCS)
 java_cpp: $(SRCS)
 	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) $(JAVA_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVALIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a java dynamically loadable module
@@ -408,13 +419,21 @@ java_cpp: $(SRCS)
 java_multi: $(SRCS)
 	$(SWIG) -java $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVALIBPREFIX)$(TARGET)$(SO)
 
 java_multi_cpp: $(SRCS)
 	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) $(JAVA_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVALIBPREFIX)$(TARGET)$(SO)
 
+# -----------------------------------------------------------------
+# Cleaning the java examples
+# -----------------------------------------------------------------
+
+java_clean:
+	mv main.java main.java.tmp
+	rm -f *_wrap* *.o core *~ *$(SO) *.class *.java 
+	mv main.java.tmp main.java
 
 ##################################################################
 #####                       MZSCHEME                        ######

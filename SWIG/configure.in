@@ -72,6 +72,7 @@ if test -z "$SO"
 then
 	case $ac_sys_system in
 	hp*|HP*)   SO=.sl;;
+	CYGWIN*) SO=.dll;;
 	*)	   SO=.so;;
 	esac
 fi
@@ -140,7 +141,7 @@ if test -z "$TRYLINKINGWITHCXX"
 then
 	case $ac_sys_system/$ac_sys_release in
         # cygwin uses dllwrap to create shared libraries
-        CYGWIN*) TRYLINKINGWITHCXX="# Not for CYGWIN: CXXSHARED=      $CXX -shared ";;
+        CYGWIN*) TRYLINKINGWITHCXX="# Not for cygwin: CXXSHARED=";;
 	SunOS/5*) if test "$GCC" = yes;
              then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G";
              else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun";
@@ -387,7 +388,7 @@ AC_MSG_CHECKING(for Tcl header files)
 if test -z "$TCLINCLUDE"; then
 AC_TRY_CPP([#include <tcl.h>], , TCLINCLUDE="")
 if test -z "$TCLINCLUDE"; then
-	dirs="$prefix/include /usr/local/include /usr/include /opt/local/include /home/sci/local/include"
+	dirs="$prefix/include /usr/local/include /usr/include /opt/local/include"
 	for i in $dirs ; do
 		if test -r $i/tcl.h; then
 			AC_MSG_RESULT($i)
@@ -406,7 +407,7 @@ fi
 
 AC_MSG_CHECKING(for Tcl library)
 if test -z "$TCLLIB"; then
-dirs="$prefix/lib /usr/local/lib /usr/lib /opt/local/lib /home/sci/local/lib"
+dirs="$prefix/lib /usr/local/lib /usr/lib /opt/local/lib"
 for i in $dirs ; do
 	if test -r $i/libtcl.a; then
 	    AC_MSG_RESULT($i)
@@ -456,7 +457,7 @@ fi
 
 AC_MSG_CHECKING(for Python header files)
 
-dirs="$PYINCLUDE $PYINCLUDE/python2.1 $PYINCLUDE/python2.0 $PYINCLUDE/python1.6 $PYINCLUDE/python1.5 $PYINCLUDE/python1.4 $PYINCLUDE/Py $prefix/include/python2.1 $prefix/include/python2.0 $prefix/include/python1.6 $prefix/include/python1.5 $prefix/include/python1.4 /usr/local/include/python2.1 /usr/local/include/python2.0 /usr/local/include/python1.6 /usr/local/include/python1.5 /usr/include/python1.5 /usr/local/include/python1.4 /usr/include/python1.4 $prefix/include/Py /usr/local/include/Py /usr/include/Py"
+dirs="$PYINCLUDE $PYINCLUDE/python* $PYINCLUDE/Py $prefix/include/python* /usr/local/include/python* /usr/include/python* /usr/local/include/python* /usr/include/python* $prefix/include/Py /usr/local/include/Py /usr/include/Py"
 for i in $dirs ; do
 	if test -r $i/Python.h; then
 		AC_MSG_RESULT($i)
@@ -470,17 +471,18 @@ if test -z "$PYINCLUDE"; then
 fi
 
 AC_MSG_CHECKING(for Python library)
-dirs="$PYLIB $PYLIB/config $PYLIB/lib $PYLIB/python2.1/config $PYLIB/python2.0/config $PYLIB/python1.6/config $PYLIB/python1.5/config $PYLIB/python1.4/config $PYLIB/python/lib $prefix/lib/python2.1/config $prefix/lib/python2.0/config $prefix/lib/python1.6/config $prefix/lib/python1.5/config $prefix/lib/python1.4/config /usr/local/lib/python2.1/config /usr/local/lib/python2.0/config /usr/local/lib/python1.6/config /usr/local/lib/python1.5/config /usr/lib/python1.5/config /usr/lib/python1.5 /usr/local/lib/python1.4/config /usr/lib/python1.4/config /usr/lib/python1.4 $prefix/lib/python/lib /usr/local/lib/python/lib /usr/lib/python/lib /home/sci/local/lib/python"
+dirs="$PYLIB $PYLIB/config $PYLIB/lib $PYLIB/python*/config $PYLIB/python/lib $prefix/lib/python*/config $prefix/lib/python/lib /usr/lib/python*/config /usr/lib/python* /usr/local/lib/python*/config /usr/local/lib/python/lib /usr/lib/python/lib"
 
+# cygwin produces "libpython2.1.dll.a" instead of "libpython2.1.a"
 for i in $dirs ; do
-	if test -r $i/libpython2.1.a; then
+	if ((test -r $i/libpython2.1.a;) || (test -r $i/libpython2.1.dll.a;)) then
 	    AC_MSG_RESULT($i)
 	    PYLIB="$i"
 	    PYINCLUDE="$PYINCLUDE -I$i"
             PYLINK="-lpython2.1"
 	    break
 	fi
-	if test -r $i/libpython2.0.a; then
+	if ((test -r $i/libpython2.0.a;) || (test -r $i/libpython2.0.dll.a;)) then
 	    AC_MSG_RESULT($i)
 	    PYLIB="$i"
 	    PYINCLUDE="$PYINCLUDE -I$i"
@@ -514,9 +516,17 @@ if test -z "$PYLIB"; then
 #	PYINCLUDE="$PYINCLUDE -I$PYLIB"
 fi
 
+# Only cygwin (Windows) needs the library for dynamic linking
+case $ac_sys_system/$ac_sys_release in
+CYGWIN*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK";;
+*)PYTHONDYNAMICLINKING="";;
+esac
+
+
 AC_SUBST(PYINCLUDE)
 AC_SUBST(PYLIB)
 AC_SUBST(PYLINK)
+AC_SUBST(PYTHONDYNAMICLINKING)
 
 #----------------------------------------------------------------
 # Look for Perl5
@@ -585,6 +595,8 @@ AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include di
 
 if test -z "$JAVAINCDIR"; then
   JAVAINCDIR="/usr/jdk*/include /usr/local/jdk*/include /opt/jdk*/include /usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe /usr/include /usr/local/include"
+  # Add in default installation directory on Windows and others for cygwin
+  JAVAINCDIR="$JAVAINCDIR /cygdrive/c/jdk*/include /cygdrive/d/jdk*/include"
 fi
 
 JAVAINC=""
@@ -612,9 +624,24 @@ else
   fi
 fi
 
+# Cygwin requires a few extra options for building dlls
+case $ac_sys_system/$ac_sys_release in
+CYGWIN*) JAVADYNAMICLINKING="--add-stdcall-alias -Wl,-e,__cygwin_noncygwin_dll_entry@12 -s";;
+*)JAVADYNAMICLINKING="";;
+esac
+
+# Java on windows platforms including cygwin doesn't use libname.dll, rather name.dll when loading dlls
+case $ac_sys_system/$ac_sys_release in
+CYGWIN*) JAVALIBRARYPREFIX="";;
+*)JAVALIBRARYPREFIX="lib";;
+esac
+
+
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)
+AC_SUBST(JAVADYNAMICLINKING)
+AC_SUBST(JAVALIBRARYPREFIX)
 
 AC_SUBST(ROOT_DIR)ROOT_DIR=`pwd`
 
@@ -775,7 +802,7 @@ AC_SUBST(RUBYLIBRUBYARG)
 
 PHP4BIN=
 
-AC_ARG_WITH(php4,[  --with-php4=path	Set location of PHP4 executable],[ PHP4BIN="$withval"], [PHP4BIN=])
+AC_ARG_WITH(php4,[  --with-php4=path	  Set location of PHP4 executable],[ PHP4BIN="$withval"], [PHP4BIN=])
 
 if test -z "$PERLBIN"; then
 AC_CHECK_PROGS(PHP4, php, php4)
@@ -792,8 +819,8 @@ for i in $dirs; do
 		break;
 	fi
 done
-if test "$PHP4INC" = none; then
-	AC_MSG_RESULT(could not find PHP4 include files)
+if test -z "$PHP4INC"; then
+	AC_MSG_RESULT(not found)
 fi
 
 AC_SUBST(PHP4INC)

@@ -11,7 +11,8 @@ include ../common.mk
 # Overridden variables here
 TOP        = ../../..
 SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE) -package $*
-TARGETPREFIX = lib
+#Target prefix cannot be used on Windows
+#TARGETPREFIX = lib
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -42,11 +43,12 @@ setup = \
 
 # Compiles java files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.java appended after the testcase name.
+# Note Java uses LD_LIBRARY_PATH under Unix and PATH under cygwin.
 run_testcase = \
 	(cd $*; javac *.java; ); \
 	if [ -f $*\_runme.java ]; then ( \
 	  javac $*\_runme.java; \
-	  env LD_LIBRARY_PATH=$*:$$LD_LIBRARY_PATH java $*\_runme;) \
+	  env LD_LIBRARY_PATH=$*:$$LD_LIBRARY_PATH PATH=$*:$$PATH java $*\_runme;) \
 	fi;
 
 # Clean: remove testcase directories

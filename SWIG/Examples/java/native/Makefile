@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
 SRCS       = 
-TARGET     = libexample
+TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =
 
@@ -13,6 +13,6 @@ java::
 	javac *.java
 
 clean::
-	rm -f *_wrap* example.java *.class *.o *~ .~* core *.so *.sl so_locations
+	$(MAKE) -f $(TOP)/Makefile java_clean
 
 check: all

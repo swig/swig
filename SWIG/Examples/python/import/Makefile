@@ -19,6 +19,7 @@ all::
 
 
 clean::
-	rm -f *_wrap* *.o *~ *.so mypython *.pyc foo.py bar.py spam.py base.py .~* core
+	$(MAKE) -f $(TOP)/Makefile python_clean
+	rm foo.py bar.py spam.py base.py
 
 check: all

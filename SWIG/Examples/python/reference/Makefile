@@ -14,6 +14,6 @@ static::
 	TARGET='mypython' INTERFACE='$(INTERFACE)' python_cpp_static
 
 clean::
-	rm -f *_wrap* *.o *~ *.so mypython *.pyc .~* core
+	$(MAKE) -f $(TOP)/Makefile python_clean
 
 check: all

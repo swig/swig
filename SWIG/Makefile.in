@@ -407,14 +407,14 @@ distclean: clean
 	rm -f $(distclean-dead)
 
 clean-examples:
-	@make check-examples CHECK_CLEAN=clean
+	@make -k -s check-examples CHECK_CLEAN=clean
 
 clean-gifplot-examples:
-	@make check-gifplot-examples CHECK_CLEAN=clean
+	@make -k -s check-gifplot-examples CHECK_CLEAN=clean
 
 clean-test-suite:
 	@echo cleaning Examples/test-suite
-	@make check-test-suite CHECK_CLEAN=clean
+	@make -k -s check-test-suite CHECK_CLEAN=clean
 
 #####################################################################
 # TARGETS: install & friends
