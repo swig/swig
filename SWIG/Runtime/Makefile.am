@@ -52,7 +52,7 @@ libswigtcl8_la_LDFLAGS  = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(TCL_DLNK)
 libswigtcl8_la_CFLAGS   = -DSWIG_GLOBAL $(TCL_INCLUDE)
 
 libtcl8.c: $(SWIG_TYPECHECK) $(TCL_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(TCL_RUNTIME) >> libtcl8.c
+	cat $(SWIG_TYPECHECK) $(TCL_RUNTIME) > libtcl8.c
 
 # ----------------------------------------------------------------------
 # Perl run-time library
@@ -68,7 +68,7 @@ libswigpl_la_LDFLAGS    = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PERL5_DLNK)
 libswigpl_la_CFLAGS     = -DSWIG_GLOBAL $(PERL5_INCLUDE) -Dbool=char -Dexplicit=$(PERL5_CCFLAGS)
 
 libpl.c: $(SWIG_TYPECHECK) $(PERL5_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(PERL5_RUNTIME) >> libpl.c
+	cat $(SWIG_TYPECHECK) $(PERL5_RUNTIME) > libpl.c
 
 # ----------------------------------------------------------------------
 # Python run-time library
@@ -83,7 +83,7 @@ libswigpy_la_LDFLAGS    = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PYTHON_DLNK)
 libswigpy_la_CFLAGS     = -DSWIG_GLOBAL $(PYTHON_INCLUDE)
 
 libpy.c: $(SWIG_TYPECHECK) $(PYTHON_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(PYTHON_RUNTIME) >> libpy.c
+	cat $(SWIG_TYPECHECK) $(PYTHON_RUNTIME) > libpy.c
 
 # ----------------------------------------------------------------------
 # Guile run-time library
@@ -98,7 +98,7 @@ libswigguile_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
 libswigguile_la_CFLAGS  = -DSWIG_GLOBAL $(GUILE_INCLUDE)
 
 libguile.c: $(GUILE_RUNTIME)
-	cat $(GUILE_RUNTIME) >> libguile.c
+	cat $(GUILE_RUNTIME) > libguile.c
 
 # ----------------------------------------------------------------------
 # Ruby run-time library
@@ -129,7 +129,7 @@ libswigphp4_la_LDFLAGS  = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PHP4_DLNK)
 libswigphp4_la_CFLAGS   = -DSWIG_GLOBAL $(PHP4_INCLUDE)
 
 libphp4.c: $(SWIG_TYPECHECK) $(PHP4_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(PHP4_RUNTIME) >> libphp4.c
+	cat $(SWIG_TYPECHECK) $(PHP4_RUNTIME) > libphp4.c
 
 # ----------------------------------------------------------------------
 # Ocaml run-time library
@@ -144,7 +144,7 @@ libswigocaml_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(OCAML_DLNK)
 libswigocaml_la_CFLAGS  = -DSWIG_GLOBAL $(OCAML_INCLUDE)
 
 libocaml.c: $(OCAML_RUNTIME)
-	cat $(OCAML_RUNTIME) >> libocaml.c
+	cat $(OCAML_RUNTIME) > libocaml.c
 
 # ----------------------------------------------------------------------
 # Pike run-time library
@@ -159,7 +159,7 @@ libswigpike_la_LDFLAGS  = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PIKE_DLNK)
 libswigpike_la_CFLAGS   = -DSWIG_GLOBAL $(PIKE_INCLUDE)
 
 libpike.c: $(SWIG_TYPECHECK) $(PIKE_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(PIKE_RUNTIME) >> libpike.c
+	cat $(SWIG_TYPECHECK) $(PIKE_RUNTIME) > libpike.c
 
 # ----------------------------------------------------------------------
 # CHICKEN run-time library
@@ -174,7 +174,7 @@ libswigchicken_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(CHICKEN_DL
 libswigchicken_la_CFLAGS  = -DSWIG_GLOBAL $(CHICKEN_INCLUDE)
 
 libchicken.c: $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME) >> libchicken.c
+	cat $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME) > libchicken.c
 
 
 
@@ -199,8 +199,7 @@ all-local: .libs/libswigmz$(RELEASESUFFIX)$(SO)
 endif
 
 .libs/libswigmz$(RELEASESUFFIX)$(SO): $(MZSCHEME_RUNTIME)
-	rm -f libmz.c
-	cat $(MZSCHEME_RUNTIME) >> libmz.c
+	cat $(MZSCHEME_RUNTIME) > libmz.c
 	$(MZC) ++ccf "-DSWIG_GLOBAL" --cc libmz.c
 	if [ ! -d .libs ] ; then mkdir .libs; fi
 	$(MZC) --ld .libs/libswigmz$(RELEASESUFFIX)$(SO) libmz.o
