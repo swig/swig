@@ -10,9 +10,26 @@
 </ul>
 <!-- INDEX -->
 
-The C# module has only recently been added to SWIG and is still in a state of development.
+The purpose of the C# module is to offer an automated way of accessing existing C/C++ code from .NET languages.
+The wrapper code implementation uses the Platform Invoke (PINVOKE) interface to access natively compiled C/C++ code.
+The PINVOKE interface has been chosen over Microsoft's Managed C++ interface as it is portable to both Microsoft Windows and non-Microsoft platforms.
+PINVOKE is part of the ECMA/ISO C# specification.
+
+<p>
+The C# module is one of the more recently added language modules to SWIG and consequently hasn't quite the same level of maturity as other modules.
 The C# module is very similar to the Java module, so until some documentation has been written,
 please use the <a href="Java.html">Java documentation</a> as a guide to using SWIG with C#.
+The rest of this chapter should be read in conjunction with the Java documentation as it lists the main differences.
+
+<p>
+Director support (virtual method callbacks into C#) has not yet been implemented and is the main missing feature compared to Java.
+The other missing feature is the lack of typemaps for wrapping STL code as well as a few minor utility typemaps in the various.i library.
+
+<p>
+Currently enums are wrapped with C# integers.
+Be warned that this will change in a forthcoming release.
+C# enums will be generated instead.
+
 <p>
 
 The most noteable differences to Java are the following:
@@ -20,6 +37,10 @@ The most noteable differences to Java are the following:
 
 <li>
 When invoking SWIG use the <tt>-csharp</tt> command line option instead of <tt>-java</tt>.
+</li>
+
+<li>
+C/C++ variables are wrapped with C# properties and not JavaBean style getters and setters.
 </li>
 
 <li>
@@ -39,6 +60,18 @@ javaimports                 -> csimports
 javaptrconstructormodifiers -> csptrconstructormodifiers
 javagetcptr                 -> csgetcptr
 javafinalize                -> csfinalize
+javadestruct                -> csdestruct
+javadestruct_derived        -> csdestruct_derived
+</pre></blockquote>
+
+</li>
+
+<li>
+Additional typemaps:
+
+<blockquote><pre>
+csvarin                     C# code property set typemap
+csvarout                    C# code property get typemap
 </pre></blockquote>
 
 </li>
@@ -73,19 +106,18 @@ $jnicall                    -> $imcall
 </li>
 
 </ul>
-An Additional special variable, $module, is replaced by the module name which is obtained from the
-<tt>%module</tt> directive or<tt> -module</tt> command line option.
+An additional special variable, <tt>$module</tt>, is replaced by the module name,
+as specified in the <tt>%module</tt> directive or <tt>-module</tt> command line option.
+The intermediary classname has <tt>PINVOKE</tt> appended after the module name instead of <tt>JNI</tt>, for example <tt>modulenamePINVOKE</tt>.
 
 <p>
-Director support (callbacks into C#) have not yet been implemented.
-
-<p>
-The directory Examples/csharp has a number of examples. 
-If your SWIG installation went well Unix users should be able to type <tt>make</tt> in each example directory, 
-then <tt>ilrun runme</tt> (pnet C# compiler) or <tt>mono runme</tt> (Mono C# compiler).
-Windows users can also get the examples working but need a Cygwin or Mingw environment for automatic configuration of the example makefiles.
-Any one of the three C# compilers (pnet, mono or Microsoft) can be detected from within a <a href="http://www.cygwin.com">Cygwin</a> or <a href=http://www.mingw.org>MinGW</a> environment. 
-Some project files will be added soon for use with the Microsoft .NET C# compiler.
+The directory <tt>Examples/csharp</tt> has a number of examples. 
+If your SWIG installation went well and your C# compiler was detected, Unix users should be able to type <tt>make</tt> in each example directory, 
+then <tt>ilrun runme</tt> (Portable.NET C# compiler) or <tt>mono runme</tt> (Mono C# compiler).
+Some project files will be added soon for use with the Microsoft .NET C# compiler on Windows.
+Windows users can also get the examples working, however, 
+a <a href="http://www.cygwin.com">Cygwin</a> or <a href=http://www.mingw.org>MinGW</a> environment is needed for automatic configuration of the example makefiles.
+Any one of the three C# compilers (Portable.NET, Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
 
 </body>
 </html>
