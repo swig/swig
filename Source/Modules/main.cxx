@@ -54,6 +54,9 @@ static const char *usage1 = (const char*)"\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
      -E              - Preprocess only, does not generate wrapper code\n\
      -fcompact       - Compile in compact mode\n\
+     -features list  - Set a list of global features, where the syntax list is \n\
+                         -features directors,autodoc=1      \n\
+                       if not explicit value is given to the feature, a '1' is used \n\
      -fvirtual       - Compile in virtual elimination mode\n\
      -Fstandard      - Display error/warning messages in commonly used format\n\
      -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
@@ -97,6 +100,23 @@ static String  *lang_config = 0;
 static char    *cpp_extension = (char *) "cxx";
 static String  *outdir = 0;
 static String  *xmlout = 0;
+static int     help = 0;
+static int     checkout = 0;
+static int     cpp_only = 0;
+static char   *outfile_name = 0;
+static int     tm_debug = 0;
+static int     dump_tags = 0;
+static int     dump_tree = 0;
+static int     dump_xml = 0;
+static int     browse = 0;
+static int     dump_typedef = 0;
+static int     dump_classes = 0;
+static int     werror = 0;
+static int     depend = 0;
+static int     memory_debug = 0;
+static int     allkw = 0;
+static DOH    *libfiles = 0;
+static DOH    *cpps = 0 ;
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
@@ -201,146 +221,48 @@ void SWIG_config_cppext(const char *ext) {
   cpp_extension = (char *) ext;
 }
 
-int SWIG_main(int argc, char *argv[], Language *l) {
+void SWIG_getfeatures(const char *c) 
+{
+  char feature[64];
+  char *fb = feature;
+  char *fe = fb + 63;
+  Hash *features_hash = Swig_cparse_features();
+  String *name = NewString("");
+  /* Printf(stderr,"all features %s\n", c); */
+  while (*c) {
+    char *f = fb;
+    String *fname = NewString("feature:");
+    String *fvalue = NewString("");
+    while ((f != fe) && *c != '=' && *c != ',' && *c) {
+      *(f++) = *(c++);
+    }
+    *f = 0;
+    Printf(fname,"%s",feature);
+    if (*c && *(c++) == '=') {
+      char value[64];
+      char *v = value;
+      char *ve = v + 63;
+      while ((v != ve) &&  *c != ',' && *c && !isspace(*c)) {
+	*(v++) = *(c++);
+      }
+      *v = 0;
+      Printf(fvalue,"%s",value);
+    } else {
+      Printf(fvalue,"1");
+    }    
+    /* Printf(stderr,"%s %s\n", fname, fvalue);  */
+    Swig_feature_set(features_hash,name,0,fname,fvalue,0);
+    Delete(fname);
+    Delete(fvalue);
+  }
+  Delete(name);
+}
+
+void SWIG_getoptions(int argc, char *argv[]) 
+{
   int    i;
-  char   *c;
-  char    temp[512];
-  char   *outfile_name = 0;
-  int     help = 0;
-  int     checkout = 0;
-  int     cpp_only = 0;
-  int     tm_debug = 0;
   char   *includefiles[256];
   int     includecount = 0;
-  int     dump_tags = 0;
-  int     dump_tree = 0;
-  int     dump_xml = 0;
-  int     browse = 0;
-  int     dump_typedef = 0;
-  int     dump_classes = 0;
-  int     werror = 0;
-  int     depend = 0;
-  int     memory_debug = 0;
-  int     allkw = 0;
-  DOH    *libfiles = 0;
-  DOH    *cpps = 0 ;
-
-  /* Initialize the SWIG core */
-  Swig_init();
-  
-  /* Suppress warning messages for private inheritance, preprocessor
-     evaluation, might be abstract, overloaded const, and ...
-
-     WARN_PP_EVALUATION            202
-     WARN_PARSE_PRIVATE_INHERIT    309
-     WARN_TYPE_ABSTRACT            403
-     WARN_LANG_OVERLOAD_CONST      512
-     WARN_PARSE_BUILTIN_NAME       321
-     WARN_PARSE_REDUNDANT          322
-  */
-  Swig_warnfilter("202,309,403,512,321,322",1);
-
-  // Initialize the preprocessor
-  Preprocessor_init();
-
-  lang = l;
-
-  // Set up some default symbols (available in both SWIG interface files
-  // and C files)
-
-  Preprocessor_define((DOH *) "SWIG 1", 0);
-  Preprocessor_define((DOH *) "__STDC__", 0);
-#ifdef MACSWIG
-  Preprocessor_define((DOH *) "SWIGMAC 1", 0);
-#endif
-#ifdef SWIGWIN32
-  Preprocessor_define((DOH *) "SWIGWIN32 1", 0);
-#endif
-
-  // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
-  String *package_version = NewString(PACKAGE_VERSION);
-  char *token = strtok(Char(package_version), ".");
-  String *vers = NewString("SWIG_VERSION 0x");
-  int count = 0;
-  while (token) {
-    int len = strlen(token);
-    assert(len == 1 || len == 2);
-    Printf(vers, "%s%s", (len == 1) ? "0" : "", token);
-    token = strtok(NULL, ".");
-    count++;
-  }
-  Delete(package_version);
-  assert(count == 3); // Check version format is correct
-
-  /* Turn on contracts */
-
-  Swig_contract_mode_set(1);
-  Preprocessor_define(vers,0);
-
-  /* Turn off directors mode */
-  Wrapper_director_mode_set(0);
-  Wrapper_director_protected_mode_set(0);
-
-  /* Turn off template extmode */
-  Wrapper_template_extmode_set(0);
-
-
-  // Check for SWIG_LIB environment variable
-
-  if ((c = getenv("SWIG_LIB")) == (char *) 0) {
-#if defined(_WIN32)
-      char buf[MAX_PATH];
-      char *p;
-      if (GetModuleFileName(0, buf, MAX_PATH) == 0
-	  || (p = strrchr(buf, '\\')) == 0) {
-       Printf(stderr, "Warning: Could not determine SWIG library location. Assuming " SWIG_LIB "\n");
-       sprintf(LibDir,"%s",SWIG_LIB);    // Build up search paths
-      } else {
-       strcpy(p+1, "Lib");
-       strcpy(LibDir, buf);
-      }
-#else
-       sprintf(LibDir,"%s",SWIG_LIB);    // Build up search paths
-#endif                                        
-  } else {
-      strcpy(LibDir,c);
-  }
-
-  SwigLib = Swig_copy_string(LibDir);        // Make a copy of the real library location
-  
-  libfiles = NewList();
-
-  /* Check for SWIG_FEATURES environment variable */
-  if ((c = getenv("SWIG_FEATURES"))) {
-    while (*c!='\0') {
-      while ((*c)==' ') {
-	c++;
-      }
-      i = 0;
-      while ((*c!='\0') && (*c!=' ')) {
-	temp[i] = *c;
-	c++; i++;
-      }
-      temp[i]='\0';
-      
-      if (strcmp(temp, "-fcompact") == 0) {
-	Wrapper_compact_print_mode_set(1);
-      } else if (strcmp(temp, "-fvirtual") == 0) {
-	Wrapper_virtual_elimination_mode_set(1);
-      } else if (strcmp(temp,"-directors") == 0) {
-	Wrapper_director_mode_set(1);
-	Wrapper_director_protected_mode_set(1);
-      } else if (strcmp(temp,"-dirprot") == 0) {
-	Wrapper_director_protected_mode_set(1);
-      } else if (strcmp(temp,"-nodirprot") == 0) {
-	Wrapper_director_protected_mode_set(0);
-      } else if (strcmp(temp, "-small") == 0) {
-	Wrapper_compact_print_mode_set(1);
-	Wrapper_virtual_elimination_mode_set(1);
-      }
-    }
-  }
-  
   // Get options
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -443,6 +365,14 @@ int SWIG_main(int argc, char *argv[], Language *l) {
           } else if (strcmp(argv[i],"-co") == 0) {
 	    checkout = 1;
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-features") == 0) {
+	    Swig_mark_arg(i);
+	    if (argv[i+1]) {
+	      SWIG_getfeatures(argv[i+1]);
+	      Swig_mark_arg(i+1);
+	    } else {
+	      Swig_arg_error();
+	    }
 	  } else if (strcmp(argv[i],"-freeze") == 0) {
 	    freeze = 1;
 	    Swig_mark_arg(i);
@@ -543,6 +473,104 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   for (i = 0; i < includecount; i++) {
     Swig_add_directory((DOH *) includefiles[i]);
   }
+}
+
+
+
+
+
+int SWIG_main(int argc, char *argv[], Language *l) {
+  char   *c;
+  char    temp[512];
+
+  /* Initialize the SWIG core */
+  Swig_init();
+  
+  /* Suppress warning messages for private inheritance, preprocessor
+     evaluation, might be abstract, overloaded const, and ...
+
+     WARN_PP_EVALUATION            202
+     WARN_PARSE_PRIVATE_INHERIT    309
+     WARN_TYPE_ABSTRACT            403
+     WARN_LANG_OVERLOAD_CONST      512
+     WARN_PARSE_BUILTIN_NAME       321
+     WARN_PARSE_REDUNDANT          322
+  */
+  Swig_warnfilter("202,309,403,512,321,322",1);
+
+  // Initialize the preprocessor
+  Preprocessor_init();
+
+  lang = l;
+
+  // Set up some default symbols (available in both SWIG interface files
+  // and C files)
+
+  Preprocessor_define((DOH *) "SWIG 1", 0);
+  Preprocessor_define((DOH *) "__STDC__", 0);
+#ifdef MACSWIG
+  Preprocessor_define((DOH *) "SWIGMAC 1", 0);
+#endif
+#ifdef SWIGWIN32
+  Preprocessor_define((DOH *) "SWIGWIN32 1", 0);
+#endif
+
+  // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
+  String *package_version = NewString(PACKAGE_VERSION);
+  char *token = strtok(Char(package_version), ".");
+  String *vers = NewString("SWIG_VERSION 0x");
+  int count = 0;
+  while (token) {
+    int len = strlen(token);
+    assert(len == 1 || len == 2);
+    Printf(vers, "%s%s", (len == 1) ? "0" : "", token);
+    token = strtok(NULL, ".");
+    count++;
+  }
+  Delete(package_version);
+  assert(count == 3); // Check version format is correct
+
+  /* Turn on contracts */
+
+  Swig_contract_mode_set(1);
+  Preprocessor_define(vers,0);
+
+  /* Turn off directors mode */
+  Wrapper_director_mode_set(0);
+  Wrapper_director_protected_mode_set(0);
+
+  /* Turn off template extmode */
+  Wrapper_template_extmode_set(0);
+
+
+  // Check for SWIG_LIB environment variable
+
+  if ((c = getenv("SWIG_LIB")) == (char *) 0) {
+#if defined(_WIN32)
+      char buf[MAX_PATH];
+      char *p;
+      if (GetModuleFileName(0, buf, MAX_PATH) == 0
+	  || (p = strrchr(buf, '\\')) == 0) {
+       Printf(stderr, "Warning: Could not determine SWIG library location. Assuming " SWIG_LIB "\n");
+       sprintf(LibDir,"%s",SWIG_LIB);    // Build up search paths
+      } else {
+       strcpy(p+1, "Lib");
+       strcpy(LibDir, buf);
+      }
+#else
+       sprintf(LibDir,"%s",SWIG_LIB);    // Build up search paths
+#endif                                        
+  } else {
+      strcpy(LibDir,c);
+  }
+
+  SwigLib = Swig_copy_string(LibDir);        // Make a copy of the real library location
+  
+  libfiles = NewList();
+
+  /* Check for SWIG_FEATURES environment variable */
+
+  SWIG_getoptions(argc, argv);
 
   // Define the __cplusplus symbol
   if (CPlusPlus)
