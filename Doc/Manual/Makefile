@@ -53,3 +53,6 @@ test:
 	  grep "href=\".*\.html\"" Sections.html
 	  all=`sed '/^#/d' chapters`; for a in $$all; do grep -l "href=\".*\.html\"" $$a; done;
 
+validate:
+	  all=`sed '/^#/d' chapters`; for a in $$all; do /home/william/builds/wdg_validate/validate --emacs $$a; done;
+
