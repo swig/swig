@@ -1554,7 +1554,6 @@ public:
       // try each base class handler, else set directly...
       if (base) {
         Printf(s_propset,  "  {\n    // chain to base class\n");
-        Printf(stderr,  "  {\n    // chain to base class %s\n",GetChar(base, "name"));
         while(base) {
           Printf(s_propset,"    if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n",
                GetChar(base, "sym:name"));
