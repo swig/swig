@@ -1132,7 +1132,7 @@ public:
       Printv(f->code,cleanup,NIL);
 
     /* Look for any remaining cleanup.  This processes the %new directive */
-    if (Getattr(n, "feature:new")) {
+    if (current != CONSTRUCTOR_ALLOCATE && Getattr(n, "feature:new")) {
       tm = Swig_typemap_lookup_new("newfree",n,"result",0);
       if (tm) {
 	Replaceall(tm,"$source","result");
@@ -1756,13 +1756,18 @@ public:
       /*    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", NIL); */
       Printv(freebody,Getattr(n,"wrap:action"), NIL);
     } else {
-      /* When no extend mode, swig emits no destroy function. */
-      if (CPlusPlus)
-	Printf(freebody, "delete %s", Swig_cparm_name(0,0));
-      else
-	Printf(freebody, "free((char*) %s)", Swig_cparm_name(0,0));
+      String  *action = Getattr(n,"wrap:action");
+      if (action) {
+	Printv(freebody, action, NIL);
+      } else {      
+	/* In the case swig emits no destroy function. */
+	if (CPlusPlus)
+	  Printf(freebody, "delete %s;\n", Swig_cparm_name(0,0));
+	else
+	  Printf(freebody, "free((char*) %s);\n", Swig_cparm_name(0,0));
+      }
     }
-    Printv(freebody, ";\n}\n", NIL);
+    Printv(freebody, "}\n", NIL);
   
     Replaceall(klass->header,"$freeproto", freeproto);
     Printv(f_wrappers, freebody, NIL);
