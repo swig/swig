@@ -26,6 +26,9 @@
 #include <ctype.h>
 #include <stdarg.h>
 
+#ifndef DOH_H
+#define DOH_H
+
 #define DOH_MAJOR_VERSION 0
 #define DOH_MINOR_VERSION 1
 
@@ -324,5 +327,4 @@ extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
 }
 #endif
 
-
-
+#endif /* DOH_H */
