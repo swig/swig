@@ -1861,7 +1861,7 @@ types:
 <H3><a name="Ruby_nn47"></a>27.8.1 Creating Multi-Module Packages</H3>
 
 
-The chapter on <a href="Advanced.html#Advanced">Advanced Topics</a> discusses
+The chapter on <a href="Modules.html">Working with Modules</a> discusses
 the basics
 of creating multi-module extensions with SWIG, and in particular
 the considerations for sharing runtime type information among the
@@ -1878,14 +1878,12 @@ a derived class:
 <blockquote>
   <pre>%module circle<br><br>%{<br>#include "Shape.h"<br>#include "Circle.h"<br>%}<br><br>// Import the base class definition from Shape module<br>%import shape.i<br><br>class Circle : public Shape {<br>protected:<br>    double radius;<br>public:<br>    Circle(double x, double y, double r);<br>    double getRadius() const;<br>};<br></pre>
 </blockquote>
-Both of these modules should be compiled with SWIG's <tt>-c</tt>
-option so that
-the runtime library code is omitted from the wrapper files. We'll start
+We'll start
 by building
 the <b>Shape</b> extension module:
 
 <blockquote>
-  <pre>$ <b>swig -c++ -ruby -c shape.i</b>
+  <pre>$ <b>swig -c++ -ruby shape.i</b>
   </pre>
 </blockquote>
 SWIG generates a wrapper file named <tt>shape_wrap.cxx</tt>. To
@@ -1894,7 +1892,7 @@ into a dynamically loadable extension for Ruby, prepare an <tt>extconf.rb</tt>
 script using this template:
 
 <blockquote>
-  <pre>require 'mkmf'<br><br># Since the SWIG runtime support library for Ruby (libswigrb.so)<br># depends on the Ruby library, make sure it's in the list<br># of libraries.<br>$libs = append_library($libs, Config::CONFIG['RUBY_INSTALL_NAME'])<br><br># Now add the SWIG runtime support library<br>have_library('swigrb', 'SWIG_InitRuntime')<br><br># Create the makefile<br>create_makefile('shape')<br></pre>
+  <pre>require 'mkmf'<br><br># Since the SWIG runtime support library for Ruby<br># depends on the Ruby library, make sure it's in the list<br># of libraries.<br>$libs = append_library($libs, Config::CONFIG['RUBY_INSTALL_NAME'])<br><br># Create the makefile<br>create_makefile('shape')<br></pre>
 </blockquote>
 Run this script to create a <tt>Makefile</tt> and then type <tt>make</tt>
 to
@@ -1902,14 +1900,13 @@ build the shared library:
 
 <blockquote>
   <pre>$ <b>ruby extconf.rb</b>
-checking for SWIG_InitRuntime() in -lswigrb... yes
 creating Makefile
 
 $ <b>make</b>
 g++ -fPIC -g -O2  -I. -I/usr/local/lib/ruby/1.7/i686-linux \
         -I. -c shape_wrap.cxx
 gcc -shared -L/usr/local/lib -o shape.so shape_wrap.o -L. \
-	-lruby -lswigrb -lruby -lc
+	-lruby -lruby -lc
   </pre>
 </blockquote>
 Note that depending on your installation, the outputs may be slightly

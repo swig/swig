@@ -19,23 +19,22 @@
 <li><a href="#Guile_nn7">Native Guile Module Linkage</a>
 <li><a href="#Guile_nn8">Old Auto-Loading Guile Module Linkage</a>
 <li><a href="#Guile_nn9">Hobbit4D Linkage</a>
-<li><a href="#Guile_nn10">General Remarks on Multiple SWIG Modules</a>
 </ul>
-<li><a href="#Guile_nn11">Underscore Folding</a>
-<li><a href="#Guile_nn12">Typemaps</a>
-<li><a href="#Guile_nn13">Representation of pointers as smobs</a>
+<li><a href="#Guile_nn10">Underscore Folding</a>
+<li><a href="#Guile_nn11">Typemaps</a>
+<li><a href="#Guile_nn12">Representation of pointers as smobs</a>
 <ul>
-<li><a href="#Guile_nn14">GH Smobs</a>
-<li><a href="#Guile_nn15">SCM Smobs</a>
-<li><a href="#Guile_nn16">Garbage Collection</a>
+<li><a href="#Guile_nn13">GH Smobs</a>
+<li><a href="#Guile_nn14">SCM Smobs</a>
+<li><a href="#Guile_nn15">Garbage Collection</a>
 </ul>
-<li><a href="#Guile_nn17">Exception Handling</a>
-<li><a href="#Guile_nn18">Procedure documentation</a>
-<li><a href="#Guile_nn19">Procedures with setters</a>
-<li><a href="#Guile_nn20">GOOPS Proxy Classes</a>
+<li><a href="#Guile_nn16">Exception Handling</a>
+<li><a href="#Guile_nn17">Procedure documentation</a>
+<li><a href="#Guile_nn18">Procedures with setters</a>
+<li><a href="#Guile_nn19">GOOPS Proxy Classes</a>
 <ul>
-<li><a href="#Guile_nn21">Naming Issues</a>
-<li><a href="#Guile_nn22">Linking</a>
+<li><a href="#Guile_nn20">Naming Issues</a>
+<li><a href="#Guile_nn21">Linking</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -289,23 +288,7 @@ my/lib/libfoo.so.X.Y.Z and friends.  This scheme is still very
 experimental; the (hobbit4d link) conventions are not well understood.
 </p>
 
-
-<H3><a name="Guile_nn10"></a>18.3.6 General Remarks on Multiple SWIG Modules</H3>
-
-
-If you want to use multiple SWIG modules, they have to share some 
-run-time data for the typing system. 
-
-At least one of your modules must be compiled with the <code>-runtime</code>
-command line switch so that one of the modules contains the runtime code. 
-The remaining modules must be compiled with the
-<code>-noruntime</code> commandline switch and linked with the module
-with the runtime code. You could create an empty swig module and use that
-to generate the runtime code instead of placing the runtime code into a 
-module with code that is being wrapped. See the
-<a href="Modules.html#Modules">Working with Modules</a> chapter for further details.
-
-<H2><a name="Guile_nn11"></a>18.4 Underscore Folding</H2>
+<H2><a name="Guile_nn10"></a>18.4 Underscore Folding</H2>
 
 
 <p>
@@ -317,7 +300,7 @@ complained so far.
 <code>%rename</code> to specify the Guile name of the wrapped
 functions and variables (see CHANGES).
 
-<H2><a name="Guile_nn12"></a>18.5 Typemaps</H2>
+<H2><a name="Guile_nn11"></a>18.5 Typemaps</H2>
 
 
 <p>
@@ -383,7 +366,7 @@ In <code><var>body</var></code>, the first result of
 </ul>
 See also the "multivalue" example.
 
-<H2><a name="Guile_nn13"></a>18.6 Representation of pointers as smobs</H2>
+<H2><a name="Guile_nn12"></a>18.6 Representation of pointers as smobs</H2>
 
 
 <p>
@@ -404,7 +387,7 @@ representing the expected pointer type.  See also
 If the Scheme object passed was not a SWIG smob representing a compatible
 pointer, a <code>wrong-type-arg</code> exception is raised.
 
-<H3><a name="Guile_nn14"></a>18.6.1 GH Smobs</H3>
+<H3><a name="Guile_nn13"></a>18.6.1 GH Smobs</H3>
 
 
 <p>
@@ -423,7 +406,7 @@ available.  <code>SWIG_Guile_Init()</code> registers a smob type named
 a table of all C pointer types seen so far, to which new types seen
 are appended.  The CDR stores the pointer value.  
 
-<H3><a name="Guile_nn15"></a>18.6.2 SCM Smobs</H3>
+<H3><a name="Guile_nn14"></a>18.6.2 SCM Smobs</H3>
 
 
 <p>The SCM interface (using the "-scm" argument to swig) uses common.swg.
@@ -438,7 +421,7 @@ in the smob tag.  If a generated GOOPS module has been loaded, smobs will be wra
 GOOPS class.</p>
 
 
-<H3><a name="Guile_nn16"></a>18.6.3 Garbage Collection</H3>
+<H3><a name="Guile_nn15"></a>18.6.3 Garbage Collection</H3>
 
 
 <p>Garbage collection is a feature of the new SCM interface, and it is automatically included
@@ -452,7 +435,7 @@ is exactly like described in <a href="Customization.html#ownership">
 Object ownership and %newobject</a> in the SWIG manual.  All typemaps use an $owner var, and
 the guile module replaces $owner with 0 or 1 depending on feature:new.</p>
 
-<H2><a name="Guile_nn17"></a>18.7 Exception Handling</H2>
+<H2><a name="Guile_nn16"></a>18.7 Exception Handling</H2>
 
 
 <p>
@@ -476,7 +459,7 @@ mapping:
 The default when not specified here is to use "swig-error".
 See Lib/exception.i for details.
 
-<H2><a name="Guile_nn18"></a>18.8 Procedure documentation</H2>
+<H2><a name="Guile_nn17"></a>18.8 Procedure documentation</H2>
 
 
 <p>If invoked with the command-line option <code>-procdoc
@@ -509,7 +492,7 @@ like this:
 typemap argument <code>doc</code>. See <code>Lib/guile/typemaps.i</code> for
 details.
 
-<H2><a name="Guile_nn19"></a>18.9 Procedures with setters</H2>
+<H2><a name="Guile_nn18"></a>18.9 Procedures with setters</H2>
 
 
 <p>For global variables, SWIG creates a single wrapper procedure
@@ -537,7 +520,7 @@ struct members, the procedures <code>(<var>struct</var>-<var>member</var>-get
 pointer)</code> and <code>(<var>struct-member</var>-set pointer
 value)</code> are <em>not</em> generated.
 
-<H2><a name="Guile_nn20"></a>18.10 GOOPS Proxy Classes</H2>
+<H2><a name="Guile_nn19"></a>18.10 GOOPS Proxy Classes</H2>
 
 
 <p>SWIG can also generate classes and generic functions for use with
@@ -665,7 +648,7 @@ before the definition of &lt;Foo&gt;.  The generated GOOPS file would look like
 Notice that &lt;Foo&gt; is used before it is defined.  The fix is to just put the 
 <code>%import "foo.h"</code> before the <code>%inline</code> block.
 
-<H3><a name="Guile_nn21"></a>18.10.1 Naming Issues</H3>
+<H3><a name="Guile_nn20"></a>18.10.1 Naming Issues</H3>
 
 
 <p>As you can see in the example above, there are potential naming conflicts.  The default exported
@@ -704,7 +687,7 @@ guile-modules.  For example,</p>
 
 <p>TODO: Renaming class name prefixes?</p>
 
-<H3><a name="Guile_nn22"></a>18.10.2 Linking</H3>
+<H3><a name="Guile_nn21"></a>18.10.2 Linking</H3>
 
 
 <p>The guile-modules generated above all need to be linked together.  GOOPS support requires
