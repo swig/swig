@@ -4,7 +4,7 @@ SWIGOPT    = -I../../Include
 SRCS       = 
 TARGET     = gifplot
 INTERFACE  = gifplot.i
-LIBS       = -L../.. -lgifplot
+LIBS       = -L../.. -lgifplot -lm
 INCLUDE    = -I../../Include
 
 all::
