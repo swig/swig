@@ -28,21 +28,6 @@ extern "C" {
 #include "swigconfig.h"
 #endif
 
-
-
-  /*
-**** THIS PATCH IS REJECTED.  DO NOT USE 'bool' DATATYPE IN THE SWIG IMPLEMENTATION.
-**** NOT PORTABLE.   -- Dave
-
-#if defined(__cplusplus) && !defined(HAVE_BOOL)
-typedef int bool;
-#define true ((bool)1)
-#define false ((bool)0)
-#endif
-
-**********************
-  */
-
 #include "doh.h"
 
 /* Status codes */
