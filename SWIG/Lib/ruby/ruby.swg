@@ -358,6 +358,25 @@ typedef unsigned long VALUE;
  * Typechecking rules
  * ------------------------------------------------------------ */
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
+  void *ptr;
+  $1 = (NIL_P($input) || (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, $&1_descriptor, 0) != -1)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+  void *ptr;
+  $1 = (NIL_P($input) || (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0) != -1)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
+  void *ptr;
+  $1 = (NIL_P($input) || (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, 0, 0) != -1)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_BOOL) bool {
+  $1 = ($input == Qtrue || $input == Qfalse) ? 1 : 0;
+}
+
 %typecheck(SWIG_TYPECHECK_INTEGER)
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
@@ -384,21 +403,6 @@ typedef unsigned long VALUE;
 
 %typecheck(SWIG_TYPECHECK_STRING) char * {
   $1 = (TYPE($input) == T_STRING) ? 1 : 0;
-}
-
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
-  void *ptr;
-  $1 = (NIL_P($input) || (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0) != -1)) ? 1 : 0;
-}
-
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
-  void *ptr;
-  $1 = (NIL_P($input) || (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, $&1_descriptor, 0) != -1)) ? 1 : 0;
-}
-
-%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
-  void *ptr;
-  $1 = (NIL_P($input) || (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, 0, 0) != -1)) ? 1 : 0;
 }
 
 /* ------------------------------------------------------------

@@ -63,71 +63,29 @@ or you can use the %apply directive :
 
 */
 
-%typemap(in) double *INPUT(double temp), double &INPUT(double temp)
+%define INPUT_TYPEMAP(type, converter)
+%typemap(in) type *INPUT(type temp), type &INPUT(type temp)
 {
-  temp = NUM2DBL($input);
-  $1 = &temp;
+    temp = (type) converter($input);
+    $1 = &temp;
 }
+%typemap(typecheck) type *INPUT = type;
+%typemap(typecheck) type &INPUT = type;
+%enddef
 
-%typemap(in) float *INPUT(float temp), float &INPUT(float temp)
-{
-  temp = (float) NUM2DBL($input);
-  $1 = &temp;
-}
+INPUT_TYPEMAP(float, NUM2DBL);
+INPUT_TYPEMAP(double, NUM2DBL);
+INPUT_TYPEMAP(int, NUM2INT);
+INPUT_TYPEMAP(short, NUM2SHRT);
+INPUT_TYPEMAP(long, NUM2LONG);
+INPUT_TYPEMAP(unsigned int, NUM2UINT);
+INPUT_TYPEMAP(unsigned short, NUM2USHRT);
+INPUT_TYPEMAP(unsigned long, NUM2ULONG);
+INPUT_TYPEMAP(unsigned char, NUM2UINT);
+INPUT_TYPEMAP(signed char, NUM2INT);
+INPUT_TYPEMAP(bool, RTEST);
 
-%typemap(in) int *INPUT(int temp), int &INPUT(int temp)
-{
-  temp = NUM2INT($input);
-  $1 = &temp;
-}
-
-%typemap(in) short *INPUT(short temp), short &INPUT(short temp)
-{
-  temp = NUM2SHRT($input);
-  $1 = &temp;
-}
-
-%typemap(in) long *INPUT(long temp), long &INPUT(long temp)
-{
-  temp = NUM2LONG($input);
-  $1 = &temp;
-}
-
-%typemap(in) unsigned int *INPUT(unsigned int temp), unsigned int &INPUT(unsigned int temp)
-{
-  temp = NUM2UINT($input);
-  $1 = &temp;
-}
-
-%typemap(in) unsigned short *INPUT(unsigned short temp), unsigned short &INPUT(unsigned short temp)
-{
-  temp = NUM2USHRT($input);
-  $1 = &temp;
-}
-
-%typemap(in) unsigned long *INPUT(unsigned long temp), unsigned long &INPUT(unsigned long temp)
-{
-  temp = NUM2ULONG($input);
-  $1 = &temp;
-}
-
-%typemap(in) unsigned char *INPUT(unsigned char temp), unsigned char &INPUT(unsigned char temp)
-{
-  temp = (unsigned char)NUM2UINT($input);
-  $1 = &temp;
-}
-
-%typemap(in) signed char *INPUT(signed char temp), signed char &INPUT(signed char temp)
-{
-  temp = (signed char)NUM2INT($input);
-  $1 = &temp;
-}
-                 
-%typemap(in) bool *INPUT(bool temp), bool &INPUT(bool temp)
-{
-  temp = RTEST($input);
-  $1 = &temp;
-}
+#undef INPUT_TYPEMAP
 
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as
@@ -171,68 +129,34 @@ The Ruby output of the function would be a Array containing both
 output values. 
 */
 
-// Helper function for Array output
-
-%{
-static VALUE output_helper(VALUE target, VALUE o) {
-    if (NIL_P(target)) {
-	target = o;
-    } else {
-	if (TYPE(target) != T_ARRAY) {
-	    VALUE o2 = target;
-	    target = rb_ary_new();
-	    rb_ary_push(target, o2);
-	}
-	rb_ary_push(target, o);
-    }
-    return target;
+%include "fragments.i"
+		
+%define OUTPUT_TYPEMAP(type, converter, convtype)
+%typemap(ignore) type *OUTPUT(type temp), type &OUTPUT(type temp) "$1 = &temp;";
+%typemap(argout, fragment="output_helper") type *OUTPUT, type &OUTPUT {
+   VALUE o = converter(convtype (*$1));
+   $result = output_helper($result, o);
 }
-%}
+%enddef
 
-// Force the argument to be ignored.
+OUTPUT_TYPEMAP(int, INT2NUM, (int));
+OUTPUT_TYPEMAP(short, INT2NUM, (int));
+OUTPUT_TYPEMAP(long, INT2NUM, (int));
+OUTPUT_TYPEMAP(unsigned int, UINT2NUM, (unsigned int));
+OUTPUT_TYPEMAP(unsigned short, UINT2NUM, (unsigned int));
+OUTPUT_TYPEMAP(unsigned long, UINT2NUM, (unsigned int));
+OUTPUT_TYPEMAP(unsigned char, UINT2NUM, (unsigned int));
+OUTPUT_TYPEMAP(signed char, INT2NUM, (int));
+OUTPUT_TYPEMAP(float, rb_float_new, (double));
+OUTPUT_TYPEMAP(double, rb_float_new, (double));
 
-%typemap(ignore) int            *OUTPUT(int temp),
-                 short          *OUTPUT(short temp),
-                 long           *OUTPUT(long temp),
-                 unsigned int   *OUTPUT(unsigned int temp),
-                 unsigned short *OUTPUT(unsigned short temp),
-                 unsigned long  *OUTPUT(unsigned long temp),
-                 unsigned char  *OUTPUT(unsigned char temp),
-                 signed char    *OUTPUT(signed char temp),
-		 bool           *OUTPUT(bool temp),
-                 float          *OUTPUT(float temp),
-                 double         *OUTPUT(double temp),
-                 int            &OUTPUT(int temp),
-                 short          &OUTPUT(short temp),
-                 long           &OUTPUT(long temp),
-                 unsigned int   &OUTPUT(unsigned int temp),
-                 unsigned short &OUTPUT(unsigned short temp),
-                 unsigned long  &OUTPUT(unsigned long temp),
-                 unsigned char  &OUTPUT(unsigned char temp),
-                 signed char    &OUTPUT(signed char temp),
-		 bool           &OUTPUT(bool temp),
-                 float          &OUTPUT(float temp),
-                 double         &OUTPUT(double temp)
-"$1 = &temp;";
+#undef OUTPUT_TYPEMAP
 
-%typemap(argout) int            *OUTPUT, int &OUTPUT,
-                 short          *OUTPUT, short &OUTPUT,
-                 long           *OUTPUT, long  &OUTPUT,
-                 signed char    *OUTPUT,  signed char &OUTPUT
-"$result = output_helper($result, INT2NUM(*$1));";
-
-%typemap(argout) unsigned int   *OUTPUT, unsigned int &OUTPUT,
-                 unsigned short *OUTPUT, unsigned short &OUTPUT,
-                 unsigned long  *OUTPUT, unsigned long &OUTPUT,
-                 unsigned char  *OUTPUT, unsigned char &OUTPUT
-"$result = output_helper($result, UINT2NUM(*$1));";
-
-%typemap(argout) float    *OUTPUT, float &OUTPUT,
-                 double   *OUTPUT, double &OUTPUT
-"$result = output_helper($result, rb_float_new(*$1));";
-
-%typemap(argout) bool *OUTPUT, bool &OUTPUT
-"$result = output_helper($result, (*$1) ? Qtrue : Qfalse);";
+%typemap(ignore) bool *OUTPUT(bool temp), bool &OUTPUT(bool temp) "$1 = &temp;";
+%typemap(argout, fragment="output_helper") bool *OUTPUT, bool &OUTPUT {
+    VALUE o = (*$1) ? Qtrue : Qfalse;
+    $result = output_helper($result, o);
+}
 
 // INOUT
 // Mappings for an argument that is both an input and output
@@ -471,28 +395,6 @@ extern "C" {
 
 /* Overloading information */
 
-%typemap(typecheck) double *INPUT = double;
-%typemap(typecheck) signed char *INPUT = signed char;
-%typemap(typecheck) unsigned char *INPUT = unsigned char;
-%typemap(typecheck) unsigned long *INPUT = unsigned long;
-%typemap(typecheck) unsigned short *INPUT = unsigned short;
-%typemap(typecheck) unsigned int *INPUT = unsigned int;
-%typemap(typecheck) long *INPUT = long;
-%typemap(typecheck) short *INPUT = short;
-%typemap(typecheck) int *INPUT = int;
-%typemap(typecheck) float *INPUT = float;
-
-%typemap(typecheck) double &INPUT = double;
-%typemap(typecheck) signed char &INPUT = signed char;
-%typemap(typecheck) unsigned char &INPUT = unsigned char;
-%typemap(typecheck) unsigned long &INPUT = unsigned long;
-%typemap(typecheck) unsigned short &INPUT = unsigned short;
-%typemap(typecheck) unsigned int &INPUT = unsigned int;
-%typemap(typecheck) long &INPUT = long;
-%typemap(typecheck) short &INPUT = short;
-%typemap(typecheck) int &INPUT = int;
-%typemap(typecheck) float &INPUT = float;
-
 %typemap(typecheck) double *INOUT = double;
 %typemap(typecheck) signed char *INOUT = signed char;
 %typemap(typecheck) unsigned char *INOUT = unsigned char;
@@ -514,5 +416,3 @@ extern "C" {
 %typemap(typecheck) short &INOUT = short;
 %typemap(typecheck) int &INOUT = int;
 %typemap(typecheck) float &INOUT = float;
-
-
