@@ -14,6 +14,8 @@ static char cvsroot[] = "$Header$";
 
 #include "dohint.h"
 
+#define DOH_STRING_UPDATE_LINES
+
 typedef struct String {
     DOHXCOMMON;
     int            maxsize;                   /* Max size allocated */

@@ -451,6 +451,18 @@ AC_SUBST(PERL5EXT)
 
 AC_SUBST(ROOT_DIR)ROOT_DIR=`pwd`
 
+if test ! -r Source/DOH/configure; then
+	cd Source/DOH
+	autoconf
+	cd ../..
+fi
+
+if test ! -r Source/SWILL/configure; then
+	cd Source/SWILL
+	autoconf
+	cd ../..
+fi
+   
 AC_CONFIG_SUBDIRS(Source/SWILL Source/DOH)
 
 AC_OUTPUT(Makefile Source/Makefile Source/Swig/Makefile 

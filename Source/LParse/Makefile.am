@@ -9,4 +9,4 @@ noinst_LIBRARIES = liblparse.a
 
 liblparse_a_SOURCES = parser.y cscanner.c type.c
 
-noinst_HEADERS = lparse.h lyacc.h
+noinst_HEADERS = lparse.h
