@@ -44,6 +44,7 @@ extern "C" {
   Language *swig_java(void);
   Language *swig_php(void);
   Language *swig_ocaml(void);
+  Language *swig_xml(void);
 }
 
 struct swig_module {
@@ -68,6 +69,7 @@ swig_module  modules[] = {
   {"-tcl",       swig_tcl,       "Tcl"},
   {"-tcl8",      swig_tcl, 0},
   {"-ocaml",     swig_ocaml,     "Ocaml"},
+  {"-xml",     swig_xml,     "XML"},
   {NULL, NULL, NULL}
 };
 
