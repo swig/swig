@@ -5,8 +5,9 @@ Version 1.3.23 (in progress)
             Patch from Bill Clarke -
             1) Warning emitted when -importall and -includeall is used together,
                with -includeall taking precedence.
-            2) Fixes to ensure SWIGIMPORT is always defined when a file is being
-               imported with %import. This macro definition is is now documented.
+            2) Ensure SWIGIMPORTED is always defined when a file is being
+               imported with %import. Note that this is not the same as SWIGIMPORT,
+               which gets defined in all generated wrapper files.
 
 09/26/2004: mmatus
 
