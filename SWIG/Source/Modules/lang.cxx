@@ -1092,7 +1092,6 @@ Language::staticmemberfunctionHandler(Node *n) {
   String   *symname = Getattr(n,"sym:name");
   SwigType *type    = Getattr(n,"type");
   ParmList *parms   = Getattr(n,"parms");
-  String   *code    = Getattr(n,"code");
   String   *cb      = Getattr(n,"feature:callback");
   String   *cname, *mrename;
 
@@ -1108,18 +1107,28 @@ Language::staticmemberfunctionHandler(Node *n) {
   }
   mrename = Swig_name_member(ClassPrefix, symname);
 
+  if (Extend) {
+    String *code = Getattr(n,"code");
+    String *defaultargs = Getattr(n,"defaultargs");
+    String *mangled = Swig_name_mangle(mrename);
+    Delete(mrename);
+    mrename = mangled;
+
+    if (!defaultargs && code) {
+      /* Hmmm. An added static member.  We have to create a little wrapper for this */
+      String *body;
+      String *tmp = NewStringf("%s(%s)", cname, ParmList_str_defaultargs(parms));
+      body = SwigType_str(type,tmp);
+      Printv(body,code,"\n",NIL);
+      Setattr(n,"wrap:code",body);
+      Delete(tmp);
+      Delete(body);
+    }
+  }
+
   Setattr(n,"name",cname);
   Setattr(n,"sym:name",mrename);
 
-  if ((Extend) && (code)) {
-    /* Hmmm. An added static member.  We have to create a little wrapper for this */
-    String *tmp = NewStringf("%s(%s)", cname, ParmList_str(parms));
-    String *wrap = SwigType_str(type,tmp);
-    Printv(wrap,code,"\n",NIL);
-    Setattr(n,"wrap:code",wrap);
-    Delete(tmp);
-    Delete(wrap);
-  }
   if (cb) {
     String *cbname = NewStringf(cb,symname);
     Setattr(n,"feature:callback:name", Swig_name_member(ClassPrefix, cbname));
@@ -2295,7 +2304,7 @@ int Language::functionWrapper(Node *n) {
   SwigType *type   = Getattr(n,"type");
   ParmList *parms  = Getattr(n,"parms");
 
-  Printf(stdout,"functionWrapper   : %s\n", SwigType_str(type, NewStringf("%s(%s)", name, ParmList_str(parms))));
+  Printf(stdout,"functionWrapper   : %s\n", SwigType_str(type, NewStringf("%s(%s)", name, ParmList_str_defaultargs(parms))));
   Printf(stdout,"           action : %s\n", Getattr(n,"wrap:action")); 
   return SWIG_OK;
 }
