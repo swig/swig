@@ -33,15 +33,11 @@ LIBS       =
 INTERFACE  =
 SWIGOPT    =
 SWIG       = swig@release_suffix@
-RUNTIMEDIR = $(exec_prefix)/lib
 
 LIBM       = @LIBM@
 LIBC       = @LIBC@
 LIBCRYPT   = @LIBCRYPT@
 SYSLIBS    = $(LIBM) $(LIBC) $(LIBCRYPT)
-
-libtool_comp = $(TOP)/../Tools/libtool --mode compile
-libtool_link = $(TOP)/../Tools/libtool --mode link
 
 # X11 options
 
