@@ -32,7 +32,8 @@ CPP_TEST_CASES += \
 	primitive_types \
 	std_containers \
 	swigobject \
-	template_matrix
+	template_matrix \
+	simutry
 
 C_TEST_CASES += \
 	file_test \
