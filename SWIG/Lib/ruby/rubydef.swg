@@ -117,6 +117,84 @@ SWIG_CheckConvert(VALUE obj, swig_type_info *ty)
   return SWIG_TypeCheck(c,ty) != 0;
 }
 
+/* Pack binary data into a string */
+SWIGRUNTIME(char *)
+SWIG_PackData(char *c, void *ptr, int sz) {
+  static char hex[17] = "0123456789abcdef";
+  int i;
+  unsigned char *u = (unsigned char *) ptr;
+  register unsigned char uu;
+  for (i = 0; i < sz; i++,u++) {
+    uu = *u;
+    *(c++) = hex[(uu & 0xf0) >> 4];
+    *(c++) = hex[uu & 0xf];
+  }
+  return c;
+}
+
+/* Unpack binary data from a string */
+SWIGRUNTIME(char *)
+SWIG_UnpackData(char *c, void *ptr, int sz) {
+  register unsigned char uu;
+  register int d;
+  unsigned char *u = (unsigned char *) ptr;
+  int i;
+  for (i = 0; i < sz; i++, u++) {
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu = ((d - '0') << 4);
+    else if ((d >= 'a') && (d <= 'f'))
+      uu = ((d - ('a'-10)) << 4);
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu |= (d - '0');
+    else if ((d >= 'a') && (d <= 'f'))
+      uu |= (d - ('a'-10));
+    *u = uu;
+  }
+  return c;
+}
+
+SWIGRUNTIME(VALUE)
+SWIG_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
+  char result[1024];
+  char *r = result;
+  if ((2*sz + 1 + strlen(type->name)) > 1000) return 0;
+  *(r++) = '_';
+  r = SWIG_PackData(r, ptr, sz);
+  strcpy(r, type->name);
+  return rb_str_new2(result);
+}
+
+/* Convert a packed value value */
+SWIGRUNTIME(void)
+SWIG_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty, int flags) {
+  swig_type_info *tc;
+  char  *c;
+
+  if (TYPE(obj) != T_STRING) goto type_error;
+  c = STR2CSTR(obj);
+  /* Pointer values must start with leading underscore */
+  if (*c != '_') goto type_error;
+  c++;
+  c = SWIG_UnpackData(c, ptr, sz);
+  if (ty) {
+    tc = SWIG_TypeCheck(c, ty);
+    if (!tc) goto type_error;
+  }
+  return;
+
+type_error:
+
+  if (flags) {
+    if (ty) {
+      rb_raise(rb_eTypeError, "Type error. Expected %s", ty->name);
+    } else {
+      rb_raise(rb_eTypeError, "Expected a pointer");
+    }
+  }
+}
+
 #ifdef __cplusplus
 }
 #endif

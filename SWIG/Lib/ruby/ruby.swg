@@ -50,13 +50,18 @@
              SWIGTYPE []
 	"$1 = ($1_ltype) SWIG_ConvertPtr($input, $1_descriptor);"
 
+/* Void pointer.  Accepts any kind of pointer */
 %typemap(in) void *
         "$1 = (void *) SWIG_ConvertPtr($input, 0);";
 
+/* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE {
    $&1_ltype ptr = ($&1_ltype) SWIG_ConvertPtr($input,$&1_descriptor);
    if (ptr) $1 = *ptr;
 }
+
+/* Pointer to a class member */
+%typemap(in) SWIGTYPE (CLASS::*) "SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor, 1);";
 
 /* --- Output typemaps --- */
 
@@ -72,27 +77,37 @@
 %typemap(out) long long  "$result = INT2NUM((long) $1);";
 %typemap(out) unsigned long long "$result = UINT2NUM((unsigned long) $1);";
 
+/* Floating point output values */
 %typemap(out) double, float
 	"$result = rb_float_new($1);";
 
+/* Character */
 %typemap(out) char
 	"$result = rb_str_new(&$1,1);";
 
+/* Boolean */
 %typemap(out) bool
 	"$result = $1 ? Qtrue : Qfalse;";
 
+/* C string */
 %typemap(out) char *
 	"$result = rb_str_new2($1);";
 
+/* Pointers, references, and arrays */
 %typemap(out) SWIGTYPE*, SWIGTYPE &, SWIGTYPE []
         "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor,$owner);";
 
+/* Dynamic casts */
 %typemap(out) SWIGTYPE*DYNAMIC, SWIGTYPE &DYNAMIC {
         swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
         $result = SWIG_NewPointerObj((void *) $1, ty,$owner);
 }
 
-%typemap(out) void "";
+/* Member pointer */
+%typemap(out) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor);";
+
+/* Void */
+%typemap(out) void "$result = Qnil;";
 
 /* Primitive types--return by value */
 %typemap(out) SWIGTYPE 
@@ -180,6 +195,12 @@
    if (ptr) $1 = *ptr;
 }
 
+%typemap(varin) SWIGTYPE (CLASS::*) {
+    char temp[sizeof($1_type)];
+    SWIG_ConvertPacked($input, (void *) temp, sizeof($1_type), $1_descriptor, 1);
+    memmove((void *) &$1, temp, sizeof($1_type));
+}
+
 /* --- Output typemaps --- */
 
 %typemap(varout) int, short, long, signed char, enum SWIGTYPE 
@@ -191,26 +212,36 @@
 %typemap(varout) long long "$result = INT2NUM((long) $1);";
 %typemap(varout) unsigned long long "$result = UINT2NUM((unsigned long) $1);";
 
+/* Floats and doubles */
 %typemap(varout) double, float
 	"$result = rb_float_new($1);";
 
+/* Character */
 %typemap(varout) char
 	"$result = rb_str_new(&$1,1);";
 
+/* Boolean */
 %typemap(varout) bool
 	"$result = $1 ? Qtrue : Qfalse;";
 
+/* C string */
 %typemap(varout) char *
 	"$result = rb_str_new2($1);";
 
+/* Pointers, references, and arrays */
 %typemap(varout) SWIGTYPE*, SWIGTYPE &, SWIGTYPE []
         "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor,0);";
 
-%typemap(varout) void "";
+/* Void */
+%typemap(varout) void "$result = Qnil;";
 
+/* Copy by value */
 %typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor, 1);";
 
 %typemap(varout) char [ANY] "$result = rb_str_new2($1);";
+
+/* Member pointer */
+%typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor);";
 
 /* --- Constants --- */
 
@@ -243,7 +274,9 @@
 
 %typemap(constant) SWIGTYPE "rb_define_const($module,\"$symname\", SWIG_NewPointerObj((void *) &$1, $&1_descriptor, 0));";
 
-// Typedef declaration for VALUE.  This is provided to make VALUE typemaps
+%typemap(constant) SWIGTYPE (CLASS::*) "rb_define_const($module, \"$symname\", SWIG_NewPackedObj((void *) &$1, sizeof($type), $1_descriptor));";
+
+/* Typedef declaration for VALUE.  This is provided to make VALUE typemaps */
 typedef unsigned long VALUE;
 
 %typemap(ruby,in)  VALUE  "$1 = $input;";

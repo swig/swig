@@ -906,22 +906,28 @@ int RUBY::constantWrapper(Node *n) {
   validate_const_name(iname, "constant");
   SetChar(n, "sym:name", iname);
 
-  String *tm = Swig_typemap_lookup_new("constant",n,value,0);
+  /* Special hook for member pointer */
+  if (SwigType_type(type) == T_MPOINTER) {
+    String *wname = Swig_name_wrapper(iname);
+    Printf(f_header, "static %s = %s;\n", SwigType_str(type, wname), value);
+    value = Char(wname);
+  }
+  String *tm = Swig_typemap_lookup_new("constant", n, value, 0);
   if (tm) {
-    Replaceall(tm,"$source",value);
-    Replaceall(tm,"$target",iname);
-    Replaceall(tm,"$symname",iname);
-    Replaceall(tm,"$value",value);
+    Replaceall(tm, "$source", value);
+    Replaceall(tm, "$target", iname);
+    Replaceall(tm, "$symname", iname);
+    Replaceall(tm, "$value", value);
     if (current == CLASS_CONST) {
-      Replaceall(tm,"$module", klass->vname);
+      Replaceall(tm, "$module", klass->vname);
       Printv(klass->init, tm, "\n", NULL);
     } else {
       Replaceall(tm,"$module", modvar);
-      Printf(f_init,"%s\n", tm);
+      Printf(f_init, "%s\n", tm);
     }
   } else {
     Printf(stderr,"%s : Line %d. Unable to create constant %s = %s\n",
-	   input_file, line_number, SwigType_str(type,0), value);
+	   input_file, line_number, SwigType_str(type, 0), value);
   }
   Swig_restore(&n);
   return SWIG_OK;

@@ -10,6 +10,10 @@ SWIGIMPORT(VALUE)  SWIG_NewClassInstance(VALUE, swig_type_info *);
 SWIGIMPORT(char *) SWIG_MangleStr(VALUE);
 SWIGIMPORT(void *) SWIG_ConvertPtr(VALUE, swig_type_info *);
 SWIGIMPORT(int)    SWIG_CheckConvert(VALUE, swig_type_info *);
+SWIGIMPORT(char *) SWIG_PackData(char *c, void *ptr, int sz);
+SWIGIMPORT(char *) SWIG_UnpackData(char *c, void *ptr, int sz);
+SWIGIMPORT(VALUE)  SWIG_NewPackedObj(void *ptr, int sz, swig_type_info *type);
+SWIGIMPORT(void)   SWIG_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty, int flags);
 
 #ifdef __cplusplus
 }
