@@ -48,7 +48,6 @@ typedef enum {
   SWIG_JavaArithmeticException,
   SWIG_JavaIllegalArgumentException,
   SWIG_JavaNullPointerException,
-  SWIG_JavaDirectorRicochet,
   SWIG_JavaDirectorPureVirtual,
   SWIG_JavaUnknownError
 } SWIG_JavaExceptionCodes;
@@ -73,7 +72,6 @@ void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const c
     { SWIG_JavaArithmeticException, "java/lang/ArithmeticException" },
     { SWIG_JavaIllegalArgumentException, "java/lang/IllegalArgumentException" },
     { SWIG_JavaNullPointerException, "java/lang/NullPointerException" },
-    { SWIG_JavaDirectorRicochet, "java/lang/RuntimeException" },
     { SWIG_JavaDirectorPureVirtual, "java/lang/RuntimeException" },
     { SWIG_JavaUnknownError,  "java/lang/UnknownError" },
     { (SWIG_JavaExceptionCodes)0,  "java/lang/UnknownError" } };
