@@ -639,6 +639,13 @@ like Python objects, although some functionality may be different.";
    $target = Swig_PyDOH_new($source);
 }
 
+%typemap(python,in) char * {
+   if (Swig_PyDOH_check($source))
+      $target = Char(((PyDOH *)$source)->doh);
+   else
+      $target = PyString_AsString($source);
+}
+
 %title "SWIG", after
 
 %section "DOH Objects", before
