@@ -1,6 +1,11 @@
+%{
+#include <cwchar>
+%}
+
 %include <std/std_basic_string.i>
 
 /* wide strings */
+
 
 namespace std
 {

@@ -5,6 +5,10 @@
 #ifndef SWIG_STD_BASIC_STRING
 #define SWIG_STD_WSTRING
 
+%{
+#include <cwchar>
+%}
+
 %include <pywstrings.swg>
 
 namespace std
