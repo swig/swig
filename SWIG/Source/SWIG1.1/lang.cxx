@@ -365,7 +365,7 @@ void Language::cpp_staticvariable(DOH *node) {
   }
 
   /* Form correct C++ name */
-  sprintf(mname,"%s::%s",ClassName,name);
+  sprintf(mname,"%s::%s",Char(ClassName),name);
 
   /* Link with this variable */
 
