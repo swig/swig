@@ -22,7 +22,7 @@ static char cvsroot[] = "$Header$";
  *    +-------- [ name ]
  *    
  * Each hash table [ type ] or [ name ] then contains references to the
- * different typemap methods.    These are reference by names such as
+ * different typemap methods.    These are referenced by names such as
  * "tmap:in", "tmap:out", "tmap:argout", and so forth.
  *
  * The object corresponding to a specific method has the following
@@ -33,8 +33,6 @@ static char cvsroot[] = "$Header$";
  *    "code"    -  Typemap code
  *    "typemap" -  Descriptive text describing the actual map
  *    "locals"  -  Local variables (if any)
- *    "multi"   -  If a multiple valued typemap, a pointer to the next
- *                 typemap entry.
  * 
  * ----------------------------------------------------------------------------- */
 
@@ -229,7 +227,8 @@ Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or
     String *newop = NewStringf("%s-%s+%s:",op,type,pname);
     /* Now reregister on the remaining arguments */
     Swig_typemap_register_multi(newop,np,code,locals);
-    Setattr(tm2,newop,newop);
+    
+    /*    Setattr(tm2,newop,newop); */
     Delete(newop);
   } else {
     Setattr(tm2,"code",NewString(code));
@@ -352,10 +351,14 @@ Swig_typemap_copy_multi(const String_or_char *op, ParmList *srcparms, ParmList *
 void
 Swig_typemap_clear(const String_or_char *op, SwigType *type, String_or_char *name) {
   Hash *tm;
-
   tm = Swig_typemap_get(type,name,tm_scope);
-  if (tm)
-    Delattr(tm,tmop_name(op));
+  if (tm) {
+    tm = Getattr(tm,tmop_name(op));
+    if (tm) {
+      Delattr(tm,"code");
+      Delattr(tm,"locals");
+    }
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -368,10 +371,12 @@ void
 Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms) {
   SwigType *type;
   String   *name;
-  Parm     *p;
+  Parm     *p,*np;
   String   *newop;
   Hash *tm = 0;
-  
+
+  /* This might not work */
+
   newop = NewString(op);
   p = parms;
   while (p) {
@@ -383,8 +388,13 @@ Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms) {
     if (p) 
       Printf(newop,"-%s+%s:", type,name);
   }
-  if (tm)
-    Delattr(tm,tmop_name(newop));
+  if (tm) {
+    tm = Getattr(tm, tmop_name(newop));
+    if (tm) {
+      Delattr(tm,"code");
+      Delattr(tm,"locals");
+    }
+  }
   Delete(newop);
 }
 
@@ -451,16 +461,18 @@ Swig_typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, St
 /* -----------------------------------------------------------------------------
  * Swig_typemap_clear_apply()
  *
- * %clear directive.   Clears all typemaps for a type (in current scope only). 
+ * %clear directive.   Clears all typemaps for a type (in the current scope only).    
  * ----------------------------------------------------------------------------- */
 
 static void
 clear_typemap_attributes(Hash *h) {
   String *key, *key2;
   for (key = Firstkey(h); key; key = Nextkey(h)) {
-    Hash *tm = Getattr(h,key);
-    for (key2 = Firstkey(tm); key2; key2 = Nextkey(tm)) {
-      if (!Strchr(key2,'+')) Delattr(tm,key2);
+    if (Strncmp(key,"tmap:",5) == 0) {
+      Hash *tm = Getattr(h,key);
+      for (key2 = Firstkey(tm); key2; key2 = Nextkey(tm)) {
+	Delattr(tm,key2);
+      }
     }
   }
 }
@@ -501,12 +513,14 @@ static SwigType *strip_arrays(SwigType *type) {
 /* -----------------------------------------------------------------------------
  * Swig_typemap_search()
  *
- * Search for a typemap match.
+ * Search for a typemap match.    Tries to find the most specific typemap
+ * that includes a 'code' attribute.
  * ----------------------------------------------------------------------------- */
 
 Hash *
 Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *name) {
   Hash *result = 0, *tm, *tm1, *tma;
+  Hash *backup = 0;
   SwigType *noarrays = 0;
   SwigType *primitive = 0;
   SwigType *ctype = 0;
@@ -529,12 +543,14 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
 	tm1 = Getattr(tm,cname);
 	if (tm1) {
 	  result = Getattr(tm1,tmop);          /* See if there is a type-name match */
-	  if (result) goto ret_result;
+	  if (result && Getattr(result,"code")) goto ret_result;
+	  if (result) backup = result;
 	}
       }
       if (tm) {
 	result = Getattr(tm,tmop);            /* See if there is simply a type match */
-	if (result) goto ret_result;
+	if (result && Getattr(result,"code")) goto ret_result;
+	if (result) backup = result;
       }
       
       if (isarray) {
@@ -546,12 +562,14 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
 	  tm1 = Getattr(tma,cname);
 	  if (tm1) {
 	    result = Getattr(tm1,tmop);       /* type-name match */
-	    if (result) goto ret_result;
+	    if (result && Getattr(result,"code")) goto ret_result;
+	    if (result) backup = result;
 	  }
 	}
 	if (tma) {
 	  result = Getattr(tma,tmop);        /* type match */
-	  if (result) goto ret_result;
+	  if (result && Getattr(result,"code")) goto ret_result;
+	  if (result) backup = result;
 	}
       }
       
@@ -593,7 +611,8 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
     if (ctype != type) Delete(ctype);
     ts--;         /* Hmmm. Nothing found in this scope.  Guess we'll go try another scope */
   }
-  
+  result = backup;
+
  ret_result:
   if (noarrays) Delete(noarrays);
   if (primitive) Delete(primitive);
@@ -920,7 +939,7 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
 			  String_or_char *target, Wrapper *f) 
 {
   Hash   *tm;
-  String *s;
+  String *s = 0;
   ParmList *locals;
   tm = Swig_typemap_search(op,type,pname);
   if (!tm) return 0;
@@ -1048,14 +1067,14 @@ void Swig_except_register(String_or_char *code) {
   Delete(s);
 }
 
-char *Swig_except_lookup() {
+String *Swig_except_lookup() {
   String *s;
   int ts = tm_scope;
   while (ts >= 0) {
     s = Getattr(typemaps[tm_scope],"*except*");
     if (s) {
       s = Copy(s);
-      return Char(s);
+      return s;
     }
     ts--;
   }
