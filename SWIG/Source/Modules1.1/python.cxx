@@ -550,22 +550,14 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   } else {
     switch(SwigType_type(d)) {
     case T_INT: case T_UINT: case T_BOOL:
-      Printf(f->code,"    resultobj = Py_BuildValue(\"i\",result);\n");
-      break;
     case T_SHORT: case T_USHORT:
-      Printf(f->code,"    resultobj = Py_BuildValue(\"h\",result);\n");
-      break;
     case T_LONG : case T_ULONG:
-      Printf(f->code,"    resultobj = Py_BuildValue(\"l\",result);\n");
-      break;
     case T_SCHAR: case T_UCHAR :
-      Printf(f->code,"    resultobj = Py_BuildValue(\"b\",result);\n");
+      Printf(f->code,"    resultobj = PyInt_FromLong((long)result);\n");
       break;
     case T_DOUBLE :
-      Printf(f->code,"    resultobj = Py_BuildValue(\"d\",result);\n");
-      break;
     case T_FLOAT :
-      Printf(f->code,"    resultobj = Py_BuildValue(\"f\",result);\n");
+      Printf(f->code,"    resultobj = PyFloat_FromDouble(result);\n");
       break;
     case T_CHAR :
       Printf(f->code,"    resultobj = Py_BuildValue(\"c\",result);\n");
@@ -577,7 +569,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       SwigType_del_pointer(d);
       break;
     case T_STRING:
-      Printf(f->code,"    resultobj = Py_BuildValue(\"s\", result);\n");
+      Printf(f->code,"    resultobj = PyString_FromString(result);\n");
       break;
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
       SwigType_remember(d);
