@@ -2,7 +2,7 @@
 
 %rename(__not__) *::operator!() const;
 
-#ifdef SWIGJAVA
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %rename(negate) *::operator-() const;
 #endif
 
