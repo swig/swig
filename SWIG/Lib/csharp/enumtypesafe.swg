@@ -28,7 +28,11 @@
       return $csclassname.swigToEnum($imcall);
     } %}
 
+%typemap(csbase)           enum SWIGTYPE ""
 %typemap(csclassmodifiers) enum SWIGTYPE "public sealed class"
+%typemap(cscode)           enum SWIGTYPE ""
+%typemap(csimports)        enum SWIGTYPE ""
+%typemap(csinterfaces)     enum SWIGTYPE ""
 
 /*
  * The swigToEnum method is used to find the C# enum from a C++ enum integer value. The default one here takes 
