@@ -1182,6 +1182,7 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"operator") == 0) return(OPERATOR);
 	  if (strcmp(yytext,"throw") == 0) return(THROW);
 	  if (strcmp(yytext,"inline") == 0) return(yylex());
+	  if (strcmp(yytext,"mutable") == 0) return(yylex());
 	  if (strcmp(yytext,"template") == 0) return(TEMPLATE);
 	}
 
