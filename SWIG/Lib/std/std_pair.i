@@ -36,7 +36,10 @@ namespace std {
     T first;
     U second;
 
+#ifdef %swig_pair_methods
+    // Add swig/language extra methods
     %swig_pair_methods(std::pair<T,U >)
+#endif
   };
 
   // ***
@@ -73,7 +76,10 @@ namespace std {
     T first;
     U* second;
 
+#ifdef %swig_pair_methods
+    // Add swig/language extra methods
     %swig_pair_methods(std::pair<T,U*>)
+#endif
   };
 
   template <class T, class U > struct pair<T*, U> {      
@@ -106,7 +112,10 @@ namespace std {
     T* first;
     U second;
 
+#ifdef %swig_pair_methods
+    // Add swig/language extra methods
     %swig_pair_methods(std::pair<T*,U >)
+#endif
   };
 
   template <class T, class U > struct pair<T*, U*> {
@@ -138,8 +147,11 @@ namespace std {
 
     T* first;
     U* second;
-
+ 
+#ifdef %swig_pair_methods
+    // Add swig/language extra methods
     %swig_pair_methods(std::pair<T*,U*>)
+#endif
   };
 
 }

@@ -93,6 +93,10 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_SET, std::set<T >);
   
     %std_set_methods(set);
+
+#ifdef %swig_set_methods
+    // Add swig/language extra methods
     %swig_set_methods(std::set<T >);
+#endif
   };
 }

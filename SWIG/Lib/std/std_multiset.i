@@ -72,7 +72,11 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_MULTISET, std::multiset<T >);
   
     %std_multiset_methods(multiset);
-    %swig_container_methods(std::multiset<T >);
+
+#ifdef %swig_multiset_methods
+    // Add swig/language extra methods
+    %swig_multiset_methods(std::multiset<T >);
+#endif
   };
 
 }

@@ -75,6 +75,10 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::multimap<K, T >);
   
     %std_multimap_methods(multimap);
+
+#ifdef %swig_multimap_methods
+    // Add swig/language extra methods
     %swig_multimap_methods(std::multimap<K, T >);
+#endif
   };
 }

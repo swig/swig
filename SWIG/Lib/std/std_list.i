@@ -89,7 +89,11 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_LIST, std::list<T >);
   
     %std_list_methods(list);
+
+#ifdef %swig_list_methods
+    // Add swig/language extra methods
     %swig_list_methods(std::list<T >);
+#endif
   };
 
   template<class T > class list<T*> {
@@ -120,7 +124,11 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_LIST, std::list<T* >);
 
     %std_list_methods_val(list);
+
+#ifdef %swig_list_methods_val
+    // Add swig/language extra methods
     %swig_list_methods_val(std::list<T* >);
+#endif
   };
 
 }
