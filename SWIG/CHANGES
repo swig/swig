@@ -14,6 +14,214 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian
 Eventually this branch will be merged back to the trunk of the CVS
 tree (maybe).
 
+Version 1.3.13 (June 17, 2002)
+==============================
+06/16/2002: beazley
+            Fixed a bug with __FILE__ expansion in the preprocessor.   On Windows,
+            the backslash (\) is now converted to (\\) in the string literal
+            used for __FILE__.  Reported by Steve Glaser.
+
+06/14/2002: beazley
+            Fixed warning message about 'name private in this context'.  The
+            warning is only generated for public methods.  Reported by
+            Scott Michel.
+ 
+06/14/2002: beazley
+            Fixed some problems related to template instantiation 
+            and namespaces.   When SWIG expands a template, it does
+            so with fully resolved types.  For example, if you have this:
+
+                template<class T> class foo { };
+                typedef double Double;
+                %template(foo_d) foo<Double>;
+
+            then, it is handled as foo<double> in the typesystem.
+            This fixes a number of subtle problems with inheritance
+            and templates.
+
+06/14/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added missing bool typemaps for INPUT, OUTPUT and
+	    INOUT in Lib/ruby/typemaps.i.
+
+05/29/2002: cheetah (William Fulton)
+            [Java] Fix for a couple of broken pragmas.
+
+05/29/2002: cheetah (William Fulton)
+            Fix for unnecessary cast when wrapping global variable where 
+            the type is not parsed by SWIG - Java variables example 
+            failure as reported by Larry Virden.
+
+06/10/2002: beazley
+            Modified %template to allow for empty instantiations.
+
+                  %template() foo<int,int>;
+
+            This registers foo<int,int> with the type system, but
+            doesn't wrap it (same as %ignore).   This may only be a
+            temporary measure.   SWIG might be able to automatically
+            instantiate templates in certain cases.
+
+06/10/2002: beazley
+            Fixed function prototype problems with Tcl 8.4
+
+06/09/2002: beazley
+            Fixed problem with templates and location of base classes.  
+            This one is a little mind-bending, but here is an example
+            that illustrates:
+ 
+             template <class ArgType, class ResType>
+             struct traits
+             {
+                  typedef ArgType arg_type;
+                  typedef ResType res_type;
+             };
+ 
+             template <class ArgType, class ResType>
+             struct Function
+             {
+             };
+ 
+             template <class AF, class AG>
+             struct Class : Function<typename traits<AF, AG>::arg_type,
+                                     typename traits<AF, AG>::res_type>
+             {
+             };
+
+             %template(traits_dd) traits <double, double>;
+             %template(Function_dd) Function <double, double>;
+             %template(Class_dd) Class <double, double>;
+
+
+            In this example, the base class of 'Class' is determined from
+            the Function template, but the types are obtained through typedefs.
+            Because of this, SWIG could not locate the wrapped base class
+            (Function<double,double>).   Should be fixed in 1.3.13 even
+            though I can think of a million other things that might
+            also be broken.
+
+06/07/2002: beazley
+            Fixed a problem with conversion operators.  If you had an
+            operator like this,
+
+                  operator double() const;
+
+            SWIG was ommitting the "const" qualifier.  This affected
+            %rename and other directives.  Reported by Zhong Ren.
+
+06/07/2002: beazley
+            Lessened the strictness of abstract class checking.  If
+            you have code like this:
+
+                class Foo {
+                public:
+                   virtual int method() = 0;
+                };
+
+                class Bar : public Foo {
+                public:
+                    Bar();
+                   ~Bar();
+                };
+
+             SWIG will go ahead and generate constructor/destructors
+             for Bar.  However, it will also generate a warning message 
+             that "Bar" might be abstract (since method() isn't defined).
+             In SWIG-1.3.12, SWIG refused to generate a constructor at all.
+
+06/07/2002: beazley
+            Change to %template directive.  If you specify something like this:
+
+                %template(vi) std::vector<int>;
+
+            It is *exactly* the same as this:
+ 
+                namespace std {
+                    %template(vi) vector<int>;
+                }
+
+            SWIG-1.3.12 tried to instantiate the template outside of the namespace
+            using some trick.  However, this was extremely problematic and full
+            holes.   This version is safer.
+
+06/07/2002: beazley
+            Fixed bug with scope qualification and templates.  For example:
+
+                 A<B::C>::DD
+
+            Before, this was separated as scopes A<B, C>, and DD.  Fixed now.
+
+06/06/2002: beazley
+            Allow the following syntax: 
+               
+               class A { };
+               struct B : A { ... };
+
+            A base class without a specifier is assumed to be public for a struct.
+ 
+06/06/2002: beazley
+            Fixed syntax error with template constructor initializers.
+            Reported by Marcelo Matus.
+
+06/06/2002: beazley
+            Fixed bug with default template arguments. 
+            Reported by Marcelo Matus.
+
+06/05/2002: beazley
+            Fixed subtle problems with %rename directive and template
+            expansion.
+
+            Code like this should now work:
+
+               %rename(blah) foo<double>::method;
+               ...
+               template<class T> class foo {
+               public:
+                   void method();
+               };
+
+               %template(whatever) foo<double>;
+
+06/05/2002: beazley
+            Resolved some tricky issues of multi-pass compilation and 
+            and inheritance.  The following situation now generates
+            an error:
+
+                  class Foo : public Bar {
+                  ...
+                  };
+
+                  class Bar {
+                  ...
+                  };
+
+            The following code generates a warning about incomplete classes.
+
+                  class Bar;
+                  class Foo : public Bar { };
+
+            The following code generates a warning about an undefined class.
+
+                  class Foo : public Bar { };  // Bar undefined
+
+            This fixes a failed assertion bug reported by Jason Stewart.
+
+06/05/2002: ljohnson
+            [Ruby] Added a warning message for the Ruby module about the lack
+            of support for multiple inheritance. Only the first base class
+            listed is used and the others are ignored. (Reported by Craig
+            Files).
+            
+06/03/2002: beazley
+            Fixed a bug with struct declarations and typedef. For example:
+
+                 typedef struct Foo Foo;
+                 struct Foo {
+                    ...
+                 };
+
+            A few other subtle struct related typing problems were
+            also resolved.
+
 Version 1.3.12 (June 2, 2002)
 =============================
             

@@ -38,6 +38,12 @@ an abundance of spare time.
 <h3>News</h3>
 
 <p>
+<b>2002/06/17</b>
+<a href="http://prdownloads.sourceforge.net/swig/swig-1.3.13.tar.gz">SWIG-1.3.13</a>
+has been released.  This is a more stable version of SWIG-1.3.12.  If you downloaded
+SWIG-1.3.12, you should upgrade.
+
+<p>
 <b>2002/06/02</b>
 <a href="Doc1.3/index.html">Updated documentation</a> for SWIG-1.3.12 is online.
 
