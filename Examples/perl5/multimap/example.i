@@ -36,7 +36,7 @@ extern int    gcd(int x, int y);
 extern int gcdmain(int argc, char *argv[]);
 
 %typemap(perl5,in) (char *bytes, int len) {
-  unsigned int temp;
+  STRLEN temp;
   $1 = (char *) SvPV($input, temp);
   $2 = (int) temp;
 }
@@ -47,7 +47,7 @@ extern int count(char *bytes, int len, char c);
 /* This example shows how to wrap a function that mutates a string */
 
 %typemap(perl5,in) (char *str, int len) {
-  unsigned int templen;
+  STRLEN templen;
   char *temp;
   temp = (char *) SvPV($input,templen);
   $2 = (int) templen;
