@@ -1,5 +1,11 @@
 Version 1.3.20 (In progress)
 ============================
+12/02/2003: beazley
+            [Tcl] Fixed [ 755382 ] calling func(const vector<T>& p) evaluates p[0] in interp.
+            The Tcl type checker was improperly handling the interpreter result when
+            type violations were supposed to be ignored.
+            Reported by Flaviu Popp-Nowak.
+
 11/30/2003: cheetah (William Fulton)
             Fixed [ 545058 ] configure's --with-tclincl has no effect
 
