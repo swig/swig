@@ -1,5 +1,6 @@
+
 /* -----------------------------------------------------------------------------
- * dohobj.h
+ * dohint.h
  *
  *     This file describes internally managed objects.
  *
@@ -11,8 +12,15 @@
  * $Header$
  * ----------------------------------------------------------------------------- */
 
-#ifndef _DOHOBJ_H
-#define _DOHOBJ_H
+#ifndef _DOHINT_H
+#define _DOHINT_H
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
+#include <ctype.h>
+#include <stdarg.h>
 
 #include "doh.h"
 
@@ -117,7 +125,8 @@ typedef struct {
 extern DOH     *DohObjMalloc(DohObjInfo *type, void *data); /* Allocate a DOH object */
 extern void     DohObjFree(DOH *ptr);               /* Free a DOH object     */
 
-#endif /* DOHOBJ_H */
+#endif /* DOHINT_H */
+
 
 
 
