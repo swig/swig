@@ -5,44 +5,48 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>5 SWIG and Pike</H1>
+<H1><a name="Pike"></a>24 SWIG and Pike</H1>
 <!-- INDEX -->
 <ul>
-<li><a href="#n2">Preliminaries</a>
+<li><a href="#Pike_nn2">Preliminaries</a>
 <ul>
-<li><a href="#n3">Running SWIG</a>
-<li><a href="#n4">Getting the right header files</a>
-<li><a href="#n5">Using your module</a>
+<li><a href="#Pike_nn3">Running SWIG</a>
+<li><a href="#Pike_nn4">Getting the right header files</a>
+<li><a href="#Pike_nn5">Using your module</a>
 </ul>
-<li><a href="#n6">Basic C/C++ Mapping</a>
+<li><a href="#Pike_nn6">Basic C/C++ Mapping</a>
 <ul>
-<li><a href="#n7">Modules</a>
-<li><a href="#n8">Functions</a>
-<li><a href="#n9">Global variables</a>
-<li><a href="#n10">Constants and enumerated types</a>
-<li><a href="#n11">Constructors and Destructors</a>
-<li><a href="#n12">Static Members</a>
+<li><a href="#Pike_nn7">Modules</a>
+<li><a href="#Pike_nn8">Functions</a>
+<li><a href="#Pike_nn9">Global variables</a>
+<li><a href="#Pike_nn10">Constants and enumerated types</a>
+<li><a href="#Pike_nn11">Constructors and Destructors</a>
+<li><a href="#Pike_nn12">Static Members</a>
 </ul>
 </ul>
 <!-- INDEX -->
 
 
 
+<p>
 This chapter describes SWIG support for Pike. As of this writing, the
 SWIG  Pike module is still under development and is not considered
 ready for prime  time. The Pike module is being developed against the
 Pike 7.4.10 release  and may not be compatible with previous versions
-of Pike.<p>
+of Pike.
+</p>
 
+<p>
 This chapter covers most SWIG features, but certain low-level details
 are  covered in less depth than in earlier chapters.  At the very
-least, make sure you read the "<a
- href="file:///home/jlj/src/SWIG/Doc/Manual/SWIG.html">SWIG Basics</a>"
+least, make sure you read the "<a href="SWIG.html#SWIG">SWIG Basics</a>"
 chapter.<br>
-<a name="n2"></a><H2>5.1 Preliminaries</H2>
+</p>
+
+<H2><a name="Pike_nn2"></a>24.1 Preliminaries</H2>
 
 
-<a name="n3"></a><H3>5.1.1 Running SWIG</H3>
+<H3><a name="Pike_nn3"></a>24.1.1 Running SWIG</H3>
 
 
 Suppose that you defined a SWIG module such as the following:
@@ -57,35 +61,46 @@ If you're building a C++ extension, be sure to add the <tt>-c++</tt> option:
 <blockquote>
   <pre>$ <b>swig -c++ -pike example.i</b><br></pre>
 </blockquote>
+
+<p>
 This creates a single source file named <tt>example_wrap.c</tt> (or <tt>example_wrap.cxx</tt>, if you
 ran SWIG with the <tt>-c++</tt> option).
 The SWIG-generated source file contains the low-level wrappers that need
 to be compiled and linked with the rest of your C/C++ application to
-create an extension module.<p>
+create an extension module.
+</p>
 
+<p>
 The name of the wrapper file is derived from the name of the input
 file.  For example, if the input file is <tt>example.i</tt>, the name
 of the wrapper file is <tt>example_wrap.c</tt>. To change this, you
 can use the <tt>-o</tt> option:
+</p>
+
 <blockquote>
   <pre>$ <b>swig -pike -o pseudonym.c example.i</b><br></pre>
 </blockquote>
-<a name="n4"></a><H3>5.1.2 Getting the right header files</H3>
+<H3><a name="Pike_nn4"></a>24.1.2 Getting the right header files</H3>
 
 
+<p>
 In order to compile the C/C++ wrappers, the compiler needs to know the
 path to the Pike header files. These files are usually contained in a
 directory such as
-<p> </p>
+</p>
+
 <blockquote>
   <pre>/usr/local/pike/7.4.10/include/pike<br></pre>
 </blockquote>
+
+<p>
 There doesn't seem to be any way to get Pike itself to reveal the
 location of these files, so you may need to hunt around for them.
 You're looking for files with the names <tt>global.h</tt>, <tt>program.h</tt>
 and so on.
+</p>
 
-<a name="n5"></a><H3>5.1.3 Using your module</H3>
+<H3><a name="Pike_nn5"></a>24.1.3 Using your module</H3>
 
 
 To use your module, simply use Pike's <tt>import</tt> statement:
@@ -98,10 +113,10 @@ Pike v7.4 release 10 running Hilfe v3.5 (Incremental Pike Frontend)
 (1) Result: 24
 </pre></blockquote>
 
-<a name="n6"></a><H2>5.2 Basic C/C++ Mapping</H2>
+<H2><a name="Pike_nn6"></a>24.2 Basic C/C++ Mapping</H2>
 
 
-<a name="n7"></a><H3>5.2.1 Modules</H3>
+<H3><a name="Pike_nn7"></a>24.2.1 Modules</H3>
 
 
 All of the code for a given SWIG module is wrapped into a single Pike
@@ -110,7 +125,7 @@ module ultimately determines the module's name (as far as Pike is
 concerned), SWIG's <tt>%module</tt> directive doesn't really have any
 significance.
 
-<a name="n8"></a><H3>5.2.2 Functions</H3>
+<H3><a name="Pike_nn8"></a>24.2.2 Functions</H3>
 
 
 Global functions are wrapped as new Pike built-in functions. For
@@ -131,7 +146,7 @@ exactly as you'd expect it to:
 (1) Result: 24
 </pre></blockquote>
 
-<a name="n9"></a><H3>5.2.3 Global variables</H3>
+<H3><a name="Pike_nn9"></a>24.2.3 Global variables</H3>
 
 
 Global variables are currently wrapped as a pair of of functions, one to get
@@ -156,19 +171,19 @@ will result in two functions, <tt>Foo_get()</tt> and <tt>Foo_set()</tt>:
 (3) Result: 3.141590
 </pre></blockquote>
 
-<a name="n10"></a><H3>5.2.4 Constants and enumerated types</H3>
+<H3><a name="Pike_nn10"></a>24.2.4 Constants and enumerated types</H3>
 
 
 Enumerated types in C/C++ declarations are wrapped as Pike constants,
 not as Pike enums.
 
-<a name="n11"></a><H3>5.2.5 Constructors and Destructors</H3>
+<H3><a name="Pike_nn11"></a>24.2.5 Constructors and Destructors</H3>
 
 
 Constructors are wrapped as <tt>create()</tt> methods, and destructors are
 wrapped as <tt>destroy()</tt> methods, for Pike classes.
 
-<a name="n12"></a><H3>5.2.6 Static Members</H3>
+<H3><a name="Pike_nn12"></a>24.2.6 Static Members</H3>
 
 
 Since Pike doesn't support static methods or data for Pike classes, static

@@ -4,11 +4,11 @@
 <title>SWIG and C#</title>
 </head>
 <body bgcolor="#FFFFFF">
-<a name="n1"></a><H1>15 SWIG and C#</H1>
+<H1><a name="CSharp"></a>16 SWIG and C#</H1>
 <!-- INDEX -->
-<ul>
-</ul>
 <!-- INDEX -->
+
+
 
 The purpose of the C# module is to offer an automated way of accessing existing C/C++ code from .NET languages.
 The wrapper code implementation uses the Platform Invoke (PINVOKE) interface to access natively compiled C/C++ code.
@@ -18,7 +18,7 @@ PINVOKE is part of the ECMA/ISO C# specification.
 <p>
 The C# module is one of the more recently added language modules to SWIG and consequently is missing some functionality available in some other SWIG modules.
 The C# module is very similar to the Java module, so until some documentation has been written,
-please use the <a href="Java.html">Java documentation</a> as a guide to using SWIG with C#.
+please use the <a href="Java.html#Java">Java documentation</a> as a guide to using SWIG with C#.
 The rest of this chapter should be read in conjunction with the Java documentation as it lists the main differences.
 
 <p>
@@ -52,7 +52,7 @@ There is no implementation for type unsafe enums - not deemed necessary.
 
 <li>
 The default enum wrapping approach is proper C# enums, not typesafe enums.
-<br/>
+<br>
 Note that %csconst(0) will be ignored when wrapping C/C++ enums with proper C# enums.
 This is because C# enum items must be initialised from a compile time constant.
 If an enum item has an initialiser and the initialiser doesn't compile as C# code,
@@ -70,20 +70,20 @@ Likewise there is no need for an equivalent to <tt>%javaexception</tt>.
 Typemap equivalent names:
 
 <blockquote><pre>
-jni                         -> ctype
-jtype                       -> imtype
-jstype                      -> cstype
-javain                      -> csin
-javaout                     -> csout
-javainterfaces              -> csinterfaces and csinterfaces_derived
-javabase                    -> csbase
-javaclassmodifiers          -> csclassmodifiers
-javacode                    -> cscode
-javaimports                 -> csimports
-javabody                    -> csbody
-javafinalize                -> csfinalize
-javadestruct                -> csdestruct
-javadestruct_derived        -> csdestruct_derived
+jni                         -&gt; ctype
+jtype                       -&gt; imtype
+jstype                      -&gt; cstype
+javain                      -&gt; csin
+javaout                     -&gt; csout
+javainterfaces              -&gt; csinterfaces and csinterfaces_derived
+javabase                    -&gt; csbase
+javaclassmodifiers          -&gt; csclassmodifiers
+javacode                    -&gt; cscode
+javaimports                 -&gt; csimports
+javabody                    -&gt; csbody
+javafinalize                -&gt; csfinalize
+javadestruct                -&gt; csdestruct
+javadestruct_derived        -&gt; csdestruct_derived
 </pre></blockquote>
 
 </li>
@@ -101,30 +101,30 @@ csvarout                    C# code property get typemap
 <li>
 Feature equivalent names:
 <blockquote><pre>
-%javaconst                  -> %csconst
-%javaconstvalue             -> %csconstvalue
-%javamethodmodifiers        -> %csmethodmodifiers
+%javaconst                  -&gt; %csconst
+%javaconstvalue             -&gt; %csconstvalue
+%javamethodmodifiers        -&gt; %csmethodmodifiers
 </pre></blockquote>
 </li>
 
 <li>
 Pragma equivalent names:
 <blockquote><pre>
-%pragma(java)               -> %pragma(csharp)
-jniclassbase                -> imclassbase
-jniclassclassmodifiers      -> imclassclassmodifiers
-jniclasscode                -> imclasscode
-jniclassimports             -> imclassimports
-jniclassinterfaces          -> imclassinterfaces
+%pragma(java)               -&gt; %pragma(csharp)
+jniclassbase                -&gt; imclassbase
+jniclassclassmodifiers      -&gt; imclassclassmodifiers
+jniclasscode                -&gt; imclasscode
+jniclassimports             -&gt; imclassimports
+jniclassinterfaces          -&gt; imclassinterfaces
 </pre></blockquote>
 </li>
 
 <li>
 Special variable equivalent names:
 <blockquote><pre>
-$javaclassname              -> $csclassname
-$javainput                  -> $csinput
-$jnicall                    -> $imcall
+$javaclassname              -&gt; $csclassname
+$javainput                  -&gt; $csinput
+$jnicall                    -&gt; $imcall
 </pre></blockquote>
 </li>
 

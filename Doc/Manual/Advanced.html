@@ -7,23 +7,23 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>15 Advanced Topics</H1>
+<H1><a name="Advanced"></a>29 Advanced Topics</H1>
 <!-- INDEX -->
 <ul>
-<li><a href="#n2">Creating multi-module packages</a>
+<li><a href="#Advanced_nn2">Creating multi-module packages</a>
 <ul>
-<li><a href="#n3">Runtime support (and potential problems)</a>
-<li><a href="#n4">Why doesn't C++ inheritance work between modules?</a>
-<li><a href="#n5">The SWIG runtime library</a>
-<li><a href="#n6">A few dynamic loading gotchas</a>
+<li><a href="#Advanced_nn3">Runtime support (and potential problems)</a>
+<li><a href="#Advanced_nn4">Why doesn't C++ inheritance work between modules?</a>
+<li><a href="#Advanced_nn5">The SWIG runtime library</a>
+<li><a href="#Advanced_nn6">A few dynamic loading gotchas</a>
 </ul>
-<li><a href="#n7">Dynamic Loading of C++ modules</a>
-<li><a href="#n8">Inside the SWIG type-checker</a>
+<li><a href="#Advanced_nn7">Dynamic Loading of C++ modules</a>
+<li><a href="#Advanced_nn8">Inside the SWIG type-checker</a>
 <ul>
-<li><a href="#n9">Type equivalence</a>
-<li><a href="#n10">Type casting</a>
-<li><a href="#n11">Why a name based approach?</a>
-<li><a href="#n12">Performance of the type-checker</a>
+<li><a href="#Advanced_nn9">Type equivalence</a>
+<li><a href="#Advanced_nn10">Type casting</a>
+<li><a href="#Advanced_nn11">Why a name based approach?</a>
+<li><a href="#Advanced_nn12">Performance of the type-checker</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -32,27 +32,42 @@
 
 <b>Caution: This chapter is under repair!</b>
 
-<a name="n2"></a><H2>15.1 Creating multi-module packages</H2>
+<H2><a name="Advanced_nn2"></a>29.1 Creating multi-module packages</H2>
 
 
-SWIG can be used to create packages consisting of many different modules. However, there are some technical aspects of doing this and techniques for managing the problem.<p>
+<p>
+SWIG can be used to create packages consisting of many different modules. However, there are some technical aspects of doing this and techniques for managing the problem.
+</p>
+
+<p>
 This chapter doesn't apply to those languages that use static type checking, rather than runtime type checking, such as Java and C#.
-<a name="n3"></a><H3>15.1.1 Runtime support (and potential problems)</H3>
+</p>
+
+<H3><a name="Advanced_nn3"></a>29.1.1 Runtime support (and potential problems)</H3>
 
 
+<p>
 Most SWIG generated modules rely upon a small collection of functions that are used during run-time.
 These functions are primarily used for pointer type-checking, exception handling, and so on. 
 When you run SWIG, these functions are included in the wrapper file (and declared as static). 
-If you create a system consisting of many modules, each one will have an identical copy of these runtime libraries :<p>
-<center><img src="ch11.1.png"></center><p>
+If you create a system consisting of many modules, each one will have an identical copy of these runtime libraries :
+</p>
+
+<center><img src="ch11.1.png" alt="Modules 1-N each have their own identical runtime library"></center>
+
 <p>
-This duplication of runtime libraries is usually harmless since there are no namespace conflicts and memory overhead is minimal. However, there is serious problem related to the fact that modules do not share type-information.  This is particularly a problem when working with C++ (as described next).<p>
-<a name="n4"></a><H3>15.1.2 Why doesn't C++ inheritance work between modules?</H3>
+This duplication of runtime libraries is usually harmless since there are no namespace conflicts and memory overhead is minimal. However, there is serious problem related to the fact that modules do not share type-information.  This is particularly a problem when working with C++ (as described next).
+</p>
+
+<H3><a name="Advanced_nn4"></a>29.1.2 Why doesn't C++ inheritance work between modules?</H3>
 
 
-Consider for a moment the following two interface files :<p>
 <p>
-<blockquote><pre>// File : a.i
+Consider for a moment the following two interface files :
+</p>
+
+<blockquote><pre>
+// File : a.i
 %module a
 
 // Here is a base class
@@ -76,8 +91,11 @@ public:
 };
 
 </pre></blockquote>
-When compiled into two separate modules, the code does not work properly. In fact, you get a type error such as the following:<p>
+
 <p>
+When compiled into two separate modules, the code does not work properly. In fact, you get a type error such as the following:
+</p>
+
 <blockquote><pre>
 [beazley@guinness shadow]$ <b>python</b>
 Python 1.4 (Jan 16 1997)  [GCC 2.7.2]
@@ -94,18 +112,26 @@ Traceback (innermost last):
 TypeError: Type error in argument 1 of a_foo. Expected _a_p.
 &gt;&gt;&gt;
 </pre></blockquote>
+
 <p>
-However, from our class definitions we know that "b" is an "a" by inheritance and there should be no type-error. This problem is directly due to the lack of type-sharing between modules. If we look closely at the module modules created here, they look like this :<p>
-<center><img src="ch11.2.png"></center><p>
+However, from our class definitions we know that "b" is an "a" by inheritance and there should be no type-error. This problem is directly due to the lack of type-sharing between modules. If we look closely at the module modules created here, they look like this :
+</p>
+
+<center><img src="ch11.2.png" alt="a accepts a, b accepts a and b, b accepts b"></center>
+
 <p>
-The type information listed shows the acceptable values for various C datatypes.  In the "a" module, we see that "a" can only accept instances of itself.  In the "b" module, we see that "a"  can accept both "a" and "b" instances--which is correct given that a "b"  is an "a" by inheritance.<p>
+The type information listed shows the acceptable values for various C datatypes.  In the "a" module, we see that "a" can only accept instances of itself.  In the "b" module, we see that "a"  can accept both "a" and "b" instances--which is correct given that a "b"  is an "a" by inheritance.
+</p>
+
 <p>
-Unfortunately, this problem is inherent in the method by which SWIG makes modules.  When we made the "a" module, we had no idea what derived classes might be used at a later time. However, it's impossible to produce the proper type information until after we know all of the derived classes.   A nice problem to be sure, but one that can be fixed by making all modules share a single copy of the SWIG run-time library.<p>
-<a name="n5"></a><H3>15.1.3 The SWIG runtime library</H3>
+Unfortunately, this problem is inherent in the method by which SWIG makes modules.  When we made the "a" module, we had no idea what derived classes might be used at a later time. However, it's impossible to produce the proper type information until after we know all of the derived classes.   A nice problem to be sure, but one that can be fixed by making all modules share a single copy of the SWIG run-time library.
+</p>
+
+<H3><a name="Advanced_nn5"></a>29.1.3 The SWIG runtime library</H3>
 
 
 To reduce overhead and to fix type-handling problems, it is possible to share the SWIG run-time functions between multiple modules.
-The <a href="#Modules.html">Working with Modules</a> chapter describes this in further detail and how to build the SWIG runtime library. The steps can be summarised as follows:
+The <a href="Modules.html#Modules">Working with Modules</a> chapter describes this in further detail and how to build the SWIG runtime library. The steps can be summarised as follows:
 
 <ul>
   <li>  Build the SWIG run-time libraries. </li>
@@ -113,24 +139,33 @@ The <a href="#Modules.html">Working with Modules</a> chapter describes this in f
   <li>  Build SWIG modules by linking against the appropriate runtime libraries. </li>
 </ul>
 
-When completed you should now end up with a collection of modules like this:<p>
-<center><img src="ch11.3.png"></center><p>
 <p>
-<p>
-In this configuration, the runtime library manages all datatypes and other information between modules.   This management process is dynamic in nature--when new modules are loaded, they contribute information to the run-time system.   In the C++ world, one could incrementally load classes as needed.  As this process occurs, type information is updated and base-classes learn about derived classes as needed.<p>
+When completed you should now end up with a collection of modules like this:
+</p>
+
+<center><img src="ch11.3.png" alt="Modules 1-N using single runtime"></center>
 
 <p>
+In this configuration, the runtime library manages all datatypes and other information between modules.   This management process is dynamic in nature--when new modules are loaded, they contribute information to the run-time system.   In the C++ world, one could incrementally load classes as needed.  As this process occurs, type information is updated and base-classes learn about derived classes as needed.
+</p>
 
+<p>
 <b>Compatibility Note:</b> In SWIG-1.3.19 and earlier releases, SWIG built the runtime libraries by default and attempted to install them with the SWIG installation. This had numerous limitations, not least, the version of the target language was tied to what was detected at installation time and would not necessarily be the version the user required.
+</p>
 
-<a name="n6"></a><H3>15.1.4 A few dynamic loading gotchas</H3>
+<H3><a name="Advanced_nn6"></a>29.1.4 A few dynamic loading gotchas</H3>
 
 
-When working with dynamic loading, it is critical to check that only one copy of the run-time library is being loaded into the system.  When working with <tt>.a</tt> library files, problems can sometimes occur so there are a few approaches to the problem.<p>
 <p>
-1.  Rebuild the scripting language executable with the SWIG runtime library attached to it.   This is actually, fairly easy to do using SWIG.  For example :<p>
+When working with dynamic loading, it is critical to check that only one copy of the run-time library is being loaded into the system.  When working with <tt>.a</tt> library files, problems can sometimes occur so there are a few approaches to the problem.
+</p>
+
 <p>
-<blockquote><pre>%module mytclsh
+1.  Rebuild the scripting language executable with the SWIG runtime library attached to it.   This is actually, fairly easy to do using SWIG.  For example :
+</p>
+
+<blockquote><pre>
+%module mytclsh
 %{
 
 static void *__embedfunc(void *a) { return a};
@@ -138,31 +173,44 @@ static void *__embedfunc(void *a) { return a};
 
 void *__embedfunc(void *);
 %include tclsh.i
-
 </pre></blockquote>
+
 <p>
-Now, assuming you have built the <a href="Modules.html">runtime library</a> as <tt>swigruntcl</tt>, run SWIG and compile as follows:<p>
-<p>
+Now, assuming you have built the <a href="Modules.html#Modules">runtime library</a> as <tt>swigruntcl</tt>, run SWIG and compile as follows:
+</p>
+
 <blockquote><pre>
 % <b>swig -c -tcl mytclsh.i</b>
 % <b>gcc mytclsh_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigruntcl -ldl -lm \
       -o tclsh</b>
 </pre></blockquote>
-This produces a new executable "<tt>tclsh</tt>" that contains a copy of the SWIG runtime library. The weird <tt>__embedfunc()</tt> function is needed to force the functions in the runtime library to be included in the final executable.<p>
+
 <p>
-To make new dynamically loadable SWIG modules, simply compile as follows :<p>
+This produces a new executable "<tt>tclsh</tt>" that contains a copy of the SWIG runtime library. The weird <tt>__embedfunc()</tt> function is needed to force the functions in the runtime library to be included in the final executable.
+</p>
+
 <p>
+To make new dynamically loadable SWIG modules, simply compile as follows :
+</p>
+
 <blockquote><pre>
 % <b>swig -c -tcl example.i</b>
 % <b>gcc -c example_wrap.c -I/usr/local/include</b>
 % <b>ld -shared example_wrap.o -o example.so</b>
 </pre></blockquote>
+
+<p>
 Linking against the <tt>swigruntcl</tt> library is no longer necessary as all of the functions are now included in the <tt>tclsh</tt> executable and will be resolved when your module is loaded. 
-However, some operating systems, like Windows, will still require linking with the libraries so that there are no unresolved symbols.<p>
+However, some operating systems, like Windows, will still require linking with the libraries so that there are no unresolved symbols.
+</p>
+
 <p>
-2.  Using shared library versions of the runtime library<p>
+2.  Using shared library versions of the runtime library
+</p>
+
 <p>
-If supported on your machine, the runtime libraries will be built as shared libraries (for example a <tt>.so</tt>, <tt>.sl</tt>, or .<tt>dll</tt> suffix). To compile using the runtime libraries, your link process should look something like this:<p>
+If supported on your machine, the runtime libraries will be built as shared libraries (for example a <tt>.so</tt>, <tt>.sl</tt>, or .<tt>dll</tt> suffix). To compile using the runtime libraries, your link process should look something like this:
+</p>
 
 <blockquote><pre>
 % <b>ld -shared example_wrap.o -o libexample.so</b>             # Irix
@@ -172,33 +220,58 @@ If supported on your machine, the runtime libraries will be built as shared libr
  /link /LIBPATH:PathToRuntimeLibrary /LIBPATH:c:\Tcl\lib</b> # Windows VC++
 </pre></blockquote>
 
+<p>
 In order for the <tt>libexample.so</tt> library to work, it needs to be placed in a location where the dynamic loader can find it. 
-Typically this is a system library directory (eg. <tt>/usr/local/lib</tt> or <tt>/usr/lib</tt>).<p>
+Typically this is a system library directory (eg. <tt>/usr/local/lib</tt> or <tt>/usr/lib</tt>).
+</p>
+
 <p>
-When running with the shared libary version, you may get error messages such as the following:<p>
+When running with the shared libary version, you may get error messages such as the following:
+</p>
+
+<blockquote><pre>
+Unable to locate libexample.so
+</pre></blockquote>
+
 <p>
-<blockquote><pre>Unable to locate libexample.so</pre></blockquote>
 This indicates that the loader was unable to find the shared libary at run-time. 
 To find shared libaries, the loader looks through a collection of predetermined paths. 
 If the shared library file is not in any of these directories, it results in an error. 
-On most machines, you can change the loader search path by changing the path (Windows) or environment variable <tt>LD_LIBRARY_PATH</tt> (Unix), e.g.<p>
+On most machines, you can change the loader search path by changing the path (Windows) or environment variable <tt>LD_LIBRARY_PATH</tt> (Unix), e.g.
+</p>
+
+<blockquote><pre>
+% <b>setenv LD_LIBRARY_PATH .:/home/beazley/packages/lib</b>
+</pre></blockquote>
+
 <p>
-<blockquote><pre>% <b>setenv LD_LIBRARY_PATH .:/home/beazley/packages/lib</b></pre></blockquote>
-A somewhat better approach is to link your module with the proper path encoded. This is typically done using the `<tt>-rpath</tt>' or `<tt>-R</tt>' option to your linker on Unix (see the man page). For example:<p>
-<p>
-<blockquote><pre>% <b>ld -shared example_wrap.o example.o -rpath /home/beazley/packages/lib \
+A somewhat better approach is to link your module with the proper path encoded. This is typically done using the `<tt>-rpath</tt>' or `<tt>-R</tt>' option to your linker on Unix (see the man page). For example:
+</p>
+
+<blockquote><pre>
+% <b>ld -shared example_wrap.o example.o -rpath /home/beazley/packages/lib \
        -L/home/beazley/packages/lib -lswigruntcl.so -o example.so</b>
 </pre></blockquote>
-The <tt>-rpath</tt> option encodes the location of shared libraries into your modules and gets around having to set the <tt>LD_LIBRARY_PATH</tt> variable.<p>
+
 <p>
-If all else fails, pull up the man pages for your linker and start playing around.<p>
-<a name="n7"></a><H2>15.2 Dynamic Loading of C++ modules</H2>
+The <tt>-rpath</tt> option encodes the location of shared libraries into your modules and gets around having to set the <tt>LD_LIBRARY_PATH</tt> variable.
+</p>
+
+<p>
+If all else fails, pull up the man pages for your linker and start playing around.
+</p>
+
+<H2><a name="Advanced_nn7"></a>29.2 Dynamic Loading of C++ modules</H2>
 
 
-Dynamic loading of C++ modules presents a special problem for many systems. This is because C++ modules often need additional supporting code for proper initialization and operation. Static constructors are also a bit of a problem.<p>
 <p>
-While the process of building C++ modules is, by no means, and exact science, here are a few rules of thumb to follow :<p>
+Dynamic loading of C++ modules presents a special problem for many systems. This is because C++ modules often need additional supporting code for proper initialization and operation. Static constructors are also a bit of a problem.
+</p>
+
 <p>
+While the process of building C++ modules is, by no means, and exact science, here are a few rules of thumb to follow :
+</p>
+
 <ul>
 <li>Don't use static constructors if at all possible (not always avoidable).
 <li>Try linking your module with the C++ compiler using a command like `c++ -shared'.  This often solves alot of problems.
@@ -206,113 +279,164 @@ While the process of building C++ modules is, by no means, and exact science, he
 <li>Read the compiler and linker man pages over and over until you have them memorized (this may not help in some cases however).
 <li>Search articles on Usenet, particularly in <tt>comp.lang.tcl</tt>, <tt>comp.lang.perl</tt>, <tt>comp.lang.python</tt> and <tt>comp.lang.ruby</tt>. Building C++ modules is a common problem.
 </ul>
+
 <p>
-The SWIG distribution contains some additional documentation about C++ modules in the Doc directory as well.<p>
-<a name="n8"></a><H2>15.3 Inside the SWIG type-checker</H2>
+The SWIG distribution contains some additional documentation about C++ modules in the Doc directory as well.
+</p>
+
+<H2><a name="Advanced_nn8"></a>29.3 Inside the SWIG type-checker</H2>
 
 
-The SWIG runtime type-checker plays a critical role in the correct operation of SWIG modules.   It not only checks the validity of pointer types, but also manages C++ inheritance, and performs proper type-casting of pointers when necessary.  This section provides some insight into what it does, how it works, and why it is the way it is.<p>
-
-<a name="n9"></a><H3>15.3.1 Type equivalence</H3>
-
-
-SWIG uses a name-based approach to managing pointer datatypes. For example, if you are using a pointer like "<tt>double *</tt>", the type-checker will look for a particular string representation of that datatype such as "<tt>_double_p</tt>".   If no match is found, a type-error is reported.<p>
 <p>
-However, the matching process is complicated by the fact that datatypes may use a variety of different names.  For example, the following declarations<p>
+The SWIG runtime type-checker plays a critical role in the correct operation of SWIG modules.   It not only checks the validity of pointer types, but also manages C++ inheritance, and performs proper type-casting of pointers when necessary.  This section provides some insight into what it does, how it works, and why it is the way it is.
+</p>
+
+<H3><a name="Advanced_nn9"></a>29.3.1 Type equivalence</H3>
+
+
 <p>
-<blockquote><pre>typedef double   Real;
+SWIG uses a name-based approach to managing pointer datatypes. For example, if you are using a pointer like "<tt>double *</tt>", the type-checker will look for a particular string representation of that datatype such as "<tt>_double_p</tt>".   If no match is found, a type-error is reported.
+</p>
+
+<p>
+However, the matching process is complicated by the fact that datatypes may use a variety of different names.  For example, the following declarations
+</p>
+
+<blockquote><pre>
+typedef double   Real;
 typedef Real *   RealPtr;
 typedef double   Float;
 
 </pre></blockquote>
-define two sets of equivalent types :<p>
-<p>
-<blockquote><pre>{double, Real, Float}
-{RealPtr, Real *}
 
+<p>
+define two sets of equivalent types :
+</p>
+
+<blockquote><pre>
+{double, Real, Float}
+{RealPtr, Real *}
 </pre></blockquote>
-All of the types in each set are freely interchangable and the type-checker knows about the relationships by managing a table of equivalences such as the following :<p>
+
+<p>
+All of the types in each set are freely interchangable and the type-checker knows about the relationships by managing a table of equivalences such as the following :
+</p>
+
 <blockquote><pre>
 double    =&gt; { Real, Float }
 Real      =&gt; { double, Float }
 Float     =&gt; { double, Real }
 RealPtr   =&gt; { Real * }
 Real *    =&gt; { RealPtr }
-
 </pre></blockquote>
-<p>
-When you declare a function such as the following :<p>
-<p>
-<blockquote><pre>void foo(Real *a);
 
-</pre></blockquote>
-SWIG first checks to see if the argument passed is a "<tt>Real *</tt>".   If not, it checks to see if it is any of the other equivalent types (<tt>double *</tt>, <tt>RealPtr</tt>, <tt>Float *</tt>).  If so, the value is accepted and no error occurs.<p>
 <p>
-Derived versions of the various datatypes are also legal.  For example, if you had a function like this,<p>
-<p>
-<blockquote><pre>void bar(Float ***a);
+When you declare a function such as the following :
+</p>
 
+<blockquote><pre>
+void foo(Real *a);
 </pre></blockquote>
-The type-checker will accept pointers of type <tt>double ***</tt> and <tt>Real ***.</tt>  However, the type-checker does not always capture the full-range of possibilities.  For example, a datatype of `<tt>RealPtr **</tt>' is equivalent to a `<tt>Float ***</tt>' but would be flagged as a type error.   If you encounter this kind of problem, you can manually force SWIG to make an equivalence as follows:<p>
+
 <p>
-<blockquote><pre>// Tell the type checker that `Float_ppp' and `RealPtr_pp' are equivalent.
+SWIG first checks to see if the argument passed is a "<tt>Real *</tt>".   If not, it checks to see if it is any of the other equivalent types (<tt>double *</tt>, <tt>RealPtr</tt>, <tt>Float *</tt>).  If so, the value is accepted and no error occurs.
+</p>
+
+<p>
+Derived versions of the various datatypes are also legal.  For example, if you had a function like this,
+</p>
+
+<blockquote><pre>
+void bar(Float ***a);
+</pre></blockquote>
+
+<p>
+The type-checker will accept pointers of type <tt>double ***</tt> and <tt>Real ***.</tt>  However, the type-checker does not always capture the full-range of possibilities.  For example, a datatype of `<tt>RealPtr **</tt>' is equivalent to a `<tt>Float ***</tt>' but would be flagged as a type error.   If you encounter this kind of problem, you can manually force SWIG to make an equivalence as follows:
+</p>
+
+<blockquote><pre>
+// Tell the type checker that `Float_ppp' and `RealPtr_pp' are equivalent.
 %init %{
 	SWIG_RegisterMapping("Float_ppp","RealPtr_pp",0);
 %}
 
 </pre></blockquote>
-Doing this should hardly ever be necessary (I have never encountered a case where this was necessary), but if all else fails, you can force the run-time type checker into doing what you want.<p>
+
 <p>
-Type-equivalence of C++ classes is handled in a similar manner, but is encoded in a manner to support inheritance.  For example, consider the following classes hierarchy :<p>
+Doing this should hardly ever be necessary (I have never encountered a case where this was necessary), but if all else fails, you can force the run-time type checker into doing what you want.
+</p>
+
 <p>
-<blockquote><pre>class A { };
+Type-equivalence of C++ classes is handled in a similar manner, but is encoded in a manner to support inheritance.  For example, consider the following classes hierarchy :
+</p>
+
+<blockquote><pre>
+class A { };
 class B : public A { };
 class C : public B { };
 class D {};
 class E : public C, public D {};
-
 </pre></blockquote>
-The type-checker encodes this into the following sets :<p>
+
 <p>
-<blockquote><pre>A =&gt; { B, C, E }              "B isa A, C isa A, E isa A"
+The type-checker encodes this into the following sets :
+</p>
+
+<blockquote><pre>
+A =&gt; { B, C, E }              "B isa A, C isa A, E isa A"
 B =&gt; { C, E }                 "C isa B, E isa B"
 C =&gt; { E }                    "E isa C"
 D =&gt; { E }                    "E isa D"
 E =&gt; { }
-
 </pre></blockquote>
-The encoding reflects the class hierarchy. For example, any object of type "A" will also accept objects of type B,C, and E because these are all derived from A.  However, it is not legal to go the other way. For example, a function operating on a object from class E will not accept an object from class A.<p>
-<a name="n10"></a><H3>15.3.2 Type casting</H3>
 
-
-When working with C++ classes, SWIG needs to perform proper typecasting between derived and base classes.  This is particularly important when working with multiple inheritance.   To do this, conversion functions are created such as the following :<p>
 <p>
-<blockquote><pre>void *EtoA(void *ptr) {
+The encoding reflects the class hierarchy. For example, any object of type "A" will also accept objects of type B,C, and E because these are all derived from A.  However, it is not legal to go the other way. For example, a function operating on a object from class E will not accept an object from class A.
+</p>
+
+<H3><a name="Advanced_nn10"></a>29.3.2 Type casting</H3>
+
+
+<p>
+When working with C++ classes, SWIG needs to perform proper typecasting between derived and base classes.  This is particularly important when working with multiple inheritance.   To do this, conversion functions are created such as the following :
+</p>
+
+<blockquote><pre>
+void *EtoA(void *ptr) {
 	E *in = (E *) ptr;
 	A *out = (A *) in;       // Cast using C++
 	return (void *) out;
 }
 
 </pre></blockquote>
-All pointers are internally represented as void *, but conversion functions are always invoked when pointer values are converted between base and derived classes in a C++ class hierarchy.<p>
 
-<a name="n11"></a><H3>15.3.3 Why a name based approach?</H3>
-
-
-SWIG uses a name-based approach to type-checking for a number of reasons :<p>
 <p>
+All pointers are internally represented as void *, but conversion functions are always invoked when pointer values are converted between base and derived classes in a C++ class hierarchy.
+</p>
+
+<H3><a name="Advanced_nn11"></a>29.3.3 Why a name based approach?</H3>
+
+
+<p>
+SWIG uses a name-based approach to type-checking for a number of reasons :
+</p>
+
 <ul>
 <li>One of SWIG's main uses is code development and debugging.   In this environment, the type name of an object turns out to be a useful piece of information in tracking down problems.
 <li>In languages like Perl, the name of a datatype is used to determine things like packages and classes.    By using datatype names we get a natural mapping between C and Perl.
 <li>I believe using the original names of datatypes is more intuitive than munging them into something completely different.
 </ul>
+
 <p>
-An alternative to a name based scheme would be to generate type-signatures based on the structure of a datatype.   Such a scheme would result in perfect type-checking, but I think it would also result in a very confusing scripting language module.  For this reason, I see SWIG sticking with the name-based approach--at least for the foreseeable future.  <p>
-<a name="n12"></a><H3>15.3.4 Performance of the type-checker</H3>
+An alternative to a name based scheme would be to generate type-signatures based on the structure of a datatype.   Such a scheme would result in perfect type-checking, but I think it would also result in a very confusing scripting language module.  For this reason, I see SWIG sticking with the name-based approach--at least for the foreseeable future.
+</p>
+
+<H3><a name="Advanced_nn12"></a>29.3.4 Performance of the type-checker</H3>
 
 
-The type-checker performs the following steps when matching a datatype :<p>
 <p>
+The type-checker performs the following steps when matching a datatype :
+</p>
 
 <dl>
 <dt>1.	 Check a pointer against the type supplied in the original C declaration.  If there is a perfect match, we're done.
@@ -321,14 +445,16 @@ The type-checker performs the following steps when matching a datatype :<p>
 <dt>4.	 If not found, report an error.
 
 </dl>
-<p>
-Most well-structured C codes will find an exact match on the first attempt, providing the best possible performance.  For C++ codes, it is quite common to be passing various objects of a common base-class around between functions.   When base-class functions are invoked, it almost always results in a miscompare (because the type-checker is looking for the base-type).  In this case, we drop down to a small cache of recently used datatypes.   If we've used a pointer of the same type recently, it will be in the cache and we can match against it.    For tight loops, this results in about 10-15% overhead over finding a match on the first try.   Finally, as a last resort, we need to search the internal pointer tables for a match.  This involves a combination of hash table lookup and linear search.  If a match is found, it is placed into the cache and the result returned.  If not, we finally report a type-mismatch.<p>
-<p>
-As a rule of  thumb, C++ programs require somewhat more processing than C programs, but this seems to be avoidable.    Also, keep in mind that performance penalties in the type-checker don't necessarily translate into big penalties in the overall application.  Performance is most greatly affected by the efficiency of the target scripting language and the types of operations your C code is performing.<p>
-<p>
-<p>
 
-<p><hr>
+<p>
+Most well-structured C codes will find an exact match on the first attempt, providing the best possible performance.  For C++ codes, it is quite common to be passing various objects of a common base-class around between functions.   When base-class functions are invoked, it almost always results in a miscompare (because the type-checker is looking for the base-type).  In this case, we drop down to a small cache of recently used datatypes.   If we've used a pointer of the same type recently, it will be in the cache and we can match against it.    For tight loops, this results in about 10-15% overhead over finding a match on the first try.   Finally, as a last resort, we need to search the internal pointer tables for a match.  This involves a combination of hash table lookup and linear search.  If a match is found, it is placed into the cache and the result returned.  If not, we finally report a type-mismatch.
+</p>
+
+<p>
+As a rule of  thumb, C++ programs require somewhat more processing than C programs, but this seems to be avoidable.    Also, keep in mind that performance penalties in the type-checker don't necessarily translate into big penalties in the overall application.  Performance is most greatly affected by the efficiency of the target scripting language and the types of operations your C code is performing.
+</p>
+
+<hr>
 
 <address>SWIG 1.3 - Last Modified : July 9, 2004</address>
 </body>
