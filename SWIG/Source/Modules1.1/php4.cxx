@@ -59,9 +59,12 @@ static String	  *s_header;
 static String	  *s_wrappers;
 static String	  *s_init;
 static String	  *s_vinit;
+static String	  *s_vdecl;
 static String	  *s_cinit;
 static String	  *s_oinit;
 static String	  *s_entry;
+static String	  *cs_entry;
+static String	  *all_cs_entry;
 static String	  *pragma_incl;
 static String	  *pragma_code;
 static String	  *pragma_phpinfo;
@@ -398,9 +401,9 @@ PHP4::top(Node *n) {
   s_type = NewString("");
   /* subsections of the init section */
   s_vinit = NewString("/* vinit subsection */\n");
+  s_vdecl = NewString("/* vdecl subsection */\n");
   s_cinit = NewString("/* cinit subsection */\n");
   s_oinit = NewString("/* oinit subsection */\n");
-
   pragma_phpinfo = NewString("");
 
 
@@ -523,10 +526,13 @@ PHP4::top(Node *n) {
 
   /* start the function entry section */
   s_entry = NewString("/* entry subsection */\n");
+  /* holds all the per-class function entry sections */
+  all_cs_entry = NewString("/* class entry subsection */\n");
+  cs_entry = NULL;
   Printf(s_entry, "static void Swig_sync_c(void);\n");
   Printf(s_entry, "static void Swig_sync_php(void);\n\n");
 
-  Printf(s_entry,"/* Every user visible function must have an entry */\n");
+  Printf(s_entry,"/* Every non-class user visible function must have an entry here */\n");
   Printf(s_entry,"function_entry %s_functions[] = {\n", module);
 
 
@@ -546,7 +552,7 @@ PHP4::top(Node *n) {
 	Printf(s_init,"#endif\n\n");
 
   Printf(s_init,
-	"PHP_MINIT_FUNCTION(%s)\n{\n"
+	"PHP_RINIT_FUNCTION(%s)\n{\n"
   	"    return SUCCESS;\n"
   	"}\n",
 	module);
@@ -557,11 +563,7 @@ PHP4::top(Node *n) {
   	"}\n",
 	module);
 
-
-  /* finish our init section */
-  Printf(s_vinit, "/* end vinit subsection */\n");
-
-  Printf(s_init,"PHP_RINIT_FUNCTION(%s)\n{\n", module);
+  Printf(s_init,"PHP_MINIT_FUNCTION(%s)\n{\n", module);
 
   /* Start variable init function (to be put in module init function) */
   Printf(s_cinit,
@@ -588,6 +590,9 @@ PHP4::top(Node *n) {
   /* Constants generated during top call */
   Printf(s_cinit, "/* end cinit subsection */\n");
   Printf(s_init, "%s\n", s_cinit); 
+
+  /* finish our init section which will have been used by class wrappers */
+  Printf(s_vinit, "/* end vinit subsection */\n");
 
   Printf(s_init, "%s\n%s\n", s_vinit, s_oinit);
   Delete(s_cinit);
@@ -643,6 +648,7 @@ PHP4::top(Node *n) {
 	
   Close(f_h);
 
+  Printf(s_header, "%s\n\n",all_cs_entry);
   Printf(s_header, 
 	"%s"
   	"	{NULL, NULL, NULL}\n};\n\n"
@@ -683,11 +689,13 @@ PHP4::top(Node *n) {
 
   Printf(s_header, "/* end header section */\n");
   Printf(s_wrappers, "/* end wrapper section */\n");
- 
-  Printv(f_runtime, s_wrappers, s_init, NULL);
+  Printf(s_vdecl, "/* end vdecl subsection */\n");
+
+  Printv(f_runtime, s_vdecl, s_wrappers, s_init, NULL);
   Delete(s_header);
   Delete(s_wrappers);
   Delete(s_init);
+  Delete(s_vdecl);
   Close(f_runtime);
   Printf(f_phpcode, "%s\n%s\n?>\n", pragma_incl, pragma_code);
   Close(f_phpcode); 
@@ -714,10 +722,12 @@ PHP4::create_command(char *cname, char *iname) {
 			*c = *c + 32;
 	}
 
-	Printf(s_entry,
+	Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
+
+	// This is for the single main function_entry record
+	if (! cs_entry) Printf(s_entry,
 	    "	ZEND_NAMED_FE(%s,\n"
 	    "		%s, NULL)\n", lower_cname,iname);
-	Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
 
 	free(lower_cname);
 }
@@ -796,7 +806,7 @@ PHP4::functionWrapper(Node *n) {
   // NOTE: possible we don't want to do this for constructors???
 
   if (native_constructor) {
-    if (native_constructor==NATIVE_CONSTRUCTOR) Printf(f->code, "// NATIVE Constructor\n");
+    if (native_constructor==NATIVE_CONSTRUCTOR) Printf(f->code, "// NATIVE Constructor\nint self_constructor=1;\n");
     else Printf(f->code, "// ALTERNATIVE Constructor\n");
   }
   Printf(f->code,"// %s %s\n",iname, name);
@@ -952,8 +962,11 @@ PHP4::functionWrapper(Node *n) {
         Printf(f->code,"zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n"
 			"*_cPtr = *return_value;\n"
 			"INIT_ZVAL(*return_value);\n"
+                        "// Gypsy switch here, we steal the pchar from _cPtr so\n"
+                        "// we don't need to zval_dtor _cPtr\n"
+                        "ZEND_REGISTER_RESOURCE(_cPtr, Z_STRVAL_P(_cPtr), le_swig_%s);\n"
                         "add_property_zval(this_ptr,\"_cPtr\",_cPtr);\n"
-			"} else if (! this_ptr) ");
+			"} else if (! this_ptr) ",shadow_classname);
       }
       {
 	Printf(f->code, "{\n// ALTERNATIVE Constructor, make an onject wrapper\n");
@@ -961,18 +974,18 @@ PHP4::functionWrapper(Node *n) {
         String *shadowrettype = NewString("");
         SwigToPhpType(d, iname, shadowrettype, shadow);
  
-        Printf(f->code, "zend_class_entry *ce;\n"
-			"if (zend_hash_find(EG(class_table), \"%(lower)s\", 1+strlen(\"%s\"), (void **) &ce)==FAILURE) { \n"
-			"zend_error(E_ERROR, \"Can't wrap class: %s\");\n"
-			"}\n"
+        Printf(f->code, 
 			"zval *obj; MAKE_STD_ZVAL(obj);\n"
 			"zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n"
 			"*_cPtr = *return_value;\n"
 			"INIT_ZVAL(*return_value);\n"
-                        "object_init_ex(obj,ce);\n"
+                        "object_init_ex(obj,ptr_ce_swig_%s);\n"
+                        "// Gypsy switch here, we steal the pchar from _cPtr so\n"
+                        "// we don't need to zval_dtor _cPtr\n"
+                        "ZEND_REGISTER_RESOURCE(_cPtr, Z_STRVAL_P(_cPtr), le_swig_%s);\n"
                         "add_property_zval(obj,\"_cPtr\",_cPtr);\n"
                         "*return_value=*obj;\n",
-			shadowrettype, shadowrettype, shadowrettype);
+			shadowrettype, shadowrettype);
 	Printf(f->code, "}\n");
       }
     } // end of if-shadow lark
@@ -1202,19 +1215,15 @@ int PHP4::classHandler(Node *n) {
 	class_name = Swig_copy_string(GetChar(n, "name"));
 
 	if(shadow) {
+                cs_entry = NewString("");
+		Printf(cs_entry,"// Function entries for %s\n"
+                 "static zend_function_entry %s_functions[] = {\n"
+                 ,class_name, class_name);
 		char *classname = GetChar(n, "name");
 		char *rename = GetChar(n, "sym:name");
 		char *ctype = GetChar(n, "kind");
 		if (!addSymbol(rename,n)) return SWIG_ERROR;
 		shadow_classname = Swig_copy_string(rename);
-
-		// Ugh, this is ugly
-	        char *shadow_lower_classname = strdup(shadow_classname);
-	        char *c;
-	        for(c = shadow_lower_classname; *c != '\0'; c++) {
-	                if(*c >= 'A' && *c <= 'Z')
-	                        *c = *c + 32;
-	        }
 
 		if(Strcmp(shadow_classname, module) == 0) {
 			Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
@@ -1260,52 +1269,55 @@ int PHP4::classHandler(Node *n) {
 			if(class_count > 1) 
 				Printf(stderr, "Error: %s inherits from multiple base classes(%s %s). Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n", shadow_classname, base, this_shadow_multinherit);
 		} else { // XXX Must be base class ?
+} // we want to write this out even if it inherits I think.
 		  /* Write out class init code */
 		  // NOTE: written_base_class NOW means ANY base class. 
 		  // i.e. we need to CG(active_class_entry) = NULL;
 		  // ready for the next class
-		  if(1 || !written_base_class) {
-		    if (written_base_class) Printf(s_oinit,"CG(active_class_entry) = NULL;\n");
-		    else Printf(s_oinit, "//WOT, NEW BASE_CLASS\n");
+		  {
+//		    if (written_base_class) Printf(s_oinit,"CG(active_class_entry) = NULL;\n");
+//		    else Printf(s_oinit, "//WOT, NEW BASE_CLASS\n");
 		    written_base_class = 1;
+// This destructor should go somewhere else...
+Printf(s_vdecl,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s);\n",shadow_classname);
+Printf(s_wrappers,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n"
+"  %s * obj=NULL;\n"
+"  // should we do type checking? How do I get SWIG_ type name?\n"
+"  _SWIG_ConvertPtr((char *) rsrc->ptr,(void **) &obj,NULL);\n"
+"  if (! obj) zend_error(E_ERROR, \"%s resource already free'd\");\n"
+"  delete obj;\n"
+"  // now delete wrapped string pointer\n"
+"  efree(rsrc->ptr);\n"
+"  rsrc->ptr=NULL;\n"
+"}\n",shadow_classname, class_name, shadow_classname);
 
-		    Printf(s_oinit,
-		    "{ // Define class %s\n"
-		    "CG(class_entry).type = ZEND_USER_CLASS;\n"
-		    "CG(class_entry).name = estrdup(\"%s\");\n"
-		    "CG(class_entry).name_length = strlen(\"%s\");\n"
-		    "CG(class_entry).refcount =(int *)emalloc(sizeof(int));\n"
-		    "*CG(class_entry).refcount = 1;\n"
-		    "CG(class_entry).constants_updated = 0;\n",
-		    shadow_classname, shadow_lower_classname, shadow_lower_classname);
+		    Printf(s_vdecl,
+                    "static zend_class_entry ce_swig_%s;\n",shadow_classname);
+		    Printf(s_vdecl,
+                    "static zend_class_entry* ptr_ce_swig_%s=NULL;\n",shadow_classname);
 
-		    // Init class function hash
-		    Printf(s_oinit, 
-		    "zend_hash_init(&CG(class_entry).function_table, 10, NULL,"
-		    "ZEND_FUNCTION_DTOR, 0);\n"
-		    "zend_hash_init(&CG(class_entry).default_properties, 10,"
-		    "NULL, ZVAL_PTR_DTOR, 0);\n");
+                    Printf(s_oinit,
+		    "// Define class %s\n"
+                    "INIT_OVERLOADED_CLASS_ENTRY(ce_swig_%s,\"%(lower)s\",%s_functions,"
+                    "NULL,NULL,NULL);\n",
+                    shadow_classname,shadow_classname,shadow_classname,shadow_classname);
 
 		    // XXX Handle inheritance ?
 		    // Do we need to tell php who this classes parent class is
 
-		    // NOTE we also need to write out the per-class propget and propset 
-		    Printf(s_oinit, 
-		    "CG(class_entry).handle_function_call = NULL;\n"
-		    "CG(class_entry).handle_property_set = NULL;// %s_swig_handle_propset;\n"
-		    "CG(class_entry).handle_property_get = NULL;// %s_swig_handle_propget;\n",
-			shadow_classname,shadow_classname);
-
 		    // Save class in class table
-		    Printf(s_oinit, 
-		    "zend_hash_update(CG(class_table), \"%s\",strlen(\"%s\")+1,"
-		    "&CG(class_entry), sizeof(CG(class_entry)), (void **) "
-		    "&CG(active_class_entry));\n}\n", 
-		    shadow_lower_classname, shadow_lower_classname);
+                    Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class(&ce_swig_%s))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",shadow_classname,shadow_classname,shadow_classname);
+
+                    // Now register resource to handle this wrapped class
+                    Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", shadow_classname, shadow_classname);
+                    Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
+                                   "(_wrap_destroy_%s,NULL,\"%s\",module_number);\n",
+                                    shadow_classname, shadow_classname, shadow_classname);
+                    Printf(s_oinit,"// End of %s\n\n",shadow_classname);
 		  }
 		}
 
-	}
+// end of is not subclass	}
 
 	Language::classHandler(n);
 
@@ -1333,6 +1345,10 @@ int PHP4::classHandler(Node *n) {
 		Delete(shadow_c_vars); shadow_c_vars = NULL;
 		Delete(shadow_php_vars); shadow_php_vars = NULL;
 		Delete(this_shadow_multinherit); this_shadow_multinherit = NULL;
+
+		Printf(all_cs_entry,"%s	{ NULL, NULL, NULL}\n};\n",cs_entry);
+                //??delete cs_entry;
+                cs_entry=NULL;
 	}
 	return SWIG_OK;
 }
@@ -1609,18 +1625,23 @@ int PHP4::constructorHandler(Node *n) {
 		String *nativecall = NewString("");
 		String *php_function_name = NewString(iname);
 		char arg[256];
+/* don't need to register constructors the slow way now */
+	// But we also need one per wrapped-class
+	if (cs_entry) Printf(cs_entry,
+	    "	ZEND_NAMED_FE(%(lower)s,\n"
+	    "		_wrap_new_%s, NULL)\n", php_function_name,iname);
 
-		 Printf(s_oinit, 
-		 "{\nzend_function function;\n"
+		 if (0) Printf(s_oinit, 
+		 "/*oggie{\nzend_function function;\n"
 		 "zend_internal_function *internal_function = "
 		 "(zend_internal_function *)&function;\n"
 		 "internal_function->type= ZEND_INTERNAL_FUNCTION;\n"
 		 "internal_function->handler = _wrap_new_%s;\n"
 		 "internal_function->arg_types = NULL;\n"
-		 "internal_function->function_name=estrdup(\"%(lower)s\");"
+		 "internal_function->function_name=strdup(\"%(lower)s\");"
 		 "\nzend_hash_add(&CG(active_class_entry)->function_table, "
 		 "\"%(lower)s\", %d, &function, sizeof(zend_function),"
-		 "NULL);\n}\n",
+		 "NULL);\n}*/\n",
 		 iname, php_function_name, php_function_name, 
 		 strlen(Char(php_function_name))+1);
 
@@ -1741,8 +1762,8 @@ int PHP4::destructorHandler(Node *n) {
 	  }
 
 	  String *iname = Swig_name_destroy(GetChar(n, "sym:name"));
-
-	  Printf(s_oinit, 
+/* NO need to register destructors the slow way any more... */
+	  if (0) Printf(s_oinit, 
 	  "{\nzend_function function;\n"
 	  "zend_internal_function *internal_function = "
 	  "(zend_internal_function *)&function;\n"
@@ -1754,6 +1775,7 @@ int PHP4::destructorHandler(Node *n) {
 	  "\"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", 
 	  Swig_name_wrapper(iname), iname, iname, strlen(Char(iname))+1);
 	}
+
 	return SWIG_OK;
 }
 
@@ -1817,8 +1839,13 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name,
 	  }
 	}
 
-	 
-	 Printf(s_oinit, 
+	// But we also need one per wrapped-class
+	if (cs_entry) Printf(cs_entry,
+	    "	ZEND_NAMED_FE(%s,\n"
+	    "		%s, NULL)\n", php_function_name,Swig_name_wrapper(handler_name));
+
+/* ONLY REGISTER IF IT IS NOT A SHADOW CLASS METHOD *** HELP */
+	if (0) Printf(s_oinit, 
 	 "{\nzend_function function;\n"
 	 "zend_internal_function *internal_function = "
 	 "(zend_internal_function *)&function;\n"
