@@ -180,27 +180,6 @@ deleteNode(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * copyNode()
- *
- * Copies a node.  Does not copy hash tables.
- * ----------------------------------------------------------------------------- */
-
-Node *
-copyNode(Node *n) {
-  String *key;
-  DOH    *value;
-  Node *c = NewHash();
-  
-  for (key = Firstkey(n); key; key = Nextkey(n)) {
-    value = Getattr(n,key);
-    if (DohIsString(value) || (DohIsSequence(value))) {
-      Setattr(c,key,Copy(value));
-    }
-  }
-  return c;
-} 
-
-/* -----------------------------------------------------------------------------
  * Swig_require()
  * ----------------------------------------------------------------------------- */
 

@@ -60,6 +60,7 @@ class Allocate : public Dispatcher {
     return 0;
   }
 
+
   /* Grab methods used by smart pointers */
 
   List *smart_pointer_methods(Node *cls, List *methods) {
@@ -83,9 +84,26 @@ class Allocate : public Dispatcher {
 	  if (!Getattr(c,"feature:ignore")) {
 	    String *storage = Getattr(c,"storage");
 	    if (!((Cmp(storage,"static") == 0) || (Cmp(storage,"typedef") == 0))) {
-	      Node *cc = copyNode(c);
-	      Setattr(cc,"parms", CopyParmList(Getattr(c,"parms")));
-	      Append(methods,cc);
+	      String *name = Getattr(c,"name");
+	      Node   *e    = Swig_symbol_clookup_local(name,0);
+	      if (e && !Getattr(e,"feature:ignore")) {
+		Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(e),Getline(e),"Declaration of '%s' shadows declaration accessible via operator->() at %s:%d\n",
+			     name, Getfile(c),Getline(c));
+	      } else {
+		/* Make sure node with same name doesn't already exist */
+		int k;
+		int match = 0;
+		for (k = 0; k < Len(methods); k++) {
+		  e = Getitem(methods,k);
+		  if (Strcmp(name,Getattr(e,"name")) == 0) {
+		    match = 1;
+		    break;
+		  }
+		}
+		if (!match) {
+		  Append(methods,c);
+		}
+	      }
 	    }
 	  }
 	}
@@ -97,6 +115,14 @@ class Allocate : public Dispatcher {
 	else mode = PRIVATE;
       }
       c = nextSibling(c);
+    }
+    /* Look for methods in base classes */
+    {
+      Node *bases = Getattr(cls,"bases");
+      int k;
+      for (k = 0; k < Len(bases); k++) {
+	smart_pointer_methods(Getitem(bases,k),methods);
+      }
     }
     return methods;
   }
@@ -120,12 +146,15 @@ public:
       extendmode = 0;
       return SWIG_OK;
   }
+
   virtual int classDeclaration(Node *n) {
+    Symtab *symtab = Swig_symbol_current();
+    Swig_symbol_setscope(Getattr(n,"symtab"));
+    
     if (!CPlusPlus) {
       /* Always have default constructors/destructors in C */
       Setattr(n,"allocate:default_constructor","1");
       Setattr(n,"allocate:default_destructor","1");
-      return SWIG_OK;
     }
 
     if (Getattr(n,"allocate:visit")) return SWIG_OK;
@@ -161,11 +190,6 @@ public:
       }
     }
 
-    /*    if (Getattr(n,"abstract")) {
-      Delattr(n,"allocate:default_constructor");
-      Delattr(n,"allocate:has_constructor");
-    }
-    */
     if (!Getattr(n,"allocate:has_constructor")) {
       /* No constructor is defined.  We need to check a few things */
       /* If class is abstract.  No default constructor. Sorry */
@@ -210,6 +234,7 @@ public:
     /* Only care about default behavior.  Remove temporary values */
     Setattr(n,"allocate:visit","1");
     inclass = 0;
+    Swig_symbol_setscope(symtab);
     return SWIG_OK;
   }
 
@@ -236,7 +261,7 @@ public:
 	}
       } else {
 	/* Look for smart pointer operator */
-	if (Strcmp(name,"operator ->") == 0) {
+	if ((Strcmp(name,"operator ->") == 0) && (!Getattr(n,"feature:ignore"))) {
 	  /* Look for version with no parameters */
 	  if (!Getattr(n,"parms")) {
 	    SwigType *type = Getattr(n,"type");

@@ -319,7 +319,6 @@ extern String     *ParmList_protostr(ParmList *);
 
 extern void appendChild(Node *node, Node *child);
 extern void deleteNode(Node *node);
-extern Node *copyNode(Node *node);
 extern int  Swig_require(Node **node, ...);
 extern int  Swig_save(Node **node,...);
 extern void Swig_restore(Node **node);
