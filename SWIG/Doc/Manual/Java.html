@@ -628,7 +628,19 @@ The following table lists the default type mapping from Java to C/C++.<p>
 </tr>
 
 <tr>
+<td>bool</td>
+<td>boolean</td>
+<td>jboolean</td>
+</tr>
+
+<tr>
 <td>char</td>
+<td>char</td>
+<td>jchar</td>
+</tr>
+
+<tr>
+<td>signed char</td>
 <td>byte</td>
 <td>jbyte</td>
 </tr>
@@ -700,9 +712,9 @@ The following table lists the default type mapping from Java to C/C++.<p>
 </tr>
 
 <tr>
-<td>bool</td>
-<td>boolean</td>
-<td>jboolean</td>
+<td>char*</td>
+<td>String</td>
+<td>jstring</td>
 </tr>
 
 <tr>
@@ -713,7 +725,7 @@ The following table lists the default type mapping from Java to C/C++.<p>
 
 </table>
 <br>
-Arrays are implemented using the same mappings, for example a c array, char[SIZE], is mapped to a Java array, byte[SIZE].
+Arrays are implemented using the same mappings, for example a c array, unsigned short[SIZE], is mapped to a Java array, int[SIZE]. Note that SWIG treats the C char type as a character and char* as a string. The signed char type can be used if you want to treat char as a signed number rather than a character.
 <br><br>
 When SWIG is being used without shadow classes, longs are used for all pointers. All complex types (C/C++ structs and classes) are accessible using a Java long which holds a pointer to the underlying C/C++ object. Arrays of complex types are mapped as arrays of pointers to the type, that is a Java long[].
 <br><br>
