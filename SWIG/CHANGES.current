@@ -5,6 +5,11 @@ Version 1.3.18 (In progress)
             Similar as beazley's modification today.
 
 02/20/2003: beazley
+            Added support for gcc-style variadic preprocessor macros.  
+            Patch [ 623258 ] GCC-style vararg macro support.
+            Contributed by Joe Mason.
+
+02/20/2003: beazley
             Fixed [ 605162 ] Typemap local variables.
             Reported by Lyle Johnson.
 
