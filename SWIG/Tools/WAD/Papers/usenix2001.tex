@@ -51,7 +51,7 @@ minus3pt\let\@listi\@listI}
 \date{}
 
 %make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-\title{\Large \bf   An Embedded Error Reporting and Debugging Mechanism for Scripting Language Extensions}
+\title{\Large \bf   An Embedded Error Recovery and Debugging Mechanism for Scripting Language Extensions}
 
 %for single author (just remove % characters)
 \author{{David M.\ Beazley} \\
@@ -92,7 +92,7 @@ has many benefits, one of the greatest drawbacks is the complexity of
 debugging that results from using interpreted and compiled code in the
 same application.  In part, this is due to the fact that scripting
 language interpreters are unable to recover from catastrophic errors
-in compiled extension code. Furthermore, traditional C/C++ debuggers
+in compiled extension code. Moreover, traditional C/C++ debuggers
 do not provide a satisfactory degree of integration with interpreted
 languages.  This paper describes an experimental system in which fatal
 extension errors such as segmentation faults, bus errors, and failed
@@ -130,8 +130,8 @@ A critical aspect of scripting-compiled code integration is the way in
 which it departs from traditional C/C++ development and shell
 scripting.  Rather than building stand-alone applications that run as
 separate processes, extension programming encourages a style of
-programming in which components are more tightly integrated within the
-process of an interpreter that is responsible for high-level control.
+programming in which components are tightly integrated within 
+an interpreter that is responsible for high-level control.
 Because of this, scripted software tends to rely heavily
 upon shared libraries, dynamic loading, scripts, and
 third-party extensions. In this sense, one might argue that the
@@ -186,11 +186,11 @@ In this case, the user has no idea of what has happened other than it
 appears to be ``very bad.''  Furthermore, script-level debuggers are
 unable to identify the problem since they also crash when the error
 occurs (they run in the same process as the interpreter).  This means
-that the only way for a user to narrow the source of the problem is
-through trial-and-error techniques such as inserting print statements,
-commenting out sections of scripts, or having a deep intuition of the
-underlying implementation. Obviously, none of these techniques are
-entirely satisfactory.
+that the only way for a user to narrow the source of the problem
+within a script is through trial-and-error techniques such as
+inserting print statements, commenting out sections of scripts, or
+having a deep intuition of the underlying implementation. Obviously,
+none of these techniques are particularly satisfactory.
 
 An alternative approach is to run the application under the control of
 a traditional debugger such as gdb \cite{gdb}.  Although this provides
@@ -198,7 +198,7 @@ some information about the error, the debugger mostly provides
 detailed information about the internal implementation of the
 scripting language interpreter instead of the script-level code that
 was running at the time of the error.  Needless to say, this information 
-isn't particularly useful for most programmers.
+isn't very useful to most programmers.
 A related problem is that
 the structure of a scripted application tends to be much more complex
 than a traditional stand-alone program.  As a result, a user may not
@@ -216,8 +216,8 @@ applications where end-users write scripts, but do not write low-level C code.
 
 Even if a traditional debugger such as gdb were modified to provide
 better integration with scripting languages, it is not clear that this
-would be the most natural solution to the problem.  For one, the whole
-notion of having to run a separate debugging process to debug
+would be the most natural solution to the problem.  For one, 
+having to run a separate debugging process to debug
 extension code is unnatural when no such requirement exists for
 scripts.  Furthermore, even if such a debugger existed, an
 inexperienced user may not have the expertise or inclination to use
@@ -263,7 +263,7 @@ as much error checking as possible to extension modules. This is never
 a bad thing to do, but in practice it's usually not enough to
 eliminate every possible problem.  For one, scripting languages are
 sometimes used to control hundreds of thousands to millions of lines
-of compiled code.  In this case, it is improbable that a programmer
+of compiled code.  In this case, it is improbable that a programmer will
 foresee every conceivable error.  In addition, scripting languages are
 often used to put new user interfaces on legacy software. In this
 case, scripting may introduce new modes of execution that cause a
@@ -272,15 +272,15 @@ Finally, certain types of errors such as floating-point exceptions can
 be particularly difficult to eliminate because they might be generated
 algorithmically (e.g., as the result of instability in a numerical
 method). Therefore, even if a programmer has worked hard to eliminate
-crashes, there is always a small probability that a complex
-application will fail.
+crashes, there is usually a small probability that an application may
+fail under unusual circumstances.
 
 \section{Embedded Error Reporting}
 
 Rather than modifying an existing debugger to support scripting
 languages, an alternative approach is to add a more powerful error
 handling and reporting mechanism to the scripting language
-interpreter.  This approach has been implemented in the form of an
+interpreter.  We have implemented this approach in the form of an
 experimental system known as WAD.  WAD is packaged as dynamically
 loadable shared library that can either be loaded as a scripting
 language extension or linked to existing extension modules as a
@@ -418,8 +418,8 @@ some interpreters block signal delivery while executing
 extension code--opting to handle signals at a time when it is more convenient.
 In this case, a signal such as SIGSEGV would simply cause the whole application
 to freeze since there is no way for execution to continue to a point where
-the signal could be delivered.  Because of these issues, scripting languages
-either ignore the problem or label it as an ``limitation.''
+the signal could be delivered.  Thus, scripting languages tend to 
+either ignore the problem or label it as a ``limitation.''
 
 \section{Overview of WAD}
 
@@ -429,16 +429,16 @@ and SIGFPE using the {\tt sigaction} function
 signal handling that passes process context information to the signal
 handler when a signal occurs. Since none of these signals are normally used in the
 implementation of the scripting interpreter or by any user scripts,
-this typically does not override any previous signal handling.
+this does not usually override any previous signal handling.
 Afterwards, when one of these signals occurs, a two-phase recovery
 process executes. First, information is collected about the execution
 context including a full stack-trace, symbol table entries, and
-debugging information.  Second, the current stream of execution is
+debugging information.  Then, the current stream of execution is
 aborted and an error is returned to the interpreter.  This process is
 illustrated in Figure~3.
 
-The collection of context and debugging information is a relatively
-straightforward process involving the following steps:
+The collection of context and debugging information involves the
+following steps:
 
 \begin{itemize}
 \item The program counter and stack pointer are obtained from 
@@ -449,7 +449,7 @@ and used to associate virtual memory addresses with executable files,
 shared libraries, and dynamically loaded extension modules \cite{proc}.
 
 \item The call stack is unwound to collect traceback information.
-each step of the stack traceback, symbol table and debugging
+At each step of the stack traceback, symbol table and debugging
 information is gathered and stored in a generic data structure for later use
 in the recovery process.  This data is obtained by memory-mapping
 the object files associated with the process and extracting
@@ -618,23 +618,18 @@ if (!err) {
 }
 \end{verbatim}
 
-In this case, the 2nd argument passed to a wrapper function 
+In this case, the Tcl interpreter argument passed to a wrapper function 
 is stolen and used to generate an error.  Also, the name {\tt TclExecuteByteCode}
 refers to the calling function, not the wrapper function itself.
 At this time, argument stealing is only applicable to simple types
 such as integers and pointers.  However, this is adequate for generating
 scripting language errors.
 
-The symbolic matching approach is particularly attractive because it
-does not require an extensive amount of detail about the
-implementation of the interpreter or the way in which it has been
-linked.  
-
 \section{Register Management}
 
 A final issue concerning the return mechanism has to do with the
-precise behavior of the non-local return to the interpreter.  Roughly
-speaking, this emulates the behavior of the C {\tt longjmp}
+behavior of the non-local return to the interpreter.  Roughly
+speaking, this emulates the C {\tt longjmp}
 library call.  However, this is done without the use of a matching
 {\tt setjmp} in the interpreter.  
 
@@ -663,7 +658,7 @@ example, floating point registers are caller-saved and the contents of
 the SPARC global registers are not guaranteed to be preserved across
 procedure calls (in fact, they are not even saved by {\tt setjmp}).
 
-On other platforms, the problem of register management becomes much
+On other platforms, the problem of register management becomes 
 more interesting.  In this case, a heuristic approach that examines
 the machine code for each function on the call stack can be used to
 determine where the registers might have been saved.  This approach is
@@ -676,8 +671,8 @@ In addition, this code is highly regular and easy to examine.  For
 instance, on i386-Linux, the callee-save registers can be restored by
 simply examining the first few bytes of the machine code for each
 function on the call stack to figure out where values have been saved.
-For example, the following code shows a typical sequence of machine instructions
-used to store callee-save registers on the i386:
+The following code shows a typical sequence of machine instructions
+used to store callee-save registers on i386-Linux:
 
 \begin{verbatim}
 foo:
@@ -720,30 +715,30 @@ not discussed further.
 
 \section{Initialization}
 
-To make the debugging of extension modules as simple as possible, it
+To simplify the debugging of extension module, it
 is desirable to make the use of WAD as transparent as possible.
 Currently, there are two ways in which the system is used.  First, WAD
 may be explicitly loaded as a scripting language extension module.
 For instance, in Python, a user can include the statement {\tt import
 libwadpy} in a script to load the debugger.  Alternatively, WAD can be
-implicitly enabled by simply linking it to an extension module as a shared
+enabled by linking it to an extension module as a shared
 library.  For instance:
 
 \begin{verbatim}
-% ld -shared $(OBJS) -lwadpy
+% ld -shared $(OBJS) -o module.so -lwadpy
 \end{verbatim}
 
-In this case, the debugger automatically initializes itself when the
-extension module is loaded.  The same shared library can be used for
-both situations by making sure two types of initialization techniques
-are used.  First, an empty initialization function is written to make
-WAD appear like a proper scripting language extension module (although
-it adds no functions to the interpreter).  Second, the real
-initialization of the system is placed into the initialization section
-of the WAD shared library.  This code always executes when a library
-is first loaded by the runtime loader.  A fairly portable way to force
-code into the initialization section is to use a C++ statically
-constructed object like this:
+In this case, WAD initializes itself whenever the extension module is
+loaded.  The same shared library is used for both situations by making
+sure two types of initialization techniques are used.  First, an empty
+initialization function is written to make WAD appear like a proper
+scripting language extension module (although it adds no functions to
+the interpreter).  Second, the real initialization of the system is
+placed into the initialization section of the WAD shared library
+object file (the ``init'' section for ELF files).  This code always executes
+when a library is loaded by the dynamic loader.  A fairly portable way
+to force code into the initialization section is to use a C++
+statically constructed object like this:
 
 \begin{verbatim}
 class InitWad {
@@ -755,11 +750,16 @@ class InitWad {
 static InitWad init;
 \end{verbatim}
 
-The nice thing about this trick is that WAD can be enabled by the
-linker without having to recompile any extension code or having to
-patch existing script code.  The downside to this approach is that WAD
-can not be linked directly to an interpreter (since its initialization
-would occur before any code in the interpreter began to execute).
+The nice part about this technique is that it allows WAD to be enabled
+simply by linking or loading; no special initialization code needs to
+be added to an extension module to make it work.  In addition, due to
+the way in which the loader resolves and initializes libraries, the
+initialization of WAD is guaranteed to execute before any of the code
+in the extension module to which it has been linked executes.  The primary
+downside to this approach is that WAD shared object file can not be
+linked directly to an interpreter (since its initialization would
+occur before any code in the interpreter started and the
+initialization of WAD may require the interpreter to be active).
 
 \section{Exception Objects}
 
@@ -767,16 +767,18 @@ Before WAD returns control to the interpreter, it collects all of the
 stack-trace and debugging information it was able to obtain into a
 special exception object. This object represents the state of the call
 stack and includes things like symbolic names for each stack frame,
-the names, types, and values of function parameters and local
+the names, types, and values of function parameters and stack
 variables, as well as a complete copy of data on the stack. This
-information is represented in a relatively generic manner that hides
+information is represented in a generic manner that hides
 platform specific details related to the CPU, object file formats,
 debugging tables, and so forth.
 
 Minimally, the exception data is used to print a stack trace as shown
 in Figure 1.  However, if the interpreter is successfully able to
 regain control, the contents of the exception object can be
-freely examined by the user after an error has occurred.  For example:
+freely examined after an error has occurred.  For example, a Python
+script could catch a segmentation fault and print debugging information
+like this:
 
 \begin{verbatim}
 try:
@@ -794,22 +796,22 @@ except SegFault,e:
    ...
 \end{verbatim}
 
-The exception object also makes it possible to write post mortem
-debuggers that merge the call stacks of the two languages together and
-provide cross language diagnostics.  For instance, Figure 4 shows an
+Inspection of the exception object also makes it possible to write post mortem
+script debuggers that merge the call stacks of the two languages together and
+provide cross language diagnostics.  Figure 4 shows an
 example of a simple mixed language debugging session using the WAD
 post-mortem debugger (wpm) after an extension error has occurred in a
 Python program.  In the figure, the user is first presented with a
 multi-language stack trace.  The information in this trace is obtained
 both from the WAD exception object and from the Python traceback
 generated when the exception was raised. Next, we see the user walking
-up the call stack (the 'u' command of the debugger).  As this
+up the call stack using the 'u' command of the debugger.  As this
 proceeds, there is a seamless transition from C to Python where the
 trace crosses between the two languages.  An optional feature of the
 debugger (not shown) allows the debugger to walk up the entire C
 call-stack (in this case, the trace shows information about the
 implementation of the Python interpreter).  More advanced features of
-the debugger also allow the user to query values of function
+the debugger allow the user to query values of function
 parameters, local variables, and stack frames (although some of this
 information may not be obtainable due to compiler optimizations and the
 difficulties of accurately recovering register values).
@@ -850,29 +852,72 @@ difficulties of accurately recovering register values).
         if ty == 1:
  =>         death_by_segmentation()
         elif ty == 2:
->>> 
-\end{verbatim}
+>>> \end{verbatim}
 }
 \caption{Cross-language debugging session in Python where user is walking up the call stack.}
 \end{figure*}
 
+\section{Failure Modes and Debugging}
+\label{failure}
+
+Since WAD lives in the same process as the faulting application, it
+must operate in a potentially hostile environment where significant
+parts of the application may be broken or corrupted.  Moreover, WAD
+itself may fail while collecting information or trying to recover from
+a catastrophic error.  WAD is also much more limited than a standard
+debugger in that it does not support common features such as
+breakpointing, single step execution, or a full range of data
+inspection.  Thus, a common question to ask is to what extent does WAD
+complicate debugging when it doesn't work.
+
+To handle potential problems in the implementation of WAD itself,
+great care is taken to avoid the use of library functions and
+functions that rely on heap allocation (malloc, free, etc.).  For
+instance, to provide dynamic memory allocation, WAD implements its own
+memory allocator using mmap.  In addition, signals are disabled
+immediately upon entry to the WAD signal handler.  Should a fatal
+error occur inside WAD, the application will dump core and exit.  Since
+the resulting core file contains the stack trace of both WAD and the
+faulting application, a traditional C debugger can be used to identify
+the problem as before.  The only difference is that a few additional
+stack frames will be added to the traceback.
+
+In some situations, an application might fail after the WAD signal
+handler has completed execution.  For instance, memory or stack frames
+within the interpreter might be corrupted in a way that prevents
+exception handling from operating correctly.  In this case, the
+application will fail in a manner that does not represent the original
+programming error. This might also cause the WAD signal handler to be
+reinvoked with a different process state--causing it to report
+information about a different type of failure.  To address these kinds
+of problems, WAD attempts to create a tracefile {\tt wadtrace} in the
+current working directory that contains information about each error
+that it has handled.  If no recovery was possible, a programmer can
+look at this file to obtain all of the stack traces that were generated 
+by WAD.
+
+Finally, if an application is experiencing a very serious problem, WAD
+does not prevent a standard debugger from being attached to the
+process.  This is because the debugger overrides the current signal
+handling so that it can catch fatal errors.  As a result, even if
+WAD is loaded, fatal signals are simply redirected to the
+attached debugger.  
 
 \section{Implementation Details}
 
 Currently, WAD is implemented in ANSI C and small amount of assembly
 code to assist in the return to the interpreter.  The current
 implementation supports Python and Tcl extensions on SPARC Solaris and
-i386-Linux. The entire implementation contains approximately 2000
-semicolons. Most of this code is related to the gathering of
-debugging information from object files.  Only a small part of the
-code is specific to a particular scripting language (170 semicolons for Python
-and 50 semicolons for Tcl). Furthermore, due to the
-hostile environment in which the recovery process must run, the
-implementation takes great care not to use heap allocated memory or
-library functions that might require memory allocation.  This
-conservative approach allows the signal handler to collect information
-in situations where the heap allocator has been corrupted or destroyed
-in some manner.
+i386-Linux.  Each scripting language is currently supported by a
+separate shared library such as {\tt libwadpy.so} and {\tt
+libwadtcl.so}.  In addition, a language neutral library {\tt
+libwad.so} can be linked against non-scripted applications (in which case
+a stack trace is simply printed to standard error when a problem occurs). 
+The entire implementation contains approximately 2000
+semicolons. Most of this code pertains to the gathering of debugging
+information from object files.  Only a small part of the code is
+specific to a particular scripting language (170 semicolons for Python
+and 50 semicolons for Tcl).
 
 Although there are libraries such as the GNU Binary File Descriptor
 (BFD) library that can assist with the manipulation of object files
@@ -886,31 +931,60 @@ implementation, it didn't seem necessary to rely upon such a
 heavyweight solution.
 
 A surprising feature of the implementation is that a significant
-amount of the code is language independent.  Language
-independence is achieved by placing all of the process introspection,
-data collection, and platform specific code within a centralized core.
-To provide a specific scripting language interface, a developer
-only needs to supply two things; a table containing symbolic function
-names where control can be returned (Table 1), and a 
-handler function in the form of a callback.  As input, this handler
-receives a generic exception object that represents traceback data
-in a platform neutral representation.  This information can then be used to raise
-an appropriate scripting language exception.  It turns out that the core
-can also be used without any scripting language interface at all.  In this case,
-an application linked with WAD will simply print a stack trace and exit when
-an error occurs.
+amount of the code is language independent.  This is achieved by
+placing all of the process introspection, data collection, and
+platform specific code within a centralized core.  To provide a
+specific scripting language interface, a developer only needs to
+supply two things; a table containing symbolic function names where
+control can be returned (Table 1), and a handler function in the form
+of a callback.  As input, this handler receives an exception object as
+described in an earlier section.  From this, the handler can
+raise a scripting language exception in whatever manner is most
+appropriate.
 
-Significant portions of the core are also platform independent.  For
-instance, code to read ELF object files and stabs debugging data is
-essentially identical for Linux and Solaris.  In addition, the
-high-level control logic is unchanged between platforms.  Platform
-specific differences arise in the obvious places including the
-examination of CPU registers, manipulation of the process context in
-the signal handler, reading the virtual memory map from /proc, and so
-forth.  To extent that it is possible, platform differences
-can be hidden by abstraction mechanisms (although the initial
-implementation of WAD is weak in this regard and would benefit from
-techniques used in more advanced debuggers such as gdb). 
+Significant portions of the core are also relatively straightforward
+to port between different Unix systems.  For instance, code to read
+ELF object files and stabs debugging data is essentially identical for
+Linux and Solaris.  In addition, the high-level control logic is
+unchanged between platforms.  Platform specific differences primarily
+arise in the obvious places including the examination of CPU
+registers, manipulation of the process context in the signal handler,
+reading virtual memory maps from /proc, and so forth.  Additional
+changes would also need to be made on systems with different object
+file formats such as COFF and DWARF2.  To extent that it is possible,
+these differences could be hidden by abstraction mechanisms (although
+the initial implementation of WAD is weak in this regard and would
+benefit from techniques used in more advanced debuggers such as gdb).
+Despite these porting issues, the primary requirement for WAD is a fully
+functional implementation of SVR4 signal handling that allows for
+modifications of the process context.
+
+Due to the heavy dependence on Unix signal handling, process
+introspection, and object file formats, it is unlikely that WAD could
+be easily ported to non-Unix systems such as Windows.  However, it may
+be possible to provide a similar capability using advanced features of
+structured exception handling \cite{seh}. 
+
+\section{Modification of Interpreters?}
+
+A logical question to ask about the implementation of WAD is whether
+or not it would make sense to modify existing interpreters to assist
+in the recovery process. For instance, instrumenting Python or Tcl with setjmp
+functions might simplify the implementation since it would eliminate
+issues related to register restoration and finding a suitable return
+location.
+
+Although it may be possible to make these changes, there are 
+several drawbacks to this approach.  First, the number of required modifications may be
+quite large.  For instance, there are well over 50 entry points to
+extension code within the implementation of Python.  Second, an
+extension module may perform callbacks and evaluation of script code.
+This means that the call stack would cross back and forth
+between languages and that these modifications would have to be made
+in a way that allows arbitrary nesting of extension calls.  Finally,
+instrumenting the code in this manner may introduce a performance
+impact--a clearly undesirable side effect considering the infrequent
+occurrence of fatal extension errors.
 
 \section{Discussion}
 
@@ -924,42 +998,61 @@ does not cleanly unwind the call stack.  For C++, this means that
 objects allocated on stack will not be finalized (destructors will not
 be invoked) and that memory allocated on the heap may be
 leaked. Similarly, this could result in open files, sockets, and other
-system resources. Furthermore, in a multi-threaded environment,
+system resources. In a multi-threaded environment,
 deadlock may occur if a procedure holds a lock when an error occurs.
 
-Second, the use of signals may interact adversely with both scripting
-language signal handling and signal handling in thread libraries.
+The of signals may also interact adversely with both scripting
+language signal handling. 
 Since scripting languages ordinarily do not catch signals such as
 SIGSEGV, SIGBUS, and SIGABRT, the use of WAD is unlikely to conflict
 with any existing signal handling. However, this does not prevent a
 module from overriding the error recovery mechanism with its own
-signal handler. Threads present a different sort of signal handling problem
-due to the fact that thread libraries tend to override default signal handling \cite{thread}.
-In this case, the thread library directs fatal signals to the thread in which the problem occurred.
-However, first-hand experience has shown that certain implementations
-of user threads do not reliably pass signal context information nor do
-they universally support advanced signal operations such as {\tt
-sigaltstack}.  Because of this, the WAD recovery mechanism may not be
-compatible with a crippled implementation of user threads on certain
-platforms.  To further complicate matters, the recovery process itself is
-not thread-safe (i.e., it is not possible to concurrently handle fatal errors
-occurring different threads).
+signal handler.
 
-% Add comment about global interpreter locks, free-threading
-%
+A more difficult signal handling problem arises when thread libraries
+are used. These libraries tend to override default signal handling
+behavior in a way that defines how signals are delivered to each
+thread \cite{thread}.  In general, asynchronous signals can be
+delivered to any thread within a process.  However, this does not
+appear to be a problem for WAD since hardware exceptions are delivered
+to a signal handler that runs within the same thread in which the
+error occurred.  Unfortunately, even in this case, it appears that
+certain implementations of user thread libraries do not reliably pass
+signal context information nor do they universally support advanced
+signal operations such as {\tt sigaltstack}.  Because of this, WAD may
+be incompatible with a crippled implementation of user threads on
+certain platforms.  
 
-Third, certain types of errors may result in an unrecoverable crash.
-For example, if an application overwrites the heap, it may destroy
-critical data structures within the interpreter. 
-Similarly,
+A even more subtle problem with threads is that the recovery process
+itself is not thread-safe (i.e., it is not possible to concurrently
+handle fatal errors occurring in different threads).  For most
+scripting language extensions, this limitation does not apply due to
+strict run-time restrictions that interpreters currently place on
+thread support.  For instance, even though Python supports threaded
+programs, it places a global mutex-lock around the interpreter that
+makes it impossible for more than one thread to concurrently execute
+within the interpreter at once. A consequence of this restriction is
+that extension functions are not interruptible by thread-switching
+unless they explicitly release the interpreter lock.  Currently, the
+behavior of WAD is undefined if extension code releases the lock and
+proceeds to generates a fault.  In this case, the recovery process may
+either cause an exception to be raised in an entirely different
+thread or cause execution to violate the interpreter's mutual exclusion
+constraint.
+
+In certain cases, errors may result in an unrecoverable crash.  For
+example, if an application overwrites the heap, it may destroy
+critical data structures within the interpreter.  Similarly,
 destruction of the call stack (via buffer overflow) makes it
 impossible for the recovery mechanism to create a stack-trace and
-return to the interpreter.  Although it might be possible to add a heuristic scheme for
-recovering a partial stack trace such as backward stack tracing, no such feature has yet been implemented
+return to the interpreter.  In the future, it might be possible to add
+a heuristic scheme for recovering a partial stack trace such as
+backward stack tracing, no such feature has yet been implemented
 \cite{debug}.  Finally, memory management problems such as
 double-freeing of heap allocated memory can cause a system to fail in
 a way that bears little resemblance to the actual source of the
-problem.
+problem.  Section \ref{failure} describes some of the ways in which WAD responds
+to these kinds of errors.
 
 %
 % Add comments about what WAD does in this case?
@@ -977,24 +1070,23 @@ returned to indicate errors (depending on the function).  In this case, there
 is no way for WAD to easily determine which return value to use.  Second,
 the recovery process is extremely inefficient.  This is because the
 data collection process relies heavily upon {\tt mmap}, file I/O, and linear search
-algorithms for finding symbols and debugging information.  Therefore, it would
+algorithms for finding symbols and debugging information.  Therefore, WAD would
 probably not be suitable as a general purpose exception handling mechanism.
 Finally, even when an error is successfully returned to the interpreter
 and presented to the user, it may not be possible to resume execution of
 the application (e.g., even though the interpreter is operational, the extension
 module may be corrupted in some manner).
 
-Despite these limitations, embedded error recovery is applicable to a
-wide range of extension-related errors.  This is because errors such as
-failed assertions, bus errors, and floating point exceptions rarely
-result in a situation where the recovery process would be unable to run or the
-interpreter would crash. Furthermore, more serious errors such as segmentation faults are more
-likely to caused by an uninitialized pointer than a blatant
+Despite these limitations, embedded error recovery is still a useful
+capability that can be applied to a wide of extension related errors.
+This is because errors such as failed assertions, bus errors, and
+floating point exceptions rarely result in a situation where the
+recovery process would be unable to run or the interpreter would
+crash. Furthermore, more serious errors such as segmentation faults
+are more likely to caused by an uninitialized pointer than a blatant
 destruction of the heap or stack.
 
 \section{Related Work}
-
-(add Java, PyDebug)
 
 A huge body of literature is devoted to the topic of exception
 handling in various languages and systems.  Furthermore, the topic
@@ -1010,11 +1102,8 @@ Perhaps the most directly relevant work is that of advanced programming
 environments for Common Lisp \cite{lisp}.  Not only does CL have a foreign function interface,
 debuggers such as gdb have previously been modified to walk the Lisp stack
 \cite{ffi,wcl}.  Furthermore, certain Lisp development environments have
-provided a high degree of integration between compiled code and
-the Lisp interpreter\footnote{Note to program committee: I
-have been unable to find a suitable reference describing this capability.  However,
-discussions with Richard Gabriel and other people in the Lisp community seem to indicate that
-such work has been done. Please advise.}
+previously provided a high degree of integration between compiled code and
+the Lisp interpreter\cite{gabriel}.
 
 In certain cases, a scripting language module has been used to provide
 partial information for fatal signals. For example, the Perl {\tt
@@ -1036,7 +1125,7 @@ mixed compiled-interpreted debugging.   Although modern debuggers
 certainly try to provide advanced capabilities for debugging within a
 single language, they tend to ignore the boundary between languages.
 As previously mentioned, debuggers have occasionally been modified to
-support other languages such as Common Lisp \cite{wcl}.  However, no such work appears
+support other languages such as Common Lisp \cite{wcl}.  However, little work appears
 to have been done in the context of modern scripting languages.  One system of possible interest
 in the context of mixed compiled-interpreted debugging is the R$^{n}$
 system developed at Rice University in the mid-1980's \cite{carle}.  This
@@ -1049,6 +1138,18 @@ debugging of scripting language extensions, it is one of the few
 examples of a system in which compiled and interpreted code have been
 tightly integrated within a debugger.
 
+More recently, a couple of efforts have emerged to that seem to
+address certain issues related to mixed-mode debugging of interpreted
+and compiled code. PyDebug is a recently developed system that focuses
+on problems related to the management of breakpoints in Python
+extension code \cite{pydebug}.  It may also be possible to perform
+mixed-mode debugging of Java and native methods using features of the
+Java Platform Debugger Architecture (JPDA) \cite{jpda}.  Mixed-mode
+debugging support for Java may also be supported in advanced debugging systems
+such as ICAT \cite{icat}.
+However, these systems do not appear to have taken the approach of
+converting hardware faults into Java errors or exceptions.
+
 \section{Future Directions}
 
 As of this writing, WAD is only an experimental prototype.  Because of
@@ -1057,17 +1158,20 @@ that could be made to support additional platforms and scripting
 languages. In addition, there are a variety of improvements that could be made
 to provide better integration with threads and C++.
 
-A more interesting extension of this work would be to expose a broader
-range of debugging capabilities to the scripting interpreter.  For example,
-rather than simply raising an exception with limited diagnostic
-information, the recovery mechanism might be able to provide the
-interpreter with a detailed snapshot of the entire call stack
-including symbolic debugging information.  Using this information, it
-might be possible to implement an interactive post-mortem debugger
-that allows a programmer to inspect the values of local
-variables and other aspects of the application without leaving the
-interpreter.  Alternatively, it may be possible to integrate this information
-into an existing script-level debugger. 
+A more interesting extension of this work would be to see how the
+exception handling approach of WAD could be incorporated with
+the integrated development environments and script-level debugging
+systems that have already been developed.  It would also be interesting
+to see if a graphical debugging front-end such as DDD could be modified
+to handle mixed-language stack traces within the context of a script-level debugger \cite{ddd}.   
+
+It may also be possible to extend the approach taken by WAD to other
+types of extensible systems.  For instance, if one were developing a
+new server module for the Apache web-server, it might be possible to redirect fatal
+module errors back to the server in a way that produces a webpage with
+a stack trace \cite{apache}.  The exception handling approach may also have
+applicability to situations where compiled code is used to build software
+components that are used as part of a large distributed system.
 
 \section{Conclusions and Availability}
 
@@ -1089,14 +1193,17 @@ The prototype implementation of this system is available at :
 \end{center}
 
 \noindent
-Currently, WAD supports Python,
-Tcl, and Perl on SPARC Solaris and i386-Linux systems.  Work to
-support additional scripting languages and platforms is ongoing.
+Currently, WAD supports Python and Tcl on SPARC Solaris and i386-Linux
+systems.  Work to support additional scripting languages and platforms
+is ongoing.
 
 \section{Acknowledgments}
 
-Richard Gabriel and Harlan Sexton provided interesting insights concerning similar capabilities
-in Common Lisp.
+Richard Gabriel and Harlan Sexton provided interesting insights
+concerning debugging capabilities in Common Lisp.  Stephen Hahn
+provided useful information concerning the low-level details of signal
+handling on Solaris.  I would also like to thank the technical
+reviewers and Rob Miller for their useful comments.
 
 \begin{thebibliography}{99}
 
@@ -1123,7 +1230,7 @@ New Riders, 2000.
 \bibitem{swig} D.M. Beazley, {\em SWIG : An Easy to Use Tool for Integrating Scripting Languages with C and C++}, Proceedings of the 4th USENIX Tcl/Tk Workshop, p. 129-139, July 1996. 
 
 \bibitem{sip} P. Thompson, {\em SIP},\\
-{\tt http://www.thekompany.com/projects/pykde}.
+{\tt http://www.thekompany.com/ projects/pykde}.
 
 \bibitem{pyfort} P.~F.~Dubois, {\em Climate Data Analysis Software}, 8th International Python Conference,
 Arlington, VA., 2000.
@@ -1171,6 +1278,9 @@ Prentice-Hall, 1993.
 
 \bibitem{bfd} S. Chamberlain. {\em libbfd: The Binary File Descriptor Library}. Cygnus Support, bfd version 3.0 edition, April 1991. 
 
+\bibitem{seh} M. Pietrek, {\em A Crash Course on the Depths of Win32 Structured Exception Handling}, 
+Microsoft Systems Journal, January 1997.
+
 \bibitem{thread} F. Mueller, {\em A Library Implementation of POSIX Threads Under Unix},
 USENIX Winter Technical Conference, San Diego, CA., p. 29-42, 1993.
 
@@ -1188,6 +1298,8 @@ IEEE Transactions on Software Engineering, Vol 26, No. 10, p. 921-922, 2000.
 
 \bibitem{lisp} G.L. Steele Jr., {\em Common Lisp: The Language, Second Edition}, Digital Press,
 Bedford, MA. 1990.
+
+\bibitem{gabriel} R. Gabriel, private correspondence.
 
 \bibitem{ffi} H. Sexton, {\em Foreign Functions and Common Lisp}, in Lisp Pointers, Vol 1, No. 5, 1988.
 
@@ -1208,10 +1320,20 @@ Cornell University, Computer Science Department, 1990.
 {\em A Practical Environment for Scientific Programming.}
 IEEE Computer, Vol 20, No. 11, p. 75-89, 1987.
 
+\bibitem{pydebug} P. Stoltz, {\em PyDebug, a New Application for Integrated
+Debugging of Python with C and Fortran Extensions}, O'Reilly Open Source Software Convention,
+San Diego, 2001.
 
+\bibitem{jpda} Sun Microsystems, {\em Java Platform Debugger Architecture}, 
+http://java.sun.com/products/jpda
 
+\bibitem{icat} IBM, {\em ICAT Debugger}, \\
+http://techsupport.services.ibm.com/icat.
 
+\bibitem{ddd} A. Zeller, {\em Visual Debugging with DDD}, Dr. Dobb's Journal, March, 2001.
 
+\bibitem{apache} {\em Apache HTTP Server Project}, \\
+{\tt http://httpd.apache.org/}
 
 \end{thebibliography}
 
