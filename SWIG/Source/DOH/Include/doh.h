@@ -26,6 +26,17 @@ extern "C" {
 
 typedef void DOH;
 
+  /* Symbolic names used to clarify the reading of code using DOH objects */
+
+#define DOHString          DOH
+#define DOHList            DOH
+#define DOHHash            DOH
+#define DOHFile            DOH
+#define DOHFunction        DOH
+#define DOHVoid            DOH
+#define DOHString_or_Char  DOH
+#define DOHObj_or_Char     DOH
+
 #define DOH_BEGIN    -1
 #define DOH_END      -2
 #define DOH_CUR      -3
@@ -149,54 +160,54 @@ typedef struct DohObjInfo {
 
   /* Basic object methods.  Common to most objects */
 
-  extern void    DohDelete(DOH *obj);                /* Delete an object      */
-  extern DOH    *DohCopy(const DOH *obj);
-  extern void    DohClear(DOH *obj);
-  extern void    DohSetScope(DOH *, int scp);        /* Set scope of object   */
-  extern DOH    *DohStr(const DOH *obj);
-  extern void   *DohData(const DOH *obj);
-  extern int     DohDump(const DOH *obj, DOH *out);
-  extern int     DohLen(const DOH *obj);
-  extern int     DohHashval(const DOH *obj);
-  extern int     DohCmp(const DOH *obj1, const DOH *obj2);
+  extern void          DohDelete(DOH *obj);                /* Delete an object      */
+  extern DOH          *DohCopy(const DOH *obj);
+  extern void          DohClear(DOH *obj);
+  extern void          DohSetScope(DOH *, int scp);        /* Set scope of object   */
+  extern DOHString    *DohStr(const DOH *obj);
+  extern void         *DohData(const DOH *obj);
+  extern int           DohDump(const DOH *obj, DOHFile *out);
+  extern int           DohLen(const DOH *obj);
+  extern int           DohHashval(const DOH *obj);
+  extern int           DohCmp(const DOH *obj1, const DOH *obj2);
 
   /* Mapping methods */
 
-  extern DOH    *DohGetattr(DOH *obj, const DOH *name);
-  extern int     DohSetattr(DOH *obj, const DOH *name, const DOH *value);
-  extern void    DohDelattr(DOH *obj, const DOH *name);
+  extern DOH    *DohGetattr(DOH *obj, const DOHString_or_Char *name);
+  extern int     DohSetattr(DOH *obj, const DOHString_or_Char *name, const DOHObj_or_Char *value);
+  extern void    DohDelattr(DOH *obj, const DOHString_or_Char *name);
   extern DOH    *DohFirstkey(DOH *obj);
   extern DOH    *DohNextkey(DOH *obj);
-  extern int     DohGetInt(DOH *obj, const DOH *name);
-  extern double  DohGetDouble(DOH *obj, const DOH *name);
-  extern char   *DohGetChar(DOH *obj, const DOH *name);
-  extern void    DohSetInt(DOH *obj, const DOH *name, int);
-  extern void    DohSetDouble(DOH *obj, const DOH *name, double);
-  extern void   *DohGetVoid(DOH *obj, const DOH *name);
-  extern void    DohSetVoid(DOH *obj, const DOH *name, void *value);
+  extern int     DohGetInt(DOH *obj, const DOHString_or_Char *name);
+  extern double  DohGetDouble(DOH *obj, const DOHString_or_Char *name);
+  extern char   *DohGetChar(DOH *obj, const DOHString_or_Char *name);
+  extern void    DohSetInt(DOH *obj, const DOHString_or_Char *name, int);
+  extern void    DohSetDouble(DOH *obj, const DOHString_or_Char *name, double);
+  extern void   *DohGetVoid(DOH *obj, const DOHString_or_Char *name);
+  extern void    DohSetVoid(DOH *obj, const DOHString_or_Char *name, void *value);
 
   /* Sequence methods */
 
   extern DOH    *DohGetitem(DOH *obj, int index);
-  extern int     DohSetitem(DOH *obj, int index, const DOH *value);
+  extern int     DohSetitem(DOH *obj, int index, const DOHObj_or_Char *value);
   extern int     DohDelitem(DOH *obj, int index);
-  extern int     DohInsertitem(DOH *obj, int index, const DOH *value);
+  extern int     DohInsertitem(DOH *obj, int index, const DOHObj_or_Char *value);
   extern DOH    *DohFirstitem(DOH *obj);
   extern DOH    *DohNextitem(DOH *obj);
 
   /* File methods */
 
-  extern int     DohWrite(DOH *obj, void *buffer, int length);
-  extern int     DohRead(DOH *obj, void *buffer, int length);
-  extern int     DohSeek(DOH *obj, long offset, int whence);
-  extern long    DohTell(DOH *obj);
-  extern int     DohGetc(DOH *obj);
-  extern int     DohPutc(int ch, DOH *obj);
-  extern int     DohUngetc(int ch, DOH *obj);
+  extern int     DohWrite(DOHFile *obj, void *buffer, int length);
+  extern int     DohRead(DOHFile *obj, void *buffer, int length);
+  extern int     DohSeek(DOHFile *obj, long offset, int whence);
+  extern long    DohTell(DOHFile *obj);
+  extern int     DohGetc(DOHFile *obj);
+  extern int     DohPutc(int ch, DOHFile *obj);
+  extern int     DohUngetc(int ch, DOHFile *obj);
 
   /* Callable Methods */
 
-  extern DOH    *DohCall(DOH *obj, DOH *args);
+  extern DOH    *DohCall(DOHFunction *obj, DOH *args);
 
   /* Position Methods */
 
@@ -207,15 +218,15 @@ typedef struct DohObjInfo {
 
   /* String Methods */
 
-  extern int     DohReplace(DOH *src, const DOH *token, const DOH *rep, int flags);
-  extern void    DohChop(DOH *src);
+  extern int     DohReplace(DOHString *src, const DOHString_or_Char *token, const DOHString_or_Char *rep, int flags);
+  extern void    DohChop(DOHString *src);
 
   /* Utility functions */
 
   extern void    DohEncoding(char *name, DOH *(*fn)(DOH *s));
-  extern int     DohPrintf(DOH *obj, const char *format, ...);
-  extern int     DohvPrintf(DOH *obj, const char *format, va_list ap);
-  extern DOH    *DohReadline(DOH *in);
+  extern int     DohPrintf(DOHFile *obj, const char *format, ...);
+  extern int     DohvPrintf(DOHFile *obj, const char *format, va_list ap);
+  extern DOH    *DohReadline(DOHFile *in);
 
   /* Miscellaneous */
 
@@ -331,8 +342,8 @@ typedef struct {
  * Strings.
  * ----------------------------------------------------------------------------- */
 
-extern DOH   *NewString(const DOH *c);
-extern DOH   *NewStringf(const DOH *fmt, ...);
+extern DOHString   *NewString(const DOH *c);
+extern DOHString   *NewStringf(const DOH *fmt, ...);
 
 extern int    String_check(const DOH *s);
 
@@ -347,10 +358,10 @@ extern int    String_check(const DOH *s);
  * Files
  * ----------------------------------------------------------------------------- */
 
-extern DOH *NewFile(DOH *file, char *mode);
-extern DOH *NewFileFromFile(FILE *f);
-extern DOH *NewFileFromFd(int fd);
-extern int  DohCopyto(DOH *input, DOH *output);
+extern DOHFile *NewFile(DOH *file, char *mode);
+extern DOHFile *NewFileFromFile(FILE *f);
+extern DOHFile *NewFileFromFd(int fd);
+extern int  DohCopyto(DOHFile *input, DOHFile *output);
 
 #define Copyto DohCopyto
 
@@ -358,25 +369,25 @@ extern int  DohCopyto(DOH *input, DOH *output);
  * List
  * ----------------------------------------------------------------------------- */
 
-extern DOH  *NewList();
+extern DOHList  *NewList();
 extern int  List_check(const DOH *);
-extern void List_sort(DOH *);
+extern void List_sort(DOHList *);
 
 /* -----------------------------------------------------------------------------
  * Hash
  * ----------------------------------------------------------------------------- */
 
-extern DOH   *NewHash();
-extern int    Hash_check(const DOH *h);
-extern DOH   *Hash_keys(DOH *);
+extern DOHHash   *NewHash();
+extern int        Hash_check(const DOH *h);
+extern DOHList   *Hash_keys(DOHHash *);
 
 /* -----------------------------------------------------------------------------
  * Void
  * ----------------------------------------------------------------------------- */
 
-extern DOH  *NewVoid(void *ptr, void (*del)(void *));
+extern DOHVoid  *NewVoid(void *ptr, void (*del)(void *));
 
-extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
+extern DOHList *DohSplit(DOHFile *input, char *chs, int nsplits);
 #define Split DohSplit
 
 extern DOH *DohNone;
@@ -385,7 +396,7 @@ extern DOH *DohNone;
  * Callable
  * ----------------------------------------------------------------------------- */
 
-extern DOH *NewCallable(DOH *(*func)(DOH *, DOH *));
+extern DOHFunction *NewCallable(DOH *(*func)(DOH *, DOH *));
 
 /* -----------------------------------------------------------------------------
  * Error handling levels.
@@ -402,3 +413,7 @@ extern DOH *NewCallable(DOH *(*func)(DOH *, DOH *));
 #endif
 
 #endif /* DOH_H */
+
+
+
+
