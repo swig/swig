@@ -21,7 +21,7 @@
 
 /* The following directives also produce constants */
 
-%constant int iconst = 37;
-%constant double fconst = 3.14;
+%constant int Iconst = 37;
+%constant double Fconst = 3.14;
 
 
