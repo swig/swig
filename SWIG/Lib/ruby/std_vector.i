@@ -79,7 +79,7 @@ namespace std {
         %typemap(in) vector<T> {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;
-                $1 = std::vector<T>(size);
+                $1 = std::vector<T >(size);
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
                     T* x = (T*) SWIG_ConvertPtr(o, $descriptor(T *));
@@ -93,7 +93,7 @@ namespace std {
                      const vector<T>* (std::vector<T> temp) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;
-                temp = std::vector<T>(size);
+                temp = std::vector<T >(size);
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
@@ -165,7 +165,7 @@ namespace std {
         %typemap(in) vector<T> {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;
-                $1 = std::vector<T>(size);
+                $1 = std::vector<T >(size);
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
                     if (CHECK(o))
@@ -183,7 +183,7 @@ namespace std {
                      const vector<T>* (std::vector<T> temp) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;
-                temp = std::vector<T>(size);
+                temp = std::vector<T >(size);
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];

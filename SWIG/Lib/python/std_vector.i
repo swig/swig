@@ -93,7 +93,7 @@ namespace std {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
-                $1 = std::vector<T>(size);
+                $1 = std::vector<T >(size);
                 for (unsigned int i=0; i<size; i++) {
                     T* x;
                     PyObject* o = PySequence_GetItem($input,i);
@@ -124,7 +124,7 @@ namespace std {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
-                temp = std::vector<T>(size);
+                temp = std::vector<T >(size);
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     T* x;
@@ -188,7 +188,7 @@ namespace std {
                 if (j<0) j = size+j;
                 if (i<0) i = 0;
                 if (j>size) j = size;
-                std::vector<T> tmp(j-i);
+                std::vector<T > tmp(j-i);
                 std::copy(self->begin()+i,self->begin()+j,tmp.begin());
                 return tmp;
             }
@@ -244,7 +244,7 @@ namespace std {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
-                $1 = std::vector<T>(size);
+                $1 = std::vector<T >(size);
                 for (unsigned int i=0; i<size; i++) {
                     T x;
                     PyObject* o = PySequence_GetItem($input,i);
@@ -275,7 +275,7 @@ namespace std {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
-                temp = std::vector<T>(size);
+                temp = std::vector<T >(size);
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     T x;
@@ -339,7 +339,7 @@ namespace std {
                 if (j<0) j = size+j;
                 if (i<0) i = 0;
                 if (j>size) j = size;
-                std::vector<T> tmp(j-i);
+                std::vector<T > tmp(j-i);
                 std::copy(self->begin()+i,self->begin()+j,tmp.begin());
                 return tmp;
             }
@@ -395,7 +395,7 @@ namespace std {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
-                $1 = std::vector<T>(size);
+                $1 = std::vector<T >(size);
                 for (unsigned int i=0; i<size; i++) {
                     PyObject* o = PySequence_GetItem($input,i);
                     if (CHECK(o)) {
@@ -424,7 +424,7 @@ namespace std {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
-                temp = std::vector<T>(size);
+                temp = std::vector<T >(size);
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     PyObject* o = PySequence_GetItem($input,i);
@@ -483,7 +483,7 @@ namespace std {
                 if (j<0) j = size+j;
                 if (i<0) i = 0;
                 if (j>size) j = size;
-                std::vector<T> tmp(j-i);
+                std::vector<T > tmp(j-i);
                 std::copy(self->begin()+i,self->begin()+j,tmp.begin());
                 return tmp;
             }

@@ -73,17 +73,17 @@ namespace std {
         %typemap(in) vector<T> {
             if (gh_vector_p($input)) {
                 unsigned long size = gh_vector_length($input);
-                $1 = std::vector<T>(size);
+                $1 = std::vector<T >(size);
                 for (unsigned int i=0; i<size; i++) {
                     SCM o = gh_vector_ref($input,gh_long2scm(i));
                     (($1_type &)$1)[i] =
                         *((T*) SWIG_MustGetPtr(o,$descriptor(T *),$argnum));
                 }
             } else if (gh_null_p($input)) {
-                $1 = std::vector<T>();
+                $1 = std::vector<T >();
             } else if (gh_pair_p($input)) {
                 SCM head, tail;
-                $1 = std::vector<T>();
+                $1 = std::vector<T >();
                 tail = $input;
                 while (!gh_null_p(tail)) {
                     head = gh_car(tail);
@@ -101,7 +101,7 @@ namespace std {
                      const vector<T>* (std::vector<T> temp) {
             if (gh_vector_p($input)) {
                 unsigned int size = gh_vector_length($input);
-                temp = std::vector<T>(size);
+                temp = std::vector<T >(size);
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     SCM o = gh_vector_ref($input,gh_long2scm(i));
@@ -110,10 +110,10 @@ namespace std {
                                                      $argnum));
                 }
             } else if (gh_null_p($input)) {
-                temp = std::vector<T>();
+                temp = std::vector<T >();
                 $1 = &temp;
             } else if (gh_pair_p($input)) {
-                temp = std::vector<T>();
+                temp = std::vector<T >();
                 $1 = &temp;
                 SCM head, tail;
                 tail = $input;
@@ -132,8 +132,8 @@ namespace std {
             $result = gh_make_vector(gh_long2scm($1.size()),SCM_UNSPECIFIED);
             for (unsigned int i=0; i<$1.size(); i++) {
                 T* x = new T((($1_type &)$1)[i]);
-                gh_vector_set($result,gh_long2scm(i),
-                              SWIG_MakePtr(x,$descriptor(T *)));
+                gh_vector_set_x($result,gh_long2scm(i),
+                                SWIG_MakePtr(x,$descriptor(T *)));
             }
         }
       public:
@@ -180,16 +180,16 @@ namespace std {
         %typemap(in) vector<T> {
             if (gh_vector_p($input)) {
                 unsigned long size = gh_vector_length($input);
-                $1 = std::vector<T>(size);
+                $1 = std::vector<T >(size);
                 HOST* data = CONVERT_FROM($input,NULL);
                 std::copy(data,data+size,$1.begin());
                 free(data);
             } else if (gh_null_p($input)) {
-                $1 = std::vector<T>();
+                $1 = std::vector<T >();
             } else if (gh_pair_p($input)) {
                 SCM v = gh_list_to_vector($input);
                 unsigned long size = gh_vector_length(v);
-                $1 = std::vector<T>(size);
+                $1 = std::vector<T >(size);
                 HOST* data = CONVERT_FROM(v,NULL);
                 std::copy(data,data+size,$1.begin());
                 free(data);
@@ -202,18 +202,18 @@ namespace std {
                      const vector<T>* (std::vector<T> temp) {
             if (gh_vector_p($input)) {
                 unsigned long size = gh_vector_length($input);
-                temp = std::vector<T>(size);
+                temp = std::vector<T >(size);
                 $1 = &temp;
                 HOST* data = CONVERT_FROM($input,NULL);
                 std::copy(data,data+size,temp.begin());
                 free(data);
             } else if (gh_null_p($input)) {
-                temp = std::vector<T>();
+                temp = std::vector<T >();
                 $1 = &temp;
             } else if (gh_pair_p($input)) {
                 SCM v = gh_list_to_vector($input);
                 unsigned long size = gh_vector_length(v);
-                temp = std::vector<T>(size);
+                temp = std::vector<T >(size);
                 $1 = &temp;
                 HOST* data = CONVERT_FROM(v,NULL);
                 std::copy(data,data+size,temp.begin());

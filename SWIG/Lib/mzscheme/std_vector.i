@@ -73,7 +73,7 @@ namespace std {
         %typemap(in) vector<T> {
             if (SCHEME_VECTORP($input)) {
                 unsigned int size = SCHEME_VEC_SIZE($input);
-                $1 = std::vector<T>(size);
+                $1 = std::vector<T >(size);
                 Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
                     (($1_type &)$1)[i] =
@@ -82,10 +82,10 @@ namespace std {
                                                $argnum));
                 }
             } else if (SCHEME_NULLP($input)) {
-                $1 = std::vector<T>();
+                $1 = std::vector<T >();
             } else if (SCHEME_PAIRP($input)) {
                 Scheme_Object *head, *tail;
-                $1 = std::vector<T>();
+                $1 = std::vector<T >();
                 tail = $input;
                 while (!SCHEME_NULLP(tail)) {
                     head = scheme_car(tail);
@@ -103,7 +103,7 @@ namespace std {
                      const vector<T>* (std::vector<T> temp) {
             if (SCHEME_VECTORP($input)) {
                 unsigned int size = SCHEME_VEC_SIZE($input);
-                temp = std::vector<T>(size);
+                temp = std::vector<T >(size);
                 $1 = &temp;
                 Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
@@ -112,10 +112,10 @@ namespace std {
                                                      $argnum));
                 }
             } else if (SCHEME_NULLP($input)) {
-                temp = std::vector<T>();
+                temp = std::vector<T >();
                 $1 = &temp;
             } else if (SCHEME_PAIRP($input)) {
-                temp = std::vector<T>();
+                temp = std::vector<T >();
                 $1 = &temp;
                 Scheme_Object *head, *tail;
                 tail = $input;
@@ -183,7 +183,7 @@ namespace std {
         %typemap(in) vector<T> {
             if (SCHEME_VECTORP($input)) {
                 unsigned int size = SCHEME_VEC_SIZE($input);
-                $1 = std::vector<T>(size);
+                $1 = std::vector<T >(size);
                 Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
                     Scheme_Object* o = items[i];
@@ -194,10 +194,10 @@ namespace std {
                                           $argnum, argc, argv);
                 }
             } else if (SCHEME_NULLP($input)) {
-                $1 = std::vector<T>();
+                $1 = std::vector<T >();
             } else if (SCHEME_PAIRP($input)) {
                 Scheme_Object *head, *tail;
-                $1 = std::vector<T>();
+                $1 = std::vector<T >();
                 tail = $input;
                 while (!SCHEME_NULLP(tail)) {
                     head = scheme_car(tail);
@@ -217,7 +217,7 @@ namespace std {
                      const vector<T>* (std::vector<T> temp) {
             if (SCHEME_VECTORP($input)) {
                 unsigned int size = SCHEME_VEC_SIZE($input);
-                temp = std::vector<T>(size);
+                temp = std::vector<T >(size);
                 $1 = &temp;
                 Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
@@ -229,10 +229,10 @@ namespace std {
                                           $argnum, argc, argv);
                 }
             } else if (SCHEME_NULLP($input)) {
-                temp = std::vector<T>();
+                temp = std::vector<T >();
                 $1 = &temp;
             } else if (SCHEME_PAIRP($input)) {
-                temp = std::vector<T>();
+                temp = std::vector<T >();
                 $1 = &temp;
                 Scheme_Object *head, *tail;
                 tail = $input;
