@@ -43,7 +43,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 
 CPP_TEST_BROKEN = \
-	typedef_array_member \
 	namespace_nested \
 	template_default_arg \
 	using_namespace
@@ -53,6 +52,7 @@ CPP_TEST_CASES += $(CPP_TEST_BROKEN)
 CPP_TEST_CASES += \
 	abstract_inherit \
 	abstract_inherit_ok \
+	abstract_signature \
 	add_link \
 	anonymous_arg \
 	argout \
@@ -184,6 +184,7 @@ CPP_TEST_CASES += \
 	template_virtual \
 	template_whitespace \
 	throw_exception \
+	typedef_array_member \
 	typedef_funcptr \
 	typedef_inherit \
 	typedef_mptr \
