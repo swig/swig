@@ -249,7 +249,7 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
 
 /* Pack binary data into a string */
 SWIGRUNTIME(char *)
-SWIG_PackData(char *c, void *ptr, int sz) {
+SWIG_PackData(char *c, void *ptr, size_t sz) {
   static char hex[17] = "0123456789abcdef";
   unsigned char *u = (unsigned char *) ptr;
   const unsigned char *eu =  u + sz;
@@ -264,7 +264,7 @@ SWIG_PackData(char *c, void *ptr, int sz) {
 
 /* Unpack binary data from a string */
 SWIGRUNTIME(char *)
-SWIG_UnpackData(char *c, void *ptr, int sz) {
+SWIG_UnpackData(char *c, void *ptr, size_t sz) {
   register unsigned char uu = 0;
   register int d;
   unsigned char *u = (unsigned char *) ptr;
