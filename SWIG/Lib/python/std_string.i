@@ -5,6 +5,10 @@
 #ifndef SWIG_STD_BASIC_STRING
 #define SWIG_STD_STRING
 
+%{
+#include <string>
+%}
+  
 %include <pystrings.swg>
 
 namespace std
