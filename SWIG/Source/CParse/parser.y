@@ -773,7 +773,7 @@ apply_directive : APPLY typemap_parm LBRACE tm_list RBRACE {
    %clear
    ------------------------------------------------------------ */
 
-clear_directive : CLEAR parms SEMI {
+clear_directive : CLEAR tm_list SEMI {
 		 $$ = new_node("clear");
 		 Setattr($$,"parms",$2);
                }
