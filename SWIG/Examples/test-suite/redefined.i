@@ -1,5 +1,7 @@
 %module redefined
 
+%warnfilter(801) agua;
+
 /* no redundant warnings */
 #pragma SWIG nowarn=-322
 
