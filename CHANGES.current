@@ -3,6 +3,24 @@ Version 1.3.22 (in progress)
 
 04/10/2004: mmatus (Marcelo Matus) 
 	    
+	    Added the -directors flag. This enables the director
+	    mode for the interface and all the classes that
+	    don't set the "feature:nodirector" explicitly.
+
+	    You can use this in your module if you want to use the
+	    director feature in all your classes, but it is most
+	    intended for testing purposes, like:
+
+	      make check-python-test-suite SWIG="../../../swig  -directors"
+	      make check-ruby-test-suite SWIG="../../../swig  -directors"
+	      make check-java-test-suite SWIG="../../../../swig  -directors"
+
+	    These commands will run the entire test-suite using
+	    directors, and not only the specific 'directors_*'
+	    cases. This should be done from time to time.
+
+04/10/2004: mmatus (Marcelo Matus) 
+	    
 	    [python] Added support for std::wstring and wchar_t,
 	    for compiler and python versions that support them.
 	    
