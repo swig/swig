@@ -16,11 +16,12 @@ SWIG release.  The guilty parties working on this are:
   -  Dustin Mitchell (djmitche@cs.uchicago.edu)         (SWIG core)
   -  Ian Cooke (iancooke@cs.uchicago.edu)               (SWIG core)
   -  Bryan King (bwking@midway.uchicago.edu)            (SWIG core)
+  -  Hasan Baran Kovuk (hbkovuk@midway.uchicago.edu)    (SWIG core)
   -  Loic Dachary (loic@ceic.com)                       (Perl5)
   -  Harco de Hilster (Harco.de.Hilster@ATComputing.nl) (Java)
 
 *** Disclaimer : The Source directory is a nightmare right now. Please
-pardon our dust.
+pardon the dust.
 
 General overview:
 =================
@@ -41,6 +42,8 @@ in ANSI C.  Please avoid C++ if at all possible. -- Dave ***
       Core          - New SWIG core (ANSI C)
       Preprocessor  - SWIG preprocessor module
       Dustin        - Some Python stuff Dustin is working on.
+      SWILL         - An embedded web-server library
+      Swim          - The SWIG monitor project.
 
 Documentation for these components is weak or non-existent at this
 time. However, this should only matter if you are actually hacking
@@ -48,15 +51,17 @@ on SWIG itself. Please bear with us.
 
 Installation
 ============
-It should be relatively simple.  Simply type the following:
+To build and install SWIG, simply type the following:
 
      % ./configure
      % make
      % make install
      
 If you checked the code out via CVS, you will have to run autoconf
-before typing 'configure.'  In addition, a full build of SWIG requires
-the use bison or yacc.
+before typing 'configure.'  SWIG requires the use of autoconf-2.13 or
+higher. In addition, a full build of SWIG requires the use bison or yacc.
+If you plan to make modifications or contributions to SWIG, you
+should also plan on installing automake-1.4 or higher on your machine.
 
 Participate!
 ============

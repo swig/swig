@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4a from Makefile.am
+# Makefile.in generated automatically by automake 1.4 from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -47,10 +47,9 @@ AUTOMAKE = @AUTOMAKE@
 AUTOHEADER = @AUTOHEADER@
 
 INSTALL = @INSTALL@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
-INSTALL_STRIP_FLAG =
 transform = @program_transform_name@
 
 NORMAL_INSTALL = :
@@ -91,11 +90,8 @@ YFLAGS = @YFLAGS@
 
 AUTOMAKE_OPTIONS = foreign
 
-SWIG_INCLUDES = -I$(top_srcdir)/Source/DOH/Include 	        -I$(top_srcdir)/Source/SWILL/Include
-
-
-SWIG_LIBS = $(top_builddir)/Source/DOH/Doh/libdoh.a 	    $(top_builddir)/Source/SWILL/SWILL/libswill.a
-
+SWIG_INCLUDES = -I$(top_srcdir)/Source/DOH/Include
+SWIG_LIBS = $(top_builddir)/Source/DOH/Doh/libdoh.a
 
 SWIG_LIB = $(prefix)/lib/swig1.3
 
@@ -131,7 +127,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/ascii.P .deps/guile.P .deps/html.P .deps/java.P \
 .deps/perl5.P .deps/pycpp.P .deps/python.P .deps/swigmain.P \
@@ -224,7 +220,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
@@ -304,7 +300,7 @@ uninstall: uninstall-am
 all-am: Makefile $(LIBRARIES) $(HEADERS)
 all-redirect: all-am
 install-strip:
-	$(MAKE) $(AM_MAKEFLAGS) INSTALL_STRIP_FLAG=-s install
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs:
 
 
