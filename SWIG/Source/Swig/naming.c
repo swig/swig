@@ -30,49 +30,14 @@ Swig_name_register(String_or_char *method, String_or_char *format) {
   Setattr(naming_hash,method,format);
 }
 
-/* -----------------------------------------------------------------------------
- * Swig_name_mangle()
- *
- * Converts all of the non-identifier characters of a string to underscores.
- * ----------------------------------------------------------------------------- */
-
-String *
-Swig_name_mangle(String_or_char *s) {
-  String *r = NewString("");
+static
+int name_mangle(String *r) {
   char  *c;
-  Append(r,s);
+  int    special;
+  special = 0;
   c = Char(r);
   while (*c) {
-    if (!isalnum(*c)) *c = '_';
-    c++;
-  }
-  return r;
-}
-
-/* -----------------------------------------------------------------------------
- * Swig_name_wrapper()
- *
- * Returns the name of a wrapper function.
- * ----------------------------------------------------------------------------- */
-
-String *
-Swig_name_wrapper(String_or_char *fname) {
-  String *r;
-  String *f;
-  char *c;
-  int  special = 0;
-  r = NewString("");
-  if (!naming_hash) naming_hash = NewHash();
-  f = Getattr(naming_hash,"wrapper");
-  if (!f) {
-    Append(r,"_wrap_%f");
-  } else {
-    Append(r,f);
-  }
-  Replace(r,"%f",fname, DOH_REPLACE_ANY);
-  c = Char(r);
-  while (*c) {
-    if (!(isalnum(*c) || (*c == '_'))) {
+    if (!isalnum(*c) && (*c != '_')) {
       special = 1;
       switch(*c) {
       case '+':
@@ -139,10 +104,47 @@ Swig_name_wrapper(String_or_char *fname) {
     }
     c++;
   }
-  if (special) {
-    Append(r,"___");
+  if (special) Append(r,"___");
+  return special;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_mangle()
+ *
+ * Converts all of the non-identifier characters of a string to underscores.
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_name_mangle(String_or_char *s) {
+  char  *c;
+  int    special = 0;
+  String *r = NewString(s);
+  name_mangle(r);
+  return r;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_wrapper()
+ *
+ * Returns the name of a wrapper function.
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_name_wrapper(String_or_char *fname) {
+  String *r;
+  String *f;
+  char *c;
+
+  r = NewString("");
+  if (!naming_hash) naming_hash = NewHash();
+  f = Getattr(naming_hash,"wrapper");
+  if (!f) {
+    Append(r,"_wrap_%f");
+  } else {
+    Append(r,f);
   }
-  /*  Replace(r,":","_", DOH_REPLACE_ANY); */
+  Replace(r,"%f",fname, DOH_REPLACE_ANY);
+  name_mangle(r);
   return r;
 }
 
@@ -172,6 +174,7 @@ Swig_name_member(String_or_char *classname, String_or_char *mname) {
   if (c) cname = c+1;
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
   Replace(r,"%m",mname, DOH_REPLACE_ANY);
+  name_mangle(r);
   return r;
 }
 
