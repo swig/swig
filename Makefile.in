@@ -334,7 +334,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/$(TARGET)
 
 lib-languages = tcl perl5 python guile java mzscheme ruby php4 ocaml \
-	pike chicken csharp modula3
+	pike chicken csharp modula3 allegrocl
 
 install-lib:
 	@echo "Installing the SWIG library"
