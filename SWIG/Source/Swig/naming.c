@@ -520,9 +520,9 @@ Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_features_get()
+ * merge_features()
  *
- * Given a node, this function merges features.
+ * Given a hash, this function merges the features in the hash into the node.
  * ----------------------------------------------------------------------------- */
 
 static void merge_features(Hash *features, Node *n) {
@@ -536,6 +536,13 @@ static void merge_features(Hash *features, Node *n) {
     Setattr(n,ki.key,Copy(ki.item));
   }
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_features_get()
+ *
+ * Attaches any features in the features hash to the node that matches
+ * the declaration, decl.
+ * ----------------------------------------------------------------------------- */
 
 void
 Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *node) {
@@ -634,11 +641,13 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
 /* -----------------------------------------------------------------------------
  * Swig_feature_set()
  *
- * Sets a feature name and value.
+ * Sets a feature name and value. Also sets optional feature attributes as
+ * passed in by featureattribs. Optional feature attributes are given a full name
+ * concatenating the feature name plus ':' plus the attribute name.
  * ----------------------------------------------------------------------------- */
 
 void 
-Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, const String_or_char *featurename, String *value) {
+Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, const String_or_char *featurename, String *value, Hash *featureattribs) {
   Hash *n;
   Hash *fhash;
   /*  Printf(stdout,"feature: %s %s %s %s\n", name, decl, featurename, value);*/
@@ -665,6 +674,22 @@ Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, con
     Setattr(fhash,featurename,value);
   } else {
     Delattr(fhash,featurename);
+  }
+
+  {
+    /* Add in the optional feature attributes */
+    Hash *attribs = featureattribs;
+    while(attribs) {
+      String *attribname = Getattr(attribs,"name");
+      String *featureattribname = NewStringf("%s:%s", featurename, attribname);
+      if (value) {
+        String *attribvalue = Getattr(attribs,"value");
+        Setattr(fhash,featureattribname,attribvalue);
+      } else {
+        Delattr(fhash,featureattribname);
+      }
+      attribs = nextSibling(attribs);
+    }
   }
 }
 
