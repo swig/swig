@@ -5,8 +5,8 @@
 %inline %{
 struct Foo {
    int x;
-   int test(int x) { x = 0; return 1; }
-   int test(double x) { x = 0; return 2; }
+   int test(int y) { y = 0; return 1; }
+   int test(double y) { y = 0; return 2; }
    int test(char *s) { s = 0; return 3; }
 };
 
