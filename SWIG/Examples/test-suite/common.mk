@@ -43,6 +43,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	constructor_explicit \
 	lib_typemaps \
 	typemap_namespace \
 	smart_pointer_const \
