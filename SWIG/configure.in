@@ -814,7 +814,7 @@ PHP4BIN=
 
 AC_ARG_WITH(php4,[  --with-php4=path	  Set location of PHP4 executable],[ PHP4BIN="$withval"], [PHP4BIN=])
 
-if test -z "$PERLBIN"; then
+if test -z "$PHP4BIN"; then
 AC_CHECK_PROGS(PHP4, php, php4)
 else
 PHP4="$PHP4BIN"
