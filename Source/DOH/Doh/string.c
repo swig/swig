@@ -14,7 +14,9 @@ static char cvsroot[] = "$Header$";
 
 #include "dohint.h"
 
+#ifndef DOH_STRING_UPDATE_LINES
 #define DOH_STRING_UPDATE_LINES
+#endif
 
 typedef struct String {
     DOHXCOMMON;

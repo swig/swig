@@ -24,6 +24,8 @@ static char cvsroot[] = "$Header$";
  *
  ***********************************************************************/
 
+#include "swigconfig.h"
+
 #include "wrap.h"
 #include "tcl8.h"
 #include "perl5.h"
@@ -34,6 +36,7 @@ static char cvsroot[] = "$Header$";
 #include "html.h"
 #include "nodoc.h"
 #include <ctype.h>
+
 
 static char  *usage = "\
 swig <options> filename\n\n\

@@ -15,7 +15,7 @@ static char cvsroot[] = "$Header$";
 
 #define yylval lparse_yylval
 
-#include "parser.h"
+#include "lyacc.h"
 #include <stdarg.h>
 
 static int map[][2] = {

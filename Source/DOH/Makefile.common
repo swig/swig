@@ -1,5 +1,0 @@
-AUTOMAKE_OPTIONS = foreign no-dependencies
-
-INCLUDES = -I$(top_srcdir)/Include
-
-DOH_LIBS = -L$(top_builddir)/Doh -ldoh

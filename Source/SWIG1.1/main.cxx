@@ -26,12 +26,22 @@ static char cvsroot[] = "$Header$";
 #define WRAP
 
 #include "internal.h"
+#include "swigconfig.h"
+
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 
 #include "preprocessor.h"
+
+#ifndef SWIG_LIB   
+#define SWIG_LIB "/usr/local/lib/swig1.3"
+#endif
+
+#ifndef SWIG_CC
+#define SWIG_CC "CC"
+#endif
 
 class SwigException {};
 

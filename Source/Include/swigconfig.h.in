@@ -1,0 +1,6 @@
+/* This file contains SWIG specific configuration data for those modules
+   that care */
+
+#define SWIG_LIB   "@prefix@/lib/swig1.3"
+#define SWIG_LANG  TCL8
+

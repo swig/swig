@@ -1,0 +1,67 @@
+#######################################################################
+# $Header$
+#######################################################################
+
+srcdir   = @srcdir@
+VPATH    = @srcdir@
+
+SHELL    = /bin/sh
+CXX      = @CXX@
+CFLAGS   = @CFLAGS@
+YACC     = @YACC@ 
+AR       = @AR@
+RANLIB   = @RANLIB@
+
+TARGET   = libswig11.a
+
+OBJS     = parser.o main.o scanner.o symbol.o types.o include.o parms.o emit.o newdoc.o \
+          cplus.o lang.o hash.o sstring.o wrapfunc.o comment.o \
+          typemap.o naming.o
+
+SRCS     = main.cxx scanner.cxx symbol.cxx include.cxx types.cxx parms.cxx emit.cxx \
+	  newdoc.cxx cplus.cxx lang.cxx hash.cxx \
+          sstring.cxx wrapfunc.cxx comment.cxx typemap.cxx naming.cxx
+
+PARSER   = parser.yxx
+INCLUDE  = -I../Include -I. -I../Swig -I../Preprocessor -I../DOH/Include
+
+# Rules for creation of a .o file from .cxx
+.SUFFIXES: .cxx
+.cxx.o: 
+	$(CXX) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
+
+swig:   $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(AR) cr $(TARGET) $(OBJS)
+	$(RANLIB) $(TARGET)
+
+parser.o: parser.cxx
+	$(CXX) $(INCLUDE) $(CFLAGS) parser.cxx -c -o parser.o
+
+parser.cxx: $(PARSER)
+	$(YACC) @YFLAGS@ $(PARSER)
+	@cp y.tab.h parser.h
+	@cp y.tab.c parser.cxx
+
+parser::  
+	@cp y.tab.c.bison parser.cxx
+	@cp y.tab.h.bison parser.h
+	@cp y.tab.h.bison y.tab.h
+	$(CXX) $(CFLAGS) parser.cxx -c -o parser.o
+
+clean::
+	rm -f *.o $(TARGET) y.tab.c y.tab.h
+
+nuke::
+	rm -f Makefile *~ #* core a.out
+
+
+
+
+
+
+
+
+
+
