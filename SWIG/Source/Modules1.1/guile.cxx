@@ -818,7 +818,7 @@ GUILE::variableWrapper(Node *n)
     if (!ReadOnly) {
       /* Check for a setting of the variable value */
       Printf (f->code, "if (s_0 != GH_NOT_PASSED) {\n");
-      if ((tm = Swig_typemap_lookup_new("varin",n,"s_0",0))) {
+      if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
 	Replaceall(tm,"$source","s_0");
 	Replaceall(tm,"$input","s_0");
 	Replaceall(tm,"$target",name);
@@ -1037,8 +1037,28 @@ void GUILE::pragma(char *lang, char *cmd, char *value)
 
 int GUILE::validIdentifier(String *s) {
   char *c = Char(s);
+  /* Check whether we have an R5RS identifier.  Guile supports a
+     superset of R5RS identifiers, but it's probably a bad idea to use
+     those. */
+  /* <identifier> --> <initial> <subsequent>* | <peculiar identifier> */
+  /* <initial> --> <letter> | <special initial> */
+  if (!(isalpha(*c) || (*c == '!') || (*c == '$') || (*c == '%')
+	|| (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
+	|| (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
+	|| (*c == '^') || (*c == '_') || (*c == '~'))) {
+    /* <peculiar identifier> --> + | - | ... */
+    if ((strcmp(c, "+") == 0)
+	|| strcmp(c, "-") == 0
+	|| strcmp(c, "...") == 0) return 1;
+    else return 0;
+  }
+  /* <subsequent> --> <initial> | <digit> | <special subsequent> */
   while (*c) {
-    if (!(isalnum(*c) || (*c == '_') || (*c == '-'))) return 0;
+    if (!(isalnum(*c) || (*c == '!') || (*c == '$') || (*c == '%')
+	  || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
+	  || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
+	  || (*c == '^') || (*c == '_') || (*c == '~') || (*c == '+')
+	  || (*c == '-') || (*c == '.') || (*c == '@'))) return 0;
     c++;
   }
   return 1;

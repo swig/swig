@@ -7,7 +7,7 @@ LANGUAGE   = guile
 VARIANT	   = _passive
 SCRIPTSUFFIX = _runme.scm
 
-C_TEST_CASES = long_long list_vector pointer_in_out
+C_TEST_CASES = long_long list_vector pointer_in_out multivalue
 
 include ../common.mk
 

@@ -6,8 +6,6 @@
    $Header$
 */
 
-%echo "list-vector.i is currently broken. Sorry."
-
 /* Here is a macro that will define typemaps for converting between C
    arrays and Scheme lists or vectors when passing arguments to the C
    function.
@@ -174,10 +172,10 @@
        SCM res = gh_make_vector(gh_int2scm(arraylentemp),
 				SCM_BOOL_F);
        for (i = 0; i<arraylentemp; i++) {
-	 SCM elt = C_TO_SCM((*$result)[i]);
+	 SCM elt = C_TO_SCM((*$1)[i]);
 	 gh_vector_set_x(res, gh_int2scm(i), elt);
        }
-       if ((*$result)!=NULL) free(*$result);
+       if ((*$1)!=NULL) free(*$1);
        SWIG_APPEND_VALUE(res);
      }
 
@@ -186,10 +184,10 @@
        int i;
        SCM res = SCM_EOL;
        for (i = arraylentemp - 1; i>=0; i--) {
-	 SCM elt = C_TO_SCM((*$result)[i]);
+	 SCM elt = C_TO_SCM((*$1)[i]);
 	 res = gh_cons(elt, res);
        }
-       if ((*$result)!=NULL) free(*$result);
+       if ((*$1)!=NULL) free(*$1);
        SWIG_APPEND_VALUE(res);
      }
 

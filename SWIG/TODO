@@ -72,3 +72,5 @@
 
 ** Unify Guile and MzScheme support, add support for more Scheme systems.
 
+** [Guile]: Make SWIG's types first class.
+

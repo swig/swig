@@ -11,9 +11,9 @@
 
 #define %scheme	    %insert("scheme")
 
-#define %values_as_list   %pragma(guile) beforereturn ""
-#define %values_as_vector %pragma(guile) beforereturn "GUILE_MAYBE_VECTOR"
-#define %multiple_values  %pragma(guile) beforereturn "GUILE_MAYBE_VALUES"
+#define %values_as_list   %pragma(guile) beforereturn = ""
+#define %values_as_vector %pragma(guile) beforereturn = "GUILE_MAYBE_VECTOR"
+#define %multiple_values  %pragma(guile) beforereturn = "GUILE_MAYBE_VALUES"
 
 /* The following definitions are supposed to provide a common API for
    the supported Scheme dialects, so that typemaps may be shared.  I

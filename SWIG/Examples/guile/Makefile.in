@@ -1,6 +1,6 @@
 # Makefile for Guile.  Used by all of the example programs.
 
-subdirs		= simple matrix port
+subdirs		= simple matrix port constants multimap multivalue
 
 top_srcdir	= @top_srcdir@
 SWIG		= ../$(top_srcdir)/swig@release_suffix@
@@ -18,9 +18,7 @@ all:
 	for d in $(subdirs) ; do (cd $$d ; $(MAKE)) ; done
 
 clean::
-	cd simple; make clean
-	cd matrix; make clean
-	cd port; make clean
+	for d in $(subdirs) ; do (cd $$d ; $(MAKE) clean) ; done
 	rm -f *~ .~*
 
 # This is meant to be used w/ "make -f ../Makefile" from subdirs.
