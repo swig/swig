@@ -1,57 +1,40 @@
-*** ANNOUNCE: SWIG 1.3.11 ***
+*** ANNOUNCE: SWIG 1.3.12 ***
 
-February 1, 2002
+June 1, 2002
 
-We're pleased to announce the next installment of the SWIG1.3
-redevelopment effort.  The 1.3.11 release primarily addresses problems
-related to SWIG's internal implementation.  Substantial changes have
-been made to all of SWIG's language modules.  In addition, typemaps
-and exception handling have been completely rewritten.
+We're pleased to announce the next installment of the SWIG development
+effort.  SWIG 1.3.12 is a milestone in SWIG development--and it is the
+first release that features a nearly complete C++ type system including
+full support for namespaces, templates, and more.
 
-New Features in 1.3.11
+New Features in 1.3.12
 ----------------------
 
-* Improved template support *
+* C++ namespace support *
 
-SWIG-1.3.9 and SWIG-1.3.10 were the first releases to provide
-better support for wrapping C++ templates.  SWIG-1.3.11 fixes a
-of number of major problems that were discovered and further
-refines the implementation.
+SWIG-1.3.12 provides full support for C++ namespaces including all C++
+namespace related declarations (using, namespace aliases, nested
+namespaces, etc.).  Namespace support is fully integrated into the
+type system, typemaps, customization features, and every other part of
+SWIG.
 
-* New PHP4 Module *
+* Completely rewritten template support */
 
-Richard Palmer has made substantial progress on creating a PHP4 module
-for SWIG.  The 1.3.11 release includes many more examples, tests, and
-documentation for PHP4 support. It also now includes support for
-C++ and -shadow.
+Minimal template support was available in earlier SWIG releases.
+SWIG-1.3.12 builds upon this and provides support for templates,
+member templates, template specialization, and template partial
+specialization.
+
+* Refined PHP4 Module *
+
+Richard Palmer and Sam Lidicott have continued to improve the PHP4
+module.
 
 * Enhanced Java Module *
 
 William Fulton has continued to make progress on the SWIG-Java module.
 It should provide much better support for typemaps and other advanced
 features.
-
-* Redesigned Typemaps *
-
-In SWIG-1.3.10, the typemap system was almost completely rewritten.  The major
-improvement in that release is support for multi-argument typemaps.
-This addresses the problem of wrapping functions where multiple arguments
-might be mapped to a single object in the target language.  For example:
-
-    void foo(char *buffer, int len);          // String and length
-    void bar(int *ptr, int rows, int cols);   // Pointer and shape
-
-This has been a long requested SWIG feature (for more than 4 years).
-SWIG-1.3.10 is the first release to allow this.  Here is an example
-of a multi-argument typemap:
-
-    %typemap(in) (char *buffer, int len) {
-        $1 = PyString_AsString($input);
-        $2 = PyString_Size($input);
-    }
-
-SWIG-1.3.11 provides many bug-fixes and minor patches to improve
-typemap support.
 
 * Minor parser improvements *
 
@@ -72,11 +55,11 @@ Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-1.3.11.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-1.3.12.tar.gz
 
 Within the next day, a Windows version will also be made available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-1.3.11.zip
+     http://prdownloads.sourceforge.net/swig/swigwin-1.3.12.zip
 
 What's broken?
 --------------
@@ -113,7 +96,7 @@ Starting with SWIG1.3, we are adopting an odd/even version numbering
 scheme for SWIG.  Odd version numbers (1.3, 1.5, 1.7, etc...) are
 considered to be unstable development releases.  Even numbers
 (1.4,1.6,1.8) are stable releases.  The current 1.3 effort is working
-to produce a stable 1.4 release.  A stable 1.4 release will not be
+to produce a stable 2.0 release.  A stable 2.0 release will not be
 made until it can accompanied by fully updated documentation.  In the
 meantime, we will continue to make periodic 1.3.x releases.
 
