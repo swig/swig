@@ -22,7 +22,7 @@ SRCS     = main.cxx scanner.cxx symbol.cxx types.cxx parms.cxx \
            emit.cxx cplus.cxx lang.cxx hash.cxx \
            sstring.cxx wrapfunc.cxx typemap.cxx naming.cxx
 
-PARSER   = parser.yxx
+PARSER   = $(srcdir)/parser.yxx
 INCLUDE  = -I$(srcdir)/../Include               \
            -I$(srcdir)/.                        \
            -I$(srcdir)/../Swig                  \
