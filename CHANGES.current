@@ -1,5 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
+08/19/2003: cheetah (William Fulton)
+            [Java] Fix for %template vector<string>. The templated class' get method 
+            wasn't returning a Java String, but a SWIGTYPE_p_string. Reported
+            by Zach Baum.
+
 08/15/2003: beazley
             Fixed [ 763522 ] 1.3.19 segfault in SwigType_add_pointer/DohInsertitem.
             Related to problem with unnamed class handling in Perl module.
