@@ -173,6 +173,19 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
 
 #ifdef __cplusplus
 }
+
+/* A little wrapping tweak to handle C++ objects passed by value.
+   Prevents problems when objects do not define a default constructor 
+   (a.k.a, "The Fulton Transform") */
+
+template<class T> class SwigValueWrapper {
+    T* tt;
+public:
+    SwigValueWrapper() : tt(0) {}
+    SwigValueWrapper& operator=(T& t) {tt = &t; return *this;}
+    operator T() const {return *tt;};
+};                                                    
+
 #endif
 
 
