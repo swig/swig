@@ -2,7 +2,7 @@
 %module(directors="1") example
 #ifndef SWIGSEXP
 %{
-#include "example.h"
+	#include "example.h"
 %}
 #endif
 
