@@ -59,6 +59,56 @@ public class template_default_arg_runme {
       y.meth(new Hello_int());
       y.meth();
     }
+
+    {
+      Foo_Z_8 fz = new Foo_Z_8();
+      X_Foo_Z_8 x = new X_Foo_Z_8();
+      Foo_Z_8 fzc = x.meth(fz);
+    }
+
+    // Templated functions
+    {
+      // plain function: int ott(Foo<int>)
+      if (template_default_arg.ott(new Foo_int()) != 30)
+        throw new RuntimeException("ott test 1 failed");
+
+      // %template(ott) ott<int, int>;
+      if (template_default_arg.ott() != 10)
+        throw new RuntimeException("ott test 2 failed");
+      if (template_default_arg.ott(1) != 10)
+        throw new RuntimeException("ott test 3 failed");
+      if (template_default_arg.ott(1, 1) != 10)
+        throw new RuntimeException("ott test 4 failed");
+
+      if (template_default_arg.ott("hi") != 20)
+        throw new RuntimeException("ott test 5 failed");
+      if (template_default_arg.ott("hi", 1) != 20)
+        throw new RuntimeException("ott test 6 failed");
+      if (template_default_arg.ott("hi", 1, 1) != 20)
+        throw new RuntimeException("ott test 7 failed");
+
+      // %template(ott) ott<const char *>;
+      if (template_default_arg.ottstring(new Hello_int(), "hi") != 40)
+        throw new RuntimeException("ott test 8 failed");
+
+      if (template_default_arg.ottstring(new Hello_int()) != 40)
+        throw new RuntimeException("ott test 9 failed");
+
+      // %template(ott) ott<int>;
+      if (template_default_arg.ottint(new Hello_int(), 1) != 50)
+        throw new RuntimeException("ott test 10 failed");
+
+      if (template_default_arg.ottint(new Hello_int()) != 50)
+        throw new RuntimeException("ott test 11 failed");
+
+      // %template(ott) ott<double>;
+      if (template_default_arg.ott(new Hello_int(), 1.0) != 60)
+        throw new RuntimeException("ott test 12 failed");
+
+      if (template_default_arg.ott(new Hello_int()) != 60)
+        throw new RuntimeException("ott test 13 failed");
+
+    }
   }
 }
 
