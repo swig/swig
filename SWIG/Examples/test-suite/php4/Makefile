@@ -30,10 +30,10 @@ SWIGOPT    = -I$(TOP)/$(TEST_SUITE)
 # a file is found which has _runme.php4 appended after the testcase name.
 run_testcase = \
 	if [ -f $*\_runme.php4 ]; then ( \
-	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH perl $*\_runme.php4;) \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH php $*\_runme.php4;) \
 	fi;
 
-# Clean: remove the generated .pm file
+# Clean: remove the generated .php file
 %.clean:
 	@rm -f $*.php4;
 
