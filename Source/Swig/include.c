@@ -17,9 +17,9 @@ static char cvsroot[] = "$Header$";
 
 /* Delimeter used in accessing files and directories */
 
-static DOH           *directories = 0;        /* List of include directories */
-static DOH           *lastpath = 0;           /* Last file that was included */
-static int            bytes_read = 0;         /* Bytes read */
+static DOHList      *directories = 0;        /* List of include directories */
+static DOHString    *lastpath = 0;           /* Last file that was included */
+static int           bytes_read = 0;         /* Bytes read */
 
 /* -----------------------------------------------------------------------------
  * Swig_add_directory()
@@ -28,7 +28,7 @@ static int            bytes_read = 0;         /* Bytes read */
  * ----------------------------------------------------------------------------- */
 
 void 
-Swig_add_directory(const DOH *dirname) {
+Swig_add_directory(const DOHString_or_char *dirname) {
   if (!directories) directories = NewList();
   assert(directories);
   if (!String_check(dirname)) {
@@ -44,7 +44,7 @@ Swig_add_directory(const DOH *dirname) {
  * Returns the full pathname of the last file opened. 
  * ----------------------------------------------------------------------------- */
 
-DOH *
+DOHString *
 Swig_last_file() {
   assert(lastpath);
   return lastpath;
@@ -56,11 +56,11 @@ Swig_last_file() {
  * Returns a list of the current search paths.
  * ----------------------------------------------------------------------------- */
 
-DOH *
+DOHList *
 Swig_search_path() {
-  DOH *filename;
-  DOH *dirname;
-  DOH *slist;
+  DOHString *filename;
+  DOHString *dirname;
+  DOHList   *slist;
   int i;
 
   slist = NewList();
@@ -86,12 +86,12 @@ Swig_search_path() {
  * ----------------------------------------------------------------------------- */
 
 FILE *
-Swig_open(const DOH *name) {
-  FILE    *f;
-  DOH     *filename;
-  DOH     *spath = 0;
-  char    *cname;
-  int     i;
+Swig_open(const DOHString_or_char *name) {
+  FILE        *f;
+  DOHString   *filename;
+  DOHList     *spath = 0;
+  char        *cname;
+  int          i;
 
   if (!directories) directories = NewList();
   assert(directories);
@@ -124,10 +124,11 @@ Swig_open(const DOH *name) {
  * Reads data from an open FILE * and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
-DOH *
+DOHString *
 Swig_read_file(FILE *f) {
-  char buffer[4096];
-  DOH *str = NewString("");
+  char       buffer[4096];
+  DOHString *str = NewString("");
+
   assert(str);
   while (fgets(buffer,4095,f)) {
     Append(str,buffer);
@@ -142,10 +143,11 @@ Swig_read_file(FILE *f) {
  * Opens a file and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
-DOH *
-Swig_include(const DOH *name) {
-  FILE  *f;
-  DOH    *str;
+DOHString *
+Swig_include(const DOHString_or_char *name) {
+  FILE         *f;
+  DOHString    *str;
+
   f = Swig_open(name);
   if (!f) return 0;
   str = Swig_read_file(f);
@@ -164,10 +166,11 @@ Swig_include(const DOH *name) {
  * ----------------------------------------------------------------------------- */
 
 int
-Swig_insert_file(const DOH *filename, DOH *outfile) {
+Swig_insert_file(const DOHString_or_char *filename, DOHFile *outfile) {
   char buffer[4096];
   int  nbytes;
   FILE *f = Swig_open(filename);
+
   if (!f) return -1;
   while ((nbytes = Read(f,buffer,4096)) > 0) {
     Write(outfile,buffer,nbytes);
