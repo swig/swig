@@ -74,6 +74,8 @@ public:
 
     int i;
     
+    prefix = 0;
+
     SWIG_library_directory(ocaml_path);
     
     // Look for certain command line options
@@ -286,6 +288,7 @@ public:
   virtual int functionWrapper(Node *n) {
     char *iname = GetChar(n,"sym:name");
     SwigType *d = Getattr(n,"type");
+    String *return_type_normalized = normalizeTemplatedClassName(d);
     ParmList *l = Getattr(n,"parms");
     Parm *p;
     
@@ -474,6 +477,7 @@ public:
 	Replaceall(tm,"$target",Getattr(p,"lname"));   /* Deprecated */
 	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
+	Replaceall(tm,"$ntype",return_type_normalized);
 	Printv(outarg,tm,"\n",NIL);
 	p = Getattr(p,"tmap:argout:next");
 	argout_set = 1;
@@ -505,6 +509,7 @@ public:
       Replaceall(tm,"$source","result");
       Replaceall(tm,"$target","rv");
       Replaceall(tm,"$result","rv");
+      Replaceall(tm,"$ntype",return_type_normalized);
       Printv(f->code, tm, "\n",NIL);
     } else {
       throw_unhandled_ocaml_type_error (d);
@@ -995,15 +1000,28 @@ public:
 	   "     end\n"
 	   "   | e -> raise e))\n",
 	   name );
-    
+
+    String *name_normalized = normalizeTemplatedClassName(name);
+
     Printf( f_class_ctors,
 	    "let _ = Callback.register \"create_%s_from_ptr\" "
 	    "create_%s_from_ptr\n",
-	    classname, classname );
+	    name_normalized, classname );
 
     Setattr(n,"ocaml:ctor",classname);
 
     return rv;
+  }
+    
+  String *normalizeTemplatedClassName( String *name ) {
+    String *name_normalized = Copy(name);
+
+    if( is_a_pointer(name_normalized) )
+      SwigType_del_pointer( name_normalized );
+    
+    Replaceall(name_normalized,"(","");
+    Replaceall(name_normalized,")","");
+    return name_normalized;
   }
 
   String *mangleNameForCaml( String *s ) {
