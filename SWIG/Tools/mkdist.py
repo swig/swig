@@ -72,6 +72,7 @@ os.system("find "+dirname+" -name .cvsignore -exec rm {} \\;");
 
 os.system("cd "+dirname+"; autoconf")
 os.system("cd "+dirname+"/Source/DOH; autoconf")
+os.system("cd "+dirname+"/Tools; autoconf")
 os.system("cd "+dirname+"/Source/SWIG1.1; bison -y -d parser.yxx; mv y.tab.c parser.cxx; mv y.tab.h parser.h")
 
 os.system("tar -cf "+string.lower(dirname)+".tar "+dirname)
