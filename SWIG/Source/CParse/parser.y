@@ -832,7 +832,7 @@ void canonical_template(String *s) {
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
-%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
+%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH
 %token USING
 %token <node> NAMESPACE
 %token NATIVE INLINE
@@ -876,7 +876,7 @@ void canonical_template(String *s) {
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator;
 %type <node>     cpp_swig_directive cpp_template_decl cpp_temp_possible cpp_nested cpp_opt_declarators ;
-%type <node>     cpp_using_decl cpp_namespace_decl ;
+%type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl ;
 %type <node>     kwargs;
 
 /* Misc */
@@ -2808,6 +2808,7 @@ cpp_member   : c_declaration { $$ = $1; }
              | storage_class idcolon SEMI { $$ = 0; }
              | cpp_using_decl { $$ = $1; }
              | cpp_template_decl { $$ = $1; }
+             | cpp_catch_decl { $$ = 0; }
              | template_directive { $$ = $1; }
              | warn_directive { $$ = $1; }
              | SEMI { $$ = 0; }
@@ -2948,6 +2949,14 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		add_symbols($$);
               }
               ;
+
+/* isolated catch clause. */
+
+cpp_catch_decl : CATCH LPAREN parms RPAREN LBRACE {
+                 skip_balanced('{','}');
+                 $$ = 0;
+               }
+               ;
 
 /* public: */
 cpp_protection_decl : PUBLIC COLON { 

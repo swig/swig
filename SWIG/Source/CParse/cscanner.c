@@ -1160,6 +1160,8 @@ int yylex(void) {
 	      return(OPERATOR);
 	    }
 	    if (strcmp(yytext,"throw") == 0) return(THROW);
+	    if (strcmp(yytext,"try") == 0) return (yylex());
+	    if (strcmp(yytext,"catch") == 0) return (CATCH);
 	    if (strcmp(yytext,"inline") == 0) return(yylex());
 	    if (strcmp(yytext,"mutable") == 0) return(yylex());
 	    if (strcmp(yytext,"explicit") == 0) return(yylex());
