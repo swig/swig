@@ -1054,7 +1054,11 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
       // into our local hash table
 
       if ((d->is_pointer == 0) || ((d->is_pointer == 1) && NewObject)) {
-	func << tab4 << "$" << GetChar(classes,d->name) << "::OWNER{$result} = 1;\n";
+	char *name = GetChar(classes,d->name);
+	if (hidden) 
+	  func << tab4 << "$" << realpackage << "::" << name << "::OWNER{$result} = 1;\n";
+	else
+	  func << tab4 << "$" << name << "::OWNER{$result} = 1;\n";
       }
 
       // We're returning a Perl "object" of some kind.  Turn it into
@@ -1850,7 +1854,11 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
     // into our local hash table
 
     if ((t->is_pointer == 0) || ((t->is_pointer == 1) && NewObject)) {
-      func << tab4 << "$" << GetChar(classes,t->name) << "::OWNER{$result} = 1;\n";
+      char *name = GetChar(classes,t->name);
+      if (hidden)
+	func << tab4 << "$" << realpackage << "::" << name << "::OWNER{$result} = 1;\n";
+      else
+	func << tab4 << "$" << name << "::OWNER{$result} = 1; \n";
     }
 
     // We're returning a Perl "object" of some kind.  Turn it into
