@@ -1203,8 +1203,8 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN {
 
 c_declaration   : c_decl { $$ = $1; }
                 | c_enum_decl { $$ = $1; }
-                | c_constructor_decl { $$ = 0; }
-                | c_destructor_decl { $$ = 0; }
+/*                | c_constructor_decl { $$ = 0; }
+                | c_destructor_decl { $$ = 0; } */
 
 /* A an extern C type declaration.  Does nothing, but is ignored */
 
@@ -1327,13 +1327,14 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 	       }
                ;
 
-
+/*
 c_constructor_decl : storage_class idcolon LPAREN parms RPAREN ctor_end {
                 }
                 ;
 
 c_destructor_decl : storage_class ID DCOLON NOT ID LPAREN parms RPAREN cpp_end { }
                 ;
+*/
 
 
 /* ======================================================================
