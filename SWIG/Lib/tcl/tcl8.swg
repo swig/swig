@@ -28,7 +28,7 @@
 %typemap(in,parse="f") float "";
 %typemap(in,parse="d") double "";
 %typemap(in,parse="c") char "";
-%typemap(in,parse="s") char * "";
+%typemap(in,parse="s") char *, char [ANY] "";
 
 /* The "p" parse code is used for normal pointer conversion */
 %typemap(in,parse="p") SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "";
