@@ -19,7 +19,7 @@ char cvsroot_wrapfunc_c[] = "$Header$";
 #include "swig.h"
 #include <ctype.h>
 
-static int Compact_mode = 0;   /* set to 0 on commit */
+static int Compact_mode = 0;   /* set to 0 on default */
 static int Max_line_size = 128;
 
 /* -----------------------------------------------------------------------------
@@ -195,7 +195,7 @@ Wrapper_compact_print(String *str, File *f) {
   Clear(tf);
 
   while ((c = Getc(str)) != EOF) {
-    if (c == '\"') {
+    if (c == '\"') { /* string 1 */
       Putc(c,ts);
       while ((c = Getc(str)) != EOF) {
 	if (c == '\\') {
@@ -205,7 +205,7 @@ Wrapper_compact_print(String *str, File *f) {
 	Putc(c,ts);
 	if (c == '\"') break;
       }
-    } else if (c == '\'') {
+    } else if (c == '\'') { /* string 2 */
       Putc(c,ts);
       while ((c = Getc(str)) != EOF) {
 	if (c == '\\') {
@@ -215,12 +215,11 @@ Wrapper_compact_print(String *str, File *f) {
 	Putc(c,ts);
 	if (c == '\'') break;
       }
-    } else if (c == '{') {
+    } else if (c == '{') { /* start of {...} */
       Putc(c,ts);
       if (Len(tf) == 0) {
 	for (i = 0; i < level; i++) 
 	  Putc(' ',tf);
-	Printf(tf, "");
       } else if ((Len(tf) + Len(ts)) < Max_line_size) {
 	Putc(' ',tf);
       } else {
@@ -229,7 +228,6 @@ Wrapper_compact_print(String *str, File *f) {
 	Clear(tf);
 	for (i = 0; i < level; i++) 
 	  Putc(' ',tf);
-	Printf(tf, "");
       }
       Printf(tf,"%s",ts);
       Clear(ts);
@@ -240,7 +238,7 @@ Wrapper_compact_print(String *str, File *f) {
 	  break;
 	}
       }
-    } else if (c == '}') {
+    } else if (c == '}') { /* end of {...} */
       if (Len(tf) == 0) {
 	for (i = 0; i < level; i++) 
 	  Putc(' ',tf);
@@ -252,24 +250,24 @@ Wrapper_compact_print(String *str, File *f) {
 	Clear(tf);
 	for (i = 0; i < level; i++) 
 	  Putc(' ',tf);
-	Printf(tf, "");
       }
       Printf(tf, "%s", ts);
       Putc(c, tf);
       Clear(ts);
       level-=4;
-    } else if (c == '\n') {
+    } else if (c == '\n') { /* line end */
       while ((c = Getc(str)) != EOF) {
 	if (!isspace(c))
 	  break;
       }
-      if (c == '}') {
+      if (c == '#'){
+	Putc('\n',ts);
+      } else if (c == '}') {
 	Putc(' ',ts);
       } else if ( (c != EOF) || (Len(ts)!=0) ){
 	if (Len(tf) == 0) {
 	  for (i = 0; i < level; i++) 
 	    Putc(' ',tf);
-	  Printf(tf, "");
 	} else if ((Len(tf) + Len(ts)) < Max_line_size) {
 	  Putc(' ',tf);
 	} else {
@@ -278,7 +276,6 @@ Wrapper_compact_print(String *str, File *f) {
 	  Clear(tf);
 	  for (i = 0; i < level; i++) 
 	    Putc(' ',tf);
-	  Printf(tf, "");
 	}
 	Printf(tf,"%s",ts);
 	Clear(ts);
@@ -286,7 +283,7 @@ Wrapper_compact_print(String *str, File *f) {
       Ungetc(c,str);
 
       empty = 1;
-    } else if (c == '/') {
+    } else if (c == '/') { /* comment */
       c = Getc(str);
       if (c != EOF) {
 	if (c == '/') {         /* C++ comment */
@@ -309,6 +306,25 @@ Wrapper_compact_print(String *str, File *f) {
 	  Putc(c,ts);
 	}
       }
+    } else if (c == '#') { /* Preprocessor line */
+      Putc('#', ts);
+      while ((c = Getc(str)) != EOF) {
+	Putc(c, ts);
+	if (c == '\\') { /* Continued line of the same PP */
+	  c = Getc(str);
+	  if (c == '\n')
+	    Putc(c, ts);
+	  else
+	    Ungetc(c, str);
+	} else if (c == '\n') 
+	  break;
+      }
+      Printf(tf, "%s",ts);
+      Printf(f, "%s", tf);
+      Clear(tf);
+      Clear(ts);
+      for (i = 0; i < level; i++) 
+        Putc(' ',tf);
     } else {
       if (!empty || !isspace(c)) {
 	Putc(c,ts);
