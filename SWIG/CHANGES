@@ -28,6 +28,9 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 	     to keep the old behaviour, except for the Guile module,
 	     where it is desired to make them Scheme characters.  This
 	     fixes SF bug #231409, test-suite entry "char-constant".
+	   * Applied patch for DOH/Doh/memory.c by Les Schaffer
+	     <schaffer@optonline.net> (avoid required side effects in
+	     assert). 
 
 7/17/2001: cheetah (william fulton)
 	   * Bug fix in parser for virtual destructor with void as parameter
