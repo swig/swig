@@ -62,7 +62,7 @@
        "$result = PyInt_FromLong((long)$1);";
 
 %typemap(out) float, double "$result = PyFloat_FromDouble($1);";
-%typemap(out) char *        "$result = PyString_FromString($1);";
+%typemap(out) char *        "$result = $1 ? PyString_FromString($1) : Py_BuildValue(\"\");";
 %typemap(out) char          "$result = Py_BuildValue(\"c\",$1);";
 
 /* Pointers, references, and arrays */
@@ -211,7 +211,7 @@
        "$result = PyInt_FromLong((long)$1);";
 
 %typemap(varout) float, double "$result = PyFloat_FromDouble($1);";
-%typemap(varout) char *        "$result = PyString_FromString($1);";
+%typemap(varout) char *        "$result = $1 ? PyString_FromString($1) : Py_BuildValue(\"\");";
 %typemap(varout) char          "$result = Py_BuildValue(\"c\",$1);";
 
 /* Pointers, references, and arrays */
@@ -224,7 +224,7 @@
 %typemap(varout) void "Py_INCREF(Py_None); $result = Py_None;";
 
 /* Special typemap for character array return values */
-%typemap(varout) char [ANY], const char [ANY] "$target = PyString_FromString($source);";
+%typemap(varout) char [ANY], const char [ANY] "$result = PyString_FromString($1);";
 
 %typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor, 0);";
 
