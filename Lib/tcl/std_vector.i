@@ -111,7 +111,7 @@ namespace std {
             int       i;
             T*        temp;
 
-            if (SWIG_ConvertPtr(interp, $input, (void **) &v, \
+            if (SWIG_ConvertPtr($input, (void **) &v, \
                                 $&1_descriptor, 0) == 0){
                 $1 = *v;
             } else {
@@ -121,7 +121,7 @@ namespace std {
                     return TCL_ERROR;
                 $1 = std::vector<T>();
                 for (i = 0; i < nitems; i++) {
-                    if ((SWIG_ConvertPtr(interp, listobjv[i],(void **) &temp,
+                    if ((SWIG_ConvertPtr(listobjv[i],(void **) &temp,
                                          $descriptor(T),0)) != 0) {
                         char message[] = 
                             "list of type $descriptor(T) expected";
@@ -140,7 +140,7 @@ namespace std {
             int       i;
             T*        temp;
 
-            if(SWIG_ConvertPtr(interp, $input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v, \
                                $&1_descriptor, 0) == 0) {
                 $1 = v;
             } else {
@@ -150,7 +150,7 @@ namespace std {
                     return TCL_ERROR;
                 w = std::vector<T>();
                 for (i = 0; i < nitems; i++) {
-                    if ((SWIG_ConvertPtr(interp, listobjv[i],(void **) &temp,
+                    if ((SWIG_ConvertPtr(listobjv[i],(void **) &temp,
                                          $descriptor(T),0)) != 0) {
                         char message[] = 
                             "list of type $descriptor(T) expected";
@@ -180,7 +180,7 @@ namespace std {
             T*         temp;
             std::vector<T> *v;
             
-            if(SWIG_ConvertPtr(interp, $input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v, \
                                $&1_descriptor, 0) == 0) {
                 /* wrapped vector */
                 $1 = 1;
@@ -193,7 +193,7 @@ namespace std {
                     if (nitems == 0)
                         $1 = 1;
                 //check the first value to see if it is of correct type
-                    else if ((SWIG_ConvertPtr(interp, listobjv[i],
+                    else if ((SWIG_ConvertPtr(listobjv[i],
                                               (void **) &temp, 
                                               $descriptor(T),0)) != 0)
                         $1 = 0;
@@ -210,7 +210,7 @@ namespace std {
             T*         temp;
             std::vector<T> *v;
 
-            if(SWIG_ConvertPtr(interp, $input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v, \
                                $1_descriptor, 0) == 0){
                 /* wrapped vector */
                 $1 = 1;
@@ -223,7 +223,7 @@ namespace std {
                     if (nitems == 0)
                         $1 = 1;
                 //check the first value to see if it is of correct type
-                    else if ((SWIG_ConvertPtr(interp, listobjv[i],
+                    else if ((SWIG_ConvertPtr(listobjv[i],
                                               (void **) &temp,
                                               $descriptor(T),0)) != 0)
                         $1 = 0;
@@ -281,7 +281,7 @@ namespace std {
             int       i;
             T         temp;
 
-            if(SWIG_ConvertPtr(interp, $input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v, \
                                $&1_descriptor, 0) == 0) {
                 $1 = *v;
             } else {
@@ -305,7 +305,7 @@ namespace std {
             int       i;
             T         temp;
 
-            if(SWIG_ConvertPtr(interp, $input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v, \
                                $1_descriptor, 0) == 0) {
                 $1 = v;
             } else {
@@ -336,7 +336,7 @@ namespace std {
             T         temp;
             std::vector<T> *v;
 
-            if(SWIG_ConvertPtr(interp, $input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v, \
                                $&1_descriptor, 0) == 0){
                 /* wrapped vector */
                 $1 = 1;
@@ -363,7 +363,7 @@ namespace std {
             T         temp;
             std::vector<T> *v;
 
-            if(SWIG_ConvertPtr(interp, $input, (void **) &v, \
+            if(SWIG_ConvertPtr($input, (void **) &v, \
                                $1_descriptor, 0) == 0){
                 /* wrapped vector */
                 $1 = 1;
