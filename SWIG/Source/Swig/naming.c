@@ -424,11 +424,12 @@ Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
 static void merge_features(Hash *features, Node *n) {
   String *fs;
   String *key;
+  if (!features) return;
   for (key = Firstkey(features); key; key = Nextkey(features)) {
     if (Getattr(n,key)) {
       continue;
     }
-    Setattr(n,key,Getattr(features,key));
+    Setattr(n,key,Copy(Getattr(features,key)));
   }
 }
 
@@ -452,39 +453,67 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
       tname = NewStringf("%s::%s",prefix,name);
       n = Getattr(features,tname);
       rn = get_object(n,decl);
-      if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
-      if (!rn) rn = get_object(n,0);
-      if (rn) merge_features(rn,node);
+      merge_features(rn,node);
+      if (ncdecl) {
+	rn = get_object(n,ncdecl);
+	merge_features(rn,node);
+      }
+      rn = get_object(n,0);
+      merge_features(rn,node);
       Delete(tname);
     }
     /* A wildcard-based class lookup */
-    if (!rn) {
-      tname = NewStringf("*::%s",name);
+    tname = NewStringf("*::%s",name);
+    n = Getattr(features,tname);
+    rn = get_object(n,decl);
+    merge_features(rn,node);
+    if (ncdecl) {
+      rn = get_object(n,ncdecl);
+      merge_features(rn,node);
+    }
+    rn = get_object(n,0);
+    merge_features(rn,node);
+    Delete(tname);
+
+    /* A class-generic feature */
+    if (Len(prefix)) {
+      tname = NewStringf("%s::",prefix);
       n = Getattr(features,tname);
-      rn = get_object(n,decl);
-      if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
-      if (!rn) rn = get_object(n,0);
-      if (rn) merge_features(rn,node);
+      rn = get_object(n,0);
+      merge_features(rn,node);
       Delete(tname);
     }
+
   } else {
     /* Lookup in the global namespace only */
     tname = NewStringf("::%s",name);
     n = Getattr(features,tname);
     rn = get_object(n,decl);
-    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
-    if (!rn) rn = get_object(n,0);
-    if (rn) merge_features(rn,node);
+    merge_features(rn,node);
+    if (ncdecl) {
+      rn = get_object(n,ncdecl);
+      merge_features(rn,node);
+    }
+    rn = get_object(n,0);
+    merge_features(rn,node);
     Delete(tname);
   }
   /* Catch-all */
-  if (!rn) {
-    n = Getattr(features,name);
-    rn = get_object(n,decl);
-    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
-    if (!rn) rn = get_object(n,0);
-    if (rn) merge_features(rn,node);
+  n = Getattr(features,name);
+  rn = get_object(n,decl);
+  merge_features(rn,node);
+  if (ncdecl) {
+    rn = get_object(n,ncdecl);
+    merge_features(rn,node);
   }
+  rn = get_object(n,0);
+  merge_features(rn,node);
+
+  /* Global features */
+  n = Getattr(features,"");
+  rn = get_object(n,0);
+  merge_features(rn,node);
+
 }
 
 
@@ -518,7 +547,11 @@ Swig_feature_set(Hash *features, String *name, SwigType *decl, String *featurena
       Setattr(n,Copy(decl),fhash);
     }
   }
-  Setattr(fhash,featurename,value);
+  if (value) {
+    Setattr(fhash,featurename,value);
+  } else {
+    Delattr(fhash,featurename);
+  }
 }
 
 
