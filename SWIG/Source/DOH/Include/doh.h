@@ -181,8 +181,6 @@ typedef struct DohObjInfo {
   extern void    DohDelattr(DOH *obj, DOH *name);
   extern DOH    *DohFirstkey(DOH *obj);
   extern DOH    *DohNextkey(DOH *obj);
-  extern DOH    *DohFirst(DOH *obj);
-  extern DOH    *DohNext(DOH *obj);
   extern int     DohGetInt(DOH *obj, DOH *name);
   extern double  DohGetDouble(DOH *obj, DOH *name);
   extern char   *DohGetChar(DOH *obj, DOH *name);
@@ -192,9 +190,9 @@ typedef struct DohObjInfo {
   /* Sequence methods */
 
   extern DOH    *DohGetitem(DOH *obj, int index);
-  extern void    DohSetitem(DOH *obj, int index, DOH *value);
-  extern void    DohDelitem(DOH *obj, int index);
-  extern void    DohInsertitem(DOH *obj, int index, DOH *value);
+  extern int     DohSetitem(DOH *obj, int index, DOH *value);
+  extern int     DohDelitem(DOH *obj, int index);
+  extern int     DohInsertitem(DOH *obj, int index, DOH *value);
   extern DOH    *DohFirstitem(DOH *obj);
   extern DOH    *DohNextitem(DOH *obj);
 
@@ -230,8 +228,14 @@ typedef struct DohObjInfo {
 
   /* Miscellaneous */
 
-  extern void    DohError(int level, char *fmt,...);
+  extern void    DohTrace(int level, char *fmt,...);
   extern void    DohDebug(int d);
+
+  extern int     DohIsMapping(DOH *obj);
+  extern int     DohIsSequence(DOH *obj);
+  extern int     DohIsString(DOH *obj);
+  extern int     DohIsFile(DOH *obj);
+  extern int     DohIsCallable(DOH *obj);
 
 #ifndef DOH_LONG_NAMES
 /* Macros to invoke the above functions.  Includes the location of
@@ -254,8 +258,6 @@ typedef struct DohObjInfo {
 #define Append(s,x)        DohInsertitem(s,DOH_END,x)
 #define Push(s,x)          DohInsertitem(s,DOH_BEGIN,x)
 #define Len                DohLen
-#define First              DohFirst
-#define Next               DohNext
 #define Firstkey           DohFirstkey
 #define Nextkey            DohNextkey
 #define Data               DohData
@@ -384,15 +386,21 @@ extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
 
 extern DOH *DohNone;
 
+/* ----------------------------------------------------------------------------- 
+ * Callable
+ * ----------------------------------------------------------------------------- */
+
+extern DOH *NewCallable(DOH *(*func)(DOH *, DOH *));
+
 /* -----------------------------------------------------------------------------
  * Error handling levels.
  * ----------------------------------------------------------------------------- */
 
-#define DOH_UNSUPPORTED 1
-#define DOH_UNKNOWN     2
-#define DOH_MEMORY      3
-#define DOH_CONVERSION  5
-#define DOH_CALLS       10
+#define DOH_UNSUPPORTED 0x01
+#define DOH_UNKNOWN     0x02
+#define DOH_MEMORY      0x04
+#define DOH_CONVERSION  0x08
+#define DOH_CALLS       0x10
 
 #ifdef __cplusplus
 }

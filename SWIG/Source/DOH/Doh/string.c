@@ -425,10 +425,15 @@ String_insert(DOH *so, int pos, DOH *str)
     char   *c;
     int     len;
     s = (String *) so;
-    /*    assert(s->refcount <= 1); */
-    s1 = (String *) str;
-    len = s1->len;
-    c = s1->str;
+    if (!DohCheck(str)) {
+      DohTrace(DOH_CONVERSION,"Unknown object %x being inserted as char * in String_insert.\n", str);
+      c = (char *) str;
+      len = strlen(c);
+    } else {
+      s1 = (String *) str;
+      len = s1->len;
+      c = s1->str;
+    }
     raw_insert(s,pos,c,len);
     return 0;
 }

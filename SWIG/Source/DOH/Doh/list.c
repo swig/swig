@@ -138,26 +138,33 @@ List_scope(DOH *lo, int s) {
 static int 
 List_insert(DOH *lo, int pos, DOH *item)
 {
-    List *l;
-    DohBase *b;
-    int i;
+  List *l;
+  DohBase *b;
+  int i, no = 0;
+  
+  if (!item) return -1;
+  
+  l = (List *) lo;
 
-    if (!item) return -1;
-    b = (DohBase *) item;
-    l = (List *) lo;
-
-    if (pos == DOH_END) pos = l->nitems;
-    if (pos < 0) pos = 0;
-    if (pos > l->nitems) pos = l->nitems;
-    if (l->nitems == l->maxitems) more(l);
-    for (i = l->nitems; i > pos; i--) {
-	l->items[i] = l->items[i-1];
-    }
-    l->items[pos] = item;
-    b->refcount++;
-    Setscope(b,l->scope);
-    l->nitems++;
-    return 0;
+  if (!DohCheck(item)) {
+    DohTrace(DOH_CONVERSION,"Unknown object %x being converted to a string in List_insert.\n", item);
+    item = NewString(item);
+    no = 1;
+  }
+  b = (DohBase *) item;  
+  if (pos == DOH_END) pos = l->nitems;
+  if (pos < 0) pos = 0;
+  if (pos > l->nitems) pos = l->nitems;
+  if (l->nitems == l->maxitems) more(l);
+  for (i = l->nitems; i > pos; i--) {
+    l->items[i] = l->items[i-1];
+  }
+  l->items[pos] = item;
+  b->refcount++;
+  Setscope(b,l->scope);
+  l->nitems++;
+  if (no) Delete(item);
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -219,15 +226,22 @@ static int
 List_set(DOH *lo, int n, DOH *val) 
 {
     List *l;
-
+    int no = 0;
     l = (List *) lo;
     if ((n < 0) || (n >= l->nitems)) {
 	printf("List_set : Invalid list index %d\n", n);
+	return -1;
+    }
+    if (!DohCheck(val)) {
+      DohTrace(DOH_CONVERSION,"Unknown object %x being converted to a string in List_setitem.\n", val);
+      val = NewString(val);
+      no = 1;
     }
     Delete(l->items[n]);
     l->items[n] = val;
     Incref(val);
     Setscope(val,l->scope);
+    Delete(val);
     return 0;
 }
 

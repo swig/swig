@@ -1,17 +1,11 @@
-/****************************************************************************
- * DOH (Dynamic Object Hack)
+/******************************************************************************
+ * DOH 
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- ****************************************************************************/
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ ******************************************************************************/
 
 static char cvsroot[] = "$Header$";
 
@@ -28,10 +22,22 @@ typedef struct {
     DOH   *(*func)(DOH *, DOH *);
 } CallableObj;
 
+/* -----------------------------------------------------------------------------
+ * Callable_delete()
+ *
+ * Destroy a callable object.
+ * ----------------------------------------------------------------------------- */
+
 static void
 Callable_delete(DOH *co) {
   DohObjFree(co);
 }
+
+/* -----------------------------------------------------------------------------
+ * Callable_copy()
+ * 
+ * Copy a callable object.
+ * ----------------------------------------------------------------------------- */
 
 static DOH *
 Callable_copy(DOH *co) {
@@ -39,11 +45,20 @@ Callable_copy(DOH *co) {
   return NewCallable(c->func);
 }
 
+/* ----------------------------------------------------------------------------- 
+ * Callable_call()
+ *
+ * Call an object.  The object itself is passed as the first argument and remaining
+ * arguments are passed as a second argument.
+ * ----------------------------------------------------------------------------- */
+
 static DOH *
 Callable_call(DOH *co, DOH *args) {
   CallableObj *c = (CallableObj *) co;
   return (*c->func)(c,args);
 }
+
+/* Method tables */
 
 static DohCallableMethods doh_callable_methods = {
   Callable_call
@@ -76,6 +91,12 @@ static DohObjInfo DohCallableType = {
   0,                    /* user3 */
   0,                    /* user4 */
 };
+
+/* -----------------------------------------------------------------------------
+ * NewCallable()
+ *
+ * Create a new callable object.
+ * ----------------------------------------------------------------------------- */
 
 DOH *
 NewCallable(DOH *(*func)(DOH *, DOH *)) {
