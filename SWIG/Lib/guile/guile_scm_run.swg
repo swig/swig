@@ -208,7 +208,7 @@ print_swig_aux (SCM swig_smob, SCM port, scm_print_state *pstate, const char *at
   if (type) {
     scm_puts((char *) "#<", port);
     scm_puts(attribute, port);
-    scm_puts("swig ", port);
+    scm_puts("swig-pointer ", port);
     if (type->str != NULL)
       scm_puts(type->str, port);
     else 
@@ -233,13 +233,13 @@ print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 static int
 print_collectable_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
-  return print_swig_aux(swig_smob, port, pstate, "collectable ");
+  return print_swig_aux(swig_smob, port, pstate, "collectable-");
 }
 
 static int
 print_destroyed_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
-  return print_swig_aux(swig_smob, port, pstate, "destroyed ");
+  return print_swig_aux(swig_smob, port, pstate, "destroyed-");
 }
 
 static SCM
@@ -266,20 +266,20 @@ SWIGRUNTIME(void)
 SWIG_Guile_Init ()
 {
   if (!swig_tag) {
-    swig_tag = scm_make_smob_type((char*)"swig", 0);
+    swig_tag = scm_make_smob_type((char*)"swig-pointer", 0);
     scm_set_smob_print(swig_tag, print_swig);
     scm_set_smob_equalp(swig_tag, equalp_swig);
   }
 
   if (!swig_collectable_tag) {
-    swig_collectable_tag = scm_make_smob_type((char*)"collectable swig", 0);
+    swig_collectable_tag = scm_make_smob_type((char*)"collectable-swig-pointer", 0);
     scm_set_smob_print(swig_collectable_tag, print_collectable_swig);
     scm_set_smob_equalp(swig_collectable_tag, equalp_swig);
     scm_set_smob_free(swig_collectable_tag, free_swig);
   }
 
   if (!swig_destroyed_tag) {
-    swig_destroyed_tag = scm_make_smob_type((char*)"destroyed swig", 0);
+    swig_destroyed_tag = scm_make_smob_type((char*)"destroyed-swig-pointer", 0);
     scm_set_smob_print(swig_destroyed_tag, print_destroyed_swig);
     scm_set_smob_equalp(swig_destroyed_tag, equalp_swig);
   }
