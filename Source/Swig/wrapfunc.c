@@ -132,6 +132,7 @@ Wrapper_pretty_print(String *str, File *f) {
       }
     }
   }
+  if (!empty) Printf(f,"%s",ts);
   Delete(ts);
   Printf(f,"\n");
 }
