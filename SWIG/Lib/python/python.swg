@@ -441,7 +441,6 @@
 %ignorewarn("384:operator-- ignored") operator--;
 %ignorewarn("381:operator&& ignored") operator&&;
 %ignorewarn("382:operator|| ignored") operator||;
-%ignorewarn("387:operator-> ignored") operator->;
 %ignorewarn("386:operator->* ignored") operator->*;
 %ignorewarn("389:operator[] ignored (consider using %extend)") operator[];
 
