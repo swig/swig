@@ -1,0 +1,13 @@
+WAD 0.1  - March 23, 2001
+
+   -   Extensive changes to WAD core.  WAD now builds an exception
+       object that can be queried and manipulated after a fault
+       occurs.
+
+   -   Better collection of debugging information.
+
+   -   Better reliability.
+
+WAD 0.0
+
+beazley  - Initial "release".  Not much of a release really.
