@@ -276,28 +276,28 @@ typedef unsigned long VALUE;
 %rename(__gt__)       *::operator>;
 %rename(__ge__)       *::operator>=;
 %rename(__eq__)       *::operator==;
-%rename(__ne__)       *::operator!=;
 
 /* Special cases */
 %rename(__call__)     *::operator();
 
 /* Ignored operators */
-%ignorewarn("operator+= ignored") operator+=;
-%ignorewarn("operator-= ignored") operator-=;
-%ignorewarn("operator*= ignored") operator*=;
-%ignorewarn("operator/= ignored") operator/=;
-%ignorewarn("operator%= ignored") operator%=;
+%ignorewarn("operator!= ignored")  operator!=;
+%ignorewarn("operator+= ignored")  operator+=;
+%ignorewarn("operator-= ignored")  operator-=;
+%ignorewarn("operator*= ignored")  operator*=;
+%ignorewarn("operator/= ignored")  operator/=;
+%ignorewarn("operator%= ignored")  operator%=;
 %ignorewarn("operator<<= ignored") operator<<=;
 %ignorewarn("operator>>= ignored") operator>>=;
-%ignorewarn("operator&= ignored") operator&=;
-%ignorewarn("operator|= ignored") operator|=;
-%ignorewarn("operator^= ignored") operator^=;
-%ignorewarn("operator= ignored") operator=;
-%ignorewarn("operator++ ignored") operator++;
-%ignorewarn("operator-- ignored") operator--;
-%ignorewarn("operator&& ignored") operator&&;
-%ignorewarn("operator|| ignored") operator||;
-%ignorewarn("operator-> ignored") operator->;
+%ignorewarn("operator&= ignored")  operator&=;
+%ignorewarn("operator|= ignored")  operator|=;
+%ignorewarn("operator^= ignored")  operator^=;
+%ignorewarn("operator= ignored")   operator=;
+%ignorewarn("operator++ ignored")  operator++;
+%ignorewarn("operator-- ignored")  operator--;
+%ignorewarn("operator&& ignored")  operator&&;
+%ignorewarn("operator|| ignored")  operator||;
+%ignorewarn("operator-> ignored")  operator->;
 %ignorewarn("operator->* ignored") operator->*;
 %ignorewarn("operator[] ignored (consider using %addmethods)") operator[];
 
