@@ -70,8 +70,8 @@
     
       typedef float argument_type;
       typedef float result_type;
-      static const char* const arg_type = "float";
-      static const char* const res_type = "float";
+      static const char* const arg_type;
+      static const char* const res_type;
     };
 
     template<>
@@ -80,8 +80,8 @@
     
       typedef real argument_type;
       typedef real result_type;
-      static const char* const arg_type = "real";
-      static const char* const res_type = "real";
+      static const char* const arg_type;
+      static const char* const res_type;
     };
 
     template<>
@@ -89,8 +89,8 @@
     {
       typedef float argument_type;
       typedef real result_type;
-      static const char* const arg_type = "float";
-      static const char* const res_type = "real";
+      static const char* const arg_type;
+      static const char* const res_type;
     };
 
     template<>
@@ -98,8 +98,8 @@
     {
       typedef float argument_type;
       typedef real result_type;
-      static const char* const arg_type = "float";
-      static const char* const res_type = "real";
+      static const char* const arg_type;
+      static const char* const res_type;
     };
 
     template <class AF, class RF, class AG, class RG>
@@ -114,8 +114,25 @@
 	                   typename arith_traits< RF, RG >::result_type>();
     }
 
+#ifndef SWIG
+
+    // Initialize these static class members
+
+    const char* const arith_traits< float, float >::arg_type = "float";
+    const char* const arith_traits< float, float >::res_type = "float";
+
+    const char* const arith_traits< real, real >::arg_type = "real";
+    const char* const arith_traits< real, real >::res_type = "real";
+
+    const char* const arith_traits< real, float >::arg_type = "float";
+    const char* const arith_traits< real, float >::res_type = "real";
+
+    const char* const arith_traits< float, real >::arg_type = "float";
+    const char* const arith_traits< float, real >::res_type = "real";
+
+#endif
+
   }
-  
 %}
 
 namespace vfncs {  
