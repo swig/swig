@@ -600,8 +600,10 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   int numopt = 0;
 
   // Make a wrapper name for this
-  strcpy(wname, Char(Swig_name_wrapper(iname)));
-
+  {
+    String *n = Swig_name_mangle(iname);
+    strcpy(wname, Char(Swig_name_wrapper(n)));
+  }
   // Build the name for scheme.
   proc_name = NewString(iname);
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
