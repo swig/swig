@@ -100,10 +100,14 @@ int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JTYPE **jarr, CTYPE **carr, JTYPE
   sz = JCALL1(GetArrayLength, jenv, input);
   *jarr = JCALL2(Get##JAVATYPE##ArrayElements, jenv, input, 0);
   if (!*jarr)
-    return 0;
-  *carr = (CTYPE*) calloc(sz, sizeof(CTYPE));
-  if (!*carr) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "calloc failed");
+    return 0; %}
+#if __cplusplus
+%{  *carr = new CTYPE[sz]; %}
+#else
+%{  *carr = (CTYPE*) calloc(sz, sizeof(CTYPE)); %}
+#endif
+%{  if (!*carr) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
     return 0;
   }
   for (i=0; i<sz; i++)

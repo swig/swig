@@ -389,7 +389,7 @@ $1 = &temp; %}
 
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
-%{ argp = ($&1_ltype)*(void**)&$input; 
+%{ argp = *($&1_ltype*)&$input; 
    $1 = *argp; %}
 
 %typemap(out) SWIGTYPE 
@@ -423,7 +423,11 @@ $1 = &temp; %}
 %typemap(out) CTYPE[ANY] 
 %{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
 %typemap(freearg) CTYPE[ANY] 
+#ifdef __cplusplus
+%{ delete [] $1; %}
+#else
 %{ free($1); %}
+#endif
 
 %enddef
 
@@ -454,7 +458,11 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 %typemap(out) enum SWIGTYPE[ANY] 
 %{$result = SWIG_JavaArrayOutInt(jenv, (int*)$1, $1_dim0); %}
 %typemap(freearg) enum SWIGTYPE[ANY] 
+#ifdef __cplusplus
+%{ delete [] $1; %}
+#else
 %{ free($1); %}
+#endif
 
 /* Arrays of pointers to proxy classes */
 %typemap(in) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] (jlong *jarr, jsize sz)
@@ -469,9 +477,13 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   if (!jarr) {
     return $null;
   }
+#ifdef __cplusplus
+  $1 = new $*1_ltype[sz];
+#else
   $1 = ($1_ltype) calloc(sz, sizeof($*1_ltype));
+#endif
   if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "calloc failed");
+    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
     return $null;
   }
   for (i=0; i<sz; i++) {
@@ -509,7 +521,11 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 }
 
 %typemap(freearg) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY]
+#ifdef __cplusplus
+%{ delete [] $1; %}
+#else
 %{ free($1); %}
+#endif
 
 /* Arrays of proxy classes */
 %typemap(in) SWIGTYPE ARRAYSOFCLASSES[ANY] (jlong *jarr, jsize sz)
@@ -524,9 +540,13 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   if (!jarr) {
     return $null;
   }
+#ifdef __cplusplus
+  $1 = new $*1_ltype[sz];
+#else
   $1 = ($1_ltype) calloc(sz, sizeof($*1_ltype));
+#endif
   if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "calloc failed");
+    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
     return $null;
   }
   for (i=0; i<sz; i++) {
@@ -564,7 +584,11 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 }
 
 %typemap(freearg) SWIGTYPE ARRAYSOFCLASSES[ANY]
+#ifdef __cplusplus
+%{ delete [] $1; %}
+#else
 %{ free($1); %}
+#endif
 
 /* JNI types */
 %typemap(in) jboolean,
