@@ -43,11 +43,6 @@ extern "C" {
 #endif 
 #endif 
 
-/* Macros for low-level exception handling */
-#define SWIG_fail      goto fail
-#define SWIG_croak(x)  { if ((_swigerr = (const char *) x)) goto fail; }
-#define SWIG_MAX_ERRMSG 256
-
 /* Contract support */
 
 #define SWIG_contract_assert(expr,msg) if (!(expr)) { SWIG_croak(msg); } else
@@ -146,12 +141,21 @@ extern "C" {
      SWIG_Perl_MakePtr(pPerl, sv, ptr, type, flags)
 #  define SWIG_TypeCheckRV(rv, ty) \
      SWIG_Perl_TypeCheckRV(pPerl, rv, ty)
+#  define SWIG_SetError(str) \
+     SWIG_Perl_SetError(pPerl, str)
 #else
 #  define SWIG_MakePtr(sv, ptr, type, flags) \
      SWIG_Perl_MakePtr(sv, ptr, type, flags)
 #  define SWIG_TypeCheckRV(rv, ty) \
      SWIG_Perl_TypeCheckRV(rv, ty)
+#  define SWIG_SetError(str) \
+     SWIG_Perl_SetError(str)
+#  define SWIG_SetErrorSV(str) \
+     SWIG_Perl_SetErrorSV(str)
 #endif
+
+#define SWIG_SetErrorf SWIG_Perl_SetErrorf
+
   
 #ifdef PERL_OBJECT
 #  define SWIG_MAYBE_PERL_OBJECT CPerlObj *pPerl,
@@ -173,6 +177,10 @@ SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT
 extern swig_type_info *
 SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT
 		      SV *rv, swig_type_info *ty);
+
+extern SV *
+SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT
+		   char *);
        
 #else
  
@@ -308,7 +316,39 @@ SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT
   return result;
 }
 
+SWIGRUNTIME(void)
+SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT
+		   const char *error)
+{
+    if (error) sv_setpv(get_sv("@", TRUE), error);
+}
+
+SWIGRUNTIME(void)
+SWIG_Perl_SetErrorSV(SWIG_MAYBE_PERL_OBJECT
+		     SV *error)
+{
+    if (error) sv_setsv(get_sv("@", TRUE), error);
+}
+
+SWIGRUNTIME(void)
+SWIG_Perl_SetErrorf(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    sv_vsetpvfn(get_sv("@", TRUE), fmt, strlen(fmt), &args,
+		Null(SV**), 0, Null(bool*));
+    va_end(args);
+}
+
 #endif
+
+/* Macros for low-level exception handling */
+#define SWIG_fail       goto fail
+#define SWIG_croak(x)   { SWIG_SetError(x); goto fail; }
+#define SWIG_croakSV(x) { SWIG_SetErrorSV(x); goto fail; }
+/* most preprocessors do not support vararg macros :-( */
+/* #define SWIG_croakf(x...) { SWIG_SetErrorf(x); goto fail; } */
+                          
 
 typedef XS(SwigPerlWrapper);
 typedef SwigPerlWrapper *SwigPerlWrapperPtr;

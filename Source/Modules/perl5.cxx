@@ -516,9 +516,10 @@ public:
       Append(wname,overname);
     }
     Setattr(n,"wrap:name",wname);
-    Printv(f->def, "XS(", wname, ") {\n", NIL);
-    Printv(f->def, "char _swigmsg[SWIG_MAX_ERRMSG] = \"\";\n", NIL);
-    Printv(f->def, "const char *_swigerr = _swigmsg;\n","{\n",NIL);
+    Printv(f->def,
+	   "XS(", wname, ") {\n",
+	   "{\n", /* scope to destroy C++ objects before croaking */
+	   NIL );
 
     emit_args(d, l, f);
     emit_attach_parmmaps(l,f);
@@ -685,14 +686,16 @@ public:
       Printf(f->code,"%s\n", tm);
     }
 
-    Printf(f->code,"    XSRETURN(argvi);\n");
-    Printf(f->code,"fail:\n");
-    Printv(f->code,cleanup,NIL);
-    Printv(f->code,"(void) _swigerr;\n", NIL);
-    Printv(f->code,"}\n",NIL);
-    Printv(f->code,"croak(_swigerr);\n", NIL);
-    Printv(f->code,"}\n",NIL);
-
+    Printv(f->code,
+	   "XSRETURN(argvi);\n",
+	   "fail:\n",
+	   cleanup,
+	   ";\n", /* empty statement */
+	   "}\n",
+	   "croak(Nullch);\n"
+	   "}\n",
+	   NIL);
+	   
   /* Add the dXSARGS last */
 
     Wrapper_add_local(f,"dXSARGS","dXSARGS");
