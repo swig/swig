@@ -183,7 +183,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   extern  int check_suffix(char *);
   int     dump_tags = 0;
   int     dump_tree = 0;
-  int     contracts = 0;
   int     browse = 0;
   int     dump_typedef = 0;
   int     dump_classes = 0;
@@ -194,6 +193,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
   extern void Swig_contracts(Node *n);
+  extern void Swig_contract_mode_set(int flag);
+  extern int  Swig_contract_mode_get();
   extern void Swig_browser(Node *n, int);
   extern void Swig_default_allocators(Node *n);
   extern void Swig_process_types(Node *n);
@@ -418,7 +419,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-contracts") == 0) {
 	    Swig_mark_arg(i);
-	    contracts = 1;
+	    Swig_contract_mode_set(1);
 	  } else if (strcmp(argv[i],"-browse") == 0) {
 	    browse = 1;
 	    Swig_mark_arg(i);
@@ -644,7 +645,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  Setattr(top,"outfile_h", NewStringf("%s.h", header));
 	  free(header);
 	}
-	if (contracts) {
+	if (Swig_contract_mode_get()) {
 	  Swig_contracts(top);
 	}
 	lang->top(top);

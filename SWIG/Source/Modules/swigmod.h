@@ -265,6 +265,9 @@ extern void   emit_action(Node *n, Wrapper *f);
 extern List  *Swig_overload_rank(Node *n);
 extern String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
 
+extern void Swig_contracts(Node *n);
+extern void Swig_contract_mode_set(int flag);
+extern int  Swig_contract_mode_get();
 
 extern "C" {
   typedef Language *(*ModuleFactory)(void);
