@@ -66,6 +66,24 @@
 /* Pointer to a class member */
 %typemap(in) SWIGTYPE (CLASS::*) "if ((SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor,1)) == -1) return NULL;";
 
+/* Const primitive references */
+%typemap(in) const int & (int temp),
+	     const short & (short temp),
+             const long  & (long temp),
+             const unsigned int & (unsigned int temp),
+             const unsigned short & (unsigned short temp),
+             const unsigned long & (unsigned long temp),
+             const signed char & (signed char temp),
+             const unsigned char & (unsigned char temp)
+	"temp = ($*1_ltype) PyInt_AsLong($input);
+         $1 = &temp;";
+
+/* Const primitive references */
+%typemap(in) const float & (float temp),
+	     const double & (double temp)
+	"temp = ($*1_ltype) PyFloat_AsDouble($input);
+         $1 = &temp;";
+
 
 /* --- Output values --- */
 
