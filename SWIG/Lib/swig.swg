@@ -38,12 +38,18 @@
 #define %nocallback  %pragma(swig) nocallback;
 
 /* Directives for attribute functions */
+
 #define %attributefunc(_x,_y)  %pragma(swig)   attributefunction=`_x`":"`_y`;
 #define %noattributefunc       %pragma(swig)   noattributefunction;
 
-
 /* %ignore directive */
+
 #define %ignore   %rename($ignore)
+
+/* Generation of default constructors/destructors */
+
+#define %nodefault     %pragma nodefault
+#define %makedefault   %pragma makedefault
 
 /* Set up the typemap for handling new return strings */
 
