@@ -722,9 +722,22 @@ int JAVA::functionWrapper(Node *n) {
   Printf(f_java, ");\n");
   Printf(f->def,") {");
 
+  if (Getattr(n, "value") && Cmp(Getattr(n, "storage"), "%constant") == 0)
+  {
+    // Wrapping a constant hack
+    Swig_save(&n,"wrap:action",NULL);
+
+    // below based on Swig_VargetToFunction()
+    SwigType *ty = Swig_wrapped_var_type(Getattr(n,"type"));
+    Setattr(n,"wrap:action", NewStringf("result = (%s) %s;\n", SwigType_lstr(ty,0), Getattr(n, "value")));
+  }
+
   // Now write code to make the function call
   if(!native_func)
 	emit_action(n,f);
+
+  if (Getattr(n, "value") && Cmp(Getattr(n, "storage"), "%constant") == 0)
+    Swig_restore(&n);
 
   /* Return value if necessary  */
   if((SwigType_type(t) != T_VOID) && !native_func) {
@@ -849,6 +862,7 @@ int JAVA::constantWrapper(Node *n) {
 
   if(!classdef_emitted) emitClassDef();
 
+  /* tidy this up */
   if(shadow && wrapping_member) {
     jout = shadow_code;
     jname = shadow_variable_name;
@@ -887,10 +901,9 @@ int JAVA::constantWrapper(Node *n) {
         Printf(stderr, "No jtype typemap defined for %s\n", SwigType_str(type,0));
       }
     }
-    if(Cmp(jname, value) == 0 || strstr(value,"::") != NULL) {
-      /* 
-      We have found an enum.  The enum implementation is done using a public final static int in Java.
-      */
+//    if(Cmp(jname, value) == 0 || strstr(value,"::") != NULL) {
+      // Enums are wrapped using a public final static int in Java.
+      // Other constants are wrapped using a public final static [jtype] in Java.
       if(shadow && wrapping_member) {
         Printf(shadow_constants_code, "  public final static %s %s = %s.%s;\n", java_type, jname, module, iname);
         Printf(module_constants_code, "  public final static %s %s = %s();\n", java_type, iname, Swig_name_get(iname));
@@ -898,10 +911,23 @@ int JAVA::constantWrapper(Node *n) {
       else {
         Printf(module_constants_code, "  public final static %s %s = %s();\n", java_type, jname, Swig_name_get(iname));
       }
-      enum_flag = 1;
+
+      String *new_value = NewString("");
+      Swig_save(&n,"value",NULL);
+      if(SwigType_type(type) == T_STRING) {
+        Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
+        Setattr(n, "value", new_value);
+      }
+      else if(SwigType_type(type) == T_CHAR) {
+        Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));
+        Setattr(n, "value", new_value);
+      }
+
+      enum_flag = 1; // this flag can probably disappear and use Getattr(n, "value") instead
       variableWrapper(n);
       enum_flag = 0;
-    } else {
+      Swig_restore(&n);
+/*    } else {
       if(SwigType_type(type) == T_STRING)
         Printf(constants_code, "  public final static %s %s = \"%s\";\n", java_type, jname, value);
       else if(SwigType_type(type) == T_CHAR)
@@ -909,6 +935,7 @@ int JAVA::constantWrapper(Node *n) {
       else
         Printf(constants_code, "  public final static %s %s = %s;\n", java_type, jname, value);
     }
+*/
   }
   Delete(java_type);
   return SWIG_OK;
