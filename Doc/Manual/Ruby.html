@@ -263,6 +263,23 @@ $ <b>g++ -c example_wrap.cxx -I/usr/local/lib/ruby/1.6/i686-linux</b>
 $ <b>g++ -shared example.o example_wrap.o -o example.so</b>
 </pre></blockquote>
 
+If you've written an <tt>extconf.rb</tt> script to automatically generate a
+<tt>Makefile</tt> for your C++ extension module, keep in mind that (as of
+this writing) Ruby still uses <tt>gcc</tt> and not <tt>g++</tt> as its linker.
+As a result, the required C++ runtime library support will not be automatically
+linked into your extension module and it may fail to load on some platforms.
+A workaround for this problem is use the <tt>mkmf</tt> module's <tt>append_library()</tt>
+method to add one of the C++ runtime libraries to the list of libraries linked
+into your extension, e.g.
+
+<blockquote>
+<pre>
+require 'mkmf'
+$libs = append_library($libs, "supc++")
+create_makefile('example')
+</pre>
+</blockquote>
+
 <hr>
 <a name="n9"></a><H2>20.2 Building Ruby Extensions under Windows 95/NT</H2>
 
