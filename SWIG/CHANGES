@@ -14,6 +14,57 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian
 Eventually this branch will be merged back to the trunk of the CVS
 tree (maybe).
 
+Version 1.3.12 (in progress)
+=================================
+
+02/15/2002: ljohnson (Lyle Johnson)
+            [Ruby] Made a fix to the code generation for C++ class
+            constructors so that we get both a "new" singleton method
+            and an "initialize" instance method for each class. This
+            change enables developers to derive new Ruby classes from
+            SWIG-wrapped C++ classes and then override their initialize
+            methods to provide subclass-specific instance initialization.
+
+02/15/2002: ljohnson (Lyle Johnson)
+            [Ruby] Massive documentation update for the Ruby module,
+            contributed by Craig Files.
+
+02/14/2002: ljohnson (Lyle Johnson)
+            [Ruby] Bug fix: An error in the SWIG runtime support for Ruby
+            was causing several of the examples to fail. Reported by
+            William Fulton.
+
+02/14/2002: ljohnson (Lyle Johnson)
+            [Ruby] Bug fix: Enumerations defined within a class (such
+            as those seen in the Examples/ruby/enum example) were not
+            being exported with the correct names. Reported by William
+            Fulton.
+
+02/13/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added a warning message when we run across overloaded
+            class constructors for C++ code, that this is currently not
+            supported (even if the overloads have been %renamed). For an
+            example of where this doesn't work, see Examples/ruby/operator.
+
+02/13/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added an "ignored" warning message when the parser runs
+            across an operator!=() declaration for C++ code.
+
+02/11/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added the "import", "import_template", "operator" and
+            "template" examples.
+
+02/11/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added multi-module support.
+
+02/09/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added the missing "#define SWIG_NOINCLUDE" at the top of
+            the wrapper code when the '-c' option is used.
+
+02/09/2002: ljohnson (Lyle Johnson)
+            Corrected a minor off-by-one error for the size of the
+            swig_types[] array that's generated in the wrapper code.
+
 Version 1.3.11 (January 31, 2002)
 =================================
 
