@@ -187,14 +187,13 @@ public:
     f_init = 0;
     useGlobalModule = false;
     multipleInheritance = false;
-
     director_prot_ctor_code = NewString("");    
     Printv(director_prot_ctor_code,
 	   "if ( $comparison ) { /* subclassed */\n",
 	   "  $director_new \n",
 	   "} else {\n",
 	   "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\"); \n",
-	   "  result = 0;\n",
+	   "  return Qnil;\n",
 	   "}\n", NIL);
   }
   
@@ -360,7 +359,9 @@ public:
     }
 
     /* Set comparison with none for ConstructorToFunction */
-    setSubclassInstanceCheck(NewString("CLASS_OF(self) != Qnil")); // FIXME
+
+    
+    setSubclassInstanceCheck(NewStringf("strcmp(rb_obj_classname(self), classname) != 0")); 
     // setSubclassInstanceCheck(NewString("CLASS_OF(self) != cFoo.klass"));
 
     /* Initialize all of the output files */
@@ -752,7 +753,7 @@ public:
     source = NewString("");
     target = NewString("");
 
-    bool use_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
+    bool ctor_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
 
     /**
      * The 'start' value indicates which of the C/C++ function arguments
@@ -761,7 +762,7 @@ public:
      * the first argument (with name arg1) is based on the value of argv[0].
      * If start is one, then arg1 is based on the value of argv[1].
      */
-    int start = (current == MEMBER_FUNC || current == MEMBER_VAR || use_director) ? 1 : 0;
+    int start = (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director) ? 1 : 0;
 
     int varargs = emit_isvarargs(l);
 
@@ -1005,8 +1006,8 @@ public:
     int  varargs = emit_isvarargs(l);
     bool allow_kwargs = Getattr(n,"feature:kwargs") ? true : false;
     
-    bool use_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
-    int start = (current == MEMBER_FUNC || current == MEMBER_VAR || use_director) ? 1 : 0;
+    bool ctor_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
+    int start = (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director) ? 1 : 0;
 
     /* Now write the wrapper function itself */
     if        (current == CONSTRUCTOR_ALLOCATE) {
@@ -1040,7 +1041,7 @@ public:
     }
 
     // FIXME?
-    if (use_director) {
+    if (ctor_director) {
       numarg--;
       numreq--;
     }
@@ -1254,14 +1255,16 @@ public:
 	   NIL);
     
     Wrapper_add_local(f, "argc", "int argc");
-    if (current == MEMBER_FUNC || current == MEMBER_VAR) {
+    bool ctor_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
+    if (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director) {
       Printf(tmp, "VALUE argv[%d]", maxargs+1);
     } else {
       Printf(tmp, "VALUE argv[%d]", maxargs);
     }
     Wrapper_add_local(f, "argv", tmp);
     Wrapper_add_local(f, "ii", "int ii");
-    if (current == MEMBER_FUNC || current == MEMBER_VAR) {
+
+    if (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director) {
       Printf(f->code, "argc = nargs + 1;\n");
       Printf(f->code, "argv[0] = self;\n");
       Printf(f->code, "for (ii = 1; (ii < argc) && (ii < %d); ii++) {\n", maxargs);
@@ -1717,12 +1720,47 @@ public:
    * Method for adding C++ member constructor
    * -------------------------------------------------------------------- */
 
+  void set_director_ctor_code(Node *n) 
+  {
+    /* director ctor code is specific for each class */
+    Delete(director_prot_ctor_code);
+    director_prot_ctor_code = NewString("");
+    Node *pn = Swig_methodclass(n);
+    String *symname = Getattr(pn,"sym:name");
+    String  *name   = Copy(symname);
+    char *cname = Char(name);
+    if(cname) cname[0] = toupper(cname[0]);
+    Printv(director_prot_ctor_code,
+	   "char *classname = \"",module,"::",cname,"\";\n",
+	   "if ( $comparison ) { /* subclassed */\n",
+	   "  $director_new \n",
+	   "} else {\n",
+	   "  rb_raise(rb_eNameError,\"accessing abstract class or protected constructor\"); \n",
+	   "  return Qnil;\n",
+	   "}\n", NIL);
+    Delete(director_ctor_code);
+    director_ctor_code = NewString("");
+    Printv(director_ctor_code,
+	   "char *classname = \"",module,"::",cname,"\";\n",
+	   "if ( $comparison ) { /* subclassed */\n",
+	   "  $director_new \n",
+	   "} else {\n",
+	   "  $nondirector_new \n",
+	   "}\n", NIL);
+    Delete(name);
+  }
+
   virtual int constructorHandler(Node *n) {
     int   use_director = Swig_directorclass(n);
-
+    if (use_director) {
+      set_director_ctor_code(n);
+    }
+    
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
     Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
+    
+    
     Language::constructorHandler(n);
 
     /* 
@@ -1761,6 +1799,20 @@ public:
     klass->constructor_defined = 1;
     return SWIG_OK;
   }
+
+  virtual int copyconstructorHandler(Node *n) {
+    int   use_director = Swig_directorclass(n);
+    if (use_director) {
+      set_director_ctor_code(n);
+    }
+
+    /* First wrap the allocate method */
+    current = CONSTRUCTOR_ALLOCATE;
+    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
+    
+    return Language::copyconstructorHandler(n);
+  }
+  
 
   /* ---------------------------------------------------------------------
    * destructorHandler()

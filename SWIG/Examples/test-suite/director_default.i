@@ -28,3 +28,17 @@ public:
 	std::string GetMsg(std::string msg) { return Msg(msg); }
 };
 
+
+%inline %{
+class Bar {
+public:
+        Bar() {}
+        Bar(int i) {}
+	virtual ~Bar() {}
+	virtual std::string Msg(std::string msg = "default") { return "Bar-" + msg; }
+
+	std::string GetMsg() { return Msg(); }
+	std::string GetMsg(std::string msg) { return Msg(msg); }
+};
+
+%}
