@@ -34,6 +34,7 @@ CHICKEN Options (available with -chicken)\n\
      -closprefix <prefix>   - Prepend <prefix> to all clos identifiers\n\
      -useclassprefix        - Prepend the class name to all clos identifiers\n\
      -unhideprimitive       - Unhide the primitive: symbols\n\
+     -nounit                - Do not (declare (unit ...)) in scheme file\n\
 \n"
 ;
 
@@ -65,6 +66,7 @@ static String        *closprefix = 0;
 static String        *memberfunction_name = 0;
 static  int          hide_primitive = 1;
 static Hash          *primitive_names = 0;
+static int           declare_unit = 1;
 
 class CHICKEN : public Language {
 public:
@@ -148,6 +150,9 @@ CHICKEN::main(int argc, char *argv[])
       } else if (strcmp(argv[i],"-unhideprimitive") == 0) {
           hide_primitive = 0;
           Swig_mark_arg(i);
+      } else if (strcmp(argv[i],"-nounit") == 0) {
+	  declare_unit = 0;
+	  Swig_mark_arg(i);
       }
     }
   }
@@ -239,7 +244,8 @@ CHICKEN::top(Node *n)
 	 ";; This file was created automatically by SWIG.\n",
 	 ";; Don't modify this file, modify the SWIG interface instead.\n",
 	 NIL);
-  Printv(f_scm,"(declare (unit ", scmmodule, "))\n\n", NIL);
+  if (declare_unit)
+    Printv(f_scm,"(declare (unit ", scmmodule, "))\n\n", NIL);
   Printv(f_scm,"(declare \n",
 	 tab4, "(hide swig-init)\n",
 	 tab4, "(foreign-declare \"C_extern void swig_", module, "_init(C_word,C_word,C_word) C_noret;\"))\n", NIL);
