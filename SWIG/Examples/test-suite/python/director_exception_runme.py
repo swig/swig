@@ -40,4 +40,12 @@ if not ok:
 	raise RuntimeError
 
 
+try:
+	raise Exception2()
+except Exception2:
+	pass
 
+try:
+	raise Exception1()
+except Exception1:
+	pass

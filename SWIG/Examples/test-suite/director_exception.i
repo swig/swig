@@ -70,3 +70,30 @@ public:
 
 Foo *launder(Foo *f);
 
+%{
+  struct Unknown1
+  {
+  };
+
+  struct Unknown2
+  {
+  };
+%}
+%inline %{
+  struct Exception1
+  {
+  };
+
+  struct Exception2
+  {
+  };
+
+  class Bar 
+  {
+  public:
+    virtual ~Bar(){}
+    virtual std::string ping() throw (Exception1, Exception2&) { return "Bar::ping()"; }
+    virtual std::string pong() throw (Unknown1, int, Unknown2&) { return "Bar::pong();" + ping(); }
+  };
+  
+%}
