@@ -14,4 +14,30 @@ if default_args.cfunc3(1) != 4:
   raise RuntimeError
 
 
+f = default_args.Foo()
+
+f.newname()
+f.newname(1)
+
+
+try:
+  f = default_args.Foo(1)
+  error = 1
+except:
+  error = 0
+if error:  raise RuntimeError,"ignore is not working"
+
+try:
+  f = default_args.Foo(1,2)
+  error = 1
+except:
+  error = 0
+if error:  raise RuntimeError,"ignore is not working"
+
+try:
+  f = default_args.Foo(1,2,3)
+  error = 1
+except:
+  error = 0
+if error:  raise RuntimeError,"ignore is not working"
 

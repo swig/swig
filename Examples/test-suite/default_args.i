@@ -74,7 +74,9 @@
 
 // Rename a class member
 %rename(bar2) Foo::bar;
-%rename(newname) Foo::oldname;
+%rename(newname) Foo::oldname(int x);
+%ignore Foo::Foo(int x, int y = 0, int z = 0);
+
 %inline %{
 
   // Define a class
@@ -83,6 +85,10 @@
       static int bar;
       static int spam;
 
+      Foo(){}
+     
+      Foo(int x, int y = 0, int z = 0){}
+    
       // Use a renamed member as a default argument.  SWIG has to resolve
       // bar to Foo::bar and not Foo::spam.  SWIG-1.3.11 got this wrong.
       // (Different default parameter wrapping in SWIG-1.3.23 ensures SWIG doesn't have to resolve these symbols).
