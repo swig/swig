@@ -31,9 +31,9 @@ static char cvsroot[] = "$Header$";
 
 
 #include "perl5.h"
+#include "guile.h"
 #ifdef OLD
 #include "java.h"
-#include "guile.h"
 #include "mzscheme.h"
 #endif
 #include "ruby.h"
@@ -85,10 +85,10 @@ int main(int argc, char **argv) {
 	  } else if (strcmp(argv[i],"-perl5") == 0) {
 	      dl = new PERL5;
 	      Swig_mark_arg(i);
-#ifdef OLD
 	  } else if (strcmp(argv[i],"-guile") == 0) {
 	      dl = new GUILE;
 	      Swig_mark_arg(i);
+#ifdef OLD
 	  } else if (strcmp(argv[i],"-java") == 0) {
 	      dl = new JAVA;
 	      Swig_mark_arg(i);
