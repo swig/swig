@@ -7,7 +7,9 @@
 %}
 
 %typemap(in) vector<int> "/* Xyzzy! */";
+%typemap(in) vector<unsigned int> "/* Foo! */";
 
 %inline %{
 void foo(vector<int > v) {}
+void var(vector<unsigned  int> v) {}
 %}
