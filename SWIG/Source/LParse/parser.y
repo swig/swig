@@ -2,13 +2,16 @@
 /* ----------------------------------------------------------------------------- 
  * parser.y
  *
- *     YACC grammar for Dave's lame parser.
+ *     YACC grammar for Dave's lame C parser.  Based loosely on the SWIG1.1 
+ *     parser
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
+
+/* These defines are to move the bison generated functions into their own namespace */
 
 #define yylex lparse_yylex
 #define yyerror lparse_yyerror
@@ -29,7 +32,6 @@ void   yyerror (char *s);
 #define CPLUS_PUBLIC  2
 
 static DOH      *top = 0;
-static int       readonly = 0;
 static DOH      *swig_rename = 0;
 static LParseType *Active_typedef = 0;
 static LParseType *Active_type = 0;
@@ -213,10 +215,10 @@ static int promote(int t1, int t2) {
 %left <tok> UMINUS NOT LNOT
 %left <tok> DCOLON
 
-%type <tok> idstring idtype cpptype template_decl stars array array2 expr definetype def_args extern_spec func_end tm_method pragma_arg ename
+%type <tok> idstring template_decl cpptype stars array array2 expr definetype def_args extern_spec func_end tm_method pragma_arg ename
 %type <tok> base_specifier access_specifier cpp_end ctor_end stylearg
 %type <node> file_include_type parm parms ptail tm_tail tm_list tm_parm tm_args idlist inherit base_list stylelist styletail
-%type <type> type realtype opt_signed opt_unsigned
+%type <type> type strict_type opt_signed opt_unsigned
 %type <decl> declaration nested_decl
 %type <pname> pname
 %type <tmname> tm_name 
@@ -250,7 +252,7 @@ swig_directive : MODULE idstring {
 		     Setattr(top,"module",$2.text);
 		   }
                }
-               | MACRO idtype COMMA STRING COMMA NUM_INT LBRACE {
+               | MACRO ID COMMA STRING COMMA NUM_INT LBRACE {
 		 LParse_macro_location($2.text,$1.filename,$1.line);
 		 LParse_set_location($4.text, atoi(Char($6.text))-1);
                } interface RBRACE { 
@@ -307,8 +309,8 @@ file_include_type : INCLUDE { $$ = new_node("IncludeFile",$1.filename,$1.line); 
 
 /* -- Modifier directives -- */
 
-modifier_directive : READONLY { readonly = 1; }
-               | READWRITE { readonly = 0; }
+modifier_directive : READONLY { new_node("ReadOnly",$1.filename, $1.line); }
+               | READWRITE { new_node("ReadWrite",$1.filename,$1.line); }
                | NAME LPAREN idstring RPAREN { swig_rename = Copy($3.text); } statement {  swig_rename = 0; }
                | NEW { NewObject = 1; } statement { NewObject = 0; }
                ;
@@ -445,7 +447,7 @@ idstring       : ID { $$ = $1; }
 /* -- Typemap directives -- */
 
 
-typemap_directive: TYPEMAP LPAREN idtype COMMA tm_method RPAREN tm_list LBRACE {
+typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list LBRACE {
                       DOH *o, *t, *l;
 		      int i;
 		      t = LParse_skip_balanced('{','}');
@@ -479,7 +481,7 @@ typemap_directive: TYPEMAP LPAREN idtype COMMA tm_method RPAREN tm_list LBRACE {
 
 /* Clear a typemap */
 
-               | TYPEMAP LPAREN idtype COMMA tm_method RPAREN tm_list SEMI {
+               | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list SEMI {
 		 DOH *o, *l;
 		   int i;
 		    for (i = 0; i < Len($7); i++) {
@@ -508,7 +510,7 @@ typemap_directive: TYPEMAP LPAREN idtype COMMA tm_method RPAREN tm_list LBRACE {
 
 /* Copy a typemap */
 
-               | TYPEMAP LPAREN idtype COMMA tm_method RPAREN tm_list EQUAL tm_parm SEMI {
+               | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list EQUAL tm_parm SEMI {
 		 DOH *o, *l;
 		 int i;
 		 for (i = 0; i < Len($7); i++) {
@@ -560,7 +562,7 @@ typemap_directive: TYPEMAP LPAREN idtype COMMA tm_method RPAREN tm_list LBRACE {
 	       }
                ;
 
-tm_method      : idtype {
+tm_method      : ID {
                  $$ = $1;
                } 
                | CONST {
@@ -656,7 +658,7 @@ tm_args         : LPAREN parms RPAREN {
 
 /* -- Exceptions -- */
 
-except_directive:  EXCEPT LPAREN idtype RPAREN LBRACE {
+except_directive:  EXCEPT LPAREN ID RPAREN LBRACE {
                   DOH *o, *t;
 		  t = LParse_skip_balanced('{','}');
 		  o = new_node("Exception",$1.filename,$1.line);
@@ -673,7 +675,7 @@ except_directive:  EXCEPT LPAREN idtype RPAREN LBRACE {
                }
 
 /* Clear an exception */
-               | EXCEPT LPAREN idtype RPAREN SEMI {
+               | EXCEPT LPAREN ID RPAREN SEMI {
 		 DOH *o;
 		 o = new_node("ExceptionClear",$1.filename,$1.line);
 		 Setattr(o,"lang",$3.text);
@@ -750,15 +752,13 @@ variable_decl   : extern_spec type declaration array2 def_args {
 		    }
 		    if ($5.text)
 		      Setattr(o,"value",$5.text);
-		    if (readonly)
-		      Setattr(o,"readonly",DohNone);
 
 		    apply_modifier(o);
                   } stail { }
 
 /* Global variable that smells like a function pointer */
 
-                | extern_spec type LPAREN STAR { 
+                | extern_spec strict_type LPAREN STAR { 
 		  LParse_error($3.filename,$3.line,"Pointer to function not currently supported.\n");
 		  LParse_skip_decl();
 		}
@@ -861,8 +861,6 @@ stail          : SEMI { }
 		 if ($4.text)
 		   Setattr(o,"value",$4.text);
 		 apply_modifier(o);
-		 if (readonly)
-		   Setattr(o,"readonly",DohNone);
 	       } stail { } 
                | COMMA declaration LPAREN parms RPAREN {
 		 DOH *o;
@@ -1177,7 +1175,7 @@ base_list      : base_specifier {
                }
                ;
                                  
-base_specifier : idtype {  
+base_specifier : ID {  
 		 LParse_error($1.filename,$1.line,"No access specifier given for base class %s (ignored).\n", $1.text);
 		  $$.text = 0;
                }
@@ -1257,7 +1255,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
               }
 
 /* Possibly a constructor */
-              | idtype LPAREN parms RPAREN ctor_end {
+              | ID LPAREN parms RPAREN ctor_end {
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  DOH *o = new_node("Constructor", $2.filename, $2.line);
 		  Setattr(o,"name",$1.text);
@@ -1269,7 +1267,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 
 /* A destructor (hopefully) */
 
-              | NOT idtype LPAREN parms RPAREN cpp_end {
+              | NOT ID LPAREN parms RPAREN cpp_end {
 		  if (cplus_mode == CPLUS_PUBLIC) {
 		    DOH *o = new_node("Destructor",$2.filename,$2.line);
 		    Setattr(o,"name",$1.text);
@@ -1279,7 +1277,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  }
 	      }
 
-              | VIRTUAL NOT idtype LPAREN parms RPAREN cpp_end {
+              | VIRTUAL NOT ID LPAREN parms RPAREN cpp_end {
 		  if (cplus_mode == CPLUS_PUBLIC) {
 		    DOH *o = new_node("Destructor",$3.filename,$3.line);
 		    Setattr(o,"name",$2.text);
@@ -1531,7 +1529,7 @@ mem_initializer : ID LPAREN { LParse_skip_balanced('(',')'); }
 
 cpp_other    :/* A dummy class name */
 
-             extern_spec cpptype idtype SEMI {
+             extern_spec cpptype ID SEMI {
                  DOH *o = new_node("ClassDecl",$4.filename,$4.line);
                  Setattr(o,"name",$3.text);
 	     }   
@@ -1549,7 +1547,7 @@ cpp_other    :/* A dummy class name */
 
 /* %addmethods directive used outside of a class definition */
 
-             | ADDMETHODS idtype LBRACE {
+             | ADDMETHODS ID LBRACE {
 	       DOH *o = new_node("AddMethods",$3.filename, $3.line);
 	       Setattr(o,"name",$2.text);
 	       cplus_mode = CPLUS_PUBLIC;
@@ -1716,10 +1714,8 @@ array2 :      array {
               }
 	      ;
 
-type           : realtype { Intype++; }
-               ;
 
-realtype       : TYPE_INT {  $$ = NewLParseType(LPARSE_T_INT);  }
+type           : TYPE_INT {  $$ = NewLParseType(LPARSE_T_INT);  }
                | TYPE_SHORT opt_int { $$ = NewLParseType(LPARSE_T_SHORT); }
                | TYPE_LONG opt_int {  $$ = NewLParseType(LPARSE_T_LONG); }
                | TYPE_CHAR { $$ = NewLParseType(LPARSE_T_CHAR); }
@@ -1741,43 +1737,98 @@ realtype       : TYPE_INT {  $$ = NewLParseType(LPARSE_T_INT);  }
 		     strcpy($$->name,"unsigned");
 		   }
 	       }
-               | TYPE_TYPEDEF {
-                   $$ = NewLParseType(LPARSE_T_USER);
-                   strcpy($$->name,Char($1.text));
-		   LParse_typedef_resolve($$,0);
-	       }
-               | TYPE_TYPEDEF template_decl {
+               | ID template_decl {
 		 $$ = NewLParseType(LPARSE_T_USER);
-		 if ($2.text) 
+		 if ($2.text) {
 		   sprintf($$->name,"%s%s",Char($1.text),Char($2.text));
-		 else
-		   strcpy($$->name,Char($1.text));
+		 } else {
+		   sprintf($$->name,"%s",Char($1.text));
+		 }
+		 if (!LParse_typedef_check($1.text)) {
+		   LParse_error(Getfile($1.text), Getline($1.text), "Warning: '%s' used as a typename, but not defined as a type.\n", $1.text);
+		 }
+
+		 LParse_typedef_resolve($$,0);
 	       }
                | CONST type {
 		  $$ = $2;
                   $$->qualifier = Swig_copy_string("const");
      	       }
-               | cpptype idtype {
+               | cpptype ID {
                   $$ = NewLParseType(LPARSE_T_USER);
 		  sprintf($$->name,"%s %s",Char($1.text), Char($2.text));
 	       }
-               | TYPE_TYPEDEF DCOLON idtype {
+               | ID DCOLON ID {
                   $$ = NewLParseType(LPARSE_T_USER);
                   sprintf($$->name,"%s::%s",Char($1.text),Char($3.text));
                   LParse_typedef_resolve($$,0);
                }
 /* This declaration causes a shift-reduce conflict.  Unresolved for now */
-               | DCOLON TYPE_TYPEDEF {
+               | DCOLON ID {
                   $$ = NewLParseType(LPARSE_T_USER);
                   sprintf($$->name,"%s", Char($2.text));
 		  LParse_typedef_resolve($$,1);
                }
-               | ENUM idtype {
+               | ENUM ID {
 		 $$ = NewLParseType(LPARSE_T_ENUM);
 		 sprintf($$->name,"enum %s", Char($2.text));
 		 /*		 LParse_typedef_resolve($$,1);*/
 		 /* $$->typedef_resolve(1); */
                }
+               ;
+
+
+strict_type    : TYPE_INT {  $$ = NewLParseType(LPARSE_T_INT);  }
+               | TYPE_SHORT opt_int { $$ = NewLParseType(LPARSE_T_SHORT); }
+               | TYPE_LONG opt_int {  $$ = NewLParseType(LPARSE_T_LONG); }
+               | TYPE_CHAR { $$ = NewLParseType(LPARSE_T_CHAR); }
+               | TYPE_BOOL {  $$ = NewLParseType(LPARSE_T_BOOL); }
+               | TYPE_FLOAT { $$ = NewLParseType(LPARSE_T_FLOAT); }
+               | TYPE_DOUBLE { $$ = NewLParseType(LPARSE_T_DOUBLE); }
+               | TYPE_VOID {  $$ = NewLParseType(LPARSE_T_VOID); }
+               | TYPE_SIGNED opt_signed { 
+                 if ($2) $$ = $2;
+		 else {
+		   $$ = NewLParseType(LPARSE_T_INT);
+		   strcpy($$->name,"signed");
+		 }
+	       }
+               | TYPE_UNSIGNED opt_unsigned {
+                   if ($2) $$ = $2;
+		   else {
+		     $$ = NewLParseType(LPARSE_T_UINT);
+		     strcpy($$->name,"unsigned");
+		   }
+	       }
+               | TYPE_TYPEDEF template_decl {
+		 $$ = NewLParseType(LPARSE_T_USER);
+		 if ($2.text) {
+		   sprintf($$->name,"%s%s",Char($1.text),Char($2.text));
+		 } else {
+		   sprintf($$->name,"%s",Char($1.text));
+		 }
+		 LParse_typedef_resolve($$,0);
+	       }
+               | CONST type {
+		  $$ = $2;
+                  $$->qualifier = Swig_copy_string("const");
+     	       }
+               | cpptype ID {
+                  $$ = NewLParseType(LPARSE_T_USER);
+		  sprintf($$->name,"%s %s",Char($1.text), Char($2.text));
+	       }
+               | ENUM ID {
+		 $$ = NewLParseType(LPARSE_T_ENUM);
+		 sprintf($$->name,"enum %s", Char($2.text));
+		 /*		 LParse_typedef_resolve($$,1);*/
+		 /* $$->typedef_resolve(1); */
+               }
+               ;
+
+template_decl  : LESSTHAN { 
+		   $$.text = LParse_skip_balanced('<','>');
+               }
+               | empty { $$.text = 0; }
                ;
 
 /* Optional signed types */
@@ -1826,12 +1877,6 @@ opt_int        : TYPE_INT { }
 cpptype        : CLASS { $$ = $1; }
                | STRUCT { $$ = $1; }
                | UNION { $$ = $1; }  
-               ;
-
-template_decl  : LESSTHAN {
-                  $$ = $1;
-                  $$.text = LParse_skip_balanced('<','>');
-               } 
                ;
 
 /* -----------------------------------------------------------------------------
@@ -1992,10 +2037,6 @@ idlist         : idlist COMMA ID {
                | empty {
                     $$ = NewList();
                }
-               ;
-
-idtype         : ID { $$ = $1; }
-               | TYPE_TYPEDEF { $$ = $1; }
                ;
 
 empty          :   ;
