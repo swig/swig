@@ -1,4 +1,4 @@
-/* -----------------------------------------------------------------------------
+/* ---------------------------------------------------------------------- -*- c -*-
  * perl5.swg
  *
  * Perl5 runtime library
@@ -122,31 +122,59 @@ extern "C" {
 #define SWIG_OWNER 1
 #define SWIG_SHADOW 2
 
+/* Common SWIG API */
+
+#ifdef PERL_OBJECT
+#  define SWIG_ConvertPtr(obj, pp, type, flags) \
+     SWIG_Perl_ConvertPtr(pPerl, obj, pp, type, flags)
+#  define SWIG_NewPointerObj(p, type, flags) \
+     SWIG_Perl_NewPointerObj(pPerl, p, type, flags)
+#else
+#  define SWIG_ConvertPtr(obj, pp, type, flags) \
+     SWIG_Perl_ConvertPtr(obj, pp, type, flags)
+#  define SWIG_NewPointerObj(p, type, flags) \
+     SWIG_Perl_NewPointerObj(p, type, flags)
+#endif  
+
+/* Perl-specific API */
+#ifdef PERL_OBJECT
+#  define SWIG_MakePtr(sv, ptr, type, flags) \
+     SWIG_Perl_MakePtr(pPerl, sv, ptr, type, flags)
+#  define SWIG_TypeCheckRV(rv, ty) \
+     SWIG_Perl_TypeCheckRV(pPerl, rv, ty)
+#else
+#  define SWIG_MakePtr(sv, ptr, type, flags) \
+     SWIG_Perl_MakePtr(sv, ptr, type, flags)
+#  define SWIG_TypeCheckRV(rv, ty) \
+     SWIG_Perl_TypeCheckRV(rv, ty)
+#endif
+  
+#ifdef PERL_OBJECT
+#  define SWIG_MAYBE_PERL_OBJECT CPerlObj *pPerl,
+#else
+#  define SWIG_MAYBE_PERL_OBJECT
+#endif
+  
 #ifdef SWIG_NOINCLUDE
 
-#ifndef PERL_OBJECT
-extern int SWIG_ConvertPtr(SV *, void **, swig_type_info *, int flags);
-extern void SWIG_MakePtr(SV *, void *, swig_type_info *, int flags);
-swig_type_info *SWIG_TypeCheckRV(SV *rv, swig_type_info *ty);
-#else
-extern int SWIG_ConvertPtr_(CPerlObj *, SV *, void **, swig_type_info *,int flags);
-extern void SWIG_MakePtr_(CPerlObj *, SV *, void *, swig_type_info *, int flags);
-swig_type_info * SWIG_TypeCheckRV_(CPerlObj *pPerl, SV *rv, swig_type_info *ty);
-#define SWIG_ConvertPtr(a,b,c,d) SWIG_ConvertPtr_(pPerl,a,b,c,d)
-#define SWIG_MakePtr(a,b,c,d) SWIG_MakePtr_(pPerl,a,b,c,d)
-#define SWIG_TypeCheckRV(a,b,c) SWIG_TypeCheckRV_(pPerl,a,b,c)
-#endif
-
+extern int
+SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT
+		     SV *, void **, swig_type_info *, int flags);
+extern void
+SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT
+		  SV *, void *, swig_type_info *, int flags);
+extern SV *
+SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT
+			void *, swig_type_info *, int flags);
+extern swig_type_info *
+SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT
+		      SV *rv, swig_type_info *ty);
+       
 #else
  
-#ifndef PERL_OBJECT
 SWIGRUNTIME(swig_type_info *)
-SWIG_TypeCheckRV(SV *rv, swig_type_info *ty)
-#else
-#define SWIG_TypeCheckRV(a,b,c) SWIG_TypeCheckRV_(pPerl,a,b,c)
-SWIGRUNTIME(swig_type_info *)
-SWIG_TypeCheckRV_(CPerlObj *pPerl, SV *rv, swig_type_info *ty)
-#endif
+SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT
+		      SV *rv, swig_type_info *ty)
 {
   swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
@@ -173,14 +201,9 @@ SWIG_TypeCheckRV_(CPerlObj *pPerl, SV *rv, swig_type_info *ty)
 
 /* Function for getting a pointer value */
 
-#ifndef PERL_OBJECT
 SWIGRUNTIME(int) 
-SWIG_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t, int flags)
-#else
-#define SWIG_ConvertPtr(a,b,c,d) SWIG_ConvertPtr_(pPerl,a,b,c,d)
-SWIGRUNTIME(int)
-SWIG_ConvertPtr_(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int flags)
-#endif
+SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT
+		     SV *sv, void **ptr, swig_type_info *_t, int flags)
 {
   swig_type_info *tc;
   void *voidptr = (void *)0;
@@ -240,14 +263,10 @@ SWIG_ConvertPtr_(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int fl
   *ptr = voidptr;
   return 0;
 }
-#ifndef PERL_OBJECT
-SWIGRUNTIME(void) 
-SWIG_MakePtr(SV *sv, void *ptr, swig_type_info *t,int flags)
-#else
-#define SWIG_MakePtr(a,b,c,d) SWIG_MakePtr_(pPerl,a,b,c,d)
+
 SWIGRUNTIME(void)
-SWIG_MakePtr_(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t, int flags)
-#endif
+SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT
+		  SV *sv, void *ptr, swig_type_info *t, int flags)
 {
   if (ptr && (flags & SWIG_SHADOW)) {
     SV *self;
@@ -274,6 +293,15 @@ SWIG_MakePtr_(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t, int flags)
   else {
     sv_setref_pv(sv, (char *) t->name, ptr);
   }
+}
+
+SWIGRUNTIME(SV *)
+SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT
+			void *ptr, swig_type_info *t, int flags)
+{
+  SV *result = sv_newmortal();
+  SWIG_MakePtr(result, ptr, t, flags);
+  return result;
 }
 
 #endif
