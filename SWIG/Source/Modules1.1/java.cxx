@@ -694,9 +694,6 @@ class JAVA : public Language {
       }
     }
 
-    Printf(jniclass_class_code, ");\n");
-    Printf(f->def,") {");
-
     if (Cmp(nodeType(n), "constant") == 0) {
       // Wrapping a constant hack
       Swig_save(&n,"wrap:action",NIL);
@@ -749,6 +746,12 @@ class JAVA : public Language {
       }
     }
 
+    /* Finish JNI C function and JNI class native function definitions */
+    Printf(jniclass_class_code, ")");
+    generateThrowsClause(n, jniclass_class_code);
+    Printf(jniclass_class_code, ";\n");
+    Printf(f->def,") {");
+
     if(SwigType_type(t) != T_VOID)
       Printv(f->code, "    return jresult;\n", NIL);
     Printf(f->code, "}\n");
@@ -772,7 +775,7 @@ class JAVA : public Language {
     }
 
     if(!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
-      jniclassFunctionHandler(n);
+      moduleClassFunctionHandler(n);
     }
 
     Delete(jnirettype);
@@ -1711,10 +1714,10 @@ class JAVA : public Language {
   }
 
   /* -----------------------------------------------------------------------------
-   * jniclassFunctionHandler()
+   * moduleClassFunctionHandler()
    * ----------------------------------------------------------------------------- */
 
-  void jniclassFunctionHandler(Node *n) {
+  void moduleClassFunctionHandler(Node *n) {
     SwigType  *t = Getattr(n,"type");
     ParmList  *l = Getattr(n,"parms");
     String    *tm;
