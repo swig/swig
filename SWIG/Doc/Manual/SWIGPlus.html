@@ -369,29 +369,30 @@ In order for the wrapper code to compile, <tt>Vector</tt> must define a copy con
 constructor.
 
 <p>
-If <tt>Vector</tt> is defined as class in the interface, SWIG changes the wrapper code by rewriting the
-arguments as C++ references.  This means that the function is handled as if were declared exactly like this:
+If <tt>Vector</tt> is defined as class in the interface, SWIG changes
+the wrapper code by encapsulating the arguments inside a special C++
+template wrapper class.  This produces a wrapper that looks like this:
 
 <blockquote>
 <pre>
-Vector cross_product(Vector &a, Vector &b);
-</pre>
-</blockquote>
-
-Then, a wrapper such as the following is created:
-
-<blockquote>
-<pre>
-Vector *wrap_cross_product(Vector *a, Vector *b) {
-   Vector r = cross_product(*a,*b);
+Vector cross_product(Vector *a, Vector *b) {
+   SwigValueWrapper<Vector> x = *a;
+   SwigValueWrapper<Vector> y = *b;
+   Vector r = cross_product(x,y);
    return new Vector(r);
 }
 </pre>
 </blockquote>
 
-This transformation to references is made so that uninitialized
-arguments of type <tt>Vector</tt> do not appear in the wrapper code
-(thus avoiding compiler errors related to missing default constructors).
+This transformation is a little sneaky, but it provides the illusion
+of pass-by-value while avoiding a memory copy (resulting in better
+performance) and dodging the problem of having to invoke a default
+constructor of <tt>Vector</tt> (which might not exist).  The
+definition of <tt>SwigValueWrapper</tt> can be found by reading the
+SWIG wrapper code. It's really nothing more than a thin wrapper around
+a pointer.  Note: this transformation has no effect on typemaps or any
+other part of SWIG---it should be transparent except that you will see
+this code if you read the SWIG output file.
 
 <h2>Inheritance</h2>
 
