@@ -1,4 +1,4 @@
-/*
+/* -*-c-*-
  --------------------------------------------------
  argout typemaps
  convert arguments from C to Scheme
@@ -70,6 +70,12 @@ void m_output_helper(Scheme_Object **target, Scheme_Object *s, int *_lenv) {
  representation.
  -------------------------------------------------
  */
+
+%typemap(mzscheme, in) bool {
+    if(!SCHEME_BOOLP($source))
+	scheme_wrong_type("$name", "boolean", $argnum, argc, argv);
+    $target = SCHEME_TRUEP($source);
+}
 
 %typemap(mzscheme, in) char {
     if(!SCHEME_CHARP($source))
@@ -263,6 +269,10 @@ void m_output_helper(Scheme_Object **target, Scheme_Object *s, int *_lenv) {
  ------------------------------------
  */
 
+%typemap(mzscheme, out) bool {
+    $target = $source ? scheme_true : scheme_false;
+}
+
 %typemap(mzscheme, out) char {
     $target = scheme_make_character($source);
 }
@@ -373,6 +383,12 @@ void m_output_helper(Scheme_Object **target, Scheme_Object *s, int *_lenv) {
  Typemaps for accessing a global C variable from MzScheme
  ------------------------------------------------------------
  */
+
+%typemap(mzscheme, varin) bool {
+     if(!SCHEME_BOOLP($source))
+	scheme_wrong_type("$name", "boolean", $argnum, argc, argv);
+    $target = SCHEME_TRUEP($source);
+}
 
 %typemap(mzscheme, varin) char {
     if(!SCHEME_CHARP($source))
@@ -567,6 +583,10 @@ void m_output_helper(Scheme_Object **target, Scheme_Object *s, int *_lenv) {
  -----------------------------------
  */
 
+%typemap(mzscheme, varout) bool {
+    $target = $source ? scheme_true : scheme_false;
+}
+
 %typemap(mzscheme, varout) char {
     $target = scheme_make_character($source);
 }
@@ -671,3 +691,9 @@ void m_output_helper(Scheme_Object **target, Scheme_Object *s, int *_lenv) {
     $target = scheme_make_double(*$source);
 }
 */
+
+/* Pass through Scheme_Object * */
+
+%typemap (guile, in) Scheme_Object * "$target=$source;";
+%typemap (guile, out) Scheme_Object * "$target=$source;";
+

@@ -57,7 +57,7 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
   objv = (Tcl_Obj **) _objv;
   if (objc < 2) {
-    Tcl_SetResult(interp,"wrong # args.", TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "wrong # args.", TCL_STATIC);
     return TCL_ERROR;
   }
   meth = inst->classptr->methods;
@@ -79,7 +79,7 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
   /* Check class methods for a match */
   if (strcmp(method,"cget") == 0) {
     if (objc < 3) {
-      Tcl_SetResult(interp,"wrong # args.", TCL_STATIC);
+      Tcl_SetResult(interp, (char *) "wrong # args.", TCL_STATIC);
       return TCL_ERROR;
     }
     attrname = Tcl_GetStringFromObj(objv[2],NULL);
@@ -100,12 +100,12 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
       Tcl_SetObjResult(interp, Tcl_DuplicateObj(inst->thisptr));
       return TCL_OK;
     }
-    Tcl_SetResult(interp,"Invalid attribute.", TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Invalid attribute.", TCL_STATIC);
     return TCL_ERROR;
   } else if (strcmp(method, "configure") == 0) {
     int i;
     if (objc < 4) {
-      Tcl_SetResult(interp,"wrong # args.", TCL_STATIC);
+      Tcl_SetResult(interp, (char *) "wrong # args.", TCL_STATIC);
       return TCL_ERROR;
     }
     i = 2;
@@ -127,16 +127,16 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	attr++;
       }
       if (inst->classptr->attributes && !(attr->name)) {
-	Tcl_SetResult(interp,"Invalid attribute name.", TCL_STATIC);
+	Tcl_SetResult(interp, (char *) "Invalid attribute name.", TCL_STATIC);
 	return TCL_ERROR;
       }
     }
     return TCL_OK;
   } else {
-    Tcl_SetResult(interp,"Invalid method. Must be one of: configure cget ", TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Invalid method. Must be one of: configure cget ", TCL_STATIC);
     meth = inst->classptr->methods;
     while (meth && meth->name) {
-      Tcl_AppendElement(interp, meth->name);
+      Tcl_AppendElement(interp, (char *) meth->name);
       meth++;
     }
     return TCL_ERROR;
@@ -161,7 +161,7 @@ SwigObjectCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     Tcl_CmdInfo       ci;
 
     if (!classptr) {
-      Tcl_SetResult(interp,"swig: internal runtime error. No class object defined.", TCL_STATIC);
+      Tcl_SetResult(interp, (char *) "swig: internal runtime error. No class object defined.", TCL_STATIC);
       return TCL_ERROR;
     }
     cons = classptr->constructor;
@@ -201,11 +201,11 @@ SwigObjectCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	newObj = Tcl_DuplicateObj(objv[thisarg]);
 	if (!name) name = Tcl_GetStringFromObj(newObj,NULL);
       } else {
-	Tcl_SetResult(interp,"wrong # args.", TCL_STATIC);
+	Tcl_SetResult(interp, (char *) "wrong # args.", TCL_STATIC);
 	return TCL_ERROR;
       }
     } else {
-      Tcl_SetResult(interp,"No constructor available.", TCL_STATIC);
+      Tcl_SetResult(interp, (char *) "No constructor available.", TCL_STATIC);
       return TCL_ERROR;
     }
     if (!Tcl_GetCommandInfo(interp,name,&ci)) {
@@ -222,7 +222,7 @@ SwigObjectCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
       Tcl_CreateObjCommand(interp,name, SwigMethodCmd, (ClientData) newinst, SwigObjectDelete);
       return TCL_OK;
     } else {
-      Tcl_SetResult(interp,"Object name already exists!", TCL_STATIC);
+      Tcl_SetResult(interp, (char *) "Object name already exists!", TCL_STATIC);
       return TCL_ERROR;
     }
 }

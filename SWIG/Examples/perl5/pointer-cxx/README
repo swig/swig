@@ -1,0 +1,5 @@
+The example in this directory is a copy of the `pointer' example,
+except that it used C++ instead of C. 
+
+It is provided here only for the purpose of SWIG's test suite; it did
+not compile in SWIG 1.3a5.

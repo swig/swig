@@ -83,6 +83,7 @@ void scanner_file(DOHFile *f) {
   in->extern_mode = WrapExtern;
   in->force_extern = ForceExtern;
   in->inline_mode = 0;
+  in->line_number = 1;
   if (!in_head) in->prev = 0;
   else in->prev = in_head;
   in_head = in;

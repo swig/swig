@@ -50,10 +50,10 @@ static swig_type_info *SWIG_POINTER_void_p = 0;
   ------------------------------------------------------------------ */
 
 #ifdef PERL_OBJECT
-static SV *_ptrvalue(CPerlObj *pPerl,SV *_PTRVALUE, int index, char *type) {
+static SV *_ptrvalue(CPerlObj *pPerl,SV *_PTRVALUE, int index, const char *type) {
 #define ptrvalue(a,b,c) _ptrvalue(pPerl,a,b,c)
 #else
-static SV *_ptrvalue(SV *_PTRVALUE, int index, char *type) {
+static SV *_ptrvalue(SV *_PTRVALUE, int index, const char *type) {
 #define ptrvalue(a,b,c) _ptrvalue(a,b,c)
 #endif
 
@@ -258,10 +258,10 @@ static SV *_ptrcreate(char *type, SV *value, int numelements) {
   ------------------------------------------------------------------ */
 
 #ifdef PERL_OBJECT
-static void _ptrset(CPerlObj *pPerl,SV *_PTRVALUE, SV *value, int index, char *type) {
+static void _ptrset(CPerlObj *pPerl,SV *_PTRVALUE, SV *value, int index, const char *type) {
 #define ptrset(a,b,c,d) _ptrset(pPerl,a,b,c,d)
 #else
-static void _ptrset(SV *_PTRVALUE, SV *value, int index, char *type) {
+static void _ptrset(SV *_PTRVALUE, SV *value, int index, const char *type) {
 #define ptrset(a,b,c,d) _ptrset(a,b,c,d)
 #endif
   void     *ptr;

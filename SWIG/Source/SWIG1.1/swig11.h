@@ -214,6 +214,8 @@ public:
 
   virtual void import(char *filename);
 
+protected:
+  int is_multiple_definition(); // indicates whether the function has already been defined
 };
 
 /* Emit functions */

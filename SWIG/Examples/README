@@ -37,8 +37,6 @@ the rules of thumb for making C++ work:
     This can be set by modifying the setting of CPP_DLLIBS in the
     Makefile.
 
- -  RTM (sorry)
-
 
 *** Special note for SWIG Maintainers ***
 

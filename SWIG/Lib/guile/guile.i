@@ -1,4 +1,4 @@
-/* SWIG Configuration File for Guile. 
+/* SWIG Configuration File for Guile. -*-c-*-
    This file is parsed by SWIG before reading any other interface
    file. */
 

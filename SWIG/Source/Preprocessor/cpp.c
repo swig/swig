@@ -173,7 +173,7 @@ DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
 	goto macro_error;
       }
       break;
-    } else if (isidchar(c)) {
+    } else if (isidchar(c) || (c == '%')) {
       Putc(c,macroname);
     } else if (isspace(c)) {
       break;
@@ -283,19 +283,21 @@ find_args(DOHString *s)
   DOHList   *args;
   DOHString *str;
   int   c, level;
+  long  pos;
 
   /* Create a new list */
   args = NewList();
   copy_location(s,args);
 
   /* First look for a '(' */
+  pos = Tell(s);
   skip_whitespace(s,0);
 
   /* Now see if the next character is a '(' */
   c = Getc(s);
   if (c != '(') {
     /* Not a macro, bail out now! */
-    cpp_error(Getfile(s),Getline(s),"Missing macro arguments\n");
+    Seek(s,pos, SEEK_SET);
     return args;
   }
   c = Getc(s);
@@ -401,12 +403,14 @@ expand_macro(DOHString_or_char *name, DOHList *args)
     ns = NewString("");
     Printf(ns,"%s",name);
     if (args) {
-      Putc('(',ns);
+      if (Len(args))
+	Putc('(',ns);
       for (i = 0; i < Len(args); i++) {
 	Printf(ns,"%s",Getitem(args,i));
 	if (i < (Len(args) -1)) Putc(',',ns);
       }
-      Putc(')',ns);
+      if (i)
+	Putc(')',ns);
     }
     return ns;
   }
@@ -455,6 +459,26 @@ expand_macro(DOHString_or_char *name, DOHList *args)
 	Printf(temp,"\001%s", aname);
 	Printf(tempa,"\"%s\"",arg);
 	Replace(ns, temp, tempa, DOH_REPLACE_ANY);
+      }
+
+      /* Non-standard macro expansion.   The value `x` is replaced by a quoted
+	 version of the argument except that if the argument is already quoted
+	 nothing happens */
+
+      if (strstr(Char(ns),"`")) {
+	String *rep;
+	char *c;
+	Clear(temp);
+	Printf(temp,"`%s`",aname);
+	c = Char(arg);
+	if (*c == '\"') {
+	  rep = arg;
+	} else {
+	  Clear(tempa);
+	  Printf(tempa,"\"%s\"",arg);
+	  rep = tempa;
+	}
+	Replace(ns,temp,rep, DOH_REPLACE_ANY);
       }
       Replace(ns, aname, arg, DOH_REPLACE_ID);
     }
@@ -513,7 +537,7 @@ Preprocessor_replace(DOH *s)
   while ((c = Getc(s)) != EOF) {
     switch (state) {
     case 0:
-      if (isidentifier(c)) {
+      if (isidentifier(c) || (c == '%')) {
 	Clear(id);
 	copy_location(s,id);
 	Putc(c,id);
@@ -675,19 +699,28 @@ static int
 check_id(DOH *s)
 {
   int c, state = 0;
+  int hasvalue = 0;
   Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
     switch(state) {
 
     case 0:
-      if (isdigit(c)) state = 1;
+      if (isdigit(c)) {
+	hasvalue =1;
+	state = 1;
+      }
       else if (isidentifier(c)) return 1;
-      else if (c == '\"') skip_tochar(s,'\"',0);
-      else if (c == '\'') skip_tochar(s,'\'',0);
-      else if (c == '/') state = 3;
+      else if (c == '\"') {
+	skip_tochar(s,'\"',0);
+	hasvalue = 1;
+      } else if (c == '\'') {
+	skip_tochar(s,'\'',0);
+	hasvalue = 1;
+      } else if (c == '/') state = 3;
       break;
     case 1:
       if (isspace(c)) state = 0;
+      hasvalue = 1;
       break;
     case 3:
       if (c == '*') state = 10;
@@ -709,6 +742,7 @@ check_id(DOH *s)
       break;
     }
   }
+  if (!hasvalue) return 1;
   return 0;
 }
 
@@ -906,7 +940,12 @@ Preprocessor_parse(DOH *s)
     case 45:
       if (c == '/') state = 46;
       else if (c == '*') state = 47;
-      else {
+      else if (c == '\n') {
+	Putc('/',value);
+	Ungetc(c,s);
+	cpp_lines++;
+	state = 50;
+      } else {
 	Putc('/',value);
 	Putc(c,value);
 	state = 43;
@@ -946,6 +985,7 @@ Preprocessor_parse(DOH *s)
 	      silent_errors = 1;
 	      v1 = Preprocessor_replace(v);
 	      silent_errors = 0;
+	      /*	      Printf(stdout,"checking '%s'\n", v1); */
 	      if (!check_id(v1)) {
 		if (Len(comment) == 0)
 		  Printf(ns,"%%constant %s %s;\n", Getattr(m,"name"), v1);

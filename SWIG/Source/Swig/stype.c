@@ -812,6 +812,8 @@ SwigType_lstr(SwigType *s, const String_or_char *id)
       Append(result,")");
       Delete(parms);
     } else if (SwigType_isqualifier(element)) {
+    } else if (SwigType_isenum(element)) {
+      Insert(result,0," int ");
     } else {
       Insert(result,0," ");
       Insert(result,0,element);
@@ -1329,6 +1331,8 @@ int SwigType_type(SwigType *t)
   if (strcmp(c,"double") == 0) return T_DOUBLE;
   if (strcmp(c,"void") == 0) return T_VOID;
   if (strcmp(c,"bool") == 0) return T_BOOL;
+  if (strcmp(c,"long long") == 0) return T_LONGLONG;
+  if (strcmp(c,"unsigned long long") == 0) return T_ULONGLONG;
   if (strncmp(c,"enum ",5) == 0) return T_INT;
   /* Hmmm. Unknown type */
   if (SwigType_istypedef(t)) {

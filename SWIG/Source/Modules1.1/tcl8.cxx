@@ -14,9 +14,11 @@ static char cvsroot[] = "$Header$";
 #include "mod11.h"
 #include "tcl8.h"
 #include <ctype.h>
+#include "swigconfig.h"
 
 static char *usage = (char*)"\
 Tcl 8.0 Options (available with -tcl)\n\
+     -ldflags        - Print runtime libraries to link with\n\
      -module name    - Set name of module\n\
      -prefix name    - Set a prefix to be appended to all names\n\
      -namespace      - Build module into a Tcl 8 namespace. \n\
@@ -76,6 +78,9 @@ TCL8::parse_args(int argc, char *argv[]) {
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
+	  } else if (strcmp (argv[i], "-ldflags") == 0) {
+	    printf("%s\n", SWIG_TCL_RUNTIME);
+	    SWIG_exit (EXIT_SUCCESS);
 	  }
       }
   }
@@ -230,7 +235,7 @@ TCL8::close(void) {
   Printf(f_init,"}\n");
 
   Printf(f_init,"for (i = 0; swig_variables[i].name; i++) {\n");
-  Printf(f_init,"Tcl_SetVar(interp, (char *) swig_variables[i].name, \"\", TCL_GLOBAL_ONLY);\n");
+  Printf(f_init,"Tcl_SetVar(interp, (char *) swig_variables[i].name, (char *) \"\", TCL_GLOBAL_ONLY);\n");
   Printf(f_init,"Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_READS | TCL_GLOBAL_ONLY, swig_variables[i].get, (ClientData) swig_variables[i].addr);\n");
   Printf(f_init,"Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_WRITES | TCL_GLOBAL_ONLY, swig_variables[i].set, (ClientData) swig_variables[i].addr);\n");
   Printf(f_init,"}\n");
@@ -1014,7 +1019,7 @@ void TCL8::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   String  *rname;
 
   this->Language::cpp_member_func(name,iname,t,l);
-  if (shadow) {
+  if (shadow && !is_multiple_definition()) {
     realname = iname ? iname : name;
     /* Add stubs for this member to our class handler function */
 
@@ -1033,7 +1038,7 @@ void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
 
   this->Language::cpp_variable(name, iname, t);
 
-  if (shadow) {
+  if (shadow && !is_multiple_definition()) {
     realname = iname ? iname : name;
     Printv(attributes, tab4, "{ \"-", realname, "\",", 0);
 

@@ -48,12 +48,12 @@ int Tcl_AppInit(Tcl_Interp *interp){
   if (SWIG_init(interp) == TCL_ERROR)
     return TCL_ERROR;
 #if TCL_MAJOR_VERSION > 7 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION >= 5
-   Tcl_SetVar(interp,"tcl_rcFileName",SWIG_RcFileName,TCL_GLOBAL_ONLY);
+   Tcl_SetVar(interp, (char *) "tcl_rcFileName",SWIG_RcFileName,TCL_GLOBAL_ONLY);
 #else
    tcl_RcFileName = SWIG_RcFileName;
 #endif
 #ifdef SWIG_RcRsrcName
-  Tcl_SetVar(interp,"tcl_rcRsrcName",SWIG_RcRsrcName,TCL_GLOBAL);
+  Tcl_SetVar(interp, (char *) "tcl_rcRsrcName",SWIG_RcRsrcName,TCL_GLOBAL);
 #endif
   
   return TCL_OK;

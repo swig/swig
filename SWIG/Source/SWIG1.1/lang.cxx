@@ -44,6 +44,7 @@ Language::add_native(char *, char *iname, SwigType *, ParmList *) {
 static char  *ClassName = 0;        /* This is the real name of the current class */
 static char  *ClassRename = 0;      /* This is non-NULL if the class has been renamed */
 static char  *ClassType = 0;        /* Type of class (ie. union, struct, class)  */
+static int multiple_definition = 0; /* Defines whether a function has been multiply defined*/
 
 /* -----------------------------------------------------------------------------
  * Language::cpp_open_class()
@@ -90,6 +91,7 @@ void Language::cpp_close_class() {
 void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   char       new_name[256];
   char       *prefix;
+  multiple_definition = 0;
 
   /* Generate the C wrapper function name and interpreter name of this function*/
   
@@ -110,8 +112,9 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
   /* Now do a symbol table lookup on it : */
 
   if (add_symbol(new_name)) {
-    Printf(stderr,"%s : Line %d. Function %s (member %s) multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Function %s (member %s) multiply defined (multiple definition ignored).\n",
 	    input_file, line_number, iname, name);
+    multiple_definition = 1;
     return;
   }
   cplus_emit_member_func(ClassName, ClassType, ClassRename, name, iname, t, l, AddMethods);
@@ -124,6 +127,7 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
 void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
 
   char *prefix, *cname;
+  multiple_definition = 0;
 
   if ((strcmp(name,ClassName)) && (!ObjCClass)) {
     Printf(stderr,"%s : Line %d.  Function %s must have a return type.\n", 
@@ -146,8 +150,9 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
   /* Add this function to the SWIG symbol table */
 
   if (add_symbol(cname)) {
-    Printf(stderr,"%s : Line %d. Constructor %s multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Constructor %s multiply defined (multiple definition ignored).\n",
 	    input_file, line_number, cname);
+    multiple_definition = 1;
     return;
   }
 
@@ -164,6 +169,7 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
 void Language::cpp_destructor(char *name, char *iname) {
 
   char *cname;
+  multiple_definition = 0;
 
   if (ClassRename) 
     cname = Char(Swig_name_destroy(ClassRename));
@@ -173,8 +179,9 @@ void Language::cpp_destructor(char *name, char *iname) {
   /* Add this function to the SWIG symbol table */
 
   if (add_symbol(cname)) {
-    Printf(stderr,"%s : Line %d. Destructor %s multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Destructor %s multiply defined (multiple definition ignored).\n",
 	    input_file, line_number, cname);
+    multiple_definition = 1;
     return;
   }
 
@@ -217,6 +224,7 @@ void Language::cpp_inherit(char **baseclass, int mode) {
 
 void Language::cpp_variable(char *name, char *iname, SwigType *t) {
   char *prefix, *cname;
+  multiple_definition = 0;
 
   /* Set the class prefix */
   
@@ -234,7 +242,8 @@ void Language::cpp_variable(char *name, char *iname, SwigType *t) {
   /* Check the symbol table */
 
   if (add_symbol(cname)) {
-    Printf(stderr,"%s : Line %d. Variable %s multiply defined (2nd definition ignored).\n", input_file, line_number, cname);
+    Printf(stderr,"%s : Line %d. Variable %s multiply defined (multiple definition ignored).\n", input_file, line_number, cname);
+    multiple_definition = 1;
     return;
   }
 
@@ -259,6 +268,7 @@ void Language::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l
   char  *prefix;
   char  *mname;
   char  *cname;
+  multiple_definition = 0;
 
   /* Set the classname prefix */
   
@@ -280,11 +290,12 @@ void Language::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l
 
   if (add_symbol(cname)) {
     if (ObjCClass)
-      Printf(stderr,"%s : Line %d. class function %s multiply defined (2nd definition ignored).\n",
+      Printf(stderr,"%s : Line %d. class function %s multiply defined (multiple definition ignored).\n",
 	      input_file, line_number, cname);
     else
-      Printf(stderr,"%s : Line %d. static function %s multiply defined (2nd definition ignored).\n",
+      Printf(stderr,"%s : Line %d. static function %s multiply defined (multiple definition ignored).\n",
 	      input_file, line_number, cname);
+    multiple_definition = 1;
     return;
   }
   cplus_emit_static_func(ClassName,ClassType, ClassRename, name, iname, t, l, AddMethods);
@@ -302,6 +313,7 @@ void Language::cpp_declare_const(char *name, char *iname, SwigType *type, char *
   char  mname[256];
   char  *new_value;
   char  *prefix;
+  multiple_definition = 0;
 
   /* Set the classname prefix */
   
@@ -321,8 +333,9 @@ void Language::cpp_declare_const(char *name, char *iname, SwigType *type, char *
   /* Now do a symbol table lookup on it : */
 
   if (add_symbol(cname)) {
-    Printf(stderr,"%s : Line %d. Constant %s (member %s) multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Constant %s (member %s) multiply defined (multiple definition ignored).\n",
 	    input_file, line_number, cname, name);
+    multiple_definition = 1;
     return;
   }
 
@@ -354,6 +367,7 @@ void Language::cpp_static_var(char *name, char *iname, SwigType *t) {
   char  *cname;
   char  mname[256];
   char  *prefix;
+  multiple_definition = 0;
 
   /* Set the classname prefix */
   
@@ -373,8 +387,9 @@ void Language::cpp_static_var(char *name, char *iname, SwigType *t) {
   /* Now do a symbol table lookup on it : */
 
   if (add_symbol(cname)) {
-    Printf(stderr,"%s : Line %d. Variable %s (member %s) multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Variable %s (member %s) multiply defined (multiple definition ignored).\n",
 	    input_file, line_number, cname, name);
+    multiple_definition = 1;
     return;
   }
 
@@ -425,4 +440,12 @@ void Language::pragma(char *, char *, char *) {
 
 void Language::import(char *) {
   /* Does nothing by default */
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::is_multiple_definition()
+ * ----------------------------------------------------------------------------- */
+
+int Language::is_multiple_definition() {
+  return multiple_definition;
 }

@@ -699,6 +699,16 @@ void CPP_class::create_all() {
 	c->emit_decls();
 	lang->cpp_close_class();
       }
+      // Force brute patch to produce the proper casting code
+      // between "local" classes and "external" ones when
+      // %import is used.
+      else if ( (c->wextern) && (c->classtype) ) {
+	SwigType *t;
+	t = NewString(c->classname);
+	SwigType_add_pointer(t);
+	SwigType_remember(t);
+	Delete(t);
+      }
     }
     c = c->next;
   }

@@ -74,7 +74,7 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
  * Swig_clocal_type()
  *
  * Creates a string that declares a C local variable type.  Converts references
- * and user defined types to pointers.
+ * and user defined types and arrays to pointers.
  * ----------------------------------------------------------------------------- */
 
 SwigType *
@@ -88,6 +88,27 @@ Swig_clocal_type(SwigType *t) {
     break;
   default:
     ty = SwigType_ltype(t);
+    break;
+  }
+  return ty;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_wrapped_var_convert()
+ *
+ * Converts a member variable for use in the get and set wrapper methods.
+ * This function only converts user defined types to pointers.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *
+Swig_wrapped_var_type(SwigType *t) {
+  SwigType *ty;
+  ty = Copy(t);
+  switch(SwigType_type(t)) {
+  case T_USER:
+    SwigType_add_pointer(ty);
+    break;
+  default:
     break;
   }
   return ty;
@@ -253,7 +274,7 @@ void Swig_cppresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_cha
   
   switch(SwigType_type(t)) {
   case T_USER:
-    Printf(fcall,");");
+    Printf(fcall,");\n");
     break;
   case T_REFERENCE:
     Printf(fcall,";\n");
@@ -797,6 +818,7 @@ Swig_cmemberset_wrapper(String_or_char *classname,
   Parm     *p;
   SwigType *t;
   SwigType *lt;
+  SwigType *ty;
 
   w = NewWrapper();
 
@@ -810,7 +832,9 @@ Swig_cmemberset_wrapper(String_or_char *classname,
   Delete(t);
 
   lt = Swig_clocal_type(type);
-  p = NewParm(lt,"value");
+  ty = Swig_wrapped_var_type(type);
+  p = NewParm(ty,"value");
+
   Setnext(l,p);
   
   /*  Printf(w->def,"%s %s(%s) {", SwigType_str(lt,0), Wrapper_Getname(w), ParmList_str(l)); */
@@ -829,6 +853,7 @@ Swig_cmemberset_wrapper(String_or_char *classname,
   Wrapper_Setparms(w,l);
   Delete(l);
   Delete(lt);
+  Delete(ty);
   return w;
 }
 
@@ -850,6 +875,7 @@ Swig_cmemberget_wrapper(String_or_char *classname,
   Parm     *p;
   SwigType *t;
   SwigType *lt;
+  SwigType *ty;
 
   w = NewWrapper();
 
@@ -872,10 +898,13 @@ Swig_cmemberget_wrapper(String_or_char *classname,
     Printv(w->code, code, "\n", 0);
   }
   Printf(w->code,"}\n");
-  Wrapper_Settype(w,lt);
+  ty = Swig_wrapped_var_type(type);
+  Wrapper_Settype(w,ty);
+
   Wrapper_Setparms(w,l);
   Delete(l);
   Delete(lt);
+  Delete(ty);
   return w;
 }
 
@@ -894,6 +923,7 @@ Swig_cvarset_wrapper(String_or_char *varname,
   ParmList *l;
   Parm     *p;
   SwigType *lt;
+  SwigType *ty;
 
   w = NewWrapper();
 
@@ -901,15 +931,16 @@ Swig_cvarset_wrapper(String_or_char *varname,
   Wrapper_Setname(w,Swig_name_set(varname));
 
   lt = Swig_clocal_type(type);
-  p = NewParm(lt,"value");
+  ty = Swig_wrapped_var_type(type);
+  p = NewParm(ty,"value");
   l = p;
   
-  Printf(w->def,"%s %s(%s) {", SwigType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));
+/*  Printf(w->def,"%s %s(%s) {", SwigType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));*/
+  Printf(w->def,"void %s(%s) {", Wrapper_Getname(w), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
-    Printf(w->code,"%s = %s;\n", varname, Swig_clocal_deref(lt,"value"));
-    Printf(w->code,"return %s;\n", Swig_clocal_assign(lt,varname));
+    Printf(w->code,"%s = %s;\n", varname, Swig_clocal_deref(type,"value"));
   } else {
     Printv(w->code, code, "\n", 0);
     Replace(w->code,"$target",varname, DOH_REPLACE_ANY);
@@ -918,10 +949,11 @@ Swig_cvarset_wrapper(String_or_char *varname,
     Replace(w->code,"$rtype", SwigType_str(type,""), DOH_REPLACE_ANY);
   }
   Printf(w->code,"}\n");
-  Wrapper_Settype(w,lt);
+  Wrapper_Settype(w,"void");
   Wrapper_Setparms(w,l);
   Delete(l);
   Delete(lt);
+  Delete(ty);
   return w;
 }
 
@@ -939,6 +971,7 @@ Swig_cvarget_wrapper(String_or_char *varname,
   Wrapper *w;
   ParmList *l = 0;
   SwigType *lt;
+  SwigType *ty;
 
   w = NewWrapper();
 
@@ -956,10 +989,12 @@ Swig_cvarget_wrapper(String_or_char *varname,
     Printv(w->code, code, "\n", 0);
   }
   Printf(w->code,"}\n");
-  Wrapper_Settype(w,lt);
+  ty = Swig_wrapped_var_type(type);
+  Wrapper_Settype(w,ty);
   Wrapper_Setparms(w,l);
   Delete(l);
   Delete(lt);
+  Delete(ty);
   return w;
 }
 

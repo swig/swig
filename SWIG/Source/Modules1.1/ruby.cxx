@@ -14,6 +14,7 @@ static char cvsroot[] = "$Header$";
 
 #include "mod11.h"
 #include "ruby.h"
+#include "swigconfig.h"
 
 #include <ctype.h>
 #include <string.h>
@@ -92,6 +93,7 @@ class RClass {
 
 static char *usage = (char*)"\
 Ruby Options (available with -ruby)\n\
+     -ldflags        - Print runtime libraries to link with\n\
      -module name    - Set module name\n\
      -feature name   - Set feature name (used by `require')\n";
 
@@ -155,6 +157,9 @@ void RUBY::parse_args(int argc, char *argv[]) {
 	}
       } else if (strcmp(argv[i],"-help") == 0) {
 	Printf(stderr,"%s\n", usage);
+      } else if (strcmp (argv[i], "-ldflags") == 0) {
+	printf("%s\n", SWIG_RUBY_RUNTIME);
+	SWIG_exit (EXIT_SUCCESS);
       }
     }
   }
@@ -1309,39 +1314,41 @@ void RUBY::cpp_destructor(char *name, char *newname) {
   current = DESTRUCTOR;
   this->Language::cpp_destructor(name, newname);
 
-  String *freefunc = NewString("");
-  String *freeproto = NewString("");
-  String *freebody = NewString("");
-
-  Printv(freefunc, "free_", klass->cname, 0);
-  Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", 0);
-  Printv(freebody, "static void\n",
-	 freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
-	 tab4, 0);
-  if (AddMethods) {
-    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", 0);
-  } else {
-    /* When no addmethods mode, swig emits no destroy function. */
-    if (CPlusPlus)
-      Printv(freebody, Swig_cppdestructor_call(), 0);
-    else
-      Printv(freebody, Swig_cdestructor_call(), 0);
+  if (!is_multiple_definition()) {
+    String *freefunc = NewString("");
+    String *freeproto = NewString("");
+    String *freebody = NewString("");
+  
+    Printv(freefunc, "free_", klass->cname, 0);
+    Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", 0);
+    Printv(freebody, "static void\n",
+  	 freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
+  	 tab4, 0);
+    if (AddMethods) {
+      Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", 0);
+    } else {
+      /* When no addmethods mode, swig emits no destroy function. */
+      if (CPlusPlus)
+        Printv(freebody, Swig_cppdestructor_call(), 0);
+      else
+        Printv(freebody, Swig_cdestructor_call(), 0);
+    }
+    Printv(freebody, ";\n}\n", 0);
+    if (CPlusPlus) {
+      Insert(freefunc,0,"VOIDFUNC(");
+      Append(freefunc,")");
+    }
+  
+    Replace(klass->header,"$freefunc", freefunc, DOH_REPLACE_ANY);
+    Replace(klass->header,"$freeproto", freeproto, DOH_REPLACE_ANY);
+    Printv(f_wrappers, freebody, 0);
+  
+    klass->destructor_defined = 1;
+    current = NO_CPP;
+    Delete(freefunc);
+    Delete(freeproto);
+    Delete(freebody);
   }
-  Printv(freebody, ";\n}\n", 0);
-  if (CPlusPlus) {
-    Insert(freefunc,0,"VOIDFUNC(");
-    Append(freefunc,")");
-  }
-
-  Replace(klass->header,"$freefunc", freefunc, DOH_REPLACE_ANY);
-  Replace(klass->header,"$freeproto", freeproto, DOH_REPLACE_ANY);
-  Printv(f_wrappers, freebody, 0);
-
-  klass->destructor_defined = 1;
-  current = NO_CPP;
-  Delete(freefunc);
-  Delete(freeproto);
-  Delete(freebody);
 }
 
 /* ---------------------------------------------------------------------

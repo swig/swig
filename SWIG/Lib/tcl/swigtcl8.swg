@@ -33,7 +33,7 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_inf
   if (*c != '_') {
     *ptr = (void *) 0;
     if (strcmp(c,"NULL") == 0) return TCL_OK;
-    Tcl_SetResult(interp,"Type error. Expected a pointer", TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Type error. Expected a pointer", TCL_STATIC);
     return TCL_ERROR;
   }
   c++;
@@ -51,8 +51,8 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_inf
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) {
-      Tcl_SetResult(interp,"Type error. Expected ", TCL_STATIC);
-      Tcl_AppendElement(interp, ty->name);
+      Tcl_SetResult(interp, (char *) "Type error. Expected ", TCL_STATIC);
+      Tcl_AppendElement(interp, (char *) ty->name);
       return TCL_ERROR;
     }
     *ptr = SWIG_TypeCast(tc,(void *)p);
@@ -139,7 +139,7 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
     }
     if (argno >= (objc-1)) {
       if (!opt) {
-	Tcl_SetResult(interp,"Wrong # args. ", TCL_STATIC);
+	Tcl_SetResult(interp, (char *) "Wrong # args. ", TCL_STATIC);
 	goto argerror;
       } else {
 	va_end(ap);
@@ -195,7 +195,7 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
     }
   }
   if ((objc-1) > argno) {
-    Tcl_SetResult(interp,"Wrong # args.", TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Wrong # args.", TCL_STATIC);
     goto argerror;
   }
   va_end(ap);

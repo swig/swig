@@ -329,7 +329,14 @@ Swig_typemap_search(char *op, SwigType *type, String_or_char *name) {
     if (!primitive)
       primitive = SwigType_default(type);
     tm = Getattr(typemaps[ts],primitive);
-    if (tm) {
+    if (tm && cname) {
+      tm1 = Getattr(tm,cname);
+      if (tm1) {
+	result = Getattr(tm1,op);          /* See if there is a type-name match */
+	if (result) goto ret_result;
+      }
+    }
+    if (tm) {			/* See if there is simply a type match */
       result = Getattr(tm,op);
       if (result) goto ret_result;
     }

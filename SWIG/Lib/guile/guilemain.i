@@ -27,6 +27,10 @@
 %{
 #include <libguile.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Debugger interface (don't change the order of the following lines) */
 #define GDB_TYPE SCM
 #include <libguile/gdb_interface.h>
@@ -43,6 +47,10 @@ inner_main(void *closure, int argc, char **argv)
   scm_shell(argc, argv);	/* scheme interpreter */
   /* never reached: scm_shell will perform an exit */
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 int
 main(int argc, char **argv)

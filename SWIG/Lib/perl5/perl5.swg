@@ -153,19 +153,19 @@ SWIGRUNTIME(int *)
 _SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t)
 #endif
 {
-  sv_setref_pv(sv, t->name, ptr);
+  sv_setref_pv(sv, (char *) t->name, ptr);
 }
 
 /* Magic variable code */
 #ifndef PERL_OBJECT
 #define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
-static void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) {
+static void _swig_create_magic(SV *sv, const char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) {
 #else
 #define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
-static void _swig_create_magic(CPerlObj *pPerl, SV *sv, char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) {
+static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) {
 #endif
   MAGIC *mg;
-  sv_magic(sv,sv,'U',name,strlen(name));
+  sv_magic(sv,sv,'U',(char *) name,strlen(name));
   mg = mg_find(sv,'U');
   mg->mg_virtual = (MGVTBL *) malloc(sizeof(MGVTBL));
   mg->mg_virtual->svt_get = get;

@@ -1,7 +1,7 @@
 /* Simple example from documentation */
 /* File : example.c */
 
-#include </usr/include/time.h>
+#include <time.h>
 
 double My_variable = 3.0;
 

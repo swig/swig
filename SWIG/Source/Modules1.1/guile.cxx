@@ -25,21 +25,28 @@ static char cvsroot[] = "$Header$";
 
 #include "mod11.h"
 #include "guile.h"
+#include "swigconfig.h"
 
 static char *guile_usage = (char*)"\
 Guile Options (available with -guile)\n\
-     -module name    - Set base name of module\n\
+     -ldflags        - Print runtime libraries to link with\n\
+     -module name    - Set name of module [default \"swig\"]\n\
      -prefix name    - Use NAME as prefix [default \"gswig_\"]\n\
      -package name   - Set the path of the module [default NULL]\n\
-     -Linkage lstyle - Use linkage protocol LSTYLE [default `ltdlmod']\n\
-     -procdoc file   - Output procedure documentation to file\n\
+     -linkage lstyle - Use linkage protocol LSTYLE [default `module']\n\
+     -procdoc file   - Output procedure documentation to FILE\n\
 \n\
+     -procdocformat format - Output procedure documentation in FORMAT;\n\
+                             one of `guile-1.4', `plain', `texinfo'\n\
   The module option does not create a guile module with a separate name\n\
   space.  It specifies the name of the initialization function and is\n\
   called a module here so that it is compadible with the rest of SWIG.\n\
 \n\
-  When unspecified, the default LSTYLE is `ltdlmod' for libtool ltdl\n\
-  modules.  Other LSTYLE values are: `hobbit' for hobbit modules.\n\
+  When unspecified, the default LSTYLE is `simple'.  For native Guile\n\
+  module linking (for Guile versions >=1.5.0), use `module'.  Other\n\
+  LSTYLE values are: `passive' for passive linking (no module-handling\n\
+  code), `ltdlmod' for Guile's old dynamic module convention\n\
+  (versions <= 1.4), or `hobbit' for hobbit modules.\n\
 \n";
 
 // ---------------------------------------------------------------------
@@ -59,8 +66,11 @@ GUILE::GUILE ()
   package = NULL;
   linkage = GUILE_LSTYLE_SIMPLE;
   procdoc = NULL;
+  docformat = GUILE_1_4;
   emit_setters = 0;
   struct_member = 0;
+  before_return = NULL;
+  exported_symbols = NewString("");
 }
 
 // ---------------------------------------------------------------------
@@ -115,15 +125,24 @@ GUILE::parse_args (int argc, char *argv[])
 	  Swig_arg_error();
 	}
       }
-      /* Bogus upcase requirement due to top-level parsing not respecting
-         language specification.  Top-level should stop when it sees "-guile"
-         or other languages.  */
-      else if (strcmp (argv[i], "-Linkage") == 0) {
+      else if (strcmp (argv[i], "-ldflags") == 0) {
+	printf("%s\n", SWIG_GUILE_RUNTIME);
+	SWIG_exit (EXIT_SUCCESS);
+      }
+      /* The upcase variant is a historic artefact. */
+      else if (strcmp (argv[i], "-Linkage") == 0
+	       || strcmp (argv[i], "-linkage") == 0) {
         if (argv[i + 1]) {
           if (0 == strcmp (argv[i + 1], "ltdlmod"))
-            linkage = GUILE_LSTYLE_LTDLMOD;
+            linkage = GUILE_LSTYLE_LTDLMOD_1_4;
           else if (0 == strcmp (argv[i + 1], "hobbit"))
             linkage = GUILE_LSTYLE_HOBBIT;
+ 	  else if (0 == strcmp (argv[i + 1], "simple"))
+	    linkage = GUILE_LSTYLE_SIMPLE;
+ 	  else if (0 == strcmp (argv[i + 1], "passive"))
+	    linkage = GUILE_LSTYLE_PASSIVE;
+	  else if (0 == strcmp (argv[i + 1], "module"))
+	    linkage = GUILE_LSTYLE_MODULE;
           else
             Swig_arg_error ();
           Swig_mark_arg (i);
@@ -142,6 +161,18 @@ GUILE::parse_args (int argc, char *argv[])
 	} else {
 	  Swig_arg_error();
         }
+      }
+      else if (strcmp (argv[i], "-procdocformat") == 0) {
+	if (strcmp(argv[i+1], "guile-1.4") == 0)
+	  docformat = GUILE_1_4;
+	else if (strcmp(argv[i+1], "plain") == 0)
+	  docformat = PLAIN;
+	else if (strcmp(argv[i+1], "texinfo") == 0)
+	  docformat = TEXINFO;
+	else Swig_arg_error();
+	Swig_mark_arg(i);
+	Swig_mark_arg(i+1);
+	i++;
       }
       else if (strcmp (argv[i], "-emit-setters") == 0) {
 	emit_setters = 1;
@@ -174,8 +205,6 @@ GUILE::parse_args (int argc, char *argv[])
 void
 GUILE::parse ()
 {
-  printf ("Generating wrappers for Guile\n");
-
   // Print out GUILE specific headers
 
   headers();
@@ -197,10 +226,7 @@ GUILE::parse ()
 void
 GUILE::set_module (char *mod_name)
 {
-  if (module) {
-    printf ("module already set (%s), returning\n", module);
-    return;
-  }
+  if (module) return;
 
   module = new char [strlen (mod_name) + 1];
   strcpy (module, mod_name);
@@ -252,6 +278,9 @@ GUILE::headers (void)
 void
 GUILE::initialize (void)
 {
+  if (CPlusPlus) {
+    Printf(f_runtime, "extern \"C\" {\n\n");
+  }
   switch (linkage) {
   case GUILE_LSTYLE_SIMPLE:
     /* Simple linkage; we have to export the SWIG_init function. The user can
@@ -266,12 +295,19 @@ GUILE::initialize (void)
     break;
   }
   Printf (f_init, "\tSWIG_Guile_Init();\n");
+  if (CPlusPlus) {
+    Printf(f_runtime, "\n}\n");
+  }
 }
 
 void
 GUILE::emit_linkage (char *module_name)
 {
   DOHString *module_func = NewString("");
+
+  if (CPlusPlus) {
+    Printf(f_init, "extern \"C\" {\n\n");
+  }
 
   Printv(module_func,module_name,0);
   Replace(module_func,"-", "_", DOH_REPLACE_ANY);
@@ -280,7 +316,18 @@ GUILE::emit_linkage (char *module_name)
   case GUILE_LSTYLE_SIMPLE:
     Printf (f_init, "\n/* Linkage: simple */\n");
     break;
-  case GUILE_LSTYLE_LTDLMOD:
+  case GUILE_LSTYLE_PASSIVE:
+    Printf (f_init, "\n/* Linkage: passive */\n");
+    Replace(module_func,"/", "_", DOH_REPLACE_ANY);
+    Insert(module_func,0, "scm_init_");
+    Append(module_func,"_module");
+
+    Printf (f_init, "SCM\n%s (void)\n{\n", module_func);
+    Printf (f_init, "  SWIG_init();\n");
+    Printf (f_init, "  return SCM_UNSPECIFIED;\n");
+    Printf (f_init, "}\n");
+    break;
+  case GUILE_LSTYLE_LTDLMOD_1_4:
     Printf (f_init, "\n/* Linkage: ltdlmod */\n");
     Replace(module_func,"/", "_", DOH_REPLACE_ANY);
     Insert(module_func,0, "scm_init_");
@@ -293,6 +340,29 @@ GUILE::emit_linkage (char *module_name)
                mod);
       Printf (f_init, "    return SCM_UNSPECIFIED;\n");
       Delete(mod);
+    }
+    Printf (f_init, "}\n");
+    break;
+  case GUILE_LSTYLE_MODULE:
+    Printf (f_init, "\n/* Linkage: module */\n");
+    Replace(module_func,"/", "_", DOH_REPLACE_ANY);
+    Insert(module_func,0, "scm_init_");
+    Append(module_func,"_module");
+
+    Printf (f_init, "static void SWIG_init_helper(void *data)\n");
+    Printf (f_init, "{\n    SWIG_init();\n");
+    if (Len(exported_symbols) > 0)
+      Printf (f_init, "    scm_c_export(%sNULL);",
+	      exported_symbols);
+    Printf (f_init, "\n}\n\n");
+    
+    Printf (f_init, "SCM\n%s (void)\n{\n", module_func);
+    {
+      DOHString *mod = NewString(module_name);
+      Replace(mod,"/", " ", DOH_REPLACE_ANY);
+      Printf(f_init, "    SCM module = scm_c_define_module(\"%s\",\n", mod);
+      Printf(f_init, "      SWIG_init_helper, NULL);\n");
+      Printf(f_init, "    return SCM_UNSPECIFIED;\n");
     }
     Printf (f_init, "}\n");
     break;
@@ -315,6 +385,9 @@ GUILE::emit_linkage (char *module_name)
     abort();                            // for now
   }
   Delete(module_func);
+  if (CPlusPlus) {
+    Printf(f_init, "\n}\n");
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -328,7 +401,7 @@ GUILE::close (void)
 {
   SwigType_emit_type_table (f_runtime, f_wrappers);
 
-  Printf (f_init, "SWIG_Guile_RegisterTypes(swig_types);\n");
+  Printf (f_init, "SWIG_Guile_RegisterTypes(swig_types, swig_types_initial);\n");
   Printf (f_init, "}\n\n");
   char module_name[256];
 
@@ -341,40 +414,11 @@ GUILE::close (void)
       strcpy(module_name,module);
   }
   emit_linkage (module_name);
-
+  
   if (procdoc) {
     Delete(procdoc);
     procdoc = NULL;
   }
-}
-
-// ----------------------------------------------------------------------
-// get_pointer()
-//
-// Emits code to get a pointer from a parameter and do type checking.
-// parm is the parameter number.   This function is only used
-// in create_function().
-// ----------------------------------------------------------------------
-
-static void
-get_pointer (char *iname, int parm, SwigType *t,
-	     Wrapper *f, DOHString_or_char *proc_name,
-	     int num_scheme_parm)
-{
-  SwigType_remember(t);
-  /* Pointers are smobs */
-  Printf(f->code, "    if (SWIG_Guile_GetPtr(s_%d,(void **) &arg%d", parm, parm);
-  if (SwigType_type(t) == T_VOID)
-    Printf(f->code, ", NULL)) {\n");
-  else
-    Printv(f->code, ", SWIGTYPE", SwigType_manglestr(t), ")) {\n", 0);
-  /* Raise exception */
-  Printv(f->code,
-	 tab8,
-         "scm_wrong_type_arg(\"",proc_name, "\", ",
-	 0);
-  Printf(f->code,"%d, s_%d);\n", num_scheme_parm, parm);
-  Printv(f->code, tab4, "}\n", 0);
 }
 
 /* Return true iff T is a pointer type */
@@ -417,11 +461,42 @@ guile_do_typemap(DOHFile *file, const char *op,
   if ((tm = guile_typemap_lookup(op, type, arg,
 				 source, target, f))) {
     String *s = NewString(tm);
+    String *descriptor = NewString("");
+    String *basedescriptor = NewString("");
+    String *stardescriptor = NewString("");
     char argnum_s[10];
+    SwigType *startype = NULL;
+
+    if (SwigType_ispointer(type)) {
+      startype = Copy(type);
+      SwigType_del_pointer(startype);
+      Printf(stardescriptor, "SWIGTYPE%s",
+	     SwigType_manglestr(startype));
+    }
+    else Printf(stardescriptor, "SWIGTYPE_BAD");
+    Printf(descriptor, "SWIGTYPE%s",
+	   SwigType_manglestr(type));
+    Printf(basedescriptor, "SWIGTYPE%s",
+	   SwigType_manglestr(SwigType_base(type)));
     sprintf(argnum_s, "%d", argnum);
     Replace(s,"$argnum", argnum_s, DOH_REPLACE_ANY);
     Replace(s,"$arg",    arg,      DOH_REPLACE_ANY);
     Replace(s,"$name",   name,     DOH_REPLACE_ANY);
+    if (Replace(s, "$descriptor",
+		descriptor, DOH_REPLACE_ANY))
+      SwigType_remember(type);
+    if (Replace(s, "$basedescriptor",
+		basedescriptor, DOH_REPLACE_ANY))
+      SwigType_remember(SwigType_base(type));
+    if (Replace(s, "$*descriptor", stardescriptor,
+		DOH_REPLACE_ANY)) {
+      if (!startype) {
+	Printf (stderr, "%s : Line %d. $*descriptor is meaningless for non-pointer types.\n",
+		input_file, line_number);
+	error_count++;
+      }
+      else SwigType_remember(startype);
+    }
     if (nonewline_p)
       Printv(file, s, 0);
     else Printv(file, s, "\n", 0);
@@ -460,6 +535,35 @@ throw_unhandled_guile_type_error (SwigType *d)
   error_count++;
 }
 
+
+/* Write out procedure documentation */
+
+void
+GUILE::write_doc(const String *proc_name,
+		 const String *signature,
+		 const String *doc)
+{
+  switch (docformat) {
+  case GUILE_1_4:
+    Printv(procdoc, "\f\n", 0);
+    Printv(procdoc, "(", signature, ")\n", 0);
+    Printv(procdoc, doc, "\n", 0);
+    break;
+  case PLAIN:
+    Printv(procdoc, "\f", proc_name, "\n\n", 0);
+    Printv(procdoc, "(", signature, ")\n", 0);
+    Printv(procdoc, doc, "\n\n", 0);
+    break;
+  case TEXINFO:
+    Printv(procdoc, "\f", proc_name, "\n", 0);
+    Printv(procdoc, "@deffn primitive ", signature, "\n", 0);
+    Printv(procdoc, doc, "\n", 0);
+    Printv(procdoc, "@end deffn\n\n", 0);
+    break;
+  }
+}
+
+
 // ----------------------------------------------------------------------
 // GUILE::create_function(char *name, char *iname, SwigType *d,
 //                             ParmList *l)
@@ -472,7 +576,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 {
   Parm *p;
   DOHString *proc_name = 0;
-  char source[256], target[256];
+  char source[256], target[256], wname[256];
   Wrapper *f = NewWrapper();;
   String *cleanup = NewString("");
   String *outarg = NewString("");
@@ -485,8 +589,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   int numopt = 0;
 
   // Make a wrapper name for this
-  char * wname = new char [strlen (prefix) + strlen (iname) + 2];
-  sprintf (wname, "%s%s", prefix, iname);
+  strcpy(wname, Char(Swig_name_wrapper(name)));
 
   // Build the name for scheme.
   proc_name = NewString(iname);
@@ -498,6 +601,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   /* Declare return variable */
 
   Wrapper_add_local (f,"gswig_result", "SCM gswig_result");
+  Wrapper_add_local (f,"gswig_list_p", "int gswig_list_p = 0");
 
   if (procdoc)
     guile_do_doc_typemap(returns, "outdoc", d, NULL,
@@ -506,7 +610,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   /* Open prototype and signature */
 
   Printv(f->def, "static SCM\n", wname," (", 0);
-  Printv(signature, "(", proc_name, 0);
+  Printv(signature, proc_name, 0);
 
   /* Now write code to extract the parameters */
 
@@ -535,9 +639,6 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       if (guile_do_typemap(f->code, "in", pt, pn,
 			   source, target, numargs, proc_name, f, 0)) {
 	/* nothing to do */
-      }
-      else if (is_a_pointer(pt)) {
-        get_pointer (iname, i, pt, f, proc_name, numargs);
       }
       else {
         throw_unhandled_guile_type_error (pt);
@@ -583,9 +684,8 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 		     source, target, numargs, proc_name, f, 0);
   }
 
-  /* Close prototype and signature */
+  /* Close prototype */
 
-  Printv(signature, ")\n", 0);
   Printf(f->def, ")\n{\n");
 
   /* Define the scheme name in C. This define is used by several Guile
@@ -603,15 +703,6 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 		       (char*)"result", (char*)"gswig_result",
 		       0, proc_name, f, 0)) {
     /* nothing */
-  }
-  else if (is_a_pointer(d)) {
-    SwigType_remember(d);
-    Printv(f->code, tab4,
-           "gswig_result = SWIG_Guile_MakePtr (",
-           "result, ",
-           "SWIGTYPE", SwigType_manglestr(d),
-           ");\n",
-	   0);
   }
   else {
     throw_unhandled_guile_type_error (d);
@@ -637,6 +728,8 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   // Wrap things up (in a manner of speaking)
 
+  if (before_return)
+    Printv(f->code, before_return, "\n", 0);
   Printv(f->code, "return gswig_result;\n", 0);
 
   // Undefine the scheme name
@@ -662,7 +755,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     Printv(f_wrappers, ");\n", 0);
     Printv(f_wrappers, "}\n", 0);
     /* Register it */
-    Printf (f_init, "gh_new_procedure(\"%s\", %s_rest, 0, 0, 1);\n",
+    Printf (f_init, "gh_new_procedure(\"%s\", (SCM (*) ()) %s_rest, 0, 0, 1);\n",
              proc_name, wname, numargs-numopt, numopt);
   }
   else if (emit_setters && struct_member && strlen(Char(proc_name))>3) {
@@ -675,7 +768,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       struct_member = 2; /* have a setter */
     }
     else Printf(f_init, "SCM getter = ");
-    Printf (f_init, "gh_new_procedure(\"%s\", %s, %d, %d, 0);\n",
+    Printf (f_init, "gh_new_procedure(\"%s\", (SCM (*) ()) %s, %d, %d, 0);\n",
 	    proc_name, wname, numargs-numopt, numopt);
     if (!is_setter) {
       /* Strip off "-get" */
@@ -693,22 +786,24 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 	Printf (f_init, "gh_define(\"%s\", getter);\n",
 		pws_name);
       }
+      Printf (exported_symbols, "\"%s\", ", pws_name);
       free(pws_name);
     }
   }
   else {
     /* Register the function */
-    Printf (f_init, "gh_new_procedure(\"%s\", %s, %d, %d, 0);\n",
+    Printf (f_init, "gh_new_procedure(\"%s\", (SCM (*) ()) %s, %d, %d, 0);\n",
 	    proc_name, wname, numargs-numopt, numopt);
   }
+  Printf (exported_symbols, "\"%s\", ", proc_name);
   if (procdoc) {
-    /* Write out procedure documentation */
-    Printv(signature, "Returns ", 0);
-    if (Len(returns)==0) Printv(signature, "unspecified", 0);
-    else if (returns_list) Printv(signature, "list (", returns, ")", 0);
-    else Printv(signature, returns, 0);
-    Printv(signature, "\n", 0);
-    Printv(procdoc, "\f\n", signature, 0);
+    String *returns_text = NewString("");
+    Printv(returns_text, "Returns ", 0);
+    if (Len(returns)==0) Printv(returns_text, "unspecified", 0);
+    else if (returns_list) Printv(returns_text, "list (", returns, ")", 0);
+    else Printv(returns_text, returns, 0);
+    write_doc(proc_name, signature, returns_text);
+    Delete(returns_text);
   }
 
   Delete(proc_name);
@@ -718,7 +813,6 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   Delete(returns);
   Delete(tmp);
   DelWrapper(f);
-  delete[] wname;
 }
 
 // -----------------------------------------------------------------------
@@ -743,7 +837,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
   f = NewWrapper();
   // evaluation function names
 
-  sprintf (var_name, "%svar_%s", prefix, iname);
+  strcpy(var_name, Char(Swig_name_wrapper(name))); 
 
   // Build the name for scheme.
   proc_name = NewString(iname);
@@ -751,7 +845,11 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 
   if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 
-    Printf (f_wrappers, "SCM %s(SCM s_0) {\n", var_name);
+    Printf (f_wrappers, "static SCM %s(SCM s_0)\n{\n", var_name);
+
+    /* Define the scheme name in C. This define is used by several Guile
+       macros. */
+    Printv(f_wrappers, "#define FUNC_NAME \"", proc_name, "\"\n", 0);
 
     if (!(Status & STAT_READONLY) && SwigType_type(t) == T_STRING) {
       Printf (f_wrappers, "\t char *_temp;\n");
@@ -770,31 +868,9 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 	       "\"Unable to set %s. Variable is read only.\", SCM_EOL);\n",
 	       proc_name, proc_name);
     }
-    else if ((tm = guile_typemap_lookup ("varin",
-                                   t, name, (char*)"s_0", name, f))) {
-      Printf (f_wrappers, "%s\n", tm);
-    }
-    else if (is_a_pointer(t)) {
-      if (SwigType_type(t) == T_STRING) {
-        Printf (f_wrappers, "\t\t _temp = gh_scm2newstr(s_0, &_len);\n");
-        Printf (f_wrappers, "\t\t if (%s) { free(%s);}\n", name, name);
-        Printf (f_wrappers, "\t\t %s = (char *) "
-                 "malloc((_len+1)*sizeof(char));\n", name);
-        Printf (f_wrappers, "\t\t strncpy(%s,_temp,_len);\n", name);
-        Printf (f_wrappers, "\t\t %s[_len] = 0;\n", name);
-      } else {
-        // Set the value of a pointer
-        Printf (f_wrappers, "\t if (SWIG_Guile_GetPtr(s_0, "
-                 "(void **) &%s, ", name);
-        if (SwigType_type(t) == T_VOID)
-          Printf (f_wrappers, "NULL)) {\n");
-        else
-          Printf (f_wrappers, "SWIGTYPE%s)) {\n", SwigType_manglestr(t));
-	/* Raise exception */
-	Printf(f_wrappers, "\tscm_wrong_type_arg(\"%s\", "
-		"%d, s_0);\n", proc_name, 1);
-        Printf (f_wrappers, "\t}\n");
-      }
+    else if (guile_do_typemap(f_wrappers, "varin",
+			      t, name, (char*) "s_0", name, 1, name, f, 0)) {
+      /* nothing */
     }
     else {
       throw_unhandled_guile_type_error (t);
@@ -804,24 +880,17 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if ((tm = guile_typemap_lookup ("varout",
-                              t, name, name, (char*)"gswig_result", f))) {
-      Printf (f_wrappers, "%s\n", tm);
-    }
-    else if (is_a_pointer(t)) {
-      if (SwigType_type(t) == T_STRING) {
-        Printf (f_wrappers, "\t gswig_result = gh_str02scm(%s);\n", name);
-      } else {
-        // Is an ordinary pointer type.
-        Printf (f_wrappers, "\t gswig_result = SWIG_Guile_MakePtr ("
-                 "%s, SWIGTYPE%s);\n", name, SwigType_manglestr(t));
-      }
+    if (guile_do_typemap (f_wrappers, "varout",
+			  t, name, name, (char*)"gswig_result",
+			  0, name, f, 1)) {
+      /* nothing */
     }
     else {
       throw_unhandled_guile_type_error (t);
     }
     Printf (f_wrappers, "\t return gswig_result;\n");
-    Printf (f_wrappers, "}\n");
+    Printf (f_wrappers, "#undef FUNC_NAME\n");
+    Printf (f_wrappers, "}\n\n");
 
     // Now add symbol to the Guile interpreter
 
@@ -829,44 +898,44 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 	|| Status & STAT_READONLY) {
       /* Read-only variables become a simple procedure returning the
 	 value. */
-      Printf (f_init, "\t gh_new_procedure(\"%s\", %s, 0, 1, 0);\n",
+      Printf (f_init, "\t gh_new_procedure(\"%s\", (SCM (*) ()) %s, 0, 1, 0);\n",
 	      proc_name, var_name);
     }
     else {
       /* Read/write variables become a procedure with setter. */
-      Printf (f_init, "\t{ SCM p = gh_new_procedure(\"%s\", %s, 0, 1, 0);\n",
+      Printf (f_init, "\t{ SCM p = gh_new_procedure(\"%s\", (SCM (*) ()) %s, 0, 1, 0);\n",
 	      proc_name, var_name);
       Printf (f_init, "\t  gh_define(\"%s\", "
 	      "scm_make_procedure_with_setter(p, p)); }\n",
 	      proc_name);
     }
+    Printf (exported_symbols, "\"%s\", ", proc_name);
 
     if (procdoc) {
       /* Compute documentation */
       String *signature = NewString("");
+      String *doc = NewString("");
 
       if (Status & STAT_READONLY) {
-	Printv(signature, "(", proc_name, ")\n", 0);
-	Printv(signature, "Returns constant ", 0);
-	guile_do_doc_typemap(signature, "varoutdoc", t, NULL,
+	Printv(signature, proc_name, 0);
+	Printv(doc, "Returns constant ", 0);
+	guile_do_doc_typemap(doc, "varoutdoc", t, NULL,
 			     0, proc_name, f);
-	Printv(signature, "\n", 0);
       }
       else {
-	Printv(signature, "(", proc_name,
+	Printv(signature, proc_name,
 	       " #:optional ", 0);
 	guile_do_doc_typemap(signature, "varindoc", t, "new-value",
 			     1, proc_name, f);
-	Printv(signature, ")\n", 0);
-	Printv(signature, "If NEW-VALUE is provided, "
+	Printv(doc, "If NEW-VALUE is provided, "
 	       "set C variable to this value.\n", 0);
-	Printv(signature, "Returns variable value ", 0);
-	guile_do_doc_typemap(signature, "varoutdoc", t, NULL,
+	Printv(doc, "Returns variable value ", 0);
+	guile_do_doc_typemap(doc, "varoutdoc", t, NULL,
 			     0, proc_name, f);
-	Printv(signature, "\n", 0);
       }
-      Printv(procdoc, "\f\n", signature, 0);
+      write_doc(proc_name, signature, doc);
       Delete(signature);
+      Delete(doc);
     }
 
   } else {
@@ -881,12 +950,11 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 // -----------------------------------------------------------------------
 // GUILE::declare_const(char *name, char *iname, SwigType *type, char *value)
 //
-// Makes a constant.   Not sure how this is really supposed to work.
-// I'm going to fake out SWIG and create a variable instead.
+// We create a read-only variable.
 // ------------------------------------------------------------------------
 
 void
-GUILE::declare_const (char *name, char *, SwigType *type, char *value)
+GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
 {
   int OldStatus = Status;      // Save old status flags
   DOHString *proc_name;
@@ -903,7 +971,7 @@ GUILE::declare_const (char *name, char *, SwigType *type, char *value)
   sprintf (var_name, "%sconst_%s", prefix, name);
 
   // Build the name for scheme.
-  proc_name = NewString(name);
+  proc_name = NewString(iname);
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
   if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
@@ -921,25 +989,17 @@ GUILE::declare_const (char *name, char *, SwigType *type, char *value)
   } else {
     rvalue = NewString(value);
   }
-  if ((tm = guile_typemap_lookup ("const", type, name,
-                            Char(rvalue), name, f))) {
-    Printf (f_init, "%s\n", tm);
+  if (guile_do_typemap(f_header, "const", type, name,
+		       Char(rvalue), name, 0, name, f, 0)) {
+    /* nothing */
   } else {
     // Create variable and assign it a value
-
-    Printf (f_header, "static %s %s = ", SwigType_lstr(type,0), var_name);
-    if (SwigType_type(type) == T_STRING) {
-      Printf (f_header, "\"%s\";\n", value);
-    } else if (SwigType_type(type) == T_CHAR) {
-      Printf (f_header, "\'%s\';\n", value);
-    } else {
-      Printf (f_header, "%s;\n", value);
-    }
-    // Now create a variable declaration
-
-    link_variable (var_name, name, type);
-    Status = OldStatus;
+    Printf (f_header, "static %s %s = %s;\n", SwigType_lstr(type,0),
+	    var_name, rvalue);
   }
+  // Now create a variable declaration
+  link_variable (var_name, iname, type);
+  Status = OldStatus;
   Delete(proc_name);
   Delete(rvalue);
   DelWrapper(f);
@@ -957,5 +1017,16 @@ void GUILE::cpp_variable(char *name, char *iname, SwigType *t)
   else {
     /* Only emit traditional VAR-get and VAR-set procedures */
     Language::cpp_variable(name, iname, t);
+  }
+}
+
+void GUILE::pragma(char *lang, char *cmd, char *value)
+{
+  if (strcmp(lang,(char*)"guile") == 0) {
+    if (strcmp(cmd, (char*)"beforereturn")==0) {
+      if (before_return)
+	Delete(before_return);
+      before_return = NewString(value);
+    }
   }
 }

@@ -47,6 +47,8 @@ typedef  DOH     File;
 #define   T_CHAR       12
 #define   T_USER       13
 #define   T_VOID       14
+#define   T_LONGLONG   15
+#define   T_ULONGLONG  16
 #define   T_STRING     20
 #define   T_POINTER    21
 #define   T_REFERENCE  22

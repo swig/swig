@@ -1,6 +1,8 @@
-Makefile
 *.flc
 .deps
-swig
-parser.h
+Makefile
 parser.cxx
+parser.h
+swig
+y.tab.c
+y.tab.h

@@ -119,9 +119,9 @@ extern PixMap   *new_PixMap(int width, int height, int centerx, int centery);
 extern void      delete_PixMap(PixMap *pm);
 extern void      PixMap_set(PixMap *pm, int x, int y, int pix);
 
-#define   TRANSPARENT  0
-#define   FOREGROUND   1
-#define   BACKGROUND   2
+#define   GIFPLOT_TRANSPARENT  0
+#define   GIFPLOT_FOREGROUND   1
+#define   GIFPLOT_BACKGROUND   2
 
 /* --------------------------------------------------------------------------
    Plot2D
