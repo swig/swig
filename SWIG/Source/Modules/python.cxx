@@ -75,7 +75,7 @@ Python Options (available with -python)\n\
      -apply          - Use apply() in proxy classes\n\
      -new_vwm        - New value wrapper mode, use only when everything else fails \n\
      -new_repr       - Use more informative version of __repr__ in proxy classes\n\
-     -old_repr       - Use shorter ald old version of __repr__ in proxy classes\n\
+     -old_repr       - Use shorter and old version of __repr__ in proxy classes\n\
      -noexcept       - No automatic exception handling\n\
      -noh            - Don't generate the output header file\n\
      -noproxy        - Don't generate proxy classes \n\n";
@@ -854,11 +854,17 @@ public:
         
         switch ( ad_type ) {
         case AUTODOC_CLASS:
-	  if (CPlusPlus) {
-	    Printf(doc, "Proxy of C++ %s class", class_name);
-	  } else {
-	    Printf(doc, "Proxy of C %s struct", class_name);
-	  }
+          {
+            // Only do the autodoc if there isn't a docstring for the class
+            String* str = Getattr(n, "feature:docstring");
+            if  (str == NULL || Len(str) == 0) {
+              if (CPlusPlus) {
+                Printf(doc, "Proxy of C++ %s class", class_name);
+              } else {
+                Printf(doc, "Proxy of C %s struct", class_name);
+              }
+            }
+          }
 	  break;
         case AUTODOC_CTOR:
           if ( Strcmp(class_name, symname) == 0) {
@@ -1028,8 +1034,10 @@ public:
     
     if (n && Getattr(n,"feature:callback")) {
       if (have_docstring(n)) {
+        String* ds = docstring(n, AUTODOC_FUNC, "", false);
+        Replaceall(ds, "\n", "\\n");
 	Printf(methods,"(char *)\"%s\\nswig_ptr: %s\"",
-	       docstring(n, AUTODOC_FUNC, "", false),
+	       ds,
 	       Getattr(n,"feature:callback:name"));
       } else {
 	Printf(methods,"(char *)\"swig_ptr: %s\"",Getattr(n,"feature:callback:name"));
@@ -1951,9 +1959,11 @@ public:
 	}
       }
       Printf(f_shadow,":\n");
-      if ( have_docstring(n) ) 
-          Printv(f_shadow, tab4, docstring(n, AUTODOC_CLASS, tab4), "\n", NIL);
-      
+      if ( have_docstring(n) ) {
+        String* str = docstring(n, AUTODOC_CLASS, tab4);
+        if (str != NULL && Len(str)) 
+          Printv(f_shadow, tab4, str, "\n", NIL);
+      }
       if (!modern) {
         Printv(f_shadow,tab4,"__swig_setmethods__ = {}\n",NIL);
         if (Len(base_class)) {
@@ -2140,9 +2150,9 @@ public:
 	  Delete(pyaction);
 	  Printv(f_shadow,pycode,"\n",NIL);
 	} else {
-	  Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "): ", NIL);
+	  Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "):", NIL);
 	  if (!have_addtofunc(n)) {
-	    Printv(f_shadow, "return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
+	    Printv(f_shadow, " return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
 	  } else {
             Printv(f_shadow, "\n", NIL);
             if ( have_docstring(n) )
@@ -2176,10 +2186,7 @@ public:
     }
     
     if (shadow) {
-      //
-      // static + autodoc/prepend/append + def args not working!!!, disable by now
-      //
-      if (0 && !classic && !Getattr(n,"feature:python:callback") && have_addtofunc(n)) {
+      if ( !classic && !Getattr(n,"feature:python:callback") && have_addtofunc(n)) {
         int kw = (check_kwargs(n) && !Getattr(n,"sym:overloaded")) ? 1 : 0;
         Printv(f_shadow, tab4, "def ", symname, "(*args", (kw ? ", **kwargs" : ""), "):\n", NIL);
         if ( have_docstring(n) )
