@@ -820,8 +820,6 @@ program        :  interface {
                | TYPEPARSE type abstract_declarator {
 		 SwigType_push($2, $3.type);
 		 Delete($3.type);
-		 Delete($3.parms);
-		 Delete($3.defarg);
 		 top = $2;
                }
                | TYPEPARSE error {

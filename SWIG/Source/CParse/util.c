@@ -61,6 +61,7 @@ void Swig_cparse_replace_descriptor(String *s) {
       Delete(descriptor);
     }
     Delete(arg);
+    arg = 0;
   }
 }
  
