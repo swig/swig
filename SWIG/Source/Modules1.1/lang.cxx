@@ -1735,6 +1735,18 @@ int Language::is_wrapping_class() {
     return InClass;
 }
 
+/* -----------------------------------------------------------------------------
+ * Language::getClassName()
+ * ----------------------------------------------------------------------------- */
 
+String * Language::getClassName() const {
+    return ClassName;
+}
 
+/* -----------------------------------------------------------------------------
+ * Language::getClassPrefix()
+ * ----------------------------------------------------------------------------- */
 
+String * Language::getClassPrefix() const {
+    return ClassPrefix;
+}

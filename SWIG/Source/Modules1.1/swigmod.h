@@ -197,6 +197,12 @@ public:
 
   /* Wrapping class query */
   int is_wrapping_class();
+  
+  /* Return the real name of the current class */
+  String *getClassName() const;
+  
+  /* Return the current class prefix */
+  String *getClassPrefix() const;
 
  private:
   Hash   *symbols;
