@@ -52,17 +52,17 @@ static char cvsroot[] = "$Header$";
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_map_add_parmrule(DOHHash *ruleset, DOHHash *parms, DOH *obj)
+Swig_map_add_parmrule(Hash *ruleset, Hash *parms, DOH *obj)
 {
-  DOHHash *p, *n;
+  Hash *p, *n;
 
   /* Walk down the parms list and create a series of hash tables */
   p = parms;
   n = ruleset;
 
   while (p) {
-    DOHString *ty, *name, *key;
-    DOHHash *nn;
+    String *ty, *name, *key;
+    Hash *nn;
     ty = Getattr(p,"type");
     name = Getattr(p,"name");
     
@@ -95,8 +95,8 @@ Swig_map_add_parmrule(DOHHash *ruleset, DOHHash *parms, DOH *obj)
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_map_add_typerule(DOHHash *ruleset, DOH *type, DOHString_or_char *name, DOH *obj) {
-  DOHHash *p;
+Swig_map_add_typerule(Hash *ruleset, DOH *type, String_or_char *name, DOH *obj) {
+  Hash *p;
 
   p = NewHash();
   Setattr(p,"type",type);
@@ -109,8 +109,8 @@ Swig_map_add_typerule(DOHHash *ruleset, DOH *type, DOHString_or_char *name, DOH 
 
 
 typedef struct MatchObject {
-  DOH     *ruleset;             /* Hash table of rules */
-  DOHHash *p;                   /* Parameter on which checking starts */
+  Hash    *ruleset;             /* Hash table of rules */
+  Hash    *p;                   /* Parameter on which checking starts */
   int      depth;               /* Depth of the match  */
   struct MatchObject *next;     /* Next match object   */
 } MatchObject;
@@ -131,7 +131,7 @@ static MatchObject *matchstack = 0;
  * ----------------------------------------------------------------------------- */
 
 DOH *
-Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
+Swig_map_match_parms(Hash *ruleset, Hash *parms, int *nmatch)
 {
   MatchObject *mo;
 
@@ -151,15 +151,15 @@ Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
   /* Loop over all candidates until we find the best one */
 
   while (matchstack) {
-    DOHHash   *rs;
-    DOHHash   *p;
-    int        depth = 0;
-    DOH       *obj;
-    DOHString *key;
-    DOHString *ty;
-    DOHString *name;
-    DOHString *nm;
-    int       matched = 0;
+    Hash   *rs;
+    Hash   *p;
+    int     depth = 0;
+    DOH    *obj;
+    String *key;
+    String *ty;
+    String *name;
+    String *nm;
+    int     matched = 0;
 
     mo = matchstack;
     /* See if there is a match at this level */
@@ -223,7 +223,7 @@ Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
       int ndim;
       int i, j, n;
       int ncheck;
-      DOHString  *ntype;
+      String  *ntype;
 
       key = NewString("");
 
@@ -304,8 +304,8 @@ Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
   } else {
     /* If there is no match at all.  I guess we can check for a default type */
     DOH  *rs;
-    DOHString *key;
-    DOHString *dty = SwigType_default(Getattr(parms,"type"));
+    String *key;
+    String *dty = SwigType_default(Getattr(parms,"type"));
     key = NewStringf("*map:-%s",dty);
     
     rs = Getattr(ruleset,key);
@@ -332,8 +332,8 @@ Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
  * ----------------------------------------------------------------------------- */
 
 DOH *
-Swig_map_match_type(DOHHash *ruleset, DOH *type, DOHString_or_char *name) {
-  DOHHash *p;
+Swig_map_match_type(Hash *ruleset, DOH *type, String_or_char *name) {
+  Hash *p;
   DOH     *obj;
   int nmatch;
 

@@ -26,18 +26,18 @@
 class MZSCHEME : public Language
 {
 private:
-  void   get_pointer(DOHString_or_char *name, int parm, DataType *t, Wrapper *f);
-  void   usage_var(char *, DataType *, DOHString *usage);
-  void   usage_func(char *, DataType *, ParmList *, DOHString *usage);
-  void   usage_returns(char *, DataType *, ParmList *, DOHString *usage);
-  void   usage_const(char *, DataType *, char *, DOHString *usage);
+  void   get_pointer(DOHString_or_char *name, int parm, SwigType *t, Wrapper *f);
+  void   usage_var(char *, SwigType *, DOHString *usage);
+  void   usage_func(char *, SwigType *, ParmList *, DOHString *usage);
+  void   usage_returns(char *, SwigType *, ParmList *, DOHString *usage);
+  void   usage_const(char *, SwigType *, char *, DOHString *usage);
 
 public :
   void parse_args (int, char *argv[]);
   void parse ();
-  void create_function (char *, char *, DataType *, ParmList *);
-  void link_variable (char *, char *, DataType *);
-  void declare_const (char *, char *, DataType *, char *);
+  void create_function (char *, char *, SwigType *, ParmList *);
+  void link_variable (char *, char *, SwigType *);
+  void declare_const (char *, char *, SwigType *, char *);
   void initialize ();
   void headers (void);
   void close (void);

@@ -16,7 +16,7 @@ static char cvsroot[] = "$Header$";
 
 /* Hash table containing naming data */
 
-static DOH *naming_hash = 0;
+static Hash *naming_hash = 0;
 
 /* -----------------------------------------------------------------------------
  * Swig_name_register()
@@ -24,7 +24,8 @@ static DOH *naming_hash = 0;
  * Register a new naming format.
  * ----------------------------------------------------------------------------- */
 
-void Swig_name_register(DOHString_or_char *method, DOHString_or_char *format) {
+void
+Swig_name_register(String_or_char *method, String_or_char *format) {
   if (!naming_hash) naming_hash = NewHash();
   Setattr(naming_hash,method,format);
 }
@@ -35,18 +36,17 @@ void Swig_name_register(DOHString_or_char *method, DOHString_or_char *format) {
  * Converts all of the non-identifier characters of a string to underscores.
  * ----------------------------------------------------------------------------- */
 
-char *Swig_name_mangle(DOHString_or_char *s) {
-  static DOHString *r = 0;
+String *
+Swig_name_mangle(String_or_char *s) {
+  String *r = NewString("");
   char  *c;
-  if (!r) r = NewString("");
-  Clear(r);
   Append(r,s);
   c = Char(r);
   while (*c) {
     if (!isalnum(*c)) *c = '_';
     c++;
   }
-  return Char(r);
+  return Swig_temp_result(r);
 }
 
 /* -----------------------------------------------------------------------------
@@ -55,13 +55,13 @@ char *Swig_name_mangle(DOHString_or_char *s) {
  * Returns the name of a wrapper function.
  * ----------------------------------------------------------------------------- */
 
-char *Swig_name_wrapper(DOHString_or_char *fname) {
-  static DOHString *r = 0;
-  DOHString *f;
+String *
+Swig_name_wrapper(String_or_char *fname) {
+  String *r;
+  String *f;
 
-  if (!r) r = NewString("");
+  r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
-  Clear(r);
   f = Getattr(naming_hash,"wrapper");
   if (!f) {
     Append(r,"_wrap_%f");
@@ -69,7 +69,7 @@ char *Swig_name_wrapper(DOHString_or_char *fname) {
     Append(r,f);
   }
   Replace(r,"%f",fname, DOH_REPLACE_ANY);
-  return Char(r);
+  return Swig_temp_result(r);
 }
 
 
@@ -79,14 +79,14 @@ char *Swig_name_wrapper(DOHString_or_char *fname) {
  * Returns the name of a class method.
  * ----------------------------------------------------------------------------- */
 
-char *Swig_name_member(DOHString_or_char *classname, DOHString_or_char *mname) {
-  static DOHString *r = 0;
-  DOHString *f;
+String *
+Swig_name_member(String_or_char *classname, String_or_char *mname) {
+  String *r;
+  String *f;
   char   *cname, *c;
 
-  if (!r) r = NewString("");
+  r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
-  Clear(r);
   f = Getattr(naming_hash,"member");
   if (!f) {
     Append(r,"%c_%m");
@@ -98,7 +98,7 @@ char *Swig_name_member(DOHString_or_char *classname, DOHString_or_char *mname) {
   if (c) cname = c+1;
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
   Replace(r,"%m",mname, DOH_REPLACE_ANY);
-  return Char(r);
+  return Swig_temp_result(r);
 }
 
 /* -----------------------------------------------------------------------------
@@ -107,13 +107,13 @@ char *Swig_name_member(DOHString_or_char *classname, DOHString_or_char *mname) {
  * Returns the name of the accessor function used to get a variable.
  * ----------------------------------------------------------------------------- */
 
-char *Swig_name_get(DOHString_or_char *vname) {
-  static DOHString *r = 0;
-  DOHString *f;
+String *
+Swig_name_get(String_or_char *vname) {
+  String *r;
+  String *f;
 
-  if (!r) r = NewString("");
+  r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
-  Clear(r);
   f = Getattr(naming_hash,"get");
   if (!f) {
     Append(r,"%v_get");
@@ -121,7 +121,7 @@ char *Swig_name_get(DOHString_or_char *vname) {
     Append(r,f);
   }
   Replace(r,"%v",vname, DOH_REPLACE_ANY);
-  return Char(r);
+  return Swig_temp_result(r);
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -130,13 +130,13 @@ char *Swig_name_get(DOHString_or_char *vname) {
  * Returns the name of the accessor function used to set a variable.
  * ----------------------------------------------------------------------------- */
 
-char *Swig_name_set(DOHString_or_char *vname) {
-  static DOHString *r = 0;
-  DOHString *f;
+String *
+Swig_name_set(String_or_char *vname) {
+  String *r;
+  String *f;
 
-  if (!r) r = NewString("");
+  r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
-  Clear(r);
   f = Getattr(naming_hash,"set");
   if (!f) {
     Append(r,"%v_set");
@@ -144,7 +144,7 @@ char *Swig_name_set(DOHString_or_char *vname) {
     Append(r,f);
   }
   Replace(r,"%v",vname, DOH_REPLACE_ANY);
-  return Char(r);
+  return Swig_temp_result(r);
 }
 
 /* -----------------------------------------------------------------------------
@@ -153,13 +153,13 @@ char *Swig_name_set(DOHString_or_char *vname) {
  * Returns the name of the accessor function used to create an object.
  * ----------------------------------------------------------------------------- */
 
-char *Swig_name_construct(DOHString_or_char *classname) {
-  static DOHString *r = 0;
-  DOHString *f;
+String *
+Swig_name_construct(String_or_char *classname) {
+  String *r;
+  String *f;
   char *cname, *c;
-  if (!r) r = NewString("");
+  r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
-  Clear(r);
   f = Getattr(naming_hash,"construct");
   if (!f) {
     Append(r,"new_%c");
@@ -172,7 +172,7 @@ char *Swig_name_construct(DOHString_or_char *classname) {
   if (c) cname = c+1;
 
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
-  return Char(r);
+  return Swig_temp_result(r);
 }
   
 
@@ -182,13 +182,12 @@ char *Swig_name_construct(DOHString_or_char *classname) {
  * Returns the name of the accessor function used to destroy an object.
  * ----------------------------------------------------------------------------- */
 
-char *Swig_name_destroy(DOHString_or_char *classname) {
-  static DOHString *r = 0;
-  DOHString *f;
+String *Swig_name_destroy(String_or_char *classname) {
+  String *r;
+  String *f;
   char *cname, *c;
-  if (!r) r = NewString("");
+  r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
-  Clear(r);
   f = Getattr(naming_hash,"destroy");
   if (!f) {
     Append(r,"delete_%c");
@@ -201,8 +200,9 @@ char *Swig_name_destroy(DOHString_or_char *classname) {
   if (c) cname = c+1;
 
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
-  return Char(r);
+  return Swig_temp_result(r);
 }
+
 
 
 

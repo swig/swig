@@ -17,8 +17,8 @@ static char cvsroot[] = "$Header$";
 
 /* Delimeter used in accessing files and directories */
 
-static DOHList      *directories = 0;        /* List of include directories */
-static DOHString    *lastpath = 0;           /* Last file that was included */
+static List      *directories = 0;        /* List of include directories */
+static String    *lastpath = 0;           /* Last file that was included */
 static int           bytes_read = 0;         /* Bytes read */
 
 /* -----------------------------------------------------------------------------
@@ -28,7 +28,7 @@ static int           bytes_read = 0;         /* Bytes read */
  * ----------------------------------------------------------------------------- */
 
 void 
-Swig_add_directory(const DOHString_or_char *dirname) {
+Swig_add_directory(const String_or_char *dirname) {
   if (!directories) directories = NewList();
   assert(directories);
   if (!DohIsString(dirname)) {
@@ -44,7 +44,7 @@ Swig_add_directory(const DOHString_or_char *dirname) {
  * Returns the full pathname of the last file opened. 
  * ----------------------------------------------------------------------------- */
 
-DOHString *
+String *
 Swig_last_file() {
   assert(lastpath);
   return lastpath;
@@ -56,11 +56,11 @@ Swig_last_file() {
  * Returns a list of the current search paths.
  * ----------------------------------------------------------------------------- */
 
-DOHList *
+List *
 Swig_search_path() {
-  DOHString *filename;
-  DOHString *dirname;
-  DOHList   *slist;
+  String *filename;
+  String *dirname;
+  List   *slist;
   int i;
 
   slist = NewList();
@@ -86,10 +86,10 @@ Swig_search_path() {
  * ----------------------------------------------------------------------------- */
 
 FILE *
-Swig_open(const DOHString_or_char *name) {
+Swig_open(const String_or_char *name) {
   FILE        *f;
-  DOHString   *filename;
-  DOHList     *spath = 0;
+  String   *filename;
+  List     *spath = 0;
   char        *cname;
   int          i;
 
@@ -124,10 +124,10 @@ Swig_open(const DOHString_or_char *name) {
  * Reads data from an open FILE * and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
-DOHString *
+String *
 Swig_read_file(FILE *f) {
   char       buffer[4096];
-  DOHString *str = NewString("");
+  String *str = NewString("");
 
   assert(str);
   while (fgets(buffer,4095,f)) {
@@ -144,10 +144,10 @@ Swig_read_file(FILE *f) {
  * ----------------------------------------------------------------------------- */
 
 static int readbytes = 0;
-DOHString *
-Swig_include(const DOHString_or_char *name) {
+String *
+Swig_include(const String_or_char *name) {
   FILE         *f;
-  DOHString    *str;
+  String    *str;
 
   f = Swig_open(name);
   if (!f) return 0;
@@ -173,7 +173,7 @@ Swig_bytes_read() {
  * ----------------------------------------------------------------------------- */
 
 int
-Swig_insert_file(const DOHString_or_char *filename, DOHFile *outfile) {
+Swig_insert_file(const String_or_char *filename, File *outfile) {
   char buffer[4096];
   int  nbytes;
   FILE *f = Swig_open(filename);
