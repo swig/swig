@@ -3,10 +3,7 @@
 
 puts "Testing the %import directive"
 
-require 'base'
-require 'foo'
-require 'bar'
-require 'spam'
+require 'example'
 
 # Create some objects
 
