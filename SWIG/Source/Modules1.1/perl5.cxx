@@ -464,14 +464,17 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
 	    SwigType *t, String *f, char *ret) {
 
   SwigType_remember(t);
+  SwigType *lt = Swig_clocal_type(t);
   Printv(f, "if (SWIG_ConvertPtr(", src, ",(void **) &", dest, ",", 0);
 
   /* If we're passing a void pointer, we give the pointer conversion a NULL
      pointer, otherwise pass in the expected type. */
 
-  if (SwigType_type(t) == T_VOID) Printf(f, " 0 ) < 0) {\n");
-  else
+  if (Cmp(lt,"p.void") == 0) {
+    Printf(f, " 0 ) < 0) {\n");
+  } else {
     Printv(f, "SWIGTYPE", SwigType_manglestr(t), ") < 0) {\n",0);
+  }
 
   Printv(f,
 	 "croak(\"Type error in ", srcname, " of ", iname,". Expected %s\", SWIGTYPE",
@@ -479,6 +482,7 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
 	 ret, ";\n",
 	 "}\n",
 	 0);
+  Delete(lt);
 }
 
 /* -----------------------------------------------------------------------------
