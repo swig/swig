@@ -191,10 +191,16 @@ DOH *SwigType_get_contents(DOH *t);
 
 /* --- Parse tree support --- */
 
+typedef struct {
+   char *name;
+   int  (*action)(DOH *obj, void *clientdata);
+} SwigRule;
+
 extern void Swig_dump_tags(DOH *obj, DOH *root);
-extern void Swig_emit_rules(DOH *ruleset, DOH *context, DOH *node, 
-			    int (*actionhandler)(DOH *ruleset, DOH *context, DOH *node, DOH *action));
-extern DOH *Swig_match_rule(DOH *ruleset, DOH *nodelist);
+extern void Swig_add_rule(DOHString_or_char *, int (*action)(DOH *, void *));
+extern void Swig_add_rules(SwigRule ruleset[]);
+extern void Swig_clear_rules();
+extern int  Swig_emit(DOH *obj, void *clientdata);
 
 /* --- Misc --- */
 extern char *Swig_copy_string(const char *c);
