@@ -28,6 +28,9 @@ extern "C" {
   SWIG_Chicken_NewPointerObj((void*)ptr, type, owner, &known_space)
 #define swig_barf SWIG_Chicken_Barf
 
+#define SWIG_contract_assert(expr, message) if (!(expr)) { \
+                                              SWIG_Chicken_Barf(SWIG_BARF1_CONTRACT_ASSERT, C_text(message)); } else
+
 /* Runtime API */
 #define SWIG_GetModule(clientdata) SWIG_Chicken_GetModule()
 #define SWIG_SetModule(clientdata, pointer) SWIG_Chicken_SetModule(pointer)
@@ -64,7 +67,8 @@ extern "C" {
 
 enum {
   SWIG_BARF1_BAD_ARGUMENT_TYPE /* 1 arg */,
-  SWIG_BARF1_ARGUMENT_NULL /* 1 arg */
+  SWIG_BARF1_ARGUMENT_NULL /* 1 arg */,
+  SWIG_BARF1_CONTRACT_ASSERT /* 1 arg */,
 };
 
 typedef C_word (*swig_chicken_destructor)(C_word,C_word,C_word,C_word);
@@ -134,6 +138,10 @@ SWIG_Chicken_Barf(int code, C_char *msg, ...)
     break;
   case SWIG_BARF1_ARGUMENT_NULL:
     barfval = C_BAD_ARGUMENT_TYPE_ERROR;
+    c = 1;
+    break;
+  case SWIG_BARF1_CONTRACT_ASSERT:
+    barfval = C_OUT_OF_RANGE_ERROR;
     c = 1;
     break;
   default:

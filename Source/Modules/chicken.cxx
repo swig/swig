@@ -238,6 +238,10 @@ CHICKEN::top(Node *n)
   Printf(f_init, "C_kontinue (continuation, ret);\n");
   Printf(f_init, "}\n\n");
 
+  Printf(f_init,"#ifdef __cplusplus\n");
+  Printf(f_init,"}\n");
+  Printf(f_init,"#endif\n");
+
   Printf(chicken_filename,"%s%s.scm", SWIG_output_directory(), module);
   if ((f_scm = NewFile(chicken_filename,"w")) == 0) {
     Printf(stderr,"Unable to open %s\n", chicken_filename);
