@@ -111,7 +111,7 @@ SWIGINTERNSHORT int
   if (value > max_value) {
     if (errmsg) {
       PyErr_Format(PyExc_OverflowError,
-		   "value %lud is greater than '%s' minimum %lud",
+		   "value %lu is greater than '%s' minimum %lu",
 		   value, errmsg, max_value);
     }
     return 0;

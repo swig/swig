@@ -137,8 +137,7 @@
 %apply Char* { Char [] };
 %apply const Char* { const Char [] };
 
-%typemap(varin,fragment=#SWIG_AsCharArray,
-	 warning="462:Unable to set variable of type Char []") Char []
+%typemap(varin,warning="462:Unable to set variable of type Char []") Char []
 {
   PyErr_SetString(PyExc_AttributeError, "C/C++ variable '$name' is read-only");
   return 1;
@@ -171,6 +170,12 @@
 {  
   if (!SWIG_AsCharArray($input, temp, $1_dim0)) {SWIG_arg_fail($argnum);SWIG_fail;}
   $1 = temp;
+}
+
+%typemap(in,fragment=#SWIG_AsCharArray) const Char (&)[ANY] (Char temp[$1_dim0])
+{  
+  if (!SWIG_AsCharArray($input, temp, $1_dim0)) {SWIG_arg_fail($argnum);SWIG_fail;}
+  $1 = &temp;
 }
 
 %typemap(out,fragment=#SWIG_FromCharArray)

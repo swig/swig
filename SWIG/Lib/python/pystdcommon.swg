@@ -95,12 +95,12 @@ namespace swig {
   template <class Type> struct traits_asval<Type*> {
     static bool asval(PyObject *obj, Type **val) {
       if (val) {
-	Type *p = 0;
-	int res = traits_asptr<Type>::asptr(obj, &p);
-	if (res) {
-	  typedef typename noconst_traits<Type*>::noconst_type noconst_type;
-	  *(const_cast<noconst_type*>(val)) = p;
-	  return true;
+        typedef typename noconst_traits<Type>::noconst_type noconst_type;
+        noconst_type *p = 0;
+        int res = traits_asptr<noconst_type>::asptr(obj, &p);
+        if (res) {
+          *(const_cast<noconst_type**>(val)) = p;
+     	  return true;
 	} else {
 	  return false;
 	}
