@@ -372,8 +372,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-dirprot") == 0) {
 	    Wrapper_director_protected_mode_set(1);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-nodirprot") == 0) {
 	    Wrapper_director_protected_mode_set(0);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-small") == 0) {
 	    Wrapper_compact_print_mode_set(1);
 	    Wrapper_virtual_elimination_mode_set(1);

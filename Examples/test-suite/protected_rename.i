@@ -8,6 +8,7 @@
 
 %rename(x) Foo::y();
 
+%inline %{
 class Foo {
 protected:
     int x;
@@ -15,3 +16,4 @@ public:
     void y();
 };
 
+%}

@@ -23,6 +23,14 @@ static int director_protected_mode = 0;   /* set to 0 on default */
 void Wrapper_director_protected_mode_set(int flag) {
   director_protected_mode = flag;
 }
+
+extern "C" {
+  int Swig_need_protected() 
+  {
+    return director_protected_mode;
+  }
+}
+
   
 
 /* Some status variables used during parsing */
@@ -699,10 +707,7 @@ int Language::cDeclaration(Node *n) {
 
   if (CurrentClass && (cplus_mode == CPLUS_PRIVATE)) return SWIG_NOWRAP;
   if (CurrentClass && (cplus_mode == CPLUS_PROTECTED) &&
-      (!directors ||
-       !director_protected_mode ||
-       Cmp(storage,"virtual") ||
-       !is_member_director(CurrentClass,n))) return SWIG_NOWRAP;
+      (!dirprot_mode() || !is_member_director(CurrentClass,n))) return SWIG_NOWRAP;
   
   if (Cmp(storage,"typedef") == 0) {
     Swig_save("cDeclaration",n,"type",NIL);
@@ -1442,7 +1447,7 @@ int Language::unrollVirtualMethods(Node *n,
     if (!Cmp(nodeType, "cdecl") && SwigType_isfunction(decl)) {
       int is_virtual = storage && !Cmp(storage, "virtual");
       if (is_virtual &&
-	  (is_public(ni) || (is_protected(ni) && director_protected_mode))) {
+	  (is_public(ni) || (dirprot_mode() && is_protected(ni)))) {
 	Setattr(ni, "feature:director", "1");
 	String *method_id;
 	String *name = Getattr(ni, "name");
@@ -1720,7 +1725,7 @@ int Language::classHandler(Node *n) {
     classDirectorDisown(n);
 
     /* emit all the protected virtual members as needed */
-    if (director_protected_mode) {
+    if (dirprot_mode()) {
       Node *vtable = Getattr(n, "vtable");
       String* symname = Getattr(n, "sym:name");
       Node *item;
@@ -2197,6 +2202,14 @@ void Language::allow_directors(int val) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Language::directorsEnabled()
+ * ----------------------------------------------------------------------------- */
+ 
+int Language::directorsEnabled() const {
+  return directors && CPlusPlus;
+}
+
+/* -----------------------------------------------------------------------------
  * Language::allow_dirprot()
  * ----------------------------------------------------------------------------- */
 
@@ -2205,11 +2218,11 @@ void Language::allow_dirprot(int val) {
 }
 
 /* -----------------------------------------------------------------------------
- * Language::directorsEnabled()
+ * Language::dirprot_mode()
  * ----------------------------------------------------------------------------- */
  
-int Language::directorsEnabled() const {
-  return directors && CPlusPlus;
+int Language::dirprot_mode() const {
+  return directorsEnabled() ? director_protected_mode : 0;
 }
 
 /* -----------------------------------------------------------------------------
