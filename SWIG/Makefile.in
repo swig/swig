@@ -45,20 +45,13 @@ Swig: Source/Include/swigconfig.h
 Preprocessor: Source/Include/swigconfig.h
 	@cd $(SOURCE)/Preprocessor; $(MAKE)
 
-LParse: Source/Include/swigconfig.h
-	@cd $(SOURCE)/LParse; $(MAKE)
-
 CParse: Source/Include/swigconfig.h
 	@cd $(SOURCE)/CParse; $(MAKE)
 
 DOH: Source/Include/swigconfig.h
 	@cd $(SOURCE)/DOH; $(MAKE)
 
-Modules: Source/Include/swigconfig.h
-	@cd $(SOURCE)/Modules; $(MAKE)
-
-.PHONY: SWIG1.1 Modules1.1 Swig Preprocessor LParse \
-        Experiment Swim SWILL DOH Swithe
+.PHONY: SWIG1.1 Modules1.1 Swig Preprocessor DOH 
 
 # Config file must be generated at make time, rather than at configure
 # time because it paths need to be substituted.
