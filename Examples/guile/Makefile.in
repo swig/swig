@@ -1,0 +1,27 @@
+# Makefile for Guile.  Used by all of the example programs.
+
+subdirs		= simple matrix
+
+top_srcdir	= @top_srcdir@
+
+GUILEINCLUDE	= @GUILEINCLUDE@
+GUILELINK	= @GUILELINK@
+
+WRAP		= $(IFILE:.i=_wrap.c)
+
+all:
+	for d in $(subdirs) ; do (cd $$d ; $(MAKE)) ; done
+
+clean::
+	cd simple; make clean
+	cd matrix; make clean
+	rm -f *~ .~*
+
+# This is meant to be used w/ "make -f ../Makefile" from subdirs.
+# Doesn't make sense to use it from here.
+
+sub-all::
+	../$(top_srcdir)/swig -guile $(IFILE)
+	$(CC) -o $(TARGET) $(SRCS) $(WRAP) $(GUILEINCLUDE) $(GUILELINK)
+
+# Makefile ends here
