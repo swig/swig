@@ -48,7 +48,7 @@ extern "C" {
 extern String  *ModuleName;
 }
 
-static char *usage = (char*)"\
+static const char *usage1 = (const char*)"\
 \nGeneral Options\n\
      -c++            - Enable C++ processing\n\
      -co             - Check a file out of the SWIG library\n\
@@ -57,6 +57,8 @@ static char *usage = (char*)"\
      -E              - Preprocess only, does not generate wrapper code\n\
      -fcompact       - Compile in compact mode\n\
      -fvirtual       - Compile in virtual elimination mode\n\
+     -Fstandard      - Display error/warning messages in commonly used format\n\
+     -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
      -help           - This output\n\
      -I<dir>         - Look for SWIG files in <dir>\n\
      -ignoremissing  - Ignore missing include files\n\
@@ -65,6 +67,9 @@ static char *usage = (char*)"\
      -l<ifile>       - Include SWIG library file <ifile>\n\
      -M              - List all dependencies \n\
      -MM             - List dependencies, but omit files in SWIG library\n\
+";
+// usage string split in two otherwise string is too big for some compilers
+static const char *usage2 = (const char*)"\
      -makedefault    - Create default constructors/destructors (the default)\n\
      -module <name>  - Set module name to <name>\n\
      -nocontract     - Turn off contract checking \n\
@@ -484,8 +489,15 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-dump_memory") == 0) {
 	    memory_debug =1;
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-Fstandard") == 0) {
+            Swig_error_msg_format(EMF_STANDARD);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-Fmicrosoft") == 0) {
+            Swig_error_msg_format(EMF_MICROSOFT);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
-	    fputs(usage,stderr);
+	    fputs(usage1,stderr);
+	    fputs(usage2,stderr);
 	    Swig_mark_arg(i);
 	    help = 1;
 	  }

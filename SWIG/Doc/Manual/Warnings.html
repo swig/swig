@@ -13,17 +13,18 @@
 <li><a href="#n4">Enabling additional warnings</a>
 <li><a href="#n5">Issuing a warning message</a>
 <li><a href="#n6">Commentary</a>
-<li><a href="#n7">Warning number reference</a>
+<li><a href="#n7">Message output format</a>
+<li><a href="#n8">Warning number reference</a>
 <ul>
-<li><a href="#n8">Deprecated features (100-199)</a>
-<li><a href="#n9">Preprocessor (200-299)</a>
-<li><a href="#n10">C/C++ Parser (300-399)</a>
-<li><a href="#n11">Types and typemaps (400-499) </a>
-<li><a href="#n12">Code generation (500-599)</a>
-<li><a href="#n13">Language module specific (800-899) </a>
-<li><a href="#n14">User defined (900-999)</a>
+<li><a href="#n9">Deprecated features (100-199)</a>
+<li><a href="#n10">Preprocessor (200-299)</a>
+<li><a href="#n11">C/C++ Parser (300-399)</a>
+<li><a href="#n12">Types and typemaps (400-499) </a>
+<li><a href="#n13">Code generation (500-599)</a>
+<li><a href="#n14">Language module specific (800-899) </a>
+<li><a href="#n15">User defined (900-999)</a>
 </ul>
-<li><a href="#n15">History</a>
+<li><a href="#n16">History</a>
 </ul>
 <!-- INDEX -->
 
@@ -221,10 +222,27 @@ no obvious recovery.  There is no mechanism for suppressing error
 messages or handling errors as warnings---you must make changes to
 the input file to fix the problem.
 
-<a name="n7"></a><H2>12.6 Warning number reference</H2>
+<a name="n7"></a><H2>12.6 Message output format</H2>
 
 
-<a name="n8"></a><H3>12.6.1 Deprecated features (100-199)</H3>
+The output format for both warnings and errors can be selected for
+integration with your favourite IDE/editor. Editors and IDEs can usually parse 
+error messages and if in the appropriate format will easily take you 
+directly to the source of the error. The standard format is used by 
+default except on Windows where the Microsoft format is used by default.
+These can be overridden using command line options, for example:
+
+<blockquote><pre>
+$ swig -python -Fstandard example.i
+example.i:4: Syntax error in input.
+$ swig -python -Fmicrosoft example.i
+example.i(4): Syntax error in input.
+</pre></blockquote>
+
+<a name="n8"></a><H2>12.7 Warning number reference</H2>
+
+
+<a name="n9"></a><H3>12.7.1 Deprecated features (100-199)</H3>
 
 
 <ul>
@@ -250,7 +268,7 @@ the input file to fix the problem.
 <li>120. Deprecated command line option (-c).
 </ul>
 
-<a name="n9"></a><H3>12.6.2 Preprocessor (200-299)</H3>
+<a name="n10"></a><H3>12.7.2 Preprocessor (200-299)</H3>
 
 
 <ul>
@@ -258,7 +276,7 @@ the input file to fix the problem.
 <li>202. Could not evaluate 'expr'.
 </ul>
 
-<a name="n10"></a><H3>12.6.3 C/C++ Parser (300-399)</H3>
+<a name="n11"></a><H3>12.7.3 C/C++ Parser (300-399)</H3>
 
 
 <ul>
@@ -331,7 +349,7 @@ the input file to fix the problem.
 <li>395. operator delete[] ignored.
 </ul>
 
-<a name="n11"></a><H3>12.6.4 Types and typemaps (400-499) </H3>
+<a name="n12"></a><H3>12.7.4 Types and typemaps (400-499) </H3>
 
 
 <ul>
@@ -353,7 +371,7 @@ the input file to fix the problem.
 <li>468. No 'throw' typemap defined for exception type 'type'.
 </ul>
 
-<a name="n12"></a><H3>12.6.5 Code generation (500-599)</H3>
+<a name="n13"></a><H3>12.7.5 Code generation (500-599)</H3>
 
 
 <ul>
@@ -372,7 +390,7 @@ the input file to fix the problem.
 <li>513. Can't generate wrappers for unnamed struct/class.
 </ul>
 
-<a name="n13"></a><H3>12.6.6 Language module specific (800-899) </H3>
+<a name="n14"></a><H3>12.7.6 Language module specific (800-899) </H3>
 
 
 <ul>
@@ -403,12 +421,12 @@ the input file to fix the problem.
 <li>838. No csin typemap defined for <em>type</em>  (C#).
 </ul>
 
-<a name="n14"></a><H3>12.6.7 User defined (900-999)</H3>
+<a name="n15"></a><H3>12.7.7 User defined (900-999)</H3>
 
 
 These numbers can be used by your own application.
 
-<a name="n15"></a><H2>12.7 History</H2>
+<a name="n16"></a><H2>12.8 History</H2>
 
 
 The ability to control warning messages was first added to SWIG-1.3.12.

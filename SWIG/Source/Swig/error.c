@@ -34,10 +34,16 @@ char cvsroot_error_c[] = "$Header$";
  * is reenabled.
  * ----------------------------------------------------------------------------- */
 
+#if defined(_WIN32)
+#  define  DEFAULT_ERROR_MSG_FORMAT EMF_MICROSOFT
+#else
+#  define  DEFAULT_ERROR_MSG_FORMAT EMF_STANDARD
+#endif
+static ErrorMessageFormat msg_format = DEFAULT_ERROR_MSG_FORMAT;
 static int silence = 0;            /* Silent operation */
 static String *filter = 0;         /* Warning filter */
 static int warnall = 0;
-static int   nwarning = 0;
+static int nwarning = 0;
 
 /* -----------------------------------------------------------------------------
  * Swig_warning()
@@ -84,9 +90,25 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
   }
   if (warnall || wrn) {
     if (wnum) {
-      Printf(stderr,"%s:%d: Warning(%d): ", filename, line, wnum);
+      switch (msg_format) {
+        case EMF_MICROSOFT:
+          Printf(stderr,"%s(%d): Warning(%d): ", filename, line, wnum);
+          break;
+        case EMF_STANDARD:
+        default:
+          Printf(stderr,"%s:%d: Warning(%d): ", filename, line, wnum);
+          break;
+      }
     } else {
-      Printf(stderr,"%s:%d: Warning: ", filename, line, wnum);
+      switch (msg_format) {
+        case EMF_MICROSOFT:
+          Printf(stderr,"%s(%d): Warning: ", filename, line);
+          break;
+        case EMF_STANDARD:
+        default:
+          Printf(stderr,"%s:%d: Warning: ", filename, line);
+          break;
+      }
     }
     Printf(stderr,"%s",msg);
     nwarning++;
@@ -111,7 +133,15 @@ Swig_error(const String_or_char *filename, int line, const char *fmt, ...) {
 
   va_start(ap,fmt);
   if (line > 0) {
-    Printf(stderr,"%s:%d: ", filename, line);
+    switch (msg_format) {
+      case EMF_MICROSOFT:
+        Printf(stderr,"%s(%d): ", filename, line);
+        break;
+      case EMF_STANDARD:
+      default:
+        Printf(stderr,"%s:%d: ", filename, line);
+        break;
+    }
   } else {
     Printf(stderr,"%s:EOF: ", filename);
   }
@@ -197,3 +227,13 @@ Swig_warn_count(void) {
   return nwarning;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_error_msg_format()
+ *
+ * Set the type of error/warning message display
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_error_msg_format(ErrorMessageFormat format) {
+  msg_format = format;
+}
