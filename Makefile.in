@@ -159,7 +159,7 @@ install-lib:
             done;
 	@echo "Installing the SWIG library"
 #	cd $(SWIG_LIB); rm -rf *
-	@for i in $(SWIG_LIB)/tcl $(SWIG_LIB)/perl5 $(SWIG_LIB)/python $(SWIG_LIB)/guile ; \
+	@for i in $(SWIG_LIB)/tcl $(SWIG_LIB)/perl5 $(SWIG_LIB)/python $(SWIG_LIB)/guile $(SWIG_LIB)/java ; \
 	do \
 	  if [ ! -d $$i ] ; then \
 	         mkdir $$i; \
@@ -192,6 +192,11 @@ install-lib:
 	    do \
 	    echo "Installing Lib/guile/$$i"; \
             ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/guile/$$i; \
+	    done;
+	@cd Lib/java; for i in *.i *.swg; \
+	    do \
+	    echo "Installing Lib/java/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/java/$$i; \
 	    done;
 
 install-runtime:
