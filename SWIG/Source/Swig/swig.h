@@ -219,6 +219,7 @@ extern int          SwigWrapper_check_local(SwigWrapper *w, DOHString_or_char *n
 
 /* --- Misc --- */
 extern char *Swig_copy_string(const char *c);
+extern void  Swig_banner(DOHFile *f);
 
 #ifdef __cplusplus
 }
