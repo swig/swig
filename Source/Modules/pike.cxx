@@ -644,10 +644,7 @@ public:
     if (baselist && Len(baselist) > 0) {
       Node *base = Firstitem(baselist);
       while (base) {
-        char *basename = Char(Getattr(base,"name"));
-        if (SwigType_istemplate(basename)) {
-          basename = Char(SwigType_namestr(basename));
-        }
+        String *basename = Getattr(base,"name");
         SwigType *basetype = NewString(basename);
         SwigType_add_pointer(basetype);
         SwigType_remember(basetype);
