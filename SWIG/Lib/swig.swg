@@ -396,22 +396,3 @@ static int NAME(TYPE x) {
 %enddef
 
 
-/*  
-  Include all the known keyword warnings.  Very useful for adding test
-  files to the test-suite, or check if your own library is OK for all
-  the swig supported languages.
-
-  Use as 
-
-    swig -DSWIG_ALLKW ...
-
-  Note that this is not equivalent to
-
-    swig -lallkw.swg
-
-  the last form will have no effect since allkw.swg will be included
-  to late.
-*/
-#ifdef SWIG_ALLKW
-%include "allkw.swg"
-#endif

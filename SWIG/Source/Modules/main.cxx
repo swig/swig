@@ -85,6 +85,8 @@ static char *usage = (char*)"\
      -v              - Run in verbose mode\n\
      -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
+     -Wallkw         - Enable warning messages for all the languages keywords\n\
+     -Werror         - Force to treat the warnings as errors\n\
      -w<n>           - Suppress warning number <n>\n\
 \n";
 
@@ -229,6 +231,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     werror = 0;
   int     depend = 0;
   int     memory_debug = 0;
+  int     allkw = 0;
 
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
@@ -473,6 +476,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-Wall") == 0) {
 	    Swig_mark_arg(i);
 	    Swig_warnall();
+	  } else if (strcmp(argv[i],"-Wallkw") == 0) {
+	    allkw = 1;
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Werror") == 0) {
 	    werror = 1;
 	    Swig_mark_arg(i);
@@ -607,6 +613,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       }
       fclose(df);
       Printf(fs,"%%include \"swig.swg\"\n");
+      if (allkw) {
+	Printf(fs,"%%include \"allkw.swg\"\n");
+      }
       if (lang_config) {
 	Printf(fs,"\n%%include \"%s\"\n", lang_config);
       }

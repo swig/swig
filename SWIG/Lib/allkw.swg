@@ -9,9 +9,9 @@
 
   Use as 
 
-    swig -DSWIG_ALLKW ...
+    swig -Wallkw ...
 
-  If you add a new language, remember to create a separete kw.swg
+  If you add a new language, remember to create a separete languagekw.swg
   file, and add it here.
   
 */
@@ -19,11 +19,11 @@
 %include "chicken/chickenkw.swg"
 %include "csharp/csharpkw.swg"
 %include "java/javakw.swg"
-%include "php4/phpkw.swg"
+%include "php4/php4kw.swg"
 %include "pike/pikekw.swg"
 %include "python/pythonkw.swg"
 %include "ruby/rubykw.swg"
-%include "tcl/tclkw.swg"
+%include "tcl/tcl8kw.swg"
 
 
 #endif //__Lib_allkw_swg__
