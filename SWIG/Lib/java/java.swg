@@ -9,58 +9,59 @@
  * The jstype typemap contains the Java type used in the Java shadow class. */
 
 /* Primitive types */
-%typemap(jni) char               "jbyte"
-%typemap(jni) signed char        "jbyte"
-%typemap(jni) unsigned char      "jshort"
-%typemap(jni) short              "jshort"
-%typemap(jni) unsigned short     "jint"
-%typemap(jni) int                "jint"
-%typemap(jni) unsigned int       "jlong"
-%typemap(jni) long               "jint"
-%typemap(jni) unsigned long      "jlong"
-%typemap(jni) long long          "jlong"
-%typemap(jni) unsigned long long "jobject"
-%typemap(jni) float              "jfloat"
-%typemap(jni) double             "jdouble"
-%typemap(jni) bool               "jboolean"
-%typemap(jni) char *             "jstring"
-%typemap(jni) void               "void"
+%typemap(jni) bool,               const bool &               "jboolean"
+%typemap(jni) char,               const char &               "jbyte"
+%typemap(jni) signed char,        const signed char &        "jbyte"
+%typemap(jni) unsigned char,      const unsigned char &      "jshort"
+%typemap(jni) short,              const short &              "jshort"
+%typemap(jni) unsigned short,     const unsigned short &     "jint"
+%typemap(jni) int,                const int &                "jint"
+%typemap(jni) unsigned int,       const unsigned int &       "jlong"
+%typemap(jni) long,               const long &               "jint"
+%typemap(jni) unsigned long,      const unsigned long &      "jlong"
+%typemap(jni) long long,          const long long &          "jlong"
+%typemap(jni) unsigned long long, const unsigned long long & "jobject"
+%typemap(jni) float,              const float &              "jfloat"
+%typemap(jni) double,             const double &             "jdouble"
+%typemap(jni) char *                                         "jstring"
+%typemap(jni) void                                           "void"
 
-%typemap(jtype) char               "byte"
-%typemap(jtype) signed char        "byte"
-%typemap(jtype) unsigned char      "short"
-%typemap(jtype) short              "short"
-%typemap(jtype) unsigned short     "int"
-%typemap(jtype) int                "int"
-%typemap(jtype) unsigned int       "long"
-%typemap(jtype) long               "int"
-%typemap(jtype) unsigned long      "long"
-%typemap(jtype) long long          "long"
-%typemap(jtype) unsigned long long "java.math.BigInteger"
-%typemap(jtype) float              "float"
-%typemap(jtype) double             "double"
-%typemap(jtype) bool               "boolean"
-%typemap(jtype) char *             "String"
-%typemap(jtype) void               "void"
+%typemap(jtype) bool,               const bool &               "boolean"
+%typemap(jtype) char,               const char &               "byte"
+%typemap(jtype) signed char,        const signed char &        "byte"
+%typemap(jtype) unsigned char,      const unsigned char &      "short"
+%typemap(jtype) short,              const short &              "short"
+%typemap(jtype) unsigned short,     const unsigned short &     "int"
+%typemap(jtype) int,                const int &                "int"
+%typemap(jtype) unsigned int,       const unsigned int &       "long"
+%typemap(jtype) long,               const long &               "int"
+%typemap(jtype) unsigned long,      const unsigned long &      "long"
+%typemap(jtype) long long,          const long long &          "long"
+%typemap(jtype) unsigned long long, const unsigned long long & "java.math.BigInteger"
+%typemap(jtype) float,              const float &              "float"
+%typemap(jtype) double,             const double &             "double"
+%typemap(jtype) char *                                         "String"
+%typemap(jtype) void                                           "void"
 
-%typemap(jstype) char               "byte"
-%typemap(jstype) signed char        "byte"
-%typemap(jstype) unsigned char      "short"
-%typemap(jstype) short              "short"
-%typemap(jstype) unsigned short     "int"
-%typemap(jstype) int                "int"
-%typemap(jstype) unsigned int       "long"
-%typemap(jstype) long               "int"
-%typemap(jstype) unsigned long      "long"
-%typemap(jstype) long long          "long"
-%typemap(jstype) unsigned long long "java.math.BigInteger"
-%typemap(jstype) float              "float"
-%typemap(jstype) double             "double"
-%typemap(jstype) bool               "boolean"
-%typemap(jstype) char *             "String"
-%typemap(jstype) void               "void"
+%typemap(jstype) bool,               const bool &               "boolean"
+%typemap(jstype) char,               const char &               "byte"
+%typemap(jstype) signed char,        const signed char &        "byte"
+%typemap(jstype) unsigned char,      const unsigned char &      "short"
+%typemap(jstype) short,              const short &              "short"
+%typemap(jstype) unsigned short,     const unsigned short &     "int"
+%typemap(jstype) int,                const int &                "int"
+%typemap(jstype) unsigned int,       const unsigned int &       "long"
+%typemap(jstype) long,               const long &               "int"
+%typemap(jstype) unsigned long,      const unsigned long &      "long"
+%typemap(jstype) long long,          const long long &          "long"
+%typemap(jstype) unsigned long long, const unsigned long long & "java.math.BigInteger"
+%typemap(jstype) float,              const float &              "float"
+%typemap(jstype) double,             const double &             "double"
+%typemap(jstype) char *                                         "String"
+%typemap(jstype) void                                           "void"
 
 /* Arrays of primitive types */                     
+%typemap(jni) bool[ANY]               "jbooleanArray"
 %typemap(jni) char[ANY]               "jstring"
 %typemap(jni) signed char[ANY]        "jbyteArray"
 %typemap(jni) unsigned char[ANY]      "jshortArray"
@@ -74,8 +75,8 @@
 /*%typemap(jni) unsigned long long[ANY] "jobjectArray"*/
 %typemap(jni) float[ANY]              "jfloatArray"
 %typemap(jni) double[ANY]             "jdoubleArray"
-%typemap(jni) bool[ANY]               "jbooleanArray"
 
+%typemap(jtype) bool[ANY]               "boolean[]"
 %typemap(jtype) char[ANY]               "String"
 %typemap(jtype) signed char[ANY]        "byte[]"
 %typemap(jtype) unsigned char[ANY]      "short[]"
@@ -89,8 +90,8 @@
 /*%typemap(jtype) unsigned long long[ANY] "java.math.BigInteger[]"*/
 %typemap(jtype) float[ANY]              "float[]"
 %typemap(jtype) double[ANY]             "double[]"
-%typemap(jtype) bool[ANY]               "boolean[]"
 
+%typemap(jstype) bool[ANY]               "boolean[]"
 %typemap(jstype) char[ANY]               "String"
 %typemap(jstype) signed char[ANY]        "byte[]"
 %typemap(jstype) unsigned char[ANY]      "short[]"
@@ -104,7 +105,6 @@
 /*%typemap(jstype) unsigned long long[ANY] "java.math.BigInteger[]"*/
 %typemap(jstype) float[ANY]              "float[]"
 %typemap(jstype) double[ANY]             "double[]"
-%typemap(jstype) bool[ANY]               "boolean[]"
 
 /* Non primitive types */
 %typemap(jni) SWIGTYPE "jlong"
@@ -259,6 +259,91 @@
 %typemap(in) char * %{ $1 = ($input) ? ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0) : NULL; %}
 %typemap(freearg) char * %{ if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); %}
 %typemap(out) char * %{ if($1) $result = JCALL1(NewStringUTF, jenv, $1); %}
+
+/* primitive types by reference */
+%typemap(in) bool & (bool temp),
+             char & (char temp), 
+             signed char & (signed char temp), 
+             unsigned char & (unsigned char temp), 
+             short & (short temp), 
+             unsigned short & (unsigned short temp), 
+             int & (int temp), 
+             unsigned int & (unsigned int temp), 
+             long & (long temp), 
+             unsigned long & (unsigned long temp), 
+             long long & (long long temp), 
+             float & (float temp), 
+             double & (double temp)
+%{ 
+temp = ($*1_ltype)$input; 
+$1 = &temp;
+%}
+
+%typemap(out) const bool &           %{ $result = (jboolean)*$1; %}
+%typemap(out) const char &           %{ $result = (jbyte)*$1; %}
+%typemap(out) const signed char &    %{ $result = (jbyte)*$1; %}
+%typemap(out) const unsigned char &  %{ $result = (jshort)*$1; %}
+%typemap(out) const short &          %{ $result = (jshort)*$1; %}
+%typemap(out) const unsigned short & %{ $result = (jint)*$1; %}
+%typemap(out) const int &            %{ $result = (jint)*$1; %}
+%typemap(out) const unsigned int &   %{ $result = (jlong)*$1; %}
+%typemap(out) const long &           %{ $result = (jint)*$1; %}
+%typemap(out) const unsigned long &  %{ $result = (jlong)*$1; %}
+%typemap(out) const long long &      %{ $result = (jlong)*$1; %}
+%typemap(out) const float &          %{ $result = (jfloat)*$1; %}
+%typemap(out) const double &         %{ $result = (jdouble)*$1; %}
+
+/* const unsigned long long & */
+/* Similar to unsigned long long */
+%typemap(in) const unsigned long long & (unsigned long long temp) { 
+  jclass clazz;
+  jmethodID mid;
+  jbyteArray ba;
+  jbyte* bae;
+  jsize sz;
+  int i;
+
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
+    return $null;
+  }
+  clazz = JCALL1(GetObjectClass, jenv, $input);
+  mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
+  ba = (jbyteArray)JCALL2(CallObjectMethod, jenv, $input, mid);
+  bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
+  sz = JCALL1(GetArrayLength, jenv, ba);
+  $1 = &temp;
+  temp = 0;
+  if (bae[0] == 0) {
+    for(i=sz-1; i>0; i-- ) {
+      temp = (temp << 8) | (unsigned char)bae[sz-i];
+    }
+  } 
+  else {
+    for(i=sz; i>=0; i-- ) {
+      temp = (temp << 8) | (unsigned char)bae[sz-1-i];
+    }
+  }
+  JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
+}
+
+%typemap(out) const unsigned long long & { 
+  jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
+  jbyte* bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
+  jclass clazz = JCALL1(FindClass, jenv, "java/math/BigInteger");
+  jmethodID mid = JCALL3(GetMethodID, jenv, clazz, "<init>", "([B)V");
+  jobject bigint;
+  int i;
+
+  bae[0] = 0;
+  for(i=1; i<9; i++ ) {
+    bae[i] = (jbyte)(*$1>>8*(8-i));
+  }
+
+  JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
+  bigint = JCALL3(NewObject, jenv, clazz, mid, ba);
+  $result = bigint;
+}
 
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
