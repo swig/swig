@@ -91,6 +91,11 @@
 
 %typemap(directorin) char * "$input = rb_str_new2($1);";
 
+/* directorout typemaps */
+
+%typemap(directorout) char *       "$result = STR2CSTR($1);";
+%typemap(directorout) const char * "$result = STR2CSTR($1);";
+
 /* ------------------------------------------------------------
  * Typechecking rules
  * ------------------------------------------------------------ */
