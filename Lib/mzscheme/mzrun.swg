@@ -27,6 +27,8 @@ extern "C" {
   
 #define SWIG_malloc(size) SWIG_MzScheme_Malloc(size, FUNC_NAME)
 #define SWIG_free(mem) free(mem)
+#define SWIG_NewStructFromPtr(ptr,type) \
+        _swig_convert_struct_##type##(ptr)
 
 #define MAXVALUES 6
 #define swig_make_boolean(b) (b ? scheme_true : scheme_false)
@@ -43,6 +45,9 @@ SWIGIMPORT(void *) SWIG_MzScheme_MustGetPtr(Scheme_Object *s, swig_type_info *ty
 SWIGIMPORT(Scheme_Object *) SWIG_MzScheme_NewPointerObj(void *ptr, swig_type_info *type, int owner);
 SWIGIMPORT(void *) SWIG_MzScheme_Malloc(size_t size, const char *func_name);
 SWIGIMPORT(Scheme_Object *) SWIG_MzScheme_PackageValues(int num, Scheme_Object **values);
+SWIGIMPORT(Scheme_Object *)
+SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename, 
+				 int num_fields, char** field_names);
 
 #else
 
@@ -141,6 +146,45 @@ SWIG_MzScheme_PackageValues(int num, Scheme_Object **values) {
     else return scheme_values(num, values);
 }
 
+#ifndef scheme_make_inspector
+#define scheme_make_inspector(x,y) \
+        _scheme_apply(scheme_builtin_value("make-inspector"), x, y)
+#endif
+
+/* Function to create a new struct. */
+SWIGRUNTIME(Scheme_Object *)
+SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename, 
+				 int num_fields, char** field_names)
+{
+    Scheme_Object *new_type;
+    int count_out, i;
+    Scheme_Object **struct_names;
+    Scheme_Object **vals;
+    Scheme_Object **a = (Scheme_Object**) \
+        scheme_malloc(num_fields*sizeof(Scheme_Object*));
+    
+    for (i=0; i<num_fields; ++i) {
+        a[i] = (Scheme_Object*) scheme_intern_symbol(field_names[i]);
+    }
+
+    new_type = scheme_make_struct_type(scheme_intern_symbol(basename),
+                                       NULL /*super_type*/,
+                                       scheme_make_inspector(0, NULL),
+                                       num_fields,
+                                       0 /* auto_fields */,
+                                       NULL /* auto_val */,
+                                       NULL /* properties */);
+    struct_names = scheme_make_struct_names(scheme_intern_symbol(basename),
+                                            scheme_build_list(num_fields,a),
+                                            0 /*flags*/, &count_out);
+    vals = scheme_make_struct_values(new_type, struct_names, count_out, 0);
+
+    for (i = 0; i < count_out; i++)
+        scheme_add_global_symbol(struct_names[i], vals[i],env);
+
+    return new_type;
+}
+    
 #endif
 
 #ifdef __cplusplus

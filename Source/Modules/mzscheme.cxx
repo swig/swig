@@ -34,6 +34,12 @@ Mzscheme Options (available with -mzscheme)\n\
      -noinit         - Do not emit scheme_initialize, scheme_reload,\n\
                        scheme_module_name functions\n";
 
+static String     *fieldnames_tab = 0;
+static String     *convert_tab = 0;
+static String     *convert_proto_tab = 0;
+static String     *struct_name = 0;
+static String     *mangled_struct_name = 0;
+
 static char *prefix=0;
 static bool declaremodule = false;
 static bool noinit = false;
@@ -49,6 +55,7 @@ static  File         *f_init = 0;
 // Used for garbage collection
 static int     exporting_destructor = 0;
 static String *swigtype_ptr = 0;
+static String *cls_swigtype = 0;
 
 class MZSCHEME : public Language {
 public:
@@ -270,7 +277,6 @@ public:
     numreq  = emit_num_required(l);
     
     // adds local variables
-    Wrapper_add_local(f, "_len", "int _len");
     Wrapper_add_local(f, "lenv", "int lenv = 1");
     Wrapper_add_local(f, "values", "Scheme_Object *values[MAXVALUES]");
     
@@ -645,15 +651,128 @@ public:
     return SWIG_OK;
   }
 
+  /* ------------------------------------------------------------
+   * classHandler()
+   * ------------------------------------------------------------ */
   virtual int classHandler(Node *n) {
-    SwigType *t = NewStringf("p.%s", Getattr(n, "name"));
-    swigtype_ptr = SwigType_manglestr(t);
-    Delete(t);
-    Language::classHandler(n);
-    Delete(swigtype_ptr);
-    swigtype_ptr = 0;
-    return SWIG_OK;
+      String     *mangled_classname = 0;
+      String     *real_classname = 0;
+      String     *scm_structname = NewString("");
+      SwigType   *ctype_ptr = NewStringf("p.%s", Getattr(n, "classtype"));
+      
+      SwigType *t = NewStringf("p.%s", Getattr(n, "name"));
+      swigtype_ptr = SwigType_manglestr(t);
+      Delete(t);
+
+      cls_swigtype = SwigType_manglestr(Getattr(n, "name"));
+
+
+      fieldnames_tab       = NewString("");
+      convert_tab          = NewString("");
+      convert_proto_tab    = NewString("");
+
+      struct_name = Getattr(n,"sym:name");
+      mangled_struct_name = Swig_name_mangle(Getattr(n,"sym:name"));
+
+      Printv(scm_structname, struct_name, NIL);
+      Replaceall(scm_structname, "_", "-");
+      
+      real_classname = Getattr(n,"name");
+      mangled_classname = Swig_name_mangle(real_classname);
+
+      Printv(fieldnames_tab, "static const char *_swig_struct_", 
+             cls_swigtype, "_field_names[] = { \n", NIL);
+
+      Printv(convert_proto_tab, "static Scheme_Object *_swig_convert_struct_",
+             cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ");\n", NIL);
+      
+      Printv(convert_tab, "static Scheme_Object *_swig_convert_struct_",
+             cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ")\n {\n", 
+             NIL);
+
+      Printv(convert_tab, 
+             tab4, "Scheme_Object *obj;\n",
+             tab4, "Scheme_Object *fields[_swig_struct_", cls_swigtype, 
+             "_field_names_cnt];\n", 
+             tab4, "int i = 0;\n\n", NIL);
+
+      /* Generate normal wrappers */
+      Language::classHandler(n);
+
+      Printv(convert_tab, tab4, "obj = scheme_make_struct_instance(",
+             "_swig_struct_type_", cls_swigtype, ", i, fields);\n", NIL);
+      Printv(convert_tab, tab4, "return obj;\n}\n\n", NIL);
+
+      Printv(fieldnames_tab, "};\n", NIL);
+
+      Printv(f_header, "static Scheme_Object *_swig_struct_type_", 
+             cls_swigtype, ";\n", NIL);
+
+      Printv(f_header, fieldnames_tab, NIL);
+      Printv(f_header, "#define  _swig_struct_", cls_swigtype, 
+             "_field_names_cnt (sizeof(_swig_struct_", cls_swigtype, 
+             "_field_names)/sizeof(char*))\n", NIL);
+
+      Printv(f_header, convert_proto_tab, NIL);
+      Printv(f_wrappers, convert_tab, NIL);
+
+      Printv(init_func_def, "_swig_struct_type_", cls_swigtype,
+             " = SWIG_MzScheme_new_scheme_struct(menv, \"", scm_structname, "\", ", 
+             "_swig_struct_",  cls_swigtype, "_field_names_cnt,",
+             "(char**) _swig_struct_", cls_swigtype, "_field_names);\n", 
+             NIL);
+      
+      Delete(mangled_classname);
+      Delete(swigtype_ptr);
+      swigtype_ptr = 0;
+      Delete(fieldnames_tab);
+      Delete(convert_tab);
+      Delete(ctype_ptr);
+      Delete(convert_proto_tab);
+      struct_name = 0;
+      mangled_struct_name = 0;
+      Delete(cls_swigtype);
+      cls_swigtype = 0;
+
+      return SWIG_OK;
   }
+    
+    /* ------------------------------------------------------------
+     * membervariableHandler()
+     * ------------------------------------------------------------ */
+
+    virtual int membervariableHandler(Node *n) {
+        Language::membervariableHandler(n);
+
+	if (!is_smart_pointer()) {
+	  String   *symname    = Getattr(n, "sym:name");
+	  String   *name       = Getattr(n, "name");
+	  SwigType *type       = Getattr(n, "type");
+	  String   *swigtype   = SwigType_manglestr(Getattr(n, "type"));
+	  String   *tm         = 0;
+	  String   *access_mem = NewString("");
+	  SwigType *ctype_ptr  = NewStringf("p.%s", Getattr(n, "type"));
+
+	  Printv(fieldnames_tab, tab4, "\"", symname, "\",\n", NIL);
+	  Printv(access_mem, "(ptr)->", name, NIL);
+	  if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
+            Printv(convert_tab, tab4, "fields[i++] = ", NIL);
+            Printv(convert_tab, "_swig_convert_struct_", swigtype, 
+                   "((",  SwigType_str(ctype_ptr, ""), ")&((ptr)->", 
+                   name, "));\n", NIL); 
+	  } else if ((tm = Swig_typemap_lookup_new("varout",n,access_mem,0))) {
+            Replaceall(tm,"$result","fields[i++]");
+            Printv(convert_tab, tm, "\n", NIL);
+	  } else
+            Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
+                         "Unsupported member variable type %s (ignored).\n", 
+                         SwigType_str(type,0));
+	  
+	  Delete(access_mem);
+	}
+        return SWIG_OK;
+    }
+
 
   /* ------------------------------------------------------------
    * validIdentifer()
