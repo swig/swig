@@ -177,7 +177,7 @@ public:
     /* If shadow classing is enabled, we're going to change the module name to "_module" */
     if (itcl) {
       char  filen[256];
-      snprintf(filen, 255,"%s%s.itcl", Swig_file_dirname(outfile), Char(module));
+      sprintf(filen,"%s%s.itcl", Swig_file_dirname(outfile), Char(module));
 
       Insert( module,0,"_" );
 
