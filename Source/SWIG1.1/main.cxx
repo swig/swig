@@ -451,7 +451,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     Dump(f_header,f_runtime);
     Dump(f_wrappers, f_runtime);
-    Dump(f_init, f_runtime);
+    Wrapper_pretty_print(f_init,f_runtime);
     fclose(f_runtime);
     if (checkout) {
       // File was checked out from the SWIG library.   Remove it now

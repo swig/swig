@@ -175,7 +175,7 @@ public:
   virtual void declare_const(char *, char *, SwigType *, char *) = 0;
   virtual void initialize(void) = 0;
   virtual void close(void) = 0;
-  virtual void set_module(char *mod_name,char **mod_list) = 0;
+  virtual void set_module(char *mod_name) = 0;
   virtual void add_native(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void add_typedef(SwigType *t, char *name);
   virtual void create_command(char *cname, char *iname);

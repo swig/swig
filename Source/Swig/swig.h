@@ -242,6 +242,7 @@ typedef struct {
 
 extern Wrapper  *NewWrapper();
 extern void      DelWrapper(Wrapper *w);
+extern void      Wrapper_pretty_print(String *str, File *f);
 extern void      Wrapper_print(Wrapper *w, File *f);
 extern int       Wrapper_add_local(Wrapper *w, const String_or_char *name, const String_or_char *decl);
 extern int       Wrapper_add_localv(Wrapper *w, const String_or_char *name, ...);
