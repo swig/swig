@@ -6,10 +6,6 @@
 %inline 
 %{
   int nfile(FILE *file) {
-    printf("hello %p\n", (void*)file);
-    if (file) {
-      // fprintf(file,"hello\n");
-    }
     return 0;
   }
 
