@@ -46,6 +46,7 @@ CPP_TEST_CASES += \
 	constructor_explicit \
 	lib_typemaps \
 	typemap_namespace \
+	ignore_parameter \
 	smart_pointer_const \
 	smart_pointer_overload \
 	smart_pointer_multi_typedef \
