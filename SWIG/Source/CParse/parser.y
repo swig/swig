@@ -2,8 +2,9 @@
 /* -----------------------------------------------------------------------------
  * parser.y
  *
- *     YACC parser for SWIG1.1.   This grammar is a broken subset of C/C++.
- *     This file is in the process of being deprecated.
+ *     YACC parser for SWIG.   The grammar is a somewhat broken subset of C/C++.
+ *     This file is a bit of a mess and probably needs to be rewritten at
+ *     some point.  Beware.
  *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
@@ -42,10 +43,11 @@ extern void skip_decl(void);
 extern void scanner_check_typedef(void);
 extern void scanner_ignore_typedef(void);
 extern void scanner_last_id(int);
+extern void scanner_clear_rename(void);
 extern void start_inline(char *, int);
 extern String *scanner_ccode;
 extern int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms);
-extern Node *Swig_cparse_template_partial(String *name, ParmList *tparms);
+extern Node *Swig_cparse_template_locate(String *name, ParmList *tparms);
 
 /* NEW Variables */
 
@@ -61,10 +63,6 @@ static Node    *current_class = 0;
 static String  *Classprefix = 0;  
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
-static int      templatenum = 0;
-static String  *templateargs = 0;
-
-int      ShowTemplates = 0;    /* Debugging mode */
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -367,7 +365,6 @@ static void add_symbols(Node *n) {
 
 void add_symbols_copy(Node *n) {
   String *name;
-  String *symname;
   int    oldmode = cplus_mode;
   int    emode = 0;
 
@@ -1394,7 +1391,6 @@ rename_namewarn : RENAME {
               
 feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringbracesemi {
                  String *fname;
-                 Hash *n;
                  String *val;
 		 String *name;
 		 SwigType *t;
@@ -1437,7 +1433,6 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 
               |  FEATURE LPAREN idstring COMMA idstring RPAREN declarator cpp_const SEMI {
                  String *fname;
-                 Hash *n;
                  String *val;
 		 String *name;
 		 SwigType *t;
@@ -1510,7 +1505,6 @@ stringbracesemi : stringbrace { $$ = $1; }
 /* %varargs() directive. */
 
 varargs_directive : VARARGS LPAREN varargs_parms RPAREN declarator cpp_const SEMI {
-                 Hash *n;
                  Parm *val;
 		 String *name;
 		 SwigType *t;
@@ -1576,7 +1570,6 @@ varargs_parms   : parms { $$ = $1; }
    ------------------------------------------------------------ */
 
 typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
-		   Parm *p;
 		   $$ = 0;
 		   if ($3.op) {
 		     $$ = new_node("typemap");
@@ -1589,7 +1582,6 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   }
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list SEMI {
-		 Parm *p;
 		 $$ = 0;
 		 if ($3.op) {
 		   $$ = new_node("typemap");
@@ -1598,7 +1590,6 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		 }
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list EQUAL typemap_parm SEMI {
-                   Parm *p;
 		   $$ = 0;
 		   if ($3.op) {
 		     $$ = new_node("typemapcopy");
@@ -1684,15 +1675,10 @@ types_directive : TYPES LPAREN parms RPAREN SEMI {
 template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p, *tp;
 		  Node *n;
-		  String *ts;
-		  String *args;
-		  String *sargs;
-		  String *tds;
-		  String *cpps;
 		  int     specialized = 0;
 		  $$ = 0;
 
-		  /* We need to patch argument types to respect namespaces */
+		  /* Patch the argument types to respect namespaces */
 		  p = $7;
 		  while (p) {
 		    if (!Getattr(p,"value")) {
@@ -1704,26 +1690,14 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		    }
 		    p = nextSibling(p);
 		  }
-		  templateargs = NewString($5);
-		  SwigType_add_template(templateargs,$7);
-		  args = NewString("");
-		  SwigType_add_template(args,$7);
-		  
-		  /* Look for specialization first */
-		  n = Swig_symbol_clookup_local(templateargs,0);
+		  /* Look for the template */
+		  n = Swig_cparse_template_locate($5,$7);
 		  if (!n) {
-		    Delete(args);
-		    Delete(templateargs);
-		    n = Swig_cparse_template_partial($5,$7);
-		  } else {
-		    specialized = 1;
-		  }
-		  /* Try to locate the template node */
-		  if (!n) {
-		    n = Swig_symbol_clookup_local($5,0);
+
 		  }
 		  if (n && (Strcmp(nodeType(n),"template") == 0)) {
 		    Parm *tparms = Getattr(n,"templateparms");
+		    if (!tparms) specialized = 1;
 		    if (!specialized && ((ParmList_len($7) > ParmList_len(tparms)))) {
 		      Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
 		    } else if (!specialized && ((ParmList_len($7) < ParmList_numrequired(tparms)))) {
@@ -1734,7 +1708,6 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		      ParmList *temparms;
 		      if (specialized) temparms = CopyParmList($7);
 		      else temparms = CopyParmList(tparms);
-		      ts = NewString("");
 		      /* Create typedef's and arguments */
 		      p = $7;
 		      tp = temparms;
@@ -1748,14 +1721,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 			} else {
 			  SwigType *ty = Getattr(p,"type");
 			  if (ty) {
-			    tds = NewStringf("__swigtmpl%d",templatenum);
-			    templatenum++;
-			    Setattr(tp,"typedef",tds);
 			    Setattr(tp,"type",ty);
-			    
-			    /* Probably need namespace check here */
-			    Printf(ts,"typedef %s;\n", SwigType_str(ty,tds));
-			    Delete(tds);
 			  }
 			}
 			p = nextSibling(p);
@@ -1765,7 +1731,6 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 			  def_supplied = 1;
 			}
 		      }
-		      /*			Printf(stderr,"TEMPL: %s %s\n", nodeType(n), Getattr(n,"templatetype")); */
 		      $$ = copy_node(n);
 		      /* We need to set the node name based on name used to instantiate */
 		      Setattr($$,"name",$5);
@@ -1778,7 +1743,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		      Delete(temparms);
 		      Setattr($$,"sym:name", $3);
 		      Delattr($$,"templatetype");
-		      Setattr($$,"template","1");
+		      Setattr($$,"template",n);
 		      Setfile($$,cparse_file);
 		      Setline($$,cparse_line);
 		      add_symbols_copy($$);
@@ -1803,20 +1768,6 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 			if (!classes) classes = NewHash();
 			Setattr(classes,Swig_symbol_qualifiedscopename($$),$$);
 		      }
-		      /* Make a code insertion block to include typedefs */
-		      if (0) {
-			Node *ins = new_node("insert");
-			Setattr(ins,"code",ts);
-			Delete(ts);
-			set_nextSibling(ins,$$);
-			$$ = ins;
-		      }
-		    }
-		  } else {
-		    if (n) {
-		      Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", $5, nodeType(n));
-		    } else {
-		      Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", $5);
 		    }
 		  }
                }
@@ -1955,7 +1906,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 
                | storage_class ENUM ename LBRACE enumlist RBRACE declarator c_decl_tail {
 		 Node *n;
-		 SwigType *ty;
+		 SwigType *ty = 0;
 		 String   *unnamed = 0;
 
 		 $$ = new_node("enum");
@@ -2291,18 +2242,51 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
    ------------------------------------------------------------ */
 
 cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possible {
+		      String *tname = 0;
                       $$ = $5;
+		      if ($$) tname = Getattr($$,"name");
+
 		      /* Check if the class is a template specialization */
-		      if (($$) && (Strstr(Getattr($$,"name"),"<")) && (Strncmp(Getattr($$,"name"),"operator ",9) != 0)) {
+		      if (($$) && (Strstr(tname,"<")) && (Strncmp(tname,"operator ",9) != 0)) {
+			/* If a specialization.  Check if defined. */
+			Node *tempn = 0;
+			{
+			  String *tbase = SwigType_templateprefix(tname);
+			  tempn = Swig_symbol_clookup_local(tbase,0);
+			  if (!tempn || (Strcmp(nodeType(tempn),"template") != 0)) {
+			    Swig_warning(WARN_PARSE_TEMPLATE_SP_UNDEF, Getfile($$),Getline($$),"Specialization of non-template '%s'.\n", tbase);
+			    tempn = 0;
+			  }
+			  Delete(tbase);
+			}
 			Setattr($$,"specialization","1");
 			Setattr($$,"templatetype",nodeType($$));
 			set_nodeType($$,"template");
 			/* Template partial specialization */
 			if (($3) && ($5)) {
+			  List   *tlist;
+			  String *targs = SwigType_templateargs(tname);
+			  tlist = SwigType_parmlist(targs);
+			  /*			      Printf(stdout,"targs = '%s'\n", targs); */
 			  if (!Getattr($$,"sym:weak")) {
 			    Setattr($$,"sym:typename","1");
 			  }
-			  Setattr($$,"templateparms",$3);
+			  /* Patch the parameter list */
+			  if (tempn) {
+			    Parm *p,*p1;
+			    ParmList *tp = CopyParmList(Getattr(tempn,"templateparms"));
+			    p = $3;
+			    p1 = tp;
+			    while (p && p1) {
+			      String *pn = Getattr(p,"name");
+			      if (pn) Setattr(p1,"name",pn);
+			      p = nextSibling(p);
+			      p1 = nextSibling(p1);
+			    }
+			    Setattr($$,"templateparms",tp);
+			  } else {
+			    Setattr($$,"templateparms",$3);
+			  }
 			  Delattr($$,"specialization");
 			  Setattr($$,"partialspecialization","1");
 			  /* Create a specialized name for matching */
@@ -2310,50 +2294,54 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			    Parm *p = $3;
 			    String *fname = NewString(Getattr($$,"name"));
 			    char   tmp[32];
-			    int    i = 1;
+			    int    i;
 			    while (p) {
 			      String *n = Getattr(p,"name");
-			      if (!n) n= Getattr(p,"type");
-			      if (n) {
-				sprintf(tmp,"$%d",i);
-				Replaceid(fname,n,tmp);
+			      if (!n) {
+				p = nextSibling(p);
+				continue;
 			      }
-			      i++;
+			      for (i = 0; i < Len(tlist); i++) {
+				if (Strstr(Getitem(tlist,i),n)) {
+				  sprintf(tmp,"$%d",i+1);
+				  Replaceid(fname,n,tmp);
+				}
+			      }
 			      p = nextSibling(p);
 			    }
+			    /*				  Printf(stdout,"Installing '%s'\n", fname); */
 			    Swig_symbol_cadd(fname,$$);
 			  }
+			  Delete(tlist);
+			  Delete(targs);
 			}
+			
 			$$ = 0; /* Do not place in parse tree, only a template specialization */
 		      }  else {
-			  Setattr($$,"templatetype",nodeType($5));
-			  set_nodeType($$,"template");
-			  Setattr($$,"templateparms", $3);
-			  if (!Getattr($$,"sym:weak")) {
-			    Setattr($$,"sym:typename","1");
+			Setattr($$,"templatetype",nodeType($5));
+			set_nodeType($$,"template");
+			Setattr($$,"templateparms", $3);
+			if (!Getattr($$,"sym:weak")) {
+			  Setattr($$,"sym:typename","1");
+			}
+			add_symbols($$);
+			/* We also place a fully parameterized version in the symbol table */
+			{
+			  Parm *p;
+			  String *fname = NewStringf("%s<(",Getattr($$,"name"));
+			  p = $3;
+			  while (p) {
+			    String *n = Getattr(p,"name");
+			    if (!n) n = Getattr(p,"type");
+			    Printf(fname,"%s", n);
+			    p = nextSibling(p);
+			    if (p) Putc(',',fname);
 			  }
-			  add_symbols($$);
-			  /* We also place a fully parameterized version in the symbol table */
-			  {
-			    Parm *p;
-			    String *fname = NewStringf("%s<(",Getattr($$,"name"));
-			    p = $3;
-			    while (p) {
-			      String *n = Getattr(p,"name");
-			      if (!n) n = Getattr(p,"type");
-			      Printf(fname,"%s", n);
-			      p = nextSibling(p);
-			      if (p) Putc(',',fname);
-			    }
-			    Printf(fname,")>");
-			    Swig_symbol_cadd(fname,$$);
-			  }
+			  Printf(fname,")>");
+			  Swig_symbol_cadd(fname,$$);
+			}
 		      }
                   }
-                /* Forward template class declaration */
-/*                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_forward_class_decl { 
-                     $$ = 0; 
-		     } */
                 ;
 
 cpp_temp_possible:  c_decl {
@@ -2970,7 +2958,6 @@ valparm        : parm {
                ;
  
 def_args       : EQUAL definetype { 
-                  Node *n;
                   $$ = $2; 
 		  /* If the value of a default argument is in the symbol table,  we replace it with it's
                      fully qualified name.  Needed for C++ enums and other features */
@@ -2979,18 +2966,6 @@ def_args       : EQUAL definetype {
 		    $$.val = 0;
 		    $$.rawval = 0;
 		  }
-		  /*
-		  n = Swig_symbol_clookup($2.val,0);
-		  if 
-		    String *q = Swig_symbol_qualified(n);
-		    if (q) {
-		      $$.val = NewStringf("%s::%s",q,Getattr(n,"name"));
-		      Delete(q);
-		    } else {
-		      $$.val = NewString($2.val);
-		    }
-		  }
-		  */
                }
                | EQUAL AND idcolon {
 		 Node *n = Swig_symbol_clookup($3,0);
@@ -3223,7 +3198,6 @@ direct_declarator : idcolon {
 		    $$.type = t;
                   }
                   | direct_declarator LPAREN parms RPAREN {
-	            List *l;
 		    SwigType *t;
                     $$ = $1;
 		    t = NewString("");
@@ -3357,7 +3331,6 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
                     $$ = $2;
 		  }
                   | direct_abstract_declarator LPAREN parms RPAREN {
-	            List *l;
 		    SwigType *t;
                     $$ = $1;
 		    t = NewString("");
@@ -3375,7 +3348,6 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		    }
 		  }
                   | LPAREN parms RPAREN {
-	            List *l;
                     $$.type = NewString("");
                     SwigType_add_function($$.type,$2);
 		    $$.parms = $2;
@@ -3751,11 +3723,11 @@ exprcompound   : expr PLUS expr {
 	       }
                | expr LAND expr {
 		 $$.val = NewStringf("%s&&%s",$1.val,$3.val);
-		 $$.type = T_ERROR;
+		 $$.type = T_INT;
 	       }
                | expr LOR expr {
 		 $$.val = NewStringf("%s||%s",$1.val,$3.val);
-		 $$.type = T_ERROR;
+		 $$.type = T_INT;
 	       }
                |  MINUS expr %prec UMINUS {
 		 $$.val = NewStringf("-%s",$2.val);
@@ -3767,7 +3739,7 @@ exprcompound   : expr PLUS expr {
 	       }
                | LNOT expr {
                  $$.val = NewStringf("!%s",$2.val);
-		 $$.type = T_ERROR;
+		 $$.type = T_INT;
 	       }
                | type LPAREN {
                  skip_balanced('(',')');

@@ -12,6 +12,9 @@
 static char cvsroot[] = "$Header$";
 
 #include "swig.h"
+#include "cparse.h"
+
+static int template_debug = 0;
 
 static void add_parms(ParmList *p, List *patchlist, List *typelist) {
   while (p) {
@@ -22,6 +25,11 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist) {
     p = nextSibling(p);
   }
 }
+
+void Swig_cparse_debug_templates(int x) {
+    template_debug = x;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_cparse_template_expand()
  *
@@ -165,6 +173,7 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
       cn = nextSibling(cn);
     }
   }
+  return 0;
 }
 
 int
@@ -173,7 +182,6 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   String *templateargs;
   String *tname;
   String *iname;
-  Parm *p;
   String *tbase;
   patchlist = NewList();
   cpatchlist = NewList();
@@ -213,60 +221,57 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
       name = Getattr(tp,"name");
       value = Getattr(p,"value");
       tydef = Getattr(p,"typedef");
-      assert(name);
-      if (!value) {
-	value = Getattr(p,"type");
-	valuestr = SwigType_str(value,0);
-      } else {
-	valuestr = Copy(value);
-      }
-      assert(value);
-      
-      /* Need to patch default arguments */
-      {
-	Parm *rp = nextSibling(p);
-	while (rp) {
-	  String *rvalue = Getattr(rp,"value");
-	  if (rvalue) {
-	    Replace(rvalue,name,value, DOH_REPLACE_ID);
+      if (name) {
+	  if (!value) {
+	      value = Getattr(p,"type");
+	      valuestr = SwigType_str(value,0);
+	  } else {
+	      valuestr = Copy(value);
 	  }
-	  rp = nextSibling(rp);
-	}
+	  assert(value);
+	  
+	  /* Need to patch default arguments */
+	  {
+	      Parm *rp = nextSibling(p);
+	      while (rp) {
+		  String *rvalue = Getattr(rp,"value");
+		  if (rvalue) {
+		      Replace(rvalue,name,value, DOH_REPLACE_ID);
+		  }
+		  rp = nextSibling(rp);
+	      }
+	  }
+	  
+	  sz = Len(patchlist);
+	  for (i = 0; i < sz; i++) {
+	      String *s = Getitem(patchlist,i);
+	      Replace(s,name,value, DOH_REPLACE_ID);
+	  }
+	  sz = Len(typelist);
+	  for (i = 0; i < sz; i++) {
+	      String *s = Getitem(typelist,i);
+	      Replace(s,name,value, DOH_REPLACE_ID);
+	      /*	Printf(stdout,"s='%s' tname = '%s', iname = '%s'\n", s, tname,iname); */
+	      SwigType_typename_replace(s,tbase,iname);
+	      
+	  }
+	  if (!tydef) {
+	      tydef = value;
+	  }
+	  tmp = NewStringf("#%s",name);
+	  tmpr = NewStringf("\"%s\"", value);
+	  
+	  sz = Len(cpatchlist);
+	  for (i = 0; i < sz; i++) {
+	      String *s = Getitem(cpatchlist,i);
+	      Replace(s,tmp,tmpr, DOH_REPLACE_ID);
+	      /*	Replace(s,name,tydef, DOH_REPLACE_ID); */
+	      Replace(s,name,valuestr, DOH_REPLACE_ID);
+	  }
+	  Delete(tmp);
+	  Delete(tmpr);
+	  Delete(valuestr);
       }
-
-      /*      Printf(stdout,"value = %s\n", value);
-      Printf(stdout,"tydef = %s\n", tydef);
-      Printf(stdout,"name  = %s\n", name); */
-
-      sz = Len(patchlist);
-      for (i = 0; i < sz; i++) {
-	String *s = Getitem(patchlist,i);
-	Replace(s,name,value, DOH_REPLACE_ID);
-      }
-      sz = Len(typelist);
-      for (i = 0; i < sz; i++) {
-	String *s = Getitem(typelist,i);
-	Replace(s,name,value, DOH_REPLACE_ID);
-	/*	Printf(stdout,"s='%s' tname = '%s', iname = '%s'\n", s, tname,iname); */
-	SwigType_typename_replace(s,tbase,iname);
-
-      }
-      if (!tydef) {
-	tydef = value;
-      }
-      tmp = NewStringf("#%s",name);
-      tmpr = NewStringf("\"%s\"", value);
-
-      sz = Len(cpatchlist);
-      for (i = 0; i < sz; i++) {
-	String *s = Getitem(cpatchlist,i);
-	Replace(s,tmp,tmpr, DOH_REPLACE_ID);
-	/*	Replace(s,name,tydef, DOH_REPLACE_ID); */
-	Replace(s,name,valuestr, DOH_REPLACE_ID);
-      }
-      Delete(tmp);
-      Delete(tmpr);
-      Delete(valuestr);
       p = nextSibling(p);
       tp = nextSibling(tp);
       if (!p) p = tp;
@@ -282,34 +287,134 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 }
 
 /* -----------------------------------------------------------------------------
- * cparse_template_partial()
+ * cparse_template_locate()
  *
- * Search for a template partial specialization that might match
+ * Search for a template that matches name with given parameters.
  * ----------------------------------------------------------------------------- */
 
 Node *
-Swig_cparse_template_partial(String *name, Parm *parms) {
+Swig_cparse_template_locate(String *name, Parm *parms) {
   Node   *n;
   String *tname;
-  Parm   *p;
-  char   tmp[32];
-  int    i = 1;
 
-  tname = NewStringf("%s<(",name);
-  p = parms;
-  while (p) {
-    String *t = SwigType_default(Getattr(p,"type"));
-    sprintf(tmp,"$%d",i);
-    Replaceid(t,"SWIGTYPE",tmp);
-    Replaceid(t,"SWIGENUM",tmp);
-    Printf(tname,"%s",t);
-    p = nextSibling(p);
-    if (p) Putc(',',tname);
+  if (template_debug) {
+      String *tname = NewString(name);
+      SwigType_add_template(tname,parms);
+      Printf(stdout,"\n%s:%d: template_debug: Searching for %s\n", cparse_file, cparse_line, tname);
+      Delete(tname);
   }
-  Printf(tname,")>");
-  /*  Printf(stdout,"Searching for '%s'\n", tname); */
-  n = Swig_symbol_clookup_local(tname,0);
-  Delete(tname);
+
+  /* Search for an exact specialization.
+     Example: template<> class name<int> { ... } */
+  {
+      tname = NewString(name);
+      SwigType_add_template(tname,parms);
+      if (template_debug) {
+	  Printf(stdout,"    searching: '%s'\n", tname);
+      }
+      n = Swig_symbol_clookup_local(tname,0);
+      Delete(tname);
+      if (n) {
+	  Node *tn;
+	  if (Strcmp(nodeType(n),"template") == 0) goto success;
+	  tn = Getattr(n,"template");
+	  if (tn) {
+	      n = tn;
+	      goto success; /* Previously wrapped by a template return that */
+	  }
+	  Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType(n));
+	  return 0;        /* Found a match, but it's not a template of any kind. */
+      }
+  }
+  /* Search for partial specialization. 
+     Example: template<typename T> class name<T *> { ... } */
+
+  {
+      /* First, we search using an exact type prototype */
+      Parm   *p;
+      char   tmp[32];
+      int    i = 1;
+
+      /* Do a partial match based on the SWIG default types. */
+      tname = NewStringf("%s<(",name);
+      p = parms;
+      while (p) {
+	  String *t, *tn;
+	  t = Getattr(p,"type");
+	  if (t) {
+	      t = Copy(t);
+	      tn = SwigType_base(t);
+	      sprintf(tmp,"$%d",i);
+	      Replaceid(t,tn,tmp);
+	      Printf(tname,"%s",t);
+	      Delete(tn);
+	      Delete(t);
+	  } else {
+	      Printf(tname,"%s",Getattr(p,"value"));
+	  }
+	  p = nextSibling(p);
+	  if (p) Putc(',',tname);
+	  i++;
+      }
+      Printf(tname,")>");
+      if (template_debug) {
+	  Printf(stdout,"    searching: '%s'\n", tname);
+      }
+      n = Swig_symbol_clookup_local(tname,0);
+      Delete(tname);
+      if (n) goto success;
+  }
+
+  {
+      Parm   *p;
+      char   tmp[32];
+      int    i = 1;
+
+      /* Do a partial match based on the SWIG default types. */
+      tname = NewStringf("%s<(",name);
+      p = parms;
+      while (p) {
+	  String *t = Getattr(p,"type");
+	  if (t) {
+	      t = SwigType_default(t);
+	      sprintf(tmp,"$%d",i);
+	      Replaceid(t,"SWIGTYPE",tmp);
+	      Replaceid(t,"SWIGENUM",tmp);
+	      Printf(tname,"%s",t);
+	      Delete(t);
+	  } else {
+	      Printf(tname,"%s",Getattr(p,"value"));
+	  }
+	  p = nextSibling(p);
+	  if (p) Putc(',',tname);
+	  i++;
+      }
+      Printf(tname,")>");
+      if (template_debug) {
+	  Printf(stdout,"    searching: '%s'\n", tname);
+      }
+      n = Swig_symbol_clookup_local(tname,0);
+      Delete(tname);
+      if (n) goto success;
+  }
+  /* Search for generic template */
+  if (template_debug) {
+      Printf(stdout,"    searching: '%s'\n", name);
+  }
+  n = Swig_symbol_clookup_local(name,0);
+
+  if (!n) {
+      Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", name);
+      return 0;
+  }
+  if (n && (Strcmp(nodeType(n),"template") != 0)) {
+      Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType(n));	  
+      return 0;
+  }
+ success:
+  if (template_debug) {
+      Swig_print_node(n);
+  }
   return n;
 }
 
