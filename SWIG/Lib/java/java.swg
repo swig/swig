@@ -411,7 +411,7 @@ $1 = &temp; %}
 
 /* Default array handling */
 %typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)*(void**)&$input; %}
-%typemap(out) SWIGTYPE [] %{ *($1_ltype*)&$result = $1; %} 
+%typemap(out) SWIGTYPE [] %{ ($1_ltype)*(void**)&$result = $1; %} 
 
 /* Arrays of primitive types use the following macro. The array typemaps use support functions. */
 %define JAVA_ARRAYS_TYPEMAPS(CTYPE, JTYPE, JFUNCNAME)
@@ -565,8 +565,6 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 
 %typemap(freearg) SWIGTYPE ARRAYSOFCLASSES[ANY]
 %{ free($1); %}
-
-%include "java_arrays.i"
 
 /* JNI types */
 %typemap(in) jboolean,
@@ -766,7 +764,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 
 %typemap(javafinalize) SWIGTYPE %{
   protected void finalize() {
-    _delete();
+    delete();
   }
 %}
 
