@@ -187,11 +187,28 @@ void emit_action(Node *n, Wrapper *f) {
   }
   action = Getattr(n,"wrap:action");
   assert(action);
-  if ((tm = Swig_except_lookup())) {
-    Replace(tm,"$name",Getattr(n,"name"), DOH_REPLACE_ANY);
-    Replace(tm,"$function", action, DOH_REPLACE_ANY);      /* Deprecated */
-    Replace(tm,"$action", action, DOH_REPLACE_ANY);
-    Printv(f->code,tm,0);
+
+  /* Exception handling code */
+
+  /* Look for except typemap */
+  tm = Swig_typemap_lookup_new("except",n,"result",0);
+
+  /* Look for except feature */
+  if (!tm) {
+    tm = Getattr(n,"feature:except");
+  }
+
+  /* Look for global exception (deprecated) */
+  if (!tm) {
+    tm = Swig_except_lookup();
+  }
+  
+  if (tm) {
+    Replaceall(tm,"$name",Getattr(n,"name"));
+    Replaceall(tm,"$symname", Getattr(n,"sym:name"));
+    Replaceall(tm,"$function", action);
+    Replaceall(tm,"$action", action);
+    Printv(f->code,tm,"\n", 0);
   } else {
     Printv(f->code, action, 0);
   }
