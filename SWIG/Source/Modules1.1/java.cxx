@@ -18,7 +18,6 @@ Java Options\n\
      -proxy           - generate proxy classes\n\
      -nofinalize      - do not generate finalize methods in proxy classes\n";
 
-static  File         *f_java = 0;
 static  File         *f_shadow = 0;
 static  File         *f_runtime = 0;
 static  File         *f_header = 0;
@@ -35,6 +34,7 @@ static int    wrapping_member = 0; // Set to 1 when wrapping a member variable/e
 static int    nofinalize = 0;          // for generating finalize methods
 
 static String *module = 0;  // Module name
+static String *module_class_code = 0; // Module class Java code - mainly native methods
 static String *shadow_classdef = 0;
 static String *shadow_code = 0;
 static String *shadow_classname = 0;
@@ -43,7 +43,6 @@ static String *shadow_constants_code = 0;
 static String *module_constants_code = 0;
 static String *package = 0; // Package name
 static String *jnipackage = 0; // JNI package name
-static String *module_extra_code = 0; // Extra code for the module class from %pragma
 static String *all_shadow_extra_code = 0; // Extra code for all shadow classes from %pragma
 static String *this_shadow_extra_code = 0; // Extra code for current single shadow class from %pragma
 static String *module_import = 0; //module import from %pragma
@@ -166,10 +165,10 @@ int JAVA::top(Node *n) {
   Swig_register_filebyname("runtime",f_runtime);
   Swig_register_filebyname("init",f_init);
 
+  module_class_code = NewString("");
   shadow_classdef = NewString("");
   shadow_code = NewString("");
   module_constants_code = NewString("");
-  module_extra_code = NewString("");
   module_baseclass = NewString("");
   module_interfaces = NewString("");
   module_class_modifiers = NewString("");
@@ -214,20 +213,23 @@ int JAVA::top(Node *n) {
 
   Delete(wrapper_name);
 
-  // Generate the java class
+  Printf(f_wrappers,"#ifdef __cplusplus\n");
+  Printf(f_wrappers,"extern \"C\" {\n");
+  Printf(f_wrappers,"#endif\n");
+
+  /* Emit code */
+  Language::top(n);
+
+  // Generate the Java module class
   String *filen = NewStringf("%s.java", module);
-  f_java = NewFile(filen,"w");
+  File *f_java = NewFile(filen,"w");
   if(!f_java) {
     Printf(stderr,"Unable to open %s\n", filen);
     SWIG_exit(EXIT_FAILURE);
   }
   Delete(filen); filen = NULL;
 
-  Printf(f_wrappers,"#ifdef __cplusplus\n");
-  Printf(f_wrappers,"extern \"C\" {\n");
-  Printf(f_wrappers,"#endif\n");
-
-  // Start writing out the module class
+  // Start writing out the Java module class
   if(Len(package) > 0)
     Printf(f_java, "package %s;\n\n", package);
 
@@ -246,11 +248,9 @@ int JAVA::top(Node *n) {
   if (module_interfaces)
     Printv(f_java, module_interfaces, " ", NULL);
   Printf(f_java, "{\n", module);
-  if (module_extra_code)
-    Printv(f_java, module_extra_code, NULL);
 
-  /* Emit code */
-  Language::top(n);
+  // Add the native methods
+  Printv(f_java, module_class_code, NULL);
 
   // Write out all the enums constants
   if (strlen(Char(module_constants_code)) != 0 )
@@ -258,7 +258,7 @@ int JAVA::top(Node *n) {
 
   Printv(f_java,module_conversion_code,NULL);
 
-  // Finish off the java class
+  // Finish off the Java class
   Printf(f_java, "}\n");
   Close(f_java);
 
@@ -269,10 +269,10 @@ int JAVA::top(Node *n) {
   Printf(f_wrappers,"}\n");
   Printf(f_wrappers,"#endif\n");
 
+  Delete(module_class_code); module_class_code = NULL;
   Delete(shadow_classdef); shadow_classdef = NULL;
   Delete(shadow_code); shadow_code = NULL;
   Delete(module_constants_code); module_constants_code = NULL;
-  Delete(module_extra_code); module_extra_code = NULL;
   Delete(module_baseclass); module_baseclass = NULL;
   Delete(module_interfaces); module_interfaces = NULL;
   Delete(module_class_modifiers); module_class_modifiers = NULL;
@@ -424,8 +424,8 @@ int JAVA::functionWrapper(Node *n) {
 	 Wrapper_add_localv(f,"jresult", jnirettype, "jresult = 0",NULL);
   }
 
-  Printf(f_java, "  %s ", module_method_modifiers);
-  Printf(f_java, "native %s %s(", javarettype, iname);
+  Printf(module_class_code, "  %s ", module_method_modifiers);
+  Printf(module_class_code, "native %s %s(", javarettype, iname);
 
   Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NULL);
 
@@ -476,8 +476,8 @@ int JAVA::functionWrapper(Node *n) {
     }
 
     /* Add to java function header */
-    if(gencomma) Printf(f_java, ", ");
-    Printf(f_java, "%s %s", javaparamtype, source);
+    if(gencomma) Printf(module_class_code, ", ");
+    Printf(module_class_code, "%s %s", javaparamtype, source);
 
     gencomma = 1;
 
@@ -549,7 +549,7 @@ int JAVA::functionWrapper(Node *n) {
     }
   }
 
-  Printf(f_java, ");\n");
+  Printf(module_class_code, ");\n");
   Printf(f->def,") {");
 
   if (Getattr(n, "value") && Cmp(Getattr(n, "storage"), "%constant") == 0)
@@ -671,7 +671,7 @@ int JAVA::enumDeclaration(Node *n) {
 int JAVA::constantWrapper(Node *n) {
   String *symname = Getattr(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
-  String *value   = GetChar(n,"value");
+  String *value   = Getattr(n,"value");
   ParmList  *l    = Getattr(n,"parms");
   String *tm;
   String *java_type = NewString("");
@@ -784,7 +784,7 @@ int JAVA::pragmaDirective(Node *n) {
 	else if(Strcmp(code, "modulecode") == 0 || Strcmp(code, "module") == 0) {
 	    if(Strcmp(code, "module") == 0)
 		Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with modulecode pragma.\n", input_file, line_number);
-	    Printf(module_extra_code, "%s\n", strvalue);
+	    Printf(module_class_code, "%s\n", strvalue);
 	} 
 	else if(Strcmp(code, "allshadowcode") == 0 || Strcmp(code, "shadow") == 0) {
 	    if(shadow && all_shadow_extra_code) {
