@@ -1,11 +1,8 @@
 from  abstract_typedef2 import *
-e = Engine()
 
-a = A()
+a = A_UF()
   
 
-if a.write(e) != 1:
-  raise RuntimeError
 
 
 
