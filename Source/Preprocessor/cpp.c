@@ -331,7 +331,7 @@ find_args(DOH *s)
     if (level > 0) {
       goto unterm;
     }
-    String_chop(str);
+    Chop(str);
     if (Len(args) || Len(str))
       Append(args,str);
 
@@ -931,7 +931,7 @@ SWIG_cpp_parse(DOH *s)
       break;
     case 50:
       /* Check for various preprocessor directives */
-      String_chop(value);
+      Chop(value);
       if (Cmp(id,"define") == 0) {
 	if (allow) {
 	  DOH *m, *v, *v1;
