@@ -1833,6 +1833,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		    }
 		  }
 
+		  n = Swig_cparse_template_locate($5,$7);
+
 		  /* Patch the argument types to respect namespaces */
 		  p = $7;
 		  while (p) {
@@ -1846,9 +1848,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		    p = nextSibling(p);
 		  }
 		  /* Look for the template */
-		  n = Swig_cparse_template_locate($5,$7);
-		  if (!n) {
 
+		  if (!n) {
 		  }
 		  if (n && (Strcmp(nodeType(n),"template") == 0)) {
 		    Parm *tparms = Getattr(n,"templateparms");
@@ -1887,6 +1888,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			  def_supplied = 1;
 			}
 		      }
+
 		      $$ = copy_node(n);
 		      /* We need to set the node name based on name used to instantiate */
 		      Setattr($$,"name",Copy($5));
@@ -1911,6 +1913,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		      Setline($$,cparse_line);
 		      Delete(temparms);
 		      
+
 		      add_symbols_copy($$);
 		      if (Strcmp(nodeType($$),"class") == 0) {
 			/* Merge in addmethods for this class */
@@ -3174,8 +3177,10 @@ def_args       : EQUAL definetype {
 		 if (n) {
 		   String *q = Swig_symbol_qualified(n);
 		   if (Getattr(n,"access")) {
-		     Swig_warning(WARN_PARSE_PRIVATE, cparse_file, cparse_line,"'%s' is private in this context.\n", $3);
-		     Swig_warning(WARN_PARSE_BAD_DEFAULT, cparse_file, cparse_line,"Can't set default argument value (ignored)\n");
+		     if (cplus_mode == CPLUS_PUBLIC) {
+		       Swig_warning(WARN_PARSE_PRIVATE, cparse_file, cparse_line,"'%s' is private in this context.\n", $3);
+		       Swig_warning(WARN_PARSE_BAD_DEFAULT, cparse_file, cparse_line,"Can't set default argument value (ignored)\n");
+		     }
 		     $$.val = 0;
 		   } else {
 		     if (q) {
@@ -3839,8 +3844,10 @@ expr           :  exprnum { $$ = $1; }
 		 if (n) {
 		   String *ns;
 		   if (Getattr(n,"access")) {
-		     Swig_warning(WARN_PARSE_PRIVATE,cparse_file, cparse_line, "'%s' is private in this context.\n", $1);
-		     $$.type = T_ERROR;
+		     if (cplus_mode == CPLUS_PUBLIC) {
+		       Swig_warning(WARN_PARSE_PRIVATE,cparse_file, cparse_line, "'%s' is private in this context.\n", $1);
+		       $$.type = T_ERROR;
+		     }
 
 		   }
 		   ns = Swig_symbol_qualified(n);

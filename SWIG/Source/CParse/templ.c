@@ -141,7 +141,7 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
       Append(name,templateargs);
     }
     name = Getattr(n,"sym:name");
-    if (Strstr(name,"<")) {
+    if (name && Strstr(name,"<")) {
       Setattr(n,"sym:name", Copy(tname));
     } else {
       Replace(name,tname,rname, DOH_REPLACE_ANY);

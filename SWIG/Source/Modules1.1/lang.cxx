@@ -1357,6 +1357,7 @@ int Language::constructorDeclaration(Node *n) {
       }
     } else {
       if (name && (Cmp(name,ClassName)) && !(Getattr(n,"template"))) {
+	Printf(stdout,"name = '%s', ClassName='%s'\n", name, ClassName);
 	Swig_warning(WARN_LANG_RETURN_TYPE, input_file,line_number,"Function %s must have a return type.\n", 
 		     name);
 	Swig_restore(&n);

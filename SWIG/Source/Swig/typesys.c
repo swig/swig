@@ -270,7 +270,7 @@ void SwigType_print_scope(Typetab *t) {
     t = Getattr(scopes,tkey);
     ttab = Getattr(t,"typetab");
     
-    Printf(stdout,"Type scope '%s' (%x)\n", Getattr(t,"name"), t);
+    Printf(stdout,"Type scope '%s' (%x)\n", Getattr(t,"qname"), t);
     Printf(stdout,"-------------------------------------------------------------\n");
     for (key = Firstkey(ttab); key; key = Nextkey(ttab)) {
       Printf(stdout,"%40s -> %s\n", key, Getattr(ttab,key));
@@ -281,6 +281,13 @@ void SwigType_print_scope(Typetab *t) {
 static Typetab *
 find_scope(Typetab *s, String *nameprefix) {
   Typetab *ss;
+  String  *nnameprefix = 0;
+
+  if (SwigType_istemplate(nameprefix)) {
+    nnameprefix = SwigType_typedef_resolve_all(nameprefix);
+    nameprefix = nnameprefix;
+  }
+  
   ss = s;
   while (ss) {
     String *full;
@@ -297,10 +304,12 @@ find_scope(Typetab *s, String *nameprefix) {
     }
     Delete(full);
     if (s) {
+      if (nnameprefix) Delete(nnameprefix);
       return s;
     }
     ss = Getattr(ss,"parent");
   }
+  if (nnameprefix) Delete(nnameprefix);
   return 0;
 }
 
@@ -536,7 +545,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   if (newtype) {
     Delete(type);
   }
-  /*Printf(stdout,"%s --> %s\n", t,r);*/
+  /*  Printf(stdout,"%s --> %s\n", t,r); */
   return r;
 }
 
@@ -1153,5 +1162,3 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   Delete(types);
   Delete(table);
 }
-
-

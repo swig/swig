@@ -117,7 +117,7 @@ class TypePass : public Dispatcher {
 		      tname = SwigType_typedef_resolve_all(bname);
 		      sname = tname;
 		    }
-		    /* Printf(stdout,"'%s' ---> '%s'\n", bname, SwigType_typedef_resolve_all(bname));*/
+		    /*		    Printf(stdout,"'%s' ---> '%s'\n", bname, SwigType_typedef_resolve_all(bname)); */
 		    while (1) {
 			bcls = Swig_symbol_clookup(sname,st);
 			if (bcls) {
@@ -258,6 +258,8 @@ public:
 	List   *olist = normalize;
 	Symtab *symtab;
 	String *nname = 0;
+	String *fname = 0;
+	String *scopename = 0;
 
 	normalize = NewList();
 
@@ -266,28 +268,33 @@ public:
 	  if (SwigType_istemplate(name)) {
 	    // We need to fully resolve the name to make templates work correctly */
 	    Node *cn;
-	    String *fname = SwigType_typedef_resolve_all(name);
+	    fname = SwigType_typedef_resolve_all(name);
 	    if (Strcmp(fname,name) != 0) {
 	      cn = Swig_symbol_clookup_local(fname,0);
 	      if ((!cn) || (Strcmp(nodeType(cn),"template") == 0)) {
 		Swig_symbol_cadd(fname,n);
+		SwigType_typedef_class(fname);
+		scopename = Copy(fname);
 	      } else {
 		Swig_warning(WARN_TYPE_REDEFINED,Getfile(n),Getline(n),"Template '%s' was already wrapped as '%s' at %s:%d.\n",
 			     SwigType_namestr(name), SwigType_namestr(Getattr(cn,"name")), Getfile(cn), Getline(cn));
+		scopename = 0;
 	      }
+	    } else {
+	      Swig_symbol_cadd(fname,n);
+	      SwigType_typedef_class(fname);
+	      scopename = Copy(fname);
 	    }
-	    Delete(fname);
-	  }
-
-	  if ((CPlusPlus) || (unnamed)) {
-	    SwigType_typedef_class(name);
 	  } else {
-	    SwigType_typedef_class(NewStringf("%s %s", kind, name));
+	    if ((CPlusPlus) || (unnamed)) {
+	      SwigType_typedef_class(name);
+	    } else {
+	      SwigType_typedef_class(NewStringf("%s %s", kind, name));
+	    }
+	    scopename = Copy(name);
 	  }
-	  SwigType_new_scope(name);
-
 	} else {
-	  SwigType_new_scope(0);
+	  scopename = 0;
 	}
 
 	Setattr(n,"typepass:visit","1");
@@ -300,9 +307,11 @@ public:
 	if (nsname) {
 	    nname = NewStringf("%s::%s", nsname, name);
 	} 
+	SwigType_new_scope(scopename);
+
 	/* Inherit type definitions into the class */
 	if (name) {
-	    cplus_inherit_types(n, nname ? nname : name);
+	    cplus_inherit_types(n, nname ? nname : (fname ? fname : name));
 	}
     
 	inclass = n;
@@ -330,7 +339,7 @@ public:
 
 	/* If in a namespace, patch the class name */
 	if (nname) {
-	    Setattr(n,"name",nname);
+	  Setattr(n,"name",nname);
 	}
 	return SWIG_OK;
     }
