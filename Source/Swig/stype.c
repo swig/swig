@@ -42,20 +42,44 @@
  *
  *            String Encoding             C Example
  *            ---------------             ---------
- *            *.*.int                     int **
- *            [300].[400].int             int [300][400]
- *            *.+const.char               char const *
+ *            *.*.i-32                    int **
+ *            [300].[400].i-32            int [300][400]
+ *            *.+const.c-8                char const *
  * 
- * '*'       = Pointer
- * '[...]'   = Array
- * '(...)'   = Function
- * '{...}'   = Structure
- * '&'       = Reference
- * '+str'    = Qualifier
+ * '*'                = Pointer
+ * '&'                = Reference
+ * '[...]'            = Array
+ * '(..,..)'          = Function
+ * '{s/tag/..,..}'    = Structure (/tag/ optional)
+ * '{u/tag/..,..}'    = Union (/tag/ optional)
+ * '{c/tag/..,..}'    = Class (/tag/ optional)
+ * '</t/n=v,n=,..>'   = Enum (/tag/ optional, n = name, 
+ *                            v = value (optional))
+ * '+str'             = Qualifier
+ * 'i-w'              = w-bit signed integer
+ * 'u-w'              = w-bit unsigned integer
+ * 'c-w'              = w-bit character
+ *
+ * for structures, unions, classes, and enums, a missing body (no curly braces)
+ * is denoted by a backslash (\) where the body would appear.  See examples.
+ *
+ * e.g. '*.+const.i-64'        pointer to const 64-bit integer
+ * '(si-32,*.i-32).c-8         function taking 32-bit integer and
+ *                              pointer to 32-bit integer and
+ *                              returning 8-bit character
+ * '{s/Foo/i-32,*.c-8}'        structure, tagged 'Foo', containing a
+ *                              32-bit integer and a pointer to 
+ *                              8-bit character
+ * '{si-32,*.c-8}'             same structure, without tag
+ * '{ui-32,*.c-8}'             union with same members, without tag
+ * '&</Nums/one=1,two,three>'  reference to enumeration, tagged
+ *                              'Nums', mapping 'one' to 1, as well as
+ *                              'two' and 'three'.
+ * '&</Nums/\>'                same enum, without its body
  *
  * The encoding follows the order that you might describe a type in words.
- * For example "*.[200].int" is "A pointer to array of integers" and "*.+const.char"
- * is "a pointer to a const char".
+ * For example "*.[200].int" is "A pointer to array of int's" and 
+ * "*.+const.char" is "a pointer to a const char".
  *
  * This representation is particularly convenient because string operations
  * can be used to combine and manipulate types.  For example, a type could be
@@ -325,6 +349,76 @@ DOH *StringType_split_parms(DOH *p) {
 
 
 /* -----------------------------------------------------------------------------
+ * StringType_get_tag()
+ *
+ * Returns the tag for a struct/enum/whatnot
+ * ----------------------------------------------------------------------------- */
+
+DOH *StringType_get_tag(DOH *s) {
+   char *c = Char(s);
+
+   if (*c == '{')
+      c += 2;
+   else if (*c == '<')
+      c++;
+   else
+      assert(0);
+
+   if (*c == '/') {
+      char *rv, *p;
+      c++;
+      p = strchr(c, (int)'/');
+      if (!p) return NULL;
+      rv = DohMalloc(p - c + 1);
+      memmove(rv, c, p - c);
+      rv[p - c] = 0;
+      return rv;
+   }
+   else
+      return NULL;
+}
+
+/* -----------------------------------------------------------------------------
+ * StringType_split_enum()
+ *
+ * Splits a comma separated list of enum elements
+ * ----------------------------------------------------------------------------- */
+
+DOH *StringType_split_enum(DOH *s) {
+   DOH *list;
+   DOH *item;
+   char *c = Char(s);
+
+   assert(*c == '<');
+   c++;
+   if (*c == '/') {
+      c++;
+      while (*c)
+	 if (*(c++) == '/') break;
+   }
+   if (*c == '\\')
+      return NULL;		/* no body at all */
+
+   list = NewList();
+   item = NewString("");
+   while (*c)
+   {
+      if (*c == ',') {
+	 Append(list, item);
+	 Delete(item);
+	 item = NewString("");
+      } else if (*c == '>')
+	 break;
+      else
+	 Putc(*c, item);
+      c++;
+   }
+   Append(list, item);
+   Delete(item);
+   return list;
+}
+
+/* -----------------------------------------------------------------------------
  * StringType_split_struct()
  *
  * Splits a comma separated list of structure components
@@ -337,6 +431,15 @@ DOH *StringType_split_struct(DOH *p) {
   c = Char(p);
   assert(*c == '{');
   c++;
+  assert(*c == 's' || *c == 'c' || *c == 'u');
+  c++;
+  if (*c == '/') {
+     c++;
+     while (*c)
+	if (*(c++) == '/') break;
+  }
+  if (*c == '\\')
+     return NULL;		/* no body at all */
   list = NewList();
   item = NewString("");
   while (*c) {
