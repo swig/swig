@@ -188,6 +188,25 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
   return 0;
 }
 
+static
+String *partial_arg(String *s, String *p) {
+  char *c;
+  String *prefix;
+  String *newarg;
+
+  /* Find the prefix on the partial argument */
+  
+  c = Strstr(p,"$");
+  if (!c) {
+    return NewString(s);
+  }
+  prefix = NewStringWithSize(Char(p),c-Char(p));
+  newarg = NewString(s);
+  Replace(newarg,prefix,"",DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+  Delete(prefix);
+  return newarg;
+}
+
 int
 Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   List *patchlist, *cpatchlist, *typelist;
@@ -210,6 +229,29 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 
   tname = Copy(Getattr(n,"name"));
   tbase = Swig_scopename_last(tname);
+
+  /* Look for partial specialization matching */
+  if (Getattr(n,"partialargs")) {
+    Parm *p, *tp;
+    ParmList *ptargs = SwigType_function_parms(Getattr(n,"partialargs"));
+    p = ptargs;
+    tp = tparms;
+    while (p && tp) {
+      SwigType *ptype;
+      SwigType *tptype;
+      SwigType *partial_type;
+      ptype = Getattr(p,"type");
+      tptype = Getattr(tp,"type");
+      if (ptype && tptype) {
+	partial_type = partial_arg(tptype,ptype);
+	/*	Printf(stdout,"partial '%s' '%s'  ---> '%s'\n", tptype, ptype, partial_type); */
+	Setattr(tp,"type",partial_type); 
+      }
+      p = nextSibling(p);
+      tp = nextSibling(tp);
+    }
+    assert(ParmList_len(ptargs) == ParmList_len(tparms));
+  }
 
   if (0) {
     Parm *p = tparms;
@@ -500,5 +542,6 @@ Swig_cparse_template_locate(String *name, Parm *tparms) {
   Delete(parms);
   return n;
 }
+
 
 
