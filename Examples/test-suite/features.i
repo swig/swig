@@ -130,3 +130,23 @@ namespace Space {
 }
 %}
 
+// Test 7: inheritance
+%exception Space::Base::Base() "$action /* Space::Base::Base() */";
+%exception Space::Base::~Base() "$action /* Space::Base::~Base() */";
+%exception Space::Derived::Derived() "$action /* Space::Derived::Derived() */";
+%exception Space::Derived::~Derived() "$action /* Space::Derived::~Derived() */";
+// The following should apply to both Base and Derived
+%exception Space::Base::virtualmethod(int a) const "$action /* Space::Base::virtualmethod(int a) const */";
+
+%inline %{
+namespace Space {
+  struct Base {
+    virtual const char** virtualmethod(int a) const { return 0; }
+    virtual ~Base() {}
+  };
+  struct Derived : Base {
+    virtual const char** virtualmethod(int a) const { return 0; }
+  };
+}
+%}
+
