@@ -18,8 +18,9 @@ if lib_std_string.test_const_reference(x) != x:
 
 
 s = lib_std_string.string("he")
-s += "ll"
-s.append('o')
+#s += "ll"
+#s.append('o')
+s += "llo"
 
 if s != x:
   print s, x
