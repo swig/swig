@@ -405,9 +405,6 @@ public:
     ccode = code;
 
     t = CopyDataType(type);
-    if (t->qualifier) {
-      //      if (strcmp(t->qualifier,"const") == 0) Status = Status | STAT_READONLY;
-    }
     update_local_type(t);
     if (!is_static) {
       lang->cpp_variable(name,iname,t);

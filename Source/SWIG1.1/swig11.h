@@ -112,8 +112,8 @@ typedef struct DataType {
   char        implicit_ptr;  // Implicit ptr
   char        is_reference;  // A C++ reference type
   char        status;        // Is this datatype read-only?
-  char        *qualifier;    // A qualifier string (ie. const).
-  char        *arraystr;     // String containing array part
+  char        *_qualifier;    // A qualifier string (ie. const).
+  char        *_arraystr;     // String containing array part
   int         id;            // type identifier (unique for every type).
 
   // Temporary: catches accidental use.
@@ -126,6 +126,11 @@ typedef struct DataType {
 extern DataType *NewDataType(int type);
 extern DataType *CopyDataType(DataType *type);
 extern void      DelDataType(DataType *type);
+
+extern char     *DataType_qualifier(DataType *);
+extern void      DataType_set_qualifier(DataType *, char *q);
+extern char     *DataType_arraystr(DataType *);
+extern void      DataType_set_arraystr(DataType *, char *a);
 
 extern void      DataType_primitive(DataType *);
 extern char     *DataType_print_type(DataType *);

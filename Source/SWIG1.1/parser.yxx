@@ -555,14 +555,14 @@ statement      : INCLUDE STRING LBRACE {
 		    if ($4 > 0) {
 		      $2->is_pointer++;
 		      $2->status = STAT_READONLY;
-                      $2->arraystr = copy_string(Char(ArrayString));
+		      DataType_set_arraystr($2,Char(ArrayString));
 		    }
 		    if ($3.is_reference) {
 		      fprintf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
 		      FatalError();
 		    } else {
-		      if ($2->qualifier) {
-			if ((strcmp($2->qualifier,"const") == 0)) {
+		      if (DataType_qualifier($2)) {
+			if ((strcmp(DataType_qualifier($2),"const") == 0)) {
 			  if ($5.type != T_ERROR)
 			    create_constant($3.id, $2, $5.id);
 			} else 
@@ -1207,7 +1207,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   $2->is_pointer += $3.is_pointer;
 		   // Turn this into a "pointer" corresponding to the array
 		   $2->is_pointer++;
-		   $2->arraystr = copy_string(Char(ArrayString));
+		   DataType_set_arraystr($2,Char(ArrayString));
 		   DataType_typedef_add($2,$3.id,0);
 		   lang->add_typedef($2,$3.id);
 		   fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap\n",input_file,line_number, $3.id);
@@ -1242,7 +1242,7 @@ typedeflist   : COMMA declaration typedeflist {
 		    t = CopyDataType(Active_typedef);
 		    t->status = STAT_READONLY | STAT_REPLACETYPE;
 		    t->is_pointer += $2.is_pointer + 1;
-		    t->arraystr = copy_string(Char(ArrayString));
+		    DataType_set_arraystr(t,Char(ArrayString));
 		    DataType_typedef_add(t,$2.id,0);
 		    lang->add_typedef(t,$2.id);
 		    cplus_register_type($2.id);
@@ -1280,14 +1280,14 @@ stail          : SEMI { }
 		 if ($3 > 0) {
 		   temp_typeptr->is_pointer++;
 		   temp_typeptr->status = STAT_READONLY;
-		   temp_typeptr->arraystr = copy_string(Char(ArrayString));
+		   DataType_set_arraystr(temp_typeptr,Char(ArrayString));
 		 }
 		 if ($2.is_reference) {
 		   fprintf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
 		   FatalError();
 		 } else {
-		   if (temp_typeptr->qualifier) {
-		     if ((strcmp(temp_typeptr->qualifier,"const") == 0)) {
+		   if (DataType_qualifier(temp_typeptr)) {
+		     if ((strcmp(DataType_qualifier(temp_typeptr),"const") == 0)) {
 		       /* Okay.  This is really some sort of C++ constant here. */
 		       if ($4.type != T_ERROR)
 			 create_constant($2.id, temp_typeptr, $4.id);
@@ -1373,7 +1373,7 @@ parm_type      : type pname {
 		    if (InArray) {
 		      $1->is_pointer++;
 		      // Add array string to the type
-		      $1->arraystr = copy_string(Char(ArrayString));
+		      DataType_set_arraystr($1, Char(ArrayString));
 		    } 
 		    $$ = NewParm($1,$2);
 		    $$->call_type = 0;
@@ -1394,7 +1394,7 @@ parm_type      : type pname {
 		   if (InArray) {
 		     $$->t->is_pointer++;
 		     // Add array string to the type
-		     $$->t->arraystr = copy_string(Char(ArrayString));
+		     DataType_set_arraystr($$->t, Char(ArrayString));
 		    }
 		   DelDataType($1);
 		   delete $3;
@@ -1596,8 +1596,7 @@ type           : TYPE_INT {
 	       }
                | CONST type {
 		  $$ = $2;
-                  $$->qualifier = new char[6];
-		  strcpy($$->qualifier,"const");
+		  DataType_set_qualifier($$,"const");
      	       }
                | cpptype ID {
                   $$ = NewDataType(0);
@@ -1667,8 +1666,7 @@ strict_type    : TYPE_INT {
 	       }
                | CONST type {
 		  $$ = $2;
-                  $$->qualifier = new char[6];
-		  strcpy($$->qualifier,"const");
+		  DataType_set_qualifier($$,"const");
      	       }
                | cpptype ID {
                   $$ = NewDataType(0);
@@ -2374,8 +2372,8 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  Active_type = CopyDataType($1);
 		  $1->is_pointer += $2.is_pointer;
 		  $1->is_reference = $2.is_reference;
-		  if ($1->qualifier) {
-		    if ((strcmp($1->qualifier,"const") == 0) && ($1->is_pointer == 0)) {
+		  if (DataType_qualifier($1)) {
+		    if ((strcmp(DataType_qualifier($1),"const") == 0) && ($1->is_pointer == 0)) {
 		      // Okay.  This is really some sort of C++ constant here.
 		      if ($3.type != T_ERROR) {
 			iname = make_name($2.id);
@@ -2421,7 +2419,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  Active_type = CopyDataType($1);
 		  $1->is_pointer += $2.is_pointer + 1;
 		  $1->is_reference = $2.is_reference;
-		  $1->arraystr = copy_string(Char(ArrayString));
+		  DataType_set_arraystr($1,Char(ArrayString));
 		  if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 		    Status = STAT_READONLY;
 		  
@@ -3004,7 +3002,7 @@ objc_var       : type declaration {
 		   Active_type = CopyDataType($1);
 		   $1->is_pointer += $2.is_pointer;
 		   $1->is_reference = $2.is_reference;
-		   $1->arraystr = copy_string(Char(ArrayString));
+		   DataType_set_arraystr($1, Char(ArrayString));
 		   if ($1->status & STAT_READONLY) {
 		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
@@ -3049,7 +3047,7 @@ objc_vartail   : COMMA declaration objc_vartail {
 		   DataType *t = CopyDataType (Active_type);
 		   t->is_pointer += $2.is_pointer;
 		   t->is_reference = $2.is_reference;
-		   t->arraystr = copy_string(Char(ArrayString));
+		   DataType_set_arraystr(t,Char(ArrayString));
 		   if (t->status & STAT_READONLY) {
 		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,t,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
@@ -3247,7 +3245,7 @@ tm_tail        : COMMA typemap_parm tm_tail {
 typemap_parm   : type typemap_name {
 		    if (InArray) {
 		      $1->is_pointer++;
-		      $1->arraystr = copy_string(Char(ArrayString));
+		      DataType_set_arraystr($1,Char(ArrayString));
 		    }
 		    $$ = new TMParm;
                     $$->p = NewParm($1,$2);
@@ -3264,7 +3262,7 @@ typemap_parm   : type typemap_name {
 		   $$->p->call_type = 0;
 		   if (InArray) {
 		     $$->p->t->is_pointer++;
-		     $$->p->t->arraystr = copy_string(Char(ArrayString));
+		     DataType_set_arraystr($$->p->t,Char(ArrayString));
 		    }
 		   $$->args = tm_parm;
 		   DelDataType($1);

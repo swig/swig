@@ -20,11 +20,7 @@ extern "C" {
 #include "doh.h"
 }
 
-// -------------------------------------------------------------------
-// class DataType member functions.
-// -------------------------------------------------------------------
-
-// Create a data type only from the type code (used to form constants)
+/* Create a data type only from the type code (used to form constants) */
 
 DataType *NewDataType(int t) {
   DataType *ty = (DataType *) malloc(sizeof(DataType));
@@ -75,10 +71,10 @@ DataType *NewDataType(int t) {
   ty->type = t;
   ty->is_pointer = 0;
   ty->implicit_ptr = 0;
-  ty->qualifier = 0;
+  ty->_qualifier = 0;
   ty->is_reference = 0;
   ty->status = 0;
-  ty->arraystr = 0;
+  ty->_arraystr = 0;
   ty->id = type_id++;
   return ty;
 }
@@ -89,26 +85,45 @@ DataType *CopyDataType(DataType *t) {
   strcpy(ty->name,t->name);
   ty->is_pointer = t->is_pointer;
   ty->implicit_ptr = t->implicit_ptr;
-  ty->qualifier = copy_string(t->qualifier);
+  ty->_qualifier = Swig_copy_string(t->_qualifier);
   ty->is_reference = t->is_reference;
   ty->status = t->status;
-  ty->arraystr = copy_string(t->arraystr);
+  ty->_arraystr = Swig_copy_string(t->_arraystr);
   ty->id = t->id;
   return ty;
 }
 
 void DelDataType(DataType *t) {
-    if (t->qualifier) delete t->qualifier;
-    if (t->arraystr) delete t->arraystr;
+    if (t->_qualifier) free(t->_qualifier);
+    if (t->_arraystr) free(t->_arraystr);
     free(t);
 }
 
-// --------------------------------------------------------------------
-// DataType_primitive()
-//
-// Turns a datatype into its bare-bones primitive type.  Rarely used,
-// but sometimes used for typemaps.  Permanently alters the datatype!
-// --------------------------------------------------------------------
+char *DataType_qualifier(DataType *t) {
+  return t->_qualifier;
+}
+
+void DataType_set_qualifier(DataType *t, char *q) {
+  if (t->_qualifier) free(t->_qualifier);
+  t->_qualifier = Swig_copy_string(q);
+}
+
+char *DataType_arraystr(DataType *t) {
+  return t->_arraystr;
+}
+
+void DataType_set_arraystr(DataType *t, char *a) {
+  if (t->_arraystr) free(t->_arraystr);
+  t->_arraystr = Swig_copy_string(a);
+}
+
+
+/* --------------------------------------------------------------------
+ * DataType_primitive()
+ *
+ * Turns a datatype into its bare-bones primitive type.  Rarely used,
+ * but sometimes used for typemaps.  Permanently alters the datatype!
+ * -------------------------------------------------------------------- */
 
 void DataType_primitive(DataType *t) {
   switch(t->type) {
@@ -158,27 +173,27 @@ void DataType_primitive(DataType *t) {
     strcpy(t->name,"UNKNOWN");
     break;
   }
-  t->implicit_ptr = 0;          // Gets rid of typedef'd pointers
-  if (t->qualifier) {
-    delete t->qualifier;
-    t->qualifier = 0;
+  t->implicit_ptr = 0;           /* Gets rid of typedef'd pointers */
+  if (t->_qualifier) {
+    free(t->_qualifier);
+    t->_qualifier = 0;
   }
-  t->qualifier = 0;
+  t->_qualifier = 0;
   t->status = 0;
 }
 
-// --------------------------------------------------------------------
-// char *print_type()
-//
-// Print the datatype, but without qualifiers (ie. const, volatile)
-// Returns a string containing the result.
-//
-// If a datatype is marked as an implicit ptr it means that is_pointer
-// is at least one, but we don't print '*'.
-//
-// If the type status is STAT_REPLACETYPE, it means that we can't
-// use this type as a valid type.  We'll substitute it's old name in.
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * char *print_type()
+ *
+ * Print the datatype, but without qualifiers (ie. const, volatile)
+ * Returns a string containing the result.
+ *
+ * If a datatype is marked as an implicit ptr it means that is_pointer
+ * is at least one, but we don't print '*'.
+ *
+ * If the type status is STAT_REPLACETYPE, it means that we can't
+ * use this type as a valid type.  We'll substitute it's old name in.
+ * -------------------------------------------------------------------- */
 
 char *DataType_print_type(DataType *ty) {
   static char    result[8][256];
@@ -188,7 +203,7 @@ char *DataType_print_type(DataType *ty) {
   
   if (ty->status & STAT_REPLACETYPE) {
     t = CopyDataType(ty);
-    DataType_typedef_replace(t);   // Upgrade type
+    DataType_typedef_replace(t);  
   }
   ri = ri % 8;
   sprintf(result[ri],"%s ", t->name);
@@ -201,29 +216,29 @@ char *DataType_print_type(DataType *ty) {
   return result[ri++];
 }
 
-// --------------------------------------------------------------------
-// char *print_full()
-//
-// Prints full type, with qualifiers.
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * char *print_full()
+ *
+ * Prints full type, with qualifiers.
+ * -------------------------------------------------------------------- */
 char *DataType_print_full(DataType *t) {
   static char result[8][256];
   static int ri = 0;
 
   ri = ri % 8;
-  if (t->qualifier) {
-    sprintf(result[ri],"%s %s", t->qualifier, DataType_print_type(t));
+  if (t->_qualifier) {
+    sprintf(result[ri],"%s %s", t->_qualifier, DataType_print_type(t));
     return result[ri++];
   } else {
     return DataType_print_type(t);
   }
 }
 
-// --------------------------------------------------------------------
-// char *print_real()
-//
-// Prints real type, with qualifiers and arrays if necessary.
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * char *print_real()
+ *
+ * Prints real type, with qualifiers and arrays if necessary.
+ * -------------------------------------------------------------------- */
 char *DataType_print_real(DataType *t, char *local) {
   static char  result[8][256];
   static int    ri = 0;
@@ -232,22 +247,22 @@ char *DataType_print_real(DataType *t, char *local) {
   oldstatus = t->status;
   t->status = t->status & (~STAT_REPLACETYPE);
   ri = ri % 8;
-  if (t->arraystr) t->is_pointer--;
+  if (t->_arraystr) t->is_pointer--;
   strcpy(result[ri], DataType_print_full(t));
   if (local) strcat(result[ri],local);
-  if (t->arraystr) {
-    strcat(result[ri],t->arraystr);
+  if (t->_arraystr) {
+    strcat(result[ri],t->_arraystr);
     t->is_pointer++;
   }
   t->status = oldstatus;
   return result[ri++];
 }
 
-// --------------------------------------------------------------------
-// char *print_cast()
-//
-// Prints a cast.  (Basically just a type but with parens added).
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * char *print_cast()
+ *
+ * Prints a cast.  (Basically just a type but with parens added).
+ * -------------------------------------------------------------------- */
 
 char *DataType_print_cast(DataType *t) {
   static char   result[8][256];
@@ -258,12 +273,12 @@ char *DataType_print_cast(DataType *t) {
   return result[ri++];
 }
 
-// --------------------------------------------------------------------
-// char *print_arraycast()
-//
-// Prints a cast, but for array datatypes.  Super ugly, but necessary
-// for multidimensional arrays.
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * char *print_arraycast()
+ *
+ * Prints a cast, but for array datatypes.  Super ugly, but necessary
+ * for multidimensional arrays.
+ * -------------------------------------------------------------------- */
 
 char *DataType_print_arraycast(DataType *ty) {
   static char result[8][256];
@@ -275,19 +290,19 @@ char *DataType_print_arraycast(DataType *ty) {
   t = ty;
   if (ty->status & STAT_REPLACETYPE) {
     t = CopyDataType(ty);
-    DataType_typedef_replace(t);   // Upgrade type
+    DataType_typedef_replace(t);
   }
 
   ri = ri % 8;
-  if (t->arraystr) {
+  if (t->_arraystr) {
     ndim = 0;
-    c = t->arraystr;
+    c = t->_arraystr;
     while (*c) {
       if (*c == '[') ndim++;
       c++;
     }
     if (ndim > 1) {
-      // a Multidimensional array.  Provide a special cast for it
+      /* a Multidimensional array.  Provide a special cast for it */
       int oldstatus = ty->status;
       t->status = t->status & (~STAT_REPLACETYPE);
       t->is_pointer--;
@@ -295,7 +310,7 @@ char *DataType_print_arraycast(DataType *ty) {
       t->is_pointer++;
       t->status = oldstatus;
       strcat(result[ri]," (*)");
-      c = t->arraystr;
+      c = t->_arraystr;
       while (*c) {
 	if (*c == ']') break;
 	c++;
@@ -311,13 +326,13 @@ char *DataType_print_arraycast(DataType *ty) {
   return result[ri++];
 }
 
-// --------------------------------------------------------------------
-// char *print_mangle_default()
-//
-// Prints a mangled version of this datatype.   Used for run-time type
-// checking in order to print out a "language friendly" version (ie. no
-// spaces and no weird characters).
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * char *print_mangle_default()
+ *
+ * Prints a mangled version of this datatype.   Used for run-time type
+ * checking in order to print out a "language friendly" version (ie. no
+ * spaces and no weird characters).
+ * -------------------------------------------------------------------- */
 
 char *DataType_print_mangle_default(DataType *t) {
   static char   result[8][256];
@@ -348,13 +363,13 @@ char *DataType_print_mangle_default(DataType *t) {
   return result[ri++];
 }
 
-// This is kind of ugly but needed for each language to support a
-// custom name mangling mechanism.  (ie. Perl5).
+/* This is kind of ugly but needed for each language to support a
+   custom name mangling mechanism.  (ie. Perl5). */
 
 static char *(*mangler)(DataType *t) = DataType_print_mangle_default;
 
 char *DataType_print_mangle(DataType *t) {
-  // Call into target language for name mangling.
+   /* Call into target language for name mangling. */
   return (*mangler)(t);
 }
 
@@ -362,17 +377,18 @@ void DataType_set_mangle(char *(*m)(DataType *t)) {
   mangler = m;
 }
 
-// --------------------------------------------------------------------
-// int DataType_array_dimensions()
-//
-// Returns the number of dimensions in an array or 0 if not an array.
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * int DataType_array_dimensions()
+ *
+ * Returns the number of dimensions in an array or 0 if not an array.
+ * -------------------------------------------------------------------- */
+
 int DataType_array_dimensions(DataType *t) {
   char *c;
   int  ndim = 0;
 
-  if (!t->arraystr) return 0;
-  c = t->arraystr;
+  if (!t->_arraystr) return 0;
+  c = t->_arraystr;
   while (*c) {
     if (*c == '[') {
       ndim++;
@@ -382,11 +398,11 @@ int DataType_array_dimensions(DataType *t) {
   return ndim;
 }
 
-// --------------------------------------------------------------------
-// char *DataType_get_dimension(int n)
-// 
-// Returns a string containing the value specified for dimension n.
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * char *DataType_get_dimension(int n)
+ * 
+ * Returns a string containing the value specified for dimension n.
+ * -------------------------------------------------------------------- */
 
 char *DataType_get_dimension(DataType *t, int n) {
   static char dim[256];
@@ -398,15 +414,15 @@ char *DataType_get_dimension(DataType *t, int n) {
     return dim;
   }
   
-  // Attemp to locate the right dimension
+   /* Attempt to locate the right dimension */
 
-  c = t->arraystr;
+  c = t->_arraystr;
   while ((*c) && (n >= 0)) {
     if (*c == '[') n--;
     c++;
   }
   
-  // c is now at start of array dimension
+   /* c is now at start of array dimension */
   if (*c) {
     while ((*c) && (*c != ']')) {
       *(d++) = *(c++);
@@ -416,50 +432,49 @@ char *DataType_get_dimension(DataType *t, int n) {
   return dim;
 }
 
-// --------------------------------------------------------------------
-// typedef support.  This needs to be scoped.
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * typedef support.  This needs to be scoped.
+ * -------------------------------------------------------------------- */
 
 static DOHHash *typedef_hash[MAXSCOPE];
-static int      scope = 0;            // Current scope
+static int      scope = 0;             /* Current scope */
 
-// -----------------------------------------------------------------------------
-// void DataType_init_typedef() 
-// 
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : Initializes the typedef hash tables
-// -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void DataType_init_typedef() 
+ * 
+ * Inputs : None
+ *
+ * Output : None
+ *
+ * Side Effects : Initializes the typedef hash tables
+ * ----------------------------------------------------------------------------- */
 
 void DataType_init_typedef() {
   int i;
   for (i = 0; i < MAXSCOPE; i++)
     typedef_hash[i] = 0;
   scope = 0;
-  // Create a new hash
   typedef_hash[scope] = NewHash();
 }
 
-// --------------------------------------------------------------------
-// void DataType_typedef_add()
-//
-// Adds this datatype to the typedef hash table.  mode is an optional
-// flag that can be used to only add the symbol as a typedef, but not
-// generate any support code for the SWIG typechecker.  This is used
-// for some of the more obscure datatypes like function pointers,
-// arrays, and enums.
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * void DataType_typedef_add()
+ *
+ * Adds this datatype to the typedef hash table.  mode is an optional
+ * flag that can be used to only add the symbol as a typedef, but not
+ * generate any support code for the SWIG typechecker.  This is used
+ * for some of the more obscure datatypes like function pointers,
+ * arrays, and enums.
+ * --------------------------------------------------------------------*/
 
 void DataType_typedef_add(DataType *t,char *tname, int mode) {
   char     *name1, *name2;
   DataType *nt, *t1;
   void typeeq_addtypedef(char *name, char *eqname, DataType *);
 
-  // Check to see if this typedef already defined
-  // We only check in the local scope.   C++ classes may make typedefs
-  // that shadow global ones.
+  /* Check to see if this typedef already defined
+   * We only check in the local scope.   C++ classes may make typedefs
+   * that shadow global ones.*/
 
   if (Getattr(typedef_hash[scope],tname)) {
     fprintf(stderr,"%s : Line %d. Warning. Datatype %s already defined (2nd definition ignored).\n",
@@ -467,17 +482,17 @@ void DataType_typedef_add(DataType *t,char *tname, int mode) {
       return;
   }
 
-  // Make a new datatype that we will place in our hash table
+  /* Make a new datatype that we will place in our hash table */
 
   nt = CopyDataType(t);
-  nt->implicit_ptr = (t->is_pointer-t->implicit_ptr); // Record if mapped type is a pointer
-  nt->is_pointer = (t->is_pointer-t->implicit_ptr); // Adjust pointer value to be correct
-  DataType_typedef_resolve(nt,0);                   // Resolve any other mappings of this type
+  nt->implicit_ptr = (t->is_pointer-t->implicit_ptr);  /* Record if mapped type is a pointer*/
+  nt->is_pointer = (t->is_pointer-t->implicit_ptr);    /* Adjust pointer value to be correct */
+  DataType_typedef_resolve(nt,0);                      /* Resolve any other mappings of this type */
   
-  // Add this type to our hash table
+  /* Add this type to our hash table */
   SetVoid(typedef_hash[scope],tname, (void *) nt);
 
-  // Now add this type mapping to our type-equivalence table
+  /* Now add this type mapping to our type-equivalence table */
 
   if (mode == 0) {
       if ((t->type != T_VOID) && (strcmp(t->name,tname) != 0)) {
@@ -490,34 +505,34 @@ void DataType_typedef_add(DataType *t,char *tname, int mode) {
 	DelDataType(t1);
       }
   }
-  // Call into the target language with this typedef
+  /* Call into the target language with this typedef */
   /*  lang->add_typedef(t,tname); */
 }
 
-// --------------------------------------------------------------------
-// void DataType_typedef_resolve(int level = 0)
-//
-// Checks to see if this datatype is in the typedef hash and
-// resolves it if necessary.   This will check all of the typedef
-// hash tables we know about.
-//
-// level is an optional parameter that determines which scope to use.
-// Usually this is only used with a bare :: operator in a datatype.
-// 
-// The const headache :
-//
-// Normally SWIG will fail if a const variable is used in a typedef
-// like this :
-//
-//       typedef const char *String;
-//
-// This is because future occurrences of "String" will be treated like
-// a char *, but without regard to the "constness".  To work around 
-// this problem.  The resolve() method checks to see if these original 
-// data type is const.  If so, we'll substitute the name of the original
-// datatype instead.  Got it? Whew.   In a nutshell, this means that
-// all future occurrences of "String" will really be "const char *".
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * void DataType_typedef_resolve(int level = 0)
+ *
+ * Checks to see if this datatype is in the typedef hash and
+ * resolves it if necessary.   This will check all of the typedef
+ * hash tables we know about.
+ *
+ * level is an optional parameter that determines which scope to use.
+ * Usually this is only used with a bare :: operator in a datatype.
+ * 
+ * The const headache :
+ *
+ * Normally SWIG will fail if a const variable is used in a typedef
+ * like this :
+ *
+ *       typedef const char *String;
+ *
+ * This is because future occurrences of "String" will be treated like
+ * a char *, but without regard to the "constness".  To work around 
+ * this problem.  The resolve() method checks to see if these original 
+ * data type is const.  If so, we'll substitute the name of the original
+ * datatype instead.  Got it? Whew.   In a nutshell, this means that
+ * all future occurrences of "String" will really be "const char *".
+ * -------------------------------------------------------------------- */
 
 void DataType_typedef_resolve(DataType *t, int level) {
 
@@ -531,12 +546,12 @@ void DataType_typedef_resolve(DataType *t, int level) {
       t->implicit_ptr += td->implicit_ptr;
       t->status = t->status | td->status;
 
-      // Check for constness, and replace type name if necessary
+      /* Check for constness, and replace type name if necessary*/
 
-      if (td->qualifier) {
-	if (strcmp(td->qualifier,"const") == 0) {
+      if (td->_qualifier) {
+	if (strcmp(td->_qualifier,"const") == 0) {
 	  strcpy(t->name,td->name);
-	  t->qualifier = copy_string(td->qualifier);
+	  t->_qualifier = Swig_copy_string(td->_qualifier);
 	  t->implicit_ptr -= td->implicit_ptr;
 	}
       }
@@ -544,16 +559,16 @@ void DataType_typedef_resolve(DataType *t, int level) {
     }
     s--;
   }
-  // Not found, do nothing
+  /* Not found, do nothing */
   return;
 }
 
-// --------------------------------------------------------------------
-// void DataType_typedef_replace()
-//
-// Checks to see if this datatype is in the typedef hash and
-// replaces it with the hash entry. Only applies to current scope.
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * void DataType_typedef_replace()
+ *
+ * Checks to see if this datatype is in the typedef hash and
+ * replaces it with the hash entry. Only applies to current scope.
+ * -------------------------------------------------------------------- */
 
 void DataType_typedef_replace (DataType *t) {
   DataType *td;
@@ -566,25 +581,25 @@ void DataType_typedef_replace (DataType *t) {
     t->is_pointer = td->is_pointer;
     t->implicit_ptr -= td->implicit_ptr;
     strcpy(t->name, td->name);
-    if (td->arraystr) {
-      if (t->arraystr) {
-	strcat(temp,t->arraystr);
-	delete t->arraystr;
+    if (td->_arraystr) {
+      if (t->_arraystr) {
+	strcat(temp,t->_arraystr);
+	free(t->_arraystr);
       }
-      strcat(temp,td->arraystr);
-      t->arraystr = copy_string(temp);
+      strcat(temp,td->_arraystr);
+      t->_arraystr = Swig_copy_string(temp);
     }
   }
-  // Not found, do nothing
+  /* Not found, do nothing */
   return;
 }
 
-// ---------------------------------------------------------------
-// int DataType_is_typedef(char *t)
-//
-// Checks to see whether t is the name of a datatype we know
-// about.  Returns 1 if there's a match, 0 otherwise
-// ---------------------------------------------------------------
+/* ---------------------------------------------------------------
+ * int DataType_is_typedef(char *t)
+ *
+ * Checks to see whether t is the name of a datatype we know
+ * about.  Returns 1 if there's a match, 0 otherwise
+ * --------------------------------------------------------------- */
 
 int DataType_is_typedef(char *t) {
   int s = scope;
@@ -595,13 +610,13 @@ int DataType_is_typedef(char *t) {
   return 0;
 }
 
-// ---------------------------------------------------------------
-// void DataType_typedef_updatestatus(int newstatus)
-//
-// Checks to see if this datatype is in the hash table.  If
-// so, we'll update its status.   This is sometimes used with
-// typemap handling.  Only applies to current scope.
-// ---------------------------------------------------------------
+/* ---------------------------------------------------------------
+ * void DataType_typedef_updatestatus(int newstatus)
+ *
+ * Checks to see if this datatype is in the hash table.  If
+ * so, we'll update its status.   This is sometimes used with
+ * typemap handling.  Only applies to current scope.
+ * --------------------------------------------------------------- */
 
 void DataType_typedef_updatestatus(DataType *t, int newstatus) {
 
@@ -611,18 +626,18 @@ void DataType_typedef_updatestatus(DataType *t, int newstatus) {
   }
 }
 
-// -----------------------------------------------------------------------------
-// void DataType_merge_scope(Hash *h) 
-// 
-// Copies all of the entries in scope h into the current scope.  This is
-// primarily done with C++ inheritance.
-//
-// Inputs : Hash table h.
-//
-// Output : None
-//
-// Side Effects : Copies all of the entries in h to current scope.
-// -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void DataType_merge_scope(Hash *h) 
+ * 
+ * Copies all of the entries in scope h into the current scope.  This is
+ * primarily done with C++ inheritance.
+ *
+ * Inputs : Hash table h.
+ *
+ * Output : None
+ *
+ * Side Effects : Copies all of the entries in h to current scope.
+ * ----------------------------------------------------------------------------- */
 
 void DataType_merge_scope(void *ho) {
   DOHString *key;
@@ -630,10 +645,10 @@ void DataType_merge_scope(void *ho) {
   DOHHash *h = (DOHHash *) ho;
 
   if (h) {
-    // Copy all of the entries in the given hash table to this new one
+    /* Copy all of the entries in the given hash table to this new one */
     key = Firstkey(h);
     while (key) {
-      //      printf("%s\n", key);
+      /*      printf("%s\n", key); */
       t = (DataType *) GetVoid(h,key);
       nt = CopyDataType(t);
       SetVoid(typedef_hash[scope],key,(void *) nt);
@@ -642,18 +657,18 @@ void DataType_merge_scope(void *ho) {
   }
 }
 
-// -----------------------------------------------------------------------------
-// void DataType_new_scope(Hash *h = 0)
-//
-// Creates a new scope for handling typedefs.   This is used in C++ handling
-// to create typedef local to a class definition. 
-// 
-// Inputs : h = Optional hash table scope (Used for C++ inheritance).
-//
-// Output : None
-//
-// Side Effects : Creates a new hash table and increments the scope counter
-// -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void DataType_new_scope(Hash *h = 0)
+ *
+ * Creates a new scope for handling typedefs.   This is used in C++ handling
+ * to create typedef local to a class definition. 
+ * 
+ * Inputs : h = Optional hash table scope (Used for C++ inheritance).
+ *
+ * Output : None
+ *
+ * Side Effects : Creates a new hash table and increments the scope counter
+ * ----------------------------------------------------------------------------- */
 
 void DataType_new_scope(void *ho) {
   scope++;
@@ -663,27 +678,27 @@ void DataType_new_scope(void *ho) {
   }
 }
 
-// -----------------------------------------------------------------------------
-// Hash *DataType_collapse_scope(char *prefix) 
-// 
-// Collapses the current scope into the previous one, but applies a prefix to
-// all of the datatypes.   This is done in order to properly handle C++ stuff.
-// For example :
-//
-//      class Foo {
-//         ... 
-//         typedef double Real;
-//      }
-//
-// will have a type mapping of "double --> Real" within the class itself. 
-// When we collapse the scope, this mapping will become "double --> Foo::Real"
-//
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : Returns the hash table corresponding to the current scope
-// -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * Hash *DataType_collapse_scope(char *prefix) 
+ * 
+ * Collapses the current scope into the previous one, but applies a prefix to
+ * all of the datatypes.   This is done in order to properly handle C++ stuff.
+ * For example :
+ *
+ *      class Foo {
+ *         ... 
+ *         typedef double Real;
+ *      }
+ *
+ * will have a type mapping of "double --> Real" within the class itself. 
+ * When we collapse the scope, this mapping will become "double --> Foo::Real"
+ *
+ * Inputs : None
+ *
+ * Output : None
+ *
+ * Side Effects : Returns the hash table corresponding to the current scope
+ * ----------------------------------------------------------------------------- */
 
 void *DataType_collapse_scope(char *prefix) {
   DataType *t,*nt;
@@ -697,10 +712,10 @@ void *DataType_collapse_scope(char *prefix) {
       while (key) {
 	t = (DataType *) GetVoid(typedef_hash[scope],key);
 	nt = CopyDataType(t);
-	temp = new char[strlen(prefix)+strlen(Char(key))+4];
+	temp = (char *) malloc(strlen(prefix)+strlen(Char(key)) + 4);
 	sprintf(temp,"%s::%s",prefix,Char(key));
 	SetVoid(typedef_hash[scope-1],temp, (void *)nt);
-	delete [] temp;
+	free(temp);
 	key = Nextkey(typedef_hash[scope]);
       }
     }
@@ -712,15 +727,15 @@ void *DataType_collapse_scope(char *prefix) {
   return 0;
 }
 		
-// -------------------------------------------------------------
-// Class equivalency lists
-// 
-// These are used to keep track of which datatypes are equivalent.
-// This information can be dumped in tabular form upon completion
-// for use in the pointer type checker.
-//
-// cast is an extension needed to properly handle multiple inheritance
-// --------------------------------------------------------------
+/* -------------------------------------------------------------
+ * Class equivalency lists
+ * 
+ * These are used to keep track of which datatypes are equivalent.
+ * This information can be dumped in tabular form upon completion
+ * for use in the pointer type checker.
+ *
+ * cast is an extension needed to properly handle multiple inheritance
+ * -------------------------------------------------------------- */
 
 struct EqEntry {
   char     *name;
@@ -740,66 +755,66 @@ void typeeq_init() {
 }
 
 
-// --------------------------------------------------------------
-// typeeq_add(char *name, char *eqname, char *cast) 
-//
-// Adds a new name to the type-equivalence tables.
-// Creates a new entry if it doesn't exit.
-//
-// Cast is an optional name for a pointer casting function.
-// --------------------------------------------------------------
+/* --------------------------------------------------------------
+ * typeeq_add(char *name, char *eqname, char *cast) 
+ *
+ * Adds a new name to the type-equivalence tables.
+ * Creates a new entry if it doesn't exit.
+ *
+ * Cast is an optional name for a pointer casting function.
+ * -------------------------------------------------------------- */
 
 void typeeq_add(char *name, char *eqname, char *cast = 0, DataType *type = 0) {
   EqEntry *e1,*e2;
 
   if (!te_init) typeeq_init();
 
-  if (strcmp(name,eqname) == 0) return;   // If they're the same, forget it.
+  if (strcmp(name,eqname) == 0) return;    /* If they're the same, forget it. */
   
-  // Search for "name" entry in the hash table
+  /* Search for "name" entry in the hash table */
 
   e1 = (EqEntry *) GetVoid(typeeq_hash,name);
 
   if (!e1) {
-    // Create a new entry
-    e1 = new EqEntry;
-    e1->name = copy_string(name);
+    /* Create a new entry */
+    e1 = (EqEntry *) malloc(sizeof(EqEntry));
+    e1->name = Swig_copy_string(name);
     e1->next = 0;
     e1->cast = 0;
-    // Add it to the hash table
+    /* Add it to the hash table */
     SetVoid(typeeq_hash,name,(void *) e1);
   }
 
-  // Add new type to the list
-  // We'll first check to see if it's already been added
+  /* Add new type to the list
+   * We'll first check to see if it's already been added */
 
   e2 = e1->next;
   while (e2) {
     if (strcmp(e2->name, eqname) == 0) {
       if (cast) 
-	e2->cast = copy_string(cast);
+	e2->cast = Swig_copy_string(cast);
       return;
     }
     e2 = e2->next;
   }
 
-  e2 = new EqEntry;
-  e2->name = copy_string(eqname);
-  e2->cast = copy_string(cast);
+  e2 = (EqEntry *) malloc(sizeof(EqEntry));
+  e2->name = Swig_copy_string(eqname);
+  e2->cast = Swig_copy_string(cast);
   if (type) 
     e2->type = CopyDataType(type);
   else 
     e2->type = 0;
-  e2->next = e1->next;               // Add onto the linked list for name
+  e2->next = e1->next;                /* Add onto the linked list for name */
   e1->next = e2;
 
 }
 
-// --------------------------------------------------------------
-// typeeq_addtypedef(char *name, char *eqname, DataType *t) 
-//
-// Adds a new typedef declaration to the equivelency list.
-// --------------------------------------------------------------
+/* --------------------------------------------------------------
+ * typeeq_addtypedef(char *name, char *eqname, DataType *t) 
+ *
+ * Adds a new typedef declaration to the equivelency list.
+ * -------------------------------------------------------------- */
 
 void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
   EqEntry  *e1,*e2;
@@ -811,18 +826,18 @@ void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
     strcpy(t->name, eqname);
   }
 
-  //printf("addtypedef: %s : %s : %s\n", name, eqname, t->print_type());
+  /*printf("addtypedef: %s : %s : %s\n", name, eqname, t->print_type()); */
 
-  // First we're going to add the equivalence, no matter what
+  /* First we're going to add the equivalence, no matter what */
   
   typeeq_add(name,eqname,0,t);
 
-  // Now find the hash entry
+  /* Now find the hash entry */
 
   e1 = (EqEntry *) GetVoid(typeeq_hash,name);
   if (!e1) return;
 
-  // Walk down the list and make other equivalences
+  /* Walk down the list and make other equivalences */
 
   e2 = e1->next;
   while (e2) {
@@ -834,14 +849,14 @@ void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
   }
 }
 
-// ----------------------------------------------------------------
-// void emit_ptr_equivalence(FILE *f)
-//
-// Dump out the pointer equivalence table to file.
-//
-// Changed to register datatypes with the type checker in order
-// to support proper type-casting (needed for multiple inheritance)
-// ----------------------------------------------------------------
+/* ----------------------------------------------------------------
+ * void emit_ptr_equivalence(FILE *f)
+ *
+ * Dump out the pointer equivalence table to file.
+ *
+ * Changed to register datatypes with the type checker in order
+ * to support proper type-casting (needed for multiple inheritance)
+ * ---------------------------------------------------------------- */
 
 void emit_ptr_equivalence(FILE *f) {
 
@@ -865,7 +880,7 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
   while (k) {
     e1 = (EqEntry *) GetVoid(typeeq_hash,k);
     e2 = e1->next;
-    // Walk through the equivalency list
+    /* Walk through the equivalency list */
     while (e2) {
       if (e2->cast) 
 	Printv(ttable,
@@ -890,11 +905,11 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
   Delete(ttable);
 }
 
-// ------------------------------------------------------------------------------
-// typeeq_derived(char *n1, char *n2, char *cast=)
-//
-// Adds a one-way mapping between datatypes.
-// ------------------------------------------------------------------------------
+/* ------------------------------------------------------------------------------
+ * typeeq_derived(char *n1, char *n2, char *cast=)
+ *
+ * Adds a one-way mapping between datatypes.
+ * ------------------------------------------------------------------------------ */
 
 void typeeq_derived(char *n1, char *n2, char *cast=0) {
   DataType   *t,*t1;
@@ -915,11 +930,11 @@ void typeeq_derived(char *n1, char *n2, char *cast=0) {
   DelDataType(t1);
 }
 
-// ------------------------------------------------------------------------------
-// typeeq_mangle(char *n1, char *n2, char *cast=)
-//
-// Adds a single type equivalence
-// ------------------------------------------------------------------------------
+/* ------------------------------------------------------------------------------
+ * typeeq_mangle(char *n1, char *n2, char *cast=)
+ *
+ * Adds a single type equivalence
+ * ------------------------------------------------------------------------------ */
 
 void typeeq_mangle(char *n1, char *n2, char *cast=0) {
   DataType   *t,*t1;
@@ -938,13 +953,13 @@ void typeeq_mangle(char *n1, char *n2, char *cast=0) {
   DelDataType(t1);
 }
 
-// ------------------------------------------------------------------------------
-// typeeq_standard(void)
-//
-// Generate standard type equivalences (well, pointers that can map into
-// other pointers naturally).
-// 
-// -------------------------------------------------------------------------------
+/* ------------------------------------------------------------------------------
+ * typeeq_standard(void)
+ *
+ * Generate standard type equivalences (well, pointers that can map into
+ * other pointers naturally).
+ * 
+ * ------------------------------------------------------------------------------- */
   
 void typeeq_standard(void) {
   
@@ -963,12 +978,12 @@ void typeeq_standard(void) {
 
 }
 
-// ----------------------------------------------------------------------
-// char *check_equivalent(DataType *t)
-//
-// Checks for type names equivalent to t.  Returns a string with entries
-// suitable for output.
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * char *check_equivalent(DataType *t)
+ *
+ * Checks for type names equivalent to t.  Returns a string with entries
+ * suitable for output.
+ * ---------------------------------------------------------------------- */
 
 static char *
 check_equivalent(DataType *t) {
@@ -982,7 +997,7 @@ check_equivalent(DataType *t) {
   Clear(out);
 
   while (t->is_pointer >= t->implicit_ptr) {
-    m = copy_string(DataType_print_mangle(t));
+    m = Swig_copy_string(DataType_print_mangle(t));
 
     if (!te_init) typeeq_init();
 
@@ -1006,7 +1021,7 @@ check_equivalent(DataType *t) {
       }
       k = Nextkey(typeeq_hash);
     }
-    delete [] m;
+    free(m);
     t->is_pointer--;
   }
   t->is_pointer = npointer;
@@ -1014,12 +1029,12 @@ check_equivalent(DataType *t) {
   return Char(out);
 }
 
-// -----------------------------------------------------------------------------
-// void DataType_record_base(char *derived, char *base)
-//
-// Record base class information.  This is a hack to make runtime libraries
-// work across multiple files.
-// -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void DataType_record_base(char *derived, char *base)
+ *
+ * Record base class information.  This is a hack to make runtime libraries
+ * work across multiple files.
+ * ----------------------------------------------------------------------------- */
 
 static DOHHash  *bases = 0;
 
@@ -1037,12 +1052,12 @@ void DataType_record_base(char *derived, char *base)
   }
 }
 
-// ----------------------------------------------------------------------
-// void DataType_remember()
-//
-// Marks a datatype as being used in the interface file.   We use this to
-// construct a big table of pointer values at the end.
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * void DataType_remember()
+ *
+ * Marks a datatype as being used in the interface file.   We use this to
+ * construct a big table of pointer values at the end.
+ * ---------------------------------------------------------------------- */
 
 static  DOHHash  *remembered = 0;
 
@@ -1102,4 +1117,9 @@ emit_type_table() {
   Delete(types);
   Delete(table);
 }
+
+
+
+
+
 
