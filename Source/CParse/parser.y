@@ -1092,8 +1092,12 @@ static void default_arguments(Node *n) {
       {
         Node *new_function = new_node(Copy(nodeType(function)));
         SwigType *decl = Copy(Getattr(function,"decl"));
+        int constqualifier = SwigType_isconst(decl);
+
         Delete(SwigType_pop_function(decl)); /* remove the old parameter list from decl */
         SwigType_add_function(decl,newparms);
+        if (constqualifier)
+          SwigType_add_qualifier(decl,"const");
 
         Setattr(new_function,"name",Copy(Getattr(function,"name")));
         Setattr(new_function,"code",Copy(Getattr(function,"code")));
