@@ -250,4 +250,22 @@ static void _SWIG_exception(int code, const char *msg) {
 %}
 #endif
 
+#ifdef SWIGCHICKEN
+%{
+#define CHICKEN_MSG_BUF_LEN 1024
+static void _SWIG_exception(int code, const char *msg) {
+  char msg_buf[CHICKEN_MSG_BUF_LEN];
+  C_word *a;
+  C_word scmmsg;
+
+  sprintf (msg_buf, "Exception(%d): %.950s\n", code, msg);
+
+  a = C_alloc (C_SIZEOF_STRING (strlen (msg_buf)));
+  scmmsg = C_string2 (&a, msg_buf);
+  C_halt (scmmsg);
+}
+#define SWIG_exception(a,b) _SWIG_exception((a),(b))
+%}
+#endif
+
 /* exception.i ends here */
