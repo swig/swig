@@ -214,7 +214,8 @@ DohGetattr(DOH *obj, const DOH *name) {
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo = b->type;
   if (objinfo->doh_hash && objinfo->doh_hash->doh_getattr) {
-    return (objinfo->doh_hash->doh_getattr)(b,(DOH *) name);
+    DOH *r = (objinfo->doh_hash->doh_getattr)(b,(DOH *) name);
+    return (r == DohNone) ? 0 : r;
   }
   return 0;
 }

@@ -433,11 +433,11 @@ class CSHARP : public Language {
     if (!addSymbol(wrapname,n)) return SWIG_ERROR;
 
     if (Getattr(n,"type")) {
-      Swig_save(&n,"name",NIL);
+      Swig_save("nativeWrapper",n,"name",NIL);
       Setattr(n,"name", wrapname);
       native_function_flag = true;
       functionWrapper(n);
-      Swig_restore(&n);
+      Swig_restore(n);
       native_function_flag = false;
     } else {
       Printf(stderr,"%s : Line %d. No return type for %%native method %s.\n", input_file, line_number, Getattr(n,"wrap:name"));
@@ -668,7 +668,7 @@ class CSHARP : public Language {
 
     if (Cmp(nodeType(n), "constant") == 0) {
       // Wrapping a constant hack
-      Swig_save(&n,"wrap:action",NIL);
+      Swig_save("functionWrapper",n,"wrap:action",NIL);
 
       // below based on Swig_VargetToFunction()
       SwigType *ty = Swig_wrapped_var_type(Getattr(n,"type"));
@@ -680,7 +680,7 @@ class CSHARP : public Language {
       emit_action(n,f);
 
     if (Cmp(nodeType(n), "constant") == 0)
-      Swig_restore(&n);
+      Swig_restore(n);
 
     /* Return value if necessary  */
     if(!native_function_flag) {
@@ -818,7 +818,7 @@ class CSHARP : public Language {
 
     // Add the stripped quotes back in
     String *new_value = NewString("");
-    Swig_save(&n,"value",NIL);
+    Swig_save("constantWrapper",n,"value",NIL);
     if(SwigType_type(t) == T_STRING) {
       Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
       Setattr(n, "value", new_value);
@@ -856,7 +856,7 @@ class CSHARP : public Language {
     else
       Printv(module_constants_code, constants_code, NIL);
 
-    Swig_restore(&n);
+    Swig_restore(n);
     Delete(new_value);
     Delete(shadowrettype);
     Delete(constants_code);

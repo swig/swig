@@ -19,7 +19,6 @@ char cvsroot_python_cxx[] = "$Header$";
 
 #include <ctype.h>
 
-
 /**********************************************************************************
  *
  * TYPE UTILITY FUNCTIONS
@@ -636,7 +635,7 @@ public:
     int constructor = (!Cmp(nodeType, "constructor")); 
     String *storage   = Getattr(n,"storage");
     int isVirtual = (Cmp(storage,"virtual") == 0);
-    
+
     if (Getattr(n,"sym:overloaded")) {
       overname = Getattr(n,"sym:overname");
     } else {
@@ -1897,7 +1896,7 @@ public:
      * to receive the scripting language object (e.g. 'self')
      *
      */
-    Swig_save(&n,"parms",NIL);
+    Swig_save("python:constructorHandler",n,"parms",NIL);
     if (use_director) {
           Parm *parms = Getattr(n, "parms");
 	  Parm *self;
@@ -1919,7 +1918,7 @@ public:
     shadow = oldshadow;
 
     Delattr(n, "wrap:self");
-    Swig_restore(&n);
+    Swig_restore(n);
 
     if (!Getattr(n,"sym:nextSibling")) {
       if (shadow) {

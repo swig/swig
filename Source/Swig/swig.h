@@ -337,9 +337,9 @@ extern Node *copyNode(Node *node);
 
 extern void Swig_tag_nodes(Node *node, const String_or_char *attrname, DOH *value);
 
-extern int  Swig_require(Node **node, ...);
-extern int  Swig_save(Node **node,...);
-extern void Swig_restore(Node **node);
+extern int  Swig_require(const char *ns, Node *node, ...);
+extern int  Swig_save(const char *ns, Node *node,...);
+extern void Swig_restore(Node *node);
 
 /* Debugging of parse trees */
 extern void Swig_debug_emit(int);

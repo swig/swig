@@ -1097,7 +1097,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int constantWrapper(Node *n) {
-    Swig_require(&n, "*sym:name", "type", "value", NIL);
+    Swig_require("constantWrapper",n, "*sym:name", "type", "value", NIL);
     
     char *iname     = GetChar(n,"sym:name");
     SwigType *type  = Getattr(n,"type");
@@ -1132,7 +1132,7 @@ public:
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
 		   "Unsupported constant value %s = %s\n", SwigType_str(type, 0), value);
     }
-    Swig_restore(&n);
+    Swig_restore(n);
     return SWIG_OK;
   }
   
