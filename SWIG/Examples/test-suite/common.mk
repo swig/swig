@@ -97,6 +97,10 @@ CPP_TEST_CASES += \
 	default_constructor \
 	default_ns \
 	default_ref \
+	director_basic \
+	director_exception \
+	director_finalizer \
+	director_unroll \
 	dynamic_cast \
 	enum_plus \
 	enum_scope \
