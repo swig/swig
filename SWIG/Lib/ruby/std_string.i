@@ -23,6 +23,7 @@ namespace std {
 
     // Ruby wants class names to start with a capital letter
     %rename(String) string;
+    %feature("novaluewrapper") string;  
     class string;
 
     /* Overloading check */

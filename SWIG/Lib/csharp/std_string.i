@@ -19,6 +19,7 @@
 
 namespace std {
 
+%feature("novaluewrapper") string;  
 class string;
 
 // string
