@@ -240,6 +240,7 @@ namespace std {
 %define SWIG_TYPECHECK_STRING       140    %enddef
 %define SWIG_TYPECHECK_VECTOR       150    %enddef
 %define SWIG_TYPECHECK_MAP          160    %enddef
+%define SWIG_TYPECHECK_PAIR         170    %enddef
 
 %define SWIG_TYPECHECK_BOOL_ARRAY        1015    %enddef
 %define SWIG_TYPECHECK_INT8_ARRAY        1025    %enddef
