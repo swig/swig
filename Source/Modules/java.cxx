@@ -2749,7 +2749,7 @@ class JAVA : public Language {
 
         /* Add to local variables */
         Printf(c_decl, "%s %s", c_param_type, arg);
-        Wrapper_add_localv(w, arg, c_decl, (!SwigType_ispointer(pt) ? "" : "= 0"), NIL);
+        Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
 
         /* Add input marshalling code and update JNI field descriptor */
         if ((desc_tm = Swig_typemap_lookup_new("directorin", tp, "", 0)) != NULL
