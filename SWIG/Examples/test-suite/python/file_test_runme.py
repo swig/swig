@@ -6,4 +6,4 @@ file_test.nfile(sys.stdout)
 cstdout = file_test.GetStdOut()
 
 file_test.nfile(cstdout)
-file_test.nfile("test.dat")
+file_test.nfile_name("test.dat")
