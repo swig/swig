@@ -134,8 +134,7 @@
   else $1[0] = 0;
 }
 
-%typemap(ignore,warning="Variable length arguments discarded.") (...) "";
-
+//%typemap(ignore,warning="Variable length arguments discarded.") (...) "";
 %typemap(ignore) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
 
 

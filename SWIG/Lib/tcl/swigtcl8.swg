@@ -310,7 +310,7 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
   swig_type_info *ty;
 
   va_start(ap,fmt);
-  for (c = fmt; (*c && (*c != ':')); c++,argno++) {
+  for (c = fmt; (*c && (*c != ':') && (*c != ';')); c++,argno++) {
     if (*c == '|') {
       opt = 1;
       c++;
@@ -374,7 +374,8 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
       }
     }
   }
-  if ((objc-1) > argno) {
+  
+  if ((*c != ';') && ((objc-1) > argno)) {
     Tcl_SetResult(interp, (char *) "Wrong # args.", TCL_STATIC);
     goto argerror;
   }
@@ -385,7 +386,10 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
   {
     char temp[32];
     sprintf(temp,"%d", argno+1);
-    Tcl_AppendResult(interp,strchr(fmt,':'), " argument ", temp, NULL);
+    c = strchr(fmt,':');
+    if (!c) c = strchr(fmt,';');
+    if (!c) c = (char *)"";
+    Tcl_AppendResult(interp,c," argument ", temp, NULL);
     va_end(ap);
     return TCL_ERROR;
   }
