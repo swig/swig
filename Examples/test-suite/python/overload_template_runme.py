@@ -140,3 +140,6 @@ if (nsoverload() != 1050):
   raise RuntimeError, ("nsoverload(const char *)")
 
 
+b = B()
+
+b.foo(1)
