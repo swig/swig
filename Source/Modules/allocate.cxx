@@ -67,8 +67,8 @@ class Allocate : public Dispatcher {
   /* Checks if a virtual function is the same as inherited from the bases */
   int function_is_defined_in_bases(Node *c, Node *bases) {
     Node *b, *temp;
-    String *name, *type, *local_decl, *base_decl;
-    SwigType *base_type, *local_type;
+    String *name, *type, *local_decl, *base_decl, *base_access;
+    SwigType *base_type, *local_type, *local_access;
     
     if (!bases)
       return 0;
@@ -76,6 +76,7 @@ class Allocate : public Dispatcher {
     name = Getattr(c, "name");
     type = Getattr(c, "type");
     local_decl = Getattr(c, "decl");
+    local_access = Getattr(c, "access");
     if (local_decl) {
       local_decl = SwigType_typedef_resolve_all(local_decl);
     } else {
@@ -90,6 +91,7 @@ class Allocate : public Dispatcher {
       while (temp) {
 	base_decl = Getattr(temp, "decl");
 	base_type = Getattr(temp, "type");
+	base_access = Getattr(temp, "access");
 	if (base_decl && base_type) {
 	  base_decl = SwigType_typedef_resolve_all(base_decl);
 	  base_type = SwigType_typedef_resolve_all(base_type);
@@ -103,18 +105,22 @@ class Allocate : public Dispatcher {
             // is, not the virtual method definition in a base class
             Setattr(c, "storage", "virtual");
             Setattr(c, "virtual:derived", "1"); 
-            if ((Strcmp(local_type, base_type) == 0) && is_public(c)) {
-	      // if the types are the same, then we can attemp
+            if ((Strcmp(local_type, base_type) == 0)) {
+	      // if the types and access are the same, then we can attemp
 	      // to eliminate the derived virtual method.
-              if (virtual_elimination_mode) Setattr(c,"feature:ignore", "1");
+              if (virtual_elimination_mode) {
+		const char *la = local_access ? Char(local_access) : "";
+		const char *ba = base_access ? Char(base_access) : "";
+		if (strcmp(la, ba) == 0) Setattr(c,"feature:ignore", "1");
+	      }
             } else {
 	      // if the types are different, we record the original
 	      // virtual base type in case some language needs it.
               Setattr(c, "virtual:type", Getattr(temp, "type"));
             }
 
-            Delete(base_decl);
-            Delete(base_type);
+	    Delete(base_decl);
+	    Delete(base_type);
             Delete(local_decl);
             Delete(local_type);
             return 1;
