@@ -379,12 +379,10 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
     sm = Swig_typemap_get(type,name,ts);
 
     if (sm) {
-
-      match = 1;
-
       /* Got a typemap.  Need to only merge attributes for methods that match our signature */
       String *key;
 
+      match = 1;
       for (key = Firstkey(sm); key; key = Nextkey(sm)) {
 	/* Check for a signature match with the source signature */
 	if ((count_args(key) == narg) && (Strstr(key,ssig))) {
