@@ -633,8 +633,11 @@ Swig_ConstructorToFunction(Node *n, String *classname,
   if (flags & CWRAP_EXTEND) {
     String *code = Getattr(n,"code");
     if (code) {
-      String *wrap;
-      String *s = NewStringf("%s(%s)", mangled, ParmList_str(parms));
+      String *wrap, *s;
+      if (Getattr(n,"sym:overloaded") && code) {
+	Append(mangled,Getattr(n,"sym:overname"));
+      }
+      s = NewStringf("%s(%s)", mangled, ParmList_str(parms));
       wrap = SwigType_str(type,s);
       Delete(s);
       Printv(wrap,code,"\n",NIL);
