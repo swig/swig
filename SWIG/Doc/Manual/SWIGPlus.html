@@ -1248,7 +1248,7 @@ it might be used like this
 The implementation of overloaded functions and methods is somewhat
 complicated due to the dynamic nature of scripting languages.  Unlike
 C++, which binds overloaded methods at compile time, SWIG must
-determine the proper function as a runtime check.    This check is
+determine the proper function as a runtime check for scripting language targets. This check is
 further complicated by the typeless nature of certain scripting languages. For instance,
 in Tcl, all types are simply strings.  Therefore, if you have two overloaded functions
 like this,
@@ -1263,7 +1263,8 @@ void foo(int x);
 the order in which the arguments are checked plays a rather critical role.
 
 <p>
-To implement overloading, SWIG generates a dispatch function that checks the
+For statically typed languages, SWIG uses the language's method overloading mechanism.
+To implement overloading for the scripting languages, SWIG generates a dispatch function that checks the
 number of passed arguments and their types.  To create this function, SWIG
 first examines all of the overloaded methods and ranks them according
 to the following rules:
@@ -1365,7 +1366,7 @@ void foo(long x);
 In C++, this is perfectly legal.  However, in a scripting language, there is generally only one kind of integer
 object.  Therefore, which one of these functions do you pick?   Clearly, there is no way to truly make a distinction 
 just by looking at the value of the integer itself (<tt>int</tt> and <tt>long</tt> may even be the same precision).   
-Therefore, when SWIG encounters this situation, it may generate a warning message like this:
+Therefore, when SWIG encounters this situation, it may generate a warning message like this for scripting languages:
 
 <blockquote>
 <pre>
@@ -1373,18 +1374,26 @@ example.i:4: Warning(509): Overloaded foo(long) is shadowed by foo(int) at examp
 </pre>
 </blockquote>
 
+or for statically typed languages like Java:
+
+<blockquote>
+<pre>
+example.i:4: Warning(516): Overloaded method foo(long) ignored. Method foo(int) at example.i:3 used.
+</pre>
+</blockquote>
+
 This means that the second overloaded function will be inaccessible
-from the scripting interface---SWIG does not know how to disambiguate
-it from an earlier method.
+from a scripting interface or the method won't be wrapped at all. 
+This is done as SWIG does not know how to disambiguate it from an earlier method.
 
 <p>
 Ambiguity problems are known to arise in the following situations:
 
 <ul>
-<li>Integer conversions.   Datatypes such as <tt>int</tt>, <tt>long</tt>, and <tt>short</tt>. Shown above.
+<li>Integer conversions.   Datatypes such as <tt>int</tt>, <tt>long</tt>, and <tt>short</tt> cannot be disambiguated in some languages. Shown above.
 
 <p>
-<li>Floating point conversion.  <tt>float</tt> and <tt>double</tt> can not be disambiguated.
+<li>Floating point conversion.  <tt>float</tt> and <tt>double</tt> can not be disambiguated in some languages.
 
 <p>
 <li>Pointers and references. For example, <tt>Foo *</tt> and <tt>Foo &</tt>.
