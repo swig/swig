@@ -113,10 +113,11 @@
   if (PyErr_Occurred()) SWIG_fail;
 }
 
-%typemap(in) char [ANY] 
-{
-  SPyObj_AsCharArray($input, $1, $1_dim0);
+%typemap(in) char [ANY] (char temp[$1_dim0])
+{  
+  SPyObj_AsCharArray($input, temp, $1_dim0);
   if (PyErr_Occurred()) SWIG_fail;
+  $1 = temp;
 }
 
 
