@@ -48,7 +48,6 @@ CPP_TEST_BROKEN += \
 	array_typedef_memberin \
 	defvalue_constructor \
 	exception_order \
-	extern_throws \
 	namespace_union \
 	template_default_arg \
 	template_specialization_defarg \
@@ -123,6 +122,7 @@ CPP_TEST_CASES += \
 	extend_placement \
 	extend_template \
 	extend_template_ns \
+	extern_throws \
 	global_ns_arg \
 	grouping \
 	ignore_parameter \
