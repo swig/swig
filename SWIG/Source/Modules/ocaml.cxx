@@ -1324,7 +1324,6 @@ public:
 	String *name = Getattr(n,"name");
 	String *mangled_sym_name = mangleNameForCaml(name);
 	String *this_class_def = NewString( f_classtemplate );
-	String *classbody = NewString("");
 	String *name_normalized = normalizeTemplatedClassName(name);
 	String *old_class_ctors = f_class_ctors;
 	String *base_classes = NewString("");
@@ -1344,7 +1343,7 @@ public:
 	    while (base) {
 		String *bname = Getattr(base, "ocaml:ctor");
 		if (bname) {
-		    Printv(classbody,
+		    Printv(f_class_ctors,
 			   "   \"::",bname,"\", (fun args -> "
 			   "create_",bname,"_from_ptr raw_ptr) ;\n",NIL);
 		    Printv( base_classes, "create_", bname, "_from_ptr ;\n", 
@@ -1356,7 +1355,6 @@ public:
 	}    
     
 	Replaceall(this_class_def,"$classname",classname);
-	Replaceall(this_class_def,"$classbody",classbody);
 	Replaceall(this_class_def,"$normalized",name_normalized);
 	Replaceall(this_class_def,"$realname",name);
 	Replaceall(this_class_def,"$baselist",base_classes);
