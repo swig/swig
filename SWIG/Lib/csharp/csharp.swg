@@ -68,67 +68,6 @@
 %typemap(jtype) char[ANY]               "string"
 %typemap(jstype) char[ANY]               "string"
 
-/* JNI types */
-%typemap(jni) jboolean      "bool"
-%typemap(jni) jchar         "char"
-%typemap(jni) jbyte         "byte"
-%typemap(jni) jshort        "short"
-%typemap(jni) jint          "int"
-%typemap(jni) jlong         "long"
-%typemap(jni) jfloat        "float"
-%typemap(jni) jdouble       "double"
-%typemap(jni) jstring       "string"
-%typemap(jni) jobject       "object"
-%typemap(jni) jbooleanArray "booleanArray"
-%typemap(jni) jcharArray    "charArray"
-%typemap(jni) jbyteArray    "byteArray"
-%typemap(jni) jshortArray   "shortArray"
-%typemap(jni) jintArray     "intArray"
-%typemap(jni) jlongArray    "longArray"
-%typemap(jni) jfloatArray   "floatArray"
-%typemap(jni) jdoubleArray  "doubleArray"
-%typemap(jni) jobjectArray  "objectArray"
-
-%typemap(jtype) jboolean      "bool"
-%typemap(jtype) jchar         "char"
-%typemap(jtype) jbyte         "byte"
-%typemap(jtype) jshort        "short"
-%typemap(jtype) jint          "int"
-%typemap(jtype) jlong         "long"
-%typemap(jtype) jfloat        "float"
-%typemap(jtype) jdouble       "double"
-%typemap(jtype) jstring       "string"
-%typemap(jtype) jobject       "Object"
-%typemap(jtype) jbooleanArray "bool[]"
-%typemap(jtype) jcharArray    "char[]"
-%typemap(jtype) jbyteArray    "byte[]"
-%typemap(jtype) jshortArray   "short[]"
-%typemap(jtype) jintArray     "int[]"
-%typemap(jtype) jlongArray    "long[]"
-%typemap(jtype) jfloatArray   "float[]"
-%typemap(jtype) jdoubleArray  "double[]"
-%typemap(jtype) jobjectArray  "Object[]"
-
-%typemap(jstype) jboolean      "bool"
-%typemap(jstype) jchar         "char"
-%typemap(jstype) jbyte         "byte"
-%typemap(jstype) jshort        "short"
-%typemap(jstype) jint          "int"
-%typemap(jstype) jlong         "long"
-%typemap(jstype) jfloat        "float"
-%typemap(jstype) jdouble       "double"
-%typemap(jstype) jstring       "String"
-%typemap(jstype) jobject       "Object"
-%typemap(jstype) jbooleanArray "bool[]"
-%typemap(jstype) jcharArray    "char[]"
-%typemap(jstype) jbyteArray    "byte[]"
-%typemap(jstype) jshortArray   "short[]"
-%typemap(jstype) jintArray     "int[]"
-%typemap(jstype) jlongArray    "long[]"
-%typemap(jstype) jfloatArray   "float[]"
-%typemap(jstype) jdoubleArray  "double[]"
-%typemap(jstype) jobjectArray  "Object[]"
-
 /* Non primitive types */
 %typemap(jni) SWIGTYPE "int"
 %typemap(jtype) SWIGTYPE "IntPtr"
@@ -202,7 +141,7 @@
 
 %typemap(out) void ""
 
-/* primitive types by reference */
+/* primitive types by const reference */
 %typemap(in) const bool & (bool temp)
 %{ temp = $input ? true : false; 
    $1 = &temp; %}
@@ -237,7 +176,6 @@ $1 = &temp; %}
 %typemap(out) const unsigned long long & %{ $result = *$1; %}
 %typemap(out) const float &              %{ $result = *$1; %}
 %typemap(out) const double &             %{ $result = *$1; %}
-
 
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
@@ -281,73 +219,26 @@ $1 = &temp; %}
 %typemap(freearg) char[ANY] ""//{ if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
 %typemap(out) char[ANY] { if($1) $result = $1; }
 
-/* JNI types */
-%typemap(in) jboolean,
-             jchar,
-             jbyte,
-             jshort,
-             jint,
-             jlong,
-             jfloat,
-             jdouble,
-             jstring,
-             jobject,
-             jbooleanArray,
-             jcharArray,
-             jbyteArray,
-             jshortArray,
-             jintArray,
-             jlongArray,
-             jfloatArray,
-             jdoubleArray,
-             jobjectArray
-%{ $1 = $input; %}
-
-%typemap(out) jboolean,
-              jchar,
-              jbyte,
-              jshort,
-              jint,
-              jlong,
-              jfloat,
-              jdouble,
-              jstring,
-              jobject,
-              jbooleanArray,
-              jcharArray,
-              jbyteArray,
-              jshortArray,
-              jintArray,
-              jlongArray,
-              jfloatArray,
-              jdoubleArray,
-              jobjectArray
-%{ $result = $1; %}
-
 
 /* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
  * that cannot be overloaded in Java as more than one C++ type maps to a single Java type */
 
 %typecheck(SWIG_TYPECHECK_BOOL) /* Java boolean */
-    jboolean,
     bool,
     const bool &
     ""
 
 %typecheck(SWIG_TYPECHECK_CHAR) /* Java char */
-    jchar,
     char, 
     const char &
     ""
 
 %typecheck(SWIG_TYPECHECK_INT8) /* Java byte */
-    jbyte,
     signed char,
     const signed char &
     ""
 
 %typecheck(SWIG_TYPECHECK_INT16) /* Java short */
-    jshort,
     unsigned char, 
     short, 
     const unsigned char &, 
@@ -355,7 +246,6 @@ $1 = &temp; %}
     ""
 
 %typecheck(SWIG_TYPECHECK_INT32) /* Java int */
-    jint,
     unsigned short, 
     int, 
     long, 
@@ -366,7 +256,6 @@ $1 = &temp; %}
     ""
 
 %typecheck(SWIG_TYPECHECK_INT64) /* Java long */
-    jlong,
     unsigned int, 
     unsigned long, 
     long long, 
@@ -380,53 +269,18 @@ $1 = &temp; %}
     ""
 
 %typecheck(SWIG_TYPECHECK_FLOAT) /* Java float */
-    jfloat,
     float,
     const float &
     ""
 
 %typecheck(SWIG_TYPECHECK_DOUBLE) /* Java double */
-    jdouble,
     double,
     const double &
     ""
 
 %typecheck(SWIG_TYPECHECK_STRING) /* Java String */
-    jstring,
     char *,
     char[ANY]
-    ""
-
-%typecheck(SWIG_TYPECHECK_BOOL_ARRAY) /* Java boolean[] */
-    jbooleanArray
-    ""
-
-%typecheck(SWIG_TYPECHECK_CHAR_ARRAY) /* Java char[] */
-    jcharArray
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT8_ARRAY) /* Java byte[] */
-    jbyteArray
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT16_ARRAY) /* Java short[] */
-    jshortArray
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT32_ARRAY) /* Java int[] */
-    jintArray
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT64_ARRAY) /* Java long[] */
-    jlongArray
-    ""
-
-%typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) /* Java float[] */
-    jfloatArray
-    ""
-
-%typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) /* Java double[] */
-    jdoubleArray
     ""
 
 %typecheck(SWIG_TYPECHECK_POINTER) /* Default */
@@ -436,7 +290,6 @@ $1 = &temp; %}
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)
     ""
-
 
 /* Exception handling */
 
@@ -485,26 +338,6 @@ $1 = &temp; %}
                  char[ANY],
                  enum SWIGTYPE 
     "$javainput"
-%typemap(javain) jboolean,
-                 jchar,
-                 jbyte,
-                 jshort,
-                 jint,
-                 jlong,
-                 jfloat,
-                 jdouble,
-                 jstring,
-                 jobject,
-                 jbooleanArray,
-                 jcharArray,
-                 jbyteArray,
-                 jshortArray,
-                 jintArray,
-                 jlongArray,
-                 jfloatArray,
-                 jdoubleArray,
-                 jobjectArray
-    "$javainput"
 %typemap(javain) SWIGTYPE "$&javaclassname.getCPtr($javainput)"
 %typemap(javain) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "$javaclassname.getCPtr($javainput)"
 
@@ -529,27 +362,6 @@ $1 = &temp; %}
                   enum SWIGTYPE {
     return $jnicall;
   }
-%typemap(javaout) jboolean,
-                  jchar,
-                  jbyte,
-                  jshort,
-                  jint,
-                  jlong,
-                  jfloat,
-                  jdouble,
-                  jstring,
-                  jobject,
-                  jbooleanArray,
-                  jcharArray,
-                  jbyteArray,
-                  jshortArray,
-                  jintArray,
-                  jlongArray,
-                  jfloatArray,
-                  jdoubleArray,
-                  jobjectArray {
-    return $jnicall;
-  }
 %typemap(javaout) void {
     $jnicall;
   }
@@ -571,22 +383,22 @@ $1 = &temp; %}
     } %}
 
 %typemap(csvarout) bool,               const bool &,
-                  char,               const char &,
-                  signed char,        const signed char &,
-                  unsigned char,      const unsigned char &,
-                  short,              const short &,
-                  unsigned short,     const unsigned short &,
-                  int,                const int &,
-                  unsigned int,       const unsigned int &,
-                  long,               const long &,
-                  unsigned long,      const unsigned long &,
-                  long long,          const long long &,
-                  unsigned long long, const unsigned long long &,
-                  float,              const float &,
-                  double,             const double &,
-                  char *,
-                  char[ANY],
-                  enum SWIGTYPE %{
+                   char,               const char &,
+                   signed char,        const signed char &,
+                   unsigned char,      const unsigned char &,
+                   short,              const short &,
+                   unsigned short,     const unsigned short &,
+                   int,                const int &,
+                   unsigned int,       const unsigned int &,
+                   long,               const long &,
+                   unsigned long,      const unsigned long &,
+                   long long,          const long long &,
+                   unsigned long long, const unsigned long long &,
+                   float,              const float &,
+                   double,             const double &,
+                   char *,
+                   char[ANY],
+                   enum SWIGTYPE %{
     get {
       return $jnicall;
     } %}
