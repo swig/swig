@@ -190,8 +190,14 @@
     temp = ($*1_ltype) MZ_TO_C($input);
     $1 = &temp;
 }
+%typemap(outv) C_NAME {
+    $1 = MZ_TO_C($input);
+}
 %typemap(argout) C_NAME & {
     swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
+}
+%typemap(inv) C_NAME {
+    args = caml_list_append(args,C_TO_MZ($1_name));
 }
 %enddef
 

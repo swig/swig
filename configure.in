@@ -916,6 +916,7 @@ AC_ARG_WITH(ocaml,[  --with-ocaml=path	  Set location of ocaml executable],[ OCA
 AC_ARG_WITH(ocamlc,[  --with-ocamlc=path  Set location of ocamlc executable],[ OCAMLC="$withval"], [OCAMLC=])
 AC_ARG_WITH(ocamldlgen,[  --with-ocamldlgen=path  Set location of ocamldlgen],[ OCAMLDLGEN="$withval" ], [OCAMLDLGEN=])
 AC_ARG_WITH(ocamlfind,[  --with-ocamlfind=path  Set location of ocamlfind],[OCAMLFIND="$withval"],[OCAMLFIND=])
+AC_ARG_WITH(ocamlmktop,[  --with-ocamlmktop=path	  Set location of ocamlmktop executable],[ OCAMLMKTOP="$withval"], [OCAMLMKTOP=])
 
 AC_MSG_CHECKING(for Ocaml DL load generator)
 if test -z "$OCAMLDLGEN"; then
@@ -944,6 +945,14 @@ AC_CHECK_PROGS(OCAMLBIN, ocaml, ocaml)
 else
 OCAMLBIN="$OCAMLBIN"
 fi
+
+AC_MSG_CHECKING(for Ocaml toplevel creator)
+if test -z "$OCAMLMKTOP"; then
+AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, ocamlmktop)
+else
+OCAMLMKTOP="$OCAMLMKTOP"
+fi
+
 AC_MSG_CHECKING(for Ocaml header files)
 dirs="/usr/lib/ocaml/caml /usr/local/lib/ocaml/caml"
 for i in $dirs; do
@@ -963,12 +972,14 @@ export OCAMLBIN
 export OCAMLC
 export OCAMLDLGEN
 export OCAMLFIND
+export OCAMLMKTOP
 
 AC_SUBST(OCAMLINC)
 AC_SUBST(OCAMLBIN)
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLDLGEN)
 AC_SUBST(OCAMLFIND)
+AC_SUBST(OCAMLMKTOP)
 
 #----------------------------------------------------------------
 # Look for Pike

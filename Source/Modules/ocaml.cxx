@@ -330,7 +330,6 @@ public:
     // Add a symbol for this module
     
     Preprocessor_define ("SWIGOCAML 1",0);
-    
     // Set name of typemaps
     
     SWIG_typemap_lang("ocaml");
@@ -366,6 +365,26 @@ public:
   virtual int top(Node *n) {
     /* Set comparison with none for ConstructorToFunction */
     SetNoneComparison( NewString( "$arg != Val_unit" ) );
+
+    /* check if directors are enabled for this module.  note: this 
+     * is a "master" switch, without which no director code will be
+     * emitted.  %feature("director") statements are also required
+     * to enable directors for individual classes or methods.
+     *
+     * use %module(directors="1") modulename at the start of the 
+     * interface file to enable director generation.
+     */
+    {
+      Node *module = Getattr(n, "module");
+      if (module) {
+        Node *options = Getattr(module, "options");
+        if (options) {
+          if (Getattr(options, "directors")) {
+            allow_directors();
+          }
+        }
+      }
+    }
 
     /* Initialize all of the output files */
     String *outfile = Getattr(n,"outfile");
@@ -670,12 +689,12 @@ public:
     
     // adds local variables
     Wrapper_add_local(f, "args", "CAMLparam1(args)");
-    Wrapper_add_local(f, "ret", "CAMLlocal2(swig_result,rv)");
+    Wrapper_add_local(f, "ret" , "CAMLlocal2(swig_result,rv)");
     Wrapper_add_local(f, "_len", "int _len");
     Wrapper_add_local(f, "lenv", "int lenv = 1");
     Wrapper_add_local(f, "argc", "int argc = caml_list_length(args)");
     Wrapper_add_local(f, "argv", "value *argv");
-    Wrapper_add_local(f, "i", "int i");
+    Wrapper_add_local(f, "i"   , "int i");
 
     Printv( f->code,
 	    "argv = (value *)malloc( argc * sizeof( value ) );\n"
@@ -818,7 +837,7 @@ public:
     // Now have return value, figure out what to do with it.
     
     if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
-      Replaceall(tm,"$source","result");
+      Replaceall(tm,"$source","swig_result");
       Replaceall(tm,"$target","rv");
       Replaceall(tm,"$result","rv");
       Replaceall(tm,"$ntype",return_type_normalized);
@@ -837,7 +856,7 @@ public:
     
     if (Getattr(n,"feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
-	Replaceall(tm,"$source","result");
+	Replaceall(tm,"$source","swig_result");
 	Printv(f->code, tm, "\n",NIL);
       }
     }
@@ -1412,7 +1431,9 @@ public:
 
     w = NewWrapper();
     declaration = NewString("");
-    Wrapper_add_local(w,"swig_result","CAMLlocal2(swig_result,args)");
+    Wrapper_add_local(w,"swig_result",
+		      "CAMLparam0();\n"
+		      "CAMLlocal2(swig_result,args)");
 	
     /* determine if the method returns a pointer */
     decl = Getattr(n, "decl");
@@ -1461,7 +1482,7 @@ public:
     wrap_args = NewString("");
     int outputs = 0;
     if (!is_void) outputs++;
-	
+
     /* build argument list and type conversion string */
     for (i=0, idx=0, p = l; i < num_arguments; i++) {
 
@@ -1478,11 +1499,9 @@ public:
       if ((tm = Getattr(p, "tmap:inv")) != 0) {
 	String* parse = Getattr(p, "tmap:inv:parse");
 	if (!parse) {
-	  sprintf(source, "obj%d", idx++);
 	  Replaceall(tm, "$input", source);
 	  Replaceall(tm, "$owner", "0");
 	  Printv(wrap_args, tm, "\n", NIL);
-	  Wrapper_add_localv(w, source, "value", source, "= 0", NIL);
 	  Printv(arglist, source, NIL);
 	} else {
 	  Replaceall(tm, "$input", pname);
@@ -1570,9 +1589,13 @@ public:
     if (!is_void) {
       Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
     }
+
+    Printv(w->code, "swig_result = Val_unit;\n",0);
+    Printf(w->code,"args = Val_unit;\n");
+
     /* direct call to superclass if _up is set */
     Printf(w->code, "if (__get_up()) {\n");
-    Printf(w->code,   "return %s;\n", Swig_method_call(super,l));
+    Printf(w->code,   "CAMLreturn(%s);\n", Swig_method_call(super,l));
     Printf(w->code, "}\n");
     
     /* check that we don't wrap a null... */
@@ -1582,10 +1605,15 @@ public:
     Printv(w->code, wrap_args, NIL);
 
     /* pass the method call on to the Python object */
+    Printv(w->code,
+	   "swig_result = caml_swig_alloc(1,C_list);\n"
+	   "Store_field(swig_result,0,args);\n"
+	   "args = swig_result;\n"
+	   "swig_result = Val_unit;\n",0);
     Printf(w->code, 
-	   "swig_result = caml_list_append(swig_result,"
-	   "callback3(*caml_named_value(\"swig_runmethod\"),"
-	   "__get_self(),copy_string(\"%s\"),args));\n",
+	   "swig_result = "
+	   "callback2(callback(*caml_named_value(\"swig_runmethod\"),"
+	   "__get_self()),copy_string(\"%s\"),args);\n",
 	   Getattr(n,"name"));
     /* exception handling */
 	   tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
@@ -1625,20 +1653,15 @@ public:
 	 * occurs in Language::cDeclaration().
 	 */
       Setattr(n, "type", return_type);
-      tm = Swig_typemap_lookup_new("outv", n, "result", w);
+      tm = Swig_typemap_lookup_new("outv", n, "c_result", w);
       Setattr(n, "type", type);
       if (tm == 0) {
-        String *name = NewString("result");
+        String *name = NewString("c_result");
         tm = Swig_typemap_search("outv", return_type, name, NULL);
 	Delete(name);
       }
       if (tm != 0) {
-	if (outputs > 1) {
-	  Printf(w->code, "output = PyTuple_GetItem(result, %d);\n", idx++);
-	  Replaceall(tm, "$input", "output");
-	} else {
-	  Replaceall(tm, "$input", "result");
-	}
+	Replaceall(tm, "$input", "swig_result");
 	/* TODO check this */
 	if (Getattr(n,"wrap:disown")) {
 	  Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
@@ -1657,12 +1680,7 @@ public:
     /* marshal outputs */
     for (p = l; p; ) {
       if ((tm = Getattr(p, "tmap:argoutv")) != 0) {
-	if (outputs > 1) {
-	  Printf(w->code, "output = PyTuple_GetItem(result, %d);\n", idx++);
-	  Replaceall(tm, "$input", "output");
-	} else {
-	  Replaceall(tm, "$input", "result");
-	}
+	Replaceall(tm, "$input", "swig_result");
 	Replaceall(tm, "$result", Getattr(p, "name"));
 	Printv(w->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argoutv:next");
@@ -1674,9 +1692,9 @@ public:
     /* any existing helper functions to handle this? */
     if (!is_void) {
       if (!SwigType_isreference(return_type)) {
-        Printf(w->code, "return c_result;\n");
+        Printf(w->code, "CAMLreturn(c_result);\n");
       } else {
-        Printf(w->code, "return *c_result;\n");
+        Printf(w->code, "CAMLreturn(*c_result);\n");
       }
     }
 

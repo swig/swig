@@ -94,7 +94,8 @@ let disown_object obj =
 let _ = Callback.register "caml_obj_disown" disown_object
 let director_get_self obj = 
   match obj with
-      C_director_core (self,r) -> self
+      C_obj o -> obj
+    | C_director_core (self,r) -> self
     | _ -> raise (Failure "Not a director core object")
 let _ = Callback.register "caml_director_get_self" director_get_self
       

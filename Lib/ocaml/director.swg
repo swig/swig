@@ -91,10 +91,12 @@ public:
     
     /* wrap a ocaml object, optionally taking ownership */
     __DIRECTOR__(value self, int disown): _self(self), _disown(disown) {
+	register_global_root(&_self);
     }
     
     /* discard our reference at destruction */
     virtual ~__DIRECTOR__() {
+	remove_global_root(&_self);
 	__disown(); 
         // Disown is safe here because we're just divorcing a reference that
 	// points to us.  
@@ -102,7 +104,7 @@ public:
     
     /* return a pointer to the wrapped ocaml object */
     value __get_self() const { 
-	return _self; 
+	return callback(*caml_named_value("caml_director_get_self"),_self); 
     }
 
     /* get the _up flag to determine if the method call should be routed
@@ -188,7 +190,7 @@ let new_derived_object cfun x_class args =
     let obj =
     cfun (match args with
                 C_list argl ->
-	  (C_list ((C_obj new_class) :: argl))
+	  (C_list ((C_director_core (C_obj new_class,ob_ref)) :: argl))
 	  | a -> (C_list [ C_director_core 
 			   (C_obj new_class,ob_ref)  ; a ])) in
     ob_ref := Some obj ;
