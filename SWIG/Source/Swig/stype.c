@@ -1,13 +1,13 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * stype.c
  *
  *     This file provides general support for datatypes that are encoded in
  *     the form of simple strings.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
@@ -24,7 +24,7 @@
  *
  *       <type><pointer><array size="500"><pointer><pointer>int
  *             </pointer></pointer></array></pointer></type>
- *        
+ *
  * The purpose of this module is to provide a general purpose type system
  * in which types are represented as simple text strings.   The goal of
  * this representation is to make it extremely easy to specify types in
@@ -35,7 +35,7 @@
  *
  * Types are represented by a base type (e.g., "int") and a collection of
  * type elements applied to the base (e.g., pointers, arrays, etc...).
- * 
+ *
  * Encoding:
  *
  * Types are encoded as strings of type constructors separated by '.' delimeters.
@@ -45,7 +45,7 @@
  *            *.*.i-32                    int **
  *            [300].[400].i-32            int [300][400]
  *            *.+const.c-8                char const *
- * 
+ *
  * '*'                = Pointer
  * '&'                = Reference
  * '[...]'            = Array
@@ -53,7 +53,7 @@
  * '{s/tag/..,..}'    = Structure (/tag/ optional)
  * '{u/tag/..,..}'    = Union (/tag/ optional)
  * '{c/tag/..,..}'    = Class (/tag/ optional)
- * '</t/n=v,n=,..>'   = Enum (/tag/ optional, n = name, 
+ * '</t/n=v,n=,..>'   = Enum (/tag/ optional, n = name,
  *                            v = value (optional))
  * '+str'             = Qualifier
  * 'i-w'              = w-bit signed integer
@@ -68,7 +68,7 @@
  *                              pointer to 32-bit integer and
  *                              returning 8-bit character
  * '{s/Foo/i-32,*.c-8}'        structure, tagged 'Foo', containing a
- *                              32-bit integer and a pointer to 
+ *                              32-bit integer and a pointer to
  *                              8-bit character
  * '{si-32,*.c-8}'             same structure, without tag
  * '{ui-32,*.c-8}'             union with same members, without tag
@@ -78,7 +78,7 @@
  * '&</Nums/\>'                same enum, without its body
  *
  * The encoding follows the order that you might describe a type in words.
- * For example "*.[200].int" is "A pointer to array of int's" and 
+ * For example "*.[200].int" is "A pointer to array of int's" and
  * "*.+const.char" is "a pointer to a const char".
  *
  * This representation is particularly convenient because string operations
@@ -92,7 +92,7 @@
  *
  *        Replace(t,"+const.","",DOH_REPLACE_ANY)
  *
- * The string representation of types also provides a convenient way to 
+ * The string representation of types also provides a convenient way to
  * build typemaps and other pattern matching rules against type information.
  * ----------------------------------------------------------------------------- */
 
@@ -102,7 +102,7 @@
  * Adds a pointer constructor to a type
  * ----------------------------------------------------------------------------- */
 
-void 
+void
 StringType_add_pointer(DOHString *t) {
   assert(DohIsString(t));
   Insert(t,0,"*.");
@@ -114,7 +114,7 @@ StringType_add_pointer(DOHString *t) {
  * Adds an array constructor to a type
  * ----------------------------------------------------------------------------- */
 
-void 
+void
 StringType_add_array(DOHString *t, DOHString *size) {
   assert(DohIsString(t));
   Insert(t,0,"].");
@@ -128,7 +128,7 @@ StringType_add_array(DOHString *t, DOHString *size) {
  * Adds a reference constructor to a type.
  * ----------------------------------------------------------------------------- */
 
-void 
+void
 StringType_add_reference(DOHString *t) {
   assert(DohIsString(t));
   Insert(t,0,"&.");
@@ -140,7 +140,7 @@ StringType_add_reference(DOHString *t) {
  * Adds a qualifier to a type
  * ----------------------------------------------------------------------------- */
 
-void 
+void
 StringType_add_qualifier(DOHString *t, DOHString *qual) {
   assert(DohIsString(t));
   Insert(t,0,".");
@@ -155,7 +155,7 @@ StringType_add_qualifier(DOHString *t, DOHString *qual) {
  * These abstract types should be passed as a list of type-strings.
  * ----------------------------------------------------------------------------- */
 
-void 
+void
 StringType_add_function(DOHString *t, DOHList *parms) {
   DOHString *pstr;
   int        i,l;
@@ -345,7 +345,7 @@ DOHList *StringType_split_parms(DOHString *p) {
     } else {
       Putc(*c,item);
     }
-    if (*c) 
+    if (*c)
       c++;
   }
   Append(list,item);
@@ -375,7 +375,7 @@ DOHString *StringType_get_tag(DOHString *s) {
       c++;
       p = strchr(c, (int)'/');
       if (!p) return NULL;
-      rv = DohMalloc(p - c + 1);
+      rv = (char *) DohMalloc (p - c + 1);
       memmove(rv, c, p - c);
       rv[p - c] = 0;
       return rv;
@@ -486,7 +486,7 @@ DOHList *StringType_split_struct(DOHString *p) {
     } else {
       Putc(*c,item);
     }
-    if (*c) 
+    if (*c)
       c++;
   }
   Append(list,item);
@@ -561,7 +561,7 @@ int StringType_isqualifier(DOHString *t) {
 
 /* -----------------------------------------------------------------------------
  * StringType_base()
- * 
+ *
  * Returns the base of a datatype.
  * ----------------------------------------------------------------------------- */
 
