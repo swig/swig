@@ -6,7 +6,8 @@ dnl   an empty variable.  Instead, we use `VAR=' (set the variable
 dnl   to nothing) and `test -z "$VAR"' or `test -n "$VAR"' as the
 dnl   case may be.  --ttn, 2000/08/04 12:11:26
 
-AC_INIT(Include/wad.h)
+AC_INIT
+AC_CONFIG_SRCDIR([Include/wad.h])
 AC_PREREQ(2.53)
 
 # Set name for machine-dependent library files
@@ -345,7 +346,7 @@ if test -n "$PERL"; then
 AC_SUBST(PERL5EXT)
 AC_SUBST(MAKEPERL)
 
-dnl We use the following in `AC_OUTPUT' and "make distclean".
+dnl We use the following in `AC_CONFIG_FILES' and "make distclean".
 configure_substituted_files=`echo	\
     Wad/Makefile			\
     Python/Makefile    \
@@ -357,7 +358,8 @@ configure_substituted_files=`echo	\
 `
 AC_SUBST(configure_substituted_files)
 
-AC_OUTPUT([$configure_substituted_files])
+AC_CONFIG_FILES([$configure_substituted_files])
+AC_OUTPUT
 
 dnl configure.in ends here
 

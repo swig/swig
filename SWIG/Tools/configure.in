@@ -1,4 +1,5 @@
-AC_INIT(ltmain.sh)
+AC_INIT
+AC_CONFIG_SRCDIR([ltmain.sh])
 AC_PREREQ(2.53)
 
 ##-----------------------------------------------------------------------------
@@ -46,4 +47,4 @@ AC_PROG_LIBTOOL
 ## libtool configuration ends here
 ##-----------------------------------------------------------------------------
 
-AC_OUTPUT()
+AC_OUTPUT
