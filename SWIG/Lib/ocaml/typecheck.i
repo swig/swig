@@ -134,10 +134,14 @@
   $1 = !caml_ptr_val_internal($input, &ptr,$descriptor);
 }
 
+#if 0
+
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
   $1 = !caml_ptr_val_internal($input, &ptr, $&1_descriptor);
 }
+
+#endif
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
