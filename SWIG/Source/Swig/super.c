@@ -145,7 +145,6 @@ static DohObjInfo SuperType =
    Super_str,			/* doh_str */
    Super_data,			/* doh_data */
    Super_dump,			/* doh_dump */
-   0,				/* doh_load */
    Super_len,			/* doh_len */
    Super_hash,			/* doh_hash    */
    Super_cmp,			/* doh_cmp */
