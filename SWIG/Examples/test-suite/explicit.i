@@ -3,7 +3,7 @@
    <kozminski@users.sf.net>. 
 */
 
-%module test
+%module explicit
 
 %inline %{
 

@@ -2,7 +2,7 @@
 This testcase tests operators for defines
 */
 
-%module defines
+%module defineop
 
 #define A1   1 + 2
 #define A2   3 - 4

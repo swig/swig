@@ -1,5 +1,5 @@
 /* File : example.i */
-%module example
+%module template
 
 %warnfilter(801) vector<int>;         /* Ruby, wrong class name */
 %warnfilter(801) vector<double>;      /* Ruby, wrong class name */

@@ -3,7 +3,7 @@
    Mike Romberg <romberg@users.sf.net>
 */
 
-%module test
+%module const_const_2
 
 %inline %{
 class Spam { 

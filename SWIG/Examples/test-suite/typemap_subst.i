@@ -1,7 +1,7 @@
 /* This interface file tests for type-related typemap substitutions.
  */
 
-%module test
+%module typemap_subst
 
 %warnfilter(801) xyzzy; /* Ruby, wrong class name */
 

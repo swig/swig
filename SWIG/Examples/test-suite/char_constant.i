@@ -3,7 +3,7 @@
    Scheme strings). 
 */
 
-%module test
+%module char_constant
 
 #define CHAR_CONSTANT 'x'
 

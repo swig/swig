@@ -6,7 +6,7 @@
    sharp-sign substitution.)
 */
 
-%module test;
+%module preproc_2;
 
 %define TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(SCM_TYPE)
 

@@ -5,6 +5,6 @@
    syntax error.
 */
 
-%module test
+%module preproc_1
 
 #define SLASHSLASH "//"

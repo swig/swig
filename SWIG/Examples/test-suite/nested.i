@@ -4,7 +4,7 @@ a struct produced redefinition errors in SWIG 1.3.6 as reported by SF bug #44748
 Also tests reported error when a #define placed in a deeply embedded struct/union.
 */
 
-%module test
+%module nested
 %pragma make_default
 
 %inline %{

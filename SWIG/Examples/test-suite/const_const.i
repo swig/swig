@@ -4,7 +4,7 @@
    SWIG 1.3a5 signals a syntax error.
 */
 
-%module test
+%module const_const
 
 %typemap(in) const int *const { $1 = NULL; }
 

@@ -2,7 +2,7 @@
    renamed functions. 
 */
 
-%module test
+%module name_cxx
 
 %name("bar_int")
 %inline %{

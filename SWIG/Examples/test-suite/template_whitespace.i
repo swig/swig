@@ -2,7 +2,7 @@
    effects the SWIG types. SF Bug #221917, reported by
    burchanb@cs.tamu.edu. */
 
-%module test
+%module template_whitespace
 
 %{
 template<class T> class vector {

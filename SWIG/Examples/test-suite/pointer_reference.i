@@ -4,7 +4,7 @@
    SWIG 1.3a5 signals a syntax error.
 */
 
-%module test
+%module pointer_reference
 
 #ifdef SWIGGUILE
 /* A silly testing typemap for feeding a doubly indirect integer */

@@ -2,7 +2,7 @@
    %name directives, which was not the case in 1.3a5.
 */
 
-%module test
+%module name
 
 #ifdef SWIGGUILE
 %rename foo_1 "foo-2";
