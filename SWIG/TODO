@@ -147,11 +147,11 @@ defer  ready to go.  The primary obstacle lies in the target language
        both.  The existence of two symbol management systems is mostly
        historical.
 
-**     Add a warning for uninstantiated templates.  For example, if a function
+[DONE] Add a warning for uninstantiated templates.  For example, if a function
        using a template type, but that type hasn't been instantiated using
        %template.
 
-*      Fix template partial specialization matching rules.   SWIG does not
+[DONE] Fix template partial specialization matching rules.   SWIG does not
        implement the proper C++ type deduction rules, but it does handle
        the most common cases.   This is likely to be hard and implementing
        it would really only be for completeness.
@@ -167,6 +167,8 @@ Library
 
 ****   Add more support for the C++ standard library.  std::complex and other
        core datatypes.   Refine support for STL vector.   Add more STL objects.
+
+       [ Partially finished for Python. ]
 
 ****   Continue to expand the set of recognized typemaps.
 
@@ -197,7 +199,7 @@ Tcl
 Ruby
 ----
 
-****   Add Ruby support for Mark Rose's polymorphism code.
+[DONE]   Add Ruby support for Mark Rose's polymorphism code.
 
 ****   The "Resource Management in Proxies" section of the "SWIG and C++"
        chapter discusses how proxies' ownership of their associated C++
