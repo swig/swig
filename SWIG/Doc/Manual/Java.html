@@ -63,7 +63,7 @@
 </ul>
 <li><a href="#n41">Tips and techniques</a>
 <ul>
-<li><a href="#n42">Input and output parameters</a>
+<li><a href="#n42">Input and output parameters using primitive pointers and references</a>
 <li><a href="#n43">Simple pointers</a>
 <li><a href="#n44">Unbounded C Arrays</a>
 <li><a href="#n45">More on C arrays using the SWIG library</a>
@@ -2072,10 +2072,10 @@ require additional user input.    Examples include dealing with output parameter
 strings and arrays.   This chapter discusses the common techniques for
 solving these problems.
 
-<a name="n42"></a><H3>14.6.1 Input and output parameters</H3>
+<a name="n42"></a><H3>14.6.1 Input and output parameters using primitive pointers and references</H3>
 
 
-A common problem in some C programs is handling parameters passed as simple pointers.  For
+A common problem in some C programs is handling parameters passed as simple pointers or references.  For
 example:
 
 <blockquote>
@@ -2182,8 +2182,25 @@ And no prizes for guessing the output:
 Negative of 3 = -3
 </pre></blockquote>
 
+These typemaps can also be applied to C++ references. 
+The above examples would work the same if they had been defined using references instead of pointers.
+For example, the Java code to use the <tt>negate</tt> function would be the same if it were defined either as it is above: 
+
+<blockquote>
+<pre>
+void negate(int *INOUT);
+</pre>
+</blockquote>
+or using a reference:
+<blockquote>
+<pre>
+void negate(int &INOUT);
+</pre>
+</blockquote>
+
+<p>
 Note: Since most Java primitive types are immutable and are passed by value, it is not possible to
-perform in-place modification of type passed as a parameter.
+perform in-place modification of a type passed as a parameter.
 
 <p>
 Be aware that the primary purpose of the <tt>typemaps.i</tt> file is to support primitive datatypes.
@@ -2762,7 +2779,7 @@ is released afterwards</td>
 </tr>
 
 <tr>
-<td>primitive type pointers</td>
+<td>primitive pointers and references</td>
 <td>INPUT</td>
 <td>typemaps.i</td>
 <td>input</td>
@@ -2770,7 +2787,7 @@ is released afterwards</td>
 <td>Allows values to be used for C functions taking pointers for data input.
 
 <tr>
-<td>primitive type pointers</td>
+<td>primitive pointers and references</td>
 <td>OUTPUT</td>
 <td>typemaps.i</td>
 <td>output</td>
@@ -2778,7 +2795,7 @@ is released afterwards</td>
 <td>Allows values held within an array to be used for C functions taking pointers for data output.
 
 <tr>
-<td>primitive type pointers</td>
+<td>primitive pointers and references</td>
 <td>INOUT</td>
 <td>typemaps.i</td>
 <td>input<br>output</td>
@@ -3191,7 +3208,7 @@ example.foo(new String[]{"red", "green", "blue", "white"});
 
 A common problem in some C programs is that values may be returned in arguments rather than in the return value of a function. 
 The typemaps.i file defines INPUT, OUTPUT and INOUT typemaps which can be used to solve some instances of this problem. 
-This library file uses an array as a means of moving data to and from Java when wrapping a C function that takes pointers as parameters. <p>
+This library file uses an array as a means of moving data to and from Java when wrapping a C function that takes non const pointers or non const references as parameters. <p>
 
 Now we are going to outline an alternative approach to using arrays for C pointers. 
 The INOUT typemap uses a double[] array for receiving and returning the double* parameters. 
