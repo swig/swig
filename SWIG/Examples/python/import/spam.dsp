@@ -118,7 +118,7 @@ InputName=spam
 	echo PYTHON_INCLUDE: %PYTHON_INCLUDE% 
 	echo PYTHON_LIB: %PYTHON_LIB% 
 	echo on 
-	..\..\..\swig -c -c++ -python $(InputPath) 
+	..\..\..\swig -noruntime -c++ -python $(InputPath) 
 	
 # End Custom Build
 
@@ -133,7 +133,7 @@ InputName=spam
 	echo PYTHON_INCLUDE: %PYTHON_INCLUDE% 
 	echo PYTHON_LIB: %PYTHON_LIB% 
 	echo on 
-	..\..\..\swig -c -c++ -python $(InputPath) 
+	..\..\..\swig -noruntime -c++ -python $(InputPath) 
 	
 # End Custom Build
 
