@@ -73,6 +73,12 @@ struct B : public A {
   
   int f(const int i) const { return i + val; }
 };
+
+
+int vecAptr(const std::vector<A*>& v) {
+    return v[0]->f(1);
+}
+
 } 
 
 std::vector<short> halfs(const std::vector<short>& v) {
