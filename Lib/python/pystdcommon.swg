@@ -87,7 +87,7 @@ namespace swig {
 	  return false;
 	}
       } else {
-	return traits_asptr<Type>::asptr(obj, (Type **)(0));
+	return traits_asptr<Type>::asptr(obj, (Type **)(0)) ? true : false;
       }
     }
   };
@@ -105,14 +105,14 @@ namespace swig {
 	  return false;
 	}
       } else {
-	return traits_asptr<Type>::asptr(obj, (Type **)(0));
+	return traits_asptr<Type>::asptr(obj, (Type **)(0)) ? true : false;
       }
     }
   };
   
   template <class Type>
   inline bool asval(PyObject *obj, Type *val) {
-    return traits_asval<Type>::asval(obj, val);
+    return traits_asval<Type>::asval(obj, val) ? true : false;
   }
 
   template <class Type> 
