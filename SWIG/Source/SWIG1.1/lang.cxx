@@ -35,6 +35,9 @@ static int      has_constructor = 0;
 static int      has_destructor = 0;
 static String  *Callback = 0;
 int             IsVirtual = 0;
+static String  *AttributeFunctionGet = 0;
+static String  *AttributeFunctionSet = 0;
+static String  *ActionFunc = 0;
 
 /* import modes */
 
@@ -165,6 +168,21 @@ void swig_pragma(char *lang, char *name, char *value) {
       Callback = Swig_copy_string(value ? value:"%s");
     } else if (strcmp(name,"nocallback") == 0) {
       Callback = 0;
+    } else if (strcmp(name,"attributefunction") == 0) {
+      String *nvalue = NewString(value);
+      char *s = strchr(Char(nvalue),':');
+      if (!s) {
+	Printf(stderr,"%s:%d. Bad value for attributefunction. Expected \"fmtget:fmtset\".\n",
+	       input_file, line_number);
+      } else {
+	*s = 0;
+	AttributeFunctionGet = NewString(Char(nvalue));
+	AttributeFunctionSet = NewString(s+1);
+      }
+      Delete(nvalue);
+    } else if (strcmp(name,"noattributefunction") == 0) {
+      AttributeFunctionGet = 0;
+      AttributeFunctionSet = 0;
     }
   }
 }
@@ -584,7 +602,45 @@ void Language::cDeclaration(Node *n) {
       if (!InClass) {
 	lang->link_variable(Char(name),Char(symname),ty);
       } else {
-	lang->cpp_variable(Char(name),Char(symname),ty);
+	if (!AttributeFunctionGet) {
+	  lang->cpp_variable(Char(name),Char(symname),ty);
+	} else {
+
+	  /* This code is used to support the attributefunction directive 
+	     where member variables are converted automagically to 
+             accessor functions */
+
+	  Parm *p;
+	  String *gname;
+	  SwigType *vty;
+	  p = NewParm(ty,0);
+	  gname = NewStringf(AttributeFunctionGet,symname);
+	  if (!AddMethods) {
+	    ActionFunc = Copy(Swig_cmemberget_call(name,ty));
+	    lang->cpp_member_func(Char(gname),Char(gname),ty,0);
+	    Delete(ActionFunc);
+	  } else {
+	    String *cname = Copy(Swig_name_get(name));
+	    lang->cpp_member_func(Char(cname),Char(gname),ty,0);
+	    Delete(cname);
+	  }
+	  Delete(gname);
+	  if (!(Status & STAT_READONLY)) {
+	    gname = NewStringf(AttributeFunctionSet,symname);
+	    vty = NewString("void");
+	    if (!AddMethods) {
+	      ActionFunc = Copy(Swig_cmemberset_call(name,ty));
+	      lang->cpp_member_func(Char(gname),Char(gname),vty,p);
+	      Delete(ActionFunc);
+	    } else {
+	      String *cname = Copy(Swig_name_set(name));
+	      lang->cpp_member_func(Char(cname),Char(gname),vty,p);
+	      Delete(cname);
+	    }
+	    Delete(gname);
+	  }
+	  ActionFunc = 0;
+	}
       }
     }
     Status = oldstatus;
@@ -891,7 +947,10 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
     Wrapper_print(w,f_wrappers);
   } else if (!AddMethods) {
     /* C++ member. Produce code that does the actual work */
-    emit_set_action(Swig_cmethod_call(name, Wrapper_Getparms(w)));
+    if (!ActionFunc)
+      emit_set_action(Swig_cmethod_call(name, Wrapper_Getparms(w)));
+    else
+      emit_set_action(ActionFunc);
   }
   lang->create_function(Wrapper_Getname(w), Char(fname), Wrapper_Gettype(w), Wrapper_Getparms(w));
   DelWrapper(w);
@@ -1003,9 +1062,10 @@ void Language::cpp_inherit(char **baseclass, int mode) {
  * ----------------------------------------------------------------------------- */
 
 void Language::cpp_variable(char *name, char *iname, SwigType *t) {
+  
   String *cname_get, *cname_set;
   String *mrename_get, *mrename_set;
-
+  
   cname_get = Copy(Swig_name_get(Swig_name_member(ClassPrefix,name)));
   cname_set = Copy(Swig_name_set(Swig_name_member(ClassPrefix,name)));
   
