@@ -13,6 +13,8 @@
     static int zx;
 
     static int boo() { return 0;}
+
+    friend int foo(Foo* foo) { return 0;}
   };
   
   class Bar {
