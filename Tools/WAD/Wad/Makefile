@@ -29,11 +29,11 @@ PERLOBJS   = wadpl.o
 
 # C Compiler
 CC = cc
-CFLAGS = 
+CFLAGS = #
 
 # C++ Compiler
 CXX = CC
-CXXFLAGS = -Kpic
+CXXFLAGS = #-Kpic
 
 # Linking options
 CLINK = 
