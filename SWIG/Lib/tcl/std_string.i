@@ -24,11 +24,11 @@ namespace std {
     class string;
 
     %typemap(in) string {
-        $1 = std::string(Tcl_GetString($input));
+        $1 = std::string(Tcl_GetStringFromObj($input,NULL));
     }
 
     %typemap(in) const string & (std::string temp) {
-        temp = std::string(Tcl_GetString($input));
+        temp = std::string(Tcl_GetStringFromObj($input,NULL));
         $1 = &temp;
     }
 
