@@ -80,7 +80,8 @@ public:
   virtual int  membervariableHandler(Node *n);
   virtual int  constructorHandler(Node *n);
   virtual int  validIdentifier(String *s);
-  virtual int staticmembervariableHandler(Node *n);
+  virtual int  staticmembervariableHandler(Node *n);
+  virtual int  staticmemberfunctionHandler(Node *n);
 
 protected:
   void    addMethod(String *scheme_name, String *function);
@@ -1043,11 +1044,27 @@ CHICKEN::memberfunctionHandler(Node *n)
 }
 
 int
+CHICKEN::staticmemberfunctionHandler(Node *n)
+{
+    String *iname = Getattr(n, "sym:name");
+    String *proc = NewString(iname);
+    Replaceall(proc, "_", "-");
+
+    memberfunction_name = chickenNameMapping(proc, short_class_name);
+    Language::staticmemberfunctionHandler(n);
+    Delete(memberfunction_name);
+    memberfunction_name = NULL;
+    Delete(proc);
+
+    return SWIG_OK;
+}
+
+int
 CHICKEN::membervariableHandler(Node *n)
 {
   String *iname = Getattr(n,"sym:name");
   String *pb = SwigType_typedef_resolve_all(SwigType_base(Getattr(n, "type")));
-  
+
   Language::membervariableHandler(n);
 
   String *proc = NewString(iname);
@@ -1063,7 +1080,7 @@ CHICKEN::membervariableHandler(Node *n)
 
   if (!Getattr(n,"feature:immutable")) {
       if (closclassname) {
-          Printv(closcode, " ':swig-set (lambda (x y) (", chickenPrimitiveName(setfunc), " x (slot-ref y 'swig-this))\n", NIL);
+          Printv(closcode, " ':swig-set (lambda (x y) (", chickenPrimitiveName(setfunc), " x (slot-ref y 'swig-this))))\n", NIL);
       } else {
           Printv(closcode, " ':swig-set ", chickenPrimitiveName(setfunc), ")\n", NIL);
       }
