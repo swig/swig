@@ -1,5 +1,9 @@
 Version 1.3.18 (In progress)
 ============================
+03/10/2003: beazley
+            Fixed problem with escape sequences in string and character constants.  SWIG
+            wasn't parsing certain octal codes correctly.
+
 03/07/2003: beazley
             Fixed a variety of subtle preprocessor problems reported by
             Sebastien Recio.
