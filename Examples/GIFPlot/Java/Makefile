@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig -shadow
 SWIGOPT    = -I../Include
-SRCS       = 
+SRCS       =
 TARGET     = libjgifplot
 INTERFACE  = gifplot.i
 LIBS       = -L.. -lgifplot -lm
@@ -15,3 +15,4 @@ all::
 clean::
 	rm -f *_wrap* *.o *~ *.so .~* core *.gif *.class ColorMap.java FrameBuffer.java Plot2D.java Plot3D.java gifplot.java
 
+check: all

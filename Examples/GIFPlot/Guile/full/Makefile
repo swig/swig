@@ -1,7 +1,7 @@
 TOP        = ../../..
 SWIG       = $(TOP)/../swig
 SWIGOPT    = -I../../Include
-SRCS       = 
+SRCS       =
 TARGET     = gifplot
 INTERFACE  = gifplot.i
 LIBS       = -L../.. -lgifplot -lm
@@ -17,4 +17,4 @@ static::
 clean::
 	rm -f *_wrap* *.o *~ *.so gifguile .~* core *.gif
 
-
+check: all
