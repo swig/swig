@@ -169,8 +169,7 @@ static void       record_base(char *derived, char *base);
 #define CALL_REFERENCE  0x02
 #define CALL_OUTPUT     0x04
 
-typedef class Parm {
- public:
+typedef struct Parm {
   DataType   *t;                // Datatype of this parameter
   int        call_type;         // Call type (value or reference or value)
   char       *name;             // Name of parameter (optional)
@@ -178,8 +177,7 @@ typedef class Parm {
   int        ignore;            // Ignore flag
   char       *objc_separator;   // Parameter separator for Objective-C
 
- private:
-  // Note: This should uncover and remaining uses of these functions
+  // Note: This is temporary
   Parm(DataType *type, char *n) { abort(); }
   Parm(Parm *p) { abort(); }
   ~Parm() {abort();}
@@ -198,14 +196,13 @@ extern void  DelParm(Parm *p);
 
 #define MAXPARMS   16
 
-typedef class ParmList {
- public:
+typedef struct ParmList {
   int     maxparms;               // Max parms possible in current list
   Parm  **parms;                  // Pointer to parms array
   int     current_parm;           // Internal state for get_first,get_next
   int     nparms;                 // Number of parms in list
- private:
-  // Note: This is here to force any use of these to fail miserably.
+
+  // Note: This is temporary
   ParmList() { abort(); }
   ParmList(ParmList *l) { abort(); }
   ~ParmList() { abort(); }
