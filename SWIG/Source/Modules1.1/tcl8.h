@@ -22,54 +22,15 @@
 
 class TCL8 : public Language {
 private:
-  char   interp_name[256];
-  char  *prefix;                   // Package prefix
-  char  *module;                   // Name of the module
-  char  *tcl_path;
-  char  *init_name;
-  int    nspace;
   void   get_pointer(char *iname, char *srcname, char *src, char *dest, DataType *t,
-		     String &f, char *ret);
+		     DOHString *f, char *ret);
   char  *char_result;
   char  *usage_func(char *, DataType *, ParmList *);
   char  *usage_string(char *, DataType *, ParmList *);
   char  *usage_var(char *, DataType *);
   char  *usage_const(char *, DataType *, char *);
 
-  // C++ handling
-
-  int    have_constructor;
-  int    have_destructor;
-  String methods;
-  String attributes;
-  String postinit;
-  int    shadow;
-  char   *class_name;
-  char   *class_type;
-  char   *real_classname;
-  char   *base_class;
-  DOH   *hash;
-  DOH   *repeatcmd;
-  DOH   *setget;
-
 public :
-    TCL8() {
-    prefix = 0;
-    module = 0;
-    init_name = 0;
-    nspace = 0;
-    shadow = 1;
-    char_result = (char*)"TCL_VOLATILE";
-    tcl_path = (char*)"tcl";
-    sprintf(interp_name,"interp");
-    class_name = 0;
-    class_type = 0;
-    real_classname = 0;
-    base_class = 0;
-    hash = NewHash();
-    repeatcmd = NewHash();
-    setget = NewHash();
-  };
   virtual void parse_args(int, char *argv[]);
   virtual void parse();
   virtual void create_function(char *, char *, DataType *, ParmList *);
