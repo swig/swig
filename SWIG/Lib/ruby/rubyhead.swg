@@ -25,7 +25,7 @@
 
 /* Ruby 1.7 doesn't (yet) define NUM2ULL() */
 #ifndef NUM2ULL
-#if HAVE_LONG_LONG
+#ifdef HAVE_LONG_LONG
 #define NUM2ULL(x) rb_num2ull((x))
 #else
 #define NUM2ULL(x) NUM2ULONG(x)
