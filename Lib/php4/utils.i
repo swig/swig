@@ -102,7 +102,7 @@ _strbuf_in(BUFFER)
 %enddef
 
 // Defines an on/argout typemap for ordinal types
-//Usage: %typemap_inout_ord(bool,convert_to_bool_ex,ZVAL_BOOL)
+//Usage: %typemap_inout_ord(bool,convert_to_boolean_ex,ZVAL_BOOL)
 %define %typemap_inout_ord(TYPES,TYPE_IN,TYPE_OUT)
 %typemap(in) TYPES * ($*1_ltype intr, int force), 
              TYPES & ($*1_ltype intr, int force) %{

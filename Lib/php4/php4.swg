@@ -160,7 +160,7 @@ strarray_inout(char [ANY])
 /* Typemap for in/argout references
    NOTE: we don't choose to use these for arrays yet, maybe later */
 
-%typemap_inout_ord(bool,convert_to_bool_ex,ZVAL_BOOL)
+%typemap_inout_ord(bool,convert_to_boolean_ex,ZVAL_BOOL)
 %typemap_inout_ord(int,convert_to_long_ex,ZVAL_LONG)
 %typemap_inout_ord(unsigned int,convert_to_long_ex,ZVAL_LONG)
 %typemap_inout_ord(short,convert_to_long_ex,ZVAL_LONG)
