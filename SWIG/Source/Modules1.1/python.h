@@ -35,7 +35,8 @@ protected:
   int     use_kw;     
   int     noopt; 
   FILE    *f_shadow;
-  Hash     hash;
+  DOH     *hash;
+  DOH     *symbols;
   String   classes;
   String   func;
   String   vars;
@@ -68,6 +69,8 @@ public :
     import_file = 0;
     use_kw = 0;
     noopt = 0;
+    hash = NewHash();
+    symbols = NewHash();
   };
 
   // Don't change any of this

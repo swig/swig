@@ -46,7 +46,8 @@ private:
 
   int      blessed;                // Enable object oriented features
   int      hidden;                 // Every symbol hidden in <hide> package name
-  Hash     classes;                // A hash table for storing the classes we've seen so far
+  DOH     *classes;                // A hash table for storing the classes we've seen so far
+  DOH     *symbols; 
   int      have_constructor;
   int      have_destructor;
   int      have_data_members;
@@ -73,6 +74,8 @@ public :
     hidden = 0;
     alt_header = 0;
     member_func = 0;
+    classes = NewHash();
+    symbols = NewHash();
   };
   virtual void parse_args(int, char *argv[]);
   virtual void parse();

@@ -17,7 +17,7 @@ private:
   FILE         *f_java;
   FILE         *f_shadow;
   int          shadow;
-  Hash         shadow_classes;
+  DOH         *shadow_classes;
   String       shadow_classdef;
   char         *shadow_name;
   char         *shadow_baseclass;
@@ -44,6 +44,7 @@ public :
     jnic = -1;
     useRegisterNatives=0;
     finalize=0;
+    shadow_classes = NewHash();
   };
 
   // Virtual functions required by the SWIG parser

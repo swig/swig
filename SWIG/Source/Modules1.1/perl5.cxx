@@ -104,8 +104,6 @@ static char *import_file = 0;
 static char *smodule = 0;
 static int   compat = 0;
 
-static Hash symbols;
-
 // ---------------------------------------------------------------------
 // PERL5::parse_args(int argc, char *argv[])
 //
@@ -599,10 +597,10 @@ PERL5::type_mangle(DataType *t) {
 
     // Check to see if we've blessed this datatype
 
-    if ((classes.lookup(t->name)) && (t->is_pointer <= 1)) {
+    if ((Getattr(classes,t->name)) && (t->is_pointer <= 1)) {
 
       // This is a blessed class.  Return just the type-name 
-      strcpy(result,(char *) classes.lookup(t->name));
+      strcpy(result, GetChar(classes,t->name));
       return result;
     }
   }
@@ -1021,7 +1019,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
 	if ((tm = typemap_lookup("perl5in","perl5",p->t,"",sourceNtarget,sourceNtarget)))
 	  func << tm << "\n";
-	else if ((classes.lookup(p->t->name)) && (p->t->is_pointer <= 1)) {
+	else if ((Getattr(classes,p->t->name)) && (p->t->is_pointer <= 1)) {
 	  if (i >= (pcount - numopt))
 	    func << tab4 << "if (scalar(@args) >= " << i << ") {\n" << tab4;
 	  
@@ -1048,7 +1046,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
       func << tm << "\n"
 	   << tab4 <<"return $result;\n"
 	   << "}\n";
-    } else if ((classes.lookup(d->name)) && (d->is_pointer <=1)) {
+    } else if ((Getattr(classes,d->name)) && (d->is_pointer <=1)) {
 
       func << tab4 << "return undef if (!defined($result));\n";
 
@@ -1056,16 +1054,13 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
       // into our local hash table
 
       if ((d->is_pointer == 0) || ((d->is_pointer == 1) && NewObject)) {
-	func << tab4 << "$" << (char *) classes.lookup(d->name) << "::OWNER{$result} = 1;\n";
+	func << tab4 << "$" << GetChar(classes,d->name) << "::OWNER{$result} = 1;\n";
       }
 
       // We're returning a Perl "object" of some kind.  Turn it into
       // a tied hash
 
       func << tab4 << "my %resulthash;\n"
-	/*	   << tab4 << "tie %resulthash, \"" << (char *) classes.lookup(d->name) << "\", $result;\n"
-	   << tab4 << "return bless \\%resulthash, \"" << (char *) classes.lookup(d->name) << "\";\n"
-	*/
 	   << tab4 << "tie %resulthash, ref($result), $result;\n"
 	   << tab4 << "return bless \\%resulthash, ref($result);\n"
 	   << "}\n";
@@ -1275,12 +1270,12 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
   //     2.  Otherwise, just hack Perl's symbol table
   
   if (blessed) {
-    if ((classes.lookup(t->name)) && (t->is_pointer <= 1)) {
+    if ((Getattr(classes,t->name)) && (t->is_pointer <= 1)) {
       var_stubs << "\nmy %__" << iname << "_hash;\n"
-		<< "tie %__" << iname << "_hash,\"" << (char *) classes.lookup(t->name) << "\", $"
+		<< "tie %__" << iname << "_hash,\"" << GetChar(classes,t->name) << "\", $"
 		<< package << "::" << iname << ";\n"
 		<< "$" << iname << "= \\%__" << iname << "_hash;\n"
-		<< "bless $" << iname << ", " << (char *) classes.lookup(t->name) << ";\n";
+		<< "bless $" << iname << ", " << GetChar(classes,t->name) << ";\n";
     } else {
       var_stubs << "*" << iname << " = *" << package << "::" << iname << ";\n";
     }
@@ -1420,12 +1415,12 @@ PERL5::declare_const(char *name, char *, DataType *type, char *value)
   }
 
   if (blessed) {
-    if ((classes.lookup(type->name)) && (type->is_pointer <= 1)) {
+    if ((Getattr(classes,type->name)) && (type->is_pointer <= 1)) {
       var_stubs << "\nmy %__" << name << "_hash;\n"
-		<< "tie %__" << name << "_hash,\"" << (char *) classes.lookup(type->name) << "\", $"
+		<< "tie %__" << name << "_hash,\"" << GetChar(classes,type->name) << "\", $"
 		<< package << "::" << name << ";\n"
 		<< "$" << name << "= \\%__" << name << "_hash;\n"
-		<< "bless $" << name << ", " << (char *) classes.lookup(type->name) << ";\n";
+		<< "bless $" << name << ", " << GetChar(classes,type->name) << ";\n";
     } else {
       var_stubs << "*" << name << " = *" << package << "::" << name << ";\n";
     }
@@ -1633,12 +1628,11 @@ void PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip)
     // Add some symbols to the hash tables
 
     //    classes.add(real_classname,copy_string(class_name));   /* Map original classname to class */
-    classes.add(real_classname,copy_string(fullclassname));   /* Map original classname to class */
+    Setattr(classes,real_classname,fullclassname);
 
     // Add full name of datatype to the hash table just in case the user uses it
 
     sprintf(temp,"%s %s", class_type, fullclassname.get());
-    //    classes.add(temp,copy_string(class_name));             /* Map full classname to classs    */
   }
 }
 
@@ -1793,9 +1787,10 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
     realname = iname;
 
   cname << class_name << "::" << realname;
-  if ((symbols.add(cname.get(),0)) == -1) {
-    return;    // Forget it, we saw this function already
+  if (Getattr(symbols,cname.get())) {
+    return;   // Forget it, we saw this already
   }
+  Setattr(symbols,cname.get(),cname.get());
 
   func << "sub " << realname << " {\n"
        << tab4 << "my @args = @_;\n" 
@@ -1817,7 +1812,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       if ((tm = typemap_lookup("perl5in","perl5",p->t,"",sourceNtarget,sourceNtarget)))
 	func << tm << "\n";
       // Look up the datatype name here
-      else if ((classes.lookup(p->t->name)) && (p->t->is_pointer <= 1)) {
+      else if ((Getattr(classes,p->t->name)) && (p->t->is_pointer <= 1)) {
 	// Yep.   This smells alot like an object, patch up the arguments
 
 	if (i >= (pcount - numopt))
@@ -1847,7 +1842,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
     func << tm << "\n"
 	 << tab4 <<"return $result;\n"
 	 << "}\n";
-  } else if ((classes.lookup(t->name)) && (t->is_pointer <=1)) {
+  } else if ((Getattr(classes,t->name)) && (t->is_pointer <=1)) {
 
     func << tab4 << "return undef if (!defined($result));\n";
 
@@ -1855,15 +1850,15 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
     // into our local hash table
 
     if ((t->is_pointer == 0) || ((t->is_pointer == 1) && NewObject)) {
-      func << tab4 << "$" << (char *) classes.lookup(t->name) << "::OWNER{$result} = 1;\n";
+      func << tab4 << "$" << GetChar(classes,t->name) << "::OWNER{$result} = 1;\n";
     }
 
     // We're returning a Perl "object" of some kind.  Turn it into
     // a tied hash
 
     func << tab4 << "my %resulthash;\n"
-      /*	 << tab4 << "tie %resulthash, \"" << (char *) classes.lookup(t->name) << "\", $result;\n"
-		 << tab4 << "return bless \\%resulthash, \"" << (char *) classes.lookup(t->name) << "\";\n" */
+      /*	 << tab4 << "tie %resulthash, \"" << GetChar(classes,t->name) << "\", $result;\n"
+		 << tab4 << "return bless \\%resulthash, \"" << GetChar(classes,t->name) << "\";\n" */
 	 << tab4 << "tie %resulthash, ref($result), $result;\n"
 	 << tab4 << "return bless \\%resulthash, ref($result);\n"
 
@@ -1917,9 +1912,10 @@ void PERL5::cpp_variable(char *name, char *iname, DataType *t) {
 
   if (blessed) {
     cname << class_name << "::" << realname;
-    if ((symbols.add(cname.get(),0)) == -1) {
+    if (Getattr(symbols,cname.get())) {
       return;    // Forget it, we saw this already
     }
+    Setattr(symbols,cname.get(),cname.get());
 	
     // Store name of key for future reference
 
@@ -1927,12 +1923,12 @@ void PERL5::cpp_variable(char *name, char *iname, DataType *t) {
 
     // Now we need to generate a little Perl code for this
 
-    if ((classes.lookup(t->name)) && (t->is_pointer <= 1)) {
+    if ((Getattr(classes,t->name)) && (t->is_pointer <= 1)) {
 
       // This is a Perl object that we have already seen.  Add an
       // entry to the members list
 
-      *blessedmembers << tab4 << realname << " => '" << (hidden ? realpackage : "") << (hidden ? "::" : "") << (char *) classes.lookup(t->name) << "',\n";
+      *blessedmembers << tab4 << realname << " => '" << (hidden ? realpackage : "") << (hidden ? "::" : "") << GetChar(classes,t->name) << "',\n";
       
      }
   }
@@ -1970,9 +1966,10 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
     }
 
     cname << class_name << "::" << realname;
-    if ((symbols.add(cname.get(),0)) == -1) {
+    if (Getattr(symbols,cname.get())) {
       return;    // Forget it, we saw this already
     }
+    Setattr(symbols,cname.get(), cname.get());
     if ((strcmp(realname,class_name) == 0) || ((!iname) && (ObjCClass)) ){
       
       // Emit a blessed constructor 
@@ -2001,7 +1998,7 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
       
       // Look up the datatype name here
       
-      if ((classes.lookup(p->t->name)) && (p->t->is_pointer <= 1)) {
+      if ((Getattr(classes,p->t->name)) && (p->t->is_pointer <= 1)) {
 	
 	// Yep.   This smells alot like an object, patch up the arguments
 	*pcode << tab4 << "$args[" << i << "] = tied(%{$args[" << i << "]});\n";
@@ -2101,7 +2098,7 @@ void PERL5::cpp_inherit(char **baseclass, int) {
   base_class = new String;
   while (baseclass[i]) {
     // See if this is a class we know about
-    bc = (char *) classes.lookup(baseclass[i]);
+    bc = GetChar(classes,baseclass[i]);
     if (bc) {
       if (have_first) *base_class << " ";
       *base_class << bc;
@@ -2139,9 +2136,10 @@ void PERL5::cpp_declare_const(char *name, char *iname, DataType *type, char *val
       realname = iname;
 
     cname << class_name << "::" << realname;
-    if ((symbols.add(cname.get(),0)) == -1) {
+    if (Getattr(symbols, cname.get())) {
       return;    // Forget it, we saw this already
     }
+    Setattr(symbols, cname.get(),cname.get());
 
     // Create a symbol table entry for it
     *pcode << "*" << realname << " = *" << package << "::" << name_member(realname,class_name) << ";\n";
@@ -2159,11 +2157,11 @@ void PERL5::cpp_declare_const(char *name, char *iname, DataType *type, char *val
 void PERL5::cpp_class_decl(char *name, char *rename, char *type) {
     char temp[256];
     if (blessed) {
-	classes.add(name,copy_string(rename));
+	Setattr(classes, name, rename);
 	// Add full name of datatype to the hash table
 	if (strlen(type) > 0) {
 	  sprintf(temp,"%s %s", type, name);
-	  classes.add(temp,copy_string(rename));
+	  Setattr(classes,temp,rename);
 	}
     }
 }
@@ -2190,17 +2188,17 @@ void PERL5::add_typedef(DataType *t, char *name) {
 
   if (t->is_pointer > 1) return;
 
-  if (classes.lookup(name)) return;      // Already added
+  if (Getattr(classes,name)) return;      // Already added
 
   // Now look up the datatype in our shadow class hash table
 
-  if (classes.lookup(t->name)) {
+  if (Getattr(classes,t->name)) {
 
     // Yep.   This datatype is in the hash
     
     // Put this types 'new' name into the hash
 
-    classes.add(name,copy_string((char *) classes.lookup(t->name)));
+    Setattr(classes,name,GetChar(classes,t->name));
   }
 }
 

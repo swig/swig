@@ -978,7 +978,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
     int have_optional = 0;
     
     // Check return code for modification
-    if ((hash.lookup(d->name)) && (d->is_pointer <=1)) {
+    if ((Getattr(hash,d->name)) && (d->is_pointer <=1)) {
       need_wrapper = 1;
       munge_return = 1;
     }
@@ -1003,9 +1003,9 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
           // unchanged.  Otherwise, emit some shadow class conversion code.
 
 	  if (!have_output) {
-	    func << tab4 << "if val: val = " << (char *) hash.lookup(d->name) << "Ptr(val)";
-	    if (((hash.lookup(d->name)) && (d->is_pointer < 1)) ||
-		((hash.lookup(d->name)) && (d->is_pointer == 1) && NewObject))
+	    func << tab4 << "if val: val = " << GetChar(hash,d->name) << "Ptr(val)";
+	    if (((Getattr(hash,d->name)) && (d->is_pointer < 1)) ||
+		((Getattr(hash,d->name)) && (d->is_pointer == 1) && NewObject))
 	      func << "; val.thisown = 1\n";
 	    else
 	      func << "\n";
@@ -1241,8 +1241,8 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // Output a shadow variable.  (If applicable and possible)
     // ----------------------------------------------------------
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-      if ((hash.lookup(t->name)) && (t->is_pointer <= 1)) {
-	vars << iname << " = " << (char *) hash.lookup(t->name) << "Ptr(" << module << "." << global_name
+      if ((Getattr(hash,t->name)) && (t->is_pointer <= 1)) {
+	vars << iname << " = " << GetChar(hash,t->name) << "Ptr(" << module << "." << global_name
 	     << "." << iname << ")\n";
       }
     }
@@ -1426,11 +1426,11 @@ void PYTHON::add_native(char *name, char *funcname, DataType *, ParmList *) {
 void PYTHON::cpp_class_decl(char *name, char *rename, char *type) {
     char temp[256];
     if (shadow) {
-	hash.add(name,copy_string(rename));
+	Setattr(hash,name,rename);
 	// Add full name of datatype to the hash table
 	if (strlen(type) > 0) {
 	  sprintf(temp,"%s %s", type, name);
-	  hash.add(temp,copy_string(rename));
+	  Setattr(hash,temp,rename);
 	}
     }
 }
