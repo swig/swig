@@ -269,7 +269,20 @@ namespace std {
 %define SWIG_TYPECHECK_DOUBLE_ARRAY      1090    %enddef
 %define SWIG_TYPECHECK_CHAR_ARRAY        1130    %enddef
 %define SWIG_TYPECHECK_STRING_ARRAY      1140    %enddef
-%define SWIG_TYPECHECK_OBJECT_ARRAY      1150 %enddef
+%define SWIG_TYPECHECK_OBJECT_ARRAY      1150    %enddef
+
+%define SWIG_TYPECHECK_BOOL_PTR          2015    %enddef
+%define SWIG_TYPECHECK_UINT8_PTR         2020    %enddef
+%define SWIG_TYPECHECK_INT8_PTR          2025    %enddef
+%define SWIG_TYPECHECK_UINT16_PTR        2030    %enddef
+%define SWIG_TYPECHECK_INT16_PTR         2035    %enddef
+%define SWIG_TYPECHECK_UINT32_PTR        2040    %enddef
+%define SWIG_TYPECHECK_INT32_PTR         2045    %enddef
+%define SWIG_TYPECHECK_UINT64_PTR        2050    %enddef
+%define SWIG_TYPECHECK_INT64_PTR         2055    %enddef
+%define SWIG_TYPECHECK_FLOAT_PTR         2080    %enddef
+%define SWIG_TYPECHECK_DOUBLE_PTR        2090    %enddef
+%define SWIG_TYPECHECK_CHAR_PTR          2130    %enddef
 
 /*  
  * This template wrapper is used to handle C++ objects that are passed or 
