@@ -48,8 +48,8 @@ Swig_cparm_name(Parm *p, int i) {
  * and user defined types to pointers.
  * ----------------------------------------------------------------------------- */
 
-String *
-Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
+static String *
+Swig_clocal(SwigType *t, const String_or_char *name, const String_or_char *value) {
   String *decl;
 
   decl = NewString("");
@@ -155,7 +155,8 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
     pt     = Getattr(p,"type");
     if ((SwigType_type(pt) != T_VOID)) {
       pname  = Getattr(p,"name");
-      pvalue = Getattr(p,"value");
+/*      pvalue = Getattr(p,"value");*/
+      pvalue = 0;
       altty = Getattr(p,"alttype");
       type  = Getattr(p,"type");
       tycode = SwigType_type(type);
@@ -174,7 +175,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       if (!altty) {
 	local  = Swig_clocal(pt,lname,pvalue);
       } else {
-	local = Swig_clocal(altty,lname, pvalue);
+	local = Swig_clocal(altty,lname,pvalue);
       }
       Wrapper_add_localv(w,lname,local,NIL);
       i++;
@@ -512,7 +513,7 @@ Swig_ref_call(Node *n, const String* lname) {
 /* -----------------------------------------------------------------------------
  * Swig_cdestructor_call()
  *
- * Creates a string that calls a C constructor function.
+ * Creates a string that calls a C destructor function.
  *
  *      free((char *) arg0);
  * ----------------------------------------------------------------------------- */
@@ -529,7 +530,7 @@ Swig_cdestructor_call(Node *n) {
 /* -----------------------------------------------------------------------------
  * Swig_cppdestructor_call()
  *
- * Creates a string that calls a C constructor function.
+ * Creates a string that calls a C destructor function.
  *
  *      delete arg0;
  * ----------------------------------------------------------------------------- */
@@ -660,33 +661,36 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
   if (!(flags & CWRAP_EXTEND)) {
     Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cmethod_call(name,p,self)));
   } else {
-    String *code;
-    String *mangled;
-    String *membername = Swig_name_member(classname, name);
-    mangled = Swig_name_mangle(membername);
+    /* Methods with default arguments are wrapped with additional methods for each default argument,
+     * however, only one extra %extend method is generated. */
 
-    code = Getattr(n,"code");
+    String *defaultargs = Getattr(n,"defaultargs");
+    String *code = Getattr(n,"code");
+    String *membername = Swig_name_member(classname, name);
+    String *mangled = Swig_name_mangle(membername);
+
     type = Getattr(n,"type");
 
     /* Check if the method is overloaded.   If so, and it has code attached, we append an extra suffix
        to avoid a name-clash in the generated wrappers.  This allows overloaded methods to be defined
        in C. */
-
     if (Getattr(n,"sym:overloaded") && code) {
-      Append(mangled,Getattr(n,"sym:overname"));
+      Append(mangled,Getattr(defaultargs ? defaultargs : n,"sym:overname"));
     }
 
-    Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cfunction_call(mangled,p)));
-
     /* See if there is any code that we need to emit */
-    if (code) {
+    if (!defaultargs && code) {
       String *body;
-      String *tmp = NewStringf("%s(%s)", mangled, ParmList_str(p));
+      String *tmp = NewStringf("%s(%s)", mangled, ParmList_str_defaultargs(p));
       body = SwigType_str(type,tmp);
       Delete(tmp);
       Printv(body,code,"\n",NIL);
       Setattr(n,"wrap:code",body);
+      Delete(body);
     }
+
+    Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cfunction_call(mangled,p)));
+
     Delete(membername);
     Delete(mangled);
   }
@@ -775,16 +779,11 @@ Swig_ConstructorToFunction(Node *n, String *classname,
   Parm     *p;
   ParmList *directorparms;
   SwigType *type;
-  String   *membername;
-  String   *mangled;
   Node     *classNode;
   int      use_director;
   
   classNode = Swig_methodclass(n);
   use_director = Swig_directorclass(n);
-
-  membername = Swig_name_construct(classname);
-  mangled = Swig_name_mangle(membername);
 
   parms = CopyParmList(nonvoid_parms(Getattr(n,"parms")));
 
@@ -826,20 +825,36 @@ Swig_ConstructorToFunction(Node *n, String *classname,
   SwigType_add_pointer(type);
 
   if (flags & CWRAP_EXTEND) {
+    /* Constructors with default arguments are wrapped with additional constructor methods for each default argument,
+     * however, only one extra %extend method is generated. */
+
+    String *defaultargs = Getattr(n,"defaultargs");
     String *code = Getattr(n,"code");
-    if (code) {
-      String *wrap, *s;
-      if (Getattr(n,"sym:overloaded") && code) {
-	Append(mangled,Getattr(n,"sym:overname"));
-      }
-      s = NewStringf("%s(%s)", mangled, ParmList_str(parms));
-      wrap = SwigType_str(type,s);
-      Delete(s);
-      Printv(wrap,code,"\n",NIL);
-      Setattr(n,"wrap:code",wrap);
-      Delete(wrap);
+    String *membername = Swig_name_construct(classname);
+    String *mangled = Swig_name_mangle(membername);
+
+    /* Check if the constructor is overloaded.   If so, and it has code attached, we append an extra suffix
+       to avoid a name-clash in the generated wrappers.  This allows overloaded constructors to be defined
+       in C. */
+    if (Getattr(n,"sym:overloaded") && code) {
+      Append(mangled,Getattr(defaultargs ? defaultargs : n,"sym:overname"));
     }
+
+    /* See if there is any code that we need to emit */
+    if (!defaultargs && code) {
+      String *body, *tmp;
+      tmp = NewStringf("%s(%s)", mangled, ParmList_str_defaultargs(parms));
+      body = SwigType_str(type,tmp);
+      Delete(tmp);
+      Printv(body,code,"\n",NIL);
+      Setattr(n,"wrap:code",body);
+      Delete(body);
+    }
+
     Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cfunction_call(mangled,parms)));
+
+    Delete(membername);
+    Delete(mangled);
   } else {
     if (cplus) {
       /* if a C++ director class exists, create it rather than the original class */
@@ -898,8 +913,6 @@ Swig_ConstructorToFunction(Node *n, String *classname,
   if (directorparms != parms)
     Delete(directorparms);
   Delete(parms);
-  Delete(mangled);
-  Delete(membername);
   return SWIG_OK;
 }
 
