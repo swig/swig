@@ -16,7 +16,7 @@
     }; 
     
     template <class Result> 
-    Result make() { return Result(*new Base()); }; 
+    Result make() { return Result(*new Base()); }
   } 
 %} 
  

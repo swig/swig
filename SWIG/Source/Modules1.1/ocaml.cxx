@@ -133,7 +133,7 @@ static Hash *seen_wrappers = NULL;    /* Seen wrappers */
 
 static ocaml_namespace_stack *ns_stack = 0; /* Namespace stack */
 
-static char *simple_types[][2] = {
+static const char *simple_types[][2] = {
     { "_bool", "bool" },
     { "_void", "unit" },
     { "_int", "int" },
@@ -688,12 +688,12 @@ class OCAML : public Language {
     }
 
     int banned_word(char *word) {
-	char *keywords[] = { "type", "class", "object", "true", "false",
-			     "val", "function", "fun", "let", "rec",
-			     "char", "int", "bool", "string", "end",
-			     "begin", "in", "match", "with", "try",
-			     "new", "method", "struct", "val",
-			     NULL };
+	const char *keywords[] = { "type", "class", "object", "true", "false",
+				   "val", "function", "fun", "let", "rec",
+				   "char", "int", "bool", "string", "end",
+				   "begin", "in", "match", "with", "try",
+				   "new", "method", "struct", "val",
+				   NULL };
 	int i;
 
 	for( i = 0; keywords[i]; i++ )
@@ -1018,7 +1018,7 @@ class OCAML : public Language {
 	}
 
 	if( lastout != i ) {
-	    char *comma = "";
+	    const char *comma = "";
 	    Printf(f->def,"\tCAMLxparam%d(",i - lastout );
 
 	    for( ; lastout < i; lastout++ ) {
@@ -1054,7 +1054,7 @@ class OCAML : public Language {
 	       "{\n"
 	       "\treturn %s_native(", wrap_name, wrap_name );
 
-	char *comma = "";
+	const char *comma = "";
 	for( i = 0, p = l; p; i++, p = nextSibling(p) ) {
 	    Printf(f->code,
 		   "%sargs[%d]", comma, i);
@@ -1089,7 +1089,7 @@ class OCAML : public Language {
 	int numargs;
 	int numreq;
 
-	char *comma;
+	const char *comma;
 
 	numargs = emit_num_arguments(l);
 	numreq  = emit_num_required(l);
