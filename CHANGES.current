@@ -1,6 +1,10 @@
 Version 1.3.22 (in progress)
 ==================================
 
+01/23/2004: mkoeppe (Matthias Koeppe)
+	    [Guile] Uniquify the argument names in GOOPS shadow method
+	    declarations.  Reported by rm@mh-freiburg.de.
+
 01/21/2004: sunshine (Eric Sunshine)
             Revived the NextStep port of SWIG.
 
