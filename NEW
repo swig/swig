@@ -177,6 +177,13 @@ and it is simpler to implement than the old string based approach.
 
 5.4 Perl shadow classes improved and optimized somewhat.
 
+5.5 The Guile module represents pointers as smobs.  (They used to be
+    mangled into strings.)  Memory leaks and type conversion bugs have been
+    fixed.  The Guile module system, including dynamic loading, and
+    exceptions are supported.  A typemap-driven procedure-documentation
+    system has been added (requires Guile 1.4).  Procedures-with-setters
+    can be generated.
+
 6. New Features
 ---------------
 
