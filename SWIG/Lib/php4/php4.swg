@@ -102,38 +102,17 @@
 
 /* Typemap for in/argout references */
 // Won't let me specify all on one line
-%typemap(in) int * ($*1_ltype intr) %{
+%typemap(in) int * ($*1_ltype intr), unsigned int * ($*1_ltype intr), unsigned short * ($*1_ltype intr), short * ($*1_ltype intr), unsigned short * ($*1_ltype intr), long * ($*1_ltype intr), unsigned long * ($*1_ltype intr), signed char * ($*1_ltype intr), unsigned char * ($*1_ltype intr), bool * ($*1_ltype intr), enum SWIGTYPE * ($*1_ltype intr) %{
   convert_to_long_ex($input);
   intr = ($*1_ltype) (*$input)->value.lval;
   $1 = &intr;
 %}
 
-%typemap(in) int & ($*1_ltype intr) %{
+%typemap(in) int & ($*1_ltype intr), unsigned int & ($*1_ltype intr), unsigned short & ($*1_ltype intr), short & ($*1_ltype intr), unsigned short & ($*1_ltype intr), long & ($*1_ltype intr), unsigned long & ($*1_ltype intr), signed char & ($*1_ltype intr), unsigned char & ($*1_ltype intr), bool & ($*1_ltype intr), enum SWIGTYPE & ($*1_ltype intr) %{
   convert_to_long_ex($input);
   intr = ($*1_ltype) (*$input)->value.lval;
   $1 = &intr;
 %}
-//%typemap(in) int * = int &;
-%typemap(in) unsigned int & = int &;
-%typemap(in) unsigned int * = int *;
-%typemap(in) unsigned short & = int &;
-%typemap(in) unsigned short * = int *;
-%typemap(in) short & = int &;
-%typemap(in) short * = int *;
-%typemap(in) unsigned short & = int &;
-%typemap(in) unsigned short * = int *;
-%typemap(in) long & = int &;
-%typemap(in) long * = int *;
-%typemap(in) unsigned long & = int &;
-%typemap(in) unsigned long * = int *;
-%typemap(in) signed char & = int &;
-%typemap(in) signed char * = int *;
-%typemap(in) unsigned char & = int &;
-%typemap(in) unsigned char * = int *;
-%typemap(in) bool & = int &;
-%typemap(in) bool * = int *;
-%typemap(in) enum SWIGTYPE & = int &;
-%typemap(in) enum SWIGTYPE * = int *;
 
 %typemap(argout) int *, unsigned int *, unsigned short *, short *, unsigned short *, long *, unsigned long *, signed char *, unsigned char *, bool *, enum SWIGTYPE *  %{
   if(! PZVAL_IS_REF(*$arg)) {

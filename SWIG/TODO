@@ -285,13 +285,17 @@ PHP
        interact with the php "new <class>" notation.
        See: abstract_inherit_wrap.cpptest
 
-*      Fix "reference" example
-
 [DONE] Work out when we can but shouldn't dispose of objects because the
        creator will.  See %newobject in the docs.  Works automatically for
        constructors and return-by-value.
 
-*      Get class properties to work, and global vars to work both ways
+[DONE] Got class properties to work, and global vars to work both ways 
+       with _set and _get accessors
+
+**     Look at pass by point and passby ref,
+       Make sometype** to be auto allocated
+       Make sometype& and sometype* to be autoallocated IF THEY ARE NOT
+       ALREADY swigtype wrapped.
 
 *      Overloading, callbacks, really review to see what else is missed
 
