@@ -690,6 +690,9 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
 {
   char var[512];
   char *varname;
+  SwigType *ftype;
+
+  ftype = SwigType_typedef_resolve_all(type);
 
   if (!pname) pname = lname;
   {
@@ -810,9 +813,13 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
           $*n_ltype
     */
 
-    if (SwigType_ispointer(type) || (SwigType_isarray(type)) || (SwigType_isreference(type))) {
-      star_type = Copy(type);
-      if (!SwigType_isreference(type)) {
+    if (SwigType_ispointer(ftype) || (SwigType_isarray(ftype)) || (SwigType_isreference(ftype))) {
+      if (!(SwigType_isarray(type) || SwigType_ispointer(type) || SwigType_isreference(type))) {
+	star_type = Copy(ftype);
+      } else {
+	star_type = Copy(type);
+      }
+      if (!SwigType_isreference(star_type)) {
 	if (SwigType_isarray(star_type)) {
 	  Delete(SwigType_pop(star_type));
 	} else {
@@ -950,6 +957,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
   /* Replace the bare $n variable */
   sprintf(var,"$%d",index);
   Replace(s,var,lname,DOH_REPLACE_ANY);
+  Delete(ftype);
 }
 
 /* ------------------------------------------------------------------------
