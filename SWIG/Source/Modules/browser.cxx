@@ -179,8 +179,8 @@ void exit_handler(FILE *f) {
 static void display(FILE *f, Node *n) {
   /* Print standard HTML header */
   
-  Printf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", SWIG_VERSION); 
-  Printf(f,"<b>SWIG-%s</b><br>\n", SWIG_VERSION);
+  Printf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", PACKAGE_VERSION); 
+  Printf(f,"<b>SWIG-%s</b><br>\n", PACKAGE_VERSION);
   Printf(f,"[ <a href=\"exit.html\">Exit</a> ]");
   Printf(f," [ <a href=\"index.html?node=0x%x\">Top</a> ]", tree_top);
   if (n != tree_top) {
@@ -295,8 +295,8 @@ void data_handler(FILE *f) {
   if (!swill_getargs("p(n)", &n)) {
     n = 0;
   }
-  Printf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", SWIG_VERSION); 
-  Printf(f,"<b>SWIG-%s</b><br>\n", SWIG_VERSION);
+  Printf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", PACKAGE_VERSION); 
+  Printf(f,"<b>SWIG-%s</b><br>\n", PACKAGE_VERSION);
   Printf(f,"[ <a href=\"exit.html\">Exit</a> ]");
   Printf(f," [ <a href=\"index.html?node=0x%x\">Top</a> ]", tree_top);
   Printf(f,"<br><hr><p>\n");
@@ -311,8 +311,8 @@ void symbol_handler(FILE *f) {
   Symtab *sym;
   char   *name = 0;
 
-  Printf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", SWIG_VERSION); 
-  Printf(f,"<b>SWIG-%s</b><br>\n", SWIG_VERSION);
+  Printf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", PACKAGE_VERSION); 
+  Printf(f,"<b>SWIG-%s</b><br>\n", PACKAGE_VERSION);
   Printf(f,"[ <a href=\"exit.html\">Exit</a> ]");
   Printf(f," [ <a href=\"index.html?node=0x%x\">Top</a> ]", tree_top);
   Printf(f," [ <a href=\"symbol.html\">Symbols</a> ]");
