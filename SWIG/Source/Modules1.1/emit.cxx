@@ -133,6 +133,7 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
       if (tm && checkAttribute(p,"tmap:in:numinputs","0")) {
 	Replaceall(tm,"$target", Getattr(p,"lname"));
 	Printv(f->code,tm,"\n",NIL);
+	np = Getattr(p,"tmap:in:next");
 	while (p && (p != np)) {
 	  Setattr(p,"ignore","1");
 	  p = nextSibling(p);
