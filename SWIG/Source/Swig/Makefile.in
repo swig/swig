@@ -2,8 +2,8 @@
 # $Header$
 #----------------------------------------------------------------
 
-SRCS          = stype.c scanner.c include.c getopt.c misc.c super.c
-OBJS          = stype.o scanner.o include.o getopt.o misc.o super.o
+SRCS          = tree.c stype.c scanner.c include.c getopt.c misc.c super.c
+OBJS          = tree.o stype.o scanner.o include.o getopt.o misc.o super.o
 
 prefix        = @prefix@
 exec_prefix   = @exec_prefix@
