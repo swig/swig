@@ -2421,61 +2421,18 @@ STL vector class:
 
 <p>
 <blockquote><pre>
-%module Example
+%module example
 
 %{
-#include &lt;vector&gt;
 #include &lt;string&gt;
-
-using namespace std;
+#include &lt;vector&gt;
 %}
 
-%typemap (in) string {
-  Check_Type($input, T_STRING);
-  $1 = string(STR2CSTR($input));
-}
+%include std_string.i
+%include std_vector.i
 
-%typemap (out) string {
-  if ($1.c_str() == NULL)
-    $result = Qnil;
-  else
-    $result = rb_str_new2($1.c_str());
-}
-
-template&lt;class T&gt; class vector {
-public:
-  %rename(__getitem__) operator[](int);
-  void push_back(T);
-  int size();
-  T operator[](int);
-
-  %extend {
-    void __setitem__(int index, T value) {
-      (*self)[index]=value;
-    }
-  }
-};
-
-%template(StringVector) vector &lt;string&gt;;
-%template(IntVector) vector &lt;int&gt;;
-
-%extend IntVector {
-  void each () {
-    IntVector::iterator i1 = self-&gt;begin();
-    IntVector::iterator i1end = self-&gt;end();
-    for ( ; i1!=i1end; i1++) 
-      rb_yield(INT2NUM(*i1));
-  }
-}
-%extend StringVector {
-  void each () {
-    StringVector::iterator i1 = self-&gt;begin();
-    StringVector::iterator i1end = self-&gt;end();
-    for ( ; i1!=i1end; i1++) 
-      rb_yield(rb_str_new2((*i1).c_str()));
-  }
-}
-
+%template(StringVector) std::vector&lt;string&gt;;
+%template(IntVector)    std::vector&lt;int&gt;;
 </pre></blockquote>
 
 <p>
@@ -2483,37 +2440,37 @@ An IRB session using this extension might go like this:
 <blockquote><pre>
 $ <b>irb</b>
 irb(main):001:0> <b>require 'Example'</b>
-true
-irb(main):002:0> <b>Example::IntVector.new</b>
-#<Example::IntVector:0x2ab9a18>
-irb(main):003:0> <b>i_list.push_back(1)</b>
-nil
-irb(main):004:0> <b>i_list.push_back(2)</b>
-nil
+=> true
+irb(main):002:0> <b>i_list = Example::IntVector.new</b>
+=> #&lt;Example::IntVector:0x2ab9a18>
+irb(main):003:0> <b>i_list.push(1)</b>
+=> nil
+irb(main):004:0> <b>i_list.push(2)</b>
+=> nil
 irb(main):005:0> <b>i_list.each { |i| puts i }</b>
 1
 2
-nil
-irb(main):006:0> <b>"size = #{i_list.size}"</b>
-"size = 2"
+=> nil
+irb(main):006:0> <b>i_list.length</b>
+=> 2
 irb(main):007:0> <b>s_list = Example::StringVector.new</b>
-#<Example::IntVector:0x2aa9c98>
-irb(main):008:0> <b>s_list.push_back("Hello")</b>
-nil
-irb(main):009:0> <b>s_list.push_back("There")</b>
-nil
+=> #&lt;Example::IntVector:0x2aa9c98>
+irb(main):008:0> <b>s_list.push("Hello")</b>
+=> nil
+irb(main):009:0> <b>s_list.push("There")</b>
+=> nil
 irb(main):010:0> <b>s_list.each { |s| puts s }</b>
 Hello
 There
-nil
-irb(main):011:0> <b>"size = #{s_list.size}"</b>
-"size = 2"
-irb(main):012:0> <b>"s_list[0] = #{s_list[0]}"</b>
-"s_list[0] = Hello"
-irb(main):013:0> <b>s_list[0] = "New entry"</b>
-nil
-irb(main):014:0> <b>puts "s_list[0] = #{s_list[0]}"</b>
-"s_list[0] = New Entry"
+=> nil
+irb(main):011:0> <b>s_list.length</b>
+=> 2
+irb(main):012:0> <b>s_list[0]</b>
+=> "Hello"
+irb(main):013:0> <b>s_list[0] = "New Entry"</b>
+=> "New Entry"
+irb(main):014:0> <b>s_list[0]</b>
+=> "New Entry"
 </pre></blockquote>
 <p>
 
