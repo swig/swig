@@ -18,9 +18,9 @@
   class complex; // python built-in
 
   namespace std 
-  {    
+  {
+    template <class T>
     class complex;
-    class string;
   }
 
   typedef complex None;  // python built-in
