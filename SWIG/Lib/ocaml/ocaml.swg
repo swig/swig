@@ -326,12 +326,10 @@ static int caml_list_length( value lst ) {
 
     static value caml_val_ptr( void *p, swig_type_info *info ) {
 	CAMLparam0();
-	CAMLlocal2(vv,vx);
-	vv = caml_swig_alloc(1,C_ptr);
-	vx = caml_swig_alloc(2,0);
-	Store_field(vx,0,copy_int64((long)p));
-	Store_field(vx,1,copy_int64((long)info));
-	Store_field(vv,0,vx);
+	CAMLlocal1(vv);
+	vv = caml_swig_alloc(2,C_ptr);
+	Store_field(vv,0,copy_int64((long)p));
+	Store_field(vv,1,copy_int64((long)info));
 	CAMLreturn(vv);
     }
 
@@ -441,8 +439,8 @@ static int caml_list_length( value lst ) {
 	    outptr = (void *)String_val(Field(v,0));
 	    break;
 	case C_ptr:
-	    outptr = (void *)(long)Int64_val(Field(Field(v,0),0));
-            outdescr = (swig_type_info *)(long)Int64_val(Field(Field(v,0),1));
+	    outptr = (void *)(long)Int64_val(Field(v,0));
+            outdescr = (swig_type_info *)(long)Int64_val(Field(v,1));
 	    break;
 	default:
 	    outptr = (void *)caml_long_val(v);
