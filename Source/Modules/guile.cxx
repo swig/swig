@@ -50,14 +50,14 @@ Guile Options (available with -guile)\n\
      -linkage <lstyle>       - Use linkage protocol <lstyle> (default `simple')\n\
                                Use `module' for native Guile module linking\n\
                                (requires Guile >= 1.5.0).  Use `passive' for\n\
-                               passive linking (no C-level module-handling  code),\n\
+                               passive linking (no C-level module-handling code),\n\
                                `ltdlmod' for Guile's old dynamic module\n\
                                convention (Guile <= 1.4), or `hobbit' for hobbit\n\
                                modules.\n\
      -scmstub                - Output Scheme file with module declaration and\n\
                                exports; only with `passive' and `simple' linkage\n\
      -gh                     - Use the gh_ Guile API. (Guile <= 1.8, default) \n\
-     -scm                    - Use the scm Guile API.  (Guile >= 1.6) \n\
+     -scm                    - Use the scm Guile API. (Guile >= 1.6) \n\
      -shadow                 - Export GOOPS class definitions\n\
      -emitslotaccessors      - Emit accessor methods for all GOOPS slots\n" "\
      -primsuffix <suffix>    - Name appended to primitive module when exporting\n\
