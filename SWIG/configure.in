@@ -633,6 +633,7 @@ test -d Source || mkdir Source
 
 AC_OUTPUT(
     Examples/Makefile
+    Examples/guile/Makefile
     Makefile
     Runtime/Makefile
     Source/Expat/Makefile
