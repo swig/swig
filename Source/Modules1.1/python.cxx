@@ -45,6 +45,7 @@ Python Options (available with -python)\n\
      -module name    - Set module name\n\
      -keyword        - Use keyword arguments\n\
      -noopt          - No optimized shadows (pre 1.5.2)\n\
+     -opt            - Optimized shadow classes (1.5.2 or later)\n\
      -shadow         - Generate shadow classes. \n\n";
 
 static String pragma_include;
@@ -88,6 +89,9 @@ void PYTHON::parse_args(int argc, char *argv[]) {
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-noopt") == 0) {
 	    noopt = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-opt") == 0) {
+	    noopt = 0;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-keyword") == 0) {
 	    use_kw = 1;
