@@ -3,6 +3,35 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+9/2/00  : beazley
+          Removed the ptrcast() and ptrmap() functions from the
+          pointer.i library file.  Old implementation is incompatible
+          with new type system.
+          *** POTENTIAL INCOMPATIBILITY ***
+
+9/2/00  : beazley
+          New runtime function SWIG_TypeQuery(const char *name) added.
+          This function can be used to extract the type info structure
+          that is used for type-checking.  It works with either the
+          nice C name or mangled version of a datatype.  For example:
+
+              swig_type_info *ty = Swig_TypeQuery("int *");
+              swig_type_info *ty = Swig_TypeQuery("_p_int");
+
+          This is an advanced feature that has been added to support some
+          exotic extension modules that need to directly manipulate
+          scripting language objects.
+          *** NEW FEATURE *** 
+
+9/2/00  : beazley
+          New directive %types() added.  This is used to 
+          explicitly list datatypes that should be included in
+          the runtime type-checking code. Normally it is never
+          necessary to use this but sometimes advanced extensions
+          (such as the pointer.i library) may need to manually
+          add types to the type-checker.
+          *** NEW FEATURE ***
+
 8/31/00 : beazley
           Improved handling of string array variables. For example,
           a global variable of the form "char name[64]" is automatically
