@@ -1275,7 +1275,7 @@ class CSHARP : public Language {
     String    *nativecall = NewString("");
     String    *shadowrettype = NewString("");
     String    *function_code = NewString("");
-    bool      setter_flag;
+    bool      setter_flag = false;
 
     if(!proxy_flag) return;
 
@@ -1666,7 +1666,7 @@ class CSHARP : public Language {
     int       num_required = 0;
     String    *overloaded_name = getOverloadedName(n);
     String    *func_name = NULL;
-    bool      setter_flag;
+    bool      setter_flag = false;
 
     if (l) {
       if (SwigType_type(Getattr(l,"type")) == T_VOID) {
