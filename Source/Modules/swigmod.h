@@ -205,6 +205,7 @@ public:
   virtual int classDirectorDefaultConstructor(Node *n);
   virtual int classDirectorMethod(Node *n, Node *parent, String *super);
   virtual int classDirectorConstructors(Node *n);
+  virtual int classDirectorDestructor(Node *n);
   virtual int classDirectorMethods(Node *n);
   virtual int classDirectorDisown(Node *n);
 

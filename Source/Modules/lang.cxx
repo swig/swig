@@ -1524,8 +1524,9 @@ int Language::unrollVirtualMethods(Node *n,
     /* we only need to check the virtual members */
     if (!checkAttribute(ni, "storage", "virtual")) continue;
     nodeType = Getattr(ni, "nodeType");
-    /* we need to add only the methods(cdecl), no destructors */
-    if ((Cmp(nodeType, "cdecl") == 0)) {
+    /* we need to add methods(cdecl) and destructor (to check for throw decl) */
+    int is_destructor = (Cmp(nodeType, "destructor") == 0);
+    if ((Cmp(nodeType, "cdecl") == 0)|| is_destructor) {
       decl = Getattr(ni, "decl");
       /* extra check for function type and proper access */
       int need_nopublic = dirprot_mode() && 
@@ -1534,9 +1535,10 @@ int Language::unrollVirtualMethods(Node *n,
 
       if (SwigType_isfunction(decl) && 
 	  (is_public(ni) || need_nopublic)) {
-	String *name = Getattr(ni, "name");
+	String *name = Getattr(ni, "sym:name");
 	String *local_decl = SwigType_typedef_resolve_all(decl);
-	Node *method_id = NewStringf("%s|%s", name, local_decl);
+	
+	Node *method_id = is_destructor ? NewStringf("~destructor") : NewStringf("%s|%s", name, local_decl);
 	/* Make sure that the new method overwrites the existing: */
 	Hash *exists_item = Getattr(vm, method_id);
         if (exists_item) {
@@ -1558,8 +1560,9 @@ int Language::unrollVirtualMethods(Node *n,
 	Delete(method_id);
 	Delete(local_decl);
       } 
-    } else if (Cmp(nodeType, "destructor") == 0) {
-      virtual_destructor = 1;
+      if (is_destructor) {
+	virtual_destructor = 1;
+      }
     }
   }
 
@@ -1701,11 +1704,18 @@ int Language::classDirectorMethods(Node *n) {
     String *fqname = Getattr(item, "fqName");
     if (!Cmp(Getattr(method, "feature:nodirector"), "1"))
       continue;
-
-    if (classDirectorMethod(method, n, fqname) == SWIG_OK) {
-       Setattr(item, "director", "1");
+    
+    String *type = Getattr(method, "nodeType");
+    if (!Cmp(type, "destructor")) { 
+      classDirectorDestructor(method);
+    }
+    else {
+      if (classDirectorMethod(method, n, fqname) == SWIG_OK) {
+	Setattr(item, "director", "1");
+      }
     }
   }
+
   return SWIG_OK;
 }
 
@@ -1715,6 +1725,20 @@ int Language::classDirectorMethods(Node *n) {
 
 int Language::classDirectorInit(Node *n) {
   (void)n;
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::classDirectorDestructor()
+ * ---------------------------------------------------------------------- */
+
+int Language::classDirectorDestructor(Node *n) {
+  if (Getattr(n,"throw")) {	
+    File *f_directors_h = Swig_filebyname("director_h");
+    String *classname= Swig_class_name(getCurrentClass());
+    Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw () {}\n", classname);
+    Delete(classname);
+  }
   return SWIG_OK;
 }
 
@@ -1951,6 +1975,8 @@ int Language::classHandler(Node *n) {
       for (k = First(vtable); k.key; k = Next(k)) {
 	item = k.item;
 	Node *method = Getattr(item, "methodNode");
+	SwigType *type = Getattr(method,"nodeType");
+	if (Strcmp(type,"cdecl") !=0 ) continue;
 	String* methodname = Getattr(method,"sym:name");
 	String* wrapname = NewStringf("%s_%s", symname,methodname);
 	if (!Getattr(symbols,wrapname) 
