@@ -1452,9 +1452,9 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
   if (SwigType_isarray(s)) {
     Printf(result,"(%s)%s", SwigType_lstr(s,0),name);
   } else if (SwigType_isreference(s)) {
-    Printf(result,"(%s)", SwigType_lstr(s,0));
+    Printf(result,"(%s)", SwigType_str(s,0));
     if (name) 
-      Printf(result,"&%s", name);
+      Printf(result,"%s", name);
   } else if (SwigType_isqualifier(s)) {
     Printf(result,"(%s)%s", SwigType_lstr(s,0),name);
   } else {
