@@ -1,10 +1,10 @@
 Simplified Wrapper and Interface Generator
 <p>
-<img src="images/swig12.png" alt="Simplified Wrapper and Interface Generator">
+<h2>Welcome to SWIG</h2>
 
 <p>
 SWIG is a software development tool that connects programs written in
-C, C++, and Objective-C with a variety of high-level programming
+C and C++ with a variety of high-level programming
 languages.  SWIG is primarily used with common scripting languages
 such as Perl, Python, Tcl/Tk, Ruby, Guile and MzScheme, however the list of 
 <a href="compat.html#SupportedLanguages">supported languages</a> also includes 
@@ -22,15 +22,13 @@ noncommercial use.
 <li> <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SwigWiki!</a>
 </ul>
 
-<h3>Important Notice</h3>
+<h3>SWIG-1.3.12, SWIG-2.0 and Beyond!</h3>
 
-SWIG is currently in a state of redevelopment in which substantial
-parts of the system are being reimplemented.  This work can be found
-in the SWIG1.3 series of releases.  If you are concerned about
-stability or are a first-time user, you may want to download some
-variant of SWIG1.1 instead.  Caveat--SWIG1.1 may not be compatible
-with recent releases of certain scripting languages such as Perl 5.6
-and Guile. 
+After nearly three years of redevelopment, the SWIG-1.3.x effort is
+nearly complete.  Read all about it in <a href="future.html">Dave's
+message</a> about SWIG's past, present, and future--and the
+realization that SWIG is more easily described as an extension to the 
+C++ type system (as opposed to an extension of C++ parsing).
 
 <p>
 SWIG is an all volunteer effort.  We are always looking for fearless people with 
@@ -38,6 +36,19 @@ an abundance of spare time.
 
 <p>
 <h3>News</h3>
+
+<p>
+<b>2002/06/02</b>
+<a href="Doc1.3/index.html">Updated documentation</a> for SWIG-1.3.12 is online.
+
+<p>
+<b>2002/06/02</b> <a
+href="http://prdownloads.sourceforge.net/swig/swig-1.3.12.tar.gz">SWIG-1.3.12</a>
+has been released.  This is the most capable SWIG release ever!  New
+features include support for C++ namespaces, enhanced support for C++
+templates, new library files, updated documentation, and a huge number of minor enhancements.
+See the <a href="download.html">download</a> page for release notes
+and versions for Windows and Macintosh.
 
 <p>
 <b>2002/04/03</b> Robert Tolbert has contributed <a href="swigdoc.pdf">PDF</a> and <a href="swigdoc.ps">postscript</a> versions of the SWIG-1.3.11 documentation.  Check it out.

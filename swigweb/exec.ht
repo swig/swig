@@ -4,12 +4,12 @@ Executive Summary
 <img src="images/exec.png" alt="Executive Summary">
 
 <p>
-SWIG is an interface compiler that connects programs written in C,
-C++, and Objective-C with scripting languages including <a href="http://www.perl.org">Perl</a>,
+SWIG is an interface compiler that connects programs written in C and
+C++ with scripting languages including <a href="http://www.perl.org">Perl</a>,
 <a href="http://www.python.org">Python</a>, and 
 <a href="http://www.scriptics.com">Tcl/Tk</a>.  It works by taking the declarations commonly found in C/C++ header
 files and using them to generate the glue code (wrappers) that scripting
-languages need to access the underlying C/C++ code.
+languages need to access the underlying C/C++ code. 
 
 <p>
 John Ousterhout has written a
@@ -50,8 +50,8 @@ such a module.
 SWIG is sometimes compared to interface definition language (IDL)
 compilers such as those you would find with systems such as CORBA and
 COM.  Although there are a few similarities, the whole point of SWIG
-is to make it so you don't have to screw around with that stuff.  If
-anything, it's much more of a rapid application development and
+is to make it so you don't have to add an extra layer of IDL specifications
+to your application.  If anything, it's much more of a rapid application development and
 prototyping tool.   Specifically:
 
 <p>
@@ -93,12 +93,13 @@ to other more specialized scripting language extension building tools
 programmers who want to add a scripting language component to their
 applications.  Because of this, SWIG tends to have a slightly
 different focus than tools designed to build small modules for
-widespread use in a scripting language distribution.  In particular,
-SWIG tends to provide much greater support for C/C++ while
-deemphasizing most of the low-level details related to the internal
-operation of the target language.  In contrast, tools specialized to a
-particular language allow for a greater degree of customization
-(although they are often much more difficult to use).
+widespread use in a scripting language distribution.  By far, the most
+significant difference between SWIG and similar tools is that SWIG
+implements the full C++ type system--with support for all C datatypes,
+C++ classes, namespaces, and templates.  By focusing on types, SWIG is
+able to provide a high degree of reliability and it is able to handle
+the wrapping of large-scale C/C++ code that appears in real
+applications.
 
 <p>
 A number of <a href="doc.html">papers and tutorials</a> describing SWIG are available.
@@ -109,6 +110,8 @@ in their <a href="projects.html">projects</a>.
 <p>
 SWIG has been freely available in various forms since February, 1996
 and a large number of developers have made contributions.  Today, SWIG
-remains an all-volunteer effort.  Approximately 700 people subscribe
+remains an all-volunteer effort.  Approximately 750 people subscribe
 to the SWIG mailing list (swig@cs.uchicago.edu) and a public CVS
-repository is available at the University of Chicago. 
+repository is available at the University of Chicago.  Over 12000 people
+downloaded the last SWIG release (SWIG-1.3.11).
+

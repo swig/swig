@@ -45,14 +45,9 @@ back to ANSI C.
 handling of overloaded functions added.
 <li>September 23, 2001. SWIG-1.3.8 released.
 <li>September 25, 2001. SWIG-1.3.9 released.
-
+<li>December 10, 2001. SWIG-1.3.10 released.
+<li>January 31, 2002. SWIG-1.3.11 released.
+<li>June 2, 2002. SWIG-1.3.12 released.
 </ul>
-
-<p>
-Currently SWIG is being rewritten in ANSI C and reorganized in an
-attempt to simplify the construction of language modules and to
-improve the quality of the code that is generated.  As this is only a
-part-time project for just about everyone involved, this work will be
-completed when it is completed.
 
 

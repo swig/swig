@@ -32,7 +32,7 @@ char *get_time()
 
 </pre></tt></ul>
 
-<h3> Interface file </h3>
+<h3>Interface file </h3>
 
 Now, in order to add these files to your favorite language, you need to write an
 "interface file" which is the input to SWIG.  An interface file for these
@@ -81,27 +81,6 @@ the rest of the program.  In this case, we have built a dynamically
 loadable extension that can be loaded into the Tcl interpreter using
 the 'load' command.   
 
-<p>
-If your machine does not support dynamic loading, it is also easy to 
-build a new version of the tclsh interpreter as follows :
-
-<blockquote>
-<pre><tt>
-unix % swig -tcl -ltclsh.i example.i
-unix % gcc example.c example_wrap.c -I/usr/local/include \
-       -L/usr/local/lib -ltcl -lsocket -ldl -lm -o my_tclsh
-unix % my_tclsh
-% puts $My_variable
-3.0
-% fact 5
-120
-%
-</tt></pre></blockquote>
-
-In this case, the new version of
-tclsh is functionally identical to the original, but has new functions
-added to it.
-
 <h3> Building a Python module </h3>
 
 Turning C code into a Python module is also easy.  Simply do the following (shown for Irix):
@@ -148,7 +127,6 @@ Sun Feb 11 23:01:07 1996
 unix % 
 </pre></tt></blockquote>
 
-
 <h3> Building a Java module </h3>
 SWIG will also generate JNI code for accessing C/C++ code from Java. Here is an example building a Java module (shown for Cygwin):
 
@@ -173,32 +151,54 @@ Mon Mar  4 18:20:31  2002
 $
 </pre></tt></blockquote>
 
-
 <h3> SWIG for the truly lazy </h3>
 
 As it turns out, it is not always necessary to write a special interface
-file.  If your C code is relatively clean, you can just run SWIG directly
-on the source like this :
+file.  If you have a header file, you can often just include it directly in the
+SWIG interface. For example:
 
 <blockquote>
 <tt> <pre>
-unix % swig -tcl -module example example.c
-unix % gcc -c example.c example_wrap.c -I/usr/local/include
-unix % ld -shared example.o example_wrap.o -o example.so
-</pre></tt></blockquote>
+%module example
+%{
+/* Includes the header in the wrapper code */
+#include "header.h"
+%}
+
+/* Parse the header file to generate wrappers */
+%include "header.h"
+</pre></tt>
+</blockquote>
+
+Alternatively, some people might just include SWIG directives in a header
+file with conditional compilation.  For example:
+
+<blockquote>
+<pre>
+#ifdef SWIG
+%module example
+%{
+#include "header.h"
+%}
+#endif
+
+extern int fact(int n);
+...
+</pre>
+</blockquote>
 
 <h3> Running SWIG under Microsoft Windows </h3>
 
-SWIG also works perfectly well under all known 32 bit versions of Windows including 95/98/NT/2000/XP.  SWIG
-is typically invoked from the command prompt and can be used with
-NMAKE.   Modules are typically compiled in the form of a DLL that
-can be dynamically loaded into Tcl, Python, or whatever language you are using.   With a little
-work, SWIG can also be used as a custom build option within 
-MS Developer Studio.  
+SWIG also works perfectly well under all known 32 bit versions of
+Windows including 95/98/NT/2000/XP.  SWIG is typically invoked from
+the command prompt and can be used with NMAKE.  Modules are typically
+compiled in the form of a DLL that can be dynamically loaded into Tcl,
+Python, or whatever language you are using.  With a little work, SWIG
+can also be used as a custom build option within MS Developer Studio.
 
-<h3> That's it (well, mostly) </h3>
+<h3>That's it (well, more or less)</h3>
 
-That's about everything you need to know. Here's the short checklist :
+That's about everything you need to know to get started. Here's the short checklist :
 
 <ul>
 <li> Make sure you specify a module name.
@@ -207,3 +207,83 @@ That's about everything you need to know. Here's the short checklist :
 pages for your compiler).
 <li> Relax.
 </ul>
+
+<h3>Surely there's more to it...</h3>
+
+The above example is intentionally simple, but the general idea
+extends to more complicated C/C++ programming tasks.  In fact, it is
+important to know that SWIG is a fairly complete C++ compiler with
+support for nearly every language feature.  This includes
+preprocessing, pointers, classes, inheritance, and even C++ templates.
+SWIG can also be used to package structures and classes into proxy
+classes in the target language---exposing the underlying functionality in a very
+natural manner.
+
+<p>
+To illustrate, suppose you wanted to wrap the following C++ data structure:
+
+<blockquote>
+<pre>
+// pair.h.  A pair like the STL
+namespace std {
+   template&lt;class T1, class T2&gt; struct pair {
+       T1 first;
+       T2 second;
+       pair() : first(T1()), second(T2()) { };
+       pair(const T1 &f, const T2 &s) : first(f), second(s) { }
+   };
+}
+</pre>
+</blockquote>
+
+To wrap with SWIG, you might specify the following interface:
+
+<blockquote>
+<pre>
+// pair.i - SWIG interface
+%module pair
+%{
+#include "pair.h"
+%}
+
+// Ignore the default constructor
+%ignore std::pair::pair();      
+
+// Parse the original header file
+%include "pair.h"
+
+// Instantiate some templates
+
+%template(pairii) std::pair&lt;int,int&gt;;
+%template(pairdi) std::pair&lt;double,int&gt;;
+</pre>
+</blockquote>
+
+Now, compiling (Python):
+
+<blockquote>
+<pre>
+$ swig -proxy -python -c++ pair.i
+$ c++ -c pair_wrap.c -I/usr/local/include/python2.1
+$ c++ -shared pair_wrap.c -o paircmodule.so
+$ python
+Python 2.1 (#3, Aug 20 2001, 15:41:42) 
+[GCC 2.95.2 19991024 (release)] on sunos5
+Type "copyright", "credits" or "license" for more information.
+>>> import pair
+>>> a = pair.pairii(3,4)
+>>> a.first
+3
+>>> a.second
+4
+>>> a.second = 16
+>>> a.second
+16
+>>> b = pair.pairdd(3.5,8)
+>>> b.first
+3.5
+>>> b.second
+8
+</pre>
+</blockquote>
+

@@ -14,6 +14,1542 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian
 Eventually this branch will be merged back to the trunk of the CVS
 tree (maybe).
 
+Version 1.3.12 (June 2, 2002)
+=============================
+            
+05/30/2002: beazley
+            Fixed problem related to forward template class declarations and
+            namespaces.  Bug reported by Marcelo Matus.
+
+05/30/2002: beazley
+            Added 'make uninstall' target.  Contributed by Joel Reed.
+
+05/29/2002: beazley
+            Fixed rather insidious bug with %rename, %feature and template specialization.
+            For example:
+
+                %exception vector::__getitem__ {
+                     ... some exception ...
+                }
+
+                template<class T> class vector {
+                    ...
+                    T __getitem__(int index);       // Fine
+                    ...
+                };
+
+                template<> class vector<int> {
+                    ...
+                    T __getitem__(int index);       // Oops.
+                    ...
+                };
+
+            Now, the %exception directive (and other features) should correctly apply to
+            both vector and specializations.
+
+05/29/2002: beazley
+            Subtle changes to %template() directive.   Template arguments are now
+            reduced to primitive types in template matching.  For example:
+
+               template<class T> class vector<T *> {
+                ... partial specialization ...
+               }
+
+               typedef int *IntPtr;     // Gross typedef
+
+               // Gets the above partial specialization
+               %template(vectorIntPtr) vector<IntPtr>;
+
+            This change is extremely subtle, but it fixes a number of potential
+            holes in Luigi's STL library modules.    For example:
+
+                typedef int Integer;
+                %template(vectori) vector<int>;
+
+05/29/2002: beazley
+            Fixed rather insidious typemap bug related to const.  const
+            was being discarded through typedefs.
+
+05/29/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added input typemaps for const references to primitive
+            types (in Lib/ruby/ruby.swg).
+
+05/29/2002: cheetah (William Fulton)
+            [Java] The java arrray support functions are enclosed by 
+            a SWIG_NOARRAYS #define. Useful if not using arrays and 
+            it is desirable to minimise the amount of compiled code.
+
+05/29/2002: cheetah (William Fulton)
+            [Java] Enums were not renamed when using %name or %rename
+            fix.
+
+05/28/2002: ljohnson
+            [Ruby] Modified the name of the wrapper functions for the
+	    "new" singleton method and "initialize" instance method for
+	    consistency with the other language modules. The wrapper name
+	    for the function that implements "new" is alloc_classname and
+	    the wrapper name for the function that implements "initialize"
+	    is new_classname.
+
+
+05/27/2002: beazley
+            Changes to runtime.  Pointer conversion/creation functions
+            now almost always have an extra "flags" argument.  For
+            example:
+
+              SWIG_ConvertPtr(obj, void **, swig_type_info *ty, int flags);
+                                                                ^^^^^^^^^^
+            This extra parameter is reserved for future expansion and will
+            be used for more control over pointers in future versions.
+
+05/27/2002: beazley
+            Fix for C++ classes with private assignment operators.  It
+            is now possible to safely return objects like this by value.
+            Caveat:  the class must provide a copy constructor.
+	    
+05/26/2002: beazley
+            -proxy option added to many language modules.  This is the
+            same as -shadow.  We are merely changing terminology.
+            
+05/26/2002: beazley
+            [perl] Fixed some inconsistencies in the -package option.
+            -package merely sets the package name to be used on the
+            wrappers.  It does not change the name of the shared library
+            file or the name of the generated .pm file.  This was
+            broken at some point, but works again now.
+
+05/25/2002: beazley
+            [perl] Fixed [ 475452 ] memory leak in return-by-value.
+            Problem related to static member variables returning newly
+            allocated objects. Reported by Roy Lecates.
+ 
+05/25/2002: beazley
+            [perl] Fixed [ 513134 ] %BLESSEDMEMBERS isn't always right.
+            Reported by Fleur Diana Dragan.
+
+05/25/2002: beazley
+            Fixed [ 540735 ] -importall and the -I option.
+
+05/25/2002: beazley
+            [guile] Fixed [ 532723 ] Default arg for char* can SegV.  
+            Error in guile module.  Reported by Brett Williams.
+
+05/25/2002: beazley
+            Subtle change to typemap application code.  The "freearg"
+            typemap must exactly match up with the "in" or "ignore"
+            typemap.  For example:
+
+                 %typemap(in) (char *data, int len) { ... };
+                 %typemap(freearg) char *data { ... }; 
+
+                 void foo(char *data, int len);
+
+             In this case, the "in" typemap is applied, but the
+             freearg typemap is not.  This is because the freearg
+             typemap doesn't match up with the input argument sequence.
+
+05/25/2002: beazley
+            Fixed [ 548272 ] Default argument code missing braces.
+            Reported by Brett Williams.
+
+05/25/2002: beazley
+            Fixed [ 547730 ] SwigValueWrapper needed for constructors.
+            Reported by William Fulton.
+
+05/25/2002: beazley
+            Undefined identifiers now evaluate to 0 when evaluating
+            preprocessor expressions.  For example:
+
+                  #if !FOO
+                  ...
+                  #endif
+      
+            where FOO is undefined or set to some non-numeric value.
+
+            Fixes [ 540868 ] #if defined whatever - not parsed.
+            Reported by Adam Hupp.
+
+ 
+05/24/2002: beazley
+            SWIG now ignores the C++ 'export' keyword.
+
+05/23/2002: beazley
+            Some refinement of type-name mangling to account for pointers, arrays,
+            references, and other embedded type constructs.
+
+05/23/2002: beazley
+            Initial attempt at supporting template partial specialization.  At
+            the very least, it is parsed and the classes are stored.  Matching
+            of instantiations to specialized version is more limited and based on
+            the SWIG default typemap rules:
+
+                     SWIGTYPE *
+                     SWIGTYPE []
+                     SWIGTYPE &
+
+            Now, why in the world would you want to use this feature?  Other
+            than allowing for slightly modified class APIs, this capability is
+            primarily used to provide advanced wrapping support for STL-like
+            objects.  It can also be mixed with typemaps.  Here is an example:
+
+
+                /* Generic version */
+                template<class T> class vector {
+                    %typemap(in) vector<T> * {
+                        // A container of objects 
+                    }
+                };
+                /* Partial specialization (pointers) */
+                template<class T> class vector<T *> {
+                    %typemap(in) vector<T> * {
+                        // A container of pointers to objects.
+                    }
+                };
+                /* Specialization (integers). */
+                template<> class vector<int> {
+                    %typemap(in) vector<int> * {
+                        // A container of integers.
+                    }
+                };
+
+             *** EXPERIMENTAL FEATURE ***
+            
+05/23/2002: beazley
+            Enhancement to typemaps.   Normally, typemap variables are
+            renamed to avoid conflicts.  For example:
+
+               %typemap(in) int * (int temp) {
+                    $1 = &temp;
+               }
+
+            This results in code that creates and uses variables "temp1","temp2", 
+            "temp3" and so forth depending on how many times the typemap is used.
+            Sometimes you want a single variable instead.  To do that, using
+            the following naming scheme:
+
+                %typemap(in) int *(int _global_temp) {
+                }
+ 
+            Is this case, a single variable _global_temp is emitted in the
+            wrapper functions.  It is shared across all typemaps.  Repeated
+            typemaps do not replicate the variable---they use the first one
+            emitted.
+            *** NEW FEATURE ***
+           
+05/23/2002: beazley
+            Minor enhancement to typemaps.  If you have this code,
+
+               %typemap(in) Foo (int somevar = 3) {
+                     ...
+               }
+
+            the default value for somevar is now emitted into the wrapper code.
+
+05/22/2002: beazley
+            Fixed %extend to be better behaved in namespaces.  If you have code
+            like this:
+
+                namespace foo {
+                     struct bar {
+                        %extend {
+                             void blah();
+                        };
+                     };
+                }
+  
+            SWIG matches the blah() method to a C function named 
+            void foo_bar_blah(foo::bar *self).
+
+            This is consistent with the non-namespace version.
+            Bug reported by Marcelo Matus.
+
+05/22/2002: beazley
+            New library files: cpointer.i, carrays.i, cmalloc.i.  These
+            provide access to C pointers and memory allocation functions.
+            See Doc/Manual/Library.html for details.
+
+05/22/2002: cheetah (William Fulton)
+            [Java] C type char no longer maps to Java type byte, but to Java type char.
+            It is now treated as a character rather than a signed number. This fits in
+            with the other language modules and is a more natural mapping as char* is 
+            mapped as a string of characters. Note that the C signed char type is still
+            mapped to a Java byte.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+05/22/2002: cheetah (William Fulton)
+            [Java] Improved constants wrapping. Constants (#define and %constant) values 
+            are now obtained through a JNI call. Previously the value was compiled as 
+            Java code, but this didn't work for all cases, eg #define 123ULL.
+
+05/22/2002: beazley
+            Fixed bogus error message with %extend directive and C++
+            access specifiers.  Reported by Marcelo Matus.
+
+05/22/2002: beazley
+            Namespaces and enums now work correctly.  For example:
+
+                namespace Foo {
+                    enum Bar { A, B };
+                }
+
+            Bug reported by Marcelo Matus.
+
+05/21/2002: beazley
+            The %types directive can now be used to specify inheritance relationships
+            in the runtime type system.  For example,
+
+                %types(Foo = Bar);
+
+            specifies that Foo isa Bar.    Using this is potentially quite dangerous.
+            However, this is useful in certain cases (and in the SWIG library).
+            
+05/20/2002: beazley
+            %nodefault and %makedefault directives now require a trailing semicolon.
+            For example:
+
+                %nodefault;
+                ...
+                %makedefault;
+
+            In addition both directives can take a class name.  For example:
+
+                %nodefault Foo;
+
+                class Foo {   /* No default constructor/destructor */
+                };
+
+                class Bar {  /* Default constructor/destructor generated */
+                };
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            If you don't use the trailing semicolon, things will mysteriously break.
+
+05/20/2002: beazley
+            More improvements to type system handling.  SWIG now correctly handles
+            template names and parameters in a namespace. For example:
+
+                namespace foo {
+                    template<class T> class bar { };
+                    typedef int Integer;
+
+                    void blah(bar<Integer> *x);
+                };
+
+            In the generated code, all of the typenames are properly qualified.
+
+05/17/2002: cheetah (William Fulton)
+            [Java] deprecated broken -jnic and -jnicpp commandline options. The C or C++ 
+            JNI calling convention is now determined from the -c++ commandline option.
+
+05/16/2002: cheetah (William Fulton)
+            [Java] The JCALL macros which exist so that the same typemaps can be used
+            for generating both the C and C++ JNI calling conventions no longer appear
+            in the generated code. This is because the output is now passed through the 
+            SWIG preprocessor which does the macro expansion for either C or C++ (depending
+            on whether -c++ is passed on the SWIG commandline).
+
+            The generation of the functions used in the array typemaps have been adjusted 
+            to take account of this. The side effect is that any typemaps which contained 
+            JCALL macros within %{ %} brackets will have to be moved within {} brackets 
+            so that the SWIG preprocessor can expand the macros.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+05/13/2002: beazley
+            Class templates may now be used as template parameters.  For example:
+
+              template<class T, template<class> class C> class Foo {
+                  ...
+              };
+              template<class T> class Bar {
+                  ...
+              };
+
+              %template(Fooi) Foo<int, Bar>;
+     
+            SWIG doesn't really do anything special with this---it's just
+            another way of specifying a template parameter.  
+         
+05/13/2002: beazley
+            Minor refinement of template support.  Template parameter names are no longer
+            required for types.  For example:
+
+                template<bool> class Foo {
+                };
+
+            Obviously, names are required for template<class T>;
+
+05/12/2002: beazley
+            New macro expansion in typemaps.  The sequence:
+
+                $descriptor(type)
+
+            Will expand into the SWIG type descriptor structor for
+            the given type.  Type may be any abstract datatype.
+            For example:
+
+                $descriptor(int *)
+                $descriptor(int (*)(int,double))
+                $descriptor(vector<int> *)
+
+            Caveat: It is *NOT* currently legal to use other typemap
+            substitution variables in the macro.  For example 
+            $descriptor($1_type).
+
+            The primary purpose of this modification is to better
+            support typemaps for container objects or to allow typemaps
+            that might be performing type conversions.
+            *** NEW FEATURE ***
+
+05/11/2002: beazley
+            The wrapping of references to primitive types has been
+            changed as follows:
+
+            Arguments of type 'const primitive &' are now passed
+            by value as opposed to pointers.  Return values of
+            type 'const primitive &' are returned as values instead of
+            pointers.
+
+            'primitive' is any one of int, short, long, long long,
+            char, float, double, bool (as well as unsigned variants).
+            
+            This change is being made to better support C++ wrapping--especially
+            code that makes use of templates and the STL.
+            
+05/11/2002: beazley
+            The %template directive can now be used to access templates
+            in a namespace.  For example:
+
+                namespace std {
+                    template<class T> class complex {
+                       T re, im;
+                    public:
+                       complex(T _r = T(), T _i = T()) : re(_r), im(_i) { }
+                       T real() { return re; }
+                       T imag() { return im; }
+                    };
+                }
+
+                %template(complex) std::complex<double>;
+
+            Note: There are some very subtle namespace/symbol table 
+            management issues involved in the implementation of this.
+            It may not work in certain cases.
+
+05/10/2002: beazley
+            Member template constructor support added.  For example:
+
+               template<typename _T1, typename _T2> 
+               struct pair {
+                 _T1 first;
+                 _T2 second;
+                 pair() : first(_T1()), second(_T2()) { }
+                 template<class _U1, class _U2> pair(const pair<_U1,_U2> &x);
+               };
+
+            To instantiate the template, use %template and %extend.
+            For example, this expands the constructor into a default
+            copy constructor:
+
+               %extend pair {
+                  %template(pair) pair<_T1,_T2>;
+               }
+            
+            Highly experimental.  Other uses may be broken.
+
+05/10/2002: beazley
+            The %extend (%addmethods) directive no longer works unless
+            it appears in the public section of a class.   An error
+            message is now generated (as opposed to a segmentation fault).
+
+05/09/2002: beazley
+            New %warnfilter() directive.  This directive attaches a warning
+            filter to specific declarations and has the same semantics as
+            %rename, %ignore, %feature, and so forth.  For example:
+
+               %warnfilter(501) foo;   // Suppress overloaded warning
+               int foo(int);
+               int foo(double); 
+
+            or
+
+               %warnfilter(501) Object::foo(double);
+               class Object {
+               public:
+                  int foo(int);
+                  int foo(double);
+               };
+
+            This feature only suppresses warnings in later stages of code
+            generation.  It does not suppress warnings related to preprocessing
+            or parsing.
+            *** NEW FEATURE ***
+
+05/09/2002: beazley
+            SWIG now supports C99 variadic preprocessor macros.  For example:
+
+               #define debugf(fmt,...) fprintf(stderr,fmt,__VA_ARGS__)
+
+            The argument "..." is used to indicate variable arguments which
+            are all placed into the special argument name __VA_ARGS__ in
+            the macro expansion.  
+
+            SWIG also implements the GNU (##) extension for swallowing the
+            preceding comma when __VA_ARGS__ is empty. For example:
+
+               #define debugf(fmt,...) fprintf(stderr,fmt, ##__VA_ARGS__)
+
+            Here is how this is expanded:
+
+               debugf("%d", 3)  --> fprintf(stderr,"%d",3)
+               debugf("Hello")  --> fprintf(stderr,"Hello" )
+
+            (notice the deleted comma).
+            *** NEW FEATURE ***
+
+05/08/2002: samjam (Sam Liddicott)
+            Many changes to php module.  Shadow classes are now implemented
+            entirely in native C and no need for php-code shadow wrappers
+            Populated template config.m4 and Makefile.in as needed by
+            phpize are generated.
+
+05/08/2002: ljohnson (Lyle Johnson)
+            [Ruby] A copy constructor is now turned into a "clone"
+            instance method (see Dave's change for copy constructors
+            dated 4/7/2002). This seems like the appropriate thing
+            to do for Ruby code.
+
+05/08/2002: ljohnson (Lyle Johnson)
+            [Ruby] Fixed [ 553864 ] Inline destructor code not written.
+
+05/08/2002: beazley
+            %ignore behaves better with constructors, destructors, and the
+            type system in general.   For constructors and destructors,
+            %ignore now suppresses the creation of a default constructor
+            or destructor.  For example:
+
+                 %ignore ~Foo;
+                 class Foo {
+                 public:
+                     Foo();
+                    ~Foo();
+                     ...
+                 };
+
+            In SWIG-1.3.11, ~Foo() simply "disappeared" and the code generator
+            created a wrapper for a default destructor (as if it was never
+            declared in the interface).  In SWIG-1.3.12, %ignore suppresses
+            the creation of a destructor if one is actually defined. 
+
+            Similarly, even though a declaration is ignored, information
+            may still be needed to properly handle types. For example, here
+            is a very subtle error that is fixed by this change:
+
+                %ignore std::string;         // Prevent class wrapping
+                namespace std {
+                   class string {
+                        ...
+                   };
+                   %typemap(in) string * {
+                        ...
+                   }
+                }
+                
+                void foo(std::string *s);   // Broken.
+
+            Before this fix, %ignore would cause the class definition to disappear.
+            This, in turn, would cause the typemap to be misapplied. 
+ 
+05/08/2002: beazley
+            Minor changes to %rename, %ignore, %feature, and related directives
+            for better support of destructors.  Destructors can now be precisely
+            tagged.  For example:
+
+                  %ignore Foo::~Foo;
+                  %feature("action") ~Bar {
+                      ...
+                  }
+             
+            *Developer warning* 
+            Operations such as renaming and feature attachment for classes used to
+            be applied to destructors as well.  For instance, if you did this:
+ 
+                 %rename(Bar) Foo;
+
+            The operation applied to the class itself, the constructor, and
+            the destructor.   This is no longer the case.  Now such operations
+            will only apply to the class and the constructor.  Note: if you
+            were relying on this for class renaming, be aware that renamed
+            classes should really only be handled at the level of the class itself
+            and not the level of individual declarations in the class (although
+            they can be renamed individually if needed).  As far as I know,
+            the Language class is already taking care of this case correctly.
+
+05/07/2002: beazley
+            New set of tests.  The Examples/test-suite/errors directory contains
+            tests that try to exercise all of SWIG's error and warning messages.
+
+05/07/2002: beazley
+            Start of a warning framework.  Warning messages are now assigned numeric values
+            that are shown in warning messages.   These can be suppressed using the
+            -w option.  For example:
+
+                 swig -w302 example.i
+                 swig -w302,305 example.i
+
+            Alternatively, the #pragma preprocessor directive can be used to disable this:
+
+                 #pragma SWIG nowarn=302
+                 #pragma SWIG nowarn=302,305
+
+            Note: Since SWIG is a multi-pass compiler, this pragma should
+            only be used to change global settings of the warning filter.  It should
+            not be used to selectively enable/disable warnings in an interface file.
+            The handling of #pragma occurs in the C++ preprocoessor and affects all 
+            subsequent stages of compilation.
+
+            The -Wall option turns on all warnings and overrides any filters that
+            might have been set.
+
+            Warnings can be issued from an interface using %warn.  For example:
+
+                 %warn "110:%section is deprecated"
+
+            The first part of a warning message is an optional warning number.
+            A complete set of warning numbers is found in Source/Include/swigwarn.h.
+            *** NEW FEATURE ***
+
+05/07/2002: beazley
+            Internal parsing change.   Directives to include files now use brackets [ ... ]
+            instead of { ... }.   
+
+                  %includefile "foo.i" [
+                     ...
+                  ]
+
+            The use of { ... } was a bad choice because they were included implicitly by
+            the preprocessor and made it impossible to properly detect legitimate missing '}' 
+            errors.
+
+04/16/2002-
+05/02/2002: beazley
+            SWIG European Tour: Paris-Amsterdam-Bath.
+
+04/23/2002: beazley
+            The %addmethods directive has been renamed to %extend.
+            For example:
+
+                class Foo {
+                ...
+                };
+
+                %extend Foo {
+                   int blah() { ... };
+                   int bar() { ... };
+                   ...
+                };
+
+            Motivation: the %addmethods directive can be used for many
+            other tasks including adding synthesized attributes, constructors,
+            and typemaps. Because of this, "addmethods" is somewhat misleading.
+            %extend more precisely describes this operation---extension of a
+            class or structure.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            %addmethods still works via a macro definition.   However,
+            a warning message may be generated.   Errors involving %addmethods
+            will actually refer to the %extend directive.  
+            
+04/23/2002: beazley
+            Further refinement of the type system.  Typedef now
+            propagates through functions, pointers to functions,
+            and pointers to member functions.
+            For example:
+
+               typedef int Integer;
+               void foo(int (*x)(int), Integer (*y)(Integer));
+
+            In this case, arguments 'x' and 'y' have exactly
+            the same type (and would obviously accept objects
+            of either type).
+
+            Similarly, consider this:
+
+               class Foo {
+               };
+
+               typedef Foo Bar;
+               void bar(int (Foo::*x)(int), int (Bar::*y)(int));
+
+            In this case, arguments x and y are the same 
+            type (via typedef).
+            
+04/22/2002: beazley
+            SWIG now generates a warning message if any part of
+            an expression involves values from a private part of a class.
+            For example:
+
+                class Foo {
+                private:
+                    static int X;
+                public:
+                     void blah(int a, int b = X);   // Warning
+                };
+
+            In this case, the default argument is ignored.  There
+            are workarounds, but they are rather clumsy.  For instance,
+            you might do this:
+
+                    %feature("action") blah(int,int) {
+                       if ($nargs == 1) {
+                          result = blah(arg1);
+                       } else {
+                          result = blah(arg1,arg2);
+                       }
+                    }
+                    void blah(int a, int b = 0);
+
+
+04/21/2002: beazley
+            Use of the %inline directive inside a namespace is
+            forbidden and now generates an error message.   This is
+            not allowed since the inlined code that is emitted is
+            not placed inside a namespace.  This confuses other
+            stages of parsing.
+                    
+04/21/2002: beazley
+            Some bug fixes to casting operations and expression
+            parsing.   Due to some parsing issues, it is not 
+            currently possible to use casts for all possible
+            datatypes.   However, the common cases work.
+
+04/20/2002: beazley (Amsterdam)
+            Member templates now work.  Simply use the %template
+            directive inside a class or %addmethods to create
+            instantiations (see Doc/Manual/SWIGPlus.html).  Supporting
+            this was easy---earlier changes to templates made it
+            possible using only a two-line modification to the parser
+            and a few minor modifications elsewhere.  Hmmm, come to 
+            think of it, the smoke was rather thick in that Internet "cafe".
+            *** NEW FEATURE ***
+            
+04/19/2002: beazley (TGV)
+            Improved handling of non-type template parameters.  For example:
+
+                 vector<int,100>;
+
+            Simple numbers and strings can be used with the %template
+            directive as well.  For example:
+
+                 %template(vecint100) vector<int,100>;
+
+            Note: Arithmetic expressions are not currently allowed.
+            
+            Default template arguments now work and do not have to
+            be given to %template.
+                        
+04/18/2002: beazley (Paris)
+            Change in internal template handling.  Template
+            parameters are now fully integrated into the type
+            system and are aware of typedefs, etc.  This builds
+            upon the change below.   
+
+            *** DEVELOPER WARNING ***
+            Word of caution to language module writers.  The "name"
+            parameter of certain parse tree nodes (classes, functions, etc.)
+            may be parameterized with types.   This parameterization is
+            done using SWIG type-strings and not the underlying C version.
+            For example,
+
+               int max<int *>(int *,int *)  
+
+            has a name of "max<(p.int)>".  If you use the name directly,
+            you may get syntax errors in the generated code.  To fix this,
+            use SwigType_namestr(name) to convert a parameterized name 
+            to a C name with valid syntax.  The internal version is
+            used to reduce template types to a common representation 
+            and to handle issues of typedef.
+            
+04/16/2002: beazley (somewhere over the Atlantic)
+            Enhancement of typedef resolution.  The type system is now
+            aware of template arguments and typedef.  For example:
+
+                  typedef int Integer;
+                 
+                  foo(vector<int> *x, vector<Integer> *y);
+
+            In this case, vector<int> and vector<Integer> are
+            the same type.   There is some interaction between this
+            mechanism and the implementation of typemaps.  For example,
+            a typemap defined for vector<int> * would apply to either type.
+            However, a typemap for vector<Integer> * would only apply to
+            that type.
+
+            Typedefs and typemaps and matched by left-most expansion.
+            For example:
+
+              vector<Integer,Integer> --> 
+              vector<int, Integer> -->
+              vector<int, int>
+
+
+04/24/2002: cheetah (William Fulton)
+            [Java] Changes to Java shadow classes.
+            Overcomes a bug where the module assumed that a pointer to a derived
+            class could be used in place of a pointer to a base class. Thanks 
+            to Stephen McCaul for analysing the bug and submitting patches.
+
+            A consequence is that the getCPtr() method in each shadow class has
+            disappeared and has been replaced with a getCPtrXXX(), where XXX is the 
+            shadow class name. If you have code that previously used getCPtr(), 
+            and the associated class is wrapping a C struct or a C++ class that
+            is not involved in an inheritance chain, just use the new method. If
+            however, the class is involved in an inheritance chain, you'll have
+            to choose which pointer you really want. Backwards compatibility 
+            has been broken as not using the correct pointer can lead to weird bugs
+            through ill-defined behaviour. If you are sure you want the old methods, 
+            you could add them back into all shadow classes by adding this at the 
+            beginning of your interface file:
+
+            %pragma(java) allshadowcode=%{
+              public long getCPtr(){
+                return swigCPtr;
+              }
+            %}
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+04/13/2002: beazley
+            Fixed problem with default arguments and references.   Declarations such 
+            as this should now work:
+
+                void foo(const string &x = "Hello");
+
+04/12/2002: beazley
+            Added typemap $* substitutions for typemaps involving arrays.
+            Requested by William Fulton.
+
+04/11/2002: beazley
+            Template specialization is now supported.  For example:
+
+               template<> class vector<int> {
+               ...
+               };
+
+            When the %template directive is used, it will use a specialization
+            if one is defined.   There are still some limitations. Partial
+            specialization is not supported.  A template of type <void *> does
+            not match all pointers.
+            *** NEW FEATURE ***
+
+04/11/2002: beazley
+            Major change to template wrapping internals. Template declarations are
+            no longer processed as macros but now result in real parse-tree
+            nodes.  The %template directive expands these nodes into a
+            specific instantiation.   This change enables a number of
+            new and interesting capabilities:
+
+            Directives such as %rename, %feature, and %addmethods can
+            now be applied to uninstantiated templates.  For example:
+
+              %rename(barsize) vector::bar(char *buf, int len);
+              ...
+              template<typename T> class vector {
+              public:
+                 ...
+                 void bar(char *buf);
+                 void bar(char *buf, int len);   // Renamed
+                 ...
+              };
+
+              %template(intvector) vector<int>;   // Renaming carries through
+
+            
+            By parsing templates into an internal data structure, it will
+            be possible to support specialization (and maybe partial
+            specialization).
+            
+            This is highly experimental and a work in progress.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            In SWIG-1.3.11, template declarations were simply processed
+            as weird macros.  No other information was retained.   This 
+            made it impossible to support more advanced features and 
+            complicated many other parts of the implementation.
+
+04/09/2002: beazley
+            Change to template class wrapping.   There were a variety of
+            "issues" with the old approach related to parsing, the type
+            system, and namespaces.   These changes are meant to rectify
+            some of these problems:
+
+            A specific instantiation of a template can now be specified
+            by including the class inline like this:
+ 
+                  class vector<int> {
+                  public:
+                       vector();
+                      ~vector();
+                       ... whatever ...
+	                  };
+
+            This is template specialization, but partial specialization is
+            not yet implemented.
+            
+            The %template directive has been modified to expand roughly as
+            follows:
+
+                 %template(vecint) vector<int>;
+
+            becomes
+
+                 %rename(vecint> vector<int>;
+                 class vector<int> {
+                 public:
+                     vector();
+                     ...
+                 };
+
+            Note that this simply builds upon the code above (templates
+            included inline).
+
+            This modified approach to wrapping fixes some subtle type
+            issues.  For instance, you can now define typemaps and typedefs
+            like this:
+
+                 %typemap(in) vector<int> * {
+                 ...
+                 }
+                 typedef vector<int> intvector;
+                 ...
+                 void blah(intvector *v);   // Gets the above typemap
+
+            This did not work in SWIG-1.3.11 due to a peculiarity of
+            the template implementation.
+
+            %template(name) no longer installs the template as a class
+            with name "name".   This might break %addmethods as described
+            in the manual.  For example:
+
+                 %template(vecint) vector<int>;
+                 %addmethods vecint {    // Fails. vecint not a class
+                   ...
+                 };
+           
+            To fix this, just use the template name instead:
+
+                 %addmethods vector<int> {
+                     ...
+                 }
+
+            Note: This technique might be a way to implement some bizarre
+            template specialization techniques.   For example:
+
+                 %addmethods vector<int> {
+                     // Only applied if vector<int> instantiated later
+                     %typemap(in) vector<int> * {
+                        ...
+                     }
+                     ...
+                 };
+
+            *** POTENTIAL INCOMPATIBILITY ***
+             
+04/08/2002: beazley
+            Fixed [ 540868 ] #if defined whatever - not parsed.  SWIG should
+            now correctly handle preprocessor directives like this:
+
+                #if defined __cplusplus
+                ...
+                #endif
+             
+            Note: was implemented previously, but there was a minor bug.
+            Reported by Adam Hupp.
+                   
+04/07/2002: beazley
+            %readonly and %readwrite are deprecated due to a change in the 
+            implementation.  Instead of being pragmas, mutability is now
+            controlled as a "feature" using the following two directives:
+
+                 %immutable;
+                 int x;           // read-only variable
+                 int y;           // read-only variable
+                 %mutable;
+                 int z;           // Modifiable
+
+            %immutable and %mutable are much more powerful than their older
+            counterparts.  They can now pinpoint a specific declaration like
+            this:
+
+               %immutable  x;         /* Any x */
+               %immutable  Foo::x;    /* x in class Foo */
+
+            In fact, the matching algorithm is the same as for %rename, 
+            %ignore, and other directives.   This means that the declaration
+      
+               %immutable  Foo::x;
+
+            would not only apply to class Foo but to all derived classes
+            as well.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            %immutable and %mutable must be terminated by a semi-colon.  This
+            differs slightly from the older %readonly and %readwrite directives.
+            Since %immutable and %mutable can be applied to declarations the
+            semicolon is needed to distinguish between a global feature and 
+            one targeted to a single declaration.  Note: this incompatibility is the
+            primary reason for changing the name of the directive.
+
+04/07/2002: beazley
+            New handling of copy constructors.  If a class defines 
+            constructors like this:
+
+                class Foo {
+                public:
+                      Foo();
+                      Foo(const Foo &);       // Copy constructor
+                      ...
+                };
+
+            SWIG now generates a function copy_Foo() for the copy
+            constructor.
+
+            In previous verions, this generated a name-clash and an
+            error message.   To preserve backwards compatibility, SWIG
+            does not change the behavior if %rename is used to resolve
+            the name conflict.   However, if no name resolution is made,
+            this new approach is used.
+
+            Copy constructors may be handled as a special case in the
+            target language.  However, this is up to the language module
+            itself.
+                  
+04/07/2002: beazley
+            The %template directive is now namespace aware.   This allows
+            code like this:
+
+                namespace foo {
+                    template<typename T> max(T a, T b) { return a > b ? a : b; }
+                }
+
+                using namespace foo;
+                %template(maxint) max<int>;            // Ok
+
+                namespace bar {
+                   using foo::max;
+                   %template(maxdouble) max<double>;   // Ok
+                }
+
+            Caveat: the template name supplied to %template must be defined in the
+            same scope in which the %template directive appears.   This code is
+            illegal:
+
+                %template(maxint) foo::max<int>;
+
+04/07/2002: beazley
+            Minor enhancement to preprocessor.   The preprocessor can now perform
+            string comparison.   For example:
+
+               #define A "hello"
+               ...
+               #if A == "hello"
+               ...
+               #endif
+
+            The primary use of this is in SWIG macros.  For example:
+
+              %define FOO(x) 
+              #if #x == "int"
+              /* Special handling for int */
+              ...
+              #endif
+              %enddef
+
+            Normal users can probably safely ignore this feature.  However, it may
+            be used in parts of the SWIG library.
+
+04/07/2002: beazley
+            Further refinement of default constructor/destructor wrapper generation.
+            SWIG is now much more aware of pure virtual methods. For instance:
+
+              class A {             /* Abstract */
+              public:
+                 virtual void method1() = 0;
+                 virtual void method2() = 0;
+              };
+              class B : public A {  /* Abstract */
+              public:
+                 virtual void method1() { };
+              };
+
+              class C : public B {  /* Ok */
+              public:
+                 virtual void method2() { };
+              };
+
+            In this case, SWIG will only generate default constructors for C.
+            Even though B looks fine, it's missing a required method and is abstract.
+
+04/04/2002: beazley
+            Subtle change to structure data member access.  If you
+            have a structure like this:
+
+                struct Foo {
+                    Bar   b;
+                };
+
+            The accessor functions for b are generated as follows:
+
+            (1) If b is *not* defined as a structure or class:
+
+                Bar Foo_b_get(Foo *self) {
+                    return self->b;
+                }
+                void Foo_b_set(Foo *self, Bar value) {
+                    self->b = value;
+                }
+
+            (2) If b *is* defined as a structure or class:
+
+                Bar *Foo_b_get(Foo *self) {
+                    return &self->b;
+                }
+                void Foo_b_set(Foo *self, Bar *value) {
+                    self->b = *value;
+                }
+            See the "Structure data members" section of Doc/Manual/SWIG.html
+            for further details.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            This may break interfaces that relied on a lot of a undeclared
+            structure and class names.    To get the old behavior, simply
+            use a forward declaration such as "struct Bar;"
+            
+04/04/2002: beazley
+            C++ namespace support added.  SWIG supports all aspects of
+            namespaces including namespace, using, and namespace alias
+            declarations.    The default behavior of SWIG is to flatten
+            namespaces in the target language.  However, namespaces are
+            fully supported at the C++ level and in the type system.
+            See Doc/Manual/SWIGPlus.html for details on the implementation.
+     
+04/02/2002: cheetah (William Fulton)
+            [Java] Sun has modified javac in jdk1.4 to no longer compile
+            an import of an unnamed namespace. To fix this SWIG no longer 
+            generates the import for packageless classes.
+            http://developer.java.sun.com/developer/bugParade/bugs/4361575.html
+            As reported SF #538415.
+
+03/27/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added support for pointer-to-member, similar to that
+            for the Python module. Remarkably similar. Also added a new
+            example for this (Examples/ruby/mpointer), which is remarkably
+            similar to the Python example of the same name.
+
+03/26/2002: ljohnson (Lyle Johnson)
+            [Ruby] Made a few minor edits to the "Advanced Topics"
+            chapter of the SWIG manual and added a new major section
+            about how to create multi-module Ruby packages with SWIG.
+
+03/26/2002: ljohnson (Lyle Johnson)
+            [Ruby] Removed all of the old Ruby pragmas. If any of this
+            functionality is truly missed we can resurrect it, preferably
+            with some kind of feature-based directive.
+            
+03/25/2002: ljohnson (Lyle Johnson)
+            [Ruby] Fixed SWIG exception library support for Ruby, which
+            has apparently been broken for some time. Luckily, no one seems
+            to have noticed.
+
+03/23/2002: beazley
+            C++-namespace support in SWIG directives.
+
+            %addmethods: 
+
+            The %addmethods directive now accepts a fully qualified classname
+            and can be used inside C++ namespace declarations.  For example:
+
+                 // Attaches to the class Foo::Bar below
+                 %addmethods Foo::Bar {
+                     int somemethod() { ... }
+                 };
+
+                 namespace Foo {
+                    class Bar {
+                    public:
+                        ...
+                    };
+                 
+                    // Attaches to the class Bar above
+                    %addmethods Bar {
+                      int othermethod() { ... };
+                    }
+                 }
+
+            %feature, %rename, %ignore, %exception, and related directives:
+
+            Namespaces are fully integrated into the the renaming and declaration
+            matcher.  For example:
+
+                 %rename(display) Foo::print;          // Rename in namespace Foo
+                 %ignore Foo::Bar::blah;               // Ignore a declaration
+
+            %rename directives can be placed inside namespace blocks as well. For
+            example:
+
+                namespace Foo {
+                   %rename(display) print;         // Applies to print below
+
+                   void print();
+                };
+
+            Most other SWIG directives should work properly inside namespaces.
+            No other changes are needed.
+      
+03/22/2002: beazley
+            Some changes to internal symbol table handling.   SWIG no longer
+            manages structures and unions in a separate namespace than normal
+            declarations like ANSI C.  This means you can't have a structure
+            with the same name as a function.  For example:
+
+                 struct Foo {
+                 ...
+                 }
+ 
+                 int Foo() { ... }
+
+            This approach is more like C++.   It's not clear that SWIG ever
+            really supported the ANSI C anyways---using the same name would
+            almost certainly generate a name-clash in the target language.
+
+03/22/2002: ljohnson (Lyle Johnson)
+            [Ruby] Fixed [ 517302 ] for handling of renamed overloaded
+            constructors. Now, renamed overloaded constructors are converted
+            into class singleton methods (basically acting as "factory"
+            methods).
+
+03/21/2002: beazley
+            Fixed [ 532957 ] %ignore parse error and casting operator.
+            Reported by William Fulton.
+
+03/18/2002: beazley (** ADVANCED USERS ONLY **)
+            Added support for dynamic casting in return values.  A somewhat
+            common problem in certain C++ programs is functions that hide
+            the identity of underlying objects when they are returned 
+            from methods and functions.  For example, a program might include
+            some generic method like this:
+
+                      Node *getNode();
+
+            However, Node * may just be base class to a whole hierarchy
+            of different objects.   Instead of returning this generic Node *,
+            it might be nice to automatically downcast the object into the
+            appropriate type using some kind dynamic cast.
+
+            Assuming you understand the peril involved, a downcast can now
+            be performed using the following function in the run-time type
+            checker:
+
+              swig_type_info *SWIG_TypeDynamicCast(swig_type_info *, void **ptr);
+
+            This function checks to see if the type can be converted to another
+            type.  If so, a different type descriptor (for the converted type)
+            is returned.   This type descriptor would then be used to create
+            a pointer in the target language.
+
+            To use this, you would write a typemap similar to this:
+
+              %typemap(out) Node * {
+                swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+                $result = SWIG_NewPointerObj($1, ty);
+              }
+
+            Alternatively,
+
+              %typemap(out) Node * = SWIGTYPE *DYNAMIC;
+
+            To make the typemap have any effect, you have to write a supporting 
+            function that knows how to perform downcasting. For example:
+
+              %{
+              static swig_type_info *
+              Node_dynamic_cast(void **ptr) {
+                 Node **nptr = (Node **) ptr;
+                 Element *e = dynamic_cast<Element *>(*nptr);
+                 if (e) {
+                    *ptr = (void *) e;
+                    return SWIGTYPE_p_Element;
+                 }
+                 Data *d = dynamic_cast<Data *>(*nptr);
+                 if (d) {
+                    *ptr = (void *) d;
+                    return SWIGTYPE_p_Data;
+                 }
+                 return 0;
+              }
+              %}
+
+            There is no restriction on how types are determined. dynamic_cast<>
+            uses C++ RTTI.  However, if you had some other mechanism for determining
+            the type, you could use that here.  Note: it is important to save
+            the new pointer value back into the argument as shown.  When downcasting,
+            the value of the pointer could change. 
+
+            Finally, to make the casting function available, you have to register
+            it with the run-time type checker. Put this macro in your interface file.
+
+               DYNAMIC_CAST(SWIGTYPE_p_Node, Node_dynamic_cast);
+
+            Note: this feature does not introduce a performance penalty on 
+            normal SWIG operation.  The feature is only enabled by writing
+            a new typemap that explicitly calls SWIG_TypeDynamicCast() to
+            make a conversion. 
+  
+            Examples/test-suite/dynamic_cast.i contains a simple example.
+            This feature is not supported in the Java module due to differences
+            in the type-checking implementation.
+
+            *** EXPERIMENTAL FEATURE ***
+
+03/17/2002: beazley
+            Small change to type-name handling of unnamed structures and
+            typedef.  If a structure of this form appears:
+
+                   typedef struct {
+                        ...
+                   } Foo;
+
+            Then 'Foo' is used as the proper typename for the structure.
+            Furthermore, Foo can now be used as a name in C++ inheritance.
+            SWIG was already kind of doing this, but this modification refines
+            the implementation to more closely follow the C++ ARM, section
+            7.1.3, p. 106.  This fixes a couple of obscure corner cases.
+
+03/16/2002: beazley
+            Modified C++ inheritance with a few enhancements.  First, type information
+            needed for casting and type-equivalence is generated even when base-classes
+            aren't defined in the interface.  For example:
+
+                class Foo : public Bar  {    /* Bar unspecified */
+                public:
+                  ...
+                };
+
+               void blah(Bar *b);
+
+            In this case, the blah() function still accepts Foo * even though nothing
+            is really known about Bar.   Previous SWIG versions would just generate
+            a type error.
+
+            Inheritance has also been modified to work through typedef.  For example:
+
+               class Bar {
+               };
+
+               typedef Bar OtherBar;
+               class Foo: public OtherBar {
+               }
+
+            In this case, the base class of OtherBar is correctly resolved back to
+            Bar.   The use of the name OtherBar is lost in this resolution (the wrappers
+            will simply use Bar instead of the typedef name OtherBar).
+           
+03/13/2002: beazley
+            %typemap, %apply, and related directives can now appear inside
+            class definitions.   
+
+03/13/2002: beazley
+            Fixed a variety of problems related to compiling SWIG on 64-bit
+            platforms.
+
+03/12/2002: beazley
+            Fixed problem with "ignore" and "in" typemaps.  Local variables
+            associated with "in" were being added to the wrapper function even
+            though they were never used.   Mostly harmless, but it would lead
+            to a variety of compilation warnings.
+  
+03/12/2002: beazley
+            Some changes to the internal type system and handling of nested C++
+            types.   In previous versions of SWIG, if you had the following:
+
+                 class Foo {
+                 public:
+                      typedef int Blah;
+                 };
+                 class Bar : public Foo {
+                 public:
+                       void somemethod(Blah x);
+                 };
+
+            The argument type in somemethod() would implicitly be set to Bar::Blah.
+            Although this is technically allowed, it breaks typemaps.  For example:
+
+                 %typemap(in) Foo::Blah { ... }
+
+            doesn't match like you expect.   This has been changed in SWIG-1.3.12.
+            Now, types are expanded using the class in which they were defined.
+            So, the argument type in somemethod() will be Foo::Blah---since the
+            type Blah was defined in Foo.
+ 
+03/10/2002: beazley
+            Fixed some subtle type scoping problems with typedef and C++ classes.
+            For example:
+ 
+                typedef int Blah;
+                class Bar {
+                public:
+                    typedef double Blah;
+                    void foo(Blah x, ::Blah y);
+                ...
+                }
+
+03/10/2002: beazley
+            Highly experimental change to handle variable length arguments.
+            First, there is no portable or reliable way to wrap
+            a varargs function in full generality.  However, you *can* change
+            the function signature using %varargs.
+
+               %varargs(char *) fprintf;
+               ...
+               void fprintf(FILE *f, char *fmt, ...);
+
+            In this case, the variable length parameter "..." is
+            simply replaced by the parameters given in %varargs. This
+            results in a function like this:
+
+               void fprintf(FILE *f, char *fmt, char *s);
+
+            More than one argument can be used and default values
+            can be defined.  For example, this code specifies a
+            maximum of four arguments.
+
+               %varargs(char *x1 = 0, char *x2 = 0, char *x3 = 0, char *x4 = 0) fprintf;
+ 
+            *** EXPERIMENTAL NEW FEATURE ***
+ 
+03/10/2002: beazley
+            Change to handling of variable length arguments.  varargs
+            is now handled as a proper parameter and is passed to the
+            code generator.  However, it still can't be handled correctly
+            (and will generate a typemap warning).   This change has been
+            made to better incorporate variable length arguments with other
+            directives such as %ignore, %rename, %feature, and so forth.
+
+03/10/2002: beazley
+            Fixed [ 522555 ] Syntax error parsing "define" construct. SWIG
+            is a little more restrictive in determining #define statements
+            that will be wrapped as constants.  Also added a better parser
+            error rule for handling bad constants.
+
+03/08/2002: cheetah (William Fulton)
+            [Java] Bug fix: Classes renamed with %rename that are derived from 
+            another class generate more appropriate shadow class code.
+
+03/08/2002: cheetah (William Fulton)
+            [Java] Fixed SF [ #523632 ] and [ #513335 ] both reported by Israel 
+            Tanner. Support for types that are used which are in a typedef. The
+            appropriate shadow class name is generated. Also generated correct
+            shadow classname when a templated class is used within another 
+            templated class. See the cpp_typedef.i testcase.
+
+03/08/2002: cheetah (William Fulton)
+            [Java] Bug fix: No type was generated in shadow classes for types 
+            that weren't wrapped by SWIG.  The type is treated as a raw 
+            pointer, ie no shadow class.
+
+02/22/2002: beazley
+            Refined the matching algorithm used by %rename, %ignore, and
+            %feature.   If a type signature is supplied, it must exactly
+            match that used in the declaration---including any use of
+            const.  For example:
+
+                %rename(foo1)   foo(int);
+                %rename(bar1)   bar(int) const;
+
+                class Blah {
+                   public:
+                      void foo(int);       // Matched --> foo1
+                      void foo(int) const; // Not matched 
+                      void bar(int);       // Not matched
+                      void bar(int) const; // Matched --> bar1
+                }
+
+            In previous versions, a non-const specification would match
+            both the non-const and const declarations.  However, the whole
+            point of %rename and related directives is that they be able
+            to precisely pinpoint exact declarations in an interface.  This
+            fixes the problem.
+
+02/21/2002: beazley
+            Reworked the handling of default constructor and destructors.
+            SWIG now makes a preliminary pass over the parse tree to discover
+            which classes support default allocation.   This fixes a number
+            of very subtle issues in code generation and call/return by value.
+
+02/18/2002: cheetah (William Fulton)
+            Improved support on Cygwin: Perl, Python, Tcl, Ruby and Java should
+            work out of the box, barring the runtime library. Removed dllwrap 
+            and replaced with newly working gcc -shared instead for Cygwin. 
+            All this will require the new improved binutils 20010802 and later,
+            but the latest Cygwin is usually the best recommendation.
+
+02/15/2002: beazley
+            Fixed some problems related to wrapping of global variables
+            and Perl shadow classes. Reported by Chia-liang Kao.
+
+02/15/2002: ljohnson (Lyle Johnson)
+            [Ruby] Made a fix to the code generation for C++ class
+            constructors so that we get both a "new" singleton method
+            and an "initialize" instance method for each class. This
+            change enables developers to derive new Ruby classes from
+            SWIG-wrapped C++ classes and then override their initialize
+            methods to provide subclass-specific instance initialization.
+
+02/15/2002: ljohnson (Lyle Johnson)
+            [Ruby] Massive documentation update for the Ruby module,
+            contributed by Craig Files.
+
+02/14/2002: ljohnson (Lyle Johnson)
+            [Ruby] Bug fix: An error in the SWIG runtime support for Ruby
+            was causing several of the examples to fail. Reported by
+            William Fulton.
+
+02/14/2002: ljohnson (Lyle Johnson)
+            [Ruby] Bug fix: Enumerations defined within a class (such
+            as those seen in the Examples/ruby/enum example) were not
+            being exported with the correct names. Reported by William
+            Fulton.
+
+02/13/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added a warning message when we run across overloaded
+            class constructors for C++ code, that this is currently not
+            supported (even if the overloads have been %renamed). For an
+            example of where this doesn't work, see Examples/ruby/operator.
+
+02/13/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added an "ignored" warning message when the parser runs
+            across an operator!=() declaration for C++ code.
+
+02/11/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added the "import", "import_template", "operator" and
+            "template" examples.
+
+02/11/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added multi-module support.
+
+02/09/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added the missing "#define SWIG_NOINCLUDE" at the top of
+            the wrapper code when the '-c' option is used.
+
+02/09/2002: ljohnson (Lyle Johnson)
+            Corrected a minor off-by-one error for the size of the
+            swig_types[] array that's generated in the wrapper code.
+
+02/08/2002: beazley
+            Fixed SF [ #515058 ] Wrong code for C++ templates.
+            Reported by Israel Taller.
+
 Version 1.3.11 (January 31, 2002)
 =================================
 
@@ -1428,7 +2964,7 @@ Version 1.3.8 (September 23, 2001)
            Two new directives control the creation of default
            constructors and destructors:
 
-                %nodefault  
+                %nodefault
                 %makedefault
 
            These replace %pragma nodefault and %pragma makedefault.
@@ -1439,9 +2975,6 @@ Version 1.3.8 (September 23, 2001)
            Fixed SF Bug [ #462354 ] %import broken in 1.3.7.
 
 9/20/2001: beazley
-
-**** 9/25/2001: This feature is temporarily withdrawn due to some
-parsing problems it has created.
 
            Parser modified to ignore out-of-class constructor
            and destructor declarations.  For example:
@@ -2196,7 +3729,7 @@ Version 1.3.7  (September 3, 2001)
            This will probably break old interfaces that used 'const'
            to create constants.   As a replacement, consider using this:
 
-           const int a = 4;   ===>   %constant(int) a = 4;
+           const int a = 4;   ===>   %constant int a = 4;
            *** POTENTIAL INCOMPATIBILITY ***
 
 7/29/2001: beazley
@@ -5695,19 +7228,3 @@ Version 0.1 Alpha (February 9, 1996)
 11. The SWIG library files "tclsh", "wish", "expect", etc... in the first
     release have been restructured and renamed to "tclsh.i", "wish.i",
     and so on.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
