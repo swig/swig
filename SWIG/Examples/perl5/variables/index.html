@@ -27,21 +27,21 @@ Click <a href="example.pl">here</a> to see a script that updates and prints some
 
 <h2>Creating read-only variables</h2>
 
-The <tt>%readonly</tt> and <tt>%readwrite</tt> directives can be used to
+The <tt>%immutable</tt> and <tt>%mutable</tt> directives can be used to
 specify a collection of read-only variables.  For example:
 
 <blockquote>
 <pre>
-%readonly
+%immutable;
 int    status;
 double blah;
 ...
-%readwrite
+%mutable;
 </pre>
 </blockquote>
 
-The <tt>%readonly</tt> directive remains in effect until it is explicitly disabled
-using the <tt>%readwrite</tt> directive.
+The <tt>%immutable</tt> directive remains in effect until it is explicitly disabled
+using the <tt>%mutable</tt> directive.
 
 
 <h2>Notes:</h2>
