@@ -1,6 +1,30 @@
 Version 1.3.15 (In progress)
 ================================
 
+09/02/2002: ljohnson (Lyle Johnson)
+            [Ruby] The type-checking system for the Ruby module has had a flaw
+	    in that some types which should be considered equivalent
+	    weren't. This bug was best demonstrated by the inherit_missing.i
+	    test suite case, which defines a base class "Foo" that is
+	    subclassed by "Bar". The "Foo" class isn't actually wrapped (i.e.
+	    it's not directly accessible from Ruby) but we'd still like to be
+	    able to pass "Bar" instances to functions expecting Foos and have
+	    that work; it wasn't. The revised implementation (similar to that
+	    used for some other language modules) adds a new instance variable
+	    (__swigtype__) to each object that indicates its SWIG type;
+	    that is, each "Bar" instance will now have a string instance
+	    variable called "__swigtype__" whose value is "_p_Bar".
+
+            Unless developers were taking advantage of this low-level
+	    implementation detail, they shouldn't notice any compatibility
+	    problems; nevertheless, I'm marking it as a "potential
+	    incompatibility".
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+09/01/2002: ljohnson (Lyle Johnson)
+            [Ruby] Fixed SF Bug #603199.
+
 08/08/2002: cheetah (William Fulton)
             [Java] Added OUTPUT, INPUT and INOUT typemaps in typemaps.i for C++ 
             references.
