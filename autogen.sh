@@ -1,5 +1,7 @@
 #! /bin/sh
 # Bootstrap the development environment
-autoconf
+
+set -x
 autoheader
+autoconf
 (cd Tools; autoconf)
