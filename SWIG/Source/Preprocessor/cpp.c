@@ -593,14 +593,17 @@ expand_macro(String_or_char *name, List *args)
     return 0;
   }
 
+  /* If the macro expects arguments, but none were supplied, we leave it in place */
+  if (!args && (margs)) {
+    return NewString(name);
+  }
+
   /* Copy the macro value */
   ns = Copy(mvalue);
   copy_location(mvalue,ns);
 
   /* Tag the macro as being expanded.   This is to avoid recursion in
      macro expansion */
-
-
 
   temp = NewString("");
   tempa = NewString("");
@@ -847,15 +850,13 @@ Preprocessor_replace(DOH *s)
 	  if (Getattr(m,"args")) {
 	    /* Yep.  We need to go find the arguments and do a substitution */
 	    args = find_args(s);
+	    if (!Len(args)) {
+	      Delete(args);
+	      args = 0;
+	    }
 	  } else {
 	    args = 0;
 	  }
-	  if (args) {
-	    /*	    List *nargs = evaluate_args(args);
-		    Delete(args);
-		    args = nargs; */
-	  }
-
 	  e = expand_macro(id,args);
 	  if (e) {
 	    Printf(ns,"%s",e);
