@@ -138,6 +138,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // and C files)
 
   Preprocessor_define((DOH *) "SWIG 1", 0);
+  Preprocessor_define((DOH *) "__STDC__", 0);
 #ifdef MACSWIG
   Preprocessor_define((DOH *) "SWIGMAC 1", 0);
 #endif
