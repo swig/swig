@@ -282,6 +282,7 @@ CPP_TEST_CASES += \
 	typemap_ns_using \
 	typemap_numinputs \
 	typemap_variables \
+	typemap_various \
 	typename \
 	union_scope \
 	using1 \
