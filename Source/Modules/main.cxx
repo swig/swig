@@ -48,7 +48,7 @@ extern String  *ModuleName;
 static const char *usage1 = (const char*)"\
 \nGeneral Options\n\
      -c++            - Enable C++ processing\n\
-     -co             - Check a file out of the SWIG library\n\
+     -co <file>      - Check <file> out of the SWIG library\n\
      -directors      - Turn on director mode for all the classes, mainly for testing \n\
      -dirprot        - Turn on wrapping of protected members for director classes\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
@@ -426,7 +426,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
  	      fprintf(stderr,"\nSWIG Version %s\n", PACKAGE_VERSION);
 	      fprintf(stderr,"Copyright (c) 1995-1998\n");
 	      fprintf(stderr,"University of Utah and the Regents of the University of California\n");
-              fprintf(stderr,"Copyright (c) 1998-2003\n");
+              fprintf(stderr,"Copyright (c) 1998-2004\n");
 	      fprintf(stderr,"University of Chicago\n");
 	      fprintf(stderr,"Compiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
 	      fprintf(stderr,"\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
