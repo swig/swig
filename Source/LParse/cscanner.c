@@ -48,7 +48,7 @@ static int map[][2] = {
   { SWIG_TOKEN_BACKSLASH, -1 },
   { SWIG_TOKEN_ENDLINE, -1},
   { SWIG_TOKEN_STRING, STRING },
-  { SWIG_TOKEN_POUND, POUND },
+  { SWIG_TOKEN_POUND, -1 },
   { SWIG_TOKEN_PERCENT, -1 },
   { SWIG_TOKEN_COLON, COLON },
   { SWIG_TOKEN_DCOLON, DCOLON },
@@ -384,7 +384,6 @@ yylex1(void) {
       }
       if (strcmp(yytext,"enum") == 0) return(ENUM);
       if (strcmp(yytext,"sizeof") == 0) return(SIZEOF);
-      if (strcmp(yytext,"defined") == 0) return(DEFINED);
       
       /* Ignored keywords  */
       if (strcmp(yytext,"volatile") == 0) return(lparse_yylex());
@@ -393,12 +392,9 @@ yylex1(void) {
       if (yytext[0] == '%') {
 	if (strcmp(yytext,"%module") == 0) return(MODULE);
 	if (strcmp(yytext,"%constant") == 0) return (CONSTANT);
-	if (strcmp(yytext,"%type") == 0) return (TYPE);
 	if (strcmp(yytext,"%file") == 0) return(FILEDIRECTIVE);
 	if (strcmp(yytext,"%insert") == 0) return (INSERT);
 	if (strcmp(yytext,"%macro") == 0) return(MACRO);
-	if (strcmp(yytext,"%typedef") == 0) return(TYPEDEF);
-	if (strcmp(yytext,"%native") == 0) return(NATIVE);
 	if (strcmp(yytext,"%pragma") == 0) return(PRAGMA);
 	if (strcmp(yytext,"%addmethods") == 0) return(ADDMETHODS);
 	if (strcmp(yytext,"%inline") == 0) return(INLINE);
@@ -407,7 +403,7 @@ yylex1(void) {
 	if (strcmp(yytext,"%echo") == 0) return(ECHO);
 	if (strcmp(yytext,"%apply") == 0) return(APPLY);
 	if (strcmp(yytext,"%clear") == 0) return(CLEAR);
-	if (strcmp(yytext,"%map") == 0) return(MAP);
+	if (strcmp(yytext,"%scope") == 0) return(SCOPE);
       }
       /* Have an unknown identifier, as a last step, we'll */
       /* do a typedef lookup on it. */

@@ -68,6 +68,8 @@ extern int      Swig_insert_file(const String_or_char *name, File *outfile);
 extern int      Swig_bytes_read();
 extern void     Swig_register_filebyname(const String_or_char *name, File *outfile);
 extern File    *Swig_filebyname(const String_or_char *name);
+extern void     Swig_swiglib_set(const String_or_char *name);
+extern String  *Swig_swiglib_get();
 
 #define OUTFILE(x)   Swig_filebyname(x)
 
@@ -77,6 +79,7 @@ extern File    *Swig_filebyname(const String_or_char *name);
 
 extern void     Swig_init_args(int argc, char **argv);
 extern void     Swig_mark_arg(int n);
+extern int      Swig_check_marked(int n);
 extern void     Swig_check_options();
 extern void     Swig_arg_error();
 
@@ -221,18 +224,38 @@ extern String     *ParmList_protostr(ParmList *);
 /* --- Parse tree support --- */
 
 typedef struct {
-   char *name;
+   const char *name;
    int  (*action)(DOH *obj, void *clientdata);
 } SwigRule;
 
-extern void Swig_dump_tags(DOH *obj, DOH *root);
-extern void Swig_add_rule(String_or_char *, int (*action)(DOH *, void *));
+
+#define SWIG_OK       1
+#define SWIG_NORULE   0
+#define SWIG_ERROR   -1
+
+extern void Swig_add_rule(const String_or_char *, int (*action)(DOH *, void *));
 extern void Swig_add_rules(SwigRule ruleset[]);
 extern void Swig_clear_rules();
+extern int  Swig_tag_check(DOH *obj, String_or_char *tagname);
 extern int  Swig_emit(DOH *obj, void *clientdata);
-extern void Swig_cut_node(DOH *obj);
+extern int  Swig_emit_all(DOH *obj, void *clientdata);
+extern void Swig_set_callback(DOH *obj, void (*cb)(void *clientdata), void *clientdata);
+extern void (*Swig_set_trace(DOH *obj, void (*cb)(DOH *, DOH *), DOH *arg))(DOH *, DOH *);
+extern void Swig_remove_trace(DOH *obj);
+extern void Swig_node_cut(DOH *obj);
+extern void Swig_node_insert(DOH *node, DOH *newnode);
+extern void Swig_node_temporary(DOH *node);
+extern void Swig_node_ignore(DOH *node);
+extern int  Swig_count_nodes(DOH *node);
+
 extern DOH *Swig_next(DOH *obj);
 extern DOH *Swig_prev(DOH *obj);
+
+/* Debugging of parse trees */
+extern void Swig_debug_emit(int);
+extern void Swig_dump_tags(DOH *obj, DOH *root);
+extern void Swig_dump_tree(DOH *obj);
+extern void Swig_dump_rules();
 
 /* -- Wrapper function Object */
 
@@ -349,6 +372,18 @@ extern Wrapper   *Swig_cvarget_wrapper(String_or_char *varname,
 				       String_or_char *code);
 
 
+/* --- Module loader and handler --- */
+
+typedef struct Module Module;
+extern void   Swig_register_module(const String_or_char *modname, const String_or_char *starttag,
+				   int (*initfunc)(int, char **),
+				   DOH *(*startfunc)(DOH *));
+
+extern Module *Swig_load_module(const String_or_char *modname);
+extern int     Swig_init_module(Module *m, int argc, char **argv);
+extern DOH    *Swig_start_module(Module *m, DOH *obj);
+extern DOH    *Swig_run_modules(DOH *node);
+
 /* --- Legacy Typemap API (somewhat simplified) --- */
 
 extern void   Swig_typemap_init();
@@ -385,6 +420,9 @@ extern void   Swig_except_clear();
 
 #define Getnext(x)         Getattr(x,"next")
 #define Setnext(x,n)       Setattr(x,"next",n)
+#define Getchild(x)        Getattr(x,"child")
+
+extern int Swig_main(int argc, char *argv[]);
 
 #endif
 

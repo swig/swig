@@ -6,9 +6,9 @@ srcdir = @srcdir@
 VPATH  = @srcdir@
 
 SRCS          = map.c wrapfunc.c naming.c tree.c stype.c scanner.c include.c getopt.c misc.c \
-		parms.c cwrap.c typemap.c
+		parms.c cwrap.c typemap.c module.c
 OBJS          = map.o wrapfunc.o naming.o tree.o stype.o scanner.o include.o getopt.o misc.o \
-		parms.o cwrap.o typemap.o
+		parms.o cwrap.o typemap.o module.o
 
 prefix        = @prefix@
 exec_prefix   = @exec_prefix@
