@@ -57,10 +57,7 @@
 
     template <class K, class T>
     struct traits_asptr<std::multimap<K,T> >  {
-      typedef std::multimap<K,T> multimap_type;
-      typedef K key_type;
-      
-      static int asptr(PyObject *obj, multimap_type **val) {
+      static int asptr(PyObject *obj, std::multimap<K,T> **val) {
 	if (PyDict_Check(obj)) {
 	  PyObject_var items = PyMapping_Items(obj);
 	  return traits_asptr_stdseq<std::multimap<K,T>, std::pair<K, T> >
@@ -133,7 +130,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_CCode(MULTIMAP), std::multimap<K, T >);
   
-    %std_multimap_methods(std::multimap<K, T >);
+    %std_multimap_methods(multimap);
     %pydict_methods(SWIG_arg(std::multimap<K, T >));
   };
 }

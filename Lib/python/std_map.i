@@ -34,6 +34,20 @@
 %enddef
 
 
+// **** Note ****
+// 
+// If you are going to use a map, you need to instantiate both the 
+// map and the pair class:
+//
+//   %template(pair_ii) std::pair<int, int>;
+//   %template(map_ii) std::map<int, int>;
+//
+// or
+//
+//   %template() std::pair<int, int>;
+//   %template(map_ii) std::map<int, int>;
+//
+// **** Note ****
 // ------------------------------------------------------------------------
 // std::map
 // 
@@ -82,8 +96,6 @@
     template <class K, class T>
     struct traits_asptr<std::map<K,T> >  {
       typedef std::map<K,T> map_type;
-      typedef K key_type;
-      
       static int asptr(PyObject *obj, map_type **val) {
 	if (PyDict_Check(obj)) {
 	  PyObject_var items = PyMapping_Items(obj);
@@ -157,7 +169,7 @@ namespace std {
 
     %typemap_traits_ptr(SWIG_CCode(MAP), std::map<K, T >);
   
-    %std_map_methods(std::map<K, T >);
+    %std_map_methods(map);
     %pydict_methods(SWIG_arg(std::map<K, T >));
   };
 
