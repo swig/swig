@@ -171,6 +171,7 @@ CPP_TEST_CASES += \
 	template_enum \
 	template_enum_ns_inherit \
 	template_enum_typedef \
+	template_explicit \
 	template_forward \
 	template_inherit \
 	template_inherit_abstract \
