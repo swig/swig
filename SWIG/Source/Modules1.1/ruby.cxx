@@ -1002,12 +1002,13 @@ RUBY::classHandler(Node *n) {
 	 ", \"", klass->name, "\", $super);\n", NULL);
 
   {
-    // SwigType *tt = NewString(klass->name);
     SwigType *tt = NewString(cname);
     SwigType_add_pointer(tt);
     SwigType_remember(tt);
-    Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &c%s);\n", SwigType_manglestr(tt), valid_name);
-    Delete(tt);
+    String *tm = SwigType_manglestr(tt);
+    Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &c%s);\n", tm, valid_name);
+    Delete(tm);
+    Delete(tt);    
   }
 
   Printv(klass->init, "$constructor",NULL);
@@ -1042,7 +1043,7 @@ RUBY::classHandler(Node *n) {
 
         */
 
-	SwigType *btype = NewString(super->name);
+	SwigType *btype = NewString(basename);
 	SwigType_add_pointer(btype);
 	SwigType_remember(btype);
 	String   *bmangle = SwigType_manglestr(btype);
