@@ -167,17 +167,17 @@ SWIG is invoked using the <tt>swig</tt> command. We can use this to
 build a Tcl module (under Linux) as follows :<p>
 
 <p>
-<blockquote><pre>unix &gt; swig -tcl example.i
+<blockquote><pre>unix &gt; <b>swig -tcl example.i</b>
 Generating wrappers for Tcl.
-unix &gt; gcc -c -fpic example.c example_wrap.c -I/usr/local/include
-unix &gt; gcc -shared example.o example_wrap.o -o example.so 
-unix &gt; tclsh
-% load ./example.so
-% fact 4
+unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include</b>
+unix &gt; <b>gcc -shared example.o example_wrap.o -o example.so</b>
+unix &gt; <b>tclsh</b>
+% <b>load ./example.so</b>
+% <b>fact 4</b>
 24
-% my_mod 23 7
+% <b>my_mod 23 7</b>
 2
-% expr $My_variable + 4.5
+% <b>expr $My_variable + 4.5</b>
 7.5
 %
 </pre></blockquote>
@@ -200,17 +200,17 @@ any changes type the following (shown for Solaris):<p>
 
 <p>
 <p>
-<blockquote><pre>unix &gt; swig -perl5 example.i
+<blockquote><pre>unix &gt; <b>swig -perl5 example.i</b>
 Generating wrappers for Perl5
-unix &gt; gcc -c example.c example_wrap.c \
-	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE
-unix&gt; ld -G example.o example_wrap.o -o example.so 								# This is for Solaris
-unix &gt; perl5.003
+unix &gt; <b>gcc -c example.c example_wrap.c \
+	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
+unix&gt; <b>ld -G example.o example_wrap.o -o example.so</b>		# This is for Solaris
+unix &gt; <b>perl5.003
 use example;
 print example::fact(4), "\n";
 print example::my_mod(23,7), "\n";
 print $example::My_variable + 4.5, "\n";
-&lt;ctrl-d&gt;
+&lt;ctrl-d&gt;</b>
 24
 2
 7.5
@@ -223,20 +223,20 @@ unix &gt;
 Finally, let's build a module for Python (shown for Irix).<p>
 
 <p>
-<blockquote><pre>unix &gt; swig -python example.i
+<blockquote><pre>unix &gt; <b>swig -python example.i</b>
 Generating wrappers for Python
-unix &gt; gcc -c -fpic example.c example_wrap.c -I/usr/local/include/python2.0
-unix &gt; gcc -shared example.o example_wrap.o -o examplemodule.so
-unix &gt; python
+unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include/python2.0</b>
+unix &gt; <b>gcc -shared example.o example_wrap.o -o examplemodule.so</b>
+unix &gt; <b>python</b>
 Python 2.0 (#6, Feb 21 2001, 13:29:45)
 [GCC egcs-2.91.66 19990314/Linux (egcs-1.1.2 release)] on linux2
 Type "copyright", "credits" or "license" for more information.     
-&gt;&gt;&gt; import example
-&gt;&gt;&gt; example.fact(4)
+&gt;&gt;&gt; <b>import example</b>
+&gt;&gt;&gt; <b>example.fact(4)</b>
 24
-&gt;&gt;&gt; example.my_mod(23,7)
+&gt;&gt;&gt; <b>example.my_mod(23,7)</b>
 2
-&gt;&gt;&gt; example.cvar.My_variable + 4.5
+&gt;&gt;&gt; <b>example.cvar.My_variable + 4.5</b>
 7.5
 </pre></blockquote>
 
@@ -248,16 +248,16 @@ it. For example, you could also build a Perl5 module by just running
 SWIG on the C source and specifying a module name as follows<p>
 
 <p>
-<blockquote><pre>% swig -perl5 -module example example.c
-unix &gt; gcc -c example.c example_wrap.c \
-	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE
-unix&gt; ld -G example.o example_wrap.o -o example.so
-unix &gt; perl5.003
+<blockquote><pre>unix&gt; <b>swig -perl5 -module example example.c</b>
+unix &gt; <b>gcc -c example.c example_wrap.c \
+	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
+unix&gt; <b>ld -G example.o example_wrap.o -o example.so</b>
+unix &gt; <b>perl5.003
 use example;
 print example::fact(4), "\n";
 print example::my_mod(23,7), "\n";
 print $example::My_variable + 4.5, "\n";
-&lt;ctrl-d&gt;
+&lt;ctrl-d&gt;</b>
 24
 2
 7.5

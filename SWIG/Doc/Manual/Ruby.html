@@ -73,14 +73,6 @@ href="SWIG.html">SWIG Basics</a>" chapter.
 
 <a name="n11"></a><h3> Running SWIG</h3>
 <p>
-
-As described in the <A HREF="Introduction.html">introduction</A>, a module is
-created from an interface file, which contains function prototypes and variable
-declarations.  For <tt>example.c</tt> this would conventionally be called
-<tt>example.i</tt>.  Often it may be possible to use the C file itself as if it
-were a <tt>.i</tt> file, as described in the Shortcuts section of the <A
-HREF="Introduction.html">introduction</A>.
-<p>
 To build a Ruby module, run SWIG using the <tt>-ruby</tt> option:<p>
 <p>
 <blockquote><pre>$ <b>swig -ruby example.i</b>
@@ -96,34 +88,6 @@ This creates a file <tt>example_wrap.c</tt> (<tt>example_wrap.cxx</tt> if
 compiling a C++ extension) that contains all of the code needed to build a
 Ruby extension module.  To finish building the module, you need to compile this
 file and link it with the rest of your program.
-
-<p>
-It should be noted that if the <tt>.c</tt> file is used instead of the
-<tt>.i</tt> file, then the <tt>-module Example</tt> must be used on the
-command line, e.g.
-</p>
-<blockquote><pre>$ <b>swig -ruby -module Example example.i</b>
-</pre></blockquote>
-<p>
-Alternatively, a real <tt>.i</tt> file may be created containing
-</p>
-<blockquote><pre>%module Example 
-</pre></blockquote>
-<p>
-Swig will create <tt>example_wrap.c</tt> which together with
-<tt>example.c</tt> can then be compiled and linked to produce
-<tt>example.so</tt>.  This library can then be handled by Ruby's
-<tt>require</tt> statement.
-<p>
-If many <tt>.c</tt> files are to be used together in the same module, then
-several <tt>.i</tt> files may be tied together by creating one overall
-<tt>.i</tt> file
-</P>
-<blockquote><pre>
-%module MyModule
-%include somefuncs.i
-%include someotherfuncs.i
-</pre></blockquote>
 
 <a name="n12"></a><h3>Getting the right header files</h3>
 
@@ -768,7 +732,7 @@ Example.spam(parent)
 <a name="n317"></a><h3>C++ overloaded functions</h3>
 
 If you have a C++ program with overloaded functions or methods, you will need
-to disambiguate those methods using <tt>%rename</tt>.   For example:
+to disambiguate those methods using the <tt>%rename</tt> directive. For example:
 
 <blockquote>
 <pre>
@@ -788,7 +752,7 @@ public:
 </pre>
 </blockquote>
 
-Now, in Ruby, the methods are accessed as follows:
+Now, in Ruby, the corresponding instance methods are accessed as follows:
 
 <blockquote>
 <pre>
@@ -797,6 +761,35 @@ Example.foo_i(3)
 s = Example::Spam.new
 s.foo_i(3)
 s.foo_d(3.14)
+</pre>
+</blockquote>
+
+Similarly, overloaded class constructors can be renamed and then accessed as class singleton methods. For example, for this SWIG interface file: 
+
+<blockquote>
+<pre>
+/* Rename the copy constructor to "Copy" */
+%rename(Copy) Complex::Complex(const Complex&); 
+
+class Complex {
+public:
+   // Construct a complex number from its real and imaginary parts
+   Complex(double r, double i);
+   
+   // Copy constructor
+   Complex(const Complex&);
+   
+   // ... other stuff ...
+};
+</pre>
+</blockquote>
+
+SWIG will generate an extension which can be used from Ruby as follows:
+
+<blockquote>
+<pre>
+a = Example::Complex.new(3.0, 4.0)
+copy_of_a = Example::Complex.Copy(a)
 </pre>
 </blockquote>
 
@@ -1827,7 +1820,7 @@ Note that although SWIG supports the <tt>__eq__</tt> magic method name for defin
 <a name="n70"></a><h3> An example (putting everything together)</h3>
 
 One way to illustrate the use of operator overloading, as well as the wrapping
-of templates (see "<a href="SWIGPlus.html">Swig Plus</a> section on templates)
+of templates (see the "<a href="SWIGPlus.html">Swig Plus</a>" section on templates)
 is shown in the following <tt>.i</tt> example is used, given an STL vector class:
 
 <p>
@@ -1837,6 +1830,8 @@ is shown in the following <tt>.i</tt> example is used, given an STL vector class
 %{
 #include &lt;vector&gt;
 #include &lt;string&gt;
+
+using namespace std;
 %}
 
 %typemap (in) string {
@@ -1888,33 +1883,41 @@ public:
 </pre></blockquote>
 
 <p>
-Possible Ruby calls look like:
+An IRB session using this extension might go like this:
 <blockquote><pre>
-require 'Example'
-i_list = Example::IntVector.new
-i_list.push_back(1)
-i_list.push_back(2)
-i_list.each { |i| puts i }
-puts "size = #{i_list.size}"
-s_list = Example::StringVector.new
-s_list.push_back("Hello")
-s_list.push_back("There")    
-s_list.each { |i| puts i }
-puts "size = #{s_list.size}"
-puts "s_list[0] = #{s_list[0]}"
-s_list[0] = "New entry"
-puts "s_list[0] = #{s_list[0]}"
-
------ Generates the following output
+$ <b>irb</b>
+irb(main):001:0> <b>require 'Example'</b>
+true
+irb(main):002:0> <b>Example::IntVector.new</b>
+#<Example::IntVector:0x2ab9a18>
+irb(main):003:0> <b>i_list.push_back(1)</b>
+nil
+irb(main):004:0> <b>i_list.push_back(2)</b>
+nil
+irb(main):005:0> <b>i_list.each { |i| puts i }</b>
 1
 2
-size = 2
+nil
+irb(main):006:0> <b>"size = #{i_list.size}"</b>
+"size = 2"
+irb(main):007:0> <b>s_list = Example::StringVector.new</b>
+#<Example::IntVector:0x2aa9c98>
+irb(main):008:0> <b>s_list.push_back("Hello")</b>
+nil
+irb(main):009:0> <b>s_list.push_back("There")</b>
+nil
+irb(main):010:0> <b>s_list.each { |s| puts s }</b>
 Hello
 There
-size = 2
-s_list[0] = Hello
-s_list[0] = New entry
-
+nil
+irb(main):011:0> <b>"size = #{s_list.size}"</b>
+"size = 2"
+irb(main):012:0> <b>"s_list[0] = #{s_list[0]}"</b>
+"s_list[0] = Hello"
+irb(main):013:0> <b>s_list[0] = "New entry"</b>
+nil
+irb(main):014:0> <b>puts "s_list[0] = #{s_list[0]}"</b>
+"s_list[0] = New Entry"
 </pre></blockquote>
 <p>
 
