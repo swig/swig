@@ -423,7 +423,15 @@
       if(!PyArg_ParseTuple(args,":Getc")) 
 	 return NULL;
       _result = (int )DohGetc(self->doh);
-      _resultobj = Py_BuildValue("i",_result);
+      if (_result > 0) {
+	 char c[2] = { (char)_result, 0 };
+	 _resultobj = PyString_FromString(c);
+      }
+      else
+      {
+	 Py_INCREF(Py_None);
+	 _resultobj = Py_None;
+      }
       return _resultobj;
    }
 
@@ -540,7 +548,6 @@
    }
 
    static int Swig_PyDOH_setattr(PyDOH *self, char *name, PyObject *v) {
-      printf("setattr\n");
       return Setattr(self->doh, name, Swig_PyDOH_as_DOH(v));
    }
 
@@ -563,26 +570,7 @@
    }
 
    static long Swig_PyDOH_hash(PyDOH *self) {
-      printf("hash\n");
       return (long)Hashval(self->doh);
-   }
-
-   static PyObject *Swig_PyDOH_getattro(PyDOH *self, PyObject *name) {
-      DOH *r = Getattr(self->doh, Swig_PyDOH_as_DOH(name));
-      printf("Getattro: %s\n", Char(Swig_PyDOH_as_DOH(name)));
-      if (r)
-	 return Swig_PyDOH_new(r);
-      else {
-	 PyErr_SetObject(PyExc_KeyError, name);
-	 return NULL;
-      }
-   }
-
-   static int Swig_PyDOH_setattro(PyDOH *self, PyObject *name,
-				  PyObject *v) {
-      printf("setattro\n");
-      return Setattr(self->doh, Swig_PyDOH_as_DOH(name),
-		     Swig_PyDOH_as_DOH(v));
    }
 
    static char PyDOH_docstring[] = 
@@ -609,8 +597,8 @@ like Python objects, although some functionality may be different.";
       (hashfunc)Swig_PyDOH_hash,
       (ternaryfunc)0,		/* tp_call */
       (reprfunc)0,		/* tp_str */
-      (getattrofunc)0,/*Swig_PyDOH_getattro,*/
-      (setattrofunc)0,/*Swig_PyDOH_setattro,*/
+      (getattrofunc)0,
+      (setattrofunc)0,
       0,			/* tp_as_buffer */
       0,			/* tp_xxx4 */
       PyDOH_docstring
@@ -635,8 +623,8 @@ like Python objects, although some functionality may be different.";
       (hashfunc)Swig_PyDOH_hash,
       (ternaryfunc)0,		/* tp_call */
       (reprfunc)0,		/* tp_str */
-      (getattrofunc)0,/*Swig_PyDOH_getattro,*/
-      (setattrofunc)0,/*Swig_PyDOH_setattro,*/
+      (getattrofunc)0,
+      (setattrofunc)0,
       0,			/* tp_as_buffer */
       0,			/* tp_xxx4 */
       PyDOH_docstring
