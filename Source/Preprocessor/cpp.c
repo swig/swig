@@ -981,14 +981,16 @@ Preprocessor_parse(DOH *s)
 	  mask = 1;
 	}
       } else if (Cmp(id,"else") == 0) {
-	if (level == 0) {
+	if (level <= 0) {
 	  cpp_error(Getfile(s),Getline(id),"Misplaced #else.\n");
 	} else {
 	  cond_lines[level-1] = Getline(id);
 	  if (allow) {
 	    allow = 0;
 	    mask = 0;
-	  } else if (level == start_level) allow = 1;
+	  } else if (level == start_level) {
+	    allow = 1;
+	  }
 	}
       } else if (Cmp(id,"endif") == 0) {
 	level--;
@@ -996,7 +998,10 @@ Preprocessor_parse(DOH *s)
 	  cpp_error(Getfile(id),Getline(id),"Extraneous #endif ignored.\n");
 	  level = 0;
 	} else {
-	  if (level < start_level) allow = 1;
+	  if (level < start_level) {
+	    allow = 1;
+	    start_level--;
+	  }
 	}
       } else if (Cmp(id,"if") == 0) {
 	cond_lines[level] = Getline(id);
@@ -1005,6 +1010,7 @@ Preprocessor_parse(DOH *s)
 	  start_level = level;
 	  sval = Preprocessor_replace(value);
 	  Seek(sval,0,SEEK_SET);
+	  /*	  Printf(stdout,"Evaluating '%s'\n", sval); */
   	  val = Preprocessor_expr(sval,&e);
   	  if (e) {
   	    Seek(value,0,SEEK_SET);
@@ -1058,7 +1064,8 @@ Preprocessor_parse(DOH *s)
  	  Delete(fn);
   	}
       } else if (Cmp(id,"pragma") == 0) {
-      } else {
+      } else if (Cmp(id,"level") == 0) {
+	cpp_error(Getfile(s),Getline(id),"cpp debug: level = %d, startlevel = %d\n", level, start_level);
       }
       for (i = 0; i < cpp_lines; i++)
   	Putc('\n',ns);
