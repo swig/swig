@@ -28,6 +28,7 @@ static char cvsroot[] = "$Header$";
 #include "python.h"
 
 static   String       const_code;
+static   String       shadow_methods;
 
 static char *usage = "\
 Python Options (available with -python)\n\
@@ -295,6 +296,7 @@ void PYTHON::initialize(void)
     }
     fprintf(f_shadow,"# This file was created automatically by SWIG.\n");
     fprintf(f_shadow,"import %s\n", module);
+    fprintf(f_shadow,"import new\n");
   }
 
   // Dump out external module declarations
@@ -363,6 +365,14 @@ void PYTHON::initialize_cmodule(void)
        << tab4 << "}\n";
   fprintf(f_init,"%s", init.get());
 
+#ifdef SHADOW_METHODS
+  if (shadow) {
+    shadow_methods << "static struct { \n"
+		   << tab4 << "char *name;\n"
+		   << tab4 << "char *classname;\n"
+		   << "} _swig_shadow_methods[] = {\n";
+  }
+#endif
 }
 
 
@@ -408,7 +418,13 @@ void PYTHON::close_cmodule(void)
   const_code << "{0}};\n";
   
   fprintf(f_wrappers,"%s\n",const_code.get());
-  
+#ifdef SHADOW_METHODS
+  if (shadow) {
+    shadow_methods << tab4 << "{0, 0}\n"
+		   << "};\n";
+    fprintf(f_wrappers,"%s\n", shadow_methods.get());
+  }
+#endif
   String cinit;
   cinit << tab4 << "{\n"
 	<< tab8 << "int i;\n"
@@ -432,6 +448,25 @@ void PYTHON::close_cmodule(void)
 	<< tab8 << "}\n"
 	<< tab4 << "}\n";
 
+#ifdef SHADOW_METHODS
+  // Not done yet.  If doing shadows, create a bunch of instancemethod objects for use
+  if (shadow) {
+    cinit << tab4 << "{\n"
+	  << tab8 << "PyObject *sd, *im, *co, *sclass;\n"
+	  << tab8 << "int i;\n"
+	  << tab8 << "sd = PyDict_New();\n"
+          << tab8 << "sclass = PyClass_New(NULL, sd, PyString_FromString(\"__shadow__\"));\n"
+	  << tab8 << "for (i = 0; _swig_shadow_methods[i].name; i++) {\n"
+	  << tab8 << tab4 << "char *name;\n"
+	  << tab8 << tab4 << "name = _swig_shadow_methods[i].name;\n"
+	  << tab8 << tab4 << "co = PyDict_GetItemString(d,name);\n"
+	  << tab8 << tab4 << "im = PyMethod_New(co, NULL, sclass);\n"
+	  << tab8 << tab4 << "PyDict_SetItemString(sd,name,im);\n"
+	  << tab8 << tab4 << "}\n"
+	  << tab8 << "PyDict_SetItemString(d,\"__shadow__\", sclass);\n"
+	  << tab4 << "}\n";
+  }
+#endif
   fprintf(f_init,"%s\n", cinit.get());
   fprintf(f_init,"}\n");
 }
@@ -945,6 +980,12 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Now register the function with the interpreter.  
 
   add_method(iname, wname);
+
+#ifdef SHADOW_METHODS
+  if (shadow && (shadow & PYSHADOW_MEMBER)) {
+    shadow_methods << tab4 << "{ \"" << iname << "\", \"" << class_name << "\" },\n";
+  }
+#endif
 
   // ---------------------------------------------------------------------------
   // Create a shadow for this function (if enabled and not in a member function)
