@@ -43,6 +43,10 @@ Version 1.3.8 (September 23, 2001)
            Fixed SF Bug [ #462354 ] %import broken in 1.3.7.
 
 9/20/2001: beazley
+
+**** 9/25/2001: This feature is temporarily withdrawn due to some
+parsing problems it has created.
+
            Parser modified to ignore out-of-class constructor
            and destructor declarations.  For example:
 
