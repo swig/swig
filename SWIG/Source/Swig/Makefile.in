@@ -15,7 +15,7 @@ CC            = @CC@
 AR            = @AR@
 RANLIB        = @RANLIB@
 CFLAGS        = @CFLAGS@
-INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../DOH/Include
+INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../DOH/Include -I$(srcdir)/../Include
 TARGET        = libswig.a
 
 .c.o:
