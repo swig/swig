@@ -142,25 +142,24 @@ extern DOH  *SwigType_base(DOH *t);
 
 /* --- NEW Type system --- */
 
-  /* <DB> Names do not follow coding conventions </DB> */
-#ifdef BOGUS_NAMES
    /* constructors */
-DOH *Swig_Type_NewInt(int width, int is_const, int is_volatile, 
+DOH *SwigType_fromstring(DOH *string);
+DOH *SwigType_newint(int width, int is_const, int is_volatile, 
 		      int is_signed, int is_unsigned);
-DOH *Swig_Type_NewFloat(int width, int exp_width, int is_const,
+DOH *SwigType_newfloat(int width, int is_const,
 			int is_volatile);
-DOH *Swig_Type_NewVoid();
-DOH *Swig_Type_NewChar(int width, int is_const, int is_volatile);
-DOH *Swig_Type_NewName(DOH *name, int is_const, int is_volatile);
-DOH *Swig_Type_NewEnum(DOH *name, DOH *body, 
+DOH *SwigType_newvoid();
+DOH *SwigType_newchar(int width, int is_const, int is_volatile);
+DOH *SwigType_newname(DOH *name, int is_const, int is_volatile);
+DOH *SwigType_newenum(DOH *name, DOH *body, 
 		       int is_const, int is_volatile);
-DOH *Swig_Type_NewStruct(DOH *name, DOH *body, 
+DOH *SwigType_newstruct(DOH *name, DOH *body, 
 			 int is_const, int is_volatile);
-DOH *Swig_Type_NewUnion(DOH *name, DOH *body,
+DOH *SwigType_newunion(DOH *name, DOH *body,
 			int is_const, int is_volatile);
-DOH *Swig_Type_NewArray(DOH *size, DOH *parent);
-DOH *Swig_Type_NewFunction(DOH *parameters, DOH *parent);
-DOH *Swig_Type_NewPointer(int is_const, int is_volatile, DOH *parent);
+DOH *SwigType_newarray(DOH *size, DOH *parent);
+DOH *SwigType_newfunction(DOH *parameters, DOH *parent);
+DOH *SwigType_newpointer(int is_const, int is_volatile, DOH *parent);
 
    /* use the sequence methods on a type to step linearly down through
       the sequence of constructors.  That is, Getitem(t, 2) is t
@@ -171,34 +170,28 @@ DOH *Swig_Type_NewPointer(int is_const, int is_volatile, DOH *parent);
 
    /* accessors -- return information about the outermost
       constructor. */
-int Swig_Type_GetType(DOH *t);
-DOH *Swig_Type_GetName(DOH *t);
-DOH *Swig_Type_GetAttributes(DOH *t);
-int Swig_Type_GetWidth(DOH *t);
-int Swig_Type_GetExpWidth(DOH *t);
-int Swig_Type_GetConst(DOH *t);
-int Swig_Type_GetVolatile(DOH *t);
-int Swig_Type_GetSigned(DOH *t);
-int Swig_Type_GetUnsigned(DOH *t);
+int SwigType_gettype(DOH *t);
+DOH *SwigType_getname(DOH *t);
+DOH *SwigType_getattributes(DOH *t);
+int SwigType_getwidth(DOH *t);
+int SwigType_getconst(DOH *t);
+int SwigType_getvolatile(DOH *t);
+int SwigType_getsigned(DOH *t);
+int SwigType_getunsigned(DOH *t);
 
-   /* Type constants (returned from Swig_Type_GetType) */
+   /* Type constants (returned from SwigType_gettype) */
 
-  /* <DB> These constants don't follow naming convention </DB> */
-#define Swig_Type_Int 0
-#define Swig_Type_Float 1
-#define Swig_Type_Void 2
-#define Swig_Type_Char 3
-#define Swig_Type_Name 4
-#define Swig_Type_Enum 5
-#define Swig_Type_Struct 6
-#define Swig_Type_Union 7
-#define Swig_Type_Array 8
-#define Swig_Type_Function 9
-#define Swig_Type_Pointer 10
-
-/* --- OLD Type system --- */
-
-#endif
+#define SWIGTYPE_INT 0
+#define SWIGTYPE_FLOAT 1
+#define SWIGTYPE_VOID 2
+#define SWIGTYPE_CHAR 3
+#define SWIGTYPE_NAME 4
+#define SWIGTYPE_ENUM 5
+#define SWIGTYPE_STRUCT 6
+#define SWIGTYPE_UNION 7
+#define SWIGTYPE_ARRAY 8
+#define SWIGTYPE_FUNCTION 9
+#define SWIGTYPE_POINTER 10
 
   /* Parse tree support */
 
