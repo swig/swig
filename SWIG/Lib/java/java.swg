@@ -27,7 +27,6 @@
 %typemap(jni) unsigned long long, const unsigned long long & "jobject"
 %typemap(jni) float,              const float &              "jfloat"
 %typemap(jni) double,             const double &             "jdouble"
-%typemap(jni) char *                                         "jstring"
 %typemap(jni) void                                           "void"
 
 %typemap(jtype) bool,               const bool &               "boolean"
@@ -44,7 +43,6 @@
 %typemap(jtype) unsigned long long, const unsigned long long & "java.math.BigInteger"
 %typemap(jtype) float,              const float &              "float"
 %typemap(jtype) double,             const double &             "double"
-%typemap(jtype) char *                                         "String"
 %typemap(jtype) void                                           "void"
 
 %typemap(jstype) bool,               const bool &               "boolean"
@@ -61,12 +59,11 @@
 %typemap(jstype) unsigned long long, const unsigned long long & "java.math.BigInteger"
 %typemap(jstype) float,              const float &              "float"
 %typemap(jstype) double,             const double &             "double"
-%typemap(jstype) char *                                         "String"
 %typemap(jstype) void                                           "void"
 
-%typemap(jni) char[ANY]               "jstring"
-%typemap(jtype) char[ANY]               "String"
-%typemap(jstype) char[ANY]               "String"
+%typemap(jni) char *, char[ANY], char[]               "jstring"
+%typemap(jtype) char *, char[ANY], char[]               "String"
+%typemap(jstype) char *, char[ANY], char[]               "String"
 
 /* JNI types */
 %typemap(jni) jboolean      "jboolean"
@@ -515,8 +512,8 @@
 %typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
 %typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
 
-/* char[ANY] - treat as String */
-%typemap(in) char[ANY] { 
+/* char arrays - treat as String */
+%typemap(in) char[ANY], char[] { 
   $1 = 0;
   if ($input) {
     $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
@@ -524,7 +521,7 @@
   }
 }
 
-%typemap(directorin, descriptor="Ljava/lang/String;") char[ANY] { 
+%typemap(directorin, descriptor="Ljava/lang/String;") char[ANY], char[] { 
   $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, $1);
@@ -532,11 +529,11 @@
   }
 }
 
-%typemap(argout) char[ANY] ""
-%typemap(freearg) char[ANY] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
-%typemap(out) char[ANY] { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
-%typemap(javadirectorin) char[ANY] "$jniinput"
-%typemap(javadirectorout) char[ANY] "$javacall"
+%typemap(argout) char[ANY], char[] ""
+%typemap(freearg) char[ANY], char[] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
+%typemap(out) char[ANY], char[] { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
+%typemap(javadirectorin) char[ANY], char[] "$jniinput"
+%typemap(javadirectorout) char[ANY], char[] "$javacall"
 
 /* JNI types */
 %typemap(in) jboolean,
@@ -712,7 +709,8 @@
 %typecheck(SWIG_TYPECHECK_STRING) /* Java String */
     jstring,
     char *,
-    char[ANY]
+    char[ANY],
+    char []
     ""
 
 %typecheck(SWIG_TYPECHECK_BOOL_ARRAY) /* Java boolean[] */
@@ -802,10 +800,9 @@
                  long long,          const long long &,
                  unsigned long long, const unsigned long long &,
                  float,              const float &,
-                 double,             const double &,
-                 char *,
-                 char[ANY]
+                 double,             const double &
     "$javainput"
+%typemap(javain) char *, char[ANY], char[] "$javainput"
 %typemap(javain) jboolean,
                  jchar,
                  jbyte,
@@ -844,9 +841,10 @@
                   long long,          const long long &,
                   unsigned long long, const unsigned long long &,
                   float,              const float &,
-                  double,             const double &,
-                  char *,
-                  char[ANY] {
+                  double,             const double & {
+    return $jnicall;
+  }
+%typemap(javaout) char *, char[ANY], char[] {
     return $jnicall;
   }
 %typemap(javaout) jboolean,
