@@ -132,6 +132,7 @@ Wrapper_pretty_print(String *str, File *f) {
       empty = 0;
     } else if (c == '\n') {
       Putc(c,ts);
+      empty = 0;
       if (!empty) {
 	if ((Char(ts))[0] != '#') {
 	  for (i = 0; i < level; i++)
