@@ -9,10 +9,12 @@ CXX		= @CXX@
 CFLAGS		= @CFLAGS@
 GUILEINCLUDE	= @GUILEINCLUDE@
 GUILELINK	= @GUILELINK@
-SWIGOPT		= 
+SWIGOPT		=
 
 WRAP		= $(IFILE:.i=_wrap.c)
 CXXWRAP		= $(IFILE:.i=_wrap.cxx)
+
+SO		= @SO@
 
 all:
 	for d in $(subdirs) ; do (cd $$d ; $(MAKE)) ; done
