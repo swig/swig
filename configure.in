@@ -451,6 +451,8 @@ if test "$PERL" != nope; then
 
 AC_SUBST(PERL5EXT)
 
+AC_SUBST(ROOT_DIR)ROOT_DIR=`pwd`
+
 IMPORTED_DIRS="Source/SWILL/ Source/DOH/"
 
 # execute configure for our imported directories

@@ -64,13 +64,13 @@ All SWIG modules must be written in either ANSI C or one of the
 scripting languages for which SWIG can generate an interface (e.g.,
 Perl, Python, or Tcl).  <B>C++ is NOT an acceptable alternative and
 will not be utilized for any future development due to the fact that
-it is too complicated, too dogmatic, too problematic, and that Dave would rather
-take a bullet to the head than write one more line of code in this
-most decidedly unpleasant language. </B> Rare exceptions to this rule
-may be made if there is a justifiable need to interface an existing
-piece of software written in C++ into the SWIG module system.  Anyone
-who finds this rule to be unreasonable is more than welcome to go
-write their own wrapper generator--so there.
+it is too complicated, too dogmatic, too problematic, and that Dave
+would rather take a bullet to the head than write one more line of
+code in this most decidedly unpleasant language. </B> Rare exceptions
+to this rule may be made if there is a justifiable need to interface
+an existing piece of software written in C++ into the SWIG module
+system.  Anyone who finds this rule to be unreasonable is more than
+welcome to go write their own wrapper generator--so there.
 
 <p>
 Module writers should make every attempt to use only those functions
@@ -115,7 +115,7 @@ CVS version, include guards, and be C++ aware. For example:
 
 <blockquote>
 <pre>
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * swigperl.h
  *
  *     All of the externally visible functions in the Perl module.
@@ -126,7 +126,7 @@ CVS version, include guards, and be C++ aware. For example:
  * See the file LICENSE for information on usage and redistribution. 
  *
  * $Header$
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 
 #ifndef _SWIGPERL_H
 #define _SWIGPERL_H   1
@@ -135,7 +135,7 @@ CVS version, include guards, and be C++ aware. For example:
 extern "C" {
 #endif
 
-/* You're declarations here */
+/* Your declarations here */
 ...
 
 #ifdef __cplusplus
@@ -255,11 +255,11 @@ and a short description like this:
 
 <blockquote>
 <pre>
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * Swig_add_directory()
  *
  * Adds a directory to the SWIG search path.
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 
 void 
 Swig_add_directory(DOH *dirname) {
@@ -384,7 +384,8 @@ typedef struct Foo {
 </pre>
 </blockquote>
 
-It is better to hide the implementation of Foo and provide an function-call interface like this:
+It is better to hide the implementation of Foo and provide an
+function-call interface like this:
 
 <blockquote>
 <pre>
@@ -394,10 +395,51 @@ extern void Foo_setline(Foo *f, int line);
 </pre>
 </blockquote>
 
-Although this results in worse performance, there are many practical reasons for doing
-this.  The most important reason is that it allows you to change the internal representation
-of Foo without breaking all of the other modules or having to recompile the entire
-universe after making your changes.
+Although this results in worse performance, there are many practical
+reasons for doing this.  The most important reason is that it allows
+you to change the internal representation of Foo without breaking all
+of the other modules or having to recompile the entire universe after
+making your changes.
+
+<h2>10. DOH</h2>
+
+SWIG uses <a href="http://islab.cs.uchicago.edu/doh.html">DOH</a> to
+store all of its runtime data.  It uses the basic DOH types as well as
+some special types:
+<ul>
+<li>SuperString
+</ul>
+
+<h3>10.1 Reference Counting</h3>
+
+DOH objects are reference counted.  They are not garbage collected
+until their reference count has reached zero.
+
+When a DOH object is created (with a function such as
+<tt>NewString()</tt>), its reference count is one. Use
+<tt>Incref(x)</tt> to increment the reference count on any object to
+which you are storing a reference.  Use <tt>Delete(x)</tt> to
+decrement the reference count.  So, for example:
+
+<blockquote>
+<pre>
+static int foo() {
+   DOH *swig_string = NewString("SWIG");
+   ...
+
+   Delete(swig_string);
+}
+
+static void push(DOH *string) {
+   Incref(string);
+   Swig_some_strings[Swig_num_strings++] = string;
+}
+</pre>
+</blockquote>
+
+<h3>10.2 SuperStrings</h3>
+
+More later.
 
 </body>
 </html>

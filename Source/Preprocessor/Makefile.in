@@ -17,7 +17,13 @@ OBJS = expr.o cpp.o
 .c.o: 
 	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
 
-all:	$(OBJS)
+#####################################################################
+# TARGET: swig
+#####################################################################
+# friendly to the toplevel makefile
+all: swig
+swig: $(OBJS)
+	for i in $(OBJS); do echo Source/Preprocessor/$$i >> $(OBJS_FILE); done
 
 clean:
 	rm -f *.o *~ core *.so *.a

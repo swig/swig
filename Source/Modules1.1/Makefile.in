@@ -48,9 +48,13 @@ SHELL  = /bin/sh
 .cxx.o: 
 	$(CC) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
 
-all:    $(TARGET) 
-
-$(TARGET): $(WRAPOBJS)
+#####################################################################
+# TARGET: swig
+#####################################################################
+# friendly to the toplevel makefile
+all: swig
+swig:  $(WRAPOBJS)
+	for i in $(WRAPOBJS); do echo Source/Modules1.1/$$i >> $(OBJS_FILE); done
 
 clean::
 	rm -f *.o *~

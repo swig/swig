@@ -1,3 +1,7 @@
+#####################################################################
+# LParse
+#####################################################################
+
 # Generated automatically from Makefile.in by configure.
 
 CC          = @CC@
@@ -14,12 +18,17 @@ YACC        = @YACC@
 INCLUDE     = -I. -I../Swig -I../DOH/Include -I../Preprocessor
 
 SRCS = cscanner.c type.c
-OBJS = cscanner.o type.o
+OBJS = parser.o cscanner.o type.o
 
 .c.o: 
 	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
 
-all:	parser.o $(OBJS)
+#####################################################################
+# TARGET: experiment
+#####################################################################
+# friendly to the toplevel makefile
+experiment:  $(OBJS)
+	for i in $(OBJS); do echo Source/LParse/$$i >> $(OBJS_FILE); done
 
 parser.o: parser.c
 	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
