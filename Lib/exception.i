@@ -188,7 +188,7 @@ static void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
   }
   SWIG_JavaThrowException(jenv, exception_code, msg);
 }
-#define SWIG_exception(code, msg) { SWIG_JavaException(jenv, code, msg); }
+#define SWIG_exception(nullreturn, code, msg) { SWIG_JavaException(jenv, code, msg); return nullreturn; }
 %}
 #endif // SWIGJAVA
 
@@ -270,8 +270,8 @@ static void SWIG_exception_(int code, const char *msg) {
 
 #ifdef SWIGCSHARP
 %{
-static void SWIG_exception(int code, const char *msg) {
-  SWIG_CSharpExceptionCodes exception_code = SWIG_CSharpException;
+static void SWIG_CSharpException(int code, const char *msg) {
+  SWIG_CSharpExceptionCodes exception_code = SWIG_CSharpSystemException;
   switch(code) {
   case SWIG_MemoryError:
     exception_code = SWIG_CSharpOutOfMemoryException;
@@ -293,11 +293,12 @@ static void SWIG_exception(int code, const char *msg) {
   case SWIG_SystemError:
   case SWIG_UnknownError:
   default:
-    exception_code = SWIG_CSharpException;
+    exception_code = SWIG_CSharpSystemException;
     break;
   }
-  SWIG_CSharpThrowException(exception_code, msg);
+  SWIG_CSharpSetPendingException(exception_code, msg);
 }
+#define SWIG_exception(nullreturn, code, msg) { SWIG_CSharpException(code, msg); return nullreturn; }
 %}
 #endif // SWIGCSHARP
 
