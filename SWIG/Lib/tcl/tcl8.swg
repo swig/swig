@@ -68,6 +68,52 @@
 %typemap(in,parse="P") SWIGTYPE *CONSTANT, SWIGTYPE &CONSTANT, SWIGTYPE CONSTANT [] "";
 %typemap(in,parse="I") enum SWIGTYPE CONSTANT "";
 
+/* Constant references. Passed by value */
+/* Const primitive references.  Passed by value */
+
+%typemap(in) const int & (int temp),
+	     const short & (short temp),
+             const long  & (long temp),
+             const unsigned int & (unsigned int temp),
+             const unsigned short & (unsigned short temp),
+             const unsigned long & (unsigned long temp),
+             const signed char & (signed char temp),
+             const unsigned char & (unsigned char temp),
+             const bool & (bool temp)
+{
+  long ltemp;
+  if (Tcl_GetLongFromObj(interp, $input, &ltemp) != TCL_OK) {
+    return TCL_ERROR;
+  }
+  temp = ($*1_ltype) ltemp;
+  $1 = &temp;
+}
+
+%typemap(in) const float & (float temp),
+	     const double & (double temp)
+{
+  double dtemp;
+  if (Tcl_GetDoubleFromObj(interp, $input, &dtemp) != TCL_OK) {
+    return TCL_ERROR;
+  }
+  temp = ($*1_ltype) dtemp;
+  $1 = &temp;
+}
+
+%typemap(in) const long long & (long long temp) 
+     "temp = (long long) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);
+      $1 = &temp;";
+
+%typemap(in) const unsigned long long & (unsigned long long temp) 
+        "temp = (unsigned long long) strtoull(Tcl_GetStringFromObj($input,NULL),0,0);
+         $1 = &temp;";
+
+%typemap(in) const char &(char temp) {
+        char *stemp = Tcl_GetStringFromObj($input,NULL);
+        temp = *stemp;
+        $1 = &temp;
+}
+
 /* Output values */
 
 %typemap(out) bool, int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, enum SWIGTYPE
@@ -143,6 +189,35 @@
 
 /* Special typemap for character array returns */
 %typemap(out) char [ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($1,-1));"
+
+
+/* Primitive references */
+
+%typemap(out) int &, unsigned int &,
+              short &, unsigned short &,
+              long &, unsigned long &,
+              signed char &, unsigned char &,
+              bool &
+    "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) *($1)));";
+
+%typemap(out) float &, double & 
+    "Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) *($1)));";
+
+%typemap(out) long long & {
+  char temp[256];
+  sprintf(temp,"%lld", *($1));
+  Tcl_SetObjResult(interp,Tcl_NewStringObj(temp,-1));
+}
+
+%typemap(out) unsigned long long &
+{
+  char temp[256];
+  sprintf(temp,"%llu", *($1));
+  Tcl_SetObjResult(interp,Tcl_NewStringObj(temp,-1));
+}
+
+%typemap(out) char &
+   "Tcl_SetObjResult(interp,Tcl_NewStringObj($1,1));";
 
 
 /* --- Variable output --- */

@@ -50,7 +50,6 @@
 %typemap(in,parse="i") enum SWIGTYPE "";
 
 /* Pointers, references, and arrays */
-
 %typemap(in) SWIGTYPE *, 
                     SWIGTYPE &,
                     SWIGTYPE [] 
@@ -66,7 +65,8 @@
 /* Pointer to a class member */
 %typemap(in) SWIGTYPE (CLASS::*) "if ((SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor,1)) == -1) return NULL;";
 
-/* Const primitive references */
+/* Const primitive references.  Passed by value */
+
 %typemap(in) const int & (int temp),
 	     const short & (short temp),
              const long  & (long temp),
@@ -74,16 +74,34 @@
              const unsigned short & (unsigned short temp),
              const unsigned long & (unsigned long temp),
              const signed char & (signed char temp),
-             const unsigned char & (unsigned char temp)
+             const unsigned char & (unsigned char temp),
+             const bool & (bool temp)
 	"temp = ($*1_ltype) PyInt_AsLong($input);
+         if (PyErr_Occurred()) return NULL;
          $1 = &temp;";
 
-/* Const primitive references */
 %typemap(in) const float & (float temp),
 	     const double & (double temp)
 	"temp = ($*1_ltype) PyFloat_AsDouble($input);
+         if (PyErr_Occurred()) return NULL;
          $1 = &temp;";
 
+%typemap(in) const long long & (long long temp) 
+        "temp = (long long) PyLong_AsLongLong($input);
+         if (PyErr_Occurred()) return NULL;
+         $1 = &temp;";
+
+%typemap(in) const unsigned long long & (unsigned long long temp) 
+        "temp = (unsigned long long) PyLong_AsUnsignedLongLong($input);
+         if (PyErr_Occurred()) return NULL;
+         $1 = &temp;";
+
+%typemap(in) const char &(char temp) {
+        char *stemp = PyString_AsString($input);
+        if (PyErr_Occurred()) return NULL;
+        temp = *stemp;
+        $1 = &temp;
+}
 
 /* --- Output values --- */
 
@@ -135,6 +153,27 @@
   $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
 }
 #endif
+
+/* References to primitive types.  Return by value */
+
+%typemap(out) int &, unsigned int &,
+              short &, unsigned short &,
+              long &, unsigned long &,
+              signed char &, unsigned char &,
+              bool &
+      "$result = PyInt_FromLong((long) *($1));";
+
+%typemap(out) float &, double & 
+      "$result = PyFloat_FromDouble((double) *($1));";
+
+%typemap(out) long long &
+      "$result = PyLong_FromLongLong(*($1));";
+
+%typemap(out) unsigned long long &
+      "$result = PyLong_FromUnsignedLongLong(*($1));";
+
+%typemap(out) char &
+      "$result = PyString_FromStringAndSize($1,1);";
 
 /* --- Variable input --- */
 

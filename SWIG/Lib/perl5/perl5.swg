@@ -13,7 +13,7 @@
        "$1 = ($1_ltype) SvIV($input);";
 
 %typemap(in)  char
-       "$1 = ($1_ltype) *SvPV($input,PL_na);\n";
+       "$1 = ($1_ltype) *SvPV($input,PL_na);";
 
 %typemap(in)  float, double 
        "$1 = ($1_ltype) SvNV($input);\n";
@@ -48,6 +48,40 @@
     }
     $1 = *argp;
 }
+
+
+/* Const primitive references.  Passed by value */
+
+%typemap(in) const int & (int temp),
+	     const short & (short temp),
+             const long  & (long temp),
+             const unsigned int & (unsigned int temp),
+             const unsigned short & (unsigned short temp),
+             const unsigned long & (unsigned long temp),
+             const signed char & (signed char temp),
+             const unsigned char & (unsigned char temp),
+             const bool & (bool temp)
+	"temp = ($*1_ltype) SvIV($input);
+         $1 = &temp;";
+
+%typemap(in) const float & (float temp),
+	     const double & (double temp)
+	"temp = ($*1_ltype) SvNV($input);
+         $1 = &temp;";
+
+%typemap(in) const long long & (long long temp) 
+        "temp = (long long) strtoll(SvPV($input,PL_na),0,0);
+         $1 = &temp;";
+
+%typemap(in) const unsigned long long & (unsigned long long temp) 
+        "temp = (unsigned long long) strtoull(SvPV($input, PL_na),0,0);
+         $1 = &temp;";
+
+%typemap(in) const char &(char temp) {
+        temp = *SvPV($input,PL_na);
+        $1 = &temp;
+}
+
 
 /* Typemap for output values */
 
@@ -118,6 +152,39 @@
      "ST(argvi) = sv_newmortal();
       sv_setpv((SV*)ST(argvi++),(char *) $1);";
 
+
+
+/* References to primitive types.  Return by value */
+
+%typemap(out) int &, unsigned int &,
+              short &, unsigned short &,
+              long &, unsigned long &,
+              signed char &, unsigned char &,
+              bool &
+      "ST(argvi) = sv_newmortal();
+       sv_setiv(ST(argvi++), (IV) *($1));";
+
+%typemap(out) float &, double & 
+      "ST(argvi) = sv_newmortal();
+       sv_setnv(ST(argvi++), (double) *($1));";
+
+%typemap(out) long long & {
+  char temp[256];
+  sprintf(temp,"%lld", *($1));
+  ST(argvi) = sv_newmortal();
+  sv_setpv((SV*)ST(argvi++), temp);
+}
+
+%typemap(out) unsigned long long & {
+  char temp[256];
+  sprintf(temp,"%llu", *($1));
+  ST(argvi) = sv_newmortal();
+  sv_setpv((SV*)ST(argvi++), temp);
+}
+
+%typemap(out) char &
+  "ST(argvi) = sv_newmortal();
+   sv_setpvn((SV*)ST(argvi++), $1, 1);";
 
 /* Variable input */
 %typemap(varin) char *
