@@ -1,19 +1,45 @@
-/* This -*-c-*- file contains SWIG specific configuration data for those modules
-   that care */
+/* Source/Include/swigconfig.h.in.  Generated from configure.in by autoheader.  */
 
-/* Directory where to find the machine-independent SWIG files */
-
-#define SWIG_LIB   "@-swig_lib-@"
 
 /* Default language */
+#define SWIG_LANG               "-tcl"
 
-#define SWIG_LANG  "-tcl"
+/* Values returned by SWIG when invoked with the -ldflags option.
+ * Define LIBDIR and RELEASESUFFIX on the compilation command line in the Makefile when needed. */
+#define SWIG_GUILE_RUNTIME      "-L" LIBDIR " -lswigguile" RELEASE_SUFFIX
+#define SWIG_MZSCHEME_RUNTIME   "-L" LIBDIR " -lswigmz" RELEASE_SUFFIX
+#define SWIG_OCAML_RUNTIME      "-L" LIBDIR " -lswigocaml" RELEASE_SUFFIX
+#define SWIG_PERL_RUNTIME       "-L" LIBDIR " -lswigpl" RELEASE_SUFFIX
+#define SWIG_PIKE_RUNTIME       "-L" LIBDIR " -lswigpike" RELEASE_SUFFIX
+#define SWIG_PHP_RUNTIME        "-L" LIBDIR " -lswigphp4" RELEASE_SUFFIX
+#define SWIG_PYTHON_RUNTIME     "-L" LIBDIR " -lswigpy" RELEASE_SUFFIX
+#define SWIG_RUBY_RUNTIME       "-L" LIBDIR " -lswigrb" RELEASE_SUFFIX
+#define SWIG_TCL_RUNTIME        "-L" LIBDIR " -lswigtcl" RELEASE_SUFFIX
 
-/* Values returned by swig when invoked with the -ldflags option */
 
-#define SWIG_PERL_RUNTIME "-L@-exec_prefix-@/lib -lswigpl@-release_suffix-@"
-#define SWIG_PYTHON_RUNTIME "-L@-exec_prefix-@/lib -lswigpy@-release_suffix-@"
-#define SWIG_TCL_RUNTIME "-L@-exec_prefix-@/lib -lswigtcl@-release_suffix-@"
-#define SWIG_RUBY_RUNTIME "-L@-exec_prefix-@/lib -lswigrb@-release_suffix-@"
-#define SWIG_GUILE_RUNTIME "-L@-exec_prefix-@/lib -lswigguile@-release_suffix-@"
-#define SWIG_PIKE_RUNTIME "-L@-exec_prefix-@/lib -lswigpike@-release_suffix-@"
+/* Define to 1 if you have the `dl' library (-ldl). */
+#undef HAVE_LIBDL
+
+/* Define to 1 if you have the `dld' library (-ldld). */
+#undef HAVE_LIBDLD
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Compiler that built SWIG */
+#undef SWIG_CXX
