@@ -19,6 +19,8 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 	   typemaps.  This introduced a new shift/reduce conflict, but
 	   only with a heuristic function-pointer catch-all rule.  
 	   * [Guile]: Added typemaps for severely constified types. 
+	   * Fixed the "template-whitespace" problem by canonicalizing
+	     whitespace, especially around angle brackets and commas. 
 
 7/17/2001: mkoeppe
 	   * [Guile]: A Scheme file is emitted if the -scmstub FILE.SCM
