@@ -33,7 +33,6 @@ static int      private_constructor = 0;
 static int      private_destructor = 0;
 static int      base_default_constructor = 0;
 static int      has_default_constructor = 0;
-static String  *Callback = 0;
 int             IsVirtual = 0;
 static String  *AttributeFunctionGet = 0;
 static String  *AttributeFunctionSet = 0;
@@ -170,10 +169,6 @@ void swig_pragma(char *lang, char *name, char *value) {
       ReadOnly = 1;
     } else if (strcmp(name,"readwrite") == 0) {
       ReadOnly = 0;
-    } else if (strcmp(name,"callback") == 0) {
-      Callback = Swig_copy_string(value ? value:"%s");
-    } else if (strcmp(name,"nocallback") == 0) {
-      Callback = 0;
     } else if (strcmp(name,"attributefunction") == 0) {
       String *nvalue = NewString(value);
       char *s = strchr(Char(nvalue),':');
@@ -685,11 +680,10 @@ Language::globalfunctionDeclaration(Node *n) {
     return SWIG_NOWRAP;   /* Can't wrap static functions */
   } else {
     /* Check for callback mode */
-    if (Callback) {
-      String   *cbname = NewStringf(Callback,symname);
-
+    String *cb = Getattr(n,"feature:callback");
+    if (cb) {
+      String   *cbname = NewStringf(cb,symname);
       callbackfunctionDeclaration(n);
-
       if (Cmp(cbname, symname) == 0) {
 	Delete(cbname);
 	Swig_restore(&n);
@@ -716,8 +710,8 @@ Language::callbackfunctionDeclaration(Node *n) {
   String *type    = Getattr(n,"type");
   String *name    = Getattr(n,"name");
   String *parms   = Getattr(n,"parms");
-
-  String  *cbname = NewStringf(Callback,symname);
+  String *cb      = Getattr(n,"feature:callback");
+  String  *cbname = NewStringf(cb,symname);
   SwigType *cbty = Copy(type);
   SwigType_add_function(cbty,parms); 
   SwigType_add_pointer(cbty);
@@ -749,6 +743,7 @@ Language::memberfunctionDeclaration(Node *n) {
   SwigType *type    = Getattr(n,"type");
   String   *value   = Getattr(n,"value");
   ParmList *parms   = Getattr(n,"parms");
+  String   *cb;
 
   if (Cmp(storage,"virtual") == 0) {
     if (Cmp(value,"0") == 0) {
@@ -759,9 +754,10 @@ Language::memberfunctionDeclaration(Node *n) {
   } else {
     IsVirtual = 0;
   }
-  if (Callback) {
+  cb = Getattr(n,"feature:callback");
+  if (cb) {
     Node   *cb = NewHash();
-    String *cbname = NewStringf(Callback,symname);
+    String *cbname = NewStringf(cb,symname);
     String *cbvalue;
     SwigType *cbty = Copy(type);
     SwigType_add_function(cbty,parms); 
