@@ -1,3 +1,12 @@
 Version 1.3.25 (In progress)
 ============================
 
+Dec/15: mmatus
+	- More fixes for templates and template default args.
+	  See template_default.i for scary cases that now are 
+	  supported, besides the already ugly STL/std cases.
+	  
+	- Cosmetics and more use of 'const' where it was implicit.
+	- Other fixes for OSS, which is now working again with 1.3.25.
+	
+	  
