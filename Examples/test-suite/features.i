@@ -71,7 +71,7 @@ public:
 
 
 %exception {
-// default %exception
+  $action // default %exception
 }
 
 
@@ -105,7 +105,7 @@ char *foo() {return 0;}
 
 
 %exception std::Vector::get {
-// get %exception
+  $action; // get %exception
 }
 
 %inline %{
