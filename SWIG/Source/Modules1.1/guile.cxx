@@ -989,8 +989,8 @@ GUILE::constantWrapper(Node *n)
     Printv(f_header,tm,"\n",NULL);
   } else {
     // Create variable and assign it a value
-    Printf (f_header, "static %s %s = %s;\n", SwigType_lstr(nctype,0),
-	    var_name, rvalue);
+    Printf (f_header, "static %s = %s;\n", SwigType_lstr(nctype,var_name),
+	    rvalue);
   }
   {
     /* Hack alert: will cleanup later -- Dave */

@@ -569,7 +569,7 @@ MZSCHEME::constantWrapper(Node *n)
   } else {
     // Create variable and assign it a value
 
-    Printf (f_header, "static %s %s = ", SwigType_str(type,0), var_name);
+    Printf (f_header, "static %s = ", SwigType_lstr(type,var_name));
     if ((SwigType_type(type) == T_STRING)) {
       Printf (f_header, "\"%s\";\n", value);
     } else if (SwigType_type(type) == T_CHAR) {
