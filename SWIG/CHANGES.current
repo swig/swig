@@ -1,5 +1,21 @@
 Version 1.3.18 (In progress)
 ============================
+02/15/2003: songyanf (Tiger)
+            Added -fvirtual option.
+            Reduce the lines and size of the wrapper file
+            by omitting redifined virtual function in children classes.
+
+            Modified -compact option to -fcompact option
+
+            Added -small option.
+            -small = -fvirtual -fcompact
+            And it can be extended by future feature options,
+            which are used to reduce wrapper file szie.
+
+            Added SWIG_FEATURES environment variable check.
+            To dynamically set the feature options such as -fcompact & -fvirtual
+            *** NEW FEATURE ***
+
 02/13/2003: lenz
             Updated Doc/Manual/Perl5.html to talk about C++ compile problems
             configure.in now checks for PERL5_CCFLAGS
