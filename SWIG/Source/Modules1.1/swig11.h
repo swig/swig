@@ -186,7 +186,8 @@ public:
 
   virtual int  validIdentifier(String *s);        /* valid identifier? */
   virtual int  addSymbol(String *s, Node *n);     /* Add symbol        */
-  virtual Node *lookupSymbol(String *s);          /* Symbol lookup     */
+  virtual Node *symbolLookup(String *s);          /* Symbol lookup     */
+  virtual Node *classLookup(SwigType *s);         /* Class lookup      */
 
   /* ----------------------------------------------------------------------
    !! Deprecated interface.   These functions are going away as soon
@@ -207,6 +208,7 @@ public:
   // Private data
  private:
   Hash   *symbols;
+  Hash   *classtypes;
 };
 
 extern  int   SWIG_main(int, char **, Language *);
