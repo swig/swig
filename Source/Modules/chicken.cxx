@@ -1919,8 +1919,8 @@ CHICKEN::singleSearch(const char *typemap, char *argname,
 		       SwigType *searchClass)
 {
   String *tm;
-  char *source = "$input";
-  char *target = "$1";
+  char *source = (char*)"$input";
+  char *target = (char*)"$1";
   /* search for search-class typemap */
   SwigType *type = Copy(searchClass);
   SwigType_add_pointer(type);
