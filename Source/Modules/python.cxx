@@ -733,8 +733,10 @@ public:
           Wrapper_add_local(f, "director", "Swig::Director *director = 0");
           Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
 	  if (dirprot_mode() && is_protected(n)) {
-            Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) ", name);
-	    Printf(f->code, "SWIG_exception(SWIG_RuntimeError,\"accessing protected member %s\");\n", name);
+            Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) {\n", name);
+	    Printf(f->code, "PyErr_SetString(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
+	    Printf(f->code, "SWIG_fail;\n");
+	    Printf(f->code, "}\n");
 	  }
           Printf(f->code, "if (director && (director->swig_get_self()==obj0)) director->swig_set_up();\n");
 	}
@@ -1179,10 +1181,10 @@ public:
     String *arglist = NewString("");
     String* parse_args = NewString("");
 
-    /* 'in' parameters don't use a wrap, they are used directly */
+    /* remove the wrapper 'w' since it was producing spurious temps */
     Swig_typemap_attach_parms("in", l, 0);
-    Swig_typemap_attach_parms("directorin", l, w);
-    Swig_typemap_attach_parms("directorout", l, w);
+    Swig_typemap_attach_parms("directorin", l, 0);
+    Swig_typemap_attach_parms("directorout", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
 
     Parm* p;
