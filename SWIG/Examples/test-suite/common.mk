@@ -109,6 +109,7 @@ CPP_TEST_CASES += \
 	overload_template \
 	overload_copy \
 	overload_simple \
+	overload_complicated \
 	cpp_enum_scope \
 	rename_default \
 	template_default_inherit \
