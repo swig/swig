@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.23 (November 6, 2004)
+Version: 1.3.23 (November 11, 2004)
 
 Tagline: SWIG is a compiler that integrates C and C++ with
          languages including Perl, Python, Tcl, Guile, Mzscheme,
@@ -76,8 +76,9 @@ SWIG-1.3.23 summary:
 - C++ default argument support for Java and C# added.
 - Improved c++ default argument support for the scripting languages plus
   option to use original (compact) default arguments.
-- %feature and %ignore/%rename mods - they might need default arguments
-  specified to maintain compatible behaviour when using new default arguments
+- %feature and %ignore/%rename bug fixes and mods - they might need default
+  arguments specified to maintain compatible behaviour when using the new
+  default arguments wrapping.
 - Runtime library changes: Runtime code can now exist in more than one module
   and so need not be compiled into just one module
 - Further improved support for templates and namespaces
@@ -180,7 +181,7 @@ well advised to read this.
 Release Notes
 =============
 Please see the CHANGES files for a detailed list of bug fixes and
-new features. The ANNOUNCE file has a summary of the changes.
+new features. A summary of the changes is included in this README file.
 
 Windows Installation
 ====================
