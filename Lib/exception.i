@@ -1,5 +1,5 @@
 //
-// except.i
+// exception.i
 // Dave Beazley
 // April 14, 1997
 //
