@@ -42,14 +42,13 @@ PIKEKW(public);
 PIKEKW(return);
 PIKEKW(sscanf);
 PIKEKW(static);
+PIKEKW(string);
 PIKEKW(switch);
 PIKEKW(typeof);
 PIKEKW(varargs);
 PIKEKW(void);
 PIKEKW(while);
 
-// Swig manages this one right 
-// PIKEKW(string);
 
 #undef PIKEKW
 

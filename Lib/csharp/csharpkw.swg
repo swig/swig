@@ -70,6 +70,7 @@ CSHARPKW(sizeof);
 CSHARPKW(stackalloc);
 CSHARPKW(static);
 CSHARPKW(struct);
+CSHARPKW(string);
 CSHARPKW(switch);
 CSHARPKW(this);
 CSHARPKW(throw);
@@ -87,9 +88,6 @@ CSHARPKW(void);
 CSHARPKW(volatile);
 CSHARPKW(while);
 
-
-/* swig seems to managing this one right */
-// CSHARPKW(string);
 
 #undef CSHARPKW
 
