@@ -1366,7 +1366,7 @@ fi
 case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
-        CSHARPDYNAMICLINKING=" -Wl,--add-stdcall-alias"
+        CSHARPDYNAMICLINKING=" -mno-cygwin -Wl,--add-stdcall-alias"
     else
         CSHARPDYNAMICLINKING=""
     fi ;;
