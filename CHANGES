@@ -1,5 +1,8 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+3/13/00 : beazley
+          Added purify patches submitted by Ram Bhamidipaty.
+
 3/02/00 : ttn
           Added support for different Guile "linkage" schemes.
 	  Currently, "-Linkage hobbit" works.
