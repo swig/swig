@@ -549,7 +549,7 @@ MZSCHEME::declare_const (char *name, char *iname, SwigType *type, char *value)
 
   // Make a static variable;
 
-  Printv (var_name, "_wrap_const_%s", Swig_name_mangle(iname));
+  Printf (var_name, "_wrap_const_%s", Swig_name_mangle(iname));
 
   // Build the name for scheme.
   Printv(proc_name, iname,0);
