@@ -107,6 +107,7 @@ typedef struct WadObjectFile {
 
 extern void            wad_object_reset();
 extern WadObjectFile  *wad_object_load(const char *path);
+extern int             wad_file_check(void *);
 
 #define SYM_LOCAL     1
 #define SYM_GLOBAL    2

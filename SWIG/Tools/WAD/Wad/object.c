@@ -276,3 +276,23 @@ void wad_find_object(WadFrame *f) {
     f->object = wad_object_load(f->segment->mappath);
   }
 }
+
+/* -----------------------------------------------------------------------------
+ * wad_file_check(void *addr)
+ *
+ * Given an address, this function checks to see if it corresponds to a file
+ * we already mapped.
+ * ----------------------------------------------------------------------------- */
+
+int
+wad_file_check(void *addr) {
+  WadFile *f = wad_files;
+  while (f) {
+    if ((((char *) f->addr) <= ((char *) addr)) && 
+	(((char *) addr) < (((char *) f->addr) + f->size))) {
+      return 1;
+    }
+    f = f->next;
+  }
+  return 0;
+}
