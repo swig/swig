@@ -2130,7 +2130,7 @@ You can make a <tt>Vector</tt> look alot like a class by writing a SWIG interfac
 </pre></blockquote>
 
 <p>
-Now, when used with shadow classes in Python, you can do things like
+Now, when used with proxy classes in Python, you can do things like
 this :</p>
 
 <blockquote><pre>
@@ -2345,7 +2345,7 @@ double Object_intRep_dvalue_get(Object_intRep *o) {
 </pre></blockquote>
 
 Although this process is a little hairy, it works like you would expect in the
-target scripting language--especially when shadow classes are used.  For instance, in Perl:
+target scripting language--especially when proxy classes are used.  For instance, in Perl:
 
 <blockquote><pre>
 # Perl5 script for accessing nested member
@@ -2764,8 +2764,5 @@ is a side effect of the symbol binding mechanism used in the dynamic linker.
 The bottom line: don't do this.
 </p>
 
-<hr>
-
-<address>SWIG 1.3 - Last Modified : August 7, 2003</address>
 </body>
 </html>

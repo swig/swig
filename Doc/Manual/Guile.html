@@ -32,7 +32,7 @@
 <li><a href="#Guile_nn17">Exception Handling</a>
 <li><a href="#Guile_nn18">Procedure documentation</a>
 <li><a href="#Guile_nn19">Procedures with setters</a>
-<li><a href="#Guile_nn20">GOOPS Shadow Classes</a>
+<li><a href="#Guile_nn20">GOOPS Proxy Classes</a>
 <ul>
 <li><a href="#Guile_nn21">Naming Issues</a>
 <li><a href="#Guile_nn22">Linking</a>
@@ -537,7 +537,7 @@ struct members, the procedures <code>(<var>struct</var>-<var>member</var>-get
 pointer)</code> and <code>(<var>struct-member</var>-set pointer
 value)</code> are <em>not</em> generated.
 
-<H2><a name="Guile_nn20"></a>18.10 GOOPS Shadow Classes</H2>
+<H2><a name="Guile_nn20"></a>18.10 GOOPS Proxy Classes</H2>
 
 
 <p>SWIG can also generate classes and generic functions for use with
@@ -548,7 +548,7 @@ System (CLOS).
 <p>GOOPS support is
 only available with the new SCM interface (enabled with the
 <code>-scm</code> command-line option of SWIG).  To enable GOOPS
-support, pass the <code>-shadow</code> argument to
+support, pass the <code>-proxy</code> argument to
 swig.  This will export the GOOPS wrapper definitions into the
 <code><i>module</i>.scm</code> file in the directory specified by -outdir or the
 current directory.  GOOPS support requires either passive or module linkage.</p>
@@ -815,7 +815,6 @@ the correct superclasses.  The only problem is that since <code>mod2</code> uses
 Currently, SWIG does not automatically export this line;  it must be included in the <code>%goops</code>
 directive of <code>mod2</code>.  Maybe in the future SWIG can detect dependencies and export this line.
 (how do other language modules handle this problem?)</p>
-
 
 </body>
 </html>

@@ -15,7 +15,7 @@
 <li><a href="#Scripting_nn5">Variable linking</a>
 <li><a href="#Scripting_nn6">Constants</a>
 <li><a href="#Scripting_nn7">Structures and classes</a>
-<li><a href="#Scripting_nn8">Shadow classes</a>
+<li><a href="#Scripting_nn8">Proxy classes</a>
 </ul>
 <li><a href="#Scripting_nn9">Building scripting language extensions</a>
 <ul>
@@ -267,15 +267,15 @@ internals of an object, the interpreter does not need to know anything
 about the actual representation of a <tt>Vector</tt>.
 </p>
 
-<H3><a name="Scripting_nn8"></a>4.2.5 Shadow classes</H3>
+<H3><a name="Scripting_nn8"></a>4.2.5 Proxy classes</H3>
 
 
 <p>
 In certain cases, it is possible to use the low-level accessor functions
-to create something known as a "shadow" class.
-A "shadow class" is a special kind of object that gets created
+to create a proxy class, also known as a shadow class.
+A proxy class is a special kind of object that gets created
 in a scripting language to access a C/C++ class (or struct) in a way
-that looks like the original structure (that is, it "shadows" the real
+that looks like the original structure (that is, it proxies the real
 C++ class). For example, if you
 have the following C definition :</p>
 
@@ -289,7 +289,7 @@ public:
 </pre></blockquote>
 
 <p>
-A shadow classing mechanism would allow you to access the structure in
+A proxy classing mechanism would allow you to access the structure in
 a more natural manner from the interpreter. For example, in Python, you might want to do this:
 </p>
 
@@ -322,7 +322,7 @@ v configure -x 3 -y 4 -z 13
 </pre></blockquote>
 
 <p>
-When shadow classes are used, two objects are at really work--one in
+When proxy classes are used, two objects are at really work--one in
 the scripting language, and an underlying C/C++ object. Operations
 affect both objects equally and for all practical purposes, it appears
 as if you are simply manipulating a C/C++ object. 
@@ -453,7 +453,5 @@ extensions.  In fact, there are very few practical reasons for doing this--consi
 using shared libraries instead.
 </p>
 
-<hr>
-<address>SWIG 1.3 - Last Modified : July 16, 2001</address>
 </body>
 </html>
