@@ -57,12 +57,12 @@ we explicitly prefix the context, e.g., "guile-module".
 
 <p>The guile module can currently export wrapper files that use the guile GH interface or the
 SCM interface. This is controlled by an argument passed to swig.  The "-gh" argument causes swig
-to output GH code, and the "-scm" argument causes swig to output SCM code.  Right now the "-gh" argument
+to output GH code, and the "-scm" argument causes swig to output SCM code.  Right now the "-scm" argument
 is the default.  The "-scm" wrapper generation assumes a guile version &gt;= 1.6 and has several advantages over
 the "-gh" wrapper generation including garbage collection and GOOPS support.
-The "-gh" wrapper generation can be used for older versions of guile.  Thus eventually
-the guile GH wrapper code generation will be depreciated (as guile 1.6 and above become more common) and the
-SCM interface will become the default.  The SCM and GH interface differ greatly in how they store
+The "-gh" wrapper generation can be used for older versions of guile.
+The guile GH wrapper code generation is depreciated and the
+SCM interface is the default.  The SCM and GH interface differ greatly in how they store
 pointers and have completely different run-time code. See below for more info.  
 
 <p>The GH interface to guile is deprecated.  Read more about why in the 
