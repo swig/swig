@@ -27,7 +27,6 @@ static char cvsroot[] = "$Header$";
  * ------------------------------------------------------------------------ */
 
 Parm *NewParm(SwigType *type, String_or_char *n) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   Parm *p = NewHash();
   
   if (type) {

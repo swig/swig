@@ -27,7 +27,6 @@ static char cvsroot[] = "$Header$";
 
 Wrapper *
 NewWrapper() {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   Wrapper *w;
   w = (Wrapper *) malloc(sizeof(Wrapper));
   w->localh = NewHash();

@@ -87,7 +87,6 @@ static char cvsroot[] = "$Header$";
 
 
 SwigType *NewSwigType(int t) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   switch(t) {
   case T_BOOL:
     return NewString("bool");

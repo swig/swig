@@ -33,7 +33,6 @@ static Parm *nonvoid_parms(Parm *p) {
 
 String *
 Swig_cparm_name(Parm *p, int i) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   String *name = NewStringf("arg%d",i+1);
   if (p) {
     Setattr(p,"lname",name);

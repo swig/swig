@@ -130,7 +130,6 @@ static Hash *global_scope = 0;    /* Global scope */
 
 void
 Swig_symbol_init() {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   current = NewHash();
   current_symtab = NewHash();
   ccurrent = NewHash();

@@ -24,7 +24,6 @@ static Hash *warnings = 0;
 
 void
 Swig_warn(const char *filename, int line, const char *msg) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   String *key;
   if (!warnings) {
     warnings = NewHash();
