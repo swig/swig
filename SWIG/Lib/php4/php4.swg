@@ -41,9 +41,10 @@
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE {
 	$&1_ltype argp;
-	if(SWIG_ConvertPtr(*$input, (void **) argp, $&1_descriptor) < 0) {
+	if(SWIG_ConvertPtr(*$input, (void **) &argp, $&1_descriptor) < 0) {
 	  zend_error(E_ERROR, "Type error in argument $argnum of $symname. Expected ", $&1_descriptor->name);
 	}
+	$1 = *argp;
 }
 
 /* Typemap for output values */
