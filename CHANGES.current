@@ -1,5 +1,11 @@
 Version 1.3.20 (In progress)
 ============================
+08/30/2003: mrose (Mark Rose)
+            Modified the director typemaps in python/std_complex.i to use the 
+	    new-style macro and conversion functions, which eliminated some
+	    redundant code.  Fixed a few bugs in these typemaps as well, although
+	    more testing is needed.
+
 08/29/2003: mrose (Mark Rose)
             Completed initial support for wrapping abstract classes with directors.
 	    Constructor wrappers will be generated for abstract classes that have
