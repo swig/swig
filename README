@@ -30,7 +30,7 @@ this directory, there are a number of different components:
                       slowly being deprecated.
 
 *** Important note: ALL future SWIG development is taking place
-in ANSI C.  Please avoid C++ if it all possible. -- Dave ***
+in ANSI C.  Please avoid C++ if at all possible. -- Dave ***
 
       DOH           - Object framework for the ANSI C core.
       Core          - New SWIG core (ANSI C)
