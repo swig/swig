@@ -69,6 +69,7 @@ Version 1.3.11 (Work in progress)
              %typemap(jstype) long[ANY]     "long[]"
              %typemap(in) long[ANY]         {write me for array support}
              %typemap(out) long[ANY]        {write me for array support}
+             %typemap(argout) long[ANY]     {write me for array support}
              %typemap(freearg) long[ANY]    {write me for array support}
 
            *** POTENTIAL INCOMPATIBILITY ***
@@ -145,10 +146,10 @@ Version 1.3.11 (Work in progress)
 
 01/02/2002: cheetah (william fulton)
            [Java] The Java module incorrectly used argout typemaps for 
-           strings and arrays. This is now corrected and the code now resides
-           in the freearg typemap. This may require some user written 
-           typemaps to be modified too. These typemaps will also need moving 
-           from argout to freearg, unless they are truly argout typemaps.
+           strings. This is now corrected and the code now resides
+           in the freearg typemap. The argout array typemaps have been split into 
+           argout and freearg typemaps. This correction may require some user 
+           written typemaps to be modified. 
            *** POTENTIAL INCOMPATIBILITY ***
 
 12/28/2001: cheetah (william fulton)
