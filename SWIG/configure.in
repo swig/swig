@@ -417,8 +417,15 @@ else
 AC_MSG_RESULT($TCLLIB)
 fi
 
+# Only cygwin (Windows) needs the library for dynamic linking
+case $ac_sys_system/$ac_sys_release in
+CYGWIN*) TCLDYNAMICLINKING="$TCLLIB";;
+*)TCLDYNAMICLINKING="";;
+esac
+
 AC_SUBST(TCLINCLUDE)
 AC_SUBST(TCLLIB)
+AC_SUBST(TCLDYNAMICLINKING)
 
 #----------------------------------------------------------------
 # Look for Python
@@ -518,7 +525,9 @@ fi
 
 # Only cygwin (Windows) needs the library for dynamic linking
 case $ac_sys_system/$ac_sys_release in
-CYGWIN*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK";;
+CYGWIN*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
+         PYINCLUDE="-DUSE_DL_IMPORT $PYINCLUDE"
+         ;;
 *)PYTHONDYNAMICLINKING="";;
 esac
 
