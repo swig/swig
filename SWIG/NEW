@@ -2,7 +2,7 @@ New Features and Important Changes, v1.3
 
 Author(s) :  David Beazley
 
-December 9, 2001
+January 31, 2002
 
 1. Introduction
 ---------------
@@ -29,13 +29,6 @@ altered SWIG's old behavior.
 
        %constant(type *) name = value;
 
-     Note: this change does not affect variables like this:
-
-        const int a = 4;        // Still a constant
-
-     Note: SWIG still does not parse declarations of the form
-     'type *const' or 'const type *const' correctly.
-
 2.2  SWIG generally has better support for pointers, 'const',
      arrays, and pointers to functions.
 
@@ -48,7 +41,7 @@ altered SWIG's old behavior.
            }
 
      In SWIG1.1, this typemap would get applied to 'foo *',
-     'foo &', 'const foo *', 'foo []', 'foo[][]', and so forth.
+     'foo &', 'foo []', 'foo[][]', and so forth.
 
      In SWIG1.3, this typemap *only* gets applied to 'foo *' and
      'const foo *'. It does *NOT* get mapped to the other 
@@ -192,7 +185,7 @@ and it is simpler to implement than the old string based approach.
     code into the module initialization function.
 
 4.4 %ifdef, %ifndef, %endif, %if, %elif, %else directives are
-    withdrawn. SWIG has a real preprocessor.
+    withdrawn. SWIG now has a real preprocessor.
 
 4.5 %checkout directive removed.
 
