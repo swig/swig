@@ -1211,7 +1211,8 @@ RUBY::destructorHandler(Node *n) {
         Printv(f_code, wrap, NULL);
       }
     }
-    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", NULL);
+    /*    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", NULL); */
+    Printv(freebody,Getattr(n,"wrap:action"), NULL);
   } else {
     /* When no extend mode, swig emits no destroy function. */
     if (CPlusPlus)
