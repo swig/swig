@@ -728,6 +728,13 @@ public:
         if (/*directorbase &&*/ !constructor && !destructor && isVirtual) {
           Wrapper_add_local(f, "director", "Swig::Director *director = 0");
           Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
+	  if (dirprot_mode() && is_protected(n)) {
+	    Printf(f->code, "if (director && !(director->swig_get_inner(\"%s\"))) ", name);
+	    Printf(f->code,
+		   "SWIG_exception(SWIG_RuntimeError,\"accessing protected member %s\");\n",
+		   name);
+	  }
+	    
           Printf(f->code, "if (director && (director->swig_get_self()==obj0)) director->swig_set_up();\n");
 	}
       }
@@ -1327,11 +1334,16 @@ public:
     String  *pyname = Getattr(n,"sym:name");
 
     /* pass the method call on to the Python object */
+    if (dirprot_mode() && is_protected(n))
+      Printf(w->code, "swig_set_inner(\"%s\", true);\n", name);
+
     if (Len(parse_args) > 0) {
       Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), \"%s\", \"%s\" %s);\n", pyname, parse_args, arglist);
     } else {
       Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), \"%s\", NULL);\n", pyname);
     }
+    if (dirprot_mode() && is_protected(n))
+      Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
 
     /* exception handling */
     tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
@@ -1533,6 +1545,11 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorInit(Node *n) {
+    if (dirprot_mode()) {
+      Printf(f_directors_h, "#include <map>\n");
+      Printf(f_directors_h, "#include <string>\n\n");
+    }    
+
     String *declaration = Swig_director_declaration(n);
     Printf(f_directors_h, "\n");
     Printf(f_directors_h, "%s\n", declaration);
@@ -1546,6 +1563,29 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorEnd(Node *n) {
+    if (dirprot_mode()) {
+      /*
+	This implementation uses a std::map<std::string,int>.
+
+	It should be possible to rewrite it using a more elegant way,
+	like copying the Java approach for the 'override' array.
+
+	But for know, this seems to be the least intrusive way.
+      */
+      Printf(f_directors_h,"\n\n");
+      Printf(f_directors_h,"/* Internal Director utilities */\n");
+      Printf(f_directors_h,"public:\n");
+      Printf(f_directors_h,"    bool swig_get_inner(const char* name) const {\n");
+      Printf(f_directors_h,"      std::map<std::string, bool>::const_iterator iv = inner.find(name);\n");
+      Printf(f_directors_h,"      return (iv != inner.end() ? iv->second : false);\n");
+      Printf(f_directors_h,"    }\n\n");
+      
+      Printf(f_directors_h,"    void swig_set_inner(const char* name, bool val) const\n");
+      Printf(f_directors_h,"    { inner[name] = val;}\n\n");
+      Printf(f_directors_h,"private:\n");
+      Printf(f_directors_h,"    mutable std::map<std::string, bool> inner;\n");
+
+    }
     Printf(f_directors_h, "};\n\n");
     return Language::classDirectorEnd(n);
   }
