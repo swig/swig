@@ -108,6 +108,7 @@ CPP_TEST_CASES += \
 	director_exception \
 	director_finalizer \
 	director_unroll \
+	director_wombat \
 	dynamic_cast \
 	enum_plus \
 	enum_scope \
