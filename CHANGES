@@ -2,6 +2,124 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 Version 1.3 Alpha 6 (Work in progress)
 ======================================
+
+12/23/00: beazley
+          C++ wrappers now always include default constructors and destructors.
+          Most people want these anyways.  In addition, this solves some
+          problems related to virtual destructors and derived classes 
+          originally reported by Roy LeCates.  Note: constructor wrappers
+          are never generated for abstract classes.
+          *** NEW FEATURE ***
+
+12/23/00: beazley
+          Changes to class wrappers.   When SWIG sees two classes like this,
+
+          class X {
+          public: 
+             void foo();
+             ...
+          }
+
+          class Y : public X {
+          public:
+             void bar();
+             ...
+          }
+
+          it now generates two wrapper functions:
+
+             X_foo(X *x) { x->foo(); }
+             Y_bar(Y *y) { y->bar(); }
+
+          Unlike SWIG1.15, the foo() method does *not* result in a wrapper
+          function Y_foo(). Instead, the base class method X_foo() must be
+          used.
+          *** POTENTIAL INCOMPATIBILITY ***
+
+12/23/00: beazley
+          Typemaps can now be placed inside class definitions.  For example:
+
+          class Foo {
+          public:
+               %typemap(in) double {
+                    // Whatever
+                    ...
+               }
+               ...
+          };
+
+          When used in this manner, the typemap is applied to all class
+          members that follow.  In addition, the typemap is inherited
+          and will be applied in any derived classes.   On the other
+          hand, class typemaps are *not* applied to any declarations
+          appearing outside of the class (i.e., the scope of the typemap
+          is the class and any derived classes).
+          *** NEW FEATURE ***
+
+12/21/00: beazley
+          The %readonly directive is now defined as a scope. For example:
+            
+           %readonly {
+                int foo;
+                int bar;
+           }
+
+          *** INCOMPATIBILITY ***
+            
+12/21/00: beazley
+          The %native directive is now a scope.  It works as follows:
+
+          %native {
+              /* List functions with native prototypes */
+              PyObject *blah(PyObject *args, PyObject *self);
+              %name(foo) PyObject *wrap_foo(PyObject *args, PyObject *self);
+              ...
+          }
+
+          See note from 9/30/00 below. In addition, native function wrapping
+          has been enhanced in the Python/Tcl modules.  For example, the
+          Python module can automatically distinguish between keyword and
+          non-keyword wrappers.  Similarly, the Tcl module can distinguish
+          between Tcl7 and Tcl8 style wrappers.
+          *** POTENTIAL INCOMPATIBILITY ***
+
+12/15/00: beazley
+          SWIG now builds a complete parse tree before generating any wrapper
+          code.  Wrappers now appear in the same order as they appear
+          in the interface file.  In SWIG1.1, wrapping of classes was
+          deferred until everything else had been handled.
+
+12/15/00: beazley
+          New %scope directive defines a SWIG scope.  Basically, a scope
+          is a way of enclosing a collection of declarations that might
+          share a common property.  For example:
+
+               %scope("native") {
+                   /* Native wrappers */
+                   PyObject *blah(PyObject *args, PyObject *self);
+                   ...
+               }
+
+           or 
+
+               %scope("readonly") {
+                  /* Readonly variables */
+                  int x;
+                  ...
+               }
+
+          An unnamed scope can also be used:
+
+               %scope { 
+                  ... declarations ...
+               }
+
+          In addition to collecting objects, typemaps and other customization
+          features defined within a scope only get applied to those objects.
+          That is, a typemap defined in a scope will disappear at the end of
+          the scope. 
+          *** NEW FEATURE ***
+
 10/14/00: beazley
           Fixed some problems in output file handling and shadow classes.
           Problem reported by Luigi Ballabio.
