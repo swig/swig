@@ -355,7 +355,7 @@ void PYTHON::initialize(void)
 	     << tab4 << "long lvalue;\n"
 	     << tab4 << "double dvalue;\n"
 	     << tab4 << "void   *pvalue;\n"
-	     << tab4 << "_swig_type_info *ptype;\n"
+	     << tab4 << "_swig_type_info **ptype;\n"
 	     << "} _swig_const_info;\n";
 
   const_code << "#define SWIG_PY_INT     1\n"
@@ -490,7 +490,7 @@ void PYTHON::close_cmodule(void)
 	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, PyString_FromString((char *) _swig_const_table[i].pvalue));\n"
 	<< tab8 << tab8 << "break;\n"
 	<< tab8 << tab4 << "case SWIG_PY_POINTER:\n"
-	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, SWIG_NewPointerObj(_swig_const_table[i].pvalue, _swig_const_table[i].ptype));\n"
+	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, SWIG_NewPointerObj(_swig_const_table[i].pvalue, *(_swig_const_table[i].ptype)));\n"
 	<< tab8 << tab8 << "break;\n"
 	<< tab8 << tab4 << "default:\n"
 	<< tab8 << tab8 << "break;\n"
@@ -1049,14 +1049,14 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
     if (!need_wrapper) {
       func << iname << " = " << module << "." << iname << "\n\n";
     } else {
-      func << "def " << iname << "(*_args, **_kwargs):\n";
+      func << "def " << iname << "(*args, **kwargs):\n";
 
       // Create a docstring for this 
       if (docstring && doc_entry) {
 	func << tab4 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
       }
 
-      func << tab4 << "val = apply(" << module << "." << iname << ",_args,_kwargs)\n";
+      func << tab4 << "val = apply(" << module << "." << iname << ",args,kwargs)\n";
 
       if (munge_return) {
 	//  If the output of this object has been remapped in any way, we're
@@ -1370,7 +1370,7 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
       } else {
 	// A funky user-defined type.  We're going to munge it into a string pointer value
 	type->remember();
-	const_code << tab4 << "{ SWIG_PY_POINTER, \"" << name << "\", 0, 0, (void *) " << value << ", SWIGTYPE" << type->print_mangle() << ")); \n";
+	const_code << tab4 << "{ SWIG_PY_POINTER, \"" << name << "\", 0, 0, (void *) " << value << ", &SWIGTYPE" << type->print_mangle() << "}, \n";
 
       }
     }
