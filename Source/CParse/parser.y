@@ -49,11 +49,6 @@ extern String *scanner_ccode;
 extern int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms);
 extern Node *Swig_cparse_template_locate(String *name, ParmList *tparms);
 
-extern int Swig_need_protected();
-
- 
- 
-
 /* NEW Variables */
 
 extern void generate_all(Node *);
@@ -155,19 +150,6 @@ static Node *copy_node(Node *n) {
   }
   return nn;
 }
-
-/* Detects when we need to record protected member information.*/
-static int need_protected(Node* n)
-{
-  if (!(Swig_need_protected() || dirprot_mode)) return 0;
-
-  //
-  // Here detect if 'n' is a function.
-  //
-  return (Strcmp(nodeType(n),"cdecl") == 0) 
-    && (Len(Getattr(n,"decl")) > 0);
-}
-
 
 /* -----------------------------------------------------------------------------
  *                              Variables
@@ -321,6 +303,7 @@ static String *name_warning(String *name,SwigType *decl) {
 static int  add_only_one = 0;
 
 extern void cparse_normalize_void(Node *);
+extern int need_protected(Node *n, int dirprot_mode);
 
 static void add_symbols(Node *n) {
   String *decl;
@@ -344,7 +327,7 @@ static void add_symbols(Node *n) {
     String *symname;
     if (inclass && (cplus_mode == CPLUS_PROTECTED)) {
       Setattr(n,"access", "protected");
-      if (!need_protected(n)) {
+      if (!need_protected(n, dirprot_mode)) {
 	/* Only add to C symbol table and continue */
 	Swig_symbol_add(0, n); 
 	if (add_only_one) break;
@@ -399,7 +382,7 @@ static void add_symbols(Node *n) {
 	    Setattr(n,"sym:name",symname);
 	  } else if ((Strcmp(nodeType(n),"template") == 0) && (Strcmp(Getattr(n,"templatetype"),"cdecl") == 0)) {
 	    Setattr(n,"sym:name",symname);
-	  } else  {
+	  } else {
 	    String *e = NewString("");
 	    Printf(e,"Identifier '%s' redeclared (ignored).", symname);
 	    if (Cmp(symname,Getattr(n,"name"))) {
@@ -2045,7 +2028,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                         /* Set up inheritance in symbol table */
 			{
 			  Symtab  *csyms;
-			  List *baselist = Getattr($$,"baselist");
+ 			  List *baselist = Getattr($$,"baselist");
 			  csyms = Swig_symbol_current();
 			  Swig_symbol_setscope(Getattr($$,"symtab"));
 			  if (baselist) {
