@@ -723,7 +723,14 @@ static String *resolve_namespace_class(String *cname) {
     Node   *ns;
     String *prefix = Swig_scopename_prefix(cname);
     String *base = Swig_scopename_last(cname);
-    if (!prefix) {
+    if (prefix && (Strncmp(prefix,"::",2) == 0)) {
+      String *nprefix = NewString(Char(prefix)+2);
+      Delete(prefix);
+      prefix= nprefix;
+      Printf(stderr,"pb %s %s\n",prefix, base);
+    }
+    
+    if (!prefix || (Len(prefix) == 0)) {
       /* Use the global scope */
       Symtab *symtab = Swig_symbol_current();          
       Node   *pn = parentNode(symtab);
