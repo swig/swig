@@ -111,6 +111,7 @@ typedef struct DohObjInfo {
 /* Memory management */
 extern void   *DohMalloc(int size);     
 extern void    DohFree(DOH *ptr);
+extern int     DohFreeCheck(DOH *ptr);
 extern int     DohCheck(DOH *ptr);
 extern int     DohFreeCheck(DOH *ptr);
 
@@ -290,7 +291,8 @@ extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
 
 #define DOH_UNSUPPORTED 1
 #define DOH_UNKNOWN     2
-#define DOH_CONVERSION  3
+#define DOH_MEMORY      3
+#define DOH_CONVERSION  5
 #define DOH_CALLS       10
 
 
