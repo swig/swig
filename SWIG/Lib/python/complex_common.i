@@ -62,8 +62,8 @@ SWIGSTATICINLINE(int)
   if (PyComplex_Check(o)) {
     double re = PyComplex_RealAsDouble(o);
     double im = PyComplex_ImagAsDouble(o);
-    if (SWIG_CheckDoubleInRange(re, FLT_MIN, FLT_MAX, errmsg)
-	&& SWIG_CheckDoubleInRange(im, FLT_MIN, FLT_MAX, errmsg)) {
+    if (SWIG_CheckDoubleInRange(re, -FLT_MAX, FLT_MAX, errmsg)
+	&& SWIG_CheckDoubleInRange(im, -FLT_MAX, FLT_MAX, errmsg)) {
       if (val) *val = Constructor(swig_numeric_cast(re, float),
 				  swig_numeric_cast(im, float));
       return 1;
@@ -73,7 +73,7 @@ SWIGSTATICINLINE(int)
   } else {
     double re;    
     if (SWIG_AsVal(double)(o, &re)) {
-      if (SWIG_CheckDoubleInRange(re, FLT_MIN, FLT_MAX, errmsg)) {
+      if (SWIG_CheckDoubleInRange(re, -FLT_MAX, FLT_MAX, errmsg)) {
 	if (val) *val = Constructor(swig_numeric_cast(re,float), 0);      
 	return 1;
       } else {

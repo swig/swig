@@ -1,8 +1,11 @@
 import complextest
 
-a = complex(1,2)
+a = complex(-1,2)
 
 if complextest.Conj(a) != a.conjugate():
+  raise RuntimeError, "bad complex mapping"
+
+if complextest.Conjf(a) != a.conjugate():
   raise RuntimeError, "bad complex mapping"
 
 
