@@ -682,13 +682,15 @@ class JAVA : public Language {
       Swig_restore(&n);
 
     /* Return value if necessary  */
-    if((SwigType_type(t) != T_VOID) && !native_function_flag) {
+    if(!native_function_flag) {
       if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
         addThrows(n, "tmap:out", n);
         Replaceall(tm,"$source", "result"); /* deprecated */
         Replaceall(tm,"$target", "jresult"); /* deprecated */
         Replaceall(tm,"$result","jresult");
-        Printf(f->code,"%s\n", tm);
+        Printf(f->code,"%s", tm);
+        if (Len(tm))
+          Printf(f->code,"\n");
       } else {
         Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
             "Unable to use return type %s in function %s.\n", SwigType_str(t,0), Getattr(n,"name"));
@@ -710,7 +712,7 @@ class JAVA : public Language {
     }
 
     /* See if there is any return cleanup code */
-    if((SwigType_type(t) != T_VOID) && !native_function_flag) {
+    if(!native_function_flag) {
       if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
         Replaceall(tm,"$source","result"); /* deprecated */
         Printf(f->code,"%s\n",tm);
@@ -738,6 +740,8 @@ class JAVA : public Language {
     /* Dump the function out */
     if(!native_function_flag)
       Wrapper_print(f,f_wrappers);
+
+    Setattr(n,"wrap:name", wname);
 
     /* Emit warnings for the few cases that can't be overloaded in Java */
     if (Getattr(n,"sym:overloaded")) {
