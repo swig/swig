@@ -64,7 +64,7 @@ libswigtcl8$(RELEASESUFFIX).la:
 # ----------------------------------------------------------------------
 
 PYTHON_INCLUDE = -DHAVE_CONFIG_H @PYINCLUDE@
-PYTHON_RUNTIME = $(SWIGLIB)/python/python.swg
+PYTHON_RUNTIME = $(SWIGLIB)/python/pyrun.swg
 
 # Python shared
 
