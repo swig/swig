@@ -272,6 +272,7 @@ public:
 };
 
 void Swig_process_types(Node *n) {
+  if (!n) return;
   TypePass *t = new TypePass;
   t->top(n);
   delete t;
