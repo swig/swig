@@ -307,6 +307,7 @@ extern String     *ParmList_protostr(ParmList *);
 #define  nextSibling(x)            Getattr(x,"nextSibling")
 #define  firstChild(x)             Getattr(x,"firstChild")
 #define  lastChild(x)              Getattr(x,"lastChild")
+extern int checkAttribute(Node *obj, const String_or_char *name, const String_or_char *value);
 
 /* Macros to set up the DOM tree (mostly used by the parser) */
 

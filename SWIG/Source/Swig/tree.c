@@ -179,6 +179,15 @@ deleteNode(Node *n) {
   }
 }
 
+int
+checkAttribute(Node *n, const String_or_char *name, const String_or_char *value) {
+  String *v;
+  v = Getattr(n,name);
+  if (!v) return 0;
+  if (Cmp(v,value) == 0) return 1;
+  return 0;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_require()
  * ----------------------------------------------------------------------------- */

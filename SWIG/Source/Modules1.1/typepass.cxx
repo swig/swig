@@ -203,6 +203,36 @@ class TypePass : public Dispatcher {
 	}
     }
 
+  /* Clean overloaded list.  Removes templates, friends, ignored, and errors */
+
+  void clean_overloaded(Node *n) {
+    Node *nn = Getattr(n,"sym:overloaded");
+    Node *first = 0;
+    while (nn) {
+      if ((Strcmp(nodeType(nn),"template") == 0) ||
+	  (Getattr(nn,"feature:ignore")) ||
+	  (Getattr(nn,"error")) ||
+	  (checkAttribute(nn,"storage","friend"))) {
+	/* Remove from overloaded list */
+	Node *ps = Getattr(nn,"sym:previousSibling");
+	Node *ns = Getattr(nn,"sym:nextSibling");
+	if (ps) {
+	  Setattr(ps,"sym:nextSibling",ns);
+	} 
+	if (ns) {
+	  Setattr(ns,"sym:previousSibling",ps);
+	}
+      } else {
+	if (!first) first = nn;
+	Setattr(nn,"sym:overloaded",first);
+      }
+      nn = Getattr(nn,"sym:nextSibling");
+    }
+    if (!first) {
+      Delattr(n,"sym:overloaded");
+    }
+  }
+
 public:
 
     /* ------------------------------------------------------------
@@ -516,6 +546,9 @@ public:
 		Delete(nname);
 	    }
 	}
+
+	clean_overloaded(n);
+#if 0
 	/* If overloaded, removed templates */
 	{
 	  Node *nn = Getattr(n,"sym:overloaded");
@@ -542,6 +575,8 @@ public:
 	  }
 
 	}
+#endif
+
 	return SWIG_OK;
     }
 
@@ -576,6 +611,7 @@ public:
 	    String *nname = NewStringf("%s::%s", nsname, Getattr(n,"name"));
 	    Setattr(n,"name",nname);
 	}
+	clean_overloaded(n);
 	return SWIG_OK;
     }
 
