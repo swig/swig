@@ -16,6 +16,77 @@ tree (maybe).
 
 Version 1.3.10 (In progress)
 ============================
+
+12/03/2001:beazley
+           New %exception directive.   This is intended to replace %except.
+           It works in exactly the same manner except it does not accept a 
+           language specifier. For example:
+
+               %exception {
+                   try {
+                      $action
+                   } 
+                   catch(SomeError) {
+                       error
+                   }
+               }
+
+           %exception is also name aware---allowing it to be applied to
+           specific declarations in an interface.  For example:
+
+              %exception foo {
+                  ...
+                  exception for any function/method foo
+                  ...
+              }
+
+              %exception Foo::bar {
+                  ...
+                  exception for method bar in class Foo
+                  ...
+              }
+ 
+              %exception Foo::bar(double) {
+                  ...
+                  exception for method bar(double) in class Foo
+                  ...
+              }
+
+           The semantics of this name matching is exactly the same as for %rename.
+           *** NEW FEATURE ***
+           
+12/03/2001:beazley
+           Substantial cleanup of the Python shadow class code.  Shadow classes
+           used to be created in this rather complicated manner involving about
+           a half-dozen strings created in bits and pieces.   Shadow classes
+           are now generated in a more straightforward manner--in the same
+           order that appears in the interface file.
+
+           *** POTENTIAL INCOMPATIBILITY ***
+           The order in which declarations appear in the shadow file may differ.
+           
+12/03/2001:beazley
+           The %insert directive (%{ ... %}, %runtime, %header, %wrapper, etc.)
+           can now be used inside of a class definition.   This has potential
+           uses when generating shadow class code.  For example:
+
+                 class Foo {
+                     ...
+                 %insert("shadow") %{
+                 # Some python code
+                 def blah(self):
+                      print "I'm blah!"
+                 %}
+                     ...
+                 };
+
+           The support for class code insertion depends on the language module.
+           However, the intent of this feature is to simplify the task of extending
+           shadow class code.   In the Python module, this inserts code with the
+           proper level of indendation (regardless of what was used in the SWIG
+           interface).
+           *** NEW FEATURE ***
+
 11/28/2001:beazley
            The %rename and %feature directive can now be used inside
            of a class definition. For example:
