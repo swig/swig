@@ -751,7 +751,6 @@ class JAVA : public Language {
     bool pure_virtual = false;
     bool director_method = false;
     bool feature_director = false;
-    bool recursive_upcall = false;
     bool feature_extend = !Cmp(Getattr(n, "feature:extend"), "1");
     String *director_class = NULL;
     String *director_uargs = NewString("director->swig_get_self()");
@@ -771,9 +770,6 @@ class JAVA : public Language {
       udata = getUpcallMethodData(dirimclass_meth, Getattr(n, "decl")); 
       imclass_methodidx = Getattr(udata, "imclass_methodidx");
       class_methodidx = Getattr(udata, "class_methodidx");
-
-      recursive_upcall = !(Cmp(Getattr(n, "feature:director:recursive"), "1")
-                           && Cmp(Getattr(parent, "feature:director:recursive"), "1"));
     }
 
     if (!Cmp(Getattr(n, "value"), "0"))
@@ -1093,7 +1089,7 @@ class JAVA : public Language {
         upcall_method = getUpcallJNIMethod(jdescrip);
 
         if (upcall_method != NULL) {
-          if (!recursive_upcall) {
+          if (pure_virtual) {
             Printf(f->code, "  if (!director->swig_get_ricochet(%s)) {\n", class_methodidx);
             Printf(f->code, "    director->swig_set_ricochet(%s);\n", class_methodidx);
           }
@@ -1105,22 +1101,12 @@ class JAVA : public Language {
             Printf(f->code, "  jenv->%s(jcls, Swig::director_methids[%s], %s);\n",
                    upcall_method, imclass_methodidx, director_uargs);
 
-          if (!recursive_upcall)
+          if (pure_virtual) {
             Printf(f->code, "    director->swig_clear_ricochet(%s);\n", class_methodidx);
-
-          if (!recursive_upcall) {
             Printf(f->code, "  } else {\n");
-
-            if (!pure_virtual) {
-              Printf(f->code, "    SWIG_JavaThrowException(jenv, SWIG_JavaDirectorRicochet,\n");
-              Printf(f->code, "      \"Recursive loop into director method %s::%s detected.\");\n",
-                     proxy_class_name, Getattr(n, "name"));
-            } else {
-              Printf(f->code, "    SWIG_JavaThrowException(jenv, SWIG_JavaDirectorPureVirtual,\n");
-              Printf(f->code, "      \"Pure virtual director method %s::%s invoked.\");\n",
-                     proxy_class_name, Getattr(n, "name"));
-            }
-
+	    Printf(f->code, "    SWIG_JavaThrowException(jenv, SWIG_JavaDirectorPureVirtual,\n");
+	    Printf(f->code, "      \"Pure virtual director method %s::%s invoked.\");\n",
+		   proxy_class_name, Getattr(n, "name"));
             Printf(f->code, "}");
           }
 
@@ -1664,9 +1650,10 @@ class JAVA : public Language {
       f_proxy = NULL;
 
       /* Output the downcast method, if necessary. Note: There's no other really
-         good place to put this code, since ABCs can and should have downcasts,
-         making the constructorHandler() a bad place. */
-      if (Getattr(n, "feature:director:downcast")) {
+         good place to put this code, since Abstract Base Classes (ABCs) can and should have 
+         downcasts, making the constructorHandler() a bad place (because ABCs don't get to
+	 have constructors emitted.) */
+      if (Getattr(n, "feature:javadowncast")) {
         String *jni_imclass_name = makeValidJniName(imclass_name);
         String *jni_class_name = makeValidJniName(proxy_class_name);
         String *norm_name = SwigType_namestr(Getattr(n, "name"));
@@ -2677,11 +2664,9 @@ class JAVA : public Language {
     ParmList   *l = Getattr(n, "parms");
     bool        is_void = !(Cmp(type, "void"));
     bool        pure_virtual = (!(Cmp(storage, "virtual")) && !(Cmp(value, "0")));
-    bool        is_const = SwigType_isconst(decl) ? true : false;
     int         status = SWIG_OK;
 
     bool        output_director = true;
-    bool        recursive_upcall = false;
     String     *dirclassname = directorClassName(parent);
     String     *qualified_name = NewStringf("%s::%s", dirclassname, name);
     String     *jnidesc = NewString("");
@@ -2713,10 +2698,6 @@ class JAVA : public Language {
     c_classname = Getattr(parent, "name");
     if (!(Cmp(type, "class")))
       c_classname = classname;
-
-    /* Check if the user wants upcall recursion */
-    recursive_upcall = !(Cmp(Getattr(n, "feature:director:recursive"), "1")
-                         && Cmp(Getattr(parent, "feature:director:recursive"), "1"));
 
     /* Handle and form complete return type, including the modification
        to a pointer, if return type is a reference. */
@@ -2896,14 +2877,6 @@ class JAVA : public Language {
       }
 
       Delete(tp);
-    }
-
-    if (!recursive_upcall) {
-      if (!is_const)
-        Printf(w->code, "if (!swig_get_ricochet(%d)) {\n", classmeth_off);
-      else
-        Printf(w->code, "if (!const_cast<%s *>(this)->swig_get_ricochet(%d)) {\n",
-               dirclassname, classmeth_off);
     }
 
     /* Get number of required and total arguments */
@@ -3113,28 +3086,12 @@ class JAVA : public Language {
     String *methid = Getattr(udata, "imclass_methodidx");
     String *methop = getUpcallJNIMethod(jniret_desc);
 
-    if (!recursive_upcall) {
-      if (!is_const)
-        Printf(w->code, "  swig_set_ricochet(%d);\n", classmeth_off);
-      else
-        Printf(w->code, "  const_cast<%s *>(this)->swig_set_ricochet(%d);\n",
-               dirclassname, classmeth_off);
-    }
-
     if (!is_void) {
       Printf(w->code, "jresult = (%s) jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n",
              jniret_type, methop, imclass_name, methid, jupcall_args);
     } else {
       Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n",
              methop, imclass_name, methid, jupcall_args);
-    }
-
-    if (!recursive_upcall) {
-      if (!is_const)
-        Printf(w->code, "swig_clear_ricochet(%d);\n", classmeth_off);
-      else
-        Printf(w->code, "  const_cast<%s *>(this)->swig_clear_ricochet(%d);\n",
-               dirclassname, classmeth_off);
     }
 
     Printf(w->code, "if (jenv->ExceptionOccurred()) return $null;\n");
@@ -3161,14 +3118,6 @@ class JAVA : public Language {
       Delete(tp);
       Delete(jresult_str);
       Delete(result_str);
-    }
-
-    if (!recursive_upcall) {
-      Printf(w->code, "} else {\n");
-      Printf(w->code, "    SWIG_JavaThrowException(jenv, SWIG_JavaDirectorRicochet,\n");
-      Printf(w->code, "      \"Recursive loop into director method %s::%s detected.\");\n",
-             c_classname, name);
-      Printf(w->code, "}\n");
     }
 
     Delete(imclass_desc);
