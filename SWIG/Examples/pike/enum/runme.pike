@@ -15,6 +15,7 @@ int main()
     .example.enum_test(.example.RED,   .example.Foo.IMPULSE);
     .example.enum_test(.example.BLUE,  .example.Foo.WARP);
     .example.enum_test(.example.GREEN, .example.Foo.LUDICROUS);
+    .example.enum_test(1234, 5678);
 
     write("\nTesting use of enum with class method\n");
     .example.Foo f = .example.Foo();
