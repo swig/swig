@@ -347,21 +347,6 @@ void emit_action(Node *n, Wrapper *f) {
   /* Get the return type */
 
   rt = Getattr(n,"type");
-#ifdef OLD
-  if (CPlusPlus && SwigType_isclass(rt)) {
-    SwigType *vt = cplus_value_type(rt);
-    String *s;
-    if (vt) {
-      s = SwigType_lstr(vt,0);
-    } else {
-      s = SwigType_lstr(rt,0);
-    }
-    Insert(action,0," ");
-    Insert(action,0,s);
-    Delete(s);
-    Delete(vt);
-  }
-#endif
 
   /* Preassert -- EXPERIMENTAL */
   tm = Getattr(n,"feature:preassert");

@@ -634,7 +634,7 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
     Node *n;
     String *bname;
     String *prefix;
-    bname = Swig_scopename_base(name);
+    bname = Swig_scopename_last(name);
     prefix = Swig_scopename_prefix(name);
     n = symbol_lookup_qualified(bname,symtab,prefix,local);
     Delete(bname);

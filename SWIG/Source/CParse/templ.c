@@ -197,7 +197,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   }
 
   tname = Copy(Getattr(n,"name"));
-  tbase = Swig_scopename_base(tname);
+  tbase = Swig_scopename_last(tname);
 
   cparse_template_expand(n,tname, rname, templateargs, patchlist, typelist, cpatchlist);
 

@@ -247,14 +247,14 @@ Swig_scopename_prefix(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_scopename_base()
+ * Swig_scopename_last()
  *
- * Take a qualified name like "A::B::C" and returns the base.  In this
+ * Take a qualified name like "A::B::C" and returns the last.  In this
  * case, "C". 
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_scopename_base(String *s) {
+Swig_scopename_last(String *s) {
   char tmp[1024];
   char   *c, *cc;
   if (!Strstr(s,"::")) return NewString(s);
@@ -283,6 +283,83 @@ Swig_scopename_base(String *s) {
   return NewString(cc+2);
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_scopename_first()
+ *
+ * Take a qualified name like "A::B::C" and returns the first scope name.
+ * In this case, "A".   Returns NULL if there is no base.
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_scopename_first(String *s) {
+  char tmp[1024];
+  char   *c;
+  if (!Strstr(s,"::")) return 0;
+  strcpy(tmp,Char(s));
+  c = tmp;
+  while (*c) {
+    if (strncmp(c,"::",2) == 0) {
+      break;
+    } else {
+      if (*c == '<') {
+	int level = 1;
+	c++;
+	while (*c && level) {
+	  if (*c == '<') level++;
+	  if (*c == '>') level--;
+	  c++;
+	}
+      } else {
+	c++;
+      }
+    }
+  }
+  if (*c && (c != tmp)) {
+    *c = 0;
+    return NewString(tmp);
+  } else {
+    return 0;
+  }
+}
+
+
+/* -----------------------------------------------------------------------------
+ * Swig_scopename_suffix()
+ *
+ * Take a qualified name like "A::B::C" and returns the suffix.
+ * In this case, "B::C".   Returns NULL if there is no suffix.
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_scopename_suffix(String *s) {
+  char tmp[1024];
+  char   *c;
+  if (!Strstr(s,"::")) return 0;
+  strcpy(tmp,Char(s));
+  c = tmp;
+  while (*c) {
+    if (strncmp(c,"::",2) == 0) {
+      break;
+    } else {
+      if (*c == '<') {
+	int level = 1;
+	c++;
+	while (*c && level) {
+	  if (*c == '<') level++;
+	  if (*c == '>') level--;
+	  c++;
+	}
+      } else {
+	c++;
+      }
+    }
+  }
+  if (*c && (c != tmp)) {
+    return NewString(c+2);
+  } else {
+    return 0;
+  }
+}
 /* -----------------------------------------------------------------------------
  * Swig_scopename_check()
  *

@@ -1337,7 +1337,7 @@ int Language::constructorDeclaration(Node *n) {
   Swig_save(&n,"sym:name",NULL);
 
   {
-    String *base = Swig_scopename_base(name);
+    String *base = Swig_scopename_last(name);
     if ((Strcmp(base,symname) == 0) && (Strcmp(symname, ClassPrefix) != 0)) {
       Setattr(n,"sym:name", ClassPrefix);
     }
@@ -1358,8 +1358,8 @@ int Language::constructorDeclaration(Node *n) {
       } else {
 	if (Getattr(over,"copy_constructor")) over = Getattr(over,"sym:nextSibling");
 	if (over != n) {
-	  String *oname = NewStringf("%s::%s", ClassName, Swig_scopename_base(SwigType_namestr(name)));
-	  String *cname = NewStringf("%s::%s", ClassName, Swig_scopename_base(SwigType_namestr(Getattr(over,"name"))));
+	  String *oname = NewStringf("%s::%s", ClassName, Swig_scopename_last(SwigType_namestr(name)));
+	  String *cname = NewStringf("%s::%s", ClassName, Swig_scopename_last(SwigType_namestr(Getattr(over,"name"))));
 	  SwigType *decl = Getattr(n,"decl");
 	  Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, input_file, line_number,
 		       "Overloaded constructor ignored.  %s\n", SwigType_str(decl,oname));

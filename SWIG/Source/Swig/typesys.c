@@ -92,7 +92,7 @@ static char cvsroot[] = "$Header$";
  * In this case, "F::" is defined as a scope that "inherits" from Foo.  Internally,
  * "F::" will merely be an empty scope that refers to Foo.  SWIG will never 
  * place new type information into a namespace alias---attempts to do so
- * will generate a warning message (in the parse) and will place information into 
+ * will generate a warning message (in the parser) and will place information into 
  * Foo instead.
  *
  *----------------------------------------------------------------------------- */
@@ -129,10 +129,20 @@ void SwigType_typesystem_init() {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_typedef(SwigType *type, String_or_char *name) {
+  Typetab *SwigType_find_scope(Typetab *, String *s);
   if (Getattr(current_typetab, name)) return -1;   /* Already defined */
   if (Strcmp(type,name) == 0) {                    /* Can't typedef a name to itself */
     return 0;
   }
+  
+  /* Check if 'type' is already a scope */
+  /*  {
+    Typetab *t = SwigType_find_scope(current_scope,type);
+    if (t) {
+      Printf(stdout,"'%s' --> %x\n", type, t);
+    }
+  }
+  */
   Setattr(current_typetab,name,type);
   return 0;
 }
@@ -297,8 +307,8 @@ void SwigType_print_scope(Typetab *t) {
   }
 }
 
-static Typetab *
-find_scope(Typetab *s, String *nameprefix) {
+Typetab *
+SwigType_find_scope(Typetab *s, String *nameprefix) {
   Typetab *ss;
   String  *nnameprefix = 0;
 
@@ -418,15 +428,15 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	/* Printf(stdout,"nameprefix = '%s'\n", nameprefix); */
 	if (nameprefix) {
 	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
-	  s = find_scope(s,nameprefix);
-	  /* Couldn't locate a scope for the type.  Bail */
+	  s = SwigType_find_scope(s,nameprefix);
+	  /* Couldn't locate a scope for the type.  */
 	  if (!s) {
 	    Delete(base);
 	    Delete(nameprefix);
 	    return 0;
 	  }
 	  /* Try to locate the name starting in the scope */
-	  namebase = Swig_scopename_base(base);
+	  namebase = Swig_scopename_last(base);
 	  /* Printf(stdout,"namebase = '%s'\n", namebase); */
 	  type = typedef_resolve(s,namebase);
 	  /* Printf(stdout,"%s type = '%s'\n", Getattr(s,"name"), type); */
@@ -721,7 +731,7 @@ int SwigType_typedef_using(String_or_char *name) {
   String *defined_name = 0;
 
   if (!Swig_scopename_check(name)) return -1;     /* Not properly qualified */
-  base   = Swig_scopename_base(name);
+  base   = Swig_scopename_last(name);
 
   /* See if the base is already defined in this scope */
 
@@ -748,7 +758,7 @@ int SwigType_typedef_using(String_or_char *name) {
   /* Figure out the scope the using directive refers to */
   {
     prefix = Swig_scopename_prefix(name);
-    s = find_scope(current_scope,prefix);
+    s = SwigType_find_scope(current_scope,prefix);
     if (s) {
       Hash *ttab = Getattr(s,"typetab");
       if (!Getattr(ttab,base) && defined_name) {

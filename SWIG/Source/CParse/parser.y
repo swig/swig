@@ -1786,7 +1786,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		    String *prefix, *base;
 		    Node   *ns;
 		    prefix = Swig_scopename_prefix($5);
-		    base = Swig_scopename_base($5);
+		    base = Swig_scopename_last($5);
 		    
 		    /* Try to locate the scope */
 		    ns = Swig_symbol_clookup(prefix,0);
@@ -1810,7 +1810,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		      scopes = NewList();
 		      while (name) {
 			String *tprefix;
-			String *base = Swig_scopename_base(name);
+			String *base = Swig_scopename_last(name);
 			Insert(scopes,0,base);
 			tprefix = Swig_scopename_prefix(name);
 			Delete(name);
@@ -2635,7 +2635,7 @@ template_parms  : rawparms {
 cpp_using_decl : USING idcolon SEMI {
                   $$ = new_node("using");
 		  Setattr($$,"uname",$2);
-		  Setattr($$,"name", Swig_scopename_base($2));
+		  Setattr($$,"name", Swig_scopename_last($2));
 		  add_symbols($$);
 		  /*			  
                   Node *n = Swig_symbol_clookup($2,0);
