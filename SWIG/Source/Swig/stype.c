@@ -453,24 +453,9 @@ StringType_cstr(DOHString *s, DOHString_or_char *id)
       }
       Append(result,")");
       Delete(parms);
-    } else if (StringType_isstruct(element)) {
-      DOH *members, *m;
-      int j, mlen;
-      Append(result,"{");
-      members = StringType_split_struct(element);
-      mlen = Len(members);
-      for (j = 0; j < mlen; j++) {
-	m = StringType_cstr(Getitem(members,j),0);
-	Append(result,m);
-	if (j < (mlen-1)) Append(result,";");
-	Delete(m);
-      }
-      Append(result,"}");
-      Delete(members);
     } else if (StringType_isqualifier(element)) {
       Insert(result,0, " ");
       Insert(result,0,Char(element)+1);
-
     } else {
       Insert(result,0," ");
       Insert(result,0,element);
