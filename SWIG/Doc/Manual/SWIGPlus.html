@@ -369,9 +369,10 @@ In order for the wrapper code to compile, <tt>Vector</tt> must define a copy con
 constructor.
 
 <p>
-If <tt>Vector</tt> is defined as class in the interface, SWIG changes
-the wrapper code by encapsulating the arguments inside a special C++
-template wrapper class.  This produces a wrapper that looks like this:
+If <tt>Vector</tt> is defined as class in the interface, but it does
+not support a default constructor, SWIG changes the wrapper code by
+encapsulating the arguments inside a special C++ template wrapper
+class.  This produces a wrapper that looks like this:
 
 <blockquote>
 <pre>
@@ -388,21 +389,19 @@ This transformation is a little sneaky, but it provides support for
 pass-by-value even when a class does not provide a default constructor
 and it makes it possible to properly support a number of SWIG's
 customization options.  The definition of <tt>SwigValueWrapper</tt>
-can be found by reading the SWIG wrapper code. This class is really nothing more than a thin wrapper
-around a pointer. 
+can be found by reading the SWIG wrapper code. This class is really nothing more than a thin
+wrapper around a pointer. 
 
 <p>
 <b>Note:</b> this transformation has no effect on typemaps
 or any other part of SWIG---it should be transparent except that you
-will see this code when reading the SWIG output file.
+may see this code when reading the SWIG output file.
 
 <p>
 <b>
 Note: </b>This template transformation is new in SWIG-1.3.11 and may be refined in
 future SWIG releases.  In practice, it is only necessary to do this for
-classes that don't define a default constructor.  However, SWIG sometimes applies the
-transformation when it's not needed (this would occur if a declaration involving a value was wrapped
-before SWIG was able to determine if a class had a default constructor or not).
+classes that don't define a default constructor.  
 
 <p>
 <b>Note:</b> The use of this template only occurs when objects are passed or returned by value.
@@ -507,6 +506,58 @@ Although the low-level C-like interface is functional, most language
 modules also produce a higher level OO interface using a technique
 known as shadow classing.  This approach is described shortly and can be
 used to provide a more natural C++ interface.
+
+<p>
+<b>Note:</b>  For the best results, SWIG requires all
+base classes to be defined in an interface.  Otherwise, you may get an
+warning message like this:
+
+<blockquote>
+<pre>
+example:18. Nothing known about class 'Foo'. Ignored.
+</pre>
+</blockquote>
+
+If any base class is undefined, SWIG still generates correct type
+relationships.  For instance, a function accepting a <tt>Foo *</tt>
+will accept any object derived from <tt>Foo</tt> regardless of whether
+or not SWIG actually wrapped the <tt>Foo</tt> class.  If you really
+don't want to generate wrappers for the base class, but you want to
+silence the warning, you might consider using the <tt>%import</tt>
+directive to include the file that defines <tt>Foo</tt>.
+<tt>%import</tt> simply gathers type information, but doesn't generate
+wrappers.  Alternatively, you could just define <tt>Foo</tt> as an empty class
+in the SWIG interface.
+
+<p>
+<b>Note:</b> <tt>typedef</tt>-names <em>can</em> be used as base classes.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+...
+};
+
+typedef Foo FooObj;
+class Bar : public FooObj {     // Ok.  Base class is Foo
+...
+};
+</pre>
+</blockquote>
+
+Similarly, <tt>typedef</tt> allows unnamed structures to be used as base classes. For example:
+
+<blockquote>
+<pre>
+typedef struct {
+   ...
+} Foo;
+
+class Bar : public Foo {    // Ok. 
+...
+};
+</pre>
+</blockquote>
 
 <p>
 <b>Compatibility Note:</b> Starting in version 1.3.7, SWIG only
@@ -1848,9 +1899,13 @@ of your project.
 
 <h2>Where to go for more information</h2>
 
+If you're wrapping serious C++ code, you might want to pick up a copy
+of "The Annotated C++ Reference Manual" by Ellis and Stroustrup.  This
+is the reference document we use to help guide a lot of SWIG's C++ support.
+
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : December 30, 2001</address>
+<address>SWIG 1.3 - Last Modified : March 17, 2002</address>
 </body>
 </html>
 

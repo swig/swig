@@ -1,0 +1,326 @@
+<html>
+<head>
+<title>Variable Length Arguments</title>
+</head>
+
+<body bgcolor="#ffffff">
+<h1>Variable Length Arguments</h1>
+
+<b>(a.k.a, "The horror. The horror.")</b>
+
+<p>
+
+This chapter describes the problem of wrapping functions that take a
+variable number of arguments. For instance, generating wrappers for
+the C <tt>printf()</tt> family of functions.
+
+<p>
+This topic is sufficiently advanced to merit its own chapter.  In
+fact, support for varargs is an often requested feature that was first
+added in to SWIG-1.3.12.  Most other wrapper generation tools have
+wisely chosen to avoid this issue.
+
+<h2>Introduction</h2>
+
+Some C and C++ programs may include functions that accept a variable
+number of arguments.  For example, in the C library most programmers are
+familiar with functions such as the following:
+
+<blockquote>
+<pre>
+int printf(const char *fmt, ...)
+int fprintf(FILE *, const char *fmt, ...);
+int sprintf(char *s, const char *fmt, ...);
+</pre>
+</blockquote>
+
+Although there is probably little practical purpose in wrapping these
+C library functions in a scripting language (what would be the
+point?), a library may include its own set of special functions based
+on a similar API. For example:
+
+<blockquote>
+<pre>
+void fatalerror(const char *fmt, ...);
+int  traceprintf(const char *fmt, ...);
+</pre>
+</blockquote>
+
+In this case, there may be a more compelling reason to have access from
+the target language.
+
+<p>
+Before describing the SWIG implementation, it is important to discuss
+the common uses of varargs that you are likely to encounter in real
+programs.  First, there are the <tt>printf()</tt> style output
+functions as just shown. A closely related version of this are
+<tt>scanf()</tt> style functions that accept a format string and a
+list of pointers into which return values are placed.  Finally, it is
+somewhat common to see varargs functions that simply take a list of
+NULL-terminated pointers.  For example, a function might take a
+collection of string arguments and create a list object using a
+function like this.
+
+<blockquote>
+<pre>
+List *make_list(char *s, ...);
+...
+List *l = make_list("Foo","Bar","Spam", x, z, NULL);
+...
+</pre>
+</blockquote>
+
+To implement a varargs function, you typically use the C library functions
+defined in <tt>&lt;stdarg.h&gt;</tt>.  For example:
+
+<blockquote>
+<pre>
+List *make_list(char *s, ...) {
+    va_list ap;
+    List    *x = new List();
+    ...
+    va_start(ap, s);
+    while (s) {
+       x.append(s);
+       s = va_arg(ap, char *);
+    }
+    va_end(ap);
+    return x;
+}
+</pre>
+</blockquote>
+
+<h2>The Problem</h2>
+
+Although C provides support for implementing functions that receive
+variable length arguments, there are no standard library functions
+that go in the other direction.  Specifically, you can't write a
+function that dynamically creates a list of arguments and which
+calls a varargs function for you.  
+
+<p>
+Although it is possible to write functions that accept the special
+type <tt>va_list</tt>, this is something entirely different.  You
+can't take a <tt>va_list</tt> structure and pass it in place of the
+variable length arguments to another varargs function.  It just doesn't work.
+
+<p>
+The reason this doesn't work has to do with the way that compilers implement
+function calls.  For example, suppose that your program has a function call like this:
+
+<blockquote>
+<pre>
+printf("Hello %s. Your number is %d\n", name, num);
+</pre>
+</blockquote>
+
+When compiled, the compiler knows that you are calling
+<tt>printf()</tt> with exactly three arguments.  Furthermore, it knows
+that the number of arguments is <em>never</em> going to change
+during program execution.   Therefore, the function call is compiled
+into machine code that sets up a three-argument stack frame followed by a 
+call to <tt>printf()</tt>.
+
+<p>
+In contrast, suppose you tried to make a wrapper around <tt>printf()</tt> using
+code like this:
+
+<blockquote>
+<pre>
+int wrap_printf(const char *fmt, ...) {
+   va_list ap;
+   va_start(ap,fmt);
+   ...
+   printf(fmt,ap);
+   ...
+   va_end(ap);
+};
+</blockquote>
+</pre>
+
+Athough this code might compile, it won't do what you expect. This is
+because the call to <tt>printf()</tt> is compiled as a procedure call
+involving only two arguments.   However, an arbitrary number of arguments
+could have been received by the wrapper.  Clearly, a two-argument configuration of
+the call stack is completely wrong if your intent is to pass an arbitrary number of arguments
+to the real <tt>printf()</tt>.  Needless to say, your program will probably crash and burn.
+
+<p>
+Unfortunately, the situation just described is exactly the problem
+faced by wrapper generation tools.  In general, the number of passed
+arguments will not be known until run-time.  However, there is simply
+no way for the C compiler to generate code for a function call
+involving an unknown number of function arguments.
+
+<p>
+In theory, it <em>is</em> possible to write a wrapper that does the right thing.
+However, this would involve knowing the underlying ABI for the target platform and language
+as well as writing special purpose code that manually constructed the call stack before 
+making a procedure call.  Unfortunately, both of these tasks would require the use of inline
+assembly code.  Clearly, this isn't pretty.
+
+<p>
+With this nastiness in mind, SWIG provides a number of solutions to the varargs 
+wrapping problem.  Most of these solutions are compromises that provide limited
+varargs support without having to resort to assembly language.   However, SWIG
+can also support real varargs wrapping (with stack-frame manipulation) if you
+are willing to get hands dirty.  Keep reading.
+
+<h2>Default varargs support</h2>
+
+When variable length arguments appear in an interface, the default
+behavior is to drop the variable argument list entirely, replacing
+them with a single NULL pointer.  For example, if you had this
+function,
+
+<blockquote>
+<pre>
+void traceprintf(const char *fmt, ...);
+</pre>
+</blockquote>
+
+it would be wrapped as if it had been declared as follows:
+
+<blockquote>
+<pre>
+void traceprintf(const char *fmt);
+</pre>
+</blockquote>
+
+When the function is called inside the wrappers, it is called as follows:
+
+<blockquote>
+<pre>
+traceprintf(arg1, NULL);
+</pre>
+</blockquote>
+
+Arguably, this approach seems to defeat the whole point of variable length arguments.  However,
+this actually provides enough support for many simple varargs functions to still be useful.  For
+instance, you could make function calls like this (in Python):
+
+<blockquote>
+<pre>
+>>> traceprintf("Hello World")
+>>> traceprintf("Hello %s. Your number is %d\n" % (name, num))
+</pre>
+</blockquote>
+
+Notice how string formatting is being done in Python instead of C. 
+
+<p>
+The NULL termination of the arguments also covers the common case of a function
+receiving a NULL-terminated list of pointers.
+
+<h2>Argument replacement using %varargs</h2>
+
+Instead of dropping the variable length arguments, an alternative approach is to replace
+<tt>(...)</tt> with a set of suitable arguments.   The <tt>%varargs</tt> directive can be
+used to do this.  For example,
+
+<blockquote>
+<pre>
+%varargs(char *x=NULL,char *x=NULL, char *x=NULL) traceprintf;
+
+void traceprintf(const char *fmt, ...);
+</pre>
+</blockquote>
+
+is the same as saying this:
+
+<blockquote>
+<pre>
+void traceprintf(const char *fmt, char *x = NULL, char *x = NULL, char *x = NULL);
+</pre>
+</blockquote>
+
+In this case, the <tt>traceprintf()</tt> function would accept up to
+three optional string arguments.
+
+<p>
+A shorthand way to achieve the same effect is to supply a numerical argument like this:
+
+<blockquote>
+<pre>
+%varargs(3, char *x = NULL) traceprintf;
+
+// Accepts up to 3 variable arguments
+void traceprintf(const char *fmt, ...);
+
+%varargs(50, char *x = NULL) make_list;
+
+// Accepts up to 50 arguments
+List *make_list(char *s, ...);
+</pre>
+</blockquote>
+
+Argument replacement is most appropriate in cases where the types of
+the extra arguments is uniform and the maximum number of arguments is
+known.  When replicated argument replacement is used, at least one extra
+argument is added to the end of the arguments when making the function call. 
+This argument serves as a sentinel to make sure the list is properly terminated.
+It has the same value as that supplied to the <tt>%varargs</tt> directive.
+
+<p>
+Argument replacement is not as useful when working with functions that accept
+mixed argument types such as <tt>printf()</tt>.  Providing general purpose
+wrappers to such functions presents special problems (covered shortly).  
+
+<h2>Varargs and typemaps</h2>
+
+Variable length arguments may be used in typemap specifications.  For example:
+
+<blockquote>
+<pre>
+%typemap(in) (...) {
+    // Get variable length arguments (somehow)
+    ...
+}
+
+%typemap(in) (const char *fmt, ...) {
+    // Multi-argument typemap
+}
+</pre>
+</blockquote>
+
+When <tt>(...)</tt> is used in a typemap, its local type is set to
+<tt>void *</tt> (mostly for lack of a better alternative).  Since there
+is no way to dynamically pass arguments to a varargs function, the 
+<tt>void *</tt> argument value is primarily intended to be serve as a place holder
+for storing data about extra arguments.  However, the <tt>void *</tt> value
+is still passed to the underlying varargs function and can be used to set an
+argument value.
+
+<p>
+To illustrate, here is a safer version of wrapping <tt>printf()</tt> in Python:
+
+<blockquote>
+<pre>
+%typemap(in) (const char *fmt, ...) {
+    $1 = "%s";                                /* Fix format string to %s */
+    $2 = (void *) PyString_AsString($input);  /* Get string argument */
+};
+...
+int printf(const char *fmt, ...);
+</pre>
+</blockquote>
+
+In this example, the format string is implicitly set to <tt>"%s"</tt>.
+This prevents a program from passing a bogus format string to the
+extension.  Then, the passed input object is decoded and placed in the
+<tt>void *</tt> defined for the <tt>(...)</tt> argument.  In the end,
+both arguments are passed to the function and it does what you would
+expect.  Has your head exploded yet?
+
+<p>
+To be continued...
+
+<p><hr>
+
+<address>SWIG 1.3 - Last Modified : March 17, 2002</address>
+</body>
+</html>
+
+
+
+
