@@ -69,6 +69,7 @@ skip-guile	= [ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
 skip-mzscheme	= [ -z "@MZC@" ]
 skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
 skip-php4	= [ -z "@PHP4BIN@" -o -z "@PHP4INC@" ]
+skip-ocaml      = [ -z "@OCAMLBIN@" -o -z "@OCAMLINC@" ]
 
 #####################################################################
 # Runtime libraries
@@ -82,6 +83,7 @@ runtime:
 	@-$(skip-guile) || (cd Runtime; $(MAKE) guile)
 	@-$(skip-mzscheme) || (cd Runtime; $(MAKE) mzscheme)
 	@-$(skip-php4) || (cd Runtime; $(MAKE) php4)
+	@-$(skip-ocaml) || (cd Runtime; $(MAKE) ocaml)
 
 #####################################################################
 # CHECK
@@ -104,6 +106,7 @@ check-aliveness:
 	@$(skip-guile) || ./$(TARGET) -guile -help
 	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
 	@$(skip-ruby) || ./$(TARGET) -ruby -help
+	@$(skip-ocaml) || ./$(TARGET) -ocaml -help
 
 TCL_EXAMPLES = class constants enum funcptr import multimap operator pointer reference simple value variables
 PERL5_EXAMPLES = class constants constants2 funcptr import multimap pointer reference shadow simple value variables
@@ -536,6 +539,13 @@ install-lib:
             ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/php4/$$i; \
 	    done;
 
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/ocaml
+	@cd $(srcdir)/Lib/ocaml; for i in *.i *.swg; \
+	    do \
+	    echo "Installing Lib/ocaml/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/ocaml/$$i; \
+	    done;
+
 install-runtime:
 	@cd Runtime; $(MAKE) install
 
@@ -543,10 +553,10 @@ install-runtime:
 ##################################################################### 
 # TARGETS: uninstall & friends 
 ##################################################################### 
- 
+
 uninstall: uninstall-main uninstall-lib uninstall-runtime 
 	@echo "Uninstall complete" 
- 
+
 uninstall-main: 
 	@echo "Uninstalling $(BIN_DIR)/swig" 
 	@if [ -f swig.exe ]; then                                               \
@@ -554,14 +564,14 @@ uninstall-main:
 	else                                                                    \
 		rm -f $(DESTDIR)$(BIN_DIR)/$(TARGET);  \
 	fi 
- 
+
 uninstall-lib: 
 	@echo "Uninstalling the SWIG library" 
 	rm -rf $(DESTDIR)$(SWIG_LIB)/; 
- 
+
 uninstall-runtime: 
 	@cd Runtime; $(MAKE) uninstall 
- 
+
 
 ############################################################################
 # DIST and other maintenance
