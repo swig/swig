@@ -1858,6 +1858,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		      SwigType *ty = Getattr(p,"type");
 		      if (ty) {
 			ty = Swig_symbol_type_qualify(ty,0);
+			ty = Swig_symbol_typedef_reduce(ty,0);
 			Setattr(p,"type",ty);
 		      }
 		    }
