@@ -36,8 +36,8 @@ public class runme {
     Console.WriteLine( "uivar     =" + example.uivar );
     Console.WriteLine( "usvar     =" + example.usvar );
     Console.WriteLine( "ulvar     =" + example.ulvar );
-    Console.WriteLine( "scvar     =" + (int)example.scvar ); // cast for pnet compiler bug
-    Console.WriteLine( "ucvar     =" + (int)example.ucvar ); // cast for pnet compiler bug
+    Console.WriteLine( "scvar     =" + example.scvar );
+    Console.WriteLine( "ucvar     =" + example.ucvar );
     Console.WriteLine( "fvar      =" + example.fvar );
     Console.WriteLine( "dvar      =" + example.dvar );
     Console.WriteLine( "cvar      =" + example.cvar );
