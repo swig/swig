@@ -26,6 +26,10 @@ extern "C" {
 /* Exception handling in wrappers */
 #define SWIG_fail   goto fail
 
+#ifndef SWIG_NO_COBJECT_TYPES
+#define SWIG_COBJECT_TYPES
+#endif
+
 /* Constant information structure */
 typedef struct swig_const_info {
     int type;
@@ -65,8 +69,8 @@ SWIGIMPORT(PyObject *)        SWIG_Python_NewPointerObj(void *, swig_type_info *
 SWIGIMPORT(void *)            SWIG_Python_MustGetPtr(PyObject *, swig_type_info *, int, int);
 SWIGIMPORT(PyObject *)        SWIG_Python_newvarlink(void);
 SWIGIMPORT(void)              SWIG_Python_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
-SWIGIMPORT(int)               SWIG_Python_ConvertPacked(PyObject *, void *, int sz, swig_type_info *, int);
-SWIGIMPORT(PyObject *)        SWIG_Python_NewPackedObj(void *, int sz, swig_type_info *);
+SWIGIMPORT(int)               SWIG_Python_ConvertPacked(PyObject *, void *, size_t sz, swig_type_info *, int);
+SWIGIMPORT(PyObject *)        SWIG_Python_NewPackedObj(void *, size_t sz, swig_type_info *);
 SWIGIMPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]);
 
 
@@ -303,8 +307,8 @@ type_error:
   if (flags & SWIG_POINTER_EXCEPTION) {
     if (ty && c) {
       PyErr_Format(PyExc_TypeError, 
-		   "Type error. Got %s, expected %s",
-		   c, ty->name);
+		   "Type error. Got '%s', expected '%s'",
+		   c, SWIG_TypePrettyName(ty));
     } else {
       PyErr_SetString(PyExc_TypeError,"Expected a pointer");
     }
@@ -316,13 +320,20 @@ type_error:
 SWIGRUNTIME(void *)
 SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags) {
   void *result;
-  SWIG_Python_ConvertPtr(obj, &result, ty, flags | SWIG_POINTER_EXCEPTION);
+  if (SWIG_Python_ConvertPtr(obj, &result, ty, flags) == -1) {
+    if (flags & SWIG_POINTER_EXCEPTION) {
+      PyErr_Clear();
+      PyErr_Format(PyExc_TypeError, 
+		   "Type error in argument %i: expected a pointer of type '%s'.",
+		   argnum, SWIG_TypePrettyName(ty));
+    }
+  }
   return result;
 }
 
 /* Convert a packed value value */
 SWIGRUNTIME(int)
-SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
+SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *ty, int flags) {
   swig_type_info *tc;
   char  *c = 0;
 
@@ -343,8 +354,8 @@ type_error:
   if (flags) {
     if (ty && c) {
       PyErr_Format(PyExc_TypeError, 
-		   "Type error. Got %s, expected %s",
-		   c, ty->name);
+		   "Type error. Got '%s', expected '%s'",
+		   c, SWIG_TypePrettyName(ty));
     } else {
       PyErr_SetString(PyExc_TypeError,"Expected a pointer");
     }
@@ -390,7 +401,7 @@ SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int own) {
 }
 
 SWIGRUNTIME(PyObject *)
-SWIG_Python_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
+SWIG_Python_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
   char result[1024];
   char *r = result;
   if ((2*sz + 1 + strlen(type->name)) > 1000) return 0;

@@ -4,19 +4,18 @@
 
 /* Pointers, references, and arrays */
 
-%typemap(in) SWIGTYPE *, SWIGTYPE []
-  "if ((SWIG_ConvertPtr($input,(void **)(&$1),$1_descriptor,
-             SWIG_POINTER_EXCEPTION | $disown)) == -1) SWIG_fail;";
+%typemap(in) SWIGTYPE *, SWIGTYPE [] 
+  "$1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, SWIG_POINTER_EXCEPTION | $disown);
+   if (PyErr_Occurred()) SWIG_fail;";
 
 %typemap(in) SWIGTYPE *DISOWN 
-  "if ((SWIG_ConvertPtr($input,(void **)(&$1),$1_descriptor,
-             SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN)) == -1) SWIG_fail;";
+  "$1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN);
+   if (PyErr_Occurred()) SWIG_fail;";
 
 /* Additional check for null references */
 %typemap(in) SWIGTYPE & 
-  "if ((SWIG_ConvertPtr($input,(void **)(&$1),$1_descriptor,
-             SWIG_POINTER_EXCEPTION | $disown)) == -1)
-     SWIG_fail;
+  "$1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, SWIG_POINTER_EXCEPTION | $disown);
+   if (PyErr_Occurred()) SWIG_fail;
    if ($1 == NULL) {
      PyErr_SetString(PyExc_TypeError,\"null reference\");
      SWIG_fail;
