@@ -32,7 +32,7 @@ static char *shadow_classname;
 
 static Wrapper	*f_c;
 static Wrapper  *f_php;
-static int	gen_extra = 1;
+static int	gen_extra = 0;
 
 static FILE	  *f_shadow= 0;
 
@@ -499,7 +499,15 @@ PHP4::top(Node *n) {
   /* start the init section */
   if (gen_extra)
 	Printf(s_init,"#ifdef COMPILE_DL_%s\n", cap_module);
-  Printf(s_init,"ZEND_GET_MODULE(%s)\n", module);
+  Printf(s_init,
+	"#ifdef __cplusplus\n"
+  	"extern \"C\" {\n"
+	"#endif\n"
+	"ZEND_GET_MODULE(%s)\n"
+	"#ifdef __cplusplus\n"
+	"}\n"
+	"#endif\n\n",
+	module);
   if (gen_extra)
 	Printf(s_init,"#endif\n\n");
 
@@ -517,6 +525,12 @@ PHP4::top(Node *n) {
   /* finish our init section */
   Printf(s_cinit, "/* end cinit subsection */\n");
   Printf(s_vinit, "/* end vinit subsection */\n");
+
+  /* We need this after all classes written out, not sure where to put it
+   * but here.
+   */
+  Printf(s_oinit, "CG(active_class_entry) = NULL;\n");	
+
   Printf(s_oinit, "/* end oinit subsection */\n");
   Printf(s_init,"PHP_RINIT_FUNCTION(%s)\n{\n", module);
   Printf(s_init, "%s\n%s\n%s\n", s_cinit, s_vinit, s_oinit);
@@ -1408,6 +1422,13 @@ void
 PHP4::emit_shadow_classdef() {
 	String *baseclass = NULL;
 
+	// Include Base class definition
+	
+	if(this_shadow_baseclass && *Char(this_shadow_baseclass))
+		Printf(shadow_classdef, 
+		      "include(\"%s.php3\");\n",
+		      this_shadow_baseclass);
+
 	// Import statements
 	if(all_shadow_import)
 		Printf(shadow_classdef, "%s", all_shadow_import);
@@ -1448,24 +1469,9 @@ PHP4::emit_shadow_classdef() {
 	// SWIG shadow class.
 	
 	if(baseclass && is_shadow(baseclass)) {
-		Printv(shadow_classdef,
-		" public $class($cPointer, $cMemoryOwn) {\n",
-		"        $this->parent($cPointer, $cMemoryOwn);\n",
-		"  }\n",
-		"\n", 0);
-
-		if(!have_default_constructor) {
-			Printv(shadow_classdef,
-			" function $class() {\n",
-			"   }\n",
-			"\n", 0);
-		}
-
 		// Control which super constructor is called -
 		// we don't want 2 malloc/new c/c++ calls
-		Replace(shadow_code, "$superconstructorcall", "    super(0, false);\n", DOH_REPLACE_ANY);
-	}
-	else {
+	} else {
 		Printv(shadow_classdef,
 		" var $_cPtr;\n",
 		" var $_cMemOwn;\n",
@@ -1477,7 +1483,6 @@ PHP4::emit_shadow_classdef() {
 
 		// No explicit super constructor call as this class does not
 		// have a SWIG base class.
-		Replace(shadow_code,"$superconstructorcall","",DOH_REPLACE_ANY);
 	}
 
 	Replace(shadow_classdef, "$class", shadow_classname, DOH_REPLACE_ANY);
@@ -1522,7 +1527,6 @@ int PHP4::classHandler(Node *n) {
 
 		emit_banner(f_shadow);
 
-		Printf(f_shadow, "dl(\"%s.so\");\n", module);
 
 		Clear(shadow_classdef);
 		Clear(shadow_code);
@@ -1532,10 +1536,6 @@ int PHP4::classHandler(Node *n) {
 		this_shadow_baseclass = NewString("");
 		this_shadow_extra_code = NewString("");
 		this_shadow_import = NewString("");
-	}
-
-
-	if(shadow) {
 
 		/* Deal with inheritance */
 		List *baselist = Getattr(n, "bases");
@@ -1550,36 +1550,38 @@ int PHP4::classHandler(Node *n) {
 				Printf(stderr, "Error: %s inherits from multiple base classes. Multiple inheritance is not supported by SWIG. Or PHP.\n", shadow_classname);
 			}
 		} else { // XXX Must be base class ?
-		/* Write out class init code */
+		  /* Write out class init code */
 
-		Printf(s_oinit, "{\nzend_class_entry *ce;\n");
-		Printf(s_oinit, "CG(class_entry).type = ZEND_USER_CLASS;\n");
-		Printf(s_oinit, "CG(class_entry).name = estrdup(\"%s\");\n", package);
-		Printf(s_oinit, "CG(class_entry).name_length = strlen(\"%s\");\n", package);
-		Printf(s_oinit, "CG(class_entry).refcount = (int *) emalloc(sizeof(int));\n");
-		Printf(s_oinit, "*CG(class_entry).refcount = 1;\n");
-		Printf(s_oinit, "CG(class_entry).constants_updated = 0;\n");
+		  Printf(s_oinit, "{\nzend_class_entry *ce;\n");
+		  Printf(s_oinit, "CG(class_entry).type = ZEND_USER_CLASS;\n");
+		  Printf(s_oinit, "CG(class_entry).name = estrdup(\"%s\");\n", package);
+		  Printf(s_oinit, "CG(class_entry).name_length = strlen(\"%s\");\n", package);
+		  Printf(s_oinit, "CG(class_entry).refcount = (int *) emalloc(sizeof(int));\n");
+		  Printf(s_oinit, "*CG(class_entry).refcount = 1;\n");
+		  Printf(s_oinit, "CG(class_entry).constants_updated = 0;\n");
 
-		/* XXX do this ourselves */
+		  /* XXX do this ourselves */
 
-		Printf(s_oinit, "zend_str_tolower(CG(class_entry).name, CG(class_entry).name_length);\n");
+		  Printf(s_oinit, "zend_str_tolower(CG(class_entry).name, CG(class_entry).name_length);\n");
 	
-		/* Init class function hash */
+		  /* Init class function hash */
 		
-		Printf(s_oinit, "zend_hash_init(&CG(class_entry).function_table, 10, NULL, ZEND_FUNCTION_DTOR, 0);\n");
-		Printf(s_oinit, "zend_hash_init(&CG(class_entry).default_properties, 10, NULL, ZVAL_PTR_DTOR, 0);\n");
+		  Printf(s_oinit, "zend_hash_init(&CG(class_entry).function_table, 10, NULL, ZEND_FUNCTION_DTOR, 0);\n");
+		  Printf(s_oinit, "zend_hash_init(&CG(class_entry).default_properties, 10, NULL, ZVAL_PTR_DTOR, 0);\n");
 
-		/* XXX Handle inheritance ? */
+		  /* XXX Handle inheritance ? */
 
-		Printf(s_oinit, "CG(class_entry).handle_function_call = NULL;\n");
-		Printf(s_oinit, "CG(class_entry).handle_property_set = NULL;\n");
-		Printf(s_oinit, "CG(class_entry).handle_property_get = NULL;\n");
+		  Printf(s_oinit, "CG(class_entry).handle_function_call = NULL;\n");
+		  Printf(s_oinit, "CG(class_entry).handle_property_set = NULL;\n");
+		  Printf(s_oinit, "CG(class_entry).handle_property_get = NULL;\n");
 
-		/* Save class in class table */
-		Printf(s_oinit, "zend_hash_update(CG(class_table), \"%s\", strlen(\"%s\")+1, &CG(class_entry), sizeof(zend_class_entry), (void **) &CG(active_class_entry));\n", package, package);
+		  /* Save class in class table */
+		  Printf(s_oinit, "zend_hash_update(CG(class_table), \"%s\", strlen(\"%s\")+1, &CG(class_entry), sizeof(zend_class_entry), (void **) &CG(active_class_entry));\n", package, package);
 
-		Printf(s_oinit, "}\n");
+		  Printf(s_oinit, "}\n");
 
+		  /* Load module in base class */
+		  Printf(f_shadow, "dl(\"%s.so\");\n", module);
 		}
 
 		Language::classHandler(n);
@@ -1603,7 +1605,6 @@ int PHP4::classHandler(Node *n) {
 		free(shadow_classname);
 		shadow_classname = NULL;
 
-		Printf(s_oinit, "CG(active_class_entry) = NULL;\n");
 
 		Delete(shadow_enum_code); shadow_enum_code = NULL;
 		Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
@@ -1765,7 +1766,6 @@ int PHP4::constructorHandler(Node *n) {
 		 Printf(s_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"new_%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+5);
 		Printf(shadow_code, " function %s(", shadow_classname);
 
-		Printv(nativecall, "$superconstructorcall", 0); // Super call for filling in later.
 		if(iname != NULL)
 			Printv(nativecall, tab4, "$this->_cPtr = ", package, "::", Swig_name_construct(iname), "(", 0);
 		else
@@ -1859,6 +1859,7 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	String *nativecall = NewString("");
 	String *user_arrays = NewString("");
 	String *lower;
+	int gencomma = 0;
 
 	if(!shadow) return;
 
@@ -1926,19 +1927,26 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 
 	    Printf(nativecall, ", ");
 
+	    if(gencomma) 
+		    Printf(shadow_code, ",");
+
+	    gencomma = 1;
+
 	    if(is_shadow(pt)) {
 		Printv(nativecall, arg, ".getCPtr()", 0);
 	    } else {
 		Printv(nativecall, "$", arg, 0);
 	    }
 
-	    /* Get the php type of the parameter */
+	    /* Get the php type of the parameter  - XXX not needed, all var
 
 	    SwigToPhpType(pt, pn, phpparamtype, shadow);
 
+	    */
+
 	    /* Add to php shadow function header */
 
-	    Printf(shadow_code, "%s $%s", phpparamtype, arg);
+	    Printf(shadow_code, "$%s", arg);
 
 	    Delete(phpparamtype);
 	}
