@@ -1,21 +1,25 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.5 [en] (X11; I; IRIX 6.2 IP22) [Netscape]">
+<title>SWIG and Java</title>
 </head>
 <body bgcolor="#FFFFFF">
+<a name="n0"></a><h1>SWIG and Java</h1><p><ul>
+<li> <a href="#n1">Introduction</a>
+<li> <a href="#n2">Usage</a>
+<li> <a href="#n3">Quick Introduction</a>
+<li> <a href="#n4">Argument mapping</a>
+<li> <a href="#n5">Typemaps</a>
+<li> <a href="#n6">Pragmas</a>
+<li> <a href="#n7">Shadow Classes and Garbage Collection</a>
+<li> <a href="#n8">Dynamic Linking Problems</a>
+<li> <a href="#n9">Tips</a>
+<li> <a href="#n10">Caveats</a>
+<li> <a href="#n11">Bugs</a>
+</ul>
 
-<h1>
-The Java SWIG module [1% pure Java]</h1>
+<a name="n1"></a><h2>Introduction</h2>
+<p>The Java SWIG documentation is in the process of being fully written. In the meantime this chapter addresses most of the Java specific issues, but reading of one of the other language module chapters may also help.
 
-<h2>
-Introduction</h2>
-The Java module extension for <a href="http://www.swig.org/">SWIG</a> (Simplified
-Wrapper Interface Generator) is a Java JNI wrapper generator. It generates
-Java and JNI wrapper code based on an interface definition file.
-<p>See the 1.1 release SWIG documentation for a full description of the interface
-format. Only the issues specific to the Java implementation are addressed here.
 <p>The 100% Pure Java
 effort is a great idea however, in the real world programmers either need to re-use their existing code or in some situations want to take advantage 
 of Java but have to use some native code.
@@ -23,7 +27,7 @@ With this Java extension to SWIG it is very easy to plumb in existing c/c++ code
 It is different to using the 'javah' tool as SWIG will wrap existing c/c++ code, whereas javah takes java functions and creates c/c++ function prototypes.
 <br>&nbsp;
 
-<h2>Usage</h2>
+<a name="n2"></a><h2>Usage</h2>
 swig -java [options] &lt;interface file&gt;
 <br>
 swig -java -help 
@@ -85,13 +89,11 @@ swig -java -help
 </tr>
 </table>
 
-<h2>
-Quick Introduction</h2>
+<a name="n3"></a><h2>Quick Introduction</h2>
 
-The directory Examples/java has a number of examples which is the best way to learn how the SWIG Java extension works. The <a href="../Examples/index.html">SWIG Examples Documentation</a> in the parent directory is a useful starting point.
+The directory Examples/java has a number of examples which is the best way to learn how the SWIG Java extension works. The <a href="../../Examples/index.html">SWIG Examples Documentation</a> in the parent directory is a useful starting point.
 
-<h2>
-Argument mapping</h2>
+<a name="n4"></a><h2>Argument mapping</h2>
 &nbsp;
 <table BORDER>
 <tr>
@@ -195,8 +197,7 @@ public void func(int a, long b, SomeClass c, SomeClass d, SomeClass e, SomeClass
 
 Also note that SWIG converts c/c++ enums into integers.
 <br>
-<h2>
-Typemaps</h2>
+<a name="n5"></a><h2>Typemaps</h2>
 With typemaps, you can change the default conversion (input, output and
 return value) for a specific type.
 <p>The following typemaps are supported.
@@ -314,8 +315,7 @@ is release afterwards</td>
 </table>
 
 <br>&nbsp;
-<h2>
-Pragmas</h2>
+<a name="n6"></a><h2>Pragmas</h2>
 There are two groups of pragmas in the Java module. The first group modify the Java module output file and the second modify the Java shadow output file. The pragmas beginning with <b>module</b> apply to the module output file. The pragmas beginning with <b>allshadow</b> apply to all shadow output classes. The pragmas beginning with <b>shadow</b> apply to the currently active shadow class so these pragmas can only be specified within the definition of a class or struct. For example:
 <blockquote><pre>
 /* TestStruct.i */
@@ -441,8 +441,7 @@ It is possible to derive a Java class from a shadow class (i.e. a C++ class) wit
 The SWIG documentation system that was shipped with SWIG 1.1 is currently disabled and will be replaced in the future. If you require some documentation in the meantime in your Java module class or shadow class, it can be added using the <b>xxxcode</b> pragmas. JavaDoc comments can be inserted instead of Java code. Although you can insert as many of these code pragmas as you like scattered throughout the c/c++ code, they are all output together in the Java class. Thus you can have a block of JavaDoc comments per class, but it is not flexible enough to have a JavaDoc comment above each member function. <b> Does not work! The documenation only gets added to one method!!</b>
 -->
 
-<h2>
-Shadow Classes and Garbage Collection</h2>
+<a name="n7"></a><h2>Shadow Classes and Garbage Collection</h2>
 If you get SWIG to produce shadow classes, you will notice the generated <code>_delete()</code> and <code>finalize()</code> methods. The <code>finalize()</code> method calls <code>_delete()</code> which frees any SWIG malloced c memory for wrapped structs or deletes any SWIG wrapped classes created on the heap, which in turn calls the class' destructor. The idea is for <code>_delete()</code> to be called when you have finished with the c/c++ object. Ideally you need not call <code>_delete()</code>, but rather leave it to the garbage collector to call it from the finalizer. The unfortunate thing is that Sun, in their wisdom, do not guarantee that the finalizers will be called. When a program exits, the garbage collector does not always call the finalizers. Depending on what the finalizers do and which operating system you use, this may or may not be a problem. 
 <br><br>
 
@@ -492,8 +491,7 @@ Write your own object manager in Java. You could derive all SWIG classes from a 
 </li>
 </ol>
 
-<h2>
-Dynamic Linking Problems</h2>
+<a name="n8"></a><h2>Dynamic Linking Problems</h2>
 The code to load a native library is <code>System.loadLibrary("name")</code>. This can fail and it can be due to a number of reasons. 
 <br><br>
 The most common is an incorrect naming of the native library for the name passed to the <code>loadLibrary</code> function. The text passed to the <code>loadLibrary</code> function must not include the the extension name in the text, that is <i>.dll</i> or <i>.so</i>. The text must be <i>name</i> and not <i>libname</i> for all platforms. On Windows the native library must then be called <i>name.dll</i> and on Unix it must be called <i>libname.so</i>. If you are debugging using <code> java -debug</code>, then the native library must be called <i>name_g.dll</i> on Windows and <i>libname_g.so</i> on Unix.
@@ -506,8 +504,7 @@ Ensure that you are using the correct c/c++ compiler and linker combination and 
 <br><br>
 Linking problems used to occur when there were underscores in the module name or package name. This was fixed in SWIG 1.3.7.
 
-<h2>
-Tips</h2>
+<a name="n9"></a><h2>Tips</h2>
 
 <ul>
 <li>
@@ -522,8 +519,7 @@ The %native directive can be used to mix hand written JNI functions with the aut
 The %except directive can be used to handle exceptions. If there is an exception a <code>return NULL</code> is often used. As some JNI function return types are void, a <code>return</code> is needed instead of a <code>return NULL</code>. This can be solved by using %typemap(java, except) which will use the return type as the basis for overriding the %except directive.
 </ul>
 
-<h2>
-Caveats</h2>
+<a name="n10"></a><h2>Caveats</h2>
 
 <ul>
 <li>
@@ -537,13 +533,10 @@ be specified, because the default 'argout' code depends on the default
 'in' code.</li>
 </ul>
 
-<h2>
-Bugs</h2>
+<a name="n11"></a><h2>Bugs</h2>
 <ul>
 <li>Global arrays do not work.</li>
 </ul>
 
-<h2>Contact</h2>
-Use the SWIG mailing list for all queries <a href=mailto:swig@cs.uchicago.edu>swig@cs.uchicago.edu</a> or have a look at <a href=http://www.swig.org>http://www.swig.org</a>.
 </body>
 </html>
