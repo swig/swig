@@ -3015,6 +3015,11 @@ the <tt>finalize()</tt> method (proxy classes only): default calls the <tt>delet
 the <tt>getCPtr()</tt> method: default returns the <tt>swigCPtr</tt> member variable
 </blockquote>
 
+<tt>%typemap(javaptrconstructormodifiers)</tt>
+<blockquote>
+method modifier for the constructors taking a C pointer and the memory ownership flag: default is "protected"
+</blockquote>
+
 In summary the contents of the typemaps make up a proxy class like this:
 
 <blockquote>
@@ -3022,7 +3027,8 @@ In summary the contents of the typemaps make up a proxy class like this:
 [ javaimports typemap ]
 [ javamodifiers typemap ] class proxyclassname extends [ javabase typemap ] implements [ javainterfaces typemap ] {
 [ javafinalize typemap ]
-... SWIG generated constructors ...
+[ javaptrconstructormodifiers ] proxyclassname(long cPtr, boolean cMemoryOwn) {...}
+... Other SWIG generated constructors ...
 ... SWIG generated delete() method  ...
 [ javagetcptr typemap ]
 [ javacode typemap ]
@@ -3037,7 +3043,8 @@ The type wrapper class is similar in construction:
 <pre>
 [ javaimports typemap ]
 [ javamodifiers typemap ] class typewrappername extends [ javabase typemap ] implements [ javainterfaces typemap ] {
-... SWIG generated constructors ...
+[ javaptrconstructormodifiers ] proxyclassname(long cPtr, boolean bFutureUse) {...}
+... Other SWIG generated constructors ...
 [ javagetcptr typemap ]
 [ javacode typemap ]
 }
