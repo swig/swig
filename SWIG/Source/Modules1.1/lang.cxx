@@ -259,7 +259,7 @@ int Language::applyDirective(Node *n) {
   Parm     *pattern = Getattr(n,"pattern");
   Node     *c = firstChild(n);
   while (c) {
-    Parm   *apattern = Getattr(n,"pattern");
+    Parm   *apattern = Getattr(c,"pattern");
     if (ParmList_len(pattern) != ParmList_len(apattern)) {
       Printf(stderr,"%s:%d. Can't apply (%s) to (%s).  Number of arguments don't match.\n",
 	     input_file, line_number, ParmList_str(pattern), ParmList_str(apattern));
