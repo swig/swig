@@ -51,8 +51,8 @@ A wrapper generator for interfacing C++ with [incr Tcl].<br>
 
 <a href="http://cens.ioc.ee/projects/f2py2e">f2py</a>. An interface generator for binding Fortran and Python.<br>
 
-<a href="http://www.boost.org/libs/python/doc/index.html">Boost Python Library</a>.  The so-called 
-"leading solution for language interoperability between Python and C++."<br>
+<a href="http://www.boost.org/libs/python/doc/index.html">Boost Python Library</a>.  A very interesting approach to
+C++ wrapper generation that uses template metaprogramming. <br>
 
 <a href="http://www.deaven.net/~deaven/Software/cxxwrap/">cxxwrap</a>. Java JNI wrapper code generator for C++.<br>
 <a href="http://www.excelsior-usa.com/xfunction.html">xFunction</a>. Java native code access library.<br>
