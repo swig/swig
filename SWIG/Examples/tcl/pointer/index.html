@@ -61,7 +61,7 @@ set b [new_int 42]
 set c [new_int 0]
 add $a $b $c
 set r [get_int $c]
-print "Result = $r"
+puts "Result = $r"
 delete_int $a
 delete_int $b
 delete_int $c
@@ -87,7 +87,7 @@ set b [ptrcreate int 42]
 set c [ptrcreate int]
 add $a $b $c
 set r [ptrvalue $c]
-print "Result = $r"
+puts "Result = $r"
 ptrfree $a
 ptrfree $b
 ptrfree $c
