@@ -729,12 +729,9 @@ public:
           Wrapper_add_local(f, "director", "Swig::Director *director = 0");
           Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
 	  if (dirprot_mode() && is_protected(n)) {
-	    Printf(f->code, "if (director && !(director->swig_get_inner(\"%s\"))) ", name);
-	    Printf(f->code,
-		   "SWIG_exception(SWIG_RuntimeError,\"accessing protected member %s\");\n",
-		   name);
+            Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) ", name);
+	    Printf(f->code, "SWIG_exception(SWIG_RuntimeError,\"accessing protected member %s\");\n", name);
 	  }
-	    
           Printf(f->code, "if (director && (director->swig_get_self()==obj0)) director->swig_set_up();\n");
 	}
       }
