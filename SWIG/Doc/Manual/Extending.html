@@ -2359,15 +2359,16 @@ skip-qux = $(skip-qux99)
 </tt></blockquote><p>
 
 Lastly, you need to modify each of <TT>check-aliveness</TT>,
-<TT>check-examples</TT>, <TT>check-test-suite</TT> and
-<TT>check-gifplot</TT>.  Use the nickname for these, not the alias.
+<TT>check-examples</TT>, <TT>check-test-suite</TT>,
+<TT>check-gifplot</TT> (all targets) and <TT>lib-languages</TT> (var).
+Use the nickname for these, not the alias.
 Note that you can do this even before you have any tests or examples
 set up; the Makefile rules do some sanity checking and skip around
 these kinds of problems.<p>
 
 <dt> <b>Examples/Makefile.in</b>
 <dd> Nothing special here; see comments at top the of this file
-and look to the existing langues for examples.<p>
+and look to the existing languages for examples.<p>
 
 <dt> <b>Examples/qux99/check.list</b>
 <dd> Do <TT>cp ../python/check.list .</TT> and modify to taste.
@@ -2376,6 +2377,14 @@ One subdir per line.<p>
 <dt> <b>Examples/GIFPlot/Qux99/check.list</b>
 <dd> Do <TT>cp ../Python/check.list .</TT> and modify to taste.
 One subdir per line.<p>
+
+<dt> <b>Lib/qux99/extra-install.list</b>
+<dd> If you add your language to the top-level Makefile.in var
+<TT>lib-languages</TT>, then <TT>make install</TT> will install
+all <TT>*.i</TT> and <TT>*.swg</TT> files from the language-specific
+subdirectory of <TT>Lib</TT>.  Use (optional) file
+<TT>extra-install.list</TT> in that directory to name
+additional files to install (see ruby for example).<p>
 
 <dt> <b>Runtime/Makefile.in</b>
 <dd> Add another <TT>make</TT> invocation to <TT>all</TT>, and
