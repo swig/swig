@@ -7,7 +7,8 @@ LANGUAGE   = java
 SCRIPTSUFFIX = _runme.java
 
 CPP_TEST_CASES = \
-	java_directives
+	java_constants \
+	java_typemaps_proxy
 
 include ../common.mk
 
