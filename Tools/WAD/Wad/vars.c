@@ -90,51 +90,105 @@ void wad_build_vars(WadFrame *f) {
 
 }
 
+/* This function creates a formatted integer given a pointer, size, and sign flag */
+static
+char *wad_format_int(char *ptr, int nbytes, int sgn) {
+  static char fmt[128];
+  unsigned char   *s;
+  int     incr;
+  unsigned long value = 0;
+  int     i;
+
+#ifdef WAD_LITTLE_ENDIAN
+  s = (unsigned char *) (ptr + nbytes - 1);
+  incr = -1;
+#else
+  s = (unsigned char *) (ptr);
+  incr = +1;
+#endif
+  for (i = 0; i < nbytes; i++, s += incr) {
+    value = (value << 8) + *s;
+  }
+  if (sgn) {
+    sprintf(fmt,"%ld", (long) value);
+  } else {
+    sprintf(fmt,"%lu", value);
+  }
+  return fmt;
+}
+
 /* Try to make a formatted version of a local */
 char *wad_format_var(WadLocal *l) {
   static char hexdigits[] = "0123456789abcdef";
   static char buffer[1024];
+  double dval;
+  float  fval;
 
   buffer[0] = 0;
 
   switch(l->type) {
-  case TYPE_UNKNOWN:
+  case WAD_TYPE_INT32:
+    strcpy(buffer,wad_format_int(l->ptr,4,1));
+    break;
+  case WAD_TYPE_UINT32:
+    strcpy(buffer,wad_format_int(l->ptr,4,0));
+    break;
+  case WAD_TYPE_INT16:
+    strcpy(buffer,wad_format_int(l->ptr,2,1));
+    break;
+  case WAD_TYPE_UINT16:
+    strcpy(buffer,wad_format_int(l->ptr,2,0));
+    break;
+  case WAD_TYPE_INT8:
+    strcpy(buffer,wad_format_int(l->ptr,1,1));
+    break;
+  case WAD_TYPE_UINT8:
+    strcpy(buffer,wad_format_int(l->ptr,1,0));
+    break;
+  case WAD_TYPE_CHAR:
+    sprintf(buffer,"'%c'", *((char *)l->ptr));
+    break;
+  case WAD_TYPE_FLOAT:
+    memcpy(&fval,l->ptr,sizeof(float));
+    sprintf(buffer,"%g",fval);
+    break;
+  case WAD_TYPE_DOUBLE:
+    memcpy(&dval,l->ptr,sizeof(double));
+    sprintf(buffer,"%g",dval);
+    break;
+  case WAD_TYPE_UNKNOWN:
+  case WAD_TYPE_POINTER:
   default:
-    /* Hmmm. Unknown data type.   We'll just dump out digits */
+    /* Hmmm. Unknown data type.   We'll just treat it as a word */
     if (l->ptr) {
-      if (l->size <= 8) {
-	int   incr,i;
-	int    b;
-	int    leading = 1;
-	char  *c;
-	char  *ptr;
+      int   incr,i;
+      int    b;
+      int    leading = 1;
+      char  *c;
+      char  *ptr;
 #ifdef WAD_LITTLE_ENDIAN
-	ptr = ((char *) l->ptr) + l->size - 1;
-	incr = -1;
+      ptr = ((char *) l->ptr) + 3;
+      incr = -1;
 #else
-	ptr = (char *) l->ptr;
-	incr =1 ;
+      ptr = (char *) l->ptr;
+      incr =1 ;
 #endif
-	strcat(buffer,"0x");
-	c = buffer+2;
-	/*	for (i = 0; i < l->size; i++) { */
-	for (i = 0; i < 4; i++) {
-	  b = (int) *ptr;
-	  if (!leading || (b)) {
-	    if (!leading || (b & 0xf0))
-	      *(c++) = hexdigits[(b & 0xf0) >> 4];
-	    *(c++) = hexdigits[(b & 0xf)];
-	    leading = 0;
-	  }
-	  ptr += incr;
+      strcat(buffer,"0x");
+      c = buffer+2;
+      for (i = 0; i < 4; i++) {
+	b = (int) *ptr;
+	if (!leading || (b)) {
+	  if (!leading || (b & 0xf0))
+	    *(c++) = hexdigits[(b & 0xf0) >> 4];
+	  *(c++) = hexdigits[(b & 0xf)];
+	  leading = 0;
 	}
-	if (leading)
-	  *(c++) = '0';
-
-	*c = 0;
-      } else {
-	sprintf(buffer,"unknown(%d bytes)", l->size);
+	ptr += incr;
       }
+      if (leading)
+	*(c++) = '0';
+      
+      *c = 0;
     }
   }
   return buffer;

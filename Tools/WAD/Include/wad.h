@@ -105,18 +105,19 @@ typedef struct WadLocal {
 
 /* Type codes for local variables */
 
-#define TYPE_UNKNOWN      0
-#define TYPE_INT32        1
-#define TYPE_INT16        2
-#define TYPE_INT8         3
-#define TYPE_INT64        4
-#define TYPE_UINT32       5
-#define TYPE_UINT16       6
-#define TYPE_UINT8        7
-#define TYPE_UINT64       8
-#define TYPE_FLOAT        9
-#define TYPE_DOUBLE      10
-#define TYPE_POINTER     11
+#define WAD_TYPE_UNKNOWN      0
+#define WAD_TYPE_INT32        1
+#define WAD_TYPE_INT16        2
+#define WAD_TYPE_INT8         3
+#define WAD_TYPE_INT64        4
+#define WAD_TYPE_UINT32       5
+#define WAD_TYPE_UINT16       6
+#define WAD_TYPE_UINT8        7
+#define WAD_TYPE_UINT64       8
+#define WAD_TYPE_FLOAT        9
+#define WAD_TYPE_DOUBLE      10
+#define WAD_TYPE_POINTER     11
+#define WAD_TYPE_CHAR        12
 
 /* Data structure containing information about each stack frame */
 

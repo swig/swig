@@ -105,7 +105,7 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   WadFrame *fline = 0;
   char     *srcstr = 0;
 
-  printf("python handler.\n");
+  /*  printf("python handler.\n"); */
   if (!ret) {
     wad_default_callback(signo, frame, ret);
     return;
