@@ -553,7 +553,7 @@
 }
 
 // Some special reserved words in classes
-%include "tclkw.swg"
+%include "tcl8kw.swg"
 
 /* C++ overloaded operators.
 
