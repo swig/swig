@@ -2804,22 +2804,14 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 
 cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
                $$ = new_node("destructor");
-	       /* Check for template names.  If the class is a template
-		  and the constructor is missing the template part, we
-		  add it */
-
-	       /*	       {
-		 char *c = Strstr(Classprefix,"<");
-		 if (c) {
-		   if (!Strstr($2,"<")) {
-		     $2 = NewStringf("%s%s",$2,c);
-		   }
-		 }
-	       }
-	       */
 	       Setattr($$,"name",NewStringf("~%s",$2));
 	       if (Len(scanner_ccode)) {
 		 Setattr($$,"code",Copy(scanner_ccode));
+	       }
+	       {
+		 String *decl = NewString("");
+		 SwigType_add_function(decl,$4);
+		 Setattr($$,"decl",decl);
 	       }
 	       add_symbols($$);
 	      }
@@ -2847,6 +2839,12 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		if (Len(scanner_ccode)) {
 		  Setattr($$,"code",Copy(scanner_ccode));
 		}
+		{
+		  String *decl = NewString("");
+		  SwigType_add_function(decl,$5);
+		  Setattr($$,"decl",decl);
+		}
+
 		add_symbols($$);
 	      }
               ;
