@@ -262,7 +262,7 @@ PERL5::top(Node *n) {
     Swig_register_filebyname("pm",f_pm);
   }
   {
-    String *tmp = NewString(module);
+    String *tmp = NewString(fullmodule);
     Replaceall(tmp,":","_");
     Printf(f_header,"#define SWIG_init    boot_%s\n\n", tmp);
     Printf(f_header,"#define SWIG_name   \"%s::boot_%s\"\n", cmodule, tmp);
@@ -357,22 +357,22 @@ PERL5::top(Node *n) {
   Printf(f_pm,"package %s;\n", cmodule);
 
   if (!is_static) {
-    Printf(f_pm,"bootstrap %s;\n", module);
+    Printf(f_pm,"bootstrap %s;\n", fullmodule);
   } else {
-    String *tmp = NewString(module);
+    String *tmp = NewString(fullmodule);
     Replaceall(tmp,":","_");
     Printf(f_pm,"boot_%s();\n", tmp);
     Delete(tmp);
   }
   Printf(f_pm,"%s",pragma_include);
-  Printf(f_pm,"package %s;\n", module);
+  Printf(f_pm,"package %s;\n", fullmodule);
   Printf(f_pm,"@EXPORT = qw( %s);\n",exported);
 
   if (blessed) {
 
     Printv(base,
 	   "\n# ---------- BASE METHODS -------------\n\n",
-	   "package ", module, ";\n\n",
+	   "package ", fullmodule, ";\n\n",
 	   NULL);
 
     /* Write out the TIE method */
@@ -411,7 +411,7 @@ PERL5::top(Node *n) {
     /* Emit function stubs for stand-alone functions */
 
     Printf(f_pm,"\n# ------- FUNCTION WRAPPERS --------\n\n");
-    Printf(f_pm,"package %s;\n\n",module);
+    Printf(f_pm,"package %s;\n\n",fullmodule);
     Printf(f_pm,"%s",func_stubs);
 
     /* Emit package code for different classes */
@@ -420,14 +420,14 @@ PERL5::top(Node *n) {
     if (num_consts > 0) {
       /* Emit constant stubs */
       Printf(f_pm,"\n# ------- CONSTANT STUBS -------\n\n");
-      Printf(f_pm,"package %s;\n\n",module);
+      Printf(f_pm,"package %s;\n\n",fullmodule);
       Printf(f_pm,"%s",const_stubs);
     }
 
     /* Emit variable stubs */
 
     Printf(f_pm,"\n# ------- VARIABLE STUBS --------\n\n");
-    Printf(f_pm,"package %s;\n\n",module);
+    Printf(f_pm,"package %s;\n\n",fullmodule);
     Printf(f_pm,"%s",var_stubs);
   }
 
@@ -1061,7 +1061,7 @@ PERL5::classHandler(Node *n) {
 
     /* Use the fully qualified name of the Perl class */
     if (!compat) {
-      fullclassname = NewStringf("%s::%s",module,class_name);
+      fullclassname = NewStringf("%s::%s",fullmodule,class_name);
     } else {
       fullclassname = NewString(class_name);
     }
@@ -1100,7 +1100,7 @@ PERL5::classHandler(Node *n) {
     }
     /* If we are inheriting from a base class, set that up */
 
-    Printv(pm, "@ISA = qw( ",module, NULL);
+    Printv(pm, "@ISA = qw( ",fullmodule, NULL);
 
     /* Handle inheritance */
     List *baselist = Getattr(n,"bases");
