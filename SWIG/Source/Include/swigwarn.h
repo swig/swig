@@ -147,7 +147,8 @@
 #define WARN_TYPEMAP_TYPECHECK        467
 #define WARN_TYPEMAP_THROW            468
 #define WARN_TYPEMAP_DIRECTORIN_UNDEF  469
-#define WARN_TYPEMAP_DIRECTOROUT_UNDEF 470
+#define WARN_TYPEMAP_THREAD_UNSAFE     470 /* mostly used in directorout typemaps */
+#define WARN_TYPEMAP_DIRECTOROUT_UNDEF 471
 
 /* -- General code generation -- */
 
