@@ -1320,10 +1320,18 @@ class CSHARP : public Language {
     if (!static_flag)
       Printv(nativecall, "swigCPtr", NIL);
 
+    emit_mark_varargs(l);
+
     int gencomma = !static_flag;
 
     /* Output each parameter */
     for (i = 0, p=l; p; i++) {
+
+      /* Ignored varargs */
+      if (checkAttribute(p,"varargs:ignore","1")) {
+        p = nextSibling(p);
+        continue;
+      }
 
       /* Ignored parameters */
       if (checkAttribute(p,"tmap:in:numinputs","0")) {
@@ -1457,10 +1465,18 @@ class CSHARP : public Language {
       Swig_typemap_attach_parms("jstype", l, NULL);
       Swig_typemap_attach_parms("javain", l, NULL);
 
+      emit_mark_varargs(l);
+
       int gencomma = 0;
 
       /* Output each parameter */
       for (i = 0, p=l; p; i++) {
+
+        /* Ignored varargs */
+        if (checkAttribute(p,"varargs:ignore","1")) {
+          p = nextSibling(p);
+          continue;
+        }
 
         /* Ignored parameters */
         if (checkAttribute(p,"tmap:in:numinputs","0")) {
@@ -2045,7 +2061,7 @@ swig_csharp(void) {
  * ----------------------------------------------------------------------------- */
 
 const char *CSHARP::usage = (char*)"\
-CSharp Options (available with -csharp)\n\
+C# Options (available with -csharp)\n\
      -package <name> - set name of the assembly\n\
      -noproxy        - Generate the low-level functional interface instead of proxy classes\n\
 \n";

@@ -554,7 +554,6 @@ class JAVA : public Language {
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
     num_required  = emit_num_required(l);
-
     int gencomma = 0;
 
     // Now walk the function parameter list and generate code to get arguments
@@ -1314,10 +1313,18 @@ class JAVA : public Language {
     if (!static_flag)
       Printv(nativecall, "swigCPtr", NIL);
 
+    emit_mark_varargs(l);
+
     int gencomma = !static_flag;
 
     /* Output each parameter */
     for (i = 0, p=l; p; i++) {
+
+      /* Ignored varargs */
+      if (checkAttribute(p,"varargs:ignore","1")) {
+        p = nextSibling(p);
+        continue;
+      }
 
       /* Ignored parameters */
       if (checkAttribute(p,"tmap:in:numinputs","0")) {
@@ -1417,10 +1424,18 @@ class JAVA : public Language {
       Swig_typemap_attach_parms("jstype", l, NULL);
       Swig_typemap_attach_parms("javain", l, NULL);
 
+      emit_mark_varargs(l);
+
       int gencomma = 0;
 
       /* Output each parameter */
       for (i = 0, p=l; p; i++) {
+
+        /* Ignored varargs */
+        if (checkAttribute(p,"varargs:ignore","1")) {
+          p = nextSibling(p);
+          continue;
+        }
 
         /* Ignored parameters */
         if (checkAttribute(p,"tmap:in:numinputs","0")) {

@@ -329,6 +329,24 @@ emit_isvarargs(ParmList *p) {
 }
 
 /* -----------------------------------------------------------------------------
+ * void emit_mark_vararg_parms()
+ *
+ * Marks the vararg parameters which are to be ignored.
+ * Vararg parameters are marked as ignored if there is no 'in' varargs (...) 
+ * typemap.
+ * ----------------------------------------------------------------------------- */
+
+void emit_mark_varargs(ParmList *l) {
+  Parm *p = l;
+  while (p) {
+    if (SwigType_isvarargs(Getattr(p,"type")))
+      if (!Getattr(p,"tmap:in"))
+        Setattr(p,"varargs:ignore","1");
+    p = nextSibling(p);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * replace_args()
  * ----------------------------------------------------------------------------- */
 
@@ -452,7 +470,5 @@ void emit_action(Node *n, Wrapper *f) {
     Printv(f->code,tm,"\n",NIL);
   }
 }
-
-
 
 

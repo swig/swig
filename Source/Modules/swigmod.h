@@ -260,6 +260,7 @@ extern int    emit_num_arguments(ParmList *);
 extern int    emit_num_required(ParmList *);
 extern int    emit_isvarargs(ParmList *);
 extern void   emit_attach_parmmaps(ParmList *, Wrapper *f);
+extern void   emit_mark_varargs(ParmList *l);
 extern void   emit_action(Node *n, Wrapper *f);
 extern List  *Swig_overload_rank(Node *n);
 extern String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
