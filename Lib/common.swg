@@ -68,6 +68,7 @@ SWIGIMPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
 SWIGIMPORT(void *)           SWIG_TypeCast(swig_type_info *, void *);
 SWIGIMPORT(swig_type_info *) SWIG_TypeDynamicCast(swig_type_info *, void **);
 SWIGIMPORT(const char *)     SWIG_TypeName(const swig_type_info *);
+SWIGIMPORT(const char *)     SWIG_TypePrettyName(const swig_type_info *);
 SWIGIMPORT(swig_type_info *) SWIG_TypeQuery(const char *);
 SWIGIMPORT(void)             SWIG_TypeClientData(swig_type_info *, void *);
 SWIGIMPORT(char *)           SWIG_PackData(char *, void *, int);
@@ -165,6 +166,26 @@ SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) {
 SWIGRUNTIME(const char *)
 SWIG_TypeName(const swig_type_info *ty) {
   return ty->name;
+}
+
+/* Return the pretty name associated with this type,
+   that is an unmangled type name in a form presentable to the user.
+*/
+SWIGRUNTIME(const char *)
+SWIG_TypePrettyName(const swig_type_info *type) {
+  /* The "str" field contains the equivalent pretty names of the
+     type, separated by vertical-bar characters.  We choose
+     to print the last name, as it is often (?) the most
+     specific. */
+  if (type->str != NULL) {
+    const char *last_name = type->str;
+    const char *s;
+    for (s = type->str; *s; s++)
+      if (*s == '|') last_name = s+1;
+    return last_name;
+  }
+  else
+    return type->name;
 }
 
 /* 

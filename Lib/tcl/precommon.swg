@@ -11,6 +11,7 @@
 #define SWIG_TypeCast        SWIG_Tcl_TypeCast
 #define SWIG_TypeDynamicCast SWIG_Tcl_TypeDynamicCast
 #define SWIG_TypeName        SWIG_Tcl_TypeName
+#define SWIG_TypePrettyName  SWIG_Tcl_TypePrettyName
 #define SWIG_TypeQuery       SWIG_Tcl_TypeQuery
 #define SWIG_TypeClientData  SWIG_Tcl_TypeClientData
 #define SWIG_PackData        SWIG_Tcl_PackData 

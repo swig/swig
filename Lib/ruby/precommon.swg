@@ -11,6 +11,7 @@
 #define SWIG_TypeCast        SWIG_Ruby_TypeCast
 #define SWIG_TypeDynamicCast SWIG_Ruby_TypeDynamicCast
 #define SWIG_TypeName        SWIG_Ruby_TypeName
+#define SWIG_TypePrettyName  SWIG_Ruby_TypePrettyName
 #define SWIG_TypeQuery       SWIG_Ruby_TypeQuery
 #define SWIG_TypeClientData  SWIG_Ruby_TypeClientData
 #define SWIG_PackData        SWIG_Ruby_PackData 
