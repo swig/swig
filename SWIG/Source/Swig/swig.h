@@ -247,7 +247,7 @@ extern Node   *Swig_symbol_add_tag(String_or_char *symname, Node *node);
 extern Node   *Swig_symbol_lookup(String_or_char *symname);
 extern Node   *Swig_symbol_lookup_local(String_or_char *symname);
 extern Node   *Swig_symbol_lookup_tag(String_or_char *symname);
-extern String *Swig_symbol_qualfied(Node *node);
+extern String *Swig_symbol_qualified(Node *node);
 extern Node   *Swig_symbol_isoverloaded(Node *node);
 extern void    Swig_symbol_remove(Node *node);
 
