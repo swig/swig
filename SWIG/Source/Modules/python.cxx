@@ -1597,7 +1597,7 @@ public:
     Wrapper_print(setf,f_wrappers);
 
     /* Create a function for getting the value of a variable */
-    Printf(getf->def,"static PyObject *%s_get() {", wname);
+    Printf(getf->def,"static PyObject *%s_get(void) {", wname);
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       Replaceall(tm,"$source",name);
