@@ -1,9 +1,10 @@
-//
-// SWIG typemaps for std::string types
-// Luigi Ballabio
+// -*- C++ -*-
+// SWIG typemaps for std::string
+// Art Yerkes
+// Modified from: Luigi Ballabio
 // Apr 8, 2002
 //
-// MzScheme implementation
+// Ocaml implementation
 
 // ------------------------------------------------------------------------
 // std::string is typemapped by value
@@ -22,23 +23,33 @@ namespace std {
 
     class string;
 
+    /* Overloading check */
+
+    %typemap(typecheck) string = char *;
+    %typemap(typecheck) const string & = char *;
+
     %typemap(in) string {
-	$1 = String_val($input);
+        if (caml_ptr_check($input))
+            $1 = std::string((char *)caml_ptr_val($input,0));
+        else
+            SWIG_exception(SWIG_TypeError, "string expected");
     }
 
     %typemap(in) const string & (std::string temp) {
-	temp = std::string(String_val($input));
-        $1 = &temp;
+        if (caml_ptr_check($input)) {
+            temp = std::string((char *)caml_ptr_val($input,0));
+            $1 = &temp;
+        } else {
+            SWIG_exception(SWIG_TypeError, "string expected");
+        }
     }
 
     %typemap(out) string {
-        $result = copy_string($1.c_str());
+        $result = caml_val_ptr((char *)$1.c_str(),0);
     }
 
     %typemap(out) const string & {
-	$result = copy_string($1->c_str());
+        $result = caml_val_ptr((char *)$1->c_str(),0);
     }
-
 }
-
 

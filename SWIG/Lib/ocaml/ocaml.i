@@ -22,5 +22,7 @@
 #define SCM_VALIDATE_LIST(argnum, value) (void)0
 
 /* Read in standard typemaps. */
+%include "swig.swg"
 %include "typemaps.i"
-
+%include "typecheck.i"
+%include "exception.i"

@@ -11,97 +11,131 @@
 
 /* Pointers */
 
-%typemap(in) void * {
-    $1 = ($ltype)SWIG_MustGetPtr($input, NULL);
+%typemap(ocaml,in) void * {
+    $1 = caml_ptr_val($input,$descriptor);
 }
 
-%typemap(varin) void * {
-    $1 = ($ltype)SWIG_MustGetPtr($input, NULL);
+%typemap(ocaml,varin) void * {
+    $1 = ($ltype)caml_ptr_val($input,$descriptor);
 }
 
-%typemap(out) void * {
-    $result = SWIG_MakePtr((void *)$1, $descriptor, NULL);
+%typemap(ocaml,in)  char *, signed char *, unsigned char *, const char *, const signed char *, const unsigned char * {
+    $1 = ($ltype)caml_string_val($input);
 }
 
-%typemap(varout) void * {
-    $result = SWIG_MakePtr((void *)$1, $descriptor, NULL);
+%typemap(ocaml,varin)  char *, signed char *, unsigned char *, const char *, const signed char *, const unsigned char * {
+    $1 = ($ltype)caml_string_val($input);
 }
 
-%typemap(in) SWIGTYPE * {
-    $1 = ($ltype)SWIG_MustGetPtr($input, $descriptor);
+%typemap(ocaml,out) void * {
+    $result = caml_val_ptr($1,$descriptor);
 }
 
-%typemap(out) SWIGTYPE * {
-    extern value $delete_fn( value );
-    $result = SWIG_MakePtr ((void *)$1, 
-			    $descriptor, "$delete_fn");
+%typemap(ocaml,varout) void * {
+    $result = caml_val_ptr($1,$descriptor);
 }
 
-%typemap(varin) SWIGTYPE * {
-    $1 = ($ltype)SWIG_MustGetPtr($input, $descriptor);
+%typemap(ocaml,out) char *, signed char *, unsigned char *, const char *, const signed char *, const unsigned char * {
+    $result = caml_val_string($1);
 }
 
-%typemap(varout) SWIGTYPE * {
-    $result = SWIG_MakePtr ((void *)$1, $descriptor, NULL);
+%typemap(ocaml,varout) char *, signed char *, unsigned char *, const char *, const signed char *, const unsigned char * {
+    $result = caml_val_string($1);
+}
+
+%typemap(ocaml,in) SWIGTYPE * {
+    $1 = ($ltype)caml_ptr_val($input,$descriptor);
+}
+
+%typemap(ocaml,out) SWIGTYPE * {
+    value *fromval = caml_named_value("create_$*1_type_from_ptr");
+    if( fromval ) {
+	$result = callback(*fromval,caml_val_ptr((void *)$1,$descriptor));
+    } else {
+	$result = caml_val_ptr ((void *)$1,$descriptor);
+    }
+}
+
+%typemap(ocaml,varin) SWIGTYPE * {
+    $1 = ($ltype)caml_ptr_val($input,$descriptor);
+}
+
+%typemap(ocaml,varout) SWIGTYPE * {
+    value *fromval = caml_named_value("create_$*1_type_from_ptr");
+    if( fromval ) {
+	$result = callback(*fromval,caml_val_ptr((void *)$1,$descriptor));
+    } else {
+	$result = caml_val_ptr ((void *)$1,$descriptor);
+    }
 }
 
 /* C++ References */
 
 #ifdef __cplusplus
 
-%typemap(in) SWIGTYPE & {
-  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor) ;
+%typemap(ocaml,in) SWIGTYPE & {
+    $1 = *(($&1_ltype) caml_ptr_val($input,$descriptor));
 }
 
-%typemap(out) SWIGTYPE & {
-  $result = SWIG_MakePtr ((void *)& $1, $descriptor, NULL);
+%typemap(ocaml,out) SWIGTYPE & {
+    value *fromval = caml_named_value("create_$ltype_from_ptr");
+    if( fromval ) {
+	$result = callback(*fromval,caml_val_ptr((void *)& $1,$descriptor));
+    } else {
+	$result = caml_val_ptr ((void *)& $1,$descriptor);
+    }
 }
 
-%typemap(in) SWIGTYPE {
-  $1 = *(($&1_type) SWIG_MustGetPtr($input, $descriptor)) ;
+#if 0
+
+%typemap(ocaml,in) SWIGTYPE {
+    $1 = *(($&1_ltype) caml_ptr_val($input,$descriptor));
 }
 
-%typemap(out) SWIGTYPE {
+%typemap(ocaml,out) SWIGTYPE {
     $&1_type temp = new $type(($1_ltype &) $1 );
-    $result = SWIG_MakePtr ((void *)temp, $descriptor, 
-			    "$delete_fn" );
+    value *fromval = caml_named_value("create_$ltype_from_ptr");
+    if( fromval ) {
+	$result = callback(*fromval,caml_val_ptr((void *)temp,$descriptor));
+    } else {
+	$result = caml_val_ptr ((void *)temp,$descriptor);
+    }
 }
+
+#endif
 
 #else
 
-%typemap(in) SWIGTYPE {
-    $1 = *(($&1_ltype) SWIG_MustGetPtr((value)$input, $descriptor)) ;
+%typemap(ocaml,in) SWIGTYPE {
+    $1 = *(($&1_ltype) caml_ptr_val($input,$descriptor)) ;
 }
 
-%typemap(out) SWIGTYPE {
+%typemap(ocaml,out) SWIGTYPE {
     void *temp = calloc(1,sizeof($ltype));
-    memcpy(temp,(char *)&$1,sizeof($ltype));
-    $result = SWIG_MakePtr ((void *)temp, $descriptor, "$delete_fn");
+    value *fromval = caml_named_value("create_$ltype_from_ptr");
+    *(($ltype *)temp) = $1;
+    if( fromval ) {
+	$result = callback(*fromval,caml_val_ptr((void *)temp,$descriptor));
+    } else {
+	$result = caml_val_ptr ((void *)temp,$descriptor);
+    }
 }
 
 #endif
 
 /* Arrays */
 
-%typemap(in) SWIGTYPE[] {
-    $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor);
-}
-
-%typemap(out) SWIGTYPE[] {
-    $result = SWIG_MakePtr ($1, $descriptor, NULL);
-}
-
 /* Enums */
-%typemap(in) enum SWIGTYPE {
-    $1 = enum_to_int("$type_to_int",$input);
+%typemap(ocaml,in) enum SWIGTYPE {
+    $1 = caml_long_val_full($input,"$type_marker");
 }
 
-%typemap(varin) enum SWIGTYPE {
-    $1 = enum_to_int("$type_to_int",$input);
+%typemap(ocaml,varin) enum SWIGTYPE {
+    $1 = caml_long_val_full($input,"$type_marker");
 }
 
-%typemap(out) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
-%typemap(varout) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
+%typemap(ocaml,out) enum SWIGTYPE "$result = callback2(*caml_named_value(SWIG_MODULE \"_int_to_enum\"),*caml_named_value(\"$type_marker\"),Val_int($1));"
+%typemap(ocaml,varout) enum SWIGTYPE "$result = callback2(*caml_named_value(SWIG_MODULE \"_int_to_enum\"),*caml_named_value(\"$type_marker\"),Val_int($1));"
 
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
@@ -127,28 +161,26 @@
     $1 = &temp;
 }
 %typemap(argout) C_NAME *OUTPUT {
-    *$arg = *$input;
+    caml_list_append(swig_result,(long)*$1);
 }
 %enddef
 
-SIMPLE_MAP(oc_bool, Val_bool, Int_val);
-SIMPLE_MAP(bool, Val_bool, Int_val);
-SIMPLE_MAP(char, Val_int, Int_val);
-SIMPLE_MAP(unsigned char, Val_int, Int_val);
-SIMPLE_MAP(int, Val_int, Int_val);
-SIMPLE_MAP(short, Val_int, Int_val);
-SIMPLE_MAP(long, copy_int64, Int64_val);
-SIMPLE_MAP(ptrdiff_t, copy_int32, Int32_val);
-SIMPLE_MAP(unsigned int, copy_int32, Int32_val);
-SIMPLE_MAP(unsigned short, Val_int, Int_val);
-SIMPLE_MAP(unsigned long, copy_int64, Int64_val);
-SIMPLE_MAP(size_t, Val_int, Int_val);
-SIMPLE_MAP(float, copy_double, Double_val);
-SIMPLE_MAP(double, copy_double, Double_val);
-SIMPLE_MAP(char *, copy_string, String_val);
-SIMPLE_MAP(const char *, copy_string, String_val);
-SIMPLE_MAP(long long,copy_int64,Int64_val);
-SIMPLE_MAP(unsigned long long,copy_int64,Int64_val);
+SIMPLE_MAP(oc_bool, caml_val_bool, caml_long_val);
+SIMPLE_MAP(bool, caml_val_bool, caml_long_val);
+SIMPLE_MAP(char, caml_val_char, caml_long_val);
+SIMPLE_MAP(unsigned char, caml_val_uchar, caml_long_val);
+SIMPLE_MAP(int, caml_val_int, caml_long_val);
+SIMPLE_MAP(short, caml_val_short, caml_long_val);
+SIMPLE_MAP(long, caml_val_long, caml_long_val);
+SIMPLE_MAP(ptrdiff_t, caml_val_int, caml_long_val);
+SIMPLE_MAP(unsigned int, caml_val_uint, caml_long_val);
+SIMPLE_MAP(unsigned short, caml_val_ushort, caml_long_val);
+SIMPLE_MAP(unsigned long, caml_val_ulong, caml_long_val);
+SIMPLE_MAP(size_t, caml_val_int, caml_long_val);
+SIMPLE_MAP(float, caml_val_float, caml_double_val);
+SIMPLE_MAP(double, caml_val_double, caml_double_val);
+SIMPLE_MAP(long long,caml_val_ulong,caml_long_val);
+SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Void */
 
