@@ -4,6 +4,10 @@ Version 1.3 Alpha 4 (not yet released)
 ======================================
 
 7/10/00 : beazley
+          Fixed some bugs related to the handling of the %name() directive
+          and classes in the Tcl module. Problem reported by James Bailey.
+
+7/10/00 : beazley
           Fixed parsing and enum handling problems with character constants.
           Reported by Greg Kochanski.
 
