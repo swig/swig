@@ -639,11 +639,12 @@ end_class(SwigType *endtype, char *endname) {
 %token ILLEGAL CONSTANT
 %token NAME RENAME ADDMETHODS PRAGMA
 %token ENUM
-%token CLASS PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND OPERATOR THROW TEMPLATE
+%token CLASS PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND OPERATOR THROW
 %token NATIVE INLINE
-%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR
+%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE
 %token LESSTHAN GREATERTHAN
 %token TYPES
+%token <ivalue> TEMPLATE
 
 %left  OR
 %left  XOR
@@ -676,6 +677,7 @@ end_class(SwigType *endtype, char *endname) {
 %type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
 %type <decl>     abstract_declarator direct_abstract_declarator;
 %type <id>       typemap_type;
+%type <str>      template_parms;
 
 %%
 
@@ -738,6 +740,7 @@ swig_directive : addmethods_directive
                | rename_directive
                | typemap_directive
                | types_directive 
+               | template_directive
                ;
 
 /* ------------------------------------------------------------
@@ -1211,6 +1214,36 @@ types_directive : TYPES LPAREN parms RPAREN SEMI {
                }
                ;
 
+/* ------------------------------------------------------------
+   %template(name) tname<args>;
+   ------------------------------------------------------------ */
+
+template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN {
+                  skip_balanced('<','>');
+                }  SEMI {
+		  String *parms = Copy(CCode);
+                  Delitem(parms,0);
+                  Delitem(parms,DOH_END);
+                  String *ts = NewString("");
+                  Printf(ts,"%%_template_%s(%s,",$5,$3);
+		  Printf(ts,"%s)\n", parms);
+		  Setfile(ts,input_file);
+		  Setline(ts,line_number);
+		  Seek(ts,0,SEEK_SET);
+		  String *cpps;
+		  /*		  Printf(stdout,"%%template:\n%s\n", ts); */
+		  cpps = Preprocessor_parse(ts);
+		  /*		  Printf(stdout,"%%preprocess:\n%s\n", cpps); */
+		  if (cpps && (Len(cpps) > 0)) {
+		    start_inline(Char(cpps),line_number);
+		  } else {
+		    Printf(stderr,"%s:%d. Unable to expand template %s\n", input_file, line_number, $5);
+		  }
+		  Delete(ts);
+		  Delete(cpps);
+               }
+               ;
+
 /* ======================================================================
  *                              C Parsing
  * ====================================================================== */
@@ -1327,6 +1360,7 @@ typedeflist   : COMMA declarator typedeflist {
 
 cpp_declaration : cpp_class_decl
                 | cpp_forward_class_decl
+                | cpp_template_decl
                 | cpp_other
              ;
 
@@ -1371,20 +1405,98 @@ cpp_forward_class_decl : storage_class cpptype ID SEMI {
 	     }
              ;
 
+/* ------------------------------------------------------------
+   template<...> decl
+   ------------------------------------------------------------ */
+
+/* function template */
+cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator initializer cpp_temp_end {
+                   if ($3) {
+		     String  *macrocode = NewString("");
+		     Printf(macrocode, "%%_template_%s(__name,%s)\n", $6.id,$3);
+		     /* Create function definition */
+		     if (SwigType_isfunction($6.type)) {
+		       Delete(SwigType_pop($6.type));
+		       SwigType_push($5,$6.type);
+		       String *pdecl = NewStringf("%s(%s)", $6.id, ParmList_str($6.parms));
+		       Printf(macrocode,"%%name(__name) %s;\n", SwigType_str($5,pdecl));
+		       Delete(pdecl);
+		       Seek(macrocode, 0, SEEK_SET);
+		       Setline(macrocode,$1);
+		       Setfile(macrocode,input_file);
+		       Preprocessor_define(macrocode,1);
+		       /*		       Printf(stdout,"%s\n", macrocode); */
+		     } 
+		   }
+                }
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype ID inherit LBRACE {
+		     skip_balanced('{','}'); 
+		} SEMI {
+		  if ($3) {
+		     String  *macrocode = NewString("");
+		     Printf(macrocode, "%%_template_%s(__name,%s)\n", $6,$3);
+		     Printf(macrocode,"%%{\n");
+		     Printf(macrocode,"typedef %s<%s> __name;\n", $6,$3);
+		     Printf(macrocode,"%%}\n");
+
+		     Printf(macrocode,"class __name ");
+		     if ($7) {
+		       int i;
+		       Printf(macrocode,": ");
+		       for (i = 0; i < Len($7); i++) {
+			 Printf(macrocode,"public %s", Getitem($7,i));
+			 if (i < (Len($7) - 1)) Putc(',',macrocode);
+		       }
+		     }
+		     Replace(CCode,$6,"__name", DOH_REPLACE_ID);
+		     Printf(macrocode," %s;\n", CCode);
+		     /* Include a reverse typedef to associate templated version with renamed version */
+		     Printf(macrocode,"typedef __name %s<%s>;\n", $6,$3);
+		     /*		     Printf(stdout,"%s\n", macrocode); */
+		     Seek(macrocode,0, SEEK_SET);
+		     Setline(macrocode,$1-4);
+		     Setfile(macrocode,input_file);
+		     Preprocessor_define(macrocode,1);
+		  }
+		}
+                ;
+
+
+cpp_temp_end    : SEMI { }
+                | LBRACE { skip_balanced('{','}') }
+                ;
+
+template_parms  : parms {
+		   /* Rip out the parameter names */
+		  $$ = NewString("");
+		  Parm *p = $1;
+		  while (p) {
+		    String *name = Getname(p);
+		    if (!name) {
+		      /* Hmmm. Maybe it's a 'class T' parameter */
+		      char *type = Char(Gettype(p));
+		      if (strncmp(type,"class ",6) == 0) {
+			Printf($$,"%s",type+6);
+		       } else {
+			 Printf(stderr,"%s:%d. Missing template parameter name\n", input_file,line_number);
+			 $$ = 0;
+			 break;
+		       }
+		     } else {
+		       Printf($$,"%s", Getname(p));
+		     }
+		     p = Getnext(p);
+		     if (p) Putc(',',$$);
+		   }
+                }
+                ;
+
 /* Operator overloading catch */
 
 cpp_other      : storage_class type declarator DCOLON OPERATOR {
 	       Printf(stderr,"%s:%d. Operator overloading not supported (ignored).\n", input_file, line_number);
 		skip_decl();
 		Delete($2);
-	     }
-
-
-/* Template catch */
-             | TEMPLATE {
-	       Printf(stderr,"%s:%d. Templates not currently supported (ignored).\n",
-		       input_file, line_number);
-	       skip_decl();
 	     }
              ;
 
@@ -1850,8 +1962,13 @@ declarator :  pointer direct_declarator {
            }
            ;
 
-direct_declarator : ID { 
-       	             $$.id = $1;
+direct_declarator : ID template_decl {
+  /* Note: This is non-standard C.  Template declarator is allowed to follow an identifier */
+                 if (strlen($2)) {
+		       $$.id = Char(NewStringf("%s%s",$1,$2));
+		     } else {
+		       $$.id = $1;
+		     }
 		     $$.type = 0;
 		     $$.parms = 0;
                   }
@@ -2362,7 +2479,7 @@ template_decl : LESSTHAN {
 		     while (Replace(CCode, " ,", ",", DOH_REPLACE_ANY));
 		     while (Replace(CCode, ", ", ",", DOH_REPLACE_ANY));
 		     Replace(CCode,">"," >", DOH_REPLACE_ANY);
-                   $$ = Char(CCode);
+                   $$ = Char(Copy(CCode));
                  }
                | empty { $$ = (char*)"";  }
                ;

@@ -1061,7 +1061,10 @@ extern "C" int yylex(void) {
 	    if (strcmp(yytext,"inline") == 0) return(yylex());
 	    if (strcmp(yytext,"mutable") == 0) return(yylex());
 	    if (strcmp(yytext,"explicit") == 0) return(yylex());
-	    if (strcmp(yytext,"template") == 0) return(TEMPLATE);
+	    if (strcmp(yytext,"template") == 0) {
+	      yylval.ivalue = line_number;
+	      return(TEMPLATE);
+	    }
 	  }
 	  
 	  // Objective-C keywords
@@ -1129,6 +1132,7 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%apply") == 0) return(APPLY);
 	  if (strcmp(yytext,"%clear") == 0) return(CLEAR);
 	  if (strcmp(yytext,"%types") == 0) return(TYPES);
+	  if (strcmp(yytext,"%template") == 0) return (SWIGTEMPLATE);
 	}
 	  // Have an unknown identifier, as a last step, we'll
 	// do a typedef lookup on it.
