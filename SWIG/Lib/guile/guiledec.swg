@@ -65,20 +65,6 @@ void SWIG_Guile_Init();
    #define */
 /* extern void SWIG_init(); */
 
-/* OBSOLESCENT functions (from swigptr.swg, still used unless -with-smobs) */
-
-/* Makes a pointer string from a pointer and typestring.  The result is
-   returned in buffer which is assumed to hold enough space for the result. */
-
-SWIGSTATIC
-void SWIG_MakePtr(char *_c, const void *_ptr, char *type);
-
-/* Gets a pointer value from a string.  If there is a type-mismatch, returns a
-   character string to the received type.  On success, returns NULL. */
-
-SWIGSTATIC
-char *SWIG_GetPtr(char *_c, void **ptr, char *_t);
-
 /* TRANSITIONAL functions (used if -with-smobs) */
 
 /* Makes a smob from a pointer and typestring. */
