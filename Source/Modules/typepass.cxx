@@ -734,9 +734,18 @@ public:
 
   virtual int enumDeclaration(Node *n) {
     String *name = Getattr(n,"name");
+    String *uname = Getattr(n,"unnamed");
     if (name) {
-      SwigType *t = NewStringf("enum %s", name);
-      SwigType_typedef(t,name);
+      SwigType *t;
+      if (uname) {
+	t = NewStringf("enum %s", uname);
+	if (checkAttribute(n,"storage","typedef")) {
+	  SwigType_typedef(t,name);
+	}
+      } else {
+	t = NewStringf("enum %s", name);
+	SwigType_typedef(t,name);
+      }
       Delete(t);
     }
     emit_children(n);
