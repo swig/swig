@@ -11,30 +11,30 @@
 
 /* Pointers */
 
-%typemap(in) SWIGTYPE * {
+%typemap(ocaml,in) SWIGTYPE * {
     void *v = SWIG_MustGetPtr($input, $descriptor, $argnum);
     $1 = ($ltype)(v) ;
 }
 
-%typemap(in) void * {
+%typemap(ocaml,in) void * {
   $1 = SWIG_MustGetPtr($input, NULL, $argnum);
 }
 
-%typemap(varin) SWIGTYPE * {
+%typemap(ocaml,varin) SWIGTYPE * {
     void *v = SWIG_MustGetPtr($input, $descriptor, 1);
     $1 = ($ltype)(v) ;
 }
 
-%typemap(varin) void * {
+%typemap(ocaml,varin) void * {
   $1 = SWIG_MustGetPtr($input, NULL, 1);
 }
 
-%typemap(out) SWIGTYPE * {
+%typemap(ocaml,out) SWIGTYPE * {
   extern value $delete_fn( value );
   $result = SWIG_MakePtr ((void *)$1, $descriptor, (void *)$delete_fn);
 }
 
-%typemap(varout) SWIGTYPE * {
+%typemap(ocaml,varout) SWIGTYPE * {
   $result = SWIG_MakePtr ((void *)$1, $descriptor, NULL);
 }
 
@@ -42,19 +42,19 @@
 
 #ifdef __cplusplus
 
-%typemap(in) SWIGTYPE & {
+%typemap(ocaml,in) SWIGTYPE & {
   $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum) ;
 }
 
-%typemap(out) SWIGTYPE & {
+%typemap(ocaml,out) SWIGTYPE & {
   $result = SWIG_MakePtr ((void *)& $1, $descriptor, NULL);
 }
 
-%typemap(in) SWIGTYPE {
+%typemap(ocaml,in) struct SWIGTYPE, class SWIGTYPE, union SWIGTYPE {
   $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum) ;
 }
 
-%typemap(out) SWIGTYPE {
+%typemap(ocaml,out) struct SWIGTYPE, class SWIGTYPE, union SWIGTYPE {
 	extern value $delete_fn( value );
 	$type *temp = new $type( $1 );
 	$result = SWIG_MakePtr ((void *)temp, $descriptor, 
@@ -63,11 +63,11 @@
 
 #else
 
-%typemap(in) SWIGTYPE {
+%typemap(ocaml,in) struct SWIGTYPE, union SWIGTYPE {
   $1 = *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum)) ;
 }
 
-%typemap(out) SWIGTYPE {
+%typemap(ocaml,out) struct SWIGTYPE, union SWIGTYPE {
         extern value $delete_fn( value );
 	$ltype temp = calloc(1,sizeof($ltype));
 	memcpy(temp,&$1,sizeof($ltype));
@@ -78,53 +78,53 @@
 
 /* Arrays */
 
-%typemap(in) SWIGTYPE[] {
+%typemap(ocaml,in) SWIGTYPE[] {
     $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum);
 }
 
-%typemap(out) SWIGTYPE[] {
+%typemap(ocaml,out) SWIGTYPE[] {
     $result = SWIG_MakePtr ($1, $descriptor, NULL);
 }
 
 /* Enums */
-%typemap(in) enum SWIGTYPE {
+%typemap(ocaml,in) enum SWIGTYPE {
     $1 = enum_to_int("$type_to_int",$input);
 }
 
-%typemap(varin) enum SWIGTYPE {
+%typemap(ocaml,varin) enum SWIGTYPE {
     $1 = enum_to_int("$type_to_int",$input);
 }
 
-%typemap(out) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
-%typemap(varout) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
+%typemap(ocaml,out) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
+%typemap(ocaml,varout) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
 
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 
 %define SIMPLE_MAP(C_NAME, C_TO_MZ, MZ_TO_C)
-%typemap(in) C_NAME {
+%typemap(ocaml,in) C_NAME {
     $1 = MZ_TO_C($input);
 }
-%typemap(varin) C_NAME {
+%typemap(ocaml,varin) C_NAME {
     $1 = MZ_TO_C($input);
 }
-%typemap(out) C_NAME {
+%typemap(ocaml,out) C_NAME {
     $result = C_TO_MZ($1);
 }
-%typemap(varout) C_NAME {
+%typemap(ocaml,varout) C_NAME {
     $result = C_TO_MZ($1);
 }
-%typemap(in) C_NAME *INPUT (C_NAME temp) {
+%typemap(ocaml,in) C_NAME *INPUT (C_NAME temp) {
     temp = (C_NAME) MZ_TO_C($input);
     $1 = &temp;
 }
-%typemap(ignore) C_NAME *OUTPUT (C_NAME temp) {
+%typemap(ocaml,ignore) C_NAME *OUTPUT (C_NAME temp) {
     $1 = &temp;
 }
-%typemap(in) C_NAME *BOTH = C_NAME *INPUT;
-//%typemap(argout) C_NAME *BOTH = C_NAME *OUTPUT;
-%typemap(in) C_NAME *INOUT = C_NAME *INPUT;
-//%typemap(argout) C_NAME *INOUT = C_NAME *OUTPUT;
+%typemap(ocaml,in) C_NAME *BOTH = C_NAME *INPUT;
+//%typemap(ocaml,argout) C_NAME *BOTH = C_NAME *OUTPUT;
+%typemap(ocaml,in) C_NAME *INOUT = C_NAME *INPUT;
+//%typemap(ocaml,argout) C_NAME *INOUT = C_NAME *OUTPUT;
 %enddef
 
 SIMPLE_MAP(oc_bool, Val_bool, Int_val);
@@ -148,9 +148,9 @@ SIMPLE_MAP(unsigned long long,copy_int64,Int64_val);
 
 /* Void */
 
-%typemap(out) void "$result = Val_unit;";
+%typemap(ocaml,out) void "$result = Val_unit;";
 
 /* Pass through value */
 
-%typemap (in) value "$1=$input;";
-%typemap (out) value "$result=$1;";
+%typemap (ocaml,in) value "$1=$input;";
+%typemap (ocaml,out) value "$result=$1;";

@@ -51,6 +51,8 @@ static const char *ocaml_path = "ocaml";
 
 /* Data used by more than one handler */
 
+static int in_constructor = 0;   /* Is this function a constructor */
+static int in_destructor = 0;    /* Is this function a destructor */
 static int const_enum;           /* Is this constant an enum label */
 static int classmode;            /* Are we in a class definition */
 static int error_count;          /* Number of errors encountered */
@@ -397,10 +399,9 @@ class OCAML : public Language {
 //----------------------------------------------------------------------
 
     void
-    set_module (char *mod_name)
-	{
-	    module = NewString(mod_name);
-	}
+    set_module (char *mod_name) {
+	module = NewString(mod_name);
+    }
 
     String *uniqueify(char *word) {
 	int x = 1;
@@ -440,7 +441,7 @@ class OCAML : public Language {
 	Printf (stderr, "%s : Line %d. Unable to handle type %s.\n", 
 		input_file, line_number, SwigType_str(d,0));
 	error_count++;
-	}
+    }
 
     void delete_replacement(SwigType *tm, SwigType *d) {
 	String *delete_fn = NewString("");
@@ -515,10 +516,6 @@ class OCAML : public Language {
 	    return SwigType_manglestr(t);
     }
 
-    int closureWrapper(Node *n) {
-	return SWIG_OK;
-    }
-
     int functionWrapper(Node *n) {
 	char *iname = GetChar(n,"sym:name");
 	SwigType *d = Getattr(n,"type");
@@ -556,17 +553,6 @@ class OCAML : public Language {
 	    vname = Char(ml_vname) + strlen("_wrap_");
 	else
 	    vname = Char(ml_vname);
-
-	// Register this deleter as one we recognize 
-	if( !strncmp( vname, "new_", strlen( "new_" ) ) ) {
-	    String *del_vname = NewString("");
-	    SwigType *dcaml_deref = Copy(d);
-	    String *dcaml_delete = mangle_type(dcaml_deref);
-
-	    Printf(del_vname,"_wrap_delete_%s",vname+strlen("new_"));
-	    Setattr( seen_deleters, dcaml_delete, del_vname );
-	    Delete(del_vname);
-	}
 
 	lcase(vname);
 	lcase(Char(ml_iname));
@@ -670,9 +656,7 @@ class OCAML : public Language {
 
 	// Write out signature for function in module file
 	if( !classmode || !onlyobjects || !mliout ||
-	    !strncmp( vname, "new_", 4 ) ||
-	    !strncmp( vname, "delete_", 7 ) ||
-	    !strncmp( vname, "copy_", 5 ) ) {
+	    in_constructor || in_destructor ) {
 	    Printf(f_module, "  external %s : ", vname_final);
 	
 	    if( numargs == 0 ) 
@@ -891,8 +875,6 @@ class OCAML : public Language {
 	String *arg = NewString("Field(args,0)");
 	String *mangled_tcaml = mangle_type(t);
 	Wrapper *f;
-	
-	if( Getattr(n,"feature:closure") ) return closureWrapper(n);
 	
 	if( strlen(Char(mangled_tcaml)) == 0 ) return SWIG_OK;
 	
@@ -1137,6 +1119,49 @@ class OCAML : public Language {
 	}
 
 	return SWIG_OK;
+    }
+
+    int constructorHandler(Node *n) {
+	int ret;
+
+	in_constructor = 1;
+	ret = Language::constructorHandler(n);
+	in_constructor = 0;
+
+	return ret;
+    }
+
+    int destructorHandler(Node *n) {
+	int ret;
+	String *name = NewString(GetChar(n,"name"));
+	char *iname = GetChar(n,"sym:name");
+
+	lcase(Char(name));
+	
+	// Register this deleter as one we recognize 
+	String *del_vname = NewString("");
+	
+	Printf(del_vname,"_wrap_delete_%s",name);
+	Setattr( seen_deleters, name, del_vname );
+	Delete(del_vname);
+
+	in_destructor = 1;
+	ret = Language::destructorHandler(n);
+	in_destructor = 0;
+	    
+	Delete(name);
+
+	return ret;
+    }
+
+    int copyconstructorHandler(Node *n) {
+	int ret;
+
+	in_constructor = 1;
+	ret = Language::copyconstructorHandler(n);
+	in_constructor = 0;
+
+	return ret;
     }
 
 // -----------------------------------------------------------------------
