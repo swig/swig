@@ -16,6 +16,22 @@ tree (maybe).
 
 Version 1.3.10 (In progress)
 ============================
+11/06/2001:beazley
+           Changes to Tcl module initialization:
+
+           (1) SWIG now automatically includes the code needed to work with
+                Tcl stubs.  Simply compile with -DUSE_TCL_STUBS.
+
+           (2) SWIG now automatically calls Tcl_PkgProvide to register
+               a package name.  The package name is the same as the name
+               specified with the %module directive.  The version number is
+               set to "0.0" by default.  To change the version number, use
+               swig -pkgversion 1.2 interface.i.
+
+           *** POTENTIAL INCOMPATIBILITY ***
+           Modules that provided stubs and Tcl_PkgProvide on their own might
+           break.  Simply remove that code.
+
 11/05/2001:beazley
            Changed code generation of constants in the Tcl module.  Constants
            are now stored in a large table that get installed at module startup.
