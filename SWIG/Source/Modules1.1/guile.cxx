@@ -474,6 +474,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   int i;
   int numargs = 0;
   int numopt = 0;
+  int pcount = 0;
 
   // Make a wrapper name for this
   char * wname = new char [strlen (prefix) + strlen (iname) + 2];
@@ -484,7 +485,8 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
   /* Emit locals etc. into f->code; figure out which args to ignore */
-  emit_args (d, l, f);
+  pcount = emit_args (d, l, f);
+  numopt = check_numopt(l);
 
   /* Declare return variable */
 
@@ -516,6 +518,8 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     else {
       if (numargs!=0) Printf(f->def,", ");
       Printf(f->def,"SCM s_%d", i);
+      if (i>=(pcount-numopt))
+	Printf(f->code,"    if (s_%d != GH_NOT_PASSED) {\n", i);
       ++numargs;
       if (guile_do_typemap(f->code, "in", pt, pn,
 			   source, target, numargs, proc_name, f, 0)) {
@@ -533,6 +537,8 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 	guile_do_doc_typemap(signature, "indoc", pt, pn,
 			     numargs, proc_name, f);
       }
+      if (i>=(pcount-numopt))
+	Printf(f->code,"    }\n");
     }
 
     /* Check if there are any constraints. */

@@ -29,8 +29,8 @@
 %enddef
  
  SIMPLE_MAP(bool, gh_scm2bool, gh_bool2scm, boolean);
- SIMPLE_MAP(char, gh_scm2char, gh_char2scm, char);
- SIMPLE_MAP(unsigned char, gh_scm2char, gh_char2scm, char);
+ SIMPLE_MAP(char, GSWIG_scm2char, gh_char2scm, char);
+ SIMPLE_MAP(unsigned char, GSWIG_scm2char, gh_char2scm, char);
  SIMPLE_MAP(int, gh_scm2int, gh_int2scm, integer);
  SIMPLE_MAP(short, gh_scm2int, gh_int2scm, integer);
  SIMPLE_MAP(long, gh_scm2long, gh_long2scm, integer);
