@@ -87,7 +87,7 @@ static const char *usage2 = (const char*)"\
      -outdir <dir>   - Set language specific files output directory\n\
      -small          - Compile in virtual elimination & compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
-     -templatereduce - Swig reduce all the typedefs in templates \n\
+     -templatereduce - Reduce all the typedefs in templates \n\
      -v              - Run in verbose mode\n\
      -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
@@ -308,9 +308,16 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Wrapper_virtual_elimination_mode_set(1);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-directors") == 0) {
+	    Hash *features_hash = Swig_cparse_features();
+	    String *name = NewString("");
+	    String *fname = NewString("feature:director");
+	    String *fvalue = NewString("1");
+	    Swig_feature_set(features_hash,name,0,fname,fvalue,0);
 	    Wrapper_director_mode_set(1);
-	    Wrapper_director_protected_mode_set(1);
 	    Swig_mark_arg(i);
+	    Delete(name);
+	    Delete(fname);
+	    Delete(fvalue);
 	  } else if (strcmp(argv[i],"-dirprot") == 0) {
 	    Wrapper_director_protected_mode_set(1);
 	    Swig_mark_arg(i);
