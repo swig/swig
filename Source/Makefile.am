@@ -17,12 +17,7 @@ AM_CFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(SOURCE_DIR)/Swig		\
 		-I$(SOURCE_DIR)/Modules
 
-AM_CXXFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
-		-I$(SOURCE_DIR)/Include		\
-		-I$(SOURCE_DIR)/DOH		\
-		-I$(SOURCE_DIR)/Preprocessor	\
-		-I$(SOURCE_DIR)/Swig		\
-		-I$(SOURCE_DIR)/Modules		\
+AM_CXXFLAGS =	$(AM_CFLAGS)			\
 		$(SWIG_CXX_DEFS)
 
 AM_YFLAGS = -d

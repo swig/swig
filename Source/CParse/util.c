@@ -12,8 +12,7 @@
 char cvsroot_util_c[] = "$Header$";
 
 #include "swig.h"
-
-extern SwigType *Swig_cparse_type(String *);
+#include "cparse.h"
 
 /* -----------------------------------------------------------------------------
  * Swig_cparse_replace_descriptor()
@@ -94,7 +93,6 @@ void cparse_normalize_void(Node *n) {
  * Detects when we need to fully register the protected member.
  * 
  * ----------------------------------------------------------------------------- */
-extern int Swig_need_protected();
 
 int need_protected(Node* n, int dirprot_mode)
 {

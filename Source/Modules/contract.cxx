@@ -56,10 +56,6 @@ public:
   virtual int top(Node *n);
 };
 
-extern void Swig_contracts(Node *n);
-extern void Swig_contract_mode_set(int flag);
-extern int  Swig_contract_mode_get();
-
 static int      Contract_Mode = 0;    /* contract option */
 static int      InClass       = 0;    /* Parsing C++ or not */
 static int      InConstructor = 0;

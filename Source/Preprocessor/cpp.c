@@ -17,6 +17,7 @@
 
 char cvsroot_cpp_c[] = "$Header$";
 
+#include "swig.h"
 #include "preprocessor.h"
 #include <ctype.h>
 
@@ -112,7 +113,6 @@ List *Preprocessor_depend(void) {
  * void Preprocessor_cpp_init() - Initialize the preprocessor
  * ----------------------------------------------------------------------------- */
 void Preprocessor_init() {
-  extern void Preprocessor_expr_init(void);
   Hash *s;
   cpp = NewHash();
   s =   NewHash();

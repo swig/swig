@@ -11,10 +11,9 @@
  * $Header$
  * ----------------------------------------------------------------------------- */
 
-#ifndef _PREPROCESSOR_H
-#define _PREPROCESSOR_H
+#ifndef PREPROCESSOR_H_
+#define PREPROCESSOR_H_
 
-#include "swig.h"
 #include "swigwarn.h"
 
 #ifdef __cplusplus
@@ -30,6 +29,7 @@ extern void    Preprocessor_include_all(int);
 extern void    Preprocessor_import_all(int);
 extern void    Preprocessor_ignore_missing(int);
 extern List   *Preprocessor_depend(void);
+extern void    Preprocessor_expr_init(void);
 
 #ifdef __cplusplus
 }

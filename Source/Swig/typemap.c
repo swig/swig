@@ -12,9 +12,10 @@
 char cvsroot_typemap_c[] = "$Header$";
 
 #include "swig.h"
+#include "cparse.h"
 #include <ctype.h>
 
-void replace_embedded_typemap(String *s, Wrapper *f);
+static void replace_embedded_typemap(String *s, Wrapper *f);
 
 /* -----------------------------------------------------------------------------
  * Typemaps are stored in a collection of nested hash tables.  Something like
@@ -1437,7 +1438,6 @@ static List *split_embedded(String *s) {
 static void split_var(String *s, String **name, String **value) {
   char *eq;
   char *c;
-  extern Parm *Swig_cparse_parm(String *s);
 
   eq = Strstr(s,"=");
   if (!eq) {
@@ -1462,7 +1462,7 @@ static void split_var(String *s, String **name, String **value) {
   }
 }
 
-void replace_embedded_typemap(String *s, Wrapper *f) {
+static void replace_embedded_typemap(String *s, Wrapper *f) {
   while (Strstr(s,"$TYPEMAP(")) {
 
     /* Gather the argument */

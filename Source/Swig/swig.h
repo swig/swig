@@ -12,13 +12,17 @@
  * $Header$
  * ----------------------------------------------------------------------------- */
 
-#ifndef _SWIGCORE_H
-#define _SWIGCORE_H
+#ifndef SWIGCORE_H_
+#define SWIGCORE_H_
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "doh.h"
 
@@ -486,13 +490,13 @@ extern void   Swig_typemap_attach_parms(const String_or_char *op, ParmList *parm
 
 extern  void  Swig_fragment_register(String *name, String *section, String *code);
 extern  void  Swig_fragment_emit(String *name);
-  
+
+/* hacks defined in C++ ! */
+extern  int   Swig_need_protected();
+
+#ifdef __cplusplus
+}
 #endif
 
-
-
-
-
-
-
+#endif
 
