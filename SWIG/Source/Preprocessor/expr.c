@@ -62,7 +62,6 @@ static void init_precedence() {
 
 /* Reduce a single operator on the stack */
 static void reduce_op() {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   if (stack[sp-1].op != EXPR_OP) {
     errmsg = "Missing operator";
     sp = 0;

@@ -23,7 +23,6 @@ extern SwigType *Swig_cparse_type(String *);
  * ----------------------------------------------------------------------------- */
 
 void Swig_cparse_replace_descriptor(String *s) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   char   tmp[512];
   String *arg = 0;
   SwigType *t;

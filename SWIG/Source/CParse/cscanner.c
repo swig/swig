@@ -76,7 +76,6 @@ static Locator *locs = 0;
   
 static void
 scanner_locator(String *loc) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   int c;
   Locator *l;
   Seek(loc,1,SEEK_SET);
