@@ -57,7 +57,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Java compile post-build step
-PostBuild_Cmds=echo on	%JAVA_BIN%\javac *.java
+PostBuild_Cmds=echo on	"%JAVA_BIN%\javac" *.java
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "example - Win32 Release"
@@ -88,7 +88,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Java compile post-build step
-PostBuild_Cmds=echo on	%JAVA_BIN%\javac *.java
+PostBuild_Cmds=echo on	"%JAVA_BIN%\javac" *.java
 # End Special Build Tool
 
 !ENDIF 
