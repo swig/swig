@@ -229,7 +229,8 @@
 
 %typemap(throws) SWIGTYPE * {
   if ($1_descriptor->clientdata) {
-    PyErr_SetObject((PyObject *) ($1_descriptor->clientdata), SWIG_NewPointerObj($1,$1_descriptor,1));
+    PyErr_SetObject((PyObject *) ($1_descriptor->clientdata),
+		    SWIG_NewPointerObj((void *) $1,$1_descriptor,1));
   } else {
     PyErr_SetString(PyExc_RuntimeError,"$1_type");
   }
@@ -239,7 +240,8 @@
 
 %typemap(throws) SWIGTYPE [ANY] {
   if ($1_descriptor->clientdata) {
-    PyErr_SetObject((PyObject *) ($1_descriptor->clientdata), SWIG_NewPointerObj($1,$1_descriptor,1));
+    PyErr_SetObject((PyObject *) ($1_descriptor->clientdata),
+		    SWIG_NewPointerObj((void *)$1,$1_descriptor,1));
   } else {
     PyErr_SetString(PyExc_RuntimeError,"$1_type");
   }
@@ -248,7 +250,8 @@
 
 %typemap(throws) SWIGTYPE & {
   if ($1_descriptor->clientdata) {
-    PyErr_SetObject((PyObject *) ($1_descriptor->clientdata), SWIG_NewPointerObj(&($1),$1_descriptor,1));
+    PyErr_SetObject((PyObject *) ($1_descriptor->clientdata), 
+		    SWIG_NewPointerObj((void *)&($1),$1_descriptor,1));
   } else {
     PyErr_SetString(PyExc_RuntimeError,"$1_type");
   }
