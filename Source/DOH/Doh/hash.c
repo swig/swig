@@ -549,3 +549,4 @@ NewHash() {
     h->line = 0;
     return DohObjMalloc(DOHTYPE_HASH,h);
 }
+

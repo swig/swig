@@ -363,18 +363,18 @@ get_pointer (char *iname, int parm, SwigType *t,
 {
   SwigType_remember(t);
   /* Pointers are smobs */
-  Printf(f->code, "    if (SWIG_Guile_GetPtr(s_%d,(void **) &arg%d", parm, parm);
+  Printf(f, "    if (SWIG_Guile_GetPtr(s_%d,(void **) &arg%d", parm, parm);
   if (SwigType_type(t) == T_VOID)
-    Printf(f->code, ", NULL)) {\n");
+    Printf(f, ", NULL)) {\n");
   else
-    Printv(f->code, ", SWIGTYPE", SwigType_manglestr(t), ")) {\n", 0);
+    Printv(f, ", SWIGTYPE", SwigType_manglestr(t), ")) {\n", 0);
   /* Raise exception */
-  Printv(f->code,
+  Printv(f,
 	 tab8,
          "scm_wrong_type_arg(\"",proc_name, "\", ",
 	 0);
-  Printf(f->code,"%d, s_%d);\n", num_scheme_parm, parm);
-  Printv(f->code, tab4, "}\n", 0);
+  Printf(f,"%d, s_%d);\n", num_scheme_parm, parm);
+  Printv(f, tab4, "}\n", 0);
 }
 
 /* Return true iff T is a pointer type */
@@ -497,7 +497,7 @@ GUILE::function (DOH *node) {
   proc_name = NewString(iname);
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
-  /* Emit locals etc. into f->code; figure out which args to ignore */
+  /* Emit locals etc. into f; figure out which args to ignore */
   emit_args (node, f);
 
   /* Declare return variable */
@@ -509,10 +509,23 @@ GUILE::function (DOH *node) {
 			 0, proc_name, f);
 
   /* Open prototype and signature */
+  
+  /* <DB> The function prototype must be produced first */
 
-  Printv(f->def, "static SCM\n", wname," (", 0);
+  Printv(f, "static SCM\n", wname," (", 0);
+  for (p = l, i = 0; p; p = Getnext(p), i++) {
+    if (i != 0) Printf(f,", ");
+    Printf(f,"SCM s_%d", i);
+  }
+  Printf(f,")\n{\n");
+  Printf(f,"$locals\n");
+
+  /* Define the scheme name in C. This define is used by several Guile
+     macros. */
+
+  Printv(f,"#define FUNC_NAME \"", proc_name, "\"\n", 0);
+
   Printv(signature, "(", proc_name, 0);
-
   /* Now write code to extract the parameters */
 
   for (p = l, i = 0; p; p=Getnext(p), i++) {
@@ -528,16 +541,14 @@ GUILE::function (DOH *node) {
     // Handle parameter types.
 
     if (Getignore(p))
-      Printv(f->code, "/* ", pn, " ignored... */\n", 0);
+      Printv(f, "/* ", pn, " ignored... */\n", 0);
     else {
-      if (numargs!=0) Printf(f->def,", ");
-      Printf(f->def,"SCM s_%d", i);
       if (opt_p) {
 	numopt++;
-	Printf(f->code,"    if (s_%d != GH_NOT_PASSED) {\n", i);
+	Printf(f,"    if (s_%d != GH_NOT_PASSED) {\n", i);
       }
       ++numargs;
-      if (guile_do_typemap(f->code, "in", pt, pn,
+      if (guile_do_typemap(f, "in", pt, pn,
 			   source, target, numargs, proc_name, f, 0)) {
 	/* nothing to do */
       }
@@ -554,12 +565,12 @@ GUILE::function (DOH *node) {
 			     numargs, proc_name, f);
       }
       if (opt_p)
-	Printf(f->code,"    }\n");
+	Printf(f,"    }\n");
     }
 
     /* Check if there are any constraints. */
 
-    guile_do_typemap(f->code, "check", pt, pn,
+    guile_do_typemap(f, "check", pt, pn,
 		     source, target, numargs, proc_name, f, 0);
 
     /* Pass output arguments back to the caller. */
@@ -591,27 +602,23 @@ GUILE::function (DOH *node) {
   /* Close prototype and signature */
 
   Printv(signature, ")\n", 0);
-  Printf(f->def, ")\n{\n");
 
-  /* Define the scheme name in C. This define is used by several Guile
-     macros. */
-  Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"\n", 0);
 
   // Now write code to make the function call
-  Printv(f->code, tab4, "gh_defer_ints();\n", 0);
+  Printv(f, tab4, "gh_defer_ints();\n", 0);
   emit_func_call (node, f);
-  Printv(f->code, tab4, "gh_allow_ints();\n", 0);
+  Printv(f, tab4, "gh_allow_ints();\n", 0);
 
   // Now have return value, figure out what to do with it.
 
-  if (guile_do_typemap(f->code, "out", d, name,
+  if (guile_do_typemap(f, "out", d, name,
 		       (char*)"result", (char*)"gswig_result",
 		       0, proc_name, f, 0)) {
     /* nothing */
   }
   else if (is_a_pointer(d)) {
     SwigType_remember(d);
-    Printv(f->code, tab4,
+    Printv(f, tab4,
            "gswig_result = SWIG_Guile_MakePtr (",
            "result, ",
            "SWIGTYPE", SwigType_manglestr(d),
@@ -623,33 +630,33 @@ GUILE::function (DOH *node) {
   }
 
   // Dump the argument output code
-  Printv(f->code,outarg,0);
+  Printv(f,outarg,0);
 
   // Dump the argument cleanup code
-  Printv(f->code,cleanup,0);
+  Printv(f,cleanup,0);
 
   // Look for any remaining cleanup
 
   if (NewObject) {
-    guile_do_typemap(f->code, "newfree", d, iname,
+    guile_do_typemap(f, "newfree", d, iname,
 		     (char*)"result", (char*)"", 0, proc_name, f, 0);
   }
 
   // Free any memory allocated by the function being wrapped..
 
-  guile_do_typemap(f->code, "ret", d, name,
+  guile_do_typemap(f, "ret", d, name,
 		   (char*)"result", (char*)"", 0, proc_name, f, 0);
 
   // Wrap things up (in a manner of speaking)
 
-  Printv(f->code, "return gswig_result;\n", 0);
+  Printv(f, "return gswig_result;\n", 0);
 
   // Undefine the scheme name
 
-  Printf(f->code, "#undef FUNC_NAME\n");
-  Printf(f->code, "}\n");
+  Printf(f, "#undef FUNC_NAME\n");
+  Printf(f, "}\n");
 
-  Wrapper_print (f, f_wrappers);
+  Printf(f_wrappers,"%s", f);
 
   if (numargs > 10) {
     int i;
@@ -722,7 +729,7 @@ GUILE::function (DOH *node) {
   Delete(signature);
   Delete(returns);
   Delete(tmp);
-  DelWrapper(f);
+  Delete(f);
   delete[] wname;
 }
 
@@ -888,7 +895,7 @@ GUILE::variable (DOH *node)
              input_file, line_number, SwigType_str(t,0));
   }
   Delete(proc_name);
-  DelWrapper(f);
+  Delete(f);
 }
 
 // -----------------------------------------------------------------------
@@ -965,7 +972,7 @@ GUILE::constant(DOH *node)
   }
   Delete(proc_name);
   Delete(rvalue);
-  DelWrapper(f);
+  Delete(f);
 }
 
 void GUILE::cpp_variable(DOH *node)

@@ -234,9 +234,9 @@ MZSCHEME::get_pointer (String *name, int parm, SwigType *t, Wrapper *f)
 {
   char p[256];
   sprintf(p, "%d", parm);
-  Printv(f->code, tab4, "if (!swig_get_c_pointer(argv[", p, "], \"", SwigType_manglestr(t),
+  Printv(f, tab4, "if (!swig_get_c_pointer(argv[", p, "], \"", SwigType_manglestr(t),
 	 "\", (void **) &arg", p, "))\n",0);
-  Printv(f->code, tab8, "scheme_wrong_type(\"", name,
+  Printv(f, tab8, "scheme_wrong_type(\"", name,
 	 "\", \"", SwigType_manglestr(t), "\", ", p, ", argc, argv);\n",0);    
 }
 // ----------------------------------------------------------------------
@@ -302,9 +302,10 @@ MZSCHEME::function(DOH *node)
   Replace(proc_name, "_", "-", DOH_REPLACE_ANY);
 
   // writing the function wrapper function
-  Printv(f->def, "static Scheme_Object *",  wname, " (", 0);
-  Printv(f->def, "int argc, Scheme_Object **argv", 0);
-  Printv(f->def, ")\n{", 0);
+  Printv(f, "static Scheme_Object *",  wname, " (", 0);
+  Printv(f, "int argc, Scheme_Object **argv", 0);
+  Printv(f, ")\n{\n", 0);
+  Printf(f, "$locals\n");
 
   // Declare return variable and arguments
   // number of parameters
@@ -336,13 +337,13 @@ MZSCHEME::function(DOH *node)
     // Handle parameter types.
 
     if (Getignore(p))
-      Printv(f->code, "/* ", Char(Getname(p)), " ignored... */\n", 0);
+      Printv(f, "/* ", Char(Getname(p)), " ignored... */\n", 0);
     else {
       ++numargs;
       if ((tm = Swig_typemap_lookup ((char*)"in",
 				     Gettype(p), Getname(p), source, target, f))) {
-	Printv(f->code, tm, "\n", 0);
-	mreplace (f->code, argnum, arg, proc_name);
+	Printv(f, tm, "\n", 0);
+	mreplace (f, argnum, arg, proc_name);
       }
       // no typemap found
       // check if typedef and resolve
@@ -363,8 +364,8 @@ MZSCHEME::function(DOH *node)
     if ((tm = Swig_typemap_lookup ((char*)"check", 
 				   Gettype(p), Getname(p), source, target, f))) {
       // Yep.  Use it instead of the default
-      Printv(f->code, tm, "\n", 0);
-      mreplace (f->code, argnum, arg, proc_name);
+      Printv(f, tm, "\n", 0);
+      mreplace (f, argnum, arg, proc_name);
     }
 
     // Pass output arguments back to the caller.
@@ -395,18 +396,18 @@ MZSCHEME::function(DOH *node)
 
   if (SwigType_type(d) == T_VOID) {
     if(!argout_set)
-      Printv(f->code, tab4, "swig_result = scheme_void;\n",0);
+      Printv(f, tab4, "swig_result = scheme_void;\n",0);
   }
 
   else if ((tm = Swig_typemap_lookup ((char*)"out",
 				      d, name, (char*)"result", (char*)"swig_result", f))) {
-    Printv(f->code, tm, "\n",0);
-    mreplace (f->code, argnum, arg, proc_name);
+    Printv(f, tm, "\n",0);
+    mreplace (f, argnum, arg, proc_name);
   }
   // no typemap found and not void then create a Scheme_Object holding
   // the C pointer and return it
   else if (SwigType_ispointer(d)) {
-    Printv(f->code, tab4,
+    Printv(f, tab4,
 	   "swig_result = swig_make_c_pointer(",
 	   "result, \"",
 	   SwigType_manglestr(d),
@@ -417,18 +418,18 @@ MZSCHEME::function(DOH *node)
   }
 
   // Dump the argument output code
-  Printv(f->code, Char(outarg),0);
+  Printv(f, Char(outarg),0);
 
   // Dump the argument cleanup code
-  Printv(f->code, Char(cleanup),0);
+  Printv(f, Char(cleanup),0);
 
   // Look for any remaining cleanup
 
   if (NewObject) {
     if ((tm = Swig_typemap_lookup ((char*)"newfree",
 				   d, iname, (char*)"result", (char*)"", f))) {
-      Printv(f->code, tm, "\n",0);
-      mreplace (f->code, argnum, arg, proc_name);
+      Printv(f, tm, "\n",0);
+      mreplace (f, argnum, arg, proc_name);
     }
   }
 
@@ -437,8 +438,8 @@ MZSCHEME::function(DOH *node)
   if ((tm = Swig_typemap_lookup ((char*)"ret",
 				 d, name, (char*)"result", (char*)"", f))) {
     // Yep.  Use it instead of the default
-    Printv(f->code, tm, "\n",0);
-    mreplace (f->code, argnum, arg, proc_name);
+    Printv(f, tm, "\n",0);
+    mreplace (f, argnum, arg, proc_name);
   }
 
   // returning multiple values
@@ -446,22 +447,22 @@ MZSCHEME::function(DOH *node)
     if(SwigType_type(d) == T_VOID) {
       Wrapper_add_local(f, "_lenv", "int _lenv = 0");
       Wrapper_add_local(f, "values", "Scheme_Object *values[MAXVALUES]");
-      Printv(f->code, tab4, "swig_result = scheme_values(_lenv, _values);\n",0);
+      Printv(f, tab4, "swig_result = scheme_values(_lenv, _values);\n",0);
     }
     else {
       Wrapper_add_local(f, "_lenv", "int _lenv = 1");
       Wrapper_add_local(f, "values", "Scheme_Object *values[MAXVALUES]");
-      Printv(f->code, tab4, "_values[0] = swig_result;\n",0);
-      Printv(f->code, tab4, "swig_result = scheme_values(_lenv, _values);\n",0);
+      Printv(f, tab4, "_values[0] = swig_result;\n",0);
+      Printv(f, tab4, "swig_result = scheme_values(_lenv, _values);\n",0);
     }
   }
 
   // Wrap things up (in a manner of speaking)
 
-  Printv(f->code, tab4, "return swig_result;\n",0);
-  Printv(f->code, "}\n",0);
+  Printv(f, tab4, "return swig_result;\n",0);
+  Printv(f, "}\n",0);
 
-  Wrapper_print(f, f_wrappers);
+  Printf(f_wrappers,"%s", f);
 
   // Now register the function
   char temp[256];
@@ -479,7 +480,7 @@ MZSCHEME::function(DOH *node)
   Delete(outarg);
   Delete(cleanup);
   Delete(build);
-  DelWrapper(f);
+  Delete(f);
 }
 
 // -----------------------------------------------------------------------

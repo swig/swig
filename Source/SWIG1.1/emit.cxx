@@ -74,16 +74,16 @@ int emit_args(DOH *node, Wrapper *f) {
 
     tm = Swig_typemap_lookup((char*)"arginit",pt,pname,(char*)"",lname,f);
     if (tm) {
-      Printv(f->code,tm,"\n",0);
+      Printv(f,tm,"\n",0);
     }
     /* Check for ignore or default typemaps */
     tm = Swig_typemap_lookup((char*)"default",pt,pname,(char*)"",lname,f);
     if (tm) {
-      Printv(f->code,tm,"\n",0);
+      Printv(f,tm,"\n",0);
     }
     tm = Swig_typemap_lookup((char*)"ignore",pt,pname,(char*)"",lname,f);
     if (tm) {
-      Printv(f->code,tm,"\n",0);
+      Printv(f,tm,"\n",0);
       Setignore(p,1);
     }
     i++;
@@ -122,13 +122,13 @@ void emit_func_call(DOH *node, Wrapper *f) {
   l = Getattr(node,"parms");
 
   if ((tm = Swig_typemap_lookup((char*)"except",t,decl,(char*)"result",(char*)"",0))) {
-    Printv(f->code,tm,0);
-    Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
+    Printv(f,tm,0);
+    Replace(f,"$name",decl,DOH_REPLACE_ANY);
   } else if ((tm = Swig_except_lookup())) {
-    Printv(f->code,tm,0);
-    Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
+    Printv(f,tm,0);
+    Replace(f,"$name",decl,DOH_REPLACE_ANY);
   } else {
-    Printv(f->code,"$function",0);
+    Printv(f,"$function",0);
   }
   
   if (!fcall) fcall = NewString(Swig_cfunction_call(decl,l));
@@ -200,21 +200,21 @@ void emit_set_get(DOH *node) {
 	code = c_str;
     }
     w = Swig_cvarset_wrapper(name, t, code);
-    Wrapper_print(w,f_header);
+    Printf(f_header,"%s", w);
     new_iname = Swig_name_set(iname);
     DohIncref(new_iname);
-    new_create_function(Wrapper_Getname(w), Char(new_iname), Wrapper_Gettype(w), Wrapper_Getparms(w));
+    new_create_function(GetChar(w,"name"), Char(new_iname), Gettype(w), Getparms(w));
     Delete(new_iname);
-    DelWrapper(w);
+    Delete(w);
   }
 
   w = Swig_cvarget_wrapper(name,t,0);
-  Wrapper_print(w,f_header);
+  Printf(f_header,"%s", w);
   new_iname = Swig_name_get(iname);
   DohIncref(new_iname);
-  new_create_function(Wrapper_Getname(w), Char(new_iname), Wrapper_Gettype(w), Wrapper_Getparms(w));
+  new_create_function(GetChar(w,"name"), Char(new_iname), Gettype(w), Getparms(w));
   Delete(new_iname);
-  DelWrapper(w);
+  Delete(w);
 }
 
 /* ------------------------------------------------------------------

@@ -263,31 +263,15 @@ extern void Swig_dump_rules();
 
 /* -- Wrapper function Object */
 
-typedef struct {
-  SwigType  *_type;
-  ParmList  *_parms;
-  String    *_name;
-  Hash      *localh;
-  String    *def;
-  String    *locals;
-  String    *code;
-} Wrapper;
+typedef DOH Wrapper;
 
 extern Wrapper  *NewWrapper();
-extern void      DelWrapper(Wrapper *w);
 extern void      Wrapper_pretty_print(String *str, File *f);
-extern void      Wrapper_print(Wrapper *w, File *f);
 extern int       Wrapper_add_local(Wrapper *w, const String_or_char *name, const String_or_char *decl);
 extern int       Wrapper_add_localv(Wrapper *w, const String_or_char *name, ...);
 extern int       Wrapper_check_local(Wrapper *w, const String_or_char *name);
 extern char     *Wrapper_new_local(Wrapper *w, const String_or_char *name, const String_or_char *decl);
 extern char     *Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...);
-extern SwigType *Wrapper_Gettype(Wrapper *w);
-extern void      Wrapper_Settype(Wrapper *w, SwigType *t);
-extern ParmList *Wrapper_Getparms(Wrapper *w);
-extern void      Wrapper_Setparms(Wrapper *w, ParmList *l);
-extern char     *Wrapper_Getname(Wrapper *w);
-extern void      Wrapper_Setname(Wrapper *w, String_or_char *name);
 
 /* --- Naming functions --- */
 

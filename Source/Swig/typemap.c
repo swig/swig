@@ -429,7 +429,7 @@ char *Swig_typemap_lookup(char *op, SwigType *type, String_or_char *pname, Strin
       DOHString *dim = SwigType_array_getdim(type,i);
       sprintf(temp,"$dim%d",i);
       if (f)
-	Replace(f->locals,temp,dim, DOH_REPLACE_ANY);
+	Replace(Getattr(f,"locals"),temp,dim, DOH_REPLACE_ANY);
       Replace(s,temp,dim,DOH_REPLACE_ANY);
     }
   }
