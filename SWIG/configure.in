@@ -80,6 +80,7 @@ then
 	esac
 fi
 AC_MSG_RESULT($SO)
+
 # LDSHARED is the ld *command* used to create shared library
 # -- "ld" on SunOS 4.x.x, "ld -G" on SunOS 5.x, "ld -shared" on IRIX 5
 # (Shared libraries in this instance are shared modules to be loaded into
@@ -223,6 +224,36 @@ then
 	esac
 fi
 AC_MSG_RESULT($LINKFORSHARED)
+
+
+# This variation is needed on OS-X because there is no (apparent) consistency in shared libary naming.
+# Sometimes .bundle works, but sometimes .so is needed.  It depends on the target language
+
+AC_SUBST(PYTHON_SO)
+case $host in
+   *-*-darwin*) PYTHON_SO=.so;;
+   *) PYTHON_SO=$SO;;
+esac
+
+AC_SUBST(TCL_SO)
+case $host in
+   *-*-darwin*) TCL_SO=.so;;
+   *) TCL_SO=$SO;;
+esac
+
+AC_SUBST(TCL_LDSHARED)
+case $host in
+   *-*-darwin*) TCL_LDSHARED="gcc -dynamiclib -framework Tcl";;
+   *) TCL_LDSHARED=$LDSHARED;;
+esac
+
+AC_SUBST(TCL_CXXSHARED)
+case $host in
+   *-*-darwin*) TCL_CXXSHARED="g++ -dynamiclib -framework Tcl";;
+   *) TCL_CXXSHARED=$CXXSHARED;;
+esac
+
+
 
 echo ""
 echo "Checking for installed packages."
