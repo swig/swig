@@ -282,14 +282,15 @@ public:
 	Printf(f_directors_h, "#include <string>\n\n");
       }
       /* Printf(f_directors_h, "class Swig::Director;\n\n"); */
-      Swig_insert_file("director.swg", f_directors_h);
+      Swig_insert_file("director_h.swg", f_directors_h);
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
       Printf(f_directors, " * C++ director class methods\n");
       Printf(f_directors, " * --------------------------------------------------- */\n\n");
       if (outfile_h) {
 	Printf(f_directors, "#include \"%s\"\n\n",Swig_file_filename(outfile_h));
-      }	  
+      }
+      Swig_insert_file("director.swg", f_directors);
     }
 
     /* If shadow classing is enabled, we're going to change the module name to "_module" */
