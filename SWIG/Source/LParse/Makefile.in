@@ -2,8 +2,6 @@
 # LParse
 #####################################################################
 
-# Generated automatically from Makefile.in by configure.
-
 CC          = @CC@
 AR          = @AR@
 RANLIB      = @RANLIB@
