@@ -95,9 +95,9 @@ Ruby Options (available with -ruby)\n\
      -module name    - Set module name\n\
      -feature name   - Set feature name (used by `require')\n";
 
-static  char *module;
-static  char *modvar;
-static  char *feature;
+static  char *module = 0;
+static  char *modvar = 0;
+static  char *feature = 0;
 static  String *other_extern = 0;
 static  String *other_init = 0;
 static  char *import_file;
@@ -188,9 +188,6 @@ static void insert_file(char *filename, File *file) {
  * --------------------------------------------------------------------- */
 
 void RUBY::parse() {
-  module = 0;
-  modvar = 0;
-  feature = 0;
   import_file = 0;
   current = NO_CPP;
   klass = 0;
