@@ -1858,7 +1858,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		      SwigType *ty = Getattr(p,"type");
 		      if (ty) {
 			ty = Swig_symbol_type_qualify(ty,0);
-			/* ty = Swig_symbol_typedef_reduce(ty,0); */
+			/*			ty = Swig_symbol_typedef_reduce(ty,0); */
 			Setattr(p,"type",ty);
 		      }
 		    }
@@ -2565,6 +2565,8 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  {
 			    Parm *p = $3;
 			    String *fname = NewString(Getattr($$,"name"));
+			    String *ffname = 0;
+
 			    char   tmp[32];
 			    int    i;
 			    while (p) {
@@ -2585,10 +2587,16 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			    {
 			      SwigType *tt;
 			      List *tparms = SwigType_parmlist(fname);
-			      for (tt = Firstitem(tparms); tt; tt = Nextitem(tparms)) {
+			      ffname = SwigType_templateprefix(fname);
+			      Append(ffname,"<(");
+			      for (tt = Firstitem(tparms); tt; ) {
 				SwigType *ttr = Swig_symbol_typedef_reduce(tt,0);
-				Replaceid(fname,tt, ttr);
+				ttr = Swig_symbol_type_qualify(ttr,0);
+				Append(ffname,ttr);
+				tt = Nextitem(tparms);
+				if (tt) Putc(',',ffname);
 			      }
+			      Append(ffname,")>");
 			    }
 			    {
 			      String *partials = Getattr(tempn,"partials");
@@ -2597,24 +2605,30 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 				Setattr(tempn,"partials",partials);
 			      }
 			      /*			      Printf(stdout,"partial: fname = '%s', '%s'\n", fname, Swig_symbol_typedef_reduce(fname,0)); */
-			      Append(partials,fname);
+			      Append(partials,ffname);
 			    }
-			    Setattr($$,"partialargs",fname);
-			    Swig_symbol_cadd(fname,$$);
+			    Setattr($$,"partialargs",ffname);
+			    Swig_symbol_cadd(ffname,$$);
 			  }
 			  Delete(tlist);
 			  Delete(targs);
 			} else {
 			  /* Need to resolve exact specialization name */
+			  /* This needs to be rewritten */
 			  List *tparms;
 			  String *fname;
 			  SwigType *tt;
-			  fname = Copy(tname);
-			  tparms = SwigType_parmlist(fname);
-			  for (tt = Firstitem(tparms); tt; tt = Nextitem(tparms)) {
+			  fname = SwigType_templateprefix(tname);
+			  tparms = SwigType_parmlist(tname);
+			  Append(fname,"<(");
+			  for (tt = Firstitem(tparms); tt; ) {
 			    SwigType *ttr = Swig_symbol_typedef_reduce(tt,0);
-			    Replaceid(fname,tt, ttr);
+			    ttr = Swig_symbol_type_qualify(ttr,0);
+			    Append(fname,ttr);
+			    tt = Nextitem(tparms);
+			    if (tt) Putc(',',fname);
 			  }
+			  Append(fname,")>");
 			  Swig_symbol_cadd(fname,$$);
 			}
 		      }  else if ($$) {

@@ -378,7 +378,7 @@ SwigType_find_scope(Typetab *s, String *nameprefix) {
   String  *nnameprefix = 0;
   static   int check_parent = 1;
 
-  /*  Printf(stdout,"find_scope: %x '%s'\n", s, nameprefix); */
+  /*  Printf(stdout,"find_scope: %x(%s) '%s'\n", s, Getattr(s,"name"), nameprefix); */
 
   if (SwigType_istemplate(nameprefix)) {
     nnameprefix = SwigType_typedef_resolve_all(nameprefix);
@@ -723,6 +723,24 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	      Delete(e);
 	    }
 	  }
+	} else {
+
+	  if (Swig_scopename_check(e)) {
+	    String *tqname;
+	    String *qlast;
+	    String *qname = Swig_scopename_prefix(e);
+	    if (qname) {
+	      qlast = Swig_scopename_last(e);
+	      tqname = SwigType_typedef_qualified(qname);
+	      Clear(e);
+	      Printf(e,"%s::%s", tqname, qlast);
+	      Delete(qname);
+	      Delete(qlast);
+	      Delete(tqname);
+	    }
+	    /* Automatic template instantiation might go here??? */
+
+	  }
 	}
 	if (isenum) e = isenum;
 
@@ -1066,6 +1084,7 @@ static Hash *r_mangled = 0;                /* Hash mapping mangled types to full
 static Hash *r_resolved = 0;               /* Hash mapping resolved types to mangled types       */
 static Hash *r_ltype = 0;                  /* Hash mapping mangled names to their local c type   */
 static Hash *r_clientdata = 0;             /* Hash mapping resolved types to client data         */
+static Hash *r_remembered = 0;             /* Hash of types we remembered already */
 
 static void (*r_tracefunc)(SwigType *t, String *mangled, String *clientdata) = 0;
 
@@ -1074,13 +1093,23 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   SwigType *lt;
   Hash   *h;
   SwigType *fr;
+  SwigType *qr;
 
   if (!r_mangled) {
     r_mangled = NewHash();
     r_resolved = NewHash();
     r_ltype = NewHash();
     r_clientdata = NewHash();
+    r_remembered = NewHash();
   }
+
+  {
+    String *last;
+    last = Getattr(r_remembered,t);
+    if (last && (Cmp(last,clientdata) == 0)) return;
+  }
+
+  Setattr(r_remembered, Copy(t), clientdata ? NewString(clientdata) : (void *) "");
 
   mt = SwigType_manglestr(t);               /* Create mangled string */
 
@@ -1094,10 +1123,12 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
     lt = SwigType_ltype(t);
   Setattr(r_ltype, mt, lt);
   fr = SwigType_typedef_resolve_all(t);     /* Create fully resolved type */
+  qr = SwigType_typedef_qualified(fr);
+  Delete(fr);
 
   /* Added to deal with possible table bug */
-  fr = SwigType_strip_qualifiers(fr);
-
+  fr = SwigType_strip_qualifiers(qr);
+  Delete(qr);
 
   if (Strstr(t,"<") && !(Strstr(t,"<("))) {
     Printf(stdout,"Bad template type passed to SwigType_remember: %s\n", t);
@@ -1277,14 +1308,16 @@ SwigType_inherit(String *derived, String *base, String *cast) {
   Hash *h;
   if (!subclass) subclass = NewHash();
   
-  /*  Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast);*/
+  /*  Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast); */
 
   if (SwigType_istemplate(derived)) {
-    derived = SwigType_typedef_resolve_all(derived);
+    derived = SwigType_typedef_qualified(SwigType_typedef_resolve_all(derived));
   }
   if (SwigType_istemplate(base)) {
-    base = SwigType_typedef_resolve_all(base);
+    base = SwigType_typedef_qualified(SwigType_typedef_resolve_all(base));
   }
+
+  /* Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast);*/
 
   h = Getattr(subclass,base);
   if (!h) {
@@ -1352,7 +1385,7 @@ void SwigType_inherit_equiv(File *out) {
     base = SwigType_base(rkey);
 
     /* Check to see whether the base is recorded in the subclass table */
-    /* Printf(stdout,"base = '%s'\n", base); */
+    /*    Printf(stdout,"base = '%s'\n", base); */
     sub = Getattr(subclass,base);
     Delete(base);
     if (!sub) {

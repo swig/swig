@@ -54,7 +54,7 @@ class TypePass : public Dispatcher {
 	    }
     */
     qty = SwigType_typedef_qualified(ty);
-    /*      Printf(stdout,"%s --> %s\n", ty, qty); */
+    /*    Printf(stdout,"%s --> %s\n", ty, qty);*/
     Clear(ty);
     Append(ty,qty);
     Delete(qty);

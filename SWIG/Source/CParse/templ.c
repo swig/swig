@@ -337,6 +337,7 @@ Swig_cparse_template_locate(String *name, Parm *tparms) {
     SwigType *ty = Getattr(p,"type");
     if (ty) {
       SwigType *nt = Swig_symbol_typedef_reduce(ty,0);
+      nt = Swig_symbol_type_qualify(nt,0);
       Setattr(p,"type",nt);
     }
     p = nextSibling(p);
