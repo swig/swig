@@ -1,6 +1,6 @@
 /* -*- c -*- */
 
-%module test
+%module list_vector
 
 %include "list-vector.i"
 
