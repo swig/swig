@@ -191,7 +191,7 @@ namespace std {
   else $1[0] = 0;
 }
 
-/* memberin typemap for arrays.   */
+/* memberin/globalin typemap for arrays. */
 
 %typemap(memberin) SWIGTYPE [ANY] {
   size_t ii;
@@ -203,6 +203,32 @@ namespace std {
   size_t ii;
   $1_basetype *b = ($1_basetype *) $1;
   for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
+}
+
+/* memberin/globalin typemap for double arrays. */
+
+%typemap(memberin) SWIGTYPE [ANY][ANY] {
+  $basetype (*inp)[$dim1] = ($basetype (*)[$dim1])($input);
+  $basetype (*dest)[$dim1] = ($basetype (*)[$dim1])($1);
+  size_t ii = 0;
+  for (; ii < $dim0; ++ii) {
+    $basetype *ip = inp[ii];
+    $basetype *dp = dest[ii];
+    size_t jj = 0;
+    for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
+  }
+}
+
+%typemap(globalin) SWIGTYPE [ANY][ANY] {
+  $basetype (*inp)[$dim1] = ($basetype (*)[$dim1])($input);
+  $basetype (*dest)[$dim1] = ($basetype (*)[$dim1])($1);
+  size_t ii = 0;
+  for (; ii < $dim0; ++ii) {
+    $basetype *ip = inp[ii];
+    $basetype *dp = dest[ii];
+    size_t jj = 0;
+    for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
+  }
 }
 
 /* Typemap for variable length arguments sentinel value.  Used
