@@ -620,9 +620,18 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   f.print (f_wrappers);
 
-  // Now register the function
-  fprintf (f_init, "\t gh_new_procedure(\"%s\", %s, %d, %d, 0);\n",
-           proc_name.get(), wname, numargs-numopt, numopt);
+  if (numargs > 10) {
+    // Guile would complain: too many args
+    fprintf(stderr,
+            "%s : Line %d. Warning. Too many arguments in Guile wrapper "
+            "for function %s (max. 10).\n",
+            input_file, line_number, name);
+  }
+  else {
+    // Now register the function
+    fprintf (f_init, "\t gh_new_procedure(\"%s\", %s, %d, %d, 0);\n",
+             proc_name.get(), wname, numargs-numopt, numopt);
+  }
 }
 
 // -----------------------------------------------------------------------
