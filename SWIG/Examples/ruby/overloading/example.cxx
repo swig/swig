@@ -39,6 +39,35 @@ Bar::Bar(Bar *x) {
     std::cout << "Called Bar::Bar(Bar *) with x = " << x << std::endl;
 }
 
+// Overloaded member functions
+void Bar::foo(double x) {
+    std::cout << "Called Bar::foo(double) with x = " << x << std::endl;
+}
+
+void Bar::foo(double x, char *y) {
+    std::cout << "Called Bar::foo(double, char *) with x, y = " << x << ", \"" << y << "\"" << std::endl;
+}
+
+void Bar::foo(int x, int y) {
+    std::cout << "Called Bar::foo(int, int) with x, y = " << x << ", " << y << std::endl;
+}
+
+void Bar::foo(char *x) {
+    std::cout << "Called Bar::foo(char *) with x = \"" << x << "\"" << std::endl;
+}
+
+void Bar::foo(int x) {
+    std::cout << "Called Bar::foo(int) with x = " << x << std::endl;
+}
+
+void Bar::foo(long x) {
+    std::cout << "Called Bar::foo(long) with x = " << x << std::endl;
+}
+
+void Bar::foo(Bar *x) {
+    std::cout << "Called Bar::foo(Bar *) with x = " << x << std::endl;
+}
+
 // Overloaded global methods
 void foo(double x) {
     std::cout << "Called foo(double) with x = " << x << std::endl;

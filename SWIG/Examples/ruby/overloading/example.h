@@ -12,6 +12,14 @@ public:
     Bar(int);
     Bar(long);
     Bar(Bar *);
+
+    void foo(double);
+    void foo(double, char *);
+    void foo(int, int);
+    void foo(char *);
+    void foo(int);
+    void foo(long);
+    void foo(Bar *);
 };
 
 void foo(double);
