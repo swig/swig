@@ -83,7 +83,7 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(SWIG_CSharpExc
     static SWIGExceptionDelegate argumentOutOfRangeDelegate = new SWIGExceptionDelegate(ThrowArgumentOutOfRangeException);
     static SWIGExceptionDelegate nullReferenceDelegate = new SWIGExceptionDelegate(ThrowNullReferenceException);
 
-    [DllImport("$module", EntryPoint="SWIGRegisterExceptionCallbacks_$module")]
+    [DllImport("$dllimport", EntryPoint="SWIGRegisterExceptionCallbacks_$module")]
     public static extern void SWIGRegisterExceptionCallbacks_$module(
       SWIGExceptionDelegate systemExceptionDelegate,
       SWIGExceptionDelegate outOfMemoryDelegate, 
@@ -136,7 +136,7 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
     public delegate string SWIGStringDelegate(string message);
     static SWIGStringDelegate stringDelegate = new SWIGStringDelegate(CreateString);
 
-    [DllImport("$module", EntryPoint="SWIGRegisterStringCallback_$module")]
+    [DllImport("$dllimport", EntryPoint="SWIGRegisterStringCallback_$module")]
     public static extern void SWIGRegisterStringCallback_$module(SWIGStringDelegate stringDelegate);
 
     static string CreateString(string cString) {
