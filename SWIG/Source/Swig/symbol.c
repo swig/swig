@@ -71,17 +71,24 @@ static char cvsroot[] = "$Header$";
  *
  * Each symbol table entry has $symnext and $symtab attributes to point to the
  * next symbol and the symbol table.
+ *
+ * Tag space:
+ *
+ * C/C++ symbol tables are normally managed in a few different spaces.  The
+ * most visible namespace is reserved for functions, variables, typedef, enum values
+ * and such.  A separate tag-space is reserved for 'struct name', 'class name',
+ * 'union name', and 'enum name' declarations.     The *tag* functions deal with this.
  * ----------------------------------------------------------------------------- */
      
 static Hash *current = 0;
 
 /* -----------------------------------------------------------------------------
- * Swig_symbol_init()
+ * Swig_symbol_new()
  *
- * Reinitialize the symbol table processor
+ * Create a new symbol table object
  * ----------------------------------------------------------------------------- */
 
-void 
+void
 Swig_symbol_init() {
   current = NewHash();
 }
@@ -235,6 +242,33 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   return n;
 }
 
+
+/* ----------------------------------------------------------------------------- 
+ * Swig_symbol_add_tag()
+ *
+ * Adds a node to the tag space.
+ * ----------------------------------------------------------------------------- */
+
+Node *
+Swig_symbol_add_tag(String_or_char *symname, Node *n) {
+  Hash *tag;
+  Node *c;
+  tag = Getattr(current,"$tags");
+  if (!tag) {
+    tag = NewHash();
+    Setattr(current,"$tags",tag);
+  }
+  c = Getattr(tag,symname);
+  if (c) {
+    return c;
+  }
+  /* No conflict.  Just add it right in there */
+  Setattr(n,"$symtab",tag);
+  Setattr(n,"$symname",symname);
+  Setattr(tag,symname,n);
+  return n;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_symbol_lookup()
  *
@@ -249,6 +283,28 @@ Swig_symbol_lookup(String_or_char *name) {
   while (h) {
     s = Getattr(h,name);
     if (s) return s;
+    h = Getattr(h,"$parent");
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_lookup_tag()
+ *
+ * Look up a symbol in the symbol table
+ * ----------------------------------------------------------------------------- */
+
+Node *
+Swig_symbol_lookup_tag(String_or_char *name) {
+  Hash *h, *t;
+  Hash *s;
+  h = current;
+  while (h) {
+    t = Getattr(current,"$tags");
+    if (t) {
+      s = Getattr(t,name);
+      if (s) return s;
+    }
     h = Getattr(h,"$parent");
   }
   return 0;
