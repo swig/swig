@@ -52,6 +52,7 @@ extern "C" {
     char      *Config = 0;
     int        NoInclude = 0;
     int        Verbose = 0;
+    int        NoExtern = 0;
 
 extern "C" {
 extern String  *ModuleName;
@@ -68,8 +69,9 @@ static char *usage = (char*)"\
      -importall      - Follow all #include statements as imports\n\
      -ignoremissing  - Ignore missing include files.\n\
      -l<ifile>       - Include SWIG library file.\n\
-     -make_default   - Create default constructors/destructors (the default)\n\
-     -no_default     - Do not generate constructors/destructors\n\
+     -makedefault    - Create default constructors/destructors (the default)\n\
+     -nodefault      - Do not generate constructors/destructors\n\
+     -noextern       - Do not generate extern declarations.\n\
      -module         - Set module name\n\
      -o outfile      - Set name of the output file.\n\
      -swiglib        - Report location of SWIG library and exit\n\
@@ -277,11 +279,14 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	      NoInclude=1;
 	      Preprocessor_define((DOH *) "SWIG_NOINCLUDE 1", 0);
 	      Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-make_default") == 0) {
+          } else if ((strcmp(argv[i],"-make_default") == 0) || (strcmp(argv[i],"-makedefault") == 0)) {
 	    GenerateDefault = 1;
 	    Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-no_default") == 0) {
+          } else if ((strcmp(argv[i],"-no_default") == 0) || (strcmp(argv[i],"-nodefault") == 0)) {
 	    GenerateDefault = 0;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-noextern") == 0) {
+	    NoExtern = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-show_templates") == 0) {
 	    Swig_cparse_debug_templates(1);
