@@ -26,6 +26,31 @@ void Wrapper_virtual_elimination_mode_set(int flag) {
   virtual_elimination_mode = flag;
 }
 
+/* Helper function to assist with abstract class checking.  
+   This is a major hack. Sorry.  */
+
+static String *search_decl = 0;            /* Declarator being searched */ 
+static int check_implemented(Node *n) {
+  String *local_decl;
+  if (!n) return 0;
+  while (n) {
+    if (Strcmp(nodeType(n), "cdecl") == 0) {
+      local_decl = Getattr(n,"decl");
+      if (local_decl) local_decl = SwigType_typedef_resolve_all(local_decl);
+      if (local_decl && (Strcmp(local_decl, search_decl) == 0)) {
+	if (!Getattr(n,"abstract")) {
+	  Delete(local_decl);
+	  return 1;
+	}
+      }
+      Delete(local_decl);
+    }
+    n = Getattr(n,"csym:nextSibling");
+  }
+  return 0;
+}
+
+
 class Allocate : public Dispatcher {
   Node  *inclass;
   enum AccessMode { PUBLIC, PRIVATE, PROTECTED };
@@ -143,11 +168,16 @@ class Allocate : public Dispatcher {
 	if (base_decl) base_decl = SwigType_typedef_resolve_all(base_decl);
 	if (Strstr(name,"~")) continue;   /* Don't care about destructors */
 	int implemented = 0;
-	Node *dn = Swig_symbol_clookup(name,0);
+	/*	Node *dn = Swig_symbol_clookup_local(name,0);
 	if (!dn) {
 	  Printf(stdout,"node: %x '%s'. base: %x '%s'. member '%s'\n", n, Getattr(n,"name"), base, Getattr(base,"name"), name);
 	}
 	assert(dn != 0);   // Assertion of doom
+	*/
+	search_decl = base_decl;
+	Node *dn = Swig_symbol_clookup_local_check(name,0,check_implemented);
+
+	/*
 	while (dn && !implemented) {
 	  String *local_decl = Getattr(dn,"decl");
 	  if (local_decl) local_decl = SwigType_typedef_resolve_all(local_decl);
@@ -158,10 +188,16 @@ class Allocate : public Dispatcher {
 	  Delete(local_decl);
 	  dn = Getattr(dn,"csym:nextSibling");
 	}
-	if (!implemented && (Getattr(nn,"abstract"))) {
+	*/
+
+	Delete(base_decl);
+
+	/*	if (!implemented && (Getattr(nn,"abstract"))) {
 	  return 1;
 	}
-	Delete(base_decl);
+	*/
+
+	if (!dn) return 1;
 	/*
 	if (dn && (Getattr(dn,"abstract"))) {
 	  return 1;
