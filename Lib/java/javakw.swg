@@ -62,7 +62,7 @@ JAVAKW(while);
 /* others bad names */
 
 /* Not really sure about this, but sometimes it produce problems */
-// %namewarn("315:clone is a java bad method name") *::clone;
+// %namewarn("321:clone is a java bad method name") *::clone;
 
 
 #undef JAVAKW
