@@ -25,6 +25,7 @@ static Hash     *cpp = 0;                /* C preprocessor data */
 static int       include_all = 0;        /* Follow all includes */
 static int       ignore_missing = 0; 
 static int       import_all = 0;         /* Follow all includes, but as %import statements */
+static int       imported_depth = 0;	 /* Depth of %imported files */
 static int       single_include = 1;     /* Only include each file once */
 static Hash     *included_files = 0;
 static List     *dependencies = 0;
@@ -1025,6 +1026,26 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
   Clear(chunk);
 }
 
+/*
+  push/pop_imported(): helper functions for defining and undefining
+  SWIGIMPORT (when %importing a file).
+ */
+static void
+push_imported() {
+  if (imported_depth == 0) {
+    Preprocessor_define("SWIGIMPORT 1", 0);
+  }
+  ++imported_depth;
+}
+
+static void
+pop_imported() {
+  --imported_depth;
+  if (imported_depth == 0) {
+    Preprocessor_undef("SWIGIMPORT");
+  }
+}
+
 /* -----------------------------------------------------------------------------
  * Preprocessor_parse()
  *
@@ -1366,14 +1387,20 @@ Preprocessor_parse(String *s)
   	if (((include_all) || (import_all)) && (allow)) {
   	  String *s1, *s2, *fn;
 	  char *dirname; int sysfile = 0;
+	  if (include_all && import_all) {
+	    Swig_warning(WARN_PP_INCLUDEALL_IMPORTALL,Getfile(s),Getline(id),"Both includeall and importall are defined: using includeall");
+	    import_all = 0;
+	  }
   	  Seek(value,0,SEEK_SET);
   	  fn = get_filename(value, &sysfile);
 	  s1 = cpp_include(fn, sysfile);
 	  if (s1) {
 	    if (include_all) 
 	      Printf(ns,"%%includefile \"%s\" [\n", Swig_last_file());
-	    else if (import_all) 
+	    else if (import_all) {
 	      Printf(ns,"%%importfile \"%s\" [\n", Swig_last_file());
+	      push_imported();
+	    }
 
 	    /* See if the filename has a directory component */
 	    dirname = Swig_file_dirname(Swig_last_file());
@@ -1387,6 +1414,9 @@ Preprocessor_parse(String *s)
   	    Printf(ns,"\n]");
 	    if (dirname) {
 	      Swig_pop_directory();
+	    }
+	    if (import_all) {
+	      pop_imported();
 	    }
 	    Delete(s2);
   	  }
@@ -1495,9 +1525,8 @@ Preprocessor_parse(String *s)
   	      add_chunk(ns,chunk,allow);
   	      copy_location(s,chunk);
   	      Printf(ns,"%sfile%s \"%s\" [\n", decl, opt, Swig_last_file());
-	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
-		Preprocessor_define("WRAPEXTERN 1", 0);
-		Preprocessor_define("SWIGIMPORT 1", 0);
+	      if (Cmp(decl,"%import") == 0) {
+		push_imported();
 	      }
 	      dirname = Swig_file_dirname(Swig_last_file());
 	      if (sysfile || !strlen(dirname)) dirname = 0;
@@ -1509,9 +1538,8 @@ Preprocessor_parse(String *s)
 	      if (dirname) {
 		Swig_pop_directory();
 	      }
-	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
-		Preprocessor_undef("SWIGIMPORT");
-		Preprocessor_undef("WRAPEXTERN");
+	      if (Cmp(decl,"%import") == 0) {
+		pop_imported();
 	      }
   	      addline(ns,s2,allow);
   	      Printf(ns,"\n]");
