@@ -824,6 +824,51 @@ Node *Swig_cparse(File *f) {
   return top;
 }
 
+static void new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *t, ParmList *declaratorparms, String *qualifier) {
+  String *fname;
+  String *name;
+  String *fixname;
+  if (!features_hash) features_hash = NewHash();
+  fname = NewStringf("feature:%s",featurename);
+  if (declaratorid) {
+    fixname = feature_identifier_fix(declaratorid);
+  } else {
+    fixname = NewString("");
+  }
+  if (Namespaceprefix) {
+   name = NewStringf("%s::%s",Namespaceprefix, fixname);
+  } else {
+   name = fixname;
+  }
+  if (declaratorparms) {
+   Setmeta(val,"parms",declaratorparms);
+  }
+  if (declaratorparms) Setmeta(val,"parms",declaratorparms);
+  if (!Len(t)) t = 0;
+  if (t) {
+   if (qualifier) SwigType_push(t,qualifier);
+   if (SwigType_isfunction(t)) {
+     SwigType *decl = SwigType_pop_function(t);
+     if (SwigType_ispointer(t)) {
+       String *nname = NewStringf("*%s",name);
+       Swig_feature_set(features_hash, nname, decl, fname, val, featureattribs);
+       Delete(nname);
+     } else {
+       Swig_feature_set(features_hash, name, decl, fname, val, featureattribs);
+     }
+   } else if (SwigType_ispointer(t)) {
+     String *nname = NewStringf("*%s",name);
+     Swig_feature_set(features_hash,nname,0,fname,val, featureattribs);
+     Delete(nname);
+   }
+  } else {
+   /* Global feature, that is, feature not associated with any particular symbol */
+   Swig_feature_set(features_hash,name,0,fname,val, featureattribs);
+  }
+  Delete(fname);
+  Delete(name);
+}
+
 %}
 
 %union {
@@ -959,6 +1004,7 @@ Node *Swig_cparse(File *f) {
 %type <ivalue>   rename_namewarn;
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
+%type <node>     featattr;
 
 %%
 
@@ -1605,140 +1651,87 @@ rename_namewarn : RENAME {
 
 
 /* ------------------------------------------------------------
-   %feature(featurename) name { val }
-   %feature(featurename) name "val";
-   %feature(featurename) name %{ val % }
-   %feature(featurename,val) name;
+   Feature targetting a symbol name (non-global feature):
+
+     %feature(featurename) name "val";
+     %feature(featurename, val) name;
+
+   where "val" could instead be the other bracket types, that is,
+   { val } or %{ val %} or indeed omitted whereupon it defaults to "1".
+   Or, the global feature which does not target a symbol name:
+
+     %feature(featurename) "val";
+     %feature(featurename, val);
+
+   An empty val (empty string) clears the feature.
+   Any number of feature attributes can optionally be added, for example
+   a non-global feature with 2 attributes:
+
+     %feature(featurename, attrib1="attribval1", attrib2="attribval2") name "val";
+     %feature(featurename, val, attrib1="attribval1", attrib2="attribval2") name;
    ------------------------------------------------------------ */
 
-              
-feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringbracesemi {
-                 String *fname;
-                 String *val;
-		 String *name;
-		 String *fixname;
-		 SwigType *t;
-                 if (!features_hash) features_hash = NewHash();
-		 fname = NewStringf("feature:%s",$3);
-		 fixname = feature_identifier_fix($5.id);
-		 if (Namespaceprefix) {
-		   name = NewStringf("%s::%s",Namespaceprefix, fixname);
-		 } else {
-		   name = fixname;
-		 }
-		 val = $7 ? NewString($7) : NewString("1");
-		 if ($5.parms) {
-		   Setmeta(val,"parms",$5.parms);
-		 }
-		 t = $5.type;
-		 if ($5.parms) Setmeta(val,"parms",$5.parms);
-		 if (!Len(t)) t = 0;
-		 if (t) {
-		   if ($6.qualifier) SwigType_push(t,$6.qualifier);
-		   if (SwigType_isfunction(t)) {
-		     SwigType *decl = SwigType_pop_function(t);
-		     if (SwigType_ispointer(t)) {
-		       String *nname = NewStringf("*%s",name);
-		       Swig_feature_set(features_hash, nname, decl, fname, val);
-		       Delete(nname);
-		     } else {
-		       Swig_feature_set(features_hash, name, decl, fname, val);
-		     }
-		   } else if (SwigType_ispointer(t)) {
-		     String *nname = NewStringf("*%s",name);
-		     Swig_feature_set(features_hash,nname,0,fname,val);
-		     Delete(nname);
-		   }
-		 } else {
-		   Swig_feature_set(features_hash,name,0,fname,val);
-		 }
-		 Delete(fname);
-		 Delete(name);
-		 $$ = 0;
-              }
+                  /* Non-global feature */
+feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbracesemi {
+                    String *val = $7 ? NewString($7) : NewString("1");
+                    new_feature($3, val, 0, $5.id, $5.type, $5.parms, $6.qualifier);
+                    $$ = 0;
+                  }
+                  | FEATURE LPAREN idstring COMMA stringnum RPAREN declarator cpp_const SEMI {
+                    String *val = Len($5) ? NewString($5) : 0;
+                    new_feature($3, val, 0, $7.id, $7.type, $7.parms, $8.qualifier);
+                    $$ = 0;
+                  }
+                  | FEATURE LPAREN idstring featattr RPAREN declarator cpp_const stringbracesemi {
+                    String *val = $8 ? NewString($8) : NewString("1");
+                    new_feature($3, val, $4, $6.id, $6.type, $6.parms, $7.qualifier);
+                    $$ = 0;
+                  }
+                  | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN declarator cpp_const SEMI {
+                    String *val = Len($5) ? NewString($5) : 0;
+                    new_feature($3, val, $6, $8.id, $8.type, $8.parms, $9.qualifier);
+                    $$ = 0;
+                  }
 
-              /* Special form where value is included in (...) part */
-
-              |  FEATURE LPAREN idstring COMMA idstring RPAREN declarator cpp_const SEMI {
-                 String *fname;
-                 String *val;
-		 String *name;
-		 String *fixname;
-		 SwigType *t;
-
-                 if (!features_hash) features_hash = NewHash();
-		 fname = NewStringf("feature:%s",$3);
-		 fixname = feature_identifier_fix($7.id);
-		 if (Namespaceprefix) {
-		   name = NewStringf("%s::%s",Namespaceprefix, fixname);
-		 } else {
-		   name = fixname;
-		 }
-		 if (Len($5)) {
-		   val = NewString($5);
-		 } else {
-		   val = 0;
-		 }
-		 if ($7.parms) {
-		   Setmeta(val,"parms",$7.parms);
-		 }
-		 t = $7.type;
-		 if ($7.parms) Setmeta(val,"parms",$7.parms);
-		 if (!Len(t)) t = 0;
-		 if (t) {
-		   if ($8.qualifier) SwigType_push(t,$8.qualifier);
-		   if (SwigType_isfunction(t)) {
-		     SwigType *decl = SwigType_pop_function(t);
-		     if (SwigType_ispointer(t)) {
-		       String *nname = NewStringf("*%s",name);
-		       Swig_feature_set(features_hash, nname, decl, fname, val);
-		       Delete(nname);
-		     } else {
-		       Swig_feature_set(features_hash, name, decl, fname, val);
-		     }
-		   } else if (SwigType_ispointer(t)) {
-		     String *nname = NewStringf("*%s",name);
-		     Swig_feature_set(features_hash,nname,0,fname,val);
-		     Delete(nname);
-		   }
-		 } else {
-		   Swig_feature_set(features_hash,name,0,fname,val);
-		 }
-		 Delete(fname);
-		 Delete(name);
-		 $$ = 0;
-              }
-
-              /* Global feature */
-
-              | FEATURE LPAREN idstring RPAREN stringbracesemi {
-		String *name;
-		String *fname = NewStringf("feature:%s",$3);
-		if (!features_hash) features_hash = NewHash();
-		if (Namespaceprefix) name = NewStringf("%s::", Namespaceprefix);
-		else name = NewString("");
-		Swig_feature_set(features_hash,name,0,fname,($5 ? NewString($5) : NewString("1")));
-		Delete(name);
-		Delete(fname);
-		$$ = 0;
-              }
-              | FEATURE LPAREN idstring COMMA idstring RPAREN SEMI {
-		String *name;
-		String *fname = NewStringf("feature:%s",$3);
-		if (!features_hash) features_hash = NewHash();
-		if (Namespaceprefix) name = NewStringf("%s::", Namespaceprefix);
-		else name = NewString("");
-		Swig_feature_set(features_hash,name,0,fname,(Len($5) ? NewString($5) : 0));
-		Delete(name);
-		Delete(fname);
-		$$ = 0;
-              }
-              ;
+                  /* Global feature */
+                  | FEATURE LPAREN idstring RPAREN stringbracesemi {
+                    String *val = $5 ? NewString($5) : NewString("1");
+                    new_feature($3, val, 0, 0, 0, 0, 0);
+                    $$ = 0;
+                  }
+                  | FEATURE LPAREN idstring COMMA stringnum RPAREN SEMI {
+                    String *val = Len($5) ? NewString($5) : 0;
+                    new_feature($3, val, 0, 0, 0, 0, 0);
+                    $$ = 0;
+                  }
+                  | FEATURE LPAREN idstring featattr RPAREN stringbracesemi {
+                    String *val = $6 ? NewString($6) : NewString("1");
+                    new_feature($3, val, $4, 0, 0, 0, 0);
+                    $$ = 0;
+                  }
+                  | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN SEMI {
+                    String *val = Len($5) ? NewString($5) : 0;
+                    new_feature($3, val, $6, 0, 0, 0, 0);
+                    $$ = 0;
+                  }
+                  ;
 
 stringbracesemi : stringbrace { $$ = $1; }
                 | SEMI { $$ = 0; }
                 | PARMS LPAREN parms RPAREN SEMI { $$ = $3; } 
                 ;
+
+featattr        : COMMA idstring EQUAL stringnum {
+		  $$ = NewHash();
+		  Setattr($$,"name",$2);
+		  Setattr($$,"value",$4);
+                }
+                | COMMA idstring EQUAL stringnum featattr {
+		  $$ = NewHash();
+		  Setattr($$,"name",$2);
+		  Setattr($$,"value",$4);
+                  set_nextSibling($$,$5);
+                }
 
 /* %varargs() directive. */
 
@@ -1761,18 +1754,18 @@ varargs_directive : VARARGS LPAREN varargs_parms RPAREN declarator cpp_const SEM
 		     SwigType *decl = SwigType_pop_function(t);
 		     if (SwigType_ispointer(t)) {
 		       String *nname = NewStringf("*%s",name);
-		       Swig_feature_set(features_hash, nname, decl, "feature:varargs", val);
+		       Swig_feature_set(features_hash, nname, decl, "feature:varargs", val, 0);
 		       Delete(nname);
 		     } else {
-		       Swig_feature_set(features_hash, name, decl, "feature:varargs", val);
+		       Swig_feature_set(features_hash, name, decl, "feature:varargs", val, 0);
 		     }
 		   } else if (SwigType_ispointer(t)) {
 		     String *nname = NewStringf("*%s",name);
-		     Swig_feature_set(features_hash,nname,0,"feature:varargs",val);
+		     Swig_feature_set(features_hash,nname,0,"feature:varargs",val, 0);
 		     Delete(nname);
 		   }
 		 } else {
-		   Swig_feature_set(features_hash,name,0,"feature:varargs",val);
+		   Swig_feature_set(features_hash,name,0,"feature:varargs",val, 0);
 		 }
 		 Delete(name);
 		 $$ = 0;
