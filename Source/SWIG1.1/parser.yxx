@@ -3207,7 +3207,6 @@ typemap_parm   : type typemap_name {
 		  $$->p = NewParm($1,$3);
 		  SwigType *pt = Gettype($$->p);
 		  SwigType_add_reference(pt);
-		  SwigType_add_pointer(pt);
 		  if (!CPlusPlus) {
 			Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
 		  }
