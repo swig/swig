@@ -30,3 +30,6 @@ elif name == "heap":
     debug.blowheap_crash()
 elif name == "overflow":
     debug.overflow_crash()
+elif name == "type":
+    debug.type_crash(37,42, 'x', 420000, 3.14159, 2.1828)
+

@@ -67,6 +67,7 @@ void type_crash(int a, short b, char c, unsigned long d, float f, double g) {
   long  ld;
   float lf;
   double lg;
+  long   ll;
 
   la = a;
   lb = b;
@@ -74,7 +75,7 @@ void type_crash(int a, short b, char c, unsigned long d, float f, double g) {
   ld = ld;
   lf = lf;
   lg = lg;
-  assert(a);
+  assert(0);
 }
 
 #ifdef NEED_MAIN

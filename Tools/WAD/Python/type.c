@@ -186,7 +186,42 @@ wadobject_getattr(wadobject *self, char *name) {
     return PyInt_FromLong(1);
   }
 
+  
   /* Put a check for local variables */
+  {
+    int i;
+    for (i = 0; i < 2; i++) {
+      WadLocal *loc;
+      if (i == 0) loc = self->frame->debug_locals;
+      else loc = self->frame->debug_args;
+      while (loc) {
+	if (strcmp(name,loc->name) == 0) {
+	  switch(loc->type) {
+	  case WAD_TYPE_INT32:
+	  case WAD_TYPE_INT16:
+	  case WAD_TYPE_INT8:
+	    return PyLong_FromLong(wad_local_as_long(loc));
+	    break;
+	  case WAD_TYPE_UINT8:
+	  case WAD_TYPE_UINT16:
+	  case WAD_TYPE_UINT32:
+	    return PyLong_FromUnsignedLong((unsigned long) wad_local_as_long(loc));
+	    break;
+	  case WAD_TYPE_CHAR:
+	    return Py_BuildValue("c", (char) (PyLong_FromLong(wad_local_as_long(loc))));
+	    break;
+	  case WAD_TYPE_FLOAT:
+	  case WAD_TYPE_DOUBLE:
+	    return PyFloat_FromDouble(wad_local_as_double(loc));
+	    break;
+	  default:
+	    return PyLong_FromUnsignedLong((unsigned long) wad_local_as_long(loc));
+	  }
+	}
+	loc = loc->next;
+      }
+    }
+  }
   
   PyErr_SetString(PyExc_NameError,"Unknown attribute.");
   return NULL;

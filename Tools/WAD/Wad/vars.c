@@ -29,6 +29,7 @@ void wad_build_vars(WadFrame *f) {
   WadLocal  *loc;
   int   laststack = 0;
   WadLocal  *lastloc = 0;
+  int   n;
 
   stack = (char *) f->stack;
   if (f->next) {
@@ -37,57 +38,45 @@ void wad_build_vars(WadFrame *f) {
   if (f->prev) {
     pstack = (char *) f->prev->stack;
   }
-  loc = f->debug_args;
 
-  while (loc) {
-    loc->ptr = 0;
-    if (loc->loc == PARM_STACK) {
-      if ((loc->stack >= 0) && (nstack)) {
-	loc->ptr = (void *) (nstack + loc->stack);
-      } else if (loc->stack < 0) {
-	loc->ptr = (void *) (stack + f->stack_size + loc->stack);
+  for (n = 0; n < 2; n++) {
+    if (n == 0) loc = f->debug_args;
+    else loc = f->debug_locals;
+
+    while (loc) {
+      loc->ptr = 0;
+      if (loc->loc == PARM_STACK) {
+	if ((loc->stack >= 0) && (nstack)) {
+	  loc->ptr = (void *) (nstack + loc->stack);
+	} else if (loc->stack < 0) {
+	  loc->ptr = (void *) (stack + f->stack_size + loc->stack);
+	}
+	loc->size = sizeof(long);
       }
-      loc->size = sizeof(long);
-    }
-    if (loc->loc == PARM_REGISTER) {
-      /* Parameter is located in a register */
+      if (loc->loc == PARM_REGISTER) {
+	/* Parameter is located in a register */
 #ifdef WAD_SOLARIS
-      if ((loc->reg >= 24) && (loc->reg < 32)) {
-	/* Value is located in the %in registers.  */
+	if ((loc->reg >= 24) && (loc->reg < 32)) {
+	  /* Value is located in the %in registers.  */
 	  loc->ptr = (void *) (stack + (loc->reg - 16)*sizeof(int));
 	  loc->size = sizeof(int);
-      } else if ((loc->reg >= 8) && (loc->reg < 16)) {
-
+	} else if ((loc->reg >= 8) && (loc->reg < 16)) {
+	  
           /* Value is located in the %on registers */
-	if (nstack) {
-	  loc->ptr = (void *) (stack + (loc->reg)*sizeof(int));
+	  if (nstack) {
+	    loc->ptr = (void *) (stack + (loc->reg)*sizeof(int));
+	    loc->size = sizeof(int);
+	  }
+	} else if ((loc->reg >= 16) && (loc->reg < 24)) {
+	  /* Value has been placed in the %ln registers */
+	  loc->ptr = (void *) (stack + (loc->reg - 16)*sizeof(int));
 	  loc->size = sizeof(int);
 	}
-      } else if ((loc->reg >= 16) && (loc->reg < 24)) {
-	/* Value has been placed in the %ln registers */
-	loc->ptr = (void *) (stack + (loc->reg - 16)*sizeof(int));
-	loc->size = sizeof(int);
+#endif
       }
-#endif
+      loc = loc->next;
     }
-#ifdef OLD
-    if (lastloc) {
-      /* Figure out the size */
-      if (!lastloc->size)
-	lastloc->size = abs(loc->stack - lastloc->stack);
-    }
-    lastloc = loc;
-#endif
-
-    loc = loc->next;
   }
-#ifdef OLD
-  /* If last size is not set. Assume that it is a word */
-  if (lastloc && (!lastloc->size)) {
-    lastloc->size = 4;
-  }
-#endif
-
 }
 
 /* This function creates a formatted integer given a pointer, size, and sign flag */
@@ -193,6 +182,71 @@ char *wad_format_var(WadLocal *l) {
   }
   return buffer;
 }
+
+/* Convert a wad local variable to a long */
+long wad_local_as_long(WadLocal *loc) {
+  long           value = 0;
+  int32          i32;
+  int16          i16;
+  int8           i8;
+  uint32         u32;
+  uint16         u16;
+  uint8          u8;
+
+  switch(loc->type) {
+  case WAD_TYPE_INT32:
+    memcpy(&i32,loc->ptr,4);
+    value = (long) i32;
+    break;
+  case WAD_TYPE_UINT32:
+    memcpy(&u32,loc->ptr,4);
+    value = (long) u32;
+    break;
+  case WAD_TYPE_INT16:
+    memcpy(&i16,loc->ptr,2);
+    value = (long) i16;
+    break;
+  case WAD_TYPE_UINT16:
+    memcpy(&u16,loc->ptr,2);
+    value = (long) u16;
+    break;
+  case WAD_TYPE_INT8:
+  case WAD_TYPE_CHAR:
+    memcpy(&i8, loc->ptr,1);
+    value = (long) i8;
+    break;
+  case WAD_TYPE_UINT8:
+    memcpy(&u8, loc->ptr,1);
+    value = (long) u8;
+    break;
+  default:
+    memcpy(&u32,loc->ptr,4);
+    value = (long) u32;
+  }
+  return value;
+}
+
+
+
+/* Convert a wad local variable to a long */
+double wad_local_as_double(WadLocal *loc) {
+  double         value = 0;
+  float          fval;
+
+  switch(loc->type) {
+  case WAD_TYPE_DOUBLE:
+    memcpy(&value,loc->ptr,8);
+    break;
+  case WAD_TYPE_FLOAT:
+    memcpy(&fval,loc->ptr,4);
+    value = (double) fval;
+    break;
+  default:
+    value = 0;
+  }
+  return value;
+}
+
 
 
 

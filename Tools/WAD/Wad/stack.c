@@ -44,6 +44,9 @@ new_frame() {
   f->debug_nargs = -1;
   f->debug_args = 0;
   f->debug_lastarg = 0;
+  f->debug_nlocals = 0;
+  f->debug_locals = 0;
+  f->debug_lastlocal = 0;
   f->debug_str = 0;
   f->debug_srcstr = 0;
 
@@ -222,6 +225,18 @@ void wad_stack_debug(WadFrame *frame) {
 	wad_printf("    debug_args = [ \n");
 	while (p) {
 	  wad_printf("        arg[%d] : name = '%s', loc = %d, type = %d, stack = %d, reg = %d, line=%d, ptr=%x(%d)\n", i, p->name, p->loc, p->type, p->stack,p->reg,p->line,p->ptr,p->size);
+	  p = p->next;
+	}
+      }
+      wad_printf("    ]\n");
+
+      wad_printf("    debug_nlocal  = %d\n", frame->debug_nlocals);
+      if (frame->debug_locals) {
+	int i = 0;
+	WadLocal *p = frame->debug_locals;
+	wad_printf("    debug_locals = [ \n");
+	while (p) {
+	  wad_printf("        loc[%d] : name = '%s', loc = %d, type = %d, stack = %d, reg = %d, line=%d, ptr=%x(%d)\n", i, p->name, p->loc, p->type, p->stack,p->reg,p->line,p->ptr,p->size);
 	  p = p->next;
 	}
       }

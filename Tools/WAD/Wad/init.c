@@ -75,9 +75,18 @@ void wad_init() {
     wad_debug_mode |= DEBUG_ONESHOT;
   }
 
+  if (getenv("WAD_DEBUG_STRING")) {
+    wad_debug_mode |= DEBUG_STRING;
+  }
+
+  if (getenv("WAD_DEBUG_MEMORY")) {
+    wad_debug_mode |= DEBUG_MEMORY;
+  }
+
   if (wad_debug_mode & DEBUG_INIT) {
     wad_printf("WAD: initializing\n");
   }
+
 
   if (!init) {
     wad_signal_init();

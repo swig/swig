@@ -46,40 +46,47 @@ class wad_frame:
     def __init__(self,frame, n = 0):
 	if isinstance(frame,types.TupleType):
                # A Python traceback object
-               self.file = frame[0]
-               self.line = frame[1]
-               self.name = frame[2]
-               self.argstr = frame[3]
-               self.frameno = n
+               self.__FILE__ = frame[0]
+               self.__LINE__ = frame[1]
+               self.__NAME__ = frame[2]
+               self.__ARGSTR__ = frame[3]
+               self.__FRAMENO__ = n
                # Make the debugging string
-               self.debugstr = "#%-3d [ Python ] in %s in %s, line %d" % (self.frameno, self.argstr, self.file, self.line)
+               self.__DEBUGSTR__ = "#%-3d [ Python ] in %s in %s, line %d" % (self.__FRAMENO__, self.__ARGSTR__, self.__FILE__, self.__LINE__)
                
                # Try to get source data
-               self.source = "%s, Line %d\n\n" % (self.file, self.line)
-               for i in range(self.line-2,self.line+3):
-                     l = linecache.getline(self.file,i)
+               self.__SOURCE__ = "%s, Line %d\n\n" % (self.__FILE__, self.__LINE__)
+               for i in range(self.__LINE__-2,self.__LINE__+3):
+                     l = linecache.getline(self.__FILE__,i)
                      if not l: l = '\n'
-                     if (i == self.line):
-                        self.source += " => "
+                     if (i == self.__LINE__):
+                        self.__SOURCE__ += " => "
                      else:
-                        self.source += "    "
-                     self.source += l
+                        self.__SOURCE__ += "    "
+                     self.__SOURCE__ += l
+               self.__frame__ = None
                 
         elif hasattr(frame,"__WAD__"):
                # A WAD traceback object
-               self.file = frame.__FILE__
-               self.line = frame.__LINE__
-               self.name = frame.__NAME__
-               self.debugstr = frame.__WHERE__
-               self.source = frame.__SOURCE__
+               self.__FILE__ = frame.__FILE__
+               self.__LINE__ = frame.__LINE__
+               self.__NAME__ = frame.__NAME__
+               self.__DEBUGSTR__ = frame.__WHERE__
+               self.__SOURCE__ = frame.__SOURCE__
+               self.__frame__ = frame
 
     def __str__(self):
-               return self.debugstr.strip()
+               return self.__DEBUGSTR__.strip()
+
+    def __getattr__(self,name):
+        if self.__frame__:
+              return getattr(self.__frame__,name)
+        raise AttributeError
 
     def output(self):
         print self
-        if self.source:
-               print "\n%s" % (self.source,)
+        if self.__SOURCE__:
+               print "\n%s" % (self.__SOURCE__)
 
 
 def wad_build_info():
@@ -170,16 +177,11 @@ class where_impl:
         for i in range(len(stack),0,-1):
              f = stack[i-1]
              print f
-             if (f.source):
-                 last_source = f.source
+             if (f.__SOURCE__):
+                 last_source = f.__SOURCE__
                  _last_level = i-1
         if last_source: print "\n%s" % last_source
         return ""
-    def __getattr__(self,name):
-        try:
-	        return getattr(frame,name)
-        except:
-                raise AttributeError
 
     def __getitem__(self,n):
         global _last_level, _cstack, _combined_stack
@@ -252,13 +254,25 @@ class edit_impl:
 	if not stack:
 	     return ""
 	f = stack[_last_level]
-        e = os.getenv("EDITOR","emacs")
-	if f.file:
-	     os.system("%s +%d %s" % (e,f.line,f.file))
+        e = os.getenv("EDITOR","vi")
+	if f.__FILE__:
+	     os.system("%s +%d %s" % (e,f.__LINE__,f.__FILE__))
         return ""
 
 edit = edit_impl()
 e = edit
+
+class var_impl:
+    def __getattr__(self,name):
+        if (w.cstack):
+             stack = _cstack
+        else:
+             stack = _combined_stack
+	
+        return getattr(stack[_last_level],name)
+
+
+v = var_impl()
 
 
 repr(w)
