@@ -28,7 +28,9 @@ PHP4 Options (available with -php4)\n\
 	-make		- Create simple makefile.\n\
 	-phpfull	- Create full make files.\n\
 	-withincs libs	- With -phpfull writes needed incs in config.m4\n\
-	-withlibs libs	- With -phpfull writes needed libs in config.m4\n\n";
+	-withlibs libs	- With -phpfull writes needed libs in config.m4\n\n
+	-withc libs	- With -phpfull makes extra c files in Makefile.in\n\
+	-withcxx libs	- With -phpfull makes extra c++ files in Makefile.in\n\n";
 
 static int constructors=0;
 static String *NOTCLASS=NewString("Not a class");
@@ -38,6 +40,8 @@ static String *cap_module = 0;
 static String *dlname = 0;
 static String *withlibs = 0;
 static String *withincs = 0;
+static String *withc = 0;
+static String *withcxx = 0;
 static String *outfile = 0;
 
 //static char	*package = 0;	// Name of the package
@@ -266,6 +270,24 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
+	} else if(strcmp(argv[i], "-withc") == 0) {
+	  if (argv[i+1]) {
+	    withc = NewString(argv[i+1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i+1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
+	} else if(strcmp(argv[i], "-withcxx") == 0) {
+	  if (argv[i+1]) {
+	    withcxx = NewString(argv[i+1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i+1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
 	} else if(strcmp(argv[i], "-cppext") == 0) {
 	  if (argv[i+1]) {
 	    SWIG_config_cppext(argv[i+1]);
@@ -361,17 +383,27 @@ public:
 	     module);
       
       // CPP has more and different entires to C in Makefile.in
-      if (! CPlusPlus) Printf(f_extra,"LTLIBRARY_SOURCES       = %s\n",Swig_file_filename(outfile));
-      else Printf(f_extra,"LTLIBRARY_SOURCES       =\n"
-		  "LTLIBRARY_SOURCES_CPP   = %s\n"
+      if (! CPlusPlus) Printf(f_extra,"LTLIBRARY_SOURCES       = %s %s\n"
+                                      "LTLIBRARY_SOURCES_CPP   = %s\n",Swig_file_filename(outfile),withc,withcxx);
+      else Printf(f_extra,"LTLIBRARY_SOURCES       = %s\n"
+		  "LTLIBRARY_SOURCES_CPP   = %s %s\n"
 		  "LTLIBRARY_OBJECTS_X = $(LTLIBRARY_SOURCES_CPP:.cpp=.lo) $(LTLIBRARY_SOURCES_CPP:.cxx=.lo)\n"
-		  ,Swig_file_filename(outfile));
+		  ,withc,Swig_file_filename(outfile),withcxx);
       
       Printf(f_extra,"LTLIBRARY_SHARED_NAME   = php_%s.la\n"
 	     "LTLIBRARY_SHARED_LIBADD = $(%(upper)s_SHARED_LIBADD)\n\n"
 	     "include $(top_srcdir)/build/dynlib.mk\n",
 	     module,module);
-      
+
+      Printf(f_extra,"\n# patch in .cxx support to php build system to work like .cpp\n"
+                     ".SUFFIXES: .cxx\n\n"
+                     ".cxx.o:\n"
+                     "	$(CXX_COMPILE) -c $<\n\n"
+                     ".cxx.lo:\n"
+                     "	$(CXX_PHP_COMPILE)\n\n"
+                     ".cxx.slo:\n"
+                     "	$(CXX_SHARED_COMPILE)\n\n");
+
       Close(f_extra);
       
       /* Now config.m4 */
