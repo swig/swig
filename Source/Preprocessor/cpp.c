@@ -767,10 +767,8 @@ Preprocessor_parse(DOH *s)
   int    start_level = 0;
   int    cpp_lines = 0;
   int    cond_lines[256];
-  int    scp;
 
   ns = NewString("");        /* Return result */
-  /* scp = NewScope(); */
 
   decl = NewString("");
   id = NewString("");

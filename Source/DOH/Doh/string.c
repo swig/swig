@@ -496,6 +496,7 @@ static char *match_identifier(char *base, char *s, char *token, int tokenlen) {
     }
     return s;
   }
+  return 0;
 }
 
 static
@@ -507,7 +508,7 @@ int replace_simple(String *str, char *token, char *rep, int flags, int count, ch
   int ic;
   int rcount = 0;
   int noquote = 0;
-  char *c, *s, *t, *end, *first;
+  char *c, *s, *t, *first;
   char *q, *q2;
   register char *base;
   int i;
