@@ -406,7 +406,7 @@ static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, Par
 	Replace(s,pn,new_name,DOH_REPLACE_ID);
       }
     }
-    p = Getnext(p);
+    p = nextSibling(p);
   }
 }
 

@@ -79,7 +79,7 @@ Swig_map_add_parmrule(Hash *ruleset, Hash *parms, DOH *obj)
     }
     Delete(key);
     n = nn;
-    p = Swig_next(p);
+    p = nextSibling(p);
   }
 
   /* No more parameters.  At this point, n points to the very last hash table in our search.
@@ -194,7 +194,7 @@ Swig_map_match_parms(Hash *ruleset, Hash *parms, int *nmatch)
       if (nm) {
 	/* Yes! Add to our stack. Just reuse mo for this */
 	mo->ruleset = nm;
-	mo->p = Swig_next(p);
+	mo->p = nextSibling(p);
 	mo->depth++;
 	mo = 0;
 	matched++;
@@ -211,7 +211,7 @@ Swig_map_match_parms(Hash *ruleset, Hash *parms, int *nmatch)
 	  matchstack = mo;
 	}
 	mo->ruleset = nm;
-	mo->p = Swig_next(p);
+	mo->p = nextSibling(p);
 	mo->depth = depth+1;
 	matched++;
       }
@@ -254,7 +254,7 @@ Swig_map_match_parms(Hash *ruleset, Hash *parms, int *nmatch)
 	if (nm) {
 	  mo = (MatchObject *) malloc(sizeof(MatchObject));
 	  mo->ruleset = nm;
-	  mo->p = Swig_next(p);
+	  mo->p = nextSibling(p);
 	  mo->depth = depth+1;
 	  mo->next = matchstack;
 	  matchstack = mo;
@@ -283,7 +283,7 @@ Swig_map_match_parms(Hash *ruleset, Hash *parms, int *nmatch)
 	if (nm) {
 	  mo = (MatchObject *) malloc(sizeof(MatchObject));
 	  mo->ruleset = nm;
-	  mo->p = Swig_next(p);
+	  mo->p = nextSibling(p);
 	  mo->depth = depth+1;
 	  mo->next = matchstack;
 	  matchstack = mo;

@@ -32,7 +32,7 @@ typedef  DOH     File;
 typedef  DOH     Parm;
 typedef  DOH     ParmList;
 typedef  DOH     Node;
-typedef   DOH     Symtab;
+typedef  DOH     Symtab;
 
 /* --- Legacy DataType interface.  These type codes are provided solely 
        for backwards compatibility with older modules --- */
@@ -240,8 +240,10 @@ extern Symtab *Swig_symbol_popscope();
 extern Node   *Swig_symbol_add(String_or_char *symname, Node *node);
 extern Node   *Swig_symbol_add_tag(String_or_char *symname, Node *node);
 extern Node   *Swig_symbol_lookup(String_or_char *symname);
+extern Node   *Swig_symbol_lookup_local(String_or_char *symname);
 extern Node   *Swig_symbol_lookup_tag(String_or_char *symname);
 extern String *Swig_symbol_qualfied(Node *node);
+extern Node   *Swig_symbol_isoverloaded(Node *node);
 
 /* --- Parameters and Parameter Lists --- */
 
@@ -250,9 +252,6 @@ extern String *Swig_symbol_qualfied(Node *node);
 
 extern Parm       *NewParm(SwigType *type, String_or_char *n);
 extern Parm       *CopyParm(Parm *p);
-
-
-
 extern ParmList   *CopyParmList(ParmList *);
 extern int         ParmList_len(ParmList *);
 extern int         ParmList_numarg(ParmList *);
@@ -261,34 +260,25 @@ extern String     *ParmList_protostr(ParmList *);
 
 /* --- Parse tree support --- */
 
-typedef struct {
-   const char *name;
-   int  (*action)(DOH *obj, void *clientdata);
-} SwigRule;
+/* DOM-like node access */
 
+#define  nodeType(x)               Getattr(x,"nodeType")
+#define  parentNode(x)             Getattr(x,"parentNode")
+#define  previousSibling(x)        Getattr(x,"previousSibling")
+#define  nextSibling(x)            Getattr(x,"nextSibling")
+#define  firstChild(x)             Getattr(x,"firstChild")
+#define  lastChild(x)              Getattr(x,"lastChild")
 
-#define SWIG_OK       1
-#define SWIG_NORULE   0
-#define SWIG_ERROR   -1
+/* Macros to set up the DOM tree (mostly used by the parser) */
 
-extern void Swig_add_rule(const String_or_char *, int (*action)(DOH *, void *));
-extern void Swig_add_rules(SwigRule ruleset[]);
-extern void Swig_clear_rules();
-extern int  Swig_tag_check(DOH *obj, const String_or_char *tagname);
-extern int  Swig_emit(DOH *obj, void *clientdata);
-extern int  Swig_emit_all(DOH *obj, void *clientdata);
-extern void Swig_set_callback(DOH *obj, void (*cb)(void *clientdata), void *clientdata);
-extern void (*Swig_set_trace(DOH *obj, void (*cb)(DOH *, DOH *), DOH *arg))(DOH *, DOH *);
-extern void Swig_remove_trace(DOH *obj);
-extern void Swig_node_cut(DOH *obj);
-extern void Swig_node_insert(DOH *node, DOH *newnode);
-extern void Swig_node_temporary(DOH *node);
-extern void Swig_node_ignore(DOH *node);
-extern void Swig_node_append_child(DOH *node, DOH *cld);
-extern int  Swig_count_nodes(DOH *node);
+#define  set_nodeType(x,v)         Setattr(x,"nodeType",v)
+#define  set_parentNode(x,v)       Setattr(x,"parentNode",v)
+#define  set_previousSibling(x,v)  Setattr(x,"previousSibling",v)
+#define  set_nextSibling(x,v)      Setattr(x,"nextSibling",v)
+#define  set_firstChild(x,v)       Setattr(x,"firstChild",v)
+#define  set_lastChild(x,v)        Setattr(x,"lastChild",v)
 
-extern DOH *Swig_next(DOH *obj);
-extern DOH *Swig_prev(DOH *obj);
+extern void appendChild(Node *node, Node *child);
 
 /* Debugging of parse trees */
 extern void Swig_debug_emit(int);
@@ -443,8 +433,6 @@ extern void   Swig_except_clear();
 #define Getlname(x)        Getattr(x,"lname")
 #define Getignore(x)       GetInt(x,"ignore")
 #define Getparms(x)        Getattr(x,"parms")
-#define Gettag(x)          Getattr(x,"tag")
-#define Getparent(x)       Getattr(x,"parent")
 #define Getdecl(x)         Getattr(x,"decl")
 #define Getstorage(x)      Getattr(x,"storage")
 #define Getsymname(x)      Getattr(x,"$symname")
@@ -455,20 +443,12 @@ extern void   Swig_except_clear();
 #define Setlname(x,v)      Setattr(x,"lname",v)
 #define Setvalue(x,v)      Setattr(x,"value", v)
 #define Setignore(x,v)     SetInt(x,"ignore",v)
-#define Settag(x,v)        Setattr(x,"tag",v)
 #define Setparms(x,v)      Setattr(x,"parms", v)
-#define Setparent(x,p)     Setattr(x,"parent",p)
 #define Setdecl(x,d)       Setattr(x,"decl",d)
 #define Setstorage(x,s)    Setattr(x,"storage",s)
 #define Seterror(x,e)      Setattr(x,"error",e)
 
-#define Getnext(x)         Getattr(x,"next")
-#define Setnext(x,n)       Setattr(x,"next",n)
-#define Getprev(x)         Getattr(x,"prev")
-#define Setprev(x,n)       Setattr(x,"prev",n)
-
-#define Getchild(x)        Getattr(x,"child")
-#define Setchild(x,c)      Setattr(x,"child",c)
+#define Getnext(x)         Getattr(x,"nextSibling")
 
 #endif
 

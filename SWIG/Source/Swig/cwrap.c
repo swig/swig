@@ -191,7 +191,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       Wrapper_add_localv(w,lname,local,0);
       i++;
     }
-    p = Getnext(p);
+    p = nextSibling(p);
   }
   return(i);
 }
@@ -341,7 +341,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
       Printf(func,"%s", Swig_clocal_deref(pt, pname));
       i++;
     }
-    p = Getnext(p);
+    p = nextSibling(p);
     if (p) 
       Printf(func,",");
   }
@@ -369,7 +369,7 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
   if (!p) return Swig_temp_result(func);
   Printf(func,"%s->%s(", Swig_cparm_name(p,0), name);
   i++;
-  p = Getnext(p);
+  p = nextSibling(p);
   while (p) {
     String *pname;
     pt = Gettype(p);
@@ -378,7 +378,7 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
       Printf(func,"%s", Swig_clocal_deref(pt, pname));
       i++;
     }
-    p = Getnext(p);
+    p = nextSibling(p);
     if (p) 
       Printf(func,",");
   }
@@ -430,7 +430,7 @@ Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
       Printf(func,"%s", Swig_clocal_deref(pt, pname));
       i++;
     }
-    p = Getnext(p);
+    p = nextSibling(p);
     if (p) 
       Printf(func,",");
   }
@@ -532,7 +532,7 @@ static void fix_parm_names(ParmList *p) {
       Setname(p,temp);
     }
     i++;
-    p = Getnext(p);
+    p = nextSibling(p);
   }
 }
 
@@ -604,7 +604,7 @@ Swig_cmethod_wrapper(String_or_char *classname,
   t = NewString(classname);
   SwigType_add_pointer(t);
   p = NewParm(t,"self");
-  Setnext(p,l);
+  set_nextSibling(p,l);
   Delete(t);
 
   l = p;
@@ -623,10 +623,10 @@ Swig_cmethod_wrapper(String_or_char *classname,
     }
     
     Printf(w->code,"self->%s(", methodname);
-    p = Getnext(l);
+    p = nextSibling(l);
     while (p) {
       Printf(w->code,"%s", Getname(p));
-      p = Getnext(p);
+      p = nextSibling(p);
       if (p) 
 	Printf(w->code,",");
     }
@@ -724,7 +724,7 @@ Swig_cppconstructor_wrapper(String_or_char *classname,
       Printf(w->code,"(");
       while (p) {
 	Printf(w->code,"%s", Getname(p));
-	p = Getnext(p);
+	p = nextSibling(p);
 	if (p)
 	  Printf(w->code,",");
       }
@@ -867,7 +867,7 @@ Swig_cmemberset_wrapper(String_or_char *classname,
   ty = Swig_wrapped_var_type(type);
   p = NewParm(ty,"value");
 
-  Setnext(l,p);
+  set_nextSibling(l,p);
   
   Printf(w->def,"void %s(%s) {", Wrapper_Getname(w), ParmList_str(l));
 

@@ -232,6 +232,8 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     Setattr(n,"$symtab",current);
     Setattr(n,"$symname",symname);
     Setattr(cl,"$symnext",n);
+    Setattr(cl,"$overloaded",c);
+    Setattr(n,"$overloaded",c);
     return n;
   }
 
@@ -241,7 +243,6 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   Setattr(current,symname,n);
   return n;
 }
-
 
 /* ----------------------------------------------------------------------------- 
  * Swig_symbol_add_tag()
@@ -288,6 +289,15 @@ Swig_symbol_lookup(String_or_char *name) {
   return 0;
 }
 
+
+Node *
+Swig_symbol_lookup_local(String_or_char *name) {
+  Hash *s;
+  s = Getattr(current,name);
+  if (s) return s;
+  return 0;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_symbol_lookup_tag()
  *
@@ -322,4 +332,15 @@ Swig_symbol_qualified(Symtab *n) {
   symtab = Getattr(n,"$symtab");
   if (!symtab) return NewString("");
   return Swig_symbol_qualifiedscopename(symtab);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_isoverloaded()
+ * 
+ * Check if a symbol is overloaded
+ * ----------------------------------------------------------------------------- */
+
+Node *
+Swig_symbol_isoverloaded(Node *n) {
+  return Getattr(n,"$overloaded");
 }

@@ -495,6 +495,17 @@ int SwigType_isconst(SwigType *t) {
   if (strncmp(c,"q(const)",8) == 0) {
     return 1;
   }
+  
+  /* Hmmm. Might be const through a typedef */
+  if (SwigType_issimple(t)) {
+    int ret;
+    SwigType *td = SwigType_typedef_resolve(t);
+    if (td) {
+      ret = SwigType_isconst(td);
+      Delete(td);
+      return ret;
+    }
+  }
   return 0;
 }
 
