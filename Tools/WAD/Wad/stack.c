@@ -32,9 +32,8 @@ static int   trace_len  = 0;
 
 WadFrame *
 wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
-  int i;
-  WadSegment      *ws;
-  WadObject       *wo;
+  WadSegment      *ws, *segments;
+  WadObjectFile       *wo;
   WadFrame        frame;
   WadDebug        *wd;
   int             nlevels;
@@ -47,6 +46,10 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   int             n = 0;
   int             lastsize = 0;
   int             firstframe = 1;
+
+  /* Read the segments */
+
+  segments = wad_segment_read();
 
   /* Open the frame file for output */
   sprintf(framefile,"/tmp/wad.%d", getpid());
@@ -63,12 +66,12 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 
   while (p_sp) {
     /* Add check for stack validity here */
-    ws = wad_segment_find((char *) p_sp);
+    ws = wad_segment_find(segments, (void *) p_sp);
     if (!ws) {
       /* If the stack is bad, we are really hosed here */
       break;
     }
-    ws = wad_segment_find((char *) p_pc);
+    ws = wad_segment_find(segments, (void *) p_pc);
     {
       int   symsize = 0;
       int   srcsize = 0;
@@ -215,7 +218,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   lseek(ffile,0,SEEK_SET);
   trace_addr = mmap(NULL, trace_len, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, ffile, 0);
   close(ffile);
-  wad_segment_release();
+  wad_segment_release(segments);
   return (WadFrame *) trace_addr;
 }
 
