@@ -99,7 +99,16 @@ wad_segment_find(void *vaddr) {
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * wad_segment_valid()
+ *
+ * Checks to see if a memory address is valid or not based on data in the
+ * segment map 
+ * ----------------------------------------------------------------------------- */
 
+int wad_segment_valid(void *vaddr) {
+  return wad_segment_find ? 1 : 0;
+}
 
 
 

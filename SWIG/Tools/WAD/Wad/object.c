@@ -246,3 +246,14 @@ wad_arobject_load(const char *arpath, const char *robjname) {
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * wad_find_object(WadFrame *f)
+ *
+ * Given a stack frame.  Try to locate the object file
+ * ----------------------------------------------------------------------------- */
+
+void wad_find_object(WadFrame *f) {
+  if (f->segment) {
+    f->object = wad_object_load(f->segment->mappath);
+  }
+}
