@@ -189,7 +189,7 @@ libchicken.c: $(CHICKEN_PRECOMMON) $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME)
 
 MZSCHEME_RUNTIME = $(SWIGLIB)/mzscheme/precommon.swg $(SWIG_TYPECHECK) $(SWIGLIB)/mzscheme/mzrun.swg
 MZC = @MZC@
-SO = @SO@
+SO = @MZSCHEME_SO@
 RELEASESUFFIX   = @release_suffix@
 
 # Add in non Libtool targets
