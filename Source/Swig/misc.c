@@ -159,12 +159,15 @@ String *Swig_string_typecode(String *s) {
   ns = NewString("");
   while ((c = Getc(s)) != EOF) {
     if (c == '`') {
+      String *str = 0;
       tc = NewString("");
       while ((c = Getc(s)) != EOF) {
 	if (c == '`') break;
 	Putc(c,tc);
       }
-      Printf(ns,"%s",SwigType_str(tc,0));
+      str = SwigType_str(tc,0);
+      Printf(ns,"%s",str);
+      Delete(str);
     } else {
       Putc(c,ns);
       if (c == '\'') {
@@ -357,14 +360,12 @@ String *Swig_string_mangle(const String *s) {
 
 String *
 Swig_scopename_prefix(String *s) {
-  char tmp[1024];
-  char   *c, *cc;
-  if (!Strstr(s,"::")) return 0;
-  strcpy(tmp,Char(s));
-  c = tmp;
-  cc = c;
+  char *tmp = Char(s);
+  char *c = tmp;
+  char *cc = c;
+  if (!strstr(c,"::")) return 0;
   while (*c) {
-    if (strncmp(c,"::",2) == 0) {
+    if ((*c == ':') && (*(c+1) == ':')) {
       cc = c;
       c += 2;
     } else {
@@ -382,9 +383,8 @@ Swig_scopename_prefix(String *s) {
     }
   }
 
-  *cc = 0;
   if (cc != tmp) {
-    return NewString(tmp);
+    return NewStringWithSize(tmp, cc - tmp);
   } else {
     return 0;
   }
@@ -399,15 +399,13 @@ Swig_scopename_prefix(String *s) {
 
 String *
 Swig_scopename_last(String *s) {
-  char tmp[1024];
-  char   *c, *cc;
-  if (!Strstr(s,"::")) return NewString(s);
-  strcpy(tmp,Char(s));
-  c = tmp;
-  cc = c;
+  char *tmp = Char(s);
+  char *c = tmp;
+  char *cc = c;
+  if (!strstr(c,"::")) return NewString(s);
 
   while (*c) {
-    if (strncmp(c,"::",2) == 0) {
+    if ((*c == ':') && (*(c+1) == ':')) {
       cc = c;
       c += 2;
     } else {
@@ -436,13 +434,11 @@ Swig_scopename_last(String *s) {
 
 String *
 Swig_scopename_first(String *s) {
-  char tmp[1024];
-  char   *c;
-  if (!Strstr(s,"::")) return 0;
-  strcpy(tmp,Char(s));
-  c = tmp;
+  char *tmp = Char(s);
+  char   *c = tmp;
+  if (!strstr(c,"::")) return 0;
   while (*c) {
-    if (strncmp(c,"::",2) == 0) {
+    if ((*c == ':') && (*(c+1) == ':')) {
       break;
     } else {
       if (*c == '<') {
@@ -459,8 +455,7 @@ Swig_scopename_first(String *s) {
     }
   }
   if (*c && (c != tmp)) {
-    *c = 0;
-    return NewString(tmp);
+    return NewStringWithSize(tmp, c - tmp);
   } else {
     return 0;
   }
@@ -476,13 +471,11 @@ Swig_scopename_first(String *s) {
 
 String *
 Swig_scopename_suffix(String *s) {
-  char tmp[1024];
-  char   *c;
-  if (!Strstr(s,"::")) return 0;
-  strcpy(tmp,Char(s));
-  c = tmp;
+  char *tmp = Char(s);
+  char *c = tmp;
+  if (!strstr(c,"::")) return 0;
   while (*c) {
-    if (strncmp(c,"::",2) == 0) {
+    if ((*c == ':') && (*(c+1) == ':')) {
       break;
     } else {
       if (*c == '<') {
@@ -512,9 +505,9 @@ Swig_scopename_suffix(String *s) {
 
 int Swig_scopename_check(String *s) {
   char *c = Char(s);
-  if (!Strstr(s,"::")) return 0;
+  if (!strstr(c,"::")) return 0;
   while (*c) {
-    if (strncmp(c,"::",2) == 0) {
+    if ((*c == ':') && (*(c+1) == ':')) {
       return 1;
     } else {
       if (*c == '<') {
