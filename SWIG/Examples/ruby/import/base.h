@@ -1,14 +1,12 @@
-#include <stdio.h>
-
 class Base {
  public:
      Base() { };
     ~Base() { };
-     virtual void A() {
-         printf("I'm Base::A\n");
+     virtual const char * A() const {
+         return "Base::A";
      }
-     void B() {
-       printf("I'm Base::B\n");
+     const char * B() const {
+       return "Base::B";
      }
      virtual Base *toBase() {
        return static_cast<Base *>(this);

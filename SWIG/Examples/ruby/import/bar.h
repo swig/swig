@@ -4,11 +4,11 @@ class Bar : public Base {
  public:
   Bar() { }
   ~Bar() { }
-  virtual void A() { 
-    printf("I'm Bar::A\n");
+  virtual const char * A() const { 
+    return "Bar::A";
   }
-  void B() {
-    printf("I'm Bar::B\n");
+  const char * B() const {
+    return "Bar::B";
   }
   virtual Base *toBase() {
     return static_cast<Base *>(this);
@@ -16,7 +16,6 @@ class Bar : public Base {
   static Bar *fromBase(Base *b) {
     return dynamic_cast<Bar *>(b);
   }
-
 };
 
 

@@ -4,11 +4,11 @@ class Spam : public Bar {
  public:
   Spam() { }
   ~Spam() { }
-  virtual void A() { 
-    printf("I'm Spam::A\n");
+  virtual const char * A() const { 
+    return "Spam::A";
   }
-  void B() {
-    printf("I'm Spam::B\n");
+  const char * B() const {
+    return "Spam::B";
   }
   virtual Base *toBase() {
     return static_cast<Base *>(this);

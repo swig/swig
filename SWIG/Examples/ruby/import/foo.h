@@ -4,11 +4,11 @@ class Foo : public Base {
  public:
   Foo() { }
   ~Foo() { }
-  virtual void A() { 
-    printf("I'm Foo::A\n");
+  virtual const char * A() const { 
+    return "Foo::A";
   }
-  void B() {
-    printf("I'm Foo::B\n");
+  const char * B() const {
+    return "Foo::B";
   }
   virtual Base *toBase() {
     return static_cast<Base *>(this);
