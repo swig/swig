@@ -387,21 +387,36 @@ guile_typemap_lookup(const char *op, SwigType *type, String_or_char *pname, Stri
   return tm;
 }  
 
-// ----------------------------------------------------------------------
-// GUILE::create_function(char *name, char *iname, SwigType *d,
-//                             ParmList *l)
-//
-// Create a function declaration and register it with the interpreter.
-// ----------------------------------------------------------------------
+/* Lookup a typemap, replace all relevant parameters and write it to
+   the given generalized file. */
 
-static void
-mreplace (DOHString *s, DOHString_or_char *argnum, DOHString_or_char *arg, DOHString_or_char *proc_name)
+static int
+guile_do_typemap(DOHFile *file, const char *op,
+		 SwigType *type, String_or_char *arg,
+		 String_or_char *source, String_or_char *target,
+		 int argnum, DOHString *name, Wrapper *f,
+		 int nonewline_p)
 {
-  Replace(s,"$argnum",argnum, DOH_REPLACE_ANY);
-  Replace(s,"$arg",   arg, DOH_REPLACE_ANY);
-  Replace(s,"$name",  proc_name, DOH_REPLACE_ANY);
+  char *tm;
+  if ((tm = guile_typemap_lookup(op, type, arg,
+				 source, target, f))) {
+    String *s = NewString(tm);
+    char argnum_s[10];
+    sprintf(argnum_s, "%d", argnum);
+    Replace(s,"$argnum", argnum_s, DOH_REPLACE_ANY);
+    Replace(s,"$arg",    arg,      DOH_REPLACE_ANY);
+    /* FIXME: Produce all-uppercase version of arg */
+    Replace(s,"$ARG",    arg,      DOH_REPLACE_ANY);
+    Replace(s,"$name",   name,     DOH_REPLACE_ANY);
+    if (nonewline_p)
+      Printv(file, s, 0);
+    else Printv(file, s, "\n", 0);
+    Delete(s);
+    return 1;
+  }
+  else return 0;
 }
-
+		 
 static void
 throw_unhandled_guile_type_error (SwigType *d)
 {
@@ -409,20 +424,26 @@ throw_unhandled_guile_type_error (SwigType *d)
   error_count++;
 }
 
+// ----------------------------------------------------------------------
+// GUILE::create_function(char *name, char *iname, SwigType *d,
+//                             ParmList *l)
+//
+// Create a function declaration and register it with the interpreter.
+// ----------------------------------------------------------------------
+
 void
 GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 {
   Parm *p;
   DOHString *proc_name = 0;
-  char source[256], target[256], argnum[256], arg[256];
-  char  *tm;
-  Wrapper *f;
-  DOHString *cleanup;
-  DOHString *outarg;
-
-  f = NewWrapper();
-  outarg = NewString("");
-  cleanup = NewString("");
+  char source[256], target[256];
+  Wrapper *f = NewWrapper();;
+  String *cleanup = NewString("");
+  String *outarg = NewString("");
+  String *signature = NewString("");
+  String *returns = NewString("");
+  int returns_list = 0;
+  String *tmp = NewString("");
 
   // Make a wrapper name for this
   char * wname = new char [strlen (prefix) + strlen (iname) + 2];
@@ -432,7 +453,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   proc_name = NewString(iname);
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
-  // Now write the wrapper function itself....this is pretty ugly
+  /* Now write the wrapper function itself */
 
   Printv(f->def, "static SCM\n", wname," (", 0);
 
@@ -453,30 +474,42 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   Printf(f->def, ")\n{\n");
 
-  // Define the scheme name in C
+  /* Define the scheme name in C */
+  /* FIXME: This is only needed for the code in exception.i since
+     typemaps can always use $name. I propose to define a new macro
+     SWIG_exception_in(ERROR, MESSAGE, FUNCTION) and use it instead of
+     SWIG_exception(ERROR, MESSAGE). */
 
   Printv(f->def, "#define SCHEME_NAME \"", proc_name, "\"\n", 0);
-
+  
   // Declare return variable and arguments
 
-  int pcount = emit_args (d, l, f);
+  emit_args (d, l, f);
   int numargs = 0;
   int numopt = 0;
 
   Wrapper_add_local (f,"gswig_result", "SCM gswig_result");
 
+  if (!guile_do_typemap(returns, "outdoc", d, name,
+		       (char*)"result", (char*)"gswig_result",
+		       0, proc_name, f, 1)) {
+    String *s = NewString(SwigType_str(d, 0));
+    Chop(s);
+    Printf(returns, "<%s>", s);
+    Delete(s);
+  }
+  
   /* Now write code to extract the parameters */
 
-  i = 0;
-  int j = 0;
-  for (p = l; p; p=Getnext(p)) {
+  Printv(signature, "(", proc_name, 0);
+
+  for (p = l, i = 0; p; p=Getnext(p), i++) {
     SwigType *pt = Gettype(p);
     String   *pn = Getname(p);
 
     // Produce names of source and target
     sprintf(source,"s_%d",i);
     sprintf(target,"%s", Char(Getlname(p)));
-    sprintf(argnum,"%d",i);
 
     // Handle parameter types.
 
@@ -484,10 +517,9 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       Printv(f->code, "/* ", pn, " ignored... */\n", 0);
     else {
       ++numargs;
-      if ((tm = guile_typemap_lookup ("in", 
-                                pt, pn, source, target, f))) {
-	Printv(f->code,tm,"\n",0);
-        mreplace (f->code, argnum, pn, proc_name);
+      if (guile_do_typemap(f->code, "in", pt, pn,
+			   source, target, numargs, proc_name, f, 0)) {
+	/* nothing to do */
       }
       else if (is_a_pointer(pt)) {
         get_pointer (iname, i, pt, f, proc_name, numargs);
@@ -495,35 +527,48 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       else {
         throw_unhandled_guile_type_error (pt);
       }
-      ++j;
+      /* Add to signature */
+      Printf(signature, " ");
+      if (!guile_do_typemap(signature, "indoc", pt, pn,
+			    source, target, numargs, proc_name, f, 1)) {
+	String *s = NewString(SwigType_str(pt, 0));
+	Chop(s);
+	Printf(signature, "(%s <%s>)", pn, s);
+	Delete(s);
+      }
     }
 
-    // Check if there are any constraints.
+    /* Check if there are any constraints. */
 
-    if ((tm = guile_typemap_lookup ("check", 
-                              pt, pn, source, target, f))) {
-      Printv(f->code,tm,"\n",0);
-      mreplace (f->code, argnum, arg, proc_name);
+    guile_do_typemap(f->code, "check", pt, pn,
+		     source, target, numargs, proc_name, f, 0);
+
+    /* Pass output arguments back to the caller. */
+    
+    guile_do_typemap(outarg, "argout", pt, pn,
+		     source, target, numargs, proc_name, f, 0);
+
+    /* Document output arguments */
+    Clear(tmp);
+    if (guile_do_typemap(tmp, "argoutdoc", pt, pn,
+			 source, target, numargs, proc_name, f, 1)) {
+      if (Len(returns) == 0) { /* unspecified -> singleton */
+	Printv(returns, tmp, 0);
+      }
+      else { /* append to list */
+	Printv(returns, " ", tmp, 0);
+	returns_list = 1;
+      }
     }
+    
+    // free up any memory allocated for the arguments.
 
-    // Pass output arguments back to the caller.
-
-    if ((tm = guile_typemap_lookup ("argout", 
-                              pt, pn, source, target, f))) {
-      Printv(outarg,tm,"\n",0);
-      mreplace (outarg, argnum, arg, proc_name);
-    }
-
-    // Free up any memory allocated for the arguments.
-
-    if ((tm = guile_typemap_lookup ("freearg", 
-                              pt, pn, source, target, f))) {
-      Printv(cleanup, tm, "\n", 0);
-      mreplace (cleanup, argnum, arg, proc_name);
-    }
-    i++;
+    guile_do_typemap(cleanup, "freearg", pt, pn,
+		     source, target, numargs, proc_name, f, 0);
   }
 
+  Printv(signature, ")\n", 0);
+  
   // Now write code to make the function call
   Printv(f->code, tab4, "gh_defer_ints();\n", 0);
   emit_func_call (name, d, l, f);
@@ -531,12 +576,10 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   // Now have return value, figure out what to do with it.
 
-  if (SwigType_type(d) == T_VOID)
-    Printv(f->code, tab4, "gswig_result = GH_UNSPECIFIED;\n", 0);
-  else if ((tm = guile_typemap_lookup ("out", 
-                                 d, name, (char*)"result", (char*)"gswig_result", f))) {
-    Printv(f->code,tm,"\n",0);
-    mreplace (f->code, argnum, arg, proc_name);
+  if (guile_do_typemap(f->code, "out", d, name,
+		       (char*)"result", (char*)"gswig_result",
+		       0, proc_name, f, 0)) {
+    /* nothing */
   }
   else if (is_a_pointer(d)) {
     SwigType_remember(d);
@@ -560,24 +603,18 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   // Look for any remaining cleanup
 
   if (NewObject) {
-    if ((tm = guile_typemap_lookup ("newfree", 
-                              d, iname, (char*)"result", (char*)"", f))) {
-      Printv(f->code,tm,"\n",0);
-      mreplace (f->code, argnum, arg, proc_name);
-    }
+    guile_do_typemap(f->code, "newfree", d, iname, 
+		     (char*)"result", (char*)"", 0, proc_name, f, 0);
   }
 
   // Free any memory allocated by the function being wrapped..
 
-  if ((tm = guile_typemap_lookup ("ret", 
-                            d, name, (char*)"result", (char*)"", f))) {
-    Printv(f->code,tm,"\n",0);
-    mreplace (f->code, argnum, arg, proc_name);
-  }
+  guile_do_typemap(f->code, "ret", d, name,
+		   (char*)"result", (char*)"", 0, proc_name, f, 0);
 
   // Wrap things up (in a manner of speaking)
 
-  Printv(f->code, tab4, "return gswig_result;\n", 0);
+  Printv(f->code, "return gswig_result;\n", 0);
 
   // Undefine the scheme name
 
@@ -598,9 +635,20 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     Printf (f_init, "\t gh_new_procedure(\"%s\", %s, %d, %d, 0);\n",
              proc_name, wname, numargs-numopt, numopt);
   }
+  /* Register procedure documentation */
+  Printv(signature, "Returns ", 0);
+  if (Len(returns)==0) Printv(signature, "unspecified", 0);
+  else if (returns_list) Printv(signature, "list (", returns, ")", 0);
+  else Printv(signature, returns, 0);
+  Printv(signature, "\n", 0);
+  printf("%s\n", Char(signature));
+    
   Delete(proc_name);
   Delete(outarg);
   Delete(cleanup);
+  Delete(signature);
+  Delete(returns);
+  Delete(tmp);
   DelWrapper(f);
 }
 
@@ -787,15 +835,14 @@ GUILE::declare_const (char *name, char *, SwigType *type, char *value)
   DelWrapper(f);
 }
 
-#if 0
 // ----------------------------------------------------------------------
 // GUILE::usage_var(char *iname, SwigType *t, String &usage)
 //
 // Produces a usage string for a Guile variable.
 // ----------------------------------------------------------------------
 
-void
-GUILE::usage_var (char *iname, SwigType *t, DOHString *usage)
+static void
+usage_var (char *iname, SwigType *t, DOHString *usage)
 {
 
   Printv(usage, "(", iname, " [value])", 0);
@@ -804,136 +851,14 @@ GUILE::usage_var (char *iname, SwigType *t, DOHString *usage)
   }
 }
 
-// ---------------------------------------------------------------------------
-// GUILE::usage_func(char *iname, SwigType *t, ParmList *l, String &usage)
-//
-// Produces a usage string for a function in Guile
-// ---------------------------------------------------------------------------
-
-void
-GUILE::usage_func (char *iname, SwigType *d, ParmList *l, DOHString *usage)
-{
-
-  Parm *p;
-
-  // Print the function name.
-
-  Printv(usage,"(",iname,0);
-
-  // Now go through and print parameters
-
-  for (p = l; p != 0; p = Getnext(p)) {
-    SwigType *pt = Gettype(p);
-    char     *pn = Getname(p);
-
-    if (Getignore(p))
-      continue;
-
-    // Print the type.  If the parameter has been named, use that as well.
-
-    if (SwigType_type(pt) != T_VOID) {
-
-      // Print the type.
-      Printv(usage, " <", SwigType_Getname(pt), 0);
-      if (SwigType_is_pointer(pt)) {
-	/*	for (int j = 0; j < (pt->is_pointer - pt->implicit_ptr); j++) {*/
-	for (int j = 0; j < SwigType_is_pointer(pt); j++) {
-	  Putc('*', usage);
-	}
-      }
-      Putc('>',usage);
-
-      // Print the name if it exists.
-      if (strlen (pn) > 0) {
-	Printv(usage," ", pn, 0);
-      }
-    }
-  }
-  Putc(')', usage);
-}
-
-
-// ---------------------------------------------------------------------------
-// GUILE::usage_returns(char *iname, SwigType *t, ParmList *l, String &usage)
-//
-// Produces a usage string for a function in Guile
-// ---------------------------------------------------------------------------
-
-void
-GUILE::usage_returns (char *iname, SwigType *d, ParmList *l, DOHString *usage)
-{
-  Parm *p;
-  DOHString *param;
-  int have_param = 0, j;
-
-  Clear(usage);
-  Printf(usage,"returns ");
-  param = NewString("");
-
-  // go through and see if any are output.
-
-  for (p = l; p != 0; p = Getnext(p)) {
-    SwigType *pt = Gettype(p);
-    char     *pn = Getname(p);
-
-    if (strcmp (pn,"BOTH") && strcmp (pn,"OUTPUT"))
-      continue;
-
-    // Print the type.  If the parameter has been named, use that as well.
-
-    if (SwigType_type(pt) != T_VOID) {
-      ++have_param;
-
-      // Print the type.
-      Printv(param," $", SwigType_Getname(pt), 0);
-      if (SwigType_is_pointer(pt)) {
-	/*	for (j = 0; j < (pt->is_pointer - pt->implicit_ptr - 1); j++) { */
-	for (j = 0; j < SwigType_is_pointer(pt) - 1; j++) {
-	  Putc('*', param);
-	}
-      }
-      Printf(param,"# ");
-    }
-  }
-
-  // See if we stick on the function return type.
-  if ((SwigType_type(d) != T_VOID) || (have_param == 0)) {
-    ++have_param;
-    if (SwigType_type(d) == T_VOID)
-      Insert(param,0," unspecified ");
-    else {
-      Insert(param,0,"# ");
-      Insert(param,0, SwigType_str(d,0));
-      Insert(param,0," $");
-    }
-  }
-
-  // Kill extra white space.
-  //  param.strip();   - DB: Not supported right now
-  Replace(param,"$",  "<", DOH_REPLACE_ANY);
-  Replace(param,"#",  ">", DOH_REPLACE_ANY);
-  Replace(param,"><", "> <", DOH_REPLACE_ANY);
-
-  // If there are multiple return values put them in a list.
-  if (have_param > 1) {
-    Insert(param,0,"(");
-    Append(param,")");
-  }
-  Printv(usage,param,0);
-  Delete(param);
-}
-
 // ----------------------------------------------------------------------
 // GUILE::usage_const(char *iname, SwigType *type, char *value, String &usage)
 //
 // Produces a usage string for a Guile constant
 // ----------------------------------------------------------------------
 
-void
-GUILE::usage_const (char *iname, SwigType *, char *value, DOHString *usage)
+static void
+usage_const (char *iname, SwigType *, char *value, DOHString *usage)
 {
   Printv(usage, "(", iname, " ", value, ")", 0);
 }
-
-
-#endif
