@@ -32,10 +32,12 @@ static char *mzscheme_usage = (char*)"\
 Mzscheme Options (available with -mzscheme)\n\
 -help           - Print this help\n\
 -prefix name    - Set a prefix to be appended to all names\n\
+-declaremodule  - Create extension that declares a module\n\
 \n"
 ;
 
 static char *prefix=0;
+static bool declaremodule = false;
 static String *module=0;
 static char *mzscheme_path=(char*)"mzscheme";
 static String *init_func_def = 0;
@@ -75,6 +77,10 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
+	}
+	else if (strcmp (argv[i], "-declaremodule") == 0) {
+		declaremodule = true;
+		Swig_mark_arg (i);
 	}
       }
     }
@@ -142,15 +148,27 @@ public:
     
     SwigType_emit_type_table (f_runtime, f_wrappers);
     Printf(f_init, "Scheme_Object *scheme_reload(Scheme_Env *env) {\n");
+	Printf(f_init, "\tScheme_Env *menv = env;\n");
+	if (declaremodule) {
+		Printf(f_init, "\tmenv = scheme_primitive_module(scheme_intern_symbol(\"%s\"), env);\n", module);
+	}
     Printf (f_init, "\tSWIG_RegisterTypes(swig_types, swig_types_initial);\n");
     Printf(f_init, "%s\n", Char(init_func_def));
+	if (declaremodule) {
+		Printf(f_init, "\tscheme_finish_primitive_module(menv);\n");
+	}
     Printf (f_init, "\treturn scheme_void;\n}\n");
     Printf(f_init, "Scheme_Object *scheme_initialize(Scheme_Env *env) {\n");
     Printf(f_init, "\treturn scheme_reload(env);\n");
     Printf (f_init, "}\n");
     
     Printf(f_init,"Scheme_Object *scheme_module_name(void) {\n");
-    Printf(f_init,"   return scheme_make_symbol((char*)\"%s\");\n", module);
+	if (declaremodule) {
+		Printf(f_init, "   return scheme_intern_symbol((char*)\"%s\");\n", module);
+	}
+	else {
+		Printf(f_init,"   return scheme_make_symbol((char*)\"%s\");\n", module);
+	}
     Printf(f_init,"}\n");
 
     /* Close all of the files */
@@ -381,7 +399,7 @@ public:
       // Now register the function
       char temp[256];
       sprintf(temp, "%d", numargs);
-      Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),env);\n",
+      Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n",
 	     proc_name, wname, proc_name, numreq, numargs);
 
     } else {
@@ -404,7 +422,7 @@ public:
 	Printf(df->code,"scheme_signal_error(\"No matching function for overloaded '%s'\");\n", iname);
 	Printv(df->code,"}\n",NIL);
 	Wrapper_print(df,f_wrappers);
-	Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),env);\n",
+	Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n",
 	     proc_name, dname, proc_name, 0, maxargs);
 	DelWrapper(df);
 	Delete(dispatch);
@@ -513,7 +531,7 @@ public:
 	     "0",
 	     ", ",
 	     "1",
-	     "), env);\n",NIL);
+	     "), menv);\n",NIL);
       
     } else {
       Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
