@@ -143,7 +143,7 @@ SWIGSTATIC SCM
 SWIG_Guile_MakePtr (void *ptr, swig_type_info *type);
 
 /* Get arguments from an argument list */
-SWIGSTATIC void
+SWIGSTATIC int
 SWIG_Guile_GetArgs (SCM *dest, SCM rest,
 		    int reqargs, int optargs,
 		    const char *procname);
