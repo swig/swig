@@ -1,6 +1,27 @@
 Version 1.3.25 (In progress)
 ============================
 
+02/21/2005: mmatus 
+
+	    Fix swigrun.swg warnings reported when using "gcc -W -Wall"
+	    (static/inline not used in front of a function
+	    declaration), and add SWIGUNUSED attribute to avoid
+	    unused warnings elsewhere.
+
+	    Fix unused variable warnings.
+
+	    [Python] Use new SWIGUNUSED attribute to avoid warnings in
+	    SWIGINTERN methods.
+
+	    [Python] Fix PyOS_snprintf for python versions < 2.2 (SF #1104919).
+
+	    [Python] Fix map/multimap to allow empty maps (reported by
+  	    Philippe Hetroy).
+
+	    [Docs] Add some documentation to Python.html and
+	    SWIGPlus.html, including for example the fact that
+	    'friends' are now supported.
+
 02/21/2005: wsfulton
             [PHP] Patch from Olly Betts, so that wrappers compile with Zend thread safety enabled.
 
