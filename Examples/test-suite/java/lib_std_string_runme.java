@@ -1,10 +1,10 @@
-import lib_std_string.*;
+import li_std_string.*;
 
-public class lib_std_string_runme {
+public class li_std_string_runme {
 
   static {
     try {
-        System.loadLibrary("lib_std_string");
+        System.loadLibrary("li_std_string");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -14,29 +14,29 @@ public class lib_std_string_runme {
   public static void main(String argv[]) throws Throwable
   {
       // Checking expected use of %typemap(in) std::string {}
-      lib_std_string.test_value("Fee");
+      li_std_string.test_value("Fee");
 
       // Checking expected result of %typemap(out) std::string {}
-      if (!lib_std_string.test_value("Fi").equals("Fi"))
+      if (!li_std_string.test_value("Fi").equals("Fi"))
           throw new RuntimeException("Test 1 failed");
 
       // Verify type-checking for %typemap(in) std::string {}
       try {
-          lib_std_string.test_value(null);
+          li_std_string.test_value(null);
           throw new RuntimeException("Test 2 failed");
       } catch (NullPointerException e) {
       }
 
       // Checking expected use of %typemap(in) const std::string & {}
-      lib_std_string.test_const_reference("Fo");
+      li_std_string.test_const_reference("Fo");
 
       // Checking expected result of %typemap(out) const std::string& {}
-      if (!lib_std_string.test_const_reference("Fum").equals("Fum"))
+      if (!li_std_string.test_const_reference("Fum").equals("Fum"))
           throw new RuntimeException("Test 3 failed");
 
       // Verify type-checking for %typemap(in) const std::string & {}
       try {
-          lib_std_string.test_const_reference(null);
+          li_std_string.test_const_reference(null);
           throw new RuntimeException("Test 4 failed");
       } catch (NullPointerException e) {
       }
@@ -49,26 +49,26 @@ public class lib_std_string_runme {
 
       SWIGTYPE_p_std__string stringPtr = null;
 
-      stringPtr = lib_std_string.test_pointer_out();
+      stringPtr = li_std_string.test_pointer_out();
 
-      lib_std_string.test_pointer(stringPtr);
+      li_std_string.test_pointer(stringPtr);
 
-      stringPtr = lib_std_string.test_const_pointer_out();
+      stringPtr = li_std_string.test_const_pointer_out();
 
-      lib_std_string.test_const_pointer(stringPtr);
+      li_std_string.test_const_pointer(stringPtr);
 
-      stringPtr = lib_std_string.test_reference_out();
+      stringPtr = li_std_string.test_reference_out();
 
-      lib_std_string.test_reference(stringPtr);
+      li_std_string.test_reference(stringPtr);
 
       // Check throw exception specification
       try {
-          lib_std_string.test_throw();
+          li_std_string.test_throw();
           throw new Throwable("Test 5 failed");
       } catch (RuntimeException e) {
       }
       try {
-          lib_std_string.test_const_reference_throw();
+          li_std_string.test_const_reference_throw();
           throw new Throwable("Test 6 failed");
       } catch (RuntimeException e) {
       }
