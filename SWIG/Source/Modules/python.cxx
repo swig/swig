@@ -986,8 +986,7 @@ public:
 	Printf(f_shadow_stubs,"%s = %s.%s\n", global_name, module, global_name);
       }
     }
-
-    if ((shadow) && (SwigType_isconst(t))) {
+    if ((shadow) && (!SwigType_ismutable(t))) {
 	if (!in_class) {
 	  Printf(f_shadow_stubs,"%s = %s.%s\n", iname, global_name, iname);
 	}
