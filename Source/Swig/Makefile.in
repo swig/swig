@@ -16,7 +16,7 @@
 #
 #----------------------------------------------------------------
 
-SRCS          = types.c scanner.c include.c getopt.c misc.c super.c
+SRCS          = types.c scanner.c include.c getopt.c misc.c super.c type.c
 OBJS          = $(SRCS:.c=.o)
 INTERFACE     = swig.i
 WRAPFILE      = $(INTERFACE:.i=_wrap.c)
