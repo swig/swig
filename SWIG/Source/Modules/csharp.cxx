@@ -16,6 +16,12 @@ char cvsroot_csharp_cxx[] = "$Header$";
 #include "swigmod.h"
 #include <ctype.h>
 
+
+// temporary hack start
+#define CPLUS_PUBLIC     0
+extern int cplus_mode;
+// temporary hack end
+
 class CSHARP : public Language {
   static const char *usage;
   const  String *empty_string;
@@ -47,6 +53,7 @@ class CSHARP : public Language {
   String *variable_name; //Name of a variable being wrapped
   String *proxy_class_constants_code;
   String *module_class_constants_code;
+  String *enum_code;
   String *namespce; // Optional namespace name
   String *imclass_imports; //intermediary class imports from %pragma
   String *module_imports; //module imports from %pragma
@@ -98,6 +105,7 @@ class CSHARP : public Language {
     variable_name(NULL),
     proxy_class_constants_code(NULL),
     module_class_constants_code(NULL),
+    enum_code(NULL),
     namespce(NULL),
     imclass_imports(NULL),
     module_imports(NULL),
@@ -283,7 +291,7 @@ class CSHARP : public Language {
       Printf(f_im, "{\n");
 
       // Add the intermediary class methods
-      Replaceall(imclass_class_code,"$module", module_class_name);
+      Replaceall(imclass_class_code, "$module", module_class_name);
       Printv(f_im, imclass_class_code, NIL);
       Printv(f_im, imclass_cppcasts_code, NIL);
 
@@ -322,16 +330,20 @@ class CSHARP : public Language {
         Printv(f_module, "implements ", module_interfaces, " ", NIL);
       Printf(f_module, "{\n");
 
+      Replaceall(module_class_code, "$module", module_class_name);
+      Replaceall(module_class_constants_code, "$module", module_class_name);
+
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
 
-      // Write out all the enums constants
+      // Write out all the global constants
       if (Len(module_class_constants_code) != 0 )
-        Printv(f_module, "  // enums and constants\n", module_class_constants_code, NIL);
+        Printv(f_module, module_class_constants_code, NIL);
 
       // Finish off the class
       Printf(f_module, "}\n");
       Printf(f_module, Len(namespce) > 0 ?  "\n}\n" : "");
+
       Close(f_module);
     }
 
@@ -753,6 +765,7 @@ class CSHARP : public Language {
    * ------------------------------------------------------------------------ */
 
   virtual int globalvariableHandler(Node *n) {
+
     SwigType  *t = Getattr(n,"type");
     String    *tm;
 
@@ -777,6 +790,155 @@ class CSHARP : public Language {
     return ret;
   }
 
+/* ----------------------------------------------------------------------
+ * enumDeclaration()
+ *
+ * C/C++ enums are wrapped by a C# enum. A C# enum is treated much like a 
+ * C# proxy class in that a global enum is generated into its own file and
+ * code can be added to the enum declaration using typemaps. Enums can be
+ * wrapped with integers for backwards compatability using the enumint
+ * feature.
+ * ---------------------------------------------------------------------- */
+
+  virtual int enumDeclaration(Node *n) {
+
+    if (getCurrentClass() && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+
+    enum_code = NewString("");
+    String *symname = Getattr(n,"sym:name");
+    String *constants_code = (proxy_flag && is_wrapping_class()) ? proxy_class_constants_code : module_class_constants_code;
+    String *enumint_feature = Getattr(n,"feature:cs:enumint");
+    bool enumint_feature_flag = enumint_feature && Cmp(enumint_feature, "0") != 0;
+    String *typemap_lookup_type = Getattr(n,"name");
+    if (!enumint_feature_flag && symname) {
+      // Wrap (non-anonymous) C/C++ enum with a C# enum
+
+      // Pure C# baseclass and interfaces
+      const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE);
+      const String *pure_interfaces = typemapLookup("csinterfaces", typemap_lookup_type, WARN_NONE);
+
+      // Emit the enum
+      Printv(enum_code,
+          typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers (enum modifiers really)
+          " enum ",
+          symname,
+          *Char(pure_baseclass) ? // Bases
+          " : " : 
+          "",
+          pure_baseclass,
+          *Char(pure_interfaces) ?  // Interfaces
+          " : " :
+          "",
+          pure_interfaces,
+          " {\n",
+          NIL);
+    } else {
+      // Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums
+      if (symname)
+        Printf(constants_code, "  // %s \n", symname);
+    }
+
+    // Emit each enum item
+    Language::enumDeclaration(n);
+
+    if (!enumint_feature_flag && symname) {
+      // Wrap (non-anonymous) C/C++ enum with a C# enum - finish enum declaration. 
+      // Typemaps can be used to add extra code to the enum definition in the same manner as proxy classes.
+      Printv(enum_code,
+          "\n",
+          typemapLookup("csgetcptr", typemap_lookup_type, WARN_NONE), // getCPtr method (will probably never be used, but what the heck)
+          typemapLookup("cscode", typemap_lookup_type, WARN_NONE), // extra C# code
+          "}\n",
+          NIL);
+
+      if (proxy_flag && is_wrapping_class()) {
+        // Enums defined within the C++ class are defined within the proxy class
+
+        // Add extra indentation
+        Replaceall(enum_code, "\n  ", "\n    ");
+        Replaceall(enum_code, "\n}\n", "\n  }\n");
+
+        Printv(proxy_class_constants_code, "  ", enum_code, NIL);
+      } else {
+        // Global enums are defined in their own file
+        String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), symname);
+        File *f_enum = NewFile(filen,"w");
+        if(!f_enum) {
+          Printf(stderr,"Unable to open %s\n", filen);
+          SWIG_exit(EXIT_FAILURE);
+        } 
+        Delete(filen); filen = NULL;
+
+        // Start writing out the enum file
+        emitBanner(f_enum);
+
+        if(Len(namespce) > 0)
+          Printf(f_enum, "namespace %s {\n", namespce);
+
+        Printv(f_enum,
+            typemapLookup("csimports", typemap_lookup_type, WARN_NONE), // Import statements
+            "\n",
+            enum_code,
+            NIL);
+
+        Printf(f_enum, Len(namespce) > 0 ?  "\n}\n" : "\n");
+        Close(f_enum);
+      }
+    } else {
+      // Wrap C++ enum with integers
+      Printf(constants_code, "\n");
+    }
+
+    Delete(enum_code); enum_code = NULL;
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * enumvalueDeclaration()
+   * ---------------------------------------------------------------------- */
+
+  virtual int enumvalueDeclaration(Node *n) {
+    if (getCurrentClass() && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+
+    Swig_require("enumvalueDeclaration",n,"*name", "?value",NIL);
+    String *symname = Getattr(n,"sym:name");
+    String *value = Getattr(n,"value");
+    String *name  = Getattr(n,"name");
+    String *tmpValue;
+    
+    if (value)
+      tmpValue = NewString(value);
+    else
+      tmpValue = NewString(name);
+    Setattr(n, "value", tmpValue);
+
+    {
+      String *enumint_feature = Getattr(parentNode(n),"feature:cs:enumint");
+      bool enumint_feature_flag = enumint_feature && Cmp(enumint_feature, "0") != 0;
+
+      if (!enumint_feature_flag && Getattr(parentNode(n),"sym:name")) {
+        // Wrap C/C++ enums with C# enums. Emit the enum item.
+        if (!Getattr(n,"_last")) // Only the first enum item has this attribute set
+          Printf(enum_code, ",\n");
+        Printf(enum_code, "  %s", symname);
+        if (Getattr(n,"enumvalue"))
+          Printf(enum_code, " = %s", Getattr(n,"enumvalue"));
+      } else {
+        // Wrap C/C++ enums with integers.
+        if (!getCurrentClass()) {
+          Setattr(n,"name",tmpValue); /* for wrapping of enums in a namespace when emit_action is used */
+          constantWrapper(n);
+        } else {
+          memberconstantHandler(n);
+        }
+      }
+    }
+    
+    Delete(tmpValue);
+    Swig_restore(n);
+    return SWIG_OK;
+  }
+
   /* -----------------------------------------------------------------------
    * constantWrapper()
    * ------------------------------------------------------------------------ */
@@ -793,6 +955,10 @@ class CSHARP : public Language {
     if (!addSymbol(symname,n)) return SWIG_ERROR;
 
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
+
+    // The %csconst feature determines how the constant value is obtained
+    String *const_feature = Getattr(n,"feature:cs:const");
+    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
 
     /* Adjust the enum type for the Swig_typemap_lookup. We want the same cstype typemap for all the enum items.
      * The type of each enum item depends on what value it is assigned, but is usually a C int. */
@@ -827,19 +993,19 @@ class CSHARP : public Language {
       Setattr(n, "value", new_value);
     }
 
-    // The %csconst feature determines how the constant value is obtained
-    String *const_feature = Getattr(n,"feature:cs:const");
-    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+    // Get the name of the enum item
+    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
 
-    // enums are wrapped using a public final static int in C#.
-    // Other constants are wrapped using a public final static [cstype] in C#.
-    Printf(constants_code, "  public %s %s %s = ", (const_feature_flag ? "const" : "static readonly"), return_type, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
+    // Constants are wrapped using a public const [cstype] in C#.
+    Printf(constants_code, "  public %s %s %s = ", (const_feature_flag ? "const" : "static readonly"), return_type, itemname);
 
-    if ((is_enum_item && Getattr(n,"enumvalue") == 0) || !const_feature_flag) {
-      // Enums without value and default constant handling will work with any type of C constant and initialises the C# variable from C through a PInvoke call.
+    if (!const_feature_flag) {
+      // Default constant handling will work with any type of C constant and initialises the C# variable from C through a PInvoke call.
 
       if(classname_substituted_flag) // This handles function pointers using the %constant directive
         Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, imclass_name, Swig_name_get(symname));
+      else if (SwigType_isenum(Getattr(n,"type")))
+        Printf(constants_code, "(%s)%s.%s();\n", return_type, imclass_name, Swig_name_get(symname));
       else
         Printf(constants_code, "%s.%s();\n", imclass_name, Swig_name_get(symname));
 
@@ -849,7 +1015,8 @@ class CSHARP : public Language {
       enum_constant_flag = false;
     } else if (is_enum_item) {
       // Alternative enum item handling will use the explicit value of the enum item and hope that it compiles as C# code
-      Printf(constants_code, "%s;\n", Getattr(n,"enumvalue"));
+      const String *enumvalue = Getattr(n,"enumvalue") ? Getattr(n,"enumvalue") : Getattr(n,"enumvalueex");
+      Printf(constants_code, "%s;\n", enumvalue);
     } else {
       // Alternative constant handling will use the C syntax to make a true C# constant and hope that it compiles as C# code
       Printf(constants_code, "%s;\n", Getattr(n,"value"));
@@ -896,6 +1063,7 @@ class CSHARP : public Language {
    * ----------------------------------------------------------------------------- */
 
   virtual int pragmaDirective(Node *n) {
+
     if (!ImportMode) {
       String *lang = Getattr(n,"lang");
       String *code = Getattr(n,"name");
@@ -1162,11 +1330,14 @@ class CSHARP : public Language {
 
       emitProxyClassDefAndCPPCasts(n);
 
+      Replaceall(proxy_class_def, "$module", module_class_name);
+      Replaceall(proxy_class_code, "$module", module_class_name);
+      Replaceall(proxy_class_constants_code, "$module", module_class_name);
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
-      // Write out all the enums and constants
+      // Write out all the constants
       if (Len(proxy_class_constants_code) != 0 )
-        Printv(f_proxy, "  // enums and constants\n", proxy_class_constants_code, NIL);
+        Printv(f_proxy, proxy_class_constants_code, NIL);
 
       Printf(f_proxy, "}\n");
       Printf(f_proxy, Len(namespce) > 0 ?  "\n}\n" : "");
@@ -1813,9 +1984,41 @@ class CSHARP : public Language {
   }
 
   /* -----------------------------------------------------------------------------
+   * getEnumName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getEnumName(SwigType *t) {
+    Node *enum_name = NULL;
+    Node *n = enumLookup(t);
+    if (n) {
+      String *enumint_feature = Getattr(n,"feature:cs:enumint");
+      bool enumint_feature_flag = enumint_feature && Cmp(enumint_feature, "0") != 0;
+
+      String *symname = Getattr(n,"sym:name");
+      if (!enumint_feature_flag && symname) {
+        // Add in class scope when referencing enum if not a global enum
+        String *scopename_prefix = Swig_scopename_prefix(Getattr(n,"name"));
+        // TODO: remove class scope if it is an enum in this class
+        String *proxyname = 0;
+        if (scopename_prefix) {
+          proxyname = getProxyName(scopename_prefix);
+        }
+        if (proxyname)
+          enum_name = NewStringf("%s.%s", proxyname, symname);
+        else
+          enum_name = NewStringf("%s", symname);
+        Delete(scopename_prefix);
+      }
+    }
+
+    return enum_name;
+  }
+
+  /* -----------------------------------------------------------------------------
    * substituteClassname()
    *
    * Substitute $csclassname with the proxy class name for classes/structs/unions that SWIG knows about.
+   * Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the C# class name. Note that the $&csclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
    * Inputs:
@@ -1830,31 +2033,42 @@ class CSHARP : public Language {
   bool substituteClassname(SwigType *pt, String *tm) {
     bool substitution_performed = false;
     if (Strstr(tm, "$csclassname") || Strstr(tm,"$&csclassname")) {
-      String *classname = getProxyName(pt);
-      if (classname) {
-        Replaceall(tm,"$&csclassname", classname); // getProxyName() works for pointers to classes too
-        Replaceall(tm,"$csclassname", classname);
-      }
-      else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
-        String *descriptor = NULL;
-        SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+      SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+      SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
-        if (Strstr(tm, "$&csclassname")) {
-          SwigType_add_pointer(type);
-          descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
-          Replaceall(tm, "$&csclassname", descriptor);
+      if (SwigType_isenum(strippedtype)) {
+        String *enumname = getEnumName(pt);
+        if (enumname)
+          Replaceall(tm, "$csclassname", enumname);
+        else
+          Replaceall(tm, "$csclassname", NewStringf("int"));
+      } else {
+        String *classname = getProxyName(pt);
+        if (classname) {
+          Replaceall(tm,"$&csclassname", classname); // getProxyName() works for pointers to classes too
+          Replaceall(tm,"$csclassname", classname);
         }
-        else { // $csclassname
-          descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
-          Replaceall(tm, "$csclassname", descriptor);
-        }
+        else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+          String *descriptor = NULL;
 
-        // Add to hash table so that the type wrapper classes can be created later
-        Setattr(swig_types_hash, descriptor, type);
-        Delete(descriptor);
-        Delete(type);
+          if (Strstr(tm, "$&csclassname")) {
+            SwigType_add_pointer(type);
+            descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
+            Replaceall(tm, "$&csclassname", descriptor);
+          }
+          else { // $csclassname
+            descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
+            Replaceall(tm, "$csclassname", descriptor);
+          }
+
+          // Add to hash table so that the type wrapper classes can be created later
+          Setattr(swig_types_hash, descriptor, type);
+          Delete(descriptor);
+        }
+        substitution_performed = true;
       }
-      substitution_performed = true;
+      Delete(type);
+      Delete(strippedtype);
     }
     return substitution_performed;
   }
@@ -1945,6 +2159,7 @@ class CSHARP : public Language {
         NIL);
 
         Replaceall(swigtype, "$csclassname", classname);
+        Replaceall(swigtype, "$module", module_class_name);
         Printv(f_swigtype, swigtype, NIL);
 
         Close(f_swigtype);
