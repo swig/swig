@@ -2,3 +2,8 @@
 *-generic.scm
 *_wrap.cxx
 *_wrap.c
+*[!e].scm
+*[!m]e.scm
+*[!n]me.scm
+*[!u]nme.scm
+*[!r]unme.scm
