@@ -17,7 +17,6 @@ private:
   File *f_wrappers;
   File *f_init;
   String *PrefixPlusUnderscore;
-  List *memberVariableNodes;
 
 public:
 
@@ -177,19 +176,19 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * is_member_function()
+   * ------------------------------------------------------------ */
+  
+  int isMemberVariable(Node *n) const {
+    return getCurrentClass() && Cmp(Getattr(n,"storage"),"static") != 0;
+  }
+
+  /* ------------------------------------------------------------
    * add_method()
    * ------------------------------------------------------------ */
 
   void add_method(Node *n, String *name, String *function, String *description) {
-    String *rename;
-    if (is_member_function(n)) {
-      rename = strip(name);
-    } else if (is_constructor(n)) {
-      // rename = NewString("create");
-      rename = strip(name);
-    } else {
-      rename = Copy(name);
-    }
+    String *rename = strip(name);
     Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
     Delete(rename);
   }
@@ -395,13 +394,15 @@ public:
     /* Dump the function out */
     Wrapper_print(f,f_wrappers);
 
-    /* Now register the function with the interpreter.   */
-    if (!Getattr(n,"sym:overloaded")) {
-      add_method(n, iname, wname, description);
-    } else {
-      Setattr(n,"wrap:name", wname);
-      if (!Getattr(n,"sym:nextSibling")) {
-	dispatchFunction(n);
+    /* Now register the function with the interpreter. */
+    if (!isMemberVariable(n)) {
+      if (!Getattr(n,"sym:overloaded")) {
+	add_method(n, iname, wname, description);
+      } else {
+	Setattr(n,"wrap:name", wname);
+	if (!Getattr(n,"sym:nextSibling")) {
+	  dispatchFunction(n);
+	}
       }
     }
 
@@ -608,7 +609,7 @@ public:
     need_setter = 0;
     n = Firstitem(membervariables);
     while (n) {
-      if (!Getattr(n, "feature:imutable")) {
+      if (!Getattr(n, "feature:immutable")) {
         need_setter = 1;
 	break;
       }
@@ -621,10 +622,19 @@ public:
       String *setter = Swig_name_member(getClassPrefix(), (char *) "`->=");
       String *wname = Swig_name_wrapper(setter);
       Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NULL);
+      Printf(wrapper->locals, "char *name = (char *) STR0(sp[args].u.string);\n");
       
-      /* Clear the return stack */
-      Printf(wrapper->code, "pop_n_elems(args);\n");
-      
+      n = Firstitem(membervariables);
+      while (n) {
+	if (!Getattr(n, "feature:immutable")) {
+	  name = Getattr(n, "name");
+	  Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
+	  Printf(wrapper->code, "%s(args);\n", "setter");
+	  Printf(wrapper->code, "}\n");
+	}
+	n = Nextitem(membervariables);
+      }
+
       /* Close the function */
       Printf(wrapper->code, "}\n");
 
@@ -633,7 +643,7 @@ public:
       
       /* Register it with Pike */
       String *description = NewString("tStr tFloat, tVoid");
-      add_method(n, setter, wname, description);
+      add_method(Firstitem(membervariables), setter, wname, description);
       Delete(description);
 
       /* Clean up */
@@ -647,9 +657,16 @@ public:
     String *getter = Swig_name_member(getClassPrefix(), (char *) "`->");
     String *wname = Swig_name_wrapper(getter);
     Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NULL);
+    Printf(wrapper->locals, "char *name = (char *) STR0(sp[args].u.string);\n");
 
-    /* Clear the return stack */
-    Printf(wrapper->code, "pop_n_elems(args);\n");
+    n = Firstitem(membervariables);
+    while (n) {
+      name = Getattr(n, "name");
+      Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
+      Printf(wrapper->code, "%s(args);\n", "getter");
+      Printf(wrapper->code, "}\n");
+      n = Nextitem(membervariables);
+    }
 
     /* Close the function */
     Printf(wrapper->code, "}\n");
@@ -659,7 +676,7 @@ public:
     
     /* Register it with Pike */
     String *description = NewString("tStr, tMix");
-    add_method(n, getter, wname, description);
+    add_method(Firstitem(membervariables), getter, wname, description);
     Delete(description);
     
     /* Clean up */
@@ -673,14 +690,13 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int membervariableHandler(Node *n) {
-    // return Language::membervariableHandler(n);
     List *membervariables = Getattr(getCurrentClass(),"membervariables");
     if (!membervariables) {
       membervariables = NewList();
       Setattr(getCurrentClass(),"membervariables",membervariables);
     }
     Append(membervariables,n);
-    return SWIG_OK;
+    return Language::membervariableHandler(n);
   }
 
   /* ------------------------------------------------------------
