@@ -86,9 +86,15 @@ static const char *usage2 = (const char*)"\
      -v              - Run in verbose mode\n\
      -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
-     -Wallkw         - Enable warning messages for all the languages keywords\n\
-     -Werror         - Force to treat the warnings as errors\n\
-     -w<n>           - Suppress warning number <n>\n\
+     -Wallkw         - Enable keyword warnings for all the supported languages\n\
+     -Werror         - Force to treat warnings as errors\n\
+     -w<list>        - Suppress/add warning messages by code. \n\
+                       Use ',' as separator and the +/- signs as follows \n\
+                                             \n\
+                             -w+321,401,-402 \n\
+                                             \n\
+                       where code 321(+) is added, and 401(no sign) and 402(-) \n\
+                       are suppressed. See documentation for code meanings.\n\
 \n";
 
 // Local variables
