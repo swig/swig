@@ -664,7 +664,6 @@ static Node *dump_nested(char *parent) {
     Setattr(retx,"name",n->name);
     Setattr(retx,"type",Copy(n->type));
     Setattr(retx,"nested",parent);
-    /*    Printf(stdout,"%s   %s\n", n->name, yyrename);*/
     add_symbols(retx);
     if (ret) {
       set_nextSibling(retx,ret);
@@ -2312,7 +2311,7 @@ cpp_class_decl  :
 		 if (!classes) classes = NewHash();
 		 Setattr(classes,Swig_symbol_qualifiedscopename(0),$$);
 		 
-		 Setattr($$,"symtab",Swig_symbol_popscope());
+
 		 appendChild($$,$7);
 		 p = $9;
 		 if (p) {
@@ -2352,6 +2351,8 @@ cpp_class_decl  :
 		   }
 		   appendChild($$,dump_nested(Char(name)));
 		 }
+		 Setattr($$,"symtab",Swig_symbol_popscope());
+
 		 yyrename = NewString(class_rename);
 		 Classprefix = 0;
 		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
