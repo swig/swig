@@ -990,6 +990,9 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       Insert(result,0,q);
       Delete(q);
       clear = 0;
+    } else if (SwigType_isenum(element)) {
+      Insert(result,0,element);
+      clear = 0;
     } else {
       Insert(result,0," ");
       Insert(result,0,element);
