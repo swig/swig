@@ -104,7 +104,7 @@ char *CharPingPong(char *str) {
 }
 
 // variables
-char *global_char = CPLUSPLUS_MSG;
+char *global_char = NULL;
 char global_char_array1[] = CPLUSPLUS_MSG;
 char global_char_array2[sizeof(CPLUSPLUS_MSG)+1] = CPLUSPLUS_MSG;
 
