@@ -2078,17 +2078,24 @@ class JAVA : public Language {
       // Add the exception classes to the node throws list, but don't duplicate if already in list
       if (temp_classes_list && Len(temp_classes_list) > 0) {
         for (String *cls = Firstitem(temp_classes_list); cls; cls = Nextitem(temp_classes_list)) {
-          Replaceall(cls," ","");  // remove spaces
-          Replaceall(cls,"\t",""); // remove tabs
-          if (Len(cls) > 0) {
+          String *javacls = NewString(cls);
+          Replaceall(javacls," ","");  // remove spaces
+          Replaceall(javacls,"\t",""); // remove tabs
+          if (Len(javacls) > 0) {
+            // $javaclassname substitution
+            SwigType *pt = Getattr(parameter,"type");
+            substituteJavaclassname(pt, javacls);
+
+            // Don't duplicate the Java class in the throws clause
             bool found_flag = false;
             for (String *item = Firstitem(throws_list); item; item = Nextitem(throws_list)) {
-              if (Strcmp(item, cls) == 0)
+              if (Strcmp(item, javacls) == 0)
                 found_flag = true;
             }
             if (!found_flag)
-              Append(throws_list, cls);
+              Append(throws_list, javacls);
           }
+          Delete(javacls);
         } 
       }
       Delete(temp_classes_list);
