@@ -10,8 +10,13 @@
 
 /* Typemaps for input parameters */
 
-%typemap(in) int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE %{
+%typemap(in) int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, enum SWIGTYPE %{
 	convert_to_long_ex($input);
+	$1 = ($1_ltype) Z_LVAL_PP($input);
+%}
+
+%typemap(in) bool %{
+	convert_to_boolean_ex($input);
 	$1 = ($1_ltype) Z_LVAL_PP($input);
 %}
 
@@ -90,6 +95,10 @@
 	ZVAL_LONG(return_value,$1);
 %}
 
+%typemap(out) bool %{
+	ZVAL_BOOL(return_value,($1)?1:0);
+%}
+
 %typemap(out) float, double %{
 	ZVAL_DOUBLE(return_value,$1);
 %}
@@ -135,16 +144,22 @@
 
 /* Typemap for in/argout references
    NOTE: we don't choose to use these for arrays yet, maybe later */
-%typemap(in) int * ($*1_ltype intr, int force), unsigned int * ($*1_ltype intr, int force), unsigned short * ($*1_ltype intr, int force), short * ($*1_ltype intr, int force), unsigned short * ($*1_ltype intr, int force), long * ($*1_ltype intr, int force), unsigned long * ($*1_ltype intr, int force), signed char * ($*1_ltype intr, int force), unsigned char * ($*1_ltype intr, int force), bool * ($*1_ltype intr, int force), enum SWIGTYPE * ($*1_ltype intr, int force),
-             int & ($*1_ltype intr, int force), unsigned int & ($*1_ltype intr, int force), unsigned short & ($*1_ltype intr, int force), short & ($*1_ltype intr, int force), unsigned short & ($*1_ltype intr, int force), long & ($*1_ltype intr, int force), unsigned long & ($*1_ltype intr, int force), signed char & ($*1_ltype intr, int force), unsigned char & ($*1_ltype intr, int force), bool & ($*1_ltype intr, int force), enum SWIGTYPE & ($*1_ltype intr, int force) %{
+%define outLONG(ZVALARG,CARG)
+      ZVAL_LONG(*$arg,intr$argnum);
+%enddef
+
+%define %typemap_in_out(TYPES,TYPE_IN,TYPE_OUT)
+%typemap(in) TYPES * ($*1_ltype intr, int force), 
+             TYPES & ($*1_ltype intr, int force) %{
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
     // So... we didn't get a ref or ptr, but can it be 
     // reasonably co-erced into what we were 
     // looking for a ref of or ptr to?
     if ((*$input)->type==IS_STRING ||
         (*$input)->type==IS_LONG ||
+        (*$input)->type==IS_BOOL ||
         (*$input)->type==IS_DOUBLE) {
-      convert_to_long_ex($input);
+      TYPE_IN($input);
       intr = ($*1_ltype) (*$input)->value.lval;
       $1 = &intr;
       // have to passback arg$arg too
@@ -156,16 +171,27 @@
   } else force=0;
 %}
 
-%typemap(argout) int *, unsigned int *, unsigned short *, short *, unsigned short *, long *, unsigned long *, signed char *, unsigned char *, bool *, enum SWIGTYPE *,
-                 int &, unsigned int &, unsigned short &, short &, unsigned short &, long &, unsigned long &, signed char &, unsigned char &, bool &, enum SWIGTYPE & %{
+%typemap(argout) TYPES *, TYPES & %{
   if (force$argnum) {  // pass back arg$argnum through params ($arg) if we can
     if(! PZVAL_IS_REF(*$arg)) {
       zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
     } else {
-      ZVAL_LONG(*$arg,intr$argnum);
+       TYPE_OUT(*$arg,intr$argnum);	
     }
   }
 %}
+%enddef
+
+%typemap_in_out(bool,convert_to_bool_ex,ZVAL_BOOL)
+%typemap_in_out(int,convert_to_long_ex,ZVAL_LONG)
+%typemap_in_out(unsigned int,convert_to_long_ex,ZVAL_LONG)
+%typemap_in_out(short,convert_to_long_ex,ZVAL_LONG)
+%typemap_in_out(unsigned short,convert_to_long_ex,ZVAL_LONG)
+%typemap_in_out(long,convert_to_long_ex,ZVAL_LONG)
+%typemap_in_out(unsigned long,convert_to_long_ex,ZVAL_LONG)
+%typemap_in_out(signed char,convert_to_long_ex,ZVAL_LONG)
+%typemap_in_out(unsigned char,convert_to_long_ex,ZVAL_LONG)
+%typemap_in_out(enum SWIGTYPE,convert_to_long_ex,ZVAL_LONG)
 
 /* Global variables - add the variable to PHP */
 
@@ -190,6 +216,15 @@
   MAKE_STD_ZVAL(z_var);
   z_var->type = IS_LONG;
   z_var->value.lval = $1;
+  zend_hash_add(&EG(symbol_table), "$1", strlen("$1")+1, (void *)&z_var, sizeof(zval *), NULL);
+}
+
+%typemap(varinit) bool
+{
+  zval *z_var;
+  MAKE_STD_ZVAL(z_var);
+  z_var->type = IS_BOOL;
+  z_var->value.lval = ($1)?1:0;
   zend_hash_add(&EG(symbol_table), "$1", strlen("$1")+1, (void *)&z_var, sizeof(zval *), NULL);
 }
 
@@ -250,12 +285,23 @@
  sizeof(zval *), NULL);
 }
 
-%typemap(varin) int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE
+%typemap(varin) int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char,  enum SWIGTYPE
 {
   zval **z_var;
 
   zend_hash_find(&EG(symbol_table), "$1",strlen("$1")+1, (void**)&z_var);
   convert_to_long_ex(z_var);
+  if($1 != ($1_ltype)((*z_var)->value.lval)) {
+    $1 = Z_LVAL_PP(z_var);
+  }
+}
+
+%typemap(varin) bool
+{
+  zval **z_var;
+
+  zend_hash_find(&EG(symbol_table), "$1",strlen("$1")+1, (void**)&z_var);
+  convert_to_boolean_ex(z_var);
   if($1 != ($1_ltype)((*z_var)->value.lval)) {
     $1 = Z_LVAL_PP(z_var);
   }
@@ -350,7 +396,17 @@
   $1 = ($1_ltype)_temp;
 }
 
-%typemap(varout) int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE
+%typemap(varout) int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, enum SWIGTYPE
+{
+  zval **z_var;
+  zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
+  if($1 != ($1_ltype)((*z_var)->value.lval)) {
+    (*z_var)->value.lval = (long)$1;
+  }
+}
+
+//SAMFIX need to cast zval->type, what if zend-hash_find fails? etc?
+%typemap(varout) bool
 {
   zval **z_var;
   zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
