@@ -760,21 +760,6 @@ Node *Swig_cparse(File *f) {
   return top;
 }
 
- SwigType *Swig_cparse_type(String *s) {
-   String *ns;
-   extern void scanner_file(File *);
-   extern int yyparse();
-   extern void scanner_next_token(int);
-   ns = NewStringf("%s;",s);
-   Seek(ns,0,SEEK_SET);
-   scanner_file(ns);
-   top = 0;
-   scanner_next_token(PARSETYPE);
-   yyparse();
-   /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
-   return top;
- }
-
 %}
 
 %union {
@@ -4449,4 +4434,27 @@ empty          :   ;
 /* Called by the parser (yyparse) when an error is found.*/
 void yyerror (const char *e) {
 }
+
+SwigType *Swig_cparse_type(String *s) {
+   String *ns;
+   extern void scanner_file(File *);
+   extern int yyparse();
+   extern void scanner_next_token(int);
+   ns = NewStringf("%s;",s);
+   Seek(ns,0,SEEK_SET);
+   scanner_file(ns);
+   top = 0;
+   scanner_next_token(PARSETYPE);
+   yyparse();
+   /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
+   return top;
+}
+
+
+
+
+
+
+
+
 
