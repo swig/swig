@@ -1133,7 +1133,8 @@ static PyPragma *pragmas = 0;
  * ----------------------------------------------------------------------------- */
 void
 PYTHON::pragma(char *lang, char *cmd, char *value) {
-  PyPragma *pyp1 = 0, *pyp2 = 0;
+  PyPragma *pyp1 = 0;
+  static PyPragma *pyp2 = 0;
     if (strcmp(lang,(char*)"python") == 0) {
 	if (strcmp(cmd,"CODE") == 0) {
 	  if (shadow) {
