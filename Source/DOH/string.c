@@ -113,19 +113,20 @@ String_cmp(DOH *so1, DOH *so2)
 {
   String * s1 = (String *) ObjData(so1);
   String * s2 = (String *) ObjData(so2);
-  register char *c1;
-  register char *c2;
   register int len = s1->len;
-  if (len != s2->len) return (len < s2->len ) ? -1 : 1;
-  c1 = s1->str;
-  c2 = s2->str;
+  register char *c1 = s1->str;
+  register char *c2 = s2->str;
 #if 1
-  /* this is better, but it could be not present in all the
-     systems ? */
-  return memcmp(c1, c2, len);
+  /* this is better, but strncmp could be not present in all the systems? */
+  if (len != s2->len) {
+    return (len < s2->len) ? -1 : 1;
+  } else {  
+    return strncmp(c1, c2, len);
+  }
 #else
-  /* faster loop with nonzero predicates */
-  for (; len ; --len,++c1,++c2) {
+  register char *ce  = c1 + len;
+  if (len != s2->len) return (len < s2->len ) ? -1 : 1;
+  for (; c1 != ce ; ++c1, ++c2) {
     if (*c1 != *c2) return ((*c1 < *c2) ? -1 : 1);
   }
   return 0;
