@@ -549,83 +549,157 @@ first).  This is a pretty minimal Makefile, but hopefully its enough
 to get you started.  With a little practice, you'll be making lots of
 Tcl extensions.<p>
 
-<a name="n14"></a><H2>20.3 Primitive Tcl Interface</H2>
+<a name="n12"></a><H2>18.3 A tour of basic C/C++ wrapping</H2>
 
 
-This section describes the basic Tcl interface.   The object-based interface is described shortly.
+By default, SWIG tries to build a very natural Tcl interface to your
+C/C++ code.  Functions are wrapped as functions, classes are wrapped
+in an interface that mimics the style of Tk widgets and [incr Tcl]
+classes.  This section briefly covers the essential aspects of this
+wrapping.
 
-<a name="n15"></a><H3>20.3.1 Functions</H3>
+<a name="n13"></a><H3>18.3.1 Modules</H3>
 
+The SWIG <tt>%module</tt> directive specifies the name of the Tcl
+module. If you specify `<tt>%module example</tt>', then everything is
+compiled into an extension module <tt>example.so</tt>. When choosing a
+module name, make sure you don't use the same name as a built-in
+Tcl command.
 
-C functions are turned into new Tcl commands with the same usage as
-the C function. Default/optional arguments are also allowed. An
-interface file like this :<p>
+<p>
+One pitfall to watch out for is module names involving numbers.  If
+you specify a module name like <tt>%module md5</tt>, you'll find that the
+load command no longer seems to work:
+
+<blockquote>
+<pre>
+% load ./md5.so
+couldn't find procedure Md_Init
+</pre>
+</blockquote>
+
+To fix this, supply an extra argument to <tt>load</tt> like this:
+
+<blockquote>
+<pre>
+% load ./md5.so md5
+</pre>
+</blockquote>
+
+<a name="n14"></a><H3>18.3.2 Functions</H3>
+
+Global functions are wrapped as new Tcl built-in commands.  For example,
 
 <p>
 <blockquote><pre>%module example
-int foo(int a);
-double bar (double, double b = 3.0);
-...
-
-</pre></blockquote>
-Will be used in Tcl like this :<p>
-<p>
-<blockquote><pre>set a [foo 2]
-set b [bar 3.5 -1.5]
-set b [bar 3.5]              # Note : default argument is used 
+int fact(int n);
 
 </pre></blockquote>
 
-There isn't much more to say...this is pretty straightforward.<p>
-
-<a name="n16"></a><H3>20.3.2 Global variables</H3>
-
-
-For global variables, SWIG uses Tcl's variable tracing mechanism to
-provide direct access.  For example:
+creates a built-in function <tt>fact</tt> that works exactly
+like you think it does:<p>
 
 <p>
-<blockquote><pre>// example.i
-%module example
-...
-double My_variable;
-...
-
-# Tcl script
-puts $My_variable            # Output value of C global variable
-set My_variable 5.5          # Change the value
-
-</pre></blockquote>
-
-<b>Compatibility Note:</b> 
-Variable tracing is currently supported for all C/C++ datatypes.  In older versions
-of SWIG, only variables of type <tt>int</tt>, <tt>double</tt>, and <tt>char *</tt> could
-be linked.  All other types were accessed using special function calls.   
-
-<a name="n17"></a><H3>20.3.3 Constants</H3>
-
-
-Constants are installed as new Tcl variables. For example:
-
-<blockquote>
-<pre>
-%module example
-#define FOO 42
-</pre>
-</blockquote>
-
-is accessed as follows:
-
-<blockquote>
-<pre>
-% puts $FOO
-42
+<blockquote><pre>
+% load ./example.so
+% fact 4
+24
+% set x [fact 6]
 %
+</pre></blockquote>
+
+<a name="n15"></a><H3>18.3.3 Global variables</H3>
+
+C/C++ global variables are wrapped by Tcl global variables.  For example:
+
+<blockquote><pre>
+// SWIG interface file with global variables
+%module example
+...
+extern double density;
+...
+</pre></blockquote>
+<p>
+Now look at the Tcl interface:<p>
+<p>
+<blockquote><pre>
+% puts $density          # Output value of C global variable
+1.0
+% set density 0.95       # Change value
+</pre></blockquote>
+
+<p>
+If you make an error in variable assignment, you will get an
+error message.  For example:
+
+<blockquote><pre>
+% set density "hello"
+can't set "density": Type error. expected a double.
+%
+</pre></blockquote>
+
+<p>
+If a variable is declared as <tt>const</tt>, it is wrapped as a
+read-only variable.  Attempts to modify its value will result in an
+error.
+
+<p>
+To make ordinary variables read-only, you can use the <tt>%immutable</tt> directive. For example:
+
+<blockquote>
+<pre>
+%immutable;
+extern char *path;
+%mutable;
 </pre>
 </blockquote>
 
-No attempt is made to enforce the read-only nature of a constant.  Therefore, a user could reassign the value if they wanted.
-You will just have to be careful.
+The <tt>%immutable</tt> directive stays in effect until it is explicitly disabled using
+<tt>%mutable</tt>.
+
+<p>
+If you just want to make a specific variable immutable, supply a declaration name.  For example:
+
+<blockquote>
+<pre>
+%immutable path;
+...
+extern char *path;      // Read-only (due to %immutable)
+</pre>
+</blockquote>
+
+<a name="n16"></a><H3>18.3.4 Constants and enums</H3>
+
+
+C/C++ constants are installed as global Tcl variables containing the
+appropriate value.  To create a constant, use <tt>#define</tt>, <tt>enum</tt>, or the
+<tt>%constant</tt> directive.  For example:
+
+<blockquote>
+<pre>
+#define PI 3.14159
+#define VERSION "1.0"
+
+enum Beverage { ALE, LAGER, STOUT, PILSNER };
+
+%constant int FOO = 42;
+%constant const char *path = "/usr/local";
+</pre>
+</blockquote>
+
+For enums, make sure that the definition of the enumeration actually appears in a header
+file or in the wrapper file somehow---if you just stick an enum in a SWIG interface without
+also telling the C compiler about it, the wrapper code won't compile.
+
+<p>
+Note:  declarations declared as <tt>const</tt> are wrapped as read-only variables and
+will be accessed using the <tt>cvar</tt> object described in the previous section.  They
+are not wrapped as constants.   For further discussion about this, see the <a href="SWIG.html">SWIG Basics</a> chapter.
+
+<p>
+Constants are not guaranteed to remain constant in Tcl---the value
+of the constant could be accidentally reassigned.You will just have to be careful.
+
 <p>
 A peculiarity of installing constants as variables is that it is necessary to use the Tcl <tt>global</tt> statement to
 access constants in procedure bodies.  For example:
@@ -665,32 +739,65 @@ proc blah {} {
 When an identifier name is given, it is used to perform an implicit hash-table lookup of the value during argument 
 conversion.  This allows the <tt>global</tt> statement to be ommitted.
 
-<a name="n18"></a><H3>20.3.4 Pointers</H3>
+<a name="n17"></a><H3>18.3.5 Pointers</H3>
 
 
-Pointers to C/C++ objects are represented as character strings such as
-the following :<p>
+C/C++ pointers are fully supported by SWIG.  Furthermore, SWIG has no problem working with
+incomplete type information.  Here is a rather simple interface:
+
+<blockquote>
+<pre>
+%module example
+
+FILE *fopen(const char *filename, const char *mode);
+int fputs(const char *, FILE *);
+int fclose(FILE *);
+</pre>
+</blockquote>
+
+When wrapped, you will be able to use the functions in a natural way from Tcl. 
+For example:
+
+<blockquote>
+<pre>
+% load ./example.so
+% set f [fopen junk w]
+% fputs "Hello World\n" $f
+% fclose $f
+</pre>
+</blockquote>
+
+If this makes you uneasy, rest assured that there is no
+deep magic involved.  Underneath the covers, pointers to C/C++ objects are
+simply represented as opaque values--normally an encoded character
+string like this:
+
 <p>
-<blockquote><pre>_100f8e2_p_Vector
-
+<blockquote><pre>
+% puts $f
+_c0671108_p_FILE
+% 
 </pre></blockquote>
-A NULL pointer is represented by the string "NULL". NULL pointers can also be explicitly created as follows :<p>
+
+This pointer value can be freely passed around to different C functions that
+expect to receive an object of type <tt>FILE *</tt>.  The only thing you can't do is 
+dereference the pointer from Tcl.
+
 <p>
-<blockquote><pre>_0_p_Vector
+The NULL pointer is represented by the string <tt>NULL</tt>.
 
-</pre></blockquote>
-
-
+<p>
 As much as you might be inclined to modify a pointer value directly
-from Tcl, don't.  The hexadecimal encoding is not necessarily the same
-as the logical memory address of the underlying object.  Instead it is
-the raw byte encoding of the pointer value.  The encoding will vary
-depending on the native byte-ordering of the platform (i.e.,
+from Tcl, don't.  The hexadecimal encoding is not necessarily the
+same as the logical memory address of the underlying object.  Instead
+it is the raw byte encoding of the pointer value.  The encoding will
+vary depending on the native byte-ordering of the platform (i.e.,
 big-endian vs. little-endian).  Similarly, don't try to manually cast
-a pointer to a new type by simply replacing the type-string.  This is
+a pointer to a new type by simply replacing the type-string.  This
 may not work like you expect and it is particularly dangerous when
-casting C++ objects.  If you need to cast a pointer or change its
-value, consider writing some helper functions instead.  For example:
+casting C++ objects. If you need to cast a pointer or
+change its value, consider writing some helper functions instead.  For
+example:
 
 <blockquote>
 <pre>
@@ -712,17 +819,15 @@ Foo *IncrFoo(Foo *f, int i) {
 </pre>
 </blockquote>
 
-If you need to type-cast a lot of objects, it may indicate a serious 
-weakness in your design.  Also, if working with C++, you should always try
+Also, if working with C++, you should always try
 to use the new C++ style casts.  For example, in the above code, the
 C-style cast may return a bogus result whereas as the C++-style cast will return
-<tt>NULL</tt> if the conversion can't be performed.
+<tt>None</tt> if the conversion can't be performed.
 
-<a name="n19"></a><H3>20.3.5 Structures </H3>
+<a name="n18"></a><H3>18.3.6 Structures</H3>
 
-
-SWIG generates a basic low-level interface to C structures. For
-example :<p>
+If you wrap a C structure, it is wrapped by a Tcl interface that somewhat resembles a Tk widget.
+This provides a very natural interface.  For example,
 
 <p>
 <blockquote><pre>struct Vector {
@@ -730,106 +835,237 @@ example :<p>
 };
 
 </pre></blockquote>
-gets mapped into the following collection of C functions :<p>
-<p>
-<blockquote><pre>double Vector_x_get(Vector *obj)
-double Vector_x_set(Vector *obj, double x)
-double Vector_y_get(Vector *obj)
-double Vector_y_set(Vector *obj, double y)
-double Vector_z_get(Vector *obj)
-double Vector_z_set(Vector *obj, double z)
 
+is used as follows:
+<p>
+<blockquote><pre>
+% Vector v
+% v configure -x 3.5 -y 7.2
+% puts "[v cget -x] [v cget -y] [v cget -z]"
+3.5 7.2 0.0
+% 
 </pre></blockquote>
-
-These functions are then used in the resulting Tcl interface. For
-example :<p>
-
 <p>
-<blockquote><pre># v is a Vector that got created somehow
-% Vector_x_get $v
-3.5
-% Vector_x_set $v 7.8            # Change x component
-</pre></blockquote>
 
-<p>
 Similar access is provided for unions and the data members of C++ classes.<p>
 
-<a name="n20"></a><H3>20.3.6 C++ Classes</H3>
-
-
-C++ classes are handled by building a set of low level accessor
-functions. Consider the following class :<p>
 <p>
-<blockquote><pre>
-class List {
-public:
-  List();
-  ~List();
-  int  search(char *item);
-  void insert(char *item);
-  void remove(char *item);
-  char *get(int n);
-  int  length;
-static void print(List *l);
+In the above example, <tt>v</tt> is a name that's used for the object.  However,
+underneath the covers, there's a pointer to a raw C structure.  This can be obtained
+by looking at the <tt>-this</tt> attribute.  For example:
+
+<blockquote>
+<pre>
+% puts [v cget -this]
+_88e31408_p_Vector
+</pre>
+</blockquote>
+
+Further details about the relationship between the Tcl and the underlying C structure
+are covered a little later.
+
+<p>
+<tt>const</tt> members of a structure are read-only. Data members
+can also be forced to be read-only using the <tt>%immutable</tt> directive. For example:
+
+<blockquote>
+<pre>
+struct Foo {
+   ...
+   %immutable;
+   int x;        /* Read-only members */
+   char *name;
+   %mutable;
+   ...
 };
-</pre></blockquote>
+</pre>
+</blockquote>
 
 <p>
-When wrapped by SWIG, the following functions are created :<p>
+When <tt>char *</tt> members of a structure are wrapped, the contents are assumed to be
+dynamically allocated using <tt>malloc</tt> or <tt>new</tt> (depending on whether or not
+SWIG is run with the -c++ option).   When the structure member is set, the old contents will be 
+released and a new value created.   If this is not the behavior you want, you will have to use
+a typemap (described later).
 
 <p>
-<blockquote><pre>List    *new_List();
-void     delete_List(List *l);
-int      List_search(List *l, char *item);
-void     List_insert(List *l, char *item);
-void     List_remove(List *l, char *item);
-char    *List_get(List *l, int n);
-int      List_length_get(List *l);
-int      List_length_set(List *l, int n);
-void     List_print(List *l);
+If a structure contains arrays, access to those arrays is managed through pointers.  For
+example, consider this:
 
-</pre></blockquote>
+<blockquote>
+<pre>
+struct Bar {
+    int  x[16];
+};
+</pre>
+</blockquote>
 
-Within Tcl, we can use the functions as follows :<p>
+If accessed in Tcl, you will see behavior like this:
 
-<blockquote><pre>
-% set l [new_List]
-% List_insert $l Ale
-% List_insert $l Stout
-% List_insert $l Lager
-% List_print $l
-Lager
-Stout
-Ale
-% puts [List_length_get $l]
-3
-% puts $l
-_1008560_p_List
+<blockquote>
+<pre>
+% Bar b
+% puts [b cget -x]
+_801861a4_p_int
 % 
+</pre>
+</blockquote>
 
-</pre></blockquote>
-C++ objects are really just pointers (which are represented as
-strings). Member functions and data are accessed by simply passing a
-pointer into a collection of accessor functions that take the pointer
-as the first argument.<p>
+This pointer can be passed around to functions that expect to receive
+an <tt>int *</tt> (just like C).   You can also set the value of an array member using
+another pointer.  For example:
+
+<blockquote>
+<pre>
+% Bar c
+% c configure -x [b cget -x]   # Copy contents of b.x to c.x
+</pre>
+</blockquote>
+
+For array assignment, SWIG copies the entire contents of the array starting with the data pointed
+to by <tt>b.x</tt>.   In this example, 16 integers would be copied.  Like C, SWIG makes
+no assumptions about bounds checking---if you pass a bad pointer, you may get a segmentation
+fault or access violation.
 
 <p>
-While somewhat primitive, the low-level SWIG interface provides direct
-and flexible access to almost any C++ object. As it turns out, it is
-possible to do some rather amazing things with this interface as will
-be shown in some of the later examples. SWIG also generates an
-object-based interface that can be used in addition to the basic
-interface just described here.<p>
+When a member of a structure is itself a structure, it is handled as a
+pointer.  For example, suppose you have two structures like this:
 
-<a name="n21"></a><H2>20.4 The object-based interface</H2>
+<blockquote>
+<pre>
+struct Foo {
+   int a;
+};
 
+struct Bar {
+   Foo f;
+};
+</pre>
+</blockquote>
 
-In addition to the low-level accessors, SWIG also generates an object-based interface to C 
-structures and C++
-classes. This interface supplements the low-level SWIG
-interface already defined--in fact, both can be used
-simultaneously. To illustrate this interface, consider the previous
-<tt>List</tt> class :<p>
+Now, suppose that you access the <tt>f</tt> attribute of <tt>Bar</tt> like this:
+
+<blockquote>
+<pre>
+% Bar b
+% set x [b cget -f]
+</pre>
+</blockquote>
+
+In this case, <tt>x</tt> is a pointer that points to the <tt>Foo</tt> that is inside <tt>b</tt>.
+This is the same value as generated by this C code:
+
+<blockquote>
+<pre>
+Bar b;
+Foo *x = &b->f;       /* Points inside b */
+</pre>
+</blockquote>
+
+However, one peculiarity of accessing a substructure like this is that the returned
+value does work quite like you might expect.  For example:
+
+<blockquote>
+<pre>
+% Bar b
+% set x [b cget -f]
+% x cget -a
+invalid command name "x"
+</pre>
+</blockquote>
+
+This is because the returned value was not created in a normal way from the interpreter (x is 
+not a command object). To make it function normally, just
+evaluate the variable like this:
+
+<blockquote>
+<pre>
+% Bar b
+% set x [b cget -f]
+% $x cget -a
+0
+%
+</pre>
+</blockquote>
+
+In this example, <tt>x</tt> points inside the original structure.  This means that modifications
+work just like you would expect.  For example:
+
+<blockquote>
+<pre>
+
+% Bar b
+% set x [b cget -f]
+% $x configure -a 3            # Modifies contents of f (inside b)
+% [b cget -f] -configure -a 3  # Same thing
+</pre>
+</blockquote>
+
+In many of these structure examples, a simple name like "v" or "b" has been given
+to wrapped structures.  If necessary, this name can be passed to functions
+that expect to receive an object.  For example, if you have a function like this,
+
+<blockquote>
+<pre>
+void blah(Foo *f);
+</pre>
+</blockquote>
+
+you can call the function in Tcl as follows:
+
+<blockquote>
+<pre>
+% Foo x            # Create a Foo object 
+% blah x           # Pass the object to a function
+</pre>
+</blockquote>
+
+It is also possible to call the function using the raw pointer value. For
+instance:
+
+<blockquote>
+<pre>
+% blah [x cget -this]   # Pass object to a function
+</pre>
+</blockquote>
+
+It is also possible to create and use objects using variables.  For example:
+
+<blockquote>
+<pre>
+% set b [Bar]            # Create a Bar
+% $b cget -f             # Member access
+% puts $b
+_108fea88_p_Bar
+%
+</pre>
+</blockquote>
+
+Finally, to destroy objects created from Tcl, you can either let the object
+name go out of scope or you can explicitly delete the object.  For example:
+
+<blockquote>
+<pre>
+% Foo f                 # Create object f
+% rename f ""
+</pre>
+</blockquote>
+
+or
+
+<blockquote>
+<pre>
+% Foo f                 # Create object f
+% f -delete
+</pre>
+</blockquote>
+
+Note: Tcl only destroys the underlying object if it has ownership.  See the
+memory management section that appears shortly.
+
+<a name="n19"></a><H3>18.3.7 C++ classes</H3>
+
+C++ classes are wrapped as an extension of structure wrapping. For example, if you have this class,
 
 <p>
 <blockquote><pre>class List {
@@ -841,236 +1077,723 @@ public:
   void remove(char *item);
   char *get(int n);
   int  length;
-static void print(List *l);
 };
-
-</pre></blockquote>
-Using the object oriented interface requires no additional
-modifications or recompilation of the SWIG module (the functions are
-just used differently).<p>
-
-<a name="n22"></a><H3>20.4.1 Creating new objects</H3>
-
-
-The name of the class becomes a new command for creating an
-object. There are 5 methods for creating an object (<tt>MyObject
-</tt>is the name of the corresponding C++ class) <p>
-
-<p>
-<blockquote><pre>MyObject o                   # Creates a new object named `o' 
-
-MyObject o -this $objptr     # Turn a pointer to an existing C++ object into a 
-                             # Tcl object named `o'
-
-MyObject -this $objptr       # Turn the pointer $objptr into a Tcl "object"
-
-MyObject -args args          # Create a new object and pick a name for it. A handle
-                             # will be returned and is the same as the pointer value.
-
-MyObject                     # The same as MyObject -args, but for constructors that
-                             # take no arguments.
 </pre></blockquote>
 
-<p>
-Thus, for our List class, you can create new List objects as follows :<p>
+you can use it in Tcl like this:
 
-<p>
-<blockquote><pre>List l                       # Create a new list l
-
-set listptr [new_List]       # Create a new List using low level interface
-List l2 -this $listptr       # Turn it into a List object named `l2'
-
-set l3 [List]                # Create a new list. The name of the list is in $l3
-
-List -this $listptr          # Turn $listptr into a Tcl object of the same name
-</pre></blockquote>
-
-<p>
-Assuming you're not completely confused at this point, the best
-way to think of this is that there are really two different ways of
-representing an object.  One approach is to simply use the pointer
-value as the name of an object. For example :<p>
-<p>
-<blockquote><pre>_100e8f8_p_List
-
-</pre></blockquote>
-
-The second approach is to allow you to pick a name for an object such
-as "foo".  The different types of constructors are really just
-a mechanism for using either approach.<p>
-
-<a name="n23"></a><H3>20.4.2 Invoking member functions</H3>
-
-
-Member functions are invoked using the name of the object followed by
-the method name and any arguments. For example :<p>
-
-<p>
-<blockquote><pre>% List l
-% l insert "Bob"
-% l insert "Mary"
-% l search "Dave"
-0
-% ...
-
-</pre></blockquote>
-
-Or if you let SWIG generate the name of the object, it works like this:
-
-<p>
-<blockquote><pre>% set l [List]
-% $l insert "Bob"            # Note $l contains the name of the object
-% $l insert "Mary"
-% $l search "Dave"
-0
+<blockquote><pre>
+% List x
+% x insert Ale
+% x insert Stout
+% x insert Lager
+% x get 1
+Stout
+% puts [l cget -length]
+3
 %
 </pre></blockquote>
 
-<a name="n24"></a><H3>20.4.3 Deleting objects</H3>
-
-
-Since objects are created by adding new Tcl commands, they can be
-deleted by simply renaming them. For example :<p>
+Class data members are accessed in the same manner as C structures.  
 
 <p>
-<blockquote><pre>% rename l ""                # Destroy list object `l'
-</pre></blockquote>
+Static class members are accessed as global functions or variables.
+To illustrate, suppose you have a class like this:
 
-It is also possible to explicitly delete the object using the delete method.
+<blockquote>
+<pre>
+class Spam {
+public:
+   static void foo();
+   static int bar;
+
+};
+</pre>
+</blockquote>
+
+In Tcl, the static member is accessed as follows:
+
+<blockquote>
+<pre>
+% Spam_foo        # Spam::foo()
+% puts $Spam_bar  # Spam::bar
+</pre>
+</blockquote>
+
+<a name="n20"></a><H3>18.3.8 C++ inheritance</H3>
+
+SWIG is fully aware of issues related to C++ inheritance.  Therefore, if you have
+classes like this
+
+<blockquote>
+<pre>
+class Foo {
+...
+};
+
+class Bar : public Foo {
+...
+};
+</pre>
+</blockquote>
+
+An object of type <tt>Bar</tt> can be used where a <tt>Foo</tt> is expected.  For
+example, if you have this function:
+
+<blockquote>
+<pre>
+void spam(Foo *f);
+</pre>
+</blockquote>
+
+then the function <tt>spam()</tt> accepts a <tt>Foo *</tt> or a pointer to any class derived from <tt>Foo</tt>.
+For instance:
+
+<blockquote>
+<pre>
+% Foo f      # Create a Foo
+% Bar b      # Create a Bar
+% spam f     # OK
+% spam b     # OK
+</pre>
+</blockquote>
+
+<p>
+It is safe to use multiple inheritance with SWIG.
+
+<a name="n21"></a><H3>18.3.9 Pointers, references, values, and arrays</H3>
+
+In C++, there are many different ways a function might receive
+and manipulate objects.  For example:
+
+<blockquote>
+<pre>
+void spam1(Foo *x);      // Pass by pointer
+void spam2(Foo &x);      // Pass by reference
+void spam3(Foo x);       // Pass by value
+void spam4(Foo x[]);     // Array of objects
+</pre>
+</blockquote>
+
+In Tcl, there is no detailed distinction like this.
+Because of this, SWIG unifies all of these types
+together in the wrapper code.  For instance, if you actually had the
+above functions, it is perfectly legal to do this:
+
+<blockquote>
+<pre>
+% Foo f             # Create a Foo
+% spam1 f           # Ok. Pointer
+% spam2 f           # Ok. Reference
+% spam3 f           # Ok. Value.
+% spam4 f           # Ok. Array (1 element)
+</pre>
+</blockquote>
+
+Similar behavior occurs for return values.  For example, if you had
+functions like this,
+
+<blockquote>
+<pre>
+Foo *spam5();
+Foo &spam6();
+Foo  spam7();
+</pre>
+</blockquote>
+
+then all three functions will return a pointer to some <tt>Foo</tt> object.
+Since the third function (spam7) returns a value, newly allocated memory is used 
+to hold the result and a pointer is returned (Tcl will release this memory 
+when the return value is garbage collected).
+
+<a name="n22"></a><H3>18.3.10 C++ overloaded functions</H3>
+
+C++ overloaded functions, methods, and constructors are mostly supported by SWIG.  For example,
+if you have two functions like this:
+
+<blockquote>
+<pre>
+void foo(int);
+void foo(char *c);
+</pre>
+</blockquote>
+
+You can use them in Tcl in a straightforward manner:
+
+<blockquote>
+<pre>
+% foo 3            # foo(int)
+% foo Hello        # foo(char *c)
+</pre>
+</blockquote>
+
+Similarly, if you have a class like this,
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    Foo();
+    Foo(const Foo &);
+    ...
+};
+</pre>
+</blockquote>
+
+you can write Tcl code like this:
+
+<blockquote>
+<pre>
+% Foo f                # Create a Foo
+% Foo g f              # Copy f
+</pre>
+</blockquote>
+
+Overloading support is not quite as flexible as in C++. Sometimes there are methods that SWIG
+can't disambiguate. For example:
+
+<blockquote>
+<pre>
+void spam(int);
+void spam(short);
+</pre>
+</blockquote>
+
+or
+
+<blockquote>
+<pre>
+void foo(Bar *b);
+void foo(Bar &b);
+</pre>
+</blockquote>
+
+If declarations such as these appear, you will get a warning message like this:
+
+<blockquote>
+<pre>
+example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int) at example.i:11.
+</pre>
+</blockquote>
+
+To fix this, you either need to ignore or rename one of the methods.  For example:
+
+<blockquote>
+<pre>
+%rename(spam_short) spam(short);
+...
+void spam(int);    
+void spam(short);   // Accessed as spam_short
+</pre>
+</blockquote>
+
+or
+
+<blockquote>
+<pre>
+%ignore spam(short);
+...
+void spam(int);    
+void spam(short);   // Ignored
+</pre>
+</blockquote>
+
+SWIG resolves overloaded functions and methods using a disambiguation scheme that ranks and sorts
+declarations according to a set of type-precedence rules.    The order in which declarations appear
+in the input does not matter except in situations where ambiguity arises--in this case, the
+first declaration takes precedence.
+
+<P>
+Please refer to the "SWIG and C++" chapter for more information about overloading. 
+
+<a name="n23"></a><H3>18.3.11 C++ operators</H3>
+
+Certain C++ overloaded operators can be handled automatically by SWIG.  For example,
+consider a class like this:
+
+<blockquote>
+<pre>
+class Complex {
+private:
+  double rpart, ipart;
+public:
+  Complex(double r = 0, double i = 0) : rpart(r), ipart(i) { }
+  Complex(const Complex &c) : rpart(c.rpart), ipart(c.ipart) { }
+  Complex &operator=(const Complex &c);
+  Complex operator+(const Complex &c) const;
+  Complex operator-(const Complex &c) const;
+  Complex operator*(const Complex &c) const;
+  Complex operator-() const;
+  
+  double re() const { return rpart; }
+  double im() const { return ipart; }
+};
+</pre>
+</blockquote>
+
+When wrapped, it works like this:
+
+<blockquote>
+<pre>
+% Complex c 3 4
+% Complex d 7 8
+% set e [c + d]
+% $e re
+10.0
+% $e im
+12.0
+</pre>
+</blockquote>
+
+It should be stressed that operators in SWIG have no relationship to operators
+in Tcl.  In fact, the only thing that's happening here is that an operator like
+<tt>operator +</tt> has been renamed to a method <tt>+</tt>.    Therefore, the
+statement <tt>[c + d]</tt> is really just invoking the <tt>+</tt> method on <tt>c</tt>.
+When more than operator is defined (with different arguments), the standard
+method overloading facilities are used.  Here is a rather odd looking example:
+
+<blockquote>
+<pre>
+% Complex c 3 4
+% Complex d 7 8
+% set e [c - d]       # operator-(const Complex &)
+% puts "[$e re] [$e im]"
+10.0 12.0
+% set f [c -]         # operator-()
+% puts "[$f re] [$f im]"
+-3.0 -4.0
+%
+</pre>
+</blockquote>
+
+One restriction with operator overloading support is that SWIG is not
+able to fully handle operators that aren't defined as part of the class.
+For example, if you had code like this
+
+<blockquote>
+<pre>
+class Complex {
+...
+friend Complex operator+(double, const Complex &c);
+...
+};
+</pre>
+</blockquote>
+
+then SWIG doesn't know what to do with the friend function--in fact,
+it simply ignores it and issues a warning.   You can still wrap the operator,
+but you may have to encapsulate it in a special function.  For example:
+
+<blockquote>
+<pre>
+%rename(Complex_add_dc) operator+(double, const Complex &);
+...
+Complex operator+(double, const Complex &c);
+</pre>
+</blockquote>
+
+There are ways to make this operator appear as part of the class using the <tt>%extend</tt> directive.
+Keep reading.
+
+<a name="n24"></a><H3>18.3.12 C++ namespaces</H3>
+
+SWIG is aware of C++ namespaces, but namespace names do not appear in
+the module nor do namespaces result in a module that is broken up into
+submodules or packages.  For example, if you have a file like this,
+
+<blockquote>
+<pre>
+%module example
+
+namespace foo {
+   int fact(int n);
+   struct Vector {
+       double x,y,z;
+   };
+};
+</pre>
+</blockquote>
+
+it works in Tcl as follows:
+
+<blockquote>
+<pre>
+% load ./example.so
+% fact 3
+6
+% Vector v
+% v configure -x 3.4
+</pre>
+</blockquote>
+
+If your program has more than one namespace, name conflicts (if any) can be resolved using <tt>%rename</tt>
 For example:
 
 <blockquote>
 <pre>
-% l -delete
+%rename(Bar_spam) Bar::spam;
+
+namespace Foo {
+    int spam();
+}
+
+namespace Bar {
+    int spam();
+}
 </pre>
 </blockquote>
 
-If applicable, SWIG will automatically call the corresponding C/C++ destructor
-when the object is destroyed.
+If you have more than one namespace and your want to keep their
+symbols separate, consider wrapping them as separate SWIG modules.
+For example, make the module name the same as the namespace and create
+extension modules for each namespace separately.  If your program
+utilizes thousands of small deeply nested namespaces each with
+identical symbol names, well, then you get what you deserve.
 
-<a name="n25"></a><H3>20.4.4 Accessing member data</H3>
+<a name="n25"></a><H3>18.3.13 C++ templates</H3>
 
-
-Member data of an object can be accessed using the <tt>cget</tt>
-method. The approach is quite similar to that used in [incr Tcl] and
-other Tcl extensions. For example :<p>
-
-<p>
-<blockquote><pre>% l cget -length             # Get the length of the list
-13
-
-</pre></blockquote>
-
-The <tt>cget</tt> method currently only allows retrieval of one member
-at a time. Extracting multiple members will require repeated calls.<p>
-<p>
-The member <tt>-this</tt> contains the pointer to the object that is
-compatible with other SWIG functions. Thus, the following call would
-be legal<p>
-<p>
-<blockquote><pre>
-% List l                            # Create a new list object
-% l insert Mike
-% List_print [l cget -this]         # Print it out using low-level function
-</pre></blockquote>
-
-<a name="n26"></a><H3>20.4.5 Changing member data</H3>
-
-
-To change the value of member data, the <tt>configure</tt> method can be used. For example :<p>
-<p>
-<blockquote><pre>% l configure -length 10     # Change length to 10 (probably not a good idea, but
-                             # possible).
-
-</pre></blockquote>
-In a structure such as the following :<p>
-<blockquote><pre>
-struct Vector {
-	double x, y, z;
-};
-
-</pre></blockquote>
-you can change the value of all or some of the members as follows :<p>
-<p>
-<blockquote><pre>% v configure -x 3.5 -y 2 -z -1.0
-</pre></blockquote>
-<p>
-The order of attributes does not matter.  <p>
-
-<a name="n27"></a><H3>20.4.6 Managing Object Ownership</H3>
-
-
-By default, objects created from Tcl are owned by the Tcl interpreter and
-are automatically destroyed when the correponding Tcl variable goes out of scope.
-However, sometimes it is necessary to change the owneship of an object
-managed by the interpreter.  For instance, if you stored an object in another data structure, you
-might want Tcl to disown the object.  Similarly, it may make sense for Tcl to acquire ownership of
-an object returned by C.
-
-<p>
-To handle object ownership, two object methods are available:
+C++ templates don't present a huge problem for SWIG.  However, in order
+to create wrappers, you have to tell SWIG to create wrappers for a particular
+template instantiation.  To do this, you use the <tt>%template</tt> directive.
+For example:
 
 <blockquote>
 <pre>
-% obj -disown            # Release ownership
-% obj -acquire           # Acquire ownership
+%module example
+%{
+#include "pair.h"
+%}
+
+template&lt;class T1, class T2&gt;
+struct pair {
+   typedef T1 first_type;
+   typedef T2 second_type;
+   T1 first;
+   T2 second;
+   pair();
+   pair(const T1&, const T2&);
+  ~pair();
+};
+
+%template(pairii) pair&lt;int,int&gt;;
 </pre>
 </blockquote>
 
-When Tcl owns an object, it is released when the Tcl variable is destroyed.  Otherwise,
-the Tcl variable is destroyed without calling the corresponding C/C++ destructor.
+In Tcl:
 
-<a name="n28"></a><H3>20.4.7 Relationship with pointers</H3>
+<blockquote>
+<pre>
+% pairii p 3 4
+% p cget -first
+3
+% p cget -second
+4
+</pre>
+</blockquote>
 
+Obviously, there is more to template wrapping than shown in this example.
+More details can be found in the <a href="SWIGPlus.html">SWIG and C++</a> chapter.   Some more complicated
+examples will appear later.
 
-The object oriented interface is mostly compatible with all of the
-functions that accept pointer values as arguments. Here are a couple
-of things to keep in mind :<p>
+<h3>C++ Smart Pointers</h3>
+
+In certain C++ programs, it is common to use classes that have been wrapped by
+so-called "smart pointers."   Generally, this involves the use of a template class
+that implements <tt>operator->()</tt> like this:
+
+<blockquote>
+<pre>
+template&lt;class T&gt; class SmartPtr {
+   ...
+   T *operator->();
+   ...
+}
+</pre>
+</blockquote>
+
+Then, if you have a class like this,
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     int x;
+     int bar();
+};
+</pre>
+</blockquote>
+
+A smart pointer would be used in C++ as follows:
+
+<blockquote>
+<pre>
+SmartPtr&lt;Foo&gt; p = CreateFoo();   // Created somehow (not shown)
+...
+p->x = 3;                        // Foo::x
+int y = p->bar();                // Foo::bar
+</pre>
+</blockquote>
+
+To wrap this in Tcl, simply tell SWIG about the <tt>SmartPtr</tt> class and the low-level
+<tt>Foo</tt> object.  Make sure you instantiate <tt>SmartPtr</tt> using <tt>%template</tt> if necessary.
+For example:
+
+<blockquote>
+<pre>
+%module example
+...
+%template(SmartPtrFoo) SmartPtr&lt;Foo&gt;;
+...
+</pre>
+</blockquote>
+
+Now, in Tcl, everything should just "work":
+
+<blockquote>
+<pre>
+% set p [CreateFoo]                  # Create a smart-pointer somehow
+% $p configure -x 3                  # Foo::x
+% $p bar                             # Foo::bar
+</pre>
+</blockquote>
+
+If you ever need to access the underlying pointer returned by <tt>operator->()</tt> itself,
+simply use the <tt>__deref__()</tt> method.  For example:
+
+<blockquote>
+<pre>
+% set f [$p __deref__]    # Returns underlying Foo *
+</pre>
+</blockquote>
+
+<h2>Further details on the Tcl class interface</h2>
+
+In the previous section, a high-level view of Tcl wrapping was
+presented.  A key component of this wrapping is that structures and
+classes are wrapped by Tcl class-like objects. This provides a very
+natural Tcl interface and allows SWIG to support a number of
+advanced features such as operator overloading.   However, a number
+of low-level details were omitted.  This section provides a brief overview
+of how the proxy classes work.
+
+<h3>Proxy classes</h3>
+
+In the <a href="SWIG.html">"SWIG basics"</a> and <a href="SWIGPlus.html">"SWIG and C++"</a> chapters,
+details of low-level structure and class wrapping are described.  To summarize those chapters, if you
+have a class like this
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     int x;
+     int spam(int);
+     ...
+</pre>
+</blockquote>
+
+then SWIG transforms it into a set of low-level procedural wrappers. For example:
+
+<blockquote>
+<pre>
+Foo *new_Foo() {
+    return new Foo();
+}
+void delete_Foo(Foo *f) {
+    delete f;
+}
+int Foo_x_get(Foo *f) {
+    return f->x;
+}
+void Foo_x_set(Foo *f, int value) {
+    f->x = value;
+}
+int Foo_spam(Foo *f, int arg1) {
+    return f->spam(arg1);
+}
+</pre>
+</blockquote>
+
+These wrappers are actually found in the Tcl extension module.  For example, you can certainly do this:
+
+<blockquote>
+<pre>
+% load ./example.so
+% set f [new_Foo]
+% Foo_x_get $f
+0
+% Foo_spam $f 3
+1
+%
+</pre>
+</blockquote>
+
+However, in addition to this, the classname <tt>Foo</tt> is used as an object constructor
+function.   This allows objects to be encapsulated objects that look a lot like Tk widgets
+as shown in the last section.
+
+<h3>Memory management</h3>
+
+Associated with each wrapped object, is an ownership flag <tt>thisown</tt>   The value of this
+flag determines who is responsible for deleting the underlying C++ object.  If set to 1,
+the Tcl interpreter destroys the C++ object when the proxy class is 
+garbage collected.   If set to 0 (or if the attribute is missing), then the destruction
+of the proxy class has no effect on the C++ object.
+
+<P>
+When an object is created by a constructor or returned by value, Tcl automatically takes
+ownership of the result.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    Foo();
+    Foo bar();
+};
+</pre>
+</blockquote>
+
+In Tcl:
+
+<blockquote>
+<pre>
+% Foo f
+% f cget -thisown
+1
+% set g [f bar]
+% $g cget -thisown
+1
+</pre>
+</blockquote>
+
+On the other hand, when pointers are returned to Tcl, there is often no way to know where
+they came from.  Therefore, the ownership is set to zero.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    ...
+    Foo *spam();
+    ...
+};
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+% Foo f
+% set s [f spam]
+% $s cget -thisown
+0
+% 
+</pre>
+</blockquote>
+
+This behavior is especially important for classes that act as
+containers.  For example, if a method returns a pointer to an object
+that is contained inside another object, you definitely don't want
+Tcl to assume ownership and destroy it!
 
 <p>
-<ul>
-<li>If you explicitly gave a name to an object, the pointer value can
-be retrieved using the `<tt>cget -this</tt>' method. The pointer value
-is what you should give to other SWIG generated functions if
-necessary.
+Related to containers, ownership issues can arise whenever an object is assigned to a member
+or global variable.  For example, consider this interface:
 
-<li>If you let SWIG generate the name of an object for you, then the
-name of the object is the same as the pointer value. This is the
-preferred approach.
+<blockquote>
+<pre>
+%module example
 
-<li>If you have a pointer value but it's not a Tcl object, you can
-turn it into one by calling the constructor with the `<tt>-this</tt>'
-option.
+struct Foo {
+    int  value;
+    Foo  *next;
+};
 
-</ul>
+Foo *head = 0;
+</pre>
+</blockquote>
+
+When wrapped in Tcl, careful observation will reveal that ownership changes whenever an object
+is assigned to a global variable.  For example:
+
+<blockquote>
+<pre>
+% Foo f
+% f cget -thisown
+1
+% set head f
+% f cget -thisown
+0
+</pre>
+</blockquote>
+
+In this case, C is now holding a reference to the object---you probably don't want Tcl to destroy it.
+Similarly, this occurs for members.  For example:
+
+<blockquote>
+<pre>
+% Foo f
+% Foo g
+% f cget -thisown
+1
+% g cget -thisown
+1
+% f configure -next g
+% g cget -thisown 
+0
+%
+</pre>
+</blockquote>
+
 <p>
-Here is a script that illustrates how these things work :<p>
+For the most part, memory management issues remain hidden.  However,
+there are occasionally situations where you might have to manually
+change the ownership of an object.  For instance, consider code like this:
+
+<blockquote>
+<pre>
+class Node {
+   Object *value;
+public:
+   void set_value(Object *v) { value = v; }
+   ...
+};
+</pre>
+</blockquote>
+
+Now, consider the following Tcl code:
+
+<blockquote>
+<pre>
+% Object v                 # Create an object
+% Node n                   # Create a node
+% n setvalue v             # Set value
+% v cget -thisown
+1
+% 
+</pre>
+</blockquote>
+
+In this case, the object <tt>n</tt> is holding a reference to
+<tt>v</tt> internally.  However, SWIG has no way to know that this
+has occurred.  Therefore, Tcl still thinks that it has ownership of the
+object.  Should the proxy object be destroyed, then the C++ destructor
+will be invoked and <tt>n</tt> will be holding a stale-pointer.  If
+you're lucky, you will only get a segmentation fault.
+
 <p>
-<blockquote><pre># Example 1 : Using a named object
+To work around this, it is always possible to flip the ownership flag. For example,
 
-List l                       # Create a new list
-l insert Dave                # Call some methods
-l insert Jane	
-l insert Pat
-List_print [l cget -this]    # Call a static method (which requires the pointer value)
+<blockquote>
+<pre>
+% v -disown              # Give ownership to C/C++
+% v -acquire             # Acquire ownership
+</pre>
+</blockquote>
 
-# Example 2: Let SWIG pick a name
+It is also possible to deal with situations like this using
+typemaps--an advanced topic discussed later.
 
-set l [List]                 # Create a new list
-$l insert Dave               # Call some methods
-$l insert Jane
-$l insert Pat
-List_print $l                # Call static method (name of object is same as pointer)
-
-# Example 3: Already existing object
-set l [new_List]             # Create a raw object using low-level interface
-List_insert $l Dave          # Call some methods (using low-level functions)
-List -this $l                # Turn it into a Tcl object instead
-$l insert Jane
-$l insert Part
-List_print $l                # Call static method (uses pointer value as before).
-</pre></blockquote>
-<p>
 
 <a name="n29"></a><H2>20.5 Input and output parameters</H2>
 
