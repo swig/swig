@@ -466,6 +466,7 @@ public:
 	int newobj = Getattr(n,"feature:new") ? 1 : 0;
 	String *nodeType = Getattr(n, "nodeType");
 	int constructor = !Cmp(nodeType, "constructor");
+	int destructor = (!Cmp(nodeType, "destructor")); 
 	String *storage = Getattr(n,"storage");
 	int isVirtual = !Cmp(storage,"virtual");
 	String *overname = 0;
@@ -686,9 +687,10 @@ public:
 	// (the smart-pointer) and the director object (the "pointee") are
 	// distinct.
 
-	if (CPlusPlus && directorsEnabled()) {
-	    if (!is_smart_pointer()) {
-		if (/*directorbase &&*/ !constructor && isVirtual) {
+	if (directorsEnabled()) {
+	  if (!is_smart_pointer()) {
+	    if (/*directorbase &&*/ !constructor && !destructor 
+		&& isVirtual  && !Getattr(n,"feature:nodirector")) {
 		    Wrapper_add_local(f, "director", "Swig::Director *director = 0");
 		    Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
 			   

@@ -1076,7 +1076,8 @@ public:
 
     if (directorsEnabled()) {
       if (!is_smart_pointer()) {
-        if (/*directorbase &&*/ !constructor && !destructor && isVirtual) {
+        if (/*directorbase &&*/ !constructor && !destructor 
+	    && isVirtual  && !Getattr(n,"feature:nodirector")) {
           Wrapper_add_local(f, "director", "Swig::Director *director = 0");
           Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
           Printf(f->code, "if (director && (director->swig_get_self() == self)) director->swig_set_up();\n");
