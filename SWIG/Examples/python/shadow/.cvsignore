@@ -1,3 +1,11 @@
 example.py
-example_wrap.c
-example_wrap.cxx
+example.pyc
+*_wrap.c
+*_wrap.cxx
+example.dll
+example.dsw
+example.ncb
+example.opt
+example.plg
+Release
+Debug
