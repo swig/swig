@@ -11,7 +11,7 @@ public class lib_std_string_runme {
     }
   }
 
-  public static void main(String argv[]) 
+  public static void main(String argv[]) throws Throwable
   {
       // Checking expected use of %typemap(in) std::string {}
       lib_std_string.test_value("Fee");
@@ -61,5 +61,16 @@ public class lib_std_string_runme {
 
       lib_std_string.test_reference(stringPtr);
 
+      // Check throw exception specification
+      try {
+          lib_std_string.test_throw();
+          throw new Throwable("Test 5 failed");
+      } catch (RuntimeException e) {
+      }
+      try {
+          lib_std_string.test_const_reference_throw();
+          throw new Throwable("Test 6 failed");
+      } catch (RuntimeException e) {
+      }
   }
 }
