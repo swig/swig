@@ -1188,7 +1188,7 @@ int yylex(void) {
 	      return(TEMPLATE);
 	    }
 	    if (strcmp(yytext,"delete") == 0) {
-	      return(DELETE);
+	      return(DELETE_KW);
 	    }
 	    if (strcmp(yytext,"using") == 0) {
 	      return(USING);
@@ -1219,7 +1219,7 @@ int yylex(void) {
 	  /* Misc keywords */
 	  
 	  if (strcmp(yytext,"extern") == 0) return(EXTERN);
-	  if (strcmp(yytext,"const") == 0) return(CONST);
+	  if (strcmp(yytext,"const") == 0) return(CONST_QUAL);
 	  if (strcmp(yytext,"static") == 0) return(STATIC);
 	  if (strcmp(yytext,"struct") == 0) return(STRUCT);
 	  if (strcmp(yytext,"union") == 0) return(UNION);

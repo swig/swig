@@ -871,7 +871,7 @@ Node *Swig_cparse(File *f) {
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF TYPE_RAW
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
-%token CONST VOLATILE STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
+%token CONST_QUAL VOLATILE STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
@@ -881,7 +881,7 @@ Node *Swig_cparse(File *f) {
 %token NATIVE INLINE
 %token TYPEMAP EXCEPT ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
-%token LESSTHAN GREATERTHAN MODULO DELETE
+%token LESSTHAN GREATERTHAN MODULO DELETE_KW
 %token TYPES PARMS
 %token NONID DSTAR DCNOT
 %token <ivalue> TEMPLATE
@@ -4084,7 +4084,7 @@ type_qualifier : type_qualifier_raw {
                }
                ;
 
-type_qualifier_raw :  CONST { $$ = "const"; }
+type_qualifier_raw :  CONST_QUAL { $$ = "const"; }
                    |  VOLATILE { $$ = "volatile"; }
                    ;
 
