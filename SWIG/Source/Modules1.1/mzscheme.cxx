@@ -220,7 +220,6 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   String *proc_name = NewString("");
   String *source = NewString("");
   String *target = NewString("");
-  String *argnum = NewString("");
   String *arg = NewString("");
   String *cleanup = NewString("");
   String *outarg = NewString("");
@@ -228,6 +227,8 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   String   *tm;
   int argout_set = 0;
   int i = 0;
+  int numargs;
+  int numreq;
 
   // Make a wrapper name for this
   char *wname = Char(Swig_name_wrapper(iname));
@@ -250,8 +251,13 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   // they are called arg0, arg1, ...
   // the return value is called result
 
-  /* pcount = */ emit_args(d, l, f);
-  int numargs = 0;
+  emit_args(d, l, f);
+
+  /* Attach the standard typemaps */
+  emit_attach_parmmaps(l,f);
+
+  numargs = emit_num_arguments(l);
+  numreq  = emit_num_required(l);
 
   // adds local variables
   Wrapper_add_local(f, "_len", "int _len");
@@ -260,7 +266,12 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   // Now write code to extract the parameters (this is super ugly)
 
-  for(p = l; p; p = nextSibling(p)) {
+  for (i = 0, p = l; i < numargs; i++) {
+    /* Skip ignored arguments */
+    while (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    }
+
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
     String   *ln = Getattr(p,"lname");
@@ -268,56 +279,71 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     // Produce names of source and target
     Clear(source);
     Clear(target);
-    Clear(argnum);
     Clear(arg);
     Printf(source, "argv[%d]", i);
-    Printf(target, "arg%d", i);
-    Printf(argnum, "%d", i);
+    Printf(target, "%s",ln);
     Printv(arg, Getattr(p,"name"),0);
 
+    if (i >= numreq) {
+      Printf(f->code,"if (argc > %d) {\n",i);
+    }
     // Handle parameter types.
-
-    if (Getattr(p,"ignore")) 
-      Printv(f->code, "/* ", pn, " ignored... */\n", 0);
-    else {
-      ++numargs;
-      if ((tm = Swig_typemap_lookup ("in", pt, pn, ln, source, target, f))) {
-	Printv(f->code, tm, "\n", 0);
-	mreplace (f->code, argnum, arg, proc_name);
-	Delete(tm);
-      }
+    if ((tm = Getattr(p,"tmap:in"))) {
+      Replace(tm,"$source",source,DOH_REPLACE_ANY);   /* Deprecated */
+      Replace(tm,"$target",target,DOH_REPLACE_ANY);   /* Deprecated */
+      Replace(tm,"$input",source,DOH_REPLACE_ANY);
+      Setattr(p,"emit:input",source);
+      Printv(f->code, tm, "\n", 0);
+      p = Getattr(p,"tmap:in:next");
+    } else {
       // no typemap found
       // check if typedef and resolve
-      else throw_unhandled_mzscheme_type_error (pt);
+      throw_unhandled_mzscheme_type_error (pt);
+      p = nextSibling(p);
     }
-
-    // Check if there are any constraints.
-
-    if ((tm = Swig_typemap_lookup ("check", pt, pn, ln, source, target, f))) {
-      // Yep.  Use it instead of the default
-      Printv(f->code, tm, "\n", 0);
-      mreplace (f->code, argnum, arg, proc_name);
-      Delete(tm);
+    if (i >= numreq) {
+      Printf(f->code,"}\n");
     }
+  }
 
-    // Pass output arguments back to the caller.
+  /* Insert constraint checking code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:check"))) {
+      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Printv(f->code,tm,"\n",0);
+      p = Getattr(p,"tmap:check:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
 
-    if ((tm = Swig_typemap_lookup ("argout", pt, pn, ln, source, target, f))) {
-      // Yep.  Use it instead of the default
-      Printv(outarg, tm, "\n",0);
-      mreplace (outarg, argnum, arg, proc_name);
+  // Pass output arguments back to the caller.
+
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:argout"))) {
+      Replace(tm,"$source",Getattr(p,"emit:input"),DOH_REPLACE_ANY);   /* Deprecated */
+      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);   /* Deprecated */
+      Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Printv(outarg,tm,"\n",0);
+      p = Getattr(p,"tmap:argout:next");
       argout_set = 1;
-      Delete(tm);
+    } else {
+      p = nextSibling(p);
     }
+  }
 
-    // Free up any memory allocated for the arguments.
-    if ((tm = Swig_typemap_lookup ("freearg", pt, pn, ln, source, target, f))) {
-      // Yep.  Use it instead of the default
-      Printv(cleanup, tm, "\n",0);
-      mreplace (cleanup, argnum, arg, proc_name);
-      Delete(tm);
+  // Free up any memory allocated for the arguments.
+
+  /* Insert cleanup code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:freearg"))) {
+      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Printv(cleanup,tm,"\n",0);
+      p = Getattr(p,"tmap:freearg:next");
+    } else {
+      p = nextSibling(p);
     }
-    i++;
   }
 
   // Now write code to make the function call
@@ -330,7 +356,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 				     d, name, (char*)"result",
 				     (char*)"result", (char*)"values[0]", f))) {
     Printv(f->code, tm, "\n",0);
-    mreplace (f->code, argnum, arg, proc_name);
+    //    mreplace (f->code, argnum, arg, proc_name);
     Delete(tm);
   }
   else {
@@ -350,7 +376,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 				       d, iname, (char*)"result",
 				       (char*)"result", (char*)"", f))) {
       Printv(f->code, tm, "\n",0);
-      mreplace (f->code, argnum, arg, proc_name);
+      //      mreplace (f->code, argnum, arg, proc_name);
       Delete(tm);
     }
   }
@@ -361,7 +387,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 				 d, name, (char*)"result",(char*)"result", (char*)"", f))) {
     // Yep.  Use it instead of the default
     Printv(f->code, tm, "\n",0);
-    mreplace (f->code, argnum, arg, proc_name);
+    // mreplace (f->code, argnum, arg, proc_name);
     Delete(tm);
   }
 
@@ -376,15 +402,18 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   // Now register the function
   char temp[256];
   sprintf(temp, "%d", numargs);
-  Printv(init_func_def, "scheme_add_global(\"", proc_name,
+  /*  Printv(init_func_def, "scheme_add_global(\"", proc_name,
 	 "\", scheme_make_prim_w_arity(", wname,
 	 ", \"", proc_name, "\", ", temp, ", ", temp,
 	 "), env);\n",0);
+  */
+  Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),env);\n",
+	 proc_name, wname, proc_name, numreq, numargs);
+
 
   Delete(proc_name);
   Delete(source);
   Delete(target);
-  Delete(argnum);
   Delete(arg);
   Delete(outarg);
   Delete(cleanup);
