@@ -1,0 +1,387 @@
+<html>
+<head>
+<title>SWIG Engineering Manual</title>
+</head>
+<body bgcolor="#ffffff">
+<center>
+<h1>SWIG Engineering Manual</h1>
+
+<b>David Beazley <br>
+Department of Computer Science <br>
+University of Chicago <br>
+Chicago, IL  60637 <br>
+beazley@cs.uchicago.edu <br>
+</b>
+</center>
+
+<p>
+<b>$Header$</b>
+
+<h2>1. Introduction</h2>
+
+The purpose of this document is to describe various coding conventions
+and organizational aspects for SWIG developers. The idea for this
+document is largely borrowed from John Ousterhout's Tcl/Tk Engineering
+Manual.  It is not my intent to overly managerial about matters--rather the
+intent is to make life a little less chaotic for everyone involved.
+
+<p>
+First a little background: SWIG was started in 1995 as a one-person
+project and continued in this mode until about 1998 (at which point
+development all but stopped due to some sort of post-dissertation
+shock syndrome).  Unfortunately, as a result, the state of the code
+can best be described as being a huge hacked up C++ disaster.  A
+working disaster, but a disaster nonetheless.   
+
+<p>
+The primary goal of future SWIG development is to reengineer the
+original system and address many of its design flaws and to produce
+what can best be described as a highly extensible and modular compiler
+framework.  To this end, there are a few things I want to do.  First,
+I want to restructure SWIG as a collection of loosely coupled modules
+written in either ANSI C or scripting languages.  Second, I want the
+system to be minimalistic in its use of data structures and
+interconnections (e.g., almost all data in the new system is passed
+around in hash tables for instance).  The primary reason for this is
+that the fewer data structures there are, the less you have to
+remember.  Finally, I was to reevaluate the whole idea of what a SWIG
+module is and expand the definition to include just about anything
+from parsers, preprocessors, optimizers, interface editors, and code
+generators.  
+
+<p>
+The rest of this document describes the basics of how to develop code
+for SWIG and a few useful guidelines.
+
+<h2>2. Programming Languages and Libraries </h2>
+
+All SWIG modules must be written in either ANSI C or one of the
+scripting languages for which SWIG can generate an interface (e.g.,
+Perl, Python, or Tcl).  <B>C++ is NOT an acceptable alternative
+and will not be utilized for any future development due to the fact
+that it is too complicated, too problematic, and that Dave would
+rather take a bullet to the head than write one more line of code in
+this most decidedly unpleasant language. </B>
+Rare exceptions
+to this rule may be made if there is a justifiable need to interface
+an existing piece of software written in C++ into the SWIG module system.
+Anyone who finds this rule to be unreasonable is more than welcome to
+go write their own wrapper generator--so there.
+
+<p>
+Modules should make every attempt to use only those functions
+described in the POSIX.1 standard.  This includes most of the
+functions contained the Kernighan and Ritchie C programming book.  Use
+of operating system dependent functionality such as socket libraries
+should always be included inside a conditional compilation block so
+that it can be omitted on problematic platforms.  If you are unsure about a library
+call, check the man page or contact Dave.
+
+<h2>3. The Source Directory and Module Names</h2>
+
+All SWIG modules are contained within the "Source" directory.  Within
+this directory, each module is placed into its own subdirectory.  The
+name of this subdirectory should exactly match the name of the module.
+For example, if you are creating a module called "Tcl", all of your
+files should be placed in a directory "Tcl".
+
+<p>
+When choosing a module name, please pick a name that is not
+currently in use.  As a general convention, the first letter of a
+module name is capitalized such as "Perl".  Alternatives such as
+"perl" or "PERL" should be avoided.  In certain instances, the first
+two letters may be capitalized as in "CParse."  The exact usage of
+this is somewhat inconsistent and isn't terribly important--just make
+sure the first letter is capitalized.  Also, module names should not
+start with numbers, include underscores or any other special
+non-alphanumeric characters.
+
+<h2>4. Include files </h2>
+
+All modules should include a header file that defines the public interface. 
+The name of this header file should be of the form "swigmodule.h" where
+"module" is the name of your module.  For example, if you created a 
+module "Perl", the header file should be named "swigperl.h".   This scheme
+should prevent header-file naming conflicts both within SWIG and when linking
+parts of SWIG to the outside world.
+
+<p>
+All header files should have include guards and be C++ aware.  For example:
+
+<blockquote>
+<pre>
+#ifndef _SWIGPERL_H
+#define _SWIGPERL_H   1
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* You're declarations here */
+...
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* _SWIGPERL_H */
+</pre>
+</blockquote>
+
+
+<p>
+To minimize compilation time, please include as few other header files as possible.
+
+<h2>5. File Structure </h2>
+
+Each file in a module should be given a filename that is all lowercase letters
+such as "parser.c", not "Parser.c" or "PARSER.c".   Please note that filenames
+are case-insensitive on Windows so this convention will prevent you from inadvertantly
+creating two files that differ in case-only.
+
+<p>
+The structure of each file should include a short copyright message, author information,
+a CVS revision tag, and an abstract like this:
+
+<blockquote>
+<pre>
+/* -----------------------------------------------------------------------------
+ * Simplified Wrapper and Interface Generator (SWIG)
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ *
+ * Copyright (C) 1999-2000, University of Chicago.
+ * See the file LICENSE for information on usage and redistribution. 
+ * ----------------------------------------------------------------------------- */
+
+static char cvsroot[] = "$Header$";
+
+/* -----------------------------------------------------------------------------
+ * include.c
+ *
+ * This file implements the functions used to locate and include files in
+ * the SWIG library.  Functions for maintaining the library search path are
+ * also located here.
+ * ----------------------------------------------------------------------------- */
+
+#include "swig.h"
+
+/* Declarations */
+typedef struct {
+   int x, y;
+} Foo;
+
+...
+
+/* Private Declarations (used only in this file) */
+static int  avariable;
+
+...
+
+/* Functions */
+... 
+
+</pre>
+</blockquote>
+
+The CVS revision tag should be placed into a static string as shown
+above.  This adds the revision information to the SWIG executable and
+makes it possible to extract version information from a raw binary
+(sometimes useful in debugging).  Copyright messages do not need to be
+attributed to the University of Chicago provided that the module is
+released under an Open Source copyright that allows redistribution.
+
+<p>
+As a general rule, files start to get unmanagable once they exceed
+about 2000 lines.   Files larger than this should be broken up into
+multiple files.
+
+<h2>6. Bottom-Up Design </h2>
+
+Within each source file, the preferred organization is to use what is
+known as "bottom-up" design.  Under this scheme, lower-level functions
+appear first and the highest level function appears last.  The easy
+way to remember is that the "main" function of your module should
+always appear last in the source file.  For example:
+
+<blockquote>
+<pre>
+/* Simple bottom-up program */
+#include &lt;stdio.h&gt;
+
+int foo(int x, int y) {
+    /* Implement foo */
+    ...
+}
+
+int bar() {
+    ...
+    foo(i,j);
+    ...
+}
+
+...
+int main(int argc, char **argv) {
+    ...
+    bar();   
+    ...
+}
+</pre>
+</blockquote>
+
+This choice of design is somewhat arbitrary however it has a number of
+benefits particular to C. In particular, a bottom-up design generally
+eliminates the need to include forward references--resulting in
+cleaner code and fewer compilation errors.
+
+<h2>7. Functions</h2>
+
+All functions should have a function header that gives the function name
+and a short description like this:
+
+<blockquote>
+<pre>
+/* -----------------------------------------------------------------------------
+ * void Swig_add_directory(DOH *dirname)
+ *
+ * Adds a directory to the SWIG search path.
+ * ----------------------------------------------------------------------------- */
+
+void 
+Swig_add_directory(DOH *dirname) {
+...
+
+}
+</pre>
+</blockquote>
+
+As for the function declaration itself, the return type and specifiers
+(extern or static) should appear on a separate line followed by the
+function name as shown.
+
+<h2>8. Naming Conventions</h2>
+
+The following conventions are generally used to name various objects throughout SWIG.
+
+<h4>Functions</h4>
+
+Functions should consist of the module name and the function separated by an underscore like this:
+
+<blockquote>
+<pre>
+Preprocessor_define()
+Swig_add_directory()
+</pre>
+</blockquote>
+
+In general, the module name should match the name of the module
+subdirectory and the function name should be in all lowercase with
+words separated by underscores.
+
+<h4>Structures and Types</h4>
+
+If you module defines structures, the structure name should include the name of the
+module and the name of the structure appended together like this:
+
+<blockquote>
+<pre>
+typedef struct SwigScanner {
+   ...
+} SwigScanner;
+
+typedef struct LParseType {
+   ...
+} LParseType;
+</pre>
+</blockquote>
+
+In this case, both the name of the module and the type should be capitalized.  Also, whenever
+possible, you should use the "typedef struct Name { ... } Name" form when defining new
+data structures. 
+
+<h4>Global Variables</h4>
+
+Global variables should be avoided if at all possible.  However, if you must use a global
+variable, please prepend the module name and use the same naming scheme as for functions.
+
+<h4>Constants</h4>
+
+Constants should be created using #define and should be in all caps like this:
+
+<blockquote>
+<pre>
+#define   SWIG_TOKEN_LPAREN  1
+</pre>
+</blockquote>
+
+Separate words in a constant should be separated by underscores as shown.
+
+<h4>Structure members</h4>
+
+Structure members should be in all lower-case and follow the same word-separation convention
+as for function names.  However, the module name does not have to be included on members.
+For example:
+
+<blockquote>
+<pre>
+typedef struct SwigScanner {
+  DOH           *text;           /* Current token value */
+  DOH           *scanobjs;       /* Objects being scanned */
+  DOH           *str;            /* Current object being scanned */
+  char          *idstart;        /* Optional identifier start characters */
+  int            next_token;     /* Next token to be returned */
+  int            start_line;     /* Starting line of certain declarations */
+  int            yylen;          /* Length of text pushed into text */
+  DOH           *file;           /* Current file name */
+} SwigScanner;
+</pre>
+</blockquote>
+
+<h4>Static Functions and Variables </h4>
+
+Static declarations are free to use any naming convention.  However,
+most existing parts of the SWIG simply use all lower-case names.
+
+<h2>9. Visibility</h2>
+
+Module should play by the following rules when exposing their interface:
+
+<ul>
+<li>Only publicly accessible functions should be included in the module header file.
+<li>All non-static declarations must be prepended with some form of the module name
+to avoid potential linker namespace conflicts with other modules.
+<li>Modules should not expose global variables or use global variables in their
+public interface.
+<li>Similarly, modules should discourage the direct manipulation of data contained
+within data structures in favor of using function calls instead.  For example,
+instead of having this:
+
+<blockquote>
+<pre>
+typedef struct Foo {
+   int line;
+} Foo;
+</pre>
+</blockquote>
+
+It is better to simply hide the implementation of Foo and provide an interface like this:
+
+<blockquote>
+<pre>
+typedef struct Foo Foo;
+extern int  Foo_getline(Foo *f);
+extern void Foo_setline(Foo *f, int line);
+</pre>
+</blockquote>
+
+There are many good reasons for doing this not the least of which is that it allows you
+to change the internal representation of Foo without breaking everyone else's module 
+(or at the very least having to recompile the universe).
+
+
+</body>
+</html>
+
+
+
+

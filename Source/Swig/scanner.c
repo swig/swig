@@ -137,6 +137,17 @@ SwigScanner_get_line(SwigScanner *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * void SwigScanner_idstart(SwigScanner *s, char *id)
+ *
+ * Set the characters that can be used to start an identifier
+ * ----------------------------------------------------------------------------- */
+
+void
+SwigScanner_idstart(SwigScanner *s, char *id) {
+  s->idstart = copy_string(id);
+}
+
+/* -----------------------------------------------------------------------------
  * char nextchar(SwigScanner *s) 
  * 
  * Returns the next character from the scanner or 0 if end of the string.
