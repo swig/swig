@@ -97,8 +97,6 @@ What's Broken?
 
    - The Java module is broken and temporarily unavailable (SWIG1.3a4).
   
-   - The Mzscheme module is broken and temporarily unavailable (SWIG1.3a4).
-
    - Objective C support doesn't work right now.  No ETA as to
      when it will return.
 
