@@ -171,4 +171,54 @@ static void _SWIG_exception(int code, char *msg) {
 %}
 #endif
 
+#ifdef SWIGJAVA
+%{
+static void _SWIG_exception(JNIEnv *jenv, int code, const char *msg) {
+  char exception_path[512];
+  const char *classname;
+  const char *class_package = "java/lang";
+  
+
+  switch(code) {
+  case SWIG_MemoryError:
+    classname = "OutOfMemoryError";
+    break;
+  case SWIG_IOError:
+    classname = "IOException";
+    class_package = "java/io";
+    break;
+  case SWIG_SystemError:
+  case SWIG_RuntimeError:
+    classname = "RuntimeException";
+    break;
+  case SWIG_OverflowError:
+  case SWIG_IndexError:
+    classname = "IndexOutOfBoundsException";
+    break;
+  case SWIG_DivisionByZero:
+    classname = "ArithmeticException";
+    break;
+  case SWIG_SyntaxError:
+  case SWIG_ValueError:
+  case SWIG_TypeError:
+    classname = "IllegalArgumentException";
+    break;
+  case SWIG_UnknownError:
+  default:
+    classname = "UnknownError";
+    break;
+  }
+  sprintf(exception_path, "%s/%s", class_package, classname);
+  jclass excep;
+  jenv->ExceptionClear();
+  excep = jenv->FindClass(exception_path);
+  if (excep)
+  {
+    jenv->ThrowNew(excep, msg);
+  }
+}
+#define SWIG_exception(a,b) { _SWIG_exception(jenv, a,b); }
+%}
+#endif // SWIGJAVA
+
 /* exception.i ends here */
