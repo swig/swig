@@ -1,3 +1,4 @@
+aclocal.m4
 config.*
 Makefile
 swig*
