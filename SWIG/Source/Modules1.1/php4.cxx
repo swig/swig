@@ -854,22 +854,22 @@ public:
 */
 
   void create_command(char *cname, char *iname) {
-    char *lower_cname = strdup(cname);
-    char *c;
+//    char *lower_cname = strdup(cname);
+//    char *c;
     
-    for(c = lower_cname; *c != '\0'; c++) {
-      if(*c >= 'A' && *c <= 'Z')
-	*c = *c + 32;
-    }
+//    for(c = lower_cname; *c != '\0'; c++) {
+//      if(*c >= 'A' && *c <= 'Z')
+//	*c = *c + 32;
+//    }
     
     Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
     
     // This is for the single main function_entry record
     if (! cs_entry) Printf(s_entry,
-			   "	ZEND_NAMED_FE(%s,\n"
-			   "		%s, NULL)\n", lower_cname,iname);
+			   "	ZEND_NAMED_FE(%(lower)s,\n"
+			   "		%s, NULL)\n", cname,iname);
     
-    free(lower_cname);
+//    free(lower_cname);
   }
 
   /* ------------------------------------------------------------
@@ -1137,7 +1137,9 @@ public:
     
     if(num_saved) {
       sprintf(temp, "_saved[%d]",num_saved);
-      Wrapper_add_localv(f,"_saved","zval *",temp,NULL);
+      // Used to be zval *, perhaps above we should use * %s
+     // but I am not sure what saved is for!!
+      Wrapper_add_localv(f,"_saved","zval **",temp,NULL);
     }
     
     /* emit function call*/
@@ -1463,7 +1465,7 @@ public:
       key = Firstkey(shadow_set_vars);
       // Print function header; we only need to find property name if there
       // are properties for this class to look up...
-      if (key) {
+      if (key || ! base) { // or if we are base class and set it ourselves
         Printf(s_propset,"  /* get the property name */\n"
                "  zend_llist_element *element = property_reference->elements_list->head;\n"
                "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
@@ -1503,7 +1505,7 @@ public:
       key = Firstkey(shadow_get_vars);
       // Print function header; we only need to find property name if there
       // are properties for this class to look up...
-      if (key) {
+      if (key || !base ) { // or if we are base class...
         Printf(s_propget,"  pval presult;\n  presult.type = IS_NULL;\n");
         Printf(s_propget,"  /* get the property name */\n"
                "  zend_llist_element *element = property_reference->elements_list->head;\n"
@@ -1932,7 +1934,7 @@ public:
     // But we also need one per wrapped-class
     //        Printf(f_h, "x ZEND_NAMED_FUNCTION(%s);\n", Swig_name_wrapper(handler_name));
     if (cs_entry && !(variable_wrapper_flag && shadow)) Printf(cs_entry,
-			 "	ZEND_NAMED_FE(%s,\n"
+			 "	ZEND_NAMED_FE(%(lower)s,\n"
 			 "		%s, NULL)\n", php_function_name,Swig_name_wrapper(handler_name));
 
     if(variable_wrapper_flag)  { return; }
