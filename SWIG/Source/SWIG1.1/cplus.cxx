@@ -366,6 +366,7 @@ public:
 
   void inherit(int mode) {
       // Set up the proper addmethods mode and provide C code (if provided)
+    if (mode & INHERIT_FUNC) {
       int oldaddmethods = AddMethods;
       AddMethods = new_method;
       Clear(CCode);
@@ -373,6 +374,7 @@ public:
       cplus_destructor(name,iname);
       AddMethods = oldaddmethods;
       Clear(CCode);
+    }
   }
 
   void emit() {
