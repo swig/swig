@@ -281,7 +281,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   Wrapper *f;
   DOHString *cleanup = 0;
   DOHString *proc_name = 0;
-
+  Parm *p;
 
   DOHString *outarg = 0;
   int argout_set = 0;
@@ -321,8 +321,8 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   // Now write code to extract the parameters (this is super ugly)
 
   int i = 0;
-  for (i = 0; i < pcount; ++i) {
-    Parm *p = Getitem(l,i);
+  p = Firstitem(l);
+  for (i = 0; i < pcount; ++i, p = Nextitem(l)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 

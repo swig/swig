@@ -538,6 +538,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   DOHString     *cleanup, *outarg, *body;
   char		*javaReturnSignature = 0;
   DOHString     *javaParameterSignature;
+  Parm *p;
 
   cleanup = NewString("");
   outarg = NewString("");
@@ -593,8 +594,8 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   int gencomma = 0;
 
   // Now walk the function parameter list and generate code to get arguments
-  for (int i = 0; i < pcount ; i++) {
-    Parm *p = Getitem(l,i);        // Get the ith argument
+  p = Firstitem(l);
+  for (int i = 0; i < pcount ; i++, p = Nextitem(l)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
     char *target_copy = NULL;
@@ -1077,8 +1078,8 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
 
   int pcount = Len(l);
 
-  for (int i = 0; i < pcount ; i++) {
-    Parm *p = Getitem(l,i);         // Get the ith argument
+  Parm *p = Firstitem(l);
+  for (int i = 0; i < pcount ; i++, p = Nextitem(l)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 
@@ -1150,8 +1151,8 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
   int pcount = Len(l);
   int gencomma = 0;
 
-  for (int i = 0; i < pcount ; i++) {
-    Parm *p = Getitem(l,i);         // Get the ith argument
+  Parm *p = Firstitem(l);
+  for (int i = 0; i < pcount ; i++, p = Nextitem(l)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 
@@ -1218,8 +1219,8 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
   if(pcount == 0)  // We must have a default constructor
     have_default_constructor = 1;
 
-  for (int i = 0; i < pcount ; i++) {
-    Parm *p = Getitem(l,i);       // Get the ith argument
+  Parm *p = Firstitem(l);
+  for (int i = 0; i < pcount ; i++, p = Nextitem(l)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 
