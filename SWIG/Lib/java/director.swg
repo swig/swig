@@ -18,6 +18,8 @@ class __DIRECTOR__ {
 private:
   /* pointer to java virtual machine */
   JavaVM       *__jvm;
+  /* the default constructor should not be called */
+  __DIRECTOR__();
 
 protected:
   /* pointer to the wrapped java object */
@@ -31,11 +33,6 @@ protected:
   }
 
 public:
-  /* the default constructor should not be called */
-  __DIRECTOR__() : __jvm(NULL), __self(NULL) { 
-    assert(0); 
-  }
-  
   /* Default constructor */
   __DIRECTOR__(JNIEnv *jenv):
     __jvm((JavaVM *) NULL),
@@ -49,9 +46,13 @@ public:
   virtual ~__DIRECTOR__()
   {
     if (__self) {
-      JNIEnv     *jenv;
+      JNIEnv           *jenv;
+      jmethodID         disconn_meth;
       
       jenv = __acquire_jenv();
+      disconn_meth = jenv->GetMethodID(jenv->GetObjectClass(__self), "__director_disconnect", "()V");
+      if (disconn_meth)
+        jenv->CallVoidMethod(__self, disconn_meth);
       jenv->DeleteGlobalRef(__self);
       __self = (jobject) NULL;
     }
