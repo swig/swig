@@ -22,6 +22,10 @@ extern "C" {
 #undef free
 #undef malloc
 
+#ifndef pTHX_
+#define pTHX_
+#endif
+
 #include <string.h>
 #ifdef __cplusplus
 }
