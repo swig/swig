@@ -25,7 +25,6 @@ commercial or noncommercial use.
 <li> <a href="mail.html">Mailing List</a>
 <li> <a href="bugs.html">Bug tracking</a>
 <li> <a href="projects.html">Projects</a> using SWIG.
-<li> <a href="http://islab.cs.uchicago.edu/swig">Development site</a> at the University of Chicago.
 </ul>
 
 
@@ -46,7 +45,7 @@ href="http://download.sourceforge.net/swig/swig1.1p5.tar.gz">SWIG1.1p5</a> inste
 (11/26/99) The <a href="http://islab.cs.uchicago.edu/python">Python Essential Reference</a> has been released.  Please support the PSA by purchasing through the <a href="http://www.python.org/psa/bookstore">PSA bookstore</a>.
 
 <p>
-(6/8/99) Perl users will almost certainly want to download the latest <a href="ftp://swig.cs.uchicago.edu/pub/SWIG/latest.tar.gz">maintenance release</a>.   A number of changes in Perl's C API have made newer versions of Perl incompatible with older versions
+(6/8/99) Perl users will almost certainly want to download the latest <a href="http://download.sourceforge.net/swig/swig1.1-883.tar.gz">maintenance release</a>.   A number of changes in Perl's C API have made newer versions of Perl incompatible with older versions
 of Swig.  The maintenance release should work with recent Perl5 development and ActiveState Perl for Win32 releases.
 <p>
 </blockquote>
