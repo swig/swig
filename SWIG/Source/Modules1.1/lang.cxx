@@ -655,8 +655,8 @@ int Language::cDeclaration(Node *n) {
       SwigType *tc2 = Copy(Getattr(over,"decl"));
       SwigType *td2 = SwigType_pop_function(tc2);
       
-      Swig_warning(WARN_LANG_OVERLOAD_DECL, input_file, line_number, "Overloaded declaration ignored.  %s\n", SwigType_str(td,oname));
-      Swig_warning(WARN_LANG_OVERLOAD_DECL, Getfile(over), Getline(over),"Previous declaration is %s\n", SwigType_str(td2,cname));
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, input_file, line_number, "Overloaded declaration ignored.  %s\n", SwigType_str(td,SwigType_namestr(oname)));
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, Getfile(over), Getline(over),"Previous declaration is %s\n", SwigType_str(td2,SwigType_namestr(cname)));
       
       Delete(tc2);
       Delete(td2);
@@ -1366,9 +1366,9 @@ int Language::constructorDeclaration(Node *n) {
 	  String *cname = NewStringf("%s::%s", ClassName, Swig_scopename_last(SwigType_namestr(Getattr(over,"name"))));
 	  SwigType *decl = Getattr(n,"decl");
 	  Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, input_file, line_number,
-		       "Overloaded constructor ignored.  %s\n", SwigType_str(decl,oname));
+		       "Overloaded constructor ignored.  %s\n", SwigType_str(decl,SwigType_namestr(oname)));
 	  Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, Getfile(over), Getline(over),
-		       "Previous declaration is %s\n", SwigType_str(Getattr(over,"decl"),cname));
+		       "Previous declaration is %s\n", SwigType_str(Getattr(over,"decl"),SwigType_namestr(cname)));
 	  Delete(oname);
 	  Delete(cname);
 	} else {
