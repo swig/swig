@@ -1,5 +1,11 @@
 Version 1.3.16 (In progress)
 ==================================
+
+10/09/2002: cheetah (William Fulton)
+            [Java] Added throws clause to the native functions in the JNI class.
+            The throws clause is the same as the one generated for proxy functions
+            and module class functions.
+
 09/27/2002: beazley
             Fixed some problems with the %import directive and classes that
             were defined but not wrapped.  Problem reported by Leslie Brooks,
