@@ -27,6 +27,10 @@
 #define %header      %insert("header")
 #define %runtime     %insert("runtime")
 
+/* Class extension */
+
+#define %addmethods  %echo "$file:$line. Warning %addmethods is now %extend" %extend
+
 /* Access control directives */
 
 #define %readonly    %echo "$file:$line. Warning. %readonly is deprecated. Use %immutable; " %feature("immutable","1");
