@@ -1,6 +1,9 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
 2/29/00 : beazley
+          Made SWIG ignore the 'mutable' keyword.
+
+2/29/00 : beazley
           Incorporated some patches to the Perl5 module related to
           the -hide option and the destruction of objects. 
           Patch submitted by Karl Forner.
