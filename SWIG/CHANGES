@@ -14,6 +14,1172 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged back to the trunk of the CVS
 tree (maybe).
 
+Version 1.3.10 (December 10, 2001)
+==================================
+
+12/08/2001:beazley
+           Modified %typemap so that %{ ... %} can also be used as a
+           code block (mostly for completeness).  For example:
+ 
+              %typemap(in) blah %{
+                 ...
+              %}
+
+           This form does not introduce a new block scope.  Also, the
+           code enclosed in %{ ... %} is not processed by the preprocessor.
+
+12/08/2001:beazley
+           Fixed [ #459614 ] SWIG with multiple TCL interpreters.
+
+12/08/2001:beazley
+           Fixed [ #417141 ] rubydec.swg is wrong
+           Reported by Paul Brannan.
+
+12/08/2001:beazley
+           Fixed [ #410557 ] Problem with %addmethods on NT.
+           Reported by Magnus Ljung.
+
+12/08/2001:beazley
+           Fixed [ #445233 ] Enhancement: handle access change.
+           SWIG now parses (but ignores) C++ access changes for the
+           the following:
+
+             class A {
+             protected:
+                void something() { }
+             public:
+                A() {}
+             };
+
+             class B : private A {
+             public:
+                B() : A() { }
+             protected:
+                A::something;    <---- Parsed, but ignored
+             };
+ 
+           Suggested by Krzysztof Kozminski.
+
+12/08/2001: cheetah (william fulton)
+           Fix for Ruby to work using Visual C++.
+
+12/06/2001:beazley
+           Fixed [ #465687 ] unsigned short parameters fail.
+           Reported by Gerald Williams.
+
+12/06/2001:beazley
+           Fixed SF [ #489594 ] PyString_FromString can't take NULL arg.
+           Reported by John Merritt.   SWIG now converts string values
+           to Python using code like this:
+
+           resultobj = result ? PyString_FromString(result) : Py_BuildValue("");
+
+12/06/2001:beazley
+           Fixed SF [ #463561 ] Type conversions not generated.
+           Reported by Gerald Williams.
+	
+12/04/2001:beazley
+           Fixed SF [ #470217 ] Tcl default argument handling.
+           Reported by Shaun Lowry.
+
+12/04/2001:beazley
+           Fixed SF [ #472088 ] defined(MACRO) expanded everywhere.
+           Embedded preprocessor directives such as
+
+              %#if defined(FOO)
+
+           are not expanded by the SWIG preprocessor.
+           Reported by Gerald Williams.
+
+12/04/2001:beazley
+           Fixed SF [ #476467 ] Problems with #define & commas.
+
+12/04/2001:beazley
+           Fixed SF [ #477547 ] wrong declaration of pointer functions.
+           Bad prototypes in Lib/tcl/ptrlang.i.
+
+12/04/2001:beazley
+           Fixed SF [ #483182 ] Constants can take args by mistake. 
+           When swig -perl5 -const is used, constants are declared
+           with a void prototype.  For example:
+
+                sub ICONST () { $examplec::ICONST }
+
+           Patch submitted by Rich Wales.
+
+12/03/2001:beazley
+           New %exception directive.   This is intended to replace %except.
+           It works in exactly the same manner except it does not accept a 
+           language specifier. For example:
+
+               %exception {
+                   try {
+                      $action
+                   } 
+                   catch(SomeError) {
+                       error
+                   }
+               }
+
+           %exception is also name aware---allowing it to be applied to
+           specific declarations in an interface.  For example:
+
+              %exception foo {
+                  ...
+                  exception for any function/method foo
+                  ...
+              }
+
+              %exception Foo::bar {
+                  ...
+                  exception for method bar in class Foo
+                  ...
+              }
+ 
+              %exception Foo::bar(double) {
+                  ...
+                  exception for method bar(double) in class Foo
+                  ...
+              }
+
+           The semantics of this name matching is exactly the same as for %rename.
+           *** NEW FEATURE ***
+           
+12/03/2001:beazley
+           Substantial cleanup of the Python shadow class code.  Shadow classes
+           used to be created in this rather complicated manner involving about
+           a half-dozen strings created in bits and pieces.   Shadow classes
+           are now generated in a more straightforward manner--in the same
+           order that appears in the interface file.
+
+           *** POTENTIAL INCOMPATIBILITY ***
+           The order in which declarations appear in the shadow file may differ.
+           
+12/03/2001:beazley
+           The %insert directive (%{ ... %}, %runtime, %header, %wrapper, etc.)
+           can now be used inside of a class definition.   This has potential
+           uses when generating shadow class code.  For example:
+
+                 class Foo {
+                     ...
+                 %insert("shadow") %{
+                 # Some python code
+                 def blah(self):
+                      print "I'm blah!"
+                 %}
+                     ...
+                 };
+
+           The support for class code insertion depends on the language module.
+           However, the intent of this feature is to simplify the task of extending
+           shadow class code.   In the Python module, this inserts code with the
+           proper level of indendation (regardless of what was used in the SWIG
+           interface).
+           *** NEW FEATURE ***
+
+11/29/2001: cheetah (william fulton)
+           Modifications for Java and Python modules to work on cygwin.
+           Unfortunately a lot of the python module has started to produces code 
+           which cannot be auto-imported using cygwin libtools so most of it is 
+           still broken.
+
+11/28/2001:beazley
+           The %rename and %feature directive can now be used inside
+           of a class definition. For example:
+
+             class Foo {
+                 %rename(foo_i) foo(int);
+                 %rename(foo_d) foo(double);
+             public:
+                 ...
+                 void foo(int);
+                 void foo(double);
+                 ...
+             };
+
+           When used in this manner, the %rename directive only applies
+           to members of the class in which it appears as well as all
+           derived classes.  In fact, this is really just the same
+           as saying:
+
+             %rename(foo_i) Foo::foo(int);
+             %rename(foo_d) Foo::foo(double);
+             class Foo {
+                ...
+             };
+
+           *** NEW FEATURE ***
+
+11/26/2001:beazley
+           Added the experimental %feature directive.  %feature can be
+           used to attach arbitrary string attributes to parse tree nodes.
+           For example:
+
+               %feature("except") blah {
+                   try {
+                      $function
+                   } catch (Error) {
+                       whatever;      
+                   }
+               }
+
+           or
+
+              %feature("set") *::x_set "x";
+
+           or
+
+              %feature("blah") Foo::bar(int,double) const "spam";
+
+           The syntax is borrowed from the %rename directive.  In fact, the
+           exact same semantics apply (inheritance, matching, etc.).
+
+           %feature is a very powerful low-level primitive that can be used to
+           customize individual language modules and to provide hints to 
+           any stage of code generation.   Features are attached to
+           parse tree nodes as attributes with names like "feature:*" where * 
+           is replaced by the feature name (e.g., "feature:except", "feature:set", 
+           etc.).   Language modules can then look for the features using 
+           a simple attribute lookup.
+
+           %feature is intended to be a replacement for a number of
+           older SWIG directives including %except and specialized
+           pragmas. It is more powerful (due to its parameterized
+           name matching) and it provides very precise control over
+           how customization features are attached to individual
+           declarations.   There are future expansion plans that will
+           build upon this capability as well.
+
+           It's not certain that %feature will ever be used directly
+           by SWIG users.  Instead, it may be a low-level primitive
+           that is used in high-level macro definitions.  For instance,
+           to support properties, you might define a macro like this:
+
+           %define %property(name, setf, getf)
+           %feature("set") setf #name;
+           %feature("get") getf #name;
+           %enddef
+
+           Which allows a user to specify things like this:
+
+           %property(p, get_p, set_p);
+
+           class Blah {
+           public:
+              int  get_p();
+              void set_p(int);
+           };
+
+           *** EXPERIMENTAL NEW FEATURE ***
+  
+11/24/2001:beazley
+           The Tcl module has been expanded with some new features for
+           managing object ownership.  For example:
+         
+                set c [Circle -args 20]
+                $c area             # Invoke a method
+                $c -disown          # Releases ownership of the object
+                $c -acquire         # Acquires ownership of the object
+
+           If Tcl owns the object, its destructor is invoked when the 
+           corresponding object command is deleted in Tcl.  
+
+           To simplify the destruction of objects, the following syntax
+           can be used:
+
+                $c -delete         # Delete an object
+
+           This is an alternative for the more obscure variant of 
+
+                rename $c {}
+
+           These features also add functionality at the C API level.
+           The following functions manage ownership from C and
+           can be used in typemaps.
+
+                SWIG_Acquire(void *ptr);
+                SWIG_Disown(void *ptr);
+
+           A new function for constructing instances is also available:
+
+                Tcl_Obj *
+                SWIG_NewInstanceObj(Tcl_Interp *interp, void *ptr,
+                                    swig_type_info *type, int own);
+
+           When used in a typemap, this creates a pointer object and
+           an interpreter command that can be used to issue methods and
+           access attributes as shown above.
+           *** NEW FEATURE ***
+           
+11/23/2001:beazley
+           All Python-related %pragma operations have been eliminated.
+           Most of these were written for older SWIG versions in order to
+           compensate for limitations in earlier releases.  In an effort
+           to reduce the amount of code-clutter and potential for errors,
+           it is easier to simply eliminate the pragmas and to start over
+           (if needed).  To be honest, I'm not even sure the pragmas
+           worked in 1.3.9 and recent releases.
+
+           Note: If you need to insert code into the shadow class file
+           created by SWIG, simply use the %shadow directive like this:
+
+              %shadow %{
+              def some_python_code():         
+                  print "blah!"
+              %}
+
+           *** POTENTIAL INCOMPATIBILITY ***
+
+11/22/2001:beazley
+           Sweeping changes to the way in which the Python module handles
+           shadow classes.   In early implementations, shadow classes were
+           merely Python wrappers around typed pointer objects. However, 
+           some users actually wanted to receive the shadow class object in C.
+           To accomodate this, the dereferencing of the "this" pointer in
+           a shadow class was moved to C as described in CHANGES [8/8/99].
+           However, the process of returning pointers to Python was still
+           somewhat problematic.  Specifically, shadow classes never worked
+           in situations such as these:
+
+             -   Use of any kind of output typemap ('out' or 'argout')
+             -   Global variables (broken as far as I can tell).
+
+           In the past, some users have dealt with this by manually trying
+           to create shadow class objects themselves from C/C++.  However,
+           this was difficult because the C wrappers don't really know how
+           to get access to the corresponding Python class.
+
+           The Python module has now been modified to automatically attach
+           shadow class objects to pointers when they are returned to 
+           Python.   This process occurs in the function SWIG_NewPointerObj()
+           so the process is completely transparent to users.    As a result,
+           shadow classes are now more seamlessly integrated with typemaps
+           and other features of SWIG.
+
+           This change may introduce a number of incompatibilities.  The
+           SWIG_NewPointerObj() now takes an extra parameter "own" to 
+           indicate object ownership.   This can be used to return a pointer
+           to Python that Python should destroy.   In addition, older code
+           that tries to manually construct shadow class objects or which
+           expects bare pointers may break---such pointers may already be
+           encapsulated by a shadow class.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+11/20/2001:beazley
+           Modified the %insert directive to accept single braces { ... }.
+           For example:
+
+                %insert("header") {
+                   ... some code ...
+                }
+
+           This works exactly like %{ ... %} except that the code in the
+           braces is processed using the preprocessor.   This can be useful
+           in certain contexts such as low-level code generation in 
+           language modules.
+           *** NEW FEATURE ***
+           
+11/20/2001:beazley
+           Command line options are now translated into preprocessor
+           symbols.  For example:
+	
+              ./swig -python -shadow -module blah interface.i
+
+           Creates the symbols:
+
+              SWIGOPT_PYTHON 1
+              SWIGOPT_SHADOW 1
+              SWIGOPT_MODULE blah
+              
+           Modules can look for these symbols to alter their code generation
+           if needed.
+           *** NEW FEATURE ***
+             
+11/20/2001:beazley
+           Massive overhaul of the Perl5 module.  A lot of code generation is
+           now driven by tables and typemaps.   The generated wrapper code 
+           also makes use of tables to install constants, variables, and
+           functions instead of inlining a bunch of procedure calls.  The
+           separate variable initialization function is gone.   Most
+           code generation is controlled via the perl5.swg file in the
+           library.
+           *** POTENTIAL INCOMPATIBILITY ***
+           
+11/13/2001:beazley
+           Added parsing support for the C++ typename keyword.  Primarily this
+           is added to better support templates.  For example:
+
+             template<typename T> void  blah(C& v) {
+                 typename C::iterator i = v.begin();
+             }
+
+           Note: typename is supported in the parser in the same way as 'struct'
+           or 'class'.  You probably shouldn't use it anywhere except in templates.
+           *** NEW FEATURE ***
+
+11/11/2001:beazley
+           Massive overhaul of the language module API.   Most functions now
+           use a common, very simple,  API.   There are also a number of
+           interesting semantic side-effects of how code is actually generated.
+           Details will be forthcoming in Doc/Manual/Extending.html.
+
+           *** POTENTIAL INCOMPATIBILITY *** Language modules written for
+           previous versions of SWIG will no longer work,
+
+11/10/2001:beazley
+           Fixed a very subtle bug due to unnamed class wrapping. For example, if
+           you did this
+
+              typedef struct {
+                  int x,y;
+              } gdPoint, *gdPointPtr;
+
+              void foo(gdPointPtr x);
+
+           Then the foo function would get a type-error.   The problem has
+           to do with internal typedef handling and the fact that the typedef
+           declarations after the struct appear later in the parse tree.
+           It should work now.  Problem reported by Vin Jovanovic.
+
+11/09/2001:beazley
+           Subtle change to "out" typemaps (and related variations).  The name
+           that is attached to the typemap is now the raw C identifier that
+           appears on a declaration.  This changes the behavior of
+           member functions.  For example:
+
+               %typemap(out) int foo {
+                  ...
+               }
+
+               class Blah {
+                   public:
+                      int foo();    // typemap gets applied
+               }
+            
+           Previous versions never really specified how this was supposed to
+           work.  In SWIG1.1, you could probably write a typemap for the
+           wrapper name like this:
+
+                %typemap(out) int Blah_foo { ... }
+
+           However, this old behavior is now withdrawn and not supported. 
+           Just use the member name without any sort of special prefix.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+11/06/2001:beazley
+           Changes to Tcl module initialization:
+
+           (1) SWIG now automatically includes the code needed to work with
+                Tcl stubs.  Simply compile with -DUSE_TCL_STUBS.
+
+           (2) SWIG now automatically calls Tcl_PkgProvide to register
+               a package name.  The package name is the same as the name
+               specified with the %module directive.  The version number is
+               set to "0.0" by default.  To change the version number, use
+               swig -pkgversion 1.2 interface.i.
+
+           *** POTENTIAL INCOMPATIBILITY ***
+           Modules that provided stubs and Tcl_PkgProvide on their own might
+           break.  Simply remove that code.
+
+11/05/2001:beazley
+           Changed code generation of constants in the Tcl module.  Constants
+           are now stored in a large table that get installed at module startup.
+           There are also no longer any static variables so it should generate
+           somewhat less code.
+
+11/04/2001:beazley
+           The "const" typemap has been renamed to "constant" in many language
+           modules.  "const" is a C keyword which made the handling of the typemap
+           directive somewhat awkward in the parser.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+11/04/2001:beazley
+           %typemap directive can now accept nearly arbitrary keyword parameters.
+           For example:
+
+              %typemap(in,parse="i",doc="integer") int "...";
+
+           The purpose of the keyword parameters is to supply code generation
+           hints to the target language module.   The intepretation of the
+           parameters is language specific.
+           *** NEW FEATURE ***
+
+11/04/2001:beazley
+           Slight semantic change to internal call/return by value handling.
+           In previous versions of SWIG, call-by-value was translated
+           into pointers.  For example:
+
+               double dot_product(Vector a, Vector b);
+
+           turned into this:
+
+               double wrap_dot_product(Vector *a, Vector *b) {
+                  return dot_product(*a,*b);
+               }
+
+           This translation was normally performed by the SWIG core, outside
+           of the control of language modules.  However, a side effect
+           of this was a lot of bizarre typemap behavior.   For example,
+           if you did something like this:
+
+                %typemap(in) int32 {
+                    ...
+                }
+
+           You would find that int32 was transformed into a pointer everywhere!
+           (needless to say, such behavior is unexpected and quite awkward to
+           deal with).  To make matters worse, if a typedef was also used,
+           the pointer behavior suddenly disappeared.
+
+           To fix this, the pointer transformation is now pushed to the
+           language modules.   This produces wrappers that look roughly
+           like this:
+
+               double wrap_dot_product(Vector *a, Vector *b) {
+                  Vector arg1 = *a;
+                  Vector arg2 = *b;
+                  return dot_product(arg1,arg2);
+               }
+
+           This change also makes it easy to define typemaps for
+           arbitrary undefined types.  For example, you can do this (and it
+           will work regardless what int32 is):
+
+               %typemap(in) int32 {
+                  $1 = (int32) PyInt_AsLong($input);
+               }
+
+           *** POTENTIAL IMCOMPATIBILITY ***
+           This change may break call/return by value code generation in
+           some language modules.
+
+11/03/2001:beazley
+           Changed the name of the default typemaps to the following:
+
+               %typemap() SWIGTYPE  { 
+                   ... an object ...
+               }
+               %typemap() SWIGTYPE * {
+                   ... a pointer ...
+               }
+               %typemap() SWIGTYPE & {
+                   ... a reference ...
+               }
+               %typemap() SWIGTYPE [] {
+                   ... an array ...
+               }
+               %typemap() enum SWIGTYPE {
+                  ... an enum value ...
+               }
+               %typemap() SWIGTYPE (CLASS::*) {
+                   ... pointer to member ...
+               }
+
+
+           These types are used as the default for all types that don't match
+           anything else.  See CHANGES log entry for 8/27/2000 for the
+           old behavior.  The role of these types is also described in 
+           Doc/Manual/Typemaps.html
+
+           *** POTENTIAL INCOMPATIBILITY ***
+          
+10/25/2001:beazley
+           Modified Guile and Mzscheme modules to support
+           multi-argument typemaps.
+
+10/25/2001: cheetah (william fulton)
+           [Java] Fix to handle pointers to arrays.
+
+10/24/2001:beazley
+           Defining a typemap rule for enum SWIGENUM can now be used
+           to define default behavior for enum variables.
+
+10/22/2001:beazley
+           Ruby module modified to support multi-argument typemaps.
+
+10/22/2001:beazley
+           The Ruby module can now handle functions with an arbitrary
+           number of arguments.  Previous versions were limited to 
+           to functions with only 9 or 16 arguments depending on
+           the use of default arguments.   Note: from some inspection
+           of the Ruby interpreter source, the new approach might be
+           a little faster as well.
+
+10/18/2001:beazley
+           Fixed a bug with forward class declarations and
+           templates.
+
+                 class Foo <S,T>;
+
+           Bug reported by Irina Kotlova.
+
+10/16/2001:beazley
+           Support for multivalued typemaps added.  The typemaps
+           are specified using the syntax below.   Within each
+           typemap, variable substitution is handled as follows:
+
+              %typemap(in) (int argc, char *argv[]) {
+                  $arg;  // The input object in the target language
+                  $1;    // C local variable for first argument
+                  $2;    // C local variable for second argument
+
+                  // These variables refer to either argument
+                  $1_type, $1_ltype, $1_basetype, etc...  (argc)
+                  $2_type, $2_ltype, $2_basetype, etc...  (argv[])
+
+                  // Array dimension of argv
+                  $2_dim0
+              }
+
+           Basically any variable that was available in normal typemaps
+           is available for either argument by prefacing the variable
+           name by '$n_' where n is the argument position.
+
+           Notes:  
+           (1) Multi-valued typemaps can only be applied to a single
+               object in the target scripting language.   For example,
+               you can split a string into a (char *, int) pair or
+               split a list into a (int, char []) pair.  It is not
+               possible to map multiple objects to multiple arguments.
+
+           (2) To maintain compatibility with older SWIG versions, the
+               variables such as $target and $type are preserved and
+               are mapped onto the first argument only.
+
+           (3) This should not affect compatibility with older code.
+               Multi-valued typemaps are an extension to typemap handling.
+               Single valued typemaps can be specified in the usual
+               way.
+
+           The old $source and $target variables are officially
+           deprecated.  Input variables are referenced through
+           $arg$ and output values are reference through $result$.
+
+           *** NEW FEATURE ***
+
+10/16/2001:beazley
+           Added parsing support for multivalued typemaps.  The syntax
+           is a little funky, but here goes:
+
+              // Define a multivalued typemap
+              %typemap(in) (int argc, char *argv[]) {
+                    ... typemap code ...
+              }
+
+              // Multivalued typemap with locals
+              %typemap(in) (int argc, char *argv[])(int temp) {
+                    ... typemap code ...
+              }
+              
+              // Copy a multivalued typemap
+              %typemap(in) (int argcount, char **argv) = (int argc, char *argv[]);
+
+              // Apply a multivalued typemap
+              %apply (int argc, char *argv[]) { (int argcount, char **argv) };
+
+           Note: this extra parsing support is added for future extension.
+           No language modules currently support multi-valued typemaps.
+
+10/11/2001:beazley
+           Modified the typemap matching code to discard qualifiers when
+           checking for a match.   For example, if you have a declaration
+           like this:
+
+                 void blah(const char *x);
+
+           The typemap checker checks for a match in the following order:
+
+                 const char *x
+                 const char *
+                 char *x
+                 char *
+
+           If typedef's are involved, qualifier stripping occurs before
+           typedef resolution.  So if you had this,
+
+                typedef char *string;
+                void blah(const string x);
+
+           typemap checking would be as follows:
+
+                const string x
+                const string
+                string x
+                string
+                const char *x
+                const char *
+                char *x
+                char *
+
+           The primary reason for this change is to simplify the implementation
+           of language modules.  Without qualifier stripping, one has to write
+           seperate typemaps for all variations of const and volatile (which
+           is a pain).
+
+           *** POTENTIAL INCOMPATIBILITY ***  Typemaps might be applied in
+           places where they weren't before.
+
+
+10/9/2001: beazley
+           SWIG now generates wrappers that properly disambiguate
+           overloaded methods that only vary in constness.  For
+           example:
+
+               class Foo {
+                  ...
+                  void blah();
+                  void blah() const;
+                  ...
+               };
+
+           To handle this, the %rename directive can be used normally.
+           
+               %rename(blah_const) blah() const;
+
+           In the resulting wrapper code, method calls like this
+           are now generated:
+
+               (obj)->blah()               // Non-const version
+               ((Foo const *)obj)->blah()  // const version
+
+           This should force the right method to be invoked.
+           Admittedly, this is probably obscure, but we might
+           as well get it right.
+
+10/8/2001: beazley
+           The preprocessor now ignores '\r' in the input.
+           This should fix the following bug:
+           [ #468416 ] SWIG thinks macro defs are declarations?
+
+10/8/2001: beazley
+           Added support for ||, &&, and ! in constants.  This
+           fixes SF [ #468988 ] Logical ops break preprocessor.
+           However, at this time, constants using these operators
+           are not supported (the parser will issue a warning).
+
+10/4/2001: beazley
+           Added -show_templates command line option.  This makes
+           SWIG display the code it actually parses to generate
+           template wrappers.  Mostly useful for debugging.
+           *** NEW FEATURE ***
+
+10/4/2001: beazley
+           Change to semantics of %template directive.  When
+           using %template, the template arguments are handled
+           as types by default.  For example:
+
+                %template(vecint) vector<int>;
+                %template(vecdouble) vector<double>;
+
+           To specify a template argument that is *not* a type, you
+           need to use default-value syntax. For example:
+
+                %template(vecint) vector<int,int=50>;
+                %template(vecdouble) vector<int,size=100>;
+
+           In this case, the type name doesn't really matter--only
+           the default value (e.g., 50, 100) is used during
+           expansion.  This differs from normal C++, but I couldn't
+           figure out a better way to do it in the parser.  Might
+           implement an alternative later.
+           *** POTENTIAL INCOMPATIBILITY ***
+       
+10/4/2001: beazley
+           Major changes to template handling in order to provide
+           better integration with the C++ type-system. The main
+           problem is as follows:
+
+           Suppose you have a template like this:
+
+              template<class T> void blah(const T x) { stuff };
+                   
+           Now suppose, that you instantiate the template on a
+           type like this in SWIG:
+
+              %template(blahint) blah<int *>;
+
+           In C++, this is *supposed* to generate code like this:
+
+              void blah(int *const x) { stuff };
+
+           However, in SWIG-1.3.9, the template substitution gets it wrong
+           and produces
+
+              void blah(const int *x) { stuff };
+
+           (notice the bad placement of the 'const' qualifier).
+
+           To fix this, the SWIG parser now generates implicit typedefs
+           for template type arguments that produces code roughly
+           equivalent to doing this:
+
+              typedef int *__swigtmpl1;
+              %template(blahint) blah<__swigtmpl1>;
+
+           which generates code like this:
+
+              void blah(const __swigtmpl1 x) { stuff };
+
+           Since this is correct in both C++ and SWIG, it provides the right
+           semantics and allows everything to compile properly.  However,
+           to clean up the generated code a little bit, the parser keeps
+           track of the template types and performs back-substitution to
+           the original type when building the parse tree.  Thus, even
+           though the implicit typedef is used in the input and may appear
+           in the generated wrapper file (for proper compilation), the parse
+           tree will hide a lot of these details.   For example:
+
+              void blah(const __swigtmpl1 x) { stuff };
+
+           will look like it was declared as follows (which is what
+           you want):
+
+              void blah(int *const x) { stuff }
+
+           The only place you are likely to notice the typedef hack
+           is in bodies of template functions.  For example, if you
+           did this,
+
+              template<class T> class blah {
+                   ...
+                   %addmethods {
+                       void spam() {
+                          T  tempvalue;
+                          ...
+                       }
+                   }
+              }
+
+           you will find that 'T tempvalue' got expanded into some
+           strange typedef type.  This *still* compiles correctly 
+           so it's not a big deal (other than looking kind of ugly
+           in the wrapper file).
+
+10/4/2001: beazley
+           Fixed some inheritance problems in Tcl Object interface.
+
+10/1/2001: beazley
+           Tcl module has changed to use byte-backed pointer strings.  This
+           implementation should be safe on 64-bit platforms.  However,
+           the order in which digits appear in pointer values no longer
+           directly corresponds to the actual numerical value of a
+           pointer (on little-endian machines, pairs of digits appear
+           in reverse order).
+
+10/1/2001: beazley
+           Perl5 module is now driven by a configuration file 'perl5.swg'
+           in the SWIG library.
+
+10/1/2001: beazley
+           The perl5 module no longer tries to apply the "out" typemap
+           in code generated for magic variables.  I'm surprised that
+           this ever worked at all (since all of the code that was there
+           was wrong anyways).   Use the "varout" typemap to handle
+           global variables.
+
+10/1/2001: beazley
+           Fixed a bug related to character array members of structures.
+           For example:
+
+                struct Foo {
+                   char name[32];
+                };
+
+           SWIG is normally supposed to return a string, but this was
+           broken in 1.3.9.   The reason it was broken was actually
+           due to a subtle new feature of typemaps.  When a data member
+           is set to an array like this, the return type of the related
+           accessor function is actually set to an array.  This means
+           that you can now write typemaps like this:
+
+              %typemap(python,out) char [ANY] {
+                 $target = PyString_FromStringAndSize($source,$dim0);
+              }
+
+           This functionality can be used to replace the defunct
+           memberout typemap in a more elegant manner.
+
+9/29/2001: beazley
+           Some further refinement of qualified C++ member functions.
+           For example:
+
+               class Foo {
+                  ...
+                  void foo() const;
+                  ...
+               };
+
+           (i) The SWIG parser was extended slightly to allow 'volatile'
+           and combinations of 'const' and 'volatile' to be used.  This
+           is probably rare, but technically legal.  Only added for
+           completeness.
+
+           (ii) For the purposes of overloading, qualified and non-qualified
+           functions are different.  Thus, when a class has methods like this:
+
+                 void foo();
+                 void foo() const;
+
+           Two distinct methods are declared.  To deal with this, %rename
+           and similar directives have been extended to recognize const.
+           Thus, one can disambiguate the two functions like this:
+
+                %rename(fooconst) Foo::foo() const;
+
+           or simply ignore the const variant like this:
+
+                %ignore Foo::foo() const;
+
+           Note: SWIG currently has no way to actually invoke the const
+           member since the 'const' is discarded when generating wrappers
+           for objects.  
+
+9/27/2001: beazley
+           New directive. %namewarn can be used to issue warning
+           messages for certain declaration names.   The name
+           matching is the same as for the %rename directive.
+           The intent of this directive is to issue warnings for
+           possible namespace conflicts.  For example:
+
+              %namewarn("print is a python keyword") print;
+
+           The name matching algorithm is performed after a name
+           has been resolved using %rename.  Therefore, a
+           declaration like this will not generate a warning:
+
+              %rename("Print") print;
+              ...
+              void print();    /* No warning generated */
+
+           Since the warning mechanism follows %rename semantics, it is
+           also to issue warnings for specific classes or just for
+           certain member function names.
+
+           (Dave - I've been thinking about adding something like this
+           for quite some time.  Just never got around to it)
+           *** NEW FEATURE ***
+
+
+9/27/2001: beazley
+           Enhanced the %ignore directive so that warning messages
+           can be issued to users.   This is done using %ignorewarn
+           like this:
+
+             %ignorewarn("operator new ignored") operator new;
+
+           The names and semantics of %ignorewarn is exactly the 
+           same as %ignore. The primary purpose of this directive
+           is for module writers who want to ignore certain types
+           of declarations, but who also want to alert users about it.
+           A user might also use this for debugging (since messages
+           will appear whenever an ignored declaration appears).
+           *** NEW FEATURE ***
+
+9/26/2001: beazley
+           Super-experimental support for overloaded operators. 
+           This implementation consists of a few different parts.
+
+           (i) Operator names such as 'operator+' are now allowed
+           as valid declarator names.  Thus the 'operator' syntax
+           can appear *anyplace* a normal declarator name was used
+           before.  On the surface, this means that operators can
+           be parsed just like normal functions and methods. 
+           However, it also means that operator names can be used
+           in many other SWIG directives like %rename.  For example:
+
+            %rename(__add__) Complex::operator+(const Complex &);
+
+           (ii) Operators are wrapped *exactly* like normal functions
+           and methods.  Internally, the operator name is used 
+           directly meaning that the wrapper code might contain
+           statements like this:
+
+                arg0->operator*((Complex const &)*arg1);
+
+           This all seems to parse and compile correctly (at least
+           on my machine).
+
+           (iii) SWIG will no longer wrap a declaration if its symbol
+           table name contains illegal identifier characters.  If
+           illegal characters are detected, you will see an error
+           like this:
+ 
+                Warning. Can't wrap operator* unless renamed to a valid identifier.
+
+           The only way to fix this is to use %rename or %name to bind
+           the operator to a nice name like "add" or something. Note:
+           the legal identifier characters are determined by the target
+           language.
+
+           There are certain issues with friend functions and operators.
+           Sometimes, friends are used to define mixed operators such
+           as adding a Complex and a double together.  Currently, SWIG
+           ignores all friend declarations in a class.  A global operator
+           declaration can probably be made to work, but you'll have to
+           rename it and it probably won't work very cleanly in the
+           target language since it's not a class member.
+
+           SWIG doesn't know how to handle operator specifications 
+           sometimes used for automatic type conversion. For example:
+
+           class String {
+              ...
+              operator const char*();
+              ...
+           };
+
+           (this doesn't parse correctly and generates a syntax error).
+
+           Also: operators no longer show up as separate parse-tree
+           nodes (instead they are normal 'cdecl' nodes).  I may
+           separate them as a special case later.
+
+           See Examples/python/operator for an example.
+
+           *** SUPER-EXPERIMENTAL NEW FEATURE ***
+
+Version 1.3.9 (September 25, 2001)
+==================================
+9/25/2001: beazley
+           Fixed parsing problem with type declarations like 
+           'char ** const'.  SWIG parsed this correctly, but the
+           internal type was represented incorrectly (the pointers
+           and qualifiers were in the wrong order).
+
+9/25/2001: beazley
+           Withdrew experimental feature (noted below) that was
+           causing serious parsing problems.
+
+Version 1.3.8 (September 23, 2001)
+==================================
+9/23/2001: beazley
+           Included improved distutils setup.py file in the Tools 
+           directory (look for the setup.py.tmpl file).  Contributed by
+           Tony Seward.
+
+9/23/2001: beazley
+           Included two new RPM spec files in the Tools directory. Contributed
+           by Tony Seward and Uwe Steinmann.
+  
+9/21/2001: beazley
+           Fixed SF Bug [ #463635 ] Perl5.swg does not compile in Visual C++
+
+9/21/2001: beazley
+           Two new directives control the creation of default
+           constructors and destructors:
+
+                %nodefault  
+                %makedefault
+
+           These replace %pragma nodefault and %pragma makedefault.
+           (old code will still work, but documentation will only
+           describe the new directives).
+
+9/21/2001: beazley
+           Fixed SF Bug [ #462354 ] %import broken in 1.3.7.
+
+9/20/2001: beazley
+
+**** 9/25/2001: This feature is temporarily withdrawn due to some
+parsing problems it has created.
+
+           Parser modified to ignore out-of-class constructor
+           and destructor declarations.  For example:
+
+               inline Foo::Foo() :
+                    Bar("foo")
+               { 
+               } 
+
+               inline Foo::~Foo() {
+               }
+
+           Suggested by Jason Stewart.
+           *** EXPERIMENTAL FEATURE ***
+
+9/20/2001: beazley
+           Modified the parser to ignore forward template class
+           declarations.  For example:
+
+              template <class V, long S> class MapIter;
+
+           Suggested by an email example from Irina Kotlova.
+
+9/20/2001: beazley
+           Fixed problem with undeclared tcl_result variable in 
+           the "out" typemap for Tcl.  Reported by Shaun Lowry.
+
+9/20/2001: beazley
+           Incorporated changes to make SWIG work with ActivePerl.  
+           Contributed by Joel Reed.
+
+9/20/2001: beazley
+           Slight change to the parsing of C++ constructor initializers.
+           For example:
+
+           class Foo : public Bar {
+           public:
+                  Foo() : Bar(...) {...}
+           };
+
+           SWIG now discards the contents of the (...) regardless of 
+           what might enclosed (even if syntactically wrong).  SWIG
+           doesn't need this information and there is no reason to
+           needless add syntax rules to handle all of the possibilities
+           here.
+
+9/20/2001: beazley
+           Change to typemaps for structure members.  If you have a
+           structure like this:
+
+              struct Vector {
+                int *bar;
+              };
+
+           The member name 'bar' is now used in any accessor functions.
+           This allows the "in" typemap to be used when setting the value.
+           For example, this typemap
+
+               %typemap(python,in) int *bar {
+                   ...
+               }
+
+           now matches Vector::bar.  It should be noted that this will also
+           match any function with an argument of "int *bar" (so you should
+           be careful).
+           *** NEW FEATURE. POTENTIAL INCOMPATIBILITY ***
+
+9/20/2001: beazley
+           Fixed SF bug #462642 setting string values in structures
+
+9/20/2001: beazley
+           Fixed SF bug #462398 problem with nested templates.
+
+9/20/2001: beazley
+           Fixed SF bug #461626 problem with formatting and C++ comments.
+            
+9/20/2001: beazley
+           Fixed SF bug #462845 Wrong ownership of returned objects.
+           
+9/19/2001: beazley
+           Fixed SF bug #459367.  Default constructors for classes
+           with pure virtual methods.
+
+9/19/2001: beazley
+           Fixed problem with default arguments and class scope.  For
+           example:
+
+               class Foo {
+               public:
+                  enum bar { FOO, BAR };
+                  void blah(bar b = FOO);
+                  ...
+               }
+
+           SWIG now correctly generates a default value of "Foo::FOO" for
+           the blah() method above.  This used to work in 1.1, but was
+           broken in 1.3.7.   Bug reported by Mike Romberg.
 
 Version 1.3.7  (September 3, 2001)
 ==================================
@@ -212,7 +1378,7 @@ Version 1.3.7  (September 3, 2001)
 
            (someone requested this long ago, but I finally figured
            how to implement it in a straightforward manner).
-           *** NEW FEATURE ***
+           *** EXPERIMENTAL NEW FEATURE ***
            
 8/30/2001: beazley
            SWIG now automatically generates default constructors
