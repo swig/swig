@@ -176,8 +176,19 @@ int Dispatcher::emit_one(Node *n) {
 
 int Dispatcher::emit_children(Node *n) {
   Node *c;
+  char *eo = Char(Getattr(n,"feature:emitonlychildren"));
   for (c = firstChild(n); c; c = nextSibling(c)) {
-    emit_one(c);
+    if (eo) {
+      const char *tag = Char(nodeType(c));
+      if (Strcmp(tag,"cdecl") == 0) {
+	if (checkAttribute(c, "storage", "typedef"))
+	  tag = "typedef";
+      }
+      if (strstr(eo,tag) == 0) {
+	continue;
+      }
+    }
+    emit_one(c);    
   }
   return SWIG_OK;
 }
@@ -250,7 +261,8 @@ int Language::emit_one(Node *n) {
   int oldext;
   if (!n) return SWIG_OK;
 
-  if (Getattr(n,"feature:ignore")) return SWIG_OK;
+  if (Getattr(n,"feature:ignore")
+      && !Getattr(n,"feature:onlychildren")) return SWIG_OK;
 
   oldext = Extend;
   if (Getattr(n,"feature:extend")) Extend = 1;
@@ -1693,6 +1705,15 @@ int Language::classDirector(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDeclaration(Node *n) {
+  String *ochildren = Getattr(n,"feature:onlychildren");
+  if (ochildren) {
+    Setattr(n,"feature:emitonlychildren",ochildren);
+    emit_children(n);
+    Delattr(n,"feature:emitonlychildren");
+    Setattr(n,"feature:ignore","1");
+    return SWIG_NOWRAP;
+  }
+
   String *kind = Getattr(n,"kind");
   String *name = Getattr(n,"name");
   String *tdname = Getattr(n,"tdname");

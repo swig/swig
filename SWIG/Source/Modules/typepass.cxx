@@ -400,7 +400,9 @@ public:
 	fname = SwigType_typedef_resolve_all(name);
 	if (Strcmp(fname,name) != 0) {
 	  cn = Swig_symbol_clookup_local(fname,0);
-	  if ((!cn) || (Strcmp(nodeType(cn),"template") == 0)) {
+	  if ((!cn) || (Strcmp(nodeType(cn),"template") == 0)
+	      || (Getattr(cn,"feature:onlychildren") != 0)
+	      || (Getattr(n,"feature:onlychildren") != 0)) {
 	    Swig_symbol_cadd(fname,n);
 	    SwigType_typedef_class(fname);
 	    scopename = Copy(fname);
