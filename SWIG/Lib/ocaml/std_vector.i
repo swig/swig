@@ -7,42 +7,6 @@
 // Ocaml implementation
 
 %include std_common.i
-%include exception.i
-
-// __getitem__ is required to raise an IndexError for for-loops to work
-// other methods which can raise are made to throw an IndexError as well
-%exception std::vector::__getitem__ {
-    try {
-        $action
-	    } catch (std::out_of_range& e) {
-		SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-	    }
-}
-
-%exception std::vector::__setitem__ {
-    try {
-        $action
-	    } catch (std::out_of_range& e) {
-		SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-	    }
-}
-
-%exception std::vector::__delitem__  {
-    try {
-        $action
-	    } catch (std::out_of_range& e) {
-		SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-	    }
-}
-
-%exception std::vector::pop  {
-    try {
-        $action
-	    } catch (std::out_of_range& e) {
-		SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-	    }
-}
-
 
 // ------------------------------------------------------------------------
 // std::vector
@@ -72,19 +36,26 @@
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
-    %}
+%}
 
 // exported class
 
 namespace std {
-    
-    template<class T> class vector {
+    template <class T> class vector {
+    public:
+        vector(unsigned int size = 0);
+        vector(unsigned int size, const T& value);
+        vector(const vector<T>&);
+        unsigned int size() const;
+        bool empty() const;
+        void clear();
+        void push_back(const T& x);
+	T operator [] ( int f );
+	vector <T> &operator = ( vector <T> &other );
+	%extend {
+	    void set( int i, T x ) {
+		(*self)[i] = x;
+	    }
+	};
     };
-    
-    
-    // Partial specialization for vectors of pointers.  [ beazley ]
-    
-    template<class T> class vector<T*> {
-    };
-
-}
+};
