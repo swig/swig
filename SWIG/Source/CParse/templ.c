@@ -219,6 +219,9 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
     }
   }
 
+  /*  Printf(stdout,"targs = '%s'\n", templateargs);
+  Printf(stdout,"rname = '%s'\n", rname);
+  Printf(stdout,"tname = '%s'\n", tname); */
   cparse_template_expand(n,tname, rname, templateargs, patchlist, typelist, cpatchlist);
 
   /* Set the name */
