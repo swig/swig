@@ -4,9 +4,12 @@ require 'example'
 
 # First create some objects using the pointer library.
 print "Testing the pointer library\n"
-a = Example::ptrcreate("int", 37)
-b = Example::ptrcreate("int", 42)
-c = Example::ptrcreate("int");  
+a = Example::new_intp()
+b = Example::new_intp()
+c = Example::new_intp()
+
+Example::intp_assign(a,37)
+Example::intp_assign(b,42)
 
 print "     a = #{a}\n"
 print "     b = #{b}\n"
@@ -16,13 +19,13 @@ print "     c = #{c}\n"
 Example::add(a, b, c)
 
 # Now get the result
-r = Example::ptrvalue(c)
+r = Example::intp_value(c)
 print "     37 + 42 = #{r}\n"
 
 # Clean up the pointers
-Example::ptrfree(a)
-Example::ptrfree(b)
-Example::ptrfree(c)
+Example::delete_intp(a)
+Example::delete_intp(b)
+Example::delete_intp(c)
 
 # Now try the typemap library
 # This should be much easier. Now how it is no longer
