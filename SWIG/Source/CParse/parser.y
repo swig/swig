@@ -60,8 +60,12 @@ static String  *Classprefix = 0;
 static int      inclass = 0;
 static int      templatenum = 0;
 static Hash    *templatetypes = 0;
+static String  *templatename = 0;        /* Name of the template used during expansion */
+static String  *templateiname = 0;       /* Instantiation name of the template being parsed */
+static String  *templateargs = 0;
 
- int      ShowTemplates = 0;    /* Debugging mode */
+
+int      ShowTemplates = 0;    /* Debugging mode */
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -483,6 +487,18 @@ Node *Swig_cparse(File *f) {
   return top;
 }
 
+static void canonical_template(String *s) {
+  Replace(s,"\n"," ", DOH_REPLACE_ANY);
+  Replace(s,"\t"," ", DOH_REPLACE_ANY);
+  Replace(s,"  "," ", DOH_REPLACE_ANY);
+  /* Canonicalize whitespace around angle brackets and commas */
+  while (Replace(s, "< ", "<", DOH_REPLACE_ANY));
+  while (Replace(s, " >", ">", DOH_REPLACE_ANY));
+  while (Replace(s, " ,", ",", DOH_REPLACE_ANY));
+  while (Replace(s, ", ", ",", DOH_REPLACE_ANY));
+  Replace(s,">"," >", DOH_REPLACE_ANY);
+}
+
 %}
 
 %union {
@@ -538,7 +554,7 @@ Node *Swig_cparse(File *f) {
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
 %token NATIVE INLINE
-%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE
+%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE ENDTEMPLATE
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
 %token TYPES
 %token NONID DSTAR
@@ -564,7 +580,7 @@ Node *Swig_cparse(File *f) {
 %type <node>     echo_directive except_directive include_directive inline_directive ;
 %type <node>     insert_directive module_directive name_directive native_directive ;
 %type <node>     new_directive pragma_directive rename_directive feature_directive typemap_directive ;
-%type <node>     types_directive template_directive ;
+%type <node>     types_directive template_directive endtemplate_directive ;
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_decl;
@@ -676,6 +692,7 @@ swig_directive : addmethods_directive { $$ = $1; }
                | typemap_directive { $$ = $1; }
                | types_directive  { $$ = $1; }
                | template_directive { $$ = $1; }
+               | endtemplate_directive { $$ = $1; }
                ;
 
 /* ------------------------------------------------------------
@@ -1349,7 +1366,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		      SwigType *ty = Getattr(p,"type");
 		      if (ty) {
 			tds = NewStringf("__swigtmpl%d",templatenum);
-			if (!templatetypes) templatetypes = NewHash();
+			templatetypes = NewHash();
 			Setattr(templatetypes,Copy(tds),Copy(ty));
 			templatenum++;
 			Printf(ts,"typedef %s;\n", SwigType_str(ty,tds));
@@ -1364,8 +1381,12 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		      Printf(sargs,",");
 		    }
 		  }
+		  templateargs = NewStringf("%s<%s>", $5, sargs);
+		  canonical_template(templateargs);
+		  
 		  Printf(ts,"%%}\n");
                   Printf(ts,"%%_template_%s(%s,%s,%s)\n",$5,$3,args,sargs);
+		  Printf(ts,"%%endtemplate;\n");
 		  Delete(args);
 		  Delete(sargs);
 		  Setfile(ts,input_file);
@@ -1386,10 +1407,31 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		  }
 		  Delete(ts);
 		  Delete(cpps);
+		  templatename = NewString($5);
+		  templateiname = NewString($3);
 		  $$ = 0;
                }
                ;
 
+/* -----------------------------------------------------------------------------
+ * %endtemplate
+ *
+ * This directive appears at the end of performing a template expansion.  It's
+ * needed to reset some internal variables.
+ * ----------------------------------------------------------------------------- */
+
+endtemplate_directive: ENDTEMPLATE SEMI {
+                    Delete(templatetypes);
+                    templatetypes = 0;
+		    Delete(templatename);
+		    templatename = 0;
+		    Delete(templateiname);
+		    templateiname = 0;
+		    Delete(templateargs);
+		    templateargs = 0;
+                    $$ = 0;
+                }
+                ;
 
 /* ======================================================================
  *                              C Parsing
@@ -1800,7 +1842,6 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     Printf(macrocode,"%%{\n");
 		     Printf(macrocode,"typedef %s< %s > __name;\n", $6,$3.sparms);
 		     Printf(macrocode,"%%}\n");
-
 		     Printf(macrocode,"class __name ");
 		     if ($7) {
 		       int i;
@@ -2050,13 +2091,13 @@ cpp_nested : storage_class cpptype ID LBRACE { start_line = line_number; skip_ba
 
 /* An unnamed nested structure definition */
               | storage_class cpptype LBRACE { start_line = line_number; skip_balanced('{','}');
-              } declarator SEMI {
+              } nested_decl SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (strcmp($2,"class") == 0) {
 		    Printf(stderr,"%s:%d.  Warning. Nested classes not currently supported (ignored)\n", input_file, line_number);
 		    /* Generate some code for a new class */
-		  } else {
+		  } else if ($5.id) {
 		    /* Generate some code for a new class */
 		    Nested *n = (Nested *) malloc(sizeof(Nested));
 		    n->code = NewString("");
@@ -2650,8 +2691,17 @@ type_right     : TYPE_INT { $$ = $1; }
 		       $$ = NewStringf("%s%s",ty,$2);
 		     }
 		   }
+		   if (!$$ && templatename) {
+		     if (Cmp($1,templateiname) == 0) {
+		       $$ = NewStringf("%s%s", templatename, $2);
+		     }
+		   }
 		   if (!$$) {
 		     $$ = NewStringf("%s%s",$1,$2); 
+		   }
+		   if ((templateargs) && (Cmp($$,templateargs) == 0)) {
+		     Delete($$);
+		     $$ = NewString(templateiname);
 		   }
                }
                | cpptype idcolon template_decl { 
@@ -2660,6 +2710,11 @@ type_right     : TYPE_INT { $$ = $1; }
 		     SwigType *ty = Getattr(templatetypes,$2);
 		     if (ty) {
 		       $$ = NewStringf("%s %s%s",$1, ty,$3);
+		     }
+		   }
+		   if (!$$ && templatename) {
+		     if (Cmp($2,templateiname) == 0) {
+		       $$ = NewStringf("%s %s%s", $1, templatename, $2);
 		     }
 		   }
 		   if (!$$) {
@@ -2987,16 +3042,14 @@ template_decl : LESSTHAN {
                      String *s;
                      skip_balanced('<','>');
 		     s = Copy(scanner_ccode);
-	             Replace(s,"\n"," ", DOH_REPLACE_ANY);
-                     Replace(s,"\t"," ", DOH_REPLACE_ANY);
-	             Replace(s,"  "," ", DOH_REPLACE_ANY);
-		     /* Canonicalize whitespace around angle brackets and commas */
-		     while (Replace(s, "< ", "<", DOH_REPLACE_ANY));
-		     while (Replace(s, " >", ">", DOH_REPLACE_ANY));
-		     while (Replace(s, " ,", ",", DOH_REPLACE_ANY));
-		     while (Replace(s, ", ", ",", DOH_REPLACE_ANY));
-		     Replace(s,">"," >", DOH_REPLACE_ANY);
-                   $$ = Char(s);
+		     canonical_template(s);
+		     if (templatetypes) {
+		       String *key;
+		       for (key = Firstkey(templatetypes); key; key = Nextkey(templatetypes)) {
+			 Replace(s,key,Getattr(templatetypes,key), DOH_REPLACE_ID);
+		       }
+		     }
+		     $$ = Char(s);
                  }
                | empty { $$ = (char*)"";  }
                ;
