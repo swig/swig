@@ -25,6 +25,9 @@ extern "C" {
 #define SWIG_POINTER_EXCEPTION     0x1
 #define SWIG_POINTER_DISOWN        0x2
 
+/* Exception handling in wrappers */
+#define SWIG_fail   goto fail
+
 /* Constant information structure */
 typedef struct swig_const_info {
     int type;

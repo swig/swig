@@ -6,6 +6,7 @@
 
 %runtime "common.swg"         // common type checking code
 %runtime "perlrun.swg"        // Perl runtime functions
+%include "exception.i"        // Exception library
 
 /* Typemaps for input parameters */
 
@@ -33,13 +34,13 @@
 
 %typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
 	if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
-            croak("Type error in argument $argnum of $symname. Expected %s", $1_descriptor->name);
+            SWIG_exception(SWIG_TypeError,"Type error in argument $argnum of $symname. Expected $1_mangle");
         }
 }
 
 %typemap(in) void * {
 	if (SWIG_ConvertPtr($input, (void **) &$1, 0,0) < 0) {
-            croak("Type error in argument $argnum of $symname. Expected %s", $1_descriptor->name);
+            SWIG_exception(SWIG_TypeError, "Type error in argument $argnum of $symname. Expected $1_mangle");
         }
 }
 
@@ -47,7 +48,7 @@
 %typemap(in) SWIGTYPE {
     $&1_ltype argp;
     if (SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,0) < 0) {
-           croak("Type error in argument $argnum of $symname. Expected %s", $&1_descriptor->name);	
+            SWIG_exception(SWIG_TypeError,"Type error in argument $argnum of $symname. Expected $&1_mangle");
     }
     $1 = *argp;
 }

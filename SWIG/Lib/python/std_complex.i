@@ -24,6 +24,7 @@ namespace std
     }
     else {
       PyErr_SetString(PyExc_TypeError,"Expected a complex");
+      SWIG_fail;
     }
   }  
   
@@ -40,6 +41,7 @@ namespace std
       $1 = &temp;
     } else {	
       PyErr_SetString(PyExc_TypeError,"Expected a complex");
+      SWIG_fail;
     }
   }
   

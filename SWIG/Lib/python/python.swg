@@ -33,16 +33,16 @@
 
 %typemap(in) unsigned int, unsigned short, unsigned long, unsigned char 
 	"$1 = ($1_ltype) PyInt_AsLong($input);
-         if (PyErr_Occurred()) return NULL;";
+         if (PyErr_Occurred()) SWIG_fail;";
 
 %typemap(in) long long 
         "$1 = (long long) PyLong_AsLongLong($input);
-         if (PyErr_Occurred()) return NULL;";
+         if (PyErr_Occurred()) SWIG_fail;";
 
 
 %typemap(in) unsigned long long 
         "$1 = (unsigned long long) PyLong_AsUnsignedLongLong($input);
-         if (PyErr_Occurred()) return NULL;";
+         if (PyErr_Occurred()) SWIG_fail;";
 
 %typemap(in,parse="f") float "";
 %typemap(in,parse="d") double "";
@@ -51,7 +51,7 @@
 
 /* Boolean values.  Have to convert from a long since */
 %typemap(in) bool "$1 = (bool) PyInt_AsLong($input);
-                   if (PyErr_Occurred()) return NULL;";
+                   if (PyErr_Occurred()) SWIG_fail;";
 
 /* Enum values. */
 %typemap(in,parse="i") enum SWIGTYPE "";
@@ -60,17 +60,17 @@
 %typemap(in) SWIGTYPE *, 
                     SWIGTYPE &,
                     SWIGTYPE [] 
-       "if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) return NULL;"
+       "if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) SWIG_fail;"
 
 /* Void pointer.  Accepts any kind of pointer */
-%typemap(in) void * "if ((SWIG_ConvertPtr($input,(void **) &$1, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) return NULL;"
+%typemap(in) void * "if ((SWIG_ConvertPtr($input,(void **) &$1, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) SWIG_fail;"
 
 /* Object passed by value. Convert to a pointer */
-%typemap(in) SWIGTYPE ($&1_ltype argp) "if ((SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION) == -1)) return NULL;
+%typemap(in) SWIGTYPE ($&1_ltype argp) "if ((SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION) == -1)) SWIG_fail;
                                                $1 = *argp; ";
 
 /* Pointer to a class member */
-%typemap(in) SWIGTYPE (CLASS::*) "if ((SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor,SWIG_POINTER_EXCEPTION)) == -1) return NULL;";
+%typemap(in) SWIGTYPE (CLASS::*) "if ((SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor,SWIG_POINTER_EXCEPTION)) == -1) SWIG_fail;";
 
 /* Const primitive references.  Passed by value */
 
@@ -84,28 +84,28 @@
              const unsigned char & (unsigned char temp),
              const bool & (bool temp)
 	"temp = ($*1_ltype) PyInt_AsLong($input);
-         if (PyErr_Occurred()) return NULL;
+         if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
 %typemap(in) const float & (float temp),
 	     const double & (double temp)
 	"temp = ($*1_ltype) PyFloat_AsDouble($input);
-         if (PyErr_Occurred()) return NULL;
+         if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
 %typemap(in) const long long & (long long temp) 
         "temp = (long long) PyLong_AsLongLong($input);
-         if (PyErr_Occurred()) return NULL;
+         if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
 %typemap(in) const unsigned long long & (unsigned long long temp) 
         "temp = (unsigned long long) PyLong_AsUnsignedLongLong($input);
-         if (PyErr_Occurred()) return NULL;
+         if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
 %typemap(in) const char &(char temp) {
         char *stemp = PyString_AsString($input);
-        if (PyErr_Occurred()) return NULL;
+        if (PyErr_Occurred()) SWIG_fail;
         temp = *stemp;
         $1 = &temp;
 }
@@ -397,7 +397,7 @@
  * ------------------------------------------------------------ */
 
 %typemap(in)     size_t "$1 = (size_t) PyInt_AsLong($input);
-                         if (PyErr_Occurred()) return NULL;";
+                         if (PyErr_Occurred()) SWIG_fail;";
 
 %typemap(out)      size_t = long;
 %typemap(varin)    size_t = long;

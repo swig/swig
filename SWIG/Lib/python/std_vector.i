@@ -95,7 +95,7 @@ namespace std {
                         Py_DECREF(o);
                         PyErr_SetString(PyExc_TypeError,
                                         "vector<" #T "> expected");
-                        return NULL;
+                        SWIG_fail;
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
@@ -103,7 +103,7 @@ namespace std {
                 $1 = *v;
             } else {
                 PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
-                return NULL;
+                SWIG_fail;
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp,
@@ -127,7 +127,7 @@ namespace std {
                         Py_DECREF(o);
                         PyErr_SetString(PyExc_TypeError,
                                         "vector<" #T "> expected");
-                        return NULL;
+                        SWIG_fail;
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
@@ -135,7 +135,7 @@ namespace std {
                 $1 = v;
             } else {
                 PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
-                return NULL;
+                SWIG_fail;
             }
         }
         %typemap(out) vector<T> {
@@ -309,7 +309,7 @@ namespace std {
                         Py_DECREF(o);
                         PyErr_SetString(PyExc_TypeError,
                                         "vector<" #T "> expected");
-                        return NULL;
+                        SWIG_fail;
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
@@ -317,7 +317,7 @@ namespace std {
                 $1 = *v;
             } else {
                 PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
-                return NULL;
+                SWIG_fail;
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp,
@@ -341,7 +341,7 @@ namespace std {
                         Py_DECREF(o);
                         PyErr_SetString(PyExc_TypeError,
                                         "vector<" #T "> expected");
-                        return NULL;
+                        SWIG_fail;
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
@@ -349,7 +349,7 @@ namespace std {
                 $1 = v;
             } else {
                 PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
-                return NULL;
+                SWIG_fail;
             }
         }
         %typemap(out) vector<T> {
@@ -520,7 +520,7 @@ namespace std {
                         Py_DECREF(o);
                         PyErr_SetString(PyExc_TypeError,
                                         "vector<" #T "> expected");
-                        return NULL;
+                        SWIG_fail;
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
@@ -528,7 +528,7 @@ namespace std {
                 $1 = *v;
             } else {
                 PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
-                return NULL;
+                SWIG_fail;
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp,
@@ -550,7 +550,7 @@ namespace std {
                         Py_DECREF(o);
                         PyErr_SetString(PyExc_TypeError,
                                         "vector<" #T "> expected");
-                        return NULL;
+                        SWIG_fail;
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
@@ -558,7 +558,7 @@ namespace std {
                 $1 = v;
             } else {
                 PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
-                return NULL;
+                SWIG_fail;
             }
         }
         %typemap(out) vector<T> {

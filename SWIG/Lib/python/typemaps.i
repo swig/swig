@@ -63,7 +63,7 @@ or you can use the %apply directive :
 %typemap(in) type *INPUT(type temp), type &INPUT(type temp)
 {
    temp = converter($input);
-   if (PyErr_Occurred()) return NULL;
+   if (PyErr_Occurred()) SWIG_fail;
    $1 = &temp;
 }
 %typemap(typecheck) type *INPUT = type;

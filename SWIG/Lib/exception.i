@@ -90,7 +90,7 @@ static void _SWIG_exception(int code, char *msg) {
   }
 }
 
-#define SWIG_exception(a,b) { _SWIG_exception(a,b); return NULL; }
+#define SWIG_exception(a,b) { _SWIG_exception(a,b); SWIG_fail; }
 %}
 #endif
 
