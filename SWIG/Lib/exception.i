@@ -301,4 +301,45 @@ static void SWIG_exception(int code, const char *msg) {
 %}
 #endif // SWIGCSHARP
 
+#ifdef __cplusplus
+/*
+  You can use the SWIG_CATCH_STDEXCEPT macro with the %exception
+  directive as follows:
+
+  %exception {
+    try {
+      $action
+    }
+    catch (my_except& e) {
+      ...
+    }
+    SWIG_CATCH_STDEXCEPT // catch std::exception 
+    catch (...) {
+     SWIG_exception(SWIG_UnknownError, "Unknown exception");
+    }
+  }  
+*/
+%{
+#include <stdexcept>
+%}
+%define SWIG_CATCH_STDEXCEPT
+  /* catching std::exception  */
+  catch (std::invalid_argument& e) {
+    SWIG_exception(SWIG_ValueError, e.what() );
+  } catch (std::domain_error& e) {
+    SWIG_exception(SWIG_ValueError, e.what() );
+  } catch (std::overflow_error& e) {
+    SWIG_exception(SWIG_OverflowError, e.what() );
+  } catch (std::out_of_range& e) {
+    SWIG_exception(SWIG_IndexError, e.what() );
+  } catch (std::length_error& e) {
+    SWIG_exception(SWIG_IndexError, e.what() );
+  } catch (std::runtime_error& e) {
+    SWIG_exception(SWIG_RuntimeError, e.what() );
+  } catch (std::exception& e) {
+    SWIG_exception(SWIG_SystemError, e.what() );
+  }
+%enddef
+#endif // __cplusplus
+
 /* exception.i ends here */
