@@ -61,20 +61,44 @@ static void init_precedence() {
   expr_init = 1;
 }
 
+#define UNARY_OP(token) (((token) == SWIG_TOKEN_NOT) || \
+			 ((token) == SWIG_TOKEN_LNOT) || \
+			 ((token) == EXPR_UMINUS))
+
 /* Reduce a single operator on the stack */
-static void reduce_op() {
-  if (stack[sp-1].op != EXPR_OP) {
-    errmsg = "Missing operator";
-    sp = 0;
-    return;
+/* return 0 on failure, 1 on success */
+static int reduce_op() {
+  long op_token = stack[sp-1].value;
+  assert(sp > 0);
+  assert(stack[sp-1].op == EXPR_OP);
+  /* do some basic checking first: */
+  if (stack[sp].op != EXPR_VALUE) {
+    errmsg = "Right-hand side is not value";
+    return 0;
   }
-  if (stack[sp-2].svalue || stack[sp].svalue) {
-    /* A string expression */
-    if (!(stack[sp-2].svalue && stack[sp].svalue)) {
-      errmsg = "Can't mix strings and integers in expression";
-      sp = 0;
-      return;
+  if (UNARY_OP(op_token)) {
+    if (stack[sp].svalue) {
+      errmsg = "Syntax error: attempt to apply unary operator to string";
+      return 0;
     }
+  } else {
+    /* binary operator: */
+    if (sp == 1) {
+      /* top of stack: don't attempt to use sp-2! */
+      errmsg = "Missing left-hand side for binary operator";
+      return 0;
+    }
+    if (stack[sp].op != EXPR_VALUE) {
+      errmsg = "Left-hand side of binary operator is not a value";
+      return 0;
+    }
+    if ((!stack[sp-2].svalue) != (!stack[sp].svalue)) {
+      errmsg = "Can't mix strings and integers in expression";
+      return 0;
+    }
+  }
+  if (stack[sp].svalue) {
+    /* A binary string expression */
     switch(stack[sp-1].value) {
     case SWIG_TOKEN_EQUALTO:
       stack[sp-2].value = (Strcmp(stack[sp-2].svalue,stack[sp].svalue) == 0);
@@ -89,12 +113,12 @@ static void reduce_op() {
       sp -= 2;
       break;
     default:
-      errmsg = "Syntax error";
-      sp = 0;
+      errmsg = "Syntax error: bad binary operator for strings";
+      return 0;
       break;
     }
   } else {
-    switch(stack[sp-1].value) {
+    switch(op_token) {
     case SWIG_TOKEN_STAR:
       stack[sp-2].value = stack[sp-2].value * stack[sp].value;
       sp -= 2;
@@ -180,12 +204,14 @@ static void reduce_op() {
       sp -= 2;
       break;
     default:
-      errmsg = "Syntax error";
-      sp = 0;
+      errmsg = "Syntax error: bad operator";
+      return 0;
       break;
     }
   }
   stack[sp].op = EXPR_VALUE;
+  stack[sp].svalue = 0;		/* ensure it's not a string! */
+  return 1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -285,7 +311,7 @@ Preprocessor_expr(DOH *s, int *error) {
 	/* End of input. Might have to reduce if an operator is on stack */
 	while (sp > 0) {
 	  if (stack[sp-1].op == EXPR_OP) {
-	    reduce_op();
+	    if (!reduce_op()) goto reduce_error;
 	  } else if (stack[sp-1].op == EXPR_GROUP) {
 	    errmsg = "Missing \')\'";
 	    *error = 1;
@@ -323,7 +349,7 @@ Preprocessor_expr(DOH *s, int *error) {
 	  stack[sp].op = EXPR_TOP;
 	  stack[sp].value = 0;
 	} else {
-	  if (stack[sp-1].op != EXPR_OP) goto syntax_error;
+	  if (stack[sp-1].op != EXPR_OP) goto syntax_error_expected_operator;
 	  op = stack[sp-1].value;         /* Previous operator */
 
 	  /* Now, depending on the precedence relationship between the last operator and the current
@@ -331,8 +357,7 @@ Preprocessor_expr(DOH *s, int *error) {
 
 	  if (prec[op] <= prec[token]) {
 	    /* Reduce the previous operator */
-	    reduce_op();
-	    if (stack[sp].op != EXPR_VALUE) goto syntax_error;
+	    if (!reduce_op()) goto reduce_error;
 	  }
 	  sp++;
 	  stack[sp].op = EXPR_OP;
@@ -346,14 +371,16 @@ Preprocessor_expr(DOH *s, int *error) {
 	if (sp ==  0) goto extra_rparen;
 
 	/* Might have to reduce operators first */
-	while ((sp > 0) && (stack[sp-1].op == EXPR_OP)) reduce_op();
+	while ((sp > 0) && (stack[sp-1].op == EXPR_OP)) {
+	  if (!reduce_op()) goto reduce_error;
+	}
 	if ((sp == 0) || (stack[sp-1].op != EXPR_GROUP)) goto extra_rparen;
 	stack[sp-1].op = EXPR_VALUE;
 	stack[sp-1].value = stack[sp].value;
 	sp--;
 	break;
       default:
-	goto syntax_error;
+	goto syntax_error_expected_operator;
 	break;
       }
       break;
@@ -363,8 +390,19 @@ Preprocessor_expr(DOH *s, int *error) {
       abort();
     }
   }
+
  syntax_error:
   errmsg = "Syntax error";
+  *error = 1;
+  return 0;
+
+ syntax_error_expected_operator:
+  errmsg = "Syntax error: expected operator";
+  *error = 1;
+  return 0;
+
+ reduce_error:
+  /*  errmsg has been set by reduce_op */
   *error = 1;
   return 0;
 
