@@ -1,11 +1,11 @@
-/* File : example.i */
 %module example
+
 %include exception.i
 %include typemaps.i
 
 extern int    gcd(int x, int y);
 
-%typemap(ruby,in) (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   int i;
   
   if (TYPE($input) != T_ARRAY) {
@@ -27,13 +27,13 @@ extern int    gcd(int x, int y);
   $2[i] = 0;
 }
 
-%typemap(ruby,freearg) (int argc, char *argv[]) {
+%typemap(freearg) (int argc, char *argv[]) {
   free($2);
 }
 
 extern int gcdmain(int argc, char *argv[]);
 
-%typemap(ruby,in) (char *bytes, int len) {
+%typemap(in) (char *bytes, int len) {
   if (TYPE($input) != T_STRING) {
     SWIG_exception(SWIG_ValueError, "Expected a string");
   }
@@ -46,7 +46,7 @@ extern int count(char *bytes, int len, char c);
 
 /* This example shows how to wrap a function that mutates a string */
 
-%typemap(ruby,in) (char *str, int len) {
+%typemap(in) (char *str, int len) {
   char *temp;
   if (TYPE($input) != T_STRING) {
     SWIG_exception(SWIG_ValueError,"Expected a string");
@@ -59,7 +59,7 @@ extern int count(char *bytes, int len, char c);
 
 /* Return the mutated string as a new object.  */
 
-%typemap(ruby,argout) (char *str, int len) {
+%typemap(argout, fragment="output_helper") (char *str, int len) {
    VALUE o;
    o = rb_str_new($1,$2);
    $result = output_helper($result,o);
