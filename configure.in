@@ -445,8 +445,12 @@ if test x"${TCLCONFIG}" = x ; then
 else
     AC_MSG_RESULT(found $TCLCONFIG/tclConfig.sh)
     . $TCLCONFIG/tclConfig.sh
-    TCLINCLUDE=$ISYSTEM$TCL_PREFIX/include
-    TCLLIB=$TCL_LIB_SPEC
+    if test -z "$TCLINCLUDE"; then
+        TCLINCLUDE=$ISYSTEM$TCL_PREFIX/include
+    fi
+    if test -z "$TCLLIB"; then
+        TCLLIB=$TCL_LIB_SPEC
+    fi
 fi
 
 if test -z "$TCLINCLUDE"; then
