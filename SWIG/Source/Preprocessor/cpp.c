@@ -384,7 +384,8 @@ find_args(String *s)
   if (c != '(') {
     /* Not a macro, bail out now! */
     Seek(s,pos, SEEK_SET);
-    return args;
+    Delete(args);
+    return 0;
   }
   c = Getc(s);
   /* Okay.  This appears to be a macro so we will start isolating arguments */
@@ -532,7 +533,7 @@ expand_macro(String_or_char *name, List *args)
   assert(mvalue);
   margs = Getattr(macro,"args");
 
-  if (Getattr(macro,"varargs")) {
+  if (args && Getattr(macro,"varargs")) {
     isvarargs = 1;
     /* Variable length argument macro.  We need to collect all of the extra arguments into a single argument */
     if (Len(args) >= (Len(margs)-1)) {
@@ -556,7 +557,7 @@ expand_macro(String_or_char *name, List *args)
     }
   }
   /* If there are arguments, see if they match what we were given */
-  if ((margs) && (Len(margs) != Len(args))) {
+  if (args && (margs) && (Len(margs) != Len(args))) {
     if (Len(margs) > (1+isvarargs))
       Swig_error(Getfile(args),Getline(args),"Macro '%s' expects %d arguments\n", name, Len(margs)-isvarargs);
     else if (Len(margs) == (1+isvarargs))
@@ -581,7 +582,7 @@ expand_macro(String_or_char *name, List *args)
 
   temp = NewString("");
   tempa = NewString("");
-  if (margs) {
+  if (args && margs) {
     l = Len(margs);
     for (i = 0; i < l; i++) {
       DOH *arg, *aname;
