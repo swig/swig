@@ -104,4 +104,16 @@
 }
 #endif
 
+/* Character array handling */
+
+%typemap(memberin) char [ANY] {
+  if ($input) strncpy($1,$input,$1_dim0);
+  else $1[0] = 0;
+}
+
+%typemap(globalin) char [ANY] {
+  if ($input) strncpy($1,$input,$1_dim0);
+  else $1[0] = 0;
+}
   
+
