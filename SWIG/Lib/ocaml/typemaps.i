@@ -11,30 +11,12 @@
 
 /* Pointers */
 
-%typemap(ocaml,in) SWIGTYPE * {
-    $1 = ($ltype)SWIG_MustGetPtr($input, $descriptor, $argnum);
-}
-
-%typemap(ocaml,out) SWIGTYPE * {
-    extern value $delete_fn( value );
-    $result = SWIG_MakePtr ((void *)$1, 
-			    $descriptor, (void *)$delete_fn);
-}
-
-%typemap(ocaml,varin) SWIGTYPE * {
-    $1 = ($ltype)SWIG_MustGetPtr($input, $descriptor, 1);
-}
-
-%typemap(ocaml,varout) SWIGTYPE * {
-    $result = SWIG_MakePtr ((void *)$1, $descriptor, NULL);
-}
-
 %typemap(ocaml,in) void * {
-    $1 = ($ltype)SWIG_MustGetPtr($input, NULL, $argnum);
+    $1 = ($ltype)SWIG_MustGetPtr($input, NULL);
 }
 
 %typemap(ocaml,varin) void * {
-    $1 = ($ltype)SWIG_MustGetPtr($input, NULL, $argnum);
+    $1 = ($ltype)SWIG_MustGetPtr($input, NULL);
 }
 
 %typemap(ocaml,out) void * {
@@ -45,12 +27,30 @@
     $result = SWIG_MakePtr((void *)$1, $descriptor, NULL);
 }
 
+%typemap(ocaml,in) SWIGTYPE * {
+    $1 = ($ltype)SWIG_MustGetPtr($input, $descriptor);
+}
+
+%typemap(ocaml,out) SWIGTYPE * {
+    extern value $delete_fn( value );
+    $result = SWIG_MakePtr ((void *)$1, 
+			    $descriptor, (void *)$delete_fn);
+}
+
+%typemap(ocaml,varin) SWIGTYPE * {
+    $1 = ($ltype)SWIG_MustGetPtr($input, $descriptor);
+}
+
+%typemap(ocaml,varout) SWIGTYPE * {
+    $result = SWIG_MakePtr ((void *)$1, $descriptor, NULL);
+}
+
 /* C++ References */
 
 #ifdef __cplusplus
 
 %typemap(ocaml,in) SWIGTYPE & {
-  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum) ;
+  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor) ;
 }
 
 %typemap(ocaml,out) SWIGTYPE & {
@@ -58,7 +58,7 @@
 }
 
 %typemap(ocaml,in) SWIGTYPE {
-  $1 = *(($&1_type) SWIG_MustGetPtr($input, $descriptor, $argnum)) ;
+  $1 = *(($&1_type) SWIG_MustGetPtr($input, $descriptor)) ;
 }
 
 %typemap(ocaml,out) SWIGTYPE {
@@ -71,12 +71,12 @@
 #else
 
 %typemap(ocaml,in) SWIGTYPE {
-    $1 = *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum)) ;
+    $1 = *(($&1_ltype) SWIG_MustGetPtr((value)$input, $descriptor)) ;
 }
 
 %typemap(ocaml,out) SWIGTYPE {
     extern value $delete_fn( value );
-    $&1_type temp = calloc(1,sizeof($ltype));
+    void *temp = calloc(1,sizeof($ltype));
     memcpy(temp,(char *)&$1,sizeof($ltype));
     $result = SWIG_MakePtr ((void *)temp, $descriptor, (void *)$delete_fn);
 }
@@ -86,7 +86,7 @@
 /* Arrays */
 
 %typemap(ocaml,in) SWIGTYPE[] {
-    $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum);
+    $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor);
 }
 
 %typemap(ocaml,out) SWIGTYPE[] {

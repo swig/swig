@@ -33,35 +33,20 @@ extern "C" {
 
 #define __OCAML__SWIG__MAXVALUES 6
 
-static value
-swig_make_boolean(int b)
-{
-    return Val_bool(b);
-}
-
-static value
-swig_package_values(int num, value tuple);
-
-  
-typedef struct SwigPtrType SwigPtrType;
-
-SWIGSTATIC value
-SWIG_MakePtr(void *c_pointer, swig_type_info *type, void *delete_fn);
-  
-SWIGSTATIC int
-SWIG_GetPtr(value v, void **result, swig_type_info *type);
-
-SWIGSTATIC void *
-SWIG_MustGetPtr_ (value v,  swig_type_info *type,
-		  int argnum);
-  
-#define SWIG_MustGetPtr(s, type, argnum) \
-  SWIG_MustGetPtr_(s, type, argnum)
-
-static value _wrap_delete_void( value );
-
-static int enum_to_int( char *name, value v );
-static value int_to_enum( char *name, int v );
+    SWIGSTATIC value
+    SWIG_MakePtr(void *c_pointer, swig_type_info *type, void *delete_fn);
+    
+    SWIGSTATIC int
+    SWIG_GetPtr(value v, void **result, swig_type_info *type);
+    
+    SWIGSTATIC void *
+    SWIG_MustGetPtr (value v,  swig_type_info *type);
+    
+    static value _wrap_delete_void( value );
+    
+    static int enum_to_int( char *name, value v );
+    static value int_to_enum( char *name, int v );
+    
 #ifdef __cplusplus
 }
 #endif

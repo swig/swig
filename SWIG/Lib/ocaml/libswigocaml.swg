@@ -15,3 +15,4 @@ void *get_ptr( void *arrayptr, int elt ) {
 void set_ptr( void *arrayptr, int elt, void *elt_v ) {
   ((void **)arrayptr)[elt] = elt_v;
 }
+void *offset_ptr( void *p, int n ) { return ((char *)p) + n; }
