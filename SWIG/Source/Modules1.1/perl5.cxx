@@ -157,6 +157,7 @@ PERL5::parse_args(int argc, char *argv[]) {
   Preprocessor_define((void *) "SWIGPERL 1", 0);
   Preprocessor_define((void *) "SWIGPERL5 1", 0);
   typemap_lang = (char*)"perl5";
+  SWIG_config_file("perl5.swg");
 }
 
 /* -----------------------------------------------------------------------------
@@ -181,16 +182,6 @@ PERL5::parse() {
   
   if (NoInclude) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
-  }
-
-  if (Swig_insert_file("common.swg", f_runtime) == -1) {
-    Printf(stderr,"SWIG : Fatal error.  Unable to locate 'common.swg' in SWIG library.\n");
-    SWIG_exit (EXIT_FAILURE);
-  }
-
-  if (Swig_insert_file("perl5.swg", f_runtime) == -1) {
-    Printf(stderr,"SWIG : Fatal error.  Unable to locate 'perl5.swg' in SWIG library.\n");
-    SWIG_exit (EXIT_FAILURE);
   }
   yyparse();
 }
@@ -1000,8 +991,6 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 	 0);
 
   if ((tm = Swig_typemap_lookup((char*)"varout",t,(char*)"",name, (char*)"sv",0))) {
-    Printf(getf->code,"%s\n", tm);
-  } else  if ((tm = Swig_typemap_lookup((char*)"out",t,(char*)"",name,(char*)"sv",0))) {
     Printf(getf->code,"%s\n", tm);
   } else {
     switch(SwigType_type(t)) {
