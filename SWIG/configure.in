@@ -469,6 +469,77 @@ if test "$PERL" != nope; then
 AC_SUBST(PERL5EXT)
 
 #----------------------------------------------------------------
+# Look for Guile
+#----------------------------------------------------------------
+
+GUILEINCLUDE=nope
+GUILELIB=nope
+GUILELINK=nope
+
+AC_PATH_PROG(GUILE_CONFIG, guile-config)
+
+if test -n "$GUILE_CONFIG" ; then
+
+  GUILEPACKAGE=nope
+
+  AC_ARG_WITH(guile,[  --with-guile=path       Set location of Guile],[
+	GUILEPACKAGE="$withval"], [GUILEPACKAGE=nope])
+  AC_ARG_WITH(guilencl,[  --with-guileincl=path   Set location of Guile include directory],[
+	GUILEINCLUDE="$withval"], [GUILEINCLUDE=nope])
+  AC_ARG_WITH(guilelib,[  --with-guilelib=path    Set location of Guile library directory],[
+	GUILELIB="$withval"], [GUILELIB=nope])
+
+  if test "$GUILEINCLUDE" = nope; then
+     if test "$GUILEPACKAGE" != nope; then
+  	GUILEINCLUDE="$GUILEPACKAGE/include"
+     fi
+  fi
+
+  if test "$GUILELIB" = nope; then
+     if test "$GUILEPACKAGE" != nope; then
+  	GUILELIB="$GUILEPACKAGE/lib"
+     fi
+  fi
+
+  AC_MSG_CHECKING(for Guile header files)
+
+  dirs="$GUILEINCLUDE `guile-config info includedir`"
+  for i in $dirs ; do
+  	if test -r $i/guile/gh.h; then
+  		AC_MSG_RESULT($i)
+  		GUILEINCLUDE="-I$i/guile"
+  		break
+  	fi
+  done
+  if test "$GUILEINCLUDE" = nope; then
+  	GUILEINCLUDE="-I/usr/local/include/guile"
+      	AC_MSG_RESULT(not found)
+  fi
+
+  AC_MSG_CHECKING(for Guile library)
+  dirs="$GUILELIB `guile-config info libdir`"
+  for i in $dirs ; do
+  	if test -r $i/libguile.so; then
+  	    AC_MSG_RESULT($i)
+  	    GUILELIB="$i"
+  	    break
+  	fi
+  done
+  if test "$GUILELIB" = nope; then
+  	AC_MSG_RESULT(not found)
+  	GUILELIB="/usr/local/lib"
+  fi
+
+  GUILELINK="`guile-config link`"
+
+fi # have GUILE_CONFIG
+
+AC_SUBST(GUILEINCLUDE)
+AC_SUBST(GUILELIB)
+AC_SUBST(GUILELINK)
+
+
+#----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
 
@@ -512,3 +583,4 @@ AC_OUTPUT(
     Source/Xmlparse/Makefile
     )
 
+dnl configure.in ends here
