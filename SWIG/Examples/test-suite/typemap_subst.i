@@ -29,7 +29,6 @@
     temp = &startemp;
     amptemp = &temp;
   }
-  /* Java module doesn't seem to use SWIG's type system? */
   { /* Test descriptors */
     void *desc = $descriptor;
     void *stardesc = $*descriptor;
@@ -43,7 +42,8 @@
   $1 = ($ltype) temp;
 }
 
-#ifndef SWIGJAVA
+/* Java and C# modules don't use SWIG's runtime type system */
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP)
 %inline %{
   void foo(const struct xyzzy **TEST) {}
 %}
