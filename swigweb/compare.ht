@@ -1,7 +1,7 @@
-SWIG Comparison
+SWIG Features
 
 <p>
-<h2>SWIG and the Competition</h2>
+<h2>SWIG Features</h2>
 
 <center>
 <em>
@@ -133,10 +133,10 @@ to read the fine-print. Although other tools might offer different
 features than SWIG, they often have major limitations that are rarely
 advertised.  For example, if a tool claims to "parse" C++, but 
 fails to implement a basic feature like <tt>typedef</tt>, then that tool
-doesn't implement the type system correctly.  Similarly, tools often
+probably doesn't implement the type system correctly.  Similarly, tools often
 place artificial limits on fundamental things like the number of
 allowed arguments to a function, supported datatypes, and so forth.
-Even some tools that delusionally claim to be the "leading C++
+Even some tools that claim to be the "leading C++
 wrapping solution" are known to not support simple declarations
 involving references, pointers, and other fundamental C++
 datatypes---simply because these declarations are unsafe and therefore
@@ -151,7 +151,7 @@ SWIG gives you the freedom and the flexibility to handle difficult
 real-world wrapping problems without artificial limits and without the 
 baggage of a programming morality agenda.
 
-<h3>Everything is documented</h3>
+<h3>SWIG is documented</h3>
 
 Since its initial release, SWIG has included hundreds of pages of user
 documentation.  This documentation describes every SWIG feature and
