@@ -50,7 +50,7 @@
 %typemap(in,parse="s") char *, char [ANY] "";
 
 /* Boolean values.  Have to convert from a long since */
-%typemap(in) bool "$1 = (bool) PyInt_AsLong($input);
+%typemap(in) bool "$1 = PyInt_AsLong($input) ? true : false;
                    if (PyErr_Occurred()) SWIG_fail;";
 
 /* Enum values. */
@@ -85,9 +85,13 @@
              const unsigned short & (unsigned short temp),
              const unsigned long & (unsigned long temp),
              const signed char & (signed char temp),
-             const unsigned char & (unsigned char temp),
-             const bool & (bool temp)
+             const unsigned char & (unsigned char temp)
 	"temp = ($*1_ltype) PyInt_AsLong($input);
+         if (PyErr_Occurred()) SWIG_fail;
+         $1 = &temp;";
+
+%typemap(in) const bool & (bool temp)
+	"temp = PyInt_AsLong($input) ? true : false;
          if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
@@ -188,7 +192,7 @@
 
 /* --- Variable input --- */
 
-%typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE
+%typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, enum SWIGTYPE
 {
   long temp = PyInt_AsLong($input);
   if (PyErr_Occurred()) {
@@ -196,6 +200,16 @@
     return 1;
   }
   $1 = ($1_type) temp;
+}
+
+%typemap(varin) bool
+{
+  long temp = PyInt_AsLong($input);
+  if (PyErr_Occurred()) {
+    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    return 1;
+  }
+  $1 = temp ? true : false;
 }
 
 %typemap(varin) long long {
@@ -308,7 +322,7 @@
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
   }
-  $1 = ($1_ltype) temp;
+  $1 = *($1_ltype) temp;
 }
 
 %typemap(varin) void * {
@@ -353,8 +367,11 @@
 %typemap(varout) char *        "$result = $1 ? PyString_FromString($1) : Py_BuildValue((char*)\"\");";
 %typemap(varout) char          "$result = Py_BuildValue((char*)\"c\",$1);";
 
-/* Pointers, references, and arrays */
-%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, 0);";
+/* Pointers and arrays */
+%typemap(varout) SWIGTYPE *, SWIGTYPE [] "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, 0);";
+
+/* References */
+%typemap(varout) SWIGTYPE & "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);";
 
 /* Member pointer */
 %typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor);";
