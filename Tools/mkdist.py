@@ -23,7 +23,7 @@ os.system("cvs export -D now -r rel-1-3 -d "+dirname+ " SWIG")
 
 # Now clean the source directory
 
-SOURCES = ['DOH','Swig','Preprocessor','CParse','Modules1.1', 'Modules', 'Include']
+SOURCES = ['DOH','Swig','Preprocessor','CParse','Modules', 'Include']
 
 srcs = [ ]
 for d in SOURCES:
