@@ -135,7 +135,7 @@ extern char     *DataType_print_mangle(DataType *);
 extern char     *DataType_print_real(DataType *, char *local);
 extern char     *DataType_print_arraycast(DataType *);
 extern char     *DataType_print_mangle_default(DataType *);
-
+extern void      DataType_set_mangle(char *(*m)(DataType *));
 extern int       DataType_array_dimensions(DataType *);
 extern char     *DataType_get_dimension(DataType *, int);
 
@@ -294,8 +294,6 @@ struct Pragma {
  *    add_native(char *name, char *funcname);
  *           Adds a native wrapper function to the initialize process
  *
- *    type_mangle(DataType *t);
- *           Mangles the name of a datatype.
  * --- C++ Functions ---
  *
  *    These functions are optional additions to any of the target
@@ -338,9 +336,6 @@ public:
   virtual void set_module(char *mod_name,char **mod_list) = 0;
   virtual void set_init(char *init_name);
   virtual void add_native(char *name, char *iname, DataType *t, ParmList *l);
-  virtual char *type_mangle(DataType *t) {
-    return DataType_print_mangle_default(t);
-  }
   virtual void add_typedef(DataType *t, char *name);
   virtual void create_command(char *cname, char *iname);
 
