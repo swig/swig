@@ -8,6 +8,12 @@
   "SWIG_Python_ConvertPtr($input, (void **)&$1, $descriptor, SWIG_POINTER_EXCEPTION | $disown);
    if (SWIG_arg_fail($argnum)) SWIG_fail;";
 
+%typemap(in) SWIGTYPE* const&  ($*ltype temp) 
+  "SWIG_Python_ConvertPtr($input, (void **)&temp, $*descriptor, SWIG_POINTER_EXCEPTION | $disown);
+   if (SWIG_arg_fail($argnum)) SWIG_fail;
+   $1 = &temp;
+   ";
+
 %typemap(in) SWIGTYPE *DISOWN 
   "SWIG_Python_ConvertPtr($input, (void **)&$1, $descriptor, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN);
    if (SWIG_arg_fail($argnum)) SWIG_fail;";
@@ -22,14 +28,17 @@
    if (SWIG_arg_fail($argnum)) SWIG_fail;";
 
 /* Object passed by value. Convert to a pointer */
-%typemap(in) SWIGTYPE ($&ltype argp) 
-  "SWIG_Python_ConvertPtr($input, (void **)&argp, $&descriptor, SWIG_POINTER_EXCEPTION);
+%typemap(in) SWIGTYPE  {
+  $&ltype argp;
+  SWIG_Python_ConvertPtr($input, (void **)&argp, $&descriptor, SWIG_POINTER_EXCEPTION);
    if (SWIG_arg_fail($argnum)) SWIG_fail;
    if (argp == NULL) {
-     SWIG_null_ref(SWIG_TypePrettyName($descriptor));
+     SWIG_null_ref(SWIG_TypePrettyName($&descriptor));
    }
    if (SWIG_arg_fail($argnum)) SWIG_fail;
-   $1 = *argp;";
+   $1 = *argp;
+}
+
 
 /* Pointer to a class member */
 %typemap(in) SWIGTYPE (CLASS::*) 
@@ -46,7 +55,10 @@
 
 /* Pointers, references, and arrays */
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
-   "$result = SWIG_NewPointerObj((void*)($1), $1_descriptor, $owner);";
+   "$result = SWIG_NewPointerObj((void*)($1), $descriptor, $owner);";
+
+%typemap(out) SWIGTYPE* const&
+   "$result = SWIG_NewPointerObj((void*)(*$1), $*descriptor, $owner);";
 
 /* Dynamic casts */
 
@@ -57,23 +69,23 @@
 
 /* Member pointer */
 %typemap(out) SWIGTYPE (CLASS::*) 
-  "$result = SWIG_NewPackedObj((void*)(&$1), sizeof($1_type), $1_descriptor);";
+  "$result = SWIG_NewPackedObj((void*)(&$1), sizeof($type), $descriptor);";
 
 /* Primitive types--return by value */
 #ifdef __cplusplus
 %typemap(out) SWIGTYPE 
 {
   $&1_ltype resultptr;
-  resultptr = new $1_ltype(static_cast<$1_type &>($1));
-  $result = SWIG_NewPointerObj((void *)(resultptr), $&1_descriptor, 1);
+  resultptr = new $ltype(SWIG_static_cast($1,$type &));
+  $result = SWIG_NewPointerObj((void *)(resultptr), $&descriptor, 1);
 }
 #else
 %typemap(out /* warning="452:Default return typemap could be unsafe" */) SWIGTYPE
 {
-  $&1_ltype resultptr;
-  resultptr = ($&1_ltype) malloc(sizeof($1_type));
-  memmove(resultptr, &$1, sizeof($1_type));
-  $result = SWIG_NewPointerObj((void *)(resultptr), $&1_descriptor, 1);
+  $&ltype resultptr;
+  resultptr = ($&ltype) malloc(sizeof($type));
+  memmove(resultptr, &$1, sizeof($type));
+  $result = SWIG_NewPointerObj((void *)(resultptr), $&descriptor, 1);
 }
 #endif
 
@@ -99,11 +111,17 @@
 
 %typemap(varin) SWIGTYPE * {
   void *temp;
-  if ((SWIG_ConvertPtr($input, &temp, $1_descriptor, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN)) == -1) {
+  if ((SWIG_ConvertPtr($input, &temp, $descriptor, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN)) == -1) {
     SWIG_append_errmsg("C/C++ variable '$name'");
     return 1;
   }
   $1 = ($ltype) temp;
+}
+
+%typemap(varin,warning="462:Unable to set dimensionless array variable") SWIGTYPE []
+{
+  PyErr_SetString(PyExc_AttributeError, "C/C++ variable '$name' is read-only");
+  return 1;
 }
 
 %typemap(varin) SWIGTYPE & {
@@ -191,7 +209,8 @@
  * --- Typechecking rules ---
  * ------------------------------------------------------------ */
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
+%typecheck(SWIG_TYPECHECK_POINTER) 
+  SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
 {
   void *ptr;
   if (SWIG_ConvertPtr($input, &ptr, $descriptor, 0) == -1) {

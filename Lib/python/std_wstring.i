@@ -2,24 +2,23 @@
 // std::wstring
 //
 
+#ifndef SWIG_STD_BASIC_STRING
+#define SWIG_STD_WSTRING
 
 %include <pywstrings.swg>
-%include <std_basic_string.i>
-
-/* wide strings */
 
 namespace std
 {
-  %std_comp_methods(basic_string<wchar_t>);
-  typedef basic_string<wchar_t> wstring;
+  %feature("novaluewrapper") wstring;
+  class wstring;
 }
 
 /* defining the std::string asptr/from methods */
 
-%fragment(SWIG_AsPtr_frag(std::basic_string<wchar_t>),"header",
+%fragment(SWIG_AsPtr_frag(std::wstring),"header",
 	  fragment="SWIG_AsWCharPtrAndSize") {
 SWIGINTERN int
-  SWIG_AsPtr(std::basic_string<wchar_t>)(PyObject* obj, std::wstring **val)
+  SWIG_AsPtr(std::wstring)(PyObject* obj, std::wstring **val)
   {
     static swig_type_info* string_info = SWIG_TypeQuery("std::wstring *");
     std::wstring *vptr;    
@@ -46,36 +45,25 @@ SWIGINTERN int
     }
   }
   
-SWIGINTERNSHORT int
-  SWIG_AsPtr(std::wstring)(PyObject* obj, std::wstring **val)
-  {
-    return SWIG_AsPtr(std::basic_string<wchar_t>)(obj, val);
-  }
 }
 
-%fragment(SWIG_From_frag(std::basic_string<wchar_t>),"header",
+%fragment(SWIG_From_frag(std::wstring),"header",
 	  fragment="SWIG_FromWCharArray") {
-SWIGINTERNSHORT PyObject*
-  SWIG_From(std::basic_string<wchar_t>)(const std::wstring& s)
-  {
-    return SWIG_FromWCharArray(s.data(), s.size());
-  }
-
 SWIGINTERNSHORT PyObject*
   SWIG_From(std::wstring)(const std::wstring& s)
   {
-    return SWIG_From(std::basic_string<wchar_t>)(s);
+    return SWIG_FromWCharArray(s.data(), s.size());
   }
 }
 
 
 %fragment(SWIG_AsVal_frag(std::wstring),"header",
-          fragment=SWIG_AsPtr_frag(std::basic_string<wchar_t>)) {
+          fragment=SWIG_AsPtr_frag(std::wstring)) {
 SWIGINTERN int
   SWIG_AsVal(std::wstring)(PyObject* obj, std::wstring *val)
   {
     std::wstring *s;
-    int res = SWIG_AsPtr(std::basic_string<wchar_t>)(obj, &s);
+    int res = SWIG_AsPtr(std::wstring)(obj, &s);
     if (res && s) {
       if (val) *val = *s;
       if (res == SWIG_NEWOBJ) delete s;
@@ -88,5 +76,10 @@ SWIGINTERN int
   }
 }
 
-%typemap_asptrfromn(SWIG_CCode(UNISTRING), std::basic_string<wchar_t>);
 %typemap_asptrfromn(SWIG_CCode(UNISTRING), std::wstring);
+
+#else
+
+%include <std/std_wstring.i>
+
+#endif

@@ -22,7 +22,7 @@
 /* out */
 
 %define PYVAL_OUT_TYPEMAP(from_meth,pyfrag,Type...)
-  %typemap(out,fragment=pyfrag) Type 
+  %typemap(out,fragment=pyfrag) Type, const Type 
   { $result = from_meth(SWIG_static_cast($1,$basetype)); }
 
   %typemap(out,fragment=pyfrag) const Type& 

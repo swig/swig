@@ -2,24 +2,25 @@
 // std::string
 //
 
+#ifndef SWIG_STD_BASIC_STRING
+#define SWIG_STD_STRING
 
 %include <pystrings.swg>
-%include <std_basic_string.i>
-
-/* plain strings */
 
 namespace std
 {
-  %std_comp_methods(basic_string<char>);
-  typedef basic_string<char> string;
+  %feature("novaluewrapper") string;  
+  class string;
 }
+
 
 /* defining the std::string asptr/from methods */
 
-%fragment(SWIG_AsPtr_frag(std::basic_string<char>),"header",
+
+%fragment(SWIG_AsPtr_frag(std::string),"header",
 	  fragment="SWIG_AsCharPtrAndSize") {
   SWIGINTERN int
-    SWIG_AsPtr(std::basic_string<char>)(PyObject* obj, std::string **val)
+    SWIG_AsPtr(std::string)(PyObject* obj, std::string **val)
     {
       static swig_type_info* string_info = SWIG_TypeQuery("std::string *");
       std::string *vptr;    
@@ -43,37 +44,24 @@ namespace std
 	return 0;
       }
     }
-  
-  SWIGINTERNSHORT int
-    SWIG_AsPtr(std::string)(PyObject* obj, std::string **val)
-    {
-      return SWIG_AsPtr(std::basic_string<char>)(obj, val);
-   }
 }
 
-%fragment(SWIG_From_frag(std::basic_string<char>),"header",
+%fragment(SWIG_From_frag(std::string),"header",
 	  fragment="SWIG_FromCharArray") {
-SWIGINTERNSHORT PyObject*
-  SWIG_From(std::basic_string<char>)(const std::string& s)
-  {
-    return SWIG_FromCharArray(s.data(), s.size());
-  }
-
 SWIGINTERNSHORT PyObject*
   SWIG_From(std::string)(const std::string& s)
   {
-    return SWIG_From(std::basic_string<char>)(s);
+    return SWIG_FromCharArray(s.data(), s.size());
   }
 }
 
-
 %fragment(SWIG_AsVal_frag(std::string),"header",
-          fragment=SWIG_AsPtr_frag(std::basic_string<char>)) {
+          fragment=SWIG_AsPtr_frag(std::string)) {
 SWIGINTERN int
   SWIG_AsVal(std::string)(PyObject* obj, std::string *val)
   {
     std::string* s;
-    int res = SWIG_AsPtr(std::basic_string<char>)(obj, &s);
+    int res = SWIG_AsPtr(std::string)(obj, &s);
     if (res && s) {
       if (val) *val = *s;
       if (res == SWIG_NEWOBJ) delete s;
@@ -86,6 +74,10 @@ SWIGINTERN int
   }
 }
 
-
-%typemap_asptrfromn(SWIG_CCode(STRING), std::basic_string<char>);
 %typemap_asptrfromn(SWIG_CCode(STRING), std::string);
+
+#else
+
+%include <std/std_string.i>
+
+#endif

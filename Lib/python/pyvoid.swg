@@ -10,8 +10,8 @@
   }
 }
 
-%typemap(in) const void *& ($basetype temp) {
-  SWIG_ConvertPtr($input,SWIG_reinterpret_cast(&temp,void **),0,SWIG_POINTER_EXCEPTION|$disown);
+%typemap(in) const void *& ($*ltype temp) {
+  SWIG_ConvertPtr($input,(void **)&temp,0,SWIG_POINTER_EXCEPTION|$disown);
   if (SWIG_arg_fail($argnum)) SWIG_fail;
   $1 = &temp;
 }
