@@ -28,5 +28,7 @@
 
 %typemap(csclassmodifiers) enum SWIGTYPE "public enum"
 
+%typemap(csbody) enum SWIGTYPE ""
+
 %csenum(proper);
 

@@ -2,7 +2,7 @@
  * This file provides backwards compatible enum wrapping. SWIG versions 1.3.21
  * and earlier wrapped global enums with constant integers in the module
  * class. Enums declared within a C++ class were wrapped by constant integers
- * in the Java proxy class.
+ * in the C# proxy class.
  * ----------------------------------------------------------------------------- */
 
 %typemap(ctype) enum SWIGTYPE "int"
@@ -30,7 +30,7 @@
 
 %typemap(csclassmodifiers) enum SWIGTYPE ""
 
-%typemap(csgetcptr) enum SWIGTYPE ""
+%typemap(csbody) enum SWIGTYPE ""
 
 %csenum(simple);
 
