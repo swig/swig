@@ -6,6 +6,7 @@
 // MzScheme implementation
 
 %include std_common.i
+%include exception.i
 
 
 // ------------------------------------------------------------------------
