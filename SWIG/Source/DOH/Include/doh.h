@@ -183,6 +183,7 @@ extern int     DohIsFile(const DOH *obj);
 #define Readline           DohReadline
 #define Replace            DohReplace
 #define Chop               DohChop
+
 #endif
 
 /* -----------------------------------------------------------------------------
@@ -203,6 +204,9 @@ extern char *Strchr(const DOHString_or_char *s1, int ch);
 #define   DOH_REPLACE_NOQUOTE     0x02
 #define   DOH_REPLACE_ID          0x04
 #define   DOH_REPLACE_FIRST       0x08
+
+#define Replaceall(s,t,r)  DohReplace(s,t,r,DOH_REPLACE_ANY)
+#define Replaceid(s,t,r)   DohReplace(s,t,r,DOH_REPLACE_ID)
 
 /* -----------------------------------------------------------------------------
  * Files

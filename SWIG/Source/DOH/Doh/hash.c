@@ -214,25 +214,15 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     prev = 0;
     while (n) {
       if (Cmp(n->key,k) == 0) {
-	
 	/* Node already exists.  Just replace its contents */
+	if (n->object == obj) {
+	  /* Whoa. Same object.  Do nothing */
+	  return 1;
+	}
 	Delete(n->object);
 	n->object = obj;
 	Incref(obj);
-	return 0;
-
-	/* old code - remove
-	HashNode *nn;
-	if (prev) {
-	  prev->next = n->next;
-	} else {
-	  h->hashtable[hv] = n->next;
-	}
-	nn = n->next;
-	DelNode(n);
-	h->nitems--;
-	n = nn; */
-
+	return 1;      /* Return 1 to indicate a replacement */
       } else {
 	prev = n;
 	n = n->next;
