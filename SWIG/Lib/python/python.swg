@@ -172,6 +172,15 @@
   $1 = ($type) new char[strlen(temp)+1];
   strcpy((char*)$1,temp);
 }
+%typemap(varin,warning="Setting const char * variable may leak memory") const char * {
+  char *temp = (char *) PyString_AsString($input);
+  if (PyErr_Occurred()) {
+    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    return 1;
+  }
+  $1 = ($type) new char[strlen(temp)+1];
+  strcpy((char*)$1,temp);
+}
 #else
 %typemap(varin) char * {
   char *temp = (char *) PyString_AsString($input);
@@ -180,6 +189,15 @@
     return 1;
   }
   if ($1) free((char*) $1);
+  $1 = ($type) malloc(strlen(temp)+1);
+  strcpy((char*)$1,temp);
+}
+%typemap(varin,warning="Setting const char * variable may leak memory") const char * {
+  char *temp = (char *) PyString_AsString($input);
+  if (PyErr_Occurred()) {
+    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    return 1;
+  }
   $1 = ($type) malloc(strlen(temp)+1);
   strcpy((char*)$1,temp);
 }

@@ -125,6 +125,21 @@
 }
 #endif
 
+%typemap(varin,warning="Setting const char * variable may leak memory") const char *
+#ifdef __cplusplus
+{
+  char *_a = (char *) SvPV(sv,PL_na);
+  $1 = new char[strlen(_a)+1];
+  strcpy((char *)$1,_a);
+}
+#else
+{
+  char *_a = (char *) SvPV(sv,PL_na);
+  $1 = (char *) malloc(strlen(_a)+1);
+  strcpy((char *)$1,_a);
+}
+#endif
+
 %typemap(varin) char [ANY]
      "strncpy($1, (char *) SvPV(sv,PL_na), $1_dim0);";
 

@@ -131,6 +131,11 @@
   $1 = ($type) new char[strlen(temp)+1];
   strcpy((char*)$1,temp);
 }
+%typemap(varin,warning="Setting const char * variable may leak memory") const char * {
+  char *temp = (char *) STR2CSTR($input);
+  $1 = ($type) new char[strlen(temp)+1];
+  strcpy((char*)$1,temp);
+}
 #else
 %typemap(varin) char * {
   char *temp = (char *) STR2CSTR($input);
@@ -138,6 +143,12 @@
   $1 = ($type) malloc(strlen(temp)+1);
   strcpy((char*)$1,temp);
 }
+%typemap(varin,warning="Setting const char * variable may leak memory") const char * {
+  char *temp = (char *) STR2CSTR($input);
+  $1 = ($type) malloc(strlen(temp)+1);
+  strcpy((char*)$1,temp);
+}
+
 #endif
 
 %typemap(varin) char [ANY]      "strncpy($1,STR2CSTR($input),$1_dim0);";

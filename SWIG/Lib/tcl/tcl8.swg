@@ -208,6 +208,21 @@
 }
 #endif
 
+%typemap(varin,warning="Setting const char * variable may leak memory") const char *
+#ifdef __cplusplus
+{
+  char  *temp = Tcl_GetStringFromObj($input,NULL);
+  $1 = ($1_type) new char[strlen(temp)+1];
+  strcpy((char *) $1,temp);
+}
+#else
+{
+  char  *temp = Tcl_GetStringFromObj($input,NULL);
+  $1 = ($1_type) malloc(strlen(temp)+1);
+  strcpy((char *) $1,temp);
+}
+#endif
+
 %typemap(varin) char [ANY] {
   char *temp = Tcl_GetStringFromObj($input,NULL);
   strncpy((char*)$1,temp,$1_dim0);

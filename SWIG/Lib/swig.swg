@@ -84,25 +84,42 @@
 #ifdef __cplusplus
 %typemap(memberin) char * {
   if ($1) delete [] $1;
-  $1 = new char[strlen($input)+1];
-  strcpy($1,$input);
+  $1 = ($1_type) (new char[strlen($input)+1]);
+  strcpy((char *) $1,$input);
+}
+%typemap(memberin,warning="Setting const char * member may leak memory.") const char * {
+  $1 = ($1_type) (new char[strlen($input)+1]);
+  strcpy((char *) $1,$input);
 }
 %typemap(globalin) char * {
   if ($1) delete [] $1;
-  $1 = new char[strlen($input)+1];
-  strcpy($1,$input);
+  $1 = ($1_type) (new char[strlen($input)+1]);
+  strcpy((char *) $1,$input);
+}
+%typemap(globalin,warning="Setting const char * variable may leak memory.") const char * {
+  $1 = ($1_type) (new char[strlen($input)+1]);
+  strcpy((char *) $1,$input);
 }
 #else
 %typemap(memberin) char * {
-  if ($1) free($1);
-  $1 = (char *) malloc(strlen($input)+1);
-  strcpy($1,$input);
+  if ($1) free((char*)$1);
+  $1 = ($1_type) malloc(strlen($input)+1);
+  strcpy((char*)$1,$input);
+}
+%typemap(memberin,warning="Setting const char * member may leak memory.") const char * {
+  $1 = ($1_type) malloc(strlen($input)+1);
+  strcpy((char*)$1,$input);
 }
 %typemap(globalin) char * {
-  if ($1) free($1);
-  $1 = (char *) malloc(strlen($input)+1);
-  strcpy($1,$input);
+  if ($1) free((char*)$1);
+  $1 = ($1_type) malloc(strlen($input)+1);
+  strcpy((char*)$1,$input);
 }
+%typemap(globalin,warning="Setting const char * variable may leak memory.") const char * {
+  $1 = ($1_type) malloc(strlen($input)+1);
+  strcpy((char*)$1,$input);
+}
+
 #endif
 
 /* Character array handling */
@@ -116,5 +133,4 @@
   if ($input) strncpy($1,$input,$1_dim0);
   else $1[0] = 0;
 }
-  
 
