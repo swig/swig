@@ -38,4 +38,12 @@ if pab.first.val != 2:
 
 pci = lib_std_pair.CIntPair(1,0)
 
-print len(psii)
+a = lib_std_pair.A(5)
+p1 = lib_std_pair.pairP1(1,a.this)
+p2 = lib_std_pair.pairP2(a,1)
+p3 = lib_std_pair.pairP3(a,a)
+
+
+if a.val != lib_std_pair.p_identa(p1.this)[1].val:
+  raise RuntimeError
+  

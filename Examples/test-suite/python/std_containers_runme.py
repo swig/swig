@@ -50,7 +50,16 @@ map['3'] = 2
 
 if map != std_containers.mapident(map):
   raise RuntimeError, "bad map"
-  
+
+
+mapc ={}
+c1 = std_containers.C()
+c2 = std_containers.C()
+mapc[1] = c1.this
+mapc[2] = c2
+
+std_containers.mapidentc(mapc)
+
 
 vi = std_containers.vector_i((2,2,3,4))
 
