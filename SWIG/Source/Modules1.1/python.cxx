@@ -849,8 +849,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   Printf(parse_args,":%s\"", iname);
   Printv(parse_args,
-	 arglist, ")) \n",
-	 tab8, "return NULL;\n",
+	 arglist, ")) return NULL;\n",
 	 0);
   
   strcpy(self_name,convert_self(f));
