@@ -53,8 +53,10 @@ extern "C" {
     int        NoInclude = 0;
     int        Verbose = 0;
 
+extern "C" {
 extern String  *ModuleName;
 extern int ShowTemplates;
+}
 
 static char *usage = (char*)"\
 \nGeneral Options\n\
