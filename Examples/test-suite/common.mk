@@ -115,6 +115,7 @@ CPP_TEST_CASES += \
 	default_char \
 	default_constructor \
 	default_ns \
+	default_args \
 	default_ref \
 	director_abstract \
 	director_basic \
@@ -185,7 +186,6 @@ CPP_TEST_CASES += \
 	pure_virtual \
 	redefined \
 	reference_global_vars \
-	rename_default \
 	rename_default \
 	rename_scope \
 	return_value_scope \
