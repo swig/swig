@@ -457,18 +457,28 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   }
   */
 
+  
   /* Perform a class-based lookup (if class prefix supplied) */
   if (prefix) {
     if (Len(prefix)) {
       tname = NewStringf("%s::%s",prefix,name);
       rn = name_object_get(namehash, tname, decl, ncdecl);
       Delete(tname);
+      if (!rn) {
+	String *cls = Swig_scopename_last(prefix);
+	if (Strcmp(cls,prefix)!= 0) {
+	  tname = NewStringf("*::%s::%s",cls,name);
+	  rn = name_object_get(namehash, tname, decl, ncdecl);
+	  Delete(tname);
+	}
+	Delete(cls);
+      }    
       /* A template-based class lookup */
       if (!rn && SwigType_istemplate(prefix)) {
 	String *tprefix = SwigType_templateprefix(prefix);
-	tname = NewStringf("%s::%s",tprefix,name);
-	rn = name_object_get(namehash, tname, decl, ncdecl);
-	Delete(tname);
+	if (Strcmp(tprefix,prefix) != 0) {
+	  rn = Swig_name_object_get(namehash, tprefix, name, decl);
+	}
 	Delete(tprefix);
       }
     }
