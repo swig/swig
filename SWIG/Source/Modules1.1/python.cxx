@@ -284,6 +284,11 @@ public:
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l,f);
 
+    //    {
+    //      Swig_overload_rank(n);
+    //    }
+
+
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
     num_required  = emit_num_required(l);

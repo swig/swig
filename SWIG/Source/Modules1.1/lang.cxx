@@ -292,6 +292,7 @@ static Node *first_nontemplate(Node *n) {
  * -------------------------------------------------------------------------- */
 
 void swig_pragma(char *lang, char *name, char *value) {
+  extern void Swig_overload_promote(SwigType *, SwigType *);
   if (strcmp(lang,"swig") == 0) {
     if ((strcmp(name,"make_default") == 0) || ((strcmp(name,"makedefault") == 0))) {
       GenerateDefault = 1;
@@ -311,6 +312,21 @@ void swig_pragma(char *lang, char *name, char *value) {
     } else if (strcmp(name,"noattributefunction") == 0) {
       AttributeFunctionGet = 0;
       AttributeFunctionSet = 0;
+    } else if (strcmp(name,"promote") == 0) {
+      String *nvalue = NewString(value);
+      char *s = strchr(Char(nvalue),'=');
+      if (!s) {
+	Swig_error(input_file, line_number, "Bad value for pragma promote. Expected \"type=type\".\n");
+      } else {
+	*s = 0;
+	SwigType *t1 = NewString(Char(nvalue));
+	SwigType *t2 = NewString(s+1);
+	Swig_overload_promote(t1,t2);
+	Delete(t1);
+	Delete(t2);
+      }
+      Delete(nvalue);
+
     }
   }
 }

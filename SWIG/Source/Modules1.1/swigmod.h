@@ -208,6 +208,7 @@ extern int    emit_num_required(ParmList *);
 extern int    emit_isvarargs(ParmList *);
 extern void   emit_attach_parmmaps(ParmList *, Wrapper *f);
 extern void   emit_action(Node *n, Wrapper *f);
+extern List  *Swig_overload_rank(Node *n);
 
 extern "C" {
   typedef Language *(*ModuleFactory)(void);
