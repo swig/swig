@@ -1,6 +1,9 @@
 Version 1.3.25 (In progress)
 ============================
 
+02/22/2005: mmatus 
+	    Fix %template + private error SF#1099976.
+
 02/21/2005: mmatus 
 
 	    Fix swigrun.swg warnings reported when using "gcc -W -Wall"
