@@ -627,6 +627,11 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
     String *e = Getitem(elements,i);
     if (SwigType_issimple(e)) {
       if (!SwigType_istemplate(e)) {
+	String *isenum = 0;
+	if (SwigType_isenum(e)) {
+	  isenum = e;
+	  e = NewString(Char(e)+5);
+	}
 	resolved_scope = 0;
 	if (typedef_resolve(current_scope,e)) {
 	  /* resolved_scope contains the scope that actually resolved the symbol */
@@ -634,6 +639,12 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	  if (qname) {
 	    Insert(e,0,"::");
 	    Insert(e,0,qname);
+	    if (isenum) {
+	      Clear(isenum);
+	      Printf(isenum, "enum %s", e);
+	      Delete(e);
+	      e = isenum;
+	    }
 	  }
 	}
       } else {

@@ -3635,7 +3635,7 @@ type_right     : primitive_type { $$ = $1;
                | TYPE_BOOL { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
-               | ENUM ID { $$ = NewStringf("enum %s", $2); }
+               | ENUM idcolon { $$ = NewStringf("enum %s", $2); }
                | TYPE_RAW { $$ = $1; }
                | type_right type_qualifier {
 		  $$ = $1;

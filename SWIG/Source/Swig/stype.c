@@ -1393,7 +1393,9 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       Append(result,")");
       Delete(parms);
     } else if (SwigType_isenum(element)) {
-      Insert(result,0,element);
+      String *bs = SwigType_namestr(element);
+      Insert(result,0,bs);
+      Delete(bs);
       clear = 0;
     } else {
       String *bs = SwigType_namestr(element);
