@@ -2159,10 +2159,8 @@ public:
       Replaceall(tm, "$error", "error");
       Printf(rescue->code, "if (%s == 0) ", depthCountName);
       Printv(rescue->code, Str(tm), "\n", NIL);
-      Printv(rescue->code, "else {\n", NIL);
       Printf(rescue->code, "%s--;\n", depthCountName);
       Printv(rescue->code, "rb_exc_raise(error);\n", NIL);
-      Printv(rescue->code, "}", NIL);
       Printv(rescue->code, "}", NIL);
       
       // Main code
