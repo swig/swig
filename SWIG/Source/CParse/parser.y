@@ -1891,6 +1891,7 @@ cpp_member   : c_declaration { $$ = $1; }
              | cpp_conversion_operator { $$ = $1; }
              | cpp_forward_class_decl { $$ = $1; }
              | cpp_nested { $$ = $1; }
+             | storage_class idcolon SEMI { $$ = 0; }
              | SEMI { $$ = 0; }
              ;
 
