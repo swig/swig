@@ -268,7 +268,7 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
       goto type_error;
     }
   } 
-  c = PyString_AsString(obj);
+  c = PyString_AS_STRING(obj);
   /* Pointer values must start with leading underscore */
   if (*c != '_') {
     *ptr = (void *) 0;
@@ -296,9 +296,7 @@ cobject:
   }
 
   if ((pyobj) && (flags & SWIG_POINTER_DISOWN)) {
-    PyObject *zero = PyInt_FromLong(0);
-    PyObject_SetAttrString(pyobj,(char*)"thisown",zero);
-    Py_DECREF(zero);
+    PyObject_SetAttrString(pyobj,(char*)"thisown",Py_False);
   }
   return 0;
 
@@ -331,7 +329,7 @@ SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, int sz, swig_type_info *ty, 
   char  *c = 0;
 
   if ((!obj) || (!PyString_Check(obj))) goto type_error;
-  c = PyString_AsString(obj);
+  c = PyString_AS_STRING(obj);
   /* Pointer values must start with leading underscore */
   if (*c != '_') goto type_error;
   c++;
@@ -385,9 +383,7 @@ SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int own) {
     Py_DECREF(args);
     if (inst) {
       if (own) {
-        PyObject *n = PyInt_FromLong(1);
-        PyObject_SetAttrString(inst,(char*)"thisown",n);
-        Py_DECREF(n);
+        PyObject_SetAttrString(inst,(char*)"thisown",Py_True);
       }
       robj = inst;
     }
