@@ -2739,70 +2739,11 @@ class JAVA : public Language {
   }
 
   /* ---------------------------------------------------------------
-   * Reduce and canonicalize the input type
-   *
-   * (scottm) There is probably a SWIG function to do this, but I
-   * haven't found it yet.
-   * (william) Rewriting this area based on substituteClassname()
-   * should work - using getProxyName() and getEnumName().
-   * --------------------------------------------------------------- */
-
-  Node *canonicalizeType(Node *n, String *classtype) {
-    String *reduced_type = SwigType_typedef_resolve_all(classtype);
-    String *base_type;
-
-    if (SwigType_isenum(reduced_type)) {
-      /* Enum handling code: Swig_typedef_resolve_all() will prefix an
-       * enumerated type with "enum ", leading to all kinds of headaches
-       * when above code is called. Need to call Swig_symbol_clookup
-       * with the unadorned enum name.
-       */
-      base_type = classtype;
-    } else {
-      base_type = SwigType_base(reduced_type);
-    }
-
-    Node   *classnode = Swig_symbol_clookup(base_type, Getattr(n, "sym:symtab"));
-
-    if (classnode != NULL) {
-      /* This takes care of the case when there are forward declared
-       * classes that Language::classHandler() hasn't encountered yet.
-       *
-       * Swig_symbol_clookup() will find <<a node>> attached to
-       * the base_type name, and there will be a csym:nextSibling node
-       * chain.  Most of the time, there **wont** be * a "class"-type
-       * node. Mostly, what I've seen are "constructor"-type nodes.
-       * Eventutally, however, a node is encountered with its
-       * sym:name set and this happens to be the right name.
-       *
-       * The worst that can happen here is that base_type is unchanged,
-       * which tends also to be the right thing to do.
-       *
-       * Dunno, this seems to work, so... contemplate what the "right"
-       * SWIG thing is to do...
-       */
-
-      while (classnode && Getattr(classnode, "sym:name") == NULL) {
-        classnode = Getattr(classnode, "csym:nextSibling");
-      }
-    }
-
-    if (base_type != classtype)
-      Delete(base_type);
-    Delete(reduced_type);
-
-    return classnode;
-  }
-
-  /* ---------------------------------------------------------------
    * Canonicalize the JNI field descriptor
    *
-   * Take the input type name, reduce the typedef to its fundamental
-   * type if necessary, normalize its name.
-   *
-   * See if the resulting typdef-reduced, normalized type name also
-   * has a "javapackage" typemap, and use it instead of the default
-   * package_path.
+   * Replace the $javapackage and $javaclassname family of special
+   * variables with the desired package and Java proxy name as 
+   * required in the JNI field descriptors.
    * 
    * !!SFM!! If $packagepath occurs in the field descriptor, but
    * package_path isn't set (length == 0), then strip it and the
@@ -2810,36 +2751,30 @@ class JAVA : public Language {
    * 
    * --------------------------------------------------------------- */
 
-  String *canonicalJNIFDesc(String *in_desc, Node *n, String *classtype) {
-    Node       *classnode = canonicalizeType(n, classtype);
-    String     *name = (classnode ? Getattr(classnode, "name") : classtype);
-    String     *symname = (classnode ? Getattr(classnode, "sym:name") : classtype);
-    Parm       *tp = NewParm(name, (String *) empty_string);
-    String     *pkg_path;
+  String *canonicalizeJNIDescriptor(String *descriptor_in, SwigType *type) {
 
-    pkg_path = Swig_typemap_lookup_new("javapackage", tp, "", 0);
-    Delete(tp);
+    String *pkg_path = Swig_typemap_lookup_new("javapackage", type, "", 0);
 
-    if (pkg_path != NULL && Len(pkg_path) != 0) {
+    if (pkg_path && Len(pkg_path) != 0) {
       Replaceall(pkg_path, ".", "/");
     } else
       pkg_path = package_path;
 
-    String *mod_desc = Copy(in_desc);
+    String *descriptor_out = Copy(descriptor_in);
 
     if (Len(pkg_path) > 0) {
-      Replaceall(mod_desc, "$packagepath", pkg_path);
+      Replaceall(descriptor_out, "$packagepath", pkg_path);
     } else {
-      Replaceall(mod_desc, "$packagepath/", empty_string);
-      Replaceall(mod_desc, "$packagepath", empty_string);
+      Replaceall(descriptor_out, "$packagepath/", empty_string);
+      Replaceall(descriptor_out, "$packagepath", empty_string);
     }
 
-    Replaceall(mod_desc, "$javaclassname", symname);
+    substituteClassname(type, descriptor_out);
 
     if (pkg_path != package_path)
       Delete(pkg_path);
 
-    return mod_desc;
+    return descriptor_out;
   }
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2859,20 +2794,20 @@ class JAVA : public Language {
     String     *classname = Getattr(parent, "sym:name");
     String     *name = Getattr(n, "name");
     String     *symname = Getattr(n, "sym:name");
-    String     *type = Getattr(n, "type");
+    SwigType   *type = Getattr(n, "type");
+    SwigType   *returntype = Getattr(n,"returntype");
     String     *c_classname = NULL;
     String     *overloaded_name = getOverloadedName(n);
     String     *storage = Getattr(n, "storage");
     String     *value = Getattr(n, "value");
     String     *decl = Getattr(n, "decl");
     String     *declaration = NewString("");
-    String     *return_type = Copy(type);
     String     *tm;
     Parm       *p;
     int         i, num_arguments, num_required;
     Wrapper    *w = NewWrapper();
     ParmList   *l = Getattr(n, "parms");
-    bool        is_void = !(Cmp(type, "void"));
+    bool        is_void = !(Cmp(returntype, "void"));
     String     *qualified_return = NewString("");
     bool        pure_virtual = (!(Cmp(storage, "virtual")) && !(Cmp(value, "0")));
     int         status = SWIG_OK;
@@ -2884,7 +2819,7 @@ class JAVA : public Language {
     String     *classdesc = NewString("");
     String     *jniret_desc = NewString("");
     String     *classret_desc = NewString("");
-    String     *jniret_type = NULL;
+    SwigType   *jniret_type = NULL;
     String     *jupcall_args = NewString("swig_get_self()");
     String     *imclass_dmethod;
     Wrapper    *imw = NewWrapper();
@@ -2900,39 +2835,29 @@ class JAVA : public Language {
 
     imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(classname, overloaded_name));
 
-    // Get the proper name for the parent node (should be a class... hint)
+    // Get the C++ name for the parent node (should be a class... hint)
 
     c_classname = Getattr(parent, "name");
     if (!(Cmp(type, "class")))
       c_classname = classname;
 
-    /* Handle and form complete return type, including the modification
-       to a pointer, if return type is a reference. */
-
-    if (return_type) {
+    if (returntype) {
       if (!is_void) {
-        SwigType *t = Copy(decl);
-        SwigType *f = SwigType_pop_function(t);
 
-        SwigType_push(return_type, t);
-
-        Delete(f);
-        Delete(t);
-
-        qualified_return = SwigType_rcaststr(return_type, "result");
-        if (!SwigType_isclass(return_type)) {
-          if (!(SwigType_ispointer(return_type) || SwigType_isreference(return_type))) {
-            Wrapper_add_localv(w, "result", SwigType_lstr(return_type, "result"), NIL);
+        qualified_return = SwigType_rcaststr(returntype, "result");
+        if (!SwigType_isclass(returntype)) {
+          if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+            Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), NIL);
           } else {
             /* initialize pointers to something sane. */
-            Wrapper_add_localv(w, "result", SwigType_lstr(return_type, "result"), "= 0", NIL);
+            Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), "= 0", NIL);
           }
         } else {
           SwigType *vt;
 
-          vt = cplus_value_type(return_type);
+          vt = cplus_value_type(returntype);
           if (vt == NULL) {
-            Wrapper_add_localv(w, "result", SwigType_lstr(return_type, "result"), NIL);
+            Wrapper_add_localv(w, "result", SwigType_lstr(returntype, "result"), NIL);
           } else {
             Wrapper_add_localv(w, "result", SwigType_lstr(vt, "result"), NIL);
             Delete(vt);
@@ -2940,14 +2865,14 @@ class JAVA : public Language {
         }
 
         /* Create the intermediate class wrapper */
-        Parm *tp = NewParm(return_type, empty_str);
+        Parm *tp = NewParm(returntype, empty_str);
 
         tm = Swig_typemap_lookup_new("jtype", tp, "", 0);
         if (tm != NULL) {
           Printf(imw->def, "public static %s %s(%s self", tm, imclass_dmethod, classname);
         } else {
           Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
-              "No jtype typemap defined for %s\n", SwigType_str(t,0));
+              "No jtype typemap defined for %s\n", SwigType_str(returntype,0));
         }
       } else
         Printf(imw->def, "public static void %s(%s self", imclass_dmethod, classname);
@@ -2955,7 +2880,7 @@ class JAVA : public Language {
       /* Get the JNI field descriptor for this return type, add the JNI field descriptor
          to jniret_desc */
 
-      Parm       *retpm = NewParm(return_type, empty_str);
+      Parm       *retpm = NewParm(returntype, empty_str);
       
       if ((jniret_type = Swig_typemap_lookup_new("jni", retpm, "", 0)) != NULL) {
         String *jdesc;
@@ -2971,7 +2896,7 @@ class JAVA : public Language {
             && (jdesc = Getattr(tp, "tmap:directorin:descriptor")) != NULL) {
           String *jnidesc_canon;
 
-          jnidesc_canon = canonicalJNIFDesc(jdesc, n, jniret_type);
+          jnidesc_canon = canonicalizeJNIDescriptor(jdesc, Getattr(tp,"type"));
           Append(jniret_desc, jnidesc_canon);
           Delete(jnidesc_canon);
         } else {
@@ -2983,19 +2908,22 @@ class JAVA : public Language {
         Delete(tp);
       } else {
         Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, 
-                     "No jni typemap defined for %s\n", SwigType_str(type,0));
+                     "No jni typemap defined for %s\n", SwigType_str(returntype,0));
         output_director = false;
       }
 
       String *jdesc;
 
-      if ((tm = Swig_typemap_lookup_new("directorin", retpm, "", 0)) != NULL
-          && (jdesc = Getattr(retpm, "tmap:directorin:descriptor")) != NULL) {
+      SwigType *virtualtype = Getattr(n,"virtual:type");
+      SwigType *adjustedreturntype = virtualtype ? virtualtype : returntype;
+      Parm *adjustedreturntypeparm = NewParm(adjustedreturntype, empty_str);
+
+      if ((tm = Swig_typemap_lookup_new("directorin", adjustedreturntypeparm, "", 0)) != NULL
+          && (jdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor")) != NULL) {
         String *jnidesc_canon;
 
         // Note that in the case of polymorphic (covariant) return types, the method's return type is changed to be the base of the C++ return type
-        SwigType *virtualtype = Getattr(n,"virtual:type");
-        jnidesc_canon = canonicalJNIFDesc(jdesc, n, virtualtype ? virtualtype : return_type);
+        jnidesc_canon = canonicalizeJNIDescriptor(jdesc, adjustedreturntype);
         Append(classret_desc, jnidesc_canon);
         Delete(jnidesc_canon);
       } else {
@@ -3004,6 +2932,7 @@ class JAVA : public Language {
         output_director = false;
       }
 
+      Delete(adjustedreturntypeparm);
       Delete(retpm);
     }
 
@@ -3069,14 +2998,14 @@ class JAVA : public Language {
 
     /* Start the Java field descriptor for the intermediate class's upcall (insert self object) */
     {
-      Parm *tp = NewParm(classname, empty_str);
+      Parm *tp = NewParm(c_classname, empty_str);
       String *jdesc;
 
       if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0)) != NULL
           && (jdesc = Getattr(tp, "tmap:directorin:descriptor")) != NULL) {
         String *jni_canon;
           
-        jni_canon = canonicalJNIFDesc(jdesc, n, classname);
+        jni_canon = canonicalizeJNIDescriptor(jdesc, Getattr(tp,"type"));
         Append(jnidesc, jni_canon);
         Delete(jni_canon);
         Delete(tm);
@@ -3130,7 +3059,7 @@ class JAVA : public Language {
               && (cdesc = Getattr(p, "tmap:directorin:descriptor")) != NULL) {
             String *jni_canon;
           
-            jni_canon = canonicalJNIFDesc(jdesc, n, c_param_type);
+            jni_canon = canonicalizeJNIDescriptor(jdesc, Getattr(tp,"type"));
             Append(jnidesc, jni_canon);
             Delete(jni_canon);
 
@@ -3162,7 +3091,7 @@ class JAVA : public Language {
                 } else
                   Printv(imcall_args, ln, NIL);
 
-                jni_canon = canonicalJNIFDesc(cdesc, n, pt);
+                jni_canon = canonicalizeJNIDescriptor(cdesc, Getattr(p,"type"));
                 Append(classdesc, jni_canon);
                 Delete(jni_canon);
               } else {
@@ -3265,18 +3194,16 @@ class JAVA : public Language {
     String *upcall = NewStringf("self.%s(%s)", symname, imcall_args);
 
     if (!is_void) {
-      Parm   *tp = NewParm(return_type, empty_str);
-      String *base_type = SwigType_base(return_type);
+      Parm *tp = NewParm(returntype, empty_str);
 
       tm = Swig_typemap_lookup_new("javadirectorout", tp, "", 0);
       if (tm != NULL) {
-     	  substituteClassname(base_type, tm);
+        substituteClassname(returntype, tm);
         Replaceall(tm, "$javacall", upcall);
 
         Printf(imw->code, "return %s;\n", tm);
       }
 
-      Delete(base_type);
       Delete(tm);
       Delete(tp);
     } else
@@ -3305,7 +3232,7 @@ class JAVA : public Language {
     if (!is_void) {
       String *jresult_str = NewString("jresult");
       String *result_str = NewString("result");
-      Parm *tp = NewParm(return_type, result_str);
+      Parm *tp = NewParm(returntype, result_str);
 
       /* Copy jresult into result... */
       if ((tm = Swig_typemap_lookup_new("in", tp, result_str, w))) {
