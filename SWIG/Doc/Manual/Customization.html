@@ -74,7 +74,7 @@ or <tt>%noexception</tt> with no code. For example:
 
 <p>
 <b>Compatibility note:</b>  Previous versions of SWIG used a special directive <tt>%except</tt>
-for exception handling.   That directive is still supported but is deprecated--<tt>%exception</tt>
+for exception handling.   That directive is deprecated--<tt>%exception</tt>
 provides the same functionality, but is substantially more flexible.
 </p>
 
@@ -140,6 +140,8 @@ as the following (shown for Perl5) :</p>
 
 <p>
 In this case, when an error occurs, it is translated into a Perl error.
+Each target language has its own approach to creating a runtime error/exception in
+and for Perl it is the <tt>croak</tt> method shown above.
 </p>
 
 <H3><a name="Customization_nn4"></a>11.1.2 Exception handling with longjmp()</H3>
