@@ -130,6 +130,9 @@
     temp = ($*1_ltype) MZ_TO_C($input);
     $1 = &temp;
 }
+%typemap(varin) C_NAME & {
+    $1 = MZ_TO_C($input);
+}
 %typemap(outv) C_NAME {
     $1 = MZ_TO_C($input);
 }
