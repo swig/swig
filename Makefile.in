@@ -85,7 +85,7 @@ runtime:
 
 skip-tcl	= [ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
 skip-perl	= [ -z "@PERL@" -o -z "@PERL5EXT@" ]
-skip-python	= [ -z "@PYIINCLUDE@" -o -z "@PYLIB@" ]
+skip-python	= [ -z "@PYINCLUDE@" -o -z "@PYLIB@" ]
 skip-java	= [ -z "@JAVA@" -o -z "@JAVAC@" -o -z "@JAVAINC@" ]
 skip-guile	= [ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
 skip-mzscheme	= [ -z "@MZC@" ]
