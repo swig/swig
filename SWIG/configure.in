@@ -1098,7 +1098,7 @@ else
 CHICKEN="$CHICKEN"
 fi
 
-AC_ARG_WITH(chickcfg,[  --with-chickencfg=path  Set location of chicken-config],[ CHICKEN_CONFIG="$withval"], [CHICKEN_CONFIG=])
+AC_ARG_WITH(chickencfg,[  --with-chickencfg=path  Set location of chicken-config],[ CHICKEN_CONFIG="$withval"], [CHICKEN_CONFIG=])
 
 if test -z "$CHICKEN_CONFIG"; then
 AC_CHECK_PROGS(CHICKEN_CONFIG, chicken-config)
