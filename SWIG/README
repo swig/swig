@@ -213,6 +213,15 @@ the file "Example/index.html".
 The Examples directory now includes Visual C++ project (.dsp) files for
 building some of the examples on Windows (new in SWIG1.3.7).
 
+Known Issues
+============
+The SWIG-1.3.14 release includes a number of substantial changes to existing
+language modules.  These changes include modifications to the build environment
+and the wrapper code itself.  Certain examples may not compile or may need
+minor changes to work.
+
+Please see the CHANGES file for a detailed list of changes.
+
 Troubleshooting
 ===============
 In order to operate correctly, SWIG relies upon a set of library
