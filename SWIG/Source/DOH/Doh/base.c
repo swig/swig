@@ -672,6 +672,7 @@ int
 DohReplace(DOH *src, const DOH *token, const DOH *rep, int flags) {
   DohBase *b = (DohBase *) src;
   DohObjInfo *objinfo;
+  if (!token || !rep) return 0;
   if (DohIsString(src)) {
     objinfo = dohtypes[b->type];
     if (objinfo->doh_string->doh_replace) {
