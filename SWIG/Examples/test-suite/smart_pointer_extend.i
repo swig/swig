@@ -97,3 +97,32 @@ public:
 %}
 
 
+
+%inline %{
+
+  class DFoo;
+  
+  class DPtrFoo
+  {
+    DFoo *p;
+  public:
+    DPtrFoo(DFoo *ptr) : p(ptr)
+    {
+    }
+    
+    DFoo* operator->(void) {return p;};
+  };
+ 
+  class DFoo
+  {
+  public:
+    void F(void) {};
+  };
+
+%}
+
+
+%extend DFoo {
+  static int SExt(int i = 1) {return i;};
+  int Ext(int i = 2) {return i;};
+}
