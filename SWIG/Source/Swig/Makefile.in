@@ -30,7 +30,7 @@ AR            = @AR@
 RANLIB        = @RANLIB@
 RPATH         = @RPATH@
 CC            = @CC@
-CFLAGS        = 
+CFLAGS        = -g
 INCLUDE       = -I. -I../DOH/Include
 LIBS          = -L. -L../DOH/ -ldoh
 
@@ -40,7 +40,7 @@ LIBS          = -L. -L../DOH/ -ldoh
 #     SWIGCC    = Compiler used to compile the wrapper file
 
 SWIG          = $(exec_prefix)/bin/swig 
-SWIGOPT       = -python -shadow
+SWIGOPT       = -python
 SWIGCC        = $(CC) 
 
 # SWIG Library files.  Uncomment if rebuilding the Python interpreter
