@@ -1,6 +1,5 @@
 /* File : example.i */
 %module example
-%include exception.i
 
 extern int    gcd(int x, int y);
 
@@ -12,7 +11,7 @@ int i;
 
   $1 = (*jenv)->GetArrayLength(jenv, $input);
   if ($1 == 0) {
-    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
   $2 = (char **) malloc(($1+1)*sizeof(char *));
@@ -23,6 +22,8 @@ int i;
   }
   $2[i] = 0;
 }
+
+%typemap(argout) (int argc, char *argv[]) "" /* override char *[] default */
 
 %typemap(freearg) (int argc, char *argv[]) {
 int i;
@@ -81,7 +82,7 @@ extern void capitalize(char *str, int len);
 %typemap(check) (double cx, double cy) {
    double a = $1*$1 + $2*$2;
    if (a > 1.0) {
-	SWIG_exception(SWIG_ValueError,"$1_name and $2_name must be in unit circle");
+    SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException, "$1_name and $2_name must be in unit circle");
     return;
    }
 }
