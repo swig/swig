@@ -1,4 +1,3 @@
-import simple;
 
 public class main {
 

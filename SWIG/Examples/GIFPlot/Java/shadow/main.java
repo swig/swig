@@ -1,5 +1,5 @@
 // Plot a 3D function
-import gifplot.*;
+
 import java.lang.Math;
 
 public class main {
