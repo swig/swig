@@ -15,6 +15,7 @@ LIBS   =
 
 SWIG_LIB = $(prefix)/lib/swig1.3
 BIN_DIR  = $(exec_prefix)/bin
+LIB_DIR  = $(prefix)/lib
 
 #
 #
