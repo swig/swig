@@ -29,16 +29,16 @@ TARGET      = swig$(RELEASESUFFIX)
 SOURCE      = Source
 SOURCEDIRS  = `ls $(SOURCE)`
 
-swig: Modules1.1 Swig Preprocessor CParse DOH runtime swig.spec
+swig: Modules Swig Preprocessor CParse DOH runtime swig.spec
 	$(CXX) -o $(TARGET) \
-	$(SOURCE)/Modules1.1/libmodules11.a \
+	$(SOURCE)/Modules/libmodules.a \
 	$(SOURCE)/CParse/libcparse.a \
 	$(SOURCE)/Preprocessor/libcpp.a \
 	$(SOURCE)/Swig/libswig.a \
 	$(SOURCE)/DOH/libdoh.a @SWIGLIBS@
 
-Modules1.1: Source/Include/swigconfig.h
-	@cd $(SOURCE)/Modules1.1; $(MAKE)
+Modules: Source/Include/swigconfig.h
+	@cd $(SOURCE)/Modules; $(MAKE)
 
 Swig: Source/Include/swigconfig.h
 	@cd $(SOURCE)/Swig; $(MAKE)
@@ -55,7 +55,7 @@ swig.spec: swig.spec.in config.status
 DOH: Source/Include/swigconfig.h
 	@cd $(SOURCE)/DOH; $(MAKE)
 
-.PHONY: SWIG1.1 Modules1.1 Swig Preprocessor DOH runtime
+.PHONY: SWIG1.1 Modules Swig Preprocessor DOH runtime
 
 # Config file must be generated at make time, rather than at configure
 # time because it paths need to be substituted.
