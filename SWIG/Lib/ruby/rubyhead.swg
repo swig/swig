@@ -38,11 +38,6 @@
 #endif
 #endif
 
-/* Ruby 1.8 deprecates STR2CSTR() in favor of StringValuePtr() */
-#ifndef StringValuePtr
-#define StringValuePtr(x) STR2CSTR((x))
-#endif
-
 /*
  * Need to be very careful about how these macros are defined, especially
  * when compiling C++ code or C code with an ANSI C compiler.
@@ -80,3 +75,28 @@ typedef struct {
   void  (*mark)(void *);
   void  (*destroy)(void *);
 } swig_class;
+
+/* Don't use for expressions have side effect */
+#ifndef RB_STRING_VALUE
+#define RB_STRING_VALUE(s) (TYPE(s) == T_STRING ? (s) : (*(volatile VALUE *)&(s) = rb_str_to_str(s)))
+#endif
+#ifndef StringValue
+#define StringValue(s) RB_STRING_VALUE(s)
+#endif
+#ifndef StringValuePtr
+#define StringValuePtr(s) RSTRING(RB_STRING_VALUE(s))->ptr
+#endif
+#ifndef StringValueLen
+#define StringValueLen(s) RSTRING(RB_STRING_VALUE(s))->len
+#endif
+#ifndef SafeStringValue
+#define SafeStringValue(v) do {\
+    StringValue(v);\
+    rb_check_safe_str(v);\
+} while (0)
+#endif
+
+#ifndef HAVE_RB_DEFINE_ALLOC_FUNC
+#define rb_undef_alloc_func(klass) rb_undef_method(CLASS_OF(klass), "new")
+#endif
+

@@ -458,8 +458,8 @@ public:
 
   void create_command(Node *n, const String_or_char *iname) {
 
+    String *alloc_func_name = Swig_name_wrapper(iname);
     String *wname = Swig_name_wrapper(iname);
-    String *wname2 = Swig_name_wrapper(iname);
     if (CPlusPlus) {
       Insert(wname,0,"VALUEFUNC(");
       Append(wname,")");
@@ -479,13 +479,11 @@ public:
 	     iname, "\", ", wname, ", -1);\n", NIL);
       break;
     case CONSTRUCTOR_ALLOCATE:
-      Printv(s, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n", NIL);
-      Printv(s, tab4, "rb_define_alloc_func(", klass->vname,
-	     ", ", wname2, ");\n", NIL);
-      Printv(s, "#else\n", NIL);
-      Printv(s, tab4, "rb_define_singleton_method(", klass->vname,
-	     ", \"new\", ", wname, ", -1);\n", NIL);
-      Printv(s, "#endif\n", NIL);
+      Printf(s, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n");
+      Printv(s, tab4, "rb_define_alloc_func(", klass->vname, ", ", alloc_func_name, ");\n", NIL);
+      Printf(s, "#else\n");
+      Printv(s, tab4, "rb_define_singleton_method(", klass->vname, ", \"new\", ", wname, ", -1);\n", NIL); 
+      Printf(s, "#endif\n");
       Replaceall(klass->init,"$allocator", s);
       break;
     case CONSTRUCTOR_INITIALIZE:
@@ -516,7 +514,7 @@ public:
     Delete(temp);
     Delete(s);
     Delete(wname);
-    Delete(wname2);
+    Delete(alloc_func_name);
   }
   
   /* ---------------------------------------------------------------------
@@ -1342,10 +1340,7 @@ public:
     Printv(f_header, klass->header,NIL);
 
     String *s = NewString("");
-    Printv(s, "#ifndef HAVE_RB_DEFINE_ALLOC_FUNC\n", NIL);
-    Printv(s, tab4, "rb_undef_method(CLASS_OF(", klass->vname,
-	   "), \"new\");\n", NIL);
-    Printv(s, "#endif\n", NIL);
+    Printv(s, tab4, "rb_undef_alloc_func(", klass->vname, ");\n", NIL);
     Replaceall(klass->init,"$allocator", s);
     Replaceall(klass->init,"$initializer", "");
     Replaceall(klass->init,"$super", "rb_cObject");

@@ -390,7 +390,7 @@ typedef unsigned long VALUE;
 
 %typemap(in) (char *STRING, int LENGTH) {
     $1 = ($1_ltype) StringValuePtr($input);
-    $2 = ($2_ltype) RSTRING($input)->len;
+    $2 = ($2_ltype) StringValueLen($input);
 }
 
 /* Some ANSI C typemaps */
