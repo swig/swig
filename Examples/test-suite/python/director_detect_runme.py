@@ -23,7 +23,7 @@ class MyBar(director_detect.Bar):
 
 b = MyBar()
 
-f = b.base()
+f = b.baseclass()
 
 v = f.get_value()
 a = f.get_class()

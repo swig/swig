@@ -34,7 +34,7 @@
   class Bar : public Foo
   {
   public:    
-    Foo* base() 
+    Foo* baseclass() 
     {
       return this;
     }    
