@@ -11,7 +11,7 @@ srcdir     = @ROOT_DIR@
 SHELL  = /bin/sh
 CC     = @CC@
 CXX    = @CXX@
-LIBS   =
+LIBS   = @LIBS@
 
 SWIG_LIB = $(prefix)/lib/swig1.3
 BIN_DIR  = $(exec_prefix)/bin
