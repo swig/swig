@@ -251,8 +251,8 @@ Hash_getattr(DOH *ho, DOH *k) {
     hv = Hashval(k) % h->hashsize;
     n = h->hashtable[hv];
     while (n) {
-	if (Cmp(n->key, k) == 0) return n->object;
-	n = n->next;
+      if (Cmp(n->key, k) == 0) return n->object;
+      n = n->next;
     }
     return 0;
 }

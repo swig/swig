@@ -281,6 +281,33 @@ List_sort(DOH *lo, int opt) {
 }
 
 
+void List_setfile(DOH *lo, DOH *file) {
+  DOH *fo;
+  List *l = (List *) ObjData(lo);
+
+  if (!DohCheck(file)) {
+    fo = NewString(file);
+    Decref(fo);
+  } else fo = file;
+  Incref(fo);
+  Delete(l->file);
+  l->file = fo;
+}
+
+DOH *List_getfile(DOH *lo) {
+  List *l = (List *) ObjData(lo);
+  return l->file;
+}
+
+void List_setline(DOH *lo, int line) {
+  List *l = (List *) ObjData(lo);
+  l->line = line;
+}
+
+int List_getline(DOH *lo) {
+  List *l = (List *) ObjData(lo);
+  return l->line;
+}
 
 static DohListMethods ListListMethods = {
   List_get,
@@ -303,10 +330,10 @@ static DohObjInfo ListType = {
     List_len,        /* doh_len */
     0,               /* doh_hash    */
     0,               /* doh_cmp */
-    0,               /* doh_setfile */
-    0,               /* doh_getfile */
-    0,               /* doh_setline */
-    0,               /* doh_getline */
+    List_setfile,               /* doh_setfile */
+    List_getfile,               /* doh_getfile */
+    List_setline,               /* doh_setline */
+    List_getline,               /* doh_getline */
     0,               /* doh_mapping */
     &ListListMethods, /* doh_sequence */
     0,               /* doh_file */

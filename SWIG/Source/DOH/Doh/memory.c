@@ -25,6 +25,7 @@ DOH    *DohNone = 0;    /* The DOH None object */
 typedef struct pool {
   DohBase       *ptr;            /* Start of pool */
   int            len;            /* Length of pool */
+  int            blen;           /* Byte length of pool */
   int            current;        /* Current position for next allocation */
   struct  pool  *next;           /* Next pool */
 } Pool;
@@ -44,6 +45,7 @@ CreatePool() {
   assert((p = (Pool *) DohMalloc(sizeof(Pool))));
   assert((p->ptr = (DohBase *) DohMalloc(sizeof(DohBase)*PoolSize)));
   p->len = PoolSize;
+  p->blen = PoolSize*sizeof(DohBase);
   p->current = 0;
   p->next = Pools;
   Pools = p;
@@ -72,9 +74,15 @@ InitPools() {
 int 
 DohCheck(const DOH *ptr) {
   Pool *p = Pools;
-  char *cptr = (char *) ptr;
+  register char *cptr = (char *) ptr;
+  register char *pptr;
+  int  d;
   while (p) {
-    if ((cptr >= (char *) p->ptr) && (cptr < ((char *) p->ptr)+(p->current*sizeof(DohBase)))) return 1;
+    pptr = (char *) p->ptr;
+    if ((cptr >= pptr) && (cptr < (pptr + p->blen))) return 1;
+    /*
+    pptr = (char *) p->ptr;
+    if ((cptr >= pptr) && (cptr < (pptr+(p->current*sizeof(DohBase))))) return 1; */
     p = p->next;
   }
   return 0;
