@@ -17,8 +17,8 @@
 (check (equal? (one-to-seven-list2) '(1 2 3 4 5 6 7)))
 (check (equal? (one-to-seven-vector2) #(1 2 3 4 5 6 7)))
 
-(check (= (sum-lists '(1 2 3) '(4 5 6) '(7 8 9)) 45))
-(check (= (sum-lists2 '(1 2 3) '(4 5 6) '(7 8 9)) 45))
+(check (= (sum-lists '(1 2 3) '(4 5 6) '(7 8 9)) 45.0))
+(check (= (sum-lists2 '(1 2 3) '(4 5 6) '(7 8 9)) 45.0))
 (check (equal? (call-with-values produce-lists list)
 	       '(#(0 1 2 3 4)
 		 #(0 1 4 9 16)
