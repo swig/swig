@@ -48,7 +48,7 @@ LIBSRCS = main.cxx scanner.cxx symbol.cxx include.cxx types.cxx parms.cxx emit.c
           sstring.cxx wrapfunc.cxx comment.cxx typemap.cxx naming.cxx
 
 PARSER   = parser.y
-INCLUDE  = -I../Include -I. -I../Core -I../Preprocessor -I../DOH/Include
+INCLUDE  = -I../Include -I. -I../Swig -I../Preprocessor -I../DOH/Include
 CFLAGS   = @CFLAGS@ -DSWIG_LIB='"$(SWIG_LIB)"' -DSWIG_CC='"$(CC)"' @DEFS@
 SHELL  = /bin/sh
 

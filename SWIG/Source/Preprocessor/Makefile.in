@@ -9,7 +9,7 @@ RPATH       = @RPATH@
 SO          = @SO@
 CCSHARED    = @CCSHARED@
 LDSHARED    = @LDSHARED@
-INCLUDE     = -I. -I../Core -I../DOH/Include
+INCLUDE     = -I. -I../Swig -I../DOH/Include
 
 SRCS = expr.c cpp.c
 OBJS = expr.o cpp.o
