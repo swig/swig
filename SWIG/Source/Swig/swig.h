@@ -317,8 +317,8 @@ extern char       *Swig_name_destroy(DOHString_or_char *classname);
 
 /* --- Mapping interface --- */
 
-extern void        Swig_map_add(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, DOH *obj);
-extern DOH        *Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, int *nmatch);
+extern void        Swig_map_add(DOHHash *ruleset, DOHHash *parms, DOH *obj);
+extern DOH        *Swig_map_match(DOHHash *ruleset, DOHHash *parms, int *nmatch);
 
 /* --- Misc --- */
 extern char *Swig_copy_string(const char *c);

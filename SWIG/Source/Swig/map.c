@@ -17,70 +17,49 @@ static char cvsroot[] = "$Header$";
 /* -----------------------------------------------------------------------------
  * Synopsis
  *
- * One of the biggest problems in wrapper generation is that of defining
- * the handling of various datatypes and function parameters.   This module
- * provides support for a generic object known as a 'mapping rule' that is
- * defined using the %map directive like this:
+ * One of the problems in creating wrappers is that of defining rules for
+ * managing various datatypes and function parameters.   In SWIG1.1,
+ * this sort of customization was managed using a mechanism known as 
+ * "typemaps".   This module generalizes the idea even further and provides
+ * generic set of functions that can be used to define and match rules
+ * that are associated with lists of datatypes.
  *
- *   %map rulename(typelist) {
- *        vars;
- *        rule1 { ... }
- *        rule2 { ... }
- *        rule3 { ... }
- *        rule4 { ... }
- *        ...
- *   }
- *
- * A mapping rule is somewhat similar to a class or structure definition.  The
- * "vars" field is a list of variable declarations that will be local to the
- * mapping rule when it is used.   The "rulen" fields simply define code
- * fragments and other information that language specific modules can examine
- * for their own nefarious purposes.
- * 
+ * The functions in this file are intended to be rather generic.  They are only
+ * responsible for the storage and matching of rules.   Other parts of the
+ * code can use these to implement typemaps, argmaps, or anything else.
  * ----------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
- * Swig_map_add()
+ * Swig_map_add_parmrule()
  *
- * Adds a new mapping rule.  The parms input to this function should be a
- * properly constructed parameter list with associated attributes.  The rules
- * field can technically be any valid object.
+ * Adds a new mapping rule for a list of parameters. The parms input to this 
+ * function should be a properly constructed parameter list with associated
+ * attributes (type and name).  The 'obj' attribute can be any DOH object.
  *
- * The structure of how data is stored is as follows:
+ * The structure of how data might be stored is as follows:
  *
  *    ruleset (hash)
  *    --------------
- *       rulename ------>  nameset (hash)
- *                         --------------
- *                         parm1   ---------> rule (hash)
- *                                            -------------
- *                                            parm2  -----------> rule (hash)
- *                                            *obj*  --> obj
+ *    parm1   ---------> rule (hash)
+ *                       -------------
+ *                       parm2  -----------> rule (hash)
+ *                       *obj*  --> obj      ------------
+ *                                           parm3
+ *                                           *obj* -->obj
  *                           
- *
  * For multiple arguments, we end up building a large tree of hash tables.
  * The object will be stored in the *obj* attribute of the last hash table.
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_map_add(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, DOH *obj)
+Swig_map_add_parmrule(DOHHash *ruleset, DOHHash *parms, DOH *obj)
 {
-     
-  DOHHash *nameset;
   DOHHash *p, *n;
-  /* Locate the appropriate nameset */
 
-  nameset = Getattr(ruleset,rulename);
-  if (!nameset) {
-    /* Hmmm.  First time we've seen this.  Let's add it to our mapping table */
-    nameset = NewHash();
-    Setattr(ruleset,rulename,nameset);
-  }
-  
-  /* Now, we walk down the parms list and create a series of hash tables */
-  
+  /* Walk down the parms list and create a series of hash tables */
   p = parms;
-  n = nameset;
+  n = ruleset;
+
   while (p) {
     DOHString *ty, *name, *key;
     DOHHash *nn;
@@ -107,14 +86,32 @@ Swig_map_add(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, DOH 
      We'll stick our object there */
 
   Setattr(n,"*obj*",obj);
-  return;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_map_add_typerule()
+ *
+ * Adds a rule for a single type and name.
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_map_add_typerule(DOHHash *ruleset, DOH *type, DOHString_or_char *name, DOH *obj) {
+  DOHHash *p;
+
+  p = NewHash();
+  Setattr(p,"type",type);
+  if (name)
+    Setattr(p,"name", name);
+  
+  Swig_map_add_parmrule(ruleset,p,obj);
+  Delete(p);
 }
 
 
 typedef struct MatchObject {
   DOH     *ruleset;             /* Hash table of rules */
   DOHHash *p;                   /* Parameter on which checking starts */
-  int  depth;                   /* Depth of the match  */
+  int      depth;               /* Depth of the match  */
   struct MatchObject *next;     /* Next match object   */
 } MatchObject;
 
@@ -122,7 +119,7 @@ typedef struct MatchObject {
 static MatchObject *matchstack = 0;
 
 /* -----------------------------------------------------------------------------
- * Swig_map_match()
+ * Swig_map_match_parms()
  *
  * Perform a longest map match for a list of parameters and a set of mapping rules.
  * Returns the corresponding rule object and the number of parameters that were
@@ -130,9 +127,8 @@ static MatchObject *matchstack = 0;
  * ----------------------------------------------------------------------------- */
 
 DOH *
-Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, int *nmatch)
+Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
 {
-  DOHHash *nameset;
   MatchObject *mo;
 
   DOH    *bestobj = 0;
@@ -140,12 +136,8 @@ Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, in
 
   *nmatch = 0;
 
-  /* Get the nameset */
-  nameset = Getattr(ruleset,rulename);
-  if (!nameset) return 0;
-
   mo = (MatchObject *) malloc(sizeof(MatchObject));
-  mo->ruleset = nameset;
+  mo->ruleset = ruleset;
   mo->depth = 0;
   mo->p = parms;
   mo->next = 0;
@@ -312,7 +304,7 @@ Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, in
     DOHString *dty = SwigType_default(Getattr(parms,"type"));
     key = NewStringf("-%s",dty);
     
-    rs = Getattr(nameset,key);
+    rs = Getattr(ruleset,key);
     if (rs) {
       bestobj = Getattr(rs,"*obj*");
       if (bestobj) *nmatch = 1;
@@ -321,4 +313,26 @@ Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, in
     Delete(dty);
   }
   return bestobj;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_map_match_type()
+ *
+ * Match a rule for a single type
+ * ----------------------------------------------------------------------------- */
+
+DOH *
+Swig_map_match_type(DOHHash *ruleset, DOH *type, DOHString_or_char *name) {
+  DOHHash *p;
+  DOH     *obj;
+  int nmatch;
+
+  p = NewHash();
+  Setattr(p,"type",type);
+  if (name)
+    Setattr(p,"name",name);
+
+  obj = Swig_map_match_parms(ruleset,p,&nmatch);
+  Delete(p);
+  return obj;
 }

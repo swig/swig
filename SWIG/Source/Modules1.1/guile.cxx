@@ -467,8 +467,8 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   i = 0;
   int j = 0;
+  p = Firstitem(l);
   for (i = 0; i < pcount; ++i) {
-    Parm *p = Getitem(l,i);
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 
@@ -520,6 +520,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
       Printv(cleanup, tm, "\n", 0);
       mreplace (cleanup, argnum, arg, proc_name);
     }
+    p = Nextitem(l);
   }
 
   // Now write code to make the function call
