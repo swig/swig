@@ -44,13 +44,11 @@
   struct A
   {
     typedef int Int;
-    typedef int Int;
     friend int foo(A*, B*);    
   };
 
   struct B
   {
-    typedef int Int;
     typedef int Int;
     friend int foo(A*, B*);
   };
