@@ -1,37 +1,46 @@
 WAD (Wrapped Application Debugger)
 
-David M. Beazley
-Department of Computer Science
-University of Chicago
-Chicago, IL  60637
-beazley@cs.uchicago.edu
+Copyright (C) 2001
 
-Copyright (C) 2000-2001
-University of Chicago
-All Rights Reserved
+Author(s):
+    David M. Beazley  (beazley@cs.uchicago.edu)
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 $Header$
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!                        DISCLAIMER                           !!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!                     DISCLAIMER                         !!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-THIS IS EXPERIMENTAL UNSUPPORTED SOFTWARE THAT UTILIZES A HORRIBLE MIX
-OF LOW-LEVEL C, C++, AND ASSEMBLY CODE.  IT IS NOT PORTABLE, IT HAS
-NOT BEEN EXHAUSTIVELY TESTED, AND IT MIGHT NOT WORK AT ALL.  PLEASE KEEP
-AWAY FROM SMALL CHILDREN, PETS, NUCLEAR REACTORS, AIR-TRAFFIC CONTROL,
-AND VOTING MACHINES. SIDE EFFECTS MAY INCLUDE NAUSEA, VOMITING, AND
-HEADACHE.  OTHER THAN THIS, IT'S PERFECTLY SAFE.
+THIS IS EXPERIMENTAL UNMAINTAINED RESEARCH SOFTWARE.  IT IS NOT
+PORTABLE, IT HAS NOT BEEN EXHAUSTIVELY TESTED, AND IT MIGHT NOT WORK
+AT ALL.  PLEASE KEEP AWAY FROM SMALL CHILDREN, PETS, NUCLEAR REACTORS,
+AIR-TRAFFIC CONTROL, AND VOTING MACHINES.
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!                   SUPPORTED PLATFORMS                       !!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+THIS SOFTWARE MAY ONLY BE USED FOR NON-COMMERCIAL PURPOSES.  IT IS
+DISTRIBUTED UNDER THE TERMS OF THE GNU PUBLIC LICENSE WITH THE HOPE
+THAT OTHERS FIND IT TO BE INTERESTING.
 
-This software is only known to work with 32-bit applications on Sun
-Sparc Solaris 2.8 and recent i386-Linux systems. In addition, there
-are numerous issues concerning the interaction of this software with
-signal handling, thread libraries, and compilers.  Please read this
-entire document before proceeding.
+0. Supported Platforms 
+
+This software is currently only known to work with 32-bit applications
+on Sun Sparc Solaris 2.8 and recent i386-Linux systems. In addition,
+there are numerous issues concerning the interaction of this software
+with signal handling, thread libraries, and compilers.  Please read
+this entire document before proceeding.
 
 1. Introduction
 
@@ -43,14 +52,14 @@ with stand-alone C programs.
 
 The primary goal of this system is to explore an alternative approach
 to mixed scripting-compiled debugging.  It requires no modifications
-or recompilation of existing software--only relinking.  Therefore, it
-should be relatively easy to try out.  Feedback is welcome. Contributions 
-and modifications are even more welcome.
+or recompilation of existing software. Therefore, it should be
+relatively easy to try out.  Feedback is welcome. Contributions and
+modifications are even more welcome.
 
 2. Compilation and Installation
 
-WAD is not particularly portable (for obvious reasons).  At this time,
-only two platforms are supported: Sun Sparc Solaris and i386-Linux. 
+WAD is not particularly portable and at this time, only two platforms
+are supported: Sun Sparc Solaris and i386-Linux.
 
 Installation is as follows:
 
@@ -96,7 +105,7 @@ Notes:
       them in non-traditional locations. 
 
    -  The Linux version has only been tested with 2.2-12 and 2.2-14 kernels
-      and the RedHat 6.0 distribution.  Your mileage may vary. 
+      and the RedHat 6.x distribution.  Your mileage may vary. 
      
 3. Using WAD
 
@@ -172,6 +181,10 @@ WAD_NOSTACK             -  Do NOT use an alternative signal handling stack.
 WAD_ONESHOT             -  Disable WAD signal handler after first signal has
                            been received.
 
+WAD_DEBUG_MEMORY        -  Print information about WAD memory use.
+
+WAD_DEBUG_STRINGS       -  Print information about WAD string manager.
+
 5.  Platform Specific Issues
 
 General:
@@ -210,7 +223,7 @@ Linux:
      some specific thread-based issues that may arise:
 
      1.  WAD causes the program to crash immediately upon startup. 
-         This appears to be caused by a bug in in the implemenation
+         This appears to be caused by a bug in in the implementation
          of sigaction() and the initialization of signals.  This 
          only occurs if WAD is directly linked to an executable
          using threads.  It does not occur when WAD is dynamically
@@ -265,6 +278,8 @@ mechanism.  Standard functions tend to just exit.  The WAD handler
 produces a C stack trace and produces a Perl stack trace using some
 code derived from the sigtrap module.
 
+Note: 3/10/01 - Perl support is currently broken.
+
 7. Testing and Examples
 
 The Test directory contains some very simple code for testing WAD.  In the
@@ -306,27 +321,49 @@ The scripts debug.py, debug.tcl, debug.pl can be used to test these extensions.
 
 8.  Documentation
 
-No official documentation exists at this time.  However, the Papers directory contains
-two conference papers that describe WAD's design and high-level operation.
+No official documentation exists at this time.  However, the Papers
+directory contains two conference papers that describe WAD's design
+and high-level operation.  Slides from the Python9 talk are also included.
 
 9. To-Do
 
-The current implementation is fairly messy and undergoing constant
-change.  Here is the short list:
+If you find WAD to be interesting or useful, there are a variety of
+ways to contribute.  Here is the short to-do list:
 
-    -  Continued clean up and modularization of the core.
+    -  Better register management.  Try to implement in a more portable
+       way.   Add some support code for recovering local variables
+       that happen to be stored in registers.
+
+    -  Add heuristic for recovering functions called through an
+       -fomit-frame-pointer compiler optimization scheme.   This
+       can probably be determined by looking at the function preamble
+       machine code.   Then one can back-trace to the calling function
+       and look at it's preamble. 
+
+    -  Continued clean up and modularization of the core.  Many of the
+       internal APIs could be greatly improved.
+
     -  Support for ELF64 linking format.
+
+    -  Support for DWARF2 debugging data.
+
     -  Improved support for stack-overflow and heap-corruption.  Although WAD
        probably won't be able to recover, it still might be able to produce some 
        informative diagnostics.
+
     -  Removal of printf() and other high-level library calls which may not
        operate with a corrupted heap.
+
     -  Better integration with scripting languages.
+
     -  Support for new platforms.
+
     -  Support for new scripting languages.
 
-Dave Beazley
-January 3, 2001
+Please contact me if you are interested in working on any of these projects.
+
+Dave Beazley (beazley@cs.uchicago.edu)
+March 10, 2001
 
 
 

@@ -11,8 +11,21 @@
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Copyright (C) 2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Copyright (C) 2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
@@ -20,12 +33,105 @@
 /* Include the proper code for reading the segment map */
 
 #ifdef WAD_SOLARIS
-#include "plat/segment_solaris.c"
-#endif
+
+/* This code is used to read the process virtual memory map on Solaris machines */
+
+static int
+segment_open() {
+  int f;
+  f = open("/proc/self/map", O_RDONLY);
+  return f;
+}
+
+static int
+segment_read(int fs, WadSegment *s) {
+  int     dz;
+  int     n;
+  prmap_t pmap;
+
+  n = read(fs, &pmap, sizeof(prmap_t));
+  if (n <= 0) return 0;
+  s->mapname = wad_strdup(pmap.pr_mapname);
+  s->mappath = (char *) wad_malloc(20+strlen(pmap.pr_mapname));
+  wad_strcpy(s->mappath,"/proc/self/object/");
+  strcat(s->mappath,pmap.pr_mapname);
+  s->vaddr = (char *) pmap.pr_vaddr;
+
+  /* This is a solaris oddity.  a.out section starts 1 page up, but
+     symbols are relative to a base of 0 */
+
+  if (strcmp(s->mapname,"a.out") == 0) s->base = 0;
+  else s->base = s->vaddr;
+
+  s->size  = pmap.pr_size;
+  s->offset = pmap.pr_offset;
+  return 1;
+}
+
+#endif           /* WAD_SOLARIS */
 
 #ifdef WAD_LINUX
-#include "plat/segment_linux.c"
-#endif
+static char linux_firstsegment[1024];
+static int linux_first = 1;
+
+static int
+segment_open() {
+  FILE *f;
+  f = fopen("/proc/self/maps", "r");
+  linux_first =1;
+  return (int) f;
+}
+
+static int 
+segment_read(int fd, WadSegment *s)
+{
+  char pbuffer[1024];
+  char *c;
+  int  len;
+  FILE *fs = (FILE *) fd;
+  c = fgets(pbuffer,1024,fs);
+  if (!c) return 0;
+
+  pbuffer[strlen(pbuffer)-1] = 0;   /* Chop off endline */
+
+  /* Break up the field into records */
+  /*    0-8       : Starting address
+	9-17      : Ending Address
+	18        : r
+	19        : w
+	20        : x
+	21        : p
+	23-31     : Offset 
+	49-       : Filename */
+
+  len = strlen(pbuffer);
+  pbuffer[8] = 0;
+  pbuffer[17] = 0;
+  pbuffer[31] = 0;
+  if (len >= 49) {
+    s->mapname = wad_strdup(pbuffer+49);
+    s->mappath = s->mapname;
+  }  else {
+    s->mapname = "";
+    s->mappath = s->mapname;
+  }
+  if (linux_first) {
+    wad_strcpy(linux_firstsegment, s->mappath);
+    linux_first = 0;
+  }
+  s->vaddr = (char *) strtoul(pbuffer,NULL,16);
+  s->size = strtoul(pbuffer+9,NULL,16) - (long) (s->vaddr);
+  s->offset = strtoul(pbuffer+23,NULL,16);
+  if (strcmp(linux_firstsegment, s->mappath) == 0) {
+    s->base = 0;
+  } else {
+    s->base = s->vaddr;
+  }
+  s++;
+  return 1;
+}
+
+#endif   /* WAD_LINUX */
 
 static WadSegment    *segments = 0;   /* Linked list of segments */
 

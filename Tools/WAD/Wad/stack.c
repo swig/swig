@@ -5,8 +5,21 @@
  *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Copyright (C) 2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * Copyright (C) 2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
@@ -31,6 +44,7 @@ new_frame() {
   f->stack_size = 0;
 
   f->sym_name = 0;
+  f->sym_nlen = 0;
   f->sym_file = 0;
   f->sym_base = 0;
   f->sym_size = 0;
@@ -41,6 +55,7 @@ new_frame() {
   f->loc_srcfile = 0;
   f->loc_line = 0;
 
+  f->debug_check = 0;
   f->debug_nargs = -1;
   f->debug_args = 0;
   f->debug_lastarg = 0;
@@ -111,7 +126,7 @@ stack_unwind(unsigned long *pc, unsigned long *sp, unsigned long *fp) {
   f->stack_size = fake_fp - *sp;
   /* Make a copy of the call stack */
   f->stack = (char *) wad_malloc(f->stack_size);
-  memcpy(f->stack,(void *) *sp, f->stack_size);
+  wad_memcpy(f->stack,(void *) *sp, f->stack_size);
 
   /* Update the sp, fp, and pc */
 
