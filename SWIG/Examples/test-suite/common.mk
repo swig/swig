@@ -215,6 +215,7 @@ C_TEST_CASES += \
 	overload_extendc \
 	preproc_1 \
 	preproc_2 \
+	preproc_3 \
 	ret_by_value \
 	sizeof_pointer \
 	sneaky1 \
