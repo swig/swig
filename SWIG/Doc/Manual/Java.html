@@ -1696,7 +1696,7 @@ If performance is really critical you can use the low-level interface which elim
 <p><hr>
 
 <a name="n9"></a><h2>Java pragmas</h2>
-There are two groups of pragmas in the Java module. The first group modify the Java module output file and the second modify the Java shadow output file. The pragmas beginning with <b>module</b> apply to the module output file. The pragmas beginning with <b>allshadow</b> apply to all shadow output classes. The pragmas beginning with <b>shadow</b> apply to the currently active shadow class so these pragmas can only be specified within the definition of a class or struct. For example:
+There are two groups of pragmas in the Java module. The first group modify the Java module output file and the second modify the Java shadow output file. The pragmas beginning with <b>module</b> apply to the module output file. The pragmas beginning with <b>allshadow</b> apply to all shadow output classes. The pragmas beginning with <b>shadow</b> apply to the currently active shadow class so these pragmas can only be specified within the definition of a class or struct. Some examples:
 <blockquote><pre>
 /* TestStruct.i */
 #ifdef SWIG
@@ -1741,7 +1741,7 @@ A complete list of pragmas follows:
 </tr>
 <tr>
 <td>shadowcode</td>
-<td>Adds code to the Java shadow class.</td>
+<td>Adds code to the Java shadow class. See the JavaDoc section below about using this pragma for JavaDoc comments.</td>
 <td>%pragma(java) shadowcode="/*shadow code*/"</td>
 </tr>
 <tr>
@@ -1815,6 +1815,25 @@ The pragmas are used primarily to modify the default Java output code. They prov
 
 <h4> Derive C++ from Java and visa-versa</h4>
 It is possible to derive a Java class from a shadow class (i.e. a C++ class) with the Java module. However, with the pragmas it is also possible to derive the SWIG produced Java shadow classes (i.e. C++ class) from your own Java class by using the <b>xxxbase</b> pragma with the <b>xxximport</b>, <b>xxxcode</b> and <b>xxxclassmodifiers</b> pragmas. It is also possible for the SWIG produced Java classes to implement interfaces using the <b>xxxinterface</b> pragmas.
+
+<h4> JavaDoc and the shadowcode pragma</h4>
+The SWIG documentation feature is not currently present in the 1.3 versions of SWIG. However a limited form of JavaDoc documentation can be implemented by placing JavaDoc comments in the <b>shadowcode</b> pragma. Just put your JavaDoc comment in a <b>shadowcode</b> pragma before the function to which you want it to apply.
+
+<h4> Tips for using the shadow pragmas</h4>
+Note that an out of scope warning is issued if any of the <b>shadow</b> pragmas are used outside of the class/struct/union definition. This requires one of these pragmas to be placed within the definition of the class/struct/union. It may seem that the original C/C++ code has to be modified when using the <tt>%include</tt> pragma. A technique to avoid this is to place the pragma within the <tt>%addmethods</tt> directive. For example:
+<blockquote><pre>
+%module example
+%{
+#include "MyClass.h"
+%}
+%include "MyClass.h"
+
+// Use a shadow pragma without modifying the original code in MyClass.h
+%addmethods MyClass{
+%pragma(java) shadowcode="/* Some extra shadow code for MyClass */"
+}
+</pre></blockquote>
+
 
 <a name="n10"></a><h2>Dynamic linking problems</h2>
 The code to load a native library is <code>System.loadLibrary("name")</code>. This can fail and it can be due to a number of reasons. 
