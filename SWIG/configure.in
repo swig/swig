@@ -1008,7 +1008,7 @@ AC_ARG_WITH(release-suffix,
 AC_SUBST(release_suffix)
 
 AC_CONFIG_SUBDIRS(Tools)
-AC_CONFIG_FILES([
+AC_CONFIG_FILES([			\
     Makefile				\
     Source/Makefile			\
     Runtime/Makefile			\
