@@ -196,7 +196,7 @@ Hash *Swig_cparse_features() {
   if (!features_hash) features_hash = NewHash();
   return features_hash;
 }
- 
+
 static String *feature_identifier_fix(String *s) {
   if (SwigType_istemplate(s)) {
     String *tp, *ts, *ta, *tq;
@@ -1054,6 +1054,10 @@ static int is_cfunction(Node *n) {
  * The additional functions form a linked list of nodes with the head being the original Node n. */
 static void default_arguments(Node *n) {
   Node *function = n;
+  String *fname = 0;
+  String *oname = 0;
+  SwigType *fdecl = 0;
+  int ignore = 0;
 
   /* Do not add in functions if kwargs is being used or if user wants old default argument wrapping
     (one wrapped method per function irrespective of number of default arguments) */
@@ -1066,6 +1070,16 @@ static void default_arguments(Node *n) {
       if (p) 
         Setattr(p,"compactdefargs", "1"); /* mark parameters for special handling */
       function = 0; /* don't add in extra methods */
+    }
+  }
+
+  if (function) {
+    fdecl = Getattr(function,"decl");
+    /* try to see if we need to ignore this method */
+    fname = Getattr(function,"name");
+    oname = make_name(fname,fdecl);
+    if (strncmp(Char(oname),"$ignore",7) == 0) {
+      ignore = 1;
     }
   }
 
@@ -1105,7 +1119,7 @@ static void default_arguments(Node *n) {
       /* Create new function and add to symbol table */
       {
         Node *new_function = new_node(Copy(nodeType(function)));
-        SwigType *decl = Copy(Getattr(function,"decl"));
+        SwigType *decl = Copy(fdecl);
         int constqualifier = SwigType_isconst(decl);
 
         Delete(SwigType_pop_function(decl)); /* remove the old parameter list from decl */
@@ -1113,7 +1127,7 @@ static void default_arguments(Node *n) {
         if (constqualifier)
           SwigType_add_qualifier(decl,"const");
 
-        Setattr(new_function,"name",Copy(Getattr(function,"name")));
+        Setattr(new_function,"name",fname);
         Setattr(new_function,"code",Copy(Getattr(function,"code")));
         Setattr(new_function,"decl", decl);
         Setattr(new_function,"parms",newparms);
@@ -1135,9 +1149,12 @@ static void default_arguments(Node *n) {
           if (symtypename) Setattr(new_function,"sym:typename",Copy(symtypename));
           if (templateparms) Setattr(new_function,"templateparms",CopyParmList(templateparms));
         }
-
+	
+	/* apply the original function features */
+	Swig_features_get(Swig_cparse_features(),Namespaceprefix,fname,fdecl,new_function);
+	if (ignore) Setattr(new_function,"feature:ignore","1");
+	
         add_symbols(new_function);
-
         /* mark added functions as ones with overloaded parameters and point to the parsed method */
         Setattr(new_function,"defaultargs", n);
 
