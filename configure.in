@@ -1212,6 +1212,7 @@ else
 fi
 
 CSHARPPATHSEPARATOR="/"
+CSHARPCYGPATH_W=echo
 if test -z "$CSHARPBIN" ; then
   CSHARPCILINTERPRETER=""
   if test "cscc" = "$CSHARPCOMPILER" ; then
@@ -1226,7 +1227,8 @@ if test -z "$CSHARPBIN" ; then
       esac
     else 
       if test "csc" = "$CSHARPCOMPILER"; then
-          CSHARPPATHSEPARATOR = "\\"
+          CSHARPPATHSEPARATOR="\\\\"
+          CSHARPCYGPATH_W='cygpath -w'
       fi
     fi
   fi
@@ -1254,6 +1256,7 @@ esac
 
 AC_SUBST(CSHARPCILINTERPRETER)
 AC_SUBST(CSHARPPATHSEPARATOR)
+AC_SUBST(CSHARPCYGPATH_W)
 AC_SUBST(CSHARPCOMPILER)
 AC_SUBST(CSHARPDYNAMICLINKING)
 AC_SUBST(CSHARPLIBRARYPREFIX) # Is this going to be used?
