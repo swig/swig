@@ -3,89 +3,75 @@
  * Various useful typemaps.
  *
 */
-%typemap(jtype) char *STRING "String"
-%typemap(in) char *STRING {
-  $target = JCALL2(GetStringUTFChars, jenv, $source, 0);
-}
-
-%typemap(argout) char *STRING {
-  JCALL2(ReleaseStringUTFChars, jenv, $source, $target);
-}
-
-%typemap(out) char *STRING {
-  $target = (jarray) JCALL1(NewStringUTF, jenv, $source);
-}
-
 %typemap(jtype) char **STRING_IN "String[]"
 %typemap(jni) char **STRING_IN "jobjectArray"
 %typemap(in) char **STRING_IN {
   int i;
-  jsize sz = JCALL1(GetArrayLength, jenv, $source);
-  $target = (char **) malloc((sz+1) * sizeof(char *));
+  jsize sz = JCALL1(GetArrayLength, jenv, $input);
+  $1 = (char **) malloc((sz+1) * sizeof(char *));
   for(i=0; i<sz; i++) {
     jstring js;
     char *cs;
 
-    js = (jstring) JCALL2(GetObjectArrayElement, jenv, $source, i);
+    js = (jstring) JCALL2(GetObjectArrayElement, jenv, $input, i);
     cs = (char *) JCALL2(GetStringUTFChars, jenv, js, 0);
-    $target[i] = cs;
+    $1[i] = cs;
   }
-  $target[sz] = '\0';
+  $1[sz] = '\0';
 }
 
-%typemap(argout) char **STRING_IN {
+%typemap(argout) char **STRING_IN %{
   /* should release strings obtained from GetStringUTFChars */
-  free($target);
-}
+  free($1);
+%}
 
 /* result must be a null terminated string */
 %typemap(jtype) char **STRING_OUT "String[]"
 %typemap(jni) char **STRING_OUT "jobjectArray"
-%typemap(in) char **STRING_OUT (char *s) {
-  $target = &s;
-}
-%typemap(argout) char **STRING_OUT {
-  if($target != NULL)
-    JCALL3(SetObjectArrayElement, jenv, $source, 0, JCALL1(NewStringUTF, jenv, *$target));
-}
+%typemap(in) char **STRING_OUT (char *s) %{
+  $1 = &s;
+%}
+%typemap(argout) char **STRING_OUT %{
+  if($1 != NULL)
+    JCALL3(SetObjectArrayElement, jenv, $input, 0, JCALL1(NewStringUTF, jenv, *$1));
+%}
 
 /* a NULL terminated array of char* */
 %typemap(jtype) char **STRING_RET "String[]"
 %typemap(jni) char **STRING_RET "jarray"
-%typemap(out) char **STRING_RET {
-  if($source != NULL) {
-    char **p = $source;
+%typemap(out) char **STRING_RET %{
+  if($1 != NULL) {
+    char **p = $1;
     jsize size = 0;
     int i = 0;
     jclass strClass;
     
     while (*p++) size++; /* determine size */
     strClass = JCALL1(FindClass, jenv, "java/lang/String");
-    $target = JCALL3(NewObjectArray, jenv, size, strClass, NULL);
-    p = $source;
+    $result = JCALL3(NewObjectArray, jenv, size, strClass, NULL);
+    p = $1;
     while (*p) {
       jstring js = JCALL1(NewStringUTF, jenv, *p);
-      JCALL3(SetObjectArrayElement, jenv, $target, i++, js);
+      JCALL3(SetObjectArrayElement, jenv, $result, i++, js);
       p++;
     }
   }
-}
+%}
 
 %typemap(jni) int *INT_OUT "jintArray"
 %typemap(jtype) int *INT_OUT "int[]"
-%typemap(in) int *INT_OUT (int i) {
-   $target = (int *)&i;
-}
+%typemap(in) int *INT_OUT (int temp) %{ $1 = (int *)&temp; %}
 
-%typemap(argout) int *INT_OUT {
-   jint ji;
-   i = (jint) *$target;
-   JCALL4(SetIntArrayRegion, jenv, $source, 0, 1, (jint *) &i);
-}
+%typemap(argout) int *INT_OUT %{
+   temp$argnum = (jint) *$1;
+   JCALL4(SetIntArrayRegion, jenv, $input, 0, 1, (jint *) &temp$argnum);
+%}
 
-%typemap(out) float * FLOAT_ARRAY_RETURN {
-   if($source != NULL) {
-     float *fp = $source;
+%typemap(jni) float * FLOAT_ARRAY_RETURN "jfloatArray"
+%typemap(jtype) float * FLOAT_ARRAY_RETURN "float[]"
+%typemap(out) float * FLOAT_ARRAY_RETURN %{
+   if($1 != NULL) {
+     float *fp = $1;
      jfloat *jfp;
      int size = 0;
      int i;
@@ -94,35 +80,27 @@
      while(*fp++) size++;
 
      /* new float array */
-     $target = JCALL1(NewFloatArray, jenv, size);
+     $result = JCALL1(NewFloatArray, jenv, size);
 
      /* copy elements to float array */
-     jfp = JCALL2(GetFloatArrayElements, jenv, $target, 0);
+     jfp = JCALL2(GetFloatArrayElements, jenv, $result, 0);
      for(i=0; i<size; i++ )
-       jfp[i] = (jfloat) $source[i];
+       jfp[i] = (jfloat) $1[i];
 
-     JCALL3(ReleaseFloatArrayElements, jenv, $target, jfp, 0);
+     JCALL3(ReleaseFloatArrayElements, jenv, $result, jfp, 0);
    }
-}
+%}
 
 %typemap(jni) char *BYTE "jbyteArray"
 %typemap(jtype) char *BYTE "byte[]"
-%typemap(in) char *BYTE {
-  $target = (char *) JCALL2(GetByteArrayElements, jenv, $source, 0);
-}
+%typemap(in) char *BYTE %{
+  $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0);
+%}
 
-%typemap(argout) char *BYTE {
-  JCALL3(ReleaseByteArrayElements, jenv, $source, (jbyte *) $target, 0);
-}
+%typemap(argout) char *BYTE %{
+  JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *) $1, 0);
+%}
 
-%typemap(ignore) JNIEnv * {
-  $target = jenv;
-}
+/* Prevent default freearg typemap from being used */
+%typemap(freearg) char *BYTE ""
 
-%typemap(ignore) jclass jcls {
-  $target = jcls;
-}
-
-%typemap(ignore) jobject jobj {
-  $target = jobj;
-}
