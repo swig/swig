@@ -126,3 +126,20 @@ class Klass {};
 %template(overload) overload<Klass>;
 %template(overload) overload<double>;
 
+
+// everything put in a namespace
+%inline %{
+namespace space {
+  int nsoverload(const char *c) { return 1000; }
+  template<typename T> int nsoverload(T t) { return 1010; }
+  template<typename T> int nsoverload(T t, const T &tref) { return 1020; }
+  template<typename T> int nsoverload(T t, const char *c) { return 1030; }
+  template<> int nsoverload<double>(double t, const char *c) { return 1040; }
+  int nsoverload() { return 1050; }
+}
+%}
+
+%template(nsoverload) space::nsoverload<int>;
+%template(nsoverload) space::nsoverload<Klass>;
+%template(nsoverload) space::nsoverload<double>;
+
