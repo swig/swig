@@ -1,6 +1,11 @@
 Version 1.3.22 (in progress)
 ==================================
 
+08/17/2004: mkoeppe
+	    [MzScheme] Add support to create native MzScheme structures from C structures.
+	    To convert a C structure to an MzScheme structure, use the new runtime macro
+	    SWIG_NewStructFromPtr in a typemap.  Patch from Dmitriy Zavin. 
+
 08/12/2004: wsfulton
             Patch #837715 from Ben Reser to correctly detect Python lib directory
             on 64 bit systems.
