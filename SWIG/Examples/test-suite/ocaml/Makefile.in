@@ -19,7 +19,7 @@ run_testcase = \
 		ocamlc swig.cmo -custom -g -cc '$(CXX)' -o runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& ./runme) ; \
 	elif [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 		ocamlc -c $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-		ocamlc swig.cmo -custom -g -cc '$(CXX)' -o runme $(srcdir)/$(*)_runme.cmo $(srcdir)/$(*)_wrap.o && \
+		ocamlc swig.cmo -custom -g -cc '$(CXX)' -o runme $(srcdir)/$(*).cmo $(srcdir)/$(*)_runme.cmo $(srcdir)/$(*)_wrap.o && \
 		./runme) ; \
 	fi ; 
 

@@ -282,8 +282,8 @@ public:
 		"     C_enum _y ->\n"
 		"     (let y = _y in match (x : c_enum_type) with\n"
 		"       `unknown -> "
-		"         (match (Obj.magic y) with\n"
-		"           `Int x -> Swig.C_int x\n"
+		"         (match y with\n"
+		"           `Int x -> (Swig.C_int x)\n"
 		"           | _ -> raise (LabelNotFromThisEnum v))\n" );
 
 	Printf( f_int_to_enum,
@@ -323,7 +323,7 @@ public:
 	Language::top(n);
 
 	Printf( f_enum_to_int, 
-		") | _ -> (Swig.C_int (get_int v))\n"
+		") | _ -> (C_int (get_int v))\n"
 		"let _ = Callback.register \"%s_enum_to_int\" enum_to_int\n", 
 		module );
 	Printf( f_mlibody, 
@@ -916,21 +916,21 @@ public:
 	
 	if( Getattr( n, "feature:immutable" ) ) {
 	    Printf( f_mlbody, 
-		    "external _%s : Swig.c_obj -> Swig.c_obj = \"%s\" \n",
+		    "external _%s : c_obj -> Swig.c_obj = \"%s\" \n",
 		    mname, var_name );
-	    Printf( f_mlibody, "val _%s : Swig.c_obj -> Swig.c_obj\n", iname );
+	    Printf( f_mlibody, "val _%s : c_obj -> Swig.c_obj\n", iname );
 	    if( const_enum ) {
 		Printf( f_enum_to_int, 
-			" | `%s -> _%s Swig.C_void\n", 
+			" | `%s -> _%s C_void\n", 
 			mname, mname );
 		Printf( f_int_to_enum, 
-			" if y = (get_int (_%s Swig.C_void)) then `%s else\n",
+			" if y = (get_int (_%s C_void)) then `%s else\n",
 			mname, mname );
 	    }
 	} else {
-	    Printf( f_mlbody, "external _%s : Swig.c_obj -> Swig.c_obj = \"%s\"\n",
+	    Printf( f_mlbody, "external _%s : c_obj -> c_obj = \"%s\"\n",
 		    mname, var_name );
-	    Printf( f_mlibody, "external _%s : Swig.c_obj -> Swig.c_obj = \"%s\"\n",
+	    Printf( f_mlibody, "external _%s : c_obj -> c_obj = \"%s\"\n",
 		    mname, var_name );
 	}
 
@@ -1204,7 +1204,7 @@ public:
 
 	/* Insert sizeof operator for concrete classes */
 	if( sizeof_feature ) {
-	    Printv(f_class_ctors, "\"sizeof\" , (fun args -> Swig.C_int (__",
+	    Printv(f_class_ctors, "\"sizeof\" , (fun args -> C_int (__",
 		   classname, "_sizeof ())) ;\n", NIL);
 	}
 	/* Handle up-casts in a nice way */
@@ -1216,7 +1216,7 @@ public:
 	    String *bname = Getattr(b.item, "name");
 	    if (bname) {
 	      String *base_create = NewString("");
-	      Printv(base_create,"(Swig.create_class \"",bname,"\")",NIL);
+	      Printv(base_create,"(create_class \"",bname,"\")",NIL);
 	      Printv(f_class_ctors,
 		     "   \"::",bname,"\", (fun args -> ",
 		     base_create," args) ;\n",NIL);
@@ -1410,7 +1410,7 @@ public:
 
 	if( oname && !seen_enum ) {
 	    const_enum = true;
-	    Printf( f_enum_to_int, "| `%s -> (match (Obj.magic y) with\n", oname );
+	    Printf( f_enum_to_int, "| `%s -> (match y with\n", oname );
 	    Printf( f_int_to_enum, "| `%s -> C_enum (\n", oname );
 	    /* * * * A note about enum name resolution * * * *
 	     * This code should now work, but I think we can do a bit better.
@@ -1755,8 +1755,18 @@ public:
 
 	/* any existing helper functions to handle this? */
 	if (!is_void) {
-	    if (!SwigType_isreference(return_type)) {
-		Printf(w->code, "CAMLreturn(c_result);\n");
+	    /* A little explanation:
+	     * The director_enum test case makes a method whose return type
+	     * is an enum type.  return_type here is "int".  gcc complains
+	     * about an implicit enum conversion, and although i don't strictly
+	     * agree with it, I'm working on fixing the error:
+	     *
+	     * Below is what I came up with.  It's not great but it should
+	     * always essentially work.
+	     */
+	    if( !SwigType_isreference(return_type) ) {
+		Printf(w->code, "CAMLreturn((%s)c_result);\n",
+		       SwigType_lstr(return_type, ""));
 	    } else {
 		Printf(w->code, "CAMLreturn(*c_result);\n");
 	    }

@@ -284,16 +284,37 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %swigtype_ptr_out(varout);
 %swigtype_ptr_out(directorin);
 
+%define %swigtype_array_fail(how,msg)
+%typemap(how) SWIGTYPE [] {
+    failwith(msg);
+}
+%enddef
+
+%swigtype_array_fail(in,"Array arguments for arbitrary types need a typemap");
+%swigtype_array_fail(varin,"Assignment to global arrays for arbitrary types need a typemap");
+%swigtype_array_fail(out,"Array arguments for arbitrary types need a typemap");
+%swigtype_array_fail(varout,"Array variables need a typemap");
+%swigtype_array_fail(directorin,"Array results with arbitrary types need a typemap");
+%swigtype_array_fail(directorout,"Array arguments with arbitrary types need a typemap");
+
 /* C++ References */
 
 /* Enums */
-%typemap(in) enum SWIGTYPE {
+%define %swig_enum_in(how)
+%typemap(how) enum SWIGTYPE {
     $1 = ($type)caml_long_val_full($input,"$type_marker");
 }
+%enddef
 
-%typemap(varin) enum SWIGTYPE {
-    $1 = ($type)caml_long_val_full($input,"$type_marker");
+%define %swig_enum_out(how)
+%typemap(how) enum SWIGTYPE {
+    $result = callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),*caml_named_value("$type_marker"),Val_int((int)$1));
 }
+%enddef
 
-%typemap(out) enum SWIGTYPE "$result = callback2(*caml_named_value(SWIG_MODULE \"_int_to_enum\"),*caml_named_value(\"$type_marker\"),Val_int($1));"
-%typemap(varout) enum SWIGTYPE "$result = callback2(*caml_named_value(SWIG_MODULE \"_int_to_enum\"),*caml_named_value(\"$type_marker\"),Val_int($1));"
+%swig_enum_in(in)
+%swig_enum_in(varin)
+%swig_enum_in(directorout)
+%swig_enum_out(out)
+%swig_enum_out(varout)
+%swig_enum_out(directorin)
