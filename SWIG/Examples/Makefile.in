@@ -477,6 +477,28 @@ mzscheme_multi_cpp: $(SRCS)
 	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME) $(CPP_DLLIBS) 
 
 ##################################################################
+#####                          Ocaml                         #####
+##################################################################
+
+OCC=@OCAMLC@
+
+ocaml_static: $(SRCS)
+	$(SWIG) -ocaml -mlout $(MLFILE) $(SWIGOPT) $(INTERFACE)
+	$(OCC) -c -ccopt "$(INCLUDE)" $(ISRCS) $(SRCS)
+	$(OCC) -c $(MLFILE)i
+	$(OCC) -c $(MLFILE)
+	$(OCC) -c $(PROGFILE)
+	$(OCC) -custom -o $(TARGET) $(OBJS) $(IOBJS) -cclib "$(LIBS)"
+
+ocaml_cpp_static: $(SRCS)
+	$(SWIG) -ocaml -c++ -mlout $(MLFILE) $(SWIGOPT) $(INTERFACE)
+	$(OCC) -c -ccopt "$(INCLUDE)" $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(OCC) -c $(MLFILE)i
+	$(OCC) -c $(MLFILE)
+	$(OCC) -c $(PROGFILE)
+	$(OCC) -custom -o $(TARGET) $(OBJS) $(IOBJS) -cclib "$(LIBS)"
+
+##################################################################
 #####                       RUBY                            ######
 ##################################################################
 
