@@ -153,14 +153,13 @@ rename_inherit(String *base, String *derived) {
 /* Generate the symbol table name for an object */
 /* This is a bit of a mess. Need to clean up */
 
-static char *make_name(char *name,SwigType *decl) {
+static String *make_name(String *name,SwigType *decl) {
   String *rn = 0;
-  char   *origname = name;
+  String *origname = name;
   int     destructor = 0;
 
-  if (name && (*name == '~')) {
+  if (name && (*(Char(name)) == '~')) {
     destructor = 1;
-    name++;
   }
   if (yyrename) {
     String *s = yyrename;
@@ -168,7 +167,7 @@ static char *make_name(char *name,SwigType *decl) {
     if (destructor) {
       Insert(s,0,"~");
     }
-    return Char(s);
+    return s;
   }
   if (!name) return 0;
   /* Check to see if the name is in the hash */
@@ -177,9 +176,9 @@ static char *make_name(char *name,SwigType *decl) {
   if (!rn) return origname;
   if (destructor) {
     String *s = NewStringf("~%s", rn);
-    return Char(s);
+    return s;
   }
-  return Char(rn);
+  return Copy(rn);
 }
 
 /* Generate an unnamed identifier */
@@ -189,7 +188,7 @@ static String *make_unnamed() {
 }
 
 /* Generate the symbol table name for an object */
-static char *name_warning(char *name,SwigType *decl) {
+static String *name_warning(String *name,SwigType *decl) {
   String *rn = 0;
   if (!name) return 0;
 
@@ -197,7 +196,7 @@ static char *name_warning(char *name,SwigType *decl) {
   if (!namewarn_hash) return 0;
   rn = Swig_name_object_get(namewarn_hash, Classprefix,name,decl);
   if (!rn) return 0;
-  return Char(rn);
+  return rn;
 }
 
 /* Add declaration list to symbol table */
@@ -207,20 +206,20 @@ static void add_symbols(Node *n) {
   /* Don't add symbols for private/protected members */
   if (inclass && (cplus_mode != CPLUS_PUBLIC)) return;
   while (n) {
-    char *symname;
+    String *symname;
     if (Getattr(n,"sym:name")) {
       n = nextSibling(n);
       continue;
     }
     decl = Getattr(n,"decl");
     if (!SwigType_isfunction(decl)) {
-      symname = make_name(GetChar(n,"name"),0);
+      symname = make_name(Getattr(n,"name"),0);
       wrn = name_warning(symname,0);
       Swig_features_get(features_hash, Classprefix, Getattr(n,"name"), 0, n);
     } else {
       SwigType *fdecl = Copy(decl);
       SwigType *fun = SwigType_pop_function(fdecl);
-      symname = make_name(GetChar(n,"name"),fun);
+      symname = make_name(Getattr(n,"name"),fun);
       wrn = name_warning(symname,fun);
       Swig_features_get(features_hash,Classprefix,Getattr(n,"name"),fun,n);
       Delete(fdecl);
@@ -262,17 +261,16 @@ static void add_symbols(Node *n) {
 
 /* Add a declaration to the tag-space */
 static void add_tag(Node *n) {
-  char *symname = make_name(GetChar(n,"name"),0);
+  String *symname = make_name(Getattr(n,"name"),0);
   Node *c;
   if (!symname) {
-    symname = GetChar(n,"unnamed");
+    symname = Getattr(n,"unnamed");
   }
   if (!symname) return;
   if (Cmp(symname,"$ignore") == 0) {
     Setattr(n,"error",NewString("ignored"));
     return;
   }
-
   c = Swig_symbol_add_tag(symname, n);
   if (c != n) {
     String *e = NewString("");
@@ -413,7 +411,7 @@ static Node *dump_nested(char *parent) {
     retx = new_node("classforward");
     Setattr(retx,"kind",n->kind);
     Setattr(retx,"name",Copy(n->type));
-    Setattr(retx,"sym:name", make_name(Char(n->type),0));
+    Setattr(retx,"sym:name", make_name(n->type,0));
     set_nextSibling(retx,ret);
     ret = retx; 
 
@@ -1889,7 +1887,7 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
                $$ = new_node("classforward");
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"name",$3);
-	       Setattr($$,"sym:name", make_name(GetChar($$,"name"),0));
+	       Setattr($$,"sym:name", make_name(Getattr($$,"name"),0));
 	     }
              ;
 
