@@ -833,6 +833,7 @@ CSHARP_LIBPREFIX = @CSHARPLIBRARYPREFIX@
 CSHARPCOMPILER = @CSHARPCOMPILER@
 CSHARPCILINTERPRETER = @CSHARPCILINTERPRETER@
 CSHARPCFLAGS = @CSHARPCFLAGS@
+CSHARPSO = @CSHARPSO@
 
 # ----------------------------------------------------------------
 # Build a CSharp dynamically loadable module (C)
@@ -841,7 +842,7 @@ CSHARPCFLAGS = @CSHARPCFLAGS@
 csharp: $(SRCS)
 	$(SWIG) -csharp $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(CSHARPCFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) -o $(CSHARP_LIBPREFIX)$(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) -o $(CSHARP_LIBPREFIX)$(TARGET)$(CSHARPSO)
 
 # ----------------------------------------------------------------
 # Build a CSharp dynamically loadable module (C++)
@@ -850,7 +851,7 @@ csharp: $(SRCS)
 csharp_cpp: $(SRCS)
 	$(SWIG) -csharp -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(CSHARPCFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(CSHARP_LIBPREFIX)$(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(CSHARP_LIBPREFIX)$(TARGET)$(CSHARPSO)
 
 # ----------------------------------------------------------------
 # Compile CSharp files
@@ -864,5 +865,5 @@ csharp_compile: $(SRCS)
 # -----------------------------------------------------------------
 
 csharp_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ runme@EXEEXT@ gc.log `find . -name \*.cs | grep -v runme.cs`
+	rm -f *.@OBJEXT@ *@CSHARPSO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ runme runme.exe gc.log `find . -name \*.cs | grep -v runme.cs`
 
