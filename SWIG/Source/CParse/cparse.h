@@ -1,6 +1,5 @@
 #include "swig.h"
 #include "swigwarn.h"
-#include "swigver.h"
 
 extern  char     *cparse_file;
 extern  int       cparse_line;
