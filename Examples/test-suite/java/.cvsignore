@@ -8,9 +8,11 @@ add_link
 anonymous_arg
 anonymous_bitfield
 argout
+array_member
 arrayptr
 arrayref
 arrays
+arrays_dimensionless
 arrays_global
 arrays_global_twodim
 arrays_scope
@@ -181,6 +183,7 @@ template_ns_enum2
 template_ns_inherit
 template_ns_scope
 template_qualifier
+template_ref_type
 template_rename
 template_retvalue
 template_specialization
@@ -197,6 +200,7 @@ template_virtual
 template_whitespace
 throw_exception
 typedef_array_member
+typedef_class
 typedef_funcptr
 typedef_inherit
 typedef_mptr
