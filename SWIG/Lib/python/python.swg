@@ -108,7 +108,7 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
 statichere PyTypeObject varlinktype = {
   PyObject_HEAD_INIT(0)              
   0,
-  "swigvarlink",                      /* Type name    */
+  (char *)"swigvarlink",                      /* Type name    */
   sizeof(swig_varlinkobject),         /* Basic size   */
   0,                                  /* Itemsize     */
   0,                                  /* Deallocator  */ 
