@@ -809,6 +809,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 %typemap(javacode)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] ""
 %typemap(javaimports)          SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] ""
 %typemap(javainterfaces)       SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] ""
+%typemap(javaptrconstructormodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "protected"
 
 %typemap(javafinalize) SWIGTYPE %{
   protected void finalize() {
