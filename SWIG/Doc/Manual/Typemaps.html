@@ -92,9 +92,25 @@ _000f4248_p_p_char
 
 Needless to say, even though this works, it isn't the most user friendly interface.
 It would be much nicer if you could simply make a list
-of strings work like a <tt>char **</tt>.  Similar problems arise when
-creating wrappers for small arrays, output values, and certain kinds
-of data structures.
+of strings work like a <tt>char **</tt>.    Even if you could make the wrapper
+code accept a list of strings like this,
+
+<blockquote>
+<pre> 
+>>> foo(3, ["ale","lager","stout"])
+</pre>
+</blockquote>
+
+it would be even better if the <tt>argc</tt> parameter could be ommitted and determined implicitly.  For example:
+
+<blockquote>
+<pre>
+>>> foo(["ale","lager","stout"])
+</pre>
+</blockquote>
+
+Similar problems to this also arise when creating wrappers for small
+arrays, output values, and certain kinds of data structures.
 
 <p>
 One of the reasons why SWIG does not provide automatic support for
@@ -150,10 +166,9 @@ extern void add(double a, double b, double *result);
 </pre></blockquote>
 
 The <tt>%apply</tt> directive tells SWIG that you are going to apply
-a typemap rule to a new datatype. The "<tt>double *OUTPUT</tt>" is the
+a typemap rule to a new datatype. The "<tt>double *OUTPUT</tt>" specification is the
 name of a rule that knows how to return an output value from an argument of type
-<tt>double *</tt> (this rule is defined in the file
-<tt>typemaps.i</tt>). The rule gets applied to all of the datatypes
+<tt>double *</tt>. This rule gets applied to all of the datatypes
 listed in curly braces-- in this case "<tt>double *result</tt>".<p>
 
 <p>
@@ -221,7 +236,7 @@ extern void add(double a, double b, double *OUTPUT);
 </pre></blockquote>
 
 Typemaps stay in effect until they are explicitly deleted or redefined to something
-else.   To clear a typemap, the %clear directive should be used.  For example:
+else.   To clear a typemap, the <tt>%clear</tt> directive should be used.  For example:
 
 <blockquote>
 <pre>
@@ -753,7 +768,7 @@ function/method declaration, certain typemaps are applied to return values (in w
 case, the name of the corresponding function or method is used).
 
 <p>
-Typemaps can also be specified for a group of consecutive types by enclosing the
+Typemaps can also be specified for a sequence of consecutive types by enclosing the
 types in parentheses.   For example:
 
 <blockquote>
@@ -838,22 +853,22 @@ shows how some of the rules are applied:
 typedef int Integer;
 
 %typemap(python,in) int *x {
-   ...
+   ... typemap 1
 }
 
 %typemap(python,in) int * {
-   ...
+   ... typemap 2
 }
 
 %typemap(python,in) Integer *x {
-   ...
+   ... typemap 3
 }
 
-void A(int *x);      // int *x rule 
-void B(int *y);      // int * rule
-void C(Integer *);   // int * rule (via typedef)
-void D(Integer *x);  // Integer *x rule
-void E(const int *); // int * rule (const stripped)
+void A(int *x);      // int *x rule (typemap 1)
+void B(int *y);      // int * rule (typemap 2)
+void C(Integer *);   // int * rule (via typedef)  (typemap 2)
+void D(Integer *x);  // Integer *x rule (typemap 3)
+void E(const int *); // int * rule (const stripped)  (typemap 2)
 </pre>
 </blockquote>
 
@@ -871,8 +886,8 @@ any typemaps specified for a single type.  For example:
    // typemap 2
 }
 
-void foo(char *buffer, int len, int count);    // (char *buffer, int len) applied
-void bar(char *buffer, int blah);              // char *buffer applied
+void foo(char *buffer, int len, int count); // (char *buffer, int len)
+void bar(char *buffer, int blah);           // char *buffer
 </blockquote>
 </pre>
 
@@ -884,7 +899,7 @@ in SWIG1.3. Typemaps must now exactly match the types and names used in the inte
 file.
 
 <p>
-<b>Compatibility note:</b> Starting in SWIG1.3, typemap matching tries to follow <tt>typedef</tt>
+<b>Compatibility note:</b> Starting in SWIG1.3, typemap matching follows <tt>typedef</tt>
 declarations if possible (as shown in the above example).   This type of matching is
 only performed in one direction.  For example, if you had <tt>typedef int Integer</tt> and then
 defined a typemap for <tt>Integer</tt>, that typemap would <em>not</em> be applied to
@@ -959,6 +974,7 @@ _wrap_foo() {
    /* Marshal input values to C */
    [ ignore typemaps ]
    [ arginit typemaps ]
+   [ default typemaps ]
    [ in typemaps ]
    [ check typemaps ]
 
@@ -1072,7 +1088,7 @@ actions.
 Within each typemap, the <tt>$1</tt> is always replaced by a C local variable corresponding
 to that type.  For example, you can see how <tt>$1</tt> is replaced by <tt>arg0</tt>,
 <tt>arg1</tt>, and <tt>arg2</tt> depending on the argument in question.    For typemaps
-related to returning a result, <tt>$1</tt> is usually set to the local variable holding
+related to returning a result, <tt>$1</tt> is set to the local variable holding
 the raw result of the function call (in this case, the variable <tt>result</tt>).
 
 <h2> Writing typemap code</h2>
@@ -1102,7 +1118,7 @@ typemap code itself.  It does not affect other variables in the wrapper
 function and it does not matter whether or not other typemaps happen to
 use the same variable name.
 
-<h3>Creating persistent local variables</h3>
+<h3>Creating local variables</h3>
 
 Sometimes it is useful to declare a new local variable that exists
 in the scope of the entire wrapper function. This can be done by
@@ -1166,7 +1182,7 @@ wrap_foo() {
 <p>
 Some typemaps do not recognize local variables (or they may simply not
 apply). At this time, only the "in", "argout", "default", and "ignore"
-typemaps support local variables.<p>
+typemaps support local variables (typemaps that only apply to conversion of arguments).<p>
 
 <p>
 It is also important to note that the primary use of local variables
