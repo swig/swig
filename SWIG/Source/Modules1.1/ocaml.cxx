@@ -983,19 +983,24 @@ class OCAML : public Language {
 	       ") {\n"
 	       "\tCAMLparam0();\n", wrap_name);
 
+	int lastout = 0;
+
 	for( i = 0, p = l; p; i++, p = nextSibling(p) ) {
-	    if( i && (i % 5) == 0 )
+	    if( i - lastout == 5 ) {
 		Printf(f->def,
 		       "\tCAMLxparam5(args%d,args%d,args%d,args%d,args%d);\n",
-		       i-4,i-3,i-2,i-1,i);
+		       i-5,i-4,i-3,i-2,i-1);
+		lastout = i;
+	    }
 	}
 
-	int j = 0;
+	if( lastout != i ) {
+	    char *comma = "";
+	    Printf(f->def,"\tCAMLxparam%d(",i - lastout );
 
-	if( i - (i % 5) != numargs ) {
-	    Printf(f->def,"\tCAMLxparam%d(",i % 5);
-	    for( j = i - (i % 5); j < i; j++ ) {
-		Printf(f->def,"args%d%s",j,j==(i-1)?"":",");
+	    for( ; lastout < i; lastout++ ) {
+		Printf(f->def,"%sargs%d",comma,lastout);
+		comma = ",";
 	    }
 
 	    Printf(f->def,");\n");
@@ -1090,12 +1095,17 @@ class OCAML : public Language {
 
 	if( strcmp(Char(d),"void") ) 
 	    Printv(f->def,"\t",SwigType_str(d,"result"),";\n",0);
-	Printv(f->def,"\tvalue *swig_func;\n",0);
-	Printv(f->def,"\tvalue swig_result;\n",0);
-	Printf(f->def,"\tvalue args[%d];\n", numargs == 0 ? 1 : numargs);
-
-	if( !numargs ) 
-	    Printf(f->def,"\targs[0] = Val_unit;\n");
+	Printf(f->def,
+	       "\tCAMLlocal(swig_result);\n"
+	       "\tvalue *swig_func;\n"
+	       "\tvalue args[%d];\n"
+	       "\tint numargs = %d\n"
+	       "\tint i;\n"
+	       "\tfor( i = 0; i < numargs; i++ ) "
+	       "args[i] = Val_unit;\n"
+	       "\tCAMLxparamN(args,numargs);\n",
+	       numargs ? numargs : 1,
+	       numargs ? numargs : 1 );
 
 	// Fill arguments
 
@@ -1158,7 +1168,7 @@ class OCAML : public Language {
 		throw_unhandled_ocaml_type_error (dcaml);
 	    }
 	    
-	    Printf(f->code,"\treturn swig_result;\n");
+	    Printf(f->code,"\tCAMLreturn(swig_result);\n");
 	}
 
 	Printf(f->code,"}\n");
@@ -1249,7 +1259,8 @@ class OCAML : public Language {
 	numreq  = emit_num_required(l);
 	
 	// adds local variables
-	Wrapper_add_local(f, "swig_result", "CAMLlocal1(swig_result)");
+	//Wrapper_add_local(f, "swig_result", "CAMLlocal1(swig_result)");
+	Printf(f->def,"\tCAMLlocal1(swig_result);\n");
 	
 	// Now write code to extract the parameters (this is super ugly)
 
@@ -1589,14 +1600,16 @@ class OCAML : public Language {
 	/* Produce the enum_to_int and int_to_enum functions */
 	Printf(f_wrappers,
 	       "static int %s_to_int( value v ) {\n"
+	       "  CAMLparam1(v);\n"
 	       "  value *en_to_int_cb = "
 	       "caml_named_value(\"%s_to_int\");\n"
-	       "  return Int_val(callback(*en_to_int_cb,v));\n"
+	       "  CAMLreturn(Int_val(callback(*en_to_int_cb,v)));\n"
 	       "}\n"
 	       "static value int_to_%s( int v ) {\n"
+	       "  CAMLparam0();\n"
 	       "  value *int_to_en_cb = "
 	       "caml_named_value(\"int_to_%s\");\n"
-	       "  return callback(*int_to_en_cb,Val_int(v));\n"
+	       "  CAMLreturn(callback(*int_to_en_cb,Val_int(v)));\n"
 	       "}\n",name,name,name,name);
 	
 	if( !mliout ) {
