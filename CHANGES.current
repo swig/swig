@@ -1,5 +1,11 @@
 Version 1.3.18 (In progress)
 ============================
+
+02/19/2003: cheetah (William Fulton)
+            [Java] Fix for using enum typemaps. The Java final static variable type
+            can be set using the jstype typemap, enabling enums to be mapped to 
+            something other than int. Bug reported by Heiner Petith.
+
 02/21/2003: songyanf (Tiger)
             Added CSharp (C#) module prototype
             i.e. csharp.cxx & csharp.h at Source/Modules/.
