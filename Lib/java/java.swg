@@ -878,11 +878,56 @@
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(javaclassmodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public"
+%typemap(javaclassmodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
 %typemap(javacode)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javaimports)          SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javainterfaces)       SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(javaptrconstructormodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "protected"
+
+// Proxy classes (base classes, ie, not derived classes)
+%typemap(javabody) SWIGTYPE %{
+  private long swigCPtr;
+  protected boolean swigCMemOwn;
+
+  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+  }
+
+  protected static long getCPtr($javaclassname obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
+%}
+
+// Derived proxy classes
+%typemap(javabody_derived) SWIGTYPE %{
+  private long swigCPtr;
+
+  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+    super($moduleJNI.SWIG$javaclassnameUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
+  }
+
+  protected static long getCPtr($javaclassname obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
+%}
+
+// Typewrapper classes
+%typemap(javabody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+  private long swigCPtr;
+
+  protected $javaclassname(long cPtr, boolean bFutureUse) {
+    swigCPtr = cPtr;
+  }
+
+  protected $javaclassname() {
+    swigCPtr = 0;
+  }
+
+  protected static long getCPtr($javaclassname obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
+%}
 
 %typemap(javafinalize) SWIGTYPE %{
   protected void finalize() {
@@ -907,16 +952,13 @@
     super.delete();
   }
 
-%typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
-  protected static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
-  }
-%}
-
 /* Java specific directives */
 #define %javaconst(flag)     %feature("java:const","flag")
 #define %javaenum(wrapapproach)   %feature("java:enum","wrapapproach")
 #define %javamethodmodifiers %feature("java:methodmodifiers")
+
+%pragma(java) jniclassclassmodifiers="class"
+%pragma(java) moduleclassmodifiers="public class"
 
 /* Some ANSI C typemaps */
 
