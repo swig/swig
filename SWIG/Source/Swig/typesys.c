@@ -547,6 +547,7 @@ typedef_resolve(Typetab *s, String *base) {
  * SwigType_typedef_resolve()
  * ----------------------------------------------------------------------------- */
 
+/* #define SWIG_DEBUG */
 SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *base;
   String *type = 0;
@@ -578,7 +579,9 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 
   base = SwigType_base(t);
 
-  /* Printf(stdout,"base = '%s' t='%s'\n", base, t); */
+#ifdef SWIG_DEBUG
+  Printf(stdout,"base = '%s' t='%s'\n", base, t); 
+#endif
 
   if (SwigType_issimple(base)) {
     s = current_scope;
@@ -599,7 +602,9 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
       if (Swig_scopename_check(base)) {
 	/* A qualified name. */
 	nameprefix = Swig_scopename_prefix(base);
-	/* Printf(stdout,"nameprefix = '%s'\n", nameprefix); */
+#ifdef SWIG_DEBUG
+	Printf(stdout,"nameprefix = '%s'\n", nameprefix); 
+#endif
 	if (nameprefix) {
 	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
 	  s = SwigType_find_scope(s,nameprefix);
@@ -613,10 +618,22 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	  }
 	  /* Try to locate the name starting in the scope */
 	  namebase = Swig_scopename_last(base);
-	  /* Printf(stdout,"namebase = '%s'\n", namebase); */
+#ifdef SWIG_DEBUG
+	  Printf(stdout,"namebase = '%s'\n", namebase); 
+#endif
 	  type = typedef_resolve(s,namebase);
-	  /* Printf(stdout,"%s type = '%s'\n", Getattr(s,"name"), type); */
-	  if ((type) && (!Swig_scopename_check(type))) {
+	  if (type) {
+	    /* we need to look for the resolved type, this will also
+	       fix the resolved_scope if 'type' and 'namebase' are
+	       declared in different scopes */
+	    String *rtype = 0;
+	    rtype = typedef_resolve(resolved_scope,type);
+	    if (rtype) type = rtype;
+	  }
+#ifdef SWIG_DEBUG
+	  Printf(stdout,"%s type = '%s'\n", Getattr(s,"name"), type); 
+#endif
+	  if ((type) && (!Swig_scopename_check(type)) && resolved_scope) {
 	    Typetab *rtab = resolved_scope;
 	    String *qname = Getattr(resolved_scope,k_qname);
 	    /* If qualified *and* the typename is defined from the resolved scope, we qualify */
@@ -624,6 +641,9 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	      type = Copy(type);
 	      Insert(type,0,"::");
 	      Insert(type,0,qname);
+#ifdef SWIG_DEBUG
+	      Printf(stdout,"qual %s \n", type);
+#endif
 	      newtype = 1;
 	    } 
 	    resolved_scope = rtab;
@@ -1079,12 +1099,12 @@ int SwigType_typedef_using(String_or_char *name) {
       defined_name = Copy(defined_name);
       Append(defined_name,"::");
       Append(defined_name,base);
+      /*  Printf(stdout,"defined_name = '%s'\n", defined_name);*/
+      tt = SwigType_find_scope(current_scope,defined_name);
     }
   }
   if (td) Delete(td);
 
-  /*  Printf(stdout,"defined_name = '%s'\n", defined_name);*/
-  tt = SwigType_find_scope(current_scope,defined_name);
 
   /* Figure out the scope the using directive refers to */
   {

@@ -264,14 +264,13 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
   int i = 0;
   int comma = 0;
   Parm *p = parms;
-  SwigType *pt;
   String  *nname;
 
   func = NewString("");
   nname = SwigType_namestr(name);
 
   /*
-    SWIG_TEMPLATE_DESIMBUAGATOR is compiler dependent (common.swg),
+    SWIG_TEMPLATE_DISAMBIGUATOR is compiler dependent (common.swg),
       - SUN Studio 9 requires 'template', 
       - gcc-3.4 forbids the use of 'template'.
     the rest seems not caring very much,
@@ -292,13 +291,13 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
 
 
   while (p) {
-    String *pname;
-    pt = Getattr(p,"type");
-
+    SwigType *pt = Getattr(p,"type");
     if ((SwigType_type(pt) != T_VOID)) {
+      String *pname = Swig_cparm_name(p,i);
+      String *rcaststr = SwigType_rcaststr(pt, pname);
       if (comma) Printf(func,",");
-      pname = Swig_cparm_name(p,i);
-      Printf(func,"%s", SwigType_rcaststr(pt, pname));
+      Printf(func,"%s", rcaststr);
+      Delete(rcaststr);
       comma = 1;
       i++;
     }
@@ -342,7 +341,9 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
   if (Strstr(func,"*this")) {
     Replaceall(func,"this", Swig_cparm_name(p,0));
   } else {
-    Replaceall(func,"this", SwigType_rcaststr(pt, Swig_cparm_name(p,0)));
+    String *rcaststr = SwigType_rcaststr(pt, Swig_cparm_name(p,0));
+    Replaceall(func,"this", rcaststr);
+    Delete(rcaststr);
   }
 
   /*
@@ -360,12 +361,13 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
   i++;
   p = nextSibling(p);
   while (p) {
-    String *pname;
     pt = Getattr(p,"type");
     if ((SwigType_type(pt) != T_VOID)) {
+      String *pname = Swig_cparm_name(p,i);
+      String *rcaststr = SwigType_rcaststr(pt, pname);
       if (comma) Printf(func,",");
-      pname = Swig_cparm_name(p,i);
-      Printf(func,"%s", SwigType_rcaststr(pt, pname));
+      Printf(func,"%s", rcaststr);
+      Delete(rcaststr);
       comma = 1;
       i++;
     }

@@ -752,17 +752,17 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
     rs = s;
   }
 
-  if (SwigType_issimple(rs)) {
-    td = SwigType_typedef_resolve(rs);
-    if ((td) && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
+  td = SwigType_typedef_resolve(rs);
+  if (td) {
+    if ((SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
       elements = SwigType_split(td);
-    } else if (td && SwigType_isenum(td)) {
+    } else if (SwigType_isenum(td)) {
       elements = SwigType_split(rs);
       clear = 0;
     } else {
       elements = SwigType_split(rs);
     } 
-    if (td) Delete(td);
+    Delete(td);
   } else {
     elements = SwigType_split(rs);
   }
@@ -838,6 +838,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       Delete(parms);
     } else if (SwigType_isenum(element)) {
       String *bs = SwigType_namestr(element);
+      Insert(result,0," ");
       Insert(result,0,bs);
       Delete(bs);
       clear = 0;

@@ -750,7 +750,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType 
     String *size;
     int ndim;
     int i;
-    if (!SwigType_isarray(type)) type = ftype;
+    if (SwigType_array_ndim(type) != SwigType_array_ndim(ftype)) type = ftype;
     ndim = SwigType_array_ndim(type);
     size = NewString("");
     for (i = 0; i < ndim; i++) {
