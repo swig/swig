@@ -32,9 +32,7 @@ CPP_TEST_CASES = \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-SWIGOPT    = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE) -package $*
-#Target prefix cannot be used on Windows
-#TARGETPREFIX = lib
+SWIGOPT += -package $*
 
 # Rules for the different types of tests
 %.cpptest: 

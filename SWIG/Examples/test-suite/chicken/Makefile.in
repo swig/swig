@@ -18,7 +18,6 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 SWIGOPT += -noprefix
-# none!
 
 # Rules for the different types of tests
 %.cpptest: 
