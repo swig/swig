@@ -23,6 +23,7 @@
 
 
 /* auxiliar macros for char array alloc/dealloc */
+
 #ifdef __cplusplus
 %define %swig_new_carray(size) new char[(size)]
 %enddef
@@ -34,7 +35,6 @@
 %define %swig_del_carray(cptr) free((char*)cptr);
 %enddef
 #endif
-
 
 /* -----------------------------------------------------------------------------
  *                          standard typemaps
@@ -139,14 +139,22 @@
 %typemap(in) SWIGTYPE (CLASS::*) "if ((SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor,SWIG_POINTER_EXCEPTION)) == -1) SWIG_fail;";
 
 /* The char* and char [ANY] case */
-%typemap(in) char *
+%typemap(in) char *, char const*, char *const, char const *const
 {
-  $1 = PyString_AsString($input);
+  $1 = SPyObj_AsCharPtr($input);
   if (PyErr_Occurred()) SWIG_fail;
 }
 
-%typemap(in) char [ANY] (char temp[$1_dim0])
+%typemap(in) char const*&, char *const&, char const *const & 
+{
+  $*ltype temp = SPyObj_AsCharPtr($input);
+  $1 = &temp;
+  if (PyErr_Occurred()) SWIG_fail;
+}
+
+%typemap(in) char [ANY], const char [ANY]
 {  
+  char temp[$1_dim0];
   SPyObj_AsCharArray($input, temp, $1_dim0);
   if (PyErr_Occurred()) SWIG_fail;
   $1 = temp;
@@ -182,9 +190,12 @@
 %typemap(out) void "Py_INCREF(Py_None); $result = Py_None;";
 
 /* Special typemap for character array return values */
-%typemap(out) char *, const char * "$result = SPyObj_FromCharPtr((const char*)$1);";
+%typemap(out) char*, char const*, char *const, char const *const,
+              char *const &, char const* &, char const *const &
+              "$result = SPyObj_FromCharPtr((const char*)$1);";
 
-%typemap(out) char [ANY], const char [ANY] "$result = SPyObj_FromCharArray((const char*)$1, $1_dim0);";
+%typemap(out) char [ANY], const char [ANY]
+              "$result = SPyObj_FromCharArray((const char*)$1, $1_dim0);";
 
 /* Primitive types--return by value */
 %typemap(out) SWIGTYPE 
@@ -222,30 +233,27 @@
 
 %expand_primitives_as(PY_VARIN_TYPEMAP);
 
-/* A strings */
+/* char* and char[ANY] */
 %typemap(varin) char * {
-  char *temp = (char *) PyString_AsString($input);
+  char *cptr = SPyObj_AsNewCharPtr($input);
   if (PyErr_Occurred()) {
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
   }
-  if ($1) %swig_del_carray($1);
-  $1 = ($type) %swig_new_carray(strlen(temp)+1);
-  strcpy((char*)$1,temp);
+  if ($1) 
+    %swig_del_carray($1);
+  $1 = cptr;
 }
 
 %typemap(varin,warning="451:Setting const char * variable may leak memory") const char * {
-  char *temp = (char *) PyString_AsString($input);
+  char *cptr = SPyObj_AsNewCharPtr($input);
   if (PyErr_Occurred()) {
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
   }
-  $1 = ($type) %swig_new_carray(strlen(temp)+1);
-  strcpy((char*)$1,temp);
+  $1 = cptr;
 }
 
-
-/* here we need no temp, the variable provide the memory */
 %typemap(varin) char [ANY] {
   SPyObj_AsCharArray($input, $1, $1_dim0);
   if (PyErr_Occurred()) {
@@ -357,7 +365,7 @@
 
 
 /* Pointers, arrays, objects */
-%typemap(consttab) char *, const char *
+%typemap(consttab) char *, char const*, char * const, char const* const
     { SWIG_PY_STRING,  (char*)"$symname", 0, 0, (void *)$value, 0}
 
 %typemap(consttab) char [ANY], const char [ANY]
@@ -395,16 +403,20 @@
 
 /* Special typemap for character array return values */
 
-%typemap(directorin) char*, const char * "$input = SPyObj_FromCharPtr((const char*)$1_name);";
+%typemap(directorin) char *, char const*, char *const, char const *const, 
+                     char const *&, char *const &, char const *const &
+  "$input = SPyObj_FromCharPtr((const char*)$1_name);";
 
-%typemap(directorin) char [ANY], const char [ANY] "$input = SPyObj_FromCharArray((const char*)$1_name, $1_dim0);";
+
+%typemap(directorin) char [ANY], const char [ANY] 
+  "$input = SPyObj_FromCharArray((const char*)$1_name, $1_dim0);";
 
 
 /* --- directorout typemaps --- */
 
 %define PY_DIRECTOROUT_TYPEMAP(Type, pyobj_as)
   %typemap(directorargout) Type *DIRECTOROUT
-    "*$result = ($ltype) pyobj_as($input);
+    "*$result = ($basetype) pyobj_as($input);
      if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using pyobj_as\");";
 %typemap(directorout) Type
     "$result = ($ltype) pyobj_as($input);
@@ -419,14 +431,22 @@
 %expand_primitives_as(PY_DIRECTOROUT_TYPEMAP);
 
 /* Char pointer and arrays */
-%typemap(directorout) char * { 
-  $result = PyString_AsString($input);
+%typemap(directorout) char *, char const*, char *const, char const* const { 
+  $result = SPyObj_AsCharPtr($input);
   if (PyErr_Occurred()) {
     Swig::DirectorTypeMismatchException("Error converting Python object into char*");
   }
 }
 
-%typemap(directorout) char [ANY] (char temp[$result_dim0]) { 
+%typemap(directorout) char const *&, char *const &,char const *const & { 
+  $*ltype temp = SPyObj_AsCharPtr($input);
+  $result = &temp;
+  if (PyErr_Occurred()) {
+    Swig::DirectorTypeMismatchException("Error converting Python object into char*");
+  }
+}
+
+%typemap(directorout) char [ANY], const char[ANY] (char temp[$result_dim0]) { 
   SPyObj_AsCharArray($input, temp, $result_dim0);
   if (PyErr_Occurred()) {
     Swig::DirectorTypeMismatchException("Error converting Python object into char[$result_dim0]");
@@ -477,12 +497,14 @@ PY_TYPECHECK_TYPEMAP(DOUBLE,  double,             SPyObj_AsDouble);
 PY_TYPECHECK_TYPEMAP(CHAR,    char,               SPyObj_AsChar);
 
 
-%typecheck(SWIG_TYPECHECK_STRING) char *
+%typecheck(SWIG_TYPECHECK_STRING) 
+  char *, char const*, char *const, char const *const,
+  char const*&, char *const&, char const *const & 
 {
-  $1 = PyString_Check($input) ? 1 : 0;
+  $1 = (($input == Py_None) || (PyString_Check($input)));
 }
 
-%typecheck(SWIG_TYPECHECK_STRING) char [ANY]
+%typecheck(SWIG_TYPECHECK_STRING) char [ANY], const char[ANY]
 {
   $1 = (PyString_Check($input) 
 	&& (PyString_Size($input) <= $input_dim0)) ? 1 : 0;
@@ -534,7 +556,7 @@ PY_TYPECHECK_TYPEMAP(CHAR,    char,               SPyObj_AsChar);
 
 %expand_primitives_from(PY_THROWS_TYPEMAP);
 
-%typemap(throws) char *, const char * {
+%typemap(throws) char *, char const*, char * const, char const* const {
   PyErr_SetObject(PyExc_RuntimeError, SPyObj_FromCharPtr((const char*)$1));
   SWIG_fail;
 }
@@ -616,9 +638,14 @@ PY_TYPECHECK_TYPEMAP(CHAR,    char,               SPyObj_AsChar);
  * --- String & length ---
  * ------------------------------------------------------------ */
 
-%typemap(in) (char *STRING, int LENGTH) {
-    $1 = ($1_ltype) PyString_AsString($input);
-    $2 = ($2_ltype) PyString_Size($input);
+%typemap(in) (char *STRING, int LENGTH) (char *buf, int len) {
+  SPyObj_AsCharPtrAndSize($input, &buf, &len);
+  if (PyErr_Occurred()) {
+    PyErr_SetString(PyExc_TypeError,"a string is expected");
+    SWIG_fail;
+  }
+  $1 = ($1_ltype) buf;
+  $2 = ($2_ltype) len;
 }
 
 /* ------------------------------------------------------------
@@ -636,7 +663,7 @@ PY_TYPECHECK_TYPEMAP(CHAR,    char,               SPyObj_AsChar);
     for (; i < size; ++i) {
       PyObject *obj = list ? 
 	PyList_GetItem($input,i) : PyTuple_GetItem($input,i);
-      $2[i] = PyString_AsString(obj);
+      $2[i] = SPyObj_AsCharPtr(obj);
       if (PyErr_Occurred()) {
 	PyErr_SetString(PyExc_TypeError,"list must contain strings only");
 	SWIG_fail;
@@ -650,7 +677,8 @@ PY_TYPECHECK_TYPEMAP(CHAR,    char,               SPyObj_AsChar);
 }
 
 %typemap(freearg) (int ARGC, char **ARGV) {
-  if ($2) %swig_del_carray($2);
+  if ($2)
+    %swig_del_carray($2);
 }
 
 
