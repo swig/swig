@@ -17,12 +17,13 @@ typedef struct swig_attribute {
 } swig_attribute;
   
 typedef struct swig_class {
-  const char        *name;
-  swig_type_info  **type;
-  swig_wrapper      constructor;
-  void             (*destructor)(void *);
-  swig_method      *methods;
-  swig_attribute   *attributes;
+  const char         *name;
+  swig_type_info   **type;
+  swig_wrapper       constructor;
+  void              (*destructor)(void *);
+  swig_method        *methods;
+  swig_attribute     *attributes;
+  struct swig_class **bases;
 } swig_class;
 
 typedef struct swig_instance {
@@ -47,102 +48,122 @@ static void SwigObjectDelete(ClientData clientData) {
 static int
 SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST _objv[])
 {
-  char *method, *attrname;
-  swig_instance  *inst = (swig_instance *) clientData;
-  swig_method    *meth;
-  swig_attribute *attr;
+  char *method,   *attrname;
+  swig_instance   *inst = (swig_instance *) clientData;
+  swig_method     *meth;
+  swig_attribute  *attr;
   Tcl_Obj         *oldarg;
   Tcl_Obj         **objv;
   int              rcode;
+  swig_class      *cls;
+  int              bi = 0;
+  int              numconf = 2;
 
   objv = (Tcl_Obj **) _objv;
   if (objc < 2) {
     Tcl_SetResult(interp, (char *) "wrong # args.", TCL_STATIC);
     return TCL_ERROR;
   }
-  meth = inst->classptr->methods;
   method = Tcl_GetStringFromObj(objv[1],NULL);
-
-  /* Check for methods */
-  while (meth && meth->name) {
-    if (strcmp(meth->name,method) == 0) {
-      oldarg = objv[1];
-      objv[1] = inst->thisptr;
-      Tcl_IncrRefCount(inst->thisptr);
-      rcode = (*meth->method)(clientData,interp,objc,objv);
-      objv[1] = oldarg;
-      Tcl_DecrRefCount(inst->thisptr);
-      return rcode;
-    }
-    meth++;
-  }
-  /* Check class methods for a match */
-  if (strcmp(method,"cget") == 0) {
-    if (objc < 3) {
-      Tcl_SetResult(interp, (char *) "wrong # args.", TCL_STATIC);
-      return TCL_ERROR;
-    }
-    attrname = Tcl_GetStringFromObj(objv[2],NULL);
-    attr = inst->classptr->attributes;
-    while (attr && attr->name) {
-      if ((strcmp(attr->name, attrname) == 0) && (attr->getmethod)) {
+  cls = inst->classptr;
+  while (cls) {
+    meth = cls->methods;
+    /* Check for methods */
+    while (meth && meth->name) {
+      if (strcmp(meth->name,method) == 0) {
 	oldarg = objv[1];
 	objv[1] = inst->thisptr;
 	Tcl_IncrRefCount(inst->thisptr);
-	rcode = (*attr->getmethod)(clientData,interp,2, objv);
+	rcode = (*meth->method)(clientData,interp,objc,objv);
 	objv[1] = oldarg;
 	Tcl_DecrRefCount(inst->thisptr);
 	return rcode;
       }
-      attr++;
+      meth++;
     }
-    if (strcmp(attrname, "-this") == 0) {
-      Tcl_SetObjResult(interp, Tcl_DuplicateObj(inst->thisptr));
-      return TCL_OK;
-    }
-    Tcl_SetResult(interp, (char *) "Invalid attribute.", TCL_STATIC);
-    return TCL_ERROR;
-  } else if (strcmp(method, "configure") == 0) {
-    int i;
-    if (objc < 4) {
-      Tcl_SetResult(interp, (char *) "wrong # args.", TCL_STATIC);
-      return TCL_ERROR;
-    }
-    i = 2;
-    while (i < objc) {
-      attrname = Tcl_GetStringFromObj(objv[i],NULL);
-      attr = inst->classptr->attributes;
+    /* Check class methods for a match */
+    if (strcmp(method,"cget") == 0) {
+      if (objc < 3) {
+	Tcl_SetResult(interp, (char *) "wrong # args.", TCL_STATIC);
+	return TCL_ERROR;
+      }
+      attrname = Tcl_GetStringFromObj(objv[2],NULL);
+      attr = cls->attributes;
       while (attr && attr->name) {
-	if ((strcmp(attr->name, attrname) == 0) && (attr->setmethod)) {
-	  oldarg = objv[i];
-	  objv[i] = inst->thisptr;
+	if ((strcmp(attr->name, attrname) == 0) && (attr->getmethod)) {
+	  oldarg = objv[1];
+	  objv[1] = inst->thisptr;
 	  Tcl_IncrRefCount(inst->thisptr);
-	  rcode = (*attr->setmethod)(clientData,interp,3, &objv[i-1]);
-	  objv[i] = oldarg;
+	  rcode = (*attr->getmethod)(clientData,interp,2, objv);
+	  objv[1] = oldarg;
 	  Tcl_DecrRefCount(inst->thisptr);
-	  if (rcode != TCL_OK) return rcode;
-	  i+=2;
-	  break;
+	  return rcode;
 	}
 	attr++;
       }
-      if (inst->classptr->attributes && !(attr->name)) {
-	Tcl_SetResult(interp, (char *) "Invalid attribute name.", TCL_STATIC);
+      if (strcmp(attrname, "-this") == 0) {
+	Tcl_SetObjResult(interp, Tcl_DuplicateObj(inst->thisptr));
+	return TCL_OK;
+      }
+      /*      Tcl_SetResult(interp, (char *) "Invalid attribute.", TCL_STATIC);
+	      return TCL_ERROR; */
+    } else if (strcmp(method, "configure") == 0) {
+      int i;
+      if (objc < 4) {
+	Tcl_SetResult(interp, (char *) "wrong # args.", TCL_STATIC);
 	return TCL_ERROR;
       }
+      i = 2;
+      while (i < objc) {
+	attrname = Tcl_GetStringFromObj(objv[i],NULL);
+	attr = cls->attributes;
+	while (attr && attr->name) {
+	  if ((strcmp(attr->name, attrname) == 0) && (attr->setmethod)) {
+	    oldarg = objv[i];
+	    objv[i] = inst->thisptr;
+	    Tcl_IncrRefCount(inst->thisptr);
+	    rcode = (*attr->setmethod)(clientData,interp,3, &objv[i-1]);
+	    objv[i] = oldarg;
+	    Tcl_DecrRefCount(inst->thisptr);
+	    if (rcode != TCL_OK) return rcode;
+	    numconf += 2;
+	  }
+	  attr++;
+	}
+	i+=2;
+	/*	if (cls->attributes && !(attr->name)) {
+	  Tcl_SetResult(interp, (char *) "Invalid attribute name.", TCL_STATIC);
+	  return TCL_ERROR;
+	}
+	*/
+      }
     }
-    return TCL_OK;
-  } else {
-    Tcl_SetResult(interp, (char *) "Invalid method. Must be one of: configure cget ", TCL_STATIC);
-    meth = inst->classptr->methods;
+    cls = inst->classptr->bases[bi++];
+  }
+  if (strcmp(method,"configure") == 0) {
+    if (numconf >= objc) {
+      return TCL_OK;
+    } else {
+      Tcl_SetResult(interp,(char *) "Invalid attribute name.", TCL_STATIC);
+      return TCL_ERROR;
+    }
+  }
+  if (strcmp(method,"cget") == 0) {
+      Tcl_SetResult(interp,(char *) "Invalid attribute name.", TCL_STATIC);
+      return TCL_ERROR;
+  }    
+  Tcl_SetResult(interp, (char *) "Invalid method. Must be one of: configure cget ", TCL_STATIC);
+  cls = inst->classptr;
+  bi = 0;
+  while (cls) {
+    meth = cls->methods;
     while (meth && meth->name) {
       Tcl_AppendElement(interp, (char *) meth->name);
       meth++;
     }
-    return TCL_ERROR;
+    cls = inst->classptr->bases[bi++];
   }
-
-  
+  return TCL_ERROR;
 }
 
 /* Function to create objects */
