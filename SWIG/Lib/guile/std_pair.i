@@ -6,7 +6,7 @@
 // Guile implementation
 
 %include std_common.i
-
+%include exception.i
 
 // ------------------------------------------------------------------------
 // std::pair
@@ -22,7 +22,7 @@
 
 namespace std {
 
-    template<class K, class T> struct pair {
+    template<class T, class U> struct pair {
         %typemap(in) pair<T,U> (std::pair<T,U>* m) {
             if (gh_pair_p($input)) {
                 T* x;
@@ -132,7 +132,7 @@ namespace std {
                 second = gh_cdr($input);
                 if (!CHECK(first))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #K "," #T "> expected");
+                                   "map<" #T "," #U "> expected");
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
                 $1 = std::make_pair(CONVERT_FROM(first),y);
             } else {
@@ -151,7 +151,7 @@ namespace std {
                 second = gh_cdr($input);
                 if (!CHECK(first))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #K "," #T "> expected");
+                                   "map<" #T "," #U "> expected");
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
                 temp = std::make_pair(CONVERT_FROM(first),y);
                 $1 = &temp;
@@ -228,7 +228,7 @@ namespace std {
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #K "," #T "> expected");
+                                   "map<" #T "," #U "> expected");
                 $1 = std::make_pair(x,CONVERT_FROM(second));
             } else {
                 $1 = *(($&1_type)
@@ -247,7 +247,7 @@ namespace std {
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #K "," #T "> expected");
+                                   "map<" #T "," #U "> expected");
                 temp = std::make_pair(x,CONVERT_FROM(second));
                 $1 = &temp;
             } else {
@@ -322,7 +322,7 @@ namespace std {
                 second = gh_cdr($input);
                 if (!CHECK_T(first) || !CHECK_U(second))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #K "," #T "> expected");
+                                   "map<" #T "," #U "> expected");
                 $1 = std::make_pair(CONVERT_T_FROM(first),
                                     CONVERT_U_FROM(second));
             } else {
@@ -340,7 +340,7 @@ namespace std {
                 second = gh_cdr($input);
                 if (!CHECK_T(first) || !CHECK_U(second))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #K "," #T "> expected");
+                                   "map<" #T "," #U "> expected");
                 temp = std::make_pair(CONVERT_T_FROM(first),
                                       CONVERT_U_FROM(second));
                 $1 = &temp;
