@@ -271,7 +271,7 @@
              const unsigned int & (unsigned int temp), 
              const long & (long temp), 
              const unsigned long & (unsigned long temp), 
-             const long long & (long long temp), 
+             const long long & ($*1_ltype temp), 
              const float & (float temp), 
              const double & (double temp)
 %{ temp = ($*1_ltype)$input; 
@@ -293,7 +293,7 @@
 
 /* const unsigned long long & */
 /* Similar to unsigned long long */
-%typemap(in) const unsigned long long & (unsigned long long temp) { 
+%typemap(in) const unsigned long long & ($*1_ltype temp) { 
   jclass clazz;
   jmethodID mid;
   jbyteArray ba;
