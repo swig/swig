@@ -343,6 +343,47 @@ macro(size_t,             pfx, sizet)
 #endif
 
 %inline {
+  struct Foo
+  {
+    int _a;
+    
+    Foo (int a) : _a(a)
+    {
+    }
+    
+    Foo(const Foo&)
+    {
+    }
+    ;
+    
+    Foo copy(Foo x) 
+    {
+      return x;
+    }
+
+    const Foo copy_c(const Foo x) 
+    {
+      return x;
+    }
+
+    const Foo& copy_r(const Foo& x) 
+    {
+      return x;
+    }
+
+    Foo* this_p() 
+    {
+      return this;
+    }
+
+    Foo& this_r() 
+    {
+      return *this;
+    }
+    
+  };
+  
+  
  struct Test 
  {
    Test()

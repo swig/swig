@@ -64,7 +64,7 @@
 %typemap(out) SWIGTYPE 
 {
   $&1_ltype resultptr;
-  resultptr = new $1_ltype(($1_ltype &) $1);
+  resultptr = new $1_ltype(static_cast<$1_type &>($1));
   $result = SWIG_NewPointerObj((void *)(resultptr), $&1_descriptor, 1);
 }
 #else
