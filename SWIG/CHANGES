@@ -3,6 +3,10 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+7/17/00 : ttn
+	  Fixed NULL-input bug in parameter list handling.
+	  Reported by Matthias Koeppe.
+
 7/12/00 : beazley
           Fixed memory leak in Python type-checking code. Reported by
           Keith Davidson.  Bug #109379.
@@ -28,7 +32,7 @@ Version 1.3 Alpha 4 (not yet released)
           This will almost certainly break *all* third party language modules
           that are not part of the main SWIG CVS tree. Sorry.
           *** POTENTIAL INCOMPATIBILITY ***
-         
+
 7/8/00  : beazley
           Removed the experimental and undocumented "build" typemap that
           was intended to work with multiple arguments. Simply too weird
