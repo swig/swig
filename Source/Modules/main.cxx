@@ -53,6 +53,7 @@ static const char *usage1 = (const char*)"\
      -dirprot        - Turn on wrapping of protected members for director classes\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
      -E              - Preprocess only, does not generate wrapper code\n\
+     -external-runtime [file] - Export the swig runtime stack \n\
      -fcompact       - Compile in compact mode\n\
      -features list  - Set a list of global features, where the syntax list is \n\
                        -features directors,autodoc=1      \n\
@@ -83,6 +84,7 @@ static const char *usage2 = (const char*)"\
      -noexcept       - Do not wrap exception specifiers\n\
      -noextern       - Do not generate extern declarations\n\
      -nopreprocess   - Skip the preprocessor step\n\
+     -notemplatereduce - Disable reduccion of the typedefs in templates \n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
      -outdir <dir>   - Set language specific files output directory\n\
@@ -426,6 +428,9 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-templatereduce") == 0) {
 	    SWIG_cparse_template_reduce(1);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-notemplatereduce") == 0) {
+	    SWIG_cparse_template_reduce(0);
 	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-swiglib") == 0) {
 	    printf("%s\n", LibDir);
