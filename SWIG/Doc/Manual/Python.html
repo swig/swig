@@ -6,8 +6,6 @@
 <body bgcolor="#ffffff">
 <h1>9 SWIG and Python</h1>
 
-<b>Caution: This chapter is under repair!</b>
-
 <p>
 
 This chapter describes SWIG's support of Python.  SWIG is compatible
@@ -19,9 +17,36 @@ your mileage might vary.  For the best results, consider using Python
 2.0 or newer.
 
 <p>
-This chapter covers most SWIG features, but in less depth than is found
-in earlier chapters.  At the very least, make sure you also read the "<a href="SWIG.html">SWIG Basics</a>"
-chapter.
+This chapter covers most SWIG features, but general features are cover
+in less depth than is found in earlier chapters.  At the very least,
+make sure you read the "<a href="SWIG.html">SWIG Basics</a>" chapter.
+
+<h2>Overview</h2>
+
+To build Python extension modules, SWIG uses a layered approach.  At
+the lowest level, simple procedural wrappers are generated for
+functions, classes, methods, and other declarations in the input file.
+Then, for structures and classes, an optional collection of Python
+proxy classes are generated in order to provide a more natural Python
+interface to the objects in your program.  These proxy classes simply
+build upon the low-level interface.
+
+<p>
+This layered approach to wrapping has a number of benefits.  First,
+the low-level procedural interface is relatively simple and can be
+packaged into an extension module that works with virtually every
+version of Python.  In addition, the use of proxy classes means that
+C/C++ objects are wrapped by real Python classes which are free from
+the limitations that arise when classes are wrapped into new 
+built-in types (a common approach to object wrapping prior to Python 2.2).
+
+<p>
+In describing Python interface, this chapter starts by covering the
+most critical topics.  First, the problem of configuration, compiling,
+and installing Python modules is discussed.  Next, the low-level
+procedural interface is presented.  Finally, proxy classes are
+described.  Advanced customization features, typemaps, and other
+options are found near the end of the chapter.
 
 <h2>Preliminaries</h2>
 
@@ -454,21 +479,21 @@ compilers tends to be rather problematic.  For the latest information,
 you may want to consult the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">
 SWIG Wiki</a>.
 
-<h2>The primitive Python-C interface</h2>
+<h2>The low-level procedural interface</h2>
 
 At its core, the Python module uses a simple low-level interface
 to C function, variables, constants, and classes.  This low-level interface
-is then used to to create more user-friendly interfaces such as shadow
-classes.  This section describes the low-level interface.
+can be used to control your application.  However, it is also used to
+construct more user-friendly proxy classes as described in the next section.
 
 <h3> Modules</h3>
 
 The SWIG <tt>%module</tt> directive specifies the name of the Python
-module. If you specify `<tt>%module example</tt>', then everything
-is wrapped into a Python '<tt>example</tt>' module.  When choosing a module
-name, make sure you don't use the same name as a 
-built-in Python command or standard module name.  Otherwise, the results
-may be unpredictable.
+module. If you specify `<tt>%module example</tt>', then everything is
+wrapped into a Python '<tt>example</tt>' module.  When choosing a
+module name, make sure you don't use the same name as a built-in
+Python command or standard module name.  Otherwise, the results may be
+unpredictable.
 
 <h3>Functions</h3>
 
