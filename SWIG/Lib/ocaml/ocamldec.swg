@@ -89,6 +89,8 @@ CAMLextern int64 Int64_val(caml_value_t v);
 #	define SWIGSTATIC static
 #endif
 
+#define SWIG_contract_assert(expr, msg) if(!(expr)) {failwith(msg);} else
+
     SWIGSTATIC int
     SWIG_GetPtr(void *source, void **result, swig_type_info *type, swig_type_info *result_type);
     
