@@ -215,6 +215,9 @@ public:
     
     init_func_def = NewString("");
     Swig_register_filebyname("init",init_func_def);
+
+    Swig_name_register("set","%v__set__");
+    Swig_name_register("get","%v__get__");
     
     Printf(f_runtime, 
 	   "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
@@ -385,16 +388,15 @@ public:
 	
       Replaceall(opname,"operator ","");
 
-      if( strstr( Char(mangled_name), "_get" ) ) {
+      if( strstr( Char(mangled_name), "__get__" ) ) {
 	Printf(f_class_ctors,
-	       "    \"%s_get\", %s ;\n",
-	       opname, mangled_name );
-      } else if( strstr( Char(mangled_name), "_set" ) ) {
-	Printf(f_class_ctors,
-	       "    \"%s_set\", %s ;\n",
-	       opname, mangled_name);
+	       "    \"%s\", (fun args -> "
+	       "if args = C_void then %s__get__ args else %s__set__ args) ;\n",
+	       opname, opname, opname );
+      } else if( strstr( Char(mangled_name), "__set__" ) ) {
+	  ; /* Nothing ... handled by the case above */
       } else {
-	Printf(f_class_ctors,
+	  Printf(f_class_ctors,
 	       "    \"%s\", %s ;\n",
 	       opname, mangled_name);
       }
@@ -967,13 +969,52 @@ public:
 	   "      let method_name,application = List.hd (List.filter (fun (x,y) -> x = mth) method_table) in\n"
 	   "        application \n"
 	   "          (match arg with C_list l -> (C_list (raw_ptr :: l)) | v -> (C_list [ raw_ptr ; v ]))\n"
-	   "    with (Failure \"hd\") -> raise (BadMethodName (raw_ptr,mth,\"%s\")) | e -> raise e))\n",
-	   name, name );
-
+	   "    with (Failure \"hd\") -> \n"
+	   "    (* Try parent classes *)\n"
+	   "    begin\n"
+	   "      let parent_classes = [ \n",
+	   name );
+    
+    /* Handle inheritance -- Mostly stolen from python code */
+    String *base_class = NewString("");
+    List *baselist = Getattr(n,"bases");
+    if (baselist && Len(baselist)) {
+      Node *base = Firstitem(baselist);
+      while (base) {
+	String *bname = Getattr(base, "ocaml:ctor");
+	if (bname)
+	  Printv(f_class_ctors,
+		 "           create_",bname,"_from_ptr",NIL);
+	
+	base = Nextitem(baselist);
+	if (base)
+	  Printv(f_class_ctors," ;\n",NIL);
+	else
+	  Printv(f_class_ctors,"\n",NIL);
+      }
+    }    
+    
+    Printv(f_class_ctors,"          ]\n",NIL);
+    
+    Printf(f_class_ctors,
+	   "     in let rec try_parent plist raw_ptr = \n"
+	   "       match plist with\n"
+	   "         p :: tl -> (try\n"
+	   "           (invoke (p raw_ptr)) mth arg\n"
+	   "         with (BadMethodName (p,m,s)) -> try_parent tl raw_ptr)\n"
+	   "       | [] ->\n"
+	   "         raise (BadMethodName (raw_ptr,mth,\"%s\"))\n"
+	   "     in try_parent parent_classes raw_ptr\n"
+	   "     end\n"
+	   "   | e -> raise e))\n",
+	   name );
+    
     Printf( f_class_ctors,
 	    "let _ = Callback.register \"create_%s_from_ptr\" "
 	    "create_%s_from_ptr\n",
 	    classname, classname );
+
+    Setattr(n,"ocaml:ctor",classname);
 
     return rv;
   }
