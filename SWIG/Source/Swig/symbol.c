@@ -15,7 +15,7 @@ char cvsroot_symbol_c[] = "$Header$";
 #include "swigwarn.h"
 #include <ctype.h>
 
-/*#define SWIG_DEBUG*/
+/* #define SWIG_DEBUG*/
 /* -----------------------------------------------------------------------------
  * Synopsis
  *
@@ -488,11 +488,13 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
 
   if (!name) return;
   if (SwigType_istemplate(name)) {
-    String *dname = Swig_symbol_template_deftype(name,0);
+    String *cname = NewString(name);
+    String *dname = Swig_symbol_template_deftype(cname,0);
     if (Strcmp(dname,name)) {    
       Swig_symbol_cadd(dname, n);
     }
     Delete(dname);
+    Delete(cname);
   }
 
 #ifdef SWIG_DEBUG
@@ -1297,14 +1299,24 @@ Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
   String *tprefix, *tsuffix;
   SwigType *qprefix;
   List   *targs;
+  Node *tempn;
+  Symtab *tscope;
   Iterator ti;
   tprefix = SwigType_templateprefix(e);
   tsuffix = SwigType_templatesuffix(e);
   qprefix = Swig_symbol_type_qualify(tprefix,st);
   targs = SwigType_parmlist(e);
+  tempn = Swig_symbol_clookup_local(tprefix,st);
+  tscope = tempn ? Getattr(tempn,"sym:symtab") : 0;
   Printf(qprefix,"<(");
   for (ti = First(targs); ti.item;) {
     String *qparm = Swig_symbol_type_qualify(ti.item,st);
+    if (tscope && (tscope != st)) {
+      String *ty = Swig_symbol_type_qualify(qparm,tscope);
+      Delete(qparm);      
+      qparm = ty;
+    }
+    
     String *vparm = Swig_symbol_template_param_eval(qparm, st);
     Append(qprefix,vparm);
     ti = Next(ti);
@@ -1655,6 +1667,10 @@ Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
   List   *elements = SwigType_split(type);
   int     len = Len(elements);
   int     i;
+#ifdef SWIG_DEBUG
+  Printf(stderr,"finding deftype %s\n", type);
+#endif
+
   for (i = 0; i < len; i++) {
     String *e = Getitem(elements,i);
     if (SwigType_isfunction(e)) {
@@ -1684,25 +1700,37 @@ Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
       String *tsuffix  = SwigType_templatesuffix(base);
       ParmList *tparms = SwigType_function_parms(targs);
       Node *tempn = Swig_symbol_clookup_local(tprefix,tscope);
-      /* Printf(stderr,"deftype type %s \n", e);*/
+#ifdef SWIG_DEBUG
+      Printf(stderr,"deftype type %s \n", e);
+#endif
       if (tempn) {
 	ParmList *tnargs = Getattr(tempn,k_templateparms);
 	Parm *p;
 	Symtab *tsdecl = Getattr(tempn,k_symsymtab);
 	
-	/* Printf(stderr,"deftype type %s %s %s %s\n", tprefix, targs, tsuffix);*/
+#ifdef SWIG_DEBUG
+	Printf(stderr,"deftype type %s %s %s\n", tprefix, targs,
+	tsuffix);
+#endif
 	Append(tprefix,"<(");
 	Swig_symbol_template_defargs(tparms, tnargs,tscope,tsdecl);
 	p = tparms;
+	tscope = Getattr(tempn,"sym:symtab");
 	while (p) {
 	  SwigType *ptype = Getattr(p,k_type);
 	  SwigType *ttr = ptype ? ptype : Getattr(p,k_value);
 	  SwigType *ttf = Swig_symbol_type_qualify(ttr,tscope);
 	  SwigType *ttq = Swig_symbol_template_param_eval(ttf,tscope);
+#ifdef SWIG_DEBUG
+	  Printf(stderr,"arg type %s\n", ttq);
+#endif
 	  if (SwigType_istemplate(ttq)) {
 	    SwigType *ttd = Swig_symbol_template_deftype(ttq, tscope);
 	    Delete(ttq);
 	    ttq = ttd;
+#ifdef SWIG_DEBUG
+	    Printf(stderr,"arg deftype %s\n", ttq);
+#endif
 	  }	
 	  Append(tprefix,ttq);
 	  p = nextSibling(p);
@@ -1713,7 +1741,9 @@ Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
 	Append(tprefix,")>");
 	Append(tprefix,tsuffix);
 	Append(prefix,tprefix);
-	/* Printf(stderr,"deftype %s %s \n", type, tprefix); */
+#ifdef SWIG_DEBUG
+	Printf(stderr,"deftype %s %s \n", type, tprefix); 
+#endif
 	Append(result,prefix);
       } else {
 	Append(result,e);
