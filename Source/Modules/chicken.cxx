@@ -1783,15 +1783,9 @@ CHICKEN::dispatchFunction(Node *n)
 	 "va_list v;\n",
 	 "C_word *a, c2 = c;\n",
 	 "C_save_rest (t1, c2, 2);\n",
-	 "C_check_for_interrupt;\n",
-	 "if (!C_demand (c*C_SIZEOF_PAIR+0)) {\n",
-	 "C_save_and_reclaim((void*)swig_tr2r, (void*)real_",  wname, ", 2, t0, t1);\n",
-	 "}\n",
-	 "else {\n",
 	 "a = C_alloc((c-2)*3);\n",
 	 "t2 = C_restore_rest (a, C_rest_count (0));\n",
-	 "real_", wname, " (3, t0, t1, t2);\n",
-	 "}\n", NIL);
+	 "real_", wname, " (3, t0, t1, t2);\n", NIL);
   Printv(f->code,"}\n",NIL);
   Wrapper_print(f,f_wrappers);
 #endif
