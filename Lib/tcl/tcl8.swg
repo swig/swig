@@ -428,22 +428,22 @@
 /* --- Constants --- */
 
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
-       { SWIG_TCL_INT,     (char *)"$symname", (long) $value, 0, 0, 0}
+       { SWIG_TCL_INT,     (char *)"$nsname", (long) $value, 0, 0, 0}
 
 %typemap(consttab) float, double
-       { SWIG_TCL_FLOAT,   (char*)"$symname", 0, (double) $value, 0, 0}
+       { SWIG_TCL_FLOAT,   (char*)"$nsname", 0, (double) $value, 0, 0}
 
 %typemap(consttab) char, char *
-       { SWIG_TCL_STRING,  (char*)"$symname", 0, 0, (void *)"$value", 0}
+       { SWIG_TCL_STRING,  (char*)"$nsname", 0, 0, (void *)"$value", 0}
 
 %typemap(consttab) long long, unsigned long long 
-       { SWIG_TCL_STRING, (char *) "$symname", 0, 0, (void *)"$value", 0}
+       { SWIG_TCL_STRING, (char *) "$nsname", 0, 0, (void *)"$value", 0}
 
 %typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
-       { SWIG_TCL_POINTER, (char*)"$symname", 0, 0, (void *)$value, &$1_descriptor}
+       { SWIG_TCL_POINTER, (char*)"$nsname", 0, 0, (void *)$value, &$1_descriptor}
 
 %typemap(consttab) SWIGTYPE (CLASS::*) 
-       { SWIG_TCL_BINARY,  (char *)"$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
+       { SWIG_TCL_BINARY,  (char *)"$nsname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
 
 
 
