@@ -1,7 +1,21 @@
+/* 
+   For wchar support, you need to include the wchar.i file
+   before this file, ie:
+   
+   %include <wchar.i>
+   %include <std_iostream.i>
+
+   or equivalently, just include
+
+   %include <std_wiostream.i>
+*/
+
 %include <std_ios.i>
 %include <std_basic_string.i>
 %include <std_string.i>
+#if defined(SWIG_WCHAR)
 %include <std_wstring.i>
+#endif
 
 %{
 #include <iostream>
@@ -46,16 +60,12 @@ namespace std
 
     basic_ostream<_CharT, _Traits>& 
     operator<<(long __n);
-
-      
     
     basic_ostream<_CharT, _Traits>& 
     operator<<(unsigned long __n);
-
     
     basic_ostream<_CharT, _Traits>& 
     operator<<(bool __n);
-
     
     basic_ostream<_CharT, _Traits>& 
     operator<<(short __n);
@@ -63,10 +73,8 @@ namespace std
     basic_ostream<_CharT, _Traits>& 
     operator<<(unsigned short __n);
 
-
     basic_ostream<_CharT, _Traits>& 
     operator<<(int __n);
-
 
     basic_ostream<_CharT, _Traits>& 
     operator<<(unsigned int __n);
@@ -280,19 +288,21 @@ namespace std
   typedef basic_istream<char> istream;
   typedef basic_iostream<char> iostream;
 
-  typedef basic_ostream<wchar_t>  wostream;
-  typedef basic_istream<wchar_t>  wistream;
-  typedef basic_iostream<wchar_t> wiostream;
-
   extern istream cin;
   extern ostream cout;
   extern ostream cerr;
   extern ostream clog;
 
+#if defined(SWIG_WCHAR)
+  typedef basic_ostream<wchar_t>  wostream;
+  typedef basic_istream<wchar_t>  wistream;
+  typedef basic_iostream<wchar_t> wiostream;
+
   extern wistream wcin;
   extern wostream wcout;
   extern wostream wcerr;
   extern wostream wclog;
+#endif
 
   template<typename _CharT, typename _Traits = char_traits<_CharT> >
   std::basic_ostream<_CharT, _Traits>& 
@@ -312,16 +322,18 @@ namespace std {
   %template(istream) basic_istream<char>;
   %template(iostream) basic_iostream<char>;
 
-  %template(wostream) basic_ostream<wchar_t>;
-  %template(wistream) basic_istream<wchar_t>;
-  %template(wiostream) basic_iostream<wchar_t>;  
-
   %template(endl) endl<char, std::char_traits<char> >;
   %template(ends) ends<char, std::char_traits<char> >;
   %template(flush) flush<char, std::char_traits<char> >;
 
+#if defined(SWIG_WCHAR)
+  %template(wostream) basic_ostream<wchar_t>;
+  %template(wistream) basic_istream<wchar_t>;
+  %template(wiostream) basic_iostream<wchar_t>;  
+
   %template(wendl) endl<wchar_t, std::char_traits<wchar_t> >;
   %template(wends) ends<wchar_t, std::char_traits<wchar_t> >;
   %template(wflush) flush<wchar_t, std::char_traits<wchar_t> >;  
+#endif
 }
 

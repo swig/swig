@@ -1,8 +1,22 @@
+/* 
+   For wchar support, you need to include the wchar.i file
+   before this file, ie:
+   
+   %include <wchar.i>
+   %include <std_sstream.i>
+
+   or equivalently, just include
+
+   %include <std_wsstream.i>
+*/
+
 %include <std_alloc.i>
 %include <std_basic_string.i>
 %include <std_string.i>
 %include <std_ios.i>
+#if defined(SWIG_WCHAR)
 %include <std_wstring.i>
+#endif
 %include <std_streambuf.i>
 %include <std_iostream.i>
 
@@ -173,7 +187,9 @@ namespace std {
   %template(stringstream)  basic_stringstream<char>;
 
 
+#if defined(SWIG_WCHAR)
   %template(wistringstream) basic_istringstream<wchar_t>;
   %template(wostringstream) basic_ostringstream<wchar_t>;
   %template(wstringstream)  basic_stringstream<wchar_t>;
+#endif
 }
