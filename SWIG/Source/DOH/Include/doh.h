@@ -73,7 +73,7 @@ extern void          DohIncref(DOH *obj);
 
 extern DOH    *DohGetattr(DOH *obj, const DOHString_or_char *name);
 extern int     DohSetattr(DOH *obj, const DOHString_or_char *name, const DOHObj_or_char *value);
-extern void    DohDelattr(DOH *obj, const DOHString_or_char *name);
+extern int     DohDelattr(DOH *obj, const DOHString_or_char *name);
 extern DOH    *DohFirstkey(DOH *obj);
 extern DOH    *DohNextkey(DOH *obj);
 extern int     DohGetInt(DOH *obj, const DOHString_or_char *name);

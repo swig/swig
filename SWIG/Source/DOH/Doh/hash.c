@@ -203,8 +203,9 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     HashNode *n, *prev;
     Hash *h = (Hash *) ObjData(ho);
     
-    if (!obj) DohDelattr(ho,k);
-    if (!obj) return 0;
+    if (!obj) {
+      return DohDelattr(ho,k);
+    }
     if (!DohCheck(k)) k = find_key(k);
     if (!DohCheck(obj)) {
       obj = NewString((char *) obj);

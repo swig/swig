@@ -243,12 +243,12 @@ DohSetattr(DOH *obj, const DOH *name, const DOH *value) {
  * DohDelattr()
  * ----------------------------------------------------------------------------- */
 
-void
+int
 DohDelattr(DOH *obj, const DOH *name) {
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo = dohtypes[b->type];
   if (objinfo->doh_hash && objinfo->doh_hash->doh_delattr) {
-    (objinfo->doh_hash->doh_delattr)(b,(DOH *) name);
+    return (objinfo->doh_hash->doh_delattr)(b,(DOH *) name);
   }
 }
 
