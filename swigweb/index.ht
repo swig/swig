@@ -6,7 +6,7 @@ Simplified Wrapper and Interface Generator
 SWIG is a software development tool that connects programs written in
 C, C++, and Objective-C with a variety of high-level programming
 languages.  SWIG is primarily used with common scripting languages
-such as Perl, Python, Tcl/Tk, Ruby, and Guile but has also been extended to
+such as Perl, Python, Tcl/Tk, Ruby, Guile and MzScheme but has also been extended to
 include languages such as Java and Eiffel.  SWIG is most
 commonly used to create high-level interpreted programming
 environments and as a tool for building user interfaces.  SWIG may be
