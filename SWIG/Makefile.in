@@ -115,6 +115,7 @@ check-%-examples:
 	fi;							\
 	test $$passed = true
 
+# Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
 	check-tcl-test-suite			\
 	check-perl-test-suite			\
@@ -175,6 +176,44 @@ check-%-gifplot: gifplot-library
 	test $$passed = true
 
 check: check-aliveness check-examples check-gifplot check-test-suite
+
+#####################################################################
+# ALL TEST SUITE: Known broken and broken testcases in the test-suite
+#####################################################################
+
+all-test-suite:					\
+	all-tcl-test-suite			\
+	all-perl-test-suite			\
+	all-python-test-suite			\
+	all-java-test-suite			\
+	all-guile-test-suite			\
+	all-mzscheme-test-suite			\
+	all-ruby-test-suite			\
+	all-ocaml-test-suite			\
+	all-php4-test-suite			\
+#	all-pike-test-suite
+
+all-%-test-suite:
+	@$(MAKE) -k -s check-$*-test-suite ACTION=all
+
+#####################################################################
+# BROKEN: Known broken tests in the test-suite
+#####################################################################
+
+broken-test-suite:				\
+	broken-tcl-test-suite			\
+	broken-perl-test-suite			\
+	broken-python-test-suite		\
+	broken-java-test-suite			\
+	broken-guile-test-suite			\
+	broken-mzscheme-test-suite		\
+	broken-ruby-test-suite			\
+	broken-ocaml-test-suite			\
+	broken-php4-test-suite			\
+#	broken-pike-test-suite
+
+broken-%-test-suite:
+	@$(MAKE) -k -s check-$*-test-suite ACTION=broken
 
 #####################################################################
 # CLEAN
