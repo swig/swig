@@ -6,9 +6,9 @@ spam.pm
 *_wrap.c
 *_wrap.cxx
 *.dll
-*.dsw
-*.ncb
-*.opt
-*.plg
+example.dsw
+example.ncb
+example.opt
+example.plg
 Release
 Debug
