@@ -1802,34 +1802,58 @@ For example, if you have a class like this:
 
 <blockquote>
 <pre>
-class Foo {
+class Spam {
 public:
    ...
-   void bar();
+   void bar() const;
    ...
 };
 </pre>
 </blockquote>
 
-the declaration <tt>%rename(name) Foo::bar()</tt> only applies to the unqualified member <tt>bar()</tt>.
-However, an often overlooked C++ feature is that classes can define two different overloaded members
+the declaration
+
+<blockquote>
+<pre>
+%rename(name) Spam::bar();
+</pre>
+</blockquote>
+
+will not apply as there is no unqualified member <tt>bar()</tt>. The following will apply as
+the qualifier matches correctly:
+
+<blockquote>
+<pre>
+%rename(name) Spam::bar() const;
+</pre>
+</blockquote>
+
+An often overlooked C++ feature is that classes can define two different overloaded members
 that differ only in their qualifiers, like this:
 
 <blockquote>
 <pre>
-class Foo {
+class Spam {
 public:
    ...
    void bar();         // Unqualified member
-   void bar() const;   // Qualified member (OK)
+   void bar() const;   // Qualified member
    ...
 };
 </pre>
 </blockquote>
 
-In this case, the renaming operator would only apply to the first
-method.  If you wanted to rename the qualified member function, use
-<tt>%rename(name) Foo::bar() const</tt> instead.  Similarly, if you
+%rename can then be used to target each of the overloaded methods individually. 
+For example we can give them separate names in the target language:
+
+<blockquote>
+<pre>
+%rename(name1) Spam::bar();
+%rename(name2) Spam::bar() const;
+</pre>
+</blockquote>
+
+Similarly, if you
 merely wanted to ignore one of the declarations, use <tt>%ignore</tt>
 with the full qualification.  For example, the following directive
 would tell SWIG to ignore the <tt>const</tt> version of <tt>bar()</tt>
@@ -1837,10 +1861,72 @@ above:
 
 <blockquote>
 <pre>
-%ignore Foo::bar() const;   // Ignore bar() const, but leave other bar() alone
+%ignore Spam::bar() const;   // Ignore bar() const, but leave other bar() alone
 </pre>
 </blockquote>
+
 </li>
+
+<li>
+The name matching rules also use default arguments for finer control when wrapping methods that have default arguments.
+Recall that methods with default arguments are wrapped as if the equivalent overloaded methods had been parsed
+(<a href="#SWIGPlus_default_args">Default arguments</a> section).
+Let's consider the following example class:
+
+<blockquote>
+<pre>
+class Spam {
+public:
+   ...
+   void bar(int i=-1, double d=0.0);
+   ...
+};
+</pre>
+</blockquote>
+
+The following <tt>%rename</tt> will match exactly and apply to all the target language overloaded methods because the declaration with the default arguments
+exactly matches the wrapped method:
+
+<blockquote>
+<pre>
+%rename(newbar) Spam::bar(int i=-1, double d=0.0);
+</pre>
+</blockquote>
+
+The C++ method can then be called from the target language with the new name no matter how many arguments are specified, for example:
+<tt>newbar(2, 2.0)</tt>, <tt>newbar(2)</tt> or <tt>newbar()</tt>.
+However, if the <tt>%rename</tt> does not contain the default arguments, it will only apply to the single equivalent target language overloaded method.
+So if instead we have:
+
+<blockquote>
+<pre>
+%rename(newbar) Spam::bar(int i, double d);
+</pre>
+</blockquote>
+
+The C++ method must then be called from the target language with the new name <tt>newbar(2, 2.0)</tt> when both arguments are supplied
+or with the original name as <tt>bar(2)</tt> (one argument) or <tt>bar()</tt> (no arguments).
+In fact it is possible to use <tt>%rename</tt> on the equivalent overloaded methods, to rename all the equivalent overloaded methods:
+
+<blockquote>
+<pre>
+%rename(bar_2args)   Spam::bar(int i, double d);
+%rename(bar_1arg)    Spam::bar(int i);
+%rename(bar_default) Spam::bar();
+</pre>
+</blockquote>
+
+<p>
+Similarly, the extra overloaded methods can be selectively ignored using <tt>%ignore</tt>.
+</p>
+
+<p>
+<b>Compatibility note:</b>  The <tt>%rename</tt> directive introduced the default argument matching rules in SWIG-1.3.23 at the same time as the changes
+to wrapping methods with default arguments was introduced.
+</p>
+
+</li>
+
 </ul>
 
 <H3><a name="SWIGPlus_nn27"></a>6.15.4 Comments on overloading</H3>
@@ -2674,6 +2760,23 @@ additional methods to a specific instantiation. For example:
 </pre>
 </blockquote>
 
+SWIG even supports overloaded templated functions.  As usual the <tt>%template</tt> directive
+is used to wrap templated functions. For example:
+
+<blockquote>
+<pre>
+template&lt;class T&gt; void foo(T x) { };
+template&lt;class T&gt; void foo(T x, T y) { };
+
+%template(foo) foo&lt;int&gt;;
+</pre>
+</blockquote>
+
+<p>
+This will generate two overloaded wrapper methods, the first will take a single integer as an argument
+and the second will take two integer arguments.
+</p>
+
 <p>
 Needless to say, SWIG's template support provides plenty of
 opportunities to break the universe.  That said, an important final
@@ -2686,39 +2789,6 @@ practical reason for SWIG to duplicate this functionality (besides,
 none of the SWIG developers are masochistic enough to want to
 implement this right now).
 </p>
-
-Finally, there are a few limitations in SWIG's current support for templates:
-
-<ul>
-<li>SWIG does not support overloaded versions of a template.  Some C++ programs might
-do this to define overloaded functions.  For example:
-
-<blockquote>
-<pre>
-template&lt;class T&gt; void foo(T x) { };
-template&lt;class T&gt; void foo(T x, T y) { };     // Error. foo already defined.
-</pre>
-</blockquote>
-
-This will generate a name conflict error message in SWIG. To silence the error message, use <tt>%ignore</tt>:
-
-<blockquote>
-<pre>
-%ignore foo(T,T);
-</pre>
-</blockquote>
-
-In this case, <tt>%template</tt> will only work with the first definition.  To create a
-wrapper for the second definition, just do it manually:
-
-<blockquote>
-<pre>
-%name(foo2int) void foo&lt;int&gt;(int x, int y);
-</pre>
-</blockquote>
-</li>
-
-</ul>
 
 <p>
 <b>Compatibility Note</b>:  The first implementation of template support relied heavily on
@@ -3661,11 +3731,11 @@ of your project.
 <H2><a name="SWIGPlus_nn38"></a>6.26 Proxy classes</H2>
 
 
-In order to provide a more natural API, many of SWIG's target
-languages also wrap C++ classes with special proxy classes.  These
+In order to provide a more natural API, SWIG's target
+languages wrap C++ classes with special proxy classes.  These
 proxy classes are typically implemented in the target language itself.
 For example, if you're building a Python module, each C++ class is
-wrapped with Python class.  Or if you're building a Java module, each
+wrapped by a Python class.  Or if you're building a Java module, each
 C++ class is wrapped by a Java class.  
 
 <H3><a name="SWIGPlus_nn39"></a>6.26.1 Construction of proxy classes</H3>
