@@ -57,6 +57,8 @@ What's New?
 ===========
 The most notable changes since SWIG1.1 include the following:
 
+   - Support for C++ namespaces
+
    - Support for C++ overloaded operators.
 
    - Support for C++ templates.
@@ -70,7 +72,8 @@ The most notable changes since SWIG1.1 include the following:
 
    - Improved support for pointers to functions and callbacks.
 
-   - SWIG now has a full C preprocessor.
+   - SWIG now has a full C preprocessor with macro expansion. 
+     Includes C99 variadic macro support.
 
    - Code generation for the Tcl and Python modules has been
      substantially improved both in terms of size and runtime
@@ -247,10 +250,10 @@ http://swig.cs.uchicago.edu/cgi-bin/wiki.pl.
 Documentation
 =============
 The Doc/Manual directory contains the most recent set of updated
-documentation for this release.  As this is an unstable development
-release, the documentation is not entirely up to date and is being worked
-on.  We are working on it, but there is a lot of documentation and it
-is going to take time to complete. Please be patient.
+documentation for this release.  As this is a development release, the
+documentation is not entirely up to date and is being worked on.  We
+are working on it, but there is a lot of documentation and it is going
+to take time to complete. Please be patient or volunteer to help.
 
 !! The most up-to-date information concerning new features in SWIG1.3 is the
 !! file Doc/Manual/SWIG.html.
@@ -263,11 +266,11 @@ Participate!
 ============
 
 Please report any errors and submit patches (if possible)!  We only
-have access to a limited variety of hardware (Linux, Solaris, and
-Windows). All contributions help.
+have access to a limited variety of hardware (Linux, Solaris, OS-X,
+and Windows). All contributions help.
 
 If you would like to join the SWIG development team or contribute a
-language module to the distribution, please contact beazley@cs.uchicago.edu.
+language module to the distribution, please contact swig-dev@cs.uchicago.edu.
 
  -- The SWIG Maintainers
 
