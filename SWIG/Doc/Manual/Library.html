@@ -42,7 +42,12 @@ You can override the location of the SWIG library by setting the
 
 <h2>C Arrays and Pointers</h2>
 
-This section describes library modules for manipulating simple C arrays and pointers. 
+This section describes library modules for manipulating low-level C arrays and pointers. 
+The primary use of these modules is in supporting C declarations that manipulate bare
+pointers such as <tt>int *</tt>, <tt>double *</tt>, or <tt>void *</tt>.  The modules can be
+used to allocate memory, manufacture pointers, dereference memory, and wrap
+pointers as class-like objects.   Since these functions provide direct access to
+memory, their use in an extension module is unsafe and you should exercise caution.
 
 <h3>cpointer.i</h3>
 
@@ -57,9 +62,9 @@ this module is in generating pointers to primitive datatypes such as
 Generates a collection of four functions for manipulating a pointer <tt>type *</tt>:
 
 <p>
-<tt>type *new_name(type value = 0)</tt>
+<tt>type *new_name()</tt>
 <blockquote>
-Creates a new object of type <tt>type</tt>.   <tt>value</tt> is an optional default value.
+Creates a new object of type <tt>type</tt>.
 </blockquote>
 
 <p>
@@ -121,12 +126,12 @@ interface is as follows:
 <blockquote>
 <pre>
 struct name {
-   name(type value = 0);               // Create pointer object
+   name();                             // Create pointer object
   ~name();                             // Delete pointer object
    void assign(type value);            // Assign value
    type value();                       // Get value
    type *cast();                       // Cast the pointer to original type.
-   static name *FromPointer(type *);   // Create class wrapper from existing pointer
+   static name *frompointer(type *);   // Create class wrapper from existing pointer
 };
 </pre>
 </blockquote>
@@ -214,10 +219,9 @@ raw C array data.
 Creates four functions.
 
 <p>
-<tt>type *new_name(int nelements, type value = 0)</tt>
+<tt>type *new_name(int nelements)</tt>
 <blockquote>
-Creates a new array of objects of type <tt>type</tt>.   <tt>value</tt> is an optional initial
-value assigned to each element.
+Creates a new array of objects of type <tt>type</tt>. 
 </blockquote>
 
 <p>
@@ -292,12 +296,12 @@ interface is as follows:
 <blockquote>
 <pre>
 struct name {
-   name(int nelements, type value = 0);    // Create an array
+   name(int nelements);                    // Create an array
   ~name();                                 // Delete array
    type getitem(int index);                // Return item
    void setitem(index, type value);        // Set item
    type *cast();                           // Cast to original type
-   static name *FromPointer(type *);       // Create class wrapper from existing pointer
+   static name *frompointer(type *);       // Create class wrapper from existing pointer
 };
 </pre>
 </blockquote>
@@ -344,6 +348,183 @@ you should consider using a special array object rather than a bare pointer.
 <p>
 <b>Note:</b> <tt>%array_functions()</tt> and <tt>%array_class()</tt> should not be
 used with types of <tt>char</tt> or <tt>char *</tt>.
+
+<h3>cmalloc.i</h3>
+
+This module defines macros for wrapping the low-level C memory allocation functions
+<tt>malloc()</tt>, <tt>calloc()</tt>, <tt>realloc()</tt>, and <tt>free()</tt>.
+
+<p>
+<b><tt>%malloc(type [,name=type])</tt></b>
+<blockquote>
+Creates a wrapper around <tt>malloc()</tt> with the following prototype:
+<blockquote><pre>
+<em>type</em> *malloc_<em>name</em>(int nbytes = sizeof(<em>type</em>));
+</pre>
+</blockquote>
+If <tt>type</tt> is <tt>void</tt>, then the size parameter <tt>nbytes</tt> is required.
+The <tt>name</tt> parameter only needs to be specified when wrapping a type that
+is not a valid identifier (e.g., "<tt>int *</tt>", "<tt>double **</tt>", etc.).
+</blockquote>
+
+<p>
+<b><tt>%calloc(type [,name=type])</tt></b>
+<blockquote>
+Creates a wrapper around <tt>calloc()</tt> with the following prototype:
+<blockquote><pre>
+<em>type</em> *calloc_<em>name</em>(int nobj =1, int sz = sizeof(<em>type</em>));
+</pre>
+</blockquote>
+If <tt>type</tt> is <tt>void</tt>, then the size parameter <tt>sz</tt> is required.
+</blockquote>
+
+<p>
+<b><tt>%realloc(type [,name=type])</tt></b>
+<blockquote>
+Creates a wrapper around <tt>realloc()</tt> with the following prototype:
+<blockquote><pre>
+<em>type</em> *realloc_<em>name</em>(<em>type</em> *ptr, int newsize);
+</pre>
+</blockquote>
+</blockquote>
+
+<p>
+<b><tt>%free(type [,name=type])</tt></b>
+<blockquote>
+Creates a wrapper around <tt>free()</tt> with the following prototype:
+<blockquote><pre>
+void free_<em>name</em>(<em>type</em> *ptr);
+</pre>
+</blockquote>
+</blockquote>
+
+<p>
+<b><tt>%sizeof(type [,name=type])</tt></b>
+<blockquote>
+Creates the constant:
+<blockquote><pre>
+%constant int sizeof_<em>name</em> = sizeof(<em>type</em>);
+</pre>
+</blockquote>
+</blockquote>
+
+<p>
+<b><tt>%allocators(type [,name=type])</tt></b>
+<blockquote>
+Generates wrappers for all five of the above operations.
+</blockquote>
+
+<p>
+Here is a simple example that illustrates the use of these macros:
+
+<blockquote>
+<pre>
+// SWIG interface
+%module example
+%include "cmalloc.i"
+
+%malloc(int);
+%free(int);
+
+%malloc(int *, intp);
+%free(int *, intp);
+
+%allocators(double);
+</pre>
+</blockquote>
+
+Now, in a script:
+
+<blockquote>
+<pre>
+>>> from example import *
+>>> a = malloc_int()
+>>> a
+'_000efa70_p_int'
+>>> free_int(a)    
+>>> b = malloc_intp()
+>>> b
+'_000efb20_p_p_int'
+>>> free_intp(b)
+>>> c = calloc_double(50)
+>>> c
+'_000fab98_p_double'
+>>> c = realloc_double(100000)
+>>> free_double(c)
+>>> print sizeof_double
+8
+>>>
+</pre>
+</blockquote>
+
+<h3>cdata.i</h3>
+
+The <tt>cdata.i</tt> module defines functions for converting raw C data to and from strings
+in the target language.  The target language must support strings with embedded binary data
+for this to work.
+
+<p>
+<b><tt>char *cdata(void *ptr, int nbytes)</tt></b>
+<blockquote>
+Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string.
+</blockquote>
+
+<p>
+<b><tt>void memmove(void *ptr, char *s)</tt></b>
+<blockquote>
+Copies all of the string data in <tt>s</tt> into the memory pointed to by 
+<tt>ptr</tt>.  The string may contain embedded NULL bytes.  The length of 
+the string is implicitly determined in the underlying wrapper code.
+</blockquote>
+
+One use of these functions is packing and unpacking data from memory. 
+Here is a short example:
+
+<blockquote>
+<pre>
+// SWIG interface
+%module example
+%include "carrays.i"
+%include "cdata.i"
+
+%array_class(int, intArray);
+</pre>
+</blockquote>
+
+Python example:
+
+<blockquote>
+<pre>
+>>> a = intArray(10)
+>>> for i in range(0,10):
+...    a[i] = i
+>>> b = cdata(a,40)
+>>> b
+'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t'
+>>> c = intArray(10)
+>>> memmove(c,b)
+>>> print c[4]
+4
+>>> 
+</pre>
+</blockquote>
+
+Since the size of data is not always known, the following macro is also defined:
+
+<p>
+<b><tt>%cdata(type [,name=type])</tt></b>
+<blockquote>
+Generates the following function for extracting C data for a given type.
+<blockquote>
+<pre>
+char *cdata_<em>name</em>(int nitems)
+</pre>
+</blockquote>
+<tt>nitems</tt> is the number of items of the given type to extract.
+</blockquote>
+
+<b>Note:</b> These functions provide direct access to C memory and can be used to overwrite data.
+Clearly they are unsafe.
 
 <p><hr>
 <address>SWIG 1.3 - Last Modified : May 22, 2002</address>
