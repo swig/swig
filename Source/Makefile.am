@@ -39,10 +39,11 @@ swig_SOURCES = 	CParse/cscanner.c		\
 		DOH/string.c			\
 		DOH/void.c			\
 		Modules/allocate.cxx		\
-		Modules/emit.cxx		\
 		Modules/browser.cxx		\
 		Modules/chicken.cxx		\
 		Modules/contract.cxx		\
+		Modules/csharp.cxx		\
+		Modules/emit.cxx		\
 		Modules/guile.cxx		\
 		Modules/java.cxx		\
 		Modules/lang.cxx		\
