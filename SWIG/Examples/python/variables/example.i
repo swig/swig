@@ -1,5 +1,6 @@
 /* File : example.i */
 %module example
+#pragma SWIG nowarn=451
 %{
 #include "example.h"
 %}
@@ -17,7 +18,7 @@ extern char             cvar;
 extern float            fvar;
 extern double           dvar;
 extern char            *strvar;
-extern const char      *cstrvar;
+extern const char *      cstrvar;
 extern int             *iptrvar;
 extern char             name[256];
 

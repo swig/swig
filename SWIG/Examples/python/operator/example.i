@@ -1,6 +1,6 @@
 /* File : example.i */
 %module example
-
+#pragma SWIG nowarn=362
 %{
 #include "example.h"
 %}

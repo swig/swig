@@ -1,21 +1,21 @@
-import exception_order
+from exception_order import *
 
 
-a = exception_order.A()
+a = A()
 
 try:
   a.foo()
-except RuntimeError,e:
-  if e.args[0] != "E1":
-    print "bad exception order", 
-    raise RuntimeError, e.args
+except E1,e:
+  pass
+except:
+  raise RuntimeError, "bad exception order"
 
 try:
   a.bar()
-except RuntimeError,e:
-  if e.args[0] != "E2":
-    print "bad exception order", 
-    raise RuntimeError, e.args
+except E2,e:
+  pass
+except:
+  raise RuntimeError, "bad exception order"
 
 try:
   a.foobar()

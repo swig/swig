@@ -21,7 +21,7 @@ int printf(const char *fmt, ...);
 %varargs(char *) fprintf;
 
 /* Ignore the format string, but set it to %s */
-%typemap(ignore) const char *fmt {
+%typemap(in,numinputs=0) const char *fmt {
 	$1 = "%s";
 }
 #else
