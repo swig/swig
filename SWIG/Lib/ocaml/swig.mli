@@ -20,7 +20,7 @@ type 'a c_obj_t =
   | C_enum of 'a
   | C_director_core of 'a c_obj_t * 'a c_obj_t option ref
 
-val convert_c_obj c : 'a c_obj_t -> 'b c_obj_t
+val convert_c_obj : 'a c_obj_t -> 'b c_obj_t
 
 val get_int : 'a c_obj_t -> int
 val get_float : 'a c_obj_t -> float
