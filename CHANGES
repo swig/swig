@@ -2,7 +2,40 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 Version 1.3 Alpha 4 (not yet released)
 ======================================
+9/3/00  : beazley
+          Restored the "memberin" typemap for setting structure members.
+          Unlike the old version, the new version is expanded inline in the
+          wrapper function allowing access to scripting language
+          internals (a sometimes requested feature). The "memberout" typemap
+          is gone. Use the "out" typemaps instead.
+          *** POTENTIAL INCOMPATIBILITY ***
 
+9/3/00  : beazley
+          Attribute set methods no longer return the value of a member.
+          For example:
+
+               struct Foo {
+                    int x;
+                    ...
+               }
+
+          now gets set as follows:
+
+              void Foo_x_set(Foo *f, int x) {
+                    f->x = x;
+              }
+
+          In SWIG1.1 it used to be this:
+
+              int Foo_x_set(Foo *f, int x) {
+                   return (f->x = x);
+              }
+
+          This has been changed due to the complexity created by trying
+          to do this with more exotic datatypes such as arrays.  It also
+          complicates inlining and handling of the "memberin" typemap.
+          *** POTENTIAL INCOMPATIBILITY ***
+                
 9/2/00  : beazley
           Removed the ptrcast() and ptrmap() functions from the
           pointer.i library file.  Old implementation is incompatible
