@@ -703,7 +703,7 @@ int check_locals(ParmList *p, const char *s) {
 }
 
 static
-void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *pname, String *lname, int index) 
+void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType *rtype, String *pname, String *lname, int index) 
 {
   char var[512];
   char *varname;
@@ -768,7 +768,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
 
   /* Type-related stuff */
   {
-    SwigType *star_type, *amp_type, *base_type;
+    SwigType *star_type, *amp_type, *base_type, *lex_type;
     SwigType *ltype, *star_ltype, *amp_ltype;
     String *mangle, *star_mangle, *amp_mangle, *base_mangle, *base_name;
     String *descriptor, *star_descriptor, *amp_descriptor;
@@ -967,6 +967,13 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
     Delete(base_mangle);
     Delete(base_type);
     Delete(base_name);
+ 
+    lex_type = SwigType_base(rtype);
+    if (index == 1)
+      Replace(s,"$lextype", lex_type, DOH_REPLACE_ANY);
+    strcpy(varname,"lextype");
+    Replace(s,var,lex_type,DOH_REPLACE_ANY);
+    Delete(lex_type);
   }
   
   /* Replace any $n. with (&n)-> */
@@ -1067,9 +1074,9 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
 
   /* This is wrong.  It replaces locals in place.   Need to fix this */
   if (mtype && SwigType_isarray(mtype)) {
-    typemap_replace_vars(s,locals,mtype,pname,lname,1);
+    typemap_replace_vars(s,locals,mtype,type,pname,lname,1);
   } else {
-    typemap_replace_vars(s,locals,type,pname,lname,1);
+    typemap_replace_vars(s,locals,type,type,pname,lname,1);
   }
 
   if (locals && f) {
@@ -1156,9 +1163,9 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   }
 
   if (mtype && SwigType_isarray(mtype)) {
-    typemap_replace_vars(s,locals,mtype,pname,(char *) lname,1);
+    typemap_replace_vars(s,locals,mtype,type,pname,(char *) lname,1);
   } else {
-    typemap_replace_vars(s,locals,type,pname,(char *) lname,1);
+    typemap_replace_vars(s,locals,type,type,pname,(char *) lname,1);
   }
 
   if (locals && f) {
@@ -1352,10 +1359,10 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       mtype = Getattr(p,"tmap:match");
 
       if (mtype) {
-	typemap_replace_vars(s,locals, mtype,pname,lname,i+1);
+	typemap_replace_vars(s,locals,mtype,type,pname,lname,i+1);
 	Delattr(p,"tmap:match");
       } else {
-	typemap_replace_vars(s,locals, type,pname,lname,i+1);
+	typemap_replace_vars(s,locals,type,type,pname,lname,i+1);
       }
 
       if (checkAttribute(tm,"type","SWIGTYPE")) {
