@@ -139,7 +139,7 @@ class MODULA3:public Language
 {
 public:
   enum block_type
-  { no_block, constant, variable, type, revelation };
+  { no_block, constant, variable, blocktype, revelation };
 
 private:
   struct M3File
@@ -2043,7 +2043,7 @@ MODULA3 ():
         } else if (Strcmp (code, "constset") == 0) {
         } else if (Strcmp (code, "constint") == 0) {
         } else if (Strcmp (code, "makesetofenum") == 0) {
-          m3wrap_intf.enterBlock (type);
+          m3wrap_intf.enterBlock (blocktype);
           Printf (m3wrap_intf.f, "%sSet = SET OF %s;\n", value, value);
         } else {
           Swig_warning (WARN_MODULA3_UNKNOWN_PRAGMA, input_file, line_number,
@@ -2617,7 +2617,7 @@ MODULA3 ():
         }
         writeArg (entries, state, NIL, NIL, NIL, NIL);
 
-        m3raw_intf.enterBlock (type);
+        m3raw_intf.enterBlock (blocktype);
         Printf (m3raw_intf.f, "%s =\nRECORD\n%sEND;\n", proxy_class_name,
                 entries);
 
@@ -2668,11 +2668,11 @@ MODULA3 ():
            to imitate the whole class hierarchy of the C++ library,
            but at least we can distinguish between classes of different roots. */
         if (hasContent (baseclassname)) {
-          m3raw_intf.enterBlock (type);
+          m3raw_intf.enterBlock (blocktype);
           Printf (m3raw_intf.f, "%s = %s;\n", proxy_class_name,
                   baseclassname);
         } else {
-          m3raw_intf.enterBlock (type);
+          m3raw_intf.enterBlock (blocktype);
           Printf (m3raw_intf.f, "%s <: ADDRESS;\n", proxy_class_name);
           m3raw_impl.enterBlock (revelation);
           Printf (m3raw_impl.f,
@@ -2681,7 +2681,7 @@ MODULA3 ():
         }
 
         String *superclass;
-        m3wrap_intf.enterBlock (type);
+        m3wrap_intf.enterBlock (blocktype);
         if (hasContent (methods[acc_public])) {
           superclass = NewStringf ("%sPublic", proxy_class_name);
         } else if (hasContent (baseclassname)) {
@@ -2709,7 +2709,7 @@ MODULA3 ():
                 m3wrap_intf.enterBlock (revelation);
                 Printf (m3wrap_intf.f, "%s =\n", proxy_class_name);
               } else {
-                m3wrap_intf.enterBlock (type);
+                m3wrap_intf.enterBlock (blocktype);
                 Printf (m3wrap_intf.f, "%s =\n", subclass);
               }
               Printf (m3wrap_intf.f, "%s BRANDED OBJECT\n", baseclassname);
@@ -3424,7 +3424,7 @@ MODULA3 ():
       if (multiretval) {
         Printv (result_name, "result", NIL);
         Printf (result_m3wraptype, "%sResult", func_name);
-        m3wrap_intf.enterBlock (type);
+        m3wrap_intf.enterBlock (blocktype);
         Printf (m3wrap_intf.f, "%s =\nRECORD\n%sEND;\n",
                 result_m3wraptype, return_variables);
         Printf (local_variables, "%s: %s;\n", result_name, result_m3wraptype);
