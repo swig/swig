@@ -9,7 +9,7 @@
     template <class ArgType>
     struct UnaryFunction 
     {
-      UnaryFunction operator-() const;
+      UnaryFunction operator-() const { return *this; }
     };
 
     template <>
@@ -18,9 +18,12 @@
       // This works
       // UnaryFunction<bool> operator!() const;
 
-
       // This doesn't
-      UnaryFunction operator!() const;
+      UnaryFunction operator!() const { return *this; }
+
+      // Does this?
+      void foo(UnaryFunction) { }
+      
     };
     
   }

@@ -41,9 +41,10 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 # Exception: during development, recent tests may appear at the
 # top of the list since they are being used to fix bugs.
 
-
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
+
 CPP_TEST_CASES += \
+	template_specialization \
 	default_cast \
 	import_nomodule \
 	struct_value \
@@ -165,7 +166,6 @@ CPP_TEST_CASES += \
 	template_qualifier \
 	template_rename \
 	template_retvalue \
-	template_specialization \
 	template_static \
 	template_tbase_template \
 	template_type_namespace \

@@ -3,7 +3,7 @@
    <kozminski@users.sf.net>. 
 */
 
-%module explicit
+%module "explicit"
 
 %inline %{
 
