@@ -1,6 +1,11 @@
 Version 1.3.20 (In progress)
 ============================
 09/01/2003: beazley
+            Fixed [ 791579 ] (unsigned) long long handled incorrectly (Tcl).
+            This was an error in the Tcl typemaps.i file. 
+            Reported by Kjell Wooding.
+        
+09/01/2003: beazley
             Fixed [ 797573 ] no way to rename classes coming from C structures.
             This problem relates to renaming of anonymous structures with a
             typedef.  For example: 
