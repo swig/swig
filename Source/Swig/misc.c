@@ -131,3 +131,18 @@ String *Swig_string_escape(String *s) {
   return ns;
 }
      
+/* -----------------------------------------------------------------------------
+ * Swig_string_mangle()
+ * 
+ * Take a string and mangle it by stripping all non-valid C identifier characters
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_mangle(String *s) {
+  String *t = Copy(s);
+  char *c = Char(t);
+  while (*c) {
+    if (!isalnum(*c)) *c = '_';
+    c++;
+  }
+  return t;
+}
