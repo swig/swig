@@ -568,6 +568,7 @@ Swig_directorbase(Node *n) {
 int
 Swig_directorclass(Node *n) {
   Node *classNode = Swig_methodclass(n);
+  assert(classNode != 0);
   return (Getattr(classNode, "vtable") != 0);
 }
 
