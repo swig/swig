@@ -22,6 +22,19 @@
  * ----------------------------------------------------------------------------- */
 
 #define OBUFLEN  512
+
+static int Writen(DOH *out, void *buffer, int len) {
+  int nw = len, ret;
+  char *cb = (char *) buffer;
+  while (nw) {
+    ret = Write(out,cb,nw);
+    if (ret < 0) return -1;
+    nw = nw - ret;
+    cb += ret;
+  }
+  return len;
+}
+
 /* -----------------------------------------------------------------------------
  * DohvPrintf(DOH *so, char *format, va_list ap)
  *
@@ -204,7 +217,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	    stemp = (char *) malloc(maxwidth+1);
 	  }
 	  nbytes+=sprintf(stemp,newformat,Data(Sval));
-	  Write(so,stemp,strlen(stemp));
+	  if (Writen(so,stemp,strlen(stemp)) < 0) return -1;
 	  if ((DOH *) Sval != doh) {
 	    Delete(Sval);
 	  }
@@ -224,7 +237,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	    stemp = (char *) malloc(maxwidth + 1);
 	  }
 	  nbytes+=sprintf(stemp,newformat,doh);
-	  Write(so,stemp,strlen(stemp));
+	  if (Writen(so,stemp,strlen(stemp)) < 0) return -1;
 	  if (stemp != obuffer) {
 	    free(stemp);
 	  }
@@ -267,7 +280,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	default:
 	  break;
 	}
-	Write(so,stemp,strlen(stemp));
+	if (Writen(so,stemp,strlen(stemp)) < 0) return -1;
 	if (stemp != obuffer) free(stemp);
       }
       state = 0;
@@ -276,8 +289,11 @@ DohvPrintf(DOH *so, char *format, va_list ap)
     p++;
   }
   if (state) {
+    int r;
     *fmt = 0;
-    nbytes += Write(so,fmt,strlen(fmt));
+    r = Writen(so,fmt,strlen(fmt));
+    if (r < 0) return -1;
+    nbytes += r;
   }
   return nbytes;
 }
@@ -296,13 +312,22 @@ int DohPrintf(DOH *obj, char *format, ...) {
 
 int DohCopyto(DOH *in, DOH *out) {
   int nbytes = 0, ret;
+  int nwrite = 0, wret;
+  char *cw;
   char buffer[16384];
 
   if ((!in) || (!out)) return 0;
   while (1) {
     ret = Read(in,buffer,16384);
     if (ret > 0) {
-      Write(out,buffer,ret);
+      nwrite = ret;
+      cw = buffer;
+      while (nwrite) {
+	wret = Write(out,cw,nwrite);
+	if (wret < 0) return nbytes;
+	nwrite = nwrite - wret;
+	cw += wret;
+      }
       nbytes += ret;
     } else {
       return nbytes;

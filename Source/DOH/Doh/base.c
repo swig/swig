@@ -507,6 +507,35 @@ double DohGetDouble(DOH *obj, DOH *name) {
   return 0;
 }
 
+char *DohGetChar(DOH *obj, DOH *name) {
+  double dval;
+  DOH *val;
+  DohError(DOH_CALLS,"DohGetChar %x, %x\n",obj,name);  
+  val = Getattr(obj,name);
+  if (!val) return 0;
+  if (String_check(val)) {
+    return (char *) Data(val);
+  } 
+  return 0;
+}
+
+void DohSetInt(DOH *obj, DOH *name, int value) {
+  DOH *temp;
+  DohError(DOH_CALLS,"DohSetInt %x, %x, %d\n", obj, name, value);
+  temp = NewString("");
+  Printf(temp,"%d",value);
+  Setattr(obj,name,temp);
+}
+
+void DohSetDouble(DOH *obj, DOH *name, double value) {
+  DOH *temp;
+  DohError(DOH_CALLS,"DohSetInt %x, %x, %g\n", obj, name, value);
+  temp = NewString("");
+  Printf(temp,"%g",value);
+  Setattr(obj,name,temp);
+}
+
+
 /* ----------------------------------------------------------------------
  * Sequence Interface
  * ---------------------------------------------------------------------- */

@@ -108,7 +108,9 @@ DohObjInfo *String_type() {
  * void *String_data(DOH *so) - Return as a 'void *'
  * ----------------------------------------------------------------------------- */
 void *String_data(DOH *so) {
-    return (void *) ((String *) so)->str;
+  String *s = (String *) so;
+  s->str[s->len] = 0;
+  return (void *) s->str;
 }
 
 /* -----------------------------------------------------------------------------
