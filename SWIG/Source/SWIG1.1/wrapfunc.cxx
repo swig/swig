@@ -54,7 +54,6 @@ static char *isolate_type_name(char *tname) {
 
 // -------------------------------------------------------------------
 // Print out a wrapper function.
-//
 // -------------------------------------------------------------------
 
 void WrapperFunction::print(FILE *f) {
@@ -73,7 +72,6 @@ void WrapperFunction::print(FILE *f) {
 
 // -------------------------------------------------------------------
 // Print out a wrapper function.
-//
 // -------------------------------------------------------------------
 
 void WrapperFunction::print(String &f) {
