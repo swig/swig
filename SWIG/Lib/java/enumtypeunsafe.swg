@@ -15,6 +15,9 @@
    $1 = &temp; %}
 %typemap(out) const enum SWIGTYPE &  %{ $result = (jint)*$1; %}
 
+%typemap(directorout) const enum SWIGTYPE & ($*1_ltype temp)
+%{ temp = ($*1_ltype)$input; 
+   $1 = &temp; %}
 %typemap(directorin, descriptor="I") const enum SWIGTYPE &    "$input = (jint)$1_name;"
 %typemap(javadirectorin) const enum SWIGTYPE & "$jniinput"
 %typemap(javadirectorout) const enum SWIGTYPE & "$javacall"
@@ -40,6 +43,7 @@
 %typemap(in) enum SWIGTYPE  %{ $1 = ($1_ltype)$input; %}
 %typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
 
+%typemap(directorout) enum SWIGTYPE  %{ $1 = ($1_ltype)$input; %}
 %typemap(directorin, descriptor="I") enum SWIGTYPE    "$input = (jint) $1;"
 %typemap(javadirectorin) enum SWIGTYPE "$jniinput"
 %typemap(javadirectorout) enum SWIGTYPE "$javacall"

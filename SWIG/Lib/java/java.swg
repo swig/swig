@@ -154,10 +154,27 @@
 %typemap(in) bool
 %{ $1 = $input ? true : false; %}
 
+%typemap(directorout) bool
+%{ $1 = $input ? true : false; %}
+
 %typemap(javadirectorin) bool "$jniinput"
 %typemap(javadirectorout) bool "$javacall"
 
 %typemap(in) char, 
+             signed char, 
+             unsigned char, 
+             short, 
+             unsigned short, 
+             int, 
+             unsigned int, 
+             long, 
+             unsigned long, 
+             long long, 
+             float, 
+             double
+%{ $1 = ($1_ltype)$input; %}
+
+%typemap(directorout) char, 
              signed char, 
              unsigned char, 
              short, 
@@ -260,6 +277,38 @@
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
 
+%typemap(directorout) unsigned long long { 
+  jclass clazz;
+  jmethodID mid;
+  jbyteArray ba;
+  jbyte* bae;
+  jsize sz;
+  int i;
+
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
+    return $null;
+  }
+  clazz = JCALL1(GetObjectClass, jenv, $input);
+  mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
+  ba = (jbyteArray)JCALL2(CallObjectMethod, jenv, $input, mid);
+  bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
+  sz = JCALL1(GetArrayLength, jenv, ba);
+  $1 = 0;
+  if (bae[0] == 0) {
+    for(i=sz-1; i>0; i-- ) {
+      $1 = ($1 << 8) | (unsigned char)bae[sz-i];
+    }
+  } 
+  else {
+    for(i=sz; i>=0; i-- ) {
+      $1 = ($1 << 8) | (unsigned char)bae[sz-1-i];
+    }
+  }
+  JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
+}
+
+
 /* Convert to BigInteger - byte array holds number in 2's complement big endian format */
 %typemap(out) unsigned long long { 
   jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
@@ -310,6 +359,14 @@
   }
 }
 
+%typemap(directorout) char * { 
+  $1 = 0;
+  if ($input) {
+    $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!$1) return $null;
+  }
+}
+
 %typemap(directorin, descriptor="Ljava/lang/String;") char * { 
   $input = 0;
   if ($1) {
@@ -333,10 +390,29 @@
 %{ temp = $input ? true : false; 
    $1 = &temp; %}
 
+%typemap(directorout) const bool & (bool temp)
+%{ temp = $input ? true : false; 
+   $1 = &temp; %}
+
 %typemap(javadirectorin) const bool & "$jniinput"
 %typemap(javadirectorout) const bool & "$javacall"
 
 %typemap(in) const char & (char temp), 
+             const signed char & (signed char temp), 
+             const unsigned char & (unsigned char temp), 
+             const short & (short temp), 
+             const unsigned short & (unsigned short temp), 
+             const int & (int temp), 
+             const unsigned int & (unsigned int temp), 
+             const long & (long temp), 
+             const unsigned long & (unsigned long temp), 
+             const long long & ($*1_ltype temp), 
+             const float & (float temp), 
+             const double & (double temp)
+%{ temp = ($*1_ltype)$input; 
+   $1 = &temp; %}
+
+%typemap(directorout) const char & (char temp), 
              const signed char & (signed char temp), 
              const unsigned char & (unsigned char temp), 
              const short & (short temp), 
@@ -442,6 +518,38 @@
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
 
+%typemap(directorout) const unsigned long long & ($*1_ltype temp) { 
+  jclass clazz;
+  jmethodID mid;
+  jbyteArray ba;
+  jbyte* bae;
+  jsize sz;
+  int i;
+
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
+    return $null;
+  }
+  clazz = JCALL1(GetObjectClass, jenv, $input);
+  mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
+  ba = (jbyteArray)JCALL2(CallObjectMethod, jenv, $input, mid);
+  bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
+  sz = JCALL1(GetArrayLength, jenv, ba);
+  $1 = &temp;
+  temp = 0;
+  if (bae[0] == 0) {
+    for(i=sz-1; i>0; i-- ) {
+      temp = (temp << 8) | (unsigned char)bae[sz-i];
+    }
+  } 
+  else {
+    for(i=sz; i>=0; i-- ) {
+      temp = (temp << 8) | (unsigned char)bae[sz-1-i];
+    }
+  }
+  JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
+}
+
 %typemap(out) const unsigned long long & { 
   jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
   jbyte* bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
@@ -465,6 +573,14 @@
 
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
+%{ argp = *($&1_ltype*)&$input; 
+   if (!argp) {
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
+     return $null;
+   }
+   $1 = *argp; %}
+
+%typemap(directorout) SWIGTYPE ($&1_type argp)
 %{ argp = *($&1_ltype*)&$input; 
    if (!argp) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
@@ -499,6 +615,8 @@
 %typemap(out) SWIGTYPE &
 %{ *($&1_ltype)&$result = $1; %} 
 
+%typemap(directorout) SWIGTYPE *, SWIGTYPE (CLASS::*)
+%{ $1 = *($&1_ltype)&$input; %}
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE *, SWIGTYPE (CLASS::*)
 %{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
 
@@ -522,6 +640,14 @@
   }
 }
 
+%typemap(directorout) char[ANY], char[] { 
+  $1 = 0;
+  if ($input) {
+    $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!$1) return $null;
+  }
+}
+
 %typemap(directorin, descriptor="Ljava/lang/String;") char[ANY], char[] { 
   $input = 0;
   if ($1) {
@@ -538,6 +664,27 @@
 
 /* JNI types */
 %typemap(in) jboolean,
+             jchar,
+             jbyte,
+             jshort,
+             jint,
+             jlong,
+             jfloat,
+             jdouble,
+             jstring,
+             jobject,
+             jbooleanArray,
+             jcharArray,
+             jbyteArray,
+             jshortArray,
+             jintArray,
+             jlongArray,
+             jfloatArray,
+             jdoubleArray,
+             jobjectArray
+%{ $1 = $input; %}
+
+%typemap(directorout) jboolean,
              jchar,
              jbyte,
              jshort,
