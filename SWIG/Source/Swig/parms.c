@@ -248,3 +248,48 @@ int ParmList_is_compactdefargs(ParmList *p) {
 }
 
 
+/* ---------------------------------------------------------------------
+ * ParmList_has_defaultargs()
+ *
+ * Returns 1 if the parameter list passed in is has one or more default
+ * arguments. Otherwise returns 0.
+ * ---------------------------------------------------------------------- */
+
+int ParmList_has_defaultargs(ParmList *p) {
+    int default_args = 0;
+    while (p) {
+      if (Getattr(p, "value")) {
+        default_args = 1;
+        break;
+      }
+      p = nextSibling(p);
+    }
+    return default_args;
+}
+
+/* ---------------------------------------------------------------------
+ * ParmList_copy_all_except_last_parm()
+ *
+ * Create a new parameter list by copying all the parameters barring the
+ * last parameter.
+ * ---------------------------------------------------------------------- */
+
+ParmList *ParmList_copy_all_except_last_parm(ParmList *p) {
+  ParmList* newparms = 0;
+  Parm *newparm = 0;
+  Parm *pp = 0;
+  Parm *fp = 0;
+  while (nextSibling(p)) {
+    newparm = CopyParm(p);
+    if (pp) {
+      set_nextSibling(pp,newparm);
+    } else {
+      fp = newparm;
+    }
+    pp = newparm;
+    p = nextSibling(p);
+  }
+  newparms = fp;
+  return newparms;
+}
+
