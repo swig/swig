@@ -995,6 +995,7 @@ extern "C" int yylex(void) {
 
     l = yylook();
 
+
     if (l == NONID) {
       last_id = 1;
     } else {
@@ -1011,7 +1012,6 @@ extern "C" int yylex(void) {
     /* Copy the lexene */
 
     yytext[yylen] = 0;
-
     switch(l) {
 
     case NUM_INT:
@@ -1086,17 +1086,27 @@ extern "C" int yylex(void) {
 	      String *s = NewString("operator");
 	      int c;
 	      int state = 0;
+	      int isconversion = 0;
 	      while (c = nextchar()) {
 		if (((c == '(') || (c == ';')) && state) {
 		  retract(1);
 		  break;
 		}
 		if (!isspace(c)) {
+		  if ((!state) && (isalpha(c))) isconversion = 1;
+		  if (!state) Putc(' ',s);
 		  Putc(c,s);
 		  state = 1;
 		}
 	      }
 	      yylval.str = s;
+	      if (isconversion) {
+		char *t = Char(s) + 9;
+		if (!((strcmp(t,"new") == 0) || (strcmp(t,"delete") == 0))) {
+		  retract(strlen(t));
+		  return COPERATOR;
+		}
+	      }
 	      return(OPERATOR);
 	    }
 	    if (strcmp(yytext,"throw") == 0) return(THROW);

@@ -535,6 +535,7 @@ static Node *dump_nested(char *parent) {
 %token NONID DSTAR
 %token <ivalue> TEMPLATE
 %token <str> OPERATOR
+%token <str> COPERATOR
 
 %left  OR
 %left  XOR
@@ -561,7 +562,7 @@ static Node *dump_nested(char *parent) {
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl;
 %type <node>     cpp_members cpp_member;
-%type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl ;
+%type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator;
 %type <node>     cpp_swig_directive cpp_template_decl cpp_nested cpp_opt_declarators ;
 
 /* Misc */
@@ -1681,6 +1682,7 @@ cpp_member   : c_declaration { $$ = $1; }
              | cpp_destructor_decl { $$ = $1; }
              | cpp_protection_decl { $$ = $1; }
              | cpp_swig_directive { $$ = $1; }
+             | cpp_conversion_operator { $$ = $1; }
              | cpp_forward_class_decl { $$ = $1; }
              | cpp_nested { $$ = $1; }
              | SEMI { $$ = 0; }
@@ -1688,18 +1690,18 @@ cpp_member   : c_declaration { $$ = $1; }
 
 /* Possibly a constructor */
 cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
-               $$ = new_node("constructor");
-	       Setname($$,$2);
-	       Setparms($$,$4);
-	       List *l = typelist($4);
-	       SwigType *decl = NewString("");
-	       SwigType_add_function(decl,l);
-	       Setdecl($$,decl);
-	       if (Len(CCode)) {
-		 Setattr($$,"code",Copy(CCode));
+		 $$ = new_node("constructor");
+		 Setname($$,$2);
+		 Setparms($$,$4);
+		 List *l = typelist($4);
+		 SwigType *decl = NewString("");
+		 SwigType_add_function(decl,l);
+		 Setdecl($$,decl);
+		 if (Len(CCode)) {
+		   Setattr($$,"code",Copy(CCode));
+		 }
+		 add_symbols($$);
 	       }
-	       add_symbols($$);
-	      }
               ;
 
 /* A destructor (hopefully) */
@@ -1729,6 +1731,32 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
 	      }
               ;
 
+
+/* C++ type conversion operator */
+cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAREN cpp_vend {
+                 $$ = new_node("cdecl");
+                 Settype($$,$3);
+		 Setname($$,$2);
+		 List *l = typelist($6);
+		 SwigType_add_function($4,l);
+		 Delete(l);
+		 Setdecl($$,$4);
+		 Setparms($$,$6);
+		 add_symbols($$);
+	       }
+              | storage_class COPERATOR type LPAREN parms RPAREN cpp_vend {
+		$$ = new_node("cdecl");
+		Settype($$,$3);
+		Setname($$,$2);
+		List *l = typelist($5);
+		String *t = NewString("");
+		SwigType_add_function(t,l);
+		Delete(l);
+		Setdecl($$,t);
+		Setparms($$,$5);
+		add_symbols($$);
+              }
+              ;
 
 /* public: */
 cpp_protection_decl : PUBLIC COLON { 
@@ -2698,7 +2726,7 @@ idcolontail    : DCOLON ID idcolontail {
                    $$ = NewStringf("::%s%s",$2,$3);
 		   Delete($3);
                }
-              | DCOLON ID {
+               | DCOLON ID {
                    $$ = NewStringf("::%s",$2);
                }
                | DCOLON OPERATOR {

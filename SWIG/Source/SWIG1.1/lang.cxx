@@ -557,7 +557,7 @@ void Language::cDeclaration(Node *n) {
   }
   
   if (symname && !is_identifier(symname) && (Cmp(symname,name) == 0)) {
-    Printf(stderr,"%s:%d. Warning. Can't wrap %s unless it is renamed to a valid identifier.\n",
+    Printf(stderr,"%s:%d. Warning. Can't wrap %s unless renamed to a valid identifier.\n",
 	   input_file, line_number, symname);
     return;
   }
