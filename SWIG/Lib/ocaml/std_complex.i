@@ -1,6 +1,6 @@
 // -*- C++ -*- 
-#ifndef __swig_std_complex_i__
-#define __swig_std_complex_i__
+#ifndef SWIG_STD_COMPLEX_I_
+#define SWIG_STD_COMPLEX_I_
 
 #ifdef SWIG
 
@@ -62,4 +62,4 @@ namespace std
   
 #endif // SWIG
 
-#endif //__swig_std_complex_i__
+#endif //SWIG_STD_COMPLEX_I_
