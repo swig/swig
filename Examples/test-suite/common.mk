@@ -38,6 +38,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 #
 # Please keep test cases in alphabetical order.
+# Note that any whitespace after the last entry in each list will break make
 #
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
@@ -47,7 +48,7 @@ CPP_TEST_BROKEN += \
 	template_default_arg \
 	template_specialization_defarg \
 	template_specialization_enum \
-	using_namespace 
+	using_namespace
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_BROKEN += 
