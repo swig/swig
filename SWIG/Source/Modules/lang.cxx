@@ -1708,7 +1708,7 @@ int Language::classDirector(Node *n) {
   Hash* vtable = NewHash();
   int virtual_destructor = 0;
   unrollVirtualMethods(n, n, vtable, 0, virtual_destructor);
-  if (Len(vtable) > 0) {
+  if (virtual_destructor || Len(vtable) > 0) {
     if (!virtual_destructor) {
       String *classtype = Getattr(n, "classtype");
       Swig_warning(WARN_LANG_DIRECTOR_VDESTRUCT, input_file, line_number, 

@@ -1,6 +1,11 @@
 Version 1.3.22 (in progress)
 ==================================
 
+05/12/2004: wsfulton
+            Patch for emitting directors when %feature("director") specified
+            for a class with no virtual methods, but does have a virtual destructor.
+            Submitted by Kevin Smith.
+
 05/06/2004: mkoeppe (Matthias Koeppe)
 	    New SWIG runtime function SWIG_TypePrettyName, which 
 	    returns an unmangled type name for a swig_type_info
