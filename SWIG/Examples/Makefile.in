@@ -163,7 +163,7 @@ tcl_multi_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 tcl_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core mytclsh@EXEEXT@ 
+	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ mytclsh@EXEEXT@ 
 
 ##################################################################
 #####                       PERL 5                          ######
@@ -240,7 +240,7 @@ perl5_static_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 perl5_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core myperl@EXEEXT@ *.pm
+	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ myperl@EXEEXT@ *.pm
 
 ##################################################################
 #####                       PYTHON                          ######
@@ -314,7 +314,7 @@ python_static_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 python_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core mypython@EXEEXT@ *.pyc
+	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ mypython@EXEEXT@ *.pyc
 
 ##################################################################
 #####                       GUILE                           ######
@@ -406,7 +406,7 @@ guile_simple_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 guile_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core my-guile@EXEEXT@ $(TARGET)@EXEEXT@
+	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ my-guile@EXEEXT@ $(TARGET)@EXEEXT@
 
 ##################################################################
 #####                       JAVA                            ######
@@ -458,7 +458,7 @@ java_multi_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 java_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core *.class `find . -name \*.java | grep -v main.java`
+	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ *.class `find . -name \*.java | grep -v main.java`
 
 ##################################################################
 #####                       MZSCHEME                        ######
@@ -501,7 +501,7 @@ mzscheme_multi_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 mzscheme_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core
+	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@
 
 ##################################################################
 #####                          Ocaml                         #####
@@ -621,7 +621,7 @@ ocaml_static_multi_cpp: $(SRCS)
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) -cclib "$(LIBS)" -cc '$(CXX)' 
 
 ocaml_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core *.cmo *.cmi $(MLFILE) $(MLFILE)i
+	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ *.cmo *.cmi $(MLFILE) $(MLFILE)i
 
 ##################################################################
 #####                       RUBY                            ######
@@ -692,7 +692,7 @@ ruby_cpp_static: $(SRCS)
 # -----------------------------------------------------------------
 
 ruby_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core myruby@EXEEXT@ *.pm
+	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ myruby@EXEEXT@ *.pm
 
 ##################################################################
 #####                       PHP                             ######
@@ -739,7 +739,7 @@ php4_multi_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 php4_clean:
-	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core *.php
+	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core @EXTRA_CLEAN@ *.php
 
 ##################################################################
 #####                       Pike                            ######
@@ -809,7 +809,7 @@ pike_cpp_static: $(SRCS)
 # -----------------------------------------------------------------
 
 pike_clean:
-	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core mypike@EXEEXT@ 
+	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core @EXTRA_CLEAN@ mypike@EXEEXT@ 
 
 
 # -----------------------------------------------------------------
@@ -848,7 +848,7 @@ chicken_csi:
 		-output-file $$X/$(TARGET)
 
 chicken_clean:
-	rm -f *_wrap* *.o core *~ *.so *.stackdump STACKTRACE
+	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ STACKTRACE
 	rm -f *.exe module$(SO)
 
 # -----------------------------------------------------------------
@@ -945,5 +945,5 @@ csharp_compile: $(SRCS)
 # -----------------------------------------------------------------
 
 csharp_clean:
-	rm -f *.o *.dll *_wrap* *~ .~* core runme gc.log `find . -name \*.cs | grep -v runme.cs`
+	rm -f *.o *.dll *_wrap* *~ .~* core @EXTRA_CLEAN@ runme gc.log `find . -name \*.cs | grep -v runme.cs`
 
