@@ -8,7 +8,7 @@ puts Example::average([1,2,3,4])
 
 # ... or a wrapped std::vector<int>
 
-v = Example::IntVector.new(4,0)
+v = Example::IntVector.new(4)
 0.upto(v.length-1) { |i| v[i] = i+1 }
 puts Example::average(v)
 
@@ -22,7 +22,7 @@ puts
 
 # ... or a wrapped std::vector<double>
 
-v = Example::DoubleVector.new(4,0.0)
+v = Example::DoubleVector.new(4)
 0.upto(v.length-1) { |i| v[i] = i+1 }
 w = Example::half(v)
 0.upto(w.length-1) { |i| print w[i],"; " }

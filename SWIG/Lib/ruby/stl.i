@@ -156,7 +156,7 @@ namespace std {
             }
         }
       public:
-        vector(unsigned int size, const T& fill);
+        vector(unsigned int size);
         %rename(__len__) size;
         unsigned int size() const;
         %rename("empty?") empty;
@@ -245,7 +245,7 @@ namespace std {
                 rb_ary_store($result,i,INT2NUM((($1_type &)$1)[i]));
         }
       public:
-        vector(unsigned int size, int fill);
+        vector(unsigned int size);
         %rename(__len__) size;
         unsigned int size() const;
         %rename("empty?") empty;
@@ -332,7 +332,7 @@ namespace std {
                 rb_ary_store($result,i,rb_float_new((($1_type &)$1)[i]));
         }
       public:
-        vector(unsigned int size, double fill);
+        vector(unsigned int size);
         %rename(__len__) size;
         unsigned int size() const;
         %rename("empty?") empty;

@@ -182,7 +182,7 @@ namespace std {
         }
         */
       public:
-        vector(unsigned int size, const T& fill);
+        vector(unsigned int size);
         %rename(length) size;
         unsigned int size() const;
         %rename("empty?") empty;
@@ -298,7 +298,7 @@ namespace std {
                 els[i] = scheme_make_integer_value((($1_type &)$1)[i]);
         }
       public:
-        vector(unsigned int size, int fill);
+        vector(unsigned int size);
         %rename(length) size;
         unsigned int size() const;
         %rename("empty?") empty;
@@ -428,7 +428,7 @@ namespace std {
                 els[i] = scheme_make_double((($1_type &)$1)[i]);
         }
       public:
-        vector(unsigned int size, double fill);
+        vector(unsigned int size);
         %rename(length) size;
         unsigned int size() const;
         %rename("empty?") empty;

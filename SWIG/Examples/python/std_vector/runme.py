@@ -8,7 +8,7 @@ print example.average([1,2,3,4])
 
 # ... or a wrapped std::vector<int>
 
-v = example.IntVector(4,0)
+v = example.IntVector(4)
 for i in range(len(v)):
       v[i] = i+1
 print example.average(v)
@@ -21,7 +21,7 @@ print example.half((1, 1.5, 2, 2.5, 3))
 
 # ... or a wrapped std::vector<double>
 
-v = example.DoubleVector(4,0.0)
+v = example.DoubleVector(4)
 for i in range(len(v)):
       v[i] = i+1
 print example.half(v)
