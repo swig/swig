@@ -1,4 +1,4 @@
-%module lib_std_map
+%module li_std_map
 
 %include std_pair.i
 %include std_map.i

@@ -1,4 +1,4 @@
-%module lib_std_vectora
+%module li_std_vectora
 
 %include std_vectora.i
 

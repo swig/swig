@@ -1,4 +1,4 @@
-%module lib_std_wstring
+%module li_std_wstring
 %include <std_basic_string.i>
 %include <std_wstring.i>
 
