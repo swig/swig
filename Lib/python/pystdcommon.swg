@@ -133,8 +133,8 @@ namespace swig {
   struct traits_as<Type, pointer_category> {
     static Type as(PyObject *obj, bool throw_error) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : 0) && v;
-      if (res) {
+      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : 0);
+      if (res && v) {
 	if (res == SWIG_NEWOBJ) {
 	  Type r(*v);
 	  delete v;
