@@ -271,13 +271,13 @@ GUILE_LIBOPTS = @GUILELINK@ @LIBS@ $(SYSLIBS)
 guile_static: $(SRCS)
 	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
 	$(CC) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) \
-	  -DSWIGINIT="scm_init_$(TARGET)_module();" \
+	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
 	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_static_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
 	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
-	  -DSWIGINIT="scm_init_$(TARGET)_module();" \
+	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
 	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 

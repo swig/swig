@@ -115,7 +115,7 @@
 	    (rand-loop M (+ i 1) 0))))
   (rand-loop M 0 0))
 
-;;; stray definitions colleced here
+;;; stray definitions collected here
 
 (define (rot-test M v t i)
   (if (< i 360) (begin
@@ -124,10 +124,11 @@
 		  (transform M v t)
 		  (rot-test M v t (+ i 1)))))
 
-(define (create-matrix i)		; Create some matrices
-  (if (< i 200)
-      (cons (new-matrix) (create-matrix (+ i 1)))
-      (list)))
+(define (create-matrix)		; Create some matrices
+  (let loop ((i 0) (result '()))
+    (if (< i 200)
+	(loop (+ i 1) (cons (new-matrix) result))
+	result)))
 
 (define (add-mat M ML)
   (define (add-two m1 m2 i j)
@@ -161,7 +162,7 @@
 (define M1 (new-matrix))		; a matrix
 (define v (createv 1 2 3 4))		; a vector
 (define t (createv 0 0 0 0))		; the zero-vector
-(define M-list (create-matrix 0))	; get list of marices
+(define M-list (create-matrix))		; get list of marices
 (define M (new-matrix))			; yet another matrix
 
 (display "variables defined\n")
