@@ -283,19 +283,21 @@ find_args(DOHString *s)
   DOHList   *args;
   DOHString *str;
   int   c, level;
+  long  pos;
 
   /* Create a new list */
   args = NewList();
   copy_location(s,args);
 
   /* First look for a '(' */
+  pos = Tell(s);
   skip_whitespace(s,0);
 
   /* Now see if the next character is a '(' */
   c = Getc(s);
   if (c != '(') {
     /* Not a macro, bail out now! */
-    cpp_error(Getfile(s),Getline(s),"Missing macro arguments\n");
+    Seek(s,pos, SEEK_SET);
     return args;
   }
   c = Getc(s);
@@ -401,12 +403,14 @@ expand_macro(DOHString_or_char *name, DOHList *args)
     ns = NewString("");
     Printf(ns,"%s",name);
     if (args) {
-      Putc('(',ns);
+      if (Len(args))
+	Putc('(',ns);
       for (i = 0; i < Len(args); i++) {
 	Printf(ns,"%s",Getitem(args,i));
 	if (i < (Len(args) -1)) Putc(',',ns);
       }
-      Putc(')',ns);
+      if (i)
+	Putc(')',ns);
     }
     return ns;
   }
@@ -455,6 +459,26 @@ expand_macro(DOHString_or_char *name, DOHList *args)
 	Printf(temp,"\001%s", aname);
 	Printf(tempa,"\"%s\"",arg);
 	Replace(ns, temp, tempa, DOH_REPLACE_ANY);
+      }
+
+      /* Non-standard macro expansion.   The value `x` is replaced by a quoted
+	 version of the argument except that if the argument is already quoted
+	 nothing happens */
+
+      if (strstr(Char(ns),"`")) {
+	String *rep;
+	char *c;
+	Clear(temp);
+	Printf(temp,"`%s`",aname);
+	c = Char(arg);
+	if (*c == '\"') {
+	  rep = arg;
+	} else {
+	  Clear(tempa);
+	  Printf(tempa,"\"%s\"",arg);
+	  rep = tempa;
+	}
+	Replace(ns,temp,rep, DOH_REPLACE_ANY);
       }
       Replace(ns, aname, arg, DOH_REPLACE_ID);
     }
