@@ -6,6 +6,7 @@
 LANGUAGE     = chicken
 VARIANT      = 
 SCRIPTSUFFIX = _runme.ss
+PROXYSUFFIX  = _runme_proxy.ss
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -24,11 +25,17 @@ SWIGOPT +=
 	$(setup) \
 	($(swig_and_compile_cpp); ) && \
 	$(run_testcase)
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
+	  $(MAKE) $*.cppproxy; ) \
+	fi;
 
 %.ctest:
 	$(setup) \
 	($(swig_and_compile_c); ) && \
 	$(run_testcase)
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
+	  $(MAKE) $*.cproxy; ) \
+	fi;
 
 %.multicpptest: 
 	$(setup) \
@@ -41,6 +48,22 @@ run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(CHICKEN_CSI) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
+
+# If there exists a PROXYSUFFIX runme file, we also generate the wrapper
+# with the -proxy argument
+%.cppproxy: SWIGOPT += -proxy
+%.cppproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
+%.cppproxy:
+	echo "Checking testcase $* (with run test) under chicken with -proxy"; \
+	($(swig_and_compile_cpp); ) && \
+	$(run_testcase)
+
+%.cproxy: SWIGOPT += -proxy
+%.cproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
+%.cproxy:
+	echo "Checking testcase $* (with run test) under chicken with -proxy"; \
+	($(swig_and_compile_c); ) && \
+	$(run_testcase)
 
 # Clean
 %.clean:

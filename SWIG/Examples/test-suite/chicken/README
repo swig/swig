@@ -5,3 +5,7 @@ NOTE: I had to use _runme.ss becuase otherwise it would be hard to implement mak
 Since when SWIG runs it generates an example.scm file for every test, to clean those files
 I needed to add a rm -f *.scm to make clean.  But we don't want the runme scripts to
 dissappear as well!
+
+Any testcases which have _runme_proxy.ss appended after the testcase name will be detected
+and run with the -proxy argument passed to SWIG.  SWIG will not be run with the -unhide-primitive
+option, so the _runme_proxy.ss file must use only the tinyclos exported interface.

@@ -104,11 +104,14 @@
       generation improvements, part of the wrapper is direct CHICKEN
       function calls (<tt>example_wrap.c</tt>) and part is CHICKEN
       Scheme (<tt>example.scm</tt>).  The basic Scheme code must
-      be compiled to C using your system's CHICKEN compiler.
+      be compiled to C using your system's CHICKEN compiler or
+      both files can be compiled directly using the much simpler <tt>csc</tt>.
       </p>
 
       <div class="shell">
-	<pre>% chicken example.scm -output-file oexample.c</pre>
+<pre>
+% chicken example.scm -output-file oexample.c
+</pre>
       </div>
 
       <p>
@@ -132,7 +135,8 @@
       <p>
       This will generate <tt>example_wrap.cxx</tt> and
       <tt>example.scm</tt>.  The basic Scheme code must be
-      compiled to C using your system's CHICKEN compiler.
+      compiled to C using your system's CHICKEN compiler or
+      both files can be compiled directly using the much simpler <tt>csc</tt>.
       </p>
 
       <div class="shell">
@@ -317,21 +321,7 @@
       
       </p>
 
-<H2><a name="Chicken_nn12"></a>17.4 Compilation</H2>
-
-
-    <p>
-      Please refer to <em>CHICKEN - A practical and portable Scheme
-      system - User's manual</em> for detailed help on how to compile
-      C code for use in a CHICKEN program.  Briefly, to compile C
-      code, be sure to add <tt>`chicken-config -cflags`</tt> or
-      <tt>`chicken-config -shared -cflags`</tt> to your compiler
-      options.  Use the <tt>-shared</tt> option if you want to create
-      a dynamically loadable module.  You might also want to use the
-      much simpler <tt>csc</tt> or <tt>csc.bat</tt>.
-    </p>
-
-<H2><a name="Chicken_nn13"></a>17.5 Linkage</H2>
+<H2><a name="Chicken_nn12"></a>17.4 Linkage</H2>
 
 
     <p>
@@ -342,51 +332,139 @@
       -extra-libs -libs`</tt> or <tt>`chicken-config -shared
       -extra-libs -libs`</tt>to your linker options.  Use the
       <tt>-shared</tt> option if you want to create a dynamically
-      loadable module.
+      loadable module.  You might also want to use the much simpler
+      <tt>csc</tt> or <tt>csc.bat</tt>.
     </p>
 
-<H3><a name="Chicken_nn14"></a>17.5.1 Shared library</H3>
+    <p>Each scheme file that is generated
+   by SWIG contains <code>(declare (uses <i>modname</i>))</code>.  This means that to load the
+   module from scheme code, the code must include <code>(declare (uses <i>modname</i>))</code>.
+   </p>
 
 
-    <p>
-      The easiest way to use SWIG and CHICKEN is to use the csc compiler
-      wrapper provided by CHICKEN.  Assume you have a SWIG interface file
-      in example.i and the C functions being wrapped are in example_impl.c.
-    </p>
+<H3><a name="Chicken_nn13"></a>17.4.1 Static binary or shared library linked at compile time</H3>
+
+
+   <p>We can easily use csc to build a static binary.</p>
 
 <div class="shell">
 <pre>
 $ swig -chicken example.i
-$ csc -svk example.scm example_impl.c example_wrap.c
-$ csi example.so test_script.scm
-</pre>
-</div>
-
-    <p>
-      You must be careful not to name the example_impl.c file example.c because
-      when compiling example.scm, csc compiles that into example.c!
-    </p>
-
-    <p>
-      The test_script.scm should have <code>(load-library 'example "example.so")</code>
-      and <code>(declare (uses example))</code>.  As well, the path to example.so should
-      be accessable to the loader.  You might need to set LD_LIBRARY_PATH.
-    </p>
-
-<H3><a name="Chicken_nn15"></a>17.5.2 Static binary</H3>
-
-
-   <p>Again, we can easily use csc to build a binary.</p>
-
-<div class="shell">
-<pre>
-$ swig -chicken example.i
-$ csc -vk example.scm example_impl.c example_wrap.c test_script.scm -o example
+$ csc -v example.scm example_impl.c example_wrap.c test_script.scm -o example
 $ ./example
 </pre>
 </div>
 
-<H2><a name="Chicken_nn16"></a>17.6 Typemaps</H2>
+<p>Similar to the above, any number of <tt>module.scm</tt> files could be compiled
+into a shared library, and then that shared library linked when compiling the
+main application.</p>
+
+<div class="shell">
+<pre>
+$ swig -chicken example.i
+$ csc -sv example.scm example_wrap.c example_impl.c -o example.so
+</pre>
+</div>
+
+<p>The <tt>exmaple.so</tt> file can then linked with <tt>test_script.scm</tt> when it
+is compiled, in which case <tt>test_script.scm</tt> must have <code>(declare (uses example))</code>.
+Multiple SWIG modules could have been linked into <tt>example.so</tt> and each
+one accessed with a <code>(declare (uses ... ))</code>.
+</p>
+
+<div class="shell">
+<pre>
+$ csc -v test_script.scm -lexample
+</pre>
+</div>
+
+<p>An alternative is the test_script.scm can have the code <code>(load-library 'example "example.so")</code>,
+in which case the test script does not need to be linked with example.so.  The test_script.scm file can then
+be run with <tt>csi</tt>.
+</p>
+
+<H3><a name="Chicken_nn14"></a>17.4.2 Building chicken extension libraries</H3>
+
+
+<p>Building a shared library like in the above section only works if the library
+is linked at compile time with a script containing <code>(declare (uses ...))</code> or is
+loaded explictetly with <code>(load-library 'example "example.so")</code>. It is
+not the format that chicken expects for extension libraries and eggs.  The problem is the
+<code>(declare (unit <i>modname</i>))</code> inside the <tt>modname.scm</tt> file.  There are
+two possible solutions to this.</p>
+
+<p>First, SWIG accepts a <tt>-nounit</tt> argument, in which case the <code>(declare (unit <i>modname</i>))</code>
+is not generated.  Then, the <tt>modname.scm</tt> and <tt>modname_wrap.c</tt> files <b>must</b> be compiled into
+their own shared library.</p>
+
+<div class="shell">
+<pre>
+$ csc -sv modname.scm modname_wrap.c modname_impl.c -o modname.so
+</pre>
+</div>
+
+<p>This library can then be loaded by scheme code with the <code>(require 'modname)</code> function.
+See <a href="http://www.call-with-current-continuation.org/manual/Loading-extension-libraries.html">
+Loading-extension-libraries</a> in the eval unit inside the Chicken manual for more information.</p>
+
+<p>Another alternative is to run SWIG normally and create a scheme file that contains <code>(declare (uses <i>modname</i>))</code>
+and then compile that file into the shared library as well.  For example, inside the <tt>mod_load.scm</tt> file,</p>
+
+<div class="targetlang">
+<pre>
+(declare (uses mod1))
+(declare (uses mod2))
+</pre>
+</div>
+
+<p>Which would then be compiled with</p>
+
+<div class="shell">
+<pre>
+$ swig -chicken mod1.i
+$ swig -chicken mod2.i
+$ csc -sv mod_load.scm mod1.scm mod2.scm mod1_wrap.c mod2_wrap.c mod1_impl.c mod2_impl.c -o mod.so
+</pre>
+</div>
+
+<p>Then the extension library can be loaded with <code>(require 'mod)</code>.  As we can see here,
+<tt>mod_load.scm</tt> contains the code that gets exectued when the module is loaded.  All this code
+does is load both mod1 and mod2.  As we can see, this technique is more useful when you want to
+combine a few SWIG modules into one chicken extension library, especially if modules are related by
+<code>%import</code></p>
+
+<p>In either method, the files that are compiled into the shared library could also be
+packaged into an egg.  The <tt>mod1_wrap.c</tt> and <tt>mod2_wrap.c</tt> files that are created by SWIG
+are stand alone and do not need SWIG to be installed to be compiled.  Thus the egg could be
+distributed and used by anyone, even if SWIG is not installed.</p>
+
+<p>See the <tt>Examples/chicken/egg</tt> directory in the SWIG source for an example that builds
+two eggs, one using the first method and one using the second method.</p>
+
+<H3><a name="Chicken_nn15"></a>17.4.3 Linking multiple SWIG modules with TinyCLOS</H3>
+
+<p>Linking together multiple modules that share type information using the <code>%import</code>
+directive while also using <tt>-proxy</tt> is more complicated.  For example, if <tt>mod2.i</tt> imports <tt>mod1.i</tt>, then the
+<tt>mod2.scm</tt> file contains references to symbols declared in <tt>mod1.scm</tt>,
+and thus a <code>(declare (uses <i>mod1</i>))</code> or <code>(require '<i>mod1</i>)</code> must be exported
+to the top of <tt>mod2.scm</tt>.  By default, when SWIG encounters an <code>%import "modname.i"</code> directive,
+it exports <code>(declare (uses <i>modname</i>))</code> into the scm file.  This works fine unless mod1 was compiled with
+the <tt>-nounit</tt> argument or was compiled into an extension library with other modules under a different name.</p>
+
+<p>One option is to override the automatic generation of <code>(declare (uses mod1))</code>
+by passing the <tt>-noclosuses</tt> option to SWIG when compiling <tt>mod2.i</tt>.
+SWIG then provides the <code>%insert(closprefix) %{ %}</code> directive.  Any scheme code inside that directive is inserted into the
+generated .scm file, and if <tt>mod1</tt> was compiled with <tt>-nounit</tt>, the directive should contain <code>(require 'mod1)</code>.
+This option allows for mixed loading as well, where some modules are imported with <code>(declare (uses <i>modname</i>))</code>
+(which means they were compiled without -nounit) and some are imported with <code>(require 'modname)</code>.</p>
+
+<p>The other option is to use the second idea in the above section.  Compile all the modules normally, without any
+<code>%insert(closprefix)</code>, <tt>-nounit</tt>, or <tt>-noclosuses</tt>.  Then the modules will import each other correctly
+with <code>(declare (uses ...))</code>.
+To create an extension library or an egg, just create a <tt>module_load.scm</tt> file that <code>(declare (uses ...))</code>
+all the modules.</p>
+
+<H2><a name="Chicken_nn16"></a>17.5 Typemaps</H2>
 
 
     <p>
@@ -395,7 +473,7 @@ $ ./example
       <code>Lib/chicken/chicken.swg</code>.
     </p>
 
-<H2><a name="Chicken_nn17"></a>17.7 Pointers</H2>
+<H2><a name="Chicken_nn17"></a>17.6 Pointers</H2>
 
 
     <p>
@@ -428,7 +506,7 @@ $ ./example
       type. flags is either zero or SWIG_POINTER_DISOWN (see below).
     </p>
 
-<H3><a name="collection"></a>17.7.1 Garbage collection</H3>
+<H3><a name="collection"></a>17.6.1 Garbage collection</H3>
 
 
   <p>If the owner flag passed to <code>SWIG_NewPointerObj</code> is 1, <code>NewPointerObj</code> will add a
@@ -459,7 +537,7 @@ $ ./example
   must be called manually.
   </p>
 
-<H2><a name="Chicken_nn18"></a>17.8 Unsupported features and known problems</H2>
+<H2><a name="Chicken_nn18"></a>17.7 Unsupported features and known problems</H2>
 
 
     <ul>
