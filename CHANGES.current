@@ -1,6 +1,67 @@
 Version 1.3.22 (in progress)
 ==================================
 
+04/07/2004: cheetah (William Fulton)
+            [C#] C++ enums are no longer wrapped by integers, they are now wrapped by 
+            C# enums. For Example, given C++:
+
+                enum AnEnum { foo, bar };
+                typedef AnEnum AnEnumeration;
+                void something(AnEnum e, AnEnumeration f);
+
+            The following is generated:
+
+                public enum AnEnum {
+                  foo,
+                  bar
+                }
+                public static void something(AnEnum e, AnEnum f) {...}
+
+            Note that a global enum like AnEnum above is generated into its own
+            file called AnEnum.cs. Enums defined within a C++ class are defined
+            within the C# proxy class. Some of the typemaps for modifying C# proxy
+            classes also work for enums. For example global enums can use
+
+                %typemap(csimports) to add in extra using statements.
+
+            Global enums and class enums can use
+
+                %typemap(csclassmodifiers) to make the enum private, public etc.
+                %typemap(csbase) to change the underlying enum type (enum base)
+
+            If we add this for the above example:
+
+                %typemap(csclassmodifiers) AnEnum "protected"
+                %typemap(csbase) AnEnum "long"
+
+            the following is generated:
+            
+                protected enum AnEnum : long {
+                  foo,
+                  bar
+                }
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+
+            The original behaviour where constant integers are generated for each enum value
+            can be achieved by using the %csenumint(flag) feature. For example,
+
+                %csenumint(1);
+
+            for all enums. Or 
+
+                %csenumint(1) AnEnum;
+
+            which for the example above will generate:
+
+                public static void something(int e, int f) { ... }
+                public const int foo = 0;
+                public const int bar = foo + 1;
+
+04/07/2004: cheetah (William Fulton)
+            Seg fault fix for empty enums, like
+                enum Foo {};
+
 03/21/2004: mmatus
 	    [Python] Makes the following 'var' cases more uniform:
 
