@@ -21,6 +21,17 @@ static List      *directories = 0;        /* List of include directories */
 static String    *lastpath = 0;           /* Last file that was included */
 static String    *swiglib = 0;            /* Location of SWIG library */
 static String    *lang_config = 0;        /* Language configuration file */
+static int       dopush = 1;              /* Whether to push directories */
+
+/* This functions determine whether to push/pop dirs in the preprocessor */
+void Swig_set_push_dir(int push) {
+  dopush = push;
+}
+
+int Swig_get_push_dir(void) {
+  return dopush;
+}
+
 
 /* This function sets the name of the configuration file */
 
@@ -59,14 +70,16 @@ Swig_swiglib_get() {
 
 void 
 Swig_add_directory(const String_or_char *dirname) {
+  String *dir = 0;  
   if (!directories) directories = NewList();
   assert(directories);
-  if (!DohIsString(dirname)) {
-    dirname = NewString((char *) dirname);
-    assert(dirname);
-  }
-  Append(directories, dirname);
+  dir = NewString((char *) dirname);
+  assert(dir);
+  Setattr(dir,"sysdir","1");
+  Append(directories, dir);
 }
+
+
 
 /* -----------------------------------------------------------------------------
  * Swig_push_directory()
@@ -77,6 +90,7 @@ Swig_add_directory(const String_or_char *dirname) {
 
 void 
 Swig_push_directory(const String_or_char *dirname) {
+  if (!Swig_get_push_dir()) return;
   if (!directories) directories = NewList();
   assert(directories);
   if (!DohIsString(dirname)) {
@@ -95,6 +109,7 @@ Swig_push_directory(const String_or_char *dirname) {
 
 void 
 Swig_pop_directory() {
+  if (!Swig_get_push_dir()) return;
   if (!directories) return;
   Delitem(directories,0);
 }
@@ -117,13 +132,14 @@ Swig_last_file() {
  * Returns a list of the current search paths.
  * ----------------------------------------------------------------------------- */
 
-List *
-Swig_search_path() {
+static List *
+Swig_search_path_any(int syspath) {
   String *filename;
   String *dirname;
-  List   *slist;
+  List   *slist, *llist;
   int i;
 
+  llist = 0;
   slist = NewList();
   assert(slist);
   filename = NewString("");
@@ -133,16 +149,41 @@ Swig_search_path() {
 #else
   Printf(filename,".%s", SWIG_FILE_DELIMETER);
 #endif
-  Append(slist,filename);
+  if (syspath) {
+    llist = NewList();
+    assert(slist);
+    Append(llist,filename);
+  } else {
+    Append(slist,filename);
+  }  
+  
   for (i = 0; i < Len(directories); i++) {
     dirname =  Getitem(directories,i);
     filename = NewString("");
     assert(filename);
     Printf(filename, "%s%s", dirname, SWIG_FILE_DELIMETER);
-    Append(slist,filename);
+    if (syspath && !Getattr(dirname,"sysdir")) {
+      Append(llist,filename);
+    } else {
+      Append(slist,filename);
+    }
   }
+  if (syspath) {
+    for (i = 0; i < Len(llist); i++) {
+      Append(slist,Getitem(llist,i));
+    }
+    Delete(llist);
+  }
+
   return slist;
 }  
+
+List *
+Swig_search_path() {
+  return Swig_search_path_any(0);
+}
+
+
 
 /* -----------------------------------------------------------------------------
  * Swig_open()
@@ -150,8 +191,8 @@ Swig_search_path() {
  * Looks for a file and open it.  Returns an open  FILE * on success.
  * ----------------------------------------------------------------------------- */
 
-FILE *
-Swig_open(const String_or_char *name) {
+static FILE *
+Swig_open_any(const String_or_char *name, int sysfile) {
   FILE        *f;
   String   *filename;
   List     *spath = 0;
@@ -166,7 +207,7 @@ Swig_open(const String_or_char *name) {
   assert(filename);
   f = fopen(Char(filename),"r");
   if (!f) {
-      spath = Swig_search_path();
+      spath = Swig_search_path_any(sysfile);
       for (i = 0; i < Len(spath); i++) {
 	  Clear(filename);
 	  Printf(filename,"%s%s", Getitem(spath,i), cname);
@@ -186,6 +227,13 @@ Swig_open(const String_or_char *name) {
   Delete(filename);
   return f;
 }
+
+FILE *
+Swig_open(const String_or_char *name) {
+  return Swig_open_any(name, 0);
+}
+
+
 
 /* -----------------------------------------------------------------------------
  * Swig_read_file()
@@ -212,12 +260,12 @@ Swig_read_file(FILE *f) {
  * Opens a file and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
-String *
-Swig_include(const String_or_char *name) {
+static String *
+Swig_include_any(const String_or_char *name, int sysfile) {
   FILE         *f;
   String    *str;
 
-  f = Swig_open(name);
+  f = Swig_open_any(name, sysfile);
   if (!f) return 0;
   str = Swig_read_file(f);
   fclose(f);
@@ -226,6 +274,17 @@ Swig_include(const String_or_char *name) {
   Setline(str,1);
   return str;
 }
+
+String *
+Swig_include(const String_or_char *name) {
+  return Swig_include_any(name, 0);
+}
+
+String *
+Swig_include_sys(const String_or_char *name) {
+  return Swig_include_any(name, 1);
+}
+
 
 /* -----------------------------------------------------------------------------
  * Swig_insert_file()
