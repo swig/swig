@@ -1358,6 +1358,7 @@ cpp_class_decl  :
 		     cplus_mode = CPLUS_PUBLIC;
 		   }
 		   Swig_symbol_newscope();
+		   Swig_symbol_setscopename($3);
 		   start_line = line_number;
 		   inclass = 1;
                } cpp_members RBRACE cpp_opt_declarators {
@@ -1372,8 +1373,6 @@ cpp_class_decl  :
 	       if (pure_abstract($7)) {
 		 SetInt($$,"abstract",1);
 	       }
-
-	       Swig_symbol_setscopename($3);
 	       
 	       /* This bit of code merges in a previously defined %addmethod directive (if any) */
 	       if (addmethods) {
@@ -1930,9 +1929,20 @@ parm           : type parameter_declarator {
 
 def_args       : EQUAL definetype { 
                   $$ = $2; 
+		  /* If the value of a default argument is in the symbol table,  we replace it with it's
+                     fully qualified name.  Needed for C++ enums and other features */
+		  Node *n = Swig_symbol_lookup($2.val);
+		  if (n) {
+		    $$.val = NewStringf("%s%s", Swig_symbol_qualified(n),$2.val);
+		  }
                }
                | EQUAL AND idcolon {
-		 $$.val = NewStringf("&%s",$3);
+		 Node *n = Swig_symbol_lookup($3);
+		 if (n) {
+		   $$.val = NewStringf("&%s%s", Swig_symbol_qualified(n),$3);
+		 } else {
+		   $$.val = NewStringf("&%s",$3);
+		 }
 		 $$.rawval = 0;
 		 $$.type = T_USER;
 	       }
