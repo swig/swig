@@ -43,12 +43,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 
 CPP_TEST_CASES += \
-	namespace_nested \
-	using_namespace \
-	template_specialization \
-	default_cast \
-	import_nomodule \
-	struct_value \
 	abstract_inherit \
 	abstract_inherit_ok \
 	add_link \
@@ -77,6 +71,7 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
+	default_cast \
 	default_constructor \
 	default_ns \
 	default_ref \
@@ -92,6 +87,7 @@ CPP_TEST_CASES += \
 	extend_template_ns \
 	grouping \
 	ignore_parameter \
+	import_nomodule \
 	inherit_missing \
 	kind \
 	lib_carrays \
@@ -107,6 +103,7 @@ CPP_TEST_CASES += \
 	name_inherit \
 	namespace_enum \
 	namespace_extend \
+	namespace_nested \
 	namespace_template \
 	namespace_typemap \
 	newobject1 \
@@ -137,6 +134,7 @@ CPP_TEST_CASES += \
 	static_array_member \
 	static_const_member \
 	static_const_member_2 \
+	struct_value \
 	template \
 	template_arg_scope \
 	template_arg_typename \
@@ -167,6 +165,7 @@ CPP_TEST_CASES += \
 	template_qualifier \
 	template_rename \
 	template_retvalue \
+	template_specialization \
 	template_static \
 	template_tbase_template \
 	template_type_namespace \
@@ -192,6 +191,7 @@ CPP_TEST_CASES += \
 	using_composition \
 	using_extend \
 	using_inherit \
+	using_namespace \
 	using_private \
 	using_protected \
 	valuewrapper_base \
