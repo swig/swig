@@ -241,8 +241,7 @@ it is parsing an input file.
 
 <a name="n8"></a><H3>4.1.6 Parser Limitations</H3>
 
-
-Although SWIG can parse most common C/C++ declarations, it does not
+Although SWIG can parse most C/C++ declarations, it does not
 provide a complete C/C++ parser implementation.  Most of these
 limitations pertain to very complicated type declarations and certain
 advanced C++ features.  Specifically, the following features are not
@@ -258,20 +257,24 @@ For example, SWIG does not support declarations such as the following
 <pre>
 /* Non-conventional placement of storage specifier (extern) */
 const int extern Number;
-/* Function declaration with unnecessary grouping */
-int (foo)(int,int); 
-...
+
+/* Extra declarator grouping */
+Matrix (foo);    // A global variable
+
+/* Extra declarator grouping in parameters */
+void bar(Spam (Grok)(Doh));
+
 </pre>
 </blockquote>
 
 In practice, few (if any) C programmers actually write code like
 this since this style is never featured in programming books.  However,
-if you're feeling particularly obfuscated, you can certainly break SWIG.
+if you're feeling particularly obfuscated, you can certainly break SWIG (although why would you want to?).
 
 <p>
 <li>Running SWIG on C++ source files (what would appear in a .C or .cxx file) 
 is not recommended.  Even though SWIG can parse C++ class declarations,
-it does not like declarations that are decoupled from their
+it ignores declarations that are decoupled from their
 original class definition (the declarations are parsed, but a lot of warning
 messages may be generated).  For example:
 
@@ -314,14 +317,6 @@ parsing of more complex declarations (for the truly curious, the
 primary complication in the implementation is that the SWIG parser
 does not utilize a separate <em>typedef-name</em> terminal symbol as
 described on p. 234 of K&amp;R).
-
-<p>
-It should also be noted that the SWIG parser was never really
-developed with the intent that it would be blindly used on raw C/C++
-source code.  Although parsing has become a lot more powerful in
-recent versions, the underlying assumption was that one would usually
-start with a header and enhance it by adding additional support code, cutting
-certain features out, supplying special SWIG directives, and so forth.
 
 <a name="n9"></a><H2>4.2 Wrapping Simple C Declarations</H2>
 
