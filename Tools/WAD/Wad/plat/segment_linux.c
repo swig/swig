@@ -14,20 +14,21 @@
 static char linux_firstsegment[1024];
 static int linux_first = 1;
 
-static FILE *
+static int
 segment_open() {
   FILE *f;
   f = fopen("/proc/self/maps", "r");
   linux_first =1;
-  return f;
+  return (int) f;
 }
 
 static int 
-segment_read(FILE *fs, WadSegment *s)
+segment_read(int fd, WadSegment *s)
 {
   char pbuffer[1024];
   char *c;
   int  len;
+  FILE *fs = (FILE *) fd;
   c = fgets(pbuffer,1024,fs);
   if (!c) return 0;
 

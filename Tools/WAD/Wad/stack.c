@@ -56,6 +56,8 @@ static int   trace_len  = 0;
    and frame pointer.  Returns a pointer to a wad exception frame structure
    which is actually a large memory mapped file. */
 
+static char            framefile[256];
+
 WadFrame *
 wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   WadSegment      *ws, *segments;
@@ -64,7 +66,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   WadDebug        wd;
   WadSymbol       wsym;
   int             nlevels;
-  char            framefile[256];
+
   int             ffile;
   unsigned long   p_pc;
   unsigned long   p_sp;
@@ -80,7 +82,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   segments = wad_segment_read();
 
   /* Open the frame file for output */
-  sprintf(framefile,"/tmp/wad.%d", getpid());
+  tmpnam(framefile);
   ffile = open(framefile, O_CREAT | O_TRUNC | O_WRONLY, 0644);
   if (ffile < 0) {
     printf("can't open %s\n", framefile);
@@ -277,8 +279,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 void wad_release_trace() {
   char name[256];
   munmap(trace_addr, trace_len);
-  sprintf(name,"/tmp/wad.%d", getpid());
-  unlink(name);
+  unlink(framefile);
   trace_addr = 0;
   trace_len = 0;
 }
