@@ -32,4 +32,11 @@
 #define %readonly    %pragma(swig) readonly;
 #define %readwrite   %pragma(swig) readwrite;
 
+/* Set up the typemap for handling new return strings */
+
+#ifdef __cplusplus
+%typemap(newfree) char * "delete [] $source;";
+#else
+%typemap(newfree) char * "free($source);";
+#endif
 

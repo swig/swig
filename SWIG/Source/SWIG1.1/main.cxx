@@ -425,14 +425,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     Swig_register_filebyname("runtime", NewFileFromFile(f_runtime));
     Swig_register_filebyname("null", NewString(""));
 
-    // Set up the typemap for handling new return strings
-    {
-      if (CPlusPlus)
-	Swig_typemap_register((char*)"newfree",(char*)"p.char",(char*)"",(char*)"delete [] $source;\n",0);
-      else
-	Swig_typemap_register((char*)"newfree",(char*)"p.char",(char*)"",(char*)"free($source);\n",0);
-    }
-
     // Pass control over to the specific language interpreter
 
     if (Verbose) {
