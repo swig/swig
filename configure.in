@@ -565,7 +565,7 @@ if test -n "$PYTHON"; then
 
     # Need to do this hack since autoconf replaces __file__ with the name of the configure file
     filehack="file__"
-    PYVERSION=`($PYTHON -c "import string,operator; print operator.getitem(string.split(string.__$filehack,'/'),-2)")`
+    PYVERSION=`($PYTHON -c "import string,operator,os.path; print operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1)")`
     AC_MSG_RESULT($PYVERSION)
 
     # Set the include directory
