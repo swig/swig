@@ -1,6 +1,9 @@
 Version 1.3.20 (In progress)
 ============================
 11/28/2003: beazley
+            [Perl5] Added support for C++ pointers to members.
+
+11/28/2003: beazley
             Fixed [ 850151 ] PYVERSION with python2.3 in configure of SWIG 1.3.19 (Maybe).
 
 11/28/2003: beazley
