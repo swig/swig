@@ -1021,18 +1021,8 @@ complained so far.
 </a>
 
 <p>
-It used to be that the mappings for "native" types were included in
-guile.cxx.  This information is now in Lib/guile/typemaps.i, which
-presents a new challenge: how to have SWIG include typemaps.i before
-processing the user's foo.i.  At this time, we must say:
-
-<blockquote>
-<pre>
-%include guile/typemaps.i
-</pre>
-</blockquote>
-
-in foo.i.  This may change in the future.
+The Guile module handles all non-pointer types via typemaps. This
+information is read from <code>Lib/guile/typemaps.i</code>. 
 
 <a name="10.5" href="#i10.5">
 <h3>10.5 Smobs</h3>
