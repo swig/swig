@@ -475,7 +475,7 @@
   char *tmp;
   int   len;
   tmp = Tcl_GetStringFromObj($input,&len);
-  (len == 1) ? 1 : 0;
+  $1 = (len == 1) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_STRING) char * {
