@@ -97,6 +97,7 @@ typedef struct {
 #endif
 
 #ifndef HAVE_RB_DEFINE_ALLOC_FUNC
-#define rb_undef_alloc_func(klass) rb_undef_method(CLASS_OF(klass), "new")
+#define rb_define_alloc_func(klass, func) rb_define_singleton_method((klass), "new", VALUEFUNC((func)), -1)
+#define rb_undef_alloc_func(klass) rb_undef_method(CLASS_OF((klass)), "new")
 #endif
 

@@ -458,7 +458,7 @@ public:
 
   void create_command(Node *n, const String_or_char *iname) {
 
-    String *alloc_func_name = Swig_name_wrapper(iname);
+    String *alloc_func = Swig_name_wrapper(iname);
     String *wname = Swig_name_wrapper(iname);
     if (CPlusPlus) {
       Insert(wname,0,"VALUEFUNC(");
@@ -479,11 +479,7 @@ public:
 	     iname, "\", ", wname, ", -1);\n", NIL);
       break;
     case CONSTRUCTOR_ALLOCATE:
-      Printf(s, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n");
-      Printv(s, tab4, "rb_define_alloc_func(", klass->vname, ", ", alloc_func_name, ");\n", NIL);
-      Printf(s, "#else\n");
-      Printv(s, tab4, "rb_define_singleton_method(", klass->vname, ", \"new\", ", wname, ", -1);\n", NIL); 
-      Printf(s, "#endif\n");
+      Printv(s, tab4, "rb_define_alloc_func(", klass->vname, ", ", alloc_func, ");\n", NIL);
       Replaceall(klass->init,"$allocator", s);
       break;
     case CONSTRUCTOR_INITIALIZE:
@@ -514,7 +510,7 @@ public:
     Delete(temp);
     Delete(s);
     Delete(wname);
-    Delete(alloc_func_name);
+    Delete(alloc_func);
   }
   
   /* ---------------------------------------------------------------------
