@@ -202,9 +202,9 @@ void create_simple_make(void) {
 
 	Printf(f_make,
 	      "$(PROG): $(OBJS)\n"
-	      "\t$(CC) $(LDFLAGS) $(OBJS) -o $(PROG)\n\n"
+	      "\t$(CC) $(LDFLAGS) $(OBJS) -o $(PROG) $(EXTRA_LIB)\n\n"
 	      "%%.o: %%.%s\n"
-	      "\t$(CC) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $< $(EXTRA_LIBS)\n",
+	      "\t$(CC) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $<\n",
 	      (CPlusPlus?"cxx":"c"));
 
 	Close(f_make);
@@ -479,8 +479,11 @@ PHP4::top(Node *n) {
       "#define SWIG_init	init%s\n\n"
       "#define SWIG_name	\"%s\"\n"
       "#ifdef HAVE_CONFIG_H\n"
-      "#include \"config.g\"\n"
+      "#include \"config.h\"\n"
       "#endif\n\n"
+      "#ifdef __cplusplus\n"
+      "extern \"C\" {\n"
+      "#endif\n"
       "#include \"php.h\"\n"
       "#include \"php_ini.h\"\n"
       "#include \"php_%s.h\"\n", module, module, module);
@@ -612,6 +615,11 @@ PHP4::top(Node *n) {
 	
   Close(f_h);
 
+
+  Printf(s_header, 
+	"#ifdef __cplusplus\n"
+	"}\n"
+	"#endif\n\n");
 
   Printf(s_header, "%s", s_entry);
 
