@@ -51,11 +51,11 @@ typemaps, and wrapper code generation.  Therefore, if you are making
 extensive use of advanced SWIG features, interfaces written for
 SWIG1.1 may not work.  We apologize for the inconvenience, but these
 changes are needed in order to remove a variety of annoying "features"
-of SWIG1.1.  
+of SWIG1.1.
 
 In addition, SWIG1.3 makes no attempt to be compatible with SWIG1.1 at
 the C++ API level so language modules written for SWIG1.1 will most
-definitely not work with this release.  
+definitely not work with this release.
 
 What's New?
 ===========
@@ -70,14 +70,14 @@ Here are the most notable changes (so far):
    - Java module is now included.
 
    - The Guile module is stable. It represents C pointers as smobs and
-     supports the Guile module system and exceptions. 
+     supports the Guile module system and exceptions.
 
    - Ruby and mzscheme modules added.
 
    - A lot of minor bug fixes and cleanup.
 
 Here are a few missing features
- 
+
    - The SWIG1.1 documentation system is gone and hasn't been
      replaced yet.  This is on the long-term to-do list.
 
@@ -96,7 +96,7 @@ What's Broken?
    - SWIG requires an ANSI C compiler.
 
    - A number of low-level data structures have been converted
-     to C.  Since things haven't yet been fully tested, there's 
+     to C.  Since things haven't yet been fully tested, there's
      a chance that unusual corner cases might cause SWIG to crash.
      If so, please send us a debugger traceback if possible.
 
@@ -124,7 +124,7 @@ Notes:
     before typing 'configure.'  In addition, a full build of SWIG requires
     the use of bison.
 
-(2) If you are using Windows, the easiest way to install and build 
+(2) If you are using Windows, the easiest way to install and build
     SWIG is to use the Cygwin package (http://sourceware.cygnus.com/cygwin/).
     Note: Even if you build SWIG using Cygwin, the easier way to
     actually use SWIG on Windows is to build your extensions using Visual C++.
@@ -149,28 +149,5 @@ Developer Information
 =====================
 The primary goal of future development is to make SWIG more modular,
 extensible, and easier to maintain.  To this end, the source code has
-been consolidated and reorganized with the Source directory.  Within
-this directory, there are a number of different components:
-
-      SWIG1.1       - These two directories contain the C++ code
-      Modules1.1      corresponding to the SWIG1.1.x series of 
-                      releases.  This code is still in use but is
-                      slowly being deprecated.
-
-*** Important note: ALL future SWIG development is taking place
-in ANSI C.  Please avoid C++ if at all possible. -- Dave ***
-
-      DOH           - Object framework for the ANSI C core.
-      Swig          - New SWIG core (ANSI C)
-      Preprocessor  - SWIG preprocessor module
-      LParse        - Alternative parser that is mostly compatible with 1.1.
-
-Documentation for these components is weak or non-existent at this
-time. However, this should only matter if you are actually hacking
-on SWIG itself. Please bear with us.
-      
-
-
-
-  
-
+been consolidated and reorganized with the Source directory.  For more
+information, please see Doc/internals.html.
