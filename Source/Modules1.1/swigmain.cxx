@@ -25,7 +25,7 @@ static char cvsroot[] = "$Header$";
  ***********************************************************************/
 
 #include "swigconfig.h"
-#include "swig11.h"
+#include "mod11.h"
 #include "tcl8.h"
 #include "perl5.h"
 #include "java.h"

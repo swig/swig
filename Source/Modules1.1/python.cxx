@@ -24,7 +24,7 @@ static char cvsroot[] = "$Header$";
  **************************************************************************/
 
 
-#include "swig11.h"
+#include "mod11.h"
 #include "python.h"
 
 struct Method {               // Methods list.  Needed to build methods

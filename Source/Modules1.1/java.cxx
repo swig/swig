@@ -23,7 +23,7 @@
 
 #include <ctype.h>
 
-#include "swig11.h"
+#include "mod11.h"
 #include "java.h"
 
 char bigbuf[1024];

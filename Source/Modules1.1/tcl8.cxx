@@ -23,7 +23,7 @@ static char cvsroot[] = "$Header$";
  * Module for creating Tcl 8.0 native wrapper functions. 
  ***********************************************************************/
 
-#include "swig11.h"
+#include "mod11.h"
 #include "tcl8.h"
 #include <ctype.h>
 
