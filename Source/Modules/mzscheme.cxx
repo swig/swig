@@ -51,6 +51,10 @@ static  File         *f_header = 0;
 static  File         *f_wrappers = 0;
 static  File         *f_init = 0;
 
+// Used for garbage collection
+static int     exporting_destructor = 0;
+static String *swigtype_ptr = 0;
+
 class MZSCHEME : public Language {
 public:
 
@@ -109,7 +113,7 @@ public:
     SWIG_typemap_lang("mzscheme");
 
     // Read in default typemaps */
-    SWIG_config_file("mzscheme.i");
+    SWIG_config_file("mzscheme.swg");
     allow_overloading();
 
   }
@@ -157,7 +161,6 @@ public:
 	if (declaremodule) {
 		Printf(f_init, "\tmenv = scheme_primitive_module(scheme_intern_symbol(\"%s\"), env);\n", module);
 	}
-    Printf (f_init, "\tSWIG_RegisterTypes(swig_types, swig_types_initial);\n");
     Printf(f_init, "%s\n", Char(init_func_def));
 	if (declaremodule) {
 		Printf(f_init, "\tscheme_finish_primitive_module(menv);\n");
@@ -364,6 +367,10 @@ public:
       Replaceall(tm,"$source","result");
       Replaceall(tm,"$target","values[0]");
       Replaceall(tm,"$result","values[0]");
+      if (Getattr(n, "feature:new"))
+        Replaceall(tm, "$owner", "1");
+      else
+        Replaceall(tm, "$owner", "0");
       Printv(f->code, tm, "\n",NIL);
     } else {
       throw_unhandled_mzscheme_type_error (d);
@@ -393,7 +400,7 @@ public:
     
     // Wrap things up (in a manner of speaking)
     
-    Printv(f->code, tab4, "return swig_package_values(lenv, values);\n", NIL);
+    Printv(f->code, tab4, "return SWIG_Mzscheme_PackageValues(lenv, values);\n", NIL);
     Printf(f->code, "#undef FUNC_NAME\n");
     Printv(f->code, "}\n",NIL);
     
@@ -404,9 +411,12 @@ public:
       // Now register the function
       char temp[256];
       sprintf(temp, "%d", numargs);
-      Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n",
-	     proc_name, wname, proc_name, numreq, numargs);
-
+      if (exporting_destructor) {
+        Printf(init_func_def, "SWIG_TypeClientData(SWIGTYPE%s, (void *) %s);\n", swigtype_ptr, wname);
+      } else {
+        Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n",
+	       proc_name, wname, proc_name, numreq, numargs);
+      }
     } else {
       if (!Getattr(n,"sym:nextSibling")) {
 	/* Emit overloading dispatch function */
@@ -626,6 +636,23 @@ public:
     Delete(proc_name);
     Delete(rvalue);
     Delete(temp);
+    return SWIG_OK;
+  }
+
+  virtual int destructorHandler(Node *n) {
+    exporting_destructor = true;
+    Language::destructorHandler(n);
+    exporting_destructor = false;
+    return SWIG_OK;
+  }
+
+  virtual int classHandler(Node *n) {
+    SwigType *t = NewStringf("p.%s", Getattr(n, "name"));
+    swigtype_ptr = SwigType_manglestr(t);
+    Delete(t);
+    Language::classHandler(n);
+    Delete(swigtype_ptr);
+    swigtype_ptr = 0;
     return SWIG_OK;
   }
 
