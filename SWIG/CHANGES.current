@@ -1,6 +1,13 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/29/2004: wsfulton
+            Seg fault fix for global scope operator used for friend methods:
+
+              class B {
+                friend void ::globalscope();
+                ...
+              };
 
 10/28/2004:mmatus
 	    - Added module and swig option "templatereduce" to force swig
@@ -48,8 +55,6 @@ Version 1.3.23 (in progress)
 		some other mysterious errors when mixing directors +
 		imports + embedded applications + some specific compilers.
 		
- 
-
 10/27/2004: wsfulton
             [C#] typemaps.i library file with INPUT, OUTPUT and INOUT typemaps added.
 
