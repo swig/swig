@@ -1,6 +1,6 @@
 <?
 
-	dl("libexample.so");
+	require "example.php";
 
 	# First create some objects using the pointer library.
 
