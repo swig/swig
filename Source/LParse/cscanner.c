@@ -73,7 +73,7 @@ static int map[][2] = {
 
 static int           remap[SWIG_MAXTOKENS];
 static int           cscan_init = 0;
-static int           cplusplus_mode = 0;
+static int           cplusplus_mode = 1;
 static int           objc_mode = 0;
 static int           strict_type = 0;
 
@@ -341,7 +341,7 @@ yylex1(void) {
 
       /* C++ keywords */
 
-      if (1 || cplusplus_mode) {
+      if (cplusplus_mode) {
 	if (strcmp(yytext,"class") == 0) {
 	  yylval.tok.text = NewString(yytext);
 	  return(CLASS);
