@@ -508,7 +508,7 @@ static void dump_nested(char *parent) {
 %type <p>        parm parm_type;
 %type <tmparm>   typemap_parm tm_list tm_tail;
 %type <id>       cpptype base_specifier access_specifier tm_method;
-%type <type>     type type_right opt_signed opt_unsigned strict_type strict_type_right;
+%type <type>     type type_right opt_signed opt_unsigned;
 %type <ivalue>   cpp_vend;
 %type <ilist>    base_list inherit;
 %type <dtype>    definetype def_args;
@@ -1540,173 +1540,54 @@ type           : type_qualifier type_right {
                | type_right { $$ = $1; }
                ;
 
-type_right      : TYPE_INT {
-                   $$ = $1;
-               }
-               | TYPE_SHORT opt_int {
-                   $$ = $1;
-	       }
-               | TYPE_LONG opt_int {
-                   $$ = $1;
-	       }
-	       | TYPE_LONG TYPE_LONG opt_int {
-	           $$ = NewString("long long");
-	       }
-               | TYPE_CHAR {
-                   $$ = $1;
-	       }
-               | TYPE_BOOL {
-                   $$ = $1;
-	       }
-               | TYPE_FLOAT {
-                   $$ = $1;
-	       }
-               | TYPE_DOUBLE {
-                   $$ = $1;
-	       }
-               | TYPE_VOID {
-                   $$ = $1;
-	       }
+type_right     : TYPE_INT { $$ = $1; }
+               | TYPE_SHORT opt_int { $$ = $1; }
+               | TYPE_LONG opt_int { $$ = $1; }
+	       | TYPE_LONG TYPE_LONG opt_int { $$ = NewString("long long");  }
+               | TYPE_CHAR { $$ = $1; }
+               | TYPE_BOOL { $$ = $1; }
+               | TYPE_FLOAT { $$ = $1; }
+               | TYPE_DOUBLE { $$ = $1; }
+               | TYPE_VOID { $$ = $1; }
                | TYPE_SIGNED opt_signed {
-                   if ($2) $$ = $2;
+		   if ($2) $$ = $2;
 		   else $$ = $1;
 	       }
                | TYPE_UNSIGNED opt_unsigned {
                    if ($2) $$ = $2;
 		   else $$ = $1;
 	       }
-               | TYPE_TYPEDEF template_decl {
-		 $$ = $1;
-		 $$ = NewStringf("%s%s",$1,$2);
-		 Delete($1);
-	       }
-               | ID template_decl {
-		 $$ = NewStringf("%s%s",$1,$2);
-		 free($1);
-	       }
+               | cpptype ID { $$ = NewStringf("%s %s", $1, $2); }
+               | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
+               | ENUM ID { $$ = NewStringf("enum %s", $2); }
+               | TYPE_RAW { $$ = $1; }
                | type_right type_qualifier {
 		  $$ = $1;
 		  SwigType_add_qualifier($$,$2);
      	       }
-               | cpptype ID {
-		 $$ = NewStringf("%s %s",$1,$2);
-	       }
-               | ID DCOLON ID {
-		 $$ = NewStringf("%s::%s", $1,$3);
-               }
-               | DCOLON ID {
-		 $$ = NewString($2);
-               }
-               | ENUM ID {
-		 $$ = NewStringf("enum %s", $2);
-               }
-               | TYPE_RAW {
-		 $$ = $1;
-               }
-               ;
-
-/* type specification without ID symbol.   Used in some cases to prevent 
-   shift-reduce conflicts */
-
-strict_type    : type_qualifier strict_type_right {
-                   $$ = $2;
-		   SwigType_add_qualifier($$,$1);
-               }
-               | strict_type_right { $$ = $1; }
-               ;
-
-strict_type_right    : TYPE_INT {
-                   $$ = $1;
-               }
-               | TYPE_SHORT opt_int {
-                   $$ = $1;
-	       }
-               | TYPE_LONG opt_int {
-                   $$ = $1;
-	       }
-	       | TYPE_LONG TYPE_LONG opt_int {
-		   $$ = NewString("long long");
-	       }
-               | TYPE_CHAR {
-                   $$ = $1;
-	       }
-               | TYPE_BOOL {
-                   $$ = $1;
-	       }
-               | TYPE_FLOAT {
-                   $$ = $1;
-	       }
-               | TYPE_DOUBLE {
-                   $$ = $1;
-	       }
-               | TYPE_VOID {
-                   $$ = $1;
-	       }
-               | TYPE_SIGNED opt_signed {
-                   if ($2) $$ = $2;
-		   else $$ = $1;
-	       }
-               | TYPE_UNSIGNED opt_unsigned {
-                   if ($2) $$ = $2;
-		   else $$ = $1;
-	       }
-               | TYPE_TYPEDEF template_decl {
-		 $$ = NewStringf("%s%s", $1,$2);
-	       }
-               | type_right type_qualifier {
-		  $$ = $1;
-		  SwigType_add_qualifier($$,$2);
-     	       }
-               | cpptype ID {
-		 $$ = NewStringf("%s %s", $1, $2);
-	       }
-               | TYPE_RAW {
-		 $$ = $1;
-	       }
+               | ID template_decl { $$ = NewStringf("%s%s",$1,$2); }
+               | ID DCOLON ID     { $$ = NewStringf("%s::%s", $1,$3); }
+               | DCOLON ID        { $$ = NewString($2); }
                ;
 
 /* Optional signed types */
 
-opt_signed     : empty {
-                   $$ = 0;
-               }
-               | TYPE_INT {
-                   $$ = $1;
-	       }
-               | TYPE_SHORT opt_int {
-                   $$ = $1;
-	       }
-               | TYPE_LONG opt_int {
-                   $$ = $1;
-	       }
-	       | TYPE_LONG TYPE_LONG opt_int {
-	           $$ = NewString("long long");
-	       }
-               | TYPE_CHAR {
-                   $$ = NewString("signed char");
-	       }
+opt_signed     : empty                       { $$ = 0; }
+               | TYPE_INT                    { $$ = $1; }
+               | TYPE_SHORT opt_int          { $$ = $1; }
+               | TYPE_LONG opt_int           { $$ = $1; }
+	       | TYPE_LONG TYPE_LONG opt_int { $$ = NewString("long long"); }
+               | TYPE_CHAR                   { $$ = NewString("signed char"); }
                ;
 
 /* Optional unsigned types */
 
-opt_unsigned   : empty {
-                   $$ = 0;
-               }
-               | TYPE_INT {
-                   $$ = NewString("unsigned int");
-	       }
-               | TYPE_SHORT opt_int {
-                   $$ = NewString("unsigned short");
-	       }
-               | TYPE_LONG opt_int {
-                   $$ = NewString("unsigned long");
-	       }
-	       | TYPE_LONG TYPE_LONG opt_int {
-	           $$ = NewString("unsigned long long");
-	       }
-               | TYPE_CHAR {
-                   $$ = NewString("unsigned char");
-	       }
+opt_unsigned   : empty                       { $$ = 0; }
+               | TYPE_INT                    { $$ = NewString("unsigned int"); }
+               | TYPE_SHORT opt_int          { $$ = NewString("unsigned short"); }
+               | TYPE_LONG opt_int           { $$ = NewString("unsigned long"); }
+	       | TYPE_LONG TYPE_LONG opt_int { $$ = NewString("unsigned long long"); }
+               | TYPE_CHAR                   { $$ = NewString("unsigned char"); }
                ;
 
 opt_int        : TYPE_INT { }
@@ -1813,11 +1694,6 @@ expr           :  NUM_INT {
 		  $$.id = (char *) malloc(strlen(Char(SwigType_str($3,0)))+9);
 		  sprintf($$.id,"sizeof(%s)", Char(SwigType_str($3,0)));
 		  $$.type = T_INT;
-	       }
-               |  LPAREN strict_type RPAREN expr %prec UMINUS {
-		  $$.id = (char *) malloc(strlen($4.id)+Len($2)+3);
-		  sprintf($$.id,"(%s)%s",Char($2),$4.id);
-		  $$.type = SwigType_type($2);
 	       }
                | ID {
 		 $$.id = $1;
