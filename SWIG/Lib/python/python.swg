@@ -219,7 +219,7 @@ SWIG_TypeRegister(_swig_type_info *ti) {
 /* Check the typename */
 SWIGSTATICRUNTIME(_swig_type_info *) 
 SWIG_TypeCheck(char *c, _swig_type_info *ty) {
-  _swig_type_info *s, *temp2;
+  _swig_type_info *s;
   char *sn;
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element is always just the name */
@@ -294,7 +294,10 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty, int flags) {
   *ptr = (void *) p;
 #endif
 
+#ifdef SWIG_COBJECT_TYPES
 cobject:
+#endif
+
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) goto type_error;
