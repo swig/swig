@@ -518,7 +518,8 @@ both getting and setting the value. For struct members, SWIG creates
 two wrapper procedures <code>(<var>struct</var>-<var>member</var>-get
 pointer)</code> and <code>(<var>struct-member</var>-set pointer value)</code>.
 
-<p>If invoked with the command-line option <code>-emit-setters</code>,
+<p>If invoked with the command-line option <code>-emit-setters</code>
+(<em>recommended</em>),
 SWIG will additionally create procedures with setters. For global
 variables, the procedure-with-setter <code><var>variable</var></code>
 is created, so you can use <code>(<var>variable</var>)</code> to get
@@ -529,6 +530,12 @@ is created, so you can use <code>(<var>struct</var>-<var>member</var>
 <var>pointer</var>)</code> to get the value and <code>(set!
 (<var>struct</var>-<var>member</var> <var>pointer</var>)
 <var>value</var>)</code> to set it.
+
+<p>If invoked with the command-line option <code>-only-setters</code>,
+SWIG will <em>only</em> create procedures with setters, i.e., for
+struct members, the procedures <code>(<var>struct</var>-<var>member</var>-get
+pointer)</code> and <code>(<var>struct-member</var>-set pointer
+value)</code> are <em>not</em> generated.
 
 <a name="n20"></a><h2>14.10 GOOPS</h2>
 <p>SWIG can also generate classes and generic functions for use with
@@ -545,8 +552,11 @@ swig.  This will export the GOOPS wrapper definitions into the
 or module linkage.</p>
 
 <p>The generated file will contain definitions of GOOPS classes mimicking the C++ class hierarchy.
-If <code>-emit-setters</code> is also passed as an argument, then the generated file will contain 
-getter and accessors for all the slots in the classes and for global variables.  The input class</p>
+<p>Enabling GOOPS support implies <code>-emit-setters</code>.
+
+<p>If <code>-emit-slot-accessors</code> is also passed as an argument,
+then the generated file will contain accessor methods for all the
+slots in the classes and for global variables.  The input class</p>
 <blockquote><pre>  class Foo {
     public:
       Foo(int i) : a(i) {}
@@ -556,7 +566,7 @@ getter and accessors for all the slots in the classes and for global variables. 
   }; 
   Foo getFooPlus(int i) { return Foo(a + i); }
 </pre></blockquote>
-will produce (if <code>-emit-setters</code> is not passed as a parameter)
+will produce (if <code>-emit-slot-accessors</code> is not passed as a parameter)
 <blockquote><pre>(define-class &lt;Foo&gt; (&lt;swig&gt;)
   (a #:allocation #:swig-virtual 
      #:slot-ref primitive:Foo-a-get 
@@ -574,7 +584,7 @@ will produce (if <code>-emit-setters</code> is not passed as a parameter)
 
 (export &lt;Foo&gt; getMultBy getFooMultBy getFooPlus )
 </pre></blockquote>
-and will produce (if <code>-emit-setters</code> is passed as a parameter)
+and will produce (if <code>-emit-slot-accessors</code> is passed as a parameter)
 <blockquote><pre>(define-class &lt;Foo&gt; (&lt;swig&gt;)
   (a #:allocation #:swig-virtual 
      #:slot-ref primitive:Foo-a-get 
@@ -662,7 +672,7 @@ the member functions will be called <code>Foo-getMultBy</code>.  Also, if the
 of all the wrapped functions and variables, and is located either in the _wrap.cxx file (with <code>-Linkage
 module</code>) or in the scmstub file (if <code>-Linkage passive -scmstub</code>).  The name of this 
 guile-module is the swig-module name (given on the command line with the -module argument or with the 
-%module directive) concatinated with the string "-primitive".  For
+%module directive) concatenated with the string "-primitive".  For
 example, if <code>%module Test</code> is set in the swig interface file, the name of the guile-module in 
 the scmstub or <code>-Linkage module</code> will be <code>Test-primitive</code>.  
 The string "primitive" can be changed by the <code>-primsuffix</code> swig
