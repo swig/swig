@@ -200,6 +200,11 @@ extern  "C" void  Swig_cparse_cplusplus(int);
 extern  "C" void  Swig_cparse_debug_templates(int);
 extern  void Wrapper_virtual_elimination_mode_set(int);
 
+
+extern void Swig_contracts(Node *n);
+extern void Swig_contract_mode_set(int flag);
+extern int  Swig_contract_mode_get();
+
 int SWIG_main(int argc, char *argv[], Language *l) {
   int    i;
   char   *c;
@@ -633,7 +638,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
     Swig_process_types(top);
 
-
     if (Verbose) {
       Printf(stdout,"C++ analysis...\n");
     }
@@ -658,6 +662,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (dump_typedef) {
       SwigType_print_scope(0);
     }
+
     if (dump_tags) {
       Swig_print_tags(top,0);
     }
