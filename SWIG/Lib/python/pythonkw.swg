@@ -40,6 +40,7 @@ PYTHONKW(return);
 PYTHONKW(try);
 PYTHONKW(while);
 PYTHONKW(yield);
+PYTHONKW(staticmethod);
 
 /*
   built-in functions

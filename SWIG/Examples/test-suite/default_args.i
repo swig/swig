@@ -152,6 +152,10 @@ struct Except {
 %}
 
 // Default parameters in static class methods
+#ifdef SWIGPYTHON
+%rename(staticMethod) staticmethod;
+#endif
+
 %inline %{
 namespace SpaceName {
   struct Statics {
