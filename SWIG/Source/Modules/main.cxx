@@ -71,6 +71,7 @@ static char *usage = (char*)"\
      -MM             - List dependencies, but omit files in SWIG library\n\
      -makedefault    - Create default constructors/destructors (the default)\n\
      -module <name>  - Set module name to <name>\n\
+     -nocontract     - Turn off contract checking \n\
      -nodefault      - Do not generate constructors/destructors\n\
      -noexcept       - Do not wrap exception specifiers\n\
      -noextern       - Do not generate extern declarations\n\
@@ -273,6 +274,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Delete(package_version);
   assert(count == 3); // Check version format is correct
 
+  /* Turn on contracts */
+
+  Swig_contract_mode_set(1);
   Preprocessor_define(vers,0);
 
   // Check for SWIG_LIB environment variable
@@ -458,9 +462,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-dump_tree") == 0) {
 	    dump_tree = 1;
 	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-contracts") == 0) {
+	  } else if (strcmp(argv[i],"-nocontract") == 0) {
 	    Swig_mark_arg(i);
-	    Swig_contract_mode_set(1);
+	    Swig_contract_mode_set(0);
 	  } else if (strcmp(argv[i],"-browse") == 0) {
 	    browse = 1;
 	    Swig_mark_arg(i);
