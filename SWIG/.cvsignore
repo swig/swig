@@ -1,0 +1,4 @@
+swig
+configure
+config.*
+Makefile

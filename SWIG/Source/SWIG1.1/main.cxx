@@ -245,7 +245,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   }
 
   while (includecount > 0) {
-    SWIG_add_directory((DOH *) includefiles[includecount--]);
+    SWIG_add_directory((DOH *) includefiles[--includecount]);
   }
     
   // Open up a comment handler
