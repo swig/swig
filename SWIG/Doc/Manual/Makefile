@@ -27,20 +27,20 @@ check:
 
 generate: swightml.book swigpdf.book
 	htmldoc --batch swightml.book || true
-	htmldoc --batch swigpdf.book
+	htmldoc --batch swigpdf.book || true
 	python fixstyle.py SWIGDocumentation.html
 
-swightml.book:
-	echo "#HTMLDOC 1.8.23" > swightml.book
-	echo -t pdf13 -f SWIGDocumentation.pdf $(HTMLDOC_OPTIONS) >> swightml.book
-	echo "Sections.html" >> swightml.book
-	cat chapters >> swightml.book
-
 swigpdf.book:
-	echo "#HTMLDOC 1.8.23" > swigpdf.book
-	echo -t html -f SWIGDocumentation.html $(HTMLDOC_OPTIONS) >> swigpdf.book
+	echo "#HTMLDOC 1.8.24" > swigpdf.book
+	echo -t pdf13 -f SWIGDocumentation.pdf $(HTMLDOC_OPTIONS) --stylesheet style.css >> swigpdf.book
 	echo "Sections.html" >> swigpdf.book
 	cat chapters >> swigpdf.book
+
+swightml.book:
+	echo "#HTMLDOC 1.8.24" > swightml.book
+	echo -t html -f SWIGDocumentation.html $(HTMLDOC_OPTIONS) >> swightml.book
+	echo "Sections.html" >> swightml.book
+	cat chapters >> swightml.book
 
 clean:
 	rm -f swightml.book
