@@ -60,6 +60,7 @@ Swig_name_wrapper(String_or_char *fname) {
   String *r;
   String *f;
   char *c;
+  int  special = 0;
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"wrapper");
@@ -72,6 +73,7 @@ Swig_name_wrapper(String_or_char *fname) {
   c = Char(r);
   while (*c) {
     if (!(isalnum(*c) || (*c == '_'))) {
+      special = 1;
       switch(*c) {
       case '+':
 	*c = 'a';
@@ -136,6 +138,9 @@ Swig_name_wrapper(String_or_char *fname) {
       }
     }
     c++;
+  }
+  if (special) {
+    Append(r,"___");
   }
   /*  Replace(r,":","_", DOH_REPLACE_ANY); */
   return Swig_temp_result(r);
