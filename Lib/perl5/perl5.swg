@@ -148,14 +148,14 @@
 {
   $&1_ltype resultobj = new $1_ltype(($1_ltype &)$1);
   ST(argvi) = sv_newmortal();
-  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor, $shadow|$owner);
+  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor, $shadow|SWIG_OWNER);
 }
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultobj, &$1, sizeof($1_type));
   ST(argvi) = sv_newmortal();
-  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor, $shadow|$owner);
+  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor, $shadow|SWIG_OWNER);
 }
 #endif
 
