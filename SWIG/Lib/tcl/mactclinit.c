@@ -44,7 +44,7 @@ short InstallConsole _ANSI_ARGS_((short fd));
  *----------------------------------------------------------------------
  */
 
-#ifdef __cpluscplus
+#ifdef __cplusplus
 extern "C"
 #endif
 extern int
