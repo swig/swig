@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
 CXXSRCS    = example.cxx
-TARGET     = example
+TARGET     = libexample
 INTERFACE  = example.i
 LIBS       = -lm
 
@@ -10,6 +10,6 @@ all::
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' php4_cpp
 
 clean::
-	rm -f *_wrap* *.o *~ *.so  .~* core
+	rm -f *_wrap* *.o *~ *.so  .~* core *.php php_example.h
 
 check: all
