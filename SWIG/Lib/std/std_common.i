@@ -28,15 +28,20 @@
 %}
 
 
-%apply size_t { std::size_t };
-%apply const size_t& { const std::size_t& };
-%apply ptrdiff_t { std::ptrdiff_t }
-%apply const ptrdiff_t& { const std::ptrdiff_t& }
-
 
 %fragment("StdTraitsCommon","header") 
 %{
 namespace swig {  
+  template <class Type>
+  struct noconst_traits {
+    typedef Type noconst_type;
+  };
+
+  template <class Type>
+  struct noconst_traits<const Type> {
+    typedef Type noconst_type;
+  };
+
   /*
     type categories
   */
@@ -50,7 +55,7 @@ namespace swig {
 
   template <class Type>
   inline const char* type_name() {
-    return traits<Type>::type_name();
+    return traits<typename noconst_traits<Type >::noconst_type >::type_name();
   }
 
   template <class Type> 
@@ -84,16 +89,6 @@ namespace swig {
       static std::string name = make_ptr_name(swig::type_name<Type>());
       return name.c_str();
     }
-  }; 
-
-  template <class Type>
-  struct noconst_traits {
-    typedef Type noconst_type;
-  };
-
-  template <class Type>
-  struct noconst_traits<const Type> {
-    typedef Type noconst_type;
   };
 
   template <class Type, class Category> 
