@@ -1475,8 +1475,6 @@ public:
     }
     int assignable = is_assignable(n);
 
-    Printf(stderr,"name %s %s\n",name, Getattr(n,"allocate:noassign"));
-
     if ((shadow) && assignable) {
       if (!in_class) {
 	Printf(f_shadow_stubs,"%s = %s.%s\n", iname, global_name, iname);
