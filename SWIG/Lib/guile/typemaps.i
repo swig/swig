@@ -119,7 +119,7 @@
 
 /* Enums */
 
-%typemap(in)     enum SWIGTYPE  { $1 = gh_scm2int($input); }
+%typemap(in)     enum SWIGTYPE  { $1 = ($1_type) gh_scm2int($input); }
 %typemap(varin)  enum SWIGTYPE  { $1 = ($1_type) gh_scm2int($input); }
 %typemap(out)    enum SWIGTYPE  { $result = gh_int2scm($1); }
 %typemap(varout) enum SWIGTYPE  { $result = gh_int2scm($1); }
