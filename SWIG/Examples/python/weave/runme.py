@@ -8,7 +8,7 @@ on Weave may be had from here:
  http://www.scipy.org/documentation/weave
 
 As of November 22, 2004, this only works with weave from CVS.  If
-there is a more recent release of SciPy after this data, it should
+there is a more recent release of SciPy after this date, it should
 work fine.
 
 """
