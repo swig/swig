@@ -47,6 +47,7 @@ CPP_TEST_CASES += \
 	pointer_reference \
 	casts \
 	template_whitespace \
+        template \
 	anonymous_arg \
 	static_array_member \
 	pointer_cxx \
@@ -60,6 +61,7 @@ CPP_TEST_CASES += \
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES += \
 	arrays \
+        arrayptr \
 	defines \
 	sizeof_pointer \
 	unions \
