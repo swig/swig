@@ -18,6 +18,7 @@ char cvsroot_naming_c[] = "$Header$";
 
 static Hash *naming_hash = 0;
 
+/* #define SWIG_DEBUG */
 /* -----------------------------------------------------------------------------
  * Swig_name_register()
  *
@@ -206,6 +207,10 @@ Swig_name_get(const String_or_char *vname) {
   String *r;
   String *f;
 
+#ifdef SWIG_DEBUG
+  Printf(stdout,"name get:  '%s'\n", vname); 
+#endif
+
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"get");
@@ -389,7 +394,9 @@ void
 Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object) {
   DOH *n;
 
-  /* Printf(stdout,"name:  '%s', '%s'\n", name, decl); */
+#ifdef SWIG_DEBUG
+  Printf(stdout,"name set:  '%s', '%s'\n", name, decl); 
+#endif
   n = Getattr(namehash,name);
   if (!n) {
     n = NewHash();
@@ -422,11 +429,23 @@ static DOH *get_object(Hash *n, String *decl) {
   return rn;
 }
 
+static
+DOH *
+name_object_get(Hash *namehash, String *tname, SwigType *decl, SwigType *ncdecl) {
+  DOH* rn = 0;
+  Hash   *n = Getattr(namehash,tname);
+  if (n) {
+    rn = get_object(n,decl);
+    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
+    if (!rn) rn = get_object(n,0);
+  }
+  return rn;
+}
+
 DOH *
 Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *decl) {
   String *tname;
   DOH    *rn = 0;
-  Hash   *n;
   char   *ncdecl = 0;
 
   if (!namehash) return 0;
@@ -442,47 +461,32 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   if (prefix) {
     if (Len(prefix)) {
       tname = NewStringf("%s::%s",prefix,name);
-      n = Getattr(namehash,tname);
-      rn = get_object(n,decl);
-      if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
-      if (!rn) rn = get_object(n,0);
+      rn = name_object_get(namehash, tname, decl, ncdecl);
       Delete(tname);
       /* A template-based class lookup */
       if (!rn && SwigType_istemplate(prefix)) {
-	String *rname = SwigType_templateprefix(prefix);
-	tname = NewStringf("%s::%s",rname,name);
-	n = Getattr(namehash,tname);
-	rn = get_object(n,decl);
-	if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
-	if (!rn) rn = get_object(n,0);
+	String *tprefix = SwigType_templateprefix(prefix);
+	tname = NewStringf("%s::%s",tprefix,name);
+	rn = name_object_get(namehash, tname, decl, ncdecl);
 	Delete(tname);
-	Delete(rname);
+	Delete(tprefix);
       }
     }
     /* A wildcard-based class lookup */
     if (!rn) {
       tname = NewStringf("*::%s",name);
-      n = Getattr(namehash,tname);
-      rn = get_object(n,decl);
-      if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
-      if (!rn) rn = get_object(n,0);
+      rn = name_object_get(namehash, tname, decl, ncdecl);
       Delete(tname);
     }
   } else {
     /* Lookup in the global namespace only */
     tname = NewStringf("::%s",name);
-    n = Getattr(namehash,tname);
-    rn = get_object(n,decl);
-    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
-    if (!rn) rn = get_object(n,0);
+    rn = name_object_get(namehash, tname, decl, ncdecl);
     Delete(tname);
   }
   /* Catch-all */
   if (!rn) {
-    n = Getattr(namehash,name);
-    rn = get_object(n,decl);
-    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
-    if (!rn) rn = get_object(n,0);
+    rn = name_object_get(namehash, name, decl, ncdecl);
   }
   return rn;
 }
@@ -541,11 +545,6 @@ static void merge_features(Hash *features, Node *n) {
 
   if (!features) return;
   for (ki = First(features); ki.key; ki = Next(ki)) {
-    /*
-    if (Getattr(n,ki.key)) {
-      continue;
-    }
-    */
     Setattr(n,ki.key,Copy(ki.item));
   }
 }
@@ -557,11 +556,23 @@ static void merge_features(Hash *features, Node *n) {
  * the declaration, decl.
  * ----------------------------------------------------------------------------- */
 
+static 
+void features_get(Hash *features, String *tname, SwigType *decl, SwigType *ncdecl, Node *node)
+{
+  Node *n = Getattr(features,tname);
+#ifdef SWIG_DEBUG
+  Printf(stdout,"  feature_get: %s\n", tname);
+#endif
+  if (n) {
+    merge_features(get_object(n,0),node);
+    if (ncdecl) merge_features(get_object(n,ncdecl),node);
+    merge_features(get_object(n,decl),node);
+  }
+}
+
 void
 Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *node) {
   String *tname;
-  DOH    *rn = 0;
-  Hash   *n;
   char   *ncdecl = 0;
   String *rdecl = 0;
   SwigType *rname = 0;
@@ -586,92 +597,48 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
     name = rname;
   }
   
-  /* Printf(stdout,"feature_get: %s %s %s\n", prefix, name, decl);*/
-
+#ifdef SWIG_DEBUG
+  Printf(stdout,"feature_get: %s %s %s\n", prefix, name, decl);
+#endif
 
   /* Global features */
-  n = Getattr(features,"");
-  rn = get_object(n,0);
-  merge_features(rn,node);
+  features_get(features, "", 0, 0, node);
   if (name) {
     /* Catch-all */
-    n = Getattr(features,name);
-    rn = get_object(n,0);
-    merge_features(rn,node);
-    if (ncdecl) {
-      rn = get_object(n,ncdecl);
-      merge_features(rn,node);
-    }
-    rn = get_object(n,decl);
-    merge_features(rn,node);
+    features_get(features, name, decl, ncdecl, node);
     /* Perform a class-based lookup (if class prefix supplied) */
     if (prefix) {
       /* A class-generic feature */
       if (Len(prefix)) {
 	tname = NewStringf("%s::",prefix);
-	n = Getattr(features,tname);
-	rn = get_object(n,0);
-	merge_features(rn,node);
+	features_get(features, tname, decl, ncdecl, node);
 	Delete(tname);
       }
       /* A wildcard-based class lookup */
       tname = NewStringf("*::%s",name);
-      n = Getattr(features,tname);
-      rn = get_object(n,0);
-      merge_features(rn,node);
-      if (ncdecl) {
-	rn = get_object(n,ncdecl);
-	merge_features(rn,node);
-      }
-      rn = get_object(n,decl);
-      merge_features(rn,node);
+      features_get(features, tname, decl, ncdecl, node);
       Delete(tname);      
       /* A specific class lookup */
       if (Len(prefix)) {
 	/* A template-based class lookup */
 	if (SwigType_istemplate(prefix)) {
-	  String *rname = SwigType_templateprefix(prefix);
-	  tname = NewStringf("%s::%s",rname,name);
-	  n = Getattr(features,tname);
-	  rn = get_object(n,0);
-	  merge_features(rn,node);
-	  if (ncdecl) {
-	    rn = get_object(n,ncdecl);
-	    merge_features(rn,node);
-	  }
-	  rn = get_object(n,decl);
-	  merge_features(rn,node);
+	  String *tprefix = SwigType_templateprefix(prefix);
+	  tname = NewStringf("%s::%s",tprefix,name);
+	  features_get(features, tname, decl, ncdecl, node);
 	  Delete(tname);
-	  Delete(rname);
+	  Delete(tprefix);
 	}
 	tname = NewStringf("%s::%s",prefix,name);
-	n = Getattr(features,tname);
-	rn = get_object(n,0);
-	merge_features(rn,node);
-	if (ncdecl) {
-	  rn = get_object(n,ncdecl);
-	  merge_features(rn,node);
-	}
-	rn = get_object(n,decl);
-	merge_features(rn,node);
+	features_get(features, tname, decl, ncdecl, node);
 	Delete(tname);
       }
     } else {
       /* Lookup in the global namespace only */
       tname = NewStringf("::%s",name);
-      n = Getattr(features,tname);
-      rn = get_object(n,0);
-      merge_features(rn,node);
-      if (ncdecl) {
-	rn = get_object(n,ncdecl);
-	merge_features(rn,node);
-      }
-      rn = get_object(n,decl);
-      merge_features(rn,node);
+      features_get(features, tname, decl, ncdecl, node);
       Delete(tname);
     }
   }
-
   Delete(rname);
   Delete(rdecl);
 }
@@ -690,7 +657,9 @@ Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, con
   Hash *n;
   Hash *fhash;
 
-  /* Printf(stdout,"feature_set: %s %s %s %s\n", name, decl, featurename, value);  */
+#ifdef SWIG_DEBUG
+  Printf(stdout,"feature_set: %s %s %s %s\n", name, decl, featurename,value);  
+#endif
 
   n = Getattr(features,name);
   if (!n) {
