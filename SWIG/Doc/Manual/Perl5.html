@@ -1043,13 +1043,53 @@ should be stressed that SWIG can be usef quite effectively without
 knowing any of these details--especially now that there are typemap
 libraries that can already been written.<p>
 
-<center>
-<img src="ch8.table.1.png"><br>
-<img src="ch8.table.2.png"><br>
-<img src="ch8.table.3.png"><br>
-<img src="ch8.table.4.png"><br>
-</center><p>
 <p>
+<b>Perl Integer Functions</b>
+
+<blockquote>
+<pre>
+int   SvIV(SV *);
+void  sv_setiv(SV *sv, IV value);
+SV   *newSViv(IV value);
+int   SvIOK(SV *);
+</pre>
+</blockquote>
+
+<b>Perl Floating Point Functions</b>
+
+<blockquote>
+<pre>
+double SvNV(SV *);
+void   sv_setnv(SV *, double value);
+SV    *newSVnv(double value);
+int    SvNOK(SV *);
+</pre>
+</blockquote>
+
+<b>Perl String Functions</b>
+
+<blockquote>
+<pre>
+char     *SvPV(SV *, int len);
+void      sv_setpv(SV *, char *val);
+void      sv_setpvn(SV *, char *val, int len);
+SV       *newSVpv(char *value, int len);
+int       SvPOK(SV *);
+void      sv_catpv(SV *, char *);
+void      sv_catpvn(SV *, char *, int);
+</pre>
+</blockquote>
+
+<b>Perl References</b>
+
+<blockquote>
+<pre>
+void      sv_setref_pv(SV *, char *, void *ptr);
+int       sv_isobject(SV *);
+SV       *SvRV(SV *);
+int       sv_isa(SV *, char *0;
+</pre>
+</blockquote>
 
 <h3> Standard typemaps</h3>
 
@@ -1057,20 +1097,16 @@ The following typemaps show how to convert a few common types of
 objects between Perl and C (and to give a better idea of how
 everything works). <p>
 
-<center>
-<img src="ch8.table.5.png"><br>
-<img src="ch8.table.6.png"><br>
-</center><p>
 <p>
+(rewrite)
 
 <h3> Pointer handling</h3>
 
 SWIG pointers are represented as blessed references.  The following
 functions can be used to create and read pointer values.<p>
 
-<center>
-<img src="ch8.table.7.png">
-</center><p>
+<p>
+(rewrite)
 
 <h3> Return values </h3>
 

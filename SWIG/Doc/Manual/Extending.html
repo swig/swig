@@ -27,6 +27,13 @@ In order to extend SWIG, it is useful to have the following background:
 <li>Some familiarity with writing C++ (language modules are currently written in C++).
 </ul>
 
+Since SWIG is essentially a specialized C++ compiler, it may be useful
+to have some prior experience with compiler design (perhaps even a
+compilers course) to better understand certain parts of the system.  A
+number of books will also be useful.  For example, "The C Programming
+Language" by Kernighan and Ritchie (a.k.a, "K&R") and the "C++
+Annotated Reference Manual" by Stroustrup (a.k.a, the "ARM") will be of great use.
+
 <h3>High Level Overview</h3>
 
 When you run SWIG on an interface, processing is handled in stages by a
@@ -47,9 +54,9 @@ parse tree of all of the SWIG directives and C declarations found.
 For the most part, this tree includes information about everything that
 appeared in the input.  However, certain features such as C++
 templates and <tt>%rename</tt> directives are handled by the parser and
-may not appear in the resulting parse tree.   It is also important to
-emphasize that the parser does not produce any output nor does it interact
-with the target language module as it is running.
+may not appear in the resulting parse tree (at least not as special parse tree nodes).
+It is also important to emphasize that the parser does not produce any output nor does it interact
+with the target language module as it runs.   SWIG is not a one-pass compiler.
 
 <p>
 <li>One or more code generation components walk the parse tree in
@@ -59,23 +66,23 @@ currently implemented in this stage of processing.
 
 <h4>Preprocessing</h4>
 
-The role of the preprocessor needs to be strongly emphasized. In practice, a lot
+The preprocessor plays a critical role in the SWIG implementation.  This is because a lot
 of SWIG's processing and internal configuration is managed not by code written in C, but
 by configuration files in the SWIG library.  In fact, when you
 run SWIG, parsing starts with a small interface file like this (note: this explains
-the cryptic error messages that users sometimes get when SWIG is misconfigured or installed
+the cryptic error messages that new users sometimes get when SWIG is misconfigured or installed
 incorrectly):
 
 <blockquote>
 <pre>
 %include "swig.swg"             // Global SWIG configuration
-%include "langconfig.swg"       // Language specific configuration
+%include "<em>langconfig.swg</em>"       // Language specific configuration
 %include "yourinterface.i"      // Your interface file
 </pre>
 </blockquote>
 
 The <tt>swig.swg</tt> file contains global configuration information.  In addition, this file
-defines many of SWIG's standard directives as macros.  For instance, an excerpt of
+defines many of SWIG's standard directives as macros.  For instance, part of
 of <tt>swig.swg</tt> looks like this:
 
 <blockquote>
@@ -124,11 +131,13 @@ easier to have a few basic primitives such as <tt>%pragma</tt> or
 <tt>%insert</tt>.
 
 <p>
-The <tt>langconfig.swg</tt> file is supplied by the target
+The <em><tt>langconfig.swg</tt></em> file is supplied by the target
 language. This file contains language-specific configuration
 information.  More often than not, this file provides run-time wrapper
 support code (e.g., the type-checker) as well as a collection of
-typemaps that define the default wrapping behavior. 
+typemaps that define the default wrapping behavior.  Note: the name of this
+file depends on the target language and is usually something like <tt>python.swg</tt>
+or <tt>perl5.swg</tt>.
 
 <p>
 Although the SWIG preprocessor is intended to mimic the behavior of
@@ -163,7 +172,10 @@ does not contain any unresolved identifier names when expanded.
 <p>
 <li>Macro expansion supports the non-standard <tt>`x`</tt> operator.   This converts <tt>x</tt> into a quoted string unless
 it is already a quoted string (in which case it remains quoted).   This is sometimes used to define SWIG directives
-that support both quoted and non-quoted forms.
+that support both quoted and non-quoted arguments.
+
+<p>
+<li>Macro names can start with '%'.  This allows SWIG directives to be defined as macros.
 
 <p>
 <li>Macros can be defined using <tt>%define</tt> and <tt>%enddef</tt>.  For example:
@@ -208,7 +220,7 @@ body of code enclosed in braces <tt>{ ... }</tt>.
 <p>
 This declaration format covers most common C++ declarations. However, the C++ standard
 is somewhat more flexible in the placement of the pieces.  For example, it is technically legal, although
-unusual form to write something like <tt>int typedef const a</tt> in your program.   SWIG simply
+unusual to write something like <tt>int typedef const a</tt> in your program.   SWIG simply
 doesn't bother to deal with this (although it could probably be modified if there is sufficient demand).
 
 <P>
@@ -231,15 +243,15 @@ instead of an identifier.
 <p>
 SWIG does not operate in this manner--any legal identifier can be used
 as a type name.  The reason for this is primarily motivated by the use
-of SWIG with partially defined data.  Specifically, I wanted to make
-SWIG easy to use on interfaces with missing type information.  On a
+of SWIG with partially defined data.  Specifically, 
+SWIG is supposed to be easy to use on interfaces with missing type information.  On a
 more practical level however, the introduction of typenames would
 greatly complicate other parts of SWIG such as the parsing of SWIG
 directives (many of which also rely upon identifier names).
 
 <p>
 Because of the different treatment of typenames, the most serious
-limitation of the SWIG parser is that it can't process declarations in
+limitation of the SWIG parser is that it can't process type declarations in
 which an extra (and unnecessary) grouping operator is used.  For example:
 
 <blockquote>
@@ -248,6 +260,13 @@ int (x);         /* A variable x */
 int (y)(int);    /* A function y */
 </pre>
 </blockquote>
+
+The placing of extra parentheses in type declarations like this is
+already recognized by the C++ community as a potential source of
+strange programming errors. For example, Scott Meyers "Effective STL"
+discusses this problem in a section on avoiding C++'s "most vexing
+parse."
+<p>
 
 The parser is also unable to handle declarations with no return type or bare argument names.
 For example, in an old C program, you might see things like this:
@@ -259,9 +278,11 @@ foo(a,b) {
 }
 </pre>
 </blockquote>
-In this case, the return type as well as the types of the arguments are taken to be an <tt>int</tt>.
-However, SWIG interprets the above code as an abstract declarator
-for a function returning a <tt>foo</tt> and taking types <tt>a</tt> and <tt>b</tt> as arguments).
+In this case, the return type as well as the types of the arguments
+are taken by the C compiler to be an <tt>int</tt>.  However, SWIG
+interprets the above code as an abstract declarator for a function
+returning a <tt>foo</tt> and taking types <tt>a</tt> and <tt>b</tt> as
+arguments).
 
 <h4>Parse Trees</h4>
 
@@ -626,10 +647,25 @@ $ swig -c++ -python -dump_tree example.i
 </pre>
 </blockquote>
 
+<h4>Attribute namespaces</h4>
+
+When attributes are added to parse tree nodes, their names may be
+prepended with a namespace qualifier.  For example, the attributes
+<tt>sym:name</tt> and <tt>sym:symtab</tt> are attributes related to
+symbol table management and are prefixed with <tt>sym:</tt>.  As a
+general rule, only very general attributes such as types, names, and so
+forth appear without a prefix.
+
+<p>
+Target language modules may add additional attributes to nodes to assist the generation
+of wrapper code.  The convention for doing this is to place these attributes in a namespace
+that matches the name of the target language.  For example, <tt>python:foo</tt> or
+<tt>perl:foo</tt>.
+
 <h4>Symbol Tables</h4>
 
 During parsing, all symbols are managed in the space of the target
-language.  The <tt>sym:name</tt> of each node contains the symbol name
+language.  The <tt>sym:name</tt> attribute of each node contains the symbol name
 selected by the parser.  Normally, <tt>sym:name</tt> and <tt>name</tt>
 are the same.  However, the <tt>%rename</tt> directive can be used to
 change the value of <tt>sym:name</tt>.  You can see the effect of
@@ -705,6 +741,54 @@ example.i:5. Previous declaration is foo_i(int )
 </pre>
 </blockquote>
 
+<h4>The %feature directive</h4>
+
+A number of SWIG directives such as <tt>%exception</tt> are implemented using the
+lower-level <tt>%feature</tt> directive.  For example:
+
+<blockquote>
+<pre>
+%feature("except") getitem(int) {
+  try {
+     $action
+  } catch (badindex) {
+     ...
+  }
+}
+
+...
+class Foo {
+public:
+    Object *getitem(int index) throws(badindex);
+    ...
+};
+</pre>
+</blockquote>
+
+The behavior of <tt>%feature</tt> is very easy to describe--it simply
+attaches a new attribute to any parse tree node that matches the
+given prototype.   When a feature is added, it shows up in the <tt>feature:</tt> namespace.
+You can see this when running with the <tt>-dump_tree</tt> option.   For example:
+
+<blockquote>
+<pre>
+ +++ cdecl ----------------------------------------
+ | sym:name     - "getitem"
+ | name         - "getitem"
+ | decl         - "f(int).p."
+ | parms        - int 
+ | type         - "Object"
+ | feature:except - "{\n    try {\n       $action\n    } catc..."
+ | sym:symtab   - 0x40168ac8
+ | 
+</pre>
+</blockquote>
+
+Feature names are completely arbitrary and a target language module can be
+programmed to respond to any name that it wishes.  The data stored in a feature attribute
+is usually just a raw unparsed string.   For example, the exception code above is simply
+stored without any modifications.
+
 <h4>Code Generation</h4>
 
 Language modules work by defining handler functions that know how to respond to
@@ -725,7 +809,7 @@ public:
 </pre>
 </blockquote>
 
-When the parse constructs a node for the member <tt>bar</tt>, it creates a raw "cdecl" node with the following
+When the parser constructs a node for the member <tt>bar</tt>, it creates a raw "cdecl" node with the following
 attributes:
 
 <blockquote>
@@ -756,8 +840,9 @@ sym:name    : bar
 </pre>
 </blockquote>
 
-Next, the context dictates that the node is really a member function.  This produces a transformation to a
-low-level accessor function like this:
+Next, the context of the node indicates that the node is really a
+member function.  This produces a transformation to a low-level
+accessor function like this:
 
 <blockquote>
 <pre>
@@ -772,18 +857,73 @@ sym:name    : Foo_bar                     &lt;-- Symbol name changed
 </pre>
 </blockquote>
 
-In this transformation, notice how an additional parameter was added to the parameter list and how the
-symbol name of the node has suddenly changed into the accessor naming scheme.   A small fragment of code has
-also been generated--notice how the <tt>wrap:action</tt> attribute defines the access to the underlying method.
-This final form of the node is then used to generate a wrapper.
-
-
-
+In this transformation, notice how an additional parameter was added
+to the parameter list and how the symbol name of the node has suddenly
+changed into an accessor using the naming scheme described in the
+"SWIG Basics" chapter.  A small fragment of "action" code has also
+been generated--notice how the <tt>wrap:action</tt> attribute defines
+the access to the underlying method.  The data in this transformed
+node is then used to generate a wrapper.
 
 <p>
+Language modules work by registering handler functions for dealing with
+various types of nodes at different stages of transformation.   This is done by 
+inheriting from a special <tt>Language</tt> class and defining a collection
+of virtual methods.   For example, the Python module defines a class as
+follows:
+
+<blockquote>
+<pre>
+class PYTHON : public Language {
+protected:
+public :
+  virtual void main(int, char *argv[]);
+  virtual int  top(Node *); 
+  virtual int  functionWrapper(Node *);
+  virtual int  constantWrapper(Node *);
+  virtual int  variableWrapper(Node *);
+  virtual int  nativeWrapper(Node *);
+  virtual int  membervariableHandler(Node *);
+  virtual int  memberconstantHandler(Node *);
+  virtual int  memberfunctionHandler(Node *);
+  virtual int  constructorHandler(Node *);
+  virtual int  destructorHandler(Node *);
+  virtual int  classHandler(Node *);
+  virtual int  classforwardDeclaration(Node *);
+  virtual int  insertDirective(Node *);
+  virtual void import_start(char *);
+  virtual void import_end();
+};
+</pre>
+</blockquote>
+
+The role of these functions are described shortly.
+
+<h4>SWIG and XML</h4>
+
+Much of SWIG's current parser design was originally motivated by
+interest in using XML to represent SWIG parse trees.  Although XML is
+not currently used in any direct manner, the parse tree structure, use
+of node tags, attributes, and attribute namespaces are all influenced
+by aspects of XML parsing.  Therefore, in trying to understand SWIG's
+internal data structures, it may be useful keep XML in the back of
+your mind as a model.
+
+<h4>Summary so far</h4>
+
+SWIG is a multi-pass compiler that works by building a complete parse tree of
+input files.   These parse trees are structured as a hierarchy of nodes
+with arbitrary attributes.   Language modules are created by writing
+special handlers for different types of parse tree nodes.
+
+<p>
+The rest of this chapter describes some of the internal data structures and 
+various code generation tasks in more detail.
+
+
 <hr>
 
-<address>SWIG 1.3 - Last Modified : November 25, 2001</address>
+<address>SWIG 1.3 - Last Modified : January 22, 2002</address>
 </body>
 </html>
 
