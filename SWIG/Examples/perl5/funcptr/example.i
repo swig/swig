@@ -12,4 +12,5 @@ extern int  do_op(int a, int b, int (*op)(int, int));
 %constant int (*SUB)(int,int) = sub;
 %constant int (*MUL)(int,int) = mul;
 
+extern int (*funcvar)(int,int);
 
