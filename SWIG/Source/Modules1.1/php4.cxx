@@ -218,12 +218,13 @@ PHP4::top(Node *n) {
   Printf(f_init,"\treturn SUCCESS;\n");
   Printf(f_init,"}\n");
 
+  /* Emit all of the code */
+  Language::top(n);
+
   Printf(f_init,"PHP_RINIT_FUNCTION(%s)\n{\n", module);
   Printf(f_init, "%s\n", f_cinit);
   Printf(f_init, "%s\n", f_vinit);
 
-  /* Emit all of the code */
-  Language::top(n);
 
   /* Complete header file */
 
