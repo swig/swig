@@ -170,7 +170,8 @@ public:
     char *iname = Char(symname);
     int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
-    SwigType_typedef_class(name);
+
+    if (name) SwigType_typedef_class(name);
 
     SwigType_new_scope();
     if (name) SwigType_set_scope_name(name);
