@@ -79,6 +79,7 @@ class RClass {
     Append(name,valn);
     Clear(vname);
     Printf(vname,"c%s",name);
+    Clear(prefix);
     Printv(prefix,(rn ? rn : cn), "_", 0);
   }
 
@@ -1165,6 +1166,17 @@ void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
 
   klass = RCLASS(classes, cname);
 
+  /* !!! Added by beazley. 8/29/01 */
+  if (!klass) {
+    klass = new RClass();
+    SET_RCLASS(classes,cname,klass);
+  }
+  String *valid_name = NewString((rename ? rename : cname));
+  validate_const_name(Char(valid_name));
+  klass->set_name(cname,rename,Char(valid_name));
+
+  /* !!! */
+
   if (strip) {
     Clear(klass->type);
     Append(klass->type, klass->cname);
@@ -1317,7 +1329,6 @@ void RUBY::cpp_destructor(char *name, char *newname) {
   current = DESTRUCTOR;
   this->Language::cpp_destructor(name, newname);
 
-  if (!is_multiple_definition()) {
     String *freefunc = NewString("");
     String *freeproto = NewString("");
     String *freebody = NewString("");
@@ -1351,7 +1362,6 @@ void RUBY::cpp_destructor(char *name, char *newname) {
     Delete(freefunc);
     Delete(freeproto);
     Delete(freebody);
-  }
 }
 
 /* ---------------------------------------------------------------------
@@ -1436,6 +1446,25 @@ void RUBY::cpp_static_var(char *name, char *iname, SwigType *t) {
  * ----------------------------------------------------------------------- */
 
 void RUBY::cpp_class_decl(char *cname, char *rename, char *type) {
+  RClass *kls;
+  
+  kls = RCLASS(classes,cname);
+  if (!kls) {
+    kls = new RClass();
+    String *valid_name = NewString((rename ? rename : cname));
+    validate_const_name(Char(valid_name));
+    kls->set_name(cname, rename, Char(valid_name));
+    SET_RCLASS(classes, cname, kls);
+    Delete(valid_name);
+  } 
+  if (type && strlen(type) > 0) {
+    char temp[256];
+    sprintf(temp,"%s %s", type, cname);
+    SET_RCLASS(classes,temp,kls);
+  }
+
+  /* !!!! Removed by beazley  8/28/01 */
+#ifdef BROKEN
   String *valid_name = NewString((rename ? rename : cname));
   validate_const_name(Char(valid_name));
   klass->set_name(cname, rename, Char(valid_name));
@@ -1452,6 +1481,9 @@ void RUBY::cpp_class_decl(char *cname, char *rename, char *type) {
   */
   klass = new RClass();
   Delete(valid_name);
+#endif
+  /* !!!! */
+
 }
 
 /* --------------------------------------------------------------------
