@@ -402,20 +402,18 @@ java_cpp: $(SRCS)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
-# Build a java dynamically loadable module, linked against SWIG runtime lib
+# Build a java dynamically loadable module
 # ----------------------------------------------------------------
-
-JAVA_RUNTIME=-L$(RUNTIMEDIR) -lswigjava@release_suffix@
 
 java_multi: $(SRCS)
 	$(SWIG) -java $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) $(JAVA_RUNTIME) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
 
 java_multi_cpp: $(SRCS)
 	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) $(JAVA_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(JAVA_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 
 ##################################################################
