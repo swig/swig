@@ -1387,7 +1387,9 @@ PERL5::destructorHandler(Node *n) {
  * ----------------------------------------------------------------------------- */
 int
 PERL5::staticmemberfunctionHandler(Node *n) {
+  member_func = 1;
   Language::staticmemberfunctionHandler(n);
+  member_func = 0;
   if (blessed) {
     String *symname = Getattr(n,"sym:name");
     SwigType *t = Getattr(n,"type");
