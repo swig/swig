@@ -49,7 +49,7 @@ TCL_PRECOMMON = $(SWIGLIB)/tcl/precommon.swg
 TCL_DLNK    = @TCLDYNAMICLINKING@
 
 libswigtcl8_la_SOURCES  = libtcl8.c
-libswigtcl8_la_LDFLAGS  = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(TCL_DLNK)
+libswigtcl8_la_LDFLAGS  = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(TCL_DLNK)
 libswigtcl8_la_CFLAGS   = -DSWIG_GLOBAL $(TCL_INCLUDE)
 
 libtcl8.c: $(TCL_PRECOMMON) $(SWIG_TYPECHECK) $(TCL_RUNTIME)
@@ -66,7 +66,7 @@ PERL5_DLNK    = @PERL5DYNAMICLINKING@
 PERL5_CCFLAGS = @PERL5CCFLAGS@
 
 libswigpl_la_SOURCES    = libpl.c
-libswigpl_la_LDFLAGS    = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PERL5_DLNK)
+libswigpl_la_LDFLAGS    = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(PERL5_DLNK)
 libswigpl_la_CFLAGS     = -DSWIG_GLOBAL $(PERL5_INCLUDE) -Dbool=char -Dexplicit=$(PERL5_CCFLAGS)
 
 libpl.c: $(PERL5_PRECOMMON) $(SWIG_TYPECHECK) $(PERL5_RUNTIME)
@@ -82,7 +82,7 @@ PYTHON_PRECOMMON = $(SWIGLIB)/python/precommon.swg
 PYTHON_DLNK    = @PYTHONDYNAMICLINKING@
 
 libswigpy_la_SOURCES    = libpy.c
-libswigpy_la_LDFLAGS    = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PYTHON_DLNK)
+libswigpy_la_LDFLAGS    = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(PYTHON_DLNK)
 libswigpy_la_CFLAGS     = -DSWIG_GLOBAL $(PYTHON_INCLUDE)
 
 libpy.c: $(PYTHON_PRECOMMON) $(SWIG_TYPECHECK) $(PYTHON_RUNTIME)
@@ -99,14 +99,14 @@ GUILE_SCM_PRECOMMON = $(SWIGLIB)/guile/precommon.swg
 GUILE_DLNK    = $(GUILELINK)
 
 libswigguile_la_SOURCES = libguile_gh.c
-libswigguile_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
+libswigguile_la_LDFLAGS = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
 libswigguile_la_CFLAGS  = -DSWIG_GLOBAL $(GUILE_INCLUDE)
 
 libguile_gh.c: $(GUILE_GH_RUNTIME)
 	cat $(GUILE_GH_RUNTIME) > libguile_gh.c
 
 libswigguilescm_la_SOURCES = libguile_scm.c
-libswigguilescm_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
+libswigguilescm_la_LDFLAGS = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
 libswigguilescm_la_CFLAGS = -DSWIG_GLOBAL $(GUILE_INCLUDE)
 
 libguile_scm.c: $(GUILE_SCM_PRECOMMON) $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME)
@@ -123,7 +123,7 @@ RUBY_DLNK    = @RUBYDYNAMICLINKING@
 RUBY_CFLAGS  = @RUBYCCDLFLAGS@ -DHAVE_CONFIG_H
 
 libswigrb_la_SOURCES    = librb.c
-libswigrb_la_LDFLAGS    = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(RUBY_DLNK)
+libswigrb_la_LDFLAGS    = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(RUBY_DLNK)
 libswigrb_la_CFLAGS     = -DSWIG_GLOBAL $(RUBY_INCLUDE) $(RUBY_CFLAGS)
 
 librb.c: $(RUBY_PRECOMMON) $(SWIG_TYPECHECK) $(RUBY_RUNTIME)
@@ -139,7 +139,7 @@ PHP4_PRECOMMON = $(SWIGLIB)/php4/precommon.swg
 PHP4_DLNK    = 
 
 libswigphp4_la_SOURCES  = libphp4.c
-libswigphp4_la_LDFLAGS  = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PHP4_DLNK)
+libswigphp4_la_LDFLAGS  = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(PHP4_DLNK)
 libswigphp4_la_CFLAGS   = -DSWIG_GLOBAL $(PHP4_INCLUDE)
 
 libphp4.c: $(PHP4_PRECOMMON) $(SWIG_TYPECHECK) $(PHP4_RUNTIME)
@@ -155,7 +155,7 @@ PIKE_PRECOMMON = $(SWIGLIB)/pike/precommon.swg
 PIKE_DLNK    = 
 
 libswigpike_la_SOURCES  = libpike.c
-libswigpike_la_LDFLAGS  = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(PIKE_DLNK)
+libswigpike_la_LDFLAGS  = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(PIKE_DLNK)
 libswigpike_la_CFLAGS   = -DSWIG_GLOBAL $(PIKE_INCLUDE)
 
 libpike.c: $(PIKE_PRECOMMON) $(SWIG_TYPECHECK) $(PIKE_RUNTIME)
@@ -171,7 +171,7 @@ CHICKEN_PRECOMMON = $(SWIGLIB)/chicken/precommon.swg
 CHICKEN_DLNK    = @CHICKENSHAREDLIB@
 
 libswigchicken_la_SOURCES = libchicken.c
-libswigchicken_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(CHICKEN_DLNK)
+libswigchicken_la_LDFLAGS = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(CHICKEN_DLNK)
 libswigchicken_la_CFLAGS  = -DSWIG_GLOBAL $(CHICKEN_INCLUDE)
 
 libchicken.c: $(CHICKEN_PRECOMMON) $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME)
