@@ -30,7 +30,7 @@ include ../common.mk
 # a file is found which has _runme.rb appended after the testcase name.
 run_testcase = \
 	if [ -f $*\_runme.rb ]; then ( \
-	  ruby $*\_runme.rb;) \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH ruby $*\_runme.rb;) \
 	fi;
 
 # Clean
