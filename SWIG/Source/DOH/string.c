@@ -529,11 +529,11 @@ match_identifier(char *base, char *s, char *token, int tokenlen)
   while (s) {
     s = strstr(s,token);
     if (!s) return 0;
-    if ((s > base) && (isalnum(*(s-1)) || (*(s-1) == '_'))) {
+    if ((s > base) && (isalnum((int) *(s-1)) || (*(s-1) == '_'))) {
       s += tokenlen;
       continue;
     }
-    if (isalnum(*(s+tokenlen)) || (*(s+tokenlen) == '_')) {
+    if (isalnum((int)*(s+tokenlen)) || (*(s+tokenlen) == '_')) {
       s += tokenlen;
       continue;
     }
@@ -549,7 +549,7 @@ match_identifier_begin(char *base, char *s, char *token, int tokenlen)
   while (s) {
     s = strstr(s,token);
     if (!s) return 0;
-    if ((s > base) && (isalnum(*(s-1)) || (*(s-1) == '_'))) {
+    if ((s > base) && (isalnum((int)*(s-1)) || (*(s-1) == '_'))) {
       s += tokenlen;
       continue;
     }
@@ -564,7 +564,7 @@ match_identifier_end(char *base, char *s, char *token, int tokenlen)
   while (s) {
     s = strstr(s,token);
     if (!s) return 0;
-    if (isalnum(*(s+tokenlen)) || (*(s+tokenlen) == '_')) {
+    if (isalnum((int)*(s+tokenlen)) || (*(s+tokenlen) == '_')) {
       s += tokenlen;
       continue;
     }
@@ -819,7 +819,7 @@ String_chop(DOH *so)
   String *str = (String *) ObjData(so);
   /* Replace trailing whitespace */
   c = str->str + str->len - 1;
-  while ((str->len > 0) && (isspace(*c))) {
+  while ((str->len > 0) && (isspace((int)*c))) {
     if (str->sp >= str->len) {
       str->sp--;
       if (*c == '\n') str->line--;
