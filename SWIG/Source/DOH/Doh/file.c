@@ -209,13 +209,14 @@ static DohObjInfo DohFileType = {
  * Create a new file from a given filename and mode.
  * ----------------------------------------------------------------------------- */
 
+static int init = 0;
+
 DOH *
 NewFile(DOH *fn, char *mode)
 {
   DohFile *f;
   FILE *file;
   char *filename;
-  static int init = 0;
 
   if (!init) {
     DohRegisterType(DOHTYPE_FILE, &DohFileType);
@@ -247,7 +248,7 @@ DOH *
 NewFileFromFile(FILE *file) 
 {
   DohFile *f;
-  static int init = 0;
+
   if (!init) {
     DohRegisterType(DOHTYPE_FILE, &DohFileType);
     init = 1;
@@ -270,7 +271,6 @@ DOH *
 NewFileFromFd(int fd)
 {
   DohFile *f;
-  static int init = 0;
   if (!init) {
     DohRegisterType(DOHTYPE_FILE, &DohFileType);
     init = 1;
