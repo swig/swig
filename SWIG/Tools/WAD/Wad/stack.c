@@ -35,7 +35,8 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   WadSegment      *ws, *segments;
   WadObjectFile       *wo;
   WadFrame        frame;
-  WadDebug        *wd;
+  WadDebug        wd;
+  WadSymbol       wsym;
   int             nlevels;
   char            framefile[256];
   int             ffile;
@@ -95,11 +96,12 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       
       /* Try to find the symbol corresponding to this PC */
       if (wo) {
-	symname = wad_find_symbol(wo, (void *) p_pc, (unsigned long) ws->base, &value);
+	symname = wad_find_symbol(wo, (void *) p_pc, (unsigned long) ws->base, &wsym);
       } else {
 	symname = 0;
       }
-      
+      value = wsym.value;
+
       /* Build up some information about the exception frame */
       frame.frameno = n;
       frame.last = 0;
@@ -113,26 +115,25 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 	symsize = strlen(symname)+1;
 	
 	/* Try to gather some debugging information about this symbol */
-	wd = wad_debug_info(wo,symname, p_pc - (unsigned long) ws->base - value);
-	if (wd) {
-	  srcname = wd->srcfile;
+	if (wad_debug_info(wo,&wsym, p_pc - (unsigned long) ws->base - value, &wd)) {
+	  srcname = wd.srcfile;
 	  srcsize = strlen(srcname)+1;
-	  objname = wd->objfile;
+	  objname = wd.objfile;
 	  objsize = strlen(objname)+1;
-	  frame.nargs = wd->nargs;
-	  if (wd->nargs > 0) {
-	    argsize = sizeof(WadParm)*wd->nargs;
+	  frame.nargs = wd.nargs;
+	  if (wd.nargs > 0) {
+	    argsize = sizeof(WadParm)*wd.nargs;
 	  }
 	  /*
-	  if (wd->nargs >=0) {
+	  if (wd.nargs >=0) {
 	    int i;
 	    printf("%s\n",symname);
-	    for (i = 0; i < wd->nargs; i++) {
-	      printf("  [%d] = '%s', %d, %d\n", i, wd->parms[i].name, wd->parms[i].type, wd->parms[i].value);
+	    for (i = 0; i < wd.nargs; i++) {
+	      printf("  [%d] = '%s', %d, %d\n", i, wd.parms[i].name, wd.parms[i].type, wd.parms[i].value);
 	    }
 	  }
 	  */
-	  frame.line_number = wd->line_number;
+	  frame.line_number = wd.line_number;
 	}
       }
 
@@ -186,7 +187,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       write(ffile,&frame,sizeof(WadFrame));
       /* Write the argument data */
       if (argsize > 0) {
-	write(ffile, (void *) wd->parms, argsize);
+	write(ffile, (void *) wd.parms, argsize);
       }
       /* Write the stack data */
       if (stacksize > 0) {

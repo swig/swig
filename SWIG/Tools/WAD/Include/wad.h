@@ -18,9 +18,11 @@
 #include <limits.h>
 #include <sys/mman.h>
 #include <ctype.h>
+#include <sys/ucontext.h>
 
 #ifdef WAD_SOLARIS
 #include <procfs.h>
+
 #endif
 
 #ifdef __cplusplus
@@ -45,28 +47,40 @@ extern WadSegment *wad_segment_read();
 extern WadSegment *wad_segment_find(WadSegment *s, void *vaddr);
 extern void        wad_segment_release(WadSegment *s);
 
-/* Structure for managing object files */
+/* Object file handling */
 typedef struct WadObjectFile {
-  void             *mptr;           /* mmap'd pointer to file */
-  int               mlen;           /* mmap'd length  */
-  void             *ptr;            /* Pointer to real data                 */
-  int               len;            /* Length of real data                  */
-  int               refcnt;         /* Reference count                      */
-  int               type;           /* Type of the object file              */
-  char              path[MAX_PATH]; /* Path name of this object             */
+  struct WadFile   *file;           /* File data (private)       */
+  int               refcnt;         /* Reference count           */
+  void             *ptr;            /* Pointer to data           */
+  int               len;            /* Length of data            */
+  int               type;           /* Type of the object file   */
+  char              path[MAX_PATH]; /* Path name of this object  */
 } WadObjectFile;
 
-extern char *wad_find_symbol(WadObjectFile *wo, void *ptr, unsigned base, unsigned long *value);
-
-/* Maximum number of object files that can be simultaneously loaded into memory */
-#define WAD_MAX_OBJECT       32
-
+extern void            wad_object_init();
 extern WadObjectFile  *wad_object_load(const char *path);
-extern WadObjectFile  *wad_arobject_load(const char *path, const char *name);
-extern void        wad_object_release(WadObjectFile *);
+extern void            wad_object_release(WadObjectFile *);
+extern void            wad_object_cleanup();
 
+/* Symbol table information */
+  
+typedef struct WadSymbol {
+  char *name;               /* Symbol table name    */
+  char *file;               /* Source file (if any) */
+  int   type;               /* Symbol type          */
+  int   bind;               /* Symbol bind          */
+  unsigned long value;      /* Symbol value         */
+} WadSymbol;
+
+#define WS_LOCAL     1
+#define WS_GLOBAL    2
+
+extern char *wad_find_symbol(WadObjectFile *wo, void *ptr, unsigned base, WadSymbol *ws);
+
+/* Signal handling */
 extern void wad_init();
 extern void wad_signalhandler(int, siginfo_t *, void *);
+extern void wad_signal_init();
 extern void wad_set_return(const char *name, long value);
 extern void wad_set_return_value(long value);
 
@@ -93,8 +107,9 @@ typedef struct WadDebug {
 #define PARM_REGISTER 1
 #define PARM_STACK    2
 
-extern WadDebug *wad_search_stab(void *stab, int size, char *stabstr, char *symbol, unsigned long offset);
-extern WadDebug *wad_debug_info(WadObjectFile *wo, char *symbol, unsigned long offset);
+extern int wad_search_stab(void *stab, int size, char *stabstr, WadSymbol *symbol, unsigned long offset, WadDebug *wd);
+extern int wad_debug_info(WadObjectFile *wo, WadSymbol *wsym, unsigned long offset, WadDebug *wd);
+
 
 /* This data structure is used to report exception data back to handler functions
    The offset fields contain offsets from the start of the frame to a location in
@@ -152,6 +167,9 @@ extern void wad_set_returns(WadReturnFunc *rf);
 #define DEBUG_SEGMENT    0x1
 #define DEBUG_SYMBOL     0x2
 #define DEBUG_STABS      0x4
+#define DEBUG_OBJECT     0x8
+#define DEBUG_FILE       0x10
+#define DEBUG_HOLD       0x20
 
 extern int wad_debug_mode;
 

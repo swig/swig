@@ -12,22 +12,12 @@
 
 #include "wad.h"
 
-/* Size of signal stack */
-#define STACK_SIZE 4*SIGSTKSZ
-
 /* Debugging flag */
 int    wad_debug_mode = 0;
 
-/* Make the alternate signal stack part of the wad data segment as 
-   opposed to putting it on the process heap */
-
-char wad_sig_stack[STACK_SIZE];
-
-/* Set up signal handler function for events we care about */
+/* Initialize wad */
 void wad_init() {
-  struct sigaction newvec;
   static int init = 0;
-  static stack_t  sigstk;
 
   if (getenv("WAD_DEBUG_SEGMENT")) {
     wad_debug_mode |= DEBUG_SEGMENT;
@@ -36,27 +26,25 @@ void wad_init() {
     wad_debug_mode |= DEBUG_SYMBOL;
   }
 
+  if (getenv("WAD_DEBUG_OBJECT")) {
+    wad_debug_mode |= DEBUG_OBJECT;
+  }
+
+  if (getenv("WAD_DEBUG_FILE")) {
+    wad_debug_mode |= DEBUG_FILE;
+  }
+
+  if (getenv("WAD_DEBUG_HOLD")) {
+    wad_debug_mode |= DEBUG_HOLD;
+  }
+
+  if (getenv("WAD_DEBUG_STABS")) {
+    wad_debug_mode |= DEBUG_STABS;
+  }
+
   if (!init) {
-    /* Set up an alternative stack */
-    sigstk.ss_sp = (char *) wad_sig_stack;
-    sigstk.ss_size = STACK_SIZE;
-    sigstk.ss_flags = 0;
-    if (sigaltstack(&sigstk, (stack_t*)0) < 0) {
-      perror("sigaltstack");
-    }
-    sigemptyset(&newvec.sa_mask);
-    sigaddset(&newvec.sa_mask, SIGSEGV);
-    sigaddset(&newvec.sa_mask, SIGBUS);
-    sigaddset(&newvec.sa_mask, SIGABRT);
-    sigaddset(&newvec.sa_mask, SIGILL);
-    sigaddset(&newvec.sa_mask, SIGFPE);
-    newvec.sa_flags = SA_SIGINFO | SA_ONSTACK /* | SA_RESETHAND */;
-    newvec.sa_sigaction = ((void (*)(int,siginfo_t *, void *)) wad_signalhandler);
-    sigaction(SIGSEGV, &newvec, NULL);
-    sigaction(SIGBUS, &newvec, NULL);
-    sigaction(SIGABRT, &newvec, NULL);
-    sigaction(SIGFPE, &newvec, NULL);
-    sigaction(SIGILL, &newvec, NULL);
+    wad_signal_init();
+    wad_object_init();
   }
   init = 1;
 }

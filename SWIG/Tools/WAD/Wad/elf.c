@@ -203,7 +203,7 @@ wad_elf_section_byname(WadObjectFile *wo, char *name) {
 
 
 char *
-wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, unsigned long *value) {
+wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, WadSymbol *ws) {
   int nsymtab;
   int nstrtab;
   int symtab_size;
@@ -213,6 +213,7 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, unsigned l
   int i;
   unsigned long vaddr;
   char *name;
+  char *localfile = 0;
 
   vaddr = (unsigned long) ptr;
 
@@ -228,10 +229,20 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, unsigned l
   nsym = (symtab_size/sizeof(Elf32_Sym));
   for (i = 0; i < nsym; i++) {
     name = str + sym[i].st_name;
+    /* Look for filename in case the symbol maps to a local symbol */
+    if (ELF32_ST_TYPE(sym[i].st_info) == STT_FILE) {
+      localfile = name;
+    }
     /*    printf("%s    %x\n", name, sym[i].st_value); */
     if (((base + sym[i].st_value) <= vaddr) && (vaddr < (base+sym[i].st_value + sym[i].st_size))) {
-      if (value) 
-	*value = sym[i].st_value;
+      ws->value = sym[i].st_value;
+      if (ELF32_ST_BIND(sym[i].st_info) == STB_LOCAL) {
+	ws->file = localfile;
+	ws->bind = WS_LOCAL;
+      } else {
+	ws->bind = WS_GLOBAL;
+      }
+      ws->name = name;
       return name;
     }
 
@@ -249,17 +260,25 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, unsigned l
   str = (char *) wad_elf_section_data(wo,nstrtab);
 
   nsym = (symtab_size/sizeof(Elf32_Sym));
+  localfile = 0;
   for (i = 0; i < nsym; i++) {
     name = str + sym[i].st_name;
+    if (ELF32_ST_TYPE(sym[i].st_info) == STT_FILE) {
+      localfile = name;
+    }
     /*    printf("%x(%x): %s   %x + %x\n", base, vaddr, name, sym[i].st_value, sym[i].st_size); */
     if (((base + sym[i].st_value) <= vaddr) && (vaddr < (base+sym[i].st_value + sym[i].st_size))) {
-      if (value) 
-	*value = sym[i].st_value;
+      ws->value = sym[i].st_value;
+      if (ELF32_ST_BIND(sym[i].st_info) == STB_LOCAL) {
+	ws->file = localfile;
+	ws->bind = WS_LOCAL;
+      } else {
+	ws->bind = WS_GLOBAL;
+      }
+      ws->name = name;
       return name;
     }
-
   }
-
   return 0;
 }
 
@@ -269,14 +288,13 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, unsigned l
  * Gather debugging information about a function (if possible)
  * ----------------------------------------------------------------------------- */
 
-WadDebug *
-wad_elf_debug_info(WadObjectFile *wo, char *symbol, unsigned long offset) {
+int
+wad_elf_debug_info(WadObjectFile *wo, WadSymbol *wsym, unsigned long offset, WadDebug *wd) {
   int nstab, nstabstr, nstabindex, nstabindexstr, nstabexcl, nstabexclstr;
-
+  int ret;
   void *stab;
   char *stabstr;
   int   stabsize;
-  WadDebug *wd;
 
   nstab = wad_elf_section_byname(wo,".stab");
   nstabstr = wad_elf_section_byname(wo,".stabstr");
@@ -302,8 +320,7 @@ wad_elf_debug_info(WadObjectFile *wo, char *symbol, unsigned long offset) {
     stabsize = wad_elf_section_size(wo,nstab);
     stabstr = (char *) wad_elf_section_data(wo,nstabstr);
     
-    wd = wad_search_stab(stab,stabsize,stabstr, symbol, offset);
-    if (wd) return wd;
+    if (wad_search_stab(stab,stabsize,stabstr, wsym, offset,wd)) return 1;
   }
 
   /* Look in the .stab.excl section. A solaris oddity? */
@@ -312,30 +329,28 @@ wad_elf_debug_info(WadObjectFile *wo, char *symbol, unsigned long offset) {
     stab = wad_elf_section_data(wo,nstabexcl);
     stabsize = wad_elf_section_size(wo, nstabexcl);
     stabstr = (char *) wad_elf_section_data(wo, nstabexclstr);
-    wd = wad_search_stab(stab,stabsize,stabstr, symbol, offset);
-    if (wd) return wd;
+    if (wad_search_stab(stab,stabsize,stabstr, wsym, offset,wd)) return 1;
   }
 
-  /* Look in the .stab.index section. Another solaris oddity? */
+  /* Look in the .stab.index section. A Solaris oddity? */
   if (nstabindex > 0) {
     stab = wad_elf_section_data(wo,nstabindex);
     stabsize = wad_elf_section_size(wo, nstabindex);
     stabstr = (char *) wad_elf_section_data(wo, nstabindexstr);
-    wd = wad_search_stab(stab,stabsize,stabstr, symbol, offset);
-    if (wd) {
+    if (wad_search_stab(stab,stabsize,stabstr, wsym, offset, wd)) {
       WadObjectFile *wo1;
       /* Hmmm. Might be in a different file */
       char objfile[MAX_PATH];
       strcpy(objfile, wd->objfile);
       wo1 = wad_object_load(objfile);
       if (wo1) {
-	wd = wad_debug_info(wo1,symbol,offset);
+	ret = wad_debug_info(wo1,wsym,offset,wd);
 	wad_object_release(wo1);
       } else {
 	/*	printf("couldn't load %s\n", objfile); */
       }
-      if (!wd) return wad_search_stab(stab,stabsize,stabstr,symbol,offset);
-      return wd;
+      if (!ret) return wad_search_stab(stab,stabsize,stabstr,wsym, offset,wd);
+      return ret;
     }
   }
   return 0;
@@ -370,11 +385,34 @@ wad_elf_debug(WadObjectFile *wo) {
  * ----------------------------------------------------------------------------- */
  
 char *
-wad_find_symbol(WadObjectFile *wo, void *ptr, unsigned base, unsigned long *value) {
-   return wad_elf_find_symbol(wo,ptr,base,value);
+wad_find_symbol(WadObjectFile *wo, void *ptr, unsigned base, WadSymbol *ws) {
+  char *r;
+  ws->name = 0;
+  ws->file = 0;
+  ws->type = 0;
+  ws->bind = 0;
+  ws->value = 0;
+  if (wad_debug_mode & DEBUG_SYMBOL) {
+    printf("wad: Searching for 0x%08x --> ", ptr);
+  }
+  r = wad_elf_find_symbol(wo,ptr,base,ws);
+  if (r) {
+    if (wad_debug_mode & DEBUG_SYMBOL) {
+      printf("%s", ws->name);
+      if (ws->file)
+	printf(" in '%s'\n", ws->file);
+      else
+	printf("\n");
+    }
+  } else {
+    if (wad_debug_mode & DEBUG_SYMBOL) {
+      printf("?\n");
+    }
+  }
+  return r;
 }
 
-WadDebug *
-wad_debug_info(WadObjectFile *wo, char *symbol, unsigned long offset) {
-  return wad_elf_debug_info(wo,symbol,offset);
+int
+wad_debug_info(WadObjectFile *wo, WadSymbol *wsym, unsigned long offset, WadDebug *wd) {
+  return wad_elf_debug_info(wo,wsym, offset,wd);
 }
