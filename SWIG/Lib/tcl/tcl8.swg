@@ -405,7 +405,8 @@
 	 const int &, const short &, const long &,
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const long long &, const unsigned long long &,
-	 enum SWIGTYPE 
+	 enum SWIGTYPE,
+	bool, const bool & 
 {
   long tmp;
   if (Tcl_GetLongFromObj(NULL,$input,&tmp) == TCL_ERROR) $1 = 0;

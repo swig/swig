@@ -334,7 +334,8 @@
 	 const int &, const short &, const long &,
 	const unsigned int &, const unsigned short &, const unsigned long &,
 	const long long &, const unsigned long long &,
-	enum SWIGTYPE 
+	enum SWIGTYPE,
+	bool, const bool & 
 {
   $1 = SvIOK($input) ? 1 : 0;
 }
