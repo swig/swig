@@ -711,7 +711,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
                   double,             const double &,
                   char *,
                   enum SWIGTYPE {
-    return $nativemethod;
+    return $jnicall;
   }
 %typemap(javaout) bool[ANY],
                   char[ANY],
@@ -727,16 +727,16 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 /*                unsigned long long[ANY], */
                   float[ANY],
                   double[ANY] {
-    return $nativemethod;
+    return $jnicall;
   }
 %typemap(javaout) void {
-    $nativemethod;
+    $jnicall;
   }
 %typemap(javaout) SWIGTYPE {
-    return new $&javaclassname($nativemethod, true);
+    return new $&javaclassname($jnicall, true);
   }
 %typemap(javaout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
-    return new $javaclassname($nativemethod, $owner);
+    return new $javaclassname($jnicall, $owner);
   }
 
 /* Typemaps used for the generation of proxy and type wrapper class code */

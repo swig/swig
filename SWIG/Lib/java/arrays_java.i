@@ -16,7 +16,7 @@
 
 %typemap(javain) ARRAYSOFCLASSES[ANY] "$javaclassname.cArrayUnwrap($javainput)"
 %typemap(javaout) ARRAYSOFCLASSES[ANY] {
-    return $javaclassname.cArrayWrap($nativemethod, $owner);
+    return $javaclassname.cArrayWrap($jnicall, $owner);
   }
 
 %typemap(in) ARRAYSOFCLASSES[ANY] (jlong *jarr, jsize sz)
@@ -111,7 +111,7 @@
 
 %typemap(javain) ARRAYSOFENUMS[ANY] "$javainput"
 %typemap(javaout) ARRAYSOFENUMS[ANY] {
-    return $nativemethod;
+    return $jnicall;
   }
 
 %typemap(in) ARRAYSOFENUMS[ANY] (jint *jarr)

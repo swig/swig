@@ -38,7 +38,7 @@
 %typemap(javain) std::string "$javainput"
 
 %typemap(javaout) std::string {
-    return $nativemethod;
+    return $jnicall;
   }
 
 %typemap(typecheck) std::string = char *;
@@ -70,7 +70,7 @@
 %typemap(javain) const std::string & "$javainput"
 
 %typemap(javaout) const std::string & {
-    return $nativemethod;
+    return $jnicall;
   }
 
 %typemap(typecheck) const std::string & = char *;
@@ -125,7 +125,7 @@
 %typemap(javain) std::wstring "$javainput"
 
 %typemap(javaout) std::wstring {
-    return $nativemethod;
+    return $jnicall;
   }
 
 // const std::wstring &
@@ -166,7 +166,7 @@
 %typemap(javain) const std::wstring & "$javainput"
 
 %typemap(javaout) const std::wstring & {
-    return $nativemethod;
+    return $jnicall;
   }
 
 // For using std::wstring in the global namespace
