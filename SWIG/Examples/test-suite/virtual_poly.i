@@ -16,12 +16,18 @@
   {
     virtual ~NNumber() {};
     virtual NNumber* copy() const = 0;
+    virtual NNumber& ref_this() 
+    {
+      return *this;
+    }
+    
     
     NNumber* nnumber() 
     {
       return this;
     }
     
+
   };
   
   /* 
@@ -57,8 +63,14 @@
       return new NInt(val);
     }
 
+    virtual NInt& ref_this() 
+    {
+      return *this;
+    }
+
     /* See below */
     static NInt* narrow(NNumber* nn);
+
     
   private:
     int val;
@@ -83,6 +95,11 @@
     virtual NDouble* copy() const
     {
       return new NDouble(val);
+    }
+
+    virtual NDouble& ref_this() 
+    {
+      return *this;
     }
 
     /* See below */

@@ -21,6 +21,10 @@ if (i.get() + 1) != ic.get():
   raise RuntimeError
 
 
+dr = d.ref_this()
+if d.get() != dr.get():
+  raise RuntimeError
+
 
 #
 # 'narrowing' also works

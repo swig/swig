@@ -37,5 +37,25 @@ public class virtual_poly_runme {
     virtual_poly.incr(ic);
     if ( (i.get() + 1) != ic.get() )
       throw new RuntimeException("incr test failed");
+
+    //
+    // Checking a pure user downcast
+    //
+    NNumber n1 = d.copy();
+    NNumber n2 = d.nnumber();
+    NDouble dn1 = NDouble.narrow(n1);
+    NDouble dn2 = NDouble.narrow(n2);
+
+    if ( (dn1.get()) != dn2.get() )
+      throw new RuntimeException("copy/narrow test failed");
+
+    //
+    // Checking the ref polymorphic case
+    //
+    NNumber nr = d.ref_this();
+    NDouble dr1 = NDouble.narrow(nr);
+    NDouble dr2 = (NDouble)d.ref_this();
+    if ( dr1.get() != dr2.get() )
+      throw new RuntimeException("copy/narrow test failed");
   }
 }
