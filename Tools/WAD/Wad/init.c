@@ -41,6 +41,12 @@ void wad_init() {
   if (getenv("WAD_DEBUG_STABS")) {
     wad_debug_mode |= DEBUG_STABS;
   }
+
+  if (getenv("WAD_DEBUG_RETURN")) {
+    wad_debug_mode |= DEBUG_RETURN;
+  }
+
+
 #ifndef WAD_LINUX
   if (!init) {
     wad_signal_init();

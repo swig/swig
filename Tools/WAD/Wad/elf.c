@@ -233,7 +233,6 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, WadSymbol 
     if (ELF32_ST_TYPE(sym[i].st_info) == STT_FILE) {
       localfile = name;
     }
-    /*    printf("%s    %x\n", name, sym[i].st_value); */
     if (((base + sym[i].st_value) <= vaddr) && (vaddr < (base+sym[i].st_value + sym[i].st_size))) {
       ws->value = sym[i].st_value;
       if (ELF32_ST_BIND(sym[i].st_info) == STB_LOCAL) {

@@ -100,6 +100,9 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       } else {
 	symname = 0;
       }
+
+      if (symname) symname = wad_cplus_demangle(&wsym);
+
       value = wsym.value;
 
       /* Build up some information about the exception frame */
@@ -113,6 +116,8 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       n++;
       if (symname) {
 	symsize = strlen(symname)+1;
+	
+	/*	printf("C++: '%s' ---> '%s'\n", symname, wad_cplus_demangle(&wsym));*/
 	
 	/* Try to gather some debugging information about this symbol */
 	if (wad_debug_info(wo,&wsym, p_pc - (unsigned long) ws->base - value, &wd)) {

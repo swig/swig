@@ -91,7 +91,7 @@ static WadReturnFunc retpts[] = {
   {"PyMapping_Length", -1},
   {"PyMapping_SetItemString", -1},
   {"PyMapping_Values", 0},
-  {0,0}};
+  {"",0}};
 
 /* Handler function */	
 static void handler(int signo, WadFrame *frame, char *ret) {
