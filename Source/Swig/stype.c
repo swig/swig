@@ -73,25 +73,25 @@
  * ----------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
- * SwigType_add_pointer()
+ * StringType_add_pointer()
  *
  * Adds a pointer constructor to a type
  * ----------------------------------------------------------------------------- */
 
 void 
-SwigType_add_pointer(DOH *t) {
+StringType_add_pointer(DOH *t) {
   assert(DohIsString(t));
   Insert(t,0,"*.");
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_add_array()
+ * StringType_add_array()
  *
  * Adds an array constructor to a type
  * ----------------------------------------------------------------------------- */
 
 void 
-SwigType_add_array(DOH *t, DOH *size) {
+StringType_add_array(DOH *t, DOH *size) {
   assert(DohIsString(t));
   Insert(t,0,"].");
   Insert(t,0,size);
@@ -99,25 +99,25 @@ SwigType_add_array(DOH *t, DOH *size) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_add_reference()
+ * StringType_add_reference()
  *
  * Adds a reference constructor to a type.
  * ----------------------------------------------------------------------------- */
 
 void 
-SwigType_add_reference(DOH *t) {
+StringType_add_reference(DOH *t) {
   assert(DohIsString(t));
   Insert(t,0,"&.");
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_add_qualifier()
+ * StringType_add_qualifier()
  *
  * Adds a qualifier to a type
  * ----------------------------------------------------------------------------- */
 
 void 
-SwigType_add_qualifier(DOH *t, DOH *qual) {
+StringType_add_qualifier(DOH *t, DOH *qual) {
   assert(DohIsString(t));
   Insert(t,0,".");
   Insert(t,0,qual);
@@ -125,14 +125,14 @@ SwigType_add_qualifier(DOH *t, DOH *qual) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_add_function()
+ * StringType_add_function()
  *
  * Adds a function to a type. Accepts a list of abstract types as parameters.
  * These abstract types should be passed as a list of type-strings.
  * ----------------------------------------------------------------------------- */
 
 void 
-SwigType_add_function(DOH *t, DOH *parms) {
+StringType_add_function(DOH *t, DOH *parms) {
   DOH *pstr;
   int i,l;
   assert(DohIsString(t));
@@ -193,12 +193,12 @@ isolate_element(char *c) {
   return result;
 }
 /* -----------------------------------------------------------------------------
- * SwigType_split(DOH *t)
+ * StringType_split(DOH *t)
  *
- * Splits a type into it's component parts and returns a list.
+ * Splits a type into it's component parts and returns a list of string.
  * ----------------------------------------------------------------------------- */
 
-DOH *SwigType_split(DOH *t) {
+DOH *StringType_split(DOH *t) {
   DOH *item, *list;
   char *c;
   int len;
@@ -223,12 +223,12 @@ DOH *SwigType_split(DOH *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_pop()
+ * StringType_pop()
  *
  * Pop off the first type-constructor object and update the type
  * ----------------------------------------------------------------------------- */
 
-DOH *SwigType_pop(DOH *t)
+DOH *StringType_pop(DOH *t)
 {
   DOH *result;
   char *c;
@@ -245,12 +245,12 @@ DOH *SwigType_pop(DOH *t)
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_push()
+ * StringType_push()
  *
  * Push a type constructor onto the type
  * ----------------------------------------------------------------------------- */
 
-void SwigType_push(DOH *t, DOH *cons)
+void StringType_push(DOH *t, DOH *cons)
 {
   if (!cons) return;
   if (!Len(cons)) return;
@@ -265,12 +265,12 @@ void SwigType_push(DOH *t, DOH *cons)
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_split_parms()
+ * StringType_split_parms()
  *
  * Splits a comma separated list of components into strings.
  * ----------------------------------------------------------------------------- */
 
-DOH *SwigType_split_parms(DOH *p) {
+DOH *StringType_split_parms(DOH *p) {
   DOH *item, *list;
   char *c;
   assert(DohIsString(p));
@@ -325,12 +325,12 @@ DOH *SwigType_split_parms(DOH *p) {
 
 
 /* -----------------------------------------------------------------------------
- * SwigType_split_struct()
+ * StringType_split_struct()
  *
  * Splits a comma separated list of structure components
  * ----------------------------------------------------------------------------- */
 
-DOH *SwigType_split_struct(DOH *p) {
+DOH *StringType_split_struct(DOH *p) {
   DOH *item, *list;
   char *c;
   assert(DohIsString(p));
@@ -384,17 +384,17 @@ DOH *SwigType_split_struct(DOH *p) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_ispointer()
- * SwigType_isarray()
- * SwigType_isreference()
- * SwigType_isfunction()
- * SwigType_isstruct()
- * SwigType_isqualifier()
+ * StringType_ispointer()
+ * StringType_isarray()
+ * StringType_isreference()
+ * StringType_isfunction()
+ * StringType_isstruct()
+ * StringType_isqualifier()
  *
  * Testing functions for querying a datatype
  * ----------------------------------------------------------------------------- */
 
-int SwigType_ispointer(DOH *t) {
+int StringType_ispointer(DOH *t) {
   char *c;
   assert(DohIsString(t));
   c = Char(t);
@@ -402,7 +402,7 @@ int SwigType_ispointer(DOH *t) {
   return 0;
 }
 
-int SwigType_isreference(DOH *t) {
+int StringType_isreference(DOH *t) {
   char *c;
   assert(DohIsString(t));
   c = Char(t);
@@ -410,7 +410,7 @@ int SwigType_isreference(DOH *t) {
   return 0;
 }
 
-int SwigType_isarray(DOH *t) {
+int StringType_isarray(DOH *t) {
   char *c;
   assert(DohIsString(t));
   c = Char(t);
@@ -418,7 +418,7 @@ int SwigType_isarray(DOH *t) {
   return 0;
 }
 
-int SwigType_isfunction(DOH *t) {
+int StringType_isfunction(DOH *t) {
   char *c;
   assert(DohIsString(t));
   c = Char(t);
@@ -426,7 +426,7 @@ int SwigType_isfunction(DOH *t) {
   return 0;
 }
 
-int SwigType_isstruct(DOH *t) {
+int StringType_isstruct(DOH *t) {
   char *c;
   assert(DohIsString(t));
   c = Char(t);
@@ -434,7 +434,7 @@ int SwigType_isstruct(DOH *t) {
   return 0;
 }
 
-int SwigType_isqualifier(DOH *t) {
+int StringType_isqualifier(DOH *t) {
   char *c;
   assert(DohIsString(t));
   c = Char(t);
@@ -443,12 +443,12 @@ int SwigType_isqualifier(DOH *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_base()
+ * StringType_base()
  * 
  * Returns the base of a datatype.
  * ----------------------------------------------------------------------------- */
 
-DOH *SwigType_base(DOH *t) {
+DOH *StringType_base(DOH *t) {
   char *c, *d;
   assert(DohIsString(t));
   c = Char(t);
@@ -461,13 +461,13 @@ DOH *SwigType_base(DOH *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_cstr(DOH *s, DOH *id)
+ * StringType_cstr(DOH *s, DOH *id)
  *
  * Create a C string representation of a datatype.
  * ----------------------------------------------------------------------------- */
 
 DOH *
-SwigType_cstr(DOH *s, DOH *id)
+StringType_cstr(DOH *s, DOH *id)
 {
   DOH *result;
   DOH *element, *nextelement;
@@ -481,7 +481,7 @@ SwigType_cstr(DOH *s, DOH *id)
     result = NewString("");
   }
 
-  elements = SwigType_split(s);
+  elements = StringType_split(s);
   Printf(stdout,"%s\n",elements);
   nelements = Len(elements);
 
@@ -495,44 +495,44 @@ SwigType_cstr(DOH *s, DOH *id)
     } else {
       nextelement = 0;
     }
-    if (SwigType_ispointer(element)) {
+    if (StringType_ispointer(element)) {
       Insert(result,0,"*");
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+      if ((nextelement) && ((StringType_isfunction(nextelement) || (StringType_isarray(nextelement))))) {
 	Insert(result,0,"(");
 	Append(result,")");
       }
     }
-    else if (SwigType_isreference(element)) Insert(result,0,"&");
-    else if (SwigType_isarray(element)) Append(result,element);
-    else if (SwigType_isfunction(element)) {
+    else if (StringType_isreference(element)) Insert(result,0,"&");
+    else if (StringType_isarray(element)) Append(result,element);
+    else if (StringType_isfunction(element)) {
       DOH *parms, *p;
       int j, plen;
       Append(result,"(");
-      parms = SwigType_split_parms(element);
+      parms = StringType_split_parms(element);
       plen = Len(parms);
       for (j = 0; j < plen; j++) {
-	p = SwigType_cstr(Getitem(parms,j),0);
+	p = StringType_cstr(Getitem(parms,j),0);
 	Append(result,p);
 	if (j < (plen-1)) Append(result,",");
 	Delete(p);
       }
       Append(result,")");
       Delete(parms);
-    } else if (SwigType_isstruct(element)) {
+    } else if (StringType_isstruct(element)) {
       DOH *members, *m;
       int j, mlen;
       Append(result,"{");
-      members = SwigType_split_struct(element);
+      members = StringType_split_struct(element);
       mlen = Len(members);
       for (j = 0; j < mlen; j++) {
-	m = SwigType_cstr(Getitem(members,j),0);
+	m = StringType_cstr(Getitem(members,j),0);
 	Append(result,m);
 	if (j < (mlen-1)) Append(result,";");
 	Delete(m);
       }
       Append(result,"}");
       Delete(members);
-    } else if (SwigType_isqualifier(element)) {
+    } else if (StringType_isqualifier(element)) {
       Insert(result,0, " ");
       Insert(result,0,Char(element)+1);
 
