@@ -1,6 +1,54 @@
 Version 1.3.25 (In progress)
 ============================
 
+03/07/2005: wsfulton
+            [C#] Various exception changes for the std::vector wrappers. These now more
+            accurately mirror the same exceptions that System.Collections.ArrayList throw.
+
+03/07/2005: wsfulton
+            [C#] Fix undefined behaviour after any of the std::vector methods
+            throw an exception.
+
+03/07/2005: wsfulton
+            [C#] When null is passed for a C++ reference or value parameter, the 
+            exception thrown has been corrected to an ArgumentNullException instead
+            of NullReferenceException as recommended in the .NET Framework documentation.
+
+            The default throws typemaps turn a C++ exception into an ApplicationException,
+            not a SystemException now.
+
+03/07/2005: wsfulton
+            [C#] Numerous changes in C# exception handling have been made over the past
+            few weeks. A summary follows:
+
+            The way in which C++ exceptions are mapped to C# exceptions is quite different.
+            The change is to fix C# exceptions so that the C++ exception stack is correctly
+            unwound as previously C++ exceptions were being thrown across the C PInvoke layer
+            into the managed world.
+
+            New typemap attributes (canthrow and excode) have been introduced to control the
+            mapping of C++ to C# exceptions. Essentially a callback into the unmanaged world
+            is made to set a pending exception. The exception to throw is stored in thread local
+            storage (so the approach is thread-safe). The typemaps are expected to return
+            from unmanaged code as soon as the pending exception is set. Any pending exceptions
+            are checked for and thrown once managed code starts executing. There should
+            be minimal impact on execution speed during normal behaviour. Full details will be
+            documented in CSharp.html.
+
+            The SWIG_CSharpThrowException() function has been removed and replaced with 
+            SWIG_CSharpSetPendingExceptionArgument(). The name has been deliberately changed
+            to break old code as the old approach was somewhat flawed. Any user defined
+            exceptions that follow the same pattern as the old approach should also be fixed.
+
+            Numerous new .NET framework exceptions are now available for easy throwing from 
+            unmanaged code. The complete list is: 
+
+              ApplicationException, ArithmeticException, DivideByZeroException, 
+              IndexOutOfRangeException, InvalidOperationException, IOException, 
+              NullReferenceException, OutOfMemoryException, OverflowException, 
+              SystemException, ArgumentException, ArgumentNullException and
+              ArgumentOutOfRangeException.
+
 05/05/2005: mmatus
 	    
 	    Fix several memory leaks around. Even when we survive  knowning
