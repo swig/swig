@@ -168,7 +168,7 @@ $1 = &temp; %}
 %typemap(in, canthrow=1) SWIGTYPE ($&1_type argp)
 %{ argp = ($&1_ltype)$input; 
   if (!argp) {
-    SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException, "Attempt to dereference null $1_type");
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Attempt to dereference null $1_type", 0);
     return $null;
   }
   $1 = *argp; %}
@@ -188,7 +188,7 @@ $1 = &temp; %}
 %typemap(in) SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if(!$1) {
-    SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException, "$1_type reference is null");
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type type is null", 0);
     return $null;
   } %}
 %typemap(out) SWIGTYPE *, SWIGTYPE & %{ $result = (void *)$1; %} 

@@ -28,7 +28,7 @@ class string;
 
 %typemap(in, canthrow=1) string 
 %{ if (!$input) {
-    SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException, "null string");
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
     return $null;
   }
   $1 = std::string($input); %}
@@ -64,7 +64,7 @@ class string;
 
 %typemap(in, canthrow=1) const string &
 %{ if (!$input) {
-    SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException, "null string");
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
     return $null;
   }
   std::string $1_str($input);
