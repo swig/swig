@@ -178,8 +178,9 @@ configuration, type this:
      % make runtime
      % make install-runtime
 
-More information about the runtime libraries can be found in 
-Doc/Manual/Modules.html.
+The libraries aren't needed to use SWIG or to run most of the
+examples.  Therefore, you may want to skip this step until you've read
+the documentation located in Doc/Manual/Modules.html.
 
 Notes:
 
