@@ -1,6 +1,4 @@
-# 1 "skel.php4"
 <?php
-
 
 require "tests.php4";
 require "typedef_reference.php";
