@@ -4,6 +4,8 @@
 #######################################################################
 
 LANGUAGE   = mzscheme
+SCRIPTSUFFIX = _runme.scm
+
 include ../common.mk
 
 # Overridden variables here
@@ -23,9 +25,6 @@ include ../common.mk
 	$(setup) \
 	($(swig_and_compile_multi_cpp); ); \
 	$(run_testcase)
-
-setup = \
-	@echo Checking testcase $* under MzScheme;
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.scm appended after the testcase name.

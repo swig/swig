@@ -9,7 +9,9 @@ extern void add(int *x, int *y, int *result);
 
 #ifndef SWIGGUILE
 #ifndef SWIGJAVA
+#ifndef SWIGMZSCHEME
 %include pointer.i
+#endif
 #endif
 #endif
 
