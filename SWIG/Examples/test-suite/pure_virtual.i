@@ -7,6 +7,9 @@
 
 %module pure_virtual
 
+%nodefault C;
+%nodefault E;
+
 %inline %{
 
 class A {
