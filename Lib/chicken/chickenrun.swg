@@ -62,7 +62,7 @@ enum {
 };
 
 typedef struct swig_chicken_clientdata {
-  C_word clos_class;
+  void *gc_proxy_create;
 } swig_chicken_clientdata;
   
 static char *
@@ -171,12 +171,14 @@ SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **
     return C_SCHEME_FALSE;
   else {
     C_word cptr = C_swigmpointer(data, ptr, type);
-    if (cdata && cdata->clos_class && C_swig_is_closurep(cdata->clos_class)) {
-      C_save(cptr);
-      return C_callback(cdata->clos_class, 1);
-    } else {
-      return cptr;
+    if (cdata && cdata->gc_proxy_create) {
+      C_word closure = CHICKEN_gc_root_ref(cdata->gc_proxy_create);
+      if (C_swig_is_closurep(closure)) {
+        C_save(cptr);
+        return C_callback(closure, 1);
+      }
     }
+    return cptr;
   }
 }
 

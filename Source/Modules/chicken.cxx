@@ -230,7 +230,7 @@ CHICKEN::top(Node *n)
   Printv(f_scm,"(declare (unit ", scmmodule, "))\n\n", NIL);
   Printv(f_scm,"(declare \n",
 	 tab4, "(hide swig-init)\n",
-	 tab4, "(foreign-declare \"C_extern void swig_", module, "_init(int,C_word,C_word) C_noret;\"))\n", NIL);
+	 tab4, "(foreign-declare \"C_extern void swig_", module, "_init(C_word,C_word,C_word) C_noret;\"))\n", NIL);
   Printv(f_scm,"(define swig-init (##core#primitive \"swig_", module,
 	 "_init\"))\n", NIL);
   Printv(f_scm,"(define swig-init-return (swig-init))\n\n", NIL);
@@ -360,11 +360,11 @@ CHICKEN::functionWrapper(Node *n)
   Printv(f->def,
 	 "static ",
 	 "void ", wname,
-	 " (int argc, C_word closure, C_word continuation",
+	 " (C_word argc, C_word closure, C_word continuation",
 	 NIL);
   Printv(declfunc,
 	 "void ", wname,
-	 "(int,C_word,C_word",
+	 "(C_word,C_word,C_word",
 	 NIL);
 
   /* Generate code for argument marshalling */
@@ -666,11 +666,11 @@ CHICKEN::variableWrapper(Node *n)  {
       
     Printv(f->def, 
 	    "static ",
-	    "void ",wname,"(int, C_word, C_word, C_word) C_noret;\n", 
+	    "void ",wname,"(C_word, C_word, C_word, C_word) C_noret;\n", 
 	    NIL);
     Printv(f->def, 
 	    "static "
-	    "void ",wname,"(int argc, C_word closure, "
+	    "void ",wname,"(C_word argc, C_word closure, "
 	    "C_word continuation, C_word value) {\n", 
 	    NIL);
       
@@ -835,12 +835,12 @@ CHICKEN::constantWrapper(Node *n)
       
     Printv(f->def, 
 	    "static ",
-	    "void ",wname,"(int, C_word, C_word) C_noret;\n", 
+	    "void ",wname,"(C_word, C_word, C_word) C_noret;\n", 
 	   NIL);
 
     Printv(f->def, 
 	    "static ",
-	    "void ",wname,"(int argc, C_word closure, "
+	    "void ",wname,"(C_word argc, C_word closure, "
 	    "C_word continuation) {\n", 
 	   NIL);
       
@@ -950,7 +950,7 @@ CHICKEN::classHandler(Node *n)
     SwigType *ct = NewStringf("p.%s", Getattr(n, "name"));
     swigtype_ptr = SwigType_manglestr(ct);
 
-    Printf(f_runtime, "static swig_chicken_clientdata _swig_chicken_clientdata%s = { C_SCHEME_UNDEFINED };\n",
+    Printf(f_runtime, "static swig_chicken_clientdata _swig_chicken_clientdata%s = { 0 };\n",
             mangled_classname);
     Printv(f_init, "SWIG_TypeClientData(SWIGTYPE", swigtype_ptr,", (void *) &_swig_chicken_clientdata", mangled_classname, ");\n", NIL);
     SwigType_remember(ct);
@@ -971,7 +971,7 @@ CHICKEN::classHandler(Node *n)
       Printv(closcode, "(define-method (initialize (obj ", class_name, ") initargs)\n",
                        "  (call-next-method)\n",
 		       "  (swig-initialize obj initargs ", chickenPrimitiveName(newmethod), ")\n",
-                       "  (set-finalizer! obj (lambda (x) (", chickenPrimitiveName(delmethod), " (slot-ref x 'swig-this))))",
+                       //"  (set-finalizer! obj (lambda (x) (", chickenPrimitiveName(delmethod), " (slot-ref x 'swig-this))))",
 		       ")\n",
                        NIL);
   } else {
@@ -995,10 +995,12 @@ CHICKEN::classHandler(Node *n)
       String *closfuncname = NewString(funcname);
       Replaceall(closfuncname, "_", "-");
 
-      Printv(f_wrappers, "static void ", funcname, "(int,C_word,C_word,C_word) C_noret;\n",
-                         "static void ", funcname, "(int argc, C_word closure, C_word continuation, C_word cl) {\n",
+      Printv(f_wrappers, "static void ", funcname, "(C_word,C_word,C_word,C_word) C_noret;\n",
+                         "static void ", funcname, "(C_word argc, C_word closure, C_word continuation, C_word cl) {\n",
                          "  C_trace(\"", funcname, "\");\n",
-                         "  C_mutate(&((swig_chicken_clientdata *)(SWIGTYPE", swigtype_ptr,"->clientdata))->clos_class, cl);\n",
+			 "  swig_chicken_clientdata *cdata = (swig_chicken_clientdata *) SWIGTYPE", swigtype_ptr,"->clientdata;\n",
+			 "  cdata->gc_proxy_create = CHICKEN_new_gc_root();\n",
+                         "  CHICKEN_gc_root_set(cdata->gc_proxy_create, cl);\n",
                          "  C_kontinue(continuation, C_SCHEME_UNDEFINED);\n",
                          "}\n", NIL);
       addMethod(closfuncname, funcname);
@@ -1130,12 +1132,12 @@ CHICKEN::dispatchFunction(Node *n)
   Append(wname, Swig_name_wrapper(iname));
 
   Printv(f->def, "static void real_", wname, 
-	 "(int, C_word, C_word, C_word) C_noret;\n", NIL);
+	 "(C_word, C_word, C_word, C_word) C_noret;\n", NIL);
 
   Printv(f->def, 
 	 "static void real_",
 	 wname,
-	 "(int, C_word closure, C_word continuation, C_word args) {",
+	 "(C_word oldargc, C_word closure, C_word continuation, C_word args) {",
 	 NIL);
     
   Wrapper_add_local(f,"argc","int argc");
@@ -1164,9 +1166,9 @@ CHICKEN::dispatchFunction(Node *n)
 
   /* varargs */
   Printv(f->def, "void ", wname, 
-	 "(int, C_word, C_word, ...) C_noret;\n", NIL);
+	 "(C_word, C_word, C_word, ...) C_noret;\n", NIL);
   Printv(f->def, "void ", wname,
-	 "(int c, C_word t0, C_word t1, ...) {",
+	 "(C_word c, C_word t0, C_word t1, ...) {",
 	 NIL);
   Printv(f->code, 
 	 "C_word t2;\n",
