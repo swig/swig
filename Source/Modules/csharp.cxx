@@ -30,7 +30,6 @@ class CSHARP : public Language {
   File   *f_init;
 
   bool   proxy_flag; // Flag for generating proxy classes
-  bool   have_default_constructor_flag;
   bool   native_function_flag;     // Flag for when wrapping a native function
   bool   enum_constant_flag; // Flag for when wrapping an enum or constant
   bool   static_flag; // Flag for when wrapping a static functions or member variables
@@ -83,7 +82,6 @@ class CSHARP : public Language {
     f_init(NULL),
 
     proxy_flag(true),
-    have_default_constructor_flag(false),
     native_function_flag(false),
     enum_constant_flag(false),
     static_flag(false),
@@ -1264,14 +1262,6 @@ class CSHARP : public Language {
         typemapLookup("csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF), // main body of class
         NIL);
 
-    if(!have_default_constructor_flag) { // All proxy classes need a constructor
-      Printv(proxy_class_def, 
-          "\n",
-          "  protected $csclassname() : this(IntPtr.Zero, false) {\n",
-          "  }\n",
-          NIL);
-    }
-
     // C++ destructor is wrapped by the Dispose method
     // Note that the method name is specified in a typemap attribute called methodname
     String *destruct = NewString("");
@@ -1387,7 +1377,6 @@ class CSHARP : public Language {
       Clear(proxy_class_def);
       Clear(proxy_class_code);
 
-      have_default_constructor_flag = false;
       destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
     }
@@ -1674,6 +1663,7 @@ class CSHARP : public Language {
     String    *tm;
     Parm      *p;
     int       i;
+    String    *function_code = NewString("");
 
     Language::constructorHandler(n);
 
@@ -1683,13 +1673,13 @@ class CSHARP : public Language {
 
     if(proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
+      String *mangled_overname = Swig_name_construct(overloaded_name);
       String *imcall = NewString("");
 
       const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
       methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
-      methodmods = methodmods ? methodmods : public_string;
-      Printf(proxy_class_code, "  %s %s(", methodmods, proxy_class_name);
-      Printv(imcall, " : this(", imclass_name, ".", Swig_name_construct(overloaded_name), "(", NIL);
+      Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
+      Printv(imcall, imclass_name, ".", mangled_overname, "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("in", l, NULL);
@@ -1745,25 +1735,22 @@ class CSHARP : public Language {
 
         /* Add parameter to proxy function */
         if(gencomma)
-          Printf(proxy_class_code, ", ");
-        Printf(proxy_class_code, "%s %s", param_type, arg);
-        gencomma = 1;
+          Printf(function_code, ", ");
+        Printf(function_code, "%s %s", param_type, arg);
+        ++gencomma;
 
         Delete(arg);
         Delete(param_type);
         p = Getattr(p,"tmap:in:next");
       }
 
-      Printf(imcall, "), true)");
+      Printf(imcall, ")");
 
-      Printf(proxy_class_code, ")");
-      Printf(proxy_class_code,"%s", imcall);
-      generateThrowsClause(n, proxy_class_code);
-      Printf(proxy_class_code, " {\n");
-      Printf(proxy_class_code, "  }\n\n");
-
-      if(!gencomma)  // We must have a default constructor
-        have_default_constructor_flag = true;
+      Printf(function_code, ")");
+      generateThrowsClause(n, function_code);
+      Printv(function_code, " ", typemapLookup("csconstruct", Getattr(n,"name"), WARN_CSHARP_TYPEMAP_CSCONSTRUCT_UNDEF), NIL);
+      Replaceall(function_code, "$imcall", imcall);
+      Printv(proxy_class_code, function_code, "\n", NIL);
 
       Delete(overloaded_name);
       Delete(imcall);
