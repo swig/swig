@@ -247,6 +247,9 @@ int DohGetline(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohGetline %x\n",obj);
   if (DohCheck(obj)) {
+    if (b->objinfo->doh_file && b->objinfo->doh_file->doh_getline) {
+      return (b->objinfo->doh_file->doh_getline)(obj);
+    }
     return b->line;
   } else {
     DohError(DOH_UNKNOWN, "Unknown object %x passed to Getline.\n", obj);
@@ -259,6 +262,10 @@ void DohSetline(DOH *obj, int line) {
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohSetline %x, %d\n",obj, line);
   if (DohCheck(obj)) {
+    if (b->objinfo->doh_file && b->objinfo->doh_file->doh_setline) {
+      (b->objinfo->doh_file->doh_setline)(obj, line);
+      return;
+    }
     b->line = line;
   } else {
     DohError(DOH_UNKNOWN, "Unknown object %x passed to Setline.\n", obj);
@@ -270,6 +277,9 @@ DOH *DohGetfile(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohGetfile %x\n",obj);
   if (DohCheck(obj)) {
+    if (b->objinfo->doh_file && b->objinfo->doh_file->doh_getfile) {
+      return (b->objinfo->doh_file->doh_getfile)(obj);
+    }
     return b->file;
   } else {
     DohError(DOH_UNKNOWN, "Unknown object %x passed to Getfile.\n", obj);
@@ -285,6 +295,10 @@ void DohSetfile(DOH *obj, DOH *file) {
   if (DohCheck(obj)) {
     if (file) {
       nf = find_internal(file);
+      if (b->objinfo->doh_file && b->objinfo->doh_file->doh_setfile) {
+	(b->objinfo->doh_file->doh_setfile)(obj,nf);
+	return;
+      }
       Incref(nf);
       if (b->file) Delete(b->file);
       b->file = nf;
