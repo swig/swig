@@ -256,7 +256,7 @@ free_swig(SCM A)
 {
   swig_type_info *type = (swig_type_info *) SCM_CELL_WORD_2(A);
   if (type) {
-    if (type->clientdata)
+    if (type->clientdata && ((swig_guile_clientdata *)type->clientdata)->destroy)
       ((swig_guile_clientdata *)type->clientdata)->destroy(A);
   } 
   return 0;
