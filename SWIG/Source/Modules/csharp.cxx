@@ -824,3 +824,12 @@ int CSHARP::insertDirective(Node *n) {
   }
   return SWIG_OK;
 }
+
+/* -----------------------------------------------------------------------------
+ * swig_csharp()    - Instantiate module
+ * ----------------------------------------------------------------------------- */
+
+extern "C" Language *
+swig_csharp(void) {
+  return new CSHARP();
+}
