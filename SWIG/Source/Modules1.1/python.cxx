@@ -914,7 +914,7 @@ PYTHON::constructorHandler(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::cpp_destructor()
+ * PYTHON::destructorHandler()
  * ----------------------------------------------------------------------------- */
 int
 PYTHON::destructorHandler(Node *n) {
@@ -925,9 +925,9 @@ PYTHON::destructorHandler(Node *n) {
   Language::destructorHandler(n);
   shadow = oldshadow;
   if (shadow) {
-    Printv(f_shadow, tab4, "def __del__(self,", module, "=", module, "):\n", NULL);
+    Printv(f_shadow, tab4, "def __del__(self, destroy= ", module, ".", Swig_name_destroy(symname), "):\n", NULL);
     Printv(f_shadow, tab8, "if getattr(self,'thisown',0):\n",
-	   tab8, tab4, module, ".", Swig_name_destroy(symname), "(self)\n", NULL);
+	   tab8, tab4, "destroy(self)\n", NULL);
   }
   return SWIG_OK;
 }
