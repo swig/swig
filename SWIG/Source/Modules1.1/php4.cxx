@@ -28,7 +28,7 @@ PHP4 Options (available with -php4)\n\
 	-make		- Create simple makefile.\n\
 	-phpfull	- Create full make files.\n\
 	-withincs libs	- With -phpfull writes needed incs in config.m4\n\
-	-withlibs libs	- With -phpfull writes needed libs in config.m4\n\n
+	-withlibs libs	- With -phpfull writes needed libs in config.m4\n\n\
 	-withc libs	- With -phpfull makes extra c files in Makefile.in\n\
 	-withcxx libs	- With -phpfull makes extra c++ files in Makefile.in\n\n";
 
