@@ -79,6 +79,7 @@ static const char *usage2 = (const char*)"\
      -noexcept       - Do not wrap exception specifiers\n\
      -noextern       - Do not generate extern declarations\n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
+     -oh <headfile>  - Set name of the output header file to <headfile>\n\
      -outdir <dir>   - Set language specific files output directory\n\
      -small          - Compile in virtual elimination & compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
@@ -101,6 +102,7 @@ static int     help = 0;
 static int     checkout = 0;
 static int     cpp_only = 0;
 static char   *outfile_name = 0;
+static char   *outfile_name_h = 0;
 static int     tm_debug = 0;
 static int     dump_tags = 0;
 static int     dump_tree = 0;
@@ -333,14 +335,24 @@ void SWIG_getoptions(int argc, char *argv[])
 	    printf("%s\n", LibDir);
 	    SWIG_exit (EXIT_SUCCESS);
 	  } else if (strcmp(argv[i],"-o") == 0) {
-	      Swig_mark_arg(i);
-	      if (argv[i+1]) {
-		outfile_name = Swig_copy_string(argv[i+1]);
-		Swig_mark_arg(i+1);
-		i++;
-	      } else {
-		Swig_arg_error();
-	      }
+	    Swig_mark_arg(i);
+	    if (argv[i+1]) {
+	      outfile_name = Swig_copy_string(argv[i+1]);
+	      if (!outfile_name_h) outfile_name_h = Swig_copy_string(outfile_name);
+	      Swig_mark_arg(i+1);
+	      i++;
+	    } else {
+	      Swig_arg_error();
+	    }
+	  } else if (strcmp(argv[i],"-oh") == 0) {
+	    Swig_mark_arg(i);
+	    if (argv[i+1]) {
+	      outfile_name_h = Swig_copy_string(argv[i+1]);
+	      Swig_mark_arg(i+1);
+	      i++;
+	    } else {
+	      Swig_arg_error();
+	    }
 	  } else if (strcmp(argv[i],"-version") == 0) {
  	      fprintf(stderr,"\nSWIG Version %s\n", PACKAGE_VERSION);
 	      fprintf(stderr,"Copyright (c) 1995-1998\n");
@@ -761,13 +773,16 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else {
 	    Setattr(top,"outfile", NewStringf("%s_wrap.c", Swig_file_basename(input_file)));
 	  }
-	  Setattr(top,"outfile_h", NewStringf("%s_wrap.h", Swig_file_basename(input_file)));
 	} else {
           char *ext = strrchr(outfile_name, '.');
           String *basename = ext ? NewStringWithSize(outfile_name,ext-outfile_name) : NewString(outfile_name);
 	  Setattr(top,"outfile", outfile_name);
-	  Setattr(top,"outfile_h", NewStringf("%s.h", basename));
           Delete(basename);
+	}
+	if (!outfile_name_h) {
+	  Setattr(top,"outfile_h", NewStringf("%s_wrap.h", Swig_file_basename(input_file)));
+	} else {
+	  Setattr(top,"outfile_h", outfile_name_h);
 	}
         set_outdir(Swig_file_dirname(Getattr(top,"outfile")));
 	if (Swig_contract_mode_get()) {
