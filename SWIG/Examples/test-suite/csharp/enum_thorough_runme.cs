@@ -11,11 +11,12 @@ public class runme {
       int k = AnonStruct.AnonStructEnum1;
     }
     {
-      enum_thorough.colourTest1(colour.red);
-      enum_thorough.colourTest2(colour.red);
-      enum_thorough.colourTest3(colour.red);
-      enum_thorough.colourTest4(colour.red);
-      enum_thorough.myColour = colour.red;
+      colour red = colour.red;
+      enum_thorough.colourTest1(red);
+      enum_thorough.colourTest2(red);
+      enum_thorough.colourTest3(red);
+      enum_thorough.colourTest4(red);
+      enum_thorough.myColour = red;
     }
     {
       SpeedClass s = new SpeedClass();
@@ -31,6 +32,18 @@ public class runme {
       if (enum_thorough.speedTest2(speed) != speed) throw new Exception("speedTest Global 2 failed");
       if (enum_thorough.speedTest3(speed) != speed) throw new Exception("speedTest Global 3 failed");
       if (enum_thorough.speedTest4(speed) != speed) throw new Exception("speedTest Global 4 failed");
+    }
+    {
+      SpeedClass s = new SpeedClass();
+      SpeedClass.speed slow = SpeedClass.speed.slow;
+      SpeedClass.speed lightning = SpeedClass.speed.lightning;
+
+      if (s.mySpeedtd1 != slow) throw new Exception("mySpeedtd1 1 failed");
+      if ((int)s.mySpeedtd1 != 10) throw new Exception("mySpeedtd1 2 failed");
+
+      s.mySpeedtd1 = lightning;
+      if (s.mySpeedtd1 != lightning) throw new Exception("mySpeedtd1 3 failed");
+      if ((int)s.mySpeedtd1 != 31) throw new Exception("mySpeedtd1 4 failed");
     }
     {
       if (enum_thorough.namedanonTest1(namedanon.NamedAnon2) != namedanon.NamedAnon2) throw new Exception("namedanonTest 1 failed");
@@ -323,6 +336,14 @@ public class runme {
       if (f.hairTestFir8(blonde) != blonde) throw new Exception("hairTestFir 8 failed");
       if (f.hairTestFir9(blonde) != blonde) throw new Exception("hairTestFir 9 failed");
       if (f.hairTestFirA(blonde) != blonde) throw new Exception("hairTestFir A failed");
+    }
+    {
+      enum_thorough.GlobalInstance = enum_thorough.globalinstance2;
+      if (enum_thorough.GlobalInstance != enum_thorough.globalinstance2) throw new Exception("GlobalInstance 1 failed");
+
+      Instances i = new Instances();
+      i.MemberInstance = Instances.memberinstance3;
+      if (i.MemberInstance != Instances.memberinstance3) throw new Exception("MemberInstance 1 failed");
     }
   }
 }
