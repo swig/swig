@@ -41,7 +41,7 @@ public :
   virtual void cpp_variable(DOH *);
   virtual void cpp_constructor(DOH *);
   virtual void cpp_destructor(DOH *);
-  virtual void cpp_inherit(List *bases, int mode = INHERIT_ALL);
+  virtual void cpp_inherit(List *bases);
   virtual void cpp_constant(DOH *);
   virtual void cpp_class_decl(DOH *);
   virtual  void add_typedef(SwigType *t, String *name);

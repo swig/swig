@@ -1443,7 +1443,7 @@ PYTHON::cpp_close_class() {
  * PYTHON::cpp_inherit() - Handle inheritance
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::cpp_inherit(List *bases,int) {
+PYTHON::cpp_inherit(List *bases) {
   char *bc;
   String *base;
   int   first_base = 0;
@@ -1454,7 +1454,7 @@ PYTHON::cpp_inherit(List *bases,int) {
   }
 
   /* We'll inherit variables and constants, but not methods */
-  this->Language::cpp_inherit(bases, INHERIT_VAR);
+  this->Language::cpp_inherit(bases);
 
   if (!bases) return;
   base_class = NewString("");

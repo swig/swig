@@ -321,6 +321,8 @@ yylex1(void) {
     }
     if ((l1 == STRING) || (l1 == CHARCONST)) {
       yylval.tok.text = NewString(yytext+1);
+      Setfile(yylval.tok.text,yylval.tok.filename);
+      Setline(yylval.tok.text,yylval.tok.line);
       Delitem(yylval.tok.text,DOH_END);
     }
     if ((l1 == HBLOCK) || (l1 == NUM_INT) || (l1 == NUM_FLOAT) || (l1 == NUM_UNSIGNED) || (l1 == NUM_LONG) || (l1 == NUM_ULONG))  {

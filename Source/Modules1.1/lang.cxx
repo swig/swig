@@ -242,7 +242,7 @@ void Language::cpp_destructor(DOH *node) {
  * Language::cpp_inherit()
  * ----------------------------------------------------------------------------- */
 
-void Language::cpp_inherit(List *bases, int mode) {
+void Language::cpp_inherit(List *bases) {
 
   if (!bases) return;
   /*

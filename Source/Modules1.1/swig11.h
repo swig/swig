@@ -79,7 +79,7 @@ public:
   virtual void cpp_close_class();
 
   virtual void cpp_class_decl(DOH *node);
-  virtual void cpp_inherit(List *bases, int mode = INHERIT_ALL);
+  virtual void cpp_inherit(List *bases);
 
   /* Miscellaneous features */
 
@@ -106,6 +106,7 @@ extern  void  SWIG_config_file(const String_or_char *);
 
 /* C++ utility functions */
 extern int cplus_check_abstract(DOH *node);
+extern void cplus_walk_inherit(DOH *cls, void (*action)(DOH *base, void *clientdata), void *clientdata);
 
 extern Language *lang;
 

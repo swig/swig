@@ -121,6 +121,8 @@ static DOH    *class_types = 0;         /* Types defined within this class */
 static String *construct_name = 0;      /* Expected name of a constructor */
 int AddMethods = 0;                     /* Set when in addmethods mode */
 int Abstract = 0;                       /* Set when the class is determined to be abstract */
+static int have_destructor = 0;
+static int have_constructor = 0;
 
 /* Check for abstract classes */
 
@@ -162,10 +164,19 @@ void cplus_build_symbols(DOH *node) {
   return;
 }
 
+/* Inherit certain types of declarations from another class */
+
+
+
 /* Add a class type */
 static void
-class_addtype(String *name) {
-  String *s = NewStringf("%s::%s", class_name, name);
+class_addtype(String *name, String *cname) {
+  String *s;
+  if (!cname)
+    s = NewStringf("%s::%s", class_name, name);
+  else
+    s = NewStringf("%s::%s", cname, name);
+
   if (!class_types) class_types = NewHash();
   Setattr(class_types,name,s);
 }
@@ -174,6 +185,7 @@ class_addtype(String *name) {
 static void
 class_update_type(String *type) {
   String *base, *rep;
+  if (!type) return;
   base = SwigType_base(type);
   if (!class_types) return;
   rep = Getattr(class_types,base);
@@ -189,6 +201,54 @@ class_update_parms(ParmList *p) {
   while (p) {
     class_update_type(Gettype(p));
     p = Getnext(p);
+  }
+}
+
+/* Traverse the inheritance hierarchy of a class */
+void
+cplus_walk_inherit(DOH *cls, void (*action)(DOH *base, void *clientdata), void *clientdata) {
+  DOH *base;
+  List *bases;
+  int   i, nbase;
+
+  bases = Getattr(cls,"bases");
+  if (bases) {
+    nbase = Len(bases);
+    for (i = 0; i < nbase; i++) {
+      base = Getattr(class_hash, Getitem(bases,i));
+      if (base) {
+	(*action)(base,clientdata);
+
+      }
+    }
+  }
+}
+
+/* Action for inheriting type definitions */
+static void inherit_types(DOH *cls, void *clientdata) {
+  DOH *ty;
+  ty = Getattr(cls,"types");
+  if (ty) {
+    String *key;
+    SwigType_merge_scope(ty,0);
+    for (key = Firstkey(ty); key; key = Nextkey(ty)) {
+      class_addtype(key, Getname(cls));
+    }
+  }
+  cplus_walk_inherit(cls,inherit_types,clientdata);  
+}
+
+/* Action for inheriting typemaps */
+static void inherit_typemaps(DOH *cls, void *clientdata) {
+  DOH *ty;
+
+  cplus_walk_inherit(cls,inherit_typemaps,clientdata);
+  ty = Getattr(cls,"typemaps");
+  if (ty) {
+    if (!clientdata) 
+      Swig_typemap_new_scope(ty);
+    else
+      Swig_typemap_pop_scope();
   }
 }
 
@@ -241,18 +301,28 @@ int swig11_file(DOH *node, void *clientdata) {
 int swig11_scope(DOH *node, void *clientdata) {
   DOH *c;
   String *name;
-  int oldnative = Native;
+
   c = Getchild(node);
   name = Getname(node);
-  if (name && (Cmp(name,"native") == 0)) {
-    Native = 1;
-    Swig_emit_all(c,clientdata);
-    Native = oldnative;
-    return 0;
+
+  Swig_typemap_new_scope(0);
+  if (name) {
+    if (Cmp(name,"native") == 0) {
+      int oldnative = Native;
+      Native = 1;
+      Swig_emit_all(c,clientdata);
+      Native = oldnative;
+    } else if (Cmp(name,"readonly") == 0) {
+      int oldro = ReadOnly;
+      ReadOnly = 1;
+      Swig_emit_all(c,clientdata);
+      ReadOnly = oldro;
+    } else {
+      Swig_emit_all(c,clientdata);
+    }
   }
-  Swig_typemap_new_scope();
-  Swig_emit_all(c,clientdata);
-  Swig_typemap_pop_scope();
+  Hash *scp = Swig_typemap_pop_scope();
+  Setattr(node,"typemaps", scp);
   return 0;
 }
 
@@ -309,10 +379,6 @@ int swig11_pragma(DOH *node, void *clientdata) {
   name = Getname(node);
   value = Getvalue(node);
 
-  Printf(stdout,"::: Pragma\n");
-  Printf(stdout,"   name       = '%s'\n", name);
-  Printf(stdout,"   value      = '%s'\n", value);
-
   if (Cmp(name,"readonly") == 0) {
     ReadOnly = 1;
   } else if (Cmp(name,"readwrite") == 0) {
@@ -343,6 +409,11 @@ int swig11_typemap(DOH *node, void *clientdata) {
   type   = Gettype(node);
   code   = Getattr(node,"code");
   parms  = Getparms(node);
+
+  if (current_class) {
+    class_update_type(type);
+    class_update_type(parms);
+  }
 
   if (code) {
     Swig_typemap_register(method,type,name,code,parms);
@@ -451,10 +522,13 @@ int swig11_function(DOH *node, void *clientdata) {
   if (current_class) {
     /* Function has been declared inside a class definition. */
     class_update_parms(Getparms(node));
+    class_update_type(Gettype(node));
     String *name = Getname(node);
     if (Cmp(name,construct_name) == 0) {
-      if (!Abstract)
+      have_constructor =1;
+      if (!Abstract) {
 	lang->cpp_constructor(node);
+      }
     } else {
       if (is_static) lang->cpp_staticfunction(node);
       else lang->cpp_memberfunction(node);
@@ -533,8 +607,10 @@ int swig11_typedef(DOH *node, void *clientdata) {
   name = Getname(node);
   SwigType_typedef(type,name);
 
+  if (current_class) {
+    class_addtype(name,0);
+  }
   lang->add_typedef(type, Char(name));
-
   return 0;
 }
 
@@ -555,7 +631,7 @@ int swig11_enum(DOH *node, void *clientdata) {
     /* Add a typedef */
     String *t = NewStringf("enum %s", name);
     SwigType_typedef(t,name);
-    class_addtype(name);
+    class_addtype(name,0);
     Delete(t);
   }
   c = Getchild(node);
@@ -594,6 +670,7 @@ int swig11_enumvalue(DOH *node, void *clientdata) {
 
 int swig11_class(DOH *node, void *clientdata) {
   DOH *c;
+  List *bases;
 
   /* Save the class */
   String *name = Getname(node);
@@ -607,14 +684,27 @@ int swig11_class(DOH *node, void *clientdata) {
 
   set_scriptname(node);
   class_name = name;
+  class_types = 0;
 
-  /* Create a new type scope for this class */
-  
-  SwigType_new_scope();
+  have_destructor = 0;
+  have_constructor = 0;
+
+  /* Need to merge in data from other scopes.  For typemaps, can include scopes
+     for each base class one after the other.  For types, need to merge type information */
+
+  SwigType_new_scope();  
   if (name) {
     SwigType_set_scope_name(name);
   }
-  class_types = 0;
+
+  cplus_walk_inherit(node, inherit_types, 0);
+
+  /* Merge in typemaps */
+  cplus_walk_inherit(node, inherit_typemaps, 0);
+
+  /* Create a typemap scope for this class */
+  Swig_typemap_new_scope(0);
+
   cplus_build_symbols(node);
   lang->cpp_open_class(node);
   current_class = node;
@@ -629,18 +719,49 @@ int swig11_class(DOH *node, void *clientdata) {
   Abstract = cplus_check_abstract(c);
 
   Swig_emit_all(c,clientdata);  
-
-  List *bases = Getattr(node,"bases");
+  
+  bases = Getattr(node,"bases");
   if (bases) {
-    lang->cpp_inherit(bases,INHERIT_ALL);
+    String *b;
+    lang->cpp_inherit(bases);
+    b = Firstitem(bases);
+    while (b) {
+      SwigType_inherit(Getname(current_class),b);
+      b = Nextitem(bases);
+    }
   }
+
+  /* Check for constructors and destructors */
+  
+  if (CPlusPlus) {
+    if (!have_constructor && !Abstract) {
+      DOH *cn = NewHash();
+      Setname(cn, Getname(current_class));
+      Setattr(cn,"scriptname", Getname(current_class));
+      lang->cpp_constructor(cn);
+    }
+    if (!have_destructor) {
+      DOH *dn = NewHash();
+      Setname(dn, Getname(current_class));
+      Setattr(dn,"scriptname", Getname(current_class));
+      lang->cpp_destructor(dn);
+    }
+  }
+
   lang->cpp_close_class();
 
   /* Pop the type scope and save with the class */
-  Hash *scp = SwigType_pop_scope();
-  Setattr(node,"typescope",scp);
 
-  Setattr(node,"types",class_types);
+  Hash *scp = SwigType_pop_scope();
+  Setattr(node,"types",scp);
+
+  scp = Swig_typemap_pop_scope();
+  Setattr(node,"typemaps",scp);
+  Setattr(node,"classtypes",class_types);
+
+  /* Pop off all of the typemap scopes we added */
+  cplus_walk_inherit(node,inherit_typemaps, (void *) 1);
+
   current_class = 0;
   construct_name = 0;
   class_name = 0;
@@ -689,6 +810,7 @@ int swig11_destructor(DOH *node, void *clientdata) {
 
   set_scriptname(node);
   lang->cpp_destructor(node);
+  have_destructor = 1;
   return 0;
 }
 
@@ -780,7 +902,8 @@ void generate(DOH *node) {
   Swig_emit_all(c,0);
   lang->close();
 
-  Swig_dump_tags(node,0);
+  /*  Swig_dump_tags(node,0); */
 
 }
+
 

@@ -29,6 +29,9 @@ typedef  DOH     Hash;
 typedef  DOH     List;
 typedef  DOH     String_or_char;
 typedef  DOH     File;
+typedef  DOH     Parm;
+typedef  DOH     ParmList;
+typedef  DOH     Node;
 
 /* --- Legacy DataType interface.  These type codes are provided solely 
    for backwards compatibility with older modules --- */
@@ -167,7 +170,7 @@ extern void        SwigType_del_pointer(SwigType *t);
 extern void        SwigType_add_array(SwigType *t, String_or_char *size);
 extern void        SwigType_add_reference(SwigType *t);
 extern void        SwigType_add_qualifier(SwigType *t, String_or_char *qual);
-extern void        SwigType_add_function(SwigType *t, List *parms);
+extern void        SwigType_add_function(SwigType *t, ParmList *parms);
 extern List       *SwigType_split(SwigType *t);
 extern String     *SwigType_pop(SwigType *t);
 extern void        SwigType_push(SwigType *t, SwigType *s);
@@ -195,7 +198,7 @@ extern void        SwigType_inherit(String *subclass, String *baseclass);
 extern void        SwigType_new_scope();
 extern void        SwigType_reset_scopes();
 extern void        SwigType_set_scope_name(String_or_char *name);
-extern void        SwigType_merge_scope(Hash *scope, String_or_char *prefix);
+extern void        SwigType_merge_scope(Hash *scope, String *prefix);
 extern Hash       *SwigType_pop_scope();
 extern SwigType   *SwigType_typedef_resolve(SwigType *t);
 extern SwigType   *SwigType_typedef_resolve_all(SwigType *t);
@@ -215,12 +218,10 @@ extern void        SwigType_strip_qualifiers(SwigType *t);
 /* Parameters are really just hidden behind a DOH object.  The following
    interface will probably be simplified even further. */
 
-typedef DOH Parm;
-
 extern Parm       *NewParm(SwigType *type, String_or_char *n);
 extern Parm       *CopyParm(Parm *p);
 
-typedef DOH   ParmList;
+
 
 extern ParmList   *CopyParmList(ParmList *);
 extern int         ParmList_len(ParmList *);
@@ -391,7 +392,7 @@ extern void   Swig_typemap_clear_apply(SwigType *type, String_or_char *pname);
 extern void   Swig_typemap_debug();
 extern Hash  *Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *pname);
 extern char  *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *source, String_or_char *target, Wrapper *f);
-extern void   Swig_typemap_new_scope();
+extern void   Swig_typemap_new_scope(Hash *);
 extern Hash  *Swig_typemap_pop_scope();
 
 /* --- Legacy %except directive API --- */

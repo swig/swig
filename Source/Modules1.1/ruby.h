@@ -35,7 +35,7 @@ class RUBY : public Language {
   virtual void cpp_destructor(DOH *);
   virtual void cpp_open_class(DOH *);
   virtual void cpp_close_class();
-  virtual void cpp_inherit(List *bases, int mode = INHERIT_ALL);
+  virtual void cpp_inherit(List *bases);
   virtual void cpp_variable(DOH *);
   virtual void cpp_staticfunction(DOH *);
   virtual void cpp_constant(DOH *);

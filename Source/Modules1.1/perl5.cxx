@@ -1811,7 +1811,7 @@ PERL5::cpp_staticfunction(DOH *node) {
  * PERL5::cpp_inherit()
  * ------------------------------------------------------------------------------ */
 void
-PERL5::cpp_inherit(List *bases, int) {
+PERL5::cpp_inherit(List *bases) {
   String *base;
   char *bc;
   int   have_first = 0;
@@ -1823,7 +1823,7 @@ PERL5::cpp_inherit(List *bases, int) {
   /* Inherit variables and constants from base classes, but not
      functions (since Perl can handle that okay). */
 
-  this->Language::cpp_inherit(bases, INHERIT_CONST | INHERIT_VAR);
+  this->Language::cpp_inherit(bases);
 
   /* Now tell the Perl5 module that we're inheriting from base classes */
 
