@@ -60,7 +60,7 @@ static DohObjInfo DohVoidType = {
 
 DOH *NewVoid(void *obj, void (*del)(void *)) {
   VoidObj *v;
-  v = (VoidObj *) malloc(sizeof(VoidObj));
+  v = (VoidObj *) DohMalloc(sizeof(VoidObj));
   DohInit(v);
   v->objinfo = &DohVoidType;
   v->ptr = obj;

@@ -291,3 +291,34 @@ int DohPrintf(DOH *obj, char *format, ...) {
   va_end(ap);
   return ret;
 }
+
+/* Split by a character */
+
+DOH *DohSplit(DOH *in, char *chs, int nsplits) {
+  DOH *list;
+  DOH *str;
+  int c;
+  
+  list = NewList();
+  if (String_check(in)) {
+    Seek(in,0,SEEK_SET);
+  }
+  while (1) {
+    do {
+      c = Getc(in);
+    } while ((c != EOF) && (c == *chs));
+    if (c != EOF) {
+      str = NewString("");
+      Putc(c,str);
+      while (1) {
+	c = Getc(in);
+	if ((c == EOF) || ((c == *chs) && (nsplits != 0))) break;
+	Putc(c,str);
+      }
+      Append(list,str);
+      nsplits--;
+    }
+    if (c == EOF) break;
+  }
+  return list;
+}

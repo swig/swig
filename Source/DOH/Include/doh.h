@@ -144,6 +144,9 @@ extern DOH    *DohGetfile(DOH *obj);
 extern void    DohSetfile(DOH *obj, DOH *file);
 extern void    DohInit(DOH *obj);
 
+extern int     DohGetInt(DOH *obj, DOH *name);
+extern double  DohGetDouble(DOH *obj, DOH *name);
+
 /* File methods */
 
 extern int     DohWrite(DOH *obj, void *buffer, int length);
@@ -201,6 +204,8 @@ extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
 #define Putc               DohPutc
 #define Ungetc             DohUngetc
 #define vPrintf            DohvPrintf
+#define GetInt             DohGetInt
+#define GetDouble          DohGetDouble
 
 /* #define Scanf              DohScanf
    #define vScanf             DohvScanf*/
@@ -247,6 +252,7 @@ extern void   String_replace(DOH *s, DOH *token, DOH *rep, int flags);
 
 extern DOH *NewFile(char *file, char *mode);
 extern DOH *NewFileFromFile(FILE *f);
+extern DOH *NewFileFromFd(int fd);
 
 /* -----------------------------------------------------------------------------
  * List
@@ -270,5 +276,7 @@ extern DOH   *Hash_keys(DOH *);
 
 extern DOH  *NewVoid(void *ptr, void (*del)(void *));
 
+extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
+#define Split DohSplit
 
 

@@ -187,6 +187,7 @@ CopyString(DOH *so) {
   memmove(str->str, s->str, max);
   str->maxsize= max;
   str->len = s->len;
+  str->str[str->len] = 0;
   return (DOH *) str;
 }
   
@@ -279,7 +280,8 @@ add(String *s, const char *newstr) {
     s->maxsize = newmaxsize;
   }
   strcpy(s->str+s->len,newstr);
-  if (s->sp >= s->len) s->sp+=l;
+  if (s->sp >= s->len) 
+    s->sp+=l;
   s->len += l;
 }  
 
@@ -312,7 +314,10 @@ String_addchar(DOH *so, char c) {
     s->maxsize *= 2;
   }
   s->str[s->len] = c;
-  if (s->sp >= s->len) s->sp++;
+  if (s->sp >= s->len) {
+    s->sp++;
+    s->str[s->len+1] = 0;
+  }
   s->len++;
 }
 
