@@ -418,6 +418,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       }
       Seek(fs,0,SEEK_SET);
       cpps = Preprocessor_parse(fs);
+      if (Preprocessor_errors()) {
+	SWIG_exit(EXIT_FAILURE);
+      }
       if (cpp_only) {
 	Printf(stdout,"%s", cpps);
 	while (freeze);
