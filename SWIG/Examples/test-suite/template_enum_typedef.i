@@ -1,5 +1,7 @@
 %module template_enum_typedef
 
+%warnfilter(801) oss::etraits; /* Ruby, wrong class name */
+
 %inline %{
  
   namespace oss

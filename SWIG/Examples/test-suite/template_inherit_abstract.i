@@ -1,4 +1,7 @@
 %module template_inherit_abstract
+
+%warnfilter(801) oss::test; /* Ruby, wrong class name */
+
 %inline %{ 
  
   namespace oss 
