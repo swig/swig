@@ -17,18 +17,23 @@ SWIG release.  The guilty parties working on this are:
   -  Harco de Hilster (Harco.de.Hilster@ATComputing.nl) (Java)
   -  Thien-Thi Nguyen (ttn@glug.org)                    (Guile)
 
-*** IMPORTANT NOTICE -- READ THIS NOW! ***
+***********************************************************************
+*****             IMPORTANT NOTICE -- READ THIS NOW!              *****
+***********************************************************************
 
-If you downloaded this as a prepackaged release such as SWIG1.3a1, be
+If you downloaded SWIG as a prepackaged release such as SWIG1.3a2, be
 advised that this distribution represents a snapshot of the most
-stable part of the SWIG CVS repository.  Currently, SWIG is undergoing
-a large redevelopment effort.  The SWIG1.3 series of releases should
-be viewed as a transitional version leading to the eventual release 
-of SWIG2.0.
+stable part of the SWIG CVS repository.  As this is an unstable
+release, there is a pretty good chance that a number of features are
+broken or under repair.  Currently, SWIG is undergoing a large
+redevelopment effort.  The SWIG1.3 series of releases should be viewed
+as a transitional releases leading to the eventual release of SWIG2.0.
+First-time users may want to start with SWIG1.1p5 which is significantly
+more stable (and includes a wider range of documentation and examples).
 
 Please report any errors and submit patches (if possible)!  We only
 have access to a limited variety of hardware (Linux, Solaris, and
-Windows) so every contribution helps.
+Windows) so your contributions help.
 
 What's New?
 ===========
@@ -54,6 +59,12 @@ Here are a few missing features
 
    - A wide variety of old SWIG command-line options and
      obscure features are gone.
+
+What's Broken?
+==============
+
+   - The Guile module is undergoing a number of substantial
+     changes and may be inoperable in the SWIG1.3a2 release.
 
 Installation
 ============
@@ -81,6 +92,10 @@ Notes:
 
 (2) If you are using Windows, the easiest way to install and build 
     SWIG is to use the Cygwin package (http://sourceware.cygnus.com/cygwin/).
+    Note: Even if you build SWIG using Cygwin, the easier way to
+    actually use SWIG on Windows is to build your extensions using Visual C++.
+    The SWIG1.1p5 distribution also contains a number of examples configured
+    to work with Visual C++ (most of which should also work with SWIG1.3).
 
 Documentation
 =============
@@ -114,6 +129,7 @@ in ANSI C.  Please avoid C++ if at all possible. -- Dave ***
       DOH           - Object framework for the ANSI C core.
       Swig          - New SWIG core (ANSI C)
       Preprocessor  - SWIG preprocessor module
+      LParse        - Alternative parser that is mostly compatible with 1.1.
 
 Documentation for these components is weak or non-existent at this
 time. However, this should only matter if you are actually hacking
