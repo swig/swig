@@ -4,13 +4,19 @@ Version 1.3 Alpha 6 (Work in progress)
 ======================================
 
 01/16/01: ttn
+          Integrated XML output code contributed by Klaus Wiederaenders.
+          This includes new directories Examples/xml and Lib/xml, and
+          new files Source/Modules1.1/xml.*.  Usage: swig -xml OUT foo.i
+          which writes the foo.i parse tree to xml file OUT.
+
+01/16/01: ttn
 	  Wrote table of contents for Doc/engineering.html.  Added section
 	  on CVS tagging conventions.  Added copyright to other docs.
 
 12/23/00: beazley
           C++ wrappers now always include default constructors and destructors.
           Most people want these anyways.  In addition, this solves some
-          problems related to virtual destructors and derived classes 
+          problems related to virtual destructors and derived classes
           originally reported by Roy LeCates.  Note: constructor wrappers
           are never generated for abstract classes.
           *** NEW FEATURE ***
@@ -19,7 +25,7 @@ Version 1.3 Alpha 6 (Work in progress)
           Changes to class wrappers.   When SWIG sees two classes like this,
 
           class X {
-          public: 
+          public:
              void foo();
              ...
           }
@@ -62,14 +68,14 @@ Version 1.3 Alpha 6 (Work in progress)
 
 12/21/00: beazley
           The %readonly directive is now defined as a scope. For example:
-            
+
            %readonly {
                 int foo;
                 int bar;
            }
 
           *** INCOMPATIBILITY ***
-            
+
 12/21/00: beazley
           The %native directive is now a scope.  It works as follows:
 
@@ -104,7 +110,7 @@ Version 1.3 Alpha 6 (Work in progress)
                    ...
                }
 
-           or 
+           or
 
                %scope("readonly") {
                   /* Readonly variables */
@@ -114,14 +120,14 @@ Version 1.3 Alpha 6 (Work in progress)
 
           An unnamed scope can also be used:
 
-               %scope { 
+               %scope {
                   ... declarations ...
                }
 
           In addition to collecting objects, typemaps and other customization
           features defined within a scope only get applied to those objects.
           That is, a typemap defined in a scope will disappear at the end of
-          the scope. 
+          the scope.
           *** NEW FEATURE ***
 
 10/14/00: beazley
@@ -149,7 +155,7 @@ Version 1.3 Alpha 6 (Work in progress)
           %typemap(in) type { ... }
           #endif
           *** POTENTIAL INCOMPATIBILITY ***
-          
+
 9/30/00 : beazley
           %native directive no longer applies to a single entry, but rather
           defines a new scope.  For example:
@@ -186,7 +192,7 @@ Version 1.3 Alpha 6 (Work in progress)
           directive:
 
                %insert("section")  %{ code %}
-               
+
           or
 
                %insert("section") "filename"
@@ -195,7 +201,7 @@ Version 1.3 Alpha 6 (Work in progress)
           extensible--language modules can define their own code sections for
           shadow classes or whatever.
 
-          The old SWIG directives such as %wrapper %{ ... %} are now really 
+          The old SWIG directives such as %wrapper %{ ... %} are now really
           defined as preprocessor macros. For example:
 
                #define %wrapper %insert("wrapper")
@@ -208,7 +214,7 @@ Version 1.3 Alpha 6 (Work in progress)
 
 :::: NOTE :::: All CHANGES entries newer than the 1.3a5 release refer to the new
 core, new parser, and redesigned module system.
-          
+
 Version 1.3 Alpha 5 (September 22, 2000)
 ========================================
 
@@ -223,7 +229,7 @@ Version 1.3 Alpha 5 (September 22, 2000)
 
 9/19/00 : beazley
           Fixed some problems with enum handling.  enums are now manipulated as
-          'int', but cast into the enum type when values are passed to the 
+          'int', but cast into the enum type when values are passed to the
           corresponding C function.
 
 9/19/00 : mkoeppe
@@ -233,11 +239,11 @@ Version 1.3 Alpha 5 (September 22, 2000)
 	  internals.html.
 
 9/18/00 : mkoeppe
-	  Incorporated patch #101430, fixing bugs in the Guile module: 
+	  Incorporated patch #101430, fixing bugs in the Guile module:
 	  1. Some arguments were erroneously taken as *optional* arguments when
-	     ignored arguments were present. 
+	     ignored arguments were present.
 	  2. Guile 1.3.4 was not supported since functions introduced in Guile
-	      1.4 were used.	  
+	      1.4 were used.
 	  3. Added handling of `const char *'.
 
 9/17/00 : beazley
@@ -547,14 +553,14 @@ Version 1.3 Alpha 4 (September 4, 2000)
           *** POTENTIAL INCOMPATIBILITY ***
 
 8/15/00 : beazley
-          Secret developer feature.  Since datatypes are now represented as 
+          Secret developer feature.  Since datatypes are now represented as
           strings internally, you can bypass limitations of the parser and
           create a wild datatype by simply enclosing the raw string encoding
           in backticks (``) and sticking it in the interface file anywhere a
-          type is expected.  For example, `a(20).a(10).p.f(int,int)`.  This 
+          type is expected.  For example, `a(20).a(10).p.f(int,int)`.  This
           feature is only intended for testing (i.e., you want to see what
           happens to your language module if it gets a reference to a pointer
-          to an array of pointers to functions or something). 
+          to an array of pointers to functions or something).
           *** SICK HACK ***
 
 8/14/00 : beazley
