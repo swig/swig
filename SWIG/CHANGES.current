@@ -1,6 +1,11 @@
 Version 1.3.24 (December 14, 2004)
 ==================================
 
+12/11/2004: wsfulton
+            configure fix for when more than one version of jni_md.h is found
+            in the Java include directory (was generating lots of sed error
+            messages).
+
 12/08/2004: wsfulton
             [Java] Fixes to arrays_java.i so that one can apply the array
             typemaps to functions taking pointers as input, eg
