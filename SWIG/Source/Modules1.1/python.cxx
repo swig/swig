@@ -677,7 +677,13 @@ PYTHON::classHandler(Node *n) {
 
     Printv(f_shadow,
 	   tab4, "def __setattr__(self,name,value):\n",
-	   tab8, "if (name == \"this\") or (name == \"thisown\"): self.__dict__[name] = value; return\n",
+	   tab8, "if (name == \"this\"):\n",
+	   tab8, tab4, "if isinstance(value,", class_name, "):\n",
+	   tab8, tab8, "self.__dict__[name] = value.this\n",
+	   tab8, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n",
+	   tab8, tab8, "del value.thisown\n",
+	   tab8, tab8, "return\n",
+	   //	   tab8, "if (name == \"this\") or (name == \"thisown\"): self.__dict__[name] = value; return\n",
 	   tab8, "method = ", class_name, ".__setmethods__.get(name,None)\n",
 	   tab8, "if method: return method(self,value)\n",
 	   tab8, "self.__dict__[name] = value\n\n",
@@ -730,8 +736,10 @@ PYTHON::classHandler(Node *n) {
     Printv(f_shadow,
 	   "\nclass ", class_name, "Ptr(", class_name, "):\n",
 	   tab4, "def __init__(self,this):\n",
-	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
-	   tab8,"except AttributeError: self.this = this\n"
+	   tab8, "self.this = this\n",
+	   tab8, "if not hasattr(self,\"thisown\"): self.thisown = 0\n",
+	   //	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
+	   //	   tab8,"except AttributeError: self.this = this\n"
 	   tab8, "self.__class__ = ", class_name, "\n",
 	   0);
 
@@ -796,16 +804,19 @@ PYTHON::constructorHandler(Node *n) {
       } else {
 	if (use_kw) {
 	  Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", 0);
-	  Printv(f_shadow, tab8, "this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", 0);
+	  Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", 0);
 	}  else {
 	  Printv(f_shadow, tab4, "def __init__(self,*args):\n",0);
-	  Printv(f_shadow, tab8, "this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", 0);
+	  Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", 0);
 	}
 	Printv(f_shadow,
-	       tab8,"try: self.this = this.this; this.thisown=0\n",
-	       tab8,"except AttributeError: self.this = this\n",0);
+	       tab8, "self.thisown = 1\n",
+	       0);
+
+	       /*	       tab8,"try: self.this = this.this; this.thisown=0\n",
+			       tab8,"except AttributeError: self.this = this\n",0); */
 	
-	Printv(f_shadow, tab8, "self.thisown = 1\n", 0);
+	       /*	Printv(f_shadow, tab8, "self.thisown = 1\n", 0); */
       }
       have_constructor = 1;
     } else {
@@ -821,11 +832,11 @@ PYTHON::constructorHandler(Node *n) {
 	else
 	  Printv(f_shadow_stubs, "def ", symname, "(*args):\n", 0);
 	
-	Printv(f_shadow_stubs, tab4, "val = ", class_name, "Ptr(apply(", 0);
+	Printv(f_shadow_stubs, tab4, "val = apply(", 0);
 	if (use_kw)
-	  Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs))\n", 0);
+	  Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs)\n", 0);
 	else
-	  Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args))\n", 0);
+	  Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args)\n", 0);
 	Printv(f_shadow_stubs,tab4, "val.thisown = 1\n",
 	       tab4, "return val\n\n", 0);
       }
