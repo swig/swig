@@ -1,9 +1,9 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * string.c
  *
  *     Implements a string object that supports both sequence operations and
  *     file semantics.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
@@ -52,7 +52,7 @@ int     String_putc(DOH *s, int ch);
 int     String_ungetc(DOH *s, int ch);
 int     String_seek(DOH *s, long offset, int whence);
 long    String_tell(DOH *s);
-int     String_replace(DOH *str, DOH *token, DOH *rep, int flags);    
+int     String_replace(DOH *str, DOH *token, DOH *rep, int flags);
 void    String_chop(DOH *str);
 
 static DohSequenceMethods StringSeqMethods = {
@@ -97,7 +97,7 @@ static DohObjInfo StringType = {
     0,                 /* doh_mapping */
     &StringSeqMethods, /* doh_sequence */
     &StringFileMethods,/* doh_file */
-    &StringStringMethods, /* doh_string */ 
+    &StringStringMethods, /* doh_string */
     0,                 /* doh_callable */ 
     0,                 /* doh_position */
 };
@@ -118,7 +118,7 @@ void *String_data(DOH *so) {
 }
 
 /* -----------------------------------------------------------------------------
- * int  String_dump(DOH *so, DOH *out) 
+ * int  String_dump(DOH *so, DOH *out)
  *
  * Serialize a string onto out
  * ----------------------------------------------------------------------------- */
@@ -127,7 +127,7 @@ int String_dump(DOH *so, DOH *out) {
   int nsent;
   int ret;
   String *s;
-  
+
   s = (String *) so;
   nsent = 0;
   while (nsent < s->len) {
@@ -142,7 +142,7 @@ int String_dump(DOH *so, DOH *out) {
  * NewString(const char *c) - Create a new string
  * ----------------------------------------------------------------------------- */
 DOH *
-NewString(DOH *so)
+NewString(const DOH *so)
 {
     int l = 0, max;
     String *str;
@@ -219,7 +219,7 @@ CopyString(DOH *so) {
   str->str[str->len] = 0;
   return (DOH *) str;
 }
-  
+
 /* -----------------------------------------------------------------------------
  * DelString(DOH *s) - Delete a string
  * ----------------------------------------------------------------------------- */
@@ -228,7 +228,7 @@ DelString(DOH *so) {
   String *s;
   s = (String *) so;
   assert(s->refcount <= 0);
-  if (s->str) 
+  if (s->str)
     DohFree(s->str);
   s->str = 0;
   Delete(s->file);
@@ -239,7 +239,7 @@ DelString(DOH *so) {
  * int String_check(DOH *s) - Check if s is a string
  * ----------------------------------------------------------------------------- */
 int
-String_check(DOH *s) 
+String_check(DOH *s)
 {
   char *c = (char *) s;
   if (!s) return 0;
@@ -255,7 +255,7 @@ String_check(DOH *s)
  * int String_len(DOH *s) - Length of a string
  * ----------------------------------------------------------------------------- */
 
-int 
+int
 String_len(DOH *so) {
   String *s = (String *)so;
   return s->len;
@@ -302,7 +302,7 @@ int String_hash(DOH *so) {
   c = s->str;
   len = s->len > 50 ? 50 : s->len;
   for (i = 0; i < len; i++) {
-    h = (((h << 5) + *(c++))); 
+    h = (((h << 5) + *(c++)));
   }
   h = h & 0x7fffffff;
   s->hashkey = h;
@@ -337,7 +337,7 @@ add(String *s, const char *newstr) {
     s->sp = s->len+l;
   }
   s->len += l;
-}  
+}
 
 /* Add a single character to s */
 void
@@ -387,7 +387,7 @@ String_clear(DOH *so)
   s->line = 1;
   s->pbi = 0;
 }
-  
+
 void
 raw_insert(String *s, int pos, char *data, int len)
 {
@@ -421,7 +421,7 @@ raw_insert(String *s, int pos, char *data, int len)
       s->sp+=len;
     }
 
-    s->len += len; 
+    s->len += len;
     s->str[s->len] = 0;
 }  
 
@@ -450,7 +450,7 @@ String_insert(DOH *so, int pos, DOH *str)
 
 /* -----------------------------------------------------------------------------
  * int String_delitem(DOH *so, int pos)
- * 
+ *
  * Delete an individual item
  * ----------------------------------------------------------------------------- */
 
@@ -473,7 +473,7 @@ int String_delitem(DOH *so, int pos)
   s->str[s->len] = 0;
   return 0;
 }
-  
+
 /* -----------------------------------------------------------------------------
  * DOH *String_str(DOH *so) - Returns a string (used by printing commands)
  * ----------------------------------------------------------------------------- */
@@ -488,7 +488,7 @@ String_str(DOH *so) {
 
 /* -----------------------------------------------------------------------------
  * int String_read(DOH *so, void *buffer, int len)
- * 
+ *
  * Read data from the string
  * ----------------------------------------------------------------------------- */
 int
@@ -517,7 +517,7 @@ String_read(DOH *so, void *buffer, int len) {
 
 /* -----------------------------------------------------------------------------
  * int String_write(DOH *so, void *buffer, int len)
- * 
+ *
  * Write data to the string
  * ----------------------------------------------------------------------------- */
 int
@@ -541,7 +541,7 @@ String_write(DOH *so, void *buffer, int len) {
 
 /* -----------------------------------------------------------------------------
  * int String_seek(DOH *so, long offset, int whence)
- * 
+ *
  * Seek to a new position
  * ----------------------------------------------------------------------------- */
 int
@@ -562,7 +562,7 @@ String_seek(DOH *so, long offset, int whence) {
   if (nsp > s->sp) inc = 1;
   else inc = -1;
 #ifdef DOH_STRING_UPDATE_LINES
-  while (s->sp != nsp) { 
+  while (s->sp != nsp) {
     if (s->str[s->sp-1] == '\n') s->line += inc;
     s->sp += inc;
   }
@@ -574,7 +574,7 @@ String_seek(DOH *so, long offset, int whence) {
 
 /* -----------------------------------------------------------------------------
  * long String_tell(DOH *so)
- * 
+ *
  * Return current position
  * ----------------------------------------------------------------------------- */
 long
@@ -658,7 +658,7 @@ int String_ungetc(DOH *so, int ch) {
  *         DOH_REPLACE_NOQUOTE       -   Don't replace in quotes
  *         DOH_REPLACE_ID            -   Only replace valid identifiers
  *         DOH_REPLACE_FIRST         -   Only replace first occurrence
- * 
+ *
  * start is a starting position. count is a count.
  * ----------------------------------------------------------------------------- */
 
@@ -678,7 +678,7 @@ int replace_internal(String *str, char *token, char *rep, int flags, char *start
     tokenlen = strlen(token);
 
     /* If a starting position was given, dump those characters first */
-  
+
     if (start) {
 	c = start;
     } else {
@@ -778,7 +778,7 @@ int replace_internal(String *str, char *token, char *rep, int flags, char *start
  * int String_replace(DOH *str, DOH *token, DOH *rep, int flags)
  * ----------------------------------------------------------------------------- */
 
-int 
+int
 String_replace(DOH *stro, DOH *token, DOH *rep, int flags)
 {
     int count = -1;
@@ -801,7 +801,7 @@ String_chop(DOH *s) {
   String *str = (String *) s;
   if (!String_check(s)) return;
   /* assert(!str->refcount); */
-  
+
   /* Replace trailing whitespace */
   c = str->str + str->len - 1;
   while ((str->len >= 0) && (isspace(*c))) {
@@ -817,4 +817,4 @@ String_chop(DOH *s) {
   str->hashkey = -1;
   str->pbi = 0;
 }
-  
+
