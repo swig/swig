@@ -104,17 +104,30 @@ namespace std {
         }
     }
 
+    %typemap(in) string * (std::string *temp) {
+        if (caml_ptr_check($input)) {
+            temp = new std::string((char *)caml_ptr_val($input,0));
+            $1 = temp;
+        } else {
+            SWIG_exception(SWIG_TypeError, "string expected");
+        }
+    }
+
+    %typemap(free) string * (std::string *temp) {
+	delete temp;
+    }
+
     %typemap(argout) string & {
-	caml_list_append(swig_result,caml_val_string_len($1->c_str(),
-							 $1->size()));
+	caml_list_append(swig_result,caml_val_string_len((*$1).c_str(),
+							 (*$1).size()));
     }
 
     %typemap(out) string {
         $result = caml_val_string_len($1.c_str(),$1.size());
     }
 
-    %typemap(out) const string & {
-        $result = caml_val_string_len($1.c_str(),$1.size());
+    %typemap(out) string * {
+	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
     }
 }
 

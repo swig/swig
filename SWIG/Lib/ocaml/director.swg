@@ -15,30 +15,6 @@
 
 #include <string>
 
-/* base class for director exceptions */
-class SWIG_DIRECTOR_EXCEPTION {
-protected:
-  std::string _msg;
-public:
-  SWIG_DIRECTOR_EXCEPTION(const char* msg="") {
-  }
-  const char *getMessage() { return _msg.c_str(); }
-  virtual ~SWIG_DIRECTOR_EXCEPTION() { }
-};
-
-/* type mismatch in the return CAML_VALUE from a ocaml method call */
-class SWIG_DIRECTOR_TYPE_MISMATCH: public SWIG_DIRECTOR_EXCEPTION {
-public:
-  SWIG_DIRECTOR_TYPE_MISMATCH(const char* msg="") {
-    _msg = "Swig director type mismatch: ";
-    _msg += msg;
-    failwith((char *)_msg.c_str());
-  }
-};
-
-/* any ocaml exception that occurs during a director method call */
-class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION { };
-
 /* simple thread abstraction for pthreads or win32 */
 #ifdef __THREAD__
   #define __PTHREAD__

@@ -84,17 +84,17 @@ extern "C" {
     SWIGSTATIC void caml_print_list( CAML_VALUE v );
 
     SWIGSTATIC void caml_print_val( CAML_VALUE v ) {
-	switch( Tag_val(v) ) {
+	switch( SWIG_Tag_val(v) ) {
 	case C_bool:
-	    if( Bool_val(Field(v,0)) ) fprintf( stderr, "true " );
+	    if( Bool_val(SWIG_Field(v,0)) ) fprintf( stderr, "true " );
 	    else fprintf( stderr, "false " );
 	    break;
 	case C_char:
 	case C_uchar:
 	    fprintf( stderr, "'%c' (\\%03d) ", 
-		     (Int_val(Field(v,0)) >= ' ' &&
-		      Int_val(Field(v,0)) < 127) ? Int_val(Field(v,0)) : '.',
-		     Int_val(Field(v,0)) );
+		     (Int_val(SWIG_Field(v,0)) >= ' ' &&
+		      Int_val(SWIG_Field(v,0)) < 127) ? Int_val(SWIG_Field(v,0)) : '.',
+		     Int_val(SWIG_Field(v,0)) );
 	    break;
 	case C_short:
 	case C_ushort:
@@ -117,7 +117,7 @@ extern "C" {
 	case C_ptr:
 	{
 	    void *vout = 0;
-	    swig_type_info *ty = (swig_type_info *)(long)Int64_val(Field(v,1));
+	    swig_type_info *ty = (swig_type_info *)(long)SWIG_Int64_val(SWIG_Field(v,1));
 	    caml_ptr_val_internal(v,&vout,0);
 	    fprintf( stderr, "PTR(%p,%s) ", 
 		     vout,
@@ -127,15 +127,15 @@ extern "C" {
 	case C_array:
 	{
 	    unsigned int i;
-	    for( i = 0; i < Wosize_val( Field(v,0) ); i++ ) 
-		caml_print_val( Field(Field(v,0),i) );
+	    for( i = 0; i < Wosize_val( SWIG_Field(v,0) ); i++ ) 
+		caml_print_val( SWIG_Field(SWIG_Field(v,0),i) );
 	}
 	break;
 	case C_list:
-	    caml_print_list( Field(v,0) );
+	    caml_print_list( SWIG_Field(v,0) );
 	    break;
 	case C_obj:
-	    fprintf( stderr, "OBJ(%p) ", (void *)Field(v,0) );
+	    fprintf( stderr, "OBJ(%p) ", (void *)SWIG_Field(v,0) );
 	    break;
 	case C_string:
 	{
@@ -151,9 +151,9 @@ extern "C" {
 	CAMLparam1(v);
 	while( v && Is_block(v) ) {
 	    fprintf( stderr, "[ " );
-	    caml_print_val( Field(v,0) );
+	    caml_print_val( SWIG_Field(v,0) );
 	    fprintf( stderr, "]\n" );
-	    v = Field(v,1);
+	    v = SWIG_Field(v,1);
 	}
     }
 
@@ -161,15 +161,15 @@ extern "C" {
 	CAMLparam1(lst);
 	int i = 0;
 	while( i < n && lst && Is_block(lst) ) {
-	    i++; lst = Field(lst,1);
+	    i++; lst = SWIG_Field(lst,1);
 	}
 	if( lst == Val_unit ) CAMLreturn(Val_unit);
-	else CAMLreturn(Field(lst,0));
+	else CAMLreturn(SWIG_Field(lst,0));
     }
     
     SWIGSTATIC CAML_VALUE caml_list_append( CAML_VALUE lst, CAML_VALUE elt ) {
 	CAMLparam2(lst,elt);
-	CAMLlocal3(v,vt,lh);
+	SWIG_CAMLlocal3(v,vt,lh);
 	lh = Val_unit;
 	v = Val_unit;
 
@@ -179,24 +179,24 @@ extern "C" {
 	while( lst && Is_block(lst) ) {
 	    if( v && v != Val_unit ) {
 		vt = alloc_tuple(2);
-		Store_field(v,1,vt);
+		SWIG_Store_field(v,1,vt);
 		v = vt;
 	    } else {
 		v = lh = alloc_tuple(2);
 	    }
-	    Store_field(v,0,Field(lst,0));
-	    lst = Field(lst,1);
+	    SWIG_Store_field(v,0,SWIG_Field(lst,0));
+	    lst = SWIG_Field(lst,1);
 	}
 
 	if( v && Is_block(v) ) {
 	    vt = alloc_tuple(2);
-	    Store_field(v,1,vt);
+	    SWIG_Store_field(v,1,vt);
 	    v = vt;
 	} else {
 	    v = lh = alloc_tuple(2);
 	}
-	Store_field(v,0,elt);
-	Store_field(v,1,Val_unit);
+	SWIG_Store_field(v,0,elt);
+	SWIG_Store_field(v,1,Val_unit);
 
 	CAMLreturn(lh);
     }
@@ -204,21 +204,21 @@ extern "C" {
     SWIGSTATIC int caml_list_length( CAML_VALUE lst ) {
 	CAMLparam1(lst);
 	int i = 0;
-	while( lst && Is_block(lst) ) { i++; lst = Field(lst,1); }
+	while( lst && Is_block(lst) ) { i++; lst = SWIG_Field(lst,1); }
 	CAMLreturn(i);
     }
 
     SWIGSTATIC void caml_array_set( CAML_VALUE arr, int n, CAML_VALUE item ) {
 	CAMLparam2(arr,item);
-	Store_field(Field(arr,0),n,item);
+	SWIG_Store_field(SWIG_Field(arr,0),n,item);
 	CAMLreturn0;
     }
 
     SWIGSTATIC value caml_array_nth( CAML_VALUE arr, int n ) {
 	CAMLparam1(arr);
-	if( Tag_val(arr) == C_array )
-	    CAMLreturn(Field(Field(arr,0),n));
-	else if( Tag_val(arr) == C_list )
+	if( SWIG_Tag_val(arr) == C_array )
+	    CAMLreturn(SWIG_Field(SWIG_Field(arr,0),n));
+	else if( SWIG_Tag_val(arr) == C_list )
 	    CAMLreturn(caml_list_nth(arr,0));
 	else
 	    failwith("Need array or list");
@@ -226,9 +226,9 @@ extern "C" {
 
     SWIGSTATIC int caml_array_len( CAML_VALUE arr ) {
 	CAMLparam1(arr);
-	if( Tag_val(arr) == C_array )
-	    CAMLreturn(Wosize_val(Field(arr,0)));
-	else if( Tag_val(arr) == C_list )
+	if( SWIG_Tag_val(arr) == C_array )
+	    CAMLreturn(Wosize_val(SWIG_Field(arr,0)));
+	else if( SWIG_Tag_val(arr) == C_list )
 	    CAMLreturn(caml_list_length(arr));
 	else
 	    failwith("Need array or list");
@@ -252,125 +252,125 @@ extern "C" {
 
     SWIGSTATIC value caml_array_new( int n ) {
 	CAMLparam0();
-	CAMLlocal1(vv);
+	SWIG_CAMLlocal1(vv);
 	vv = caml_swig_alloc(1,C_array);
-	Store_field(vv,0,alloc_tuple(n));
+	SWIG_Store_field(vv,0,alloc_tuple(n));
 	CAMLreturn(vv);
     }
     
     SWIGSTATIC CAML_VALUE caml_val_bool( int b ) {
 	CAMLparam0();
-	CAMLlocal1(bv);
+	SWIG_CAMLlocal1(bv);
 	bv = caml_swig_alloc(1,C_bool);
-	Store_field(bv,0,Val_bool(b));
+	SWIG_Store_field(bv,0,Val_bool(b));
 	CAMLreturn(bv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_char( char c ) {
 	CAMLparam0();
-	CAMLlocal1(cv);
+	SWIG_CAMLlocal1(cv);
 	cv = caml_swig_alloc(1,C_char);
-	Store_field(cv,0,Val_int(c));
+	SWIG_Store_field(cv,0,Val_int(c));
 	CAMLreturn(cv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_uchar( unsigned char uc ) {
 	CAMLparam0();
-	CAMLlocal1(ucv);
+	SWIG_CAMLlocal1(ucv);
 	ucv = caml_swig_alloc(1,C_uchar);
-	Store_field(ucv,0,Val_int(uc));
+	SWIG_Store_field(ucv,0,Val_int(uc));
 	CAMLreturn(ucv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_short( short s ) {
 	CAMLparam0();
-	CAMLlocal1(sv);
+	SWIG_CAMLlocal1(sv);
 	sv = caml_swig_alloc(1,C_short);
-	Store_field(sv,0,Val_int(s));
+	SWIG_Store_field(sv,0,Val_int(s));
 	CAMLreturn(sv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_ushort( unsigned short us ) {
 	CAMLparam0();
-	CAMLlocal1(usv);
+	SWIG_CAMLlocal1(usv);
 	usv = caml_swig_alloc(1,C_ushort);
-	Store_field(usv,0,Val_int(us));
+	SWIG_Store_field(usv,0,Val_int(us));
 	CAMLreturn(usv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_int( int i ) {
 	CAMLparam0();
-	CAMLlocal1(iv);
+	SWIG_CAMLlocal1(iv);
 	iv = caml_swig_alloc(1,C_int);
-	Store_field(iv,0,Val_int(i));
+	SWIG_Store_field(iv,0,Val_int(i));
 	CAMLreturn(iv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_uint( unsigned int ui ) {
 	CAMLparam0();
-	CAMLlocal1(uiv);
+	SWIG_CAMLlocal1(uiv);
 	uiv = caml_swig_alloc(1,C_int);
-	Store_field(uiv,0,Val_int(ui));
+	SWIG_Store_field(uiv,0,Val_int(ui));
 	CAMLreturn(uiv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_long( long l ) {
 	CAMLparam0();
-	CAMLlocal1(lv);
+	SWIG_CAMLlocal1(lv);
 	lv = caml_swig_alloc(1,C_int64);
-	Store_field(lv,0,copy_int64(l));
+	SWIG_Store_field(lv,0,copy_int64(l));
 	CAMLreturn(lv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_ulong( unsigned long ul ) {
 	CAMLparam0();
-	CAMLlocal1(ulv);
+	SWIG_CAMLlocal1(ulv);
 	ulv = caml_swig_alloc(1,C_int64);
-	Store_field(ulv,0,copy_int64(ul));
+	SWIG_Store_field(ulv,0,copy_int64(ul));
 	CAMLreturn(ulv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_float( float f ) {
 	CAMLparam0();
-	CAMLlocal1(fv);
+	SWIG_CAMLlocal1(fv);
 	fv = caml_swig_alloc(1,C_float);
-	Store_field(fv,0,copy_double(f));
+	SWIG_Store_field(fv,0,copy_double(f));
 	CAMLreturn(fv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_double( double d ) {
 	CAMLparam0();
-	CAMLlocal1(fv);
+	SWIG_CAMLlocal1(fv);
 	fv = caml_swig_alloc(1,C_double);
-	Store_field(fv,0,copy_double(d));
+	SWIG_Store_field(fv,0,copy_double(d));
 	CAMLreturn(fv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_ptr( void *p, swig_type_info *info ) {
 	CAMLparam0();
-	CAMLlocal1(vv);
+	SWIG_CAMLlocal1(vv);
 	vv = caml_swig_alloc(2,C_ptr);
-	Store_field(vv,0,copy_int64((long)p));
-	Store_field(vv,1,copy_int64((long)info));
+	SWIG_Store_field(vv,0,copy_int64((long)p));
+	SWIG_Store_field(vv,1,copy_int64((long)info));
 	CAMLreturn(vv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_string( const char *p ) {
 	CAMLparam0();
-	CAMLlocal1(vv);
+	SWIG_CAMLlocal1(vv);
 	if( !p ) CAMLreturn(caml_val_ptr( (void *)p, 0 ));
 	vv = caml_swig_alloc(1,C_string);
-	Store_field(vv,0,copy_string(p));
+	SWIG_Store_field(vv,0,copy_string(p));
 	CAMLreturn(vv);
     }
 
     SWIGSTATIC CAML_VALUE caml_val_string_len( const char *p, int len ) {
 	CAMLparam0();
-	CAMLlocal1(vv);
+	SWIG_CAMLlocal1(vv);
 	if( !p || len < 0 ) CAMLreturn(caml_val_ptr( (void *)p, 0 ));
 	vv = caml_swig_alloc(1,C_string);
-	Store_field(vv,0,alloc_string(len));
-	memcpy(String_val(Field(vv,0)),p,len);
+	SWIG_Store_field(vv,0,alloc_string(len));
+	memcpy(String_val(SWIG_Field(vv,0)),p,len);
 	CAMLreturn(vv);
     }
 
@@ -385,28 +385,28 @@ extern "C" {
 	CAMLparam1(v);
 	if( !Is_block(v) ) return 0;
 
-	switch( Tag_val(v) ) {
+	switch( SWIG_Tag_val(v) ) {
 	case C_bool:
 	case C_char:
 	case C_uchar:
 	case C_short:
 	case C_ushort:
 	case C_int:
-	    CAMLreturn(Int_val(Field(v,0)));
+	    CAMLreturn(Int_val(SWIG_Field(v,0)));
 	case C_uint:
 	case C_int32:
-	    CAMLreturn(Int32_val(Field(v,0)));
+	    CAMLreturn(Int32_val(SWIG_Field(v,0)));
 	case C_int64:
-	    CAMLreturn((long)Int64_val(Field(v,0)));
+	    CAMLreturn((long)SWIG_Int64_val(SWIG_Field(v,0)));
 	case C_float:
 	case C_double:
-	    CAMLreturn((long)Double_val(Field(v,0)));
+	    CAMLreturn((long)Double_val(SWIG_Field(v,0)));
 	case C_string:
-	    CAMLreturn((long)String_val(Field(v,0)));
+	    CAMLreturn((long)String_val(SWIG_Field(v,0)));
 	case C_ptr:
-	    CAMLreturn((long)Int64_val(Field(Field(v,0),0)));
+	    CAMLreturn((long)SWIG_Int64_val(SWIG_Field(SWIG_Field(v,0),0)));
 	case C_enum: {
-	    CAMLlocal1(ret);
+	    SWIG_CAMLlocal1(ret);
 	    CAML_VALUE *enum_to_int = caml_named_value(SWIG_MODULE "_enum_to_int");
 	    if( !name ) failwith( "Not an enum conversion" );
 	    ret = callback2(*enum_to_int,*caml_named_value(name),v);
@@ -424,24 +424,24 @@ extern "C" {
     SWIGSTATIC double caml_double_val( CAML_VALUE v ) {
 	CAMLparam1(v);
 	if( !Is_block(v) ) return 0.0;
-	switch( Tag_val(v) ) {
+	switch( SWIG_Tag_val(v) ) {
 	case C_bool:
 	case C_char:
 	case C_uchar:
 	case C_short:
 	case C_ushort:
 	case C_int:
-	    CAMLreturn(Int_val(Field(v,0)));
+	    CAMLreturn(Int_val(SWIG_Field(v,0)));
 	case C_uint:
 	case C_int32:
-	    CAMLreturn(Int32_val(Field(v,0)));
+	    CAMLreturn(Int32_val(SWIG_Field(v,0)));
 	case C_int64:
-	    CAMLreturn(Int64_val(Field(v,0)));
+	    CAMLreturn(SWIG_Int64_val(SWIG_Field(v,0)));
 	case C_float:
 	case C_double:
-	    CAMLreturn(Double_val(Field(v,0)));
+	    CAMLreturn(Double_val(SWIG_Field(v,0)));
 	default:
-	    fprintf( stderr, "Unknown block tag %d\n", Tag_val(v) );
+	    fprintf( stderr, "Unknown block tag %d\n", SWIG_Tag_val(v) );
 	    failwith("No conversion to double");
 	}
     }
@@ -457,7 +457,7 @@ extern "C" {
 	    CAMLreturn(0);
 	}
 	if( !Is_block(v) ) return -1;
-	switch( Tag_val(v) ) {
+	switch( SWIG_Tag_val(v) ) {
 	case C_int:
 	    if( !caml_long_val( v ) ) {
 		*out = 0;
@@ -473,11 +473,11 @@ extern "C" {
 		 (callback(*caml_named_value("caml_obj_ptr"),v),
 		  out,descriptor));
 	case C_string:
-	    outptr = (void *)String_val(Field(v,0));
+	    outptr = (void *)String_val(SWIG_Field(v,0));
 	    break;
 	case C_ptr:
-	    outptr = (void *)(long)Int64_val(Field(v,0));
-            outdescr = (swig_type_info *)(long)Int64_val(Field(v,1));
+	    outptr = (void *)(long)SWIG_Int64_val(SWIG_Field(v,0));
+            outdescr = (swig_type_info *)(long)SWIG_Int64_val(SWIG_Field(v,1));
 	    break;
 	default:
 	    *out = 0;
@@ -509,7 +509,7 @@ extern "C" {
 	
 	if( !Is_block(v) ) return 0;
 	
-	switch( Tag_val(v) ) {
+	switch( SWIG_Tag_val(v) ) {
 	case C_bool:
 	case C_ptr:
 	case C_string:
@@ -524,7 +524,7 @@ extern "C" {
 	
 	if( !Is_block(v) ) return 0;
 	
-	switch( Tag_val(v) ) {
+	switch( SWIG_Tag_val(v) ) {
 	case C_char:
 	case C_uchar:
 	case C_short:
@@ -544,7 +544,7 @@ extern "C" {
 	CAMLparam1(v);
 	if( !Is_block(v) ) return 0;
 
-	switch( Tag_val(v) ) {
+	switch( SWIG_Tag_val(v) ) {
 	case C_float:
 	case C_double:
 	    CAMLreturn(1);
@@ -558,7 +558,7 @@ extern "C" {
 	CAMLparam1(v);
 	if( !Is_block(v) ) return 0;
 
-	switch( Tag_val(v) ) {
+	switch( SWIG_Tag_val(v) ) {
 	case C_string:
 	case C_ptr:
 	case C_int64:
@@ -572,3 +572,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#undef value

@@ -7,7 +7,7 @@
 %typecheck(SWIG_TYPECHECK_INTEGER) char, signed char, const char &, const signed char & {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_char: $1 = 1; break;
       default: $1 = 0; break;
       }
@@ -17,7 +17,7 @@
 %typecheck(SWIG_TYPECHECK_INTEGER) unsigned char, const unsigned char & {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_uchar: $1 = 1; break;
       default: $1 = 0; break;
       }
@@ -27,7 +27,7 @@
 %typecheck(SWIG_TYPECHECK_INTEGER) short, signed short, const short &, const signed short &, wchar_t {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_short: $1 = 1; break;
       default: $1 = 0; break;
       }
@@ -37,7 +37,7 @@
 %typecheck(SWIG_TYPECHECK_INTEGER) unsigned short, const unsigned short & {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_ushort: $1 = 1; break;
       default: $1 = 0; break;
       }
@@ -50,7 +50,7 @@
 %typecheck(SWIG_TYPECHECK_INTEGER) int, signed int, const int &, const signed int &, enum SWIGTYPE {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_int: $1 = 1; break;
       default: $1 = 0; break;
       }
@@ -60,7 +60,7 @@
 %typecheck(SWIG_TYPECHECK_INTEGER) unsigned int, const unsigned int & {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_uint: $1 = 1; break;
       case C_int32: $1 = 1; break;
       default: $1 = 0; break;
@@ -71,7 +71,7 @@
 %typecheck(SWIG_TYPECHECK_INTEGER) long, signed long, unsigned long, long long, signed long long, unsigned long long, const long &, const signed long &, const unsigned long &, const long long &, const signed long long &, const unsigned long long & {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_int64: $1 = 1; break;
       default: $1 = 0; break;
       }
@@ -81,7 +81,7 @@
 %typecheck(SWIG_TYPECHECK_INTEGER) bool, oc_bool, BOOL, const bool &, const oc_bool &, const BOOL & {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_bool: $1 = 1; break;
       default: $1 = 0; break;
       }
@@ -91,7 +91,7 @@
 %typecheck(SWIG_TYPECHECK_DOUBLE) float, const float & {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_float: $1 = 1; break;
       default: $1 = 0; break;
       }
@@ -101,7 +101,7 @@
 %typecheck(SWIG_TYPECHECK_DOUBLE) double, const double & {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_double: $1 = 1; break;
       default: $1 = 0; break;
       }
@@ -111,11 +111,11 @@
 %typecheck(SWIG_TYPECHECK_STRING) char * {
   if( !Is_block($input) ) $1 = 0;
   else {
-      switch( Tag_val($input) ) {
+      switch( SWIG_Tag_val($input) ) {
       case C_string: $1 = 1; break;
       case C_ptr: {
 	swig_type_info *typeinfo = 
-	    (swig_type_info *)(long)Int64_val(Field($input,1));
+	    (swig_type_info *)(long)SWIG_Int64_val(SWIG_Field($input,1));
 	$1 = SWIG_TypeCheck("char *",typeinfo) ||
 	     SWIG_TypeCheck("signed char *",typeinfo) ||
 	     SWIG_TypeCheck("unsigned char *",typeinfo) ||
