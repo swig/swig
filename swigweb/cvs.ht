@@ -46,7 +46,7 @@ The password to the cvs account is 'cvs'.
 
 <p>
 <pre>
-% cvs checkout -r rel-1-3 SWIG
+% cvs checkout SWIG
 </pre>
 </p>
 
