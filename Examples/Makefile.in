@@ -537,14 +537,17 @@ mzscheme_clean:
 #####                          Ocaml                         #####
 ##################################################################
 
-SWIGWHERE=-I `$(SWIG) -ocaml -where`
-OCC=@OCAMLC@ $(SWIGWHERE)
+OCC=@OCAMLC@
 OCAMLDLGEN=@OCAMLDLGEN@
 OCAMLFIND=@OCAMLFIND@
 OCAMLMKTOP=@OCAMLMKTOP@ $(SWIGWHERE)
 NOLINK ?= false
 
 ocaml_static: $(SRCS)
+	$(SWIG) -ocaml -co swig.mli 
+	$(SWIG) -ocaml -co swig.ml
+	$(OCC) -c swig.mli
+	$(OCC) -c swig.ml
 	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACE)
 	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
@@ -558,6 +561,10 @@ ocaml_static: $(SRCS)
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
 
 ocaml_dynamic: $(SRCS)
+	$(SWIG) -ocaml -co swig.mli 
+	$(SWIG) -ocaml -co swig.ml
+	$(OCC) -c swig.mli
+	$(OCC) -c swig.ml
 	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACE)
 	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCS)
 	$(CXXSHARED) $(CCSHARED) $(CFLAGS) -o $(INTERFACE:%.i=%@SO@) \
@@ -576,6 +583,10 @@ ocaml_dynamic: $(SRCS)
 		$(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo)
 
 ocaml_static_toplevel: $(SRCS)
+	$(SWIG) -ocaml -co swig.mli 
+	$(SWIG) -ocaml -co swig.ml
+	$(OCC) -c swig.mli
+	$(OCC) -c swig.ml
 	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACE)
 	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
@@ -589,6 +600,10 @@ ocaml_static_toplevel: $(SRCS)
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
 
 ocaml_static_cpp: $(SRCS)
+	$(SWIG) -ocaml -co swig.mli 
+	$(SWIG) -ocaml -co swig.ml
+	$(OCC) -c swig.mli
+	$(OCC) -c swig.ml
 	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
@@ -605,6 +620,10 @@ ocaml_static_cpp: $(SRCS)
 		-cclib "$(LIBS)" -cc '$(CXX)' 
 
 ocaml_static_cpp_toplevel: $(SRCS)
+	$(SWIG) -ocaml -co swig.mli 
+	$(SWIG) -ocaml -co swig.ml
+	$(OCC) -c swig.mli
+	$(OCC) -c swig.ml
 	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
@@ -621,6 +640,10 @@ ocaml_static_cpp_toplevel: $(SRCS)
 		-cclib "$(LIBS)" -cc '$(CXX)' 
 
 ocaml_dynamic_cpp: $(SRCS)
+	$(SWIG) -ocaml -co swig.mli 
+	$(SWIG) -ocaml -co swig.ml
+	$(OCC) -c swig.mli
+	$(OCC) -c swig.ml
 	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
@@ -643,6 +666,10 @@ ocaml_dynamic_cpp: $(SRCS)
 		$(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) -cc '$(CXX)'
 
 ocaml_static_multi_cpp: $(SRCS)
+	$(SWIG) -ocaml -co swig.mli 
+	$(SWIG) -ocaml -co swig.ml
+	$(OCC) -c swig.mli
+	$(OCC) -c swig.ml
 	$(SWIG) -c -ocaml -c++ $(SWIGOPT) \
 		$(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)

@@ -23,6 +23,24 @@ type 'a c_obj_t =
   | C_enum of 'a
   | C_director_core of 'a c_obj_t * 'a c_obj_t option ref
 
+type empty_enum = [ `Int of int ]
+
+exception BadArgs of string
+exception BadMethodName of string * string
+exception NotObject of empty_enum c_obj_t
+exception NotEnumType of empty_enum c_obj_t
+exception LabelNotFromThisEnum of empty_enum c_obj_t
+
+let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject obj)
+let _ = Callback.register "swig_runmethod" invoke
+let fnhelper fin f arg =
+  let args = match arg with C_list l -> l | C_void -> [] | _ -> [ arg ] in
+    match f args with
+	[] -> C_void
+      | [ x ] -> (if fin then Gc.finalise 
+		    (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+      | lst -> C_list lst
+
 let rec get_int x = 
   match x with
       C_bool b -> if b then 1 else 0
@@ -84,6 +102,11 @@ let director_get_self obj =
     | _ -> raise (Failure "Not a director core object")
 let _ = Callback.register "caml_director_get_self" director_get_self
       
+let addr_of obj = (invoke obj) "&" C_void
+let _ = Callback.register "caml_obj_ptr" addr_of
+
+
+
 let make_float f = C_float f
 let make_double f = C_double f
 let make_string s = C_string s
@@ -98,3 +121,4 @@ let make_int i = C_int i
 let make_uint i = C_uint (Int32.of_int i)
 let make_int32 i = C_int32 (Int32.of_int i)
 let make_int64 i = C_int64 (Int64.of_int i)
+
