@@ -1140,7 +1140,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		   ty = NewStringf("enum %s", $3);
 		 } else {
 		   unnamed = make_unnamed();
-		   ty = 0;
+		   ty = NewStringf("enum %s", unnamed);
 		 }
 		 appendChild($$,$5);
 		 n = new_node("cdecl");
@@ -1165,6 +1165,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 set_nextSibling($$,n);
 		 add_tag($$);           /* Add enum to tag space */
 		 add_symbols($5);       /* Add to id space */
+	         add_symbols(n);
 	       }
                ;
 

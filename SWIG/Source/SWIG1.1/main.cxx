@@ -49,7 +49,7 @@ extern "C" {
     int        Inline = 0;                      // Inline mode
     int        ForceExtern = 0;                 // Force extern mode
     int        ImportMode = 0;
-    int        GenerateDefault = 0;            // Generate default constructors
+    int        GenerateDefault = 1;            // Generate default constructors
     char      *Config = 0;
     int        NoInclude = 0;
 

@@ -172,6 +172,7 @@ void swig_pragma(char *lang, char *name, char *value) {
 /* generate C++ inheritance type-relationships */
 static void cplus_inherit_types(Node *cls, String *clsname) {
   List *ilist = Getattr(cls,"bases");
+
   if (!ilist) return;
   int len = Len(ilist);
   int i;
@@ -181,6 +182,10 @@ static void cplus_inherit_types(Node *cls, String *clsname) {
     Node *bclass = Getattr(n,"class");
     Hash *scopes = Getattr(bclass,"typescope");
     SwigType_inherit(clsname,bname);
+    String *btype = Copy(bname);
+    SwigType_add_pointer(btype);
+    SwigType_remember(btype);
+    Delete(btype);
     if (scopes)
       SwigType_merge_scope(scopes);
     cplus_inherit_types(bclass,clsname);
@@ -514,29 +519,33 @@ void Language::cDeclaration(Node *n) {
     } else {
       /* Normal functions */
       if (Callback) {
-	String *cbname;
+	String *cbname = NewStringf(Callback,symname);
+	String *cbvalue;
 	SwigType *cbty = Copy(type);
 	SwigType_push(cbty, decl);
 	if (!InClass) {
 	  SwigType_add_pointer(cbty);
+	  cbvalue = NewString(name);
 	} else {
 	  SwigType_add_memberpointer(cbty,ClassName);
+	  cbvalue = NewStringf("&%s::%s",ClassName,name);
 	}
 	if (Cmp(cbname,symname) == 0) {
 	  if (!InClass) {
-	    lang->declare_const(Char(name),Char(symname),cbty,Char(name));
+	    lang->declare_const(Char(name),Char(symname),cbty,Char(cbvalue));
 	  } else {
-	    lang->cpp_declare_const(Char(name), Char(symname),cbty, Char(name));
+	    lang->cpp_declare_const(Char(name), Char(symname),cbty, Char(cbvalue));
 	  }
 	} else {
 	  if (!InClass) {
-	    lang->declare_const(Char(name),Char(cbname), cbty, Char(name));
+	    lang->declare_const(Char(name),Char(cbname), cbty, Char(cbvalue));
 	    lang->create_function(Char(name),Char(symname),ty,nonvoid_parms(parms));
 	  } else {
-	    lang->cpp_declare_const(Char(name),Char(cbname),cbty,Char(name));
+	    lang->cpp_declare_const(Char(name),Char(cbname),cbty,Char(cbvalue));
 	    lang->cpp_member_func(Char(name),Char(symname),ty,nonvoid_parms(parms));
 	  }
 	}
+	Delete(cbvalue);
 	Delete(cbty);
 	Delete(cbname);
       } else {
@@ -653,12 +662,12 @@ void Language::classDeclaration(Node *n) {
   int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
   this->cpp_class_decl(classname,iname, Char(kind));
-  if (ImportMode) {
-    return;
-  }
   SwigType_new_scope();
   if (name) SwigType_set_scope_name(name);
-  this->cpp_open_class(classname,iname,Char(kind),strip);
+
+  if (!ImportMode) {
+    this->cpp_open_class(classname,iname,Char(kind),strip);
+  }
   InClass = 1;
   Abstract = GetInt(n,"abstract");
   has_constructor = 0;
@@ -675,25 +684,27 @@ void Language::classDeclaration(Node *n) {
     emit_one(c);
   }
 
-  if (GenerateDefault) {
-    CCode = 0;
-    if (!has_constructor) {
-      /* Generate default constructor */
-      this->cpp_constructor(classname,iname,0);
-    } 
-    if (!has_destructor) {
-      /* Generate default destructor */
-      this->cpp_destructor(classname,iname);
+  if (!ImportMode) {
+    if (GenerateDefault) {
+      CCode = 0;
+      if (!has_constructor) {
+	/* Generate default constructor */
+	this->cpp_constructor(classname,iname,0);
+      } 
+      if (!has_destructor) {
+	/* Generate default destructor */
+	this->cpp_destructor(classname,iname);
+      }
     }
+    char *baselist[256];
+    int   i = 0;
+    for (i = 0; i < Len(bases); i++) {
+      baselist[i] = Char(Getname(Getitem(bases,i)));
+    }
+    baselist[i] = 0;
+    lang->cpp_inherit(baselist,i);
+    lang->cpp_close_class();
   }
-  char *baselist[256];
-  int   i = 0;
-  for (i = 0; i < Len(bases); i++) {
-    baselist[i] = Char(Getname(Getitem(bases,i)));
-  }
-  baselist[i] = 0;
-  lang->cpp_inherit(baselist,i);
-  lang->cpp_close_class();
   Hash *ts = SwigType_pop_scope();
   Setattr(n,"typescope",ts);
   InClass = 0;
@@ -721,6 +732,8 @@ void Language::constructorDeclaration(Node *n) {
   Parm   *parms = Getparms(n);
   String *code  = Getattr(n,"code");
   CCode = code;
+
+  if (ImportMode) return;
   if (Cmp(symname,name) == 0) symname = 0;
   if (!Abstract) {
     Node *over;
@@ -744,6 +757,8 @@ void Language::destructorDeclaration(Node *n) {
   String *code  = Getattr(n,"code");
   CCode = code;
   String *storage = Getattr(n,"storage");
+
+  if (ImportMode) return;
 
   char *cname = Char(name);
   if (*cname == '~') cname += 1;
