@@ -41,7 +41,7 @@ class DirectorMethodException: public Swig::DirectorException {};
 
 %exception {
 	try { $action }
-	catch (Swig::DirectorException &e) { SWIG_fail; }
+	catch (Swig::DirectorException &) { SWIG_fail; }
 }
 
 #endif
