@@ -62,7 +62,7 @@ void f2(char *BYTE);
 
     /* Take a copy of the C string as the typemap is for a non const C string */
     jmethodID capacityID = (*jenv)->GetMethodID(jenv, sbufClass, "capacity", "()I");
-    jint capacity = (jint) (*jenv)->CallObjectMethod(jenv, $input, capacityID);
+    jint capacity = (*jenv)->CallIntMethod(jenv, $input, capacityID);
     $1 = (char *) malloc(capacity+1);
     strcpy($1, pCharStr);
 
