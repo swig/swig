@@ -38,6 +38,7 @@ struct SwigScanner {
 
 SwigScanner *
 NewSwigScanner() {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   SwigScanner *s;
   s = (SwigScanner *) malloc(sizeof(SwigScanner));
   s->line = 1;

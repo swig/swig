@@ -30,7 +30,7 @@ static char cvsroot[] = "$Header$";
 #endif
 #include <ctype.h>
 
-static char *guile_usage = (char*)"\
+static const char *guile_usage = (char*)"\
 Guile Options (available with -guile)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -prefix name    - Use NAME as prefix [default \"gswig_\"]\n\
@@ -96,6 +96,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main (int argc, char *argv[]) {
+    (void)cvsroot; /* keep version info in binary without compiler warning */
     int i, orig_len;
 
     SWIG_library_directory("guile");
@@ -603,7 +604,6 @@ public:
       }
       
       SwigType *pt = Getattr(p,"type");
-      String   *pn = Getattr(p,"name");
       String   *ln = Getattr(p,"lname");
       int opt_p = (i >= numreq);
       

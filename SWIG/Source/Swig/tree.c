@@ -24,6 +24,7 @@ static char cvsroot[] = "$Header$";
 
 void 
 Swig_print_tags(DOH *obj, DOH *root) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   DOH *croot, *newroot;
   DOH *cobj;
 

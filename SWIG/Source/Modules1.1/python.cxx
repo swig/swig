@@ -49,7 +49,7 @@ static  int       have_constructor;
 static  int       have_repr;
 static  String   *real_classname;
 
-static char *usage = (char *)"\
+static const char *usage = (char *)"\
 Python Options (available with -python)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -globals name   - Set name used to access C global variable ('cvar' by default).\n\
@@ -67,7 +67,8 @@ public:
    * ------------------------------------------------------------ */
   
   virtual void main(int argc, char *argv[]) {
-  
+    (void)cvsroot; /* keep version info in binary without compiler warning */
+
     SWIG_library_directory("python");
   
     for (int i = 1; i < argc; i++) {

@@ -20,7 +20,7 @@ static char cvsroot[] = "$Header$";
 #include "swigmod.h"
 #include "swigconfig.h"
 
-static char *usage = (char*)"\
+static const char *usage = (char*)"\
 PHP4 Options (available with -php4)\n\
 	-cppext		- cpp file extension (default to .cpp)\n\
 	-proxy		- Create proxy classes.\n\
@@ -237,6 +237,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
+    (void)cvsroot; /* keep version info in binary without compiler warning */
     int i;
     SWIG_library_directory("php4");
     SWIG_config_cppext("cpp");
@@ -1727,8 +1728,6 @@ public:
   virtual int staticmemberfunctionHandler(Node *n) {
     char *name = GetChar(n, "name");
     char *iname = GetChar(n, "sym:name");
-    SwigType *t = Getattr(n, "type");
-    ParmList *l = Getattr(n, "parms");
 
     Language::staticmemberfunctionHandler(n);
 

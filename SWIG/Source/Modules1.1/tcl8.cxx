@@ -17,7 +17,7 @@ static char cvsroot[] = "$Header$";
 #include "swigconfig.h"
 #endif
 
-static char *usage = (char*)"\
+static const char *usage = (char*)"\
 Tcl 8 Options (available with -tcl)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -prefix name    - Set a prefix to be appended to all names\n\
@@ -53,6 +53,7 @@ public:
    * ------------------------------------------------------------ */
   
   virtual void main(int argc, char *argv[]) {
+    (void)cvsroot; /* keep version info in binary without compiler warning */
 
     SWIG_library_directory("tcl");
     

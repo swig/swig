@@ -43,6 +43,7 @@ public:
 
 	virtual void main(int argc, char *argv[])
 	{
+        (void)cvsroot; /* keep version info in binary without compiler warning */
 	    SWIG_typemap_lang("xml");
 		for( int iX = 0; iX < argc; iX++ )
 		{

@@ -47,6 +47,7 @@ static int   nwarning = 0;
 
 void 
 Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt, ...) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   String *out;
   char   *msg;
   int     wrn = 1;

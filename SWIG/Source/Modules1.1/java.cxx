@@ -3,12 +3,17 @@
  *
  *     Java wrapper module.
  *
+ * Author(s) : Harco de Hilster
+ *             William Fulton
+ *
  * Copyright (C) 1999-2002.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
+static char cvsroot[] = "$Header";
+
 #include <ctype.h>
-#include <limits.h> /* for INT_MAX */
+#include <limits.h> // for INT_MAX
 #include "swigmod.h"
 
 class JAVA : public Language {
@@ -139,6 +144,7 @@ class JAVA : public Language {
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
+    (void)cvsroot; /* keep version info in binary without compiler warning */
 
     SWIG_library_directory("java");
 

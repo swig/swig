@@ -48,6 +48,7 @@ static int   tm_scope = 0;
  * ----------------------------------------------------------------------------- */
 
 void Swig_typemap_init() {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   int i;
   for (i = 0; i < MAX_SCOPE; i++) {
     typemaps[i] = 0;

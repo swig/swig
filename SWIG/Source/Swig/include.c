@@ -25,6 +25,7 @@ static String    *lang_config = 0;        /* Language configuration file */
 /* This function sets the name of the configuration file */
 
 void Swig_set_config_file(const String_or_char *filename) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   lang_config = NewString(filename);
 }
 

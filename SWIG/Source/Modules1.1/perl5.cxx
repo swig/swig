@@ -21,7 +21,7 @@ static char cvsroot[] = "$Header$";
 #include "swigconfig.h"
 #endif
 
-static char *usage = (char*)"\
+static const char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -static         - Omit code related to dynamic loading.\n\
@@ -123,6 +123,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
+    (void)cvsroot; /* keep version info in binary without compiler warning */
     int i = 1;
 
     SWIG_library_directory("perl5");

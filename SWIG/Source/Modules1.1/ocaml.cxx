@@ -23,7 +23,7 @@ static char cvsroot[] = "$Header$";
 
 #include <ctype.h>
 
-static char *ocaml_usage = (char*)"\
+static const char *ocaml_usage = (char*)"\
 \n\
 Ocaml Options (available with -ocaml)\n\
 -help           - Print this help\n\
@@ -67,6 +67,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main (int argc, char *argv[]) {
+    (void)cvsroot; /* keep version info in binary without compiler warning */
 
     int i;
     

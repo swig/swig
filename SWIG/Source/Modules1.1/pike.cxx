@@ -55,6 +55,8 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual void main(int argc, char *argv[]) {
+    (void)cvsroot; /* keep version info in binary without compiler warning */
+
     /* Set location of SWIG library */
     SWIG_library_directory("pike");
 
@@ -224,7 +226,6 @@ public:
 
     /* Get number of required and total arguments */
     int num_arguments = emit_num_arguments(l);
-    int num_required  = emit_num_required(l);
     int varargs = emit_isvarargs(l);
     
     /* Which input argument to start with? */
@@ -251,7 +252,6 @@ public:
       }
       
       SwigType *pt = Getattr(p,"type");
-      String   *pn = Getattr(p,"name");
       String   *ln = Getattr(p,"lname");
 
       if (i < start) {
@@ -621,7 +621,6 @@ public:
 
   virtual int classHandler(Node *n) {
 
-    String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
     if (!addSymbol(symname, n))
       return SWIG_ERROR;
@@ -721,9 +720,6 @@ public:
 
   void membervariableAccessors(List *membervariables) {
     String *name;
-    String *symname;
-    SwigType *type;
-    ParmList *parms;
     Node *n;
     bool need_setter;
     String *funcname;

@@ -56,6 +56,7 @@ extern    int           NoExtern;
  * ---------------------------------------------------------------------- */
 
 int Dispatcher::emit_one(Node *n) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   String *wrn;
   int     ret = SWIG_OK;
 

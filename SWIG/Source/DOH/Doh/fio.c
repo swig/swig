@@ -26,6 +26,7 @@ static DOH *encodings = 0;              /* Encoding hash */
  * ----------------------------------------------------------------------------- */
 
 static int Writen(DOH *out, void *buffer, int len) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   int nw = len, ret;
   char *cb = (char *) buffer;
   while (nw) {

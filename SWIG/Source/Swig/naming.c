@@ -26,6 +26,7 @@ static Hash *naming_hash = 0;
 
 void
 Swig_name_register(const String_or_char *method, const String_or_char *format) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   if (!naming_hash) naming_hash = NewHash();
   Setattr(naming_hash,method,format);
 }

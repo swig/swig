@@ -27,6 +27,7 @@ extern DohObjInfo DohListType;
 /* Doubles amount of memory in a list */
 static 
 void more(List *l) {
+    (void)cvsroot; /* keep version info in binary without compiler warning */
     l->items = (void **) DohRealloc(l->items, l->maxitems*2*sizeof(void *));
     assert(l->items);
     l->maxitems *= 2;

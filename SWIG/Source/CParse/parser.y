@@ -73,6 +73,7 @@ static Parm    *template_parameters = 0;
  * ----------------------------------------------------------------------------- */
 
 static Node *new_node(const String_or_char *tag) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   Node *n = NewHash();
   set_nodeType(n,tag);
   Setfile(n,cparse_file);

@@ -109,6 +109,7 @@ static Hash     *typedef_all_cache = 0;
 static Hash     *typedef_qualified_cache = 0;
 
 static void flush_cache() {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   typedef_resolve_cache = 0;
   typedef_all_cache = 0;
   typedef_qualified_cache = 0;

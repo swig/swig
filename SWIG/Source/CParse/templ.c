@@ -17,6 +17,7 @@ static char cvsroot[] = "$Header$";
 static int template_debug = 0;
 
 static void add_parms(ParmList *p, List *patchlist, List *typelist) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   while (p) {
     SwigType *ty = Getattr(p,"type");
     SwigType *val = Getattr(p,"value");

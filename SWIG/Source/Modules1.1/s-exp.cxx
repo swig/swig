@@ -27,6 +27,7 @@ public:
   Sexp() : indent_level( 0 ) {}
   virtual ~Sexp() {}
   virtual void main(int argc, char *argv[]) {
+    (void)cvsroot; /* keep version info in binary without compiler warning */
     SWIG_typemap_lang("sexp");
     for( int iX = 0; iX < argc; iX++ )
       {
@@ -161,7 +162,7 @@ public:
     // Following is a silly hack.  It works around the limitation of
     // DOH's hash tables that only work with string keys!
     char address[16];
-    sprintf(address, "%x%c", obj, list_p ? 'L' : 'O');
+    sprintf(address, "%x%c", (unsigned int)obj, list_p ? 'L' : 'O');
     DOH *placeholder = Getattr(print_cycle_hash, address);
     if (placeholder) {
       Printv(out, placeholder, NIL);

@@ -40,6 +40,7 @@ static int      pools_initialized = 0;
 
 static void
 CreatePool() {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   Pool *p = 0;
   p = (Pool *) DohMalloc(sizeof(Pool));
   assert(p);

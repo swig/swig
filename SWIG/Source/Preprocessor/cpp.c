@@ -31,6 +31,7 @@ static List     *dependencies = 0;
 /* Test a character to see if it starts an identifier */
 static int
 isidentifier(int c) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   if ((isalpha(c)) || (c == '_') || (c == '$')) return 1;
   else return 0;
 }
@@ -674,7 +675,7 @@ expand_macro(String_or_char *name, List *args)
  * ----------------------------------------------------------------------------- */
 
 List *evaluate_args(List *x) {
-  String *a,*na;
+  String *a;
   String *Preprocessor_replace(String *);
 
   List *nl = NewList();

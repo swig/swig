@@ -28,6 +28,7 @@ static Hash *fragments = 0;
 
 void
 Swig_fragment_register(String *name, String *section, String *code) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   String *ccode;
   if (!fragments) {
     fragments = NewHash();

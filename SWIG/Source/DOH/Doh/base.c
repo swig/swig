@@ -20,6 +20,7 @@ static char cvsroot[] = "$Header$";
 
 void
 DohDelete(DOH *obj) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
 
@@ -94,7 +95,7 @@ DohStr(const DOH *obj) {
     if (objinfo->doh_str) {
       return (objinfo->doh_str)(b);
     }
-    sprintf(buffer,"<Object '%s' at %x>", objinfo->objname, b);
+    sprintf(buffer,"<Object '%s' at %x>", objinfo->objname, (unsigned int)b);
     return NewString(buffer);
   } else {
     return NewString(obj);

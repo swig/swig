@@ -375,6 +375,7 @@ void symbol_handler(FILE *f) {
 
 void
 Swig_browser(Node *top, int port) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
 #ifdef SWIG_SWILL
   int sport;
   browser_exit = 0;

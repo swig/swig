@@ -23,6 +23,7 @@ static char cvsroot[] = "$Header$";
 
 char *
 Swig_copy_string(const char *s) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   char *c = 0;
   if (s) {
     c = (char *) malloc(strlen(s)+1);

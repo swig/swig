@@ -45,6 +45,7 @@ static KeyValue *root = 0;
 
 /* Find or create a key in the interned key table */
 static DOH *find_key (DOH *doh_c) {
+  (void)cvsroot; /* keep version info in binary without compiler warning */
   char *c = (char *) doh_c;
   KeyValue *r, *s;
   int d = 0;
