@@ -105,7 +105,6 @@ static String *all_shadow_baseclass = 0;
 static String *this_shadow_baseclass = 0; 
 		//inheritance for shadow class from %pragma and cpp_inherit
 static int	  class_renamed = 0;
-static int	  member_func   = 0;
 static int	  shadow	= 0;
 
 /* Test to see if a type corresponds to something wrapped with a shadow class */
@@ -789,8 +788,11 @@ PHP4::functionWrapper(Node *n) {
     Delete(member_function_name);
   }
 
-  if(!member_func) 
+  if(!shadow) {
+	  Printf(stderr, "linking function %s\n", name);
 	  create_command(iname, Char(Swig_name_wrapper(iname)));
+  }
+
   outarg = cleanup = NULL;
   f 	= NewWrapper();
   numopt = 0;
@@ -1730,9 +1732,7 @@ PHP4::memberfunctionHandler(Node *n) {
 	SwigType *t = Getattr(n, "type");
 	ParmList *l = Getattr(n, "parms");
 
-	member_func = 1;
 	this->Language::memberfunctionHandler(n);
-	member_func = 0;
 
 	if(shadow) {
 		char *realname = iname ? iname : name;
@@ -1764,9 +1764,7 @@ PHP4::membervariableHandler(Node *n) {
 
 	wrapping_member = 1;
 	variable_wrapper_flag = 1;
-	member_func = 1;
 	Language::membervariableHandler(n);
-	member_func = 0;
 	wrapping_member = 0;
 	variable_wrapper_flag = 0;
 
@@ -1814,6 +1812,8 @@ int PHP4::staticmembervariableHandler(Node *n) {
 	}
 	cpp_func(iname, d, 0, iname);
 	static_flag = 0;
+
+	create_command(iname, Char(Swig_name_wrapper(iname)));
 
 	f = NewWrapper();
 
@@ -1988,9 +1988,7 @@ int PHP4::constructorHandler(Node *n) {
 	char *iname = GetChar(n, "sym:name");
 	ParmList *l = Getattr(n, "parms");
 
-	member_func = 1;
 	Language::constructorHandler(n);
-	member_func = 0;
 
 	if(shadow) {
 		String *nativecall = NewString("");
@@ -2064,9 +2062,7 @@ int PHP4::constructorHandler(Node *n) {
 
 int PHP4::destructorHandler(Node *n) {
 
-	member_func = 1;
 	Language::destructorHandler(n);
-	member_func = 0;
 
 	if(shadow) {
 	  Printf(shadow_code, " function _destroy() {\n");
