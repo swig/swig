@@ -9,20 +9,17 @@ extern int    gcd(int x, int y);
   int i;
   if (!PyList_Check($input)) {
     SWIG_exception(SWIG_ValueError, "Expecting a list");
-    return NULL;
   }
   $1 = PyList_Size($input);
   if ($1 == 0) {
     SWIG_exception(SWIG_ValueError, "List must contain at least 1 element");
-    return NULL;
   }
   $2 = (char **) malloc(($1+1)*sizeof(char *));
   for (i = 0; i < $1; i++) {
     PyObject *s = PyList_GetItem($input,i);
     if (!PyString_Check(s)) {
-      SWIG_exception(SWIG_ValueError, "List items must be strings");
       free($2);
-      return NULL;
+      SWIG_exception(SWIG_ValueError, "List items must be strings");
     }
     $2[i] = PyString_AsString(s);
   }
@@ -74,7 +71,6 @@ extern void capitalize(char *str, int len);
    double a = $1*$1 + $2*$2;
    if (a > 1.0) {
 	SWIG_exception(SWIG_ValueError,"$1_name and $2_name must be in unit circle");
-        return NULL;
    }
 }
 
