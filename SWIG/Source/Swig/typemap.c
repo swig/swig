@@ -459,6 +459,118 @@ Swig_typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, St
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_typemap_apply_multi()
+ *
+ * Multi-argument %apply directive.  This is pretty horrible so I sure hope
+ * it works.
+ * ----------------------------------------------------------------------------- */
+
+static
+int count_args(String *s) {
+  /* Count up number of arguments */
+  int na = 0;
+  char *c = Char(s);
+  while (*c) {
+    if (*c == '+') na++;
+    c++;
+  }
+  return na;
+}
+
+void 
+Swig_typemap_apply_multi(ParmList *src, ParmList *dest) {
+  String *ssig, *dsig;
+  Parm   *p, *np, *lastp, *dp, *lastdp;
+  int     narg = 0;
+  int     ts = tm_scope;
+  SwigType *type, *name;
+  Hash     *tm, *sm;
+
+  assert((ParmList_len(src) == ParmList_len(dest)));
+
+  if (ParmList_len(src) == 1) {
+    Swig_typemap_apply(Getattr(src,"type"),Getattr(src,"name"), Getattr(dest,"type"), Getattr(dest,"name"));
+    return;
+  }
+
+  /* Create type signature of source */
+  ssig = NewString("");
+  dsig = NewString("");
+  p = src;
+  dp = dest;
+  lastp = 0;
+  while (p) {
+    lastp = p;
+    lastdp = dp;
+    np = nextSibling(p);
+    if (np) {
+      Printf(ssig,"-%s+%s:", Getattr(p,"type"), Getattr(p,"name"));
+      Printf(dsig,"-%s+%s:", Getattr(dp,"type"), Getattr(dp,"name"));
+      narg++;
+    }
+    p = np;
+    dp = nextSibling(dp);
+  }
+
+  /* make sure a typemap node exists for the last destination node */
+  tm = Getattr(typemaps[tm_scope],Getattr(lastdp,"type"));
+  if (!tm) {
+    tm = NewHash();
+    Setattr(typemaps[tm_scope],Copy(type),tm);
+    Delete(tm);
+  }
+  name = Getattr(lastdp,"name");
+  if (name) {
+    Hash *tm1 = Getattr(tm,name);
+    if (!tm1) {
+      tm1 = NewHash();
+      Setattr(tm,NewString(name),tm1);
+      Delete(tm1);
+    }
+    tm = tm1;
+  }
+
+  /* This is a little nasty.  We need to go searching for all possible typemaps in the
+     source and apply them to the target */
+
+  type = Getattr(lastp,"type");
+  name = Getattr(lastp,"name");
+
+  while (ts >= 0) {
+    /* See if there is a matching typemap in this scope */
+    sm = Swig_typemap_get(type,name,ts);
+    if (sm) {
+      /* Got a typemap.  Need to only merge attributes for methods that match our signature */
+      String *key;
+      for (key = Firstkey(sm); key; key = Nextkey(sm)) {
+	/* Check for a signature match with the source signature */
+	if ((count_args(key) == narg) && (Strstr(key,ssig))) {
+	  /* A typemap we have to copy */
+	  String *nkey = Copy(key);
+	  Replace(nkey,ssig,dsig,DOH_REPLACE_ANY);
+
+	  /* Make sure the typemap doesn't already exist in the target map */
+	  if (!Getattr(tm,nkey)) {
+	    String *code;
+	    ParmList *locals;
+	    Hash *sm1 = Getattr(sm,key);
+	    code = Getattr(sm1,"code");
+	    locals = Getattr(sm1,"locals");
+	    if (code) {
+	      Replace(nkey,dsig,"", DOH_REPLACE_ANY);
+	      Replace(nkey,"tmap:","", DOH_REPLACE_ANY);
+	      Swig_typemap_register_multi(nkey,dest,code,locals);
+	    }
+	  }
+	  Delete(nkey);
+	}
+      }
+    }
+    ts--;
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_typemap_clear_apply()
  *
  * %clear directive.   Clears all typemaps for a type (in the current scope only).    
@@ -488,14 +600,67 @@ Swig_typemap_clear_apply(SwigType *type, String_or_char *name) {
     if (tm) {
       clear_typemap_attributes(tm);
     }
-    /* Delattr(tm,name); */
   } else {
     clear_typemap_attributes(tm);
-
-    /*    Delattr(typemaps[tm_scope],type); */
   }
 }
 
+/* Multi-argument %clear directive */
+void
+Swig_typemap_clear_apply_multi(Parm *parms) {
+  String *tsig;
+  Parm   *p, *np, *lastp;
+  int     narg = 0;
+  Hash   *tm;
+  String *name;
+
+  /* Single argument.  Just use normal clear */
+  if (ParmList_len(parms) == 1) {
+    Swig_typemap_clear_apply(Getattr(parms,"type"), Getattr(parms,"name"));
+    return;
+  }
+
+  /* Create a type signature of the parameters */
+  tsig = NewString("");
+  p = parms;
+  lastp = 0;
+  while (p) {
+    lastp = p;
+    np = nextSibling(p);
+    if (np) {
+      Printf(tsig,"-%s+%s:", Getattr(p,"type"), Getattr(p,"name"));
+      narg++;
+    }
+    p = np;
+  }
+  
+  tm = Getattr(typemaps[tm_scope],Getattr(lastp,"type"));
+  if (!tm) {
+    Delete(tsig);
+    return;
+  }
+
+  name = Getattr(lastp,"name");
+  if (name) {
+    tm = Getattr(tm,name);
+  }
+  if (tm) {
+    /* Clear typemaps that match our signature */
+    String *key, *key2;
+    for (key = Firstkey(tm); key; key = Nextkey(tm)) {
+      if (Strncmp(key,"tmap:",5) == 0) {
+	int na = count_args(key);
+	if ((na == narg) && Strstr(key,tsig)) {
+	  Hash *h = Getattr(tm,key);
+	  for (key2 = Firstkey(h); key2; key2 = Nextkey(h)) {
+	    Delattr(h,key2);
+	  }
+	}
+      }
+    }
+  }
+  Delete(tsig);
+}
 
 /* Internal function to strip array dimensions. */
 static SwigType *strip_arrays(SwigType *type) {

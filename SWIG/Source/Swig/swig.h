@@ -422,7 +422,9 @@ extern int    Swig_typemap_copy_multi(const String_or_char *op, ParmList *srcpar
 extern void   Swig_typemap_clear(const String_or_char *op, SwigType *type, String_or_char *name);
 extern void   Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms);
 extern void   Swig_typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, String_or_char *pname);
+extern void   Swig_typemap_apply_multi(ParmList *src, ParmList *dest);
 extern void   Swig_typemap_clear_apply(SwigType *type, String_or_char *pname);
+extern void   Swig_typemap_clear_apply_multi(ParmList *parms);
 extern void   Swig_typemap_debug();
 extern Hash  *Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *pname);
 extern Hash  *Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch);

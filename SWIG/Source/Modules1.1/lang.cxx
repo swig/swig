@@ -284,13 +284,13 @@ void Language::applyDirective(Node *n) {
       } else {
 	Printf(stderr,"%s:%d. Can't apply a simple typemap to (%s).\n", input_file, line_number, ParmList_str(pmulti));
       }
-    } else {
+    } else if (mtype) {
       if (pmulti) {
 	if (ParmList_len(pmulti) != ParmList_len(mtype)) {
 	  Printf(stderr,"%s:%d. Can't apply (%s) to (%s).  Number of arguments don't match.\n",
 		 input_file, line_number, ParmList_str(mtype), ParmList_str(pmulti));
 	} else {
-	  Printf(stderr,"%s:%d. Multi-argument %%apply not implemented.\n", input_file, line_number);
+	  Swig_typemap_apply_multi(mtype,pmulti);
 	}
       } else {
 	Printf(stderr,"%s:%d. Can't apply a multi-argument typemap to %s.\n", input_file, line_number, SwigType_str(ptype,pname));
@@ -314,7 +314,7 @@ void Language::clearDirective(Node *n) {
     } else {
       ParmList *multi = Getattr(p,"multitype");
       if (multi) {
-	Printf(stderr,"multi-argument clear not supported\n");
+	Swig_typemap_clear_apply_multi(multi);
       }
     }
   }
