@@ -35,53 +35,58 @@ INCLUDE    = -I$(TOP)/$(TEST_SUITE)
 RUNTIMEDIR = ../$(TOP)/Runtime/.libs
 DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
+# Please keep test cases in alphabetical order.
+
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
 	add_link \
-	voidtest \
-	rname \
-	minherit \
-	typename \
+	anonymous_arg \
+	casts \
 	constover \
-        default_constructor \
+	const_const_2 \
 	constant_pointers \
 	cpp_enum \
-        cpp_enum_scope \
+	cpp_enum_scope \
 	cpp_static \
-	virtual_destructor \
 	cplusplus_throw \
-	pointer_reference \
-	casts \
-	template_whitespace \
-        template \
-	anonymous_arg \
-	static_array_member \
-	pointer_cxx \
-	pure_virtual \
-	static_const_member \
+	default_constructor \
 	explicit \
-	const_const_2 \
-	name_cxx
+	kind \
+	minherit \
+	name_cxx \
+	pointer_cxx \
+	pointer_reference \
+	pure_virtual \
+	rname \
+	static_array_member \
+	static_const_member \
+	template \
+	template_whitespace \
+	typename \
+	virtual_destructor \
+	voidtest
 #	long_long
+
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES += \
+	arrayptr \
 	arrays \
-        arrayptr \
-	defines \
-	defineop \
-	sizeof_pointer \
-	unions \
-	macro_2 \
-	const_const \
 	char_constant \
-	name \
-	preproc_1 \
-	nested \
-	typemap_subst \
+	const_const \
+	defineop \
+	defines \
 	enum \
+	macro_2 \
+	name \
+	nested \
+	preproc_1 \
+	preproc_2 \
+	sizeof_pointer \
 	sneaky1 \
-	preproc_2
+	typemap_subst \
+	unions
+
 
 MULTI_CPP_TEST_CASES += \
 	imports
