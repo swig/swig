@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "$(PERL5_LIB)" runtime.lib /nologo /dll /debug /machine:I386 /out:"foo.dll" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "$(PERL5_LIB)" /nologo /dll /debug /machine:I386 /out:"foo.dll" /pdbtype:sept
 
 !ELSEIF  "$(CFG)" == "foo - Win32 Release"
 
@@ -79,7 +79,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "$(PERL5_LIB)" runtime.lib /nologo /dll /machine:I386 /out:"foo.dll"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "$(PERL5_LIB)" /nologo /dll /machine:I386 /out:"foo.dll"
 
 !ENDIF 
 
@@ -118,7 +118,7 @@ InputName=foo
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo PERL5_LIB: %PERL5_LIB% 
 	echo on 
-	..\..\..\swig -noruntime -c++ -perl5 $(InputPath) 
+	..\..\..\swig -c++ -perl5 $(InputPath) 
 	
 # End Custom Build
 
@@ -133,7 +133,7 @@ InputName=foo
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo PERL5_LIB: %PERL5_LIB% 
 	echo on 
-	..\..\..\swig -noruntime -c++ -perl5 $(InputPath) 
+	..\..\..\swig -c++ -perl5 $(InputPath) 
 	
 # End Custom Build
 

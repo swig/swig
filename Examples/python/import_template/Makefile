@@ -16,6 +16,6 @@ all::
 
 clean::
 	$(MAKE) -f $(TOP)/Makefile python_clean
-	@rm -f foo.py bar.py spam.py base.py runtime.py
+	@rm -f foo.py bar.py spam.py base.py
 
 check: all
