@@ -105,6 +105,8 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
   int   nbytes = 0;
   char  encoder[128], *ec = 0;
 
+  memset (newformat, 0, sizeof (char *));
+
   while (*p) {
     switch(state) {
     case 0:  /* Ordinary text */

@@ -29,11 +29,11 @@ LIBSRCS = callable.c void.c fio.c memory.c base.c file.c list.c hash.c string.c
 LIBHEADERS = $(srcdir)/../Include/doh.h
 LIB      = libdoh.a
 INCLUDE  = -I$(srcdir)/../Include
-CFLAGS   = -DDOH_STRING_UPDATE_LINES
+CFLAGS   = @CFLAGS@ -DDOH_STRING_UPDATE_LINES
 SHELL  = /bin/sh
 
 #
-# Rules for creation of a .o file from .cxx
+# Rules for creation of a .o file from .c
 .SUFFIXES: .c
 .c.o:
 	$(CC) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
