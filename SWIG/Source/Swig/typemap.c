@@ -814,7 +814,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
       }
       if (!SwigType_isreference(star_type)) {
 	if (SwigType_isarray(star_type)) {
-	  Delete(SwigType_pop(star_type));
+	  SwigType_del_element(star_type);
 	} else {
 	  SwigType_del_pointer(star_type);
 	}
@@ -828,7 +828,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
 	replace_local_types(locals,varname,star_type);
 	Delete(ts);
       } else {
-	Delete(SwigType_pop(star_type));;
+	SwigType_del_element(star_type);
       }
       star_ltype = SwigType_ltype(star_type);
       ts = SwigType_str(star_ltype,0);

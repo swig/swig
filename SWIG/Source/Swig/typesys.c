@@ -846,7 +846,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	tprefix = SwigType_templateprefix(e);
 	tsuffix = SwigType_templatesuffix(e);
 	qprefix = SwigType_typedef_qualified(tprefix);
-	Printf(qprefix,"<(");
+	Printv(qprefix,"<(",NIL);
 	p = Firstitem(parms);
 	while (p) {
 	  String *qt = SwigType_typedef_qualified(p);
