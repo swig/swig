@@ -38,7 +38,11 @@
   with your compiler or so.
 */
 #ifndef SWIGRUNTIME
+#ifdef __GNUC__
+#define SWIGRUNTIME __attribute__ ((unused)) static
+#else
 #define SWIGRUNTIME static
+#endif
 #endif
 #ifndef SWIGRUNTIMEINLINE
 #define SWIGRUNTIMEINLINE SWIGRUNTIME SWIGINLINE
