@@ -2,22 +2,22 @@
 # Perl5 script for testing simple example
 
 use example;
-package example;
 
-print get_time();
-print "My Variable = $My_variable","\n";
-for ($i = 0; $i < 14; $i++) {
-    $n = fact($i);
-    print "$i factorial is $n\n";
-}
+# Call our gcd() function
 
-for ($i = 1; $i < 250; $i++) {
-    for ($j = 1; $j < 250; $j++) {
-	$n = mod($i,$j);
-	$My_variable = $My_variable + $n;
-    }
-}
+$x = 42;
+$y = 105;
+$g = example::gcd($x,$y);
+print "The gcd of $x and $y is $g\n";
 
-print "My_variable = ", $My_variable, "\n";
+# Manipulate the Foo global variable
 
+# Output its current value
+print "Foo = $example::Foo\n";
+
+# Change its value
+$example::Foo = 3.1415926;
+
+# See if the change took effect
+print "Foo = $example::Foo\n";
 
