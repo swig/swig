@@ -161,13 +161,13 @@ SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, swig_type_info *ty)
 SWIGRUNTIME(char *)
 SWIG_PointerTypeFromString(char *c) {
   char d;
-  /* Pointer values must start with leading underscore */
+  /* Pointer values must start with leading underscore. NULL has no type */
   if (*c != '_') {
     return 0;
   }
   c++;
   /* Extract hex value from pointer */
-  while (d = *c) {
+  while ((d = *c)) {
     if (!(((d >= '0') && (d <= '9')) || ((d >= 'a') && (d <= 'f')))) break;
     c++;
   }
@@ -216,6 +216,7 @@ SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
     c = SWIG_PackData(c,&ptr,sizeof(void *));
     strcpy(c,ty->name);
   } else {
+    c--;
     strcpy(c,(char *)"NULL");
   }
 }
