@@ -113,14 +113,14 @@ SWIG_TypeCheck(char *c, _swig_type_info *ty)
   return 0;
 }
 
+
 /* Convert a pointer value */
 SWIGSTATICRUNTIME(int)
-SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, _swig_type_info *ty)
+SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, _swig_type_info *ty)
 {
   unsigned long p;
   register int d;
   _swig_type_info *tc;
-  char  *c = Tcl_GetStringFromObj(oc,NULL);
   p = 0;
   /* Pointer values must start with leading underscore */
   if (*c != '_') {
@@ -151,6 +151,13 @@ SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, _swig_type_info *ty
     }
   }
   return TCL_OK;
+}
+
+/* Convert a pointer value */
+SWIGSTATICRUNTIME(int)
+SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, _swig_type_info *ty)
+{
+  return SWIG_ConvertPtrFromString(interp, Tcl_GetStringFromObj(oc,NULL), ptr, ty);
 }
 
 /* Take a pointer and convert it to a string */
