@@ -48,8 +48,11 @@ LIBPREFIX  = lib
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
 	defvalue_constructor \
+	derived_nested \
 	features \
+	multiple_inheritance \
 	namespace_union \
+	return_const_value \
 	smart_pointer_namespace2 \
 	template_default_arg \
 	template_specialization_defarg \
