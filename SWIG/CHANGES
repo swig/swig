@@ -3,6 +3,14 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+7/22/00 : beazley
+          A variety of old type handling functions such as print_type(),
+          print_full(), print_mangle(), etc... are gone and have been
+          replaced with a smaller set of functions.  See the file
+          Doc/internals.html for details.  This will break all third
+          party language modules.
+          *** POTENTIAL INCOMPATIBILITY ***
+
 7/20/00 : beazley
           Deprecated the %val and %out directives.  These directives
           shouldn't really be necessary since typemaps can be used

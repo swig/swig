@@ -192,7 +192,7 @@ which uses the callbacks registered by <tt>SWIG_main()</tt> above.
 <li><a name="i4" href="#4">4. Parsing</a>
 <li><a name="i5" href="#5">5. Difference Between SWIG 1.1 and SWIG 1.3</a>
 <li><a name="i6" href="#6">6. Plans for SWIG 2.0</a>
-<li><a name="i7" href="#7">7. Reserved</a>
+<li><a name="i7" href="#7">7. C/C++ Wrapper Support Functions</a>
 <li><a name="i8" href="#8">8. Reserved</a>
 <li><a name="i9" href="#9">9. Reserved</a>
 <li><a name="i10" href="#10">10. Guile Support</a>
@@ -461,7 +461,7 @@ of which must be reassignable types since they are the targets of conversions fr
 representation. 
 
 <p>
-<li><tt>DataType_caststr(DataType *t, char *name)</tt>.
+<li><tt>DataType_rcaststr(DataType *t, char *name)</tt>.
 <br>  This function produces a string
 that casts a type produced by the <tt>lstr()</tt> function to the type produced by the
 <tt>str()</tt> function.  You might view it as the inverse of lstr().   This function only produces
@@ -470,13 +470,34 @@ name can be supplied when the cast is to be applied to a specific name.   Exampl
 
 <blockquote>
 <pre>
-Original Datatype             caststr()
+Original Datatype             rcaststr()
 ------------------            ---------
 char *a                       
 const char *a                 (const char *) name
 double a[20]                  (double *) name
 double a[20][30]              (double (*)[30]) name
 double &a                     (double &) *name
+</pre>
+</blockquote>
+
+
+<p>
+<li><tt>DataType_lcaststr(DataType *t, char *name)</tt>.
+<br>  This function produces a string
+that casts a type produced by the <tt>str()</tt> function to the type produced by the
+<tt>lstr()</tt> function.  This function only produces
+output when it needs to (when str() and lstr() produce different results).  Furthermore, an optional
+name can be supplied when the cast is to be applied to a specific name.  
+
+<blockquote>
+<pre>
+Original Datatype             lcaststr()
+------------------            ---------
+char *a                       
+const char *a                 (char *) name
+double a[20]                  (double *) name
+double a[20][30]              (double *) name
+double &a                     (double *) &name
 </pre>
 </blockquote>
 
@@ -487,7 +508,6 @@ Usually this string looks something like "<tt>_double_pp</tt>" although the targ
 may redefine the output for its own purposes.  Normally this function strips all qualifiers,
 references, and arrays---producing a mangled version of the type produced by the <tt>lstr()</tt> function.
 </ul>
-
 
 
 The following example illustrates the intended use of the above functions when creating wrapper
@@ -577,8 +597,202 @@ repeated calls without making any copies.
 [TODO]
 
 <a name="7" href="#i7">
-<h2>7. Reserved</h2>
+<h2>7. C/C++ Wrapper Support Functions</h2>
 </a>
+
+Added: Dave Beazley (July 22, 2000)
+
+<p>
+When generating wrappers, SWIG tries to provide a mostly
+seamless with the original code.  However, there are a number of
+problematic features of C/C++ that are handled in the following manner:
+
+<ul>
+<li><b>Passing and returning structures by value.</b>  When used, SWIG converts
+all pass-by-value functions into wrappers that pass by reference.  For example:
+
+<blockquote>
+<pre>
+double dot_product(Vector a, Vector b);
+</pre>
+</blockquote>
+
+gets turned into a wrapper like this:
+
+<blockquote>
+<pre>
+double wrap_dot_product(Vector *a, Vector *b) {
+     return dot_product(*a,*b);
+}
+</pre>
+</blockquote>
+
+Functions that return by value require a memory allocation to store the result. For example:
+
+<blockquote>
+<pre>
+Vector cross_product(Vector *a, Vector *b);
+</pre>
+</blockquote>
+
+become
+
+<blockquote>
+<pre>
+Vector *wrap_cross_product(Vector *a, Vector *b) {
+   Vector *result = (Vector *) malloc(sizeof(Vector));
+   *result = cross_product(a,b);
+   return result;
+}
+</pre>
+</blockquote>
+
+Note: If C++ is being wrapped, the default copy constructor is used
+instead of malloc() to create a copy of the return result.
+
+<p>
+<li><b>C++ references</b>.   C++ references are handled exactly the same as
+pass/return by value except that a memory allocation is not made for functions
+that return a reference.
+
+<p>
+<li><b>Qualifiers such as "const" and "volatile".</b> SWIG strips all
+qualifiers from the interface presented to the target language.
+Besides, what in the heck is "const" in Perl anyways?
+
+</ul>
+
+All of these transformations are handled by a collection of functions found
+in the file <tt>Source/Swig/cwrap.c</tt>.
+
+<ul>
+<li>
+<tt>char *Swig_clocal(DataType *t, char *name, char *value)</tt><br>
+This function creates a string containing the declaration of a local variable with
+type <tt>t</tt>, name <tt>name</tt>, and default value <tt>value</tt>.  This local
+variable is stripped of all qualifiers and will be a pointer if the type is a reference
+or user defined type.
+
+<p>
+<li><tt>char *Swig_clocal_deref(DataType *t, char *name)</tt><br>
+This function is the inverse of the <tt>clocal()</tt> function.  Given a type and a name,
+it produces a string containing the code needed to cast/convert the type produced by
+<tt>Swig_clocal()</tt> back into it's original type.
+
+<p>
+<li><tt>char *Swig_clocal_assign(DataType *t, char *name)</tt><br>
+Given a type and name, this produces a string containing the code (and an optional cast)
+needed to make an assignment from the real datatype to the local datatype produced
+by <tt>Swig_clocal()</tt>.  Kind of the opposite of deref().
+
+<p>
+<li><tt>int Swig_cargs(Wrapper *w, ParmList *l)</tt><br>
+Given a wrapper function object and a list of parameters, this function declares a set
+of local variables for holding all of the parameter values (using Swig_clocal()).  Returns 
+the number of parameters.  In addition, this function sets the local name of each parameter
+which can be retrieved using the <tt>Parm_Getlname()</tt> function.
+
+<p>
+<li><tt>void Swig_cresult(Wrapper *w, DataType *t, char *resultname, char *decl)</tt><br>
+Generates the code needed to set the result of a wrapper function and performs all of
+the needed memory allocations for ANSI C (if necessary).  <tt>t</tt> is the type of the
+result, <tt>resultname</tt> is the name of the result variable, and <tt>decl</tt> is
+a string that contains the C code which produces the result.
+
+<p>
+<li><tt>void Swig_cppresult(Wrapper *w, DataType *t, char *resultname, char *decl)</tt><br>
+Generates the code needed to set the result of a wrapper function and performs all of
+the needed memory allocations for C++ (if necessary).  <tt>t</tt> is the type of the
+result, <tt>resultname</tt> is the name of the result variable, and <tt>decl</tt> is
+a string that contains the C code which produces the result.
+
+<p>
+<li><tt>char *Swig_cfunction(char *name, ParmList *parms)</tt>
+This function produces a string containing the code needed to call a C function.
+The string that is produced contains all of the transformations needed to convert
+pass-by-value into pass-by-reference as well as handle C++ references.  Produces
+a string like "name(arg0, arg1, ..., argn)".
+
+<p>
+<li><tt>char *Swig_cmethod(char *name, ParmList *parms)</tt>
+This function produces a string containing the code needed to call a C++ class
+method.  <tt>parms</tt> should be a complete list of arguments where the first
+argument is the "this" variable.  Produces a string like "arg0->name(arg1, ..., argn)".
+
+</ul>
+
+Here is a short example showing how these functions could be used.  Suppose you had a 
+C function like this:
+
+<blockquote>
+<pre>
+double dot_product(Vector a, Vector b);
+</pre>
+</blockquote>
+
+Here's how you might write a really simple wrapper function
+
+<blockquote>
+<pre>
+ParmList *l = ... parameter list of the function ...
+DataType *t = ... return type of the function ...
+char     *name = ... name of the function ...
+Wrapper *w = NewWrapper();
+Printf(w->def,"void wrap_%s() {\n", name);
+
+/* Declare all of the local variables */
+Swig_cargs(w, l);
+
+/* Convert all of the arguments */
+...
+
+/* Make the function call and declare the result variable */
+Swig_cresult(w,t,"result",Swig_cfunction(name,l));
+
+/* Convert the result into whatever */
+...
+
+Printf(w->code,"}\n");
+Wrapper_print(w,out);
+</pre>
+</blockquote>
+
+The output of this would appear as follows:
+
+<blockquote>
+<pre>
+void wrap_dot_product() {
+    Vector *arg0;
+    Vector *arg1;
+    double  result;
+
+    ...
+    result = dot_product(*arg0, *arg1);
+    ...
+}
+</pre>
+</blockquote>
+
+Notice that the <tt>Swig_cargs()</tt>, <tt>Swig_cresult()</tt>, and <tt>Swig_cfunction()</tt> functions
+have taken care of the type conversions for the <tt>Vector</tt> type automatically.
+
+<p>
+<b>Notes:</b>
+<ul>
+<Li>The intent of these functions is to provide <em>consistent</em> handling of function parameters
+and return values so that language module writers don't have to worry about it too much.
+
+<p>
+<li>These functions may be superceded by features in the new typemap system which provide hooks
+for specifying local variable declarations and argument conversions.
+
+</ul>
+
+ 
+
+
+
+
 
 <a name="8" href="#i8">
 <h2>8. Reserved</h2>
