@@ -1854,14 +1854,14 @@ public:
       }
       /* Now build the real class with a normal constructor */
       Printv(f_shadow,
-	     "\nclass ", class_name, "Ptr(", class_name, "):\n",
-	     tab4, "def __init__(self,this):\n",
-	     tab8, "self.this = this\n",
-	     tab8, "if not hasattr(self,\"thisown\"): self.thisown = 0\n",
-	     //	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
-	     //	   tab8,"except AttributeError: self.this = this\n"
-	     tab8, "self.__class__ = ", class_name, "\n",
-	     NIL);
+  	     "\nclass ", class_name, "Ptr(", class_name, "):\n",
+  	     tab4, "def __init__(self,this):\n",
+ 	     tab8, "_swig_setattr(self, ", class_name, ", 'this', this)\n",
+ 	     tab8, "if not hasattr(self,\"thisown\"): _swig_setattr(self, ", class_name, ", 'thisown', 0)\n",
+  	     //	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
+  	     //	   tab8,"except AttributeError: self.this = this\n"
+ 	     tab8, "_swig_setattr(self, ", class_name, ",self.__class__,", class_name, ")\n",
+  	     NIL);
 
       Printf(f_shadow,"%s.%s_swigregister(%sPtr)\n", module, class_name, class_name,0);
       shadow_indent = 0;
@@ -1975,6 +1975,8 @@ public:
 	    String *pass_self = NewString("");
 	    Node *parent = Swig_methodclass(n);
 	    String *classname = Swig_class_name(parent);
+	    String *rclassname = Swig_class_name(getCurrentClass());
+	    assert(rclassname);
 	    if (use_director) {
  	      Printv(pass_self, tab8, NIL);
 	      Printf(pass_self, "if self.__class__ == %s:\n", classname);
@@ -1983,20 +1985,20 @@ public:
 		                tab8, tab4, "args = (self,) + args\n",
                                 NIL);
  	    }
-	    if ((allow_kwargs) && (!Getattr(n,"sym:overloaded"))) {
-	      Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", NIL);
-	      Printv(f_shadow, pass_self, NIL);
-	      Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NIL);
-	    }  else {
-	      Printv(f_shadow, tab4, "def __init__(self,*args):\n",NIL);
-	      Printv(f_shadow, pass_self, NIL);
-	      Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", NIL);
-	    }
-	    Printv(f_shadow,
-		   tab8, "self.thisown = 1\n",
-		   NIL);
-	    Delete(pass_self);
-	  }
+  	    if ((allow_kwargs) && (!Getattr(n,"sym:overloaded"))) {
+  	      Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", NIL);
+  	      Printv(f_shadow, pass_self, NIL);
+ 	      Printv(f_shadow, tab8, "_swig_setattr(self, ", rclassname, ", 'this', apply(", module, ".", Swig_name_construct(symname), ",args, kwargs))\n", NIL);
+  	    }  else {
+  	      Printv(f_shadow, tab4, "def __init__(self,*args):\n",NIL);
+  	      Printv(f_shadow, pass_self, NIL);
+ 	      Printv(f_shadow, tab8, "_swig_setattr(self, ", rclassname, ", 'this', apply(", module, ".", Swig_name_construct(symname), ",args))\n", NIL);
+  	    }
+  	    Printv(f_shadow,
+ 		   tab8, "_swig_setattr(self, ", rclassname, ", 'thisown', 1)\n",
+  		   NIL);
+  	    Delete(pass_self);
+  	  }
 	  have_constructor = 1;
 	} else {
 	  /* Hmmm. We seem to be creating a different constructor.  We're just going to create a
