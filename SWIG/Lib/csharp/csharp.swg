@@ -288,7 +288,7 @@ $1 = &temp; %}
   SWIG_CSharpThrowException(SWIG_CSharpException, error_msg);
 }
 
-%typemap(throws) SWIGTYPE {
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE * {
   SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
 }
 
