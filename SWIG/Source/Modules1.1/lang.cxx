@@ -118,6 +118,8 @@ int Dispatcher::emit_one(Node *n) {
       return typemapDirective(n);
     } else if (strcmp(tag,"typemapcopy") == 0) {
       return typemapcopyDirective(n);
+    } else if (strcmp(tag,"typemapitem") == 0) {
+      return typemapitemDirective(n);
     } else if (strcmp(tag,"types") == 0) {
       return typesDirective(n);
     } else {
@@ -143,30 +145,32 @@ int Dispatcher::emit_children(Node *n) {
 /* Stubs for dispatcher class.  We don't do anything by default---up to derived class
    to fill in traversal code */
 
-int Dispatcher::addmethodsDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::applyDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::clearDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::constantDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::exceptDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::importDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::includeDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::insertDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::moduleDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::nativeDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::newDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::pragmaDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::typemapDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::typemapcopyDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::typesDirective(Node *n) { return SWIG_OK; }
-int Dispatcher::cDeclaration(Node *n) { return SWIG_OK; }
-int Dispatcher::externDeclaration(Node *n) { return SWIG_OK; }
-int Dispatcher::enumDeclaration(Node *n) { return SWIG_OK; }
-int Dispatcher::enumvalueDeclaration(Node *n) { return SWIG_OK; }
-int Dispatcher::classDeclaration(Node *n) { return SWIG_OK; }
-int Dispatcher::classforwardDeclaration(Node *n) { return SWIG_OK; }
-int Dispatcher::constructorDeclaration(Node *n) { return SWIG_OK; }
-int Dispatcher::destructorDeclaration(Node *n) { return SWIG_OK; }
-int Dispatcher::accessDeclaration(Node *n) { return SWIG_OK; }
+int Dispatcher::defaultHandler(Node *) { return SWIG_OK; }
+int Dispatcher::addmethodsDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::applyDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::clearDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::constantDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::exceptDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::importDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::includeDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::insertDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::moduleDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::nativeDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::newDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::pragmaDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::typemapDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::typemapitemDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::typemapcopyDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::typesDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::cDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::externDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::enumDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::enumvalueDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::classDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::classforwardDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::constructorDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::destructorDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::accessDeclaration(Node *n) { return defaultHandler(n); }
 
 /* ----------------------------------------------------------------------
    emit_one()
@@ -717,6 +721,7 @@ int Language::cDeclaration(Node *n) {
     Setattr(n,"type",ty);
     variableHandler(n);
     Setattr(n,"type",type);
+    Setattr(n,"decl",decl);
     Delete(ty);
     Delete(type);
     Delete(fullty);

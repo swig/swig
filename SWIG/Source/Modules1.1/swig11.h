@@ -57,6 +57,7 @@ class Dispatcher {
   
   virtual int emit_one(Node *n);
   virtual int emit_children(Node *n);
+  virtual int defaultHandler(Node *n);
 
   /* Top of the parse tree */
   virtual int  top(Node *n) = 0;
@@ -76,6 +77,7 @@ class Dispatcher {
   virtual int newDirective(Node *n);
   virtual int pragmaDirective(Node *n);
   virtual int typemapDirective(Node *n);
+  virtual int typemapitemDirective(Node *n);
   virtual int typemapcopyDirective(Node *n);
   virtual int typesDirective(Node *n);
 
