@@ -18,6 +18,12 @@
 %rename (RenamedBase) Base;
 %rename (RenamedDerived) Derived;
 
+/* Rename base class method applies to derived classes too */#
+%rename (newname) Base::oldname(double d) const;
+
+/* Rename derived class method only */
+%rename (func) Derived::fn(Base baseValue, Base* basePtr, Base& baseRef);
+
 %inline %{
 class Bar {
 public:
@@ -36,13 +42,16 @@ class Base {
 public: 
   Base(){}; 
   virtual ~Base(){};
+  void fn(Base baseValue, Base* basePtr, Base& baseRef){}
+  virtual const char * oldname(double d) const { return (char*) "Base"; }
 };
 class Derived : public Base {
 public:
   Derived(){}
   ~Derived(){}
-  void fn(Derived derived, Base* basePtr, Base& baseRef){} // test renamed classes in a function
+  void fn(Base baseValue, Base* basePtr, Base& baseRef){}
+  virtual const char * oldname(double d) const { return (char*) "Derived"; }
 };
 
-
 %}
+
