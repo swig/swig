@@ -232,6 +232,7 @@ CPP_TEST_CASES += \
 	using_inherit \
 	using_private \
 	using_protected \
+	valuewrapper \
 	valuewrapper_base \
 	varargs \
 	virtual_destructor \
