@@ -59,9 +59,9 @@ struct After {
 
 %inline %{
 struct OverBefore {
-  OverBefore(const char *str, int i = -2, double d = -2.0) : d(d), i(i) { str=0; }
-  static double AddedStaticMethod(const char*, int i = -1, double d = -1) { return i+d; }
-  double AddedMethod(const char*, int i = -1, double d = -1.0) { return i+d; }
+  OverBefore(const char *str, int ii = -2, double dd = -2.0) : d(dd), i(ii) { str=0; }
+  static double AddedStaticMethod(const char*, int ii = -1, double dd = -1) { return ii+dd; }
+  double AddedMethod(const char*, int ii = -1, double dd = -1.0) { return ii+dd; }
   double d;
   int i;
 };
