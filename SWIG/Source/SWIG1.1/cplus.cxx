@@ -1,60 +1,23 @@
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * cplus.cxx
+ *
+ *     This file contains code for C++ support in SWIG1.1.  Beware!
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Copyright (C) 1998-2000.  The University of Chicago
+ * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
+ *                           University of California.
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 #include "internal.h"
 
 static char cvstag[] = "$Header$";
 
 /*******************************************************************************
- * $Header$
- *
- * File : cplus.cxx
- *
- * This module defines parser entry points for supporting C++.  Primarily
- * this module is in charge of keeping track of the contents of C++ classes,
- * organizing inheritance, and other things.
- *
- * Eventually this module will be merged with the type handling mechanism
- * in SWIG 2.0 so it's a little messy right now.
- *
- * General comments :
- *
- * 1.  The words "simple" and "C++" are rarely used in the same
- *     sentence.   Therefore this module is going to be some sort
- *     of compromise.
- *
- * 2.  I'm using the "Annotated C++ Reference Manual" (ARM) as my
- *     reference for handling certain cases.     Of course, there
- *     is a high probability that I have misinterpreted or overlooked
- *     certain cases.
- *
- * 3.  It is not my intent to write a full C++ compiler.
- *
- *     My goals are simple :
- *           -  Support simple ANSI C-like class member functions and data.
- *           -  Support constructors and destructors.
- *           -  static member functions.
- *           -  basic inheritance.
- *           -  virtual functions.
- *           -  References
- *
- *     I do not plan to support the following anytime in the near future 
- *           -  Operator overloading
- *           -  templates
- *
- * Caution :
+ * Note:
  *
  * The control flow in this module is completely insane.  But here's the
  * rough outline.
@@ -222,7 +185,6 @@ public:
   char           *code;                  // Was there any supplied code?
   char           *base;                  // Base class where this was defined
   int            inherited;              // Was this member inherited?
-  DocEntry       *de;                    // Documentation entry
   CPP_member     *next;                  // Next member (for building linked lists)
   int            id;                     // type id when created
 
@@ -253,7 +215,6 @@ public:
     new_method = AddMethods;
     new_object = NewObject;
     inherited = Inherit_mode;
-    de = 0;
     next = 0;
     line = line_number;
     file = input_file;
@@ -272,7 +233,6 @@ public:
     }
   }
   void inherit(int mode) {
-    doc_entry = 0;            // No documentation for an inherited member
     if (mode & INHERIT_FUNC) {
       // Set up the proper addmethods mode and provide C code (if provided)
       int oldaddmethods = AddMethods;
@@ -295,7 +255,6 @@ public:
     DataType *t;
     AddMethods = new_method;
     NewObject = new_object;
-    doc_entry = de;            // Restore documentation entry
     line_number = line;        // Restore line and file 
     input_file = file;
     ccode = code;
@@ -331,7 +290,6 @@ public:
     parms = new ParmList(l);
     new_method = AddMethods;
     inherited = 0;
-    de = 0;
     next = 0;
     line = line_number;
     file = input_file;
@@ -349,7 +307,6 @@ public:
     if (1) {
       ParmList *l;
       AddMethods = new_method;
-      doc_entry = de;
       line_number = line;
       input_file = file;
       ccode = code;
@@ -360,11 +317,6 @@ public:
       update_parms(l);
       lang->cpp_constructor(name,iname,l);
       delete l;
-    } else {
-      if (Verbose) {
-	fprintf(stderr,"%s:%d:  Constructor for abstract base class ignored.\n",
-		file,line);
-      }
     }
   }
 };
@@ -383,7 +335,6 @@ public:
     name = copy_string(n);
     iname = copy_string(i);
     new_method = AddMethods;
-    de = 0;
     next = 0;
     inherited = 0;
     line = line_number;
@@ -401,7 +352,6 @@ public:
   }
   void emit() {
     AddMethods = new_method;
-    doc_entry = de;
     line_number = line;
     input_file = file;
     ccode = code;
@@ -425,7 +375,6 @@ public:
     type = new DataType(t);
     is_static = s;
     status = Status;
-    de = 0;
     next = 0;
     new_method = AddMethods;
     line = line_number;
@@ -444,7 +393,6 @@ public:
   void emit() {
     DataType *t;
     int old_status = Status;
-    doc_entry = de;
     AddMethods = new_method;
     Status = status;
     line_number = line;
@@ -470,7 +418,6 @@ public:
   void inherit(int mode) {
     int oldstatus = Status;
     Status = status;
-    doc_entry = 0;
     if (mode & INHERIT_VAR) {
       if (!is_static) {
 	int oldaddmethods = AddMethods;
@@ -502,7 +449,6 @@ public:
     iname = copy_string(i);
     type = new DataType(t);
     value = copy_string(v);
-    de = 0;
     new_method = AddMethods;
     next = 0;
     line = line_number;
@@ -516,7 +462,6 @@ public:
   }
 
   void emit() {
-    doc_entry = de;
     AddMethods = new_method;
     line_number = line;
     input_file = file;
@@ -525,7 +470,6 @@ public:
   }
 
   void inherit(int mode) {
-    doc_entry = 0;
     if (mode & INHERIT_CONST) 
       cplus_declare_const(name, iname, type, value);
   }
@@ -556,7 +500,6 @@ public:
   char        **baseclass;            // Base classes (if any)
   Hash        *local;                 // Hash table for local types
   void        *scope;                 // Local scope hash table
-  DocEntry    *de;                    // Documentation entry of class
   CPP_member  *members;               // Linked list of members
   CPP_class   *next;                  // Next class
   static CPP_class *classlist;        // List of all classes stored
@@ -568,7 +511,6 @@ public:
     classtype = copy_string(ctype);
     classrename = 0;
     baseclass = 0;
-    de = doc_entry;
     local = new Hash;                 // Create hash table for storing local datatypes
     scope = 0;
     error = 0;
@@ -657,15 +599,12 @@ public:
 
   void emit_decls() {
     CPP_member    *m = members;
-    int  last_scope = name_scope(0);
     abstract = is_abstract;
     while (m) {
       cpp_id = m->id;
-      name_scope(cpp_id);         // Set proper naming scope
       m->emit();
       m = m->next;
     }
-    name_scope(last_scope);
   }
 
   // ------------------------------------------------------------------------------  
@@ -697,12 +636,10 @@ public:
     if ((!have_constructor) && (1)) {
       ParmList *l;
       l = new ParmList();
-      doc_entry = new DocDecl(classname,this->de);
       cplus_constructor(classname,0,l);
     };
     
     if (!have_destructor) {
-      doc_entry = new DocDecl(classname,this->de);
       cplus_destructor(classname,0);
     }
   }
@@ -726,14 +663,12 @@ void CPP_class::create_all() {
       localtypes = c->local;
       if ((!c->wextern) && (c->classtype)) {
 	ObjCClass = c->objective_c;
-	doc_entry = c->de;
 	lang->cpp_open_class(c->classname,c->classrename,c->classtype,c->strip);
 	lang->cpp_pragma(c->pragmas);
 	c->create_default();
 	if (c->baseclass)
 	  cplus_inherit_decl(c->baseclass);
 	c->emit_decls();
-	doc_entry = c->de;
 	lang->cpp_close_class();
       }
     }
@@ -800,7 +735,6 @@ void cplus_open_class(char *name, char *rname, char *ctype) {
   } else {
     // Create a new class
     current_class = new CPP_class(name, ctype); 
-    current_class->de = doc_entry;
   }
 
   // Set localtypes hash to our current class
@@ -830,7 +764,7 @@ void cplus_open_class(char *name, char *rname, char *ctype) {
 }
 
 // -----------------------------------------------------------------------------
-// DocEntry *cplus_set_class(char *name)
+// void cplus_set_class(char *name)
 //
 // This function sets the current class to a given name.   If the class
 // doesn't exist, this function will create one.   If it already exists,
@@ -844,23 +778,10 @@ void cplus_open_class(char *name, char *rname, char *ctype) {
 //         %addmethods MyClass {     // Add some members for shadow classes
 //               ... members ...
 //         }
-// 
-// Sounds weird, but returns the documentation entry to class if it exists.
-// The parser needs this so we can generate documentation correctly.
-// 
-// Inputs : name   = Name of the class
 //
-// Output : Documentation entry of class or NULL if it doesn't exist.
-//          The parser needs the documentation entry to properly associate
-//          new members.
-//
-// Side Effects :
-//          Changes the current class object.  Resets a number of internal
-//          state variables.  Should not be called inside of a open class
-//          declaration.
 // -----------------------------------------------------------------------------
 
-DocEntry *cplus_set_class(char *name) {
+void cplus_set_class(char *name) {
   
   CPP_class *c;
 
@@ -870,12 +791,10 @@ DocEntry *cplus_set_class(char *name) {
   if (c) {
     current_class = c;
     localtypes = c->local;
-    return c->de;
   } else {
     fprintf(stderr,"%s:%d:  Warning class %s undefined.\n",input_file,line_number,name);
     current_class = new CPP_class(name,0);
     localtypes = current_class->local;
-    return 0;
   }
 };
 
@@ -1203,7 +1122,6 @@ void cplus_member_func(char *name, char *iname, DataType *type, ParmList *l,
   // Add it to our C++ class list
 
   f = new CPP_function(name,temp_iname,type,l,0,is_virtual);
-  f->de = doc_entry;
   current_class->add_member(f);
 
   // If this is a pure virtual function, the class is abstract
@@ -1236,7 +1154,6 @@ void cplus_constructor(char *name, char *iname, ParmList *l) {
     // May want to check the naming scheme here
 
     c = new CPP_constructor(name,iname,l);
-    c->de = doc_entry;
     current_class->add_member(c);
     current_class->have_constructor = 1;
 
@@ -1263,7 +1180,6 @@ void cplus_destructor(char *name, char *iname) {
   CPP_destructor *d;
 
   d = new CPP_destructor(name,iname);
-  d->de = doc_entry;
   current_class->add_member(d);
   current_class->have_destructor = 1;
 }
@@ -1303,7 +1219,6 @@ void cplus_variable(char *name, char *iname, DataType *t) {
     }
     
     v = new CPP_variable(name,iname,t,0);
-    v->de = doc_entry;
     current_class->add_member(v);
 }
 
@@ -1342,7 +1257,6 @@ void cplus_static_func(char *name, char *iname, DataType *type, ParmList *l) {
   }
 
   CPP_function *f = new CPP_function(name, temp_iname, type, l, 1);
-  f->de = doc_entry;
   current_class->add_member(f);
 }
 
@@ -1381,7 +1295,6 @@ void cplus_declare_const(char *name, char *iname, DataType *type, char *value) {
   }
 
   CPP_constant *c =  new CPP_constant(name, temp_iname, type, value);
-  c->de = doc_entry;
   current_class->add_member(c);
 
   // Update this symbol in the symbol table
@@ -1424,7 +1337,6 @@ void cplus_static_var(char *name, char *iname, DataType *type) {
   }
 
   CPP_variable *v = new CPP_variable(name, temp_iname, type, 1);
-  v->de = doc_entry;
   current_class->add_member(v);
 }
 
@@ -2533,34 +2445,6 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
     } else {
       lang->create_command(prev_wrap,iname);
     } 
-}
-
-// -----------------------------------------------------------------------------
-// void cplus_support_doc(String &f)
-//
-// This function adds a supporting documentation entry to the
-// end of a class.   This should only be used if there is an
-// alternative interface available or if additional information is needed.
-//
-// doc_entry should be set to the class entry before calling this. Otherwise,
-// who knows where this text is going to end up!
-// 
-// Inputs : f  = String with additional text
-//
-// Output : None
-//
-// Side Effects :
-//          Adds a text block to the current documentation entry.
-//
-// -----------------------------------------------------------------------------
-
-void cplus_support_doc(String &f) {
-
-  DocEntry *de;
-  if (doc_entry) {
-    de = new DocText(f.get(),doc_entry);
-    de->format = 0;
-  }
 }
 
 // -----------------------------------------------------------------------------

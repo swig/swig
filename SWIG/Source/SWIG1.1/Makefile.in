@@ -14,13 +14,13 @@ RANLIB   = @RANLIB@
 
 TARGET   = libswig11.a
 
-OBJS     = parser.o main.o scanner.o symbol.o types.o include.o parms.o emit.o newdoc.o \
-          cplus.o lang.o hash.o sstring.o wrapfunc.o comment.o \
+OBJS     = parser.o main.o scanner.o symbol.o types.o include.o parms.o emit.o \
+          cplus.o lang.o hash.o sstring.o wrapfunc.o \
           typemap.o naming.o
 
 SRCS     = main.cxx scanner.cxx symbol.cxx include.cxx types.cxx parms.cxx emit.cxx \
-	  newdoc.cxx cplus.cxx lang.cxx hash.cxx \
-          sstring.cxx wrapfunc.cxx comment.cxx typemap.cxx naming.cxx
+	   cplus.cxx lang.cxx hash.cxx \
+           sstring.cxx wrapfunc.cxx typemap.cxx naming.cxx
 
 PARSER   = parser.yxx
 INCLUDE  = -I../Include -I. -I../Swig -I../Preprocessor -I../DOH/Include

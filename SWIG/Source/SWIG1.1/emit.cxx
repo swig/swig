@@ -1,30 +1,20 @@
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * emit.cxx
+ *
+ *     Useful functions for emitting various pieces of code.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Copyright (C) 1998-2000.  The University of Chicago
+ * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
+ *                           University of California.
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 #include "internal.h"
 
 static char cvsroot[] = "$Header$";
-
-/*******************************************************************************
- * File : emit.cxx
- *
- * This file contains some useful functions for emitting code that would be
- * common to all of the interface languages.  Mainly this function deals with
- * declaring functions external, creating lists of arguments, and making
- * function calls.
- *******************************************************************************/
 
 // -----------------------------------------------------------------------------
 // void emit_banner(FILE *f)
@@ -708,7 +698,6 @@ void emit_set_get(char *name, char *iname, DataType *t) {
       }
       delete l;
       delete p;
-      if (doc_entry) doc_entry->usage << "\n";
     }
 
     // Now write a function to get the value of the variable

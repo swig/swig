@@ -1,29 +1,18 @@
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
- * 
- * Author : David Beazley
- *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
-/***********************************************************************
- * $Header$
- *
+/* ----------------------------------------------------------------------------- 
  * main.cxx
  *
- * The main program.
+ *     Main entry point to the SWIG core.
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- ***********************************************************************/
+ * Copyright (C) 1998-2000.  The University of Chicago
+ * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
+ *                           University of California.
+ *
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
-
-#define WRAP
 
 #include "internal.h"
 #include "swigconfig.h"
@@ -43,6 +32,32 @@ static char cvsroot[] = "$Header$";
 #define SWIG_CC "CC"
 #endif
 
+// Global variables
+
+    FILE      *f_runtime;          
+    FILE      *f_header;                        // Some commonly used
+    FILE      *f_wrappers;                      // FILE pointers
+    FILE      *f_init;
+    FILE      *f_input;
+    char      InitName[256];             
+    char      LibDir[512];                      // Library directory
+    int       Status; 
+    Language  *lang;                            // Language method
+    int        CPlusPlus = 0;
+    int        ObjC = 0;
+    int        ObjCClass = 0;
+    int        AddMethods = 0;                  // AddMethods flag
+    int        NewObject = 0;                   // NewObject flag
+    int        Inline = 0;                      // Inline mode
+    int        ForceExtern = 0;                 // Force extern mode
+    int        WrapExtern = 0;
+    int        GenerateDefault = 0;            // Generate default constructors
+    char      *Config = 0;
+    int        NoInclude = 0;
+    char      *typemap_lang = 0;                // Typemap name
+    int        type_id = 0;                     // Type identifier
+    int        error_count = 0;                 // Error count
+
 class SwigException {};
 
 static char *usage = "\
@@ -50,15 +65,12 @@ static char *usage = "\
      -c              - Produce raw wrapper code (omit support code)\n\
      -c++            - Enable C++ processing\n\
      -co             - Check a file out of the SWIG library\n\
-     -d docfile      - Set name of the documentation file.\n\
      -Dsymbol        - Define a symbol (for conditional compilation)\n\
      -I<dir>         - Look for SWIG files in <dir>\n\
      -l<ifile>       - Include SWIG library file.\n\
      -make_default   - Create default constructors/destructors\n\
-     -nocomment      - Ignore all comments (for documentation).\n\
      -o outfile      - Set name of the output file.\n\
      -objc           - Enable Objective C processing\n\
-     -strict n       - Set pointer type-checking strictness\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
      -version        - Print SWIG version number\n\
@@ -86,26 +98,23 @@ FILE  *swig_log;
 char *SwigLib;
 static int     freeze = 0;
 
-int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
-
+int SWIG_main(int argc, char *argv[], Language *l) {
   int    i;
   char   *c;
   extern  FILE   *LEX_in;
   extern  char   *get_time();
   char    temp[512];
   char    infile[512];
-
   char   *outfile_name = 0;
   extern  int add_iname(char *);
   int     help = 0;
-  int     ignorecomments = 0;
   int     checkout = 0;
   int     cpp_only = 0;
 
   char   *typemap_file = 0;
   char   *includefiles[256];
   int     includecount = 0;
-  extern  void check_suffix(char *);
+  extern  int check_suffix(char *);
   extern  void scanner_file(FILE *);
   DOH    *libfiles = 0;
 
@@ -121,11 +130,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   f_header = 0;
 
   lang = l;
-  doc = d;
   Status = 0;
-  TypeStrict = 2;                   // Very strict type checking
-  Verbose = 0;
-  char    *doc_file = 0;
   
   DataType::init_typedef();         // Initialize the type handler
 
@@ -149,24 +154,13 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   }
   
   SwigLib = copy_string(LibDir);        // Make a copy of the real library location
-#ifdef MACSWIG
-  /* This needs to be fixed */
-  sprintf(temp,"%s:config", LibDir);
-  add_directory(temp);
-  add_directory(":swig_lib:config");
-  add_directory(LibDir);
-  add_directory(":swig_lib");
-#else
-  sprintf(temp,"%s/config", LibDir);
 
+  sprintf(temp,"%s/config", LibDir);
   Swig_add_directory((DOH *) temp);
   Swig_add_directory((DOH *) "./swig_lib/config");
   Swig_add_directory((DOH *) LibDir);
   Swig_add_directory((DOH *) "./swig_lib");
   sprintf(InitName,"init_wrap");
-#endif
-
-  sprintf(InitName,"init_wrap");  
 
   libfiles = NewList();
 
@@ -183,23 +177,10 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	    Preprocessor_define((DOH *) d,0);
 	    // Create a symbol
 	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-strict") == 0) {
-	    if (argv[i+1]) {
-	      TypeStrict = atoi(argv[i+1]);
-	      Swig_mark_arg(i);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
-	    }
 	  } else if (strcmp(argv[i],"-E") == 0) {
 	    cpp_only = 1;
 	    Swig_mark_arg(i);
 	  } else if ((strcmp(argv[i],"-verbose") == 0) || (strcmp(argv[i],"-v") == 0)) {
-	      Verbose = 1;
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-nocomment") == 0) {
-	      ignorecomments = 1;
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
@@ -220,15 +201,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	      Swig_mark_arg(i);
 	      if (argv[i+1]) {
 		outfile_name = copy_string(argv[i+1]);
-		Swig_mark_arg(i+1);
-		i++;
-	      } else {
-		Swig_arg_error();
-	      }
-	  } else if (strcmp(argv[i],"-d") == 0) {
-	      Swig_mark_arg(i);
-	      if (argv[i+1]) {
-		doc_file = copy_string(argv[i+1]);
 		Swig_mark_arg(i+1);
 		i++;
 	      } else {
@@ -262,33 +234,16 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   while (includecount > 0) {
     Swig_add_directory((DOH *) includefiles[--includecount]);
   }
-    
-  // Open up a comment handler
-
-  comment_handler = new CommentHandler();
-  comment_handler->parse_args(argc,argv);
-  if (ignorecomments) comment_handler->style("ignore",0);
-
-  // Create a new documentation entry
-
-  doctitle = new DocTitle("",0);
-  doctitle->parse_args(argc,argv);
-  doc_entry = doctitle;
-
-  // Handle documentation module options
-
-  doc->parse_args(argc,argv);
 
   // Parse language dependent options
-
   lang->parse_args(argc,argv);
 
   if (help) SWIG_exit(0);              // Exit if we're in help mode
 
   // Check all of the options to make sure we're cool.
-  
   Swig_check_options();
 
+  // Add language dependent directory to the search path
   {
     DOH *rl = NewString("");
     Printf(rl,"%s/%s", SwigLib,LibDir);
@@ -296,7 +251,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   }
 
   // If we made it this far, looks good. go for it....
-
   // Create names of temporary files that are created
 
   sprintf(infilename,"%s", argv[argc-1]);
@@ -304,7 +258,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   strcpy(input_file, infilename);
 
   // If the user has requested to check out a file, handle that
-
   if (checkout) {
     DOH *s;
     char *outfile = input_file;
@@ -331,15 +284,10 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
       }
     }
   } else {
-    doctitle->file = copy_string(input_file);
-    doctitle->line_number = -1000;
-    doctitle->end_line = -1000;
-    
     // Check the suffix for a .c file.  If so, we're going to 
     // declare everything we see as "extern"
     
-    check_suffix(infilename);
-    
+    ForceExtern = check_suffix(infilename);
     // Strip off suffix 
     
     c = infilename + strlen(infilename);
@@ -362,11 +310,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
       char *cc = outfile_name;
       char *lastc = outfile_name;
       while (*cc) {
-#ifdef MACSWIG
-	if (*cc == ':') lastc = cc+1;
-#else
 	if (*cc == '/') lastc = cc+1;
-#endif
 	cc++;
       }
       cc = outfile_name;
@@ -380,17 +324,10 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
       // Patch up the input filename
       cc = infilename + strlen(infilename);
       while (cc != infilename) {
-#ifdef MACSWIG
-	if (*cc == ':') {
-	  cc++;
-	  break;
-	}
-#else
 	if (*cc == '/') {
 	  cc++;
 	  break;
 	}
-#endif
 	cc--;
       }
       strcpy(infile,cc);
@@ -401,16 +338,11 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     sprintf(fn_wrapper,"%s%s_wrap.wrap",output_dir,infile);
     sprintf(fn_init,"%s%s_wrap.init",output_dir,infile);
     
-    sprintf(title,"%s", fn_runtime);
-    
     // Define the __cplusplus symbol
     if (CPlusPlus) 
       Preprocessor_define((DOH *) "__cplusplus 1", 0);
 
-    // Open up files
-
-    /* Preprocess.  Ugh */
-
+    // Run the preprocessor
     {
       DOH *cpps;
       FILE *f;
@@ -467,16 +399,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
       exit(0);
     }
     
-    // Open up documentation
-    
-    if (doc_file) {
-      doc->init(doc_file);
-    } else {
-      doc_file = new char[strlen(infile)+strlen(output_dir)+8];
-      sprintf(doc_file,"%s%s_wrap",output_dir,infile);
-      doc->init(doc_file);
-    }
-    
     // Set up the typemap for handling new return strings
     {
       DataType *temp_t = new DataType(T_CHAR);
@@ -509,21 +431,11 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     fclose(f_wrappers);
     fclose(f_init);
 
-    swig_append(fn_header, f_runtime);
-    swig_append(fn_wrapper,f_runtime);
-    swig_append(fn_init,f_runtime);
+    insert_file(fn_header, f_runtime);
+    insert_file(fn_wrapper,f_runtime);
+    insert_file(fn_init,f_runtime);
     
     fclose(f_runtime);
-    
-    // Print out documentation.  Due to tree-like nature of documentation,
-    // printing out the title prints out everything.
-    
-    while(doctitle) {
-      doctitle->output(doc);
-      doctitle = doctitle->next;
-    }
-    
-    doc->close();
     
     // Remove temporary files
     
@@ -532,26 +444,13 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     remove(fn_wrapper);
     remove(fn_init);
 
-    // If only producing documentation, remove the wrapper file as well
-
-    if (DocOnly) 
-      remove(fn_runtime);
-
     if (checkout) {
       // File was checked out from the SWIG library.   Remove it now
       remove(input_file);
     }
   }
-#ifdef MACSWIG
-  fclose(swig_log);
-  } catch (SwigException) {
-    fclose(swig_log);
-  }
-#else
   while (freeze);
-  exit(error_count);
-#endif
-  return(error_count);
+  return error_count;
 }
 
 // --------------------------------------------------------------------------
@@ -578,12 +477,9 @@ void SWIG_exit(int) {
     fclose(f_runtime);
     remove(fn_runtime);
   }
+  remove (fn_cpp);
   while (freeze);
-#ifndef MACSWIG
   exit(1);
-#else
-  throw SwigException();
-#endif
 }
 
 

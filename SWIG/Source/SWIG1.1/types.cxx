@@ -1,30 +1,18 @@
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
- * 
- * Author : David Beazley
- *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
-
-static char cvsroot[] = "$Header$";
-
-/***********************************************************************
- * $Header$
- *
+/* ----------------------------------------------------------------------------- 
  * types.cxx
  *
- * This file contains functions for dealing with datatypes.  This
- * is a combination of the file typedef.cc (now obsolete) and functions
- * that used to be in the swig.h header.
+ *     This file contains code for SWIG1.1 type objects.
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- ***********************************************************************/
+ * Copyright (C) 1998-2000.  The University of Chicago
+ * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
+ *                           University of California.
+ *
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
+
+static char cvsroot[] = "$Header$";
 
 #include "internal.h"
 
@@ -936,7 +924,6 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
 void typeeq_derived(char *n1, char *n2, char *cast=0) {
   DataType   t,t1;
   String     name,name2;
-  EqEntry    *e1;
 
   if (!te_init) typeeq_init();
 

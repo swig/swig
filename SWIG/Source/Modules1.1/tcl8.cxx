@@ -263,8 +263,8 @@ void TCL8::initialize()
   }
 
   if (!init_name) {
-    init_name = "Swig_Init";
-    fprintf(stderr,"SWIG : *** Warning. No module name specified.\n");
+    fprintf(stderr,"*** Error. No module name specified.\n");
+    SWIG_exit(1);
   }
 
   fprintf(f_header,"#define SWIG_init    %s\n", init_name);
@@ -748,23 +748,6 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Now register the function with Tcl
 
   cmd_info << tab4 << "{ SWIG_prefix \"" << iname << "\", " << wname << ", NULL},\n";
-
-  // If there's a documentation entry, produce a usage string
-
-  if (doc_entry) {
-
-    static DocEntry *last_doc_entry = 0;
-
-    // Use usage as description
-    doc_entry->usage << usage;
-
-    // Set the cinfo field to specific a return type 
-
-    if (last_doc_entry != doc_entry) {
-      doc_entry->cinfo << "returns " << d->print_type();
-      last_doc_entry = doc_entry;
-    }
-  }
 }
 
 // -----------------------------------------------------------------------
@@ -1003,24 +986,12 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       s << ");\n";
 
     fprintf(f_init,"\t Tcl_LinkVar(%s, SWIG_prefix \"%s\", %s",interp_name, iname, s.get());    
-    
-    // Make a usage string for it
-
-    if (doc_entry) {
-      doc_entry->usage << usage_var(iname,t);
-      doc_entry->cinfo = "";
-      doc_entry->cinfo << "Global : " << t->print_type() << " " << name;
-    }
   } else {
 
     // Have some sort of "other" type.
     // We're going to emit some functions to set/get it's value instead
     
     emit_set_get(name,iname, t);
-    if (doc_entry) {
-      doc_entry->cinfo = "";
-      doc_entry->cinfo << "Global : " << t->print_type() << " " << iname;
-    }
 
     // If shadow classes are enabled and we have a user-defined type
     // that we know about, create a command for it.  
@@ -1167,16 +1138,6 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
       }
     }
   }
-
-  // Create a documentation entry for this
-
-  if (doc_entry) {
-    doc_entry->usage = "";       // Destroy any previous information from linking
-    doc_entry->usage << usage_const(name, type, value);
-    doc_entry->cinfo = "";
-    doc_entry->cinfo << "Constant : " << type->print_type();
-  }
-
   Status = OldStatus;
 }
 
@@ -1303,15 +1264,6 @@ char *TCL8::usage_const(char *name, DataType *, char *value) {
 void TCL8::add_native(char *name, char *funcname, DataType *, ParmList *) {
 
   fprintf(f_init,"\t Tcl_CreateCommand(%s, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",interp_name, name, funcname);
-  
-  if (doc_entry) {
-    if (nspace) 
-      doc_entry->usage << ns_name << "::" << name << " args";
-    else
-      doc_entry->usage << prefix << name << " args";
-
-    doc_entry->cinfo << "Native method : " << funcname;
-  }
     
 }
  
@@ -1440,11 +1392,6 @@ void TCL8::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       rname = name_wrapper(temp.get(),prefix);
     
     methods << tab4 << "{\"" << realname << "\", " << rname << "}, \n";
-
-    if (doc_entry) {
-      doc_entry->usage = "";
-      doc_entry->usage << usage_string(realname,t,l);
-    }
   }
 }
 
@@ -1483,10 +1430,6 @@ void TCL8::cpp_variable(char *name, char *iname, DataType *t) {
     } else {
       attributes << "0 },\n";
     }
-    if (doc_entry){
-      doc_entry->usage = "";
-      doc_entry->usage << "-" << realname << "\n";
-    }
   }
 }
 
@@ -1494,21 +1437,12 @@ void TCL8::cpp_constructor(char *name, char *iname, ParmList *l) {
   this->Language::cpp_constructor(name,iname,l);
 
   if (shadow) {
-    if ((!have_constructor) && (doc_entry)) {
-      doc_entry->usage = "";
-      doc_entry->usage << class_name << usage_string(" name",0,l);
-    }
     have_constructor = 1;
   }
 }
 void TCL8::cpp_destructor(char *name, char *newname) {
   this->Language::cpp_destructor(name,newname);
   if (shadow) {
-    if (!have_destructor) {
-      if (doc_entry) {
-	doc_entry->usage = "rename obj {}";
-      }
-    }
     have_destructor = 1;
   }
 }

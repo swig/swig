@@ -27,21 +27,10 @@ static char cvsroot[] = "$Header$";
 #include "swig11.h"
 #include "python.h"
 
-// Structures for managing doc strings
-
-struct DocString {
-  DocEntry    *de;
-  char        *name;
-  DocString    *next;
-};
-
-static   int          doc_index = 0;
-static   DocString   *doc_strings = 0;
 static   String       const_code;
 
 static char *usage = "\
 Python Options (available with -python)\n\
-     -docstring      - Produce docstrings (only applies to shadow classes)\n\
      -globals name   - Set name used to access C global variable ('cvar' by default).\n\
      -module name    - Set module name\n\
      -keyword        - Use keyword arguments\n\
@@ -59,8 +48,6 @@ void PYTHON::parse_args(int argc, char *argv[]) {
   int i = 1;
 
   sprintf(LibDir,"%s",path);
-
-  docstring = 0;
 
   // Look for additional command line options.
   for (i = 1; i < argc; i++) {	
@@ -87,9 +74,6 @@ void PYTHON::parse_args(int argc, char *argv[]) {
 	    }
 	  } else if (strcmp(argv[i],"-shadow") == 0) {
 	    shadow = 1;
-	    Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-docstring") == 0) {
-	    docstring = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-keyword") == 0) {
 	    use_kw = 1;
@@ -249,30 +233,6 @@ void PYTHON::print_methods() {
 }
 
 // ---------------------------------------------------------------------
-// char *PYTHON::add_docstring(DocEntry *de)
-//
-// Adds a documentation entry to the doc-string generator.   Returns a
-// unique character symbol that will be used to fill in the doc-string
-// at a later time.
-// ---------------------------------------------------------------------
-
-char *PYTHON::add_docstring(DocEntry *de) {
-  DocString *s;
-  String str;
-
-  str = "@doc";
-  str << doc_index << "@";
-  
-  s = new DocString();
-  s->de = de;
-  s->name = copy_string(str);
-  s->next = doc_strings;
-  doc_strings = s;
-  doc_index++;
-  return s->name;
-}
-
-// ---------------------------------------------------------------------
 // PYTHON::headers(void)
 //
 // ----------------------------------------------------------------------
@@ -311,8 +271,8 @@ void PYTHON::initialize(void)
   char  *oldmodule = 0;
 
   if (!module) {
-    module = "swig";
-    fprintf(stderr,"SWIG : *** Warning. No module name specified.\n");
+    fprintf(stderr,"*** Error. No module name specified.\n");
+    SWIG_exit(1);
   }
 
   // If shadow classing is enabled, we're going to change the module
@@ -390,14 +350,6 @@ void PYTHON::initialize_cmodule(void)
 
   fprintf(f_init,"SWIGEXPORT(void) init%s() {\n",module);
   fprintf(f_init,"\t PyObject *m, *d;\n");
-
-  if (InitNames) {
-    i = 0;
-    while (InitNames[i]) {
-      fprintf(f_init,"\t %s();\n", InitNames[i]);
-      i++;
-    }
-  }
   fprintf(f_init,"\t SWIG_globals = SWIG_newvarlink();\n");
   fprintf(f_init,"\t m = Py_InitModule(\"%s\", %sMethods);\n", module, module);
   fprintf(f_init,"\t d = PyModule_GetDict(m);\n");
@@ -416,15 +368,6 @@ void PYTHON::close(void)
 
   print_methods();
   close_cmodule();
-  if ((doc_entry) && (module)){
-    String temp;
-    temp << "Python Module : ";
-    if (shadow) {
-      module[strlen(module)-1] = 0;
-    }
-    temp << module; 
-    doc_entry->cinfo << temp;
-  }
   if (shadow) {
     String  fullshadow;
     fullshadow << classes
@@ -437,25 +380,6 @@ void PYTHON::close(void)
       fullshadow << "\n\n#-------------- USER INCLUDE -----------------------\n\n"
                  << pragma_include;
     }
-
-    // Go through all of the docstrings and replace the docstrings
-
-    DocString *s;
-    s = doc_strings;
-    while (s) {
-      fullshadow.replace(s->name, s->de->text);
-      s = s->next;
-    }
-    /*
-    fprintf(f_shadow,"\n\n#-------------- FUNCTION WRAPPERS ------------------\n\n");
-    fprintf(f_shadow,"%s",func.get());
-    fprintf(f_shadow,"\n\n#-------------- VARIABLE WRAPPERS ------------------\n\n");
-    fprintf(f_shadow,"%s",vars.get());
-    if (strlen(pragma_include) > 0) {
-      fprintf(f_shadow,"\n\n#-------------- USER INCLUDE -----------------------\n\n");
-      fprintf(f_shadow,"%s",pragma_include.get());
-    }
-    */
     fprintf(f_shadow, "%s", fullshadow.get());
     fclose(f_shadow);
   }
@@ -1012,17 +936,6 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   add_method(iname, wname);
 
-  // Create a documentation entry for this
-
-  if (doc_entry) {
-    static DocEntry *last_doc_entry = 0;
-    doc_entry->usage << usage;
-    if (last_doc_entry != doc_entry) {
-      doc_entry->cinfo << "returns " << d->print_type();
-      last_doc_entry = doc_entry;
-    }
-  }
-
   // ---------------------------------------------------------------------------
   // Create a shadow for this function (if enabled and not in a member function)
   // ---------------------------------------------------------------------------
@@ -1040,9 +953,6 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       munge_return = 1;
     }
 
-    if (docstring && doc_entry) 
-      need_wrapper = 1;
-
     // If no modification is needed. We're just going to play some
     // symbol table games instead
 
@@ -1050,11 +960,6 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       func << iname << " = " << module << "." << iname << "\n\n";
     } else {
       func << "def " << iname << "(*args, **kwargs):\n";
-
-      // Create a docstring for this 
-      if (docstring && doc_entry) {
-	func << tab4 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
-      }
 
       func << tab4 << "val = apply(" << module << "." << iname << ",args,kwargs)\n";
 
@@ -1302,14 +1207,6 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 
     fprintf(f_init,"\t SWIG_addvarlink(SWIG_globals,\"%s\",%s_get, %s_set);\n", iname, wname, wname);
 
-
-    // Fill in the documentation entry
-
-    if (doc_entry) {
-      doc_entry->usage << usage_var(iname, t);
-      doc_entry->cinfo << "Global : " << t->print_type() << " " << name;
-    }
-
     // ----------------------------------------------------------
     // Output a shadow variable.  (If applicable and possible)
     // ----------------------------------------------------------
@@ -1378,12 +1275,6 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
   if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
     vars << name << " = " << module << "." << name << "\n";
   }    
-  if (doc_entry) {
-    doc_entry->usage = "";
-    doc_entry->usage << usage_const(name,type,value);
-    doc_entry->cinfo = "";
-    doc_entry->cinfo << "Constant: " << type->print_type();
-  }
 }
 
 // ----------------------------------------------------------------------

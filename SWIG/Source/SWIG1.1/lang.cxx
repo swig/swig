@@ -1,33 +1,21 @@
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * lang.cxx
+ *
+ *     Language base class functions.  Default C++ handling is also implemented here.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Copyright (C) 1998-2000.  The University of Chicago
+ * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
+ *                           University of California.
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
 
 #include "internal.h"
 #include <ctype.h>
-
-// -----------------------------------------------------------------------
-// $Header$
-//
-// lang.cxx
-//
-// This file contains some default methods for the SWIG language class.   
-// Default C++ handling is implemented here as well as a few utility functions.
-//
-// -----------------------------------------------------------------------
-
 
 // -----------------------------------------------------------------
 // void Language::set_init(char *iname)
@@ -105,16 +93,6 @@ void Language::cpp_open_class(char *classname, char *classrename, char *ctype, i
   ClassType = new char[strlen(ctype)+2];
   if (strip) ClassType[0] = 0;
   else sprintf(ClassType,"%s ",ctype);
-
-  if (doc_entry) {
-    doc_entry->usage = "";
-    doc_entry->name = copy_string(classname);
-    doc_entry->usage << "class ";
-    if (ClassRename) doc_entry->usage << ClassRename;
-    else doc_entry->usage << ClassName;
-    doc_entry->cinfo << "created from " << ctype 
-		     << " " << classname;
-  }
 }
 
 // ---------------------------------------------------------------------------------
@@ -192,11 +170,6 @@ void Language::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l
 	    input_file, line_number, cname, name);
     return;
   }
-  
-  // Now produce the resulting wrapper function
-  if (doc_entry) {
-    doc_entry->cinfo << "Member : ";
-  }
   cplus_emit_member_func(ClassName, ClassType, ClassRename, name, iname, t, l, AddMethods);
 }
 
@@ -241,11 +214,6 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
     return;
   }
 
-  // Attach a note to the cinfo field.
-
-  if (doc_entry) 
-    doc_entry->cinfo << "Constructor: ";
-
   // Call our default method
 
   cplus_emit_constructor(ClassName, ClassType, ClassRename, name, iname, l, AddMethods);
@@ -280,11 +248,6 @@ void Language::cpp_destructor(char *name, char *iname) {
     return;
   }
 
-
-  // Attach a note to the description
-
-  if (doc_entry)
-    doc_entry->cinfo << "Destructor: ";
 
   // Call our default method
 
@@ -362,17 +325,10 @@ void Language::cpp_variable(char *name, char *iname, DataType *t) {
     return;
   }
 
-  // Attach a c descriptor
-
-  if (doc_entry)
-    doc_entry->cinfo << "Member data: ";
-
   // Create a function to set the value of the variable
 
   if (!(Status & STAT_READONLY)) {
     cplus_emit_variable_set(ClassName, ClassType, ClassRename, name, iname, t, AddMethods);
-    // Add a new line to the documentation entry
-    if (doc_entry) doc_entry->usage << "\n";
   }
 
   // Create a function to get the value of a variable
@@ -426,14 +382,6 @@ void Language::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l
 	      input_file, line_number, cname);
     return;
   }
-
-  if (doc_entry) {
-    if (ObjCClass)
-      doc_entry->cinfo << "Class method : ";
-    else
-      doc_entry->cinfo << "Static member : ";
-  }
-
   cplus_emit_static_func(ClassName,ClassType, ClassRename, name, iname, t, l, AddMethods);
 
 }
@@ -545,9 +493,6 @@ void Language::cpp_static_var(char *name, char *iname, DataType *t) {
   // Form correct C++ name
 
   sprintf(mname,"%s::%s",ClassName,name);
-
-  if (doc_entry)
-    doc_entry->cinfo << "Static member : ";
 
   // Link with this variable
 

@@ -1,27 +1,18 @@
-/*******************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * swig11.h
+ *
+ *     Main header file for the SWIG1.1 core.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Copyright (C) 1998-2000.  The University of Chicago
+ * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
+ *                           University of California.
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- *******************************************************************************/
-/***********************************************************************
+ * See the file LICENSE for information on usage and redistribution.	
+ *
  * $Header$
- *
- * swig.h
- *
- * This is the header file containing the main class definitions and
- * declarations.   Should be included in all extensions and code
- * modules.
- *
- ***********************************************************************/
+ * ----------------------------------------------------------------------------- */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,10 +36,8 @@ extern  FILE      *f_init;                          // Initialization code
 extern  FILE      *f_input;
 extern  char      InitName[256];             
 extern  char      LibDir[512];                      // Library directory
-extern  char     **InitNames;                       // List of other init functions
+//extern  char     **InitNames;                       // List of other init functions
 extern  int       Status;                           // Variable creation status
-extern  int       TypeStrict;                       // Type checking strictness
-extern  int       Verbose;
 extern  int       yyparse();
 extern  int       line_number;
 extern  int       start_line;
@@ -209,7 +198,6 @@ static void       record_base(char *derived, char *base);
 };
 
 #define STAT_REPLACETYPE   2
-#define STAT_VISIT         4
 
 /************************************************************************
  * class Parm
@@ -431,86 +419,6 @@ public:
 
 };
 
-class Documentation;
-
-// --------------------------------------------------------------------
-// class DocEntry
-//
-// Base class for the documentation system.   Basically everything is
-// a documentation entry of some sort.   Specific derived classes
-// are created internally and shouldn't be accessed by third-party
-// modules.
-// --------------------------------------------------------------------
-
-class DocEntry {
-public:
-  char        *name;                 // Name of the entry
-  String      usage;                 // Short description (optional)
-  String      cinfo;                 // Information about C interface (optional).
-  String      text;                  // Supporting text (optional)
-  DocEntry    *parent;               // Parent of this entry (optional)
-  DocEntry    *child;                // Children of this entry (optional)
-  DocEntry    *next;                 // Next entry (or sibling)
-  DocEntry    *previous;             // Previous entry
-  int          counter;              // Counter for section control
-  int          is_separator;         // Is this a separator entry?
-  int          sorted;               // Sorted?
-  int          line_number;          // Line number
-  int          end_line;             // Ending line number
-  int          format;               // Format this documentation entry
-  int          print_info;           // Print C information about this entry
-  char        *file;                 // File
-  virtual ~DocEntry();               // Destructor (common to all subclasses)
-
-  // Methods applicable to all documentation entries
-
-  virtual void output(Documentation *d);    
-  void add(DocEntry *de);            // Add documentation entry to the list
-  void addchild(DocEntry *de);       // Add documentation entry as a child
-  void sort_children();              // Sort all of the children
-  void remove();                     // Remove this doc entry
-  void parse_args(int argc, char **argv); // Parse command line options
-  void style(char *name,char *value);// Change doc style.
-  static DocEntry  *dead_entries;    // Dead documentation entries
-};  
-
-extern DocEntry      *doc_entry;
-
-// Default DocEntry style parameters
-
-#define SWIGDEFAULT_SORT            0
-#define SWIGDEFAULT_FORMAT          1
-#define SWIGDEFAULT_INFO            1
-
-// ----------------------------------------------------------------------
-// Documentation module base class
-//
-// This class defines methods that need to be implemented for a 
-// documentation module.
-//
-// title()          - Print out a title entry
-// newsection()     - Start a new section (may be nested to form subsections)
-// endsection()     - End a section
-// print_decl()     - Print a standard declaration
-// print_text()     - Print standard text
-// init()           - Initialize the documentation module
-// close()          - Close documentation module           
-// ----------------------------------------------------------------------
-
-class Documentation {
-public:
-  virtual void parse_args(int argc, char **argv) = 0;
-  virtual void title(DocEntry *de) = 0;
-  virtual void newsection(DocEntry *de, int sectnum) = 0;
-  virtual void endsection() = 0;
-  virtual void print_decl(DocEntry *de) = 0;
-  virtual void print_text(DocEntry *de) = 0;
-  virtual void separator() = 0;
-  virtual void init(char *filename) = 0;
-  virtual void close(void) = 0;
-  virtual void style(char *name, char *value) = 0;
-};
-
 /* Emit functions */
 
 extern  void  emit_extern_var(char *, DataType *, int, FILE *);
@@ -523,7 +431,7 @@ extern  void  emit_hex(FILE *);
 extern  void  emit_set_get(char *, char *, DataType *);
 extern  void  emit_banner(FILE *);
 extern  void  emit_ptr_equivalence(FILE *);
-extern  int   SWIG_main(int, char **, Language *, Documentation *);
+extern  int   SWIG_main(int, char **, Language *);
 extern  void  make_wrap_name(char *);
 
 // Some functions for emitting some C++ helper code
@@ -550,13 +458,10 @@ extern void cplus_emit_variable_set(char *classname, char *classtype, char *clas
 
 extern char *cplus_base_class(char *name);
 
-extern void cplus_support_doc(String &f);
-
 /* Function for building search directories */
 
 extern  int   insert_file(char *, FILE *);
 extern  int   get_file(char *filename, String &str);
-extern  void  swig_append(char *filename, FILE *);
 
 /* These are in the new core */
 
@@ -636,7 +541,6 @@ extern  void  emit_ptr_equivalence(WrapperFunction &);
 #define AS_IS      1
 
 extern void   name_register(char *method, char *format);
-extern int    name_scope(int);
 extern char  *name_wrapper(char *fname, char *prefix, int suppress=0);
 extern char  *name_member(char *fname, char *classname, int suppress=0);
 extern char  *name_get(char *vname, int suppress=0);

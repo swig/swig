@@ -53,7 +53,6 @@ protected:
   char *usage_var(char *, DataType *);
   char *usage_func(char *, DataType *, ParmList *);
   char *usage_const(char *, DataType *, char *);
-  char *add_docstring(DocEntry *de);
 
   // Add for Python-COM support
   virtual void initialize_cmodule();
