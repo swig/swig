@@ -41,10 +41,11 @@ void wad_init() {
   if (getenv("WAD_DEBUG_STABS")) {
     wad_debug_mode |= DEBUG_STABS;
   }
-
+#ifndef WAD_LINUX
   if (!init) {
     wad_signal_init();
     wad_object_init();
   }
+#endif
   init = 1;
 }

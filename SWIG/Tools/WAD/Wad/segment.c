@@ -39,6 +39,92 @@
 #include "plat/segment_linux.c"
 #endif
 
+/* ----------------------------------------------------------------------------- 
+ * wad_segment_read()
+ *
+ * Read all of the memory segments.
+ * ----------------------------------------------------------------------------- */
+
+WadSegment *
+wad_segment_read() {
+  FILE       *fs;
+  int         dz;
+  int         offset = 0;
+  int         i;
+  int         n = 0;
+  int         nsegments;
+  WadSegment *segments;
+  WadSegment *s;
+  WadSegment  ws;
+
+  /* Try to load the virtual address map */
+  fs = segment_open();
+  if (!fs) return 0;
+  nsegments = 0;
+  while (1) {
+    n = segment_read(fs,&ws);
+    if (n <= 0) break;
+    nsegments++;
+  }
+  nsegments+=3;
+  fclose(fs);
+
+  dz = open("/dev/zero", O_RDWR, 0644);
+  if (dz < 0) {
+    puts("Couldn't open /dev/zero\n");
+    return 0;
+  }
+  segments = (WadSegment *) mmap(NULL, nsegments*sizeof(WadSegment), PROT_READ | PROT_WRITE, MAP_PRIVATE, dz, 0);
+  close(dz);
+  
+  fs = segment_open();
+  i = 0;
+  s = segments;
+
+  /* First segment is a map to the segment list */
+  s->base = (char *) segments;
+  s->vaddr = (char *) segments;
+  s->size = nsegments*sizeof(WadSegment);
+  s->mapname[0] = 0;
+  s->mappath[0] = 0;
+  s++;
+
+  while (1) {
+    n = segment_read(fs,&ws);
+    if (n <= 0) break;
+    strcpy(s->mapname, ws.mapname);
+    strcpy(s->mappath, ws.mappath);
+    s->vaddr = ws.vaddr;
+    s->base = ws.base;
+    s->size = ws.size;
+    s->offset = ws.offset;
+    if (wad_debug_mode & DEBUG_SEGMENT) {
+      printf("wad_segment: read : %08x-%08x in %s\n", s->vaddr, ((char *) s->vaddr) + s->size, s->mappath);
+    }
+    s++;
+  }
+  /* Create sentinel */
+  s->base = 0;
+  s->vaddr = 0;
+  s->size = 0;
+  s->offset = 0;
+  s->mapname[0] =0;
+  s->mappath[0] = 0;
+  fclose(fs);
+  return segments;
+}
+
+/* -----------------------------------------------------------------------------
+ * wad_segment_release()
+ *
+ * This function releases all of the segments.
+ * ----------------------------------------------------------------------------- */
+
+void 
+wad_segment_release(WadSegment *s) {
+  munmap((void *)s, s->size);
+}
+
 /* -----------------------------------------------------------------------------
  * wad_segment_find()
  *

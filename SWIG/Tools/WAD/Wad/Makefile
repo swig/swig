@@ -1,7 +1,7 @@
 
 SRCS = default.c stack.c stab.c elf.c object.c init.c segment.c signal.c
 OBJS = default.o stack.o stab.o elf.o object.o signal.o segment.o init.o main.o
-INCLUDE = -I../Include
+INCLUDE = -I../Include -I.
 OPT  = -DWAD_SOLARIS
 
 PYINCLUDE = -I/usr/local/include/python2.0
@@ -27,7 +27,7 @@ tcl::
 	cp libwadtcl.so ..
 
 linux::
-	cc -DWAD_LINUX $(INCLUDE) segment.c debug.c
+	cc -DWAD_LINUX $(INCLUDE) segment.c init.c debug.c
 
 debug::
 	cc -g debug.c $(INCLUDE) -L. -R. -lwad
