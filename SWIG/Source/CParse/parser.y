@@ -307,12 +307,11 @@ static void add_symbols(Node *n) {
 	Setattr(n,"access", "protected");
 	only_csymbol = !need_protected(n, dirprot_mode);
       } else {
+	/* private are needed only when they are pure virtuals */
 	Setattr(n,"access", "private");
 	if ((Cmp(Getattr(n,"storage"),"virtual") == 0) 
 	    && (Cmp(Getattr(n,"value"),"0") == 0)) {
 	  only_csymbol = !need_protected(n, dirprot_mode);
-	} else {
-	  Setattr(n,"feature:ignore","1");
 	}    
       }
       if (only_csymbol) {
