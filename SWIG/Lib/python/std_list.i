@@ -1,3 +1,11 @@
+//
+// SWIG typemaps for std::list types
+// Jing Cao
+// Aug 1st, 2002
+//
+// Python implementation
+
+
 %module std_list
 %{
 #include <list>
