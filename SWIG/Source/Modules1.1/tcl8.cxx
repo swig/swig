@@ -563,7 +563,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 	    input_file, line_number);
   }
 
-  if (Status & STAT_READONLY) readonly = 1;
+  if (ReadOnly) readonly = 1;
   isarray = SwigType_isarray(t);
   tc = SwigType_type(t);
   setname = Getattr(setf,t);
@@ -688,7 +688,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 	  if (dim && Len(dim)) {
 	    Printf(set->code, "strncpy(addr,value,%s);\n", dim);
 	    setable = 1;
-	    readonly = Status & STAT_READONLY;
+	    readonly = ReadOnly;
 	  }
 	  Printv(get->code, "Tcl_SetVar2(interp,name1,name2,addr, flags);\n",0);
 	} else {
@@ -767,12 +767,12 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 
 void
 TCL8::declare_const(char *name, char *iname, SwigType *type, char *value) {
-  int OldStatus = Status;
+  int OldReadOnly = ReadOnly;
   SwigType *t;
   char      var_name[256];
   char     *tm;
   String   *rvalue;
-  Status = STAT_READONLY;
+  ReadOnly = 1;
 
   /* Make a static variable */
   sprintf(var_name,"_wrap_const_%s",name);
@@ -872,7 +872,7 @@ TCL8::declare_const(char *name, char *iname, SwigType *type, char *value) {
     }
   }
   Delete(rvalue);
-  Status = OldStatus;
+  ReadOnly = OldReadOnly;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1057,7 +1057,7 @@ void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
     if (!rname) rname = Swig_name_wrapper(temp);
     Printv(attributes, rname, ", ", 0);
 
-    if (!(Status & STAT_READONLY)) {
+    if (!ReadOnly) {
       strcpy(temp, Char(Swig_name_set(Swig_name_member(class_name,realname))));
       rname = Getattr(repeatcmd,temp);
       if (!rname) rname = Swig_name_wrapper(temp);

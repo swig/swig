@@ -867,7 +867,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 
     Wrapper_add_local (f, "gswig_result", "SCM gswig_result");
 
-    if (!(Status & STAT_READONLY)) {
+    if (!ReadOnly) {
       /* Check for a setting of the variable value */
       Printf (f->code, "if (s_0 != GH_NOT_PASSED) {\n");
       if (guile_do_typemap(f->code, "varin",
@@ -900,12 +900,12 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
     // Now add symbol to the Guile interpreter
 
     if (!emit_setters
-	|| Status & STAT_READONLY) {
+	|| ReadOnly) {
       /* Read-only variables become a simple procedure returning the
 	 value; read-write variables become a simple procedure with
 	 an optional argument. */
       Printf (f_init, "\t gh_new_procedure(\"%s\", (swig_guile_proc) %s, 0, %d, 0);\n",
-	      proc_name, var_name, (Status & STAT_READONLY) ? 0 : 1);
+	      proc_name, var_name, ReadOnly ? 0 : 1);
     }
     else {
       /* Read/write variables become a procedure with setter. */
@@ -922,7 +922,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
       String *signature = NewString("");
       String *doc = NewString("");
 
-      if (Status & STAT_READONLY) {
+      if (ReadOnly) {
 	Printv(signature, proc_name, 0);
 	Printv(doc, "Returns constant ", 0);
 	guile_do_doc_typemap(doc, "varoutdoc", t, NULL,
@@ -962,7 +962,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 void
 GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
 {
-  int OldStatus = Status;      // Save old status flags
+  int OldReadOnly = ReadOnly;
   DOHString *proc_name;
   char   var_name[256];
   DOHString *rvalue;
@@ -971,7 +971,7 @@ GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
   SwigType *nctype;
 
   f = NewWrapper();
-  Status = STAT_READONLY;      // Enable readonly mode.
+  ReadOnly = 1;     // Enable readonly mode.
 
   // Make a static variable;
 
@@ -1013,7 +1013,7 @@ GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
   }
   // Now create a variable declaration
   link_variable (var_name, iname, nctype);
-  Status = OldStatus;
+  ReadOnly = OldReadOnly;
   Delete(nctype);
   Delete(proc_name);
   Delete(rvalue);

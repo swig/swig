@@ -899,7 +899,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 
   /* Create a Perl function for setting the variable value */
 
-  if (!(Status & STAT_READONLY)) {
+  if (!ReadOnly) {
     Printf(setf->def,"SWIGCLASS_STATIC int %s(SV* sv, MAGIC *mg) {\n", set_name);
     Printv(setf->code,
 	   tab4, "MAGIC_PPERL\n",
@@ -1078,7 +1078,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
   Wrapper_print(getf,magic);
 
   /* Now add symbol to the PERL interpreter */
-  if ((Status & STAT_READONLY) || (!setable)) {
+  if (ReadOnly || (!setable)) {
     Printv(vinit, tab4, "swig_create_magic(sv,\"", package, "::", iname, "\",MAGIC_CAST MAGIC_CLASS swig_magic_readonly, MAGIC_CAST MAGIC_CLASS ", val_name, ");\n",0);
   } else {
     Printv(vinit, tab4, "swig_create_magic(sv,\"", package, "::", iname, "\", MAGIC_CAST MAGIC_CLASS ", set_name, ", MAGIC_CAST MAGIC_CLASS ", val_name, ");\n",0);

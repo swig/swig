@@ -738,7 +738,7 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
   Printv(getf->code, tab4, "return _val;\n}\n", 0);
   Wrapper_print(getf,f_wrappers);
 
-  if (Status & STAT_READONLY) {
+  if (ReadOnly) {
     setfname = NewString("NULL");
   } else {
     /* create setter */
@@ -792,7 +792,7 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
 	   tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	   klass->strip(iname), "\", ", getfname, ", 0);\n",
 	   0);
-    if (!(Status & STAT_READONLY)) {
+    if (!ReadOnly) {
       Printv(s,
 	     tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	     klass->strip(iname), "=\", ", setfname, ", 1);\n",
@@ -807,7 +807,7 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
 	   tab4, "rb_define_singleton_method(", modvar, ", \"",
 	   iname, "\", ", getfname, ", 0);\n",
 	   0);
-    if (!(Status & STAT_READONLY)) {
+    if (!ReadOnly) {
       Printv(s,
 	     tab4, "rb_define_singleton_method(", modvar, ", \"",
 	     iname, "=\", ", setfname, ", 1);\n",

@@ -721,7 +721,7 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
     /* Create a function for setting the value of the variable */
 
     Printf(setf->def,"static int %s_set(PyObject *val) {", wname);
-    if (!(Status & STAT_READONLY)) {
+    if (!ReadOnly) {
       if ((tm = Swig_typemap_lookup((char*)"varin",t,name,(char*)"val",name,0))) {
 	Printf(setf->code,"%s\n",tm);
 	Replace(setf->code,"$name",iname, DOH_REPLACE_ANY);
@@ -1544,7 +1544,7 @@ PYTHON::cpp_variable(char *name, char *iname, SwigType *t) {
     /* Figure out if we've seen this datatype before */
     if (is_shadow(t)) inhash = 1;
 
-    if (Status & STAT_READONLY) {
+    if (ReadOnly) {
       /*      *setattr << tab8 << tab4 << "raise RuntimeError, \'Member is read-only\'\n"; */
     } else {
       Printv(csetattr, tab8, "\"", realname, "\" : ", module, ".", Swig_name_set(Swig_name_member(class_name,realname)), ",\n", 0);

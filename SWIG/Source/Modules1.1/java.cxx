@@ -1088,11 +1088,11 @@ void JAVA::link_variable(char *name, char *iname, SwigType *t)
 // ------------------------------------------------------------------------
 
 void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
-  int OldStatus = Status;
+  int OldReadOnly = ReadOnly;
   char *tm;
   char *jname;
   DOH *jout;
-  Status = STAT_READONLY;
+  ReadOnly = 1;
   String *java_type = NewString("");
 
   if(!classdef_emitted) emit_classdef();
@@ -1145,7 +1145,7 @@ void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
     }
   }
   Delete(java_type);
-  Status = OldStatus;
+  ReadOnly = OldReadOnly;
 }
 /*
 Valid Pragmas:

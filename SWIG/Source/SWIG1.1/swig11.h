@@ -42,8 +42,7 @@ extern  DOH       *f_init;                          // Initialization code
 extern  FILE      *f_input;
 extern  char      InitName[256];
 extern  char      LibDir[512];                      // Library directory
-//extern  char     **InitNames;                       // List of other init functions
-extern  int       Status;                           // Variable creation status
+extern  int       ReadOnly;
 extern  int       yyparse();
 extern  int       line_number;
 extern  int       start_line;
@@ -64,8 +63,7 @@ extern  int       Overloaded;
 
 /* Miscellaneous stuff */
 
-#define  STAT_READONLY  1
-#define  MAXSCOPE       16
+/* #define  MAXSCOPE       16 */
 
 #define  tab2   "  "
 #define  tab4   "    "

@@ -163,7 +163,7 @@ void emit_set_get(char *name, char *iname, SwigType *t) {
   char    *code = 0;
     
   /* First write a function to set the variable of the variable */
-  if (!(Status & STAT_READONLY)) {
+  if (!ReadOnly) {
 
     if (SwigType_type(t) == T_STRING) {
       if (CPlusPlus)

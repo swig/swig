@@ -174,9 +174,9 @@ void swig_pragma(char *lang, char *name, char *value) {
     } else if ((strcmp(name,"no_default") == 0) || ((strcmp(name,"nodefault") == 0))) {
       GenerateDefault = 0;
     } else if (strcmp(name,"readonly") == 0) {
-      Status = Status | STAT_READONLY;
+      ReadOnly = 1;
     } else if (strcmp(name,"readwrite") == 0) {
-      Status = Status & ~STAT_READONLY;
+      ReadOnly = 0;
     } else if (strcmp(name,"callback") == 0) {
       Callback = Swig_copy_string(value ? value:"%s");
     } else if (strcmp(name,"nocallback") == 0) {
@@ -622,21 +622,21 @@ void Language::cDeclaration(Node *n) {
   } else {
     /* Some kind of variable declaration */
     SwigType_push(ty,decl);
-    int oldstatus = Status;
-    if (Getattr(n,"nested")) Status |= STAT_READONLY;
+    int oldro = ReadOnly;
+    if (Getattr(n,"nested")) ReadOnly = 1;
     if (!InClass) {
       if ((Cmp(storage,"extern") == 0) || ForceExtern) {
 	Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
       }
     }
     if (SwigType_isconst(ty)) {
-      Status |= STAT_READONLY;
+      ReadOnly = 1;
     }
     /* If an array and elements are const, then read-only */
     if (SwigType_isarray(ty)) {
       SwigType *tya = SwigType_array_type(ty);
       if (SwigType_isconst(tya)) {
-	Status |= STAT_READONLY;
+	ReadOnly = 1;
       }
     }
     if (Cmp(storage,"static") == 0) {
@@ -670,7 +670,7 @@ void Language::cDeclaration(Node *n) {
 	    Delete(cname);
 	  }
 	  Delete(gname);
-	  if (!(Status & STAT_READONLY)) {
+	  if (!ReadOnly) {
 	    gname = NewStringf(AttributeFunctionSet,symname);
 	    vty = NewString("void");
 	    if (!AddMethods) {
@@ -688,7 +688,7 @@ void Language::cDeclaration(Node *n) {
 	}
       }
     }
-    Status = oldstatus;
+    ReadOnly = oldro;
   }
   Delete(ty);
 }
@@ -1236,7 +1236,7 @@ void Language::cpp_variable(char *name, char *iname, SwigType *t) {
 
   /* Create a function to set the value of the variable */
 
-  if (!(Status & STAT_READONLY)) {
+  if (!ReadOnly) {
     Wrapper   *w;
     int       make_wrapper = 1;
     w = Swig_cmemberset_wrapper(ClassType,name,t,CCode);
@@ -1259,7 +1259,7 @@ void Language::cpp_variable(char *name, char *iname, SwigType *t) {
     if (make_wrapper) {
       lang->create_function(Wrapper_Getname(w),Char(mrename_set), Wrapper_Gettype(w), Wrapper_Getparms(w));
     } else {
-      Status |= STAT_READONLY;       /* Note: value is restored by generate.cxx */
+      ReadOnly = 1;     /* Note: value is restored by generate.cxx */
     }
     DelWrapper(w);
   }

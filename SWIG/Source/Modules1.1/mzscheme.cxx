@@ -470,7 +470,7 @@ MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
 
     Wrapper_add_local (f, "swig_result", "Scheme_Object *swig_result");
 
-    if (!(Status & STAT_READONLY)) {
+    if (!ReadOnly) {
       /* Check for a setting of the variable value */
       Printf (f->code, "if (argc) {\n");
       if ((tm = mzscheme_typemap_lookup ("varin",
@@ -538,14 +538,14 @@ MZSCHEME::link_variable (char *name, char *iname, SwigType *t)
 void
 MZSCHEME::declare_const (char *name, char *iname, SwigType *type, char *value)
 {
-  int OldStatus = Status;      // Save old status flags
+  int OldReadOnly = ReadOnly;      // Save old status flags
   String *var_name = NewString("");
   String *proc_name = NewString("");
   String *rvalue = NewString("");
   String *temp = NewString("");
   char   *tm;
 
-  Status = STAT_READONLY;      // Enable readonly mode.
+  ReadOnly = 1;     // Enable readonly mode.
 
   // Make a static variable;
 
@@ -594,7 +594,7 @@ MZSCHEME::declare_const (char *name, char *iname, SwigType *type, char *value)
     // Now create a variable declaration
 
     link_variable (Char(var_name), iname, type);
-    Status = OldStatus;
+    ReadOnly = OldReadOnly;
   }
   Delete(proc_name);
   Delete(rvalue);

@@ -41,7 +41,7 @@ extern "C" {
     FILE      *f_input;
     char      InitName[256];
     char      LibDir[512];                      // Library directory
-    int       Status;
+    int        ReadOnly;                        // Read-only mode
     Language  *lang;                            // Language method
     int        CPlusPlus = 0;
     int        AddMethods = 0;                  // AddMethods flag
@@ -157,7 +157,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   f_header = 0;
 
   lang = l;
-  Status = 0;
+  ReadOnly = 0;
 
   // Set up some default symbols (available in both SWIG interface files
   // and C files)
