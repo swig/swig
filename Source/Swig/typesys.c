@@ -15,6 +15,7 @@
 char cvsroot_typesys_c[] = "$Header$";
 
 #include "swig.h"
+#include "cparse.h"
 
 /* -----------------------------------------------------------------------------
  * Synopsis
@@ -1171,6 +1172,10 @@ int SwigType_type(SwigType *t)
   if (strcmp(c,"unsigned char") == 0) return T_UCHAR;
   if (strcmp(c,"float") == 0) return T_FLOAT;
   if (strcmp(c,"double") == 0) return T_DOUBLE;
+  if (strcmp(c,"long double") == 0) return T_LONGDOUBLE;
+  if (!cparse_cplusplus && (strcmp(c,"float complex") == 0)) return T_FLTCPLX;
+  if (!cparse_cplusplus && (strcmp(c,"double complex") == 0)) return T_DBLCPLX;
+  if (!cparse_cplusplus && (strcmp(c,"complex") == 0)) return T_COMPLEX;
   if (strcmp(c,"void") == 0) return T_VOID;
   if (strcmp(c,"bool") == 0) return T_BOOL;
   if (strcmp(c,"long long") == 0) return T_LONGLONG;

@@ -1200,6 +1200,10 @@ int yylex(void) {
 	    if (strcmp(yytext,"class") == 0) {
 	      Swig_warning(WARN_PARSE_CLASS_KEYWORD,cparse_file,cparse_line, "class keyword used, but not in C++ mode.\n");
 	    }
+	    if (strcmp(yytext,"complex") == 0) {
+	      yylval.type = NewSwigType(T_COMPLEX);
+	      return(TYPE_COMPLEX);
+	    }
 	  }
 	  
 	  /* Objective-C keywords */

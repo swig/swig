@@ -1014,7 +1014,7 @@ static void default_arguments(Node *n) {
 %token <str> CHARCONST 
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG
 %token <ivalue> TYPEDEF
-%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF TYPE_RAW
+%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST_QUAL VOLATILE STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
@@ -4351,7 +4351,7 @@ primitive_type_list : type_specifier {
 		      else {
 			int err = 0;
 			if ((Cmp($1.type,"long") == 0)) {
-			  if ((Cmp($2.type,"long") == 0) || (Cmp($2.type,"double") == 0)) {
+			  if ((Cmp($2.type,"long") == 0) || (Strncmp($2.type,"double",6) == 0)) {
 			    $$.type = NewStringf("long %s", $2.type);
 			  } else if (Cmp($2.type,"int") == 0) {
 			    $$.type = $1.type;
@@ -4369,9 +4369,21 @@ primitive_type_list : type_specifier {
 			} else if (Cmp($1.type,"double") == 0) {
 			  if (Cmp($2.type,"long") == 0) {
 			    $$.type = NewString("long double");
+			  } else if (Cmp($2.type,"complex") == 0) {
+			    $$.type = NewString("double complex");
 			  } else {
 			    err = 1;
 			  }
+			} else if (Cmp($1.type,"float") == 0) {
+			  if (Cmp($2.type,"complex") == 0) {
+			    $$.type = NewString("float complex");
+			  } else {
+			    err = 1;
+			  }
+			} else if (Cmp($1.type,"complex") == 0) {
+			  $$.type = NewStringf("%s complex", $2.type);
+			} else {
+			  err = 1;
 			}
 			if (err) {
 			  Swig_error(cparse_file, cparse_line, "Extra %s specifier.\n", $1.type);
@@ -4413,6 +4425,10 @@ type_specifier : TYPE_INT {
                | TYPE_UNSIGNED { 
                     $$.us = NewString("unsigned");
                     $$.type = 0;
+                }
+               | TYPE_COMPLEX { 
+                    $$.type = NewString("complex");
+                    $$.us = 0;
                 }
                ;
 
