@@ -231,7 +231,8 @@ public:
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR || current == DESTRUCTOR) ? 1 : 0;
 
     /* Offset to skip over the attribute name */    
-    int offset = (current == MEMBER_VAR) ? 1 : 0;
+    // int offset = (current == MEMBER_VAR) ? 1 : 0;
+    int offset = 0;
     
     String *wname = Swig_name_wrapper(iname);
     if (overname) {
@@ -396,14 +397,12 @@ public:
     Wrapper_print(f,f_wrappers);
 
     /* Now register the function with the interpreter. */
-    if (current != MEMBER_VAR) {
-      if (!Getattr(n,"sym:overloaded")) {
-	add_method(n, iname, wname, description);
-      } else {
-	Setattr(n,"wrap:name", wname);
-	if (!Getattr(n,"sym:nextSibling")) {
-	  dispatchFunction(n);
-	}
+    if (!Getattr(n,"sym:overloaded")) {
+      add_method(n, iname, wname, description);
+    } else {
+      Setattr(n,"wrap:name", wname);
+      if (!Getattr(n,"sym:nextSibling")) {
+	dispatchFunction(n);
       }
     }
 
@@ -588,10 +587,12 @@ public:
     Language::classHandler(n);
     
     /* Accessors for member variables */
+    /*
     List *membervariables = Getattr(n,"membervariables");
     if (membervariables && Len(membervariables) > 0) {
       membervariableAccessors(membervariables);
     }
+    */
     
     /* Done, close the class */
     Printf(f_init, "add_program_constant(\"%s\", pr = end_program(), 0);\n", symname);

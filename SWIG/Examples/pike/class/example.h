@@ -2,12 +2,8 @@
 
 class Shape {
 public:
-  Shape() {
-    nshapes++;
-  }
-  virtual ~Shape() {
-    nshapes--;
-  };
+  Shape();
+  virtual ~Shape();
   double  x, y;   
   void    move(double dx, double dy);
   virtual double area(void) = 0;
