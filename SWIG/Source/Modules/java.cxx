@@ -19,6 +19,10 @@ char cvsroot_java_cxx[] = "$Header$";
 /* Hash type used for JNI upcall data */
 typedef DOH UpcallData;
 
+// temporary hack start
+#define CPLUS_PUBLIC     0
+extern int cplus_mode;
+// temporary hack end
 
 class JAVA : public Language {
   static const char *usage;
@@ -56,6 +60,7 @@ class JAVA : public Language {
   String *variable_name; //Name of a variable being wrapped
   String *proxy_class_constants_code;
   String *module_class_constants_code;
+  String *enum_code;
   String *package; // Optional package name
   String *jnipackage; // Package name used in the JNI code
   String *package_path; // Package name used internally by JNI (slashes)
@@ -81,7 +86,7 @@ class JAVA : public Language {
   int     first_class_dmethod;
   int     curr_class_dmethod;
 
-  enum type_additions {none, pointer, reference};
+  enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
   public:
 
@@ -398,8 +403,7 @@ class JAVA : public Language {
     Language::top(n);
 
     if (directorsEnabled()) {
-      // Insert director runtime into the f_runtime file (make it
-      // occur before %header section.
+      // Insert director runtime into the f_runtime file (make it occur before %header section)
       Swig_insert_file("director.swg", f_runtime);
     }
 
@@ -520,8 +524,8 @@ class JAVA : public Language {
         Printf(f_module, "%s ", module_class_modifiers);
       Printf(f_module, "interface %sConstants {\n", module_class_name);
 
-      // Write out all the enums constants
-      Printv(f_module, "  // enums and constants\n", module_class_constants_code, NIL);
+      // Write out all the global constants
+      Printv(f_module, module_class_constants_code, NIL);
 
       // Finish off the Java interface
       Printf(f_module, "}\n");
@@ -1043,8 +1047,215 @@ class JAVA : public Language {
     return ret;
   }
 
+  /* ----------------------------------------------------------------------
+   * enumDeclaration()
+   *
+   * C/C++ enums can be mapped in one of 4 ways, depending on the java:enum feature specified:
+   * 1) Simple enums - simple constant within the proxy class or module class
+   * 2) Typeunsafe enums - simple constant in a Java class (class named after the c++ enum name)
+   * 3) Typesafe enum - typesafe enum pattern (class named after the c++ enum name)
+   * 4) Proper enums - proper Java enum
+   * Anonymous enums always default to 1)
+   * ---------------------------------------------------------------------- */
+
+  virtual int enumDeclaration(Node *n) {
+
+    if (!ImportMode) {
+      if (getCurrentClass() && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+
+      enum_code = NewString("");
+      String *symname = Getattr(n,"sym:name");
+      String *constants_code = (proxy_flag && is_wrapping_class()) ? proxy_class_constants_code : module_class_constants_code;
+      EnumFeature enum_feature = decodeEnumFeature(n);
+      String *typemap_lookup_type = Getattr(n,"name");
+
+      if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
+        // Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
+
+        // Pure Java baseclass and interfaces
+        const String *pure_baseclass = typemapLookup("javabase", typemap_lookup_type, WARN_NONE);
+        const String *pure_interfaces = typemapLookup("javainterfaces", typemap_lookup_type, WARN_NONE);
+
+        // Emit the enum
+        Printv(enum_code,
+            typemapLookup("javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers (enum modifiers really)
+            " ",
+            symname,
+            *Char(pure_baseclass) ? // Bases
+            " extends " : 
+            "",
+            pure_baseclass,
+            *Char(pure_interfaces) ?  // Interfaces
+            " implements " :
+            "",
+            pure_interfaces,
+            " {\n",
+            NIL);
+        if (proxy_flag && is_wrapping_class())
+          Replaceall(enum_code, "$static ", "static ");
+        else
+          Replaceall(enum_code, "$static ", "");
+      } else {
+        // Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums of any sort
+        if (symname && !Getattr(n,"unnamedinstance"))
+          Printf(constants_code, "  // %s \n", symname);
+      }
+
+      // Emit each enum item
+      Language::enumDeclaration(n);
+
+      if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
+        // Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
+        // Finish the enum declaration
+        // Typemaps are used to generate the enum definition in a similar manner to proxy classes.
+        Printv(enum_code,
+            (enum_feature == ProperEnum) ? 
+            ";\n" :
+            "",
+            typemapLookup("javagetcptr", typemap_lookup_type, WARN_NONE), // getCPtr method (will probably never be used, but what the heck)
+            typemapLookup("javacode", typemap_lookup_type, WARN_NONE), // extra Java code
+            "}\n",
+            "\n",
+            NIL);
+
+        Replaceall(enum_code, "$javaclassname", symname);
+
+        // Substitute $enumvalues - intended usage is for typesafe enums
+        if (Getattr(n,"enumvalues"))
+          Replaceall(enum_code, "$enumvalues", Getattr(n,"enumvalues"));
+        else
+          Replaceall(enum_code, "$enumvalues", "");
+
+        if (proxy_flag && is_wrapping_class()) {
+          // Enums defined within the C++ class are defined within the proxy class
+
+          // Add extra indentation
+          Replaceall(enum_code, "\n  ", "\n    ");
+          Replaceall(enum_code, "\n}\n", "\n  }\n");
+
+          Printv(proxy_class_constants_code, "  ", enum_code, NIL);
+        } else {
+          // Global enums are defined in their own file
+          String *filen = NewStringf("%s%s.java", SWIG_output_directory(), symname);
+          File *f_enum = NewFile(filen,"w");
+          if(!f_enum) {
+            Printf(stderr,"Unable to open %s\n", filen);
+            SWIG_exit(EXIT_FAILURE);
+          } 
+          Delete(filen); filen = NULL;
+
+          // Start writing out the enum file
+          emitBanner(f_enum);
+
+          if(Len(package) > 0)
+            Printf(f_enum, "package %s;\n", package);
+
+          Printv(f_enum,
+              typemapLookup("javaimports", typemap_lookup_type, WARN_NONE), // Import statements
+              "\n",
+              enum_code,
+              NIL);
+
+          Printf(f_enum, "\n");
+          Close(f_enum);
+        }
+      } else {
+        // Wrap C++ enum with simple constant
+        Printf(enum_code, "\n");
+        if (proxy_flag && is_wrapping_class())
+          Printv(proxy_class_constants_code, enum_code, NIL);
+        else
+          Printv(module_class_constants_code, enum_code, NIL);
+      }
+
+      Delete(enum_code); enum_code = NULL;
+    }
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * enumvalueDeclaration()
+   * ---------------------------------------------------------------------- */
+
+  virtual int enumvalueDeclaration(Node *n) {
+    if (getCurrentClass() && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+
+    Swig_require("enumvalueDeclaration",n,"*name", "?value",NIL);
+    String *symname = Getattr(n,"sym:name");
+    String *value = Getattr(n,"value");
+    String *name  = Getattr(n,"name");
+    String *tmpValue;
+
+    // Strange hack from parent method
+    if (value)
+      tmpValue = NewString(value);
+    else
+      tmpValue = NewString(name);
+    // Note that this is used in enumValue() amongst other places
+    Setattr(n, "value", tmpValue);
+
+    {
+      EnumFeature enum_feature = decodeEnumFeature(parentNode(n));
+
+      if ((enum_feature == ProperEnum) && Getattr(parentNode(n),"sym:name") && !Getattr(parentNode(n),"unnamedinstance")) {
+        // Wrap (non-anonymous) C/C++ enum with a proper Java enum
+        // Emit the enum item.
+        if (!Getattr(n,"_last")) // Only the first enum item has this attribute set
+          Printf(enum_code, ",\n");
+        Printf(enum_code, "  %s", symname);
+        if (Getattr(n,"enumvalue")) {
+          String *value = enumValue(n);
+          Printf(enum_code, "(%s)", value);
+          Delete(value);
+        }
+      } else {
+        // Wrap C/C++ enums with constant integers or use the typesafe enum pattern
+        const String *parent_name = Getattr(parentNode(n),"name");
+        String *typemap_lookup_type = parent_name ? Copy(parent_name) : NewString("int");
+        const String *tm = typemapLookup("jstype", typemap_lookup_type, WARN_JAVA_TYPEMAP_JSTYPE_UNDEF);
+        String *return_type = Copy(tm);
+        Delete(typemap_lookup_type); typemap_lookup_type = NULL;
+
+        if ((enum_feature == TypesafeEnum) && Getattr(parentNode(n),"sym:name") && !Getattr(parentNode(n),"unnamedinstance")) {
+          // Wrap (non-anonymouse) enum using the typesafe enum pattern
+          if (Getattr(n,"enumvalue")) {
+            String *value = enumValue(n);
+            Printf(enum_code, "  public final static %s %s = new %s(%s);\n", return_type, symname, return_type, value);
+            Delete(value);
+          } else {
+            Printf(enum_code, "  public final static %s %s = new %s();\n", return_type, symname, return_type);
+          }
+        } else {
+          // Simple integer constants
+          // Note these are always generated for anonymous enums, no matter what enum_feature is specified
+          // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
+          String *value = enumValue(n);
+          Printf(enum_code, "  public final static %s %s = %s;\n", return_type, symname, value);
+          Delete(value);
+        }
+      }
+
+      // Add the enum value to the comma separated list being constructed in the enum declaration.
+      String *enumvalues = Getattr(parentNode(n), "enumvalues");
+      if (!enumvalues)
+        Setattr(parentNode(n), "enumvalues", Copy(symname));
+      else
+        Printv(enumvalues, ", ", symname, NIL);
+    }
+    
+    Delete(tmpValue);
+    Swig_restore(n);
+    return SWIG_OK;
+  }
+
   /* -----------------------------------------------------------------------
    * constantWrapper()
+   * Used for wrapping constants - #define or %constant.
+   * Also for inline initialised const static primitive type member variables (short, int, double, enums etc).
+   * Java static final variables are generated for these.
+   * If the %javaconst(1) feature is used then the C constant value is used to initialise the Java final variable.
+   * If not, a JNI method is generated to get the C constant value for intialisation of the Java final variable.
+   * Also note that this method might be called for wrapping enum items (when the enum is using %javaconst(0)).
    * ------------------------------------------------------------------------ */
 
   virtual int constantWrapper(Node *n) {
@@ -1054,13 +1265,17 @@ class JAVA : public Language {
     String *tm;
     String *return_type = NewString("");
     String *constants_code = NewString("");
-    SwigType *original_type = t;
 
     if (!addSymbol(symname,n)) return SWIG_ERROR;
 
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
-    /* Adjust the enum type for the Swig_typemap_lookup. We want the same jstype typemap for all the enum items.
+    // The %javaconst feature determines how the constant value is obtained
+    String *const_feature = Getattr(n,"feature:java:const");
+    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+
+    /* Adjust the enum type for the Swig_typemap_lookup.
+     * We want the same jstype typemap for all the enum items so we use the enum type (parent node).
      * The type of each enum item depends on what value it is assigned, but is usually a C int. */
     if (is_enum_item) {
       t = NewStringf("enum %s", Getattr(parentNode(n), "sym:name"));
@@ -1093,45 +1308,43 @@ class JAVA : public Language {
       Setattr(n, "value", new_value);
     }
 
-    // The %javaconst feature determines how the constant value is obtained
-    String *const_feature = Getattr(n,"feature:java:const");
-    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
-
-    // enums are wrapped using a public final static int in java.
-    // Other constants are wrapped using a public final static [jstype] in Java.
-    Printf(constants_code, "  public final static %s %s = ", return_type, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
+    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
+    Printf(constants_code, "  public final static %s %s = ", return_type, itemname);
 
     if (!const_feature_flag) {
       // Default enum and constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
 
-      if(classname_substituted_flag) // This handles function pointers using the %constant directive
-        Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, imclass_name, Swig_name_get(symname));
-      else
+      if(classname_substituted_flag) {
+        if (SwigType_isenum(t)) {
+          // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
+          Printf(constants_code, "%s.swigToEnum(%s.%s());\n", return_type, imclass_name, Swig_name_get(symname));
+        } else {
+          // This handles function pointers using the %constant directive
+          Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, imclass_name, Swig_name_get(symname));
+        }
+      } else
         Printf(constants_code, "%s.%s();\n", imclass_name, Swig_name_get(symname));
 
       // Each constant and enum value is wrapped with a separate JNI function call
       enum_constant_flag = true;
       variableWrapper(n);
       enum_constant_flag = false;
-    } else if (is_enum_item) {
-      // Alternative enum item handling will use the explicit value of the enum item and hope that it compiles as Java code
-      const String *enumvalue = Getattr(n,"enumvalue") ? Getattr(n,"enumvalue") : Getattr(n,"enumvalueex");
-      Printf(constants_code, "%s;\n", enumvalue);
     } else {
       // Alternative constant handling will use the C syntax to make a true Java constant and hope that it compiles as Java code
       Printf(constants_code, "%s;\n", Getattr(n,"value"));
     }
 
-    if(proxy_flag && wrapping_member_flag)
-      Printv(proxy_class_constants_code, constants_code, NIL);
-    else
-      Printv(module_class_constants_code, constants_code, NIL);
-
-    Swig_restore(n);
-    if (is_enum_item) {
-      Delete(Getattr(n,"type"));
-      Setattr(n,"type", original_type);
+    // Emit the generated code to appropriate place
+    // Enums only emit the intermediate and JNI methods, so no proxy or module class wrapper methods needed
+    if (!is_enum_item) {
+      if(proxy_flag && wrapping_member_flag)
+        Printv(proxy_class_constants_code, constants_code, NIL);
+      else
+        Printv(module_class_constants_code, constants_code, NIL);
     }
+
+    // Cleanup
+    Swig_restore(n);
     Delete(new_value);
     Delete(return_type);
     Delete(constants_code);
@@ -1292,6 +1505,7 @@ class JAVA : public Language {
     if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
           "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", typemap_lookup_type, pure_baseclass);
+      pure_baseclass = empty_string;
     }
 
     // Pure Java interfaces
@@ -1306,7 +1520,7 @@ class JAVA : public Language {
         (derived || *Char(pure_baseclass)) ?
         " extends " : 
         "",
-        baseclass,
+        baseclass, // Note only one of these base classes should ever be set as multiple inheritance is not permissible
         pure_baseclass,
         *Char(pure_interfaces) ?  // Pure Java interfaces
         " implements " :
@@ -1490,9 +1704,9 @@ class JAVA : public Language {
 
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
-      // Write out all the enums and constants
+      // Write out all the constants
       if (Len(proxy_class_constants_code) != 0 )
-        Printv(f_proxy, "  // enums and constants\n", proxy_class_constants_code, NIL);
+        Printv(f_proxy, proxy_class_constants_code, NIL);
 
       Printf(f_proxy, "}\n");
       Close(f_proxy);
@@ -2100,10 +2314,97 @@ class JAVA : public Language {
     Delete(func_name);
   }
 
+  /*----------------------------------------------------------------------
+   * decodeEnumFeature()
+   * Decode the possible enum features, which are one of:
+   *   %javaenum(simple)
+   *   %javaenum(typeunsafe) - default
+   *   %javaenum(typesafe)
+   *   %javaenum(proper)
+   *--------------------------------------------------------------------*/
+
+  EnumFeature decodeEnumFeature(Node *n) {
+      EnumFeature enum_feature = TypeunsafeEnum;
+      String *feature = Getattr(n,"feature:java:enum");
+      if (feature) {
+        if (Cmp(feature, "simple") == 0)
+          enum_feature = SimpleEnum;
+        else if (Cmp(feature, "typesafe") == 0)
+          enum_feature = TypesafeEnum;
+        else if (Cmp(feature, "proper") == 0)
+          enum_feature = ProperEnum;
+      }
+      return enum_feature;
+  }
+
+  /* -----------------------------------------------------------------------
+   * enumValue()
+   * This method will return a string with an enum value to use in Java generated
+   * code. If the %javaconst feature is not used, the string will contain the intermediary
+   * class call to obtain the enum value. The intermediary class and JNI methods to obtain
+   * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
+   * is one and hopefully it will compile as Java code - e.g. 20 as in: enum E{e=20};
+   * The caller must delete memory allocated for the returned string.
+   * ------------------------------------------------------------------------ */
+
+  String *enumValue(Node *n) {
+    String *symname = Getattr(n,"sym:name");
+    String *value = NULL;
+
+    // The %javaconst feature determines how the constant value is obtained
+    String *const_feature = Getattr(n,"feature:java:const");
+    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+
+    if (const_feature_flag) {
+      // Use the C syntax to make a true Java constant and hope that it compiles as Java code
+      value = Getattr(n,"enumvalue") ? Copy(Getattr(n,"enumvalue")) : Copy(Getattr(n,"enumvalueex"));
+    } else {
+      // Get the enumvalue from a JNI call
+      if (!getCurrentClass()) {
+        // Strange hack to change the name
+        Setattr(n,"name",Getattr(n,"value")); /* for wrapping of enums in a namespace when emit_action is used */
+        constantWrapper(n);
+        value = NewStringf("%s.%s()", imclass_name, Swig_name_get(symname));
+      } else {
+        memberconstantHandler(n);
+        value = NewStringf("%s.%s()", imclass_name, Swig_name_get(Swig_name_member(proxy_class_name, symname)));
+      }
+    }
+    return value;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getEnumName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getEnumName(SwigType *t) {
+    Node *enum_name = NULL;
+    Node *n = enumLookup(t);
+    if (n) {
+      String *symname = Getattr(n,"sym:name");
+      if (symname) {
+        // Add in class scope when referencing enum if not a global enum
+        String *scopename_prefix = Swig_scopename_prefix(Getattr(n,"name"));
+        String *proxyname = 0;
+        if (scopename_prefix) {
+          proxyname = getProxyName(scopename_prefix);
+        }
+        if (proxyname)
+          enum_name = NewStringf("%s.%s", proxyname, symname);
+        else
+          enum_name = NewStringf("%s", symname);
+        Delete(scopename_prefix);
+      }
+    }
+
+    return enum_name;
+  }
+
   /* -----------------------------------------------------------------------------
    * substituteClassname()
    *
    * Substitute $javaclassname with the proxy class name for classes/structs/unions that SWIG knows about.
+   * Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the Java class name. Note that the $&javaclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
    * Inputs:
@@ -2118,31 +2419,42 @@ class JAVA : public Language {
   bool substituteClassname(SwigType *pt, String *tm) {
     bool substitution_performed = false;
     if (Strstr(tm, "$javaclassname") || Strstr(tm,"$&javaclassname")) {
-      String *classname = getProxyName(pt);
-      if (classname) {
-        Replaceall(tm,"$&javaclassname", classname); // getProxyName() works for pointers to classes too
-        Replaceall(tm,"$javaclassname", classname);
-      }
-      else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
-        String *descriptor = NULL;
-        SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+      SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+      SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
-        if (Strstr(tm, "$&javaclassname")) {
-          SwigType_add_pointer(type);
-          descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
-          Replaceall(tm, "$&javaclassname", descriptor);
+      if (SwigType_isenum(strippedtype)) {
+        String *enumname = getEnumName(pt);
+        if (enumname)
+          Replaceall(tm, "$javaclassname", enumname);
+        else
+          Replaceall(tm, "$javaclassname", NewStringf("int"));
+      } else {
+        String *classname = getProxyName(pt);
+        if (classname) {
+          Replaceall(tm,"$&javaclassname", classname); // getProxyName() works for pointers to classes too
+          Replaceall(tm,"$javaclassname", classname);
         }
-        else { // $javaclassname
-          descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
-          Replaceall(tm, "$javaclassname", descriptor);
-        }
+        else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+          String *descriptor = NULL;
 
-        // Add to hash table so that the type wrapper classes can be created later
-        Setattr(swig_types_hash, descriptor, type);
-        Delete(descriptor);
-        Delete(type);
+          if (Strstr(tm, "$&javaclassname")) {
+            SwigType_add_pointer(type);
+            descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
+            Replaceall(tm, "$&javaclassname", descriptor);
+          }
+          else { // $javaclassname
+            descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
+            Replaceall(tm, "$javaclassname", descriptor);
+          }
+
+          // Add to hash table so that the type wrapper classes can be created later
+          Setattr(swig_types_hash, descriptor, type);
+          Delete(descriptor);
+        }
       }
       substitution_performed = true;
+      Delete(type);
+      Delete(strippedtype);
     }
     return substitution_performed;
   }
