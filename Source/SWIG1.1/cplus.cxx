@@ -312,6 +312,7 @@ public:
       input_file = file;
       ccode = code;
       
+      if (abstract) return;
       // Make a copy of the parameter list and upgrade its types
       
       l = CopyParmList(parms);
@@ -603,6 +604,7 @@ public:
   void emit_decls() {
     CPP_member    *m = members;
     abstract = is_abstract;
+    /*    Printf(stdout,"class %s. Abstract = %d\n", classname, is_abstract); */
     while (m) {
       cpp_id = m->id;
       m->emit();
