@@ -1,0 +1,5 @@
+compile
+depcomp
+install-sh
+missing
+mkinstalldirs

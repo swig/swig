@@ -2,3 +2,4 @@
 supertest
 *_wrap.*
 .deps
+.dirstamp
