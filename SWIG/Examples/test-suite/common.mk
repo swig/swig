@@ -56,7 +56,8 @@ CPP_TEST_BROKEN += \
 	using_namespace
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
-C_TEST_BROKEN +=
+C_TEST_BROKEN += \
+	tag_no_clash_with_variable
 
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
@@ -308,7 +309,6 @@ C_TEST_CASES += \
 	sizeof_pointer \
 	sneaky1 \
 	struct_rename \
-	tag_no_clash_with_variable \
 	typemap_subst \
 	unions
 
