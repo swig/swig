@@ -2,4 +2,4 @@
 # usage: capitalize word
 # write word to stdout w/ first character upcased
 first_char=`echo $1 | sed 's/^\(.\).*/\1/' | tr a-z A-Z`
-echo ${first_char}`echo $1 | sed s/^.//`
+echo ${first_char}`echo $1 | sed 's/^.//'`
