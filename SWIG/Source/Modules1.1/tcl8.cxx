@@ -93,7 +93,7 @@ TCL8::parse_args(int argc, char *argv[]) {
     ns_name = Copy(prefix);
 
   }
-  if (prefix)
+  if (prefix && Len(prefix))
     Append(prefix,"_");
 
   Preprocessor_define((void *) "SWIGTCL 1",0);
