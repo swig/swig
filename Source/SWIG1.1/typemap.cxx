@@ -21,49 +21,49 @@ extern "C" {
 #include "doh.h"
 }
 
-// ------------------------------------------------------------------------
-// This file provides universal support for typemaps.   Typemaps are created
-// using the following SWIG command in an interface file:
-//
-//       %typemap(lang,operation) type { code }        Make a new typemap
-//       %typemap(lang,operation) type;                Clears any previous typemap
-//
-// lang is an identifier indicating the target language.  The typemap will
-// simply be ignored if its for a different language.  The code is the
-// corresponding C code for the mapping.  An example typemap might look
-// like this :
-//
-//       %typemap(tcl,get) double {
-//              $target = atof($source);
-//       }
-//       %typemap(tcl,set) double {
-//              sprintf($target,"%0.17f",$source);
-//       }
-//
-// The variables $target and $source should be used in any type-mappings.
-// Additional local variables can be created, but this should be done 
-// by enclosing the entire code fragment in an extra set of braces.
-//
-// The C++ API to the type-mapper is as follows :
-//
-// void typemap_register(char *op, char *lang, DataType *type, char *pname, String &getcode, ParmList *args)
-// char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *source, char *target);
-// void typemap_clear(char *op, char *lang, DataType *type, char *pname);
-//
-// The lookup functions return a character string corresponding to the type-mapping
-// code or NULL if none exists.   The string return will have the source and target
-// strings substituted for the strings "$source" and "$target" in the type-mapping code.
-//
-// (2/19/97) This module has been extended somewhat to provide generic mappings
-// of other parts of the code--most notably exceptions.
-//
-// void fragment_register(char *op, char *lang, String &code)
-// char fragment_lookup(char *op, char *lang, int age);
-// char fragment_clear(char *op, char *lang);
-//
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * This file provides universal support for typemaps.   Typemaps are created
+ * using the following SWIG command in an interface file:
+ *
+ *       %typemap(lang,operation) type { code }        Make a new typemap
+ *       %typemap(lang,operation) type;                Clears any previous typemap
+ *
+ * lang is an identifier indicating the target language.  The typemap will
+ * simply be ignored if its for a different language.  The code is the
+ * corresponding C code for the mapping.  An example typemap might look
+ * like this :
+ *
+ *       %typemap(tcl,get) double {
+ *              $target = atof($source);
+ *       }
+ *       %typemap(tcl,set) double {
+ *              sprintf($target,"%0.17f",$source);
+ *       }
+ *
+ * The variables $target and $source should be used in any type-mappings.
+ * Additional local variables can be created, but this should be done 
+ * by enclosing the entire code fragment in an extra set of braces.
+ *
+ * The C++ API to the type-mapper is as follows :
+ *
+ * void typemap_register(char *op, char *lang, DataType *type, char *pname, String &getcode, ParmList *args)
+ * char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *source, char *target);
+ * void typemap_clear(char *op, char *lang, DataType *type, char *pname);
+ *
+ * The lookup functions return a character string corresponding to the type-mapping
+ * code or NULL if none exists.   The string return will have the source and target
+ * strings substituted for the strings "$source" and "$target" in the type-mapping code.
+ *
+ * (2/19/97) This module has been extended somewhat to provide generic mappings
+ * of other parts of the code--most notably exceptions.
+ *
+ * void fragment_register(char *op, char *lang, String &code)
+ * char fragment_lookup(char *op, char *lang, int age);
+ * char fragment_clear(char *op, char *lang);
+ *
+ * ------------------------------------------------------------------------ */
 
-// Structure for holding a typemap
+/* Structure for holding a typemap */
 
 struct TypeMap {
   char       *lang;
@@ -72,8 +72,8 @@ struct TypeMap {
   int         first;
   int         last;
   TypeMap     *next;
-  TypeMap     *previous;                // Previously defined typemap (if any)
-  ParmList    *args;                    // Local variables (if any)
+  TypeMap     *previous;                 /* Previously defined typemap (if any) */
+  ParmList    *args;                     /* Local variables (if any) */
 
   TypeMap(char *l, DataType *t, char *c, ParmList *p = 0) {
     lang = Swig_copy_string(l);
@@ -115,16 +115,16 @@ struct TypeMap {
   }
 };
 
-// Hash tables for storing type-mappings
+/* Hash tables for storing type-mappings */
 
 static DOH *typemap_hash = 0;
 
-// Structure for holding "applications of a typemap"
+/* Structure for holding "applications of a typemap" */
 
 struct TmMethod {
-  char *name;          // Typemap name;
-  DataType *type;      // Typemap type
-  TmMethod *next;      // Next method
+  char *name;           /* Typemap name; */
+  DataType *type;       /* Typemap type */
+  TmMethod *next;       /* Next method */
   TmMethod(char *n, DataType *t, TmMethod *m = 0) {
     if (n) name = Swig_copy_string(n);
     else name = 0;
@@ -137,26 +137,26 @@ struct TmMethod {
   }
 };
 
-// Hash table for storing applications of a datatype
+/* Hash table for storing applications of a datatype */
 
 static DOH *application_hash = 0;
 
-// ------------------------------------------------------------------------
-// void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname)
-//
-// Attempts to apply a typemap given by (tm_type,tm_name) to (type,pname)
-// Called by the %apply directive.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname)
+ *
+ * Attempts to apply a typemap given by (tm_type,tm_name) to (type,pname)
+ * Called by the %apply directive.
+ * ------------------------------------------------------------------------ */
 
 void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname) {
   TmMethod *m,*m1;
   char temp[512];
 
-  // Form the application name
+  /* Form the application name */
   if (!pname) pname = (char*)"";
   sprintf(temp,"%s$%s",DataType_str(type,0),pname);
 
-  // See if there is a method already defined
+  /* See if there is a method already defined */
 
   if (!application_hash) application_hash = NewHash();
   m = (TmMethod *) GetVoid(application_hash,temp);
@@ -166,14 +166,14 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
     SetVoid(application_hash,temp,m);
   }
 
-  // Check to see if an array typemap has been applied to a non-array type
+  /* Check to see if an array typemap has been applied to a non-array type */
 
   if ((DataType_arraystr(tm_type)) && (!DataType_arraystr(type))) {
     fprintf(stderr,"%s:%d: Warning. Array typemap has been applied to a non-array type.\n",
 	    input_file,line_number);
   }
 
-  // If both are arrays, make sure they have the same dimension 
+  /* If both are arrays, make sure they have the same dimension  */
 
   if ((DataType_arraystr(tm_type)) && (DataType_arraystr(type))) {
     char s[128],*t;
@@ -193,18 +193,18 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
     }
   }
 
-  // Add a new mapping corresponding to the typemap
+  /* Add a new mapping corresponding to the typemap */
 
   m1 = new TmMethod(tm_name,tm_type,m->next);
   m->next = m1;
   
 }
-// ------------------------------------------------------------------------
-// void typemap_clear_apply(DataType *type, char *pname)
-//
-// Clears the application of a typemap.
-// Called by the %clear directive.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * void typemap_clear_apply(DataType *type, char *pname)
+ *
+ * Clears the application of a typemap.
+ * Called by the %clear directive.
+ * ------------------------------------------------------------------------ */
 
 void typemap_clear_apply(DataType *type, char *pname) {
   char temp[512];
@@ -214,12 +214,12 @@ void typemap_clear_apply(DataType *type, char *pname) {
   Delattr(application_hash,temp);
 }
 
-// ------------------------------------------------------------------------
-// char *typemap_string(char *lang, DataType *type, char *pname, char *ary, char *suffix)
-//
-// Produces a character string corresponding to a lang, datatype, and
-// method.   This string is used as the key for our typemap hash table.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * char *typemap_string(char *lang, DataType *type, char *pname, char *ary, char *suffix)
+ *
+ * Produces a character string corresponding to a lang, datatype, and
+ * method.   This string is used as the key for our typemap hash table.
+ * ------------------------------------------------------------------------ */
 
 static char *typemap_string(char *lang, DataType *type, char *pname, char *ary, char *suffix) {
   static DOHString *str = 0;
@@ -239,12 +239,12 @@ static char *typemap_string(char *lang, DataType *type, char *pname, char *ary, 
   return Char(str);
 }
 
-// ------------------------------------------------------------------------
-// void typemap_register(char *op, char *lang, DataType *type, char *pname,
-//                       char *getcode, ParmList *args)
-//
-// Register a new mapping with the type-mapper.  
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * void typemap_register(char *op, char *lang, DataType *type, char *pname,
+ *                       char *getcode, ParmList *args)
+ *
+ * Register a new mapping with the type-mapper.  
+ * ------------------------------------------------------------------------ */
 
 void typemap_register(char *op, char *lang, DataType *type, char *pname, 
                       char *getcode, ParmList *args) {
@@ -254,12 +254,12 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
   char     temp[256];
   int      is_default = 0;
 
-  // printf("Registering : %s %s %s %s\n%s\n", op, lang, DataType_print_type(type), pname, getcode);
+  /* printf("Registering : %s %s %s %s\n%s\n", op, lang, DataType_print_type(type), pname, getcode); */
 
   if (!typemap_hash) typemap_hash = NewHash();
 
   tm = new TypeMap(lang,type,getcode,args);
-  // If this is a default typemap, downgrade the type!
+  /* If this is a default typemap, downgrade the type! */
 
   if (strcmp(pname,"SWIG_DEFAULT_TYPE") == 0) {
     DataType_primitive(tm->type);
@@ -268,43 +268,42 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
 
   key = typemap_string(lang,tm->type,pname,DataType_arraystr(tm->type), op);
 
-  // Get any previous setting of the typemap
+  /* Get any previous setting of the typemap */
 
   tm_old = (TypeMap *) GetVoid(typemap_hash,key);
 
   if (tm_old) {
 
-    // Perform a chaining operation, but only if the last typemap is
-    // active.
+    /* Perform a chaining operation, but only if the last typemap is active. */
 
     if (type_id < tm_old->last) {
       sprintf(temp,"$%s",op);
       Replace(tm->code,temp,tm_old->code, DOH_REPLACE_ANY);
     }
 
-    // If found, we need to attach the old version to the new one
+    /* If found, we need to attach the old version to the new one */
 
     tm->previous = tm_old;
     tm->next = tm_old;
     tm_old->last = type_id;
 
-    // Remove the old one from the hash
+    /* Remove the old one from the hash */
   
     Delattr(typemap_hash,key);
   } 
 
-  // Add new typemap to the hash table
+  /* Add new typemap to the hash table */
   SetVoid(typemap_hash,key,tm);
 
-  // Now try to perform default chaining operation (if available)
-  //  if (!is_default) {
-  //    sprintf(temp,"$%s",op);
-  //    if (strstr(tm->code,temp)) {
-  //      tm->code.replace(temp,typemap_resolve_default(op,lang,type));
-  //    }
-  //  }
+  /* Now try to perform default chaining operation (if available)
+   *  if (!is_default) {
+   *    sprintf(temp,"$%s",op);
+   *    if (strstr(tm->code,temp)) {
+   *      tm->code.replace(temp,typemap_resolve_default(op,lang,type));
+   *    }
+   *  } */
 
-  // Just a sanity check to make sure args look okay.
+  /* Just a sanity check to make sure args look okay. */
   
   if (args) {
     Parm *p;
@@ -312,7 +311,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
     while (p) {
       char     *pn = Getname(p);
       if (pn) {
-	//	printf("    %s %s\n", pt,pn);
+	/*	printf("    %s %s\n", pt,pn); */
       } else {
 	fprintf(stderr,"%s:%d:  Typemap error. Local variables must have a name\n",
 		input_file, line_number);
@@ -322,13 +321,13 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
   }
 }
 
-// ------------------------------------------------------------------------
-// void typemap_register(char *op, char *lang, char *type, char *pname,
-//                       char *getcode, ParmList *args)
-//
-// Register a new mapping with the type-mapper. Special version that uses a
-// string instead of a datatype.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * void typemap_register(char *op, char *lang, char *type, char *pname,
+ *                       char *getcode, ParmList *args)
+ *
+ * Register a new mapping with the type-mapper. Special version that uses a
+ * string instead of a datatype.
+ * ------------------------------------------------------------------------ */
 
 void typemap_register(char *op, char *lang, char *type, char *pname, 
                       char *getcode, ParmList *args) {
@@ -342,41 +341,41 @@ void typemap_register(char *op, char *lang, char *type, char *pname,
 }
 
 
-// ------------------------------------------------------------------------
-// void typemap_register_default(char *op, char *lang, int type, int ptr, char *arraystr,
-//                               char *code, ParmList *args)
-//
-// Registers a default typemap with the system using numerical type codes.
-// type is the numerical code, ptr is the level of indirection. 
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * void typemap_register_default(char *op, char *lang, int type, int ptr, char *arraystr,
+ *                               char *code, ParmList *args)
+ *
+ * Registers a default typemap with the system using numerical type codes.
+ * type is the numerical code, ptr is the level of indirection. 
+ * ------------------------------------------------------------------------ */
 
 void typemap_register_default(char *op, char *lang, int type, int ptr, char *arraystr,
 			   char *code, ParmList *args) {
 
   DataType *t = NewDataType(type);
 
-  // Create a raw datatype from the arguments
+  /* Create a raw datatype from the arguments */
 
   t->is_pointer = ptr;
   DataType_set_arraystr(t,arraystr);
 
-  // Now, go register this as a default type
+  /* Now, go register this as a default type */
 
   typemap_register(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",code,args);
   DelDataType(t);
 }
 
 
-// ------------------------------------------------------------------------
-// static TypeMap *typemap_search(char *key, int id) 
-//
-// An internal function for searching for a particular typemap given
-// a key value and datatype id.
-//
-// Basically this checks the hash table and then checks the id against
-// first and last values, looking for a match.   This is to properly
-// handle scoping problems.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * static TypeMap *typemap_search(char *key, int id) 
+ *
+ * An internal function for searching for a particular typemap given
+ * a key value and datatype id.
+ *
+ * Basically this checks the hash table and then checks the id against
+ * first and last values, looking for a match.   This is to properly
+ * handle scoping problems.
+ * ------------------------------------------------------------------------ */
 
 TypeMap *typemap_search(char *key, int id) {
   
@@ -391,14 +390,14 @@ TypeMap *typemap_search(char *key, int id) {
   return tm;
 }
 
-// ------------------------------------------------------------------------
-// TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname, DOHString *str)
-//
-// Performs a typemap lookup on an array type.  This is abit complicated
-// because we need to look for ANY tags specifying that any array dimension
-// is valid.   The resulting code will be placed in str with dimension variables
-// substituted.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname, DOHString *str)
+ *
+ * Performs a typemap lookup on an array type.  This is abit complicated
+ * because we need to look for ANY tags specifying that any array dimension
+ * is valid.   The resulting code will be placed in str with dimension variables
+ * substituted.
+ * ------------------------------------------------------------------------ */
 
 TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname, DOHString *str) {
   char      origarr[1024];
@@ -410,24 +409,24 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
   if (!DataType_arraystr(type)) return 0;
 
   strcpy(origarr,DataType_arraystr(type));
-  // First check to see if exactly this array has been mapped
+  /* First check to see if exactly this array has been mapped */
 
   key = typemap_string(lang,type,pname,DataType_arraystr(type),op);
   tm = typemap_search(key,type->id);
 
-  // Check for unnamed array of specific dimensions
+  /* Check for unnamed array of specific dimensions */
   if (!tm) {
     key = typemap_string(lang,type,(char*)"",DataType_arraystr(type),op);
     tm = typemap_search(key,type->id);
   } 
 
   if (!tm) {
-    // We're going to go search for matches with the ANY tag
+    /* We're going to go search for matches with the ANY tag */
     DOHString *tempastr = NewString("");
-    ndim = DataType_array_dimensions(type);             // Get number of dimensions
-    j = (1 << ndim) - 1;                         // Status bits
+    ndim = DataType_array_dimensions(type);              /* Get number of dimensions */
+    j = (1 << ndim) - 1;                          /* Status bits */
     for (i = 0; i < (1 << ndim); i++) {
-      // Form an array string
+      /* Form an array string */
       Clear(tempastr);
       k = j;
       for (n = 0; n < ndim; n++) {
@@ -468,14 +467,14 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
   return tm;
 }
 
-// ------------------------------------------------------------------------
-// static typemap_locals(Datatype *t, char *pname, String &s, ParmList *l, Wrapper *f)
-//
-// Takes a string, a parameter list and a wrapper function argument and
-// starts creating local variables.
-//
-// Substitutes locals in the string with actual values used.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * static typemap_locals(Datatype *t, char *pname, String &s, ParmList *l, Wrapper *f)
+ *
+ * Takes a string, a parameter list and a wrapper function argument and
+ * starts creating local variables.
+ *
+ * Substitutes locals in the string with actual values used.
+ * ------------------------------------------------------------------------ */
 
 static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, Wrapper *f) {
   Parm *p;
@@ -491,8 +490,8 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 	DataType *tt;
 
 	str = NewString("");
-	// If the user gave us $type as the name of the local variable, we'll use
-	// the passed datatype instead
+	/* If the user gave us $type as the name of the local variable, we'll use
+	   the passed datatype instead */
 
 	if (strcmp(pn,"$type")==0 || strcmp(pt->name,"$basetype")==0) {
 	  tt = t;
@@ -500,7 +499,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 	  tt = pt;
 	}
         
-	// Have a real parameter here
+	/* Have a real parameter here */
         if (DataType_arraystr(tt)) {
 	  tt->is_pointer--;
 	  Printf(str,"%s%s",pn, DataType_arraystr(tt));
@@ -509,10 +508,10 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 	  Printf(str,"%s",pn);
 	}
 
-	// Substitute parameter names
+	/* Substitute parameter names */
 	Replace(str,"$arg",pname, DOH_REPLACE_ANY);
         if (strcmp(pt->name,"$basetype")==0) {
-          // use $basetype
+          /* use $basetype */
           char temp_ip = tt->is_pointer;
           char temp_ip1 = tt->implicit_ptr;
           tt->is_pointer = 0;
@@ -525,14 +524,14 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
           new_name = Wrapper_new_localv(f,str, DataType_str(tt,str), 0);
 
 	if (DataType_arraystr(tt)) tt->is_pointer++;
-	// Substitute 
+	/* Substitute  */
 	Replace(s,pn,new_name,DOH_REPLACE_ID);
       }
     }
     p = Nextitem(l);
   }
-  // If the original datatype was an array. We're going to go through and substitute
-  // it's array dimensions
+  /* If the original datatype was an array. We're going to go through and substitute
+     it's array dimensions */
 
   if (DataType_arraystr(t)) {
     char temp[10];
@@ -544,42 +543,42 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 
 }
 
-// ------------------------------------------------------------------------
-// char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *source,
-//                      char *target, WrapperFunction *f)
-//            
-// Looks up a "get" function in the type-map and returns a character string
-// containing the appropriate translation code.
-//
-// op       is string code for type of mapping
-// lang     is the target language string
-// type     is the datatype
-// pname    is an optional parameter name
-// source   is a string with the source variable
-// target   is a string containing the target value
-// f        is a wrapper function object (optional)
-//
-// Returns NULL if no mapping is found.
-//
-// Typemaps follow a few rules regarding naming and C pointers by checking
-// declarations in this order.
-//
-//         1.   type name []         - A named array (most specific)
-//         2.   type name            - Named argument
-//         3.   type []              - Type with array
-//         4.   type                 - Ordinary type
-// 
-// Array checking is only made if the datatype actally has an array specifier      
-// 
-// Array checking uses a special token "ANY" that indicates that any
-// dimension will match.  Since we are passed a real datatype here, we
-// need to hack this a special case.
-//
-// Array dimensions are substituted into the variables $dim1, $dim2,...,$dim9
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *source,
+ *                      char *target, WrapperFunction *f)
+ *            
+ * Looks up a "get" function in the type-map and returns a character string
+ * containing the appropriate translation code.
+ *
+ * op       is string code for type of mapping
+ * lang     is the target language string
+ * type     is the datatype
+ * pname    is an optional parameter name
+ * source   is a string with the source variable
+ * target   is a string containing the target value
+ * f        is a wrapper function object (optional)
+ *
+ * Returns NULL if no mapping is found.
+ *
+ * Typemaps follow a few rules regarding naming and C pointers by checking
+ * declarations in this order.
+ *
+ *         1.   type name []         - A named array (most specific)
+ *         2.   type name            - Named argument
+ *         3.   type []              - Type with array
+ *         4.   type                 - Ordinary type
+ * 
+ * Array checking is only made if the datatype actally has an array specifier      
+ * 
+ * Array checking uses a special token "ANY" that indicates that any
+ * dimension will match.  Since we are passed a real datatype here, we
+ * need to hack this a special case.
+ *
+ * Array dimensions are substituted into the variables $dim1, $dim2,...,$dim9
+ * ------------------------------------------------------------------------ */
 
-static DataType *realtype;       // This is a gross hack
-static char     *realname = 0;   // Real parameter name
+static DataType *realtype;        /* This is a gross hack */
+static char     *realname = 0;    /* Real parameter name */
 
 char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname, char *source,
                      char *target, Wrapper *f) {
@@ -592,11 +591,11 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
     return 0;
   }
 
-  // First check for named array
+  /* First check for named array */
   Clear(str);
   tm = typemap_search_array(op,lang,type,pname,str);
 
-  // Check for named argument
+  /* Check for named argument */
   if (!tm) {
     key = typemap_string(lang,type,pname,0,op);
     tm = typemap_search(key,type->id);
@@ -604,7 +603,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
       Printf(str,"%s",tm->code);
   }
 
-  // Check for unnamed type
+  /* Check for unnamed type */
   if (!tm) {
     key = typemap_string(lang,type,(char*)"",0,op);
     tm = typemap_search(key,type->id);
@@ -613,7 +612,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   }
   if (!tm) return 0;
   
-  // Now perform character replacements
+  /* Now perform character replacements */
 
   Replace(str,"$source",source,DOH_REPLACE_ANY);
   Replace(str,"$target",target,DOH_REPLACE_ANY);
@@ -623,7 +622,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   } else {
     Replace(str,"$parmname","", DOH_REPLACE_ANY);
   }
-  // Print base type (without any pointers)
+  /* Print base type (without any pointers) */
   {
     char temp_ip = realtype->is_pointer;
     char temp_ip1 = realtype->implicit_ptr;
@@ -640,26 +639,26 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   
   Replace(str,"$mangle",DataType_manglestr(realtype), DOH_REPLACE_ANY);
 
-  // If there were locals and a wrapper function, replace
+  /* If there were locals and a wrapper function, replace */
   if ((tm->args) && f) {
     typemap_locals(realtype, pname, str,tm->args,f);
   }
 
-  // If there were locals and no wrapper function, print a warning
+  /* If there were locals and no wrapper function, print a warning */
   if ((tm->args) && !f) {
     if (!pname) pname = (char*)"";
     fprintf(stderr,"%s:%d: Warning. '%%typemap(%s,%s) %s %s' being applied with ignored locals.\n",
 	    input_file, line_number, lang,op, DataType_str(type,0), pname);
   }
 
-  // Return character string
+  /* Return character string */
 
   return Char(str);
 }
 
-// ----------------------------------------------------------
-// Real function call that takes care of application mappings
-// ----------------------------------------------------------
+/* ----------------------------------------------------------
+ * Real function call that takes care of application mappings
+ * ---------------------------------------------------------- */
 
 char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *source,
                      char *target, Wrapper *f) {
@@ -669,29 +668,29 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
   char *ppname;
   char *tstr;
 
-  realtype = type;         // The other half of the gross hack
+  realtype = type;          /* The other half of the gross hack */
   realname = pname;
 
-  // Try to apply typemap right away
+  /* Try to apply typemap right away */
 
   result = typemap_lookup_internal(op,lang,type,pname,source,target,f);
 
-  // If not found, try to pick up anything that might have been
-  // specified with %apply
+  /* If not found, try to pick up anything that might have been
+     specified with %apply */
 
   if ((!result) && (pname)) {
     int drop_pointer = 0;
     ppname = pname;
     if (!ppname) ppname = (char*)"";
     
-    // The idea : We're going to cycle through applications and
-    // drop pointers off until we get a match.   
+    /* The idea : We're going to cycle through applications and
+       drop pointers off until we get a match.    */
 
     while (drop_pointer <= (type->is_pointer - type->implicit_ptr)) {
       type->is_pointer -= drop_pointer;
       tstr = DataType_str(type,0);
       sprintf(temp,"%s$%s",tstr,ppname);
-      // No mapping was found.  See if the name has been mapped with %apply
+      /* No mapping was found.  See if the name has been mapped with %apply */
       m = (TmMethod *) GetVoid(application_hash,temp);
       if (!m) {
 	sprintf(temp,"%s$",tstr);
@@ -707,18 +706,18 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 	  else ppname = pname;
 	  m->type->is_pointer += drop_pointer;
 
-	  // Copy old array string (just in case)
+	  /* Copy old array string (just in case) */
 	  
 	  if (DataType_arraystr(m->type))
 	    oldary = Swig_copy_string(DataType_arraystr(m->type));
 	  else
 	    oldary = 0;
 
-	  // If the mapping type is an array and has the 'ANY' keyword, we
-          // have to play some magic
+	  /* If the mapping type is an array and has the 'ANY' keyword, we
+	     have to play some magic */
 
 	  if ((DataType_arraystr(m->type)) && (DataType_arraystr(type))) {
-	    // Build up the new array string
+	    /* Build up the new array string */
 	    Clear(newarray);
 	    for (int n = 0; n < DataType_array_dimensions(m->type); n++) {
 	      char *d = DataType_get_dimension(m->type,n);
@@ -730,8 +729,8 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 	    }
 	    DataType_set_arraystr(m->type, Char(newarray));
 	  } else if (DataType_arraystr(type)) {
-	    // If an array string is available for the current datatype,
-	    // make it available.
+	    /* If an array string is available for the current datatype,
+	       make it available. */
 	    DataType_set_arraystr(m->type,DataType_arraystr(type));
 	  }
 	  result = typemap_lookup_internal(op,lang,m->type,ppname,source,target,f);
@@ -750,11 +749,11 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
       drop_pointer++;
     }
   }
-  // Still no idea, try to find a default typemap
+  /* Still no idea, try to find a default typemap */
 
   if (!result) {
     DataType *t = CopyDataType(type);
-    DataType_primitive(t); // Knock it down to its basic type
+    DataType_primitive(t);  /* Knock it down to its basic type */
     result = typemap_lookup_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",source,target,f);
     if (result) {
       DelDataType(t);
@@ -763,7 +762,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
     if ((t->type == T_USER) || (t->is_pointer)) {
       if ((t->type == T_CHAR) && (t->is_pointer == 1)) return 0;
     
-      // Still no result, go even more primitive
+      /* Still no result, go even more primitive */
       t->type = T_USER;
       t->is_pointer = 1;
       DataType_set_arraystr(t,0);
@@ -775,12 +774,12 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
   return result;
 }
 
-// ----------------------------------------------------------------------------
-// char *typemap_check(char *op, char *lang, DataType *type, char *pname)
-//
-// Checks to see if there is a typemap.  Returns typemap string if found, NULL
-// if not.
-// ----------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------
+ * char *typemap_check(char *op, char *lang, DataType *type, char *pname)
+ *
+ * Checks to see if there is a typemap.  Returns typemap string if found, NULL
+ * if not.
+ * ---------------------------------------------------------------------------- */
 
 char *typemap_check_internal(char *op, char *lang, DataType *type, char *pname) {
   static DOHString *str = 0;
@@ -791,31 +790,31 @@ char *typemap_check_internal(char *op, char *lang, DataType *type, char *pname) 
   if (!lang) {
     return 0;
   }
-  // First check for named array
+  /* First check for named array */
 
   Clear(str);
   tm = typemap_search_array(op,lang,type,pname,str);
 
-  // First check for named array
-  //
-  //  if (type->arraystr) {
-  //    key = typemap_string(lang,type,pname,type->arraystr,op);
-  //    tm = typemap_search(key,type->id);
-  //  }
+  /* First check for named array
+   *
+   *  if (type->arraystr) {
+   *    key = typemap_string(lang,type,pname,type->arraystr,op);
+   *    tm = typemap_search(key,type->id);
+   *  } */
 
-  // Check for named argument
+  /* Check for named argument */
   if (!tm) {
     key = typemap_string(lang,type,pname,0,op);
     tm = typemap_search(key,type->id);
   }
 
-  // Check for unnamed array
+  /* Check for unnamed array */
   if ((!tm) && (DataType_arraystr(type))) {
     key = typemap_string(lang,type,(char*)"",DataType_arraystr(type),op);
     tm = typemap_search(key,type->id);
   } 
 
-  // Check for unname type
+  /* Check for unname type */
   if (!tm) {
     key = typemap_string(lang,type,(char*)"",0,op);
     tm = typemap_search(key,type->id);
@@ -825,11 +824,11 @@ char *typemap_check_internal(char *op, char *lang, DataType *type, char *pname) 
   Clear(str);
   Printf(str,"%s",tm->code);
 
-  // Return character string
+  /* Return character string */
   return Char(str);
 }
 
-// Function for checking with applications
+/** Function for checking with applications */
 
 char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
   TmMethod *m;
@@ -837,7 +836,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
   char *result;
   char *ppname;
   char *tstr;
-  // Try to apply typemap right away
+  /* Try to apply typemap right away */
 
   result = typemap_check_internal(op,lang,type,pname);
 
@@ -846,14 +845,14 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
     ppname = pname;
     if (!ppname) ppname = (char*)"";
     
-    // The idea : We're going to cycle through applications and
-    // drop pointers off until we get a match.   
+     /* The idea : We're going to cycle through applications and
+	drop pointers off until we get a match.    */
 
     while (drop_pointer <= (type->is_pointer - type->implicit_ptr)) {
       type->is_pointer -= drop_pointer;
       tstr = DataType_str(type,0);
       sprintf(temp,"%s$%s",tstr,ppname);
-      // No mapping was found.  See if the name has been mapped with %apply
+      /* No mapping was found.  See if the name has been mapped with %apply */
       if (!application_hash) application_hash = NewHash();
       m = (TmMethod *) GetVoid(application_hash,temp);
       if (!m) {
@@ -874,11 +873,11 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 	  else
 	    oldary = 0;
 
-	  // If the mapping type is an array and has the 'ANY' keyword, we
-          // have to play some magic
+	  /* If the mapping type is an array and has the 'ANY' keyword, we
+	     have to play some magic */
 	  
 	  if ((DataType_arraystr(m->type)) && (DataType_arraystr(type))) {
-	    // Build up the new array string
+	    /* Build up the new array string */
 	    Clear(newarray);
 	    for (int n = 0; n < DataType_array_dimensions(m->type); n++) {
 	      char *d = DataType_get_dimension(m->type,n);
@@ -908,10 +907,10 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
     }
   }
 
-  // If still no result, might have a default typemap
+  /* If still no result, might have a default typemap */
   if (!result) {
     DataType *t = CopyDataType(type);
-    DataType_primitive(t); // Knock it down to its basic type
+    DataType_primitive(t);  /* Knock it down to its basic type */
     result = typemap_check_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE");
     if (result) {
       DelDataType(t);
@@ -919,7 +918,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
     }
     if ((t->type == T_USER) || (t->is_pointer)) {
       if ((t->type == T_CHAR) && (t->is_pointer == 1)) return 0;
-      // Still no result, go even more primitive
+      /* Still no result, go even more primitive */
       t->type = T_USER;
       t->is_pointer = 1;
       DataType_set_arraystr(t,0);
@@ -931,13 +930,13 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
   return result;
 }
 
-// ------------------------------------------------------------------------
-// void typemap_clear(char *op, char *lang, DataType *type, char *pname)
-//
-// Clears any previous typemap.   This works like a stack.  Clearing a
-// typemap returns to any previous typemap in force.   If there is no
-// previous map, then don't worry about it.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * void typemap_clear(char *op, char *lang, DataType *type, char *pname)
+ *
+ * Clears any previous typemap.   This works like a stack.  Clearing a
+ * typemap returns to any previous typemap in force.   If there is no
+ * previous map, then don't worry about it.
+ * ------------------------------------------------------------------------ */
 
 void typemap_clear(char *op, char *lang, DataType *type, char *pname) {
   
@@ -946,8 +945,8 @@ void typemap_clear(char *op, char *lang, DataType *type, char *pname) {
 
   key = typemap_string(lang,type,pname,DataType_arraystr(type),op);
 
-  // Look for any previous version, simply set the last id if
-  // applicable.
+  /* Look for any previous version, simply set the last id if
+     applicable. */
   
   if (!typemap_hash) typemap_hash = NewHash();
   tm = (TypeMap *) GetVoid(typemap_hash,key);
@@ -956,12 +955,12 @@ void typemap_clear(char *op, char *lang, DataType *type, char *pname) {
   }
 }
 
-// ------------------------------------------------------------------------
-// void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
-//                   DataType *ttype, char *tname)
-//
-// Copies the code associate with a typemap
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
+ *                   DataType *ttype, char *tname)
+ *
+ * Copies the code associate with a typemap
+ * ------------------------------------------------------------------------ */
 
 void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
 		      DataType *ttype, char *tname) {
@@ -969,18 +968,18 @@ void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
   char     *key;
   TypeMap  *tm, *tk, *tn;
 
-  // Try to locate a previous typemap
+  /* Try to locate a previous typemap */
 
   key = typemap_string(lang,stype,sname,DataType_arraystr(stype),op);
   tm = typemap_search(key,stype->id);
   if (!tm) return;
   if (strcmp(ttype->name,"PREVIOUS") == 0) {
-    // Pop back up to the previous typemap (if any)
+    /* Pop back up to the previous typemap (if any) */
     tk = tm->next;
     if (tk) {
-      tn = new TypeMap(tk);       // Make a copy of the previous typemap
-      tn->next = tm;              // Set up symlinks
-      Delattr(typemap_hash,key);  // Remove old hash entry
+      tn = new TypeMap(tk);        /* Make a copy of the previous typemap */
+      tn->next = tm;               /* Set up symlinks */
+      Delattr(typemap_hash,key);   /* Remove old hash entry */
       SetVoid(typemap_hash,key, tn);
     }
   } else {
@@ -988,12 +987,12 @@ void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
   }
 }
 
-// ------------------------------------------------------------------------
-// char *fragment_string(char *op, char *lang)
-//
-// Produces a character string corresponding to a language and method
-// This string is used as the key for our typemap hash table.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * char *fragment_string(char *op, char *lang)
+ *
+ * Produces a character string corresponding to a language and method
+ * This string is used as the key for our typemap hash table.
+ * ------------------------------------------------------------------------ */
 
 static char *fragment_string(char *op, char *lang) {
   static char str[512];
@@ -1001,11 +1000,11 @@ static char *fragment_string(char *op, char *lang) {
   return str;
 }
 
-// ------------------------------------------------------------------------
-// void fragment_register(char *op, char *lang, char *code)
-//
-// Register a code fragment with the type-mapper.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * void fragment_register(char *op, char *lang, char *code)
+ *
+ * Register a code fragment with the type-mapper.
+ * ------------------------------------------------------------------------ */
 
 void fragment_register(char *op, char *lang, char *code) {
   
@@ -1016,13 +1015,13 @@ void fragment_register(char *op, char *lang, char *code) {
   tm = new TypeMap(lang,code);
   key = fragment_string(op,lang);
 
-  // Get any previous setting of the typemap
+  /* Get any previous setting of the typemap */
 
   tm_old = (TypeMap *) GetVoid(typemap_hash,key);
   if (tm_old) {
-    // If found, we need to attach the old version to the new one
+    /* If found, we need to attach the old version to the new one */
 
-    // Perform a chaining operation 
+    /* Perform a chaining operation  */
 
     sprintf(temp,"$%s",op);
     if (type_id < tm_old->last)
@@ -1031,31 +1030,31 @@ void fragment_register(char *op, char *lang, char *code) {
     tm->next = tm_old;
     tm_old->last = type_id;
 
-    // Remove the old one from the hash
+    /* Remove the old one from the hash */
   
     Delattr(typemap_hash,key);
   }
   
-  // Perform a default chaining operation if needed (defaults to nothing)
+  /* Perform a default chaining operation if needed (defaults to nothing) */
   sprintf(temp,"$%s",op);
   Replace(tm->code,temp,"", DOH_REPLACE_ANY);
 
-  // Add new typemap to the hash table
+  /* Add new typemap to the hash table */
   SetVoid(typemap_hash,key,tm);
     
 }
 
 
-// ------------------------------------------------------------------------
-// char *fragment_lookup(char *op, char *lang, int age)
-//
-// op       is string code for type of mapping
-// lang     is the target language string
-// age      is age of fragment.
-//
-// Returns NULL if no mapping is found.
-//
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * char *fragment_lookup(char *op, char *lang, int age)
+ *
+ * op       is string code for type of mapping
+ * lang     is the target language string
+ * age      is age of fragment.
+ *
+ * Returns NULL if no mapping is found.
+ *
+ * ------------------------------------------------------------------------ */
 
 char *fragment_lookup(char *op, char *lang, int age) {
   static DOHString *str = 0;
@@ -1077,12 +1076,12 @@ char *fragment_lookup(char *op, char *lang, int age) {
   return Char(str);
 }
 
-// ------------------------------------------------------------------------
-// void fragment_clear(char *op, char *lang)
-//
-// Clears any previous fragment definition.   Is a stack operation--will
-// restore any previously declared typemap.
-// ------------------------------------------------------------------------
+/* ------------------------------------------------------------------------
+ * void fragment_clear(char *op, char *lang)
+ *
+ * Clears any previous fragment definition.   Is a stack operation--will
+ * restore any previously declared typemap.
+ * ------------------------------------------------------------------------ */
 
 void fragment_clear(char *op, char *lang) {
   
@@ -1091,8 +1090,8 @@ void fragment_clear(char *op, char *lang) {
 
   key = fragment_string(op,lang);
 
-  // Look for any previous version, simply set the last id if
-  // applicable.
+  /* Look for any previous version, simply set the last id if
+     applicable. */
   
   tm = (TypeMap *) GetVoid(typemap_hash,key);
   if (tm) {
@@ -1100,11 +1099,11 @@ void fragment_clear(char *op, char *lang) {
   }
 }
 
-// -----------------------------------------------------------------------------
-// typemap_initialize()
-//
-// Initialize the hash tables
-// -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * typemap_initialize()
+ *
+ * Initialize the hash tables
+ * ----------------------------------------------------------------------------- */
 
 void
 typemap_initialize() {
@@ -1113,11 +1112,11 @@ typemap_initialize() {
 }
 
 
-// ------------------------------------------------------------------
-// int check_numopt()
-//
-// Gets the number of optional arguments for a ParmList. 
-// ------------------------------------------------------------------
+/* ------------------------------------------------------------------
+ * int check_numopt()
+ *
+ * Gets the number of optional arguments for a ParmList. 
+ * ------------------------------------------------------------------ */
 
 int check_numopt(ParmList *l) {
   int  n = 0;
