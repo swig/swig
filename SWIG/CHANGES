@@ -17,6 +17,34 @@ tree (maybe).
 Version 1.3.14 (In progress)
 ============================
 
+07/23/2002: beazley
+            Added -noextern option.   If supplied, SWIG will not generate
+            extra extern declarations.  This is sometimes an issue on 
+            non-unix platforms.
+
+07/23/2002: beazley
+            Added a warning for ignored friend functions.
+
+07/23/2002: beazley
+            Fixed [ 574498 ] -proxy and %include "pointer.i" clash.
+            Reported by David Creasy.
+
+07/23/2002: beazley
+            Fixed [ 576103 ] global destruction warning with shadow.
+            Perl extensions should no longer report the warning
+
+               "Use of uninitialized value during global destruction."
+ 
+            when running with "perl -w".  Reported by
+            Brett Williams.
+
+07/23/2002: beazley
+            In C++ mode, SWIG now always defines namespace std.  By default,
+            it's empty.  However, this will silence errors from programs
+            that include statements such as "using namespace std;".
+            This fixes Bug [ 584017 ] using namespace std generates error.
+            Reported by Joseph Winston.
+
 07/22/2002: beazley
             Added a new warning message for %apply.  If you use %apply but no typemaps
             are defined, you will get a warning message.  This should help with
