@@ -2951,7 +2951,14 @@ objc_inherit   : COLON ID objc_protolist { $$ = $2;}
                ;
 
 
-objc_protolist : LESSTHAN { skip_template();
+objc_protolist : LESSTHAN { 
+                     String *ts;
+                     skip_template();
+	             Replace(CCode," ","", DOH_REPLACE_ANY);
+	             Replace(CCode,"\n","", DOH_REPLACE_ANY);
+                     Replace(CCode,"\t","", DOH_REPLACE_ANY);
+	             Replace(CCode,"<","< ", DOH_REPLACE_ANY);
+	             Replace(CCode,">"," >", DOH_REPLACE_ANY);
 /*                   CCode.strip();           // Strip whitespace
 		   CCode.replace("<","< ");
 		   CCode.replace(">"," >"); */
