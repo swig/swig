@@ -322,19 +322,19 @@
 %typemap(out) char * { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
 
 /* primitive types by reference */
-%typemap(in) bool & (bool temp),
-             char & (char temp), 
-             signed char & (signed char temp), 
-             unsigned char & (unsigned char temp), 
-             short & (short temp), 
-             unsigned short & (unsigned short temp), 
-             int & (int temp), 
-             unsigned int & (unsigned int temp), 
-             long & (long temp), 
-             unsigned long & (unsigned long temp), 
-             long long & (long long temp), 
-             float & (float temp), 
-             double & (double temp)
+%typemap(in) const bool & (bool temp),
+             const char & (char temp), 
+             const signed char & (signed char temp), 
+             const unsigned char & (unsigned char temp), 
+             const short & (short temp), 
+             const unsigned short & (unsigned short temp), 
+             const int & (int temp), 
+             const unsigned int & (unsigned int temp), 
+             const long & (long temp), 
+             const unsigned long & (unsigned long temp), 
+             const long long & (long long temp), 
+             const float & (float temp), 
+             const double & (double temp)
 %{ temp = ($*1_ltype)$input; 
 $1 = &temp; %}
 
@@ -426,7 +426,7 @@ $1 = &temp; %}
 %typemap(out) SWIGTYPE * , SWIGTYPE & %{ *($&1_ltype)&$result = $1; %} 
 
 /* Arrays */
-/* Macro for most arrays */
+/* Most arrays use the following macro. The array typemaps use support functions. */
 %define JAVA_ARRAYS_TYPEMAPS(CTYPE, JTYPE, JFUNCNAME)
 
 %typemap(in) CTYPE[ANY] (JTYPE *jarr)
