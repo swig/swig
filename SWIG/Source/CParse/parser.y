@@ -4213,7 +4213,11 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("-%s",$2.val);
 		 $$.type = $2.type;
 	       }
-               |  NOT expr {
+               | PLUS expr %prec UMINUS {
+                 $$.val = NewStringf("%s",$2.val);
+		 $$.type = $2.type;
+	       }
+               | NOT expr {
 		 $$.val = NewStringf("~%s",$2.val);
 		 $$.type = $2.type;
 	       }
