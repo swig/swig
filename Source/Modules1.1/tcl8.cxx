@@ -80,11 +80,14 @@ TCL8::parse_args(int argc, char *argv[]) {
       }
   }
 
-  /* If a prefix has been given, make sure it ends with a '_' */
-  if (prefix) {
+  if ((nspace) && module) {
+    ns_name = Copy(module);
+  } else if (prefix) {
     ns_name = Copy(prefix);
-    Append(prefix,"_");
+
   }
+  if (prefix)
+    Append(prefix,"_");
 
   Preprocessor_define((void *) "SWIGTCL 1",0);
   Preprocessor_define((void *) "SWIGTCL8 1", 0);
