@@ -22,3 +22,13 @@ if b.hello() != p.hello():
 
 
 
+d = DFoo()
+
+dp = DPtrFoo(d)
+
+if d.SExt(1) != dp.SExt(1):
+  raise RuntimeError
+
+if d.Ext(1) != dp.Ext(1):
+  raise RuntimeError
+  

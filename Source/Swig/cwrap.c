@@ -773,6 +773,7 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
     String *cname = Getattr(n,"classname") ? Getattr(n,"classname") : classname;
     String *membername = Swig_name_member(cname, name);
     String *mangled = Swig_name_mangle(membername);
+    int is_smart_pointer = flags & CWRAP_SMART_POINTER;
 
     type = Getattr(n,"type");
 
@@ -784,11 +785,11 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
     }
 
     /* See if there is any code that we need to emit */
-    if (!defaultargs && code) {
+    if (!defaultargs && code &&!is_smart_pointer) {
       Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus);
 
     }
-    if (flags & CWRAP_SMART_POINTER) {
+    if (is_smart_pointer) {
       int i = 0;
       Parm *pp = p;
       String *func = NewStringf("%s(", mangled);
