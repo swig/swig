@@ -1,6 +1,14 @@
 Version 1.3.22 (in progress)
 ==================================
 
+02/13/2004: mkoeppe (Matthias Koeppe)
+	    [MzScheme] New command-line argument -noinit.  Use it for building
+	    the runtime library, where we don't want to define the functions
+	    scheme_initialize etc.  Reported by Tim Brown, SF #891754.
+	    
+	    [Guile] Build the runtime library with passive linkage, to rename
+	    the SWIG_init function uniquely.
+
 02/12/2004: cheetah (William Fulton)
             [Java, C#] Patch submitted by Bill Hoffman which prevents SWIG from crashing
             when a file for the typewrapper class cannot be opened.
