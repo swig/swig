@@ -72,6 +72,7 @@ static char *usage = (char*)"\
      -module <name>  - Set module name to <name>\n\
      -nocontract     - Turn off contract checking \n\
      -nodefault      - Do not generate constructors/destructors\n\
+     -dirprot        - Wrap director protected members\n\
      -nodirprot      - Do not wrap director protected members\n\
      -noexcept       - Do not wrap exception specifiers\n\
      -noextern       - Do not generate extern declarations\n\
@@ -282,7 +283,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Preprocessor_define(vers,0);
 
   /* Turn on director protected mode */
-  Wrapper_director_protected_mode_set(1);
+  Wrapper_director_protected_mode_set(0);
 
 
   // Check for SWIG_LIB environment variable
@@ -327,6 +328,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	Wrapper_compact_print_mode_set(1);
       } else if (strcmp(temp, "-fvirtual") == 0) {
 	Wrapper_virtual_elimination_mode_set(1);
+      } else if (strcmp(temp,"-dirprot") == 0) {
+	  Wrapper_director_protected_mode_set(1);
       } else if (strcmp(temp,"-nodirprot") == 0) {
 	  Wrapper_director_protected_mode_set(0);
       } else if (strcmp(temp, "-small") == 0) {
@@ -367,6 +370,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-fvirtual") == 0) {
 	    Wrapper_virtual_elimination_mode_set(1);
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dirprot") == 0) {
+	    Wrapper_director_protected_mode_set(1);
 	  } else if (strcmp(argv[i],"-nodirprot") == 0) {
 	    Wrapper_director_protected_mode_set(0);
 	  } else if (strcmp(argv[i],"-small") == 0) {
