@@ -11,10 +11,14 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
+static char linux_firstsegment[1024];
+static int linux_first = 1;
+
 static FILE *
 segment_open() {
   FILE *f;
   f = fopen("/proc/self/maps", "r");
+  linux_first =1;
   return f;
 }
 
@@ -38,7 +42,7 @@ segment_read(FILE *fs, WadSegment *s)
 	21        : p
 	23-31     : Offset 
 	49-       : Filename */
-  
+
   len = strlen(pbuffer);
   pbuffer[8] = 0;
   pbuffer[17] = 0;
@@ -49,10 +53,18 @@ segment_read(FILE *fs, WadSegment *s)
     strcpy(s->mapname, pbuffer+49);
     strcpy(s->mappath, pbuffer+49);
   } 
+  if (linux_first) {
+    strcpy(linux_firstsegment, s->mappath);
+    linux_first = 0;
+  }
   s->vaddr = (char *) strtoul(pbuffer,NULL,16);
   s->size = strtoul(pbuffer+9,NULL,16) - (long) (s->vaddr);
   s->offset = strtoul(pbuffer+23,NULL,16);
-  s->base = s->vaddr;
+  if (strcmp(linux_firstsegment, s->mappath) == 0) {
+    s->base = 0;
+  } else {
+    s->base = s->vaddr;
+  }
   s++;
   return 1;
 }

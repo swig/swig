@@ -172,6 +172,10 @@ extern WadReturnFunc *wad_check_return(const char *name);
 #define DEBUG_FILE       0x10
 #define DEBUG_HOLD       0x20
 #define DEBUG_RETURN     0x40
+#define DEBUG_SYMBOL_SEARCH  0x80
+#define DEBUG_INIT       0x100
+#define DEBUG_NOSTACK    0x200
+#define DEBUG_ONESHOT    0x400
 
 extern int wad_debug_mode;
 

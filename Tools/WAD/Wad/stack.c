@@ -18,9 +18,25 @@
    unwinding */
 
 static void
-stack_unwind(unsigned long *sp, unsigned long *pc) {
+stack_unwind(unsigned long *sp, unsigned long *pc, unsigned long *fp) {
+
+#ifdef WAD_SOLARIS
   *pc = *((unsigned long *) *sp+15);         /* %i7 - Return address  */
   *sp = *((unsigned long *) *sp+14);         /* %i6 - frame pointer   */
+#endif
+
+#ifdef WAD_LINUX
+  *pc = *((unsigned long *) *fp+1); 
+  *sp = *fp;
+  *fp = *((unsigned long *) *fp);
+
+  /* If we get a frame pointer of zero, we've gone off the end of the stack.  Set the
+     stack pointer to zero to signal the stack unwinder. */
+
+  if (*fp == 0) {
+    *sp = 0;
+  }
+#endif
 }
 
 static void *trace_addr = 0;
@@ -42,6 +58,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   int             ffile;
   unsigned long   p_pc;
   unsigned long   p_sp;
+  unsigned long   p_fp;
   unsigned long   p_lastsp;
 
   int             n = 0;
@@ -64,10 +81,12 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   nlevels = 0;
   p_pc = pc;
   p_sp = sp;
+  p_fp = fp;
 
   while (p_sp) {
     /* Add check for stack validity here */
     ws = wad_segment_find(segments, (void *) p_sp);
+
     if (!ws) {
       /* If the stack is bad, we are really hosed here */
       break;
@@ -100,6 +119,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       } else {
 	symname = 0;
       }
+
 
       /*      if (symname) symname = wad_cplus_demangle(&wsym); */
 
@@ -142,6 +162,8 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 	}
       }
 
+
+#ifdef WAD_SOLARIS
       /* Before unwinding the stack, copy the locals and %o registers from previous frame */
       if (!firstframe) {
 	int i;
@@ -151,18 +173,22 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 	  frame.regs[i] = lsp[i];
 	}
       }
-
+#endif
       firstframe = 0;
       /* Determine stack frame size */
       p_lastsp = p_sp;
-      stack_unwind(&p_sp, &p_pc);
+      stack_unwind(&p_sp, &p_pc, &p_fp);
 
       if (p_sp) {
 	stacksize = p_sp - p_lastsp;
       } else {
+#ifdef WAD_SOLARIS
 	stacksize = 0xffbf0000 - p_lastsp;    /* Sick hack alert. Need to get stack top from somewhere */
+#endif
+#ifdef WAD_LINUX
+	stacksize = 0xc0000000 - p_lastsp;
+#endif
       }
-
       /* Set the frame pointer and stack size */
       frame.fp = p_sp; 
       frame.stack_size = stacksize;

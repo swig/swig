@@ -29,7 +29,7 @@ void wad_set_callback(void (*s)(int,WadFrame *,char *ret)) {
    normally. */
 
 static int            nlr_levels = 0;
-static int  *volatile nlr_p = &nlr_levels;
+static volatile int  *volatile nlr_p = &nlr_levels;
 static long           nlr_value = 0;
 
 /* Set the return value from another module */
@@ -37,6 +37,7 @@ void wad_set_return_value(long value) {
   nlr_value = value;
 }
 
+#ifdef WAD_SOLARIS
 static void nonlocalret() {
   long a;
   
@@ -65,15 +66,32 @@ static void nonlocalret() {
   asm("restore");
   asm(".size	_returnsignal,(.-_returnsignal)");
 }
+#endif
+
+#ifdef WAD_LINUX
+static void nonlocalret() {
+  asm("_returnsignal:");
+  while (*nlr_p > 0) {
+    (*nlr_p)--;
+    asm("leave");
+  }
+  asm("movl nlr_value, %eax");
+  asm("leave");
+  asm("ret");
+}
+#endif
 
 void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   greg_t  *pc;
   greg_t  *npc;
   greg_t  *sp;
+  greg_t  *fp;
+
   unsigned long   addr;
   ucontext_t      *context;
   unsigned long   p_sp;        /* process stack pointer   */
   unsigned long   p_pc;        /* Process program counter */
+  unsigned long   p_fp;        /* Process frame pointer   */
   int      nlevels = 0;
   int      found = 0;
   void     _returnsignal();
@@ -86,15 +104,30 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   context = (ucontext_t *) vcontext;
 
   /* Get some information about the current context */
+
+#ifdef WAD_SOLARIS
   pc = &((context->uc_mcontext).gregs[REG_PC]);
   npc = &((context->uc_mcontext).gregs[REG_nPC]);
   sp = &((context->uc_mcontext).gregs[REG_SP]);
+#endif
 
+#ifdef WAD_LINUX
+  sp = &((context->uc_mcontext).gregs[ESP]);        /* Top of stack */
+  fp = &((context->uc_mcontext).gregs[EBP]);        /* Stack base - frame pointer */
+  pc = &((context->uc_mcontext).gregs[EIP]);        /* Current instruction */
+  /*   printf("&sp = %x, &pc = %x\n", sp, pc); */
+#endif
+  
   /* Get some information out of the signal handler stack */
   addr = (unsigned long) si->si_addr;
   p_pc = (unsigned long) (*pc);
   p_sp = (unsigned long) (*sp);
-  frame = wad_stack_trace(p_pc, p_sp, 0);
+#ifdef WAD_LINUX
+  p_fp = (unsigned long) (*fp);
+  /*  printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp); */
+#endif
+
+  frame = wad_stack_trace(p_pc, p_sp, p_fp);
   origframe =frame;
   if (!frame) {
     /* We're really hosed here */
@@ -144,7 +177,9 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 
   if (nlr_levels > 0) {
     *(pc) = (greg_t) _returnsignal;
+#ifdef WAD_SOLARIS
     *(npc) = *(pc) + 4;
+#endif
     return;
   }
   exit(1);
@@ -160,12 +195,19 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 void wad_signal_init() {
   struct sigaction newvec;
   static stack_t  sigstk;
+
+  if (wad_debug_mode & DEBUG_INIT) {
+    printf("WAD: Initializing signal handler.\n");
+  }
+
   /* Set up an alternative stack */
   sigstk.ss_sp = (char *) wad_sig_stack;
   sigstk.ss_size = STACK_SIZE;
   sigstk.ss_flags = 0;
-  if (sigaltstack(&sigstk, (stack_t*)0) < 0) {
-    perror("sigaltstack");
+  if (!(wad_debug_mode & DEBUG_NOSTACK)) {
+    if (sigaltstack(&sigstk, (stack_t*)0) < 0) {
+      perror("sigaltstack");
+    }
   }
   sigemptyset(&newvec.sa_mask);
   sigaddset(&newvec.sa_mask, SIGSEGV);
@@ -173,11 +215,24 @@ void wad_signal_init() {
   sigaddset(&newvec.sa_mask, SIGABRT);
   sigaddset(&newvec.sa_mask, SIGILL);
   sigaddset(&newvec.sa_mask, SIGFPE);
-  newvec.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESETHAND;
+  newvec.sa_flags = SA_SIGINFO;
+
+  if (wad_debug_mode & DEBUG_ONESHOT) {
+    newvec.sa_flags |= SA_RESETHAND;
+  }
+  if (!(wad_debug_mode & DEBUG_NOSTACK)) {
+    newvec.sa_flags |= SA_ONSTACK;
+  } 
   newvec.sa_sigaction = ((void (*)(int,siginfo_t *, void *)) wad_signalhandler);
-  sigaction(SIGSEGV, &newvec, NULL);
-  sigaction(SIGBUS, &newvec, NULL);
-  sigaction(SIGABRT, &newvec, NULL);
-  sigaction(SIGFPE, &newvec, NULL);
-  sigaction(SIGILL, &newvec, NULL);
+  if (sigaction(SIGSEGV, &newvec, NULL) < 0) goto werror;
+  if (sigaction(SIGBUS, &newvec, NULL) < 0) goto werror;
+  if (sigaction(SIGABRT, &newvec, NULL) < 0) goto werror;
+  if (sigaction(SIGFPE, &newvec, NULL) < 0) goto werror;
+  if (sigaction(SIGILL, &newvec, NULL) < 0) goto werror;
+  
+  return;
+ werror:
+  printf("WAD: Couldn't install signal handler!\n");
 }
+
+
