@@ -15,7 +15,7 @@ psi = lib_std_pair.SIPair("hello",1)
 pci = lib_std_pair.CIPair(1,1)
 
 
-psi.first = "hi"
+#psi.first = "hi"
 
 
 psi = lib_std_pair.SIPair("hi",1)
