@@ -35,9 +35,11 @@ typedef struct swig_const_info {
 SWIGEXPORT(PyObject *)        SWIG_newvarlink();
 SWIGEXPORT(void)              SWIG_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
 SWIGEXPORT(int)               SWIG_ConvertPtr(PyObject *, void **, swig_type_info *, int);
-SWIGEXPORT(void)              SWIG_MakePtr(char *c, void *, swig_type_info *);
-SWIGEXPORT(void)              SWIG_MakePacked(char *c, void *, int, swig_type_info *);
+SWIGEXPORT(int)               SWIG_ConvertPacked(PyObject *, void *, int sz, swig_type_info *, int);
+SWIGEXPORT(char *)            SWIG_PackData(char *c, void *, int);
+SWIGEXPORT(char *)            SWIG_UnpackData(char *c, void *, int);
 SWIGEXPORT(PyObject *)        SWIG_NewPointerObj(void *, swig_type_info *);
+SWIGEXPORT(PyObject *)        SWIG_NewPackedObj(void *, int sz, swig_type_info *);
 SWIGEXPORT(void)              SWIG_InstallConstants(PyObject *d, swig_const_info constants[]);
 
 #else
@@ -148,11 +150,47 @@ SWIG_addvarlink(PyObject *p, char *name,
   v->vars = gv;
 }
 
+/* Pack binary data into a string */
+SWIGRUNTIME(char *)
+SWIG_PackData(char *c, void *ptr, int sz) {
+  static char hex[17] = "0123456789abcdef";
+  int i;
+  unsigned char *u = (unsigned char *) ptr;
+  register unsigned char uu;
+  for (i = 0; i < sz; i++,u++) {
+    uu = *u;
+    *(c++) = hex[(uu & 0xf0) >> 4];
+    *(c++) = hex[uu & 0xf];
+  }
+  return c;
+}
+
+/* Unpack binary data from a string */
+SWIGRUNTIME(char *)
+SWIG_UnpackData(char *c, void *ptr, int sz) {
+  register unsigned char uu;
+  register int d;
+  unsigned char *u = (unsigned char *) ptr;
+  int i;
+  for (i = 0; i < sz; i++, u++) {
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu = ((d - '0') << 4);
+    else if ((d >= 'a') && (d <= 'f'))
+      uu = ((d - ('a'-10)) << 4);
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu |= (d - '0');
+    else if ((d >= 'a') && (d <= 'f'))
+      uu |= (d - ('a'-10));
+    *u = uu;
+  }
+  return c;
+}
+
 /* Convert a pointer value */
 SWIGRUNTIME(int)
 SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
-  unsigned long p;
-  register int d;
   swig_type_info *tc;
   char  *c;
   static PyObject *SWIG_this = 0;
@@ -192,7 +230,6 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
     }
   } 
   c = PyString_AsString(obj);
-  p = 0;
   /* Pointer values must start with leading underscore */
   if (*c != '_') {
     *ptr = (void *) 0;
@@ -205,17 +242,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
     }
   }
   c++;
-  /* Extract hex value from pointer */
-  while ((d = *c)) {
-    if ((d >= '0') && (d <= '9'))
-      p = (p << 4) + (d - '0');
-    else if ((d >= 'a') && (d <= 'f'))
-      p = (p << 4) + (d - ('a'-10));
-    else
-      break; 
-    c++;
-  }
-  *ptr = (void *) p;
+  c = SWIG_UnpackData(c,ptr,sizeof(void *));
   if (newref) Py_DECREF(obj);
 #endif
 
@@ -227,6 +254,38 @@ cobject:
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) goto type_error;
     *ptr = SWIG_TypeCast(tc,(void*) *ptr);
+  }
+  return 0;
+
+type_error:
+  if (flags) {
+    if (ty) {
+      char *temp = (char *) malloc(64+strlen(ty->name));
+      sprintf(temp,"Type error. Expected %s", ty->name);
+      PyErr_SetString(PyExc_TypeError, temp);
+      free((char *) temp);
+    } else {
+      PyErr_SetString(PyExc_TypeError,"Expected a pointer");
+    }
+  }
+  return -1;
+}
+
+/* Convert a packed value value */
+SWIGRUNTIME(int)
+SWIG_ConvertPacked(PyObject *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
+  swig_type_info *tc;
+  char  *c;
+
+  if ((!obj) || (!PyString_Check(obj))) goto type_error;
+  c = PyString_AsString(obj);
+  /* Pointer values must start with leading underscore */
+  if (*c != '_') goto type_error;
+  c++;
+  c = SWIG_UnpackData(c,ptr,sz);
+  if (ty) {
+    tc = SWIG_TypeCheck(c,ty);
+    if (!tc) goto type_error;
   }
   return 0;
 
@@ -245,33 +304,9 @@ type_error:
   return -1;
 }
 
-/* Take a pointer and convert it to a string */
-SWIGRUNTIME(void) 
-SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
-  static char hex[17] = "0123456789abcdef";
-  unsigned long p, s;
-  char result[32], *r; 
-  r = result;
-  p = (unsigned long) ptr;
-  if (p > 0) {
-    while (p > 0) {
-      s = p & 0xf;
-      *(r++) = hex[s];
-      p = p >> 4;
-    }
-    *r = '_';
-    while (r >= result)
-      *(c++) = *(r--);
-    strcpy (c, ty->name);
-  } else {
-    strcpy (c, "NULL");
-  }
-}
-
 /* Create a new pointer object */
 SWIGRUNTIME(PyObject *)
 SWIG_NewPointerObj(void *ptr, swig_type_info *type) {
-  char result[512];
   PyObject *robj;
   if (!ptr) {
     Py_INCREF(Py_None);
@@ -280,10 +315,27 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type) {
 #ifdef SWIG_COBJECT_TYPES
   robj = PyCObject_FromVoidPtrAndDesc((void *) ptr, (char *) type->name, NULL);
 #else
-  SWIG_MakePtr(result,ptr,type);
-  robj = PyString_FromString(result);
+  {
+    char result[512];
+    char *r = result;
+    *(r++) = '_';
+    r = SWIG_PackData(r,&ptr,sizeof(void *));
+    strcpy(r,type->name);
+    robj = PyString_FromString(result);
+  }
 #endif
   return robj;
+}
+
+SWIGRUNTIME(PyObject *)
+SWIG_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
+  char result[1024];
+  char *r = result;
+  if ((2*sz + 1 + strlen(type->name)) > 1000) return 0;
+  *(r++) = '_';
+  r = SWIG_PackData(r,&ptr,sizeof(void *));
+  strcpy(r,type->name);
+  return PyString_FromString(result);
 }
 
 /* Install Constants */
@@ -321,6 +373,7 @@ SWIG_InstallConstants(PyObject *d, swig_const_info constants[]) {
 #ifdef __cplusplus
 }
 #endif
+
 
 
 
