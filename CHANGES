@@ -5,13 +5,13 @@ See CHANGES.current for current version.
 Version 1.3.23 (November 11, 2004)
 =================================
 
-12/05/2004: wsfulton
+11/05/2004: wsfulton
             Patch #982753 from Fabrice Salvaire: Adds dependencies generation for
             constructing makefiles. New command line options -MF -MD -MMD to work
             with the current options -M and -MM. These options are named the same
             and work the same as in gcc.
 
-12/05/2004: wsfulton
+11/05/2004: wsfulton
             %ignore/%rename changes for methods with default arguments to mirror
             %feature behaviour. See previous entry.
 
