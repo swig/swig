@@ -99,7 +99,9 @@ TYPE *realloc_##TYPE(TYPE *ptr, int nitems);
 %calloc(TYPE,__VA_ARGS__)
 %realloc(TYPE,__VA_ARGS__)
 %free(TYPE,__VA_ARGS__)
+#if #TYPE != "void"
 %sizeof(TYPE,__VA_ARGS__)
+#endif
 %enddef
 
 
