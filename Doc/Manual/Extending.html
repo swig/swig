@@ -1055,20 +1055,6 @@ if an object was removed, 0 otherwise.
 </blockquote>
 
 <p>
-<b><tt>String *Firstkey(Hash *h)</tt></b>
-<blockquote>
-Returns the first hash table key or NULL if the hash is empty. Used
-for iteration.
-</blockquote>
-
-<p>
-<b><tt>String *Nextkey(Hash *h)</tt></b>
-<blockquote>
-Returns the next hash table key or NULL if the end of the hash has been
-reached.  Used for iteration.
-</blockquote>
-
-<p>
 <b><tt>List *Keys(Hash *h)</tt></b>
 <blockquote>
 Returns the list of hash table keys.
@@ -1126,19 +1112,6 @@ case it is used to construct a <tt>String</tt> that is stored in the list.
 Deletes item <tt>n</tt> from the list, shifting items down if necessary.  
 To delete the last item in the list, use the special value <tt>DOH_END</tt>
 for <tt>n</tt>.
-</blockquote>
-
-<p>
-<b><tt>Object *Firstitem(List *x)</tt></b>
-<blockquote>
-Returns the first item in <tt>x</tt> or NULL if the list is empty.
-</blockquote>
-
-<p>
-<b><tt>Object *Nextitem(List *x)</tt></b>
-<blockquote>
-Returns the next item in <tt>x</tt> or NULL if the end of the list has been
-reached.  Used for iteration.
 </blockquote>
 
 <p>
@@ -1200,6 +1173,45 @@ objects and report errors.
 <b><tt>int Getline(Object *x)</tt></b>
 <blockquote>
 Gets the line number associated with <tt>x</tt>.
+</blockquote>
+
+<H3>Iterating over Lists and Hashes</h3>
+
+To iterate over the elements of a list or a hash table, the following functions are used:
+
+<p>
+<b><tt>Iterator First(Object *x)</tt></b>
+<blockquote>
+Returns an iterator object that points to the first item in a list or hash table.  The
+<tt>item</tt> attribute of the Iterator object is a pointer to the item.  For hash tables, the <tt>key</tt> attribute
+of the Iterator object additionally points to the corresponding Hash table key.  The <tt>item</tt> and <tt>key</tt> attributes
+are NULL if the object contains no items or if there are no more items.
+</blockquote>
+
+<p>
+<b><tt>Iterator Next(Iterator i)</tt></b>
+<blockquote>
+Returns an iterator that points to the next item in a list or hash table.
+</blockquote>
+
+Here are two examples of iteration:
+
+<blockquote>
+<pre>
+List *l = (some list);
+Iterator i;
+
+for (i = First(l); i.item; i = Next(i)) {
+    Printf(stdout,"%s\n", i.item);
+}
+
+Hash *h = (some hash);
+Iterator j;
+
+for (j = First(j); j.item; j= Next(j)) {
+    Printf(stdout,"%s : %s\n", j.key, j.item);
+}
+</pre>
 </blockquote>
 
 <a name="n19"></a><H3>23.5.5 I/O</H3>
