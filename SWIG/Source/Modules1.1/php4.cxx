@@ -33,6 +33,7 @@ static char *shadow_classname;
 static Wrapper	*f_c;
 static Wrapper  *f_php;
 static int	gen_extra = 0;
+static int	gen_make = 0;
 
 static FILE	  *f_shadow= 0;
 
@@ -166,6 +167,9 @@ PHP4::main(int argc, char *argv[]) {
 	    }  else if(strcmp(argv[i], "-shadow") == 0) {
 		shadow = 1;
 		Swig_mark_arg(i);
+	    } else if(strcmp(argv[i], "-make") == 0) {
+		gen_make = 1;
+		Swig_mark_arg(i);
 	    }
 	  }
 	}
@@ -174,6 +178,36 @@ PHP4::main(int argc, char *argv[]) {
 	SWIG_typemap_lang("php4");
 	/* DB: Suggest using a language configuration file */
 	SWIG_config_file("php4.swg");
+}
+
+static
+void create_simple_make(void) {
+	File *f_make;
+
+	f_make = NewFile((void *)"makefile", "w");
+	if(CPlusPlus)
+		Printf(f_make, "CC=g++\n");
+	else
+		Printf(f_make, "CC=gcc\n");
+
+	Printf(f_make,
+	      "OBJS=%s_wrap.o\n"
+	      "PROG=%s.so\n"
+	      "CFLAGS=-fpic\n"
+	      "LDFLAGS=-shared\n"
+	      "PHP_INC=`php-config --includes`\n"
+	      "EXTRA_INC=\n"
+	      "EXTRA_LIB=\n\n",
+	      module, module);
+
+	Printf(f_make,
+	      "$(PROG): $(OBJS)\n"
+	      "\t$(CC) $(LDFLAGS) $(OBJS) -o $(PROG)\n\n"
+	      "%%.o: %%.%s\n"
+	      "\t$(CC) $(EXTRA_INC) $(PHP_INC) $(CFLAGS) -c $< $(EXTRA_LIBS)\n",
+	      (CPlusPlus?"cxx":"c"));
+
+	Close(f_make);
 }
 
 static
@@ -625,6 +659,9 @@ PHP4::top(Node *n) {
   Close(f_phpmod);
 
   create_extra_files();
+
+  if(!gen_extra && gen_make)
+	  create_simple_make();
 
   return SWIG_OK;
 }
