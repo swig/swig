@@ -657,11 +657,18 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
 
     fprintf (f_wrappers, "SCM %s(SCM s_0) {\n", var_name);
 
-    if ((t->type == T_CHAR) || (t->is_pointer)){
-      if (!with_smobs)
+    if (with_smobs) {
+      if (!(Status & STAT_READONLY) && t->type == T_CHAR && t->is_pointer==1) {
+	fprintf (f_wrappers, "\t char *_temp;\n");
+	fprintf (f_wrappers, "\t int  _len;\n");
+      }
+    }
+    else {
+      if ((t->type == T_CHAR) || (t->is_pointer)){
 	fprintf (f_wrappers, "\t char _ptemp[128];\n");
-      fprintf (f_wrappers, "\t char *_temp;\n");
-      fprintf (f_wrappers, "\t int  _len;\n");
+	fprintf (f_wrappers, "\t char *_temp;\n");
+	fprintf (f_wrappers, "\t int  _len;\n");
+      }
     }
     fprintf (f_wrappers, "\t SCM gswig_result;\n");
 
