@@ -439,6 +439,112 @@ static void dump_nested(char *parent) {
   Status = oldstatus;
 }
 
+/* ----------------------------------------------------------------------
+ * start_class()
+ *
+ * Start a new class definition.
+ * ---------------------------------------------------------------------- */
+
+static char  *cpp_name = 0;
+static char  *cpp_type = 0;
+static char **cpp_bases = 0;
+static int    cpp_nbases = 0;
+
+static void 
+start_class(char *cpptype, char *name, char **bases, int nbases) 
+{
+  char *iname;
+  init_language();
+  SwigType_new_scope();
+  
+  iname = make_name(name);
+  if (strlen(iname)) {
+    if (add_symbol(iname)) {
+      Printf(stderr,"%s:%d. %s is multiply defined.\n", input_file, line_number, iname);
+      FatalError();
+    }
+  }
+  if ((iname == name) || (strlen(iname) == 0)) {
+    cplus_open_class(name,0,cpptype);
+  } else {
+    cplus_open_class(name,iname,cpptype);
+  }
+  if (strcmp(cpptype,"class") == 0) 
+    cplus_mode = CPLUS_PRIVATE;
+  else
+    cplus_mode = CPLUS_PUBLIC;
+  // Merge scope from base classes
+  if (nbases) 
+    cplus_inherit_scope(nbases,bases);
+  InClass = 1;
+  cpp_type = cpptype;
+  if (strlen(name)) cpp_name = name;
+  else cpp_name = 0;
+  cpp_bases = bases;
+  cpp_nbases = nbases;
+}
+
+/* ----------------------------------------------------------------------
+ * end_class()
+ * 
+ * End a class definition
+ * ---------------------------------------------------------------------- */
+
+static void
+end_class(SwigType *endtype, char *endname) {
+  InClass = 0;
+  SwigType *et = endtype;
+  char     *en = endname;
+
+  if (cpp_name)
+    Active_typedef = NewStringf("%s %s", cpp_type, cpp_name);
+  else
+    Active_typedef = NewStringf("%s", endname);
+
+  if (cpp_bases) {
+    int j;
+    cplus_inherit(cpp_nbases,cpp_bases);
+    for (j = 0; j < cpp_nbases; j++) {
+      if (cpp_bases[j]) free(cpp_bases[j]);
+    }
+    free(cpp_bases);
+  }
+
+  if (cpp_name)
+    SwigType_set_scope_name(cpp_name);
+  cplus_register_scope(SwigType_pop_scope());
+
+  /* Create a typedef in global scope */
+
+  if (endtype && Len(endtype)) {
+    Printf(stderr,"%s:%d. typedef %s { } %s not supported.\n", input_file, line_number, cpp_type, 
+	   SwigType_str(endtype,endname));
+    endtype = 0;
+    endname = 0;
+  }
+  if (endname) {
+    dump_nested(endname);
+    cplus_class_close(endname);
+  } else {
+    dump_nested(cpp_name);
+    cplus_class_close((char *)0);
+  }
+  if (en) {
+    SwigType *ty = Copy(Active_typedef);
+    if (endtype)
+      SwigType_push(ty,et);
+    SwigType_typedef(ty,en);
+    lang->add_typedef(ty,en);
+    cplus_register_type(en);
+    Delete(ty);
+  }
+
+  cplus_mode = CPLUS_PUBLIC;
+}
+
+
+/* Create a type list from a set of parameters */
+
  static List *typelist(Parm *p) {
    List *l = NewList();
    while (p) {
@@ -447,7 +553,7 @@ static void dump_nested(char *parent) {
    }
    return l;
  }
-
+ 
 %}
 
 /* The type of each node in the parse tree
@@ -1172,7 +1278,6 @@ typedeflist   : COMMA declarator typedeflist {
 
 /* ======================================================================
  *                       C++ Support
- *                   (this is a mess right now)
  * ====================================================================== */
 
 cpp_declaration : cpp_class_decl
@@ -1184,202 +1289,28 @@ cpp_class_decl  :
 
 /* A class/struct/union  definition */
              storage_class cpptype ID inherit LBRACE {
-	       char *iname;
-	       init_language();
-	       SwigType_new_scope();
-
-	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
-	       if (add_symbol(temp_name)) {
-		 Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
-		 FatalError();
-	       }
-	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-
-	       iname = make_name($3);
-	       if (iname == $3)
-		 cplus_open_class($3, 0, $2);
-	       else
-	       cplus_open_class($3, iname, $2);
-	       if (strcmp($2,"class") == 0)
-		 cplus_mode = CPLUS_PRIVATE;
-	       else
-	       cplus_mode = CPLUS_PUBLIC;
+               start_class($2,$3,$4.names,$4.count);
 	       nested_list = 0;
-	       // Merge in scope from base classes
-	       cplus_inherit_scope($4.count,$4.names);
-	       InClass = 1;
               } cpp_members RBRACE {
-	       InClass = 0;
-	       if ($4.names) {
-		 if (strcmp($2,"union") != 0)
-		   cplus_inherit($4.count, $4.names);
-		 else {
-		   Printf(stderr,"%s:%d.  Inheritance not allowed for unions.\n",input_file, line_number);
-		   FatalError();
-		 }
-	       }
-	       // Clean up the inheritance list
-	       if ($4.names) {
-		 int j;
-		 for (j = 0; j < $4.count; j++) {
-		   if ($4.names[j]) free($4.names[j]);
-		 }
-		 free($4.names);
-	       }
-
-	       // Dumped nested declarations (if applicable)
-	       dump_nested($3);
-
-	       // Save and collapse current scope
-	       SwigType_set_scope_name($3);
-	       cplus_register_scope(SwigType_pop_scope());
-
-	       cplus_class_close((char *) 0);
-	       cplus_mode = CPLUS_PUBLIC;
-
+	       end_class(0,0);
 	      }
 
 /* Class with a typedef */
 
              | TYPEDEF cpptype ID inherit LBRACE {
-	       char *iname;
-	       init_language();
-	       SwigType_new_scope();
-
-	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
-	       if (add_symbol(temp_name)) {
-		 Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
-		 FatalError();
-	       }
-	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-
-	       iname = make_name($3);
-	       if ($3 == iname)
-		 cplus_open_class($3, 0, $2);
-	       else
-		 cplus_open_class($3, iname, $2);
-	       if (strcmp($2,"class") == 0)
-		 cplus_mode = CPLUS_PRIVATE;
-	       else
-		 cplus_mode = CPLUS_PUBLIC;
+	       start_class($2,$3,$4.names,$4.count);
 	       nested_list = 0;
-
-	       // Merge in scope from base classes
-	       cplus_inherit_scope($4.count,$4.names);
-	       InClass = 1;
               } cpp_members RBRACE declarator {
-		InClass = 0;
-		if ($4.names) {
-		  if (strcmp($2,"union") != 0)
-		    cplus_inherit($4.count, $4.names);
-		  else {
-		    Printf(stderr,"%s:%d.  Inheritance not allowed for unions.\n",input_file, line_number);
-		    FatalError();
-		  }
-		}
-		// Create a datatype for correctly processing the typedef
-		Active_typedef = NewStringf("%s %s", $2, $3);
-		// Clean up the inheritance list
-		if ($4.names) {
-		  int j;
-		  for (j = 0; j < $4.count; j++) {
-		    if ($4.names[j]) free($4.names[j]);
-		  }
-		  free($4.names);
-		}
-		if (!Len($9.type)) {
-		  Delete($9.type);
-		  $9.type = 0;
-		}
-
-		if ($9.type) {
-		  Printf(stderr,"%s:%d.  typedef struct { } %s not supported properly. Winging it...\n", input_file, line_number, SwigType_str($9.type,$9.id));
-
-		}
-		// Create dump nested class code
-		if ($9.type) {
-		  dump_nested($3);
-		} else {
-		  dump_nested($9.id);
-		}
-
-		// Collapse any datatypes created in the the class
-
-		SwigType_set_scope_name($3);
-		cplus_register_scope(SwigType_pop_scope());
-		if ($9.type) {
-		  cplus_class_close($3);
-		} else {
-		  cplus_class_close($9.id);
-		}
-		// Create a typedef in global scope
-		if (!$9.type) {
-		  SwigType_typedef(Active_typedef,$9.id);
-		  lang->add_typedef(Active_typedef,$9.id);
-		} else {
-		  SwigType *t = Copy(Active_typedef);
-		  SwigType_push(t,$9.type);
-		  SwigType_typedef(t,$9.id);
-		  lang->add_typedef(t,$9.id);
-		  cplus_register_type($9.id);
-		  Delete(t);
-		}
-		cplus_mode = CPLUS_PUBLIC;
+		end_class($9.type,$9.id);
 	      } typedeflist { };
 
 /* An unnamed struct with a typedef */
 
              | TYPEDEF cpptype LBRACE {
-	       char *iname;
-	       init_language();
-	       SwigType_new_scope();
-	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
-
-	       iname = make_name((char*)"");
-	       if (strlen(iname))
-		 cplus_open_class((char *)"", iname, $2);
-	       else
-		 cplus_open_class((char *) "",0,$2);
-	       if (strcmp($2,"class") == 0)
-		 cplus_mode = CPLUS_PRIVATE;
-	       else
-		 cplus_mode = CPLUS_PUBLIC;
+	       start_class($2,"",0,0);
 	       nested_list = 0;
-	       InClass = 1;
               } cpp_members RBRACE declarator {
-		InClass = 0;
-
-		if (!Len($7.type)) {
-		  Delete($7.type);
-		  $7.type = 0;
-		}
-
-		if ($7.type) {
-		  Printf(stderr,"%s:%d. typedef %s {} %s not supported correctly. Will be ignored.\n", input_file, line_number, SwigType_str($7.type,$7.id));
-		  cplus_abort();
-		} else {
-		  sprintf(temp_name,"CPP_CLASS:%s\n",$7.id);
-		  if (add_symbol(temp_name)) {
-		    Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $7.id);
-		    FatalError();
-		  }
-		}
-		// Create a datatype for correctly processing the typedef
-		Active_typedef = NewString($7.id);
-
-		// Dump nested classes
-		if (!$7.type)
-		  dump_nested($7.id);
-
-		// Go back to previous scope
-
-		cplus_register_scope(SwigType_pop_scope());
-		if (!$7.type)
-		  cplus_class_close($7.id);
-		cplus_mode = CPLUS_PUBLIC;
+		end_class($7.type,$7.id);
 	      } typedeflist { }
              ;
 
@@ -1418,6 +1349,7 @@ cpp_members  : cpp_member cpp_members {}
 	     } cpp_members RBRACE {
 	           AddMethods = 0;
 	     } cpp_members { }
+             | empty { }
 	     | error {
 	       skip_decl();
 		   {
@@ -1429,7 +1361,6 @@ cpp_members  : cpp_member cpp_members {}
 		     }
 		   }
 	     } cpp_members { }
-             | empty { }
              ;
 
 /* ======================================================================
