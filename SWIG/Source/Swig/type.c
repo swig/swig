@@ -22,7 +22,7 @@
 static char cvstag[] = "$Header$";
 
 /* =========================================================================
- * implementation overview
+ * Implementation Overview
  * ========================================================================= */
 
 /* Public appearance
@@ -85,26 +85,17 @@ static char cvstag[] = "$Header$";
    the name of a Name type, as well as the optional tag for an Enum or
    Struct.  'attributes' specifies the indirect attributes of a type.
    For Enums, this is the optional list of defined names and their
-   values.  For Structs, this is an optional list of the types and
-   names of the members.  Structs also have a 'subtype' to
-   differentiate structs from unions.
+   values.  For Structs and Unions, this is an optional list of the
+   types and names of the members.
 
    Note: it is up to the parser to distinguish character types
    (i.e. those containing ASCII data) from 8-bit integer types, most
    likely using some simple heuristics.
 
    (*) If a Name's underlying type is known, then its child field
-   points to that type. */
+   points to that type.
    
-#define Swig_Type_Int 0
-#define Swig_Type_Float 1
-#define Swig_Type_Void 2
-#define Swig_Type_Char 3
-#define Swig_Type_Name 4
-#define Swig_Type_Enum 5
-#define Swig_Type_Struct 6
-
-/* Constructors
+   Constructors
 
    Constructors have a parent.  Further, Arrays may have their size
    expression in 'attributes', and Functions have the types and names
@@ -112,19 +103,9 @@ static char cvstag[] = "$Header$";
    volatile (which characteristic more accurately applies to its
    child, although this is a matter of interpretation). */
 
-#define Swig_Type_Array 7
-#define Swig_Type_Function 8
-#define Swig_Type_Pointer 9
+/* (these constants are now in swig.h) */
 
-/* Subtypes 
-
-   A Struct may either be a Struct or a Union -- since SWIG handles
-   them similarly, this is considered a subtype. */
-
-#define Swig_Type_Subtype_Struct 1
-#define Swig_Type_Subtype_Union 2
-
-/* (for results of comparisons) */
+/* Constants for results of comparisons: */
 
 #define TAGS_EQ 0
 #define TAGS_NEQ 1
@@ -141,9 +122,8 @@ typedef struct Swig_Type_tag
    DOHCOMMON;
 
    short type;
-   short subtype;
    DOH *name;
-   DOH **attributes;
+   DOH *attributes;
    short width;
    short exp_width;
    int is_const;
@@ -164,6 +144,7 @@ typedef struct Swig_Type_node
    struct Swig_Type_node *parent;
    Swig_Type_children children;
 
+   struct Swig_Type_node *current_item;
    int hashkey;
 } Swig_Type_node;
 
@@ -200,7 +181,7 @@ Swig_Type_tag_flags(Swig_Type_tag *tag, int do_signs);
  * ========================================================================= */
 
 static DOH * 
-Swig_Type_tag_new(short type, short subtype,
+Swig_Type_tag_new(short type,
 		  DOH *name, DOH *attributes,
 		  int width, int exp_width,
 		  int is_const, int is_volatile,
@@ -244,7 +225,21 @@ static DOH *Swig_Type_node_str(DOH *o); /* e.g. 'pointer to array (10)
 					   of pointer to char'' */
 static int Swig_Type_node_hash(DOH *o);
 static int Swig_Type_node_cmp(DOH *o, DOH *o2);
+static DOH *Swig_Type_node_getitem(DOH *o, int index);
+static DOH *Swig_Type_node_firstitem(DOH *o);
+static DOH *Swig_Type_node_nextitem(DOH *o);
+static int Swig_Type_node_len(DOH *o);
 #define NodeData(x) ((Swig_Type_node *)(x))
+
+static DohSequenceMethods Swig_Type_node_AsSequence =
+{
+   Swig_Type_node_getitem,
+   0,
+   0,
+   0,
+   Swig_Type_node_firstitem,
+   Swig_Type_node_nextitem
+};
 
 static DohObjInfo Swig_Type_node_Type = 
 {
@@ -258,11 +253,11 @@ static DohObjInfo Swig_Type_node_Type =
    0,				/* doh_data */
    0,				/* doh_dump */
    0,				/* doh_load */
-   0,				/* doh_len */
+   Swig_Type_node_len,		/* doh_len */
    Swig_Type_node_hash,		/* doh_hash */
    Swig_Type_node_cmp,		/* doh_cmp */
    0,				/* doh_mapping */
-   0,				/* doh_sequence */
+   &Swig_Type_node_AsSequence,	/* doh_sequence */
    0,				/* doh_file */
    0,				/* doh_string */ 
    0,				/* doh_callable */ 
@@ -368,7 +363,7 @@ Swig_Type_tag_flags(Swig_Type_tag *tag, int do_signs)
  * ------------------------------------------------------------------------- */
 
 static DOH *
-Swig_Type_tag_new(short type, short subtype,
+Swig_Type_tag_new(short type,
 		  DOH *name, DOH *attributes,
 		  int width, int exp_width,
 		  int is_const, int is_volatile,
@@ -380,7 +375,6 @@ Swig_Type_tag_new(short type, short subtype,
    t->objinfo = &Swig_Type_tag_Type;
    t->hashkey = -1;
    t->type = type;
-   t->subtype = subtype;
    t->name = Swig_Type_make_string(name); if (t->name) Incref(t->name);
    t->attributes = attributes; if (t->attributes) Incref(t->attributes);
    t->width = width;
@@ -435,10 +429,15 @@ static DOH *Swig_Type_tag_str(DOH *o)
       Printf(s, "%s)", Swig_Type_tag_flags(tag, 0));
       break;
    case Swig_Type_Struct:
-      if (tag->subtype == Swig_Type_Subtype_Struct)
-	 Printf(s, "Struct(");
-      else
-	 Printf(s, "Union(");
+      Printf(s, "Struct(");
+      if (tag->name)
+	 Printf(s, "'%s', ", tag->name);
+      if (tag->attributes)
+	 Printf(s, "%s, ", tag->attributes);
+      Printf(s, "%s)", Swig_Type_tag_flags(tag, 0));
+      break;
+   case Swig_Type_Union:
+      Printf(s, "Union(");
       if (tag->name)
 	 Printf(s, "'%s', ", tag->name);
       if (tag->attributes)
@@ -524,24 +523,29 @@ static int Swig_Type_tag_hash(DOH *o)
       tag->hashkey = 
 	 (tag->name) ? Hashval(tag->name) : 0 +
 	 (tag->attributes) ? Hashval(tag->attributes) : 0 +
-	 6 << 10 +
-	 tag->subtype << 20;
+	 6 << 10;
+      break;
+   case Swig_Type_Union:
+      tag->hashkey = 
+	 (tag->name) ? Hashval(tag->name) : 0 +
+	 (tag->attributes) ? Hashval(tag->attributes) : 0 +
+	 7 << 10;
       break;
    case Swig_Type_Array:
       tag->hashkey = 
 	 (tag->attributes) ? Hashval(tag->attributes) : 0 +
-	 7 << 10;
+	 8 << 10;
       break;
    case Swig_Type_Function:
       tag->hashkey = 
 	 (tag->attributes) ? Hashval(tag->attributes) : 0 +
-	 8 << 10;
+	 9 << 10;
       break;
    case Swig_Type_Pointer:
       tag->hashkey = 
 	 (tag->is_const << 8) +
 	 (tag->is_volatile << 9) +
-	 9 << 10;
+	 10 << 10;
       break;
 
    default:
@@ -602,9 +606,7 @@ static int Swig_Type_tag_cmp(DOH *o1, DOH *o2)
    case Swig_Type_Name:
       return Cmp(t1->name, t2->name);
    case Swig_Type_Struct:
-      if (t1->subtype != t2->subtype)
-	 return TAGS_NEQ;
-      /* fall through */
+   case Swig_Type_Union:
    case Swig_Type_Enum:
       /* do the names differ? */
       if (t1->name && t2->name)
@@ -669,7 +671,7 @@ DOH *Swig_Type_NewInt(int width, int is_const, int is_volatile,
 		      int is_signed, int is_unsigned)
 {
    return Swig_Type_step(NULL, 
-			 Swig_Type_tag_new(Swig_Type_Int, 0,
+			 Swig_Type_tag_new(Swig_Type_Int, 
 					   NULL, NULL,
 					   width, 0,
 					   is_const, is_volatile,
@@ -680,7 +682,7 @@ DOH *Swig_Type_NewFloat(int width, int exp_width, int is_const,
 			int is_volatile)
 {
    return Swig_Type_step(NULL, 
-			 Swig_Type_tag_new(Swig_Type_Float, 0,
+			 Swig_Type_tag_new(Swig_Type_Float,
 					   NULL, NULL,
 					   width, exp_width,
 					   is_const, is_volatile,
@@ -690,7 +692,7 @@ DOH *Swig_Type_NewFloat(int width, int exp_width, int is_const,
 DOH *Swig_Type_NewVoid()
 {
    return Swig_Type_step(NULL, 
-			 Swig_Type_tag_new(Swig_Type_Void, 0,
+			 Swig_Type_tag_new(Swig_Type_Void,
 					   NULL, NULL,
 					   0, 0,
 					   0, 0,
@@ -700,7 +702,7 @@ DOH *Swig_Type_NewVoid()
 DOH *Swig_Type_NewChar(int width, int is_const, int is_volatile)
 {
    return Swig_Type_step(NULL, 
-			 Swig_Type_tag_new(Swig_Type_Char, 0,
+			 Swig_Type_tag_new(Swig_Type_Char,
 					   NULL, NULL,
 					   width, 0,
 					   is_const, is_volatile,
@@ -710,7 +712,7 @@ DOH *Swig_Type_NewChar(int width, int is_const, int is_volatile)
 DOH *Swig_Type_NewName(DOH *name, int is_const, int is_volatile)
 {
    return Swig_Type_step(NULL, 
-			 Swig_Type_tag_new(Swig_Type_Name, 0,
+			 Swig_Type_tag_new(Swig_Type_Name,
 					   name, NULL,
 					   0, 0,
 					   is_const, is_volatile,
@@ -721,7 +723,7 @@ DOH *Swig_Type_NewEnum(DOH *name, DOH *body,
 		       int is_const, int is_volatile)
 {
    return Swig_Type_step(NULL, 
-			 Swig_Type_tag_new(Swig_Type_Name, 0,
+			 Swig_Type_tag_new(Swig_Type_Name,
 					   name, body,
 					   0, 0,
 					   is_const, is_volatile,
@@ -733,7 +735,6 @@ DOH *Swig_Type_NewStruct(DOH *name, DOH *body,
 {
    return Swig_Type_step(NULL, 
 			 Swig_Type_tag_new(Swig_Type_Struct, 
-					   Swig_Type_Subtype_Struct,
 					   name, body,
 					   0, 0,
 					   is_const, is_volatile,
@@ -744,8 +745,7 @@ DOH *Swig_Type_NewUnion(DOH *name, DOH *body,
 			int is_const, int is_volatile)
 {
    return Swig_Type_step(NULL, 
-			 Swig_Type_tag_new(Swig_Type_Struct, 
-					   Swig_Type_Subtype_Union,
+			 Swig_Type_tag_new(Swig_Type_Union, 
 					   name, body,
 					   0, 0,
 					   is_const, is_volatile,
@@ -756,7 +756,6 @@ DOH *Swig_Type_NewArray(DOH *size, DOH *parent)
 {
    return Swig_Type_step(parent, 
 			 Swig_Type_tag_new(Swig_Type_Array, 
-					   0,
 					   0, size,
 					   0, 0,
 					   0, 0,
@@ -767,7 +766,6 @@ DOH *Swig_Type_NewFunction(DOH *parameters, DOH *parent)
 {
    return Swig_Type_step(parent, 
 			 Swig_Type_tag_new(Swig_Type_Function, 
-					   0,
 					   0, parameters,
 					   0, 0,
 					   0, 0,
@@ -778,12 +776,28 @@ DOH *Swig_Type_NewPointer(int is_const, int is_volatile, DOH *parent)
 {
    return Swig_Type_step(parent, 
 			 Swig_Type_tag_new(Swig_Type_Pointer, 
-					   0,
 					   0, 0,
 					   0, 0,
 					   is_const, is_volatile,
 					   0, 0));
 }
+
+/* -------------------------------------------------------------------------
+ * static DOH *
+ * Swig_Type_GetXXX(DOH *t);
+ * ------------------------------------------------------------------------- 
+ * Field accessors
+ * ------------------------------------------------------------------------- */
+
+int Swig_Type_GetType(DOH *t) { return NodeData(t)->tag->type; }
+DOH *Swig_Type_GetName(DOH *t) { return NodeData(t)->tag->name; }
+DOH *Swig_Type_GetAttributes(DOH *t) { return NodeData(t)->tag->attributes; }
+int Swig_Type_GetWidth(DOH *t) { return NodeData(t)->tag->width; }
+int Swig_Type_GetExpWidth(DOH *t) { return NodeData(t)->tag->exp_width; }
+int Swig_Type_GetConst(DOH *t) { return NodeData(t)->tag->is_const; }
+int Swig_Type_GetVolatile(DOH *t) { return NodeData(t)->tag->is_volatile; }
+int Swig_Type_GetSigned(DOH *t) { return NodeData(t)->tag->is_signed; }
+int Swig_Type_GetUnsigned(DOH *t) { return NodeData(t)->tag->is_unsigned; }
 
 /* -------------------------------------------------------------------------
  * static DOH *
@@ -861,8 +875,8 @@ Swig_Type_node_cmp(DOH *o1, DOH *o2)
    Swig_Type_node *n1 = (Swig_Type_node *)o1;
    Swig_Type_node *n2 = (Swig_Type_node *)o1;
 
-   /* we call the comparison functions directly just to shave a hair
-      off the execution time */
+   /* we call the comparison functions directly just to shave a
+      harmless hair off the execution time */
 
    if (Swig_Type_tag_cmp(n1->tag, n2->tag))
       return TAGS_NEQ;
@@ -876,6 +890,67 @@ Swig_Type_node_cmp(DOH *o1, DOH *o2)
       return TAGS_EQ;
 }
 
+/* -------------------------------------------------------------------------
+ * static int
+ * Swig_Type_node_cmp(DOH *o1, DOH *o2);
+ * ------------------------------------------------------------------------- */
+
+static DOH *
+Swig_Type_node_getitem(DOH *o, int index)
+{
+   Swig_Type_node *n = NodeData(o);
+   while (n && index--)
+      n = n->parent;
+
+   return n;
+}
+
+/* -------------------------------------------------------------------------
+ * static int
+ * Swig_Type_node_cmp(DOH *o1, DOH *o2);
+ * ------------------------------------------------------------------------- */
+
+static DOH *
+Swig_Type_node_firstitem(DOH *o)
+{
+   Swig_Type_node *n = NodeData(o);
+   return n->current_item = n;
+}
+
+/* -------------------------------------------------------------------------
+ * static int
+ * Swig_Type_node_cmp(DOH *o1, DOH *o2);
+ * ------------------------------------------------------------------------- */
+
+static DOH *
+Swig_Type_node_nextitem(DOH *o)
+{
+   Swig_Type_node *n = NodeData(o);
+   if (n->parent)
+      return n->current_item = n->current_item->parent;
+}
+
+/* -------------------------------------------------------------------------
+ * static int
+ * Swig_Type_node_cmp(DOH *o1, DOH *o2);
+ * ------------------------------------------------------------------------- */
+
+static int
+Swig_Type_node_len(DOH *o)
+{
+   Swig_Type_node *n = NodeData(o);
+   int depth = 0;
+ 
+   while (n)
+      n = n->parent, depth++;
+
+   return depth;
+}
+
+/* -------------------------------------------------------------------------
+ * main() -- conditionally compiled test harness
+ * ------------------------------------------------------------------------- */
+
 #ifdef TYPE_TEST
 #include <stdio.h>
 int main(int argc, char **argv)
@@ -883,7 +958,9 @@ int main(int argc, char **argv)
    int i;
    DOH *node[10];
    DOH *key;
+   DOH *t;
 
+   /* build some types */
    node[0] = Swig_Type_NewInt(8, 0, 0, 1, 0);
    node[1] = Swig_Type_NewPointer(0, 1, node[0]);
    node[2] = Swig_Type_NewPointer(1, 0, node[1]);
@@ -892,7 +969,7 @@ int main(int argc, char **argv)
    node[4] = Swig_Type_NewInt(8, 0, 0, 1, 0);
    node[5] = Swig_Type_NewPointer(0, 1, node[4]);
    node[6] = Swig_Type_NewPointer(1, 1, node[5]);
-   node[7] = Swig_Type_NewArray(NULL, node[6]);
+   node[7] = Swig_Type_NewArray(NULL, node[5]);
    
    node[8] = Swig_Type_NewVoid();
    node[9] = Swig_Type_NewVoid();
@@ -901,15 +978,53 @@ int main(int argc, char **argv)
    node[9] = Swig_Type_NewPointer(1, 0, node[9]);
    node[9] = Swig_Type_NewPointer(0, 0, node[9]);
 
+   /* print each type along with its address (to see the hashing) */
    Printf(stdout, "Address\t\tHashvalue\tType\n");
+   Printf(stdout, "-------\t\t---------\t----\n");
    for (i = 0; i < 10; i++)
       Printf(stdout, "0x%08x\t0x%08x\t%s\n", node[i],
 	     Hashval(node[i]), node[i]);
 
+   /* print the root of our tree (internal interest) */
    Printf(stdout, "\nROOT (0x%08x):\n", ROOT);
    for (key = Firstkey(ROOT); key; key = Nextkey(ROOT))
       Printf(stdout, "%s : %s\n", key, Getattr(ROOT, key));
+   
+   /* walk the tree for a type in two different ways */
+   Printf(stdout, "\nWalk 1:\n");
+   for (t = Firstitem(node[9]); t; t = Nextitem(node[9]))
+   {
+      switch(Swig_Type_GetType(t))
+      {
+      case Swig_Type_Pointer:
+	 Printf(stdout, "Pointer\n");
+	 break;
+      case Swig_Type_Void:
+	 Printf(stdout, "Void\n");
+	 break;
+      default:
+	 Printf(stdout, "Other\n");
+	 break;
+      }
+   }
 
+   Printf(stdout, "\nWalk 2:\n");
+   for (i = 0; i < Len(node[9]); i++)
+   {
+      t = Getitem(node[9], i);
+      switch(Swig_Type_GetType(t))
+      {
+      case Swig_Type_Pointer:
+	 Printf(stdout, "Pointer\n");
+	 break;
+      case Swig_Type_Void:
+	 Printf(stdout, "Void\n");
+	 break;
+      default:
+	 Printf(stdout, "Other\n");
+	 break;
+      }
+   }
    return 0;
 }
 #endif
