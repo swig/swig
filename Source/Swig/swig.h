@@ -73,7 +73,11 @@ extern String  *Swig_swiglib_get();
 
 #define OUTFILE(x)   Swig_filebyname(x)
 
+#ifdef MACSWIG
+#define  SWIG_FILE_DELIMETER   ":"
+#else
 #define  SWIG_FILE_DELIMETER   "/"
+#endif
 
 /* --- Command line parsing --- */
 

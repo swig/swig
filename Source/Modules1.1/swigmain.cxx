@@ -24,7 +24,9 @@ static char cvsroot[] = "$Header$";
  *
  ***********************************************************************/
 
+#ifndef MACSWIG
 #include "swigconfig.h"
+#endif
 #include "mod11.h"
 #include "tcl8.h"
 #include "python.h"
@@ -42,6 +44,11 @@ static char cvsroot[] = "$Header$";
 
 #ifndef SWIG_LANG
 #define SWIG_LANG PYTHON
+#endif
+
+#ifdef MACSWIG
+#include <console.h>
+#include <SIOUX.h>
 #endif
 
 static char  *usage = (char*)"\
@@ -66,6 +73,12 @@ int main(int argc, char **argv) {
   int i;
   Language *dl = new SWIG_LANG;
   extern int SWIG_main(int, char **, Language *);
+  
+  #ifdef MACSWIG
+  SIOUXSettings.asktosaveonclose = false;
+  argc = ccommand(&argv);
+  #endif
+  
   Swig_init_args(argc,argv);
 
   // Get options
