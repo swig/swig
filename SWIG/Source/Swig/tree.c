@@ -150,6 +150,19 @@ static Hash    *attr_stack[MAX_SWIG_STACK];
 static Node   **nodeptr_stack[MAX_SWIG_STACK];
 static Node    *node_stack[MAX_SWIG_STACK];
 static int      stackp = 0;
+static int      stack_direction = 0;
+
+static void set_direction(int n, int *x) {
+  if (n == 1) {
+    set_direction(0,&n);
+  } else {
+    if (&n < x) {
+      stack_direction = -1;   /* Stack grows down */
+    } else {
+      stack_direction = 1;    /* Stack grows up */
+    }
+  }
+}
 
 int 
 Swig_require(Node **nptr, ...) {
@@ -193,8 +206,15 @@ Swig_require(Node **nptr, ...) {
   if (frame) {
     /* This is a sanity check to make sure no one is saving data, but not restoring it */
     if (stackp > 0) {
-      /* Note: this relies on the system stack growing down. Probably need to check */
-      if ((((char *) nptr) >= ((char *) nodeptr_stack[stackp-1])) && (n != node_stack[stackp-1])) {
+      int e = 0;
+      if (!stack_direction) set_direction(1,0);
+      
+      if (stack_direction < 0) {
+	if ((((char *) nptr) >= ((char *) nodeptr_stack[stackp-1])) && (n != node_stack[stackp-1])) e = 1;
+      } else {
+	if ((((char *) nptr) <= ((char *) nodeptr_stack[stackp-1])) && (n != node_stack[stackp-1])) e = 1;
+      }
+      if (e) {
 	Printf(stderr,
 "Swig_require('%s'): Fatal memory management error.  If you are seeing this\n\
 message. It means that the target language module is not managing its memory\n\
@@ -223,8 +243,14 @@ Swig_save(Node **nptr, ...) {
       frame = attr_stack[stackp-1];
   } else {
     if (stackp > 0) {
-      /* Note: this relies on the system stack growing down. Probably need to check */
-      if ((((char *) nptr) >= ((char *) nodeptr_stack[stackp-1])) && (n != node_stack[stackp-1])) {
+      int e = 0;
+      if (!stack_direction) set_direction(1,0);
+      if (stack_direction < 0) {
+	if ((((char *) nptr) >= ((char *) nodeptr_stack[stackp-1])) && (n != node_stack[stackp-1])) e = 1;
+      } else {
+	if ((((char *) nptr) <= ((char *) nodeptr_stack[stackp-1])) && (n != node_stack[stackp-1])) e = 1;
+      }
+      if (e) {
 	Printf(stderr,
 "Swig_save('%s'): Fatal memory management error.  If you are seeing this\n\
 message. It means that the target language module is not managing its memory\n\
