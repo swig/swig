@@ -49,7 +49,7 @@ CParse: Source/Include/swigconfig.h
 	@cd $(SOURCE)/CParse; $(MAKE)
 
 swig.spec: swig.spec.in config.status
-	CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=swig.spec $(SHELL) ./config.status
+	@CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=swig.spec $(SHELL) ./config.status
 
 DOH: Source/Include/swigconfig.h
 	@cd $(SOURCE)/DOH; $(MAKE)
@@ -723,17 +723,26 @@ uninstall-runtime:
 
 # distribution directory
 dd = @PACKAGE@-@VERSION@
+srpm = @PACKAGE@-@SWIG_MAJOR_VERSION@.@SWIG_MINOR_VERSION@.@SWIG_SPIN@
 
-dist: swig.spec
+dist:
 	@echo 'Dave, what do you want to do w/ "make dist"?'
 	@echo 'See Makefile.in target "dist-suggested" for an idea.'
 	@echo '    --thi'
 	false
 
-dist-suggested: swig.spec
+dist-suggested:
 	rm -rf $(dd) $(dd).tar.gz
 	cvs export -d $(dd) -r HEAD SWIG
 	tar cf - $(dd) | gzip --best > $(dd).tar.gz
 	rm -rf $(dd)
+
+srcrpm: swig.spec
+	rm -fr $(srpm) $(srpm).src.rpm
+	cvs export -d $(srpm) -r HEAD SWIG
+	cp swig.spec $(srpm)
+	tar -cf - $(srpm) | gzip --best > $(srpm).tar.gz
+	rm -fr $(srpm)
+	rpm -ts $(srpm).tar.gz
 
 # Makefile ends here
