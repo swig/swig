@@ -31,6 +31,7 @@ static char cvsroot[] = "$Header$";
 static  String   *setattr;
 static  String   *getattr;
 static  String   *pyclass;
+static  String   *imethod;
 static  String   *construct;
 static  String   *cinit;
 static  String   *additional;
@@ -39,7 +40,7 @@ static  int       have_destructor;
 static  int       have_getattr;
 static  int       have_setattr;
 static  int       have_repr;
-static  char     *class_name;
+//static  char     *class_name;
 static  char     *class_type;
 static  char     *real_classname;
 static  String   *base_class;
@@ -65,6 +66,7 @@ void PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip
     setattr   = new String();
     getattr   = new String();
     pyclass   = new String();
+    imethod   = new String();
     construct = new String();
     cinit     = new String();
     additional= new String();
@@ -141,8 +143,14 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
     if (strcmp(realname,"__repr__") == 0) 
       have_repr = 1;
 
-    // Now add it to the class
 
+    if (!((hash.lookup(t->name)) && (t->is_pointer <=1))) {
+      *imethod << class_name << "."  << realname << " = new.instancemethod(" << module << "." << name_member(realname,class_name) << ", None, " << class_name << ")\n";
+      /*       *pyclass << tab4 << realname << " = " << module << ".__shadow__." << name_member(realname,class_name) << "\n"; */
+    } else {
+
+    // Now add it to the class
+    
     if (use_kw)
       *pyclass << tab4 << "def " << realname << "(*args, **kwargs):\n";
     else
@@ -168,8 +176,9 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
 	}
       }
     }
-    emitAddPragmas(*pyclass, realname, tab8);
-    *pyclass << tab8 << "return val\n";
+    }
+    //    emitAddPragmas(*pyclass, realname, tab8);
+    //    *pyclass << tab8 << "return val\n";
   }
 }
 
@@ -331,7 +340,9 @@ void PYTHON::cpp_close_class() {
 	    << tab8 << "self.__class__ = " << class_name << "\n"
 	    << "\n" << *additional << "\n";
 
+    classes << *imethod << "\n";
     delete pyclass;
+    delete imethod;
     delete setattr;
     delete getattr;
     delete additional;

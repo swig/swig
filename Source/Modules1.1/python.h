@@ -48,6 +48,7 @@ protected:
   String   modextern;
 
   char     *import_file;
+  char     *class_name;
   void add_method(char *name, char *function);
   void print_methods();
   char *usage_var(char *, DataType *);
