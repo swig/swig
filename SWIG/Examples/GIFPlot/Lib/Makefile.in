@@ -8,7 +8,7 @@ RANLIB  = @RANLIB@
 TARGET  = ../libgifplot.a
 
 .c.@OBJEXT@: 
-	$(CC) $(INCLUDES) $(CFLAGS) -c -o $*.@OBJEXT@ $<
+	$(CC) $(CCSHARED) $(INCLUDES) $(CFLAGS) -c -o $*.@OBJEXT@ $<
 
 all:  $(OBJS)
 	@rm -f ../libgifplot.a
