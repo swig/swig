@@ -180,9 +180,9 @@ void emit_action(Node *n, Wrapper *f) {
   /* Emit wrapper code (if any) */
   wrap = Getattr(n,"wrap:code");
   if (wrap) {
-    File *f_wrapper = Swig_filebyname("wrapper");
-    if (f_wrapper) {
-      Printv(f_wrapper,wrap,0);
+    File *f_code = Swig_filebyname("header");
+    if (f_code) {
+      Printv(f_code,wrap,0);
     }
   }
   action = Getattr(n,"wrap:action");
