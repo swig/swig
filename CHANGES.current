@@ -1,6 +1,18 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/16/2004: wuzzeb (John Lenz)
+            - Remove the ability to share type information by using c linking.
+              All type sharing happens through a global variable in the target language.
+                + Remove SWIG_NOIMPORT, SWIG_RUNTIME, and related defines.
+                + Depreciate -runtime, -noruntime command line options
+                + Update test-suite common.mk to correctly build multicpptest
+                + Remove reference to precommon.swg
+                + Update the guile_gh interface to share data by a global var instead
+                  of c linkage.
+
+            - Remove Advanced.html, since everything in it is now obsolete
+
 10/09/2004: mmatus
 	    - Split the python std/STL C++ library files, now
 	      all the language independent definitions are under

@@ -350,10 +350,6 @@ class JAVA : public Language {
 
     Swig_banner(f_runtime);               // Print the SWIG banner message
 
-    if (NoInclude) {
-      Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
-    }
-
     if (directorsEnabled()) {
       Printf(f_runtime,"#define SWIG_DIRECTORS\n");
 

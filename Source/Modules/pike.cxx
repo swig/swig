@@ -135,9 +135,6 @@ public:
 
     /* Standard stuff for the SWIG runtime section */    
     Swig_banner(f_runtime);
-    if (NoInclude) {
-      Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
-    }
 
     Printf(f_header, "#define SWIG_init    pike_module_init\n");
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);

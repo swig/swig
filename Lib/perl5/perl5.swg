@@ -4,25 +4,6 @@
  * Perl 5 configuration file
  * ----------------------------------------------------------------------------- */
 
-%runtime "precommon.swg"
-%insert(runtime) %{
-
-#ifndef SWIG_ALLOW_RUNTIME
-/* -----------------------------------------------------------------------------
- * Disable runtime library use, everything is used as static
- * ----------------------------------------------------------------------------- */
-#ifndef SWIG_DISABLE_RUNTIME
-#define SWIG_DISABLE_RUNTIME
-#endif
-#ifdef SWIG_GLOBAL
-#undef SWIG_GLOBAL
-#endif
-#ifdef SWIG_NOINCLUDE
-#undef SWIG_NOINCLUDE
-#endif
-#endif /* SWIG_ALLOW_RUNTIME */
-
-%}
 %runtime "common.swg"         // common type checking code
 %runtime "perlrun.swg"        // Perl runtime functions
 %runtime "noembed.h"          // undefine Perl5 macros
@@ -602,9 +583,7 @@ XS(SWIG_init) {
     int i;
     static int _init = 0;
     if (!_init) {
-#ifdef SWIG_DISABLE_RUNTIME
        SWIG_Perl_LookupTypePointer();
-#endif
        for (i = 0; swig_types_initial[i]; i++) {
 	 swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
        }	

@@ -40,7 +40,6 @@ extern  int       line_number;
 extern  int       start_line;
 extern  int       CPlusPlus;                        // C++ mode
 extern  int       Extend;                           // Extend mode
-extern  int       NoInclude;                        // NoInclude flag
 extern  int       Verbose;
 extern  int       IsVirtual;
 extern  int       ImportMode;

@@ -158,11 +158,6 @@ public:
     
     Swig_banner(f_runtime);
     
-    /* Include a Tcl configuration file */
-    if (NoInclude) {
-      Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
-    }
-    
     /* Set the module name, namespace, and prefix */
     
     module = NewStringf("%(lower)s", Getattr(n,"name"));

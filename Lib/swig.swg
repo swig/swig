@@ -271,16 +271,6 @@ namespace std {
 %define SWIG_TYPECHECK_STRING_ARRAY      1140    %enddef
 %define SWIG_TYPECHECK_OBJECT_ARRAY      1150 %enddef
 
-/* Switch to enable runtime mode */
-
-#ifndef SWIGSEXP
-#ifdef SWIG_RUNTIME_MODE
-%insert("runtime") %{
-#define SWIG_GLOBAL 1
-%}
-#endif
-#endif
-
 /*  
  * This template wrapper is used to handle C++ objects that are passed or 
  * returned by value.   This is necessary to handle objects that define

@@ -22,9 +22,7 @@ SWIGEXPORT(void) SWIG_init(void) {
   d = PyModule_GetDict(m);
 
   if (!typeinit) {
-#ifdef SWIG_DISABLE_RUNTIME
     SWIG_Python_LookupTypePointer(&swig_type_list_handle);
-#endif
     for (i = 0; swig_types_initial[i]; i++) {
       swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
     }

@@ -48,42 +48,7 @@ typedef struct swig_guile_clientdata {
 	      (char *) FUNC_NAME, (char *) msg,			\
 	      SCM_EOL, SCM_BOOL_F); else
   
-#ifdef SWIG_NOINCLUDE
-
-/* Interface helper function */
-SWIGIMPORT(char *) SWIG_Guile_scm2newstr(SCM str, size_t *len);
-
-/* Register SWIG smobs with Guile.  */
-SWIGIMPORT(void) SWIG_Guile_Init();
-/* Get a pointer value from a smob.  If there is a type-mismatch,
-   return nonzero; on success, return 0.  */
-SWIGIMPORT(int) SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags);
-/* Get a pointer value from a smob.  If there is a type-mismatch,
-   signal a wrong-type-arg error for the given argument number. */
-SWIGIMPORT(void *) SWIG_Guile_MustGetPtr(SCM s, swig_type_info *type, int argnum, int flags, const char *func_name);
-/* Make a smob from a pointer and typeinfo.  */
-SWIGIMPORT(SCM) SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner);
-/* Get arguments from an argument list */
-SWIGIMPORT(int) SWIG_Guile_GetArgs(SCM *dest, SCM rest, int reqargs, int optargs, const char *procname);
-/* Make a pointer object non-collectable */
-SWIGIMPORT(void)
-SWIG_Guile_MarkPointerNoncollectable(SCM s);
-/* Mark a pointer object destroyed */
-SWIGIMPORT(void)
-SWIG_Guile_MarkPointerDestroyed(SCM s);
-/* Access type and address of a pointer object. */
-SWIGIMPORT(unsigned long)
-SWIG_Guile_PointerAddress(SCM object);
-SWIGIMPORT(swig_type_info *)
-SWIG_Guile_PointerType(SCM object);
-SWIGIMPORT(int)
-SWIG_Guile_IsPointer(SCM object);
-SWIGIMPORT(int)
-SWIG_Guile_IsPointerOfType(SCM object, swig_type_info *type);
-
-#else
-
-SWIGRUNTIME(char *) 
+static char *
 SWIG_Guile_scm2newstr(SCM str, size_t *len) {
 #define FUNC_NAME "SWIG_Guile_scm2newstr"
   char *ret;
@@ -114,7 +79,7 @@ static SCM swig_symbol = SCM_EOL;
   ( SCM_NNULLP(x) && SCM_INSTANCEP(x) && SCM_NFALSEP(scm_slot_exists_p(x, swig_symbol)) \
       ? scm_slot_ref(x, swig_symbol) : (x) )
 
-SWIGRUNTIME(SCM)
+static SCM
 SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
 {
   if (ptr == NULL)
@@ -143,7 +108,7 @@ SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
   }
 }
 
-SWIGRUNTIME(unsigned long)
+static unsigned long
 SWIG_Guile_PointerAddress(SCM object)
 {
   SCM smob = SWIG_Guile_GetSmob(object);
@@ -156,7 +121,7 @@ SWIG_Guile_PointerAddress(SCM object)
   else scm_wrong_type_arg("SWIG-Guile-PointerAddress", 1, object);
 }
 
-SWIGRUNTIME(swig_type_info *)
+static swig_type_info *
 SWIG_Guile_PointerType(SCM object)
 {
   SCM smob = SWIG_Guile_GetSmob(object);
@@ -170,7 +135,7 @@ SWIG_Guile_PointerType(SCM object)
 }
   
 /* Return 0 if successful. */
-SWIGRUNTIME(int)
+static int
 SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
 {
   swig_type_info *cast;
@@ -200,7 +165,7 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   return 1;
 }
 
-SWIGRUNTIME(void *)
+static inline void *
 SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
 		       int argnum, int flags, const char *func_name)
 {
@@ -212,7 +177,7 @@ SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
   return result;
 }
 
-SWIGRUNTIME(int)
+static inline int
 SWIG_Guile_IsPointerOfType (SCM s, swig_type_info *type)
 {
   void *result;
@@ -223,14 +188,14 @@ SWIG_Guile_IsPointerOfType (SCM s, swig_type_info *type)
   else return 1;
 }
   
-SWIGRUNTIME(int)
+static inline int
 SWIG_Guile_IsPointer (SCM s)
 {
   return SWIG_Guile_IsPointerOfType (s, NULL);
 }
 
 /* Mark a pointer object non-collectable */
-SWIGRUNTIME(void)
+static void
 SWIG_Guile_MarkPointerNoncollectable(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
@@ -243,7 +208,7 @@ SWIG_Guile_MarkPointerNoncollectable(SCM s)
 }
 
 /* Mark a pointer object destroyed */
-SWIGRUNTIME(void)
+static void
 SWIG_Guile_MarkPointerDestroyed(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
@@ -339,7 +304,7 @@ ensure_smob_tag(SCM swig_module,
   }
 }
 
-SWIGRUNTIME(void)
+static void
 SWIG_Guile_Init ()
 {
   SCM swig_module;
@@ -386,7 +351,7 @@ SWIG_Guile_Init ()
 #endif
 }
 
-SWIGRUNTIME(int)
+static int
 SWIG_Guile_GetArgs (SCM *dest, SCM rest,
 		    int reqargs, int optargs,
 		    const char *procname)
@@ -411,8 +376,6 @@ SWIG_Guile_GetArgs (SCM *dest, SCM rest,
     scm_wrong_num_args(scm_makfrom0str((char *) procname));
   return num_args_passed;
 }
-
-#endif
 
 #ifdef __cplusplus
 }

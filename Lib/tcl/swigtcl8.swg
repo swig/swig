@@ -122,35 +122,12 @@ SWIG_Tcl_LookupTypePointer(Tcl_Interp *interp) {
   }
 }
 
-
-#ifdef SWIG_NOINCLUDE
-
-SWIGIMPORT(int)       SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *, char *, void **, swig_type_info *,int flags);
-SWIGIMPORT(int)       SWIG_Tcl_ConvertPtr(Tcl_Interp *, Tcl_Obj *, void **, swig_type_info *, int flags);
-SWIGIMPORT(int)       SWIG_Tcl_ConvertPacked(Tcl_Interp *, Tcl_Obj *, void *, int sz, swig_type_info *, int flags);
-SWIGIMPORT(void)      SWIG_Tcl_MakePtr(char *, void *, swig_type_info *, int flags);
-SWIGIMPORT(Tcl_Obj *) SWIG_Tcl_NewPointerObj(void *, swig_type_info *, int flags);
-SWIGIMPORT(Tcl_Obj *) SWIG_Tcl_NewPackedObj(void *, int sz, swig_type_info *, int flags);
-SWIGIMPORT(int)       SWIG_Tcl_GetArgs(Tcl_Interp *, int, Tcl_Obj *CONST [], const char *, ...);
-SWIGIMPORT(char *)    SWIG_Tcl_PointerTypeFromString(char *c);
-SWIGIMPORT(void)      SWIG_Tcl_Acquire(void *ptr);
-SWIGIMPORT(int)       SWIG_Tcl_Disown(void *ptr);
-SWIGIMPORT(int)       SWIG_Tcl_Thisown(void *ptr);
-SWIGIMPORT(void)      SWIG_Tcl_InstallConstants(Tcl_Interp *interp, struct swig_const_info constants[]);
-SWIGIMPORT(Tcl_Obj *) SWIG_Tcl_GetConstant(const char *key);
-SWIGIMPORT(Tcl_Obj *) SWIG_Tcl_NewInstanceObj(Tcl_Interp *interp, void *, swig_type_info *, int flags);
-SWIGIMPORT(int)       SWIG_Tcl_ObjectConstructor(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
-SWIGIMPORT(int)       SWIG_Tcl_MethodCommand(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
-SWIGIMPORT(void)      SWIG_Tcl_ObjectDelete(ClientData);
-
-#else
-
 /* Object support */
 static Tcl_HashTable  swigobjectTable;
 static int            swigobjectTableinit = 0;
 
 /* Acquire ownership of a pointer */
-SWIGRUNTIME(void)
+static void
 SWIG_Tcl_Acquire(void *ptr) {
   Tcl_HashEntry *entryPtr;
   int newobj;
@@ -162,7 +139,7 @@ SWIG_Tcl_Acquire(void *ptr) {
 }
 
 /* Disown a pointer.  Returns 1 if we owned it to begin with */
-SWIGRUNTIME(int)
+static int
 SWIG_Tcl_Disown(void *ptr) {
   Tcl_HashEntry *entryPtr;
   if (!swigobjectTableinit) return 0;
@@ -174,7 +151,7 @@ SWIG_Tcl_Disown(void *ptr) {
   return 0;
 }
 
-SWIGRUNTIME(int)
+static inline int
 SWIG_Tcl_Thisown(void *ptr) {
   if (!swigobjectTableinit) return 0;
   if (Tcl_FindHashEntry(&swigobjectTable, (char *) ptr)) {
@@ -184,7 +161,7 @@ SWIG_Tcl_Thisown(void *ptr) {
 }
 
 /* Convert a pointer value */
-SWIGRUNTIME(int)
+static int
 SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_info *ty, int flags) {
   swig_type_info *tc;
   /* Pointer values must start with leading underscore */
@@ -223,13 +200,13 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type
 }
 
 /* Convert a pointer value */
-SWIGRUNTIME(int)
+static inline int
 SWIG_Tcl_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, swig_type_info *ty, int flags) {
   return SWIG_Tcl_ConvertPtrFromString(interp, Tcl_GetStringFromObj(oc,NULL), ptr, ty, flags);
 }
 
 /* Convert a pointer value */
-SWIGRUNTIME(char *)
+static char *
 SWIG_Tcl_PointerTypeFromString(char *c) {
   char d;
   /* Pointer values must start with leading underscore. NULL has no type */
@@ -246,7 +223,7 @@ SWIG_Tcl_PointerTypeFromString(char *c) {
 }
 
 /* Convert a packed value value */
-SWIGRUNTIME(int)
+static int
 SWIG_Tcl_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
   swig_type_info *tc;
   char  *c;
@@ -280,7 +257,7 @@ type_error:
 
 
 /* Take a pointer and convert it to a string */
-SWIGRUNTIME(void)
+static void
 SWIG_Tcl_MakePtr(char *c, void *ptr, swig_type_info *ty, int flags) {
   if (ptr) {
     *(c++) = '_';
@@ -293,7 +270,7 @@ SWIG_Tcl_MakePtr(char *c, void *ptr, swig_type_info *ty, int flags) {
 }
 
 /* Create a new pointer object */
-SWIGRUNTIME(Tcl_Obj *)
+static Tcl_Obj *
 SWIG_Tcl_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   Tcl_Obj *robj;
   char result[512];
@@ -302,7 +279,7 @@ SWIG_Tcl_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   return robj;
 }
 
-SWIGRUNTIME(Tcl_Obj *)
+static Tcl_Obj *
 SWIG_Tcl_NewPackedObj(void *ptr, int sz, swig_type_info *type, int flags) {
   char result[1024];
   char *r = result;
@@ -318,7 +295,7 @@ static Tcl_HashTable   swigconstTable;
 static int             swigconstTableinit = 0;
 
 /* Install Constants */
-SWIGRUNTIME(void)
+static void
 SWIG_Tcl_InstallConstants(Tcl_Interp *interp, swig_const_info constants[]) {
   int i;
   Tcl_Obj *obj;
@@ -358,7 +335,7 @@ SWIG_Tcl_InstallConstants(Tcl_Interp *interp, swig_const_info constants[]) {
   }
 }
 
-SWIGRUNTIME(Tcl_Obj *)
+static Tcl_Obj *
 SWIG_Tcl_GetConstant(const char *key) {
   Tcl_HashEntry *entryPtr;
   if (!swigconstTableinit) return 0;
@@ -371,7 +348,7 @@ SWIG_Tcl_GetConstant(const char *key) {
 }
 
 /* Get arguments */
-SWIGRUNTIME(int)
+static int
 SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fmt, ...) {
   int        argno = 0, opt = 0;
   long       tempi;
@@ -468,7 +445,7 @@ SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char
   }
 }
 
-SWIGRUNTIME(void)
+static void
 SWIG_Tcl_ObjectDelete(ClientData clientData) {
   swig_instance *si = (swig_instance *) clientData;
   if ((si) && (si->destroy) && (SWIG_Disown(si->thisvalue))) {
@@ -481,7 +458,7 @@ SWIG_Tcl_ObjectDelete(ClientData clientData) {
 }
 
 /* Function to invoke object methods given an instance */
-SWIGRUNTIME(int)
+static int
 SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST _objv[]) {
   char *method,   *attrname;
   swig_instance   *inst = (swig_instance *) clientData;
@@ -650,7 +627,7 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
 
 /* Function to create objects */
-SWIGRUNTIME(int)
+static int
 SWIG_Tcl_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     Tcl_Obj          *newObj = 0;
     void             *thisvalue = 0;
@@ -729,7 +706,7 @@ SWIG_Tcl_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, 
 
 
 /* This function takes the current result and turns it into an object command */
-SWIGRUNTIME(Tcl_Obj *)
+static Tcl_Obj *
 SWIG_Tcl_NewInstanceObj(Tcl_Interp *interp, void *thisvalue, swig_type_info *type, int flags) {
   Tcl_Obj *robj = SWIG_NewPointerObj(thisvalue, type,0);
   /* Check to see if this pointer belongs to a class or not */
@@ -752,8 +729,6 @@ SWIG_Tcl_NewInstanceObj(Tcl_Interp *interp, void *thisvalue, swig_type_info *typ
   }
   return robj;
 }
-
-#endif
 
 /* Structure for command table */
 typedef struct {
