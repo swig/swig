@@ -54,12 +54,12 @@ public class runme
       try {
         csharp_exceptions.NullReference(null);
         throw new Exception("NullReference not working");
-      } catch (NullReferenceException) {
+      } catch (ArgumentNullException) {
       }
       try {
         csharp_exceptions.NullValue(null);
         throw new Exception("NullValue not working");
-      } catch (NullReferenceException) {
+      } catch (ArgumentNullException) {
       }
 
       // enums
@@ -80,12 +80,12 @@ public class runme
       try {
         csharp_exceptions.NullStdStringValue(null);
         throw new Exception("NullStdStringValue not working");
-      } catch (NullReferenceException) {
+      } catch (ArgumentNullException) {
       }
       try {
         csharp_exceptions.NullStdStringReference(null);
         throw new Exception("NullStdStringReference not working");
-      } catch (NullReferenceException) {
+      } catch (ArgumentNullException) {
       }
       try {
         csharp_exceptions.ExceptionSpecificationStdStringValue();
@@ -114,7 +114,7 @@ public class runme
       try {
         new constructor(null);
         throw new Exception("constructor 1 not working");
-      } catch (NullReferenceException) {
+      } catch (ArgumentNullException) {
       }
       try {
         new constructor();
@@ -278,7 +278,6 @@ public class runme
         Thread[] threads = new Thread[NUM_THREADS];
         TestThread[] testThreads = new TestThread[NUM_THREADS];
         // invoke the threads
-        Console.WriteLine("Thread tests");
         for (int i=0; i<NUM_THREADS; i++) {
             testThreads[i] = new TestThread(throwsClass, i);
             threads[i] = new Thread(new ThreadStart(testThreads[i].Run));
@@ -307,7 +306,7 @@ public class TestThread {
    public void Run() {
      Failed = false;
      try {
-       for (int i=0; i<80000; i++) { // run test for about 30 seconds on a 1GHz machine
+       for (int i=0; i<6000; i++) { // run test for about 10 seconds on a 1GHz machine (Mono)
          try {
            throwsClass.ThrowException(i);
            throw new Exception("No exception thrown");
