@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
 SRCS       = example.c
-TARGET     = libexample
+TARGET     = php_example
 INTERFACE  = example.i
 SWIGOPT    = -noproxy
 

@@ -1,6 +1,6 @@
-<?
+<?php
 
-	dl("libexample.so");
+	require "example.php";
 
 
 	$v = new_vector(1.0,2.0,3.0);
