@@ -68,7 +68,6 @@ this module--especially if you're making simple C/C++ extensions.<br>
 generator for C++ that uses GCC-XML to provide Tcl wrappers for almost
 all C++ features.  There are plans to support more languages so be
 sure to check it out.
-
 <br>
 
 <a href="http://www.scipy.org/site_content/weave">Weave</a>. A tool for inlining C/C++ code into Python scripts.  Very cool.<br>
@@ -80,6 +79,8 @@ sure to check it out.
 <a href="http://www.softintegration.com">Ch</a>. An embeddable C/C++ interpreter (commercial). <br>
 
 <a href="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/">Pyrex</a>. A language for writing Python extension modules.<br>
+
+<a href="http://elmer.sourceforge.net">Elmer</a>. Glue code generator so that Python modules can run in C and Tcl programs.<br>
 
 </ul>
 
