@@ -70,6 +70,7 @@ Python Options (available with -python)\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n\
      -classic        - Use classic classes only\n\
+     -cpluscast      - Enable new C++ casting operators, useful for debugging\n\
      -modern         - Use modern python features only, without compatibility code\n\
      -apply          - Use apply() in proxy classes\n\
      -new_vwm        - New value wrapper mode, use only when everything else fails \n\
@@ -137,6 +138,10 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-classic") == 0) {
 	  classic = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-cpluscast") == 0) {
+	  /* Turn on new value wrapper mpde */
+	  Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modern") == 0) {
 	  classic = 0;
