@@ -10,7 +10,7 @@
   }
 }
 
-%typemap(in) const void *& ($*ltype temp) {
+%typemap(in) void * const& ($*ltype temp) {
   SWIG_ConvertPtr($input,(void **)&temp,0,SWIG_POINTER_EXCEPTION|$disown);
   if (SWIG_arg_fail($argnum)) SWIG_fail;
   $1 = &temp;

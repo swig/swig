@@ -561,6 +561,8 @@ type_check:
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) goto type_error;
     *ptr = SWIG_TypeCast(tc,vptr);
+  } else {
+    *ptr = vptr;
   }
 
   if ((pyobj) && (flags & SWIG_POINTER_DISOWN)) {
