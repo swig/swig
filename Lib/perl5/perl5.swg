@@ -126,14 +126,14 @@
 
 %typemap(out) long long {
     char temp[256];
-    sprintf(temp,"%lld", $1);
+    sprintf(temp,"%lld", (long long) $1);
     ST(argvi) = sv_newmortal();
     sv_setpv((SV*)ST(argvi++), temp);
 }
 
 %typemap(out) unsigned long long {
     char temp[256];
-    sprintf(temp,"%llu", $1);
+    sprintf(temp,"%llu", (unsigned long long) $1);
     ST(argvi) = sv_newmortal();
     sv_setpv((SV*)ST(argvi++), temp);
 }
