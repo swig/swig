@@ -540,6 +540,30 @@ the type table and accessing the list of compatible types.  If the
 Scheme object passed was not a SWIG smob representing a compatible
 pointer, a <code>wrong-type-arg</code> exception is raised.
 
+<h3>Exception Handling</h3>
+
+<p>
+SWIG code calls <code>scm_error</code> on exception, using the following
+mapping:
+
+<pre>
+      MAP(SWIG_MemoryError,	"swig-memory-error");
+      MAP(SWIG_IOError,		"swig-io-error");
+      MAP(SWIG_RuntimeError,	"swig-runtime-error");
+      MAP(SWIG_IndexError,	"swig-index-error");
+      MAP(SWIG_TypeError,	"swig-type-error");
+      MAP(SWIG_DivisionByZero,	"swig-division-by-zero");
+      MAP(SWIG_OverflowError,	"swig-overflow-error");
+      MAP(SWIG_SyntaxError,	"swig-syntax-error");
+      MAP(SWIG_ValueError,	"swig-value-error");
+      MAP(SWIG_SystemError,	"swig-system-error");
+</pre>
+
+<p>
+The default when not specified here is to use "swig-error".
+See Lib/exception.i for details.
+
+
 <h2>11. Miscellaneous </h2>
 
 <ul>
