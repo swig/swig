@@ -1,6 +1,9 @@
 /* File : example.i */
 %module example
 
+%warnfilter(362);
+
+
 %{
 #include "example.h"
 %}
