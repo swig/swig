@@ -224,7 +224,7 @@ Swig_typemap_copy(const String_or_char *op, ParmList *srcparms, ParmList *parms)
   SwigType *ptype;
   int ts = tm_scope;
   String *tmops, *newop;
-  if (Len(parms) != Len(srcparms)) return -1;
+  if (ParmList_len(parms) != ParmList_len(srcparms)) return -1;
 
   tmop = tmop_name(op);
   while (ts >= 0) {
@@ -248,7 +248,9 @@ Swig_typemap_copy(const String_or_char *op, ParmList *srcparms, ParmList *parms)
       p = nextSibling(p);
     }
     Delete(tmops);
+
     if (!p && tm) {
+
       /* Got some kind of match */
       Swig_typemap_register(op,parms, Getattr(tm,"code"), Getattr(tm,"locals"),Getattr(tm,"kwargs"));
       return 0;
