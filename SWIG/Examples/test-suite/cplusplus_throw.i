@@ -5,6 +5,8 @@
 
 %module test
 
+%pragma no_default
+
 class Bar {
   void baz() const;
   void foo() throw (exception);
