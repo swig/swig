@@ -1375,7 +1375,6 @@ int Language::unrollVirtualMethods(Node *n,
   int top = (n == parent);
   has_virtual = 0;
   Node *ni;
-  String *type;
   String *nodeType;
   String *storage;
   String *classname;

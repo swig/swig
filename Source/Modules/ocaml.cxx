@@ -161,7 +161,6 @@ public:
       } else if (SwigType_isfunction(element)) {
 	Parm *parm;
 	String *p;
-	int j, plen;
 	Append(result,"(");
 	parm = args;
 	while (parm != 0) {

@@ -210,7 +210,6 @@ String *method_decl(SwigType *s, const String_or_char *id, List *args, int strip
     } else if (SwigType_isfunction(element)) {
       Parm *parm;
       String *p;
-      int j, plen;
       Append(result,"(");
       parm = args;
       while (parm != 0) {
