@@ -686,6 +686,12 @@ type_error:
 SWIGRUNTIME PyObject *
 SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int own) {
   PyObject *robj = 0;
+  if (!type) {
+    if (!PyErr_Occurred()) {
+      PyErr_Format(PyExc_TypeError, "Swig: null type passed to NewPointerObj");
+    }
+    return robj;
+  }
   if (!ptr) {
     Py_INCREF(Py_None);
     return Py_None;
