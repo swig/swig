@@ -26,53 +26,53 @@ DataType *NewDataType(int t) {
   DataType *ty = (DataType *) malloc(sizeof(DataType));
   switch(t) {
   case T_BOOL:
-    strcpy(ty->name,"bool");
+    strcpy(ty->_name,"bool");
     break;
   case T_INT:
-    strcpy(ty->name,"int");
+    strcpy(ty->_name,"int");
     break;
   case T_UINT:
-    strcpy(ty->name,"unsigned int");
+    strcpy(ty->_name,"unsigned int");
     break;
   case T_SHORT:
-    strcpy(ty->name,"short");
+    strcpy(ty->_name,"short");
     break;
   case T_USHORT:
-    strcpy(ty->name,"unsigned short");
+    strcpy(ty->_name,"unsigned short");
     break;
   case T_LONG: 
-    strcpy(ty->name,"long");
+    strcpy(ty->_name,"long");
     break;
   case T_ULONG:
-    strcpy(ty->name,"unsigned long");
+    strcpy(ty->_name,"unsigned long");
     break;
   case T_FLOAT:
-    strcpy(ty->name, "float");
+    strcpy(ty->_name, "float");
     break;
   case T_DOUBLE:
-    strcpy(ty->name, "double");
+    strcpy(ty->_name, "double");
     break;
   case T_CHAR: case T_SCHAR:
-    strcpy(ty->name, "char");
+    strcpy(ty->_name, "char");
     break;
   case T_UCHAR:
-    strcpy(ty->name,"unsigned char");
+    strcpy(ty->_name,"unsigned char");
     break;
   case T_VOID:
-    strcpy(ty->name,"void");
+    strcpy(ty->_name,"void");
     break;
   case T_USER:
-    strcpy(ty->name,"USER");
+    strcpy(ty->_name,"USER");
     break;
   default :
-    strcpy(ty->name,"");
+    strcpy(ty->_name,"");
     break;
   }
   ty->_type = t;
   ty->is_pointer = 0;
   ty->implicit_ptr = 0;
   ty->_qualifier = 0;
-  ty->is_reference = 0;
+  ty->_is_reference = 0;
   ty->status = 0;
   ty->_arraystr = 0;
   ty->id = type_id++;
@@ -82,11 +82,11 @@ DataType *NewDataType(int t) {
 DataType *CopyDataType(DataType *t) {
   DataType *ty = (DataType *) malloc(sizeof(DataType));
   ty->_type = t->_type;
-  strcpy(ty->name,t->name);
+  strcpy(ty->_name,t->_name);
   ty->is_pointer = t->is_pointer;
   ty->implicit_ptr = t->implicit_ptr;
   ty->_qualifier = Swig_copy_string(t->_qualifier);
-  ty->is_reference = t->is_reference;
+  ty->_is_reference = t->_is_reference;
   ty->status = t->status;
   ty->_arraystr = Swig_copy_string(t->_arraystr);
   ty->id = t->id;
@@ -102,7 +102,7 @@ void DelDataType(DataType *t) {
 int   DataType_type(DataType *t) {
   if ((t->_type == T_CHAR) && (t->is_pointer == 1)) return T_STRING;
   if (t->_arraystr) return T_ARRAY;
-  if (t->is_reference) return T_REFERENCE;
+  if (t->_is_reference) return T_REFERENCE;
   if (t->is_pointer) return T_POINTER;
   return t->_type;
 }
@@ -133,6 +133,21 @@ void DataType_set_arraystr(DataType *t, char *a) {
   t->_arraystr = Swig_copy_string(a);
 }
 
+void DataType_add_reference(DataType *t) {
+  t->_is_reference = 1;
+}
+
+int DataType_is_reference(DataType *t) {
+  return t->_is_reference;
+}
+
+void DataType_Setname(DataType *t, char *n) {
+  strcpy(t->_name, n);
+}
+
+char *DataType_Getname(DataType *t) {
+  return t->_name;
+}
 
 /* --------------------------------------------------------------------
  * DataType_primitive()
@@ -144,49 +159,49 @@ void DataType_set_arraystr(DataType *t, char *a) {
 void DataType_primitive(DataType *t) {
   switch(t->_type) {
   case T_BOOL:
-    strcpy(t->name,"bool");
+    strcpy(t->_name,"bool");
     break;
   case T_INT:
-    strcpy(t->name,"int");
+    strcpy(t->_name,"int");
     break;
   case T_SHORT:
-    strcpy(t->name,"short");
+    strcpy(t->_name,"short");
     break;
   case T_LONG: 
-    strcpy(t->name,"long");
+    strcpy(t->_name,"long");
     break;
   case T_CHAR: 
-    strcpy(t->name,"char");
+    strcpy(t->_name,"char");
     break;
   case T_SCHAR:
-    strcpy(t->name,"signed char");
+    strcpy(t->_name,"signed char");
     break;
   case T_UINT:
-    strcpy(t->name,"unsigned int");
+    strcpy(t->_name,"unsigned int");
     break;
   case T_USHORT:
-    strcpy(t->name,"unsigned short");
+    strcpy(t->_name,"unsigned short");
     break;
   case T_ULONG:
-    strcpy(t->name,"unsigned long");
+    strcpy(t->_name,"unsigned long");
     break;
   case T_UCHAR:
-    strcpy(t->name,"unsigned char");
+    strcpy(t->_name,"unsigned char");
     break;
   case T_FLOAT:
-    strcpy(t->name,"float");
+    strcpy(t->_name,"float");
     break;
   case T_DOUBLE:
-    strcpy(t->name,"double");
+    strcpy(t->_name,"double");
     break;
   case T_VOID:
-    strcpy(t->name,"void");
+    strcpy(t->_name,"void");
     break;
   case T_USER:
-    strcpy(t->name,"USER");
+    strcpy(t->_name,"USER");
     break;
   default:
-    strcpy(t->name,"UNKNOWN");
+    strcpy(t->_name,"UNKNOWN");
     break;
   }
   t->implicit_ptr = 0;           /* Gets rid of typedef'd pointers */
@@ -214,7 +229,7 @@ char *DataType_mangle_default(DataType *t) {
   char *d;
 
   ri = ri % 8;
-  c = t->name;
+  c = t->_name;
 
   result[ri][0] = '_';
 
@@ -263,23 +278,23 @@ char *DataType_str(DataType *t, DOHString_or_char *name) {
 
   ri = ri % 8;
   if (t->_arraystr) t->is_pointer--;
-  if (t->is_reference) t->is_pointer--;
+  if (t->_is_reference) t->is_pointer--;
   if (t->_qualifier) {
-    sprintf(result[ri],"%s %s", t->_qualifier, t->name);
+    sprintf(result[ri],"%s %s", t->_qualifier, t->_name);
   } else {
-    sprintf(result[ri],"%s ", t->name);
+    sprintf(result[ri],"%s ", t->_name);
   }
 
   for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++) {
     strcat(result[ri],"*");
   }
-  if (t->is_reference) strcat(result[ri],"&");
+  if (t->_is_reference) strcat(result[ri],"&");
   if (name) strcat(result[ri],Char(name));
   if (t->_arraystr) {
     strcat(result[ri],t->_arraystr);
     t->is_pointer++;
   }
-  if (t->is_reference) t->is_pointer++;
+  if (t->_is_reference) t->is_pointer++;
   return result[ri++];
 }
 
@@ -309,7 +324,7 @@ char *DataType_lstr(DataType *ty, DOHString_or_char *name) {
     DataType_typedef_replace(t);    /* Replace the type with its typedef value */
   }
   ri = ri % 8;
-  sprintf(result[ri],"%s ", t->name);
+  sprintf(result[ri],"%s ", t->_name);
   for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++)
     strcat(result[ri],"*");
 
@@ -342,7 +357,7 @@ DataType *DataType_ltype(DataType *t) {
     free(ty->_arraystr);
     ty->_arraystr = 0;
   }
-  ty->is_reference = 0;
+  ty->_is_reference = 0;
   return ty;
 }
 
@@ -409,7 +424,7 @@ char *DataType_rcaststr(DataType *ty, DOHString_or_char *name) {
   }
 
   if (name) {
-    if (ty->is_reference) {
+    if (ty->_is_reference) {
       strcat(result[ri],"*");
     }
     strcat(result[ri],Char(name));
@@ -434,7 +449,7 @@ char *DataType_lcaststr(DataType *ty, DOHString_or_char *name) {
     sprintf(result[ri],"(%s)", DataType_lstr(ty,0));
     if (name)
       strcat(result[ri], Char(name));
-  } else if (ty->is_reference) {
+  } else if (ty->_is_reference) {
     sprintf(result[ri],"(%s)", DataType_lstr(ty,0));
     if (name) {
       strcat(result[ri], "&");
@@ -570,9 +585,9 @@ int DataType_typedef_add(DataType *t,char *tname, int mode) {
   /* Now add this type mapping to our type-equivalence table */
 
   if (mode == 0) {
-      if ((t->_type != T_VOID) && (strcmp(t->name,tname) != 0)) {
+      if ((t->_type != T_VOID) && (strcmp(t->_name,tname) != 0)) {
 	t1 = NewDataType(0);
-	strcpy(t1->name,tname);
+	strcpy(t1->_name,tname);
 	name2 = DataType_manglestr(t1);
 	name1 = DataType_manglestr(t);
 	typeeq_addtypedef(name1,name2,t1);
@@ -616,7 +631,7 @@ void DataType_typedef_resolve(DataType *t, int level) {
   int       s = scope - level;
 
   while (s >= 0) {
-    if ((td = (DataType *) GetVoid(typedef_hash[s],t->name))) {
+    if ((td = (DataType *) GetVoid(typedef_hash[s],t->_name))) {
       t->_type = td->_type;
       t->is_pointer += td->is_pointer;
       t->implicit_ptr += td->implicit_ptr;
@@ -626,7 +641,7 @@ void DataType_typedef_resolve(DataType *t, int level) {
 
       if (td->_qualifier) {
 	if (strcmp(td->_qualifier,"const") == 0) {
-	  strcpy(t->name,td->name);
+	  strcpy(t->_name,td->_name);
 	  t->_qualifier = Swig_copy_string(td->_qualifier);
 	  t->implicit_ptr -= td->implicit_ptr;
 	}
@@ -652,11 +667,11 @@ void DataType_typedef_replace (DataType *t) {
 
   temp[0] = 0;
 
-  if ((td = (DataType *) GetVoid(typedef_hash[scope],t->name))) {
+  if ((td = (DataType *) GetVoid(typedef_hash[scope],t->_name))) {
     t->_type = td->_type;
     t->is_pointer = td->is_pointer;
     t->implicit_ptr -= td->implicit_ptr;
-    strcpy(t->name, td->name);
+    strcpy(t->_name, td->_name);
     if (td->_arraystr) {
       if (t->_arraystr) {
 	strcat(temp,t->_arraystr);
@@ -697,7 +712,7 @@ int DataType_is_typedef(char *t) {
 void DataType_typedef_updatestatus(DataType *t, int newstatus) {
 
   DataType *nt;
-  if ((nt = (DataType *) GetVoid(typedef_hash[scope],t->name))) {
+  if ((nt = (DataType *) GetVoid(typedef_hash[scope],t->_name))) {
     nt->status = newstatus;
   }
 }
@@ -899,7 +914,7 @@ void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
 
   if (!t) {
     t = NewDataType(T_USER);
-    strcpy(t->name, eqname);
+    strcpy(t->_name, eqname);
   }
 
   /*printf("addtypedef: %s : %s : %s\n", name, eqname, t->print_type()); */
@@ -997,8 +1012,8 @@ void typeeq_derived(char *n1, char *n2, char *cast) {
 
   t->_type = T_USER;
   t1->_type = T_USER;
-  strcpy(t->name,n1);
-  strcpy(t1->name,n2);
+  strcpy(t->_name,n1);
+  strcpy(t1->_name,n2);
   name = DataType_manglestr(t);
   name2 = DataType_manglestr(t1);
   typeeq_add(name,name2, cast, t1);
@@ -1020,8 +1035,8 @@ void typeeq_mangle(char *n1, char *n2, char *cast) {
   t1 = NewDataType(0);
   if (!te_init) typeeq_init();
 
-  strcpy(t->name,n1);
-  strcpy(t1->name,n2);
+  strcpy(t->_name,n1);
+  strcpy(t1->_name,n2);
   name = DataType_manglestr(t);
   name2 = DataType_manglestr(t1);
   typeeq_add(name,name2,cast,0);
@@ -1146,13 +1161,13 @@ void DataType_remember(DataType *ty) {
 
   if (!bases) bases = NewHash();
   /* Now, do the base-class hack */
-  h = Getattr(bases,t->name);
+  h = Getattr(bases,t->_name);
   if (h) {
     DOH *key;
     key = Firstkey(h);
     while (key) {
       DataType *nt = CopyDataType(t);
-      strcpy(nt->name,Char(key));
+      strcpy(nt->_name,Char(key));
       if (!Getattr(remembered,DataType_manglestr(nt))) 
 	DataType_remember(nt);
       DelDataType(nt);

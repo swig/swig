@@ -571,7 +571,7 @@ Swig_cmethod_wrapper(DOHString_or_char *classname,
 
   l = CopyParmList(parms);
   t = NewDataType(T_USER);
-  strcpy(t->name,Char(classname));
+  DataType_Setname(t, Char(classname));
   t->is_pointer++;
   p = NewParm(t,"self");
   Insert(l,0,p);
@@ -631,7 +631,7 @@ Swig_cconstructor_wrapper(DOHString_or_char *classname,
 
   l = CopyParmList(parms);
   t = NewDataType(T_USER);
-  sprintf(t->name,classname);
+  DataType_Setname(t,classname);
   t->is_pointer++;
 
   /* Patch up the argument names */
@@ -677,7 +677,7 @@ Swig_cppconstructor_wrapper(DOHString_or_char *classname,
 
   l = CopyParmList(parms);
   t = NewDataType(T_USER);
-  sprintf(t->name,classname);
+  DataType_Setname(t,classname);
   t->is_pointer++;
 
   /* Patch up the argument names */
@@ -734,7 +734,7 @@ Swig_cdestructor_wrapper(DOHString_or_char *classname,
 
   l = NewParmList();
   t = NewDataType(T_USER);
-  sprintf(t->name,classname);
+  DataType_Setname(t,classname);
   t->is_pointer++;
   p = NewParm(t,"self");
   Append(l,p);
@@ -781,7 +781,7 @@ Swig_cppdestructor_wrapper(DOHString_or_char *classname,
 
   l = NewParmList();
   t = NewDataType(T_USER);
-  sprintf(t->name,classname);
+  DataType_Setname(t,classname);
   t->is_pointer++;
   p = NewParm(t,"self");
 
@@ -831,7 +831,7 @@ Swig_cmemberset_wrapper(DOHString_or_char *classname,
 
   l = NewParmList();
   t = NewDataType(T_USER);
-  strcpy(t->name,Char(classname));
+  DataType_Setname(t, Char(classname));
   t->is_pointer++;
   p = NewParm(t,"self");
   Append(l,p);
@@ -884,7 +884,7 @@ Swig_cmemberget_wrapper(DOHString_or_char *classname,
 
   l = NewParmList();
   t = NewDataType(T_USER);
-  strcpy(t->name,Char(classname));
+  DataType_Setname(t, Char(classname));
   t->is_pointer++;
   p = NewParm(t,"self");
   Append(l,p);

@@ -333,7 +333,7 @@ void typemap_register(char *op, char *lang, char *type, char *pname,
                       char *getcode, ParmList *args) {
   DataType *temp;
   temp = NewDataType(0);
-  strcpy(temp->name,type);
+  DataType_Setname(temp,type);
   temp->is_pointer = 0;
   DataType_Settypecode(temp,T_USER);
   typemap_register(op,lang,temp,pname,getcode,args);
@@ -493,7 +493,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 	/* If the user gave us $type as the name of the local variable, we'll use
 	   the passed datatype instead */
 
-	if (strcmp(pn,"$type")==0 || strcmp(pt->name,"$basetype")==0) {
+	if (strcmp(pn,"$type")==0 || strcmp(DataType_Getname(pt),"$basetype")==0) {
 	  tt = t;
 	} else {
 	  tt = pt;
@@ -510,7 +510,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 
 	/* Substitute parameter names */
 	Replace(str,"$arg",pname, DOH_REPLACE_ANY);
-        if (strcmp(pt->name,"$basetype")==0) {
+        if (strcmp(DataType_Getname(pt),"$basetype")==0) {
           /* use $basetype */
           char temp_ip = tt->is_pointer;
           char temp_ip1 = tt->implicit_ptr;
@@ -974,7 +974,7 @@ void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
   key = typemap_string(lang,stype,sname,DataType_arraystr(stype),op);
   tm = typemap_search(key,stype->id);
   if (!tm) return;
-  if (strcmp(ttype->name,"PREVIOUS") == 0) {
+  if (strcmp(DataType_Getname(ttype),"PREVIOUS") == 0) {
     /* Pop back up to the previous typemap (if any) */
     tk = tm->next;
     if (tk) {

@@ -177,7 +177,7 @@ void RUBY::parse() {
 
   // typedef void *VALUE
   DataType *value = NewDataType(T_VOID);
-  strcpy(value->name, "void");
+  DataType_Setname(value,"void");
   value->is_pointer = 1;
   value->implicit_ptr = 0;
   DataType_typedef_add(value,(char*)"VALUE",0);
@@ -867,13 +867,13 @@ char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *sou
   DOHString *target_replace = NewString(target);
   target = Char(target_replace);
 
-  RClass *cls = RCLASS(classes, type->name);
+  RClass *cls = RCLASS(classes, DataType_Getname(type));
 
   if (!s) s = NewString("");
   Clear(s);
 
   if ((strcmp("out", op) == 0 || strcmp("in", op) == 0)
-      && strcmp(type->name, "VALUE") == 0) {
+      && strcmp(DataType_Getname(type), "VALUE") == 0) {
     Printf(s,"$target = $source;");
   } else if (strcmp("out", op) == 0 && (DataType_Gettypecode(type) == T_USER) &&
 	     type->is_pointer == 1 && cls) {

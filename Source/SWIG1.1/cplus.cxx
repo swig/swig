@@ -119,7 +119,7 @@ static void add_local_type(char *type, char *classname) {
 }
 
 void add_local_type(DataType *type, char *classname) {
-  add_local_type(type->name,classname);
+  add_local_type(DataType_Getname(type),classname);
 }
 
 // -----------------------------------------------------------------------------
@@ -138,9 +138,9 @@ static void update_local_type(DataType *type) {
 
   if (!localtypes) return;
 
-  newname = GetChar(localtypes,type->name);
+  newname = GetChar(localtypes,DataType_Getname(type));
   if (newname) {
-    strcpy(type->name, newname);
+    DataType_Setname(type,newname);
   }
 }
 
