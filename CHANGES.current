@@ -92,6 +92,7 @@ Version 1.3.18 (In progress)
             (a) Integration with scripting language (a la std::vector) for
                 Python, Ruby, MzScheme, and Guile;
             (b) Simple wrapper for other languages
+
 03/10/2003: beazley
             Fixed problem with escape sequences in string and character constants.  SWIG
             wasn't parsing certain octal codes correctly.
