@@ -1130,6 +1130,9 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   fr = SwigType_strip_qualifiers(qr);
   Delete(qr);
 
+  /*Printf(stdout,"t = '%s'\n", t);
+    Printf(stdout,"fr= '%s'\n\n", fr); */
+  
   if (Strstr(t,"<") && !(Strstr(t,"<("))) {
     Printf(stdout,"Bad template type passed to SwigType_remember: %s\n", t);
     assert(0);
@@ -1308,7 +1311,7 @@ SwigType_inherit(String *derived, String *base, String *cast) {
   Hash *h;
   if (!subclass) subclass = NewHash();
   
-  /*  Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast); */
+  /* Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast); */
 
   if (SwigType_istemplate(derived)) {
     derived = SwigType_typedef_qualified(SwigType_typedef_resolve_all(derived));
@@ -1327,6 +1330,7 @@ SwigType_inherit(String *derived, String *base, String *cast) {
   if (!Getattr(h,derived)) {
     Setattr(h,derived, cast ? cast : (void *) "");
   }
+
 }
 
 /* -----------------------------------------------------------------------------
@@ -1383,9 +1387,7 @@ void SwigType_inherit_equiv(File *out) {
   while (rkey) {
     /* rkey is a fully qualified type.  We strip all of the type constructors off of it just to get the base */
     base = SwigType_base(rkey);
-
     /* Check to see whether the base is recorded in the subclass table */
-    /*    Printf(stdout,"base = '%s'\n", base); */
     sub = Getattr(subclass,base);
     Delete(base);
     if (!sub) {
@@ -1400,10 +1402,14 @@ void SwigType_inherit_equiv(File *out) {
     for (ckey = Firstkey(rh); ckey; ckey = Nextkey(rh)) {
       Append(rlist,ckey);
     }
+    /*    Printf(stdout,"rkey = '%s'\n", rkey);
+	  Printf(stdout,"rh = %x '%s'\n", rh,rh); */
+
     bkey = Firstkey(sub);
     while (bkey) {
       prefix= SwigType_prefix(rkey);
       Append(prefix,bkey);
+      /*      Printf(stdout,"set %x = '%s' : '%s'\n", rh, SwigType_manglestr(prefix),prefix); */
       Setattr(rh,SwigType_manglestr(prefix),prefix);
       ckey = NewStringf("%s+%s",SwigType_manglestr(prefix), SwigType_manglestr(rkey));
       if (!Getattr(conversions,ckey)) {
@@ -1424,7 +1430,6 @@ void SwigType_inherit_equiv(File *out) {
 	      String *rkeymangle;
 
 	      /* Make sure this name equivalence is not due to inheritance */
-
 	      if (Cmp(prefix, Getattr(r,rrkey)) == 0) {
 		rkeymangle = SwigType_manglestr(rkey);
 		ckey = NewStringf("%s+%s", rrkey, rkeymangle);
@@ -1438,6 +1443,9 @@ void SwigType_inherit_equiv(File *out) {
 		  Delete(ckey);
 		}
 		Delete(rkeymangle);
+		/* This is needed to pick up other alternative names for the same type.
+                   Needed to make templates work */
+	        Setattr(rh,rrkey,Getattr(r,rrkey));   
 	      }
 	      rrkey = Nextkey(r);
 	    }
@@ -1473,6 +1481,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
 
   SwigType_inherit_equiv(f_table);
 
+  /* #define DEBUG 1 */
 #ifdef DEBUG
   Printf(stdout,"---r_mangled---\n");
   Printf(stdout,"%s\n", r_mangled);
@@ -1485,7 +1494,10 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
 
   Printf(stdout,"---subclass---\n");
   Printf(stdout,"%s\n", subclass);
-  
+
+  Printf(stdout,"---conversions---\n");
+  Printf(stdout,"%s\n", conversions);
+
 #endif
   table = NewString("");
   types = NewString("");
