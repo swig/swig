@@ -30,7 +30,7 @@ class JAVA : public Language {
   bool   wrapping_member_flag; // Flag for when wrapping a member variable/enum/const
   bool   global_variable_flag; // Flag for when wrapping a global variable
 
-  String *jniclass;  // JNI class name
+  String *jniclass_name;  // JNI class name
   String *module_class_name;  // module class name
   String *jniclass_class_code; // JNI class Java code - that is the native methods
   String *shadow_classdef;
@@ -42,7 +42,7 @@ class JAVA : public Language {
   String *module_constants_code;
   String *package; // Package name
   String *jnipackage; // JNI package name
-  String *jniclass_imports; //jniclass import from %pragma
+  String *jniclass_imports; //jniclass imports from %pragma
   String *module_imports; //module imports from %pragma
   String *jniclass_baseclass; //inheritance for jniclass class from %pragma
   String *module_baseclass; //inheritance for module class from %pragma
@@ -80,7 +80,7 @@ class JAVA : public Language {
     wrapping_member_flag(false),
     global_variable_flag(false),
 
-    jniclass(NULL),
+    jniclass_name(NULL),
     module_class_name(NULL),
     jniclass_class_code(NULL),
     shadow_classdef(NULL),
@@ -229,7 +229,23 @@ class JAVA : public Language {
     Swig_register_filebyname("init",f_init);
     swig_types_hash = NewHash();
 
-    jniclass = NewStringf("%sJNI", Getattr(n,"name"));
+    // Make the JNI class and module class names. The jniclassname can be set in the module directive.
+    Node* optionsnode = Getattr( Getattr(n,"module") ,"options");
+    if (optionsnode)
+        if (Getattr(optionsnode,"jniclassname"))
+          jniclass_name = Copy(Getattr(optionsnode,"jniclassname"));
+    if (!jniclass_name) {
+      jniclass_name = NewStringf("%sJNI", Getattr(n,"name"));
+      module_class_name = Copy(Getattr(n,"name"));
+    } else {
+      // Rename the module name if it is the same as JNI class name - a backwards compatibility solution
+      if (Cmp(jniclass_name, Getattr(n,"name")) == 0)
+        module_class_name = NewStringf("%sModule", Getattr(n,"name"));
+      else
+        module_class_name = Copy(Getattr(n,"name"));
+    }
+
+
     jniclass_class_code = NewString("");
     shadow_classdef = NewString("");
     shadow_code = NewString("");
@@ -237,7 +253,6 @@ class JAVA : public Language {
     jniclass_baseclass = NewString("");
     jniclass_interfaces = NewString("");
     jniclass_class_modifiers = NewString(""); // package access only to the JNI class by default
-    module_class_name = Copy(Getattr(n,"name"));
     module_class_code = NewString("");
     module_baseclass = NewString("");
     module_interfaces = NewString("");
@@ -264,7 +279,7 @@ class JAVA : public Language {
       Replaceall(jnipackage,".","_");
       Append(jnipackage, "_");
     }
-    String *jniname = makeValidJniName(jniclass);
+    String *jniname = makeValidJniName(jniclass_name);
     Printf(wrapper_name, "Java_%s%s_%%f", Char(jnipackage), jniname);
     Delete(jniname);
 
@@ -284,7 +299,7 @@ class JAVA : public Language {
 
     // Generate the Java JNI class
     {
-      String *filen = NewStringf("%s.java", jniclass);
+      String *filen = NewStringf("%s.java", jniclass_name);
       File *f_java = NewFile(filen,"w");
       if(!f_java) {
         Printf(stderr,"Unable to open %s\n", filen);
@@ -302,7 +317,7 @@ class JAVA : public Language {
 
       if (Len(jniclass_class_modifiers) > 0)
         Printf(f_java, "%s ", jniclass_class_modifiers);
-      Printf(f_java, "class %s ", jniclass);
+      Printf(f_java, "class %s ", jniclass_name);
 
       if (jniclass_baseclass && *Char(jniclass_baseclass))
         Printf(f_java, "extends %s ", jniclass_baseclass);
@@ -372,6 +387,7 @@ class JAVA : public Language {
     }
 
     Delete(swig_types_hash); swig_types_hash = NULL;
+    Delete(jniclass_name); jniclass_name = NULL;
     Delete(jniclass_class_code); jniclass_class_code = NULL;
     Delete(shadow_classdef); shadow_classdef = NULL;
     Delete(shadow_code); shadow_code = NULL;
@@ -843,9 +859,9 @@ class JAVA : public Language {
       // Enums and default constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
 
       if(is_return_type_java_class) // This handles function pointers using the %constant directive
-        Printf(constants_code, "new %s(%s.%s(), false);\n", shadowrettype, jniclass, Swig_name_get(symname));
+        Printf(constants_code, "new %s(%s.%s(), false);\n", shadowrettype, jniclass_name, Swig_name_get(symname));
       else
-        Printf(constants_code, "%s.%s();\n", jniclass, Swig_name_get(symname));
+        Printf(constants_code, "%s.%s();\n", jniclass_name, Swig_name_get(symname));
 
       // Each constant and enum value is wrapped with a separate JNI function call
       enum_constant_flag = true;
@@ -872,11 +888,11 @@ class JAVA : public Language {
    * pragmaDirective()
    *
    * Valid Pragmas:
-   * jniclassbase            - base (extends) for the jniclass
-   * jniclassclassmodifiers  - class modifiers for the jniclass
-   * jniclasscode            - text (java code) is copied verbatim to the jniclass
-   * jniclassimports         - import statements for the jniclass
-   * jniclassinterfaces      - interface (implements) for the jniclass
+   * jniclassbase            - base (extends) for the JNI class
+   * jniclassclassmodifiers  - class modifiers for the JNI class
+   * jniclasscode            - text (java code) is copied verbatim to the JNI class
+   * jniclassimports         - import statements for the JNI class
+   * jniclassinterfaces      - interface (implements) for the JNI class
    *
    * modulebase              - base (extends) for the module class
    * moduleclassmodifiers    - class modifiers for the module class
@@ -1049,7 +1065,7 @@ class JAVA : public Language {
         "\n",
         "  protected $javaclassname(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
         derived ? 
-        "    super($jniclass.SWIG$javaclassnameTo$baseclass(cPtr), cMemoryOwn);\n" : 
+        "    super($jniclassname.SWIG$javaclassnameTo$baseclass(cPtr), cMemoryOwn);\n" : 
         "    swigCMemOwn = cMemoryOwn;\n",
         "    swigCPtr = cPtr;\n",
         "  }\n",
@@ -1092,8 +1108,8 @@ class JAVA : public Language {
     Replaceall(shadow_classdef, "$baseclass", baseclass);
     Replaceall(shadow_code,     "$baseclass", baseclass);
 
-    Replaceall(shadow_classdef, "$jniclass", jniclass);
-    Replaceall(shadow_code,     "$jniclass", jniclass);
+    Replaceall(shadow_classdef, "$jniclassname", jniclass_name);
+    Replaceall(shadow_code,     "$jniclassname", jniclass_name);
 
     // Add JNI code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if(derived){
@@ -1114,7 +1130,7 @@ class JAVA : public Language {
           "\n",
           NULL); 
 
-      String *jnijniclass  = makeValidJniName(jniclass);
+      String *jnijniclass  = makeValidJniName(jniclass_name);
       String *jniclazzname = makeValidJniName(shadow_classname);
       String *jnibaseclass = makeValidJniName(baseclass);
       Replaceall(wrapper_conversion_code, "$jnibaseclass",jnibaseclass);
@@ -1128,14 +1144,14 @@ class JAVA : public Language {
          if (!proxy_flag) {
          Printv(module_class_code, 
          "  public static $baseclass SWIG$javaclassnameTo$baseclass($javaclassname obj) {\n",
-         "    return new $baseclass($jniclass.SWIG$javaclassnameTo$baseclass($javaclassname.getCPtr(obj)), false);\n",
+         "    return new $baseclass($jniclassname.SWIG$javaclassnameTo$baseclass($javaclassname.getCPtr(obj)), false);\n",
          "  }\n",
          "\n",
          NULL);
 
          Replaceall(module_class_code, "$baseclass",   baseclass);
          Replaceall(module_class_code, "$javaclassname",       shadow_classname);
-         Replaceall(module_class_code, "$jniclass",    jniclass);
+         Replaceall(module_class_code, "$jniclassname",    jniclass_name);
          }
       */
 
@@ -1156,7 +1172,7 @@ class JAVA : public Language {
     if (proxy_flag) {
       shadow_classname = NewString(Getattr(n,"sym:name"));
 
-      if (Cmp(shadow_classname, jniclass) == 0) {
+      if (Cmp(shadow_classname, jniclass_name) == 0) {
         Printf(stderr, "Class name cannot be equal to JNI class name: %s\n", shadow_classname);
         SWIG_exit(EXIT_FAILURE);
       }
@@ -1311,7 +1327,7 @@ class JAVA : public Language {
         Printv(nativecall, "new ", shadowrettype, "(", NULL);
     }
 
-    Printv(nativecall, jniclass, ".", java_function_name, "(", NULL);
+    Printv(nativecall, jniclass_name, ".", java_function_name, "(", NULL);
     if (!static_flag)
       Printv(nativecall, "swigCPtr", NULL);
 
@@ -1437,7 +1453,7 @@ class JAVA : public Language {
       String *nativecall = NewString("");
 
       Printf(shadow_code, "  %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadow_classname);
-      Printv(nativecall, "this(", jniclass, ".", Swig_name_construct(overloaded_name), "(", NULL);
+      Printv(nativecall, "this(", jniclass_name, ".", Swig_name_construct(overloaded_name), "(", NULL);
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("jstype", l, NULL);
@@ -1520,7 +1536,7 @@ class JAVA : public Language {
     String *symname = Getattr(n,"sym:name");
 
     if(proxy_flag) {
-      Printv(destructor_call, "      ", jniclass, ".", Swig_name_destroy(symname), "(swigCPtr);\n", NULL);
+      Printv(destructor_call, "      ", jniclass_name, ".", Swig_name_destroy(symname), "(swigCPtr);\n", NULL);
     }
     return SWIG_OK;
   }
@@ -1726,7 +1742,7 @@ class JAVA : public Language {
         Printv(nativecall, "new ", shadowrettype, "(", NULL);
     }
 
-    Printv(nativecall, jniclass, ".", overloaded_name, "(", NULL);
+    Printv(nativecall, jniclass_name, ".", overloaded_name, "(", NULL);
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
