@@ -90,12 +90,12 @@
 %define SIMPLE_MAP(C_NAME, MZ_PREDICATE, MZ_TO_C, C_TO_MZ, MZ_NAME)
 %typemap(in) C_NAME {
     if (!MZ_PREDICATE($input))
-	scheme_wrong_type("$name", "MZ_NAME", $argnum, argc, argv);
+	scheme_wrong_type("$name", #MZ_NAME, $argnum, argc, argv);
     $1 = MZ_TO_C($input);
 }
 %typemap(varin) C_NAME {
     if (!MZ_PREDICATE($input))
-	scheme_wrong_type("$name", "MZ_NAME", 1, argc, argv);
+	scheme_wrong_type("$name", #MZ_NAME, 1, argc, argv);
     $1 = MZ_TO_C($input);
 }
 %typemap(out) C_NAME {
@@ -152,6 +152,44 @@ SIMPLE_MAP(char *, SCHEME_STRINGP, SCHEME_STR_VAL,
 	   scheme_make_string_without_copying, string);
 SIMPLE_MAP(const char *, SCHEME_STRINGP, SCHEME_STR_VAL, 
 	   scheme_make_string_without_copying, string);
+
+
+/* Const primitive references.  Passed by value */
+
+%define REF_MAP(C_NAME, MZ_PREDICATE, MZ_TO_C, C_TO_MZ, MZ_NAME)
+  %typemap(in) const C_NAME & (C_NAME temp) {
+     if (!MZ_PREDICATE($input))
+        scheme_wrong_type("$name", #MZ_NAME, $argnum, argc, argv);
+     temp = MZ_TO_C($input);
+     $1 = &temp;
+  }
+  %typemap(out) C_NAME & {
+    $result = C_TO_MZ(*$1);
+  }
+%enddef
+
+REF_MAP(bool, SCHEME_BOOLP, SCHEME_TRUEP,
+	   swig_make_boolean, boolean);
+REF_MAP(char, SCHEME_CHARP, SCHEME_CHAR_VAL,
+	   scheme_make_character, character);
+REF_MAP(unsigned char, SCHEME_CHARP, SCHEME_CHAR_VAL,
+	   scheme_make_character, character);
+REF_MAP(int, SCHEME_INTP, SCHEME_INT_VAL,
+	   scheme_make_integer_value, integer);
+REF_MAP(short, SCHEME_INTP, SCHEME_INT_VAL,
+	   scheme_make_integer_value, integer);
+REF_MAP(long, SCHEME_INTP, SCHEME_INT_VAL,
+	   scheme_make_integer_value, integer);
+REF_MAP(unsigned int, SCHEME_INTP, SCHEME_INT_VAL,
+	   scheme_make_integer_value_from_unsigned, integer);
+REF_MAP(unsigned short, SCHEME_INTP, SCHEME_INT_VAL,
+	   scheme_make_integer_value_from_unsigned, integer);
+REF_MAP(unsigned long, SCHEME_INTP, SCHEME_INT_VAL,
+	   scheme_make_integer_value_from_unsigned, integer);
+REF_MAP(float, SCHEME_REALP, scheme_real_to_double,
+	   scheme_make_double, real);
+REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
+	   scheme_make_double, real);
 
 /* Void */
 
