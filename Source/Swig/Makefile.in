@@ -27,15 +27,5 @@ $(TARGET): $(OBJS)
 	$(AR) cr $(TARGET) $(OBJS)
 	$(RANLIB) $(TARGET)
 
-supertest: super.c
-	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -g -DSUPER_TEST -c \
-		-o supertest.o super.c
-	$(CC) supertest.o -ldoh -o supertest
-
-typetest: type.c super.o stype.o
-	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -g -DTYPE_TEST -c \
-		-o typetest.o type.c
-	$(CC) typetest.o super.o stype.o -ldoh -o typetest
-
 clean:
 	rm -f *.o *~ core *.so *.a *_wrap.*
