@@ -167,7 +167,7 @@ static void _SWIG_exception(int code, char *msg) {
 #undef MAP
   }
 
-#define SWIG_exception(a,b) _SWIG_exception(a, b, SCHEME_NAME)
+#define SWIG_exception(a,b) _SWIG_exception(a, b, FUNC_NAME)
 %}
 #endif
 
