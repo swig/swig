@@ -47,12 +47,26 @@ defer  ready to go.  The primary obstacle lies in the target language
        more sense to think of an "ignored" argument as a input value
        property.
 
+       Update: Matthias proposes a generalization in which the
+       number of input arguments could be specified.  For example:
+
+           %typemap(in,numinputs="0") int *OUTPUT (int temp) {
+                $1 = &temp;
+           }
+
+       This seems to be a better solution.
+
+
 ****   Implement "throws" typemaps for all of the target languages.
        Partly implemented for Tcl, Perl, Python, Ruby, Java.
 
 ***    Add attributes to the %feature directive. Something like:
 
        %feature("except", throws="OutOfMemoryException") 
+
+***    Implement $fail special variable substitution in wrappers. Used
+       to properly transfer control out of a wrapper function while
+       reclaiming resources.
 
 ***    Rewrite declaration annotation to better unify %rename and related
        directives.  Add a selector mechanism that allows specific parse tree
@@ -81,9 +95,10 @@ defer  ready to go.  The primary obstacle lies in the target language
 
        [ Partially finished for Tcl/Python. ]
 
-
-***    Modify smart pointer handling to properly handle inheritance.  For
+[DONE] Modify smart pointer handling to properly handle inheritance.  For
        example:
+
+            %ignore Foo;
 
             class Foo {
             public:
@@ -157,7 +172,7 @@ All language modules
 Python
 ------
 
-****   Ability to wrap certain classes as Python built-in types.
+***    Ability to wrap certain classes as Python built-in types.
 
 Perl
 ----
