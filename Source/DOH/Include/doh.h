@@ -9,7 +9,7 @@
  * Chicago, IL  60637
  * beazley@cs.uchicago.edu
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
+ * Please read the file LICENSE for the copyright and terms by which DOH
  * can be used and distributed.
  *******************************************************************************/
 
@@ -181,6 +181,8 @@ extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
    extern int     DohvScanf(DOH *obj, char *format, va_list ap); */
 
 extern DOH    *DohReadline(DOH *in);
+
+#ifndef DOH_LONG_NAMES
 /* Macros to invoke the above functions.  Includes the location of
    the caller to simplify debugging if something goes wrong */
 
@@ -229,6 +231,8 @@ extern DOH    *DohReadline(DOH *in);
 #define Firstitem          DohFirstitem
 #define Nextitem           DohNextitem
 #define Readline           DohReadline
+
+#endif
 
 /* #define Scanf              DohScanf
    #define vScanf             DohvScanf*/
@@ -319,5 +323,6 @@ extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
 #ifdef __cplusplus
 }
 #endif
+
 
 

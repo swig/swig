@@ -9,7 +9,7 @@
  * Chicago, IL  60637
  * beazley@cs.uchicago.edu
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
+ * Please read the file LICENSE for the copyright and terms by which DOH
  * can be used and distributed.
  ****************************************************************************/
 
@@ -426,12 +426,20 @@ DOH *DohSplit(DOH *in, char *chs, int nsplits) {
 
 DOH *DohReadline(DOH *in) {
   char c;
+  int n = 0;
   DOH *s = NewString("");
   while (1) {
-    if (Read(in,&c,1) < 0) return s;
+    if (Read(in,&c,1) < 0) {
+      if (n == 0) {
+	Delete(s);
+	return 0;
+      }
+      return s;
+    }
     if (c == '\n') return s;
     if (c == '\r') continue;
     Putc(c,s);
+    n++;
   }
 }
 

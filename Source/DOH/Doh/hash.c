@@ -1,5 +1,5 @@
 /****************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+ * DOH
  * 
  * Author : David Beazley
  *
@@ -9,7 +9,7 @@
  * Chicago, IL  60637
  * beazley@cs.uchicago.edu
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
+ * Please read the file LICENSE for the copyright and terms by which DOH
  * can be used and distributed.
  ****************************************************************************/
 
