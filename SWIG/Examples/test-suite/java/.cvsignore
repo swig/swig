@@ -30,6 +30,7 @@ inherit_missing
 kind
 long_long
 macro_2
+member_template
 minherit
 name
 name_cxx
@@ -40,6 +41,7 @@ pointer_cxx
 pointer_reference
 preproc_1
 preproc_2
+primitive_ref
 pure_virtual
 rename_default
 ret_by_value
@@ -51,8 +53,11 @@ static_const_member
 template
 template_inherit
 template_classes
+template_qualifier
 template_whitespace
+typedef_funcptr
 typedef_inherit
+typedef_mptr
 typedef_scope
 typemap_subst
 typename
