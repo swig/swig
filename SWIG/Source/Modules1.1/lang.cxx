@@ -559,7 +559,7 @@ int Language::cDeclaration(Node *n) {
     Printf(stderr,"%s:%d. Overloaded declaration ignored.  %s\n",
 	   input_file,line_number, SwigType_str(td,oname));
     
-    Printf(stdout,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(Getattr(over,"decl"),cname));
+    Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(Getattr(over,"decl"),cname));
     Delete(tc);
     Delete(td);
     Delete(oname);
