@@ -393,6 +393,12 @@ public:
 	  Replaceall(tm,"$target",ln);
 	  Replaceall(tm,"$input", source);
 	  Setattr(p,"emit:input", source);   /* Save the location of the object */
+	  
+	  if (Getattr(p,"wrap:disown") || (Getattr(p,"tmap:in:disown"))) {
+	    Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
+	  } else {
+	    Replaceall(tm,"$disown","0");
+	  }
 	  Putc('O',parse_args);
 	  Wrapper_add_localv(f, source, "PyObject *",source, " = 0", NULL);
 	  Printf(arglist,"&%s",source);
@@ -401,6 +407,7 @@ public:
 	  Printv(get_pointers,tm,"\n", NULL);
 	  if (i >= num_required)
 	    Printv(get_pointers, "}\n", NULL);
+
 	} else {
 	  Printf(parse_args,"%s",parse);
 	  Printf(arglist,"&%s", ln);
