@@ -416,6 +416,11 @@ char *Swig_typemap_lookup(char *op, SwigType *type, String_or_char *pname, Strin
   Replace(s,"$source",source,DOH_REPLACE_ANY);
   Replace(s,"$target",target,DOH_REPLACE_ANY);
   Replace(s,"$type",SwigType_str(type,0),DOH_REPLACE_ANY);
+  {
+    SwigType *ltype = SwigType_ltype(type);
+    Replace(s,"$ltype",SwigType_str(ltype,0), DOH_REPLACE_ANY);
+    Delete(ltype);
+  }
   Replace(s,"$parmname",pname, DOH_REPLACE_ANY);
 
   /* Print base type (without any pointers) */

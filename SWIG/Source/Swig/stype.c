@@ -597,12 +597,20 @@ void SwigType_array_setdim(SwigType *t, int n, String_or_char *rep) {
  *
  * ----------------------------------------------------------------------------- */
 
+static Hash *default_cache = 0;
+
 SwigType *SwigType_default(SwigType *t) {
   String *r1, *def;
-  String *r = NewString(t);
+  String *r = 0;
 
+  if (!default_cache) default_cache = NewHash();
+  
+  r = Getattr(default_cache,t);
+  if (r) return Copy(r);
+  
+  r = t;
   while ((r1 = SwigType_typedef_resolve(r))) {
-    Delete(r);
+    if (r != t) Delete(r);
     r = r1;
   }
   if (SwigType_ispointer(r)) {
@@ -614,7 +622,8 @@ SwigType *SwigType_default(SwigType *t) {
   } else {
     def = NewString("SWIGTYPE");
   }
-  Delete(r);
+  if (r != t) Delete(r);
+  Setattr(default_cache,t,Copy(def));
   return def;
 }
 
@@ -1037,6 +1046,8 @@ int SwigType_typedef(SwigType *type, String_or_char *name) {
   init_scopes();
   if (Getattr(scopes[scope_level],name)) return -1;
   Setattr(scopes[scope_level],name,type);
+  if (default_cache)
+    Delattr(default_cache,type);
   return 0;
 }
 
@@ -1554,8 +1565,6 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
       Delete(ckey);
     }
     Delete(el);
-    /*    Printv(types, "{\"", key, "\",0},", 0); */
-    /*    Printv(types, check_equivalent((DataType *)GetVoid(remembered,key)), "};\n", 0);*/
     Printf(types,"{0,0}};\n");
     Printv(table, "_swigt_", key, ", \n", 0);
     key = Nextkey(r_mangled);
