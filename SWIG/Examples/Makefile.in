@@ -760,13 +760,13 @@ chicken_cpp:
 	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
 
 chicken_csi:
-	cd @CHICKENHOME@ && \
+	X=`pwd` && cd @CHICKENHOME@ && \
 	@CHICKEN@ @CHICKENHOME@/src/csi.scm $(CHICKENOPTS) \
 		-include-path @CHICKENHOME@/src \
 		-postlude "(##csi#run)" \
 		-prologue @CHICKENHOME@/src/build.scm \
 		-prelude "(declare (uses posix $(INTERFACE)))" \
-		-output-file $(PWD)/$(TARGET)
+		-output-file $$X/$(TARGET)
 
 # -----------------------------------------------------------------
 # Build statically linked CHICKEN interpreter

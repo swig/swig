@@ -41,7 +41,7 @@ skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
 skip-php4	= [ -z "@PHP4@" -o -z "@PHP4INC@" ]
 skip-ocaml      = [ -z "@OCAMLBIN@" -o -z "@OCAMLINC@" ]
 skip-pike       = [ -z "@PIKE@" -o -z "@PIKEINCLUDE@" ]
-skip-chicken	= [ -z "@CHICKENINCLUDE@" -o -z "@CHICKENLIB@" ]
+skip-chicken	= [ -z "@CHICKEN@" -o -z "@CHICKENHOME@" -o -z "@CHICKENLIB@" ]
 
 #####################################################################
 # Runtime libraries
@@ -86,8 +86,8 @@ check-aliveness:
 	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
 	@$(skip-php4)     || ./$(TARGET) -php4     -help
-#	@$(skip-pike)     || ./$(TARGET) -pike     -help
 	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
+#	@$(skip-pike)     || ./$(TARGET) -pike     -help
 
 check-examples:					\
 	check-tcl-examples			\
@@ -99,8 +99,8 @@ check-examples:					\
 	check-ruby-examples			\
 	check-ocaml-examples			\
 	check-php4-examples			\
-#	check-pike-examples                     \
-	check-chicken-examples
+	check-chicken-examples                  \
+#	check-pike-examples
 
 check-%-examples:
 	@passed=true;						\
@@ -130,8 +130,7 @@ check-test-suite:				\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
 	check-php4-test-suite			\
-#	check-pike-test-suite                   \
-	check-chicken-test-suite
+#	check-pike-test-suite
 
 check-%-test-suite:
 	@passed=true;							\
@@ -160,8 +159,8 @@ check-gifplot:					\
 	check-ruby-gifplot			\
 	check-ocaml-gifplot			\
 	check-php4-gifplot			\
-#	check-pike-gifplot                      \
-	check-chicken-gifplot
+	check-chicken-gifplot                   \
+#	check-pike-gifplot
 
 check-%-gifplot: gifplot-library
 	@passed=true;						\
