@@ -3,9 +3,9 @@
 June 1, 2002
 
 We're pleased to announce the next installment of the SWIG development
-effort.  SWIG 1.3.12 is a milestone in SWIG development--and it is the
-first release that features a nearly complete C++ type system including
-full support for namespaces, templates, and more.
+effort.  SWIG 1.3.12 is a milestone in SWIG development--it is the
+first release that features a nearly complete C++ type system
+including full support for namespaces, templates, and more.
 
 New Features in 1.3.12
 ----------------------
@@ -18,23 +18,18 @@ namespaces, etc.).  Namespace support is fully integrated into the
 type system, typemaps, customization features, and every other part of
 SWIG.
 
-* Completely rewritten template support */
+* New template support */
 
 Minimal template support was available in earlier SWIG releases.
 SWIG-1.3.12 builds upon this and provides support for templates,
 member templates, template specialization, and template partial
-specialization.
+specialization.  New library files are included for wrapping C++
+strings and STL vectors.
 
 * Refined PHP4 Module *
 
 Richard Palmer and Sam Lidicott have continued to improve the PHP4
 module.
-
-* Minor parser improvements *
-
-SWIG-1.3.11 includes some minor parsing improvements related to
-integer types.  Also, better support for the C long long type
-has been added.
 
 * Improved support on Cygwin *
 
@@ -50,10 +45,9 @@ details.
 
 Continued updates of the SWIG Users Manual are included in this
 release including entirely new sections on typemaps and exception
-handling.  The first 7 chapters of the old manual are now entirely
-up-to-date with SWIG-1.3.11.  However, updating all of the old
-documentation is an ongoing process and is not yet finished (we are
-working on it).
+handling.  Almost all of the documentation is now up to date with
+SWIG-1.3.12 features.  However, a lot of the old documentation is
+still incomplete.  We're still working on this.
 
 Availability:
 -------------
@@ -80,12 +74,6 @@ or incomplete.  The documentation system is still missing and won't be
 reimplemented for some time.  Programmers who have made extensive use of
 typemaps may encounter broken code due to the reimplementation of the typemap
 system (which has tried to fix a number of subtle problems).
-
-The Perl5 module is also in some need of some repair and may not work
-with all Perl configurations such as ActivePerl (It seems to work with
-a standard Perl5.6.1 distribution however).  We are looking for a
-fearless volunteer to help us with future Perl5 support (please skip
-to the end for details).
 
 Documentation
 -------------
