@@ -34,6 +34,14 @@ char *foo(void *) {
    return (char *) "foo:void *";
 }
 
+char *blah(double) {
+   return (char *) "blah:double";
+}
+
+char *blah(char *) {
+   return (char *) "blah:char *";
+}
+
 class Spam {
 public:
     Spam() { type = "none"; }
