@@ -87,17 +87,12 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<T >);
   
     %std_vector_methods(vector);
+
+#ifdef %swig_vector_methods
+    // Add swig/language extra methods
     %swig_vector_methods(std::vector<T >);
+#endif
   };
-
-  // bool specialization
-  %extend vector<bool> {
-    void flip() 
-    {
-      self->flip();
-    }
-  }
-
 
   // ***
   // This specialization should dissapear or get simplified when
@@ -131,11 +126,23 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<T* >);
 
     %std_vector_methods_val(vector);
+
+#ifdef %swig_vector_methods_val
+    // Add swig/language extra methods
     %swig_vector_methods_val(std::vector<T* >);
+#endif
   };
 
   // ***
   // ***
+  // bool specialization
+  %extend vector<bool> {
+    void flip() 
+    {
+      self->flip();
+    }
+  }
+
   template<class T > class vector<bool> {
   public:
     typedef size_t size_type;    
@@ -164,7 +171,11 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<bool>);
 
     %std_vector_methods_val(vector<bool>);
+
+#ifdef %swig_vector_methods_val
+    // Add swig/language extra methods
     %swig_vector_methods_val(std::vector<bool>);
+#endif
   };
 
 }

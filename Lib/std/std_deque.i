@@ -77,7 +77,11 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_DEQUE, std::deque<T >);
   
     %std_deque_methods(deque);
+
+#ifdef %swig_deque_methods
+    // Add swig/language extra methods
     %swig_deque_methods(std::deque<T >);
+#endif
   };
 
   template<class T > class deque<T*> {
@@ -108,7 +112,11 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_DEQUE, std::deque<T* >);
 
     %std_deque_methods_val(std::deque<T* >);
+
+#ifdef %swig_deque_methods_val
+    // Add swig/language extra methods
     %swig_deque_methods_val(std::deque<T* >);
+#endif
   };
 
 }

@@ -152,8 +152,6 @@ namespace swig {
 }
 %enddef
 
-%apply_cpptypes(%traits_ptypen);
-
 /*
   Generate the typemaps for a class that has 'value' traits
 */

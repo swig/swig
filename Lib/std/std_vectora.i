@@ -86,7 +86,11 @@ namespace std {
     %typemap_traits(SWIG_TYPECHECK_VECTOR, std::vector<T,A >);
   
     %std_vector_methods(vector<T,A >);
+
+#ifdef %swig_vector_methods
+    // Add swig/language extra methods
     %swig_vector_methods(std::vector<T,A >);
+#endif
   };
 
 
@@ -122,7 +126,11 @@ namespace std {
     %typemap_traits(SWIG_TYPECHECK_VECTOR, std::vector<T*,A >);
 
     %std_vector_methods_val(vector);
+ 
+#ifdef %swig_vector_methods
+    // Add swig/language extra methods
     %swig_vector_methods_val(std::vector<T*,A >);
+#endif
   };
 
 

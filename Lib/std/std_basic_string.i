@@ -177,7 +177,11 @@ namespace std {
 
 
     %ignore pop();
-    %swig_basic_string(std::basic_string<_CharT>);
+
+#ifdef %swig_basic_string
+    // Add swig/language extra methods
+    %swig_basic_string(std::basic_string<_CharT >);
+#endif
 
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
     iterator 

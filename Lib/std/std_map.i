@@ -112,7 +112,11 @@ namespace std {
     %typemap_traits_ptr(SWIG_TYPECHECK_MAP, std::map<K, T >);
   
     %std_map_methods(map);
+
+#ifdef %swig_map_methods
+    // Add swig/language extra methods
     %swig_map_methods(std::map<K, T >);
+#endif
   };
 
 }
