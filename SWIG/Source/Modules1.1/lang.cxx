@@ -27,17 +27,12 @@ static String  *ClassPrefix = 0;      /* Class prefix */
 static String  *ClassType = 0;        /* Fully qualified type name to use */
        int      Abstract = 0;
 static int      ImportMode = 0;
-static int      has_constructor = 0;
-static int      has_destructor = 0;
-static int      private_constructor = 0;
-static int      private_destructor = 0;
-static int      base_default_constructor = 0;
-static int      has_default_constructor = 0;
 int             IsVirtual = 0;
 static String  *AttributeFunctionGet = 0;
 static String  *AttributeFunctionSet = 0;
 static String  *ActionFunc = 0;
 static int      cplus_mode = 0;
+static Node    *CurrentClass = 0;
 
 extern    int           GenerateDefault;
 extern    int           ForceExtern;
@@ -187,8 +182,12 @@ void swig_pragma(char *lang, char *name, char *value) {
 }
 
 /* generate C++ inheritance type-relationships */
-static void cplus_inherit_types(Node *cls, String *clsname) {
+static void cplus_inherit_types(Node *cls, String *clsname, int import) {
   List *ilist = Getattr(cls,"bases");
+
+  int private_constructor = GetInt(cls,"has_private_constructor");
+  int private_destructor = GetInt(cls,"has_private_destructor");
+  int base_default_constructor = GetInt(cls,"has_base_default_constructor");
 
   if (!ilist) return;
   int len = Len(ilist);
@@ -199,12 +198,12 @@ static void cplus_inherit_types(Node *cls, String *clsname) {
     Node *bclass = Getattr(n,"class");
     Hash *scopes = Getattr(bclass,"typescope");
     
-    private_constructor |= GetInt(bclass,"private_constructor");
-    private_destructor |= GetInt(bclass,"private_destructor");
-    base_default_constructor &= GetInt(bclass,"default_constructor");
+    private_constructor |= GetInt(bclass,"has_private_constructor");
+    private_destructor |= GetInt(bclass,"has_private_destructor");
+    base_default_constructor &= GetInt(bclass,"has_default_constructor");
 
     SwigType_inherit(clsname,bname);
-    if (!ImportMode) {
+    if (!import) {
       String *btype = Copy(bname);
       SwigType_add_pointer(btype);
       SwigType_remember(btype);
@@ -212,8 +211,15 @@ static void cplus_inherit_types(Node *cls, String *clsname) {
     }
     if (scopes)
       SwigType_merge_scope(scopes);
-    cplus_inherit_types(bclass,clsname);
+    cplus_inherit_types(bclass,clsname,import);
   }
+  if (!base_default_constructor) {
+    Delattr(cls,"has_base_default_constructor");
+  }
+  if (private_constructor)
+    Setattr(cls,"has_private_constructor","1");
+  if (private_destructor)
+    Setattr(cls,"has_private_destructor","1");
 }
 
 /* ----------------------------------------------------------------------
@@ -518,7 +524,7 @@ int Language::cDeclaration(Node *n) {
   File   *f_header = 0;
   SwigType *ty, *fullty;
 
-  if (InClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+  if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
   if (Cmp(storage,"typedef") == 0) {
     SwigType *t = Copy(type);
@@ -542,7 +548,7 @@ int Language::cDeclaration(Node *n) {
     SwigType *td = SwigType_pop(tc);
     String   *oname;
     String   *cname;
-    if (InClass) {
+    if (CurrentClass) {
       oname = NewStringf("%s::%s",ClassName,name);
       cname = NewStringf("%s::%s",ClassName,Getattr(over,"name"));
     } else {
@@ -583,7 +589,7 @@ int Language::cDeclaration(Node *n) {
       Setattr(n,"parms",parms);
     }
     /* Transform the node into a 'function' node and emit */
-    if (!InClass) {
+    if (!CurrentClass) {
       f_header = Swig_filebyname("header");
       if (f_header) {
 	if ((Cmp(storage,"extern") == 0) || (ForceExtern && !storage)) {
@@ -610,7 +616,7 @@ int Language::cDeclaration(Node *n) {
     Delattr(n,"decl");
     int oldro = ReadOnly;
     if (Getattr(n,"nested")) ReadOnly = 1;
-    if (!InClass) {
+    if (!CurrentClass) {
       if ((Cmp(storage,"extern") == 0) || ForceExtern) {
 	f_header = Swig_filebyname("header");
 	if (f_header)
@@ -645,7 +651,7 @@ int Language::cDeclaration(Node *n) {
 
 int
 Language::functionHandler(Node *n) {
-  if (!InClass) {
+  if (!CurrentClass) {
     globalfunctionHandler(n);
   } else {
     String *storage   = Getattr(n,"storage");
@@ -841,7 +847,7 @@ Language::staticmemberfunctionHandler(Node *n) {
 
 int
 Language::variableHandler(Node *n) {
-  if (!InClass) {
+  if (!CurrentClass) {
     globalvariableHandler(n);
   } else {
     String *storage = Getattr(n,"storage");
@@ -1040,7 +1046,7 @@ int Language::enumDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::enumvalueDeclaration(Node *n) {
-  if (InClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+  if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
   Swig_require(&n,"name", "?value",0);
   String *value = Getattr(n,"value");
@@ -1050,7 +1056,7 @@ int Language::enumvalueDeclaration(Node *n) {
   else
     Setattr(n,"value", name);
 
-  if (!InClass) {
+  if (!CurrentClass) {
     constantWrapper(n);
   } else {
     memberconstantHandler(n);
@@ -1104,6 +1110,7 @@ int Language::classDeclaration(Node *n) {
   String *unnamed = Getattr(n,"unnamed");
   String *storage = Getattr(n,"storage");
 
+
   char *classname = tdname ? Char(tdname) : Char(name);
   char *iname = Char(symname);
   int   strip = (tdname || CPlusPlus) ? 1 : 0;
@@ -1113,7 +1120,6 @@ int Language::classDeclaration(Node *n) {
   } else {
     cplus_mode = CPLUS_PUBLIC;
   }
-
   if (name) {
     this->cpp_class_decl(Char(name),iname, Char(kind));
   } else {
@@ -1131,17 +1137,16 @@ int Language::classDeclaration(Node *n) {
     this->cpp_open_class(classname,iname,Char(kind),strip);
   }
   InClass = 1;
+  CurrentClass = n;
+
   Abstract = GetInt(n,"abstract");
-  has_constructor = 0;
-  has_destructor = 0;
-  private_constructor = 0;
-  private_destructor = 0;
-  base_default_constructor = Abstract ? 0 : 1;
-  has_default_constructor = 0;
+
+  if (!Abstract)
+    Setattr(n,"has_base_default_constructor","1");
 
   /* Inherit type definitions into the class */
   if (CPlusPlus && name) {
-    cplus_inherit_types(n,name);
+    cplus_inherit_types(n,name,ImportMode);
   }
 
   /* Call classHandler() here */
@@ -1154,28 +1159,19 @@ int Language::classDeclaration(Node *n) {
 
   cplus_mode = CPLUS_PUBLIC;
 
-  if (private_constructor) {
-    SetInt(n,"private_constructor",1);
+  if (Getattr(n,"has_base_default_constructor")) {
+    Setattr(n,"has_default_constructor","1");
   }
-  if (private_destructor) {
-    SetInt(n,"private_destructor",1);
-  }
-  if ((base_default_constructor) || (has_default_constructor)) {
-    SetInt(n,"default_constructor",1);
-  }
-  
+
   if (!ImportMode) {
     if (GenerateDefault) {
-      if ((!has_constructor) && (!private_constructor) && (base_default_constructor)) {
+      if ((!Getattr(n,"has_constructor")) && (!Getattr(n,"has_private_constructor")) && (Getattr(n,"has_base_default_constructor"))) {
 	/* Generate default constructor */
 	constructorDeclaration(n);
-	/*	this->cpp_constructor(classname,iname,0); */
-	SetInt(n,"default_constructor",1);
       } 
-      if ((!has_destructor) && (!private_destructor)) {
+      if ((!Getattr(n,"has_destructor")) && (!Getattr(n,"has_private_destructor"))) {
 	/* Generate default destructor */
 	destructorDeclaration(n);
-	/*	this->cpp_destructor(classname,iname); */
       }
     }
     char *baselist[256];
@@ -1190,6 +1186,7 @@ int Language::classDeclaration(Node *n) {
   Hash *ts = SwigType_pop_scope();
   Setattr(n,"typescope",ts);
   InClass = 0;
+  CurrentClass = 0;
   return SWIG_OK;
 }
 
@@ -1199,6 +1196,22 @@ int Language::classDeclaration(Node *n) {
 
 int Language::classHandler(Node *n) {
 
+  /* Emit all of the class members */
+  Node *c;
+  for (c = firstChild(n); c; c = nextSibling(c)) {
+    emit_one(c);
+  }
+
+  cplus_mode = CPLUS_PUBLIC;
+  if (GenerateDefault) {
+    if (!Getattr(n,"has_constructor") && (!Getattr(n,"has_private_constructor")) && (Getattr(n,"base_default_constructor"))) {
+      constructorHandler(Getattr(n,"default_constructor"));
+      Setattr(n,"has_default_constructor","1");
+    }
+    if (!Getattr(n,"has_destructor") && (!Getattr(n,"has_private_destructor"))) {
+      destructorHandler(Getattr(n,"default_destructor"));
+    }
+  }
   return SWIG_OK;
 }
 
@@ -1226,33 +1239,33 @@ int Language::constructorDeclaration(Node *n) {
   /* If a class defines a constructor, it overrides any default constructors in the base. 
      Note: constructors are not inherited  */
 
-  base_default_constructor = 0;
+  Delattr(CurrentClass,"has_base_default_constructor");
 
   /* Private/protected inheritance check.   We can't generate a constructor
      in this case, but need to record some information so that derived classes
      don't try to generate default constructors */
 
-  if (InClass && (cplus_mode != CPLUS_PUBLIC)) {
-    if (!has_constructor) {
+  if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) {
+    if (!Getattr(CurrentClass,"has_constructor")) {
       if (cplus_mode == CPLUS_PRIVATE) {
-	private_constructor = 1;
+	Setattr(CurrentClass,"has_private_constructor","1");
       } else {
 	/* Protected mode: class has a default constructor, but it's not accessible directly */
 	if (!ParmList_numrequired(parms)) {
-	  has_default_constructor = 1;
+	  Setattr(CurrentClass,"has_default_constructor","1");
 	}
       }
     }
-    has_constructor = 1;
+    Setattr(CurrentClass,"has_constructor","1");
     return SWIG_NOWRAP;
   }
-  private_constructor = 0;
+  Delattr(CurrentClass,"has_private_constructor");
   if (ImportMode) return SWIG_NOWRAP;
 
   /* Check for default constructor.  A class has a default constructor if it 
      has a constructor that will accept no arguments */
   if (!(AddMethods) && (ParmList_numrequired(parms) == 0)) {
-    has_default_constructor = 1;
+    Setattr(CurrentClass,"has_default_constructor","1");
   }
   if (!Abstract) {
     Node *over;
@@ -1274,7 +1287,7 @@ int Language::constructorDeclaration(Node *n) {
       constructorHandler(n);
     }
   }
-  has_constructor = 1;
+  Setattr(CurrentClass,"has_constructor","1");
   return SWIG_OK;
 }
 
@@ -1304,14 +1317,14 @@ Language::constructorHandler(Node *n) {
 
 int Language::destructorDeclaration(Node *n) {
 
-  if (InClass && (cplus_mode != CPLUS_PUBLIC)) {
-    has_destructor = 1;
+  if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) {
+    Setattr(CurrentClass,"has_destructor","1");
     if (cplus_mode == CPLUS_PRIVATE)
-      private_destructor = 1;
+      Setattr(CurrentClass,"has_private_destructor","1");
     return SWIG_NOWRAP;
   }
   if (!AddMethods) 
-    private_destructor = 0;
+    Delattr(CurrentClass,"has_private_destructor");
   if (ImportMode) return SWIG_NOWRAP;
 
   char *c = GetChar(n,"name");
@@ -1322,7 +1335,7 @@ int Language::destructorDeclaration(Node *n) {
 
   destructorHandler(n);
 
-  has_destructor = 1;
+  Setattr(CurrentClass,"has_destructor","1");
   return SWIG_OK;
 }
 
