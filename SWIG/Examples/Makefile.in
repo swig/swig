@@ -148,12 +148,12 @@ tcl_cpp: $(SRCS)
 TCL_RUNTIME=-L$(RUNTIMEDIR) -lswigtcl8@release_suffix@
 
 tcl_multi:  $(SRCS)
-	$(SWIG) -c -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
+	$(SWIG) -noruntime -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE)
 	$(TCL_LDSHARED) $(OBJS) $(IOBJS) $(TCL_RUNTIME) $(TCL_DLNK) $(LIBS) -o $(TARGET)$(TCL_SO)
 
 tcl_multi_cpp: $(SRCS)
-	$(SWIG) -c -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
+	$(SWIG) -noruntime -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE)
 	$(TCL_CXXSHARED) $(OBJS) $(IOBJS) $(TCL_RUNTIME) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(TCL_SO)
 
@@ -204,12 +204,12 @@ perl5_cpp: $(SRCS)
 PERL5_RUNTIME=-L$(RUNTIMEDIR) -lswigpl@release_suffix@
 
 perl5_multi: $(SRCS)
-	$(SWIG) -c -perl5 $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -perl5 $(SWIGOPT) $(INTERFACE)
 	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(PERL5_RUNTIME) $(PERL5_DLNK) $(LIBS) -o $(TARGET)$(SO)
 
 perl5_multi_cpp: $(SRCS)
-	$(SWIG) -c -perl5 -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -perl5 -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(PERL5_RUNTIME) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
@@ -278,12 +278,12 @@ python_cpp: $(SRCS)
 PYTHON_RUNTIME=-L$(RUNTIMEDIR) -lswigpy@release_suffix@
 
 python_multi: $(SRCS)
-	$(SWIG) -c -python $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -python $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(PYTHON_RUNTIME) $(PYTHON_DLNK) $(LIBS) -o _$(TARGET)$(PYTHON_SO)
 
 python_multi_cpp: $(SRCS)
-	$(SWIG) -c -c++ -python $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -c++ -python $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(PYTHON_RUNTIME) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o _$(TARGET)$(PYTHON_SO)
 
@@ -363,12 +363,12 @@ guile_scm_cpp: $(SRCS)
 GUILE_SCM_RUNTIME=-L$(RUNTIMEDIR) -lswigguilescm@release_suffix@
 
 guile_scm_multi: $(SRCS)
-	$(SWIG) -c -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(GUILE_SCM_RUNTIME) $(LIBS) -o lib$(TARGET)$(SO)
 
 guile_scm_multi_cpp: $(SRCS)
-	$(SWIG) -c -c++ -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -c++ -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(GUILE_SCM_RUNTIME) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)$(SO)
 
@@ -394,12 +394,12 @@ guile_passive_cpp: $(SRCS)
 GUILE_RUNTIME=-L$(RUNTIMEDIR) -lswigguile@release_suffix@
 
 guile_passive_multi: $(SRCS)
-	$(SWIG) -c -guile -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -guile -Linkage passive $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(GUILE_RUNTIME) $(LIBS) -o lib$(TARGET)$(SO)
 
 guile_passive_multi_cpp: $(SRCS)
-	$(SWIG) -c -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(GUILE_RUNTIME) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)$(SO)
 
@@ -521,12 +521,12 @@ mzscheme_cpp: $(SRCS)
 MZSCHEME_RUNTIME=-L$(RUNTIMEDIR) -lswigmz@release_suffix@
 
 mzscheme_multi: $(SRCS)
-	$(SWIG) -c -mzscheme $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -mzscheme $(SWIGOPT) $(INTERFACE)
 	$(MZC) ++ccf "$(INCLUDES)" --cc $(ISRCS) $(SRCS)
 	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME)
 
 mzscheme_multi_cpp: $(SRCS)
-	$(SWIG) -c -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
 	$(MZC) ++ccf "$(INCLUDES)" --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) -o $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME) $(MZDYNOBJ) $(CPP_DLLIBS) 
 
@@ -664,7 +664,7 @@ ocaml_dynamic_cpp: $(SRCS)
 
 ocaml_static_multi_cpp: $(SRCS)
 	$(OCAMLCORE)
-	$(SWIG) -c -ocaml -c++ $(SWIGOPT) \
+	$(SWIG) -noruntime -ocaml -c++ $(SWIGOPT) \
 		$(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
@@ -717,12 +717,12 @@ ruby_cpp: $(SRCS)
 RUBY_RUNTIME=-L$(RUNTIMEDIR) -lswigrb@release_suffix@
 
 ruby_multi: $(SRCS)
-	$(SWIG) -c -ruby $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -ruby $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(RUBY_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(RUBY_RUNTIME) $(RUBY_DLNK) $(LIBS) -o $(TARGET)$(SO)
 
 ruby_multi_cpp: $(SRCS)
-	$(SWIG) -c -c++ -ruby $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -c++ -ruby $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(RUBY_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(RUBY_RUNTIME) $(RUBY_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
@@ -784,12 +784,12 @@ php4_cpp: $(SRCS)
 PHP4_RUNTIME=-L$(RUNTIMEDIR) -lswigphp4@release_suffix@
 
 php4_multi: $(SRCS)
-	$(SWIG) -c -php4 -cppext cxx $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -php4 -cppext cxx $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(PHP4_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) -o $(TARGET)module$(SO)
 
 php4_multi_cpp: $(SRCS)
-	$(SWIG) -c -c++ -php4 -cppext cxx $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -c++ -php4 -cppext cxx $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(PHP4_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
 
@@ -844,12 +844,12 @@ pike_cpp: $(SRCS)
 PIKE_RUNTIME=-L$(RUNTIMEDIR) -lswigpike@release_suffix@
 
 pike_multi: $(SRCS)
-	$(SWIG) -c -pike $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -pike $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(PIKE_CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(PIKE_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(PIKE_RUNTIME) $(PIKE_DLNK) $(LIBS) -o $(TARGET)$(SO)
 
 pike_multi_cpp: $(SRCS)
-	$(SWIG) -c -c++ -pike $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -noruntime -c++ -pike $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(PIKE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(PIKE_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(PIKE_RUNTIME) $(PIKE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
