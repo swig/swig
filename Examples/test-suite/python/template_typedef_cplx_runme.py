@@ -12,7 +12,6 @@ except:
   print d, "is not an instance"
   raise RuntimeError
 
-print '%s' % d
 s = string.split('%s' % d)[1]
 if string.find(s, 'ArithUnaryFunction') == -1:
   print d, "is not an ArithUnaryFunction"
