@@ -16,9 +16,14 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+
 05/30/2002: beazley
             Fixed problem related to forward template class declarations and
             namespaces.  Bug reported by Marcelo Matus.
+
+
+05/30/2002: beazley
+            Added 'make uninstall' target.  Contributed by Joel Reed.
 
 05/29/2002: beazley
             Fixed rather insidious bug with %rename, %feature and template specialization.
