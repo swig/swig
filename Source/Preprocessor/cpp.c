@@ -492,6 +492,10 @@ get_filename(String *str) {
     while (((c = Getc(str)) != EOF) && (!isspace(c))) Putc(c,fn);
     if (isspace(c)) Ungetc(c,str);
   }
+#if defined(_WIN32) || defined(MACSWIG)
+  /* accept Unix file separator on non-Unix systems */
+  Replaceall(fn, "/", SWIG_FILE_DELIMETER);
+#endif
   Seek(fn,0,SEEK_SET);
   return fn;
 }
