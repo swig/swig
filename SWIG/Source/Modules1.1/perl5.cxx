@@ -1509,7 +1509,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   this->Language::cpp_member_func(name,iname,t,l);
   member_func = 0;
 
-  if (blessed && !is_multiple_definition()) {
+  if (blessed) {
     func = NewString("");
     cname = NewString("perl5:");
   
@@ -1637,7 +1637,7 @@ void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
   this->Language::cpp_variable(name, iname, t);
   member_func = 0;
 
-  if (blessed && !is_multiple_definition()) {
+  if (blessed) {
     if (iname) realname = iname;
     else realname = name;
 
@@ -1678,7 +1678,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
   member_func = 1;
   this->Language::cpp_constructor(name, iname, l);
 
-  if (blessed && !is_multiple_definition()) {
+  if (blessed) {
 
     if (iname)
       realname = iname;
@@ -1748,7 +1748,7 @@ PERL5::cpp_destructor(char *name, char *newname) {
   member_func = 1;
   this->Language::cpp_destructor(name, newname);
 
-  if (blessed && !is_multiple_definition()) {
+  if (blessed) {
     if (newname) realname = newname;
     else {
       if (class_renamed) realname = class_name;
@@ -1781,7 +1781,7 @@ void
 PERL5::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
   this->Language::cpp_static_func(name,iname,t,l);
 
-  if (blessed && !is_multiple_definition()) {
+  if (blessed) {
     char *realname;
     if (iname) realname = name;
     else realname = iname;
@@ -1841,7 +1841,7 @@ PERL5::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
   this->Language::cpp_declare_const(name, iname, type, value);
   blessed = oldblessed;
 
-  if (blessed && !is_multiple_definition()) {
+  if (blessed) {
     if (!iname)
       realname = name;
     else

@@ -1317,7 +1317,7 @@ PYTHON::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   this->Language::cpp_member_func(name,iname,t,l);
   shadow = oldshadow;
 
-  if (shadow && !is_multiple_definition()) {
+  if (shadow) {
     realname = iname ? iname : name;
 
     if (strcmp(realname,"__repr__") == 0)
@@ -1370,7 +1370,7 @@ PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
   this->Language::cpp_constructor(name,iname,l);
   shadow = oldshadow;
 
-  if (shadow && !is_multiple_definition()) {
+  if (shadow) {
     realname = iname ? iname : class_name;
 
     if (!have_constructor) {
@@ -1417,7 +1417,7 @@ PYTHON::cpp_destructor(char *name, char *newname) {
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
   this->Language::cpp_destructor(name,newname);
   shadow = oldshadow;
-  if (shadow && !is_multiple_definition()) {
+  if (shadow) {
     if (newname) realname = newname;
     else realname = class_renamed ? class_name : name;
 
@@ -1555,7 +1555,7 @@ PYTHON::cpp_variable(char *name, char *iname, SwigType *t) {
   this->Language::cpp_variable(name,iname,t);
   shadow = oldshadow;
 
-  if (shadow && !is_multiple_definition()) {
+  if (shadow) {
     have_getattr = 1;
     have_setattr = 1;
     realname = iname ? iname : name;
@@ -1588,7 +1588,7 @@ PYTHON::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) 
   this->Language::cpp_declare_const(name,iname,type,value);
   shadow = oldshadow;
 
-  if (shadow && !is_multiple_definition()) {
+  if (shadow) {
     realname = iname ? iname : name;
     Printv(cinit, tab4, realname, " = ", module, ".", Swig_name_member(class_name,realname), "\n", 0);
   }
