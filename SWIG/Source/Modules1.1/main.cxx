@@ -176,6 +176,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
   extern  void Swig_contracts(Node *n);
+  extern  void Swig_default_allocators(Node *n);
 
   /* Initialize the SWIG core */
   Swig_init();
@@ -444,6 +445,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       fflush (stdout);
     }
     Node *top = Swig_cparse(cpps);
+    Swig_default_allocators(top);
+
     if (dump_tags) {
       Swig_dump_tags(top,0);
     }

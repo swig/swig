@@ -35,7 +35,6 @@ static Hash    *ClassHash = 0;
 
 extern    int           GenerateDefault;
 extern    int           ForceExtern;
-extern    Language      *lang;
 
 /* import modes */
 
@@ -49,51 +48,40 @@ extern    Language      *lang;
 #define CPLUS_PRIVATE    2
 
 /* ----------------------------------------------------------------------
-   emit_one()
-   ---------------------------------------------------------------------- */
+ * Dispatcher::emit_one()
+ *
+ * Dispatch a single node
+ * ---------------------------------------------------------------------- */
 
-void emit_one(Node *n) {
-    String *err;
-    Symtab *symtab;
-
+int Dispatcher::emit_one(Node *n) {
     char *tag = Char(nodeType(n));
     if (!tag) {
       Printf(stderr,"SWIG: Fatal internal error. Malformed parse tree node!\n");
-      return;
-    }
-    if ((err = Getattr(n,"error"))) {
-      return;
-    }
-    line_number = Getline(n);
-    input_file = Char(Getfile(n));
-
-    symtab = Getattr(n,"symtab");
-    if (symtab) {
-      Swig_symbol_setscope(symtab);
+      return SWIG_ERROR;
     }
 
-      /* ============================================================
-       * C/C++ parsing
-       * ============================================================ */
-
+    /* ============================================================
+     * C/C++ parsing
+     * ============================================================ */
+    
     if (strcmp(tag,"extern") == 0) {
-      lang->externDeclaration(n);
+      return externDeclaration(n);
     } else if (strcmp(tag,"cdecl") == 0) {
-      lang->cDeclaration(n);
+      return cDeclaration(n);
     } else if (strcmp(tag,"enum") == 0) {
-      lang->enumDeclaration(n);
+      return enumDeclaration(n);
     } else if (strcmp(tag,"enumitem") == 0) {
-      lang->enumvalueDeclaration(n);
+      return enumvalueDeclaration(n);
     } else if (strcmp(tag,"class") == 0) {
-      lang->classDeclaration(n);
+      return classDeclaration(n);
     } else if (strcmp(tag,"classforward") == 0) {
-      lang->classforwardDeclaration(n);
+      return classforwardDeclaration(n);
     } else if (strcmp(tag,"constructor") == 0) {
-      lang->constructorDeclaration(n);
+      return constructorDeclaration(n);
     } else if (strcmp(tag,"destructor") == 0) {
-      lang->destructorDeclaration(n);
+      return destructorDeclaration(n);
     } else if (strcmp(tag,"access") == 0) {
-      lang->accessDeclaration(n);
+      return accessDeclaration(n);
     } 
     
     /* ===============================================================
@@ -101,41 +89,106 @@ void emit_one(Node *n) {
      * =============================================================== */
 
     else if (strcmp(tag,"top") == 0) {
-      lang->top(n);
+      return top(n);
     } else if (strcmp(tag,"addmethods") == 0) {
-      lang->addmethodsDirective(n);
+      return addmethodsDirective(n);
     } else if (strcmp(tag,"apply") == 0) {
-      lang->applyDirective(n);
+      return applyDirective(n);
     } else if (strcmp(tag,"clear") == 0) {
-      lang->clearDirective(n);
+      return clearDirective(n);
     } else if (strcmp(tag,"constant") == 0) {
-      lang->constantDirective(n);
+      return constantDirective(n);
     } else if (strcmp(tag,"except") == 0) {
-      lang->exceptDirective(n);
+      return exceptDirective(n);
     } else if (strcmp(tag,"import") == 0) {
-      lang->importDirective(n);
+      return importDirective(n);
     } else if (strcmp(tag,"include") == 0) {
-      lang->includeDirective(n);
+      return includeDirective(n);
     } else if (strcmp(tag,"insert") == 0) {
-      lang->insertDirective(n);
+      return insertDirective(n);
     } else if (strcmp(tag,"module") == 0) { 
-      lang->moduleDirective(n);
+      return moduleDirective(n);
     } else if (strcmp(tag,"native") == 0) {
-      lang->nativeDirective(n);
+      return nativeDirective(n);
     } else if (strcmp(tag,"new") == 0) {
-      lang->newDirective(n);
+      return newDirective(n);
     } else if (strcmp(tag,"pragma") == 0) {
-      lang->pragmaDirective(n);
+      return pragmaDirective(n);
     } else if (strcmp(tag,"typemap") == 0) {
-      lang->typemapDirective(n);
+      return typemapDirective(n);
     } else if (strcmp(tag,"typemapcopy") == 0) {
-      lang->typemapcopyDirective(n);
+      return typemapcopyDirective(n);
     } else if (strcmp(tag,"types") == 0) {
-      lang->typesDirective(n);
+      return typesDirective(n);
     } else {
       Printf(stderr,"%s:%d. Unrecognized parse tree node type '%s'\n", input_file, line_number, tag);
     }
+    return SWIG_ERROR;
 }
+
+/* ----------------------------------------------------------------------
+ * Dispatcher::emit_children()
+ *
+ * Emit all children.
+ * ---------------------------------------------------------------------- */
+
+int Dispatcher::emit_children(Node *n) {
+  Node *c;
+  for (c = firstChild(n); c; c = nextSibling(c)) {
+    emit_one(c);
+  }
+  return SWIG_OK;
+}
+
+/* Stubs for dispatcher class.  We don't do anything by default---up to derived class
+   to fill in traversal code */
+
+int Dispatcher::addmethodsDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::applyDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::clearDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::constantDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::exceptDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::importDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::includeDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::insertDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::moduleDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::nativeDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::newDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::pragmaDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::typemapDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::typemapcopyDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::typesDirective(Node *n) { return SWIG_OK; }
+int Dispatcher::cDeclaration(Node *n) { return SWIG_OK; }
+int Dispatcher::externDeclaration(Node *n) { return SWIG_OK; }
+int Dispatcher::enumDeclaration(Node *n) { return SWIG_OK; }
+int Dispatcher::enumvalueDeclaration(Node *n) { return SWIG_OK; }
+int Dispatcher::classDeclaration(Node *n) { return SWIG_OK; }
+int Dispatcher::classforwardDeclaration(Node *n) { return SWIG_OK; }
+int Dispatcher::constructorDeclaration(Node *n) { return SWIG_OK; }
+int Dispatcher::destructorDeclaration(Node *n) { return SWIG_OK; }
+int Dispatcher::accessDeclaration(Node *n) { return SWIG_OK; }
+
+/* ----------------------------------------------------------------------
+   emit_one()
+   ---------------------------------------------------------------------- */
+
+int Language::emit_one(Node *n) {
+
+    String *err;
+    Symtab *symtab;
+
+    if ((err = Getattr(n,"error"))) {
+      return SWIG_OK;
+    }
+    line_number = Getline(n);
+    input_file = Char(Getfile(n));
+    symtab = Getattr(n,"symtab");
+    if (symtab) {
+      Swig_symbol_setscope(symtab);
+    }
+    return Dispatcher::emit_one(n);
+}
+
 
 static Parm *nonvoid_parms(Parm *p) {
   if (p) {
@@ -253,12 +306,8 @@ static void cplus_inherit_types(Node *cls, String *clsname, int import) {
  * ---------------------------------------------------------------------- */
 
 int Language::top(Node *n) {
-  Node *c;
   ClassHash = Getattr(n,"classes");
-  for (c = firstChild(n); c; c = nextSibling(c)) {
-    emit_one(c);
-  }
-  return SWIG_OK;
+  return emit_children(n);
 }
 
 /* ----------------------------------------------------------------------
@@ -268,12 +317,11 @@ int Language::top(Node *n) {
 int Language::addmethodsDirective(Node *n) {
   int oldam = AddMethods;
   int oldmode = cplus_mode;
-  Node *c;
   AddMethods = 1;
   cplus_mode = CPLUS_PUBLIC;
-  for (c = firstChild(n); c; c = nextSibling(c)) {
-    emit_one(c);
-  }
+
+  emit_children(n);
+
   AddMethods = oldam;
   cplus_mode = oldmode;
   return SWIG_OK;
@@ -355,14 +403,13 @@ int Language::exceptDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::importDirective(Node *n) {
-  Node *c;
   int oldim = ImportMode;
   ImportMode = IMPORT_MODE;
-  for (c = firstChild(n); c; c = nextSibling(c)) {
-    emit_one(c);
-  }
+
+  emit_children(n);
+
   if (ImportMode & IMPORT_MODULE) {
-    lang->import_end();
+    import_end();
   }
   ImportMode = oldim;
   return SWIG_OK;
@@ -373,10 +420,7 @@ int Language::importDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::includeDirective(Node *n) {
-  Node *c;
-  for (c = firstChild(n); c; c = nextSibling(c)) {
-    emit_one(c);
-  }
+  emit_children(n);
   return SWIG_OK;
 }
 
@@ -415,7 +459,7 @@ int Language::moduleDirective(Node *n) {
   String *name = Getattr(n,"name");
   if (ImportMode) {
     if (ImportMode == IMPORT_MODE) {
-      lang->import_start(Char(name));
+      import_start(Char(name));
       ImportMode |= IMPORT_MODULE;
     } 
   }
@@ -458,7 +502,7 @@ int Language::pragmaDirective(Node *n) {
     String *name = Getattr(n,"name");
     String *value = Getattr(n,"value");
     swig_pragma(Char(lan),Char(name),Char(value));
-    lang->pragma(Char(lan),Char(name),Char(value));
+    pragma(Char(lan),Char(name),Char(value));
     return SWIG_OK;
   } else {
     return SWIG_NOWRAP;
@@ -996,11 +1040,11 @@ Language::membervariableHandler(Node *n) {
     gname = NewStringf(AttributeFunctionGet,symname);
     if (!AddMethods) {
       ActionFunc = Copy(Swig_cmemberget_call(name,type));
-      lang->cpp_member_func(Char(gname),Char(gname),type,0);
+      cpp_member_func(Char(gname),Char(gname),type,0);
       Delete(ActionFunc);
     } else {
       String *cname = Copy(Swig_name_get(name));
-      lang->cpp_member_func(Char(cname),Char(gname),type,0);
+      cpp_member_func(Char(cname),Char(gname),type,0);
       Delete(cname);
     }
     Delete(gname);
@@ -1009,11 +1053,11 @@ Language::membervariableHandler(Node *n) {
       vty = NewString("void");
       if (!AddMethods) {
 	ActionFunc = Copy(Swig_cmemberset_call(name,type));
-	lang->cpp_member_func(Char(gname),Char(gname),vty,p);
+	cpp_member_func(Char(gname),Char(gname),vty,p);
 	Delete(ActionFunc);
       } else {
 	String *cname = Copy(Swig_name_set(name));
-	lang->cpp_member_func(Char(cname),Char(gname),vty,p);
+	cpp_member_func(Char(cname),Char(gname),vty,p);
 	Delete(cname);
       }
       Delete(gname);
@@ -1060,11 +1104,7 @@ Language::staticmembervariableHandler(Node *n)
  * ---------------------------------------------------------------------- */
 
 int Language::externDeclaration(Node *n) {
-  Node *c;
-  for (c = firstChild(n); c; c = nextSibling(c)) {
-    emit_one(c);
-  }
-  return SWIG_OK;
+  return emit_children(n);
 }
 
 /* ----------------------------------------------------------------------
@@ -1074,10 +1114,7 @@ int Language::externDeclaration(Node *n) {
 int Language::enumDeclaration(Node *n) {
   String *name = Getattr(n,"name");
   if (!ImportMode) {
-    Node *c;
-    for (c = firstChild(n); c; c = nextSibling(c)) {
-      emit_one(c);
-    }
+    emit_children(n);
   }
   if (name) {
     SwigType *t = NewStringf("enum %s", name);
@@ -1235,10 +1272,8 @@ int Language::classDeclaration(Node *n) {
 int Language::classHandler(Node *n) {
 
   /* Emit all of the class members */
-  Node *c;
-  for (c = firstChild(n); c; c = nextSibling(c)) {
-    emit_one(c);
-  }
+  emit_children(n);
+
   cplus_mode = CPLUS_PUBLIC;
   if (!ImportMode && GenerateDefault) {
     if (!Getattr(n,"has_constructor") && (!Getattr(n,"has_private_constructor")) && (Getattr(n,"has_base_default_constructor"))) {

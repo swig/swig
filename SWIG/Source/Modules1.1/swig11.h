@@ -52,6 +52,46 @@ extern  int       Abstract;
 #define  tab4   "    "
 #define  tab8   "        "
 
+class Dispatcher {
+ public:
+  
+  virtual int emit_one(Node *n);
+  virtual int emit_children(Node *n);
+
+  /* Top of the parse tree */
+  virtual int  top(Node *n) = 0;
+  
+  /* SWIG directives */
+  
+  virtual int addmethodsDirective(Node *n);
+  virtual int applyDirective(Node *n);
+  virtual int clearDirective(Node *n);
+  virtual int constantDirective(Node *n);
+  virtual int exceptDirective(Node *n);
+  virtual int importDirective(Node *n);
+  virtual int includeDirective(Node *n);
+  virtual int insertDirective(Node *n);
+  virtual int moduleDirective(Node *n);
+  virtual int nativeDirective(Node *n);
+  virtual int newDirective(Node *n);
+  virtual int pragmaDirective(Node *n);
+  virtual int typemapDirective(Node *n);
+  virtual int typemapcopyDirective(Node *n);
+  virtual int typesDirective(Node *n);
+
+  /* C/C++ parsing */
+  
+  virtual int cDeclaration(Node *n);
+  virtual int externDeclaration(Node *n);
+  virtual int enumDeclaration(Node *n);
+  virtual int enumvalueDeclaration(Node *n);
+  virtual int classDeclaration(Node *n);
+  virtual int classforwardDeclaration(Node *n);
+  virtual int constructorDeclaration(Node *n);
+  virtual int destructorDeclaration(Node *n);
+  virtual int accessDeclaration(Node *n);
+};
+
 /************************************************************************
  * class language:
  *
@@ -60,8 +100,9 @@ extern  int       Abstract;
  * functions to output different types of code for different languages.
  *************************************************************************/
 
-class Language {
+class Language : public Dispatcher {
 public:
+  virtual int emit_one(Node *n);
 
   /* Parse command line options */
 
