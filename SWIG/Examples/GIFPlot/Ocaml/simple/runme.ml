@@ -6,26 +6,26 @@ open Int32
 
 let _ = print_endline "Drawing some basic shapes"
 
-let cmap = new_colormap ("cmap")
-let f = new_framebuffer (Int32.of_int 400,Int32.of_int 400)
+let cmap = new_ColorMap ("cmap")
+let f = new_FrameBuffer (Int32.of_int 400,Int32.of_int 400)
 
 (* Clear the picture *)
-let _ = framebuffer_clear (f,black)
+let _ = _FrameBuffer_clear (f,_BLACK)
 
 (* Make a red box *)
-let _ = framebuffer_box (f,40,40,200,200,red)
+let _ = _FrameBuffer_box (f,40,40,200,200,_RED)
 
 (* Make a blue circle *)
-let _ = framebuffer_circle (f,200,200,40,blue)
+let _ = _FrameBuffer_circle (f,200,200,40,_BLUE)
 
 (* Make green line *)
-let _ = framebuffer_line (f,10,390,390,200,green)
+let _ = _FrameBuffer_line (f,10,390,390,200,_GREEN)
 
 (* Write an image out to disk *)
 
-let _ = framebuffer_writegif (f,cmap,"image.gif")
+let _ = _FrameBuffer_writeGIF (f,cmap,"image.gif")
 let _ = print_endline "Wrote image.gif"
 
-let _ = delete_framebuffer f
-let _ = delete_colormap cmap
+let _ = delete_FrameBuffer f
+let _ = delete_ColorMap cmap
 
