@@ -942,6 +942,7 @@ public:
     numopt = 0;
     
     outarg = NewString("");
+    cleanup = NewString("");
     
     // Special action for shadowing destructors under php.
     // The real destructor is the resource list destructor, this is
@@ -967,9 +968,11 @@ public:
       // Skip ignored arguments
       {
         p=l;
-        while (Getattr(p,"tmap:ignore")) {
-  	p = Getattr(p,"tmap:ignore:next");
-        }
+        //while (Getattr(p,"tmap:ignore")) {p = Getattr(p,"tmap:ignore:next");}
+	while (checkAttribute(p,"tmap:in:numinputs","0")) {
+	  p = Getattr(p,"tmap:in:next");
+	}
+
         SwigType *pt = Getattr(p,"type");
 
         Printf(df->code,
@@ -998,7 +1001,7 @@ public:
     /* Attach standard typemaps */
 
     emit_attach_parmmaps(l,f);
-    
+
     int num_arguments = emit_num_arguments(l);
     int num_required  = emit_num_required(l);
     numopt = num_arguments - num_required;
@@ -1075,9 +1078,11 @@ public:
 
     for (i = 0, p = l; i < num_arguments; i++) {
       /* Skip ignored arguments */
-      while (Getattr(p,"tmap:ignore")) {
-	p = Getattr(p,"tmap:ignore:next");
+      //while (Getattr(p,"tmap:ignore")) { p = Getattr(p,"tmap:ignore:next");}
+      while (checkAttribute(p,"tmap:in:numinputs","0")) {
+        p = Getattr(p,"tmap:in:next");
       }
+
       SwigType *pt = Getattr(p,"type");
 
  
@@ -1125,7 +1130,7 @@ public:
 	p = nextSibling(p);
       }
     }
-    
+
     /* Insert cleanup code */
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p,"tmap:freearg"))) {

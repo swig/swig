@@ -8,7 +8,7 @@
 %runtime "common.swg"		// common type checking code
 %runtime "php4run.swg"		// Php4 runtime functions
 
-/* Typemaps for input parameters */
+/* Typemaps for input parameters by value */
 
 %typemap(in) int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, enum SWIGTYPE %{
 	convert_to_long_ex($input);
@@ -55,11 +55,11 @@
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
     /* So... we didn't get a ref or ptr, but we'll accept NULL by reference */
     if ((*$input)->type==IS_NULL && PZVAL_IS_REF(*$input)) {
-      #if __cplusplus
+#if __cplusplus
       ptr=new $*1_ltype;
-      #else
+#else
       ptr=($*1_ltype) calloc(1,sizeof($*1_ltype));
-      #endif
+#endif
       $1=&ptr;
       /* have to passback arg$arg too */
       force=1;
