@@ -32,6 +32,8 @@ static String  *ActionFunc = 0;
 static int      cplus_mode = 0;
 static Node    *CurrentClass = 0;
 static Hash    *ClassHash = 0;
+static int      IgnoreOverloadedConstructors = 0;
+static int      IgnoreOverloaded = 0;
 
 extern    int           GenerateDefault;
 extern    int           ForceExtern;
@@ -260,6 +262,11 @@ void swig_pragma(char *lang, char *name, char *value) {
     } else if (strcmp(name,"noattributefunction") == 0) {
       AttributeFunctionGet = 0;
       AttributeFunctionSet = 0;
+    } else if (strcmp(name,"ignore_overloaded_constructors") == 0) {
+      IgnoreOverloadedConstructors = 1;
+    } else if (strcmp(name,"ignore_overloaded") == 0) {
+      IgnoreOverloadedConstructors = 1;
+      IgnoreOverloaded = 1;
     }
   }
 }
@@ -586,30 +593,44 @@ int Language::cDeclaration(Node *n) {
   /* Overloaded symbol check */
   over = Swig_symbol_isoverloaded(n);
   if (over && (over != n)) {
-    SwigType *tc = Copy(decl);
-    SwigType *td = SwigType_pop(tc);
-    String   *oname;
-    String   *cname;
-    if (CurrentClass) {
-      oname = NewStringf("%s::%s",ClassName,name);
-      cname = NewStringf("%s::%s",ClassName,Getattr(over,"name"));
-    } else {
-      oname = NewString(name);
-      cname = NewString(Getattr(over,"name"));
+    if (!IgnoreOverloaded) {
+      SwigType *tc = Copy(decl);
+      SwigType *td = SwigType_pop_function(tc);
+      String   *oname;
+      String   *cname;
+      if (CurrentClass) {
+	oname = NewStringf("%s::%s",ClassName,name);
+	cname = NewStringf("%s::%s",ClassName,Getattr(over,"name"));
+      } else {
+	oname = NewString(name);
+	cname = NewString(Getattr(over,"name"));
+      }
+      Printf(stderr,"%s:%d. Overloaded declaration ignored.  %s\n",
+	     input_file,line_number, SwigType_str(td,oname));
+      
+      SwigType *tc2 = Copy(Getattr(over,"decl"));
+      SwigType *td2 = SwigType_pop_function(tc2);
+      Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(td2,cname));
+      Delete(tc2);
+      Delete(td2);
+      Delete(tc);
+      Delete(td);
+      Delete(oname);
+      Delete(cname);
+      return SWIG_NOWRAP;
     }
-    Printf(stderr,"%s:%d. Overloaded declaration ignored.  %s\n",
-	   input_file,line_number, SwigType_str(td,oname));
-    
-    Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(Getattr(over,"decl"),cname));
-    Delete(tc);
-    Delete(td);
-    Delete(oname);
-    Delete(cname);
-    return SWIG_NOWRAP;
   }
   
   if (strstr(Char(name),"::")) {
-    Printf(stderr,"%s:%d. Warning. Qualified declaration %s ignored.\n", input_file, line_number, name);    
+    /* Get the class name */
+    char *c;
+    String *tmp = Copy(name);
+    c = strstr(Char(tmp),"::");
+    *c = 0;
+    if (!Getattr(ClassHash,Char(tmp))) {
+      Printf(stderr,"%s:%d. Warning. Nothing known about class %s. Declaration ignored.\n", input_file, line_number, tmp);    
+    }
+    Delete(tmp);
     return SWIG_NOWRAP;
   }
 
@@ -1153,7 +1174,6 @@ int Language::typedefHandler(Node *) {
 int Language::classDeclaration(Node *n) {
   String *kind = Getattr(n,"kind");
   String *name = Getattr(n,"name");
-  List   *bases = Getattr(n,"bases");
   String *tdname = Getattr(n,"tdname");
   String *symname = Getattr(n,"sym:name");
   String *unnamed = Getattr(n,"unnamed");
@@ -1261,13 +1281,15 @@ int Language::constructorDeclaration(Node *n) {
     Node *over;
     over = Swig_symbol_isoverloaded(n);
     if ((over) && (over != n)) {
-      String *oname = NewStringf("%s::%s", ClassName, name);
-      String *cname = NewStringf("%s::%s", ClassName, Getattr(over,"name"));
-      SwigType *decl = Getattr(n,"decl");
-      Printf(stderr,"%s:%d. Overloaded constructor ignored.  %s\n", input_file,line_number, SwigType_str(decl,oname));
-      Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over),SwigType_str(Getattr(over,"decl"),cname));
-      Delete(oname);
-      Delete(cname);
+      if (!IgnoreOverloadedConstructors) {
+	String *oname = NewStringf("%s::%s", ClassName, name);
+	String *cname = NewStringf("%s::%s", ClassName, Getattr(over,"name"));
+	SwigType *decl = Getattr(n,"decl");
+	Printf(stderr,"%s:%d. Overloaded constructor ignored.  %s\n", input_file,line_number, SwigType_str(decl,oname));
+	Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over),SwigType_str(Getattr(over,"decl"),cname));
+	Delete(oname);
+	Delete(cname);
+      }
     } else {
       if (name && (Cmp(name,ClassName))) {
 	Printf(stderr,"%s:%d.  Function %s must have a return type.\n", 
