@@ -194,3 +194,20 @@ libswigocaml$(RELEASESUFFIX).la:
 	cat $(srcdir)/$(OCAML_RUNTIME) >> libswigocaml.c
 	$(LIBTOOL) $(CC) $(OCAML_CFLAGS) -c $(OCAML_INCLUDE) -DSWIG_GLOBAL libswigocaml.c
 	$(LIBTOOL) $(CC) -o libswigocaml$(RELEASESUFFIX).la libswigocaml.lo -rpath $(LIB_DIR) 
+
+# ----------------------------------------------------------------------
+# Pike run-time library
+# ----------------------------------------------------------------------
+
+PIKE_INCLUDE = -DHAVE_CONFIG_H @PIKEINCLUDE@
+PIKE_RUNTIME = $(SWIGLIB)/pike/pikerun.swg
+
+# Pike shared
+
+pike: libswigpike$(RELEASESUFFIX).la
+
+libswigpike$(RELEASESUFFIX).la:
+	rm -f libpike.c
+	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PIKE_RUNTIME) >> libpike.c
+	$(LIBTOOL) $(CC) -c $(PIKE_INCLUDE) -DSWIG_GLOBAL libpike.c
+	$(LIBTOOL) $(CC) -o libswigpike$(RELEASESUFFIX).la libpike.lo -rpath $(LIB_DIR) -avoid-version 
