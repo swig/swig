@@ -36,8 +36,8 @@
   typedef int Int;
   typedef int Int;
 
-  int hello(int);
-  inline int hello(int) { return 0; }
+  inline int hello(int);
+  int hello(int) { return 0; }
   
   struct B;
   

@@ -1025,11 +1025,11 @@ public:
     
     if (n && Getattr(n,"feature:callback")) {
       if (have_docstring(n)) {
-	Printf(methods,"\"%s\\nswig_ptr: %s\"",
+	Printf(methods,"(char *)\"%s\\nswig_ptr: %s\"",
 	       docstring(n, AUTODOC_FUNC, "", false),
 	       Getattr(n,"feature:callback:name"));
       } else {
-	Printf(methods,"\"swig_ptr: %s\"",Getattr(n,"feature:callback:name"));
+	Printf(methods,"(char *)\"swig_ptr: %s\"",Getattr(n,"feature:callback:name"));
       }
     } else {
       Printf(methods,"NULL");

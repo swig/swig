@@ -30,11 +30,11 @@
   };
   
 
-  int foobar(int a, int (*pf)(int a)) {
+  extern "C" int foobar(int a, int (*pf)(int a)) {
     return pf(a);
   }
 
-  int foobarm(int a, A ap, int (A::*pf)(int a)) {
+  extern "C" int foobarm(int a, A ap, int (A::*pf)(int a)) {
     return (ap.*pf)(a);
   }
 

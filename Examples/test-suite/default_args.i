@@ -162,9 +162,10 @@ public:
   char contrived(const char *c = &charvalue) { return *c; }
 protected:
   static const int intvalue = 2000;
-  static const double doublevalue = 987.654;
+  static const double doublevalue;
 };
 const char Tricky::charvalue = 'X';
+const double Tricky::doublevalue = 987.654;
 
 
 // tests default argument which is a constructor call within namespace

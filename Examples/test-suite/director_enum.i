@@ -12,7 +12,7 @@
 
 %inline %{
 namespace EnumDirector {
-  class A;
+  struct A;
 
   enum Hello {
     hi, hello, yo, awright

@@ -9,6 +9,7 @@
 %inline 
 %{
 
+  void globalscope(); // forward declaration needed for some compilers
 
   struct A;
   struct B

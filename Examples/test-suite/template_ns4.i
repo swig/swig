@@ -58,8 +58,8 @@
 
 %{  
   namespace hello {
-    template class Function <Double, Double>;
-    template class ArithFunction <Double, Double>;
+    template struct Function <Double, Double>;
+    template struct ArithFunction <Double, Double>;
     template class Class <Double, Double>;   
   }  
 %}

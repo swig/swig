@@ -442,11 +442,9 @@ namespace curly {
 }
 
 struct Obscure {
-  enum {};
   enum Zero {};
   enum One {one};
   enum Two {two, twoagain};
-  typedef enum {};
   typedef enum Empty {};
   typedef enum {} AlsoEmpty;
 };
