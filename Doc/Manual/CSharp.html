@@ -47,7 +47,17 @@ Global constants are generated into the module class. There is no constants inte
 </li>
 
 <li>
+There is no implementation for type unsafe enums - not deemed necessary.
+</li>
+
+<li>
 The default enum wrapping approach is proper C# enums, not typesafe enums.
+<br/>
+Note that %csconst(0) will be ignored when wrapping C/C++ enums with proper C# enums.
+This is because C# enum items must be initialised from a compile time constant.
+If an enum item has an initialiser and the initialiser doesn't compile as C# code,
+then the %csconstvalue directive must be used as %csconst(0) will have no effect.
+If it was used, it would generate an illegal runtime initialisation via a PINVOKE call.
 </li>
 
 <li>
@@ -59,13 +69,12 @@ jtype                       -> imtype
 jstype                      -> cstype
 javain                      -> csin
 javaout                     -> csout
-javainterfaces              -> csinterfaces
+javainterfaces              -> csinterfaces and csinterfaces_derived
 javabase                    -> csbase
 javaclassmodifiers          -> csclassmodifiers
 javacode                    -> cscode
 javaimports                 -> csimports
-javaptrconstructormodifiers -> csptrconstructormodifiers
-javagetcptr                 -> csgetcptr
+javabody                    -> csbody
 javafinalize                -> csfinalize
 javadestruct                -> csdestruct
 javadestruct_derived        -> csdestruct_derived
@@ -86,15 +95,16 @@ csvarout                    C# code property get typemap
 <li>
 Feature equivalent names:
 <blockquote><pre>
-javaconst                   -> csconst
-javamethodmodifiers         -> csmethodmodifiers
+%javaconst                  -> %csconst
+%javaconstvalue             -> %csconstvalue
+%javamethodmodifiers        -> %csmethodmodifiers
 </pre></blockquote>
 </li>
 
 <li>
 Pragma equivalent names:
 <blockquote><pre>
-pragma(java)                -> pragma(csharp)
+%pragma(java)               -> %pragma(csharp)
 jniclassbase                -> imclassbase
 jniclassclassmodifiers      -> imclassclassmodifiers
 jniclasscode                -> imclasscode
@@ -126,3 +136,4 @@ Any one of the three C# compilers (Portable.NET, Mono or Microsoft) can be detec
 
 </body>
 </html>
+
