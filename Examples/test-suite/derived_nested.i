@@ -8,7 +8,9 @@ This was reported in bug #909389 */
 class A { int x; };
 class B {
   class C { int y; }; //generates a warning
-  class D : public A { int z; }; //generates an error
+  class D : public A { int z; }; //ok
+  class E : public A { int z; } e; //ok
 };
 
 %}
+
