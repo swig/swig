@@ -28,24 +28,22 @@ namespace std {
     %typemap(typecheck) const string & = char *;
 
     %typemap(in) string {
-        if (!SvPOK((SV*) $input)) {
-            SWIG_croak("Type error in argument $argnum of $symname. "
-                       "Expected a string");
+        STRLEN len;
+        const char *ptr = SvPV($input, len);
+        if (!ptr) {
+            SWIG_croak("Undefined variable in argument $argnum of $symname.");
         } else {
-            STRLEN len;
-            const char *ptr = SvPV($input, len);
             $1.assign(ptr, len);
-        } 
+        }
     }
 
     %typemap(in) string *INPUT(std::string temp), 
                  const string & (std::string temp) {
-        if (!SvPOK((SV*) $input)) {
-            SWIG_croak("Type error in argument $argnum of $symname. "
-                       "Expected a string");
+        STRLEN len;
+        const char *ptr = SvPV($input, len);
+        if (!ptr) {
+            SWIG_croak("Undefined variable in argument $argnum of $symname.");
         } else {
-            STRLEN len;
-            const char *ptr = SvPV($input, len);
             temp.assign(ptr, len);
             $1 = &temp;
         }
