@@ -402,7 +402,11 @@ int Language::constantDirective(Node *n) {
     if (!value) {
       value = Copy(name);
     } else {
-      value = NewStringf("%(escape)s", value);
+      if (checkAttribute(n,"type","char")) {
+	value = NewString(value);
+      } else {
+	value = NewStringf("%(escape)s", value);
+      }
     }
     Setattr(n,"value", value);
     this->constantWrapper(n);
