@@ -159,19 +159,51 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
 
 statichere PyTypeObject varlinktype = {
   PyObject_HEAD_INIT(0)              
-  0,
-  (char *)"swigvarlink",              /* Type name    */
-  sizeof(swig_varlinkobject),         /* Basic size   */
-  0,                                  /* Itemsize     */
-  0,                                  /* Deallocator  */ 
-  (printfunc) swig_varlink_print,     /* Print        */
-  (getattrfunc) swig_varlink_getattr, /* get attr     */
-  (setattrfunc) swig_varlink_setattr, /* Set attr     */
-  0,                                  /* tp_compare   */
-  (reprfunc) swig_varlink_repr,       /* tp_repr      */    
+  0,                                  /* Number of items in variable part (ob_size) */
+  (char *)"swigvarlink",              /* Type name (tp_name) */
+  sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
+  0,                                  /* Itemsize (tp_itemsize) */
+  0,                                  /* Deallocator (tp_dealloc) */ 
+  (printfunc) swig_varlink_print,     /* Print (tp_print) */
+  (getattrfunc) swig_varlink_getattr, /* get attr (tp_getattr) */
+  (setattrfunc) swig_varlink_setattr, /* Set attr (tp_setattr) */
+  0,                                  /* tp_compare */
+  (reprfunc) swig_varlink_repr,       /* tp_repr */
   0,                                  /* tp_as_number */
-  0,                                  /* tp_as_mapping*/
-  0,                                  /* tp_hash      */
+  0,                                  /* tp_as_sequence */
+  0,                                  /* tp_as_mapping */
+  0,                                  /* tp_hash */
+  0,                                  /* tp_call */
+  0,                                  /* tp_str */
+  0,                                  /* tp_getattro */
+  0,                                  /* tp_setattro */
+  0,                                  /* tp_as_buffer */
+  0,                                  /* tp_flags */
+  0,                                  /* tp_doc */
+  0,                                  /* tp_traverse */
+  0,                                  /* tp_clear */
+  0,                                  /* tp_richcompare */
+  0,                                  /* tp_weaklistoffset */
+  0,                                  /* tp_iter */
+  0,                                  /* tp_iternext */
+  0,                                  /* tp_methods */
+  0,                                  /* tp_members */
+  0,                                  /* tp_getset */
+  0,                                  /* tp_base */
+  0,                                  /* tp_dict */
+  0,                                  /* tp_descr_get */
+  0,                                  /* tp_descr_set */
+  0,                                  /* tp_dictoffset */
+  0,                                  /* tp_init */
+  0,                                  /* tp_alloc */
+  0,                                  /* tp_new */
+  0,                                  /* tp_free */
+  0,                                  /* tp_is_gc */
+  0,                                  /* tp_bases */
+  0,                                  /* tp_mro */
+  0,                                  /* tp_cache */
+  0,                                  /* tp_subclasses */
+  0,                                  /* tp_weaklist */
 };
 
 /* Create a variable linking object for use later */
