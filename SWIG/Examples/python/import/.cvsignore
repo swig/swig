@@ -1,4 +1,7 @@
+bar.py
 base.py
+foo.py
+spam.py
 *_wrap.c
 *_wrap.cxx
 example.dll
