@@ -155,7 +155,7 @@ RUBY::main(int argc, char *argv[]) {
   SWIG_library_directory("ruby");
 
   /* Add a symbol to the parser for conditional compilation */
-  Preprocessor_define((void *) "SWIGRUBY", 0);
+  Preprocessor_define((void *) "SWIGRUBY 1", 0);
 
   /* Add typemap definitions */
   SWIG_typemap_lang("ruby");
