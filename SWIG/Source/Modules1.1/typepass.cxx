@@ -67,13 +67,14 @@ class TypePass : public Dispatcher {
       SwigType *ty = Getattr(p,"type");
       normalize_type(ty);
       String *value = Getattr(p,"value");
-      if ((value) && (!Swig_scopename_check(value))) {
+      if (value) {
 	Node *n = Swig_symbol_clookup(value,0);
 	if (n) {
 	  String *q = Swig_symbol_qualified(n);
 	  if (q && Len(q)) {
-	    Insert(value,0,"::");
-	    Insert(value,0,SwigType_namestr(q));
+	    String *vb = Swig_scopename_last(value);
+	    Clear(value);
+	    Printf(value,"%s::%s", SwigType_namestr(q), vb);
 	    Delete(q);
 	  }
 	}
