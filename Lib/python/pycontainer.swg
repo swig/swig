@@ -32,8 +32,8 @@ namespace swigpy {
 	return (size_t) (i + size);
     } else if ( (size_t) i < size ) {
       return (size_t) i;
-    } if (insert) {
-      if (i == size) return i;
+    } else if (insert && ((size_t) i == size)) {
+      return size;
     }
     
     throw std::out_of_range("index out of range");
