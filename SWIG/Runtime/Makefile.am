@@ -103,14 +103,14 @@ libswigguile_la_LDFLAGS = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(GUI
 libswigguile_la_CFLAGS  = -DSWIG_GLOBAL $(GUILE_INCLUDE)
 
 libguile_gh.c: $(GUILE_GH_RUNTIME)
-	cat $(GUILE_GH_RUNTIME) > libguile_gh.c
+	../swig -guile -gh -runtime -I../Lib -I../Lib/guile -o libguile_gh.c swigrun.i
 
 libswigguilescm_la_SOURCES = libguile_scm.c
 libswigguilescm_la_LDFLAGS = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
 libswigguilescm_la_CFLAGS = -DSWIG_GLOBAL $(GUILE_INCLUDE)
 
 libguile_scm.c: $(GUILE_SCM_PRECOMMON) $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME)
-	cat $(GUILE_SCM_PRECOMMON) $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME) > libguile_scm.c
+	../swig -guile -scm -runtime -I../Lib -I../Lib/guile -o libguile_scm.c swigrun.i
 
 # ----------------------------------------------------------------------
 # Ruby run-time library
