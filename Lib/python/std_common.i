@@ -214,7 +214,7 @@ namespace swigpy {
     typedef Type value_type;
     static value_type as(PyObject *obj, bool throw_error) {
       value_type *v = 0;
-      int res = obj ? asptr(obj, &v) : 0;
+      int res = (obj ? asptr(obj, &v) : 0) && v;
       if (res) {
 	if (res == SWIG_NEWOBJ) {
 	  value_type r(*v);
@@ -224,6 +224,8 @@ namespace swigpy {
 	  return *v;
 	}
       } else {
+	// Uninitialized return value, no Type() constructor required.
+	static value_type *v_def = (Type*) malloc(sizeof(Type));
 	std::string msg = "a value of type '";
 	msg += swigpy::type_name<Type>();
 	msg += "' is expected";
@@ -231,6 +233,7 @@ namespace swigpy {
 	  PyErr_SetString(PyExc_TypeError, msg.c_str());
 	}
 	if (throw_error) throw std::invalid_argument(msg);
+	return *v_def;
       }
     }
   };
@@ -412,12 +415,12 @@ namespace swigpy {
 
 #ifdef SWIG_STD_EXTEND_COMPARISON
 %define %std_extcomp(Class,T)
-  %apply_if(SWIG_EqualType(T), %std_equal_methods(std::Class<T >))
-  %apply_if(SWIG_OrderType(T), %std_order_methods(std::Class<T >))
+  %evalif(SWIG_EqualType(T), %std_equal_methods(std::Class<T >))
+  %evalif(SWIG_OrderType(T), %std_order_methods(std::Class<T >))
 %enddef
 %define %_std_extcomp_2(Class,T,U)
-  %apply_if2(SWIG_EqualType(T),SWIG_EqualType(U),%std_equal_methods(std::Class<T,U >))
-  %apply_if2(SWIG_OrderType(T),SWIG_EqualType(U),%std_order_methods(std::Class<T,U >))
+  %evalif_2(SWIG_EqualType(T),SWIG_EqualType(U),%std_equal_methods(std::Class<T,U >))
+  %evalif_2(SWIG_OrderType(T),SWIG_EqualType(U),%std_order_methods(std::Class<T,U >))
 %enddef
 %define %std_extcomp_2(Class,T,...)
   %_std_extcomp_2(Class,T,__VA_ARGS__)
