@@ -31,6 +31,7 @@
 <li><a href="#Typemaps_nn17">Basic matching rules</a>
 <li><a href="#Typemaps_nn18">Typedef reductions</a>
 <li><a href="#Typemaps_nn19">Default typemaps</a>
+<li><a href="#Typemaps_mixed_default">Mixed default typemaps</a>
 <li><a href="#Typemaps_nn20">Multi-arguments typemaps</a>
 </ul>
 <li><a href="#Typemaps_nn21">Code generation rules</a>
@@ -1180,18 +1181,20 @@ definitions are usually found in the SWIG library in a file such as
 <tt>python.swg</tt>, <tt>tcl8.swg</tt>, etc.
 </p>
 
-<H3>Mixed default typemaps</H3>
+<H3><a name="Typemaps_mixed_default"></a>10.3.4 Mixed default typemaps</H3>
+
+
 The default typemaps described above can be mixed with <tt>const</tt> and with each other.
 For example the <tt>SWIGTYPE *</tt> typemap is for default pointer handling, but if a <tt>const SWIGTYPE *</tt> typemap
 is defined it will be used instead for constant pointers. Some further examples follow:
 
 <blockquote>
 <pre>
-%typemap(in) enum SWIGTYPE &amp;                    { ... enum references ...                       }
-%typemap(in) const enum SWIGTYPE &amp;              { ... const enum references ...                 }
-%typemap(in) SWIGTYPE *&amp;                        { ... pointers passed by reference ...          }
-%typemap(in) SWIGTYPE * const &amp;                 { ... constant pointers passed by reference ... }
-%typemap(in) SWIGTYPE[ANY][ANY]                 { ... 2D arrays ...                             }
+%typemap(in) enum SWIGTYPE &amp;        { ... enum references ...                       }
+%typemap(in) const enum SWIGTYPE &amp;  { ... const enum references ...                 }
+%typemap(in) SWIGTYPE *&amp;            { ... pointers passed by reference ...          }
+%typemap(in) SWIGTYPE * const &amp;     { ... constant pointers passed by reference ... }
+%typemap(in) SWIGTYPE[ANY][ANY]     { ... 2D arrays ...                             }
 </pre>
 </blockquote>
 
@@ -1225,7 +1228,7 @@ Expect to see them being used more and more within the various libraries in late
 </p>
 
 
-<H3><a name="Typemaps_nn20"></a>10.3.4 Multi-arguments typemaps</H3>
+<H3><a name="Typemaps_nn20"></a>10.3.5 Multi-arguments typemaps</H3>
 
 
 <p>
