@@ -16,10 +16,10 @@ public:
     // Use a renamed member as a default argument.  SWIG has to resolve
     // bar to Foo::bar and not Foo::spam.  SWIG-1.3.11 got this wrong.
 
-    void method1(int x = bar);
+    void method1(int x = bar) {}
    
     // Use unrenamed member as default
-    void method2(int x = spam);
+    void method2(int x = spam) {}
 };
 int Foo::bar = 1;
 int Foo::spam = 2;
