@@ -19,8 +19,8 @@ public class runme {
         NDouble dc = (NDouble)d.copy();
         NInt ic = (NInt)i.copy();
 
-        NDouble ddc = (NDouble)NDouble.narrow(dc);
-        NInt dic = (NInt)NInt.narrow(ic);
+        NDouble ddc = NDouble.narrow(dc);
+        NInt dic = NInt.narrow(ic);
 
         virtual_poly.incr(ic);
         if ( (i.get() + 1) != ic.get() )
