@@ -1,5 +1,5 @@
 /*******************************************************************************
- * DOH (Dynamic Object Hack)
+ * DOH (Dave's Object Hack)
  * 
  * Author : David Beazley
  *
@@ -17,51 +17,48 @@
  * $Header$
  *
  * doh.h
+ *
+ * DOH is really not much more than an interface.  This file describes
+ * the interface.
  ***********************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <ctype.h>
-#include <stdarg.h>
-
-#ifndef DOH_H
-#define DOH_H
-
-#define DOH_MAJOR_VERSION 0
-#define DOH_MINOR_VERSION 1
+#ifndef _DOH_H
+#define _DOH_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define DOH_MAJOR_VERSION 0
+#define DOH_MINOR_VERSION 1
 
 typedef void DOH;                
 
 #define DOH_BEGIN    -1
 #define DOH_END      -2
 #define DOH_CUR      -3
+#define DOH_CURRENT  -3
 
 /* -----------------------------------------------------------------------------
- * Object classes
+ * These structures define the interface to various categories of objects.
  * ----------------------------------------------------------------------------- */
 
-/* Mapping Objects */
+/* Mapping Objects (i.e., hash tables) */
 typedef struct {
-  DOH    *(*doh_getattr)(DOH *obj, DOH *name);                             /* Get attribute */
-  int     (*doh_setattr)(DOH *obj, DOH *name, DOH *value);                 /* Set attribute */
-  int     (*doh_delattr)(DOH *obj, DOH *name);                             /* Del attribute */
-  DOH    *(*doh_firstkey)(DOH *obj);                                       /* First key     */
-  DOH    *(*doh_nextkey)(DOH *obj);                                        /* Next key      */
+  DOH    *(*doh_getattr)(DOH *obj, DOH *name);               /* Get attribute */
+  int     (*doh_setattr)(DOH *obj, DOH *name, DOH *value);   /* Set attribute */
+  int     (*doh_delattr)(DOH *obj, DOH *name);               /* Del attribute */
+  DOH    *(*doh_firstkey)(DOH *obj);                         /* First key     */
+  DOH    *(*doh_nextkey)(DOH *obj);                          /* Next key      */
 } DohMappingMethods;
 
-/* Sequence methods */
+/* Sequence methods (i.e., lists) */
 typedef struct {
-  DOH      *(*doh_getitem)(DOH *obj, int index);
-  int       (*doh_setitem)(DOH *obj, int index, DOH *value);
-  int       (*doh_delitem)(DOH *obj, int index);
-  int       (*doh_insitem)(DOH *obj, int index, DOH *value);
-  DOH      *(*doh_firstitem)(DOH *obj);
+  DOH      *(*doh_getitem)(DOH *obj, int index);             /* Get item      */
+  int       (*doh_setitem)(DOH *obj, int index, DOH *value); /* Set item      */
+  int       (*doh_delitem)(DOH *obj, int index);             /* Delete item   */
+  int       (*doh_insitem)(DOH *obj, int index, DOH *value); /* Insert item   */
+  DOH      *(*doh_firstitem)(DOH *obj);                      /* Iterators     */  
   DOH      *(*doh_nextitem)(DOH *obj);
 } DohSequenceMethods;
 
@@ -77,25 +74,38 @@ typedef struct {
   int       (*doh_close)(DOH *obj);
 } DohFileMethods;
 
+/* String methods */
+typedef struct {
+  int     (*doh_replace)(DOH *obj, DOH *old, DOH *rep, int flags);
+} DohStringMethods;
+
+/* Callable */
+typedef struct {
+  DOH     (*doh_call)(DOH *obj, DOH *args);                 /* Callable */
+} DohCallableMethods;
+  
+
 /* -----------------------------------------------------------------------------
  * DohObjInfo
  * 
- * Included in all DOH types.  
+ * A pointer to this structure is included in all DOH types and is used to
+ * describe the properties of various objects.
  * ----------------------------------------------------------------------------- */
 
 typedef struct DohObjInfo {
-  char       *objname;                     /* Object name        */
-  int         objsize;                     /* Object size        */
+  char       *objname;                         /* Object name        */
+  int         objsize;                         /* Object size        */
 
   /* Basic object methods */
-  void      (*doh_del)(DOH *obj);          /* Delete object      */
-  DOH      *(*doh_copy)(DOH *obj);         /* Copy and object    */
-  void      (*doh_clear)(DOH *obj);        /* Clear an object    */
+  void      (*doh_del)(DOH *obj);              /* Delete object      */
+  DOH      *(*doh_copy)(DOH *obj);             /* Copy and object    */
+  void      (*doh_clear)(DOH *obj);            /* Clear an object    */
 
   /* Output methods */
   DOH       *(*doh_str)(DOH *obj);             /* Make a full string */
   void      *(*doh_data)(DOH *obj);            /* Return raw data    */
-  int        (*doh_dump)(DOH *obj, DOH *out);  /* Serialize on out */
+  int        (*doh_dump)(DOH *obj, DOH *out);  /* Serialize on out   */
+  DOH       *(*doh_load)(DOH *in);             /* Unserialize from in */
 
   /* Length and hash values */
   int       (*doh_len)(DOH *obj);          
@@ -104,11 +114,11 @@ typedef struct DohObjInfo {
   /* Compare */ 
   int       (*doh_cmp)(DOH *obj1, DOH *obj2);
 
-  DohMappingMethods  *doh_mapping;         /* Mapping methods    */
-  DohSequenceMethods *doh_sequence;        /* Sequence methods   */
-  DohFileMethods     *doh_file;            /* File methods       */
-  void               *reserved2;           /* Number methods     */
-  void               *reserved3;           
+  DohMappingMethods  *doh_mapping;             /* Mapping methods    */
+  DohSequenceMethods *doh_sequence;            /* Sequence methods   */
+  DohFileMethods     *doh_file;                /* File methods       */
+  DohStringMethods   *doh_string;              /* String methods     */
+  DohCallableMethods *doh_callable;            /* Callable methods   */ 
   void               *reserved4;
   void               *reserved5;
   void               *reserved6;
@@ -237,9 +247,6 @@ extern DOH    *DohReadline(DOH *in);
 
 #endif
 
-/* #define Scanf              DohScanf
-   #define vScanf             DohvScanf*/
-
 /* -----------------------------------------------------------------------------
  * DohBase
  *
@@ -308,7 +315,6 @@ extern DOH   *Hash_keys(DOH *);
  * ----------------------------------------------------------------------------- */
 
 extern DOH  *NewVoid(void *ptr, void (*del)(void *));
-
 
 extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
 #define Split DohSplit

@@ -13,7 +13,7 @@
  * can be used and distributed.
  ****************************************************************************/
 
-#include "doh.h"
+#include "dohint.h"
 
 /* ---------------------------------------------------------------------------
  * $Header$
@@ -80,22 +80,21 @@ static DohFileMethods StringFileMethods = {
 static DohObjInfo StringType = {
     "String",          /* objname */
     sizeof(String),    /* objsize */
-    DelString,         /* sm_del */
-    CopyString,        /* sm_copy */
-    String_clear,      /* sm_clear */
-    String_str,        /* sm_str */
+    DelString,         /* doh_del */
+    CopyString,        /* doh_copy */
+    String_clear,      /* doh_clear */
+    String_str,        /* doh_str */
     String_data,       /* doh_data */
     String_dump,       /* doh_dump */
-    String_len,        /* sm_len */
-    String_hash,       /* sm_hash    */
+    0,                 /* doh_load */
+    String_len,        /* doh_len */
+    String_hash,       /* doh_hash    */
     String_cmp,        /* doh_cmp */
     0,                 /* doh_mapping */
     &StringSeqMethods, /* doh_sequence */
     &StringFileMethods,/* doh_file */
-    0,
-    0,
-    0,
-    0,
+    0,                 /* doh_string */ 
+    0,                 /* doh_callable */ 
 };
 
 #define INIT_MAXSIZE  16
@@ -716,11 +715,3 @@ String_replace(DOH *stro, DOH *token, DOH *rep, int flags)
     if (flags & DOH_REPLACE_FIRST) count = 1;
     replace_internal(str,Char(token),Char(rep),flags,str->str,count);
 }
-
-/* -----------------------------------------------------------------------------
- * void String_trim(DOH *str, char *front, char *back)
- *
- * Trim a string.
- * ----------------------------------------------------------------------------- */
-
-

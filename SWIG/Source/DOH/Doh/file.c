@@ -13,7 +13,7 @@
  * can be used and distributed.
  ****************************************************************************/
 
-#include "doh.h"
+#include "dohint.h"
 
 /* ---------------------------------------------------------------------------
  * $Header$
@@ -53,24 +53,23 @@ static DohFileMethods FileFileMethods = {
 };
 
 static DohObjInfo FileType = {
-    "File",          /* objname */
-    sizeof(File),    /* objsize */
-    DelFile,         /* sm_del */
-    0,               /* sm_copy */
-    0,               /* sm_clear */
-    0,               /* sm_str */
-    0,               /* doh_data */
-    0,               /* doh_dump */
-    0,               /* sm_len */
-    0,               /* sm_hash    */
-    0,               /* doh_cmp */
-    0,                 /* doh_mapping */
-    0, /* doh_sequence */
-    &FileFileMethods,/* doh_file */
-    0,
-    0,
-    0,
-    0,
+    "File",          /* objname      */
+    sizeof(File),    /* objsize      */
+    DelFile,         /* doh_del      */
+    0,               /* doh_copy     */
+    0,               /* doh_clear    */
+    0,               /* doh_str      */
+    0,               /* doh_data     */
+    0,               /* doh_dump     */
+    0,               /* doh_load     */
+    0,               /* doh_len      */
+    0,               /* doh_hash     */
+    0,               /* doh_cmp      */
+    0,               /* doh_mapping  */
+    0,               /* doh_sequence */
+    &FileFileMethods,/* doh_file     */
+    0,               /* doh_string   */
+    0,               /* doh_callable */
 };
 
 DohObjInfo *File_type() {

@@ -13,7 +13,7 @@
  * can be used and distributed.
  ****************************************************************************/
 
-#include "doh.h"
+#include "dohint.h"
 
 /***********************************************************************
  * $Header$
@@ -84,22 +84,21 @@ static DohMappingMethods HashMappingMethods = {
 static DohObjInfo HashType = {
     "Hash",          /* objname */
     sizeof(Hash),    /* size */
-    DelHash,         /* sm_del */
-    CopyHash,        /* sm_copy */
-    Hash_clear,      /* sm_clear */
-    Hash_str,        /* sm_str */
+    DelHash,         /* doh_del */
+    CopyHash,        /* doh_copy */
+    Hash_clear,      /* doh_clear */
+    Hash_str,        /* doh_str */
     0,               /* doh_data */
     0,               /* doh_dump */
-    Hash_len,        /* sm_len */
-    0,               /* sm_hash    */
+    0,               /* doh_load */
+    Hash_len,        /* doh_len */
+    0,               /* doh_hash    */
     0,               /* doh_cmp */
     &HashMappingMethods, /* doh_mapping */
     0,                /* doh_sequence */
-    0,
-    0,
-    0,
-    0,
-    0,
+    0,                /* doh_file */
+    0,                /* doh_string */
+    0,                /* doh_callable */
 };
 
 DohObjInfo *Hash_type() {

@@ -21,7 +21,7 @@
  * Methods for base objects
  *******************************************************************************/
 
-#include "doh.h"
+#include "dohint.h"
 
 int    doh_debug_level = 0;
 
@@ -48,14 +48,15 @@ static DohObjInfo DohBaseType = {
   0,                /* doh_str */
   0,                /* doh_data */
   0,                /* doh_dump */
+  0,                /* doh_load */
   0,                /* doh_len */
   0,                /* doh_hash    */
   0,                /* doh_cmp */
   0,                /* doh_mapping */
   0,                /* doh_sequence */
   0,                /* doh_file  */
-  0,                /* reserved2 */
-  0,                /* reserved3 */
+  0,                /* doh_string */
+  0,                /* doh_callable */
   0,                /* reserved4 */
   0,                /* reserved5 */
   0,                /* reserved6 */
