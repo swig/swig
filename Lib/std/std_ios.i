@@ -1,5 +1,6 @@
-%include <std_except.i>
 %include <std_char_traits.i>
+%include <std_basic_string.i>
+%include <std_except.i>
 %{
 #include <ios>
 %}
