@@ -16,19 +16,23 @@ public class director_basic_runme {
 
       MyFoo a = new MyFoo();
 
-      if (a.ping() != "MyFoo::ping()")
+      if (!a.ping().equals("MyFoo::ping()")) {
           throw new RuntimeException ( "a.ping()" );
+      }
 
-      if (a.pong() != "Foo::pong();MyFoo::ping()")
+      if (!a.pong().equals("Foo::pong();MyFoo::ping()")) {
           throw new RuntimeException ( "a.pong()" );
+      }
 
       Foo b = new Foo();
 
-      if (b.ping() != "Foo::ping()")
+      if (!b.ping().equals("Foo::ping()")) {
           throw new RuntimeException ( "b.ping()" );
+      }
 
-      if (b.pong() != "Foo::pong();Foo::ping()")
+      if (!b.pong().equals("Foo::pong();Foo::ping()")) {
           throw new RuntimeException ( "b.pong()" );
+      }
   }
 }
 
