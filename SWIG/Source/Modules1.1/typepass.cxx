@@ -526,13 +526,13 @@ public:
 	      Setattr(nn,"sym:overloaded",first);
 	    } else {
 	      /* Is a template */
-	      Node *ps = Getattr(nn,"sym:prevSibling");
+	      Node *ps = Getattr(nn,"sym:previousSibling");
 	      Node *ns = Getattr(nn,"sym:nextSibling");
 	      if (ps) {
 		Setattr(ps,"sym:nextSibling",ns);
-	      }
+	      } 
 	      if (ns) {
-		Setattr(ns,"sym:prevSibling",ps);
+		Setattr(ns,"sym:previousSibling",ps);
 	      }
 	    }
 	    nn = Getattr(nn,"sym:nextSibling");
@@ -540,6 +540,7 @@ public:
 	  if (!first) {
 	    Delattr(n,"sym:overloaded");
 	  }
+
 	}
 	return SWIG_OK;
     }
