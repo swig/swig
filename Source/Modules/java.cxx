@@ -283,7 +283,7 @@ class JAVA : public Language {
 
     Delete(wrapper_name);
 
-    Printf(f_wrappers,"#ifdef __cplusplus\n");
+    Printf(f_wrappers,"\n#ifdef __cplusplus\n");
     Printf(f_wrappers,"extern \"C\" {\n");
     Printf(f_wrappers,"#endif\n\n");
 
@@ -523,8 +523,8 @@ class JAVA : public Language {
       Putc(toupper((int) *Char(variable_name)), getter_setter_name);
       Printf(getter_setter_name, "%s", Char(variable_name)+1);
 
-      Setattr(n,"java:proxyfuncname", getter_setter_name);
-      Setattr(n,"java:imfuncname", symname);
+      Setattr(n,"proxyfuncname", getter_setter_name);
+      Setattr(n,"imfuncname", symname);
 
       proxyClassFunctionHandler(n);
       Delete(getter_setter_name);
@@ -1121,25 +1121,24 @@ class JAVA : public Language {
     if (derived)
       tm = typemapLookup("javadestruct_derived", classDeclarationName, WARN_NONE);
     else
-      tm = typemapLookup("javadestruct_base", classDeclarationName, WARN_NONE);
+      tm = typemapLookup("javadestruct", classDeclarationName, WARN_NONE);
 
     // Emit the finalize and delete methods
-    if (*Char(destructor_call) && tm) {
-      Printv(destruct, tm, NIL);
-      Replaceall(destruct, "$jnicall", destructor_call);
-      // finalize method
-      Printv(proxy_class_def, 
-          typemapLookup("javafinalize", classDeclarationName, WARN_NONE),
-          "\n",
-          NIL);
-      // delete method
-      if (*Char(destruct)) {
-        Printv(proxy_class_def, "  public void delete() ", destruct, "\n", NIL);
+    if (tm) {
+      // Finalize method
+      if (*Char(destructor_call)) {
+        Printv(proxy_class_def, 
+            typemapLookup("javafinalize", classDeclarationName, WARN_NONE),
+            NIL);
       }
-    } else {
-      // Ensure method exists for derived class to call. Don't bother if the typemap doesn't exist.
-      if (tm && *Char(tm))
-        Printv(proxy_class_def, "\n  protected void delete() {\n  }\n", NIL);
+      // delete method
+      Printv(destruct, tm, NIL);
+      if (*Char(destructor_call))
+        Replaceall(destruct, "$jnicall", destructor_call);
+      else
+        Replaceall(destruct, "$jnicall", "");
+      if (*Char(destruct))
+        Printv(proxy_class_def, "\n  ", *Char(destructor_call) ? "public": "protected", " void delete() ", destruct, "\n", NIL);
     }
     Delete(destruct);
 
@@ -1273,8 +1272,8 @@ class JAVA : public Language {
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
       String *intermediary_function_name = Swig_name_member(proxy_class_name, overloaded_name);
-      Setattr(n,"java:proxyfuncname", Getattr(n, "sym:name"));
-      Setattr(n,"java:imfuncname", intermediary_function_name);
+      Setattr(n,"proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n,"imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
@@ -1293,8 +1292,8 @@ class JAVA : public Language {
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
       String *intermediary_function_name = Swig_name_member(proxy_class_name, overloaded_name);
-      Setattr(n,"java:proxyfuncname", Getattr(n,"sym:name"));
-      Setattr(n,"java:imfuncname", intermediary_function_name);
+      Setattr(n,"proxyfuncname", Getattr(n,"sym:name"));
+      Setattr(n,"imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
@@ -1309,16 +1308,16 @@ class JAVA : public Language {
    * Function called for creating a Java wrapper function around a c++ function in the 
    * proxy class. Used for both static and non-static C++ class functions.
    * C++ class static functions map to Java static functions.
-   * Two extra attributes in the Node must be available. These are "java:proxyfuncname" - 
-   * the name of the Java class proxy function, which in turn will call "java:imfuncname" - 
+   * Two extra attributes in the Node must be available. These are "proxyfuncname" - 
+   * the name of the Java class proxy function, which in turn will call "imfuncname" - 
    * the intermediary (JNI) function name in the intermediary class.
    * ----------------------------------------------------------------------------- */
 
   void proxyClassFunctionHandler(Node *n) {
     SwigType  *t = Getattr(n,"type");
     ParmList  *l = Getattr(n,"parms");
-    String    *intermediary_function_name = Getattr(n,"java:imfuncname");
-    String    *proxy_function_name = Getattr(n,"java:proxyfuncname");
+    String    *intermediary_function_name = Getattr(n,"imfuncname");
+    String    *proxy_function_name = Getattr(n,"proxyfuncname");
     String    *tm;
     Parm      *p;
     int       i;
