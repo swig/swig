@@ -1022,10 +1022,10 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
 	
 	Printf(f_init,"\t sprintf(%s_char,\"%%ld\", (long) %s);\n", var_name, var_name);
 	sprintf(var_name,"%s_char",var_name);
-	t = new DataType(T_CHAR);
+	t = NewDataType(T_CHAR);
 	t->is_pointer = 1;
 	link_variable(var_name,name,t);
-	delete t;
+	DelDataType(t);
 	break;
       case T_UINT:
       case T_USHORT:
@@ -1040,10 +1040,10 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
 	
 	Printf(f_init,"\t sprintf(%s_char,\"%%lu\", (unsigned long) %s);\n", var_name, var_name);
 	sprintf(var_name,"%s_char",var_name);
-	t = new DataType(T_CHAR);
+	t = NewDataType(T_CHAR);
 	t->is_pointer = 1;
 	link_variable(var_name,name,t);
-	delete t;
+	DelDataType(t);
 	break;
       case T_FLOAT:
 	type->type = T_DOUBLE;
@@ -1077,14 +1077,14 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
 	else
 	  Printf(f_init,"\t %s_char = (char *) malloc(%d);\n",var_name, (int) strlen(DataType_print_mangle(type))+ 20);
 	
-	t = new DataType(T_CHAR);
+	t = NewDataType(T_CHAR);
         t->is_pointer = 1;
         DataType_remember(type);
 	Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
 		var_name, var_name, DataType_print_mangle(type));
 	sprintf(var_name,"%s_char",var_name);
 	link_variable(var_name,name,t);
-	delete t;
+	DelDataType(t);
       }
     }
   }
@@ -1284,7 +1284,7 @@ void TCL8::cpp_close_class() {
   this->Language::cpp_close_class();
   if (shadow) {
 
-    t = new DataType;
+    t = NewDataType(0);
     sprintf(t->name,"%s%s", class_type, real_classname);
     t->type = T_USER;
     t->is_pointer = 1;

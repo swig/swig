@@ -176,14 +176,15 @@ void RUBY::parse() {
   headers();
 
   // typedef void *VALUE
-  DataType value;
-  strcpy(value.name, "void");
-  value.type = T_VOID;
-  value.is_pointer = 1;
-  value.implicit_ptr = 0;
-  DataType_typedef_add(&value,(char*)"VALUE",0);
+  DataType *value = NewDataType(0);
+  strcpy(value->name, "void");
+  value->type = T_VOID;
+  value->is_pointer = 1;
+  value->implicit_ptr = 0;
+  DataType_typedef_add(value,(char*)"VALUE",0);
 
   yyparse();       // Run the SWIG parser
+  DelDataType(value);
 }
 
 // ---------------------------------------------------------------------

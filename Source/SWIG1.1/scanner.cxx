@@ -1128,61 +1128,61 @@ extern "C" int yylex(void) {
 	/* Look for keywords now */
 
 	if (strcmp(yytext,"int") == 0) {
-	  yylval.type = new DataType;
+	  yylval.type = NewDataType(0);
 	  yylval.type->type = T_INT;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_INT);
 	}
 	if (strcmp(yytext,"double") == 0) {
-	  yylval.type = new DataType;
+	  yylval.type = NewDataType(0);
 	  yylval.type->type = T_DOUBLE;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_DOUBLE);
 	}
 	if (strcmp(yytext,"void") == 0) {
-	  yylval.type = new DataType;
+	  yylval.type = NewDataType(0);
 	  yylval.type->type = T_VOID;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_VOID);
 	}
 	if (strcmp(yytext,"char") == 0) {
-	  yylval.type = new DataType;
+	  yylval.type = NewDataType(0);
 	  yylval.type->type = T_CHAR;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_CHAR);
 	}
 	if (strcmp(yytext,"short") == 0) {
-	  yylval.type = new DataType;
+	  yylval.type = NewDataType(0);
 	  yylval.type->type = T_SHORT;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_SHORT);
 	}
 	if (strcmp(yytext,"long") == 0) {
-	  yylval.type = new DataType;
+	  yylval.type = NewDataType(0);
 	  yylval.type->type = T_LONG;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_LONG);
 	}
 	if (strcmp(yytext,"float") == 0) {
-	  yylval.type = new DataType;
+	  yylval.type = NewDataType(0);
 	  yylval.type->type = T_FLOAT;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_FLOAT);
 	}
 	if (strcmp(yytext,"signed") == 0) {
-	  yylval.type = new DataType;
+	  yylval.type = NewDataType(0);
 	  yylval.type->type = T_SINT;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_SIGNED);
 	}
 	if (strcmp(yytext,"unsigned") == 0) {
-	  yylval.type = new DataType;
+	  yylval.type = NewDataType(0);
 	  yylval.type->type = T_UINT;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_UNSIGNED);
 	}
 	if (strcmp(yytext,"bool") == 0) {
-	  yylval.type = new DataType;
+	  yylval.type = NewDataType(0);
 	  yylval.type->type = T_BOOL;
 	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_BOOL);
@@ -1294,7 +1294,7 @@ extern "C" int yylex(void) {
 
 	if (check_typedef) {
 	  if (DataType_is_typedef(yytext)) {
-	    yylval.type = new DataType;
+	    yylval.type = NewDataType(0);
 	    yylval.type->type = T_USER;
 	    strcpy(yylval.type->name,yytext);
 	    DataType_typedef_resolve(yylval.type,0);

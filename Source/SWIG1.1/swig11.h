@@ -105,8 +105,7 @@ extern  int       IsVirtual;
 
 #define MAX_NAME 96
 
-class DataType {
-public:
+typedef struct DataType {
   int         type;          // SWIG Type code
   char        name[MAX_NAME];      // Name of type
   char        is_pointer;    // Is this a pointer?
@@ -116,12 +115,13 @@ public:
   char        *qualifier;    // A qualifier string (ie. const).
   char        *arraystr;     // String containing array part
   int         id;            // type identifier (unique for every type).
-  DataType();
-  DataType(DataType *);
-  DataType(int type);
-  ~DataType();
-};
 
+  // Temporary: catches accidental use.
+  DataType() { abort(); }
+  DataType(DataType *) { abort(); }
+  DataType(int type) { abort();}
+  ~DataType() { abort(); }
+} DataType;
 
 extern DataType *NewDataType(int type);
 extern DataType *CopyDataType(DataType *type);
