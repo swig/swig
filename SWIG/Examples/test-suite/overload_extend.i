@@ -2,6 +2,7 @@
 
 %inline %{
 struct Foo {
+    int test() { return 0; }
 };
 %}
 

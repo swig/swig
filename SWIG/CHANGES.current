@@ -1,7 +1,30 @@
 Version 1.3.23 (in progress)
 ==================================
 
-04/11/2004: wsfulton
+10/04/2004: mmatus
+	    - Properly qualify type in syntax as 'long(2)' or 'Foo()',
+	      this solve old problem with default args, and probably
+	      other problems around. However, the default arg problem
+	      was also already solved by William (see bellow).
+
+	    - Fix feature_set and feature_get methods. Before
+	      they look from particular to general and keep the first
+	      feature found. This didn't work well with templates.
+	      Now the methods look from general to particular, and
+	      override any found feature.
+
+	    - Fix missing features for default const/dest, by really
+	      'creating' the methods and applying the features.
+
+	    - Fix return_const_value.i case by adding SwigValueWrapper<const T>
+	      specialization.
+
+	    - Fix %extend + overload, including overloading actual
+              class methods. 
+
+	    - Adding more cases in related files in the test-suite.  
+
+10/04/2004: wsfulton
             Changes to the way default arguments are wrapped. Previously a single
             method was generated for each method that had default arguments. If
             a method had 5 arguments, say, of which 1 had a default argument

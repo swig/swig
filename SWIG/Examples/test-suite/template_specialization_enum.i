@@ -24,7 +24,7 @@
   template <class A>
     struct C<hello , A>  : Base<hello, A>
     {
-      int hello()
+      int fhello()
       {
 	return hello;
       }
@@ -39,7 +39,7 @@
   template <class A>
     struct C<hi , A> : Base<hi, A>
     {
-      int hi()
+      int fhi()
       {
 	return hi;
       }

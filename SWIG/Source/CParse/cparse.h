@@ -43,6 +43,7 @@ extern int       yylex();
 /* parser.y */
 extern SwigType *Swig_cparse_type(String *);
 extern Node     *Swig_cparse(File *);
+extern Hash     *Swig_cparse_features();
 
 /* util.c */
 extern void      Swig_cparse_replace_descriptor(String *s);

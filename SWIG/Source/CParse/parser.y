@@ -171,6 +171,11 @@ static Hash   *rename_hash = 0;
 static Hash   *namewarn_hash = 0;
 static Hash   *features_hash = 0;
 
+Hash *Swig_cparse_features() {
+  if (!features_hash) features_hash = NewHash();
+  return features_hash;
+}
+ 
 static String *feature_identifier_fix(String *s) {
   if (SwigType_istemplate(s)) {
     String *tp, *ts, *ta, *tq;
@@ -4620,6 +4625,7 @@ exprcompound   : expr PLUS expr {
 	       }
                | type LPAREN {
                  skip_balanced('(',')');
+		 $1 = Swig_symbol_type_qualify($1,0);
 		 if (SwigType_istemplate($1)) {
 		   $1 = SwigType_namestr($1);
 		 }
