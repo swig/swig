@@ -826,7 +826,11 @@ public:
 	   NULL);
     
     Wrapper_add_local(f, "argc", "int argc");
-    Printf(tmp, "VALUE argv[%d]", maxargs+1);
+    if (current == MEMBER_FUNC || current == MEMBER_VAR) {
+      Printf(tmp, "VALUE argv[%d]", maxargs+1);
+    } else {
+      Printf(tmp, "VALUE argv[%d]", maxargs);
+    }
     Wrapper_add_local(f, "argv", tmp);
     Wrapper_add_local(f, "ii", "int ii");
     if (current == MEMBER_FUNC || current == MEMBER_VAR) {
