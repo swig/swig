@@ -5,7 +5,10 @@ Version 1.3 Alpha 4 (not yet released)
 
 9/3/00  : ttn
           Added instructions for maintainers in Examples/README on how
-	  to make examples also be useful in the testing framework.
+          to make examples also be useful in the testing framework.
+          Also, "make check" now uses ./Lib by via env var `SWIG_LIB'.
+          This is overridable like so:
+             make chk-swiglib=/my/experimental/swig/Lib check
 
 9/3/00  : beazley
           Added $typemap variable to typemaps.  This gets replaced with
