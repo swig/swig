@@ -505,19 +505,19 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   i = 0;
   j = 0;
-  p = ParmList_first(l);
+  p = Firstitem(l);
   while (p != 0) {
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
 
     // Produce string representations of the source and target arguments
     sprintf(source,"objv[%d]",j+1);
-    sprintf(target,"%s", Parm_Getlname(p));
+    sprintf(target,"%s", Getlname(p));
     sprintf(argnum,"%d",j+1);
 
     // See if this argument is being ignored
     
-    if (!Parm_Getignore(p)) {
+    if (!Getignore(p)) {
       if (j == (pcount-numopt)) 
 	Putc('|',argstr);
 
@@ -648,7 +648,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
     }
     i++;
-    p = ParmList_next(l);   // Get next parameter and continue
+    p = Nextitem(l);   // Get next parameter and continue
   }
   Printf(argstr,":%s\"",usage);
   Printv(f->code,
@@ -1132,13 +1132,13 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
   
   /* Now go through and print parameters */
   i = 0;
-  pcount = l->nparms;
+  pcount = Len(l);
   numopt = check_numopt(l);
-  p = ParmList_first(l);
+  p = Firstitem(l);
   while (p != 0) {
 
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
 
     // Only print an argument if not ignored
 
@@ -1161,7 +1161,7 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
       Putc(' ',temp);
       i++;
     }
-    p = ParmList_next(l);
+    p = Nextitem(l);
   }
   return Char(temp);
 }
@@ -1287,9 +1287,13 @@ void TCL8::cpp_close_class() {
     t->is_pointer = 1;
 
     if (have_destructor) {
-      Printv(code, "static void _swig_delete_", class_name, "(void *obj) {\n",
-	     tab4, Swig_name_destroy(real_classname), "((", DataType_str(t,0), ") obj);\n",
-	     "}\n",0);
+      Printv(code, "static void _swig_delete_", class_name, "(void *obj) {\n", 0);
+      if (CPlusPlus) {
+	Printv(code,"    delete (", DataType_str(t,0), ") obj;\n",0);
+      } else {
+	Printv(code,"    free((char *) obj);\n",0);
+      }
+      Printf(code,"}\n");
     }
 
     Printf(methods, "    {0,0}\n};\n");

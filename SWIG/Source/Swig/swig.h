@@ -61,12 +61,12 @@ extern void      DelDataType(DataType *type);
 
 /* -- New type interface -- */
 
-extern char     *DataType_str(DataType *, DOHString_or_char *name);        /* Exact datatype */
-extern char     *DataType_lstr(DataType *, DOHString_or_char *name);       /* Assignable datatype */
-extern char     *DataType_rcaststr(DataType *, DOHString_or_char *name);    /* Cast from lstr to str */
-extern char     *DataType_lcaststr(DataType *, DOHString_or_char *name);   /* Cast from str to lstr */
-extern char     *DataType_manglestr(DataType *t);                          /* Mangled type name */
-extern DataType *DataType_ltype(DataType *);                               /* Create local type object */
+extern char     *DataType_str(DataType *, DOHString_or_char *name);         /* Exact datatype           */
+extern char     *DataType_lstr(DataType *, DOHString_or_char *name);        /* Assignable datatype      */
+extern char     *DataType_rcaststr(DataType *, DOHString_or_char *name);    /* Cast from lstr to str    */
+extern char     *DataType_lcaststr(DataType *, DOHString_or_char *name);    /* Cast from str to lstr    */
+extern char     *DataType_manglestr(DataType *t);                           /* Mangled type name        */
+extern DataType *DataType_ltype(DataType *);                                /* Create local type object */
 
 /* -- Old type interface -- */
 
@@ -100,50 +100,24 @@ extern void      typeeq_addtypedef(char *name, char *eqname, DataType *t);
 
 #define STAT_REPLACETYPE   2
 
-/* --- Deprecated parameter list structure --- */
+/* --- Parameters and Parameter Lists --- */
 
-typedef struct Parm {
-  DataType   *_type;            /* Datatype of this parameter   */
-  char       *_name;            /* Name of parameter (optional) */
-  char       *_defvalue;        /* Default value (as a string)  */
-  char       *_lname;           /* Local name                   */
-  int        _ignore;            /* Ignore flag                  */
-} Parm;
+/* Parameters are really just hidden behind a DOH object.  The following
+   interface will probably be simplified even further. */
 
-extern Parm     *NewParm(DataType *type, char *n);
-extern Parm     *CopyParm(Parm *p);
-extern void      DelParm(Parm *p);
-extern void      Parm_Settype(Parm *p, DataType *t);
-extern DataType *Parm_Gettype(Parm *p);
-extern void      Parm_Setname(Parm *p, char *name);
-extern char     *Parm_Getname(Parm *p);
-extern void      Parm_Setlname(Parm *p, char *lname);
-extern char     *Parm_Getlname(Parm *p);
-extern void      Parm_Setvalue(Parm *p, char *value);
-extern char     *Parm_Getvalue(Parm *p);
-extern int       Parm_Getignore(Parm *p);
-extern void      Parm_Setignore(Parm *p, int i);
+typedef DOH Parm;
 
-typedef struct ParmList {
-  int     maxparms;               /* Max parms possible in current list  */
-  Parm  **parms;                  /* Pointer to parms array */
-  int     current_parm;           /* Internal state for get_first,get_next */
-  int     nparms;                 /* Number of parms in list */
-} ParmList;
+extern Parm       *NewParm(DataType *type, char *n);
+extern Parm       *CopyParm(Parm *p);
+
+typedef DOH   ParmList;
 
 extern ParmList *NewParmList();
 extern ParmList *CopyParmList(ParmList *);
-extern void      DelParmList(ParmList *);
-extern Parm     *ParmList_get(ParmList *l, int pos);
-extern void      ParmList_append(ParmList *, Parm *);
-extern void      ParmList_insert(ParmList *, Parm *, int);
-extern void      ParmList_del(ParmList *, int);
-extern int       ParmList_numarg(ParmList *);
-extern Parm     *ParmList_first(ParmList *);
-extern Parm     *ParmList_next(ParmList *);
-extern void      ParmList_print_types(ParmList*,DOHFile *f);
-extern void      ParmList_print_args(ParmList *, DOHFile *f);
-extern char     *ParmList_str(ParmList *);
+
+extern int         ParmList_numarg(ParmList *);
+extern char       *ParmList_str(ParmList *);
+extern char       *ParmList_protostr(ParmList *);
 
 /* --- File interface --- */
 
@@ -157,11 +131,6 @@ extern int         Swig_insert_file(const DOHString_or_char *name, DOHFile *outf
 extern int         Swig_bytes_read();
 
 #define  SWIG_FILE_DELIMETER   "/"
-
-/* --- Super Strings --- */
-
-extern DOH *NewSuperString(char *s, DOH *filename, int firstline);
-extern int SuperString_check(DOH *s);
 
 /* --- Command line parsing --- */
 
@@ -370,15 +339,15 @@ extern Wrapper   *Swig_cdestructor_wrapper(DOHString_or_char *classname,
                                            DOHString_or_char *code);
 
 extern Wrapper   *Swig_cppdestructor_wrapper(DOHString_or_char *classname,
-                                           DOHString_or_char *code);
+					     DOHString_or_char *code);
 
 extern Wrapper   *Swig_cconstructor_wrapper(DOHString_or_char *classname,
                                             ParmList *parms,
                                             DOHString_or_char *code);
 
 extern Wrapper   *Swig_cppconstructor_wrapper(DOHString_or_char *classname,
-                                            ParmList *parms,
-                                            DOHString_or_char *code);
+					      ParmList *parms,
+					      DOHString_or_char *code);
 
 
 extern Wrapper   *Swig_cmemberset_wrapper(DOHString_or_char *classname,
@@ -391,13 +360,28 @@ extern Wrapper   *Swig_cmemberget_wrapper(DOHString_or_char *classname,
 					  DataType *type,
                                           DOHString_or_char *code);
 
-extern Wrapper  *Swig_cvarset_wrapper(DOHString_or_char *varname,
-				      DataType *type,
-				      DOHString_or_char *code);
+extern Wrapper   *Swig_cvarset_wrapper(DOHString_or_char *varname,
+				       DataType *type,
+				       DOHString_or_char *code);
 
-extern Wrapper  *Swig_cvarget_wrapper(DOHString_or_char *varname,
-				      DataType *type,
-				      DOHString_or_char *code);
+extern Wrapper   *Swig_cvarget_wrapper(DOHString_or_char *varname,
+				       DataType *type,
+				       DOHString_or_char *code);
+
+
+/* --- Attribute access macros --- */
+
+#define Gettype(x)         ((DataType *) GetVoid(x,"type"))
+#define Getname(x)         GetChar(x,"name")
+#define Getvalue(x)        GetChar(x,"value")
+#define Getlname(x)        GetChar(x,"lname")
+#define Getignore(x)       GetInt(x,"ignore")
+
+#define Settype(x,v)       Setattr(x,"type",NewVoid(CopyDataType(v), (void (*)(void *)) DelDataType));
+#define Setname(x,v)       SetChar(x,"name",Char(v))
+#define Setlname(x,v)      SetChar(x,"lname",Char(v))
+#define Setvalue(x,v)      SetChar(x,"value", Char(v))
+#define Setignore(x,v)     SetInt(x,"ignore",v)
 
 #endif
 

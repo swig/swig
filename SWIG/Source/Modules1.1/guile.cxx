@@ -436,10 +436,10 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   int i = 0;
   int first_arg = 1;
-  for (p = ParmList_first(l); p != 0; ++i, p = ParmList_next(l)) {
-    DataType *pt = Parm_Gettype(p);
+  for (p = Firstitem(l); p != 0; ++i, p = Nextitem(l)) {
+    DataType *pt = Gettype(p);
 
-    if (Parm_Getignore(p))
+    if (Getignore(p))
       continue;
     if ((pt->type != T_VOID) || (pt->is_pointer)) {
       if (!first_arg)
@@ -468,19 +468,19 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   i = 0;
   int j = 0;
   for (i = 0; i < pcount; ++i) {
-    Parm *p = ParmList_get(l,i);
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+    Parm *p = Getitem(l,i);
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
 
     // Produce names of source and target
     sprintf(source,"s_%d",i);
-    sprintf(target,"%s",Parm_Getlname(p));
+    sprintf(target,"%s",Getlname(p));
     sprintf(argnum,"%d",i);
     strcpy(arg,pn);
 
     // Handle parameter types.
 
-    if (Parm_Getignore(p))
+    if (Getignore(p))
       Printv(f->code, "/* ", pn, " ignored... */\n", 0);
     else {
       ++numargs;
@@ -819,11 +819,11 @@ GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
   // Now go through and print parameters
 
-  for (p = ParmList_first(l); p != 0; p = ParmList_next(l)) {
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+  for (p = Firstitem(l); p != 0; p = Nextitem(l)) {
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
 
-    if (Parm_Getignore(p))
+    if (Getignore(p))
       continue;
 
     // Print the type.  If the parameter has been named, use that as well.
@@ -868,9 +868,9 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
   // go through and see if any are output.
 
-  for (p = ParmList_first(l); p != 0; p = ParmList_next(l)) {
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+  for (p = Firstitem(l); p != 0; p = Nextitem(l)) {
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
 
     if (strcmp (pn,"BOTH") && strcmp (pn,"OUTPUT"))
       continue;

@@ -443,9 +443,9 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   int numreq = 0;
   int numoptreal = 0;
-  for (i = start; i < l->nparms; i++) {
-    if (!Parm_Getignore(ParmList_get(l,i))) {
-      if (i >= l->nparms - numopt) numoptreal++;
+  for (i = start; i < Len(l); i++) {
+    if (!Getignore(Getitem(l,i))) {
+      if (i >= Len(l) - numopt) numoptreal++;
       else numreq++;
     }
   }
@@ -457,8 +457,8 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     Printv(f->def, "int argc, VALUE *argv, VALUE self",0);
   } else {
     Printv(f->def, "VALUE self", 0);
-    for (i = start; i < l->nparms; i++) {
-      if (!Parm_Getignore(ParmList_get(l,i))) {
+    for (i = start; i < Len(l); i++) {
+      if (!Getignore(Getitem(l,i))) {
 	Printf(f->def,", VALUE varg%d", i);
       }
     }
@@ -467,8 +467,8 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   // Emit all of the local variables for holding arguments.
   if (vararg) {
-    for (i = start; i < l->nparms; i++) {
-      if (!Parm_Getignore(ParmList_get(l,i))) {
+    for (i = start; i < Len(l); i++) {
+      if (!Getignore(Getitem(l,i))) {
 	char s[256];
 	sprintf(s,"varg%d",i);
 	Wrapper_add_localv(f,s,"VALUE",s,0);
@@ -497,8 +497,8 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   // Emit count to check the number of arguments
   if (vararg) {
     Printf(f->code,"    rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numoptreal);
-    for (i = start; i < l->nparms; i++) {
-      if (!Parm_Getignore(ParmList_get(l,i))) {
+    for (i = start; i < Len(l); i++) {
+      if (!Getignore(Getitem(l,i))) {
 	Printf(f->code,", &varg%d", i);
       }
     }
@@ -510,9 +510,9 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   int j = 0;                // Total number of non-optional arguments
 
   for (i = 0; i < pcount ; i++) {
-    Parm *p = ParmList_get(l,i);
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+    Parm *p = Getitem(l,i);
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
 
     // Produce string representation of source and target arguments
     int selfp = (use_self && i == 0);
@@ -521,9 +521,9 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     else
       sprintf(source,"varg%d",i);
 
-    sprintf(target,"%s", Parm_Getlname(p));
+    sprintf(target,"%s", Getlname(p));
 
-    if (!Parm_Getignore(p)) {
+    if (!Getignore(p)) {
       char *tab = (char*)tab4;
       if (j >= (pcount-numopt)) { // Check if parsing an optional argument
 	Printf(f->code,"    if (argc > %d) {\n", j -  start);
