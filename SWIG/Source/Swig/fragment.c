@@ -19,6 +19,8 @@ char cvsroot_fragment_c[] = "$Header$";
 #include "swig.h"
 
 static Hash *fragments = 0;
+static int debug = 0;
+
 
 /* -----------------------------------------------------------------------------
  * Swig_fragment_register()
@@ -29,16 +31,31 @@ static Hash *fragments = 0;
 
 void
 Swig_fragment_register(Node* fragment) {
-  String *name = Getattr(fragment,"name");
-  String *section = Getattr(fragment,"section");
-  String *ccode = Copy(Getattr(fragment,"code"));
-  Hash *kwargs = Getattr(fragment,"kwargs");
-  if (!fragments) {
-    fragments = NewHash();
+  if (Getattr(fragment,"emitonly")) {
+    Swig_fragment_emit(fragment);
+    return;
+  } else {
+    String *name = Copy(Getattr(fragment,"value"));
+    String *type = Getattr(fragment,"type");
+    if (type) {
+      String *mangle = Swig_string_mangle(type);
+      Printf(name,"%s",mangle);
+      Delete(mangle);
+    }
+    if (debug) Printf(stdout,"register fragment %s %s\n",name,type);
+    if (!fragments) {
+      fragments = NewHash();
+    }
+    if (!Getattr(fragments,name)) {
+      String *section = Getattr(fragment,"section");
+      String *ccode = Copy(Getattr(fragment,"code"));
+      Hash *kwargs = Getattr(fragment,"kwargs");
+      Setmeta(ccode,"section",Copy(section));
+      if (kwargs) Setmeta(ccode,"kwargs",Copy(kwargs));
+      Setattr(fragments,name,ccode);
+      if (debug) Printf(stdout,"registering fragment %s %s\n",name,section);
+    }
   }
-  Setmeta(ccode,"section",Copy(section));
-  if (kwargs) Setmeta(ccode,"kwargs",Copy(kwargs));
-  Setattr(fragments,Copy(name),ccode);
 }
 
 /* -----------------------------------------------------------------------------
@@ -47,29 +64,75 @@ Swig_fragment_register(Node* fragment) {
  * Emit a fragment
  * ----------------------------------------------------------------------------- */
 
-void
-Swig_fragment_emit(String *name) {
-  String *code;
-  if (!fragments) return;
-  
-  code = Getattr(fragments,name);
-  if (code) {
-    String *section = Getmeta(code,"section");
-    Hash *n = Getmeta(code,"kwargs");
-    while (n) {
-      if (Cmp(Getattr(n,"name"),"fragment") == 0) {
-	Swig_fragment_emit(Getattr(n,"value"));
-      }
-      n = nextSibling(n);
-    }
-    if (section) {
-      File *f = Swig_filebyname(section);
-      if (!f) {
-	Swig_error(Getfile(code),Getline(code),"Bad section '%s' for code fragment '%s'\n", section,name);
-      } else {
-	Printf(f,"%s\n",code);
-      }
-    }
-    Delattr(fragments,name);
-  }
+static
+char* char_index(char* str, char c)
+{
+  while (*str && (c != *str)) ++str;
+  return (c == *str) ? str : 0;
 }
+
+void
+Swig_fragment_emit(Node *n) {
+  String *code;
+  char   *pc, *tok;
+  String *t;
+  String *mangle = 0;
+  String *name = 0;
+  String *type = 0;
+
+  if (!fragments) return;
+
+  name = Getattr(n,"value");
+  if (!name) {
+    name = n;
+  }
+  type = Getattr(n,"type");
+  if (type) {
+    SwigType *rtype = SwigType_typedef_resolve_all(type);
+    mangle = Swig_string_mangle(rtype);
+    Delete(rtype);
+  }
+
+  if (debug) Printf(stdout,"looking fragment %s %s\n",name, type);
+  t = Copy(name);
+  tok = Char(t);
+  pc = char_index(tok,',');
+  if (pc) *pc = 0;
+  while (tok) {
+    String *name = NewStringf("%s", tok);
+    if (mangle) Printf(name,"%s",mangle);
+    code = Getattr(fragments,name);
+    if (debug) Printf(stdout,"looking subfragment %s\n", name);
+    if (code && (Strcmp(code,"ignore") != 0)) {
+      String *section = Getmeta(code,"section");
+      Hash *n = Getmeta(code,"kwargs");
+      while (n) {
+	if (Cmp(Getattr(n,"name"),"fragment") == 0) {
+	  if (debug) Printf(stdout,"emitting fragment %s %s\n",n, type);
+	  Swig_fragment_emit(n);
+	}
+	n = nextSibling(n);
+      }
+      if (section) {
+	File *f = Swig_filebyname(section);
+	if (!f) {
+	  Swig_error(Getfile(code),Getline(code),
+		     "Bad section '%s' for code fragment '%s'\n", section,name);
+	} else {
+	  if (debug) Printf(stdout,"emitting subfragment %s %s\n",name, section);
+	  if (debug) Printf(f,"/* begin fragment %s */\n",name);
+	  Printf(f,"%s\n",code);
+	  if (debug) Printf(f,"/* end fragment %s */\n\n",name);
+	  Setattr(fragments,name,"ignore");
+	}
+      }
+    }
+    tok = pc ? pc + 1 : 0;
+    if (tok) {
+      pc = char_index(tok,',');
+      if (pc) *pc = 0;
+    }
+  }
+  Delete(t);
+}
+

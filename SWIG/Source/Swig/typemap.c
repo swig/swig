@@ -1100,6 +1100,9 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
  * Attach one or more typemaps to a node
  * ----------------------------------------------------------------------------- */
 
+Node *
+Swig_cparse_template_locate(String *name, Parm *tparms);
+
 String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f)
 {
   SwigType *type;
@@ -1187,8 +1190,15 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   /* Attach kwargs */
   kw = Getattr(tm,"kwargs");
   while (kw) {
+    String *value = Copy(Getattr(kw,"value"));
+    String *type = Getattr(kw,"type");
+    if (type) {
+      String *mangle = Swig_string_mangle(type);
+      Printf(value,"%s",mangle);
+      Delete(mangle);
+    }
     sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,"name")));
-    Setattr(node,tmop_name(temp), Copy(Getattr(kw,"value")));
+    Setattr(node,tmop_name(temp), value);
     kw = nextSibling(kw);
   }
 
@@ -1208,15 +1218,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     sprintf(temp,"%s:fragment", Char(op));
     f = Getattr(node,tmop_name(temp));
     if (f) {
-      char  *c, *tok;
-      String *t = Copy(f);
-      c = Char(t);
-      tok = strtok(c,",");
-      while (tok) {
-	Swig_fragment_emit(tok);
-	tok = strtok(NULL,",");
-      }
-      Delete(t);
+      Swig_fragment_emit(f);
     }
   }
     
@@ -1248,9 +1250,17 @@ Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p) {
   String *temp = NewString("");
   Parm *kw = Getattr(tm,"kwargs");
   while (kw) {
+    String *value = Copy(Getattr(kw,"value"));
+    String *type = Getattr(kw,"type");
+    if (type) {
+      Hash *v = NewHash();
+      Setattr(v,"value",value);
+      Setattr(v,"type",type);
+      value = v;
+    }
     Clear(temp);
     Printf(temp,"%s:%s",op,Getattr(kw,"name"));
-    Setattr(p,tmop_name(temp),Copy(Getattr(kw,"value")));
+    Setattr(p,tmop_name(temp),value);
     kw = nextSibling(kw);
   }
   Delete(temp);
@@ -1278,15 +1288,7 @@ Swig_typemap_emit_code_fragments(const String_or_char *op, Parm *p) {
   String *temp = NewStringf("%s:fragment",op);
   String *f = Getattr(p,tmop_name(temp));
   if (f) {
-    char  *c, *tok;
-    String *t = Copy(f);
-    c = Char(t);
-    tok = strtok(c,",");
-    while (tok) {
-      Swig_fragment_emit(tok);
-      tok = strtok(NULL,",");
-    }
-    Delete(t);
+    Swig_fragment_emit(f);
   }
   Delete(temp);
 }
