@@ -22,6 +22,7 @@ static char cvsroot[] = "$Header$";
 
 static DOHHash  *cpp = 0;                /* C preprocessor data */
 static int       include_all = 0;        /* Follow all includes */
+static int       import_all = 0;         /* Follow all includes, but as %import statements */
 static int       single_include = 1;     /* Only include each file once */
 static int       silent_errors = 0;
 static DOHHash  *included_files = 0;
@@ -121,6 +122,12 @@ void Preprocessor_init() {
  * ----------------------------------------------------------------------------- */
 void Preprocessor_include_all(int a) {
   include_all = a;
+  if (import_all) import_all = 0;
+}
+
+void Preprocessor_import_all(int a) {
+  import_all = a;
+  if (include_all) include_all = 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1096,13 +1103,16 @@ Preprocessor_parse(DOH *s)
   	}
       } else if (Cmp(id,"line") == 0) {
       } else if (Cmp(id,"include") == 0) {
-  	if ((include_all) && (allow)) {
+  	if (((include_all) || (import_all)) && (allow)) {
   	  DOH *s1, *s2, *fn;
   	  Seek(value,0,SEEK_SET);
   	  fn = get_filename(value);
 	  s1 = cpp_include(fn);
 	  if (s1) {
-  	    Printf(ns,"%%includefile \"%s\" {\n", Swig_last_file());
+	    if (include_all) 
+	      Printf(ns,"%%includefile \"%s\" {\n", Swig_last_file());
+	    else if (import_all) 
+	      Printf(ns,"%%importfile \"%s\" {\n", Swig_last_file());
   	    s2 = Preprocessor_parse(s1);
   	    addline(ns,s2,allow);
   	    Printf(ns,"\n}\n");
