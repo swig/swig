@@ -409,10 +409,10 @@ Swig_cppconstructor_director_call(String_or_char *name, ParmList *parms) {
 /* -----------------------------------------------------------------------------
  * Swig_cattr_search()
  *
- * This function search for the class attribute 'attr' in the class
+ * This function searches for the class attribute 'attr' in the class
  * 'n' or recursively in its bases.
  *
- * if you define SWIG_FAST_REC_SEARCH, the method will set the found
+ * If you define SWIG_FAST_REC_SEARCH, the method will set the found
  * 'attr' in io the target class 'n'. If not, the method will set the
  * 'noattr' one. This prevents of having to navigate the entire
  * hierarchy tree everytime, so, it is an O(1) method...  or something
@@ -423,7 +423,7 @@ Swig_cppconstructor_director_call(String_or_char *name, ParmList *parms) {
  * while searching. This could be slower for large projects with very
  * large hierarchy trees... or maybe not. But it will be cleaner. 
  *
- * Maybe latter a swig option can be added to switch at runtime.
+ * Maybe later a swig option can be added to switch at runtime.
  *
  * ----------------------------------------------------------------------------- */
 
@@ -556,12 +556,12 @@ Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self)
   else self = NewString(self);
   Replaceall(self,"this",Swig_cparm_name(0,0));
   if (SwigType_type(type) != T_ARRAY) {
-    if (!Strstr(type,"$unnamed")) {
+    if (!Strstr(type,"enum $unnamed")) {
       Printf(func,"if (%s) %s%s = %s",Swig_cparm_name(0,0), self,name,
 	     Swig_wrapped_var_deref(type, Swig_cparm_name(0,1)));
     } else {
-      Printf(func,"if (%s) swig_assign_unnamed(%s%s, %s)",Swig_cparm_name(0,0), self,name,
-	     Swig_cparm_name(0,1));
+      Printf(func,"if (%s && sizeof(int) == sizeof(%s%s)) *(int*)(void*)&(%s%s) = %s",
+             Swig_cparm_name(0,0), self, name, self, name, Swig_cparm_name(0,1));
     }
   }
   Delete(self);

@@ -402,4 +402,3 @@ static int NAME(TYPE x) {
 %}
 %enddef
 
-%include unnamed.swg
