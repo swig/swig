@@ -630,7 +630,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	  if ((Strcmp(qt,p) == 0) && (!Swig_scopename_check(qt))) {
 	    /* Hmmm. No change.  See if the parameter might be a symbolic name like an enum value */
 	    if (current_symtab) {
-	      Node *n = Swig_symbol_clookup_local(p,current_symtab);
+	      Node *n = Swig_symbol_clookup(p,current_symtab);
 	      if (n) {
 		String *qn = Swig_symbol_qualified(n);
 		/*		Printf(stdout,"qn = '%s', p='%s'\n", qn, p);*/
