@@ -128,3 +128,21 @@ namespace std {
 %}
 
 %template(VectorInt) std::Vector<int>;
+
+
+
+%ignore TROOT::TROOT(const char *name, const char *title, void *initfunc = 0);
+%inline %{
+  class TROOT {
+   
+  public:
+    TROOT()
+    {
+    }
+    
+    TROOT(const char *name, const char *title, void *initfunc = 0)
+    {
+    }
+    
+  };
+%}
