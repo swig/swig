@@ -1272,7 +1272,7 @@ int Language::constructorDeclaration(Node *n) {
       Delete(oname);
       Delete(cname);
     } else {
-      if (name && Cmp(name,ClassName)) {
+      if (name && (Cmp(name,ClassName))) {
 	Printf(stderr,"%s:%d.  Function %s must have a return type.\n", 
 	       input_file, line_number, name);
 	return SWIG_NOWRAP;
