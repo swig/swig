@@ -35,9 +35,12 @@ SWIG2.0. First-time users may want to start with SWIG1.1p5 which is
 significantly more stable (and includes a wider range of documentation
 and examples).
 
-Please report any errors and submit patches (if possible)!  We only
-have access to a limited variety of hardware (Linux, Solaris, and
-Windows) so your contributions help.
+*** WE NEED YOUR HELP! ***
+
+Please report any errors and submit patches (if possible)!  Not only
+are we making radical changes to the system, we only have access to a
+limited variety of hardware (Linux, Solaris, and Windows). All contributions
+help.
 
 What's New?
 ===========
