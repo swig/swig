@@ -1,29 +1,56 @@
-##############################################################
-# Makefile
-#
+#######################################################################
+# $Header$
 # DOH
-##############################################################
+#######################################################################
 
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
+#.KEEP_STATE:
+
+# Set your C++ compiler here.   g++ works on most machines,
+# but you might have to change it depending on your installation.
+#
+CC      = @CC@
 prefix     = @prefix@
-exec_prefix= @exec_prefix@
 
-INCLUDE_DIR = $(prefix)/include
-LIB_DIR = $(exec_prefix)/lib
+# Comment out the following line if you're on an SGI or don't have ranlib!
+RANLIB  = @RANLIB@
+AR      = @AR@
 
-# Installer
+DOHOPT  =
 
-INSTALL        = ./install-sh -c
-INSTALL_DATA   = ${INSTALL} -m 644
-INSTALL_PROGRAM= ${INSTALL} -m 755
+########################################################################
+# Normally, you shouldn't have to change anything below this point     #
+########################################################################
 
-all:
-	cd Doh; $(MAKE)
+LIBOBJS = void.@OBJEXT@ fio.@OBJEXT@ memory.@OBJEXT@ base.@OBJEXT@ file.@OBJEXT@ list.@OBJEXT@ hash.@OBJEXT@ string.@OBJEXT@
 
-install:
-	@echo "Installing $(LIB_DIR)/libdoh.a..."
-	@$(INSTALL_DATA) libdoh.a $(LIB_DIR)/libdoh.a
-	@echo "Installing $(INCLUDE_DIR)/doh.h..."
-	@$(INSTALL_DATA) $(srcdir)/Include/doh.h $(INCLUDE_DIR)/doh.h
+LIBSRCS = void.c fio.c memory.c base.c file.c list.c hash.c string.c
 
-clean:
-	cd Doh; $(MAKE) clean
+LIBHEADERS = $(srcdir)/Include/doh.h
+LIB      = libdoh.a
+INCLUDES = -I$(srcdir)/Include
+CFLAGS   = @CFLAGS@
+SHELL  = /bin/sh
+
+#
+# Rules for creation of a .@OBJEXT@ file from .c
+.SUFFIXES: .c
+.c.@OBJEXT@:
+	$(CC) $(DOHOPT) $(INCLUDES) $(CFLAGS) -c -o $*.@OBJEXT@ $<
+
+all: $(LIB)
+
+$(LIB): $(LIBOBJS)
+	@echo "Building library"
+	$(AR) cr $(LIB) $(LIBOBJS)
+	$(RANLIB) $(LIB)
+
+clean::
+	rm -f *.@OBJEXT@ $(LIB) ../$(LIB)
+nuke::
+	rm -f Makefile *~
+
+
+
