@@ -9,12 +9,10 @@
 <h2> What is SWIG?</h2>
 
 SWIG is a software development tool that simplifies the task of
-building scripting language interfaces to C and C++ programs.  In a
-nutshell, SWIG is a compiler which takes C declarations and creates
-the wrapper code needed to access them from common scripting languages
-including Perl, Python, Tcl, Ruby, and Guile (although it should be
-noted that SWIG has also been used to provide interfaces to
-non-scripting languages such as Java and Eiffel). SWIG normally
+interfacing different languages to C and C++ programs.  In a
+nutshell, SWIG is a compiler that takes C declarations and creates
+the wrappers needed to access those declarations from other languages including
+including Perl, Python, Tcl, Ruby, Guile, and Java.  SWIG normally
 requires no modifications to existing code and can often be used to
 build a usable interface in only a few minutes.  Possible applications
 of SWIG include:
@@ -24,23 +22,25 @@ of SWIG include:
 <li>Building interpreted interfaces to existing C programs.
 <li>Rapid prototyping and application development.
 <li>Interactive debugging.
+<li>Reengineering or refactoring of legacy software into a scripting language components.
 <li>Making a graphical user interface (using Tk for example).
 <li>Testing of C libraries and programs (using scripts).
 <li>Building high performance C modules for scripting languages.
 <li>Making C programming more enjoyable (or tolerable depending on your point of view)
 <li>Impressing your friends.
-<li>Obtaining vast sums of research funding (not applicable to the author).
+<li>Obtaining vast sums of research funding (although obviously not applicable to the author).
 </ul>
 
 <p>
 SWIG was originally designed to make it extremely easy for scientists
-and engineers to build flexible software without having to get a
+and engineers to build extensible scientific software without having to get a
 degree in software engineering.  Because of this, the use of
 SWIG tends to be somewhat informal and ad-hoc (e.g., SWIG does not
-require users to provide formal interface specifications).  Although
+require users to provide formal interface specifications as you would find in
+a dedicated IDL compiler).  Although
 this style of development isn't appropriate for every
 project, it is particularly well suited to software development in the
-small; especially research and development work as is commonly found
+small; especially the research and development work that is commonly found
 in scientific and engineering projects.
 
 <h2> Why use SWIG?</h2>
@@ -52,19 +52,20 @@ interface using command line options, a home grown command
 interpreter, or a graphical user interface, this often results in a
 program that is hard to extend, hard to modify, hard to port between
 platforms, and hard to use.  Furthermore, this sort of activity wastes
-a lot of development time because it diverts everyone's attention away
-from the real problem at hand.
+a lot of development time because it usually diverts everyone's attention away
+from the real problem that they're trying to solve.
 
 <p>
-Much of the problem with C is due to the way in which 
+Many of the problems with C are due to the way in which 
 many programs are organized.  For example, a lot of programs
 are structured as follows:
 
 <p>
 <ul>
-<li>A collection of functions and variables.
+<li>A collection of functions and variables that do something useful.
 <li>A <tt>main()</tt> program that starts everything.
-<li>A collection of hacks that form some kind of user interface.
+<li>A horrible collection of hacks that form some kind of user interface (but 
+which no-one really wants to touch).
 </ul>
 
 <p>
@@ -75,30 +76,33 @@ code, recompiling, and testing. If you make a mistake, you need to
 repeat this cycle until things work.  Of course, as more and more
 features are added, the program usually turns into a horrible mess
 that is even more difficult to modify than before (although this
-probably increases the job security of the programmer).
+undoubtedly increases the job security of the programmer).
 
 <p>
-To deal with this problem, SWIG can be used to reoganize your application
-as follows:
+A common mistake is to assume that all of the problems with C can somehow be
+fixed by using a better C---perhaps an undebuggable
+language with unreadable syntax, complicated semantics, and nearly
+infinite compilation time.  This is an unfortunate.
+
+<P>
+Perhaps a better approach is to place your application under the control
+of a very high-level language such as a common scripting language
+interpreter.  High level languages excel at turning hard problems into
+easy tasks.   They also provide a nice framework for managing software components
+and gluing different systems together.  Not only that, they make it easy
+for users to configure the software to their liking and to program it to perform
+new tasks without ever having to touch a C++ compiler.  
 
 <p>
-<ul>
-<li>A collection of functions and variables.
-<li>A nice interpreted scripting language interface that can be used to access everything.
-</ul>
-
-<p>
-With this model, all of the functionality of the C program is retained, but 
-it is accessed through a scripting language interpreter.
-This approach is nice because the interpreter gives you the freedom to
-call functions in any order, access variables, and write scripts to
-do all sorts of interesting things. If you want to change something,
-just modify a script. If you're trying to debug a particular feature,
-you can call functions, access variables, and slowly step through a complex
-process to see what happens. If you're trying to build a package out of various
-components, you can just glue everything together with a scripting
-language and have a common interface to all of the various pieces. 
-Or, if you wanted to write a GUI, you might consider the use of a package such as Tk.
+SWIG simplifies the task of incorporating C++ code into a high-level
+programming environment.  Specifically, rather than creating a huge
+monolithic package, SWIG allows you to restructure your application as
+a collection of functions and variables that can be accessed from the
+convenience of a high-level language such as an interpreter.  With
+this model, all of the functionality of your C program is retained.
+The only difference is that the high-level program logic and control
+is now driven by the high-level language instead of a low level
+<tt>main()</tt> function.
 
 <p>
 SWIG tries to make the integration between scripting languages and C
@@ -107,17 +111,6 @@ program and using the high-level scripting language interface, but not
 the tedious and complex chore of making the two languages talk to each
 other.<p>
 <p>
-
-<h2> The SWIG package</h2>
-
-SWIG is a compiler that takes ANSI C/C++ declarations and turns them into
-a file containing the C code for binding C functions, variables, and
-constants to a scripting language. Input is specified in the form of
-an "interface file" containing declarations. The SWIG
-compiler takes this input file and passes it on to the code generation 
-module for a particular target language. The code generation module
-generates a special file containing the C/C++ wrapper code needed to make the
-contents of your interface available to a scripting language interpreter.
 
 <h2> A SWIG example</h2>
 
@@ -166,7 +159,7 @@ The interface file contains ANSI C function prototypes and variable
 declarations.  The <tt>%module</tt> directive defines the name of the
 module that will be created by SWIG.  The <tt>%{,%}</tt> block
 provides a location for inserting additional code such as C header
-files or additional C functions. <p>
+files or additional C declarations. <p>
 
 <h3> The swig command</h3>
 
@@ -196,8 +189,8 @@ The <tt>swig</tt> command produced a new file called
 languages now support dynamic loading of modules.  In our example, our
 Tcl module has been compiled into a shared library that can be loaded
 into Tcl.  When loaded, Tcl can now access the functions
-and variables declared in the SWIG interface.  Taking a careful look at the file
-<tt>example_wrap.c</tt> reveals a hideous mess, but fortunately you
+and variables declared in the SWIG interface.  A look at the file
+<tt>example_wrap.c</tt> reveals a hideous mess.  However, you 
 almost never need to worry about it.<p>
 
 <h3> Building a Perl5 module</h3>
@@ -381,60 +374,8 @@ file. While this approach may limit flexibility for hard-core hackers,
 it allows others to forget about the low-level implementation
 details.
 
-<h2> Event driven C programming</h2>
-
-By adding a scripting language interface to a program, SWIG encourages
-an event-driven style of programming (although it may not be
-immediately obvious). An event driven program basically consists of a
-large-collection of functions (called callback functions), and an
-infinite loop that just sits and waits for the user to do
-something. When the user does something like type a command, hit a
-key, or move the mouse the program will call a function to perform an
-operation--this is an event. 
-
-<p>
-While you may not be using SWIG to develop a GUI, the underlying
-concept is the same. The scripting language acts as an event-loop
-waiting for you to issue commands. Unlike a traditional C application
-(that may use command line options), there is no longer a fixed
-sequence of operations. Functions may be issued in any order and at
-any time. Of course, this flexibility is exactly what we want! <p>
-
-<p>
-However, there are a number of things to keep in mind when developing an application with SWIG :<p>
-
-<p>
-<ul>
-<li>Functions may be called at any time and in any order. It is always
-a good idea for functions to check their arguments and internal state
-to see if it's legal to proceed (Not doing so usually results in
-mysterious crashes later on).
-
-<li>Code should be structured as a collection of independent modules,
-not a huge mess of interrelated functions and variables (ie. spaghetti
-code).
-
-<li>Global variables should be used with care.
-
-<li>Careful attention to the naming of variables and functions may be
-required to avoid namespace conflicts when combining packages.
-</ul>
-<p>
-
-<h2> Summary</h2>
-
-At this point, you know about 95% of everything you need to know to
-start using SWIG. First, functions and variables are specified using
-ANSI C or C++. These may appear in a separate
-interface file or you can use a C source file (if it is sufficiently
-clean). SWIG requires no modifications to existing C code so it's easy
-to get started. To build a module, use the <tt>swig</tt> command with
-an appropriate target language option. This generates a C file that
-you need to compile with the rest of your code and you're ready to
-go. <p>
-
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : July 12, 2001</address>
+<address>SWIG 1.3 - Last Modified : November 28, 2001</address>
 </body>
 </html>
