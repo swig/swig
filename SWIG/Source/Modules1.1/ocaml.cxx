@@ -14,9 +14,9 @@ static char cvsroot[] = "$Header$";
 /***********************************************************************
  * $Header$
  *
- * mzscheme.cxx
+ * ocaml.cxx
  *
- * Definitions for adding functions to Mzscheme 101
+ * Definitions for adding functions to Ocaml 101
  ***********************************************************************/
 
 #include "swigmod.h"
@@ -285,9 +285,6 @@ public:
     Dump(f_enumtypes_type,f_mlout);
     Dump(f_enumtypes_value,f_mlout);
     Printv(f_mlout,mltypes,NIL);
-    Printv(f_mlout,
-	   "external _delete_any : 'a -> unit = \"_delete_any_",module,"\"\n",
-	   NIL);
     Printv(f_mlout,mllib,NIL);
     Dump(f_mlbody,f_mlout);
     Dump(f_enum_to_int,f_mlout);
@@ -380,8 +377,8 @@ public:
     } else if( classmode && in_destructor ) {
       Printf(f_class_ctors,
 	     "    \"~\", %s ;\n", mangled_name );
-    } else if( (classmode && !in_constructor && !in_destructor) ||
-	!static_member_function ) {
+    } else if( classmode && !in_constructor && !in_destructor &&
+	       !static_member_function ) {
       String *opname = Copy(Getattr(n,"name"));
 	
       Replaceall(opname,"operator ","");
@@ -619,7 +616,7 @@ public:
 	Printf(f_mlbody, 
 	       "external %s_f : c_obj list -> c_obj list = \"%s\"\n"
 	       "let %s = fnhelper %s %s_f\n",
-	       mangled_name, wname, mangled_name, 
+	       mangled_name, dname, mangled_name, 
 	       newobj ? "true" : "false",
 	       mangled_name );
 	if( !classmode || in_constructor || in_destructor ||
