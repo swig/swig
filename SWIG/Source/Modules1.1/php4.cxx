@@ -12,6 +12,9 @@
 
 #define PHP_READONLY	1<<0
 
+#define PHP_FULL	1<<0
+#define PHP_IZE		1<<1
+
 static String *module = 0;
 static String *cap_module = 0;
 static String *f_vinit = 0;
@@ -27,6 +30,8 @@ static File       *f_header  = 0;
 static File       *f_wrappers = 0;
 static File       *f_init = 0;
 static File       *f_runtime = 0;
+
+static int make_method = PHP_IZE;
 
 /* -----------------------------------------------------------------------------
  * get_pointer()
@@ -67,6 +72,12 @@ PHP4::main(int argc, char *argv[]) {
 	    if(strcmp(argv[i], "-noextra") == 0) {
 	      gen_extra = 0;
 	      Swig_mark_arg(i);
+	    } else if(strcmp(argv[i], "-phpize") == 0) {
+		    make_method = PHP_IZE;
+		    Swig_mark_arg(i);
+ 	    } else if(strcmp(argv[i], "-phpfull") == 0) {
+		    make_method = PHP_FULL;
+		    Swig_mark_arg(i);
 	    }
 	  }
 	}
@@ -267,8 +278,8 @@ PHP4::top(Node *n) {
 	Printf(f_header,"};\n\n");
 
 
-	Printf(f_init,"#ifdef COMPILE_DL_%s\n", Char(cap_module));
-	Printf(f_init,"\tZEND_GET_MODULE(%s)\n", Char(cap_module));
+	Printf(f_init,"#ifdef COMPILE_DL_%s\n", cap_module);
+	Printf(f_init,"\tZEND_GET_MODULE(%s)\n", module);
 	Printf(f_init,"#endif\n\n");
 
 
@@ -283,6 +294,7 @@ PHP4::top(Node *n) {
   	Printf(f_init,"PHP_RINIT_FUNCTION(%s)\n{\n", module);
 	Printf(f_init, "%s\n", f_cinit);
 	Printf(f_init, "%s\n", f_vinit);
+	Printf(f_init, "return SUCCESS;\n");
 	Printf(f_init,"}\n");
 
 	Printf(f_init,"PHP_RSHUTDOWN_FUNCTION(%s)\n{\n", module);
@@ -311,99 +323,134 @@ PHP4::top(Node *n) {
 		return SWIG_OK;
 	}
 
-	/* Write out Makefile.in and the like */
+	if((make_method == PHP_FULL) || (make_method == PHP_IZE)) {
+		/* Write out Makefile.in and the like */
 
-        if((f_make = fopen("Makefile.in", "w")) == 0) {
+       	  if((f_make = fopen("Makefile.in", "w")) == 0) {
 		Printf(stderr,"Unable to open Makefile.in\n");
 		SWIG_exit(EXIT_FAILURE);
-  	}
+  	  }
 
-	Printf(f_make, "# $Id$\n\n");
-	Printf(f_make, "LTLIBRARY_NAME\t\t\t= lib%s.la\n", module);
-	Printf(f_make, "LTLIBRARY_SOURCES\t\t= %s_wrap.c\n", module);
-	Printf(f_make, "LTLIBRARY_SHARED_NAME\t\t= %s.la\n", module);
-	Printf(f_make, "LTLIBRARY_SHARED_LIBADD\t\t= $(%s_SHARED_LIBADD)\n\n",
+	  Printf(f_make, "# $Id$\n\n");
+	  Printf(f_make, "LTLIBRARY_NAME\t\t\t= lib%s.la\n", module);
+	  Printf(f_make, "LTLIBRARY_SOURCES\t\t= %s_wrap.c\n", module);
+	  Printf(f_make, "LTLIBRARY_SHARED_NAME\t\t= %s.la\n", module);
+	  Printf(f_make, "LTLIBRARY_SHARED_LIBADD\t\t= $(%s_SHARED_LIBADD)\n\n",
 			cap_module);
-	Printf(f_make, "include $(top_srcdir)/build/dynlib.mk\n");
+	  Printf(f_make, "include $(top_srcdir)/build/dynlib.mk\n");
 
-	fclose(f_make);
+	  fclose(f_make);
+	}
+	/*
+	} else if(make_method == PHP_DL) {
+		if((f_make = fopen("Makefile", "w")) == 0) {
+			Printf(stderr, "Unable to open Makefile\n");
+			SWIG_exit(EXIT_FAILURE);
+		}
+
+		Printf(f_make, "CC = cc\n\n");
+		Printf(f_make, "# Add any extra object files here\n");
+		Printf(f_make, "OBJECTS = %s_wrap.o\n\n", module);
+		Printf(f_make, "# Path to PHP directory\n");
+		Printf(f_make, "PHP_INCLUDE = /usr/local/include\n\n");
+		Printf(f_make, "# PHP include directories\n");
+		Printf(f_make, "INCLUDES = -I. -I$(PHP_INCLUDE)/php -I$(PHP_INCLUDE)/php/main -I$(PHP_INCLUDE)/php/Zend -I$(PHP_INCLUDE)/php/TSRM\n\n");
+		Printf(f_make, "# Path to extra libraries\n");
+		Printf(f_make, "LIB_DIRS = -L/usr/local/lib\n\n");
+		Printf(f_make, "# Extra libraries needed\n");
+		Printf(f_make, "LIBS =\n\n");
+		Printf(f_make, "%s.so:	$(OBJECTS)\n", module);
+		Printf(f_make, "\t$(CC) -shared -rdynamic -o %s.so $(OBJECTS) $(LIB_DIRS) $(LIBS)\n\n", module);
+		Printf(f_make, ".c.o:\n");
+		Printf(f_make, "\t$(CC) -fpic -DCOMPILE_DL=1 $(INCLUDES) -c $<\n");
+		fclose(f_make);
+	}
+	*/
+
 
 	/* Now config.m4 */
 
-	if((f_m4 = fopen("config.m4", "w")) == 0) {
+	if((make_method == PHP_FULL) || (make_method == PHP_IZE)) {
+
+	  if((f_m4 = fopen("config.m4", "w")) == 0) {
 		Printf(stderr, "Unable to open config.m4\n");
 		SWIG_exit(EXIT_FAILURE);
+	  }
+
+	  Printf(f_m4,"dnl $Id$\n");
+	  Printf(f_m4,"dnl config.m4 for extension %s\n\n", module);
+	  Printf(f_m4,"dnl Comments in this file start with the string 'dnl'.\n");
+	  Printf(f_m4,"dnl Remove where necessary. This file will not work\n");
+	  Printf(f_m4,"dnl without editing.\n\n");
+
+	  Printf(f_m4,"dnl If your extension references somthing external, use with:\n\n");
+	  Printf(f_m4,"dnl PHP_ARG_WITH(%s, for %s support,\n", module, module);
+	  Printf(f_m4,"dnl Make sure that the comment is aligned:\n");
+	  Printf(f_m4,"dnl [  --with-%s		Include %s support])\n\n", 
+			module, module);
+
+	  Printf(f_m4,"dnl Otherwise use enable:\n\n");
+	  Printf(f_m4,"PHP_ARG_ENABLE(%s, whether to enable %s support,\n", module, module);
+	  Printf(f_m4,"dnl Make sure that the comment is aligned:\n");
+	  Printf(f_m4,"[  --enable-%s	Enable %s support])\n\n",
+			module, module);
+
+	  Printf(f_m4,"if test \"$PHP_%s\" != \"no\"; then\n", cap_module);
+	  Printf(f_m4,"  dnl Write more examples of tests here\n\n");
+	  Printf(f_m4,"  dnl # --with-%s -> check with-path\n", module);
+	  Printf(f_m4,"  dnl SEARCH_PATH=\"/usr/local /usr\"  # you might want to change this\n");
+	  Printf(f_m4,"  dnl SEARCH_FOR=\"/include/%s.h\"  # you most likely want to change this\n", module);
+	  Printf(f_m4,"  dnl if test -r $PHP_%s/; then # path given as parameter\n", module);
+	  Printf(f_m4,"  dnl   %s_DIR=$PHP_%s\n", cap_module, cap_module);
+	  Printf(f_m4,"  dnl else # search default path list\n");
+	  Printf(f_m4,"  dnl   AC_MSG_CHECKING(for %s files in default path)\n",
+			module);
+	  Printf(f_m4,"  dnl   for i in $SEARCH_PATH; do\n");
+	  Printf(f_m4,"  dnl     if test -r $i/$SEARCH_FOR; then\n");
+	  Printf(f_m4,"  dnl       %s_DIR=$i\n", cap_module);
+	  Printf(f_m4,"  dnl       AC_MSG_RESULT(found in $i)\n");
+	  Printf(f_m4,"  dnl     fi\n");
+	  Printf(f_m4,"  dnl   done\n");
+	  Printf(f_m4,"  dnl fi\n");
+	  Printf(f_m4,"  dnl\n");
+	  Printf(f_m4,"  dnl if test -z \"$%s_DIR\"; then\n", cap_module);
+	  Printf(f_m4,"  dnl   AC_MSG_RESULT(not found)\n");
+	  Printf(f_m4,"  dnl   AC_MSG_ERROR(Please reinstall the %s distribution)\n", module);
+	  Printf(f_m4,"  dnl fi\n\n");
+	  Printf(f_m4,"  dnl # --with-%s -> add include path\n", module);
+	  Printf(f_m4,"  dnl PHP_ADD_INCLUDE($%s_DIR/include)\n\n", cap_module);
+	  Printf(f_m4,"  dnl #--with-%s -> check for lib and symbol presence\n",
+			module);
+	  Printf(f_m4,"  dnl LIBNAME=%s # you may want to change this\n", module);
+	  Printf(f_m4,"  dnl LIBSYMBOL=%s #  you most likely want to change this\n", module);
+	  Printf(f_m4,"  dnl old_LIBS=$LIBS\n");
+	  Printf(f_m4,"  dnl LIBS=\"$LIBS -L$%s_DIR/lib -lm -ldl\"\n",cap_module);
+	  Printf(f_m4,"  dnl AC_CHECK_LIB($LIBNAME, $LIBSYMBOL, [AC_DEFINE(HAVE_%sLIB,1,[ ])],\n", cap_module);
+	  Printf(f_m4,"  dnl [AC_MSG_ERROR(wrong %s lib version or lib not found)])\n", module);
+	  Printf(f_m4,"  dnl LIBS=$old_LIBS\n");
+	  Printf(f_m4,"  dnl\n");
+	  Printf(f_m4,"  dnl PHP_SUBST(%s_SHARED_LIBADD)\n", cap_module);
+	  Printf(f_m4,"  dnl PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $%s_DIR/lib, SAPRFC_SHARED_LIBADD)\n\n",cap_module);
+	  Printf(f_m4,"  PHP_EXTENSION(%s, $ext_shared)\n", module);
+	  Printf(f_m4,"fi\n");
+
+	  fclose(f_m4);
 	}
-
-	Printf(f_m4,"dnl $Id$\n");
-	Printf(f_m4,"dnl config.m4 for extension %s\n\n", module);
-	Printf(f_m4,"dnl Comments in this file start with the string 'dnl'.\n");
-	Printf(f_m4,"dnl Remove where necessary. This file will not work\n");
-	Printf(f_m4,"dnl without editing.\n\n");
-
-	Printf(f_m4,"dnl If your extension references somthing external, use with:\n\n");
-	Printf(f_m4,"dnl PHP_ARG_WITH(%s, for %s support,\n", module, module);
-	Printf(f_m4,"dnl Make sure that the comment is aligned:\n");
-	Printf(f_m4,"dnl [  --with-%s		Include %s support])\n\n", 
-			module, module);
-
-	Printf(f_m4,"dnl Otherwise use enable:\n\n");
-	Printf(f_m4,"dnl PHP_ARG_ENABLE(%s, whether to enable %s support,\n", module, module);
-	Printf(f_m4,"dnl Make sure that the comment is aligned:\n");
-	Printf(f_m4,"dnl [  --enable-%s		Enable %s support])\n\n",
-			module, module);
-
-	Printf(f_m4,"if test \"$PHP_%s\" != \"no\"; then\n", cap_module);
-	Printf(f_m4,"  dnl Write more examples of tests here\n\n");
-	Printf(f_m4,"  dnl # --with-%s -> check with-path\n", module);
-	Printf(f_m4,"  dnl SEARCH_PATH=\"/usr/local /usr\"  # you might want to change this\n");
-	Printf(f_m4,"  dnl SEARCH_FOR=\"/include/%s.h\"  # you most likely want to change this\n", module);
-	Printf(f_m4,"  dnl if test -r $PHP_%s/; then # path given as parameter\n", module);
-	Printf(f_m4,"  dnl   %s_DIR=$PHP_%s\n", cap_module, cap_module);
-	Printf(f_m4,"  dnl else # search default path list\n");
-	Printf(f_m4,"  dnl   AC_MSG_CHECKING(for %s files in default path)\n",
-			module);
-	Printf(f_m4,"  dnl   for i in $SEARCH_PATH; do\n");
-	Printf(f_m4,"  dnl     if test -r $i/$SEARCH_FOR; then\n");
-	Printf(f_m4,"  dnl       %s_DIR=$i\n", cap_module);
-	Printf(f_m4,"  dnl       AC_MSG_RESULT(found in $i)\n");
-	Printf(f_m4,"  dnl     fi\n");
-	Printf(f_m4,"  dnl   done\n");
-	Printf(f_m4,"  dnl fi\n");
-	Printf(f_m4,"  dnl\n");
-	Printf(f_m4,"  dnl if test -z \"$%s_DIR\"; then\n", cap_module);
-	Printf(f_m4,"  dnl   AC_MSG_RESULT(not found)\n");
-	Printf(f_m4,"  dnl   AC_MSG_ERROR(Please reinstall the %s distribution)\n", module);
-	Printf(f_m4,"  dnl fi\n\n");
-	Printf(f_m4,"  dnl # --with-%s -> add include path\n", module);
-	Printf(f_m4,"  dnl PHP_ADD_INCLUDE($%s_DIR/include)\n\n", cap_module);
-	Printf(f_m4,"  dnl # --with-%s -> check for lib and symbol presence\n",
-			module);
-	Printf(f_m4,"  dnl LIBNAME=%s # you may want to change this\n", module);
-	Printf(f_m4,"  dnl LIBSYMBOL=%s #  you most likely want to change this\n", module);
-	Printf(f_m4,"  dnl old_LIBS=$LIBS\n");
-	Printf(f_m4,"  dnl LIBS=\"$LIBS -L$%s_DIR/lib -lm -ldl\"\n",cap_module);
-	Printf(f_m4,"  dnl AC_CHECK_LIB($LIBNAME, $LIBSYMBOL, [AC_DEFINE(HAVE_%sLIB,1,[ ])],\n", cap_module);
-	Printf(f_m4,"  dnl [AC_MSG_ERROR(wrong %s lib version or lib not found)])\n", module);
-	Printf(f_m4,"  dnl LIBS=$old_LIBS\n");
-	Printf(f_m4,"  dnl\n");
-	Printf(f_m4,"  dnl PHP_SUBST(%s_SHARED_LIBADD)\n", cap_module);
-	Printf(f_m4,"  dnl PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $%s_DIR/lib, SAPRFC_SHARED_LIBADD)\n\n",cap_module);
-	Printf(f_m4,"  PHP_EXTENSION(%s, $ext_shared)\n", module);
-	Printf(f_m4,"fi\n");
-
-	fclose(f_m4);
 
 	/*  CREDITS */
 
-        if((f_credits = fopen("CREDITS", "w")) == 0) {
+	if((make_method == PHP_FULL) || (make_method == PHP_IZE)) {
+
+          if((f_credits = fopen("CREDITS", "w")) == 0) {
 		Printf(stderr,"Unable to open CREDITS\n");
 		SWIG_exit(EXIT_FAILURE);
-  	}
+  	  }
 
-	Printf(f_credits, "%s\n", module);
+	  Printf(f_credits, "%s\n", module);
 
-	fclose(f_credits);
+	  fclose(f_credits);
+
+	}
 	return SWIG_OK;
 }
 
@@ -579,6 +626,7 @@ PHP4::functionWrapper(Node *n) {
 	Printf(stderr,"%s : Line %d, Unable to use type %s as a function argument.\n", input_file, line_number, SwigType_str(pt,0));
 	break;
       }
+      p = nextSibling(p);
     }
     if (i>= num_required)
       Printf(f->code,"\t}\n");
@@ -1061,14 +1109,14 @@ PHP4::constantWrapper(Node *n) {
 			Printv(f_cinit, "REGISTER_DOUBLE_CONSTANT(\"", name, "\", ", rval, ", CONST_CS);\n", 0);
 			break;
 		case T_STRING:
-			Printv(f_cinit, "REGISTER_STRING_CONSTANT(\"", name, "\", ", rval, ", CONST_CS);\n", 0);
+			Printv(f_cinit, "REGISTER_STRING_CONSTANT(\"", name, "\", ", rval, ", CONST_CS | CONST_PERSISTENT);\n", 0);
 			break;
 		case T_POINTER:
 		case T_ARRAY:
 		case T_REFERENCE:
 			Printf(f_cinit, "{\n\tchar *cp;\n");
 			Printf(f_cinit, "\tSWIG_SetPointerChar(&cp, (void*)%s, SWIGTYPE%s);\n", value, SwigType_manglestr(type));
-			Printv(f_cinit, "\tREGISTER_STRING_CONSTANT(\"", name, "\", cp,  CONST_CS);\n", 0);
+			Printv(f_cinit, "\tREGISTER_STRING_CONSTANT(\"", name, "\", cp,  CONST_CS | CONST_PERSISTENT);\n", 0);
 			Printf(f_cinit, "}\n");
 			break;
 		default:
