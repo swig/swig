@@ -476,8 +476,7 @@ int* negate(int* number) {
 The return value can then be read from Java and used like this:
 
 <blockquote><pre>
-long intPointer = example.new_intp();
-example.intp_assign(intPointer, 10);
+long intPointer = example.copy_intp(10);
 long negativeNumPointer = example.negate(intPointer);
 System.out.println("Negative of " + example.intp_value(intPointer) + " is " + example.intp_value(negativeNumPointer));
 example.delete_intp(intPointer);

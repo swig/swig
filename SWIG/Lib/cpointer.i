@@ -104,8 +104,7 @@ static NAME * frompointer(TYPE *t) {
  *
  * In python (with proxies)
  *
- *    >>> a = new_intp()
- *    >>> intp_assign(a,10)
+ *    >>> a = copy_intp(10)
  *    >>> intp_value(a)
  *    10
  *    >>> b = new_intp()
@@ -127,6 +126,16 @@ static TYPE *new_##NAME() { %}
 #endif
 %{}
 
+static TYPE *copy_##NAME(TYPE value) { %}
+#if __cplusplus
+%{  return new TYPE(value); %}
+#else
+%{  TYPE *self = (TYPE *) calloc(1,sizeof(TYPE));
+  *self = value;
+  return self; %}
+#endif
+%{}
+
 static void delete_##NAME(TYPE *self) { %}
 #if __cplusplus
 %{  if (self) delete self; %}
@@ -145,6 +154,7 @@ static TYPE NAME ##_value(TYPE *self) {
 %}
 
 TYPE *new_##NAME();
+TYPE *copy_##NAME(TYPE value);
 void  delete_##NAME(TYPE *self);
 void  NAME##_assign(TYPE *self, TYPE value);
 TYPE  NAME##_value(TYPE *self);

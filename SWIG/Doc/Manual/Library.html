@@ -87,6 +87,14 @@ object is created using <tt>calloc()</tt>. In C++, <tt>new</tt> is used.
 </blockquote>
 
 <p>
+<tt>type *copy_name(type value)</tt>
+<blockquote>
+Creates a new object of type <tt>type</tt> and returns a pointer to it. 
+An initial value is set by copying it from <tt>value</tt>. In C, the
+object is created using <tt>calloc()</tt>. In C++, <tt>new</tt> is used.
+</blockquote>
+
+<p>
 <tt>type *delete_name(type *obj)</tt>
 <blockquote>
 Deletes an object type <tt>type</tt>.
