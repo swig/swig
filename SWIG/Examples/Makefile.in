@@ -332,10 +332,12 @@ java_cpp: $(SRCS)
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
+MZC = test -n "@MZC@" && @MZC@
+
 mzscheme: $(SRCS)
 	$(SWIG) -mzscheme $(SWIGOPT) $(INTERFACE)
-	mzc --cc $(ISRCS) $(SRCS)
-	mzc --ld $(TARGET)$(SO) $(OBJS) $(IOBJS)
+	$(MZC) --cc $(ISRCS) $(SRCS)
+	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS)
 
 ##################################################################
 #####                       RUBY                            ######
