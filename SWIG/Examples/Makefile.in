@@ -165,6 +165,8 @@ tcl_multi_cpp: $(SRCS)
 
 PERL5_INCLUDE= @PERL5EXT@
 
+# Extra Perl specific dynamic linking options
+PERL5_DLNK   = @PERL5DYNAMICLINKING@
 
 # ----------------------------------------------------------------
 # Build a Perl5 dynamically loadable module (C)
@@ -173,7 +175,7 @@ PERL5_INCLUDE= @PERL5EXT@
 perl5: $(SRCS)
 	$(SWIG) -perl5 $(SWIGOPT) $(INTERFACE)
 	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a Perl5 dynamically loadable module (C++)
@@ -182,7 +184,7 @@ perl5: $(SRCS)
 perl5_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a Perl5 dynamically loadable module, linked against SWIG runtime lib
@@ -193,12 +195,12 @@ PERL5_RUNTIME=-L$(RUNTIMEDIR) -lswigpl@release_suffix@
 perl5_multi: $(SRCS)
 	$(SWIG) -c -perl5 $(SWIGOPT) $(INTERFACE)
 	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) $(PERL5_RUNTIME) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) $(PERL5_RUNTIME) -o $(TARGET)$(SO)
 
 perl5_multi_cpp: $(SRCS)
 	$(SWIG) -c -perl5 -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(PERL5_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) $(PERL5_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a module from existing XS C source code.   (ie. from xsubpp).
@@ -211,7 +213,7 @@ perl5_xs: $(SRCS)
 # Build a statically linked Perl5 executable
 # ----------------------------------------------------------------
 
-PERL5_LIB    = -L$(PERL5_INCLUDE) -lperl @LIBS@ $(SYSLIBS)
+PERL5_LIB    = -L$(PERL5_INCLUDE) -l@PERL5LIB@ @LIBS@ $(SYSLIBS)
 
 perl5_static: $(SRCS)
 	$(SWIG) -perl5 -static -lperlmain.i $(SWIGOPT) $(INTERFACE)
@@ -479,8 +481,7 @@ mzscheme_multi_cpp: $(SRCS)
 RUBY_CFLAGS= @RUBYCCDLFLAGS@ -DHAVE_CONFIG_H
 RUBY_INCLUDE= @RUBYINCLUDE@
 RUBY_LIB     = @RUBYLIB@
-RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
-RUBY_LIBRUBYARG= @RUBYLIBRUBYARG@
+RUBY_DLNK = @RUBYDYNAMICLINKING@
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -489,7 +490,7 @@ RUBY_LIBRUBYARG= @RUBYLIBRUBYARG@
 ruby: $(SRCS)
 	$(SWIG) -ruby $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(RUBY_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) $(RUBY_LIBRUBYARG) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) -o $(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build a C++ dynamically loadable module
@@ -498,7 +499,7 @@ ruby: $(SRCS)
 ruby_cpp: $(SRCS)
 	$(SWIG) -c++ -ruby $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(RUBY_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) $(RUBY_LIBRUBYARG) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build a dynamically loadable module, linked against SWIG runtime lib
@@ -509,12 +510,12 @@ RUBY_RUNTIME=-L$(RUNTIMEDIR) -lswigrb@release_suffix@
 ruby_multi: $(SRCS)
 	$(SWIG) -c -ruby $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(RUBY_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) $(RUBY_RUNTIME) $(RUBY_LIBRUBYARG) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) $(RUBY_RUNTIME) -o $(TARGET)$(SO)
 
 ruby_multi_cpp: $(SRCS)
 	$(SWIG) -c -c++ -ruby $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(RUBY_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(RUBY_RUNTIME) $(CPP_DLLIBS) $(RUBY_LIBRUBYARG) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) $(RUBY_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build statically linked Ruby interpreter
@@ -522,6 +523,8 @@ ruby_multi_cpp: $(SRCS)
 # These should only be used in conjunction with the %include embed.i
 # library file
 # -----------------------------------------------------------------
+
+RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
 
 ruby_static: $(SRCS)
 	$(SWIG) -ruby -lembed.i $(SWIGOPT) $(INTERFACE)

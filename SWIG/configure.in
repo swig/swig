@@ -74,7 +74,7 @@ if test -z "$SO"
 then
 	case $ac_sys_system in
 	hp*|HP*)   SO=.sl;;
-	CYGWIN*) SO=.dll;;
+	CYGWIN*)   SO=.dll;;
 	*)	   SO=.so;;
 	esac
 fi
@@ -88,8 +88,7 @@ if test -z "$LDSHARED"
 then
 	case $ac_sys_system/$ac_sys_release in
 	AIX*) LDSHARED="\$(srcdir)/ld_so_aix \$(CC)";;
-        # cygwin uses dllwrap to create shared libraries
-	CYGWIN*) LDSHARED="dllwrap --target=cygwin --as=as --dlltool-name=dlltool --driver-name=$CC --export-all -s ";;
+	CYGWIN*) LDSHARED="gcc -shared";;
 	IRIX/5*) LDSHARED="ld -shared";;
 	IRIX*/6*) LDSHARED="ld ${SGI_ABI} -shared -all";;
 	SunOS/4*) LDSHARED="ld";;
@@ -128,12 +127,7 @@ AC_MSG_RESULT($LDSHARED)
 AC_MSG_CHECKING(CXXSHARED)
 if test -z "$CXXSHARED"
 then
-	case $ac_sys_system/$ac_sys_release in
-        # cygwin uses dllwrap to create shared libraries
-	CYGWIN*) CXXSHARED="dllwrap --target=cygwin --as=as --dlltool-name=dlltool --driver-name=$CXX --export-all -s ";;
-        # all other platforms make no distinction between C and C++ shared libraries
-	*)	CXXSHARED="$LDSHARED";;
-	esac
+	CXXSHARED="$LDSHARED"
 fi
 AC_MSG_RESULT($CXXSHARED)
 
@@ -142,8 +136,6 @@ AC_MSG_CHECKING(TRYLINKINGWITHCXX)
 if test -z "$TRYLINKINGWITHCXX"
 then
 	case $ac_sys_system/$ac_sys_release in
-        # cygwin uses dllwrap to create shared libraries
-        CYGWIN*) TRYLINKINGWITHCXX="# Not for cygwin: CXXSHARED=";;
 	SunOS/5*) if test "$GCC" = yes;
              then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G";
              else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun";
@@ -570,16 +562,32 @@ if test -n "$PERL"; then
 			PERL5EXT="$PERL5DIR/CORE"
 			AC_MSG_RESULT(could not locate perl.h...using $PERL5EXT)
 		fi
+
+		AC_MSG_CHECKING(for Perl5 library)
+		PERL5LIB=`($PERL -e 'use Config; $_=$Config{libperl}; s/^lib//; s/$Config{_a}$//; print $_') 2>/dev/null`
+		if test "$PERL5LIB" = "" ; then
+			AC_MSG_RESULT(not found)
+		else
+			AC_MSG_RESULT($PERL5LIB)
+		fi
 	else
 		AC_MSG_RESULT(unable to determine perl5 configuration)
 		PERL5EXT=$PERL5DIR
 	fi
-    else
+else
        	AC_MSG_RESULT(could not figure out how to run perl5)
 #	PERL5EXT="/usr/local/lib/perl/archname/5.003/CORE"
-    fi
+fi
+
+# Only cygwin (Windows) needs the library for dynamic linking
+case $ac_sys_system/$ac_sys_release in
+CYGWIN*) PERL5DYNAMICLINKING="-L$PERL5EXT -l$PERL5LIB";;
+*)PERL5DYNAMICLINKING="";;
+esac
 
 AC_SUBST(PERL5EXT)
+AC_SUBST(PERL5DYNAMICLINKING)
+AC_SUBST(PERL5LIB)
 
 #----------------------------------------------------------------
 # Look for java
@@ -634,9 +642,9 @@ else
   fi
 fi
 
-# Cygwin requires a few extra options for building dlls
+# java.exe on Cygwin requires the Windows standard (Pascal) calling convention as it is a normal Windows executable and not a cygwin built executable
 case $ac_sys_system/$ac_sys_release in
-CYGWIN*) JAVADYNAMICLINKING="--add-stdcall-alias -Wl,-e,__cygwin_noncygwin_dll_entry@12 -s";;
+CYGWIN*) JAVADYNAMICLINKING=" -Wl,--add-stdcall-alias";;
 *)JAVADYNAMICLINKING="";;
 esac
 
@@ -742,12 +750,12 @@ AC_ARG_WITH(ruby,[  --with-ruby=path        Set location of Ruby executable],[ R
 # First figure out what the name of Ruby is
 
 if test -z "$RUBYBIN"; then
-AC_CHECK_PROGS(RUBY, ruby)
+	AC_CHECK_PROGS(RUBY, ruby)
 else
-RUBY="$RUBYBIN"
+	RUBY="$RUBYBIN"
 fi
+
 AC_MSG_CHECKING(for Ruby header files)
-RUBYLIBRUBYARG=""
 if test -n "$RUBY"; then
 	RUBYDIR=`($RUBY -rmkmf -e 'print Config::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
 	if test "$RUBYDIR" != ""; then
@@ -765,46 +773,61 @@ if test -n "$RUBY"; then
 			AC_MSG_RESULT(could not locate ruby.h...using $RUBYINCLUDE)
 		fi
 
+		# Find library and path for linking. Use libruby.a except on Cygwin use the DLL.
 		AC_MSG_CHECKING(for Ruby library)
-		RUBYLIB=none
-		for i in $dirs; do
-                        # cygwin produces "librubys.a" instead of "libruby.a"
-			if ((test -r $i/libruby.a;) || (test -r $i/librubys.a;)) then
-				AC_MSG_RESULT($i)
-				RUBYLIB="$i"
-				break;
-			fi
-		done
-		if test "$RUBYLIB" = none; then
+		RUBYLIB=""
+		case $ac_sys_system/$ac_sys_release in	
+		CYGWIN*)
+			rb_libdir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["libdir"]]') 2>/dev/null`
+			rb_bindir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["bindir"]]') 2>/dev/null`
+			dirs="$dirs $rb_libdir $rb_bindir"
+			rb_libruby=`($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBRUBY_SO"]]') 2>/dev/null`
+			RUBYLINK=`($RUBY -rrbconfig -e 'print Config::CONFIG[["RUBY_SO_NAME"]]') 2>/dev/null`
+			;;
+		*)
+			rb_libruby=`($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
+			RUBYLINK=`($RUBY -rrbconfig -e 'print Config::CONFIG[["RUBY_INSTALL_NAME"]]') 2>/dev/null`
+			;;
+		esac
+		if test "$rb_libruby" != ""; then
+			for i in $dirs; do
+				if (test -r $i/$rb_libruby;) then
+					RUBYLIB="$i"
+					break;
+				fi
+			done
+		fi
+		if test "$RUBYLIB" = ""; then
 			RUBYLIB="$RUBYDIR"
-			AC_MSG_RESULT(could not locate libruby.a...using $RUBYLIB)
+			AC_MSG_RESULT(not found... using $RUBYDIR)
+		else
+			AC_MSG_RESULT($RUBYLINK in $RUBYLIB)
 		fi
 	else
 		AC_MSG_RESULT(unable to determine ruby configuration)
 		RUBYINCLUDE="-I$RUBYDIR"
 		RUBYLIB="$RUBYDIR"
 	fi
-	RUBYLINK=`($RUBY -rrbconfig -e 'print Config::CONFIG[["RUBY_INSTALL_NAME"]]') 2>/dev/null`
-	RUBYLINK="-l$RUBYLINK"
-	RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBS"]]') 2>/dev/null`"
-        RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print Config::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
-	# At least for cygwin the following arguments can be extracted from the CONFIG-hash
-	case $ac_sys_system/$ac_sys_release in	
-	CYGWIN*)	RUBYLIBRUBYARG=`($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBRUBYARG"]]') 2>/dev/null`;;
-	*)		RUBYLIBRUBYARG="";;
-	esac
+	RUBYLINK="-l$RUBYLINK `($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBS"]]') 2>/dev/null`"
+	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print Config::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
 else
-       	AC_MSG_RESULT(could not figure out how to run ruby)
+	AC_MSG_RESULT(could not figure out how to run ruby)
 	RUBYINCLUDE="-I/usr/local/lib/ruby/1.4/arch"
-	RUBYLIB="-I/usr/local/lib/ruby/1.4/arch"
+	RUBYLIB="/usr/local/lib/ruby/1.4/arch"
 	RUBYLINK="-lruby -lm"
 fi
+
+case $ac_sys_system/$ac_sys_release in	
+CYGWIN*)	RUBYDYNAMICLINKING="-L$RUBYLIB $RUBYLINK";;
+*)		RUBYDYNAMICLINKING="";;
+esac
+
 
 AC_SUBST(RUBYINCLUDE)
 AC_SUBST(RUBYLIB)
 AC_SUBST(RUBYLINK)
 AC_SUBST(RUBYCCDLFLAGS)
-AC_SUBST(RUBYLIBRUBYARG)
+AC_SUBST(RUBYDYNAMICLINKING)
 
 #-------------------------------------------------------------------------
 # Look for Php4
