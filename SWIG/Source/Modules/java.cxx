@@ -2375,9 +2375,11 @@ class JAVA : public Language {
 
   /* -----------------------------------------------------------------------------
    * getEnumName()
+   *
+   * If jnidescriptor is set, inner class names are separated with '$' otherwise a '.'
    * ----------------------------------------------------------------------------- */
 
-  String *getEnumName(SwigType *t) {
+  String *getEnumName(SwigType *t, bool jnidescriptor) {
     Node *enum_name = NULL;
     Node *n = enumLookup(t);
     if (n) {
@@ -2389,10 +2391,12 @@ class JAVA : public Language {
         if (scopename_prefix) {
           proxyname = getProxyName(scopename_prefix);
         }
-        if (proxyname)
-          enum_name = NewStringf("%s.%s", proxyname, symname);
-        else
+        if (proxyname) {
+          const char *class_separator = jnidescriptor ? "$" : ".";
+          enum_name = NewStringf("%s%s%s", proxyname, class_separator, symname);
+        } else {
           enum_name = NewStringf("%s", symname);
+        }
         Delete(scopename_prefix);
       }
     }
@@ -2410,34 +2414,35 @@ class JAVA : public Language {
    * Inputs:
    *   pt - parameter type
    *   tm - jstype typemap
+   *   jnidescriptor - if set, inner class names are separated with '$' otherwise a '.'
    * Outputs:
    *   tm - jstype typemap with $javaclassname substitution
    * Return:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
 
-  bool substituteClassname(SwigType *pt, String *tm) {
+  bool substituteClassname(SwigType *pt, String *tm, bool jnidescriptor = false) {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
     if (Strstr(tm, "$javaclassname")) {
       SwigType *classnametype = Copy(strippedtype);
-      substituteClassnameSpecialVariable(classnametype, tm, "$javaclassname");
+      substituteClassnameSpecialVariable(classnametype, tm, "$javaclassname", jnidescriptor);
       substitution_performed = true;
       Delete(classnametype);
     }
     if (Strstr(tm, "$*javaclassname")) {
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
-      substituteClassnameSpecialVariable(classnametype, tm, "$*javaclassname");
+      substituteClassnameSpecialVariable(classnametype, tm, "$*javaclassname", jnidescriptor);
       substitution_performed = true;
       Delete(classnametype);
     }
     if (Strstr(tm, "$&javaclassname")) {
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
-      substituteClassnameSpecialVariable(classnametype, tm, "$&javaclassname");
+      substituteClassnameSpecialVariable(classnametype, tm, "$&javaclassname", jnidescriptor);
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -2452,9 +2457,9 @@ class JAVA : public Language {
    * substituteClassnameSpecialVariable()
    * ----------------------------------------------------------------------------- */
 
-  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool jnidescriptor) {
     if (SwigType_isenum(classnametype)) {
-      String *enumname = getEnumName(classnametype);
+      String *enumname = getEnumName(classnametype, jnidescriptor);
       if (enumname)
         Replaceall(tm, classnamespecialvariable, enumname);
       else
@@ -2769,7 +2774,7 @@ class JAVA : public Language {
       Replaceall(descriptor_out, "$packagepath", empty_string);
     }
 
-    substituteClassname(type, descriptor_out);
+    substituteClassname(type, descriptor_out, true);
 
     if (pkg_path != package_path)
       Delete(pkg_path);
