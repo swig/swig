@@ -32,14 +32,14 @@ using namespace test;
 
 namespace test2 {
    using namespace test;
-   %template(maxint2) max<int>;
-   %template(vectorint2) vector<int>;
+   %template(maxshort) max<short>;
+   %template(vectorshort) vector<short>;
 }
 
 namespace test3 {
    using test::max;
    using test::vector;
-   %template(maxint3) max<int>;
-   %template(vectorint3) vector<int>;
+   %template(maxlong) max<long>;
+   %template(vectorlong) vector<long>;
 }
 
