@@ -1509,8 +1509,9 @@ pointer    : STAR type_qualifier pointer {
            ;
 
 type_qualifier : CONST { $$ = "const"; }
+               | CONST type_qualifier { $$ = "const"; }
                ;
-
+ 
 /* Data type must be a built in type or an identifier for user-defined types
    This type can be preceded by a modifier. */
 
