@@ -1,6 +1,10 @@
 /* File : example.h */
 
 #include <string>
+#ifndef SWIG
+struct A {
+};
+#endif
 
 class Exc {
 public:
@@ -22,6 +26,9 @@ public:
   }
   int hosed() throw(Exc) {
     throw(Exc(42,"Hosed"));
+  } 
+  int unknown() throw(A) {
+    throw A();
   }
   int multi(int x) throw(int, const char *, Exc) {
      if (x == 1) throw(37);
