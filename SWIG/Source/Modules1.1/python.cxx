@@ -350,6 +350,9 @@ PYTHON::functionWrapper(Node *n) {
 	Printv(get_pointers,tm,"\n", 0);
       } else {
 	Printf(parse_args,"%s",parse);
+	
+	/* Add arglist code here */
+	
 	Printf(arglist,"&%s", ln);
       }
       p = Getattr(p,"tmap:in:next");
@@ -973,16 +976,14 @@ int PYTHON::insertDirective(Node *n) {
   String *code = Getattr(n,"code");
   String *section = Getattr(n,"section");
 
-  if (!ImportMode) {
-    if (Cmp(section,"shadow") == 0) {
-      if (shadow) {
-	String *pycode = pythoncode(code,shadow_indent);
-	Printv(f_shadow,pycode,"\n",0);
-	Delete(pycode);
-      }
-    } else {
-      Language::insertDirective(n);
+  if ((!ImportMode) && (Cmp(section,"shadow") == 0)) {
+    if (shadow) {
+      String *pycode = pythoncode(code,shadow_indent);
+      Printv(f_shadow,pycode,"\n",0);
+      Delete(pycode);
     }
+  } else {
+    Language::insertDirective(n);
   }
   return SWIG_OK;
 }

@@ -357,7 +357,7 @@ int Language::includeDirective(Node *n) {
 
 int Language::insertDirective(Node *n) {
   /* %insert directive */
-  if (!ImportMode) {
+  if ((!ImportMode) || Getattr(n,"generated")) {
     String *code     = Getattr(n,"code");
     String *section  = Getattr(n,"section");
     File *f = 0;

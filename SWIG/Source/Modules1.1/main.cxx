@@ -73,7 +73,6 @@ static char *usage = (char*)"\
      -o outfile      - Set name of the output file.\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
-     -show_templates - Show template expansions\n\
      -version        - Print SWIG version number\n\
      -help           - This output.\n\n";
 
