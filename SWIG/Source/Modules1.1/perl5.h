@@ -21,62 +21,13 @@
 
 class PERL5 : public Language {
 private:
-  int    export_all;
-  char   *package;
-  char   *module;
-  String cmodule;
-  char   *hide;
-  String chide;
-  String  vinit;
-  FILE   *f_pm;
-  String  pm;                      // Package initialization code
-  String  magic;                   // Magic variable wrappers
-
-  char   *perl_path;
-  int    is_static;
   void   get_pointer(char *iname, char *srcname, char *src, char *dest,
-			DataType *t, String &f, char *ret);
+			DataType *t, DOHString *f, char *ret);
   char     *usage_var(char *, DataType *);
   char     *usage_func(char *, DataType *, ParmList *);
   char     *usage_const(char *, DataType *, char *);
 
-  char   *alt_header;   
-
-// The following variables are used to manage Perl5 classes
-
-  int      blessed;                // Enable object oriented features
-  int      hidden;                 // Every symbol hidden in <hide> package name
-  DOH     *classes;                // A hash table for storing the classes we've seen so far
-  DOH     *symbols; 
-  int      have_constructor;
-  int      have_destructor;
-  int      have_data_members;
-  char     *class_name;            // Name of the class (what Perl thinks it is)
-  char     *class_type;            // Type of class "struct", "class", "union"
-  char     *real_classname;        // Real name of C/C++ class
-  String   *base_class;            // Base class (if using inheritance)
-  String   *pcode;                 // Perl code associated with each class
-  String   *blessedmembers;        // Member data associated with each class
-  int      member_func;            // Set to 1 when wrapping a member function
-  char     *realpackage;           // Name of real module 
-  String   func_stubs;             // Function stubs
-  String   var_stubs;              // Variable stubs
-  String   *member_keys;            // Keys for all member data
-  String   exported;               // Exported symbols
-
 public :
-  PERL5() {
-    package = 0;
-    module = 0;
-    perl_path = (char*)"perl5";
-    is_static = 0;
-    blessed = 0;
-    hidden = 0;
-    alt_header = 0;
-    member_func = 0;
-    classes = NewHash();
-    symbols = NewHash();
-  };
   virtual void parse_args(int, char *argv[]);
   virtual void parse();
   virtual void create_function(char *, char *, DataType *, ParmList *);
