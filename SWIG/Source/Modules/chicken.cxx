@@ -709,8 +709,6 @@ CHICKEN::functionWrapper(Node *n)
 
   /* Want outputs done in reverse order */
   List *l_out = NewList();
-  char s_out [20];
-  char s_next [20];
 
   /* Return the function value */
   if (has_void_return && result_list_len == 1) {
@@ -887,7 +885,6 @@ CHICKEN::variableWrapper(Node *n)  {
   SwigType *pb = SwigType_base(t);
   ParmList *l    = Getattr(n,"parms");
 
-  Parm    *p;    
   String *proc_name = NewString("");
   char  var_name[256];
   String *wname = NewString("");
@@ -950,7 +947,6 @@ CHICKEN::variableWrapper(Node *n)  {
   closwrapargs = NewString("");
     
   if (1 || (SwigType_type(t) != T_USER) || (isPointer(t))) {
-    char tname[256];
       
     closparam = NewString("(car %value)");
     Printv(closargs, " . %value", NIL);
@@ -1142,7 +1138,6 @@ CHICKEN::constantWrapper(Node *n)
   ParmList *l    = Getattr(n,"parms");
   String   *value = Getattr(n,"value");
 
-  Parm    *p;    
   String *proc_name = NewString("");
   char  var_name[256];
   String *wname = NewString("");
@@ -1221,7 +1216,6 @@ CHICKEN::constantWrapper(Node *n)
 	  "C_trace(\"",scmname,"\");\n", NIL);
 
   if (1 || (SwigType_type(t) != T_USER) || (isPointer(t))) {
-    char tname[256];
       
     Printv(f->def, 
 #ifndef BINDING
