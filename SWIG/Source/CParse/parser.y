@@ -32,7 +32,7 @@ char cvsroot_parser_y[] = "$Header$";
  * ----------------------------------------------------------------------------- */
 
 extern int   yylex();
-extern void  yyerror (const char *s);
+extern void  yyerror (const char *e);
 
 /* scanner.cxx */
 
