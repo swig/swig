@@ -82,9 +82,9 @@ except:
   print h, "is not an instance"
   raise RuntimeError
 
-s = string.split('%s' % g)[1]
+s = string.split('%s' % h)[1]
 if string.find(s, 'ArithUnaryFunction') == -1:
-  print g, "is not an ArithUnaryFunction"
+  print h, "is not an ArithUnaryFunction"
   raise RuntimeError
 
 try:
