@@ -1,0 +1,181 @@
+// Lots of tests for methods with default parameters / default arguments
+
+%module default_args
+
+%include "std_string.i"
+
+%inline %{
+  #include <string>
+
+  // Anonymous arguments
+  int anonymous(int = 7771);
+  int anonymous(int x) { return x; }
+
+  // Bug [548272] Default arguments
+  bool booltest(bool x = true) { return x; }
+
+  // scoped enums
+  enum flavor { BITTER, SWEET };
+  class EnumClass {
+    public:
+      enum speed { FAST, SLOW };
+      // Note: default values should be EnumClass::FAST and SWEET 
+      bool blah(speed s = FAST, flavor f = SWEET) { return (s == FAST && f == SWEET); };
+  };
+
+  // casts
+  const char * casts1(const char *m = (const char *) NULL) {
+    char *ret = NULL; 
+    if (m) { 
+      ret = new char[strlen(m+1)];
+      strcpy(ret, m);
+    }
+    return ret;
+  }
+  const char * casts2(const char *m = (const char *) "Hello") {
+    char *ret = NULL; 
+    if (m) { 
+      ret = new char[strlen(m+1)];
+      strcpy(ret, m);
+    }
+    return ret;
+  }
+
+  // char
+  char chartest1(char c = 'x') { return c; }
+  char chartest2(char c = '\0') { return c; }
+
+  // namespaces
+  namespace AType { 
+    enum AType { NoType }; 
+  } 
+  void dummy(AType::AType aType = AType::NoType) {}
+  namespace A { 
+    namespace B { 
+      int CONST_NUM = 10; 
+    } 
+    int function(int i = B::CONST_NUM) { return i; }
+  } 
+
+  // references
+  int reftest1(const int &x = 42) { return x; }
+  std::string reftest2(const std::string &x = "hello") { return x; }
+
+  // enum scope
+  class Tree {
+    public:
+      enum types {Oak, Fir, Cedar};
+      void chops(enum types type) {}
+      void test(int x = Oak + Fir + Cedar) {}
+  };
+  enum Tree::types chops(enum Tree::types type) { return type; }
+ 
+%}
+
+// Rename a class member
+%rename(bar2) Foo::bar;
+%rename(newname) Foo::oldname;
+%inline %{
+
+  // Define a class
+  class Foo {
+    public:
+      static int bar;
+      static int spam;
+
+      // Use a renamed member as a default argument.  SWIG has to resolve
+      // bar to Foo::bar and not Foo::spam.  SWIG-1.3.11 got this wrong.
+      // (Different default parameter wrapping in SWIG-1.3.23 ensures SWIG doesn't have to resolve these symbols).
+      void method1(int x = bar) {}
+
+      // Use unrenamed member as default
+      void method2(int x = spam) {}
+
+      // test the method itself being renamed
+      void oldname(int x = 1234) {}
+  };
+  int Foo::bar = 1;
+  int Foo::spam = 2;
+%}
+
+
+// tests valuewrapper
+%inline %{
+  enum MyType { Val1, Val2 }; 
+
+  class MyClass1 
+  { 
+    public: 
+      MyClass1(MyType myType) {}
+  }; 
+
+  class MyClass2 
+  { 
+    public : 
+      void set(MyClass1 cl1 = Val1) {}
+      // This could have been written : set(MyClass1 cl1 = MyClass1(Val1)) 
+      // But it works in C++ since there is a "conversion" constructor in  MyClass1. 
+  };
+%}
+
+
+// Default parameters with exception specifications
+%inline %{
+void exceptionspec(int a = -1) throw (int, const char*) {
+  if (a == -1)
+    throw "ciao";
+  else
+    throw a;
+}
+struct Except {
+  Except(bool throwException, int a = -1) throw (int) {
+    if (throwException)
+      throw a;
+  }
+  void exspec(int a = 0) throw (int, const char*) {
+    ::exceptionspec(a);
+  }
+};
+%}
+
+// Default parameters in static class methods
+%inline %{
+namespace SpaceName {
+  struct Statics {
+    static int staticmethod(int a=10, int b=20, int c=30) { return a+b+c; }
+  };
+}
+%}
+
+
+// Tests which could never be wrapped prior to changes in default argument wrapping implemented in SWIG-1.3.23:
+%inline %{
+class Tricky {
+  static int getDefault() { return 500; }
+  enum { privatevalue = 200 };
+  static const char charvalue;
+public:
+  int privatedefault(int val = privatevalue) { return val; }
+  int protectedint(int val = intvalue) { return val; }
+  double protecteddouble(double val = doublevalue) { return val; }
+  int functiondefault(int val = Tricky::getDefault()) { return val; }
+  char contrived(const char *c = &charvalue) { return *c; }
+protected:
+  static const int intvalue = 2000;
+  static const double doublevalue = 987.654;
+};
+const char Tricky::charvalue = 'X';
+
+
+// tests default argument which is a constructor call within namespace
+// also tests default constructor (from defaulted parameter)
+namespace Space {
+struct Klass {
+  int val;
+  Klass(int val = -1) : val(val) {}
+};
+Klass constructorcall(const Klass& k = Klass()) { return k; }
+
+}
+%}
+
