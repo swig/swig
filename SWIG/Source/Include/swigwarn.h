@@ -59,6 +59,7 @@
 #define WARN_PARSE_KEYWORD            314
 #define WARN_PARSE_USING_UNDEF        315
 #define WARN_PARSE_MODULE_REPEAT      316
+#define WARN_PARSE_TEMPLATE_SP_UNDEF  317
 
 #define WARN_IGNORE_OPERATOR_NEW        350   /* new */
 #define WARN_IGNORE_OPERATOR_DELETE     351   /* delete */
