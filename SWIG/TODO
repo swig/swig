@@ -52,6 +52,17 @@ CORE:
 
         -  Does anyone inherit from existing modules?
 
+****   We should either add "memberin" typemaps for all arrays or
+       eliminate this typemap altogether.  There is really only 
+       one way to handle this case.  
+
+            %typemap(memberin) int [ANY] {
+	          int i;
+                  for (i = 0; i < $1_dim0; i++) {
+                      $1[i] = $input[i];
+                  }
+            }
+
 ***    Support for overloaded functions.   It is probably possible to
        add some kind of support for this.  Overloading has been supported
        internally for quite some time---the warning messages are there
@@ -177,7 +188,7 @@ CORE:
 *      Fix template partial specialization matching rules.   SWIG does not
        implement the proper C++ type deduction rules, but it does handle
        the most common cases.   This is likely to be hard and implementing
-       it is really only for completeness.
+       it would really only be for completeness.
 
 Library
 -------
@@ -186,6 +197,11 @@ Library
        core datatypes.   Refine support for STL vector.   Add more STL objects.
 
 ****   Continue to expand the set of recognized typemaps.
+
+All language modules
+--------------------
+****   Convert use of char * to String *.   Suggest using Replaceall()
+       instead of Replace(..., DOH_REPLACE_ANY);
 
 Python
 ------
@@ -221,22 +237,6 @@ Ruby
 
 Java
 ----
-****   Improved pointer handling to take advantage of Java's static type
-       checking. Currently all pointers are a Java long and these could
-       be changed to use a Java class wrapper.
-
-****   Better support for global variables and functions when using proxy 
-       classes. They could be put into a global proxy class to improve on 
-       current syntax:
-       A a = new A(module.global_function(b.getCPtrB()), true);
-       to use something like:
-       A a = Globals.global_function(b);
-
-***    Implement function overloading.
-
-***    Implement replacements for the deprecation of the %pragma directive.
-
-*      Consider using typemaps for proxy class code generation.
 
 PHP
 ---
