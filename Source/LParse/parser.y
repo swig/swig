@@ -19,6 +19,8 @@
 #define yylval  lparse_yylval
 #define yychar  lparse_yychar
 #define yynerrs lparse_yynerrs
+
+static char cvsroot[] = "$Header$";
  
 extern int lparse_yylex();
 extern void LParse_strict_type(int);
