@@ -594,7 +594,7 @@ static void patch_template_type(String *s) {
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST VOLATILE STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
-%token NAME RENAME NAMEWARN ADDMETHODS PRAGMA FEATURE
+%token NAME RENAME NAMEWARN ADDMETHODS PRAGMA FEATURE VARARGS
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
 %token NATIVE INLINE
@@ -623,7 +623,7 @@ static void patch_template_type(String *s) {
 %type <node>     addmethods_directive apply_directive clear_directive constant_directive ;
 %type <node>     echo_directive except_directive include_directive inline_directive ;
 %type <node>     insert_directive gencode_directive module_directive name_directive native_directive ;
-%type <node>     new_directive pragma_directive rename_directive feature_directive typemap_directive ;
+%type <node>     new_directive pragma_directive rename_directive feature_directive varargs_directive typemap_directive ;
 %type <node>     types_directive template_directive endtemplate_directive starttemplate_directive ;
 
 /* C declarations */
@@ -735,6 +735,7 @@ swig_directive : addmethods_directive { $$ = $1; }
                | pragma_directive { $$ = $1; }
                | rename_directive { $$ = $1; }
                | feature_directive { $$ = $1; }
+               | varargs_directive { $$ = $1; }
                | typemap_directive { $$ = $1; }
                | types_directive  { $$ = $1; }
                | template_directive { $$ = $1; }
@@ -1303,7 +1304,45 @@ stringbracesemi : stringbrace { $$ = $1; }
                 | PARMS LPAREN parms RPAREN SEMI { $$ = $3; } 
                 ;
 
- 
+/* %varargs() directive. */
+
+varargs_directive : VARARGS LPAREN parms RPAREN declarator cpp_const SEMI {
+                 Hash *n;
+                 Parm *val;
+		 String *name;
+		 SwigType *t;
+                 if (!features_hash) features_hash = NewHash();
+		 if (Classprefix) name = NewStringf("%s::%s", $5.id);
+		 else name = NewString($5.id);
+		 val = $3;
+		 if ($5.parms) {
+		   Setmeta(val,"parms",$5.parms);
+		 }
+		 t = $5.type;
+		 if (!Len(t)) t = 0;
+		 if (t) {
+		   if ($6) SwigType_push(t,$6);
+		   if (SwigType_isfunction(t)) {
+		     SwigType *decl = SwigType_pop_function(t);
+		     if (SwigType_ispointer(t)) {
+		       String *nname = NewStringf("*%s",name);
+		       Swig_feature_set(features_hash, nname, decl, "feature:varargs", val);
+		       Delete(nname);
+		     } else {
+		       Swig_feature_set(features_hash, name, decl, "feature:varargs", val);
+		     }
+		   } else if (SwigType_ispointer(t)) {
+		     String *nname = NewStringf("*%s",name);
+		     Swig_feature_set(features_hash,nname,0,"feature:varargs",val);
+		     Delete(nname);
+		   }
+		 } else {
+		   Swig_feature_set(features_hash,name,0,"feature:varargs",val);
+		 }
+		 Delete(name);
+		 $$ = 0;
+              };
+
 /* ------------------------------------------------------------
    %typemap(method) type { ... }
    %typemap(method) type "..."
@@ -2247,6 +2286,7 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
 /* rename directive */
              | rename_directive { $$ = $1; }
              | feature_directive { $$ = $1; }
+             | varargs_directive { $$ = $1; }
              | insert_directive { $$ = $1; }
              ;
 
