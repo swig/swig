@@ -855,31 +855,37 @@ PHP4::functionWrapper(Node *n) {
   // Special action for shadowing destructors under php.
   // The real destructor is the resource list destructor, this is
   // merely the thing that actually knows how to destroy...
-  if (shadow && destructor) {
-    Printf(f->def,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",shadow_classname);
-    // Magic spell nicked from further down.
-    emit_args(d, l, f);
+  if (destructor) {
+    Wrapper *df = NewWrapper();
+    if (shadow) Printf(df->def,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",shadow_classname);
+    else Printf(df->def,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",class_name);
 
-    Printf(f->code,
+    // Magic spell nicked from further down.
+    emit_args(d, l, df);
+
+    Printf(df->code,
       "  // should we do type checking? How do I get SWIG_ type name?\n"
       "  _SWIG_ConvertPtr((char *) rsrc->ptr,(void **) &arg1,NULL);\n"
       "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n"
       ,class_name, shadow_classname);
 
-    emit_action(n,f);
-    Printf(f->code,
+    emit_action(n,df);
+    Printf(df->code,
       "  // now delete wrapped string pointer\n"
       "  efree(rsrc->ptr);\n"
       "  rsrc->ptr=NULL;\n"
       "}\n");
-    Wrapper_print(f,s_wrappers);
-    return SWIG_OK;
+    Wrapper_print(df,s_wrappers);
+
+    // if !shadow we also want a plain destructor?
+    if (shadow) return SWIG_OK;
   }
 
   /* If shadow not set all functions exported. If shadow set only
    * non-wrapped functions exported ( the wrapped ones are accessed
    * through the class. )
   */
+
   if(1 || !shadow || !wrapping_member)
 	  create_command(iname, Char(Swig_name_wrapper(iname)));
   Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", NULL);
@@ -1049,8 +1055,28 @@ PHP4::functionWrapper(Node *n) {
   }
 
   /* emit function call*/
-  
-  emit_action(n,f);
+  if (destructor) {
+    // If it is a registered resource (and it always should be)
+    // then destroy it the resource way
+
+    // Why do we access args[0] directly and not use argbase too see if
+    // we should get at this_ptr ?? Because this code is never output if
+    // shadowing is on and as this_ptr is never set without shadowing
+    Printf(f->code,
+                   "if ((*args[0])->type==IS_RESOURCE) {\n"
+                   "  // Get zend list destructor to free it\n"
+                   "  char * _cPtr=NULL;\n"
+		   "  ZEND_FETCH_RESOURCE(_cPtr, char *, args[0],-1,\"%s\",le_swig_%s);\n"
+                   "  zend_list_delete(Z_LVAL_PP(args[0]));\n"
+                   "} else {\n",name,name
+                   );
+    // but leave the old way in for as long as we accept strings as swig objects
+    emit_action(n,f);
+    Printf(f->code,"}\n");
+
+  } else {
+    emit_action(n,f);
+  }
 
    if((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"result",(char*)"return_value",0))) {
     Replaceall(tm, "$input", "result");
@@ -1085,7 +1111,15 @@ PHP4::functionWrapper(Node *n) {
                         "MAKE_STD_ZVAL(obj);\n"
 			"MAKE_STD_ZVAL(_cPtr);\n"
 			"*_cPtr = *return_value;\n"
-			"INIT_ZVAL(*return_value);\n"
+			"INIT_ZVAL(*return_value);\n");
+
+	if (! shadow) {
+	 	Printf(f->code,
+                        "ZEND_REGISTER_RESOURCE(_cPtr, Z_STRVAL_P(_cPtr), le_swig_%s);\n"
+                        "*return_value=*_cPtr;\n",
+			class_name);
+	} else {
+        	Printf(f->code, 
                         "object_init_ex(obj,ptr_ce_swig_%s);\n"
                         "// Gypsy switch here, we steal the pchar from _cPtr so\n"
                         "// we don't need to zval_dtor _cPtr\n"
@@ -1093,6 +1127,7 @@ PHP4::functionWrapper(Node *n) {
                         "add_property_zval(obj,\"_cPtr\",_cPtr);\n"
                         "*return_value=*obj;\n",
 			shadowrettype, shadowrettype);
+	}
 	Printf(f->code, "}\n");
       }
     } // end of if-shadow lark
@@ -1246,116 +1281,115 @@ int PHP4::classDeclaration(Node *n) {
 int PHP4::classHandler(Node *n) {
 
 
-	if(class_name) free(class_name);
-	class_name = Swig_copy_string(GetChar(n, "name"));
-	if(shadow) {
-                cs_entry = NewString("");
-		Printf(cs_entry,"// Function entries for %s\n"
-                 "static zend_function_entry %s_functions[] = {\n"
-                 ,class_name, class_name);
-		char *rename = GetChar(n, "sym:name");
-		if (!addSymbol(rename,n)) return SWIG_ERROR;
-		shadow_classname = Swig_copy_string(rename);
+  if(class_name) free(class_name);
+  class_name = Swig_copy_string(GetChar(n, "name"));
 
-		if(Strcmp(shadow_classname, module) == 0) {
-			Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
-			SWIG_exit(1);
-		}
+  if(shadow) {
+    cs_entry = NewString("");
+    Printf(cs_entry,"// Function entries for %s\n"
+                    "static zend_function_entry %s_functions[] = {\n"
+                     ,class_name, class_name);
+    char *rename = GetChar(n, "sym:name");
+    if (!addSymbol(rename,n)) return SWIG_ERROR;
+    shadow_classname = Swig_copy_string(rename);
 
-		Clear(shadow_classdef);
-		Clear(shadow_code);
+    if(Strcmp(shadow_classname, module) == 0) {
+      Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
+      SWIG_exit(1);
+    }
 
-		have_default_constructor = 0;
-		shadow_enum_code = NewString("");
-		this_shadow_baseclass = NewString("");
-		this_shadow_multinherit = NewString("");
-		this_shadow_extra_code = NewString("");
-		this_shadow_import = NewString("");
+    Clear(shadow_classdef);
+    Clear(shadow_code);
 
-  		shadow_c_vars = NewHash();
-		shadow_php_vars = NewHash();
+    have_default_constructor = 0;
+    shadow_enum_code = NewString("");
+    this_shadow_baseclass = NewString("");
+    this_shadow_multinherit = NewString("");
+    this_shadow_extra_code = NewString("");
+    this_shadow_import = NewString("");
 
-		/* Deal with inheritance */
-		List *baselist = Getattr(n, "bases");
-		int class_count = 1;
+    shadow_c_vars = NewHash();
+    shadow_php_vars = NewHash();
 
-		if(baselist) {
-			Node *base = Firstitem(baselist);
+    /* Deal with inheritance */
+    List *baselist = Getattr(n, "bases");
+    int class_count = 1;
 
-			if(is_shadow(Getattr(base, "name"))) {
-				Printf(this_shadow_baseclass, "%s", Getattr(base, "name"));
-			}
-			for(base = Nextitem(baselist); base; base = Nextitem(baselist)) {
-				class_count++;
-				if(is_shadow(Getattr(base, "name"))) {
-					Printf(this_shadow_multinherit, "%s ", Getattr(base, "name"));
-				}
-			}
-			if(class_count > 1) 
-				Printf(stderr, "Error: %s inherits from multiple base classes(%s %s). Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n", shadow_classname, base, this_shadow_multinherit);
-		} else { // XXX Must be base class ?
-} // we want to write this out even if it inherits I think.
-  // this next block used to be the "else" block, not called for inherited classes
-  // perhaps we needed to examing what the previous if() block does.
-		  /* Write out class init code */
-		  {
-		    Printf(s_vdecl,
-                    "static zend_class_entry ce_swig_%s;\n",shadow_classname);
-		    Printf(s_vdecl,
-                    "static zend_class_entry* ptr_ce_swig_%s=NULL;\n",shadow_classname);
+    if(baselist) {
+      Node *base = Firstitem(baselist);
 
-                    Printf(s_oinit,
-		    "// Define class %s\n"
-                    "INIT_OVERLOADED_CLASS_ENTRY(ce_swig_%s,\"%(lower)s\",%s_functions,"
-                    "NULL,NULL,NULL);\n",
-                    shadow_classname,shadow_classname,shadow_classname,shadow_classname);
+      if(is_shadow(Getattr(base, "name"))) {
+        Printf(this_shadow_baseclass, "%s", Getattr(base, "name"));
+      }
 
-		    // XXX Handle inheritance ?
-		    // Do we need to tell php who this classes parent class is
+      for(base = Nextitem(baselist); base; base = Nextitem(baselist)) {
+        class_count++;
+        if(is_shadow(Getattr(base, "name"))) {
+          Printf(this_shadow_multinherit, "%s ", Getattr(base, "name"));
+        }
+      }
 
-		    // Save class in class table
-                    Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class(&ce_swig_%s))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",shadow_classname,shadow_classname,shadow_classname);
+      if(class_count > 1) Printf(stderr, "Error: %s inherits from multiple base classes(%s %s). Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n", shadow_classname, base, this_shadow_multinherit);
+    }
 
-                    // Now register resource to handle this wrapped class
-                    Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", shadow_classname, shadow_classname);
-                    Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
-                                   "(_wrap_destroy_%s,NULL,\"%s\",module_number);\n",
-                                    shadow_classname, shadow_classname, shadow_classname);
-                    Printf(s_oinit,"// End of %s\n\n",shadow_classname);
-		  }
-		}
 
-// end of is not subclass	}
+    /* Write out class init code */
+    Printf(s_vdecl,"static zend_class_entry ce_swig_%s;\n",shadow_classname);
+    Printf(s_vdecl,"static zend_class_entry* ptr_ce_swig_%s=NULL;\n",shadow_classname);
+    Printf(s_oinit,"// Define class %s\n"
+                     "INIT_OVERLOADED_CLASS_ENTRY(ce_swig_%s,\"%(lower)s\",%s_functions,"
+                     "NULL,NULL,NULL);\n",
+                     shadow_classname,shadow_classname,shadow_classname,shadow_classname);
 
-	Language::classHandler(n);
+    // XXX Handle inheritance ?
+    // Do we need to tell php who this classes parent class is
 
-	if(shadow) {
-		Printv(f_phpcode, shadow_classdef, shadow_code, NULL);
+    // Save class in class table
+    Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class(&ce_swig_%s))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",shadow_classname,shadow_classname,shadow_classname);
 
-		// Write the enum initialisation code in a static block
-		// These are all the enums defined withing the c++ class.
+    // Now register resource to handle this wrapped class
+    Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", shadow_classname, shadow_classname);
+    Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
+                     "(_wrap_destroy_%s,NULL,\"%s\",module_number);\n",
+                     shadow_classname, shadow_classname, shadow_classname);
+    Printf(s_oinit,"// End of %s\n\n",shadow_classname);
 
-		// PHP Needs to handle shadow enums properly still***
-		// XXX Needed in PHP ?
-		if(strlen(Char(shadow_enum_code)) != 0 )
-			Printv(f_phpcode, "{\n // enum\n", shadow_enum_code, " }\n", NULL);
+  } else { // still need resource destructor
+    // Now register resource to handle this wrapped class
+    Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", class_name, class_name);
+    Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
+                   "(_wrap_destroy_%s,NULL,\"%s\",module_number);\n",
+                   class_name, class_name, class_name);
+  }
 
-		free(shadow_classname);
-		shadow_classname = NULL;
+  Language::classHandler(n);
 
-		Delete(shadow_enum_code); shadow_enum_code = NULL;
-		Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
-		Delete(this_shadow_extra_code); this_shadow_extra_code = NULL;
-		Delete(this_shadow_import); this_shadow_import = NULL;
-		Delete(shadow_c_vars); shadow_c_vars = NULL;
-		Delete(shadow_php_vars); shadow_php_vars = NULL;
-		Delete(this_shadow_multinherit); this_shadow_multinherit = NULL;
+  if(shadow) {
+    Printv(f_phpcode, shadow_classdef, shadow_code, NULL);
 
-		Printf(all_cs_entry,"%s	{ NULL, NULL, NULL}\n};\n",cs_entry);
-                //??delete cs_entry;
-                cs_entry=NULL;
-	}
-	return SWIG_OK;
+    // Write the enum initialisation code in a static block
+    // These are all the enums defined withing the c++ class.
+
+    // PHP Needs to handle shadow enums properly still***
+    // XXX Needed in PHP ?
+    if(strlen(Char(shadow_enum_code)) != 0 ) Printv(f_phpcode, "{\n // enum\n", shadow_enum_code, " }\n", NULL);
+
+    free(shadow_classname);
+    shadow_classname = NULL;
+
+    Delete(shadow_enum_code); shadow_enum_code = NULL;
+    Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
+    Delete(this_shadow_extra_code); this_shadow_extra_code = NULL;
+    Delete(this_shadow_import); this_shadow_import = NULL;
+    Delete(shadow_c_vars); shadow_c_vars = NULL;
+    Delete(shadow_php_vars); shadow_php_vars = NULL;
+    Delete(this_shadow_multinherit); this_shadow_multinherit = NULL;
+
+    Printf(all_cs_entry,"%s	{ NULL, NULL, NULL}\n};\n",cs_entry);
+    //??delete cs_entry;
+    cs_entry=NULL;
+  }
+  return SWIG_OK;
 }
 
 int
