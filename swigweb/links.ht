@@ -58,6 +58,10 @@ A wrapper generator for interfacing C++ with [incr Tcl].<br>
 this module--especially if you're making simple C/C++ extensions.<br>
 <a href="http://www.kd-dev.com/~eic/">EiC</a>. Embeddable, extensible and pointer-safe C interpreter with an interface to compiled C code.<br>
 <a href="http://root.cern.ch/root/Cint.html">CINT</a>. C/C++ interpreter with an interface to compiled C/C++ code.<br>
+<a href="http://public.kitware.com/Cable">CABLE</a>. A wrapper
+generator for C++ that uses GCC-XML to provide Tcl wrappers for almost
+all C++ features.  There are plans to support more languages so be
+sure to check it out.
 
 </ul>
 
