@@ -125,7 +125,7 @@ void add_defined_foreign_type(String *type) {
 }
 
 
-String *get_ffi_type(SwigType *ty, String_or_char *name) {
+String *get_ffi_type(SwigType *ty, const String_or_char *name) {
   Hash *typemap = Swig_typemap_search("ffitype", ty, name, 0);
   if (typemap) {
 	  String *typespec = Getattr(typemap, "code");
@@ -166,9 +166,10 @@ String *get_ffi_type(SwigType *ty, String_or_char *name) {
 	  Printf(stderr, "Unsupported data type: %s (was: %s)\n", type_reduced, ty);
 	  SWIG_exit(EXIT_FAILURE);
   }
+  return 0;
 }
 
-String *get_lisp_type(SwigType *ty, String_or_char *name)
+String *get_lisp_type(SwigType *ty, const String_or_char *name)
 {
   Hash *typemap = Swig_typemap_search("lisptype", ty, name, 0);
   if (typemap) {
