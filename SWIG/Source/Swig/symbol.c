@@ -1219,12 +1219,12 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
 	Printf(qprefix,"<(");
 	for (ti = First(targs); ti.item;) {
 	  String *qparm = Swig_symbol_type_qualify(ti.item,st);
-	  /*	  Printf(stdout,"qparm = '%s', tparm = '%s'\n", qparm, ti.item);*/
 	  while (1) {
 	    /* It is possible for an integer to show up here.  If so, we need to evaluate it */
-	    {
-	      Node *nn = Swig_symbol_clookup(qparm,st);
-	      if ((nn) && (Strcmp(nodeType(nn),"cdecl") == 0)) {
+	    Node *nn = Swig_symbol_clookup(qparm,st);
+	    if (nn) {
+	      SwigType *nt = nodeType(nn);
+	      if (Strcmp(nt,"cdecl") == 0) {
 		String *nv = Getattr(nn,"value");
 		if (nv) {
 		  Clear(qparm);
@@ -1232,7 +1232,7 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
 		} else {
 		  break;
 		}
-	      } else if ((nn) && (Strcmp(nodeType(nn),"enumitem") == 0)) {
+	      } else if (Strcmp(nt,"enumitem") == 0) {
 		String *qn = Swig_symbol_qualified(nn);
 		if (Len(qn)) {
 		  Append(qn,"::");
@@ -1245,6 +1245,8 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
 	      } else {
 		break;
 	      }
+	    } else {
+	      break;
 	    }
 	  }
 	  Append(qprefix,qparm);
@@ -1300,6 +1302,7 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
   SwigType *prefix, *base;
   Node *n;
 
+
   base = SwigType_base(ty);
   prefix = SwigType_prefix(ty);
 
@@ -1329,7 +1332,6 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       Symtab *ntab;
       SwigType *nt = Copy(Getattr(n,"type"));
       
-#if 1
       /* Fix for case 'typedef struct Hello hello;' */
       {	
 	const char* dclass[3] = {"struct ", "union ", "class "};
@@ -1341,7 +1343,6 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
 	  }
 	}
       }
-#endif
       decl = Getattr(n,"decl");
       if (decl) {
 	SwigType_push(nt,decl);
@@ -1351,10 +1352,49 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       Delete(prefix);
       ntab = Getattr(n,"sym:symtab");
       rt = Swig_symbol_typedef_reduce(nt, ntab);
-      /* fix for  'namespace n1 { typedef n2::hello hello; }' */
       qt = Swig_symbol_type_qualify(rt, ntab);
+      if (SwigType_istemplate(qt)) {
+	Iterator pi;
+	Parm *p;
+	List *parms = SwigType_parmlist(qt);
+	String *tprefix = SwigType_templateprefix(qt);
+	String *tsuffix = SwigType_templatesuffix(qt);
+	String *qprefix = SwigType_typedef_qualified(tprefix);
+	Printv(qprefix,"<(",NIL);
+	pi = First(parms);
+	while ((p = pi.item)) {
+	  String *np;
+	  String *tp = 0;
+	  String *qp = Swig_symbol_type_qualify(p, ntab);
+	  Node *n = Swig_symbol_clookup(qp,ntab);
+	  if (n) {
+	    String *qual = Swig_symbol_qualified(n);
+	    np = Copy(Getattr(n,"name"));
+	    tp = np;
+	    if (qual) {
+	      Insert(np,0,"::");
+	      Insert(np,0,qual);
+	      Delete(qual);
+	    }
+	  } else {
+	    np = qp;
+	  }
+	  Append(qprefix,np);
+	  pi= Next(pi);
+	  if (pi.item) {
+	    Append(qprefix,",");
+	  }
+	  Delete(qp);
+	  Delete(tp);
+	}
+	Append(qprefix,")>");
+	Insert(tsuffix, 0, qprefix);
+	Delete(qt);
+	qt = tsuffix;
+      }      
       Delete(nt);
       Delete(rt);
+      /* Printf(stderr,"reduce  %s %s\n", ty, qt); */
       return qt;
     }
   }
