@@ -20,7 +20,6 @@ char cvsroot_lang_cxx[] = "$Header$";
 
 static int director_mode = 0;   /* set to 0 on default */
 static int director_protected_mode = 0;   /* set to 0 on default */
-static int template_extmode = 0;   /* set to 0 on default */
 
 /* Set director_protected_mode */
 void Wrapper_director_mode_set(int flag) {
@@ -29,10 +28,6 @@ void Wrapper_director_mode_set(int flag) {
 
 void Wrapper_director_protected_mode_set(int flag) {
   director_protected_mode = flag;
-}
-
-void Wrapper_template_extmode_set(int flag) {
-  template_extmode = flag;
 }
 
 extern "C" {
@@ -44,11 +39,6 @@ extern "C" {
   int Swig_need_protected() 
   {
     return director_protected_mode;
-  }
-
-  int Swig_template_extmode() 
-  {
-    return template_extmode;
   }
 }
 
@@ -2585,7 +2575,7 @@ Language::classLookup(SwigType *s) {
     Delete(base);
     Delete(prefix);
   }
-  if (n && (Getattr(n,"feature:ignore"))) {
+  if (n && (Getattr(n,"feature:ignore") || Getattr(n,"feature:onlychildren"))) {
       n = 0;
   }
 

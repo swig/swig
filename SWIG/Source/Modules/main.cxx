@@ -671,10 +671,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Wrapper_director_mode_set(0);
   Wrapper_director_protected_mode_set(0);
 
-  /* Turn off template extmode */
-  Wrapper_template_extmode_set(0);
-
-
   // Check for SWIG_LIB environment variable
 
   if ((c = getenv("SWIG_LIB")) == (char *) 0) {
