@@ -715,9 +715,8 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	Wrapper_add_localv(f, source, "PyObject *",source,0);
 	Printf(arglist,"&%s",source);
 	if (i >= (pcount-numopt))
-	  Printv(get_pointers, tab4, "if (", source, ")\n",
-		 tm, "\n",
-		 0);
+	  Printv(get_pointers, tab4, "if (", source, ")\n", 0);
+	Printv(get_pointers,tm,"\n", 0);
 	Replace(get_pointers,"$argnum", argnum, DOH_REPLACE_ANY);
 	Replace(get_pointers,"$arg",source, DOH_REPLACE_ANY);
       } else {
