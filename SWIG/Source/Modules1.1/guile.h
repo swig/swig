@@ -71,6 +71,7 @@ public :
   void pragma(char *lang, char *cmd, char *value);
   void import_start(char *modname);
   void import_end();
+  int  validIdentifier(String *s);
 };
 
 /* guile.h ends here */
