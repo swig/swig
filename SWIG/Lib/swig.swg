@@ -51,6 +51,11 @@
 #define %nodefault     %pragma nodefault
 #define %makedefault   %pragma makedefault
 
+/* Default handling of certain overloaded operators */
+
+%ignore operator new;         /* No wrappers for new operator */
+%ignore operator delete;      /* No wrappers for delete operator */
+
 /* Set up the typemap for handling new return strings */
 
 #ifdef __cplusplus
