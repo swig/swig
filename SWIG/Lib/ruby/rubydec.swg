@@ -3,6 +3,8 @@
 extern "C" {
 #endif
 
+SWIGEXPORT(VALUE) _mSWIG;
+SWIGEXPORT(VALUE) _cSWIG_Pointer;
 SWIGEXPORT(void)   SWIG_define_class(swig_type_info *);
 SWIGEXPORT(VALUE)  SWIG_NewPointerObj(void *, swig_type_info *, int own);
 SWIGEXPORT(char *) SWIG_MangleStr(VALUE);

@@ -4,8 +4,8 @@ extern "C" {
 #endif
 
 
-static VALUE _mSWIG = Qnil;
-static VALUE _cSWIG_Pointer = Qnil;
+SWIGRUNTIME(VALUE) _mSWIG = Qnil;
+SWIGRUNTIME(VALUE) _cSWIG_Pointer = Qnil;
 
 /* Define ruby class for C type */
 SWIGRUNTIME(void)
