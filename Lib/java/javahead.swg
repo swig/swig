@@ -33,6 +33,14 @@
 #if defined(__GNUC__)
     typedef long long __int64; /*For gcc on Windows */
 #endif
+
+/* fix for 'jlong' on x86_64 */
+#if defined(__x86_64)
+#ifdef _LP64 /* 64-bit Solaris */
+#undef _LP64
+#endif
+#endif
+
 #include <jni.h>
 #include <stdlib.h>
 #include <string.h>
