@@ -40,6 +40,14 @@ noncommercial use.
 <h3>News</h3>
 
 <p>
+<b>2002/11/27</b>
+An article about SWIG appears in <a href="http://www.cmagazine.jp/contents/200212.html">C Magazine</a> (Japanese).
+
+<p>
+<b>2002/11/27</b>
+Bernard Desgraupes has created a Macintosh version of SWIG-1.3.17. Download <a href="http://webperso.easyconnect.fr/bdesgraupes/Downloads/MacSwig_Carbon_1.3.17.hqx">here</a>.
+
+<p>
 <b>2002/11/22</b>
 <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.17.tar.gz">SWIG-1.3.17</a> has been
 released.  This is mostly a bug-fix release for 1.3.16.
