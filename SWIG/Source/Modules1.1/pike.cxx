@@ -17,6 +17,7 @@ private:
   File *f_wrappers;
   File *f_init;
   String *PrefixPlusUnderscore;
+  List *memberVariableNodes;
 
 public:
 
@@ -525,22 +526,31 @@ public:
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist) > 0) {
       Node *base = Firstitem(baselist);
-      char *basename = Char(Getattr(base,"name"));
-      if (SwigType_istemplate(basename)) {
-        basename = Char(SwigType_namestr(basename));
+      while (base) {
+        char *basename = Char(Getattr(base,"name"));
+        if (SwigType_istemplate(basename)) {
+          basename = Char(SwigType_namestr(basename));
+        }
+        SwigType *basetype = NewString(basename);
+        SwigType_add_pointer(basetype);
+        SwigType_remember(basetype);
+        String *basemangle = SwigType_manglestr(basetype);
+        Printf(f_init, "low_inherit((struct program *) SWIGTYPE%s->clientdata, 0, 0, 0, 0, 0);\n", basemangle);
+	Delete(basemangle);
+	Delete(basetype);
+        base = Nextitem(baselist);
       }
-      SwigType *basetype = NewString(basename);
-      SwigType_add_pointer(basetype);
-      SwigType_remember(basetype);
-      String *basemangle = SwigType_manglestr(basetype);
-      Printf(f_init, "low_inherit((struct program *) SWIGTYPE%s->clientdata, 0, 0, 0, 0, 0);\n", basemangle);
-      base = Nextitem(baselist);
-      Delete(basemangle);
-      Delete(basetype);
     }
         
     Language::classHandler(n);
     
+    /* Accessors for member variables */
+    List *membervariables = Getattr(n,"membervariables");
+    if (membervariables && Len(membervariables) > 0) {
+      membervariableAccessors(membervariables);
+    }
+    
+    /* Done, close the class */
     Printf(f_init, "add_program_constant(\"%s\", pr = end_program(), 0);\n", symname);
     
     SwigType *tt = NewString(symname);
@@ -581,13 +591,96 @@ public:
   virtual int destructorHandler(Node *n) {
     return Language::destructorHandler(n);
   }
+  
+  /* ------------------------------------------------------------
+   * membervariableAccessors()
+   * ------------------------------------------------------------ */
+
+  void membervariableAccessors(List *membervariables) {
+    String *name;
+    String *symname;
+    SwigType *type;
+    ParmList *parms;
+    Node *n;
+    int need_setter;
+    
+    /* If at least one of them is mutable, we need a setter */
+    need_setter = 0;
+    n = Firstitem(membervariables);
+    while (n) {
+      if (!Getattr(n, "feature:imutable")) {
+        need_setter = 1;
+	break;
+      }
+      n = Nextitem(membervariables);
+    }
+    
+    /* Create a function to set the values of the (mutable) variables */
+    if (need_setter) {
+      Wrapper *wrapper = NewWrapper();
+      String *setter = Swig_name_member(getClassPrefix(), (char *) "`->=");
+      String *wname = Swig_name_wrapper(setter);
+      Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NULL);
+      
+      /* Clear the return stack */
+      Printf(wrapper->code, "pop_n_elems(args);\n");
+      
+      /* Close the function */
+      Printf(wrapper->code, "}\n");
+
+      /* Dump wrapper code to the output file */
+      Wrapper_print(wrapper, f_wrappers);
+      
+      /* Register it with Pike */
+      String *description = NewString("tStr tFloat, tVoid");
+      add_method(n, setter, wname, description);
+      Delete(description);
+
+      /* Clean up */
+      Delete(wname);
+      Delete(setter);
+      DelWrapper(wrapper);
+    }
+    
+    /* Create a function to get the values of the (mutable) variables */
+    Wrapper *wrapper = NewWrapper();
+    String *getter = Swig_name_member(getClassPrefix(), (char *) "`->");
+    String *wname = Swig_name_wrapper(getter);
+    Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NULL);
+
+    /* Clear the return stack */
+    Printf(wrapper->code, "pop_n_elems(args);\n");
+
+    /* Close the function */
+    Printf(wrapper->code, "}\n");
+
+    /* Dump wrapper code to the output file */
+    Wrapper_print(wrapper, f_wrappers);
+    
+    /* Register it with Pike */
+    String *description = NewString("tStr, tMix");
+    add_method(n, getter, wname, description);
+    Delete(description);
+    
+    /* Clean up */
+    Delete(wname);
+    Delete(getter);
+    DelWrapper(wrapper);
+  }
 
   /* ------------------------------------------------------------
    * membervariableHandler()
    * ------------------------------------------------------------ */
 
   virtual int membervariableHandler(Node *n) {
-    return Language::membervariableHandler(n);
+    // return Language::membervariableHandler(n);
+    List *membervariables = Getattr(getCurrentClass(),"membervariables");
+    if (!membervariables) {
+      membervariables = NewList();
+      Setattr(getCurrentClass(),"membervariables",membervariables);
+    }
+    Append(membervariables,n);
+    return SWIG_OK;
   }
 
   /* ------------------------------------------------------------
