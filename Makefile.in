@@ -17,6 +17,7 @@ CXX         = @CXX@
 LIBS        = @LIBS@
 AR          = @AR@
 RANLIB      = @RANLIB@
+LINKFORSHARED = @LINKFORSHARED@
 
 # Note: Files in `SWIG_LIB' are machine independent so we use `prefix'
 # instead of `exec_prefix' or, derivatively, `libdir'.
@@ -47,7 +48,7 @@ experiment: Swig Preprocessor LParse Experiment DOH Modules
 
 
 swig13: Swig Preprocessor LParse SWIG1.3 DOH Modules
-	$(CXX) -o $(TARGET) \
+	$(CXX) -o $(TARGET) $(LINKFORSHARED) \
 	$(SOURCE)/Modules/libmodules.a \
 	$(SOURCE)/SWIG1.3/libswig13.a \
 	$(SOURCE)/LParse/liblparse.a \
