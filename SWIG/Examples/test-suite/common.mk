@@ -47,7 +47,8 @@ CPP_TEST_CASES += \
 	pointer_cxx \
 	pure_virtual \
 	static_const_member \
-	explicit
+	explicit \
+	const_const_2
 #	long_long
 
 # C test cases. (Can be run individually using make testcase.ctest.)
