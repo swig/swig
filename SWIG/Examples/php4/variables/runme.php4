@@ -1,7 +1,6 @@
 <?php
 
 	require "example.php";
-
 	/* Try to set the values of some global variables */
 
 	ivar_set(42);

@@ -26,6 +26,10 @@
 	"convert_to_string_ex($input);
 	$1 = ($1_ltype) Z_STRVAL_PP($input);";
 
+%typemap(in) char [ANY]
+	"convert_to_string_ex($input);
+	$1 = ($1_ltype) Z_STRVAL_PP($input);";
+
 %typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
 	  zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s", $argnum-argbase, $1_descriptor->name);
