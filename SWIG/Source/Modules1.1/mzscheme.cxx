@@ -179,7 +179,7 @@ MZSCHEME::set_init (char *iname)
 void
 MZSCHEME::headers (void)
 {
-  emit_banner (f_header);
+  Swig_banner (f_header);
 
   fprintf (f_header, "/* Implementation : MZSCHEME */\n\n");
   fprintf (f_header, "#include <stdio.h>\n");

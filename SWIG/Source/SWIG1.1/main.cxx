@@ -147,6 +147,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     includecount = 0;
   extern  int check_suffix(char *);
   extern  void scanner_file(FILE *);
+  extern  void typemap_initialize(void);
   DOH    *libfiles = 0;
 
 #ifdef MACSWIG
@@ -155,7 +156,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   // Initialize the preprocessor
   Preprocessor_init();
-
+  typemap_initialize();
   f_wrappers = 0;
   f_init = 0;
   f_header = 0;

@@ -17,6 +17,10 @@ static char cvsroot[] = "$Header$";
 #include "internal.h"
 #include <limits.h>
 
+extern "C" {
+#include "doh.h"
+}
+
 // ------------------------------------------------------------------------
 // This file provides universal support for typemaps.   Typemaps are created
 // using the following SWIG command in an interface file:
@@ -127,7 +131,7 @@ struct TypeMap {
 
 // Hash tables for storing type-mappings
 
-static Hash  typemap_hash;
+static DOH *typemap_hash = 0;
 
 // Structure for holding "applications of a typemap"
 
@@ -149,7 +153,7 @@ struct TmMethod {
 
 // Hash table for storing applications of a datatype
 
-static Hash application_hash;
+static DOH *application_hash = 0;
 
 // ------------------------------------------------------------------------
 // void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname)
@@ -168,11 +172,12 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
 
   // See if there is a method already defined
 
-  m = (TmMethod *) application_hash.lookup(temp);
+  if (!application_hash) application_hash = NewHash();
+  m = (TmMethod *) GetVoid(application_hash,temp);
   
   if (!m) {
     m = new TmMethod(temp,type,0);
-    application_hash.add(temp,m);
+    SetVoid(application_hash,temp,m);
   }
 
   // Check to see if an array typemap has been applied to a non-array type
@@ -219,7 +224,8 @@ void typemap_clear_apply(DataType *type, char *pname) {
   char temp[512];
   if (!pname) pname = (char*)"";
   sprintf(temp,"%s$%s", type->print_type(), pname);
-  application_hash.remove(temp);
+  if (!application_hash) application_hash = NewHash();
+  Delattr(application_hash,temp);
 }
 
 // ------------------------------------------------------------------------
@@ -263,6 +269,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
 
   // printf("Registering : %s %s %s %s\n%s\n", op, lang, type->print_type(), pname, getcode);
 
+  if (!typemap_hash) typemap_hash = NewHash();
 
   tm = new TypeMap(lang,type,getcode,args);
   // If this is a default typemap, downgrade the type!
@@ -276,7 +283,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
 
   // Get any previous setting of the typemap
 
-  tm_old = (TypeMap *) typemap_hash.lookup(key);
+  tm_old = (TypeMap *) GetVoid(typemap_hash,key);
 
   if (tm_old) {
 
@@ -296,11 +303,11 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
 
     // Remove the old one from the hash
   
-    typemap_hash.remove(key);
+    Delattr(typemap_hash,key);
   } 
 
   // Add new typemap to the hash table
-  typemap_hash.add(key,(void *) tm);
+  SetVoid(typemap_hash,key,tm);
 
   // Now try to perform default chaining operation (if available)
   //  if (!is_default) {
@@ -390,7 +397,8 @@ TypeMap *typemap_search(char *key, int id) {
   
   TypeMap *tm;
 
-  tm = (TypeMap *) typemap_hash.lookup(key);
+  if (!typemap_hash) typemap_hash = NewHash();
+  tm = (TypeMap *) GetVoid(typemap_hash,key);
   while (tm) {
     if ((id >= tm->first) && (id < tm->last)) return tm;
     else tm = tm->next;
@@ -691,10 +699,10 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
       tstr = type->print_type();
       sprintf(temp,"%s$%s",tstr,ppname);
       // No mapping was found.  See if the name has been mapped with %apply
-      m = (TmMethod *) application_hash.lookup(temp);
+      m = (TmMethod *) GetVoid(application_hash,temp);
       if (!m) {
 	sprintf(temp,"%s$",tstr);
-	m = (TmMethod *) application_hash.lookup(temp);
+	m = (TmMethod *) GetVoid(application_hash,temp);
       }
       if (m) {
 	m = m->next;
@@ -847,10 +855,11 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
       tstr = type->print_type();
       sprintf(temp,"%s$%s",tstr,ppname);
       // No mapping was found.  See if the name has been mapped with %apply
-      m = (TmMethod *) application_hash.lookup(temp);
+      if (!application_hash) application_hash = NewHash();
+      m = (TmMethod *) GetVoid(application_hash,temp);
       if (!m) {
 	sprintf(temp,"%s$",tstr);
-	m = (TmMethod *) application_hash.lookup(temp);
+	m = (TmMethod *) GetVoid(application_hash,temp);
       }
       if (m) {
 	m = m->next;
@@ -938,7 +947,8 @@ void typemap_clear(char *op, char *lang, DataType *type, char *pname) {
   // Look for any previous version, simply set the last id if
   // applicable.
   
-  tm = (TypeMap *) typemap_hash.lookup(key);
+  if (!typemap_hash) typemap_hash = NewHash();
+  tm = (TypeMap *) GetVoid(typemap_hash,key);
   if (tm) {
     if (tm->last > type_id) tm->last = type_id;
   }
@@ -968,8 +978,8 @@ void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
     if (tk) {
       tn = new TypeMap(tk);       // Make a copy of the previous typemap
       tn->next = tm;              // Set up symlinks
-      typemap_hash.remove(key);   // Remove old hash entry
-      typemap_hash.add(key,(void *) tn);
+      Delattr(typemap_hash,key);  // Remove old hash entry
+      SetVoid(typemap_hash,key, tn);
     }
   } else {
     typemap_register(op,lang,ttype,tname,tm->code,tm->args);
@@ -1009,7 +1019,7 @@ void fragment_register(char *op, char *lang, char *code) {
 
   // Get any previous setting of the typemap
 
-  tm_old = (TypeMap *) typemap_hash.lookup(key);
+  tm_old = (TypeMap *) GetVoid(typemap_hash,key);
   if (tm_old) {
     // If found, we need to attach the old version to the new one
 
@@ -1024,7 +1034,7 @@ void fragment_register(char *op, char *lang, char *code) {
 
     // Remove the old one from the hash
   
-    typemap_hash.remove(key);
+    Delattr(typemap_hash,key);
   }
   
   // Perform a default chaining operation if needed (defaults to nothing)
@@ -1032,7 +1042,7 @@ void fragment_register(char *op, char *lang, char *code) {
   tm->code.replace(temp,"");
 
   // Add new typemap to the hash table
-  typemap_hash.add(key,(void *) tm);
+  SetVoid(typemap_hash,key,tm);
     
 }
 
@@ -1084,8 +1094,20 @@ void fragment_clear(char *op, char *lang) {
   // Look for any previous version, simply set the last id if
   // applicable.
   
-  tm = (TypeMap *) typemap_hash.lookup(key);
+  tm = (TypeMap *) GetVoid(typemap_hash,key);
   if (tm) {
     if (tm->last > type_id) tm->last = type_id;
   }
+}
+
+// -----------------------------------------------------------------------------
+// typemap_initialize()
+//
+// Initialize the hash tables
+// -----------------------------------------------------------------------------
+
+void
+typemap_initialize() {
+  typemap_hash = NewHash();
+  application_hash = NewHash();
 }

@@ -233,7 +233,7 @@ GUILE::set_init (char *iname)
 void
 GUILE::headers (void)
 {
-  emit_banner (f_header);
+  Swig_banner (f_header);
 
   fprintf (f_header, "/* Implementation : GUILE */\n\n");
 

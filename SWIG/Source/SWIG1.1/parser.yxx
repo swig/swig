@@ -76,9 +76,11 @@ static String         ArrayBackup;             // Array backup string
 static char           *DefArg = 0;             // Default argument hack
 static char           *ConstChar = 0;          // Used to store raw character constants
 static ParmList       *tm_parm = 0;            // Parameter list used to hold typemap parameters
-static Hash            name_hash;              // Hash table containing renamings
+static DOHHash        *name_hash = 0;          // Hash table containing renamings
        char           *objc_construct = (char *) "new"; // Objective-C constructor
        char           *objc_destruct = (char *) "free"; // Objective-C destructor
+
+static DOHHash        *symbols = 0; 
 
 /* Some macros for building constants */
 
@@ -129,6 +131,14 @@ static void init_language() {
   lang_init = 1;
 }
 
+/* Add a symbol to the symbol table. Return -1 if it already exists */
+int add_symbol(char *name) {
+   if (!symbols) symbols = NewHash();
+   if (Getattr(symbols,name)) return -1;
+   Setattr(symbols,name,name);
+   return 0;
+}
+
 // ----------------------------------------------------------------------
 // int promote(int t1, int t2)
 //
@@ -160,7 +170,9 @@ int promote(int t1, int t2) {
 
 static char *make_name(char *name) {
   // Check to see if the name is in the hash
-  char *nn = (char *) name_hash.lookup(name);
+  if (!name_hash) name_hash = NewHash();
+  char *nn = GetChar(name_hash,name);
+
   if (nn) return nn;        // Yep, return it.
 
   if (Rename_true) {
@@ -197,7 +209,7 @@ void create_function(int ext, char *name, DataType *t, ParmList *l) {
 
   // Check if symbol already exists
 
-  if (add_symbol(iname, t, (char *) 0)) {
+  if (add_symbol(iname)) {
     fprintf(stderr,"%s : Line %d. Function %s multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, iname);
   } else {
@@ -232,7 +244,7 @@ void create_variable(int ext, char *name, DataType *t) {
   init_language();
 
   char *iname = make_name(name);
-  if (add_symbol(iname, t, (char *) 0)) {
+  if (add_symbol(iname)) {
     fprintf(stderr,"%s : Line %d. Variable %s multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, iname);
   } else {
@@ -278,13 +290,10 @@ void create_constant(char *name, DataType *type, char *value) {
   
   if (!value) value = copy_string(name);
   sprintf(temp_name,"const:%s", name);
-  if (add_symbol(temp_name, type, value)) {
+  if (add_symbol(temp_name)) {
     fprintf(stderr,"%s : Line %d. Constant %s multiply defined. (2nd definition ignored)\n",
 	    input_file, line_number, name);
   } else {
-    // Update symbols value if already defined.
-    update_symbol(name, type, value);
-
     if (!WrapExtern) {    // Only wrap the constant if not in %extern mode
       lang->declare_const(name, name, type, value);
     }
@@ -685,10 +694,8 @@ statement      : INCLUDE STRING LBRACE {
 
 /* %rename directive */
                | RENAME ID ID SEMI { 
-		 if (name_hash.lookup($2)) {
-		   name_hash.remove($2);
-		 }
-		 name_hash.add($2,copy_string($3));
+		 if (!name_hash) name_hash = NewHash();
+		 Setattr(name_hash,$2,$3);
 	       }
           
 /* %new directive */
@@ -714,7 +721,7 @@ statement      : INCLUDE STRING LBRACE {
                | NATIVE LPAREN ID RPAREN extern ID SEMI {
 		 if (!WrapExtern) {
 		   init_language();
-		   if (add_symbol($3,(DataType *) 0, (char *) 0)) {
+		   if (add_symbol($3)) {
 		     fprintf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
 			     input_file, line_number, $3);
 		   } else {
@@ -726,7 +733,7 @@ statement      : INCLUDE STRING LBRACE {
 		 if (!WrapExtern) {
 		   init_language();
 		   $6->is_pointer += $7.is_pointer;
-		   if (add_symbol($3,(DataType *) 0, (char *) 0)) {
+		   if (add_symbol($3)) {
 		     fprintf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
 			     input_file, line_number, $3);
 		   } else {
@@ -877,7 +884,7 @@ statement      : INCLUDE STRING LBRACE {
 		     delete temp_typeptr;
 		   } else if ($3.type == T_SYMBOL) {
 		     // Add a symbol to the SWIG symbol table
-		     if (add_symbol($2,(DataType *) 0, (char *) 0)) {
+		     if (add_symbol($2)) {
 		       fprintf(stderr,"%s : Line %d. Warning. Symbol %s already defined.\n", 
 			       input_file,line_number, $2);
 		     }
@@ -1843,16 +1850,8 @@ expr           :  NUM_INT {
 		  $$.type = $2->type;
 	       } 
                | ID {
-		 $$.id = lookup_symvalue($1);
-		 if ($$.id == (char *) 0)
-		   $$.id = $1;
-		 else {
-		   $$.id = new char[strlen($$.id)+3];
-		   sprintf($$.id,"(%s)",lookup_symvalue($1));
-		 }
-		 temp_typeptr = lookup_symtype($1);
-		 if (temp_typeptr) $$.type = temp_typeptr->type;
-		 else $$.type = T_INT;
+		 $$.id = $1;
+		 $$.type = T_INT;
                }
                | ID DCOLON ID {
                   $$.id = new char[strlen($1)+strlen($3)+3];
@@ -1987,7 +1986,7 @@ cpp_class    :
 	       DataType::new_scope();
 	       
 	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
-	       if (add_symbol(temp_name, (DataType *) 0, (char *) 0)) {
+	       if (add_symbol(temp_name)) {
 		 fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
 		 FatalError();
 	       }
@@ -2042,7 +2041,7 @@ cpp_class    :
 	       DataType::new_scope();
 	       
 	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
-	       if (add_symbol(temp_name, (DataType *) 0, (char *) 0)) {
+	       if (add_symbol(temp_name)) {
 		 fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
 		 FatalError();
 	       }
@@ -2147,7 +2146,7 @@ cpp_class    :
 		  cplus_abort();
 		} else {
 		  sprintf(temp_name,"CPP_CLASS:%s\n",$7.id);
-		  if (add_symbol(temp_name, (DataType *) 0, (char *) 0)) {
+		  if (add_symbol(temp_name)) {
 		    fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $7.id);
 		    FatalError();
 		  }
@@ -2855,7 +2854,7 @@ objective_c    : OC_INTERFACE ID objc_inherit {
                    init_language();
 		   cplus_mode = CPLUS_PROTECTED;
 		   sprintf(temp_name,"CPP_CLASS:%s\n",$2);
-		   if (add_symbol(temp_name,(DataType *) 0, (char *) 0)) {
+		   if (add_symbol(temp_name)) {
 		     fprintf(stderr,"%s : Line %d.  @interface %s is multiple defined.\n",
 			     input_file,line_number,$2);
 		     FatalError();

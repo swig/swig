@@ -100,26 +100,6 @@ public:
 #define  endl   "\n"
 #define  quote  "\""
 
-// -------------------------------------------------------------------
-// Hash table class
-// -------------------------------------------------------------------
-
-class Hash {
-private:
-  void  *data;
-public:
-  Hash();
-  ~Hash();
-  int    add(const char *key, void *object);
-  int    add(const char *key, void *object, void (*del)(void *));
-  void  *lookup(const char *key);
-  void   remove(const char *key);
-  void  *first();
-  void  *next();
-  char  *firstkey();
-  char  *nextkey();
-};
-
 /************************************************************************
  * class DataType
  *
@@ -424,16 +404,11 @@ public:
 
 extern  void  emit_extern_var(char *, DataType *, int, FILE *);
 extern  void  emit_extern_func(char *, DataType *, ParmList *, int, FILE *);
-extern  int   emit_args(DataType *, ParmList *, FILE *);
-
 extern  void  emit_func_call(char *, DataType *, ParmList *, FILE *);
 
-extern  void  emit_hex(FILE *);
 extern  void  emit_set_get(char *, char *, DataType *);
-extern  void  emit_banner(FILE *);
 extern  void  emit_ptr_equivalence(FILE *);
 extern  int   SWIG_main(int, char **, Language *);
-extern  void  make_wrap_name(char *);
 
 // Some functions for emitting some C++ helper code
 
@@ -472,7 +447,6 @@ extern "C" {
   extern FILE *Swig_open(const void *filename);
 }
 
-
 // -----------------------------------------------------------------------
 //  Class for Creating Wrapper Functions
 // -----------------------------------------------------------------------
@@ -498,15 +472,6 @@ static    void    del_type(void *obj);
 extern  int   emit_args(DataType *, ParmList *, WrapperFunction &f);
 extern  void  emit_func_call(char *, DataType *, ParmList *, WrapperFunction &f);
 extern  void  SWIG_exit(int);
-
-// Symbol table management
-
-extern int  add_symbol(char *, DataType *, char *);
-extern void remove_symbol(char *);
-extern int  update_symbol(char *, DataType *, char *);
-extern char *lookup_symvalue(char *);
-extern DataType *lookup_symtype(char *);
-extern int  lookup_symbol(char *);
 
 // -----------------------------------------------------------------------
 // Typemap support
@@ -535,16 +500,7 @@ extern void    fragment_clear(char *op, char *lang);
 
 extern  void  emit_ptr_equivalence(WrapperFunction &);
 
-// -----------------------------------------------------------------------
-// Naming system
-// -----------------------------------------------------------------------
 
-#define AS_IS      1
 
-extern void   name_register(char *method, char *format);
-extern char  *name_wrapper(char *fname, char *prefix, int suppress=0);
-extern char  *name_member(char *fname, char *classname, int suppress=0);
-extern char  *name_get(char *vname, int suppress=0);
-extern char  *name_set(char *vname, int suppress=0);
-extern char  *name_construct(char *classname, int suppress=0);
-extern char  *name_destroy(char *classname, int suppress=0);
+
+

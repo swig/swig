@@ -123,7 +123,6 @@ void scanner_close() {
     line_number = p->line_number;
     input_file = p->in_file;
     WrapExtern = p->extern_mode;
-    if (!WrapExtern) remove_symbol((char*)"SWIGEXTERN");
     ForceExtern = p->force_extern;
   } else {
     LEX_in = NULL;

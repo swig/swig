@@ -399,7 +399,7 @@ void JAVA::set_module(char *mod_name, char **mod_list) {
 
 void JAVA::headers(void)
 {
-  emit_banner(f_header);               // Print the SWIG banner message
+  Swig_banner(f_header);               // Print the SWIG banner message
   fprintf(f_header,"/* Implementation : Java */\n\n");
 
   // Include header file code fragment into the output

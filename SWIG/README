@@ -22,15 +22,18 @@ SWIG release.  The guilty parties working on this are:
 *****             IMPORTANT NOTICE -- READ THIS NOW!              *****
 ***********************************************************************
 
-If you downloaded SWIG as a prepackaged release such as SWIG1.3a2, be
+If you downloaded SWIG as a prepackaged release such as SWIG1.3a3, be
 advised that this distribution represents a snapshot of the most
 stable part of the SWIG CVS repository.  As this is an unstable
 release, there is a pretty good chance that a number of features are
 broken or under repair.  Currently, SWIG is undergoing a large
-redevelopment effort.  The SWIG1.3 series of releases should be viewed
-as a transitional releases leading to the eventual release of SWIG2.0.
-First-time users may want to start with SWIG1.1p5 which is significantly
-more stable (and includes a wider range of documentation and examples).
+redevelopment effort in which it is being converted from C++ to ANSI
+C.  As a result, the source code is a little disorganized at the
+moment.  The SWIG1.3 series of releases should be viewed as
+transitional releases leading to the eventual release of
+SWIG2.0. First-time users may want to start with SWIG1.1p5 which is
+significantly more stable (and includes a wider range of documentation
+and examples).
 
 Please report any errors and submit patches (if possible)!  We only
 have access to a limited variety of hardware (Linux, Solaris, and
@@ -69,6 +72,11 @@ What's Broken?
      (3/1/00)
 
    - SWIG requires an ANSI C compiler.
+
+   - A number of low-level data structures have been converted
+     to C.  Since things haven't yet been fully tested, there's 
+     a chance that unusual corner cases might cause SWIG to crash.
+     If so, please send us a debugger traceback if possible.
 
 Installation
 ============

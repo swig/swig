@@ -86,7 +86,7 @@ static char cvstag[] = "$Header$";
 
 static int    Inherit_mode = 0;             // Set if we're inheriting members
 static char   *ccode = 0;                   // Set to optional C code (if available)
-static Hash   *localtypes;                  // Localtype hash
+static DOHHash  *localtypes = 0;                  // Localtype hash
 static int    abstract =0;                  // Status bit set during code generation
 
 static int    cpp_id = 0;
@@ -116,7 +116,7 @@ static void add_local_type(char *type, char *classname) {
   if (!localtypes) return;        // No hash table initialized, ignore this
 
   str << classname << "::" << type;
-  localtypes->add(type,copy_string(str));
+  Setattr(localtypes,type,str.get());
 }
 
 void add_local_type(DataType *type, char *classname) {
@@ -139,7 +139,7 @@ static void update_local_type(DataType *type) {
 
   if (!localtypes) return;
 
-  newname = (char *) localtypes->lookup(type->name);
+  newname = GetChar(localtypes,type->name);
   if (newname) {
     strcpy(type->name, newname);
   }
@@ -162,7 +162,7 @@ static void update_parms(ParmList *l) {
 
     if ((p->defvalue) && (localtypes)) {
       char *s;
-      s = (char *) localtypes->lookup(p->defvalue);
+      s = (char *) GetChar(localtypes,p->defvalue);
       if (s) {
 	delete p->defvalue;
 	p->defvalue = copy_string(s);
@@ -501,7 +501,7 @@ public:
   int          error;                 // Set if this class can't be generated
   int          line;                  // Line number
   char        **baseclass;            // Base classes (if any)
-  Hash        *local;                 // Hash table for local types
+  DOHHash     *local;                 // Hash table for local types
   void        *scope;                 // Local scope hash table
   CPP_member  *members;               // Linked list of members
   CPP_class   *next;                  // Next class
@@ -514,7 +514,7 @@ public:
     classtype = copy_string(ctype);
     classrename = 0;
     baseclass = 0;
-    local = new Hash;                 // Create hash table for storing local datatypes
+    local = NewHash();                 // Create hash table for storing local datatypes
     scope = 0;
     error = 0;
     pragmas = 0;
@@ -944,7 +944,7 @@ void cplus_inherit(int count, char **baseclass) {
 //
 // -----------------------------------------------------------------------------
 
-static Hash convert;                // Hash table of conversion functions
+static DOHHash *convert = 0;                // Hash table of conversion functions
 
 void cplus_generate_types(char **baseclass) {
   CPP_class *bc;
@@ -955,6 +955,8 @@ void cplus_generate_types(char **baseclass) {
   if (!baseclass) {
     return;
   }
+
+  if (!convert) convert = NewHash();
 
   // Generate type-conversion functions and type-equivalence
 
@@ -970,7 +972,8 @@ void cplus_generate_types(char **baseclass) {
 	temp3 = "";
 	temp3 << "Swig" << current_class->classname << "To" << bc->classname;
 
-	if (convert.add(temp3,(void *) 1) != -1) {
+	if (!Getattr(convert,temp3.get())) {
+	  SetVoid(convert,temp3.get(),(void*) 1);
 
 	  // Write a function for casting derived type to parent class
 
@@ -1300,9 +1303,6 @@ void cplus_declare_const(char *name, char *iname, DataType *type, char *value) {
   CPP_constant *c =  new CPP_constant(name, temp_iname, type, value);
   current_class->add_member(c);
 
-  // Update this symbol in the symbol table
-  update_symbol(name, type, value);
-
   // Add this symbol to local scope of a class
   add_local_type(name, current_class->classname);
 }
@@ -1387,7 +1387,7 @@ void cplus_add_pragma(char *lang, char *name, char *value)
 // sharing code between base and derived classes.
 // -----------------------------------------------------------------------------
 
-static Hash member_hash;  // Hash wrapping member function wrappers to scripting wrappers
+static DOHHash *member_hash = 0;  // Hash wrapping member function wrappers to scripting wrappers
 
 // -----------------------------------------------------------------------------
 // void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
@@ -1516,9 +1516,13 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
     l->print_types(key);
     //    printf("key = %s\n", (char *) key);  
     char *temp = copy_string(iname);
-    if ((member_hash.add(key,temp)) == -1) {
+    if (!member_hash) member_hash = NewHash();
+    if (Getattr(member_hash,key.get())) {
       delete [] temp;
-      prev_wrap = (char *) member_hash.lookup(key);
+      prev_wrap = GetChar(member_hash,key.get());
+    } else {
+      Setattr(member_hash,key.get(),temp);
+      delete [] temp;
     }
     
     // Only generate code if an already existing wrapper doesn't exist
@@ -1730,9 +1734,13 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
     key << cname << "+";
     l->print_types(key);
     char *temp = copy_string(iname);
-    if ((member_hash.add(key,temp)) == -1) {
+    if (!member_hash) member_hash = NewHash();
+    if (Getattr(member_hash,key.get())) {
       delete [] temp;
-      prev_wrap = (char *) member_hash.lookup(key);
+      prev_wrap = GetChar(member_hash,key.get());
+    } else {
+      Setattr(member_hash,key.get(),temp);
+      delete [] temp;
     }
 
     if (!prev_wrap) {
@@ -2151,9 +2159,13 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 
     key << cname;
     char *temp = copy_string(iname);
-    if ((member_hash.add(key,temp)) == -1) {
+    if (!member_hash) member_hash = NewHash();
+    if (Getattr(member_hash,key.get())) {
       delete [] temp;
-      prev_wrap = (char *) member_hash.lookup(key);
+      prev_wrap = GetChar(member_hash,key.get());
+    } else {
+      Setattr(member_hash,key.get(),temp);
+      delete [] temp;
     }
 
     // Only generate code if already existing wrapper doesn't exist
@@ -2328,9 +2340,13 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 
     key << cname;
     char *temp = copy_string(iname);
-    if ((member_hash.add(key,temp)) == -1) {
+    if (!member_hash) member_hash = NewHash();
+    if (Getattr(member_hash,key.get())) {
       delete [] temp;
-      prev_wrap = (char *) member_hash.lookup(key);
+      prev_wrap = GetChar(member_hash,key.get());
+    } else {
+      Setattr(member_hash,key.get(),temp);
+      delete [] temp;
     }
 
     // Only generate code if already existing wrapper doesn't exist
@@ -2519,9 +2535,9 @@ void cplus_register_scope(void *h) {
 void cplus_inherit_scope(int count, char **baseclass) {
   CPP_class *bc;
   int i;
-  char *key, *val;
+  char *val;
   String str;
-
+  DOH  *key;
   if (count && current_class) {
     for (i = 0; i < count; i++) {
        bc = CPP_class::search(baseclass[i]);
@@ -2531,13 +2547,13 @@ void cplus_inherit_scope(int count, char **baseclass) {
 
 	if (bc->local) {
 	  // Copy local symbol table
-	  key = bc->local->firstkey();
+	  key = Firstkey(bc->local);
 	  while (key) {
-	    val = (char *) bc->local->lookup(key);
+	    val = GetChar(bc->local,key);
 	    str = val;
 	    //	    str.replace(bc->classname,current_class->classname);
-	    localtypes->add(key,copy_string(str));
-	    key = bc->local->nextkey();
+	    Setattr(localtypes,key,str.get());
+	    key = Nextkey(bc->local);
 	  }
 	}
       }

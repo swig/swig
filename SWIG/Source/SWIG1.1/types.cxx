@@ -16,6 +16,10 @@ static char cvsroot[] = "$Header$";
 
 #include "internal.h"
 
+extern "C" {
+#include "doh.h"
+}
+
 // -------------------------------------------------------------------
 // class DataType member functions.
 // -------------------------------------------------------------------
@@ -430,7 +434,7 @@ char *DataType::get_array() {
 // typedef support.  This needs to be scoped.
 // --------------------------------------------------------------------
 
-static Hash *typedef_hash[MAXSCOPE];
+static DOHHash *typedef_hash[MAXSCOPE];
 static int   scope = 0;            // Current scope
 
 // -----------------------------------------------------------------------------
@@ -449,7 +453,7 @@ void DataType::init_typedef() {
     typedef_hash[i] = 0;
   scope = 0;
   // Create a new hash
-  typedef_hash[scope] = new Hash;
+  typedef_hash[scope] = NewHash();
 }
 
 // --------------------------------------------------------------------
@@ -471,7 +475,7 @@ void DataType::typedef_add(char *tname, int mode) {
   // We only check in the local scope.   C++ classes may make typedefs
   // that shadow global ones.
 
-  if (typedef_hash[scope]->lookup(tname)) {
+  if (Getattr(typedef_hash[scope],tname)) {
     fprintf(stderr,"%s : Line %d. Warning. Datatype %s already defined (2nd definition ignored).\n",
 	    input_file, line_number, tname);
       return;
@@ -486,7 +490,7 @@ void DataType::typedef_add(char *tname, int mode) {
   //  strcpy(nt->name,tname);              // Copy over the new name
   
   // Add this type to our hash table
-  typedef_hash[scope]->add(tname,(void *) nt);
+  SetVoid(typedef_hash[scope],tname, (void *) nt);
 
   // Now add this type mapping to our type-equivalence table
 
@@ -534,7 +538,7 @@ void DataType::typedef_resolve(int level) {
   int       s = scope - level;
 
   while (s >= 0) {
-    if ((td = (DataType *) typedef_hash[s]->lookup(name))) {
+    if ((td = (DataType *) GetVoid(typedef_hash[s],name))) {
       type = td->type;
       is_pointer += td->is_pointer;
       implicit_ptr += td->implicit_ptr;
@@ -568,7 +572,7 @@ void DataType::typedef_replace () {
   DataType *td;
   String temp;
 
-  if ((td = (DataType *) typedef_hash[scope]->lookup(name))) {
+  if ((td = (DataType *) GetVoid(typedef_hash[scope],name))) {
     type = td->type;
     is_pointer = td->is_pointer;
     implicit_ptr -= td->implicit_ptr;
@@ -596,7 +600,7 @@ void DataType::typedef_replace () {
 int DataType::is_typedef(char *t) {
   int s = scope;
   while (s >= 0) {
-    if (typedef_hash[s]->lookup(t)) return 1;
+    if (Getattr(typedef_hash[s],t)) return 1;
     s--;
   }
   return 0;
@@ -613,7 +617,7 @@ int DataType::is_typedef(char *t) {
 void DataType::typedef_updatestatus(int newstatus) {
 
   DataType *t;
-  if ((t = (DataType *) typedef_hash[scope]->lookup(name))) {
+  if ((t = (DataType *) GetVoid(typedef_hash[scope],name))) {
     t->status = newstatus;
   }
 }
@@ -633,19 +637,19 @@ void DataType::typedef_updatestatus(int newstatus) {
 // -----------------------------------------------------------------------------
 
 void DataType::merge_scope(void *ho) {
-  char  *key;
+  DOHString *key;
   DataType *t, *nt;
-  Hash *h = (Hash *) ho;
+  DOHHash *h = (DOHHash *) ho;
 
   if (h) {
     // Copy all of the entries in the given hash table to this new one
-    key = h->firstkey();
+    key = Firstkey(h);
     while (key) {
       //      printf("%s\n", key);
-      t = (DataType *) h->lookup(key);
+      t = (DataType *) GetVoid(h,key);
       nt = new DataType(t);
-      typedef_hash[scope]->add(key,(void *) nt);
-      key = h->nextkey();
+      SetVoid(typedef_hash[scope],key,(void *) nt);
+      key = Nextkey(h);
     }
   }
 }
@@ -664,12 +668,10 @@ void DataType::merge_scope(void *ho) {
 // -----------------------------------------------------------------------------
 
 void DataType::new_scope(void *ho) {
-  Hash *h = (Hash *) ho;
   scope++;
-  typedef_hash[scope] = new Hash;
-
-  if (h) {
-    merge_scope(h);
+  typedef_hash[scope] = NewHash();
+  if (ho) {
+    merge_scope(ho);
   }
 }
 
@@ -697,22 +699,22 @@ void DataType::new_scope(void *ho) {
 
 void *DataType::collapse_scope(char *prefix) {
   DataType *t,*nt;
-  char     *key;
+  DOHString *key;
   char     *temp;
-  Hash     *h;
+  DOHHash  *h;
 
   if (scope > 0) {
     if (prefix) {
-      key = typedef_hash[scope]->firstkey();
+      key = Firstkey(typedef_hash[scope]);
       while (key) {
-	t = (DataType *) typedef_hash[scope]->lookup(key);
+	t = (DataType *) GetVoid(typedef_hash[scope],key);
 	nt = new DataType(t);
-	temp = new char[strlen(prefix)+strlen(key)+3];
-	sprintf(temp,"%s::%s",prefix,key);
+	temp = new char[strlen(prefix)+strlen(Char(key))+3];
+	sprintf(temp,"%s::%s",prefix,Char(key));
 	//	printf("creating %s\n", temp);
-	typedef_hash[scope-1]->add(temp,(void *) nt);
+	SetVoid(typedef_hash[scope-1],temp, (void *)nt);
 	delete temp;
-	key = typedef_hash[scope]->nextkey();
+	key = Nextkey(typedef_hash[scope]);
       }
     }
     h = typedef_hash[scope];
@@ -740,11 +742,12 @@ struct EqEntry {
   EqEntry  *next;
 };
 
-static Hash typeeq_hash;
+static DOHHash *typeeq_hash = 0;
 static int  te_init = 0;
 
 void typeeq_init() {
   void typeeq_standard();
+  if (!typeeq_hash) typeeq_hash = NewHash();
   te_init = 1;
   typeeq_standard();
 }
@@ -768,7 +771,7 @@ void typeeq_add(char *name, char *eqname, char *cast = 0, DataType *type = 0) {
   
   // Search for "name" entry in the hash table
 
-  e1 = (EqEntry *) typeeq_hash.lookup(name);
+  e1 = (EqEntry *) GetVoid(typeeq_hash,name);
 
   if (!e1) {
     // Create a new entry
@@ -777,7 +780,7 @@ void typeeq_add(char *name, char *eqname, char *cast = 0, DataType *type = 0) {
     e1->next = 0;
     e1->cast = 0;
     // Add it to the hash table
-    typeeq_hash.add(name,(void *) e1);
+    SetVoid(typeeq_hash,name,(void *) e1);
   }
 
   // Add new type to the list
@@ -829,7 +832,7 @@ void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
 
   // Now find the hash entry
 
-  e1 = (EqEntry *) typeeq_hash.lookup(name);
+  e1 = (EqEntry *) GetVoid(typeeq_hash,name);
   if (!e1) return;
 
   // Walk down the list and make other equivalences
@@ -856,6 +859,7 @@ void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
 void emit_ptr_equivalence(FILE *f) {
 
   EqEntry  *e1,*e2;
+  DOH      *k;
   void     typeeq_standard();
   String   ttable;
 
@@ -867,8 +871,9 @@ void emit_ptr_equivalence(FILE *f) {
  */\n\
 static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {\n";
 
-  e1 = (EqEntry *) typeeq_hash.first();
-  while (e1) {
+  k = Firstkey(typeeq_hash);
+  while (k) {
+    e1 = (EqEntry *) GetVoid(typeeq_hash,k);
     e2 = e1->next;
     // Walk through the equivalency list
     while (e2) {
@@ -878,7 +883,7 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
 	ttable << tab4 << "{ \"" << e1->name << "\",\"" << e2->name << "\",0},\n";
       e2 = e2->next;
     }
-    e1 = (EqEntry *) typeeq_hash.next();
+    k = Nextkey(typeeq_hash);
   }
   ttable << "{0,0,0}};\n";
   fprintf(f_wrappers,"%s\n", ttable.get());
@@ -895,8 +900,9 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
 	 << "    void *(*convert)(void *);\n"
 	 << "} SwigType;\n";
 
-  e1 = (EqEntry *) typeeq_hash.first();
-  while (e1) {
+  k = Firstkey(typeeq_hash);
+  while (k) {
+    e1 = (EqEntry *) GetVoid(typeeq_hash,k);
     e2 = e1->next;
     ctable << "static SwigType " << e1->name << "[] = {";
     // Walk through the equivalency list
@@ -909,7 +915,7 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
       e2 = e2->next;
     }
     ctable << "{0,0}};\n";
-    e1 = (EqEntry *) typeeq_hash.next();
+    k = Nextkey(typeeq_hash);
   }
   ctable << "*/\n";
   fprintf(f_wrappers,"%s\n", ctable.get());
@@ -993,14 +999,17 @@ check_equivalent(DataType *t) {
   static String out;
   int    npointer = t->is_pointer;
   String m;
+  DOH   *k;
 
   out = "";
   while (t->is_pointer >= t->implicit_ptr) {
     m = t->print_mangle();
 
     if (!te_init) typeeq_init();
-    e1 = (EqEntry *) typeeq_hash.first();
-    while (e1) {
+
+    k = Firstkey(typeeq_hash);
+    while (k) {
+      e1 = (EqEntry *) GetVoid(typeeq_hash,k);
       /*      printf("'%s', '%s'\n", m.get(),e1->name); */
       if (strcmp(m.get(),e1->name) == 0) {
 	e2 = e1->next;
@@ -1017,7 +1026,7 @@ check_equivalent(DataType *t) {
 	  e2 = e2->next;
 	}
       }
-      e1 = (EqEntry *) typeeq_hash.next();
+      k = Nextkey(typeeq_hash);
     }
     t->is_pointer--;
   }
@@ -1033,19 +1042,19 @@ check_equivalent(DataType *t) {
 // work across multiple files.
 // -----------------------------------------------------------------------------
 
-static Hash  bases;
+static DOHHash  *bases = 0;
 
 void DataType::record_base(char *derived, char *base)
 {
-  Hash *nh;
-  nh = (Hash *) bases.lookup(derived);
+  DOHHash *nh;
+  if (!bases) bases = NewHash();
+  nh = Getattr(bases,derived);
   if (!nh) {
-    nh = new Hash();
-    bases.add(derived, (void *) nh);
+    nh = NewHash();
+    Setattr(bases,derived,nh);
   }
-  if (!nh->lookup(base)) {
-    char *bn = copy_string(base);
-    nh->add(base,(void *) bn);
+  if (!Getattr(nh,base)) {
+    Setattr(nh,base,base);
   }
 }
 
@@ -1056,46 +1065,51 @@ void DataType::record_base(char *derived, char *base)
 // construct a big table of pointer values at the end.
 // ----------------------------------------------------------------------
 
-static  Hash  remembered;
+static  DOHHash  *remembered = 0;
 
 void DataType::remember() {
-  Hash *h;
+  DOHHash *h;
   DataType *t = new DataType(this);
-  remembered.add(t->print_mangle(),(void *) t);
 
+  if (!remembered) remembered = NewHash();
+  SetVoid(remembered, t->print_mangle(), t);
+
+  if (!bases) bases = NewHash();
   /* Now, do the base-class hack */
-  h = (Hash *) bases.lookup(t->name);
+  h = Getattr(bases,t->name);
   if (h) {
-    char *key;
-    key = h->firstkey();
+    DOH *key;
+    key = Firstkey(h);
     while (key) {
       DataType *nt = new DataType(t);
-      strcpy(nt->name,key);
-      if (!remembered.lookup(nt->print_mangle()))
+      strcpy(nt->name,Char(key));
+      if (!Getattr(remembered,nt->print_mangle())) 
 	nt->remember();
       delete nt;
-      key = h->nextkey();
+      key = Nextkey(h);
     }
   }
 }
 
 void
 emit_type_table() {
-  char *key;
+  DOH *key;
   String types, table;
   int i = 0;
 
+  if (!remembered) remembered = NewHash();
+
   table << "static _swig_type_info *_swig_types_initial[] = {\n";
-  key = remembered.firstkey();
+  key = Firstkey(remembered);
   fprintf(f_runtime,"/* ---- TYPES TABLE (BEGIN) ---- */\n");
   while (key) {
-    fprintf(f_runtime,"#define  SWIGTYPE%s _swig_types[%d] \n", key, i);
-    types << "static _swig_type_info _swigt_" << key << "[] = {";
-    types << "{\"" << key << "\",0},";
-    types << "{\"" << key << "\",0},";
-    types << check_equivalent((DataType *)remembered.lookup(key)) << "};\n";
-    table << "_swigt_" << key << ", \n";
-    key = remembered.nextkey();
+    fprintf(f_runtime,"#define  SWIGTYPE%s _swig_types[%d] \n", Char(key), i);
+    types << "static _swig_type_info _swigt_" << Char(key) << "[] = {";
+    types << "{\"" << Char(key) << "\",0},";
+    types << "{\"" << Char(key) << "\",0},";
+    types << check_equivalent((DataType *)GetVoid(remembered,key)) << "};\n";
+    table << "_swigt_" << Char(key) << ", \n";
+    key = Nextkey(remembered);
     i++;
   }
 
