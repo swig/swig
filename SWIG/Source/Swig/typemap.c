@@ -210,17 +210,23 @@ Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or
             ...
        }
 
-     To store, it we save information for a typemap
-          "in" -> int foo
-          "in-int *bar:" --> int *bar
-          "in-char *blah[]:in-int *bar:"  --> char *blah[]
+     To store it, we look at typemaps for the following:
+
+          operator                  type-name
+          ----------------------------------------------
+          "in"                      int foo
+          "in-int+foo:"             int *bar
+          "in-int+foo:-p.int+bar:   char *blah[]
+
+     Notice how the operator expands to encode information about
+     previous arguments.        
 
   */
 
   np = nextSibling(parms);
   if (np) {
     /* Make an entirely new operator key */
-    String *newop = NewStringf("%s-%s-%s:",op,type,pname);
+    String *newop = NewStringf("%s-%s+%s:",op,type,pname);
     /* Now reregister on the remaining arguments */
     Swig_typemap_register_multi(newop,np,code,locals);
     Setattr(tm2,newop,newop);
@@ -266,7 +272,7 @@ Swig_typemap_get(SwigType *type, String_or_char *name, int scope) {
  * Copy a typemap
  * ----------------------------------------------------------------------------- */
 
-void
+int
 Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sname, 
 		  SwigType *ttype, String_or_char *tname) {
 
@@ -284,11 +290,57 @@ Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sna
       tm1 = Getattr(tm,tmop);
       if (tm1) {
 	Swig_typemap_register(op,ttype,tname, Getattr(tm1,"code"), Getattr(tm1,"locals"));
-	return;
+	return 0;
       }
     }
     ts--;
   }
+  return -1;
+}
+
+int
+Swig_typemap_copy_multi(const String_or_char *op, ParmList *srcparms, ParmList *parms) {
+  Hash *tm;
+  String *tmop;
+  Parm *p;
+  String *pname;
+  SwigType *ptype;
+  int ts = tm_scope;
+  String *tmops, *newop;
+  if (Len(parms) != Len(srcparms)) return -1;
+
+  tmop = tmop_name(op);
+  while (ts >= 0) {
+    p = srcparms;
+    tmops = NewString(tmop);
+    while (p) {
+      ptype = Getattr(p,"type");
+      pname = Getattr(p,"name");
+      
+      /* Lookup the type */
+      tm = Swig_typemap_get(ptype,pname,ts);
+      if (!tm) break;
+      
+      tm = Getattr(tm,tmops);
+      if (!tm) break;
+
+      /* Got a match.  Look for next typemap */
+      newop = NewStringf("%s-%s+%s:",tmops,ptype,pname);
+      Delete(tmops);
+      tmops = newop;
+      p = nextSibling(p);
+    }
+    Delete(tmops);
+    if (!p && tm) {
+      /* Got some kind of match */
+      Swig_typemap_register_multi(op,parms, Getattr(tm,"code"), Getattr(tm,"locals"));
+      return 0;
+    }
+    ts--;
+  }
+  /* Not found */
+  return -1;
+
 }
 
 /* -----------------------------------------------------------------------------
@@ -329,7 +381,7 @@ Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms) {
     if (!tm) return;
     p = nextSibling(p);
     if (p) 
-      Printf(newop,"-%s-%s:", type,name);
+      Printf(newop,"-%s+%s:", type,name);
   }
   if (tm)
     Delattr(tm,tmop_name(newop));
@@ -348,6 +400,19 @@ Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms) {
 static void merge_attributes(Hash *target, Hash *source) {
   String *key;
   for (key = Firstkey(source); key; key = Nextkey(source)) {
+
+    /* This check prevents multi-argument typemap information from being copied
+       on a simple %apply directive.  For example:
+
+        %typemap(in) (int argc, char *argv[]) {  ... }
+        %apply char *argv[] { char *ARGV[] };
+
+        void foo(int argc, char *ARGV[]);
+    */
+    if (Strchr(key,'+')) continue;
+
+
+    /* Don't merge attributes if already assigned */
     if (Getattr(target,key)) continue;
     Setattr(target,key,Getattr(source,key));
   }
@@ -386,8 +451,19 @@ Swig_typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, St
 /* -----------------------------------------------------------------------------
  * Swig_typemap_clear_apply()
  *
- * %clear directive.   Clears all typemaps for a type. 
+ * %clear directive.   Clears all typemaps for a type (in current scope only). 
  * ----------------------------------------------------------------------------- */
+
+static void
+clear_typemap_attributes(Hash *h) {
+  String *key, *key2;
+  for (key = Firstkey(h); key; key = Nextkey(h)) {
+    Hash *tm = Getattr(h,key);
+    for (key2 = Firstkey(tm); key2; key2 = Nextkey(tm)) {
+      if (!Strchr(key2,'+')) Delattr(tm,key2);
+    }
+  }
+}
 
 void
 Swig_typemap_clear_apply(SwigType *type, String_or_char *name) {
@@ -396,9 +472,15 @@ Swig_typemap_clear_apply(SwigType *type, String_or_char *name) {
   tm = Getattr(typemaps[tm_scope],type);
   if (!tm) return;
   if ((name) && (Len(name))) {
-    Delattr(tm,name);
+    tm = Getattr(tm,name);
+    if (tm) {
+      clear_typemap_attributes(tm);
+    }
+    /* Delattr(tm,name); */
   } else {
-    Delattr(typemaps[tm_scope],type);
+    clear_typemap_attributes(tm);
+
+    /*    Delattr(typemaps[tm_scope],type); */
   }
 }
 
@@ -543,7 +625,7 @@ Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch
   /* Try to find a match on the first type */
   tm = Swig_typemap_search(op, type, name);
   if (tm) {
-    newop = NewStringf("%s-%s-%s:", op, type,name);
+    newop = NewStringf("%s-%s+%s:", op, type,name);
     tm1 = Swig_typemap_search_multi(newop, nextSibling(parms), nmatch);
     if (tm1) tm = tm1;
     if (Getattr(tm,"code")) {
