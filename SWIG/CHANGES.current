@@ -1,5 +1,10 @@
 Version 1.3.15 (In progress)
 ================================
+
+08/27/2002: mkoeppe
+	    [Guile] Fixed error in "lib_std_vector" testcase and
+	    compiler warning in "lib_cdata" testcase.
+
 08/27/2002: ljohnson (Lyle Johnson)
             [Ruby] Added the "%mixin" directive, which allows the user to
 	    specify a comma-separated list of module names to mix-in to a
