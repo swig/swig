@@ -5,7 +5,7 @@ TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =
 CSHARPSRCS = *.cs
-CSHARPFLAGS= -o runme
+CSHARPFLAGS= -nologo -out:runme.exe
 
 all::	csharp
 
