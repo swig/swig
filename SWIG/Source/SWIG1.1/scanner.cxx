@@ -53,6 +53,7 @@ static  int    scan_init  = 0;
 static  int    num_brace = 0;
 static  int    last_brace = 0;
 extern  int    Error;
+static  int    last_id = 0;
 
 /* ----------------------------------------------------------------------
  * locator()
@@ -522,9 +523,11 @@ int yylook(void) {
 	  if (c == '\n') {
 	    state = 0;
 	    yylen = 0;
+	    last_id = 0;
 	  } else if (isspace(c)) {
 	    state = 0;
 	    yylen = 0;
+	    last_id = 0;
 	  }
 
 	  else if ((isalpha(c)) || (c == '_')) state = 7;
@@ -746,12 +749,26 @@ int yylook(void) {
 	case 5: /* Maybe a double colon */
 
 	  if (( c= nextchar()) == 0) return 0;
-	  if ( c == ':') return DCOLON;
-	  else {
+	  if ( c == ':') {
+	    state = 51;
+	  } else {
 	    retract(1);
 	    return COLON;
 	  }
-
+	  break;
+	case 51: /* Maybe a ::* or :: */
+	  if (( c = nextchar()) == 0) return 0;
+	  if (c == '*') {
+	    return DSTAR;
+	  } else {
+	    retract(1);
+	    if (!last_id) {
+	      retract(2);
+	      return NONID;
+	    } else {
+	      return DCOLON;
+	    }
+	  }
 
 	case 60: /* shift operators */
 	  if ((c = nextchar()) == 0) return (0);
@@ -975,6 +992,12 @@ extern "C" int yylex(void) {
 
     l = yylook();
 
+    if (l == NONID) {
+      last_id = 1;
+    } else {
+      last_id = 0;
+    }
+
     /* We got some sort of non-white space object.  We set the start_line
        variable unless it has already been set */
 
@@ -1171,6 +1194,7 @@ extern "C" int yylex(void) {
 	}
 
 	yylval.id = Swig_copy_string(yytext);
+	last_id = 1;
 	return(ID);
     case POUND:
       return yylex();
