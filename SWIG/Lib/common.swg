@@ -77,13 +77,14 @@ SWIGIMPORT(char *)           SWIG_UnpackData(char *, void *, int);
 #else
 
 static swig_type_info *swig_type_list = 0;
+static swig_type_info **swig_type_list_handle = &swig_type_list;
 
 /* Register a type mapping with the type-checking */
 SWIGRUNTIME(swig_type_info *)
 SWIG_TypeRegister(swig_type_info *ti) {
   swig_type_info *tc, *head, *ret, *next;
   /* Check to see if this type has already been registered */
-  tc = swig_type_list;
+  tc = *swig_type_list_handle;
   while (tc) {
     if (strcmp(tc->name, ti->name) == 0) {
       /* Already exists in the table.  Just add additional types to the list */
@@ -98,8 +99,8 @@ SWIG_TypeRegister(swig_type_info *ti) {
   next = 0;
 
   /* Place in list */
-  ti->prev = swig_type_list;
-  swig_type_list = ti;
+  ti->prev = *swig_type_list_handle;
+  *swig_type_list_handle = ti;
 
   /* Build linked lists */
   l1:
@@ -228,7 +229,7 @@ SWIG_TypeEquiv(const char *nb, const char *tb) {
 /* Search for a swig_type_info structure */
 SWIGRUNTIME(swig_type_info *)
 SWIG_TypeQuery(const char *name) {
-  swig_type_info *ty = swig_type_list;
+  swig_type_info *ty = *swig_type_list_handle;
   while (ty) {
     if (ty->str && (SWIG_TypeEquiv(ty->str,name))) return ty;
     if (ty->name && (strcmp(name,ty->name) == 0)) return ty;
@@ -246,7 +247,7 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
   equiv = ti->next;
   while (equiv) {
     if (!equiv->converter) {
-      tc = swig_type_list;
+      tc = *swig_type_list_handle;
       while (tc) {
         if ((strcmp(tc->name, equiv->name) == 0))
           SWIG_TypeClientData(tc,clientdata);
