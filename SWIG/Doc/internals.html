@@ -23,7 +23,50 @@ beazley@cs.uchicago.edu </br>
 <p>
 (Note : This is a work in progress.) 
 
+<h2>Table of Contents</h2>
+<ul>
+<li><a name="i1" href="#1">1. Introduction</a>
+<ul>
+<li><a name="i1.1" href="#1.1">1.1 Directory Guide</a>
+<li><a name="i1.2" href="#1.2">1.2 Overall Program Flow</a>
+</ul>
+<li><a name="i2" href="#2">2. DOH</a>
+<ul>
+<li><a name="i2.1" href="#2.1">2.1 Motivation and Background</a>
+<li><a name="i2.2" href="#2.2">2.2 Basic Types</a>
+<li><a name="i2.3" href="#2.3">2.3 Creating, Copying and Destroying Objects</a>
+<li><a name="i2.4" href="#2.4">2.4 A Word About Mutability and Copying</a>
+<li><a name="i2.5" href="#2.5">2.5 Strings</a>
+<li><a name="i2.6" href="#2.6">2.6 Lists</a>
+<li><a name="i2.7" href="#2.7">2.7 Hash Tables</a>
+<li><a name="i2.8" href="#2.8">2.8 Files</a>
+<li><a name="i2.9" href="#2.9">2.9 Void Objects</a>
+<li><a name="i2.10" href="#2.10">2.10 Utility Functions</a>
+</ul>
+<li><a name="i3" href="#3">3. Types and Typemaps</a>
+<li><a name="i4" href="#4">4. Parsing</a>
+<li><a name="i5" href="#5">5. Difference Between SWIG 1.1 and SWIG 1.3</a>
+<li><a name="i6" href="#6">6. Plans for SWIG 2.0</a>
+<li><a name="i7" href="#7">7. C/C++ Wrapper Support Functions</a>
+<li><a name="i8" href="#8">8. Reserved</a>
+<li><a name="i9" href="#9">9. Reserved</a>
+<li><a name="i10" href="#10">10. Guile Support</a>
+<ul>
+<li><a name="i10.1" href="#10.1">10.1 Meaning of "Module"</a>
+<li><a name="i10.2" href="#10.2">10.2 Linkage</a>
+<li><a name="i10.3" href="#10.3">10.3 Underscore Folding</a>
+<li><a name="i10.4" href="#10.4">10.4 Typemaps</a>
+<li><a name="i10.5" href="#10.5">10.5 Smobs</a>
+<li><a name="i10.6" href="#10.6">10.5 Exception Handling</a>
+</ul>
+<li><a name="i11" href="#11">11. Python Support</a>
+<li><a name="i12" href="#12">12. Perl Support</a>
+<li><a name="i13" href="#13">13. Java Support</a>
+</ul>
+
+<a name="1" href="#i1">
 <h2>1. Introduction</h2>
+</a>
 
 This document details SWIG internals: architecture and sometimes
 implementation.  The first few sections concentrate on data structures,
@@ -35,7 +78,9 @@ The audience is assumed to be SWIG developers (who should also read the
 <a href="engineering.html">SWIG Engineering Manual</a> before starting
 to code).
 
-<h3>Directory Guide</h3>
+<a name="1.1" href="#i1.1">
+<h3>1.1 Directory Guide</h3>
+</a>
 
 <table border=1>
 <tr><td><a href="index.html">Doc</a></td>
@@ -141,7 +186,9 @@ are used in building the <tt>swig</tt> executable.
 </table>
 
 
-<h3>Overall Program Flow</h3>
+<a name="1.2" href="#1.2">
+<h3>1.2 Overall Program Flow</h3>
+</a>
 
 Here is the general control flow and where under subdir <tt>Source</tt>
 to look for code:
@@ -185,22 +232,6 @@ which uses the callbacks registered by <tt>SWIG_main()</tt> above.
 
 </ul>
 
-<h3>Table of Contents</h3>
-<ul>
-<li><a name="i2" href="#2">2. DOH</a>
-<li><a name="i3" href="#3">3. Types and Typemaps</a>
-<li><a name="i4" href="#4">4. Parsing</a>
-<li><a name="i5" href="#5">5. Difference Between SWIG 1.1 and SWIG 1.3</a>
-<li><a name="i6" href="#6">6. Plans for SWIG 2.0</a>
-<li><a name="i7" href="#7">7. C/C++ Wrapper Support Functions</a>
-<li><a name="i8" href="#8">8. Reserved</a>
-<li><a name="i9" href="#9">9. Reserved</a>
-<li><a name="i10" href="#10">10. Guile Support</a>
-<li><a name="i11" href="#11">11. Python Support</a>
-<li><a name="i12" href="#12">12. Perl Support</a>
-<li><a name="i13" href="#13">13. Java Support</a>
-</ul>
-
 <a name="2" href="#i2">
 <h2>2. DOH</h2>
 </a>
@@ -211,7 +242,9 @@ unofficially stands for "Dave's Object Hack", but it's also a good
 expletive to use when things don't work (as in "SWIG core
 dumped---DOH!").
 
+<a name="2.1" href="#2.1">
 <h3>2.1  Motivation and Background</h3>
+</a>
 
 The development of DOH is influenced heavily by the problems
 encountered during earlier attempts to create a C++ based version of
@@ -245,7 +278,9 @@ extremely flexible and highly extensible.  Also, in terms of coding,
 many of the newly DOH-based subsystems are less than half the size (in
 lines of code) of the earlier C++ implementation.
 
+<a name="2.2" href="#i2.2">
 <h3>2.2 Basic Types</h3>
+</a>
 
 The following built-in types are currently provided by DOH:
 
@@ -290,7 +325,9 @@ It should be stressed that all of these names are merely symbolic aliases to the
 type <tt>DOH *</tt> and that no compile-time type checking is performed (of course,
 a runtime error may occur if you screw up).
 
+<a name="2.3" href="#i2.3">
 <h3>2.3 Creating, Copying, and Destroying Objects </h2>
+</a>
 
 The following functions can be used to create new DOH objects
 
@@ -379,7 +416,9 @@ DohIncref(a);
 </pre>
 </blockquote>
 
+<a name="2.4" href="#i2.4">
 <h3>2.4 A Word About Mutability and Copying</h3>
+</a>
 
 All DOH objects are mutable regardless of their current reference
 count.  For example, if you create a string and then create a 1000
@@ -389,7 +428,9 @@ make any kind of local change, you should first make a copy using the
 Copy() function.  Caveat:  when copying lists and hash tables, elements
 are copied by reference.
 
+<a name="2.5" href="#i2.5">
 <h3>2.5 Strings</h3>
+</a>
 
 The DOH String type is perhaps the most flexible object.  First, it supports a variety of string-oriented
 operations.  Second, it supports many of the same operations as lists.  Finally, strings provide file I/O
@@ -397,23 +438,33 @@ operations that allow them to be used interchangably with DOH file objects.
 
 [ TODO ]
 
+<a name="2.6" href="#i2.6">
 <h3>2.6 Lists</h3>
+</a>
 
 [ TODO ]
 
+<a name="2.7" href="#i2.7">
 <h3>2.7 Hash tables </h3>
+</a>
 
 [ TODO ]
 
+<a name="2.8" href="#i2.8">
 <h3>2.8 Files </h3>
+</a>
 
 [ TODO ]
 
+<a name="2.9" href="#i2.9">
 <h3>2.9 Void objects </h3>
+</a>
 
 [ TODO ]
 
+<a name="2.10" href="#i2.10">
 <h3>2.10 Utility functions </h3>
+</a>
 
 [ TODO ]
 
@@ -806,16 +857,23 @@ for specifying local variable declarations and argument conversions.
 <h2>10. Guile Support</h2>
 </a>
 
+Revised: Thien-Thi Nguyen (July 23, 2000)
+
+<p>
 This section details guile-specific support in SWIG.
 
-<h3>Meaning of "Module"</h3>
+<a name="10.1" href="#i10.1">
+<h3>10.1 Meaning of "Module"</h3>
+</a>
 
 <p>
 There are three different concepts of "module" involved, defined
 separately for SWIG, Guile, and Libtool.  To avoid horrible confusion,
 we explicitly prefix the context, e.g., "guile-module".
 
-<h3>Linkage</h3>
+<a name="10.2" href="#i10.2">
+<h3>10.2 Linkage</h3>
+</a>
 
 <p>
 Guile support is complicated by a lack of user community cohesiveness,
@@ -868,14 +926,18 @@ There are no other linkage types planned, but that could change...  To
 add a new type, add the name to the enum in guile.h and add the case to
 <code>GUILE::emit_linkage()</code>.
 
-<h3>Underscore Folding</h3>  
+<a name="10.3" href="#i10.3">
+<h3>10.3 Underscore Folding</h3>
+</a>  
 
 <p>
 Underscores are converted to dashes in identifiers.  Guile support may
 grow an option to inhibit this folding in the future, but no one has
 complained so far.
 
-<h3>Typemaps</h3>
+<a name="10.4" href="#i10.4">
+<h3>10.4 Typemaps</h3>
+</a>
 
 <p>
 It used to be that the mappings for "native" types were included in
@@ -891,7 +953,9 @@ processing the user's foo.i.  At this time, we must say:
 
 in foo.i.  This may change in the future.
 
-<h3>Smobs</h3>
+<a name="10.5" href="#i10.5">
+<h3>10.5 Smobs</h3>
+</a>
 
 <p>
 For pointer types, SWIG uses Guile smobs.  This feature used to be
@@ -942,7 +1006,9 @@ the type table and accessing the list of compatible types.  If the
 Scheme object passed was not a SWIG smob representing a compatible
 pointer, a <code>wrong-type-arg</code> exception is raised.
 
-<h3>Exception Handling</h3>
+<a name="10.6" href="#i10.6">
+<h3>10.6 Exception Handling</h3>
+</a>
 
 <p>
 SWIG code calls <code>scm_error</code> on exception, using the following
