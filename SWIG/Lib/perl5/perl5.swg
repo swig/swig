@@ -538,6 +538,14 @@
   SWIG_croakSV(esv);
 }
 
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
+  SWIG_croak("C++ $1_type exception thrown");
+%}
+
+%typemap(throws) enum SWIGTYPE %{
+  SWIG_croak("C++ $1_type exception thrown");
+%}
+
 %typemap(throws) char * {
   SWIG_croak($1);
 }

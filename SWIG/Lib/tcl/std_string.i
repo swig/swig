@@ -44,4 +44,13 @@ namespace std {
         Tcl_SetStringObj($result,(char*)$1->c_str(),$1->length());
     }
 
+    %typemap(throws) string {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) $1.c_str(), -1));
+        SWIG_fail;
+    }
+
+    %typemap(throws) const string & {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) $1.c_str(), -1));
+        SWIG_fail;
+    }
 }
