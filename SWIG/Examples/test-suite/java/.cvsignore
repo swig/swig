@@ -10,6 +10,7 @@ defines
 long-long
 macro-2
 name
+pointer-cxx
 pointer-reference
 preproc-1
 sizeof_pointer

@@ -18,3 +18,7 @@ public:
 };
 
 %}
+
+%{
+int StaticMemberTest::static_int;
+%}

@@ -43,11 +43,12 @@ CPP_TEST_CASES = \
 	casts \
 	template-whitespace \
 	anonymous-arg \
-	static-array-member
+	static-array-member \
+	pointer-cxx
 #	long-long
 
 # C test cases. (Can be run individually using make testcase.ctest.)
-C_TEST_CASES   = \
+C_TEST_CASES = \
 	defines \
 	sizeof_pointer \
 	unions \
@@ -55,7 +56,7 @@ C_TEST_CASES   = \
 	const-const \
 	char-constant \
 	name \
-	preproc-1 
+	preproc-1
 
 ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) $(C_TEST_CASES:=.ctest)
 ALL_CLEAN      = $(CPP_TEST_CASES:=.clean) $(C_TEST_CASES:=.clean)
