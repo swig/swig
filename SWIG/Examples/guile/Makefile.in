@@ -3,7 +3,7 @@
 subdirs		= simple matrix port constants multimap multivalue
 
 top_srcdir	= @top_srcdir@
-SWIG		= ../$(top_srcdir)/swig@release_suffix@
+SWIG		= ../$(top_srcdir)/preinst-swig
 CC		= @CC@
 CXX		= @CXX@
 CFLAGS		= @CFLAGS@
