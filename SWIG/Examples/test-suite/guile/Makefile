@@ -4,10 +4,12 @@
 #######################################################################
 
 LANGUAGE   = guile_simple
+
+C_TEST_CASES = long_long list_vector pointer_in_out
+
 include ../common.mk
 
 # Overridden variables here
-CPP_TEST_CASES += long_long
 
 # Rules for the different types of tests
 %.cpptest: 

@@ -33,7 +33,7 @@ INCLUDE    = -I$(TOP)/$(TEST_SUITE)
 INTERFACE  = $*.i
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
-CPP_TEST_CASES = \
+CPP_TEST_CASES += \
 	constant_pointers \
 	cpp_enum \
 	cpp_static \
@@ -48,7 +48,7 @@ CPP_TEST_CASES = \
 #	long_long
 
 # C test cases. (Can be run individually using make testcase.ctest.)
-C_TEST_CASES = \
+C_TEST_CASES += \
 	defines \
 	sizeof_pointer \
 	unions \
