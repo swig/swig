@@ -1696,8 +1696,8 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     lt = Getattr(r_ltype,ki.key);
     rt = SwigType_typedef_resolve_all(lt);
     /* we save the original type and the fully resolved version */
-    ln = SwigType_str(lt,0);
-    rn = SwigType_str(rt,0);
+    ln = SwigType_lstr(lt,0);
+    rn = SwigType_lstr(rt,0);
     if (Strcmp(ln,rn) == 0) {
       nt = NewStringf("%s", ln);
     } else {
