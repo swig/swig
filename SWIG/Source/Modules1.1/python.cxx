@@ -1026,7 +1026,7 @@ PYTHON::cpp_class_decl(char *name, char *rename, char *type) {
     String *stype;
     String *importname;
     if (shadow) {
-      if (import_file) {
+      if ((import_file) && (!strchr(rename,'.'))) {
 	importname = NewStringf("%s.%s", import_file, rename);
       } else {
 	importname = NewString(rename);
