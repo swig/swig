@@ -20,22 +20,29 @@ public :
 	virtual int functionWrapper(Node *n);
 	virtual int variableWrapper(Node *n);
 	virtual int constantWrapper(Node *n);
-	virtual int nativeWrapper(Node *n);
+	virtual void add_native(char *, char *, SwigType *, ParmList *);
 	virtual void create_command(char *, char *);
 
 	// Modular Support
 	
-	/*
-	virtual void cpp_open_class(char *classname, char *rename, char *ctype, int strip);
-	virtual void cpp_close_class();
-	virtual void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *;);
-	virtual void cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l);
-	virtual void cpp_variable(char *name, char *iname, SwigType *t);
-	virtual void cpp_constructor(char *name, char *iname, ParmList *l);
-	virtual void cpp_destuctor(char *name, char *newname);
-	virtual void cpp_inherit(char **baseclass, int mode = INHERIT_ALL);
-	virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
-	virtual void cpp_class_descl(char *, char *, char *);
-	virtual void add_typedef(SwigType *t, char *name);
-	*/
+	virtual int  staticmembervariableHandler(Node *);
+	virtual int  staticmemberfunctionHandler(Node *);
+	virtual int  membervariableHandler(Node *);
+	virtual int  memberfunctionHandler(Node *);
+	virtual int  memberconstantHandler(Node *);
+	virtual int  constructorHandler(Node *n);
+	virtual int  destructorHandler(Node *n);
+
+	virtual int  classHandler(Node *n);
+	virtual int  classforwardDeclaration(Node *n);
+	virtual int  typedefHandler(Node *);
+
+	virtual void pragma(char *lang, char *code, char *value);
+
+
+	void emit_classdef();
+	void emit_shadow_classdef();
+	void SwigToPhpType(SwigType *t, String_or_char *pname, String *php_type, int shadow_flag);
+	char *PhpTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *iname);
+	void cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name);
 };
