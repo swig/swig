@@ -10,8 +10,42 @@
  *
  ********************************************************************/
 
+class RClass;
+
 class RUBY : public Language {
- protected:
+private:
+  RUBY(const RUBY&);
+  RUBY& operator=(const RUBY&);
+
+private:
+  static const char *usage;
+  char *module;
+  char *modvar;
+  char *feature;
+  int current;
+  Hash *classes;		/* key=cname val=RClass */
+  RClass *klass;		/* Currently processing class */
+  Hash *special_methods;	/* Python style special method name table */
+  File *f_runtime;
+  File *f_header;
+  File *f_wrappers;
+  File *f_init;
+
+private:
+  // Wrap modes
+  enum {
+    NO_CPP,
+    MEMBER_FUNC,
+    CONSTRUCTOR_ALLOCATE,
+    CONSTRUCTOR_INITIALIZE,
+    DESTRUCTOR,
+    MEMBER_VAR,
+    CLASS_CONST,
+    STATIC_FUNC,
+    STATIC_VAR
+  };
+
+protected:
   virtual char *validate_const_name(char *name, const char *reason);
   void marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrapper *f);
   void insertConstraintCheckingCode(ParmList *l, Wrapper *f);
@@ -20,7 +54,10 @@ class RUBY : public Language {
   void create_command(Node *, char *);
   void set_module(const char *module_name);
 
- public:
+public:
+  // Constructor
+  RUBY();
+  
   /* Parse command line options */
   
   virtual void main(int argc, char *argv[]);

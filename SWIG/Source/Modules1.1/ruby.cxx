@@ -21,11 +21,6 @@ static char cvsroot[] = "$Header$";
 #include <ctype.h>
 #include <string.h>
 
-static  File         *f_runtime = 0;
-static  File         *f_header = 0;
-static  File         *f_wrappers = 0;
-static  File         *f_init = 0;
-
 class RClass {
  private:
   String *temp;
@@ -91,35 +86,35 @@ class RClass {
 };
 
 
-static char *usage = (char*)"\
+const char *
+RUBY::usage = "\
 Ruby Options (available with -ruby)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -feature name   - Set feature name (used by `require')\n";
 
-static  char *module;
-static  char *modvar;
-static  char *feature;
-
-static int current;
-
-enum {
-  NO_CPP,
-  MEMBER_FUNC,
-  CONSTRUCTOR_ALLOCATE,
-  CONSTRUCTOR_INITIALIZE,
-  DESTRUCTOR,
-  MEMBER_VAR,
-  CLASS_CONST,
-  STATIC_FUNC,
-  STATIC_VAR
-};
-
-static  Hash *classes;		/* key=cname val=RClass */
-static  RClass *klass;		/* Currently processing class */
-static  Hash *special_methods;	/* Python style special method name table */
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
+
+/* ---------------------------------------------------------------------
+ * RUBY::RUBY()
+ *
+ * Initialize member data
+ * --------------------------------------------------------------------- */
+
+RUBY::RUBY() {
+  module = 0;
+  modvar = 0;
+  feature = 0;
+  current = NO_CPP;
+  classes = 0;
+  klass = 0;
+  special_methods = 0;
+  f_runtime = 0;
+  f_header = 0;
+  f_wrappers = 0;
+  f_init = 0;
+}
 
 /* ---------------------------------------------------------------------
  * RUBY::main()
@@ -135,7 +130,7 @@ RUBY::main(int argc, char *argv[]) {
       if (strcmp(argv[i],"-feature") == 0) {
 	if (argv[i+1]) {
 	  char *name = argv[i+1];
-	  feature = new char [strlen(name)+1];
+	  feature = new char[strlen(name)+1];
 	  strcpy(feature, name);
 	  Swig_mark_arg(i);
 	  Swig_mark_arg(i+1);
@@ -188,7 +183,6 @@ RUBY::top(Node *n) {
   Swig_register_filebyname("init",f_init);
 
   modvar = 0;
-  feature = 0;
   current = NO_CPP;
   klass = 0;
   classes = NewHash();
