@@ -3,7 +3,7 @@
 %warnfilter(801) Blah::foo;		// Ruby, wrong class name
 %warnfilter(801) Blah::bar;		// Ruby, wrong class name
 %warnfilter(801) Blah::baz;		// Ruby, wrong class name
-%warnfilter(801,813) Blah::spam;	// Ruby, wrong class name; Ruby & Java, multiple inheritance
+%warnfilter(801,813,833) Blah::spam;	// Ruby, wrong class name; C# & Java, multiple inheritance
 
 %inline %{
 namespace Blah {

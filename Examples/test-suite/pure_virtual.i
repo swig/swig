@@ -7,6 +7,8 @@
 
 %module(ruby_minherit="1") pure_virtual
 
+%warnfilter(813,833) E; /* C#, Java multiple inheritance */
+
 %nodefault C;
 %nodefault E;
 

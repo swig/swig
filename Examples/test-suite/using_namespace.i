@@ -3,7 +3,7 @@
 %warnfilter(801) hi::hi0;	/* Ruby, wrong class name */
 %warnfilter(801) hi::hi1;	/* Ruby, wrong class name */
 
-%warnfilter(813) Hi<hello::Hello, hi::hi0>; // Ruby, Java multiple inheritance
+%warnfilter(813,833) Hi<hello::Hello, hi::hi0>; // C#, Java multiple inheritance
 
 %inline %{
   namespace hello
