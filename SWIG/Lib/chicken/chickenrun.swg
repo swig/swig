@@ -1,28 +1,32 @@
-/***********************************************************************
- * chickenrun.swg
+/* -*- c -*-
+ * -----------------------------------------------------------------------
+ * swig_lib/chicken/chickenrun.swg
  *
- *     This file contains the runtime support for CHICKEN modules
- *     and includes code for managing global variables and pointer
- *     type checking.
- *
- * Author : Jonah Beckford
- * Derived from - file   : pyrun.swg
- * Derived from - author : David Beazley (beazley@cs.uchicago.edu)
- ************************************************************************/
+ * Author: John Lenz <jelenz@wisc.edu>
+ * ----------------------------------------------------------------------- */
+
+#include <chicken.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef C_SIXTY_FOUR
-# define WORDS_PER_FLONUM              2
-#else
-# define WORDS_PER_FLONUM              4
-#endif
-
-/* Flags for pointer conversion */
-
-#define SWIG_POINTER_EXCEPTION     0x1
+#define SWIG_malloc(size) \
+  malloc(size)
+#define SWIG_free(mem) \
+  free(mem)
+#define SWIG_MakeString(c) \
+  SWIG_Chicken_MakeString(c)
+#define SWIG_ConvertPtr(s, result, type, flags) \
+  SWIG_Chicken_ConvertPtr(s, result, type, flags)
+#define SWIG_MustGetPtr(s, type, argnum, flags) \
+  SWIG_Chicken_MustGetPtr(s, type, argnum, flags)
+#define SWIG_NewPointerObj(ptr, type, owner) \
+  SWIG_Chicken_NewPointerObj((void*)ptr, type, owner, &known_space)
+#define swig_barf SWIG_Chicken_Barf
 
 #define C_swig_is_bool(x) C_truep (C_booleanp (x))
 #define C_swig_is_char(x) C_truep (C_charp (x))
@@ -31,62 +35,68 @@ extern "C" {
 #define C_swig_is_string(x) (C_truep (C_blockp (x)) && C_truep (C_stringp (x)))
 #define C_swig_is_vector(x) (C_truep (C_blockp (x)) && C_truep (C_vectorp (x)))
 #define C_swig_is_list(x) (C_truep (C_i_listp (x)))
-#define C_swig_is_tagged_ptr(x) (C_truep (C_blockp (x)) && C_truep (C_taggedpointerp (x)))
-#define C_swig_is_tag_struct(x) (C_truep (C_blockp (x)) && C_truep (C_structurep (x)) && (C_header_size (x) >= 3))
+#define C_swig_is_pair(x) (C_truep (C_blockp(x)) && C_truep (C_pairp(x)))
 #define C_swig_is_ptr(x) (C_truep (C_blockp (x)) && C_truep (C_pointerp (x)))
+#define C_swig_is_swigpointer(x) (C_truep (C_blockp(x)) && C_truep (C_swigpointerp(x)))
+
+#define SWIG_APPEND_VALUE(object) \
+  if (resultobj == C_SCHEME_UNDEFINED) \
+    resultobj = object; \
+  else { \
+    C_word *pair_space = C_alloc(C_SIZEOF_PAIR); \
+    if (!gswig_list_p) { \
+      gswig_list_p = 1; \
+      C_word *pair_space2 = C_alloc(C_SIZEOF_PAIR); \
+      resultobj = C_pair(&pair_space2, resultobj, C_SCHEME_END_OF_LIST); \
+      resultobjlast = resultobj; \
+    } \
+    C_word tmp = C_pair(&pair_space, object, C_SCHEME_END_OF_LIST); \
+    C_set_block_item(resultobjlast, 1, tmp); \
+    resultobjlast = tmp; \
+  }
 
 enum {
   SWIG_BARF1_BAD_ARGUMENT_TYPE /* 1 arg */,
   SWIG_BARF1_ARGUMENT_NULL /* 1 arg */
 };
-
-typedef struct swig_chicken_clientdata {
-  void*  literal_frame;
-  C_word tag;
-} swig_chicken_clientdata;
-
+  
 #ifdef SWIG_NOINCLUDE
 
-SWIGEXPORT(char *)         swig_make_string (C_word string);
-SWIGEXPORT(char *)         swig_make_string2 (char *data, int len);
-SWIGEXPORT(void)           swig_barf (int code, C_char *msg, ...) C_noret;
-SWIGEXPORT(void)           swig_panic (C_char *msg) C_noret;
-SWIGEXPORT(int)            swig_convert_ptr(C_word , void **, 
-					    swig_type_info *, int);
-SWIGEXPORT(int)            swig_convert_packed(C_word , void *, int sz,
-					       swig_type_info *, int);
-SWIGEXPORT(char *)         swig_pack_data(char *c, void *, int);
-SWIGEXPORT(char *)         swig_unpack_data(char *c, void *, int);
-SWIGEXPORT(C_word)         swig_new_pointer_obj(void *, swig_type_info *,
-						int own);
-SWIGEXPORT(C_word)         swig_new_packed_obj(void *, int sz, 
-					       swig_type_info *);
+/*SWIGIMPORT(void) SWIG_Chicken_Init();*/
 
+/* Interface helper function */
+SWIGIMPORT(char *) SWIG_Chicken_MakeString(C_word str);
+
+/* Get a pointer value from a C_word.  If there is a type-mismatch,
+   return nonzero; on success, return 0.  */
+SWIGIMPORT(int) SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags);
+/* Get a pointer value from a C_word.  If there is a type-mismatch,
+   signal a wrong-type-arg error for the given argument number. */
+SWIGIMPORT(void *) SWIG_Chicken_MustGetPtr(C_word s, swig_type_info *type, int argnum, int flags);
+/* Make a smob from a pointer and typeinfo, using space as the memory for the new object */
+SWIGIMPORT(C_word) SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **space);
+
+/* generate an error message and halt */
+SWIGIMPORT(void) SWIG_Chicken_Barf(int code, C_char *msg, ...);
 #else
 
-/* Allocate a zero-terminated string. No error-checking. */
 SWIGRUNTIME(char *)
-swig_make_string2 (char *data, int len)
-{
+SWIG_Chicken_MakeString(C_word str) {
   char *ret;
-  if (data == NULL) return NULL;
-  ret = (char *) malloc (len + 1);
-  strncpy (ret, data, len);
-  ret [len] = 0;
+  size_t l;
+
+  l = C_header_size(str);
+  ret = (char *) SWIG_malloc( (l + 1) * sizeof(char));
+  if (!ret) return NULL;
+
+  memcpy(ret, C_c_string(str), l);
+  ret[l] = '\0';
   return ret;
 }
 
-/* Allocate a zero-terminated string. No error-checking. */
-SWIGRUNTIME(char *)
-swig_make_string (C_word string)
-{
-  return swig_make_string2 (C_c_string (string), 
-			    C_header_size (string));
-}
-
-SWIGRUNTIME(void) swig_panic (C_char *) C_noret;
-SWIGRUNTIME(void)
-swig_panic (C_char *msg)
+/* Just a helper function.  Do not export it */
+static void SWIG_Chicken_Panic (C_char *) C_noret;
+static void SWIG_Chicken_Panic (C_char *msg)
 {
   C_word *a = C_alloc (C_SIZEOF_STRING (strlen (msg)));
   C_word scmmsg = C_string2 (&a, msg);
@@ -94,9 +104,10 @@ swig_panic (C_char *msg)
   exit (5); /* should never get here */
 }
 
-SWIGRUNTIME(void) swig_barf (int, C_char *, ...) C_noret;
 SWIGRUNTIME(void)
-swig_barf (int code, C_char *msg, ...)
+SWIG_Chicken_Barf(int code, C_char *msg, ...) C_noret;
+SWIGRUNTIME(void)
+SWIG_Chicken_Barf(int code, C_char *msg, ...)
 {
   char *errorhook = C_text("\003syserror-hook");
   C_word *a = C_alloc (C_SIZEOF_STRING (strlen (errorhook)));
@@ -110,7 +121,7 @@ swig_barf (int code, C_char *msg, ...)
   err = C_block_item(err, 0);
 
   if(C_immediatep (err))
-    swig_panic (C_text ("`##sys#error-hook' is not defined"));
+    SWIG_Chicken_Panic (C_text ("`##sys#error-hook' is not defined"));
 
   switch (code) {
   case SWIG_BARF1_BAD_ARGUMENT_TYPE:
@@ -122,7 +133,7 @@ swig_barf (int code, C_char *msg, ...)
     c = 1;
     break;
   default:
-    swig_panic (C_text (msg));
+    SWIG_Chicken_Panic (C_text (msg));
   };
 
   if(c > 0 && !C_immediatep (err)) {
@@ -148,225 +159,69 @@ swig_barf (int code, C_char *msg, ...)
 					 return! */
   }
   else if (msg) {
-    swig_panic (msg);
+    SWIG_Chicken_Panic (msg);
   }
   else {
-    swig_panic (C_text ("unspecified panic"));
+    SWIG_Chicken_Panic (C_text ("unspecified panic"));
   }
 }
 
-/* Pack binary data into a string */
-SWIGRUNTIME(char *)
-swig_pack_data(char *c, void *ptr, int sz) {
-  static char hex[17] = "0123456789abcdef";
-  int i;
-  unsigned char *u = (unsigned char *) ptr;
-  register unsigned char uu;
-  for (i = 0; i < sz; i++,u++) {
-    uu = *u;
-    *(c++) = hex[(uu & 0xf0) >> 4];
-    *(c++) = hex[uu & 0xf];
-  }
-  return c;
-}
-
-/* Unpack binary data from a string */
-SWIGRUNTIME(char *)
-swig_unpack_data(char *c, void *ptr, int sz) {
-  register unsigned char uu = 0;
-  register int d;
-  unsigned char *u = (unsigned char *) ptr;
-  int i;
-  for (i = 0; i < sz; i++, u++) {
-    d = *(c++);
-    if ((d >= '0') && (d <= '9'))
-      uu = ((d - '0') << 4);
-    else if ((d >= 'a') && (d <= 'f'))
-      uu = ((d - ('a'-10)) << 4);
-    d = *(c++);
-    if ((d >= '0') && (d <= '9'))
-      uu |= (d - '0');
-    else if ((d >= 'a') && (d <= 'f'))
-      uu |= (d - ('a'-10));
-    *u = uu;
-  }
-  return c;
-}
-
-/* Convert a pointer value */
-SWIGRUNTIME(int)
-swig_convert_ptr(C_word obj, void **ptr, swig_type_info *ty, int flags) {
-  swig_type_info *tc;
-#ifdef SWIG_POINTER_AS_STRING
-  char  *s;
-  char  *c;
-
-  if (obj == C_SCHEME_FALSE) {
-    *ptr = 0;
-    return 0;
-  }
-  c = s = 0;
-  if (!(C_swig_is_string (obj))) goto type_error;
-  s = c = swig_make_string (obj);
-  if (!c) goto type_error;
-  /* Pointer values must start with leading underscore */
-  if (*c != '_') goto type_error;
-  c++;
-  c = swig_unpack_data (c,ptr,sizeof(void *));
-
-  if (ty) {
-    tc = SWIG_TypeCheck(c,ty);
-    if (!tc) goto type_error;
-    *ptr = SWIG_TypeCast(tc,(void*) *ptr);
-  }
-
-  free (s);
-#else
-  C_word tag;
-  C_word tag_ptr;
-
-  if (obj == C_SCHEME_FALSE) {
-    *ptr = 0;
-    return 0;
-  }
-  if (!(C_swig_is_tagged_ptr (obj))) goto type_error;
-  *ptr = (void*) C_pointer_address (obj);
-  if (ty) {
-    tag = C_block_item (obj, 1);
-    if (!(C_swig_is_tag_struct (tag))) goto type_error;
-    tag_ptr = C_block_item (tag, 3);
-    if (!(C_swig_is_ptr (tag_ptr))) goto type_error;
-    tc = (swig_type_info *) C_pointer_address (tag_ptr);
-    if (!tc) goto type_error;
-    *ptr = SWIG_TypeCast(tc,(void*) *ptr);
-  }
-#endif
-
-  return 0;
-
-type_error:
-#ifdef SWIG_POINTER_AS_STRING
-  if (s) { free (s); }
-#endif
-  if (flags & SWIG_POINTER_EXCEPTION) {
-    if (ty) {
-      char *temp = (char *) malloc(64+strlen(ty->name));
-      sprintf(temp,"Type error. Expected %s", ty->name);
-      swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, temp);
-      free((char *) temp);
-    } else {
-      swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Expected a pointer");
-    }
-  }
-  return -1;
-}
-
-/* Convert a packed value */
-SWIGRUNTIME(int)
-swig_convert_packed(C_word obj, void *ptr, int sz, swig_type_info *ty, int flags) {
-  swig_type_info *tc;
-  char  *c;
-  char  *s;
-
-  if (!C_swig_is_string (obj)) goto type_error;
-  s = c = swig_make_string (obj);
-  /* Pointer values must start with leading underscore */
-  if (!c || *c != '_') goto type_error;
-  c++;
-  c = swig_unpack_data(c,ptr,sz);
-  if (ty) {
-    tc = SWIG_TypeCheck(c,ty);
-    if (!tc) goto type_error;
-  }
-  free (s);
-  return 0;
-
-type_error:
-  free (s);
-  if (flags) {
-    if (ty) {
-      char *temp = (char *) malloc(64+strlen(ty->name));
-      sprintf(temp,"Type error. Expected %s", ty->name);
-      swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, temp);
-      free((char *) temp);
-    } else {
-      swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Expected a pointer");
-    }
-  }
-  return -1;
-}
-
-#define SWIG_STRLEN_PACKED_OBJ(obj_sz,name) (2*obj_sz+1+strlen(name))
-#define SWIG_ALLOCSZ_PACKED_OBJ(obj_sz,name) (C_SIZEOF_STRING (SWIG_STRLEN_PACKED_OBJ (obj_sz,name)))
-/* #define SWIG_ALLOCSZ_POINTER(name) SWIG_ALLOCSZ_PACKED_OBJ(sizeof(void*),name) */
-#define SWIG_ALLOCSZ_POINTER(name) 3
-
-/* Create a new pointer object. 'a' should be a pointer to some
-   C_alloc result with SWIG_ALLOCSZ_POINTER (type->name) room */
 SWIGRUNTIME(C_word)
-swig_new_pointer_obj(void *ptr, C_word **a, swig_type_info *type) {
+SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **data)
+{
   if (ptr == NULL)
     return C_SCHEME_FALSE;
-#ifdef SWIG_POINTER_AS_STRING
-  {
-    char result[1024];
-    char *r = result;
-    *(r++) = '_';
-    r = swig_pack_data(r,&ptr,sizeof(void *));
-    strcpy(r,type->name);
-    return C_string2 (a, result);
+  else
+    return C_swigmpointer(data, ptr, type);
+}
+
+/* Return 0 if successful. */
+SWIGRUNTIME(int)
+SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags)
+{
+  swig_type_info *cast;
+  swig_type_info *from;
+
+  if (s == C_SCHEME_FALSE) {
+    *result = NULL;
+    return 0;
+  } else if (C_swig_is_swigpointer(s)) {
+    from = (swig_type_info *) C_block_item(s, 1);
+    if (!from) return 1;
+    if (type) {
+      cast = SWIG_TypeCheck((char*)from->name, type);
+      if (cast) {
+        *result = SWIG_TypeCast(cast, (void *) C_block_item(s, 0));
+        return 0;
+      } else {
+        return 1;
+      }
+    } else {
+      *result = (void *) C_block_item(s, 0);
+      return 0;
+    }
   }
-#else
-  {
-    /* similar to C_mpointer */
-    C_word *p = *a,
-      *p0 = p;
+  return 1;
+}
 
-    *(p++) = C_TAGGED_POINTER_TAG;
-    *((void **)(p++)) = ptr;
-    C_mutate ((C_word*)(p++), 
-	      ((swig_chicken_clientdata*) type->clientdata)->tag);
-    *a = p;
-    return (C_word)p0;
+SWIGRUNTIME(void *)
+SWIG_Chicken_MustGetPtr (C_word s, swig_type_info *type, int argnum, int flags)
+{
+  void *result;
+  if (SWIG_Chicken_ConvertPtr(s, &result, type, flags)) {
+    /* type mismatch */
+    SWIG_Chicken_Barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, 
+      "Type error in argument %i: expected a %s.", argnum, type->name);
   }
-#endif
+  return result;
 }
 
-/* 'a' should be a pointer to some C_alloc result with
-   SWIG_ALLOCSZ_PACKED_OBJ (sz,type->name) room */
-SWIGRUNTIME(C_word)
-swig_new_packed_obj (void *ptr, C_word **a, int sz, swig_type_info *type) {
-  char result[1024];
-  char *r = result;
-  if (SWIG_STRLEN_PACKED_OBJ (sz, type->name) > 1000) return 0;
-  *(r++) = '_';
-  r = swig_pack_data(r,ptr,sz);
-  strcpy(r,type->name);
-  return C_string2 (a, result);
-}
+/*
+SWIGRUNTIME(void)
+SWIG_Chicken_Init ()
+{
+}*/
 
-/* Standard Chicken function */
-static void C_fcall swig_tr2(C_proc2 k) C_regparm C_noret;
-static void C_fcall swig_tr2(C_proc2 k) {
-  C_word t1=C_pick(0);
-  C_word t0=C_pick(1);
-  C_adjust_stack(-2);
-  (k)(2,t0,t1);
-}
-
-/* Standard Chicken function */
-static void C_fcall swig_tr2r(C_proc2 k) C_regparm C_noret;
-static void C_fcall swig_tr2r(C_proc2 k) {
-  int n;
-  C_word *a,t2;
-  C_word t1=C_pick(0);
-  C_word t0=C_pick(1);
-  C_adjust_stack(-2);
-  n=C_rest_count(0);
-  a=C_alloc(n*3);
-  t2=C_restore_rest(a,n);
-  (k)(t0,t1,t2);
-}
 
 #endif
 
