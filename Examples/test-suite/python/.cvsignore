@@ -5,3 +5,4 @@
 *.dll
 *.exp
 *.lib
+Makefile

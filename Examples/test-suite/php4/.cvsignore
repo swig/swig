@@ -2,3 +2,4 @@
 *_wrap.c
 *.php
 php*.h
+Makefile
