@@ -243,7 +243,7 @@ C_TEST_CASES += \
 	cpp_macro_noarg \
 	defineop \
 	defines \
-	enum \
+	enums \
 	function_typedef \
 	lib_carrays \
 	lib_cdata \

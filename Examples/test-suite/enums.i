@@ -1,6 +1,6 @@
 /* Test whether anonymous enums are supported well. */
 
-%module "enum"
+%module "enums"
 
 %inline %{
 
