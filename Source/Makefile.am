@@ -41,6 +41,7 @@ swig_SOURCES = 	CParse/cscanner.c		\
 		Modules/allocate.cxx		\
 		Modules/emit.cxx		\
 		Modules/browser.cxx		\
+		Modules/chicken.cxx		\
 		Modules/contract.cxx		\
 		Modules/guile.cxx		\
 		Modules/java.cxx		\

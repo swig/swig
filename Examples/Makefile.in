@@ -739,3 +739,49 @@ pike_cpp_static: $(SRCS)
 pike_clean:
 	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core mypike@EXEEXT@ 
 
+
+# -----------------------------------------------------------------
+# Compile a CHICKEN Scheme file to C.
+#
+# -----------------------------------------------------------------
+
+CHICKEN_LIBOPTS = @CHICKENLIB@  $(SYSLIBS)
+CHICKEN_CFLAGS = @CHICKENOPTS@
+CHICKENOPTS = -optimize-level 3 -quiet
+
+chicken: $(INTERFACE)
+	@CHICKEN@ $(INTERFACE) $(CHICKENOPTS) -explicit-use \
+		-output-file $(TARGET)
+
+chicken_c:
+	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+
+chicken_cpp:
+	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+
+chicken_csi:
+	cd @CHICKENHOME@ && \
+	@CHICKEN@ @CHICKENHOME@/src/csi.scm $(CHICKENOPTS) \
+		-include-path @CHICKENHOME@/src \
+		-postlude "(##csi#run)" \
+		-prologue @CHICKENHOME@/src/build.scm \
+		-prelude "(declare (uses posix $(INTERFACE)))" \
+		-output-file $(PWD)/$(TARGET)
+
+# -----------------------------------------------------------------
+# Build statically linked CHICKEN interpreter
+#
+# These should only be used in conjunction with the %include embed.i
+# library file
+# -----------------------------------------------------------------
+
+chicken_static: $(SRCS)
+	$(CC) $(CFLAGS) $(CHICKEN_CFLAGS)  $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(CHICKEN_INCLUDE) $(LIBS) $(CHICKEN_LIBOPTS) \
+	-o $(TARGET)
+
+chicken_cpp_static: $(SRCS)
+	$(CXX) $(CFLAGS) $(CHICKEN_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) \
+	$(INCLUDE) \
+	$(CHICKEN_INCLUDE) $(LIBS) $(CHICKEN_LIBOPTS) \
+	-o $(TARGET)

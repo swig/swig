@@ -24,6 +24,7 @@ AH_TOP([
 #define SWIG_PYTHON_RUNTIME     "-L" LIBDIR " -lswigpy" RELEASE_SUFFIX
 #define SWIG_RUBY_RUNTIME       "-L" LIBDIR " -lswigrb" RELEASE_SUFFIX
 #define SWIG_TCL_RUNTIME        "-L" LIBDIR " -lswigtcl" RELEASE_SUFFIX
+#define SWIG_CHICKEN_RUNTIME    "-L" LIBDIR " -lswigchicken" RELEASE_SUFFIX
 ])
 
 dnl Checks for programs.
@@ -31,6 +32,8 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_YACC
 AC_PROG_RANLIB
+AC_EXEEXT
+AC_OBJEXT
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 AC_CHECK_PROGS(AR, ar aal, ar)
 AC_SUBST(AR)
@@ -114,7 +117,6 @@ then
 	*)	LDSHARED="ld";;
 	esac
 fi
-
 AC_MSG_RESULT($LDSHARED)
 # CXXSHARED is the ld *command* used to create C++ shared library
 # -- "ld" on SunOS 4.x.x, "ld -G" on SunOS 5.x, "ld -shared" on IRIX 5
@@ -985,6 +987,89 @@ AC_SUBST(PIKECCDLFLAGS)
 AC_SUBST(PIKEDYNAMICLINKING)
 
 #----------------------------------------------------------------
+# Look for CHICKEN
+#----------------------------------------------------------------
+
+CHICKEN=
+CHICKEN_CONFIG=
+CHICKENHOME=
+CHICKENOPTS=
+CHICKENLIB=
+
+
+AC_ARG_WITH(chicken,[  --with-chicken=path  Set location of CHICKEN executable],[ CHICKEN="$withval"], [CHICKEN=])
+
+if test -z "$CHICKEN"; then
+AC_CHECK_PROGS(CHICKEN, chicken)
+else
+CHICKEN="$CHICKEN"
+fi
+
+AC_ARG_WITH(chickcfg,[  --with-chickencfg=path   Set location of chicken-config],[ CHICKEN_CONFIG="$withval"], [CHICKEN_CONFIG=])
+
+if test -z "$CHICKEN_CONFIG"; then
+AC_CHECK_PROGS(CHICKEN_CONFIG, chicken-config)
+else
+CHICKEN_CONFIG="$CHICKEN_CONFIG"
+fi
+
+if test -n "$CHICKEN_CONFIG" ; then
+
+  AC_ARG_WITH(chickhme,[  --with-chickenhome=path   Set location of CHICKEN home directory],[
+	CHICKENHOME="$withval"], [CHICKENHOME=])
+  AC_ARG_WITH(chickopt,[  --with-chickenopts=path   Set compiler options for CHICKEN generated code],[
+	CHICKENOPTS="$withval"], [CHICKENOPTS=])
+  AC_ARG_WITH(chicklib,[  --with-chickenlib=path    Set linker options for CHICKEN generated code],[
+	CHICKENLIB="$withval"], [CHICKENLIB=])
+
+  AC_MSG_CHECKING(for CHICKEN home directory)
+  dirs="$CHICKENHOME `chicken-config -home | sed s/CHICKEN_HOME=//`"
+  for i in $dirs ; do
+  	if test -d $i; then
+  		AC_MSG_RESULT($i)
+  		CHICKENHOME="$i"
+  		break
+  	fi
+  done
+  if test -z "$CHICKENHOME"; then
+      	AC_MSG_RESULT(not found)
+  fi
+
+  AC_MSG_CHECKING(for compiler options for CHICKEN generated code)
+  if test -z "$CHICKENOPTS"; then
+        CHICKENOPTS="`chicken-config -cflags`"
+  else
+        CHICKENOPTS="`chicken-config -cflags` $CHICKENOPTS"
+  fi
+  if test -z "$CHICKENOPTS"; then
+        AC_MSG_RESULT(not found)
+  else
+        AC_MSG_RESULT($CHICKENOPTS)
+  fi
+
+  AC_MSG_CHECKING(for linker options for CHICKEN generated code)
+  dirs="$CHICKENLIB `chicken-config -libs -extra-libs | sed s/-L//g`"
+  for i in $dirs ; do
+  	if test -r $i/libchicken.a; then
+  	    AC_MSG_RESULT(libraries found in $i)
+  	    CHICKENLIB="$CHICKENLIB `chicken-config -libs`"
+  	    CHICKENLIB="$CHICKENLIB `chicken-config -extra-libs`"
+  	    break
+  	fi
+  done
+  if test -z "$CHICKENLIB"; then
+  	AC_MSG_RESULT(not found)
+  fi
+
+fi # have CHICKEN_CONFIG
+
+AC_SUBST(CHICKEN)
+AC_SUBST(CHICKEN_CONFIG)
+AC_SUBST(CHICKENHOME)
+AC_SUBST(CHICKENOPTS)
+AC_SUBST(CHICKENLIB)
+
+#----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
 
@@ -1022,7 +1107,16 @@ AC_CONFIG_FILES([			\
     Runtime/Makefile			\
     Examples/Makefile			\
     Examples/guile/Makefile		\
+    Examples/chicken/class/Makefile	\
+    Examples/chicken/constants/Makefile	\
+    Examples/chicken/simple/Makefile	\
+    Examples/chicken/multimap/Makefile	\
+    Examples/chicken/overload/Makefile	\
+    Examples/chicken/vtk/Makefile	\
+    Examples/chicken/zlib/Makefile	\
     Examples/GIFPlot/Makefile		\
+    Examples/GIFPlot/Chicken/full/Makefile \
+    Examples/GIFPlot/Chicken/simple/Makefile \
     Examples/GIFPlot/Lib/Makefile	\
 ])
 AC_OUTPUT

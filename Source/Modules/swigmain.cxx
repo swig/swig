@@ -47,6 +47,7 @@ extern "C" {
   Language *swig_pike(void);
   Language *swig_sexp(void);
   Language *swig_xml(void);
+  Language *swig_chicken(void);
 }
 
 struct swig_module {
@@ -60,6 +61,7 @@ struct swig_module {
    list sorted alphabetically. */
 
 swig_module  modules[] = {
+  {"-chicken",   swig_chicken,   "CHICKEN"},
   {"-guile",     swig_guile,     "Guile"},
   {"-java",      swig_java,      "Java"},
   {"-mzscheme",  swig_mzscheme,  "Mzscheme"},

@@ -17,7 +17,8 @@ SWIGLIB     = $(top_srcdir)/Lib
 RELEASESUFFIX = @release_suffix@
 LIBS        = libswigpl$(RELEASESUFFIX).la libswigpy$(RELEASESUFFIX).la \
 	      libswigtcl8$(RELEASESUFFIX).la libswigrb$(RELEASESUFFIX).la \
-	      libswigguile$(RELEASESUFFIX).la libswigocaml$(RELEASESUFFIX).la
+	      libswigguile$(RELEASESUFFIX).la libswigocaml$(RELEASESUFFIX).la \
+              libswigchicken$(RELEASESUFFIX).la
 LIB_DIR     = $(exec_prefix)/lib
 
 MKINSTDIRS  = $(top_srcdir)/Tools/config/mkinstalldirs
@@ -32,6 +33,7 @@ all:
 	-$(MAKE) mzscheme
 	-$(MAKE) php4
 	-$(MAKE) ocaml
+	-$(MAKE) chicken
 
 install:
 	@echo "Installing runtime libraries"
@@ -218,3 +220,22 @@ libswigpike$(RELEASESUFFIX).la:
 	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PIKE_RUNTIME) >> libpike.c
 	$(LIBTOOL) $(CC) -c $(PIKE_INCLUDE) -DSWIG_GLOBAL libpike.c
 	$(LIBTOOL) $(CC) -o libswigpike$(RELEASESUFFIX).la libpike.lo -rpath $(LIB_DIR) -avoid-version
+
+# ----------------------------------------------------------------------
+# CHICKEN run-time library
+# ----------------------------------------------------------------------
+
+CHICKENOPTS = @CHICKENOPTS@
+CHICKEN_RUNTIME = $(SWIGLIB)/chicken/chickenrun.swg
+
+# CHICKEN shared
+
+chicken: libswigchicken$(RELEASESUFFIX).la
+
+libswigchicken$(RELEASESUFFIX).la: $(CHICKEN_RUNTIME)
+	rm -f libchicken.c
+	echo '#include "chicken.h"' >> libchicken.c
+	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(CHICKEN_RUNTIME) >> libchicken.c
+	$(LIBTOOL) $(CC) -c $(CHICKENOPTS) -DSWIG_GLOBAL libchicken.c
+	$(LIBTOOL) $(CC) -o libswigchicken$(RELEASESUFFIX).la libchicken.lo -rpath $(LIB_DIR) -avoid-version
+
