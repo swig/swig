@@ -87,16 +87,10 @@ static SwigType      *Active_type = 0;         // Used to support variable lists
 static int            Active_extern = 0;       // Whether or not list is external
 static int            Active_static = 0;
 static SwigType      *Active_typedef = 0;     // Used for typedef lists
-static String         *ConstChar = 0;          // Used to store raw character constants
 static Hash           *name_hash = 0;          // Hash table containing renamings
 static Hash           *symbols = 0;
 static int             cplus_mode;
 static int             InClass = 0;
-
-/* Macro for constructing a binary operation in constants */
-#define E_BINARY(TARGET, SRC1, SRC2, OP)  \
-        TARGET = (char *) malloc(strlen(SRC1) + strlen(SRC2) +strlen(OP)+1);\
-	sprintf(TARGET,"%s%s%s",SRC1,OP,SRC2);
 
 /* C++ modes */
 
@@ -448,14 +442,14 @@ static void dump_nested(char *parent) {
 
 
 %union {
-  char        *id;
+  char  *id;
   struct InitList {
     char **names;
     int    count;
   } ilist;
   struct Define {
-    char *id;
-    int   type;
+    String *val;
+    int     type;
   } dtype;
   struct {
     char *type;
@@ -466,10 +460,11 @@ static void dump_nested(char *parent) {
   struct {
     char      *id;
     SwigType  *type;
-    char      *defarg;
+    String    *defarg;
     ParmList  *tmargs;
   } decl;
   SwigType     *type;
+  String       *str;
   Parm         *p;
   TMParm       *tmparm;
   ParmList     *pl;
@@ -477,10 +472,11 @@ static void dump_nested(char *parent) {
 };
 
 %token <id> ID
-%token <id> HBLOCK POUND 
+%token <str> HBLOCK
+%token <id> POUND 
 %token <id> STRING
 %token <loc> INCLUDE IMPORT WEXTERN INSERT
-%token <id> NUM_INT NUM_FLOAT CHARCONST NUM_UNSIGNED NUM_LONG NUM_ULONG
+%token <str> NUM_INT NUM_FLOAT CHARCONST NUM_UNSIGNED NUM_LONG NUM_ULONG
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF TYPE_RAW
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
@@ -518,8 +514,9 @@ static void dump_nested(char *parent) {
 %type <id>       template_decl;
 %type <id>       type_qualifier;
 %type <id>       idstring;
-%type <id>       pragma_arg pragma_lang;
-%type <loc>       includetype;
+%type <id>       pragma_lang;
+%type <str>      pragma_arg;
+%type <loc>      includetype;
 %type <type>     pointer;
 %type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
 %type <type>     abstract_declarator direct_abstract_declarator;
@@ -547,13 +544,25 @@ interface      : interface declaration {
 		     scanner_clear_start();
                      Error = 0;
                 }
-               | empty {
-	       }
+               | empty
                ;
 
-declaration    : swig_directive { }
-               | c_declaration { }
-
+declaration    : swig_directive
+               | c_declaration 
+               | cpp
+               | SEMI
+               | error {
+		 if (!Error) {
+		   static int last_error_line = -1;
+		   if (last_error_line != line_number) {
+		     Printf(stderr,"%s:%d. Syntax error in input.\n", input_file, line_number);
+		     FatalError();
+		     last_error_line = line_number;
+		     skip_decl();
+		   }
+		   Error = 1;
+		 }
+               }
                ;
 
 
@@ -637,7 +646,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
 		     init_language();
 		     temp_typeptr = NewSwigType($4.type);
-		     create_constant($2, temp_typeptr, $4.id);
+		     create_constant($2, temp_typeptr, Char($4.val));
 		     Delete(temp_typeptr);
 		   }
 	       }
@@ -646,7 +655,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		 if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
 		   init_language();
 		   SwigType_push($2,$3.type);
-		   create_constant($3.id,$2,$4.id);
+		   create_constant($3.id,$2,Char($4.val));
 		 } 
                }
 
@@ -657,7 +666,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		 List *l = typelist($7);
 		 SwigType_add_function($2,l);
 		 SwigType_push($2,$4.type);
-		 create_constant($4.id,$2,$9.id);
+		 create_constant($4.id,$2,Char($9.val));
                }
                | CONSTANT type abstract_declarator LPAREN declarator RPAREN LPAREN parms RPAREN def_args SEMI {
 		 init_language();
@@ -665,7 +674,7 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		 List *l = typelist($8);
 		 SwigType_add_function($2,l);
 		 SwigType_push($2,$5.type);
-		 create_constant($5.id,$2,$10.id);
+		 create_constant($5.id,$2,Char($10.val));
                }
                ;
 
@@ -676,12 +685,11 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 
 echo_directive : ECHO HBLOCK {
 		 char temp[64];
-		 String *s = NewString($2);
-		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
+		 Replace($2,"$file",input_file, DOH_REPLACE_ANY);
 		 sprintf(temp,"%d", line_number);
-		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
-		 Printf(stderr,"%s\n", s);
-		 Delete(s);
+		 Replace($2,"$line",temp,DOH_REPLACE_ANY);
+		 Printf(stderr,"%s\n", $2);
+		 Delete($2);
 	       }
                | ECHO STRING {
 		 char temp[64];
@@ -761,19 +769,17 @@ inline_directive : INLINE HBLOCK {
 		 if (!WrapExtern) {
 		   File *f;
 		   init_language();
-		   $2[strlen($2) - 1] = 0;
 		   f = Swig_filebyname("header");
 		   if (f) {
 		     Printf(f, "%s\n", $2);
 		     /* Need to run through the preprocessor */
 		     DOH *cpps;
-		     DOH *s = NewString($2);
-		     Setline(s,start_line);
-		     Setfile(s,input_file);
-		     Seek(s,0,SEEK_SET);
-		     cpps = Preprocessor_parse(s);
+		     Setline($2,start_line);
+		     Setfile($2,input_file);
+		     Seek($2,0,SEEK_SET);
+		     cpps = Preprocessor_parse($2);
 		     start_inline(Char(cpps), start_line);
-		     Delete(s);
+		     Delete($2);
 		     Delete(cpps);
 		   }
 		 }
@@ -790,12 +796,12 @@ inline_directive : INLINE HBLOCK {
 
 insert_directive : HBLOCK {
 		 if (!WrapExtern) {
-		   $1[strlen($1) - 1] = 0;
 		   File *f = Swig_filebyname("header");
 		   if (f) {
 		     Printf(f, "%s\n", $1);
 		   }
 		 }
+		 Delete($1);
 	       }
                | INSERT LPAREN idstring RPAREN STRING {
 	         if (!WrapExtern) {
@@ -813,7 +819,6 @@ insert_directive : HBLOCK {
                | INSERT LPAREN idstring RPAREN HBLOCK {
 		 if (!WrapExtern) {
 		   File *f;
-		   $5[strlen($5)-1] = 0;
 		   f = Swig_filebyname($3);
 		   if (!f) {
 		     Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file,line_number,$3);
@@ -821,6 +826,7 @@ insert_directive : HBLOCK {
 		     Printf(f,"%s\n",$5);
 		   }
 		 }
+		 Delete($5);
                }
                ;
 
@@ -911,11 +917,11 @@ new_directive : NEW {
 
 pragma_directive : PRAGMA pragma_lang ID EQUAL pragma_arg {
 		 if (!WrapExtern) {
-		   swig_pragma($2,$3,$5);
+		   swig_pragma($2,$3,Char($5));
 		   if (InClass) {  /* Hack. Fix me */
-		     cplus_add_pragma($2,$3,$5);
+		     cplus_add_pragma($2,$3,Char($5));
 		   } else {
-		     lang->pragma($2,$3,$5);
+		     lang->pragma($2,$3,Char($5));
 		   }
 		 }
 	       }
@@ -931,11 +937,9 @@ pragma_directive : PRAGMA pragma_lang ID EQUAL pragma_arg {
 	      }
               ;
 
-pragma_arg    : STRING { $$ = $1; }
-              | HBLOCK { 
-                  $$ = $1;
-                  $$[strlen($$)-1] = 0;
-	      }
+pragma_arg    : STRING { $$ = NewString($1); }
+              | HBLOCK { $$ = $1; }
+              ;
 
 pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
               | empty { $$ = (char *) "swig"; }
@@ -1152,26 +1156,6 @@ c_declaration   : storage_class type declarator def_args {
 		   }
 	       } typedeflist { }
 
-/* Miscellaneous stuff */
-
-               | SEMI { }
-               | cpp { }
-               | error {
-		 if (!Error) {
-		   {
-		     static int last_error_line = -1;
-		     if (last_error_line != line_number) {
-		       Printf(stderr,"%s:%d. Syntax error in input.\n", input_file, line_number);
-		       FatalError();
-		       last_error_line = line_number;
-                       // Try to make some kind of recovery.
-		       skip_decl();
-		     }
-		     Error = 1;
-		   }
-		 }
-	       }
-
 /* A an extern C type declaration.  Does nothing, but is ignored */
 
                | EXTERN STRING LBRACE interface RBRACE { }
@@ -1336,8 +1320,8 @@ parm_type      : type parameter_declarator {
                   SwigType_add_function($1,l);
 		  SwigType_push($1,$3.type);
 		  $$ = NewParm($1,$3.id);
-		  if ($8.id) {
-		    Setvalue($$,$8.id);
+		  if ($8.val) {
+		    Setvalue($$,$8.val);
 		  }
 		  Delete(l);
 		}
@@ -1348,8 +1332,8 @@ parm_type      : type parameter_declarator {
                   SwigType_add_function($1,l);
 		  SwigType_push($1,$4.type);
 		  $$ = NewParm($1,$4.id);
-		  if ($9.id) {
-		    Setvalue($$,$9.id);
+		  if ($9.val) {
+		    Setvalue($$,$9.val);
 		  }
 		  Delete(l);
 		}
@@ -1365,34 +1349,33 @@ def_args       : EQUAL definetype {
                   $$ = $2; 
                }
                | EQUAL AND ID {
-		 $$.id = (char *) malloc(strlen($3)+2);
-		 $$.id[0] = '&';
-		 strcpy(&$$.id[1], $3);
+		 $$.val = NewStringf("&%s",$3);
 		 $$.type = T_USER;
 	       }
                | EQUAL LBRACE {
 		 skip_brace();
-		 $$.id = 0; $$.type = T_INT;
+		 $$.val = 0;
+                 $$.type = T_INT;
 	       }
                | COLON NUM_INT { /* bit field specifier. Ignored */ }
-               | empty {$$.id = 0; $$.type = T_INT;}
+               | empty {$$.val = 0; $$.type = T_INT;}
                ;
 
 /* [ 7/28/01 ]  This code added to clean up the handling of pointers and qualifiers */
 
 parameter_declarator : declarator def_args {
                  $$ = $1;
-		 $$.defarg = $2.id;
+		 $$.defarg = $2.val;
             }
             | abstract_declarator def_args {
               $$.type = $1;
 	      $$.id = 0;
-              $$.defarg = $2.id;
+              $$.defarg = $2.val;
             }
             | def_args {
    	      $$.type = 0;
               $$.id = 0;
-	      $$.defarg = $1.id;
+	      $$.defarg = $1.val;
             }
             ;
 
@@ -1448,7 +1431,7 @@ direct_declarator : ID {
 		    SwigType *t;
 		    $$ = $1;
 		    t = NewString("");
-		    SwigType_add_array(t,$3.id);
+		    SwigType_add_array(t,$3.val);
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
 		      Delete($$.type);
@@ -1488,7 +1471,7 @@ direct_abstract_declarator : AND {
 		    SwigType *t;
 		    $$ = $1;
 		    t = NewString("");
-		    SwigType_add_array(t,$3.id);
+		    SwigType_add_array(t,$3.val);
 		    if ($$) {
 		      SwigType_push(t,$$);
 		      Delete($$);
@@ -1501,7 +1484,7 @@ direct_abstract_declarator : AND {
                   }
                   | LBRACKET expr RBRACKET { 
 		    $$ = NewString("");
-		    SwigType_add_array($$,$2.id);
+		    SwigType_add_array($$,$2.val);
                   }
                   ;
 
@@ -1597,20 +1580,14 @@ opt_int        : TYPE_INT { }
 definetype     : { scanner_check_typedef(); } expr {
                    $$ = $2;
 		   scanner_ignore_typedef();
-		   if (ConstChar) Delete(ConstChar);
-		   ConstChar = 0;
                 }
                 | STRING {
-                   $$.id = $1;
+                   $$.val = NewString($1);
                    $$.type = T_STRING;
-		   if (ConstChar) Delete(ConstChar);
-		   ConstChar = NewStringf("\"%(escape)s\"",$1);
 		}
                 | CHARCONST {
-                   $$.id = $1;
+                   $$.val = NewString($1);
 		   $$.type = T_CHAR;
-		   if (ConstChar) Delete(ConstChar);
-		   ConstChar = NewStringf("'%(escape)s'", $1);
 		 }
                 ;
 
@@ -1635,9 +1612,9 @@ edecl          :  ID {
                  | ID EQUAL { scanner_check_typedef();} etype {
 		   temp_typeptr = NewSwigType($4.type);
 // Use enum name instead of value
-// OLD		   create_constant($1, temp_typeptr, $4.id);
+// OLD		   create_constant($1, temp_typeptr, Char($4.val));
 	           if ($4.type == T_CHAR)
-	               create_constant($1,temp_typeptr, $4.id);
+	               create_constant($1,temp_typeptr, Char($4.val));
 		   else
 		     create_constant($1, temp_typeptr, $1);
 		   Delete(temp_typeptr);
@@ -1659,7 +1636,7 @@ etype            : expr {
 
                 }
                 | CHARCONST {
-                   $$.id = $1;
+                   $$.val  = NewString($1);
 		   $$.type = T_INT;
 		 }
                 ;
@@ -1670,151 +1647,116 @@ etype            : expr {
  */
 
 expr           :  NUM_INT {
-                  $$.id = $1;
+                  $$.val = $1;
                   $$.type = T_INT;
                  }
                |  NUM_FLOAT {
-                  $$.id = $1;
+                  $$.val = $1;
                   $$.type = T_DOUBLE;
                }
                |  NUM_UNSIGNED {
-                  $$.id = $1;
+                  $$.val = $1;
 		  $$.type = T_UINT;
 	       }
                |  NUM_LONG {
-                  $$.id = $1;
+                  $$.val = $1;
 		  $$.type = T_LONG;
 	       }
                |  NUM_ULONG {
-                  $$.id = $1;
+                  $$.val = $1;
 		  $$.type = T_ULONG;
 	       }
                |  SIZEOF LPAREN type parameter_declarator RPAREN {
   		  SwigType_push($3,$4.type);
-		  $$.id = (char *) malloc(strlen(Char(SwigType_str($3,0)))+9);
-		  sprintf($$.id,"sizeof(%s)", Char(SwigType_str($3,0)));
+		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
 		  $$.type = T_INT;
 	       }
                | ID {
-		 $$.id = $1;
+		 $$.val = NewString($1);
 		 $$.type = T_INT;
                }
                | ID DCOLON ID {
-                  $$.id = (char *) malloc(strlen($1)+strlen($3)+3);
-		  sprintf($$.id,"%s::%s",$1,$3);
-                  $$.type = T_INT;
-		  free($1);
-		  free($3);
+		 $$.val = NewStringf("%s::%s",$1,$3);
+		 $$.type = T_INT;
                }
                | expr PLUS expr {
-	         E_BINARY($$.id,$1.id,$3.id,"+");
+		 $$.val = NewStringf("%s+%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
-		 free($1.id);
-		 free($3.id);
 	       }
                | expr MINUS expr {
-	         E_BINARY($$.id,$1.id,$3.id,"-");
+		 $$.val = NewStringf("%s-%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
-		 free($1.id);
-		 free($3.id);
 	       }
                | expr STAR expr {
-	         E_BINARY($$.id,$1.id,$3.id,"*");
+		 $$.val = NewStringf("%s*%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
-		 free($1.id);
-		 free($3.id);
-
 	       }
                | expr SLASH expr {
-	         E_BINARY($$.id,$1.id,$3.id,"/");
+		 $$.val = NewStringf("%s/%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
-		 free($1.id);
-		 free($3.id);
-
 	       }
                | expr AND expr {
-	         E_BINARY($$.id,$1.id,$3.id,"&");
+		 $$.val = NewStringf("%s&%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
 		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
-		 free($1.id);
-		 free($3.id);
-
 	       }
                | expr OR expr {
-	         E_BINARY($$.id,$1.id,$3.id,"|");
+		 $$.val = NewStringf("%s|%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
 		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
-		 free($1.id);
-		 free($3.id);
-
 	       }
                | expr XOR expr {
-	         E_BINARY($$.id,$1.id,$3.id,"^");
+		 $$.val = NewStringf("%s^%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
 		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
-		 free($1.id);
-		 free($3.id);
-
 	       }
                | expr LSHIFT expr {
-	         E_BINARY($$.id,$1.id,$3.id,"<<");
+		 $$.val = NewStringf("%s<<%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
 		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
-		 free($1.id);
-		 free($3.id);
-
 	       }
                | expr RSHIFT expr {
-	         E_BINARY($$.id,$1.id,$3.id,">>");
+		 $$.val = NewStringf("%s>>%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
 		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
-		 free($1.id);
-		 free($3.id);
-
 	       }
                |  MINUS expr %prec UMINUS {
-	          $$.id = (char *) malloc(strlen($2.id)+2);
-		  sprintf($$.id,"-%s",$2.id);
-		  $$.type = $2.type;
-		 free($2.id);
-
+		 $$.val = NewStringf("-%s",$2.val);
+		 $$.type = $2.type;
 	       }
                |  NOT expr {
-	          $$.id = (char *) malloc(strlen($2.id)+2);
-		  sprintf($$.id,"~%s",$2.id);
-		  if ($2.type == T_DOUBLE) {
+		 $$.val = NewStringf("~%s",$2.val);
+		 if ($2.type == T_DOUBLE) {
 		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
-		  }
-		  $$.type = $2.type;
-		  free($2.id);
+		 }
+		 $$.type = $2.type;
 	       }
                |  LPAREN expr RPAREN {
-	          $$.id = (char *) malloc(strlen($2.id)+3);
-	          sprintf($$.id,"(%s)", $2.id);
-		  $$.type = $2.type;
-		  free($2.id);
+		 $$.val = NewStringf("(%s)",$2.val);
+		 $$.type = $2.type;
 	       }
                ;
+
 /****************************************************************/
 /* C++ Support                                                  */
 /****************************************************************/
