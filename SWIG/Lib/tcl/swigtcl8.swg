@@ -36,7 +36,7 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, _swig_type_in
   }
   c++;
   /* Extract hex value from pointer */
-  while (d = *c) {
+  while ((d = *c)) {
     if ((d >= '0') && (d <= '9'))
       p = (p << 4) + (d - '0');
     else if ((d >= 'a') && (d <= 'f'))
@@ -53,7 +53,7 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, _swig_type_in
       Tcl_AppendElement(interp, ty->name);
       return TCL_ERROR;
     }
-    *ptr = SWIG_TypeCast(tc,p);
+    *ptr = SWIG_TypeCast(tc,(void *)p);
   }
   return TCL_OK;
 }
