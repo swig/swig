@@ -364,7 +364,7 @@ void emit_action(Node *n, Wrapper *f) {
     action = Getattr(n,"wrap:action");
   assert(action != 0);
 
-  if (is_protected(n) && is_member_director(n)) {
+  if (!(is_public(n)) && is_member_director(n)) {
     /* We need to add an extra dynamic_cast to
        access the director class, where the virtual
        methods are all public */
@@ -375,6 +375,15 @@ void emit_action(Node *n, Wrapper *f) {
     Wrapper_add_local(f, "darg", dirdecl);
     Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n",dirname); 
     Replace(action, "arg1", "darg", DOH_REPLACE_FIRST);
+    if (Getattr(n,"qualifier")) {
+      /* fix constant casting introduced by a const method decl */
+      String* classtype = Getattr(parent, "classtype");
+      /*
+	String *ccast = NewStringf("((%s const *)darg)",classtype);
+	if (Strstr(action,ccast) != 0) 
+      */
+      Replace(action, classtype, dirname, DOH_REPLACE_FIRST);
+    }
     Delete(dirname);
     Delete(dirdecl);
   }
