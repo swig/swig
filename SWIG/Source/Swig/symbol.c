@@ -911,3 +911,56 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
   return result;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_typedef_reduce()
+ *
+ * Chase a typedef through symbol tables looking for a match.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
+  SwigType *prefix, *base;
+  Node *n;
+
+  base = SwigType_base(ty);
+  prefix = SwigType_prefix(ty);
+
+  n = Swig_symbol_clookup(base,tab);
+  if (!n) {
+    Delete(base);
+    Delete(prefix);
+    return Copy(ty);
+  }
+  if (Strcmp(nodeType(n),"using") == 0) {
+    String *uname = Getattr(n,"uname");
+    if (uname) {
+      n = Swig_symbol_clookup(base,Getattr(n,"sym:symtab"));
+      if (!n) {
+	Delete(base);
+	Delete(prefix);
+	return Copy(ty);
+      }
+    } 
+  }
+  if (Strcmp(nodeType(n),"cdecl") == 0) {
+    String *storage = Getattr(n,"storage");
+    if (Strcmp(storage,"typedef") == 0) {
+      SwigType *decl;
+      SwigType *rt;
+      SwigType *nt = Copy(Getattr(n,"type"));
+      decl = Getattr(n,"decl");
+      if (decl) {
+	SwigType_push(nt,decl);
+      }
+      SwigType_push(nt,prefix);
+      Delete(base);
+      Delete(prefix);
+      rt = Swig_symbol_typedef_reduce(nt, Getattr(n,"sym:symtab"));
+      Delete(nt);
+      return rt;
+    }
+  }
+  Delete(base);
+  Delete(prefix);
+  return Copy(ty);
+}
+

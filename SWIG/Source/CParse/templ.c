@@ -293,14 +293,27 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
  * ----------------------------------------------------------------------------- */
 
 Node *
-Swig_cparse_template_locate(String *name, Parm *parms) {
+Swig_cparse_template_locate(String *name, Parm *tparms) {
   Node   *n;
   String *tname, *rname = 0;
   Node   *templ;
   List   *mpartials = 0;
   Parm   *p;
+  Parm   *parms;
 
   tname = NewString(name);
+  parms = CopyParmList(tparms);
+
+  p = parms;
+  while (p) {
+    SwigType *ty = Getattr(p,"type");
+    if (ty) {
+      SwigType *nt = Swig_symbol_typedef_reduce(ty,0);
+      Setattr(p,"type",nt);
+    }
+    p = nextSibling(p);
+  }
+
   SwigType_add_template(tname,parms);
 
   if (template_debug) {
@@ -324,6 +337,7 @@ Swig_cparse_template_locate(String *name, Parm *parms) {
 	  }
 	  Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType(n));
 	  Delete(tname);
+	  Delete(parms);
 	  return 0;        /* Found a match, but it's not a template of any kind. */
       }
   }
@@ -431,6 +445,7 @@ Swig_cparse_template_locate(String *name, Parm *parms) {
   if ((template_debug) && (n)) {
       Swig_print_node(n);
   }
+  Delete(parms);
   return n;
 }
 

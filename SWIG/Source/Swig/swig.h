@@ -281,6 +281,7 @@ extern void      Swig_symbol_remove(Node *node);
 extern void      Swig_symbol_alias(String_or_char *aliasname, Symtab *tab);
 extern void      Swig_symbol_inherit(Symtab *tab);
 extern SwigType *Swig_symbol_type_qualify(SwigType *ty, Symtab *tab);
+extern SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab);
 
 /* --- Parameters and Parameter Lists --- */
 

@@ -201,6 +201,7 @@ namewarn_add(char *name, SwigType *decl, char *warning) {
 
 static void
 rename_inherit(String *base, String *derived) {
+  /*  Printf(stdout,"base = '%s', derived = '%s'\n", base, derived); */
   Swig_name_object_inherit(rename_hash,base,derived);
   Swig_name_object_inherit(namewarn_hash,base,derived);
   Swig_name_object_inherit(features_hash,base,derived);
@@ -232,12 +233,7 @@ static String *make_name(String *name,SwigType *decl) {
     if (add_oldname) return Copy(add_oldname);
     return origname;
   }
-  if (!destructor) {
-    rn = Swig_name_object_get(rename_hash, Namespaceprefix, name, decl);
-  } else {
-    /*    rn = Swig_name_object_get(rename_hash, Namespaceprefix, Char(name)+1,decl); */
-    rn = Swig_name_object_get(rename_hash, Namespaceprefix, name,decl);
-  }
+  rn = Swig_name_object_get(rename_hash, Namespaceprefix, name, decl);
   if (!rn) {
     if (add_oldname) return Copy(add_oldname);
     return name;
@@ -1793,19 +1789,19 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		      }
 		      $$ = copy_node(n);
 		      /* We need to set the node name based on name used to instantiate */
-		      Setattr($$,"name",$5);
+		      Setattr($$,"name",Copy($5));
 		      if (!specialized) {
 			Delattr($$,"sym:typename");
 		      } else {
 			Setattr($$,"sym:typename","1");
 		      }
 		      Swig_cparse_template_expand($$,$3,temparms);
-		      Delete(temparms);
 		      Setattr($$,"sym:name", $3);
 		      Delattr($$,"templatetype");
 		      Setattr($$,"template",n);
 		      Setfile($$,cparse_file);
 		      Setline($$,cparse_line);
+		      Delete(temparms);
 		      add_symbols_copy($$);
 		      
 		      if (Strcmp(nodeType($$),"class") == 0) {
@@ -2075,6 +2071,21 @@ cpp_class_decl  :
 		       rename_inherit(base,derived);
 		       Delete(base);
 		     }
+		   }
+		   if (SwigType_istemplate($3)) {
+		     String *fbase, *tbase, *prefix;
+		     prefix = SwigType_templateprefix($3);
+		     if (Namespaceprefix) {
+		       fbase = NewStringf("%s::%s", Namespaceprefix,$3);
+		       tbase = NewStringf("%s::%s", Namespaceprefix, prefix);
+		     } else {
+		       fbase = Copy($3);
+		       tbase = Copy(prefix);
+		     }
+		     rename_inherit(tbase,fbase);
+		     Delete(fbase);
+		     Delete(tbase);
+		     Delete(prefix);
 		   }
                    if (strcmp($2,"class") == 0) {
 		     cplus_mode = CPLUS_PRIVATE;

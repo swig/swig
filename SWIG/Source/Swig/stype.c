@@ -423,6 +423,7 @@ List *SwigType_split(SwigType *t) {
   int len;
 
   c = Char(t);
+
   list = NewList();
   while (*c) {
     item = isolate_element(c);

@@ -554,17 +554,23 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
       if (!unstripped) {
 	unstripped = ctype;
 	ctype = SwigType_strip_qualifiers(ctype);
-	if (Cmp(ctype,unstripped)) continue;
+	if (Strcmp(ctype,unstripped) != 0) continue;    /* Types are different */
 	Delete(ctype);
 	ctype = unstripped;
 	unstripped = 0;
       }
       {
+	String *octype;
 	if (unstripped) {
-	  if (unstripped != type) Delete(unstripped);
+	  if (unstripped != type) {
+	    Delete(ctype);
+	  } 
+	  ctype = unstripped;
 	  unstripped = 0;
 	}
+	octype = ctype;
 	ctype = SwigType_typedef_resolve(ctype);
+	if (octype != type) Delete(octype);
       }
     }
 #ifdef NEW    

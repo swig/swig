@@ -45,6 +45,7 @@ class TypePass : public Dispatcher {
     /* Normalize a type. Replaces type with fully qualified version */
 
     void normalize_type(SwigType *ty) {
+
 	SwigType *qty = SwigType_typedef_qualified(ty);
 
 	/* SwigType *qty = Swig_symbol_type_qualify(ty,0);  */
