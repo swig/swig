@@ -1,5 +1,16 @@
 Version 1.3.18 (In progress)
 ============================
+02/27/2003: beazley
+            Added support for anonymous bit-fields.  For example:
+
+                 struct Foo {
+                      int x : 4;
+                      int   : 4;
+                      int y : 8;
+                 };
+
+            Anonymous bit-fields are ignored by SWIG.   Problem
+            reported by Franz Höpfinger.
 
 02/26/2003: cheetah (William Fulton)
             [Java] Better typemaps in the Examples/java/typemap example and also 
