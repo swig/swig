@@ -885,7 +885,7 @@ void JAVA::emitShadowClassDef(Node *n) {
   if (baselist) {
     Node *base = Firstitem(baselist);
     c_baseclassname = Getattr(base,"name");
-    baseclass = is_shadow(c_baseclassname);
+    baseclass = Copy(is_shadow(c_baseclassname));
     if (baseclass){
       c_baseclass = SwigType_namestr(Getattr(base,"name"));
     }
@@ -899,7 +899,7 @@ void JAVA::emitShadowClassDef(Node *n) {
   // Inheritance from pure Java classes (that is not necessarily a C class)
   String* pure_java_baseclass = NULL; 
   if(this_shadow_baseclass && *Char(this_shadow_baseclass))
-    pure_java_baseclass = this_shadow_baseclass;
+    pure_java_baseclass = Copy(this_shadow_baseclass);
   if(all_shadow_baseclass && *Char(all_shadow_baseclass)) {
     if (pure_java_baseclass) {
       Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
@@ -907,7 +907,7 @@ void JAVA::emitShadowClassDef(Node *n) {
       pure_java_baseclass = NULL;
     }
     else {
-      pure_java_baseclass = all_shadow_baseclass;
+      pure_java_baseclass = Copy(all_shadow_baseclass);
     }
   }
   if (pure_java_baseclass && baseclass) {
@@ -915,41 +915,35 @@ void JAVA::emitShadowClassDef(Node *n) {
         "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, pure_java_baseclass);
     pure_java_baseclass = NULL;
   }
+  if (!pure_java_baseclass)
+    pure_java_baseclass = NewString("");
  
   // Get any non-default class modifiers
-  String *class_modifiers = 0;
+  String *class_modifiers = NULL;
   if (this_shadow_class_modifiers && *Char(this_shadow_class_modifiers))
-    class_modifiers = this_shadow_class_modifiers;
+    class_modifiers = Copy(this_shadow_class_modifiers);
   else if (all_shadow_class_modifiers && *Char(all_shadow_class_modifiers))
-    class_modifiers = all_shadow_class_modifiers;
+    class_modifiers = Copy(all_shadow_class_modifiers);
+  else
+    class_modifiers = NewString("public");
 
   int derived = baseclass && is_shadow(c_baseclassname); 
+  if (!baseclass)
+    baseclass = NewString("");
 
   // Start writing the shadow class
   Printv(shadow_classdef,
-    all_shadow_import ?     // Import statements
-        all_shadow_import :
-        "",
-    this_shadow_import ?
-        this_shadow_import :
-        "",
+    all_shadow_import,             // Import statements
+    this_shadow_import,
     "\n",
-    class_modifiers ?  // Class modifiers
-        class_modifiers :
-        "public",
-    " class $class ",     // Class name and bases
-    (derived || pure_java_baseclass) ?
+    class_modifiers,               // Class modifiers
+    " class $class ",              // Class name and bases
+    (derived || *Char(pure_java_baseclass)) ?
         "extends " : 
         "",
-    baseclass ? 
-        baseclass : 
-        "",
-    pure_java_baseclass ? 
-        pure_java_baseclass : 
-        "",
-    this_shadow_interfaces ?   // Interfaces
-        this_shadow_interfaces :
-        "",
+    baseclass,
+    pure_java_baseclass,
+    this_shadow_interfaces,        // Interfaces
     "{\n",
     "  private long swigCPtr;\n",  // Member variables for memory handling
     derived ? 
@@ -1050,6 +1044,9 @@ void JAVA::emitShadowClassDef(Node *n) {
     Delete(jniclass);
     Delete(jnimodule);
   }
+  Delete(baseclass);
+  Delete(class_modifiers);
+  Delete(pure_java_baseclass);
 }
 
 int JAVA::classHandler(Node *n) {
