@@ -101,7 +101,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 	symname = 0;
       }
 
-      if (symname) symname = wad_cplus_demangle(&wsym);
+      /*      if (symname) symname = wad_cplus_demangle(&wsym); */
 
       value = wsym.value;
 

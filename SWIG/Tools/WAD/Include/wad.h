@@ -174,8 +174,6 @@ extern WadReturnFunc *wad_check_return(const char *name);
 #define DEBUG_RETURN     0x40
 
 extern int wad_debug_mode;
-extern char *wad_cplus_demangle(WadSymbol *wsym);
-
 
 #ifdef __cplusplus
 }

@@ -48,3 +48,4 @@ WadReturnFunc *wad_check_return(const char *name) {
   }
   return 0;
 }
+

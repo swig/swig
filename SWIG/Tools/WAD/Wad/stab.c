@@ -13,8 +13,7 @@
 #include "wad.h"
 
 
-/* stabs data structure.   This appears to be somewhat universal.  I ripped
-   it out of the Sun C compiler include directory */
+/* stabs data structure.   This appears to be somewhat universal. */
 
 typedef struct Stab {
   unsigned        n_strx;         /* index into file string table */
@@ -158,8 +157,6 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
 	debug->parms[debug->nargs].loc = PARM_STACK;
 
       debug->parms[debug->nargs].value = s->n_value;
-      /*      printf("%s : %d: %d : %s\n", debug->parms[debug->nargs].name, s->n_type, debug->parms[debug->nargs].value,pname); */
-	     
       debug->nargs++;
     }
   }

@@ -46,7 +46,6 @@ void wad_init() {
     wad_debug_mode |= DEBUG_RETURN;
   }
 
-
 #ifndef WAD_LINUX
   if (!init) {
     wad_signal_init();
