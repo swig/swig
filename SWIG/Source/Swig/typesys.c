@@ -277,6 +277,28 @@ void SwigType_print_scope(Typetab *t) {
   }
 }
 
+static Typetab *
+find_scope(Typetab *s, String *nameprefix) {
+  Typetab *ss;
+  ss = s;
+  while (ss) {
+    String *full;
+    String *qname = Getattr(ss,"qname");
+    if (qname) {
+      full = NewStringf("%s::%s", qname, nameprefix);
+    } else {
+      full = NewString(nameprefix);
+    }
+    if (Getattr(scopes,full)) {
+      s = Getattr(scopes,full);
+    }
+    Delete(full);
+    if (s) return s;
+    ss = Getattr(ss,"parent");
+  }
+  return 0;
+}
+
 /* ----------------------------------------------------------------------------- 
  * SwigType_typedef_resolve()
  *
@@ -330,6 +352,9 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *r;
   Typetab  *s, *ss;
   Hash     *ttab;
+  String *namebase = 0;
+
+  resolved_scope = 0;
 
   base = SwigType_base(t);
   s = current_scope;
@@ -342,33 +367,20 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   }
   /* Do a quick check in the local scope */
   type = Getattr(ttab,base);
-
+  if (type) {
+    resolved_scope = s;
+  }
   if (!type) {
     /* Didn't find in this scope.   We need to do a little more searching */
     if (Strstr(base,"::")) {
       /* A qualified name. */
-      String *namebase;
       String *nameprefix;
       nameprefix = Swig_scopename_prefix(base);
       if (nameprefix) {
 	/* Name had a prefix on it.   See if we can locate the proper scope for it */
-	ss = s;
-	while (ss) {
-	  String *full;
-	  String *qname = Getattr(ss,"qname");
-	  if (qname) {
-	    full = NewStringf("%s::%s", qname, nameprefix);
-	  } else {
-	    full = NewString(nameprefix);
-	  }
-	  if (Getattr(scopes,full)) {
-	    s = Getattr(scopes,full);
-	  }
-	  Delete(full);
-	  if (s) break;
-	  ss = Getattr(ss,"parent");
-	  Delete(nameprefix);
-	}
+	s = find_scope(s,nameprefix);
+	Delete(nameprefix);
+
 	/* Couldn't locate a scope for the type.  Bail */
 	if (!s) {
 	  Delete(base);
@@ -377,7 +389,6 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	/* Try to locate the name starting in the scope */
 	namebase = Swig_scopename_base(base);
 	type = typedef_resolve(s,namebase);
-	Delete(namebase);
       } else {
 	/* Name is unqualified. */
 	type = typedef_resolve(s,base);
@@ -387,14 +398,21 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
       type = typedef_resolve(s,base);
     }
   }
-  if (Getmeta(type,"class")) type = 0;
-  if (type && (Strcmp(type,base) == 0)) type = 0;
 
-  Delete(base);
-  /*  Printf(stdout,"%s :: %s --> %s\n", Getattr(current_scope,"name"), t, type); */
-  if (!type) return 0;
+  if (type && (Strcmp(base,type) == 0)) type = 0;
+  if (type && (Getmeta(type,"class"))) type = 0;
+
+  if (!type) {
+    if (namebase) Delete(namebase);
+    Delete(base);
+    return 0;
+  }
+
   r = SwigType_prefix(t);
   Append(r,type);
+  Delete(base);
+  if (namebase) Delete(namebase);
+  /*  Printf(stdout,"%s --> %s\n", t,r); */
   return r;
 }
 
@@ -435,6 +453,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
   for (i = 0; i < len; i++) {
     String *e = Getitem(elements,i);
     if (SwigType_issimple(e)) {
+      resolved_scope = 0;
       if (typedef_resolve(current_scope,e)) {
 	/* resolved_scope contains the scope that actually resolved the symbol */
 	String *qname = Getattr(resolved_scope,"qname");
@@ -489,6 +508,64 @@ int SwigType_istypedef(SwigType *t) {
     return 0;
   }
 }
+
+
+/* -----------------------------------------------------------------------------
+ * SwigType_typedef_using()
+ *
+ * Processes a 'using' declaration to import types from one scope into another.
+ * Name is a qualified name like A::B.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_typedef_using(String_or_char *name) {
+  String *base;
+  String *td;
+  String *prefix;
+  Typetab *s;
+  String *defined_name = 0;
+
+  if (!Strstr(name,"::")) return -1;     /* Not properly qualified */
+  base   = Swig_scopename_base(name);
+
+  /* See if the base is already defined in this scope */
+
+  if (Getattr(current_typetab,base)) {
+    Delete(base);
+    return -1;
+  }
+  
+  /* We set up a typedef  B --> A::B */
+  Setattr(current_typetab,base,name);
+
+  /* Find the scope name where the symbol is defined */
+  td = SwigType_typedef_resolve(name);
+  if (resolved_scope) {
+    defined_name = Getattr(resolved_scope,"qname");
+    if (defined_name) {
+      defined_name = Copy(defined_name);
+      Append(defined_name,"::");
+      Append(defined_name,base);
+    }
+  }
+  if (td) Delete(td);
+
+  /* Figure out the scope the using directive refers to */
+  {
+    prefix = Swig_scopename_prefix(name);
+    s = find_scope(current_scope,prefix);
+    if (s) {
+      Hash *ttab = Getattr(s,"typetab");
+      if (!Getattr(ttab,base) && defined_name) {
+	Setattr(ttab,base, defined_name);
+      }
+    }
+  }
+  if (defined_name) Delete(defined_name);
+  Delete(prefix);
+  Delete(base);
+  return 0;
+}
+
 
 /* -----------------------------------------------------------------------------
  * SwigType_type()

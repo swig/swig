@@ -286,6 +286,28 @@ public:
    * namespaceDeclaration()
    * ------------------------------------------------------------ */ 
 
+  virtual int classforwardDeclaration(Node *n) {
+
+    /* Temporary hack. Can't do inside a class because it breaks
+       C nested structure wrapping */
+
+    if (!inclass) {
+      String *name = Getattr(n,"name");
+      String *nname;
+      SwigType_typedef_class(name);
+      if (nsname) {
+	nname = NewStringf("%s::%s", nsname, name);
+	Setattr(n,"name",nname);
+      } 
+
+    }
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * namespaceDeclaration()
+   * ------------------------------------------------------------ */ 
+
   virtual int namespaceDeclaration(Node *n) {
     static int warn = 0;
     Symtab *symtab;
@@ -505,20 +527,21 @@ public:
 	String *storage = Getattr(ns,"storage");
 	if (Strcmp(storage,"typedef") == 0) {
 	  /* A typedef declaration */
-	  SwigType *ty = Getattr(ns,"type");
+	  /*	  SwigType *ty = Getattr(ns,"type");
 	  SwigType *decl = Getattr(ns,"decl");
 	  SwigType *t = Copy(ty);
 	  SwigType_push(t,decl);
-	  SwigType_typedef(t,Getattr(n,"name"));
+	  SwigType_typedef(t,Getattr(n,"name"));*/
+	  String *uname = Getattr(n,"uname");
+	  SwigType_typedef_using(uname);
 	}
-      } else if (Strcmp(ntype,"class") == 0) {
+      } else if ((Strcmp(ntype,"class") == 0) || ((Strcmp(ntype,"classforward") == 0))) {
 	/* We install the using class name as kind of a typedef back to the original class */
-	SwigType *ty = Getattr(ns,"name");
-	SwigType_typedef(ty, Getattr(n,"name"));
+	String *uname = Getattr(n,"uname");
+	/* Import into current type scope */
+	SwigType_typedef_using(uname);
       } else if (Strcmp(ntype,"enum") == 0) {
-	SwigType *ty = NewStringf("enum %s", Getattr(ns,"name"));
-	SwigType_typedef(ty, Getattr(n,"name"));
-	Delete(ty);
+	SwigType_typedef_using(Getattr(n,"uname"));	
       }
     }
     return SWIG_OK;

@@ -357,7 +357,8 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   {
     String *name = Getattr(n,"name");
     if (name) {
-      if (!Getattr(ccurrent,name)) {
+      cn = Getattr(ccurrent,name);
+      if ((!cn) || Getattr(cn,"sym:weak")) {
 	Setattr(ccurrent,name,n);
       }
     }
@@ -365,6 +366,19 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
 
   /* See if the symbol already exists in the table */
   c = Getattr(current,symname);
+
+  /* Check for a weak symbol.  A weak symbol is allowed to be in the
+     symbol table, but is silently overwritten by other symbols.  An example
+     would be a forward class declaration.  For instance:
+
+           class Foo;
+
+     In this case, "Foo" sits in the symbol table.  However, the
+     definition of Foo would replace the entry if it appeared later. */
+     
+  if (c && Getattr(c,"sym:weak")) {
+    c = 0;
+  }
   if (c) {
     /* There is a symbol table conflict.  There are a few cases to consider here:
         (1) A conflict between a class/enum and a typedef declaration is okay.

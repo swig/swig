@@ -232,6 +232,7 @@ extern String     *SwigType_default(SwigType *t);
 extern void        SwigType_typesystem_init();
 extern int         SwigType_typedef(SwigType *type, String_or_char *name);
 extern int         SwigType_typedef_class(String_or_char *name);
+extern int         SwigType_typedef_using(String_or_char *qname);
 extern void        SwigType_inherit(String *subclass, String *baseclass);
 extern void        SwigType_new_scope(String_or_char *name);
 extern void        SwigType_reset_scopes();

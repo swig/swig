@@ -2049,7 +2049,9 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
                $$ = new_node("classforward");
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"name",$3);
-	       Setattr($$,"sym:name", make_name(Getattr($$,"name"),0));
+	       Setattr($$,"sym:weak", "1");
+	       add_symbols($$);
+	       /*	       Setattr($$,"sym:name", make_name(Getattr($$,"name"),0)); */
 	     }
              ;
 
