@@ -27,6 +27,8 @@ completely restructured and purged of C++.  This work can be found in the SWIG1.
 releases.   If you are concerned about stability or are a first-time user, you may want to
 download some variant of SWIG1.1 instead.  Caveat--SWIG1.1 may not be compatible with
 recent releases of certain scripting languages such as Perl 5.6 and Guile.
+Note: These changes only pertain to the implementation of SWIG (the new version
+continues to support C++ wrappers).
 
 <p>
 SWIG is an all volunteer effort.  We are always looking for fearless people with 
