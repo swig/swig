@@ -860,6 +860,10 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   $$ = 0;
 		 }
                }
+               | CONSTANT error SEMI {
+		 cparse_error(input_file,line_number,"Warning. Bad constant value (ignored).\n");
+		 $$ = 0;
+	       }
                ;
 
 /* ------------------------------------------------------------
@@ -3295,6 +3299,6 @@ empty          :   ;
 
 /* Called by the parser (yyparse) when an error is found.*/
 void yyerror (const char *e) {
-    Printf(stderr,"Syntax error\n");
+  /*    Printf(stderr,"Syntax error\n");  */
 }
 
