@@ -143,7 +143,7 @@ then
 	case $host in
 	*-*-solaris*) if test "$GCC" = yes;
              then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G";
-             else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun";
+             else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun -lCstd";
              fi;;
         *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= $CXX +z ";;
         *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= $CXX -bundle -undefined suppress -flat_namespace";;
