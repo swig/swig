@@ -422,9 +422,9 @@ PYTHON::functionWrapper(Node *n) {
     if ((tm = Getattr(p,"tmap:in"))) {
       String *parse = Getattr(p,"tmap:in:parse");
       if (!parse) {
-	Replace(tm,"$source",source,DOH_REPLACE_ANY);   /* Deprecated */
-	Replace(tm,"$target",ln,DOH_REPLACE_ANY);       /* Deprecated */
-	Replace(tm,"$input", source, DOH_REPLACE_ANY);
+	Replaceall(tm,"$source",source);
+	Replaceall(tm,"$target",ln);
+	Replaceall(tm,"$input", source);
 	Setattr(p,"emit:input", source);   /* Save the location of the object */
 	Putc('O',parse_args);
 	Wrapper_add_localv(f, source, "PyObject *",source, " = 0", 0);
@@ -459,7 +459,7 @@ PYTHON::functionWrapper(Node *n) {
   /* Insert constraint checking code */
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
-      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Replaceall(tm,"$target",Getattr(p,"lname"));
       Printv(check,tm,"\n",0);
       p = Getattr(p,"tmap:check:next");
     } else {
@@ -470,7 +470,7 @@ PYTHON::functionWrapper(Node *n) {
   /* Insert cleanup code */
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
-      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Replaceall(tm,"$source",Getattr(p,"lname"));
       Printv(cleanup,tm,"\n",0);
       p = Getattr(p,"tmap:freearg:next");
     } else {
@@ -481,10 +481,10 @@ PYTHON::functionWrapper(Node *n) {
   /* Insert argument output code */
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:argout"))) {
-      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      Replace(tm,"$target","resultobj",DOH_REPLACE_ANY);
-      Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
-      Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Replaceall(tm,"$source",Getattr(p,"lname"));
+      Replaceall(tm,"$target","resultobj");
+      Replaceall(tm,"$arg",Getattr(p,"emit:input"));
+      Replaceall(tm,"$input",Getattr(p,"emit:input"));
       Printv(outarg,tm,"\n",0);
       p = Getattr(p,"tmap:argout:next");
     } else {
@@ -501,10 +501,11 @@ PYTHON::functionWrapper(Node *n) {
   /* This part below still needs cleanup */
 
   /* Return the function value */
-  if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char *)"result",(char*)"result",(char*)"resultobj",0))) {
-    Replace(tm,"$result", "resultobj", DOH_REPLACE_ANY);
+  if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+    Replaceall(tm,"$source", "result");
+    Replaceall(tm,"$target", "resultobj");
+    Replaceall(tm,"$result", "resultobj");
     Printf(f->code,"%s\n", tm);
-    Delete(tm);
   } else {
     Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
   }
@@ -517,26 +518,26 @@ PYTHON::functionWrapper(Node *n) {
 
   /* Look to see if there is any newfree cleanup code */
   if (NewObject) {
-    if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
+    if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
+      Replaceall(tm,"$source","result");
       Printf(f->code,"%s\n",tm);
-      Delete(tm);
     }
   }
 
   /* See if there is any return cleanup code */
-  if ((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char*)"result",(char*)"result",(char*)"",0))) {
+  if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+    Replaceall(tm,"$source","result");
     Printf(f->code,"%s\n",tm);
-    Delete(tm);
   }
 
   Printf(f->code,"    return resultobj;\n}\n");
 
   /* Substitute the cleanup code */
-  Replace(f->code,"$cleanup",cleanup, DOH_REPLACE_ANY);
+  Replaceall(f->code,"$cleanup",cleanup);
 
   /* Substitute the function name */
-  Replace(f->code,"$name",iname, DOH_REPLACE_ANY);    
-  Replace(f->code,"$result","resultobj",DOH_REPLACE_ANY);
+  Replaceall(f->code,"$symname",iname);
+  Replaceall(f->code,"$result","resultobj");
 
   /* Dump the function out */
   Wrapper_print(f,f_wrappers);
@@ -632,10 +633,11 @@ PYTHON::variableWrapper(Node *n) {
 
     Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
     if (!ReadOnly) {
-      if ((tm = Swig_typemap_lookup((char*)"varin",t,name,name,(char*)"_val",name,0))) {
+      if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
+	Replaceall(tm,"$source","_val");
+	Replaceall(tm,"$target",name);
+	Replaceall(tm,"$input","_val");
 	Printf(setf->code,"%s\n",tm);
-	Replace(setf->code,"$name",iname, DOH_REPLACE_ANY);
-	Replace(setf->code,"$input","_val", DOH_REPLACE_ANY);
 	Delete(tm);
       } else {
 	Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, SwigType_str(t,0));
@@ -656,16 +658,14 @@ PYTHON::variableWrapper(Node *n) {
     /* Create a function for getting the value of a variable */
     Printf(getf->def,"static PyObject *%s_get() {", wname);
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
-    if ((tm = Swig_typemap_lookup((char*)"varout",t,name,name, name,(char*)"pyobj",0))) {
-      Printf(getf->code,"%s\n",tm);
-      Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
-      Replace(getf->code,"$result","pyobj",DOH_REPLACE_ANY);
-      Delete(tm);
-    } else if ((tm = Swig_typemap_lookup((char*)"out",t,name,name,name,(char*)"pyobj",0))) {
-      Printf(getf->code,"%s\n",tm);
-      Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
-      Replace(getf->code,"$result","pyobj",DOH_REPLACE_ANY);
-      Delete(tm);
+    tm = Swig_typemap_lookup_new("varout",n,name,0);
+    if (!tm) 
+      tm = Swig_typemap_lookup_new("out",n,name,0);
+    if (tm) {
+      Replaceall(tm,"$source",name);
+      Replaceall(tm,"$target","pyobj");
+      Replaceall(tm,"$result","pyobj");
+      Printf(getf->code,"%s\n", tm);
     } else {
       Printf(stderr,"Unable to link with type %s\n", SwigType_str(t,0));
     }
@@ -708,14 +708,15 @@ PYTHON::constantWrapper(Node *n) {
     Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type,wname), value);
     value = Char(wname);
   }
-  if ((tm = Swig_typemap_lookup((char*)"consttab",type,name,name,value,name,0))) {
-    Replace(tm,"$name", iname, DOH_REPLACE_ANY);
-    Replace(tm,"$value",value, DOH_REPLACE_ANY);
+  if ((tm = Swig_typemap_lookup_new("consttab",n,name,0))) {
+    Replaceall(tm,"$source",value);
+    Replaceall(tm,"$target",name);
+    Replaceall(tm,"$value", value);
     Printf(const_code,"%s,\n", tm);
-    Delete(tm);
-  } else if ((tm = Swig_typemap_lookup((char *)"constcode", type, name, name, value, name, 0))) {
-    Replace(tm,"$name", iname, DOH_REPLACE_ANY);
-    Replace(tm,"$value",value, DOH_REPLACE_ANY);
+  } else if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
+    Replaceall(tm,"$source",value);
+    Replaceall(tm,"$target",name);
+    Replaceall(tm,"$value",value);
     Printf(f_init, "%s\n", tm);
   } else {
     Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);

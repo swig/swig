@@ -600,59 +600,7 @@ PERL5::functionWrapper(Node *n)
       Printf(f->code,"%s\n",tm);
       p = Getattr(p,"tmap:in:next");
     } else {
-      Setattr(p,"emit:input",source);
-      switch(SwigType_type(pt)) {
-      case T_BOOL:
-      case T_INT :
-      case T_SHORT :
-      case T_LONG :
-      case T_SCHAR:
-      case T_UINT:
-      case T_USHORT:
-      case T_ULONG:
-      case T_UCHAR:
-	Printf(f->code,"    %s = (%s)SvIV(ST(%d));\n", target, SwigType_lstr(pt,0),i);
-	break;
-      case T_CHAR :
-	
-	Printf(f->code,"    %s = (char) *SvPV(ST(%d),PL_na);\n", target, i);
-	break;
-	
-      case T_DOUBLE :
-      case T_FLOAT :
-	Printf(f->code,"    %s = (%s)SvNV(ST(%d));\n", target, SwigType_lstr(pt,0), i);
-	break;
-	
-      case T_VOID :
-	break;
-	
-      case T_USER:
-	{
-	  char argp[20];
-	  sprintf(argp,"argp%d",i+1);
-	  SwigType_add_pointer(pt);
-	  Wrapper_add_localv(f,argp, SwigType_lstr(pt,argp),0);
-	  sprintf(temp,"argument %d", i+1);
-	  get_pointer(iname, temp, source, argp, pt, f->code, (char *)"XSRETURN(1)");
-	  Printf(f->code,"%s = *%s;\n", target, argp);
-	  SwigType_del_pointer(pt);
-	  break;
-	}
-	
-      case T_STRING:
-	Printf(f->code,"    if (! SvOK((SV*) ST(%d))) { %s = 0; }\n", i, target);
-	Printf(f->code,"    else { %s = (char *) SvPV(ST(%d),PL_na); }\n", target,i);
-	break;
-	
-      case T_POINTER: case T_ARRAY: case T_REFERENCE:
-	sprintf(temp,"argument %d", i+1);
-	get_pointer(iname,temp,source,target, pt, f->code, (char*)"XSRETURN(1)");
-	break;
-	
-      default :
-	Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
-	break;
-      }
+      Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
       p = nextSibling(p);
     }
     if (i >= num_required) {
@@ -715,63 +663,13 @@ PERL5::functionWrapper(Node *n)
 
   emit_action(n,f);
 
-  if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"result",(char*)"ST(argvi)",0))) {
+  if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+    Replaceall(tm,"$source","result");
+    Replaceall(tm,"$target","ST(argvi)");
+    Replaceall(tm,"$result", "ST(argvi)");
     Printf(f->code, "%s\n", tm);
-    Delete(tm);
   } else {
-    if (SwigType_type(d) != T_VOID) {
-      Printf(f->code,"    ST(argvi) = sv_newmortal();\n");
-      switch (SwigType_type(d)) {
-      case T_INT: case T_BOOL: case T_UINT:
-      case T_SHORT: case T_USHORT:
-      case T_LONG : case T_ULONG:
-      case T_SCHAR: case T_UCHAR :
-	Printf(f->code,"    sv_setiv(ST(argvi++),(IV) result);\n");
-	break;
-      case T_DOUBLE :
-      case T_FLOAT :
-	Printf(f->code,"    sv_setnv(ST(argvi++), (double) result);\n");
-	break;
-      case T_CHAR :
-	Wrapper_add_local(f,"_ctemp", "char ctemp[2]");
-	Printv(f->code,
-	       tab4, "ctemp[0] = result;\n",
-	       tab4, "ctemp[1] = 0;\n",
-	       tab4, "sv_setpv((SV*)ST(argvi++),ctemp);\n",
-	       0);
-	break;
-
-      case T_USER:
-
-	if (CPlusPlus) {
-	  Printf(f->code,"resultobj = new %s(result);\n", SwigType_lstr(d,0));
-	} else {
-	  Printf(f->code,"resultobj = (%s *) malloc(sizeof(%s));\n", SwigType_lstr(d,0), SwigType_str(d,0));
-	  Printf(f->code,"memmove(resultobj,&result,sizeof(%s));\n", SwigType_str(d,0));
-	}
-
-	SwigType_add_pointer(d);
-	SwigType_remember(d);
-	Wrapper_add_local(f,"resultobj", SwigType_lstr(d,"resultobj"));
-	Printv(f->code,
-	       tab4, "SWIG_MakePtr(ST(argvi++), (void *) resultobj, SWIGTYPE", SwigType_manglestr(d),");\n", 0);
-	SwigType_del_pointer(d);
-	break;
-
-      case T_STRING:
-	Printf(f->code,"    sv_setpv((SV*)ST(argvi++),(char *) result);\n");
-	break;
-
-      case T_POINTER: case T_ARRAY: case T_REFERENCE:
-	SwigType_remember(d);
-	Printv(f->code, tab4, "SWIG_MakePtr(ST(argvi++), (void *) result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
-	break;
-
-      default :
-	Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
-	break;
-      }
-    }
+    Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
   }
 
   /* If there were any output args, take care of them. */
@@ -802,7 +700,7 @@ PERL5::functionWrapper(Node *n)
 
   /* Substitute the cleanup code */
   Replace(f->code,"$cleanup",cleanup,DOH_REPLACE_ANY);
-  Replace(f->code,"$name",iname,DOH_REPLACE_ANY);
+  Replace(f->code,"$symname",iname,DOH_REPLACE_ANY);
 
   /* Dump the wrapper function */
 
@@ -966,6 +864,7 @@ int PERL5::variableWrapper(Node *n)
       Printf(setf->code,"%s\n", tm);
       Delete(tm);
     } else if ((tm = Swig_typemap_lookup((char*)"in",t,(char*)"",name, (char*)"sv",name,0))) {
+      Replaceall(tm,"$input","sv");
       Printf(setf->code,"%s\n", tm);
       Delete(tm);
     } else {

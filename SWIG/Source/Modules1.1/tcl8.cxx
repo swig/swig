@@ -239,9 +239,9 @@ TCL8::functionWrapper(Node *n) {
     if ((tm = Getattr(p,"tmap:in"))) {
       String *parse = Getattr(p,"tmap:in:parse");
       if (!parse) {
-	Replace(tm,"$target",ln,DOH_REPLACE_ANY);
-	Replace(tm,"$source",source,DOH_REPLACE_ANY);
-	Replace(tm,"$input",source,DOH_REPLACE_ANY);
+	Replaceall(tm,"$target",ln);
+	Replaceall(tm,"$source",source);
+	Replaceall(tm,"$input",source);
 	Setattr(p,"emit:input",source);
 	Putc('o',argstr);
 	Printf(args,",0");
@@ -281,7 +281,7 @@ TCL8::functionWrapper(Node *n) {
   /* Insert constraint checking code */
   for (p = parms; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
-      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Replaceall(tm,"$target",Getattr(p,"lname"));
       Printv(f->code,tm,"\n",0);
       p = Getattr(p,"tmap:check:next");
     } else {
@@ -292,7 +292,7 @@ TCL8::functionWrapper(Node *n) {
   /* Insert cleanup code */
   for (i = 0, p = parms; p; i++) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
-      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Replaceall(tm,"$source",Getattr(p,"lname"));
       Printv(cleanup,tm,"\n",0);
       p = Getattr(p,"tmap:freearg:next");
     } else {
@@ -303,11 +303,11 @@ TCL8::functionWrapper(Node *n) {
   /* Insert argument output code */
   for (i=0,p = parms; p;i++) {
     if ((tm = Getattr(p,"tmap:argout"))) {
-      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      Replace(tm,"$target","(Tcl_GetObjResult(interp))",DOH_REPLACE_ANY);
-      Replace(tm,"$result","(Tcl_GetObjResult(interp))",DOH_REPLACE_ANY);
-      Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
-      Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Replaceall(tm,"$source",Getattr(p,"lname"));
+      Replaceall(tm,"$target","(Tcl_GetObjResult(interp))");
+      Replaceall(tm,"$result","(Tcl_GetObjResult(interp))");
+      Replaceall(tm,"$arg",Getattr(p,"emit:input"));
+      Replaceall(tm,"$input",Getattr(p,"emit:input"));
       Printv(outarg,tm,"\n",0);
       p = Getattr(p,"tmap:argout:next");
     } else {
@@ -321,9 +321,11 @@ TCL8::functionWrapper(Node *n) {
   /* Need to redo all of this code (eventually) */
 
   /* Return value if necessary  */
-  if ((tm = Swig_typemap_lookup((char*)"out",type,name,(char*)"result",(char*)"result",(char*)"Tcl_GetObjResult(interp)",0))) {
+  if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+    Replaceall(tm,"$source", "result");
+    Replaceall(tm,"$target", "Tcl_GetObjResult(interp)");
+    Replaceall(tm,"$result", "Tcl_GetObjResult(interp)");
     Printf(f->code,"%s\n", tm);
-    Delete(tm);
   } else {
     Printf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
 	   input_file, line_number, SwigType_str(type,0), name);
@@ -337,21 +339,21 @@ TCL8::functionWrapper(Node *n) {
 
   /* Look for any remaining cleanup */
   if (NewObject) {
-    if ((tm = Swig_typemap_lookup((char*)"newfree",type,name,(char*)"result",(char*)"result",(char*)"",0))) {
+    if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
+      Replaceall(tm,"$source","result");
       Printf(f->code,"%s\n", tm);
-      Delete(tm);
     }
   }
 
-  if ((tm = Swig_typemap_lookup((char*)"ret",type,name,(char*)"result",(char*)"result",(char*)"",0))) {
+  if ((tm = Swig_typemap_lookup_new("ret",n,"result",0))) {
+    Replaceall(tm,"$source","result");
     Printf(f->code,"%s\n", tm);
-    Delete(tm);
   }
   Printv(f->code, "return TCL_OK;\n}", 0);
 
   /* Substitute the cleanup code */
-  Replace(f->code,"$cleanup",cleanup,DOH_REPLACE_ANY);
-  Replace(f->code,"$name", iname, DOH_REPLACE_ANY);
+  Replaceall(f->code,"$cleanup",cleanup);
+  Replaceall(f->code,"$symname", iname);
 
   /* Dump out the function */
   Wrapper_print(f,f_wrappers);
@@ -390,9 +392,11 @@ TCL8::variableWrapper(Node *n) {
   getname = Swig_name_wrapper(Swig_name_get(iname));
   Printv(getf->def,"static char *",getname,"(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
   Wrapper_add_local(getf,"value", "Tcl_Obj *value = 0");
-  
-  if ((tm = Swig_typemap_lookup((char *) "varget", t, name, name, name, (char *) "value",0))) {
-    Replace(tm,"$result", "value", DOH_REPLACE_ANY);
+
+  if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
+    Replaceall(tm,"$source", name);
+    Replaceall(tm,"$target","value");
+    Replaceall(tm,"$result", "value");
     Printf(getf->code, "%s\n",tm);
     Printf(getf->code, "if (value) {\n");
     Printf(getf->code, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n");
@@ -400,7 +404,6 @@ TCL8::variableWrapper(Node *n) {
     Printf(getf->code, "}\n");
     Printf(getf->code, "return NULL;\n");
     Printf(getf->code,"}\n");
-    Delete(tm);
     Wrapper_print(getf,f_wrappers);
   } else {
     Printf(stderr,"%s:%d. Can't link to variable of type %s\n", input_file, line_number, SwigType_str(t,0));
@@ -417,8 +420,10 @@ TCL8::variableWrapper(Node *n) {
     Wrapper_add_local(setf,"value", "Tcl_Obj *value = 0");
     Wrapper_add_local(setf,"name1o", "Tcl_Obj *name1o = 0");
 
-    if ((tm = Swig_typemap_lookup((char *) "varset", t, name, name, (char *) "value", name, 0))) {
-      Replace(tm,"$input", "value", DOH_REPLACE_ANY);
+    if ((tm = Swig_typemap_lookup_new("varin", n, name, 0))) {
+      Replaceall(tm,"$source","value");
+      Replaceall(tm,"$target",name);
+      Replaceall(tm,"$input", "value");
       Printf(setf->code,"name1o = Tcl_NewStringObj(name1,-1);\n");
       Printf(setf->code,"value = Tcl_ObjGetVar2(interp, name1o, 0, flags);\n");
       Printf(setf->code,"Tcl_DecrRefCount(name1o);\n");
@@ -426,7 +431,6 @@ TCL8::variableWrapper(Node *n) {
       Printf(setf->code,"%s\n", tm);
       Printf(setf->code,"return NULL;\n");
       Printf(setf->code,"}\n");
-      Delete(tm);
       if (setf) Wrapper_print(setf,f_wrappers);  
     } else {
       Printf(stderr,"%s:%d. Warning. Variable %s will be read-only without a varset typemap.\n", input_file, line_number, name);
@@ -474,14 +478,15 @@ TCL8::constantWrapper(Node *n) {
     Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type,wname), value);
     value = Char(wname);
   }
-  if ((tm = Swig_typemap_lookup((char*)"consttab",type,name,name,value,name,0))) {
-    Replace(tm,"$name", iname, DOH_REPLACE_ANY);
-    Replace(tm,"$value",value, DOH_REPLACE_ANY);
+  if ((tm = Swig_typemap_lookup_new("consttab",n,name,0))) {
+    Replaceall(tm,"$source",value);
+    Replaceall(tm,"$target",name);
+    Replaceall(tm,"$value",value);
     Printf(const_tab,"%s,\n", tm);
-    Delete(tm);
-  } else if ((tm = Swig_typemap_lookup((char *)"constcode", type, name, name, value, name, 0))) {
-    Replace(tm,"$name", iname, DOH_REPLACE_ANY);
-    Replace(tm,"$value",value, DOH_REPLACE_ANY);
+  } else if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
+    Replaceall(tm,"$source", value);
+    Replaceall(tm,"$target", name);
+    Replaceall(tm,"$value",value);
     Printf(f_init, "%s\n", tm);
   } else {
     Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
