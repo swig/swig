@@ -1,6 +1,26 @@
 Version 1.3.20 (In progress)
 ============================
 11/25/2003: beazley
+            Fixed [ 836903 ] C++ inconsistency (with void arguments).
+            SWIG was having difficulty with f() vs f(void) in C++ programs.
+            For instance:
+
+                  class A {
+                  public:
+                      virtual void f(void) = 0;
+                  };
+
+                  class B {
+                  public:
+                      virtual void f();    // Not matched to f(void) correctly
+                  }; 
+
+            The parser now normalizes all declarations of the form f(void) 
+            in C++ classes to f().  This should fix a variety of subtle 
+            problems with inheritance, optimizations, overloading, etc.
+            Problem reported by Partho Bhowmick.
+ 
+11/25/2003: beazley
             [Perl5] Incorporated [ 841074 ] better croaking (PATCH).  This fixes some problems
             with strings and provides some new error functions. 
             Contributed by Salvador Fandino Garcia.
