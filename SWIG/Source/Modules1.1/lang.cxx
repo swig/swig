@@ -1647,16 +1647,18 @@ Language::classLookup(SwigType *s) {
     prefix = SwigType_prefix(ty2);
 
     while (!n) {
+      Hash *nstab;
       n = Swig_symbol_clookup(base,stab);
       if (!n) break;
       if (Strcmp(nodeType(n),"class") == 0) break;
       n = parentNode(n);
       if (!n) break;
-      stab = Getattr(n,"sym:symtab");
-      if (!stab) {
-	n = 0;
+      nstab = Getattr(n,"sym:symtab");
+      n = 0;
+      if ((!nstab) || (nstab == stab)) {
 	break;
       }
+      stab = nstab;
     }
     /* Do a symbol table search on the base type */
     /*    n = Swig_symbol_clookup(base,0); */
