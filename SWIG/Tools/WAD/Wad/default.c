@@ -121,6 +121,8 @@ char *wad_load_source(char *path, int line) {
   if (strcmp(src_path,path)) {
     if (src_file) {
       munmap(src_file, src_len);
+      src_file = 0;
+      src_len = 0;
     }
     fd = open(path, O_RDONLY);
     if (fd < 0) return 0;
