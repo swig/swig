@@ -15,13 +15,24 @@ check::is_a("spam","bar");
 
 $foo=new foo();
 check::is_a($foo,"foo");
-$foo->_foo=2;
-check::equal(2,$foo->_foo,"2==foo->_foo");
+check::equal(1,$foo->_foo,"1==foo->_foo");
 
 $bar=new bar();
-$bar->_foo=3;
-check::equal(2,$bar->_foo,"2==bar->_foo");
-var_dump($bar);
+check::is_a($bar,"bar");
+check::equal(1,$bar->_foo,"1==bar->_foo");
+check::equal(2,$bar->_bar,"2==bar->_bar");
+
+$baz=new baz();
+check::is_a($baz,"baz");
+check::equal(1,$baz->_foo,"1==baz->_foo");
+check::equal(3,$baz->_baz,"3==baz->_baz");
+
+$spam=new spam();
+check::is_a($spam,"spam");
+check::equal(1,$spam->_foo,"1==spam->_foo");
+check::equal(2,$spam->_bar,"2==spam->_bar");
+check::equal(3,$spam->_baz,"3==spam->_baz");
+check::equal(4,$spam->_spam,"4==spam->_spam");
 
 check::done();
 ?>

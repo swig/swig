@@ -122,7 +122,7 @@ class check {
   }
 
   function equal($a,$b,$message) {
-    if (! $a===$b) return check::fail($message);
+    if (! ($a===$b)) return check::fail($message);
     return TRUE;
   }
 
