@@ -78,15 +78,6 @@ extern  int       Overloaded;
 #define INHERIT_CONST      0x4
 #define INHERIT_ALL        (INHERIT_FUNC | INHERIT_VAR | INHERIT_CONST)
 
-struct Pragma {
-  void  *filename;
-  int   lineno;
-  void  *lang;
-  void  *name;
-  void  *value;
-  Pragma  *next;
-};
-
 /************************************************************************
  * class language:
  *
@@ -169,7 +160,6 @@ public:
   virtual void cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
   virtual void cpp_static_var(char *name, char *iname, SwigType *t);
-  virtual void cpp_pragma(Pragma *plist);
 
   // Pragma directive
 
