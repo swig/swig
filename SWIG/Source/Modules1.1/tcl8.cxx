@@ -664,8 +664,7 @@ public:
       Node *base = Firstitem(baselist);
       while (base) {
 	String *bname = Getattr(base, "name");
-
-	if (!bname) {
+	if ((!bname) || Getattr(base,"feature:ignore") || (!Getattr(base,"module"))) {
 	  base = Nextitem(baselist);
 	  continue;
 	}
