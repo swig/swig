@@ -248,10 +248,12 @@ int Dispatcher::accessDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::usingDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::namespaceDeclaration(Node *n) { return defaultHandler(n); }
 
+
 /* Allocators */
 Language::Language() :
   none_comparison(NewString("$arg != 0")),
   director_ctor_code(NewString("")),
+  director_prot_ctor_code(0),
   symbols(NewHash()),
   classtypes(NewHash()),
   enumtypes(NewHash()),
@@ -270,6 +272,11 @@ Language::Language() :
       "  $nondirector_new \n",
       "}\n", NIL);
 
+  /*
+    Default director 'protected' constructor code, disable by
+    default. Each language that need it, has to define it.
+  */
+  director_prot_ctor_code = 0;
 }
 
 Language::~Language() {
@@ -1665,7 +1672,7 @@ int Language::classDirectorConstructors(Node *n) {
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
     if (!Cmp(nodeType, "constructor")) { 
-      if (is_public(ni)) {
+      if (is_public(ni) || (dirprot_mode() && is_protected(ni))) {
         classDirectorConstructor(ni);
         constructor = 1;
       }
@@ -1960,6 +1967,7 @@ int Language::classHandler(Node *n) {
       Iterator k;
       int old_mode = cplus_mode;
       cplus_mode =  CPLUS_PROTECTED;
+
       for (k = First(vtable); k.key; k = Next(k)) {
 	item = k.item;
 	Node *method = Getattr(item, "methodNode");
@@ -2002,8 +2010,21 @@ int Language::constructorDeclaration(Node *n) {
   String *symname = Getattr(n,"sym:name");
 
   if (!CurrentClass) return SWIG_NOWRAP;
-  if (cplus_mode != CPLUS_PUBLIC) return SWIG_NOWRAP;
   if (ImportMode) return SWIG_NOWRAP;
+
+  int need_prot = 0;
+  if ((cplus_mode != CPLUS_PUBLIC) && directorsEnabled()) {
+    need_prot = director_prot_ctor_code && dirprot_mode() 
+      && Swig_directorclass(CurrentClass) && is_protected(n);
+    if (need_prot) {
+      Node *parent = Swig_methodclass(n);
+      name = Getattr(parent,"name");
+      symname = Getattr(parent,"sym:name");
+      Setattr(n,"name",name);
+      Setattr(n,"sym:name",symname);
+    }
+  }
+  if ((cplus_mode != CPLUS_PUBLIC) && !need_prot) return SWIG_NOWRAP;
 
   /* Name adjustment for %name */
   Swig_save("constructorDeclaration",n,"sym:name",NIL);
@@ -2067,7 +2088,18 @@ Language::constructorHandler(Node *n) {
   Swig_require("constructorHandler",n,"?name","*sym:name","?type","?parms",NIL);
   String *symname = Getattr(n,"sym:name");
   String *mrename = Swig_name_construct(symname);
-  Swig_ConstructorToFunction(n, ClassType, none_comparison, director_ctor_code, CPlusPlus, Getattr(n, "template") ? 0 :Extend);
+  String *director_ctor = director_ctor_code;
+  if (!is_public(n)) {
+    if (director_prot_ctor_code && is_protected(n)) {
+      director_ctor = director_prot_ctor_code;
+    }
+  }
+  if (Getattr(Swig_methodclass(n),"abstract")) {
+    if (director_prot_ctor_code) {
+      director_ctor = director_prot_ctor_code;
+    }
+  }
+  Swig_ConstructorToFunction(n, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 :Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -2554,8 +2586,29 @@ String * Language::getClassType() const {
  * ----------------------------------------------------------------------------- */
 
 int Language::abstractClassTest(Node *n) {
-  return (Getattr(n,"abstract") ? 1 : 0);
+  List *abstract = Getattr(n,"abstract");
+  if (!abstract) return 0;
+  if (abstract && Cmp(Getattr(n, "feature:director"), "1")) return 1;
+  /*
+    since now %feature("noabstract") is working, we check
+    that the director is really not abstract.
+  */
+  int dirabstract = 0;
+  for (int i = 0; i < Len(abstract); i++) {
+    Node *nn = Getitem(abstract,i);
+    if (!is_member_director(n,nn)) {
+      dirabstract = 1;
+    }
+  }
+  if (dirabstract) {
+    Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT,Getfile(n),Getline(n),
+		 "Director class '%s' is abstract\n",
+		 SwigType_namestr(Getattr(n,"name")));
+  }
+  
+  return dirabstract;
 }
+
 
 void Language::setSubclassInstanceCheck(String *nc) {
     none_comparison = nc;

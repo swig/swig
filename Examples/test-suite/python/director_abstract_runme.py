@@ -16,15 +16,47 @@ if a.pong() != "Foo::pong();MyFoo::ping()":
 	raise RuntimeError, a.pong()
 
 
-class MyExample(director_abstract.Example1):
-	def __init__(self):
-		director_abstract.Example1.__init__(self)
-		pass
-	
+class MyExample1(director_abstract.Example1):
 	def Color(self, r, g, b):
 		return r
 
-me = MyExample()
+class MyExample2(director_abstract.Example2):
+	def Color(self, r, g, b):
+		return g
 
-print me.Color(1,2,3)
+class MyExample3(director_abstract.Example3_i):
+	def Color(self, r, g, b):
+		return b
 
+me1 = MyExample1()
+if MyExample1.get_color(me1, 1,2,3) != 1:
+	raise RuntimeError
+
+me2 = MyExample2(1,2)
+if MyExample2.get_color(me2, 1,2,3) != 2:
+	raise RuntimeError
+
+me3 = MyExample3()
+if MyExample3.get_color(me3, 1,2,3) != 3:
+	raise RuntimeError
+
+error = 1
+try:
+	me1 = director_abstract.Example1()
+except:
+	error = 0
+if (error): raise RuntimeError
+
+error = 1
+try:
+	me2 = director_abstract.Example2()
+except:
+	error = 0
+if (error): raise RuntimeError
+
+error = 1
+try:
+	me3 = director_abstract.Example3_i()
+except:
+	error = 0
+if (error): raise RuntimeError

@@ -187,6 +187,15 @@ public:
     f_init = 0;
     useGlobalModule = false;
     multipleInheritance = false;
+
+    director_prot_ctor_code = NewString("");    
+    Printv(director_prot_ctor_code,
+	   "if ( $comparison ) { /* subclassed */\n",
+	   "  $director_new \n",
+	   "} else {\n",
+	   "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\"); \n",
+	   "  result = 0;\n",
+	   "}\n", NIL);
   }
   
   /* ---------------------------------------------------------------------
@@ -622,15 +631,15 @@ public:
     String *s = NewString("");
     String *temp = NewString("");
     
+#ifdef SWIG_PROTECTED_TARGET_METHODS
+    const char* rb_define_method = is_public(n) ?
+      "rb_define_method" : "rb_define_protected_method" ;
+#else        
+    const char* rb_define_method = "rb_define_method";
+#endif	
     switch (current) {
     case MEMBER_FUNC: 
       {
-#ifdef SWIG_PROTECTED_TARGET_METHODS
-	const char* rb_define_method = is_public(n) ?
-	  "rb_define_method" : "rb_define_protected_method" ;
-#else        
-	const char* rb_define_method = "rb_define_method";
-#endif	
 	if (multipleInheritance) {
 	  Printv(klass->init, tab4, rb_define_method,"(", klass->mImpl, ", \"",
 		 iname, "\", ", wname, ", -1);\n", NIL);
@@ -645,7 +654,7 @@ public:
       Replaceall(klass->init,"$allocator", s);
       break;
     case CONSTRUCTOR_INITIALIZE:
-      Printv(s, tab4, "rb_define_method(", klass->vname,
+      Printv(s, tab4, rb_define_method,"(", klass->vname,
 	     ", \"initialize\", ", wname, ", -1);\n", NIL);
       Replaceall(klass->init,"$initializer", s);
       break;

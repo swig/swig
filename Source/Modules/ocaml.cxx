@@ -68,6 +68,18 @@ static  File         *f_int_to_enum = 0;
 class OCAML : public Language {
 public:
 
+  OCAML() 
+  {
+    director_prot_ctor_code = NewString("");    
+    Printv(director_prot_ctor_code,
+	   "if ( $comparison ) { /* subclassed */\n",
+	   "  $director_new \n",
+	   "} else {\n",
+	   "  failwith(\"accessing abstract class or protected constructor\"); \n",
+	   "}\n", NIL);
+  }
+  
+      
     String *Swig_class_name(Node *n) {
 	String *name;
 	name = Copy(Getattr(n, "sym:name"));
