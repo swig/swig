@@ -606,8 +606,7 @@ Like C, <tt>void *</tt> will accept any kind of pointer.  Furthermore,
 receive a pointer.  Although this has the potential to crash code and
 cause other problems, <tt>NULL</tt> pointers are also sometimes used
 as sentinel values or to denote a missing/empty value.  Therefore,
-SWIG prefers to leave NULL-pointer checking up to the extension 
-module.
+SWIG leaves NULL pointer checking up to the application.
 
 <h3> Derived types, structs, and classes</h3>
 
@@ -665,8 +664,8 @@ they contain--our program works just fine without this knowledge.<p>
 
 <h3>Undefined datatypes</h3>
 
-When SWIG encounters an unknown datatype, it automatically assumes
-that it is a complex datatype. For example, suppose the following
+When SWIG encounters an undeclared datatype, it automatically assumes
+that it is a structure or class. For example, suppose the following
 function appeared in a SWIG input file:<p>
 
 <p>
@@ -680,17 +679,17 @@ handling code.
 
 <p>
 Unlike C or C++, SWIG does not actually care whether <tt>Matrix</tt>
-has been previously defined in the interface file or not.  Although
-this may sound strange, this allows SWIG to generate interfaces from
+has been previously defined in the interface file or not.  This
+allows SWIG to generate interfaces from
 only partial or limited information. In some cases, you may not care
-what a <tt>Matrix</tt> really is as long as you can pass references to
+what a <tt>Matrix</tt> really is as long as you can pass an opaque reference to
 one around in the scripting language interface.
 
 <p>
 An important detail to mention is that SWIG will gladly generate
-wrappers for interfaces where there are unspecified type names.
-However, <b>all unspecified types are wrapped as pointers!</b>.  
-For example, consider the following declaration:
+wrappers for an interface when there are unspecified type names.
+However, <b>all unspecified types are internally handled as pointers
+to structures or classes!</b>. For example, consider the following declaration:
 
 <blockquote>
 <pre>
@@ -698,8 +697,8 @@ void foo(size_t num);
 </pre>
 </blockquote>
 
-If <tt>size_t</tt> is undefined, SWIG is going to generate wrappers
-that try to work with a type <tt>size_t *</tt> (this is described shortly).
+If <tt>size_t</tt> is undeclared, SWIG generates wrappers
+that expect to receive a type of <tt>size_t *</tt> (this mapping is described shortly).
 As a result, the scripting interface might behave strangely.  For example:
 
 <blockquote>
@@ -709,59 +708,92 @@ TypeError: expected a _p_size_t.
 </pre>
 </blockquote>
 
-The only way to fix this is to define new type names using <tt>typedef</tt>.
+The only way to fix this problem is to make sure you properly declare type names using
+<tt>typedef</tt>.
 
 <!-- We might want to add an error reporting flag to swig -->
 
 <h3>Typedef</h3>
 
-Like C, <tt>typedef</tt> can be used to create new type names. For example:
+Like C, <tt>typedef</tt> can be used to define new type names in SWIG. For example:
 <p>
 <blockquote><pre>typedef unsigned int size_t;
 
 </pre></blockquote>
 
-Use of <tt>typedef</tt> is fairly critical in most applications. Without it,
-SWIG considers <tt>size_t</tt> to be a complex object and will arrange to
-manipulate it as a pointer---which is probably not want you intended.
+Unlike C, <tt>typedef</tt> definitions appearing in a SWIG interface
+are not propagated to the generated wrapper code.  Therefore, if you
+write a new <tt>typedef</tt> declaration, you may have to also include
+a small piece of code in a <tt>%{ ... %}</tt> block like this:
+
+<blockquote>
+<pre>
+%{
+/* Include in the generated wrapper file */
+typedef unsigned int size_t;
+%}
+/* Tell SWIG about it */
+typedef unsigned int size_t;
+</pre>
+</blockquote>
+
+or
+
+<blockquote>
+<pre>
+%inline %{
+typedef unsigned int size_t;
+%}
+</pre>
+</blockquote>
+
+SWIG intelligently tracks <tt>typedef</tt> declarations and uses this information
+for run-time type checking. For instance, if you use the above <tt>typedef</tt> and
+had the following function declaration:
+
+<blockquote>
+<pre>
+void foo(unsigned int *ptr);
+</pre>
+</blockquote>
+
+The corresponding wrapper function will accept arguments of
+type <tt>unsigned int *</tt> or <tt>size_t *</tt>.
 
 <h2>Practicalities</h2>
 
 So far, you know just about everything you need to know to use SWIG to
-build interfaces. In fact, using nothing but basic datatypes and
-opaque pointers it is possible to build scripting language interfaces
-to a wide variety of C/C++ libraries. However, as the novelty wears off,
-you will probably want to do more. This section describes a number of more
-sophisticated issues.
+build simple interfaces.  However, many C programs use idioms that are somewhat
+more difficult to map to a scripting language interface.  This section describes
+some of these issues.
 
 <h3> Passing complex datatypes by value</h3>
 
-Unfortunately, not all C programs manipulate complex objects by
-reference. When encountered, SWIG transform the corresponding
-C/C++ declaration to use references instead. For example, suppose you
-had the following function :<p>
+Sometimes, a C function takes structure parameters that are passed
+by value.  For example, consider the following function:
 
 <p>
 <blockquote><pre>double dot_product(Vector a, Vector b);
 </pre></blockquote>
 
 <p>
-SWIG transform this function call into the equivalent of the
-following :<p>
+To deal with this, SWIG transforms the function to use pointers by
+creating a wrapper equivalent to the following:
 
 <p>
 <blockquote><pre>double wrap_dot_product(Vector *a, Vector *b) {
-	return dot_product(*a,*b);
+    return dot_product(*a,*b);
 }
 </pre></blockquote>
 
 <p>
-In the scripting language<tt>, dot_product</tt> now takes
-references to Vectors instead of Vectors, although you may not notice
-the change. <p>
+In the target language, the <tt>dot_product()</tt> now takes pointers
+to Vectors instead of Vectors.  For the most part, this transformation
+is transparent so you might not notice.
 
 <h3> Return by value</h3>
-C functions that return complex datatypes by value are more difficult
+
+C functions that return structures or classes datatypes by value are more difficult
 to handle. Consider the following function:<p>
 
 <p>
@@ -769,48 +801,45 @@ to handle. Consider the following function:<p>
 
 </pre></blockquote>
 
-This function is returning a complex object, yet SWIG only likes to
-work with references. Clearly, something must be done with the return
-result, or it will be lost forever. As a result, SWIG transforms this
-function into the following code :<p>
+This function wants to return <tt>Vector</tt>, but SWIG only really supports
+pointers.  As a result, SWIG creates a wrapper like this:
 
 <p>
 <blockquote><pre>Vector *wrap_cross(Vector *v1, Vector *v2) {
-	Vector *result;
-	result = (Vector *) malloc(sizeof(Vector));
-	*(result) = cross(*v1,*v2);
-	return result;
+        Vector *result;
+        result = (Vector *) malloc(sizeof(Vector));
+        *(result) = cross(*v1,*v2);
+        return result;
 }
 </pre></blockquote>
 
 <p>
-or if using C++ :<p>
+or if SWIG was run with the <tt>-c++</tt> option:<p>
 
 <p>
 <blockquote><pre>Vector *wrap_cross(Vector *v1, Vector *v2) {
-	Vector *result = new Vector(cross(*v1,*v2)); // Uses default copy constructor
-	return result;
+        Vector *result = new Vector(cross(*v1,*v2)); // Uses default copy constructor
+        return result;
 }
 </pre></blockquote>
 
 <p>
-SWIG is forced to create a new object and return a reference to it. It
+In both cases, SWIG allocates a new object and returns a reference to it. It
 is up to the user to delete the returned object when it is no longer
-in use. When used improperly, this can lead to memory leaks and other
-problems. Needless to say, some care is probably in order (you need to 
-be aware of this behavior in any case). <p>
+in use. Clearly, this may lead to memory leaks and other
+problems if you are unaware of this behavior.  
 
-<h3> Linking to complex variables</h3>
+<h3>Linking to complex variables</h3>
 
 When global variables or class members involving complex datatypes are
-encountered, SWIG converts them into references. For example, a global
-variable like this :<p>
+encountered, SWIG handles them as pointers. For example, a global
+variable like this<p>
 
 <blockquote><pre>
 Vector unit_i;
 </pre></blockquote>
 <p>
-gets mapped to a pair of set/get functions like this :<p>
+typically gets mapped to an underlying pair of set/get functions like this :<p>
 <p>
 <blockquote><pre>Vector *unit_i_get() {
 	return &amp;unit_i;
@@ -821,13 +850,10 @@ Vector *unit_i_set(Vector *value) {
 }
 </pre></blockquote>
 <p>
-Returning a reference to the variable makes it accessible like any
-other object of this type. When setting the value, we simply make a
-copy of another object. Again some caution is in order. A
-global variable created in this manner will show up as a reference in
-the target scripting language. It would be an extremely bad idea to
-free or destroy such a reference. Similarly, you might run into problems
-if a C++ object doesn't define a proper copy constructor.
+
+Again some caution is in order. A global variable created in this
+manner will show up as a pointer in the target scripting language. It
+would be an extremely bad idea to free or destroy such a pointer.  
 
 <h3> Arrays</h3>
 
@@ -861,7 +887,36 @@ Like C, SWIG does not perform array bounds or shape checking.  When an array is 
 any pointer to an appropriate type will be accepted.   It is up to the
 user to make sure the pointer points a suitably allocated region of memory. 
 
-<h3> Creating read-only variables</h3>
+<p>
+Array variables are supported, but are read-only by default.  For example:
+
+<blockquote>
+<pre>
+int   a[100][200];
+</pre>
+</blockquote>
+
+In this case, reading the variable 'a' returns a pointer to the first
+element of the array <tt>&a[0][0]</tt>.  Trying to modify 'a' results
+in an error.  This is because SWIG needs more information about array
+dimensions and shape to properly to change the array contents.  To
+work around this limitation, it is probably easier to simply write a
+few simple assist functions like this:
+
+<blockquote>
+<pre>
+%inline %{
+void a_set(int i, int j, int val) {
+   a[i][j] = val;
+}
+int a_get(int i, int j) {
+   return a[i][j];
+}
+%}
+</pre>
+</blockquote>
+
+<h3>Creating read-only variables</h3>
 
 A read-only variable can be created by using the <tt>%readonly</tt>
 directive as shown :<p>
@@ -880,12 +935,22 @@ double	x,y			// read/write
 The <tt>%readonly</tt> directive enables read-only mode until it is
 explicitly disabled using the <tt>%readwrite</tt> directive.<p>
 
-<h3> Renaming declarations</h3>
+Read-only variables are also created when declarations are declared as <tt>const</tt>.
+For example:
+
+<blockquote>
+<pre>
+const int foo;               /* Read only variable */
+char * const version="1.0";  /* Read only variable */
+</pre>
+</blockquote>
+
+<h3>Renaming declarations</h3>
 
 Normally, the name of a C function is used as the name of the command
-added to the target scripting language. Unfortunately, this name may
+added to the target scripting language. However, this name may
 conflict with a keyword or already existing function in the scripting
-language. Naming conflicts can be resolved using the <tt>%name</tt>
+language. To resolve a name conflict, use the <tt>%name</tt>
 directive as shown :<p>
 
 <p>
@@ -896,13 +961,13 @@ directive as shown :<p>
 
 </pre></blockquote>
 
-SWIG still calls the correct C functions, but in this case the
+SWIG still calls the correct C function, but in this case the
 function <tt>print()</tt> will really be called "<tt>my_print()</tt>"
-in the scripting language. <p>
+in the target language. <p>
 
 <p>
 A more powerful renaming operation can be performed with the<tt>
-%renam</tt>e directive as follows :<p>
+%rename</tt> directive as follows :<p>
 
 <p>
 <blockquote><pre>%rename oldname newname;
@@ -921,20 +986,19 @@ all to `output' by specifying :<p>
 </pre></blockquote>
 
 <p>
-SWIG does not perform any checks to see if the functions it adds are
+SWIG does not currently perform any checks to see if the functions it wraps are
 already defined in the target scripting language. However, if you are
 careful about namespaces and your use of modules, you can usually
 avoid these problems.<p>
 
-<h3> Default/optional arguments</h3>
+<h3>Default/optional arguments</h3>
 
-SWIG allows default arguments to be used in both C/C++ code as follows :<p>
+SWIG supports default arguments in both C and C++ code.  For example:
 <p>
 <blockquote><pre>int plot(double x, double y, int color=WHITE);
 
 </pre></blockquote>
-To specify a default argument, simply specify it the function
-prototype as shown. SWIG will generate wrapper code in which the
+In this case, SWIG generates wrapper code where the
 default arguments are optional. For example, this function could be
 used in Tcl as follows :<p>
 
@@ -944,83 +1008,144 @@ used in Tcl as follows :<p>
 
 </pre></blockquote>
 
-While the ANSI C standard does not specify default arguments, default
-arguments used in a SWIG generated interface work with both C and
-C++.<p>
+Although the ANSI C standard does not specify default arguments, default
+arguments specified in a SWIG interface work with both C and C++.
 
-<h3> Pointers to functions</h3>
+<h3>Pointers to functions and callbacks</h3>
 
-At the moment, the SWIG parser has difficulty handling pointers to
-functions (a deficiency that is being corrected). However, having
-function pointers is useful for managing C callback functions and
-other things. To properly handle function pointers, it is currently
-necessary to use <tt>typedef.</tt> For example, the function <p>
-
-<blockquote><pre>
-void do_operation(double (*op)(double,double), double a, double b);
-</pre></blockquote>
-<p>
-
-should be handled as follows :<p>
+Occasionally, a C library may include functions that expect to receive
+pointers to functions--possibly to serve as callbacks. SWIG
+provides full support for function pointers provided that the callback
+functions are defined in C and not in the target language.  For example,
+consider a function like this:
 
 <blockquote><pre>
-typedef double (*OP_FUNC)(double,double);
-void do_operation(OP_FUNC op, double a, double b);
-
+int binary_op(int a, int b, int (*op)(int,int));
 </pre></blockquote>
+<p>
 
-SWIG understands both the typedef declaration and the later function
-call. It will treat <tt>OP_FUNC</tt> just like any other complex
-datatype. In order for this approach to work, it is necessary that the
-typedef declaration be present in the original C code--otherwise, the
-C compiler will complain. If you are building a separate interface
-file to an existing C program and do not want to make changes to the C
-source, you can also do the following :<p>
+When you first wrap something like this into an extension module, you
+may find the function to be impossible to use.  For instance, in Python:
 
 <blockquote><pre>
-// File : interface.i
-%typedef double (*OP_FUNC)(double,double);
-double do_operation(OP_FUNC op, double a, double b);
-</pre></blockquote>
-<p>
-
-<tt>%typedef</tt> forces SWIG to generate a <tt>typedef</tt> in the C
-output code for you. This would allow the interface file shown to work
-with the original unmodified C function declaration.<p>
-
-<p>
-Constants containing the addresses of C functions can also be
-created. For example, suppose you have the following callback
-functions :<p>
-
-<p>
-<blockquote><pre>extern double op_add(double a, double b);
-extern double op_sub(double a, double b);
-extern double op_mul(double a, double b);
-
-</pre></blockquote>
-The addresses of these functions could be installed as scripting
-language constants as follows :<p>
-<p>
-<blockquote><pre>// interface.i
-typedef double (*OP_FUNC)(double,double);
+>>> def add(x,y):
+...     return x+y
 ...
-const OP_FUNC ADD = op_add;
-const OP_FUNC SUB = op_sub;
-const OP_FUNC MUL = op_mul;
-...
+>>> binary_op(3,4,add)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+TypeError: Type error. Expected _p_f_int_int__int
+>>>
+</pre>
+</blockquote>
 
+The reason for this error is that SWIG doesn't know how to map a scripting
+language function into a C callback.  However, existing C functions can
+be used as arguments provided you install them as constants.
+The easiest way to do this is to use the <tt>%constant</tt> directive like this:
+
+<blockquote><pre>
+/* Function with a callback */
+int binary_op(int a, int b, int (*op)(int,int));
+
+/* Some callback functions */
+%constant int add(int,int);
+%constant int sub(int,int);
+%constant int mul(int,int);
 </pre></blockquote>
-When wrapped, this would create the constants
-<tt>ADD</tt>,<tt>SUB</tt>, and <tt>MUL</tt> containing the addresses
-of C callback functions. We could then pass these to other C functions
-expecting such function pointers as arguments as shown (for Tcl) :<p>
 
-<p>
-<blockquote><pre>%do_operation $ADD 3 4
+In this case, <tt>add</tt>, <tt>sub</tt>, and <tt>mul</tt> become function pointer
+constants in the target scripting language.  This allows you to use them as follows:
+
+<blockquote>
+<pre>
+>>> binary_op(3,4,add)
 7
-%
+>>> binary_op(3,4,mul)
+12
+>>>
+</pre>
+</blockquote>
+
+Unfortunately, by declaring the callback functions as constants, they are no longer accesible
+as functions. For example:
+
+<blockquote>
+<pre>
+>>> add(3,4)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+TypeError: object is not callable: '_ff020efc_p_f_int_int__int'
+>>>
+</pre>
+</blockquote>
+
+If you want to make a function available as both a callback function and a function, you
+can use the <tt>%callback</tt> and <tt>%nocallback</tt> directives like this:
+
+<blockquote>
+<pre>
+/* Function with a callback */
+int binary_op(int a, int b, int (*op)(int,int));
+
+/* Some callback functions */
+%callback("%s_cb")
+int add(int,int);
+int sub(int,int);
+int mul(int,int);
+%nocallback
 </pre></blockquote>
+
+The argument to <tt>%callback</tt> is a printf-style format string that
+specifies the naming convention for the callback constants (<tt>%s</tt> gets replaced
+by the function name).  The callback mode remains in effect until it is explicitly
+disabled using <tt>%nocallback</tt>.  When you do this, the interface now works as follows:
+
+<blockquote>
+<pre>
+>>> binary_op(3,4,add_cb)
+7
+>>> binary_op(3,4,mul_cb)
+12
+>>> add(3,4)
+7
+>>> mul(3,4)
+12
+</pre>
+</blockquote>
+
+Notice that when the function is used as a callback, special names
+such as <tt>add_cb</tt> is used instead.  To call the function
+normally, just use the original function name such as <tt>add()</tt>.
+
+<p>
+SWIG provides a number of extensions to standard C printf formatting
+that may be useful in this context.  For instance, the following
+variation installs the callbacks as all upper-case constants such as
+<tt>ADD</tt>, <tt>SUB</tt>, and <tt>MUL</tt>:
+
+<blockquote><pre>
+/* Some callback functions */
+%callback("%(upper)s")
+int add(int,int);
+int sub(int,int);
+int mul(int,int);
+%nocallback
+</pre></blockquote>
+
+A format string of <tt>"%(lower)s"</tt> converts all characters to lower-case.
+A string of <tt>"%(title)s"</tt> capitalizes the first character and converts the
+rest to lower case.
+
+<p>
+And now, a few final notes about function pointer support.  Although SWIG
+does not normally allow callback functions to be written in the target language, this
+can be accomplished with the use of typemaps and other advanced wrapping techniques.
+Generally speaking, this is accomplished by writing a C stub that serves as the
+callback but which transfers control back to the scripting language interpreter.
+In addition, SWIG does not currently support pointers to C++ member functions.  No
+such support is planned at this time due to the fact that such pointers can't
+be easily interchanged with standard C pointers.
 
 <h2> Structures, unions, and object oriented C programming</h2>
 
