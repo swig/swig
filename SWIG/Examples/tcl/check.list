@@ -1,9 +1,11 @@
 # see top-level Makefile.in
 class
 constants
+contract
 enum
 funcptr
 import
+mpointer
 multimap
 operator
 pointer

@@ -1,8 +1,7 @@
-# file: example.tcl
+# file: runme.tcl
 # Try to load as a dynamic module.
 
-catch { load ./example.so example}
-catch { load ./example.dll example}    ;# Windows
+catch { load ./example[info sharedlibextension] example}
 
 # Call our gcd() function
 set x 42
