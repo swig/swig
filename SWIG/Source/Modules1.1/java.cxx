@@ -141,6 +141,8 @@ public:
     // Add typemap definitions
     SWIG_typemap_lang("java");
     SWIG_config_file("java.swg");
+
+    allow_overloading();
   }
 
   /* ---------------------------------------------------------------------
@@ -337,17 +339,14 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
-    char *name = GetChar(n,"name");
-    char *iname = GetChar(n,"sym:name");
+    String   *symname = Getattr(n,"sym:name");
     SwigType *t = Getattr(n,"type");
     ParmList *l = Getattr(n,"parms");
-    char      source[256];
     String    *tm;
     Parm      *p;
     Parm      *jnip;
     Parm      *jtypep;
     int       i;
-    char		*javaReturnSignature = 0;
     String    *jnirettype = NewString("");
     String    *javarettype = NewString("");
     String    *cleanup = NewString("");
@@ -356,6 +355,7 @@ public:
     String    *javaParameterSignature = NewString("");
     int       num_arguments = 0;
     int       num_required = 0;
+    String    *overloaded_name = getOverloadedName(n);
 
   /* This is a gross hack.  To get typemaps properly installed, we have to check for
      shadows on all types first */
@@ -374,20 +374,18 @@ public:
   */
     if(shadow && wrapping_member && !enum_constant_flag) {
       String *member_function_name = NewString("");
-      String *java_function_name = NewString(iname);
-      if(Cmp(iname, Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name))) == 0)
+      if(Cmp(symname, Swig_name_set(Swig_name_member(shadow_classname, shadow_variable_name))) == 0)
 	Printf(member_function_name,"set");
       else 
 	Printf(member_function_name,"get");
       Putc(toupper((int) *Char(shadow_variable_name)), member_function_name);
       Printf(member_function_name, "%s", Char(shadow_variable_name)+1);
 
-      Setattr(n,"java:shadfuncname", member_function_name);
-      Setattr(n,"java:funcname", iname);
+      Setattr(n,"java:shadowfuncname", member_function_name);
+      Setattr(n,"java:funcname", symname);
 
-      javaShadowFunctionHandler(n, NOT_VIRTUAL);
+      javaShadowFunctionHandler(n);
 
-      Delete(java_function_name);
       Delete(member_function_name);
     }
 
@@ -401,7 +399,7 @@ public:
     Wrapper *f = NewWrapper();
 
     // Make a wrapper name for this function
-    String *jniname = makeValidJniName(iname);
+    String *jniname = makeValidJniName(overloaded_name);
     String *wname = Swig_name_wrapper(jniname);
     Delete(jniname);
 
@@ -429,7 +427,7 @@ public:
     }
 
     Printf(module_class_code, "  %s ", module_method_modifiers);
-    Printf(module_class_code, "native %s %s(", javarettype, iname);
+    Printf(module_class_code, "native %s %s(", javarettype, overloaded_name);
 
     Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NULL);
 
@@ -456,8 +454,9 @@ public:
       String   *ln = Getattr(p,"lname");
       String   *javaparamtype = NewString("");
       String   *jni_param_type = NewString("");
+      String   *arg = NewString("");
 
-      sprintf(source,"j%s", Char(ln));
+      Printf(arg,"j%s", ln);
 
       /* Get the jni types of the parameter */
       if ((tm = Getattr(jnip,"tmap:jni"))) {
@@ -481,20 +480,20 @@ public:
 
       /* Add to java function header */
       if(gencomma) Printf(module_class_code, ", ");
-      Printf(module_class_code, "%s %s", javaparamtype, source);
+      Printf(module_class_code, "%s %s", javaparamtype, arg);
 
       gencomma = 1;
 
       // Add to Jni function header
-      Printv(f->def, ", ", jni_param_type, " ", source, NULL);
+      Printv(f->def, ", ", jni_param_type, " ", arg, NULL);
 
       // Get typemap for this argument
       if ((tm = Getattr(p,"tmap:in"))) {
-	Replaceall(tm,"$source",source); /* deprecated */
+	Replaceall(tm,"$source",arg); /* deprecated */
 	Replaceall(tm,"$target",ln); /* deprecated */
-	Replaceall(tm,"$arg",source); /* deprecated? */
-	Replaceall(tm,"$input", source);
-	Setattr(p,"emit:input", source);
+	Replaceall(tm,"$arg",arg); /* deprecated? */
+	Replaceall(tm,"$input", arg);
+	Setattr(p,"emit:input", arg);
 	Printf(f->code,"%s\n", tm);
 	p = Getattr(p,"tmap:in:next");
       } else {
@@ -504,6 +503,7 @@ public:
       }
       Delete(javaparamtype);
       Delete(jni_param_type);
+      Delete(arg);
     }
 
     /* Insert constraint checking code */
@@ -582,7 +582,7 @@ public:
 	Printf(f->code,"%s\n", tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
-		     "Unable to use return type %s in function %s.\n", SwigType_str(t,0), name);
+		 "Unable to use return type %s in function %s.\n", SwigType_str(t,0), Getattr(n,"name"));
       }
     }
 
@@ -624,12 +624,19 @@ public:
     if(!native_func)
       Wrapper_print(f,f_wrappers);
 
+    /* Emit warnings for the few cases that can't be overloaded in Java */
+    if (Getattr(n,"sym:overloaded")) {
+      if (!Getattr(n,"sym:nextSibling"))
+        Swig_overload_rank(n);
+    }
+
     Delete(jnirettype);
     Delete(javarettype);
     Delete(cleanup);
     Delete(outarg);
     Delete(body);
     Delete(javaParameterSignature);
+    Delete(overloaded_name);
     DelWrapper(f);
     return SWIG_OK;
   }
@@ -1130,10 +1137,12 @@ public:
     Language::memberfunctionHandler(n);
     
     if (shadow) {
-      String* java_function_name = Swig_name_member(shadow_classname, Getattr(n, "sym:name"));
-      Setattr(n,"java:shadfuncname", Getattr(n, "sym:name"));
+      String* overloaded_name = getOverloadedName(n);
+      String* java_function_name = Swig_name_member(shadow_classname, overloaded_name);
+      Setattr(n,"java:shadowfuncname", Getattr(n, "sym:name"));
       Setattr(n,"java:funcname", java_function_name);
-      javaShadowFunctionHandler(n, IsVirtual);
+      javaShadowFunctionHandler(n);
+      Delete(overloaded_name);
     }
     return SWIG_OK;
   }
@@ -1147,12 +1156,14 @@ public:
     Language::staticmemberfunctionHandler(n);
     
     if (shadow) {
-      String* java_function_name = Swig_name_member(shadow_classname, Getattr(n,"sym:name"));
-      Setattr(n,"java:shadfuncname", Getattr(n,"sym:name"));
+      String* overloaded_name = getOverloadedName(n);
+      String* java_function_name = Swig_name_member(shadow_classname, overloaded_name);
+      Setattr(n,"java:shadowfuncname", Getattr(n,"sym:name"));
       Setattr(n,"java:funcname", java_function_name);
       static_flag = 1;
-      javaShadowFunctionHandler(n, NOT_VIRTUAL);
+      javaShadowFunctionHandler(n);
       static_flag = 0;
+      Delete(overloaded_name);
     }
     return SWIG_OK;
   }
@@ -1161,15 +1172,14 @@ public:
      Function called for creating a java class wrapper function around a c++ function in the 
      java wrapper class. Used for both static and non static functions.
      C++ static functions map to java static functions.
-     Two extra attributes in the Node must be available. These are "java:shadfuncname" - the name of the java class shadow 
+     Two extra attributes in the Node must be available. These are "java:shadowfuncname" - the name of the java class shadow 
      function, which in turn will call "java:funcname" - the java native function name which wraps the c++ function.
   */
-  void javaShadowFunctionHandler(Node* n, int is_virtual) {
+  void javaShadowFunctionHandler(Node* n) {
     SwigType  *t = Getattr(n,"type");
     ParmList  *l = Getattr(n,"parms");
     String*   java_function_name = Getattr(n,"java:funcname");
-    String*   java_shadow_function_name = Getattr(n,"java:shadfuncname");
-    char      arg[256];
+    String*   java_shadow_function_name = Getattr(n,"java:shadowfuncname");
     String    *tm;
     Parm      *jstypep;
     Parm      *p;
@@ -1241,6 +1251,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
   /* Output each parameter */
     for (i = 0, p=l, jstypep=l; i < num_arguments; i++) {
       if(Getattr(p,"ignore")) continue;
+      String* arg = NewString("");
 
       /* Ignore the 'this' argument for variable wrappers */
       if (!(variable_wrapper_flag && i==0)) 
@@ -1266,9 +1277,9 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
 
 	  /* Create a name for the parameter */
 	  if(pn && *(Char(pn)))
-	    strcpy(arg,Char(pn));
+            Printv(arg, pn, NULL);
 	  else {
-	    sprintf(arg,"arg%d",i);
+            Printf(arg, "arg%d", i);
 	  }
   
 	  if (gencomma)
@@ -1296,6 +1307,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
 	jstypep = nextSibling(jstypep);
       }
       p = nextSibling(p);
+      Delete(arg);
     }
 
     if(SwigType_type(t) == T_ARRAY && is_shadow(getArrayType(t))) {
@@ -1353,7 +1365,6 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
 
   virtual int constructorHandler(Node *n) {
 
-    char *iname = GetChar(n,"sym:name");
     ParmList *l = Getattr(n,"parms");
     String    *tm;
     Parm      *jstypep;
@@ -1365,12 +1376,11 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
     Language::constructorHandler(n);
 
     if(shadow) {
+      String *overloaded_name = getOverloadedName(n);
       String *nativecall = NewString("");
-      char arg[256];
   
       Printf(shadow_code, "  public %s(", shadow_classname);
-  
-      Printv(nativecall, "    this(", module, ".", Swig_name_construct(iname), "(", NULL);
+      Printv(nativecall, "    this(", module, ".", Swig_name_construct(overloaded_name), "(", NULL);
     
       int pcount = ParmList_len(l);
       if(pcount == 0)  // We must have a default constructor
@@ -1386,12 +1396,13 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
 	SwigType *pt = Getattr(p,"type");
 	String   *pn = Getattr(p,"name");
 	String   *javaparamtype = NewString("");
+        String   *arg = NewString("");
   
 	/* Create a name for the parameter */
 	if(pn && *(Char(pn)))
-	  strcpy(arg,Char(pn));
+          Printv(arg, pn, NULL);
 	else {
-	  sprintf(arg,"arg%d",i);
+          Printf(arg, "arg%d", i);
 	}
   
 	if(is_shadow(pt))
@@ -1423,6 +1434,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
 	}
 	p = nextSibling(p);
 	Delete(javaparamtype);
+        Delete(arg);
       }
   
       Printf(shadow_code, ") {\n");
@@ -1430,8 +1442,10 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
   
       Printf(shadow_code, "%s", nativecall);
       Printf(shadow_code, "  }\n\n");
+      Delete(overloaded_name);
       Delete(nativecall);
     }
+
     return SWIG_OK;
   }
 
@@ -1441,7 +1455,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
 
   virtual int destructorHandler(Node *n) {
     Language::destructorHandler(n);
-    char *symname = GetChar(n,"sym:name");
+    String *symname = Getattr(n,"sym:name");
     
     if(shadow) {
       Printv(destructor_call, "      ", module, ".", Swig_name_destroy(symname), "(swigCPtr);\n", NULL);
@@ -1559,6 +1573,19 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
     Language::memberconstantHandler(n);
     wrapping_member = 0;
     return SWIG_OK;
+  }
+
+  String * getOverloadedName(Node *n) {
+
+    /* Although the JNI is designed to handle overloaded Java functions, a Java long is used for all classes in the SWIG
+     * JNI native interface. The JNI native interface function is thus mangled when overloaded to give a unique name. */
+    String *overloaded_name = NewStringf("%s", Getattr(n,"sym:name"));
+
+    if (Getattr(n,"sym:overloaded")) {
+        Printv(overloaded_name, Getattr(n,"sym:overname"), NULL);
+    }
+
+    return overloaded_name;
   }
 };   /* class JAVA */
 
