@@ -1,5 +1,8 @@
 Version 1.3.18 (In progress)
 ============================
+02/07/2003: Fixed [ 651355 ] Syntax error with cstring.i
+            Reported by Omri Barel.
+
 02/07/2003: Fixed [ 663632 ] incompatibility with standard cpp.
             This is a refinement that fixes this problem:
 
