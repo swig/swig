@@ -499,7 +499,7 @@
 }
 
 %typemap("throw") SWIGTYPE {
-  PyErr_SetObject(PyExc_RuntimeError,"$1_type");
+  PyErr_SetString(PyExc_RuntimeError,"$1_type");
   SWIG_fail;
 }
 
