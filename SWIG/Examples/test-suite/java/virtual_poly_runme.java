@@ -18,31 +18,24 @@ public class virtual_poly_runme {
     NDouble d = new NDouble(3.5);
     NInt i = new NInt(2);
 
-    NInt j = virtual_poly.incr(i);
     //
-    // These two natural 'copy' forms fail, only java and csharp
-    // because no polymorphic return types are supported. 
-    // But we can live with this restriction, more or less.
+    // These two natural 'copy' forms fail because no covariant (polymorphic) return types 
+    // are supported in Java. 
     //
     // NDouble dc = d.copy();
     // NInt ic = i.copy();
 
     //
-    // These two 'copy' forms work, but we end  with plain NNumbers
+    // Unlike C++, we have to downcast instead.
     //
-    NNumber dc = d.copy();
-    NNumber ic = i.copy();
+    NDouble dc = (NDouble)d.copy();
+    NInt ic = (NInt)i.copy();
 
+    NDouble ddc = (NDouble)NDouble.narrow(dc);
+    NInt dic = (NInt)NInt.narrow(ic);
 
-    //
-    // The real problem is that there is no way to recover the
-    // original NInt or NDouble objects, even when you try to use the
-    // plain and natural C++ dynamic_cast operation, or the user
-    // downcasting mechanism:
-    //
-
-    // don't work
-    NDouble ddc = NDouble.narrow(dc);
-    NInt dic = NInt.narrow(ic);
+    virtual_poly.incr(ic);
+    if ( (i.get() + 1) != ic.get() )
+      throw new RuntimeException("incr test failed");
   }
 }
