@@ -2,6 +2,19 @@ Version 1.3.18 (In progress)
 ============================
 
 03/20/2003: beazley
+            Fixed a C++ scoping bug related to code like this:
+
+                class Foo {
+                public:
+                     int Foo::bar();
+                };
+
+            Previously, SWIG just tossed out the Foo::bar() declaration. Now,
+            the declaration is wrapped provided that the prefix is exactly the
+            same as the current scope (including any enclosing namespaces).
+            Reported by Bruce Lowery.
+
+03/20/2003: beazley
             Incorporated [ 696516 ] Enabling exception processing for data member access.
             In some compilers, attribute access can generate exceptions.  However,
             SWIG ordinarily assumes that no exceptions will be raised.  To disable this,
