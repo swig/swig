@@ -1,4 +1,5 @@
 .deps
+.dirstamp
 parser.c
 parser.h
 cscanner.o
