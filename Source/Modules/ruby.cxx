@@ -261,6 +261,23 @@ static String *method_decl(SwigType *s, const String_or_char *id, List *args, in
 }
 
 
+static void
+Swig_typemap_copy_pname_to_lname(ParmList *parms)
+{
+  Parm *p;
+  String *pname;
+  String *lname;
+  
+  p = parms;
+  while (p) {
+    pname = Getattr(p,"name");
+    lname = Copy(pname);
+    Setattr(p,"lname",lname);
+    p = nextSibling(p);
+  }
+}
+
+
 /**********************************************************************************
  *
  * END OF TYPE UTILITY FUNCTIONS
@@ -2218,6 +2235,7 @@ public:
     String *tm;
     String *wrap_args;
     String *return_type;
+    Parm* p;
     String *value = Getattr(n, "value");
     String *storage = Getattr(n,"storage");
     bool pure_virtual = false;
@@ -2271,12 +2289,20 @@ public:
     /* attach typemaps to arguments (C/C++ -> Ruby) */
     String *arglist = NewString("");
 
+
+    /**
+     * For each parameter to the C++ member function, copy the parameter name
+     * to its "lname"; this ensures that Swig_typemap_attach_parms() will do
+     * the right thing when it sees strings like "$1" in your "inv" typemaps.
+     * Not sure if it's OK to leave it like this, but seems OK so far.
+     */
+    Swig_typemap_copy_pname_to_lname(l);
+    
     Swig_typemap_attach_parms("in", l, w);
     Swig_typemap_attach_parms("inv", l, w);
     Swig_typemap_attach_parms("outv", l, w);
     Swig_typemap_attach_parms("argoutv", l, w);
 
-    Parm* p;
     int num_arguments = emit_num_arguments(l);
     int i;
     char source[256];
@@ -2303,7 +2329,7 @@ public:
         Replaceall(tm, "$input", source);
         Replaceall(tm, "$owner", "0");
         Printv(wrap_args, tm, "\n", NIL);
-        Wrapper_add_localv(w, source, "VALUE", source, "= 0", NIL);
+        Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
         Printv(arglist, source, NIL);
 	p = Getattr(p, "tmap:inv:next");
 	continue;
