@@ -2872,8 +2872,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Replaceall(tm, "$result", "c_result");
       Printv(w->code, tm, "\n", NIL);
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
-		   "Unable to return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), classname, name);
+      Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
+		   "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), classname, name);
       status = SWIG_ERROR;
     }
   }
