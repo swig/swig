@@ -20,10 +20,10 @@ RUNTIME     = Runtime
 swig: source swig.spec
 
 source:
-	@cd $(SOURCE); $(MAKE)
+	@cd $(SOURCE) && $(MAKE)
 
 runtime:
-	@cd $(RUNTIME); $(MAKE)
+	@cd $(RUNTIME) && $(MAKE)
 
 swig.spec: $(srcdir)/swig.spec.in config.status
 	@CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=swig.spec $(SHELL) ./config.status
@@ -141,7 +141,7 @@ check-%-test-suite:
 
 gifplot-library:
 	@echo $(ACTION)ing Examples/GIFPlot/Lib
-	@cd Examples/GIFPlot/Lib ; $(MAKE) -k -s $(ACTION)
+	@cd Examples/GIFPlot/Lib && $(MAKE) -k -s $(ACTION)
 
 check-gifplot:					\
 	check-tcl-gifplot			\
@@ -231,12 +231,12 @@ clean-objects: clean-source clean-runtime
 
 clean-source:
 	@echo cleaning Source
-	@cd $(SOURCE); $(MAKE) -s clean
+	@cd $(SOURCE) && $(MAKE) -s clean
 	@rm -f $(TARGET)
 
 clean-runtime:
 	@echo cleaning Runtime
-	@cd $(RUNTIME); $(MAKE) -s clean
+	@cd $(RUNTIME) && $(MAKE) -s clean
 
 clean-examples:
 	@$(MAKE) -k -s check-examples ACTION=clean
@@ -269,12 +269,12 @@ distclean-objects: distclean-source distclean-runtime
 
 distclean-source:
 	@echo dist cleaning Source
-	@cd $(SOURCE); $(MAKE) -s distclean
+	@cd $(SOURCE) && $(MAKE) -s distclean
 	@rm -f $(TARGET)
 
 distclean-runtime:
 	@echo dist cleaning Runtime
-	@cd $(RUNTIME); $(MAKE) -s distclean
+	@cd $(RUNTIME) && $(MAKE) -s distclean
 
 distclean-test-suite:
 	@echo dist cleaning Examples/test-suite
@@ -341,7 +341,7 @@ install-lib:
 	    do							\
 	    dst=$(DESTDIR)$(SWIG_LIB)/$$lang;			\
 	    $(MKINSTDIRS) $$dst;				\
-	    ( cd $(srcdir)/Lib/$$lang;				\
+	    ( cd $(srcdir)/Lib/$$lang &&			\
 	      doti="`ls *.i 2>/dev/null`";			\
 	      dotswg="`ls *.swg 2>/dev/null`";			\
 	      if [ -f extra-install.list ]; then		\
@@ -360,7 +360,7 @@ install-lib:
 
 
 install-runtime:
-	@cd $(RUNTIME); $(MAKE) install
+	@cd $(RUNTIME) && $(MAKE) install
 
 
 install-m4:
@@ -379,18 +379,18 @@ uninstall: uninstall-main uninstall-lib uninstall-m4
 
 uninstall-main:
 	@echo "Uninstalling $(BIN_DIR)/$(TARGET)"
-	rm -f $(DESTDIR)$(BIN_DIR)/$(TARGET);
+	rm -f $(DESTDIR)$(BIN_DIR)/$(TARGET)
 
 uninstall-lib:
 	@echo "Uninstalling the SWIG library"
-	rm -rf $(DESTDIR)$(SWIG_LIB)/;
+	rm -rf $(DESTDIR)$(SWIG_LIB)/
 
 uninstall-runtime:
-	@cd $(RUNTIME); $(MAKE) uninstall
+	@cd $(RUNTIME) && $(MAKE) uninstall
 
 uninstall-m4:
 	@echo "Uninstalling $(M4_INSTALL_DIR)/swig.m4"
-	rm -f $(M4_INSTALL_DIR)/swig.m4;
+	rm -f $(M4_INSTALL_DIR)/swig.m4
 
 ############################################################################
 # DIST and other maintenance

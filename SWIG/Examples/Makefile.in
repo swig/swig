@@ -550,12 +550,12 @@ OCAMLMKTOP=@OCAMLMKTOP@ $(SWIGWHERE)
 NOLINK ?= false
 OCAMLPP= -pp "camlp4o ./swigp4.cmo"
 OCAMLCORE=\
-	rm -rf swig.mli swig.ml swigp4.ml ;\
-	$(SWIG) -ocaml -co swig.mli 2>/dev/null ; \
-	$(SWIG) -ocaml -co swig.ml 2>/dev/null ; \
-	$(SWIG) -ocaml -co swigp4.ml 2>/dev/null ; \
-	$(OCC) -c swig.mli ; \
-	$(OCC) -c swig.ml ; \
+	rm -rf swig.mli swig.ml swigp4.ml && \
+	$(SWIG) -ocaml -co swig.mli 2>/dev/null &&  \
+	$(SWIG) -ocaml -co swig.ml 2>/dev/null &&  \
+	$(SWIG) -ocaml -co swigp4.ml 2>/dev/null &&  \
+	$(OCC) -c swig.mli &&  \
+	$(OCC) -c swig.ml &&  \
 	$(OCC) -I `camlp4 -where` -pp "camlp4o pa_extend.cmo q_MLast.cmo" \
 		-c swigp4.ml
 
