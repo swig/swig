@@ -643,7 +643,7 @@ PYTHON::classHandler(Node *n) {
     have_constructor = 0;
     have_repr = 0;
 
-    shadow_indent = tab4;
+    shadow_indent = (String *) tab4;
 
     class_name = Getattr(n,"sym:name");
     real_classname = Getattr(n,"name");
