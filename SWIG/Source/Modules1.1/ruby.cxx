@@ -539,7 +539,6 @@ RUBY::insertCleanupCode(ParmList *l, String *cleanup) {
 
 void
 RUBY::insertArgOutputCode(ParmList *l, String *outarg, int& need_result) {
-  Parm *p;
   String *tm;
   for (Parm *p = l; p; ) {
     if ((tm = Getattr(p,"tmap:argout"))) {
@@ -593,15 +592,12 @@ RUBY::validIdentifier(String *s) {
 
 int
 RUBY::functionWrapper(Node *n) {
-  char *name = GetChar(n,"name");
   char *iname = GetChar(n,"sym:name");
   SwigType *t = Getattr(n,"type");
   ParmList *l = Getattr(n,"parms");
   String *tm;
   String *cleanup, *outarg;
   Wrapper *f;
-  int i;
-  Parm *p;
 
   char mname[256], inamebuf[256];
   int need_result = 0;

@@ -350,9 +350,7 @@ void symbol_handler(FILE *f) {
   Printf(f,"<p><b>Nested scopes</b><br>\n");
   Printf(f,"<blockquote><pre>\n");
   {
-    String *key;
     Hash   *h;
-    Node   *n;
     h = firstChild(sym);
     while (h) {
       Printf(f,"<a href=\"symbol.html?sym=0x%x\">%s</a>\n", h, Getattr(h,"name"));

@@ -126,8 +126,6 @@ static int name_mangle(String *r) {
 
 String *
 Swig_name_mangle(String_or_char *s) {
-  char  *c;
-  int    special = 0;
   String *r = NewString(s);
   name_mangle(r);
   return r;
@@ -143,7 +141,6 @@ String *
 Swig_name_wrapper(String_or_char *fname) {
   String *r;
   String *f;
-  char *c;
 
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
@@ -490,7 +487,6 @@ Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
  * ----------------------------------------------------------------------------- */
 
 static void merge_features(Hash *features, Node *n) {
-  String *fs;
   String *key;
   if (!features) return;
   for (key = Firstkey(features); key; key = Nextkey(features)) {
@@ -507,8 +503,6 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   DOH    *rn = 0;
   Hash   *n;
   char   *ncdecl = 0;
-  const char *dcolon = "::";
-
   
   if (!features) return;
 

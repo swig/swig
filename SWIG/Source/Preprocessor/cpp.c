@@ -29,14 +29,14 @@ static Hash     *included_files = 0;
 
 /* Test a character to see if it starts an identifier */
 static int
-isidentifier(char c) {
+isidentifier(int c) {
   if ((isalpha(c)) || (c == '_') || (c == '$')) return 1;
   else return 0;
 }
 
 /* Test a character to see if it valid in an identifier (after the first letter) */
 static int
-isidchar(char c) {
+isidchar(int c) {
   if ((isalnum(c)) || (c == '_') || (c == '$')) return 1;
   else return 0;
 }
@@ -594,7 +594,7 @@ expand_macro(String_or_char *name, List *args)
 	    if (*t == '\002') {
 	      t--;
 	      while (t >= s) {
-		if (isspace(*t)) t--;
+		if (isspace((int) *t)) t--;
 		else if (*t == ',') {
 		  *t = ' ';
 		} else break;
@@ -825,9 +825,8 @@ static int
 check_id(DOH *s)
 {
   static SwigScanner *scan = 0;
+  int c;
 
-  int c, state = 0;
-  int hasvalue = 0;
   Seek(s,0,SEEK_SET);
 
   if (!scan) {
@@ -1220,7 +1219,7 @@ Preprocessor_parse(String *s)
       } else if (Cmp(id,"pragma") == 0) {
 	if (Strncmp(value,"SWIG ",5) == 0) {
 	  char *c = Char(value)+5;
-	  while (*c && (isspace(*c))) c++;
+	  while (*c && (isspace((int)*c))) c++;
 	  if (*c) {
 	    if (Strncmp(c,"nowarn=",7) == 0) {
 	      Swig_warnfilter(c+7,1);

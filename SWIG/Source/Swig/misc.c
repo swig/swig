@@ -215,7 +215,6 @@ String *
 Swig_scopename_prefix(String *s) {
   char tmp[512];
   char   *c, *cc;
-  String *b;
   if (!Strstr(s,"::")) return 0;
   strcpy(tmp,Char(s));
   c = tmp;
@@ -246,7 +245,6 @@ String *
 Swig_scopename_base(String *s) {
   char tmp[512];
   char   *c, *cc;
-  String *b;
   if (!Strstr(s,"::")) return NewString(s);
   strcpy(tmp,Char(s));
   c = tmp;

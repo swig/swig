@@ -148,7 +148,6 @@ Swig_error_silent(int s) {
 void
 Swig_warnfilter(const String_or_char *wlist, int add) {
   char *c;
-  int  wnum;
   String *s;
 
   if (!filter) filter = NewString("");

@@ -266,7 +266,6 @@ emit_isvarargs(ParmList *p) {
 
 static
 void replace_args(Parm *p, String *s) {
-  int i;
   while (p) {
     String *n = Getattr(p,"name");
     if (n) {

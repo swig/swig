@@ -28,7 +28,6 @@ int             ImportMode = 0;
 int             IsVirtual = 0;
 static String  *AttributeFunctionGet = 0;
 static String  *AttributeFunctionSet = 0;
-static String  *ActionFunc = 0;
 static int      cplus_mode = 0;
 static Node    *CurrentClass = 0;
 int             line_number = 0;
@@ -216,7 +215,6 @@ Language::~Language() {
 
 int Language::emit_one(Node *n) {
     int ret;
-    Symtab *symtab = 0;
   
     if (Getattr(n,"feature:ignore")) return SWIG_OK;
 
@@ -994,8 +992,8 @@ Language::membervariableHandler(Node *n) {
     
 	if (!Getattr(n,"feature:immutable")) {
 	    int       make_wrapper = 1;
-	    String *tm;
-	    String *target;
+	    String *tm = 0;
+	    String *target = 0;
 	    if (!Extend) {
 		target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
 		tm = Swig_typemap_lookup_new("memberin",n,target,0);
@@ -1126,7 +1124,6 @@ int Language::externDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::enumDeclaration(Node *n) {
-    String *name = Getattr(n,"name");
     if (!ImportMode) {
 	emit_children(n);
     }
@@ -1213,8 +1210,6 @@ int Language::classDeclaration(Node *n) {
     String *name = Getattr(n,"name");
     String *tdname = Getattr(n,"tdname");
     String *symname = Getattr(n,"sym:name");
-    String *unnamed = Getattr(n,"unnamed");
-    String *storage = Getattr(n,"storage");
 
     char *classname = tdname ? Char(tdname) : Char(name);
     char *iname = Char(symname);
@@ -1309,7 +1304,6 @@ int Language::classforwardDeclaration(Node *n) {
 
 int Language::constructorDeclaration(Node *n) {
     String *name = Getattr(n,"name");
-    Parm   *parms = Getattr(n,"parms");
     String *symname = Getattr(n,"sym:name");
 
     if (!CurrentClass) return SWIG_NOWRAP;
@@ -1486,7 +1480,6 @@ int Language::accessDeclaration(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 int Language::namespaceDeclaration(Node *n) {
-    String *name;
     if (Getattr(n,"alias")) return SWIG_OK;
     emit_children(n);
     return SWIG_OK;

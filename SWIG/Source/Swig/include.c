@@ -291,7 +291,7 @@ Swig_file_filename(const String_or_char *filename)
   char *c;
 
   strcpy(tmp,Char(filename));
-  if (c=strrchr(tmp,*delim)) return c+1;
+  if ((c=strrchr(tmp,*delim))) return c+1;
   else return tmp;
 }
 

@@ -85,7 +85,6 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
 String *
 Swig_wrapped_var_type(SwigType *t) {
   SwigType *ty;
-  SwigType *qty, *qty1;
   ty = Copy(t);
 
   if (SwigType_isclass(t)) {
@@ -265,7 +264,11 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
   nname = SwigType_namestr(name);
   if (!p) return func;
   pt = Getattr(p,"type");
-  Printf(func,"(%s)->%s(", SwigType_rcaststr(pt,Swig_cparm_name(p,0)), nname);
+  if (SwigType_istemplate(name)) {
+      Printf(func,"(%s)->template %s(", SwigType_rcaststr(pt,Swig_cparm_name(p,0)), nname);
+  } else {
+      Printf(func,"(%s)->%s(", SwigType_rcaststr(pt,Swig_cparm_name(p,0)), nname);
+  }
   i++;
   p = nextSibling(p);
   while (p) {

@@ -227,6 +227,7 @@ extern String     *SwigType_base(SwigType *t);
 extern String     *SwigType_namestr(SwigType *t);
 extern String     *SwigType_templateprefix(SwigType *t);
 extern String     *SwigType_templatesuffix(SwigType *t);
+extern String     *SwigType_templateargs(SwigType *t);
 extern String     *SwigType_prefix(SwigType *t);
 extern int         SwigType_array_ndim(SwigType *t);
 extern String     *SwigType_array_getdim(SwigType *t, int n);

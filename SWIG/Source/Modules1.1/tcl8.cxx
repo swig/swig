@@ -285,7 +285,6 @@ TCL8::functionWrapper(Node *n) {
     Putc(';',argstr);
     /* If variable length arguments we need to emit the in typemap here */
     if (p && (tm = Getattr(p,"tmap:in"))) {
-      String *ln = Getattr(p,"lname");
       sprintf(source,"objv[%d]", i+1);
       Printf(incode,"if (objc > %d) {\n", i);
       Replaceall(tm,"$input",source);

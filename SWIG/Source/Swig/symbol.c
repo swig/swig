@@ -151,7 +151,6 @@ Swig_symbol_init() {
 void
 Swig_symbol_setscopename(const String_or_char *name) {
   String *qname;
-  Symtab *p;
   assert(!Getattr(current_symtab,"name"));
   Setattr(current_symtab,"name",name);
 
@@ -387,7 +386,7 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
 
 Node *
 Swig_symbol_add(String_or_char *symname, Node *n) {
-  Hash *c, *cn, *cl;
+  Hash *c, *cn, *cl = 0;
   SwigType *decl, *ndecl;
   String   *cstorage, *nstorage;
   int      nt = 0, ct = 0;
@@ -863,7 +862,6 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
   List   *elements;
   String *result;
   int     i,len;
-  String  *name;
 
   result = NewString("");
   elements = SwigType_split(t);

@@ -527,7 +527,6 @@ PERL5::functionWrapper(Node *n)
 
   if (varargs) {
     if (p && (tm = Getattr(p,"tmap:in"))) {
-      String *ln = Getattr(p,"lname");
       sprintf(source,"ST(%d)",i);
       Replaceall(tm,"$input", source);
       Setattr(p,"emit:input", source);

@@ -358,7 +358,6 @@ SwigType_function_parms(SwigType *t) {
 
 void
 SwigType_add_template(SwigType *t, ParmList *parms) {
-  String *pstr;
   Parm   *p;
 
   Append(t,"<(");
@@ -856,6 +855,35 @@ SwigType *SwigType_templatesuffix(SwigType *t) {
   return NewString("");
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_templateargs()
+ *
+ * Returns the template part
+ * ----------------------------------------------------------------------------- */
+
+SwigType *
+SwigType_templateargs(SwigType *t) {
+    String *result = NewString("");
+  char *c;
+  c = Char(t);
+  while (*c) {
+    if ((*c == '<') && (*(c+1) == '(')) {
+      int nest = 1;
+      Putc(*c,result);
+      c++;
+      while (*c && nest) {
+	Putc(*c,result);
+	if (*c == '<') nest++;
+	if (*c == '>') nest--;
+	c++;
+      }
+      return result;
+    }
+    c++;
+  }
+  Delete(result);
+  return 0;
+}
 
 /* -----------------------------------------------------------------------------
  * SwigType_strip_qualifiers()
@@ -1178,7 +1206,7 @@ SwigType_str(SwigType *s, const String_or_char *id)
 
 SwigType *
 SwigType_ltype(SwigType *s) {
-  String *result,*result_qualified;
+  String *result;
   String *element;
   SwigType *td, *tc = 0;
   List *elements;
@@ -1477,7 +1505,6 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   String *nt;
   int    i;
   List   *elem;
-  List   *parms;
 
   if (!Strstr(t,pat)) return;
 

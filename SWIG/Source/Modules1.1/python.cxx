@@ -384,7 +384,6 @@ PYTHON::functionWrapper(Node *n) {
   /* Check for trailing varargs */
   if (varargs) {
     if (p && (tm = Getattr(p,"tmap:in"))) {
-      String *ln = Getattr(p,"lname");
       Replaceall(tm,"$input", "varargs");
       Printv(f->code,tm,"\n",NULL);
     }

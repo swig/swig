@@ -177,7 +177,7 @@ SwigType_scope_name(Typetab *ttab) {
  * ----------------------------------------------------------------------------- */
 
 void SwigType_new_scope(String_or_char *name) {
-  Typetab *s, *p;
+  Typetab *s;
   Hash    *ttab;
   String  *qname;
 
@@ -353,7 +353,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *base;
   String *type = 0;
   String *r;
-  Typetab  *s, *ss;
+  Typetab  *s;
   Hash     *ttab;
   String *namebase = 0;
   String *nameprefix = 0;
@@ -562,7 +562,6 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
   List   *elements;
   String *result;
   int     i,len;
-  String  *name;
 
   result = NewString("");
   elements = SwigType_split(t);
@@ -643,7 +642,6 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 
 int SwigType_istypedef(SwigType *t) {
   String *type;
-  Hash   *s;
 
   type = SwigType_typedef_resolve(t);
   if (type) {
@@ -727,8 +725,10 @@ SwigType_isclass(SwigType *t) {
   qty = SwigType_typedef_resolve_all(t);
   qtys = SwigType_strip_qualifiers(qty);
   if (SwigType_issimple(qtys)) {
-
     String *td = SwigType_typedef_resolve(qtys);
+    if (td) {
+	Delete(td);
+    }
     if (resolved_scope) {
       isclass = 1;
     }

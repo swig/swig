@@ -115,9 +115,6 @@ Swig_print_node(Node *obj) {
 
 void 
 Swig_print_tree(DOH *obj) {
-  DOH *k;
-  DOH *cobj;
-
   while (obj) {
     Swig_print_node(obj);
     obj = nextSibling(obj);

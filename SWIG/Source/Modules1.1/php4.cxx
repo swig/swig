@@ -37,14 +37,8 @@ static String *withlibs = 0;
 static String *withincs = 0;
 static String *outfile = 0;
 
-static String *f_oinit = 0;
-static String *f_init = 0;
-static String *f_entry = 0;
 //static char	*package = 0;	// Name of the package
-static char	*c_pkgstr;	// Name of the package
-static char	*php_pkgstr;	// Name of the package
 static char *shadow_classname;
-static char *shadow_lc_classname; // lowercase version, we need it too often
 
 static Wrapper  *f_php;
 static int	gen_extra = 0;
@@ -53,8 +47,6 @@ static int	no_sync = 0;
 
 static File	  *f_runtime = 0;
 static File	  *f_h = 0;
-static File       *f_header  = 0;
-static File       *f_wrappers = 0;
 static File	  *f_phpcode = 0;
 
 static String	  *s_header;
@@ -72,11 +64,7 @@ static String	  *pragma_code;
 static String	  *pragma_phpinfo;
 
 /* Variables for using PHP classes */
-static String	  *php;		/* Class initialization code */
 static String	  *class_name = 0;
-static String	  *base_class = 0;
-static String	  *real_classname = 0;
-static String	  *class_type = 0;
 static String	  *realpackage = 0;
 static String	  *package = 0;
 
@@ -84,13 +72,11 @@ static Hash	*shadow_php_vars;
 static Hash	*shadow_c_vars;
 static String	*shadow_classdef;
 static String 	*shadow_code;
-static int	classdef_emitted = 0;
 static int	have_default_constructor = 0;
 #define NATIVE_CONSTRUCTOR 1
 #define ALTERNATIVE_CONSTRUCTOR 2
 static int	native_constructor=0;
 static int	destructor=0;
-static int	native_func = 0;	// Set to 1 when wrapping a native function
 static int	enum_flag = 0; // Set to 1 when wrapping an enum
 static int	static_flag = 0; // Set to 1 when wrapping a static functions or member variables
 static int	const_flag = 0; // Set to 1 when wrapping a const member variables
@@ -114,7 +100,6 @@ static String *all_shadow_baseclass = 0;
 static String *this_shadow_baseclass = 0; 
 		//inheritance for shadow class from %pragma and cpp_inherit
 static String *this_shadow_multinherit = 0;
-static int	  class_renamed = 0;
 static int	  shadow	= 0;
 
 /* Test to see if a type corresponds to something wrapped with a shadow class. */
@@ -129,17 +114,6 @@ String *PHP4::is_shadow(SwigType *t) {
     }
   }
   return r;
-}
-
-// Return the type of the c array
-static SwigType *get_array_type(SwigType *t) {
-  SwigType *ta = 0;
-    if (SwigType_type(t) == T_ARRAY) {
-        SwigType *aop;
-        ta = Copy(t);
-        aop = SwigType_pop(ta);
-    }
-    return ta;
 }
 
 
@@ -840,10 +814,10 @@ PHP4::functionWrapper(Node *n) {
   ParmList *l = Getattr(n,"parms");
   Parm *p;
   char source[256],target[256],temp[256],argnum[32],args[32];
-  int pcount,i,j,numopt;
+  int i,numopt;
   String *tm;
   Wrapper *f;
-  int need_save, num_saved = 0;
+  int num_saved = 0;
   String *cleanup, *outarg;
 
   if (!addSymbol(iname,n)) return SWIG_ERROR;
@@ -984,7 +958,6 @@ PHP4::functionWrapper(Node *n) {
       p = Getattr(p,"tmap:ignore:next");
     }
     SwigType *pt = Getattr(p,"type");
-    String   *pn = Getattr(p,"name");
 
     // Do we fake this_ptr as arg0, or just possibly shift other args by 1 if we did fake?
     if (i==0) sprintf(source, "((%d<argbase)?(&this_ptr):(args[%d-argbase]))", i, i);
@@ -1216,6 +1189,7 @@ PHP4::constantWrapper(Node *n) {
 		Replaceall(tm, "$value", value);
 		Printf(s_cinit, "%s\n", tm);
 	}
+	return SWIG_OK;
 }
 
 /*
@@ -1260,7 +1234,6 @@ int PHP4::classDeclaration(Node *n) {
 
 int PHP4::classHandler(Node *n) {
 
-	char bigbuf[1024];
 
 	if(class_name) free(class_name);
 	class_name = Swig_copy_string(GetChar(n, "name"));
@@ -1269,9 +1242,7 @@ int PHP4::classHandler(Node *n) {
 		Printf(cs_entry,"// Function entries for %s\n"
                  "static zend_function_entry %s_functions[] = {\n"
                  ,class_name, class_name);
-		char *classname = GetChar(n, "name");
 		char *rename = GetChar(n, "sym:name");
-		char *ctype = GetChar(n, "kind");
 		if (!addSymbol(rename,n)) return SWIG_ERROR;
 		shadow_classname = Swig_copy_string(rename);
 
@@ -1396,10 +1367,6 @@ PHP4::memberfunctionHandler(Node *n) {
 
 int
 PHP4::membervariableHandler(Node *n) {
-	char *name = GetChar(n,"name");
-	char *iname = GetChar(n, "sym:name");
-	SwigType *t = Getattr(n, "type");
-
 
 	wrapping_member = 1;
 	variable_wrapper_flag = 1;
@@ -1416,7 +1383,6 @@ int PHP4::staticmemberfunctionHandler(Node *n) {
 
 	if(shadow) {
 		String *symname = Getattr(n, "sym:name");
-		String *php_function_name = Swig_name_member(shadow_classname, symname);
 		static_flag = 1;
 		cpp_func(Char(symname), Getattr(n, "type"), Getattr(n, "parms"), symname);
 		static_flag = 0;
@@ -1427,7 +1393,6 @@ int PHP4::staticmemberfunctionHandler(Node *n) {
 
 int PHP4::staticmembervariableHandler(Node *n) {
 	SwigType *d = Getattr(n, "type");
-	ParmList *l = Getattr(n, "parms");
 	char *iname = GetChar(n, "sym:name");
 	char *name = GetChar(n, "name");
 	String *static_name = NewStringf("%s::%s", class_name, name);
@@ -1640,7 +1605,6 @@ char *PHP4::PhpTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, Str
 int PHP4::constructorHandler(Node *n) {
 
 	char *iname = GetChar(n, "sym:name");
-	ParmList *l = Getattr(n, "parms");
 
 	if (shadow) native_constructor = (strcmp(iname, shadow_classname) == 0)?\
 		NATIVE_CONSTRUCTOR:ALTERNATIVE_CONSTRUCTOR;
@@ -1649,9 +1613,6 @@ int PHP4::constructorHandler(Node *n) {
 	Language::constructorHandler(n);
 
 	if(shadow) {
-		String *php_function_name = NewString(iname);
-		char arg[256];
-
 		// But we also need one per wrapped-class
 		if (cs_entry) Printf(cs_entry,
 		    "	ZEND_NAMED_FE(%(lower)s,\n"
@@ -1688,10 +1649,6 @@ PHP4::memberconstantHandler(Node *n) {
 
 void 
 PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name) {
-	char arg[256];
-	String *user_arrays = NewString("");
-	String *lower;
-	int gencomma = 0;
 
 	if(!shadow) return;
 
@@ -1712,7 +1669,6 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name,
 
 	if(variable_wrapper_flag && !no_sync)  { return; }
 
-	int pcount = ParmList_len(l);
 
 	/* Workaround to overcome Getignore(p) not working - p does not always
 	 * have the Getignore attribute set. Noticeable when cpp_func is called

@@ -55,7 +55,6 @@ extern "C" {
 
 extern "C" {
 extern String  *ModuleName;
-extern int ShowTemplates;
 }
 
 static char *usage = (char*)"\
@@ -160,7 +159,8 @@ void SWIG_library_directory(const char *filename) {
 }
 
 extern  "C" Node *Swig_cparse(File *);
-extern "C"  void  Swig_cparse_cplusplus(int);
+extern  "C" void  Swig_cparse_cplusplus(int);
+extern  "C" void  Swig_cparse_debug_templates(int);
 
 int SWIG_main(int argc, char *argv[], Language *l) {
   int    i;
@@ -283,7 +283,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    GenerateDefault = 0;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-show_templates") == 0) {
-	    ShowTemplates = 1;
+	    Swig_cparse_debug_templates(1);
 	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-swiglib") == 0) {
 	    printf("%s\n", LibDir);

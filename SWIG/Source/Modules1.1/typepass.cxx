@@ -233,11 +233,8 @@ public:
      * ------------------------------------------------------------ */ 
 
     virtual int classDeclaration(Node *n) {
-	String *kind = Getattr(n,"kind");
 	String *name = Getattr(n,"name");
-	List   *bases = Getattr(n,"bases");
 	String *tdname = Getattr(n,"tdname");
-	String *symname = Getattr(n,"sym:name");
 	String *unnamed = Getattr(n,"unnamed");
 	String *storage = Getattr(n,"storage");
 	Node   *oldinclass = inclass;
@@ -247,9 +244,6 @@ public:
 
 	normalize = NewList();
 
-	char *classname = tdname ? Char(tdname) : Char(name);
-	char *iname = Char(symname);
-	int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
 	if (name) {
 	    SwigType_typedef_class(name);
@@ -343,7 +337,6 @@ public:
      * ------------------------------------------------------------ */ 
 
     virtual int namespaceDeclaration(Node *n) {
-	static int warn = 0;
 	Symtab *symtab;
 	String *name = Getattr(n,"name");
 	String *alias = Getattr(n,"alias");
@@ -541,7 +534,6 @@ public:
 
   virtual int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n,"name");
-    String *symname = Getattr(n,"sym:name");
     String *value = Getattr(n,"value");
     if (!value) value = name;
     if (Strcmp(value,name) == 0) {
