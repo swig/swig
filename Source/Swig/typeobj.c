@@ -707,3 +707,284 @@ SwigType_function_parms(SwigType *t) {
   Delete(l);
   return firstp;
 }
+
+int SwigType_isvarargs(const SwigType *t) {
+  if (Strcmp(t,"v(...)") == 0) return 1;
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ *                                    Templates
+ *
+ * SwigType_add_template()
+ *
+ * Template handling.
+ * ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+ * SwigType_add_template()
+ *
+ * Adds a template to a type.   This template is encoded in the SWIG type
+ * mechanism and produces a string like this:
+ *
+ *  vector<int *> ----> "vector<(p.int)>"
+ * ----------------------------------------------------------------------------- */
+
+void
+SwigType_add_template(SwigType *t, ParmList *parms) {
+  Parm   *p;
+
+  Append(t,"<(");
+  p = parms;
+  for (p = parms; p; p = nextSibling(p)) {
+    String *v;
+    if (Getattr(p,"default")) continue;
+    if (p != parms) Append(t,",");
+    v = Getattr(p,"value");
+    if (v) {
+      Append(t,v);
+    } else {
+      Append(t,Getattr(p,"type"));
+    }
+  }
+  Append(t,")>");
+}
+
+
+/* -----------------------------------------------------------------------------
+ * SwigType_templateprefix()
+ *
+ * Returns the prefix before the first template definition.
+ * For example:
+ *
+ *     Foo<(p.int)>::bar
+ *
+ * Results in "Foo"
+ * ----------------------------------------------------------------------------- */
+
+String *
+SwigType_templateprefix(SwigType *t) {
+  char *c,*s;
+
+  s = Char(t);
+  c = s;
+  while (*c) {
+    if (*c == '<') {
+      return NewStringWithSize(s,c-s);
+    }
+    c++;
+  }
+  return NewString(s);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_templatesuffix()
+ *
+ * Returns text after a template substitution.  Used to handle scope names
+ * for example:
+ *
+ *        Foo<(p.int)>::bar
+ *
+ * returns "::bar"
+ * ----------------------------------------------------------------------------- */
+
+String *
+SwigType_templatesuffix(const SwigType *t) {
+  char *c;
+  c = Char(t);
+  while (*c) {
+    if ((*c == '<') && (*(c+1) == '(')) {
+      int nest = 1;
+      c++;
+      while (*c && nest) {
+	if (*c == '<') nest++;
+	if (*c == '>') nest--;
+	c++;
+      }
+      return NewString(c);
+    }
+    c++;
+  }
+  return NewString("");
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_templateargs()
+ *
+ * Returns the template part
+ * ----------------------------------------------------------------------------- */
+
+String *
+SwigType_templateargs(SwigType *t) {
+  char *c;
+  char *start;
+  c = Char(t);
+  while (*c) {
+    if ((*c == '<') && (*(c+1) == '(')) {
+      int nest = 1;
+      start = c;
+      c++;
+      while (*c && nest) {
+	if (*c == '<') nest++;
+	if (*c == '>') nest--;
+	c++;
+      }
+      return NewStringWithSize(start,c-start);
+    }
+    c++;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_istemplate()
+ *
+ * Tests a type to see if it includes template parameters
+ * ----------------------------------------------------------------------------- */
+
+int 
+SwigType_istemplate(const SwigType *t) {
+  if (Strstr(t,"<(")) return 1;
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_base()
+ *
+ * This function returns the base of a type.  For example, if you have a
+ * type "p.p.int", the function would return "int".
+ * ----------------------------------------------------------------------------- */
+
+SwigType *
+SwigType_base(SwigType *t) {
+  char *c;
+  char *lastop = 0;
+  c = Char(t);
+
+  lastop = c;
+
+  /* Search for the last type constructor separator '.' */
+  while (*c) {
+    if (*c == '.') {
+      if (*(c+1)) {
+	lastop = c+1;
+      }
+      c++;
+      continue;
+    }
+    if (*c == '<') {
+      /* Skip over template---it's part of the base name */
+      int ntemp = 1;
+      c++;
+      while ((*c) && (ntemp > 0)) {
+	if (*c == '>') ntemp--;
+	else if (*c == '<') ntemp++;
+	c++;
+      }
+      if (ntemp) break;
+      continue;
+    }
+    if (*c == '(') {
+      /* Skip over params */
+      int nparen = 1;
+      c++;
+      while ((*c) && (nparen > 0)) {
+	if (*c == '(') nparen++;
+	else if (*c == ')') nparen--;
+	c++;
+      }
+      if (nparen) break;
+      continue;
+    }
+    c++;
+  }
+  return NewString(lastop);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_prefix()
+ *
+ * Returns the prefix of a datatype.  For example, the prefix of the
+ * type "p.p.int" is "p.p.".
+ * ----------------------------------------------------------------------------- */
+
+String *
+SwigType_prefix(SwigType *t) {
+  char *c, *d;
+  String *r = 0;
+
+  c = Char(t);
+  d = c + strlen(c);
+
+  /* Check for a type constructor */
+  if ((d > c) && (*(d-1) == '.')) d--;
+
+  while (d > c) {
+    d--;
+    if (*d == '>') {
+      int nest = 1;
+      d--;
+      while ((d > c) && (nest)) {
+	if (*d == '>') nest++;
+	if (*d == '<') nest--;
+	d--;
+      }
+    }
+    if (*d == ')') {
+      /* Skip over params */
+      int nparen = 1;
+      d--;
+      while ((d > c) && (nparen)) {
+	if (*d == ')') nparen++;
+	if (*d == '(') nparen--;
+	d--;
+      }
+    }
+
+    if (*d == '.') {
+      char t = *(d+1);
+      *(d+1) = 0;
+      r = NewString(c);
+      *(d+1) = t;
+      return r;
+    }
+  }
+  return NewString("");
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_strip_qualifiers()
+ * 
+ * Strip all qualifiers from a type and return a new type
+ * ----------------------------------------------------------------------------- */
+
+SwigType *
+SwigType_strip_qualifiers(SwigType *t) {
+  static Hash *memoize_stripped = 0;
+  SwigType *r;
+  List     *l;
+  SwigType *e;
+
+  if (!memoize_stripped) memoize_stripped = NewHash();
+  r = Getattr(memoize_stripped,t);
+  if (r) return Copy(r);
+  
+  l = SwigType_split(t);
+  r = NewString("");
+  for (e = Firstitem(l); e; e = Nextitem(l)) {
+    if (SwigType_isqualifier(e)) continue;
+    Append(r,e);
+  }
+  Delete(l);
+  {
+    String *key, *value;
+    key = Copy(t);
+    value = Copy(r);
+    Setattr(memoize_stripped,key,value);
+    Delete(key);
+    Delete(value);
+  }
+  return r;
+}
+
+
