@@ -2064,13 +2064,44 @@ public:
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
     target = Swig_method_decl(decl, qualified_name, l, 0, 0);
     String *rtype = SwigType_str(type, 0);
-    Printf(w->def, "%s %s {", rtype, target);
+    Printf(w->def, "%s %s", rtype, target);
     Delete(qualified_name);
     Delete(target);
     /* header declaration */
     target = Swig_method_decl(decl, name, l, 0, 1);
-    Printf(declaration, "    virtual %s %s;\n", rtype, target);
+    Printf(declaration, "    virtual %s %s", rtype, target);
     Delete(target);
+
+    // Get any exception classes in the throws typemap
+    ParmList *throw_parm_list = 0;
+
+    if ((throw_parm_list = Getattr(n,"throws"))) {
+      Parm      *p;
+      int       gencomma = 0;
+
+      Append(w->def, " throw(");
+      Append(declaration, " throw(");
+
+      Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+      for (p = throw_parm_list; p; p=nextSibling(p)) {
+        if ((tm = Getattr(p,"tmap:throws"))) {
+          if (gencomma++) {
+            Append(w->def, ", ");
+            Append(declaration, ", ");
+          }
+
+          Printf(w->def, "%s", SwigType_str(Getattr(p, "type"),0));
+          Printf(declaration, "%s", SwigType_str(Getattr(p, "type"),0));
+        }
+      }
+
+      Append(w->def, ")");
+      Append(declaration, ")");
+    }
+
+    Append(w->def, " {");
+    Append(declaration, ";\n");
+
     
     /* attach typemaps to arguments (C/C++ -> Ruby) */
     String *arglist = NewString("");
