@@ -197,7 +197,7 @@ namespace std {
         %rename("pop!") pop;
         %rename("push!") push_back;
         void push_back(const T& x);
-        %addmethods {
+        %extend {
             T pop() {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
@@ -289,7 +289,7 @@ namespace std {
         %rename("pop!") pop;
         %rename("push!") push_back;
         void push_back(int x);
-        %addmethods {
+        %extend {
             int pop() {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
@@ -379,7 +379,7 @@ namespace std {
         %rename("pop!") pop;
         %rename("push!") push_back;
         void push_back(double x);
-        %addmethods {
+        %extend {
             double pop() {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
