@@ -327,21 +327,17 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own) {
 #endif
   if (!robj || (robj == Py_None)) return robj;
   if (type->clientdata) {
-    PyInstanceObject *inst;
-    inst = PyObject_NEW(PyInstanceObject, &PyInstance_Type);
-    if (!inst) return robj;
-    inst->in_dict = PyDict_New();
-    inst->in_class = (PyClassObject *) type->clientdata;
-    Py_INCREF(inst->in_class);
-    PyObject_SetAttrString((PyObject *)inst,"this",robj);
+    PyObject *inst;
+    PyObject *args = Py_BuildValue("(O)", robj);
     Py_DECREF(robj);
+    inst = PyObject_CallObject((PyObject *) type->clientdata, args);
+    Py_DECREF(args);
     if (own) {
       PyObject *n = PyInt_FromLong(1);
-      PyObject_SetAttrString((PyObject *)inst,"thisown",n);
+      PyObject_SetAttrString(inst,"thisown",n);
       Py_DECREF(n);
     }
-    robj = (PyObject *) inst;
-    Py_INCREF(robj);
+    robj = inst;
   }
   return robj;
 }
