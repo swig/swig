@@ -78,7 +78,7 @@
     if (!$input || PyErr_Occurred())
       Swig::DirectorTypeMismatchException::raise("Error converting Python object when using as_meth.");
   }
-  %typemap(directorout,fragment=pyfrag,warning="470:Using thread/reentrant unsafe wrapping, consider using a plain '"#Type"' return type instead.") const Type& {  
+  %typemap(directorout,fragment=pyfrag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const Type& {  
     if ($input) {
       static $basetype temp = SWIG_static_cast(SWIG_arg(as_meth($input)),$basetype);
       $result = &temp;

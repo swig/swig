@@ -80,7 +80,7 @@
     if (res == SWIG_NEWOBJ) delete ptr;
   }
 
-  %typemap(directorout,fragment=pyfrag,warning="470:Possible thread/reentrant unsafe wrapping, consider using a plain '"#Type"' return type instead.") const Type& {
+  %typemap(directorout,fragment=pyfrag,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const Type& {
     Type *ptr = 0;
     int res = $input ? asptr_meth($input, &ptr) : 0;
     if (!res || !ptr) 

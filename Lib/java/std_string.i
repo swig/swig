@@ -88,7 +88,7 @@ class string;
   $1 = &$1_str;
   jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
-%typemap(directorout,warning="470:Possible thread/reentrant unsafe wrapping, consider using a plain 'const string' or 'string' return type instead.") const string &
+%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const string &
 %{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
     return $null;
@@ -216,7 +216,7 @@ class wstring;
 %typemap(javadirectorin) const wstring & "$jniinput"
 %typemap(javadirectorout) const wstring & "$javacall"
 
-%typemap(directorout,warning="470:Possible thread/reentrant unsafe wrapping, consider using a plain 'const wstring' or 'wstring' return type instead.") const wstring &
+%typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const wstring &
 %{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
     return $null;
