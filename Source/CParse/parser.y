@@ -713,10 +713,26 @@ static void merge_extensions(Node *cls, Node *am) {
    return bases;
  }
 
- /* If the class name is qualified.  We need to create or lookup namespace entries */
+/* If the class name is qualified.  We need to create or lookup namespace entries */
+
+static Symtab *get_global_scope() {
+  Symtab *symtab = Swig_symbol_current();          
+  Node   *pn = parentNode(symtab);
+  while (pn) {
+    symtab = pn;
+    pn = parentNode(symtab);
+    if (!pn) break;
+  }
+  Namespaceprefix = 0;
+  Swig_symbol_setscope(symtab);
+  return symtab;
+}
+ 
+
 static Node *nspace = 0;
 static Node *nspace_inner = 0;
 static String *resolve_namespace_class(String *cname) {
+  Symtab *gscope = 0;
   nspace = 0;
   nspace_inner = 0;
   if (Swig_scopename_check(cname)) {
@@ -724,25 +740,17 @@ static String *resolve_namespace_class(String *cname) {
     String *prefix = Swig_scopename_prefix(cname);
     String *base = Swig_scopename_last(cname);
     if (prefix && (Strncmp(prefix,"::",2) == 0)) {
+      /* Use the global scope */
       String *nprefix = NewString(Char(prefix)+2);
       Delete(prefix);
       prefix= nprefix;
-      Printf(stderr,"pb %s %s\n",prefix, base);
-    }
-    
+      gscope = get_global_scope();
+    }    
     if (!prefix || (Len(prefix) == 0)) {
       /* Use the global scope */
-      Symtab *symtab = Swig_symbol_current();          
-      Node   *pn = parentNode(symtab);
-      while (pn) {
-	symtab = pn;
-	pn = parentNode(symtab);
-	if (!pn) break;
-      }
-      Swig_symbol_setscope(symtab);
-      Namespaceprefix = 0;
+      if (!gscope) gscope = get_global_scope();
       nspace = new_node("namespace");
-      Setattr(nspace,"symtab", symtab);
+      Setattr(nspace,"symtab", gscope);
       nspace_inner = nspace;
       return base;
     }
