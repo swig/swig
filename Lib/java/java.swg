@@ -375,6 +375,12 @@
 /* Default array handling */
 %typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
 %typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
+%typemap(globalin) SWIGTYPE [] {
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "Variable $name is read-only.");
+}
+%typemap(memberin) SWIGTYPE [] {
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "Variable $name is read-only.");
+}
 
 /* char[ANY] - treat as String */
 %typemap(in) char[ANY] { 
