@@ -1,41 +1,15 @@
 #######################################################################
 # $Header$
-# Simplified Wrapper and Interface Generator (SWIG)
-# 
-# Makefile for version 1.0 Final
-# Dave Beazley
-# August 1, 1996
-#
+# DOH 
 #######################################################################
 
 #.KEEP_STATE:
-
-
-srcdir = @srcdir@
-VPATH = @srcdir@
 
 # Set your C++ compiler here.   g++ works on most machines,
 # but you might have to change it depending on your installation.
 #
 CC      = @CC@
-
-#
-# Set the prefix below to indicate where you want SWIG to install its
-# files.   Normally this is /usr/local
-# 
-
 prefix     = @prefix@
-
-# Location of the SWIG library.  Is normally put in /usr/local/lib/swig_lib
-# The SWIG library contains configuration files and library modules
-# so you should install it someplace where it can be easily accessed.
-
-SWIG_LIB = $(prefix)/lib/@SWIGLIBDIR@
-
-# YACC parser.  Use bison by default.  if this doesn't work, switch
-# it over to yacc.   If that still doesn't work, let me know...
-
-YACC    = @YACC@ 
 
 # Comment out the following line if you're on an SGI or don't have ranlib!
 RANLIB  = @RANLIB@
@@ -45,51 +19,31 @@ AR      = @AR@
 # Normally, you shouldn't have to change anything below this point     #
 ########################################################################
 
+LIBOBJS = void.o fio.o memory.o base.o file.o list.o hash.o string.o 
 
-LIBOBJS = scanner.o parms.o types.o error.o module.o getopt.o file.o string.o list.o hash.o base.o main.o
+LIBSRCS = void.c fio.c memory.c base.c file.c list.c hash.c string.c
 
-LIBSRCS = scanner.c parms.c types.c error.c module.c getopt.c file.c string.c list.c hash.c base.c main.c
-
-LIBHEADERS = ../Include/swig.h 
-LIB      = ../libswig.a
-PARSER   = parser.y
+LIBHEADERS = ../Include/doh.h
+LIB      = ../libdoh.a
 INCLUDE  = -I../Include
-CFLAGS   = @CFLAGS@ -DSWIG_LIB='"$(SWIG_LIB)"' -DSWIG_CC='"$(CC)"' @DEFS@
+CFLAGS   = 
 SHELL  = /bin/sh
 
-#
-#
 #
 # Rules for creation of a .o file from .cxx
 .SUFFIXES: .c
 .c.o: 
 	$(CC) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
 
-all: 
-	@cd ..; $(MAKE)
-
-
-build:    $(LIB) 
-	#$(CC) $(LIBOBJS) -o swig -ldl
-
-py:    $(LIB) 
-	/usr/local/bin/swig -python -o swig_wrap.c ../Include/swig.h
-	$(CC) $(INCLUDE) -I/usr/local/include/python1.5 $(CFLAGS) -c swig_wrap.c
-	ld -G $(LIBOBJS) swig_wrap.o -o swigmodule.so
+all: $(LIB)
 
 $(LIB): $(LIBOBJS) 
 	@echo "Building library"
 	$(AR) cr $(LIB) $(LIBOBJS)
 	$(RANLIB) $(LIB)
 
-Makefile:	$(srcdir)/Makefile.in ../config.status
-		(cd ..; CONFIG_FILES=SWIG/Makefile $(SHELL) config.status)
-
-.PRECIOUS:	Makefile
-
 clean::
-	rm -f *.o libswig.a y.tab.c y.tab.h
-
+	rm -f *.o ../libdoh.a
 nuke::
 	rm -f Makefile *~ #* core a.out
 
