@@ -3,7 +3,6 @@ This testcase tests for embedded defines and embedded %constants
 */
 
 %module defines
-%pragma make_default
 
 %inline %{
 
