@@ -811,7 +811,7 @@ SwigType_str(SwigType *s, const String_or_char *id)
 
 SwigType *
 SwigType_ltype(SwigType *s) {
-  String *result;
+  String *result,*result_qualified;
   String *element;
   SwigType *td, *tc = 0;
   List *elements;
@@ -865,7 +865,9 @@ SwigType_ltype(SwigType *s) {
   }
   Delete(elements);
   Delete(tc);
-  return result;
+  result_qualified = SwigType_typedef_qualified(result);
+  Delete(result);
+  return result_qualified;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1003,8 +1005,11 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       Insert(result,0,element);
       clear = 0;
     } else {
+      SwigType *q;
       Insert(result,0," ");
-      Insert(result,0,element);
+      q = SwigType_typedef_qualified(element);
+      Insert(result,0,q);
+      Delete(q);
     }
     element = nextelement;
   }
@@ -1095,7 +1100,7 @@ static void init_scopes() {
   if (type_scopes) return;
   type_scopes = NewHash();
   scopes[scope_level] = NewHash();
-  scopenames[scope_level] = NewString("::");
+  scopenames[scope_level] = NewString("");
   Setattr(type_scopes,"::",scopes[scope_level]);
 }
 
@@ -1106,13 +1111,27 @@ static void init_scopes() {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_typedef(SwigType *type, String_or_char *name) {
+  int level;
+  String *prefix;
+  String *tdname;
+
   init_scopes();
   if (Getattr(scopes[scope_level],name)) return -1;
   if (Cmp(type,name) == 0) {
     return 0;
   }
-
-  Setattr(scopes[scope_level],name,type);
+  level = scope_level;
+  tdname = NewString(name);
+  while (level >= 0) {
+    Setattr(scopes[level],Copy(tdname),type);
+    if (Len(scopenames[level])) {
+      Insert(tdname,0,"::");
+      Insert(tdname,0,scopenames[level]);
+    } else {
+      break;
+    }
+    level--;
+  }
   if (default_cache)
     Delattr(default_cache,type);
   return 0;
@@ -1169,8 +1188,7 @@ void SwigType_set_scope_name(String_or_char *name) {
  * Merges the contents of one scope into the current scope.
  * ----------------------------------------------------------------------------- */
 
-void SwigType_merge_scope(Hash *scope, String_or_char *prefix) {
-  String *name;
+void SwigType_merge_scope(Hash *scope) {
   String *key;
   String *type;
 
@@ -1178,12 +1196,7 @@ void SwigType_merge_scope(Hash *scope, String_or_char *prefix) {
   key = Firstkey(scope);
   while (key) {
     type = Getattr(scope,key);
-    if (prefix) {
-      name = NewStringf("%s::%s",prefix,key);
-    } else {
-      name = NewString(key);
-    }
-    Setattr(scopes[scope_level],name,type);
+    SwigType_typedef(type,key);
     key = Nextkey(scope);
   }
 }
@@ -1197,12 +1210,9 @@ void SwigType_merge_scope(Hash *scope, String_or_char *prefix) {
 
 Hash *SwigType_pop_scope() {
   Hash *s;
-  String *prefix;
   init_scopes();
   if (scope_level == 0) return 0;
-  prefix = scopenames[scope_level];
   s = scopes[scope_level--];
-  SwigType_merge_scope(s,prefix);
   return s;
 }
 
@@ -1252,6 +1262,59 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
     r = n;
   }
   return r;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_typedef_qualified()
+ *
+ * Given a type declaration, this function fully qualifies it according to
+ * typedef scope rules
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_typedef_qualified(SwigType *t) 
+{
+  List   *elements;
+  String *result;
+  int     i,len;
+  int     level;
+  init_scopes();
+
+  result = NewString("");
+  elements = SwigType_split(t);
+  len = Len(elements);
+  for (i = 0; i < len; i++) {
+    String *e = Getitem(elements,i);
+    if (SwigType_issimple(e)) {
+      level = scope_level;
+      while (level >= 0) {
+	if (Getattr(scopes[level],e)) {
+	  if (Len(scopenames[level])) {
+	    Insert(e,0,"::");
+	    Insert(e,0,scopenames[level]);
+	  } else {
+	    break;
+	  }
+	}
+	level--;
+      }
+      Append(result,e);
+    } else if (SwigType_isfunction(e)) {
+      List *parms = SwigType_parmlist(e);
+      String *p;
+      int j;
+      for (p = Firstitem(parms),j=0; p; p = Nextitem(parms),j++) {
+	Setitem(parms,j,SwigType_typedef_qualified(p));
+      }
+      p = NewString("");
+      SwigType_add_function(p,parms);
+      Append(result,p);
+      Delete(p);
+    } else {
+      Append(result,e);
+    }
+  }
+  Delete(elements);
+  return result;
 }
 
 /* ----------------------------------------------------------------------------- 

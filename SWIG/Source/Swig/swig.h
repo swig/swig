@@ -214,10 +214,11 @@ extern void        SwigType_inherit(String *subclass, String *baseclass);
 extern void        SwigType_new_scope();
 extern void        SwigType_reset_scopes();
 extern void        SwigType_set_scope_name(String_or_char *name);
-extern void        SwigType_merge_scope(Hash *scope, String_or_char *prefix);
+extern void        SwigType_merge_scope(Hash *scope);
 extern Hash       *SwigType_pop_scope();
 extern SwigType   *SwigType_typedef_resolve(SwigType *t);
 extern SwigType   *SwigType_typedef_resolve_all(SwigType *t);
+extern SwigType   *SwigType_typedef_qualified(SwigType *t);
 extern int         SwigType_istypedef(SwigType *t);
 extern int         SwigType_cmp(String_or_char *pat, SwigType *t);
 extern int         SwigType_array_ndim(SwigType *t);
@@ -271,6 +272,13 @@ extern String     *ParmList_protostr(ParmList *);
 #define  nextSibling(x)            Getattr(x,"nextSibling")
 #define  firstChild(x)             Getattr(x,"firstChild")
 #define  lastChild(x)              Getattr(x,"lastChild")
+
+/* Special accessors for symbol tables */
+
+#define  nextSymbol(x)             Getattr(x,"$symnext")
+#define  prevSymbol(x)             Getattr(x,"$symprev")
+#define  nodeSymtab(x)             Getattr(x,"$symtab")
+#define  nodeSymbol(x)             Getattr(x,"$symname")
 
 /* Macros to set up the DOM tree (mostly used by the parser) */
 
@@ -450,7 +458,7 @@ extern void   Swig_except_clear();
 #define Setdecl(x,d)       Setattr(x,"decl",d)
 #define Setstorage(x,s)    Setattr(x,"storage",s)
 #define Seterror(x,e)      Setattr(x,"error",e)
-
+#define Setsymname(x,s)    Setattr(x,"$symname",s)
 #define Getnext(x)         Getattr(x,"nextSibling")
 
 #endif
