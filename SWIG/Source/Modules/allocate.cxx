@@ -213,6 +213,7 @@ class Allocate : public Dispatcher {
       for (int i = 0; i < Len(abstract); i++) {
 	Node *nn = Getitem(abstract,i);
 	String *name = Getattr(nn,"name");
+	if (!name) continue;
 	String *base_decl = Getattr(nn,"decl");
 	if (base_decl) base_decl = SwigType_typedef_resolve_all(base_decl);
 	if (Strstr(name,"~")) continue;   /* Don't care about destructors */

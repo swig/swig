@@ -1,6 +1,8 @@
 // Massive primitive datatype test.
 %module(directors="1") primitive_types
 
+// Using thread unsafe wrapping
+#pragma SWIG nowarn=470
  /*
 
  if your language has problems with MyInt* and/or Hello*,

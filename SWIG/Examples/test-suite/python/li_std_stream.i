@@ -48,8 +48,8 @@
   };
 %}
 
-%extend std::basic_ostream<char, std::char_traits<char> >{
-  std::basic_ostream<char, std::char_traits<char> >& 
+%extend std::basic_ostream<char>{
+  std::basic_ostream<char>& 
     operator<<(const A& a)
     {
       *self << "A class";

@@ -147,7 +147,7 @@
 #define WARN_TYPEMAP_TYPECHECK        467
 #define WARN_TYPEMAP_THROW            468
 #define WARN_TYPEMAP_DIRECTORIN_UNDEF  469
-#define WARN_TYPEMAP_THREAD_UNSAFE    470
+#define WARN_TYPEMAP_DIRECTOROUT_CREF  470
 
 /* -- General code generation -- */
 

@@ -91,8 +91,9 @@ int Dispatcher::emit_one(Node *n) {
 
   char *tag = Char(nodeType(n));
   if (!tag) {
-    Printf(stderr,"SWIG: Fatal internal error. Malformed parse tree node!\n");
-    return SWIG_ERROR;
+    /* Printf(stderr,"SWIG: Fatal internal error. Malformed parse tree
+       node!\n"); */
+    return SWIG_OK;
   }
     
   /* Do not proceed if marked with an error */

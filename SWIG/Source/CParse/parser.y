@@ -3322,8 +3322,10 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			} else {
 			  /* Need to resolve exact specialization name */
 			  /* add default args from generic template */
-			  String *fname = Swig_cparse_template_deftype(tname,0);
+			  String *ty = Swig_symbol_template_deftype(tname,0);
+			  String *fname = Swig_symbol_type_qualify(ty,0);
 			  Swig_symbol_cadd(fname,$$);
+			  Delete(ty);
 			}
 		      }  else if ($$) {
 			Setattr($$,"templatetype",nodeType($6));

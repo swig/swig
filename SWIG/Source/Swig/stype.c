@@ -898,20 +898,25 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
   return result;
 }
 
+
 /* keep old mangling since Java codes need it */
 String *SwigType_manglestr_default(SwigType *s) {
   char *c;
   String *result,*base;
   SwigType *lt;
-  SwigType *ss = SwigType_typedef_resolve_all(s);
+  SwigType *sr = SwigType_typedef_qualified(s);
+  SwigType *ss = SwigType_typedef_resolve_all(sr);
+  
   s = ss;
 
-  if (SwigType_istemplate(s)) {
-    String *st = ss;
-    ss = Swig_cparse_template_deftype(st, 0);
+  if (SwigType_istemplate(ss)) {
+    SwigType *ty = Swig_symbol_template_deftype(ss,0);
+    Delete(ss);
+    ss = ty;
     s = ss;
-    Delete(st);
   }
+  Delete(sr);
+
   lt = SwigType_ltype(s);
   result = SwigType_prefix(lt);
   base = SwigType_base(lt);
