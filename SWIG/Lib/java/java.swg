@@ -6,7 +6,7 @@
  * The jni, jtype and jstype typemaps work together and so there should be one of each. 
  * The jni typemap contains the JNI type used in the JNI (C/C++) code. 
  * The jtype typemap contains the Java type used in the Java module class. 
- * The jstype typemap contains the Java type used in the Java shadow class. */
+ * The jstype typemap contains the Java type used in the Java proxy class. */
 
 /* Primitive types */
 %typemap(jni) bool,               const bool &               "jboolean"
@@ -170,39 +170,33 @@
 /* Non primitive types */
 %typemap(jni) SWIGTYPE "jlong"
 %typemap(jtype) SWIGTYPE "long"
-%typemap(jstype) SWIGTYPE "$javaclassname"
+%typemap(jstype) SWIGTYPE "$&javaclassname"
 
-%typemap(jni) SWIGTYPE [] "jlongArray"
-%typemap(jtype) SWIGTYPE [] "long[]"
-%typemap(jstype) SWIGTYPE [] "$javaclassname[]"
+%typemap(jni) SWIGTYPE [] "jlong"
+%typemap(jtype) SWIGTYPE [] "long"
+%typemap(jstype) SWIGTYPE [] "$javaclassname"
 
 %typemap(jni) SWIGTYPE * "jlong"
 %typemap(jtype) SWIGTYPE * "long"
-%typemap(jstype) SWIGTYPE * "long"
+%typemap(jstype) SWIGTYPE * "$javaclassname"
 
 %typemap(jni) SWIGTYPE & "jlong"
 %typemap(jtype) SWIGTYPE & "long"
-%typemap(jstype) SWIGTYPE & "long"
+%typemap(jstype) SWIGTYPE & "$javaclassname"
 
 %typemap(jni) enum SWIGTYPE "jint"
 %typemap(jtype) enum SWIGTYPE "int"
 %typemap(jstype) enum SWIGTYPE "int"
 
-/* Arrays of pointers. SWIG doesn't have a default for pointers to arrays, 
- * eg SWIGTYPE *[]. The typemap SWIGTYPE [] is used for all arrays. The
- * typemaps below give some support for arrays of pointers to primitive types. */
-%typemap(jni) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY] "jlongArray"
-%typemap(jtype) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY] "long[]"
-%typemap(jstype) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY] "long[]"
+/* Arrays of proxy classes. These typemaps make it possible to treat an array of 
+ * class/struct/unions as an array of Java classes. These typemaps are applied in the source
+ * code for all class/struct/union declarations, that is the equivalent of:
+ * %apply SWIGTYPE ARRAYSOFCLASSES[ANY] { name [ANY] }; */
+%typemap(jni) SWIGTYPE ARRAYSOFCLASSES[ANY] "jlongArray"
+%typemap(jtype) SWIGTYPE ARRAYSOFCLASSES[ANY] "long[]"
+%typemap(jstype) SWIGTYPE ARRAYSOFCLASSES[ANY] "$javaclassname[]"
 
-/* Arrays of enum pointers. These typemaps are applied in the source
- * code for all enum declarations, that is the equivalent of:
- * %apply enum SWIGTYPE *[ANY] { name *[ANY] }; */
-%typemap(jni) enum SWIGTYPE *[ANY] "jlongArray"
-%typemap(jtype) enum SWIGTYPE *[ANY] "long[]"
-%typemap(jstype) enum SWIGTYPE *[ANY] "long[]"
-
-/* Arrays of pointers. These typemaps makes it possible to treat an array of c pointers to 
+/* Arrays of pointers to proxy classes. These typemaps make it possible to treat an array of c pointers to 
  * class/struct/union as an array of Java classes. These typemaps are applied in the source
  * code for all class/struct/union declarations, that is the equivalent of:
  * %apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] { name *[ANY] }; */
@@ -211,23 +205,12 @@
 %typemap(jstype) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] "$javaclassname[]"
 
 /* Arrays of enums. SWIG does not have a default for arrays of enums, eg enum SWIGTYPE []. The following 
- * typemaps are applied in the source code for all enum declarations that is the equivalent of:
+ * typemaps are applied in the source code for all enum declarations, that is the equivalent of:
  * %apply enum SWIGTYPE[ANY] {name[ANY]}; */
 %typemap(jni) enum SWIGTYPE[ANY] "jintArray"
 %typemap(jtype) enum SWIGTYPE[ANY] "int[]"
 %typemap(jstype) enum SWIGTYPE[ANY] "int[]"
 
-/* Pointers and references to classes. SWIG does not have a default for pointers to classes, eg SWIGTYPE *CLASS. 
- * The following typemaps are applied in the source code for all class/struct/union declarations, that is the equivalent of:
- * %apply SWIGTYPE *CLASS { name * }; 
- * %apply SWIGTYPE &CLASS { name & }; */
-%typemap(jni) SWIGTYPE *CLASS "jlong"
-%typemap(jtype) SWIGTYPE *CLASS "long"
-%typemap(jstype) SWIGTYPE *CLASS "$javaclassname"
-
-%typemap(jni) SWIGTYPE &CLASS "jlong"
-%typemap(jtype) SWIGTYPE &CLASS "long"
-%typemap(jstype) SWIGTYPE &CLASS "$javaclassname"
 
 /* The following are the in, out, freearg, argout typemaps. These are the JNI code generating typemaps for converting from Java to C and visa versa. */
 
@@ -422,11 +405,15 @@ $1 = &temp; %}
 #endif
 
 /* Generic pointers and references */
-%typemap(in) SWIGTYPE * , SWIGTYPE & %{ $1 = ($1_ltype)*(void**)&$input; %}
-%typemap(out) SWIGTYPE * , SWIGTYPE & %{ *($&1_ltype)&$result = $1; %} 
+%typemap(in) SWIGTYPE *, SWIGTYPE & %{ $1 = ($1_ltype)*(void**)&$input; %}
+%typemap(out) SWIGTYPE *, SWIGTYPE & %{ *($&1_ltype)&$result = $1; %} 
 
-/* Arrays */
-/* Most arrays use the following macro. The array typemaps use support functions. */
+
+/* Default array handling */
+%typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)*(void**)&$input; %}
+%typemap(out) SWIGTYPE [] %{ *($1_ltype*)&$result = $1; %} 
+
+/* Arrays of primitive types use the following macro. The array typemaps use support functions. */
 %define JAVA_ARRAYS_TYPEMAPS(CTYPE, JTYPE, JFUNCNAME)
 
 %typemap(in) CTYPE[ANY] (JTYPE *jarr)
@@ -435,6 +422,8 @@ $1 = &temp; %}
 %{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) CTYPE[ANY] 
 %{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
+%typemap(freearg) CTYPE[ANY] 
+%{ free($1); %}
 
 %enddef
 
@@ -464,12 +453,11 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 %{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, (int*)$1, $input); %}
 %typemap(out) enum SWIGTYPE[ANY] 
 %{$result = SWIG_JavaArrayOutInt(jenv, (int*)$1, $1_dim0); %}
+%typemap(freearg) enum SWIGTYPE[ANY] 
+%{ free($1); %}
 
-
-/* Arrays of pointers */
-%typemap(in) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY] (jlong *jarr, jsize sz),
-             SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] (jlong *jarr, jsize sz),
-             enum SWIGTYPE *[ANY] (jlong *jarr, jsize sz)
+/* Arrays of pointers to proxy classes */
+%typemap(in) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] (jlong *jarr, jsize sz)
 {
   int i;
   if (!$input) {
@@ -491,9 +479,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   }
 }
 
-%typemap(argout) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY], 
-                  SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY],
-                  enum SWIGTYPE *[ANY]
+%typemap(argout) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY]
 {
   int i;
   for (i=0; i<sz$argnum; i++) {
@@ -503,9 +489,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
 }
 
-%typemap(out) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY],
-              SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY],
-              enum SWIGTYPE *[ANY]
+%typemap(out) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY]
 {
   jlong *arr;
   int i;
@@ -524,12 +508,11 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   JCALL3(ReleaseLongArrayElements, jenv, $result, arr, 0);
 }
 
-%apply SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY] { 
-    bool *[ANY], char *[ANY], unsigned char *[ANY], short *[ANY], unsigned short *[ANY], int *[ANY], unsigned int *[ANY], long *[ANY], unsigned long *[ANY], long long *[ANY], /*unsigned long long *[ANY],*/ float *[ANY], double *[ANY], void *[ANY] };
+%typemap(freearg) SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY]
+%{ free($1); %}
 
-
-/* Default array handling. Used for arrays of non primitive types. */
-%typemap(in) SWIGTYPE [] (jlong *jarr, jsize sz)
+/* Arrays of proxy classes */
+%typemap(in) SWIGTYPE ARRAYSOFCLASSES[ANY] (jlong *jarr, jsize sz)
 {
   int i;
   if (!$input) {
@@ -551,7 +534,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   }
 }
 
-%typemap(argout) SWIGTYPE []
+%typemap(argout) SWIGTYPE ARRAYSOFCLASSES[ANY]
 {
   int i;
   for (i=0; i<sz$argnum; i++) {
@@ -561,7 +544,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
 }
 
-%typemap(out) SWIGTYPE []
+%typemap(out) SWIGTYPE ARRAYSOFCLASSES[ANY]
 {
   jlong *arr;
   int i;
@@ -580,10 +563,8 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   JCALL3(ReleaseLongArrayElements, jenv, $result, arr, 0);
 }
 
-/* free memory - required by all the array typemaps */
-%typemap(freearg) SWIGTYPE []
+%typemap(freearg) SWIGTYPE ARRAYSOFCLASSES[ANY]
 %{ free($1); %}
-
 
 %include "java_arrays.i"
 
