@@ -9,16 +9,16 @@
 #define %runtime    %insert("runtime")
 #define %shadow     %insert("shadow")
 
-#define %readonly   %pragma "readonly";
-#define %readwrite  %pragma "readwrite";
+#define %readonly   %scope("readonly")
+
 #define %new        %pragma "new";
 #define %name(x)    %pragma "name" `x`;
 #define %disabledoc %pragma "disabledoc";
 #define %enabledoc  %pragma "enabledoc";
 #define %doconly    %pragma "doconly";
 
-#define %alpha
-#define %raw
+#define %alpha      %echo "$file.$line. %alpha directive is obsolete"
+#define %raw        %echo "$file:$line. %raw directive is obsolete"
 
 #define %title          /##/
 #define %localstyle     /##/
