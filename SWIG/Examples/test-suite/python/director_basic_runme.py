@@ -21,4 +21,8 @@ if b.ping() != "Foo::ping()":
 if b.pong() != "Foo::pong();Foo::ping()":
 	raise RuntimeError, b.pong()
 
+a = director_basic.A1(1)
+
+if a.rg(2) != 2:
+	raise RuntimeError
 
