@@ -650,6 +650,47 @@ Swig_cmemberget_call(const String_or_char *name, SwigType *t,
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_extension_code()
+ *
+ * Generates an extension function (a function defined in %extend)
+ *
+ *        return_type function_name(parms) code
+ *
+ * ----------------------------------------------------------------------------- */
+String *
+Swig_extension_code(const String *function_name, ParmList *parms,
+		    SwigType *return_type, const String *code, int cplusplus) {
+  String *parms_str = cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
+  String *sig = NewStringf("%s(%s)", function_name, parms_str);
+  String *rt_sig = SwigType_str(return_type,sig);
+  String *body = NewStringf("static %s", rt_sig);
+  Printv(body, code, "\n", NIL);
+  Delete(parms_str);
+  Delete(sig);
+  Delete(rt_sig);
+  return body;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_add_extension_code()
+ *
+ * Generates an extension function (a function defined in %extend) and
+ * adds it to the "wrap:code" attribute of a node
+ *
+ * See also Swig_extension_code()
+ *
+ * ----------------------------------------------------------------------------- */
+int
+Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms,
+			SwigType *return_type, const String *code, int cplusplus) {
+  String *body = Swig_extension_code(function_name, parms, return_type, code, cplusplus);
+  Setattr(n,"wrap:code",body);
+  Delete(body);
+  return SWIG_OK;
+}
+
+
+/* -----------------------------------------------------------------------------
  * Swig_MethodToFunction(Node *n)
  *
  * Converts a C++ method node to a function accessor function.
@@ -735,14 +776,8 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
 
     /* See if there is any code that we need to emit */
     if (!defaultargs && code) {
-      String *body;
-      String *parmstring = cparse_cplusplus ? ParmList_str_defaultargs(p) : ParmList_str(p);
-      String *tmp = NewStringf("%s(%s)", mangled, parmstring);
-      body = SwigType_str(type,tmp);
-      Printv(body,code,"\n",NIL);
-      Setattr(n,"wrap:code",body);
-      Delete(tmp);
-      Delete(body);
+      Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus);
+
     }
     if (flags & CWRAP_SMART_POINTER) {
       int i = 0;
@@ -896,14 +931,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 
     /* See if there is any code that we need to emit */
     if (!defaultargs && code) {
-      String *body;
-      String *parmstring = cparse_cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
-      String *tmp = NewStringf("%s(%s)", mangled, parmstring);
-      body = SwigType_str(type,tmp);
-      Printv(body,code,"\n",NIL);
-      Setattr(n,"wrap:code",body);
-      Delete(tmp);
-      Delete(body);
+      Swig_add_extension_code(n, mangled, parms, type, code, cparse_cplusplus);
     }
 
     Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cfunction_call(mangled,parms)));
@@ -995,11 +1023,7 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags)
     mangled = Swig_name_mangle(membername);
     code = Getattr(n,"code");
     if (code) {
-      String *parmstring = cparse_cplusplus ? ParmList_str_defaultargs(p) : ParmList_str(p);
-      String *s = NewStringf("void %s(%s)", mangled, parmstring);
-      Printv(s,code,"\n",NIL);
-      Setattr(n,"wrap:code",s);
-      Delete(s);
+      Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus);
     }
     Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cfunction_call(mangled,p)));
     Delete(membername);
@@ -1032,6 +1056,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   SwigType *t;
   SwigType *ty;
   SwigType *type;
+  SwigType *void_type = NewString("void");
   String   *membername;
   String   *mangled;
   String   *self= 0;
@@ -1065,20 +1090,17 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   if (flags & CWRAP_EXTEND) {
     String *code = Getattr(n,"code");
     if (code) {
-      String *parmstring = cparse_cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
-      String *s = NewStringf("void %s(%s)", mangled, parmstring);
-      Printv(s,code,"\n",NIL);
-      Setattr(n,"wrap:code",s);
-      Delete(s);
+      Swig_add_extension_code(n, mangled, parms, void_type, code, cparse_cplusplus);
     }
     Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cfunction_call(mangled,parms)));
   } else {
     Setattr(n,"wrap:action", NewStringf("%s;\n", Swig_cmemberset_call(name,type,self)));
   }
-  Setattr(n,"type","void");
+  Setattr(n,"type",void_type);
   Setattr(n,"parms", parms);
   Delete(parms);
   Delete(ty);
+  Delete(void_type);
   Delete(membername);
   Delete(mangled);
   Delete(self);
@@ -1089,7 +1111,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
 /* -----------------------------------------------------------------------------
  * Swig_MembergetToFunction()
  *
- * This function creates a C wrapper for setting a structure member.
+ * This function creates a C wrapper for getting a structure member.
  * ----------------------------------------------------------------------------- */
 
 int
@@ -1123,13 +1145,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   if (flags & CWRAP_EXTEND) {
     String *code = Getattr(n,"code");
     if (code) {
-      String *parmstring = cparse_cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
-      String *tmp = NewStringf("%s(%s)", mangled, parmstring);
-      String *s = SwigType_str(ty,tmp);
-      Delete(tmp);
-      Printv(s,code,"\n",NIL);
-      Setattr(n,"wrap:code",s);
-      Delete(s);
+      Swig_add_extension_code(n, mangled, parms, ty, code, cparse_cplusplus);
     }
     Setattr(n,"wrap:action", Swig_cresult(ty,"result",Swig_cfunction_call(mangled,parms)));
   } else {
