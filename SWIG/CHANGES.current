@@ -1,5 +1,44 @@
 Version 1.3.17 (In progress)
 ============================
+
+11/14/2002: cheetah (William Fulton)
+            [Java] Handling of NULL pointers is improved. A java null object will now
+            be translated to and from a NULL C/C++ pointer by default. Previously when 
+            wrapping:
+
+                class SomeClass {...};
+                void foo(SomeClass *s);
+
+            and it was called from Java with null:
+
+                modulename.foo(null)
+
+            a Java NullPointerException was thrown. Extra typemaps had to be written in
+            order to obtain a NULL pointer to pass to functions like this one. Now the 
+            default wrapping will detect 'null' and translate it into a NULL pointer.
+            Also if a function returns a NULL pointer, eg:
+            
+                SomeClass *bar() { return NULL; }
+            
+            Then this used to be wrapped with a SomeClass proxy class holding a NULL
+            pointer. Now null is returned instead. These changes are subtle but useful.
+            The original behaviour can be obtained by using the original typemaps:
+
+                %typemap(javaout) SWIGTYPE {
+                    return new $&javaclassname($jnicall, true);
+                  }
+                %typemap(javaout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+                    return new $javaclassname($jnicall, $owner);
+                  }
+                %typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
+                  protected static long getCPtr($javaclassname obj) {
+                    return obj.swigCPtr;
+                  }
+                %}
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+
 11/12/2002: beazley
             Fixed problem with abstract methods and signatures.  For example:
 
