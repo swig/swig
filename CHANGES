@@ -1,6 +1,10 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
 1/13/00 : beazley
+          Fixed a number of minor end-of-file parsing problems in the
+          preprocessor.
+
+1/13/00 : beazley
           Added -freeze option that forces SWIG to freeze upon exit.
           This is only used as a debugging tool so that I can more
           easily examine SWIG's memory footprint.
