@@ -3,39 +3,33 @@
 open Swig
 open Example
 
-(* repeatedly invoke a procedure with v and an index as arguments *)
-let with_vector v proc size =
-  let rec with_vector_item =
-    (fun v i -> if (i < size) then
-       begin
-	 proc v i ;
-	 with_vector_item v (succ i)
-       end) in
-    with_vector_item v 0
-
-let with_vector v proc = 
-  with_vector v proc (get_int ((invoke v) "size" (C_void)))
-
-
-
-let dbl_vector_ref v i = 
-  match ((invoke v) "[]" (C_int i)) with
-      C_float f | C_double f -> f | _ -> 0.0
+let with_vector v f =
+  for i = 0 to ((v -> size()) as int) - 1 do
+    f v i
+  done
 
 let print_DoubleVector v =
   begin
     with_vector v 
       (fun v i -> 
-	 (print_float (dbl_vector_ref v i)) ;
-	 (print_string " ")) ;
+	 print_float ((v '[i to int]) as float) ;
+	 print_string " ") ;
     print_endline 
   end
 
-let fill_int_vector_from_array a v i = 
-  (invoke v) "set" (C_list [ C_int i ; C_int a.(i) ]) 
-
 (* Call average with a Ocaml array... *)
 
-let y = new_IntVector (C_uint (Int32.of_int 4)) 
-let _ = with_vector y (fill_int_vector_from_array [| 1;2;3;4 |]) 
-let _ = (print_float (get_float (_average y)) ; print_newline ())
+let v = new_DoubleVector '()
+let rec fill_dv v x =
+  if x < 0.0001 then v else 
+    begin
+      v -> push_back ((x to float)) ;
+      fill_dv v (x *. x)
+    end
+let _ = fill_dv v 0.999
+let _ = print_DoubleVector v ; print_endline ""
+let u = new_IntVector '()
+let _ = for i = 1 to 4 do
+  u -> push_back ((i to int))
+done
+let _ = (print_float ((_average u) as float) ; print_newline ())
