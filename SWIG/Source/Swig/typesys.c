@@ -507,7 +507,6 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *namebase = 0;
   String *nameprefix = 0;
   int     newtype = 0;
-  static   String *noscope = 0;
 
   /*
   if (!noscope) {
@@ -1247,10 +1246,11 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
     (*r_tracefunc)(t,mt, (String *) clientdata);
   }
 
-  if (SwigType_istypedef(t))
+  if (SwigType_istypedef(t)) {
     lt = Copy(t);
-  else
+  } else {
     lt = SwigType_ltype(t);
+  }
   Setattr(r_ltype, mt, lt);
   fr = SwigType_typedef_resolve_all(t);     /* Create fully resolved type */
   qr = SwigType_typedef_qualified(fr);
@@ -1295,6 +1295,17 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
     } else {
       Setattr(r_clientdata, fr, NewString(clientdata));
     }
+  }
+
+  /* If the remembered type is a reference, we also remember the pointer version.
+     This is to prevent odd problems with mixing pointers and references--especially
+     when different functions are using different typenames (via typedef). */
+
+  if (SwigType_isreference(t)) {
+    SwigType *tt = Copy(t);
+    SwigType_del_reference(tt);
+    SwigType_add_pointer(tt);
+    SwigType_remember_clientdata(tt,clientdata);
   }
 }
 
