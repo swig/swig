@@ -1,5 +1,32 @@
 Version 1.3.20 (In progress)
 ============================
+04/29/2003: cheetah (William Fulton)
+            Build changes:
+            - Single autoconf invocation - autoconf in the Tools directory has gone.
+
+            - Libtool bootstrapped when running autogen.sh. This requires anyone
+              using the cvs version of SWIG to have libtool installed on their
+              machine. Suggest version 1.4.2 or higher, preferably the latest - 1.5.
+
+            - Automake is now used to build the runtime libraries in conjunction 
+              with libtool.
+
+            - Runtime libraries are now successfully built as DLLs on Cygwin.
+
+            - Skipping languages is no longer just determined in the top level 
+              makefile but in configure.in. This info is used for building
+              the runtime libraries and for running the examples and test-suite.
+
+            - These changes have fixed multiple build directory builds, that is
+              building from directories other than the top level directory. 
+              Installation from multiple build directories also working. An initial
+              configure in the top level directory is no longer needed as described
+              in 04/02/2003 entry. A 'make distclean' will be needed before building
+              in a directory other than the top level directory if the autotools 
+              have been run from this top level directory at some point, but 
+              autoconf will tell you this. Note that 'make check' only works from 
+              the top level directory at the moment.
+
 04/28/2003: beazley
             Fixed [ 723471 ] Wrapper_print() fails with preprocessor directives.
 
