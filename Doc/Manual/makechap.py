@@ -27,6 +27,7 @@ h1 = re.compile(r".*?<H1>[\d\.\s]*(.*?)</H1>", re.IGNORECASE)
 h2 = re.compile(r".*?<H2>[\d\.\s]*(.*?)</H2>", re.IGNORECASE)
 h3 = re.compile(r".*?<H3>[\d\.\s]*(.*?)</H3>", re.IGNORECASE)
 h4 = re.compile(r".*?<H4>[\d\.\s]*(.*?)</H4>", re.IGNORECASE)
+h5 = re.compile(r".*?<H5>[\d\.\s]*(.*?)</H5>", re.IGNORECASE)
 
 data = open(filename).read()            # Read data
 open(filename+".bak","w").write(data)   # Make backup
@@ -64,6 +65,7 @@ for s in lines:
         section = 0
         subsection = 0
         subsubsection = 0
+        subsubsubsection = 0
         name = m.group(1)
         skipspace = 1
         continue
@@ -79,6 +81,7 @@ for s in lines:
         index += """<li><a href="#n%d">%s</a>\n""" % (nameindex,m.group(1))
         subsection = 0
         subsubsection = 0
+        subsubsubsection = 0
         skipspace = 1        
         continue
     m = h3.match(s)
@@ -101,13 +104,21 @@ for s in lines:
     if m:
         nameindex += 1
         subsubsection += 1
+        subsubsubsection = 0
         result.append("""<a name="n%d"></a><H4>%d.%d.%d.%d %s</H4>""" % (nameindex,num,section, subsection, subsubsection, m.group(1)))
         if subsubsection == 1:
             index += "<ul>\n"
         index += """<li><a href="#n%d">%s</a>\n""" % (nameindex,m.group(1))
         skipspace = 1        
         continue
-        
+    m = h5.match(s)
+    if m:
+        nameindex += 1
+        subsubsubsection += 1
+        result.append("""<a name="n%d"></a><H5>%d.%d.%d.%d.%d %s</H5>""" % (nameindex,num,second,subsection,subsubsection,subsubsubsection, m.group(1)))
+        skipspace = 1
+        continue
+    
     result.append(s)
 
 if subsubsection:
