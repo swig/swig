@@ -18,14 +18,9 @@
 
 %typecheck(SWIG_TYPECHECK_INT32) enum SWIGTYPE ""
 
-%typemap(javain) enum SWIGTYPE "$javainput.swigValue()"
-%typemap(javaout) enum SWIGTYPE {
-    return $javaclassname.swigToEnum($jnicall);
-  }
-
-%typemap(throws) enum SWIGTYPE {
+%typemap(throws) enum SWIGTYPE %{
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
-}
+%}
 
 %typemap(javain) enum SWIGTYPE "$javainput"
 %typemap(javaout) enum SWIGTYPE {
@@ -33,7 +28,7 @@
   }
 
 // '$static' will be replaced with either 'static' or nothing depending on whether the enum is an inner Java class or not
-%typemap(javaclassmodifiers) enum SWIGTYPE "public $static class"
+%typemap(javaclassmodifiers) enum SWIGTYPE "public final $static class"
 %typemap(javagetcptr) enum SWIGTYPE ""
 
 %javaenum(typeunsafe);
