@@ -1,10 +1,7 @@
 /* File : example.cxx */
 
 #include <Python.h>
-#include "swigrun.swg"
-#include "pyrun.swg"
-#include "runtime.swg"
-
+#include "swigpyrun.h"
 #include "example.h"
 
 
