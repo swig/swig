@@ -212,6 +212,152 @@ namespace std {
         }
     };
 
+    // Partial specialization for vectors of pointers.  [ beazley ]
+
+    %mixin vector<T*> "Enumerable";
+    template<class T> class vector<T*> {
+        %typemap(in) vector<T*> {
+            if (rb_obj_is_kind_of($input,rb_cArray)) {
+                unsigned int size = RARRAY($input)->len;
+                $1 = std::vector<T* >(size);
+                for (unsigned int i=0; i<size; i++) {
+                    VALUE o = RARRAY($input)->ptr[i];
+                    T* x;
+                    SWIG_ConvertPtr(o, (void **) &x, $descriptor(T *), 1);
+                    (($1_type &)$1)[i] = x;
+                }
+            } else {
+                void *ptr;
+                SWIG_ConvertPtr($input, &ptr, $&1_descriptor, 1);
+                $1 = *(($&1_type) ptr);
+            }
+        }
+        %typemap(in) const vector<T*>& (std::vector<T*> temp),
+                     const vector<T*>* (std::vector<T*> temp) {
+            if (rb_obj_is_kind_of($input,rb_cArray)) {
+                unsigned int size = RARRAY($input)->len;
+                temp = std::vector<T* >(size);
+                $1 = &temp;
+                for (unsigned int i=0; i<size; i++) {
+                    VALUE o = RARRAY($input)->ptr[i];
+                    T* x;
+                    SWIG_ConvertPtr(o, (void **) &x, $descriptor(T *), 1);
+                    temp[i] = x;
+                }
+            } else {
+                SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);
+            }
+        }
+        %typemap(out) vector<T*> {
+            $result = rb_ary_new2($1.size());
+            for (unsigned int i=0; i<$1.size(); i++) {
+                T* x = new T((($1_type &)$1)[i]);
+                rb_ary_store($result,i,
+                             SWIG_NewPointerObj((void *) x, 
+                                                $descriptor(T *), 0));
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T*> {
+            /* native sequence? */
+            if (rb_obj_is_kind_of($input,rb_cArray)) {
+                unsigned int size = RARRAY($input)->len;
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    VALUE o = RARRAY($input)->ptr[0];
+                    if ((SWIG_ConvertPtr(o,(void **) &x, 
+                                         $descriptor(T *),0)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T* >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $&1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T*>&,
+                                          const vector<T*>* {
+            /* native sequence? */
+            if (rb_obj_is_kind_of($input,rb_cArray)) {
+                unsigned int size = RARRAY($input)->len;
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    VALUE o = RARRAY($input)->ptr[0];
+                    if ((SWIG_ConvertPtr(o,(void **) &x, 
+                                         $descriptor(T *),0)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T* >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $1_descriptor,1) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+      public:
+        vector(unsigned int size = 0);
+        vector(unsigned int size, const T* value);
+        vector(const vector<T*> &);
+
+        %rename(__len__) size;
+        unsigned int size() const;
+        %rename("empty?") empty;
+        bool empty() const;
+        void clear();
+        %rename(push) push_back;
+        void push_back(const T* x);
+        %extend {
+            T* pop() {
+                if (self->size() == 0)
+                    throw std::out_of_range("pop from empty vector");
+                T* x = self->back();
+                self->pop_back();
+                return x;
+            }
+            T* __getitem__(int i) {
+                int size = int(self->size());
+                if (i<0) i += size;
+                if (i>=0 && i<size)
+                    return (*self)[i];
+                else
+                    throw std::out_of_range("vector index out of range");
+            }
+            void __setitem__(int i, const T* x) {
+                int size = int(self->size());
+                if (i<0) i+= size;
+                if (i>=0 && i<size)
+                    (*self)[i] = x;
+                else
+                    throw std::out_of_range("vector index out of range");
+            }
+            void each() {
+                for (unsigned int i=0; i<self->size(); i++) {
+                    T* x = &((*self)[i]);
+                    rb_yield(SWIG_NewPointerObj((void *) x, 
+                                                $descriptor(T *), 0));
+                }
+            }
+        }
+    };
+        
 
     // specializations for built-ins
 
