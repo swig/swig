@@ -9,6 +9,6 @@ all::
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' php4
 
 clean::
-	rm -f *_wrap* *.o core *~ *.so *.php *.c php_example.h
+	rm -f *_wrap* *.o core *~ *.so *.php php_example.h
 
 check: all
