@@ -1291,7 +1291,7 @@ void Language::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l
   String *mrename;
 
   if (!AddMethods) {
-    cname = NewStringf("%s::%s",ClassPrefix,name);
+    cname = NewStringf("%s::%s",ClassName,name);
   } else {
     cname = Copy(Swig_name_member(ClassPrefix,name));    
   }
