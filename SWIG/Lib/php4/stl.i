@@ -35,11 +35,11 @@ namespace std {
     }
 
     %typemap(out) string {
-        RETURN_STRINGL(const_cast<char*>($1.c_str()),$1.length(),1);
+        ZVAL_STRINGL($result,const_cast<char*>$1.c_str(),$1.length(),1);
     }
 
     %typemap(out) const string & {
-        RETURN_STRINGL(const_cast<char*>($1->c_str()),$1->length(),1);
+        ZVAL_STRINGL($result,const_cast<char*>($1->c_str()),$1->length(),1);
     }
 
 }

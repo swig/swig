@@ -65,12 +65,6 @@
 	$1 = &temp;
 }
 
-%typemap(php4, in) const string & (string temp) {
-  convert_to_string_ex($input);
-  temp=Z_STRVAL_PP($input);
-  $1=&temp;
-}
-
 %typemap(php4,ignore)	int	*OUTPUT(int temp),
 			short	*OUTPUT(short temp),
 			long	*OUTPUT(long temp),
@@ -100,10 +94,6 @@
 			double	*OUTPUT
 {
   RETURN_DOUBLE(*($input));
-}
-
-%typemap(php4,out) string {
-  RETURN_STRINGL((char *)$1.data(), $1.length(),1);
 }
 
 %typemap(php4,in) int *INOUT = int *INPUT;
