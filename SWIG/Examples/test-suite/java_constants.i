@@ -25,6 +25,11 @@
 
 %constant int BRISTOLS=800;
 
+%javaconstvalue(100L) APPLES;
+%inline %{
+#define APPLES 100LL
+%}
+
 %javaconst(0);
 %constant long long ROSY=900LL;
 

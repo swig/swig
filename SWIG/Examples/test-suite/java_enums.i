@@ -38,3 +38,14 @@ enum nonsense { POPPYCOCK, JUNK };
 nonsense test1(nonsense n) { return n; }
 enum nonsense test2(enum nonsense n) { return n; }
 %}
+
+// Test the %javaconstvalue directive for enums
+%{
+static const int FOUR = 4;
+%}
+
+%javaconst(1);
+%javaconstvalue(4) Quattro;
+%inline %{
+enum Numero { Quattro = FOUR };
+%}
