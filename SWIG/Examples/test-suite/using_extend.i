@@ -1,6 +1,6 @@
 %module(ruby_minherit="1") using_extend
 
-%warnfilter(813) FooBar;   // Ruby, Java multiple inheritance
+%warnfilter(813,833) FooBar;   // C#, Java multiple inheritance
 
 %extend Foo {
      int blah(int x, int y) {

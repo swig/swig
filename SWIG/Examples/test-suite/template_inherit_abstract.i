@@ -1,7 +1,7 @@
 %module(ruby_minherit="1") template_inherit_abstract
 
 %warnfilter(801) oss::test;	/* Ruby, wrong class name */
-%warnfilter(813) oss::Module;	/* Ruby & Java, multiple inheritance */
+%warnfilter(813,833) oss::Module;	/* C# & Java, multiple inheritance */
 
 %inline %{ 
  
