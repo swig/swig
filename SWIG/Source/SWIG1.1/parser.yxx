@@ -972,28 +972,7 @@ statement      : INCLUDE STRING LBRACE {
 
 /* constant directive */
 
-               | CONSTANT ID definetype SEMI {
-		   if (($3.type != T_ERROR) && ($3.type != T_SYMBOL)) {
-		     init_language();
-		     temp_typeptr = NewSwigType($3.type);
-		     create_constant($2, temp_typeptr, $3.id);
-		     Delete(temp_typeptr);
-		   } else if ($3.type == T_SYMBOL) {
-		     // Add a symbol to the SWIG symbol table
-		     if (add_symbol($2)) {
-		       Printf(stderr,"%s : Line %d. Warning. Symbol %s already defined.\n",
-			       input_file,line_number, $2);
-		     }
-		   }
-	       }
-
-               | CONSTANT LPAREN parm RPAREN ID def_args SEMI {
-		 if (($6.type != T_ERROR) && ($6.type != T_SYMBOL)) {
-		   init_language();
-		   create_constant($5,Gettype($3), $6.id);
-		   Delete($3);
-		 }
-               }
+               | constant { }
 
 /* Enumerations */
 
@@ -1449,6 +1428,34 @@ extern         : EXTERN { $$ = 1; }
 func_end       : cpp_const LBRACE { skip_brace(); }
 /*               | LBRACE { skip_brace(); } */
                ;
+
+
+/* ------------------------------------------------------------------------------
+   constant directive support 
+   ------------------------------------------------------------------------------ */
+
+constant         : CONSTANT ID definetype SEMI {
+		   if (($3.type != T_ERROR) && ($3.type != T_SYMBOL)) {
+		     init_language();
+		     temp_typeptr = NewSwigType($3.type);
+		     create_constant($2, temp_typeptr, $3.id);
+		     Delete(temp_typeptr);
+		   } else if ($3.type == T_SYMBOL) {
+		     // Add a symbol to the SWIG symbol table
+		     if (add_symbol($2)) {
+		       Printf(stderr,"%s : Line %d. Warning. Symbol %s already defined.\n",
+			       input_file,line_number, $2);
+		     }
+		   }
+	       }
+
+               | CONSTANT LPAREN parm RPAREN ID def_args SEMI {
+		 if (($6.type != T_ERROR) && ($6.type != T_SYMBOL)) {
+		   init_language();
+		   create_constant($5,Gettype($3), $6.id);
+		   Delete($3);
+		 }
+               }
 
 /* ------------------------------------------------------------------------------
    Function parameter lists
@@ -1921,9 +1928,10 @@ expr           :  NUM_INT {
                   $$.id = $1;
 		  $$.type = T_ULONG;
 	       }
-               |  SIZEOF LPAREN type RPAREN {
-	          $$.id = (char *) malloc(Len($3)+9);
-		  sprintf($$.id,"sizeof(%s)", Char($3));
+               |  SIZEOF LPAREN type maybestars RPAREN {
+		  add_pointers($3,$4);
+		  $$.id = (char *) malloc(strlen(Char(SwigType_str($3,0)))+9);
+		  sprintf($$.id,"sizeof(%s)", Char(SwigType_str($3,0)));
 		  $$.type = T_INT;
 	       }
                |  LPAREN strict_type RPAREN expr %prec UMINUS {
@@ -2410,7 +2418,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 
 /* A virtual destructor */
 
-              | VIRTUAL NOT ID LPAREN RPAREN cpp_end {
+              | VIRTUAL NOT ID LPAREN parms RPAREN cpp_end {
  	        char *iname;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {
@@ -2419,6 +2427,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  cplus_destructor($3,iname);
 		}
 		scanner_clear_start();
+		Delete($5);
 	      }
 
 /* Member data */
@@ -2592,6 +2601,8 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		scanner_clear_start();
 	      }
 
+/* A constant (includes #defines) inside a class */
+              | constant { }
 
 cpp_pragma    : PRAGMA ID stylearg {
                  if (!WrapExtern) { }

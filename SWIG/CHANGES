@@ -14,6 +14,12 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+7/17/2001: cheetah (william fulton)
+	   * Bug fix in parser for virtual destructor with void as parameter
+	   * Bug fix in parser #defines embedded within classes/structs/unions
+	   Consequently %constant can now also be placed within a struct/class/union.
+	   * Bug fix in parser to allow sizeof(*I_am_a_pointer) within a #define
+
 7/16/2001: mkoeppe
 	   * Added changes for the Macintosh contributed by Luigi
 	   Ballabio <ballabio@mac.com>. 
