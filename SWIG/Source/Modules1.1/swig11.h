@@ -91,6 +91,7 @@ class Dispatcher {
   virtual int accessDeclaration(Node *n);
   virtual int usingDeclaration(Node *n);
   virtual int namespaceDeclaration(Node *n);
+  virtual int templateDeclaration(Node *n);
 };
 
 /************************************************************************

@@ -45,6 +45,7 @@ extern void scanner_last_id(int);
 extern void start_inline(char *, int);
 extern String *scanner_ccode;
 extern void cparse_error(String *, int, char *, ...);
+extern int Swig_cparse_template_expand(Node *n, ParmList *tparms);
 
 /* NEW Variables */
 
@@ -107,7 +108,7 @@ static Node *copy_node(Node *n) {
     /* If children.  We copy them recursively using this function */
     if (Strcmp(key,"firstChild") == 0) {
       /* Copy children */
-      Node *cn = Getattr(n,"key");
+      Node *cn = Getattr(n,key);
       while (cn) {
 	appendChild(nn,copy_node(cn));
 	cn = nextSibling(cn);
@@ -128,6 +129,7 @@ static Node *copy_node(Node *n) {
     }
     if ((Strcmp(key,"parms") == 0) || (Strcmp(key,"pattern") == 0)) {
       Setattr(nn,key,CopyParmList(Getattr(n,key)));
+      continue;
     }
     /* Looks okay.  Just copy the data using Copy */
     Setattr(nn, key, Copy(Getattr(n,key)));
@@ -206,16 +208,12 @@ rename_inherit(String *base, String *derived) {
 
 /* Generate the symbol table name for an object */
 /* This is a bit of a mess. Need to clean up */
+static String *add_oldname = 0;
 
 static String *make_name(String *name,SwigType *decl) {
   String *rn = 0;
   String *origname = name;
   int     destructor = 0;
-
-  /*  if (Namespaceprefix) {
-    Printf(stdout,"%s%s\n", Namespaceprefix,name);
-  }
-  */
 
   if (name && (*(Char(name)) == '~')) {
     destructor = 1;
@@ -230,13 +228,19 @@ static String *make_name(String *name,SwigType *decl) {
   }
   if (!name) return 0;
   /* Check to see if the name is in the hash */
-  if (!rename_hash) return origname;
+  if (!rename_hash) {
+    if (add_oldname) return Copy(add_oldname);
+    return origname;
+  }
   if (!destructor) {
     rn = Swig_name_object_get(rename_hash, Namespaceprefix, name, decl);
   } else {
     rn = Swig_name_object_get(rename_hash, Namespaceprefix, Char(name)+1,decl);
   }
-  if (!rn) return name;
+  if (!rn) {
+    if (add_oldname) return Copy(add_oldname);
+    return name;
+  }
   if (destructor) {
     String *s = NewStringf("~%s", rn);
     return s;
@@ -263,7 +267,8 @@ static String *name_warning(String *name,SwigType *decl) {
 }
 
 /* Add declaration list to symbol table */
- static int  add_only_one = 0;
+static int  add_only_one = 0;
+
 
 static void add_symbols(Node *n) {
   String *decl;
@@ -341,21 +346,15 @@ static void add_symbols(Node *n) {
 void add_symbols_copy(Node *n) {
   String *name;
   String *symname;
-  String *oldname;
   while (n) {
-    oldname = Getattr(n,"sym:name");
-    if (oldname) {
+    add_oldname = Getattr(n,"sym:name");
+    if (add_oldname) {
+      DohIncref(add_oldname);
       Delattr(n,"sym:name");
       add_only_one = 1;
       add_symbols(n);
       add_only_one = 0;
       name = Getattr(n,"name");
-      symname = Getattr(n,"sym:name");
-      if (Strcmp(name,symname) == 0) {
-	if (Strcmp(oldname,symname) != 0) {
-	  Setattr(n,"sym:name",oldname);
-	}
-      }
       if (Getattr(n,"requires_symtab")) {
 	Swig_symbol_newscope();
 	Swig_symbol_setscopename(name);
@@ -365,6 +364,8 @@ void add_symbols_copy(Node *n) {
 	Setattr(n,"symtab", Swig_symbol_popscope());
 	Delattr(n,"requires_symtab");
       }
+      Delete(add_oldname);
+      add_oldname = 0;
     }
     n = nextSibling(n);
   }
@@ -606,7 +607,7 @@ Node *Swig_cparse(File *f) {
   return top;
 }
 
-static void canonical_template(String *s) {
+void canonical_template(String *s) {
   Replaceall(s,"\n"," ");
   Replaceall(s,"\t"," ");
   Replaceall(s,"  "," ");
@@ -709,7 +710,7 @@ static void patch_template_type(String *s) {
 %token USING
 %token <node> NAMESPACE
 %token NATIVE INLINE
-%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE ENDTEMPLATE STARTTEMPLATE GENCODE
+%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE 
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
 %token TYPES PARMS
 %token NONID DSTAR DCNOT
@@ -733,9 +734,9 @@ static void patch_template_type(String *s) {
 /* SWIG directives */
 %type <node>     addmethods_directive apply_directive clear_directive constant_directive ;
 %type <node>     echo_directive except_directive include_directive inline_directive ;
-%type <node>     insert_directive gencode_directive module_directive name_directive native_directive ;
+%type <node>     insert_directive module_directive name_directive native_directive ;
 %type <node>     new_directive pragma_directive rename_directive feature_directive varargs_directive typemap_directive ;
-%type <node>     types_directive template_directive endtemplate_directive starttemplate_directive ;
+%type <node>     types_directive template_directive ;
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_decl;
@@ -745,7 +746,7 @@ static void patch_template_type(String *s) {
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl;
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator;
-%type <node>     cpp_swig_directive cpp_template_decl cpp_nested cpp_opt_declarators ;
+%type <node>     cpp_swig_directive cpp_template_decl cpp_temp_possible cpp_nested cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl ;
 %type <node>     kwargs;
 
@@ -842,7 +843,6 @@ swig_directive : addmethods_directive { $$ = $1; }
                | include_directive { $$ = $1; }
                | inline_directive { $$ = $1; }
                | insert_directive { $$ = $1; }
-               | gencode_directive { $$ = $1; }
                | module_directive { $$ = $1; }
                | name_directive { $$ = $1; }
                | native_directive { $$ = $1; }
@@ -854,8 +854,6 @@ swig_directive : addmethods_directive { $$ = $1; }
                | typemap_directive { $$ = $1; }
                | types_directive  { $$ = $1; }
                | template_directive { $$ = $1; }
-               | endtemplate_directive { $$ = $1; }
-               | starttemplate_directive { $$ = $1; }
                ;
 
 /* ------------------------------------------------------------
@@ -1130,20 +1128,6 @@ insert_directive : HBLOCK {
 		 Setattr($$,"code", Copy(scanner_ccode));
 	       }
                ;
-
-/* ------------------------------------------------------------
- * %gencode %{ ... %}
- * ------------------------------------------------------------ */
-
-gencode_directive : GENCODE HBLOCK {
-                   $$ = new_node("insert");
-                   Setattr($$,"code",$2);
-                   Setattr($$,"generated","1");
-                }
-                ;
-           
-
-
       
 /* ------------------------------------------------------------
     %module modname
@@ -1625,6 +1609,8 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		  String *sargs;
 		  String *tds;
 		  String *cpps;
+		  
+		  $$ = 0;
 
 		  args = NewString("");
 		  /* Make args from parms */
@@ -1666,7 +1652,9 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 			$$ = 0;
 		      }
 		    } else {
-		      n = 0;
+		      Printf(stderr,"%s:%d. Template '%s' was already wrapped as '%s' (ignored)\n", 
+			     input_file, line_number, templateargs, Getattr(n,"sym:name"));
+		      $$ = 0;
 		    }
 		  } 
 		  if (!n) {
@@ -1677,77 +1665,53 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		    n = Swig_symbol_clookup($5,0);
 		    if (n && (Strcmp(nodeType(n),"template") == 0)) {
 		      
-		      Parm *tparms = Getattr(n,"parms");
+		      Parm *tparms = Getattr(n,"templateparms");
 		      if (ParmList_len($7) > ParmList_len(tparms)) {
 			Printf(stderr,"%s:%d. Too many template parameters. Maximum of %d.\n", input_file, line_number, ParmList_len(tparms));
 		      } else if (ParmList_len($7) < ParmList_numrequired(tparms)) {
 			Printf(stderr,"%s:%d. Not enough template parameters specified. %d required\n", input_file, line_number, ParmList_numrequired(tparms));
 		      } else {
+			/* Expand the template */
+			ParmList *temparms = CopyParmList(tparms);
 			ts = NewString("");
-			if (Namespaceprefix) {
-			  Printf(ts,"%%{ namespace %s {\n %%}\n", Namespaceprefix);
-			}
-			Printf(ts,"%%inline %%{\n");
-			args = NewString("");
-			sargs = NewString("");
 			/* Create typedef's and arguments */
 			p = $7;
-			tp = tparms;
+			tp = temparms;
 			while (p) {
 			  String *value = Getattr(p,"value");
 			  if (value) {
-			    Printf(args,"%s",value);
-			    Printf(sargs,"%s",value);
+			    Setattr(tp,"value",value);
 			  } else {
 			    SwigType *ty = Getattr(p,"type");
 			    if (ty) {
 			      tds = NewStringf("__swigtmpl%d",templatenum);
-			      templatetypes = NewHash();
-			      Setattr(templatetypes,Copy(tds),Copy(ty));
 			      templatenum++;
+			      Setattr(tp,"typedef",tds);
+			      Setattr(tp,"type",ty);
+
+			      /* Probably need namespace check here */
 			      Printf(ts,"typedef %s;\n", SwigType_str(ty,tds));
-			      Printf(args,"%s",tds);
-			      Printf(sargs,"%s",SwigType_str(ty,0));
 			      Delete(tds);
 			    }
 			  }
 			  p = nextSibling(p);
 			  tp = nextSibling(tp);
 			  if (!p) p = tp;
-			  if (p) {
-			    Printf(args,",");
-			    Printf(sargs,",");
-			  }
 			}
-			templateargs = NewStringf("%s<%s>", $5, sargs);
-			canonical_template(templateargs);
-			
-			Printf(ts,"%%}\n");
-			if (Namespaceprefix) {
-			  Printf(ts,"%%{ }\n %%}\n");
+			$$ = copy_node(n);
+			Swig_cparse_template_expand($$,temparms);
+			Delete(temparms);
+			Setattr($$,"sym:name", $3);
+			add_symbols_copy($$);
+
+			/* Make a code insertion block to include typedefs */
+			{
+			  Node *ins = new_node("insert");
+			  Setattr(ins,"code",ts);
+			  Delete(ts);
+			  set_nextSibling(ins,$$);
+			  $$ = ins;
 			}
-			
-			Printf(ts,"%%starttemplate;\n");
-			Printf(ts,"%s(%s,%s,%s)\n",Getattr(n,"macroname"),$3,args,sargs);
-			Delete(args);
-			Delete(sargs);
-			Setfile(ts,input_file);
-			Setline(ts,line_number);
-			Seek(ts,0,SEEK_SET);
-			
-			cpps = Preprocessor_parse(ts);
-			
-			if (ShowTemplates) {
-			  Printf(stderr,"%s:%d. %%template(%s) %s<%s> expanded to the following:\n", input_file, line_number, $3,$5,ParmList_protostr($7));
-			  Printf(stderr,"\n%s\n",cpps);
-			}
-			if (cpps && (Len(cpps) > 0)) {
-			  start_inline(Char(cpps),line_number);
-			} else {
-			  Printf(stderr,"%s:%d. Unable to expand template %s\n", input_file, line_number, $5);
-			}
-			Delete(ts);
-			Delete(cpps);
 		      }
 		    } else {
 		      if (n) {
@@ -1757,40 +1721,9 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 			Printf(stderr,"%s:%d. Template '%s' undefined.\n", input_file, line_number, $5);
 		      }
 		    }
-		    $$ = 0;
  		  }
                }
                ;
-
-/* -----------------------------------------------------------------------------
- * %starttemplate
- *
- * This directive appears at the beginning of template expansion.  It's needed
- * to prevent certain types of template substitutions.
- * ----------------------------------------------------------------------------- */
-
-starttemplate_directive: STARTTEMPLATE  SEMI {
-                   templatemode = 1;
-                   $$ = 0;
-                }
-                ;
-
-/* -----------------------------------------------------------------------------
- * %endtemplate
- *
- * This directive appears at the end of performing a template expansion.  It's
- * needed to reset some internal variables.
- * ----------------------------------------------------------------------------- */
-
-endtemplate_directive: ENDTEMPLATE SEMI {
-                    Delete(templatetypes);
-                    templatetypes = 0;
-		    Delete(templateargs);
-		    templateargs = 0;
-                    templatemode = 0;
-                    $$ = 0;
-                }
-                ;
 
 /* ======================================================================
  *                              C Parsing
@@ -2246,96 +2179,23 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
    ------------------------------------------------------------ */
 
 /* function template */
-cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator initializer cpp_temp_end {
-                   if ($3.rparms) {
-		     String  *macrocode = NewString("");
-		     String  *macroname = NewStringf("_template_%s_%s", Namespaceprefix, $6.id);
-		     macroname = Swig_name_mangle(macroname);
-		     Insert(macroname,0,"%");
-		     Printf(macrocode, "%s(__name,%s,%s)\n", macroname,$3.rparms,$3.sparms);
-		     /* Create function definition */
-		     if ($7.qualifier) SwigType_push($6.type,$7.qualifier);
-		     if (SwigType_isfunction($6.type)) {
-		       String *pdecl;
-		       Delete(SwigType_pop_function($6.type));
-		       SwigType_push($5,$6.type);
-		       pdecl = NewStringf("%s(%s)", $6.id, ParmList_str($6.parms));
-		       Printf(macrocode,"%%name(__name) %s;\n", SwigType_str($5,pdecl));
-		       Printf(macrocode,"%%endtemplate;\n");
-		       Delete(pdecl);
-		       Seek(macrocode, 0, SEEK_SET);
-		       Setline(macrocode,$1);
-		       Setfile(macrocode,input_file);
-		       Preprocessor_define(macrocode,1);
-		       /*		       	       Printf(stdout,"%s\n", macrocode);  */
-		     } 
-		     /* Drop template into the C symbol table for later lookup */
-		     {
-		       Node *n = new_node("template");
-		       Setattr(n,"name", $6.id);
-		       Setattr(n,"macroname", macroname);
-		       Setattr(n,"parms", $3.parms);
-		       Swig_symbol_add(0, n);
-		     }
-		   }
-		   $$ = 0;
+cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possible {
+                      $$ = $5;
+                      Setattr($$,"templatetype",nodeType($5));
+		      set_nodeType($$,"template");
+		      Setattr($$,"templateparms", $3.parms);
+		      add_symbols($$);
                 }
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype ID raw_inherit LBRACE {
-		     skip_balanced('{','}'); 
-		} SEMI {
-		  if ($3.rparms) {
-		     String  *macrocode = NewString("");
-		     String  *macroname = NewStringf("_template_%s_%s", Namespaceprefix, $6);
-		     macroname = Swig_name_mangle(macroname);
-		     Insert(macroname,0,"%");
-		     Printf(macrocode, "%s(__name,%s,%s)\n", macroname,$3.rparms,$3.sparms);
-		     Printf(macrocode,"%%rename(__name) %s < %s >;  class %s< %s > ", $6, $3.sparms, $6, $3.sparms);
-		     if ($7) {
-		       int i;
-		       Printf(macrocode,": ");
-		       for (i = 0; i < Len($7); i++) {
-			 Printf(macrocode,"public %s", Getitem($7,i));
-			 if (i < (Len($7) - 1)) Putc(',',macrocode);
-		       }
-		     }
-		     /* Replace macros of the form #X with #__swigX */
-		     {
-		       Parm *p = $3.parms;
-		       while (p) {
-			 String *t = NewStringf("#%s", Getattr(p,"name"));
-			 String *r = NewStringf("#__swig%s", Getattr(p,"name"));
-			 Replace(scanner_ccode,t,r, DOH_REPLACE_ID);
-			 Delete(t);
-			 Delete(r);
-			 p = nextSibling(p);
-		       }
-		     }
-		     Printf(macrocode," %s;\n", scanner_ccode);
-		     Printf(macrocode,"%%endtemplate;\n");
-		     Seek(macrocode,0, SEEK_SET);
-		     Setline(macrocode,$1-4);
-		     Setfile(macrocode,input_file);
-		     Preprocessor_define(macrocode,1);
-		     /*		     Printf(stdout,"macro %s\n", macrocode); */
-		     /* Drop template into the C symbol table for later lookup */
-		     {
-		       Node *n = new_node("template");
-		       Setattr(n,"name", $6);
-		       Setattr(n,"macroname", macroname);
-		       Setattr(n,"parms", $3.parms);
-		       Swig_symbol_add(0, n);
-		     }
-		  }
-                  $$ = 0;
-		}
                 /* Forward template class declaration */
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype ID SEMI { $$ = 0; }
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_forward_class_decl { $$ = 0; }
                 ;
 
-
-cpp_temp_end    : SEMI { }
-                | LBRACE { skip_balanced('{','}'); }
-                ;
+cpp_temp_possible:  c_decl {
+		  $$ = $1;
+                }
+                | cpp_class_decl {
+                   $$ = $1;
+                };
 
 template_parms  : rawparms {
 		   /* Rip out the parameter names */

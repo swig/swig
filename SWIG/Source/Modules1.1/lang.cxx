@@ -92,6 +92,8 @@ int Dispatcher::emit_one(Node *n) {
 	return usingDeclaration(n);
     } else if (strcmp(tag,"namespace") == 0) {
 	return namespaceDeclaration(n);
+    } else if (strcmp(tag,"template") == 0) {
+      return templateDeclaration(n);
     }
     
     /* ===============================================================
@@ -177,6 +179,7 @@ int Dispatcher::externDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::enumDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::enumvalueDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::classDeclaration(Node *n) { return defaultHandler(n); }
+int Dispatcher::templateDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::classforwardDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::constructorDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::destructorDeclaration(Node *n) { return defaultHandler(n); }

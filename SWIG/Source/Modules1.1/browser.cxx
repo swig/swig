@@ -122,6 +122,13 @@ public:
     emit_children(n);
     return SWIG_OK;
   }
+
+  virtual int templateDeclaration(Node *n) {
+    show_attributes(n);
+    emit_children(n);
+    return SWIG_OK;
+  }
+
   virtual int enumDeclaration(Node *n) {
     show_attributes(n);
     emit_children(n);
@@ -139,7 +146,6 @@ public:
   }
 
 };
-
 
 static int browser_exit = 0;
 static Node *tree_top = 0;

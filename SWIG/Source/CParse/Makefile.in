@@ -14,9 +14,9 @@ RANLIB   = @RANLIB@
 
 TARGET   = libcparse.a
 
-OBJS     = parser.o cscanner.o 
+OBJS     = parser.o cscanner.o templ.o
 
-SRCS     = cscanner.c
+SRCS     = cscanner.c templ.c
 
 PARSER   = $(srcdir)/parser.y
 INCLUDE  = -I$(srcdir)/../Include               \

@@ -1233,7 +1233,6 @@ int yylex(void) {
 	} else {
 	  if (strcmp(yytext,"%module") == 0) return(MODULE);
 	  if (strcmp(yytext,"%insert") == 0) return(INSERT);
-	  if (strcmp(yytext,"%gencode") == 0) return (GENCODE);
 	  if (strcmp(yytext,"%name") == 0) return(NAME);
 	  if (strcmp(yytext,"%rename") == 0) {
 	    rename_active = 1;
@@ -1273,8 +1272,6 @@ int yylex(void) {
 	  if (strcmp(yytext,"%parms") == 0) return(PARMS);
 	  if (strcmp(yytext,"%varargs") == 0) return(VARARGS);
 	  if (strcmp(yytext,"%template") == 0) return (SWIGTEMPLATE);
-	  if (strcmp(yytext,"%endtemplate") == 0) return (ENDTEMPLATE);
-	  if (strcmp(yytext,"%starttemplate") == 0) return (STARTTEMPLATE);
 	}
 	/* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 
