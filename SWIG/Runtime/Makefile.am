@@ -109,8 +109,8 @@ libswigguilescm_la_SOURCES = libguile_scm.c
 libswigguilescm_la_LDFLAGS = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
 libswigguilescm_la_CFLAGS = -DSWIG_GLOBAL $(GUILE_INCLUDE)
 
-libguile_scm.c: $(GUILE_SCM_PRECOMMON) $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME)
-	../preinst-swig -guile -scm -Linkage passive -runtime -o libguile_scm.c swigrun.i
+libguile_scm.c: $(GUILE_SCM_PRECOMMON) $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME) $(SWIGLIB)/guile/swigrun.i
+	../preinst-swig -guile -scm -Linkage module -package Swig -runtime -o libguile_scm.c swigrun.i
 
 guileschemedir = $(datadir)/guile/Swig
 guilescheme_DATA = ../Lib/guile/common.scm
