@@ -18,3 +18,14 @@ if a.pong != "Foo::pong();MyFoo::ping()"
 end
 
 
+class MyExample1 < Director_abstract::Example1
+  def color(r,g,b)
+    r
+  end
+end
+
+#m1 = MyExample1.new
+#
+#if m1.color(1,2,3) != 1
+#  raise RuntimeError, m1.color
+#end

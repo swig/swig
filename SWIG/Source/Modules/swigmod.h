@@ -269,6 +269,9 @@ public:
   /* Director constructor "template" code */
   String *director_ctor_code;
 
+  /* Director 'protected' constructor "template" code*/
+  String *director_prot_ctor_code;
+
  private:
   Hash   *symbols;
   Hash   *classtypes;
