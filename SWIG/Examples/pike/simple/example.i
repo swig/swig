@@ -2,4 +2,4 @@
 %module example
 
 extern int    gcd(int x, int y);
-/* extern double Foo; */
+extern double Foo;
