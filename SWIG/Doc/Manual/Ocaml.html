@@ -21,10 +21,9 @@
 <li><a href="#n9">The low-level Ocaml/C interface</a>
 <ul>
 <li><a href="#n10">The generated module</a>
-<li><a href="#n11">Types</a>
-<li><a href="#n12">Enums</a>
-<li><a href="#n13">C++ Classes</a>
-<li><a href="#n14">Exceptions</a>
+<li><a href="#n11">Enums</a>
+<li><a href="#n12">C++ Classes</a>
+<li><a href="#n13">Exceptions</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -43,38 +42,36 @@ part of their arsenal  (such  as SSL and  gdbm), as well  as their own mature
 C and C++ code.  SWIG  allows   this code  to be used in  a natural, type-safe
 way with Ocaml, by  providing   the necessary,   but repetetive  glue code
 which creates and uses Ocaml values  to communicate   with C and C++ code.
- In addition, SWIG also produces the needed Ocaml source   that binds  types,
-variants, functions,  class, etc.        
+ In addition, SWIG also produces the needed Ocaml source   that binds
+variants, functions,  classes, etc.
 
 <a name="n2"></a><H2>16.1 Preliminaries</H2>
 
 
                   SWIG 1.3 works with Ocaml 3.04 and above.  Given the choice,
    you  should  use the latest stable release.  The SWIG Ocaml module has
-been   tested  on Linux (PPC,MIPS,Intel,Sparc) and Cygwin on Windows.  The
+been   tested  on Linux (m68k,MIPS,Intel) and Cygwin on Windows.  The
 best  way to determine    whether your system will work is to compile the
 examples  and test-suite  which  come with SWIG.  You can do this by running
 <tt>make  check</tt> from  the  SWIG root directory after installing SWIG.
  The Ocaml  module has been  tested using the system's dynamic linking  (the
-usual -lxxx  agains libxxx.so,  but not using the explicit dynamic linking
+usual -lxxx  against libxxx.so,  but not using the explicit dynamic linking
 provided by  the Dl package  <a
  href="http://www.ocaml-programming.de/packages/documentation/dl/"> http://www.ocaml-programming.de/packages/documentation/dl/ 
-      </a>, although I suspect that it will work without a problem.
+      </a>, although I suspect that it will work without a problem.  If anyone
+would like to evaluate this support, I will share the results here.
 
 <a name="n3"></a><H3>16.1.1 Running SWIG</H3>
 
 
                   The basics of getting a SWIG Ocaml module up and running
  can   be  seen  from one of SWIG's example Makefiles, but is also described
- here.   To  build  an Ocaml module, run SWIG using the <tt>-ocaml</tt> option. 
-  Enabling   proxy  classes <tt>-objects</tt> is also used.  In order to disable
- the  non-object  interface, making methods only show up in the .mli as class
- methods, specify  <tt>-onlyobjects</tt>.             
-<p> </p>
-                       
+ here.   To  build  an Ocaml module, run SWIG using the <tt>-ocaml</tt>
+option. 
+
 <blockquote>                                    
-  <pre>%swig -ocaml example.i<br></pre>
-            </blockquote>
+  <pre>%swig -ocaml example.i</pre>
+</blockquote>
                          
 <p> This will produce 3 files. The file <tt>example_wrap.c</tt> contains
 all of the C code needed to build an Ocaml module.  To build the module,
@@ -90,7 +87,9 @@ the resulting .ml and .mli files as well, and do the final link with -custom
  distribution     to  be included.  It provides several useful functions
 that  almost all  programs    that use SWIG will need.  It is located in
 $(prefix)/include/libswigocaml.h       where $(prefix) is usually /usr/local,
-but could be /usr.  This is set    at   configure time.    <a name="n6"></a>
+but could be /usr.  This is set    at   configure time.  The functions most
+frequently used in here are isnull and nullptr for creating and checking
+null pointers.
         
 <a name="n5"></a><H3>16.1.3 Compiling the code</H3>
 
@@ -114,60 +113,92 @@ but could be /usr.  This is set    at   configure time.    <a name="n6"></a>
 <a name="n6"></a><H3>16.1.4 Current thoughts on best practice for Ocaml</H3>
 
 
-            Because the VC compiler (cl) needs link options specified after 
- all   compiler  options, and ocamlc doesn't really understand that, I think 
- that   this is  the best way to link ocaml code with C++ code.  I formulated 
- this   method to make it easy for co-workers who rely on MSDev to create 
-GUIs, etc..  to live in harmony with the ocaml parts of the application. 
+            Because the VC compiler (cl) needs link options specified
+ after all compiler options, and ocamlc doesn't really understand
+ that, I think that this is the best way to link ocaml code with C++
+ code.  I formulated this method to make it easy for co-workers who
+ rely on MSDev to create GUIs, etc..  to live in harmony with the
+ ocaml parts of the application.
         
 <p> Let's say you have ocaml sources foo.ml and bar.ml and interface frob.i;
      </p>
                  
 <p> </p>
                  
-<blockquote>                           
-  <pre>swig -c++ -objects frob.i<br>ocamlc -custom -c frob.mli<br>ocamlc -custom -c frob.ml<br>cp frob_wrap.cxx frob_wrap.c<br>ocamlc -custom -c -I$(FROBLIB)/include frob_wrap.c<br>ocamlc -custom -c foo.ml<br>ocamlc -custom -c bar.ml<br>ocamlc -pack -o foobar.cmo foo.cmo bar.cmo frob.cmo<br>ocamlc -custom -output-obj -o foobar.obj foobar.cmo<br></pre>
-         </blockquote>
+<blockquote><pre>
+swig -c++ -objects frob.i
+ocamlc -custom -c frob.mli
+ocamlc -custom -c frob.ml
+cp frob_wrap.cxx frob_wrap.c
+ocamlc -custom -c -I$(FROBLIB)/include frob_wrap.c
+ocamlc -custom -c foo.ml
+ocamlc -custom -c bar.ml
+ocamlc -pack -o foobar.cmo foo.cmo bar.cmo frob.cmo
+ocamlc -custom -output-obj -o foobar.obj foobar.cmo
+</pre></blockquote>
                    
-<p> At this point, foobar.obj can be included in your MSVC project and linked
-     against other code.  This is how you link it: </p>
+<p> At this point, foobar.obj can be included in your MSVC project and
+     linked against other code.  This is how you link it: </p>
                  
-<blockquote>                           
-  <pre>link /OUT:big_program.exe \<br>  other1.obj other2.obj foobar.obj frob_wrap.obj \<br>  $(OCAMLLIB)/ocamlrun.lib $(FROBLIB)/lib/frob.lib<br></pre>
-         </blockquote>
+<blockquote><pre>
+link /OUT:big_program.exe \
+    other1.obj other2.obj foobar.obj frob_wrap.obj \
+    $(OCAMLLIB)/ocamlrun.lib $(FROBLIB)/lib/frob.lib
+</pre></blockquote>
                    
 <a name="n7"></a><H3>16.1.5 Using your module</H3>
 
 
-                   You can test-drive your module by building a toplevel
-ocaml   interpreter.     Consult the ocaml manual for details.          
+                   You can test-drive your module by building a
+toplevel ocaml interpreter.  Consult the ocaml manual for details.
   
-<p>When linking any ocaml bytecode with your module, use the -custom option
-      to build your functions into the primitive list. This option is not
-needed    when you build native code.<br>
+<p>When linking any ocaml bytecode with your module, use the -custom
+      option to build your functions into the primitive list. This
+      option is not needed when you build native code.
 
-<a name="n8"></a><H3>16.1.6 Compilation problems and compiling with C++</H3>
-
-
-                   As mentioned above, .cxx files need special handling to 
-be  compile    with  <tt>ocamlc</tt>.  Other than that, C code that uses <tt>class</tt>
-   as a non-keyword, and C code that is too liberal with pointer types may
- not  compile under the C++ compiler.  Most code meant to be compiled as
-C++  will  not have problems.    
-
-<a name="n9"></a><H2>16.2 The low-level Ocaml/C interface</H2>
+<a name="n8"></a><H3>15.1.6 Compilation problems and compiling with C++</H3>
 
 
-         In order to provide access to overloaded functions, and provide
-sensible     outputs from them, all C entites are represented as members
-of the c_obj    type:<br>
-        <br>
-        In the code as seen by the typemap writer, there is a value, swig_result,
-    that always contains the current data. &nbsp;<br>
+                   As mentioned above, .cxx files need special
+handling to be compiled with <tt>ocamlc</tt>.  Other than that, C code
+that uses <tt>class</tt> as a non-keyword, and C code that is too
+liberal with pointer types may not compile under the C++ compiler.
+Most code meant to be compiled as C++ will not have problems.
+
+<a name="n9"></a><H2>15.2 The low-level Ocaml/C interface</H2>
+
+
+         In order to provide access to overloaded functions, and
+provide sensible outputs from them, all C entites are represented as
+members of the c_obj type:
+<p>
+In the code as seen by the typemap
+writer, there is a value, swig_result, that always contains the
+current return data.  It is a list, and must be appended with the
+caml_list_append function, or with functions and macros provided by
+objective caml.<br>
                  
-<blockquote>                        
-  <pre>type c_obj =<br>    C_void<br>  | C_bool of bool<br>  | C_char of char<br>  | C_uchar of char<br>  | C_short of int<br>  | C_ushort of int<br>  | C_int of int<br>  | C_uint of int32<br> &nbsp;| C_int32 of int32<br>  | C_int64 of int64<br>  | C_float of float<br>  | C_double of float<br>  | C_ptr of int64 * int64<br>  | C_array of c_obj array<br> &nbsp;| C_list of c_obj list<br>  | C_obj of (string -&gt; c_obj -&gt; c_obj)<br>  | C_string of string<br>  | C_enum of c_enum_tag<br></pre>
-        </blockquote>
+<blockquote><pre>
+type c_obj =
+    C_void
+  | C_bool of bool
+  | C_char of char
+  | C_uchar of char
+  | C_short of int
+  | C_ushort of int
+  | C_int of int
+  | C_uint of int32
+  | C_int32 of int32
+  | C_int64 of int64
+  | C_float of float
+  | C_double of float
+  | C_ptr of int64 * int64
+  | C_array of c_obj array
+  | C_list of c_obj list
+  | C_obj of (string -&gt; c_obj -&gt; c_obj)
+  | C_string of string
+  | C_enum of c_enum_t
+</pre></blockquote>
         A few functions exist which generate and return these:<br>
                
 <ul>
@@ -191,107 +222,131 @@ appropriate    C value and returns a c_obj representing it.</li>
         Because of this style, a typemap can return any kind of value it
 wants    from  a function. &nbsp;This enables out typemaps and inout typemaps
 to  work  well.  &nbsp;The one thing to remember about outputting values
-is that  you  must append them to the return list with swig_result = caml_list_append(swig_result,v).
-    &nbsp;This function will return a new list that has your element appended.
-    Upon return to caml spaces, a list containing a single item contains
-only     that item (i.e. [ C_int 3 ] -&gt; C_int 3), and a list containing
-more  than   one item is wrapped in C_list (i.e. [ C_char 'a' ; C_char 'b'
--&gt;  C_list   [ C_char 'a' ; C_char b ]). &nbsp;This is in order to make
-return  values  easier to handle when functions have only one return value,
-such as constructors,   and operators. &nbsp;In addition, string, pointer,
-and object values are  interchangable with respect to caml_ptr_val, so you
-can allocate memory as  caml strings and still use the resulting pointers
-for C purposes, even using  them to construct objects on.<br>
-        <br>
-        The wild card type that you can use in lots of different ways is
-C_obj.    &nbsp;It allows you to wrap any type of thing you like as an object
-using    the same mechanism that the ocaml module does. &nbsp;When evaluated
-<br>
-        <br>
-        Please read <a
- href="http://caml.inria.fr/ocaml/htmlman/manual031.html">"Interfacing  
- C with Objective Caml"</a> before you start writing typemaps. &nbsp;This
- gives needed information about constructing values.<br>
-        <br>
+is that  you  must append them to the return list with swig_result = caml_list_append(swig_result,v).<[p>
 
-<a name="n10"></a><H3>16.2.1 The generated module</H3>
+&nbsp;This function will return a new list that has your element
+    appended.  Upon return to caml space, the fnhelper function
+    beautifies the result.  A list containing a single item degrades to
+    only that item (i.e. [ C_int 3 ] -&gt; C_int 3), and a list
+    containing more than one item is wrapped in C_list (i.e. [ C_char
+    'a' ; C_char 'b' -&gt; C_list [ C_char 'a' ; C_char b
+    ]). &nbsp;This is in order to make return values easier to handle
+    when functions have only one return value, such as constructors,
+    and operators. &nbsp;In addition, string, pointer, and object
+    values are interchangable with respect to caml_ptr_val, so you can
+    allocate memory as caml strings and still use the resulting
+    pointers for C purposes, even using them to construct simple objects
+    on.  Note, though, that foreign C++ code does not respect the garbage
+    collector, although the SWIG interface does.<p>
 
+    The wild card type that you can use in lots of different ways is
+    C_obj.  It allows you to wrap any type of thing you like as an
+    object using the same mechanism that the ocaml module
+    does. &nbsp;When evaluated in caml_ptr_val, the returned value is
+    the result of a call to the object's "&" operator, taken as a pointer.
+    <p>
+    You should only construct values using objective caml, or using the
+    functions caml_val_* functions provided as static functions to a SWIG
+    ocaml module, as well as the caml_list_* functions.  These functions
+    provide everything a typemap needs to produce values.  In addition,
+    value items pass through directly, but you must make your own type
+    signature for a function that uses value in this way.
 
-                  The SWIG <tt>%module</tt> directive specifies the name
-of  the   Ocaml   module  to be generated.  If you specified `<tt>%module
-example</tt>',    then   your  Ocaml code will be accessible in the module
-Example.  The module   name   is  always capitalized as is the ocaml convention.
- Note that you  must not   use  any Ocaml keyword to name your module.  Remember 
-that the  keywords are  not  the same as the C++ ones.   <br>
-          
-<a name="n11"></a><H3>16.2.2 Types</H3>
+<a name="n10"></a><H3>15.2.1 The generated module</H3>
 
 
-        As discussed above, the C type system is represented dynamically
-by  the   ocaml module. &nbsp;This overloaded functions and operators to
-work  as intended,   even though some of these features don't exist in ocaml
-(such  as overloaded   operator "()").<br>
+The SWIG <tt>%module</tt> directive specifies the name of the Ocaml
+module to be generated.  If you specified `<tt>%module example</tt>',
+then your Ocaml code will be accessible in the module Example.  The
+module name is always capitalized as is the ocaml convention.  Note
+that you must not use any Ocaml keyword to name your module.  Remember
+that the keywords are not the same as the C++ ones.  <br>
                   
-<a name="n12"></a><H3>16.2.3 Enums</H3>
+<a name="n11"></a><H3>15.2.2 Enums</H3>
 
 
-                  SWIG will wrap enumerations as polymorphic variants in
-the   output   Ocaml  code, as above in C_enum.&nbsp; In order to support
-all C++-style    uses of enums, the function int_to_enum and enum_to_int
-are provided for   ocaml code to produce and consume these values as integers.
-&nbsp;Other than  that, correct uses of enums will not have a problem. &nbsp;Since
-enum labels  may overlap between enums, the enum_to_int and int_to_enum functions
- take  an enum type label as an argument.     Example:<br>
-            <br>
-            <code>%module enum_test<br>
-     %{<br>
-            enum c_enum_type { a = 1, b, c = 4, d = 8 };<br>
-     %}<br>
-     enum c_enum_type { a = 1, b, c = 4, d = 8 };</code><br>
-               
-<p> The output mli contains:<br>
-        </p>
-             
-<blockquote>                     
-  <pre>type c_enum_type = [<br>  `unknown<br>| `c_enum_type<br>]<br>type c_enum_tag = [<br>  `int of int<br>| `a<br>| `b<br>| `c<br>| `d<br>]<br>val int_to_enum c_enum_type -&gt; int -&gt; c_obj<br>val enum_to_int c_enum_type -&gt; c_obj -&gt; c_obj<br></pre>
+SWIG will wrap enumerations as polymorphic variants in the output
+Ocaml code, as above in C_enum.&nbsp; In order to support all
+C++-style uses of enums, the function int_to_enum and enum_to_int are
+provided for ocaml code to produce and consume these values as
+integers.  &nbsp;Other than that, correct uses of enums will not have
+a problem. &nbsp;Since enum labels may overlap between enums, the
+enum_to_int and int_to_enum functions take an enum type label as an
+argument.  Example:
+<p>
+<blockquote><pre>
+%module enum_test
+%{
+enum c_enum_type { a = 1, b, c = 4, d = 8 };
+%}
+enum c_enum_type { a = 1, b, c = 4, d = 8 };
+</pre></blockquote>
+<p>               
+The output mli contains:
+<p>          
+<blockquote><pre>
+type c_enum_type = [
+  `unknown
+| `c_enum_type
+]
+type c_enum_tag = [
+  `int of int
+| `a
+| `b
+| `c
+| `d
+]
+val int_to_enum c_enum_type -&gt; int -&gt; c_obj
+val enum_to_int c_enum_type -&gt; c_obj -&gt; c_obj
+</pre>
      </blockquote>
    So it's possible to do this:   
 <blockquote>      
-  <pre>bash-2.05a$ ocamlmktop -custom enum_test_wrap.o enum_test.cmo -o enum_test_top<br>bash-2.05a$ ./enum_test_top <br>        Objective Caml version 3.04<br><br># open Enum_test ;;<br># let x = C_enum `a ;;<br>val x : Enum_test.c_obj = C_enum `a<br># enum_to_int `c_enum_type x ;;<br>- : Enum_test.c_obj = C_int 1<br># int_to_enum `c_enum_type 4 ;;<br>- : Enum_test.c_obj = C_enum `c<br></pre>
+  <pre>bash-2.05a$ ocamlmktop -custom enum_test_wrap.o enum_test.cmo -o enum_test_top
+bash-2.05a$ ./enum_test_top 
+        Objective Caml version 3.04
+
+# open Enum_test ;;
+# let x = C_enum `a ;;
+val x : Enum_test.c_obj = C_enum `a
+# enum_to_int `c_enum_type x ;;
+- : Enum_test.c_obj = C_int 1
+# int_to_enum `c_enum_type 4 ;;
+- : Enum_test.c_obj = C_enum `c
+</pre>
   </blockquote>
        
 <p> </p>
    
-<a name="n13"></a><H3>16.2.4 C++ Classes</H3>
+<a name="n12"></a><H3>15.2.3 C++ Classes</H3>
 
 
-                   C++ classes are represented by C_obj (string -&gt; c_obj 
- -&gt; c_obj)  wrapped closures. &nbsp;These objects contain a method list, 
- and a type, which allow them to be used like C++ objects. &nbsp;When passed 
- into typemaps that use pointers, they degrade to pointers through their "&amp;"
- method. &nbsp;Every method an object has is represented as a string in the
- object's method table, and each method table exists in memory only once.
-&nbsp;In addition to any other operators an object might have, certain builtin
-ones are provided by SWIG:<br>
-        "~" -&gt; Delete this object (Requires C_void argument)<br>
-        "&amp;" -&gt; Return an ordinary C_ptr value representing this object's 
-   address (Requires C_void argument)<br>
-        ":methods" -&gt; Returns a list of strings containing the names of
- the   methods  this object contains (Requires C_void argument)<br>
-        ":classof" -&gt; Returns the name of the class this object belongs
- to.   &nbsp;Note  that this string belongs to the wrapper object, and not<br>
-        the underlying pointer, so a typecast may alter the returned value
- wrapping    the same object.<br>
-        <br>
+C++ classes, along with structs and unions are represented by C_obj
+(string -&gt; c_obj -&gt; c_obj) wrapped closures. &nbsp;These objects
+contain a method list, and a type, which allow them to be used like
+C++ objects.  When passed into typemaps that use pointers, they
+degrade to pointers through their "&amp;" method. &nbsp;Every method
+an object has is represented as a string in the object's method table,
+and each method table exists in memory only once.  &nbsp;In addition
+to any other operators an object might have, certain builtin ones are
+provided by SWIG:  (all of these take no arguments (C_void))
+<table>
+<tr><td>"~"</td><td>Delete this object</td></tr>
+<tr><td>"&amp;"</td><td>Return an ordinary C_ptr value representing this 
+object's address</td></tr>
+<tr><td>":methods"</td><td>Returns a list of strings containing the names of
+the methods this object contains</td></tr>
+<tr><td>":classof"</td><td>Returns the name of the class this object belongs 
+to.</td></tr></table>
+Note that this string belongs to the wrapper object, and not
+the underlying pointer, so using create_[x]_from_ptr alters the
+returned value for the same object.
+<p>
+<a name="n13"></a><H3>15.2.4 Exceptions</H3>
 
-<a name="n14"></a><H3>16.2.5 Exceptions</H3>
 
-
-                Please view the "<a
- href="http://caml.inria.fr/ocaml/htmlman/manual031.html#s:c-exceptions">Raising
-      Exceptions</a>" section of Interfacing C with Objective Caml.<br>
-            <br>
-           <br>
-                 
+Catching exceptions is now supported using SWIG's %exception feature.  A simple
+but not too useful example is provided by the throw_exception testcase in
+Examples/test-suite.  You can provide your own exceptions, too.
 </body>
 </html>
