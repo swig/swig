@@ -223,5 +223,9 @@ struct ConstMethods {
     double cfunc3(double x,double p = 3) {
       return(x+p);
     }
+
+    typedef struct pointf { 
+      double		x,y; 
+    } pointf;
   }
 %}
