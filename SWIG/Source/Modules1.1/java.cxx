@@ -274,7 +274,7 @@ class JAVA : public Language {
 
     if(Len(package)) {
       String *jniname = makeValidJniName(package);
-      Printv(jnipackage, jniname, NULL);
+      Printv(jnipackage, jniname, NIL);
       Delete(jniname);
       Replaceall(jnipackage,".","_");
       Append(jnipackage, "_");
@@ -322,12 +322,12 @@ class JAVA : public Language {
       if (jniclass_baseclass && *Char(jniclass_baseclass))
         Printf(f_java, "extends %s ", jniclass_baseclass);
       if (Len(jniclass_interfaces) > 0)
-        Printv(f_java, "implements ", jniclass_interfaces, " ", NULL);
+        Printv(f_java, "implements ", jniclass_interfaces, " ", NIL);
       Printf(f_java, "{\n");
 
       // Add the native methods
-      Printv(f_java, jniclass_class_code, NULL);
-      Printv(f_java, jniclass_cppcasts_code, NULL);
+      Printv(f_java, jniclass_class_code, NIL);
+      Printv(f_java, jniclass_cppcasts_code, NIL);
 
       // Finish off the Java class
       Printf(f_java, "}\n");
@@ -359,15 +359,15 @@ class JAVA : public Language {
       if (module_baseclass && *Char(module_baseclass))
         Printf(f_module, "extends %s ", module_baseclass);
       if (Len(module_interfaces) > 0)
-        Printv(f_module, "implements ", module_interfaces, " ", NULL);
+        Printv(f_module, "implements ", module_interfaces, " ", NIL);
       Printf(f_module, "{\n");
 
       // Add the wrapper methods
-      Printv(f_module, module_class_code, NULL);
+      Printv(f_module, module_class_code, NIL);
 
       // Write out all the enums constants
       if (Len(module_constants_code) != 0 )
-        Printv(f_module, "  // enums and constants\n", module_constants_code, NULL);
+        Printv(f_module, "  // enums and constants\n", module_constants_code, NIL);
 
       // Finish off the Java class
       Printf(f_module, "}\n");
@@ -375,7 +375,7 @@ class JAVA : public Language {
     }
 
     if(wrapper_conversion_code)
-      Printv(f_wrappers,wrapper_conversion_code,NULL);
+      Printv(f_wrappers,wrapper_conversion_code,NIL);
 
     Printf(f_wrappers,"#ifdef __cplusplus\n");
     Printf(f_wrappers,"}\n");
@@ -440,7 +440,7 @@ class JAVA : public Language {
   virtual int nativeWrapper(Node *n) {
 
     if (Getattr(n,"type")) {
-      Swig_save(&n,"name",NULL);
+      Swig_save(&n,"name",NIL);
       Setattr(n,"name", Getattr(n,"wrap:name"));
       native_function_flag = true;
       functionWrapper(n);
@@ -543,12 +543,12 @@ class JAVA : public Language {
     }
 
     if (SwigType_type(t) != T_VOID) {
-      Wrapper_add_localv(f,"jresult", jnirettype, "jresult = 0",NULL);
+      Wrapper_add_localv(f,"jresult", jnirettype, "jresult = 0",NIL);
     }
 
     Printf(jniclass_class_code, "  public final static native %s %s(", javarettype, overloaded_name);
 
-    Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NULL);
+    Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_args(t,l,f);
@@ -587,7 +587,7 @@ class JAVA : public Language {
       /* Get the jni types of the parameter */
       if ((tm = Getattr(jnip,"tmap:jni"))) {
         jnip = Getattr(jnip,"tmap:jni:next");
-        Printv(jni_param_type, tm, NULL);
+        Printv(jni_param_type, tm, NIL);
       } else {
         jnip = nextSibling(jnip);
         Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, 
@@ -597,7 +597,7 @@ class JAVA : public Language {
       /* Get the java types of the parameter */
       if ((tm = Getattr(jtypep,"tmap:jtype"))) {
         jtypep = Getattr(jtypep,"tmap:jtype:next");
-        Printv(javaparamtype, tm, NULL);
+        Printv(javaparamtype, tm, NIL);
       } else {
         jtypep = nextSibling(jtypep);
         Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
@@ -611,7 +611,7 @@ class JAVA : public Language {
       gencomma = 1;
 
       // Add to Jni function header
-      Printv(f->def, ", ", jni_param_type, " ", arg, NULL);
+      Printv(f->def, ", ", jni_param_type, " ", arg, NIL);
 
       // Get typemap for this argument
       if ((tm = Getattr(p,"tmap:in"))) {
@@ -638,7 +638,7 @@ class JAVA : public Language {
         Replaceall(tm,"$target",Getattr(p,"lname")); /* deprecated */
         Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
         Replaceall(tm,"$input",Getattr(p,"emit:input"));
-        Printv(f->code,tm,"\n",NULL);
+        Printv(f->code,tm,"\n",NIL);
         p = Getattr(p,"tmap:check:next");
       } else {
         p = nextSibling(p);
@@ -651,7 +651,7 @@ class JAVA : public Language {
         Replaceall(tm,"$source",Getattr(p,"emit:input")); /* deprecated */
         Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
         Replaceall(tm,"$input",Getattr(p,"emit:input"));
-        Printv(cleanup,tm,"\n",NULL);
+        Printv(cleanup,tm,"\n",NIL);
         p = Getattr(p,"tmap:freearg:next");
       } else {
         p = nextSibling(p);
@@ -666,7 +666,7 @@ class JAVA : public Language {
         Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
         Replaceall(tm,"$result","jresult");
         Replaceall(tm,"$input",Getattr(p,"emit:input"));
-        Printv(outarg,tm,"\n",NULL);
+        Printv(outarg,tm,"\n",NIL);
         p = Getattr(p,"tmap:argout:next");
       } else {
         p = nextSibling(p);
@@ -678,7 +678,7 @@ class JAVA : public Language {
 
     if (Cmp(nodeType(n), "constant") == 0) {
       // Wrapping a constant hack
-      Swig_save(&n,"wrap:action",NULL);
+      Swig_save(&n,"wrap:action",NIL);
 
       // below based on Swig_VargetToFunction()
       SwigType *ty = Swig_wrapped_var_type(Getattr(n,"type"));
@@ -706,10 +706,10 @@ class JAVA : public Language {
     }
 
     /* Output argument output code */
-    Printv(f->code,outarg,NULL);
+    Printv(f->code,outarg,NIL);
 
     /* Output cleanup code */
-    Printv(f->code,cleanup,NULL);
+    Printv(f->code,cleanup,NIL);
 
     /* Look to see if there is any newfree cleanup code */
     if (Getattr(n,"feature:new")) {
@@ -728,7 +728,7 @@ class JAVA : public Language {
     }
 
     if(SwigType_type(t) != T_VOID)
-      Printv(f->code, "    return jresult;\n", NULL);
+      Printv(f->code, "    return jresult;\n", NIL);
     Printf(f->code, "}\n");
 
     /* Substitute the cleanup code */
@@ -839,7 +839,7 @@ class JAVA : public Language {
 
     // Add the stripped quotes back in
     String *new_value = NewString("");
-    Swig_save(&n,"value",NULL);
+    Swig_save(&n,"value",NIL);
     if(SwigType_type(t) == T_STRING) {
       Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
       Setattr(n, "value", new_value);
@@ -873,9 +873,9 @@ class JAVA : public Language {
     }
 
     if(proxy_flag && wrapping_member_flag)
-      Printv(shadow_constants_code, constants_code, NULL);
+      Printv(shadow_constants_code, constants_code, NIL);
     else
-      Printv(module_constants_code, constants_code, NULL);
+      Printv(module_constants_code, constants_code, NIL);
 
     Swig_restore(&n);
     Delete(new_value);
@@ -1069,7 +1069,7 @@ class JAVA : public Language {
         "    swigCMemOwn = cMemoryOwn;\n",
         "    swigCPtr = cPtr;\n",
         "  }\n",
-        NULL);
+        NIL);
 
     if(!have_default_constructor_flag) { // All Java classes need a constructor
       Printv(shadow_classdef, 
@@ -1077,7 +1077,7 @@ class JAVA : public Language {
           "  protected $javaclassname() {\n",
           "    this(0, false);\n", 
           "  }\n",
-          NULL);
+          NIL);
     }
 
     Printv(shadow_classdef, 
@@ -1099,7 +1099,7 @@ class JAVA : public Language {
         javaTypemapLookup("javagetcptr", shadow_classname, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
         javaTypemapLookup("javacode", shadow_classname, WARN_NONE), // extra Java code
         "\n",
-        NULL);
+        NIL);
 
     // Substitute various strings into the above template
     Replaceall(shadow_code,     "$javaclassname", shadow_classname);
@@ -1115,7 +1115,7 @@ class JAVA : public Language {
     if(derived){
       Printv(jniclass_cppcasts_code,"  public final static native long ",
           "SWIG$javaclassnameTo$baseclass(long jarg1);\n",
-          NULL);
+          NIL);
 
       Replaceall(jniclass_cppcasts_code, "$javaclassname", shadow_classname);
       Replaceall(jniclass_cppcasts_code, "$baseclass", baseclass);
@@ -1128,7 +1128,7 @@ class JAVA : public Language {
           "    return baseptr;\n"
           "}\n",
           "\n",
-          NULL); 
+          NIL); 
 
       String *jnijniclass  = makeValidJniName(jniclass_name);
       String *jniclazzname = makeValidJniName(shadow_classname);
@@ -1147,7 +1147,7 @@ class JAVA : public Language {
          "    return new $baseclass($jniclassname.SWIG$javaclassnameTo$baseclass($javaclassname.getCPtr(obj)), false);\n",
          "  }\n",
          "\n",
-         NULL);
+         NIL);
 
          Replaceall(module_class_code, "$baseclass",   baseclass);
          Replaceall(module_class_code, "$javaclassname",       shadow_classname);
@@ -1208,11 +1208,11 @@ class JAVA : public Language {
 
       emitShadowClassDefAndCPPCasts(n);
 
-      Printv(f_shadow, shadow_classdef, shadow_code, NULL);
+      Printv(f_shadow, shadow_classdef, shadow_code, NIL);
 
       // Write out all the enums and constants
       if (Len(shadow_constants_code) != 0 )
-        Printv(f_shadow, "  // enums and constants\n", shadow_constants_code, NULL);
+        Printv(f_shadow, "  // enums and constants\n", shadow_constants_code, NIL);
 
       Printf(f_shadow, "}\n");
       Close(f_shadow);
@@ -1324,12 +1324,12 @@ class JAVA : public Language {
       if(SwigType_type(t) != T_VOID)
         Printf(nativecall,"return ");
       if(is_return_type_java_class)
-        Printv(nativecall, "new ", shadowrettype, "(", NULL);
+        Printv(nativecall, "new ", shadowrettype, "(", NIL);
     }
 
-    Printv(nativecall, jniclass_name, ".", java_function_name, "(", NULL);
+    Printv(nativecall, jniclass_name, ".", java_function_name, "(", NIL);
     if (!static_flag)
-      Printv(nativecall, "swigCPtr", NULL);
+      Printv(nativecall, "swigCPtr", NIL);
 
     int gencomma = !static_flag;
 
@@ -1390,13 +1390,13 @@ class JAVA : public Language {
     if(SwigType_isarray(t) && is_shadow(getArrayType(t)) && SwigType_array_ndim(t) == 1) {
       String *array_ret = NewString("");
       Printf(array_ret,");\n");
-      Printv(array_ret, "    $type[] arrayWrapper = new $type[cArray.length];\n", NULL);
-      Printv(array_ret, "    for (int i=0; i<cArray.length; i++)\n", NULL);
-      Printv(array_ret, "      arrayWrapper[i] = new $type(cArray[i], false);\n", NULL);
-      Printv(array_ret, "    return arrayWrapper;\n", NULL);
+      Printv(array_ret, "    $type[] arrayWrapper = new $type[cArray.length];\n", NIL);
+      Printv(array_ret, "    for (int i=0; i<cArray.length; i++)\n", NIL);
+      Printv(array_ret, "      arrayWrapper[i] = new $type(cArray[i], false);\n", NIL);
+      Printv(array_ret, "    return arrayWrapper;\n", NIL);
 
       Replaceall(array_ret, "$type", is_shadow(getArrayType(t)));
-      Printv(nativecall, array_ret, NULL);
+      Printv(nativecall, array_ret, NIL);
       Delete(array_ret);
     }
     else {
@@ -1422,7 +1422,7 @@ class JAVA : public Language {
     }
 
     Printf(shadow_code, ") {\n");
-    Printv(shadow_code, user_arrays, NULL);
+    Printv(shadow_code, user_arrays, NIL);
     Printf(shadow_code, "    %s", nativecall);
     Printf(shadow_code, "  }\n\n");
 
@@ -1453,7 +1453,7 @@ class JAVA : public Language {
       String *nativecall = NewString("");
 
       Printf(shadow_code, "  %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadow_classname);
-      Printv(nativecall, "this(", jniclass_name, ".", Swig_name_construct(overloaded_name), "(", NULL);
+      Printv(nativecall, "this(", jniclass_name, ".", Swig_name_construct(overloaded_name), "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("jstype", l, NULL);
@@ -1511,7 +1511,7 @@ class JAVA : public Language {
       Printf(nativecall, "), true);\n");
 
       Printf(shadow_code, ") {\n");
-      Printv(shadow_code, user_arrays, NULL);
+      Printv(shadow_code, user_arrays, NIL);
       Printf(shadow_code, "    %s", nativecall);
       Printf(shadow_code, "  }\n\n");
 
@@ -1536,7 +1536,7 @@ class JAVA : public Language {
     String *symname = Getattr(n,"sym:name");
 
     if(proxy_flag) {
-      Printv(destructor_call, "      ", jniclass_name, ".", Swig_name_destroy(symname), "(swigCPtr);\n", NULL);
+      Printv(destructor_call, "      ", jniclass_name, ".", Swig_name_destroy(symname), "(swigCPtr);\n", NIL);
     }
     return SWIG_OK;
   }
@@ -1672,7 +1672,7 @@ class JAVA : public Language {
     String *overloaded_name = NewStringf("%s", Getattr(n,"sym:name"));
 
     if (Getattr(n,"sym:overloaded")) {
-      Printv(overloaded_name, Getattr(n,"sym:overname"), NULL);
+      Printv(overloaded_name, Getattr(n,"sym:overname"), NIL);
     }
 
     return overloaded_name;
@@ -1739,10 +1739,10 @@ class JAVA : public Language {
       if(SwigType_type(t) != T_VOID)
         Printf(nativecall,"return ");
       if(is_return_type_java_class)
-        Printv(nativecall, "new ", shadowrettype, "(", NULL);
+        Printv(nativecall, "new ", shadowrettype, "(", NIL);
     }
 
-    Printv(nativecall, jniclass_name, ".", overloaded_name, "(", NULL);
+    Printv(nativecall, jniclass_name, ".", overloaded_name, "(", NIL);
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
@@ -1794,13 +1794,13 @@ class JAVA : public Language {
     if(SwigType_isarray(t) && is_shadow(getArrayType(t)) && SwigType_array_ndim(t) == 1) {
       String *array_ret = NewString("");
       Printf(array_ret,");\n");
-      Printv(array_ret, "    $type[] arrayWrapper = new $type[cArray.length];\n", NULL);
-      Printv(array_ret, "    for (int i=0; i<cArray.length; i++)\n", NULL);
-      Printv(array_ret, "      arrayWrapper[i] = new $type(cArray[i], false);\n", NULL);
-      Printv(array_ret, "    return arrayWrapper;\n", NULL);
+      Printv(array_ret, "    $type[] arrayWrapper = new $type[cArray.length];\n", NIL);
+      Printv(array_ret, "    for (int i=0; i<cArray.length; i++)\n", NIL);
+      Printv(array_ret, "      arrayWrapper[i] = new $type(cArray[i], false);\n", NIL);
+      Printv(array_ret, "    return arrayWrapper;\n", NIL);
 
       Replaceall(array_ret, "$type", is_shadow(getArrayType(t)));
-      Printv(nativecall, array_ret, NULL);
+      Printv(nativecall, array_ret, NIL);
       Delete(array_ret);
     }
     else {
@@ -1826,7 +1826,7 @@ class JAVA : public Language {
     }
 
     Printf(module_class_code, ") {\n");
-    Printv(module_class_code, user_arrays, NULL);
+    Printv(module_class_code, user_arrays, NIL);
     Printf(module_class_code, "    %s", nativecall);
     Printf(module_class_code, "  }\n\n");
 
@@ -1930,15 +1930,15 @@ class JAVA : public Language {
 
     // Generate code which wraps the JNI long (c pointer) with a Java class
     if(SwigType_isarray(pt) && is_shadow(getArrayType(pt)) && SwigType_array_ndim(pt) == 1) {
-      Printv(user_arrays, "    long[] $arg_cArray = new long[$arg.length];\n", NULL);
-      Printv(user_arrays, "    for (int i=0; i<$arg.length; i++)\n", NULL);
-      Printv(user_arrays, "      $arg_cArray[i] = ",is_shadow(getArrayType(pt)),".getCPtr($arg[i]);\n", NULL);
+      Printv(user_arrays, "    long[] $arg_cArray = new long[$arg.length];\n", NIL);
+      Printv(user_arrays, "    for (int i=0; i<$arg.length; i++)\n", NIL);
+      Printv(user_arrays, "      $arg_cArray[i] = ",is_shadow(getArrayType(pt)),".getCPtr($arg[i]);\n", NIL);
       Replaceall(user_arrays, "$arg", arg);
-      Printv(nativecall, arg, "_cArray", NULL);
+      Printv(nativecall, arg, "_cArray", NIL);
     } else if (is_java_class) {
-      Printv(nativecall, javaparamtype,".getCPtr(",arg,")", NULL);
+      Printv(nativecall, javaparamtype,".getCPtr(",arg,")", NIL);
     } else 
-      Printv(nativecall, arg, NULL);
+      Printv(nativecall, arg, NIL);
 
     return arg;
   }
@@ -1989,10 +1989,10 @@ class JAVA : public Language {
         javaTypemapLookup("javacode", type, WARN_NONE), // extra Java code
         "}\n",
         "\n",
-        NULL);
+        NIL);
 
         Replaceall(swigtype, "$javaclassname", javaclassname);
-        Printv(f_swigtype, swigtype, NULL);
+        Printv(f_swigtype, swigtype, NIL);
 
         Close(f_swigtype);
         Delete(filen);

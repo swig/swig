@@ -143,7 +143,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	  String *defname, *defvalue;
 	  defname = NewStringf("%s_defvalue", lname);
 	  defvalue = NewStringf("%s = %s", SwigType_str(type,defname), pvalue);
-	  Wrapper_add_localv(w,defname, defvalue, NULL);
+	  Wrapper_add_localv(w,defname, defvalue, NIL);
 	  Delete(defname);
 	  Delete(defvalue);
 	}
@@ -153,7 +153,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       } else {
 	local = Swig_clocal(altty,lname, pvalue);
       }
-      Wrapper_add_localv(w,lname,local,NULL);
+      Wrapper_add_localv(w,lname,local,NIL);
       i++;
     }
     p = nextSibling(p);
@@ -189,7 +189,7 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
   }
 
   /* Now print out function call */
-  Printv(fcall,decl,NULL);
+  Printv(fcall,decl,NIL);
 
   /* A sick hack */
   {
@@ -505,7 +505,7 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
       String *tmp = NewStringf("%s(%s)", mangled, ParmList_str(p));
       body = SwigType_str(type,tmp);
       Delete(tmp);
-      Printv(body,code,"\n",NULL);
+      Printv(body,code,"\n",NIL);
       Setattr(n,"wrap:code",body);
     }
     Delete(membername);
@@ -544,7 +544,7 @@ Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int flags)
       String *s = NewStringf("%s(%s)", mangled, ParmList_str(parms));
       wrap = SwigType_str(type,s);
       Delete(s);
-      Printv(wrap,code,"\n",NULL);
+      Printv(wrap,code,"\n",NIL);
       Setattr(n,"wrap:code",wrap);
       Delete(wrap);
     }
@@ -590,7 +590,7 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags)
     code = Getattr(n,"code");
     if (code) {
       String *s = NewStringf("void %s(%s)", mangled, ParmList_str(p));
-      Printv(s,code,"\n",NULL);
+      Printv(s,code,"\n",NIL);
       Setattr(n,"wrap:code",s);
       Delete(s);
     }
@@ -658,7 +658,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
     String *code = Getattr(n,"code");
     if (code) {
       String *s = NewStringf("void %s(%s)", mangled, ParmList_str(parms));
-      Printv(s,code,"\n",NULL);
+      Printv(s,code,"\n",NIL);
       Setattr(n,"wrap:code",s);
       Delete(s);
     }
@@ -715,7 +715,7 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
       String *tmp = NewStringf("%s(%s)", mangled, ParmList_str(parms));
       String *s = SwigType_str(ty,tmp);
       Delete(tmp);
-      Printv(s,code,"\n",NULL);
+      Printv(s,code,"\n",NIL);
       Setattr(n,"wrap:code",s);
       Delete(s);
     }

@@ -239,7 +239,7 @@ public:
       Append(wname,overname);
     }
     
-    Printv(f->def, "static void ", wname, "(INT32 args) {", NULL);
+    Printv(f->def, "static void ", wname, "(INT32 args) {", NIL);
     
     /* Generate code for argument marshalling */
     String *description = NewString("");
@@ -269,7 +269,7 @@ public:
 	  Printf(f->code, "%s\n", tm);
           String *pikedesc = Getattr(p, "tmap:in:pikedesc");
 	  if (pikedesc) {
-	    Printv(description, pikedesc, " ", NULL);
+	    Printv(description, pikedesc, " ", NIL);
 	  }
 	  p = Getattr(p,"tmap:in:next");
 	  continue;
@@ -286,7 +286,7 @@ public:
     if (varargs) {
       if (p && (tm = Getattr(p,"tmap:in"))) {
 	Replaceall(tm,"$input", "varargs");
-	Printv(f->code,tm,"\n",NULL);
+	Printv(f->code,tm,"\n",NIL);
       }
     }
 
@@ -294,7 +294,7 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:check"))) {
 	Replaceall(tm,"$target",Getattr(p,"lname"));
-	Printv(f->code,tm,"\n",NULL);
+	Printv(f->code,tm,"\n",NIL);
 	p = Getattr(p,"tmap:check:next");
       } else {
 	p = nextSibling(p);
@@ -306,7 +306,7 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:freearg"))) {
 	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Printv(cleanup,tm,"\n",NULL);
+	Printv(cleanup,tm,"\n",NIL);
 	p = Getattr(p,"tmap:freearg:next");
       } else {
 	p = nextSibling(p);
@@ -321,7 +321,7 @@ public:
 	Replaceall(tm,"$target","resultobj");
 	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
-	Printv(outarg,tm,"\n",NULL);
+	Printv(outarg,tm,"\n",NIL);
 	p = Getattr(p,"tmap:argout:next");
       } else {
 	p = nextSibling(p);
@@ -336,13 +336,13 @@ public:
 
     /* Return the function value */
     if (current == CONSTRUCTOR) {
-      Printv(f->code, "THIS = (void *) result;\n", NULL);
-      Printv(description, ", tVoid", NULL);
+      Printv(f->code, "THIS = (void *) result;\n", NIL);
+      Printv(description, ", tVoid", NIL);
     } else if (current == DESTRUCTOR) {
-      Printv(description, ", tVoid", NULL);
+      Printv(description, ", tVoid", NIL);
     } else {
       Wrapper_add_local(f, "resultobj", "struct object *resultobj");
-      Printv(description, ", ", NULL);
+      Printv(description, ", ", NIL);
       if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
 	Replaceall(tm,"$source", "result");
 	Replaceall(tm,"$target", "resultobj");
@@ -354,7 +354,7 @@ public:
 	}
 	String *pikedesc = Getattr(n, "tmap:out:pikedesc");
 	if (pikedesc) {
-	  Printv(description, pikedesc, NULL);
+	  Printv(description, pikedesc, NIL);
 	}
 	Printf(f->code,"%s\n", tm);
       } else {
@@ -364,10 +364,10 @@ public:
     }
 
     /* Output argument output code */
-    Printv(f->code,outarg,NULL);
+    Printv(f->code,outarg,NIL);
 
     /* Output cleanup code */
-    Printv(f->code,cleanup,NULL);
+    Printv(f->code,cleanup,NIL);
 
     /* Look to see if there is any newfree cleanup code */
     if (Getattr(n,"feature:new")) {
@@ -437,7 +437,7 @@ public:
     Printv(f->def,	
 	   "struct array *", wname,
 	   "(struct array *self, struct array *args) {",
-	   NULL);
+	   NIL);
     
     Wrapper_add_local(f,"argc","INT32 argc");
     Printf(tmp,"struct array *argv[%d]", maxargs+1);
@@ -449,10 +449,10 @@ public:
     Printf(f->code,"}\n");
     
     Replaceall(dispatch,"$args","self,args");
-    Printv(f->code,dispatch,"\n",NULL);
+    Printv(f->code,dispatch,"\n",NIL);
     Printf(f->code,"No matching function for overloaded '%s'\n", symname);
     Printf(f->code,"return NULL;\n");
-    Printv(f->code,"}\n",NULL);
+    Printv(f->code,"}\n",NIL);
     Wrapper_print(f,f_wrappers);
     add_method(n,symname,wname,0);
 
@@ -476,7 +476,7 @@ public:
 
   virtual int constantWrapper(Node *n) {
 
-    Swig_require(&n, "*sym:name", "type", "value", NULL);
+    Swig_require(&n, "*sym:name", "type", "value", NIL);
     
     String *symname = Getattr(n, "sym:name");
     SwigType *type  = Getattr(n, "type");
@@ -675,7 +675,7 @@ public:
       Wrapper *wrapper = NewWrapper();
       String *setter = Swig_name_member(getClassPrefix(), (char *) "`->=");
       String *wname = Swig_name_wrapper(setter);
-      Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NULL);
+      Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
       Printf(wrapper->locals, "char *name = (char *) STR0(sp[0-args].u.string);\n");
       
       n = Firstitem(membervariables);
@@ -714,7 +714,7 @@ public:
     Wrapper *wrapper = NewWrapper();
     String *getter = Swig_name_member(getClassPrefix(), (char *) "`->");
     String *wname = Swig_name_wrapper(getter);
-    Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NULL);
+    Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
     Printf(wrapper->locals, "char *name = (char *) STR0(sp[0-args].u.string);\n");
 
     n = Firstitem(membervariables);

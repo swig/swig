@@ -209,7 +209,7 @@ public:
 
     SwigType_remember(t);
     SwigType *lt = SwigType_ltype(t);
-    Printv(f, "if (SWIG_ConvertPtr(", src, ",(void **) ", dest, ",", NULL);
+    Printv(f, "if (SWIG_ConvertPtr(", src, ",(void **) ", dest, ",", NIL);
     
     /* If we're passing a void pointer, we give the pointer conversion a NULL
        pointer, otherwise pass in the expected type. */
@@ -217,7 +217,7 @@ public:
     if (Cmp(lt,"p.void") == 0) {
       Printf(f, " 0 ) < 0) {\n");
     } else {
-      Printv(f, "SWIGTYPE", SwigType_manglestr(t), ") < 0) {\n",NULL);
+      Printv(f, "SWIGTYPE", SwigType_manglestr(t), ") < 0) {\n",NIL);
     }
     
     Printv(f,
@@ -225,7 +225,7 @@ public:
 	   " Expected %s\", SWIGTYPE", SwigType_manglestr(t), "->name);\n", ret,
 	   ";\n",
 	   "}\n",
-	   NULL);
+	   NIL);
     Delete(lt);
   }
 
@@ -354,13 +354,13 @@ public:
     static String *credits=0;
     
     configm4=NewString("");
-    Printv(configm4, Swig_file_dirname(outfile), "config.m4", NULL);
+    Printv(configm4, Swig_file_dirname(outfile), "config.m4", NIL);
     
     makefilein=NewString("");
-    Printv(makefilein, Swig_file_dirname(outfile), "Makefile.in", NULL);
+    Printv(makefilein, Swig_file_dirname(outfile), "Makefile.in", NIL);
     
     credits=NewString("");
-    Printv(credits, Swig_file_dirname(outfile), "CREDITS", NULL);
+    Printv(credits, Swig_file_dirname(outfile), "CREDITS", NIL);
     
     // are we a --with- or --enable-
     int with=(withincs || withlibs)?1:0;
@@ -619,7 +619,7 @@ public:
     
     /* PHP module file */
     filen = NewString("");
-    Printv(filen, Swig_file_dirname(outfile), module, ".php", NULL);
+    Printv(filen, Swig_file_dirname(outfile), module, ".php", NIL);
     
     f_phpcode = NewFile(filen, "w");
     if (!f_phpcode) {
@@ -671,7 +671,7 @@ public:
     
     /* Create the .h file too */
     filen = NewString("");
-    Printv(filen, Swig_file_dirname(outfile), "php_", module, ".h", NULL);
+    Printv(filen, Swig_file_dirname(outfile), "php_", module, ".h", NIL);
     f_h = NewFile(filen, "w");
     if (!f_h) {
       Printf(stderr,"Unable to open %s\n", filen);
@@ -744,7 +744,7 @@ public:
     Language::top(n);
 
     SwigPHP_emit_resource_registrations();    
-//    Printv(s_init,s_resourcetypes,NULL);
+//    Printv(s_init,s_resourcetypes,NIL);
     /* We need this after all classes written out by ::top */
     Printf(s_oinit, "CG(active_class_entry) = NULL;\n");	
     Printf(s_oinit, "/* end oinit subsection */\n");
@@ -856,7 +856,7 @@ public:
      * function really needs totally redoing.
      */
     
-    Printv(f_runtime, s_header, NULL);
+    Printv(f_runtime, s_header, NIL);
     
     //  Wrapper_print(f_c, s_wrappers);
     Wrapper_print(f_php, s_wrappers);
@@ -865,7 +865,7 @@ public:
     Printf(s_wrappers, "/* end wrapper section */\n");
     Printf(s_vdecl, "/* end vdecl subsection */\n");
     
-    Printv(f_runtime, s_vdecl, s_wrappers, s_init, NULL);
+    Printv(f_runtime, s_vdecl, s_wrappers, s_init, NIL);
     Delete(s_header);
     Delete(s_wrappers);
     Delete(s_init);
@@ -967,9 +967,9 @@ public:
       Printf(df->def,"// This function is designed to be called by the zend list destructors to typecast and do the actual destruction\n"
                      "void %s(zend_rsrc_list_entry *rsrc, const char *type_name TSRMLS_DC) {\n",destructorname);
 
-      Wrapper_add_localv(df, "value", "swig_object_wrapper *value=(swig_object_wrapper *) rsrc->ptr", NULL);
-      Wrapper_add_localv(df, "ptr", "void *ptr=value->ptr", NULL);
-      Wrapper_add_localv(df, "newobject", "int newobject=value->newobject", NULL);
+      Wrapper_add_localv(df, "value", "swig_object_wrapper *value=(swig_object_wrapper *) rsrc->ptr", NIL);
+      Wrapper_add_localv(df, "ptr", "void *ptr=value->ptr", NIL);
+      Wrapper_add_localv(df, "newobject", "int newobject=value->newobject", NIL);
       // Magic spell nicked from further down.
       emit_args(d, l, df);
       emit_attach_parmmaps(l,f);
@@ -1003,7 +1003,7 @@ public:
       else Printf(f->def, "static pval _wrap_%s(zend_property_reference *property_reference) {\n",iname);
     } else { // regular header
       create_command(iname, Char(Swig_name_wrapper(iname)));
-      Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", NULL);
+      Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", NIL);
     }
 
     emit_args(d, l, f);
@@ -1021,7 +1021,7 @@ public:
     sprintf(args, "%s[%d]", "zval **args", num_arguments+1); 
 
     Wrapper_add_local(f, "args",args);    
-    Wrapper_add_localv(f, "argbase", "int argbase=0", NULL);
+    Wrapper_add_localv(f, "argbase", "int argbase=0", NIL);
     // This generated code may be called 
     // 1) as an object method, or
     // 2) as a class-method/function (without a "this_ptr")
@@ -1133,7 +1133,7 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:check"))) {
 	Replaceall(tm,"$target",Getattr(p,"lname"));
-	Printv(f->code,tm,"\n",NULL);
+	Printv(f->code,tm,"\n",NIL);
 	p = Getattr(p,"tmap:check:next");
       } else {
 	p = nextSibling(p);
@@ -1144,7 +1144,7 @@ public:
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p,"tmap:freearg"))) {
 	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Printv(cleanup,tm,"\n",NULL);
+	Printv(cleanup,tm,"\n",NIL);
 	p = Getattr(p,"tmap:freearg:next");
       } else {
 	p = nextSibling(p);
@@ -1167,7 +1167,7 @@ public:
 	  Printf(f->code,"_saved[%d] = %s;\n", num_saved, in);
 	  num_saved++;
 	}
-	Printv(outarg,tm,"\n",NULL);
+	Printv(outarg,tm,"\n",NIL);
 	p = Getattr(p,"tmap:argout:next");
       } else {
 	p = nextSibling(p);
@@ -1178,7 +1178,7 @@ public:
       sprintf(temp, "_saved[%d]",num_saved);
       // Used to be zval *, perhaps above we should use * %s
      // but I am not sure what saved is for!!
-      Wrapper_add_localv(f,"_saved","zval **",temp,NULL);
+      Wrapper_add_localv(f,"_saved","zval **",temp,NIL);
     }
     
     /* emit function call*/
@@ -1251,10 +1251,10 @@ public:
     }
     
     if(outarg)
-      Printv(f->code,outarg,NULL);
+      Printv(f->code,outarg,NIL);
     
     if(cleanup)
-      Printv(f->code,cleanup,NULL);
+      Printv(f->code,cleanup,NIL);
     
     if((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char *)"result", (char*)"result",(char*)"",0))) {
       Printf(f->code,"%s\n", tm);
@@ -1623,7 +1623,7 @@ public:
 
       // add wrappers to output code
       Printf(s_wrappers,"// property handler for class %s\n",shadow_classname);
-      Printv(s_wrappers,s_propget,s_propset,NULL);
+      Printv(s_wrappers,s_propget,s_propset,NIL);
 
       // Save class in class table
       if (baselist) base=Firstitem(baselist);
@@ -1637,13 +1637,13 @@ public:
       Printf(s_oinit,"\n");
 
 
-      Printv(f_phpcode, shadow_classdef, shadow_code, NULL);
+      Printv(f_phpcode, shadow_classdef, shadow_code, NIL);
 
       // Write the enum initialisation code in a static block
       // These are all the enums defined withing the c++ class.
 
       // PHP Needs to handle shadow enums properly still
-      if(strlen(Char(shadow_enum_code)) != 0 ) Printv(f_phpcode, "{\n // enum\n", shadow_enum_code, " }\n", NULL);
+      if(strlen(Char(shadow_enum_code)) != 0 ) Printv(f_phpcode, "{\n // enum\n", shadow_enum_code, " }\n", NIL);
 
       free(shadow_classname);
       shadow_classname = NULL;
@@ -1752,7 +1752,7 @@ public:
 
     f = NewWrapper();
 
-    Printv(f->def, "ZEND_NAMED_FUNCTION(", Swig_name_wrapper(iname), ") {\n", NULL);
+    Printv(f->def, "ZEND_NAMED_FUNCTION(", Swig_name_wrapper(iname), ") {\n", NIL);
 
 	/* If a argument is given we set the variable. Then we return
 	 * the current value

@@ -992,9 +992,9 @@ static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
 	    continue;
 	}
 	if (value) {
-	    new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), "=", value, NULL);
+	    new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), "=", value, NIL);
 	} else {
-	    new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), NULL);
+	    new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), NIL);
 	}
 	if (!isglobal) {
 	    /* Substitute  */

@@ -177,7 +177,7 @@ public:
 	     "# This file was created automatically by SWIG.\n",
 	     "# Don't modify this file, modify the SWIG interface instead.\n",
 	     "# This file is compatible with both classic and new-style classes.\n",
-	     NULL);
+	     NIL);
 
       Printf(f_shadow,"import %s\n", module);
 
@@ -196,14 +196,14 @@ public:
 	     tab4, "method = class_type.__swig_setmethods__.get(name,None)\n",
 	     tab4, "if method: return method(self,value)\n",
 	     tab4, "self.__dict__[name] = value\n\n",
-	     NULL);
+	     NIL);
 
       Printv(f_shadow,
 	     "def _swig_getattr(self,class_type,name):\n",
 	     tab4, "method = class_type.__swig_getmethods__.get(name,None)\n",
 	     tab4, "if method: return method(self)\n",
 	     tab4, "raise AttributeError,name\n\n",
-	     NULL);
+	     NIL);
 
       if (!classic) {
 	Printv(f_shadow,
@@ -215,7 +215,7 @@ public:
 	       "    class _object : pass\n",
 	       "    _newclass = 0\n",
 	       "\n\n",
-	       NULL);
+	       NIL);
       }
 
       // Include some information in the code
@@ -252,7 +252,7 @@ public:
     Printf(f_wrappers,"#endif\n");
 
     if (shadow) {
-      Printv(f_shadow, f_shadow_stubs, "\n",NULL);
+      Printv(f_shadow, f_shadow_stubs, "\n",NIL);
       Close(f_shadow);
       Delete(f_shadow);
     }
@@ -360,12 +360,12 @@ public:
 	Printv(f->def,
 	       "static PyObject *", wname,
 	       "(PyObject *self, PyObject *args) {",
-	       NULL);
+	       NIL);
       } else {
 	Printv(f->def,
 	       "static PyObject *", wname, "__varargs__", 
 	       "(PyObject *self, PyObject *args, PyObject *varargs) {",
-	       NULL);
+	       NIL);
       }
       if (allow_kwargs) {
 	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number,
@@ -381,7 +381,7 @@ public:
       Printv(f->def,
 	     "static PyObject *", wname,
 	     "(PyObject *self, PyObject *args, PyObject *kwargs) {",
-	     NULL);
+	     NIL);
     }
     if (!allow_kwargs) {
       Printf(parse_args,"    if(!PyArg_ParseTuple(args,(char *)\"");
@@ -431,13 +431,13 @@ public:
 	  }
 
 	  Putc('O',parse_args);
-	  Wrapper_add_localv(f, source, "PyObject *",source, " = 0", NULL);
+	  Wrapper_add_localv(f, source, "PyObject *",source, " = 0", NIL);
 	  Printf(arglist,"&%s",source);
 	  if (i >= num_required)
-	    Printv(get_pointers, "if (", source, ") {\n", NULL);
-	  Printv(get_pointers,tm,"\n", NULL);
+	    Printv(get_pointers, "if (", source, ") {\n", NIL);
+	  Printv(get_pointers,tm,"\n", NIL);
 	  if (i >= num_required)
-	    Printv(get_pointers, "}\n", NULL);
+	    Printv(get_pointers, "}\n", NIL);
 
 	} else {
 	  Printf(parse_args,"%s",parse);
@@ -456,22 +456,22 @@ public:
     /* finish argument marshalling */
     Printf(kwargs," NULL }");
     if (allow_kwargs) {
-      Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", NULL);
+      Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", NIL);
     }
 
     Printf(parse_args,":%s\"", iname);
     Printv(parse_args,
 	   arglist, ")) return NULL;\n",
-	   NULL);
+	   NIL);
 
     /* Now piece together the first part of the wrapper function */
-    Printv(f->code, parse_args, get_pointers, NULL);
+    Printv(f->code, parse_args, get_pointers, NIL);
 
     /* Check for trailing varargs */
     if (varargs) {
       if (p && (tm = Getattr(p,"tmap:in"))) {
 	Replaceall(tm,"$input", "varargs");
-	Printv(f->code,tm,"\n",NULL);
+	Printv(f->code,tm,"\n",NIL);
       }
     }
 
@@ -479,7 +479,7 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:check"))) {
 	Replaceall(tm,"$target",Getattr(p,"lname"));
-	Printv(f->code,tm,"\n",NULL);
+	Printv(f->code,tm,"\n",NIL);
 	p = Getattr(p,"tmap:check:next");
       } else {
 	p = nextSibling(p);
@@ -490,7 +490,7 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:freearg"))) {
 	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Printv(cleanup,tm,"\n",NULL);
+	Printv(cleanup,tm,"\n",NIL);
 	p = Getattr(p,"tmap:freearg:next");
       } else {
 	p = nextSibling(p);
@@ -504,7 +504,7 @@ public:
 	Replaceall(tm,"$target","resultobj");
 	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
-	Printv(outarg,tm,"\n",NULL);
+	Printv(outarg,tm,"\n",NIL);
 	p = Getattr(p,"tmap:argout:next");
       } else {
 	p = nextSibling(p);
@@ -533,10 +533,10 @@ public:
     }
 
     /* Output argument output code */
-    Printv(f->code,outarg,NULL);
+    Printv(f->code,outarg,NIL);
 
     /* Output cleanup code */
-    Printv(f->code,cleanup,NULL);
+    Printv(f->code,cleanup,NIL);
 
     /* Look to see if there is any newfree cleanup code */
     if (Getattr(n,"feature:new")) {
@@ -571,7 +571,7 @@ public:
       Printv(f->def,
 	     "static PyObject *", wname,
 	     "(PyObject *self, PyObject *args) {",
-	     NULL);
+	     NIL);
       Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
       Wrapper_add_local(f,"varargs", "PyObject *varargs");
       Wrapper_add_local(f,"newargs", "PyObject *newargs");
@@ -594,9 +594,9 @@ public:
       /* Create a shadow for this function (if enabled and not in a member function) */
       if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
 	if (in_class) {
-	  Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n\n", NULL);
+	  Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n\n", NIL);
 	} else {
-	  Printv(f_shadow,iname, " = ", module, ".", iname, "\n\n", NULL);	  
+	  Printv(f_shadow,iname, " = ", module, ".", iname, "\n\n", NIL);	  
 	}
       }
     } else {
@@ -633,7 +633,7 @@ public:
     Printv(f->def,	
 	   "static PyObject *", wname,
 	   "(PyObject *self, PyObject *args) {",
-	   NULL);
+	   NIL);
     
     Wrapper_add_local(f,"argc","int argc");
     Printf(tmp,"PyObject *argv[%d]", maxargs+1);
@@ -645,16 +645,16 @@ public:
     Printf(f->code,"}\n");
     
     Replaceall(dispatch,"$args","self,args");
-    Printv(f->code,dispatch,"\n",NULL);
+    Printv(f->code,dispatch,"\n",NIL);
     Printf(f->code,"PyErr_SetString(PyExc_TypeError,\"No matching function for overloaded '%s'\");\n", symname);
     Printf(f->code,"return NULL;\n");
-    Printv(f->code,"}\n",NULL);
+    Printv(f->code,"}\n",NIL);
     Wrapper_print(f,f_wrappers);
     add_method(symname,wname,0);
 
     /* Create a shadow for this function (if enabled and not in a member function) */
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-      Printv(f_shadow_stubs,symname, " = ", module, ".", symname, "\n\n", NULL);
+      Printv(f_shadow_stubs,symname, " = ", module, ".", symname, "\n\n", NIL);
     }
     DelWrapper(f);
     Delete(dispatch);
@@ -722,7 +722,7 @@ public:
 	     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
 	     " is read-only.\");\n",
 	     tab4, "return 1;\n",
-	     NULL);
+	     NIL);
     }
 
     Printf(setf->code,"}\n");
@@ -792,7 +792,7 @@ public:
       return SWIG_NOWRAP;
     }
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-      Printv(f_shadow,iname, " = ", module, ".", iname, "\n", NULL);
+      Printv(f_shadow,iname, " = ", module, ".", iname, "\n", NIL);
     }
     return SWIG_OK;
   }
@@ -809,7 +809,7 @@ public:
 
     add_method(name, wrapname,0);
     if (shadow) {
-      Printv(f_shadow_stubs, name, " = ", module, ".", name, "\n\n", NULL);
+      Printv(f_shadow_stubs, name, " = ", module, ".", name, "\n\n", NIL);
     }
     return SWIG_OK;
   }
@@ -869,14 +869,14 @@ public:
 	    base = Nextitem(baselist);
 	    continue;
 	  }
-	  Printv(base_class,bname,NULL);
+	  Printv(base_class,bname,NIL);
 	  base = Nextitem(baselist);
 	  if (base) {
 	    Putc(',',base_class);
 	  }
 	}
       }
-      Printv(f_shadow,"class ", class_name, NULL);
+      Printv(f_shadow,"class ", class_name, NIL);
       if (Len(base_class)) {
 	Printf(f_shadow,"(%s)", base_class);
       } else {
@@ -886,23 +886,23 @@ public:
       }
       Printf(f_shadow,":\n");
 
-      Printv(f_shadow,tab4,"__swig_setmethods__ = {}\n",NULL);
+      Printv(f_shadow,tab4,"__swig_setmethods__ = {}\n",NIL);
       if (Len(base_class)) {
 	Printf(f_shadow,"%sfor _s in [%s]: __swig_setmethods__.update(_s.__swig_setmethods__)\n",tab4,base_class);
       }
       
       Printv(f_shadow,
 	     tab4, "__setattr__ = lambda self, name, value: _swig_setattr(self, ", class_name, ", name, value)\n",
-	     NULL);
+	     NIL);
 
-      Printv(f_shadow,tab4,"__swig_getmethods__ = {}\n",NULL);
+      Printv(f_shadow,tab4,"__swig_getmethods__ = {}\n",NIL);
       if (Len(base_class)) {
 	Printf(f_shadow,"%sfor _s in [%s]: __swig_getmethods__.update(_s.__swig_getmethods__)\n",tab4,base_class);
       }
       
       Printv(f_shadow,
 	     tab4, "__getattr__ = lambda self, name: _swig_getattr(self, ", class_name, ", name)\n",
-	     NULL);
+	     NIL);
     }
 
     /* Emit all of the members */
@@ -924,14 +924,14 @@ public:
 	       tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
 	       tab4, "Py_INCREF(obj);\n",
 	       tab4, "return Py_BuildValue((char *)\"\");\n",
-	       "}\n",NULL);
+	       "}\n",NIL);
 	String *cname = NewStringf("%s_swigregister", class_name);
 	add_method(cname, cname, 0);
 	Delete(cname);
 	Delete(ct);
       }
       if (!have_constructor) {
-	Printv(f_shadow,tab4,"def __init__(self): raise RuntimeError, \"No constructor defined\"\n",NULL);
+	Printv(f_shadow,tab4,"def __init__(self): raise RuntimeError, \"No constructor defined\"\n",NIL);
       }
 
       if (!have_repr) {
@@ -939,7 +939,7 @@ public:
 	Printv(f_shadow,
 	       tab4, "def __repr__(self):\n",
 	       tab8, "return \"<C ", class_name," instance at %s>\" % (self.this,)\n",
-	       NULL);
+	       NIL);
       }
       /* Now build the real class with a normal constructor */
       Printv(f_shadow,
@@ -950,7 +950,7 @@ public:
 	     //	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
 	     //	   tab8,"except AttributeError: self.this = this\n"
 	     tab8, "self.__class__ = ", class_name, "\n",
-	     NULL);
+	     NIL);
 
       Printf(f_shadow,"%s.%s_swigregister(%sPtr)\n", module, class_name, class_name,0);
       shadow_indent = 0;
@@ -983,14 +983,14 @@ public:
 	
 	if (Getattr(n,"feature:shadow")) {
 	  String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
-	  Printv(f_shadow,pycode,"\n",NULL);
+	  Printv(f_shadow,pycode,"\n",NIL);
 	} else {
 	  if (allow_kwargs && !Getattr(n,"sym:overloaded")) {
-	    Printv(f_shadow,tab4, "def ", symname, "(*args, **kwargs): ", NULL);
-	    Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args, kwargs)\n", NULL);
+	    Printv(f_shadow,tab4, "def ", symname, "(*args, **kwargs): ", NIL);
+	    Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args, kwargs)\n", NIL);
 	  } else {
-	    Printv(f_shadow, tab4, "def ", symname, "(*args): ", NULL);
-	    Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args)\n",NULL);
+	    Printv(f_shadow, tab4, "def ", symname, "(*args): ", NIL);
+	    Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args)\n",NIL);
 	  }
 	}
       }
@@ -1006,10 +1006,10 @@ public:
     String *symname = Getattr(n,"sym:name");
     Language::staticmemberfunctionHandler(n);
     if (shadow) {
-      Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = lambda x: ", module, ".", Swig_name_member(class_name, symname), "\n",  NULL);
+      Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = lambda x: ", module, ".", Swig_name_member(class_name, symname), "\n",  NIL);
       if (!classic) {
 	Printv(f_shadow, tab4, "if _newclass:",  symname, " = staticmethod(", module, ".",
-	       Swig_name_member(class_name, symname), ")\n", NULL);
+	       Swig_name_member(class_name, symname), ")\n", NIL);
       }
     }
     return SWIG_OK;
@@ -1033,18 +1033,18 @@ public:
 	if (!have_constructor) {
 	  if (Getattr(n,"feature:shadow")) {
 	    String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
-	    Printv(f_shadow,pycode,"\n",NULL);
+	    Printv(f_shadow,pycode,"\n",NIL);
 	  } else {
 	    if ((allow_kwargs) && (!Getattr(n,"sym:overloaded"))) {
-	      Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", NULL);
-	      Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
+	      Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", NIL);
+	      Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NIL);
 	    }  else {
-	      Printv(f_shadow, tab4, "def __init__(self,*args):\n",NULL);
-	      Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", NULL);
+	      Printv(f_shadow, tab4, "def __init__(self,*args):\n",NIL);
+	      Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", NIL);
 	    }
 	    Printv(f_shadow,
 		   tab8, "self.thisown = 1\n",
-		   NULL);
+		   NIL);
 	  }
 	  have_constructor = 1;
 	} else {
@@ -1053,20 +1053,20 @@ public:
 
 	  if (Getattr(n,"feature:shadow")) {
 	    String *pycode = pythoncode(Getattr(n,"feature:shadow"),"");
-	    Printv(f_shadow_stubs,pycode,"\n",NULL);
+	    Printv(f_shadow_stubs,pycode,"\n",NIL);
 	  } else {
 	    if ((allow_kwargs) && (!Getattr(n,"sym:overloaded"))) 
-	      Printv(f_shadow_stubs, "def ", symname, "(*args,**kwargs):\n", NULL);
+	      Printv(f_shadow_stubs, "def ", symname, "(*args,**kwargs):\n", NIL);
 	    else
-	      Printv(f_shadow_stubs, "def ", symname, "(*args):\n", NULL);
+	      Printv(f_shadow_stubs, "def ", symname, "(*args):\n", NIL);
 	    
-	    Printv(f_shadow_stubs, tab4, "val = apply(", NULL);
+	    Printv(f_shadow_stubs, tab4, "val = apply(", NIL);
 	    if ((allow_kwargs) && (!Getattr(n,"sym:overloaded"))) 
-	      Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
+	      Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NIL);
 	    else
-	      Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args)\n", NULL);
+	      Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args)\n", NIL);
 	    Printv(f_shadow_stubs,tab4, "val.thisown = 1\n",
-		   tab4, "return val\n\n", NULL);
+		   tab4, "return val\n\n", NIL);
 	  }
 	}
       }
@@ -1086,10 +1086,10 @@ public:
     Language::destructorHandler(n);
     shadow = oldshadow;
     if (shadow) {
-      Printv(f_shadow, tab4, "def __del__(self, destroy= ", module, ".", Swig_name_destroy(symname), "):\n", NULL);
-      Printv(f_shadow, tab8, "try:\n", NULL);
-      Printv(f_shadow, tab4, tab8, "if self.thisown: destroy(self)\n", NULL);
-      Printv(f_shadow, tab8, "except: pass\n", NULL);
+      Printv(f_shadow, tab4, "def __del__(self, destroy= ", module, ".", Swig_name_destroy(symname), "):\n", NIL);
+      Printv(f_shadow, tab8, "try:\n", NIL);
+      Printv(f_shadow, tab4, tab8, "if self.thisown: destroy(self)\n", NIL);
+      Printv(f_shadow, tab8, "except: pass\n", NIL);
     }
     return SWIG_OK;
   }
@@ -1109,20 +1109,20 @@ public:
     if (shadow) {
       int immutable = 0;
       if (!Getattr(n,"feature:immutable")) {
-	Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", NULL);
+	Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", NIL);
       } else {
 	immutable = 1;
       }
-      Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NULL);
+      Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NIL);
 
       if (!classic) {
 	if (immutable) {
 	  Printv(f_shadow,tab4,"if _newclass:", symname," = property(", module, ".", 
-		 Swig_name_get(Swig_name_member(class_name,symname)),")\n", NULL);
+		 Swig_name_get(Swig_name_member(class_name,symname)),")\n", NIL);
 	} else {
 	  Printv(f_shadow,tab4,"if _newclass:", symname," = property(", 
 		 module, ".", Swig_name_get(Swig_name_member(class_name,symname)),",",
-		 module, ".", Swig_name_set(Swig_name_member(class_name,symname)),")\n", NULL);
+		 module, ".", Swig_name_set(Swig_name_member(class_name,symname)),")\n", NIL);
 	}
       }
     }
@@ -1161,7 +1161,7 @@ public:
     shadow = oldshadow;
 
     if (shadow) {
-      Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(class_name,symname), "\n", NULL);
+      Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(class_name,symname), "\n", NIL);
     }
     return SWIG_OK;
   }
@@ -1208,9 +1208,9 @@ public:
       if (Len(s) > initial) {
 	char *c = Char(s);
 	c += initial;
-	Printv(out,indent,c,"\n",NULL);
+	Printv(out,indent,c,"\n",NIL);
       } else {
-	Printv(out,"\n",NULL);
+	Printv(out,"\n",NIL);
       }
       s = Nextitem(clist);
     }
@@ -1232,7 +1232,7 @@ public:
     if ((!ImportMode) && ((Cmp(section,"python") == 0) || (Cmp(section,"shadow") == 0))) {
       if (shadow) {
 	String *pycode = pythoncode(code,shadow_indent);
-	Printv(f_shadow, pycode, "\n", NULL);
+	Printv(f_shadow, pycode, "\n", NIL);
 	Delete(pycode);
       }
     } else {

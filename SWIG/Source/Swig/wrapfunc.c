@@ -215,7 +215,7 @@ Wrapper_add_localv(Wrapper *w, const String_or_char *name, ...) {
 
   obj = va_arg(ap,void *);
   while (obj) {
-    Printv(decl,obj,NULL);
+    Printv(decl,obj,NIL);
     Putc(' ', decl);
     obj = va_arg(ap, void *);
   }
@@ -290,7 +290,7 @@ Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...) {
 
   obj = va_arg(ap,void *);
   while (obj) {
-    Printv(decl,obj,NULL);
+    Printv(decl,obj,NIL);
     Putc(' ',decl);
     obj = va_arg(ap, void *);
   }

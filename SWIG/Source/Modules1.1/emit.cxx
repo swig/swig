@@ -64,7 +64,7 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
     tm = Getattr(p,"tmap:arginit");
     if (tm) {
       Replace(tm,"$target", Getattr(p,"lname"), DOH_REPLACE_ANY);
-      Printv(f->code,tm,"\n",NULL);
+      Printv(f->code,tm,"\n",NIL);
       p = Getattr(p,"tmap:arginit:next");
     } else {
       p = nextSibling(p);
@@ -77,7 +77,7 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
     tm = Getattr(p,"tmap:default");
     if (tm) {
       Replace(tm,"$target", Getattr(p,"lname"), DOH_REPLACE_ANY);
-      Printv(f->code,tm,"\n",NULL);
+      Printv(f->code,tm,"\n",NIL);
       p = Getattr(p,"tmap:default:next");
     } else {
       p = nextSibling(p);
@@ -91,7 +91,7 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
     if (tm) {
       Parm *np;
       Replace(tm,"$target", Getattr(p,"lname"), DOH_REPLACE_ANY);
-      Printv(f->code,tm,"\n",NULL);
+      Printv(f->code,tm,"\n",NIL);
       np = Getattr(p,"tmap:ignore:next");
 
       /* Deprecate this part later */
@@ -332,7 +332,7 @@ void emit_action(Node *n, Wrapper *f) {
   if (wrap) {
     File *f_code = Swig_filebyname("header");
     if (f_code) {
-      Printv(f_code,wrap,NULL);
+      Printv(f_code,wrap,NIL);
     }
   }
   action = Getattr(n,"feature:action");
@@ -349,7 +349,7 @@ void emit_action(Node *n, Wrapper *f) {
   if (tm) {
     p = Getattr(n,"parms");
     replace_args(p,tm);
-    Printv(f->code,tm,"\n",NULL);
+    Printv(f->code,tm,"\n",NIL);
   }
 
   /* Exception handling code */
@@ -367,17 +367,17 @@ void emit_action(Node *n, Wrapper *f) {
     Replaceall(tm,"$symname", Getattr(n,"sym:name"));
     Replaceall(tm,"$function", action);
     Replaceall(tm,"$action", action);
-    Printv(f->code,tm,"\n", NULL);
+    Printv(f->code,tm,"\n", NIL);
     Delete(tm);
   } else {
-    Printv(f->code, action, "\n",NULL);
+    Printv(f->code, action, "\n",NIL);
   }
   /* Postassert - EXPERIMENTAL */
   tm = Getattr(n,"feature:postassert");
   if (tm) {
     p = Getattr(n,"parms");
     replace_args(p,tm);
-    Printv(f->code,tm,"\n",NULL);
+    Printv(f->code,tm,"\n",NIL);
   }
 }
 

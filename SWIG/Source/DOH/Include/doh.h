@@ -365,9 +365,15 @@ extern DOH      *DohNone;
 #define Split              DohSplit
 #define Setmark            DohSetmark
 #define Getmark            DohGetmark
-
+#define None               DohNone
 #endif
 
+#ifdef NIL
+#under NIL
+#endif
+
+#define NIL  (char *) NULL
+ 
 
 #endif /* DOH_H */
 

@@ -301,7 +301,7 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
 	Replaceall(tm,"$input", tmp);
 	if (j >= num_required)
 	  Printf(f,"if (argc > %d) {\n",j);
-	Printv(f,tm,"\n",NULL);
+	Printv(f,tm,"\n",NIL);
         Printf(f,"_m &= _v;\n");
 	if (j >= num_required)
 	  Printf(f,"}\n",j);

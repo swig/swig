@@ -395,7 +395,7 @@ int Language::constantDirective(Node *n) {
   if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
   if (!ImportMode) {
-    Swig_require(&n,"name", "?value",NULL);
+    Swig_require(&n,"name", "?value",NIL);
     String *name = Getattr(n,"name");
     String *value = Getattr(n,"value");
     if (!value) {
@@ -621,7 +621,7 @@ int Language::cDeclaration(Node *n) {
   if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
   if (Cmp(storage,"typedef") == 0) {
-    Swig_save(&n,"type",NULL);
+    Swig_save(&n,"type",NIL);
     SwigType *t = Copy(type);
     if (t) {
       SwigType_push(t,decl);
@@ -780,7 +780,7 @@ Language::functionHandler(Node *n) {
 int
 Language::globalfunctionHandler(Node *n) {
 
-  Swig_require(&n,"name","sym:name","type","?parms",NULL);
+  Swig_require(&n,"name","sym:name","type","?parms",NIL);
 
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
@@ -818,7 +818,7 @@ Language::globalfunctionHandler(Node *n) {
 
 int 
 Language::callbackfunctionHandler(Node *n) {
-  Swig_require(&n,"name","*sym:name","*type","?value",NULL);
+  Swig_require(&n,"name","*sym:name","*type","?value",NIL);
   String *symname = Getattr(n,"sym:name");
   String *type    = Getattr(n,"type");
   String *name    = Getattr(n,"name");
@@ -848,7 +848,7 @@ Language::callbackfunctionHandler(Node *n) {
 int
 Language::memberfunctionHandler(Node *n) {
 
-  Swig_require(&n,"*name","*sym:name","*type","?parms","?value",NULL);
+  Swig_require(&n,"*name","*sym:name","*type","?parms","?value",NIL);
 
   String *storage   = Getattr(n,"storage");
   String   *name    = Getattr(n,"name");
@@ -912,8 +912,8 @@ Language::memberfunctionHandler(Node *n) {
 int
 Language::staticmemberfunctionHandler(Node *n) {
 
-  Swig_require(&n,"*name","*sym:name","*type",NULL);
-  Swig_save(&n,"storage",NULL);
+  Swig_require(&n,"*name","*sym:name","*type",NIL);
+  Swig_save(&n,"storage",NIL);
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
   SwigType *type    = Getattr(n,"type");
@@ -935,7 +935,7 @@ Language::staticmemberfunctionHandler(Node *n) {
     /* Hmmm. An added static member.  We have to create a little wrapper for this */
     String *tmp = NewStringf("%s(%s)", cname, ParmList_str(parms));
     String *wrap = SwigType_str(type,tmp);
-    Printv(wrap,code,"\n",NULL);
+    Printv(wrap,code,"\n",NIL);
     Setattr(n,"wrap:code",wrap);
     Delete(tmp);
     Delete(wrap);
@@ -989,12 +989,21 @@ Language::globalvariableHandler(Node *n) {
 int
 Language::membervariableHandler(Node *n) {
 
-  Swig_require(&n,"*name","*sym:name","*type",NULL);
-  Swig_save(&n,"parms",NULL);
+  Swig_require(&n,"*name","*sym:name","*type",NIL);
+  Swig_save(&n,"parms",NIL);
 
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
+
+  /* If not a smart-pointer access or added method. We clear
+     feature:except.   There is no way C++ or C would throw
+     an exception merely for accessing a member data 
+  */
+
+  if (!(Extend | SmartPointer)) {
+    Delattr(n,"feature:except");
+  }
 
   if (!AttributeFunctionGet) {
   
@@ -1103,7 +1112,7 @@ Language::membervariableHandler(Node *n) {
 int 
 Language::staticmembervariableHandler(Node *n)
 {
-  Swig_require(&n,"*name","*sym:name","*type", "?value", NULL);
+  Swig_require(&n,"*name","*sym:name","*type", "?value", NIL);
   String *value = Getattr(n,"value");
   if (!value) {
     String *name    = Getattr(n,"name");
@@ -1169,7 +1178,7 @@ int Language::enumDeclaration(Node *n) {
 int Language::enumvalueDeclaration(Node *n) {
   if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
-  Swig_require(&n,"*name", "?value",NULL);
+  Swig_require(&n,"*name", "?value",NIL);
   String *value = Getattr(n,"value");
   String *name  = Getattr(n,"name");
   String *tmpValue;
@@ -1198,7 +1207,7 @@ int Language::enumvalueDeclaration(Node *n) {
 
 int Language::memberconstantHandler(Node *n) {
 
-  Swig_require(&n,"*name","*sym:name","*value",NULL);
+  Swig_require(&n,"*name","*sym:name","*value",NIL);
 
   String *name    = Getattr(n,"name");
   String *symname = Getattr(n,"sym:name");
@@ -1257,7 +1266,7 @@ int Language::classDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
 
-  Swig_save(&n,"name",NULL);
+  Swig_save(&n,"name",NIL);
   Setattr(n,"name",classname);
 
   if (Cmp(kind,"class") == 0) {
@@ -1359,7 +1368,7 @@ int Language::constructorDeclaration(Node *n) {
   if (ImportMode) return SWIG_NOWRAP;
 
   /* Name adjustment for %name */
-  Swig_save(&n,"sym:name",NULL);
+  Swig_save(&n,"sym:name",NIL);
 
   {
     String *base = Swig_scopename_last(name);
@@ -1418,7 +1427,7 @@ int Language::constructorDeclaration(Node *n) {
 
 int 
 Language::constructorHandler(Node *n) {
-  Swig_require(&n,"?name","*sym:name","?type","?parms",NULL);
+  Swig_require(&n,"?name","*sym:name","?type","?parms",NIL);
   String *symname = Getattr(n,"sym:name");
   String *mrename;
   Parm   *parms = Getattr(n,"parms");
@@ -1439,7 +1448,7 @@ Language::constructorHandler(Node *n) {
 
 int
 Language::copyconstructorHandler(Node *n) {
-  Swig_require(&n,"?name","*sym:name","?type","?parms", NULL);
+  Swig_require(&n,"?name","*sym:name","?type","?parms", NIL);
   String *symname = Getattr(n,"sym:name");
   String *mrename;
   Parm   *parms = Getattr(n,"parms");
@@ -1463,7 +1472,7 @@ int Language::destructorDeclaration(Node *n) {
   if (cplus_mode != CPLUS_PUBLIC) return SWIG_NOWRAP;
   if (ImportMode) return SWIG_NOWRAP;
 
-  Swig_save(&n,"name", "sym:name",NULL);
+  Swig_save(&n,"name", "sym:name",NIL);
 
   char *c = GetChar(n,"name");
   if (c && (*c == '~')) Setattr(n,"name",c+1);
@@ -1492,8 +1501,8 @@ int Language::destructorDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::destructorHandler(Node *n) {
-  Swig_require(&n,"?name","*sym:name",NULL);
-  Swig_save(&n,"type","parms",NULL);
+  Swig_require(&n,"?name","*sym:name",NIL);
+  Swig_save(&n,"type","parms",NIL);
 
   String *symname = Getattr(n,"sym:name");
   String *mrename;
@@ -1575,7 +1584,7 @@ int Language::constantWrapper(Node *n) {
  * Language::variableWrapper()
  * ---------------------------------------------------------------------- */
 int Language::variableWrapper(Node *n) {
-  Swig_require(&n,"*name","*sym:name","*type","?parms",NULL);
+  Swig_require(&n,"*name","*sym:name","*type","?parms",NIL);
   String *symname    = Getattr(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
   String *name   = Getattr(n,"name");

@@ -1115,7 +1115,7 @@ class OCAML : public Language {
 	// Argument proxies
 
 	if( strcmp(Char(d),"void") ) 
-	    Printv(f->def,"\t",SwigType_str(d,"result"),";\n",0);
+	    Printv(f->def,"\t",SwigType_str(d,"result"),";\n",NIL);
 	Printf(f->def,
 	       "\tCAMLparam0();\n"
 	       "\tCAMLlocal1(swig_result);\n"
@@ -1146,7 +1146,7 @@ class OCAML : public Language {
 
 	    Printf(target, "args[%d]", i);
 	    Printf(source, "args%d", i);
-	    Printv(arg, Getattr(p,"name"),0);
+	    Printv(arg, Getattr(p,"name"),NIL);
 
 	    // Handle parameter types.
 	    if ((tm = Swig_typemap_lookup_new("out",p,source,0))) {
@@ -1155,7 +1155,7 @@ class OCAML : public Language {
 		Replaceall(tm,"$target",target);
 		Replaceall(tm,"$result",target);
 			   		
-		Printv(f->code, tm, "\n",0);
+		Printv(f->code, tm, "\n",NIL);
 	    } else {
 		throw_unhandled_ocaml_type_error (dcaml);
 	    }
@@ -1173,7 +1173,7 @@ class OCAML : public Language {
 	       "\t\tfailwith(\"Function ",
 	       Getattr(n,"feature:camlcb"),
 	       " not implemented.\");\n",
-	       "\t}\n",0);
+	       "\t}\n",NIL);
 
 	Printf(f->code,"\tswig_result = callbackN(*swig_func,%d,args);\n",
 	       numargs ? numargs : 1 );
@@ -1187,7 +1187,7 @@ class OCAML : public Language {
 		Replaceall(tm,"$1","swig_result");
 		Replaceall(tm,"$input","result");
 		
-		Printv(f->code, tm, "\n",0);
+		Printv(f->code, tm, "\n",NIL);
 	    } else {
 		    Printf(f->code,
 			   "\tfor( i = 0; i < numargs; i++ ) "
@@ -1320,13 +1320,13 @@ class OCAML : public Language {
 	    else 
 		Printf(source, curried ? "args%d" : "Field(args,%d)", i);
 	    Printf(target, "%s",ln);
-	    Printv(arg, Getattr(p,"name"),0);
+	    Printv(arg, Getattr(p,"name"),NIL);
 
 	    // Handle parameter types.
 	    if ((tm = Getattr(p,"tmap:in"))) {
-		Replace(tm,"$input",source,DOH_REPLACE_ANY);
+		Replaceall(tm,"$input",source);
 		Setattr(p,"emit:input",source);
-		Printv(f->code, tm, "\n", 0);
+		Printv(f->code, tm, "\n", NIL);
 		p = Getattr(p,"tmap:in:next");
 	    } else {
 		// no typemap found
@@ -1396,8 +1396,8 @@ class OCAML : public Language {
 	/* Insert constraint checking code */
 	for (p = l; p;) {
 	    if ((tm = Getattr(p,"tmap:check"))) {
-		Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
-		Printv(f->code,tm,"\n",0);
+		Replaceall(tm,"$target",Getattr(p,"lname"));
+		Printv(f->code,tm,"\n",NIL);
 		p = Getattr(p,"tmap:check:next");
 	    } else {
 		p = nextSibling(p);
@@ -1413,8 +1413,8 @@ class OCAML : public Language {
 	/* Insert cleanup code */
 	for (p = l; p;) {
 	    if ((tm = Getattr(p,"tmap:freearg"))) {
-		Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
-		Printv(cleanup,tm,"\n",0);
+		Replaceall(tm,"$target",Getattr(p,"lname"));
+		Printv(cleanup,tm,"\n",NIL);
 		p = Getattr(p,"tmap:freearg:next");
 	    } else {
 		p = nextSibling(p);
@@ -1433,20 +1433,20 @@ class OCAML : public Language {
 	    Replaceall(tm,"$target","swig_result");
 	    Replaceall(tm,"$result","swig_result");
 
-	    Printv(f->code, tm, "\n",0);
+	    Printv(f->code, tm, "\n",NIL);
 	} else {
 	    throw_unhandled_ocaml_type_error (dcaml);
 	}
 
 	// Dump the argument cleanup code
-	Printv(f->code, Char(cleanup),0);
+	Printv(f->code, Char(cleanup),NIL);
 
 	// Look for any remaining cleanup
 
 	if (Getattr(n,"feature:new")) {
 	    if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
 		Replaceall(tm,"$source","result");
-		Printv(f->code, tm, "\n",0);
+		Printv(f->code, tm, "\n",NIL);
 	    }
 	}
 
@@ -1454,13 +1454,13 @@ class OCAML : public Language {
 
 	if ((tm = Swig_typemap_lookup_new("ret",n,"result",0))) {
 	    Replaceall(tm,"$source","result");
-	    Printv(f->code, tm, "\n",0);
+	    Printv(f->code, tm, "\n",NIL);
 	}
 
 	// Wrap things up (in a manner of speaking)
 
 	Printf(f->code, "\tCAMLreturn(swig_result);\n");
-	Printv(f->code, "}\n",0);
+	Printv(f->code, "}\n",NIL);
 
 	if( in_destructor && !mliout )
 	    Printf( f_module,"let _ = Callback.register \"%s\" %s\n",
@@ -1558,17 +1558,17 @@ class OCAML : public Language {
 
 	// See if there's a typemap
 
-	Printv(rvalue, value,0);
+	Printv(rvalue, value,NIL);
 	if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 1)) {
 	    temp = Copy(rvalue);
 	    Clear(rvalue);
-	    Printv(rvalue, "\"", temp, "\"",0);
+	    Printv(rvalue, "\"", temp, "\"",NIL);
 	}
 	if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 0)) {
 	    Delete(temp);
 	    temp = Copy(rvalue);
 	    Clear(rvalue);
-	    Printv(rvalue, "'", temp, "'",0);
+	    Printv(rvalue, "'", temp, "'",NIL);
 	}
 	if ((tm = Swig_typemap_lookup_new("constant",n,name,0))) {
 	    Replaceall(tm,"$source",rvalue);

@@ -3029,7 +3029,7 @@ cpp_nested : storage_class cpptype ID LBRACE { cparse_start_line = cparse_line; 
 		      Nested *n = (Nested *) malloc(sizeof(Nested));
 		      n->code = NewString("");
 		      Printv(n->code, "typedef ", $2, " ",
-			     Char(scanner_ccode), " $classname_", $6.id, ";\n", NULL);
+			     Char(scanner_ccode), " $classname_", $6.id, ";\n", NIL);
 
 		      n->name = Swig_copy_string($6.id);
 		      n->line = cparse_start_line;
@@ -3058,7 +3058,7 @@ cpp_nested : storage_class cpptype ID LBRACE { cparse_start_line = cparse_line; 
 		    Nested *n = (Nested *) malloc(sizeof(Nested));
 		    n->code = NewString("");
 		    Printv(n->code, "typedef ", $2, " " ,
-			    Char(scanner_ccode), " $classname_", $5.id, ";\n",NULL);
+			    Char(scanner_ccode), " $classname_", $5.id, ";\n",NIL);
 		    n->name = Swig_copy_string($5.id);
 		    n->line = cparse_start_line;
 		    n->type = NewString("");

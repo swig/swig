@@ -411,7 +411,7 @@ int DohPrintv(DOHFile *f, ...) {
   va_start(ap,f);
   while(1) {
     obj = va_arg(ap,void *);
-    if (!obj) break;
+    if ((!obj) || (obj == DohNone)) break;
     if (DohCheck(obj)) {
       ret += DohDump(obj,f);
     } else {

@@ -72,7 +72,7 @@ class RClass {
     Clear(vname);
     Printf(vname,"c%s.klass",name);
     Clear(prefix);
-    Printv(prefix,(rn ? rn : cn), "_", NULL);
+    Printv(prefix,(rn ? rn : cn), "_", NIL);
   }
 
   char *strip(char *s) {
@@ -290,19 +290,19 @@ public:
 	   "void Init_", feature, "(void) {\n",
 	   "int i;\n",
 	   "\n",
-	   NULL);
+	   NIL);
 
-    Printv(f_init, tab4, "SWIG_InitRuntime();\n", NULL);
+    Printv(f_init, tab4, "SWIG_InitRuntime();\n", NIL);
   
     Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n",
-	   NULL);
+	   NIL);
     Printv(f_init,
 	   "\n",
 	   "for (i = 0; swig_types_initial[i]; i++) {\n",
 	   "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
 	   "SWIG_define_class(swig_types[i]);\n",
 	   "}\n",
-	   NULL);
+	   NIL);
     Printf(f_init,"\n");
 
     Language::top(n);
@@ -398,19 +398,19 @@ public:
     switch (current) {
     case MEMBER_FUNC:
       Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
-	     iname, "\", ", wname, ", -1);\n", NULL);
+	     iname, "\", ", wname, ", -1);\n", NIL);
       if (alias) {
-	Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias, "\", \"", iname, "\");\n", NULL);
+	Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias, "\", \"", iname, "\");\n", NIL);
       }
       break;
     case CONSTRUCTOR_ALLOCATE:
       Printv(s, tab4, "rb_define_singleton_method(", klass->vname,
-	     ", \"new\", ", wname, ", -1);\n", NULL);
+	     ", \"new\", ", wname, ", -1);\n", NIL);
       Replaceall(klass->init,"$allocator", s);
       break;
     case CONSTRUCTOR_INITIALIZE:
       Printv(s, tab4, "rb_define_method(", klass->vname,
-	     ", \"initialize\", ", wname, ", -1);\n", NULL);
+	     ", \"initialize\", ", wname, ", -1);\n", NIL);
       Replaceall(klass->init,"$initializer", s);
       break;
     case MEMBER_VAR:
@@ -418,16 +418,16 @@ public:
       Replaceall(temp,"_set", "=");
       Replaceall(temp,"_get", "");
       Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
-	     temp, "\", ", wname, ", -1);\n", NULL);
+	     temp, "\", ", wname, ", -1);\n", NIL);
       break;
     case STATIC_FUNC:
       Printv(klass->init, tab4, "rb_define_singleton_method(", klass->vname,
-	     ", \"", iname, "\", ", wname, ", -1);\n", NULL);
+	     ", \"", iname, "\", ", wname, ", -1);\n", NIL);
       break;
     default:
       Printv(s, tab4, "rb_define_module_function(", modvar, ", \"",
-	     iname, "\", ", wname, ", -1);\n",NULL);
-      Printv(f_init,s,NULL);
+	     iname, "\", ", wname, ", -1);\n",NIL);
+      Printv(f_init,s,NIL);
       break;
     }
     Delete(temp);
@@ -497,7 +497,7 @@ public:
 	Replaceall(tm,"$input",source);
 	Setattr(p,"emit:input",source);
 	Printf(f->code,"if (argc > %d) {\n", i-start);
-	Printv(f->code,tm,"\n",NULL);
+	Printv(f->code,tm,"\n",NIL);
 	Printf(f->code,"}\n");
       }
     }
@@ -517,7 +517,7 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:check"))) {
 	Replaceall(tm,"$target",Getattr(p,"lname"));
-	Printv(f->code,tm,"\n",NULL);
+	Printv(f->code,tm,"\n",NIL);
 	p = Getattr(p,"tmap:check:next");
       } else {
 	p = nextSibling(p);
@@ -538,7 +538,7 @@ public:
     for (Parm *p = l; p; ) {
       if ((tm = Getattr(p,"tmap:freearg"))) {
 	Replaceall(tm,"$source",Getattr(p,"lname"));
-	Printv(cleanup,tm,"\n",NULL);
+	Printv(cleanup,tm,"\n",NIL);
 	p = Getattr(p,"tmap:freearg:next");
       } else {
 	p = nextSibling(p);
@@ -563,7 +563,7 @@ public:
 	Replaceall(tm,"$result","vresult");
 	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
-	Printv(outarg,tm,"\n",NULL);
+	Printv(outarg,tm,"\n",NIL);
 	need_result = 1;
 	p = Getattr(p,"tmap:argout:next");
       } else {
@@ -677,7 +677,7 @@ public:
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR) ? 1 : 0;
 
     /* Now write the wrapper function itself */
-    Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NULL);
+    Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
 
     if (current != CONSTRUCTOR_ALLOCATE) {
       if (!varargs) {
@@ -715,7 +715,7 @@ public:
     if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_ALLOCATE && current != CONSTRUCTOR_INITIALIZE) {
       need_result = 1;
       if (Getattr(n, "feature:predicate")) {
-	Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NULL);
+	Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NIL);
       } else {
 	tm = Swig_typemap_lookup_new("out",n,"result",0);
 	if (tm) {
@@ -723,7 +723,7 @@ public:
 	  Replaceall(tm,"$source","result");
 	  Replaceall(tm,"$target","vresult");
 	  Replaceall(tm,"$owner", newobj ? "1" : "0");
-	  Printv(f->code, tm, "\n", NULL);
+	  Printv(f->code, tm, "\n", NIL);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
 		       "Unable to use return type %s.\n", SwigType_str(t,0));
@@ -742,18 +742,18 @@ public:
     }
 
     /* Dump argument output code; */
-    Printv(f->code,outarg,NULL);
+    Printv(f->code,outarg,NIL);
 
     /* Dump the argument cleanup code */
     if (current != CONSTRUCTOR_ALLOCATE)
-      Printv(f->code,cleanup,NULL);
+      Printv(f->code,cleanup,NIL);
 
     /* Look for any remaining cleanup.  This processes the %new directive */
     if (newobj) {
       tm = Swig_typemap_lookup_new("newfree",n,"result",0);
       if (tm) {
 	Replaceall(tm,"$source","result");
-	Printv(f->code,tm, "\n",NULL);
+	Printv(f->code,tm, "\n",NIL);
       }
     }
 
@@ -761,21 +761,21 @@ public:
     tm = Swig_typemap_lookup_new("ret",n,"result",0);
     if (tm) {
       Replaceall(tm,"$source","result");
-      Printv(f->code,tm, NULL);
+      Printv(f->code,tm, NIL);
     }
 
     /* Wrap things up (in a manner of speaking) */
     if (need_result) {
       if (current == CONSTRUCTOR_ALLOCATE) {
-	Printv(f->code, tab4, "return vresult;\n}\n", NULL);
+	Printv(f->code, tab4, "return vresult;\n}\n", NIL);
       } else if (current == CONSTRUCTOR_INITIALIZE) {
-	Printv(f->code, tab4, "return self;\n}\n", NULL);
+	Printv(f->code, tab4, "return self;\n}\n", NIL);
       } else {
 	Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
-	Printv(f->code, tab4, "return vresult;\n}\n", NULL);
+	Printv(f->code, tab4, "return vresult;\n}\n", NIL);
       }
     } else {
-      Printv(f->code, tab4, "return Qnil;\n}\n", NULL);
+      Printv(f->code, tab4, "return Qnil;\n}\n", NIL);
     }
 
     /* Substitute the cleanup code */
@@ -824,7 +824,7 @@ public:
     Printv(f->def,	
 	   "static VALUE ", wname,
 	   "(int nargs, VALUE *args, VALUE self) {",
-	   NULL);
+	   NIL);
     
     Wrapper_add_local(f, "argc", "int argc");
     if (current == MEMBER_FUNC || current == MEMBER_VAR) {
@@ -848,10 +848,10 @@ public:
     }
     
     Replaceall(dispatch, "$args", "nargs, args, self");
-    Printv(f->code, dispatch, "\n", NULL);
+    Printv(f->code, dispatch, "\n", NIL);
     Printf(f->code, "rb_raise(rb_eArgError, \"No matching function for overloaded '%s'\");\n", symname);
     Printf(f->code,"return Qnil;\n");
-    Printv(f->code, "}\n", NULL);
+    Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
     create_command(n, Char(symname));
 
@@ -879,7 +879,7 @@ public:
 
     /* create getter */
     getfname = NewString(Swig_name_get(iname));
-    Printv(getf->def, "static VALUE\n", getfname, "(", NULL);
+    Printv(getf->def, "static VALUE\n", getfname, "(", NIL);
     Printf(getf->def, "VALUE self");
     Printf(getf->def, ") {");
     Wrapper_add_local(getf,"_val","VALUE _val");
@@ -889,12 +889,12 @@ public:
       Replaceall(tm,"$result","_val");
       Replaceall(tm,"$target","_val");
       Replaceall(tm,"$source",name);
-      Printv(getf->code,tm, NULL);
+      Printv(getf->code,tm, NIL);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
 		   "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
-    Printv(getf->code, tab4, "return _val;\n}\n", NULL);
+    Printv(getf->code, tab4, "return _val;\n}\n", NIL);
     Wrapper_print(getf,f_wrappers);
 
     if (Getattr(n,"feature:immutable")) {
@@ -902,7 +902,7 @@ public:
     } else {
       /* create setter */
       setfname = NewString(Swig_name_set(iname));
-      Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", NULL);
+      Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", NIL);
       Printf(setf->def, "VALUE _val) {");
     
       tm = Swig_typemap_lookup_new("varin",n,name,0);
@@ -910,12 +910,12 @@ public:
 	Replaceall(tm,"$input","_val");
 	Replaceall(tm,"$source","_val");
 	Replaceall(tm,"$target",name);
-	Printv(setf->code,tm,"\n",NULL);
+	Printv(setf->code,tm,"\n",NIL);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number,
 		     "Unable to set variable of type %s\n", SwigType_str(t,0));
       }
-      Printv(setf->code, tab4, "return _val;\n",NULL);
+      Printv(setf->code, tab4, "return _val;\n",NIL);
       Printf(setf->code,"}\n");
       Wrapper_print(setf,f_wrappers);
     }
@@ -935,14 +935,14 @@ public:
       Printv(s,
 	     tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	     klass->strip(iname), "\", ", getfname, ", 0);\n",
-	     NULL);
+	     NIL);
       if (!Getattr(n,"feature:immutable")) {
 	Printv(s,
 	       tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	       klass->strip(iname), "=\", ", setfname, ", 1);\n",
-	       NULL);
+	       NIL);
       }
-      Printv(klass->init,s,NULL);
+      Printv(klass->init,s,NIL);
       break;
     default:
       /* C global variable */
@@ -950,14 +950,14 @@ public:
       Printv(s,
 	     tab4, "rb_define_singleton_method(", modvar, ", \"",
 	     iname, "\", ", getfname, ", 0);\n",
-	     NULL);
+	     NIL);
       if (!Getattr(n,"feature:immutable")) {
 	Printv(s,
 	       tab4, "rb_define_singleton_method(", modvar, ", \"",
 	       iname, "=\", ", setfname, ", 1);\n",
-	       NULL);
+	       NIL);
       }
-      Printv(f_init,s,NULL);
+      Printv(f_init,s,NIL);
       Delete(s);
       break;
     }
@@ -1001,7 +1001,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int constantWrapper(Node *n) {
-    Swig_require(&n, "*sym:name", "type", "value", NULL);
+    Swig_require(&n, "*sym:name", "type", "value", NIL);
     
     char *iname     = GetChar(n,"sym:name");
     SwigType *type  = Getattr(n,"type");
@@ -1027,7 +1027,7 @@ public:
       Replaceall(tm, "$value", value);
       if (current == CLASS_CONST) {
 	Replaceall(tm, "$module", klass->vname);
-	Printv(klass->init, tm, "\n", NULL);
+	Printv(klass->init, tm, "\n", NIL);
       } else {
 	Replaceall(tm,"$module", modvar);
 	Printf(f_init, "%s\n", tm);
@@ -1088,11 +1088,11 @@ public:
     validate_const_name(Char(valid_name), "class");
 
     Clear(klass->type);
-    Printv(klass->type, Getattr(n,"classtype"), NULL);
-    Printv(klass->header, "\nswig_class c", valid_name, ";\n", NULL);
-    Printv(klass->init, "\n", tab4, NULL);
+    Printv(klass->type, Getattr(n,"classtype"), NIL);
+    Printv(klass->header, "\nswig_class c", valid_name, ";\n", NIL);
+    Printv(klass->init, "\n", tab4, NIL);
     Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
-	   ", \"", klass->name, "\", $super);\n", NULL);
+	   ", \"", klass->name, "\", $super);\n", NIL);
 
     {
       SwigType *tt = NewString(cname);
@@ -1104,12 +1104,12 @@ public:
       Delete(tt);    
     }
 
-    Printv(klass->init, "$allocator",NULL);
-    Printv(klass->init, "$initializer",NULL);
+    Printv(klass->init, "$allocator",NIL);
+    Printv(klass->init, "$initializer",NIL);
 
     Printv(klass->header,
 	   "$freeproto",
-	   NULL);
+	   NIL);
 
     Language::classHandler(n);
 
@@ -1146,7 +1146,7 @@ public:
 	Delete(bmangle);
 
 	/* [DB] Old code 
-	   Printv(f_wrappers,"extern swig_class c", super->name, ";\n", NULL);
+	   Printv(f_wrappers,"extern swig_class c", super->name, ";\n", NIL);
 	   Replaceall(klass->init,"$super",super->vname);
 	*/
       }
@@ -1178,16 +1178,16 @@ public:
     }
     Replaceall(klass->header,"$freeproto", "");
 
-    Printv(f_header, klass->header,NULL);
+    Printv(f_header, klass->header,NIL);
 
     String *s = NewString("");
     Printv(s, tab4, "rb_undef_method(CLASS_OF(", klass->vname,
-	   "), \"new\");\n", NULL);
+	   "), \"new\");\n", NIL);
     Replaceall(klass->init,"$allocator", s);
     Replaceall(klass->init,"$initializer", "");
     Replaceall(klass->init,"$super", "rb_cObject");
 
-    Printv(f_init,klass->init,NULL);
+    Printv(f_init,klass->init,NIL);
     klass = 0;
     return SWIG_OK;
   }
@@ -1252,21 +1252,21 @@ public:
     String *freeproto = NewString("");
     String *freebody = NewString("");
   
-    Printv(freefunc, "free_", klass->mname, NULL);
-    Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", NULL);
+    Printv(freefunc, "free_", klass->mname, NIL);
+    Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", NIL);
     Printv(freebody, "static void\n",
 	   freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
-	   tab4, NULL);
+	   tab4, NIL);
     if (Extend) {
       String *wrap = Getattr(n, "wrap:code");
       if (wrap) {
 	File *f_code = Swig_filebyname("header");
 	if (f_code) {
-	  Printv(f_code, wrap, NULL);
+	  Printv(f_code, wrap, NIL);
 	}
       }
-      /*    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", NULL); */
-      Printv(freebody,Getattr(n,"wrap:action"), NULL);
+      /*    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", NIL); */
+      Printv(freebody,Getattr(n,"wrap:action"), NIL);
     } else {
       /* When no extend mode, swig emits no destroy function. */
       if (CPlusPlus)
@@ -1274,10 +1274,10 @@ public:
       else
 	Printf(freebody, "free((char*) %s)", Swig_cparm_name(0,0));
     }
-    Printv(freebody, ";\n}\n", NULL);
+    Printv(freebody, ";\n}\n", NIL);
   
     Replaceall(klass->header,"$freeproto", freeproto);
-    Printv(f_wrappers, freebody, NULL);
+    Printv(f_wrappers, freebody, NIL);
   
     klass->destructor_defined = 1;
     current = NO_CPP;

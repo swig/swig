@@ -290,7 +290,7 @@ public:
 	   tab4, "croak(\"Value is read-only.\");\n",
 	   tab4, "return 0;\n",
 	   "}\n",
-	   NULL);
+	   NIL);
 
     Printf(f_wrappers,"#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
 
@@ -305,7 +305,7 @@ public:
 	   "\n\n#ifdef PERL_OBJECT\n",
 	   "};\n",
 	   "#endif\n",
-	   NULL);
+	   NIL);
 
     Printf(f_header,"%s\n", magic);
 
@@ -331,7 +331,7 @@ public:
     Delete(type_table);
 
     Printf(constant_tab,"{0}\n};\n");
-    Printv(f_wrappers,constant_tab,NULL);
+    Printv(f_wrappers,constant_tab,NIL);
 
     Printf(f_wrappers,"#ifdef __cplusplus\n}\n#endif\n");
 
@@ -341,10 +341,10 @@ public:
 
     /* Finish off tables */
     Printf(variable_tab, "{0}\n};\n");
-    Printv(f_wrappers,variable_tab,NULL);
+    Printv(f_wrappers,variable_tab,NIL);
 
     Printf(command_tab,"{0,0}\n};\n");
-    Printv(f_wrappers,command_tab,NULL);
+    Printv(f_wrappers,command_tab,NIL);
 
 
     Printf(f_pm,"package %s;\n", cmodule);
@@ -366,7 +366,7 @@ public:
       Printv(base,
 	     "\n# ---------- BASE METHODS -------------\n\n",
 	     "package ", fullmodule, ";\n\n",
-	     NULL);
+	     NIL);
 
       /* Write out the TIE method */
 
@@ -375,7 +375,7 @@ public:
 	     tab4, "my ($classname,$obj) = @_;\n",
 	     tab4, "return bless $obj, $classname;\n",
 	     "}\n\n",
-	     NULL);
+	     NIL);
 
       /* Output a CLEAR method.   This is just a place-holder, but by providing it we
        * can make declarations such as
@@ -397,7 +397,7 @@ public:
 	     tab4, "my $ptr = shift;\n",
 	     tab4, "return tied(%$ptr);\n",
 	     "}\n\n",
-	     NULL);
+	     NIL);
 
       Printf(f_pm,"%s",base);
 
@@ -491,7 +491,7 @@ public:
       Append(wname,overname);
     }
     Setattr(n,"wrap:name",wname);
-    Printv(f->def, "XS(", wname, ") {\n", NULL);
+    Printv(f->def, "XS(", wname, ") {\n", NIL);
 
     emit_args(d, l, f);
     emit_attach_parmmaps(l,f);
@@ -554,7 +554,7 @@ public:
 	Replaceall(tm,"$input", source);
 	Setattr(p,"emit:input", source);
 	Printf(f->code,"if (items >= %d) {\n", i);
-	Printv(f->code, tm, "\n", NULL);
+	Printv(f->code, tm, "\n", NIL);
 	Printf(f->code,"}\n");
       }
     }
@@ -563,7 +563,7 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:check"))) {
 	Replaceall(tm,"$target",Getattr(p,"lname"));
-	Printv(f->code,tm,"\n",NULL);
+	Printv(f->code,tm,"\n",NIL);
 	p = Getattr(p,"tmap:check:next");
       } else {
 	p = nextSibling(p);
@@ -576,7 +576,7 @@ public:
 	Replaceall(tm,"$source",Getattr(p,"lname"));
 	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
-	Printv(cleanup,tm,"\n",NULL);
+	Printv(cleanup,tm,"\n",NIL);
 	p = Getattr(p,"tmap:freearg:next");
       } else {
 	p = nextSibling(p);
@@ -598,7 +598,7 @@ public:
 	  Printf(f->code,"_saved[%d] = %s;\n", num_saved, in);
 	  num_saved++;
 	}
-	Printv(outarg,tm,"\n",NULL);
+	Printv(outarg,tm,"\n",NIL);
 	p = Getattr(p,"tmap:argout:next");
       } else {
 	p = nextSibling(p);
@@ -608,7 +608,7 @@ public:
     /* If there were any saved arguments, emit a local variable for them */
     if (num_saved) {
       sprintf(temp,"_saved[%d]",num_saved);
-      Wrapper_add_localv(f,"_saved","SV *",temp,NULL);
+      Wrapper_add_localv(f,"_saved","SV *",temp,NIL);
     }
 
     /* Now write code to make the function call */
@@ -627,11 +627,11 @@ public:
 
     /* If there were any output args, take care of them. */
 
-    Printv(f->code,outarg,NULL);
+    Printv(f->code,outarg,NIL);
 
     /* If there was any cleanup, do that. */
 
-    Printv(f->code,cleanup,NULL);
+    Printv(f->code,cleanup,NIL);
 
     if (Getattr(n,"feature:new"))  {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
@@ -674,7 +674,7 @@ public:
       String  *dname    = Swig_name_wrapper(iname);
 
       Printv(df->def,	
-	     "XS(", dname, ") {\n", NULL);
+	     "XS(", dname, ") {\n", NIL);
     
       Wrapper_add_local(df,"dXSARGS", "dXSARGS");
       Replaceid(dispatch,"argc","items");
@@ -685,10 +685,10 @@ public:
 	sprintf(rep,"ST(%d)",ii);
 	Replaceall(dispatch,pat,rep);
       }
-      Printv(df->code,dispatch,"\n",NULL);
+      Printv(df->code,dispatch,"\n",NIL);
       Printf(df->code,"croak(\"No matching function for overloaded '%s'\");\n", iname);
       Printf(df->code,"XSRETURN(0);\n");
-      Printv(df->code,"}\n",NULL);
+      Printv(df->code,"}\n",NIL);
       Wrapper_print(df,f_wrappers);
       Printf(command_tab,"{\"%s::%s\", %s},\n", cmodule, iname, dname);
       DelWrapper(df);
@@ -712,9 +712,9 @@ public:
 	
 	Printv(func, "sub ", iname, " {\n",
 	       tab4, "my @args = @_;\n",
-	       NULL);
+	       NIL);
 	
-	Printv(func, tab4, "my $result = ", cmodule, "::", iname, "(@args);\n", NULL);
+	Printv(func, tab4, "my $result = ", cmodule, "::", iname, "(@args);\n", NIL);
 	
 	/* Now check to see what kind of return result was found.
 	 * If this function is returning a result by 'value', SWIG did an
@@ -722,13 +722,13 @@ public:
 	 * in Perl so we can garbage collect it. */
 	
 	if (is_shadow(d)) {
-	  Printv(func, tab4, "return undef if (!defined($result));\n", NULL);
+	  Printv(func, tab4, "return undef if (!defined($result));\n", NIL);
 	  
 	  /* If we're returning an object by value, put it's reference
 	     into our local hash table */
 	  
 	  if ((!SwigType_ispointer(d) && !SwigType_isreference(d)) || Getattr(n,"feature:new")) {
-	    Printv(func, tab4, "$", is_shadow(d), "::OWNER{$result} = 1;\n", NULL);
+	    Printv(func, tab4, "$", is_shadow(d), "::OWNER{$result} = 1;\n", NIL);
 	  }
 	  
 	  /* We're returning a Perl "object" of some kind.  Turn it into a tied hash */
@@ -737,12 +737,12 @@ public:
 		 tab4, "tie %resulthash, ref($result), $result;\n",
 		 tab4, "return bless \\%resulthash, ref($result);\n",
 		 "}\n",
-		 NULL);
+		 NIL);
 	  
 	  need_stub = 1;
 	} else {
 	  /* Hmmm.  This doesn't appear to be anything I know about */
-	  Printv(func, tab4, "return $result;\n", "}\n", NULL);
+	  Printv(func, tab4, "return $result;\n", "}\n", NIL);
 	}
 	
 	/* Now check if we needed the stub.  If so, emit it, otherwise
@@ -751,7 +751,7 @@ public:
 	if (need_stub) {
 	  Printf(func_stubs,"%s",func);
 	} else {
-	  Printv(func_stubs,"*", iname, " = *", cmodule, "::", iname, ";\n", NULL);
+	  Printv(func_stubs,"*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
 	}
 	Delete(func);
       }
@@ -788,7 +788,7 @@ public:
       Printv(setf->code,
 	     tab4, "MAGIC_PPERL\n",
 	     tab4, "mg = mg;\n",
-	     NULL);
+	     NIL);
 
       /* Check for a few typemaps */
       tm = Swig_typemap_lookup_new("varin",n,name,0);
@@ -815,7 +815,7 @@ public:
     Printv(getf->code,
 	   tab4, "MAGIC_PPERL\n",
 	   tab4, "mg = mg;\n",
-	   NULL);
+	   NIL);
 
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       Replaceall(tm,"$target","sv");
@@ -852,10 +852,10 @@ public:
     }
     /* Now add symbol to the PERL interpreter */
     if (Getattr(n,"feature:immutable")) {
-      Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", val_name,",", tt, " },\n",NULL);
+      Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", val_name,",", tt, " },\n",NIL);
 
     } else {
-      Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS ", set_name, ", MAGIC_CLASS ", val_name, ",", tt, " },\n",NULL);
+      Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS ", set_name, ", MAGIC_CLASS ", val_name, ",", tt, " },\n",NIL);
     }
 
     /* If we're blessed, try to figure out what to do with the variable
@@ -871,9 +871,9 @@ public:
 	       cmodule, "::", iname, ";\n",
 	       "$", iname, "= \\%__", iname, "_hash;\n",
 	       "bless $", iname, ", ", is_shadow(t), ";\n",
-	       NULL);
+	       NIL);
       } else {
-	Printv(var_stubs, "*", iname, " = *", cmodule, "::", iname, ";\n", NULL);
+	Printv(var_stubs, "*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
       }
     }
     if (export_all)
@@ -930,13 +930,13 @@ public:
 	       cmodule, "::", iname, ";\n",
 	       "$", iname, "= \\%__", iname, "_hash;\n",
 	       "bless $", iname, ", ", is_shadow(type), ";\n",
-	       NULL);
+	       NIL);
       } else if (do_constants) {
 	Printv(const_stubs,"sub ", name, " () { $",
-	       cmodule, "::", name, " }\n", NULL);
+	       cmodule, "::", name, " }\n", NIL);
 	num_consts++;
       } else {
-	Printv(var_stubs, "*",iname," = *", cmodule, "::", iname, ";\n", NULL);
+	Printv(var_stubs, "*",iname," = *", cmodule, "::", iname, ";\n", NIL);
       }
     }
     if (export_all) {
@@ -1006,7 +1006,7 @@ public:
     if (export_all)
       Printf(exported,"%s ",name);
     if (blessed) {
-      Printv(func_stubs,"*", name, " = *", cmodule, "::", name, ";\n", NULL);
+      Printv(func_stubs,"*", name, " = *", cmodule, "::", name, ";\n", NIL);
     }
     return SWIG_OK;
   }
@@ -1110,14 +1110,14 @@ public:
       /* Generate a client-data entry */
       SwigType *ct = NewStringf("p.%s", real_classname);
       Printv(f_init,"SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", (void*) \"",
-	     fullclassname, "\");\n", NULL);
+	     fullclassname, "\");\n", NIL);
       SwigType_remember(ct);
       Delete(ct);
 
       Printv(pm,
 	     "\n############# Class : ", fullclassname, " ##############\n",
 	     "\npackage ", fullclassname, ";\n",
-	     NULL);
+	     NIL);
 
       if (have_operators) {
 	Printf(pm, "use overload\n");
@@ -1126,20 +1126,20 @@ public:
 	  char *name = Char(key);
 	  //	    fprintf(stderr,"found name: <%s>\n", name);
 	  if (strstr(name, "operator_equal_to")) {
-	    Printv(pm, tab4, "\"==\" => sub { $_[0]->operator_equal_to($_[1])},\n",NULL);
+	    Printv(pm, tab4, "\"==\" => sub { $_[0]->operator_equal_to($_[1])},\n",NIL);
 	  } else if (strstr(name, "operator_not_equal_to")) {
-	    Printv(pm, tab4, "\"!=\" => sub { $_[0]->operator_not_equal_to($_[1])},\n",NULL);
+	    Printv(pm, tab4, "\"!=\" => sub { $_[0]->operator_not_equal_to($_[1])},\n",NIL);
 	  } else if (strstr(name, "operator_assignment")) {
-	    Printv(pm, tab4, "\"=\" => sub { $_[0]->operator_assignment($_[1])},\n",NULL);
+	    Printv(pm, tab4, "\"=\" => sub { $_[0]->operator_assignment($_[1])},\n",NIL);
 	  } else {
 	    fprintf(stderr,"Unknown operator: %s\n", name);
 	  }
 	}
-	Printv(pm, tab4, "\"fallback\" => 1;\n",NULL);	    
+	Printv(pm, tab4, "\"fallback\" => 1;\n",NIL);	    
       }
       /* If we are inheriting from a base class, set that up */
 
-      Printv(pm, "@ISA = qw( ",fullmodule, NULL);
+      Printv(pm, "@ISA = qw( ",fullmodule, NIL);
 
       /* Handle inheritance */
       List *baselist = Getattr(n,"bases");
@@ -1151,7 +1151,7 @@ public:
 	    base = Nextitem(baselist);
 	    continue;
 	  }
-	  Printv(pm," ", bname, NULL);
+	  Printv(pm," ", bname, NIL);
 	  base = Nextitem(baselist);
 	}
       }
@@ -1162,14 +1162,14 @@ public:
       if (have_data_members) {
 	Printv(pm,
 	       "%BLESSEDMEMBERS = (\n", blessedmembers, ");\n\n",
-	       NULL);
+	       NIL);
       }
       if (have_data_members || have_destructor)
 	Printf(pm, "%%ITERATORS = ();\n");
 
       /* Dump out the package methods */
 
-      Printv(pm,pcode,NULL);
+      Printv(pm,pcode,NIL);
       Delete(pcode);
 
       /* Output methods for managing ownership */
@@ -1185,7 +1185,7 @@ public:
 	     tab4, "my $ptr = tied(%$self);\n",
 	     tab4, "$OWNER{$ptr} = 1;\n",
 	     tab4, "};\n\n",
-	     NULL);
+	     NIL);
 
       /* Only output the following methods if a class has member data */
 
@@ -1205,7 +1205,7 @@ public:
 	       tab4, "}\n",
 	       tab4, "return $val;\n",
 	       "}\n\n",
-	       NULL);
+	       NIL);
 
 	/* Output a STORE method.   This is also common to all classes (might move to base class) */
 
@@ -1219,7 +1219,7 @@ public:
 	       tab8, "$self->$member_func($newval);\n",
 	       tab4, "}\n",
 	       "}\n\n",
-	       NULL);
+	       NIL);
       }
       Delete(operators);     operators = 0;
     }
@@ -1266,14 +1266,14 @@ public:
       Printv(func,
 	     "sub ", symname, " {\n",
 	     tab4, "my @args = @_;\n",
-	     NULL);
+	     NIL);
   
       /* Okay.  We've made argument adjustments, now call into the package */
   
       Printv(func,
 	     tab4, "my $result = ", cmodule, "::", Swig_name_member(class_name,symname),
 	     "(@args);\n",
-	     NULL);
+	     NIL);
   
       /* Now check to see what kind of return result was found.
        * If this function is returning a result by 'value', SWIG did an
@@ -1281,13 +1281,13 @@ public:
        * in Perl so we can garbage collect it. */
 
       if (is_shadow(t)) {
-	Printv(func,tab4, "return undef if (!defined($result));\n", NULL);
+	Printv(func,tab4, "return undef if (!defined($result));\n", NIL);
   
 	/* If we're returning an object by value, put it's reference
 	   into our local hash table */
   
 	if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || Getattr(n,"feature:new")) {
-	  Printv(func, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", NULL);
+	  Printv(func, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", NIL);
 	}
   
 	/* We're returning a Perl "object" of some kind.  Turn it into
@@ -1298,7 +1298,7 @@ public:
 	       tab4, "tie %resulthash, ref($result), $result;\n",
 	       tab4, "return bless \\%resulthash, ref($result);\n",
 	       "}\n",
-	       NULL);
+	       NIL);
   
 	need_wrapper = 1;
       } else {
@@ -1306,13 +1306,13 @@ public:
 	/* Hmmm.  This doesn't appear to be anything I know about so just
 	   return it unmodified */
   
-	Printv(func, tab4,"return $result;\n", "}\n", NULL);
+	Printv(func, tab4,"return $result;\n", "}\n", NIL);
       }
   
       if (need_wrapper) {
-	Printv(pcode,func,NULL);
+	Printv(pcode,func,NIL);
       } else {
-	Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NULL);
+	Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NIL);
       }
       Delete(func);
     }
@@ -1349,8 +1349,8 @@ public:
 
     if (blessed) {
 
-      Printv(pcode,"*swig_", symname, "_get = *", cmodule, "::", Swig_name_get(Swig_name_member(class_name,symname)), ";\n", NULL);
-      Printv(pcode,"*swig_", symname, "_set = *", cmodule, "::", Swig_name_set(Swig_name_member(class_name,symname)), ";\n", NULL);
+      Printv(pcode,"*swig_", symname, "_get = *", cmodule, "::", Swig_name_get(Swig_name_member(class_name,symname)), ";\n", NIL);
+      Printv(pcode,"*swig_", symname, "_set = *", cmodule, "::", Swig_name_set(Swig_name_member(class_name,symname)), ";\n", NIL);
 
       /* Now we need to generate a little Perl code for this */
 
@@ -1360,7 +1360,7 @@ public:
 	   entry to the members list*/
 	Printv(blessedmembers,
 	       tab4, symname, " => '", is_shadow(t), "',\n",
-	       NULL);
+	       NIL);
 
       }
     }
@@ -1390,11 +1390,11 @@ public:
 	Printf(pcode, "sub new {\n");
       } else {
 	/* Constructor doesn't match classname so we'll just use the normal name  */
-	Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", NULL);
+	Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", NIL);
       }
 
       Printv(pcode, tab4, "my $pkg = shift;\n",
-	     tab4, "my @args = @_;\n", NULL);
+	     tab4, "my @args = @_;\n", NIL);
 
       Printv(pcode,
 	     tab4, "my $self = ", cmodule, "::", Swig_name_construct(symname), "(@args);\n",
@@ -1405,7 +1405,7 @@ public:
 	     tab4, "tie %retval, \"", fullclassname, "\", $self;\n",
 	     tab4, "return bless \\%retval, $pkg;\n",
 	     "}\n\n",
-	     NULL);
+	     NIL);
 
       have_constructor = 1;
     }
@@ -1432,7 +1432,7 @@ public:
 	     tab8,  cmodule, "::", Swig_name_destroy(symname), "($self);\n",
 	     tab8, "delete $OWNER{$self};\n",
 	     tab4, "}\n}\n\n",
-	     NULL);
+	     NIL);
       have_destructor = 1;
     }
     member_func = 0;
@@ -1454,27 +1454,27 @@ public:
 	Printv(pcode,
 	       "sub ", symname, " {\n",
 	       tab4, "my @args = @_;\n",
-	       NULL);
+	       NIL);
 	
 	/* Okay.  We've made argument adjustments, now call into the package */
 	
 	Printv(pcode,
 	       tab4, "my $result = ", cmodule, "::", Swig_name_member(class_name,symname),
 	       "(@args);\n",
-	       NULL);
+	       NIL);
 	
 	/* Now check to see what kind of return result was found.
 	 * If this function is returning a result by 'value', SWIG did an
 	 * implicit malloc/new.   We'll mark the object like it was created
 	 * in Perl so we can garbage collect it. */
 	
-	Printv(pcode,tab4, "return undef if (!defined($result));\n", NULL);
+	Printv(pcode,tab4, "return undef if (!defined($result));\n", NIL);
 	
 	/* If we're returning an object by value, put it's reference
 	   into our local hash table */
 	
 	if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || Getattr(n,"feature:new")) {
-	  Printv(pcode, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", NULL);
+	  Printv(pcode, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", NIL);
 	}
 	
 	/* We're returning a Perl "object" of some kind.  Turn it into
@@ -1485,9 +1485,9 @@ public:
 	       tab4, "tie %resulthash, ref($result), $result;\n",
 	       tab4, "return bless \\%resulthash, ref($result);\n",
 	       "}\n",
-	       NULL);
+	       NIL);
       } else {
-	Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NULL);
+	Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NIL);
       }
     }
     return SWIG_OK;
@@ -1501,7 +1501,7 @@ public:
     Language::staticmembervariableHandler(n);
     if (blessed) {
       String *symname = Getattr(n,"sym:name");
-      Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NULL);
+      Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NIL);
     }
     return SWIG_OK;
   }
@@ -1520,7 +1520,7 @@ public:
     blessed = oldblessed;
     
     if (blessed) {
-      Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NULL);
+      Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NIL);
     }
     return SWIG_OK;
   }
