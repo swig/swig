@@ -1,0 +1,170 @@
+SWIG Comparison
+
+<p>
+<h2>SWIG and the Competition</h2>
+
+<center>
+<em>
+"Don't believe everything you read."
+</em>
+</center>
+
+<p>
+In the last five years, dozens of extension building tools have been
+released---most of which can be found from the SWIG <a
+href="links.html">links</a> page.  All of these tools attempt to
+simplify the extension building process---and the documentation for
+many of them make a point of comparing themselves to SWIG.  What these
+comparisons don't tell you is that they are almost always based on
+SWIG-1.1, a rather old, but widely distributed release dating from
+1997.  To be fair, SWIG-1.1 is an easy target--it did have a lot of
+limitations.  However, all of this is "old news" and mostly irrelevant
+to the current release.  Therefore, this page hopes to set the record
+straight on what SWIG supports and what it doesn't support.
+
+<p>
+This information is based on the current release, SWIG-1.3.14.
+
+<h3>Code Generation</h3>
+
+SWIG current generates wrapper code for nine different target languages:
+
+<ul>
+<li>Guile
+<li>Java
+<li>Mzscheme
+<li>OCAML
+<li>Perl
+<li>PHP
+<li>Python
+<li>Ruby
+<li>Tcl
+</ul>
+
+In addition to this, an XML output module was recently added and work
+is in progress on a Pike module.
+
+<h3>ANSI C</h3>
+
+SWIG is capable of wrapping all of ANSI C.   Features include:
+
+<ul>
+<li>Handling of <em>all</em> ANSI C datatypes.
+<li>Global functions, global variables, and constants.
+<Li>Structures and unions.
+<li>Pointers.
+<li>Arrays and multidimensional arrays.
+<li>Pointers to functions.
+<li>Variable length arguments.
+<li>Typedef.
+</ul>
+
+<h3>ANSI C++</h3>
+
+SWIG provides wrapping support for almost all of ANSI C++.
+
+<ul>
+<Li>All C++ datatypes (SWIG implements the full ANSI C++ type system).
+<Li>References.
+<li>Pointers to members.
+<li>Classes.
+<li>Inheritance and multiple inheritance.
+<li>Overloaded functions and methods (using dynamic dispatch).
+<li>Overloaded operators.
+<li>Static members.
+<li>Namespaces (including using declarations, aliases, nesting, etc.)
+<li>Templates
+<li>Member templates
+<li>Template specialization and partial specialization.
+<li>Smart pointers
+<li>Library support for strings, STL vectors, and more.
+</ul>
+
+The only major C++ feature not currently supported by SWIG is the
+wrapping of nested classes--a problem we're working on.  SWIG also
+does not currently support the implementation of C++ virtual methods
+in the target language (a feature that might be useful in certain C++
+projects).
+
+<h3>Preprocessing</h3>
+
+SWIG provides a full C preprocessor with the following features:
+
+<ul>
+<li>Macro expansion.
+<li>Automatic wrapping of #define statements as constants (when applicable).
+<li>Support for C99 (variadic macro expansion).
+
+</ul>
+
+<h3>Customization features</h3>
+
+SWIG provides control over most aspects of wrapper generation.  Most
+of these customization options are fully integrated into the C++ type
+system--making it easy to apply customizations across inheritance
+hierarchies, template instantiations, and more.  Features include:
+
+<ul>
+<li>Customizated type conversion/marshaling.
+<Li>Exception handling.
+<li>Class/structure extension.
+<li>Memory management.
+<li>Ambiguity resolution.
+<li>Template instantiation.
+<li>File import and cross-module linking.
+<li>Code inclusion, helper function support.
+<li>Extensive diagnostics (error/warning messages).
+<li>Extended SWIG macro handling.
+</ul>
+
+<h3>SWIG <em>knows</em> C++</h3>
+
+One of SWIG's greatest strengths is that it implements the full ANSI
+C++ type system and it uses multi-pass compilation to gather a wide
+range of information from input files.  SWIG is fully aware of C++
+semantics and is able to automatically avoid a wide variety of
+potential compilation problems.   Also, by relying upon compiler technology, SWIG
+is able to look at the interface and make intelligent decisions about the generation of wrappers.
+This also allows SWIG to provide a highly flexible set of customization features.
+
+<h3>Everything is allowed</h3>
+
+When considering the use of a wrapper generation tool, it's important
+to read the fine-print. Although other tools might offer different
+features than SWIG, they often have major limitations that are rarely
+advertised.  For example, if a tool claims to "parse" C++, but 
+fails to implement a basic feature like <tt>typedef</tt>, then that tool
+doesn't implement the type system correctly.  Similarly, tools often
+place artificial limits on fundamental things like the number of
+allowed arguments to a function, supported datatypes, and so forth.
+Even some tools that delusionally claim to be the "leading C++
+wrapping solution" are known to not support simple declarations
+involving references, pointers, and other fundamental C++
+datatypes---simply because these declarations are unsafe and therefore
+"not allowed."
+
+<p>
+SWIG is by no means perfect and it does not claim do everything.  However, a
+fundamental goal of the SWIG project has been to provide basic wrapping
+support for <em>all</em> of C++.  In certain cases, this might be dangerous and
+it might even require additional user input.  Nevertheless,
+SWIG gives you the freedom and the flexibility to handle difficult 
+real-world wrapping problems without artificial limits and without the 
+baggage of a programming morality agenda.
+
+<h3>Everything is documented</h3>
+
+Since its initial release, SWIG has included hundreds of pages of user
+documentation.  This documentation describes every SWIG feature and
+attempts to fully disclose SWIG's limitations (when applicable).  Not
+only that, the documentation specifically addresses some of the more
+difficult wrapping problems.
+
+<h3>The bottom line</h3>
+
+Extension building is an important aspect of software development for
+many C and C++ programmers.  Fortunately, there are many different
+tools that attempt to solve this problem.  You should choose a tool
+that you like and which works.  We certainly hope that you 
+consider the use of SWIG.  Better yet, we hope that you try it and like it.
+
