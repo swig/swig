@@ -55,7 +55,7 @@ static char *mltypes =
 "  | C_string of string\n"
 "  | C_enum of c_enum_tag\n"
 "exception BadArgs of string\n"
-"exception BadMethodName of c_obj * string\n"
+"exception BadMethodName of c_obj * string * string\n"
 "exception NotObject of c_obj\n"
 "exception NotEnumType of c_obj\n"
 "exception LabelNotFromThisEnum of c_obj\n";
@@ -668,7 +668,8 @@ public:
   virtual int variableWrapper(Node *n)  {
 	
     char *name  = GetChar(n,"name");
-    char *iname = GetChar(n,"sym:name");
+    String *iname = Getattr(n,"sym:name");
+    String *mname = mangleNameForCaml(iname);
     SwigType *t = Getattr(n,"type");
 	
     String *proc_name = NewString("");
@@ -679,7 +680,7 @@ public:
     String *arg = NewString("Field(args,0)");
     Wrapper *f;
 	
-    if (!addSymbol(iname,n)) return SWIG_ERROR;
+    if (!iname || !addSymbol(iname,n)) return SWIG_ERROR;
 	
     f = NewWrapper();
 	
@@ -740,21 +741,21 @@ public:
 	Printf( f_mlbody, 
 		"external __%s : c_obj -> c_obj = \"%s\"\n"
 		"let _%s = __%s C_void\n",
-		iname, var_name, iname, iname );
+		mname, var_name, mname, mname );
 	Printf( f_mlibody, "val _%s : c_obj\n", iname );
 	if( const_enum ) {
 	  Printf( f_enum_to_int, 
 		  " | `%s -> _%s\n", 
-		  iname, iname );
+		  mname, mname );
 	  Printf( f_int_to_enum, 
 		  " if y = (get_int _%s) then `%s else\n",
-		  iname, iname );
+		  mname, mname );
 	}
       } else {
 	Printf( f_mlbody, "external _%s : c_obj -> c_obj = \"%s\"\n",
-		iname, var_name );
+		mname, var_name );
 	Printf( f_mlibody, "external _%s : c_obj -> c_obj = \"%s\"\n",
-		iname, var_name );
+		mname, var_name );
       }
     } else {
       Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
@@ -963,8 +964,8 @@ public:
 	   "      let method_name,application = List.hd (List.filter (fun (x,y) -> x = mth) method_table) in\n"
 	   "        application \n"
 	   "          (match arg with C_list l -> (C_list (raw_ptr :: l)) | v -> (C_list [ raw_ptr ; v ]))\n"
-	   "    with _ -> raise (BadMethodName (raw_ptr,mth))))\n",
-	   name );
+	   "    with (Failure \"hd\") -> raise (BadMethodName (raw_ptr,mth,\"%s\")) | e -> raise e))\n",
+	   name, name );
 
     Printf( f_class_ctors,
 	    "let _ = Callback.register \"create_%s_from_ptr\" "
@@ -996,6 +997,7 @@ public:
     Replaceall(out,"~","__bnot__");
     Replaceall(out,"=","__equals__");
     Replaceall(out,"/","__slash__");
+    Replaceall(out,".","__dot__");
     return out;
   }
     
