@@ -275,7 +275,8 @@ CPP_TEST_CASES += \
 	valuewrapper_default \
 	varargs \
 	virtual_destructor \
-	voidtest
+	voidtest \
+	wrapmacro
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES += \
