@@ -119,8 +119,12 @@ namespace swigpy
       try {
 	return swigpy::as<T>(item, true);
       } catch (std::exception& e) {
-	PyErr_Format(PyExc_TypeError, 
-		     "error in sequence element %d: %s", _index, e.what());
+	char msg[1024];
+	sprintf(msg,"in sequence element %d", _index);
+	if (!PyErr_Occurred()) {
+	  SWIG_type_error(swigpy::type_name<T>(), item);
+	}
+	SWIG_append_errmsg(msg);
 	throw;
       }
     }
@@ -309,9 +313,10 @@ namespace swigpy
 	swigpy::PyObject_var item = PySequence_GetItem(_seq, i);
 	if (!swigpy::check<value_type>(item)) {
 	  if (set_err) {
-	    PyErr_Format(PyExc_TypeError, 
-			 "element %d is not of type '%s' as expected",
-			 i, swigpy::type_name<value_type>());
+	    char msg[1024];
+	    sprintf(msg,"in sequence element %d", i);
+	    SWIG_type_error(swigpy::type_name<value_type>(), item);
+	    SWIG_append_errmsg(msg);
 	  }
 	  return 0;
 	}
@@ -336,35 +341,40 @@ namespace swigpy
   %exception __getitem__ {
     try { $action }
     catch (std::out_of_range& e) {
-      SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      if (!PyErr_Occurred())
+	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
   }
 
   %exception __setitem__ {
     try { $action }
     catch (std::out_of_range& e) {
-      SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      if (!PyErr_Occurred())
+	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
   }
 
   %exception __setslice__ {
     try { $action }
     catch (std::invalid_argument& e) {
-      SWIG_exception(SWIG_TypeError,const_cast<char*>(e.what()));
+      if (!PyErr_Occurred())
+	SWIG_exception(SWIG_TypeError,const_cast<char*>(e.what()));
     }
   }
 
-  %exception __delitem__ {
+%exception __delitem__ {
     try { $action }
     catch (std::out_of_range& e) {
-      SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      if (!PyErr_Occurred())
+	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
   }
 
   %exception pop  {
     try { $action }
     catch (std::out_of_range& e) {
-      SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+      if (!PyErr_Occurred())
+	SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
   }
 

@@ -89,7 +89,7 @@
 %define %cstring_bounded_mutable(TYPEMAP,MAX)
 %typemap(in) TYPEMAP(char temp[MAX+1]) {
    char *t = PyString_AsString($input);
-   if (PyErr_Occurred()) SWIG_fail;
+   if (SWIG_arg_fail($argnum)) SWIG_fail;
    strncpy(temp,t,MAX);
    $1 = ($1_ltype) temp;
 }
@@ -121,7 +121,7 @@
 %typemap(in) TYPEMAP {
    char *t = PyString_AsString($input);
    int   n = PyString_Size($input);
-   if (PyErr_Occurred()) SWIG_fail;
+   if (SWIG_arg_fail($argnum)) SWIG_fail;
    $1 = ($1_ltype) t;
 #if #__VA_ARGS__ == ""
 #if __cplusplus
@@ -166,7 +166,7 @@
 %define %cstring_output_maxsize(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
    $2 = PyInt_AsLong($input);
-   if (PyErr_Occurred()) SWIG_fail;
+   if (SWIG_arg_fail($argnum)) SWIG_fail;
 #ifdef __cplusplus
    $1 = ($1_ltype) new char[$2+1];
 #else
@@ -201,7 +201,7 @@
 %define %cstring_output_withsize(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
    int n = PyInt_AsLong($input);
-   if (PyErr_Occurred()) SWIG_fail;
+   if (SWIG_arg_fail($argnum)) SWIG_fail;
 #ifdef __cplusplus
    $1 = ($1_ltype) new char[n+1];
    $2 = ($2_ltype) new $*2_ltype;

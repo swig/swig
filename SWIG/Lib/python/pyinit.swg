@@ -3,6 +3,8 @@
  * ------------------------------------------------------------ */
 
 %init %{
+
+ 
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -12,6 +14,10 @@ SWIGEXPORT(void) SWIG_init(void) {
   PyObject *m, *d;
   int       i;
   if (!SWIG_globals) SWIG_globals = SWIG_newvarlink();
+
+  /* Fix SwigMethods to carry the callback ptrs when needed */
+  SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_types_initial);
+  
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
   d = PyModule_GetDict(m);
 

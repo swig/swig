@@ -41,7 +41,7 @@ SWIGSTATICINLINE(int)
     }
   }  
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a Type is expected");
+    SWIG_type_error("Type", o);
   }
   return 0;
 }
@@ -64,8 +64,8 @@ SWIGSTATICINLINE(int)
     double im = PyComplex_ImagAsDouble(o);
     if (SWIG_CheckDoubleInRange(re, -FLT_MAX, FLT_MAX, errmsg)
 	&& SWIG_CheckDoubleInRange(im, -FLT_MAX, FLT_MAX, errmsg)) {
-      if (val) *val = Constructor(swig_numeric_cast(re, float),
-				  swig_numeric_cast(im, float));
+      if (val) *val = Constructor(SWIG_numeric_cast(re, float),
+				  SWIG_numeric_cast(im, float));
       return 1;
     } else {
       return 0;
@@ -74,7 +74,7 @@ SWIGSTATICINLINE(int)
     double re;    
     if (SWIG_AsVal(double)(o, &re)) {
       if (SWIG_CheckDoubleInRange(re, -FLT_MAX, FLT_MAX, errmsg)) {
-	if (val) *val = Constructor(swig_numeric_cast(re,float), 0);      
+	if (val) *val = Constructor(SWIG_numeric_cast(re,float), 0);      
 	return 1;
       } else {
 	return 0;
@@ -84,7 +84,7 @@ SWIGSTATICINLINE(int)
     }
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a Type is expected");
+    SWIG_type_error("Type", o);
   }
   return 0;
 }

@@ -16,7 +16,7 @@ SWIGSTATIC(char**)
     int list = PyList_Check(input);
     if (list || PyTuple_Check(input)) {
       *argc = list ? PyList_Size(input) : PyTuple_Size(input);
-      argv = swig_new_array(*argc + 1, char*);
+      argv = SWIG_new_array(*argc + 1, char*);
       *owner = 1;
       for (; i < *argc; ++i) {
 	PyObject *obj = list ? PyList_GetItem(input,i) : PyTuple_GetItem(input,i);
@@ -53,7 +53,7 @@ SWIGSTATIC(char**)
   char **argv = SWIG_AsArgcArgv($input, $descriptor(char**), &argc, &owner);
   if (PyErr_Occurred()) { 
     $1 = 0; $2 = 0;
-    SWIG_fail;
+    if (SWIG_arg_fail($argnum)) SWIG_fail;
   } else {  
     $1 = ($1_ltype) argc;
     $2 = ($2_ltype) argv;
@@ -61,6 +61,6 @@ SWIGSTATIC(char**)
 }
 
 %typemap(freearg) (int ARGC, char **ARGV)  {
-  if (owner$argnum) swig_delete_array($2);
+  if (owner$argnum) SWIG_delete_array($2);
 }
 

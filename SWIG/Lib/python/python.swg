@@ -4,6 +4,15 @@
  * Python configuration module.
  * ----------------------------------------------------------------------------- */
 
+/*
+  bool type in python is too much generic, we invert order for proper
+  resolution.
+*/
+
+#undef SWIG_TYPECHECK_BOOL
+%define SWIG_TYPECHECK_BOOL         10000 %enddef
+
+
 /* -----------------------------------------------------------------------------
  *  The runtime part
  * ----------------------------------------------------------------------------- */
@@ -53,3 +62,5 @@
  * The Python initialization function 
  * ------------------------------------------------------------ */
 %include <pyinit.swg>
+
+

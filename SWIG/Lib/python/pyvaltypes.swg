@@ -9,10 +9,10 @@
 %define PYVAL_IN_TYPEMAP(as_meth,pyfrag,...)
   %typemap(in,fragment=pyfrag) __VA_ARGS__
     "$1 = ($ltype)as_meth($input); 
-     if (PyErr_Occurred()) SWIG_fail;";
+     if (SWIG_arg_fail($argnum)) SWIG_fail;";
   %typemap(in,fragment=pyfrag) const __VA_ARGS__ & ($basetype temp)
     "temp = ($basetype) as_meth($input);
-     if (PyErr_Occurred()) SWIG_fail;
+     if (SWIG_arg_fail($argnum)) SWIG_fail;
      $1 = &temp;";
 %enddef
 
@@ -31,7 +31,7 @@
   %typemap(varin,fragment=pyfrag) __VA_ARGS__ {
     $1_type temp = ($1_type) as_meth($input);  
     if (PyErr_Occurred()) {
-      PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
+      SWIG_append_errmsg("C/C++ variable '$name ($1_ltype)'");
       return 1;
     }
     $1 = temp;

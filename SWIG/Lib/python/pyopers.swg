@@ -3,30 +3,62 @@
  * ------------------------------------------------------------ */
 
 #ifdef __cplusplus
-%rename(__add__)      *::operator+;
-%rename(__pos__)      *::operator+();
-%rename(__pos__)      *::operator+() const;
-%rename(__sub__)      *::operator-;
-%rename(__neg__)      *::operator-();
-%rename(__neg__)      *::operator-() const;
-%rename(__mul__)      *::operator*;
-%rename(__div__)      *::operator/;
-%rename(__mod__)      *::operator%;
-%rename(__lshift__)   *::operator<<;
-%rename(__rshift__)   *::operator>>;
-%rename(__and__)      *::operator&;
-%rename(__or__)       *::operator|;
-%rename(__xor__)      *::operator^;
-%rename(__invert__)   *::operator~;
-%rename(__lt__)       *::operator<;
-%rename(__le__)       *::operator<=;
-%rename(__gt__)       *::operator>;
-%rename(__ge__)       *::operator>=;
-%rename(__eq__)       *::operator==;
-%rename(__ne__)       *::operator!=;
+%define %pybinoperator(pyname,oper) 
+%rename(pyname) oper;
+%pythonmaybecall(1) oper;
+%enddef
+
+%pybinoperator(__add__,      *::operator+);
+%pybinoperator(__pos__,      *::operator+());
+%pybinoperator(__pos__,      *::operator+() const);
+%pybinoperator(__sub__,      *::operator-);
+%pybinoperator(__neg__,      *::operator-());
+%pybinoperator(__neg__,      *::operator-() const);
+%pybinoperator(__mul__,      *::operator*);
+%pybinoperator(__div__,      *::operator/);
+%pybinoperator(__mod__,      *::operator%);
+%pybinoperator(__lshift__,   *::operator<<);
+%pybinoperator(__rshift__,   *::operator>>);
+%pybinoperator(__and__,      *::operator&);
+%pybinoperator(__or__,       *::operator|);
+%pybinoperator(__xor__,      *::operator^);
+%pybinoperator(__lt__,       *::operator<);
+%pybinoperator(__le__,       *::operator<=);
+%pybinoperator(__gt__,       *::operator>);
+%pybinoperator(__ge__,       *::operator>=);
+%pybinoperator(__eq__,       *::operator==);
+%pybinoperator(__ne__,       *::operator!=);
+
+%define %pybinoperation(oper)
+%pythonmaybecall(1) __ ## oper ## __;
+%pythonmaybecall(1) __r ## oper ## __;
+%enddef
+
+%pybinoperation(add);
+%pybinoperation(pos);
+%pybinoperation(pos);
+%pybinoperation(sub);
+%pybinoperation(neg);
+%pybinoperation(neg);
+%pybinoperation(mul);
+%pybinoperation(div);
+%pybinoperation(mod);
+%pybinoperation(lshift);
+%pybinoperation(rshift);
+%pybinoperation(and);
+%pybinoperation(or);
+%pybinoperation(xor);
+%pybinoperation(lt);
+%pybinoperation(le);
+%pybinoperation(gt);
+%pybinoperation(ge);
+%pybinoperation(eq);
+%pybinoperation(ne);
+
 
 /* Special cases */
-%rename(__call__)     *::operator();
+%rename(__invert__)     *::operator~;
+%rename(__call__)       *::operator();
 
 /* Ignored operators */
 %ignorewarn("362:operator= ignored") operator=;
