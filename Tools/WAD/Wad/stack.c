@@ -177,6 +177,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       firstframe = 0;
       /* Determine stack frame size */
       p_lastsp = p_sp;
+
       stack_unwind(&p_sp, &p_pc, &p_fp);
 
       if (p_sp) {
@@ -190,7 +191,9 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 #endif
       }
       /* Set the frame pointer and stack size */
-      frame.fp = p_sp; 
+
+      /*      frame.fp = p_sp;  */
+      frame.fp = p_sp;
       frame.stack_size = stacksize;
 
       /* Build the exception frame object we'll write */
@@ -215,6 +218,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 	frame.src_off = frame.sym_off + symsize;
 	frame.obj_off = frame.src_off + srcsize;
       }
+
       write(ffile,&frame,sizeof(WadFrame));
       /* Write the argument data */
       if (argsize > 0) {
@@ -315,3 +319,4 @@ long wad_steal_outarg(WadFrame *f, char *symbol, int argno, int *error) {
   *error = -1;
   return 0;
 }
+
