@@ -125,7 +125,8 @@ static Node *copy_node(Node *n) {
     if (Strcmp(key,"node") == 0) {
       continue;
     }
-    if ((Strcmp(key,"parms") == 0) || (Strcmp(key,"pattern") == 0) || (Strcmp(key,"throws") == 0))  {
+    if ((Strcmp(key,"parms") == 0) || (Strcmp(key,"pattern") == 0) || (Strcmp(key,"throws") == 0)
+	|| (Strcmp(key,"kwargs") == 0)) {
       Setattr(nn,key,CopyParmList(k.item));
       continue;
     }
@@ -952,6 +953,7 @@ Node *Swig_cparse(File *f) {
 %type <dtype>    cpp_vend;
 %type <ivalue>   rename_namewarn;
 %type <ptype>    type_specifier primitive_type_list ;
+%type <node>     fname stringtype;
 
 %%
 
@@ -1266,24 +1268,49 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
    %fragment(name,location) { ... }
    ------------------------------------------------------------ */
 
-fragment_directive: FRAGMENT LPAREN kwargs RPAREN HBLOCK {
-		 Hash *p = nextSibling($3);
-                 $$ = new_node("fragment");
-                 Setattr($$,"section", Getattr(p,"name"));
-                 Setattr($$,"name",Getattr($3,"name"));
-                 Setattr($$,"kwargs",nextSibling(p));
-                 Setattr($$,"code",$5);
+/* fragment keyword arguments */
+stringtype    : string LBRACE type RBRACE {		 
+                 $$ = NewHash();
+                 Setattr($$,"value",$1);
+		 Setattr($$,"type",$3);
+               }
+               ;
+
+fname         : string {
+                 $$ = NewHash();
+                 Setattr($$,"value",$1);
+              }
+              | stringtype {
+                $$ = $1;
+              }
+              ;
+
+fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
+                   Hash *p = $5;
+		   $$ = new_node("fragment");
+		   Setattr($$,"value",Getattr($3,"value"));
+		   Setattr($$,"type",Getattr($3,"type"));
+		   Setattr($$,"section",Getattr(p,"name"));
+		   Setattr($$,"kwargs",nextSibling(p));
+		   Setattr($$,"code",$7);
                  }
-                 | FRAGMENT LPAREN kwargs RPAREN LBRACE {
-		   Hash *p = nextSibling($3);
+                 | FRAGMENT LPAREN fname COMMA kwargs RPAREN LBRACE {
+		   Hash *p = $5;
                    skip_balanced('{','}');
 		   $$ = new_node("fragment");
-		   Setattr($$,"section", Getattr(p,"name"));
-		   Setattr($$,"name",Getattr($3,"name"));
+		   Setattr($$,"value",Getattr($3,"value"));
+		   Setattr($$,"type",Getattr($3,"type"));
+		   Setattr($$,"section",Getattr(p,"name"));
 		   Setattr($$,"kwargs",nextSibling(p));
 		   Delitem(scanner_ccode,0);
 		   Delitem(scanner_ccode,DOH_END);
 		   Setattr($$,"code",Copy(scanner_ccode));
+                 }
+                 | FRAGMENT LPAREN fname RPAREN SEMI {
+		   $$ = new_node("fragment");
+		   Setattr($$,"value",Getattr($3,"value"));
+		   Setattr($$,"type",Getattr($3,"type"));
+		   Setattr($$,"emitonly","1");
 		 }
                  ;
 
@@ -2035,7 +2062,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			String *nname = NewStringf("__dummy_%d__", cnt++);
 			Swig_cparse_template_expand($$,nname,temparms);
 			Setattr($$,"sym:name",nname);
-			Setattr($$,"feature:ignore","1");
+			/* Setattr($$,"feature:ignore","1"); */
+			Setattr($$,"feature:onlychildren",
+				"typemap,typemapitem,typemapcopy,typedef,types,fragment");
 		      }
 		      Delattr($$,"templatetype");
 		      Setattr($$,"template",n);
@@ -3094,6 +3123,8 @@ cpp_member   : c_declaration { $$ = $1; }
              | template_directive { $$ = $1; }
              | warn_directive { $$ = $1; }
              | anonymous_bitfield { $$ = 0; }
+             | fragment_directive {$$ = $1; }
+             | types_directive {$$ = $1; }
              | SEMI { $$ = 0; }
              ;
 
@@ -4786,6 +4817,15 @@ kwargs         : idstring EQUAL stringnum {
                  $$ = NewHash();
                  Setattr($$,"name",$1);
                  set_nextSibling($$,$3);
+               }
+               | idstring EQUAL stringtype  {
+                 $$ = $3;
+		 Setattr($$,"name",$1);
+               }
+               | idstring EQUAL stringtype COMMA kwargs {
+                 $$ = $3;
+		 Setattr($$,"name",$1);
+		 set_nextSibling($$,$5);
                }
                ;
 
