@@ -319,6 +319,9 @@ public:
       for (cls = Firstitem(classlist); cls; cls = Nextitem(classlist)) {
 	if (Getattr(cls,"perl5:proxy")) {
 	  SwigType *type = Copy(Getattr(cls,"classtype"));
+
+	  if (!type) continue;   /* If unnamed class, no type will be found */
+
 	  SwigType_add_pointer(type);
 	  String *mangle = NewStringf("\"%s\"", SwigType_manglestr(type));
 	  String *rep = NewStringf("\"%s\"", Getattr(cls,"perl5:proxy"));
