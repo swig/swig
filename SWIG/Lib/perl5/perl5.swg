@@ -409,9 +409,13 @@ extern "C"
 XS(SWIG_init) {
     dXSARGS;
     int i;
-    for (i = 0; swig_types_initial[i]; i++) {
+    static int _init = 0;
+    if (!_init) {
+       for (i = 0; swig_types_initial[i]; i++) {
 	 swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
-    }	
+       }	
+       _init = 1;
+    }
 
     /* Install commands */
     for (i = 0; swig_commands[i].name; i++) {
