@@ -44,7 +44,7 @@ typedef struct {
   const char *java_exception;
 } SWIG_JavaExceptions_t;
 
-#ifdef SWIG_NOINCLUDE
+#if defined(SWIG_NOINCLUDE)
 void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg);
 #else
 %}
@@ -138,7 +138,7 @@ JTYPE##Array SWIG_JavaArrayOut##JFUNCNAME (JNIEnv *jenv, CTYPE *result, jsize sz
 %enddef
 
 %{
-#ifdef SWIG_NOINCLUDE
+#if defined(SWIG_NOINCLUDE) || defined(SWIG_NOARRAYS)
 %}
 
 #ifdef __cplusplus
@@ -182,6 +182,6 @@ JAVA_ARRAYS_IMPL(float, jfloat, Float, Float)         /* float[] */
 JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 
 %{
-#endif /* SWIG_NOINCLUDE */
+#endif
 %}
 
