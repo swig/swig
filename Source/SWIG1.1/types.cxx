@@ -1104,13 +1104,5 @@ emit_type_table() {
   fprintf(f_wrappers,"%s\n", table.get());
   fprintf(f_runtime,"static _swig_type_info *_swig_types[%d];\n", i+1);
   fprintf(f_runtime,"/* ---- TYPES TABLE (END) ---- */\n\n");
-  String init;
-  init << tab4 << "{\n"
-       << tab8 << "int i;\n"
-       << tab8 << "for (i = 0; _swig_types_initial[i]; i++) {\n"
-       << tab8 << tab4 << "_swig_types[i] = SWIG_TypeRegister(_swig_types_initial[i]);\n"
-       << tab8 << "}\n"
-       << tab4 << "}\n";
-  fprintf(f_init,"%s", init.get());
 }
 
