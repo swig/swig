@@ -12,10 +12,8 @@
 extern "C" {
 #endif
 #include "global.h"
+#include "module.h"
 #include "interpret.h"
-
-/* This must be included last! */
-#include "module_magic.h"
 #ifdef __cplusplus
 }
 #endif
@@ -323,12 +321,13 @@ extern "C" {
 #ifdef __cplusplus
 extern "C"
 #endif
-SWIGEXPORT(void) pike_module_exit(void) {}
+PIKE_MODULE_EXIT {}
 
 #ifdef __cplusplus
 extern "C"
 #endif
-SWIGEXPORT(void) pike_module_init(void) {
+PIKE_MODULE_INIT
+{
     struct program *pr;
     int i;
     for (i = 0; swig_types_initial[i]; i++) {
