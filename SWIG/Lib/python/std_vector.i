@@ -207,8 +207,8 @@ namespace std {
             }
         }
       public:
-        vector();
-        vector(unsigned int size, const T& value=T());
+        vector(unsigned int size = 0);
+        vector(unsigned int size, const T& value);
         vector(const vector<T> &);
 
         %rename(__len__) size;
@@ -422,8 +422,8 @@ namespace std {
             }
         }
       public:
-        vector();
-        vector(unsigned int size, const T& value=T());
+        vector(unsigned int size = 0);
+        vector(unsigned int size, const T& value);
         vector(const vector<T> &);
 
         %rename(__len__) size;
@@ -625,8 +625,8 @@ namespace std {
             }
         }
       public:
-        vector();
-        vector(unsigned int size, const T& value=T());
+        vector(unsigned int size = 0);
+        vector(unsigned int size, const T& value);
         vector(const vector<T> &);
         %rename(__len__) size;
         unsigned int size() const;

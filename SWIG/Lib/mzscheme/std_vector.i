@@ -220,6 +220,8 @@ namespace std {
         }
       public:
         vector(unsigned int size = 0);
+        vector(unsigned int size, const T& value);
+        vector(const vector<T>&);
         %rename(length) size;
         unsigned int size() const;
         %rename("empty?") empty;
@@ -394,6 +396,8 @@ namespace std {
         }
       public:
         vector(unsigned int size = 0);
+        vector(unsigned int size, const T& value);
+        vector(const vector<T>&);
         %rename(length) size;
         unsigned int size() const;
         %rename("empty?") empty;
