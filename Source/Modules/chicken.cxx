@@ -735,11 +735,8 @@ CHICKEN::variableWrapper(Node *n)  {
     if (!in_class) {
         String *class_name = SwigType_typedef_resolve_all(SwigType_base(t));
         String *clos_name = chickenNameMapping(scmname, (char *)"");
-        String *primitive_name = NewString("");
-        Printv(primitive_name, scmname, NIL);
         /* Simply re-export the procedure */
-        Printv(closcode, "(define ", clos_name, " ", primitive_name, ")\n", NIL);
-        Delete(primitive_name);
+        Printv(closcode, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
         Delete(class_name);
         Delete(clos_name);
     }
