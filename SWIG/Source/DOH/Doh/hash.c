@@ -325,7 +325,7 @@ hash_first(DOH *ho) {
 static HashNode *
 hash_next(DOH *ho) {
     Hash *h = (Hash *) ObjData(ho);
-    if (h->currentindex < 0) return hash_first(h);
+    if (h->currentindex < 0) return hash_first(ho);
 
     /* Try to move to the next entry */
     if (h->current) {
