@@ -761,8 +761,8 @@ static String *resolve_namespace_class(String *cname) {
     if (!ns) {
       Swig_error(cparse_file,cparse_line,"Undefined scope '%s'\n", prefix);
     } else {
-      if (Strcmp(nodeType(ns),"namespace") != 0) {
-	Swig_error(cparse_file,cparse_line,"'%s' is not defined as namespace.\n", prefix);
+      if (Getattr(ns,"symtab") == 0) {
+	Swig_error(cparse_file,cparse_line,"'%s' is not defined as a valid scope.\n", prefix);
 	ns = 0;
       } else {
 	Symtab *nscope = Getattr(ns,"symtab");
@@ -798,7 +798,17 @@ static String *resolve_namespace_class(String *cname) {
 	      ns1 = Getattr(ns1,"namespace");
 	    }
 	  } else {
-	    assert(0);
+	    /* this is a class, or nested classes */
+	    si = Next(si);
+	    for (; si.item; si = Next(si)) {
+	      if (si.item) {
+		Printf(sname,"::%s",si.item);
+	      }
+	    }
+	    Printf(sname,"::%s",base);
+	    Delete(base);
+	    base = sname;
+	    break;
 	  }
 	  ns2 = new_node("namespace");
 	  Setattr(ns2,"name",sname);
