@@ -244,7 +244,7 @@ Library
 Windows
 -------
 
-***    VC++ Project files / Makefiles for building the runtime libraries.
+[DONE] Visual C++ Project files / Makefiles for building the runtime libraries.
        Will require libtool mods to work under Cygwin.
 
 All language modules
@@ -359,11 +359,16 @@ Java
 C#
 --
 
-***    Need a way to throw a C# exception from the PINVOKE C/C++ code.
+[DONE] Need a way to throw a C# exception from the PINVOKE C/C++ code.
 
 ***    The correct override/virtual keywords not always emitted for polymorphic
        methods. It currently only works when 'virtual' is specified in a derived 
        C++ class function. A polymorphic method need not specify 'virtual' in C++.
+
+****   Wrap C/C++ enums with C# enums, currently they are wrapped with a C# int.
+
+****   Implement director support for C# so that virtual methods work seemlessly
+       when mixing C# and C++ code.
 
 PHP
 ---
@@ -487,6 +492,10 @@ Ocaml
        to be available, so I need to attend to a lot of details;  The
        program must compile both with and without type augmentation.
        
+Xml
+---
+
+
 Documentation
 -------------
 
