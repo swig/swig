@@ -28,13 +28,13 @@
 
 %typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
-	  zend_error(E_ERROR, "Type error in argument $argnum of $symname. Expected %s", $1_descriptor->name);
+	  zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s", $argnum-argbase, $1_descriptor->name);
 	}
 }
 	
 %typemap(in) void * {
 	if(SWIG_ConvertPtr(*$input, (void **) $1, 0) < 0) {
-	  zend_error(E_ERROR, "Type error in argument $argnum of $symname. Expected %s", $1_descriptor->name);
+	  zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s", $argnum-argbase, $1_descriptor->name);
 	}
 }
 
@@ -42,7 +42,7 @@
 %typemap(in) SWIGTYPE {
 	$&1_ltype argp;
 	if(SWIG_ConvertPtr(*$input, (void **) &argp, $&1_descriptor) < 0) {
-	  zend_error(E_ERROR, "Type error in argument $argnum of $symname. Expected %s", $&1_descriptor->name);
+	  zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s", $argnum-argbase, $&1_descriptor->name);
 	}
 	$1 = *argp;
 }
