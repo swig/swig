@@ -1,0 +1,6 @@
+This is a very minimalistic example in which just a few functions
+and constants from library are wrapped and used to draw some simple
+shapes.  
+
+`make' will build a version of CHICKEN which defines an additional
+unit (simple).  Run `./simple runme.scm' to test it.
