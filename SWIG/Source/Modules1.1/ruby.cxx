@@ -169,18 +169,7 @@ void RUBY::main(int argc, char *argv[]) {
 
   /* Add typemap definitions */
   SWIG_typemap_lang("ruby");
-  SWIG_config_file("ruby.i");
-}
-
-
-static void insert_file(char *filename, File *file) {
-  if (Swig_insert_file(filename, file) == -1) {
-    Printf(stderr,
-	    "SWIG : Fatal error. "
-	    "Unable to locate %s. (Possible installation problem).\n",
-	    filename);
-    SWIG_exit (EXIT_FAILURE);
-  }
+  SWIG_config_file("ruby.swg");
 }
 
 /* ---------------------------------------------------------------------
@@ -252,18 +241,7 @@ void RUBY::top(Node *n) {
   Setattr(special_methods, "__float__", "to_f");
   Setattr(special_methods, "__coerce__", "coerce");
 
-  Swig_banner(f_header);
-
-  Printf(f_header,"/* Implementation : RUBY */\n\n");
-  Printf(f_header,"#define SWIGRUBY\n");
-
-  insert_file((char*)"common.swg", f_header);
-  insert_file((char*)"ruby.swg", f_header);
-  if (NoInclude) {
-    insert_file((char*)"rubydec.swg", f_header);
-  } else {
-    insert_file((char*)"rubydef.swg", f_header);
-  }
+  Swig_banner(f_runtime);
 
   /* typedef void *VALUE */
   SwigType *value = NewSwigType(T_VOID);
@@ -449,6 +427,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   String *cleanup, *outarg;
   Wrapper *f;
   int i;
+  Parm    *p;
 
   /* Ruby needs no destructor wrapper */
   if (current == DESTRUCTOR)
@@ -475,86 +454,47 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   }
   String *wname = make_wrapper_name(iname);
 
+  /* Emit arguments */
+  emit_args(t,l,f);
+
+  /* Calculate number of arguments */
+
+  /* Attach standard typemaps */
+  emit_attach_parmmaps(l,f);
+
   /* Get number of arguments */
-  int numarg = ParmList_numarg(l);
-  int numopt = check_numopt(l);
+  int numarg = emit_num_arguments(l);
+  int numreq = emit_num_required(l);
+  int numopt = numarg - numreq;
 
   int start = 0;
   int use_self = 0;
   switch (current) {
   case MEMBER_FUNC:
   case MEMBER_VAR:
-    numarg--;
-    start++;
+    start=1;
     use_self = 1;
     break;
   }
 
-  int numreq = 0;
-  int numoptreal = 0;
-  Parm *p = l;
-  for (i = 0; i < start; i++) p = nextSibling(p);
-  for (i = start; p; i++, p = nextSibling(p)) {
-    if (!Getattr(p,"ignore")) {
-      if (i >= ParmList_len(l) - numopt) numoptreal++;
-      else numreq++;
-    }
-  }
-  int vararg = (numoptreal != 0);
-
+  /* Generate wrapper safe for all argument list sizes */
+  
   /* Now write the wrapper function itself */
-  Printv(f->def, "static VALUE\n", wname, "(", 0);
-  if (vararg) {
-    Printv(f->def, "int argc, VALUE *argv, VALUE self",0);
-  } else {
-    Printv(f->def, "VALUE self", 0);
-    p = l;
-    for (i = 0; i < start; i++) p = nextSibling(p);
-    for (i = start; p; i++, p = nextSibling(p)) {
-      if (!Getattr(p,"ignore")) {
-	Printf(f->def,", VALUE varg%d", i);
-      }
-    }
-  }
-  Printf(f->def,") {");
+  Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", 0);
 
-  /* Emit all of the local variables for holding arguments. */
-  if (vararg) {
-    p = l;
-    for (i = 0; i < start; i++) p = nextSibling(p);
-    for (i = start; p; i++, p = nextSibling(p)) {
-      if (!Getattr(p,"ignore")) {
-	char s[256];
-	sprintf(s,"varg%d",i);
-	Wrapper_add_localv(f,s,"VALUE",s,0);
-      }
-    }
-  }
-  int pcount = emit_args(t,l,f);
-
-  /* Emit count to check the number of arguments */
-  if (vararg) {
-    int numscan = 0;
-    for (p = l, i = 0; i < start; i++) p = nextSibling(p);
-    for (i = start; p; i++, p = nextSibling(p)) {
-      if (!Getattr(p,"ignore")) numscan++;
-    }
-    Printf(f->code,"rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numscan - (numarg-numoptreal));
-    for (p = l, i = 0; i < start; i++) p = nextSibling(p);
-    for (i = start; p; i++, p = nextSibling(p)) {
-      if (!Getattr(p,"ignore")) {
-	Printf(f->code,", &varg%d", i);
-      }
-    }
-    Printf(f->code,");\n");
-  }
+  Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
+  Printf(f->code,"rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc);\n",numreq-start);
 
   /* Now walk the function parameter list and generate code */
   /* to get arguments */
-  int j = 0;                /* Total number of non-optional arguments */
 
-  p = l;
-  for (i = 0; i < pcount ; i++, p = nextSibling(p)) {
+
+  for (i = 0, p = l; i < numarg; i++) {
+    /* Skip ignored arguments */
+    while (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    }
+
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
     String   *ln = Getattr(p,"lname");
@@ -564,60 +504,93 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     if (selfp)
       strcpy(source,"self");
     else
-      sprintf(source,"varg%d",i);
+      sprintf(source,"argv[%d]",i-start);
 
-    sprintf(target,"%s", Char(Getattr(p,"lname")));
+    sprintf(target,"%s", Char(ln));
 
-    if (!Getattr(p,"ignore")) {
-      char *tab = (char*)tab4;
-      if (j >= (pcount-numopt)) { /* Check if parsing an optional argument */
-	Printf(f->code,"    if (argc > %d) {\n", j -  start);
-	tab = (char*)tab8;
-      }
+    if (i >= (numreq)) { /* Check if parsing an optional argument */
+	Printf(f->code,"    if (argc > %d) {\n", i -  start);
+    }
 
-      /* Get typemap for this argument */
-      tm = ruby_typemap_lookup((char*)"in",pt,pn,ln,source,target,f);
-      if (tm) {
-	Printv(f->code, tm, 0);
-	Replace(f->code, "$arg", source, DOH_REPLACE_ANY);
-	Delete(tm);
+    if ((tm = Getattr(p,"tmap:in"))) {
+      Replace(tm,"$target",ln,DOH_REPLACE_ANY);
+      Replace(tm,"$source",source,DOH_REPLACE_ANY);
+      Replace(tm,"$input",source,DOH_REPLACE_ANY);
+      Setattr(p,"emit:input",source);
+      Printf(f->code,"%s\n", tm);
+      p = Getattr(p,"tmap:in:next");
+    } else {
+      int add_pointer = 0;
+      int type_code;
+
+      if (SwigType_type(pt) == T_USER)
+	add_pointer = 1;
+      if (add_pointer)
+	SwigType_add_pointer(pt);
+      type_code = SwigType_type(pt);
+      
+      RClass *cls = RCLASS(classes, SwigType_base(pt));
+      
+      if ((type_code == T_POINTER || type_code == T_REFERENCE) && cls) {
+	Printf(f->code,"Get_%s(%s,%s);\n", cls->cname, source, target);
+	if (add_pointer) SwigType_del_pointer(pt);
       } else {
-	Printf(stderr,"%s : Line %d. No typemapping for datatype %s\n",
-		input_file,line_number, SwigType_str(pt,0));
+	if (add_pointer) SwigType_del_pointer(pt);
+	String *v = NewString("");
+	if (from_VALUE(pt,source,target,v)) {
+	  Printf(f->code,"%s\n", v);
+	} else {
+	  Printf(stderr,"%s:%d.  Unsupported datatype %s\n", input_file, line_number, SwigType_str(pt,0));
+	}
+	Delete(v);
       }
-      if (j >= (pcount-numopt))
-	Printv(f->code, tab4, "} \n", 0);
-      j++;
+      p = nextSibling(p);
     }
-
-    /* Check to see if there was any sort of a constaint typemap */
-    tm = ruby_typemap_lookup((char*)"check",pt,pn,ln,source,target);
-    if (tm) {
-      Printv(f->code, tm, 0);
-      Replace(f->code, "$arg", source, DOH_REPLACE_ANY);
-      Delete(tm);
+    if (i >= numreq) {
+      Printf(f->code,"}\n");
     }
+  }
 
-    /* Check if there was any cleanup code (save it for later) */
-    tm = ruby_typemap_lookup((char*)"freearg",pt,pn,ln,target,source);
-    if (tm) {
-      Printv(cleanup,tm,0);
-      Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
-      Delete(tm);
+  /* Insert constraint checking code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p,"tmap:check"))) {
+      Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Printv(f->code,tm,"\n",0);
+      p = Getattr(p,"tmap:check:next");
+    } else {
+      p = nextSibling(p);
     }
+  }
+  
+  /* Insert cleanup code */
+  for (i = 0, p = l; p; i++) {
+    if ((tm = Getattr(p,"tmap:freearg"))) {
+      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Printv(cleanup,tm,"\n",0);
+      p = Getattr(p,"tmap:freearg:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
 
-    tm = ruby_typemap_lookup((char*)"argout",pt,pn,ln,target,(char*)"vresult");
-    if (tm) {
+  /* Insert argument output code */
+  for (i=0,p = l; p;i++) {
+    if ((tm = Getattr(p,"tmap:argout"))) {
+      Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Replace(tm,"$target","vresult",DOH_REPLACE_ANY);
+      Replace(tm,"$result","vresult",DOH_REPLACE_ANY);
+      Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Printv(outarg,tm,"\n",0);
       need_result = 1;
-      Printv(outarg, tm, 0);
-      Replace(outarg, "$arg", source, DOH_REPLACE_ANY);
-      Delete(tm);
+      p = Getattr(p,"tmap:argout:next");
+    } else {
+      p = nextSibling(p);
     }
   }
 
   /* Now write code to make the function call */
   emit_func_call(name,t,l,f);
-
 
   /* Return value if necessary */
   if (SwigType_type(t) != T_VOID) {
@@ -678,7 +651,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   Wrapper_print(f,f_wrappers);
 
   /* Now register the function with the language */
-  create_command(name, iname, (vararg ? -1 : numarg));
+  create_command(name, iname, -1);
   Delete(cleanup);
   Delete(outarg);
   DelWrapper(f);
@@ -886,12 +859,26 @@ void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
  *              f      = a wrapper function object (optional)
  * --------------------------------------------------------------------- */
 
+/* [ beazley ]  
+ 
+   This function is implemented in a manner that is antithetical to the whole typemap
+   approach.  Specifically:
+
+   (i)  Classes seem to be handled as a special case--making it impossible to redefine
+        their behavior with a typemap.
+
+   (ii) VALUE is handled as a special case.  Why not use a typemap in the first place?
+
+   (iii) I can't figure out how to make multi-argument maps work here 
+*/
+
 String *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname, String_or_char *lname, char *source, char *target, Wrapper *f) {
   String *s = 0;
   String *tm;
   String *target_replace = NewString(target);
   target = Char(target_replace);
   int type_code, add_pointer = 0;
+
 
   if (SwigType_type(type) == T_USER)
     add_pointer = 1;
@@ -904,10 +891,10 @@ String *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pnam
   if (!s) s = NewString("");
   Clear(s);
 
-  if ((strcmp("out", op) == 0 || strcmp("in", op) == 0)
+  /*  if ((strcmp("out", op) == 0 || strcmp("in", op) == 0)
       && Cmp(SwigType_base(type), "VALUE") == 0) {
     Printf(s,"$target = $source;\n");
-  } else if (strcmp("out", op) == 0
+    } else */ if (strcmp("out", op) == 0
 	     && (type_code == T_POINTER || type_code == T_REFERENCE)
 	     && cls) {
     const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
