@@ -26,7 +26,7 @@
 #include <string.h>
 %}
 
-%insert(runtime) {
+%insert(runtime) %{
 /* Support for throwing Java exceptions */
 typedef enum {
   SWIG_JavaOutOfMemoryError = 1, 
@@ -44,6 +44,11 @@ typedef struct {
   const char *java_exception;
 } SWIG_JavaExceptions_t;
 
+#ifdef SWIG_NOINCLUDE
+void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg);
+#else
+%}
+%insert(runtime) {
 void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg) {
   jclass excep;
   static const SWIG_JavaExceptions_t java_exceptions[] = {
@@ -66,8 +71,10 @@ void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const c
   if (excep)
     JCALL2(ThrowNew, jenv, excep, msg);
 }
-
 }
+%insert(runtime) %{
+#endif
+%}
 
 /* Array support is a combination of SWIG macros and functions in order to reduce code bloat and 
  * aid maintainability. The SWIG preprocessor expands the macros into functions for inclusion in
