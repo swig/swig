@@ -43,7 +43,7 @@
     unsigned char *M_OUTPUT
 {
     Scheme_Object *s;
-    s = scheme_make_string(*$target);
+    s = scheme_make_string_without_copying(*$target);
     m_output_helper(_values, s, &_lenv);
 }
 
@@ -85,13 +85,13 @@ void m_output_helper(Scheme_Object **target, Scheme_Object *s, int *_lenv) {
 
 %typemap(mzscheme, in) char * {
     if(!SCHEME_STRINGP($source))
-	scheme_wrong_type("$name", "string ", $argnum, argc, argv);
+	scheme_wrong_type("$name", "string", $argnum, argc, argv);
     $target = SCHEME_STR_VAL($source);
 }
 
 %typemap(mzscheme, in) char [ANY] {
     if(!SCHEME_STRINGP($source))
-	scheme_wrong_type("$name", "string ", $argnum, argc, argv);
+	scheme_wrong_type("$name", "string", $argnum, argc, argv);
     $target = SCHEME_STR_VAL($source);
 }
 
@@ -272,11 +272,11 @@ void m_output_helper(Scheme_Object **target, Scheme_Object *s, int *_lenv) {
 }
 
 %typemap(mzscheme, out) char * {
-    $target = scheme_make_string($source);
+    $target = scheme_make_string_without_copying($source);
 }
 
 %typemap(mzscheme, out) char [ANY] {
-    $target = scheme_make_string($source);
+    $target = scheme_make_string_without_copying($source);
 }
 
 %typemap(mzscheme, out) int {
@@ -388,13 +388,13 @@ void m_output_helper(Scheme_Object **target, Scheme_Object *s, int *_lenv) {
 
 %typemap(mzscheme, varin) char * {
     if(!SCHEME_STRINGP($source))
-	scheme_wrong_type("$name", "string ", $argnum, argc, argv);
+	scheme_wrong_type("$name", "string", $argnum, argc, argv);
     $target = SCHEME_STR_VAL($source);
 }
 
 %typemap(mzscheme, varin) char [ANY] {
     if(!SCHEME_STRINGP($source))
-	scheme_wrong_type("$name", "string ", $argnum, argc, argv);
+	scheme_wrong_type("$name", "string", $argnum, argc, argv);
     $target = SCHEME_STR_VAL($source);
 }
 
@@ -576,11 +576,11 @@ void m_output_helper(Scheme_Object **target, Scheme_Object *s, int *_lenv) {
 }
 
 %typemap(mzscheme, varout) char * {
-    $target = scheme_make_string($source);
+    $target = scheme_make_string_without_copying($source);
 }
 
 %typemap(mzscheme, varout) char [ANY] {
-    $target = scheme_make_string($source);
+    $target = scheme_make_string_without_copying($source);
 }
 
 %typemap(mzscheme, varout) int {

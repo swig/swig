@@ -250,12 +250,13 @@ MZSCHEME::close (void)
 // ----------------------------------------------------------------------
 
 void
-MZSCHEME::get_pointer (char *iname, int parm, DataType *t,
+MZSCHEME::get_pointer (String &name, int parm, DataType *t,
 		       WrapperFunction &f)
 {
-  f.code << tab4 << "_arg" << parm << " = (" << t->print_type()
-	 << ") swig_get_c_pointer(argv["
-	 << parm << "], \"" << t->print_mangle() << "\");\n";
+    f.code << tab4 << "if (!swig_get_c_pointer(" << "argv[" << parm << "], \"" << t->print_mangle()
+	<< "\", (void **) &_arg" << parm << "))\n";
+    f.code << tab8 << "scheme_wrong_type(\"" << name.get()
+	<< "\", \"" << t->print_mangle() << "\", " << parm << ", argc, argv);\n";    
 }
 
 // ----------------------------------------------------------------------
@@ -371,7 +372,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
       // no typemap found
       // assume it's a Scheme_Object containing the C pointer
       else if (p.t->is_pointer) {
-        get_pointer (iname, i, p.t, f);
+        get_pointer (proc_name, i, p.t, f);
       }
       // no typemap found and not a pointer
       else throw_unhandled_mzscheme_type_error (p.t);
@@ -558,8 +559,10 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
         fprintf (f_wrappers, "\t\t strncpy(%s,_temp,_len);\n", name);
       } else {
         // Set the value of a pointer
-	fprintf(f_wrappers, "\t\t%s = swig_get_c_pointer(argv[0], \"%s\");\n",
-		name, t->print_mangle());
+	fprintf(f_wrappers, "\t\tif (!swig_get_c_pointer(argv[0], \"%s\", (void **) &_arg0))\n",
+		t->print_mangle());
+	fprintf(f_wrappers, "\t\t\tscheme_wrong_type(\"%s\", %s, 0, argc, argv", \
+		var_name, t->print_mangle());
       }
     }
     else {
