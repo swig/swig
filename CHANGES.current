@@ -3,8 +3,22 @@ Version 1.3.25 (In progress)
 
 03/31/2005: wsfulton
             Turned on extra template features previously only available to Python.
-            Enables extra typemaps to be picked up when %template() is used without
-            giving a template name.
+            This enables typemaps defined within a templated class to be used as
+            expected. Requires %template on the templated class, %template() will
+            also pick up the typemaps. Example:
+
+              template <typename T> struct Foo {
+                ...
+                %typemap(in) Foo "in typemap for Foo<T> "
+                or
+                %typemap(in) Foo<T> "in typemap for Foo<T> "
+              };
+              
+              %template(Foo_i) Foo<int>;
+              %template() Foo<double>;
+              
+            will generate the proper 'in' typemaps wherever Foo<int> and Foo<double>
+            are used.
 
 03/30/2005: mkoeppe (Matthias Koeppe)
 	    [MzScheme] Patch from Hans Oesterholt for supporting MzScheme 30x.
