@@ -433,6 +433,11 @@ $1 = &temp; %}
     swigCPtr = cPtr;
   }
 
+  protected virtual void swigSetup(IntPtr cPtr, bool cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+  }
+
   internal static IntPtr getCPtr($csclassname obj) {
     return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
   }
@@ -442,7 +447,12 @@ $1 = &temp; %}
 %typemap(csbody_derived) SWIGTYPE %{
   private IntPtr swigCPtr;
 
-  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($modulePINVOKE.$csclassnameUpcast(cPtr), cMemoryOwn) {
+  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base((cPtr == IntPtr.Zero) ? cPtr : $modulePINVOKE.$csclassnameUpcast(cPtr), cMemoryOwn) {
+    swigCPtr = cPtr;
+  }
+
+  protected override void swigSetup(IntPtr cPtr, bool cMemoryOwn) {
+    base.swigSetup($modulePINVOKE.$csclassnameUpcast(cPtr), cMemoryOwn);
     swigCPtr = cPtr;
   }
 
@@ -455,7 +465,7 @@ $1 = &temp; %}
 %typemap(csbody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
   private IntPtr swigCPtr;
 
-  internal $csclassname(IntPtr cPtr, bool bFutureUse) {
+  internal $csclassname(IntPtr cPtr, bool futureUse) {
     swigCPtr = cPtr;
   }
 
@@ -471,6 +481,11 @@ $1 = &temp; %}
 %typemap(csfinalize) SWIGTYPE %{
   ~$csclassname() {
     Dispose();
+  }
+%}
+
+%typemap(csconstruct) SWIGTYPE %{: this(IntPtr.Zero, false) {
+    swigSetup($imcall, true);
   }
 %}
 
