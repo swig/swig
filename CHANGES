@@ -1,5 +1,9 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+4/17/00 : ttn
+	  Updated MzScheme support contributed by Oleg Tolmatcev.
+	  We now use a `Scheme_Type'-based structure to wrap pointers.
+
 4/11/00 : ttn
 	  Incorporated further Guile-support patch by Matthias Koeppe.
 	  Typemaps previously deleted have been re-added.  There is now
