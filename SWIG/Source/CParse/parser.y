@@ -215,8 +215,7 @@ static String *feature_identifier_fix(String *s) {
   }
 }
 
-static void
-rename_add(char *name, SwigType *decl, char *newname) {
+static void single_rename_add(const char *name, SwigType *decl, const char *newname) {
   String *nname;
   if (!rename_hash) rename_hash = NewHash();
   if (Namespaceprefix) {
@@ -228,8 +227,42 @@ rename_add(char *name, SwigType *decl, char *newname) {
   Delete(nname);
 }
 
-static void
-namewarn_add(char *name, SwigType *decl, char *warning) {
+/* Add a new rename. Works much like new_feature including default argument handling. */
+static void rename_add(const char *name, SwigType *decl, const char *newname, ParmList *declaratorparms) {
+
+  ParmList *declparms = declaratorparms;
+
+  /* Add the name */
+  single_rename_add(name, decl, newname);
+
+  /* Add extra names if there are default parameters in the parameter list */
+  if (decl) {
+    int constqualifier = SwigType_isconst(decl);
+    while (declparms) {
+      if (ParmList_has_defaultargs(declparms)) {
+
+        /* Create a parameter list for the new rename by copying all
+           but the last (defaulted) parameter */
+        ParmList* newparms = ParmList_copy_all_except_last_parm(declparms);
+
+        /* Create new declaration - with the last parameter removed */
+        SwigType *newdecl = Copy(decl);
+        Delete(SwigType_pop_function(newdecl)); /* remove the old parameter list from newdecl */
+        SwigType_add_function(newdecl,newparms);
+        if (constqualifier)
+          SwigType_add_qualifier(newdecl,"const");
+
+        single_rename_add(name, newdecl, newname);
+        declparms = newparms;
+        Delete(newdecl);
+      } else {
+        declparms = 0;
+      }
+    }
+  }
+}
+
+static void namewarn_add(const char *name, SwigType *decl, const char *warning) {
   String *nname;
   if (!namewarn_hash) namewarn_hash = NewHash();
   if (Namespaceprefix) {
@@ -242,8 +275,7 @@ namewarn_add(char *name, SwigType *decl, char *warning) {
   Delete(nname);
 }
 
-static void
-rename_inherit(String *base, String *derived) {
+static void rename_inherit(String *base, String *derived) {
   /*  Printf(stdout,"base = '%s', derived = '%s'\n", base, derived); */
   Swig_name_object_inherit(rename_hash,base,derived);
   Swig_name_object_inherit(namewarn_hash,base,derived);
@@ -457,7 +489,7 @@ static void add_symbols(Node *n) {
 
 /* add symbols a parse tree node copy */
 
-void add_symbols_copy(Node *n) {
+static void add_symbols_copy(Node *n) {
   String *name;
   int    emode = 0;
 
@@ -1088,7 +1120,6 @@ static int is_cfunction(Node *n) {
  * The additional functions form a linked list of nodes with the head being the original Node n. */
 static void default_arguments(Node *n) {
   Node *function = n;
-  SwigType *fdecl = Getattr(function,"decl");
 
   /* Do not add in functions if kwargs is being used or if user wants old default argument wrapping
     (one wrapped method per function irrespective of number of default arguments) */
@@ -1106,15 +1137,6 @@ static void default_arguments(Node *n) {
 
   while (function) {
     ParmList *parms = Getattr(function,"parms");
-
-    /* try to see if we need to ignore this method */
-    int ignore = 0;
-    String *oname = make_name(Getattr(function,"name"), fdecl);
-    if (strncmp(Char(oname),"$ignore",7) == 0) {
-      ignore = 1;
-      oname = 0;
-    }    
-
     if (ParmList_has_defaultargs(parms)) {
 
       /* Create a parameter list for the new function by copying all
@@ -1155,12 +1177,7 @@ static void default_arguments(Node *n) {
           if (templateparms) Setattr(new_function,"templateparms",CopyParmList(templateparms));
         }
 
-	if (ignore) Setattr(new_function,"feature:ignore","1");
-
-	yyrename = oname;
-	add_symbols(new_function);
-	yyrename = 0;
-	
+        add_symbols(new_function);
         /* mark added functions as ones with overloaded parameters and point to the parsed method */
         Setattr(new_function,"defaultargs", n);
 
@@ -1900,7 +1917,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
                     SwigType *t = $2.type;
 		    if (!Len(t)) t = 0;
 		    if ($1) {
-		      rename_add($2.id,t,$3);
+		      rename_add($2.id,t,$3,$2.parms);
 		    } else {
 		      namewarn_add($2.id,t,$3);
 		    }
@@ -1920,14 +1937,14 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		    if (SwigType_ispointer(t)) {
 		      String *nname = NewStringf("*%s",fixname);
 		      if ($1) {
-			rename_add(Char(nname),decl,$3);
+			rename_add(Char(nname),decl,$3,$5.parms);
 		      } else {
 			namewarn_add(Char(nname),decl,$3);
 		      }
 		      Delete(nname);
 		    } else {
 		      if ($1) {
-			rename_add(Char(fixname),decl,$3);
+			rename_add(Char(fixname),decl,$3,$5.parms);
 		      } else {
 			namewarn_add(Char(fixname),decl,$3);
 		      }
@@ -1935,7 +1952,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		  } else if (SwigType_ispointer(t)) {
 		    String *nname = NewStringf("*%s",fixname);
 		    if ($1) {
-		      rename_add(Char(nname),0,$3);
+		      rename_add(Char(nname),0,$3,$5.parms);
 		    } else {
 		      namewarn_add(Char(nname),0,$3);
 		    }
@@ -1943,7 +1960,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		  }
 		} else {
 		  if ($1) {
-		    rename_add(Char(fixname),0,$3);
+		    rename_add(Char(fixname),0,$3,$5.parms);
 		  } else {
 		    namewarn_add(Char(fixname),0,$3);
 		  }
@@ -1953,7 +1970,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
               }
               | rename_namewarn LPAREN idstring RPAREN string SEMI {
 		if ($1) {
-		  rename_add($5,0,$3);
+		  rename_add($5,0,$3,0);
 		} else {
 		  namewarn_add($5,0,$3);
 		}
