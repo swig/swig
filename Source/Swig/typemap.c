@@ -694,6 +694,15 @@ void replace_local_types(ParmList *p, String *name, String *rep) {
 }
 
 static
+int check_locals(ParmList *p, const char *s) {
+  while (p) {
+    char *c = GetChar(p,"type");
+    if (strstr(c,s)) return 1;
+    p = nextSibling(p);
+  }
+}
+
+static
 void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *pname, String *lname, int index) 
 {
   char var[512];
@@ -764,7 +773,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
 
     sc = Char(s);
 
-    if (strstr(sc,"type")) {
+    if (strstr(sc,"type") || check_locals(locals,"type")) {
       /* Given type : $type */
       ts = SwigType_str(type,0);
       if (index == 1) {
@@ -777,7 +786,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
       Delete(ts);
       sc = Char(s);
     }
-    if (strstr(sc,"ltype")) {
+    if (strstr(sc,"ltype") || check_locals(locals,"ltype")) {
       /* Local type:  $ltype */
       ltype = SwigType_ltype(type);
       ts = SwigType_str(ltype,0);
