@@ -248,7 +248,7 @@ class JAVA : public Language {
     jniclass_class_modifiers = NewString(""); // package access only to the JNI class by default
     module_class_code = NewString("");
     module_baseclass = NewString("");
-    module_interfaces = NewStringf("");
+    module_interfaces = NewString("");
     module_imports = NewString("");
     module_class_modifiers = NewString("public");
     jniclass_imports = NewString("");
@@ -877,14 +877,15 @@ class JAVA : public Language {
       Setattr(n, "value", new_value);
     }
 
+    // The %javaconst directive determines how the constant value is obtained
+    String *javaconst = Getattr(n,"feature:java:const");
+    bool javaconst_flag = javaconst && Cmp(javaconst, "0") != 0;
+
     // enums are wrapped using a public final static int in java.
     // Other constants are wrapped using a public final static [jstype] in Java.
     Printf(constants_code, "  public final static %s %s = ", shadowrettype, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
 
-    // The %javaconst directive determines how the constant value is obtained
-    String *javaconst = Getattr(n,"feature:java:const");
-
-    if ((is_enum_item && Getattr(n,"enumvalue") == 0) || !javaconst || Cmp(javaconst, "0") == 0) {
+    if ((is_enum_item && Getattr(n,"enumvalue") == 0) || !javaconst_flag) {
       // Enums without value and default constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
 
       if(is_return_type_java_class) // This handles function pointers using the %constant directive
