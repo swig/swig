@@ -17,15 +17,17 @@
 #if PY_VERSION_HEX < 0x02000000
 #define PySequence_Size PySequence_Length
 #endif
+#include <stdexcept>
 %}
 
 %fragment("PySequence_Base","header")
 %{
 namespace swigpy {
   inline size_t
-  sequence_index(ptrdiff_t i, size_t size) {
+  check_index(ptrdiff_t i, size_t size) {
     if ( i < 0 ) {
-      if ((size_t) (-i) <= size) return (size_t) (i + size);
+      if ((size_t) (-i) <= size) 
+	return (size_t) (i + size);
     } else if ( (size_t) i < size ) {
       return (size_t) i;
     }
@@ -43,17 +45,29 @@ namespace swigpy {
   }
 
   template <class Sequence, class Difference>
+  inline typename Sequence::iterator 
+  getpos(Sequence* self, Difference i)  {
+    typename Sequence::iterator pos = self->begin(); 
+    std::advance(pos, swigpy::check_index(i, self->size()));
+    return pos;
+  }
+
+  template <class Sequence, class Difference>
+  inline typename Sequence::const_iterator 
+  getpos(const Sequence* self, Difference i)  {
+    typename Sequence::const_iterator pos = self->begin(); 
+    std::advance(pos, swigpy::check_index(i, self->size()));
+    return pos;
+  }
+
+  template <class Sequence, class Difference>
   inline Sequence*
   getslice(const Sequence* self, Difference i, Difference j) { 
     typename Sequence::size_type size = self->size();
     typename Sequence::size_type ii = swigpy::slice_index(i, size);
     typename Sequence::size_type jj = swigpy::slice_index(j, size);
     if (jj > ii) {
-      typename Sequence::const_iterator beg = self->begin(); 
-      std::advance(beg, ii);
-      typename Sequence::const_iterator end = self->begin();
-      std::advance(end, jj);
-      return new Sequence(beg, end);
+      return new Sequence(getpos(self, ii), getpos(self, jj));
     } else {
       return new Sequence();
     }
@@ -66,11 +80,8 @@ namespace swigpy {
     typename Sequence::size_type ii = swigpy::slice_index(i, size);
     typename Sequence::size_type jj = swigpy::slice_index(j, size);
     if (jj < ii) jj = ii;
-    typename Sequence::iterator beg = self->begin();
-    std::advance(beg,ii);
-    typename InputSeq::const_iterator vmid = v.begin();
-    std::advance(vmid, jj - ii);
-    self->insert(std::copy(v.begin(), vmid, beg), vmid, v.end());
+    typename InputSeq::const_iterator vmid = getpos(&v, jj - ii);
+    self->insert(std::copy(v.begin(), vmid, getpos(self,ii)), vmid, v.end());
   }
  
   template <class Sequence, class Difference>
@@ -80,36 +91,8 @@ namespace swigpy {
     typename Sequence::size_type ii = swigpy::slice_index(i, size);
     typename Sequence::size_type jj = swigpy::slice_index(j, size);
     if (jj > ii) {
-      typename Sequence::iterator beg = self->begin();
-      std::advance(beg, ii);
-      typename Sequence::iterator end = self->begin();
-      std::advance(end, jj);
-      self->erase(beg, end);
+      self->erase(getpos(self,ii), getpos(self,jj));
     }
-  }
-
-  template <class Sequence, class Difference>
-  inline void
-  delitem(Sequence* self, Difference i) {
-    typename Sequence::iterator pos = self->begin();
-    std::advance(pos, swigpy::sequence_index(i, self->size()));
-    self->erase(pos);
-  }
-
-  template <class Sequence, class Difference>
-  inline const typename Sequence::value_type& 
-  getitem(const Sequence* self, Difference i)  {
-    typename Sequence::const_iterator pos = self->begin(); 
-    std::advance(pos, swigpy::sequence_index(i, self->size()));
-    return *(pos);
-  }
-
-  template <class Sequence, class Difference, class Value>
-  inline void
-  setitem(Sequence* self, Difference i, const Value& x) {
-    typename Sequence::iterator pos = self->begin();
-    std::advance(pos, swigpy::sequence_index(i, self->size()));
-    *(pos) = x;
   }
 }
 %}
@@ -424,7 +407,7 @@ namespace swigpy
     }
 
     void __delitem__(difference_type i) {
-      swigpy::delitem(self,i);
+      self->erase(swigpy::getpos(self,i));
     }
   }
 %enddef
@@ -433,11 +416,11 @@ namespace swigpy
   %pysequence_methods_common(SWIG_arg(Sequence))
   %extend {
     const value_type& __getitem__(difference_type i) const {
-      return swigpy::getitem(self, i);
+      return *(swigpy::getpos(self, i));
     }
 
     void __setitem__(difference_type i, const value_type& x) {
-      swigpy::setitem(self, i, x);
+      *(swigpy::getpos(self,i)) = x;
     }
 
     void append(const value_type& x) {
@@ -450,11 +433,11 @@ namespace swigpy
   %pysequence_methods_common(SWIG_arg(Sequence))
   %extend {
     value_type __getitem__(difference_type i)  {
-      return swigpy::getitem(self, i);
+      return *(swigpy::getpos(self, i));
     }
 
     void __setitem__(difference_type i, value_type x) {
-      swigpy::setitem(self, i, x);
+      *(swigpy::getpos(self,i)) = x;
     }
 
     void append(value_type x) {

@@ -153,6 +153,40 @@ namespace std {
     %std_vector_methods_val(vector);
     %pysequence_methods_val(std::vector<T* >);
   };
+
+  // ***
+  // ***
+  template<class T > class vector<bool> {
+  public:
+    typedef size_t size_type;    
+    typedef ptrdiff_t difference_type;
+    typedef bool value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type reference;
+    typedef value_type const_reference;
+
+    %traits_swigtype(bool);
+
+    %fragment(SWIG_Traits_frag(std::vector<bool>), "header",
+	      fragment=SWIG_Traits_frag(bool),
+	      fragment="StdVectorTraits") {
+      namespace swigpy {
+	template <>  struct traits<std::vector<bool> > {
+	  typedef value_category category;
+	  static const char* type_name() {
+	    return "std::vector<bool>";
+	  }
+	};
+      }
+    }
+
+    %typemap_traits_ptr(SWIG_CCode(VECTOR), std::vector<bool>);
+
+    %std_vector_methods_val(vector<bool>);
+    %pysequence_methods_val(std::vector<bool>);
+  };
+
 }
 
 %define %std_vector_ptypen(...) 
