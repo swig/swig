@@ -416,7 +416,7 @@ public:
       Printf(f_directors, "/* ---------------------------------------------------\n");
       Printf(f_directors, " * C++ director class methods\n");
       Printf(f_directors, " * --------------------------------------------------- */\n\n");
-      Printf(f_directors, "#include \"%s\"\n\n", outfile_h);
+      Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
     }
 
     Printf(f_header,"#define SWIG_init    Init_%s\n", feature);
