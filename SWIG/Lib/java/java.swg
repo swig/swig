@@ -511,6 +511,7 @@
 /* Default array handling */
 %typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
 %typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
+%typemap(freearg) SWIGTYPE [ANY], SWIGTYPE [] ""
 
 /* char arrays - treat as String */
 %typemap(in) char[ANY], char[] { 
@@ -772,7 +773,7 @@
   return $null;
 }
 
-%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{
   (void)$1;
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
   return $null;
