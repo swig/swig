@@ -627,6 +627,12 @@ SwigType *SwigType_default(SwigType *t) {
     if (r != t) Delete(r);
     r = r1;
   }
+  if (SwigType_isqualifier(r)) {
+    if (r == t) r = Copy(t);
+    do {
+      Delete(SwigType_pop(r));
+    } while (SwigType_isqualifier(r));
+  }
   if (SwigType_ispointer(r)) {
     def = NewString("p.SWIGPOINTER");
   } else if (SwigType_isreference(r)) {

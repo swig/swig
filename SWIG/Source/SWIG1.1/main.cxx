@@ -215,6 +215,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
+	      Preprocessor_define((DOH *) "__cplusplus 1", 0);
 	      Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-objc") == 0) {
 	      ObjC = 1;

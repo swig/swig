@@ -37,6 +37,32 @@
     $target = SWIG_Guile_MakePtr ($source, $descriptor);
 }
 
+/* C++ References */
+
+#ifdef __cplusplus
+
+%typemap(in) SWIGREFERENCE & {
+  if (SWIG_Guile_GetPtr($source, (void **) &$target, $descriptor)!=0)
+    scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
+}
+
+%typemap(out) SWIGREFERENCE & {
+  $target = SWIG_Guile_MakePtr ($source, $descriptor);
+}
+
+#endif
+
+/* Arrays */
+
+%typemap(in) SWIGARRAY[] {
+  if (SWIG_Guile_GetPtr($source, (void **) &$target, $descriptor)!=0)
+    scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
+}
+
+%typemap(out) SWIGARRAY[] {
+  $target = SWIG_Guile_MakePtr ($source, $descriptor);
+}
+
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 
