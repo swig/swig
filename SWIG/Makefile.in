@@ -5,6 +5,7 @@
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
 srcdir      = @srcdir@
+libdir      = @libdir@
 
 ##############################################################################
 # Compiler and system configuration
@@ -23,9 +24,7 @@ RANLIB      = @RANLIB@
 # instead of `exec_prefix' or, derivatively, `libdir'.
 SWIG_LIB    = @swig_lib@
 BIN_DIR     = @bindir@
-INCLUDE_DIR = $(prefix)/include
-RELEASESUFFIX = @release_suffix@
-TARGET      = swig$(RELEASESUFFIX)
+TARGET      = swig@release_suffix@
 SOURCE      = Source
 SOURCEDIRS  = `ls $(SOURCE)`
 
@@ -56,12 +55,6 @@ DOH: Source/Include/swigconfig.h
 	@cd $(SOURCE)/DOH; $(MAKE)
 
 .PHONY: SWIG1.1 Modules Swig Preprocessor DOH runtime
-
-# Config file must be generated at make time, rather than at configure
-# time because it paths need to be substituted.
-
-Source/Include/swigconfig.h: Source/Include/swigconfig.h.in Makefile.in config.status
-	sed 's|@-swig_lib-@|$(SWIG_LIB)|g;s|@-exec_prefix-@|$(exec_prefix)|g;s|@-release_suffix-@|$(RELEASESUFFIX)|g' Source/Include/swigconfig.h.in > $@
 
 #####################################################################
 # All the languages SWIG speaks (when it wants to)
@@ -339,8 +332,8 @@ uninstall-runtime:
 ############################################################################
 
 # distribution directory
-dd = @PACKAGE@-@VERSION@
-srpm = @PACKAGE@-@SWIG_MAJOR_VERSION@.@SWIG_MINOR_VERSION@.@SWIG_SPIN@
+dd = @PACKAGE_NAME@-@PACKAGE_VERSION@
+srpm = @PACKAGE_NAME@-@PACKAGE_VERSION@
 
 dist:
 	@echo 'Dave, what do you want to do w/ "make dist"?'
