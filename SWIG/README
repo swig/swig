@@ -12,9 +12,10 @@ Tagline: SWIG is a compiler that integrates C, C++, and Objective-C
 This distribution represents work in progress towards building a new
 SWIG release.  The guilty parties currently working on this are:
 
-    -  Dave Beazley  (beazley@cs.uchicago.edu)    
-    -  Dustin Mitchell (djmitche@cs.uchicago.edu)
-    -  Loic Dachary (loic@ceic.com)
+  -  Dave Beazley (beazley@cs.uchicago.edu)             (SWIG core)
+  -  Dustin Mitchell (djmitche@cs.uchicago.edu)         (SWIG core)
+  -  Loic Dachary (loic@ceic.com)                       (Perl5)
+  -  Harco de Hilster (Harco.de.Hilster@ATComputing.nl) (Java)
 
 General overview:
 =================
