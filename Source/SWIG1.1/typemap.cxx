@@ -171,7 +171,7 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
   /* Check to see if an array typemap has been applied to a non-array type */
 
   if ((DataType_arraystr(tm_type)) && (!DataType_arraystr(type))) {
-    fprintf(stderr,"%s:%d: Warning. Array typemap has been applied to a non-array type.\n",
+    Printf(stderr,"%s:%d: Warning. Array typemap has been applied to a non-array type.\n",
 	    input_file,line_number);
   }
 
@@ -180,7 +180,7 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
   if ((DataType_arraystr(tm_type)) && (DataType_arraystr(type))) {
     char s[128],*t;
     if (DataType_array_dimensions(tm_type) != DataType_array_dimensions(type)) {
-      fprintf(stderr,"%s:%d: Warning. Array types have different number of dimensions.\n",
+      Printf(stderr,"%s:%d: Warning. Array types have different number of dimensions.\n",
 	      input_file,line_number);
     } else {
       for (int i = 0; i < DataType_array_dimensions(tm_type); i++) {
@@ -188,7 +188,7 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
 	t = DataType_get_dimension(type,i);
 	if (strcmp(s,"ANY") != 0) {
 	  if (strcmp(s,t)) 
-	    fprintf(stderr,"%s:%d: Warning. Array typemap applied to an array of different size.\n",
+	    Printf(stderr,"%s:%d: Warning. Array typemap applied to an array of different size.\n",
 		    input_file, line_number);
 	}
       }
@@ -314,7 +314,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
       if (pn) {
 	/*	printf("    %s %s\n", pt,pn); */
       } else {
-	fprintf(stderr,"%s:%d:  Typemap error. Local variables must have a name\n",
+	Printf(stderr,"%s:%d:  Typemap error. Local variables must have a name\n",
 		input_file, line_number);
       }
       p = Getnext(p);
@@ -648,7 +648,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   /* If there were locals and no wrapper function, print a warning */
   /*  if ((tm->args) && !f) {
     if (!pname) pname = (char*)"";
-    fprintf(stderr,"%s:%d: Warning. '%%typemap(%s,%s) %s %s' being applied with ignored locals.\n",
+    Printf(stderr,"%s:%d: Warning. '%%typemap(%s,%s) %s %s' being applied with ignored locals.\n",
 	    input_file, line_number, lang,op, DataType_str(type,0), pname);
   }
   */
@@ -1139,7 +1139,7 @@ int check_numopt(ParmList *p) {
       n++;
     } else {
       if (state) {
-	fprintf(stderr,"%s : Line %d.  Argument %d must have a default value!\n", input_file,line_number,i+1);
+	Printf(stderr,"%s : Line %d.  Argument %d must have a default value!\n", input_file,line_number,i+1);
       }
     }
   }

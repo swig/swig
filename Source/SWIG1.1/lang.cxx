@@ -40,8 +40,8 @@ void Language::set_init(char *iname) {
  * -----------------------------------------------------------------  */
 
 void Language::create_command(char *, char *) {
-  fprintf(stderr,"SWIG Warning. No command creation procedure defined.\n");
-  fprintf(stderr,"C++ inheritance may not work correctly.\n");
+  Printf(stderr,"SWIG Warning. No command creation procedure defined.\n");
+  Printf(stderr,"C++ inheritance may not work correctly.\n");
 }
 
 /* -----------------------------------------------------------------
@@ -53,7 +53,7 @@ void Language::create_command(char *, char *) {
 
 void
 Language::add_native(char *, char *iname, DataType *, ParmList *) {
-  fprintf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, iname);
+  Printf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, iname);
 }
 
 static char  *ClassName = 0;        /* This is the real name of the current class */
@@ -172,7 +172,7 @@ void Language::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l
   /* Now do a symbol table lookup on it : */
 
   if (add_symbol(new_name)) {
-    fprintf(stderr,"%s : Line %d. Function %s (member %s) multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Function %s (member %s) multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, cname, name);
     return;
   }
@@ -195,7 +195,7 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
   char *prefix, *cname;
 
   if ((strcmp(name,ClassName)) && (!ObjCClass)) {
-    fprintf(stderr,"%s : Line %d.  Function %s must have a return type.\n", 
+    Printf(stderr,"%s : Line %d.  Function %s must have a return type.\n", 
 	    input_file, line_number, name);
     return;
   }
@@ -215,7 +215,7 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
   /* Add this function to the SWIG symbol table */
 
   if (add_symbol(cname)) {
-    fprintf(stderr,"%s : Line %d. Constructor %s multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Constructor %s multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, cname);
     return;
   }
@@ -249,7 +249,7 @@ void Language::cpp_destructor(char *name, char *iname) {
   /* Add this function to the SWIG symbol table */
 
   if (add_symbol(cname)) {
-    fprintf(stderr,"%s : Line %d. Destructor %s multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Destructor %s multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, cname);
     return;
   }
@@ -327,7 +327,7 @@ void Language::cpp_variable(char *name, char *iname, DataType *t) {
   /* Check the symbol table */
 
   if (add_symbol(cname)) {
-    fprintf(stderr,"%s : Line %d. Variable %s multiply defined (2nd definition ignored).\n", input_file, line_number, cname);
+    Printf(stderr,"%s : Line %d. Variable %s multiply defined (2nd definition ignored).\n", input_file, line_number, cname);
     return;
   }
 
@@ -381,10 +381,10 @@ void Language::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l
 
   if (add_symbol(cname)) {
     if (ObjCClass)
-      fprintf(stderr,"%s : Line %d. class function %s multiply defined (2nd definition ignored).\n",
+      Printf(stderr,"%s : Line %d. class function %s multiply defined (2nd definition ignored).\n",
 	      input_file, line_number, cname);
     else
-      fprintf(stderr,"%s : Line %d. static function %s multiply defined (2nd definition ignored).\n",
+      Printf(stderr,"%s : Line %d. static function %s multiply defined (2nd definition ignored).\n",
 	      input_file, line_number, cname);
     return;
   }
@@ -431,7 +431,7 @@ void Language::cpp_declare_const(char *name, char *iname, DataType *type, char *
   /* Now do a symbol table lookup on it : */
 
   if (add_symbol(cname)) {
-    fprintf(stderr,"%s : Line %d. Constant %s (member %s) multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Constant %s (member %s) multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, cname, name);
     return;
   }
@@ -491,7 +491,7 @@ void Language::cpp_static_var(char *name, char *iname, DataType *t) {
   /* Now do a symbol table lookup on it : */
 
   if (add_symbol(cname)) {
-    fprintf(stderr,"%s : Line %d. Variable %s (member %s) multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Variable %s (member %s) multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, cname, name);
     return;
   }

@@ -36,9 +36,9 @@ extern "C" {
 // Global variables
 
     FILE      *f_runtime;
-    FILE      *f_header;                        // Some commonly used
-    FILE      *f_wrappers;                      // FILE pointers
-    FILE      *f_init;
+    DOH       *f_header;                        // Some commonly used
+    DOH       *f_wrappers;                      // FILE pointers
+    DOH       *f_init;
     FILE      *f_input;
     char      InitName[256];
     char      LibDir[512];                      // Library directory
@@ -116,10 +116,6 @@ check_suffix(char *name) {
 
 char  infilename[256];
 char  filename[256];
-char  fn_cpp[256];
-char  fn_header[256];
-char  fn_wrapper[256];
-char  fn_init[256];
 char  output_dir[512];
 char  fn_runtime[256];
 
@@ -146,7 +142,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   char   *includefiles[256];
   int     includecount = 0;
   extern  int check_suffix(char *);
-  extern  void scanner_file(FILE *);
+  extern  void scanner_file(DOHFile *);
   extern  void typemap_initialize(void);
   extern void parser_init(void);
 
@@ -378,16 +374,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       strcpy(infile,cc);
     }
 
-    sprintf(fn_cpp,"%s%s_wrap.ii", output_dir, infile);
-    sprintf(fn_header,"%s%s_wrap.head", output_dir,infile);
-    sprintf(fn_wrapper,"%s%s_wrap.wrap",output_dir,infile);
-    sprintf(fn_init,"%s%s_wrap.init",output_dir,infile);
-
-    //    printf("%s\n", input_file);
-    //    printf("%s\n", fn_cpp);
-    //    printf("%s\n", fn_wrapper);
-    //    printf("%s\n", fn_init);
-
     // Define the __cplusplus symbol
     if (CPlusPlus)
       Preprocessor_define((DOH *) "__cplusplus 1", 0);
@@ -397,7 +383,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       printf ("Preprocessing...\n");
     {
       DOH *cpps;
-      FILE *f;
       int i;
       DOH *ds = Swig_include(input_file);
       if (!ds) {
@@ -415,43 +400,18 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	while (freeze);
 	SWIG_exit(0);
       }
-      f = fopen(fn_cpp,"w");
-      fwrite(Char(cpps),1, Len(cpps), f);
-      fclose(f);
+
+      // Initialize the scanner 
+      Seek(cpps, 0, SEEK_SET);
+      scanner_file(cpps);
     }
-
-    if ((f_input = fopen(fn_cpp,"r")) == 0) {
-      fprintf(stderr,"Unable to open %s\n", fn_cpp);
-      SWIG_exit(0);
-    }
-
-    // Initialize the scanner
-    if (Verbose)
-      printf ("Scanning...\n");
-    LEX_in = f_input;
-    scanner_file(LEX_in);
-
-    //printf("fn_cpp = %s\n", fn_cpp);
-    //printf("fn_header = %s\n", fn_header);
-    //printf("fn_wrapper = %s\n", fn_wrapper);
-    //printf("fn_init = %s\n", fn_init);
-
     if ((f_runtime = fopen(fn_runtime,"w")) == 0) {
       fprintf(stderr,"Unable to open %s\n", fn_runtime);
       exit(0);
     }
-    if((f_header = fopen(fn_header,"w")) == 0) {
-      fprintf(stderr,"Unable to open %s\n", fn_header);
-      exit(0);
-    }
-    if((f_wrappers = fopen(fn_wrapper,"w")) == 0) {
-      fprintf(stderr,"Unable to open %s\n",fn_wrapper);
-      exit(0);
-    }
-    if ((f_init = fopen(fn_init,"w")) == 0) {
-      fprintf(stderr,"Unable to open %s\n",fn_init);
-      exit(0);
-    }
+    f_header = NewString("");
+    f_wrappers = NewString("");
+    f_init = NewString("");
 
     // Set up the typemap for handling new return strings
     {
@@ -490,25 +450,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       fflush (stdout);
     }
 
-    fclose(f_header);
-    fclose(f_wrappers);
-    fclose(f_init);
-
-    Swig_insert_file(fn_header, f_runtime);
-    Swig_insert_file(fn_wrapper,f_runtime);
-    Swig_insert_file(fn_init,f_runtime);
-
+    Dump(f_header,f_runtime);
+    Dump(f_wrappers, f_runtime);
+    Dump(f_init, f_runtime);
     fclose(f_runtime);
-
-    // Remove temporary files
-    if (Verbose)
-      printf ("Cleaning up...\n");
-
-    remove(fn_cpp);
-    remove(fn_header);
-    remove(fn_wrapper);
-    remove(fn_init);
-
     if (checkout) {
       // File was checked out from the SWIG library.   Remove it now
       remove(input_file);
@@ -525,24 +470,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 // --------------------------------------------------------------------------
 
 void SWIG_exit(int) {
-
-  if (f_wrappers) {
-    fclose(f_wrappers);
-    remove(fn_wrapper);
-  }
-  if (f_header) {
-    fclose(f_header);
-    remove(fn_header);
-  }
-  if (f_init) {
-    fclose(f_init);
-    remove(fn_init);
-  }
   if (f_runtime) {
     fclose(f_runtime);
     remove(fn_runtime);
   }
-  remove (fn_cpp);
   while (freeze);
   exit(1);
 }
