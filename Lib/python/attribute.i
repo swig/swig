@@ -52,10 +52,10 @@
 
   You can also use
 
-  %attribute_ref(class, type, pyattr, cppame);
+  %attribute_ref(class, type, refname, attr);
   
-  if the internal C++ reference methods have a different
-  name from the python attribute you want.
+  if the internal C++ reference methods have a different name from the
+  attribute you want.
   
   Then you can use the instances like:
 
@@ -65,44 +65,69 @@
 
   x.b = 3        # calls A::b() 
   print x.b      # calls A::b() const
-  
+
+  NOTE: remember that if the type contains commas, such as
+  'std::pair<int,int>', you need to use the macro like:
+
+  %attribute_ref(A, SWIG_arg(std::pair<int,int>), pval);
+
+  where SWIG_arg() 'normalize' the type to be understood as a single
+  argument, otherwise the macro will get confused (see the 'cpp'
+  documentation).
+
 */
 
 
-%define %_attribute(Class, type, attr, getcode, setcode) 
+%define %_attribute(Class, Wrap, type, attr, getcode, setcode) 
 %extend Class {
   type attr;
 }
 %{
-#define Class ##_## attr ## _get(_t) getcode
-#define Class ##_## attr ## _set(_t, _val) setcode
+#define Wrap ##_## attr ## _get(_t) getcode
+#define Wrap ##_## attr ## _set(_t, _val) setcode
 %}
 %enddef
 
-%define %attribute(Class, type, attr, get, ...) 
+//
+// Internal versions, need Wrap name
+//
+
+%define %attribute_T(Class, Wrap, type, attr, get, ...) 
 %ignore Class::get;
 #if #__VA_ARGS__ != ""
   %ignore Class::__VA_ARGS__;
-  %_attribute(SWIG_arg(Class), SWIG_arg(type),
+  %_attribute(SWIG_arg(Class), Wrap, SWIG_arg(type),
 	      attr, _t->get(), _t->__VA_ARGS__(_val)) 
 #else
-  %_attribute(SWIG_arg(Class), SWIG_arg(type),
+  %_attribute(SWIG_arg(Class), Wrap, SWIG_arg(type),
 	      attr, _t->get(), 
 	      fprintf(stderr,"'attr' is a read-only attribute"))
 #endif
 %enddef
 
-%define %_attribute_ref(Class, type, attr, ref_name) 
-%ignore Class::ref_name();
-%ignore Class::ref_name() const;
-%_attribute(SWIG_arg(Class), SWIG_arg(type),
-	    attr, _t->ref_name(), _t->ref_name() = _val) 
+%define %_attribute_ref_T(Class, Wrap, type, refname, attr) 
+%ignore Class::refname();
+%ignore Class::refname() const;
+%_attribute(SWIG_arg(Class), Wrap, SWIG_arg(type),
+	    attr, _t->refname(), _t->refname() = _val) 
 %enddef
 
-%define %attribute_ref(Class, type, attr, ...) 
+%define %attribute_ref_T(Class, Wrap, type, refname, ...) 
 #if #__VA_ARGS__ == ""
-%_attribute_ref(SWIG_arg(Class), SWIG_arg(type), attr, attr) 
+  %_attribute_ref_T(SWIG_arg(Class), Wrap, SWIG_arg(type), refname, refname) 
 #else
-%_attribute_ref(SWIG_arg(Class), SWIG_arg(type), attr, __VA_ARGS__)
+  %_attribute_ref_T(SWIG_arg(Class), Wrap, SWIG_arg(type), refname, __VA_ARGS__)
 #endif
+%enddef
+
+//
+// User versions
+//
+
+%define %attribute(Class, type, attr, get, ...) 
+ %attribute_T(Class, #@Class, SWIG_arg(type), attr, get, __VA_ARGS__) 
+%enddef
+
+%define %attribute_ref(Class, type, refname, ...) 
+%attribute_ref_T(Class, #@Class, SWIG_arg(type), refname, __VA_ARGS__) 
 %enddef
