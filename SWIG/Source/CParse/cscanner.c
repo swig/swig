@@ -48,7 +48,6 @@ static  int    last_brace = 0;
 extern  int    Error;
 static  int    last_id = 0;
 
-
 static int       fatal_errors = 0;         
 
 /* Handle an error */
@@ -574,7 +573,9 @@ int yylook(void) {
 	  else if (c == '^') return (XOR);
           else if (c == '<') state = 60;
 	  else if (c == '>') state = 61;
-	  else if (c == '~') return (NOT);
+	  else if (c == '~') {
+	    return (NOT);
+	  }
           else if (c == '!') return (LNOT);
 	  else if (c == '\\') {
 	    state = 99;
@@ -774,10 +775,12 @@ int yylook(void) {
 	    return COLON;
 	  }
 	  break;
-	case 51: /* Maybe a ::* or :: */
+	case 51: /* Maybe a ::*, ::~, or :: */
 	  if (( c = nextchar()) == 0) return 0;
 	  if (c == '*') {
 	    return DSTAR;
+	  } if (c == '~') {
+	    return DCNOT;
 	  } else {
 	    retract(1);
 	    if (!last_id) {
