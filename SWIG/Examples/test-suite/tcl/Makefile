@@ -26,7 +26,7 @@ setup = \
 # a file is found which has _runme.tcl appended after the testcase name.
 run_testcase = \
 	if [ -f $*\_runme.tcl ]; then ( \
-	  tcl $*\_runme.tcl;) \
+	  tclsh $*\_runme.tcl;) \
 	fi;
 
 # Clean
