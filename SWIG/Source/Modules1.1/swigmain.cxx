@@ -1,6 +1,13 @@
 /*******************************************************************************
  * Simplified Wrapper and Interface Generator  (SWIG)
  *
+ * swigmain.cxx
+ *
+ *     This file is the main entry point to SWIG.  It collects the command
+ *     line options, registers built-in language modules, and instantiates 
+ *     a module for code generation.   If adding new language modules
+ *     to SWIG, you would modify this file.
+ *
  * Author : David Beazley
  *
  * Department of Computer Science
@@ -15,52 +22,61 @@
 
 static char cvsroot[] = "$Header$";
 
-/***********************************************************************
- * $Header$
- *
- * swigmain.cxx
- *
- * The main program.
- *
- ***********************************************************************/
-
 #ifndef MACSWIG
 #include "swigconfig.h"
 #endif
-#include "mod11.h"
-#include "tcl8.h"
-#include "python.h"
-#include "perl5.h"
-#include "guile.h"
-#include "java.h"
-#include "mzscheme.h"
-#include "ruby.h"
-#include "php4.h"
 
-/* #include "htoi.h" */
+#include "swig11.h"
 
-#include <ctype.h>
+/* Module factories.  These functions are used to instantiate 
+   the built-in language modules.    If adding a new language
+   module to SWIG, place a similar function here. Make sure
+   the function has "C" linkage.  This is required so that modules
+   can be dynamically loaded in future versions. */
+
+extern "C" {
+  Language *swig_tcl(void);
+  Language *swig_python(void);
+  Language *swig_perl5(void);
+  Language *swig_ruby(void);
+  Language *swig_guile(void);
+  Language *swig_mzscheme(void);
+  Language *swig_java(void);
+  Language *swig_php(void);
+}
+
+struct swig_module {
+  const char     *name;
+  ModuleFactory   fac;
+  const char      *help;
+};
+
+/* Association of command line options to language modules.
+   Place an entry for new language modules here */
+
+swig_module  modules[] = {
+  {"-guile",     swig_guile,     "Guile"},
+  {"-java",      swig_java,      "Java"},
+  {"-mzscheme",  swig_mzscheme,  "Mzscheme"},
+  {"-perl",      swig_perl5,     "Perl"},
+  {"-perl5",     swig_perl5, 0},
+  {"-php",       swig_php,       "PHP"},
+  {"-php4",      swig_php, 0},
+  {"-python",    swig_python,    "Python"},
+  {"-ruby",      swig_ruby,      "Ruby"},
+  {"-tcl",       swig_tcl,       "Tcl"},
+  {"-tcl8",      swig_tcl, 0},
+  {NULL, NULL, NULL}
+};
+
 #ifdef MACSWIG
 #include <console.h>
 #include <SIOUX.h>
 #endif
 
 #ifndef SWIG_LANG
-#define SWIG_LANG PYTHON
+#define SWIG_LANG "-python"
 #endif
-
-/* Note: this list is in alphabetical order */
-static char  *usage = (char*)"\
-swig <options> filename\n\n\
-Target Language Options:\n\
-     -guile          - Generate Guile wrappers.\n\
-     -java           - Generate Java wrappers.\n\
-     -mzscheme       - Generate Mzscheme wrappers.\n\
-     -perl           - Generate Perl wrappers.\n\
-     -php            - Generate PHP wrappers.\n\
-     -python         - Generate Python wrappers.\n\
-     -ruby           - Generate Ruby wrappers.\n\
-     -tcl            - Generate Tcl wrappers.\n";
 
 //-----------------------------------------------------------------
 // main()
@@ -71,7 +87,9 @@ Target Language Options:\n\
 
 int main(int argc, char **argv) {
   int i;
-  Language *dl = new SWIG_LANG;
+  Language *dl = 0;
+  ModuleFactory fac = 0;
+
   extern int SWIG_main(int, char **, Language *);
 
 #ifdef MACSWIG
@@ -79,54 +97,48 @@ int main(int argc, char **argv) {
   argc = ccommand(&argv);
 #endif
 
+  /* Register built-in modules */
+  for (i = 0; modules[i].name; i++) {
+    Swig_register_module(modules[i].name, modules[i].fac);
+  }
+
   Swig_init_args(argc,argv);
 
-  // Get options
+  /* Get options */
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
-          if ((strcmp(argv[i],"-tcl8") == 0) || (strcmp(argv[i],"-tcl") == 0)) {
-	      dl = new TCL8;
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-python") == 0) {
-	      dl = new PYTHON;
-	      Swig_mark_arg(i);
-	  } else if ((strcmp(argv[i],"-perl5") == 0) || (strcmp(argv[i],"-perl") == 0)) {
-	      dl = new PERL5;
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-guile") == 0) {
-	      dl = new GUILE;
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-java") == 0) {
-	      dl = new JAVA;
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-mzscheme") == 0) {
-	      dl = new MZSCHEME;
-	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-ruby") == 0) {
-	      dl = new RUBY;
-	      Swig_mark_arg(i);
-	  } else if ((strcmp(argv[i],"-php") == 0) || (strcmp(argv[i],"-php4") == 0)) {
-	    dl = new PHP4;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-nolang") == 0) {
-	    dl = new Language;
-	    Swig_mark_arg(i);
-	      /*	  } else if (strcmp(argv[i],"-htoi") == 0) {
-	    dl = new HTOI;
-	    Swig_mark_arg(i); */
-	  } else if ((strcmp(argv[i],"-dnone") == 0) ||
-		     (strcmp(argv[i],"-dhtml") == 0) ||
-		     (strcmp(argv[i],"-dlatex") == 0) ||
-		     (strcmp(argv[i],"-dascii") == 0) ||
-		     (strcmp(argv[i],"-stat") == 0))
-	    {
+	fac = Swig_find_module(argv[i]);
+	if (fac) {
+	  dl = (fac)();
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nolang") == 0) {
+	  dl = new Language;
+	  Swig_mark_arg(i);
+	} else if ((strcmp(argv[i],"-dnone") == 0) ||
+		   (strcmp(argv[i],"-dhtml") == 0) ||
+		   (strcmp(argv[i],"-dlatex") == 0) ||
+		   (strcmp(argv[i],"-dascii") == 0) ||
+		   (strcmp(argv[i],"-stat") == 0))
+	  {
 	    Printf(stderr,"swig: Warning. %s option deprecated.\n",argv[i]);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
-	      fputs(usage,stderr);
-	      Swig_mark_arg(i);
+	    Printf(stderr,"Target Language Options:\n");
+	    for (int j = 0; modules[j].name; j++) {
+	      if (modules[j].help) {
+		Printf(stderr,"     %-15s - Generate %s wrappers.\n", modules[j].name, modules[j].help);
+	      }
+	    }
+	    Swig_mark_arg(i);
 	  }
       }
   }
+  if (!dl) {
+    fac = Swig_find_module(SWIG_LANG);
+    if (fac) {
+      dl = (fac)();
+    }
+  }
   return SWIG_main(argc,argv,dl);
 }
+

@@ -24,7 +24,22 @@ static char cvsroot[] = "$Header$";
  ***********************************************************************/
 
 #include "mod11.h"
-#include "mzscheme.h"
+
+class MZSCHEME : public Language
+{
+private:
+  void   get_pointer(DOHString_or_char *name, int parm, SwigType *t, Wrapper *f);
+public :
+  virtual void main (int, char *argv[]);
+  virtual int top(Node *); 
+  virtual int functionWrapper(Node *);
+  virtual int constantWrapper(Node *);
+  virtual int variableWrapper(Node *);
+
+  void set_module (char *);
+  int  validIdentifier(String *s);
+};
+
 #include <ctype.h>
 
 static char *mzscheme_usage = (char*)"\
@@ -624,5 +639,13 @@ MZSCHEME::validIdentifier(String *s) {
   return 1;
 }
 
+/* -----------------------------------------------------------------------------
+ * swig_mzscheme()    - Instantiate module
+ * ----------------------------------------------------------------------------- */
+
+extern "C" Language *
+swig_mzscheme(void) {
+  return new MZSCHEME();
+}
 
 

@@ -24,7 +24,49 @@ static char cvsroot[] = "$Header$";
  ***********************************************************************/
 
 #include "mod11.h"
-#include "guile.h"
+
+class GUILE : public Language
+{
+private:
+  char   *prefix;
+  char   *module;
+  char   *package;
+  enum {
+    GUILE_LSTYLE_SIMPLE,                // call `SWIG_init()'
+    GUILE_LSTYLE_PASSIVE,               // passive linking (no module code)
+    GUILE_LSTYLE_MODULE,                // native guile module linking (Guile >= 1.4.1)
+    GUILE_LSTYLE_LTDLMOD_1_4,		// old (Guile <= 1.4) dynamic module convention
+    GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
+  } linkage;
+  File  *procdoc;
+  File  *scmstub;
+  String *scmtext;
+  enum {
+    GUILE_1_4,
+    PLAIN,
+    TEXINFO
+  } docformat;
+  int	 emit_setters;
+  int    struct_member;
+  String *before_return;
+  String *pragma_name;
+  String *exported_symbols;
+  void   emit_linkage(char *module_name);
+  void   write_doc(const String *proc_name,
+		   const String *signature,
+		   const String *doc);
+public :
+  GUILE ();
+  virtual void main (int, char *argv[]);
+  virtual int top(Node *);
+  virtual int functionWrapper(Node *);
+  virtual int constantWrapper(Node *);
+  virtual int variableWrapper(Node *);
+  virtual int membervariableHandler(Node *);
+  virtual int pragmaDirective(Node *);
+  int  validIdentifier(String *s);
+};
+
 #ifndef MACSWIG
 #include "swigconfig.h"
 #endif
@@ -1068,4 +1110,14 @@ int GUILE::validIdentifier(String *s) {
     c++;
   }
   return 1;
+}
+
+
+/* -----------------------------------------------------------------------------
+ * swig_guile()    - Instantiate module
+ * ----------------------------------------------------------------------------- */
+
+extern "C" Language *
+swig_guile(void) {
+  return new GUILE();
 }

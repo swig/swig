@@ -18,7 +18,39 @@ static char cvsroot[] = "$Header$";
 #include <ctype.h>
 
 #include "mod11.h"
-#include "php4.h"
+
+class PHP4 : public Language {
+
+public :
+	virtual void main(int, char *argv[]);
+	virtual int top(Node *n);
+	virtual int functionWrapper(Node *n);
+	virtual int variableWrapper(Node *n);
+	virtual int constantWrapper(Node *n);
+	virtual void create_command(char *, char *);
+
+	// Modular Support
+	
+	virtual int  staticmembervariableHandler(Node *);
+	virtual int  staticmemberfunctionHandler(Node *);
+	virtual int  membervariableHandler(Node *);
+	virtual int  memberfunctionHandler(Node *);
+	virtual int  memberconstantHandler(Node *);
+	virtual int  constructorHandler(Node *n);
+	virtual int  destructorHandler(Node *n);
+
+	virtual int  classHandler(Node *n);
+	virtual int  classDeclaration(Node *n);
+	virtual int  pragmaDirective(Node *n);
+ private:
+        String *is_shadow(SwigType *t);
+	void emit_classdef();
+	void emit_shadow_classdef();
+	void SwigToPhpType(SwigType *t, String_or_char *pname, String *php_type, int shadow_flag);
+	char *PhpTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, String_or_char *iname);
+	void cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name = NULL);
+};
+
 #include "swigconfig.h"
 
 static char *usage = (char*)"\
@@ -1725,4 +1757,13 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name,
 
 	/*Workaround end */
 
+}
+
+/* -----------------------------------------------------------------------------
+ * swig_php()    - Instantiate module
+ * ----------------------------------------------------------------------------- */
+
+extern "C" Language *
+swig_php(void) {
+  return new PHP4();
 }

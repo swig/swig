@@ -209,6 +209,13 @@ extern int    emit_isvarargs(ParmList *);
 extern void   emit_attach_parmmaps(ParmList *, Wrapper *f);
 extern void   emit_action(Node *n, Wrapper *f);
 
+extern "C" {
+  typedef Language *(*ModuleFactory)(void);
+}
+
+extern void   Swig_register_module(const char *name, ModuleFactory fac);
+extern ModuleFactory Swig_find_module(const char *name);
+
 /* swig11.h ends here */
 
 

@@ -7,7 +7,7 @@
 
 /* Default language */
 
-#define SWIG_LANG  TCL8
+#define SWIG_LANG  "-tcl"
 
 /* Values returned by swig when invoked with the -ldflags option */
 

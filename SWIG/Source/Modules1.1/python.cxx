@@ -12,12 +12,14 @@
 static char cvsroot[] = "$Header$";
 
 #include "swig11.h"
-#include "python.h"
+
 #ifndef MACSWIG
 #include "swigconfig.h"
 #endif
 
 #include <ctype.h>
+
+#define PYSHADOW_MEMBER  0x2
 
 static  String       *const_code = 0;
 static  String       *shadow_methods = 0;
@@ -39,6 +41,12 @@ static  String       *methods;
 static  String       *class_name;
 static  String       *shadow_indent = 0;
 
+/* C++ Support + Shadow Classes */
+
+static  int       have_constructor;
+static  int       have_repr;
+static  String   *real_classname;
+
 static char *usage = (char *)"\
 Python Options (available with -python)\n\
      -ldflags        - Print runtime libraries to link with\n\
@@ -47,997 +55,997 @@ Python Options (available with -python)\n\
      -keyword        - Use keyword arguments\n\
      -proxy          - Generate proxy classes. \n\n";
 
-/* -----------------------------------------------------------------------------
- * PYTHON::main()
- * ----------------------------------------------------------------------------- */
-void
-PYTHON::main(int argc, char *argv[]) {
+class PYTHON : public Language {
+public:
 
-  SWIG_library_directory("python");
-
-  for (int i = 1; i < argc; i++) {
+  /* ------------------------------------------------------------
+   * main()
+   * ------------------------------------------------------------ */
+  
+  virtual void main(int argc, char *argv[]) {
+  
+    SWIG_library_directory("python");
+  
+    for (int i = 1; i < argc; i++) {
       if (argv[i]) {
-          if(strcmp(argv[i],"-interface") == 0) {
-            if (argv[i+1]) {
-              interface = NewString(argv[i+1]);
-              Swig_mark_arg(i);
-              Swig_mark_arg(i+1);
-              i++;
-            } else {
-              Swig_arg_error();
-            }
-	  /* end added */
-	  } else if (strcmp(argv[i],"-globals") == 0) {
-	    if (argv[i+1]) {
-	      global_name = NewString(argv[i+1]);
-	      Swig_mark_arg(i);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
-	    }
-	  } else if ((strcmp(argv[i],"-shadow") == 0) || ((strcmp(argv[i],"-proxy") == 0))) {
-	    shadow = 1;
+	if(strcmp(argv[i],"-interface") == 0) {
+	  if (argv[i+1]) {
+	    interface = NewString(argv[i+1]);
 	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-keyword") == 0) {
-	    use_kw = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-help") == 0) {
-	    fputs(usage,stderr);
-	  } else if (strcmp (argv[i], "-ldflags") == 0) {
-	    printf("%s\n", SWIG_PYTHON_RUNTIME);
-	    SWIG_exit (EXIT_SUCCESS);
+	    Swig_mark_arg(i+1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
 	  }
+	  /* end added */
+	} else if (strcmp(argv[i],"-globals") == 0) {
+	  if (argv[i+1]) {
+	    global_name = NewString(argv[i+1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i+1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
+	} else if ((strcmp(argv[i],"-shadow") == 0) || ((strcmp(argv[i],"-proxy") == 0))) {
+	  shadow = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-keyword") == 0) {
+	  use_kw = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-help") == 0) {
+	  fputs(usage,stderr);
+	} else if (strcmp (argv[i], "-ldflags") == 0) {
+	  printf("%s\n", SWIG_PYTHON_RUNTIME);
+	  SWIG_exit (EXIT_SUCCESS);
+	}
       }
+    }
+    if (!global_name) global_name = NewString("cvar");
+    Preprocessor_define("SWIGPYTHON 1", 0);
+    SWIG_typemap_lang("python");
+    SWIG_config_file("python.swg");
   }
-  if (!global_name) global_name = NewString("cvar");
-  Preprocessor_define("SWIGPYTHON 1", 0);
-  SWIG_typemap_lang("python");
-  SWIG_config_file("python.swg");
-}
 
-/* -----------------------------------------------------------------------------
- * PYTHON::top()
- * ----------------------------------------------------------------------------- */
-int
-PYTHON::top(Node *n) {
+  /* ------------------------------------------------------------
+   * top()
+   * ------------------------------------------------------------ */
 
-  /* Initialize all of the output files */
-  String *outfile = Getattr(n,"outfile");
+  virtual int top(Node *n) {
 
-  f_runtime = NewFile(outfile,"w");
-  if (!f_runtime) {
-    Printf(stderr,"*** Can't open '%s'\n", outfile);
-    SWIG_exit(EXIT_FAILURE);
-  }
-  f_init = NewString("");
-  f_header = NewString("");
-  f_wrappers = NewString("");
+    /* Initialize all of the output files */
+    String *outfile = Getattr(n,"outfile");
+
+    f_runtime = NewFile(outfile,"w");
+    if (!f_runtime) {
+      Printf(stderr,"*** Can't open '%s'\n", outfile);
+      SWIG_exit(EXIT_FAILURE);
+    }
+    f_init = NewString("");
+    f_header = NewString("");
+    f_wrappers = NewString("");
 
   /* Register file targets with the SWIG file handler */
-  Swig_register_filebyname("header",f_header);
-  Swig_register_filebyname("wrapper",f_wrappers);
-  Swig_register_filebyname("runtime",f_runtime);
-  Swig_register_filebyname("init",f_init);
+    Swig_register_filebyname("header",f_header);
+    Swig_register_filebyname("wrapper",f_wrappers);
+    Swig_register_filebyname("runtime",f_runtime);
+    Swig_register_filebyname("init",f_init);
 
-  const_code     = NewString("");
-  shadow_methods = NewString("");
-  methods        = NewString("");
+    const_code     = NewString("");
+    shadow_methods = NewString("");
+    methods        = NewString("");
 
-  Swig_banner(f_runtime);
+    Swig_banner(f_runtime);
 
-  Printf(f_runtime,"#define SWIGPYTHON\n");
-  if (NoInclude)
-    Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
+    Printf(f_runtime,"#define SWIGPYTHON\n");
+    if (NoInclude)
+      Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
 
   /* Set module name */
-  module = Copy(Getattr(n,"name"));
-  mainmodule = Getattr(n,"name");
+    module = Copy(Getattr(n,"name"));
+    mainmodule = Getattr(n,"name");
 
-  char  filen[256];
+    char  filen[256];
 
-  /* If shadow classing is enabled, we're going to change the module name to "modulec" */
-  if (shadow) {
-    sprintf(filen,"%s%s.py", Swig_file_dirname(outfile), Char(module));
-    // If we don't have an interface then change the module name X to Xc
-    if (interface) module = interface;
-    else Append(module,"c");
-    if ((f_shadow = NewFile(filen,"w")) == 0) {
-      Printf(stderr,"Unable to open %s\n", filen);
-      SWIG_exit (EXIT_FAILURE);
-    }
-    f_shadow_stubs = NewString("");
+    /* If shadow classing is enabled, we're going to change the module name to "modulec" */
+    if (shadow) {
+      sprintf(filen,"%s%s.py", Swig_file_dirname(outfile), Char(module));
+      // If we don't have an interface then change the module name X to Xc
+      if (interface) module = interface;
+      else Append(module,"c");
+      if ((f_shadow = NewFile(filen,"w")) == 0) {
+	Printf(stderr,"Unable to open %s\n", filen);
+	SWIG_exit (EXIT_FAILURE);
+      }
+      f_shadow_stubs = NewString("");
 
-    Swig_register_filebyname("shadow",f_shadow);
-    Printf(f_shadow,"# This file was created automatically by SWIG.\n");
-    Printf(f_shadow,"import %s\n", module);
+      Swig_register_filebyname("shadow",f_shadow);
+      Printf(f_shadow,"# This file was created automatically by SWIG.\n");
+      Printf(f_shadow,"import %s\n", module);
 
-    // Include some information in the code
-    Printf(f_header,"\n/*-----------------------------------------------\n              @(target):= %s.so\n\
+      // Include some information in the code
+      Printf(f_header,"\n/*-----------------------------------------------\n              @(target):= %s.so\n\
   ------------------------------------------------*/\n", module);
 
-  }
+    }
 
-  Printf(f_header,"#define SWIG_init    init%s\n\n", module);
-  Printf(f_header,"#define SWIG_name    \"%s\"\n", module);
+    Printf(f_header,"#define SWIG_init    init%s\n\n", module);
+    Printf(f_header,"#define SWIG_name    \"%s\"\n", module);
 
-  Printf(f_wrappers,"#ifdef __cplusplus\n");
-  Printf(f_wrappers,"extern \"C\" {\n");
-  Printf(f_wrappers,"#endif\n");
-  Printf(const_code,"static swig_const_info swig_const_table[] = {\n");
-  Printf(methods,"static PyMethodDef SwigMethods[] = {\n");
+    Printf(f_wrappers,"#ifdef __cplusplus\n");
+    Printf(f_wrappers,"extern \"C\" {\n");
+    Printf(f_wrappers,"#endif\n");
+    Printf(const_code,"static swig_const_info swig_const_table[] = {\n");
+    Printf(methods,"static PyMethodDef SwigMethods[] = {\n");
 
   /* emit code */
-  Language::top(n);
+    Language::top(n);
 
-  /* Close language module */
-  Printf(methods,"\t { NULL, NULL }\n");
-  Printf(methods,"};\n");
-  Printf(f_wrappers,"%s\n",methods);
+    /* Close language module */
+    Printf(methods,"\t { NULL, NULL }\n");
+    Printf(methods,"};\n");
+    Printf(f_wrappers,"%s\n",methods);
 
-  SwigType_emit_type_table(f_runtime,f_wrappers);
+    SwigType_emit_type_table(f_runtime,f_wrappers);
 
-  Printf(const_code, "{0}};\n");
-  Printf(f_wrappers,"%s\n",const_code);
-  Printf(f_init,"}\n");
+    Printf(const_code, "{0}};\n");
+    Printf(f_wrappers,"%s\n",const_code);
+    Printf(f_init,"}\n");
 
-  Printf(f_wrappers,"#ifdef __cplusplus\n");
-  Printf(f_wrappers,"}\n");
-  Printf(f_wrappers,"#endif\n");
+    Printf(f_wrappers,"#ifdef __cplusplus\n");
+    Printf(f_wrappers,"}\n");
+    Printf(f_wrappers,"#endif\n");
 
-  if (shadow) {
-    Printv(f_shadow, f_shadow_stubs, "\n",NULL);
-    Close(f_shadow);
-    Delete(f_shadow);
+    if (shadow) {
+      Printv(f_shadow, f_shadow_stubs, "\n",NULL);
+      Close(f_shadow);
+      Delete(f_shadow);
+    }
+
+    /* Close all of the files */
+    Dump(f_header,f_runtime);
+    Dump(f_wrappers,f_runtime);
+    Wrapper_pretty_print(f_init,f_runtime);
+    Delete(f_header);
+    Delete(f_wrappers);
+    Delete(f_init);
+    Close(f_runtime);
+    return SWIG_OK;
   }
 
-  /* Close all of the files */
-  Dump(f_header,f_runtime);
-  Dump(f_wrappers,f_runtime);
-  Wrapper_pretty_print(f_init,f_runtime);
-  Delete(f_header);
-  Delete(f_wrappers);
-  Delete(f_init);
-  Close(f_runtime);
-  return SWIG_OK;
-}
+  /* ------------------------------------------------------------
+   * importDirective()
+   * ------------------------------------------------------------ */
 
-/* -----------------------------------------------------------------------------
- * PYTHON::importDirective()
- * ----------------------------------------------------------------------------- */
-
-int
-PYTHON::importDirective(Node *n) {
-  if (shadow) {
+  virtual int importDirective(Node *n) {
+    if (shadow) {
       String *modname = Getattr(n,"module");
       if (modname) {
-	  Printf(f_shadow,"import %s\n", modname);
+	Printf(f_shadow,"import %s\n", modname);
       }
+    }
+    return Language::importDirective(n);
   }
-  return Language::importDirective(n);
-}
 
-/* -----------------------------------------------------------------------------
- * PYTHON::add_method()
- * ----------------------------------------------------------------------------- */
-void
-PYTHON::add_method(char *name, char *function, int kw) {
-  if (!kw)
-    Printf(methods,"\t { (char *)\"%s\", %s, METH_VARARGS },\n", name, function);
-  else
-    Printf(methods,"\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", name, function);
-}
+  /* ------------------------------------------------------------
+   * add_method()
+   * ------------------------------------------------------------ */
 
-/* -----------------------------------------------------------------------------
- * PYTHON::functionWrapper()
- * ----------------------------------------------------------------------------- */
-int
-PYTHON::functionWrapper(Node *n) {
+  void add_method(String *name, String *function, int kw) {
+    if (!kw)
+      Printf(methods,"\t { (char *)\"%s\", %s, METH_VARARGS },\n", name, function);
+    else
+      Printf(methods,"\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", name, function);
+  }
   
-  char   *name  = GetChar(n,"name");
-  char   *iname = GetChar(n,"sym:name");
-  SwigType *d   = Getattr(n,"type");
-  ParmList *l   = Getattr(n,"parms");
+  /* ------------------------------------------------------------
+   * functionWrapper()
+   * ------------------------------------------------------------ */
 
-  Parm    *p;
-  int     i;
-  char    wname[256];
-  char    source[64];
-  Wrapper *f;
-  String *parse_args;
-  String *arglist;
-  String *get_pointers;
-  String *cleanup;
-  String *outarg;
-  String *kwargs;
-  String *tm;
-
-  int     num_required;
-  int     num_arguments;
-  int     varargs = 0;
-
-  if (!addSymbol(iname,n)) return SWIG_ERROR;
-
-  f = NewWrapper();
-  parse_args   = NewString("");
-  arglist      = NewString("");
-  get_pointers = NewString("");
-  cleanup      = NewString("");
-  outarg       = NewString("");
-  kwargs       = NewString("");
-
-  Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
+  virtual int functionWrapper(Node *n) {
+  
+    String  *name  = Getattr(n,"name");
+    String  *iname = Getattr(n,"sym:name");
+    SwigType *d    = Getattr(n,"type");
+    ParmList *l    = Getattr(n,"parms");
+    
+    Parm    *p;
+    int     i;
+    char    wname[256];
+    char    source[64];
+    Wrapper *f;
+    String *parse_args;
+    String *arglist;
+    String *get_pointers;
+    String *cleanup;
+    String *outarg;
+    String *kwargs;
+    String *tm;
+    
+    int     num_required;
+    int     num_arguments;
+    int     varargs = 0;
+    
+    if (!addSymbol(iname,n)) return SWIG_ERROR;
+    
+    f = NewWrapper();
+    parse_args   = NewString("");
+    arglist      = NewString("");
+    get_pointers = NewString("");
+    cleanup      = NewString("");
+    outarg       = NewString("");
+    kwargs       = NewString("");
+    
+    Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
 
   /* Write code to extract function parameters. */
-  emit_args(d, l, f);
+    emit_args(d, l, f);
 
-  /* Attach the standard typemaps */
-  emit_attach_parmmaps(l,f);
+    /* Attach the standard typemaps */
+    emit_attach_parmmaps(l,f);
 
-  /* Get number of required and total arguments */
-  num_arguments = emit_num_arguments(l);
-  num_required  = emit_num_required(l);
-  varargs = emit_isvarargs(l);
+    /* Get number of required and total arguments */
+    num_arguments = emit_num_arguments(l);
+    num_required  = emit_num_required(l);
+    varargs = emit_isvarargs(l);
 
-  strcpy(wname,Char(Swig_name_wrapper(iname)));
+    strcpy(wname,Char(Swig_name_wrapper(iname)));
 
-  if (!use_kw) {
-    if (!varargs) {
+    if (!use_kw) {
+      if (!varargs) {
+	Printv(f->def,
+	       "static PyObject *", wname,
+	       "(PyObject *self, PyObject *args) {",
+	       NULL);
+      } else {
+	Printv(f->def,
+	       "static PyObject *", wname, "__varargs__", 
+	       "(PyObject *self, PyObject *args, PyObject *varargs) {",
+	       NULL);
+      }
+    } else {
+      if (varargs) {
+	Swig_warning(WARN_LANG_VARARGS_KEYWORD, input_file, line_number,
+		     "Can't wrap varargs with keyword arguments enabled\n");
+	varargs = 0;
+      }
+      Printv(f->def,
+	     "static PyObject *", wname,
+	     "(PyObject *self, PyObject *args, PyObject *kwargs) {",
+	     NULL);
+    }
+
+    if (!use_kw) {
+      Printf(parse_args,"    if(!PyArg_ParseTuple(args,(char *)\"");
+    } else {
+      Printf(parse_args,"    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)\"");
+      Printf(arglist,",kwnames");
+    }
+
+    /* Generate code for argument marshalling */
+
+    Printf(kwargs,"{ ");  
+    for (i = 0, p=l; i < num_arguments; i++) {
+    
+      while (Getattr(p,"tmap:ignore")) {
+	p = Getattr(p,"tmap:ignore:next");
+      }
+
+      SwigType *pt = Getattr(p,"type");
+      String   *pn = Getattr(p,"name");
+      String   *ln = Getattr(p,"lname");
+
+      sprintf(source,"obj%d",i);
+
+      Putc(',',arglist);
+      if (i == num_required) Putc('|', parse_args);    /* Optional argument separator */
+
+      /* Keyword argument handling */
+      if (Len(pn)) {
+	Printf(kwargs,"\"%s\",", pn);
+      } else {
+	Printf(kwargs,"\"arg%d\",", i+1);
+      }
+
+      /* Look for an input typemap */
+      if ((tm = Getattr(p,"tmap:in"))) {
+	String *parse = Getattr(p,"tmap:in:parse");
+	if (!parse) {
+	  Replaceall(tm,"$source",source);
+	  Replaceall(tm,"$target",ln);
+	  Replaceall(tm,"$input", source);
+	  Setattr(p,"emit:input", source);   /* Save the location of the object */
+	  Putc('O',parse_args);
+	  Wrapper_add_localv(f, source, "PyObject *",source, " = 0", NULL);
+	  Printf(arglist,"&%s",source);
+	  if (i >= num_required)
+	    Printv(get_pointers, "if (", source, ") {\n", NULL);
+	  Printv(get_pointers,tm,"\n", NULL);
+	  if (i >= num_required)
+	    Printv(get_pointers, "}\n", NULL);
+	} else {
+	  Printf(parse_args,"%s",parse);
+	  Printf(arglist,"&%s", ln);
+	}
+	p = Getattr(p,"tmap:in:next");
+	continue;
+      } else {
+	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, 
+		     "Unable to use type %s as a function argument.\n",SwigType_str(pt,0));
+	break;
+      }
+      p = nextSibling(p);
+    }
+
+    /* finish argument marshalling */
+    Printf(kwargs," NULL }");
+    if (use_kw) {
+      Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", NULL);
+    }
+
+    Printf(parse_args,":%s\"", iname);
+    Printv(parse_args,
+	   arglist, ")) return NULL;\n",
+	   NULL);
+
+    /* Now piece together the first part of the wrapper function */
+    Printv(f->code, parse_args, get_pointers, NULL);
+
+    /* Check for trailing varargs */
+    if (varargs) {
+      if (p && (tm = Getattr(p,"tmap:in"))) {
+	Replaceall(tm,"$input", "varargs");
+	Printv(f->code,tm,"\n",NULL);
+      }
+    }
+
+    /* Insert constraint checking code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p,"tmap:check"))) {
+	Replaceall(tm,"$target",Getattr(p,"lname"));
+	Printv(f->code,tm,"\n",NULL);
+	p = Getattr(p,"tmap:check:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+  
+    /* Insert cleanup code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p,"tmap:freearg"))) {
+	Replaceall(tm,"$source",Getattr(p,"lname"));
+	Printv(cleanup,tm,"\n",NULL);
+	p = Getattr(p,"tmap:freearg:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+
+    /* Insert argument output code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p,"tmap:argout"))) {
+	Replaceall(tm,"$source",Getattr(p,"lname"));
+	Replaceall(tm,"$target","resultobj");
+	Replaceall(tm,"$arg",Getattr(p,"emit:input"));
+	Replaceall(tm,"$input",Getattr(p,"emit:input"));
+	Printv(outarg,tm,"\n",NULL);
+	p = Getattr(p,"tmap:argout:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+
+    /* Emit the function call */
+    emit_action(n,f);
+
+    /* This part below still needs cleanup */
+
+  /* Return the function value */
+    if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+      Replaceall(tm,"$source", "result");
+      Replaceall(tm,"$target", "resultobj");
+      Replaceall(tm,"$result", "resultobj");
+      if (NewObject || (Getattr(n,"feature:new"))) {
+	Replaceall(tm,"$owner","1");
+      } else {
+	Replaceall(tm,"$owner","0");
+      }
+      Printf(f->code,"%s\n", tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
+		   "Unable to use return type %s in function %s.\n", SwigType_str(d,0), name);
+    }
+
+    /* Output argument output code */
+    Printv(f->code,outarg,NULL);
+
+    /* Output cleanup code */
+    Printv(f->code,cleanup,NULL);
+
+    /* Look to see if there is any newfree cleanup code */
+    if ((NewObject) || (Getattr(n,"feature:new"))) {
+      if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
+	Replaceall(tm,"$source","result");
+	Printf(f->code,"%s\n",tm);
+      }
+    }
+
+    /* See if there is any return cleanup code */
+    if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+      Replaceall(tm,"$source","result");
+      Printf(f->code,"%s\n",tm);
+    }
+
+    Printf(f->code,"    return resultobj;\n}\n");
+
+  /* Substitute the cleanup code */
+    Replaceall(f->code,"$cleanup",cleanup);
+
+    /* Substitute the function name */
+    Replaceall(f->code,"$symname",iname);
+    Replaceall(f->code,"$result","resultobj");
+
+  /* Dump the function out */
+    Wrapper_print(f,f_wrappers);
+
+    /* If varargs.  Need to emit a varargs stub */
+    if (varargs) {
+      DelWrapper(f);
+      f = NewWrapper();
       Printv(f->def,
 	     "static PyObject *", wname,
 	     "(PyObject *self, PyObject *args) {",
 	     NULL);
-    } else {
-      Printv(f->def,
-	     "static PyObject *", wname, "__varargs__", 
-	     "(PyObject *self, PyObject *args, PyObject *varargs) {",
-	     NULL);
-    }
-  } else {
-    if (varargs) {
-      Swig_warning(WARN_LANG_VARARGS_KEYWORD, input_file, line_number,
-		   "Can't wrap varargs with keyword arguments enabled\n");
-      varargs = 0;
-    }
-    Printv(f->def,
-	   "static PyObject *", wname,
-	   "(PyObject *self, PyObject *args, PyObject *kwargs) {",
-	   NULL);
-  }
-
-  if (!use_kw) {
-    Printf(parse_args,"    if(!PyArg_ParseTuple(args,(char *)\"");
-  } else {
-    Printf(parse_args,"    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)\"");
-    Printf(arglist,",kwnames");
-  }
-
-  /* Generate code for argument marshalling */
-
-  Printf(kwargs,"{ ");  
-  for (i = 0, p=l; i < num_arguments; i++) {
-    
-    while (Getattr(p,"tmap:ignore")) {
-      p = Getattr(p,"tmap:ignore:next");
+      Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
+      Wrapper_add_local(f,"varargs", "PyObject *varargs");
+      Wrapper_add_local(f,"newargs", "PyObject *newargs");
+      Printf(f->code,"newargs = PyTuple_GetSlice(args,0,%d);\n", num_arguments);
+      Printf(f->code,"varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args)+1);\n", num_arguments);
+      Printf(f->code,"resultobj = %s__varargs__(self,newargs,varargs);\n", wname);
+      Printf(f->code,"Py_XDECREF(newargs);\n");
+      Printf(f->code,"Py_XDECREF(varargs);\n");
+      Printf(f->code,"return resultobj;\n");
+      Printf(f->code,"}\n");
+      Wrapper_print(f,f_wrappers);
     }
 
-    SwigType *pt = Getattr(p,"type");
-    String   *pn = Getattr(p,"name");
-    String   *ln = Getattr(p,"lname");
 
-    sprintf(source,"obj%d",i);
+    /* Now register the function with the interpreter.   */
+    add_method(iname, wname, use_kw);
 
-    Putc(',',arglist);
-    if (i == num_required) Putc('|', parse_args);    /* Optional argument separator */
-
-    /* Keyword argument handling */
-    if (Len(pn)) {
-      Printf(kwargs,"\"%s\",", pn);
-    } else {
-      Printf(kwargs,"\"arg%d\",", i+1);
+    /* Create a shadow for this function (if enabled and not in a member function) */
+    if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+      Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n\n", NULL);
     }
 
-    /* Look for an input typemap */
-    if ((tm = Getattr(p,"tmap:in"))) {
-      String *parse = Getattr(p,"tmap:in:parse");
-      if (!parse) {
-	Replaceall(tm,"$source",source);
-	Replaceall(tm,"$target",ln);
-	Replaceall(tm,"$input", source);
-	Setattr(p,"emit:input", source);   /* Save the location of the object */
-	Putc('O',parse_args);
-	Wrapper_add_localv(f, source, "PyObject *",source, " = 0", NULL);
-	Printf(arglist,"&%s",source);
-	if (i >= num_required)
-	  Printv(get_pointers, "if (", source, ") {\n", NULL);
-	Printv(get_pointers,tm,"\n", NULL);
-	if (i >= num_required)
-	  Printv(get_pointers, "}\n", NULL);
-      } else {
-	Printf(parse_args,"%s",parse);
-	Printf(arglist,"&%s", ln);
-      }
-      p = Getattr(p,"tmap:in:next");
-      continue;
-    } else {
-      Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, 
-		   "Unable to use type %s as a function argument.\n",SwigType_str(pt,0));
-      break;
-    }
-    p = nextSibling(p);
-  }
-
-  /* finish argument marshalling */
-  Printf(kwargs," NULL }");
-  if (use_kw) {
-    Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", NULL);
-  }
-
-  Printf(parse_args,":%s\"", iname);
-  Printv(parse_args,
-	 arglist, ")) return NULL;\n",
-	 NULL);
-
-  /* Now piece together the first part of the wrapper function */
-  Printv(f->code, parse_args, get_pointers, NULL);
-
-  /* Check for trailing varargs */
-  if (varargs) {
-    if (p && (tm = Getattr(p,"tmap:in"))) {
-      Replaceall(tm,"$input", "varargs");
-      Printv(f->code,tm,"\n",NULL);
-    }
-  }
-
-  /* Insert constraint checking code */
-  for (p = l; p;) {
-    if ((tm = Getattr(p,"tmap:check"))) {
-      Replaceall(tm,"$target",Getattr(p,"lname"));
-      Printv(f->code,tm,"\n",NULL);
-      p = Getattr(p,"tmap:check:next");
-    } else {
-      p = nextSibling(p);
-    }
-  }
-  
-  /* Insert cleanup code */
-  for (p = l; p;) {
-    if ((tm = Getattr(p,"tmap:freearg"))) {
-      Replaceall(tm,"$source",Getattr(p,"lname"));
-      Printv(cleanup,tm,"\n",NULL);
-      p = Getattr(p,"tmap:freearg:next");
-    } else {
-      p = nextSibling(p);
-    }
-  }
-
-  /* Insert argument output code */
-  for (p = l; p;) {
-    if ((tm = Getattr(p,"tmap:argout"))) {
-      Replaceall(tm,"$source",Getattr(p,"lname"));
-      Replaceall(tm,"$target","resultobj");
-      Replaceall(tm,"$arg",Getattr(p,"emit:input"));
-      Replaceall(tm,"$input",Getattr(p,"emit:input"));
-      Printv(outarg,tm,"\n",NULL);
-      p = Getattr(p,"tmap:argout:next");
-    } else {
-      p = nextSibling(p);
-    }
-  }
-
-  /* Emit the function call */
-  emit_action(n,f);
-
-  /* This part below still needs cleanup */
-
-  /* Return the function value */
-  if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
-    Replaceall(tm,"$source", "result");
-    Replaceall(tm,"$target", "resultobj");
-    Replaceall(tm,"$result", "resultobj");
-    if (NewObject || (Getattr(n,"feature:new"))) {
-      Replaceall(tm,"$owner","1");
-    } else {
-      Replaceall(tm,"$owner","0");
-    }
-    Printf(f->code,"%s\n", tm);
-  } else {
-    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
-		 "Unable to use return type %s in function %s.\n", SwigType_str(d,0), name);
-  }
-
-  /* Output argument output code */
-  Printv(f->code,outarg,NULL);
-
-  /* Output cleanup code */
-  Printv(f->code,cleanup,NULL);
-
-  /* Look to see if there is any newfree cleanup code */
-  if ((NewObject) || (Getattr(n,"feature:new"))) {
-    if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
-      Replaceall(tm,"$source","result");
-      Printf(f->code,"%s\n",tm);
-    }
-  }
-
-  /* See if there is any return cleanup code */
-  if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
-    Replaceall(tm,"$source","result");
-    Printf(f->code,"%s\n",tm);
-  }
-
-  Printf(f->code,"    return resultobj;\n}\n");
-
-  /* Substitute the cleanup code */
-  Replaceall(f->code,"$cleanup",cleanup);
-
-  /* Substitute the function name */
-  Replaceall(f->code,"$symname",iname);
-  Replaceall(f->code,"$result","resultobj");
-
-  /* Dump the function out */
-  Wrapper_print(f,f_wrappers);
-
-  /* If varargs.  Need to emit a varargs stub */
-  if (varargs) {
+    Delete(parse_args);
+    Delete(arglist);
+    Delete(get_pointers);
+    Delete(cleanup);
+    Delete(outarg);
+    Delete(kwargs);
     DelWrapper(f);
-    f = NewWrapper();
-    Printv(f->def,
-	   "static PyObject *", wname,
-	   "(PyObject *self, PyObject *args) {",
-	   NULL);
-    Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
-    Wrapper_add_local(f,"varargs", "PyObject *varargs");
-    Wrapper_add_local(f,"newargs", "PyObject *newargs");
-    Printf(f->code,"newargs = PyTuple_GetSlice(args,0,%d);\n", num_arguments);
-    Printf(f->code,"varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args)+1);\n", num_arguments);
-    Printf(f->code,"resultobj = %s__varargs__(self,newargs,varargs);\n", wname);
-    Printf(f->code,"Py_XDECREF(newargs);\n");
-    Printf(f->code,"Py_XDECREF(varargs);\n");
-    Printf(f->code,"return resultobj;\n");
-    Printf(f->code,"}\n");
-    Wrapper_print(f,f_wrappers);
+    return SWIG_OK;
   }
 
+  /* ------------------------------------------------------------
+   * variableWrapper()
+   * ------------------------------------------------------------ */
 
-  /* Now register the function with the interpreter.   */
-  add_method(iname, wname, use_kw);
+  virtual int variableWrapper(Node *n) {
 
-  /* Create a shadow for this function (if enabled and not in a member function) */
-  if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-    Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n\n", NULL);
-  }
+    String *name  = Getattr(n,"name");
+    String *iname = Getattr(n,"sym:name");
+    SwigType *t = Getattr(n,"type");
+    
+    String *wname;
+    static int have_globals = 0;
+    String  *tm;
+    Wrapper *getf, *setf;
 
-  Delete(parse_args);
-  Delete(arglist);
-  Delete(get_pointers);
-  Delete(cleanup);
-  Delete(outarg);
-  Delete(kwargs);
-  DelWrapper(f);
-  return SWIG_OK;
-}
+    if (!addSymbol(iname,n)) return SWIG_ERROR;
 
-/* -----------------------------------------------------------------------------
- * PYTHON::variableWrapper()
- * ----------------------------------------------------------------------------- */
-int
-PYTHON::variableWrapper(Node *n) {
-
-  String *name  = Getattr(n,"name");
-  String *iname = GetChar(n,"sym:name");
-  SwigType *t = Getattr(n,"type");
-
-  String *wname;
-  static int have_globals = 0;
-  String  *tm;
-  Wrapper *getf, *setf;
-
-  if (!addSymbol(iname,n)) return SWIG_ERROR;
-
-  getf = NewWrapper();
-  setf = NewWrapper();
+    getf = NewWrapper();
+    setf = NewWrapper();
 
   /* If this is our first call, add the globals variable to the
      Python dictionary. */
 
-  if (!have_globals) {
-    Printf(f_init,"\t PyDict_SetItemString(d,(char*)\"%s\", SWIG_globals);\n",global_name);
-    have_globals=1;
-    if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-      Printf(f_shadow_stubs,"%s = %s.%s\n", global_name, module, global_name);
+    if (!have_globals) {
+      Printf(f_init,"\t PyDict_SetItemString(d,(char*)\"%s\", SWIG_globals);\n",global_name);
+      have_globals=1;
+      if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+	Printf(f_shadow_stubs,"%s = %s.%s\n", global_name, module, global_name);
+      }
     }
-  }
 
-  wname = Swig_name_wrapper(iname);
+    wname = Swig_name_wrapper(iname);
 
     /* Create a function for setting the value of the variable */
 
-  Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
-  if (!Getattr(n,"feature:immutable")) {
-    if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
-      Replaceall(tm,"$source","_val");
-      Replaceall(tm,"$target",name);
-      Replaceall(tm,"$input","_val");
-      Printf(setf->code,"%s\n",tm);
-      Delete(tm);
-    } else {
-      Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
-		   "Unable to set variable of type %s.\n", SwigType_str(t,0));
-    }
-    Printf(setf->code,"    return 0;\n");
-  } else {
-    /* Is a readonly variable.  Issue an error */
-    Printv(setf->code,
-	   tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
-	   " is read-only.\");\n",
-	   tab4, "return 1;\n",
-	   NULL);
-  }
-
-  Printf(setf->code,"}\n");
-  Wrapper_print(setf,f_wrappers);
-
-  /* Create a function for getting the value of a variable */
-  Printf(getf->def,"static PyObject *%s_get() {", wname);
-  Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
-  if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
-    Replaceall(tm,"$source",name);
-    Replaceall(tm,"$target","pyobj");
-    Replaceall(tm,"$result","pyobj");
-    Printf(getf->code,"%s\n", tm);
-  } else {
-    Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
-		 "Unable to link with type %s\n", SwigType_str(t,0));
-  }
-    
-  Printf(getf->code,"    return pyobj;\n}\n");
-  Wrapper_print(getf,f_wrappers);
-
-  /* Now add this to the variable linking mechanism */
-  Printf(f_init,"\t SWIG_addvarlink(SWIG_globals,(char*)\"%s\",%s_get, %s_set);\n", iname, wname, wname);
-
-  DelWrapper(setf);
-  DelWrapper(getf);
-  return SWIG_OK;
-}
-
-/* -----------------------------------------------------------------------------
- * PYTHON::constantWrapper()
- * ----------------------------------------------------------------------------- */
-int
-PYTHON::constantWrapper(Node *n) {
-  char *name      = GetChar(n,"name");
-  char *iname     = GetChar(n,"sym:name");
-  SwigType *type  = Getattr(n,"type");
-  String   *value = Getattr(n,"value");
-  String  *tm;
-  int     have_tm = 0;
-
-  if (!addSymbol(iname,n)) return SWIG_ERROR;
-
-  /* Special hook for member pointer */
-  if (SwigType_type(type) == T_MPOINTER) {
-    String *wname = Swig_name_wrapper(iname);
-    Printf(f_header, "static %s = %s;\n", SwigType_str(type,wname), value);
-    value = Char(wname);
-  }
-  if ((tm = Swig_typemap_lookup_new("consttab",n,name,0))) {
-    Replaceall(tm,"$source",value);
-    Replaceall(tm,"$target",name);
-    Replaceall(tm,"$value", value);
-    Printf(const_code,"%s,\n", tm);
-    have_tm = 1;
-  }
-  if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
-    Replaceall(tm,"$source",value);
-    Replaceall(tm,"$target",name);
-    Replaceall(tm,"$value",value);
-    Printf(f_init, "%s\n", tm);
-    have_tm = 1;
-  }
-  if (!have_tm) {
-    Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
-		 "Unsupported constant value.\n");
-    return SWIG_NOWRAP;
-  }
-  if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-    Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n", NULL);
-  }
-  return SWIG_OK;
-}
-
-/* -----------------------------------------------------------------------------
- * PYTHON::nativeWrapper()
- * ----------------------------------------------------------------------------- */
-
-int
-PYTHON::nativeWrapper(Node *n) {
-  char *name     = GetChar(n,"sym:name");
-  char *wrapname = GetChar(n,"wrap:name");
-
-  if (!addSymbol(wrapname,n)) return SWIG_ERROR;
-
-  add_method(name, wrapname,0);
-  if (shadow) {
-    Printv(f_shadow_stubs, name, " = ", module, ".", name, "\n\n", NULL);
-  }
-  return SWIG_OK;
-}
-
-/* C++ Support + Shadow Classes */
-
-static  int       have_constructor;
-static  int       have_repr;
-static  String   *real_classname;
-
-/* -----------------------------------------------------------------------------
- * classDeclaration()
- * ----------------------------------------------------------------------------- */
-
-int
-PYTHON::classDeclaration(Node *n) {
-  String *importname;
-  Node   *mod;
-  if (shadow) {
-    mod = Getattr(n,"module");
-    if (mod) {
-      String *modname = Getattr(mod,"name");
-      if (Strcmp(modname,mainmodule) != 0) {
-	importname = NewStringf("%s.%s", modname, Getattr(n,"sym:name"));
+    Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
+    if (!Getattr(n,"feature:immutable")) {
+      if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
+	Replaceall(tm,"$source","_val");
+	Replaceall(tm,"$target",name);
+	Replaceall(tm,"$input","_val");
+	Printf(setf->code,"%s\n",tm);
+	Delete(tm);
       } else {
-	importname = NewString(Getattr(n,"sym:name"));
+	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
+		     "Unable to set variable of type %s.\n", SwigType_str(t,0));
       }
-      Setattr(n,"python:proxy",importname);
-    }
-  }
-  return Language::classDeclaration(n);
-}
-
-/* -----------------------------------------------------------------------------
- * PYTHON::classHandler()
- * ----------------------------------------------------------------------------- */
-
-int
-PYTHON::classHandler(Node *n) {
-  if (shadow) {
-
-    /* Create new strings for building up a wrapper function */
-    have_constructor = 0;
-    have_repr = 0;
-
-    shadow_indent = (String *) tab4;
-
-    class_name = Getattr(n,"sym:name");
-    real_classname = Getattr(n,"name");
-
-    if (!addSymbol(class_name,n)) return SWIG_ERROR;
-
-    /* Handle inheritance */
-    String *base_class = NewString("");
-    List *baselist = Getattr(n,"bases");
-    if (baselist && Len(baselist)) {
-      Node *base = Firstitem(baselist);
-      while (base) {
-	String *bname = Getattr(base, "python:proxy");
-	if (!bname) {
-	  base = Nextitem(baselist);
-	  continue;
-	}
-	Printv(base_class,bname,NULL);
-	base = Nextitem(baselist);
-	if (base) {
-	  Putc(',',base_class);
-	}
-      }
-    }
-    Printv(f_shadow,"class ", class_name, NULL);
-    if (Len(base_class)) {
-      Printf(f_shadow,"(%s)", base_class);
-    }
-    Printf(f_shadow,":\n");
-
-    Printv(f_shadow,tab4,"__setmethods__ = {}\n",NULL);
-    Printf(f_shadow,"%sfor _s in [%s]: __setmethods__.update(_s.__setmethods__)\n",tab4,base_class);
-
-    Printv(f_shadow,
-	   tab4, "def __setattr__(self,name,value):\n",
-	   tab8, "if (name == \"this\"):\n",
-	   tab8, tab4, "if isinstance(value,", class_name, "):\n",
-	   tab8, tab8, "self.__dict__[name] = value.this\n",
-	   tab8, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n",
-	   tab8, tab8, "del value.thisown\n",
-	   tab8, tab8, "return\n",
-	   //	   tab8, "if (name == \"this\") or (name == \"thisown\"): self.__dict__[name] = value; return\n",
-	   tab8, "method = ", class_name, ".__setmethods__.get(name,None)\n",
-	   tab8, "if method: return method(self,value)\n",
-	   tab8, "self.__dict__[name] = value\n\n",
-	   NULL);
-
-    Printv(f_shadow,tab4,"__getmethods__ = {}\n",NULL);
-    Printf(f_shadow,"%sfor _s in [%s]: __getmethods__.update(_s.__getmethods__)\n",tab4,base_class);
-
-    Printv(f_shadow, tab4, "def __getattr__(self,name):\n",
-           tab8, "method = ", class_name, ".__getmethods__.get(name,None)\n",
-	   tab8, "if method: return method(self)\n",
-	   tab8, "raise AttributeError,name\n\n",
-	   NULL);
-  }
-
-  /* Emit all of the members */
-  Language::classHandler(n);
-
-  /* Complete the class */
-  if (shadow) {
-    /* Generate a class registration function */
-    {
-      SwigType  *ct = NewStringf("p.%s", real_classname);
-      SwigType_remember(ct);
-      Printv(f_wrappers,
-	     "static PyObject * ", class_name, "_swigregister(PyObject *self, PyObject *args) {\n",
-	     tab4, "PyObject *obj;\n",
-	     tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
-	     tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
-	     tab4, "Py_INCREF(obj);\n",
-	     tab4, "return Py_BuildValue((char *)\"\");\n",
-	     "}\n",NULL);
-      String *cname = NewStringf("%s_swigregister", class_name);
-      add_method(Char(cname), Char(cname), 0);
-      Delete(cname);
-      Delete(ct);
-    }
-    if (!have_constructor) {
-      Printv(f_shadow,tab4,"def __init__(self): raise RuntimeError, \"No constructor defined\"\n",NULL);
-    }
-
-    if (!have_repr) {
-      /* Supply a repr method for this class  */
-      Printv(f_shadow,
-	     tab4, "def __repr__(self):\n",
-	     tab8, "return \"<C ", class_name," instance at %s>\" % (self.this,)\n",
+      Printf(setf->code,"    return 0;\n");
+    } else {
+      /* Is a readonly variable.  Issue an error */
+      Printv(setf->code,
+	     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
+	     " is read-only.\");\n",
+	     tab4, "return 1;\n",
 	     NULL);
     }
-    /* Now build the real class with a normal constructor */
-    Printv(f_shadow,
-	   "\nclass ", class_name, "Ptr(", class_name, "):\n",
-	   tab4, "def __init__(self,this):\n",
-	   tab8, "self.this = this\n",
-	   tab8, "if not hasattr(self,\"thisown\"): self.thisown = 0\n",
-	   //	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
-	   //	   tab8,"except AttributeError: self.this = this\n"
-	   tab8, "self.__class__ = ", class_name, "\n",
-	   NULL);
 
-    Printf(f_shadow,"%s.%s_swigregister(%sPtr)\n", module, class_name, class_name,0);
-    shadow_indent = 0;
-  }
-  return SWIG_OK;
-}
+    Printf(setf->code,"}\n");
+    Wrapper_print(setf,f_wrappers);
 
-
-/* -----------------------------------------------------------------------------
- * PYTHON::memberfunctionHandler()
- * ----------------------------------------------------------------------------- */
-int
-PYTHON::memberfunctionHandler(Node *n) {
-  char *symname = GetChar(n,"sym:name");
-  int   oldshadow;
-
-  /* Create the default member function */
-  oldshadow = shadow;    /* Disable shadowing when wrapping member functions */
-  if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  Language::memberfunctionHandler(n);
-  shadow = oldshadow;
-
-  if (shadow) {
-    if (strcmp(symname,"__repr__") == 0)
-      have_repr = 1;
-
-    if (Getattr(n,"feature:shadow")) {
-      String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
-      Printv(f_shadow,pycode,"\n",NULL);
+    /* Create a function for getting the value of a variable */
+    Printf(getf->def,"static PyObject *%s_get() {", wname);
+    Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
+    if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
+      Replaceall(tm,"$source",name);
+      Replaceall(tm,"$target","pyobj");
+      Replaceall(tm,"$result","pyobj");
+      Printf(getf->code,"%s\n", tm);
     } else {
-      if (use_kw) {
-	Printv(f_shadow,tab4, "def ", symname, "(*args, **kwargs): ", NULL);
-	Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args, kwargs)\n", NULL);
-      } else {
-	Printv(f_shadow, tab4, "def ", symname, "(*args): ", NULL);
-	Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args)\n",NULL);
+      Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
+		   "Unable to link with type %s\n", SwigType_str(t,0));
+    }
+    
+    Printf(getf->code,"    return pyobj;\n}\n");
+    Wrapper_print(getf,f_wrappers);
+
+    /* Now add this to the variable linking mechanism */
+    Printf(f_init,"\t SWIG_addvarlink(SWIG_globals,(char*)\"%s\",%s_get, %s_set);\n", iname, wname, wname);
+
+    DelWrapper(setf);
+    DelWrapper(getf);
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * constantWrapper()
+   * ------------------------------------------------------------ */
+
+  virtual int constantWrapper(Node *n) {
+    String *name    = Getattr(n,"name");
+    String *iname   = Getattr(n,"sym:name");
+    SwigType *type  = Getattr(n,"type");
+    String   *value = Getattr(n,"value");
+    String  *tm;
+    int     have_tm = 0;
+
+    if (!addSymbol(iname,n)) return SWIG_ERROR;
+
+  /* Special hook for member pointer */
+    if (SwigType_type(type) == T_MPOINTER) {
+      String *wname = Swig_name_wrapper(iname);
+      Printf(f_header, "static %s = %s;\n", SwigType_str(type,wname), value);
+      value = wname;
+    }
+    if ((tm = Swig_typemap_lookup_new("consttab",n,name,0))) {
+      Replaceall(tm,"$source",value);
+      Replaceall(tm,"$target",name);
+      Replaceall(tm,"$value", value);
+      Printf(const_code,"%s,\n", tm);
+      have_tm = 1;
+    }
+    if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
+      Replaceall(tm,"$source",value);
+      Replaceall(tm,"$target",name);
+      Replaceall(tm,"$value",value);
+      Printf(f_init, "%s\n", tm);
+      have_tm = 1;
+    }
+    if (!have_tm) {
+      Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
+		   "Unsupported constant value.\n");
+      return SWIG_NOWRAP;
+    }
+    if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+      Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n", NULL);
+    }
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------ 
+   * nativeWrapper()
+   * ------------------------------------------------------------ */
+
+  virtual int nativeWrapper(Node *n) {
+    String *name     = Getattr(n,"sym:name");
+    String *wrapname = Getattr(n,"wrap:name");
+
+    if (!addSymbol(wrapname,n)) return SWIG_ERROR;
+
+    add_method(name, wrapname,0);
+    if (shadow) {
+      Printv(f_shadow_stubs, name, " = ", module, ".", name, "\n\n", NULL);
+    }
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * classDeclaration()
+   * ------------------------------------------------------------ */
+
+  virtual int classDeclaration(Node *n) {
+    String *importname;
+    Node   *mod;
+    if (shadow) {
+      mod = Getattr(n,"module");
+      if (mod) {
+	String *modname = Getattr(mod,"name");
+	if (Strcmp(modname,mainmodule) != 0) {
+	  importname = NewStringf("%s.%s", modname, Getattr(n,"sym:name"));
+	} else {
+	  importname = NewString(Getattr(n,"sym:name"));
+	}
+	Setattr(n,"python:proxy",importname);
       }
     }
+    return Language::classDeclaration(n);
   }
-  return SWIG_OK;
-}
 
-/* -----------------------------------------------------------------------------
- * PYTHON::constructorDeclaration()
- * ----------------------------------------------------------------------------- */
-int
-PYTHON::constructorHandler(Node *n) {
-  char *symname = GetChar(n,"sym:name");
-  int   oldshadow = shadow;
+  /* ------------------------------------------------------------
+   * classHandler()
+   * ------------------------------------------------------------ */
 
-  if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  Language::constructorHandler(n);
-  shadow = oldshadow;
+  virtual int classHandler(Node *n) {
+    if (shadow) {
+      
+      /* Create new strings for building up a wrapper function */
+      have_constructor = 0;
+      have_repr = 0;
+      
+      shadow_indent = (String *) tab4;
+      
+      class_name = Getattr(n,"sym:name");
+      real_classname = Getattr(n,"name");
+      
+      if (!addSymbol(class_name,n)) return SWIG_ERROR;
+      
+      /* Handle inheritance */
+      String *base_class = NewString("");
+      List *baselist = Getattr(n,"bases");
+      if (baselist && Len(baselist)) {
+	Node *base = Firstitem(baselist);
+	while (base) {
+	  String *bname = Getattr(base, "python:proxy");
+	  if (!bname) {
+	    base = Nextitem(baselist);
+	    continue;
+	  }
+	  Printv(base_class,bname,NULL);
+	  base = Nextitem(baselist);
+	  if (base) {
+	    Putc(',',base_class);
+	  }
+	}
+      }
+      Printv(f_shadow,"class ", class_name, NULL);
+      if (Len(base_class)) {
+	Printf(f_shadow,"(%s)", base_class);
+      }
+      Printf(f_shadow,":\n");
 
-  if (shadow) {
-    if (!have_constructor) {
+      Printv(f_shadow,tab4,"__setmethods__ = {}\n",NULL);
+      Printf(f_shadow,"%sfor _s in [%s]: __setmethods__.update(_s.__setmethods__)\n",tab4,base_class);
+
+      Printv(f_shadow,
+	     tab4, "def __setattr__(self,name,value):\n",
+	     tab8, "if (name == \"this\"):\n",
+	     tab8, tab4, "if isinstance(value,", class_name, "):\n",
+	     tab8, tab8, "self.__dict__[name] = value.this\n",
+	     tab8, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n",
+	     tab8, tab8, "del value.thisown\n",
+	     tab8, tab8, "return\n",
+	     //	   tab8, "if (name == \"this\") or (name == \"thisown\"): self.__dict__[name] = value; return\n",
+	     tab8, "method = ", class_name, ".__setmethods__.get(name,None)\n",
+	     tab8, "if method: return method(self,value)\n",
+	     tab8, "self.__dict__[name] = value\n\n",
+	     NULL);
+
+      Printv(f_shadow,tab4,"__getmethods__ = {}\n",NULL);
+      Printf(f_shadow,"%sfor _s in [%s]: __getmethods__.update(_s.__getmethods__)\n",tab4,base_class);
+
+      Printv(f_shadow, tab4, "def __getattr__(self,name):\n",
+	     tab8, "method = ", class_name, ".__getmethods__.get(name,None)\n",
+	     tab8, "if method: return method(self)\n",
+	     tab8, "raise AttributeError,name\n\n",
+	     NULL);
+    }
+
+    /* Emit all of the members */
+    Language::classHandler(n);
+
+    /* Complete the class */
+    if (shadow) {
+      /* Generate a class registration function */
+      {
+	SwigType  *ct = NewStringf("p.%s", real_classname);
+	SwigType_remember(ct);
+	Printv(f_wrappers,
+	       "static PyObject * ", class_name, "_swigregister(PyObject *self, PyObject *args) {\n",
+	       tab4, "PyObject *obj;\n",
+	       tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
+	       tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
+	       tab4, "Py_INCREF(obj);\n",
+	       tab4, "return Py_BuildValue((char *)\"\");\n",
+	       "}\n",NULL);
+	String *cname = NewStringf("%s_swigregister", class_name);
+	add_method(cname, cname, 0);
+	Delete(cname);
+	Delete(ct);
+      }
+      if (!have_constructor) {
+	Printv(f_shadow,tab4,"def __init__(self): raise RuntimeError, \"No constructor defined\"\n",NULL);
+      }
+
+      if (!have_repr) {
+	/* Supply a repr method for this class  */
+	Printv(f_shadow,
+	       tab4, "def __repr__(self):\n",
+	       tab8, "return \"<C ", class_name," instance at %s>\" % (self.this,)\n",
+	       NULL);
+      }
+      /* Now build the real class with a normal constructor */
+      Printv(f_shadow,
+	     "\nclass ", class_name, "Ptr(", class_name, "):\n",
+	     tab4, "def __init__(self,this):\n",
+	     tab8, "self.this = this\n",
+	     tab8, "if not hasattr(self,\"thisown\"): self.thisown = 0\n",
+	     //	   tab8,"try: self.this = this.this; self.thisown = getattr(this,'thisown',0); this.thisown=0\n",
+	     //	   tab8,"except AttributeError: self.this = this\n"
+	     tab8, "self.__class__ = ", class_name, "\n",
+	     NULL);
+
+      Printf(f_shadow,"%s.%s_swigregister(%sPtr)\n", module, class_name, class_name,0);
+      shadow_indent = 0;
+    }
+    return SWIG_OK;
+  }
+
+
+  /* ------------------------------------------------------------
+   * memberfunctionHandler()
+   * ------------------------------------------------------------ */
+
+  virtual int memberfunctionHandler(Node *n) {
+    String *symname = Getattr(n,"sym:name");
+    int   oldshadow;
+
+    /* Create the default member function */
+    oldshadow = shadow;    /* Disable shadowing when wrapping member functions */
+    if (shadow) shadow = shadow | PYSHADOW_MEMBER;
+    Language::memberfunctionHandler(n);
+    shadow = oldshadow;
+
+    if (shadow) {
+      if (Strcmp(symname,"__repr__") == 0)
+	have_repr = 1;
+
       if (Getattr(n,"feature:shadow")) {
 	String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
 	Printv(f_shadow,pycode,"\n",NULL);
       } else {
 	if (use_kw) {
-	  Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", NULL);
-	  Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
-	}  else {
-	  Printv(f_shadow, tab4, "def __init__(self,*args):\n",NULL);
-	  Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", NULL);
+	  Printv(f_shadow,tab4, "def ", symname, "(*args, **kwargs): ", NULL);
+	  Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args, kwargs)\n", NULL);
+	} else {
+	  Printv(f_shadow, tab4, "def ", symname, "(*args): ", NULL);
+	  Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args)\n",NULL);
 	}
-	Printv(f_shadow,
-	       tab8, "self.thisown = 1\n",
-	       NULL);
-
-	       /*	       tab8,"try: self.this = this.this; this.thisown=0\n",
-			       tab8,"except AttributeError: self.this = this\n",NULL); */
-	
-	       /*	Printv(f_shadow, tab8, "self.thisown = 1\n", NULL); */
       }
-      have_constructor = 1;
-    } else {
-      /* Hmmm. We seem to be creating a different constructor.  We're just going to create a
-	 function for it. */
+    }
+    return SWIG_OK;
+  }
 
-      if (Getattr(n,"feature:shadow")) {
-	String *pycode = pythoncode(Getattr(n,"feature:shadow"),"");
-	Printv(f_shadow_stubs,pycode,"\n",NULL);
+  /* ------------------------------------------------------------
+   * constructorDeclaration()
+   * ------------------------------------------------------------ */
+
+  virtual int constructorHandler(Node *n) {
+    String *symname = Getattr(n,"sym:name");
+    int   oldshadow = shadow;
+
+    if (shadow) shadow = shadow | PYSHADOW_MEMBER;
+    Language::constructorHandler(n);
+    shadow = oldshadow;
+
+    if (shadow) {
+      if (!have_constructor) {
+	if (Getattr(n,"feature:shadow")) {
+	  String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
+	  Printv(f_shadow,pycode,"\n",NULL);
+	} else {
+	  if (use_kw) {
+	    Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", NULL);
+	    Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
+	  }  else {
+	    Printv(f_shadow, tab4, "def __init__(self,*args):\n",NULL);
+	    Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args)\n", NULL);
+	  }
+	  Printv(f_shadow,
+		 tab8, "self.thisown = 1\n",
+		 NULL);
+
+	  /*	       tab8,"try: self.this = this.this; this.thisown=0\n",
+		       tab8,"except AttributeError: self.this = this\n",NULL); */
+	
+	  /*	Printv(f_shadow, tab8, "self.thisown = 1\n", NULL); */
+	}
+	have_constructor = 1;
       } else {
-	if (use_kw)
-	  Printv(f_shadow_stubs, "def ", symname, "(*args,**kwargs):\n", NULL);
-	else
-	  Printv(f_shadow_stubs, "def ", symname, "(*args):\n", NULL);
+	/* Hmmm. We seem to be creating a different constructor.  We're just going to create a
+	   function for it. */
+
+	if (Getattr(n,"feature:shadow")) {
+	  String *pycode = pythoncode(Getattr(n,"feature:shadow"),"");
+	  Printv(f_shadow_stubs,pycode,"\n",NULL);
+	} else {
+	  if (use_kw)
+	    Printv(f_shadow_stubs, "def ", symname, "(*args,**kwargs):\n", NULL);
+	  else
+	    Printv(f_shadow_stubs, "def ", symname, "(*args):\n", NULL);
 	
-	Printv(f_shadow_stubs, tab4, "val = apply(", NULL);
-	if (use_kw)
-	  Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
-	else
-	  Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args)\n", NULL);
-	Printv(f_shadow_stubs,tab4, "val.thisown = 1\n",
-	       tab4, "return val\n\n", NULL);
+	  Printv(f_shadow_stubs, tab4, "val = apply(", NULL);
+	  if (use_kw)
+	    Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
+	  else
+	    Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args)\n", NULL);
+	  Printv(f_shadow_stubs,tab4, "val.thisown = 1\n",
+		 tab4, "return val\n\n", NULL);
+	}
       }
     }
+    return SWIG_OK;
   }
-  return SWIG_OK;
-}
 
-/* -----------------------------------------------------------------------------
- * PYTHON::destructorHandler()
- * ----------------------------------------------------------------------------- */
-int
-PYTHON::destructorHandler(Node *n) {
-  char *symname = GetChar(n,"sym:name");
-  int oldshadow = shadow;
+  /* ------------------------------------------------------------
+   * destructorHandler()
+   * ------------------------------------------------------------ */
 
-  if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  Language::destructorHandler(n);
-  shadow = oldshadow;
-  if (shadow) {
-    Printv(f_shadow, tab4, "def __del__(self, destroy= ", module, ".", Swig_name_destroy(symname), "):\n", NULL);
-    Printv(f_shadow, tab8, "if getattr(self,'thisown',0):\n",
-	   tab8, tab4, "destroy(self)\n", NULL);
-  }
-  return SWIG_OK;
-}
-
-/* -----------------------------------------------------------------------------
- * PYTHON::membervariableHandler()
- * ----------------------------------------------------------------------------- */
-int
-PYTHON::membervariableHandler(Node *n) {
-  char *symname = GetChar(n,"sym:name");
-
-  int   oldshadow = shadow;
-  if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  Language::membervariableHandler(n);
-  shadow = oldshadow;
-
-  if (shadow) {
-    if (!Getattr(n,"feature:immutable")) {
-      Printv(f_shadow, tab4, "__setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", NULL);
+  virtual int destructorHandler(Node *n) {
+    String *symname = Getattr(n,"sym:name");
+    int oldshadow = shadow;
+    
+    if (shadow) shadow = shadow | PYSHADOW_MEMBER;
+    Language::destructorHandler(n);
+    shadow = oldshadow;
+    if (shadow) {
+      Printv(f_shadow, tab4, "def __del__(self, destroy= ", module, ".", Swig_name_destroy(symname), "):\n", NULL);
+      Printv(f_shadow, tab8, "if getattr(self,'thisown',0):\n",
+	     tab8, tab4, "destroy(self)\n", NULL);
     }
-    Printv(f_shadow, tab4, "__getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NULL);
+    return SWIG_OK;
   }
-  return SWIG_OK;
-}
 
-/* -----------------------------------------------------------------------------
- * PYTHON::memberconstantHandler()
- * ----------------------------------------------------------------------------- */
-int
-PYTHON::memberconstantHandler(Node *n) {
-  char *symname = GetChar(n,"sym:name");
-  int   oldshadow = shadow;
-  if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  Language::memberconstantHandler(n);
-  shadow = oldshadow;
+  /* ------------------------------------------------------------
+   * membervariableHandler()
+   * ------------------------------------------------------------ */
 
-  if (shadow) {
-     Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(class_name,symname), "\n", NULL);
+  virtual int membervariableHandler(Node *n) {
+    String *symname = Getattr(n,"sym:name");
+
+    int   oldshadow = shadow;
+    if (shadow) shadow = shadow | PYSHADOW_MEMBER;
+    Language::membervariableHandler(n);
+    shadow = oldshadow;
+
+    if (shadow) {
+      if (!Getattr(n,"feature:immutable")) {
+	Printv(f_shadow, tab4, "__setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", NULL);
+      }
+      Printv(f_shadow, tab4, "__getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NULL);
+    }
+    return SWIG_OK;
   }
-  return SWIG_OK;
-}
 
-/* -----------------------------------------------------------------------------
- * PYTHON::pythoncode()     - Output python code into the shadow file
- * ----------------------------------------------------------------------------- */
+  /* ------------------------------------------------------------
+   * memberconstantHandler()
+   * ------------------------------------------------------------ */
 
-String *
-PYTHON::pythoncode(String *code, const String *indent) {
-  String *out = NewString("");
-  String *temp;
-  char   *t;
-  if (!indent) indent = "";
+  virtual int memberconstantHandler(Node *n) {
+    String *symname = Getattr(n,"sym:name");
+    int   oldshadow = shadow;
+    if (shadow) shadow = shadow | PYSHADOW_MEMBER;
+    Language::memberconstantHandler(n);
+    shadow = oldshadow;
 
-  temp = NewString(code);
-
-  t = Char(temp);
-  if (*t == '{') {
-    Delitem(temp,0);
-    Delitem(temp,DOH_END);
+    if (shadow) {
+      Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(class_name,symname), "\n", NULL);
+    }
+    return SWIG_OK;
   }
-  /* Split the input text into lines */
-  List *clist = DohSplit(temp,"\n",-1);
-  Delete(temp);
-  int   initial = 0;
-  String *s;
+
+  /* ------------------------------------------------------------
+   * pythoncode()     - Output python code into the shadow file
+   * ------------------------------------------------------------ */
+
+  String *pythoncode(String *code, const String *indent) {
+    String *out = NewString("");
+    String *temp;
+    char   *t;
+    if (!indent) indent = "";
+
+    temp = NewString(code);
+
+    t = Char(temp);
+    if (*t == '{') {
+      Delitem(temp,0);
+      Delitem(temp,DOH_END);
+    }
+    /* Split the input text into lines */
+    List *clist = DohSplit(temp,"\n",-1);
+    Delete(temp);
+    int   initial = 0;
+    String *s;
 
   /* Get the initial indentation */
-  for (s = Firstitem(clist); s; s = Nextitem(clist)) {
-    if (Len(s)) {
-      char *c = Char(s);
-      while (*c) {
-	if (!isspace(*c)) break;
-	initial++;
-	c++;
+    for (s = Firstitem(clist); s; s = Nextitem(clist)) {
+      if (Len(s)) {
+	char *c = Char(s);
+	while (*c) {
+	  if (!isspace(*c)) break;
+	  initial++;
+	  c++;
+	}
+	break;
       }
-      break;
     }
-  }
-  while (s) {
-    if (Len(s) > initial) {
-      char *c = Char(s);
-      c += initial;
-      Printv(out,indent,c,"\n",NULL);
-    } else {
-      Printv(out,"\n",NULL);
+    while (s) {
+      if (Len(s) > initial) {
+	char *c = Char(s);
+	c += initial;
+	Printv(out,indent,c,"\n",NULL);
+      } else {
+	Printv(out,"\n",NULL);
+      }
+      s = Nextitem(clist);
     }
-    s = Nextitem(clist);
+    Delete(clist);
+    return out;
   }
-  Delete(clist);
-  return out;
-}
 
-/* ----------------------------------------------------------------------------- 
- * insertDirective()
- * 
- * Hook for %insert directive.   We're going to look for special %shadow inserts
- * as a special case so we can do indenting correctly
+  /* ------------------------------------------------------------
+   * insertDirective()
+   * 
+   * Hook for %insert directive.   We're going to look for special %shadow inserts
+   * as a special case so we can do indenting correctly
+   * ------------------------------------------------------------ */
+
+  virtual int insertDirective(Node *n) {
+    String *code = Getattr(n,"code");
+    String *section = Getattr(n,"section");
+
+    if ((!ImportMode) && (Cmp(section,"shadow") == 0)) {
+      if (shadow) {
+	String *pycode = pythoncode(code,shadow_indent);
+	Printv(f_shadow,pycode,"\n",NULL);
+	Delete(pycode);
+      }
+    } else {
+      Language::insertDirective(n);
+    }
+    return SWIG_OK;
+  }
+};
+
+/* -----------------------------------------------------------------------------
+ * swig_python()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-int PYTHON::insertDirective(Node *n) {
-  String *code = Getattr(n,"code");
-  String *section = Getattr(n,"section");
-
-  if ((!ImportMode) && (Cmp(section,"shadow") == 0)) {
-    if (shadow) {
-      String *pycode = pythoncode(code,shadow_indent);
-      Printv(f_shadow,pycode,"\n",NULL);
-      Delete(pycode);
-    }
-  } else {
-    Language::insertDirective(n);
-  }
-  return SWIG_OK;
+extern "C" Language *
+swig_python(void) {
+  return new PYTHON();
 }
-
-
