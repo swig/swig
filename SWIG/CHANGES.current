@@ -1,6 +1,11 @@
 Version 1.3.20 (In progress)
 ============================
 10/31/2003: beazley
+            Incorporated patch: [ 823302 ] Incr Tcl support.
+            Contributed by Alexey Dyachenko.
+            Note: needs documentation.
+
+10/31/2003: beazley
             Incorporated patch: [ 829325 ] new Python Module options and features.
             Robin Dunn writes:
 
