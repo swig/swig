@@ -21,13 +21,12 @@ print "\nA total of", example.cvar.Shape_nshapes,"shapes were created"
 # ----- Member data access -----
 
 # Set the location of the object
+# Note: this must be done using Shape_x_set() and
+# Shape_y_set() since x and y were defined in Shape.
 
-# Notice how we can do this using functions specific to
-# the 'Circle' class.
-example.Circle_x_set(c, 20)
-example.Circle_y_set(c, 30)
+example.Shape_x_set(c, 20)
+example.Shape_y_set(c, 30)
 
-# Now use the same functions in the base class
 example.Shape_x_set(s,-10)
 example.Shape_y_set(s,5)
 
