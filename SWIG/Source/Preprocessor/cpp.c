@@ -996,12 +996,11 @@ SWIG_cpp_parse(DOH *s)
 	if (allow) {
 	  start_level = level;
 	  sval = swig_cpp_replace(value);
-	  sval = Copy(value);
 	  Seek(sval,0,SEEK_SET);
   	  val = SWIG_expr(sval,&e);
   	  if (e) {
   	    Seek(value,0,SEEK_SET); 
-  	    /*	    cpp_error(Getfile(value),Getline(value),"Could not evaluate '%s'\n", value); */
+  	     cpp_error(Getfile(value),Getline(value),"Could not evaluate '%s'\n", value);
   	    allow = 0; 
   	  } else { 
   	    if (val == 0)  
