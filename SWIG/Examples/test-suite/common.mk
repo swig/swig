@@ -235,6 +235,7 @@ CPP_TEST_CASES += \
 	template_ns_enum2 \
 	template_ns_inherit \
 	template_ns_scope \
+	template_opaque \
 	template_partial_arg \
 	template_qualifier \
 	template_qualifier \
