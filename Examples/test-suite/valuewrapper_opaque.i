@@ -159,6 +159,7 @@ public:
   
   char *foo_method()
   {
+    return 0;
   }
   
 };
