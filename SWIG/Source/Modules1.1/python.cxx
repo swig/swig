@@ -1046,8 +1046,9 @@ public:
     shadow = oldshadow;
     if (shadow) {
       Printv(f_shadow, tab4, "def __del__(self, destroy= ", module, ".", Swig_name_destroy(symname), "):\n", NULL);
-      Printv(f_shadow, tab8, "if hasattr(self,'thisown') and self.thisown:\n",
-	     tab8, tab4, "destroy(self)\n", NULL);
+      Printv(f_shadow, tab8, "try:\n", NULL);
+      Printv(f_shadow, tab4, tab8, "if self.thisown: destroy(self)\n", NULL);
+      Printv(f_shadow, tab8, "except: pass\n", NULL);
     }
     return SWIG_OK;
   }
