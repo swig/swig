@@ -34,9 +34,7 @@ public class director_basic_runme {
           throw new RuntimeException ( "b.pong()" );
       }
 
-      /* Test A1's directordisconnect method rename */
       A1 a1 = new A1(1, false);
-
       a1.delete();
   }
 }
