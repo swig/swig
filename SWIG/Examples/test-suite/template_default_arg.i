@@ -95,3 +95,26 @@
 %template(ottint) ott<int>; // default arg requires a rename
 %template(ottstring) ott<const char *>; // default arg requires a rename
 
+
+// Above test in namespaces
+%inline %{
+namespace OuterSpace {
+  namespace InnerSpace {
+    // Templated methods which are overloaded and have default args, and %template which
+    // uses the same name as the C++ functions and overload on the template parameters and
+    // specialization thrown in too. Wow, SWIG can handle this insane stuff!
+    template<typename T, typename U> int nsott(T t = 0, const U& u = U()) { return 110; }
+    template<typename T, typename U> int nsott(const char *msg, T t = 0, const U& u = U()) { return 120; }
+    int nsott(Foo<int>) { return 130; }
+    template<typename T> int nsott(Hello<int> h, T t = 0) { return 140; }
+    template<> int nsott<int>(Hello<int> h, int t) { return 150; }
+    template<> int nsott(Hello<int> h, double t) { return 160; }
+  }
+}
+%}
+
+%template(nsott) OuterSpace::InnerSpace::nsott<int, int>;
+%template(nsott) OuterSpace::InnerSpace::nsott<double>;
+%template(nsottint) OuterSpace::InnerSpace::nsott<int>; // default arg requires a rename
+%template(nsottstring) OuterSpace::InnerSpace::nsott<const char *>; // default arg requires a rename
+
