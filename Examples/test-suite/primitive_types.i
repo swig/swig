@@ -558,6 +558,21 @@ macro(size_t,             pfx, sizet)
 %}
 
 
+%inline
+%{
+    namespace DCTypes
+    {
+        typedef const unsigned int cuint;
+    }
+
+    namespace DCSystem
+    {
+        using namespace DCTypes;
+        unsigned int SetPos(cuint& x, cuint& y) {return x + y;}
+    }
+%}
+
+
 %apply SWIGTYPE* { char *};
   
 %include "carrays.i"

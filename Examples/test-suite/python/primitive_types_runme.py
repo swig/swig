@@ -353,3 +353,7 @@ s = char_foo(1,"hello")
 if s !="hello":
   raise RuntimeError, "bad char* typemap"
   
+
+v = SetPos(1,3)
+if v !=4:
+  raise RuntimeError, "bad int typemap"
