@@ -1732,6 +1732,7 @@ featattr        : COMMA idstring EQUAL stringnum {
 		  Setattr($$,"value",$4);
                   set_nextSibling($$,$5);
                 }
+		;
 
 /* %varargs() directive. */
 
