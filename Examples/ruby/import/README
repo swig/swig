@@ -34,8 +34,10 @@ Unix:
 
 Windows:
 --------
-- Use the Visual C++ 6 workspace file (example.dsw). Build each project 
-  to create the 5 DLLs. The Batch build option in the Build menu is the
-  easiest way to do this. Only use the Release builds not the Debug builds.
+- Use the Visual C++ 6 workspace file (example.dsw). Build the runtime
+  project DLL first followed by the other 4 DLLs as they all have a
+  dependency on the runtime DLL. The Batch build option in the Build menu
+  is usually the easiest way to do this. Only use the Release builds not
+  the Debug builds.
 - Run the test as described above
 

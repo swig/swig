@@ -11,6 +11,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name runtime
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -23,11 +26,29 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name runtime
+    End Project Dependency
 }}}
 
 ###############################################################################
 
 Project: "foo"=.\foo.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name runtime
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "runtime"=.\runtime.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -47,6 +68,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name runtime
+    End Project Dependency
 }}}
 
 ###############################################################################
