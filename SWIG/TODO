@@ -109,6 +109,19 @@ defer  ready to go.  The primary obstacle lies in the target language
        [ Partially finished for Tcl/Python. ]
 
 
+***    Modify smart pointer handling to properly handle inheritance.  For
+       example:
+
+            class Foo {
+            public:
+                Blah *operator->();
+            };
+  
+            class Bar : public Foo {
+            }
+
+       Bar should still allow access to Blah * through operator->().
+
 **     Virtual function optimization.  If you have two classes like this:
 
           class Foo {
