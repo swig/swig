@@ -11,7 +11,7 @@
 %define %swig_fromcplx_conv(Type, Real, Imag)
 %fragment(SWIG_From_frag(Type),"header")
 %{
-SWIGSTATICINLINE(PyObject*)
+SWIGINTERNSHORT PyObject*
   SWIG_From(Type)(SWIG_cplusplus(const Type&, Type) c)
 {
   return PyComplex_FromDoubles(Real(c), Imag(c));
@@ -24,7 +24,7 @@ SWIGSTATICINLINE(PyObject*)
 %fragment(SWIG_AsVal_frag(Type),"header",
 	  fragment=SWIG_AsVal_frag(double))
 %{
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(Type) (PyObject *o, Type* val)
 {
   if (PyComplex_Check(o)) {
@@ -55,7 +55,7 @@ SWIGSTATICINLINE(int)
 	  fragment="SWIG_CheckDoubleInRange",
           fragment=SWIG_AsVal_frag(float))
 %{
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(Type)(PyObject *o, Type *val)
 {
   const char* errmsg = val ? #Type : 0;

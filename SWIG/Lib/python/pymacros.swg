@@ -1,22 +1,3 @@
-%{
-/* -----------------------------------------------------------------------------
- * Auxiliar swig  macros that appear in the header 
- * ----------------------------------------------------------------------------- */
-
-/*
-  for internal method declarations
-*/
-#ifdef __cplusplus
-#define SWIGSTATICINLINE(a) static inline a
-#define SWIGSTATIC(a) static a
-#else /* C case */
-#define SWIGSTATICINLINE(a) static a
-#define SWIGSTATIC(a) static a
-#endif /* __cplusplus */
-
-
-%}
-
 /* -----------------------------------------------------------------------------
  * Auxiliar swig  macros used to write typemaps
  * ----------------------------------------------------------------------------- */

@@ -7,7 +7,7 @@
   For example, if you add:
   
   %fragment(SWIG_AsVal_frag(int),"header") {
-   SWIGSTATICINLINE(int)
+   SWIGINTERNSHORT int
    SWIG_AsVal(int)(PyObject *obj, int *val)
    { 
      <your code here>;
