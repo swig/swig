@@ -271,32 +271,38 @@ static void SWIG_exception_(int code, const char *msg) {
 #ifdef SWIGCSHARP
 %{
 static void SWIG_CSharpException(int code, const char *msg) {
-  SWIG_CSharpExceptionCodes exception_code = SWIG_CSharpSystemException;
-  switch(code) {
-  case SWIG_MemoryError:
-    exception_code = SWIG_CSharpOutOfMemoryException;
-    break;
-  case SWIG_IndexError:
-    exception_code = SWIG_CSharpIndexOutOfRangeException;
-    break;
-  case SWIG_DivisionByZero:
-    exception_code = SWIG_CSharpDivideByZeroException;
-    break;
-  case SWIG_ValueError:
-    exception_code = SWIG_CSharpArgumentOutOfRangeException;
-    break;
-  case SWIG_IOError:
-  case SWIG_RuntimeError:
-  case SWIG_TypeError:
-  case SWIG_OverflowError:
-  case SWIG_SyntaxError:
-  case SWIG_SystemError:
-  case SWIG_UnknownError:
-  default:
-    exception_code = SWIG_CSharpSystemException;
-    break;
+  if (code == SWIG_ValueError) {
+    SWIG_CSharpExceptionArgumentCodes exception_code = SWIG_CSharpArgumentOutOfRangeException;
+    SWIG_CSharpSetPendingExceptionArgument(exception_code, msg, 0);
+  } else {
+    SWIG_CSharpExceptionCodes exception_code = SWIG_CSharpApplicationException;
+    switch(code) {
+    case SWIG_MemoryError:
+      exception_code = SWIG_CSharpOutOfMemoryException;
+      break;
+    case SWIG_IndexError:
+      exception_code = SWIG_CSharpIndexOutOfRangeException;
+      break;
+    case SWIG_DivisionByZero:
+      exception_code = SWIG_CSharpDivideByZeroException;
+      break;
+    case SWIG_IOError:
+      exception_code = SWIG_CSharpIOException;
+      break;
+    case SWIG_OverflowError:
+      exception_code = SWIG_CSharpOverflowException;
+      break;
+    case SWIG_RuntimeError:
+    case SWIG_TypeError:
+    case SWIG_SyntaxError:
+    case SWIG_SystemError:
+    case SWIG_UnknownError:
+    default:
+      exception_code = SWIG_CSharpApplicationException;
+      break;
+    }
+    SWIG_CSharpSetPendingException(exception_code, msg);
   }
-  SWIG_CSharpSetPendingException(exception_code, msg);
 }
 #define SWIG_exception(nullreturn, code, msg) { SWIG_CSharpException(code, msg); return nullreturn; }
 %}
