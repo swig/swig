@@ -32,6 +32,10 @@ except:
   raise RuntimeError
 
 
+# the old large format
+if not SWIG_TypeQuery("vfncs::ArithUnaryFunction<vfncs::arith_traits<float,real>::argument_type,vfncs::arith_traits<float,real >::result_type > *"):
+  raise RuntimeError
+
 
 # the reduced format
 if not SWIG_TypeQuery("vfncs::ArithUnaryFunction<double,double> *"):
