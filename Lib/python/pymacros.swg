@@ -30,12 +30,12 @@
 #define SWIG_CCode_frag(Type...)   SWIG_StringType(TYPECHECK, Type)
 
 /* Internal C/C++ API */
-#ifndef SWIG_NO_CPLUSPLUS_CAST
+#ifdef SWIG_NO_CPLUSPLUS_CAST
 /* -----------------------------------------------------------------------------
- * Enable 'modern' cplusplus casting operators
+ * Disable 'modern' cplusplus casting operators
  * ----------------------------------------------------------------------------- */
-#ifndef SWIG_CPLUSPLUS_CAST
-#define SWIG_CPLUSPLUS_CAST
+#ifdef SWIG_CPLUSPLUS_CAST
+#undef SWIG_CPLUSPLUS_CAST
 #endif
 #endif
 
