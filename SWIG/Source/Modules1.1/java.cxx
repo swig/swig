@@ -1066,18 +1066,19 @@ int JAVA::variableWrapper(Node *n)
 
 int JAVA::enumDeclaration(Node *n) {
   String *name = Getattr(n,"sym:name");
-  String* s1 = NewStringf("a(ANY).enum %s", name);
-  String* s2 = NewStringf("a(ANY).%s", name);
+  String* s1 = NewStringf("enum %s", name);
+  String* s2 = NewStringf("%s", name);
+  String *swigtype = NewString("enum SWIGTYPE");
 
-  /* The Java typemaps need the following typemaps to exist for handling arrays of enums:
-     %typemap(jstype) enum SWIGTYPE[ANY] " enum ... "
-     %typemap(jstype) enum SWIGTYPE[ANY] " ... "
-     Now we must apply these typemaps to all known enum declarations */
-  TypemapApplyEnum(s1);
-  TypemapApplyEnum(s2);
+  /* Apply typemaps for handling arrays of enums and arrays of enum pointers for all known enums*/
+  TypemapApply(swigtype, NULL, s1, none, 1);    //%apply enum SWIGTYPE[ANY] {enum name[ANY]};
+  TypemapApply(swigtype, NULL, s2, none, 1);    //%apply enum SWIGTYPE[ANY] {name[ANY]};
+  TypemapApply(swigtype, NULL, s1, pointer, 1); //%apply enum SWIGTYPE*[ANY] {enum name*[ANY]};
+  TypemapApply(swigtype, NULL, s2, pointer, 1); //%apply enum SWIGTYPE*[ANY] {name*[ANY]};
   return Language::enumDeclaration(n);
   Delete(s1);
   Delete(s2);
+  Delete(swigtype);
 }
 
 // -----------------------------------------------------------------------
@@ -1815,46 +1816,41 @@ int JAVA::destructorHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* This function does the equivalent to
- * %apply enum SWIGTYPE[ANY] {name[ANY]}; */
-void JAVA::TypemapApplyEnum(String* name)
+/* This function does the equivalent of
+ * %apply type *tmap { name * };  when additions=pointer or
+ * %apply type &tmap { name & };  when additions=reference
+ * %apply type tmap[ANY] { name [ANY] }; when array_flag set etc... */
+void JAVA::TypemapApply(String *type, String *tmap, String *name, type_additions additions, int array_flag)
 {
-    SwigType* SWIGTYPE_type = NewStringf("a(ANY).enum SWIGTYPE");
-    Parm *srcpat = NewParm(SWIGTYPE_type,0);
-    Parm *destpat = NewParm(name,0);
-    Swig_typemap_apply(srcpat,destpat);
-    Delete(SWIGTYPE_type);
-}
+    String* nametemp = Copy(name);
+    String* swigtypetemp = Copy(type);
 
-/* This function does the equivalent to
- * %apply SWIGTYPE *CLASS { name * };  when pointer_flag set or
- * %apply SWIGTYPE &CLASS { name & };  when pointer_flag unset  */
-void JAVA::TypemapApplyClass(String* name, int pointer_flag)
-{
-    SwigType* SWIGTYPE_type = NewStringf("SWIGTYPE");
-    SwigType* CLASS_type = NewString("CLASS");
-    String* stype = Copy(name);
-
-    if (pointer_flag) {
-        SwigType_add_pointer(SWIGTYPE_type);
-        SwigType_add_pointer(stype);
+    if (additions == pointer) {
+        SwigType_add_pointer(swigtypetemp);
+        SwigType_add_pointer(nametemp);
     }
-    else {
-        SwigType_add_reference(SWIGTYPE_type);
-        SwigType_add_reference(stype);
+    if (additions == reference) {
+        SwigType_add_reference(swigtypetemp);
+        SwigType_add_reference(nametemp);
+    }
+    if (array_flag) {
+        SwigType_add_array(swigtypetemp, (char *)"ANY");
+        SwigType_add_array(nametemp, (char *)"ANY");
     }
 
-    Parm *srcpat = NewParm(SWIGTYPE_type,CLASS_type);
-    Parm *destpat = NewParm(stype,0);
+    Parm *srcpat = NewParm(swigtypetemp,tmap);
+    Parm *destpat = NewParm(nametemp,0);
     Swig_typemap_apply(srcpat,destpat);
-    Delete(SWIGTYPE_type);
-    Delete(CLASS_type);
-    Delete(stype);
+    Delete(nametemp);
+    Delete(swigtypetemp);
 }
 
 int JAVA::classforwardDeclaration(Node *n) {
   String *name = Getattr(n,"name");
-  String *kind   = Getattr(n,"kind");
+  String *kind = Getattr(n,"kind");
+  String *class_tmap = NewString("CLASS");
+  String *array_tmap = NewString("ARRAYSOFCLASSPOINTERS");
+  String *swigtype = NewString("SWIGTYPE");
 
   /* Add to the hash table of shadow classes */
   if (shadow) {
@@ -1867,25 +1863,25 @@ int JAVA::classforwardDeclaration(Node *n) {
     }
   }
 
-  /* The Java typemaps need the following typemaps to exist for handling pointers
-     and references to classes/structs/unions:
-     %typemap(whatever)  SWIGTYPE *CLASS { ... }
-     %typemap(whatever)  SWIGTYPE &CLASS { ... }
-     Now we must apply these typemaps to all known classes */
-  TypemapApplyClass(name, 1);
-  TypemapApplyClass(name, 0);
+  /* Apply typemaps for handling pointers and references for all known classes/structs/unions. Also for 
+   * arrays of these. This is a workaround because SWIG does not have a default SWIGTYPE * or SWIGTYPE &. */
+  TypemapApply(swigtype, class_tmap, name, pointer, 0);   //%apply SWIGTYPE *CLASS {name*};
+  TypemapApply(swigtype, class_tmap, name, reference, 0); //%apply SWIGTYPE &CLASS {name&};
+  TypemapApply(swigtype, array_tmap, name, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {name*[ANY]};
 
-  /* More typemap applying for types declared with the kind eg struct, union or class
-     for example when type is declared as 'struct structname'
-     %typemap(whatever)  SWIGTYPE *CLASS { kind ... }
-     %typemap(whatever)  SWIGTYPE &CLASS { kind ... } */
+  /* More typemap applying for types declared with the kind eg struct, union or class.
+     For example when type is declared as 'struct name'. */
   if (Cmp(Getattr(n,"storage"), "typedef") != 0) {
     String *namewithkind = NewString("");
     Printf(namewithkind, "%s %s", Getattr(n,"kind"), name);
-    TypemapApplyClass(namewithkind, 1);
-    TypemapApplyClass(namewithkind, 0);
+    TypemapApply(swigtype, class_tmap, namewithkind, pointer, 0);   //%apply SWIGTYPE *CLASS {kind name*};
+    TypemapApply(swigtype, class_tmap, namewithkind, reference, 0); //%apply SWIGTYPE &CLASS {kind name&};
+    TypemapApply(swigtype, array_tmap, namewithkind, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {kind name*[ANY]};
     Delete(namewithkind);
   }
+  Delete(class_tmap);
+  Delete(array_tmap);
+  Delete(swigtype);
   return SWIG_OK;
 }
 

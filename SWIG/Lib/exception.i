@@ -205,49 +205,39 @@ static void _SWIG_exception(int code, char *msg) {
 
 #ifdef SWIGJAVA
 %{
-static void _SWIG_exception(JNIEnv *jenv, int code, const char *msg) {
-  char exception_path[512];
-  const char *classname;
-  const char *class_package = "java/lang";
-  jclass excep;
-
+static void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
+  SWIG_JavaExceptionCodes exception_code = SWIG_JavaUnknownError;
   switch(code) {
   case SWIG_MemoryError:
-    classname = "OutOfMemoryError";
+    exception_code = SWIG_JavaOutOfMemoryError;
     break;
   case SWIG_IOError:
-    classname = "IOException";
-    class_package = "java/io";
+    exception_code = SWIG_JavaIOException;
     break;
   case SWIG_SystemError:
   case SWIG_RuntimeError:
-    classname = "RuntimeException";
+    exception_code = SWIG_JavaRuntimeException;
     break;
   case SWIG_OverflowError:
   case SWIG_IndexError:
-    classname = "IndexOutOfBoundsException";
+    exception_code = SWIG_JavaIndexOutOfBoundsException;
     break;
   case SWIG_DivisionByZero:
-    classname = "ArithmeticException";
+    exception_code = SWIG_JavaArithmeticException;
     break;
   case SWIG_SyntaxError:
   case SWIG_ValueError:
   case SWIG_TypeError:
-    classname = "IllegalArgumentException";
+    exception_code = SWIG_JavaIllegalArgumentException;
     break;
   case SWIG_UnknownError:
   default:
-    classname = "UnknownError";
+    exception_code = SWIG_JavaUnknownError;
     break;
   }
-  sprintf(exception_path, "%s/%s", class_package, classname);
-
-  JCALL0(ExceptionClear, jenv);
-  excep = JCALL1(FindClass, jenv, exception_path);
-  if (excep)
-    JCALL2(ThrowNew, jenv, excep, msg);
+  SWIG_JavaThrowException(jenv, exception_code, msg);
 }
-#define SWIG_exception(a,b) { _SWIG_exception(jenv, a,b); }
+#define SWIG_exception(code, msg) { SWIG_JavaException(jenv, code, msg); }
 %}
 #endif // SWIGJAVA
 

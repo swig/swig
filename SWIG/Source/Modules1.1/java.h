@@ -29,7 +29,10 @@ public :
   virtual void set_module(char *);                 /* Deprecated */
   virtual void pragma(char *lang, char *code, char *value);
 
-  /* Java Module methods */
+  /* Java module enums */
+  enum type_additions {none, pointer, reference};
+
+  /* Java module methods */
   void emit_classdef();
   void emit_shadow_classdef();
   char *JNICALL(DOHString_or_char *func);
@@ -38,6 +41,6 @@ public :
   char *JavaMethodSignature(SwigType *t, int ret, int inShadow);
   void writeRegisterNatives();
   void javashadowfunctionHandler(Node* n, int is_virtual);
-  void TypemapApplyClass(String* name, int pointer_flag);
-  void TypemapApplyEnum(String* name);
+  void TypemapApply(String *swigtype, String *tmap, String *name, type_additions additions, int array_flag);
+
 };
