@@ -146,6 +146,8 @@ extern DOHHash    *SwigType_pop_scope();
 extern DOHString  *SwigType_typedef_resolve(DOHString_or_char *t);
 extern int         SwigType_istypedef(DOHString_or_char *t);
 extern int         SwigType_cmp(DOHString_or_char *pat, DOHString_or_char *t);
+extern int         SwigType_array_ndim(DOHString_or_char *t);
+extern DOHString  *SwigType_array_getdim(DOHString_or_char *t, int n);
 
 /* --- Parse tree support --- */
 
@@ -159,6 +161,9 @@ extern void Swig_add_rule(DOHString_or_char *, int (*action)(DOH *, void *));
 extern void Swig_add_rules(SwigRule ruleset[]);
 extern void Swig_clear_rules();
 extern int  Swig_emit(DOH *obj, void *clientdata);
+extern void Swig_cut_node(DOH *obj);
+extern DOH *Swig_next(DOH *obj);
+extern DOH *Swig_prev(DOH *obj);
 
 /* -- Wrapper function Object */
 
@@ -185,6 +190,11 @@ extern char       *Swig_name_get(DOHString_or_char *vname);
 extern char       *Swig_name_set(DOHString_or_char *vname);
 extern char       *Swig_name_construct(DOHString_or_char *classname);
 extern char       *Swig_name_destroy(DOHString_or_char *classname);
+
+/* --- Mapping interface --- */
+
+extern void        Swig_map_add(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, DOH *obj);
+extern DOH        *Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, int *nmatch);
 
 /* --- Misc --- */
 extern char *Swig_copy_string(const char *c);

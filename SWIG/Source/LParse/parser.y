@@ -35,7 +35,8 @@ static DOH      *top = 0;
 static DOH      *ATTR_TAG = 0;
 static DOH      *ATTR_CHILD = 0;
 static DOH      *ATTR_PARENT = 0;
-static DOH      *ATTR_SIBLING = 0;
+static DOH      *ATTR_NEXT = 0;
+static DOH      *ATTR_PREV = 0;
 static DOH      *ATTR_NAME = 0;
 static DOH      *ATTR_VALUE = 0;
 static DOH      *ATTR_TYPE = 0;
@@ -52,7 +53,24 @@ static DOH      *TAG_VARIABLE = 0;
    o = child;
    while (o) {
      Setattr(o,ATTR_PARENT,parent);
-     o = Getattr(o,ATTR_SIBLING);
+     o = Getattr(o,ATTR_NEXT);
+   }
+ }
+
+ /* Create all back links so we get a doubly-linked lists */
+ static void create_backlinks(DOH *top) {
+   DOH *prev = 0;
+   DOH *obj;
+
+   if (!top) return;
+   obj = top;
+   while (obj) {
+     if (prev) {
+       Setattr(obj,ATTR_PREV,prev);
+     }
+     create_backlinks(Getattr(obj,ATTR_CHILD));
+     prev = obj;
+     obj = Getattr(obj,ATTR_NEXT);
    }
  }
 
@@ -61,11 +79,13 @@ static DOH      *TAG_VARIABLE = 0;
    int yyparse();
    DOH *tp;
 
-   if (!ATTR_SIBLING) {
+   if (!ATTR_NEXT) {
      ATTR_PARENT = NewString("parent");
      DohIntern(ATTR_PARENT);
-     ATTR_SIBLING = NewString("sibling");
-     DohIntern(ATTR_SIBLING);
+     ATTR_NEXT = NewString("next");
+     DohIntern(ATTR_NEXT);
+     ATTR_PREV = NewString("prev");
+     DohIntern(ATTR_PREV);
      ATTR_CHILD = NewString("child");
      DohIntern(ATTR_CHILD);
      ATTR_TAG = NewString("tag");
@@ -76,7 +96,7 @@ static DOH      *TAG_VARIABLE = 0;
      DohIntern(ATTR_VALUE);
      ATTR_TYPE = NewString("type");
      DohIntern(ATTR_TYPE);
-     ATTR_PARMS = NewString("parameters");
+     ATTR_PARMS = NewString("parms");
      DohIntern(ATTR_PARMS);
      ATTR_PARM = NewString("parm");
      DohIntern(ATTR_PARM);
@@ -98,6 +118,7 @@ static DOH      *TAG_VARIABLE = 0;
    yyparse();
    Setattr(tp, ATTR_CHILD, top);
    setparent(tp,top);
+   create_backlinks(tp);
    return tp;
  }
 
@@ -114,15 +135,17 @@ static DOH      *TAG_VARIABLE = 0;
  static DOH *parmstotype(DOH *parms) {
    int i, l;
    DOH *p, *r;
-   r = NewString("(");
+   DOHList *ty;
+
+   ty = NewList();
    p = parms;
    while (p) {
-     Append(r,Getattr(p,ATTR_TYPE));
-     p = Getattr(p,ATTR_SIBLING);
-     if (p)
-       Append(r,",");
+     Append(ty,Getattr(p,ATTR_TYPE));
+     p = Getattr(p,ATTR_NEXT);
    }
-   Append(r,")");
+   r = NewString("");
+   SwigType_add_function(r,ty);
+   Delete(ty);
    return r;
  }
 
@@ -212,7 +235,7 @@ static int promote(int t1, int t2) {
 %token <tok> ADDMETHODS ALPHA_MODE APPLY CHECKOUT CLEAR CONSTANT DOCONLY DOC_DISABLE DOC_ENABLE ECHO EXCEPT
 %token <tok> ILLEGAL IMPORT INCLUDE INIT INLINE LOCALSTYLE MACRO MODULE NAME NATIVE NEW PRAGMA
 %token <tok> RAW_MODE READONLY READWRITE RENAME SECTION STYLE SUBSECTION SUBSUBSECTION TEXT TITLE
-%token <tok> TYPE TYPEMAP USERDIRECTIVE WEXTERN WRAPPER
+%token <tok> TYPE TYPEMAP USERDIRECTIVE WEXTERN WRAPPER MAP
 
 /* Operators */
 %left <tok> LOR
@@ -237,8 +260,8 @@ static int promote(int t1, int t2) {
 %type <tmname> tm_name
 %type <tok>    tm_method
 %type <node>   statement swig_directive c_declaration
-%type <node>   file_include code_block doc_directive except_directive pragma_directive modifier_directive native_directive typemap_directive
-%type <node>   variable_decl function_decl enum_decl typedef_decl stail edecl typedeflist
+%type <node>   file_include code_block doc_directive except_directive pragma_directive modifier_directive native_directive typemap_directive map_directive
+%type <node>   variable_decl function_decl enum_decl typedef_decl stail edecl typedeflist map_element
 %type <nodelist>   enumlist interface
 %type <node>   inherit base_list
 %type <tok>    base_specifier access_specifier cpp_end ctor_end opt_id
@@ -261,21 +284,21 @@ interface      : interface statement {
 		     o = $2;
 		     while (o) {
 		       o2 = o;
-		       o = Getattr(o,ATTR_SIBLING);
+		       o = Getattr(o,ATTR_NEXT);
 		     }
 		     $$.last = o2;
 		   } else {
 		     if ($2) {
 		       o = $1.last;
 		       if (o) {
-			 Setattr(o,ATTR_SIBLING,$2);
+			 Setattr(o,ATTR_NEXT,$2);
 		       } else { 
-			 Setattr($1.node,ATTR_SIBLING,$2);
+			 Setattr($1.node,ATTR_NEXT,$2);
 		       }
 		       o = $2;
 		       while (o) {
 			 o2 = o;
-			 o = Getattr(o,ATTR_SIBLING);
+			 o = Getattr(o,ATTR_NEXT);
 		       }
 		       $1.last = o2;
 		     }
@@ -369,6 +392,7 @@ swig_directive : MODULE idstring {
                | modifier_directive { $$ = $1; }
                | native_directive { $$ = $1; }
                | typemap_directive { $$ = $1; }
+               | map_directive { $$ = $1; }
                | TYPE ID idlist SEMI { $$ = 0; }
                ;
 
@@ -412,20 +436,20 @@ modifier_directive : READONLY { $$ = new_node("readonlydirective",$1.filename, $
 
 code_block    : HBLOCK {
 		 $$ = new_node("headerblock",$1.filename,$1.line);
-		 Setattr($$,"text", $1.text);
+		 Setattr($$,"code", $1.text);
                }
                | WRAPPER HBLOCK {
                  $$ = new_node("wrapperblock",$2.filename,$2.line);
-                 Setattr($$,"text",$2.text);
+                 Setattr($$,"code",$2.text);
 	       }
                | INIT HBLOCK {
                  $$ = new_node("initblock",$2.filename,$2.line);
-                 Setattr($$,"text",$2.text);
+                 Setattr($$,"code",$2.text);
                }
                | INLINE HBLOCK {
 		 DOH *pp;
 		 $$ = new_node("headerblock",$2.filename,$2.line);
-		 Setattr($$,"text", $2.text);
+		 Setattr($$,"code", $2.text);
 		 Seek($2.text,0,SEEK_SET);
 		 pp = Preprocessor_parse($2.text);
 		 Seek(pp,0,SEEK_SET);
@@ -569,7 +593,7 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list LBRACE {
 			Setattr(o,ATTR_PARMS,Getattr(l,ATTR_PARMS));
 			if (!$$) $$ = o;
 			if (prev) {
-			  Setattr(prev,ATTR_SIBLING,o);
+			  Setattr(prev,ATTR_NEXT,o);
 			}
 			prev = o;
 		      }
@@ -590,7 +614,7 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list LBRACE {
 		     Setattr(o,ATTR_TYPE,Getattr(l,ATTR_TYPE));
 		     Setattr(o,ATTR_PARMS,Getattr(l,ATTR_PARMS));
 		     if (!$$) $$ = o;
-		     if (prev) Setattr(prev,ATTR_SIBLING,o);
+		     if (prev) Setattr(prev,ATTR_NEXT,o);
 		     prev = o;
 		   }
 	       }
@@ -609,7 +633,7 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list LBRACE {
 		      Setattr(o,ATTR_NAME,Getattr(l,ATTR_NAME));
 		      Setattr(o,ATTR_TYPE,Getattr(l,ATTR_TYPE));
 		      if (!$$) $$ = o;
-		      if (prev) Setattr(prev,ATTR_SIBLING,o);
+		      if (prev) Setattr(prev,ATTR_NEXT,o);
 		      prev = o;
 		    }
 	       }
@@ -627,7 +651,7 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list LBRACE {
 		     Setattr(o,ATTR_NAME,Getattr(l,ATTR_NAME));
 		     Setattr(o,ATTR_TYPE,Getattr(l,ATTR_TYPE));
 		     if (!$$) $$ = o;
-		     if (prev) Setattr(prev,ATTR_SIBLING,o);
+		     if (prev) Setattr(prev,ATTR_NEXT,o);
 		     prev = o;
 		   }
 	       }
@@ -649,7 +673,7 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list LBRACE {
 		   Setattr(o,"srcname",Getattr($9,ATTR_NAME));
 		   Setattr(o,"srctype",Getattr($9,ATTR_TYPE));
 		   if (!$$) $$ = o;
-		   if (prev) Setattr(prev,ATTR_SIBLING,o);
+		   if (prev) Setattr(prev,ATTR_NEXT,o);
 		   prev = o;
 		 }
 	       }
@@ -670,7 +694,7 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list LBRACE {
 		   Setattr(o,"srcname",Getattr($7,ATTR_NAME));
 		   Setattr(o,"srctype",Getattr($7,ATTR_TYPE));
 		   if (!$$) $$ = o;
-		   if (prev) Setattr(prev,ATTR_SIBLING,o);
+		   if (prev) Setattr(prev,ATTR_NEXT,o);
 		   prev = o;
 		 }
 	       }
@@ -782,6 +806,52 @@ tm_args         : LPAREN parms RPAREN {
                 ;
 
 
+map_directive   : MAP ID LPAREN parms RPAREN LBRACE map_element RBRACE {
+                   $$ = new_node("map", $1.filename, $1.line);
+                   Setattr($$,ATTR_NAME,$2.text);
+		   Setattr($$,ATTR_PARMS,$4);
+                   if ($7) {
+		     Setattr($$,ATTR_CHILD,$7);
+		     setparent($$,$7);
+		   }
+                }
+                ;
+
+map_element     :  variable_decl map_element {
+                    DOH *o, *o2;
+                    $$ = $1;
+		    o = $1;
+                    while (o) {
+                      o2 = o;
+                      o = Getattr(o,ATTR_NEXT);
+                    }
+                    Setattr(o2,ATTR_NEXT,$2);
+                }
+               |   function_decl map_element {
+                    DOH *o, *o2;
+                    $$ = $1;
+		    o = $1;
+                    while (o) {
+                      o2 = o;
+                      o = Getattr(o,ATTR_NEXT);
+                    }
+                    Setattr(o2,ATTR_NEXT,$2);
+                }
+                | STRING COLON LBRACE {
+                    DOH *text = LParse_skip_balanced('{','}');
+                    $$ = new_node("mapelement",$1.filename, $1.line);
+		    Setattr($$,ATTR_NAME,$1.text);
+		    Setattr($$,"code",text);
+		    $1.text = $$;
+		} map_element {
+		  $$ = $1.text;
+		  if ($5)
+		    Setattr($$,ATTR_NEXT,$5);
+		}
+                | empty {
+                    $$ = 0;
+                }
+                ;
 
 
 /* =============================================================================
@@ -812,7 +882,7 @@ variable_decl   : storage_spec type declaration array2 def_args stail {
 		      Setattr($$,ATTR_VALUE,$5.text);
 		    }
 		    if ($6) {
-		      Setattr($$,ATTR_SIBLING,$6);
+		      Setattr($$,ATTR_NEXT,$6);
 		      o = $6;
 		      while (o) {
 			t = Copy($2);
@@ -821,7 +891,7 @@ variable_decl   : storage_spec type declaration array2 def_args stail {
 			if ($1.ivalue) {
 			  Setattr(o,ATTR_STORAGE,$1.text);
 			}
-			o = Getattr(o,ATTR_SIBLING);
+			o = Getattr(o,ATTR_NEXT);
 		      }
 		    }
                   }
@@ -850,7 +920,7 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 		      Setattr($$,ATTR_STORAGE, $1.text);
 		    }
 		    if ($8) {
-		      Setattr($$,ATTR_SIBLING,$8);
+		      Setattr($$,ATTR_NEXT,$8);
 		      o = $8;
 		      while (o) {
 			t = Copy($2);
@@ -859,7 +929,7 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 			if ($1.ivalue) {
 			  Setattr(o,ATTR_STORAGE,$1.text);
 			}
-			o = Getattr(o,ATTR_SIBLING);
+			o = Getattr(o,ATTR_NEXT);
 		      }
 		    }
                  } 
@@ -922,7 +992,7 @@ stail          : SEMI { $$ = 0; }
 		 if ($4.text)
 		   Setattr($$,ATTR_VALUE,$4.text);
 		 if ($5)
-		   Setattr($$,ATTR_SIBLING, $5);
+		   Setattr($$,ATTR_NEXT, $5);
 	       }
                | COMMA declaration LPAREN parms RPAREN stail {
 		 DOH *t = NewString("");
@@ -932,7 +1002,7 @@ stail          : SEMI { $$ = 0; }
 		 Setattr($$,ATTR_PARMS,$4);
 		 Setattr($$,ATTR_TYPE, t);
 		 if ($6)
-		   Setattr($$,ATTR_SIBLING,$6);
+		   Setattr($$,ATTR_NEXT,$6);
 	       }
               ;
 
@@ -983,7 +1053,7 @@ enum_decl      : storage_spec ENUM ename LBRACE enumlist RBRACE SEMI {
 		     o = new_node("typedef",$7.filename,$7.line);
 		     Setattr(o,ATTR_NAME,$7.text);
 		     Setattr(o,ATTR_TYPE,$3.text);
-		     Setattr($$,ATTR_SIBLING,o);
+		     Setattr($$,ATTR_NEXT,o);
 		   }
 	       }
                ;
@@ -995,22 +1065,9 @@ ename          :  ID { $$ = $1; }
                ;
 
 enumlist       :  enumlist COMMA edecl { 
-                   Setattr($1.last,ATTR_SIBLING,$3);
+                   Setattr($1.last,ATTR_NEXT,$3);
 		   $1.last = $3;
 		   $$ = $1;
-		   /*
-		   DOH *o;
-                   if ($3) {
-		     o = Getattr($1,LASTATTR_SIBLING);
-		     if (o) {
-		       Setattr(o,ATTR_SIBLING,$3);
-		     } else {
-		       Setattr($1,ATTR_SIBLING,$3);
-		     }
-		     Setattr($1,LASTSIBLING,$3);;
-		   }
-		   $$ = $1;
-		   */
                }
                |  edecl {
                   $$.node = $1;
@@ -1050,7 +1107,7 @@ typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
 		      SwigType_push(ty,Getattr(d,"array"));
 		      Setattr(o,ATTR_TYPE,ty);
 		      Setattr(o,ATTR_NAME,Getattr(d,ATTR_NAME));
-		      Setattr(prev,ATTR_SIBLING,o);
+		      Setattr(prev,ATTR_NEXT,o);
 		      prev = o;
 		    }
 		    Delete($5);
@@ -1162,7 +1219,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 		 t = Copy($3.text);
 		 SwigType_push(t,$8.decl);
 		 Setattr(o,ATTR_TYPE,t);
-		 Setattr($$,ATTR_SIBLING,o);
+		 Setattr($$,ATTR_NEXT,o);
 		 prev = o;
 		 for (i = 0; i < Len($9); i++) {
 		   d = Getitem($9,i);
@@ -1172,7 +1229,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 		   SwigType_push(t,Getattr(d,"array"));
 		   Setattr(o,ATTR_TYPE,t);
 		   Setattr(o,ATTR_NAME,Getattr(d,ATTR_NAME));
-		   Setattr(prev,ATTR_SIBLING,o);
+		   Setattr(prev,ATTR_NEXT,o);
 		   prev = o;
 		 }
 		 Delete($9);
@@ -1301,7 +1358,7 @@ cpp_other    :/* A dummy class name */
 	        $$ = new_node("addmethods",$1.filename,$1.line);
 		if ($1.text)
 		  Setattr($$,ATTR_NAME,$1.text);
-		if ($4.node) {
+ 		if ($4.node) {
 		  Setattr($$,ATTR_CHILD,$4.node);
 		  setparent($$,$4.node);
 		}
@@ -1318,17 +1375,21 @@ opt_id       : ID { $$ = $1; }
 /* -- Function parameter lists -- */
 
 parms          : parm ptail {
-                 if ($2) 
-                    Setattr($1,ATTR_SIBLING,$2);
-                 $$ = $1;
-		}
+                  if ($2) {
+                    Setattr($1,ATTR_NEXT,$2);
+                    Setattr($2,ATTR_PREV,$1);
+                  }
+		  $$ = $1;
+               }
                | empty { $$ = 0; }
                ;
 
 ptail          : COMMA parm ptail {
-                 if ($3) 
-                     Setattr($2,ATTR_SIBLING,$3);
-                 $$ = $2;
+                 if ($3) {
+		   Setattr($2,ATTR_NEXT,$3);
+		   Setattr($3,ATTR_PREV,$2);
+		 }
+		 $$ = $2;
                 }
                | empty { $$ = 0; }
                ;
