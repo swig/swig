@@ -34,8 +34,8 @@ typedef void DOH;
 #define DOHFile            DOH
 #define DOHFunction        DOH
 #define DOHVoid            DOH
-#define DOHString_or_Char  DOH
-#define DOHObj_or_Char     DOH
+#define DOHString_or_char  DOH
+#define DOHObj_or_char     DOH
 
 #define DOH_BEGIN    -1
 #define DOH_END      -2
@@ -173,25 +173,25 @@ typedef struct DohObjInfo {
 
   /* Mapping methods */
 
-  extern DOH    *DohGetattr(DOH *obj, const DOHString_or_Char *name);
-  extern int     DohSetattr(DOH *obj, const DOHString_or_Char *name, const DOHObj_or_Char *value);
-  extern void    DohDelattr(DOH *obj, const DOHString_or_Char *name);
+  extern DOH    *DohGetattr(DOH *obj, const DOHString_or_char *name);
+  extern int     DohSetattr(DOH *obj, const DOHString_or_char *name, const DOHObj_or_char *value);
+  extern void    DohDelattr(DOH *obj, const DOHString_or_char *name);
   extern DOH    *DohFirstkey(DOH *obj);
   extern DOH    *DohNextkey(DOH *obj);
-  extern int     DohGetInt(DOH *obj, const DOHString_or_Char *name);
-  extern double  DohGetDouble(DOH *obj, const DOHString_or_Char *name);
-  extern char   *DohGetChar(DOH *obj, const DOHString_or_Char *name);
-  extern void    DohSetInt(DOH *obj, const DOHString_or_Char *name, int);
-  extern void    DohSetDouble(DOH *obj, const DOHString_or_Char *name, double);
-  extern void   *DohGetVoid(DOH *obj, const DOHString_or_Char *name);
-  extern void    DohSetVoid(DOH *obj, const DOHString_or_Char *name, void *value);
+  extern int     DohGetInt(DOH *obj, const DOHString_or_char *name);
+  extern double  DohGetDouble(DOH *obj, const DOHString_or_char *name);
+  extern char   *DohGetChar(DOH *obj, const DOHString_or_char *name);
+  extern void    DohSetInt(DOH *obj, const DOHString_or_char *name, int);
+  extern void    DohSetDouble(DOH *obj, const DOHString_or_char *name, double);
+  extern void   *DohGetVoid(DOH *obj, const DOHString_or_char *name);
+  extern void    DohSetVoid(DOH *obj, const DOHString_or_char *name, void *value);
 
   /* Sequence methods */
 
   extern DOH    *DohGetitem(DOH *obj, int index);
-  extern int     DohSetitem(DOH *obj, int index, const DOHObj_or_Char *value);
+  extern int     DohSetitem(DOH *obj, int index, const DOHObj_or_char *value);
   extern int     DohDelitem(DOH *obj, int index);
-  extern int     DohInsertitem(DOH *obj, int index, const DOHObj_or_Char *value);
+  extern int     DohInsertitem(DOH *obj, int index, const DOHObj_or_char *value);
   extern DOH    *DohFirstitem(DOH *obj);
   extern DOH    *DohNextitem(DOH *obj);
 
@@ -218,7 +218,7 @@ typedef struct DohObjInfo {
 
   /* String Methods */
 
-  extern int     DohReplace(DOHString *src, const DOHString_or_Char *token, const DOHString_or_Char *rep, int flags);
+  extern int     DohReplace(DOHString *src, const DOHString_or_char *token, const DOHString_or_char *rep, int flags);
   extern void    DohChop(DOHString *src);
 
   /* Utility functions */
