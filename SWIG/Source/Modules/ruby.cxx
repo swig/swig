@@ -2123,14 +2123,15 @@ public:
    *
    * --------------------------------------------------------------- */
 
-  void exceptionSafeMethodCall(Node *n, Wrapper *w, int argc, String *args) {
+  void exceptionSafeMethodCall(String *className, Node *n, Wrapper *w, int argc, String *args) {
 
     Wrapper *body = NewWrapper();
     Wrapper *rescue = NewWrapper();
 
     String *methodName = Getattr(n, "sym:name");
-    String *bodyName = NewStringf("%s_body", methodName);
-    String *rescueName = NewStringf("%s_rescue", methodName);
+    String *bodyName = NewStringf("%s_%s_body", className, methodName);
+    String *rescueName = NewStringf("%s_%s_rescue", className, methodName);
+    String *depthCountName = NewStringf("%s_%s_call_depth", className, methodName);
 
     // Check for an exception typemap of some kind
     String *tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
@@ -2140,16 +2141,28 @@ public:
 
     if ((tm != 0) && (Len(tm) > 0) && (Strcmp(tm, "1") != 0))
     {
+      // Declare a global to hold the depth count
+      Printf(f_directors, "static int %s = 0;\n", depthCountName);
+
       // Function body
       Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
       Wrapper_add_localv(body, "args", "swig_body_args *", "args", "= reinterpret_cast<swig_body_args *>(data)", NIL);
-      Printv(body->code, "return rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
+      Wrapper_add_localv(body, "result", "VALUE", "result", "= Qnil", NIL);
+      Printf(body->code, "%s++;\n", depthCountName, NIL);
+      Printv(body->code, "result = rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
+      Printf(body->code, "%s--;\n", depthCountName, NIL);
+      Printv(body->code, "return result;\n", NIL);
       Printv(body->code, "}", NIL);
       
       // Exception handler
       Printf(rescue->def, "VALUE %s(VALUE args, VALUE error) {\n", rescueName); 
       Replaceall(tm, "$error", "error");
+      Printf(rescue->code, "if (%s == 0) ", depthCountName);
       Printv(rescue->code, Str(tm), "\n", NIL);
+      Printv(rescue->code, "else {\n", NIL);
+      Printf(rescue->code, "%s--;\n", depthCountName);
+      Printv(rescue->code, "rb_raise(error, \"\");\n", NIL);
+      Printv(rescue->code, "}", NIL);
       Printv(rescue->code, "}", NIL);
       
       // Main code
@@ -2189,6 +2202,7 @@ public:
     // Clean up
     Delete(bodyName);
     Delete(rescueName);
+    Delete(depthCountName);
     DelWrapper(body);
     DelWrapper(rescue);
   }
@@ -2396,7 +2410,7 @@ public:
     Printv(w->code, wrap_args, NIL);
 
     /* pass the method call on to the Ruby object */
-    exceptionSafeMethodCall(n, w, idx, arglist);
+    exceptionSafeMethodCall(classname, n, w, idx, arglist);
 
     /*
     * Ruby method may return a simple object, or an Array of objects.
