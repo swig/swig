@@ -1,5 +1,9 @@
 %module enum_template
 
+%warnfilter(801) eTest0;        /* Ruby, wrong class name */
+%warnfilter(801) eTest1;        /* Ruby, wrong class name */
+%warnfilter(801) eTest2;        /* Ruby, wrong class name */
+
 /*
 From bug report 992329:
 
