@@ -373,8 +373,8 @@ namespace std {
     };
     %enddef
 
-    %define specialize_std_map_on_both(T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO,
-                                       U,CHECK_U,CONVERT_U_FROM,CONVERT_U_TO)
+    %define specialize_std_pair_on_both(T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO,
+                                        U,CHECK_U,CONVERT_U_FROM,CONVERT_U_TO)
     template<> struct pair<T,U> {
         %typemap(in) pair<T,U> (std::pair<T,U>* p) {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
