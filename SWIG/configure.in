@@ -769,6 +769,35 @@ AC_SUBST(RUBYLINK)
 AC_SUBST(RUBYCCDLFLAGS)
 AC_SUBST(RUBYLIBRUBYARG)
 
+#-------------------------------------------------------------------------
+# Look for Php4
+#-------------------------------------------------------------------------
+
+PHP4BIN=
+
+AC_ARG_WITH(php4,[  --with-php4=path	Set location of PHP4 executable],[ PHP4BIN="$withval"], [PHP4BIN=])
+
+if test -z "$PERLBIN"; then
+AC_CHECK_PROGS(PHP4, php, php4)
+else
+PHP4="$PHP4BIN"
+fi
+AC_MSG_CHECKING(for PHP4 header files)
+dirs="/usr/include/php /usr/local/include/php /usr/local/apache/php"
+for i in $dirs; do
+	if test -r $i/php_config.h; then
+		AC_MSG_RESULT($i)
+		PHP4EXT="$i"
+		PHP4INC="-I$PHP4EXT -I$PHP4EXT/Zend -I$PHP4EXT/main -I$PHP4EXT/TSRM"
+		break;
+	fi
+done
+if test "$PHP4INC" = none; then
+	AC_MSG_RESULT(could not find PHP4 include files)
+fi
+
+AC_SUBST(PHP4INC)
+	
 # Configure SWIG_LIB path
 
 AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
