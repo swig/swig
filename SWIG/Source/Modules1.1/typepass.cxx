@@ -217,7 +217,9 @@ public:
     static int warn = 0;
     String *name = Getattr(n,"name");
     String *alias = Getattr(n,"alias");
-    
+    List   *olist = normalize;
+    normalize = NewList();    
+
     if (!warn) {
       Printf(stderr,"%s:%d. Warning. C++ namespace support is experimental and under development.\n", Getfile(n), Getline(n));
       warn = 1;
@@ -241,6 +243,19 @@ public:
       String *oldnsname = nsname;
       nsname = Swig_symbol_qualified(Getattr(n,"symtab"));
       emit_children(n);
+
+      /* Walk through entries in normalize list and patch them up */
+      {
+	SwigType *t;
+	for (t = Firstitem(normalize); t; t = Nextitem(normalize)) {
+	  SwigType *nt = SwigType_typedef_qualified(t);
+	  Clear(t);
+	  Append(t,nt);
+	  Delete(nt);
+	}
+	Delete(normalize);
+	normalize = olist;
+      }
 
       Delete(nsname);
       nsname = oldnsname;
@@ -359,7 +374,7 @@ public:
   }
 
   virtual int typemapDirective(Node *n) {
-    if (inclass) {
+    if (inclass || nsname) {
       Node *items = firstChild(n);
       while (items) {
 	Parm *pattern = Getattr(items,"pattern");
