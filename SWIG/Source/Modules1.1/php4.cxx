@@ -30,6 +30,7 @@ PHP4 Options (available with -php4)\n\
 	-withincs libs	- With -phpfull writes needed incs in config.m4\n\
 	-withlibs libs	- With -phpfull writes needed libs in config.m4\n\n";
 
+static Node *classnode=0;
 static String *module = 0;
 static String *cap_module = 0;
 static String *dlname = 0;
@@ -49,6 +50,7 @@ static File	  *f_runtime = 0;
 static File	  *f_h = 0;
 static File	  *f_phpcode = 0;
 
+static String	  *s_resourcetypes;
 static String	  *s_header;
 static String	  *s_wrappers;
 static String	  *s_init;
@@ -82,6 +84,7 @@ static int	static_flag = 0; // Set to 1 when wrapping a static functions or memb
 static int	const_flag = 0; // Set to 1 when wrapping a const member variables
 static int	variable_wrapper_flag = 0; // Set to 1 when wrapping a member variable/enum/const
 static int	wrapping_member = 0;
+static Hash	*zend_types = 0;
 
 static String *shadow_enum_code = 0;
 static String *php_enum_code = 0;
@@ -102,6 +105,8 @@ static String *this_shadow_baseclass = 0;
 static String *this_shadow_multinherit = 0;
 static int	  shadow	= 0;
 
+
+static void (*r_prevtracefunc)(SwigType *t, String *mangled, String *clientdata) = 0;
   
 static const char *php_header =
 "/*"
@@ -123,13 +128,46 @@ static const char *php_header =
 "\n  +----------------------------------------------------------------------+"
 "\n */\n";
 
-String *
-ClassRefThingy(SwigType * classtype) {
-  SwigType *t = Copy(classtype);
-  SwigType_add_pointer(t);
-  String *desc = NewStringf("%s",SwigType_manglestr(t));
-  Delete(t);
-  return(desc);
+void
+SwigPHP_emit_resource_registrations(File *s_rtypes) {
+  DOH *key;
+  String *destructor=0;
+  String *classname=0;
+  String *shadow_classname=0;
+
+  if (!zend_types) return;
+  key = Firstkey(zend_types);
+  while (key) if (1 /* is pointer type*/) {
+    Node *class_node;
+    Printf(stderr,"Mangled Name: %s\n",key);
+    if (class_node=Getattr(zend_types,key)) {
+      classname = Getattr(class_node,"name");
+      if (! (shadow_classname = Getattr(class_node,"sym:name"))) shadow_classname=classname;
+      Printf(stderr,"%s (%s)\n",classname,shadow_classname);
+    } else Printf(stderr,"No node\n");
+
+    // Write out destructor
+    Printf(s_rtypes,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",
+                   shadow_classname);
+
+    // Do we have a known destructor for this type?
+    if (class_node && (destructor = Getattr(class_node,"destructor"))) {
+      Printf(s_rtypes,"// has destructor: %s\n",destructor);
+    } else {
+      Printf(s_rtypes,"//blah NO destructor\n");
+    }
+    Printf(s_rtypes,"}\n");
+
+    Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", key, shadow_classname);
+
+    Printf(s_rtypes,"le_swig_%s=zend_register_list_destructors_ex"
+	     "(_wrap_destroy_%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
+	     key,key,key);
+
+    Printf(s_rtypes,"SWIG_TypeClientData(SWIGTYPE%s,(void *)le_swig_%s);\n\n",
+           key,key);
+    key = Nextkey(zend_types);
+  }
 }
 
 class PHP4 : public Language {
@@ -186,6 +224,7 @@ public:
     int i;
     SWIG_library_directory("php4");
     SWIG_config_cppext("cpp");
+
     for(i = 1; i < argc; i++) {
       if (argv[i]) {
 	if(strcmp(argv[i], "-phpfull") == 0) {
@@ -484,6 +523,7 @@ public:
     
     /* sections of the output file */
     s_init = NewString("/* init section */\n");
+    s_resourcetypes = NewString("/* register resource types section */\n");
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
     s_type = NewString("");
@@ -660,10 +700,11 @@ public:
 	   "    for (i = 0; swig_types_initial[i]; i++) {\n"
 	   "        swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n"
 	   "    }\n");
-    
     /* Emit all of the code */
     Language::top(n);
-    
+
+    SwigPHP_emit_resource_registrations(s_resourcetypes);    
+    Printv(s_init,s_resourcetypes,NULL);
     /* We need this after all classes written out by ::top */
     Printf(s_oinit, "CG(active_class_entry) = NULL;\n");	
     Printf(s_oinit, "/* end oinit subsection */\n");
@@ -786,6 +827,7 @@ public:
     
     Printv(f_runtime, s_vdecl, s_wrappers, s_init, NULL);
     Delete(s_header);
+    Delete(s_resourcetypes);
     Delete(s_wrappers);
     Delete(s_init);
     Delete(s_vdecl);
@@ -829,6 +871,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int functionWrapper(Node *n) {
+//    Node *classnode = Getattr(n,"classtype");//SAMFIX
     char *name = GetChar(n,"name");
     char *iname = GetChar(n,"sym:name");
     SwigType *d = Getattr(n,"type");
@@ -873,6 +916,10 @@ public:
     // The real destructor is the resource list destructor, this is
     // merely the thing that actually knows how to destroy...
     if (destructor) {
+      String *destructorname=NewString("");
+      Printf(destructorname,"_wrap_destroy_%s",class_name);
+      Setattr(classnode,"destructor",destructorname);
+
       Wrapper *df = NewWrapper();
       if (shadow) Printf(df->def,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",shadow_classname);
       else Printf(df->def,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",class_name);
@@ -1376,27 +1423,11 @@ public:
 
       // Save class in class table
       Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class(&ce_swig_%s))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",shadow_classname,shadow_classname,shadow_classname);
-
-      // Now register resource to handle this wrapped class
-      Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", shadow_classname, shadow_classname);
-      Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
-	     "(_wrap_destroy_%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
-	     shadow_classname, shadow_classname, ClassRefThingy(t));
-printf(">>> %s => %s\n",shadow_classname,Char(ClassRefThingy(t)));
-      // Now register with swig (clientdata) the resource type
-      Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,(void *)le_swig_%s);\n",
-             ClassRefThingy(t),shadow_classname);
-      Printf(s_oinit,"// End of %s\n\n",shadow_classname);
-
-    } else { // still need resource destructor
-      // Now register resource to handle this wrapped class
-      Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", class_name, class_name);
-      Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
-	     "(_wrap_destroy_%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
-	     class_name, class_name, ClassRefThingy(t));
     }
 
+    classnode=n;
     Language::classHandler(n);
+    classnode=0;
 
     if(shadow) {
       Printv(f_phpcode, shadow_classdef, shadow_code, NULL);
@@ -1612,7 +1643,7 @@ printf(">>> %s => %s\n",shadow_classname,Char(ClassRefThingy(t)));
     case T_POINTER:
       Printf(f->code, 
 	     "SWIG_SetPointerZval(return_value, (void *)%s, "
-	     "SWIGTYPE%s);\n", static_name, ClassRefThingy(d));
+	     "SWIGTYPE%s);\n", static_name, SwigType_manglestr(d));
       break;
     case  T_STRING:
       Printf(f->code, "RETURN_STRING(%s, 1);\n", static_name);
@@ -1792,7 +1823,39 @@ printf(">>> %s => %s\n",shadow_classname,Char(ClassRefThingy(t)));
  * swig_php()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
+static PHP4 *maininstance=0;
+
+// We use this function to be able to write out zend_register_list_destructor_ex
+// lines for most things in the type table
+// NOTE: it's a function NOT A PHP4::METHOD
+extern "C"
+void typetrace(SwigType *ty, String *mangled, String *clientdata) {
+  Node *class_node;
+  if (!zend_types) {
+    zend_types=NewHash();
+  }
+  // we want to know if the type which reduced to this has a constructor
+  if (class_node=maininstance->classLookup(ty)) {
+    if (! Getattr(zend_types,mangled)) {
+      // OK it may have been set before by a different SwigType but it would
+      // have had the same underlying class node I think
+      // - it is certainly required not to have different originating class
+      // nodes for the same SwigType
+      Setattr(zend_types,mangled,class_node);
+    }
+  }
+  if (r_prevtracefunc) (*r_prevtracefunc)(ty, mangled, (String *) clientdata);
+}
+
 extern "C" Language *
 swig_php(void) {
-  return new PHP4();
+  maininstance=new PHP4();
+  if (! r_prevtracefunc) {
+    r_prevtracefunc=SwigType_remember_trace(typetrace);
+  } else {
+    Printf(stderr,"php4 Typetrace vector already saved!\n");
+    assert(0);
+  }
+  return maininstance;
 }
+
