@@ -2,6 +2,8 @@
 // SWIG typemaps for std::vector types
 // Luigi Ballabio
 // May 7, 2002
+// Chris Seatory 
+// August 5, 2002
 //
 // Perl implementation
 
@@ -70,7 +72,143 @@
 namespace std {
     
     template<class T> class vector {
-        // add generic typemaps here
+        %typemap(in) vector<T> (std::vector<T>* v) {
+            if (SvROK($input)) {
+                AV *av = (AV *)SvRV($input);
+                if (SvTYPE(av) != SVt_PVAV)
+                    SWIG_croak("Type error in argument $argnum of $symname. "
+                               "Expected an array of " #T);
+                SV **tv;
+                I32 len = av_len(av) + 1;
+                T* obj;
+                for (int i=0; i<len; i++) {
+                    tv = av_fetch(av, i, 0);
+                    if (SWIG_ConvertPtr(*tv, (void **)&obj, 
+                                        $descriptor(T *),0) != -1) {
+                        $1.push_back(*obj);
+                    } else {
+                        SWIG_croak("Type error in argument $argnum of "
+                                   "$symname. "
+                                   "Expected an array of " #T);
+                    }
+                }
+            } else if (SWIG_ConvertPtr($input,(void **) &v, 
+                                       $&1_descriptor,1) != -1){
+                $1 = *v;
+            } else {
+                SWIG_croak("Type error in argument $argnum of $symname. "
+                           "Expected an array of " #T);
+            }
+        }
+        %typemap(in) const vector<T>& (std::vector<T> temp,
+                                       std::vector<T>* v),
+                     const vector<T>* (std::vector<T> temp,
+                                       std::vector<T>* v) {
+            if (SvROK($input)) {
+                AV *av = (AV *)SvRV($input);
+                if (SvTYPE(av) != SVt_PVAV)
+                    SWIG_croak("Type error in argument $argnum of $symname. "
+                               "Expected an array of " #T);
+                SV **tv;
+                I32 len = av_len(av) + 1;
+                T* obj;
+                for (int i=0; i<len; i++) {
+                    tv = av_fetch(av, i, 0);
+                    if (SWIG_ConvertPtr(*tv, (void **)&obj, 
+                                        $descriptor(T *),0) != -1) {
+                        temp.push_back(*obj);
+                    } else {
+                        SWIG_croak("Type error in argument $argnum of "
+                                   "$symname. "
+                                   "Expected an array of " #T);
+                    }
+                }
+                $1 = &temp;
+            } else if (SWIG_ConvertPtr($input,(void **) &v, 
+                                       $1_descriptor,1) != -1){
+                $1 = v;
+            } else {
+                SWIG_croak("Type error in argument $argnum of $symname. "
+                           "Expected an array of " #T);
+            }
+        }
+        %typemap(out) vector<T> {
+            int len = $1.size();
+            SV **svs = new SV*[len];
+            for (unsigned int i=0; i<len; i++) {
+                svs[i] = sv_newmortal();
+                SWIG_MakePtr(svs[i], (void*)&($1->at(i)), 
+                             $descriptor(T *), 0);
+            }
+            AV *myav = av_make(len, svs);
+            delete[] svs;
+            $result = newRV_noinc((SV*) myav);
+            sv_2mortal($result);
+            argvi++;
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (SvROK($input)) {
+                AV *av = (AV *)SvRV($input);
+                if (SvTYPE(av) == SVt_PVAV) {
+                    SV **tv;
+                    I32 len = av_len(av) + 1;
+                    if (len == 0) {
+                        /* an empty sequence can be of any type */
+                        $1 = 1;
+                    } else {
+                        /* check the first element only */
+                        T* obj;
+                        tv = av_fetch(av, 0, 0);
+                        if (SWIG_ConvertPtr(*tv, (void **)&obj, 
+                                            $descriptor(T *),0) != -1)
+                            $1 = 1;
+                        else
+                            $1 = 0;
+                    }
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $1_&descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
+            /* native sequence? */
+            if (SvROK($input)) {
+                AV *av = (AV *)SvRV($input);
+                if (SvTYPE(av) == SVt_PVAV) {
+                    SV **tv;
+                    I32 len = av_len(av) + 1;
+                    if (len == 0) {
+                        /* an empty sequence can be of any type */
+                        $1 = 1;
+                    } else {
+                        /* check the first element only */
+                        T* obj;
+                        tv = av_fetch(av, 0, 0);
+                        if (SWIG_ConvertPtr(*tv, (void **)&obj, 
+                                            $descriptor(T *),0) != -1)
+                            $1 = 1;
+                        else
+                            $1 = 0;
+                    }
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
       public:
         vector(unsigned int size = 0);
         unsigned int size() const;
@@ -112,7 +250,7 @@ namespace std {
       public:
         vector();
         vector(unsigned int size, const T& value=T());
-	vector(const vector<T> &);
+        vector(const vector<T> &);
 
         unsigned int size() const;
         bool empty() const;

@@ -1,7 +1,7 @@
 //
 // SWIG typemaps for std::string
-// Luigi Ballabio
-// May 7, 2002
+// Roy M. LeCates
+// October 23, 2002
 //
 // Perl implementation
 
@@ -28,34 +28,41 @@ namespace std {
     %typemap(typecheck) const string & = char *;
 
     %typemap(in) string {
-        if (!SvOK((SV*) $input)) {
-            $1 = std::string();
+        if (!SvPOK((SV*) $input)) {
+            SWIG_croak("Type error in argument $argnum of $symname. "
+                       "Expected a string");
         } else {
             STRLEN len;
-            char  *ptr = SvPV($input,len);
-            $1 = std::string(ptr,len);
-        }
+            const char *ptr = SvPV($input, len);
+            $1.assign(ptr, len);
+        } 
     }
 
-    %typemap(in) string *INPUT(std::string temp), const string & (std::string temp) {
-        if (!SvOK((SV*) $input)) {
-            temp = std::string();
+    %typemap(in) string *INPUT(std::string temp), 
+                 const string & (std::string temp) {
+        if (!SvPOK((SV*) $input)) {
+            SWIG_croak("Type error in argument $argnum of $symname. "
+                       "Expected a string");
         } else {
             STRLEN len;
-            char *ptr = SvPV($input,len);
-            temp.assign(ptr,len);
+            const char *ptr = SvPV($input, len);
+            temp.assign(ptr, len);
+            $1 = &temp;
         }
-        $1 = &temp;
     }
 
     %typemap(out) string {
-        $result = sv_newmortal();
-        sv_setpv((SV*)ST(argvi++), const_cast<char*>($1.c_str()));
+        if (argvi >= items) EXTEND(sp, 1);	// bump stack ptr, if needed
+        char *data = const_cast<char*>($1.data());
+        sv_setpvn($result = sv_newmortal(), data, $1.size());
+        ++argvi;
     }
 
     %typemap(out) const string & {
-        $result = sv_newmortal();
-        sv_setpv((SV*)ST(argvi++), const_cast<char*>($1->c_str()));
+        if (argvi >= items) EXTEND(sp, 1);	// bump stack ptr, if needed
+        char *data = const_cast<char*>($1->data());
+        sv_setpvn($result = sv_newmortal(), data, $1->size());
+        ++argvi;
     }
 
 }
