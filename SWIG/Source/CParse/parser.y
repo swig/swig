@@ -746,37 +746,6 @@ Node *Swig_cparse(File *f) {
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
    return top;
  }
-#ifdef OLD
-void canonical_template(String *s) {
-  Replaceall(s,"\n"," ");
-  Replaceall(s,"\t"," ");
-  Replaceall(s,"  "," ");
-  /* Canonicalize whitespace around angle brackets and commas */
-  while (Replaceall(s, "< ", "<"));
-  while (Replaceall(s, " >", ">"));
-  while (Replaceall(s, " ,", ","));
-  while (Replaceall(s, ", ", ","));
-  /* Canonicalize whitespace around pointers and references */
-  while (Replaceall(s,"* ", "*"));
-  while (Replaceall(s," *", "*"));
-  while (Replaceall(s,"& ", "&"));
-  while (Replaceall(s," &", "&"));
-  /* Canonicalize whitespace around array brackets and parentheses */
-  while (Replaceall(s,"[ ", "["));
-  while (Replaceall(s," [", "["));
-  while (Replaceall(s,"] ", "]"));
-  while (Replaceall(s," ]", "]"));
-
-  while (Replaceall(s,"( ", "("));
-  while (Replaceall(s," (", "("));
-  while (Replaceall(s,") ", ")"));
-  while (Replaceall(s," )", ")"));
-
-  /* Patch up for nested templates */
-
-  Replace(s,">"," >", DOH_REPLACE_ANY);
-}
-#endif
 
 %}
 
@@ -3161,8 +3130,9 @@ parm           : rawtype parameter_declarator {
 		   $$ = NewParm($1,$2.id);
 		   Setfile($$,cparse_file);
 		   Setline($$,cparse_line);
-		   if ($2.defarg)
+		   if ($2.defarg) {
 		     Setattr($$,"value",$2.defarg);
+		   }
 		}
 
                 | TEMPLATE LESSTHAN cpptype GREATERTHAN cpptype idcolon {
@@ -3945,9 +3915,11 @@ expr           :  exprnum { $$ = $1; }
 		   }
 		   */
 		 }
+		 /*
 		 if (SwigType_istemplate($$.val)) {
 		   $$.val = SwigType_namestr($$.val);
 		 }
+		 */
                }
 
 /* grouping */

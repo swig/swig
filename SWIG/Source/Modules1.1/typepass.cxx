@@ -71,6 +71,10 @@ class TypePass : public Dispatcher {
 		}
 	      }
 	    }
+	    if (value && SwigType_istemplate(value)) {
+	      String *nv = SwigType_namestr(value);
+	      Setattr(p,"value",nv);
+	    }
 	    p = nextSibling(p);
 	}
     }

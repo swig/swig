@@ -226,22 +226,26 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	      value = Getattr(p,"type");
 	      valuestr = SwigType_str(value,0);
 	  } else {
-	      valuestr = Copy(value);
+	      valuestr = SwigType_namestr(value);
 	  }
 	  assert(value);
-	  
 	  /* Need to patch default arguments */
 	  {
 	      Parm *rp = nextSibling(p);
 	      while (rp) {
-		  String *rvalue = Getattr(rp,"value");
-		  if (rvalue) {
-		      Replace(rvalue,name,value, DOH_REPLACE_ID);
-		  }
-		  rp = nextSibling(rp);
+		String *qrvalue;
+		String *rvalue = Getattr(rp,"value");
+		if (rvalue) {
+		  /*		  Printf(stdout,"rvalue = %s\n", rvalue); */
+		  Replace(rvalue,name,value, DOH_REPLACE_ID);
+		  qrvalue = Swig_symbol_type_qualify(rvalue,0);
+		  Setattr(rp,"value",qrvalue);
+		  Delete(qrvalue);
+		  /*		  Printf(stdout,"qrvalue = %s\n", qrvalue); */
+		}
+		rp = nextSibling(rp);
 	      }
 	  }
-	  
 	  sz = Len(patchlist);
 	  for (i = 0; i < sz; i++) {
 	      String *s = Getitem(patchlist,i);

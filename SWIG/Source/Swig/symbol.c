@@ -895,6 +895,18 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
 	Printf(qprefix,"<(");
 	for (tparm = Firstitem(targs); tparm;) {
 	  String *qparm = Swig_symbol_type_qualify(tparm,st);
+	  
+	  /* It is possible for an integer to show up here.  If so, we need to evaluate it */
+	  {
+	    Node *nn = Swig_symbol_clookup(qparm,st);
+	    if ((nn) && (Strcmp(nodeType(nn),"cdecl") == 0)) {
+	      String *nv = Getattr(nn,"value");
+	      if (nv) {
+		Clear(qparm);
+		Append(qparm,nv);
+	      }
+	    }
+	  }
 	  Append(qprefix,qparm);
 	  tparm = Nextitem(targs);
 	  if (tparm) {
