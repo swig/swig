@@ -3,6 +3,10 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 9/3/00  : beazley
+          Added $typemap variable to typemaps.  This gets replaced with a string
+          indicating the typemap that is applied.  Feature request from rsalz.
+
+9/3/00  : beazley
           Experimental optimization to code generation for virtual member 
           functions.  If you have two classes like this:
 
