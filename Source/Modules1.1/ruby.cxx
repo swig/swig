@@ -24,14 +24,40 @@ Ruby Options\n\
      -toplevel       - Do not define module\n\
      -feature name   - Set feature name (used by `require')\n";
 
+static  char *module;
+static  char *modvar;
+static  char *feature;
+static  int toplevel;
+static  DOH  *other_extern = 0;
+static  DOH  *other_init = 0;
+static  char *import_file;
+
+static int current;
+
+enum {
+  NO_CPP,
+  MEMBER_FUNC,
+  CONSTRUCTOR,
+  DESTRUCTOR,
+  MEMBER_VAR,
+  CLASS_CONST,
+  STATIC_FUNC,
+  STATIC_VAR
+};
+
+static  DOHHash *classes;		// key=cname val=RClass
+static  RClass *klass;	                // Currently processing class
+static  DOHHash *special_methods;	// Python style special method name table
+
+
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
 
-static String& indent(String& s, char *sp = (char*)tab4) {
-  sp >> s;
-  String rep = sp;
-  s.replace("\n", ("\n" >> rep).get());
-  return s;
+static void indent(DOHString *s, char *sp = (char*)tab4) {
+  char rep[256] = "\n";
+  Insert(s,0,sp);
+  strcpy(rep+1,sp);
+  Replace(s,"\n", rep, DOH_REPLACE_ANY);
 }
 
 // ---------------------------------------------------------------------
@@ -118,7 +144,7 @@ void RUBY::parse_args(int argc, char *argv[]) {
 	toplevel = 1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i],"-help") == 0) {
-	fprintf(stderr,"%s\n", usage);
+	Printf(stderr,"%s\n", usage);
       }
     }
   }
@@ -143,6 +169,10 @@ void RUBY::parse_args(int argc, char *argv[]) {
 // ---------------------------------------------------------------------
 void RUBY::parse() {
   printf("Generating wrappers for Ruby\n");
+
+  other_extern = NewString("");
+  other_init = NewString("");
+
   headers();
 
   // typedef void *VALUE
@@ -168,7 +198,7 @@ void RUBY::parse() {
 
 void RUBY::set_module(char *mod_name, char **mod_list) {
   if (import_file) {
-    fprintf(f_init, "%srb_f_require(Qnil, rb_str_new2(\"%s\"));\n", tab4, mod_name);
+    Printf(f_init, "%srb_f_require(Qnil, rb_str_new2(\"%s\"));\n", tab4, mod_name);
     delete [] import_file;
     import_file = 0;
   }
@@ -190,23 +220,27 @@ void RUBY::set_module(char *mod_name, char **mod_list) {
   strcpy(modvar+1, module);
 
   if (mod_list) {
-    other_extern << "#ifdef __cplusplus\n"
-		 << "extern \"C\" {\n"
-		 << "#endif\n";
+    Printv(other_extern,
+	   "#ifdef __cplusplus\n",
+	   "extern \"C\" {\n",
+	   "#endif\n",
+	   0);
     for (int i = 0; mod_list[i] != NULL; i++) {
-      other_extern << "extern void Init_" << mod_list[i] << "(void);\n";
-      other_init << tab4 << "Init_" << mod_list[i] << "();\n";
+      Printv(other_extern, "extern void Init_", mod_list[i], "(void);\n", 0);
+      Printv(other_init, tab4, "Init_", mod_list[i], "();\n", 0);
     }
-    other_extern << "#ifdef __cplusplus\n"
-		 << "}\n"
-		 << "#endif\n";
+    Printv(other_extern,
+	   "#ifdef __cplusplus\n",
+	   "}\n",
+	   "#endif\n",
+	   0);
   }
 }
 
 
 static void insert_file(char *filename, FILE *file) {
   if (Swig_insert_file(filename, file) == -1) {
-    fprintf(stderr,
+    Printf(stderr,
 	    "SWIG : Fatal error. "
 	    "Unable to locate %s. (Possible installation problem).\n",
 	    filename);
@@ -220,8 +254,8 @@ static void insert_file(char *filename, FILE *file) {
 // ----------------------------------------------------------------------
 void RUBY::headers(void) {
   Swig_banner(f_header);
-  fprintf(f_header,"/* Implementation : RUBY */\n\n");
-  fprintf(f_header,"#define SWIGRUBY\n");
+  Printf(f_header,"/* Implementation : RUBY */\n\n");
+  Printf(f_header,"#define SWIGRUBY\n");
 
   insert_file((char*)"ruby.swg", f_header);
   if (NoInclude) {
@@ -239,28 +273,29 @@ void RUBY::headers(void) {
 // ---------------------------------------------------------------------
 void RUBY::initialize() {
   if (!module) {
-    fprintf(stderr,"SWIG : *** Warning. No module name specified.\n");
+    Printf(stderr,"SWIG : *** Warning. No module name specified.\n");
     set_module((char*)"swig", NULL);         // Pick a default name
   }
 
-  fprintf(f_header,"#define SWIG_init    Init_%s\n", feature);
-  fprintf(f_header,"#define SWIG_name    \"%s\"\n\n", module);
-  if (!toplevel) fprintf(f_header,"static VALUE %s;\n", modvar);
-  fprintf(f_header,"\n%s\n", (char *)other_extern.get());
+  Printf(f_header,"#define SWIG_init    Init_%s\n", feature);
+  Printf(f_header,"#define SWIG_name    \"%s\"\n\n", module);
+  if (!toplevel) Printf(f_header,"static VALUE %s;\n", modvar);
+  Printf(f_header,"\n%s\n", other_extern);
 
   // Start generating the initialization function
-  String s;
-  s << "\n"
-    << "#ifdef __cplusplus\n"
-    << "extern \"C\"\n"
-    <<"#endif\n"
-    << "void Init_" << feature << "(void) {\n"
-    << other_init;
+  Printv(f_init,
+	 "\n",
+	 "#ifdef __cplusplus\n",
+	 "extern \"C\"\n",
+	 "#endif\n",
+	 "void Init_", feature, "(void) {\n",
+	 other_init,
+	 0);
+
   if (!toplevel) {
-    s << tab4 << modvar << " = rb_define_module(\"" << module << "\");\n";
+    Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n", 0);
   }
-  s << "\n";
-  fprintf(f_init, s.get());
+  Printf(f_init,"\n");
   klass = new RClass();
 }
 
@@ -272,9 +307,9 @@ void RUBY::initialize() {
 // ---------------------------------------------------------------------
 void RUBY::close(void) {
   // Finish off our init function
-  fprintf(f_init, "\n");
+  Printf(f_init, "\n");
   emit_ptr_equivalence(f_init);
-  fprintf(f_init,"}\n");
+  Printf(f_init,"}\n");
 }
 
 // ---------------------------------------------------------------------
@@ -296,9 +331,10 @@ char *RUBY::make_wrapper_name(char *cname) {
 //              argc  = Number of arguments
 // ---------------------------------------------------------------------
 void RUBY::create_command(char *cname, char *iname, int argc) {
-  String wname = make_wrapper_name(cname);
+  DOHString *wname = NewString(make_wrapper_name(cname));
   if (CPlusPlus) {
-    "VALUEFUNC(" >> wname << ")";
+    Insert(wname,0,"VALUEFUNC(");
+    Append(wname,")");
   }
   if (current != NO_CPP)
     iname = klass->strip(iname);
@@ -306,40 +342,46 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
     iname = GetChar(special_methods, iname);
   }
 
-  String s, temp;
+  DOHString *s = NewString("");
+  DOHString *temp = NewString("");
+  char argcs[32];
+  sprintf(argcs,"%d",argc);
+
   switch (current) {
   case MEMBER_FUNC:
-    klass->init << tab4 << "rb_define_method(" << klass->vname << ", \""
-		<< iname << "\", " << wname << ", " << argc << ");\n";
+    Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
+	   iname, "\", ", wname, ", ", argcs, ");\n", 0);
+
     break;
   case CONSTRUCTOR:
-    s << tab4 << "rb_define_singleton_method(" << klass->vname
-      << ", \"new\", " << wname << ", " << argc << ");\n";
-    klass->init.replace("$constructor", s.get());
+    Printv(s, tab4, "rb_define_singleton_method(", klass->vname,
+	   ", \"new\", ", wname,  ", ", argcs, ");\n", 0);
+    Replace(klass->init,"$constructor", s, DOH_REPLACE_ANY);
     break;
   case MEMBER_VAR:
-    temp = iname;
-    temp.replace("_set", "=");
-    temp.replace("_get", "");
-    klass->init << tab4 << "rb_define_method(" << klass->vname << ", \""
-		<< temp << "\", " << wname << ", " << argc << ");\n";
+    Append(temp,iname);
+    Replace(temp,"_set", "=", DOH_REPLACE_ANY);
+    Replace(temp,"_get", "", DOH_REPLACE_ANY);
+    Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
+	   temp, "\", ", wname, ", ", argcs, ");\n", 0);
     break;
   case STATIC_FUNC:
-    klass->init << tab4 << "rb_define_singleton_method(" << klass->vname
-		<< ", \"" << iname << "\", " << wname << ", " << argc
-		<< ");\n";
+    Printv(klass->init, tab4, "rb_define_singleton_method(", klass->vname,
+	   ", \"", iname, "\", ", wname, ", ", argcs, ");\n", 0);
     break;
   default:
     if (toplevel) {
-      s << tab4 << "rb_define_global_function(\""
-	<< iname << "\", " << wname << ", " << argc << ");\n";
+      Printv(s, tab4, "rb_define_global_function(\"",
+	     iname, "\", ", wname, ", ", argcs, ");\n",0);
     } else {
-      s << tab4 << "rb_define_module_function(" << modvar << ", \""
-	<< iname << "\", " << wname << ", " << argc << ");\n";
+      Printv(s, tab4, "rb_define_module_function(", modvar, ", \"",
+	     iname, "\", ", wname, ", ", argcs, ");\n",0);
     }
-    fprintf(f_init, s.get());
+    Printv(f_init,s,0);
     break;
   }
+  Delete(s);
+  Delete(temp);
 }
 
 // ---------------------------------------------------------------------
@@ -352,9 +394,9 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
 //              l = Function parameters
 // ---------------------------------------------------------------------
 void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
-  String source, target;
+  char source[256], target[256];
   char *tm;
-  String cleanup, outarg;
+  DOHString *cleanup, *outarg;
   WrapperFunction  f;
   int i;
 
@@ -363,18 +405,21 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     return;
 
   char *wname = make_wrapper_name(name);
-  String mname, inamebuf;
+  char mname[256], inamebuf[256];
   int predicate = 0;
+
+  cleanup = NewString("");
+  outarg = NewString("");
+
   switch (current) {
   case MEMBER_FUNC:
   case MEMBER_VAR:
   case STATIC_FUNC:
-    mname = klass->strip(iname);
-    if (Getattr(klass->predmethods, mname.get())) {
+    strcpy(mname, klass->strip(iname));
+    if (Getattr(klass->predmethods, mname)) {
       predicate = 1;
-      inamebuf = iname;
-      inamebuf << "?";
-      iname = inamebuf.get();
+      sprintf(inamebuf,"%s?",iname);
+      iname = inamebuf;
     }
     break;
   }
@@ -405,26 +450,26 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   int vararg = (numoptreal != 0);
 
   // Now write the wrapper function itself
-  f.def << "static VALUE\n" << wname << "(";
+  Printv(f._def, "static VALUE\n", wname, "(", 0);
   if (vararg) {
-    f.def << "int argc, VALUE *argv, VALUE self";
+    Printv(f._def, "int argc, VALUE *argv, VALUE self",0);
   } else {
-    f.def << "VALUE self";
+    Printv(f._def, "VALUE self", 0);
     for (i = start; i < l->nparms; i++) {
       if (!l->get(i)->ignore) {
-	f.def << ", VALUE varg" << i;
+	Printf(f._def,", VALUE varg%d", i);
       }
     }
   }
-  f.def << ") {";
+  Printf(f._def,") {");
 
   // Emit all of the local variables for holding arguments.
   if (vararg) {
     for (i = start; i < l->nparms; i++) {
       if (!l->get(i)->ignore) {
-	String s;
-	s << "varg" << i;
-	f.add_local((char*)"VALUE", s.get());
+	char s[256];
+	sprintf(s,"varg%d",i);
+	f.add_local((char*)"VALUE", s);
       }
     }
   }
@@ -432,6 +477,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   int pcount = emit_args(t,l,f);
 
 #if 0
+  // Dave's note: This won't work with strings gone -- 7/9/00 */
   String temp;
   temp << "/* " << name << " */" << br;
   temp << "/* nparms     = " << l->nparms << " */" << br;
@@ -443,19 +489,18 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   temp << "/* rb_scan_args(argc, argv, \""
        << (numarg-numoptreal) << numoptreal << "\") */" << br;
   temp << br;
-  if (numignore != 0) fprintf(stderr, temp);
+  if (numignore != 0) Printf(stderr, temp);
   f.code << temp;
 #endif
   // Emit count to check the number of arguments
   if (vararg) {
-    f.code << tab4 << "rb_scan_args(argc, argv, \""
-	   << (numarg-numoptreal) << numoptreal << "\"";
+    Printf(f._code,"    rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numoptreal);
     for (i = start; i < l->nparms; i++) {
       if (!l->get(i)->ignore) {
-	f.code << ", &varg" << i;
+	Printf(f._code,", &varg%d", i);
       }
     }
-    f.code << ");\n";
+    Printf(f._code,");\n");
   }
 
   // Now walk the function parameter list and generate code
@@ -464,60 +509,67 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   for (i = 0; i < pcount ; i++) {
     Parm &p = (*l)[i];         // Get the ith argument
-    source = "";
-    target = "";
 
     // Produce string representation of source and target arguments
     int selfp = (use_self && i == 0);
     if (selfp)
-      source << "self";
+      strcpy(source,"self");
     else
-      source << "varg" << i;
-    target << "_arg" << i;
+      sprintf(source,"varg%d",i);
+
+    sprintf(target,"_arg%d",i);
 
     if (!p.ignore) {
       char *tab = (char*)tab4;
       if (j >= (pcount-numopt)) { // Check if parsing an optional argument
-	f.code << tab4 << "if (argc > " << j -  start << ") {\n";
+	Printf(f._code,"    if (argc > %d) {\n", j -  start);
 	tab = (char*)tab8;
       }
 
       // Get typemap for this argument
-      tm = ruby_typemap_lookup((char*)"in",p.t,p.name,source.get(),target.get(),&f);
+      tm = ruby_typemap_lookup((char*)"in",p.t,p.name,source,target,&f);
       if (tm) {
-	String s = tm;
-	f.code << indent(s, tab) << "\n";
-	f.code.replace("$arg",source.get());   // Perform a variable replacement
+	DOHString *s = NewString(tm);
+	indent(s,tab);
+	Printv(f._code, s, "\n", 0);
+	Replace(f._code, "$arg", source, DOH_REPLACE_ANY);
+	Delete(s);
       } else {
-	fprintf(stderr,"%s : Line %d. No typemapping for datatype %s\n",
+	Printf(stderr,"%s : Line %d. No typemapping for datatype %s\n",
 		input_file,line_number, p.t->print_type());
       }
       if (j >= (pcount-numopt))
-	f.code << tab4 << "} \n";
+	Printv(f._code, tab4, "} \n");
       j++;
     }
 
     // Check to see if there was any sort of a constaint typemap
-    tm = ruby_typemap_lookup((char*)"check",p.t,p.name,source.get(),target.get());
+    tm = ruby_typemap_lookup((char*)"check",p.t,p.name,source,target);
     if (tm) {
-      String s = tm;
-      f.code << indent(s) << "\n";
-      f.code.replace("$arg",source.get());
+      DOHString *s = NewString(tm);
+      indent(s);
+      Printv(f._code, s, "\n", 0);
+      Replace(f._code, "$arg", source, DOH_REPLACE_ANY);
+      Delete(s);
     }
 
     // Check if there was any cleanup code (save it for later)
-    tm = ruby_typemap_lookup((char*)"freearg",p.t,p.name,target.get(),source.get());
+    tm = ruby_typemap_lookup((char*)"freearg",p.t,p.name,target,source);
     if (tm) {
-      String s = tm;
-      cleanup << indent(s) << "\n";
-      cleanup.replace("$arg",source.get());
+      DOHString *s = NewString(tm);
+      indent(s);
+      Printv(cleanup,s,"\n",0);
+      Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
+      Delete(s);
     }
 
-    tm = ruby_typemap_lookup((char*)"argout",p.t,p.name,target.get(),(char*)"vresult");
+    tm = ruby_typemap_lookup((char*)"argout",p.t,p.name,target,(char*)"vresult");
     if (tm) {
-      String s = tm;
-      outarg << indent(s) << "\n";
-      outarg.replace("$arg",source.get());
+      DOHString *s = NewString(tm);
+      indent(s);
+      Printv(outarg, s, "\n", 0);
+      Replace(outarg, "$arg", source, DOH_REPLACE_ANY);
+      Delete(s);
     }
   }
 
@@ -527,59 +579,65 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   // Return value if necessary
   if ((t->type != T_VOID) || (t->is_pointer)) {
     if (predicate) {
-      f.code << tab4 << "vresult = (_result ? Qtrue : Qfalse);\n";
+      Printv(f._code, tab4, "vresult = (_result ? Qtrue : Qfalse);\n", 0);
     } else {
       tm = ruby_typemap_lookup((char*)"out",t,name,(char*)"_result",(char*)"vresult");
       if (tm) {
-	String s = tm;
-	f.code << indent(s) << "\n";
+	DOHString *s = NewString(tm);
+	indent(s);
+	Printv(f._code, s, "\n", 0);
+	Delete(s);
       } else {
-	fprintf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
+	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
 		input_file,line_number,t->print_type());
       }
     }
   }
 
   // Dump argument output code;
-  f.code << outarg;
+  Printv(f._code,outarg,0);
 
   // Dump the argument cleanup code
-  f.code << cleanup;
+  Printv(f._code,cleanup,0);
 
   // Look for any remaining cleanup.  This processes the %new directive
   if (NewObject) {
     tm = ruby_typemap_lookup((char*)"newfree",t,name,(char*)"_result",(char*)"");
     if (tm) {
-      String s = tm;
-      f.code << indent(s) << "\n";
+      DOHString *s = NewString(tm);
+      indent(s);
+      Printv(f._code,s,"\n", 0);
+      Delete(s);
     }
   }
 
   // free pragma
-  if (current == MEMBER_FUNC && Getattr(klass->freemethods, mname.get())) {
-    f.code << tab4 << "DATA_PTR(self) = 0;\n";
+  if (current == MEMBER_FUNC && Getattr(klass->freemethods, mname)) {
+    Printv(f._code, tab4, "DATA_PTR(self) = 0;\n", 0);
   }
 
   // Special processing on return value.
   tm = ruby_typemap_lookup((char*)"ret",t,name,(char*)"_result",(char*)"");
   if (tm) {
-    String s = tm;
-    f.code << indent(s) << "\n";
+    DOHString *s = NewString(tm);
+    indent(s);
+    Printv(f._code,s,"\n", 0);
   }
 
   // Wrap things up (in a manner of speaking)
-  f.code << tab4 << "return vresult;\n}\n";
+  Printv(f._code, tab4, "return vresult;\n}\n", 0);
 
   // Substitute the cleanup code
-  f.code.replace("$cleanup",cleanup.get());
+  Replace(f._code,"$cleanup",cleanup, DOH_REPLACE_ANY);
 
   // Emit the function
   f.print(f_wrappers);
 
   // Now register the function with the language
   create_command(name, iname, (vararg ? -1 : numarg));
+  Delete(cleanup);
+  Delete(outarg);
 }
-
 
 // ---------------------------------------------------------------------
 // RUBY::link_variable(char *name, char *iname, DataType *t)
@@ -591,7 +649,8 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 // ---------------------------------------------------------------------
 void RUBY::link_variable(char *name, char *iname, DataType *t) {
   char *tm;
-  String getfname, setfname;
+  
+  DOHString *getfname, *setfname;
   WrapperFunction getf, setf;
   int mod_attr = 0;
 
@@ -600,102 +659,122 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
     mod_attr = 1;
 
   // create getter
-  getfname = Swig_name_get(name);
-  getfname.replace("::", "_"); /* FIXME: Swig_name_get bug? */
-  getf.def << "static VALUE\n" << getfname << "(";
-  if (mod_attr) getf.def << "VALUE self";
-  getf.def << ") {";
+  getfname = NewString(Swig_name_get(name));
+  Replace(getfname,"::", "_", DOH_REPLACE_ANY); /* FIXME: Swig_name_get bug? */
+  Printv(getf._def, "static VALUE\n", getfname, "(", 0);
+  if (mod_attr) Printf(getf._def, "VALUE self");
+  Printf(getf._def, ") {");
   getf.add_local((char*)"VALUE", (char*)"_val");
   tm = ruby_typemap_lookup((char*)"varout",t,name,name,(char*)"_val");
   if (!tm)
     tm = ruby_typemap_lookup((char*)"out",t,name,name,(char*)"_val");
   if (tm) {
-    String s = tm;
-    getf.code << indent(s) << "\n";
+    DOHString *s = NewString(tm);
+    indent(s);
+    Printv(getf._code,s,"\n", 0);
+    Delete(s);
   } else if (!t->is_pointer && t->type == T_USER) {
     // Hack this into a pointer
     t->is_pointer++;
     t->remember();
-    getf.code << tab4 << "_val = SWIG_NewPointerObj((void *)&" << name
-	      << ", \"" << t->print_mangle() << "\");\n";
+    Printv(getf._code, tab4, "_val = SWIG_NewPointerObj((void *)&", name,
+	   ", \"", t->print_mangle(), "\");\n", 0);
     t->is_pointer--;
   } else {
-    fprintf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
+    Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	    input_file,line_number,t->print_type());
   }
-  getf.code << tab4 << "return _val;\n}\n";
+  Printv(getf._code, tab4, "return _val;\n}\n", 0);
   getf.print(f_wrappers);
 
   if (Status & STAT_READONLY) {
-    setfname = "NULL";
+    setfname = NewString("NULL");
   } else {
     // create setter
-    setfname = Swig_name_set(name);
-    setfname.replace("::", "_"); /* FIXME: Swig_name_get bug? */
+    setfname = NewString(Swig_name_set(name));
+    Replace(setfname,"::", "_", DOH_REPLACE_ANY); /* FIXME: Swig_name_get bug? */
     if (mod_attr)
-      setf.def << "static VALUE\n" << setfname << "(VALUE self, ";
+      Printv(setf._def, "static VALUE\n", setfname, "(VALUE self, ", 0);
     else
-      setf.def << "static void\n" << setfname << "(";
-    setf.def << "VALUE _val) {";
+      Printv(setf._def, "static void\n", setfname, "(", 0);
+    Printf(setf._def, "VALUE _val) {");
     tm = ruby_typemap_lookup((char*)"varin",t,name,(char*)"_val",name);
     if (!tm)
       tm = ruby_typemap_lookup((char*)"in",t,name,(char*)"_val",name);
     if (tm) {
-      String s = tm;
-      setf.code << indent(s) << "\n";
+      DOHString *s = NewString(tm);
+      indent(s);
+      Printv(setf._code,s,"\n",0);
+      Delete(s);
     } else if (!t->is_pointer && t->type == T_USER) {
       t->is_pointer++;
       setf.add_local(t->print_type(), (char*)"temp");
-      setf.code << tab4 << "temp = (" << t->print_type() << ")"
-		<< "SWIG_ConvertPtr(_val, \"" << t->print_mangle() << "\");\n";
-      setf.code << tab4 << name << " = *temp;\n";
+      Printv(setf._code, tab4, "temp = (", t->print_type(), ")",
+	     "SWIG_ConvertPtr(_val, \"", t->print_mangle(), "\");\n",
+	     0);
+      Printv(setf._code, tab4, name, " = *temp;\n",0);
       t->is_pointer--;
     } else {
-      fprintf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
+      Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	      input_file,line_number,t->print_type());
     }
     if (mod_attr)
-      setf.code << tab4 << "return _val;\n";
-    setf.code << "}\n";
+      Printv(setf._code, tab4, "return _val;\n",0);
+    Printf(setf._code,"}\n");
     setf.print(f_wrappers);
   }
 
   // define accessor method
   if (CPlusPlus) {
-    "VALUEFUNC(" >> getfname << ")";
-    "VALUEFUNC(" >> setfname << ")";
+    Insert(getfname,0,"VALUEFUNC(");
+    Append(getfname,")");
+    Insert(setfname,0,"VALUEFUNC(");
+    Append(setfname,")");
   }
 
-  String s;
+  DOHString *s = NewString("");
   switch (current) {
   case STATIC_VAR:
     // C++ class variable
-    s << tab4 << "rb_define_singleton_method(" << klass->vname << ", \""
-      << klass->strip(iname) << "\", " << getfname << ", 0);\n";
+    Printv(s,
+	   tab4, "rb_define_singleton_method(", klass->vname, ", \"",
+	   klass->strip(iname), "\", ", getfname, ", 0);\n",
+	   0);
     if (!(Status & STAT_READONLY)) {
-      s << tab4 << "rb_define_singleton_method(" << klass->vname << ", \""
-	<< klass->strip(iname) << "=\", " << setfname << ", 1);\n";
+      Printv(s,
+	     tab4, "rb_define_singleton_method(", klass->vname, ", \"",
+	     klass->strip(iname), "=\", ", setfname, ", 1);\n",
+	     0);
     }
-    klass->init << s;
+    Printv(klass->init,s,0);
     break;
   default:
     // C global variable
     if (toplevel) {
       // wrapped in Ruby global variable
-      s << tab4 << "rb_define_virtual_variable(\"" << iname << "\", "
-	<< getfname << ", " << setfname << ");\n";
+      Printv(s,
+	     tab4, "rb_define_virtual_variable(\"", iname, "\", ",
+	     getfname, ", ", setfname, ");\n",
+	     0);
     } else {
       // wrapped in Ruby module attribute
-      s << tab4 << "rb_define_singleton_method(" << modvar << ", \""
-	<< iname << "\", " << getfname << ", 0);\n";
+      Printv(s,
+	     tab4, "rb_define_singleton_method(", modvar, ", \"",
+	     iname, "\", ", getfname, ", 0);\n",
+	     0);
       if (!(Status & STAT_READONLY)) {
-	s << tab4 << "rb_define_singleton_method(" << modvar << ", \""
-	  << iname << "=\", " << setfname << ", 1);\n";
+	Printv(s,
+	       tab4, "rb_define_singleton_method(", modvar, ", \"",
+	       iname, "=\", ", setfname, ", 1);\n",
+	       0);
       }
     }
-    fputs(s.get(), f_init);
+    Printv(f_init,s,0);
+    Delete(s);
     break;
   }
+  Delete(getfname);
+  Delete(setfname);
 }
 
 
@@ -713,12 +792,12 @@ char *RUBY::validate_const_name(char *name) {
 
   if (islower(name[0])) {
     name[0] = toupper(name[0]);
-    fprintf(stderr,"%s : Line %d. Wrong constant/class/module name "
+    Printf(stderr,"%s : Line %d. Wrong constant/class/module name "
 	    "(corrected to `%s')\n", input_file, line_number, name);
     return name;
   }
 
-  fprintf(stderr,"%s : Line %d. Wrong constant/class/module name\n",
+  Printf(stderr,"%s : Line %d. Wrong constant/class/module name\n",
 	  input_file, line_number);
   return name;
 }
@@ -740,22 +819,23 @@ void RUBY::declare_const(char *name, char *iname, DataType *type, char *value) {
 
   tm = ruby_typemap_lookup((char*)"const",type,name,value,iname);
   if (tm) {
-    String str = tm;
-    str.replace("$value",value);
+    DOHString *str = NewString(tm);
+    Replace(str,"$value",value, DOH_REPLACE_ANY);
     if (current == CLASS_CONST) {
-      str.replace("$module", klass->vname.get());
+      Replace(str,"$module", klass->vname, DOH_REPLACE_ANY);
       indent(str);
-      klass->init << str << "\n";
+      Printv(klass->init, str, "\n", 0);
     } else {
       if (toplevel)
-	str.replace("$module", "rb_cObject");
+	Replace(str,"$module", "rb_cObject", DOH_REPLACE_ANY);
       else
-	str.replace("$module", modvar);
+	Replace(str,"$module", modvar, DOH_REPLACE_ANY);
       indent(str);
-      fprintf(f_init,"%s\n", str.get());
+      Printf(f_init,"%s\n", str);
     }
+    Delete(str);
   } else {
-    fprintf(stderr,"%s : Line %d. Unable to create constant %s = %s\n",
+    Printf(stderr,"%s : Line %d. Unable to create constant %s = %s\n",
 	    input_file, line_number, type->print_type(), value);
   }
 }
@@ -772,58 +852,62 @@ void RUBY::declare_const(char *name, char *iname, DataType *type, char *value) {
 //              f      = a wrapper function object (optional)
 // ---------------------------------------------------------------------
 char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *source, char *target, WrapperFunction *f) {
-  static String s;
+  static DOHString *s = 0;
   char *tm;
-  String target_replace = target;
-  target = target_replace.get();
+  DOHString *target_replace = NewString(target);
+  target = Char(target_replace);
 
   RClass *cls = RCLASS(classes, type->name);
-  s = "";
+
+  if (!s) s = NewString("");
+  Clear(s);
 
   if ((strcmp("out", op) == 0 || strcmp("in", op) == 0)
       && strcmp(type->name, "VALUE") == 0) {
-    s << "$target = $source;";
+    Printf(s,"$target = $source;");
   } else if (strcmp("out", op) == 0 && type->type == T_USER &&
 	     type->is_pointer == 1 && cls) {
-    const char *vname = (current == CONSTRUCTOR ? "self" : cls->vname.get());
-    s << "$target = Wrap_" << cls->cname << "(" << vname << ", $source);";
+    const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
+    Printv(s, "$target = Wrap_", cls->cname, "(", vname, ", $source);",0);
   } else if (strcmp("in", op)==0 && type->type == T_USER &&
 	     type->is_pointer == 1 && cls) {
-    s << "Get_" << cls->cname << "($source, $target);";
+    Printv(s, "Get_", cls->cname, "($source, $target);", 0);
   } else {
     tm = typemap_lookup(op, typemap_lang, type, pname, source, target, f);
     if (tm) {
+      Delete(target_replace);
       return tm;
     }
-
-    s = "";
+    Clear(s);
     if (strcmp("in", op) == 0) {
-      String v;
+      DOHString *v = NewString("");
       if (from_VALUE(type, (char*)"$source", v))
-	s << "$target = " << v << ";";
+	Printv(s, "$target = ", v, ";", 0);
+      Delete(v);
     } else if (strcmp("out", op) == 0) {
-      String v;
+      DOHString *v = NewString("");
       if (to_VALUE(type, (char*)"$source", v))
-	s << "$target = " << v << ";";
+	Printv(s, "$target = ", v, ";", 0);
+      Delete(v);
     } else if (strcmp("const", op) == 0) {
-      String v;
+      DOHString *v = NewString("");
       if (to_VALUE(type, (char*)"$value", v, 1)) {
-	s << "rb_define_const($module, \"$target\", " << v << ");";
+	Printv(s, "rb_define_const($module, \"$target\", ", v, ");", 0);
 	validate_const_name(target);
       }
+      Delete(v);
     }
   }
-
-  if (strlen(s.get()) == 0) {
+  if (Len(s) == 0) {
     return NULL;
   }
 
   if (source && strlen(source) > 0)
-    s.replace("$source", source);
+    Replace(s,"$source",source, DOH_REPLACE_ANY);
   if (target && strlen(target) > 0)
-    s.replace("$target", target);
-  s.replace("$type", type->print_type());
-  return s.get();
+    Replace(s,"$target",target, DOH_REPLACE_ANY);
+  Replace(s,"$type", type->print_type(), DOH_REPLACE_ANY);
+  return Char(s);
 }
 
 // ---------------------------------------------------------------------
@@ -835,45 +919,45 @@ char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *sou
 //              str = resulting code (as a string)
 //              raw = value is raw string (not quoted) ?
 // ---------------------------------------------------------------------
-int RUBY::to_VALUE(DataType *type, char *value, String& str, int raw) {
-  str = "";
+int RUBY::to_VALUE(DataType *type, char *value, DOHString *str, int raw) {
+  Clear(str);
   if (type->is_pointer == 0) {
     switch(type->type) {
     case T_INT:case T_SINT:
     case T_SHORT: case T_SSHORT:
     case T_LONG: case T_SLONG:
     case T_SCHAR:
-      str << "INT2NUM(" << value << ")";
+      Printv(str, "INT2NUM(", value, ")", 0);
       break;
     case T_UINT:
     case T_USHORT:
     case T_ULONG:
     case T_UCHAR:
-      str << "UINT2NUM(" << value << ")";
+      Printv(str,"UINT2NUM(", value, ")", 0);
       break;
     case T_DOUBLE:
     case T_FLOAT:
-      str << "rb_float_new(" << value << ")";
+      Printv(str, "rb_float_new(", value, ")", 0);
       break;
     case T_CHAR:
-      str << "rb_str_new(&" << value << ", 1)";
+      Printv(str, "rb_str_new(&", value, ", 1)", 0);
       break;
     case T_BOOL:
-      str << "(" << value << " ? Qtrue : Qfalse)";
+      Printv(str, "(", value, " ? Qtrue : Qfalse)", 0);
       break;
     default:
       break;
     }
   } else if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
     if (raw)
-      str << "rb_str_new2(\"" << value << "\")";
+      Printv(str, "rb_str_new2(\"", value, "\")", 0);
     else
-      str << "rb_str_new2(" << value << ")";
+      Printv(str, "rb_str_new2(", value, ")", 0);
   } else {
-    str << "SWIG_NewPointerObj((void *)" << value << ", \"" << type->print_mangle() << "\")";
+    Printv(str, "SWIG_NewPointerObj((void *)", value, ", \"", type->print_mangle(), "\")", 0);
   }
 
-  if (strlen(str.get()) == 0)
+  if (Len(str) == 0)
     return 0;
   return 1;
 }
@@ -886,49 +970,48 @@ int RUBY::to_VALUE(DataType *type, char *value, String& str, int raw) {
 //              value = Ruby VALUE (as a string)
 //              str   = resulting code (as a string)
 // ---------------------------------------------------------------------
-int RUBY::from_VALUE(DataType *type, char *value, String& str) {
-  str = "";
+int RUBY::from_VALUE(DataType *type, char *value, DOHString *str) {
+  Clear(str);
   if (type->is_pointer == 0) {
     switch(type->type) {
     case T_INT:case T_SINT:
-      str << "NUM2INT(" << value << ")";
+      Printv(str, "NUM2INT(", value, ")", 0);
       break;
     case T_LONG: case T_SLONG:
-      str << "NUM2LONG(" << value << ")";
+      Printv(str, "NUM2LONG(", value, ")", 0);
       break;
     case T_SHORT: case T_SSHORT:
-      str << "NUM2SHRT(" << value << ")";
+      Printv(str, "NUM2SHRT(", value, ")", 0);
       break;
     case T_UINT:
-      str << "NUM2UINT(" << value << ")";
+      Printv(str, "NUM2UINT(", value, ")", 0);
       break;
     case T_ULONG:
-      str << "NUM2ULONG(" << value << ")";
+      Printv(str, "NUM2ULONG(", value, ")", 0);
       break;
     case T_USHORT:
-      str << "NUM2USHRT(" << value << ")";
+      Printv(str, "NUM2USHRT(", value, ")", 0);
       break;
     case T_DOUBLE:
     case T_FLOAT:
-      str << "NUM2DBL(" << value << ")";
+      Printv(str, "NUM2DBL(", value, ")", 0);
       break;
     case T_CHAR: case T_SCHAR: case T_UCHAR:
-      str << "NUM2CHR(" << value << ")";
+      Printv(str, "NUM2CHR(", value, ")", 0);
       break;
     case T_BOOL:
-      str << "RTEST(" << value << ")";
+      Printv(str,"RTEST(", value, ")", 0);
       break;
     default:
       break;
     }
   } else if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
-    str << "STR2CSTR(" << value << ")";
+    Printv(str, "STR2CSTR(", value, ")", 0);
   } else {
-    str << "SWIG_ConvertPtr(" << value << ", \"" << type->print_mangle() << "\")";
+    Printv(str, "SWIG_ConvertPtr(", value, ", \"", type->print_mangle(), "\")", 0);
   }
-
-  if (strlen(str.get()) == 0)
-    return 0;
+  
+  if (Len(str) == 0) return 0;
   return 1;
 }
 
@@ -955,43 +1038,45 @@ void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
   klass = RCLASS(classes, cname);
 
   if (strip) {
-    klass->type = "";
-    klass->type << klass->cname;
+    Clear(klass->type);
+    Append(klass->type, klass->cname);
   } else {
-    klass->type = "";
-    klass->type << ctype << " " << klass->cname;
+    Clear(klass->type);
+    Printv(klass->type, ctype, " ", klass->cname,0);
   }
 
-  klass->header << "\nVALUE " << klass->vname << ";\n";
-  klass->init << "\n" <<  tab4;
+  Printv(klass->header, "\nVALUE ", klass->vname, ";\n", 0);
+  Printv(klass->init, "\n", tab4, 0);
   if (toplevel) {
-    klass->init << klass->vname << " = rb_define_class("
-		<< "\"" << klass->name << "\", $super);\n";
+    Printv(klass->init, klass->vname, " = rb_define_class(",
+	   "\"", klass->name, "\", $super);\n", 0);
   } else {
-    klass->init << klass->vname << " = rb_define_class_under(" << modvar
-		<< ", \"" << klass->name << "\", $super);\n";
+    Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
+	   ", \"", klass->name, "\", $super);\n", 0);
   }
-  klass->includes.replace("$class", klass->vname.get());
-  klass->init << klass->includes;
-  klass->init << "$constructor";
+  Replace(klass->includes,"$class", klass->vname, DOH_REPLACE_ANY);
+  Printv(klass->init, klass->includes,0);
+  Printv(klass->init, "$constructor",0);
 
-  klass->header
-    << "$markproto"
-    << "$freeproto"
-    << "#define Wrap_" << klass->cname << "(klass, ptr) (\\\n"
-    << tab4 << "(ptr) ? Data_Wrap_Struct(klass"
-    << ", $markfunc, $freefunc, ptr) : Qnil )\n"
-    << "#define Get_" << klass->cname << "(val, ptr) {\\\n"
-    << tab4 << "if (NIL_P(val)) ptr = NULL;\\\n"
-    << tab4 << "else {\\\n"
-    << tab8 << "if (!rb_obj_is_kind_of(val, " << klass->vname << "))\\\n"
-    << tab8 << tab4 << "rb_raise(rb_eTypeError, \"wrong argument type"
-    <<                 " (expected " << klass->name << ")\");\\\n"
-    << tab8 << "Data_Get_Struct(val, " << klass->type << ", ptr);\\\n"
-    << tab8 << "if (!ptr) rb_raise(rb_eRuntimeError, \""
-    <<         "This " << klass->name << " already released\");\\\n"
-    << tab4 << "}\\\n"
-    << "}\n";
+  Printv(klass->header,
+	 "$markproto",
+	 "$freeproto",
+	 "#define Wrap_", klass->cname, "(klass, ptr) (\\\n",
+	 tab4, "(ptr) ? Data_Wrap_Struct(klass",
+	 ", $markfunc, $freefunc, ptr) : Qnil )\n",
+	 "#define Get_", klass->cname, "(val, ptr) {\\\n",
+	 tab4, "if (NIL_P(val)) ptr = NULL;\\\n",
+	 tab4, "else {\\\n",
+	 tab8, "if (!rb_obj_is_kind_of(val, ", klass->vname, "))\\\n",
+	 tab8, tab4, "rb_raise(rb_eTypeError, \"wrong argument type",
+	                 " (expected ", klass->name, ")\");\\\n",
+	 tab8, "Data_Get_Struct(val, ", klass->type, ", ptr);\\\n",
+	 tab8, "if (!ptr) rb_raise(rb_eRuntimeError, \"",
+	         "This ", klass->name, " already released\");\\\n",
+	 tab4, "}\\\n",
+	 "}\n",
+	 0);
+
 }
 
 // ---------------------------------------------------------------------
@@ -1002,25 +1087,24 @@ void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
 void RUBY::cpp_close_class() {
   this->Language::cpp_close_class();
 
-  klass->header.replace("$markfunc", "0");
-  klass->header.replace("$markproto", "");
+  Replace(klass->header,"$markfunc", "0", DOH_REPLACE_ANY);
+  Replace(klass->header,"$markproto", "", DOH_REPLACE_ANY);
   if (!klass->destructor_defined) {
-    klass->header.replace("$freefunc", "0");
-    klass->header.replace("$freeproto", "");
+    Replace(klass->header,"$freefunc", "0", DOH_REPLACE_ANY);
+    Replace(klass->header,"$freeproto", "", DOH_REPLACE_ANY);
   }
-  fprintf(f_header, klass->header.get());
+  Printv(f_header, klass->header,0);
 
-  klass->aliases.replace("$class", klass->vname.get());
-  klass->init << klass->aliases;
+  Replace(klass->aliases,"$class", klass->vname, DOH_REPLACE_ANY);
+  Printv(klass->init, klass->aliases,0);
 
-  String s;
-  s << tab4 << "rb_undef_method(CLASS_OF(" << klass->vname
-    << "), \"new\");\n";
-  klass->init.replace("$constructor", s.get());
-  klass->init.replace("$super", "rb_cObject");
+  DOHString *s = NewString("");
+  Printv(s, tab4, "rb_undef_method(CLASS_OF(", klass->vname,
+	 "), \"new\");\n", 0);
+  Replace(klass->init,"$constructor", s, DOH_REPLACE_ANY);
+  Replace(klass->init,"$super", "rb_cObject", DOH_REPLACE_ANY);
 
-  fprintf(f_init, klass->init.get());
-
+  Printv(f_init,klass->init,0);
   klass = 0;
 }
 
@@ -1041,7 +1125,7 @@ void RUBY::cpp_inherit(char **baseclass, int mode) {
   for (int i = 0; baseclass[i]; i++) {
     RClass *super = RCLASS(classes, baseclass[i]);
     if (super) {
-      klass->init.replace("$super", super->vname.get());
+      Replace(klass->init,"$super", super->vname, DOH_REPLACE_ANY);
       break; // ignore multiple inheritance
     }
   }
@@ -1105,23 +1189,31 @@ void RUBY::cpp_destructor(char *name, char *newname) {
   current = DESTRUCTOR;
   this->Language::cpp_destructor(name, newname);
 
-  String freefunc, freeproto, freebody;
-  freefunc << "free_" << klass->cname;
-  freeproto << "static void " << freefunc << "(" << klass->type << " *);\n";
-  freebody  << "static void\n"
-	    << freefunc << "(" << klass->type << " *ptr) {\n"
-	    << tab4 << Swig_name_destroy(name) << "(ptr);\n"
-	    << "}\n";
+  DOHString *freefunc = NewString("");
+  DOHString *freeproto = NewString("");
+  DOHString *freebody = NewString("");
+
+  Printv(freefunc, "free_", klass->cname, 0);
+  Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", 0);
+  Printv(freebody, "static void\n",
+	 freefunc, "(", klass->type, " *ptr) {\n",
+	 tab4, Swig_name_destroy(name), "(ptr);\n",
+	 "}\n",
+	 0);
   if (CPlusPlus) {
-    "VOIDFUNC(" >> freefunc << ")";
+    Insert(freefunc,0,"VOIDFUNC(");
+    Append(freefunc,")");
   }
 
-  klass->header.replace("$freefunc", freefunc.get());
-  klass->header.replace("$freeproto", freeproto.get());
-  fprintf(f_wrappers, freebody.get());
+  Replace(klass->header,"$freefunc", freefunc, DOH_REPLACE_ANY);
+  Replace(klass->header,"$freeproto", freeproto, DOH_REPLACE_ANY);
+  Printv(f_wrappers, freebody, 0);
 
   klass->destructor_defined = 1;
   current = NO_CPP;
+  Delete(freefunc);
+  Delete(freeproto);
+  Delete(freebody);
 }
 
 // ---------------------------------------------------------------------
@@ -1201,20 +1293,20 @@ void RUBY::cpp_static_var(char *name, char *iname, DataType *t) {
 // A forward class declaration
 // -----------------------------------------------------------------------
 void RUBY::cpp_class_decl(char *cname, char *rename, char *type) {
-  String valid_name = (rename ? rename : cname);
-  validate_const_name(valid_name.get());
-  klass->set_name(cname, rename, valid_name.get());
+  DOHString *valid_name = NewString((rename ? rename : cname));
+  validate_const_name(Char(valid_name));
+  klass->set_name(cname, rename, Char(valid_name));
   SET_RCLASS(classes, cname, klass);
   if (type && strlen(type) > 0) {
-    String temp;
-    temp << type << " " << cname;
-    SET_RCLASS(classes, temp.get(), klass);
+    char temp[256];
+    sprintf(temp,"%s %s", type, cname);
+    SET_RCLASS(classes, temp, klass);
   }
-  String s;
-  s << "extern VALUE " << klass->vname << ";\n";
-  fprintf(f_header, s.get());
-
+  char s[256];
+  sprintf(s,"extern VALUE %s;\n", Char(klass->vname));
+  Printf(f_header, s);
   klass = new RClass();
+  Delete(valid_name);
 }
 
 // --------------------------------------------------------------------
@@ -1229,7 +1321,7 @@ void RUBY::pragma(char *lang, char *cmd, char *value) {
   if (strcmp(cmd, "free") == 0) {
     char name[64];
     if (sscanf(value, " %s ", name) != 1) {
-      fprintf(stderr, "%s : Line %d. Invalid free pragma.\n",
+      Printf(stderr, "%s : Line %d. Invalid free pragma.\n",
 	      input_file, line_number);
       return;
     }
@@ -1237,21 +1329,21 @@ void RUBY::pragma(char *lang, char *cmd, char *value) {
   } else if (strcmp(cmd, "include") == 0) {
     char name[64];
     if (sscanf(value, " %s ", name) != 1) {
-      fprintf(stderr, "%s : Line %d. Invalid include pragma.\n",
+      Printf(stderr, "%s : Line %d. Invalid include pragma.\n",
 	      input_file, line_number);
       return;
     }
-    klass->includes << tab4 << "rb_include_module($class, "
-		    << "rb_eval_string(\"" << name << "\"));\n";
+    Printv(klass->includes,tab4, "rb_include_module($class, ",
+	   "rb_eval_string(\"", name, "\"));\n", 0);
   } else if (strcmp(cmd, "alias") == 0) {
     char alias[64], name[64];
     if (sscanf(value, " %s %s ", alias, name) != 2) {
-      fprintf(stderr, "%s : Line %d. Invalid alias pragma.\n",
+      Printf(stderr, "%s : Line %d. Invalid alias pragma.\n",
 	      input_file, line_number);
       return;
     }
-    klass->aliases << tab4 << "rb_define_alias($class, "
-		  << "\"" << alias << "\", \"" << name << "\");\n";
+    Printv(klass->aliases, tab4, "rb_define_alias($class, ",
+	   "\"", alias, "\", \"", name, "\");\n", 0);
   } else if (strcmp(cmd, "pred") == 0) {
     char *tok;
     tok = strtok(value, " \t");
@@ -1260,12 +1352,12 @@ void RUBY::pragma(char *lang, char *cmd, char *value) {
       tok = strtok(0, " \t");
     }
   } else if (strcmp(cmd, "debug") == 0) {
-    fprintf(f_header, "/* %s */\n", value);
-    fprintf(f_wrappers, "/* %s */\n", value);
-    fprintf(f_init, "/* %s */\n", value);
-    fprintf(stderr, "%s\n", value);
+    Printf(f_header, "/* %s */\n", value);
+    Printf(f_wrappers, "/* %s */\n", value);
+    Printf(f_init, "/* %s */\n", value);
+    Printf(stderr, "%s\n", value);
   } else {
-    fprintf(stderr, "%s : Line %d. Unrecognized pragma.\n",
+    Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
 	    input_file, line_number);
   }
 }
