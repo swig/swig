@@ -42,7 +42,7 @@ static swig_type_info *SWIG_POINTER_char_pp = 0;
   builtin C datatypes. 
   ------------------------------------------------------------------ */
 
-static int ptrvalue(Tcl_Interp *interp, char *ptrvalue, int index, char *type) {
+static int ptrvalue(Tcl_Interp *interp, char *ptrvalue, int index, const char *type) {
   void     *ptr;
   char     *s;
   int      error = 0;
@@ -52,7 +52,7 @@ static int ptrvalue(Tcl_Interp *interp, char *ptrvalue, int index, char *type) {
   }
   s = ptrvalue;
   if (SWIG_ConvertPtrFromString(interp,s,&ptr,0) != TCL_OK) {
-    Tcl_SetResult(interp,"Type error in ptrvalue. Argument is not a valid pointer value.", TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Type error in ptrvalue. Argument is not a valid pointer value.", TCL_STATIC);
     return TCL_ERROR;
   }
 
@@ -79,7 +79,7 @@ static int ptrvalue(Tcl_Interp *interp, char *ptrvalue, int index, char *type) {
   }
 
   if (!ptr) {
-    Tcl_SetResult(interp,"Unable to dereference NULL pointer.",TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Unable to dereference NULL pointer.",TCL_STATIC);
     return TCL_ERROR;
   }
 
@@ -99,9 +99,9 @@ static int ptrvalue(Tcl_Interp *interp, char *ptrvalue, int index, char *type) {
   } else if (strcmp(type,"char *") == 0) {
     char *c = *(((char **) ptr)+index);
     if (c) Tcl_SetResult(interp,(char *) c, TCL_VOLATILE);
-    else Tcl_SetResult(interp,"NULL", TCL_VOLATILE);
+    else Tcl_SetResult(interp, (char *) "NULL", TCL_VOLATILE);
   } else {
-    Tcl_SetResult(interp,"Unable to dereference unsupported datatype.",TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Unable to dereference unsupported datatype.",TCL_STATIC);
     return TCL_ERROR;
   }
   return TCL_OK;
@@ -146,7 +146,7 @@ static int ptrcreate(Tcl_Interp *interp, char *type, char *ptrvalue, int numelem
   } else if (strcmp(type,"void") == 0) {
     sz = numelements;
   } else {
-    Tcl_SetResult(interp,"Unable to create unknown datatype.",TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Unable to create unknown datatype.",TCL_STATIC);
     return TCL_ERROR;
   }
    
@@ -154,7 +154,7 @@ static int ptrcreate(Tcl_Interp *interp, char *type, char *ptrvalue, int numelem
   
   ptr = (void *) calloc(1,sz);
   if (!ptr) {
-    Tcl_SetResult(interp,"Out of memory in ptrcreate.",TCL_STATIC); 
+    Tcl_SetResult(interp, (char *) "Out of memory in ptrcreate.",TCL_STATIC); 
     return TCL_ERROR;
   }
 
@@ -230,13 +230,13 @@ static int ptrcreate(Tcl_Interp *interp, char *type, char *ptrvalue, int numelem
   given, we will use that type.  Otherwise, we'll guess the datatype.
   ------------------------------------------------------------------ */
 
-static int ptrset(Tcl_Interp *interp, char *ptrvalue, char *value, int index, char *type) {
+static int ptrset(Tcl_Interp *interp, char *ptrvalue, char *value, int index, const char *type) {
   void     *ptr;
   char     *s;
 
   s = ptrvalue;
   if (SWIG_ConvertPtrFromString(interp,s,&ptr,0) != TCL_OK) {
-    Tcl_SetResult(interp,"Type error in ptrset. Argument is not a valid pointer value.",
+    Tcl_SetResult(interp, (char *) "Type error in ptrset. Argument is not a valid pointer value.",
 		  TCL_STATIC);
     return TCL_ERROR;
   }
@@ -266,7 +266,7 @@ static int ptrset(Tcl_Interp *interp, char *ptrvalue, char *value, int index, ch
   }
 
   if (!ptr) {
-    Tcl_SetResult(interp,"Unable to set NULL pointer.",TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Unable to set NULL pointer.",TCL_STATIC);
     return TCL_ERROR;
   }
   
@@ -305,7 +305,7 @@ static int ptrset(Tcl_Interp *interp, char *ptrvalue, char *value, int index, ch
       strcpy(ca[index],c);
     }
   } else {
-    Tcl_SetResult(interp,"Unable to set unsupported datatype.",TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Unable to set unsupported datatype.",TCL_STATIC);
     return TCL_ERROR;
   }
   return TCL_OK;
@@ -354,7 +354,7 @@ static int ptradd(Tcl_Interp *interp, char *ptrvalue, int offset) {
     stype.name = SWIG_PointerTypeFromString(s);
     type = &stype;
   } else {
-    Tcl_SetResult(interp,"Type error in ptradd. Argument is not a valid pointer value.",TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Type error in ptradd. Argument is not a valid pointer value.",TCL_STATIC);
     return TCL_ERROR;
   }
   Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,type));
@@ -373,7 +373,7 @@ int ptrfree(Tcl_Interp *interp, char *ptrvalue) {
 
   s = ptrvalue;
   if (SWIG_ConvertPtrFromString(interp,ptrvalue,&ptr,0) != TCL_OK) {
-    Tcl_SetResult(interp,"Type error in ptrfree. Argument is not a valid pointer value.",TCL_STATIC);
+    Tcl_SetResult(interp, (char *) "Type error in ptrfree. Argument is not a valid pointer value.",TCL_STATIC);
     return TCL_ERROR;
   }
 

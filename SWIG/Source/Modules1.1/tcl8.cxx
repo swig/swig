@@ -233,7 +233,7 @@ TCL8::close(void) {
   Printf(f_wrappers,"%s", var_info);
 
   Printf(f_init,"for (i = 0; swig_commands[i].name; i++) {\n");
-  Printf(f_init,"Tcl_CreateObjCommand(interp, (char *) swig_commands[i].name, swig_commands[i].wrapper, swig_commands[i].clientdata, NULL);\n");
+  Printf(f_init,"Tcl_CreateObjCommand(interp, (char *) swig_commands[i].name, (swig_wrapper_func) swig_commands[i].wrapper, swig_commands[i].clientdata, NULL);\n");
   Printf(f_init,"}\n");
 
   Printf(f_init,"for (i = 0; swig_variables[i].name; i++) {\n");
@@ -258,7 +258,7 @@ void
 TCL8::create_command(char *cname, char *iname) {
 
   String *wname = Swig_name_wrapper(cname);
-  Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", ", wname, ", NULL},\n", 0);
+  Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", wname, ", NULL},\n", 0);
 
   /* Add interpreter name to repeatcmd hash table.  This hash is used in C++ code
      generation to try and find repeated wrapper functions. */
@@ -526,7 +526,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Wrapper_print(f,f_wrappers);
 
   /* Register the function with Tcl */
-  Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", ", Swig_name_wrapper(iname), ", NULL},\n", 0);
+  Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), ", NULL},\n", 0);
 
   Delete(incode);
   Delete(cleanup);
@@ -650,7 +650,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
       Printv(set->code, "{\n",
 	     "void *ptr;\n",
 	     "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", SwigType_manglestr(t), ") != TCL_OK) {\n",
-	     "return \"Type Error\";\n",
+	     "return (char *) \"Type Error\";\n",
 	     "}\n",
 	     "*(addr) = *((", SwigType_lstr(t,0), ") ptr);\n",
 	     "}\n",
@@ -711,7 +711,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
       Printv(set->code,  "{\n",
 	     "void *ptr;\n",
 	     "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", SwigType_manglestr(t), ") != TCL_OK) {\n",
-	     "return \"Type Error\";\n",
+	     "return (char *) \"Type Error\";\n",
 	     "}\n",
 	     "*(addr) = (", SwigType_lstr(t,0), ") ptr;\n",
 	     "}\n",
@@ -743,21 +743,21 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
     DelWrapper(get);
     DelWrapper(set);
   }
-  Printv(var_info, tab4,"{ SWIG_prefix \"", iname, "\", (void *) ", isarray ? "" : "&", name, ",", getname, ",", 0);
+  Printv(var_info, tab4,"{ SWIG_prefix \"", iname, "\", (void *) ", isarray ? "" : "&", name, ", (swig_variable_func) ", getname, ",", 0);
 
   if (readonly) {
     static int readonlywrap = 0;
     if (!readonlywrap) {
       Wrapper *ro = NewWrapper();
-      Printf(ro->def, "static char *swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
+      Printf(ro->def, "static const char *swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
       Printv(ro->code, "return \"Variable is read-only\";\n", "}\n", 0);
       Wrapper_print(ro,f_wrappers);
       readonlywrap = 1;
       DelWrapper(ro);
     }
-    Printf(var_info, "swig_readonly},\n");
+    Printf(var_info, "(swig_variable_func) swig_readonly},\n");
   } else {
-    Printv(var_info, setname, "},\n",0);
+    Printv(var_info, "(swig_variable_func) ", setname, "},\n",0);
   }
 }
 
@@ -927,7 +927,7 @@ TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
 
 void
 TCL8::add_native(char *name, char *funcname, SwigType *, ParmList *) {
-  Printf(f_init,"\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
+  Printf(f_init,"\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", (swig_wrapper_func) %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1013,7 +1013,7 @@ TCL8::cpp_close_class() {
     Printv(code, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes };\n", 0);
     Printf(f_wrappers,"%s",code);
 
-    Printv(cmd_info, tab4, "{ SWIG_prefix \"", class_name, "\", SwigObjectCmd, &_wrap_class_", class_name, "},\n", 0);
+    Printv(cmd_info, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SwigObjectCmd, &_wrap_class_", class_name, "},\n", 0);
   }
   Delete(code);
 }

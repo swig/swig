@@ -219,7 +219,7 @@ SwigObjectCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
       newinst->thisvalue = thisvalue;
       newinst->classptr = classptr;
       newinst->destroy = destroy;
-      Tcl_CreateObjCommand(interp,name, SwigMethodCmd, (ClientData) newinst, SwigObjectDelete);
+      Tcl_CreateObjCommand(interp,name, (swig_wrapper_func) SwigMethodCmd, (ClientData) newinst, (swig_delete_func) SwigObjectDelete);
       return TCL_OK;
     } else {
       Tcl_SetResult(interp, (char *) "Object name already exists!", TCL_STATIC);

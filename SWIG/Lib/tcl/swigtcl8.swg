@@ -213,6 +213,10 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
 
 #endif
 
+typedef int(*swig_wrapper_func)(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST []);
+typedef char *(*swig_variable_func)(ClientData, Tcl_Interp *, char *, char *, int);
+typedef void(*swig_delete_func)(ClientData);
+
 /* Structure for command table */
 typedef struct {
   const char *name;
