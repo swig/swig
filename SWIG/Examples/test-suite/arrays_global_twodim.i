@@ -35,9 +35,6 @@ const int      array_const_i[ARRAY_LEN_X][ARRAY_LEN_Y] = {10, 11, 12, 13, 14, 15
 
 void fn_taking_arrays(SimpleStruct array_struct[ARRAY_LEN_X][ARRAY_LEN_Y]) {}
 
-void set_2d_array(int (*array)[ARRAY_LEN_Y], int x, int y, int value){
-    array[x][y] = value;
-}
 int get_2d_array(int (*array)[ARRAY_LEN_Y], int x, int y){
     return array[x][y];
 }
