@@ -66,10 +66,11 @@ CPP_TEST_CASES += \
 	anonymous_arg \
 	anonymous_bitfield \
 	argout \
+	array_member \
 	arrayref \
+	arrays_dimensionless \
 	arrays_global \
 	arrays_global_twodim \
-	array_member \
 	arrays_scope \
 	bloody_hell \
 	bool_default \
