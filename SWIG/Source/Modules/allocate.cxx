@@ -49,7 +49,7 @@ class Allocate : public Dispatcher {
 	if (!dn) {
 	  Printf(stdout,"node: %x '%s'. base: %x '%s'. member '%s'\n", n, Getattr(n,"name"), base, Getattr(base,"name"), name);
 	}
-	assert(dn);   // Assertion of doom
+	assert(dn != 0);   // Assertion of doom
 	while (dn && !implemented) {
 	  String *local_decl = Getattr(dn,"decl");
 	  if (local_decl && !Strcmp(local_decl, base_decl)) {
