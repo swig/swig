@@ -67,7 +67,12 @@ public class java_throws_runme {
       if (!pass)
         throw new RuntimeException("Test 5 failed");
 
-      FeatureTest f = new FeatureTest();
+      FeatureTest f = null;
+      try {
+        f = new FeatureTest();
+      }
+      catch (MyException e) {}
+
       // Instance method
       pass = false;
       try {
