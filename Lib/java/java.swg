@@ -943,6 +943,15 @@
   }
 %}
 
+%typemap(javaconstruct) SWIGTYPE {
+    this($imcall, true);
+  }
+
+%typemap(javaconstruct_director) SWIGTYPE {
+    this($imcall, true);
+    $moduleJNI.$javaclassname_director_connect(this, swigCPtr);
+  }
+
 %typemap(javadestruct, methodname="delete") SWIGTYPE {
     if(swigCPtr != 0 && swigCMemOwn) {
       swigCMemOwn = false;
