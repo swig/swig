@@ -351,12 +351,12 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f) {
   if ((tm = typemap_lookup((char*)"except",typemap_lang,t,decl,(char*)"_result",(char*)""))) {
     // Found a type-specific mapping
     exc << tm;
-    exc.replace("$function",fcall);
+    exc.replace("$function",fcall.get());
     exc.replace("$name",decl);
     f.code << exc;
   } else if ((tm = fragment_lookup((char*)"except",typemap_lang, t->id))) {
     exc << tm;
-    exc.replace("$function",fcall);
+    exc.replace("$function",fcall.get());
     exc.replace("$name",decl);
     f.code << exc;
   } else {
@@ -472,10 +472,10 @@ void emit_set_get(char *name, char *iname, DataType *t) {
 
       if ((t->type == T_USER) && (!t->is_pointer)) {
 	t->is_pointer++;
-	lang->create_function(new_name, new_iname, t, l);
+	lang->create_function(new_name.get(), new_iname.get(), t, l);
 	t->is_pointer--;
       } else {
-	lang->create_function(new_name, new_iname, t, l);
+	lang->create_function(new_name.get(), new_iname.get(), t, l);
       }
       delete l;
       delete p;
@@ -506,10 +506,10 @@ void emit_set_get(char *name, char *iname, DataType *t) {
 
     if ((t->type == T_USER) && (!t->is_pointer)) {
       t->is_pointer++;
-      lang->create_function(new_name, new_iname, t, l);
+      lang->create_function(new_name.get(), new_iname.get(), t, l);
       t->is_pointer--;
     } else {
-      lang->create_function(new_name, new_iname, t, l);
+      lang->create_function(new_name.get(), new_iname.get(), t, l);
     }
     delete l;
 }

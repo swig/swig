@@ -400,7 +400,7 @@ char *DataType::get_dimension(int n) {
   char  *c;
 
   dim = "";
-  if (n >= array_dimensions()) return dim; 
+  if (n >= array_dimensions()) return dim.get(); 
   
   // Attemp to locate the right dimension
 
@@ -417,7 +417,7 @@ char *DataType::get_dimension(int n) {
       c++;
     }
   }
-  return dim;
+  return dim.get();
 }
 
 // --------------------------------------------------------------------
@@ -499,8 +499,8 @@ void DataType::typedef_add(char *tname, int mode) {
 	strcpy(t1.name,tname);
 	name2 << t1.print_mangle();
 	name1 << print_mangle();
-	typeeq_addtypedef(name1,name2,&t1);
-	typeeq_addtypedef(name2,name1,this);
+	typeeq_addtypedef(name1.get(),name2.get(),&t1);
+	typeeq_addtypedef(name2.get(),name1.get(),this);
       }
   }
   // Call into the target language with this typedef
@@ -583,7 +583,7 @@ void DataType::typedef_replace () {
 	delete arraystr;
       }
       temp << td->arraystr;
-      arraystr = copy_string(temp);
+      arraystr = copy_string(temp.get());
     }
   }
   // Not found, do nothing
@@ -939,7 +939,7 @@ void typeeq_derived(char *n1, char *n2, char *cast=0) {
   strcpy(t1.name,n2);
   name << t.print_mangle();
   name2 << t1.print_mangle();
-  typeeq_add(name,name2,cast, &t1);
+  typeeq_add(name.get(),name2.get(),cast, &t1);
 }
 
 // ------------------------------------------------------------------------------
@@ -958,7 +958,7 @@ void typeeq_mangle(char *n1, char *n2, char *cast=0) {
   strcpy(t1.name,n2);
   name << t.print_mangle();
   name2 << t1.print_mangle();
-  typeeq_add(name,name2,cast);
+  typeeq_add(name.get(),name2.get(),cast);
 }
 
 // ------------------------------------------------------------------------------

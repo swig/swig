@@ -269,9 +269,9 @@ MZSCHEME::get_pointer (String &name, int parm, DataType *t,
 static void
 mreplace (String &s, String &argnum, String &arg, String &proc_name)
 {
-  s.replace ("$argnum", argnum);
-  s.replace ("$arg",    arg);
-  s.replace ("$name",   proc_name);
+  s.replace ("$argnum", argnum.get());
+  s.replace ("$arg",    arg.get());
+  s.replace ("$name",   proc_name.get());
 }
 
 static void
@@ -365,7 +365,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
     else {
       ++numargs;
       if ((tm = typemap_lookup ((char*)"in", typemap_lang,
-				p.t, p.name, source, target, &f))) {
+				p.t, p.name, source.get(), target.get(), &f))) {
 	f.code << tm << "\n";
 	mreplace (f.code, argnum, arg, proc_name);
       }
@@ -381,7 +381,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Check if there are any constraints.
 
     if ((tm = typemap_lookup ((char*)"check", typemap_lang,
-			      p.t, p.name, source, target, &f))) {
+			      p.t, p.name, source.get(), target.get(), &f))) {
       // Yep.  Use it instead of the default
       f.code << tm << "\n";
       mreplace (f.code, argnum, arg, proc_name);
@@ -390,7 +390,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Pass output arguments back to the caller.
 
     if ((tm = typemap_lookup ((char*)"argout", typemap_lang,
-                              p.t, p.name, source, target, &f))) {
+                              p.t, p.name, source.get(), target.get(), &f))) {
       // Yep.  Use it instead of the default
       outarg << tm << "\n";
       mreplace (outarg, argnum, arg, proc_name);
@@ -399,7 +399,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Free up any memory allocated for the arguments.
     if ((tm = typemap_lookup ((char*)"freearg", typemap_lang,
-                              p.t, p.name, source, target, &f))) {
+                              p.t, p.name, source.get(), target.get(), &f))) {
       // Yep.  Use it instead of the default
       cleanup << tm << "\n";
       mreplace (cleanup, argnum, arg, proc_name);

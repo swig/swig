@@ -185,7 +185,7 @@ static char *make_name(char *name) {
       temp = "";
       temp << name;
       temp.replace("$","_S_");
-      return temp;
+      return temp.get();
     } else {
       return name;
     }
@@ -548,7 +548,7 @@ statement      : INCLUDE STRING LBRACE {
 		    if ($4 > 0) {
 		      $2->is_pointer++;
 		      $2->status = STAT_READONLY;
-                      $2->arraystr = copy_string(ArrayString);
+                      $2->arraystr = copy_string(ArrayString.get());
 		    }
 		    if ($3.is_reference) {
 		      fprintf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
@@ -929,7 +929,7 @@ statement      : INCLUDE STRING LBRACE {
                    skip_brace();
 		   p = $7;
 		   while (p) {
-		     typemap_register($5,$3,p->p->t,p->p->name,CCode,p->args);
+		     typemap_register($5,$3,p->p->t,p->p->name,CCode.get(),p->args);
 		     p = p->next;
                    }
 		   delete $3;
@@ -947,7 +947,7 @@ statement      : INCLUDE STRING LBRACE {
 		   skip_brace();
 		   p = $5;
 		   while (p) {
-		     typemap_register($3,typemap_lang,p->p->t,p->p->name,CCode,p->args);
+		     typemap_register($3,typemap_lang,p->p->t,p->p->name,CCode.get(),p->args);
 		     p = p->next;
 		   }
 		 }
@@ -1052,14 +1052,14 @@ statement      : INCLUDE STRING LBRACE {
 /* An exception definition */
                | EXCEPT LPAREN ID RPAREN LBRACE {
                     skip_brace();
-                    fragment_register((char *)"except",$3, CCode);
+                    fragment_register((char *)"except",$3, CCode.get());
 		    delete $3;
 	       }
 
 /* A Generic Exception (no language specified */
                | EXCEPT LBRACE {
                     skip_brace();
-                    fragment_register((char *) "except",typemap_lang, CCode);
+                    fragment_register((char *) "except",typemap_lang, CCode.get());
                }
 
 /* Clear an exception */
@@ -1194,7 +1194,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   $2->is_pointer += $3.is_pointer;
 		   // Turn this into a "pointer" corresponding to the array
 		   $2->is_pointer++;
-		   $2->arraystr = copy_string(ArrayString);
+		   $2->arraystr = copy_string(ArrayString.get());
 		   $2->typedef_add($3.id);
 		   fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap\n",input_file,line_number, $3.id);
 		   cplus_register_type($3.id);
@@ -1227,7 +1227,7 @@ typedeflist   : COMMA declaration typedeflist {
 		    t = new DataType(Active_typedef);
 		    t->status = STAT_READONLY | STAT_REPLACETYPE;
 		    t->is_pointer += $2.is_pointer + 1;
-		    t->arraystr = copy_string(ArrayString);
+		    t->arraystr = copy_string(ArrayString.get());
 		    t->typedef_add($2.id);
 		    cplus_register_type($2.id);
 		    delete t;
@@ -1264,7 +1264,7 @@ stail          : SEMI { }
 		 if ($3 > 0) {
 		   temp_typeptr->is_pointer++;
 		   temp_typeptr->status = STAT_READONLY;
-		   temp_typeptr->arraystr = copy_string(ArrayString);
+		   temp_typeptr->arraystr = copy_string(ArrayString.get());
 		 }
 		 if ($2.is_reference) {
 		   fprintf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
@@ -2399,7 +2399,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  Active_type = new DataType($1);
 		  $1->is_pointer += $2.is_pointer + 1;
 		  $1->is_reference = $2.is_reference;
-		  $1->arraystr = copy_string(ArrayString);
+		  $1->arraystr = copy_string(ArrayString.get());
 		  if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 		    Status = STAT_READONLY;
 		  
@@ -2979,7 +2979,7 @@ objc_var       : type declaration {
 		   Active_type = new DataType($1);
 		   $1->is_pointer += $2.is_pointer;
 		   $1->is_reference = $2.is_reference;
-		   $1->arraystr = copy_string(ArrayString);
+		   $1->arraystr = copy_string(ArrayString.get());
 		   if ($1->status & STAT_READONLY) {
 		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
@@ -3024,7 +3024,7 @@ objc_vartail   : COMMA declaration objc_vartail {
 		   DataType *t = new DataType (Active_type);
 		   t->is_pointer += $2.is_pointer;
 		   t->is_reference = $2.is_reference;
-		   t->arraystr = copy_string(ArrayString);
+		   t->arraystr = copy_string(ArrayString.get());
 		   if (t->status & STAT_READONLY) {
 		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,t,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
@@ -3222,7 +3222,7 @@ tm_tail        : COMMA typemap_parm tm_tail {
 typemap_parm   : type typemap_name {
 		    if (InArray) {
 		      $1->is_pointer++;
-		      $1->arraystr = copy_string(ArrayString);
+		      $1->arraystr = copy_string(ArrayString.get());
 		    }
 		    $$ = new TMParm;
                     $$->p = new Parm($1,$2);
@@ -3239,7 +3239,7 @@ typemap_parm   : type typemap_name {
 		   $$->p->call_type = 0;
 		   if (InArray) {
 		     $$->p->t->is_pointer++;
-		     $$->p->t->arraystr = copy_string(ArrayString);
+		     $$->p->t->arraystr = copy_string(ArrayString.get());
 		    }
 		   $$->args = tm_parm;
 		   delete $1;

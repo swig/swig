@@ -227,9 +227,9 @@ char *JAVA::makeValidJniName(char *name) {
 // !! this approach fails for functions without arguments
 char *JAVA::JNICALL(String& func) {
   if(jnic)
-	sprintf(bigbuf, "(*jenv)->%s(jenv, ", (char *) func);
+	sprintf(bigbuf, "(*jenv)->%s(jenv, ", (char *) func.get());
   else
-	sprintf(bigbuf, "jenv->%s(", (char *) func);
+	sprintf(bigbuf, "jenv->%s(", (char *) func.get());
 
   return strdup(bigbuf);
 }
@@ -259,25 +259,25 @@ void JAVA::writeRegisterNatives()
   // The registerNatives function
   String registerFunction;
 
-  registerFunction << "jint registerNatives(JNIEnv *jenv) {" << endl
+  registerFunction << "jint registerNatives(JNIEnv *jenv) {" << "\n"
                    << tab4 << "jclass nativeClass = " << JNICALL((char*)"FindClass")
-                   << "\"" << jni_pkgstr << module << "\");" <<endl;
-  registerFunction << tab4 << "if (nativeClass == 0)" << endl << tab8 << "return -1;" << endl;
+                   << "\"" << jni_pkgstr << module << "\");" <<"\n";
+  registerFunction << tab4 << "if (nativeClass == 0)" << "\n" << tab8 << "return -1;" << "\n";
 
-  registerFunction << tab4 << "return " << JNICALL((char*)"RegisterNatives") << "nativeClass, nativeMethods, " << "numberOfNativeMethods);" << endl;
-  registerFunction << "}" << endl << endl;
+  registerFunction << tab4 << "return " << JNICALL((char*)"RegisterNatives") << "nativeClass, nativeMethods, " << "numberOfNativeMethods);" << "\n";
+  registerFunction << "}" << "\n" << "\n";
 
   // The unregisterNatives function
 
-  registerFunction << "jint unregisterNatives(JNIEnv *jenv) {" << endl
+  registerFunction << "jint unregisterNatives(JNIEnv *jenv) {" << "\n"
                    << tab4 << "jclass nativeClass = " << JNICALL((char*)"FindClass")
-                   << "\"" << jni_pkgstr << module << "\");" <<endl;
-  registerFunction << tab4 << "if (nativeClass == 0)" << endl << tab8 << "return -1;" << endl;
+                   << "\"" << jni_pkgstr << module << "\");" <<"\n";
+  registerFunction << tab4 << "if (nativeClass == 0)" << "\n" << tab8 << "return -1;" << "\n";
   registerFunction << tab4 << "// Sun documentation suggests that this method should not be invoked in "
-                   << "\"normal native code\"." << endl;
-  registerFunction << tab4 << "// return " << JNICALL((char*)"UnregisterNatives") << "nativeClass);" << endl;
-  registerFunction << tab4 << "return 0;" << endl;
-  registerFunction << "}" << endl;
+                   << "\"normal native code\"." << "\n";
+  registerFunction << tab4 << "// return " << JNICALL((char*)"UnregisterNatives") << "nativeClass);" << "\n";
+  registerFunction << tab4 << "return 0;" << "\n";
+  registerFunction << "}" << "\n";
 
   // Now write the C function
   fprintf(f_wrappers,registerFunction.get());
@@ -551,7 +551,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
     else member_name << "get";
     member_name << (char) toupper((int) *shadow_name);
     member_name << shadow_name + 1;
-    fprintf(f_shadow, "  public %s %s(", javarettype, (char *) member_name);
+    fprintf(f_shadow, "  public %s %s(", javarettype, (char *) member_name.get());
     body << tab4 << "return " << module << "." << iname << "(_self";
   }
 
@@ -590,13 +590,13 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
       if(shadow && member_func) {
         if(i > 0) {
           if(i>1) fprintf(f_shadow, ", ");
-          fprintf(f_shadow, "%s %s", jtype, (char *) source);
+          fprintf(f_shadow, "%s %s", jtype, (char *) source.get());
           body << ", " << source;
         }
       }
 
       if(gencomma) fprintf(f_java, ", ");
-      fprintf(f_java, "%s %s", jtype, (char *) source);
+      fprintf(f_java, "%s %s", jtype, (char *) source.get());
 
       gencomma = 1;
 
@@ -604,10 +604,10 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
       f.def << ", " << jnitype << " " << source;
   
       // Get typemap for this argument
-      tm = typemap_lookup((char*)"in",typemap_lang,p->t,p->name,source,target,&f);
+      tm = typemap_lookup((char*)"in",typemap_lang,p->t,p->name,source.get(),target.get(),&f);
       if (tm) {
 	      f.code << tm << "\n";
-	      f.code.replace("$arg",source);   // Perform a variable replacement
+	      f.code.replace("$arg",source.get());   // Perform a variable replacement
       } else {
         if(!p->t->is_pointer)
           f.code << tab4 << target << " = " << p->t->print_cast() << source << ";\n";
@@ -618,7 +618,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
             p->t->is_pointer--;
         } else {
           if(p->t->type == T_CHAR && p->t->is_pointer == 1) {
-              f.code << tab4 << (char *) target << " = (" << source << ") ? (char *)" << JNICALL((char*)"GetStringUTFChars") << source << ", 0) : NULL;\n";
+              f.code << tab4 << target << " = (" << source << ") ? (char *)" << JNICALL((char*)"GetStringUTFChars") << source << ", 0) : NULL;\n";
           } else {
             char *scalarType = SwigTcToJniScalarType(p->t);
             char *cptrtype = p->t->print_type();
@@ -636,8 +636,8 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
             String source_length = JNICALL((char*)"GetArrayLength");
 	    source_length << source << ")";
 
-            target_copy = copy_string(f.new_local((char *) basic_jniptrtype, target, NULL));
-            target_length = copy_string(f.new_local((char*)"jsize", target, source_length));
+            target_copy = copy_string(f.new_local((char *) basic_jniptrtype.get(), target.get(), NULL));
+            target_length = copy_string(f.new_local((char*)"jsize", target.get(), source_length.get()));
             if(local_i == NULL) local_i = copy_string(f.new_local((char*)"int", (char*)"i", NULL));
 
             String scalarFunc = "Get";
@@ -658,23 +658,23 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
       }
 
     // Check to see if there was any sort of a constaint typemap
-    if ((tm = typemap_lookup((char*)"check",typemap_lang,p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"check",typemap_lang,p->t,p->name,source.get(),target.get()))) {
       // Yep.  Use it instead of the default
       f.code << tm << "\n";
-      f.code.replace("$arg",source);
+      f.code.replace("$arg",source.get());
     }
 
     // Check if there was any cleanup code (save it for later)
-    if ((tm = typemap_lookup((char*)"freearg",typemap_lang,p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"freearg",typemap_lang,p->t,p->name,source.get(),target.get()))) {
       // Yep.  Use it instead of the default
       cleanup << tm << "\n";
-      cleanup.replace("$arg",source);
+      cleanup.replace("$arg",source.get());
     }
 
-    if ((tm = typemap_lookup((char*)"argout",typemap_lang,p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"argout",typemap_lang,p->t,p->name,source.get(),target.get()))) {
       // Yep.  Use it instead of the default
       outarg << tm << "\n";
-      outarg.replace("$arg",source);
+      outarg.replace("$arg",source.get());
     } else {
        // if(p->t->is_pointer && p->t->type != T_USER &&  p->t->type != T_VOID) {
        if(p->t->is_pointer) {
@@ -718,7 +718,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   if(shadow && member_func) {
     fprintf(f_shadow, ") {\n");
     body << ")";
-    fprintf(f_shadow, "%s;\n  }\n\n", (char *) body);
+    fprintf(f_shadow, "%s;\n  }\n\n", (char *) body.get());
   }
   f.def << ") {";
 
@@ -784,7 +784,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   f.code << "}\n";
 
   // Substitute the cleanup code (some exception handlers like to have this)
-  f.code.replace("$cleanup",cleanup);
+  f.code.replace("$cleanup",cleanup.get());
  
   // Emit the function
   
@@ -833,7 +833,7 @@ void JAVA::declare_const(char *name, char *iname, DataType *type, char *value) {
   if ((tm = typemap_lookup((char*)"const",typemap_lang,type,name,name,iname))) {
     String str = tm;
     str.replace("$value",value);
-    fprintf(jfile,"  %s\n\n", (char *) str);
+    fprintf(jfile,"  %s\n\n", (char *) str.get());
   } else {
     if((type->is_pointer == 0)) {
       char *jtype = typemap_lookup((char*)"jtype", typemap_lang, type, name, name, iname);
@@ -878,17 +878,17 @@ void JAVA::pragma(char *lang, char *code, char *value) {
   String s = value;
   s.replace("\\\"", "\"");
   if(strcmp(code, "import") == 0) {
-    jimport = copy_string((char *) s);
+    jimport = copy_string((char *) s.get());
     fprintf(f_java, "// pragma\nimport %s;\n\n", jimport);
   } else if(strcmp(code, "module") == 0) {
     if(!classdef_emitted) emit_classdef();
     fprintf(f_java, "// pragma\n");
-    fprintf(f_java, (char *) s);
+    fprintf(f_java, (char *) s.get());
     fprintf(f_java, "\n\n");
   } else if(strcmp(code, "shadow") == 0) {
     if(shadow && f_shadow) {
       fprintf(f_shadow, "// pragma\n");
-      fprintf(f_shadow, (char *) s);
+      fprintf(f_shadow, (char *) s.get());
       fprintf(f_shadow, "\n\n");
     }
   } else if(strcmp(code, "modifiers") == 0) {
@@ -985,7 +985,7 @@ void JAVA::emit_shadow_classdef() {
 
   shadow_classdef << "  public Class _selfClass() {\n" << tab4 << "return " << shadow_classname << ".class;\n" << "  };\n\n";
 
-  fprintf(f_shadow, (char *) shadow_classdef);
+  fprintf(f_shadow, (char *) shadow_classdef.get());
 
   shadow_classdef_emitted = 1;
 }
@@ -1059,7 +1059,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       }
 
       // Add to java function header
-      fprintf(f_shadow, "%s %s", (jstype) ? jstype : jtype, (char *) arg);
+      fprintf(f_shadow, "%s %s", (jstype) ? jstype : jtype, (char *) arg.get());
       if(i != pcount-1) {
         fprintf(f_shadow, ", ");
       }
@@ -1072,7 +1072,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   nativecall << ");\n";
 
   fprintf(f_shadow, ") {\n");
-  fprintf(f_shadow, "\t%s\n", (char *) nativecall);
+  fprintf(f_shadow, "\t%s\n", (char *) nativecall.get());
   fprintf(f_shadow, "  }\n\n");
 }
 
@@ -1132,7 +1132,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
     }
 
     // Add to java function header
-    fprintf(f_shadow, "%s %s", (jstype) ? jstype : jtype, (char *) arg);
+    fprintf(f_shadow, "%s %s", (jstype) ? jstype : jtype, (char *) arg.get());
     if(i != pcount-1) {
       fprintf(f_shadow, ", ");
     }
@@ -1145,7 +1145,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
   nativecall << ");\n";
 
   fprintf(f_shadow, ") {\n");
-  fprintf(f_shadow, "\t%s\n", (char *) nativecall);
+  fprintf(f_shadow, "\t%s\n", (char *) nativecall.get());
   fprintf(f_shadow, "  }\n\n");
 }
 
@@ -1187,7 +1187,7 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
       if(strcmp(jtype, jstype) == 0) jstype = NULL;
 
       // Add to java function header
-      fprintf(f_shadow, "%s %s", (jstype) ? jstype : jtype, (char *) arg);
+      fprintf(f_shadow, "%s %s", (jstype) ? jstype : jtype, (char *) arg.get());
 
       if(p->t->type == T_USER && p->t->is_pointer <= 1 && Getattr(shadow_classes,p->t->name)) {
         nativecall << arg << "._self";
@@ -1205,7 +1205,7 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
   nativecall << tab8 << " _selfown = true;\n";
   nativecall << "    }\n";
 
-  fprintf(f_shadow, "%s", (char *) nativecall);
+  fprintf(f_shadow, "%s", (char *) nativecall.get());
   fprintf(f_shadow, "  }\n\n");
 }
 

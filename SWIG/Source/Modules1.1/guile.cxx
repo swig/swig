@@ -397,9 +397,9 @@ GUILE::get_pointer (char *iname, int parm, DataType *t,
 static void
 mreplace (String &s, String &argnum, String &arg, String &proc_name)
 {
-  s.replace ("$argnum", argnum);
-  s.replace ("$arg",    arg);
-  s.replace ("$name",   proc_name);
+  s.replace ("$argnum", argnum.get());
+  s.replace ("$arg",    arg.get());
+  s.replace ("$name",   proc_name.get());
 }
 
 static void
@@ -507,7 +507,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     else {
       ++numargs;
       if ((tm = typemap_lookup ((char*)"in", typemap_lang,
-                                p.t, p.name, source, target, &f))) {
+                                p.t, p.name, source.get(), target.get(), &f))) {
 	f.code << tm << "\n";
         mreplace (f.code, argnum, arg, proc_name);
       }
@@ -522,7 +522,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Check if there are any constraints.
 
     if ((tm = typemap_lookup ((char*)"check", typemap_lang,
-                              p.t, p.name, source, target, &f))) {
+                              p.t, p.name, source.get(), target.get(), &f))) {
       f.code << tm << "\n";
       mreplace (f.code, argnum, arg, proc_name);
     }
@@ -530,7 +530,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Pass output arguments back to the caller.
 
     if ((tm = typemap_lookup ((char*)"argout", typemap_lang,
-                              p.t, p.name, source, target, &f))) {
+                              p.t, p.name, source.get(), target.get(), &f))) {
       outarg << tm << "\n";
       mreplace (outarg, argnum, arg, proc_name);
     }
@@ -538,7 +538,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Free up any memory allocated for the arguments.
 
     if ((tm = typemap_lookup ((char*)"freearg", typemap_lang,
-                              p.t, p.name, source, target, &f))) {
+                              p.t, p.name, source.get(), target.get(), &f))) {
       cleanup << tm << "\n";
       mreplace (cleanup, argnum, arg, proc_name);
     }

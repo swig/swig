@@ -399,7 +399,7 @@ void PYTHON::close(void)
                << "\n\n#-------------- VARIABLE WRAPPERS ------------------\n\n"
                << vars;
 
-    if (strlen(pragma_include) > 0) {
+    if (strlen(pragma_include.get()) > 0) {
       fullshadow << "\n\n#-------------- USER INCLUDE -----------------------\n\n"
                  << pragma_include;
     }
@@ -600,7 +600,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // should modify this to return the appropriate types and use the
   // appropriate parameters.
 
-  emit_function_header(f, wname);
+  emit_function_header(f, wname.get());
 
   f.add_local((char*)"PyObject *",(char*)"_resultobj");
 
@@ -835,7 +835,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   call_name = "";
   call_name << self_name << name;
-  emit_func_call(call_name,d,l,f);
+  emit_func_call(call_name.get(),d,l,f);
 
   // Now emit code to return the functions return value (if any).
   // If there was a result, it was saved in _result.
@@ -952,7 +952,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   f.code << "}\n";
 
   // Substitute the cleanup code
-  f.code.replace("$cleanup",cleanup);
+  f.code.replace("$cleanup",cleanup.get());
 
   // Substitute the function name
   f.code.replace("$name",iname);
@@ -962,7 +962,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   // Now register the function with the interpreter.  
 
-  add_method(iname, wname, use_kw);
+  add_method(iname, wname.get(), use_kw);
 
 #ifdef SHADOW_METHODS
   if (shadow && (shadow & PYSHADOW_MEMBER)) {
@@ -1500,8 +1500,8 @@ void PYTHON::cpp_pragma(Pragma *plist) {
     pragmas = 0;
   }
   while (plist) {
-    if (strcmp(plist->lang,(char*)"python") == 0) {
-      if (strcmp(plist->name,"addtomethod") == 0) {
+    if (strcmp(plist->lang.get(),(char*)"python") == 0) {
+      if (strcmp(plist->name.get(),"addtomethod") == 0) {
             // parse value, expected to be in the form "methodName:line"
 	String temp = plist->value;
 	char* txtptr = strchr(temp.get(), ':');
@@ -1509,7 +1509,7 @@ void PYTHON::cpp_pragma(Pragma *plist) {
 	  // add name and line to a list in current_class
 	  *txtptr = 0;
 	  txtptr++;
-	  pyp1 = new PyPragma(temp,txtptr);
+	  pyp1 = new PyPragma(temp.get(),txtptr);
 	  if (pyp2) {
 	      pyp2->next = pyp1;
 	      pyp2 = pyp1;
@@ -1521,8 +1521,8 @@ void PYTHON::cpp_pragma(Pragma *plist) {
 	  fprintf(stderr,"%s : Line %d. Malformed addtomethod pragma.  Should be \"methodName:text\"\n",
 		  plist->filename.get(),plist->lineno);
 	}
-      } else if (strcmp(plist->name, "addtoclass") == 0) {
-	pyp1 = new PyPragma((char*)"__class__",plist->value);
+      } else if (strcmp(plist->name.get(), "addtoclass") == 0) {
+	pyp1 = new PyPragma((char*)"__class__",plist->value.get());
 	if (pyp2) {
 	  pyp2->next = pyp1;
 	  pyp2 = pyp1;
@@ -1547,7 +1547,7 @@ void PYTHON::emitAddPragmas(String& output, char* name, char* spacing)
 {
   PyPragma *p = pragmas;
   while (p) {
-    if (strcmp(p->m_method,name) == 0) {
+    if (strcmp(p->m_method.get(),name) == 0) {
       output << spacing << p->m_text << "\n";
     }
     p = p->next;

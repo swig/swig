@@ -68,12 +68,7 @@ extern  int       Verbose;
 
 class String {
 private:
-  int   maxsize;            // Max size of current string
-  void  add(const char *newstr);  // Function to add a new string
-  void  add(char c);              // Add a character
-  void  insert(const char *newstr);
-  int   len;
-  char  *str;               // String data
+  void  *str;               // String object
 public:
   String();
   String(const char *s);
@@ -86,8 +81,6 @@ public:
   friend String& operator>>(const char *s, String&);
   friend String& operator>>(const String&,String&);
   String& operator=(const char *);
-  operator char*() const { return str; }
-  void   untabify();
   void   replace(const char *token, const char *rep);
   void   replaceid(const char *id, const char *rep);
   void   strip();
@@ -96,9 +89,6 @@ public:
 #define  tab2   "  "
 #define  tab4   "    "
 #define  tab8   "        "
-#define  br     "\n"
-#define  endl   "\n"
-#define  quote  "\""
 
 /************************************************************************
  * class DataType
