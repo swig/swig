@@ -21,18 +21,24 @@ extern "C" {
 #endif
 %}
 
-/************************* Input Typemaps *****************************/
+/* -----------------------------------------------------------------------------
+ *                          standard typemaps
+ * ----------------------------------------------------------------------------- */
+
+/* --- Input arguments --- */
+
+/* Primitive datatypes. */
 
 %typemap(in, pikedesc="tInt")
     int, unsigned int, short, unsigned short,
-    long, unsigned long, signed char, unsigned char,
-    bool, enum SWIGTYPE
+    long, unsigned long, char, signed char, unsigned char,
+    bool, enum SWIGTYPE, long long, unsigned long long
 {
     if ($input.type != T_INT)
         Pike_error("Bad argument: Expected an integer.\n");
     $1 = ($1_ltype) $input.u.integer;
 }
-	
+
 %typemap(in, pikedesc="tFloat") float, double {
     if ($input.type != T_FLOAT)
         Pike_error("Bad argument: Expected a float.\n");
@@ -45,34 +51,112 @@ extern "C" {
     $1 = ($1_ltype) STR0($input.u.string);
 }
 
-/* Typemaps for pointers.  Note: the SWIG run-time type checker works
-   even if a pointer happens to be mapped to a Pike class */
+/* Pointers, references and arrays */
 
 %typemap(in) SWIGTYPE *,
              SWIGTYPE &,
              SWIGTYPE []
 	"SWIG_ConvertPtr($input.u.object, (void **) &$1, $1_descriptor, 1);"
 	
+/* Void pointer.  Accepts any kind of pointer */
+%typemap(in) void * "/* FIXME */";
+
+/* Object passed by value. Convert to a pointer */
+%typemap(in) SWIGTYPE ($&1_ltype argp) "/* FIXME */";
+
+/* Pointer to a class member */
+%typemap(in) SWIGTYPE (CLASS::*) "/* FIXME */";
+
+/* Const primitive references.  Passed by value */
+
+%typemap(in, pikedesc="tInt") const int & (int temp),
+	     const short & (short temp),
+             const long  & (long temp),
+             const unsigned int & (unsigned int temp),
+             const unsigned short & (unsigned short temp),
+             const unsigned long & (unsigned long temp),
+	     const char & (char temp),
+             const signed char & (signed char temp),
+             const unsigned char & (unsigned char temp),
+             const bool & (bool temp),
+	     const long long & (long long temp),
+	     const unsigned long long & (unsigned long long temp)
+{
+  if ($input.type != T_INT)
+    Pike_error("Bad argument: Expected an integer.\n");
+    temp = ($*1_ltype) $input.u.integer;
+    $1 = &temp;
+}
+
+%typemap(in, pikedesc="tFloat") const float & (float temp),
+	     const double & (double temp)
+{
+  if ($input.type != T_FLOAT)
+    Pike_error("Bad argument: Expected a float.\n");
+    temp = ($*1_ltype) $input.u.float_number;
+    $1 = &temp;
+}
+
 /************************ Output Typemaps *****************************/
 
 %typemap(out, pikedesc="tInt")
     int, unsigned int,
     short, unsigned short,
     long, unsigned long,
-    signed char, unsigned char, 
+    char, signed char, unsigned char, 
     bool, enum SWIGTYPE
 	"push_int($1);";
 
-%typemap(out, pikedesc="tInt64") long long	"push_int64($1);";
+%typemap(out, pikedesc="tInt") long long	"push_int64($1);";
+%typemap(out, pikedesc="tInt") unsigned long long	"push_int64($1);";
 %typemap(out, pikedesc="tFloat") float, double	"push_float($1);";
 %typemap(out, pikedesc="tStr") char *		"push_text($1);";
-
-/* Void return value; don't push anything */
-%typemap(out, pikedesc="tVoid") void		"";
 
 /* Pointers, references, and arrays */
 %typemap(out) SWIGTYPE*, SWIGTYPE &, SWIGTYPE []
         "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, $owner);";
+
+/* Void return value; don't push anything */
+%typemap(out, pikedesc="tVoid") void		"";
+
+/* Dynamic casts */
+
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC "/* FIXME */";
+
+/* Member pointer */
+%typemap(out) SWIGTYPE (CLASS::*) "/* FIXME */";
+
+/* Special typemap for character array return values */
+%typemap(out, pikedesc="tStr") char [ANY], const char [ANY] "push_text($1);";
+
+/* Primitive types--return by value */
+%typemap(out) SWIGTYPE 
+#ifdef __cplusplus
+{
+  $&1_ltype resultptr;
+  resultptr = new $1_ltype(($1_ltype &) $1);
+  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
+}
+#else
+{
+  $&1_ltype resultptr;
+  resultptr = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultptr, &$1, sizeof($1_type));
+  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
+}
+#endif
+
+/* References to primitive types.  Return by value */
+
+%typemap(out, pikedesc="tInt") const int &, const unsigned int &,
+              const short &, const unsigned short &,
+              const long &, const unsigned long &,
+              const char &, const signed char &, const unsigned char &,
+              const bool &,
+	      const long long &, const unsigned long long &
+      "push_int(*($1));";
+
+%typemap(out, pikedesc="tFloat") const float &, const double &  "push_float(*($1));";
 
 /************************ Constant Typemaps *****************************/
 
@@ -81,14 +165,21 @@ extern "C" {
     short, unsigned short,
     long, unsigned long,
     signed char, unsigned char, 
-    bool, enum SWIGTYPE
+    bool, enum SWIGTYPE,
+    long long, unsigned long long
+    	"add_integer_constant(\"$symname\", $1, 0);";
+
+%typemap(constant) char
+	"add_integer_constant(\"$symname\", '$1', 0);";
+
+%typemap(constant) long long, unsigned long long
 	"add_integer_constant(\"$symname\", $1, 0);";
 
 %typemap(constant) float, double
 	"add_float_constant(\"$symname\", $1, 0);";
 
 %typemap(constant) char *
-	"add_string_constant(\"$symname\", $1, 0);";
+	"add_string_constant(\"$symname\", \"$1\", 0);";
 
 /* ------------------------------------------------------------
  * String & length
