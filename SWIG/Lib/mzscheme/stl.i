@@ -53,7 +53,7 @@ namespace std {
 // containers
 
 
-%exception ref {
+%exception std::vector::ref {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -61,7 +61,7 @@ namespace std {
     }
 }
 
-%exception set {
+%exception std::vector::set {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -69,7 +69,7 @@ namespace std {
     }
 }
 
-%exception pop  {
+%exception std::vector::pop  {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -113,28 +113,29 @@ namespace std {
 namespace std {
     
     template<class T> class vector {
-        /*
         %typemap(in) vector<T> {
             if (SCHEME_VECTORP($input)) {
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 unsigned int size = SCHEME_VEC_SIZE($input);
                 $1 = std::vector<T>(size);
                 Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
                     (($1_type &)$1)[i] =
-                        *((T*) SWIG_MustGetPtr(items[i],type,$argnum));
+                        *((T*) SWIG_MustGetPtr(items[i],
+                                               $descriptor(T *),
+                                               $argnum));
                 }
             } else if (SCHEME_NULLP($input)) {
                 $1 = std::vector<T>();
             } else if (SCHEME_PAIRP($input)) {
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 Scheme_Object *head, *tail;
                 $1 = std::vector<T>();
                 tail = $input;
                 while (!SCHEME_NULLP(tail)) {
                     head = scheme_car(tail);
                     tail = scheme_cdr(tail);
-                    $1.push_back(*((T*)SWIG_MustGetPtr(head,type,$argnum)));
+                    $1.push_back(*((T*)SWIG_MustGetPtr(head,
+                                                       $descriptor(T *),
+                                                       $argnum)));
                 }
             } else {
                 $1 = *(($&1_type)
@@ -144,19 +145,19 @@ namespace std {
         %typemap(in) const vector<T>& (std::vector<T> temp),
                      const vector<T>* (std::vector<T> temp) {
             if (SCHEME_VECTORP($input)) {
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 unsigned int size = SCHEME_VEC_SIZE($input);
                 temp = std::vector<T>(size);
                 $1 = &temp;
                 Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
-                    temp[i] = *((T*) SWIG_MustGetPtr(items[i],type,$argnum));
+                    temp[i] = *((T*) SWIG_MustGetPtr(items[i],
+                                                     $descriptor(T *),
+                                                     $argnum));
                 }
             } else if (SCHEME_NULLP($input)) {
                 temp = std::vector<T>();
                 $1 = &temp;
             } else if (SCHEME_PAIRP($input)) {
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 temp = std::vector<T>();
                 $1 = &temp;
                 Scheme_Object *head, *tail;
@@ -164,22 +165,22 @@ namespace std {
                 while (!SCHEME_NULLP(tail)) {
                     head = scheme_car(tail);
                     tail = scheme_cdr(tail);
-                    temp.push_back(*((T*) SWIG_MustGetPtr(head,type,$argnum)));
+                    temp.push_back(*((T*) SWIG_MustGetPtr(head,
+                                                          $descriptor(T *),
+                                                          $argnum)));
                 }
             } else {
                 $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
             }
         }
         %typemap(out) vector<T> {
-        swig_type_info* type = SWIG_TypeQuery(#T " *");
             $result = scheme_make_vector($1.size(),scheme_undefined);
             Scheme_Object** els = SCHEME_VEC_ELS($result);
             for (unsigned int i=0; i<$1.size(); i++) {
                 T* x = new T((($1_type &)$1)[i]);
-                els[i] = SWIG_MakePtr(x,type);
+                els[i] = SWIG_MakePtr(x,$descriptor(T *));
             }
         }
-        */
       public:
         vector(unsigned int size = 0);
         %rename(length) size;

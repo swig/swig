@@ -55,7 +55,7 @@ namespace std {
 
 // containers
 
-%exception __getitem__ {
+%exception std::vector::__getitem__ {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -63,7 +63,7 @@ namespace std {
     }
 }
 
-%exception __setitem__ {
+%exception std::vector::__setitem__ {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -71,7 +71,7 @@ namespace std {
     }
 }
 
-%exception pop  {
+%exception std::vector::pop  {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -119,10 +119,9 @@ namespace std {
             if (rb_obj_is_kind_of($input,rb_cArray)) {
                 unsigned int size = RARRAY($input)->len;
                 $1 = std::vector<T>(size);
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
-                    T* x = (T*) SWIG_ConvertPtr(o, type);
+                    T* x = (T*) SWIG_ConvertPtr(o, $descriptor(T *));
                     (($1_type &)$1)[i] = *x;
                 }
             } else {
@@ -135,10 +134,9 @@ namespace std {
                 unsigned int size = RARRAY($input)->len;
                 temp = std::vector<T>(size);
                 $1 = &temp;
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
-                    T* x = (T*) SWIG_ConvertPtr(o, type);
+                    T* x = (T*) SWIG_ConvertPtr(o, $descriptor(T *));
                     temp[i] = *x;
                 }
             } else {
@@ -147,11 +145,11 @@ namespace std {
         }
         %typemap(out) vector<T> {
             $result = rb_ary_new2($1.size());
-            swig_type_info* type = SWIG_TypeQuery(#T " *");
             for (unsigned int i=0; i<$1.size(); i++) {
                 T* x = new T((($1_type &)$1)[i]);
                 rb_ary_store($result,i,
-                             SWIG_NewPointerObj((void *) x, type, 1));
+                             SWIG_NewPointerObj((void *) x, 
+                                                $descriptor(T *), 1));
             }
         }
       public:

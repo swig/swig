@@ -46,7 +46,7 @@ namespace std {
 // containers
 
 // methods which can raise are caused to throw an IndexError
-%exception __getitem__ {
+%exception std::vector::__getitem__ {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -54,7 +54,7 @@ namespace std {
     }
 }
 
-%exception __setitem__ {
+%exception std::vector::__setitem__ {
     try {
         $action
     } catch (std::out_of_range& e) {

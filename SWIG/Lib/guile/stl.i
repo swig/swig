@@ -59,7 +59,7 @@ namespace std {
 // containers
 
 
-%exception ref {
+%exception std::vector::ref {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -67,7 +67,7 @@ namespace std {
     }
 }
 
-%exception set {
+%exception std::vector::set {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -75,7 +75,7 @@ namespace std {
     }
 }
 
-%exception pop  {
+%exception std::vector::pop  {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -119,28 +119,27 @@ namespace std {
 namespace std {
     
     template<class T> class vector {
-        /*
         %typemap(in) vector<T> {
             if (gh_vector_p($input)) {
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 unsigned long size = gh_vector_length($input);
                 $1 = std::vector<T>(size);
                 for (unsigned int i=0; i<size; i++) {
                     SCM o = gh_vector_ref($input,gh_long2scm(i));
                     (($1_type &)$1)[i] =
-                        *((T*) SWIG_MustGetPtr(o,type,$argnum));
+                        *((T*) SWIG_MustGetPtr(o,$descriptor(T *),$argnum));
                 }
             } else if (gh_null_p($input)) {
                 $1 = std::vector<T>();
             } else if (gh_pair_p($input)) {
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 SCM head, tail;
                 $1 = std::vector<T>();
                 tail = $input;
                 while (!gh_null_p(tail)) {
                     head = gh_car(tail);
                     tail = gh_cdr(tail);
-                    $1.push_back(*((T*)SWIG_MustGetPtr(head,type,$argnum)));
+                    $1.push_back(*((T*)SWIG_MustGetPtr(head,
+                                                       $descriptor(T *),
+                                                       $argnum)));
                 }
             } else {
                 $1 = *(($&1_type)
@@ -150,19 +149,19 @@ namespace std {
         %typemap(in) const vector<T>& (std::vector<T> temp),
                      const vector<T>* (std::vector<T> temp) {
             if (gh_vector_p($input)) {
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
-                unsigned int size = SCHEME_VEC_SIZE($input);
+                unsigned int size = gh_vector_length($input);
                 temp = std::vector<T>(size);
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     SCM o = gh_vector_ref($input,gh_long2scm(i));
-                    temp[i] = *((T*) SWIG_MustGetPtr(o,type,$argnum));
+                    temp[i] = *((T*) SWIG_MustGetPtr(o,
+                                                     $descriptor(T *),
+                                                     $argnum));
                 }
             } else if (gh_null_p($input)) {
                 temp = std::vector<T>();
                 $1 = &temp;
             } else if (gh_pair_p($input)) {
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 temp = std::vector<T>();
                 $1 = &temp;
                 SCM head, tail;
@@ -170,21 +169,22 @@ namespace std {
                 while (!gh_null_p(tail)) {
                     head = gh_car(tail);
                     tail = gh_cdr(tail);
-                    temp.push_back(*((T*) SWIG_MustGetPtr(head,type,$argnum)));
+                    temp.push_back(*((T*) SWIG_MustGetPtr(head,
+                                                          $descriptor(T *),
+                                                          $argnum)));
                 }
             } else {
                 $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
             }
         }
         %typemap(out) vector<T> {
-        swig_type_info* type = SWIG_TypeQuery(#T " *");
             $result = gh_make_vector(gh_long2scm($1.size()),SCM_UNSPECIFIED);
             for (unsigned int i=0; i<$1.size(); i++) {
                 T* x = new T((($1_type &)$1)[i]);
-                gh_vector_set($result,gh_long2scm(i),SWIG_MakePtr(x,type));
+                gh_vector_set($result,gh_long2scm(i),
+                              SWIG_MakePtr(x,$descriptor(T *)));
             }
         }
-        */
       public:
         vector(unsigned int size = 0);
         %rename(length) size;

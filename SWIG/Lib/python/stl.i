@@ -127,12 +127,11 @@ namespace std {
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
                 $1 = std::vector<T>(size);
-                // swig_type_info* type = SWIG_TypeQuery(#T " *");
                 for (unsigned int i=0; i<size; i++) {
                     T* x;
                     PyObject* o = PySequence_GetItem($input,i);
-                    // if ((SWIG_ConvertPtr(o,(void **) &x, type,0)) != -1) {
-                    if ((SWIG_ConvertPtr(o,(void **)&x,$descriptor(T *),0)) != -1) {
+                    if ((SWIG_ConvertPtr(o,(void **) &x, 
+                                         $descriptor(T *),0)) != -1) {
                         (($1_type &)$1)[i] = *x;
                         Py_DECREF(o);
                     } else {
@@ -160,11 +159,11 @@ namespace std {
                                      PyList_Size($input));
                 temp = std::vector<T>(size);
                 $1 = &temp;
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 for (unsigned int i=0; i<size; i++) {
                     T* x;
                     PyObject* o = PySequence_GetItem($input,i);
-                    if ((SWIG_ConvertPtr(o,(void **) &x, type,0)) != -1) {
+                    if ((SWIG_ConvertPtr(o,(void **) &x, 
+                                         $descriptor(T *),0)) != -1) {
                         temp[i] = *x;
                         Py_DECREF(o);
                     } else {
@@ -184,11 +183,11 @@ namespace std {
         }
         %typemap(out) vector<T> {
             $result = PyTuple_New($1.size());
-            swig_type_info* type = SWIG_TypeQuery(#T " *");
             for (unsigned int i=0; i<$1.size(); i++) {
                 T* ptr = new T((($1_type &)$1)[i]);
                 PyTuple_SetItem($result,i,
-                                SWIG_NewPointerObj((void *) ptr, type, 1));
+                                SWIG_NewPointerObj((void *) ptr, 
+                                                   $descriptor(T *), 1));
             }
         }
       public:
