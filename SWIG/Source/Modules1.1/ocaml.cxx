@@ -506,7 +506,7 @@ class OCAML : public Language {
 	String *out = NewString(prefix);
 	Printf(out,"%s",fname);
 
-	if( classmode && !in_constructor ) {
+	if( classmode && !in_constructor && !in_destructor ) {
 	    Insert(out,0,"::");
 	    Insert(out,0,classname);
 	}
@@ -551,7 +551,7 @@ class OCAML : public Language {
 	    Insert(out,0,"(");
 	    Insert(out,strlen(Char(out)),"@)");
 	}
-	    
+    
 	lcase(out);
 
 	return out;
@@ -1294,7 +1294,7 @@ class OCAML : public Language {
 	if( !classmode || !onlyobjects || !mliout ||
 	    in_constructor || in_destructor ) {
 	    Printf(f_module, "  external %s : ", ml_function_name);
-	
+
 	    if( numargs == 0 ) 
 		Printf(f_module," unit");
 	    else if( numargs != 1 ) Printf(f_module,curried ? "" : "(");
@@ -1326,7 +1326,7 @@ class OCAML : public Language {
 	}
 
 	if( classmode ) {
-	    if( !in_constructor ) {
+	    if( !in_constructor && !in_destructor ) {
 		String *method_name = NewString("");
 		String *method = get_ml_method_name(n);
 
@@ -1753,10 +1753,10 @@ class OCAML : public Language {
 			"  method _self_%s : %s = (Obj.magic c_self)\n",
 			classname, type_name );
 	    else
-		Printf(f_modclass,
-		       "  method _self_%s : %s\n",
-		       classname, type_name );
-
+		Printf( f_modclass,
+			"  method _self_%s : %s\n",
+			classname, type_name );
+	    
 	    Printf(f_modclass,"end\n");	    
 	    
 	    classmode = 0;
