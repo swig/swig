@@ -11,6 +11,9 @@
 //
 /* Revision history 
  * $Log$
+ * Revision 1.1.4.1  2002/05/23 21:48:55  beazley
+ * cleanup
+ *
  * Revision 1.1  2000/01/11 21:15:49  beazley
  * Added files
  *
@@ -38,7 +41,7 @@ static clock_t  tend[SWIG_NTIMERS];
  * Clears timer i.
  *----------------------------------------------------------------- */
 
-void
+static void
 SWIG_timer_clear(int i)
 {
   if ((i >= 0) && (i < SWIG_NTIMERS))
@@ -52,7 +55,7 @@ SWIG_timer_clear(int i)
  * Starts timer i
  *----------------------------------------------------------------- */
 
-void
+static void
 SWIG_timer_start(int i)
 {
   if ((i >= 0) && (i < SWIG_NTIMERS))
@@ -66,7 +69,7 @@ SWIG_timer_start(int i)
  * Stops timer i and accumulates elapsed time
  *----------------------------------------------------------------- */
 
-void
+static void
 SWIG_timer_stop(int i)
 {
   if ((i >= 0) && (i < SWIG_NTIMERS)) {
@@ -81,7 +84,7 @@ SWIG_timer_stop(int i)
  * Returns the time elapsed on timer i in seconds.
  *----------------------------------------------------------------- */
 
-double
+static double
 SWIG_timer_elapsed(int i)
 {
   double   t;
@@ -95,10 +98,7 @@ SWIG_timer_elapsed(int i)
 
 %}
 
-%section "Timer Functions",pre,after,chop_left=3,nosort,info,chop_right = 0, chop_top=0,chop_bottom=0
-
-%text %{
-%include timers.i
+/*
 
 This module provides a collection of timing functions designed for
 performance analysis and benchmarking of different code fragments. 
@@ -116,35 +116,13 @@ All timers measure CPU time.
 Since each timer can be accessed independently, it is possible
 to use groups of timers for measuring different aspects of code
 performance.   To use a timer, simply use code like this :
-%}
 
-#if defined(SWIGTCL)
-%text %{
-      timer_clear 0
-      timer_start 0
-      .. a bunch of Tcl code ...
-      timer_stop 0
-      puts "[timer_elapsed 0] seconds of CPU time"
-%}
-#elif defined(SWIGPERL)
-%text %{
-      timer_clear(0);
-      timer_start(0);
-      .. a bunch of Perl code ...
-      timer_stop(0);
-      print timer_elapsed(0)," seconds of CPU time\n";
-%}
-#elif defined(SWIGPYTHON)
-%text %{
       timer_clear(0)
       timer_start(0)
-      ... a bunch of Python code ...
+      ... a bunch of code ...
       timer_stop(0)
       print timer_elapsed(0)," seconds of CPU time"
-%}      
-#endif
 
-%text %{
 A single timer can be stopped and started repeatedly to provide
 a cummulative timing effect.
 
@@ -153,7 +131,7 @@ functions can severely degrade performance (due to operating system
 overhead).   The resolution of the timers may be poor for extremely
 short code fragments.   Therefore, the timers work best for
 computationally intensive operations.
-%}
+*/
 
 
 %name(timer_clear)   void SWIG_timer_clear(int n);   
