@@ -77,6 +77,8 @@ SWIG_Guile_scm2newstr(SCM str, size_t *len) {
   char *ret;
   size_t l;
 
+  SCM_ASSERT (SCM_STRINGP(str), str, 1, FUNC_NAME);
+  
   l = SCM_STRING_LENGTH(str);
   ret = (char *) SWIG_malloc( (l + 1) * sizeof(char));
   if (!ret) return NULL;
