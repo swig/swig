@@ -330,6 +330,8 @@ extern void appendChild(Node *node, Node *child);
 extern void deleteNode(Node *node);
 extern Node *copyNode(Node *node);
 
+extern void Swig_tag_nodes(Node *node, const String_or_char *attrname, DOH *value);
+
 extern int  Swig_require(Node **node, ...);
 extern int  Swig_save(Node **node,...);
 extern void Swig_restore(Node **node);

@@ -781,7 +781,9 @@ public:
 		    if (Strcmp(nodeType(c),"cdecl") == 0) {
 		      if (!(checkAttribute(c,"storage","static") 
 			    || checkAttribute(c,"storage","typedef")
-			    || checkAttribute(c,"storage","friend"))) {
+			    || checkAttribute(c,"storage","friend")
+                            || (Getattr(c,"feature:extend") && !Getattr(c,"code"))
+                            || Getattr(c,"feature:ignore"))) {
 			
 			String *csymname = Getattr(c,"sym:name");
 			if (!csymname || (Strcmp(csymname,symname) == 0)) {
@@ -804,6 +806,8 @@ public:
 			    }
 			  }
 			  Node *nn = copyNode(c);
+			  if (!Getattr(nn,"sym:name")) Setattr(nn,"sym:name", symname);
+
 			  if (!Getattr(nn,"feature:ignore")) {
 			    Setattr(nn,"parms",CopyParmList(Getattr(c,"parms")));
 			    ccount++;

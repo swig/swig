@@ -1040,6 +1040,9 @@ extend_directive : EXTEND options idcolon LBRACE {
                clsname = make_class_name($3);
 	       Setattr($$,"name",clsname);
 
+	       /* Mark members as extend */
+
+	       Swig_tag_nodes($6,"feature:extend",(char*) "1");
 	       if (current_class) {
 		 /* We add the extension to the previously defined class */
 		 appendChild($$,$6);
@@ -1055,7 +1058,6 @@ extend_directive : EXTEND options idcolon LBRACE {
 		   Setattr(extendhash,clsname,$$);
 		 }
 	       }
-
 	       current_class = 0;
 	       Delete(Classprefix);
 	       Delete(clsname);
@@ -2800,6 +2802,7 @@ cpp_members  : cpp_member cpp_members {
 		  }
              } cpp_members RBRACE cpp_members {
 	       $$ = new_node("extend");
+	       Swig_tag_nodes($4,"feature:extend",(char*) "1");
 	       appendChild($$,$4);
 	       set_nextSibling($$,$6);
 	     }

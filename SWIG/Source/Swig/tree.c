@@ -201,6 +201,22 @@ copyNode(Node *n) {
   return c;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_tag_nodes()
+ *
+ * Tags a collection of nodes with an attribute.   Used by the parser to mark
+ * subtypes with extra information.
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
+  while (n) {
+    Setattr(n,attrname,value);
+    Swig_tag_nodes(firstChild(n),attrname, value);
+    n = nextSibling(n);
+  }
+}
+
 int
 checkAttribute(Node *n, const String_or_char *name, const String_or_char *value) {
   String *v;

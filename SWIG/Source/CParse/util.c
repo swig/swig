@@ -68,5 +68,4 @@ void Swig_cparse_replace_descriptor(String *s) {
     }
   }
 }
- 
 

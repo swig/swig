@@ -215,11 +215,14 @@ Language::~Language() {
 
 int Language::emit_one(Node *n) {
   int ret;
-  
+  int oldext;
   if (!n) return SWIG_OK;
 
   if (Getattr(n,"feature:ignore")) return SWIG_OK;
 
+  oldext = Extend;
+  if (Getattr(n,"feature:extend")) Extend = 1;
+  
   line_number = Getline(n);
   input_file = Char(Getfile(n));
 
@@ -235,6 +238,7 @@ int Language::emit_one(Node *n) {
     Swig_symbol_setscope(symtab);
     }
   */
+  Extend = oldext;
   return ret;
 }
 
