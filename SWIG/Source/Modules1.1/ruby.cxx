@@ -1211,10 +1211,18 @@ void RUBY::cpp_destructor(char *name, char *newname) {
   Printv(freefunc, "free_", klass->cname, 0);
   Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", 0);
   Printv(freebody, "static void\n",
-	 freefunc, "(", klass->type, " *ptr) {\n",
-	 tab4, Swig_name_destroy(name), "(ptr);\n",
-	 "}\n",
-	 0);
+	 freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
+	 tab4, 0);
+  if (AddMethods) {
+    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", 0);
+  } else {
+    /* When no addmethods mode, swig emits no destroy function. */
+    if (CPlusPlus) 
+      Printv(freebody, Swig_cppdestructor_call(), 0);
+    else
+      Printv(freebody, Swig_cdestructor_call(), 0);
+  }
+  Printv(freebody, ";\n}\n", 0);
   if (CPlusPlus) {
     Insert(freefunc,0,"VOIDFUNC(");
     Append(freefunc,")");
