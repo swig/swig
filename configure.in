@@ -741,7 +741,11 @@ GUILEINCLUDE=
 GUILELIB=
 GUILELINK=
 
-AC_PATH_PROG(GUILE_CONFIG, guile-config)
+AC_ARG_WITH(guile-config,[  --with-guile-config=path   Set location of guile-config],[ GUILE_CONFIG="$withval"], [GUILE_CONFIG=])
+
+if test -z "$GUILE_CONFIG" ; then
+  AC_PATH_PROG(GUILE_CONFIG, guile-config)
+fi
 
 if test -n "$GUILE_CONFIG" ; then
 
@@ -768,7 +772,7 @@ if test -n "$GUILE_CONFIG" ; then
 
   AC_MSG_CHECKING(for Guile header files)
 
-  dirs="$GUILEINCLUDE `guile-config info includedir`"
+  dirs="$GUILEINCLUDE `$GUILE_CONFIG info includedir`"
   for i in $dirs ; do
   	if test -r $i/guile/gh.h; then
   		AC_MSG_RESULT($i)
@@ -781,7 +785,7 @@ if test -n "$GUILE_CONFIG" ; then
   fi
 
   AC_MSG_CHECKING(for Guile library)
-  dirs="$GUILELIB `guile-config info libdir`"
+  dirs="$GUILELIB `$GUILE_CONFIG info libdir`"
   for i in $dirs ; do
   	if test -r $i/libguile.so; then
   	    AC_MSG_RESULT($i)
@@ -793,7 +797,7 @@ if test -n "$GUILE_CONFIG" ; then
   	AC_MSG_RESULT(not found)
   fi
 
-  GUILELINK="`guile-config link`"
+  GUILELINK="`$GUILE_CONFIG link`"
 
 fi # have GUILE_CONFIG
 
@@ -943,7 +947,7 @@ PHP4BIN=
 AC_ARG_WITH(php4,[  --with-php4=path	  Set location of PHP4 executable],[ PHP4BIN="$withval"], [PHP4BIN=])
 
 if test -z "$PHP4BIN"; then
-AC_CHECK_PROGS(PHP4, php, php4)
+AC_CHECK_PROGS(PHP4, php php4)
 else
 PHP4="$PHP4BIN"
 fi
@@ -951,7 +955,7 @@ fi
 AC_SUBST(PHP4)
 
 AC_MSG_CHECKING(for PHP4 header files)
-dirs="/usr/include/php /usr/local/include/php /usr/local/apache/php"
+dirs="/usr/include/php /usr/local/include/php /usr/include/php4 /usr/local/include/php4 /usr/local/apache/php"
 for i in $dirs; do
 	if test -r $i/php_config.h -o -r $i/php_version.h; then
 		AC_MSG_RESULT($i)
@@ -1160,7 +1164,7 @@ if test -n "$CHICKEN_CONFIG" ; then
   fi
 
   AC_MSG_CHECKING(for linker options for shared CHICKEN generated code)
-  dirs="$CHICKENSHAREDLIB `chicken-config -shared -libs -extra-libs | sed s/-L//g`"
+  dirs="$CHICKENSHAREDLIB `chicken-config -shared -libs -extra-libs | sed s/-L//g` /usr/lib"
   for i in $dirs ; do
   	if test -r $i/libchicken.a; then
   	    AC_MSG_RESULT(libraries found in $i)
@@ -1174,7 +1178,7 @@ if test -n "$CHICKEN_CONFIG" ; then
   fi
 
   AC_MSG_CHECKING(for linker options for static CHICKEN generated code)
-  dirs="$CHICKENLIB `chicken-config -libs -extra-libs | sed s/-L//g`"
+  dirs="$CHICKENLIB `chicken-config -libs -extra-libs | sed s/-L//g` /usr/lib "
   for i in $dirs ; do
   	if test -r $i/libchicken.a; then
   	    AC_MSG_RESULT(libraries found in $i)
