@@ -300,6 +300,7 @@ cobject:
   return 0;
 
 type_error:
+  PyErr_Clear();
   if (flags & SWIG_POINTER_EXCEPTION) {
     if (ty && c) {
       PyErr_Format(PyExc_TypeError, 

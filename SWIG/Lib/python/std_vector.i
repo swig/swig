@@ -109,11 +109,18 @@ namespace std {
     %pysequence_methods(std::vector<T >);
   };
 
+  // bool specialization
+  %extend vector<bool> {
+    void flip() 
+    {
+      self->flip();
+    }
+  }
+
 
   // ***
-  // This especialization should dissapears or
-  // get simplified when a 'const SWIGTYPE*&' can be
-  // be defined
+  // This specialization should dissapear or get simplified when
+  // a 'const SWIGTYPE*&' can be defined
   // ***
   template<class T > class vector<T*> {
   public:
@@ -144,31 +151,13 @@ namespace std {
     %std_vector_methods_val(vector);
     %pysequence_methods_val(std::vector<T* >);
   };
-
-  // Add the order operations <,>,<=,=> as needed
-  
-  %define %std_order_vector(T)
-    %std_comp_methods(vector<T>);
-  %enddef
-  
-  %apply_otypes(%std_order_vector);
-
-  // bool specialization
-  %extend vector<bool> {
-    void flip() 
-    {
-      self->flip();
-    }
-  }
-
 }
 
-
 %define %std_vector_ptypen(...) 
-  namespace std {
-    %template() vector<__VA_ARGS__ >;
-  }
+  %std_extcomp(vector, __VA_ARGS__);
+  %std_definst(vector, __VA_ARGS__);
 %enddef
 
+#if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
 %apply_cpptypes(%std_vector_ptypen);
-
+#endif

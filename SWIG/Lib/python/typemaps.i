@@ -61,41 +61,6 @@ or you can use the %apply directive :
 
 */
 
-%define INPUT_TYPEMAP(type, converter)
-%typemap(in) type *INPUT($*1_ltype temp), type &INPUT($*1_ltype temp)
-{
-   temp = converter($input);
-   if (PyErr_Occurred()) SWIG_fail;
-   $1 = &temp;
-}
-%typemap(typecheck) type *INPUT = type;
-%typemap(typecheck) type &INPUT = type;
-%enddef
-
-INPUT_TYPEMAP(float, PyFloat_AsDouble);
-INPUT_TYPEMAP(double, PyFloat_AsDouble);
-INPUT_TYPEMAP(int, PyInt_AsLong);
-INPUT_TYPEMAP(short, PyInt_AsLong);
-INPUT_TYPEMAP(long, PyInt_AsLong);
-INPUT_TYPEMAP(long long, PyLong_AsLongLong);
-INPUT_TYPEMAP(unsigned int, PyInt_AsLong);
-INPUT_TYPEMAP(unsigned short, PyInt_AsLong);
-INPUT_TYPEMAP(unsigned long, PyInt_AsLong);
-INPUT_TYPEMAP(unsigned long long, PyLong_AsUnsignedLongLong);
-INPUT_TYPEMAP(unsigned char, PyInt_AsLong);
-INPUT_TYPEMAP(signed char, PyInt_AsLong);
-
-#undef INPUT_TYPEMAP
-
-%typemap(in) bool *INPUT(bool temp), bool &INPUT(bool temp)
-{
-   temp = PyInt_AsLong($input) ? true : false;
-   if (PyErr_Occurred()) SWIG_fail;
-   $1 = &temp;
-}
-%typemap(typecheck) bool *INPUT = bool;
-%typemap(typecheck) bool &INPUT = bool;
-
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as
 // a list element.
@@ -140,41 +105,6 @@ The Python output of the function would be a tuple containing both
 output values. 
 
 */
-
-// These typemaps contributed by Robin Dunn
-//----------------------------------------------------------------------
-//
-// T_OUTPUT typemap (and helper function) to return multiple argouts as
-// a tuple instead of a list.
-//
-// Author: Robin Dunn
-//----------------------------------------------------------------------
-
-%include "fragments.i"
-
-%define OUTPUT_TYPEMAP(type, converter, convtype)
-%typemap(in,numinputs=0) type *OUTPUT($*1_ltype temp), type &OUTPUT($*1_ltype temp) "$1 = &temp;";
-%typemap(argout,fragment="t_output_helper") type *OUTPUT, type &OUTPUT {
-   PyObject *o = converter(convtype (*$1));
-   $result = t_output_helper($result,o);
-}
-%enddef
-
-OUTPUT_TYPEMAP(int, PyInt_FromLong, (long));
-OUTPUT_TYPEMAP(short, PyInt_FromLong, (long));
-OUTPUT_TYPEMAP(long, PyInt_FromLong, (long));
-OUTPUT_TYPEMAP(long long, PyLong_FromLongLong, ($*1_ltype));
-OUTPUT_TYPEMAP(unsigned int, PyInt_FromLong, (long));
-OUTPUT_TYPEMAP(unsigned short, PyInt_FromLong, (long));
-OUTPUT_TYPEMAP(unsigned long, PyInt_FromLong, (long));
-OUTPUT_TYPEMAP(unsigned long long, PyLong_FromUnsignedLongLong, ($*1_ltype));
-OUTPUT_TYPEMAP(unsigned char, PyInt_FromLong, (long));
-OUTPUT_TYPEMAP(signed char, PyInt_FromLong, (long));
-OUTPUT_TYPEMAP(bool, PyInt_FromLong, (long));
-OUTPUT_TYPEMAP(float, PyFloat_FromDouble, (double));
-OUTPUT_TYPEMAP(double, PyFloat_FromDouble, (double));
-
-#undef OUTPUT_TYPEMAP
 
 // INOUT
 // Mappings for an argument that is both an input and output
@@ -229,89 +159,32 @@ phased out in future releases.
 
 */
 
-%typemap(in) int *INOUT = int *INPUT;
-%typemap(in) short *INOUT = short *INPUT;
-%typemap(in) long *INOUT = long *INPUT;
-%typemap(in) long long *INOUT = long long *INPUT;
-%typemap(in) unsigned *INOUT = unsigned *INPUT;
-%typemap(in) unsigned short *INOUT = unsigned short *INPUT;
-%typemap(in) unsigned long *INOUT = unsigned long *INPUT;
-%typemap(in) unsigned long long *INOUT = unsigned long long *INPUT;
-%typemap(in) unsigned char *INOUT = unsigned char *INPUT;
-%typemap(in) bool *INOUT = bool *INPUT;
-%typemap(in) float *INOUT = float *INPUT;
-%typemap(in) double *INOUT = double *INPUT;
 
-%typemap(in) int &INOUT = int &INPUT;
-%typemap(in) short &INOUT = short &INPUT;
-%typemap(in) long &INOUT = long &INPUT;
-%typemap(in) long long &INOUT = long long &INPUT;
-%typemap(in) unsigned &INOUT = unsigned &INPUT;
-%typemap(in) unsigned short &INOUT = unsigned short &INPUT;
-%typemap(in) unsigned long &INOUT = unsigned long &INPUT;
-%typemap(in) unsigned long long &INOUT = unsigned long long &INPUT;
-%typemap(in) unsigned char &INOUT = unsigned char &INPUT;
-%typemap(in) bool &INOUT = bool &INPUT;
-%typemap(in) float &INOUT = float &INPUT;
-%typemap(in) double &INOUT = double &INPUT;
+%include pyinout.swg
 
-%typemap(argout) int *INOUT = int *OUTPUT;
-%typemap(argout) short *INOUT = short *OUTPUT;
-%typemap(argout) long *INOUT = long *OUTPUT;
-%typemap(argout) long long *INOUT = long long *OUTPUT;
-%typemap(argout) unsigned *INOUT = unsigned *OUTPUT;
-%typemap(argout) unsigned short *INOUT = unsigned short *OUTPUT;
-%typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
-%typemap(argout) unsigned long long *INOUT = unsigned long long *OUTPUT;
-%typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
-%typemap(argout) bool *INOUT = bool *OUTPUT;
-%typemap(argout) float *INOUT = float *OUTPUT;
-%typemap(argout) double *INOUT = double *OUTPUT;
+#ifdef SWIG_INOUT_NODEF
+/*
+  Apply the INPUT/OUTPUT typemaps to all the C types (int, double) if
+  not already defined.
+*/
+%define %typemap_inout(Code,AsMeth, CheckMeth, FromMeth, AsFrag, CheckFrag, FromFrag, ...)
+  _PYVAL_INPUT_TYPEMAP(SWIG_arg(Code), SWIG_arg(AsMeth), SWIG_arg(CheckMeth),
+		       SWIG_arg(AsFrag), SWIG_arg(CheckFrag), SWIG_arg(__VA_ARGS__));
+  _PYVAL_OUTPUT_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), SWIG_arg(__VA_ARGS__));
+  _PYVAL_INOUT_TYPEMAP(SWIG_arg(__VA_ARGS__));
+%enddef
 
-%typemap(argout) int &INOUT = int &OUTPUT;
-%typemap(argout) short &INOUT = short &OUTPUT;
-%typemap(argout) long &INOUT = long &OUTPUT;
-%typemap(argout) long long &INOUT = long long &OUTPUT;
-%typemap(argout) unsigned &INOUT = unsigned &OUTPUT;
-%typemap(argout) unsigned short &INOUT = unsigned short &OUTPUT;
-%typemap(argout) unsigned long &INOUT = unsigned long &OUTPUT;
-%typemap(argout) unsigned long long &INOUT = unsigned long long &OUTPUT;
-%typemap(argout) unsigned char &INOUT = unsigned char &OUTPUT;
-%typemap(argout) bool &INOUT = bool &OUTPUT;
-%typemap(argout) float &INOUT = float &OUTPUT;
-%typemap(argout) double &INOUT = double &OUTPUT;
+%define %typemap_inoutn(Code,...)
+  %typemap_inout(SWIG_arg(Code),
+		 SWIG_arg(SWIG_As_meth(__VA_ARGS__)), 
+		 SWIG_arg(SWIG_Check_meth(__VA_ARGS__)), 
+		 SWIG_arg(SWIG_From_meth(__VA_ARGS__)), 
+		 SWIG_arg(SWIG_As_frag(__VA_ARGS__)), 
+		 SWIG_arg(SWIG_Check_frag(__VA_ARGS__)), 
+		 SWIG_arg(SWIG_From_frag(__VA_ARGS__)), 
+		 SWIG_arg(__VA_ARGS__));
+%enddef
 
-/* Overloading information */
+%apply_checkctypes(%typemap_inoutn)
 
-%typemap(typecheck) double *INOUT = double;
-%typemap(typecheck) bool *INOUT = bool;
-%typemap(typecheck) signed char *INOUT = signed char;
-%typemap(typecheck) unsigned char *INOUT = unsigned char;
-%typemap(typecheck) unsigned long *INOUT = unsigned long;
-%typemap(typecheck) unsigned long long *INOUT = unsigned long long;
-%typemap(typecheck) unsigned short *INOUT = unsigned short;
-%typemap(typecheck) unsigned int *INOUT = unsigned int;
-%typemap(typecheck) long *INOUT = long;
-%typemap(typecheck) long long *INOUT = long long;
-%typemap(typecheck) short *INOUT = short;
-%typemap(typecheck) int *INOUT = int;
-%typemap(typecheck) float *INOUT = float;
-
-%typemap(typecheck) double &INOUT = double;
-%typemap(typecheck) bool &INOUT = bool;
-%typemap(typecheck) signed char &INOUT = signed char;
-%typemap(typecheck) unsigned char &INOUT = unsigned char;
-%typemap(typecheck) unsigned long &INOUT = unsigned long;
-%typemap(typecheck) unsigned long long &INOUT = unsigned long long;
-%typemap(typecheck) unsigned short &INOUT = unsigned short;
-%typemap(typecheck) unsigned int &INOUT = unsigned int;
-%typemap(typecheck) long &INOUT = long;
-%typemap(typecheck) long long &INOUT = long long;
-%typemap(typecheck) short &INOUT = short;
-%typemap(typecheck) int &INOUT = int;
-%typemap(typecheck) float &INOUT = float;
-
-
-
-
-
+#endif

@@ -5,7 +5,7 @@
 %}
 
 %fragment("StdPairTraits","header",
-	  fragment="traits",fragment="PyObject_var") {
+	  fragment="StdTraits",fragment="PyObject_var") {
   namespace swigpy {
     template <class T, class U >
     struct traits_asval<std::pair<T,U> >  {
@@ -79,6 +79,10 @@ namespace std {
     U second;
   };
 
+  // ***
+  // The following specializations should dissapear or get 
+  // simplified when a 'const SWIGTYPE*&' can be defined
+  // ***
   template <class T, class U > struct pair<T, U*> {      
     typedef T fisrt_type;
     typedef U* second_type;
@@ -104,7 +108,6 @@ namespace std {
     U* second;
   };
 
-
   template <class T, class U > struct pair<T*, U> {      
     typedef T* fisrt_type;
     typedef U second_type;
@@ -124,7 +127,7 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_CCode(PAIR), std::pair<T*,U >);
+    %typemap_traits(SWIG_CCode(PAIR), std::pair<T*,U >);
 
     T* first;
     U second;
@@ -146,7 +149,7 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_CCode(PAIR), std::pair<T*,U* >);
+    %typemap_traits(SWIG_CCode(PAIR), std::pair<T*,U* >);
 
     T* first;
     U* second;
@@ -154,9 +157,11 @@ namespace std {
 
 }
 
-/*
-  Pairs for all the C++ types
-*/
-#define std_pair_ptypen(...) %template() std::pair< __VA_ARGS__ >;
+%define %std_pair_ptypen(...) 
+  %std_extcomp_2(pair, __VA_ARGS__);
+  %std_definst_2(pair, __VA_ARGS__);
+%enddef
 
-%apply_cpptypes_2(std_pair_ptypen);
+#if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
+%apply_cpptypes_2(%std_pair_ptypen);
+#endif

@@ -151,24 +151,17 @@ namespace std {
     %pysequence_methods_val(SWIG_arg(std::vector<T*,A >));
   };
 
-  // Add the order operations <,>,<=,=> as needed
-  /*
-  %define %std_order_vector(T)
-    %std_comp_methods(vector<T,A>);
-  %enddef
-  
-  %apply_otypes(%std_order_vector);
 
   // bool specialization
-  %extend vector<bool> {
+  %extend vector<bool,std::allocator<bool> > {
     void flip() 
     {
       self->flip();
     }
   }
-  */
 }
 
+#ifdef SWIG_STD_DEFAULT_INSTANTIATION
 
 %define %std_vector_ptypen(...) 
 namespace std {
@@ -181,14 +174,17 @@ namespace std {
   // removed (and maybe we will be able to have an unique std_vector.i
   // definition too).
   //
+#if 1
   %apply vector<__VA_ARGS__, std::allocator<__VA_ARGS__ > > {
     vector<__VA_ARGS__ >
   }
   %apply const vector<__VA_ARGS__, std::allocator<__VA_ARGS__ > >& {
     const vector<__VA_ARGS__ >&
   }
+#endif
 }
 %enddef
 
 %apply_cpptypes(%std_vector_ptypen);
 
+#endif

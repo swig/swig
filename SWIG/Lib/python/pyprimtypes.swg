@@ -30,10 +30,6 @@ SWIG_define(SWIG_From_meth(double),         PyFloat_FromDouble);
 SWIGSTATICINLINE(int)
   SWIG_AsVal_meth(unsigned long)(PyObject * obj, unsigned long *val) 
 {
-  if (PyLong_Check(obj)) {
-    if (val) *val = PyLong_AsUnsignedLong(obj);
-    return 1;
-  } 
   if (PyInt_Check(obj)) {
     long v = PyInt_AsLong(obj);
     if (v >= 0) {
@@ -41,8 +37,18 @@ SWIGSTATICINLINE(int)
       return 1;
     }   
   }
+  if (PyLong_Check(obj)) {
+    unsigned long v = PyLong_AsUnsignedLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return 1;
+    } else {
+      if (!val) PyErr_Clear();
+      return 0;
+    }
+  } 
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a unsigned long is expected");
+    PyErr_SetString(PyExc_TypeError, "an unsigned long is expected");
   }
   return 0;
 }
@@ -101,13 +107,19 @@ SWIGSTATICINLINE(int)
     if (val) *val = PyFloat_AsDouble(obj);
     return 1;
   }  
-  if (PyLong_Check(obj)) {
-    if (val) *val = PyLong_AsDouble(obj);
-    return 1;
-  }
   if (PyInt_Check(obj)) {
     if (val) *val = PyInt_AsLong(obj);
     return 1;
+  }
+  if (PyLong_Check(obj)) {
+    double v = PyLong_AsDouble(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return 1;
+    } else {
+      if (!val) PyErr_Clear();
+      return 0;
+    }
   }
   if (val) {
     PyErr_SetString(PyExc_TypeError, "a double is expected");
@@ -120,13 +132,19 @@ SWIGSTATICINLINE(int)
 SWIGSTATICINLINE(int)
   SWIG_AsVal_meth(long)(PyObject * obj, long* val)
 {
-  if (PyLong_Check(obj)) {
-    if (val) *val = PyLong_AsLong(obj);
-    return 1;
-  }
   if (PyInt_Check(obj)) {
     if (val) *val = PyInt_AsLong(obj);
     return 1;
+  }
+  if (PyLong_Check(obj)) {
+    long v = PyLong_AsLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return 1;
+    } else {
+      if (!val) PyErr_Clear();
+      return 0;
+    }
   }
   if (val) {
     PyErr_SetString(PyExc_TypeError, "a long is expected");
@@ -164,8 +182,14 @@ SWIGSTATICINLINE(int)
   SWIG_AsVal_meth(long long)(PyObject *obj, long long *val)
 {
   if (PyLong_Check(obj)) {
-    if (val) *val = PyLong_AsLongLong(obj);
-    return 1;
+    long long v = PyLong_AsLongLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return 1;
+    } else {
+      if (!val) PyErr_Clear();
+      return 0;
+    }
   }
   if (PyInt_Check(obj)) {
     if (val) *val = PyInt_AsLong(obj);
@@ -184,8 +208,14 @@ SWIGSTATICINLINE(int)
   SWIG_AsVal_meth(unsigned long long)(PyObject *obj, unsigned long long *val)
 {
   if (PyLong_Check(obj)) {
-    if (val) *val = PyLong_AsUnsignedLongLong(obj);
-    return 1;
+    unsigned long long v = PyLong_AsUnsignedLongLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return 1;
+    } else {
+      if (!val) PyErr_Clear();
+      return 0;
+    }
   }
   unsigned long v;
   if (SWIG_AsVal_meth(unsigned long)(obj,&v)) {
@@ -195,7 +225,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a long long is expected");
+    PyErr_SetString(PyExc_TypeError, "an unsigned long long is expected");
   }  
   return 0;
 }
@@ -314,7 +344,7 @@ SWIG_AsVal_meth(unsigned int)(PyObject *obj, unsigned int *val)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a unsigned int is expected");
+    PyErr_SetString(PyExc_TypeError, "an unsigned int is expected");
   }
   return 0;    
 }
@@ -356,7 +386,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a unsigned char is expected");
+    PyErr_SetString(PyExc_TypeError, "an unsigned char is expected");
   }
   return 0;
 }
@@ -381,7 +411,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a unsigned short is expected");
+    PyErr_SetString(PyExc_TypeError, "an unsigned short is expected");
   }
   return 0;
 }
@@ -515,20 +545,6 @@ SWIGSTATICINLINE(int)
 %typemap_asvalfromn(SWIG_arg(Code), __VA_ARGS__);
 %enddef
  
-%typemap_primitive(SWIG_CCode(BOOL),    bool);
-%typemap_primitive(SWIG_CCode(INT8),    signed char);
-%typemap_primitive(SWIG_CCode(UINT8),   unsigned char);
-%typemap_primitive(SWIG_CCode(INT16),   short);
-%typemap_primitive(SWIG_CCode(UINT16),  unsigned short);
-%typemap_primitive(SWIG_CCode(INT32),   int);
-%typemap_primitive(SWIG_CCode(UINT32),  unsigned int);
-%typemap_primitive(SWIG_CCode(INT64),   long);
-%typemap_primitive(SWIG_CCode(UINT64),  unsigned long);
-%typemap_primitive(SWIG_CCode(INT128),  long long);
-%typemap_primitive(SWIG_CCode(UINT128), unsigned long long);
-%typemap_primitive(SWIG_CCode(FLOAT),   float);
-%typemap_primitive(SWIG_CCode(DOUBLE),  double);
-%typemap_primitive(SWIG_CCode(CHAR),    char);
 
 
 /* ------------------------------------------------------------
@@ -546,7 +562,8 @@ SWIGSTATICINLINE(int)
 %enddef
 
 /* Apply macro to the order types */
-%define %apply_otypes(Macro,...)
+%define %apply_ctypes(Macro,...)
+_apply_macro(Macro, bool               , __VA_ARGS__);
 _apply_macro(Macro, signed char        , __VA_ARGS__);
 _apply_macro(Macro, unsigned char      , __VA_ARGS__);
 _apply_macro(Macro, short              , __VA_ARGS__);
@@ -562,19 +579,12 @@ _apply_macro(Macro, double             , __VA_ARGS__);
 _apply_macro(Macro, char               , __VA_ARGS__);
 %enddef
 
-/* apply the Macro(Type) to all the C types  */
-%define %apply_ctypes(Macro,...)
-%apply_otypes(Macro, __VA_ARGS__)
-_apply_macro(Macro, bool, __VA_ARGS__);
-%enddef
-
 /* apply the Macro(Type) to all the C++ types  */
 %define %apply_cpptypes(Macro,...)
-%apply_otypes(Macro, __VA_ARGS__)
-_apply_macro(Macro, bool, __VA_ARGS__);
+%apply_ctypes(Macro, __VA_ARGS__)
 _apply_macro(Macro, std::basic_string<char>, __VA_ARGS__);
-_apply_macro(Macro, std::complex<float>, __VA_ARGS__);
-_apply_macro(Macro, std::complex<double>, __VA_ARGS__);
+_apply_macro(Macro, std::complex<float>    , __VA_ARGS__);
+_apply_macro(Macro, std::complex<double>   , __VA_ARGS__);
 %enddef
 
 /* apply the Macro2(Type1, Type2) to all the C++ types  */
@@ -582,3 +592,49 @@ _apply_macro(Macro, std::complex<double>, __VA_ARGS__);
 %apply_cpptypes(%apply_cpptypes, Macro2)
 %enddef
 
+%define %apply_checkctypes(Macro)
+Macro(SWIG_CCode(BOOL),    bool);
+Macro(SWIG_CCode(INT8),    signed char);
+Macro(SWIG_CCode(UINT8),   unsigned char);
+Macro(SWIG_CCode(INT16),   short);
+Macro(SWIG_CCode(UINT16),  unsigned short);
+Macro(SWIG_CCode(INT32),   int);
+Macro(SWIG_CCode(UINT32),  unsigned int);
+Macro(SWIG_CCode(INT64),   long);
+Macro(SWIG_CCode(UINT64),  unsigned long);
+Macro(SWIG_CCode(INT128),  long long);
+Macro(SWIG_CCode(UINT128), unsigned long long);
+Macro(SWIG_CCode(FLOAT),   float);
+Macro(SWIG_CCode(DOUBLE),  double);
+Macro(SWIG_CCode(CHAR),    char);
+%enddef
+
+/* ------------------------------------------------------------
+ * Apply the primitive typemap for all the types with checkcode
+ * ------------------------------------------------------------ */
+
+%apply_checkctypes(%typemap_primitive)
+
+
+/* ------------------------------------------------------------
+ * equal and order types definition
+ * ------------------------------------------------------------ */
+
+%swig_equal_type(bool);
+%swig_equal_type(std::complex<float>);
+%swig_equal_type(std::complex<double>);
+
+%swig_order_type(std::basic_string<char>);
+%swig_order_type(signed char);
+%swig_order_type(unsigned char);
+%swig_order_type(short);
+%swig_order_type(unsigned short);
+%swig_order_type(int);
+%swig_order_type(unsigned int);
+%swig_order_type(long);
+%swig_order_type(unsigned long);
+%swig_order_type(long long);
+%swig_order_type(unsigned long long);
+%swig_order_type(float);
+%swig_order_type(double);
+%swig_order_type(char);

@@ -1,5 +1,5 @@
 %{
-#include <iostream>
+#include <stdio.h>
 %}
 
 /*
@@ -69,49 +69,34 @@
 */
 
 
-%define %_attribute(Class, type, attr, get, set) 
+%define %_attribute(Class, type, attr, getcode, setcode) 
 %extend Class {
   type attr;
 }
 %{
-  template <class C>
-  inline type Class ##_## attr ## _get(C *t) {
-    return get;
-  }
-  template <class C>
-  inline void Class ##_## attr ## _set(C *t, const type& val) {
-    set;
-  }
+#define Class ##_## attr ## _get(_t) getcode
+#define Class ##_## attr ## _set(_t, _val) setcode
 %}
 %enddef
 
 %define %attribute(Class, type, attr, get, ...) 
+%ignore Class::get;
 #if #__VA_ARGS__ != ""
+  %ignore Class::__VA_ARGS__;
   %_attribute(SWIG_arg(Class), SWIG_arg(type),
-	      attr, t->get(), t->__VA_ARGS__(val)) 
+	      attr, _t->get(), _t->__VA_ARGS__(_val)) 
 #else
   %_attribute(SWIG_arg(Class), SWIG_arg(type),
-	      attr, t->get(), 
-	      std::cerr << "'attr' is a read-only attribute" << std::endl);
+	      attr, _t->get(), 
+	      fprintf(stderr,"'attr' is a read-only attribute"))
 #endif
 %enddef
 
 %define %_attribute_ref(Class, type, attr, ref_name) 
-%extend Class {
-  type attr;
-}
 %ignore Class::ref_name();
 %ignore Class::ref_name() const;
-%{
-  template <class C>
-  inline type Class ##_## attr ## _get(C *t) {
-    return t->ref_name();
-  }
-  template <class C>
-  inline void Class ##_## attr ## _set(C *t, const type& val) {
-     t->ref_name() = val;
-  }
-%}
+%_attribute(SWIG_arg(Class), SWIG_arg(type),
+	    attr, _t->ref_name(), _t->ref_name() = _val) 
 %enddef
 
 %define %attribute_ref(Class, type, attr, ...) 

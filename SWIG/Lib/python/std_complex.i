@@ -1,7 +1,7 @@
 #ifndef SWIG_STD_COMPLEX_I_
 #define SWIG_STD_COMPLEX_I_
 
-%include "complex_common.i"
+%include complex_common.i
 
 %{
 #include <complex> 

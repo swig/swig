@@ -31,6 +31,8 @@
 /* -----------------------------------------------------------------------------
  *  Typemap specializations
  * ----------------------------------------------------------------------------- */
+
+%include "pyinout.swg"
 %include "pyvoid.swg"
 %include "pyobject.swg"
 %include "pystrings.swg"

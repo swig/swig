@@ -1,5 +1,28 @@
 //
-// Python implementation
+// Define or uncomment the following macro to instantiate by default
+// all the basic std typemaps (std::pair<T,U>, std::vector<T>, etc)
+// for all the primitive C++ types (int, double, etc).
+//
+// Note that this is equivalent to do something similar to
+//
+//   %template() std::vector<int>;
+//
+// but for all the std and basic C++ types, ie, no wrapping is
+// generated for std::vector<int>, only the basic typemaps
+// (in, out, typecheck, throw, input, etc.).
+//
+//#define SWIG_STD_DEFAULT_INSTANTIATION
+
+// 
+// Use the following macro to enable the generation of the comparison
+// methods, ie, ==, !=, <=, >=, <,>, whenever is needed.
+//
+#define SWIG_STD_EXTEND_COMPARISON
+
+
+//
+// Common code for supporting the STD C++ namespace
+//
 
 %include pyptrtypes.swg
 %{
@@ -36,7 +59,7 @@
   }
 %}
 
-%fragment("traits","header") 
+%fragment("StdTraits","header") 
 %{
 namespace swigpy {  
   /*
@@ -56,7 +79,6 @@ namespace swigpy {
   {
   };
   
-
   template <class Type>
   inline const char* type_name() {
     return traits<Type>::type_name();
@@ -108,7 +130,6 @@ namespace swigpy {
   /*
     Traits that provides the asval/as/check method
   */
-
   template <class Type>
   struct traits_asptr {   
     typedef Type value_type;
@@ -116,13 +137,11 @@ namespace swigpy {
       value_type *p;
       int res = (SWIG_ConvertPtr(obj, (void**)&p, 
 				 type_info<value_type>(), 0) != -1) ? 1 : 0;
-      if (val) {
-	if (res) {
-	  *val = p;
-	} else {
-	  PyErr_Format(PyExc_TypeError, "a '%s *' is expected",
-		       type_name<Type>());
-	}
+      if (res) {
+	if (val) *val = p;
+      } else {
+	PyErr_Format(PyExc_TypeError, "a '%s *' is expected",
+		     type_name<Type>());
       }
       return res;
     }
@@ -139,13 +158,15 @@ namespace swigpy {
     typedef Type value_type;
     static bool asval(PyObject *obj, value_type *val) {
       if (val) {
-	value_type *p;
+	value_type *p = 0;
 	int res = asptr(obj, &p);
-	if (res) {
+	if (res && p) {
 	  *val = *p;
-	  if (res == SWIG_NEWPTR) delete p;
+	  if (res == SWIG_NEWOBJ) delete p;
+	  return true;
+	} else {
+	  return false;
 	}
-	return res;
       } else {
 	return asptr(obj, (value_type **)(0));
       }
@@ -156,7 +177,6 @@ namespace swigpy {
   inline bool asval(PyObject *obj, Type *val) {
     return traits_asval<Type>::asval(obj, val);
   }
-
 
   template <class Type, class Category> 
   struct traits_as
@@ -190,7 +210,7 @@ namespace swigpy {
       value_type *v = 0;
       int res = obj ? asptr(obj, &v) : 0;
       if (res) {
-	if (res == SWIG_NEWPTR) {
+	if (res == SWIG_NEWOBJ) {
 	  value_type r(*v);
 	  delete v;
 	  return r;
@@ -261,7 +281,6 @@ namespace swigpy {
       return name.c_str();
     }
   };
-
 }
 %}
 
@@ -270,7 +289,7 @@ namespace swigpy {
 */
 
 %define %traits_swigtype(...)
-%fragment(SWIG_Traits_frag(__VA_ARGS__),"header",fragment="traits") {
+%fragment(SWIG_Traits_frag(__VA_ARGS__),"header",fragment="StdTraits") {
   namespace swigpy {
     template <>  struct traits<__VA_ARGS__ > {
       typedef pointer_category category;
@@ -282,14 +301,14 @@ namespace swigpy {
 
 /*
   Generate the traits for a 'primitive' type, such as 'double',
-  for which the SWIG_AsVal and SWIG_From method are already defined.
+  for which the SWIG_AsVal and SWIG_From methods are already defined.
 */
 
 %define %traits_ptypen(...)
   %fragment(SWIG_Traits_frag(__VA_ARGS__),"header",
 	    fragment=SWIG_AsVal_frag(__VA_ARGS__),
 	    fragment=SWIG_From_frag(__VA_ARGS__),
-	    fragment="traits") {
+	    fragment="StdTraits") {
   namespace swigpy {
     template <> struct traits<__VA_ARGS__ > {
       typedef value_category category;
@@ -316,8 +335,7 @@ namespace swigpy {
 %apply_cpptypes(%traits_ptypen);
 
 /*
-  Generate the typemaps for a class which the traits are 
-  already defined
+  Generate the typemaps for a class that has 'value' traits
 */
 
 %define %typemap_traits(Code,...)
@@ -332,8 +350,8 @@ namespace swigpy {
 %enddef
 
 /*
-  Generate the typemaps for a class that behaves more like
-  a ptr or plain wrapped Swigtype.
+  Generate the typemaps for a class that behaves more like a 'pointer' or
+  plain wrapped Swigtype.
 */
 
 %define %typemap_traits_ptr(Code,...)
@@ -345,3 +363,68 @@ namespace swigpy {
 		     __VA_ARGS__);
 %enddef
 
+
+/*
+  Equality methods
+*/
+%define %std_equal_methods(...)
+%extend __VA_ARGS__ {
+  bool operator == (const __VA_ARGS__& v) {
+    return *self == v;
+  }
+  
+  bool operator != (const __VA_ARGS__& v) {
+    return *self != v;
+  }  
+}
+
+%enddef
+
+/*
+  Order methods
+*/
+
+%define %std_order_methods(...)
+%extend __VA_ARGS__ {
+  bool operator > (const __VA_ARGS__& v) {
+    return *self > v;
+  }
+  
+  bool operator < (const __VA_ARGS__& v) {
+    return *self < v;
+  }
+
+  bool operator >= (const __VA_ARGS__& v) {
+    return *self >= v;
+  }
+
+  bool operator <= (const __VA_ARGS__& v) {
+    return *self <= v;
+  }
+}
+%enddef
+
+#ifdef SWIG_STD_EXTEND_COMPARISON
+%define %std_extcomp(Class,T)
+  %apply_if(SWIG_EqualType(T), %std_equal_methods(std::Class<T >))
+  %apply_if(SWIG_OrderType(T), %std_order_methods(std::Class<T >))
+%enddef
+%define %_std_extcomp_2(Class,T,U)
+  %apply_if2(SWIG_EqualType(T),SWIG_EqualType(U),%std_equal_methods(std::Class<T,U >))
+  %apply_if2(SWIG_OrderType(T),SWIG_EqualType(U),%std_order_methods(std::Class<T,U >))
+%enddef
+%define %std_extcomp_2(Class,T,...)
+  %_std_extcomp_2(Class,T,__VA_ARGS__)
+%enddef
+#else
+#define %std_extcomp(Class,...)
+#define %std_extcomp_2(Class,...)
+#endif
+
+#ifdef SWIG_STD_DEFAULT_INSTANTIATION
+#define %std_definst(Class,...) %template() std::Class< __VA_ARGS__ >;
+#define %std_definst_2(Class,...) %template() std::Class< __VA_ARGS__ >;
+#else
+#define %std_definst(Class,...)
+#define %std_definst_2(Class,...)
+#endif

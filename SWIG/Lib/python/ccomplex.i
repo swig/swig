@@ -1,7 +1,7 @@
 #ifndef __python_ccomplex_i__
 #define __python_ccomplex_i__
 
-%include "complex_common.i"
+%include complex_common.i
 
 /*
  *  C complex wrap
@@ -32,7 +32,11 @@
 %typemap_primitive(SWIG_TYPECHECK_CPLXFLT, float_complex);
 %typemap_primitive(SWIG_TYPECHECK_CPLXDBL, double_complex);
 
+/* empty complex. hack in the meantime */
 %apply double_complex { complex };
+%apply const double_complex& { const complex& };
+%apply double_complex& { complex& };
+%apply double_complex* { complex* };
 
 
 

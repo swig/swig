@@ -149,19 +149,13 @@ namespace std {
     %pysequence_methods_val(std::list<T* >);
   };
 
-  // Add the order operations <,>,<=,=> as needed
-  
-  %define %std_order_list(T)
-    %std_comp_methods(list<T>);
-  %enddef
-  
-  %apply_otypes(%std_order_list);
 }
 
-
 %define %std_list_ptypen(...) 
-%template() std::list<__VA_ARGS__ >;
+  %std_extcomp(list, __VA_ARGS__);
+  %std_definst(list, __VA_ARGS__);
 %enddef
 
+#if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
 %apply_cpptypes(%std_list_ptypen);
-
+#endif

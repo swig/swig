@@ -1,8 +1,8 @@
 %{
 /* Auxiliar swig  macros that appear in the header */
 
-#define SWIG_OLDPTR  1
-#define SWIG_NEWPTR  2
+#define SWIG_OLDOBJ  1
+#define SWIG_NEWOBJ  2
 
 #ifdef __cplusplus
 #define SWIGSTATICINLINE(a) static inline a
@@ -46,7 +46,8 @@
 #define SWIG_From_meth(...)   SWIG_MethodType(From, __VA_ARGS__)
 #define SWIG_Check_meth(...)  SWIG_MethodType(Check, __VA_ARGS__)
 #define SWIG_CCode(...)       SWIG_MethodType(TYPECHECK, __VA_ARGS__)
-#define SWIG_Order(...)       SWIG_MethodType(Order, __VA_ARGS__)
+#define SWIG_OrderType(...)   SWIG_MethodType(OrderType, __VA_ARGS__)
+#define SWIG_EqualType(...)   SWIG_MethodType(EqualType, __VA_ARGS__)
 
 #define SWIG_Traits_frag(...)  SWIG_StringType(Traits, __VA_ARGS__)
 #define SWIG_AsPtr_frag(...)   SWIG_StringType(AsPtr, __VA_ARGS__)
@@ -94,3 +95,34 @@ macro(arg1, arg2)
 %define %formacro_2(macro,...)
 %_formacro_2(macro, __VA_ARGS__, __fordone__)
 %enddef
+
+
+%define %swig_mark_flag(x)
+%ignore x;
+#define x 1
+%enddef
+
+%define %_apply_if(x,macro) 
+#if x == 1
+macro
+#endif
+%enddef
+
+%define %_apply_if2(x,y,macro) 
+#if x == 1 && #y == 1
+macro
+#endif
+%enddef
+
+%define %apply_if(x,...) 
+  %_apply_if(SWIG_arg(x),SWIG_arg(__VA_ARGS__)) 
+%enddef
+
+%define %apply_if2(x,y,...) 
+  %_apply_if2(SWIG_arg(x),SWIG_arg(y),SWIG_arg(__VA_ARGS__)) 
+%enddef
+
+#define %swig_equal_type(...) %swig_mark_flag(SWIG_EqualType(__VA_ARGS__))
+#define %swig_order_type(...)		       \
+  %swig_mark_flag(SWIG_EqualType(__VA_ARGS__)) \
+  %swig_mark_flag(SWIG_OrderType(__VA_ARGS__))
