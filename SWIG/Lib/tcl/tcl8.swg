@@ -4,5 +4,5 @@
  * Tcl8 configuration module.
  * ----------------------------------------------------------------------------- */
 
-
-
+%insert(runtime) "common.swg";
+%insert(runtime) "swigtcl8.swg";
