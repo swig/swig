@@ -187,7 +187,7 @@
 #define def_float 1
 #define def_double 1
 #define def_char 'H'
-#define def_pint  (int*)0
+#define def_pint  0
 #define def_sizet 1
 #define def_hello Hola
 #define def_myint 1
@@ -338,7 +338,6 @@ macro(size_t,             pfx, sizet)
 
 #ifdef SWIGPYTHON
 %apply (char *STRING, int LENGTH) { (const char *str, size_t len) }
-%apply (int ARGC, char **ARGV) { (size_t argc, const char **argv) }
 #endif
 
 %inline {
@@ -398,15 +397,6 @@ macro(size_t,             pfx, sizet)
      return len;
    }
 
-   int mainc(size_t argc, const char **argv) 
-   {
-     return argc;
-   }
-
-   const char* mainv(size_t argc, const char **argv, int idx) 
-   {
-     return argv[idx];
-   }   
    
  };
 

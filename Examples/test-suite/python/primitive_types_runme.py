@@ -194,15 +194,11 @@ if t.var_namet != 'hol\0\0':
   print "bad namet", t.var_namet
   raise RuntimeError
 
-largs=['hi','hola','hello']
-if t.mainc(largs) != 3:
-  raise RuntimeError, "bad main typemap"
-
-targs=('hi','hola')
-if t.mainv(targs,1) != 'hola':
-  raise RuntimeError, "bad main typemap"
 
 if t.strlen('hile') != 4:
+  raise RuntimeError, "bad string typemap"
+
+if t.strlen('hil\0') != 4:
   raise RuntimeError, "bad string typemap"
 
 
@@ -250,30 +246,21 @@ pchar_setitem(pc, 3, 'a')
 pchar_setitem(pc, 4, 0)
 
 
+if t.strlen(pc) != 4:
+  raise RuntimeError, "bad string typemap"
+
 cvar.var_pchar = pc
 if cvar.var_pchar != "hola":
-  raise RuntimeError, "bad char empty case"
+  raise RuntimeError, "bad pointer case"
 
 cvar.var_namet = pc
 if cvar.var_namet != "hola\0":
-  raise RuntimeError, "bad char empty case"
+  raise RuntimeError, "bad pointer case"
 
-targs=('hi', pc)
-if t.mainv(targs,1) != 'hola':
-  raise RuntimeError, "bad main typemap"
 
 #
 # Now when things should fail
 #
-
-try:
-  error = 0
-  t.mainv('hello',1)
-  error = 1
-except TypeError:
-  pass
-if error:
-  raise RuntimeError, "bad main typemap"
 
 
 try:
