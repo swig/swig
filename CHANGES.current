@@ -1,5 +1,20 @@
 Version 1.3.22 (in progress)
 ==================================
+03/18/2004: mmatus
+	    [Python] More general std_string.i interface.
+	    Now you can wrap it using
+
+	      %template(string) std::basic_string<char>;
+
+            and use the std::string as a base class:
+
+	      struct A : std::string {
+              };
+
+	    But more important, swig will recognize 
+	    both std::basic_string<char> and std::string as
+	    the same type.
+
 03/16/2004: mmatus
 	    Previously added, but not mentioned before:
 
@@ -7,17 +22,17 @@ Version 1.3.22 (in progress)
 	      function in the same class scope.
 
 	    - ref/unref features: to mix ref counting C++ classes
-	      and native script ref counting mechanism (like python).
+	      and native script ref counting mechanisms (like in python).
 	    
 	      Use it like:
 
  	        %feature("ref")   RCObj "$this->ref();"
                 %feature("unref") RCObj "$this->unref();"
 
-	      And the class RCObj, and all the derivated ones, will
-	      perform the rigth ref/unref calls when a new pointer  
+	      And the class RCObj, and all the derived ones, will
+	      perform the right ref/unref calls when a new pointer  
 	      is returned to the target language, or when the target
-	      language attemps to delete the object.
+	      language attempts to delete the object.
 	      
 	      See the refcount.i file in the test-suite for more
 	      details.
@@ -32,7 +47,7 @@ Version 1.3.22 (in progress)
 
 		   %template(vector_i) std::vector<int>;
 
-              and a especialized vector_i class is emitted with all
+              and a specialized vector_i class is emitted with all
 	      the needed typemaps. No need to use the old
 	      'specialize_vector' macros.
 
@@ -57,7 +72,7 @@ Version 1.3.22 (in progress)
 	      std::vector<int> proxy is generated.
 	      
 
-            - All the STL containers present a more uniform behaviour and
+            - All the STL containers present a more uniform behavior and
 	      more complete interface declaration. The following are 
 	      now supported:
 
@@ -76,7 +91,7 @@ Version 1.3.22 (in progress)
               also, more typemaps are defined for all of them,
 	      including varin, varout, typecheck, etc.
 
-            - Initial attemp to implement the STL containers
+            - Initial attempt to implement the STL containers
               considering allocators, ie:
 
 	          std::vector<T,A>			
@@ -101,7 +116,7 @@ Version 1.3.22 (in progress)
 	      only the internal "typedef"s were processed.
 
               This makes possible to emit the default in/out
-              typemaps without the need of wrapping an especialized
+              typemaps without the need of wrapping an specialized
               vector instance.
 
 	    - Adding the preprocessor extension #@ which mangles the
@@ -111,7 +126,7 @@ Version 1.3.22 (in progress)
                 macro(int)         -> int
                 macro(std::string) -> std_s_s_string
                 
-	    - Fragments can now be "type especialized", as the typemaps. The
+	    - Fragments can now be "type specialized", as the typemaps. The
 	      syntax is as follows
  
                 %fragment("name","header") 
@@ -124,19 +139,17 @@ Version 1.3.22 (in progress)
                 template <class T>
                 struct A {
                    %fragment("incode"{A<T>},"header") {
-		        /* 'incode' especialized fragment */
+		      /* 'incode' specialized fragment */
 		   }
  
 		   %typemap(in,fragment="incode"{A<T>}) {
 		      /*
-		         here we use the 'type especialized' 
+		         here we use the 'type specialized' 
                          fragment "incode"{A<T>}
                       */
 		    }
                 };
-		
-		
-	     	
+			     	
 
 03/11/2004: cheetah (William Fulton)
             [Java] Director bug which meant that some virtual functions overridden in
