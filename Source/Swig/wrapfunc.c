@@ -183,7 +183,7 @@ Wrapper_pretty_print(String *str, File *f) {
 
 void 
 Wrapper_compact_print(String *str, File *f) {
-  String *ts, *tf; //temp string & temp file
+  String *ts, *tf; /*temp string & temp file */
   int level = 0;
   int c, i;
   int empty = 1;
