@@ -94,18 +94,18 @@ static int    cpp_id = 0;
 
 // Forward references
 
-void cplus_member_func(char *, char *, DataType *, ParmList *, int);
+void cplus_member_func(char *, char *, SwigType *, ParmList *, int);
 void cplus_constructor(char *, char *, ParmList *);
 void cplus_destructor(char *, char *);
-void cplus_variable(char *, char *, DataType *);
-void cplus_static_func(char *, char *, DataType *, ParmList *);
-void cplus_declare_const(char *, char *, DataType *, char *);
-void cplus_static_var(char *, char *, DataType *);
+void cplus_variable(char *, char *, SwigType *);
+void cplus_static_func(char *, char *, SwigType *, ParmList *);
+void cplus_declare_const(char *, char *, SwigType *, char *);
+void cplus_static_var(char *, char *, SwigType *);
 void cplus_inherit_decl(char **);
 
 // -----------------------------------------------------------------------------
 // void add_local_type(char *type, char *classname) 
-// void add_local_type(DataType *type, char *classname)
+// void add_local_type(SwigType *type, char *classname)
 // 
 // Adds a new datatype to the local datatype hash.   This is used to handle
 // datatypes defined within a class.
@@ -118,19 +118,19 @@ static void add_local_type(char *type, char *classname) {
   Setattr(localtypes,type,str);
 }
 
-void add_local_type(DataType *type, char *classname) {
-  add_local_type(DataType_Getname(type),classname);
+void add_local_type(SwigType *type, char *classname) {
+  add_local_type(Char(type),classname);
 }
 
 // -----------------------------------------------------------------------------
-// void update_local_type(DataType *type)
+// void update_local_type(SwigType *type)
 // 
 // Checks to see whether this datatype is part of a class definition. If so,
 // we update the type-name by appending the class prefix to it.  Uses the
 // name stored in current_class unless unavailable.
 // -----------------------------------------------------------------------------
 
-static void update_local_type(DataType *type) {
+static void update_local_type(SwigType *type) {
   
   char *newname = 0;
 
@@ -138,9 +138,9 @@ static void update_local_type(DataType *type) {
 
   if (!localtypes) return;
 
-  newname = GetChar(localtypes,DataType_Getname(type));
+  newname = GetChar(localtypes,SwigType_base(type));
   if (newname) {
-    DataType_Setname(type,newname);
+    SwigType_setbase(type,newname);
   }
 }
 
@@ -153,8 +153,8 @@ static void update_local_type(DataType *type) {
 
 static void update_parms(ParmList *p) {
   while (p) {
-    DataType *pt = Gettype(p);
-    char     *pvalue = Getvalue(p);
+    SwigType  *pt = Gettype(p);
+    DOHString *pvalue = Getvalue(p);
 
     update_local_type(pt);
 
@@ -202,15 +202,15 @@ public:
 
 class CPP_function : public CPP_member {
 public:
-  DataType    *ret_type;  
+  SwigType    *ret_type;  
   ParmList    *parms;
   int          new_object;
   int          is_virtual;
 
-  CPP_function(char *n, char *i, DataType *t, ParmList *l, int s, int v = 0) {
+  CPP_function(char *n, char *i, SwigType *t, ParmList *l, int s, int v = 0) {
     name = Swig_copy_string(n);
     iname = Swig_copy_string(i);
-    ret_type = CopyDataType(t);
+    ret_type = Copy(t);
     parms = CopyParmList(l);
     is_static = s;
     is_virtual = v;
@@ -220,11 +220,7 @@ public:
     next = 0;
     line = line_number;
     file = input_file;
-    if (Inherit_mode) {
-      id = cpp_id;
-    } else {
-      id = type_id;
-    }
+    id = cpp_id;
     if (AddMethods) {
       if (strlen(Char(CCode)))
 	code = Swig_copy_string(Char(CCode));
@@ -255,7 +251,7 @@ public:
   }
   void emit() {
     ParmList *l;
-    DataType *t;
+    SwigType *t;
     AddMethods = new_method;
     NewObject = new_object;
     line_number = line;        // Restore line and file 
@@ -266,7 +262,7 @@ public:
     // Make a copy of the parameter list and upgrade its types
 
     l = CopyParmList(parms);
-    t = CopyDataType(ret_type);
+    t = Copy(ret_type);
     update_parms(l);
     update_local_type(t);
     if (is_static) {
@@ -275,7 +271,7 @@ public:
       lang->cpp_member_func(name, iname, t, l);
     }
     Delete(l);
-    DelDataType(t);
+    Delete(t);
     IsVirtual = 0;
   }
 };
@@ -298,7 +294,7 @@ public:
     next = 0;
     line = line_number;
     file = input_file;
-    id = type_id;
+    id = 0;
     if (AddMethods) {
       if (strlen(Char(CCode)))
 	code = Swig_copy_string(Char(CCode));
@@ -344,7 +340,7 @@ public:
     inherited = 0;
     line = line_number;
     file = input_file;
-    id = type_id;
+    id = 0;
     if (AddMethods) {
       if (strlen(Char(CCode)))
 	code = Swig_copy_string(Char(CCode));
@@ -372,12 +368,12 @@ public:
 
 class CPP_variable : public CPP_member {
 public:
-  DataType *type;
+  SwigType *type;
   int status;
-  CPP_variable(char *n, char *i, DataType *t, int s) {
+  CPP_variable(char *n, char *i, SwigType *t, int s) {
     name = Swig_copy_string(n);
     iname = Swig_copy_string(i);
-    type = CopyDataType(t);
+    type = Copy(t);
     is_static = s;
     status = Status;
     next = 0;
@@ -387,7 +383,7 @@ public:
     if (Inherit_mode) {
       id = cpp_id;
     } else {
-      id = type_id;
+      id = 0;
     }
     code = 0;
     inherited = 0;
@@ -396,7 +392,7 @@ public:
   // Emit code for this
 
   void emit() {
-    DataType *t;
+    SwigType *t;
     int old_status = Status;
     AddMethods = new_method;
     Status = status;
@@ -404,7 +400,7 @@ public:
     input_file = file;
     ccode = code;
 
-    t = CopyDataType(type);
+    t = Copy(type);
     update_local_type(t);
     if (!is_static) {
       lang->cpp_variable(name,iname,t);
@@ -412,7 +408,7 @@ public:
       lang->cpp_static_var(name,iname,t);
     }
     Status = old_status;
-    DelDataType(t);
+    Delete(t);
   }
 
   // Inherit into another class
@@ -446,11 +442,11 @@ public:
 class CPP_constant : public CPP_member {
 public:
   char       *value;
-  DataType   *type;
-  CPP_constant(char *n, char *i, DataType *t, char *v) {
+  SwigType   *type;
+  CPP_constant(char *n, char *i, SwigType *t, char *v) {
     name = Swig_copy_string(n);
     iname = Swig_copy_string(i);
-    type = CopyDataType(t);
+    type = Copy(t);
     value = Swig_copy_string(v);
     new_method = AddMethods;
     next = 0;
@@ -459,7 +455,7 @@ public:
     if (Inherit_mode)
       id = cpp_id;
     else
-      id = type_id;
+      id = 0;
     code = 0;
     inherited = 0;
   }
@@ -753,8 +749,8 @@ void cplus_open_class(char *name, char *rname, char *ctype) {
     if (strlen(name)) {
       if (strlen(ctype) > 0) {
 	sprintf(temp,"%s %s", ctype, name);   
-	typeeq_derived(temp,name,0);       // Map "struct foo" to "foo"
-	typeeq_derived(name,temp,0);       // Map "foo" to "struct foo"
+	//	typeeq_derived(temp,name,0);       // Map "struct foo" to "foo"
+	//typeeq_derived(name,temp,0);       // Map "foo" to "struct foo"
       }
     }
   }
@@ -976,6 +972,7 @@ void cplus_generate_types(char **baseclass) {
 
 	  // Write a function for casting derived type to parent class
 
+#ifdef OLD
 	  Printv(cfunc,
 		 "static void *Swig", current_class->classname, "To", bc->classname, 
 		 "(void *ptr) {\n",
@@ -986,8 +983,8 @@ void cplus_generate_types(char **baseclass) {
 		 tab4, "return (void *) dest;\n",
 		 "}\n",
 		 0);
-	  
 	  Printf(f_wrappers,"%s\n",Char(cfunc));
+#endif
 	}
       } else {
 	Clear(temp3);
@@ -1002,14 +999,15 @@ void cplus_generate_types(char **baseclass) {
 
 	// Add various equivalences to the pointer table
 	
-	typeeq_derived(bc->classname, current_class->classname,Char(temp3));
-	typeeq_derived(temp2, current_class->classname,Char(temp3));
-	typeeq_derived(temp2, temp1,Char(temp3));
-	typeeq_derived(bc->classname, temp1,Char(temp3));
+	//	typeeq_derived(bc->classname, current_class->classname,Char(temp3));
+	//	typeeq_derived(temp2, current_class->classname,Char(temp3));
+	//	typeeq_derived(temp2, temp1,Char(temp3));
+	//	typeeq_derived(bc->classname, temp1,Char(temp3));
       } else {
-	typeeq_derived(bc->classname, current_class->classname,Char(temp3));
+	//	typeeq_derived(bc->classname, current_class->classname,Char(temp3));
       }
-      DataType_record_base(current_class->classname, bc->classname);
+      //      DataType_record_base(current_class->classname, bc->classname);
+      SwigType_inherit(current_class->classname, bc->classname);
       // Now traverse the hierarchy some more
       cplus_generate_types(bc->baseclass);
     }
@@ -1105,7 +1103,7 @@ void cplus_inherit_members(char *baseclass, int mode) {
 //          Adds member function to current class. 
 // -----------------------------------------------------------------------------
 
-void cplus_member_func(char *name, char *iname, DataType *type, ParmList *l,
+void cplus_member_func(char *name, char *iname, SwigType *type, ParmList *l,
 		       int is_virtual) {
 
   CPP_function *f;
@@ -1193,14 +1191,14 @@ void cplus_destructor(char *name, char *iname) {
 }
 
 // -----------------------------------------------------------------------------
-// void cplus_variable(char *name, char *iname, DataType *t)
+// void cplus_variable(char *name, char *iname, SwigType *t)
 //
 // Parser entry point for creating a new member variable.  
 // 
 // Inputs :
 //          name  = name of the variable
 //          iname = Renamed version (may be NULL)
-//          t     = Datatype
+//          t     = SwigType
 //
 // Output : None
 //
@@ -1208,7 +1206,7 @@ void cplus_destructor(char *name, char *iname) {
 //          Adds a member variable to the current class
 // -----------------------------------------------------------------------------
 
-void cplus_variable(char *name, char *iname, DataType *t) {
+void cplus_variable(char *name, char *iname, SwigType *t) {
 
     CPP_variable *v;
     char *temp_iname;
@@ -1231,14 +1229,14 @@ void cplus_variable(char *name, char *iname, DataType *t) {
 }
 
 // -----------------------------------------------------------------------------
-// void cplus_static_func(char *name, char *iname, DataType *type, ParmList *l)
+// void cplus_static_func(char *name, char *iname, SwigType *type, ParmList *l)
 //
 // Parser entry point for creating a new static member function.
 // 
 // Inputs :
 //          name   = Real name of the function
 //          iname  = Renamed version (may be NULL)
-//          type   = Return datatype
+//          type   = Return SwigType
 //          l      = Parameter list
 //
 // Output : None
@@ -1248,7 +1246,7 @@ void cplus_variable(char *name, char *iname, DataType *t) {
 //
 // -----------------------------------------------------------------------------
 
-void cplus_static_func(char *name, char *iname, DataType *type, ParmList *l) {
+void cplus_static_func(char *name, char *iname, SwigType *type, ParmList *l) {
 
   char *temp_iname;
 
@@ -1269,7 +1267,7 @@ void cplus_static_func(char *name, char *iname, DataType *type, ParmList *l) {
 }
 
 // -----------------------------------------------------------------------------
-// void cplus_declare_const(char *name, char *iname, DataType *type, char *value)
+// void cplus_declare_const(char *name, char *iname, SwigType *type, char *value)
 //
 // Parser entry point for creating a C++ constant (usually contained in an 
 // enum).
@@ -1286,7 +1284,7 @@ void cplus_static_func(char *name, char *iname, DataType *type, ParmList *l) {
 //          Adds a constant to the current class.
 // -----------------------------------------------------------------------------
 
-void cplus_declare_const(char *name, char *iname, DataType *type, char *value) {
+void cplus_declare_const(char *name, char *iname, SwigType *type, char *value) {
 
   char *temp_iname;
 
@@ -1310,7 +1308,7 @@ void cplus_declare_const(char *name, char *iname, DataType *type, char *value) {
 }
 
 // -----------------------------------------------------------------------------
-// void cplus_static_var(char *name, char *iname, DataType *type)
+// void cplus_static_var(char *name, char *iname, SwigType *type)
 //
 // Parser entry point for adding a static variable
 // 
@@ -1325,7 +1323,7 @@ void cplus_declare_const(char *name, char *iname, DataType *type, char *value) {
 //          Adds a static variable to the current class.
 // -----------------------------------------------------------------------------
 
-void cplus_static_var(char *name, char *iname, DataType *type) {
+void cplus_static_var(char *name, char *iname, SwigType *type) {
 
   char *temp_iname;
   
@@ -1394,7 +1392,7 @@ static DOHHash *member_hash = 0;  // Hash wrapping member function wrappers to s
 
 // -----------------------------------------------------------------------------
 // void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
-//                             char *mname, char *mrename, DataType *type, 
+//                             char *mname, char *mrename, SwigType *type, 
 //                             ParmList *l, int mode)
 //
 // This is a generic function to produce a C wrapper around a C++ member function.
@@ -1469,7 +1467,7 @@ static DOHHash *member_hash = 0;  // Hash wrapping member function wrappers to s
 // -----------------------------------------------------------------------------
 
 void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
-                            char *mname, char *mrename, DataType *type, ParmList *l,
+                            char *mname, char *mrename, SwigType *type, ParmList *l,
   		            int mode) {
 
   Wrapper *w;
@@ -1491,7 +1489,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
   if (!classrename) classrename = classname;
   if (!mrename) mrename = mname;
 
-  strcpy(iname, Swig_name_member(classrename, mrename));
+  strcpy(iname, Char(Swig_name_member(classrename, mrename)));
 
   char *bc = cplus_base_class(mrename);
   if (!bc) bc = classname;
@@ -1523,7 +1521,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 
 // -----------------------------------------------------------------------------
 // void cplus_emit_static_func(char *classname, char *classtype, char *classrename,
-//                             char *mname, char *mrename, DataType *type, 
+//                             char *mname, char *mrename, SwigType *type, 
 //                             ParmList *l, int mode)
 //
 // This is a generic function to produce a wrapper for a C++ static member function
@@ -1572,7 +1570,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 // -----------------------------------------------------------------------------
 
 void cplus_emit_static_func(char *classname, char *, char *classrename,
-			    char *mname, char *mrename, DataType *type, ParmList *l,
+			    char *mname, char *mrename, SwigType *type, ParmList *l,
 			    int mode) {
 
     char     cname[512], iname[512];
@@ -1593,12 +1591,12 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
     if ((!mode) && (!ObjCClass)) {
       sprintf(cname,"%s::%s", bc, mname);
     } else {
-      strcpy(cname,Swig_name_member(bc,mname));
+      strcpy(cname,Char(Swig_name_member(bc,mname)));
     }
 
     // Generate the scripting name of this function
     if (!classrename) classrename = classname;
-    strcpy(iname,Swig_name_member(classrename, mrename));
+    strcpy(iname,Char(Swig_name_member(classrename, mrename)));
 
     // Perform a hash table lookup to see if we've wrapped anything like this before
     Printf(key,"%s+%s",cname, ParmList_str(l));
@@ -1615,7 +1613,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	lang->create_function(cname,iname, type, l);
       } else {
 	if (!ccode) {
-	  strcpy(cname, Swig_name_member(classname,mname));
+	  strcpy(cname, Char(Swig_name_member(classname,mname)));
 	  lang->create_function(cname,iname, type, l);
 	} else {
 	  Wrapper *w = Swig_cfunction_wrapper(cname, type, l, ccode);
@@ -1673,11 +1671,11 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
 
     if (!classrename) classrename = classname;
 
-    strcpy(cname,Swig_name_destroy(classname));
+    strcpy(cname,Char(Swig_name_destroy(classname)));
     if (mrename)
-      strcpy(iname, Swig_name_destroy(mrename));
+      strcpy(iname, Char(Swig_name_destroy(mrename)));
     else
-      strcpy(iname, Swig_name_destroy(classrename));
+      strcpy(iname, Char(Swig_name_destroy(classrename)));
     
     sprintf(fclassname,"%s%s", classtype, classname);
     if (CPlusPlus) {
@@ -1730,11 +1728,11 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
     // Construct names for the function
 
     if (!classrename) classrename = classname;
-    strcpy(cname,Swig_name_construct(classname));
+    strcpy(cname,Char(Swig_name_construct(classname)));
     if (mrename)
-      strcpy(iname, Swig_name_construct(mrename));
+      strcpy(iname, Char(Swig_name_construct(mrename)));
     else
-      strcpy(iname, Swig_name_construct(classrename));
+      strcpy(iname, Char(Swig_name_construct(classrename)));
 
     sprintf(fclassname,"%s%s", classtype, classname);
 
@@ -1761,7 +1759,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 
 // -----------------------------------------------------------------------------
 // void cplus_emit_variable_get(char *classname, char *classtype, char *classrename,
-//                              char *mname, char *mrename, DataType *type, int mode)
+//                              char *mname, char *mrename, SwigType *type, int mode)
 //
 // Writes a C wrapper to extract a data member
 //
@@ -1800,7 +1798,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 // -----------------------------------------------------------------------------
 
 void cplus_emit_variable_get(char *classname, char *classtype, char *classrename,
-			     char *mname, char *mrename, DataType *type, int mode) {
+			     char *mname, char *mrename, SwigType *type, int mode) {
 
     char      cname[512],iname[512], fclassname[512];
     char      key[512];
@@ -1819,11 +1817,11 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
     // Generate the name of the C wrapper function (is always the same, regardless
     // of renaming).
 
-    strcpy(cname, Swig_name_get(Swig_name_member(bc,mname)));
+    strcpy(cname, Char(Swig_name_get(Swig_name_member(bc,mname))));
 
     // Generate the scripting name of this function
     if (!classrename) classrename = classname;
-    strcpy(iname, Swig_name_get(Swig_name_member(classrename,mrename)));
+    strcpy(iname, Char(Swig_name_get(Swig_name_member(classrename,mrename))));
 
     // Now check to see if we have already wrapped a variable like this.
     
@@ -1855,7 +1853,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 
 // -----------------------------------------------------------------------------
 // void cplus_emit_variable_set(char *classname, char *classtype, char *mname,
-//                              char *cname, char *iname, DataType *type, int mode)
+//                              char *cname, char *iname, SwigType *type, int mode)
 //
 // Writes a C wrapper to set a data member
 //
@@ -1903,7 +1901,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 // -----------------------------------------------------------------------------
 
 void cplus_emit_variable_set(char *classname, char *classtype, char *classrename,
-			     char *mname, char *mrename, DataType *type, int mode) {
+			     char *mname, char *mrename, SwigType *type, int mode) {
 
     char      cname[512], iname[512];
     char      key[512];
@@ -1920,10 +1918,10 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
     // Generate the name of the C wrapper function (is always the same, regardless
     // of renaming).
 
-    strcpy(cname, Swig_name_set(Swig_name_member(bc,mname)));
+    strcpy(cname, Char(Swig_name_set(Swig_name_member(bc,mname))));
 
     if (!classrename) classrename = classname;
-    strcpy(iname, Swig_name_set(Swig_name_member(classrename, mrename)));
+    strcpy(iname, Char(Swig_name_set(Swig_name_member(classrename, mrename))));
 
     // Now check to see if we have already wrapped a variable like this.
 
@@ -2028,9 +2026,9 @@ void cplus_inherit_scope(int count, char **baseclass) {
     for (i = 0; i < count; i++) {
        bc = CPP_class::search(baseclass[i]);
       if (bc) {
-	if (bc->scope)
-	  DataType_merge_scope(bc->scope);
-
+	if (bc->scope) {
+	  SwigType_merge_scope(bc->scope,0);
+	}
 	if (bc->local) {
 	  // Copy local symbol table
 	  key = Firstkey(bc->local);

@@ -27,12 +27,16 @@ static char cvsroot[] = "$Header$";
 #include "swigconfig.h"
 #include "mod11.h"
 #include "tcl8.h"
+
+#ifdef OLD
 #include "perl5.h"
 #include "java.h"
 #include "python.h"
 #include "guile.h"
 #include "mzscheme.h"
 #include "ruby.h"
+
+#endif
 
 #include <ctype.h>
 
@@ -74,6 +78,7 @@ int main(int argc, char **argv) {
           } else if (strcmp(argv[i],"-tcl8") == 0) {
 	      dl = new TCL8;
 	      Swig_mark_arg(i);
+#ifdef OLD
 	  } else if (strcmp(argv[i],"-perl5") == 0) {
 	      dl = new PERL5;
 	      Swig_mark_arg(i);
@@ -92,6 +97,7 @@ int main(int argc, char **argv) {
 	  } else if (strcmp(argv[i],"-ruby") == 0) {
 	      dl = new RUBY;
 	      Swig_mark_arg(i);
+#endif
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	      fputs(usage,stderr);
 	      Swig_mark_arg(i);

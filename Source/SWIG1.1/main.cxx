@@ -129,12 +129,9 @@ static int     freeze = 0;
 int SWIG_main(int argc, char *argv[], Language *l) {
   int    i;
   char   *c;
-  extern  FILE   *LEX_in;
-  extern  char   *get_time();
   char    temp[512];
   char    infile[512];
   char   *outfile_name = 0;
-  extern  int add_iname(char *);
   int     help = 0;
   int     checkout = 0;
   int     cpp_only = 0;
@@ -143,9 +140,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     includecount = 0;
   extern  int check_suffix(char *);
   extern  void scanner_file(DOHFile *);
-  extern  void typemap_initialize(void);
   extern void parser_init(void);
-
+  extern void typemap_initialize();
   DOH    *libfiles = 0;
 
   {
@@ -166,7 +162,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   lang = l;
   Status = 0;
 
-  DataType_init_typedef();         // Initialize the type handler
+  //  DataType_init_typedef();         // Initialize the type handler
 
   // Set up some default symbols (available in both SWIG interface files
   // and C files)
@@ -418,6 +414,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     f_init = NewString("");
 
     // Set up the typemap for handling new return strings
+#ifdef OLD
     {
       DataType *temp_t = NewDataType(T_CHAR);
       DataType_add_pointer(temp_t);
@@ -428,6 +425,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
       DelDataType(temp_t);
     }
+#endif
 
     // If in Objective-C mode.  Load in a configuration file
 

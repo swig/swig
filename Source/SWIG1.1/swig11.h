@@ -149,21 +149,21 @@ struct Pragma {
  *          Open a new C++ class definition.
  *    cpp_close_class(char *)
  *          Close current C++ class
- *    cpp_member_func(char *name, char *rname, DataType *rt, ParmList *l)
+ *    cpp_member_func(char *name, char *rname, SwigType *rt, ParmList *l)
  *          Create a C++ member function
  *    cpp_constructor(char *name, char *iname, ParmList *l)
  *          Create a C++ constructor.
  *    cpp_destructor(char *name, char *iname)
  *          Create a C++ destructor
- *    cpp_variable(char *name, char *iname, DataType *t)
+ *    cpp_variable(char *name, char *iname, SwigType *t)
  *          Create a C++ member data item.
  *    cpp_declare_const(char *name, char *iname, int type, char *value)
  *          Create a C++ constant.
  *    cpp_inherit(char *baseclass)
  *          Inherit data from baseclass.
- *    cpp_static_func(char *name, char *iname, DataType *t, ParmList *l)
+ *    cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l)
  *          A C++ static member function.
- *    cpp_static_var(char *name, char *iname, DataType *t)
+ *    cpp_static_var(char *name, char *iname, SwigType *t)
  *          A C++ static member data variable.
  *
  *************************************************************************/
@@ -172,16 +172,16 @@ class Language {
 public:
   virtual void parse_args(int argc, char *argv[]) = 0;
   virtual void parse() = 0;
-  virtual void create_function(char *, char *, DataType *, ParmList *) = 0;
-  virtual void link_variable(char *, char *, DataType *)  = 0;
-  virtual void declare_const(char *, char *, DataType *, char *) = 0;
+  virtual void create_function(char *, char *, SwigType *, ParmList *) = 0;
+  virtual void link_variable(char *, char *, SwigType *)  = 0;
+  virtual void declare_const(char *, char *, SwigType *, char *) = 0;
   virtual void initialize(void) = 0;
   virtual void headers(void) = 0;
   virtual void close(void) = 0;
   virtual void set_module(char *mod_name,char **mod_list) = 0;
   virtual void set_init(char *init_name);
-  virtual void add_native(char *name, char *iname, DataType *t, ParmList *l);
-  virtual void add_typedef(DataType *t, char *name);
+  virtual void add_native(char *name, char *iname, SwigType *t, ParmList *l);
+  virtual void add_typedef(SwigType *t, char *name);
   virtual void create_command(char *cname, char *iname);
 
   //
@@ -189,17 +189,17 @@ public:
   // You can redefine these, or use the defaults below
   //
 
-  virtual void cpp_member_func(char *name, char *iname, DataType *t, ParmList *l);
+  virtual void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void cpp_constructor(char *name, char *iname, ParmList *l);
   virtual void cpp_destructor(char *name, char *newname);
   virtual void cpp_open_class(char *name, char *rename, char *ctype, int strip);
   virtual void cpp_close_class();
   virtual void cpp_cleanup();
   virtual void cpp_inherit(char **baseclass, int mode = INHERIT_ALL);
-  virtual void cpp_variable(char *name, char *iname, DataType *t);
-  virtual void cpp_static_func(char *name, char *iname, DataType *t, ParmList *l);
-  virtual void cpp_declare_const(char *name, char *iname, DataType *type, char *value);
-  virtual void cpp_static_var(char *name, char *iname, DataType *t);
+  virtual void cpp_variable(char *name, char *iname, SwigType *t);
+  virtual void cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l);
+  virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
+  virtual void cpp_static_var(char *name, char *iname, SwigType *t);
   virtual void cpp_pragma(Pragma *plist);
 
   // Pragma directive
@@ -218,8 +218,8 @@ public:
 
 /* Emit functions */
 
-extern  void  emit_func_call(char *, DataType *, ParmList *, FILE *);
-extern  void  emit_set_get(char *, char *, DataType *);
+extern  void  emit_func_call(char *, SwigType *, ParmList *, FILE *);
+extern  void  emit_set_get(char *, char *, SwigType *);
 extern  void  emit_set_action(DOHString_or_char *decl);
 
 extern  int   SWIG_main(int, char **, Language *);
@@ -227,11 +227,11 @@ extern  int   SWIG_main(int, char **, Language *);
 // Some functions for emitting some C++ helper code
 
 extern void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
-                                   char *mname, char *mrename, DataType *type, ParmList *l,
+                                   char *mname, char *mrename, SwigType *type, ParmList *l,
                                    int mode);
 
 extern void cplus_emit_static_func(char *classname, char *classtype, char *classrename,
-                                   char *mname, char *mrename, DataType *type, ParmList *l,
+                                   char *mname, char *mrename, SwigType *type, ParmList *l,
                                    int mode);
 
 extern void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
@@ -241,10 +241,10 @@ extern void cplus_emit_constructor(char *classname, char *classtype, char *class
                                    char *name, char *iname, ParmList *l, int mode);
 
 extern void cplus_emit_variable_get(char *classname, char *classtype, char *classrename,
-				    char *name, char *iname, DataType *type, int mode);
+				    char *name, char *iname, SwigType *type, int mode);
 
 extern void cplus_emit_variable_set(char *classname, char *classtype, char *classrename,
-				    char *name, char *iname, DataType *type, int mode);
+				    char *name, char *iname, SwigType *type, int mode);
 
 extern char *cplus_base_class(char *name);
 
@@ -264,24 +264,22 @@ extern "C" {
 
 // Misc
 
-extern  int   emit_args(DataType *, ParmList *, Wrapper *f);
-extern  void  emit_func_call(char *, DataType *, ParmList *, Wrapper *f);
+extern  int   emit_args(SwigType *, ParmList *, Wrapper *f);
+extern  void  emit_func_call(char *, SwigType *, ParmList *, Wrapper *f);
 extern  void  SWIG_exit(int);
 
 // -----------------------------------------------------------------------
 // Typemap support
 // -----------------------------------------------------------------------
-
-extern void    typemap_register(char *op, char *lang, DataType *type, char *pname, char *code, ParmList *l = 0);
-extern void    typemap_register(char *op, char *lang, char *type, char *pname, char *code,ParmList *l = 0);
-extern void    typemap_register_default(char *op, char *lang, int type, int ptr, char *arraystr, char *code, ParmList *l = 0);
-extern char   *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *source, char *target,
-                              Wrapper *f = 0);
-extern void    typemap_clear(char *op, char *lang, DataType *type, char *pname);
-extern void    typemap_copy(char *op, char *lang, DataType *stype, char *sname, DataType *ttype, char *tname);
-extern char   *typemap_check(char *op, char *lang, DataType *type, char *pname);
-extern void    typemap_apply(DataType *tm_type, char *tmname, DataType *type, char *pname);
-extern void    typemap_clear_apply(DataType *type, char *pname);
+#ifndef OLD
+extern void    typemap_register(char *op, char *lang, SwigType *type, String_or_char *pname, String_or_char *code, ParmList *l = 0);
+extern char   *typemap_lookup(char *op, char *lang, SwigType *type, String_or_char *pname, String_or_char *source, String_or_char *target,                Wrapper *f = 0);
+extern void    typemap_clear(char *op, char *lang, SwigType *type, String_or_char *pname);
+extern void    typemap_copy(char *op, char *lang, SwigType *stype, String_or_char *sname,
+			    SwigType *ttype, String_or_char *tname);
+extern char   *typemap_check(char *op, char *lang, SwigType *type, String_or_char *pname);
+extern void    typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, String_or_char *pname);
+extern void    typemap_clear_apply(SwigType *type, String_or_char *pname);
 extern int     check_numopt(ParmList *);
 
 
@@ -289,8 +287,26 @@ extern int     check_numopt(ParmList *);
 // Code fragment support
 // -----------------------------------------------------------------------
 
-extern void    fragment_register(char *op, char *lang, char *code);
-extern char   *fragment_lookup(char *op, char *lang, int age);
+extern void    fragment_register(char *op, char *lang, String_or_char *code);
+extern char   *fragment_lookup(char *op, char *lang);
 extern void    fragment_clear(char *op, char *lang);
+
+#else
+
+#define typemap_register(op,lang,type,pname,code,l)
+#define typemap_register_default(op,lang,type,ptr,arraystr,code,l)
+#define typemap_lookup(op,lang,type,pname,source,target,f)  0
+
+#define typemap_clear(op,lang,type,pname)
+#define typemap_copy(op,lang,stype,sname,ttype,tname)
+#define typemap_check(op,lang,type,pname)  0
+#define typemap_apply(tm,tmname,type,pname)
+#define typemap_clear_apply(type,pname)
+#define check_numopt(l)  ParmList_len(l)
+#define fragment_register(op,lang,code)
+#define fragment_lookup(op,lang,age) 0
+#define fragment_clear(op,lang)
+
+#endif
 
 

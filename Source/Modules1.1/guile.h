@@ -34,22 +34,22 @@ private:
     GUILE_LSTYLE_LTDLMOD,               // "native" guile?
     GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
   } linkage;
-  void   get_pointer(char *iname, int parm, DataType *t,
+  void   get_pointer(char *iname, int parm, SwigType *t,
 		     Wrapper *f, DOHString_or_char *proc_name,
 		     int num_scheme_parm);
-  void   usage_var(char *, DataType *, DOHString *usage);
-  void   usage_func(char *, DataType *, ParmList *, DOHString *usage);
-  void   usage_returns(char *, DataType *, ParmList *, DOHString *usage);
-  void   usage_const(char *, DataType *, char *, DOHString *usage);
+  void   usage_var(char *, SwigType *, DOHString *usage);
+  void   usage_func(char *, SwigType *, ParmList *, DOHString *usage);
+  void   usage_returns(char *, SwigType *, ParmList *, DOHString *usage);
+  void   usage_const(char *, SwigType *, char *, DOHString *usage);
   void   emit_linkage(char *module_name);
 
 public :
   GUILE ();
   void parse_args (int, char *argv[]);
   void parse ();
-  void create_function (char *, char *, DataType *, ParmList *);
-  void link_variable (char *, char *, DataType *);
-  void declare_const (char *, char *, DataType *, char *);
+  void create_function (char *, char *, SwigType *, ParmList *);
+  void link_variable (char *, char *, SwigType *);
+  void declare_const (char *, char *, SwigType *, char *);
   void initialize ();
   void headers (void);
   void close (void);

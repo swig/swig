@@ -14,7 +14,7 @@
 
 static char cvsroot[] = "$Header$";
 
-static DOHHash   *rules = 0;
+static Hash   *rules = 0;
 
 /* -----------------------------------------------------------------------------
  * Swig_next()
@@ -66,7 +66,7 @@ Swig_dump_tags(DOH *obj, DOH *root) {
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_add_rule(DOHString_or_char *name,  int (*action)(DOH *node, void *clientdata))
+Swig_add_rule(String_or_char *name,  int (*action)(DOH *node, void *clientdata))
 {
   if (!rules) rules = NewHash();
   if (action)

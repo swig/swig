@@ -51,7 +51,7 @@ DelWrapper(Wrapper *w) {
   Delete(w->locals);
   Delete(w->code);
   Delete(w->def);
-  if (w->_type) DelDataType(w->_type);
+  Delete(w->_type);
   Delete(w->_parms);
   Delete(w->_name);
   free(w);
@@ -64,8 +64,8 @@ DelWrapper(Wrapper *w) {
  * ----------------------------------------------------------------------------- */
 
 void 
-Wrapper_pretty_print(DOHString *str, DOHFile *f) {
-  DOHString *ts;
+Wrapper_pretty_print(String *str, File *f) {
+  String *ts;
   int level = 0;
   int c, i;
   int empty = 1;
@@ -124,8 +124,8 @@ Wrapper_pretty_print(DOHString *str, DOHFile *f) {
  * ----------------------------------------------------------------------------- */
 
 void 
-Wrapper_print(Wrapper *w, DOHFile *f) {
-  DOHString *str;
+Wrapper_print(Wrapper *w, File *f) {
+  String *str;
 
   str = NewString("");
   Printf(str,"%s\n", w->def);
@@ -142,7 +142,7 @@ Wrapper_print(Wrapper *w, DOHFile *f) {
  * ----------------------------------------------------------------------------- */
 
 int
-Wrapper_add_local(Wrapper *w, const DOHString_or_char *name, const DOHString_or_char *decl) {
+Wrapper_add_local(Wrapper *w, const String_or_char *name, const String_or_char *decl) {
   /* See if the local has already been declared */
   if (Getattr(w->localh,name)) {
     return -1;
@@ -161,10 +161,10 @@ Wrapper_add_local(Wrapper *w, const DOHString_or_char *name, const DOHString_or_
  * ----------------------------------------------------------------------------- */
 
 int
-Wrapper_add_localv(Wrapper *w, const DOHString_or_char *name, ...) {
+Wrapper_add_localv(Wrapper *w, const String_or_char *name, ...) {
   va_list ap;
   int     ret;
-  DOHString *decl;
+  String *decl;
   DOH       *obj;
   decl = NewString("");
   va_start(ap,name);
@@ -189,7 +189,7 @@ Wrapper_add_localv(Wrapper *w, const DOHString_or_char *name, ...) {
  * ----------------------------------------------------------------------------- */
 
 int
-Wrapper_check_local(Wrapper *w, const DOHString_or_char *name) {
+Wrapper_check_local(Wrapper *w, const String_or_char *name) {
   if (Getattr(w->localh,name)) {
     return 1;
   }
@@ -204,10 +204,10 @@ Wrapper_check_local(Wrapper *w, const DOHString_or_char *name) {
  * ----------------------------------------------------------------------------- */
 
 char *
-Wrapper_new_local(Wrapper *w, const DOHString_or_char *name, const DOHString_or_char *decl) {
+Wrapper_new_local(Wrapper *w, const String_or_char *name, const String_or_char *decl) {
   int i;
-  DOHString *nname = NewString(name);
-  DOHString *ndecl = NewString(decl);
+  String *nname = NewString(name);
+  String *ndecl = NewString(decl);
   char      *ret;
 
   i = 0;
@@ -236,10 +236,10 @@ Wrapper_new_local(Wrapper *w, const DOHString_or_char *name, const DOHString_or_
  * ----------------------------------------------------------------------------- */
 
 char *
-Wrapper_new_localv(Wrapper *w, const DOHString_or_char *name, ...) {
+Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...) {
   va_list ap;
   char *ret;
-  DOHString *decl;
+  String *decl;
   DOH       *obj;
   decl = NewString("");
   va_start(ap,name);
@@ -261,7 +261,7 @@ Wrapper_new_localv(Wrapper *w, const DOHString_or_char *name, ...) {
  * Wrapper_Gettype()
  * ----------------------------------------------------------------------------- */
 
-DataType *
+SwigType *
 Wrapper_Gettype(Wrapper *w) {
   return w->_type;
 }
@@ -271,9 +271,9 @@ Wrapper_Gettype(Wrapper *w) {
  * ----------------------------------------------------------------------------- */
 
 void
-Wrapper_Settype(Wrapper *w, DataType *t) {
-  if (w->_type) DelDataType(w->_type);
-  w->_type = CopyDataType(t);
+Wrapper_Settype(Wrapper *w, SwigType *t) {
+  Delete(w->_type);
+  w->_type = Copy(t);
 }
 
 /* -----------------------------------------------------------------------------
@@ -310,9 +310,13 @@ Wrapper_Getname(Wrapper *w) {
  * ----------------------------------------------------------------------------- */
 
 void
-Wrapper_Setname(Wrapper *w, DOHString_or_char *n) {
+Wrapper_Setname(Wrapper *w, String_or_char *n) {
   Delete(w->_name);
   w->_name = NewString(n);
 }
+
+
+
+
 
 

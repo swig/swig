@@ -23,16 +23,13 @@ static char cvsroot[] = "$Header$";
  * Generates a name for the ith argument in an argument list
  * ----------------------------------------------------------------------------- */
 
-char *
+String *
 Swig_cparm_name(Parm *p, int i) {
-  static char name[256];
-  sprintf(name,"arg%d",i);
+  String *name = NewStringf("arg%d",i);
   if (p) {
     Setlname(p,name);
-    return Getlname(p);
-  } else {
-    return name;
   }
+  return Swig_temp_result(name);
 }
 
 /* -----------------------------------------------------------------------------
@@ -42,36 +39,35 @@ Swig_cparm_name(Parm *p, int i) {
  * and user defined types to pointers.
  * ----------------------------------------------------------------------------- */
 
-char *
-Swig_clocal(DataType *t, DOHString_or_char *name, DOHString_or_char *value) {
-  static DOHString *decl = 0;
+String *
+Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
+  String *decl;
 
-  if (!decl) decl = NewString("");
-  Clear(decl);
-  switch(DataType_type(t)) {
+  decl = NewString("");
+  switch(SwigType_type(t)) {
   case T_USER:
-    DataType_add_pointer(t);
+    SwigType_add_pointer(t);
     if (value) 
-      Printf(decl,"%s = &%s", DataType_lstr(t,name), value);
+      Printf(decl,"%s = &%s", SwigType_lstr(t,name), value);
     else
-      Printf(decl,"%s", DataType_lstr(t,name));
-    DataType_del_pointer(t);
+      Printf(decl,"%s", SwigType_lstr(t,name));
+    SwigType_del_pointer(t);
     break;
   case T_REFERENCE:
     if (value) 
-      Printf(decl,"%s = &%s", DataType_lstr(t,name), value);
+      Printf(decl,"%s = &%s", SwigType_lstr(t,name), value);
     else
-      Printf(decl,"%s", DataType_lstr(t,name));
+      Printf(decl,"%s", SwigType_lstr(t,name));
     break;
   case T_VOID:
     break;
   default:
     if (value)
-      Printf(decl,"%s = %s", DataType_lstr(t,name), value);
+      Printf(decl,"%s = %s", SwigType_lstr(t,name), value);
     else
-      Printf(decl,"%s", DataType_lstr(t,name));
+      Printf(decl,"%s", SwigType_lstr(t,name));
   }
-  return Char(decl);
+  return Swig_temp_result(decl);
 }
 
 /* -----------------------------------------------------------------------------
@@ -81,22 +77,21 @@ Swig_clocal(DataType *t, DOHString_or_char *name, DOHString_or_char *value) {
  * and user defined types to pointers.
  * ----------------------------------------------------------------------------- */
 
-DataType *
-Swig_clocal_type(DataType *t) {
-  DataType *ty;
-  switch(DataType_type(t)) {
+SwigType *
+Swig_clocal_type(SwigType *t) {
+  SwigType *ty;
+  switch(SwigType_type(t)) {
   case T_USER:
-    DataType_add_pointer(t);
-    ty = DataType_ltype(t);
-    DataType_del_pointer(t);
+    SwigType_add_pointer(t);
+    ty = SwigType_ltype(t);
+    SwigType_del_pointer(t);
     break;
   default:
-    ty = DataType_ltype(t);
+    ty = SwigType_ltype(t);
     break;
   }
   return ty;
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_clocal_deref()
@@ -105,22 +100,19 @@ Swig_clocal_type(DataType *t) {
  * the Swig_clocal() function.
  * ----------------------------------------------------------------------------- */
 
-char *
-Swig_clocal_deref(DataType *t, DOHString_or_char *name) {
-  static char temp[256];
-  
-  switch(DataType_type(t)) {
+String *
+Swig_clocal_deref(SwigType *t, String_or_char *name) {
+  switch(SwigType_type(t)) {
   case T_USER:
-    sprintf(temp,"*%s",Char(name));
+    return Swig_temp_result(NewStringf("*%s",name));
     break;
   case T_VOID:
-    strcpy(temp,"");
+    return Swig_temp_result(NewString(""));
     break;
   default:
-    sprintf(temp,DataType_rcaststr(t,name));    
+    return SwigType_rcaststr(t,name);
     break;
   }
-  return temp;
 }
 
 /* -----------------------------------------------------------------------------
@@ -129,21 +121,19 @@ Swig_clocal_deref(DataType *t, DOHString_or_char *name) {
  * Assigns a value to a local
  * ----------------------------------------------------------------------------- */
 
-char *
-Swig_clocal_assign(DataType *t, DOHString_or_char *name) {
-  static char temp[256];
-  switch(DataType_type(t)) {
+String *
+Swig_clocal_assign(SwigType *t, String_or_char *name) {
+  switch(SwigType_type(t)) {
   case T_VOID:
-    strcpy(temp,"");
+    return Swig_temp_result(NewString(""));
     break;
   case T_USER:
-    sprintf(temp,"&%s",Char(name));    
+    return Swig_temp_result(NewStringf("&%s", name));
     break;
   default:
-    sprintf(temp,DataType_lcaststr(t,name));    
+    return SwigType_lcaststr(t,name);
     break;
   }
-  return temp;
 }
 
 /* -----------------------------------------------------------------------------
@@ -155,11 +145,11 @@ Swig_clocal_assign(DataType *t, DOHString_or_char *name) {
 
 int Swig_cargs(Wrapper *w, ParmList *p) {
   int   i;
-  DataType *pt;
-  char      *pvalue;
-  char      *pname;
-  char      *local;
-  char      *lname;
+  SwigType *pt;
+  String  *pvalue;
+  String  *pname;
+  String  *local;
+  String  *lname;
 
   i = 0;
   while (p != 0) {
@@ -182,42 +172,38 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
  * function call.  
  * ----------------------------------------------------------------------------- */
 
-void Swig_cresult(Wrapper *w, DataType *t, DOHString_or_char *name, DOHString_or_char *decl) {
-  DOHString *fcall;
+void Swig_cresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_char *decl) {
+  String *fcall;
   
   fcall = NewString("");
   
-  if (DataType_type(t) != T_VOID)
+  if (SwigType_type(t) != T_VOID)
     Wrapper_add_localv(w,name, Swig_clocal(t,name,0), 0);   
 
-  switch(DataType_type(t)) {
+  switch(SwigType_type(t)) {
   case T_VOID:
     break;
   case T_USER:
-    DataType_add_pointer(t);
-    Printv(fcall, name, " = (", DataType_lstr(t,0), ") malloc(sizeof(", 0);
-    DataType_del_pointer(t);
-    Printv(fcall, DataType_str(t,0), "));\n", 0);
-    Printv(fcall, "*(", name, ") = ", 0);
+    SwigType_add_pointer(t);
+    Printf(fcall,"%s = (%s) malloc(sizeof(", name, SwigType_lstr(t,0));
+    SwigType_del_pointer(t);
+    Printf(fcall, "%s));\n", SwigType_str(t,0));
+    Printf(fcall, "*(%s) = ", name);
     break;
   case T_REFERENCE:
-    Printv(fcall, DataType_str(t,"_result_ref")," = ", 0);    
+    Printf(fcall,"%s = ", SwigType_str(t,"_result_ref"));
     break;
   default:
     /* Normal return value */
-    if (DataType_qualifier(t)) {
-      Printv(fcall, name, " = (", DataType_lstr(t,0), ")", 0);
-    } else {
-      Printv(fcall, name, " = ", 0);
-    }
+    Printf(fcall,"%s = (%s)", name, SwigType_lstr(t,0));
     break;
   }
 
   /* Now print out function call */
   Printv(fcall, decl, ";\n", 0);
 
-  if (DataType_type(t) == T_REFERENCE) {
-    Printv(fcall, name, " = (",  DataType_lstr(t,0), ") &_result_ref;\n", 0);
+  if (SwigType_type(t) == T_REFERENCE) {
+    Printf(fcall,"%s = (%s) &_result_ref;\n", name, SwigType_lstr(t,0));
   }
 
   if (Replace(w->code,"$function",fcall, DOH_REPLACE_ANY) == 0) {
@@ -233,37 +219,37 @@ void Swig_cresult(Wrapper *w, DataType *t, DOHString_or_char *name, DOHString_or
  * the C++ default copy constructor for user defined objects.
  * ----------------------------------------------------------------------------- */
 
-void Swig_cppresult(Wrapper *w, DataType *t, DOHString_or_char *name, DOHString_or_char *decl) {
-  DOHString *fcall;
+void Swig_cppresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_char *decl) {
+  String *fcall;
 
   fcall = NewString("");
-  if (DataType_type(t) != T_VOID)
+  if (SwigType_type(t) != T_VOID)
     Wrapper_add_localv(w,name, Swig_clocal(t,name,0), 0);   
 
-  switch(DataType_type(t)) {
+  switch(SwigType_type(t)) {
   case T_VOID:
     break;
   case T_USER:
-    Printv(fcall, name, " = new ", DataType_str(t,0), "(", 0);
+    Printf(fcall, "%s = new %s(", name, SwigType_str(t,0));
     break;
   case T_REFERENCE:
-    Printv(fcall, DataType_str(t,"_result_ref")," = ", 0);
+    Printf(fcall, "%s = ", SwigType_str(t,"_result_ref"));
     break;
   default:
-    Printv(fcall, name, " = ", DataType_lcaststr(t,""), 0);
+    Printf(fcall, "%s = %s", name, SwigType_lcaststr(t,""));
     break;
   }
 
   /* Now print out function call */
   Printv(fcall, decl, 0);
   
-  switch(DataType_type(t)) {
+  switch(SwigType_type(t)) {
   case T_USER:
     Printf(fcall,");");
     break;
   case T_REFERENCE:
     Printf(fcall,";\n");
-    Printv(fcall, name, " = (",  DataType_lstr(t,0), ") &_result_ref;\n", 0);    
+    Printf(fcall, "%s = (%s) &_result_ref;\n", name, SwigType_lstr(t,0));
     break;
   default:
     Printf(fcall,";\n");
@@ -286,27 +272,27 @@ void Swig_cppresult(Wrapper *w, DataType *t, DOHString_or_char *name, DOHString_
  *
  * ----------------------------------------------------------------------------- */
 
-char *
-Swig_cfunction_call(DOHString_or_char *name, ParmList *parms) {
-  static DOH *func = 0;
+String *
+Swig_cfunction_call(String_or_char *name, ParmList *parms) {
+  DOH *func;
   int i = 0;
   Parm *p = parms;
-  DataType *pt;
+  SwigType *pt;
 
-  if (!func) func = NewString("");
-  Clear(func);
-
+  func = NewString("");
   Printf(func,"%s(", name);
   while (p) {
+    String *pname;
     pt = Gettype(p);
-    Printf(func,"%s", Swig_clocal_deref(pt, Swig_cparm_name(p,i)));
+    pname = Swig_cparm_name(p,i);
+    Printf(func,"%s", Swig_clocal_deref(pt, pname));
     i++;
     p = Getnext(p);
     if (p) 
       Printf(func,",");
   }
   Printf(func,")");
-  return Char(func);
+  return Swig_temp_result(func);
 }
 
 /* -----------------------------------------------------------------------------
@@ -318,30 +304,30 @@ Swig_cfunction_call(DOHString_or_char *name, ParmList *parms) {
  *
  * ----------------------------------------------------------------------------- */
 
-char *
-Swig_cmethod_call(DOHString_or_char *name, ParmList *parms) {
-  static DOH *func = 0;
+String *
+Swig_cmethod_call(String_or_char *name, ParmList *parms) {
+  DOH *func;
   int i = 0;
   Parm *p = parms;
-  DataType *pt;
+  SwigType *pt;
 
-  if (!func) func = NewString("");
-  Clear(func);
-
-  if (!p) return "";
+  func = NewString("");
+  if (!p) return Swig_temp_result(func);
   Printf(func,"%s->%s(", Swig_cparm_name(p,0), name);
   i++;
   p = Getnext(p);
   while (p) {
+    String *pname;
     pt = Gettype(p);
-    Printf(func,"%s", Swig_clocal_deref(pt, Swig_cparm_name(p,i)));
+    pname = Swig_cparm_name(p,i);
+    Printf(func,"%s", Swig_clocal_deref(pt, pname));
     i++;
     p = Getnext(p);
     if (p) 
       Printf(func,",");
   }
   Printf(func,")");
-  return Char(func);
+  return Swig_temp_result(func);
 }
 
 /* -----------------------------------------------------------------------------
@@ -352,15 +338,13 @@ Swig_cmethod_call(DOHString_or_char *name, ParmList *parms) {
  *      (name *) calloc(1,sizeof(name));
  * ----------------------------------------------------------------------------- */
 
-char *
-Swig_cconstructor_call(DOHString_or_char *name) {
-  static DOH *func = 0;
+String *
+Swig_cconstructor_call(String_or_char *name) {
+  DOH *func;
 
-  if (!func) func = NewString("");
-  Clear(func);
-
+  func = NewString("");
   Printf(func,"(%s *) calloc(1, sizeof(%s))", name, name);
-  return Char(func);
+  return Swig_temp_result(func);
 }
 
 
@@ -374,26 +358,26 @@ Swig_cconstructor_call(DOHString_or_char *name) {
  *
  * ----------------------------------------------------------------------------- */
 
-char *
-Swig_cppconstructor_call(DOHString_or_char *name, ParmList *parms) {
-  static DOH *func = 0;
+String *
+Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
+  DOH *func;
   int i = 0;
   Parm *p = parms;
-  DataType *pt;
-  if (!func) func = NewString("");
-  Clear(func);
-
+  SwigType *pt;
+  func = NewString("");
   Printf(func,"new %s(", name);
   while (p) {
+    String *pname;
     pt = Gettype(p);
-    Printf(func,"%s", Swig_clocal_deref(pt, Swig_cparm_name(p,i)));
+    pname = Swig_cparm_name(p,i);
+    Printf(func,"%s", Swig_clocal_deref(pt, pname));
     i++;
     p = Getnext(p);
     if (p) 
       Printf(func,",");
   }
   Printf(func,")");
-  return Char(func);
+  return Swig_temp_result(func);
 }
 
 
@@ -405,15 +389,14 @@ Swig_cppconstructor_call(DOHString_or_char *name, ParmList *parms) {
  *      free((char *) arg0);
  * ----------------------------------------------------------------------------- */
 
-char *
+String *
 Swig_cdestructor_call() {
-  static DOH *func = 0;
+  DOH *func;
 
-  if (!func) func = NewString("");
-  Clear(func);
+  func = NewString("");
 
   Printf(func,"free((char *) %s)", Swig_cparm_name(0,0));
-  return Char(func);
+  return Swig_temp_result(func);
 }
 
 
@@ -425,15 +408,13 @@ Swig_cdestructor_call() {
  *      delete arg0;
  * ----------------------------------------------------------------------------- */
 
-char *
+String *
 Swig_cppdestructor_call() {
-  static DOH *func = 0;
+  DOH *func;
 
-  if (!func) func = NewString("");
-  Clear(func);
-
+  func = NewString("");
   Printf(func,"delete %s", Swig_cparm_name(0,0));
-  return Char(func);
+  return Swig_temp_result(func);
 }
 
 /* -----------------------------------------------------------------------------
@@ -445,21 +426,20 @@ Swig_cppdestructor_call() {
  *
  * ----------------------------------------------------------------------------- */
 
-char *
-Swig_cmemberset_call(DOHString_or_char *name, DataType *type) {
-  static DOH *func = 0;
+String *
+Swig_cmemberset_call(String_or_char *name, SwigType *type) {
+  DOH *func;
+  String *pname;
+  func = NewString("");
 
-  if (!func) func = NewString("");
-  Clear(func);
-
-  if (DataType_type(type) == T_USER) {
+  if (SwigType_type(type) == T_USER) {
     Printf(func,"%s %s->%s; ", Swig_clocal_assign(type,""), Swig_cparm_name(0,0), name);
   } else {
     Printf(func,"%s ", Swig_clocal_assign(type,""));
   }
   Printf(func,"(%s->%s = ", Swig_cparm_name(0,0), name);
-  Printf(func,"%s)", Swig_clocal_deref(type, Swig_cparm_name(0,1)));
-  return Char(func);
+  Printf(func,"%s)", Swig_clocal_deref(type, (pname = Swig_cparm_name(0,1))));
+  return Swig_temp_result(func);
 }
 
 
@@ -472,15 +452,13 @@ Swig_cmemberset_call(DOHString_or_char *name, DataType *type) {
  *
  * ----------------------------------------------------------------------------- */
 
-char *
-Swig_cmemberget_call(DOHString_or_char *name, DataType *t) {
-  static DOH *func = 0;
+String *
+Swig_cmemberget_call(String_or_char *name, SwigType *t) {
+  DOH *func;
 
-  if (!func) func = NewString("");
-  Clear(func);
-
+  func = NewString("");
   Printf(func,"%s (%s->%s)", Swig_clocal_assign(t,""),Swig_cparm_name(0,0), name);
-  return Char(func);
+  return Swig_temp_result(func);
 }
 
 
@@ -505,10 +483,10 @@ static void fix_parm_names(ParmList *p) {
  * ----------------------------------------------------------------------------- */
 
 Wrapper *
-Swig_cfunction_wrapper(DOHString_or_char *funcname,
-		       DataType *rtype,
+Swig_cfunction_wrapper(String_or_char *funcname,
+		       SwigType *rtype,
 		       ParmList *parms,
-		       DOHString_or_char *code)
+		       String_or_char *code)
 {
   Wrapper *w;
   ParmList *l;
@@ -520,7 +498,7 @@ Swig_cfunction_wrapper(DOHString_or_char *funcname,
 
   l = CopyParmList(parms);
   fix_parm_names(l);
-  Printf(w->def,"%s %s(%s) {", DataType_str(rtype,0), funcname, ParmList_str(l));
+  Printf(w->def,"%s %s(%s) {", SwigType_str(rtype,0), funcname, ParmList_str(l));
   if (code) {
     Printv(w->code, code, "\n", 0);
   }
@@ -540,16 +518,16 @@ Swig_cfunction_wrapper(DOHString_or_char *funcname,
  * ----------------------------------------------------------------------------- */
 
 Wrapper *
-Swig_cmethod_wrapper(DOHString_or_char *classname,
-		     DOHString_or_char *methodname,
-		     DataType *rtype,
+Swig_cmethod_wrapper(String_or_char *classname,
+		     String_or_char *methodname,
+		     SwigType *rtype,
 		     ParmList *parms,
-		     DOHString_or_char *code)
+		     String_or_char *code)
 {
   Wrapper *w;
   ParmList *l;
   Parm     *p;
-  DataType *t;
+  SwigType *t;
 
   w = NewWrapper();
 
@@ -557,21 +535,20 @@ Swig_cmethod_wrapper(DOHString_or_char *classname,
   Wrapper_Setname(w,Swig_name_member(classname, methodname));
 
   l = CopyParmList(parms);
-  t = NewDataType(T_USER);
-  DataType_Setname(t, Char(classname));
-  DataType_add_pointer(t);
+  t = NewString(classname);
+  SwigType_add_pointer(t);
   p = NewParm(t,"self");
   Setnext(p,l);
-  DelDataType(t);
+  Delete(t);
 
   l = p;
   fix_parm_names(l);
 
-  Printf(w->def,"%s %s(%s) {", DataType_str(rtype,0), Swig_name_member(classname, methodname), ParmList_str(l));
+  Printf(w->def,"%s %s(%s) {", SwigType_str(rtype,0), Swig_name_member(classname, methodname), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
-    if (DataType_type(rtype) != T_VOID) {
+    if (SwigType_type(rtype) != T_VOID) {
       Printf(w->code,"return ");
     }
     
@@ -603,13 +580,13 @@ Swig_cmethod_wrapper(DOHString_or_char *classname,
  * ----------------------------------------------------------------------------- */
 
 Wrapper *
-Swig_cconstructor_wrapper(DOHString_or_char *classname,
+Swig_cconstructor_wrapper(String_or_char *classname,
 			  ParmList *parms,
-			  DOHString_or_char *code)
+			  String_or_char *code)
 {
   Wrapper *w;
   ParmList *l;
-  DataType *t;
+  SwigType *t;
 
   w = NewWrapper();
 
@@ -617,18 +594,17 @@ Swig_cconstructor_wrapper(DOHString_or_char *classname,
   Wrapper_Setname(w,Swig_name_construct(classname));
 
   l = CopyParmList(parms);
-  t = NewDataType(T_USER);
-  DataType_Setname(t,classname);
-  DataType_add_pointer(t);
+  t = NewString(classname);
+  SwigType_add_pointer(t);
 
   /* Patch up the argument names */
   fix_parm_names(l);
 
-  Printf(w->def,"%s %s(%s) {", DataType_str(t,0), Swig_name_construct(classname), ParmList_str(l));
+  Printf(w->def,"%s %s(%s) {", SwigType_str(t,0), Swig_name_construct(classname), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
-    Printf(w->code,"return (%s) calloc(1,sizeof(%s));\n", DataType_str(t,0), classname);
+    Printf(w->code,"return (%s) calloc(1,sizeof(%s));\n", SwigType_str(t,0), classname);
   } else {
     Printv(w->code, code, "\n", 0);
   }
@@ -636,10 +612,9 @@ Swig_cconstructor_wrapper(DOHString_or_char *classname,
   Wrapper_Settype(w,t);
   Wrapper_Setparms(w,l);
   Delete(l);
-  DelDataType(t);
+  Delete(t);
   return w;
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_cppconstructor_wrapper()
@@ -648,13 +623,13 @@ Swig_cconstructor_wrapper(DOHString_or_char *classname,
  * ----------------------------------------------------------------------------- */
 
 Wrapper *
-Swig_cppconstructor_wrapper(DOHString_or_char *classname,
+Swig_cppconstructor_wrapper(String_or_char *classname,
 			  ParmList *parms,
-			  DOHString_or_char *code)
+			  String_or_char *code)
 {
   Wrapper *w;
   ParmList *l;
-  DataType *t;
+  SwigType *t;
   Parm     *p;
 
   w = NewWrapper();
@@ -663,18 +638,17 @@ Swig_cppconstructor_wrapper(DOHString_or_char *classname,
   Wrapper_Setname(w,Swig_name_construct(classname));
 
   l = CopyParmList(parms);
-  t = NewDataType(T_USER);
-  DataType_Setname(t,classname);
-  DataType_add_pointer(t);
+  t = NewString(classname);
+  SwigType_add_pointer(t);
 
   /* Patch up the argument names */
   fix_parm_names(l);
 
-  Printf(w->def,"%s %s(%s) {", DataType_str(t,0), Swig_name_construct(classname), ParmList_str(l));
+  Printf(w->def,"%s %s(%s) {", SwigType_str(t,0), Swig_name_construct(classname), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
-    Printf(w->code,"return new %s", DataType_str(t,0));
+    Printf(w->code,"return new %s", SwigType_str(t,0));
     p = l;
     if (p) {
       Printf(w->code,"(");
@@ -694,7 +668,7 @@ Swig_cppconstructor_wrapper(DOHString_or_char *classname,
   Wrapper_Settype(w,t);
   Wrapper_Setparms(w,l);
   Delete(l);
-  DelDataType(t);
+  Delete(t);
   return w;
 }
   
@@ -706,12 +680,12 @@ Swig_cppconstructor_wrapper(DOHString_or_char *classname,
  * ----------------------------------------------------------------------------- */
 
 Wrapper *
-Swig_cdestructor_wrapper(DOHString_or_char *classname,
-			  DOHString_or_char *code)
+Swig_cdestructor_wrapper(String_or_char *classname,
+			  String_or_char *code)
 {
   Wrapper *w;
   ParmList *l;
-  DataType *t;
+  SwigType *t;
   Parm     *p;
 
   w = NewWrapper();
@@ -719,16 +693,15 @@ Swig_cdestructor_wrapper(DOHString_or_char *classname,
   /* Set the name of the function */
   Wrapper_Setname(w,Swig_name_destroy(classname));
 
-  t = NewDataType(T_USER);
-  DataType_Setname(t,classname);
-  DataType_add_pointer(t);
+  t = NewString(classname);
+  SwigType_add_pointer(t);
   p = NewParm(t,"self");
   l = p;
-  DelDataType(t);
+  Delete(t);
 
-  t = NewDataType(T_VOID);
+  t = NewString("void");
 
-  Printf(w->def,"%s %s(%s) {", DataType_str(t,0), Swig_name_destroy(classname), ParmList_str(l));
+  Printf(w->def,"%s %s(%s) {", SwigType_str(t,0), Swig_name_destroy(classname), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -740,7 +713,7 @@ Swig_cdestructor_wrapper(DOHString_or_char *classname,
   Wrapper_Settype(w,t);
   Wrapper_Setparms(w,l);
   Delete(l);
-  DelDataType(t);
+  Delete(t);
   return w;
 }
 
@@ -752,12 +725,12 @@ Swig_cdestructor_wrapper(DOHString_or_char *classname,
  * ----------------------------------------------------------------------------- */
 
 Wrapper *
-Swig_cppdestructor_wrapper(DOHString_or_char *classname,
-			  DOHString_or_char *code)
+Swig_cppdestructor_wrapper(String_or_char *classname,
+			  String_or_char *code)
 {
   Wrapper *w;
   ParmList *l;
-  DataType *t;
+  SwigType *t;
   Parm     *p;
 
   w = NewWrapper();
@@ -765,17 +738,16 @@ Swig_cppdestructor_wrapper(DOHString_or_char *classname,
   /* Set the name of the function */
   Wrapper_Setname(w,Swig_name_destroy(classname));
 
-  t = NewDataType(T_USER);
-  DataType_Setname(t,classname);
-  DataType_add_pointer(t);
+  t = NewString(classname);
+  SwigType_add_pointer(t);
   p = NewParm(t,"self");
 
   l = p;
-  DelDataType(t);
+  Delete(t);
 
-  t = NewDataType(T_VOID);
+  t = NewString("void");
 
-  Printf(w->def,"%s %s(%s) {", DataType_str(t,0), Swig_name_destroy(classname), ParmList_str(l));
+  Printf(w->def,"%s %s(%s) {", SwigType_str(t,0), Swig_name_destroy(classname), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -787,7 +759,7 @@ Swig_cppdestructor_wrapper(DOHString_or_char *classname,
   Wrapper_Settype(w,t);
   Wrapper_Setparms(w,l);
   Delete(l);
-  DelDataType(t);
+  Delete(t);
   return w;
 }
 
@@ -798,34 +770,33 @@ Swig_cppdestructor_wrapper(DOHString_or_char *classname,
  * ----------------------------------------------------------------------------- */
 
 Wrapper *
-Swig_cmemberset_wrapper(DOHString_or_char *classname,
-			DOHString_or_char *membername,
-			DataType *type,
-			DOHString_or_char *code)
+Swig_cmemberset_wrapper(String_or_char *classname,
+			String_or_char *membername,
+			SwigType *type,
+			String_or_char *code)
 {
   Wrapper *w;
   ParmList *l;
   Parm     *p;
-  DataType *t;
-  DataType *lt;
+  SwigType *t;
+  SwigType *lt;
 
   w = NewWrapper();
 
   /* Set the name of the function */
   Wrapper_Setname(w,Swig_name_member(classname, Swig_name_set(membername)));
 
-  t = NewDataType(T_USER);
-  DataType_Setname(t, Char(classname));
-  DataType_add_pointer(t);
+  t = NewString(classname);
+  SwigType_add_pointer(t);
   p = NewParm(t,"self");
   l = p;
-  DelDataType(t);
+  Delete(t);
 
   lt = Swig_clocal_type(type);
   p = NewParm(lt,"value");
   Setnext(l,p);
   
-  Printf(w->def,"%s %s(%s) {", DataType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));
+  Printf(w->def,"%s %s(%s) {", SwigType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -838,7 +809,7 @@ Swig_cmemberset_wrapper(DOHString_or_char *classname,
   Wrapper_Settype(w,lt);
   Wrapper_Setparms(w,l);
   Delete(l);
-  DelDataType(lt);
+  Delete(lt);
   return w;
 }
 
@@ -850,31 +821,30 @@ Swig_cmemberset_wrapper(DOHString_or_char *classname,
  * ----------------------------------------------------------------------------- */
 
 Wrapper *
-Swig_cmemberget_wrapper(DOHString_or_char *classname,
-			DOHString_or_char *membername,
-			DataType *type,
-			DOHString_or_char *code)
+Swig_cmemberget_wrapper(String_or_char *classname,
+			String_or_char *membername,
+			SwigType *type,
+			String_or_char *code)
 {
   Wrapper *w;
   ParmList *l;
   Parm     *p;
-  DataType *t;
-  DataType *lt;
+  SwigType *t;
+  SwigType *lt;
 
   w = NewWrapper();
 
   /* Set the name of the function */
   Wrapper_Setname(w,Swig_name_member(classname, Swig_name_get(membername)));
 
-  t = NewDataType(T_USER);
-  DataType_Setname(t, Char(classname));
-  DataType_add_pointer(t);
+  t = NewString(classname);
+  SwigType_add_pointer(t);
   p = NewParm(t,"self");
   l = p;
-  DelDataType(t);
+  Delete(t);
 
   lt = Swig_clocal_type(type);
-  Printf(w->def,"%s %s(%s) {", DataType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));
+  Printf(w->def,"%s %s(%s) {", SwigType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -886,7 +856,7 @@ Swig_cmemberget_wrapper(DOHString_or_char *classname,
   Wrapper_Settype(w,lt);
   Wrapper_Setparms(w,l);
   Delete(l);
-  DelDataType(lt);
+  Delete(lt);
   return w;
 }
 
@@ -897,14 +867,14 @@ Swig_cmemberget_wrapper(DOHString_or_char *classname,
  * ----------------------------------------------------------------------------- */
 
 Wrapper *
-Swig_cvarset_wrapper(DOHString_or_char *varname,
-		     DataType *type,
-		     DOHString_or_char *code)
+Swig_cvarset_wrapper(String_or_char *varname,
+		     SwigType *type,
+		     String_or_char *code)
 {
   Wrapper *w;
   ParmList *l;
   Parm     *p;
-  DataType *lt;
+  SwigType *lt;
 
   w = NewWrapper();
 
@@ -915,7 +885,7 @@ Swig_cvarset_wrapper(DOHString_or_char *varname,
   p = NewParm(lt,"value");
   l = p;
   
-  Printf(w->def,"%s %s(%s) {", DataType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));
+  Printf(w->def,"%s %s(%s) {", SwigType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -925,14 +895,14 @@ Swig_cvarset_wrapper(DOHString_or_char *varname,
     Printv(w->code, code, "\n", 0);
     Replace(w->code,"$target",varname, DOH_REPLACE_ANY);
     Replace(w->code,"$source","value", DOH_REPLACE_ANY);
-    Replace(w->code,"$ltype", DataType_str(lt,""), DOH_REPLACE_ANY);
-    Replace(w->code,"$rtype", DataType_str(type,""), DOH_REPLACE_ANY);
+    Replace(w->code,"$ltype", SwigType_str(lt,""), DOH_REPLACE_ANY);
+    Replace(w->code,"$rtype", SwigType_str(type,""), DOH_REPLACE_ANY);
   }
   Printf(w->code,"}\n");
   Wrapper_Settype(w,lt);
   Wrapper_Setparms(w,l);
   Delete(l);
-  DelDataType(lt);
+  Delete(lt);
   return w;
 }
 
@@ -943,13 +913,13 @@ Swig_cvarset_wrapper(DOHString_or_char *varname,
  * ----------------------------------------------------------------------------- */
 
 Wrapper *
-Swig_cvarget_wrapper(DOHString_or_char *varname,
-                     DataType *type,
-                     DOHString_or_char *code)
+Swig_cvarget_wrapper(String_or_char *varname,
+                     SwigType *type,
+                     String_or_char *code)
 {
   Wrapper *w;
   ParmList *l = 0;
-  DataType *lt;
+  SwigType *lt;
 
   w = NewWrapper();
 
@@ -958,7 +928,7 @@ Swig_cvarget_wrapper(DOHString_or_char *varname,
 
   lt = Swig_clocal_type(type);
 
-  Printf(w->def,"%s %s(%s) {", DataType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));
+  Printf(w->def,"%s %s(%s) {", SwigType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -970,7 +940,7 @@ Swig_cvarget_wrapper(DOHString_or_char *varname,
   Wrapper_Settype(w,lt);
   Wrapper_Setparms(w,l);
   Delete(l);
-  DelDataType(lt);
+  Delete(lt);
   return w;
 }
 

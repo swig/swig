@@ -26,11 +26,11 @@ static char cvsroot[] = "$Header$";
  * Create a new parameter from datatype 'type' and name 'n'.
  * ------------------------------------------------------------------------ */
 
-Parm *NewParm(DataType *type, char *n) {
+Parm *NewParm(SwigType *type, String_or_char *n) {
   Parm *p = NewHash();
   
   if (type) {
-    Setattr(p,"type", NewVoid(CopyDataType(type), (void (*)(void *)) DelDataType));
+    Setattr(p,"type", Copy(type));
   }
   Setattr(p,"name",n);
   return p;
@@ -41,20 +41,20 @@ Parm *NewParm(DataType *type, char *n) {
  * ------------------------------------------------------------------------ */
 
 Parm *CopyParm(Parm *p) {
-  DataType *t;
+  SwigType *t;
   char     *name;
   char     *lname;
   char     *value;
   int       ignore;
 
   Parm *np = NewHash();
-  t = GetVoid(p,"type");
+  t = Getattr(p,"type");
   name = GetChar(p,"name");
   lname = GetChar(p,"lname");
   value = GetChar(p,"value");
   ignore = GetInt(p,"ignore");
 
-  Setattr(np,"type",NewVoid(CopyDataType(t), (void (*)(void *)) DelDataType));
+  Setattr(np,"type",Copy(t));
   if (name)
     Setattr(np,"name",name);
   if (lname)
@@ -123,20 +123,19 @@ int ParmList_len(ParmList *p) {
  * Generates a string of parameters
  * ---------------------------------------------------------------------- */
 
-char *ParmList_str(ParmList *p) {
-  static DOHString *out = 0;
-  DataType *t;
+String *ParmList_str(ParmList *p) {
+  String *out;
+  SwigType *t;
 
-  if (!out) out = NewString("");
-  Clear(out);
+  out = NewString("");
   while(p) {
     t = Gettype(p);
-    Printf(out,"%s", DataType_str(t,Getname(p)));
+    Printf(out,"%s", SwigType_str(t,Getname(p)));
     p = Getnext(p);
     if (p)
       Printf(out,",");
   }
-  return Char(out);
+  return Swig_temp_result(out);
 }
 
 /* ---------------------------------------------------------------------
@@ -145,20 +144,19 @@ char *ParmList_str(ParmList *p) {
  * Generate a prototype string.
  * ---------------------------------------------------------------------- */
 
-char *ParmList_protostr(ParmList *p) {
-  static DOHString *out = 0;
-  DataType *t;
+String *ParmList_protostr(ParmList *p) {
+  String *out;
+  SwigType *t;
 
-  if (!out) out = NewString("");
-  Clear(out);
+  out = NewString("");
   while(p) {
     t = Gettype(p);
-    Printf(out,"%s", DataType_str(t,0));
+    Printf(out,"%s", SwigType_str(t,0));
     p = Getnext(p);
     if (p)
       Printf(out,",");
   }
-  return Char(out);
+  return Swig_temp_result(out);
 }
 
 

@@ -42,8 +42,6 @@ static DOHString     *header = 0;
 static DOHString     *comment = 0;
        DOHString     *CCode = 0;            // String containing C code 
 static char           *yybuffer = 0;
-static int            lex_pos = 0;
-static int            lex_len = 0;         
 
 static char    yytext[YYBSIZE];
 static int     yylen = 0;
@@ -425,6 +423,10 @@ int yylook(void) {
 	  else if (c == '0') state = 83;   // An octal or hex value
 	  else if (c == '\'') state = 9;   // A character constant
 	  else if (c == '.') state = 100;  // Maybe a number, maybe just a period
+	  else if (c == '`') {
+	    state = 200; // Back-tick type
+	    yylen = 0;
+	  }
 	  else if (isdigit(c)) state = 8;  // A numerical value
 	  else if ((isalpha(c)) || (c == '_') || (c == '$')) state = 7;
 	  else state = 99;
@@ -779,6 +781,15 @@ int yylook(void) {
 	    return(PERIOD);
 	  }
 	  break;
+	case 200:
+	  if ((c = nextchar()) == 0) return (0);
+	  if (c == '`') {
+	    yytext[yylen-1] = 0;
+	    yylval.type = NewString(yytext);
+	    return(TYPE_RAW);
+	  }
+	  break;
+
 	default:
 	  if (!Error) {
 	    Printf(stderr,"%s : Line %d ::Illegal character '%c'=%d.\n",input_file, line_number,c,c);
@@ -838,45 +849,43 @@ extern "C" int yylex(void) {
 	/* Look for keywords now */
 
 	if (strcmp(yytext,"int") == 0) {
-	  yylval.type = NewDataType(T_INT);
+	  yylval.type = NewSwigType(T_INT);
 	  return(TYPE_INT);
 	}
 	if (strcmp(yytext,"double") == 0) {
-	  yylval.type = NewDataType(T_DOUBLE);
+	  yylval.type = NewSwigType(T_DOUBLE);
 	  return(TYPE_DOUBLE);
 	}
 	if (strcmp(yytext,"void") == 0) {
-	  yylval.type = NewDataType(T_VOID);
+	  yylval.type = NewSwigType(T_VOID);
 	  return(TYPE_VOID);
 	}
 	if (strcmp(yytext,"char") == 0) {
-	  yylval.type = NewDataType(T_CHAR);
+	  yylval.type = NewSwigType(T_CHAR);
 	  return(TYPE_CHAR);
 	}
 	if (strcmp(yytext,"short") == 0) {
-	  yylval.type = NewDataType(T_SHORT);
+	  yylval.type = NewSwigType(T_SHORT);
 	  return(TYPE_SHORT);
 	}
 	if (strcmp(yytext,"long") == 0) {
-	  yylval.type = NewDataType(T_LONG);
+	  yylval.type = NewSwigType(T_LONG);
 	  return(TYPE_LONG);
 	}
 	if (strcmp(yytext,"float") == 0) {
-	  yylval.type = NewDataType(T_FLOAT);
+	  yylval.type = NewSwigType(T_FLOAT);
 	  return(TYPE_FLOAT);
 	}
 	if (strcmp(yytext,"signed") == 0) {
-	  yylval.type = NewDataType(T_INT);
-	  DataType_Setname(yylval.type,yytext);
+	  yylval.type = NewSwigType(T_INT);
 	  return(TYPE_SIGNED);
 	}
 	if (strcmp(yytext,"unsigned") == 0) {
-	  yylval.type = NewDataType(T_UINT);
-	  DataType_Setname(yylval.type,yytext);
+	  yylval.type = NewSwigType(T_UINT);
 	  return(TYPE_UNSIGNED);
 	}
 	if (strcmp(yytext,"bool") == 0) {
-	  yylval.type = NewDataType(T_BOOL);
+	  yylval.type = NewSwigType(T_BOOL);
 	  return(TYPE_BOOL);
 	}
 	// C++ keywords
@@ -993,10 +1002,8 @@ extern "C" int yylex(void) {
 	// do a typedef lookup on it.
 	
 	if (check_typedef) {
-	  if (DataType_is_typedef(yytext)) {
-	    yylval.type = NewDataType(T_USER);
-	    DataType_Setname(yylval.type,yytext);
-	    DataType_typedef_resolve(yylval.type,0);
+	  if (SwigType_istypedef(yytext)) {
+	    yylval.type = NewString(yytext);
 	    return(TYPE_TYPEDEF);
 	  }
 	}
