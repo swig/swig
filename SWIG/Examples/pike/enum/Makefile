@@ -1,0 +1,19 @@
+TOP        = ../..
+SWIG       = $(TOP)/../swig
+CXXSRCS    = example.cxx
+TARGET     = example
+INTERFACE  = example.i
+LIBS       = -lm
+
+all::
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' pike_cpp
+
+static::
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	TARGET='mypike' INTERFACE='$(INTERFACE)' pike_cpp_static
+
+clean::
+	-rm -f example_wrap.cxx example.o example_wrap.o
+
+check: all
