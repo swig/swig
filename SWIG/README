@@ -1,53 +1,72 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3 (alpha)
+Version: 1.3.6 (July 9, 2001)
 
 $Header$
 
-Tagline: SWIG is a compiler that integrates C and C++ with scripting
+Tagline: SWIG is a compiler that integrates C and C++ with
          languages including Perl, Python, Tcl, Guile, Mzscheme,
-         and Ruby.
+         Java and Ruby.
 
-This distribution represents work in progress towards building a new
-SWIG release.  The guilty parties working on this are:
+SWIG reads annotated C/C++ header files and creates wrapper code (glue
+code) in order to make the corresponding C/C++ libraries available to
+the listed languages, or to extend C/C++ programs with a scripting
+language.
+
+This distribution represents the new stable release of SWIG, aiming to
+replace versions 1.1p5 and 1.1-883. The guilty parties working on this
+are:
 
  Dave Beazley (beazley@cs.uchicago.edu)                 (SWIG core)
  Loic Dachary (loic@ceic.com)                           (Perl5)
- Harco de Hilster (Harco.de.Hilster@ATComputing.nl)     (Java)
+ William Fulton (wfulton1@motorola.com)                 (Java)
  Thien-Thi Nguyen (ttn@glug.org)                        (Testing/Misc)
  Masaki Fukushima (fukusima@goto.info.waseda.ac.jp)     (Ruby)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
 
-Past contributors (currently incomplete):
+Past contributors (see the CHANGES file for a complete list):
 
-Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran Kovuk, Gary Holt,
-David Fletcher, Oleg Tolmatcev.
+Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
+Kovuk, Gary Holt, David Fletcher, Oleg Tolmatcev, Harco de Hilster.
 
-***********************************************************************
-*****       IMPORTANT NOTICE -- READ THIS NOW (OR ELSE)           *****
-***********************************************************************
+Up-to-date SWIG related information can be found at
 
-If you downloaded SWIG as a prepackaged release such as SWIG1.3a5, be
-advised that this distribution represents a snapshot of the most
-"stable" part of the SWIG CVS repository.  As this is an unstable
-release, there is a pretty good chance that a number of features are
-broken or under repair.  Currently, SWIG is undergoing a large
-redevelopment effort in which it is being converted from C++ to ANSI C
-and restructured to be more extensible.  As a result, the source code
-is very disorganized at the moment. The SWIG1.3 series of releases
-should be viewed as transitional releases leading to the eventual
-release of SWIG2.0. First-time users should probably start with
-SWIG1.1p5 which is significantly more stable (and includes a wider
-range of documentation and examples).
+        http://www.swig.org
 
-*** WE NEED YOUR HELP! ***
+What's New?
+===========
+Here are the most notable changes (so far):
 
-Please report any errors and submit patches (if possible)!  Not only
-are we making radical changes to the system, we only have access to a
-limited variety of hardware (Linux, Solaris, and Windows). All
-contributions help.
+   - SWIG now has a full C preprocessor.
 
-*** Backwards Compatibility ***
+   - Code generation for the Tcl and Python modules has been
+     substantially improved both in terms of size and runtime
+     efficiency (Perl5 is coming along too).
+
+   - The Guile module is stable. It represents C pointers as smobs and
+     supports the Guile module system and exceptions.
+
+   - Java, Ruby, and MzScheme modules added.
+
+   - Testing framework part of the distribution ("make check" support).
+
+   - A lot of minor bug fixes and cleanup.
+
+   - SWIG requires an ANSI C compiler.
+
+Here are a few missing features:
+
+   - The SWIG1.1 documentation system is gone and hasn't been
+     replaced yet.  This is on the long-term to-do list.
+
+   - The Tcl7.x and Perl4 modules are deprecated and no longer
+     included.
+
+   - A wide variety of old SWIG command-line options and
+     obscure features are gone.
+
+   - Objective C support doesn't work right now.  No ETA as to
+     when it will return.
 
 Although we are making every attempt preserve backwards compatibility
 with interfaces written for SWIG1.1, SWIG1.3 incorporates a number of
@@ -62,56 +81,9 @@ In addition, SWIG1.3 makes no attempt to be compatible with SWIG1.1 at
 the C++ API level so language modules written for SWIG1.1 will most
 definitely not work with this release.
 
-What's New?
-===========
-Here are the most notable changes (so far):
-
-   - SWIG now has a full C preprocessor.
-
-   - Code generation for the Tcl and Python modules has been
-     substantially improved both in terms of size and runtime
-     efficiency (Perl5 is coming along too).
-
-   - Java module is now included.
-
-   - The Guile module is stable. It represents C pointers as smobs and
-     supports the Guile module system and exceptions.
-
-   - Ruby and mzscheme modules added.
-
-   - Testing framework part of the distribution ("make check" support).
-
-   - A lot of minor bug fixes and cleanup.
-
-Here are a few missing features
-
-   - The SWIG1.1 documentation system is gone and hasn't been
-     replaced yet.  This is on the long-term to-do list.
-
-   - The Tcl7.x and Perl4 modules are deprecated and no longer
-     included.
-
-   - A wide variety of old SWIG command-line options and
-     obscure features are gone.
-
-What's Broken?
-==============
-
-   - The Java module is broken and temporarily unavailable (SWIG1.3a4).
-
-   - Objective C support doesn't work right now.  No ETA as to
-     when it will return.
-
-   - SWIG requires an ANSI C compiler.
-
-   - A number of low-level data structures have been converted
-     to C.  Since things haven't yet been fully tested, there's
-     a chance that unusual corner cases might cause SWIG to crash.
-     If so, please send us a debugger traceback if possible.
-
-   - The CHANGES file describes in some detail all of the important
-     changes that have been made to the system.  Experienced
-     users would be advised to read this.
+The files NEW and CHANGES describe in some detail all of the important
+changes that have been made to the system.  Experienced users would be
+advised to read this.
 
 Installation
 ============
@@ -130,12 +102,21 @@ the following before doing the 'make install' step above.
 If you don't know what the runtime libraries are, don't worry
 about this step.
 
-The Examples directory contains a few examples of using SWIG.
+The file INSTALL details more about using configure. Also try
+
+     % ./configure --help. 
+
+The configure script will attempt to locate various packages on your 
+machine, including Tcl, Perl5, Python and other target languages that SWIG 
+uses.  Don't panic if you get 'not found' messages--SWIG does not need these 
+packages to compile or run.   The configure script is actually looking for 
+these packages so that you can try out the SWIG examples contained
+in the 'Examples' directory without having to hack Makefiles.
 
 Notes:
 
-(1) If you checked the code out via CVS, you will have to run autoconf
-    before typing 'configure.'  In addition, a full build of SWIG requires
+(1) If you checked the code out via CVS, you will have to run ./autogen.sh
+    before typing 'configure'.    In addition, a full build of SWIG requires
     the use of bison.
 
 (2) If you are using Windows, the easiest way to install and build
@@ -145,38 +126,36 @@ Notes:
     The SWIG1.1p5 distribution also contains a number of examples configured
     to work with Visual C++ (most of which should also work with SWIG1.3).
 
-(3) 'make check' is a new feature that requires all of the target languages
-     to be installed and which performs compile/link level testing
-     of the examples.  If it fails, it may mean that you have an uninstalled
-     language module or that the file 'Examples/Makefile' has been
-     incorrectly configured.  It may also fail due to compiler issues 
-     such as broken C++ compiler.  Even if 'make check' fails, there is a 
-     pretty good chance SWIG still works correctly---you will just have
-     to mess around with one of the examples and some makefiles first.
+(3) 'make check' is a new feature that requires at least one of the target
+    languages to be installed and which performs compile/link level testing
+    of the examples.  If it fails, it may mean that you have an uninstalled
+    language module or that the file 'Examples/Makefile' has been
+    incorrectly configured.  It may also fail due to compiler issues 
+    such as broken C++ compiler.  Even if 'make check' fails, there is a 
+    pretty good chance SWIG still works correctly---you will just have
+    to mess around with one of the examples and some makefiles first.
 
 Examples
 ========
-The Examples directory contains a variety of new examples and it has some
-browsable documentation.  Simply point your browser to the file
-"Example/index.html".
+The Examples directory contains a variety of examples of using SWIG
+and it has some browsable documentation.  Simply point your browser to
+the file "Example/index.html".
 
 Documentation
 =============
-No documentation is currently included in this release.  However, most
-of the documentation for SWIG1.1 still applies.  This can be obtained
-on http://www.swig.org.
+No user documentation is currently included in this release.  However,
+most of the documentation for SWIG1.1 still applies.  This can be
+obtained on http://www.swig.org.
+
+There is some technical documentation available in the Doc subdirectory.
 
 Participate!
 ============
-We are looking for people who want to join the effort of getting this
-next release off the ground.  Please send me email for details.
 
--- Dave (beazley@cs.uchicago.edu)
+Please report any errors and submit patches (if possible)!  We only
+have access to a limited variety of hardware (Linux, Solaris, and
+Windows). All contributions help.
 
+Contributions of new language modules will also be accepted.
 
-Developer Information
-=====================
-The primary goal of future development is to make SWIG more modular,
-extensible, and easier to maintain.  To this end, the source code has
-been consolidated and reorganized with the Source directory.  For more
-information, please see Doc/internals.html.
+ -- The SWIG Maintainers
