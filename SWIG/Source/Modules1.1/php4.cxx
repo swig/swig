@@ -564,12 +564,6 @@ PHP4::top(Node *n) {
   Printf(s_entry,"/* Every user visible function must have an entry */\n");
   Printf(s_entry,"function_entry %s_functions[] = {\n", module);
 
-  /* Start variable init function (to be put in module init function) */
-  Printf(s_cinit,
-	"    int i;\n"
-	"    for (i = 0; swig_types_initial[i]; i++) {\n"
-	"        swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n"
-	"    }\n");
 
   /* start the init section */
   if (gen_extra)
@@ -598,20 +592,33 @@ PHP4::top(Node *n) {
   /* finish our init section */
   Printf(s_vinit, "/* end vinit subsection */\n");
 
-  /* We need this after all classes written out, not sure where to put it
-   * but here.
-   */
-  Printf(s_oinit, "CG(active_class_entry) = NULL;\n");	
-
-  Printf(s_oinit, "/* end oinit subsection */\n");
   Printf(s_init,"PHP_RINIT_FUNCTION(%s)\n{\n", module);
+
+  /* Start variable init function (to be put in module init function) */
+  Printf(s_cinit,
+	"    int i;\n"
+	"    for (i = 0; swig_types_initial[i]; i++) {\n"
+	"        swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n"
+	"    }\n");
+
+  /* We have to register the constants before they are (possibly) used
+   * by the pointer typemaps. This all needs re-arranging really as
+   * things are being called in the wrong order
+   */
+
+  Printf(s_init, "%s\n", s_cinit); 
+  Clear(s_cinit);
 
   /* Emit all of the code */
   Language::top(n);
   
+  /* We need this after all classes written out by ::top */
+  Printf(s_oinit, "CG(active_class_entry) = NULL;\n");	
+  Printf(s_oinit, "/* end oinit subsection */\n");
+
   /* Constants generated during top call */
-  Printf(s_init, "%s\n", s_cinit); 
   Printf(s_cinit, "/* end cinit subsection */\n");
+  Printf(s_init, "%s\n", s_cinit); 
 
   Printf(s_init, "%s\n%s\n", s_vinit, s_oinit);
   Delete(s_cinit);
@@ -1995,6 +2002,7 @@ int PHP4::constructorHandler(Node *n) {
 	Language::constructorHandler(n);
 
 	if(shadow) {
+		bool native_constructor = strcmp(iname, shadow_classname) == 0;
 		String *nativecall = NewString("");
 		String *php_function_name = NewString(iname);
 		char arg[256];
@@ -2006,7 +2014,20 @@ int PHP4::constructorHandler(Node *n) {
 		 Printf(s_oinit, "internal_function->arg_types = NULL;\n");
 		 Printf(s_oinit, "internal_function->function_name = estrdup(\"new_%(lower)s\");\n", php_function_name);
 		 Printf(s_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"new_%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+5);
-		Printf(shadow_code, " function %s(", shadow_classname);
+//		Printf(shadow_code, " function %s(", shadow_classname);
+//		Php only supports one constructor anyway...
+
+		Printf(shadow_code, " function %s(", php_function_name);
+		// If we are not a constructor and called as a class method
+		// then act like one.
+		Printv(nativecall, tab4, "if(! isset($this)) $this = new ",
+		       shadow_classname, ";\n", 0);
+		if(native_constructor) {
+		} else { // non-offical alternative constructor
+			// to protect against double-construcot, first destroy
+			// just-in-case
+			Printv(nativecall, tab4, "$this->_destroy();\n", 0);
+		}
 
 		if(iname != NULL)
 			Printv(nativecall, tab4, "$this->_cPtr = ", package, "::", Swig_name_construct(iname), "(", 0);
@@ -2047,9 +2068,12 @@ int PHP4::constructorHandler(Node *n) {
 
 		Printf(shadow_code, ") {\n");
 		Printv(nativecall, ");\n", tab4, "$this->_cMemOwn = true;\n", 0);
-		/* register our shutdown function */
+		/* register our shutdown function only ig we are a native
+		 * constructor not an alternative constructor ( which calls
+		 * the native one */
 
-		Printv(nativecall, tab4,
+		if(native_constructor)
+			Printv(nativecall, tab4,
 				   "register_shutdown_function(array(&$this,",
 				   "\"_destroy\"));\n", 0);
 
@@ -2059,6 +2083,8 @@ int PHP4::constructorHandler(Node *n) {
 				   "$this->_sync_php();\n", 0);
 		}
 
+		/* if we are alternatate constructor, return object */
+		if(! native_constructor) Printv(nativecall, tab4, "return $this;\n", 0);
 		Printf(shadow_code, "%s", nativecall);
 		Printf(shadow_code, "  }\n\n");
 		Delete(nativecall);
