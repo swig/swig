@@ -1,5 +1,7 @@
 %module abstract_access
 
+%warnfilter(517) A;
+
 %inline %{
 class A {
 public:

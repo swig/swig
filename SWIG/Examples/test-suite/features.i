@@ -104,6 +104,7 @@ public:
 %inline %{
 namespace Space {
   struct WildCards {
+    virtual ~WildCards() {}
     virtual WildCards* incy(int a) const { return 0; }
     virtual WildCards* wincy(int a) { return 0; }
     virtual WildCards* spider(int a) const { return 0; }
