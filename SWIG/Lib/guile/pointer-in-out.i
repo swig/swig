@@ -5,9 +5,7 @@
    $Header$
 */
 
-/* Here is a macro that will define typemaps for converting between C
-   arrays and Scheme lists or vectors when passing arguments to the C
-   function.
+/* Here is a macro that will define typemaps for passing C pointers indirectly.
   
    TYPEMAP_POINTER_INPUT_OUTPUT(PTRTYPE, SCM_TYPE)
 
@@ -24,10 +22,11 @@
        Scheme wrapper will take no arguments.  The address of an int *
        variable will be passed to the function.  The function is
        expected to modify the variable; its value is wrapped and
-       becomes an extra return value.  (See Doc/internals.html on how
+       becomes an extra return value.  (See the documentation on how
        to deal with multiple values.)
    
    func(int **BOTH)
+   func(int **INOUT)
 
        This annotation combines INPUT and OUTPUT.
 
@@ -35,34 +34,35 @@
 
 %define TYPEMAP_POINTER_INPUT_OUTPUT(PTRTYPE, SCM_TYPE)
 
-%typemap(in) PTRTYPE *INPUT(PTRTYPE temp)
+%typemap(in, doc="($arg <" #SCM_TYPE ">)") PTRTYPE *INPUT(PTRTYPE temp)
 {
-    if (SWIG_Guile_GetPtr($source, (void **) &temp, $*descriptor)) {
-	scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
+    if (SWIG_Guile_GetPtr($input, (void **) &temp, $*descriptor)) {
+	scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
     }
-    $target = &temp;
+    $1 = &temp;
 }
-%typemap(indoc) PTRTYPE *INPUT "($arg <SCM_TYPE>)";
 
 %typemap(ignore) PTRTYPE *OUTPUT(PTRTYPE temp) 
-     "$target = &temp;";
+     "$1 = &temp;";
 
-%typemap(argout) PTRTYPE *OUTPUT
-     "SWIG_APPEND_VALUE(SWIG_Guile_MakePtr(*$target, $*descriptor));"; 
-
-%typemap(argoutdoc) PTRTYPE *OUTPUT "<SCM_TYPE>";
+%typemap(argout, doc="<" #SCM_TYPE ">") PTRTYPE *OUTPUT
+     "SWIG_APPEND_VALUE(SWIG_Guile_MakePtr(*$1, $*descriptor));"; 
 
 %typemap(in) PTRTYPE *BOTH = PTRTYPE *INPUT;
 %typemap(argout) PTRTYPE *BOTH = PTRTYPE *OUTPUT;
-%typemap(argoutdoc) PTRTYPE *BOTH = PTRTYPE *OUTPUT;
 %typemap(in) PTRTYPE *INOUT = PTRTYPE *INPUT;
 %typemap(argout) PTRTYPE *INOUT = PTRTYPE *OUTPUT;
-%typemap(argoutdoc) PTRTYPE *INOUT = PTRTYPE *OUTPUT;
 
 /* As a special convenience measure, also attach docs involving
    SCM_TYPE to the standard pointer typemaps */
 
-%typemap(indoc) PTRTYPE "<($arg <SCM_TYPE>)>";
-%typemap(outdoc) PTRTYPE "<SCM_TYPE>";
+%typemap(in, doc="($arg <" #SCM_TYPE ">)") PTRTYPE {
+  if (SWIG_Guile_GetPtr($input, (void **) &$1, $descriptor))
+    scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
+}
+
+%typemap(out, doc="<" #SCM_TYPE ">") PTRTYPE {
+    $result = SWIG_Guile_MakePtr ($1, $descriptor);
+}
 
 %enddef
