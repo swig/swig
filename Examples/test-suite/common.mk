@@ -113,6 +113,7 @@ CPP_TEST_CASES += \
 	default_args \
 	default_ref \
 	defvalue_constructor \
+	destructor_reprotected \
 	director_abstract \
 	director_basic \
 	director_detect \
