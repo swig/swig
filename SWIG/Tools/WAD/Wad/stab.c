@@ -43,54 +43,6 @@ typedef struct Stab {
  * We also need to keep a hash table of stabs types.
  * ----------------------------------------------------------------------------- */
 
-/* Hash table containing stab strings and such */
-typedef struct stringtype {
-  char             *str;
-  struct stringtype *next;
-} stringtype;
-
-#define STRING_HASH_SIZE  1023
-
-static stringtype *strings[STRING_HASH_SIZE];
-static int         strings_init = 0;
-
-static int shash(char *name) {
-  unsigned int h = 0;
-  int i;
-  for (i = 0; i < 8 && (*name); i++, name++) {
-    h = ((h << 5) + *name);
-  }
-  return (h % STRING_HASH_SIZE);
-}
-
-static char *
-string_lookup(char *s) {
-  int h;
-  int i;
-  stringtype *st;
-
-  if (!strings_init) {
-    for (i = 0; i < STRING_HASH_SIZE; i++) {
-      strings[i] = 0;
-    }
-    strings_init = 1;
-  }
-  
-  h = shash(s);
-  st = strings[h];
-  while (st) {
-    if (strcmp(st->str,s) == 0) return st->str;
-    st = st->next;
-  }
-  
-  /* Not found. Add the string to the hash table */
-  st = (stringtype *) wad_malloc(sizeof(stringtype));
-  st->str = wad_strdup(s);
-  st->next = strings[h];
-  strings[h] = st;
-  return st->str;
-}
-
 typedef struct stabtype {
   char             *name;
   char             *value;
@@ -173,7 +125,7 @@ static void type_add(char *name, char *value) {
   while (s) {
     if (strcmp(s->name,name) == 0) {
       if (strcmp(s->value,v)) {
-	s->value = string_lookup(v);
+	s->value = wad_string_lookup(v);
       }
       goto add_more;
     }
@@ -185,8 +137,8 @@ static void type_add(char *name, char *value) {
   } else {
     deadnames[h] = s->next; 
   }
-  s->name = string_lookup(name);
-  s->value = string_lookup(v);
+  s->name = wad_string_lookup(name);
+  s->value = wad_string_lookup(v);
   s->next = lnames[h];
   s->visit = 0;
   lnames[h] = s;
@@ -415,82 +367,58 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
     if (s->n_type == N_LBRAC) {
       get_parms = 0;
     }
-    if (s->n_type == N_LSYM) {
-      stab_symbol(s,stabstr);
-    }
 
-    if (s->n_type == N_SLINE) {
-      get_parms = 0;
-      if (s->n_value <= offset) {
-	f->loc_line = s->n_desc;
-      }
-    } else if ((s->n_type == N_PSYM) || (s->n_type == N_RSYM)) {
-      if (get_parms) {
-	/* Parameter counting */
+    /* Local variable declaration */
+
+    if (s->n_type == N_LSYM) {
+      /* This might be a local variable definition */
+      /*      printf("local: n_value = %d, offset = %d\n", s->n_value, offset);*/
+      if (s->n_desc <= f->loc_line)
+      {
+	/* Okay. We can pay attention to it */
 	char *pname;
 	char *c;
 	int   len;
-	WadLocal *arg;
+	WadLocal *arg, *a;
 	pname = stabstr+s->n_strx;
 	c = strchr(pname,':');
+	if (*(c+1) != '(') continue;
 	if (c) {
 	  len = (c-pname);
 	} else {
 	  len = strlen(pname);
 	}
-	/* Get type information */
-
+	/*	printf("local\n"); */
 	stab_symbol(s,stabstr);
-
-	/* Check if the argument was already used */
-	/* In this case, the first stab simply identifies an argument.  The second
-	   one identifies its location for the debugger */
-	
-	if (f->debug_args) {
-	  /* Need to do some fix up for linux here */
-	  WadLocal *a = f->debug_args;
-	  while (a) {
-	    if ((strncmp(a->name,pname,len) == 0) && (strlen(a->name) == len)) {
-	      /* We already saw this argument.  Given a choice between a register and a stack
-		 argument.  We will choose the stack version */
-	      
-	      if (a->loc == PARM_STACK) {
-		break;
-	      }
-	      /* Go ahead and use the new argument */
-	      if (s->n_type == N_RSYM) {
-		a->loc = PARM_REGISTER;
-		a->reg = s->n_value;
-	      } else {
-		a->loc = PARM_STACK;
-		a->stack = s->n_value;
-	      }
-	      break;
-	    }
-	    a = a->next;
+	a = f->debug_locals;
+	while (a) {
+	  if ((strncmp(a->name,pname,len) == 0) && (strlen(a->name) == len)) {
+	    /* We already saw this argument.  Given a choice between a register and a stack
+	       argument.  We will choose the stack version */
+	    a->loc = PARM_STACK;
+	    a->stack = s->n_value;
+	    break;
 	  }
-	  if (a) continue; /* We got an argument match.  Just skip to the next stab */
+	  a = a->next;
 	}
-	
+	if (a) continue; /* We got an argument match.  Just skip to the next stab */
 	arg = (WadLocal *) wad_malloc(sizeof(WadLocal));
-	arg->name = (char *) wad_malloc(len+1);
-	strncpy(arg->name, pname, len);
-	arg->name[len] = 0;
-	if (s->n_type == N_RSYM) {
-	  arg->loc = PARM_REGISTER;
-	  arg->reg = s->n_value;
-	  arg->stack = 0;
-	} else {
-	  arg->loc = PARM_STACK;
-	  arg->line = s->n_desc;
-	  arg->stack = s->n_value;
+	{
+	  char t = pname[len];
+	  pname[len] = 0;
+	  arg->name = wad_string_lookup(pname);
+	  pname[len] = t;
 	}
+	arg->loc = PARM_STACK;
+	arg->line = s->n_desc;
+	arg->stack = s->n_value;
 	arg->type = 0;
 	arg->next = 0;
 	{
 	  char tname[128];
 	  char *t = tname;
-	  c+=2;
+	  
+	  c+=1;
 	  while ((*c) && (*c != '=')) {
 	    *t++ = *c++;
 	  }
@@ -501,16 +429,112 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
 	    printf("type_resolve '%s' -> '%s' (%d)\n", tname, t, arg->type);
 	  }
 	}
-	if (f->debug_args) {
-	  f->debug_lastarg->next = arg;
-	  f->debug_lastarg = arg;
+	if (f->debug_locals) {
+	  f->debug_lastlocal->next = arg;
+	  f->debug_lastlocal = arg;
 	} else {
-	  f->debug_args = arg;
-	  f->debug_lastarg = arg;
-	  f->debug_nargs= 0;
+	  f->debug_locals = arg;
+	  f->debug_lastlocal = arg;
+	  f->debug_nlocals= 0;
 	}
-	f->debug_nargs++;
+	f->debug_nlocals++;
       }
+    }
+
+    if (s->n_type == N_SLINE) {
+      get_parms = 0;
+      if (s->n_value < offset) {
+	f->loc_line = s->n_desc;
+      }
+    } else if (((s->n_type == N_PSYM) || (s->n_type == N_RSYM)) && get_parms) {
+      /* Parameter counting */
+      char *pname;
+      char *c;
+      int   len;
+      WadLocal *arg;
+      pname = stabstr+s->n_strx;
+      c = strchr(pname,':');
+      if (c) {
+	len = (c-pname);
+      } else {
+	len = strlen(pname);
+      }
+      /* Get type information */
+      
+      stab_symbol(s,stabstr);
+      
+      /* Check if the argument was already used */
+      /* In this case, the first stab simply identifies an argument.  The second
+	 one identifies its location for the debugger */
+      
+      {
+	/* Need to do some fix up for linux here */
+	WadLocal *a = f->debug_args;
+	while (a) {
+	  if ((strncmp(a->name,pname,len) == 0) && (strlen(a->name) == len)) {
+	    /* We already saw this argument.  Given a choice between a register and a stack
+	       argument.  We will choose the stack version */
+	    
+	    if (a->loc == PARM_STACK) {
+	      break;
+	    }
+	    /* Go ahead and use the new argument */
+	    if (s->n_type == N_RSYM) {
+	      a->loc = PARM_REGISTER;
+	      a->reg = s->n_value;
+	    } else {
+	      a->loc = PARM_STACK;
+	      a->stack = s->n_value;
+	    }
+	    break;
+	  }
+	  a = a->next;
+	}
+	if (a) continue; /* We got an argument match.  Just skip to the next stab */
+      }
+	
+      arg = (WadLocal *) wad_malloc(sizeof(WadLocal));
+      {
+	char t = pname[len];
+	pname[len] = 0;
+	arg->name = wad_string_lookup(pname);
+	pname[len] = t;
+      }
+      if (s->n_type == N_RSYM) {
+	arg->loc = PARM_REGISTER;
+	arg->reg = s->n_value;
+	arg->stack = 0;
+      } else {
+	arg->loc = PARM_STACK;
+	arg->line = s->n_desc;
+	arg->stack = s->n_value;
+      }
+      arg->type = 0;
+      arg->next = 0;
+      {
+	char tname[128];
+	char *t = tname;
+	
+	c+=2;
+	while ((*c) && (*c != '=')) {
+	  *t++ = *c++;
+	}
+	*t = 0;
+	t = type_resolve(tname);
+	arg->type = type_typecode(t);
+	if (wad_debug_mode & DEBUG_STABS) {
+	  printf("type_resolve '%s' -> '%s' (%d)\n", tname, t, arg->type);
+	}
+      }
+      if (f->debug_args) {
+	f->debug_lastarg->next = arg;
+	f->debug_lastarg = arg;
+      } else {
+	f->debug_args = arg;
+	f->debug_lastarg = arg;
+	f->debug_nargs= 0;
+      }
+      f->debug_nargs++;
     }
   }
 }
@@ -560,11 +584,12 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
   objfile[0] = 0;
 
   for (i = 0; i < ns; i++, s++) {
-    if (wad_debug_mode & DEBUG_STABS) {
+    /*    if (wad_debug_mode & DEBUG_STABS) {
       wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
 	     stabstr+s->n_strx);
       
 	     }
+    */
     if (s->n_type == N_LSYM) {
       stab_symbol(s,stabstr);
       continue;
@@ -617,16 +642,22 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
 	if (!f->sym_file || (strcmp(f->sym_file,lastfile) == 0)) {
 	  /* Go find debugging information for the function */
 	  scan_function(s+1, stabstr, ns -i - 1, f);
-	  f->loc_srcfile = wad_strdup(srcfile);
-	  f->loc_objfile = wad_strdup(objfile);
+	  f->loc_srcfile = wad_string_lookup(srcfile);
+	  f->loc_objfile = wad_string_lookup(objfile);
+	  /*	  f->loc_srcfile = wad_strdup(srcfile);
+		  f->loc_objfile = wad_strdup(objfile); */
+
 	  return 1;
 	}
       }
     }
   }
   if (found) {
-    f->loc_srcfile = wad_strdup(srcfile);
-    f->loc_objfile = wad_strdup(objfile);
+    f->loc_srcfile = wad_string_lookup(srcfile);
+    f->loc_objfile = wad_string_lookup(objfile);
+    /*    f->loc_srcfile = wad_strdup(srcfile);
+	  f->loc_objfile = wad_strdup(objfile); */
+
   }
   return found;
 }

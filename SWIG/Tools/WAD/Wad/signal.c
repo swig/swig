@@ -387,6 +387,8 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     wad_nlr_levels = 0;
   }
 
+  wad_string_debug();
+  wad_memory_debug();
 
   if (sig_callback) {
     (*sig_callback)(sig,origframe,retname);

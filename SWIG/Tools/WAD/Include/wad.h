@@ -29,6 +29,16 @@
 extern "C" {
 #endif
 
+  /* Core datatypes */
+
+  typedef int             int32;
+  typedef unsigned        uint32;
+  typedef short           int16;
+  typedef unsigned short  uint16;
+  typedef signed char     int8;
+  typedef unsigned char   uint8;
+
+
 #ifndef MAX_PATH
 #define MAX_PATH 1024
 #endif
@@ -41,6 +51,12 @@ extern int   wad_memory_init();
 extern void *wad_malloc(int nbytes);
 extern void  wad_release_memory();
 extern char *wad_strdup(const char *c);
+extern void  wad_memory_debug();
+
+  /* --- Low level string handling --- */
+
+extern char *wad_string_lookup(char *s);
+extern void  wad_string_debug();
 
 /* --- I/O, Debugging --- */
 
@@ -119,6 +135,9 @@ typedef struct WadLocal {
 #define WAD_TYPE_POINTER     11
 #define WAD_TYPE_CHAR        12
 
+extern long   wad_local_as_long(WadLocal *loc);
+extern double wad_local_as_double(WadLocal *loc);
+
 /* Data structure containing information about each stack frame */
 
 typedef struct WadFrame {
@@ -157,6 +176,9 @@ typedef struct WadFrame {
   int                debug_nargs;     /* Number of arguments */
   WadLocal          *debug_args;      /* Arguments           */
   WadLocal          *debug_lastarg;   /* Last argument       */
+  int                debug_nlocals;   /* Number of locals    */
+  WadLocal          *debug_locals;    /* Local variables     */
+  WadLocal          *debug_lastlocal; /* Last local          */
 
   /* Output strings */
   char              *debug_str;       /* Debugging string */
@@ -213,6 +235,8 @@ extern void  wad_debug_make_strings(WadFrame *f);
 #define DEBUG_STACK          0x800
 #define DEBUG_UNWIND         0x1000
 #define DEBUG_SIGNAL         0x2000
+#define DEBUG_STRING         0x4000
+#define DEBUG_MEMORY         0x8000
 
 extern int wad_debug_mode;
 extern int wad_heap_overflow;

@@ -144,3 +144,21 @@ char *wad_strdup(const char *c) {
   return t;
 }
 
+/* -----------------------------------------------------------------------------
+ * wad_memory_debug()
+ * ----------------------------------------------------------------------------- */
+
+void wad_memory_debug() {
+  int   total_alloc = 0;
+  int   inuse = 0;
+  WadMemory *m;
+  if (wad_debug_mode & DEBUG_MEMORY) {
+    m = current;
+    while (m) {
+      total_alloc += (m->npages)*pagesize;
+      inuse += m->last;
+      m = m->next;
+    }
+    printf("WAD: memory allocated %d bytes (%d bytes used).\n", total_alloc, inuse);
+  }
+}
