@@ -31,7 +31,7 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist) {
  * ----------------------------------------------------------------------------- */
 
 static int
-cparse_template_expand(Node *n, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
+cparse_template_expand(Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
 
   if (!n) return 0;
   if (Getattr(n,"error")) return 0;
@@ -39,7 +39,7 @@ cparse_template_expand(Node *n, String *templateargs, List *patchlist, List *typ
   if (Strcmp(nodeType(n),"template") == 0) {
     /* Change the node type back to normal */
     set_nodeType(n,Getattr(n,"templatetype"));
-    return cparse_template_expand(n,templateargs, patchlist,typelist, cpatchlist);
+    return cparse_template_expand(n,tname, rname, templateargs, patchlist,typelist, cpatchlist);
   } else if (Strcmp(nodeType(n),"cdecl") == 0) {
     /* A simple C declaration */
     SwigType *t, *v, *d;
@@ -73,7 +73,7 @@ cparse_template_expand(Node *n, String *templateargs, List *patchlist, List *typ
     {
       Node *cn = firstChild(n);
       while (cn) {
-	cparse_template_expand(cn,templateargs, patchlist,typelist,cpatchlist);
+	cparse_template_expand(cn,tname, rname, templateargs, patchlist,typelist,cpatchlist);
 	cn = nextSibling(cn);
       }
     }
@@ -83,6 +83,12 @@ cparse_template_expand(Node *n, String *templateargs, List *patchlist, List *typ
       Append(patchlist,Getattr(n,"name"));
     } else {
       Append(name,templateargs);
+    }
+    name = Getattr(n,"sym:name");
+    if (Strstr(name,"<")) {
+      Setattr(n,"sym:name", Copy(tname));
+    } else {
+      Replace(name,tname,rname, DOH_REPLACE_ANY);
     }
     Append(cpatchlist,Getattr(n,"code"));
     Append(typelist, Getattr(n,"decl"));
@@ -94,6 +100,12 @@ cparse_template_expand(Node *n, String *templateargs, List *patchlist, List *typ
       Append(patchlist,Getattr(n,"name"));
     } else {
       Append(name,templateargs);
+    }
+    name = Getattr(n,"sym:name");
+    if (Strstr(name,"<")) {
+      Setattr(n,"sym:name", Copy(tname));
+    } else {
+      Replace(name,tname,rname, DOH_REPLACE_ANY);
     }
     Setattr(n,"sym:name",name);
     Append(cpatchlist,Getattr(n,"code"));
@@ -107,16 +119,18 @@ cparse_template_expand(Node *n, String *templateargs, List *patchlist, List *typ
     add_parms(Getattr(n,"pattern"), patchlist, typelist);
     cn = firstChild(n);
     while (cn) {
-      cparse_template_expand(cn,templateargs, patchlist, typelist, cpatchlist);
+      cparse_template_expand(cn,tname, rname, templateargs, patchlist, typelist, cpatchlist);
       cn = nextSibling(cn);
     }
   }
 }
 
 int
-Swig_cparse_template_expand(Node *n, ParmList *tparms) {
+Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   List *patchlist, *cpatchlist, *typelist;
   String *templateargs;
+  String *tname;
+  String *iname;
   Parm *p;
   patchlist = NewList();
   cpatchlist = NewList();
@@ -136,15 +150,17 @@ Swig_cparse_template_expand(Node *n, ParmList *tparms) {
   Printf(templateargs," >");
   canonical_template(templateargs);
 
+  tname = Copy(Getattr(n,"name"));
+  cparse_template_expand(n,tname, rname, templateargs, patchlist, typelist, cpatchlist);
+
   /* Set the name */
   {
     String *name = Getattr(n,"name");
     if (name) {
       Append(name,templateargs);
     }
+    iname = name;
   }
-  
-  cparse_template_expand(n,templateargs, patchlist, typelist, cpatchlist);
 
   /* Patch all of the types */
   {
@@ -173,6 +189,7 @@ Swig_cparse_template_expand(Node *n, ParmList *tparms) {
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(typelist,i);
 	Replace(s,name,value, DOH_REPLACE_ID);
+	SwigType_typename_replace(s,tname,iname);
 	canonical_template(s);
       }
       if (!tydef) {

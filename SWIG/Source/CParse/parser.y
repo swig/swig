@@ -45,7 +45,7 @@ extern void scanner_last_id(int);
 extern void start_inline(char *, int);
 extern String *scanner_ccode;
 extern void cparse_error(String *, int, char *, ...);
-extern int Swig_cparse_template_expand(Node *n, ParmList *tparms);
+extern int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms);
 
 /* NEW Variables */
 
@@ -1699,7 +1699,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 			  if (!p) p = tp;
 			}
 			$$ = copy_node(n);
-			Swig_cparse_template_expand($$,temparms);
+			Swig_cparse_template_expand($$,$3,temparms);
 			Delete(temparms);
 			Setattr($$,"sym:name", $3);
 			add_symbols_copy($$);

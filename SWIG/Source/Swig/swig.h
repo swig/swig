@@ -227,6 +227,7 @@ extern String     *SwigType_array_getdim(SwigType *t, int n);
 extern void        SwigType_array_setdim(SwigType *t, int n, String_or_char *rep);
 extern SwigType   *SwigType_array_type(SwigType *t);
 extern String     *SwigType_default(SwigType *t);
+extern void        SwigType_typename_replace(SwigType *t, String *pat, String *rep);
 
 /* --- Type-system managment --- */
 extern void        SwigType_typesystem_init();

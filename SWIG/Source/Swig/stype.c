@@ -1230,3 +1230,48 @@ String *SwigType_manglestr_default(SwigType *s) {
 String *SwigType_manglestr(SwigType *s) {
   return SwigType_manglestr_default(s);
 }
+
+/* -----------------------------------------------------------------------------
+ * SwigType_typename_replace()
+ *
+ * Replaces a typename in a type with something else.  Needed for templates
+ * ----------------------------------------------------------------------------- */
+
+void
+SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
+  String *nt;
+  int    i;
+  List   *elem;
+  List   *parms;
+
+  if (!Strstr(t,pat)) return;
+
+  if (Strcmp(t,pat) == 0) {
+    Replace(t,pat,rep,DOH_REPLACE_ANY);
+    return;
+  }
+  nt = NewString("");
+  elem = SwigType_split(t);
+  for (i = 0; i < Len(elem); i++) {
+    String *e = Getitem(elem,i);
+    if (SwigType_issimple(e)) {
+      if (Strcmp(e,pat) == 0) {
+	Replace(e,pat,rep,DOH_REPLACE_ANY);
+      }
+    } else if (SwigType_isfunction(e)) {
+      int j;
+      List *parms = SwigType_parmlist(e);
+      Clear(e);
+      Printf(e,"f(");
+      for (j = 0; j < Len(parms); j++) {
+	SwigType_typename_replace(Getitem(parms,j), pat, rep);
+	Printf(e,"%s",Getitem(parms,j));
+	if (j < (Len(parms)-1)) Printf(e,",");
+      }
+      Printf(e,").");
+    }
+    Append(nt,e);
+  }
+  Clear(t);
+  Append(t,nt);
+}
