@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    = -c -shadow 
+SWIGOPT    = -noruntime -shadow 
 RUNTIMEDIR = $(TOP)/../Runtime/.libs
 
 all::

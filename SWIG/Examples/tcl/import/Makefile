@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    = -c 
+SWIGOPT    = -noruntime
 RUNTIMEDIR = $(TOP)/../Runtime/.libs
 
 all::
@@ -12,7 +12,6 @@ all::
 	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='bar' INTERFACE='bar.i' tcl_multi_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
 	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='spam' INTERFACE='spam.i' tcl_multi_cpp
-	
 
 
 clean::
