@@ -664,7 +664,7 @@ Swig_VargetToFunction(Node *n) {
 
   ty = Swig_wrapped_var_type(type);
 
-  Setattr(n,"wrap:action", NewStringf("result = %s;\n", Swig_wrapped_var_assign(type,name)));
+  Setattr(n,"wrap:action", NewStringf("result = (%s) %s;\n", SwigType_lstr(ty,0), Swig_wrapped_var_assign(type,name)));
   Setattr(n,"type",ty);
   Delattr(n,"parms");
   Delete(ty);

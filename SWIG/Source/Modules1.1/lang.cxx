@@ -946,17 +946,25 @@ Language::membervariableHandler(Node *n) {
     
     if (!ReadOnly) {
       int       make_wrapper = 1;
+      String *tm;
+      String *target;
+      if (!AddMethods) {
+	target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
+	tm = Swig_typemap_lookup_new("memberin",n,target,0);
+      }
       Swig_MembersetToFunction(n,ClassType,AddMethods);
       if (!AddMethods) {
 	/* Check for a member in typemap here */
-	String *target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
-	String *tm = Swig_typemap_lookup((char *) "memberin",type,name,target,Swig_cparm_name(0,1),target,0);
+
+	/* String *tm = Swig_typemap_lookup((char *) "memberin",type,name,target,Swig_cparm_name(0,1),target,0);*/
 	if (!tm) {
 	  if (SwigType_isarray(type)) {
 	    /*	  Printf(stderr,"%s:%d. Warning. Array member %s will be read-only.\n", input_file, line_number, name);*/
 	    make_wrapper = 0;
 	  }
 	}  else {
+	  Replace(tm,"$source", Swig_cparm_name(0,1), DOH_REPLACE_ANY);
+	  Replace(tm,"$target", target, DOH_REPLACE_ANY);
 	  Replace(tm,"$input",Swig_cparm_name(0,1),DOH_REPLACE_ANY);
 	  Replace(tm,"$self",Swig_cparm_name(0,0),DOH_REPLACE_ANY);
 	  Setattr(n,"wrap:action", tm);
@@ -1465,15 +1473,21 @@ int Language::variableWrapper(Node *n) {
   /* If no way to set variables.  We simply create functions */
   if (!ReadOnly) {
     int make_wrapper = 1;
+    String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
+
     Swig_VarsetToFunction(n);
     Setattr(n,"sym:name", Swig_name_set(symname));
-    String *tm = Swig_typemap_lookup((char *) "globalin",type,name,name,Swig_cparm_name(0,0),name,0);
+
+    /*    String *tm = Swig_typemap_lookup((char *) "globalin",type,name,name,Swig_cparm_name(0,0),name,0);*/
+
     if (!tm) {
       if (SwigType_isarray(type)) {
 	/*	  Printf(stderr,"%s:%d. Warning. Array member %s will be read-only.\n", input_file, line_number, name);*/
 	make_wrapper = 0;
       }
     }  else {
+      Replace(tm,"$source", Swig_cparm_name(0,0), DOH_REPLACE_ANY);
+      Replace(tm,"$target", name, DOH_REPLACE_ANY);
       Replace(tm,"$input",Swig_cparm_name(0,0),DOH_REPLACE_ANY);
       Setattr(n,"wrap:action", tm);
       Delete(tm);

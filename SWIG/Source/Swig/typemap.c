@@ -940,6 +940,10 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
 
   s = Getattr(tm,"code");
   if (!s) return 0;
+
+  /* Blocked */
+  if (Cmp(s,"pass") == 0) return 0;
+
   s = Copy(s);             /* Make a local copy of the typemap code */
 
   locals = Getattr(tm,"locals");
@@ -964,7 +968,6 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
   Delete(locals);
   return s;
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_typemap_lookup_new()
@@ -992,6 +995,10 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
 
   s = Getattr(tm,"code");
   if (!s) return 0;
+
+  /* Empty typemap. No match */
+  if (Cmp(s,"pass") == 0) return 0;
+
   s = Copy(s);             /* Make a local copy of the typemap code */
 
   locals = Getattr(tm,"locals");
@@ -1027,6 +1034,15 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     Setattr(node,tmop_name(temp), Copy(Getattr(kw,"value")));
     kw = nextSibling(kw);
   }
+  {
+    String *w;
+    sprintf(temp,"%s:warning", Char(op));
+    w = Getattr(node,tmop_name(temp));
+    if (w) {
+      Printf(stderr,"%s:%d. Typemap warning. %s\n", Getfile(node), Getline(node), w);
+    }
+  }
+
   return s;
 }
 
@@ -1060,6 +1076,12 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     }
     s = Getattr(tm,"code");
     if (!s) {
+      p = nextSibling(p);
+      continue;
+    }
+
+    /* Empty typemap. No match */
+    if (Cmp(s,"pass") == 0) {
       p = nextSibling(p);
       continue;
     }
@@ -1108,6 +1130,14 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,"name")));
       Setattr(firstp,tmop_name(temp), Copy(Getattr(kw,"value")));
       kw = nextSibling(kw);
+    }
+    {
+      String *w;
+      sprintf(temp,"%s:warning", Char(op));
+      w = Getattr(firstp,tmop_name(temp));
+      if (w) {
+	Printf(stderr,"%s:%d. Typemap warning. %s\n", Getfile(firstp), Getline(firstp), w);
+      }
     }
   }
 }
