@@ -420,6 +420,9 @@ JAVA_INCLUDE= @JAVAINC@
 # Extra Java specific dynamic linking options
 JAVA_DLNK  = @JAVADYNAMICLINKING@
 JAVALIBPREFIX = @JAVALIBRARYPREFIX@
+JAVASO =@JAVASO@
+JAVALDSHARED = @JAVALDSHARED@
+JAVACXXSHARED = @JAVACXXSHARED@
 
 # ----------------------------------------------------------------
 # Build a java dynamically loadable module (C)
@@ -428,7 +431,7 @@ JAVALIBPREFIX = @JAVALIBRARYPREFIX@
 java: $(SRCS)
 	$(SWIG) -java $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(JAVA_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVALIBPREFIX)$(TARGET)$(SO)
+	$(JAVALDSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVALIBPREFIX)$(TARGET)$(JAVASO)
 
 # ----------------------------------------------------------------
 # Build a java dynamically loadable module (C++)
@@ -437,7 +440,7 @@ java: $(SRCS)
 java_cpp: $(SRCS)
 	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVALIBPREFIX)$(TARGET)$(SO)
+	$(JAVACXXSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVALIBPREFIX)$(TARGET)$(JAVASO)
 
 # ----------------------------------------------------------------
 # Build a java dynamically loadable module
@@ -446,19 +449,19 @@ java_cpp: $(SRCS)
 java_multi: $(SRCS)
 	$(SWIG) -java $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(JAVA_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVALIBPREFIX)$(TARGET)$(SO)
+	$(JAVALDSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVALIBPREFIX)$(TARGET)$(JAVASO)
 
 java_multi_cpp: $(SRCS)
 	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVALIBPREFIX)$(TARGET)$(SO)
+	$(JAVACXXSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVALIBPREFIX)$(TARGET)$(JAVASO)
 
 # -----------------------------------------------------------------
 # Cleaning the java examples
 # -----------------------------------------------------------------
 
 java_clean:
-	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ *.class `find . -name \*.java | grep -v main.java`
+	rm -f *.@OBJEXT@ *@JAVASO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ *.class `find . -name \*.java | grep -v main.java`
 
 ##################################################################
 #####                       MZSCHEME                        ######

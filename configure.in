@@ -657,6 +657,7 @@ if test -z "$JAVAINCDIR"; then
   # Add in default installation directory on Windows for Cygwin
   case $host in
   *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
+  *-*-darwin*) JAVAINCDIR="/System/Library/Frameworks/JavaVM.framework/Headers $JAVAINCDIR";;
   *);;
   esac
 fi
@@ -694,6 +695,7 @@ case $host in
     else
         JAVADYNAMICLINKING=""
     fi ;;
+*-*-darwin*) JAVADYNAMICLINKING="-dynamiclib -framework JavaVM";;
 *)JAVADYNAMICLINKING="";;
 esac
 
@@ -703,12 +705,28 @@ case $host in
 *)JAVALIBRARYPREFIX="lib";;
 esac
 
+# Java on Mac OS X tweaks
+case $host in
+*-*-darwin*) 
+    JAVASO=".jnilib"
+    JAVALDSHARED='$(CC)'
+    JAVACXXSHARED='$(CXX)'
+    ;;
+*)
+    JAVASO=$SO
+    JAVALDSHARED='$(LDSHARED)'
+    JAVACXXSHARED='$(CXXSHARED)'
+    ;;
+esac
 
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)
 AC_SUBST(JAVADYNAMICLINKING)
 AC_SUBST(JAVALIBRARYPREFIX)
+AC_SUBST(JAVASO)
+AC_SUBST(JAVALDSHARED)
+AC_SUBST(JAVACXXSHARED)
 
 #----------------------------------------------------------------
 # Look for Guile
