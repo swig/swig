@@ -16,7 +16,6 @@ char cvsroot_modula3_cxx[] =
     indent -sob -br -ce -nut -npsl
 */
 
-
 /*
   Report:
    - It's not a good concept to use member variables or global variables
@@ -135,15 +134,18 @@ const char usageArgDir[] =
 
 class MODULA3:public Language
 {
-
+protected:
   enum block_type
   { no_block, constant, variable, type, revelation };
 
+private:
   struct M3File
   {
     String *f;
     Hash *import;
     block_type bt;
+    /* VC++ 6 doesn't allow the access to 'no_block'
+       if it is a private member of MODULA3 class */
       M3File ():f (NewString ("")), import (NewHash ()), bt (no_block)
     {
     };
@@ -288,8 +290,7 @@ MODULA3 ():
     m3raw_class_modifiers (NULL),
     m3wrap_modifiers (NULL),
     upcasts_code (NULL),
-    m3raw_cppcasts_code (NULL), destructor_call (NULL), outfile (NULL)
-  {
+    m3raw_cppcasts_code (NULL), destructor_call (NULL), outfile (NULL) {
   }
 
   /************** some utility functions ***************/
@@ -2175,9 +2176,9 @@ MODULA3 ():
       bool isEnumItem = Strcmp (nodeType (n), "enumitem") == 0;
       if ((isConstant || isEnumItem) &&
           ((pat.prefix == NIL) || (hasPrefix (name, pat.prefix))) &&
-          ((pat.parentEnum == NIL) ||
-           ((parentEnum != NIL)
-            && (Strcmp (pat.parentEnum, parentEnum) == 0)))) {
+          ((pat.parentEnum == NIL) || ((parentEnum != NIL)
+                                       && (Strcmp (pat.parentEnum, parentEnum)
+                                           == 0)))) {
         //printf("tag %s\n", Char(name));
         String *srctype = Getitem (convdesc, 1);
         String *relationstr = Getitem (convdesc, 3);
@@ -3849,10 +3850,10 @@ MODULA3 ():
         count++;
       plist = nextSibling (plist);
     }
-    String *arg = (!pn
-                   || (count > 1)) ? NewStringf ("arg%d",
-                                                 arg_num) : Copy (Getattr (p,
-                                                                           "name"));
+    String *arg = (!pn || (count > 1)) ? NewStringf ("arg%d",
+                                                     arg_num) :
+      Copy (Getattr (p,
+                     "name"));
 
     return arg;
   }
