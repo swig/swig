@@ -1,13 +1,13 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * expr.c
  *
  *     Integer arithmetic expression evaluator used to handle expressions
  *     encountered during preprocessing.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
@@ -16,7 +16,7 @@ static char cvsroot[] = "$Header$";
 
 static SwigScanner *scan = 0;
 
-typedef struct { 
+typedef struct {
   int       op;
   long      value;
 } exprval;
@@ -35,12 +35,12 @@ static char   *errmsg = 0;              /* Parsing error       */
 
 /* Initialize the precedence table for various operators.  Low values have higher precedence */
 static void init_precedence() {
-  prec[SWIG_TOKEN_NOT] = 10;              
+  prec[SWIG_TOKEN_NOT] = 10;
   prec[EXPR_UMINUS] = 10;
-  prec[SWIG_TOKEN_STAR] = 20;             
+  prec[SWIG_TOKEN_STAR] = 20;
   prec[SWIG_TOKEN_SLASH] = 20;
   prec[SWIG_TOKEN_PERCENT] = 20;
-  prec[SWIG_TOKEN_PLUS] = 30;             
+  prec[SWIG_TOKEN_PLUS] = 30;
   prec[SWIG_TOKEN_MINUS] = 30;
   prec[SWIG_TOKEN_LSHIFT] = 40;
   prec[SWIG_TOKEN_RSHIFT] = 40;
@@ -161,12 +161,12 @@ static void reduce_op() {
 
 /* -----------------------------------------------------------------------------
  * Preprocessor_expr_init()
- * 
- * Initialize the expression evaluator 
+ *
+ * Initialize the expression evaluator
  * ----------------------------------------------------------------------------- */
 
-void 
-Preprocessor_expr_init() {
+void
+Preprocessor_expr_init (void) {
   if (!expr_init) init_precedence();
   if (!scan) scan = NewSwigScanner();
 }
@@ -177,11 +177,11 @@ Preprocessor_expr_init() {
  * Evaluates an arithmetic expression.  Returns the result and sets an error code.
  * ----------------------------------------------------------------------------- */
 
-int 
+int
 Preprocessor_expr(DOH *s, int *error) {
   int     token = 0;
   int     op = 0;
-  
+
   sp = 0;
   assert(s);
   assert(scan);
@@ -270,10 +270,10 @@ Preprocessor_expr(DOH *s, int *error) {
 	} else {
 	  if (stack[sp-1].op != EXPR_OP) goto syntax_error;
 	  op = stack[sp-1].value;         /* Previous operator */
-	  
+
 	  /* Now, depending on the precedence relationship between the last operator and the current
 	     we will reduce or push */
-	  
+
 	  if (prec[op] <= prec[token]) {
 	    /* Reduce the previous operator */
 	    reduce_op();
@@ -289,7 +289,7 @@ Preprocessor_expr(DOH *s, int *error) {
 	break;
       case SWIG_TOKEN_RPAREN:
 	if (sp ==  0) goto extra_rparen;
-	
+
 	/* Might have to reduce operators first */
 	while ((sp > 0) && (stack[sp-1].op == EXPR_OP)) reduce_op();
 	if ((sp == 0) || (stack[sp-1].op != EXPR_GROUP)) goto extra_rparen;
@@ -330,8 +330,8 @@ Preprocessor_expr_error() {
 }
 
 
-  
 
-  
-  
+
+
+
 
