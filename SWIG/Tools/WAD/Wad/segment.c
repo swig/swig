@@ -14,20 +14,122 @@
 
 #include "wad.h"
 #include <procfs.h>
+#include <sys/mman.h>
 
+/* The segment map is actually stored in an mmap'd data structure so we
+   can avoid the use of malloc()/free(). */
 
+static WadSegment *segments = 0;    /* mmap data containing segment info */
+static int         segments_size;   /* Size of mmap'd region */
+static int         nsegments = 0;   /* Number of segments    */
 
-/* The current segment is stored in statically allocated memory to avoid
-   the use of malloc()/free().  If a caller wants to make a copy, that is
-   their problem */
+/* This function reads the segment map into memory */
+static
+void read_segments() {
+  int     fd;
+  int     dz;
+  prmap_t pmap;
+  int     offset = 0;
+  int     i;
+  int     n = 0;
+  WadSegment *s;
 
-static WadSegment segment;              /* Currently loaded segment */
-static int        read_segment = 0;
+  /* Try to load the virtual address map */
+  fd = open("/proc/self/map", O_RDONLY);
+  if (fd < 0) {
+    return;
+  }
+  nsegments = 0;
+  while (1) {
+    n = read(fd,&pmap,sizeof(prmap_t));
+    if (n <= 0) break;
+    nsegments++;
+  }
+  nsegments++;
+  close(fd);
+
+  dz = open("/dev/zero", O_RDWR, 0644);
+  if (fd < 0) {
+    puts("Couldn't open /dev/zero\n");
+    return;
+  }
+  segments = (WadSegment *) mmap(NULL, nsegments*sizeof(WadSegment), PROT_READ | PROT_WRITE, MAP_PRIVATE, dz, 0);
+  close(dz);
+  segments_size = nsegments*sizeof(WadSegment);
+  
+  fd = open("/proc/self/map", O_RDONLY);
+  if (fd < 0) return;
+  i = 0;
+  s = segments;
+  while (1) {
+    n = read(fd,&pmap,sizeof(prmap_t));
+    if (n <= 0) break;
+    strncpy(s->mapname, pmap.pr_mapname, MAX_PATH);
+    strcpy(s->mappath,"/proc/self/object/");
+    strcat(s->mappath,pmap.pr_mapname);
+    s->vaddr = (char *) pmap.pr_vaddr;
+
+    /* This is a solaris oddity.  a.out section starts 1 page up, but
+       symbols are relative to a base of 0 */
+
+    if (strcmp(s->mapname,"a.out") == 0) s->base = 0;
+    else s->base = s->vaddr;
+
+    s->size  = pmap.pr_size;
+    s->offset = pmap.pr_offset;
+    s->flags  = pmap.pr_mflags;
+    s++;
+  }
+  close(fd);
+}
+
+/* -----------------------------------------------------------------------------
+ * wad_segment_release()
+ *
+ * This function releases all of the segments.
+ * ----------------------------------------------------------------------------- */
+void wad_segment_release() {
+  munmap((void *)segments, segments_size);
+  segments = 0;
+  segments_size = 0;
+  nsegments = 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * wad_segment_find()
+ *
+ * Try to find the virtual memory segment corresponding to a virtual address.
+ * If a segment is mapped to a file, this function actually returns the *first*
+ * segment that is mapped.   This is because symbol relocations are always
+ * performed relative to the beginning of the file (so we need the base address)
+ * ----------------------------------------------------------------------------- */
+
+WadSegment *
+wad_segment_find(char *addr) {
+  int  i;
+  WadSegment *s, *ls;
+
+  if (!segments) read_segments();
+  if (!segments) return 0;
+
+  s = segments;
+  ls = s;
+  for (i = 0; i < nsegments; i++, s++) {
+    if (strcmp(s->mapname,ls->mapname)) {
+      ls = s;    /* First segment for a given name */
+    }
+
+    if ((addr >= s->vaddr) && (addr < (s->vaddr + s->size))) {
+      return ls;
+    }
+  }
+  return 0;
+}
 
 /* -----------------------------------------------------------------------------
  * wad_segment_print()
  *
- * Print the contents of a memory segment. (Debugging)
+ * Print the contents of a memory segment. (For debugging WAD)
  * ----------------------------------------------------------------------------- */
 
 void
@@ -39,128 +141,4 @@ wad_segment_print(WadSegment *s) {
     printf("   size       = %d\n", s->size);
     printf("   offset     = %d\n", s->offset);
     printf("   flags      = 0x%x\n", s->flags);
-    printf("   identifier = %d\n", s->identifier);
-}
-
-
-/* -----------------------------------------------------------------------------
- * wad_segment_find()
- *
- * Try to find the virtual memory segment corresponding to a virtual address.
- * This overwrites the previously returned segment data.
- * ----------------------------------------------------------------------------- */
-
-WadSegment *
-wad_segment_find(wadaddr_t addr) {
-  char dirname[MAX_PATH];
-  char filename[MAX_PATH];
-  int  fd;
-  prmap_t pmap;
-  int  offset = 0;
-  int  i;
-  int  n;
-
-  if (read_segment) {
-    if ((addr >= segment.vaddr) && (addr < (segment.vaddr+segment.size))) return &segment;
-  }
-  
-  /* Set location in /proc */
-  sprintf(dirname,"/proc/%d",getpid());
-  
-  /* Try to load the virtual address map */
-  sprintf(filename,"%s/map",dirname);
-  fd = open(filename, O_RDONLY);
-  if (fd < 0) {
-    printf("wad_segment_find: couldn't open '%s'\n", filename);
-    return 0;
-  }
-  
-  segment.mapname[0] = 0;
-
-  read_segment = 0;
-  while (1) {
-    n = read(fd,&pmap,sizeof(prmap_t));
-    if (n <= 0) break;
-    offset += n;
-    if ((addr >= (wadaddr_t) pmap.pr_vaddr) && (addr <= (wadaddr_t) (pmap.pr_vaddr + pmap.pr_size))) {
-      /* We are in a new segment */
-      strncpy(segment.mapname, pmap.pr_mapname, MAX_PATH);
-      strcpy(segment.mappath,dirname);
-      strcat(segment.mappath,"/object/");
-      strcat(segment.mappath,pmap.pr_mapname);
-      segment.vaddr = (wadaddr_t) pmap.pr_vaddr;
-      segment.size  = pmap.pr_size;
-      segment.offset = pmap.pr_offset;
-      segment.flags  = pmap.pr_mflags;
-      segment.identifier = pmap.pr_shmid;
-      segment.wad = offset;
-      read_segment = 1;
-      close(fd);
-      return &segment;
-    }
-  } 
-  close(fd);
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
- * wad_segment_next()
- *
- * Read the next segment
- * ----------------------------------------------------------------------------- */
-
-WadSegment *wad_segment_next() {
-
-  char dirname[MAX_PATH];
-  char filename[MAX_PATH];
-  int  fd;
-  prmap_t pmap;
-  int  offset = 0;
-  int  i;
-  int  n;
-
-  if (!read_segment) {
-    segment.wad = 0;
-  }
-
-  /* Set location in /proc */
-  sprintf(dirname,"/proc/%d",getpid());
-  
-  /* Try to load the virtual address map */
-  sprintf(filename,"%s/map",dirname);
-  fd = open(filename, O_RDONLY);
-  if (fd < 0) {
-    printf("wad_segment_find: couldn't open '%s'\n", filename);
-    return 0;
-  }
-  if (lseek(fd, segment.wad, SEEK_SET) < 0) {
-    close(fd);
-    return 0;
-  }
-  n = read(fd,&pmap,sizeof(prmap_t));
-  if (n <= 0) {
-    read_segment = 0;
-    close(fd);
-    return 0;
-  }
-  strncpy(segment.mapname, pmap.pr_mapname, MAX_PATH);
-  strcpy(segment.mappath,dirname);
-  strcat(segment.mappath,"/object/");
-  strcat(segment.mappath,pmap.pr_mapname);
-  segment.vaddr = (wadaddr_t) pmap.pr_vaddr;
-  segment.size  = pmap.pr_size;
-  segment.offset = pmap.pr_offset;
-  segment.flags  = pmap.pr_mflags;
-  segment.identifier = pmap.pr_shmid;
-  segment.wad += n;
-  read_segment = 1;
-  close(fd);
-  return &segment;
-}
-
-WadSegment *
-wad_segment_first() {
-  segment.wad = 0;
-  read_segment = 0;
-  return wad_segment_next();
 }
