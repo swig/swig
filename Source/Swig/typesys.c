@@ -1247,19 +1247,20 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
       SwigType *ftd = SwigType_typedef_resolve_all(t);
       SwigType *td = SwigType_strip_qualifiers(ftd);
       Delete(ftd);
-      if ((n = Swig_symbol_clookup(td,0)) && !Getattr(n,"feature:novaluewrapper")) {
+      if ((n = Swig_symbol_clookup(td,0))) {
 	if (Getattr(n,"feature:valuewrapper")) {
 	  use_wrapper = 1;
 	} else {
 	  if ((Strcmp(nodeType(n),"class") == 0) 
 	      && (!Getattr(n,"allocate:default_constructor") 
 		  || (Getattr(n,"allocate:noassign")))) {
-	    use_wrapper = 1;
+	    use_wrapper = !Getattr(n,"feature:novaluewrapper");
 	  }
 	}
-      }
-      if (SwigType_issimple(td) && SwigType_istemplate(td)) {
-	use_wrapper = 1;
+      } else {
+	if (SwigType_issimple(td) && SwigType_istemplate(td)) {
+	  use_wrapper = 1;
+	}
       }
       Delete(td);
     }
