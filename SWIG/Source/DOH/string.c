@@ -272,6 +272,36 @@ String_delitem(DOH *so, int pos)
 }
 
 /* -----------------------------------------------------------------------------
+ * int String_delslice() -  Delete a range
+ * ----------------------------------------------------------------------------- */
+
+static int
+String_delslice(DOH *so, int sindex, int eindex) {
+  String *s = (String *) ObjData(so);
+  int     size;
+  s->hashkey = -1;
+  if (eindex == DOH_END) eindex = s->len;
+  if (sindex == DOH_BEGIN) sindex = 0;
+  if (s->len == 0) return 0;
+  
+  size = eindex - sindex;
+  if (s->sp > eindex) {
+    /* Adjust the file pointer and line count */
+    char *c = s->str + sindex;
+    int i;
+    for (i = 0; i < size; i++) {
+      if (*c == '\n') s->line--;
+    }
+    s->sp -= size;
+    assert(s->sp >= 0);
+  }
+  memmove(s->str+sindex,s->str+eindex, ((s->len-size) - sindex));
+  s->len -= size;
+  s->str[s->len] = 0;
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
  * DOH *String_str() - Returns a string (used by printing commands)
  * ----------------------------------------------------------------------------- */
 
@@ -843,6 +873,7 @@ static DohListMethods StringListMethods = {
   0,                      /* doh_setitem */
   String_delitem,         /* doh_delitem */
   String_insert,          /* doh_insitem */
+  String_delslice,        /* doh_delslice */
   0,                      /* doh_first   */
   0,                      /* doh_next    */
 };
@@ -915,6 +946,42 @@ DohNewString(const DOH *so)
     str->maxsize = max;
     if (s) {
 	strcpy(str->str,s);
+	str->len = l;
+	str->sp = l;
+    } else {
+	str->str[0] = 0;
+	str->len = 0;
+    }
+    return DohObjMalloc(&DohStringType,str);
+}
+
+
+/* -----------------------------------------------------------------------------
+ * NewStringWithSize(const char *c, int len) - Create a new string
+ * ----------------------------------------------------------------------------- */
+
+DOHString *
+DohNewStringWithSize(const DOH *so, int len)
+{
+    int l = 0, max;
+    String *str;
+    char *s;
+    if (DohCheck(so)) s = Char(so);
+    else s = (char *) so;
+    str = (String *) DohMalloc(sizeof(String));
+    str->hashkey = -1;
+    str->sp = 0;
+    str->line = 1;
+    str->file = 0;
+    max = INIT_MAXSIZE;
+    if (s) {
+      l = (int) len;
+      if ((l+1) > max) max = l+1;
+    }
+    str->str = (char *) DohMalloc(max);
+    str->maxsize = max;
+    if (s) {
+	strncpy(str->str,s,len);
 	str->len = l;
 	str->sp = l;
     } else {

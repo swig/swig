@@ -299,6 +299,7 @@ static DohListMethods ListListMethods = {
   List_set,
   List_remove,
   List_insert,
+  0,                /* delslice */
   List_first,
   List_next,
 };

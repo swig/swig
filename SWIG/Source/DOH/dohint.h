@@ -40,6 +40,7 @@ typedef struct {
   int       (*doh_setitem)(DOH *obj, int index, DOH *value); /* Set item      */
   int       (*doh_delitem)(DOH *obj, int index);             /* Delete item   */
   int       (*doh_insitem)(DOH *obj, int index, DOH *value); /* Insert item   */
+  int       (*doh_delslice)(DOH *obj, int sindex, int eindex);   /* Delete slice  */
   DOH      *(*doh_firstitem)(DOH *obj);                      /* Iterators     */
   DOH      *(*doh_nextitem)(DOH *obj);
 } DohListMethods;
