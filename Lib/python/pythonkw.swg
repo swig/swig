@@ -36,19 +36,9 @@ PYTHONKW(yield);
 
 #undef PYTHONKW
 
-/*
- bad names
- http://users.ox.ac.uk/~sann1276/python/handbook/node52.html
-*/
+#define PYTHONBN(x) %namewarn("315:" #x " is a bad name in python")  #x
 
-#define PYTHONBN(x) %namewarn("314:" #x " is a bad name in python")  #x
-
-PYTHONBN(Data);
-PYTHONBN(Float);
-PYTHONBN(Int);
-PYTHONBN(Numeric);
-PYTHONBN(Oxphys);
-PYTHONBN(array);
+/* recurrent built-in functions */
 PYTHONBN(close);
 PYTHONBN(float);
 PYTHONBN(int);
@@ -56,10 +46,8 @@ PYTHONBN(input);
 PYTHONBN(open);
 PYTHONBN(range);
 PYTHONBN(type);
-PYTHONBN(write);
-PYTHONBN(zeros);
 
-
+/* Boolean type */
 PYTHONBN(True);
 PYTHONBN(False);
 
