@@ -221,6 +221,7 @@ void emit_action(Node *n, Wrapper *f) {
   /* Look for except feature */
   if (!tm) {
     tm = Getattr(n,"feature:except");
+    if (tm) tm = Copy(tm);
   }
 
   /* Look for global exception (deprecated) */
@@ -233,6 +234,7 @@ void emit_action(Node *n, Wrapper *f) {
     Replaceall(tm,"$function", action);
     Replaceall(tm,"$action", action);
     Printv(f->code,tm,"\n", 0);
+    Delete(tm);
   } else {
     Printv(f->code, action, "\n",0);
   }
