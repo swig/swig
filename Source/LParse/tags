@@ -1,0 +1,92 @@
+$Header$
+
+This file describes the set of tags and attributes produced by the SWIG1.3 parser.
+
+1. Common attribute names
+
+These attribute names are common to every node in the parse tree and are
+used to implement the tree structure itself.
+
+Attribute name         Description
+-------------------------------------------------------------
+"tag"              -   Tag name of a parse tree node
+"next"             -   Next node (sibling)
+"prev"             -   Previous node (sibling)
+"parent"           -   Parent node
+"child"            -   First child node (is the start of a linked list)
+
+2. Parse tree nodes
+
+The following list describes all of the possible nodes that can be
+produced by the parser and their attributes (not including the common
+attributes above).
+
+
+tag        : "scope"
+syntax     : { statements }
+attributes : None. "child" attribute contains nodes within the scope.
+
+tag        : "moduledirective"
+syntax     : %module idstring
+attributes : "name"      -  Module name
+
+tag        : "renamedirective"
+syntax     : %rename id1 id2;
+attributes : "oldname"   -  Old name (id1)
+             "newname"   -  New name (id2)
+
+tag        : "constant"
+syntax     : %constant name value;
+attributes : "name"      -  Constant name
+             "value"     -  Constant value
+             "type"      -  Constant type     
+
+tag        : "includefile"
+syntax     : %include filename
+attributes : None
+
+tag        : "externfile"
+syntax     : %extern filename
+attributes : None
+
+tag        : "importfile"
+syntax     : %import filename
+attributes : None
+
+tag        : "readonly"
+syntax     : %readonly
+attributes : None
+
+tag        : "readwrite"
+syntax     : %readwrite
+attributes : None
+
+tag        : "name"
+syntax     : %name(idstring) decl
+attributes : "name"     - New name
+
+tag        : "new"
+syntax     : %new decl
+attributes : None
+
+tag        : "headerblock"
+syntax     : %{ code %}
+attributes : "code"     - Included text
+
+tag        : "wrapperblock"
+syntax     : %{ code %}
+attributes : "code"     - Included code
+
+tag        : "initblock"
+syntax     : %{ code %}
+attributes : "code"     - Included code
+
+
+
+
+ 
+
+
+
+
+
