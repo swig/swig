@@ -172,11 +172,15 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       tycode = SwigType_type(type);
       if (tycode == T_REFERENCE) {
 	if (pvalue) {
+	  SwigType *tvalue;
 	  String *defname, *defvalue, *rvalue;
 	  rvalue = SwigType_typedef_resolve_all(pvalue);
 	  defname = NewStringf("%s_defvalue", lname);
-	  defvalue = NewStringf("%s = %s", SwigType_str(type,defname), rvalue);
+	  tvalue = Copy(type);
+	  SwigType_del_reference(tvalue);
+	  defvalue = NewStringf("%s = %s", SwigType_lstr(tvalue,defname), rvalue);
 	  Wrapper_add_localv(w,defname, defvalue, NIL);
+	  Delete(tvalue);
 	  Delete(rvalue);
 	  Delete(defname);
 	  Delete(defvalue);
