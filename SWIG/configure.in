@@ -31,7 +31,6 @@ AC_COMPILE_WARNINGS # Increase warning levels
 
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
 AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$build"], [Platform that SWIG is built for])
-AC_DEFINE_DIR(LIBDIR, libdir, [Runtime library installation directory])
 
 
 dnl Checks for header files.
@@ -1379,7 +1378,7 @@ AC_SUBST(CSHARPDYNAMICLINKING)
 AC_SUBST(CSHARPLIBRARYPREFIX) # Is this going to be used?
 
 #----------------------------------------------------------------
-# Determine which languages to use for examples/test-suite and runtime lib
+# Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
 SKIP_TCL=
@@ -1503,7 +1502,7 @@ AC_SUBST(ac_aux_dir)
 # Configure SWIG_LIB path
 
 AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
-  [swig_lib="$withval"], [swig_lib="${libdir}/swig1.3"])
+  [swig_lib="$withval"], [swig_lib="${datadir}/swig/${PACKAGE_VERSION}"])
 AC_SUBST(swig_lib)
 AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent libraries])
 
