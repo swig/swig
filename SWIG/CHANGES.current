@@ -1,6 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
 08/15/2003: beazley
+            Fixed [ 763563 ] Missing indication of optional arguments.
+            Tcl module.  Reported by Krzysztof Kozminski.
+
+08/15/2003: beazley
             Fixed [ 787432 ] long param handled as int.  Tcl module
             now uses Tcl_GetLongFromObj to convert integer values.
 
