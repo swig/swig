@@ -88,10 +88,6 @@ namespace std {
 }
 #endif
 
-/* Macro for overload resolution */
-
-#define %typecheck(_x) %typemap(typecheck, precedence=`_x`)
-
 /* Set up the typemap for handling new return strings */
 
 #ifdef __cplusplus
@@ -174,6 +170,39 @@ namespace std {
 
 %typemap(ignore) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
 
+
+/*
+ * Function/method overloading support.   This is done through typemaps,
+ * but also involve a precedence level. 
+ */
+
+/* Macro for overload resolution */
+
+#define %typecheck(_x) %typemap(typecheck, precedence=_x)
+
+/* Macros for precedence levels */
+
+%define SWIG_TYPECHECK_POINTER       0     %enddef
+%define SWIG_TYPECHECK_VOIDPTR       10    %enddef
+%define SWIG_TYPECHECK_BOOL          15    %enddef
+%define SWIG_TYPECHECK_UINT8         20    %enddef
+%define SWIG_TYPECHECK_INT8          25    %enddef
+%define SWIG_TYPECHECK_UINT16        30    %enddef
+%define SWIG_TYPECHECK_INT16         35    %enddef
+%define SWIG_TYPECHECK_UINT32        40    %enddef
+%define SWIG_TYPECHECK_INT32         45    %enddef
+%define SWIG_TYPECHECK_UINT64        50    %enddef
+%define SWIG_TYPECHECK_INT64         55    %enddef
+%define SWIG_TYPECHECK_UINT128       60    %enddef
+%define SWIG_TYPECHECK_INT128        65    %enddef
+%define SWIG_TYPECHECK_INTEGER       70    %enddef
+%define SWIG_TYPECHECK_FLOAT         80    %enddef
+%define SWIG_TYPECHECK_DOUBLE        90    %enddef
+%define SWIG_TYPECHECK_COMPLEX      100    %enddef
+%define SWIG_TYPECHECK_UNICHAR      110    %enddef
+%define SWIG_TYPECHECK_UNISTRING    120    %enddef
+%define SWIG_TYPECHECK_CHAR         130    %enddef
+%define SWIG_TYPECHECK_STRING       140    %enddef
 
 /*  
  * This template wrapper is used to handle C++ objects that are passed or 

@@ -406,7 +406,7 @@
  * Typechecking rules
  * ------------------------------------------------------------ */
 
-%typecheck(10)
+%typecheck(SWIG_TYPECHECK_INTEGER)
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
 	 signed char, unsigned char,
@@ -420,22 +420,22 @@
   $1 = PyInt_Check($input) ? 1 : 0;
 }
 
-%typecheck(20)
+%typecheck(SWIG_TYPECHECK_DOUBLE)
 	float, double,
 	const float &, const double &
 {
   $1 = (PyFloat_Check($input) || PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }
 
-%typecheck(30) char {
+%typecheck(SWIG_TYPECHECK_CHAR) char {
   $1 = (PyString_Check($input) && (PyString_Size($input) == 1)) ? 1 : 0;
 }
 
-%typecheck(31) char * {
+%typecheck(SWIG_TYPECHECK_STRING) char * {
   $1 = PyString_Check($input) ? 1 : 0;
 }
 
-%typecheck(0) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   void *ptr;
   if (SWIG_ConvertPtr($input, (void **) &ptr, $1_descriptor, 0) == -1) {
     $1 = 0;
@@ -445,7 +445,7 @@
   }
 }
 
-%typecheck(0) SWIGTYPE {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
   if (SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, 0) == -1) {
     $1 = 0;
@@ -455,7 +455,7 @@
   }
 }
 
-%typecheck(1) void * {
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
   if (SWIG_ConvertPtr($input, (void **) &ptr, 0, 0) == -1) {
     $1 = 0;

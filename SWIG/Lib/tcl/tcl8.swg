@@ -397,7 +397,7 @@
  * Typechecking rules
  * ------------------------------------------------------------ */
 
-%typecheck(10)
+%typecheck(SWIG_TYPECHECK_INTEGER)
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
 	 signed char, unsigned char,
@@ -413,7 +413,7 @@
   else $1 = 1;
 }
 
-%typecheck(20)
+%typecheck(SWIG_TYPECHECK_DOUBLE)
 	float, double,
 	const float &, const double &
 {
@@ -422,18 +422,18 @@
   else $1 = 1;
 }
 
-%typecheck(30) char {
+%typecheck(SWIG_TYPECHECK_CHAR) char {
   char *tmp;
   int   len;
   tmp = Tcl_GetStringFromObj($input,&len);
   (len == 1) ? 1 : 0;
 }
 
-%typecheck(31) char * {
+%typecheck(SWIG_TYPECHECK_STRING) char * {
   $1 = 1;
 }
 
-%typecheck(0) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   void *ptr;
   if (SWIG_ConvertPtr(interp, $input, (void **) &ptr, $1_descriptor, 0) == TCL_ERROR) {
     $1 = 0;
@@ -442,7 +442,7 @@
   }
 }
 
-%typecheck(0) SWIGTYPE {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
   if (SWIG_ConvertPtr(interp, $input, (void **) &ptr, $&1_descriptor, 0) == TCL_ERROR) {
     $1 = 0;
@@ -451,7 +451,7 @@
   }
 }
 
-%typecheck(1) void * {
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
   if (SWIG_ConvertPtr(interp, $input, (void **) &ptr, 0, 0) == TCL_ERROR) {
     $1 = 0;

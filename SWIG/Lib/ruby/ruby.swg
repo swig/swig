@@ -358,7 +358,7 @@ typedef unsigned long VALUE;
  * Typechecking rules
  * ------------------------------------------------------------ */
 
-%typecheck(10)
+%typecheck(SWIG_TYPECHECK_INTEGER)
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
 	 signed char, unsigned char,
@@ -371,32 +371,32 @@ typedef unsigned long VALUE;
   $1 = ((TYPE($input) == T_FIXNUM) || (TYPE($input) == T_BIGNUM)) ? 1 : 0;
 }
 
-%typecheck(20)
+%typecheck(SWIG_TYPECHECK_DOUBLE)
 	float, double,
 	const float &, const double &
 {
   $1 = ((TYPE($input) == T_FLOAT) || (TYPE($input) == T_FIXNUM) || (TYPE($input) == T_BIGNUM)) ? 1 : 0;
 }
 
-%typecheck(30) char {
+%typecheck(SWIG_TYPECHECK_CHAR) char {
   $1 = (TYPE($input) == T_STRING && (RSTRING($input)->len == 1)) ? 1 : 0;
 }
 
-%typecheck(31) char * {
+%typecheck(SWIG_TYPECHECK_STRING) char * {
   $1 = (TYPE($input) == T_STRING) ? 1 : 0;
 }
 
-%typecheck(0) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   void *ptr;
   $1 = (NIL_P($input) || (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0) != -1)) ? 1 : 0;
 }
 
-%typecheck(0) SWIGTYPE {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
   $1 = (NIL_P($input) || (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, $&1_descriptor, 0) != -1)) ? 1 : 0;
 }
 
-%typecheck(1) void * {
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
   $1 = (NIL_P($input) || (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, 0, 0) != -1)) ? 1 : 0;
 }
@@ -448,7 +448,7 @@ typedef unsigned long VALUE;
 %ignorewarn("384:operator-- ignored")  operator--;
 %ignorewarn("381:operator&& ignored")  operator&&;
 %ignorewarn("382:operator|| ignored")  operator||;
-%ignorewarn("387:operator-> ignored")  operator->;
+// %ignorewarn("387:operator-> ignored")  operator->;
 %ignorewarn("386:operator->* ignored") operator->*;
 %ignorewarn("389:operator[] ignored (consider using %extend)") operator[];
 

@@ -326,7 +326,7 @@
  * Typechecking rules
  * ------------------------------------------------------------ */
 
-%typecheck(10)
+%typecheck(SWIG_TYPECHECK_INTEGER)
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
 	 signed char, unsigned char,
@@ -340,22 +340,22 @@
   $1 = SvIOK($input) ? 1 : 0;
 }
 
-%typecheck(20)
+%typecheck(SWIG_TYPECHECK_DOUBLE)
 	float, double,
 	const float &, const double &
 {
   $1 = SvNOK($input) ? 1 : 0;
 }
 
-%typecheck(30) char {
+%typecheck(SWIG_TYPECHECK_CHAR) char {
   $1 = SvPOK($input) ? 1 : 0;
 }
 
-%typecheck(31) char * {
+%typecheck(SWIG_TYPECHECK_STRING) char * {
   $1 = SvPOK($input) ? 1 : 0;
 }
 
-%typecheck(0) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   void *tmp;
   if (SWIG_ConvertPtr($input, (void **) &tmp, $1_descriptor, 0) == -1) {
 	$1 = 0;
@@ -364,7 +364,7 @@
   }
 }
 
-%typecheck(0) SWIGTYPE {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *tmp;
   if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) == -1) {
 	$1 = 0;
@@ -373,7 +373,7 @@
   }
 }
 
-%typecheck(1) void * {
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *tmp;
   if (SWIG_ConvertPtr($input, (void **) &tmp, 0, 0) == -1) {
 	$1 = 0;
