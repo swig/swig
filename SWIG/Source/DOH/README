@@ -4,13 +4,14 @@ Overview:
 ---------
 DOH is a small C library that provides a number of simple yet powerful
 data structures for building flexible applications.  The data
-structures are built around a dynamic type model in which any given
+structures are built around a dynamic typing model in which any given
 object is allowed to support one or more classes of operations.
 
 Common Operations (for all types)
 ---------------------------------
 Delete(obj)             Decrease the reference count and destroy if zero
 Copy(obj)               Make a copy of an object.
+Clear(obj)              Clear an object.
 Str(obj)                Create a string representation of obj.
 Data(obj)               Return pointer to raw data in an object
 Len(obj)                Length of an object
@@ -27,8 +28,6 @@ Setattr(hash,key,value)        Set an attribute
 Delattr(hash,key)              Delete an attribute
 Firstkey(hash,key)             Get first key
 Nextkey(hash,key)              Get next key
-Getattrf(hash,key,format,...)  Formatted attribute get
-Setattrf(hash,key,format,...)  Formatted attribute set
 
 Sequence Operations
 -------------------

@@ -24,7 +24,7 @@
 #include "dohint.h"
 
 typedef struct List {
-    DOHCOMMON;
+    DOHXCOMMON;
     int          maxitems;        /* Max size  */
     int          nitems;          /* Num items */
     int          iter;            /* Iterator  */
@@ -58,6 +58,13 @@ static DohSequenceMethods ListSeqMethods = {
   List_next,
 };
 
+static DohPositionalMethods ListPositionalMethods = {
+  XBase_setfile,
+  XBase_getfile,
+  XBase_setline,
+  XBase_getline
+};
+
 static DohObjInfo ListType = {
     "List",          /* objname */
     sizeof(List),    /* List size */
@@ -77,6 +84,7 @@ static DohObjInfo ListType = {
     0,               /* doh_file */
     0,               /* doh_string */
     0,               /* doh_callable */
+    &ListPositionalMethods, /* doh_position */         
 };
 
 DohObjInfo *List_type() {
@@ -123,6 +131,7 @@ NewList() {
     List *l;
     int   i;
     l = (List *) DohObjMalloc(sizeof(List));
+    DohXInit(l);
     l->objinfo = &ListType;
     l->nitems = 0;
     l->maxitems = MAXLISTITEMS;
@@ -144,6 +153,7 @@ CopyList(DOH *lo) {
     int i;
     l = (List *) lo;
     nl = (List *) DohObjMalloc(sizeof(List));
+    DohXInit(nl);
     nl->objinfo = l->objinfo;
     nl->nitems = l->nitems;
     nl->maxitems = l->maxitems;
@@ -155,6 +165,9 @@ CopyList(DOH *lo) {
 	    Incref(nl->items[i]);
 	}
     }
+    nl->file = l->file;
+    if (nl->file) Incref(nl->file);
+    nl->line = l->line;
     return (DOH *) nl;
 }
 
@@ -173,6 +186,7 @@ DelList(DOH *lo) {
     }
     DohFree(l->items);
     l->items = 0;
+    Delete(l->file);
     DohObjFree(l);
 }
 
