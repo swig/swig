@@ -1588,6 +1588,8 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		  }
                   $$ = 0;
 		}
+                /* Forward template class declaration */
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype ID SEMI { $$ = 0; }
                 ;
 
 
