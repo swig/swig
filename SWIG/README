@@ -85,6 +85,9 @@ Here are a few missing features:
    - The Tcl7.x and Perl4 modules are deprecated and no longer
      included.
 
+   - The Perl5 module is need in some repair.  We are looking for
+     a maintainer to help us with this.
+
    - A wide variety of old SWIG command-line options and
      obscure features are gone.
 

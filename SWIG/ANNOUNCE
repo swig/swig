@@ -134,6 +134,12 @@ reimplemented for some time. C++ programmers who make extensive use of
 typemaps may encounter a few strange problems (although SWIG will
 generate warning messages).
 
+The Perl5 module is also in some need of some repair and may not work
+with all Perl configurations such as ActivePerl (It seems to work with
+a standard Perl5.6.1 distribution however).  We are looking for a
+fearless volunteer to help us with future Perl5 support (please skip
+to the end for details).
+
 Documentation
 -------------
 This release contains partially updated documentation.  Almost all new
