@@ -23,7 +23,7 @@ LIB_DIR  = $(prefix)/lib
 
 SWIGOBJS   = Source/SWIG1.1/*.o Source/Modules1.1/*.o Source/DOH/Doh/*.o Source/Swig/*.o Source/Preprocessor/*.o
 
-EXPOBJS    = Source/DOH/Doh/*.o Source/Swig/*.o Source/Preprocessor/*.o Source/LParse/*.o Source/Experiment/*.o
+EXPOBJS    = Source/DOH/Doh/*.o Source/Swig/*.o Source/Preprocessor/*.o Source/LParse/*.o Source/Experiment/*.o Source/SWILL/SWILL/*.o Source/Swim/*.o
 
 swig: objs
 	$(CXX) $(SWIGOBJS) $(LIBS) -o $(TARGET)
