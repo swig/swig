@@ -875,7 +875,7 @@ public:
     /* Error handling code */
     Printf(f->code,"fail:\n");
     Printv(f->code,cleanup,NIL);
-    Printf(f->code,"rb_raise(rb_eRuntimeError,\"failure occurred\");\n"); /* not quite right! */
+    /* Anything else to do here? */
     Printf(f->code,"}\n");
 
     /* Substitute the cleanup code */
