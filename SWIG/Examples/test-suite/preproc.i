@@ -236,3 +236,29 @@ inline const char* mangle ## #@__VA_ARGS__ () {
 }
 
 #endif
+
+
+#if defined (__cplusplus) \
+|| defined (_AIX) \
+|| defined (__DECC) \
+|| (defined (__mips) && defined (_SYSTYPE_SVR4)) \
+|| defined (_MSC_VER) \
+|| defined (_WIN32)
+#define __GMP_HAVE_CONST 1
+#define __GMP_HAVE_PROTOTYPES 1
+#define __GMP_HAVE_TOKEN_PASTE 1
+#else
+#define __GMP_HAVE_CONST 0
+#define __GMP_HAVE_PROTOTYPES 0
+#define __GMP_HAVE_TOKEN_PASTE 0
+#endif
+
+
+/* empyt TWO() macro is broken */
+#define ONE 1
+#define TWO() 2
+#define THREE(FOO) 3
+
+#define one ONE
+#define two TWO
+#define three THREE(42)
