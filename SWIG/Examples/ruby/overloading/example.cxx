@@ -40,6 +40,10 @@ Bar::Bar(Bar *x) {
 }
 
 // Overloaded member functions
+void Bar::foo(const Bar& x) {
+    std::cout << "Called Bar::foo(const Bar&) with &x = " << &x << std::endl;
+}
+
 void Bar::foo(double x) {
     std::cout << "Called Bar::foo(double) with x = " << x << std::endl;
 }
@@ -69,6 +73,10 @@ void Bar::foo(Bar *x) {
 }
 
 // Overloaded global methods
+void foo(const Bar& x) {
+    std::cout << "Called foo(const Bar& x) with &x = " << &x << std::endl;
+}
+
 void foo(double x) {
     std::cout << "Called foo(double) with x = " << x << std::endl;
 }

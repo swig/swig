@@ -9,19 +9,21 @@ public:
     Bar(double, char *);
     Bar(int, int);
     Bar(char *);
-    Bar(int);
     Bar(long);
+    Bar(int);
     Bar(Bar *);
 
+    void foo(const Bar&);
     void foo(double);
     void foo(double, char *);
     void foo(int, int);
     void foo(char *);
-    void foo(int);
     void foo(long);
+    void foo(int);
     void foo(Bar *);
 };
 
+void foo(const Bar&);
 void foo(double);
 void foo(double, char *);
 void foo(int, int);
