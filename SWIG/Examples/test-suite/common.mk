@@ -49,7 +49,7 @@ CPP_TEST_BROKEN += \
 	namespace_union \
 	nested_comment \
 	overload_complicated \
-	template_broken \
+	template_default_pointer \
 	template_expr
 
 
