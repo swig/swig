@@ -367,6 +367,7 @@ get_filename(DOH *str) {
   } else {
     Putc(c,fn);
     while (((c = Getc(str)) != EOF) && (!isspace(c))) Putc(c,fn);
+    if (isspace(c)) Ungetc(c,str);
   }
   Seek(fn,0,SEEK_SET);
   return fn;
