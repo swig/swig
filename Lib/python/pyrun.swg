@@ -169,7 +169,11 @@ PySwigObject_GetType() {
 #endif
   };
 
-  static PyTypeObject PySwigObject_Type = {
+  static int type_init = 0;  
+  static PyTypeObject PySwigObject_Type;
+
+  if (!type_init) {
+    PyTypeObject tmp = {
     PyObject_HEAD_INIT(&PyType_Type)
     0,					/*ob_size*/
     "PySwigObject",			/*tp_name*/
@@ -208,7 +212,11 @@ PySwigObject_GetType() {
 #ifdef COUNT_ALLOCS
     0,0,0,0                             /* tp_alloc -> tp_next */
 #endif
-  };
+    };
+
+    PySwigObject_Type = tmp;
+    type_init = 1;
+  }
 
   return &PySwigObject_Type;
 }
@@ -313,8 +321,11 @@ SWIGRUNTIME PyTypeObject*
 PySwigPacked_GetType() {
   static char PySwigPacked_Type__doc__[] = 
     "Swig object carries a C/C++ instance pointer";
+  static int type_init = 0;
   
-  static PyTypeObject PySwigPacked_Type = {
+  static PyTypeObject PySwigPacked_Type;
+  if (!type_init) {
+    PyTypeObject tmp = {
     PyObject_HEAD_INIT(&PyType_Type)
     0,					/*ob_size*/
     "PySwigPacked",			/*tp_name*/
@@ -353,7 +364,13 @@ PySwigPacked_GetType() {
 #ifdef COUNT_ALLOCS
     0,0,0,0                             /* tp_alloc -> tp_next */
 #endif
-  };
+    };
+
+    PySwigPacked_Type = tmp;
+    type_init = 1;
+  }
+  
+      
 
   return &PySwigPacked_Type;
 }
