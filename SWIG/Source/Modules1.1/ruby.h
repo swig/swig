@@ -12,8 +12,7 @@
 
 class RUBY : public Language {
  protected:
-  virtual String *make_wrapper_name(char *cname);
-  virtual char *validate_const_name(char *name);
+  virtual char *validate_const_name(char *name, const char *reason);
   void marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrapper *f);
   void insertConstraintCheckingCode(ParmList *l, Wrapper *f);
   void insertCleanupCode(ParmList *l, String *cleanup);
@@ -26,6 +25,9 @@ class RUBY : public Language {
   virtual int constantWrapper(Node *);
   virtual int variableWrapper(Node *);
   virtual int nativeWrapper(Node *);
+  
+  /* Is this a valid identifier for Ruby? */
+  virtual int validIdentifier(String *s);
 
   virtual int staticmemberfunctionHandler(Node *);
   virtual int staticmembervariableHandler(Node *);

@@ -1,4 +1,4 @@
-  <html>
+<html>
 
 <head>
 <title>SWIG and Ruby</title>
@@ -1760,7 +1760,7 @@ typemap variable <tt>$1_descriptor</tt>.  For example:
 Adding native Ruby methods with <tt>%native</tt> is not supported.
 
 <hr>
-<a name="n7"></a><h2>Operator overloading </h2>
+<a name="n7"></a><h2>Operator overloading</h2>
 
 SWIG allows operator overloading with, by using the <tt>%addmethod</tt> or
 <tt>%rename</tt> commands in swig and the following operator names (derived
@@ -1960,7 +1960,52 @@ Also note that the call to <tt>Data_Wrap_Struct()</tt> sets the <tt>free</tt> pa
 for <tt>CPP_Object</tt> to <tt>NULL</tt>.  That is done because C++, owns the object and thus
 should free it, not Ruby.
 
+<h2>Advanced Stuff</h2>
+<h3>Predicate Methods</h3>
+Predicate methods in Ruby are those which return either <tt>true</tt> or
+<tt>false</tt>. By convention, these methods end in a question mark; some
+examples from built-in Ruby classes include <em>Array#empty?</em> (which
+returns <tt>true</tt> for an array containing no elements) and
+<em>Object#instance_of?</em> (which returns true if the object is an instance
+of the specified class). For consistency with Ruby conventions you would
+also want your interface's predicate methods' names to end in a question
+mark and return <tt>true</tt> or <tt>false</tt>, but if you try to use SWIG's
+<tt>%rename</tt> directive, e.g.<p>
 
+<blockquote>
+<pre>
+%rename("is_it_safe?") is_it_safe();
+
+int is_it_safe();
+</pre>
+</blockquote>
+
+you'll get a warning message that "safe?" can't be wrapped unless it's renamed
+to a valid identifier. Even if the name weren't an issue, the wrapped function
+would (without a typemap) return a Ruby <tt>Fixnum</tt> instead of a boolean value.<p>
+
+The solution is to use the <tt>%predicate</tt> directive (unique to SWIG's Ruby module)
+to designate certain methods as predicate methods. For the previous example, this would
+look like:<p>
+
+<blockquote>
+<pre>
+%predicate is_it_safe();
+
+int is_it_safe();
+</pre>
+</blockquote>
+and to use this method from your Ruby code:
+<blockquote>
+<pre>
+irb(main):001:0> <b>Example::is_it_safe?</b>
+true
+</pre>
+</blockquote>
+Note that the <tt>%predicate</tt> directive is implemented using SWIG's'
+"features" mechanism and so the same name matching rules used for other
+kinds of features apply (see the chapter on <a href="Exceptions.html">"Exceptions,
+Features and other Customizations"</a>) for more details).
 <hr>
 
 <address>SWIG 1.3 - Last Modified : $Date$</address>

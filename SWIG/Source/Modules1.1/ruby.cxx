@@ -41,7 +41,6 @@ class RClass {
   String *aliases;
   String *includes;
   Hash *freemethods;
-  Hash *predmethods;
   int constructor_defined;
   int destructor_defined;
 
@@ -57,7 +56,6 @@ class RClass {
     aliases = NewString("");
     includes = NewString("");
     freemethods = NewHash();
-    predmethods = NewHash();
     constructor_defined = 0;
     destructor_defined = 0;
   }
@@ -72,7 +70,6 @@ class RClass {
     Delete(aliases);
     Delete(includes);
     Delete(freemethods);
-    Delete(predmethods);
     Delete(temp);
   }
 
@@ -357,20 +354,6 @@ RUBY::nativeWrapper(Node *n) {
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::make_wrapper_name(char *cname)
- *
- * Creates a name for a wrapper function
- *              iname = Name of the function in scripting language
- * --------------------------------------------------------------------- */
-
-String *RUBY::make_wrapper_name(char *iname) {
-  String *wname = Swig_name_wrapper(iname);
-  Replace(wname, "?", "_p", DOH_REPLACE_ANY);
-  Replace(wname, "!", "_bang", DOH_REPLACE_ANY);
-  return wname;
-}
-
-/* ---------------------------------------------------------------------
  * RUBY::create_command(char *cname, char *iname)
  *
  * Creates a new command from a C function.
@@ -380,7 +363,7 @@ String *RUBY::make_wrapper_name(char *iname) {
  * --------------------------------------------------------------------- */
 
 void RUBY::create_command(char *cname, char *iname, int argc) {
-  String *wname = make_wrapper_name(iname);
+  String *wname = Swig_name_wrapper(iname);
   if (CPlusPlus) {
     Insert(wname,0,"VALUEFUNC(");
     Append(wname,")");
@@ -571,6 +554,33 @@ void RUBY::insertArgOutputCode(ParmList *l, String *outarg, int& need_result) {
 }
 
 /* ---------------------------------------------------------------------
+ * RUBY::validIdentifier()
+ *
+ * Is this a valid identifier in the scripting language?
+ * Ruby method names can include any combination of letters, numbers
+ * and underscores. A Ruby method name may optionally end with
+ * a question mark ("?"), exclamation point ("!") or equals sign ("=").
+ *
+ * Methods whose names end with question marks are, by convention,
+ * predicate methods that return true or false (e.g. Array#empty?).
+ *
+ * Methods whose names end with exclamation points are, by convention,
+ * "mutators" that modify the instance in place (e.g. Array#sort!).
+ *
+ * Methods whose names end with an equals sign are attribute setters
+ * (e.g. Thread#critical=).
+ * --------------------------------------------------------------------- */
+
+int RUBY::validIdentifier(String *s) {
+  char *c = Char(s);
+  while (*c) {
+    if ( !( isalnum(*c) || (*c == '_') || (*c == '?') || (*c == '!') || (*c == '=') ) ) return 0;
+    c++;
+  }
+  return 1;
+}
+
+/* ---------------------------------------------------------------------
  * RUBY::functionWrapper()
  *
  * Create a function declaration and register it with the interpreter.
@@ -592,7 +602,7 @@ int RUBY::functionWrapper(Node *n) {
     return SWIG_NOWRAP;
 
   char mname[256], inamebuf[256];
-  int predicate = 0, need_result = 0;
+  int need_result = 0;
 
   cleanup = NewString("");
   outarg = NewString("");
@@ -603,15 +613,17 @@ int RUBY::functionWrapper(Node *n) {
   case MEMBER_VAR:
   case STATIC_FUNC:
     strcpy(mname, klass->strip(iname));
-    if (Getattr(klass->predmethods, mname)) {
-      predicate = 1;
-      sprintf(inamebuf,"%s?",iname);
-      iname = inamebuf;
-    }
     break;
   }
-  String *wname = make_wrapper_name(iname);
+  
+  // Rename predicate methods
+  if (Getattr(n, "feature:predicate")) {
+    sprintf(inamebuf,"%s?",iname);
+    iname = inamebuf;
+  }
 
+  String *wname = Swig_name_wrapper(iname);
+  
   /* Emit arguments */
   if (current != CONSTRUCTOR_NEW) {
     emit_args(t,l,f);
@@ -669,7 +681,7 @@ int RUBY::functionWrapper(Node *n) {
   /* Return value if necessary */
   if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_NEW && current != CONSTRUCTOR_INITIALIZE) {
     need_result = 1;
-    if (predicate) {
+    if (Getattr(n, "feature:predicate")) {
       Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NULL);
     } else {
       tm = Swig_typemap_lookup_new("out",n,"result",0);
@@ -867,7 +879,7 @@ int RUBY::variableWrapper(Node *n) {
  * Validate constant name.
  * --------------------------------------------------------------------- */
 
-char *RUBY::validate_const_name(char *name) {
+char *RUBY::validate_const_name(char *name, const char *reason) {
   if (!name || name[0] == '\0')
     return name;
 
@@ -876,13 +888,13 @@ char *RUBY::validate_const_name(char *name) {
 
   if (islower(name[0])) {
     name[0] = toupper(name[0]);
-    Printf(stderr,"%s : Line %d. Wrong constant/class/module name "
-	    "(corrected to `%s')\n", input_file, line_number, name);
+    Printf(stderr, "%s : Line %d. Wrong %s name "
+	    "(corrected to `%s')\n", input_file, line_number, reason, name);
     return name;
   }
 
-  Printf(stderr,"%s : Line %d. Wrong constant/class/module name\n",
-	  input_file, line_number);
+  Printf(stderr,"%s : Line %d. Wrong %s name\n",
+	  input_file, line_number, reason);
   return name;
 }
 
@@ -892,14 +904,15 @@ char *RUBY::validate_const_name(char *name) {
 
 int RUBY::constantWrapper(Node *n) {
   Swig_require(&n, "*sym:name", "type", "value", NULL);
-
+  
   char *iname     = GetChar(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
-  char  *value    = GetChar(n,"value");
+  char *value     = GetChar(n,"value");
 
   if (current == CLASS_CONST) {
     iname = klass->strip(iname);
   }
+  validate_const_name(iname, "constant");
   SetChar(n, "sym:name", iname);
 
   String *tm = Swig_typemap_lookup_new("constant",n,value,0);
@@ -939,7 +952,7 @@ int RUBY::classHandler(Node *n) {
     SET_RCLASS(classes,cname,klass);
   }
   String *valid_name = NewString(rename);
-  validate_const_name(Char(valid_name));
+  validate_const_name(Char(valid_name), "class");
   klass->set_name(cname,rename,Char(valid_name));
 
   Clear(klass->type);
@@ -1188,7 +1201,7 @@ int RUBY::classforwardDeclaration(Node *n) {
   if (!kls) {
     kls = new RClass();
     String *valid_name = NewString((rename ? rename : cname));
-    validate_const_name(Char(valid_name));
+    validate_const_name(Char(valid_name), "class");
     kls->set_name(cname, rename, Char(valid_name));
     SET_RCLASS(classes, cname, kls);
     Delete(valid_name);
@@ -1238,13 +1251,6 @@ void RUBY::pragma(char *lang, char *cmd, char *value) {
     }
     Printv(klass->aliases, tab4, "rb_define_alias($class, ",
 	   "\"", alias, "\", \"", name, "\");\n", 0);
-  } else if (strcmp(cmd, "pred") == 0) {
-    char *tok;
-    tok = strtok(value, " \t");
-    while (tok) {
-      Setattr(klass->predmethods, tok, tok);
-      tok = strtok(0, " \t");
-    }
   } else {
     Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
 	    input_file, line_number);

@@ -14,6 +14,7 @@
 #endif
 
 #define %markfunc %feature("markfunc")
+#define %predicate %feature("predicate", "1")
 
 /* ----------------------------------------------------------------------
  *                         Standard Typemaps
