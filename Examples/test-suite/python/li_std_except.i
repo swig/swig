@@ -1,4 +1,4 @@
-%module lib_std_except
+%module li_std_except
 
 %include <std_except.i>
 
