@@ -6,22 +6,13 @@
 
 <body bgcolor="#ffffff">
 
-<a name="iG"></a><h1>G SWIG and Guile</h1></a><p><ul>
-<li><a name="iG.1" href="#G.1">G.1 Meaning of "Module"</a>
-<li><a name="iG.2" href="#G.2">G.2 Linkage</a>
-<li><a name="iG.3" href="#G.3">G.3 Underscore Folding</a>
-<li><a name="iG.4" href="#G.4">G.4 Typemaps</a>
-<li><a name="iG.5" href="#G.5">G.5 Smobs</a>
-<li><a name="iG.6" href="#G.6">G.6 Exception Handling</a>
-<li><a name="iG.7" href="#G.7">G.7 Procedure documentation</a>
-<li><a name="iG.8" href="#G.8">G.8 Procedures with setters</a>
-</ul>
+<h1>G SWIG and Guile</h1>
+
 
 <p>
 This section details guile-specific support in SWIG.
 
-<a name="G.1" href="#iG.1">
-<h3>G.1 Meaning of "Module"</h3>
+<h2>Meaning of "Module"</h2>
 </a>
 
 <p>
@@ -29,8 +20,7 @@ There are three different concepts of "module" involved, defined
 separately for SWIG, Guile, and Libtool.  To avoid horrible confusion,
 we explicitly prefix the context, e.g., "guile-module".
 
-<a name="G.2" href="#iG.2">
-<h3>G.2 Linkage</h3>
+<h2>Linkage</h2>
 </a>
 
 <p>
@@ -38,7 +28,7 @@ Guile support is complicated by a lack of user community cohesiveness,
 which manifests in multiple shared-library usage conventions.  A set of
 policies implementing a usage convention is called a <b>linkage</b>.
 
-<h4>Simple Linkage</h4>
+<h3>Simple Linkage</h3>
 
 The default linkage is the simplest; nothing special is done.  In this
 case the function <code>SWIG_init()</code> is exported. Simple linkage
@@ -110,7 +100,7 @@ placed between the <code>define-module</code> form and the
 <code>SWIG_init</code> via a preprocessor define to avoid symbol
 clashes. For this case, however, passive linkage is available.
 
-<h4>Passive Linkage</h4>
+<h3>Passive Linkage</h3>
 
 <p>Passive linkage is just like simple linkage, but it generates an
 initialization function whose name is derived from the module and
@@ -119,7 +109,7 @@ package name (see below).
 <p>You should use passive linkage rather than simple linkage when you
 are using multiple modules.
 
-<h4>Native Guile Module Linkage</h4>
+<h3>Native Guile Module Linkage</h3>
 
 <p>SWIG can also generate wrapper code that does all the Guile module
 declarations on its own if you pass it the <code>-Linkage
@@ -159,7 +149,7 @@ Newer Guile versions have a shorthand procedure for this:
 </blockquote>
 </ul>
 
-<h4>Old Auto-Loading Guile Module Linkage</h4>
+<h3>Old Auto-Loading Guile Module Linkage</h3>
 
 <p>Guile used to support an autoloading facility for object-code
 modules. This support has been marked deprecated in version 1.4.1 and
@@ -184,7 +174,7 @@ option, SWIG generates an exported module initialization function with
 an apropriate name. 
 
 
-<h4>Hobbit4D Linkage</h4>
+<h3>Hobbit4D Linkage</h3>
 
 <p>
 The only other linkage supported at this time creates shared object
@@ -206,7 +196,7 @@ my/lib/libfoo.so.X.Y.Z and friends.  This scheme is still very
 experimental; the (hobbit4d link) conventions are not well understood.
 
 
-<h4>General Remarks on Multiple SWIG Modules</h4>
+<h3>General Remarks on Multiple SWIG Modules</h3>
 
 If you want to use multiple SWIG modules, they have to share some 
 run-time data for the typing system. You have two options:
@@ -225,8 +215,7 @@ SWIG if you invoke it with the <code>-guile -ldflags</code>
 command-line arguments.
 </ul>
 
-<a name="G.3" href="#iG.3">
-<h3>G.3 Underscore Folding</h3>
+<h2>Underscore Folding</h2>
 </a>  
 
 <p>
@@ -238,8 +227,7 @@ complained so far.
 <code>%rename</code> to specify the Guile name of the wrapped
 functions and variables (see CHANGES).
 
-<a name="G.4" href="#iG.4">
-<h3>G.4 Typemaps</h3>
+<h2>Typemaps</h2>
 </a>
 
 <p>
@@ -302,8 +290,7 @@ In <code><var>body</var></code>, the first result of
 </ul>
 See also the "multivalue" example.
 
-<a name="G.5" href="#iG.5">
-<h3>G.5 Smobs</h3>
+<h2>Smobs</h2>
 </a>
 
 <p>
@@ -341,8 +328,7 @@ representing the expected pointer type.  If the
 Scheme object passed was not a SWIG smob representing a compatible
 pointer, a <code>wrong-type-arg</code> exception is raised.
 
-<a name="G.6" href="#iG.6">
-<h3>G.6 Exception Handling</h3>
+<h2>Exception Handling</h2>
 </a>
 
 <p>
@@ -366,8 +352,7 @@ mapping:
 The default when not specified here is to use "swig-error".
 See Lib/exception.i for details.
 
-<a name="G.7" href="#iG.7">
-<h3>G.7 Procedure documentation</h3>
+<h2>Procedure documentation</h2>
 </a>
 
 <p>If invoked with the command-line option <code>-procdoc
@@ -402,8 +387,7 @@ typemaps <code>indoc</code>, <code>outdoc</code>,
 <code>varoutdoc</code>. See <code>Lib/guile/typemaps.i</code> for
 details.
 
-<a name="G.8" href="#iG.8">
-<h3>G.8 Procedures with setters</h3>
+<h2>Procedures with setters</h2>
 </a>
 
 <p>For global variables, SWIG creates a single wrapper procedure

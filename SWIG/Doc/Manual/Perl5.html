@@ -9,7 +9,7 @@
 <b>Caution: This chapter is under repair!</b>
 
 <p>
-In this chapter, we discuss SWIG's support of Perl5. Although the Perl5
+This chapter describes SWIG's support of Perl5. Although the Perl5
 module is one of the earliest SWIG modules, it has continued to evolve
 and has been improved greatly with the help of SWIG users. For the
 best results, it is recommended that SWIG be used with Perl5.003 or
@@ -22,11 +22,11 @@ To build Perl extension modules, SWIG uses a layered approach.  At
 the lowest level, simple procedural wrappers are generated for
 functions, classes, methods, and other declarations in the input file.
 Then, for structures and classes, an optional collection of Perl
-proxy classes are generated in order to provide a more natural Perl
+proxy classes can be generated in order to provide a more natural object oriented Perl
 interface. These proxy classes simply build upon the low-level interface.
 
 <p>
-In describing Perl interface, this chapter begins by covering the
+In describing the Perl interface, this chapter begins by covering the
 essentials. First, the problem of configuration, compiling,
 and installing Perl modules is discussed.  Next, the low-level
 procedural interface is presented.  Finally, proxy classes are
@@ -46,7 +46,7 @@ swig -perl example.i
 This produces two files. The first file, <tt>example_wrap.c</tt>
 contains all of the C code needed to build a Perl5 module. The second
 file, <tt>example.pm</tt> contains supporting Perl code needed to
-properly load the module into Perl. 
+properly load the module.
 
 <p>
 To build the module, you will need to compile the file
@@ -92,7 +92,7 @@ using comands like this (shown for Linux):
 % gcc -shared example.o example_wrap.o -o example.so
 </pre></blockquote>
 
-The exact compiler options for doing this vary from platform to platform. 
+The exact compiler options vary from platform to platform. 
 SWIG tries to guess the right options when it is installed.  Therefore, 
 you may want to start with one of the examples in the <tt>SWIG/Examples/perl5</tt> 
 directory.   If that doesn't work, you will need to read the man-pages for
@@ -199,10 +199,10 @@ should be functionality identical to Perl with your C/C++ extension
 added to it.  Depending on your machine, you may need to link with
 additional libraries such as <tt>-lsocket, -lnsl, -ldl</tt>, etc.
 
-<h3> Using your module</h3>
+<h3>Using the module</h3>
 
-To use your module, simply use the Perl <tt>use</tt> statement.  If
-all goes well, you will be able to this:
+To use the module, simply use the Perl <tt>use</tt> statement.  If
+all goes well, you will be able to do this:
 
 <p>
 <blockquote><pre>$ perl
@@ -236,7 +236,7 @@ BEGIN failed--compilation aborted at - line 1.
 </pre>
 </blockquote>
 
-This error is generated because Perl can't locate the module bootstrap module in the
+This error is generated because Perl can't locate the module bootstrap function in the
 SWIG extension module.  This could be caused by a mismatch between the module name and the shared library name.
 However, another possible cause is forgetting to link the SWIG-generated wrapper code with the rest
 of your application when you linked the extension module.
@@ -247,7 +247,8 @@ Another common error is the following:
 <blockquote>
 <pre>
 use example;
-Can't load './example.so' for module example: ./example.so: undefined symbol: Foo at /usr/lib/perl5/5.00503/i386-linux/DynaLoader.pm line 169.
+Can't load './example.so' for module example: ./example.so: 
+undefined symbol: Foo at /usr/lib/perl5/5.00503/i386-linux/DynaLoader.pm line 169.
 
  at - line 1
 BEGIN failed--compilation aborted at - line 1.
@@ -267,7 +268,8 @@ occurs when a header file includes a declaration for a function that
 was never actually implemented or it was removed from a library
 without updating the header file.  To fix this, you can either edit
 the SWIG input file to remove the offending declaration or you can use
-the <tt>%ignore</tt> directive to ignore the declaration.
+the <tt>%ignore</tt> directive to ignore the declaration.  Better yet,
+update the header file so that it doesn't have an undefined declaration.
 
 <p>
 Finally, suppose that your extension module is linked with another library like this:
@@ -275,7 +277,7 @@ Finally, suppose that your extension module is linked with another library like 
 <blockquote>
 <pre>
 $ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib -lfoo \
-      -o examplemodule.so
+      -o example.so
 </pre>
 </blockquote>
 
@@ -285,7 +287,8 @@ error when you try to use your module:
 <blockquote>
 <pre>
 use example;
-Can't load './example.so' for module example: libfoo.so: cannot open shared object file: No such file or directory at /usr/lib/perl5/5.00503/i386-linux/DynaLoader.pm line 169.
+Can't load './example.so' for module example: libfoo.so: cannot open shared object file: 
+No such file or directory at /usr/lib/perl5/5.00503/i386-linux/DynaLoader.pm line 169.
 
  at - line 1
 BEGIN failed--compilation aborted at - line 1.
@@ -303,8 +306,8 @@ module with extra path information. For example, on Linux you can do this:
 <blockquote>
 <pre>
 $ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib -lfoo \
-      -Xlinker -rpath /home/beazley/projects/lib \
-      -o examplemodule.so
+      <b>-Xlinker -rpath /home/beazley/projects/lib \</b>
+      -o example.so
 </pre>
 </blockquote>
 
@@ -341,7 +344,7 @@ compiler.  For example:
 <blockquote><pre>% swig -c++ -perl example.i
 % g++ -c example.cxx
 % g++ -c example_wrap.cxx -I/usr/lib/perl5/5.00503/i386-linux/CORE
-% g++ -shared example.o example_wrap.o -o example.so
+% <b>g++ -shared example.o example_wrap.o -o example.so</b>
 </pre></blockquote>
 
 In addition to this, you may need to include additional library
@@ -352,7 +355,7 @@ Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 <blockquote><pre>% swig -c++ -perl example.i
 % g++ -c example.cxx
 % g++ -c example_wrap.cxx -I/usr/lib/perl5/5.00503/i386-linux/CORE
-% g++ -shared example.o example_wrap.o -o example.so -lCrun
+% g++ -shared example.o example_wrap.o -o example.so <b>-lCrun</b>
 </pre></blockquote>
 
 Of course, the names of the extra libraries are completely non-portable---you will 
@@ -360,11 +363,11 @@ probably need to do some experimentation.
 
 <p>
 Sometimes people have suggested that it is necessary to relink the
-Python interpreter using the C++ compiler to make C++ extension modules work.
+Perl interpreter using the C++ compiler to make C++ extension modules work.
 In the experience of this author, this has never actually appeared to be
 necessary on most platforms.   Relinking the interpreter with C++ really only includes the 
 special run-time libraries described above---as long as you link your extension 
-modules with these libraries, it should not be necessary to rebuild Python.
+modules with these libraries, it should not be necessary to rebuild Perl.
 
 <p>
 If you aren't entirely sure about the linking of a C++ extension, you
@@ -376,7 +379,7 @@ extension module. For example, notice the first line of output here:
 <blockquote>
 <pre>
 $ ldd swig
-        libstdc++-libc6.1-1.so.2 => /usr/lib/libstdc++-libc6.1-1.so.2 (0x40019000)
+        <b>libstdc++-libc6.1-1.so.2 => /usr/lib/libstdc++-libc6.1-1.so.2 (0x40019000)</b>
         libm.so.6 => /lib/libm.so.6 (0x4005b000)
         libc.so.6 => /lib/libc.so.6 (0x40077000)
         /lib/ld-linux.so.2 => /lib/ld-linux.so.2 (0x40000000)
@@ -385,7 +388,7 @@ $
 </blockquote>
 
 <p>
-As a final complication, a major complication of C++ is that it does not
+If linking wasn't enough of a problem, another major complication of C++ is that it does not
 define any sort of standard for binary linking of libraries.  This
 means that C++ code compiled by different compilers will not link
 together properly as libraries nor is the memory layout of classes and
@@ -398,9 +401,10 @@ you will need to take steps to avoid segmentation faults and other
 erratic program behavior.   Also, be aware that certain C++ features, especially RTTI,
 can behave strangely when working with multiple modules.
 
-In some cases, you may get alot of error messages about the
-`<tt>bool</tt>' datatype when compiling a SWIG module. If you
-experience this problem, you can try the following :<p>
+<p>
+Finally, it should be noted that you may get alot of error messages
+about the `<tt>bool</tt>' datatype when compiling a C++ Perl module. If
+you experience this problem, you can try the following :<p>
 
 <p>
 <ul>
@@ -509,45 +513,6 @@ At its core, the Perl module uses a simple low-level interface
 to C function, variables, constants, and classes.  This low-level interface
 can be used to control your application.  However, it is also used to
 construct more user-friendly proxy classes as described in the next section.
-
-<h3>Modules and packages</h3>
-
-When you create a SWIG extension, everything gets placed into
-a single Perl module. The name of the module is determined by the
-<tt>%module</tt> directive. To use the module, do the following :<p>
-
-<p>
-<blockquote><pre>% perl5
-use example;                      # load the example module
-print example::fact(4),"\n"       # Call a function in it
-24
-</pre></blockquote>
-
-<p>
-Usually, a module consists of a collection of code that is contained
-within a single file. A package, on the other hand, is the Perl
-equivalent of a namespace. A package is alot like a module, except
-that it is independent of files. Any number of files may be part of
-the same package--or a package may be broken up into a collection of
-modules if you prefer to think about it in this way.<p>
-
-<p>
-By default, SWIG installs its functions into a package with the same
-name as the module. This can be changed by giving SWIG the -package
-option :<p>
-
-<p>
-<blockquote><pre>% swig -perl -package Foo example.i
-</pre></blockquote>
-
-<p>
-In this case, you still create a module called `<tt>example</tt>' exactly as before, but
-all of the functions in that module will be installed into the package
-`<tt>Foo</tt>.' For example :<p>
-<p>
-<blockquote><pre>use example;   # Load the module like before
-print Foo::fact(4),"\n";        # Call a function in package FooBar
-</pre></blockquote>
 
 <h3> Functions</h3>
 C functions are converted into new Perl built-in commands (or
@@ -1006,6 +971,46 @@ $c = example::add_complex($a,$b);
 
 Some preliminary work on mapping C++ operators into Perl operators has been completed. This is covered later.
 
+<h3>Modules and packages</h3>
+
+When you create a SWIG extension, everything gets placed into
+a single Perl module. The name of the module is determined by the
+<tt>%module</tt> directive. To use the module, do the following :<p>
+
+<p>
+<blockquote><pre>% perl5
+use example;                      # load the example module
+print example::fact(4),"\n"       # Call a function in it
+24
+</pre></blockquote>
+
+<p>
+Usually, a module consists of a collection of code that is contained
+within a single file. A package, on the other hand, is the Perl
+equivalent of a namespace. A package is alot like a module, except
+that it is independent of files. Any number of files may be part of
+the same package--or a package may be broken up into a collection of
+modules if you prefer to think about it in this way.<p>
+
+<p>
+By default, SWIG installs its functions into a package with the same
+name as the module. This can be changed by giving SWIG the -package
+option :<p>
+
+<p>
+<blockquote><pre>% swig -perl -package Foo example.i
+</pre></blockquote>
+
+<p>
+In this case, you still create a module called `<tt>example</tt>' exactly as before, but
+all of the functions in that module will be installed into the package
+`<tt>Foo</tt>.' For example :<p>
+<p>
+<blockquote><pre>use example;   # Load the module like before
+print Foo::fact(4),"\n";        # Call a function in package FooBar
+</pre></blockquote>
+
+
 <h2>Input and output parameters</h2>
 
 A common problem in some C programs is handling parameters passed as simple pointers.  For
@@ -1319,7 +1324,7 @@ For example:
 </blockquote>
 
 Since SWIG's exception handling is user-definable, you are not limited to C++ exception handling.
-See the chapter on "<a href="Exceptions.html">Exception Handling</a>" for more examples.
+See the chapter on "<a href="Customization.html">Customization features</a>" for more examples.
 
 <p>
 <b>Compatibility note:</b> In SWIG1.1, exceptions were defined using the older <tt>%except</tt> directive:

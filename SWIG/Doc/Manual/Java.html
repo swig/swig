@@ -584,7 +584,7 @@ It is however possible to write JNI calls in <a href="#n126">typemaps for both C
 The <tt>ThrowNew()</tt> JNI function must take a class derived from java.lang.Exception. The %exception typemap above could be tailored to individual needs.
 <p>
 When the C++ class throws a RangeError exception, our wrapper functions will catch it, turn it into a Java exception, and allow a graceful death as opposed to having some sort of mysterious JVM crash. Since SWIG's exception handling is user-definable, we are not limited to C++ exception handling. Please see the chapter on exception handling for more details and using the <tt>exception.i</tt> library for writing language-independent exception handlers.<p>
-See the chapter on "<a href="Exceptions.html">Exception Handling</a>" for further examples on exceptions and how %exception can be targeted for use in a particular function.
+See the chapter on "<a href="Customization.html">Customization Features</a>" for further examples on exceptions and how %exception can be targeted for use in a particular function.
 <p>
 If we use the following code:
 
