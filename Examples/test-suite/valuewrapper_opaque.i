@@ -109,3 +109,28 @@ D getD(D a) {
 %}
 
 %template() auto_ptr<A>;
+
+
+/***** Another strange case, member var + opaque, bug #901706 ******/
+%{
+class BB {
+friend class AA;
+
+protected:
+	BB(int a) { this->a = a; };
+	BB() {};
+	
+	int a;
+};
+%}
+  
+%inline %{
+
+class AA {
+public:	
+	AA(){}
+	
+	BB innerObj;
+};
+
+%}
