@@ -374,15 +374,11 @@ void emit_action(Node *n, Wrapper *f) {
     String* symname = Getattr(parent, "sym:name");
     String* classtype = Getattr(parent,"classtype");    
     String* dirname = NewStringf("SwigDirector_%s", symname);
-    String* dirdecl = NewStringf("%s *darg1 = 0", dirname);    
-    Wrapper_add_local(f, "darg1", dirdecl);
-    Printf(f->code, "darg1 = dynamic_cast<%s *>(arg1);\n",dirname);
-    /* Maybe here a more detailed diagnostic can de added,
-     such as trying to access a protected member, but it seems
-     it is not easy to do it for all the languages at once*/
-    Printf(f->code, "if (!darg1) return NULL;\n");
-    Replaceall(action,"arg1","darg1");
-    Replaceall(action,classtype,dirname);
+    String* dirdecl = NewStringf("%s *darg = 0", dirname);    
+    Wrapper_add_local(f, "darg", dirdecl);
+    Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n",dirname); 
+    Printf(f->code, "if (!darg) SWIG_exception(SWIG_RuntimeError,\"accesing protected member %s\");\n",Getattr(n,"name"));
+    Replace(action, "arg1", "darg", DOH_REPLACE_FIRST);
     Delete(dirname);
     Delete(dirdecl);
   }

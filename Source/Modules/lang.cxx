@@ -1735,9 +1735,17 @@ int Language::classHandler(Node *n) {
 	  && (n != parentnode) 
 	  && is_protected(method)) {
 	Node* m = Copy(method);
+	String* mdecl = Getattr(m,"decl");
 	Setattr(m,"parentNode", n);
-	/* ugly trick, to avoid an uglier one later on emit.*/
-	Replace(Getattr(m,"decl"),"q(const).","",1);
+	/* ugly trick, to avoid an uglier one later on emit.  We take
+	   the 'const' out from calling method to avoid the ugly const
+	   casting latter. The casting from 'non-const' to 'const' is not
+	   needed here, but it prevents the simple replacement of
+	   arg1 by darg on emit.cxx.
+	 */
+	if (Strncmp(mdecl, "q(const).", 9)== 0)
+	  Replace(mdecl,"q(const).","", DOH_REPLACE_FIRST);
+
 	cDeclaration(m);
 	Delete(m);
       }
