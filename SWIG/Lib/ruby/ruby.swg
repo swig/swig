@@ -18,27 +18,3 @@
 # define VOIDFUNC(f) (f)
 #endif
 
-#if defined(_WIN32) || defined(__WIN32__)
-#       if defined(_MSC_VER)
-#               if defined(STATIC_LINKED)
-#                       define SWIGEXPORT(a) a
-#               else
-#                       define SWIGEXPORT(a) __declspec(dllexport) a
-#               endif
-#       else
-#               if defined(__BORLANDC__)
-#                       define SWIGEXPORT(a) a _export
-#               else
-#                       define SWIGEXPORT(a) a
-#       endif
-#endif
-#else
-#       define SWIGEXPORT(a) a
-#endif
-
-#ifdef SWIG_GLOBAL
-#define SWIGSTATICRUNTIME(a) SWIGEXPORT(a)
-#else
-#define SWIGSTATICRUNTIME(a) static a
-#endif
-

@@ -1,16 +1,4 @@
 //
-// SWIG pointer conversion and utility library for Ruby
-//
-// $Header$
-//
-// Copyright (C) 2000  Network Applied Communication Laboratory, Inc.
-// Copyright (C) 2000  Information-technology Promotion Agency, Japan
-//
-// Masaki Fukushima
-//
-// This file is originally derived from python/ptrlang.i
-
-//
 // SWIG pointer conversion and utility library
 // 
 // Dave Beazley
@@ -20,8 +8,36 @@
 // by the file ../pointer.i
 
 %{
-
 #include <ctype.h>
+
+/* Pointer library specific types */
+
+static _swig_type_info _swig_pointer_int_p[] = {{"_p_int",0},{"_p_int",0},{0}};
+static _swig_type_info _swig_pointer_short_p[] = {{"_p_short",0},{"_p_short",0},{0}};
+static _swig_type_info _swig_pointer_long_p[] = {{"_p_long",0},{"_p_long",0},{0}};
+static _swig_type_info _swig_pointer_float_p[] = {{"_p_float",0},{"_p_float",0},{0}};
+static _swig_type_info _swig_pointer_double_p[] = {{"_p_double",0},{"_p_double",0},{0}};
+static _swig_type_info _swig_pointer_char_p[] = {{"_p_char",0},{"_p_char",0},{0}};
+static _swig_type_info _swig_pointer_char_pp[] = {{"_pp_char",0},{"_pp_char",0},{0}};
+
+static _swig_type_info *_swig_pointer_types[] = {
+   _swig_pointer_int_p,
+   _swig_pointer_short_p,
+   _swig_pointer_long_p,
+   _swig_pointer_float_p,
+   _swig_pointer_double_p,
+   _swig_pointer_char_p,
+   _swig_pointer_char_pp,
+   0
+};
+
+#define SWIG_POINTER_int_p     _swig_pointer_types[0]
+#define SWIG_POINTER_short_p   _swig_pointer_types[1]
+#define SWIG_POINTER_long_p    _swig_pointer_types[2]
+#define SWIG_POINTER_float_p   _swig_pointer_types[3]
+#define SWIG_POINTER_double_p  _swig_pointer_types[4]
+#define SWIG_POINTER_char_p    _swig_pointer_types[5]
+#define SWIG_POINTER_char_pp   _swig_pointer_types[6]
 
 /*------------------------------------------------------------------
   ptrcast(value,type)
@@ -41,10 +57,11 @@ static VALUE ptrcast(VALUE _PTRVALUE, char *type) {
   void *ptr;
   VALUE obj;
   char *typestr,*c;
+  _swig_type_info   temptype;
 
   /* Produce a "mangled" version of the type string.  */
 
-  typestr = (char *) xmalloc(strlen(type)+2);
+  typestr = (char *) malloc(strlen(type)+2);
   
   /* Go through and munge the typestring */
   
@@ -63,47 +80,22 @@ static VALUE ptrcast(VALUE _PTRVALUE, char *type) {
     c++;
   }
   *(r++) = 0;
-
   /* Check to see what kind of object _PTRVALUE is */
-  
   switch (TYPE(_PTRVALUE)) {
   case T_FIXNUM:
   case T_BIGNUM:
-    ptr = (void *) NUM2ULONG(_PTRVALUE);
+    ptr = (void *) NUM2LONG(_PTRVALUE);
     /* Received a numerical value. Make a pointer out of it */
-    r = (char *) xmalloc(strlen(typestr)+22);
-    if (ptr) {
-      SWIG_MakePtr(r, ptr, typestr);
-    } else {
-      sprintf(r,"_0%s",typestr);
-    }
+    temptype.name = typestr;
+    obj = SWIG_NewPointerObj(ptr,&temptype);
     obj = rb_str_new2(r);
-    free(r);
-    break;
-  case T_STRING:
-    /* Have a real pointer value now.  Try to strip out the pointer
-       value */
-    s = STR2CSTR(_PTRVALUE);
-    r = (char *) xmalloc(strlen(type)+22);
-    
-    /* Now extract the pointer value */
-    if (!SWIG_GetPtr(s,&ptr,0)) {
-      if (ptr) {
-	SWIG_MakePtr(r,ptr,typestr);
-      } else {
-	sprintf(r,"_0%s",typestr);
-      }
-      obj = rb_str_new2(r);
-    } else {
-      obj = Qnil;
-    }
-    free(r);
     break;
   default:
-    obj = Qnil;
-    break;
+    /* Now extract the pointer value */
+    ptr = SWIG_ConvertPtr(_PTRVALUE,0);
+    temptype.name=typestr;
+    obj = SWIG_NewPointerObj(ptr,&temptype);
   }
-  free(typestr);
   if (!obj) 
     rb_raise(rb_eTypeError,"Type error in ptrcast. Argument is not a valid pointer value.");
   return obj;
@@ -123,50 +115,41 @@ static VALUE ptrvalue(VALUE _PTRVALUE, int index, char *type) {
   char     *s;
   VALUE obj;
 
-  Check_Type(_PTRVALUE, T_STRING);
-  s = STR2CSTR(_PTRVALUE);
-  if (SWIG_GetPtr(s,&ptr,0)) {
-    rb_raise(rb_eTypeError,"Type error in ptrvalue. Argument is not a valid pointer value.");
-  }
+  ptr = SWIG_ConvertPtr(_PTRVALUE,0);
 
   /* If no datatype was passed, try a few common datatypes first */
-
   if (!type) {
-
     /* No datatype was passed.   Type to figure out if it's a common one */
-
-    if (!SWIG_GetPtr(s,&ptr,"_int_p")) {
+    if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_int_p)) {
       type = "int";
-    } else if (!SWIG_GetPtr(s,&ptr,"_double_p")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_double_p)) {
       type = "double";
-    } else if (!SWIG_GetPtr(s,&ptr,"_short_p")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_short_p)) {
       type = "short";
-    } else if (!SWIG_GetPtr(s,&ptr,"_long_p")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_long_p)) {
       type = "long";
-    } else if (!SWIG_GetPtr(s,&ptr,"_float_p")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_float_p)) {
       type = "float";
-    } else if (!SWIG_GetPtr(s,&ptr,"_char_p")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_char_p)) {
       type = "char";
-    } else if (!SWIG_GetPtr(s,&ptr,"char_pp")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_char_pp)) {
       type = "char *";
     } else {
       type = "unknown";
     }
   }
-
   if (!ptr) {
     rb_raise(rb_eTypeError,"Unable to dereference NULL pointer.");
   }
-
   /* Now we have a datatype.  Try to figure out what to do about it */
   if (strcmp(type,"int") == 0) {
-    obj = INT2NUM(*(((int *) ptr) + index));
+    obj = LONG2NUM((long) *(((int *) ptr) + index));
   } else if (strcmp(type,"double") == 0) {
     obj = rb_float_new((double) *(((double *) ptr)+index));
   } else if (strcmp(type,"short") == 0) {
-    obj = INT2NUM(*(((short *) ptr)+index));
+    obj = LONG2NUM((long) *(((short *) ptr)+index));
   } else if (strcmp(type,"long") == 0) {
-    obj = INT2NUM(*(((long *) ptr)+index));
+    obj = LONG2NUM((long) *(((long *) ptr)+index));
   } else if (strcmp(type,"float") == 0) {
     obj = rb_float_new((double) *(((float *) ptr)+index));
   } else if (strcmp(type,"char") == 0) {
@@ -192,60 +175,63 @@ static VALUE ptrcreate(char *type, VALUE _RBVALUE, int numelements) {
   void     *ptr;
   VALUE obj;
   int       sz;
-  char     *cast;
+  _swig_type_info *cast;
   char      temp[40];
 
   /* Check the type string against a variety of possibilities */
 
   if (strcmp(type,"int") == 0) {
     sz = sizeof(int)*numelements;
-    cast = "_int_p";
+    cast = SWIG_POINTER_int_p;
   } else if (strcmp(type,"short") == 0) {
     sz = sizeof(short)*numelements;
-    cast = "_short_p";
+    cast = SWIG_POINTER_short_p;
   } else if (strcmp(type,"long") == 0) {
     sz = sizeof(long)*numelements;
-    cast = "_long_p";
+    cast = SWIG_POINTER_long_p;
   } else if (strcmp(type,"double") == 0) {
     sz = sizeof(double)*numelements;
-    cast = "_double_p";
+    cast = SWIG_POINTER_double_p;
   } else if (strcmp(type,"float") == 0) {
     sz = sizeof(float)*numelements;
-    cast = "_float_p";
+    cast = SWIG_POINTER_float_p;
   } else if (strcmp(type,"char") == 0) {
     sz = sizeof(char)*numelements;
-    cast = "_char_p";
+    cast = SWIG_POINTER_char_p;
   } else if (strcmp(type,"char *") == 0) {
     sz = sizeof(char *)*(numelements+1);
-    cast = "char_pp";
+    cast = SWIG_POINTER_char_pp;
   } else {
     rb_raise(rb_eTypeError,"Unable to create unknown datatype."); 
   }
    
   /* Create the new object */
   
-  ptr = (void *) xmalloc(sz);
+  ptr = (void *) malloc(sz);
+  if (!ptr) {
+    rb_raise(rb_eFatal,"Out of memory in swig_create."); 
+  }
 
   /* Now try to set its default value */
 
   if (_RBVALUE) {
     if (strcmp(type,"int") == 0) {
       int *ip,i,ivalue;
-      ivalue = NUM2INT(_RBVALUE);
+      ivalue = (int) NUM2LONG(_RBVALUE);
       ip = (int *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
     } else if (strcmp(type,"short") == 0) {
       short *ip,ivalue;
       int i;
-      ivalue = (short) NUM2INT(_RBVALUE);
+      ivalue = (short) NUM2LONG(_RBVALUE);
       ip = (short *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
     } else if (strcmp(type,"long") == 0) {
       long *ip,ivalue;
       int i;
-      ivalue = NUM2LONG(_RBVALUE);
+      ivalue = (long) NUM2LONG(_RBVALUE);
       ip = (long *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
@@ -275,7 +261,7 @@ static VALUE ptrcreate(char *type, VALUE _RBVALUE, int numelements) {
       ip = (char **) ptr;
       for (i = 0; i < numelements; i++) {
 	if (ivalue) {
-	  ip[i] = (char *) xmalloc(strlen(ivalue)+1);
+	  ip[i] = (char *) malloc(strlen(ivalue)+1);
 	  strcpy(ip[i],ivalue);
 	} else {
 	  ip[i] = 0;
@@ -286,8 +272,7 @@ static VALUE ptrcreate(char *type, VALUE _RBVALUE, int numelements) {
   } 
   /* Create the pointer value */
   
-  SWIG_MakePtr(temp,ptr,cast);
-  obj = rb_str_new2(temp);
+  obj = SWIG_NewPointerObj(ptr,cast);
   return obj;
 }
 
@@ -301,53 +286,44 @@ static VALUE ptrcreate(char *type, VALUE _RBVALUE, int numelements) {
 
 static VALUE ptrset(VALUE _PTRVALUE, VALUE _RBVALUE, int index, char *type) {
   void     *ptr;
-  char     *s;
   VALUE obj;
 
-  Check_Type(_PTRVALUE, T_STRING);
-  s = STR2CSTR(_PTRVALUE);
-  if (SWIG_GetPtr(s,&ptr,0)) {
-    rb_raise(rb_eTypeError,"Type error in ptrset. Argument is not a valid pointer value.");
-  }
+  ptr = SWIG_ConvertPtr(_PTRVALUE,0);
 
   /* If no datatype was passed, try a few common datatypes first */
-
   if (!type) {
-
     /* No datatype was passed.   Type to figure out if it's a common one */
-
-    if (!SWIG_GetPtr(s,&ptr,"_int_p")) {
+    if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_int_p)) {
       type = "int";
-    } else if (!SWIG_GetPtr(s,&ptr,"_double_p")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_double_p)) {
       type = "double";
-    } else if (!SWIG_GetPtr(s,&ptr,"_short_p")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_short_p)) {
       type = "short";
-    } else if (!SWIG_GetPtr(s,&ptr,"_long_p")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_long_p)) {
       type = "long";
-    } else if (!SWIG_GetPtr(s,&ptr,"_float_p")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_float_p)) {
       type = "float";
-    } else if (!SWIG_GetPtr(s,&ptr,"_char_p")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_char_p)) {
       type = "char";
-    } else if (!SWIG_GetPtr(s,&ptr,"char_pp")) {
+    } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_char_pp)) {
       type = "char *";
     } else {
       type = "unknown";
     }
   }
-
   if (!ptr) {
     rb_raise(rb_eTypeError,"Unable to set NULL pointer.");
   }
   
   /* Now we have a datatype.  Try to figure out what to do about it */
   if (strcmp(type,"int") == 0) {
-    *(((int *) ptr)+index) = NUM2INT(_RBVALUE);
+    *(((int *) ptr)+index) = (int) NUM2LONG(_RBVALUE);
   } else if (strcmp(type,"double") == 0) {
     *(((double *) ptr)+index) = (double) NUM2DBL(_RBVALUE);
   } else if (strcmp(type,"short") == 0) {
-    *(((short *) ptr)+index) = (short) NUM2INT(_RBVALUE);
+    *(((short *) ptr)+index) = (short) NUM2LONG(_RBVALUE);
   } else if (strcmp(type,"long") == 0) {
-    *(((long *) ptr)+index) = NUM2LONG(_RBVALUE);
+    *(((long *) ptr)+index) = (long) NUM2LONG(_RBVALUE);
   } else if (strcmp(type,"float") == 0) {
     *(((float *) ptr)+index) = (float) NUM2DBL(_RBVALUE);
   } else if (strcmp(type,"char") == 0) {
@@ -360,7 +336,7 @@ static VALUE ptrset(VALUE _PTRVALUE, VALUE _RBVALUE, int index, char *type) {
     if (strcmp(c,"NULL") == 0) {
       ca[index] = 0;
     } else {
-      ca[index] = (char *) xmalloc(strlen(c)+1);
+      ca[index] = (char *) malloc(strlen(c)+1);
       strcpy(ca[index],c);
     }
   } else {
@@ -368,7 +344,6 @@ static VALUE ptrset(VALUE _PTRVALUE, VALUE _RBVALUE, int index, char *type) {
   }
   return Qnil;
 }
-
 
 /*------------------------------------------------------------------
   ptradd(ptr,offset)
@@ -379,47 +354,41 @@ static VALUE ptrset(VALUE _PTRVALUE, VALUE _RBVALUE, int index, char *type) {
 
 static VALUE ptradd(VALUE _PTRVALUE, int offset) {
 
-  char *r,*s;
+  char *r;
   void *ptr,*junk;
   VALUE obj;
-  char *type;
+  _swig_type_info *type;
+
+  ptr = SWIG_ConvertPtr(_PTRVALUE,0);
 
   /* Check to see what kind of object _PTRVALUE is */
   
-  Check_Type(_PTRVALUE, T_STRING);
-
-  /* Have a potential pointer value now.  Try to strip out the value */
-  s = STR2CSTR(_PTRVALUE);
-
   /* Try to handle a few common datatypes first */
-
-  if (!SWIG_GetPtr(s,&ptr,"_int_p")) {
+  if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_int_p)) {
     ptr = (void *) (((int *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"_double_p")) {
+    type = SWIG_POINTER_int_p;
+  } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_double_p)) {
     ptr = (void *) (((double *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"_short_p")) {
+    type = SWIG_POINTER_double_p;
+  } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_short_p)) {
     ptr = (void *) (((short *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"_long_p")) {
+    type = SWIG_POINTER_short_p;
+  } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_long_p)) {
     ptr = (void *) (((long *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"_float_p")) {
+    type = SWIG_POINTER_long_p;
+  } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_float_p)) {
     ptr = (void *) (((float *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"_char_p")) {
+    type = SWIG_POINTER_float_p;
+  } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_char_p)) {
     ptr = (void *) (((char *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,0)) {
+    type = SWIG_POINTER_char_p;
+  } else if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_char_pp)) {
     ptr = (void *) (((char *) ptr) + offset);
+    type = SWIG_POINTER_char_pp;
   } else {
     rb_raise(rb_eTypeError,"Type error in ptradd. Argument is not a valid pointer value.");
   }
-  type = SWIG_GetPtr(s,&junk,"INVALID POINTER");
-  r = (char *) xmalloc(strlen(type)+20);
-  if (ptr) {
-    SWIG_MakePtr(r,ptr,type);
-  } else {
-    sprintf(r,"_0%s",type);
-  }
-  obj = rb_str_new2(r);
-  free(r);
-
+  obj = SWIG_NewPointerObj(ptr, type);
   return obj;
 }
 
@@ -428,17 +397,13 @@ static VALUE ptradd(VALUE _PTRVALUE, int offset) {
 
   Allows a mapping between type1 and type2. (Like a typedef)
   ------------------------------------------------------------------ */
-
 static void ptrmap(char *type1, char *type2) {
-
   char *typestr1,*typestr2,*c,*r;
 
   /* Produce a "mangled" version of the type string.  */
-
-  typestr1 = (char *) xmalloc(strlen(type1)+2);
+  typestr1 = (char *) malloc(strlen(type1)+2);
   
   /* Go through and munge the typestring */
-  
   r = typestr1;
   *(r++) = '_';
   c = type1;
@@ -455,7 +420,7 @@ static void ptrmap(char *type1, char *type2) {
   }
   *(r++) = 0;
   
-  typestr2 = (char *) xmalloc(strlen(type2)+2);
+  typestr2 = (char *) malloc(strlen(type2)+2);
 
   /* Go through and munge the typestring */
   
@@ -474,8 +439,12 @@ static void ptrmap(char *type1, char *type2) {
     c++;
   }
   *(r++) = 0;
+  
+  /* Currently unsupported */
+  /*
   SWIG_RegisterMapping(typestr1,typestr2,0);
   SWIG_RegisterMapping(typestr2,typestr1,0);
+  */
 }
 
 /*------------------------------------------------------------------
@@ -485,17 +454,12 @@ static void ptrmap(char *type1, char *type2) {
   ------------------------------------------------------------------ */
 
 VALUE ptrfree(VALUE _PTRVALUE) {
-  void *ptr, *junk;
-  char *s;
+  void *ptr;
 
-  Check_Type(_PTRVALUE, T_STRING);
-  s = STR2CSTR(_PTRVALUE);
-  if (SWIG_GetPtr(s,&ptr,0)) {
-    rb_raise(rb_eTypeError,"Type error in ptrfree. Argument is not a valid pointer value.");
-  }
-
+  ptr = SWIG_ConvertPtr(_PTRVALUE,0);
+  
   /* Check to see if this pointer is a char ** */
-  if (!SWIG_GetPtr(s,&junk,"char_pp")) {
+  if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_char_pp)) {
     char **c = (char **) ptr;
     if (c) {
       int i = 0;
@@ -504,7 +468,7 @@ VALUE ptrfree(VALUE _PTRVALUE) {
 	i++;
       }
     }
-  } 
+  }
   if (ptr)
     free((char *) ptr);
 
@@ -535,7 +499,7 @@ VALUE ptrcast(VALUE ptr, char *type);
 // type may be either the SWIG generated representation of a datatype
 // or the C representation.  For example :
 // 
-//    ptrcast(ptr,"double_p");    # Ruby representation
+//    ptrcast(ptr,"double_p");   # Ruby representation
 //    ptrcast(ptr,"double *");    # C representation
 //
 // A new pointer value is returned.   ptr may also be an integer
@@ -642,5 +606,16 @@ void      ptrmap(char *type1, char *type2);
 // weird type-handling problems.
 
     
+%init %{
+  {
+    int i;
+    for (i = 0; _swig_pointer_types[i]; i++) {
+      _swig_pointer_types[i] = SWIG_TypeRegister(_swig_pointer_types[i]);
+      SWIG_define_class(_swig_pointer_types[i]);
+    }
+  }
+
+  %}
     
+
 
