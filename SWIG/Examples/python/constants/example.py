@@ -11,7 +11,7 @@ print "SCONST2 =", example.SCONST2, "(should be '\"Hello World\"')"
 print "EXPR    =", example.EXPR,   "(should be 48.5484)"
 print "iconst  =", example.iconst, "(should be 37)"
 print "fconst  =", example.fconst, "(should be 3.14)"
-
+print "PI      =", example.PI, "(should be 3.14159)"
 try:
     print "EXTERN = ", example.EXTERN, "(Arg! This shouldn't print anything)"
 except AttributeError:
