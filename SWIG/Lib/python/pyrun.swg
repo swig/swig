@@ -750,7 +750,7 @@ void *SWIG_ReturnGlobalTypeList(void *);
 #endif
 
 SWIGRUNTIME swig_module_info *
-SWIG_Python_GetModule() {
+SWIG_Python_GetModule(void) {
   static void *type_pointer = (void *)0;
   /* first check if module already created */
   if (!type_pointer) {
