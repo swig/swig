@@ -8,12 +8,12 @@
 %apply char **STRING_ARRAY { char **languages };
 %apply char *BYTE { char *chars };
 %apply char **STRING_OUT { char **string_ptr };
+%typemap(freearg) char **languages "" // don't delete memory when setting global variable
 
 %{
 char *langs[] = { (char *)"Hungarian", (char *)"Afrikaans", (char *)"Norwegian", NULL };
 %}
 
-%immutable languages; /* TODO: fix, because there is a problem with setters */
 %inline %{
 char **languages = &langs[0];
 %}
