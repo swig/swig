@@ -418,7 +418,7 @@
  * ------------------------------------------------------------ */
 
 %typemap(in) (char *STRING, int LENGTH) {
-    unsigned int temp;
+    STRLEN temp;
     $1 = ($1_ltype) SvPV($input,temp);
     $2 = ($2_ltype) temp;
 }
