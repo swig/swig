@@ -128,7 +128,7 @@ int swig11_init(int argc, char *argv[]) {
       } else if (strcmp(argv[i],"-python") == 0) {
 	lang = new PYTHON;
 	Swig_mark_arg(i);
-	
+
       } else if (strcmp(argv[i],"-perl5") == 0) {
 	lang = new PERL5;
 	Swig_mark_arg(i);
@@ -154,7 +154,7 @@ int swig11_init(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i],"-c") == 0) {
 	NoInclude=1;
-	Preprocessor_define("SWIG_NOINCLUDE 1", 0);
+	Preprocessor_define((void *) "SWIG_NOINCLUDE 1", 0);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i],"-make_default") == 0) {
 	GenerateDefault = 1;
@@ -192,10 +192,10 @@ int swig11_init(int argc, char *argv[]) {
 
   // Check the suffix for a .c file.  If so, we're going to
   // declare everything we see as "extern"
-  
+
   ForceExtern = check_suffix(infilename);
   // Strip off suffix
-  
+
   c = infilename + strlen(infilename);
   while (c != infilename) {
     if (*c == '.') {
@@ -262,12 +262,12 @@ DOH *swig11_run(DOH *node) {
   f_header = NewString("");
   f_wrappers = NewString("");
   f_init = NewString("");
-  
+
   Swig_register_filebyname("header",f_header);
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("wrapper", f_wrappers);
   Swig_register_filebyname("init", f_init);
-  
+
   // Set up the typemap for handling new return strings
   if (CPlusPlus)
     Swig_typemap_register((char*)"newfree",(char*)"p.char",(char*)"",(char*)"delete [] $source;\n",0);
