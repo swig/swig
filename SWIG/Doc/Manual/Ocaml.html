@@ -21,32 +21,33 @@
 <ul>
 <li><a href="#Ocaml_nn9">The generated module</a>
 <li><a href="#Ocaml_nn10">Enums</a>
-<li><a href="#Ocaml_nn11">Arrays</a>
+<li><a href="#Ocaml_nn11">Enum typing in Ocaml</a>
+<li><a href="#Ocaml_nn12">Arrays</a>
 <ul>
-<li><a href="#Ocaml_nn12">Simple types of bounded arrays</a>
-<li><a href="#Ocaml_nn13">Complex and unbounded arrays</a>
-<li><a href="#Ocaml_nn14">Using an object</a>
-<li><a href="#Ocaml_nn15">Example typemap for a function taking float * and int</a>
+<li><a href="#Ocaml_nn13">Simple types of bounded arrays</a>
+<li><a href="#Ocaml_nn14">Complex and unbounded arrays</a>
+<li><a href="#Ocaml_nn15">Using an object</a>
+<li><a href="#Ocaml_nn16">Example typemap for a function taking float * and int</a>
 </ul>
-<li><a href="#Ocaml_nn16">C++ Classes</a>
+<li><a href="#Ocaml_nn17">C++ Classes</a>
 <ul>
-<li><a href="#Ocaml_nn17">STL vector and string Example</a>
-<li><a href="#Ocaml_nn18">C++ Class Example</a>
-<li><a href="#Ocaml_nn19">Compiling the example</a>
-<li><a href="#Ocaml_nn20">Sample Session</a>
+<li><a href="#Ocaml_nn18">STL vector and string Example</a>
+<li><a href="#Ocaml_nn19">C++ Class Example</a>
+<li><a href="#Ocaml_nn20">Compiling the example</a>
+<li><a href="#Ocaml_nn21">Sample Session</a>
 </ul>
-<li><a href="#Ocaml_nn21">Director Classes</a>
+<li><a href="#Ocaml_nn22">Director Classes</a>
 <ul>
-<li><a href="#Ocaml_nn22">Director Introduction</a>
-<li><a href="#Ocaml_nn23">Overriding Methods in Ocaml</a>
-<li><a href="#Ocaml_nn24">Director Usage Example</a>
-<li><a href="#Ocaml_nn25">Creating director objects</a>
-<li><a href="#Ocaml_nn26">Typemaps for directors, <tt>directorin, directorout, directorargout</tt></a>
-<li><a href="#Ocaml_nn27"><tt>directorin</tt> typemap</a>
-<li><a href="#Ocaml_nn28"><tt>directorout</tt> typemap</a>
-<li><a href="#Ocaml_nn29"><tt>directorargout</tt> typemap</a>
+<li><a href="#Ocaml_nn23">Director Introduction</a>
+<li><a href="#Ocaml_nn24">Overriding Methods in Ocaml</a>
+<li><a href="#Ocaml_nn25">Director Usage Example</a>
+<li><a href="#Ocaml_nn26">Creating director objects</a>
+<li><a href="#Ocaml_nn27">Typemaps for directors, <tt>directorin, directorout, directorargout</tt></a>
+<li><a href="#Ocaml_nn28"><tt>directorin</tt> typemap</a>
+<li><a href="#Ocaml_nn29"><tt>directorout</tt> typemap</a>
+<li><a href="#Ocaml_nn30"><tt>directorargout</tt> typemap</a>
 </ul>
-<li><a href="#Ocaml_nn30">Exceptions</a>
+<li><a href="#Ocaml_nn31">Exceptions</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -438,11 +439,21 @@ val x : Enum_test.c_obj = C_enum `a
 - : Enum_test.c_obj = C_enum `c
 </pre>
   </blockquote>
-       
-<H3><a name="Ocaml_nn11"></a>22.2.3 Arrays</H3>
+
+<H4><a name="Ocaml_nn11"></a>22.2.2.1 Enum typing in Ocaml</H4>
+
+The ocaml SWIG module now has support for loading and using multiple SWIG
+modules at the same time.  This enhances modularity, but presents problems
+when used with a language which assumes that each module's types are complete
+at compile time.  In order to achieve total soundness enum types are now
+isolated per-module.  The type issue matters when values are shared between
+functions imported from different modules.  You must convert values to master
+values using the swig_val function before sharing them with another module.
+
+<H3><a name="Ocaml_nn12"></a>22.2.3 Arrays</H3>
 
 
-<H4><a name="Ocaml_nn12"></a>22.2.3.1 Simple types of bounded arrays</H4>
+<H4><a name="Ocaml_nn13"></a>22.2.3.1 Simple types of bounded arrays</H4>
 
 
 <p>
@@ -463,7 +474,7 @@ arrays of simple types with known bounds in your code, but this only works
 for arrays whose bounds are completely specified.
 </p>
 
-<H4><a name="Ocaml_nn13"></a>22.2.3.2 Complex and unbounded arrays</H4>
+<H4><a name="Ocaml_nn14"></a>22.2.3.2 Complex and unbounded arrays</H4>
 
 
 <p>
@@ -476,7 +487,7 @@ SWIG can't predict which of these methods will be used in the array,
 so you have to specify it for yourself in the form of a typemap.
 </p>
 
-<H4><a name="Ocaml_nn14"></a>22.2.3.3 Using an object</H4>
+<H4><a name="Ocaml_nn15"></a>22.2.3.3 Using an object</H4>
 
 
 <p>
@@ -490,7 +501,7 @@ Consider writing an object when the ending condition of your array is complex,
 such as using a required centinel, etc.
 </p>
 
-<H4><a name="Ocaml_nn15"></a>22.2.3.4 Example typemap for a function taking float * and int</H4>
+<H4><a name="Ocaml_nn16"></a>22.2.3.4 Example typemap for a function taking float * and int</H4>
 
 
 <p>
@@ -541,7 +552,7 @@ void printfloats( float *tab, int len );
 </pre></td></tr></table>
 
 
-<H3><a name="Ocaml_nn16"></a>22.2.4 C++ Classes</H3>
+<H3><a name="Ocaml_nn17"></a>22.2.4 C++ Classes</H3>
 
 
 C++ classes, along with structs and unions are represented by C_obj
@@ -579,7 +590,7 @@ Note that this string belongs to the wrapper object, and not
 the underlying pointer, so using create_[x]_from_ptr alters the
 returned value for the same object.
 
-<H4><a name="Ocaml_nn17"></a>22.2.4.1 STL vector and string Example</H4>
+<H4><a name="Ocaml_nn18"></a>22.2.4.1 STL vector and string Example</H4>
 
 
 Standard typemaps are now provided for STL vector and string.  More are in
@@ -657,7 +668,7 @@ baz
 # 
 </pre></blockquote>
 
-<H4><a name="Ocaml_nn18"></a>22.2.4.2 C++ Class Example</H4>
+<H4><a name="Ocaml_nn19"></a>22.2.4.2 C++ Class Example</H4>
 
 
 Here's a simple example using Trolltech's Qt Library:
@@ -685,7 +696,7 @@ public:
 };
 </pre></td></tr></table>
 
-<H4><a name="Ocaml_nn19"></a>22.2.4.3 Compiling the example</H4>
+<H4><a name="Ocaml_nn20"></a>22.2.4.3 Compiling the example</H4>
 
 
 <blockquote><pre>
@@ -703,7 +714,7 @@ bash-2.05a$ ocamlmktop -custom swig.cmo -I `camlp4 -where` \
   -L$QTPATH/lib -cclib -lqt
 </pre></blockquote>
 
-<H4><a name="Ocaml_nn20"></a>22.2.4.4 Sample Session</H4>
+<H4><a name="Ocaml_nn21"></a>22.2.4.4 Sample Session</H4>
 
 
 <blockquote><pre>
@@ -730,10 +741,10 @@ Assuming you have a working installation of QT, you will see a window
 containing the string "hi" in a button.  
 </p>
 
-<H3><a name="Ocaml_nn21"></a>22.2.5 Director Classes</H3>
+<H3><a name="Ocaml_nn22"></a>22.2.5 Director Classes</H3>
 
 
-<H4><a name="Ocaml_nn22"></a>22.2.5.1 Director Introduction</H4>
+<H4><a name="Ocaml_nn23"></a>22.2.5.1 Director Introduction</H4>
 
 
 <p>
@@ -760,7 +771,7 @@ class foo {
 };
 </pre></blockquote>
 
-<H4><a name="Ocaml_nn23"></a>22.2.5.2 Overriding Methods in Ocaml</H4>
+<H4><a name="Ocaml_nn24"></a>22.2.5.2 Overriding Methods in Ocaml</H4>
 
 
 <p>
@@ -788,7 +799,7 @@ In this example, I'll examine the objective caml code involved in providing
 an overloaded class.  This example is contained in Examples/ocaml/shapes.
 </p>
 
-<H4><a name="Ocaml_nn24"></a>22.2.5.3 Director Usage Example</H4>
+<H4><a name="Ocaml_nn25"></a>22.2.5.3 Director Usage Example</H4>
 
 
 <table border="1" bgcolor="#dddddd" summary="Director usage example">
@@ -847,7 +858,7 @@ in a more effortless style in ocaml, while leaving the "engine" part of the
 program in C++.
 </p>
 
-<H4><a name="Ocaml_nn25"></a>22.2.5.4 Creating director objects</H4>
+<H4><a name="Ocaml_nn26"></a>22.2.5.4 Creating director objects</H4>
 
 
 The definition of the actual object triangle can be described this way:
@@ -885,7 +896,7 @@ object from causing a core dump, as long as the object is destroyed
 properly.
 </p>
 
-<H4><a name="Ocaml_nn26"></a>22.2.5.5 Typemaps for directors, <tt>directorin, directorout, directorargout</tt></H4>
+<H4><a name="Ocaml_nn27"></a>22.2.5.5 Typemaps for directors, <tt>directorin, directorout, directorargout</tt></H4>
 
 
 <p>
@@ -896,7 +907,7 @@ well as a function return value in the same way you provide function arguments,
 and to receive arguments the same way you normally receive function returns.
 </p>
 
-<H4><a name="Ocaml_nn27"></a>22.2.5.6 <tt>directorin</tt> typemap</H4>
+<H4><a name="Ocaml_nn28"></a>22.2.5.6 <tt>directorin</tt> typemap</H4>
 
 
 <p>
@@ -907,7 +918,7 @@ code receives when you are called.  In general, a simple <tt>directorin</tt> typ
 can use the same body as a simple <tt>out</tt> typemap.
 </p>
 
-<H4><a name="Ocaml_nn28"></a>22.2.5.7 <tt>directorout</tt> typemap</H4>
+<H4><a name="Ocaml_nn29"></a>22.2.5.7 <tt>directorout</tt> typemap</H4>
 
 
 <p>
@@ -918,7 +929,7 @@ for the same type, except when there are special requirements for object
 ownership, etc.
 </p>
 
-<H4><a name="Ocaml_nn29"></a>22.2.5.8 <tt>directorargout</tt> typemap</H4>
+<H4><a name="Ocaml_nn30"></a>22.2.5.8 <tt>directorargout</tt> typemap</H4>
 
 
 <p>
@@ -935,7 +946,7 @@ In the event that you don't specify all of the necessary values, integral
 values will read zero, and struct or object returns have undefined results.
 </p>
 
-<H3><a name="Ocaml_nn30"></a>22.2.6 Exceptions</H3>
+<H3><a name="Ocaml_nn31"></a>22.2.6 Exceptions</H3>
 
 
 Catching exceptions is now supported using SWIG's %exception feature.  A simple
