@@ -389,6 +389,13 @@
 %typemap(consttab) size_t = long;
 
 /* ------------------------------------------------------------
+ * PyObject *  - Just pass straight through unmodified
+ * ------------------------------------------------------------ */
+
+%typemap(python,in)   PyObject * "$1 = $input;";
+%typemap(python,out)  PyObject * "$result = $1;";
+
+/* ------------------------------------------------------------
  * Overloaded operator support
  * ------------------------------------------------------------ */
 

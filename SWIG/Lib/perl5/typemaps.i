@@ -473,7 +473,7 @@ as follows :
                        unsigned long  *REFERENCE
 {
   SV *tempsv;
-  tempsv = SvRV($arg);
+  tempsv = SvRV($input);
   sv_setiv(tempsv, (int) *$1);
 }
 

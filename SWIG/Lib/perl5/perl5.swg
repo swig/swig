@@ -29,13 +29,13 @@
        "$1 = SvPV($input,PL_na);\n"; 
 
 %typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
-	if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor) < 0) {
+	if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
             croak("Type error in argument $argnum of $symname. Expected %s", $1_descriptor->name);
         }
 }
 
 %typemap(in) void * {
-	if (SWIG_ConvertPtr($input, (void **) &$1, 0) < 0) {
+	if (SWIG_ConvertPtr($input, (void **) &$1, 0,0) < 0) {
             croak("Type error in argument $argnum of $symname. Expected %s", $1_descriptor->name);
         }
 }
@@ -43,7 +43,7 @@
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE {
     $&1_ltype argp;
-    if (SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor) < 0) {
+    if (SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,0) < 0) {
            croak("Type error in argument $argnum of $symname. Expected %s", $&1_descriptor->name);	
     }
     $1 = *argp;
@@ -117,7 +117,7 @@
 
 %typemap(out) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & 
     "ST(argvi) = sv_newmortal();
-     SWIG_MakePtr(ST(argvi++), (void *) $1, $1_descriptor);";
+     SWIG_MakePtr(ST(argvi++), (void *) $1, $1_descriptor,0);";
 
 
 %typemap(out) SWIGTYPE 
@@ -125,14 +125,14 @@
 {
   $&1_ltype resultobj = new $1_ltype($1);
   ST(argvi) = sv_newmortal();
-  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor);
+  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor,0);
 }
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultobj, &$1, sizeof($1_type));
   ST(argvi) = sv_newmortal();
-  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor);
+  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor,0);
 }
 #endif
 
@@ -141,7 +141,7 @@
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
   ST(argvi) = sv_newmortal();
-  SWIG_MakePtr(ST(argvi++), (void *) $1, ty);
+  SWIG_MakePtr(ST(argvi++), (void *) $1, ty,0);
 }
 
 %typemap(out) void "";
@@ -343,7 +343,7 @@ XS(SWIG_init) {
       SV *sv;
       sv = perl_get_sv((char*) swig_variables[i].name, TRUE | 0x2);
       if (swig_variables[i].type) {
-	SWIG_MakePtr(sv,(void *)1, *swig_variables[i].type);
+	SWIG_MakePtr(sv,(void *)1, *swig_variables[i].type,0);
       } else {
 	sv_setiv(sv,(IV) 0);
       }
@@ -365,7 +365,7 @@ XS(SWIG_init) {
 	sv_setpv(sv, (char *) swig_constants[i].pvalue);
 	break;
       case SWIG_POINTER:
-	SWIG_MakePtr(sv, swig_constants[i].pvalue, *(swig_constants[i].ptype));
+	SWIG_MakePtr(sv, swig_constants[i].pvalue, *(swig_constants[i].ptype),0);
 	break;
       case SWIG_BINARY:
 	/*      obj = SWIG_NewPackedObj(swig_constants[i].pvalue, swig_constants[i].lvalue, *(swig_constants[i].ptype)); */

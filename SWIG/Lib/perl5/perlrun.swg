@@ -105,13 +105,13 @@ extern "C" {
 #ifdef SWIG_NOINCLUDE
 
 #ifndef PERL_OBJECT
-extern int SWIG_ConvertPtr(SV *, void **, swig_type_info *);
-extern void SWIG_MakePtr(SV *, void *, swig_type_info *);
+extern int SWIG_ConvertPtr(SV *, void **, swig_type_info *, int flags);
+extern void SWIG_MakePtr(SV *, void *, swig_type_info *, int flags);
 #else
-extern int _SWIG_ConvertPtr(CPerlObj *, SV *, void **, swig_type_info *);
-extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, swig_type_info *);
-#define SWIG_ConvertPtr(a,b,c) _SWIG_ConvertPtr(pPerl,a,b,c)
-#define SWIG_MakePtr(a,b,c) _SWIG_MakePtr(pPerl,a,b,c)
+extern int _SWIG_ConvertPtr(CPerlObj *, SV *, void **, swig_type_info *,int flags);
+extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, swig_type_info *, int flags);
+#define SWIG_ConvertPtr(a,b,c,d) _SWIG_ConvertPtr(pPerl,a,b,c,d)
+#define SWIG_MakePtr(a,b,c,d) _SWIG_MakePtr(pPerl,a,b,c,d)
 #endif
 
 #else
@@ -120,11 +120,11 @@ extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, swig_type_info *);
 
 #ifndef PERL_OBJECT
 SWIGRUNTIME(int) 
-SWIG_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t)
+SWIG_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t, int flags)
 #else
-#define SWIG_ConvertPtr(a,b,c) _SWIG_ConvertPtr(pPerl,a,b,c)
+#define SWIG_ConvertPtr(a,b,c,d) _SWIG_ConvertPtr(pPerl,a,b,c,d)
 SWIGRUNTIME(int)
-_SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t)
+_SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int flags)
 #endif
 {
   char *_c;
@@ -187,11 +187,11 @@ _SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t)
 }
 #ifndef PERL_OBJECT
 SWIGRUNTIME(void) 
-SWIG_MakePtr(SV *sv, void *ptr, swig_type_info *t)
+SWIG_MakePtr(SV *sv, void *ptr, swig_type_info *t,int flags)
 #else
-#define SWIG_MakePtr(a,b,c) _SWIG_MakePtr(pPerl,a,b,c)
+#define SWIG_MakePtr(a,b,c,d) _SWIG_MakePtr(pPerl,a,b,c,d)
 SWIGRUNTIME(void)
-_SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t)
+_SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t, int flags)
 #endif
 {
   sv_setref_pv(sv, (char *) t->name, ptr);

@@ -556,18 +556,6 @@ PyObject *
 #endif
 
 
-// If a PyObject * appears as either an argument or a function return
-// value, simply pass it straight through.
-
-%typemap(python,in) PyObject * {
-  $1 = $input;
-}
-
-%typemap(python,out) PyObject * {
-  $result = $1;
-}
-
-
 
 
 
