@@ -14,8 +14,9 @@ wrapping and that material will be useful in understanding this chapter.
 <h2>Comments on C++ Wrapping</h2>
 
 Because of its sheer complexity, and the fact that C++ can be
-difficult to integrate with itself let alone other languages, SWIG is
-only able to provide support for a subset of C++ features.  
+difficult to integrate with itself let alone other languages, SWIG 
+only provides support for a subset of C++ features.   Fortunately, 
+it is a large subset.
 
 <p>
 In part, the problem with C++ wrapping is that there is no
@@ -80,6 +81,7 @@ SWIG currently supports the following C++ features :<p>
 <li>References
 <li>Simple templates
 <li>Pointers to members
+<li>Namespaces
 </ul>
 
 <p>
@@ -87,9 +89,8 @@ The following C++ features are not currently supported :<p>
 
 <p>
 <ul>
-<li>Automatic function and method overloading
+<li>Automated function and method overloading
 <li>Nested classes
-<li>Namespaces
 <li>Template specialization
 <li>Overloaded versions of certain operators (new, delete, etc.)
 </ul>
@@ -1774,6 +1775,146 @@ address the problems you encountered.
 
 </ul>
 
+<h2>Namespaces</h2>
+
+Support for C++ namespaces is a relatively late addition to SWIG,
+first appearing in SWIG-1.3.12.  Before describing the implementation,
+it is worth nothing that the semantics of C++ namespaces is highly
+non-trivial--especially with regard to the C++ type system and class
+machinery.  At a most basic level, namespaces are sometimes used to 
+encapsulate common functionality.  For example:
+
+<blockquote>
+<pre>
+namespace math {
+   double sin(double);
+   double cos(double);
+
+   class Complex {
+      double im,re;
+   public:
+      ...
+   };
+   ...
+};
+</pre>
+</blockquote>
+
+Members of the namespace are accessed in C++ by prepending the namespace prefix
+to names. For example:
+
+<blockquote>
+<pre>
+double x = math::sin(1.0);
+double magitude(math::Complex *c);
+math::Complex c;
+...
+</pre>
+</blockquote>
+
+At this level, namespaces are relatively easy to manage.  However, things start to get 
+very ugly when you throw in the other ways a namespace can be used.  For example,
+selective symbols can be exported from a namespace with <tt>using</tt>.
+
+<blockquote>
+<pre>
+using math::Complex;
+double magnitude(Complex *c);       // Namespace prefix stripped
+</pre>
+</blockquote>
+
+Similarly, the contents of an entire namespace can be made available like this:
+
+<blockquote>
+<pre>
+using namespace math;
+double x = sin(1.0);
+double magnitude(Complex *c);
+</pre>
+</blockquote>
+
+Alternatively, a namespace can be aliased:
+
+<blockquote>
+<pre>
+namespace M = math;
+double x = M::sin(1.0);
+double magnitude(M::Complex *c);
+</pre>
+</blockquote>
+
+Using combinations of these features, it is possible to write head-exploding code like this:
+
+<blockquote>
+<pre>
+namespace A {
+  class Foo {
+  };
+}
+
+namespace B {
+   namespace C {
+      using namespace A;
+   }
+   typedef C::Foo FooClass;
+}
+
+namespace BIGB = B;
+
+namespace D {
+   using BIGB::FooClass;
+   class Bar : public FooClass {
+   }
+};
+
+class Spam : public D::Bar {
+};
+
+</pre>
+</blockquote>
+
+Given the possibility for such perversion, it's hard to imagine how
+every C++ programmer might want such code wrapped into the target
+language.  Clearly three classes are defined, but the relationship between
+them certainly isn't obvious (well, it's definitely not crystal clear to me).
+
+<p>
+SWIG's support for namespaces allows you to wrap declarations contained with
+a C++ namespace.  However, some compromises are made to try and keep things
+relatively manageable.   First, SWIG fully supports C++ namespaces in its internal
+type system and class handling code.   If you feed SWIG the above code, it will
+be parsed correctly, it will generate compilable wrapper code, and it will
+produce a working scripting language module.   However, the default wrapping
+behavior is to flatten all namespaces in the target language.   This means
+that namespaces have no apparent effect in the scripting language module.
+For example, if you have code like this,
+
+<blockquote>
+<pre>
+%module foo
+namespace foo {
+   void bar(int);
+   void spam();
+}
+</pre>
+</blockquote>
+
+then SWIG creates two functions <tt>bar()</tt> and <tt>spam()</tt> in
+the target language.  SWIG does not prepend the names with a namespace
+prefix nor are the functions packaged in some kind of nested scope.
+
+<p>
+This is some rationale for taking this approach.  Since C++ namespaces
+are often used to define modules for C++, there is a natural
+correlation between the likely contents of a SWIG module and the
+contents of a namespace.  For instance, it is not unreasonable to
+assume that a programmer might make a separate extension module for
+each namespace.  In this case, it is redundant to prepend
+everything with an additional namespace prefix (in fact, that would just be annoying).
+
+
+
+(in progress)
 
 <h2>Pointers to Members</h2>
 
