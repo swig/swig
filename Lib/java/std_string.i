@@ -32,16 +32,14 @@ class string;
 %typemap(javadirectorout) string "$javacall"
 
 %typemap(in) string 
-%{if($input) {
-    const char *pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-    if (!pstr) return $null;
-    $1 =  std::string(pstr);
-    jenv->ReleaseStringUTFChars($input, pstr);
-  } 
-  else {
+%{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
     return $null;
-  } %}
+  } 
+  const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+  if (!$1_pstr) return $null;
+  $1 =  std::string($1_pstr);
+  jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") string 
 %{ $input = jenv->NewStringUTF($1.c_str()); %}
@@ -69,21 +67,16 @@ class string;
 %typemap(javadirectorin) const string & "$jniinput"
 %typemap(javadirectorout) const string & "$javacall"
 
-%typemap(in) const string & 
-%{$1 = NULL;
-  if($input) {
-    const char *pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-    if (!pstr) return $null;
-    $1 =  new std::string(pstr);
-    jenv->ReleaseStringUTFChars($input, pstr);
-  } 
-  else {
+%typemap(in) const string &
+%{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
     return $null;
-  } %}
-
-%typemap(freearg) const string & 
-%{ delete $1; %}
+  }
+  const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+  if (!$1_pstr) return $null;
+  std::string $1_str($1_pstr);
+  $1 = &$1_str;
+  jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") const string &
 %{ $input = jenv->NewStringUTF($1.c_str()); %}
@@ -133,41 +126,40 @@ class wstring;
 %typemap(javadirectorout) wstring "$javacall"
 
 %typemap(in) wstring
-%{if($input) {
-    const jchar *pstr = jenv->GetStringChars($input, 0);
-    if (!pstr) return $null;
-    jsize len = jenv->GetStringLength($input);
-    if (len) {
-      wchar_t *conv_buf = new wchar_t[len];
-      for (jsize i = 0; i < len; ++i) {
-         conv_buf[i] = pstr[i];
-       }
-       $1 =  std::wstring(conv_buf, len);
-       delete [] conv_buf;
-    }
-    jenv->ReleaseStringChars($input, pstr);
-  } 
-  else {
+%{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
     return $null;
-  } %}
+  }
+  const jchar *$1_pstr = jenv->GetStringChars($input, 0);
+  if (!$1_pstr) return $null;
+  jsize $1_len = jenv->GetStringLength($input);
+  if ($1_len) {
+    wchar_t *conv_buf = new wchar_t[$1_len];
+    for (jsize i = 0; i < $1_len; ++i) {
+       conv_buf[i] = $1_pstr[i];
+    }
+    $1 =  std::wstring(conv_buf, $1_len);
+    delete [] conv_buf;
+  }
+  jenv->ReleaseStringChars($input, $1_pstr);
+ %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") wstring 
-%{jsize len = $1.length();
-  jchar *conv_buf = new jchar[len];
-  for (jsize i = 0; i < len; ++i) {
+%{jsize $1_len = $1.length();
+  jchar *conv_buf = new jchar[$1_len];
+  for (jsize i = 0; i < $1_len; ++i) {
     conv_buf[i] = (jchar)$1[i];
   }
-  $input = jenv->NewString(conv_buf, len);
+  $input = jenv->NewString(conv_buf, $1_len);
   delete [] conv_buf; %}
 
 %typemap(out) wstring
-%{jsize len = $1.length();
-  jchar *conv_buf = new jchar[len];
-  for (jsize i = 0; i < len; ++i) {
+%{jsize $1_len = $1.length();
+  jchar *conv_buf = new jchar[$1_len];
+  for (jsize i = 0; i < $1_len; ++i) {
     conv_buf[i] = (jchar)$1[i];
   }
-  $result = jenv->NewString(conv_buf, len);
+  $result = jenv->NewString(conv_buf, $1_len);
   delete [] conv_buf; %}
 
 %typemap(javain) wstring "$javainput"
@@ -184,42 +176,41 @@ class wstring;
 %typemap(javadirectorout) const wstring & "$javacall"
 
 %typemap(in) const wstring & 
-%{$1 = NULL;
-  if($input) {
-    const jchar *pstr = jenv->GetStringChars($input, 0);
-    if (!pstr) return $null;
-    jsize len = jenv->GetStringLength($input);
-    if (len) {
-      wchar_t *conv_buf = new wchar_t[len];
-      for (jsize i = 0; i < len; ++i) {
-         conv_buf[i] = pstr[i];
-       }
-       $1 =  new std::wstring(conv_buf, len);
-       delete [] conv_buf;
-    }
-    jenv->ReleaseStringChars($input, pstr);
-  } 
-  else {
+%{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
     return $null;
-  } %}
+  }
+  const jchar *$1_pstr = jenv->GetStringChars($input, 0);
+  if (!$1_pstr) return $null;
+  jsize $1_len = jenv->GetStringLength($input);
+  std::wstring $1_str;
+  if ($1_len) {
+    wchar_t *conv_buf = new wchar_t[$1_len];
+    for (jsize i = 0; i < $1_len; ++i) {
+       conv_buf[i] = $1_pstr[i];
+    }
+    $1_str = std::wstring(conv_buf, $1_len);
+    delete [] conv_buf;
+  }
+  $1 = &$1_str;
+  jenv->ReleaseStringChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") const wstring &
-%{jsize len = $1->length();
-  jchar *conv_buf = new jchar[len];
-  for (jsize i = 0; i < len; ++i) {
+%{jsize $1_len = $1->length();
+  jchar *conv_buf = new jchar[$1_len];
+  for (jsize i = 0; i < $1_len; ++i) {
     conv_buf[i] = (jchar)(*$1)[i];
   }
-  $input = jenv->NewString(conv_buf, len);
+  $input = jenv->NewString(conv_buf, $1_len);
   delete [] conv_buf; %}
 
 %typemap(out) const wstring & 
-%{jsize len = $1->length();
-  jchar *conv_buf = new jchar[len];
-  for (jsize i = 0; i < len; ++i) {
+%{jsize $1_len = $1->length();
+  jchar *conv_buf = new jchar[$1_len];
+  for (jsize i = 0; i < $1_len; ++i) {
     conv_buf[i] = (jchar)(*$1)[i];
   }
-  $result = jenv->NewString(conv_buf, len);
+  $result = jenv->NewString(conv_buf, $1_len);
   delete [] conv_buf; %}
 
 %typemap(javain) const wstring & "$javainput"
