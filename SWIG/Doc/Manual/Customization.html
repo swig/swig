@@ -14,7 +14,6 @@
 <li><a href="#n4">Exception handling with longjmp()</a>
 <li><a href="#n5">Handling C++ exceptions</a>
 <li><a href="#n6">Defining different exception handlers</a>
-<li><a href="#n7">Applying exception handlers to specific datatypes.</a>
 <li><a href="#n8">Using The SWIG exception library</a>
 </ul>
 <li><a href="#n9">Object ownership and %newobject</a>
@@ -337,51 +336,13 @@ to attach exceptions to specific parts of a header file. For example:
 </pre>
 </blockquote>
 
-<a name="n7"></a><H3>9.1.5 Applying exception handlers to specific datatypes.</H3>
-
-
-An alternative approach to using the <tt>%exception</tt> directive is to
-use the "except" typemap.  This allows you to attach an error handler
-to specific datatypes and function name.  The typemap is applied to
-the return value of a function.  For example :<p>
-
-<p>
-<blockquote><pre>%typemap(except) void *malloc {
-    $action
-    if (!$1) {
-	PyExc_SetString(PyExc_MemoryError,"Out of memory in $symname");
-        return NULL;
-    }
-}
-
-void *malloc(int size);
-
-</pre></blockquote>
-
-When applied, this automatically checks the return value of
-<tt>malloc()</tt> and raises an exception if it's invalid.  For example
-:<p>
-
-<p>
-<blockquote><pre>
-&gt;&gt;&gt; from example import *
-&gt;&gt;&gt; a = malloc(2048)
-&gt;&gt;&gt; b = malloc(1500000000)
-Traceback (innermost last):
-  File "&lt;stdin&gt;", line 1, in ?
-MemoryError: Out of memory in malloc
-&gt;&gt;&gt;
-</pre></blockquote>
-
-When "except" typemaps are used, they override any exception handler defined with
-<tt>%exception</tt>.<p>
-
-<p>
-<b>Compatibility note:</b> The except typemap dates to earlier SWIG
-releases and was intended to be a mechanism for pinpointing specific
+<b>Compatibility note:</b> The <tt>%exception</tt> directive replaces
+the functionality provided by the deprecated "except" typemap.
+The typemap would allow exceptions to be thrown in the target 
+language based on the return type of a function and 
+was intended to be a mechanism for pinpointing specific
 declarations.  However, it never really worked that well and the new
-%exception directive is much better.   The except typemap is preserved for now, but
-may be deprecated in future versions.
+%exception directive is much better.
 
 <a name="n8"></a><H3>9.1.6 Using The SWIG exception library</H3>
 
@@ -638,6 +599,6 @@ use will be described in the documentation for specific language modules.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : December 9, 2001</address>
+<address>SWIG 1.3 - Last Modified : June 1, 2003</address>
 </body>
 </html>
