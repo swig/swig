@@ -800,7 +800,7 @@ String_replace(DOH *stro, DOH *token, DOH *rep, int flags)
     String *str;
     if (!String_check(stro)) return 0;
     str = (String *) stro;
-    assert(str->refcount);
+    /*    assert(str->refcount); */
     /* assert(!str->refcount); */
     if (flags & DOH_REPLACE_FIRST) count = 1;
     return replace_internal(str,Char(token),Char(rep),flags,str->str,count);

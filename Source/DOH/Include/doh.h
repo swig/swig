@@ -111,7 +111,7 @@ typedef struct DohObjInfo {
   void      (*doh_del)(DOH *obj);              /* Delete object      */
   DOH      *(*doh_copy)(DOH *obj);             /* Copy and object    */
   void      (*doh_clear)(DOH *obj);            /* Clear an object    */
-  void      (*doh_scope)(DOH *obj, int s);     /* Change the scope on an object */
+  void      (*doh_reserved)(void);             /* Reserved           */
 
   /* Output methods */
   DOH       *(*doh_str)(DOH *obj);             /* Make a full string */
@@ -152,18 +152,14 @@ typedef struct DohObjInfo {
   extern void    DohXInit(DOH *obj);                 /* Initialize extended object */
   extern int     DohCheck(const DOH *ptr);           /* Check if a DOH object */
   extern int     DohPoolSize(int);                   /* Set memory alloc size */
-  extern int     DohNewScope();                      /* Create a new scope    */
-  extern void    DohDelScope(int);                   /* Delete a scope        */
-  extern void    DohGarbageCollect();                /* Invoke garbage collection */
-
   extern void    DohIntern(DOH *);                   /* Intern an object      */
+  extern void    DohMemoryInfo();
 
   /* Basic object methods.  Common to most objects */
 
   extern void          DohDelete(DOH *obj);                /* Delete an object      */
   extern DOH          *DohCopy(const DOH *obj);
   extern void          DohClear(DOH *obj);
-  extern void          DohSetScope(DOH *, int scp);        /* Set scope of object   */
   extern DOHString    *DohStr(const DOH *obj);
   extern void         *DohData(const DOH *obj);
   extern int           DohDump(const DOH *obj, DOHFile *out);
@@ -290,8 +286,6 @@ typedef struct DohObjInfo {
 #define Readline           DohReadline
 #define Replace            DohReplace
 #define Chop               DohChop
-#define NewScope           DohNewScope
-#define DelScope           DohDelScope
 #define Call               DohCall
 #endif
 
@@ -305,8 +299,7 @@ typedef struct DohObjInfo {
    DohObjInfo    *objinfo; \
    DOH           *nextptr; \
    int            refcount; \
-   unsigned char  flags; \
-   unsigned char  scope
+   unsigned char  flags
 
 typedef struct {
   DOHCOMMON;
@@ -325,17 +318,11 @@ typedef struct {
 #define Decref(a)        if (a) ((DohBase *) a)->refcount--
 #define Incref(a)        if (a) ((DohBase *) a)->refcount++
 #define Refcount(a)      ((DohBase *) a)->refcount
-
-#define Getscope(a)      ((DohBase *) a)->scope
-#define Setscope(a,s)    DohSetScope(a,s)
 #define Objname(a)       ((DohBase *) a)->objinfo->objname
 
 /* Flags for various internal operations */
 
-#define DOH_FLAG_SETSCOPE    0x01
 #define DOH_FLAG_PRINT       0x02
-#define DOH_FLAG_DELSCOPE    0x04
-#define DOH_FLAG_GC          0x08
 #define DOH_FLAG_INTERN      0x10
 
 /* -----------------------------------------------------------------------------

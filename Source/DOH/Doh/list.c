@@ -109,28 +109,6 @@ List_clear(DOH *lo) {
 }
 
 /* -----------------------------------------------------------------------------
- * List_scope()
- *
- * Change the scope setting of the list.
- * ----------------------------------------------------------------------------- */
-
-static void
-List_scope(DOH *lo, int s) {
-  List *l;
-  int i;
-  l = (List *) lo;
-  if (l->flags & DOH_FLAG_SETSCOPE) return;
-  l->flags = l->flags | DOH_FLAG_SETSCOPE;
-  if (s < l->scope) l->scope = (unsigned char) s;
-  if (s != l->scope) {
-    for (i = 0; i < l->nitems; i++) {
-      Setscope(l->items[i],s);
-    }
-  }
-  l->flags = l->flags & ~DOH_FLAG_SETSCOPE;
-}
-
-/* -----------------------------------------------------------------------------
  * List_insert()
  *
  * Insert an item into the list. If the item is not a DOH object, it is assumed
@@ -141,7 +119,7 @@ static int
 List_insert(DOH *lo, int pos, DOH *item) {
   List *l;
   DohBase *b;
-  int i, no = 0;
+  int i;
   
   if (!item) return -1;
   l = (List *) lo;
@@ -149,7 +127,7 @@ List_insert(DOH *lo, int pos, DOH *item) {
   if (!DohCheck(item)) {
     DohTrace(DOH_CONVERSION,"Unknown object %x being converted to a string in List_insert.\n", item);
     item = NewString(item);
-    no = 1;
+    Decref(item);
   }
   b = (DohBase *) item;  
   if (pos == DOH_END) pos = l->nitems;
@@ -161,9 +139,7 @@ List_insert(DOH *lo, int pos, DOH *item) {
   }
   l->items[pos] = item;
   b->refcount++;
-  Setscope(b,l->scope);
   l->nitems++;
-  if (no) Delete(item);
   return 0;
 }
 
@@ -230,7 +206,6 @@ List_get(DOH *lo, int n) {
 static int
 List_set(DOH *lo, int n, DOH *val) {
     List *l;
-    int no = 0;
     l = (List *) lo;
     if (!val) return -1;
     if ((n < 0) || (n >= l->nitems)) {
@@ -240,12 +215,11 @@ List_set(DOH *lo, int n, DOH *val) {
     if (!DohCheck(val)) {
       DohTrace(DOH_CONVERSION,"Unknown object %x being converted to a string in List_setitem.\n", val);
       val = NewString(val);
-      no = 1;
+      Decref(val);
     }
     Delete(l->items[n]);
     l->items[n] = val;
     Incref(val);
-    Setscope(val,l->scope);
     Delete(val);
     return 0;
 }
@@ -344,7 +318,7 @@ static DohObjInfo ListType = {
     DelList,         /* doh_del */
     CopyList,        /* doh_copy */
     List_clear,      /* doh_clear */
-    List_scope,      /* doh_scope */
+    0,               /* doh_scope */
     List_str,        /* doh_str */
     0,               /* doh_data */
     List_dump,       /* doh_dump */

@@ -22,13 +22,14 @@ static char cvsroot[] = "$Header$";
 #define DOH_MAX_FRAG          1024
 #endif
 
-#ifndef DOH_MAX_SCOPES 
-#define DOH_MAX_SCOPES        256
-#endif
-
 static int   _DohMemoryCurrent = 0;
 static int   _DohMemoryHigh    = 0;
 static int   _PoolSize = DOH_POOL_SIZE;
+static int   num_fragments = 0;
+static int   fragment_size = 0;
+static int   obj_total_allocated = 0;
+static int   obj_ntotal_allocated = 0;
+static int   data_total_allocated = 0;
 
 DOH    *DohNone = 0;    /* The DOH None object */
 
@@ -49,9 +50,6 @@ typedef struct pool {
 
 static Pool    *Pools = 0;
 static int      pools_initialized = 0;
-static DohBase *scopes[DOH_MAX_SCOPES];
-static int      nscopes = 0;
-
 
 /* ----------------------------------------------------------------------
  * CreatePool()
@@ -89,10 +87,6 @@ InitPools() {
   }
   Pools = CreatePool(_PoolSize);       /* Create initial pool */
   pools_initialized = 1;
-  for (i = 0; i < DOH_MAX_SCOPES; i++) {
-    scopes[i] = 0;
-  }
-  DohNewScope();                       /* Initialize the scope system */
   DohNone = NewVoid(0,0);
   DohIntern(DohNone);
 }
@@ -138,130 +132,6 @@ DohObjFreeCheck(DOH *ptr) {
 }
 
 /* ----------------------------------------------------------------------
- * DohNewScope()
- *
- * Create a new scope in which objects will be placed. Returns a scope
- * identifier.
- * ---------------------------------------------------------------------- */
-int 
-DohNewScope() {
-  assert(nscopes < DOH_MAX_SCOPES);
-  if (!pools_initialized) InitPools();
-  scopes[nscopes] = 0;
-  nscopes++;
-  return nscopes - 1;
-}
-
-/* ----------------------------------------------------------------------
- * DohDelScope()
- *
- * Deletes a scope.
- * ---------------------------------------------------------------------- */
-
-void 
-DohDelScope(int s) {
-  int ns;
-  DohBase *b, *b1;
-  ns = s;
-  assert((s >= 0) && (s < nscopes));
-  s = nscopes - 1;
-  while (s >= ns) {
-    b = scopes[s];
-    b1 = 0;
-    while (b) {
-      if (s <= b->scope) {
-	if (!(b->flags & DOH_FLAG_DELSCOPE)) {
-	  Delete(b);
-	  b->flags = b->flags | DOH_FLAG_DELSCOPE;
-	}
-      }
-      b1 = b;
-      b = (DohBase *) (b->nextptr);
-    }
-    if (ns > 0) {      /* Add objects to highest non-deleted scope */
-      if (b1) {
-	b1->nextptr = (DOH *) scopes[ns-1];
-	scopes[ns-1] = (DohBase *) scopes[s];
-      }
-    }
-    scopes[s] = 0;
-    s--;
-  }
-  nscopes = ns;
-}
-
-/* ----------------------------------------------------------------------
- * real_objfree()
- *
- * This is the function that actually frees an object.  Invoked by the
- * garbage collector.
- * ---------------------------------------------------------------------- */
-
-static void 
-real_objfree(DOH *ptr) {
-  DohBase  *b;
-  Fragment *f;
-  b = (DohBase *) ptr;
-
-  if (!b->objinfo) {
-    DohTrace(DOH_MEMORY,"DohObjFree. %x not properly defined.  No objinfo structure.\n", ptr);
-    return;   /* Improperly initialized object. leak some more */
-  }
-  f = (Fragment *) DohMalloc(sizeof(Fragment));
-  f->ptr = (char *) ptr;
-  f->len = (b->objinfo->objsize + 7) & ~0x07; 
-  f->next = FreeFragments[f->len];
-  FreeFragments[f->len] = f;
-
-}
-
-/* ----------------------------------------------------------------------
- * DohGarbageCollect()
- *
- * This walks through all of the scopes and does garbage collection.
- *
- *    1.   Objects with refcount <= 0 are released.
- *    2.   The scopes data structures are rebuilt and compacted.
- * ---------------------------------------------------------------------- */
-
-void
-DohGarbageCollect() {
-  int s;
-  DohBase *b, *b1;
-  int ndeleted = 1;
-
-  DohTrace(DOH_MEMORY,"Garbage collecting.\n");
-  while (ndeleted) {
-    ndeleted = 0;
-    s = nscopes - 1;
-    while (s >= 0) {
-      b = scopes[s];
-      b1 = 0;
-      while (b) {
-	if ((b->refcount <= 0)) {
-	  if (b1) {
-	    b1->nextptr = b->nextptr;
-	  } else {
-	    scopes[s] = b->nextptr;
-	  }
-	  if (!(b->flags & DOH_FLAG_INTERN)) {
-	    assert(!(b->flags & DOH_FLAG_GC));
-	    real_objfree(b);               /* Release the object */
-	    b->flags = b->flags | DOH_FLAG_GC;
-	  }
-	  ndeleted++;
-	} else {
-	  b1 = b;
-	}
-	b = (DohBase *) b->nextptr;
-      }
-      s--;
-    }
-  }
-  DohTrace(DOH_MEMORY,"Done garbage collecting.\n");
-}
-
-/* ----------------------------------------------------------------------
  * DohObjMalloc()
  *
  * Allocate memory for a new object.
@@ -279,20 +149,20 @@ DohObjMalloc(size_t size) {
 
   /* adjust the size for double word alignment */
   size = (size + 7) & ~0x07;
-  
+
+  obj_total_allocated += size;
+  obj_ntotal_allocated++;
+
  retry:
   p = Pools;
   f = FreeFragments[size];
   if (f) {
     ptr = (void *) f->ptr;
     FreeFragments[size] = f->next;
+    num_fragments--;
+    fragment_size -= f->len;
     DohFree(f);
     DohInit(ptr);
-    if (nscopes) {
-      ((DohBase *) ptr)->scope = nscopes-1;
-      ((DohBase *) ptr)->nextptr = scopes[nscopes-1];
-      scopes[nscopes-1] = (DohBase *) ptr;
-    }
     return ptr;
   }
 
@@ -302,18 +172,7 @@ DohObjMalloc(size_t size) {
     /*     p->current = (p->current + size + 7) & ~0x3; */
     p->current = p->current + size;
     DohInit(ptr);
-    if (nscopes) {
-      ((DohBase *) ptr)->scope = nscopes-1;
-      ((DohBase *) ptr)->nextptr = scopes[nscopes-1];
-      scopes[nscopes-1] = (DohBase *) ptr;
-    }
     return ptr;
-  }
-
-  if (!garbage_collected) {
-    garbage_collected = 1;
-    DohGarbageCollect();
-    goto retry;
   }
 
   /* Pool is not large enough. Create a new pool */  
@@ -324,8 +183,9 @@ DohObjMalloc(size_t size) {
     f->next = FreeFragments[f->len];
     p->current = p->len;
     FreeFragments[f->len] = f;
+    num_fragments++;
+    fragment_size += f->len;
   }
-
   p = CreatePool(_PoolSize);
   p->next = Pools;
   Pools = p;
@@ -340,6 +200,7 @@ DohObjMalloc(size_t size) {
 
 void 
 DohObjFree(DOH *ptr) {
+  Fragment *f;
   DohBase  *b;
   if (!DohCheck(ptr)) {
     DohTrace(DOH_MEMORY,"DohObjFree. %x not a DOH object!\n", ptr);
@@ -350,6 +211,16 @@ DohObjFree(DOH *ptr) {
     DohTrace(DOH_MEMORY,"DohObjFree. %x not properly defined.  No objinfo structure.\n", ptr);
     return;   /* Improperly initialized object. leak some more */
   }
+  f = (Fragment *) DohMalloc(sizeof(Fragment));
+  f->ptr = (char *) ptr;
+  f->len = (b->objinfo->objsize + 7) & ~0x07; 
+  f->next = FreeFragments[f->len];
+  FreeFragments[f->len] = f;
+  num_fragments++;
+  fragment_size += f->len;
+  obj_total_allocated -= f->len;
+  obj_ntotal_allocated--;
+  b->objinfo = 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -360,6 +231,7 @@ DohObjFree(DOH *ptr) {
 
 void *
 DohMalloc(size_t nbytes) {
+  data_total_allocated += nbytes;
   return (void *) malloc(nbytes);
 }
 
@@ -401,7 +273,20 @@ DohPoolSize(int poolsize) {
   return ps;
 }
 
+/* -----------------------------------------------------------------------------
+ * DohMemoryInfo()
+ *
+ * Print memory information
+ * ----------------------------------------------------------------------------- */
 
+void
+DohMemoryInfo() {
+
+  fprintf(stderr,"DOH Memory Use\n");
+  fprintf(stderr,"   Num free fragments :  %d (%d bytes)\n", num_fragments, fragment_size);
+  fprintf(stderr,"   Obj total allocate :  %d (%d bytes)\n", obj_ntotal_allocated, obj_total_allocated);
+  fprintf(stderr,"   Data allocate      :  %d\n", data_total_allocated);
+}
 
 
 
