@@ -53,7 +53,7 @@ public class primitive_ref_runme {
     if (primitive_ref.ref_char('x') != 'x') {
         System.err.println( "ref_char failed!" );
     }
-    if (primitive_ref.ref_longlong(3) != '3') {
+    if (primitive_ref.ref_longlong(0x123456789ABCDEF0L) != 0x123456789ABCDEF0L) {
         System.err.println( "ref_longlong failed!" );
     }
     BigInteger bi = new BigInteger("18446744073709551615"); //0xFFFFFFFFFFFFFFFFL
