@@ -35,25 +35,6 @@
 #endif
 #endif
 
-/* 
-   SWIG_TEMPLATE_DISAMBIGUATOR is needed when wrapping template calls
-   (cwrap.c:Swig_cfunction_call/Swig_cmethod_call), as in
-
-     result = nspace::template function<int >(arg1);
-     result = arg1->template method<int >(arg2);
-
-    SWIG_TEMPLATE_DISAMBIGUATOR is compiler dependent (common.swg),
-      - SUN Studio requires 'template', 
-      - gcc-3.4 forbids the use of 'template'.
-      - gcc-3.2.3 produces internal errors if you use 'template'
-*/
-#ifndef SWIG_TEMPLATE_DISAMBIGUATOR
-#  if defined(__SUNPRO_CC) 
-#    define SWIG_TEMPLATE_DISAMBIGUATOR template
-#  else
-#    define SWIG_TEMPLATE_DISAMBIGUATOR 
-#  endif
-#endif
 
 /* This should only be incremented when either the layout of swig_type_info changes,
    or for whatever reason, the runtime changes incompatibly */
