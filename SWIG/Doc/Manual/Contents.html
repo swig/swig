@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
 <HTML>
 <HEAD>
 <TITLE>SWIG Users Manual</TITLE>
@@ -206,13 +206,14 @@
 <li><a href="SWIGPlus.html#n27">Class extension</a>
 <li><a href="SWIGPlus.html#n28">Templates</a>
 <li><a href="SWIGPlus.html#n29">Namespaces</a>
-<li><a href="SWIGPlus.html#n30">Pointers to Members</a>
-<li><a href="SWIGPlus.html#n31">Smart pointers and operator-&gt;()</a>
-<li><a href="SWIGPlus.html#n32">Using declarations and inheritance</a>
-<li><a href="SWIGPlus.html#n33">Partial class definitions</a>
-<li><a href="SWIGPlus.html#n34">A brief rant about const-correctness</a>
-<li><a href="SWIGPlus.html#n35">Proxy classes</a>
-<li><a href="SWIGPlus.html#n36">Where to go for more information</a>
+<li><a href="SWIGPlus.html#n30">Exception specifiers</a>
+<li><a href="SWIGPlus.html#n31">Pointers to Members</a>
+<li><a href="SWIGPlus.html#n32">Smart pointers and operator-&gt;()</a>
+<li><a href="SWIGPlus.html#n33">Using declarations and inheritance</a>
+<li><a href="SWIGPlus.html#n34">Partial class definitions</a>
+<li><a href="SWIGPlus.html#n35">A brief rant about const-correctness</a>
+<li><a href="SWIGPlus.html#n36">Proxy classes</a>
+<li><a href="SWIGPlus.html#n37">Where to go for more information</a>
 </ul>
 <!-- INDEX -->
 
@@ -231,53 +232,60 @@
 </ul>
 <!-- INDEX -->
 
-<h3><a href="Typemaps.html">7 Types and Typemaps</a></h3>
+<h3><a href="Typemaps.html">7 Typemaps</a></h3>
 
 <!-- INDEX -->
 <ul>
 <li><a href="Typemaps.html#n2">Introduction</a>
-<li><a href="Typemaps.html#n3">The Problem</a>
+<ul>
+<li><a href="Typemaps.html#n3">Type conversion</a>
 <li><a href="Typemaps.html#n4">Typemaps</a>
-<li><a href="Typemaps.html#n5">Managing input and output parameters</a>
-<ul>
-<li><a href="Typemaps.html#n6">Input parameters</a>
-<li><a href="Typemaps.html#n7">Output parameters</a>
-<li><a href="Typemaps.html#n8">Input/Output parameters</a>
-<li><a href="Typemaps.html#n9">Using different names</a>
+<li><a href="Typemaps.html#n5">Pattern matching</a>
+<li><a href="Typemaps.html#n6">Reusing typemaps</a>
+<li><a href="Typemaps.html#n7">What can be done with typemaps?</a>
+<li><a href="Typemaps.html#n8">What can't be done with typemaps?</a>
+<li><a href="Typemaps.html#n9">The rest of this chapter</a>
 </ul>
-<li><a href="Typemaps.html#n10">Array handling</a>
-<li><a href="Typemaps.html#n11">Applying constraints to input values</a>
+<li><a href="Typemaps.html#n10">Typemap specifications</a>
 <ul>
-<li><a href="Typemaps.html#n12">Simple constraint example</a>
-<li><a href="Typemaps.html#n13">Constraint methods</a>
-<li><a href="Typemaps.html#n14">Applying constraints to new datatypes</a>
+<li><a href="Typemaps.html#n11">Defining a typemap</a>
+<li><a href="Typemaps.html#n12">Typemap scope</a>
+<li><a href="Typemaps.html#n13">Copying a typemap</a>
+<li><a href="Typemaps.html#n14">Deleting a typemap</a>
+<li><a href="Typemaps.html#n15">Placement of typemaps</a>
 </ul>
-<li><a href="Typemaps.html#n15">Writing new typemaps</a>
+<li><a href="Typemaps.html#n16">Pattern matching rules</a>
 <ul>
-<li><a href="Typemaps.html#n16">The SWIG type system</a>
-<li><a href="Typemaps.html#n17">What is a typemap?</a>
-<li><a href="Typemaps.html#n18">Creating a new typemap</a>
-<li><a href="Typemaps.html#n19">Deleting a typemap</a>
-<li><a href="Typemaps.html#n20">Copying a typemap</a>
-<li><a href="Typemaps.html#n21">Typemap matching rules</a>
+<li><a href="Typemaps.html#n17">Basic matching rules</a>
+<li><a href="Typemaps.html#n18">Typedef reductions</a>
+<li><a href="Typemaps.html#n19">Default typemaps</a>
+<li><a href="Typemaps.html#n20">Multi-arguments typemaps</a>
 </ul>
-<li><a href="Typemaps.html#n22">Common typemap methods</a>
-<li><a href="Typemaps.html#n23">Writing typemap code</a>
+<li><a href="Typemaps.html#n21">Code generation rules</a>
 <ul>
-<li><a href="Typemaps.html#n24">Local scope</a>
-<li><a href="Typemaps.html#n25">Creating local variables</a>
-<li><a href="Typemaps.html#n26">Special variables</a>
-<li><a href="Typemaps.html#n27">Typemap Parameters</a>
+<li><a href="Typemaps.html#n22">Scope</a>
+<li><a href="Typemaps.html#n23">Declaring new local variables</a>
 </ul>
-<li><a href="Typemaps.html#n28">Typemaps for arrays</a>
-<li><a href="Typemaps.html#n29">Implementing constraints with typemaps</a>
-<li><a href="Typemaps.html#n30">Multi-argument typemaps</a>
-<li><a href="Typemaps.html#n31">The default typemaps</a>
-<li><a href="Typemaps.html#n32">The run-time type checker</a>
-<li><a href="Typemaps.html#n33">More about <tt>%apply</tt> and <tt>%clear</tt></a>
-<li><a href="Typemaps.html#n34">Reducing wrapper code size</a>
-<li><a href="Typemaps.html#n35">Typemaps and C++</a>
-<li><a href="Typemaps.html#n36">Where to go for more information?</a>
+<li><a href="Typemaps.html#n24">Common typemap methods</a>
+<li><a href="Typemaps.html#n25">Writing typemap code</a>
+<ul>
+<li><a href="Typemaps.html#n26">Local scope</a>
+<li><a href="Typemaps.html#n27">Creating local variables</a>
+<li><a href="Typemaps.html#n28">Special variables</a>
+<li><a href="Typemaps.html#n29">Typemap Parameters</a>
+</ul>
+<li><a href="Typemaps.html#n30">Typemaps for arrays</a>
+<li><a href="Typemaps.html#n31">Implementing constraints with typemaps</a>
+<li><a href="Typemaps.html#n32">Multi-argument typemaps</a>
+<li><a href="Typemaps.html#n33">The default typemaps</a>
+<li><a href="Typemaps.html#n34">The run-time type checker</a>
+<li><a href="Typemaps.html#n35">More about <tt>%apply</tt> and <tt>%clear</tt></a>
+<li><a href="Typemaps.html#n36">Reducing wrapper code size</a>
+<li><a href="Typemaps.html#n37">Typemaps and C++</a>
+<ul>
+<li><a href="Typemaps.html#n38">Passing data between typemaps</a>
+</ul>
+<li><a href="Typemaps.html#n39">Where to go for more information?</a>
 </ul>
 <!-- INDEX -->
 
@@ -448,66 +456,67 @@
 <li><a href="Java.html#n24">C++ overloaded functions</a>
 <li><a href="Java.html#n25">C++ namespaces</a>
 <li><a href="Java.html#n26">C++ templates</a>
+<li><a href="Java.html#n27">C++ Smart Pointers</a>
 </ul>
-<li><a href="Java.html#n27">Further details on the generated Java classes</a>
+<li><a href="Java.html#n28">Further details on the generated Java classes</a>
 <ul>
-<li><a href="Java.html#n28">The JNI class</a>
+<li><a href="Java.html#n29">The JNI class</a>
 <ul>
-<li><a href="Java.html#n29">The JNI class pragmas</a>
+<li><a href="Java.html#n30">The JNI class pragmas</a>
 </ul>
-<li><a href="Java.html#n30">The Java module class</a>
+<li><a href="Java.html#n31">The Java module class</a>
 <ul>
-<li><a href="Java.html#n31">The Java module class pragmas</a>
+<li><a href="Java.html#n32">The Java module class pragmas</a>
 </ul>
-<li><a href="Java.html#n32">Java proxy classes</a>
+<li><a href="Java.html#n33">Java proxy classes</a>
 <ul>
-<li><a href="Java.html#n33">Memory management</a>
-<li><a href="Java.html#n34">Inheritance</a>
-<li><a href="Java.html#n35">Proxy classes and garbage collection</a>
+<li><a href="Java.html#n34">Memory management</a>
+<li><a href="Java.html#n35">Inheritance</a>
+<li><a href="Java.html#n36">Proxy classes and garbage collection</a>
 </ul>
-<li><a href="Java.html#n36">Type wrapper classes</a>
+<li><a href="Java.html#n37">Type wrapper classes</a>
 </ul>
-<li><a href="Java.html#n37">Common customization features</a>
+<li><a href="Java.html#n38">Common customization features</a>
 <ul>
-<li><a href="Java.html#n38">C/C++ helper functions</a>
-<li><a href="Java.html#n39">Class extension with %extend</a>
-<li><a href="Java.html#n40">Exception handling with %exception</a>
+<li><a href="Java.html#n39">C/C++ helper functions</a>
+<li><a href="Java.html#n40">Class extension with %extend</a>
+<li><a href="Java.html#n41">Exception handling with %exception</a>
 </ul>
-<li><a href="Java.html#n41">Tips and techniques</a>
+<li><a href="Java.html#n42">Tips and techniques</a>
 <ul>
-<li><a href="Java.html#n42">Input and output parameters</a>
-<li><a href="Java.html#n43">Simple pointers</a>
-<li><a href="Java.html#n44">Unbounded C Arrays</a>
-<li><a href="Java.html#n45">More on C arrays using the SWIG library</a>
+<li><a href="Java.html#n43">Input and output parameters using primitive pointers and references</a>
+<li><a href="Java.html#n44">Simple pointers</a>
+<li><a href="Java.html#n45">Unbounded C Arrays</a>
+<li><a href="Java.html#n46">More on C arrays using the SWIG library</a>
 </ul>
-<li><a href="Java.html#n46">Java typemaps</a>
+<li><a href="Java.html#n47">Java typemaps</a>
 <ul>
-<li><a href="Java.html#n47">Default primitive type mappings</a>
-<li><a href="Java.html#n48">bit JVMs</a>
-<li><a href="Java.html#n49">What is a typemap?</a>
-<li><a href="Java.html#n50">Typemaps for mapping C/C++ types to Java types</a>
-<li><a href="Java.html#n51">Typemap variables</a>
-<li><a href="Java.html#n52">Typemaps for both C and C++ compilation</a>
-<li><a href="Java.html#n53">Java code typemaps</a>
+<li><a href="Java.html#n48">Default primitive type mappings</a>
+<li><a href="Java.html#n49">bit JVMs</a>
+<li><a href="Java.html#n50">What is a typemap?</a>
+<li><a href="Java.html#n51">Typemaps for mapping C/C++ types to Java types</a>
+<li><a href="Java.html#n52">Typemap variables</a>
+<li><a href="Java.html#n53">Typemaps for both C and C++ compilation</a>
+<li><a href="Java.html#n54">Java code typemaps</a>
 </ul>
-<li><a href="Java.html#n54">Typemap Examples</a>
+<li><a href="Java.html#n55">Typemap Examples</a>
 <ul>
-<li><a href="Java.html#n55">Converting Java String arrays to char ** </a>
-<li><a href="Java.html#n56">Expanding a Java object to multiple arguments</a>
-<li><a href="Java.html#n57">Using typemaps to return arguments</a>
-<li><a href="Java.html#n58">Pointer handling</a>
-<li><a href="Java.html#n59">Adding an equals method to the Java classes</a>
-<li><a href="Java.html#n60">Void pointers, null pointers and a common Java base class</a>
+<li><a href="Java.html#n56">Converting Java String arrays to char ** </a>
+<li><a href="Java.html#n57">Expanding a Java object to multiple arguments</a>
+<li><a href="Java.html#n58">Using typemaps to return arguments</a>
+<li><a href="Java.html#n59">Pointer handling</a>
+<li><a href="Java.html#n60">Adding an equals method to the Java classes</a>
+<li><a href="Java.html#n61">Void pointers, null pointers and a common Java base class</a>
 </ul>
-<li><a href="Java.html#n61">Odds and ends</a>
+<li><a href="Java.html#n62">Odds and ends</a>
 <ul>
-<li><a href="Java.html#n62">Functional interface without proxy classes</a>
-<li><a href="Java.html#n63">Dynamic linking problems</a>
-<li><a href="Java.html#n64">Using your own JNI methods</a>
-<li><a href="Java.html#n65">Performance concerns and hints</a>
-<li><a href="Java.html#n66">Known bugs</a>
+<li><a href="Java.html#n63">Functional interface without proxy classes</a>
+<li><a href="Java.html#n64">Dynamic linking problems</a>
+<li><a href="Java.html#n65">Using your own JNI methods</a>
+<li><a href="Java.html#n66">Performance concerns and hints</a>
+<li><a href="Java.html#n67">Known bugs</a>
 </ul>
-<li><a href="Java.html#n67">Examples</a>
+<li><a href="Java.html#n68">Examples</a>
 </ul>
 <!-- INDEX -->
 
@@ -518,34 +527,19 @@
 <li><a href="Ocaml.html#n2">Preliminaries</a>
 <ul>
 <li><a href="Ocaml.html#n3">Running SWIG</a>
-<li><a href="Ocaml.html#n4">Additional Command Line Options</a>
-<li><a href="Ocaml.html#n5">Getting the right header files</a>
-<li><a href="Ocaml.html#n6">Compiling the code</a>
-<li><a href="Ocaml.html#n7">Current thoughts on best practice for Ocaml</a>
-<li><a href="Ocaml.html#n8">Using your module</a>
-<li><a href="Ocaml.html#n9">Compilation problems and compiling with C++</a>
+<li><a href="Ocaml.html#n4">Getting the right header files</a>
+<li><a href="Ocaml.html#n5">Compiling the code</a>
+<li><a href="Ocaml.html#n6">Current thoughts on best practice for Ocaml</a>
+<li><a href="Ocaml.html#n7">Using your module</a>
+<li><a href="Ocaml.html#n8">Compilation problems and compiling with C++</a>
 </ul>
-<li><a href="Ocaml.html#n10">The low-level Ocaml/C interface</a>
+<li><a href="Ocaml.html#n9">The low-level Ocaml/C interface</a>
 <ul>
-<li><a href="Ocaml.html#n11">The generated module</a>
-<li><a href="Ocaml.html#n12">Deleters</a>
-<li><a href="Ocaml.html#n13">Types</a>
-<li><a href="Ocaml.html#n14">Functions</a>
-<li><a href="Ocaml.html#n15">Variable Linking</a>
-<li><a href="Ocaml.html#n16">Callbacks</a>
-<li><a href="Ocaml.html#n17">A word about message loops</a>
-<li><a href="Ocaml.html#n18">Enums</a>
-<li><a href="Ocaml.html#n19">C++ Classes</a>
-<ul>
-<li><a href="Ocaml.html#n20">No flags, function wrapping</a>
-<li><a href="Ocaml.html#n21">-objects</a>
-<li><a href="Ocaml.html#n22">-objects -onlyobjects</a>
-<li><a href="Ocaml.html#n23">-classmod</a>
-</ul>
-<li><a href="Ocaml.html#n24">Overloaded functions</a>
-<li><a href="Ocaml.html#n25">Operator overloading</a>
-<li><a href="Ocaml.html#n26">Ocaml typemaps</a>
-<li><a href="Ocaml.html#n27">Exceptions</a>
+<li><a href="Ocaml.html#n10">The generated module</a>
+<li><a href="Ocaml.html#n11">Types</a>
+<li><a href="Ocaml.html#n12">Enums</a>
+<li><a href="Ocaml.html#n13">C++ Classes</a>
+<li><a href="Ocaml.html#n14">Exceptions</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -738,45 +732,49 @@
 <li><a href="Ruby.html#n16">Pointers</a>
 <li><a href="Ruby.html#n17">Structures</a>
 <li><a href="Ruby.html#n18">C++ classes</a>
-<li><a href="Ruby.html#n19">C++ classes and type-checking</a>
+<li><a href="Ruby.html#n19">C++ inheritance</a>
 <li><a href="Ruby.html#n20">C++ overloaded functions</a>
-<li><a href="Ruby.html#n21">Operators</a>
+<li><a href="Ruby.html#n21">C++ Operators</a>
+<li><a href="Ruby.html#n22">C++ namespaces</a>
+<li><a href="Ruby.html#n23">C++ templates</a>
+<li><a href="Ruby.html#n24">C++ Smart Pointers</a>
 </ul>
-<li><a href="Ruby.html#n22">Input and output parameters</a>
-<li><a href="Ruby.html#n23">Simple exception handling </a>
-<li><a href="Ruby.html#n24">Typemaps</a>
+<li><a href="Ruby.html#n25">Input and output parameters</a>
+<li><a href="Ruby.html#n26">Simple exception handling </a>
+<li><a href="Ruby.html#n27">Typemaps</a>
 <ul>
-<li><a href="Ruby.html#n25">What is a typemap?</a>
-<li><a href="Ruby.html#n26">Ruby typemaps</a>
-<li><a href="Ruby.html#n27">Typemap variables</a>
-<li><a href="Ruby.html#n28">Useful Functions</a>
+<li><a href="Ruby.html#n28">What is a typemap?</a>
+<li><a href="Ruby.html#n29">Ruby typemaps</a>
+<li><a href="Ruby.html#n30">Typemap variables</a>
+<li><a href="Ruby.html#n31">Useful Functions</a>
 <ul>
-<li><a href="Ruby.html#n29">C Datatypes to Ruby Objects</a>
-<li><a href="Ruby.html#n30">Ruby Objects to C Datatypes</a>
-<li><a href="Ruby.html#n31">Macros for VALUE</a>
-<li><a href="Ruby.html#n32">Exceptions</a>
-<li><a href="Ruby.html#n33">Iterators</a>
+<li><a href="Ruby.html#n32">C Datatypes to Ruby Objects</a>
+<li><a href="Ruby.html#n33">Ruby Objects to C Datatypes</a>
+<li><a href="Ruby.html#n34">Macros for VALUE</a>
+<li><a href="Ruby.html#n35">Exceptions</a>
+<li><a href="Ruby.html#n36">Iterators</a>
 </ul>
-<li><a href="Ruby.html#n34">Typemap Examples</a>
-<li><a href="Ruby.html#n35">Converting  Ruby list to a char **</a>
-<li><a href="Ruby.html#n36">Pointer handling</a>
+<li><a href="Ruby.html#n37">Typemap Examples</a>
+<li><a href="Ruby.html#n38">Converting a Ruby array to a char **</a>
+<li><a href="Ruby.html#n39">Collecting arguments in a hash</a>
+<li><a href="Ruby.html#n40">Pointer handling</a>
 <ul>
-<li><a href="Ruby.html#n37">Ruby Datatype Wrapping</a>
+<li><a href="Ruby.html#n41">Ruby Datatype Wrapping</a>
 </ul>
-<li><a href="Ruby.html#n38">Adding native Ruby functions to a SWIG module</a>
 </ul>
-<li><a href="Ruby.html#n39">Operator overloading</a>
+<li><a href="Ruby.html#n42">Operator overloading</a>
 <ul>
-<li><a href="Ruby.html#n40">An example (putting everything together)</a>
-<li><a href="Ruby.html#n41">Expanding the example</a>
-<li><a href="Ruby.html#n42">STL Vector to Ruby Array</a>
+<li><a href="Ruby.html#n43">An example (putting everything together)</a>
+<li><a href="Ruby.html#n44">Expanding the example</a>
+<li><a href="Ruby.html#n45">STL Vector to Ruby Array</a>
 </ul>
-<li><a href="Ruby.html#n43">Advanced Topics</a>
+<li><a href="Ruby.html#n46">Advanced Topics</a>
 <ul>
-<li><a href="Ruby.html#n44">Creating Multi-Module Packages</a>
-<li><a href="Ruby.html#n45">Defining Aliases</a>
-<li><a href="Ruby.html#n46">Predicate Methods</a>
-<li><a href="Ruby.html#n47">Interacting with Ruby's Garbage Collector</a>
+<li><a href="Ruby.html#n47">Creating Multi-Module Packages</a>
+<li><a href="Ruby.html#n48">Defining Aliases</a>
+<li><a href="Ruby.html#n49">Predicate Methods</a>
+<li><a href="Ruby.html#n50">Specifying Mixin Modules</a>
+<li><a href="Ruby.html#n51">Interacting with Ruby's Garbage Collector</a>
 </ul>
 </ul>
 <!-- INDEX -->
