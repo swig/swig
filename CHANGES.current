@@ -1,6 +1,55 @@
 Version 1.3.23 (in progress)
 ============================
 
+
+10/28/2004:mmatus
+	    - Added module and swig option "templatereduce" to force swig
+	      to reduce any type needed with templates, ie, in these cases
+
+                %module("templatereduce") test
+
+                template <class T> struct A { };
+
+                typedef int Int;
+	        %template(A_Int) A<Int>  ==>  %template(A_Int) A<int>
+
+                typedef B* Bp;
+	        %template(A_Bp) A<Bp>  ==>  %template(A_Bp) A<B*>
+
+              swig reduces the types Int and Bp to their primitives
+              int and B*. This is closer to the usual compiler
+              resolution mechanism, and it is really needed sometimes
+              when you mix templates + typedefs + specializations.
+
+	      Don't use it if you don't have any problem already,
+	      since the type reduction can interfere with some
+	      user typemaps, specially if you defined something like
+
+		   typedef int Int;
+		   %typemap(in) Int ...;
+
+              in this case, when you use the "templatereduce" option,
+	      swig will ignore the user typemap, since the "typedef int Int"
+	      will take precedence, and the usual "int" typemap will be
+	      applied. 
+
+	      Note that the previous case is not common, and should be
+	      avoided, ie, is not recommended to use a typedef and a
+	      typemap at the same time, specially if you are going to
+	      use templates + specializations.
+
+	    - Directors:
+
+	        virtual destructor is always emitted now, this doesn't
+	        cause any harm, and could solve some nasty and
+	        mysterious errors, like the one mentioned by Scott.
+
+		also the destructor is not in-lined, so, that can solve
+		some other mysterious errors when mixing directors +
+		imports + embedded applications + some specific compilers.
+		
+ 
+
 10/27/2004: wsfulton
             [C#] typemaps.i library file with INPUT, OUTPUT and INOUT typemaps added.
 

@@ -171,6 +171,10 @@ void SWIG_cparse_set_compact_default_args(int defargs) {
   compact_default_args = defargs;
 }
 
+void SWIG_cparse_template_reduce(int treduce) {
+  template_reduce = treduce;
+}
+
 /* -----------------------------------------------------------------------------
  *                           Assist functions
  * ----------------------------------------------------------------------------- */

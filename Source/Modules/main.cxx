@@ -83,6 +83,7 @@ static const char *usage2 = (const char*)"\
      -outdir <dir>   - Set language specific files output directory\n\
      -small          - Compile in virtual elimination & compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
+     -templatereduce - Swig reduce all the typedefs in templates \n\
      -v              - Run in verbose mode\n\
      -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
@@ -331,6 +332,9 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-show_templates") == 0) {
 	    Swig_cparse_debug_templates(1);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-templatereduce") == 0) {
+	    SWIG_cparse_template_reduce(1);
 	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-swiglib") == 0) {
 	    printf("%s\n", LibDir);
