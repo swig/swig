@@ -433,8 +433,6 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   char  *tm;
   WrapperFunction f;
   String cleanup;
-  int need_len = 0;
-  int need_tempc = 0;
 
   String outarg;
   int have_build = 0;
@@ -478,8 +476,10 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int numargs = 0;
   int numopt = 0;
 
-  f.add_local ("int",    "_len");
-  f.add_local ("char *", "_tempc");
+  if (!with_smobs) {
+    f.add_local ("int",    "_len");
+    f.add_local ("char *", "_tempc");
+  }
   f.add_local ("SCM",    "gswig_result");
 
   // Now write code to extract the parameters (this is super ugly)
