@@ -82,7 +82,7 @@ libswigpy$(RELEASESUFFIX).la:
 # ----------------------------------------------------------------------
 
 PERL5_INCLUDE = -I@PERL5EXT@
-PERL5_RUNTIME = $(SWIGLIB)/perl5/perl5.swg
+PERL5_RUNTIME = $(SWIGLIB)/perl5/perlrun.swg
 
 # Perl shared
 
