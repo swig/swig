@@ -253,7 +253,7 @@ void Swig_cppresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_cha
   
   switch(SwigType_type(t)) {
   case T_USER:
-    Printf(fcall,");");
+    Printf(fcall,");\n");
     break;
   case T_REFERENCE:
     Printf(fcall,";\n");
