@@ -7,3 +7,4 @@ argout_ref
 shapes
 contract
 scoped_enum
+string_from_ptr
