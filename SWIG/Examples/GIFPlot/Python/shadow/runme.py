@@ -47,7 +47,7 @@ def drawsolid():
 			c2 = cscale*(z2-zmin)
 			c3 = cscale*(z3-zmin)
 			c4 = cscale*(z4-zmin)
-			c = (c1+c2+c3+c4)/4
+			c = int((c1+c2+c3+c4)/4)
 			if (c < 0) : c = 0
 			if c > 239 : c = 239
 			p3.solidquad(x,y,z1,x+dx,y,z2,x+dx,y+dy,z3,x,y+dy,z4,c+16)
