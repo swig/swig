@@ -7,7 +7,7 @@ public:
    enum types {Oak, Fir, Cedar};
    void chop(enum types type) {}
 };
-enum Tree<int>::types chop(enum Tree<int>::types type) {}
+enum Tree<int>::types chop(enum Tree<int>::types type) { return type; }
  
 %}                                                      
 
