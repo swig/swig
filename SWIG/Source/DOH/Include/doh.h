@@ -233,7 +233,6 @@ typedef struct DohObjInfo {
 #define Clear              DohClear
 #define Str                DohStr
 #define Dump               DohDump
-#define Signature          DohSignature
 #define Getattr            DohGetattr
 #define Setattr            DohSetattr
 #define Delattr            DohDelattr
