@@ -34,7 +34,16 @@
 namespace std {
   %template(CIntPair) pair<const int, const int>;
   %template() pair<double, double>;
+  %template(ShortPair) pair<short, short>;
+
   %template(IntPair) pair<int, int>;
+  %extend pair<int, int>
+  {
+    %template(pair) pair<short,short>;
+  }
+  
+  
+
   %template(SIPair) pair<std::string, int>;
   %template(CIPair) pair<std::complex<double>, int>;
   %template(SIIPair) pair<std::pair<std::string, int>, int>;
