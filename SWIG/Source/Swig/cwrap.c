@@ -645,6 +645,11 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   ty = Swig_wrapped_var_type(type);
   p = NewParm(ty,name);
   set_nextSibling(parms,p);
+
+  /* If the type is a pointer or reference.  We mark it with a special wrap:disown attribute */
+  if (SwigType_check_decl(ty,"p.")) {
+    Setattr(p,"wrap:disown","1");
+  }
   Delete(p);
 
   if (flags & CWRAP_EXTEND) {
