@@ -1320,8 +1320,11 @@ Preprocessor_parse(String *s)
 	  /*	  Printf(stdout,"Evaluating '%s'\n", sval); */
   	  val = Preprocessor_expr(sval,&e);
   	  if (e) {
+	    char * msg = Preprocessor_expr_error();
   	    Seek(value,0,SEEK_SET);
 	    Swig_warning(WARN_PP_EVALUATION,Getfile(value),Getline(value),"Could not evaluate '%s'\n", value);
+	    if (msg)
+	      Swig_warning(WARN_PP_EVALUATION,Getfile(value),Getline(value),"Error: '%s'\n", msg);
   	    allow = 0;
   	  } else {
   	    if (val == 0)
@@ -1342,8 +1345,11 @@ Preprocessor_parse(String *s)
   	    Seek(sval,0,SEEK_SET);
   	    val = Preprocessor_expr(sval,&e);
   	    if (e) {
+	      char * msg = Preprocessor_expr_error();
   	      Seek(value,0,SEEK_SET);
   	      Swig_warning(WARN_PP_EVALUATION,Getfile(value),Getline(value),"Could not evaluate '%s'\n", value);
+	      if (msg)
+		Swig_warning(WARN_PP_EVALUATION,Getfile(value),Getline(value),"Error: '%s'\n", msg);
   	      allow = 0;
   	    } else {
   	      if (val)
