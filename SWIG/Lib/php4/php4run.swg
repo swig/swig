@@ -77,18 +77,14 @@ __SWIG_SetPointerChar(char **c, void *ptr, swig_type_info *type) {
 SWIGRUNTIME(void)
 SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, zend_module_entry* module_entry TSRMLS_DC) {
   // No need to call SWIG_MakePtr here!
-  if (! type->clientdata) { 
-    int le_swig_runtime=0;
-    // need to register this type as a resource as it hasn't so far
-    // Which means it must be a resource without a destructor or it 
-    // registration code would have been generated when the destructor
-    // was written out
-    if (le_swig_runtime=zend_register_list_destructors_ex(SWIG_landfill, NULL, (char *)(type->name),module_entry->module_number)) 
-      SWIG_TypeClientData(type, (void *)le_swig_runtime);
+  if (type->clientdata) { 
+    //Assert that type->clientdata is not 0
+    ZEND_REGISTER_RESOURCE(z, ptr, (int)type->clientdata);
+    return;
+  } else { // have to deal with old fashioned string pointer?
+           // but this should not get this far
+    zend_error(E_ERROR, "Type: %s not registered with zend",type->name);
   }
-  //Assert that type->clientdata is not 0
-  ZEND_REGISTER_RESOURCE(z, ptr, (int)type->clientdata);
-
 }
 
 SWIGRUNTIME(int)
