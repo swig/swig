@@ -185,7 +185,33 @@ Swig_insert_file(const String_or_char *filename, File *outfile) {
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_register_filebyname()
+ *
+ * Register a "named" file with the core.  Named files can become targets
+ * for %insert directives and other SWIG operations.  This function takes
+ * the place of the f_header, f_wrapper, f_init, and other global variables
+ * in SWIG1.1
+ * ----------------------------------------------------------------------------- */
 
+static Hash *named_files = 0;
 
+void
+Swig_register_filebyname(const String_or_char *filename, File *outfile) {
+  if (!named_files) named_files = NewHash();
+  Setattr(named_files, filename, outfile);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_filebyname()
+ *
+ * Get a named file
+ * ----------------------------------------------------------------------------- */
+
+File *
+Swig_filebyname(const String_or_char *filename) {
+  if (!named_files) return 0;
+  return Getattr(named_files,filename);
+}
 
 
