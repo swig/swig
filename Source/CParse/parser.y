@@ -62,11 +62,11 @@ static int      cparse_externc = 0;
 
 #define SWIG_WARN_NODE_BEGIN(Node) \
  { \
-  String *wrn = Node ? Getattr(Node,"feature:warnfilter") : 0; \
-  if (wrn) Swig_warnfilter(wrn,1) 
+  String *wrnfilter = Node ? Getattr(Node,"feature:warnfilter") : 0; \
+  if (wrnfilter) Swig_warnfilter(wrnfilter,1) 
 
 #define SWIG_WARN_NODE_END(Node) \
-  if (wrn) Swig_warnfilter(wrn,0); \
+  if (wrnfilter) Swig_warnfilter(wrnfilter,0); \
  }
 
  
@@ -427,7 +427,9 @@ static void add_symbols(Node *n) {
       char *c = Char(symname)+7;
       Setattr(n,"feature:ignore","1");
       if (strlen(c)) {
+	SWIG_WARN_NODE_BEGIN(n);
 	Swig_warning(0,Getfile(n), Getline(n), "%s\n",c+1);
+	SWIG_WARN_NODE_END(n);
       }
       Swig_symbol_add(0, n);
     } else {
