@@ -45,9 +45,6 @@ Guile Options (available with -guile)\n\
            likely to be broken.  Please use with care.\n\
 \n";
 
-#define GUILE_LSTYLE_LTDLMOD 0          // "native" guile?
-#define GUILE_LSTYLE_HOBBIT  1
-
 // ---------------------------------------------------------------------
 // GUILE ()
 // ---------------------------------------------------------------------
@@ -271,20 +268,7 @@ GUILE::headers (void)
 void
 GUILE::initialize (void)
 {
-  int i;
-
-#ifdef OLD_STYLE_WILL_GO_AWAY
-  if (InitNames) {
-    i = 0;
-    while (InitNames[i]) {
-      fprintf(f_init,"\t %s();\n",InitNames[i]);
-      i++;
-    }
-  }
-#endif /* OLD_STYLE_WILL_GO_AWAY */
-
   fprintf (f_init, "static void\nSWIG_init (void)\n{\n");
-
   fprintf (f_init, "\tSWIG_Guile_Init();\n");
 }
 
@@ -294,8 +278,8 @@ GUILE::initialize (void)
 // Wrap things up.  Close initialization function.
 // ---------------------------------------------------------------------
 
-static void
-emit_linkage (String &module_name, int linkage)
+void
+GUILE::emit_linkage (String &module_name)
 {
   String module_func ("");
 
@@ -304,15 +288,20 @@ emit_linkage (String &module_name, int linkage)
   module_func.replace ("-", "_");
 
   switch (linkage) {
+  case GUILE_LSTYLE_SIMPLE:
+    fprintf (f_init, "\n/* Linkage: simple */\n");
+    break;
   case GUILE_LSTYLE_LTDLMOD:
+    fprintf (f_init, "\n/* Linkage: ltdlmod */\n");
     module_func.replace ("/", "_");
     "scm_init" >> module_func;
     module_func << "_module";
+    /* TODO */
     break;
   case GUILE_LSTYLE_HOBBIT:
+    fprintf (f_init, "\n/* Linkage: hobbit */\n");
     module_func.replace ("/", "_slash_");
     "scm_init_" >> module_func;
-    fprintf (f_init, "\n/* Linkage: hobbit */\n");
     fprintf (f_init, "SCM\n%s (void)\n{\n", module_func.get());
     {
       String mod = "";
@@ -341,7 +330,7 @@ GUILE::close (void)
   else
     module_name << module;
 
-  emit_linkage (module_name, linkage);
+  emit_linkage (module_name);
 }
 
 // ----------------------------------------------------------------------
