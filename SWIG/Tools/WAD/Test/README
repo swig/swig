@@ -1,0 +1,5 @@
+Simple test programs for WAD.  This is currently incomplete.
+
+Note: To completely rebuild the Python, Perl, and Tcl tests,
+you need to have SWIG installed (www.swig.org).
+
