@@ -332,7 +332,8 @@ extern SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symt
 /* Parameters are really just hidden behind a DOH object.  The following
    interface will probably be simplified even further. */
 
-extern Parm       *NewParm(SwigType *type, const String_or_char *n);
+extern Parm       *NewParm(SwigType *type, const String_or_char *name);
+extern Parm       *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n);
 extern Parm       *CopyParm(Parm *p);
 extern ParmList   *CopyParmList(ParmList *);
 extern int         ParmList_len(ParmList *);
