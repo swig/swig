@@ -38,16 +38,16 @@
 #include <map>
 namespace Swig {
   class Director;
-  static std::map<void*,Director*>& get_rtdir_map() {
+  SWIGINTERN std::map<void*,Director*>& get_rtdir_map() {
     static std::map<void*,Director*> rtdir_map;
     return rtdir_map;
   }
 
-  static inline void set_rtdir(void *vptr, Director *rtdir) {
+  SWIGINTERNINLINE void set_rtdir(void *vptr, Director *rtdir) {
     get_rtdir_map()[vptr] = rtdir;
   }
 
-  static inline Director *get_rtdir(void *vptr) {
+  SWIGINTERNINLINE Director *get_rtdir(void *vptr) {
     std::map<void*,Director*>::const_iterator pos = get_rtdir_map().find(vptr);
     Director *rtdir = (pos != get_rtdir_map().end()) ? pos->second : 0;
     return rtdir;

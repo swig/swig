@@ -1404,12 +1404,19 @@ public:
     */
      
     /* Emit the function call */
-    Printf(f->code, "try {\n");
+    if (directorsEnabled()) {
+      Printf(f->code, "try {\n");
+    }
+    
     emit_action(n,f);
-    Printf(f->code, "} catch (Swig::DirectorException& e) {\n");
-    Printf(f->code, "  SWIG_Python_AddErrMesg(e.getMessage(), 1);\n");
-    Printf(f->code, "  SWIG_fail;\n");
-    Printf(f->code, "}\n");
+
+    if (directorsEnabled()) {
+      Printf(f->code, "} catch (Swig::DirectorException& e) {\n");
+      Printf(f->code, "  SWIG_Python_AddErrMesg(e.getMessage(), 1);\n");
+      Printf(f->code, "  SWIG_fail;\n");
+      Printf(f->code, "}\n");
+    }
+    
 
     /* This part below still needs cleanup */
 

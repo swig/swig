@@ -31,13 +31,13 @@ typedef struct swig_varlinkobject {
   swig_globalvar *vars;
 } swig_varlinkobject;
 
-static PyObject *
+SWIGINTERN PyObject *
 swig_varlink_repr(swig_varlinkobject *v) {
   v = v;
   return PyString_FromString("<Swig global variables>");
 }
 
-static int
+SWIGINTERN int
 swig_varlink_print(swig_varlinkobject *v, FILE *fp, int flags) {
   swig_globalvar  *var;
   flags = flags;
@@ -50,7 +50,7 @@ swig_varlink_print(swig_varlinkobject *v, FILE *fp, int flags) {
   return 0;
 }
 
-static PyObject *
+SWIGINTERN PyObject *
 swig_varlink_getattr(swig_varlinkobject *v, char *n) {
   swig_globalvar *var = v->vars;
   while (var) {
@@ -63,7 +63,7 @@ swig_varlink_getattr(swig_varlinkobject *v, char *n) {
   return NULL;
 }
 
-static int
+SWIGINTERN int
 swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
   swig_globalvar *var = v->vars;
   while (var) {
@@ -76,7 +76,7 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
   return 1;
 }
 
-static PyTypeObject varlinktype = {
+SWIGINTERN PyTypeObject varlinktype = {
   PyObject_HEAD_INIT(0)              
   0,                                  /* Number of items in variable part (ob_size) */
   (char *)"swigvarlink",              /* Type name (tp_name) */
@@ -119,7 +119,7 @@ static PyTypeObject varlinktype = {
 };
 
 /* Create a variable linking object for use later */
-static PyObject *
+SWIGINTERN PyObject *
 SWIG_Python_newvarlink(void) {
   swig_varlinkobject *result = 0;
   result = PyMem_NEW(swig_varlinkobject,1);
@@ -131,7 +131,7 @@ SWIG_Python_newvarlink(void) {
   return ((PyObject*) result);
 }
 
-static SWIGUNUSED void 
+SWIGINTERN void 
 SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
   swig_varlinkobject *v;
   swig_globalvar *gv;
@@ -150,7 +150,7 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
  * ----------------------------------------------------------------------------- */
 
 /* Install Constants */
-static void
+SWIGINTERN void
 SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
   PyObject *obj = 0;
   size_t i;
@@ -191,7 +191,7 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
 /* Fix SwigMethods to carry the callback ptrs when needed */
 /* -----------------------------------------------------------------------------*/
 
-static void
+SWIGINTERN void
 SWIG_Python_FixMethods(PyMethodDef *methods,
 		       swig_const_info *const_table,
 		       swig_type_info **types,
@@ -236,7 +236,7 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 #if PY_MAJOR_VERSION < 2
 /* PyModule_AddObject function was introduced in Python 2.0.  The following function
 is copied out of Python/modsupport.c in python version 2.3.4 */
-static int
+SWIGINTERN int
 PyModule_AddObject(PyObject *m, char *name, PyObject *o)
 {
   PyObject *dict;
