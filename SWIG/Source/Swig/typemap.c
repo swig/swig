@@ -192,7 +192,7 @@ Swig_typemap_clear(char *op, SwigType *type, String_or_char *name) {
 static void merge_attributes(Hash *target, Hash *source) {
   String *key;
   for (key = Firstkey(source); key; key = Nextkey(source)) {
-    if (Getattr(target,key)) continue;
+    /*    if (Getattr(target,key)) continue; */
     Setattr(target,key,Getattr(source,key));
   }
 }
