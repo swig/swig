@@ -167,7 +167,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	    SWIG_mark_arg(i);
 	  } else if (strncmp(argv[i],"-D",2) == 0) {
 	    DOH *d = NewString(argv[i]+2);
-	    String_replace(d,"="," ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+	    String_replace(d,(char*)"=",(char*)" ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
 	    SWIG_cpp_define((DOH *) d,0);
 	    // Create a symbol
 	    SWIG_mark_arg(i);

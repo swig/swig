@@ -623,7 +623,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
             char *scalarType = SwigTcToJniScalarType(p->t);
             char *cptrtype = p->t->print_type();
             p->t->is_pointer--;
-            char *basic_jnitype = (p->t->is_pointer > 0) ? "jlong" : SwigTcToJniType(p->t, 0);
+            const char *basic_jnitype = (p->t->is_pointer > 0) ? "jlong" : SwigTcToJniType(p->t, 0);
             char *ctype = p->t->print_type();
 	    if(scalarType == NULL || basic_jnitype == NULL) {
 	      fprintf(stderr, "\'%s\' does not have a in/jni typemap, and is not a basic type.\n", ctype);
@@ -687,7 +687,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
             char *scalarType = SwigTcToJniScalarType(p->t);
             char *cptrtype = p->t->print_type();
             p->t->is_pointer--;
-            char *basic_jnitype = (p->t->is_pointer > 0) ? "jlong" : SwigTcToJniType(p->t, 0);
+            const char *basic_jnitype = (p->t->is_pointer > 0) ? "jlong" : SwigTcToJniType(p->t, 0);
             char *ctype = p->t->print_type();
 	    if(scalarType == NULL || basic_jnitype == NULL) {
 	      fprintf(stderr, "\'%s\' does not have a argout/jni typemap, and is not a basic type.\n", ctype);
