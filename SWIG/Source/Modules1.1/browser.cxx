@@ -54,6 +54,7 @@ class Browser : public Dispatcher {
 	  if (Len(o) > 70) {
 	    trunc = "...";
 	  }
+	  Replaceall(o,"<","&lt;");
 	  Printf(os,"<a href=\"data.html?n=0x%x\">?</a> %-12s - \"%(escape)-0.70s%s\"\n", Getattr(obj,k), k, o, trunc);
 	  Delete(o);
 	} else {
@@ -105,6 +106,12 @@ public:
     emit_children(n);
     return SWIG_OK;
   }
+  virtual int importDirective(Node *n) {
+    show_attributes(n);
+    emit_children(n);
+    return SWIG_OK;
+  }
+
   virtual int addmethodsDirective(Node *n) {
     show_attributes(n);
     emit_children(n);
@@ -224,6 +231,7 @@ void raw_data(FILE *out, Node *obj) {
 	if (Len(o) > 70) {
 	  trunc = "...";
 	}
+	Replaceall(o,"<","&lt;");
 	Printf(os,"    <a href=\"data.html?n=0x%x\">?</a> %-12s - \"%(escape)-0.70s%s\"\n", Getattr(obj,k), k, o, trunc);
 	Delete(o);
       } else {
@@ -236,6 +244,7 @@ void raw_data(FILE *out, Node *obj) {
     Delete(os);
   } else if (DohIsString(obj)) {
     String *o = Str(obj);
+    Replaceall(o,"<","&lt;");
     swill_fprintf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(o));
     Delete(o);
   } else if (DohIsSequence(obj)) {
@@ -250,6 +259,7 @@ void raw_data(FILE *out, Node *obj) {
 	if (Len(s) > 70) {
 	  trunc = "...";
 	}
+	Replaceall(o,"<","&lt;");
 	Printf(os,"    <a href=\"data.html?n=0x%x\">?</a> [%d] - \"%(escape)-0.70s%s\"\n", o,i,s, trunc);
 	Delete(s);
       } else {
