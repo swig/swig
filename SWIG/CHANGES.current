@@ -1,5 +1,10 @@
 Version 1.3.22 (in progress)
 ==================================
+
+03/21/2004: mkoeppe
+	    [Guile] Fix the documentation strings of functions with
+	    anonymous arguments.
+
 03/18/2004: mmatus
 	    [Python] More general std_string.i interface.
 	    Now you can wrap it using
