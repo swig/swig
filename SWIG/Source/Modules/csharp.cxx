@@ -474,7 +474,7 @@ class CSHARP : public Language {
 
     /* Attach the non-standard typemaps to the parameter list. */
     Swig_typemap_attach_parms("ctype", l, f);
-    Swig_typemap_attach_parms("cstype", l, f);
+    Swig_typemap_attach_parms("imtype", l, f);
 
     /* Get return types */
     if ((tm = Swig_typemap_lookup_new("ctype",n,"",0))) {
@@ -484,11 +484,11 @@ class CSHARP : public Language {
           "No ctype typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
+    if ((tm = Swig_typemap_lookup_new("imtype",n,"",0))) {
       Printf(im_return_type,"%s", tm);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, 
-          "No cstype typemap defined for %s\n", SwigType_str(t,0));
+          "No imtype typemap defined for %s\n", SwigType_str(t,0));
     }
 
     is_void_return = (Cmp(c_return_type, "void") == 0);
@@ -538,11 +538,11 @@ class CSHARP : public Language {
       }
 
       /* Get the intermediary class parameter types of the parameter */
-      if ((tm = Getattr(p,"tmap:cstype"))) {
+      if ((tm = Getattr(p,"tmap:imtype"))) {
         Printv(im_param_type, tm, NIL);
       } else {
         Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, 
-            "No cstype typemap defined for %s\n", SwigType_str(pt,0));
+            "No imtype typemap defined for %s\n", SwigType_str(pt,0));
       }
 
       /* Add parameter to intermediary class method */
@@ -745,11 +745,11 @@ class CSHARP : public Language {
     String    *tm;
 
     // Get the variable type
-    if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
+    if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
       substituteClassname(t, tm);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
-          "No cswtype typemap defined for %s\n", SwigType_str(t,0));
+          "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
     // Output the property's field declaration and accessor methods
@@ -782,7 +782,7 @@ class CSHARP : public Language {
 
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
-    /* Adjust the enum type for the Swig_typemap_lookup. We want the same cswtype typemap for all the enum items.
+    /* Adjust the enum type for the Swig_typemap_lookup. We want the same cstype typemap for all the enum items.
      * The type of each enum item depends on what value it is assigned, but is usually a C int. */
     if (is_enum_item) {
       t = NewStringf("enum %s", Getattr(parentNode(n), "sym:name"));
@@ -790,17 +790,17 @@ class CSHARP : public Language {
     }
 
     /* Attach the non-standard typemaps to the parameter list. */
-    Swig_typemap_attach_parms("cswtype", l, NULL);
+    Swig_typemap_attach_parms("cstype", l, NULL);
 
     /* Get C# return types */
     bool classname_substituted_flag = false;
     
-    if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
+    if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
       classname_substituted_flag = substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
-          "No cswtype typemap defined for %s\n", SwigType_str(t,0));
+          "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
     // Add the stripped quotes back in
@@ -820,7 +820,7 @@ class CSHARP : public Language {
     bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
 
     // enums are wrapped using a public final static int in C#.
-    // Other constants are wrapped using a public final static [cswtype] in C#.
+    // Other constants are wrapped using a public final static [cstype] in C#.
     Printf(constants_code, "  public %s %s %s = ", (const_feature_flag ? "const" : "static readonly"), return_type, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
 
     if ((is_enum_item && Getattr(n,"enumvalue") == 0) || !const_feature_flag) {
@@ -1226,16 +1226,16 @@ class CSHARP : public Language {
 
     /* Attach the non-standard typemaps to the parameter list */
     Swig_typemap_attach_parms("in", l, NULL);
-    Swig_typemap_attach_parms("cswtype", l, NULL);
+    Swig_typemap_attach_parms("cstype", l, NULL);
     Swig_typemap_attach_parms("csin", l, NULL);
 
     /* Get return types */
-    if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
+    if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
       substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
-          "No cswtype typemap defined for %s\n", SwigType_str(t,0));
+          "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
     if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
@@ -1284,12 +1284,12 @@ class CSHARP : public Language {
         String   *param_type = NewString("");
 
         /* Get the C# parameter type */
-        if ((tm = Getattr(p,"tmap:cswtype"))) {
+        if ((tm = Getattr(p,"tmap:cstype"))) {
           substituteClassname(pt, tm);
           Printf(param_type, "%s", tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
-              "No cswtype typemap defined for %s\n", SwigType_str(pt,0));
+              "No cstype typemap defined for %s\n", SwigType_str(pt,0));
         }
 
         if (gencomma)
@@ -1400,7 +1400,7 @@ class CSHARP : public Language {
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("in", l, NULL);
-      Swig_typemap_attach_parms("cswtype", l, NULL);
+      Swig_typemap_attach_parms("cstype", l, NULL);
       Swig_typemap_attach_parms("csin", l, NULL);
 
       emit_mark_varargs(l);
@@ -1426,12 +1426,12 @@ class CSHARP : public Language {
         String   *param_type = NewString("");
 
         /* Get the C# parameter type */
-        if ((tm = Getattr(p,"tmap:cswtype"))) {
+        if ((tm = Getattr(p,"tmap:cstype"))) {
           substituteClassname(pt, tm);
           Printf(param_type, "%s", tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
-              "No cswtype typemap defined for %s\n", SwigType_str(pt,0));
+              "No cstype typemap defined for %s\n", SwigType_str(pt,0));
         }
 
         if (gencomma)
@@ -1501,11 +1501,11 @@ class CSHARP : public Language {
     String    *tm;
 
     // Get the variable type
-    if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
+    if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
       substituteClassname(t, tm);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
-          "No cswtype typemap defined for %s\n", SwigType_str(t,0));
+          "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
     // Output the property's field declaration and accessor methods
@@ -1535,11 +1535,11 @@ class CSHARP : public Language {
       String    *tm;
 
       // Get the variable type
-      if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
+      if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
         substituteClassname(t, tm);
       } else {
         Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
-            "No cswtype typemap defined for %s\n", SwigType_str(t,0));
+            "No cstype typemap defined for %s\n", SwigType_str(t,0));
       }
 
       // Output the property's field declaration and accessor methods
@@ -1614,16 +1614,16 @@ class CSHARP : public Language {
     }
 
     /* Attach the non-standard typemaps to the parameter list */
-    Swig_typemap_attach_parms("cswtype", l, NULL);
+    Swig_typemap_attach_parms("cstype", l, NULL);
     Swig_typemap_attach_parms("csin", l, NULL);
 
     /* Get return types */
-    if ((tm = Swig_typemap_lookup_new("cswtype",n,"",0))) {
+    if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
       substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
-          "No cswtype typemap defined for %s\n", SwigType_str(t,0));
+          "No cstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
     /* Change function name for global variables */
@@ -1663,12 +1663,12 @@ class CSHARP : public Language {
       String   *param_type = NewString("");
 
       /* Get the C# parameter type */
-      if ((tm = Getattr(p,"tmap:cswtype"))) {
+      if ((tm = Getattr(p,"tmap:cstype"))) {
         substituteClassname(pt, tm);
         Printf(param_type, "%s", tm);
       } else {
         Swig_warning(WARN_CSHARP_TYPEMAP_JSWTYPE_UNDEF, input_file, line_number, 
-            "No cswtype typemap defined for %s\n", SwigType_str(pt,0));
+            "No cstype typemap defined for %s\n", SwigType_str(pt,0));
       }
 
       if (gencomma)
@@ -1765,9 +1765,9 @@ class CSHARP : public Language {
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
    * Inputs:
    *   pt - parameter type
-   *   tm - cswtype typemap
+   *   tm - cstype typemap
    * Outputs:
-   *   tm - cswtype typemap with $csclassname substitution
+   *   tm - cstype typemap with $csclassname substitution
    * Return:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */

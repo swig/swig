@@ -6,10 +6,10 @@
 
 %include "csharphead.swg"
 
-/* The ctype, cstype and cswtype typemaps work together and so there should be one of each. 
+/* The ctype, imtype and cstype typemaps work together and so there should be one of each. 
  * The ctype typemap contains the PInvoke type used in the PInvoke (C/C++) code. 
- * The cstype typemap contains the C# type used in the PInvoke class. 
- * The cswtype typemap contains the C# type used in the C# proxy classes, type wrapper classes and module class. */
+ * The imtype typemap contains the C# type used in the intermediary class. 
+ * The cstype typemap contains the C# type used in the C# proxy classes, type wrapper classes and module class. */
 
 /* Primitive types */
 %typemap(ctype) bool,               const bool &               "bool"
@@ -29,6 +29,23 @@
 %typemap(ctype) char *                                         "char *"
 %typemap(ctype) void                                           "void"
 
+%typemap(imtype) bool,               const bool &               "bool"
+%typemap(imtype) char,               const char &               "char"
+%typemap(imtype) signed char,        const signed char &        "sbyte"
+%typemap(imtype) unsigned char,      const unsigned char &      "byte"
+%typemap(imtype) short,              const short &              "short"
+%typemap(imtype) unsigned short,     const unsigned short &     "ushort"
+%typemap(imtype) int,                const int &                "int"
+%typemap(imtype) unsigned int,       const unsigned int &       "uint"
+%typemap(imtype) long,               const long &               "int"
+%typemap(imtype) unsigned long,      const unsigned long &      "uint"
+%typemap(imtype) long long,          const long long &          "long"
+%typemap(imtype) unsigned long long, const unsigned long long & "ulong"
+%typemap(imtype) float,              const float &              "float"
+%typemap(imtype) double,             const double &             "double"
+%typemap(imtype) char *                                         "string"
+%typemap(imtype) void                                           "void"
+
 %typemap(cstype) bool,               const bool &               "bool"
 %typemap(cstype) char,               const char &               "char"
 %typemap(cstype) signed char,        const signed char &        "sbyte"
@@ -46,52 +63,35 @@
 %typemap(cstype) char *                                         "string"
 %typemap(cstype) void                                           "void"
 
-%typemap(cswtype) bool,               const bool &               "bool"
-%typemap(cswtype) char,               const char &               "char"
-%typemap(cswtype) signed char,        const signed char &        "sbyte"
-%typemap(cswtype) unsigned char,      const unsigned char &      "byte"
-%typemap(cswtype) short,              const short &              "short"
-%typemap(cswtype) unsigned short,     const unsigned short &     "ushort"
-%typemap(cswtype) int,                const int &                "int"
-%typemap(cswtype) unsigned int,       const unsigned int &       "uint"
-%typemap(cswtype) long,               const long &               "int"
-%typemap(cswtype) unsigned long,      const unsigned long &      "uint"
-%typemap(cswtype) long long,          const long long &          "long"
-%typemap(cswtype) unsigned long long, const unsigned long long & "ulong"
-%typemap(cswtype) float,              const float &              "float"
-%typemap(cswtype) double,             const double &             "double"
-%typemap(cswtype) char *                                         "string"
-%typemap(cswtype) void                                           "void"
-
 %typemap(ctype) char[ANY]               "char *"
+%typemap(imtype) char[ANY]               "string"
 %typemap(cstype) char[ANY]               "string"
-%typemap(cswtype) char[ANY]               "string"
 
 /* Non primitive types */
 %typemap(ctype) SWIGTYPE "int"
-%typemap(cstype) SWIGTYPE "IntPtr"
-%typemap(cswtype) SWIGTYPE "$&csclassname"
+%typemap(imtype) SWIGTYPE "IntPtr"
+%typemap(cstype) SWIGTYPE "$&csclassname"
 
 %typemap(ctype) SWIGTYPE [] "int"
-%typemap(cstype) SWIGTYPE [] "IntPtr"
-%typemap(cswtype) SWIGTYPE [] "$csclassname"
+%typemap(imtype) SWIGTYPE [] "IntPtr"
+%typemap(cstype) SWIGTYPE [] "$csclassname"
 
 %typemap(ctype) SWIGTYPE * "int"
-%typemap(cstype) SWIGTYPE * "IntPtr"
-%typemap(cswtype) SWIGTYPE * "$csclassname"
+%typemap(imtype) SWIGTYPE * "IntPtr"
+%typemap(cstype) SWIGTYPE * "$csclassname"
 
 %typemap(ctype) SWIGTYPE & "int"
-%typemap(cstype) SWIGTYPE & "IntPtr"
-%typemap(cswtype) SWIGTYPE & "$csclassname"
+%typemap(imtype) SWIGTYPE & "IntPtr"
+%typemap(cstype) SWIGTYPE & "$csclassname"
 
 %typemap(ctype) enum SWIGTYPE "int"
+%typemap(imtype) enum SWIGTYPE "int"
 %typemap(cstype) enum SWIGTYPE "int"
-%typemap(cswtype) enum SWIGTYPE "int"
 
 /* pointer to a class member */
 %typemap(ctype) SWIGTYPE (CLASS::*) "int"
-%typemap(cstype) SWIGTYPE (CLASS::*) "IntPtr"
-%typemap(cswtype) SWIGTYPE (CLASS::*) "$csclassname"
+%typemap(imtype) SWIGTYPE (CLASS::*) "IntPtr"
+%typemap(cstype) SWIGTYPE (CLASS::*) "$csclassname"
 
 /* The following are the in, out, freearg, argout typemaps. These are the PInvoke code generating typemaps for converting from C# to C and visa versa. */
 

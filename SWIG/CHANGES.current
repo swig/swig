@@ -7,8 +7,8 @@ Version 1.3.20 (In progress)
             
             Typemap name changes:
             jni                         -> ctype
-            jtype                       -> cstype
-            jstype                      -> cswtype
+            jtype                       -> imtype
+            jstype                      -> cstype
             javain                      -> csin
             javaout                     -> csout
             javainterfaces              -> csinterfaces

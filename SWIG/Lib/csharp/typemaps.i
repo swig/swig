@@ -18,6 +18,21 @@
 %typemap(ctype) float *,              float &              "float *"
 %typemap(ctype) double *,             double &             "double *"
 
+%typemap(imtype) bool *,               bool &               "ref bool"
+%typemap(imtype)                       char &               "ref char"
+%typemap(imtype) signed char *,        signed char &        "ref sbyte"
+%typemap(imtype) unsigned char *,      unsigned char &      "ref byte"
+%typemap(imtype) short *,              short &              "ref short"
+%typemap(imtype) unsigned short *,     unsigned short &     "ref ushort"
+%typemap(imtype) int *,                int &                "ref int"
+%typemap(imtype) unsigned int *,       unsigned int &       "ref uint"
+%typemap(imtype) long *,               long &               "ref int"
+%typemap(imtype) unsigned long *,      unsigned long &      "ref uint"
+%typemap(imtype) long long *,          long long &          "ref long"
+%typemap(imtype) unsigned long long *, unsigned long long & "ref ulong"
+%typemap(imtype) float *,              float &              "ref float"
+%typemap(imtype) double *,             double &             "ref double"
+
 %typemap(cstype) bool *,               bool &               "ref bool"
 %typemap(cstype)                       char &               "ref char"
 %typemap(cstype) signed char *,        signed char &        "ref sbyte"
@@ -32,21 +47,6 @@
 %typemap(cstype) unsigned long long *, unsigned long long & "ref ulong"
 %typemap(cstype) float *,              float &              "ref float"
 %typemap(cstype) double *,             double &             "ref double"
-
-%typemap(cswtype) bool *,               bool &               "ref bool"
-%typemap(cswtype)                       char &               "ref char"
-%typemap(cswtype) signed char *,        signed char &        "ref sbyte"
-%typemap(cswtype) unsigned char *,      unsigned char &      "ref byte"
-%typemap(cswtype) short *,              short &              "ref short"
-%typemap(cswtype) unsigned short *,     unsigned short &     "ref ushort"
-%typemap(cswtype) int *,                int &                "ref int"
-%typemap(cswtype) unsigned int *,       unsigned int &       "ref uint"
-%typemap(cswtype) long *,               long &               "ref int"
-%typemap(cswtype) unsigned long *,      unsigned long &      "ref uint"
-%typemap(cswtype) long long *,          long long &          "ref long"
-%typemap(cswtype) unsigned long long *, unsigned long long & "ref ulong"
-%typemap(cswtype) float *,              float &              "ref float"
-%typemap(cswtype) double *,             double &             "ref double"
 
 %typemap(csin)   bool *,               bool &,
                                        char &,
