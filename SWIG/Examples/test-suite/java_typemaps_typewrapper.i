@@ -12,7 +12,7 @@
     // BigDecimal requires the java.math library
   }
 %}
-%typemap(javaclassmodifiers) Farewell * "public final";
+%typemap(javaclassmodifiers) Farewell * "public final class";
 
 %typemap(javaimports) Greeting * %{
 import java.util.*; // for EventListener
@@ -35,16 +35,21 @@ import java.lang.*; // for Exception
   }
 %}
 
-// Create a new getCPtr() function which takes Java null
-%typemap(javagetcptr) Farewell * %{
+// Create a new getCPtr() function which takes Java null and is public
+// Make the pointer constructor public
+%typemap(javabody) Farewell * %{
+  private long swigCPtr;
+  protected boolean swigCMemOwn;
+
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+  }
+
   public static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
-
-// Make the pointer constructor public
-%typemap(javaptrconstructormodifiers) Farewell * "public";
-
 
 %{
 class Greeting {};

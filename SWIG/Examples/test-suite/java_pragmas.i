@@ -7,7 +7,7 @@
 import java.lang.*; // For Exception
 %}
 
-%pragma(java) jniclassclassmodifiers="public"
+%pragma(java) jniclassclassmodifiers="public class"
 %pragma(java) jniclassbase="Exception"
 %pragma(java) jniclassinterfaces="Cloneable"
 
@@ -28,7 +28,7 @@ import java.lang.*; // For Exception
 import java.io.*; // For Serializable
 %}
 
-%pragma(java) moduleclassmodifiers="public final"
+%pragma(java) moduleclassmodifiers="public final class"
 %pragma(java) modulebase="Object"
 %pragma(java) moduleinterfaces="Serializable"
 
