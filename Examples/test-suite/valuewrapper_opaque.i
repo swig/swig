@@ -207,9 +207,10 @@ public:
   {
     T val;
 
+    // This case is disabled by now
+    // Param(T v): val(v) {}
 
-    Param(T v): val(v) {
-    }
+    Param(T v = T()): val(v) {}
     
     operator T() const { return val; }
   };
