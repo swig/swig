@@ -4161,15 +4161,13 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		}
                 | CHARCONST {
                    $$.val = NewString($1);
-		   $$.rawval = NewStringf("\'%(escape)s\'",$$.val);
-		   /*
+		   /*		   $$.rawval = NewStringf("\'%(escape)s\'",$$.val); */
+		   /*		   Printf(stdout,"rawval = '%s'\n", $$.rawval); */
 		   if (Len($$.val)) {
-		     $$.rawval = NewStringf("\'%s\'", $$.val);
+		     $$.rawval = NewStringf("\'%(escape)s\'", $$.val);
 		   } else {
 		     $$.rawval = NewString("\'\\0'");
-		     $$.val = NewString("\\0");
 		   }
-		   */
 		   $$.type = T_CHAR;
 		   $$.bitfield = 0;
 		   $$.throws = 0;
