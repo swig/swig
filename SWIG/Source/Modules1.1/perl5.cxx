@@ -566,7 +566,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   /* Write code to extract parameters. */
   i = 0;
   j = 0;
-  for (p = l; p; p = Getnext(p)) {
+  for (p = l; p; p = nextSibling(p)) {
     SwigType *pt = Gettype(p);
     String   *pn = Getname(p);
 
@@ -819,7 +819,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	}
 	i++;
       }
-      p = Getnext(p);
+      p = nextSibling(p);
     }
 
     Printv(func, tab4, "my $result = ", package, "::", iname, "(@args);\n", 0);
@@ -1285,12 +1285,12 @@ PERL5::usage_func(char *iname, SwigType *, ParmList *l) {
 	}
       }
       i++;
-      p = Getnext(p);
+      p = nextSibling(p);
       if (p)
 	if (!Getignore(p))
 	  Putc(',',temp);
     } else {
-      p = Getnext(p);
+      p = nextSibling(p);
       if (p)
 	if ((i>0) && (!Getignore(p)))
 	  Putc(',',temp);
@@ -1580,7 +1580,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
         }
         i++;
       }
-      p = Getnext(p);
+      p = nextSibling(p);
     }
   
     /* Okay.  We've made argument adjustments, now call into the package */
@@ -1754,7 +1754,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
 	/* Yep.   This smells alot like an object, patch up the arguments */
 	Printf(pcode, "    $args[%d] = tied(%%{$args[%d]});\n", i, i);
       }
-      p = Getnext(p);
+      p = nextSibling(p);
       i++;
     }
 

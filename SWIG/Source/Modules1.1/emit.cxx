@@ -62,7 +62,7 @@ int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
       tm = Swig_typemap_lookup((char*)"ignore",pt,pname,(char*)"",lname,f);
       if (tm) {
 	Printv(f->code,tm,"\n",0);
-	Setignore(p,1);
+	Setattr(p,"ignore","1");
       }
       i++;
     }

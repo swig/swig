@@ -111,9 +111,9 @@ public:
    !! instead
    * ----------------------------------------------------------------------*/
 
-  virtual void create_function(char *, char *, SwigType *, ParmList *) = 0;
-  virtual void link_variable(char *, char *, SwigType *)  = 0;
-  virtual void declare_const(char *, char *, SwigType *, char *) = 0;
+  virtual void create_function(char *, char *, SwigType *, ParmList *);
+  virtual void link_variable(char *, char *, SwigType *);
+  virtual void declare_const(char *, char *, SwigType *, char *);
   virtual void create_command(char *cname, char *iname);
 
   virtual void add_native(char *name, char *iname, SwigType *t, ParmList *l);

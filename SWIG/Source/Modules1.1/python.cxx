@@ -557,7 +557,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
       have_output++;
     }
-    p = Getnext(p);
+    p = nextSibling(p);
     i++;
   }
 
@@ -1061,13 +1061,13 @@ PYTHON::usage_func(char *iname, SwigType *, ParmList *l) {
 	  Printf(temp,"%s", SwigType_str(pt,0));
 	}
       }
-      p = Getnext(p);
+      p = nextSibling(p);
       if (p != 0) {
 	if (!Getignore(p))
 	  Putc(',',temp);
       }
     } else {
-      p = Getnext(p);
+      p = nextSibling(p);
       if (p) {
 	if ((!Getignore(p)) && (i > 0))
 	  Putc(',',temp);

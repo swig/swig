@@ -625,18 +625,9 @@ SwigType *SwigType_base(SwigType *t) {
   d = c + strlen(c);
   while (d > c) {
     d--;
-    if (*d == '.') return Swig_temp_result(NewString(d+1));
+    if (*d == '.') return NewString(d+1);
   }
-  return Swig_temp_result(NewString(c));
-}
-
-void SwigType_setbase(SwigType *t, String_or_char *n) {
-  SwigType *p;
-  p = SwigType_prefix(t);
-  Clear(t);
-  Append(t,p);
-  Append(t,n);
-  Delete(p);
+  return NewString(c);
 }
 
 /* -----------------------------------------------------------------------------
@@ -670,15 +661,24 @@ String *SwigType_prefix(SwigType *t) {
  * Strip all qualifiers from a type and return a new type
  * ----------------------------------------------------------------------------- */
 
+static Hash *memoize_stripped = 0;
+
 SwigType *
 SwigType_strip_qualifiers(SwigType *t) {
-  List *l = SwigType_split(t);
+  SwigType *r;
+  List *l;
   SwigType *e;
-  SwigType *r = NewString("");
+  if (!memoize_stripped) memoize_stripped = NewHash();
+  r = Getattr(memoize_stripped,t);
+  if (r) return Copy(r);
+  
+  l = SwigType_split(t);
+  r = NewString("");
   for (e = Firstitem(l); e; e = Nextitem(l)) {
     if (SwigType_isqualifier(e)) continue;
     Append(r,e);
   }
+  Setattr(memoize_stripped,Copy(t),Copy(r));
   return r;
 }
 
@@ -713,7 +713,7 @@ String *SwigType_array_getdim(SwigType *t, int n) {
     c++;
     n--;
   }
-  if (n == 0) return Swig_temp_result(SwigType_parm(c));
+  if (n == 0) return SwigType_parm(c);
   return 0;
 }
 
@@ -904,7 +904,7 @@ SwigType_str(SwigType *s, const String_or_char *id)
     element = nextelement;
   }
   Delete(elements);
-  return Swig_temp_result(result);
+  return result;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1129,7 +1129,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
   }
   Delete(result);
   Delete(tc);
-  return Swig_temp_result(cast);
+  return cast;
 }
 
 
@@ -1156,7 +1156,7 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
     if (name)
       Append(result,name);
   }
-  return Swig_temp_result(result);
+  return result;
 }
 
 String *SwigType_manglestr_default(SwigType *s) {
@@ -1178,7 +1178,7 @@ String *SwigType_manglestr_default(SwigType *s) {
     c++;
   }
   Insert(result,0,"_");
-  return Swig_temp_result(result);
+  return result;
 }
 
 String *SwigType_manglestr(SwigType *s) {
@@ -1341,6 +1341,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     if (type) break;
     level--;
   }
+  Delete(base);
   if (level < 0) {
     return 0;
   }
@@ -1436,40 +1437,12 @@ int SwigType_istypedef(SwigType *t) {
     /* See if we know about this type */
     type = Getattr(scopes[level],base);
     if (type) {
+      Delete(base);
       return 1;
     }
     level--;
   }
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_cmp()
- *
- * Compares two type-strings using all available typedef information.  Returns 1
- * if equal, 0 if not. 
- * ----------------------------------------------------------------------------- */
-
-int SwigType_cmp(SwigType *tpat, SwigType *type) {
-  String *r, *s;
-  char *p, *t;
-
-  p = Char(tpat);
-  t = Char(type);
-
-  if (strcmp(p,t) == 0) return 1;
-  
-  r = SwigType_typedef_resolve(type);
-  while (r) {
-    t = Char(r);
-    if (strcmp(p,t) == 0) {
-      Delete(r);
-      return 1;
-    }
-    s = SwigType_typedef_resolve(r);
-    Delete(r);
-    r = s;
-  }
+  Delete(base);
   return 0;
 }
 
@@ -1719,6 +1692,7 @@ void SwigType_inherit_equiv(File *out) {
 
     base = SwigType_base(rkey);
     sub = Getattr(subclass,base);
+    Delete(base);
     if (!sub) {
       rkey = Nextkey(r_resolved);
       continue;

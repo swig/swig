@@ -33,6 +33,7 @@ typedef  DOH     Parm;
 typedef  DOH     ParmList;
 typedef  DOH     Node;
 typedef  DOH     Symtab;
+typedef  DOH     SwigType;
 
 /* --- Legacy DataType interface.  These type codes are provided solely 
        for backwards compatibility with older modules --- */
@@ -81,7 +82,6 @@ extern FILE    *Swig_open(const String_or_char *name);
 extern String  *Swig_read_file(FILE *f);
 extern String  *Swig_include(const String_or_char *name);
 extern int      Swig_insert_file(const String_or_char *name, File *outfile);
-extern int      Swig_bytes_read();
 extern void     Swig_set_config_file(const String_or_char *filename);
 extern String  *Swig_get_config_file(void);
 extern void     Swig_swiglib_set(const String_or_char *);
@@ -91,8 +91,6 @@ extern File    *Swig_filebyname(const String_or_char *filename);
 extern char    *Swig_file_suffix(const String_or_char *filename);
 extern char    *Swig_file_basename(const String_or_char *filename);
 extern char    *Swig_file_dirname(const String_or_char *filename);
-
-#define OUTFILE(x)   Swig_filebyname(x)
 
 #ifdef MACSWIG
 #  define SWIG_FILE_DELIMETER  ":"
@@ -179,7 +177,6 @@ extern void         SwigScanner_idstart(SwigScanner *, char *idchar);
 #define   SWIG_TOKEN_LAST         99 
 
 /* --- Functions for manipulating the string-based type encoding --- */
-typedef DOH SwigType;
 
 extern SwigType   *NewSwigType(int typecode);
 extern void        SwigType_add_pointer(SwigType *t);
@@ -208,13 +205,9 @@ extern int         SwigType_isarray(SwigType *t);
 extern int         SwigType_isfunction(SwigType *t);
 extern int         SwigType_isqualifier(SwigType *t);
 extern int         SwigType_isconst(SwigType *t);
-
 extern SwigType   *SwigType_strip_qualifiers(SwigType *t);
-
 extern String     *SwigType_base(SwigType *t);
 extern String     *SwigType_prefix(SwigType *t);
-extern void        SwigType_setbase(SwigType *t, String_or_char *name);
-
 extern int         SwigType_typedef(SwigType *type, String_or_char *name);
 extern void        SwigType_inherit(String *subclass, String *baseclass);
 extern void        SwigType_new_scope();
@@ -226,7 +219,6 @@ extern SwigType   *SwigType_typedef_resolve(SwigType *t);
 extern SwigType   *SwigType_typedef_resolve_all(SwigType *t);
 extern SwigType   *SwigType_typedef_qualified(SwigType *t);
 extern int         SwigType_istypedef(SwigType *t);
-extern int         SwigType_cmp(String_or_char *pat, SwigType *t);
 extern int         SwigType_array_ndim(SwigType *t);
 extern String     *SwigType_array_getdim(SwigType *t, int n);
 extern void        SwigType_array_setdim(SwigType *t, int n, String_or_char *rep);
@@ -353,8 +345,6 @@ extern DOH       *Swig_map_match(Hash *ruleset, Hash *parms, int *nmatch);
 /* --- Misc --- */
 extern char      *Swig_copy_string(const char *c);
 extern void       Swig_banner(File *f);
-extern void       Swig_section(File *f, const String_or_char *s);
-extern DOH       *Swig_temp_result(DOH *x);
 extern String    *Swig_string_escape(String *s);
 extern String    *Swig_string_mangle(String *s);
 extern void       Swig_init();
@@ -442,6 +432,7 @@ extern void   Swig_typemap_new_scope();
 extern Hash  *Swig_typemap_pop_scope();
 
 /* --- Legacy %except directive API --- */
+
 extern void   Swig_except_register(String_or_char *code);
 extern char  *Swig_except_lookup();
 extern void   Swig_except_clear();
@@ -452,26 +443,16 @@ extern void   Swig_except_clear();
 #define Getname(x)         Getattr(x,"name")
 #define Getvalue(x)        Getattr(x,"value")
 #define Getlname(x)        Getattr(x,"lname")
-#define Getignore(x)       GetInt(x,"ignore")
+#define Getignore(x)       GetInt(x, "ignore")
 #define Getparms(x)        Getattr(x,"parms")
 #define Getdecl(x)         Getattr(x,"decl")
 #define Getstorage(x)      Getattr(x,"storage")
-#define Getsymname(x)      Getattr(x,"$symname")
+#define Getsymname(x)      Getattr(x,"sym:name")
 #define Geterror(x)        Getattr(x,"error")
 
-#define Settype(x,v)       Setattr(x,"type",v)
-#define Setname(x,v)       Setattr(x,"name",v)
-#define Setlname(x,v)      Setattr(x,"lname",v)
-#define Setvalue(x,v)      Setattr(x,"value", v)
-#define Setignore(x,v)     SetInt(x,"ignore",v)
-#define Setparms(x,v)      Setattr(x,"parms", v)
-#define Setdecl(x,d)       Setattr(x,"decl",d)
-#define Setstorage(x,s)    Setattr(x,"storage",s)
-#define Seterror(x,e)      Setattr(x,"error",e)
-#define Setsymname(x,s)    Setattr(x,"$symname",s)
-#define Getnext(x)         Getattr(x,"nextSibling")
-
 #endif
+
+
 
 
 

@@ -38,49 +38,56 @@ static char cvsroot[] = "$Header$";
  *                                       "storage" : 'typedef'          
  * 
  * In some cases, the symbol table needs to manage overloaded entries.  For instance,
- * overloaded functions.  In this case, a linked list is built.  The "$symnext"
+ * overloaded functions.  In this case, a linked list is built.  The "sym:nextSibling"
  * attribute is reserved to hold a link to the next entry.  For example:
  *
  * int foo(int);            --> "name" : "foo"         "name" : "foo"
  * int foo(int,double);         "type" : "int"         "type" : "int" 
  *                              "decl" : "f(int)."     "decl" : "f(int,double)."
  *                               ...                    ...
- *                          "$symnext" :  --------> "$symnext": --------> ...
+ *                   "sym:nextSibling" :  --------> "sym:nextSibling": --------> ...
  *
- * When more than one symbol has the same name, the symbol declarator is often
+ * When more than one symbol has the same name, the symbol declarator is 
  * used to detect duplicates.  For example, in the above case, foo(int) and
  * foo(int,double) are different because their "decl" attribute is different.
- * However, a third declaration "foo(int)" was made, it would generate a conflict
- * (due to having an existing declarator).
- * 
- * Reserved symbol names:   
- *
- * Symbol tables themselves need a few attributes.  These are always prefaced by 
- * a $ in SWIG.  The only reserved attributes used at this time are as follows:
- *
- *     $scopename           -- Name of the scope defined by the symbol table (if any)
- *     $parent              -- Link to parent symbol table
- *     $child               -- Link to first child symbol table
- *     $lastchild           -- Link to last child
- *     $nextsibling         -- Link to next sibling (if any)
- *
- * When used properly, the symbol table is built during parsing and used later
- * during code generation.
- *
- * Reserved attributes:
- *
- * Each symbol table entry has $symnext and $symtab attributes to point to the
- * next symbol and the symbol table.
+ * However, if a third declaration "foo(int)" was made, it would generate a 
+ * conflict (due to having a declarator that matches a previous entry).
  *
  * Tag space:
  *
  * C/C++ symbol tables are normally managed in a few different spaces.  The
  * most visible namespace is reserved for functions, variables, typedef, enum values
  * and such.  A separate tag-space is reserved for 'struct name', 'class name',
- * 'union name', and 'enum name' declarations.     The *tag* functions deal with this.
+ * 'union name', and 'enum name' declarations.   Each symbol table contains
+ * separate spaces for both normal symbols and tags.
+ * 
+ * Symbol table structure:
+ *
+ * Symbol tables themselves are a special kind of node that is organized just like
+ * a normal parse tree node.  Symbol tables are organized in a tree that can be
+ * traversed using the SWIG-DOM API. The following attributes names are reserved.
+ *
+ *     name           -- Name of the scope defined by the symbol table (if any)
+ *     symtab         -- Hash table containing all of the normal symbols
+ *     tags           -- Hash table containing tag symbols
+ *
+ * Reserved attributes on symbol objects:
+ *
+ * When a symbol is placed in the symbol table, the following attributes
+ * are set:
+ *       
+ *     sym:name             -- Symbol name
+ *     sym:nextSibling      -- Next symbol (if overloaded)
+ *     sym:previousSibling  -- Previous symbol (if overloaded)
+ *     sym:symtab           -- Symbol table object holding the symbol
+ *     sym:overloaded       -- Set to the first symbol if overloaded
+ *
+ * These names are modeled after XML namespaces.  In particular, every attribute 
+ * pertaining to symbol table management is prefaced by the "sym:" prefix.   
  * ----------------------------------------------------------------------------- */
      
-static Hash *current = 0;
+static Hash *current = 0;         /* This current symbol table */
+static Hash *current_symtab = 0;  /* Current symbol table node */
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_new()
@@ -91,6 +98,9 @@ static Hash *current = 0;
 void
 Swig_symbol_init() {
   current = NewHash();
+  current_symtab = NewHash();
+  set_nodeType(current_symtab,"sym:symboltable");
+  Setattr(current_symtab,"symtab",current);
 }
 
 /* -----------------------------------------------------------------------------
@@ -101,7 +111,7 @@ Swig_symbol_init() {
 
 void
 Swig_symbol_setscopename(String_or_char *name) {
-  Setattr(current,"$scopename",name);
+  Setattr(current_symtab,"name",name);
 }
 
 /* -----------------------------------------------------------------------------
@@ -112,7 +122,7 @@ Swig_symbol_setscopename(String_or_char *name) {
 
 String *
 Swig_symbol_getscopename() {
-  return Getattr(current,"$scopename");
+  return Getattr(current_symtab,"name");
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -126,15 +136,15 @@ Swig_symbol_qualifiedscopename(Symtab *symtab) {
   String *result = 0;
   Hash *parent;
   String *name;
-  if (!symtab) symtab = current;
-  parent = Getattr(symtab,"$parent");
+  if (!symtab) symtab = current_symtab;
+  parent = parentNode(symtab);
   if (parent) {
     result = Swig_symbol_qualifiedscopename(parent);
   }
   if (!result) {
     result = NewString("");
   }
-  name = Getattr(symtab,"$scopename");
+  name = Getattr(symtab,"name");
   if (name) {
     Printf(result,"%s::",name);
   }
@@ -151,17 +161,22 @@ Symtab *
 Swig_symbol_newscope() 
 {
   Hash *n;
-  Hash *h = NewHash();
-  Setattr(h,"$parent",current);
+  Hash *hsyms, *h;
+  hsyms = NewHash();
+  h = NewHash();
   
-  n = Getattr(current,"$lastchild");
+  Setattr(h,"symtab",hsyms);
+  set_parentNode(h,current_symtab);
+  
+  n = lastChild(current_symtab);
   if (!n) {
-    Setattr(current,"$child",h);
+    set_firstChild(current_symtab,h);
   } else {
-    Setattr(n,"$nextsibling",h);
+    set_nextSibling(n,h);
   }
-  Setattr(current,"$lastchild",h);
-  current = h;
+  set_lastChild(current_symtab,h);
+  current = hsyms;
+  current_symtab = h;
   return current;
 }
 
@@ -173,8 +188,10 @@ Swig_symbol_newscope()
 
 Symtab *
 Swig_symbol_setscope(Symtab *sym) {
-  Symtab *ret = current;
-  current = sym;
+  Symtab *ret = current_symtab;
+  current_symtab = sym;
+  current = Getattr(sym,"symtab");
+  assert(current);
   return ret;
 }
 
@@ -186,8 +203,10 @@ Swig_symbol_setscope(Symtab *sym) {
 
 Symtab *
 Swig_symbol_popscope() {
-  Hash *h = current;
-  current = Getattr(current,"$parent");
+  Hash *h = current_symtab;
+  current_symtab = parentNode(current_symtab);
+  assert(current_symtab);
+  current = Getattr(current_symtab,"symtab");
   assert(current);
   return h;
 }
@@ -200,7 +219,7 @@ Swig_symbol_popscope() {
 
 Symtab *
 Swig_symbol_current() {
-  return current;
+  return current_symtab;
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -252,22 +271,22 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
 	return cn;
       }
       cl = cn;
-      cn = Getattr(cn,"$symnext");
+      cn = Getattr(cn,"sym:nextSibling");
     }
 
     /* Well, we made it this far.  Guess we can drop the symbol in place */
-    Setattr(n,"$symtab",current);
-    Setattr(n,"$symname",symname);
-    Setattr(cl,"$symnext",n);
-    Setattr(n,"$symprev",cl);
-    Setattr(cl,"$overloaded",c);
-    Setattr(n,"$overloaded",c);
+    Setattr(n,"sym:symtab",current_symtab);
+    Setattr(n,"sym:name",symname);
+    Setattr(cl,"sym:nextSibling",n);
+    Setattr(n,"sym:previousSibling",cl);
+    Setattr(cl,"sym:overloaded",c);
+    Setattr(n,"sym:overloaded",c);
     return n;
   }
 
-  /* No conflict.  Just add it right in there */
-  Setattr(n,"$symtab",current);
-  Setattr(n,"$symname",symname);
+  /* No conflict.  Just add it */
+  Setattr(n,"sym:symtab",current_symtab);
+  Setattr(n,"sym:name",symname);
   Setattr(current,symname,n);
   return n;
 }
@@ -282,18 +301,18 @@ Node *
 Swig_symbol_add_tag(String_or_char *symname, Node *n) {
   Hash *tag;
   Node *c;
-  tag = Getattr(current,"$tags");
+  tag = Getattr(current_symtab,"tags");
   if (!tag) {
     tag = NewHash();
-    Setattr(current,"$tags",tag);
+    Setattr(current_symtab,"tags",tag);
   }
   c = Getattr(tag,symname);
   if (c) {
     return c;
   }
-  /* No conflict.  Just add it right in there */
-  Setattr(n,"$symtab",tag);
-  Setattr(n,"$symname",symname);
+  /* No conflict.  Just add it there */
+  Setattr(n,"sym:symtab",current_symtab);
+  Setattr(n,"sym:name",symname);
   Setattr(tag,symname,n);
   return n;
 }
@@ -306,13 +325,16 @@ Swig_symbol_add_tag(String_or_char *symname, Node *n) {
 
 Node *
 Swig_symbol_lookup(String_or_char *name) {
-  Hash *h;
+  Hash *h,*hsym;
   Hash *s;
   h = current;
+  hsym = current_symtab;
   while (h) {
     s = Getattr(h,name);
     if (s) return s;
-    h = Getattr(h,"$parent");
+    hsym = parentNode(hsym);
+    if (!hsym) break;
+    h = Getattr(hsym,"symtab");
   }
   return 0;
 }
@@ -336,14 +358,14 @@ Node *
 Swig_symbol_lookup_tag(String_or_char *name) {
   Hash *h, *t;
   Hash *s;
-  h = current;
+  h = current_symtab;
   while (h) {
-    t = Getattr(current,"$tags");
+    t = Getattr(h,"tags");
     if (t) {
       s = Getattr(t,name);
       if (s) return s;
     }
-    h = Getattr(h,"$parent");
+    h = parentNode(h);
   }
   return 0;
 }
@@ -356,21 +378,22 @@ Swig_symbol_lookup_tag(String_or_char *name) {
 
 void
 Swig_symbol_remove(Node *n) {
-  Symtab *symtab; 
-  String *symname;
-  Node   *symprev;
-  Node   *symnext;
-  symtab = Getattr(n,"$symtab");
-  symname = Getattr(n,"$symname");
-  symprev = Getattr(n,"$symprev");
-  symnext = Getattr(n,"$symnext");
+  Symtab  *symtab; 
+  String  *symname;
+  Node    *symprev;
+  Node    *symnext;
+  symtab  = Getattr(n,"sym:symtab");        /* Get symbol table object */
+  symtab  = Getattr(symtab,"symtab");       /* Get actual hash table of symbols */
+  symname = Getattr(n,"sym:name");
+  symprev = Getattr(n,"sym:previousSibling");
+  symnext = Getattr(n,"sym:nextSibling");
 
   /* If previous symbol, just fix the links */
   if (symprev) {
     if (symnext) {
-      Setattr(symprev,"$symnext",symnext);
+      Setattr(symprev,"sym:nextSibling",symnext);
     } else {
-      Delattr(symprev,"$symnext");
+      Delattr(symprev,"sym:nextSibling");
     }
   } else {
     /* If no previous symbol, see if there is a next symbol */
@@ -380,9 +403,9 @@ Swig_symbol_remove(Node *n) {
       Delattr(symtab,symname);
     }
   }
-  Delattr(n,"$symtab");
-  Delattr(n,"$symprev");
-  Delattr(n,"$symnext");
+  Delattr(n,"sym:symtab");
+  Delattr(n,"sym:previousSibling");
+  Delattr(n,"sym:nextSibling");
 }
 
 /* -----------------------------------------------------------------------------
@@ -394,7 +417,7 @@ Swig_symbol_remove(Node *n) {
 String *
 Swig_symbol_qualified(Node *n) {
   Hash *symtab;
-  symtab = Getattr(n,"$symtab");
+  symtab = Getattr(n,"sym:symtab");
   if (!symtab) return NewString("");
   return Swig_symbol_qualifiedscopename(symtab);
 }
@@ -402,10 +425,14 @@ Swig_symbol_qualified(Node *n) {
 /* -----------------------------------------------------------------------------
  * Swig_symbol_isoverloaded()
  * 
- * Check if a symbol is overloaded
+ * Check if a symbol is overloaded.  Returns the first symbol if so.
  * ----------------------------------------------------------------------------- */
 
 Node *
 Swig_symbol_isoverloaded(Node *n) {
-  return Getattr(n,"$overloaded");
+  return Getattr(n,"sym:overloaded");
 }
+
+
+
+

@@ -259,7 +259,7 @@ static void add_symbols(Node *n) {
 
     if (strncmp(Char(symname),"$ignore",7) == 0) {
       char *c = Char(symname)+7;
-      Seterror(n,NewString("ignored"));
+      Setattr(n,"error",NewString("ignored"));
       if (strlen(c)) {
 	Printf(stderr,"%s:%d. Warning. %s\n", Getfile(n), Getline(n), c+1);
       }
@@ -280,7 +280,7 @@ static void add_symbols(Node *n) {
 	  Printf(e," (Renamed from '%s')", Getname(c));
 	}
 	Printf(stderr,"%s\n",e);
-	Seterror(n,e);
+	Setattr(n,"error",e);
       }
     }
     n = nextSibling(n);
@@ -296,7 +296,7 @@ static void add_tag(Node *n) {
   }
   if (!symname) return;
   if (Cmp(symname,"$ignore") == 0) {
-    Seterror(n,NewString("ignored"));
+    Setattr(n,"error",NewString("ignored"));
     return;
   }
 
@@ -306,7 +306,7 @@ static void add_tag(Node *n) {
     Printf(e,"%s:%d. '%s' redeclared (ignored).\n", Getfile(n),Getline(n),symname);
     Printf(e,"%s:%d. Previous definition of tag '%s'\n", Getfile(c),Getline(c), symname);
     Printf(stderr,"%s",e);
-    Seterror(n,e);
+    Setattr(n,"error",e);
   }
 }
 
@@ -334,7 +334,7 @@ static void merge_addmethods(Node *am) {
 	Printf(e,"%s:%d. '%s' redeclared (ignored).\n", Getfile(csym),Getline(csym),symname);
 	Printf(e,"%s:%d. Previous definition of tag '%s'\n", Getfile(n),Getline(n), symname);
 	Printf(stderr,"%s",e);
-	Seterror(csym,e);
+	Setattr(csym,"error",e);
 	Swig_symbol_remove(csym);              /* Remove class definition */
 	Swig_symbol_add(symname,n);            /* Insert addmethods definition */
       }
@@ -425,8 +425,8 @@ static Node *dump_nested(char *parent) {
 
     /* Add the appropriate declaration to the C++ processor */
     retx = new_node("cdecl");
-    Setname(retx,n->name);
-    Settype(retx,Copy(n->type));
+    Setattr(retx,"name",n->name);
+    Setattr(retx,"type",Copy(n->type));
     Setattr(retx,"nested",parent);
     if (ret) {
       set_nextSibling(retx,ret);
@@ -436,7 +436,7 @@ static Node *dump_nested(char *parent) {
     /* Insert a forward class declaration */
     retx = new_node("classforward");
     Setattr(retx,"kind",n->kind);
-    Setname(retx,Copy(n->type));
+    Setattr(retx,"name",Copy(n->type));
     set_nextSibling(retx,ret);
     ret = retx; 
 
@@ -642,7 +642,7 @@ Node *Swig_cparse(File *f) {
 
 program        :  interface {
 		   Setattr($1,"classes",classes);
-		   Setname($1,ModuleName);
+		   Setattr($1,"name",ModuleName);
 		   check_addmethods();
 	           top = $1;
                }
@@ -729,7 +729,7 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 	       Classprefix = NewString($2);
 	     } cpp_members RBRACE {
                $$ = new_node("addmethods");
-	       Setname($$,$2);
+	       Setattr($$,"name",$2);
 	       Setattr($$,"symtab",Swig_symbol_popscope());
 	       if (current_class) {
 		 /* We add the addmethods to the previously defined class */
@@ -763,9 +763,9 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 
 apply_directive : APPLY parm LBRACE parms RBRACE {
                     $$ = new_node("apply");
-                    Setname($$,Getname($2));
-   		    Settype($$,Gettype($2));
-		    Setparms($$,$4);
+                    Setattr($$,"name",Getname($2));
+   		    Setattr($$,"type",Gettype($2));
+		    Setattr($$,"parms",$4);
                };
 
 /* ------------------------------------------------------------
@@ -774,7 +774,7 @@ apply_directive : APPLY parm LBRACE parms RBRACE {
 
 clear_directive : CLEAR parms SEMI {
 		 $$ = new_node("clear");
-		 Setparms($$,$2);
+		 Setattr($$,"parms",$2);
                }
                ;
 
@@ -786,10 +786,10 @@ clear_directive : CLEAR parms SEMI {
 constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
 		     $$ = new_node("constant");
-		     Setname($$,$2);
-		     Settype($$,NewSwigType($4.type));
-		     Setvalue($$,$4.val);
-		     Setstorage($$,"%constant");
+		     Setattr($$,"name",$2);
+		     Setattr($$,"type",NewSwigType($4.type));
+		     Setattr($$,"value",$4.val);
+		     Setattr($$,"storage","%constant");
 		     add_symbols($$);
 		   } else {
 		     if ($4.type == T_ERROR) {
@@ -808,10 +808,10 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		     SwigType_add_pointer($2);
 		   }
 		   $$ = new_node("constant");
-		   Setname($$,$3.id);
-		   Settype($$,$2);
-		   Setvalue($$,$4.val);
-		   Setstorage($$,"%constant");
+		   Setattr($$,"name",$3.id);
+		   Setattr($$,"type",$2);
+		   Setattr($$,"value",$4.val);
+		   Setattr($$,"storage","%constant");
 		   add_symbols($$);
 		 } else {
 		     if ($4.type == T_ERROR) {
@@ -896,7 +896,7 @@ include_directive: includetype string LBRACE {
 		     line_number = $1.line;
 		     if (strcmp($1.type,"include") == 0) $$ = new_node("include");
 		     if (strcmp($1.type,"import") == 0) $$ = new_node("import");
-		     Setname($$,$2);
+		     Setattr($$,"name",$2);
 		     appendChild($$,firstChild($5));
                }
                ;
@@ -955,7 +955,7 @@ insert_directive : HBLOCK {
 
 module_directive: MODULE idstring {
                  $$ = new_node("module");
-		 Setname($$,$2);
+		 Setattr($$,"name",$2);
 		 if (!ModuleName) ModuleName = NewString($2);
 	       }
                ;
@@ -983,7 +983,7 @@ name_directive : NAME LPAREN idstring RPAREN {
 
 native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
                  $$ = new_node("native");
-		 Setname($$,$3);
+		 Setattr($$,"name",$3);
 		 Setattr($$,"cname",$6);
 	         add_symbols($$);
 	       }
@@ -996,11 +996,11 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
 		     /* Need check for function here */
 		     SwigType_push($6,$7.type);
 		     $$ = new_node("native");
-	             Setname($$,$3);
+	             Setattr($$,"name",$3);
 		     Setattr($$,"cname",$7.id);
-		     Settype($$,$6);
-		     Setparms($$,$7.parms);
-		     Setdecl($$,$7.type);
+		     Setattr($$,"type",$6);
+		     Setattr($$,"parms",$7.parms);
+		     Setattr($$,"decl",$7.type);
 		 }
 	         add_symbols($$);
 	       }
@@ -1234,7 +1234,7 @@ tm_tail        : COMMA typemap_parm tm_tail {
 typemap_parm   : type typemap_parameter_declarator {
 		  SwigType_push($1,$2.type);
 		  $$ = NewParm($1,$2.id);
-		  Setparms($$,$2.parms);
+		  Setattr($$,"parms",$2.parms);
                 }
 		;
 
@@ -1329,7 +1329,7 @@ c_declaration   : c_decl { $$ = $1; }
 
                 | EXTERN string LBRACE interface RBRACE { 
                    $$ = new_node("extern");
-		   Setname($$,$2);
+		   Setattr($$,"name",$2);
 		   appendChild($$,firstChild($4));
                 }
                 ;
@@ -1341,12 +1341,12 @@ c_declaration   : c_decl { $$ = $1; }
 c_decl  : storage_class type declarator initializer c_decl_tail {
                    $$ = new_node("cdecl");
 		   if ($4.qualifier) SwigType_push($3.type,$4.qualifier);
-		   Settype($$,$2);
+		   Setattr($$,"type",$2);
 		   Setattr($$,"storage",$1);
-		   Setname($$,$3.id);
-		   Setdecl($$,$3.type);
-		   Setparms($$,$3.parms);
-		   Setvalue($$,$4.val);
+		   Setattr($$,"name",$3.id);
+		   Setattr($$,"decl",$3.type);
+		   Setattr($$,"parms",$3.parms);
+		   Setattr($$,"value",$4.val);
 		   if (!$5) {
 		     if (Len(scanner_ccode)) {
 		       Setattr($$,"code",Copy(scanner_ccode));
@@ -1356,7 +1356,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		     set_nextSibling($$,n);
 		     /* Inherit attributes */
 		     while (n) {
-		       Settype(n,$2);
+		       Setattr(n,"type",$2);
 		       Setattr(n,"storage",$1);
 		       n = nextSibling(n);
 		     }
@@ -1374,10 +1374,10 @@ c_decl_tail    : SEMI {
                | COMMA declarator initializer c_decl_tail {
 		 $$ = new_node("cdecl");
 		 if ($3.qualifier) SwigType_push($2.type,$3.qualifier);
-		 Setname($$,$2.id);
-		 Setdecl($$,$2.type);
-		 Setparms($$,$2.parms);
-		 Setvalue($$,$3.val);
+		 Setattr($$,"name",$2.id);
+		 Setattr($$,"decl",$2.type);
+		 Setattr($$,"parms",$2.parms);
+		 Setattr($$,"value",$3.val);
 		 if (!$4) {
 		   if (Len(scanner_ccode)) Setattr($$,"code",Copy(scanner_ccode));
 		 } else {
@@ -1415,7 +1415,7 @@ initializer   : def_args {
 
 c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
                   $$ = new_node("enum");
-		  Setname($$,$3);
+		  Setattr($$,"name",$3);
 		  appendChild($$,$5);
 		  add_tag($$);           /* Add to tag space */
 		  add_symbols($5);       /* Add enum values to id space */
@@ -1428,7 +1428,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 
 		 $$ = new_node("enum");
 		 if ($3) {
-		   Setname($$,$3);
+		   Setattr($$,"name",$3);
 		   ty = NewStringf("enum %s", $3);
 		 } else {
 		   unnamed = make_unnamed();
@@ -1436,17 +1436,17 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 }
 		 appendChild($$,$5);
 		 n = new_node("cdecl");
-		 Settype(n,ty);
-		 Setname(n,$7.id);
+		 Setattr(n,"type",ty);
+		 Setattr(n,"name",$7.id);
 		 Setattr(n,"storage",$1);
-		 Setdecl(n,$7.type);
-		 Setparms(n,$7.parms);
+		 Setattr(n,"decl",$7.type);
+		 Setattr(n,"parms",$7.parms);
 		 Setattr(n,"unnamed",unnamed);
 		 if ($8) {
 		   Node *p = $8;
 		   set_nextSibling(n,p);
 		   while (p) {
-		     Settype(p,ty);
+		     Setattr(p,"type",ty);
 		     Setattr(p,"unnamed",unnamed);
 		     Setattr(p,"storage",$1);
 		     p = nextSibling(p);
@@ -1511,7 +1511,7 @@ cpp_class_decl  :
 		 inclass = 0;
 		 $$ = new_node("class");
 		 Setline($$,start_line);
-		 Setname($$,$3);
+		 Setattr($$,"name",$3);
 		 Setattr($$,"kind",$2);
 		 Setattr($$,"bases",$4);
 		 
@@ -1547,7 +1547,7 @@ cpp_class_decl  :
 		 }
 		 while (p) {
 		   Setattr(p,"storage",$1);
-		   Settype(p,ty);
+		   Setattr(p,"type",ty);
 		   p = nextSibling(p);
 		 }
 		 /* Dump nested classes */
@@ -1602,11 +1602,11 @@ cpp_class_decl  :
 	       }
 
 	       n = new_node("cdecl");
-	       Setname(n,$7.id);
+	       Setattr(n,"name",$7.id);
 	       Setattr(n,"unnamed",unnamed);
-	       Settype(n,unnamed);
-	       Setdecl(n,$7.type);
-	       Setparms(n,$7.parms);
+	       Setattr(n,"type",unnamed);
+	       Setattr(n,"decl",$7.type);
+	       Setattr(n,"parms",$7.parms);
 	       Setattr(n,"storage",$1);
 	       set_nextSibling($$,n);
 	       if ($8) {
@@ -1615,7 +1615,7 @@ cpp_class_decl  :
 		 while (p) {
 		   pp = p;
 		   Setattr(p,"unnamed",unnamed);
-		   Settype(p,unnamed);
+		   Setattr(p,"type",unnamed);
 		   Setattr(p,"storage",$1);
 		   p = nextSibling(p);
 		 }
@@ -1662,9 +1662,9 @@ cpp_class_decl  :
 cpp_opt_declarators :  SEMI { $$ = 0; }
                     |  declarator c_decl_tail {
                         $$ = new_node("cdecl");
-                        Setname($$,$1.id);
-                        Setdecl($$,$1.type);
-                        Setparms($$,$1.parms);
+                        Setattr($$,"name",$1.id);
+                        Setattr($$,"decl",$1.type);
+                        Setattr($$,"parms",$1.parms);
 			set_nextSibling($$,$2);
                     }
                     ;
@@ -1675,7 +1675,7 @@ cpp_opt_declarators :  SEMI { $$ = 0; }
 cpp_forward_class_decl : storage_class cpptype ID SEMI {
                $$ = new_node("classforward");
 	       Setattr($$,"kind",$2);
-	       Setname($$,$3);
+	       Setattr($$,"name",$3);
 	     }
              ;
 
@@ -1835,10 +1835,10 @@ cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
 		 SwigType *decl = NewString("");
 		 List *l = typelist($4);
 		 $$ = new_node("constructor");
-		 Setname($$,$2);
-		 Setparms($$,$4);
+		 Setattr($$,"name",$2);
+		 Setattr($$,"parms",$4);
 		 SwigType_add_function(decl,l);
-		 Setdecl($$,decl);
+		 Setattr($$,"decl",decl);
 		 if (Len(scanner_ccode)) {
 		   Setattr($$,"code",Copy(scanner_ccode));
 		 }
@@ -1850,7 +1850,7 @@ cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
 
 cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
                $$ = new_node("destructor");
-	       Setname($$,NewStringf("~%s",$2));
+	       Setattr($$,"name",NewStringf("~%s",$2));
 	       if (Len(scanner_ccode)) {
 		 Setattr($$,"code",Copy(scanner_ccode));
 	       }
@@ -1862,7 +1862,7 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
               | VIRTUAL NOT ID LPAREN parms RPAREN cpp_vend {
 		$$ = new_node("destructor");
 		Setattr($$,"storage","virtual");
-		Setname($$,NewStringf("~%s",$3));
+		Setattr($$,"name",NewStringf("~%s",$3));
 		if ($7) {
 		  Setattr($$,"value","0");
 		}
@@ -1878,12 +1878,12 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
 cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAREN cpp_vend {
 		 List *l = typelist($6);
                  $$ = new_node("cdecl");
-                 Settype($$,$3);
-		 Setname($$,$2);
+                 Setattr($$,"type",$3);
+		 Setattr($$,"name",$2);
 		 SwigType_add_function($4,l);
 		 Delete(l);
-		 Setdecl($$,$4);
-		 Setparms($$,$6);
+		 Setattr($$,"decl",$4);
+		 Setattr($$,"parms",$6);
 		 add_symbols($$);
 	       }
               | storage_class COPERATOR type LPAREN parms RPAREN cpp_vend {
@@ -1891,12 +1891,12 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		String *t = NewString("");
 
 		$$ = new_node("cdecl");
-		Settype($$,$3);
-		Setname($$,$2);
+		Setattr($$,"type",$3);
+		Setattr($$,"name",$2);
 		SwigType_add_function(t,l);
 		Delete(l);
-		Setdecl($$,t);
-		Setparms($$,$5);
+		Setattr($$,"decl",t);
+		Setattr($$,"parms",$5);
 		add_symbols($$);
               }
               ;
@@ -2074,7 +2074,7 @@ parm           : type parameter_declarator {
                    SwigType_push($1,$2.type);
 		   $$ = NewParm($1,$2.id);
 		   if ($2.defarg)
-		     Setvalue($$,$2.defarg);
+		     Setattr($$,"value",$2.defarg);
 		}
 
                 | PERIOD PERIOD PERIOD {
@@ -2610,18 +2610,18 @@ enumlist       :  enumlist COMMA edecl {
 
 edecl          :  ID {
 		   $$ = new_node("enumitem");
-		   Setname($$,$1);
-		   Settype($$,NewSwigType(T_INT));
+		   Setattr($$,"name",$1);
+		   Setattr($$,"type",NewSwigType(T_INT));
 		 }
                  | ID EQUAL etype {
 		   $$ = new_node("enumitem");
-		   Setname($$,$1);
+		   Setattr($$,"name",$1);
 	           if ($3.type == T_CHAR) {
-		     Setvalue($$,$3.val);
-		     Settype($$,NewSwigType(T_CHAR));
+		     Setattr($$,"value",$3.val);
+		     Setattr($$,"type",NewSwigType(T_CHAR));
 		   } else {
-		     Setvalue($$,$1);
-		     Settype($$,NewSwigType(T_INT));
+		     Setattr($$,"value",$1);
+		     Setattr($$,"type",NewSwigType(T_INT));
 		   }
                  }
                  | empty { $$ = 0; }

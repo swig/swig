@@ -279,7 +279,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   // Now write code to extract the parameters (this is super ugly)
 
-  for(p = l; p; p = Getnext(p)) {
+  for(p = l; p; p = nextSibling(p)) {
     // Produce names of source and target
     Clear(source);
     Clear(target);

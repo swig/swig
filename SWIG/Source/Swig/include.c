@@ -19,7 +19,6 @@ static char cvsroot[] = "$Header$";
 
 static List      *directories = 0;        /* List of include directories */
 static String    *lastpath = 0;           /* Last file that was included */
-static int        bytes_read = 0;         /* Bytes read */
 static String    *swiglib = 0;            /* Location of SWIG library */
 static String    *lang_config = 0;        /* Language configuration file */
 
@@ -178,7 +177,6 @@ Swig_read_file(FILE *f) {
  * Opens a file and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
-static int readbytes = 0;
 String *
 Swig_include(const String_or_char *name) {
   FILE         *f;
@@ -187,18 +185,11 @@ Swig_include(const String_or_char *name) {
   f = Swig_open(name);
   if (!f) return 0;
   str = Swig_read_file(f);
-  bytes_read = bytes_read + Len(str);
   fclose(f);
   Seek(str,0,SEEK_SET);
   Setfile(str,lastpath);
   Setline(str,1);
-  readbytes += Len(str);
   return str;
-}
-
-int
-Swig_bytes_read() {
-  return readbytes;
 }
 
 /* -----------------------------------------------------------------------------

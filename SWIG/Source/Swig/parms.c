@@ -114,7 +114,7 @@ int ParmList_numrequired(ParmList *p) {
     SwigType *t = Gettype(p);
     String   *value = Getvalue(p);
     if (value) return i;
-    if (!SwigType_cmp(t,"void")) i++;
+    if (!(SwigType_type(t) == T_VOID)) i++;
     else break;
     p = nextSibling(p);
   }
@@ -147,12 +147,12 @@ String *ParmList_str(ParmList *p) {
   out = NewString("");
   while(p) {
     t = Gettype(p);
-    Printf(out,"%s", SwigType_str(t,Getname(p)));
+    Printf(out,"%s", SwigType_str(t,Getattr(p,"name")));
     p = nextSibling(p);
     if (p)
       Printf(out,",");
   }
-  return Swig_temp_result(out);
+  return out;
 }
 
 /* ---------------------------------------------------------------------
@@ -173,7 +173,7 @@ String *ParmList_protostr(ParmList *p) {
     if (p)
       Printf(out,",");
   }
-  return Swig_temp_result(out);
+  return out;
 }
 
 

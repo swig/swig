@@ -22,6 +22,7 @@ static char cvsroot[] = "$Header$";
 
 static Hash     *cpp = 0;                /* C preprocessor data */
 static int       include_all = 0;        /* Follow all includes */
+static int       ignore_missing = 0; 
 static int       import_all = 0;         /* Follow all includes, but as %import statements */
 static int       single_include = 1;     /* Only include each file once */
 static int       silent_errors = 0;
@@ -106,6 +107,9 @@ static String *cpp_include(String_or_char *fn) {
   if (!s) {
     Seek(fn,0,SEEK_SET);
     cpp_error(Getfile(fn),Getline(fn),"Unable to find '%s'\n", fn);
+    if (ignore_missing) {
+      fatal_errors--;
+    } 
   } else {
     Seek(s,0,SEEK_SET);
   }
@@ -136,6 +140,11 @@ void Preprocessor_import_all(int a) {
   import_all = a;
   if (include_all) include_all = 0;
 }
+
+void Preprocessor_ignore_missing(int a) {
+  ignore_missing = a;
+}
+
 
 /* -----------------------------------------------------------------------------
  * Preprocessor_define()

@@ -600,7 +600,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   /* Now write code to extract the parameters */
 
-  for (p = l, i = 0; p; p=Getnext(p), i++) {
+  for (p = l, i = 0; p; p=nextSibling(p), i++) {
     SwigType *pt = Gettype(p);
     String   *pn = Getname(p);
     int opt_p = (Getvalue(p)

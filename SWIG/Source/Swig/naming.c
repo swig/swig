@@ -46,7 +46,7 @@ Swig_name_mangle(String_or_char *s) {
     if (!isalnum(*c)) *c = '_';
     c++;
   }
-  return Swig_temp_result(r);
+  return r;
 }
 
 /* -----------------------------------------------------------------------------
@@ -143,7 +143,7 @@ Swig_name_wrapper(String_or_char *fname) {
     Append(r,"___");
   }
   /*  Replace(r,":","_", DOH_REPLACE_ANY); */
-  return Swig_temp_result(r);
+  return r;
 }
 
 
@@ -172,7 +172,7 @@ Swig_name_member(String_or_char *classname, String_or_char *mname) {
   if (c) cname = c+1;
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
   Replace(r,"%m",mname, DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  return r;
 }
 
 /* -----------------------------------------------------------------------------
@@ -196,7 +196,7 @@ Swig_name_get(String_or_char *vname) {
   }
   Replace(r,"%v",vname, DOH_REPLACE_ANY);
   Replace(r,"::","_", DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  return r;
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -220,7 +220,7 @@ Swig_name_set(String_or_char *vname) {
   }
   Replace(r,"%v",vname, DOH_REPLACE_ANY);
   Replace(r,"::","_", DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  return r;
 }
 
 /* -----------------------------------------------------------------------------
@@ -248,7 +248,7 @@ Swig_name_construct(String_or_char *classname) {
   if (c) cname = c+1;
 
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  return r;
 }
   
 
@@ -276,7 +276,7 @@ String *Swig_name_destroy(String_or_char *classname) {
   if (c) cname = c+1;
 
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  return r;
 }
 
 /* -----------------------------------------------------------------------------

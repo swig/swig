@@ -172,9 +172,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
        strcpy(LibDir, buf);
       }
 #else
-#   ifndef MACSWIG
-       Printf(stderr, "Warning: SWIG_LIB environment variable not set. Assuming " SWIG_LIB "\n");
-#   endif
        sprintf(LibDir,"%s",SWIG_LIB);    // Build up search paths
 #endif                                        
   } else {

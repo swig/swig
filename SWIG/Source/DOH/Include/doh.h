@@ -213,9 +213,9 @@ extern DOHFile *NewFileFromFile(FILE *f);
 extern DOHFile *NewFileFromFd(int fd);
 extern int      DohClose(DOH *file);
 
-extern int  DohCopyto(DOHFile *input, DOHFile *output);
+extern int      DohCopyto(DOHFile *input, DOHFile *output);
 
-#define Copyto DohCopyto
+#define Copyto  DohCopyto
 
 /* -----------------------------------------------------------------------------
  * List

@@ -434,7 +434,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
     }
     i++;
-    p = Getnext(p);
+    p = nextSibling(p);
   }
 
   Printf(argstr,":%s\"",usage_string(iname,d,l));
@@ -903,7 +903,7 @@ TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
   i = 0;
   pcount = ParmList_len(l);
   numopt = check_numopt(l);
-  for (p = l; p; p = Getnext(p)) {
+  for (p = l; p; p = nextSibling(p)) {
     SwigType   *pt = Gettype(p);
     String  *pn = Getname(p);
 

@@ -267,7 +267,6 @@ void RUBY::top(Node *n) {
 
   /* typedef void *VALUE */
   SwigType *value = NewSwigType(T_VOID);
-  SwigType_setbase(value,(char*)"void");
   SwigType_add_pointer(value);
   SwigType_typedef(value,(char*)"VALUE");
   Delete(value);
@@ -494,8 +493,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   int numreq = 0;
   int numoptreal = 0;
   Parm *p = l;
-  for (i = 0; i < start; i++) p = Getnext(p);
-  for (i = start; p; i++, p = Getnext(p)) {
+  for (i = 0; i < start; i++) p = nextSibling(p);
+  for (i = start; p; i++, p = nextSibling(p)) {
     if (!Getignore(p)) {
       if (i >= ParmList_len(l) - numopt) numoptreal++;
       else numreq++;
@@ -510,8 +509,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   } else {
     Printv(f->def, "VALUE self", 0);
     p = l;
-    for (i = 0; i < start; i++) p = Getnext(p);
-    for (i = start; p; i++, p = Getnext(p)) {
+    for (i = 0; i < start; i++) p = nextSibling(p);
+    for (i = start; p; i++, p = nextSibling(p)) {
       if (!Getignore(p)) {
 	Printf(f->def,", VALUE varg%d", i);
       }
@@ -522,8 +521,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   /* Emit all of the local variables for holding arguments. */
   if (vararg) {
     p = l;
-    for (i = 0; i < start; i++) p = Getnext(p);
-    for (i = start; p; i++, p = Getnext(p)) {
+    for (i = 0; i < start; i++) p = nextSibling(p);
+    for (i = start; p; i++, p = nextSibling(p)) {
       if (!Getignore(p)) {
 	char s[256];
 	sprintf(s,"varg%d",i);
@@ -536,13 +535,13 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   /* Emit count to check the number of arguments */
   if (vararg) {
     int numscan = 0;
-    for (p = l, i = 0; i < start; i++) p = Getnext(p);
-    for (i = start; p; i++, p = Getnext(p)) {
+    for (p = l, i = 0; i < start; i++) p = nextSibling(p);
+    for (i = start; p; i++, p = nextSibling(p)) {
       if (!Getignore(p)) numscan++;
     }
     Printf(f->code,"rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numscan - (numarg-numoptreal));
-    for (p = l, i = 0; i < start; i++) p = Getnext(p);
-    for (i = start; p; i++, p = Getnext(p)) {
+    for (p = l, i = 0; i < start; i++) p = nextSibling(p);
+    for (i = start; p; i++, p = nextSibling(p)) {
       if (!Getignore(p)) {
 	Printf(f->code,", &varg%d", i);
       }
@@ -555,7 +554,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   int j = 0;                /* Total number of non-optional arguments */
 
   p = l;
-  for (i = 0; i < pcount ; i++, p = Getnext(p)) {
+  for (i = 0; i < pcount ; i++, p = nextSibling(p)) {
     SwigType *pt = Gettype(p);
     String   *pn = Getname(p);
 

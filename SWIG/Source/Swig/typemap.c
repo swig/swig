@@ -59,7 +59,7 @@ void Swig_typemap_new_scope() {
 Hash *
 Swig_typemap_pop_scope() {
   if (tm_scope > 0) {
-    return Swig_temp_result(typemaps[tm_scope--]);
+    return typemaps[tm_scope--];
   }
   return 0;
 }
@@ -257,7 +257,7 @@ static SwigType *strip_arrays(SwigType *type) {
   t = Copy(type);
   ndim = SwigType_array_ndim(t);
   for (i = 0; i < ndim; i++) {
-    SwigType_array_setdim(t,i,"ANY");
+    SwigType_array_setdim(t,i,"");   /* was ANY */
   }
   return t;
 }
@@ -276,11 +276,13 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
   SwigType *ctype = 0;
   int ts;
   int isarray;
+  SwigType *unstripped = 0;
   char *cname = 0;
 
   if ((name) && Len(name)) cname = parm_key(name);
   isarray = SwigType_isarray(type);
   ts = tm_scope;
+
   while (ts >= 0) {
     ctype = type;
     while (ctype) {
@@ -299,7 +301,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
       }
       
       if (isarray) {
-	/* If working with arrays, strip away all of the dimensions and replace with ANY.
+	/* If working with arrays, strip away all of the dimensions and replace with "".
 	   See if that generates a match */
 	if (!noarrays) noarrays = strip_arrays(ctype);
 	tma = Getattr(typemaps[ts],noarrays);
@@ -316,12 +318,23 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
 	}
       }
       
-      /* No match so far.  If this type had a typedef declaration, maybe there are
-         some typemaps for that */
+      /* No match so far.   If the type is unstripped, we'll strip it's
+         qualifiers and check.   Otherwise, we'll try to resolve a typedef */
+
+      if (!unstripped) {
+	unstripped = ctype;
+	ctype = SwigType_strip_qualifiers(ctype);
+	if (Cmp(ctype,unstripped)) continue;
+	Delete(ctype);
+	ctype = unstripped;
+	unstripped = 0;
+      }
       {
-	SwigType *nt = SwigType_typedef_resolve(ctype);
-	if (ctype != type) Delete(ctype);
-	ctype = nt;
+	if (unstripped) {
+	  if (unstripped != type) Delete(unstripped);
+	  unstripped = 0;
+	}
+	ctype = SwigType_typedef_resolve(ctype);
       }
     }
     
@@ -347,6 +360,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
  ret_result:
   if (noarrays) Delete(noarrays);
   if (primitive) Delete(primitive);
+  if ((unstripped) && (unstripped != type)) Delete(unstripped);
   if (type != ctype) Delete(ctype);
   return result;
 }
@@ -362,11 +376,12 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
 static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, ParmList *l, Wrapper *f) {
   Parm *p;
   char *new_name;
-  
+  SwigType *pbase = 0;
+
   p = l;
   while (p) {
     SwigType *pt = Gettype(p);
-    String   *pn = Getname(p);
+    String   *pn = Getattr(p,"name");
     if (pn) {
       if (Len(pn) > 0) {
 	DOHString *str;
@@ -378,13 +393,14 @@ static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, Par
 	Printf(str,"%s",pn);
 	/* Substitute parameter names */
 	Replace(str,"$arg",pname, DOH_REPLACE_ANY);
-        if (Cmp(SwigType_base(pt),"$basetype")==0) /* use $basetype */
+	pbase = SwigType_base(pt);
+        if (Cmp(pbase,"$basetype")==0) /* use $basetype */
 	  new_name = Wrapper_new_localv(f,str,SwigType_base(t),str,0);
-	else if (Cmp(SwigType_base(pt), "$type") == 0
-		 || Cmp(SwigType_base(pt), "$ltype") == 0) 
+	else if (Cmp(pbase, "$type") == 0
+		 || Cmp(pbase, "$ltype") == 0) 
 	  new_name = Wrapper_new_localv(f,str,SwigType_str(Swig_clocal_type(t), 0),str,0);
-	else if ((Cmp(SwigType_base(pt), "$*type") == 0
-		  || Cmp(SwigType_base(pt), "$*ltype") == 0)
+	else if ((Cmp(pbase, "$*type") == 0
+		  || Cmp(pbase, "$*ltype") == 0)
 		 && SwigType_ispointer(t)) {
 	  SwigType *star_type = Copy(t);
 	  SwigType_del_pointer(star_type);
@@ -392,8 +408,8 @@ static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, Par
 					str, 0);
 	  Delete(star_type);
 	}
-	else if (Cmp(SwigType_base(pt), "$&type") == 0
-		 || Cmp(SwigType_base(pt), "$&ltype") == 0) {
+	else if (Cmp(pbase, "$&type") == 0
+		 || Cmp(pbase, "$&ltype") == 0) {
 	  SwigType *amp_type = Copy(t);
 	  SwigType_add_pointer(amp_type);
 	  new_name = Wrapper_new_localv(f,str,SwigType_str(Swig_clocal_type(amp_type), 0),
@@ -404,6 +420,7 @@ static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, Par
           new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), 0);
 	/* Substitute  */
 	Replace(s,pn,new_name,DOH_REPLACE_ID);
+	Delete(pbase);
       }
     }
     p = nextSibling(p);
@@ -518,7 +535,6 @@ char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_ch
     base_mangle = SwigType_manglestr(base_type);
     Replace(s,"$basemangle", base_mangle, DOH_REPLACE_ANY);
   }
-  Swig_temp_result(s);
   return Char(s);
 }
 
@@ -561,7 +577,6 @@ char *Swig_except_lookup() {
     s = Getattr(typemaps[tm_scope],"*except*");
     if (s) {
       s = Copy(s);
-      Swig_temp_result(s);
       return Char(s);
     }
     ts--;

@@ -1401,3 +1401,7 @@ int Language::validIdentifier(String *s) {
   }
   return 1;
 }
+
+void Language::create_function(char *, char *, SwigType *, ParmList *) { }
+void Language::link_variable(char *, char *, SwigType *) { }
+void Language::declare_const(char *, char *, SwigType *,char* ) { }

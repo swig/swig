@@ -35,9 +35,9 @@ String *
 Swig_cparm_name(Parm *p, int i) {
   String *name = NewStringf("arg%d",i);
   if (p) {
-    Setlname(p,name);
+    Setattr(p,"lname",name);
   }
-  return Swig_temp_result(name);
+  return name;
 }
 
 /* -----------------------------------------------------------------------------
@@ -75,7 +75,7 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
     else
       Printf(decl,"%s", SwigType_lstr(t,name));
   }
-  return Swig_temp_result(decl);
+  return decl;
 }
 
 /* -----------------------------------------------------------------------------
@@ -133,10 +133,10 @@ String *
 Swig_clocal_deref(SwigType *t, String_or_char *name) {
   switch(SwigType_type(t)) {
     case T_USER:
-    return Swig_temp_result(NewStringf("*%s", name));
+    return NewStringf("*%s", name);
     break;
   case T_VOID:
-    return Swig_temp_result(NewString(""));
+    return NewString("");
     break;
   default:
     return SwigType_rcaststr(t,name);
@@ -154,10 +154,10 @@ String *
 Swig_clocal_assign(SwigType *t, String_or_char *name) {
   switch(SwigType_type(t)) {
   case T_VOID:
-    return Swig_temp_result(NewString(""));
+    return NewString("");
     break;
   case T_USER:
-    return Swig_temp_result(NewStringf("&%s", name));
+    return NewStringf("&%s", name);
     break;
   default:
     return SwigType_lcaststr(t,name);
@@ -185,7 +185,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
     lname  = Swig_cparm_name(p,i);
     pt     = Gettype(p);
     if (SwigType_type(pt) != T_VOID) {
-      pname  = Getname(p);
+      pname  = Getattr(p,"name");
       pvalue = Getvalue(p);
       local  = Swig_clocal(pt,lname,pvalue);
       Wrapper_add_localv(w,lname,local,0);
@@ -346,7 +346,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
       Printf(func,",");
   }
   Printf(func,")");
-  return Swig_temp_result(func);
+  return func;
 }
 
 /* -----------------------------------------------------------------------------
@@ -366,7 +366,7 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
   SwigType *pt;
 
   func = NewString("");
-  if (!p) return Swig_temp_result(func);
+  if (!p) return func;
   pt = Gettype(p);
   Printf(func,"(%s)->%s(", SwigType_rcaststr(pt,Swig_cparm_name(p,0)), name);
   i++;
@@ -384,7 +384,7 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
       Printf(func,",");
   }
   Printf(func,")");
-  return Swig_temp_result(func);
+  return func;
 }
 
 /* -----------------------------------------------------------------------------
@@ -401,7 +401,7 @@ Swig_cconstructor_call(String_or_char *name) {
 
   func = NewString("");
   Printf(func,"(%s *) calloc(1, sizeof(%s))", name, name);
-  return Swig_temp_result(func);
+  return func;
 }
 
 
@@ -436,7 +436,7 @@ Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
       Printf(func,",");
   }
   Printf(func,")");
-  return Swig_temp_result(func);
+  return func;
 }
 
 
@@ -455,7 +455,7 @@ Swig_cdestructor_call() {
   func = NewString("");
 
   Printf(func,"free((char *) %s)", Swig_cparm_name(0,0));
-  return Swig_temp_result(func);
+  return func;
 }
 
 
@@ -473,7 +473,7 @@ Swig_cppdestructor_call() {
 
   func = NewString("");
   Printf(func,"delete %s", Swig_cparm_name(0,0));
-  return Swig_temp_result(func);
+  return func;
 }
 
 /* -----------------------------------------------------------------------------
@@ -501,7 +501,7 @@ Swig_cmemberset_call(String_or_char *name, SwigType *type) {
   Printf(func,"%s)", Swig_clocal_deref(type, (pname = Swig_cparm_name(0,1))));
   */
   Printf(func,"%s->%s = %s",Swig_cparm_name(0,0),name, Swig_clocal_deref(type, Swig_cparm_name(0,1)));
-  return Swig_temp_result(func);
+  return(func);
 }
 
 
@@ -520,17 +520,17 @@ Swig_cmemberget_call(String_or_char *name, SwigType *t) {
 
   func = NewString("");
   Printf(func,"%s (%s->%s)", Swig_clocal_assign(t,""),Swig_cparm_name(0,0), name);
-  return Swig_temp_result(func);
+  return func;
 }
 
 
 static void fix_parm_names(ParmList *p) {
   int i = 0;
   while (p) {
-    if (!Getname(p)) {
+    if (!Getattr(p,"name")) {
       char temp[64];
       sprintf(temp,"arg%d",i);
-      Setname(p,temp);
+      Setattr(p,"name",temp);
     }
     i++;
     p = nextSibling(p);
@@ -629,7 +629,7 @@ Swig_cmethod_wrapper(String_or_char *classname,
     Printf(w->code,"self->%s(", methodname);
     p = nextSibling(l);
     while (p) {
-      Printf(w->code,"%s", Getname(p));
+      Printf(w->code,"%s", Getattr(p,"name"));
       p = nextSibling(p);
       if (p) 
 	Printf(w->code,",");
@@ -726,7 +726,7 @@ Swig_cppconstructor_wrapper(String_or_char *classname,
     if (p) {
       Printf(w->code,"(");
       while (p) {
-	Printf(w->code,"%s", Getname(p));
+	Printf(w->code,"%s", Getattr(p,"name"));
 	p = nextSibling(p);
 	if (p)
 	  Printf(w->code,",");

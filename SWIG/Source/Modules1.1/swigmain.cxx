@@ -38,6 +38,8 @@ static char cvsroot[] = "$Header$";
 #include "mzscheme.h"
 #include "ruby.h"
 
+/* #include "htoi.h" */
+
 #include <ctype.h>
 #ifdef MACSWIG
 #include <console.h>
@@ -102,6 +104,9 @@ int main(int argc, char **argv) {
 	  } else if (strcmp(argv[i],"-ruby") == 0) {
 	      dl = new RUBY;
 	      Swig_mark_arg(i);
+	      /*	  } else if (strcmp(argv[i],"-htoi") == 0) {
+	    dl = new HTOI;
+	    Swig_mark_arg(i); */
 	  } else if ((strcmp(argv[i],"-dnone") == 0) ||
 		     (strcmp(argv[i],"-dhtml") == 0) ||
 		     (strcmp(argv[i],"-dlatex") == 0) ||

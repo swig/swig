@@ -727,7 +727,7 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
 
   // Now walk the function parameter list and generate code to get arguments
   Parm *p = l;
-  for (int i = 0; i < pcount ; i++, p = Getnext(p)) {
+  for (int i = 0; i < pcount ; i++, p = nextSibling(p)) {
     SwigType *pt = Gettype(p);
     String   *pn = Getname(p);
     String   *javaparamtype = NewString("");
@@ -1534,7 +1534,7 @@ emit_args(NULL, l, f);
 DelWrapper(f);
 /* Workaround end */
 
-  for (int i = 0; i < pcount ; i++, p = Getnext(p)) {
+  for (int i = 0; i < pcount ; i++, p = nextSibling(p)) {
     if(Getignore(p)) continue;
 
     /* Ignore the 'this' argument for variable wrappers */
@@ -1652,7 +1652,7 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
   
     /* Output each parameter */
     Parm *p = l;
-    for (int i = 0; i < pcount ; i++, p = Getnext(p)) {
+    for (int i = 0; i < pcount ; i++, p = nextSibling(p)) {
       SwigType *pt = Gettype(p);
       String   *pn = Getname(p);
       String   *javaparamtype = NewString("");
