@@ -88,7 +88,6 @@ void Language::cpp_close_class() {
  * ----------------------------------------------------------------------------- */
 
 void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
-  char       cname[256];       /* Name of the C function */
   char       new_name[256];
   char       *prefix;
 
@@ -100,19 +99,6 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
   } else {
     prefix = ClassName;
   }
-
-  /* Generate the C wrapper name for this method */
-  
-  if (AddMethods) {
-    char *bc = cplus_base_class(name);          /* Get base class name of this method */
-    if (bc)
-      strcpy(cname, Char(Swig_name_member(bc,name)));
-    else
-      strcpy(cname, Char(Swig_name_member(ClassName,name)));
-  } else {
-    strcpy(cname, Char(Swig_name_member(ClassName,name)));
-  }
-
   /* Create the actual function name */
 
   if (iname) {
@@ -125,7 +111,7 @@ void Language::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l
 
   if (add_symbol(new_name)) {
     Printf(stderr,"%s : Line %d. Function %s (member %s) multiply defined (2nd definition ignored).\n",
-	    input_file, line_number, cname, name);
+	    input_file, line_number, iname, name);
     return;
   }
   cplus_emit_member_func(ClassName, ClassType, ClassRename, name, iname, t, l, AddMethods);

@@ -200,7 +200,15 @@ void Swig_cresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_char 
   }
 
   /* Now print out function call */
-  Printv(fcall, decl, ";\n", 0);
+  Printv(fcall,decl,0);
+
+  /* A sick hack */
+  {
+    char *c = Char(decl) + Len(decl) - 1;
+    if (!((*c == ';') || (*c == '}')))
+      Printf(fcall, ";");
+  }
+  Printf(fcall,"\n");
 
   if (SwigType_type(t) == T_REFERENCE) {
     Printf(fcall,"%s = (%s) &_result_ref;\n", name, SwigType_lstr(t,0));
@@ -252,7 +260,13 @@ void Swig_cppresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_cha
     Printf(fcall, "%s = (%s) &_result_ref;\n", name, SwigType_lstr(t,0));
     break;
   default:
-    Printf(fcall,";\n");
+  /* A sick hack */
+    {
+      char *c = Char(decl) + Len(decl) - 1;
+      if (!((*c == ';') || (*c == '}')))
+	Printf(fcall, ";");
+    }
+    Printf(fcall,"\n");
     break;
   }
 
@@ -429,16 +443,19 @@ Swig_cppdestructor_call() {
 String *
 Swig_cmemberset_call(String_or_char *name, SwigType *type) {
   DOH *func;
-  String *pname;
   func = NewString("");
 
+  /*
   if (SwigType_type(type) == T_USER) {
     Printf(func,"%s %s->%s; ", Swig_clocal_assign(type,""), Swig_cparm_name(0,0), name);
   } else {
     Printf(func,"%s ", Swig_clocal_assign(type,""));
   }
-  Printf(func,"(%s->%s = ", Swig_cparm_name(0,0), name);
+  */
+  /*  Printf(func,"(%s->%s = ", Swig_cparm_name(0,0), name);
   Printf(func,"%s)", Swig_clocal_deref(type, (pname = Swig_cparm_name(0,1))));
+  */
+  Printf(func,"%s->%s = %s",Swig_cparm_name(0,0),name, Swig_clocal_deref(type, Swig_cparm_name(0,1)));
   return Swig_temp_result(func);
 }
 
@@ -796,7 +813,8 @@ Swig_cmemberset_wrapper(String_or_char *classname,
   p = NewParm(lt,"value");
   Setnext(l,p);
   
-  Printf(w->def,"%s %s(%s) {", SwigType_str(lt,0), Wrapper_Getname(w), ParmList_str(l));
+  /*  Printf(w->def,"%s %s(%s) {", SwigType_str(lt,0), Wrapper_Getname(w), ParmList_str(l)); */
+  Printf(w->def,"void %s(%s) {", Wrapper_Getname(w), ParmList_str(l));
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -806,7 +824,8 @@ Swig_cmemberset_wrapper(String_or_char *classname,
     Printv(w->code, code, "\n", 0);
   }
   Printf(w->code,"}\n");
-  Wrapper_Settype(w,lt);
+  /*  Wrapper_Settype(w,lt); */
+  Wrapper_Settype(w,"void");
   Wrapper_Setparms(w,l);
   Delete(l);
   Delete(lt);

@@ -2333,7 +2333,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		 if ($3.is_reference) SwigType_add_reference($2);
 		 iname = make_name($3.id);
 		 if (iname == $3.id) iname = 0;
-		 cplus_member_func($3.id,iname,$2,$5,$7);
+		 cplus_member_func($3.id,iname,$2,$5,$7 ? PURE_VIRTUAL : PLAIN_VIRTUAL);
 	       }
 	       scanner_clear_start();
 	       Delete($2);

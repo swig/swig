@@ -181,6 +181,7 @@ public:
   char          *name;                   // Name of the member
   char          *iname;                  // Name of member in the interpreter
   int            is_static;              // Is this a static member?
+  int            is_virtual;             // Is this virtual?
   int            new_method;             // Is this a new method (added by SWIG)?
   int            line;                   // What line number was this member on
   char           *file;                  // What file was this in?
@@ -205,7 +206,6 @@ public:
   SwigType    *ret_type;  
   ParmList    *parms;
   int          new_object;
-  int          is_virtual;
 
   CPP_function(char *n, char *i, SwigType *t, ParmList *l, int s, int v = 0) {
     name = Swig_copy_string(n);
@@ -417,8 +417,10 @@ public:
     t = Copy(type);
     update_local_type(t);
     /* Check to see if it's read-only */
-    if (SwigType_isarray(t) || SwigType_isconst(t)) 
-      Status = Status | STAT_READONLY;
+    if (SwigType_isarray(t) || SwigType_isconst(t)) {
+      if (!(Swig_typemap_search("memberin",t,name)))
+	Status = Status | STAT_READONLY;
+    }
 
     if (!is_static) {
       lang->cpp_variable(name,iname,t);
@@ -1139,9 +1141,8 @@ void cplus_member_func(char *name, char *iname, SwigType *type, ParmList *l,
   // Issue a warning.
     
   if (Inherit_mode) {
-    if (current_class->search_member(temp_iname)) {
-      return;
-    }
+    CPP_member *m = current_class->search_member(temp_iname);
+    if (m) return;
   }
   
   // Add it to our C++ class list
@@ -1151,7 +1152,7 @@ void cplus_member_func(char *name, char *iname, SwigType *type, ParmList *l,
 
   // If this is a pure virtual function, the class is abstract
 
-  if (is_virtual)
+  if (is_virtual == PURE_VIRTUAL)
     current_class->is_abstract = 1;
 
 }
@@ -1511,12 +1512,17 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 
   strcpy(iname, Char(Swig_name_member(classrename, mrename)));
 
-  char *bc = cplus_base_class(mrename);
-  if (!bc) bc = classname;
-  if (strlen(bc) == 0) bc = classname;
-
-  Printf(key,"%s+%s",Wrapper_Getname(w), ParmList_protostr(l));
   if (!member_hash) member_hash = NewHash();
+
+  char *bc = cplus_base_class(mrename);
+  if (!bc || (strlen(bc) == 0)) {
+    bc = classname;
+  }
+  
+     /*  Printf(key,"%s+%s",Wrapper_Getname(w), ParmList_protostr(l));*/
+  Printf(key,"%s+%s", Swig_name_member(bc,mrename), ParmList_protostr(l));
+  /*  Printf(stdout,"virtual = %d, bc = %s, mkey = %s\n", IsVirtual, bc, key); */
+
   if (Getattr(member_hash,key)) {
     prev_wrap = GetChar(member_hash,key);
   } else {
@@ -1963,7 +1969,14 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       if ((mode) && (ccode)) {
 	Wrapper_print(w,f_wrappers);
       } else if (!mode) {
-	emit_set_action(Swig_cmemberset_call(mname,type));
+	/* Check for a member in typemap here */
+	String *target = NewStringf("%s->%s", Swig_cparm_name(0,0),mname);
+	char *tm = Swig_typemap_lookup("memberin",type,mname,Swig_cparm_name(0,1),target,0);
+	if (!tm)
+	  emit_set_action(Swig_cmemberset_call(mname,type));
+	else
+	  emit_set_action(tm);
+	Delete(target);
       }
       lang->create_function(Wrapper_Getname(w),iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
     } else {
