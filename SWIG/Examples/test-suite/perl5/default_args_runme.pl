@@ -147,3 +147,12 @@ if (default_args::constructorcall(new default_args::Klass())->{val} != -1) {
   die "constructorcall test 3 failed";
 }
 
+# const methods 
+$cm = new default_args::ConstMethods();
+if ($cm->coo() != 20) {
+  die "coo test 1 failed";
+}
+if ($cm->coo(1.0) != 20) {
+  die "coo test 2 failed";
+}
+
