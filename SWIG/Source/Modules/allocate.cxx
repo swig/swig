@@ -493,6 +493,13 @@ public:
       if (checkAttribute(n, "storage", "virtual"))
 	class_member_is_defined_in_bases(n, inclass);
 
+      /* Check to see if this is a static member or not.  If so, we add an attribute
+	 cplus:staticbase that saves the current class */
+
+      if (checkAttribute(n,"storage","static")) {
+	Setattr(n,"cplus:staticbase", inclass);
+      }
+
       String *name = Getattr(n,"name");
       if (cplus_mode != PUBLIC) {
 	/* Look for a private assignment operator */
@@ -522,6 +529,7 @@ public:
 		  }
 		  List *methods = smart_pointer_methods(sc,0,isconst);
 		  Setattr(inclass,"allocate:smartpointer",methods);
+		  Setattr(inclass,"allocate:smartpointerbase",base);
 		  break;
 		} else {
 		  /* Hmmm.  The return value is not a pointer.  If the type is a value
