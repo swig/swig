@@ -334,9 +334,6 @@ void create_constant(char *name, SwigType *type, char *value) {
     Rename_true = 0;
   }
 
-  if (SwigType_type(type) == T_CHAR) {
-    SwigType_add_pointer(type);
-  }
   if (!value) value = Swig_copy_string(name);
   sprintf(temp_name,"const:%s", name);
   if (add_symbol(temp_name)) {
@@ -1552,7 +1549,7 @@ parm_type      : type pname {
 pname          : ID def_args {
                     $$ = $1;
                     InArray = 0;
-		    if ($2.type == T_CHAR)
+		    if ($2.type == T_CHAR || $2.type == T_STRING)
 		      DefArg = Swig_copy_string(Char(ConstChar));
 		    else
 		      DefArg = Swig_copy_string($2.id);
@@ -1573,7 +1570,7 @@ pname          : ID def_args {
 	            $$ = (char *) malloc(1);
 	            $$[0] = 0;
                     InArray = 0;
-		    if ($1.type == T_CHAR)
+		    if ($1.type == T_CHAR || $1.type == T_STRING)
 		      DefArg = Swig_copy_string(Char(ConstChar));
 		    else
 		      DefArg = Swig_copy_string($1.id);
@@ -1823,7 +1820,7 @@ definetype     : { scanner_check_typedef(); } expr {
                 }
                 | STRING {
                    $$.id = $1;
-                   $$.type = T_CHAR;
+                   $$.type = T_STRING;
 		   if (ConstChar) Delete(ConstChar);
 		   ConstChar = NewStringf("\"%(escape)s\"",$1);
 		}

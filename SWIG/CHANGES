@@ -14,6 +14,16 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+7/17/2001: mkoeppe
+	   * Fixed SF bug #441470 (#define X "//" would not be parsed,
+	     see test-suite entry "preproc-1"), reported by T. W. Burton
+	     <twburton@users.sf.net>.
+	   * Changed the type of character constants to "char", rather
+	     than "char *".  Changed the individual language modules
+	     to keep the old behaviour, except for the Guile module,
+	     where it is desired to make them Scheme characters.  This
+	     fixes SF bug #231409, test-suite entry "char-constant".
+
 7/17/2001: cheetah (william fulton)
 	   * Bug fix in parser for virtual destructor with void as parameter
 	   * Bug fix in parser #defines embedded within classes/structs/unions

@@ -1132,6 +1132,8 @@ void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
     } else {
       if(SwigType_type(type) == T_STRING)
         Printf(jfile, "  public final static %s %s = \"%s\";\n", java_type, jname, value);
+      else if(SwigType_type(type) == T_CHAR)
+        Printf(jfile, "  public final static String %s = \"%s\";\n", jname, value);
       else
         Printf(jfile, "  public final static %s %s = %s;\n", java_type, jname, value);
     }

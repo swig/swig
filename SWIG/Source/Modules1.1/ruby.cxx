@@ -1011,7 +1011,10 @@ int RUBY::to_VALUE(SwigType *type, char *value, String *str, int raw) {
     Printv(str, "rb_float_new(", value, ")", 0);
     break;
   case T_CHAR:
-    Printv(str, "rb_str_new(&", value, ", 1)", 0);
+    if (raw)
+      Printv(str, "rb_str_new(\"", value, "\", 1)", 0);
+    else
+      Printv(str, "rb_str_new(&", value, ", 1)", 0);
     break;
   case T_BOOL:
     Printv(str, "(", value, " ? Qtrue : Qfalse)", 0);

@@ -922,6 +922,12 @@ Preprocessor_parse(DOH *s)
 	state = 50;
       } else if (c == '/') {
 	state = 45;
+      } else if (c == '\"') {
+	Putc(c,value);
+	skip_tochar(s,'\"',value);
+      } else if (c == '\'') {
+	Putc(c,value);
+	skip_tochar(s,'\'',value);
       } else {
 	Putc(c,value);
 	if (c == '\\') state = 44;

@@ -954,6 +954,7 @@ GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
   DOHString *rvalue;
   char   *tm;
   Wrapper *f;
+  SwigType *nctype;
 
   f = NewWrapper();
   Status = STAT_READONLY;      // Enable readonly mode.
@@ -962,11 +963,18 @@ GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
 
   sprintf (var_name, "%sconst_%s", prefix, name);
 
+  // Strip const qualifier from type if present
+
+  nctype = NewString(type);
+  if (SwigType_isconst(nctype)) {
+    Delete(SwigType_pop(nctype));
+  }
+  
   // Build the name for scheme.
   proc_name = NewString(iname);
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
-  if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
+  if ((SwigType_type(nctype) == T_USER) && (!is_a_pointer(nctype))) {
     Printf (stderr, "%s : Line %d.  Unsupported constant value.\n",
              input_file, line_number);
     return;
@@ -974,24 +982,25 @@ GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
 
   // See if there's a typemap
 
-  if (SwigType_type(type) == T_STRING) {
+  if (SwigType_type(nctype) == T_STRING) {
     rvalue = NewStringf("\"%s\"", value);
-  } else if (SwigType_type(type) == T_CHAR) {
+  } else if (SwigType_type(nctype) == T_CHAR) {
     rvalue = NewStringf("\'%s\'", value);
   } else {
     rvalue = NewString(value);
   }
-  if (guile_do_typemap(f_header, "const", type, name,
+  if (guile_do_typemap(f_header, "const", nctype, name,
 		       Char(rvalue), name, 0, name, f, 0)) {
     /* nothing */
   } else {
     // Create variable and assign it a value
-    Printf (f_header, "static %s %s = %s;\n", SwigType_lstr(type,0),
+    Printf (f_header, "static %s %s = %s;\n", SwigType_lstr(nctype,0),
 	    var_name, rvalue);
   }
   // Now create a variable declaration
-  link_variable (var_name, iname, type);
+  link_variable (var_name, iname, nctype);
   Status = OldStatus;
+  Delete(nctype);
   Delete(proc_name);
   Delete(rvalue);
   DelWrapper(f);
