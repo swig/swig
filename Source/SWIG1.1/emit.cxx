@@ -202,7 +202,6 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
       Wrapper_add_localv(f, "_result", DataType_print_type(rt), "_result",0);
       rt->is_pointer--;
     } else {
-
       // Normal return value
       Wrapper_add_localv(f, "_result", DataType_print_type(rt), "_result",0);
     }
@@ -220,14 +219,20 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
       char *pvalue = Parm_Getvalue(p);
       char *pname = Parm_Getname(p);
       if (((pt->is_reference) && (pvalue)) ||
-	  ((pt->type == T_USER) && (p->call_type == CALL_REFERENCE) && (pvalue))) {
+	  ((pt->type == T_USER) && (pt->is_pointer == 0) && (pvalue))) {
 	Wrapper_add_localv(f,temp, DataType_print_type(pt), temp," = (", DataType_print_type(pt), ") &", pvalue,0);
       } else {
 	char deftmp[1024];
 	if (pvalue) {
 	  Wrapper_add_localv(f,temp, DataType_print_type(pt), temp, " = (", DataType_print_type(pt), ") ", pvalue, 0);
 	} else {
-	  Wrapper_add_localv(f,temp, DataType_print_type(pt), temp, 0);
+	  if ((pt->type == T_USER) && (pt->is_pointer == 0)) {
+	    pt->is_pointer++;
+	    Wrapper_add_localv(f,temp, DataType_print_type(pt), temp, 0);
+	    pt->is_pointer--;
+	  } else {
+	    Wrapper_add_localv(f,temp, DataType_print_type(pt), temp, 0);
+	  }
 	}
 
 	tm = typemap_lookup((char*)"arginit", typemap_lang, pt,pname,(char*)"",temp,f);
@@ -322,10 +327,7 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
     DataType *pt = Parm_Gettype(p);
     if ((pt->type != T_VOID) || (pt->is_pointer)){
       Printf(fcall,DataType_print_arraycast(pt));
-      if ((!pt->is_reference) && (p->call_type & CALL_VALUE))
-	Printf(fcall, "&");
-      if ((!(p->call_type & CALL_VALUE)) &&
-	  ((pt->is_reference) || (p->call_type & CALL_REFERENCE)))
+      if ((pt->is_reference) || ((pt->is_pointer == 0) && (pt->type == T_USER)))
 	Printf(fcall, "*");
       Printf(fcall, emit_local(i));
       i++;

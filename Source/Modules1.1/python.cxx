@@ -779,15 +779,22 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    
 	  case T_VOID :
 	    break;
-	    
-	    // User defined.   This is usually invalid.   No way to pass a
-	    // complex type by "value".  We'll just pass into the unsupported
-	    // datatype case.
-	    
+
 	  case T_USER:
 	    
-	    // Unsupported data type
+	    Putc('O',parse_args);
+	    sprintf(source,"_argo%d", i);
+	    sprintf(target,"_arg%d", i);
+	    sprintf(temp,"argument %d",i+1);
 	    
+	    Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
+	    Printf(arglist,"&%s",source);
+	    pt->is_pointer++;
+	    get_pointer(iname, temp, source, target, pt, get_pointers, (char*)"NULL");
+	    pt->is_pointer--;
+	    // Unsupported data type
+	    break;
+
 	  default :
 	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_print_type(pt));
 	    break;
@@ -795,7 +802,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  
 	  // Emit code for parameter list
 	  
-	  if ((pt->type != T_VOID) && (pt->type != T_BOOL))
+	  if ((pt->type != T_VOID) && (pt->type != T_BOOL) && (pt->type != T_USER))
 	    Printf(arglist,"&_arg%d",i);
 	  
 	} else {

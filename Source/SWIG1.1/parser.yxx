@@ -449,7 +449,7 @@ static void dump_nested(char *parent) {
 %left  UMINUS NOT LNOT
 %left  DCOLON
 
-%type <ivalue>   extern array array2 parm_specifier parm_specifier_list;
+%type <ivalue>   extern array array2;
 %type <pl>       parms ptail;
 %type <p>        parm parm_type;
 %type <tmparm>   typemap_parm tm_list tm_tail;
@@ -1355,21 +1355,6 @@ parm           : parm_type {
 		  if (typemap_check((char *)"ignore",typemap_lang,Parm_Gettype($$),Parm_Getname($$)))
 		    $$->ignore = 1;
                }
-               | parm_specifier_list parm_type {
-                  $$ = $2;
-                  $$->call_type = $$->call_type | $1;
-		  if (InArray && ($$->call_type & CALL_VALUE)) {
-		     fprintf(stderr,"%s : Line %d. Error. Can't use %%val with an array.\n", input_file, line_number);
-		     FatalError();
-		  }
-		  DataType *pt = Parm_Gettype($$);
-		  if (!pt->is_pointer) {
-		     fprintf(stderr,"%s : Line %d. Error. Can't use %%val or %%out with a non-pointer argument.\n", input_file, line_number);
-		     FatalError();
-		  } else {
-		    pt->is_pointer--;
-		  }
-		}
 
 parm_type      : type pname {
 		    if (InArray) {
@@ -1378,12 +1363,7 @@ parm_type      : type pname {
 		      DataType_set_arraystr($1, Char(ArrayString));
 		    } 
 		    $$ = NewParm($1,$2);
-		    $$->call_type = 0;
 		    Parm_Setvalue($$,DefArg);
-		    if (($1->type == T_USER) && !($1->is_pointer)) {
-		      $$->call_type = CALL_REFERENCE;
-		      Parm_Gettype($$)->is_pointer++;
-		    }
 		    DelDataType($1);
 		    delete $2;
                  }
@@ -1391,7 +1371,6 @@ parm_type      : type pname {
                 | type stars pname {
 		   $$ = NewParm($1,$3);
 		   Parm_Gettype($$)->is_pointer+=$2;
-		   $$->call_type = 0;
 		   Parm_Setvalue($$,DefArg);
 		   if (InArray) {
 		     Parm_Gettype($$)->is_pointer++;
@@ -1406,7 +1385,6 @@ parm_type      : type pname {
 		  $$ = NewParm($1,$3);
 		  DataType *pt = Parm_Gettype($$);
 		  pt->is_reference = 1;
-		  $$->call_type = 0;
 		  pt->is_pointer++;
 		  Parm_Setvalue($$,DefArg);
 		  if (!CPlusPlus) {
@@ -1479,18 +1457,6 @@ def_args       : EQUAL definetype { $$ = $2; }
                | COLON NUM_INT {
                }
                | empty {$$.id = 0; $$.type = T_INT;}
-               ;
-
-parm_specifier : CVALUE { $$ = CALL_VALUE; }
-               | COUT { $$ = CALL_OUTPUT; }
-               ;
-                
-parm_specifier_list : parm_specifier_list parm_specifier {
-                 $$ = $1 | $2;
-               }
-               | parm_specifier {
-                 $$ = $1;
-	       }
                ;
 
 /* Declaration must be an identifier, possibly preceded by a * for pointer types  */
@@ -3254,7 +3220,6 @@ typemap_parm   : type typemap_name {
 		    }
 		    $$ = new TMParm;
                     $$->p = NewParm($1,$2);
-		    $$->p->call_type = 0;
 		    $$->args = tm_parm;
 		    DelDataType($1);
 		    delete $2;
@@ -3265,7 +3230,6 @@ typemap_parm   : type typemap_name {
 		   $$->p = NewParm($1,$3);
 		   DataType *pt = Parm_Gettype($$->p);
 		   pt->is_pointer += $2;
-		   $$->p->call_type = 0;
 		   if (InArray) {
 		     pt->is_pointer++;
 		     DataType_set_arraystr(pt,Char(ArrayString));
@@ -3280,7 +3244,6 @@ typemap_parm   : type typemap_name {
 		  $$->p = NewParm($1,$3);
 		  DataType *pt = Parm_Gettype($$->p);
 		  pt->is_reference = 1;
-		  $$->p->call_type = 0;
 		  pt->is_pointer++;
 		  if (!CPlusPlus) {
 			fprintf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);

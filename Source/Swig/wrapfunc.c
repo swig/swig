@@ -249,7 +249,6 @@ Wrapper_new_localv(Wrapper *w, const DOHString_or_char *name, ...) {
   return ret;
 }
 
-
 #ifdef TEST
 int main() {
   Wrapper *w;

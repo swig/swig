@@ -322,7 +322,7 @@ char *DataType_print_mangle_default(DataType *t) {
 
   result[ri][0] = '_';
 
-  d = result[ri];
+  d = result[ri] + 1;
 
   if ((strncmp(c,"struct ",7) == 0) || (strncmp(c,"class ",6) == 0) || (strncmp(c,"union ",6) == 0)) {
     c = strchr(c,' ') + 1;

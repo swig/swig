@@ -318,11 +318,6 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
 	fprintf(stderr,"%s:%d:  Typemap error. Local variables must have a name\n",
 		input_file, line_number);
       }
-      // If a call by reference thingy, fix that
-      if (p->call_type & CALL_REFERENCE) {
-	pt->is_pointer--;
-	p->call_type = 0;
-      }
       p = ParmList_next(tm->args);
     }
   }
