@@ -137,7 +137,6 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   while (!f->last) {
     f= f->next;
   }
-  printf("f = %x\n", f);
   /* Now work backwards */
   f = f->prev;
   while (f) {

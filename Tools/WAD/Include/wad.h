@@ -87,9 +87,12 @@ extern void wad_set_return_func(void (*f)(void));
 
 typedef struct WadLocal {
   char              *name;       /* Name of the local */
-  void              *ptr;        /* Pointer to data   */
+  void              *ptr;        /* Pointer to the actual data (if known)  */
   int                size;       /* Size of the data  */
   int                type;       /* Data type         */
+
+  /* Debugging information */
+
   int                loc;        /* Location: register or stack */
   int                stack;      /* location on the stack       */
   int                reg;        /* Register number             */

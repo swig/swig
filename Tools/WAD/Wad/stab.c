@@ -29,7 +29,9 @@ typedef struct Stab {
 #define N_RSYM      0x40          /* Register symbol   */
 #define N_SLINE     0x44          /* Source line       */
 #define N_SO        0x64          /* Source file name  */
+#define N_LSYM      0x80          /* Local symbol      */
 #define N_PSYM      0xa0          /* Parameter         */
+#define N_LBRAC     0xc0          /* Left brace        */
 
 /* -----------------------------------------------------------------------------
  * match_stab_symbol()
@@ -48,6 +50,32 @@ match_stab_symbol(char *symbol, char *stabtext, int slen) {
   return 0;
 }
 
+static char *
+stab_string_parm(char *str) {
+  return strchr(str,':');
+}
+
+/* -----------------------------------------------------------------------------
+ * stab_symbol(Stab *s, char *stabstr)
+ *
+ * Process stab symbol specifier N_LSYM
+ * ----------------------------------------------------------------------------- */
+
+static void
+stab_symbol(Stab *s, char *stabstr) {
+  char *pstr;
+  int a;
+
+  pstr = stab_string_parm(stabstr+s->n_strx);
+  if (!pstr) return;
+
+  if (pstr[1] == 't') {
+    /*    wad_printf("stab lsym:  other=%d, desc=%d, value=%d, str='%s'\n", s->n_other,s->n_desc,s->n_value,
+	  stabstr+s->n_strx); */
+  }
+}
+
+
 /* -----------------------------------------------------------------------------
  * scan_function()
  *
@@ -58,8 +86,13 @@ static void
 scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
   int i;
   unsigned long offset;
-  offset = f->pc - f->sym_base;
+  int      get_parms = 1;
 
+  offset = f->pc - f->sym_base;
+  if (wad_debug_mode & DEBUG_STABS) {
+    wad_printf("---[ %s ] --------------\n", f->sym_name);
+  }
+  
   for (i = 0; i < ns; i++,s++) {
     if (wad_debug_mode & DEBUG_STABS) {
       wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
@@ -70,78 +103,85 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
     if ((s->n_type == N_UNDF) || (s->n_type == N_SO) || (s->n_type == N_FUN) ||
 	(s->n_type == N_OBJ)) return;
 
+    if (s->n_type == N_LBRAC) {
+      get_parms = 0;
+    }
+
     if (s->n_type == N_SLINE) {
+      get_parms = 0;
       if (s->n_value < offset) {
 	f->loc_line = s->n_desc;
       }
     } else if ((s->n_type == N_PSYM) || (s->n_type == N_RSYM)) {
-      /* Parameter counting */
-      char *pname;
-      char *c;
-      int   len;
-      WadLocal *arg;
-      pname = stabstr+s->n_strx;
-      c = strchr(pname,':');
-      if (c) {
-	len = (c-pname);
-      } else {
-	len = strlen(pname);
-      }
-
-      /* Check if the argument was already used */
-      /* In this case, the first stab simply identifies an argument.  The second
-         one identifies its location for the debugger */
-
-      if (f->debug_args) {
-	/* Need to do some fix up for linux here */
-	WadLocal *a = f->debug_args;
-	while (a) {
-	  if ((strncmp(a->name,pname,len) == 0) && (strlen(a->name) == len)) {
-	    /* We already saw this argument.  Given a choice between a register and a stack
-               argument.  We will choose the stack version */
-	    
-	    if (a->loc == PARM_STACK) {
+      if (get_parms) {
+	/* Parameter counting */
+	char *pname;
+	char *c;
+	int   len;
+	WadLocal *arg;
+	pname = stabstr+s->n_strx;
+	c = strchr(pname,':');
+	if (c) {
+	  len = (c-pname);
+	} else {
+	  len = strlen(pname);
+	}
+	
+	/* Check if the argument was already used */
+	/* In this case, the first stab simply identifies an argument.  The second
+	   one identifies its location for the debugger */
+	
+	if (f->debug_args) {
+	  /* Need to do some fix up for linux here */
+	  WadLocal *a = f->debug_args;
+	  while (a) {
+	    if ((strncmp(a->name,pname,len) == 0) && (strlen(a->name) == len)) {
+	      /* We already saw this argument.  Given a choice between a register and a stack
+		 argument.  We will choose the stack version */
+	      
+	      if (a->loc == PARM_STACK) {
+		break;
+	      }
+	      /* Go ahead and use the new argument */
+	      if (s->n_type == N_RSYM) {
+		a->loc = PARM_REGISTER;
+		a->reg = s->n_value;
+	      } else {
+		a->loc = PARM_STACK;
+		a->stack = s->n_value;
+	      }
 	      break;
 	    }
-	    /* Go ahead and use the new argument */
-	    if (s->n_type == N_RSYM) {
-	      a->loc = PARM_REGISTER;
-	      a->reg = s->n_value;
-	    } else {
-	      a->loc = PARM_STACK;
-	      a->stack = s->n_value;
-	    }
-	    break;
+	    a = a->next;
 	  }
-	  a = a->next;
+	  if (a) continue; /* We got an argument match.  Just skip to the next stab */
 	}
-	if (a) continue; /* We got an argument match.  Just skip to the next stab */
+	
+	arg = (WadLocal *) wad_malloc(sizeof(WadLocal));
+	arg->name = (char *) wad_malloc(len+1);
+	strncpy(arg->name, pname, len);
+	arg->name[len] = 0;
+	if (s->n_type == N_RSYM) {
+	  arg->loc = PARM_REGISTER;
+	  arg->reg = s->n_value;
+	  arg->stack = 0;
+	} else {
+	  arg->loc = PARM_STACK;
+	  arg->line = s->n_desc;
+	  arg->stack = s->n_value;
+	}
+	arg->type = 0;
+	arg->next = 0;
+	if (f->debug_args) {
+	  f->debug_lastarg->next = arg;
+	  f->debug_lastarg = arg;
+	} else {
+	  f->debug_args = arg;
+	  f->debug_lastarg = arg;
+	  f->debug_nargs= 0;
+	}
+	f->debug_nargs++;
       }
-
-      arg = (WadLocal *) wad_malloc(sizeof(WadLocal));
-      arg->name = (char *) wad_malloc(len+1);
-      strncpy(arg->name, pname, len);
-      arg->name[len] = 0;
-      if (s->n_type == N_RSYM) {
-	arg->loc = PARM_REGISTER;
-	arg->reg = s->n_value;
-	arg->stack = 0;
-      } else {
-	arg->loc = PARM_STACK;
-	arg->line = s->n_desc;
-	arg->stack = s->n_value;
-      }
-      arg->type = 0;
-      arg->next = 0;
-      if (f->debug_args) {
-	f->debug_lastarg->next = arg;
-	f->debug_lastarg = arg;
-      } else {
-	f->debug_args = arg;
-	f->debug_lastarg = arg;
-	f->debug_nargs= 0;
-      }
-      f->debug_nargs++;
     }
   }
 }
@@ -192,6 +232,10 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
       
     }
     */
+    if (s->n_type == N_LSYM) {
+      stab_symbol(s,stabstr);
+      continue;
+    }
     if ((s->n_type == N_UNDF)) { /* && (s->n_desc >= 0)) { */
       /* New stabs section.  We need to be a little careful here. Do a recursive 
 	 search of the subsection. */

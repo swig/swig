@@ -7,10 +7,10 @@
 #######################################################################
 
 # These are the files that make up the WAD core
-WADSRCS = vars.c default.c io.c memory.c return.c stack.c stab.c elf.c object.c init.c segment.c signal.c
-WADOBJS = vars.o default.o io.o memory.o return.o stack.o stab.o elf.o object.o signal.o segment.o init.o
+WADSRCS = vars.c io.c memory.c return.c default.c stack.c stab.c elf.c object.c init.c segment.c signal.c
+WADOBJS = vars.o io.o memory.o return.o default.o stack.o stab.o elf.o object.o signal.o segment.o init.o
 INCLUDE = -I../Include -I.  $(SINCLUDE)
-WADOPT     = -DWAD_LINUX
+WADOPT     = -DWAD_SOLARIS
 
 # Location of your Python installation
 PYINCLUDE = -I/usr/local/include/python2.0
@@ -23,21 +23,21 @@ TCLSRCS    = wadtcl.cxx
 TCLOBJS    = wadtcl.o
 
 # Location of your Perl installation
-PERLINCLUDE = -I/usr/lib/perl5/5.00503/i386-linux/CORE
+PERLINCLUDE = -I/usr/perl5/5.00503/sun4-solaris/CORE
 PERLSRCS   = wadpl.cxx
 PERLOBJS   = wadpl.o
 
 # C Compiler
-CC = gcc
-CFLAGS = #-fpic
+CC = cc
+CFLAGS = #
 
 # C++ Compiler
-CXX = c++
-CXXFLAGS = #-fpic
+CXX = CC
+CXXFLAGS = #-Kpic
 
 # Linking options
 CLINK = 
-CXXLINK = g++ -shared
+CXXLINK = CC -G
 
 # Rules for creation of a .o file from .cxx
 .SUFFIXES: .cxx
@@ -67,7 +67,8 @@ wad_perl_handler.c:
 	python makehandler.py
 
 debug::
-	cc -g debug.c $(INCLUDE) -L. -Xlinker -rpath . -lwad
+	gcc -g debug.c $(INCLUDE) -L. -Xlinker -rpath . -lwad
+#	cc -g debug.c $(INCLUDE) -L. -R. -lwad
 
 plus::
 	CC -g debug.cxx $(INCLUDE) -L. -R. -lwad
@@ -76,7 +77,7 @@ wc::
 	wc $(SRCS)
 
 semi::
-	egrep ";" $(WADSRCS) wadpy.cxx | wc
+	egrep ";" $(SRCS) wadpy.cxx | wc
 
 
 clean::
