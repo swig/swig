@@ -204,6 +204,33 @@ public:
     allow_overloading();
   }
 
+  /**
+   * Generate initialization code to define the Ruby module(s),
+   * accounting for nested modules as necessary.
+   */
+  void defineRubyModule() {
+    List *modules = Split(module,':',INT_MAX);
+    if (modules != 0 && Len(modules) > 0) {
+      String *mv = 0;
+      String *m = Firstitem(modules);
+      while (m != 0) {
+        if (Len(m) > 0) {
+	  if (mv != 0) {
+            Printv(f_init, tab4, modvar,
+	      " = rb_define_module_under(", modvar, ", \"", m, "\");\n", NIL);
+	  } else {
+            Printv(f_init, tab4, modvar,
+	      " = rb_define_module(\"", m, "\");\n", NIL);
+	    mv = NewString(modvar);
+	  }
+	}
+	m = Nextitem(modules);
+      }
+      Delete(mv);
+      Delete(modules);
+    }
+  }
+
   /* ---------------------------------------------------------------------
    * top()
    * --------------------------------------------------------------------- */
@@ -222,7 +249,7 @@ public:
     f_header = NewString("");
     f_wrappers = NewString("");
 
-  /* Register file targets with the SWIG file handler */
+    /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header",f_header);
     Swig_register_filebyname("wrapper",f_wrappers);
     Swig_register_filebyname("runtime",f_runtime);
@@ -242,7 +269,7 @@ public:
     Setattr(special_methods, "__hash__", "hash");
     Setattr(special_methods, "__nonzero__", "nonzero?");
   
-  /* Callable */
+    /* Callable */
     Setattr(special_methods, "__call__", "call");
   
     /* Collection */
@@ -270,7 +297,7 @@ public:
     Setattr(special_methods, "__ge__", ">=");
     Setattr(special_methods, "__eq__", "==");
 
-  /* Other numeric */
+    /* Other numeric */
     Setattr(special_methods, "__divmod__", "divmod");
     Setattr(special_methods, "__pow__", "**");
     Setattr(special_methods, "__abs__", "abs");
@@ -290,14 +317,14 @@ public:
     SwigType_typedef(value,(char*)"VALUE");
     Delete(value);
 
-  /* Set module name */
+    /* Set module name */
     set_module(Char(Getattr(n,"name")));
 
     Printf(f_header,"#define SWIG_init    Init_%s\n", feature);
     Printf(f_header,"#define SWIG_name    \"%s\"\n\n", module);
     Printf(f_header,"static VALUE %s;\n", modvar);
 
-  /* Start generating the initialization function */
+    /* Start generating the initialization function */
     Printv(f_init,
 	   "\n",
 	   "#ifdef __cplusplus\n",
@@ -310,27 +337,7 @@ public:
 
     Printv(f_init, tab4, "SWIG_InitRuntime();\n", NIL);
 
-    /* Account for nested modules */
-    List *modules = Split(module,':',INT_MAX);
-    if (modules != 0 && Len(modules) > 0) {
-      String *mv = 0;
-      String *m = Firstitem(modules);
-      while (m != 0) {
-        if (Len(m) > 0) {
-	  if (mv != 0) {
-            Printv(f_init, tab4, modvar,
-	      " = rb_define_module_under(", modvar, ", \"", m, "\");\n", NIL);
-	  } else {
-            Printv(f_init, tab4, modvar,
-	      " = rb_define_module(\"", m, "\");\n", NIL);
-	    mv = NewString(modvar);
-	  }
-	}
-	m = Nextitem(modules);
-      }
-      Delete(mv);
-      Delete(modules);
-    }
+    defineRubyModule();
 
     Printv(f_init,
 	   "\n",
@@ -347,7 +354,7 @@ public:
     Printf(f_init,"}\n");
     SwigType_emit_type_table(f_runtime,f_wrappers);
 
-  /* Close all of the files */
+    /* Close all of the files */
     Dump(f_header,f_runtime);
     Dump(f_wrappers,f_runtime);
     Wrapper_pretty_print(f_init,f_runtime);
