@@ -13,6 +13,5 @@ versions.
 The following tests currently fail; please don't report them as bugs!
 
  * macro-2: SWIG FAILED
- * char-constant: RUN TEST FAILED
  * template-whitespace: SWIG FAILED
 
