@@ -103,7 +103,7 @@ private:
 
   char *module;
   String *modvar;
-  char *feature;
+  String *feature;
   int current;
   Hash *classes;		/* key=cname val=RClass */
   RClass *klass;		/* Currently processing class */
@@ -164,8 +164,7 @@ public:
 	if (strcmp(argv[i],"-feature") == 0) {
 	  if (argv[i+1]) {
 	    char *name = argv[i+1];
-	    feature = new char[strlen(name)+1];
-	    strcpy(feature, name);
+	    feature = NewString(name);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i+1);
 	    i++;
@@ -347,8 +346,7 @@ public:
   void set_module(const char *mod_name) {
     if (!module) {
       if (!feature) {
-	feature = new char[strlen(mod_name)+1];
-	strcpy(feature, mod_name);
+	feature = NewString(mod_name);
       }
       module = new char[strlen(mod_name)+1];
       strcpy(module, mod_name);
