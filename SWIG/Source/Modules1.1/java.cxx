@@ -438,10 +438,13 @@ class JAVA : public Language {
    * ---------------------------------------------------------------------- */
 
   virtual int nativeWrapper(Node *n) {
+    String *wrapname = Getattr(n,"wrap:name");
+
+    if (!addSymbol(wrapname,n)) return SWIG_ERROR;
 
     if (Getattr(n,"type")) {
       Swig_save(&n,"name",NIL);
-      Setattr(n,"name", Getattr(n,"wrap:name"));
+      Setattr(n,"name", wrapname);
       native_function_flag = true;
       functionWrapper(n);
       Swig_restore(&n);
@@ -475,6 +478,10 @@ class JAVA : public Language {
     int       num_arguments = 0;
     int       num_required = 0;
     String    *overloaded_name = getOverloadedName(n);
+
+    if (!Getattr(n,"sym:overloaded")) {
+      if (!addSymbol(Getattr(n,"sym:name"),n)) return SWIG_ERROR;
+    }
 
     /* This is a gross hack.  To get typemaps properly installed, we have to check for
        shadows on all types first */
@@ -839,6 +846,8 @@ class JAVA : public Language {
     String *shadowrettype = NewString("");
     String *constants_code = NewString("");
 
+    if (!addSymbol(symname,n)) return SWIG_ERROR;
+
     /* Attach the non-standard typemaps to the parameter list. */
     Swig_typemap_attach_parms("jstype", l, NULL);
 
@@ -1188,6 +1197,8 @@ class JAVA : public Language {
     File *f_shadow = NULL;
     if (proxy_flag) {
       shadow_classname = NewString(Getattr(n,"sym:name"));
+
+      if (!addSymbol(shadow_classname,n)) return SWIG_ERROR;
 
       if (Cmp(shadow_classname, jniclass_name) == 0) {
         Printf(stderr, "Class name cannot be equal to JNI class name: %s\n", shadow_classname);
@@ -2095,7 +2106,7 @@ class JAVA : public Language {
     if (throws_list) {
       String *cls = Firstitem(throws_list);
       Printf(code, " throws %s", cls);
-      while (cls = Nextitem(throws_list))
+      while ( (cls = Nextitem(throws_list)) )
         Printf(code, ", %s", cls);
     }
   }
