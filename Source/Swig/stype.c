@@ -419,6 +419,40 @@ DOHString *SwigType_prefix(DOHString *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_array_ndim()
+ *
+ * Returns the number of dimensions of an array.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_array_ndim(DOHString_or_char *id) {
+  int ndim = 0;
+  char *c = Char(id);
+
+  while (c && SwigType_isarray(c)) {
+    c = strchr(c,'.');
+    ndim++;
+  }
+  return ndim;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_array_getdim()
+ *
+ * Get the value of the nth dimension.
+ * ----------------------------------------------------------------------------- */
+
+DOHString *SwigType_array_getdim(DOHString_or_char *id, int n) {
+
+  char *c = Char(id);
+  while (c && SwigType_isarray(c) && (n > 0)) {
+    c = strchr(c,'.');
+    n--;
+  }
+  if (n == 0) return SwigType_parm(c);
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_cstr(DOH *s, DOH *id)
  *
  * Create a C string representation of a datatype.
@@ -705,25 +739,3 @@ int SwigType_cmp(DOHString_or_char *tpat, DOHString_or_char *type) {
   }
   return 1;
 }
-
-#ifdef DEBUG
-int main() {
-  DOHString *a,*b,*c,*d;
-
-  a = NewString("int");
-  SwigType_add_pointer(a);
-
-  SwigType_typedef(a,"IntPtr");
-  
-  b = NewString("IntPtr");
-  SwigType_add_array(b,"1000");
-
-  Printf(stdout,"b = '%s'\n", b);
-  c = SwigType_typedef_resolve(b);
-  Printf(stdout,"c = '%s'\n", c);
-
-  Printf(stdout,"cmp = %d\n", SwigType_cmp("a(1000).p.p.int",b));
-
-}
-
-#endif

@@ -427,7 +427,8 @@ yylex1(void) {
       if (strcmp(yytext,"%apply") == 0) return(APPLY);
       if (strcmp(yytext,"%clear") == 0) return(CLEAR);
       if (strcmp(yytext,"%doconly") == 0) return(DOCONLY);
-      
+      if (strcmp(yytext,"%map") == 0) return(MAP);
+
       /* Have an unknown identifier, as a last step, we'll */
       /* do a typedef lookup on it. */
       yylval.tok.text = NewString(yytext);

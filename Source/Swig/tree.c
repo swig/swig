@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------------- 
  * tree.c
  *
- *     This file provides some general purpose functions for walking through
+ *     This file provides some general purpose functions for manipulating 
  *     parse trees.
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
@@ -15,6 +15,21 @@
 static char cvsroot[] = "$Header$";
 
 static DOHHash   *rules = 0;
+
+/* -----------------------------------------------------------------------------
+ * Swig_next()
+ * Swig_prev()
+ *
+ * Return next/prev node in a parse tree
+ * ----------------------------------------------------------------------------- */
+
+DOH *Swig_next(DOH *obj) {
+  return Getattr(obj,"next");
+}
+
+DOH *Swig_prev(DOH *obj) {
+  return Getattr(obj,"prev");
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_dump_tags()
@@ -38,7 +53,7 @@ Swig_dump_tags(DOH *obj, DOH *root) {
       Swig_dump_tags(cobj,newroot);
       Delete(newroot);
     }
-    obj = Getattr(obj,"sibling");
+    obj = Swig_next(obj);
   }
   if (!root)
     Delete(croot);
@@ -115,10 +130,62 @@ Swig_emit(DOH *obj, void *clientdata) {
     } else {
       Printf(stderr,"warning: no action defined for '%s'\n", tag);
     }
-    obj = Getattr(obj,"sibling");
+    obj = Swig_next(obj);
   }
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_cut_node(DOH *obj)
+ *
+ * This function cuts an object out of a parse tree.  To do this, the object
+ * MUST be properly initialized with "next", "prev", and "parent" attributes.
+ * ----------------------------------------------------------------------------- */
 
- 
+void Swig_cut_node(DOH *obj) {
+  DOH *parent;
+  DOH *next;
+  DOH *prev;
+
+  parent = Getattr(obj,"parent");
+  assert(parent);
+  next = Getattr(obj,"next");
+  prev = Getattr(obj,"prev");
+
+  DohIncref(obj);            /* Make sure object doesn't go away */
+  Delattr(obj,"parent");     /* Disassociate from my parent */
+
+  if (!next && !prev) {
+    /* Well, this is a single child.  Guess we'll just update the parent their child is gone */
+    Delattr(parent,"child");
+    return;
+  }
+
+  /* If no next node, then this must be at the end of a list */
+  if (!next) {
+    Delattr(prev,"next");      /* Break the 'next' link in the previous node */
+    Delattr(obj,"prev");       /* Break my link back to the previous object */
+    return;
+  }
+
+  /* No previous node. This must be the beginning of a list */
+  if (!prev) {
+    Delattr(next,"prev");          /* Break the 'prev' link of the next node */
+    Setattr(parent,"child",next);  /* Update parent to point at next node */
+    Delattr(obj,"next");           /* Break my link to the next object */
+    return;
+  }
+
+  /* In the middle of a list someplace */
+  Setattr(prev,"next",next);       /* Update previous node to my next node */
+  Setattr(next,"prev",prev);       /* Update next node to my previous node */
+  Delattr(obj,"next");
+  Delattr(obj,"prev");             
+  return;
+}
+
+
+
+
+
+

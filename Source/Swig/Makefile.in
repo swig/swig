@@ -5,8 +5,8 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
-SRCS          = naming.c tree.c stype.c scanner.c include.c getopt.c misc.c
-OBJS          = naming.o tree.o stype.o scanner.o include.o getopt.o misc.o
+SRCS          = map.c wrapfunc.c naming.c tree.c stype.c scanner.c include.c getopt.c misc.c
+OBJS          = map.o wrapfunc.o naming.o tree.o stype.o scanner.o include.o getopt.o misc.o
 
 prefix        = @prefix@
 exec_prefix   = @exec_prefix@
