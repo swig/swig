@@ -388,7 +388,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
     Node *top = Swig_cparse(cpps);
     if (top) {
-      if (!Getname(top)) {
+      if (!Getattr(top,"name")) {
 	Printf(stderr,"*** No module name specified using %%module or -module.\n");
 	SWIG_exit(EXIT_FAILURE);
       } else {

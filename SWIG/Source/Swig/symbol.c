@@ -239,8 +239,8 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   c = Getattr(current,symname);
   if (c) {
     /* Yes. It does.  We *only* support overloaded functions */
-    decl = Getdecl(c);
-    ndecl = Getdecl(n);
+    decl = Getattr(c,"decl");
+    ndecl = Getattr(n,"decl");
 
     if (Cmp(nodeType(n),nodeType(c))) return c;
     if ((!SwigType_isfunction(decl)) || (!SwigType_isfunction(ndecl))) {
@@ -250,8 +250,8 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     
     /* Hmmm. Declarator seems to indicate that this is a function */
     /* Look at storage class to see if compatible */
-    cstorage = Getstorage(c);
-    nstorage = Getstorage(n);
+    cstorage = Getattr(c,"storage");
+    nstorage = Getattr(n,"storage");
 
     /* If either one is declared as typedef, forget it. We're hosed */
     if (Cmp(cstorage,"typedef") == 0) {
@@ -265,7 +265,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
 
     cn = c;
     while (cn) {
-      decl = Getdecl(cn);
+      decl = Getattr(cn,"decl");
       if (Cmp(ndecl,decl) == 0) {
 	/* Declarator conflict */
 	return cn;

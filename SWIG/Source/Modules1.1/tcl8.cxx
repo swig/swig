@@ -137,7 +137,7 @@ TCL8::top(Node *n) {
   }
 
   /* Set the module name */
-  set_module(Char(Getname(n)));
+  set_module(Char(Getattr(n,"name")));
 
   /* Generate more code for initialization */
 
@@ -308,16 +308,16 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     char      source[64];
     char      target[64];
     char      argnum[64];
-    SwigType *pt = Gettype(p);
-    String   *pn = Getname(p);
+    SwigType *pt = Getattr(p,"type");
+    String   *pn = Getattr(p,"name");
 
     /* Produce string representations of the source and target arguments */
     sprintf(source,"objv[%d]",j+1);
-    sprintf(target,"%s", Char(Getlname(p)));
+    sprintf(target,"%s", Char(Getattr(p,"lname")));
     sprintf(argnum,"%d",j+1);
 
     /* See if this argument is being ignored */
-    if (!Getignore(p)) {
+    if (!Getattr(p,"ignore")) {
       if (j == (pcount-numopt)) Putc('|',argstr);
       if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {
 	Putc('o',argstr);
@@ -904,8 +904,8 @@ TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
   pcount = ParmList_len(l);
   numopt = check_numopt(l);
   for (p = l; p; p = nextSibling(p)) {
-    SwigType   *pt = Gettype(p);
-    String  *pn = Getname(p);
+    SwigType   *pt = Getattr(p,"type");
+    String  *pn = Getattr(p,"name");
 
     /* Only print an argument if not ignored */
     if (!Swig_typemap_search((char*)"ignore",pt,pn)) {

@@ -161,7 +161,7 @@ PYTHON::top(Node *n) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
 
   /* Set module name */
-  set_module(Char(Getname(n)));
+  set_module(Char(Getattr(n,"name")));
 
   char  filen[256];
 
@@ -405,15 +405,15 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   p = l;
   Printf(kwargs,"{ ");
   while (p != 0) {
-    SwigType *pt = Gettype(p);
-    String   *pn = Getname(p);
-    String   *pv = Getvalue(p);
+    SwigType *pt = Getattr(p,"type");
+    String   *pn = Getattr(p,"name");
+    String   *pv = Getattr(p,"value");
 
     sprintf(source,"obj%d",i);
-    sprintf(target,Char(Getlname(p)));
+    sprintf(target,Char(Getattr(p,"lname")));
     sprintf(argnum,"%d",j+1);
 
-    if (!Getignore(p)) {
+    if (!Getattr(p,"ignore")) {
       Putc(',',arglist);
       if (j == pcount-numopt) Putc('|',parse_args);   /* Optional argument separator */
       if (Len(pn)) {
@@ -485,7 +485,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
 	  Putc('O',parse_args);
 	  sprintf(source,"argo%d", i);
-	  sprintf(target,Char(Getlname(p)));
+	  sprintf(target,Char(Getattr(p,"lname")));
 
 	  Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
 	  Printf(arglist,"&%s",source);
@@ -497,7 +497,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
 	case T_STRING:
 	  Putc('s',parse_args);
-	  Printf(arglist,"&%s", Getlname(p));
+	  Printf(arglist,"&%s", Getattr(p,"lname"));
 	  noarg = 1;
 	  break;
 
@@ -508,7 +508,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
 	  Putc('O',parse_args);
 	  sprintf(source,"argo%d", i);
-	  sprintf(target,"%s",Char(Getlname(p)));
+	  sprintf(target,"%s",Char(Getattr(p,"lname")));
 
 	  Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
 	  Printf(arglist,"&%s",source);
@@ -520,7 +520,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	  /* Pointer to a member.  Ugh! */
 	  Putc('O',parse_args);
 	  sprintf(source,"arg0%d", i);
-	  sprintf(target,"%s",Char(Getlname(p)));
+	  sprintf(target,"%s",Char(Getattr(p,"lname")));
 	  Wrapper_add_localv(f,source,"PyObject *", source, "=0",0);
 	  Printf(arglist,"&%s",source);
 	  Printv(get_pointers, "if ((SWIG_ConvertPacked(", source, ", (void *) &", target, ", sizeof(", SwigType_str(pt,0),"),",
@@ -535,7 +535,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	}
 
 	if (!noarg)
-	  Printf(arglist,"&%s",Getlname(p));
+	  Printf(arglist,"&%s",Getattr(p,"lname"));
       }
       j++;
     }
@@ -1048,9 +1048,9 @@ PYTHON::usage_func(char *iname, SwigType *, ParmList *l) {
   i = 0;
   p = l;
   while (p != 0) {
-    SwigType *pt = Gettype(p);
-    String   *pn = Getname(p);
-    if (!Getignore(p)) {
+    SwigType *pt = Getattr(p,"type");
+    String   *pn = Getattr(p,"name");
+    if (!Getattr(p,"ignore")) {
       i++;
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
@@ -1063,13 +1063,13 @@ PYTHON::usage_func(char *iname, SwigType *, ParmList *l) {
       }
       p = nextSibling(p);
       if (p != 0) {
-	if (!Getignore(p))
+	if (!Getattr(p,"ignore"))
 	  Putc(',',temp);
       }
     } else {
       p = nextSibling(p);
       if (p) {
-	if ((!Getignore(p)) && (i > 0))
+	if ((!Getattr(p,"ignore")) && (i > 0))
 	  Putc(',',temp);
       }
     }

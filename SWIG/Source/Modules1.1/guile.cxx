@@ -239,7 +239,7 @@ GUILE::top(Node *n)
   if (NoInclude) {
     Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
   }
-  set_module(Char(Getname(n)));
+  set_module(Char(Getattr(n,"name")));
 
   if (CPlusPlus) {
     Printf(f_runtime, "extern \"C\" {\n\n");
@@ -601,18 +601,18 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   /* Now write code to extract the parameters */
 
   for (p = l, i = 0; p; p=nextSibling(p), i++) {
-    SwigType *pt = Gettype(p);
-    String   *pn = Getname(p);
-    int opt_p = (Getvalue(p)
+    SwigType *pt = Getattr(p,"type");
+    String   *pn = Getattr(p,"name");
+    int opt_p = (Getattr(p,"value")
 		 || Swig_typemap_search((char*)"default",pt,pn));
 
     // Produce names of source and target
     sprintf(source,"s_%d",i);
-    sprintf(target,"%s", Char(Getlname(p)));
+    sprintf(target,"%s", Char(Getattr(p,"lname")));
 
     // Handle parameter types.
 
-    if (Getignore(p))
+    if (Getattr(p,"ignore"))
       Printv(f->code, "/* ", pn, " ignored... */\n", 0);
     else {
       if (numargs!=0) Printf(f->def,", ");

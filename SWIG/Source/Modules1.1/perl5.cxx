@@ -195,7 +195,7 @@ PERL5::top(Node *n) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
 
-  set_module(Char(Getname(n)));
+  set_module(Char(Getattr(n,"name")));
 
   char filen[256];
 
@@ -567,16 +567,16 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   i = 0;
   j = 0;
   for (p = l; p; p = nextSibling(p)) {
-    SwigType *pt = Gettype(p);
-    String   *pn = Getname(p);
+    SwigType *pt = Getattr(p,"type");
+    String   *pn = Getattr(p,"name");
 
     /* Produce string representation of source and target arguments */
     sprintf(source,"ST(%d)",j);
-    sprintf(target,"%s", Char(Getlname(p)));
+    sprintf(target,"%s", Char(Getattr(p,"lname")));
     sprintf(argnum,"%d",j+1);
 
     /* Check to see if this argument is being ignored */
-    if (!Getignore(p)) {
+    if (!Getattr(p,"ignore")) {
       /* Check for optional argument */
       if (j>= (pcount-numopt))
 	Printf(f->code,"    if (items > %d) {\n", j);
@@ -665,7 +665,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
     }
     /* If we need a saved variable, we need to emit to emit some code for that
        This only applies if the argument actually existed (not ignore) */
-    if ((need_save) && (!Getignore(p))) {
+    if ((need_save) && (!Getattr(p,"ignore"))) {
       Printv(f->code, tab4, temp, " = ", source, ";\n", 0);
       num_saved++;
     }
@@ -798,9 +798,9 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
     Parm *p = l;
     int i = 0;
     while(p) {
-      SwigType *pt = Gettype(p);
+      SwigType *pt = Getattr(p,"type");
 
-      if (!Getignore(p)) {
+      if (!Getattr(p,"ignore")) {
 	/* Look up the datatype name here */
 	char sourceNtarget[256];
 	sprintf(sourceNtarget,"$args[%d]",i);
@@ -1273,9 +1273,9 @@ PERL5::usage_func(char *iname, SwigType *, ParmList *l) {
   p = l;
   i = 0;
   while (p != 0) {
-    SwigType *pt = Gettype(p);
-    String   *pn = Getname(p);
-    if (!Getignore(p)) {
+    SwigType *pt = Getattr(p,"type");
+    String   *pn = Getattr(p,"name");
+    if (!Getattr(p,"ignore")) {
       /* If parameter has been named, use that.   Otherwise, just print a type  */
       if (SwigType_type(pt) != T_VOID) {
 	if (Len(pn) > 0) {
@@ -1287,12 +1287,12 @@ PERL5::usage_func(char *iname, SwigType *, ParmList *l) {
       i++;
       p = nextSibling(p);
       if (p)
-	if (!Getignore(p))
+	if (!Getattr(p,"ignore"))
 	  Putc(',',temp);
     } else {
       p = nextSibling(p);
       if (p)
-	if ((i>0) && (!Getignore(p)))
+	if ((i>0) && (!Getattr(p,"ignore")))
 	  Putc(',',temp);
     }
   }
@@ -1569,8 +1569,8 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
     numopt = check_numopt(l);
     i = 1;
     while(p) {
-      SwigType *pt = Gettype(p);
-      if (!Getignore(p)) {
+      SwigType *pt = Getattr(p,"type");
+      if (!Getattr(p,"ignore")) {
         char sourceNtarget[512];
         sprintf(sourceNtarget, "$args[%d]", i);
   
@@ -1748,7 +1748,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
     p = l;
     i = 0;
     while(p) {
-      SwigType *pt = Gettype(p);
+      SwigType *pt = Getattr(p,"type");
 
       if (is_shadow(pt)) {
 	/* Yep.   This smells alot like an object, patch up the arguments */

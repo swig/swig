@@ -380,7 +380,7 @@ static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, Par
 
   p = l;
   while (p) {
-    SwigType *pt = Gettype(p);
+    SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
     if (pn) {
       if (Len(pn) > 0) {

@@ -136,7 +136,7 @@ MZSCHEME::top(Node *n)
     Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
   }
 
-  set_module(Char(Getname(n)));
+  set_module(Char(Getattr(n,"name")));
 
   Language::top(n);
 
@@ -288,28 +288,28 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     Printf(source, "argv[%d]", i);
     Printf(target, "arg%d", i);
     Printf(argnum, "%d", i);
-    Printv(arg, Getname(p),0);
+    Printv(arg, Getattr(p,"name"),0);
 
     // Handle parameter types.
 
-    if (Getignore(p))
-      Printv(f->code, "/* ", Char(Getname(p)), " ignored... */\n", 0);
+    if (Getattr(p,"ignore")) 
+      Printv(f->code, "/* ", Char(Getattr(p,"name")), " ignored... */\n", 0);
     else {
       ++numargs;
       if ((tm = mzscheme_typemap_lookup ("in",
-				     Gettype(p), Getname(p), source, target, f))) {
+				     Getattr(p,"type"), Getattr(p,"name"), source, target, f))) {
 	Printv(f->code, tm, "\n", 0);
 	mreplace (f->code, argnum, arg, proc_name);
       }
       // no typemap found
       // check if typedef and resolve
-      else throw_unhandled_mzscheme_type_error (Gettype(p));
+      else throw_unhandled_mzscheme_type_error (Getattr(p,"type"));
     }
 
     // Check if there are any constraints.
 
     if ((tm = mzscheme_typemap_lookup ("check", 
-				   Gettype(p), Getname(p), source, target, f))) {
+				   Getattr(p,"type"), Getattr(p,"name"), source, target, f))) {
       // Yep.  Use it instead of the default
       Printv(f->code, tm, "\n", 0);
       mreplace (f->code, argnum, arg, proc_name);
@@ -318,7 +318,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     // Pass output arguments back to the caller.
 
     if ((tm = mzscheme_typemap_lookup ("argout", 
-				   Gettype(p), Getname(p), source, target, f))) {
+				   Getattr(p,"type"), Getattr(p,"name"), source, target, f))) {
       // Yep.  Use it instead of the default
       Printv(outarg, tm, "\n",0);
       mreplace (outarg, argnum, arg, proc_name);
@@ -327,7 +327,7 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
     // Free up any memory allocated for the arguments.
     if ((tm = mzscheme_typemap_lookup ("freearg",
-				   Gettype(p), Getname(p), source, target, f))) {
+				   Getattr(p,"type"), Getattr(p,"name"), source, target, f))) {
       // Yep.  Use it instead of the default
       Printv(cleanup, tm, "\n",0);
       mreplace (cleanup, argnum, arg, proc_name);

@@ -271,7 +271,7 @@ void RUBY::top(Node *n) {
   SwigType_typedef(value,(char*)"VALUE");
   Delete(value);
 
-  set_module(Char(Getname(n)));
+  set_module(Char(Getattr(n,"name")));
 
   Printf(f_header,"#define SWIG_init    Init_%s\n", feature);
   Printf(f_header,"#define SWIG_name    \"%s\"\n\n", module);
@@ -495,7 +495,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   Parm *p = l;
   for (i = 0; i < start; i++) p = nextSibling(p);
   for (i = start; p; i++, p = nextSibling(p)) {
-    if (!Getignore(p)) {
+    if (!Getattr(p,"ignore")) {
       if (i >= ParmList_len(l) - numopt) numoptreal++;
       else numreq++;
     }
@@ -511,7 +511,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     p = l;
     for (i = 0; i < start; i++) p = nextSibling(p);
     for (i = start; p; i++, p = nextSibling(p)) {
-      if (!Getignore(p)) {
+      if (!Getattr(p,"ignore")) {
 	Printf(f->def,", VALUE varg%d", i);
       }
     }
@@ -523,7 +523,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     p = l;
     for (i = 0; i < start; i++) p = nextSibling(p);
     for (i = start; p; i++, p = nextSibling(p)) {
-      if (!Getignore(p)) {
+      if (!Getattr(p,"ignore")) {
 	char s[256];
 	sprintf(s,"varg%d",i);
 	Wrapper_add_localv(f,s,"VALUE",s,0);
@@ -537,12 +537,12 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     int numscan = 0;
     for (p = l, i = 0; i < start; i++) p = nextSibling(p);
     for (i = start; p; i++, p = nextSibling(p)) {
-      if (!Getignore(p)) numscan++;
+      if (!Getattr(p,"ignore")) numscan++;
     }
     Printf(f->code,"rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numscan - (numarg-numoptreal));
     for (p = l, i = 0; i < start; i++) p = nextSibling(p);
     for (i = start; p; i++, p = nextSibling(p)) {
-      if (!Getignore(p)) {
+      if (!Getattr(p,"ignore")) {
 	Printf(f->code,", &varg%d", i);
       }
     }
@@ -555,8 +555,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 
   p = l;
   for (i = 0; i < pcount ; i++, p = nextSibling(p)) {
-    SwigType *pt = Gettype(p);
-    String   *pn = Getname(p);
+    SwigType *pt = Getattr(p,"type");
+    String   *pn = Getattr(p,"name");
 
     /* Produce string representation of source and target arguments */
     int selfp = (use_self && i == 0);
@@ -565,9 +565,9 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     else
       sprintf(source,"varg%d",i);
 
-    sprintf(target,"%s", Char(Getlname(p)));
+    sprintf(target,"%s", Char(Getattr(p,"lname")));
 
-    if (!Getignore(p)) {
+    if (!Getattr(p,"ignore")) {
       char *tab = (char*)tab4;
       if (j >= (pcount-numopt)) { /* Check if parsing an optional argument */
 	Printf(f->code,"    if (argc > %d) {\n", j -  start);

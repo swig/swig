@@ -19,7 +19,7 @@ static char cvsroot[] = "$Header$";
 
 static Parm *nonvoid_parms(Parm *p) {
   if (p) {
-    SwigType *t = Gettype(p);
+    SwigType *t = Getattr(p,"type");
     if (SwigType_type(t) == T_VOID) return 0;
   }
   return p;
@@ -183,10 +183,10 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
   i = 0;
   while (p != 0) {
     lname  = Swig_cparm_name(p,i);
-    pt     = Gettype(p);
+    pt     = Getattr(p,"type");
     if (SwigType_type(pt) != T_VOID) {
       pname  = Getattr(p,"name");
-      pvalue = Getvalue(p);
+      pvalue = Getattr(p,"value");
       local  = Swig_clocal(pt,lname,pvalue);
       Wrapper_add_localv(w,lname,local,0);
       i++;
@@ -335,7 +335,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
   Printf(func,"%s(", name);
   while (p) {
     String *pname;
-    pt = Gettype(p);
+    pt = Getattr(p,"type");
     if (SwigType_type(pt) != T_VOID) {
       pname = Swig_cparm_name(p,i);
       Printf(func,"%s", Swig_clocal_deref(pt, pname));
@@ -367,13 +367,13 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
 
   func = NewString("");
   if (!p) return func;
-  pt = Gettype(p);
+  pt = Getattr(p,"type");
   Printf(func,"(%s)->%s(", SwigType_rcaststr(pt,Swig_cparm_name(p,0)), name);
   i++;
   p = nextSibling(p);
   while (p) {
     String *pname;
-    pt = Gettype(p);
+    pt = Getattr(p,"type");
     if (SwigType_type(pt) != T_VOID) {
       pname = Swig_cparm_name(p,i);
       Printf(func,"%s", Swig_clocal_deref(pt, pname));
@@ -425,7 +425,7 @@ Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
   Printf(func,"new %s(", name);
   while (p) {
     String *pname;
-    pt = Gettype(p);
+    pt = Getattr(p,"type");
     if (SwigType_type(pt) != T_VOID) {
       pname = Swig_cparm_name(p,i);
       Printf(func,"%s", Swig_clocal_deref(pt, pname));

@@ -487,7 +487,7 @@ void JAVA::top(Node *n) {
     SWIG_exit (EXIT_FAILURE);
   }
 
-  set_module(Char(Getname(n)));
+  set_module(Char(Getattr(n,"name")));
 
   String* wrapper_name = NewString("");
 
@@ -728,20 +728,20 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
   // Now walk the function parameter list and generate code to get arguments
   Parm *p = l;
   for (int i = 0; i < pcount ; i++, p = nextSibling(p)) {
-    SwigType *pt = Gettype(p);
-    String   *pn = Getname(p);
+    SwigType *pt = Getattr(p,"type");
+    String   *pn = Getattr(p,"name");
     String   *javaparamtype = NewString("");
     String   *jni_param_type = NewString("");
 
     // Produce string representation of source and target arguments
-    sprintf(target,"%s", Char(Getlname(p)));
+    sprintf(target,"%s", Char(Getattr(p,"lname")));
     sprintf(source,"j%s", target);
 
     if (useRegisterNatives) {
       Printv(javaParameterSignature, JavaMethodSignature(pt, 0, 0), 0);
     }
 
-    if(Getignore(p)) continue;
+    if(Getattr(p,"ignore")) continue;
 
     /* Get the java and jni types of the parameter */
     SwigToJNIType(pt, pn, jni_param_type);
@@ -1535,13 +1535,13 @@ DelWrapper(f);
 /* Workaround end */
 
   for (int i = 0; i < pcount ; i++, p = nextSibling(p)) {
-    if(Getignore(p)) continue;
+    if(Getattr(p,"ignore")) continue;
 
     /* Ignore the 'this' argument for variable wrappers */
     if (!(variable_wrapper_flag && i==0)) 
     {
-      SwigType *pt = Gettype(p);
-      String   *pn = Getname(p);
+      SwigType *pt = Getattr(p,"type");
+      String   *pn = Getattr(p,"name");
       String   *javaparamtype = NewString("");
   
       /* Produce string representation of source and target arguments */
@@ -1653,8 +1653,8 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
     /* Output each parameter */
     Parm *p = l;
     for (int i = 0; i < pcount ; i++, p = nextSibling(p)) {
-      SwigType *pt = Gettype(p);
-      String   *pn = Getname(p);
+      SwigType *pt = Getattr(p,"type");
+      String   *pn = Getattr(p,"name");
       String   *javaparamtype = NewString("");
   
       /* Produce string representation of source and target arguments */

@@ -44,11 +44,11 @@ int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
   i = 0;
   p = l;
   while (p != 0) {
-    lname  = Getlname(p);
-    pt     = Gettype(p);
+    lname  = Getattr(p,"lname");
+    pt     = Getattr(p,"type");
     if (SwigType_type(pt) != T_VOID) {
-      pname  = Getname(p);
-      pvalue = Getvalue(p);
+      pname  = Getattr(p,"name");
+      pvalue = Getattr(p,"value");
       
       tm = Swig_typemap_lookup((char*)"arginit",pt,pname,(char*)"",lname,f);
       if (tm) {
@@ -204,9 +204,9 @@ int check_numopt(ParmList *p) {
   int  state = 0;
 
   for (;p; p = nextSibling(p),i++) {
-    SwigType *pt = Gettype(p);
-    String   *pn = Getname(p);
-    if (Getvalue(p)) {
+    SwigType *pt = Getattr(p,"type");
+    String   *pn = Getattr(p,"name");
+    if (Getattr(p,"value")) {
       n++;
       state = 1;
     } else if (Swig_typemap_search((char*)"default",pt,pn)) {

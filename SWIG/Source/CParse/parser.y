@@ -103,7 +103,7 @@ void SWIG_typemap_lang(const char *tm_lang) {
 static List *typelist(Parm *p) {
    List *l = NewList();
    while (p) {
-     Append(l,Gettype(p));
+     Append(l,Getattr(p,"type"));
      p = nextSibling(p);
    }
    return l;
@@ -236,11 +236,11 @@ static void add_symbols(Node *n) {
   if (inclass && (cplus_mode != CPLUS_PUBLIC)) return;
   while (n) {
     char *symname;
-    if (nodeSymbol(n)) {
+    if (Getattr(n,"sym:name")) {
       n = nextSibling(n);
       continue;
     }
-    decl = Getdecl(n);
+    decl = Getattr(n,"decl");
     if (!SwigType_isfunction(decl)) {
       symname = make_name(GetChar(n,"name"),0);
       wrn = name_warning(symname,0);
@@ -272,12 +272,12 @@ static void add_symbols(Node *n) {
       if (c != n) {
 	String *e = NewString("");
 	Printf(e,"%s:%d. Identifier '%s' redeclared (ignored).", Getfile(n),Getline(n),symname);
-	if (Cmp(symname,Getname(n))) {
-	  Printf(e," (Renamed from '%s')", Getname(n));
+	if (Cmp(symname,Getattr(n,"name"))) {
+	  Printf(e," (Renamed from '%s')", Getattr(n,"name"));
 	}
 	Printf(e,"\n%s:%d. Previous declaration of '%s'", Getfile(c),Getline(c),symname);
-	if (Cmp(symname,Getname(c))) {
-	  Printf(e," (Renamed from '%s')", Getname(c));
+	if (Cmp(symname,Getattr(c,"name"))) {
+	  Printf(e," (Renamed from '%s')", Getattr(c,"name"));
 	}
 	Printf(stderr,"%s\n",e);
 	Setattr(n,"error",e);
@@ -322,9 +322,9 @@ static void merge_addmethods(Node *am) {
   n = firstChild(am);
   while (n) {
     String *symname;
-    symname = nodeSymbol(n);
+    symname = Getattr(n,"sym:name");
     DohIncref(symname);
-    if ((symname) && (!Geterror(n))) {
+    if ((symname) && (!Getattr(n,"error"))) {
       /* Remove node from its symbol table */
       Swig_symbol_remove(n);
       csym = Swig_symbol_add(symname,n);
@@ -358,15 +358,15 @@ static void merge_addmethods(Node *am) {
  static int pure_abstract(Node *n) {
    while (n) {
      if (Cmp(nodeType(n),"cdecl") == 0) {
-       String *decl = Getdecl(n);
+       String *decl = Getattr(n,"decl");
        if (SwigType_isfunction(decl)) {
-	 String *init = Getvalue(n);
+	 String *init = Getattr(n,"value");
 	 if (Cmp(init,"0") == 0) {
 	   return 1;
 	 }
        }
      } else if (Cmp(nodeType(n),"destructor") == 0) {
-       if (Cmp(Getvalue(n),"0") == 0) return 1;
+       if (Cmp(Getattr(n,"value"),"0") == 0) return 1;
      }
      n = nextSibling(n);
    }
@@ -763,8 +763,8 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 
 apply_directive : APPLY parm LBRACE parms RBRACE {
                     $$ = new_node("apply");
-                    Setattr($$,"name",Getname($2));
-   		    Setattr($$,"type",Gettype($2));
+                    Setattr($$,"name",Getattr($2,"name"));
+   		    Setattr($$,"type",Getattr($2,"type"));
 		    Setattr($$,"parms",$4);
                };
 
@@ -1137,9 +1137,9 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
-		       Setattr(n,"type",Gettype(p));
-		       Setattr(n,"name",Getname(p));
-		       Setattr(n,"parms",Getparms(p));
+		       Setattr(n,"type",Getattr(p,"type"));
+		       Setattr(n,"name",Getattr(p,"name"));
+		       Setattr(n,"parms",Getattr(p,"parms"));
 		       appendChild($$,n);
 		       p = nextSibling(p);
 		     }
@@ -1156,9 +1156,9 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
-		       Setattr(n,"type",Gettype(p));
-		       Setattr(n,"name",Getname(p));
-		       Setattr(n,"parms",Getparms(p));
+		       Setattr(n,"type",Getattr(p,"type"));
+		       Setattr(n,"name",Getattr(p,"name"));
+		       Setattr(n,"parms",Getattr(p,"parms"));
 		       appendChild($$,n);
                        p = nextSibling(p);
 		     }
@@ -1174,8 +1174,8 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		   p = $5;
 		   while (p) {
 		     Node *n = new_node("typemapitem");
-		     Setattr(n,"type",Gettype(p));
-		     Setattr(n,"name",Getname(p));
+		     Setattr(n,"type",Getattr(p,"type"));
+		     Setattr(n,"name",Getattr(p,"name"));
 		     appendChild($$,n);
 		     p = nextSibling(p);
 		   }
@@ -1187,14 +1187,14 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		   if ($3) {
 		     $$ = new_node("typemapcopy");
 		     Setattr($$,"method",$3);
-		     Setattr($$,"type",Gettype($7));
-		     Setattr($$,"name",Getname($7));
+		     Setattr($$,"type",Getattr($7,"type"));
+		     Setattr($$,"name",Getattr($7,"name"));
 
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
-		       Setattr(n,"newtype", Gettype(p));
-		       Setattr(n,"newname", Getname(p));
+		       Setattr(n,"newtype", Getattr(p,"type"));
+		       Setattr(n,"newname", Getattr(p,"name"));
 		       appendChild($$,n);
 		       p = nextSibling(p);
 		     }
@@ -1266,12 +1266,12 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		  /* Create typedef's and arguments */
 		  p = $7;
 		  while (p) {
-		    String *value = Getvalue(p);
+		    String *value = Getattr(p,"value");
 		    if (value) {
 		      Printf(args,"%s",value);
 		      Printf(sargs,"%s",value);
 		    } else {
-		      SwigType *ty = Gettype(p);
+		      SwigType *ty = Getattr(p,"type");
 		      if (ty) {
 			tds = NewStringf("__swigtmpl%d",templatenum);
 			if (!templatetypes) templatetypes = NewHash();
@@ -1492,7 +1492,7 @@ cpp_class_decl  :
 		     int i;
 		     for (i = 0; i < Len($4); i++) {
 		       Node *n = Getitem($4,i);
-		       rename_inherit(Getname(n),$3);
+		       rename_inherit(Getattr(n,"name"),$3);
 		     }
 		   }
 
@@ -1557,7 +1557,7 @@ cpp_class_decl  :
 		     SwigType *decltype = Getattr($9,"decl");
 		     if (Cmp($1,"typedef") == 0) {
 		       if (!decltype || !Len(decltype)) {
-			 name = Char(Getname($9));
+			 name = Char(Getattr($9,"name"));
 			 Setattr($$,"tdname",name);
 			 Setattr($$,"decl",decltype);
 		       }
@@ -1753,10 +1753,10 @@ template_parms  : parms {
 		  $$.sparms = NewString("");
 
 		  while (p) {
-		    String *name = Getname(p);
+		    String *name = Getattr(p,"name");
 		    if (!name) {
 		      /* Hmmm. Maybe it's a 'class T' parameter */
-		      char *type = Char(Gettype(p));
+		      char *type = Char(Getattr(p,"type"));
 		      if (strncmp(type,"class ",6) == 0) {
 			Printf($$.rparms,"%s",type+6);
 			Printf($$.sparms,"__swig%s",type+6);
@@ -1767,8 +1767,8 @@ template_parms  : parms {
 			 break;
 		       }
 		     } else {
-		       Printf($$.rparms,"%s", Getname(p));
-		       Printf($$.sparms,"__swig%s",Getname(p));
+		       Printf($$.rparms,"%s", Getattr(p,"name"));
+		       Printf($$.sparms,"__swig%s",Getattr(p,"name"));
 		     }
 		     p = nextSibling(p);
 		     if (p) {

@@ -70,7 +70,7 @@ void emit_one(Node *n) {
       Printf(stderr,"SWIG: Fatal internal error. Malformed parse tree node!\n");
       return;
     }
-    if ((err = Geterror(n))) {
+    if ((err = Getattr(n,"error"))) {
       return;
     }
     line_number = Getline(n);
@@ -148,7 +148,7 @@ void emit_one(Node *n) {
 static List *typelist(Parm *p) {
    List *l = NewList();
    while (p) {
-     Append(l,Gettype(p));
+     Append(l,Getattr(p,"type"));
      p = nextSibling(p);
    }
    return l;
@@ -156,7 +156,7 @@ static List *typelist(Parm *p) {
 
 static Parm *nonvoid_parms(Parm *p) {
   if (p) {
-    SwigType *t = Gettype(p);
+    SwigType *t = Getattr(p,"type");
     if (SwigType_type(t) == T_VOID) return 0;
   }
   return p;
@@ -210,7 +210,7 @@ static void cplus_inherit_types(Node *cls, String *clsname) {
   int i;
   for (i = 0; i < len; i++) {
     Node *n = Getitem(ilist,i);
-    Node *bname = Getname(n);
+    Node *bname = Getattr(n,"name");
     Node *bclass = Getattr(n,"class");
     Hash *scopes = Getattr(bclass,"typescope");
     
@@ -261,11 +261,11 @@ void Language::addmethodsDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::applyDirective(Node *n) {
-  SwigType *type = Gettype(n);
-  String   *name = Getname(n);
-  Parm     *p    = Getparms(n);
+  SwigType *type = Getattr(n,"type");
+  String   *name = Getattr(n,"name");
+  Parm     *p    = Getattr(n,"parms");
   while (p) {
-    Swig_typemap_apply(type,name,Gettype(p),Getname(p));
+    Swig_typemap_apply(type,name,Getattr(p,"type"),Getattr(p,"name"));
     p = nextSibling(p);
   }
 }
@@ -276,8 +276,8 @@ void Language::applyDirective(Node *n) {
 
 void Language::clearDirective(Node *n) {
   Parm *p;
-  for (p = Getparms(n); p; p = nextSibling(p)) {
-    Swig_typemap_clear_apply(Gettype(p),Getname(p));
+  for (p = Getattr(n,"parms"); p; p = nextSibling(p)) {
+    Swig_typemap_clear_apply(Getattr(p,"type"),Getattr(p,"name"));
   }
 }
 
@@ -370,7 +370,7 @@ void Language::insertDirective(Node *n) {
 
 void Language::moduleDirective(Node *n) {
   /* %module directive */
-  String *name = Getname(n);
+  String *name = Getattr(n,"name");
   if (ImportMode) {
     if (ImportMode == IMPORT_MODE) {
       lang->import_start(Char(name));
@@ -387,9 +387,9 @@ void Language::nativeDirective(Node *n) {
   
   if (!ImportMode) {
     String *name = Getattr(n,"cname");
-    String *symname = Getsymname(n);
-    SwigType *type = Gettype(n);
-    Parm    *parms = Getparms(n);
+    String *symname = Getattr(n,"sym:name");
+    SwigType *type = Getattr(n,"type");
+    Parm    *parms = Getattr(n,"parms");
     
     lang->add_native(Char(name),Char(symname),type,parms);
   }
@@ -414,8 +414,8 @@ void Language::pragmaDirective(Node *n) {
   /* %pragma directive */
   if (!ImportMode) {
     String *lan = Getattr(n,"lang");
-    String *name = Getname(n);
-    String *value = Getvalue(n);
+    String *name = Getattr(n,"name");
+    String *value = Getattr(n,"value");
     swig_pragma(Char(lan),Char(name),Char(value));
     lang->pragma(Char(lan),Char(name),Char(value));
   }
@@ -431,9 +431,9 @@ void Language::typemapDirective(Node *n) {
   String *code = Getattr(n,"code");
   Node   *items = firstChild(n);
   while (items) {
-    SwigType *type = Gettype(items);
-    String   *name = Getname(items);
-    Parm     *parms = Getparms(items);
+    SwigType *type = Getattr(items,"type");
+    String   *name = Getattr(items,"name");
+    Parm     *parms = Getattr(items,"parms");
     if (code) {
       Swig_typemap_register(method,type,name,code,parms);
     } else {
@@ -449,8 +449,8 @@ void Language::typemapDirective(Node *n) {
 
 void Language::typemapcopyDirective(Node *n) {
   String *method = Getattr(n,"method");
-  String *name   = Getname(n);
-  String *type   = Gettype(n);
+  String *name   = Getattr(n,"name");
+  String *type   = Getattr(n,"type");
   Node *items = firstChild(n);
   while (items) {
     SwigType *newtype = Getattr(items,"newtype");
@@ -465,9 +465,9 @@ void Language::typemapcopyDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::typesDirective(Node *n) {
-  Parm  *parms = Getparms(n);
+  Parm  *parms = Getattr(n,"parms");
   while (parms) {
-    SwigType *t = Gettype(parms);
+    SwigType *t = Getattr(parms,"type");
     SwigType_remember(t);
     parms = nextSibling(parms);
   }
@@ -478,14 +478,14 @@ void Language::typesDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::cDeclaration(Node *n) {
-  String *name    = Getname(n);
-  String *symname = Getsymname(n);
-  SwigType *type  = Gettype(n);
-  SwigType *decl  = Getdecl(n);
+  String *name    = Getattr(n,"name");
+  String *symname = Getattr(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  SwigType *decl  = Getattr(n,"decl");
   String *storage = Getattr(n,"storage");
   String *code    = Getattr(n,"code");
-  Parm   *parms   = Getparms(n);
-  String *value   = Getvalue(n);
+  Parm   *parms   = Getattr(n,"parms");
+  String *value   = Getattr(n,"value");
   Node   *over;
   File   *f_header = 0;
 
@@ -519,15 +519,15 @@ void Language::cDeclaration(Node *n) {
     String   *cname;
     if (InClass) {
       oname = NewStringf("%s::%s",ClassName,name);
-      cname = NewStringf("%s::%s",ClassName,Getname(over));
+      cname = NewStringf("%s::%s",ClassName,Getattr(over,"name"));
     } else {
       oname = NewString(name);
-      cname = NewString(Getname(over));
+      cname = NewString(Getattr(over,"name"));
     }
     Printf(stderr,"%s:%d. Overloaded declaration ignored.  %s\n",
 	   input_file,line_number, SwigType_str(td,oname));
     
-    Printf(stdout,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(Getdecl(over),cname));
+    Printf(stdout,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(Getattr(over,"decl"),cname));
     Delete(tc);
     Delete(td);
     Delete(oname);
@@ -714,7 +714,7 @@ void Language::externDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::enumDeclaration(Node *n) {
-  String *name = Getname(n);
+  String *name = Getattr(n,"name");
   if (!ImportMode) {
     Node *c;
     for (c = firstChild(n); c; c = nextSibling(c)) {
@@ -741,10 +741,10 @@ void Language::enumvalueDeclaration(Node *n) {
     constantWrapper(n);
   } else {
     String *newvalue;
-    String *name = Getname(n);
-    String *symname = Getsymname(n);
-    String *value = Getvalue(n);
-    String *type  = Gettype(n);
+    String *name = Getattr(n,"name");
+    String *symname = Getattr(n,"sym:name");
+    String *value = Getattr(n,"value");
+    String *type  = Getattr(n,"type");
     if (Cmp(value,name) == 0) {
       newvalue = 0;
     } else {
@@ -763,7 +763,7 @@ void Language::classDeclaration(Node *n) {
   String *name = Getattr(n,"name");
   List   *bases = Getattr(n,"bases");
   String *tdname = Getattr(n,"tdname");
-  String *symname = Getsymname(n);
+  String *symname = Getattr(n,"sym:name");
   char *classname = tdname ? Char(tdname) : Char(name);
   char *iname = Char(symname);
   int   strip = (tdname || CPlusPlus) ? 1 : 0;
@@ -831,7 +831,7 @@ void Language::classDeclaration(Node *n) {
     char *baselist[256];
     int   i = 0;
     for (i = 0; i < Len(bases); i++) {
-      baselist[i] = Char(Getname(Getitem(bases,i)));
+      baselist[i] = Char(Getattr(Getitem(bases,i),"name"));
     }
     baselist[i] = 0;
     lang->cpp_inherit(baselist,i);
@@ -848,8 +848,8 @@ void Language::classDeclaration(Node *n) {
 
 void Language::classforwardDeclaration(Node *n) {
   String *kind = Getattr(n,"kind");
-  String *name = Getname(n);
-  String *symname = Getsymname(n);
+  String *name = Getattr(n,"name");
+  String *symname = Getattr(n,"sym:name");
   if (!symname) symname = name;
   lang->cpp_class_decl(Char(name),Char(symname),Char(kind));
 }
@@ -859,9 +859,9 @@ void Language::classforwardDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::constructorDeclaration(Node *n) {
-  String *name = Getname(n);
-  String *symname = Getsymname(n);
-  Parm   *parms = Getparms(n);
+  String *name = Getattr(n,"name");
+  String *symname = Getattr(n,"sym:name");
+  Parm   *parms = Getattr(n,"parms");
   String *code  = Getattr(n,"code");
   CCode = code;
 
@@ -903,10 +903,10 @@ void Language::constructorDeclaration(Node *n) {
     over = Swig_symbol_isoverloaded(n);
     if ((over) && (over != n)) {
       String *oname = NewStringf("%s::%s", ClassName, name);
-      String *cname = NewStringf("%s::%s", ClassName, Getname(over));
-      SwigType *decl = Getdecl(n);
+      String *cname = NewStringf("%s::%s", ClassName, Getattr(over,"name"));
+      SwigType *decl = Getattr(n,"decl");
       Printf(stderr,"%s:%d. Overloaded constructor ignored.  %s\n", input_file,line_number, SwigType_str(decl,oname));
-      Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over),SwigType_str(Getdecl(over),cname));
+      Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over),SwigType_str(Getattr(over,"decl"),cname));
       Delete(oname);
       Delete(cname);
     } else {
@@ -922,8 +922,8 @@ void Language::constructorDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::destructorDeclaration(Node *n) {
-  String *name = Getname(n);
-  String *symname = Getsymname(n);
+  String *name = Getattr(n,"name");
+  String *symname = Getattr(n,"sym:name");
   String *code  = Getattr(n,"code");
   CCode = code;
 
@@ -950,10 +950,10 @@ void Language::destructorDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::operatorDeclaration(Node *n) {
-  String *name = Getname(n);
-  String *type = Gettype(n);
-  String *decl = Getdecl(n);
-  ParmList *parms = Getparms(n);
+  String *name = Getattr(n,"name");
+  String *type = Getattr(n,"type");
+  String *decl = Getattr(n,"decl");
+  ParmList *parms = Getattr(n,"parms");
   Node *over;
   Printf(stdout,"operator %s %s %s %s\n", name, type, decl, parms);
 
@@ -966,15 +966,15 @@ void Language::operatorDeclaration(Node *n) {
     String   *cname;
     if (InClass) {
       oname = NewStringf("%s::%s",ClassName,name);
-      cname = NewStringf("%s::%s",ClassName,Getname(over));
+      cname = NewStringf("%s::%s",ClassName,Getattr(over,"name"));
     } else {
       oname = NewString(name);
-      cname = NewString(Getname(over));
+      cname = NewString(Getattr(over,"name"));
     }
     Printf(stderr,"%s:%d. Overloaded declaration ignored.  %s\n",
 	   input_file,line_number, SwigType_str(td,oname));
     
-    Printf(stdout,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(Getdecl(over),cname));
+    Printf(stdout,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(Getattr(over,"decl"),cname));
     Delete(tc);
     Delete(td);
     Delete(oname);
@@ -1003,10 +1003,10 @@ void Language::accessDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::constantWrapper(Node *n) {
-  String *name    = Getname(n);
-  String *symname = Getsymname(n);
-  SwigType *type  = Gettype(n);
-  String *value   = Getvalue(n);
+  String *name    = Getattr(n,"name");
+  String *symname = Getattr(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  String *value   = Getattr(n,"value");
 
   if (!value) {
     value = Copy(name);

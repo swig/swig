@@ -272,13 +272,6 @@ extern String     *ParmList_protostr(ParmList *);
 #define  firstChild(x)             Getattr(x,"firstChild")
 #define  lastChild(x)              Getattr(x,"lastChild")
 
-/* Special accessors for symbol tables */
-
-#define  nextSymbol(x)             Getattr(x,"$symnext")
-#define  prevSymbol(x)             Getattr(x,"$symprev")
-#define  nodeSymtab(x)             Getattr(x,"$symtab")
-#define  nodeSymbol(x)             Getattr(x,"$symname")
-
 /* Macros to set up the DOM tree (mostly used by the parser) */
 
 #define  set_nodeType(x,v)         Setattr(x,"nodeType",v)
@@ -436,19 +429,6 @@ extern Hash  *Swig_typemap_pop_scope();
 extern void   Swig_except_register(String_or_char *code);
 extern char  *Swig_except_lookup();
 extern void   Swig_except_clear();
-
-/* --- Attribute access macros --- */
-
-#define Gettype(x)         Getattr(x,"type")
-#define Getname(x)         Getattr(x,"name")
-#define Getvalue(x)        Getattr(x,"value")
-#define Getlname(x)        Getattr(x,"lname")
-#define Getignore(x)       GetInt(x, "ignore")
-#define Getparms(x)        Getattr(x,"parms")
-#define Getdecl(x)         Getattr(x,"decl")
-#define Getstorage(x)      Getattr(x,"storage")
-#define Getsymname(x)      Getattr(x,"sym:name")
-#define Geterror(x)        Getattr(x,"error")
 
 #endif
 

@@ -98,7 +98,7 @@ CopyParmList(ParmList *p) {
 int ParmList_numarg(ParmList *p) {
   int  n = 0;
   while (p) {
-    if (!Getignore(p)) n++;
+    if (!Getattr(p,"ignore")) n++;
     p = nextSibling(p);
   }
   return n;
@@ -111,8 +111,8 @@ int ParmList_numarg(ParmList *p) {
 int ParmList_numrequired(ParmList *p) {
   int i = 0;
   while (p) {
-    SwigType *t = Gettype(p);
-    String   *value = Getvalue(p);
+    SwigType *t = Getattr(p,"type");
+    String   *value = Getattr(p,"value");
     if (value) return i;
     if (!(SwigType_type(t) == T_VOID)) i++;
     else break;
@@ -146,7 +146,7 @@ String *ParmList_str(ParmList *p) {
 
   out = NewString("");
   while(p) {
-    t = Gettype(p);
+    t = Getattr(p,"type");
     Printf(out,"%s", SwigType_str(t,Getattr(p,"name")));
     p = nextSibling(p);
     if (p)
@@ -167,7 +167,7 @@ String *ParmList_protostr(ParmList *p) {
 
   out = NewString("");
   while(p) {
-    t = Gettype(p);
+    t = Getattr(p,"type");
     Printf(out,"%s", SwigType_str(t,0));
     p = nextSibling(p);
     if (p)
