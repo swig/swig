@@ -1567,6 +1567,16 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  Append(e,nt);
 	  Delete(nt);
 	}
+      } else if (Swig_scopename_check(e)) {
+	String *first, *rest;
+	first = Swig_scopename_first(e);
+	rest = Swig_scopename_suffix(e);
+	SwigType_typename_replace(rest,pat,rep);
+	SwigType_typename_replace(first,pat,rep);
+	Clear(e);
+	Printf(e,"%s::%s", first,rest);
+	Delete(first);
+	Delete(rest);
       }
     } else if (SwigType_isfunction(e)) {
       int j;
