@@ -30,11 +30,11 @@ Ocaml Options (available with -ocaml)\n\
 -prefix name    - Set a prefix to be appended to all names\n\
 \n";
 
-static char *mlpreamble =
+static char *mlpreamble = (char *)
 "open Int32\n"
 "open Int64\n";
 
-static char *mltypes =
+static char *mltypes = (char *)
 "type c_obj = \n"
 "    C_void\n"
 "  | C_bool of bool\n"
@@ -59,7 +59,7 @@ static char *mltypes =
 "exception NotObject of c_obj\n"
 "exception NotEnumType of c_obj\n"
 "exception LabelNotFromThisEnum of c_obj\n";
-static char *mllib = 
+static char *mllib = (char *)
 "let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject obj)\n"
 "let fnhelper fin f arg =\n"
 "  let args = match arg with C_list l -> l | C_void -> [] | _ -> [ arg ] in\n"
@@ -86,7 +86,7 @@ static char *mllib =
 "  | _ -> raise (Failure \"Can't convert to int\")\n"
 "let addr_of obj = (invoke obj) \"&\" C_void\n"
 "let _ = Callback.register \"caml_obj_ptr\" addr_of\n";
-static char *mlilib = 
+static char *mlilib = (char *)
 "val invoke : c_obj -> (string -> c_obj -> c_obj)\n"
 "val get_int : c_obj -> int\n"; 
 
@@ -782,6 +782,7 @@ public:
     static_member_function = 1;
     rv = Language::staticmemberfunctionHandler( n );
     static_member_function = 0;
+    return SWIG_OK;
   }
 
   /* ------------------------------------------------------------

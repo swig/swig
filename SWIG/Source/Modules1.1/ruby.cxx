@@ -1116,12 +1116,12 @@ public:
     if (mixin) {
       List *modules = Split(mixin,",",INT_MAX);
       if (modules && Len(modules) > 0) {
-	String *module = Firstitem(modules);
-	while (module) {
-          if (Len(module) > 0) {
-            Printf(klass->init, "rb_include_module(%s, rb_eval_string(\"%s\"));\n", klass->vname, module);
+	String *mod = Firstitem(modules);
+	while (mod) {
+          if (Len(mod) > 0) {
+            Printf(klass->init, "rb_include_module(%s, rb_eval_string(\"%s\"));\n", klass->vname, mod);
 	  }
-	  module = Nextitem(modules);
+	  mod = Nextitem(modules);
 	}
       }
       Delete(modules);

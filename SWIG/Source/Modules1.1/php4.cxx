@@ -111,8 +111,10 @@ static String *this_shadow_multinherit = 0;
 static int	  shadow	= 1;
 
 
+extern "C" {
 static void (*r_prevtracefunc)(SwigType *t, String *mangled, String *clientdata) = 0;
-  
+}
+
 static const char *php_header =
 "/*"
 "\n  +----------------------------------------------------------------------+"
