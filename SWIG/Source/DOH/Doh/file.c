@@ -78,13 +78,16 @@ DohObjInfo *File_type() {
 }
 
 /* -----------------------------------------------------------------------------
- * NewFile(char *filename, char *mode)
+ * NewFile(DOH *filename, char *mode)
  * ----------------------------------------------------------------------------- */
 DOH *
-NewFile(char *filename, char *mode)
+NewFile(DOH *fn, char *mode)
 {
   File *f;
   FILE *file;
+  char *filename;
+
+  filename = Char(fn);
   file = fopen(filename,mode);
   if (!file) return 0;
 

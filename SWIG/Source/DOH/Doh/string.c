@@ -9,7 +9,7 @@
  * Chicago, IL  60637
  * beazley@cs.uchicago.edu
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
+ * Please read the file LICENSE for the copyright and terms by which DOH
  * can be used and distributed.
  ****************************************************************************/
 
@@ -716,4 +716,11 @@ String_replace(DOH *stro, DOH *token, DOH *rep, int flags)
     if (flags & DOH_REPLACE_FIRST) count = 1;
     replace_internal(str,Char(token),Char(rep),flags,str->str,count);
 }
+
+/* -----------------------------------------------------------------------------
+ * void String_trim(DOH *str, char *front, char *back)
+ *
+ * Trim a string.
+ * ----------------------------------------------------------------------------- */
+
 
