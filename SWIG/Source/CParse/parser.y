@@ -145,18 +145,34 @@ rename_inherit(String *base, String *derived) {
 }
 
 /* Generate the symbol table name for an object */
+/* This is a bit of a mess. Need to clean up */
+
 static char *make_name(char *name,SwigType *decl) {
   String *rn = 0;
+  char   *origname = name;
+  int     destructor = 0;
+
+  if (name && (*name == '~')) {
+    destructor = 1;
+    name++;
+  }
   if (yyrename) {
     String *s = yyrename;
     yyrename = 0;
+    if (destructor) {
+      Insert(s,0,"~");
+    }
     return Char(s);
   }
   if (!name) return 0;
   /* Check to see if the name is in the hash */
-  if (!rename_hash) return name;
+  if (!rename_hash) return origname;
   rn = Swig_name_object_get(rename_hash, Classprefix, name, decl);
-  if (!rn) return name;
+  if (!rn) return origname;
+  if (destructor) {
+    String *s = NewStringf("~%s", rn);
+    return Char(s);
+  }
   return Char(rn);
 }
 
