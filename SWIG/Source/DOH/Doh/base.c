@@ -14,26 +14,16 @@ static char cvsroot[] = "$Header$";
 
 #include "dohint.h"
 
-static DohObjInfo DohBaseType = {
-  "Base",           /* objname */
-  sizeof(DohBase),  /* objsize */
-  0,                /* doh_del */
-  0,                /* doh_copy */
-  0,                /* doh_clear */
-  0,                /* doh_str */
-  0,                /* doh_data */
-  0,                /* doh_dump */
-  0,                /* doh_load */
-  0,                /* doh_len     */
-  0,                /* doh_hash    */
-  0,                /* doh_cmp     */
-  0,                /* doh_mapping */
-  0,                /* doh_list    */
-  0,                /* doh_file    */
-  0,                /* doh_string  */
-  0,                /* reserved1   */
-  0,                /* reserved2   */
-};
+static DohObjInfo *dohtypes[MAX_DOHTYPE];
+
+/* -----------------------------------------------------------------------------
+ * DohRegisterType()
+ * ----------------------------------------------------------------------------- */
+
+void
+DohRegisterType(int type, DohObjInfo *objinfo) {
+  dohtypes[type] = objinfo;
+}
 
 /* -----------------------------------------------------------------------------
  * DohDelete()
@@ -42,22 +32,20 @@ static DohObjInfo DohBaseType = {
 void
 DohDelete(DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
+
   if (!DohCheck(b)) return;
-  if (b->flags & DOH_FLAG_INTERN) return;
+  if (b->flag_intern) return;
   b->refcount--;
   if (b->refcount <= 0) {
-    if (b->objinfo->doh_del) (b->objinfo->doh_del)(obj);
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_del) {
+      (objinfo->doh_del)(b);
+    } else {
+      if (b->data) DohFree(b->data);
+    }
+    DohObjFree(b);
   }
-}
-
-/* -----------------------------------------------------------------------------
- * DohIntern()
- * ----------------------------------------------------------------------------- */
-
-void
-DohIntern(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  b->flags = b->flags | DOH_FLAG_INTERN;
 }
 
 /* -----------------------------------------------------------------------------
@@ -67,8 +55,10 @@ DohIntern(DOH *obj) {
 DOH *
 DohCopy(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_copy)
-    return (b->objinfo->doh_copy)(b);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  objinfo = dohtypes[b->type];
+  if (objinfo->doh_copy) 
+    return (objinfo->doh_copy)(b);
 }
 
 /* -----------------------------------------------------------------------------
@@ -78,8 +68,9 @@ DohCopy(const DOH *obj) {
 void
 DohClear(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_clear)
-    (b->objinfo->doh_clear)(obj);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_clear)
+    (objinfo->doh_clear)(b);
 }
 
 /* -----------------------------------------------------------------------------
@@ -90,11 +81,13 @@ DOH *
 DohStr(const DOH *obj) {
   char buffer[512];
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(b)) {
-    if (b->objinfo->doh_str) {
-      return (b->objinfo->doh_str)(b);
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_str) {
+      return (objinfo->doh_str)(b);
     }
-    sprintf(buffer,"<Object '%s' at %x>", b->objinfo->objname, b);
+    sprintf(buffer,"<Object '%s' at %x>", objinfo->objname, b);
     return NewString(buffer);
   } else {
     return NewString(obj);
@@ -108,22 +101,25 @@ DohStr(const DOH *obj) {
 int
 DohDump(const DOH *obj, DOH *out) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_dump) {
-    return (b->objinfo->doh_dump)(b,out);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_dump) {
+    return (objinfo->doh_dump)(b,out);
   }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
- * DohLen()
+ * DohLen() - Defaults to strlen() if not a DOH object
  * ----------------------------------------------------------------------------- */
 int
 DohLen(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (!b) return 0;
   if (DohCheck(b)) {
-    if (b->objinfo->doh_len) {
-      return (b->objinfo->doh_len)(b);
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_len) {
+      return (objinfo->doh_len)(b);
     }
     return 0;
   } else {
@@ -138,9 +134,11 @@ DohLen(const DOH *obj) {
 int
 DohHashval(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(b)) {
-    if (b->objinfo->doh_hash) {
-      return (b->objinfo->doh_hashval)(b);
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_hashval) {
+      return (objinfo->doh_hashval)(b);
     }
   }
   return 0;
@@ -153,11 +151,11 @@ DohHashval(const DOH *obj) {
 void *
 DohData(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(obj)) {
-    if (b->objinfo) {
-      if (b->objinfo->doh_data) {
-	return (b->objinfo->doh_data)(b);
-      }
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_data) {
+      return (objinfo->doh_data)(b);
     }
     return 0;
   }
@@ -171,26 +169,29 @@ DohData(const DOH *obj) {
 int
 DohCmp(const DOH *obj1, const DOH *obj2) {
   DohBase *b1, *b2;
+  DohObjInfo *b1info, *b2info;
   b1 = (DohBase *) obj1;
   b2 = (DohBase *) obj2;
   if ((!DohCheck(b1)) || (!DohCheck(b2))) {
     return strcmp((char *) DohData(b1),(char *) DohData(b2));
   }
-  if (b1->objinfo->doh_cmp) {
-    return (b1->objinfo->doh_cmp)(b1,b2);
-  }
+  b1info = dohtypes[b1->type];
+  b2info = dohtypes[b2->type];
+  if ((b1info == b2info) && (b1info->doh_cmp)) 
+    return (b1info->doh_cmp)(b1,b2);
   return 1;
 }
 
 /* -----------------------------------------------------------------------------
  * DohIsMapping()
  * ----------------------------------------------------------------------------- */
-
 int
 DohIsMapping(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (!DohCheck(b)) return 0;
-  if (b->objinfo->doh_hash) return 1;
+  objinfo = dohtypes[b->type];
+  if (objinfo->doh_hash) return 1;
   else return 0;
 }
 
@@ -201,8 +202,9 @@ DohIsMapping(const DOH *obj) {
 DOH *
 DohGetattr(DOH *obj, const DOH *name) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_hash->doh_getattr) {
-    return (b->objinfo->doh_hash->doh_getattr)(b,(DOH *) name);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_hash && objinfo->doh_hash->doh_getattr) {
+    return (objinfo->doh_hash->doh_getattr)(b,(DOH *) name);
   }
   return 0;
 }
@@ -214,8 +216,9 @@ DohGetattr(DOH *obj, const DOH *name) {
 int
 DohSetattr(DOH *obj, const DOH *name, const DOH *value) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_hash->doh_setattr) {
-    return (b->objinfo->doh_hash->doh_setattr)(b,(DOH *) name,(DOH *) value);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_hash && objinfo->doh_hash->doh_setattr) {
+    return (objinfo->doh_hash->doh_setattr)(b,(DOH *) name,(DOH *) value);
   }
   return 0;
 }
@@ -227,8 +230,9 @@ DohSetattr(DOH *obj, const DOH *name, const DOH *value) {
 void
 DohDelattr(DOH *obj, const DOH *name) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_hash->doh_delattr) {
-    (b->objinfo->doh_hash->doh_delattr)(b,(DOH *) name);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_hash && objinfo->doh_hash->doh_delattr) {
+    (objinfo->doh_hash->doh_delattr)(b,(DOH *) name);
   }
 }
 
@@ -239,8 +243,9 @@ DohDelattr(DOH *obj, const DOH *name) {
 DOH *
 DohFirstkey(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_hash->doh_firstkey) {
-    return (b->objinfo->doh_hash->doh_firstkey)(obj);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_hash && objinfo->doh_hash->doh_firstkey) {
+    return (objinfo->doh_hash->doh_firstkey)(b);
   }
   return 0;
 }
@@ -252,8 +257,9 @@ DohFirstkey(DOH *obj) {
 DOH *
 DohNextkey(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_hash->doh_nextkey) {
-    return (b->objinfo->doh_hash->doh_nextkey)(obj);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo && objinfo->doh_hash->doh_nextkey) {
+    return (objinfo->doh_hash->doh_nextkey)(b);
   }
   return 0;
 }
@@ -345,9 +351,7 @@ DohSetDouble(DOH *obj, const DOH *name, double value) {
 
 void
 DohSetChar(DOH *obj, const DOH *name, char *value) {
-  DOH *temp;
-  temp = NewString(value);
-  Setattr(obj,(DOH *) name,temp);
+  Setattr(obj,(DOH *) name,NewString(value));
 }
 
 /* -----------------------------------------------------------------------------
@@ -356,9 +360,7 @@ DohSetChar(DOH *obj, const DOH *name, char *value) {
 
 void
 DohSetVoid(DOH *obj, const DOH *name, void *value) {
-  DOH *temp;
-  temp = NewVoid(value,0);
-  Setattr(obj,(DOH *) name,temp);
+  Setattr(obj,(DOH *) name,NewVoid(value,0));
 }
 
 /* -----------------------------------------------------------------------------
@@ -368,8 +370,10 @@ DohSetVoid(DOH *obj, const DOH *name, void *value) {
 int
 DohIsSequence(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (!DohCheck(b)) return 0;
-  if (b->objinfo->doh_list) return 1;
+  objinfo = dohtypes[b->type];
+  if (objinfo->doh_list) return 1;
   else return 0;
 }
 
@@ -380,8 +384,9 @@ DohIsSequence(const DOH *obj) {
 DOH *
 DohGetitem(DOH *obj, int index) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_list->doh_getitem) {
-    return (b->objinfo->doh_list->doh_getitem)(obj,index);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_list && objinfo->doh_list->doh_getitem) {
+    return (objinfo->doh_list->doh_getitem)(b,index);
   }
   return 0;
 }
@@ -393,10 +398,11 @@ DohGetitem(DOH *obj, int index) {
 int
 DohSetitem(DOH *obj, int index, const DOH *value) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_list->doh_setitem) {
-    return (b->objinfo->doh_list->doh_setitem)(obj,index,(DOH *) value);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_list && objinfo->doh_list->doh_setitem) {
+    return (objinfo->doh_list->doh_setitem)(b,index,(DOH *) value);
   }
-  return 0;
+  return -1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -406,9 +412,11 @@ DohSetitem(DOH *obj, int index, const DOH *value) {
 int
 DohDelitem(DOH *obj, int index) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_list->doh_delitem) {
-    return (b->objinfo->doh_list->doh_delitem)(obj,index);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_list && objinfo->doh_list->doh_delitem) {
+    return (objinfo->doh_list->doh_delitem)(b,index);
   }
+  return -1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -417,11 +425,12 @@ DohDelitem(DOH *obj, int index) {
 
 int
 DohInsertitem(DOH *obj, int index, const DOH *value) {
-  int  no = 0;
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_list->doh_insitem) {
-    return (b->objinfo->doh_list->doh_insitem)(obj,index,(DOH *) value);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_list && objinfo->doh_list->doh_insitem) {
+    return (objinfo->doh_list->doh_insitem)(b,index,(DOH *) value);
   }
+  return -1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -431,8 +440,9 @@ DohInsertitem(DOH *obj, int index, const DOH *value) {
 DOH *
 DohFirstitem(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_list->doh_firstitem) {
-    return (b->objinfo->doh_list->doh_firstitem)(obj);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_list && objinfo->doh_list->doh_firstitem) {
+    return (objinfo->doh_list->doh_firstitem)(b);
   }
   return 0;
 }
@@ -444,8 +454,9 @@ DohFirstitem(DOH *obj) {
 DOH *
 DohNextitem(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  if (b->objinfo->doh_list->doh_nextitem) {
-    return (b->objinfo->doh_list->doh_nextitem)(obj);
+  DohObjInfo *objinfo = dohtypes[b->type];
+  if (objinfo->doh_list && objinfo->doh_list->doh_nextitem) {
+    return (objinfo->doh_list->doh_nextitem)(b);
   }
   return 0;
 }
@@ -457,8 +468,10 @@ DohNextitem(DOH *obj) {
 int
 DohIsFile(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (!DohCheck(b)) return 0;
-  if (b->objinfo->doh_file) return 1;
+  objinfo = dohtypes[b->type];
+  if (objinfo->doh_file) return 1;
   else return 0;
 }
 
@@ -469,9 +482,11 @@ DohIsFile(const DOH *obj) {
 int
 DohRead(DOH *obj, void *buffer, int length) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(obj)) {
-    if ((b->objinfo->doh_file) && (b->objinfo->doh_file->doh_read)) {
-      return (b->objinfo->doh_file->doh_read)(obj,buffer,length);
+    objinfo = dohtypes[b->type];
+    if ((objinfo->doh_file) && (objinfo->doh_file->doh_read)) {
+      return (objinfo->doh_file->doh_read)(b,buffer,length);
     }
     return -1;
   }
@@ -486,9 +501,11 @@ DohRead(DOH *obj, void *buffer, int length) {
 int
 DohWrite(DOH *obj, void *buffer, int length) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(obj)) {
-    if ((b->objinfo->doh_file) && (b->objinfo->doh_file->doh_write)) {
-      return (b->objinfo->doh_file->doh_write)(obj,buffer,length);
+    objinfo = dohtypes[b->type];
+    if ((objinfo->doh_file) && (objinfo->doh_file->doh_write)) {
+      return (objinfo->doh_file->doh_write)(b,buffer,length);
     }
     return -1;
   }
@@ -503,9 +520,11 @@ DohWrite(DOH *obj, void *buffer, int length) {
 int
 DohSeek(DOH *obj, long offset, int whence) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(obj)) {
-    if ((b->objinfo->doh_file) && (b->objinfo->doh_file->doh_seek)) {
-      return (b->objinfo->doh_file->doh_seek)(obj,offset,whence);
+    objinfo = dohtypes[b->type];
+    if ((objinfo->doh_file) && (objinfo->doh_file->doh_seek)) {
+      return (objinfo->doh_file->doh_seek)(b,offset,whence);
     }
     return -1;
   }
@@ -519,9 +538,11 @@ DohSeek(DOH *obj, long offset, int whence) {
 long
 DohTell(DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(obj)) {
-    if ((b->objinfo->doh_file) && (b->objinfo->doh_file->doh_tell)) {
-      return (b->objinfo->doh_file->doh_tell)(obj);
+    objinfo = dohtypes[b->type];
+    if ((objinfo->doh_file) && (objinfo->doh_file->doh_tell)) {
+      return (objinfo->doh_file->doh_tell)(b);
     }
     return -1;
   }
@@ -535,9 +556,11 @@ DohTell(DOH *obj) {
 int
 DohGetc(DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(obj)) {
-    if (b->objinfo->doh_file->doh_getc) {
-      return (b->objinfo->doh_file->doh_getc)(obj);
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_file->doh_getc) {
+      return (objinfo->doh_file->doh_getc)(b);
     }
     return EOF;
   }
@@ -551,9 +574,11 @@ DohGetc(DOH *obj) {
 int
 DohPutc(int ch, DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(obj)) {
-    if (b->objinfo->doh_file->doh_putc) {
-      return (b->objinfo->doh_file->doh_putc)(obj,ch);
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_file->doh_putc) {
+      return (objinfo->doh_file->doh_putc)(b,ch);
     }
     return EOF;
   }
@@ -567,9 +592,11 @@ DohPutc(int ch, DOH *obj) {
 int
 DohUngetc(int ch, DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(obj)) {
-    if (b->objinfo->doh_file->doh_ungetc) {
-      return (b->objinfo->doh_file->doh_ungetc)(obj,ch);
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_file->doh_ungetc) {
+      return (objinfo->doh_file->doh_ungetc)(b,ch);
     }
     return EOF;
   }
@@ -583,9 +610,11 @@ DohUngetc(int ch, DOH *obj) {
 int
 DohClose(DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (DohCheck(obj)) {
-    if (b->objinfo->doh_file->doh_close) {
-      return (b->objinfo->doh_file->doh_close)(obj);
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_file->doh_close) {
+      return (objinfo->doh_file->doh_close)(b);
     }
     return 0;
   }
@@ -599,8 +628,10 @@ DohClose(DOH *obj) {
 int
 DohIsString(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo;
   if (!DohCheck(b)) return 0;
-  if (b->objinfo->doh_string) return 1;
+  objinfo = dohtypes[b->type];
+  if (objinfo->doh_string) return 1;
   else return 0;
 }
 
@@ -611,9 +642,11 @@ DohIsString(const DOH *obj) {
 int
 DohReplace(DOH *src, const DOH *token, const DOH *rep, int flags) {
   DohBase *b = (DohBase *) src;
+  DohObjInfo *objinfo;
   if (DohIsString(src)) {
-    if (b->objinfo->doh_string->doh_replace) {
-      return (b->objinfo->doh_string->doh_replace)(src,(DOH *) token, (DOH *) rep,flags);
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_string->doh_replace) {
+      return (objinfo->doh_string->doh_replace)(b,(DOH *) token, (DOH *) rep,flags);
     }
   }
   return 0;
@@ -626,25 +659,13 @@ DohReplace(DOH *src, const DOH *token, const DOH *rep, int flags) {
 void
 DohChop(DOH *src) {
   DohBase *b = (DohBase *) src;
+  DohObjInfo *objinfo;
   if (DohIsString(src)) {
-    if (b->objinfo->doh_string->doh_chop) {
-      (b->objinfo->doh_string->doh_chop)(src);
+    objinfo = dohtypes[b->type];
+    if (objinfo->doh_string->doh_chop) {
+      (objinfo->doh_string->doh_chop)(b);
     }
   }
-}
-
-/* -----------------------------------------------------------------------------
- * DohInit()
- * ----------------------------------------------------------------------------- */
-
-void
-DohInit(DOH *b) {
-  DohBase *bs = (DohBase *) b;
-  bs->refcount = 1;
-  bs->objinfo = &DohBaseType;
-  bs->flags = 0;
-  bs->file = 0;
-  bs->line = 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -653,10 +674,11 @@ DohInit(DOH *b) {
 void
 DohSetfile(DOH *ho, DOH *file) {
   DohBase *h = (DohBase *) ho;
+  DohObjInfo *objinfo;
   if (!h) return;
-  if (!DohCheck(file)) file = NewString(file);
-  h->file = file;
-  Incref(h->file);
+  objinfo = dohtypes[h->type];
+  if (objinfo->doh_setfile)
+    (objinfo->doh_setfile)(h,file);
 }
 
 /* -----------------------------------------------------------------------------
@@ -664,8 +686,13 @@ DohSetfile(DOH *ho, DOH *file) {
  * ----------------------------------------------------------------------------- */
 DOH *
 DohGetfile(DOH *ho) {
-  if (!ho) return 0;
-  return ((DohBase *)ho)->file;
+  DohBase *h = (DohBase *) ho;
+  DohObjInfo *objinfo;
+  if (!h) return;
+  objinfo = dohtypes[h->type];
+  if (objinfo->doh_getfile) 
+    return (objinfo->doh_getfile)(h);
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -673,8 +700,12 @@ DohGetfile(DOH *ho) {
  * ----------------------------------------------------------------------------- */
 void
 DohSetline(DOH *ho, int l) {
-  if (!ho) return;
-  ((DohBase *) ho)->line = l;
+  DohBase *h = (DohBase *) ho;
+  DohObjInfo *objinfo;
+  if (!h) return;
+  objinfo = dohtypes[h->type];
+  if (objinfo->doh_setline) 
+    (objinfo->doh_setline)(h,l);
 }
 
 /* -----------------------------------------------------------------------------
@@ -682,8 +713,13 @@ DohSetline(DOH *ho, int l) {
  * ----------------------------------------------------------------------------- */
 int
 DohGetline(DOH *ho) {
-  if (!ho) return 0;
-  return ((DohBase *)ho)->line;
+  DohBase *h = (DohBase *) ho;
+  DohObjInfo *objinfo;
+  if (!h) return;
+  objinfo = dohtypes[h->type];
+  if (objinfo->doh_getline) 
+    return (objinfo->doh_getline)(h);
+  return 0;
 }
 
 

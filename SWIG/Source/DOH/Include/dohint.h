@@ -6,3 +6,4 @@
 #include <stdarg.h>
 
 #include "doh.h"
+#include "dohobj.h"

@@ -22,12 +22,13 @@ typedef struct HashNode {
 
 /* Hash object */
 typedef struct Hash {
-    DOHCOMMON;
-    HashNode          **hashtable;
-    int                 hashsize;
-    int                 currentindex;
-    int                 nitems;
-    HashNode           *current;
+  DOH  *file;
+  int   line;
+  HashNode          **hashtable;
+  int                 hashsize;
+  int                 currentindex;
+  int                 nitems;
+  HashNode           *current;
 } Hash;
 
 /* Key interning structure */
@@ -98,11 +99,10 @@ static void DelNode(HashNode *hn) {
 
 static void
 DelHash(DOH *ho) {
-    Hash *h;
+    Hash *h = (Hash *) ObjData(ho);
     HashNode *n,*next;
     int i;
 
-    h = (Hash *) ho;
     for (i = 0; i < h->hashsize; i++) {
 	if ((n = h->hashtable[i])) {
 	    while (n) {
@@ -115,7 +115,7 @@ DelHash(DOH *ho) {
     DohFree(h->hashtable);
     h->hashtable = 0;
     h->hashsize = 0;
-    DohObjFree(h);
+    DohFree(h);
 }
 
 /* -----------------------------------------------------------------------------
@@ -126,11 +126,10 @@ DelHash(DOH *ho) {
 
 static void
 Hash_clear(DOH *ho) {
-    Hash *h;
+    Hash *h = (Hash *) ObjData(ho);
     HashNode *n,*next;
     int i;
 
-    h = (Hash *) ho;
     for (i = 0; i < h->hashsize; i++) {
 	if ((n = h->hashtable[i])) {
 	    while (n) {
@@ -199,7 +198,7 @@ static int
 Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     int hv;
     HashNode *n, *prev;
-    Hash *h;
+    Hash *h = (Hash *) ObjData(ho);
 
     if (!obj) return 0;
     if (!DohCheck(k)) k = find_key(k);
@@ -207,7 +206,6 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
       obj = NewString((char *) obj);
       Decref(obj);
     }
-    h = (Hash *) ho;
     hv = (Hashval(k)) % h->hashsize;
     n = h->hashtable[hv];
     prev = 0;
@@ -247,10 +245,9 @@ static DOH *
 Hash_getattr(DOH *ho, DOH *k) {
     int hv;
     HashNode *n;
-    Hash *h;
+    Hash *h = (Hash *) ObjData(ho);
 
     if (!DohCheck(k)) k = find_key(k);
-    h = (Hash *) ho;
     hv = Hashval(k) % h->hashsize;
     n = h->hashtable[hv];
     while (n) {
@@ -270,10 +267,9 @@ static int
 Hash_delattr(DOH *ho, DOH *k) {
     HashNode *n, *prev;
     int hv;
-    Hash *h;
+    Hash *h = (Hash *) ObjData(ho);
 
     if (!DohCheck(k)) k = find_key(k);
-    h = (Hash *) ho;
     hv = Hashval(k) % h->hashsize;
     n = h->hashtable[hv];
     prev = 0;
@@ -298,7 +294,7 @@ Hash_delattr(DOH *ho, DOH *k) {
 /* General purpose iterators */
 static HashNode *
 hash_first(DOH *ho) {
-    Hash *h = (Hash *) ho;
+    Hash *h = (Hash *) ObjData(ho);
     h->currentindex = 0;
     h->current = 0;
     while (!h->hashtable[h->currentindex] && (h->currentindex < h->hashsize))
@@ -310,7 +306,7 @@ hash_first(DOH *ho) {
 
 static HashNode *
 hash_next(DOH *ho) {
-    Hash *h = (Hash *) ho;
+    Hash *h = (Hash *) ObjData(ho);
     if (h->currentindex < 0) return hash_first(h);
 
     /* Try to move to the next entry */
@@ -363,15 +359,14 @@ Hash_str(DOH *ho) {
     int i;
     HashNode *n;
     DOH *s;
-    Hash *h;
+    Hash *h = (Hash *) ObjData(ho);
 
-    h = (Hash *) ho;
     s = NewString("");
-    if (h->flags & DOH_FLAG_PRINT) {
-      Printf(s,"Hash(0x%x)",h);
+    if (ObjGetMark(ho)) {
+      Printf(s,"Hash(0x%x)",ho);
       return s;
     }
-    h->flags = h->flags | DOH_FLAG_PRINT;
+    ObjSetMark(ho,1);
     Printf(s,"Hash {\n");
     for (i = 0; i < h->hashsize; i++) {
 	n = h->hashtable[i];
@@ -381,7 +376,7 @@ Hash_str(DOH *ho) {
 	}
     }
     Printf(s,"}\n");
-    h->flags = h->flags & ~DOH_FLAG_PRINT;
+    ObjSetMark(ho,0);
     return s;
 }
 
@@ -393,7 +388,7 @@ Hash_str(DOH *ho) {
 
 static int
 Hash_len(DOH *ho) {
-  Hash *h = (Hash *) ho;
+  Hash *h = (Hash *) ObjData(ho);
   return h->nitems;
 }
 
@@ -428,9 +423,8 @@ CopyHash(DOH *ho) {
     Hash *h, *nh;
     HashNode *n;
     int   i;
-    h = (Hash *) ho;
-    nh = (Hash *) DohObjMalloc(sizeof(Hash));
-    nh->objinfo = h->objinfo;
+    h = (Hash *) ObjData(ho);
+    nh = (Hash *) DohMalloc(sizeof(Hash));
     nh->hashsize = h->hashsize;
     nh->hashtable = (HashNode **) DohMalloc(nh->hashsize*sizeof(HashNode *));
     for (i = 0; i < nh->hashsize; i++) {
@@ -451,7 +445,7 @@ CopyHash(DOH *ho) {
 	    }
 	}
     }
-    return (DOH *) nh;
+    return DohObjMalloc(DOHTYPE_HASH, nh);
 }
 
 /* -----------------------------------------------------------------------------
@@ -468,39 +462,26 @@ static DohHashMethods HashHashMethods = {
 
 static DohObjInfo HashType = {
     "Hash",          /* objname */
-    sizeof(Hash),    /* size */
     DelHash,         /* doh_del */
     CopyHash,        /* doh_copy */
     Hash_clear,      /* doh_clear */
     Hash_str,        /* doh_str */
     0,               /* doh_data */
     0,               /* doh_dump */
-    0,               /* doh_load */
     Hash_len,        /* doh_len */
     0,               /* doh_hash    */
     0,               /* doh_cmp */
+    0,               /* doh_setfile */
+    0,               /* doh_getfile */
+    0,               /* doh_setline */
+    0,               /* doh_getline */
     &HashHashMethods, /* doh_mapping */
     0,                /* doh_sequence */
     0,                /* doh_file */
     0,                /* doh_string */
-    0,                /* doh_callable */
     0,                /* doh_positional */
+    0,
 };
-
-/* -----------------------------------------------------------------------------
- * Hash_check()
- *
- * Return 1 if an object is a hash table object.
- * ----------------------------------------------------------------------------- */
-
-int
-Hash_check(const DOH *so) {
-    Hash *h = (Hash *) so;
-    if (!h) return 0;
-    if (!DohCheck(so)) return 0;
-    if (h->objinfo != &HashType) return 0;
-    return 1;
-}
 
 /* -----------------------------------------------------------------------------
  * NewHash()
@@ -512,8 +493,12 @@ DOH *
 NewHash() {
     Hash *h;
     int   i;
-    h = (Hash *) DohObjMalloc(sizeof(Hash));
-    h->objinfo = &HashType;
+    static int init = 0;
+    if (!init) {
+      DohRegisterType(DOHTYPE_HASH, &HashType);
+      init = 1;
+    }
+    h = (Hash *) DohMalloc(sizeof(Hash));
     h->hashsize = HASH_INIT_SIZE;
     h->hashtable = (HashNode **) DohMalloc(h->hashsize*sizeof(HashNode *));
     for (i = 0; i < h->hashsize; i++) {
@@ -522,5 +507,7 @@ NewHash() {
     h->currentindex = -1;
     h->current = 0;
     h->nitems = 0;
-    return (DOH *) h;
+    h->file = 0;
+    h->line = 0;
+    return DohObjMalloc(DOHTYPE_HASH,h);
 }
