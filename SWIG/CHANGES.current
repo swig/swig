@@ -2,8 +2,12 @@ Version 1.3.16 (In progress)
 ==================================
 
 09/11/2002: ttn
-	    Prefix Manual/*.html with "<!DOCTYPE html ...>" to pander
-	    dotingly to (over-)sensitive editors.
+	    [Methodology] Reworked "make check" to be more table driven.
+	    [Docs] Docuemented methodology in Manual/Extending.html.
+
+09/11/2002: ttn
+	    [Docs] Prefixed Manual/*.html with "<!DOCTYPE html ...>" to
+	    pander dotingly to (over-)sensitive editors.
 
 09/10/2002: ttn
 	    [Guile] Converted Examples/guile/simple "make check"
