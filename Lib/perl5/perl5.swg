@@ -1,186 +1,571 @@
 /* -----------------------------------------------------------------------------
  * perl5.swg
  *
- * Perl5 runtime library
- * $Header$
+ * Perl 5 configuration file
  * ----------------------------------------------------------------------------- */
 
-#define SWIGPERL
-#define SWIGPERL5
-#ifdef __cplusplus
-/* Needed on some windows machines---since MS plays funny
-   games with the header files under C++ */
-#include <math.h>
-#include <stdlib.h>
-extern "C" {
-#endif
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
+%runtime "common.swg"         // common type checking code
+%runtime "perlrun.swg"        // Perl runtime functions
 
-/* Get rid of free and malloc defined by perl */
-#undef free
-#undef malloc
+/* Typemaps for input parameters */
 
-#include <string.h>
+%typemap(in)  int, short, long, signed char, bool, enum SWIGTYPE
+       "$1 = ($1_ltype) SvIV($input);";
+
+%typemap(in) unsigned int, unsigned short, unsigned long, unsigned char
+	"$1 = ($1_ltype) SvUV($input);";
+
+%typemap(in)  char
+       "$1 = ($1_ltype) *SvPV($input,PL_na);";
+
+%typemap(in)  float, double 
+       "$1 = ($1_ltype) SvNV($input);\n";
+
+%typemap(in)  long long "$1 = (long long) strtoll(SvPV($input, PL_na), 0, 0);";
+%typemap(in)  unsigned long long "$1 = (unsigned long long) strtoull(SvPV($input, PL_na), 0, 0);";
+
+%typemap(in) char *
+       "if (!SvOK((SV*) $input)) $1 = 0;
+        else $1 = ($1_ltype) SvPV($input, PL_na);";
+
+%typemap(in) char [ANY] 
+       "$1 = SvPV($input,PL_na);\n"; 
+
+%typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
+	if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
+            SWIG_croak("Type error in argument $argnum of $symname. Expected $1_mangle");
+        }
+}
+
+%typemap(in) void * {
+	if (SWIG_ConvertPtr($input, (void **) &$1, 0,0) < 0) {
+            SWIG_croak("Type error in argument $argnum of $symname. Expected $1_mangle");
+        }
+}
+
+/* Object passed by value. Convert to a pointer */
+%typemap(in) SWIGTYPE {
+    $&1_ltype argp;
+    if (SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,0) < 0) {
+            SWIG_croak("Type error in argument $argnum of $symname. Expected $&1_mangle");
+    }
+    $1 = *argp;
+}
+
+
+/* Const primitive references.  Passed by value */
+
+%typemap(in) const int & (int temp),
+	     const short & (short temp),
+             const long  & (long temp),
+             const signed char & (signed char temp),
+             const bool & (bool temp)
+	"temp = ($*1_ltype) SvIV($input);
+         $1 = &temp;";
+
+%typemap(in) const unsigned int & (unsigned int temp),
+             const unsigned short & (unsigned short temp),
+             const unsigned long & (unsigned long temp),
+             const unsigned char & (unsigned char temp)
+	"temp = ($*1_ltype) SvUV($input);
+         $1 = &temp;";
+
+%typemap(in) const float & (float temp),
+	     const double & (double temp)
+	"temp = ($*1_ltype) SvNV($input);
+         $1 = &temp;";
+
+%typemap(in) const long long & (long long temp) 
+        "temp = (long long) strtoll(SvPV($input,PL_na),0,0);
+         $1 = &temp;";
+
+%typemap(in) const unsigned long long & (unsigned long long temp) 
+        "temp = (unsigned long long) strtoull(SvPV($input, PL_na),0,0);
+         $1 = &temp;";
+
+%typemap(in) const char &(char temp) {
+        temp = *SvPV($input,PL_na);
+        $1 = &temp;
+}
+
+
+/* Typemap for output values */
+
+%typemap(out) int, short, long, signed char, bool, enum SWIGTYPE 
+    "ST(argvi) = sv_newmortal();
+     sv_setiv(ST(argvi++), (IV) $1);";
+
+%typemap(out) unsigned int, unsigned short, unsigned long, unsigned char
+    "ST(argvi) = sv_newmortal();
+     sv_setuv(ST(argvi++), (UV) $1);";
+
+%typemap(out) float, double
+    "ST(argvi) = sv_newmortal();
+     sv_setnv(ST(argvi++), (double) $1);";
+
+%typemap(out) char 
+    "ST(argvi) = sv_newmortal();
+     sv_setpvn((SV*)ST(argvi++), &$1, 1);";
+
+%typemap(out) char *
+    "ST(argvi) = sv_newmortal();
+     if ($1) {
+        sv_setpv((SV*)ST(argvi++), (char *) $1);
+     } else {
+        sv_setsv((SV*)ST(argvi++), &PL_sv_undef);
+     }";
+
+%typemap(out) long long {
+    char temp[256];
+    sprintf(temp,"%lld", $1);
+    ST(argvi) = sv_newmortal();
+    sv_setpv((SV*)ST(argvi++), temp);
+}
+
+%typemap(out) unsigned long long {
+    char temp[256];
+    sprintf(temp,"%llu", $1);
+    ST(argvi) = sv_newmortal();
+    sv_setpv((SV*)ST(argvi++), temp);
+}
+
+%typemap(out) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & 
+    "ST(argvi) = sv_newmortal();
+     SWIG_MakePtr(ST(argvi++), (void *) $1, $1_descriptor,0);";
+
+
+%typemap(out) SWIGTYPE 
 #ifdef __cplusplus
+{
+  $&1_ltype resultobj = new $1_ltype(($1_ltype &)$1);
+  ST(argvi) = sv_newmortal();
+  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor,0);
+}
+#else
+{
+  $&1_ltype resultobj = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultobj, &$1, sizeof($1_type));
+  ST(argvi) = sv_newmortal();
+  SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor,0);
 }
 #endif
 
-#ifdef PERL_OBJECT
-#define MAGIC_PPERL  CPerlObj *pPerl = (CPerlObj *) this;
-#define MAGIC_CAST   (int (CPerlObj::*)(SV *, MAGIC *))
-#define SWIGCLASS_STATIC 
-#else
-#define MAGIC_PPERL
-#define MAGIC_CAST
-#define SWIGCLASS_STATIC static
-#endif
+/* Dynamic casts */
 
-#if defined(WIN32) && defined(PERL_OBJECT) && !defined(PerlIO_exportFILE)
-#define PerlIO_exportFILE(fh,fl) (FILE*)(fh)
-#endif
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
+  swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+  ST(argvi) = sv_newmortal();
+  SWIG_MakePtr(ST(argvi++), (void *) $1, ty,0);
+}
 
-/* Modifications for newer Perl 5.005 releases */
+%typemap(out) void "";
 
-#if !defined(PERL_REVISION) || ((PERL_REVISION >= 5) && ((PERL_VERSION < 5) || ((PERL_VERSION == 5) && (PERL_SUBVERSION < 50))))
-#ifndef PL_sv_yes
-#define PL_sv_yes sv_yes
-#endif
-#ifndef PL_sv_undef
-#define PL_sv_undef sv_undef
-#endif
-#ifndef PL_na
-#define PL_na na
-#endif
-#endif
+/* Typemap for character array returns */
 
-#include <stdlib.h>
+%typemap(out) char [ANY] 
+     "ST(argvi) = sv_newmortal();
+      sv_setpv((SV*)ST(argvi++),(char *) $1);";
 
+
+
+/* References to primitive types.  Return by value */
+
+%typemap(out) const int &, 
+              const short &,
+              const long &,
+              const signed char &,
+              const bool &
+      "ST(argvi) = sv_newmortal();
+       sv_setiv(ST(argvi++), (IV) *($1));";
+
+%typemap(out) const unsigned int &,
+              const unsigned short &,
+              const unsigned long &,
+              const unsigned char &
+      "ST(argvi) = sv_newmortal();
+       sv_setuv(ST(argvi++), (UV) *($1));";
+
+%typemap(out) const float &, const double & 
+      "ST(argvi) = sv_newmortal();
+       sv_setnv(ST(argvi++), (double) *($1));";
+
+%typemap(out) const long long & {
+  char temp[256];
+  sprintf(temp,"%lld", *($1));
+  ST(argvi) = sv_newmortal();
+  sv_setpv((SV*)ST(argvi++), temp);
+}
+
+%typemap(out) const unsigned long long & {
+  char temp[256];
+  sprintf(temp,"%llu", *($1));
+  ST(argvi) = sv_newmortal();
+  sv_setpv((SV*)ST(argvi++), temp);
+}
+
+%typemap(out) const char &
+  "ST(argvi) = sv_newmortal();
+   sv_setpvn((SV*)ST(argvi++), $1, 1);";
+
+
+/* Variable input */
+
+%typemap(varin)  int, short, long, signed char, bool, enum SWIGTYPE
+       "$1 = ($1_ltype) SvIV($input);";
+
+%typemap(varin) unsigned int, unsigned short, unsigned long, unsigned char
+	"$1 = ($1_ltype) SvUV($input);";
+
+%typemap(varin)  char
+       "$1 = ($1_ltype) *SvPV($input,PL_na);";
+
+%typemap(varin)  float, double 
+       "$1 = ($1_ltype) SvNV($input);\n";
+
+%typemap(varin)  long long "$1 = (long long) strtoll(SvPV($input, PL_na), 0, 0);";
+%typemap(varin)  unsigned long long "$1 = (unsigned long long) strtoull(SvPV($input, PL_na), 0, 0);";
+
+%typemap(varin) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
+	if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
+            croak("Type error in argument $argnum of $symname. Expected $1_mangle");
+        }
+}
+
+%typemap(varin) void * {
+	if (SWIG_ConvertPtr($input, (void **) &$1, 0,0) < 0) {
+            croak("Type error in argument $argnum of $symname. Expected $1_mangle");
+        }
+}
+
+/* Object passed by value. Convert to a pointer */
+%typemap(varin) SWIGTYPE {
+    $&1_ltype argp;
+    if (SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,0) < 0) {
+            croak("Type error in argument $argnum of $symname. Expected $&1_mangle");
+    }
+    $1 = *argp;
+}
+
+/* Const primitive references.  Passed by value */
+
+%typemap(varin) const int & (int temp),
+	     const short & (short temp),
+             const long  & (long temp),
+             const signed char & (signed char temp),
+             const bool & (bool temp)
+	"temp = ($*1_ltype) SvIV($input);
+         $1 = &temp;";
+
+%typemap(varin) const unsigned int & (unsigned int temp),
+             const unsigned short & (unsigned short temp),
+             const unsigned long & (unsigned long temp),
+             const unsigned char & (unsigned char temp)
+	"temp = ($*1_ltype) SvUV($input);
+         $1 = &temp;";
+
+%typemap(varin) const float & (float temp),
+	     const double & (double temp)
+	"temp = ($*1_ltype) SvNV($input);
+         $1 = &temp;";
+
+%typemap(varin) const long long & (long long temp) 
+        "temp = (long long) strtoll(SvPV($input,PL_na),0,0);
+         $1 = &temp;";
+
+%typemap(varin) const unsigned long long & (unsigned long long temp) 
+        "temp = (unsigned long long) strtoull(SvPV($input, PL_na),0,0);
+         $1 = &temp;";
+
+%typemap(varin) const char &(char temp) {
+        temp = *SvPV($input,PL_na);
+        $1 = &temp;
+}
+
+%typemap(varin) char *
 #ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef SWIG_NOINCLUDE
-
-#ifndef PERL_OBJECT
-extern int SWIG_ConvertPtr(SV *, void **, swig_type_info *);
-extern void SWIG_MakePtr(SV *, void *, swig_type_info *);
-#else
-extern int _SWIG_ConvertPtr(CPerlObj *, SV *, void **, swig_type_info *);
-extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, swig_type_info *);
-#define SWIG_ConvertPtr(a,b,c) _SWIG_ConvertPtr(pPerl,a,b,c)
-#define SWIG_MakePtr(a,b,c) _SWIG_MakePtr(pPerl,a,b,c)
-#endif
-
-#endif
-
-/* Function for getting a pointer value */
-
-#ifndef PERL_OBJECT
-SWIGRUNTIME(int) 
-SWIG_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t)
-#else
-#define SWIG_ConvertPtr(a,b,c) _SWIG_ConvertPtr(pPerl,a,b,c)
-SWIGRUNTIME(int)
-_SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t)
-#endif
 {
-  char *_c;
-  swig_type_info *tc;
-  IV   tmp;
+  char *_a = (char *) SvPV(sv,PL_na);
+  if ($1) delete [] $1;
+  $1 = new char[strlen(_a)+1];
+  strcpy((char *)$1,_a);
+}
+#else
+{
+  char *_a = (char *) SvPV(sv,PL_na);
+  if ($1) free((char *) $1);
+  $1 = (char *) malloc(strlen(_a)+1);
+  strcpy((char *)$1,_a);
+}
+#endif
 
-  /* If magical, apply more magic */
-  if (SvGMAGICAL(sv))
-    mg_get(sv);
+%typemap(varin,warning="451:Setting const char * variable may leak memory") const char *
+#ifdef __cplusplus
+{
+  char *_a = (char *) SvPV(sv,PL_na);
+  $1 = new char[strlen(_a)+1];
+  strcpy((char *)$1,_a);
+}
+#else
+{
+  char *_a = (char *) SvPV(sv,PL_na);
+  $1 = (char *) malloc(strlen(_a)+1);
+  strcpy((char *)$1,_a);
+}
+#endif
 
-  /* Check to see if this is an object */
-  if (sv_isobject(sv)) {
-    SV *tsv = (SV*) SvRV(sv);
-    if ((SvTYPE(tsv) == SVt_PVHV)) {
-      MAGIC *mg;
-      if (SvMAGICAL(tsv)) {
-	mg = mg_find(tsv,'P');
-	if (mg) {
-	  SV *rsv = mg->mg_obj;
-	  if (sv_isobject(rsv)) {
-	    tmp = SvIV((SV*)SvRV(rsv));
-	  }
-	}
+%typemap(varin) char [ANY]
+     "strncpy($1, (char *) SvPV(sv,PL_na), $1_dim0);";
+
+%typemap(varin) SWIGTYPE [] "croak(\"Value is read-only.\");";
+
+%typemap(varin) enum SWIGTYPE
+     "$1 = ($1_type) SvIV($input);";
+
+/* --- Typemaps for variable output --- */
+
+%typemap(varout) int, short, long, signed char,  bool, enum SWIGTYPE 
+    "sv_setiv($result, (IV) $1);";
+
+%typemap(varout) unsigned int, unsigned short, unsigned long, unsigned char
+    "sv_setuv($result, (UV) $1);";
+
+%typemap(varout) float, double
+    "sv_setnv($result, (double) $1);";
+
+%typemap(varout) char 
+    "sv_setpvn((SV *) $result, &$1, 1);";
+
+%typemap(varout) long long {
+  char temp[256];
+  sprintf(temp,"%lld",$1);
+  sv_setpv((SV *) $result, temp);
+}
+
+%typemap(varout) unsigned long long {
+  char temp[256];
+  sprintf(temp,"%llu",$1);
+  sv_setpv((SV *) $result, temp);
+}
+
+%typemap(varout) char *, char [ANY]
+    "if ($1) {
+        sv_setpv((SV*)$result, (char *) $1);
+     } else {
+        sv_setsv((SV*)$result, &PL_sv_undef);
+     }";
+
+//%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
+//    "SWIG_MakePtr($result, (void *) $1, $1_descriptor);";
+
+%typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE &, SWIGTYPE []  
+    "sv_setiv(SvRV($result),(IV) $1);"; 
+
+//%typemap(varout) SWIGTYPE
+//    "SWIG_MakePtr($result, (void *) &$1, $&1_descriptor);";
+
+%typemap(varout,type="$&1_descriptor") SWIGTYPE
+    "sv_setiv(SvRV($result), (IV) &$1);";
+
+/* --- Typemaps for constants --- *
+
+/* --- Constants --- */
+
+%typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
+       { SWIG_INT,     (char *) SWIG_prefix "$symname", (long) $value, 0, 0, 0}
+
+%typemap(consttab) float, double
+       { SWIG_FLOAT,   (char *) SWIG_prefix "$symname", 0, (double) $value, 0, 0}
+
+%typemap(consttab) char, char *
+       { SWIG_STRING,  (char *) SWIG_prefix "$symname", 0, 0, (void *)"$value", 0}
+
+%typemap(consttab) long long, unsigned long long
+       { SWIG_STRING, (char *) SWIG_prefix "$symname", 0, 0, (void *) "$value", 0}
+
+%typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
+       { SWIG_POINTER, (char *) SWIG_prefix "$symname", 0, 0, (void *)$value, &$1_descriptor}
+
+%typemap(consttab) SWIGTYPE (CLASS::*) 
+       { SWIG_BINARY,  (char *) SWIG_prefix "$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
+
+
+/* ------------------------------------------------------------
+ * String & length
+ * ------------------------------------------------------------ */
+
+%typemap(in) (char *STRING, int LENGTH) {
+    unsigned int temp;
+    $1 = ($1_ltype) SvPV($input,temp);
+    $2 = ($2_ltype) temp;
+}
+
+/* ------------------------------------------------------------
+ * ANSI C typemaps
+ * ------------------------------------------------------------ */
+
+%apply unsigned long { size_t };
+
+/* ------------------------------------------------------------
+ * Typechecking rules
+ * ------------------------------------------------------------ */
+
+%typecheck(SWIG_TYPECHECK_INTEGER)
+	 int, short, long,
+ 	 unsigned int, unsigned short, unsigned long,
+	 signed char, unsigned char,
+	 long long, unsigned long long,
+	 const int &, const short &, const long &,
+	const unsigned int &, const unsigned short &, const unsigned long &,
+	const long long &, const unsigned long long &,
+	enum SWIGTYPE,
+	bool, const bool & 
+{
+  $1 = SvIOK($input) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_DOUBLE)
+	float, double,
+	const float &, const double &
+{
+  $1 = SvNOK($input) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_CHAR) char {
+  $1 = SvPOK($input) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_STRING) char * {
+  $1 = SvPOK($input) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+  void *tmp;
+  if (SWIG_ConvertPtr($input, (void **) &tmp, $1_descriptor, 0) == -1) {
+	$1 = 0;
+  } else {
+        $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
+  void *tmp;
+  if (SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) == -1) {
+	$1 = 0;
+  } else {
+        $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
+  void *tmp;
+  if (SWIG_ConvertPtr($input, (void **) &tmp, 0, 0) == -1) {
+	$1 = 0;
+  } else {
+        $1 = 1;
+  }
+}
+
+/* ------------------------------------------------------------
+ * Exception handling
+ * ------------------------------------------------------------ */
+
+%typemap(throws) int, 
+                  long, 
+                  short, 
+                  unsigned int, 
+                  unsigned long, 
+                  unsigned short {
+  sprintf(_swigmsg,"%d",$1);
+  SWIG_croak(_swigmsg);
+}
+
+%typemap(throws) SWIGTYPE {
+  SWIG_croak("$1_type");
+}
+
+%typemap(throws) char * {
+  SWIG_croak($1);
+  SWIG_fail;
+}
+
+
+/* Export the SWIG initialization function */
+%header %{
+#ifdef __cplusplus
+extern "C"
+#endif
+#ifndef PERL_OBJECT
+#ifndef MULTIPLICITY
+SWIGEXPORT(void) SWIG_init (CV* cv);
+#else
+SWIGEXPORT(void) SWIG_init (pTHXo_ CV* cv);
+#endif
+#else
+SWIGEXPORT(void) SWIG_init (CV *cv, CPerlObj *);
+#endif
+%}
+
+/* Module initialization function */
+
+%init %{
+#ifdef __cplusplus
+extern "C"
+#endif
+
+XS(SWIG_init) {
+    dXSARGS;
+    int i;
+    static int _init = 0;
+    if (!_init) {
+       for (i = 0; swig_types_initial[i]; i++) {
+	 swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
+       }	
+       _init = 1;
+    }
+
+    /* Install commands */
+    for (i = 0; swig_commands[i].name; i++) {
+      newXS((char*) swig_commands[i].name,swig_commands[i].wrapper, (char*)__FILE__);
+    }
+
+    /* Install variables */
+    for (i = 0; swig_variables[i].name; i++) {
+      SV *sv;
+      sv = perl_get_sv((char*) swig_variables[i].name, TRUE | 0x2);
+      if (swig_variables[i].type) {
+	SWIG_MakePtr(sv,(void *)1, *swig_variables[i].type,0);
       } else {
-	return -1;
+	sv_setiv(sv,(IV) 0);
       }
-    } else {
-      tmp = SvIV((SV*)SvRV(sv));
+      swig_create_magic(sv, (char *) swig_variables[i].name, swig_variables[i].set, swig_variables[i].get); 
     }
-    if (!_t) {
-      *(ptr) = (void *) tmp;
-      return 0;
+
+    /* Install constant */
+    for (i = 0; swig_constants[i].type; i++) {
+      SV *sv;
+      sv = perl_get_sv((char*)swig_constants[i].name, TRUE | 0x2);
+      switch(swig_constants[i].type) {
+      case SWIG_INT:
+	sv_setiv(sv, (IV) swig_constants[i].lvalue);
+	break;
+      case SWIG_FLOAT:
+	sv_setnv(sv, (double) swig_constants[i].dvalue);
+	break;
+      case SWIG_STRING:
+	sv_setpv(sv, (char *) swig_constants[i].pvalue);
+	break;
+      case SWIG_POINTER:
+	SWIG_MakePtr(sv, swig_constants[i].pvalue, *(swig_constants[i].ptype),0);
+	break;
+      case SWIG_BINARY:
+	/*      obj = SWIG_NewPackedObj(swig_constants[i].pvalue, swig_constants[i].lvalue, *(swig_constants[i].ptype)); */
+	break;
+      default:
+	break;
+      }
+      SvREADONLY_on(sv);
     }
-  } else if (! SvOK(sv)) {            /* Check for undef */
-    *(ptr) = (void *) 0;
-    return 0;
-  } else if (SvTYPE(sv) == SVt_RV) {  /* Check for NULL pointer */
-    *(ptr) = (void *) 0;
-    if (!SvROK(sv)) 
-      return 0;
-    else
-      return -1;
-  } else {                            /* Don't know what it is */
-      *(ptr) = (void *) 0;
-      return -1;
-  }
-  if (_t) {
-    /* Now see if the types match */      
-    _c = HvNAME(SvSTASH(SvRV(sv)));
-    tc = SWIG_TypeCheck(_c,_t);
-    if (!tc) {
-      *ptr = (void *) tmp;
-      return -1;
-    }
-    *ptr = SWIG_TypeCast(tc,(void *)tmp);
-    return 0;
-  }
-  *ptr = (void *) tmp;
-  return 0;
-}
-#ifndef PERL_OBJECT
-SWIGRUNTIME(void) 
-SWIG_MakePtr(SV *sv, void *ptr, swig_type_info *t)
-#else
-#define SWIG_MakePtr(a,b,c) _SWIG_MakePtr(pPerl,a,b,c)
-SWIGRUNTIME(int *)
-_SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t)
-#endif
-{
-  sv_setref_pv(sv, t->name, ptr);
-}
-
-/* Magic variable code */
-#ifndef PERL_OBJECT
-#define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
-static void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) {
-#else
-#define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
-static void _swig_create_magic(CPerlObj *pPerl, SV *sv, char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) {
-#endif
-  MAGIC *mg;
-  sv_magic(sv,sv,'U',name,strlen(name));
-  mg = mg_find(sv,'U');
-  mg->mg_virtual = (MGVTBL *) malloc(sizeof(MGVTBL));
-  mg->mg_virtual->svt_get = get;
-  mg->mg_virtual->svt_set = set;
-  mg->mg_virtual->svt_len = 0;
-  mg->mg_virtual->svt_clear = 0;
-  mg->mg_virtual->svt_free = 0;
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-
-
+%}
 
 
 

@@ -1,0 +1,13 @@
+# see top-level Makefile.in
+# (see also top-level configure.in kludge)
+class
+constants
+enum
+funcptr
+pointer
+reference
+shadow
+simple
+sync
+value
+variables

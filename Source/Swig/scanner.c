@@ -12,7 +12,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_scanner_c[] = "$Header$";
 
 #include "swig.h"
 #include <ctype.h>
@@ -598,22 +598,46 @@ look(SwigScanner *s) {
 	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_LONG;
 	    if ((c == 'u') || (c == 'U')) {
 		return SWIG_TOKEN_ULONG;
+	    } else if ((c == 'l') || (c == 'L')) {
+	      state = 870;
 	    } else {
 		retract(s,1);
 		return SWIG_TOKEN_LONG;
 	    } 
+	    break;
+
+	    /* A long long integer */
+
+	case 870:
+	  if ((c = nextchar(s)) == 0) return SWIG_TOKEN_LONGLONG;
+	  if ((c == 'u') || (c == 'U')) {
+	    return SWIG_TOKEN_ULONGLONG;
+	  } else {
+	    retract(s,1);
+	    return SWIG_TOKEN_LONGLONG;
+	  }
 
 	    /* An unsigned number */
 	case 88:
 
 	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_UINT;
 	    if ((c == 'l') || (c == 'L')) {
-		return SWIG_TOKEN_ULONG;
+	      state = 880;
 	    } else {
-		retract(s,1);
-		return SWIG_TOKEN_UINT;
+	      retract(s,1);
+	      return SWIG_TOKEN_UINT;
 	    } 
+	    break;
       
+	    /* Possibly an unsigned long long or unsigned long */
+	case 880:
+	  if ((c = nextchar(s)) == 0) return SWIG_TOKEN_ULONG;
+	  if ((c == 'l') || (c == 'L')) return SWIG_TOKEN_ULONGLONG;
+	  else {
+	    retract(s,1);
+	    return SWIG_TOKEN_ULONG;
+	  }
+
 	    /* A character constant */
 	case 9:
 	    if ((c = nextchar(s)) == 0) {

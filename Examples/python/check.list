@@ -1,0 +1,23 @@
+# see top-level Makefile.in
+class
+constants
+enum
+exceptshadow
+funcattr
+funcptr
+funcptr2
+functor
+import
+import
+template
+mpointer
+multimap
+operator
+pointer
+reference
+shadow
+simple
+smartptr
+template
+value
+variables

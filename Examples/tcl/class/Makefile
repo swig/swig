@@ -14,6 +14,6 @@ static::
 	TARGET='mytclsh' INTERFACE='$(INTERFACE)' tclsh_cpp_static
 
 clean::
-	rm -f *_wrap* *.o *~ *.so mytclsh *.pyc .~* core
+	$(MAKE) -f $(TOP)/Makefile tcl_clean
 
 check: all

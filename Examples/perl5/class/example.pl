@@ -20,12 +20,12 @@ print "\nA total of $example::Shape_nshapes shapes were created\n";
 
 # ----- Member data access -----
 
-# Set the location of the object
+# Set the location of the object.
+# Note: methods in the base class Shape are used since
+# x and y are defined there.
 
 example::Shape_x_set($c, 20);
 example::Shape_y_set($c, 30);
-
-# Now use the same functions in the base class
 example::Shape_x_set($s,-10);
 example::Shape_y_set($s,5);
 

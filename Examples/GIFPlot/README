@@ -4,7 +4,7 @@ GIFPlot
 To illustrate various SWIG features, the following examples involve
 building an interface to a small, but somewhat useful graphics library
 for creating 2D and 3D images in the form of GIF files.  The Perl,
-Python, Tcl, and Ruby directories contain various examples specific to
+Python, Tcl, Java and Ruby directories contain various examples specific to
 those languages.
 
 This library was originally developed as part of the SPaSM molecular
@@ -36,7 +36,7 @@ On Windows, you can probably just do this:
 Running the Examples
 ====================
 
-Once the library has been built, go the Perl, Python, Tcl, or Ruby directory
+Once the library has been built, go the Perl, Python, Tcl, Java or Ruby directory
 to see various SWIG examples.   Each example should have a README file with a
 description.
 

@@ -1,0 +1,7 @@
+.libs
+Makefile
+lib*.c
+lib*.lo
+lib*.la
+swigtcl8.c
+swigtcl8.lo

@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(Include/doh.h)
-AC_PREREQ(2.0)
+AC_PREREQ(2.53)
 
 # Set name for machine-dependent library files
 AC_SUBST(MACHDEP)
@@ -41,4 +41,4 @@ dnl Checks for header files.
 AC_HEADER_STDC
 dnl Checks for library functions.
 
-AC_OUTPUT(Makefile Doh/Makefile )
+AC_OUTPUT(Makefile Doh/Makefile)

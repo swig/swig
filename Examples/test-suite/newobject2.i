@@ -1,0 +1,38 @@
+/**
+ * The purpose of this test is to confirm that a language module
+ * correctly handles the case when a C function has been tagged with the
+ * %newobject directive.
+ */
+
+%module newobject2
+
+%{
+/* Global initialization (not wrapped) */
+int g_fooCount = 0;
+%}
+
+%newobject makeFoo();
+
+%inline %{
+/* Struct definition */
+typedef struct {} Foo;
+
+/* Make one */
+Foo *makeFoo() {
+    Foo *foo = (Foo *) malloc(sizeof(Foo));
+    g_fooCount++;
+    return foo;
+}
+
+/* Return the number of instances */
+int fooCount() {
+    return g_fooCount;
+}
+%}
+
+%extend Foo {
+    ~Foo() {
+        free((void *) self);
+	g_fooCount--;
+    }
+}

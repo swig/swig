@@ -1,7 +1,7 @@
 Matrix example.  To run the example, execute the program 'matrix' and
 type the following :
 
-	(load 'matrix.scm)
+	(load "matrix.scm")
 	(do-test 0)
 
 Alternatively, use the command-line:

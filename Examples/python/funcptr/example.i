@@ -8,8 +8,9 @@
 extern int  do_op(int a, int b, int (*op)(int, int));
 
 /* Now install a bunch of "ops" as constants */
-%constant(int (*)(int,int)) ADD = add;
-%constant(int (*)(int,int)) SUB = sub;
-%constant(int (*)(int,int)) MUL = mul;
+%constant int (*ADD)(int,int) = add;
+%constant int (*SUB)(int,int) = sub;
+%constant int (*MUL)(int,int) = mul;
 
+extern int (*funcvar)(int,int);
 

@@ -1,23 +1,25 @@
 TOP        = ../../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    = -I../../Interface -shadow
+SWIGOPT    = -I../../Interface
 SRCS       =
-TARGET     = gifplotc
+TARGET     = gifplot
 INTERFACE  = gifplot.i
 LIBS       = -L../.. -lgifplot
-INCLUDE    = -I../../Include
+INCLUDES   = -I../../Include
 
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	INCLUDE='$(INCLUDE)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
+	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' python
 
 static::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	INCLUDE='$(INCLUDE)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
+	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
 	TARGET='mypython' INTERFACE='$(INTERFACE)' python_static
 
 clean::
-	rm -f *_wrap* *.o *~ *.so mypython *.pyc .~* core *.gif
+	$(MAKE) -f $(TOP)/Makefile python_clean
+	rm -f $(TARGET).py
+	rm -f *.gif
 
 check: all

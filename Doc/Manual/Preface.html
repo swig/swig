@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Preface</title>
+</head>
+
+<body bgcolor="#ffffff">
+<a name="n1"></a><H1>0 Preface</H1>
+<!-- INDEX -->
+<ul>
+<li><a href="#n2">Introduction</a>
+<li><a href="#n3">Special Introduction for Version 1.3</a>
+<li><a href="#n4">SWIG Versions</a>
+<li><a href="#n5">SWIG resources</a>
+<li><a href="#n6">Prerequisites</a>
+<li><a href="#n7">Organization of this manual</a>
+<li><a href="#n8">How to avoid reading the manual</a>
+<li><a href="#n9">Backwards Compatibility</a>
+<li><a href="#n10">Credits</a>
+<li><a href="#n11">Bug reports</a>
+</ul>
+<!-- INDEX -->
+
+
+
+<a name="n2"></a><H2>0.1 Introduction</H2>
+
+
+SWIG is a software development tool for building scripting language
+interfaces to C and C++ programs.  Originally developed in 1995, SWIG was
+first used by scientists in the Theoretical Physics Division at Los Alamos National Laboratory for
+building user interfaces to simulation codes running on the Connection
+Machine 5 supercomputer. In this environment, scientists needed to
+work with huge amounts of simulation data, complex hardware, and a
+constantly changing code base. The use of a scripting language
+interface provided a simple yet highly flexible foundation for solving these
+types of problems.  SWIG simplifies development by largely automating
+the task of scripting language integration--allowing developers and users
+to focus on more important problems.
+
+<p>
+Although SWIG was originally developed for scientific applications, it
+has since evolved into a general purpose tool that is used in a wide
+variety of applications--in fact almost anything where C/C++ programming
+is involved.
+
+<p>
+<a name="n3"></a><H2>0.2 Special Introduction for Version 1.3</H2>
+
+
+Since SWIG was released in 1996, its user base and applicability has
+continued to grow. Although its rate of development has varied, an
+active development effort has continued to make improvements to the
+system.  Today, nearly a dozen developers are working to create
+SWIG-2.0---a system that aims to provide wrapping support for nearly
+all of the ANSI C++ standard and approximately ten target languages
+including Guile, Java, Mzscheme, Ocaml, Perl, Pike, PHP, Python, Ruby,
+and Tcl.
+
+<p>
+<a name="n4"></a><H2>0.3 SWIG Versions</H2>
+
+
+For several years, the most stable version of SWIG has been release
+1.1p5. Starting with version 1.3, a new version numbering scheme has
+been adopted.  Odd version numbers (1.3, 1.5, etc.) represent
+development versions of SWIG.  Even version numbers (1.4, 1.6, etc.)
+represent stable releases.  Currently, developers are working to
+create a stable SWIG-2.0 release (late 2002).
+
+<a name="n5"></a><H2>0.4 SWIG resources</H2>
+
+
+The official location of SWIG related material is<p>
+
+<blockquote><pre>
+<a href="http://www.swig.org">http://www.swig.org</a>
+</pre></blockquote>
+
+<p>
+This site contains the latest version of the software, users guide,
+and information regarding bugs, installation problems, and
+implementation tricks. 
+
+<p>
+You can also subscribe to the SWIG mailing list by visiting the page
+
+<p>
+<blockquote><pre><a href="http://mailman.cs.uchicago.edu/listinfo/swig">http://mailman.cs.uchicago.edu/listinfo/swig</a>
+</pre></blockquote>
+
+<p>
+The mailing list often discusses some of the more technical aspects of
+SWIG along with information about beta releases and future work.<p>
+
+<p>
+CVS access to the latest version of SWIG is also available.  More information 
+about this can be obtained at:
+
+<p>
+<blockquote><pre><a href="http://www.swig.org/cvs.html">http://www.swig.org/cvs.html</a>
+</pre></blockquote>
+
+
+<a name="n6"></a><H2>0.5 Prerequisites</H2>
+
+
+This manual assumes that you know how to write C/C++ programs and that you
+have at least heard of scripting languages such as 
+Tcl, Python, and Perl. A detailed knowledge of these scripting
+languages is not required although some familiarity won't
+hurt. No prior experience with building C extensions to these
+languages is required---after all, this is what SWIG does automatically.
+However, you should be reasonably familiar with the use of
+compilers, linkers, and makefiles since making
+scripting language extensions is somewhat more complicated than
+writing a normal C program.
+
+<a name="n7"></a><H2>0.6 Organization of this manual</H2>
+
+
+The first few chapters of this manual describe SWIG in general and
+provide an overview of its capabilities. The remaining chapters are
+devoted to specific SWIG language modules and are self
+contained. Thus, if you are using SWIG to build Python interfaces, you
+can probably skip to that chapter and find almost everything you need
+to know.   Caveat: we are currently working on a documentation rewrite and many
+of the older language module chapters are still somewhat out of date.
+
+<a name="n8"></a><H2>0.7 How to avoid reading the manual</H2>
+
+
+If you hate reading manuals, glance at the "Introduction" which
+contains a few simple examples. These
+examples contain about 95% of everything you need to know to use
+SWIG. After that, simply use the language-specific chapters as a reference.
+The SWIG distribution also comes with a large directory of
+examples that illustrate different topics.
+
+<a name="n9"></a><H2>0.8 Backwards Compatibility</H2>
+
+
+If you are a previous user of SWIG, don't expect recent versions of
+SWIG to provide backwards compatibility.  In fact, backwards
+compatibility issues may arise even between successive 1.3.x releases.
+Although these incompatibilities are regretable, SWIG-1.3 is an active
+development project.  The primary goal of this effort is to make SWIG
+better---a process that would simply be impossible if the developers
+are constantly bogged down with backwards compatibility issues.
+
+<p>
+On a positive note, a few incompatibilities are a small price to pay
+for the large number of new features that have been
+added---namespaces, templates, smart pointers, overloaded methods,
+operators, and more.
+
+<a name="n10"></a><H2>0.9 Credits</H2>
+
+
+SWIG is an unfunded project that would not be possible without the
+contributions of many people.  Most recent SWIG development has been
+supported by Matthias K&ouml;ppe, William Fulton, Lyle Johnson,
+Richard Palmer, Thien-Thi Nguyen, Jason Stewart, Loic Dachary, Masaki
+Fukushima, Luigi Ballabio, Sam Liddicott, Art Yerkes, Marcelo Matus, and Harco de Hilster.
+
+<p>
+Historically, the following people contributed to early versions of SWIG.
+Peter Lomdahl, Brad Holian, Shujia Zhou, Niels Jensen, and Tim Germann
+at Los Alamos National Laboratory were the first users. Patrick
+Tullmann at the University of Utah suggested the idea of automatic
+documentation generation. John Schmidt and Kurtis Bleeker at the
+University of Utah tested out the early versions.  Chris Johnson
+supported SWIG's developed at the University of Utah. John Buckman,
+Larry Virden, and Tom Schwaller provided valuable input on the first
+releases and improving the portability of SWIG. David Fletcher and
+Gary Holt have provided a great deal of input on improving SWIG's
+Perl5 implementation. Kevin Butler contributed the first Windows NT
+port.
+
+<a name="n11"></a><H2>0.10 Bug reports</H2>
+
+
+Although every attempt has been made to make SWIG bug-free, we are also trying
+to make feature improvements that may introduce bugs.
+To report a bug, either send mail to the SWIG developer
+list at <tt>swig-dev@cs.uchicago.edu</tt> or report a bug
+at <tt>http://www.swig.org</tt>. In your report, be as specific as
+possible, including (if applicable), error messages, tracebacks (if a
+core dump occurred), corresponding portions of the SWIG interface file
+used, and any important pieces of the SWIG generated wrapper code.  We
+can only fix bugs if we know about them.
+
+<p><hr>
+<address>SWIG 1.3 - Last Modified : August 10, 2002</address>
+</body>
+</html>

@@ -1,0 +1,6 @@
+This directory contains the HTML for the SWIG users manual.
+
+All of this HTML is hand-written.  However, section numbering, indices,
+and the table of contents is generated automatically by the 'maketoc.py'
+script.
+

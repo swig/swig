@@ -1,209 +1,400 @@
-//-*-c++-*-
+//
 // SWIG Typemap library
-// for Java
+// William Fulton
+// 4 January 2002
+//
+// Java implementation
+//
 
-%typemap(java,jtype) char *STRING {String}
-%typemap(java,in) char *STRING {
-  $target = JCALL(GetStringUTFChars, jenv) $source, 0);
-}
+// ------------------------------------------------------------------------
+// Pointer and reference handling
+//
+// These mappings provide support for input/output arguments and common
+// uses for C/C++ pointers and C++ references.
+// ------------------------------------------------------------------------
 
-%typemap(java,argout) char *STRING {
-  JCALL(ReleaseStringUTFChars, jenv) $source, $target);
-}
-
-%typemap(java,out) char *STRING {
-  $target = (jarray) JCALL(NewStringUTF, jenv) $source);
-}
-
-%typemap(java,jtype) char **STRING_IN {String[]}
-%typemap(java,jni) char **STRING_IN {jobjectArray}
-%typemap(java,in) char **STRING_IN {
-  int i;
-  jsize l = JCALL(GetArrayLength, jenv) $source);
-  $target = (char **) malloc((l+1) * sizeof(char *));
-  for(i=0; i<l; i++) {
-    jstring js;
-    char *cs;
-
-    js = (jstring) JCALL(GetObjectArrayElement, jenv) $source, i);
-    cs = (char *) JCALL(GetStringUTFChars, jenv) js, 0);
-    $target[i] = cs;
-  }
-  $target[l] = '\0';
-}
-
-%typemap(java,argout) char **STRING_IN {
-  /* should release strings obtained from GetStringUTFChars */
-  free($target);
-}
-
-/* result must be a null terminated string */
-%typemap(java,jtype) char **STRING_OUT {String[]}
-%typemap(java,jni) char **STRING_OUT {jobjectArray}
-%typemap(java,in) char **STRING_OUT (char *s) {
-  $target = &s;
-}
-%typemap(java,argout) char **STRING_OUT {
-  if($target != NULL)
-    JCALL(SetObjectArrayElement, jenv) $source, 0, JCALL(NewStringUTF, jenv) *$target));
-}
-
-/* a NULL terminated array of char* */
-%typemap(java,jtype) char **STRING_RET {String[]}
-%typemap(java,jni) char **STRING_RET {jarray}
-%typemap(java,out) char **STRING_RET {
-  if($source != NULL) {
-    char **p = $source;
-    jsize size = 0;
-    int i = 0;
-    jclass strClass;
-    
-    while (*p++) size++; /* determine size */
-    strClass = JCALL(FindClass, jenv) "java/lang/String");
-    $target = JCALL(NewObjectArray, jenv) size, strClass, NULL);
-    p = $source;
-    while (*p) {
-      jstring js = JCALL(NewStringUTF, jenv) *p);
-      JCALL(SetObjectArrayElement, jenv) $target, i++, js);
-      p++;
-    }
-  }
-}
-
-%typemap(java,jni) int *INT_OUT {jintArray}
-%typemap(java,jtype) int *INT_OUT {int[]}
-%typemap(java,in) int *INT_OUT (int i) {
-   $target = (int *)&i;
-}
-
-%typemap(java,argout) int *INT_OUT {
-   jint ji;
-   i = (jint) *$target;
-   JCALL(SetIntArrayRegion, jenv) $source, 0, 1, (jint *) &i);
-}
-
-%typemap(java,out) float * FLOAT_ARRAY_RETURN {
-   if($source != NULL) {
-     float *fp = $source;
-     jfloat *jfp;
-     int size = 0;
-     int i;
- 
-     /* determine size of array */
-     while(*fp++) size++;
-
-     /* new float array */
-     $target = JCALL(NewFloatArray, jenv) size);
-
-     /* copy elements to float array */
-     jfp = JCALL(GetFloatArrayElements, jenv) $target, 0);
-     for(i=0; i<size; i++ )
-       jfp[i] = (jfloat) $source[i];
-
-     JCALL(ReleaseFloatArrayElements, jenv) $target, jfp, 0);
-   }
-}
-
-%typemap(java,jni) char *BYTE {jbyteArray}
-%typemap(java,jtype) char *BYTE {byte[]}
-%typemap(java,in) char *BYTE {
-  $target = (char *) JCALL(GetByteArrayElements, jenv) $source, 0);
-}
-
-%typemap(java,argout) char *BYTE {
-  JCALL(ReleaseByteArrayElements, jenv) $source, (jbyte *) $target, 0);
-}
-
-%typemap(java,ignore) JNIEnv * {
-  $target = jenv;
-}
-
-%typemap(java,ignore) jclass jcls {
-  $target = jcls;
-}
-
-%typemap(java,ignore) jobject jobj {
-  $target = jobj;
-}
+// INPUT typemaps.
+// These remap a C pointer or C++ reference to be an "INPUT" value which is passed by value
+// instead of reference.
 
 /*
- * typemaps for standard C++ string and wstring
- * by: Tal Shalif <tal@slt.atr.co.jp>
- */
-/* what type to use in java source code */
-%typemap(java,jtype) const string & {String}
+The following methods can be applied to turn a pointer or reference into a simple
+"input" value.  That is, instead of passing a pointer or reference to an object,
+you would use a real value instead.
 
-/* what is the corresponding jni type */
-%typemap(java,jni) const string & {jstring}
+        bool               *INPUT, bool               &INPUT
+        signed char        *INPUT, signed char        &INPUT
+        unsigned char      *INPUT, unsigned char      &INPUT
+        short              *INPUT, short              &INPUT
+        unsigned short     *INPUT, unsigned short     &INPUT
+        int                *INPUT, int                &INPUT
+        unsigned int       *INPUT, unsigned int       &INPUT
+        long               *INPUT, long               &INPUT
+        unsigned long      *INPUT, unsigned long      &INPUT
+        long long          *INPUT, long long          &INPUT
+        unsigned long long *INPUT, unsigned long long &INPUT
+        float              *INPUT, float              &INPUT
+        double             *INPUT, double             &INPUT
+         
+To use these, suppose you had a C function like this :
 
-/* how to convert the c++ type to the java type */
-%typemap(java,out) const string & {
- $target = JCALL(NewStringUTF, jenv) $source->c_str());
-}
+        double fadd(double *a, double *b) {
+               return *a+*b;
+        }
 
-/* how to convert java type to requested c++ type */
-%typemap(java,in) const string & {
-  $target = NULL;
-  if($source != NULL) {
-    /* get the String from the StringBuffer */
-    char *p = (char *)jenv->GetStringUTFChars($source, 0); 
-    $target =  new string(p);
-    JCALL(ReleaseStringUTFChars, jenv) $source, p);
+You could wrap it with SWIG as follows :
+        
+        %include typemaps.i
+        double fadd(double *INPUT, double *INPUT);
+
+or you can use the %apply directive :
+
+        %include typemaps.i
+        %apply double *INPUT { double *a, double *b };
+        double fadd(double *a, double *b);
+
+In Java you could then use it like this:
+        double answer = modulename.fadd(10.0 + 20.0);
+
+*/
+
+%define INPUT_TYPEMAP(CTYPE, JNITYPE, JTYPE)
+%typemap(jni) CTYPE *INPUT "JNITYPE"
+%typemap(jtype) CTYPE *INPUT "JTYPE"
+%typemap(jstype) CTYPE *INPUT "JTYPE"
+%typemap(javain) CTYPE *INPUT "$javainput"
+
+%typemap(jni) CTYPE &INPUT "JNITYPE"
+%typemap(jtype) CTYPE &INPUT "JTYPE"
+%typemap(jstype) CTYPE &INPUT "JTYPE"
+%typemap(javain) CTYPE &INPUT "$javainput"
+
+%typemap(in) CTYPE *INPUT, CTYPE &INPUT
+%{ $1 = ($1_ltype)&$input; %}
+
+%typemap(typecheck) CTYPE *INPUT = CTYPE;
+%typemap(typecheck) CTYPE &INPUT = CTYPE;
+%enddef
+
+INPUT_TYPEMAP(bool, jboolean, boolean);
+INPUT_TYPEMAP(signed char, jbyte, byte);
+INPUT_TYPEMAP(unsigned char, jshort, short);
+INPUT_TYPEMAP(short, jshort, short);
+INPUT_TYPEMAP(unsigned short, jint, int);
+INPUT_TYPEMAP(int, jint, int);
+INPUT_TYPEMAP(unsigned int, jlong, long);
+INPUT_TYPEMAP(long, jint, int);
+INPUT_TYPEMAP(unsigned long, jlong, long);
+INPUT_TYPEMAP(long long, jlong, long);
+INPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger);
+INPUT_TYPEMAP(float, jfloat, float);
+INPUT_TYPEMAP(double, jdouble, double);
+
+#undef INPUT_TYPEMAP
+
+/* Convert from BigInteger using the toByteArray member function */
+/* Overrides the typemap in the INPUT_TYPEMAP macro */
+%typemap(in) unsigned long long *INPUT($*1_type temp), unsigned long long &INPUT(unsigned long long temp) {
+  jclass clazz;
+  jmethodID mid;
+  jbyteArray ba;
+  jbyte* bae;
+  jsize sz;
+  int i;
+
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
+    return $null;
   }
-}
-/* free resource once finished using */
-%typemap(java,freearg) const string & {
-  delete $target;
-}
-
-%typemap(java,jtype) string & = const string &;
-%typemap(java,jni) string & = const string &;
-%typemap(java,in) string & = const string &;
-%typemap(java,out) string & = const string &;
-%typemap(java,freearg) string & = const string &;
-
-/* what type to use in java source code */
-%typemap(java,jtype) const wstring & {String}
-
-/* what is the corresponding jni type */
-%typemap(java,jni) const wstring & {jstring}
-
-/* how to convert the c++ type to the java type */
-%typemap(java,out) const wstring & {
-  unsigned int len = $source->length();
-  jchar *conv_buf = new jchar[len];
-  for (unsigned int i = 0; i < len; ++i) {
-    conv_buf[i] = (jchar)(*$source)[i];
-  }
- $target = JCALL(NewString, jenv) conv_buf, len);
- delete [] conv_buf;
-}
-
-/* how to convert java type to requested c++ type */
-%typemap(java,in) const wstring & {
-  $target = NULL;
-  if($source != NULL) {
-    /* get the String from the StringBuffer */
-    const jchar *jchar_p = jenv->GetStringChars($source, 0);
-    unsigned int len;
-    for (len = 0; jchar_p[len]; ++len);
-    if (len) {
-      wchar_t *conv_buf = new wchar_t[len];
-      for (unsigned int i = 0; i < len; ++i) {
-         conv_buf[i] = jchar_p[i];
-       }
-       $target =  new wstring(conv_buf, len);
-       delete [] conv_buf;
+  clazz = JCALL1(GetObjectClass, jenv, $input);
+  mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
+  ba = (jbyteArray)JCALL2(CallObjectMethod, jenv, $input, mid);
+  bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
+  sz = JCALL1(GetArrayLength, jenv, ba);
+  temp = 0;
+  if (bae[0] == 0) {
+    for(i=sz-1; i>0; i-- ) {
+      temp = (temp << 8) | (unsigned char)bae[sz-i];
     }
-
-    JCALL(ReleaseStringChars, jenv) $source, jchar_p);
+  } 
+  else {
+    for(i=sz; i>=0; i-- ) {
+      temp = (temp << 8) | (unsigned char)bae[sz-1-i];
+    }
   }
+  JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
+  $1 = &temp;
 }
 
+// OUTPUT typemaps.   These typemaps are used for parameters that
+// are output only.   An array replaces the c pointer or reference parameter. 
+// The output value is returned in this array passed in. 
 
-%typemap(java,jtype) wstring & = const wstring &;
-%typemap(java,jni) wstring & = const wstring &;
-%typemap(java,in) wstring & = const wstring &;
-%typemap(java,out) wstring & = const wstring &;
-%typemap(java,freearg) wstring & = const wstring &;
+/*
+The following methods can be applied to turn a pointer or reference into an "output"
+value.  When calling a function, no input value would be given for
+a parameter, but an output value would be returned.  This works by a 
+Java array being passed as a parameter where a c pointer or reference is required. 
+As with any Java function, the array is passed by reference so that 
+any modifications to the array will be picked up in the calling function.
+Note that the array passed in MUST have at least one element, but as the 
+c function does not require any input, the value can be set to anything.
+
+        bool               *OUTPUT, bool               &OUTPUT
+        signed char        *OUTPUT, signed char        &OUTPUT
+        unsigned char      *OUTPUT, unsigned char      &OUTPUT
+        short              *OUTPUT, short              &OUTPUT
+        unsigned short     *OUTPUT, unsigned short     &OUTPUT
+        int                *OUTPUT, int                &OUTPUT
+        unsigned int       *OUTPUT, unsigned int       &OUTPUT
+        long               *OUTPUT, long               &OUTPUT
+        unsigned long      *OUTPUT, unsigned long      &OUTPUT
+        long long          *OUTPUT, long long          &OUTPUT
+        unsigned long long *OUTPUT, unsigned long long &OUTPUT
+        float              *OUTPUT, float              &OUTPUT
+        double             *OUTPUT, double             &OUTPUT
+         
+For example, suppose you were trying to wrap the modf() function in the
+C math library which splits x into integral and fractional parts (and
+returns the integer part in one of its parameters):
+
+        double modf(double x, double *ip);
+
+You could wrap it with SWIG as follows :
+
+        %include typemaps.i
+        double modf(double x, double *OUTPUT);
+
+or you can use the %apply directive :
+
+        %include typemaps.i
+        %apply double *OUTPUT { double *ip };
+        double modf(double x, double *ip);
+
+The Java output of the function would be the function return value and the 
+value in the single element array. In Java you would use it like this:
+
+    double[] intptr = {0};
+    double fraction = modulename.modf(5,intptr);
+
+*/
+
+%typecheck(SWIG_TYPECHECK_INT128_ARRAY) SWIGBIGINTEGERARRAY "" /* Java BigInteger[] */
+
+%define OUTPUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JAVATYPE, TYPECHECKTYPE)
+%typemap(jni) CTYPE *OUTPUT %{JNITYPE##Array%}
+%typemap(jtype) CTYPE *OUTPUT "JTYPE[]"
+%typemap(jstype) CTYPE *OUTPUT "JTYPE[]"
+%typemap(javain) CTYPE *OUTPUT "$javainput"
+
+%typemap(jni) CTYPE &OUTPUT %{JNITYPE##Array%}
+%typemap(jtype) CTYPE &OUTPUT "JTYPE[]"
+%typemap(jstype) CTYPE &OUTPUT "JTYPE[]"
+%typemap(javain) CTYPE &OUTPUT "$javainput"
+
+%typemap(in) CTYPE *OUTPUT($*1_type temp), CTYPE &OUTPUT(CTYPE temp)
+{
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
+    return $null;
+  }
+  if (JCALL1(GetArrayLength, jenv, $input) == 0) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
+    return $null;
+  }
+  $1 = &temp; 
+}
+
+%typemap(argout) CTYPE *OUTPUT, CTYPE &OUTPUT 
+{ JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, (JNITYPE *)&temp$argnum); }
+
+%typemap(typecheck) CTYPE *INOUT = TYPECHECKTYPE;
+%typemap(typecheck) CTYPE &INOUT = TYPECHECKTYPE;
+%enddef
+
+OUTPUT_TYPEMAP(bool, jboolean, boolean, Boolean, jbooleanArray);            
+OUTPUT_TYPEMAP(signed char, jbyte, byte, Byte, jbyteArray);               
+OUTPUT_TYPEMAP(unsigned char, jshort, short, Short, jshortArray);              
+OUTPUT_TYPEMAP(short, jshort, short, Short, jshortArray);              
+OUTPUT_TYPEMAP(unsigned short, jint, int, Int, jintArray);                
+OUTPUT_TYPEMAP(int, jint, int, Int, jintArray);                
+OUTPUT_TYPEMAP(unsigned int, jlong, long, Long, jlongArray);               
+OUTPUT_TYPEMAP(long, jint, int, Int, jintArray);                
+OUTPUT_TYPEMAP(unsigned long, jlong, long, Long, jlongArray);               
+OUTPUT_TYPEMAP(long long, jlong, long, Long, jlongArray);               
+OUTPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, NOTUSED, SWIGBIGINTEGERARRAY);      
+OUTPUT_TYPEMAP(float, jfloat, float, Float, jfloatArray);              
+OUTPUT_TYPEMAP(double, jdouble, double, Double, jdoubleArray);             
+
+#undef OUTPUT_TYPEMAP
+
+/* Convert to BigInteger - byte array holds number in 2's complement big endian format */
+/* Use first element in BigInteger array for output */
+/* Overrides the typemap in the OUTPUT_TYPEMAP macro */
+%typemap(argout) unsigned long long *OUTPUT, unsigned long long &OUTPUT { 
+  jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
+  jbyte* bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
+  jclass clazz = JCALL1(FindClass, jenv, "java/math/BigInteger");
+  jmethodID mid = JCALL3(GetMethodID, jenv, clazz, "<init>", "([B)V");
+  jobject bigint;
+  int i;
+
+  bae[0] = 0;
+  for(i=1; i<9; i++ ) {
+    bae[i] = (jbyte)(temp$argnum>>8*(8-i));
+  }
+
+  JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
+  bigint = JCALL3(NewObject, jenv, clazz, mid, ba);
+  JCALL3(SetObjectArrayElement, jenv, $input, 0, bigint);
+}
+
+// INOUT
+// Mappings for an argument that is both an input and output
+// parameter
+
+/*
+The following methods can be applied to make a function parameter both
+an input and output value.  This combines the behavior of both the
+"INPUT" and "OUTPUT" methods described earlier.  Output values are
+returned as an element in a Java array.
+
+        bool               *INOUT, bool               &INOUT
+        signed char        *INOUT, signed char        &INOUT
+        unsigned char      *INOUT, unsigned char      &INOUT
+        short              *INOUT, short              &INOUT
+        unsigned short     *INOUT, unsigned short     &INOUT
+        int                *INOUT, int                &INOUT
+        unsigned int       *INOUT, unsigned int       &INOUT
+        long               *INOUT, long               &INOUT
+        unsigned long      *INOUT, unsigned long      &INOUT
+        long long          *INOUT, long long          &INOUT
+        unsigned long long *INOUT, unsigned long long &INOUT
+        float              *INOUT, float              &INOUT
+        double             *INOUT, double             &INOUT
+         
+For example, suppose you were trying to wrap the following function :
+
+        void neg(double *x) {
+             *x = -(*x);
+        }
+
+You could wrap it with SWIG as follows :
+
+        %include typemaps.i
+        void neg(double *INOUT);
+
+or you can use the %apply directive :
+
+        %include typemaps.i
+        %apply double *INOUT { double *x };
+        void neg(double *x);
+
+This works similarly to C in that the mapping directly modifies the
+input value - the input must be an array with a minimum of one element. 
+The element in the array is the input and the output is the element in 
+the array.
+
+       double x[] = {5};
+       neg(x);
+
+The implementation of the OUTPUT and INOUT typemaps is different to other 
+languages in that other languages will return the output value as part 
+of the function return value. This difference is due to Java being a typed language.
+
+*/
+
+%define INOUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JAVATYPE, TYPECHECKTYPE)
+%typemap(jni) CTYPE *INOUT %{JNITYPE##Array%}
+%typemap(jtype) CTYPE *INOUT "JTYPE[]"
+%typemap(jstype) CTYPE *INOUT "JTYPE[]"
+%typemap(javain) CTYPE *INOUT "$javainput"
+
+%typemap(jni) CTYPE &INOUT %{JNITYPE##Array%}
+%typemap(jtype) CTYPE &INOUT "JTYPE[]"
+%typemap(jstype) CTYPE &INOUT "JTYPE[]"
+%typemap(javain) CTYPE &INOUT "$javainput"
+
+%typemap(in) CTYPE *INOUT, CTYPE &INOUT {
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
+    return $null;
+  }
+  if (JCALL1(GetArrayLength, jenv, $input) == 0) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
+    return $null;
+  }
+  $1 = ($1_ltype) JCALL2(Get##JAVATYPE##ArrayElements, jenv, $input, 0); 
+}
+
+%typemap(argout) CTYPE *INOUT, CTYPE &INOUT
+{ JCALL3(Release##JAVATYPE##ArrayElements, jenv, $input, (JNITYPE *)$1, 0); }
+
+%typemap(typecheck) CTYPE *INOUT = TYPECHECKTYPE;
+%typemap(typecheck) CTYPE &INOUT = TYPECHECKTYPE;
+%enddef
+
+INOUT_TYPEMAP(bool, jboolean, boolean, Boolean, jbooleanArray); 
+INOUT_TYPEMAP(signed char, jbyte, byte, Byte, jbyteArray); 
+INOUT_TYPEMAP(unsigned char, jshort, short, Short, jshortArray);     
+INOUT_TYPEMAP(short, jshort, short, Short, jshortArray);
+INOUT_TYPEMAP(unsigned short, jint, int, Int, jintArray); 
+INOUT_TYPEMAP(int, jint, int, Int, jintArray);
+INOUT_TYPEMAP(unsigned int, jlong, long, Long, jlongArray); 
+INOUT_TYPEMAP(long, jint, int, Int, jintArray);
+INOUT_TYPEMAP(unsigned long, jlong, long, Long, jlongArray); 
+INOUT_TYPEMAP(long long, jlong, long, Long, jlongArray);
+INOUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, NOTUSED, SWIGBIGINTEGERARRAY);                             
+INOUT_TYPEMAP(float, jfloat, float, Float, jfloatArray);
+INOUT_TYPEMAP(double, jdouble, double, Double, jdoubleArray); 
+
+#undef INOUT_TYPEMAP
+
+/* Override the typemap in the INOUT_TYPEMAP macro */
+%typemap(in) unsigned long long *INOUT ($*1_type temp), unsigned long long &INOUT (unsigned long long temp) { 
+  jobject bigint;
+  jclass clazz;
+  jmethodID mid;
+  jbyteArray ba;
+  jbyte* bae;
+  jsize sz;
+  int i;
+
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
+    return $null;
+  }
+  if (JCALL1(GetArrayLength, jenv, $input) == 0) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
+    return $null;
+  }
+  bigint = JCALL2(GetObjectArrayElement, jenv, $input, 0);
+  if (!bigint) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array element null");
+    return $null;
+  }
+  clazz = JCALL1(GetObjectClass, jenv, bigint);
+  mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
+  ba = (jbyteArray)JCALL2(CallObjectMethod, jenv, bigint, mid);
+  bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
+  sz = JCALL1(GetArrayLength, jenv, ba);
+  temp = 0;
+  if (bae[0] == 0) {
+    for(i=sz-1; i>0; i-- ) {
+      temp = (temp << 8) | (unsigned char)bae[sz-i];
+    }
+  } 
+  else {
+    for(i=sz; i>=0; i-- ) {
+      temp = (temp << 8) | (unsigned char)bae[sz-1-i];
+    }
+  }
+  JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
+  $1 = &temp;
+}
+
+%typemap(argout) unsigned long long *INOUT = unsigned long long *OUTPUT;
+%typemap(argout) unsigned long long &INOUT = unsigned long long &OUTPUT;
+
+
 

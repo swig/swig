@@ -16,8 +16,8 @@ install:
 	$(RANLIB) $(exec_prefix)/lib/libgifplot.a
 
 clean::
-	rm -f *.o *~ libgifplot.a *_wrap* *_man*
+	rm -f *.@OBJEXT@ *~ libgifplot.a *_wrap* *_man*
 	cd Lib; $(MAKE) clean
 	rm -f config.log config.status config.cache
 
-
+check: all

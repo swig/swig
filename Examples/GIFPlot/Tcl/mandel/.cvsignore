@@ -1,0 +1,4 @@
+mandel_wrap.c
+*.so
+*.dll
+*.gif

@@ -7,6 +7,10 @@
 
 /* SWIG pointer structure */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct SwigCast {
   unsigned short      type;		  /* Index into SwigPtrTbl          */
   void               *(*cast)(void *);    /* Pointer casting function       */
@@ -14,8 +18,8 @@ struct SwigCast {
 };
 
 struct SwigPtrType {
-  char               *name;               /* Datatype name                  */
-  char		     *prettyname;         /* Pretty datatype name           */
+  const char         *name;               /* Datatype name                  */
+  const char	     *prettyname;         /* Pretty datatype name           */
   unsigned short      tag;		  /* Index in SwigPtrTable          */
   struct SwigCast    *cast;		  /* List of compatible types       */
 };
@@ -45,7 +49,7 @@ swigsort (const void *data1, const void *data2)
 
 /* Register a new datatype with the type-checker */
 SWIGSTATIC size_t
-SWIG_RegisterType (char *type, char *prettyname)
+SWIG_RegisterType (const char *type, const char *prettyname)
 {
   int i;
 
@@ -90,9 +94,9 @@ SWIG_RegisterType (char *type, char *prettyname)
 
 /* Register two data types and their mapping with the type checker. */
 SWIGSTATIC void
-SWIG_RegisterMapping (char *origtype, char *newtype, void *(*cast)(void *))
+SWIG_RegisterMapping (const char *origtype, const char *newtype,
+		      swig_converter_func cast)
 {
-  int i;
   size_t t = SWIG_RegisterType(origtype, NULL);
 
   if (newtype!=NULL) {
@@ -118,7 +122,6 @@ SWIG_RegisterMapping (char *origtype, char *newtype, void *(*cast)(void *))
 static void
 SWIG_SortTable (void)
 {
-  int i;
   qsort ((void *) SwigPtrTbl, SwigPtrN, sizeof(size_t), swigsort);
   /* Indicate that everything is sorted */
   SwigPtrSort = 1;
@@ -137,10 +140,9 @@ swigcmp (const void *key, const void *data)
 static SwigPtrType *
 SWIG_GetPtrType (const char *_t)
 {
-  int  start, end;
   size_t *result;
   if (!SwigPtrSort) SWIG_SortTable();
-  result = bsearch(_t, SwigPtrTbl, SwigPtrN, sizeof(size_t), swigcmp);
+  result = (size_t *) bsearch(_t, SwigPtrTbl, SwigPtrN, sizeof(size_t), swigcmp);
   if (result!=NULL) return SwigPtrList+*result;
   else return NULL;
 }
@@ -156,8 +158,8 @@ SWIG_Cast (void *source, size_t source_type,
        mapping table to figure out whether or not we can accept this
        datatype.  */
     struct SwigCast *c;
-    for (c = SwigPtrList[source_type].cast;
-	 c && c->type!=dest_type; c = c->next) /* nothing */;
+    for (c = SwigPtrList[dest_type].cast;
+	 c && c->type!=source_type; c = c->next) /* nothing */;
     if (c) {
       /* Get pointer value. */
       if (c->cast) *ptr = (*(c->cast))(source);
@@ -173,6 +175,19 @@ SWIG_Cast (void *source, size_t source_type,
     *ptr = source;
     return 1;
   }
+}
+
+/* Dynamic pointer casting. Down an inheritance hierarchy */
+SWIGSTATIC swig_type_info * 
+SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) 
+{
+  swig_type_info *lastty = ty;
+  if (!ty || !ty->dcast) return ty;
+  while (ty && (ty->dcast)) {
+     ty = (*ty->dcast)(ptr);
+     if (ty) lastty = ty;
+  }
+  return lastty;
 }
 
 /* Function for getting a pointer value */
@@ -199,7 +214,7 @@ SWIG_Guile_GetPtr(SCM s, void **result, swig_type_info *type)
 	   && (unsigned long) SCM_TYP16(s) == swig_tag) {
     if (type) 
       return !SWIG_Cast((void *) SCM_CDR(s),
-			SCM_CAR(s) >> 16,
+			(long) SCM_CAR(s) >> 16,
 			result, type->tag);
     else {
       *result = (void *) SCM_CDR(s);
@@ -209,18 +224,30 @@ SWIG_Guile_GetPtr(SCM s, void **result, swig_type_info *type)
   return 1;
 }
 
+SWIGSTATIC void *
+SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
+		       int argnum, const char *func_name)
+{
+  void *result;
+  if (SWIG_Guile_GetPtr(s, &result, type)) {
+    /* type mismatch */
+    scm_wrong_type_arg((char *) func_name, argnum, s);
+  }
+  return result;
+}
+
 /* Init */
 
 static int
 print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
-  char buf[16];
-  scm_puts("#<swig ", port);
-  if (SwigPtrList[SCM_CAR(swig_smob) >> 16].prettyname != NULL)
-    scm_puts(SwigPtrList[SCM_CAR(swig_smob) >> 16].prettyname, port);
-  else scm_puts(SwigPtrList[SCM_CAR(swig_smob) >> 16].name, port);
-  sprintf(buf, " 0x%lx>", SCM_CDR(swig_smob));
-  scm_puts(buf, port);
+  scm_puts((char *) "#<swig ", port);
+  if (SwigPtrList[(long) SCM_CAR(swig_smob) >> 16].prettyname != NULL)
+    scm_puts((char*) SwigPtrList[(long) SCM_CAR(swig_smob) >> 16].prettyname, port);
+  else scm_puts((char*) SwigPtrList[(long) SCM_CAR(swig_smob) >> 16].name, port);
+  scm_puts((char *) " ", port);
+  scm_intprint((long) SCM_CDR(swig_smob), 16, port);
+  scm_puts((char *) ">", port);
   /* non-zero means success */
   return 1;
 }
@@ -238,7 +265,7 @@ SWIGSTATIC void
 SWIG_Guile_Init (void)
 {
   if (swig_tag == 0) {
-    swig_tag = scm_make_smob_type_mfpe("swig", 0, NULL, NULL,
+    swig_tag = scm_make_smob_type_mfpe((char *) "swig", 0, NULL, NULL,
 				       print_swig, equalp_swig);
   }
 }
@@ -246,11 +273,12 @@ SWIG_Guile_Init (void)
 /* Convert datatype table */
 
 SWIGSTATIC
-void SWIG_Guile_RegisterTypes(swig_type_info **table)
+void SWIG_Guile_RegisterTypes(swig_type_info **table,
+			      swig_type_info **init)
 {
-  for (; *table; table++) {
-    swig_type_info *type = *table;
-    char *origname = type->name;
+  for (; *init; table++, init++) {
+    swig_type_info *type = *table = *init;
+    const char *origname = type->name;
     /* Register datatype itself and store pointer back */
     type->tag = SWIG_RegisterType(origname, type->str);
     /* Register compatible types */
@@ -259,26 +287,30 @@ void SWIG_Guile_RegisterTypes(swig_type_info **table)
   }    
 }
 
-SWIGSTATIC void
+SWIGSTATIC int
 SWIG_Guile_GetArgs (SCM *dest, SCM rest,
 		    int reqargs, int optargs,
 		    const char *procname)
 {
   int i;
+  int num_args_passed = 0;
   for (i = 0; i<reqargs; i++) {
     if (!SCM_CONSP(rest))
-      scm_wrong_num_args(gh_str02scm(procname));
+      scm_wrong_num_args(gh_str02scm((char *) procname));
     *dest++ = SCM_CAR(rest);
     rest = SCM_CDR(rest);
+    num_args_passed++;
   }
   for (i = 0; i<optargs && SCM_CONSP(rest); i++) {
     *dest++ = SCM_CAR(rest);
     rest = SCM_CDR(rest);
+    num_args_passed++;
   }
   for (; i<optargs; i++)
     *dest++ = GH_NOT_PASSED;
   if (!SCM_NULLP(rest))
-    scm_wrong_num_args(gh_str02scm(procname));
+    scm_wrong_num_args(gh_str02scm((char *) procname));
+  return num_args_passed;
 }
 
 #ifdef __cplusplus

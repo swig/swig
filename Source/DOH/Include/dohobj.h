@@ -23,6 +23,7 @@ typedef struct {
   int     (*doh_delattr)(DOH *obj, DOH *name);               /* Del attribute */
   DOH    *(*doh_firstkey)(DOH *obj);                         /* First key     */
   DOH    *(*doh_nextkey)(DOH *obj);                          /* Next key      */
+  DOH    *(*doh_keys)(DOH *obj);                             /* All keys as a list */
 } DohHashMethods;
 
 /* List objects */
@@ -33,7 +34,6 @@ typedef struct {
   int       (*doh_insitem)(DOH *obj, int index, DOH *value); /* Insert item   */
   DOH      *(*doh_firstitem)(DOH *obj);                      /* Iterators     */
   DOH      *(*doh_nextitem)(DOH *obj);
-  void      (*doh_sort)(DOH *obj, int opt);                  /* Sort          */
 } DohListMethods;
 
 /* File methods */
@@ -93,37 +93,29 @@ typedef struct DohObjInfo {
 } DohObjInfo;
 
 typedef struct {
-  void   *data;                     /* Data pointer */
-  unsigned int type     : 4;        /* Object type (max 16 -- deal with it) */
+  void       *data;                 /* Data pointer */
+  DohObjInfo *type;             
+  void       *meta;                 /* Meta data */
   int     flag_intern   : 1;        /* Interned object */
   int     flag_marked   : 1;        /* Mark flag. Used to avoid recursive loops in places */
   int     flag_user     : 1;        /* User flag */
-  int     flag_reserved : 1;        /* Reserved flag */
-  int     refcount      : 24;       /* Reference count (max 16 million) */
+  int     flag_usermark : 1;        /* User marked */
+  int     refcount      : 28;       /* Reference count (max 16 million) */
 } DohBase;
 
 /* Macros for decrefing and increfing (safe for null objects). */
-#define Decref(a)        if (a) ((DohBase *) a)->refcount--
-#define Incref(a)        if (a) ((DohBase *) a)->refcount++
-#define Refcount(a)      ((DohBase *) a)->refcount
+#define Decref(a)         if (a) ((DohBase *) a)->refcount--
+#define Incref(a)         if (a) ((DohBase *) a)->refcount++
+#define Refcount(a)       ((DohBase *) a)->refcount
 
 /* Macros for manipulating objects in a safe manner */
-#define ObjData(a)       ((DohBase *)a)->data
-#define ObjSetMark(a,x)     ((DohBase *)a)->flag_marked = x
-#define ObjGetMark(a)    ((DohBase *)a)->flag_marked
-#define ObjType(a)       ((DohBase *)a)->type
+#define ObjData(a)        ((DohBase *)a)->data
+#define ObjSetMark(a,x)   ((DohBase *)a)->flag_marked = x
+#define ObjGetMark(a)     ((DohBase *)a)->flag_marked
+#define ObjType(a)        ((DohBase *)a)->type
 
-extern DOH     *DohObjMalloc(int type, void *data); /* Allocate a DOH object */
+extern DOH     *DohObjMalloc(DohObjInfo *type, void *data); /* Allocate a DOH object */
 extern void     DohObjFree(DOH *ptr);               /* Free a DOH object     */
-extern void     DohRegisterType(int type, DohObjInfo *objinfo);
-
-#define MAX_DOHTYPE     16
-
-#define DOHTYPE_STRING   1
-#define DOHTYPE_LIST     2
-#define DOHTYPE_HASH     3
-#define DOHTYPE_VOID     4
-#define DOHTYPE_FILE     5
 
 #endif /* DOHOBJ_H */
 

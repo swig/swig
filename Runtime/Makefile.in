@@ -8,25 +8,50 @@
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
 srcdir      = @srcdir@
+top_srcdir  = @top_srcdir@
 VPATH       = @srcdir@
 
 CC          = @CC@
 LIBTOOL     = ../Tools/libtool
-SWIGLIB     = ../Lib
-LIBS        = libswigpl.la libswigpy.la libswigtcl8.la libswigrb.la
+SWIGLIB     = $(top_srcdir)/Lib
+RELEASESUFFIX = @release_suffix@
+LIBS        = libswigpl$(RELEASESUFFIX).la libswigpy$(RELEASESUFFIX).la \
+	      libswigtcl8$(RELEASESUFFIX).la libswigrb$(RELEASESUFFIX).la \
+	      libswigguile$(RELEASESUFFIX).la libswigocaml$(RELEASESUFFIX).la
 LIB_DIR     = $(exec_prefix)/lib
 
-all:
-	@sh $(srcdir)/make.sh
+MKINSTDIRS  = $(top_srcdir)/mkinstalldirs
+INSTALL     = $(top_srcdir)/install-sh -c
 
+all:
+	-$(MAKE) perl5
+	-$(MAKE) python
+	-$(MAKE) tcl
+	-$(MAKE) ruby
+	-$(MAKE) guile
+	-$(MAKE) mzscheme
+	-$(MAKE) php4
+	-$(MAKE) ocaml
 
 install:
 	@echo "Installing runtime libraries"
+	@$(MKINSTDIRS) $(DESTDIR)$(LIB_DIR)
 	@for i in $(LIBS); \
 	do \
 	if [ -f $$i ]; then \
-	   $(LIBTOOL) install -c $$i $(LIB_DIR)/$$i; \
+	   echo $(LIBTOOL) $(INSTALL) $$i $(DESTDIR)$(LIB_DIR)/$$i; \
+	   $(LIBTOOL) $(INSTALL) $$i $(DESTDIR)$(LIB_DIR)/$$i; \
         fi; \
+	done;
+
+uninstall:
+	@echo "Uninstalling runtime libraries"
+	@for i in $(LIBS); \
+	do \
+	if [ -f $$i ]; then \
+		echo $(LIBTOOL) --mode=uninstall /bin/rm -f $(DESTDIR)$(LIB_DIR)/$$i; \
+		$(LIBTOOL) --mode=uninstall /bin/rm -f $(DESTDIR)$(LIB_DIR)/$$i; \
+	fi; \
 	done;
 
 clean::
@@ -42,65 +67,153 @@ TCL_INCLUDE = @TCLINCLUDE@
 TCL_RUNTIME = $(SWIGLIB)/tcl/swigtcl8.swg
 # Tcl 8.x
 
-tcl: libswigtcl8.la
+tcl: libswigtcl8$(RELEASESUFFIX).la
 
-libswigtcl8.la:
+libswigtcl8$(RELEASESUFFIX).la:
 	rm -f swigtcl8.c
 	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(TCL_RUNTIME) >> swigtcl8.c
 #	-cp $(srcdir)/$(TCL_RUNTIME) swigtcl8.c
 	$(LIBTOOL) $(CC) -c $(TCL_INCLUDE) -DSWIG_GLOBAL swigtcl8.c
-	$(LIBTOOL) $(CC) -o libswigtcl8.la swigtcl8.lo -rpath $(LIB_DIR) -avoid-version
+	$(LIBTOOL) $(CC) -o libswigtcl8$(RELEASESUFFIX).la swigtcl8.lo -rpath $(LIB_DIR) -avoid-version
 
 # ----------------------------------------------------------------------
 # Python run-time library
 # ----------------------------------------------------------------------
 
 PYTHON_INCLUDE = -DHAVE_CONFIG_H @PYINCLUDE@
-PYTHON_RUNTIME = $(SWIGLIB)/python/python.swg
+PYTHON_RUNTIME = $(SWIGLIB)/python/pyrun.swg
 
 # Python shared
 
-python: libswigpy.la
+python: libswigpy$(RELEASESUFFIX).la
 
-libswigpy.la:
+libswigpy$(RELEASESUFFIX).la:
 	rm -f libpy.c
-	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PYTHON_RUNTIME) >> libpy.c	
+	echo '#include "Python.h"' >> libpy.c
+	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PYTHON_RUNTIME) >> libpy.c
 #	-cp $(srcdir)/$(PYTHON_RUNTIME) libpy.c
 	$(LIBTOOL) $(CC) -c $(PYTHON_INCLUDE) -DSWIG_GLOBAL libpy.c
-	$(LIBTOOL) $(CC) -o libswigpy.la libpy.lo -rpath $(LIB_DIR) -avoid-version
+	$(LIBTOOL) $(CC) -o libswigpy$(RELEASESUFFIX).la libpy.lo -rpath $(LIB_DIR) -avoid-version
 
 # ----------------------------------------------------------------------
 # Perl run-time library
 # ----------------------------------------------------------------------
 
 PERL5_INCLUDE = -I@PERL5EXT@
-PERL5_RUNTIME = $(SWIGLIB)/perl5/perl5.swg
+PERL5_RUNTIME = $(SWIGLIB)/perl5/perlrun.swg
 
 # Perl shared
 
-perl5: libswigpl.la
+perl5: libswigpl$(RELEASESUFFIX).la
 
-libswigpl.la:
+libswigpl$(RELEASESUFFIX).la: $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNTIME)
 	@rm -f libperl.c
 #	cat $(srcdir)/perlrun.h >> libperl.c
 	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNTIME) >> libperl.c
 	$(LIBTOOL) $(CC) -c $(PERL5_INCLUDE) -DSWIG_GLOBAL -Dbool=char -Dexplicit= libperl.c
-	$(LIBTOOL) $(CC) -o libswigpl.la libperl.lo -rpath $(LIB_DIR) -avoid-version
+	$(LIBTOOL) $(CC) -o libswigpl$(RELEASESUFFIX).la libperl.lo -rpath $(LIB_DIR) -avoid-version
 
 # ----------------------------------------------------------------------
 # Ruby run-time library
 # ----------------------------------------------------------------------
 
+RUBY_CFLAGS  = @RUBYCCDLFLAGS@ -DHAVE_CONFIG_H
 RUBY_INCLUDE = @RUBYINCLUDE@
-RUBY_RUNTIME = $(SWIGLIB)/ruby/ruby.swg
+RUBY_RUNTIME = $(SWIGLIB)/ruby/rubyhead.swg
+RUBY_DLNK    = @RUBYDYNAMICLINKING@
 
 # Ruby shared
 
-ruby: libswigrb.la
+ruby: libswigrb$(RELEASESUFFIX).la
 
-libswigrb.la:
+libswigrb$(RELEASESUFFIX).la:
 	rm -f librb.c
-#	cp $(srcdir)/$(RUBY_RUNTIME) librb.c
 	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(RUBY_RUNTIME) $(SWIGLIB)/ruby/rubydef.swg >> librb.c
-	$(LIBTOOL) $(CC) -c $(RUBY_INCLUDE) -DSWIG_GLOBAL librb.c
-	$(LIBTOOL) $(CC) -o libswigrb.la librb.lo -rpath $(LIB_DIR) -avoid-version
+	$(LIBTOOL) $(CC) $(RUBY_CFLAGS) -c $(RUBY_INCLUDE) -DSWIG_GLOBAL librb.c
+	$(LIBTOOL) $(CC) -o libswigrb$(RELEASESUFFIX).la librb.lo -rpath $(LIB_DIR) $(RUBY_DLNK) -avoid-version
+
+# ----------------------------------------------------------------------
+# Guile run-time library
+# ----------------------------------------------------------------------
+
+GUILE_INCLUDE = @GUILEINCLUDE@
+GUILE_RUNTIME = $(SWIGLIB)/guile/guiledec.swg $(SWIGLIB)/guile/guile.swg
+
+# Guile shared
+
+guile: libswigguile$(RELEASESUFFIX).la
+
+libswigguile$(RELEASESUFFIX).la: $(GUILE_RUNTIME)
+	rm -f libguile.c
+	cat $(srcdir)/$(GUILE_RUNTIME) >> libguile.c
+	$(LIBTOOL) $(CC) -c $(GUILE_INCLUDE) -DSWIG_GLOBAL libguile.c
+	$(LIBTOOL) $(CC) -o libswigguile$(RELEASESUFFIX).la libguile.lo -rpath $(LIB_DIR) -avoid-version
+
+# ----------------------------------------------------------------------
+# MzScheme run-time library
+# ----------------------------------------------------------------------
+
+MZSCHEME_RUNTIME = $(SWIGLIB)/mzscheme/mzschemedec.swg $(SWIGLIB)/mzscheme/mzscheme.swg
+MZC = @MZC@
+SO = @SO@
+
+# MzScheme shared
+
+mzscheme: libswigmz$(RELEASESUFFIX).la
+
+libswigmz$(RELEASESUFFIX).la: $(MZSCHEME_RUNTIME)
+	rm -f libmz.c
+	cat $(srcdir)/$(MZSCHEME_RUNTIME) >> libmz.c
+	$(MZC) ++ccf "-DSWIG_GLOBAL" --cc libmz.c
+	if [ ! -d .libs ] ; then mkdir .libs; fi
+	$(MZC) --ld .libs/libswigmz$(RELEASESUFFIX)$(SO) libmz.o
+
+# ----------------------------------------------------------------------
+# PHP4 run-time library
+# ----------------------------------------------------------------------
+
+PHP4_INCLUDE = @PHP4INC@
+PHP4_RUNTIME = $(SWIGLIB)/php4/php4run.swg
+
+php4: libswigphp4$(RELEASESUFFIX).la
+
+libswigphp4$(RELEASESUFFIX).la: $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PHP4_RUNTIME)
+	@rm -f libphp4.c
+	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PHP4_RUNTIME) >> libphp4.c
+	$(LIBTOOL) $(CC) -c $(PHP4_INCLUDE) -DSWIG_GLOBAL libphp4.c
+	$(LIBTOOL) $(CC) -o libswigphp4$(RELEASESUFFIX).la libphp4.lo -rpath $(LIB_DIR) -avoid-version
+
+# ----------------------------------------------------------------------
+# Ocaml run-time library
+# ----------------------------------------------------------------------
+
+OCAML_CFLAGS  =
+OCAML_INCLUDE = @OCAMLINC@ -I$(SWIGLIB)/ocaml
+OCAML_RUNTIME = $(SWIGLIB)/ocaml/libswigocaml.swg
+
+# Ocaml shared
+
+ocaml: libswigocaml$(RELEASESUFFIX).la
+
+libswigocaml$(RELEASESUFFIX).la:
+	rm -f libswigocaml.c
+	cat $(srcdir)/$(OCAML_RUNTIME) >> libswigocaml.c
+	$(LIBTOOL) $(CC) $(OCAML_CFLAGS) -c $(OCAML_INCLUDE) -DSWIG_GLOBAL libswigocaml.c
+	$(LIBTOOL) $(CC) -o libswigocaml$(RELEASESUFFIX).la libswigocaml.lo -rpath $(LIB_DIR)
+
+# ----------------------------------------------------------------------
+# Pike run-time library
+# ----------------------------------------------------------------------
+
+PIKE_INCLUDE = -DHAVE_CONFIG_H @PIKEINCLUDE@
+PIKE_RUNTIME = $(SWIGLIB)/pike/pikerun.swg
+
+# Pike shared
+
+pike: libswigpike$(RELEASESUFFIX).la
+
+libswigpike$(RELEASESUFFIX).la:
+	rm -f libpike.c
+	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PIKE_RUNTIME) >> libpike.c
+	$(LIBTOOL) $(CC) -c $(PIKE_INCLUDE) -DSWIG_GLOBAL libpike.c
+	$(LIBTOOL) $(CC) -o libswigpike$(RELEASESUFFIX).la libpike.lo -rpath $(LIB_DIR) -avoid-version

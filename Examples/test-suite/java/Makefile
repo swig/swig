@@ -1,0 +1,72 @@
+#######################################################################
+# $Header$
+# Makefile for java test-suite
+#######################################################################
+
+LANGUAGE   = java
+SCRIPTSUFFIX = _runme.java
+
+C_TEST_CASES = \
+	java_lib_arrays
+
+CPP_TEST_CASES = \
+	java_constants \
+	java_jnitypes \
+	java_pragmas \
+	java_throws \
+	java_typemaps_proxy \
+	java_typemaps_typewrapper
+
+include ../common.mk
+
+# Overridden variables here
+TOP        = ../../..
+SWIGOPT    = -I$(TOP)/$(TEST_SUITE) -package $*
+#Target prefix cannot be used on Windows
+#TARGETPREFIX = lib
+
+# Rules for the different types of tests
+%.cpptest: 
+	$(setup) \
+	(cd $*; $(swig_and_compile_cpp); ); \
+	$(run_testcase)
+
+%.ctest:
+	$(setup) \
+	(cd $*; $(swig_and_compile_c); ); \
+	$(run_testcase)
+
+%.multicpptest: 
+	$(setup) \
+	(cd $*; $(swig_and_compile_multi_cpp); ); \
+	$(run_testcase)
+
+# Makes a directory for the testcase if it does not exist
+setup = \
+	@if [ -f $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then		  \
+	  echo "Checking testcase $* (with run test) under $(LANGUAGE)" ; \
+	else								  \
+	  echo "Checking testcase $* under $(LANGUAGE)" ;		  \
+	fi;								  \
+	if [ ! -d $* ]; then						  \
+		mkdir $*;						  \
+	fi;
+
+# Compiles java files then runs the testcase. A testcase is only run if
+# a file is found which has _runme.java appended after the testcase name.
+# Note Java uses LD_LIBRARY_PATH under Unix and PATH under Cygwin.
+run_testcase = \
+	(cd $*; javac *.java; ); \
+	if [ -f $*\_runme.java ]; then ( \
+	  javac $*\_runme.java; \
+	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" java $*\_runme;) \
+	fi;
+
+# Clean: remove testcase directories
+%.clean:
+	@if [ -d $* ]; then \
+		rm -rf $*; \
+	fi;
+
+clean:
+	@rm -f *.class

@@ -13,6 +13,6 @@ static::
 	SWIGOPT='$(SWIGOPT)' TARGET='myperl' INTERFACE='$(INTERFACE)' perl5_static
 
 clean::
-	rm -f *_wrap* *.o core *~ *.so *.pm myperl
+	$(MAKE) -f $(TOP)/Makefile perl5_clean
 
 check: all

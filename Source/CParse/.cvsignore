@@ -1,0 +1,9 @@
+Makefile
+.deps
+parser.c
+parser.h
+libcparse.a
+cscanner.o
+parser.o
+y.tab.c
+y.tab.h

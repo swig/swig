@@ -9,9 +9,11 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_hash_c[] = "$Header$";
 
 #include "dohint.h"
+
+extern DohObjInfo DohHashType;
 
 /* Hash node */
 typedef struct HashNode {
@@ -46,6 +48,9 @@ static DOH *find_key (DOH *doh_c) {
   char *c = (char *) doh_c;
   KeyValue *r, *s;
   int d = 0;
+  /* OK, sure, we use a binary tree for maintaining interned
+     symbols.  Then we use their hash values for accessing secondary
+     hash tables. */     
   r = root;
   s = 0;
   while (r) {
@@ -199,8 +204,10 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     int hv;
     HashNode *n, *prev;
     Hash *h = (Hash *) ObjData(ho);
-
-    if (!obj) return 0;
+    
+    if (!obj) {
+      return DohDelattr(ho,k);
+    }
     if (!DohCheck(k)) k = find_key(k);
     if (!DohCheck(obj)) {
       obj = NewString((char *) obj);
@@ -211,16 +218,15 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     prev = 0;
     while (n) {
       if (Cmp(n->key,k) == 0) {
-	HashNode *nn;
-	if (prev) {
-	  prev->next = n->next;
-	} else {
-	  h->hashtable[hv] = n->next;
+	/* Node already exists.  Just replace its contents */
+	if (n->object == obj) {
+	  /* Whoa. Same object.  Do nothing */
+	  return 1;
 	}
-	nn = n->next;
-	DelNode(n);
-	h->nitems--;
-	n = nn;
+	Delete(n->object);
+	n->object = obj;
+	Incref(obj);
+	return 1;      /* Return 1 to indicate a replacement */
       } else {
 	prev = n;
 	n = n->next;
@@ -276,10 +282,16 @@ Hash_delattr(DOH *ho, DOH *k) {
     while (n) {
 	if (Cmp(n->key, k) == 0) {
 	    /* Found it, kill it */
+
 	    if (prev) {
 		prev->next = n->next;
 	    } else {
 		h->hashtable[hv] = n->next;
+	    }
+	    /* Need to check for iterator location */
+	    if (n == h->current) {
+	      h->current = prev;                   /* Move back to previous node.  When next is called, will move to next node */
+	      if (!h->current) h->currentindex--;  /* No previous node.  Move back one slot */
 	    }
 	    DelNode(n);
 	    h->nitems--;
@@ -307,10 +319,12 @@ hash_first(DOH *ho) {
 static HashNode *
 hash_next(DOH *ho) {
     Hash *h = (Hash *) ObjData(ho);
-    if (h->currentindex < 0) return hash_first(h);
+    if (h->currentindex < 0) return hash_first(ho);
 
     /* Try to move to the next entry */
-    h->current = h->current->next;
+    if (h->current) {
+      h->current = h->current->next;
+    }
     if (h->current) {
 	return h->current;
     }
@@ -346,6 +360,26 @@ Hash_nextkey(DOH *ho) {
     HashNode *hn = hash_next(ho);
     if (hn) return hn->key;
     return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Hash_keys(DOH *)
+ *
+ * Return a list of keys
+ * ----------------------------------------------------------------------------- */
+
+static DOH *
+Hash_keys(DOH *so) {
+  DOH *keys;
+  DOH *k;
+
+  keys = NewList();
+  k = Firstkey(so);
+  while (k) {
+    Append(keys,k);
+    k = Nextkey(so);
+  }
+  return keys;
 }
 
 /* -----------------------------------------------------------------------------
@@ -398,26 +432,6 @@ Hash_len(DOH *ho) {
 }
 
 /* -----------------------------------------------------------------------------
- * Hash_keys(DOH *)
- *
- * Return a list of keys
- * ----------------------------------------------------------------------------- */
-DOH *
-Hash_keys(DOH *so) {
-  DOH *keys;
-  DOH *k;
-
-  keys = NewList();
-  k = Firstkey(so);
-  while (k) {
-    Append(keys,k);
-    k = Nextkey(so);
-  }
-  /*   List_sort(keys); */
-  return keys;
-}
-
-/* -----------------------------------------------------------------------------
  * CopyHash()
  *
  * Make a copy of a hash table.  Note: this is a shallow copy.
@@ -444,7 +458,7 @@ CopyHash(DOH *ho) {
     nh->file = h->file;
     if (nh->file) Incref(nh->file);
 
-    nho = DohObjMalloc(DOHTYPE_HASH, nh);
+    nho = DohObjMalloc(&DohHashType, nh);
     for (i = 0; i < h->hashsize; i++) {
 	if ((n = h->hashtable[i])) {
 	    while (n) {
@@ -458,7 +472,8 @@ CopyHash(DOH *ho) {
 
 
 
-void Hash_setfile(DOH *ho, DOH *file) {
+static void 
+Hash_setfile(DOH *ho, DOH *file) {
   DOH *fo;
   Hash *h = (Hash *) ObjData(ho);
 
@@ -471,17 +486,20 @@ void Hash_setfile(DOH *ho, DOH *file) {
   h->file = fo;
 }
 
-DOH *Hash_getfile(DOH *ho) {
+static DOH *
+Hash_getfile(DOH *ho) {
   Hash *h = (Hash *) ObjData(ho);
   return h->file;
 }
 
-void Hash_setline(DOH *ho, int line) {
+static void 
+Hash_setline(DOH *ho, int line) {
   Hash *h = (Hash *) ObjData(ho);
   h->line = line;
 }
 
-int Hash_getline(DOH *ho) {
+static int 
+Hash_getline(DOH *ho) {
   Hash *h = (Hash *) ObjData(ho);
   return h->line;
 }
@@ -496,9 +514,10 @@ static DohHashMethods HashHashMethods = {
   Hash_delattr,
   Hash_firstkey,
   Hash_nextkey,
+  Hash_keys,
 };
 
-static DohObjInfo HashType = {
+DohObjInfo DohHashType = {
     "Hash",          /* objname */
     DelHash,         /* doh_del */
     CopyHash,        /* doh_copy */
@@ -528,14 +547,9 @@ static DohObjInfo HashType = {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-NewHash() {
+DohNewHash() {
     Hash *h;
     int   i;
-    static int init = 0;
-    if (!init) {
-      DohRegisterType(DOHTYPE_HASH, &HashType);
-      init = 1;
-    }
     h = (Hash *) DohMalloc(sizeof(Hash));
     h->hashsize = HASH_INIT_SIZE;
     h->hashtable = (HashNode **) DohMalloc(h->hashsize*sizeof(HashNode *));
@@ -547,6 +561,5 @@ NewHash() {
     h->nitems = 0;
     h->file = 0;
     h->line = 0;
-    return DohObjMalloc(DOHTYPE_HASH,h);
+    return DohObjMalloc(&DohHashType,h);
 }
-

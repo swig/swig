@@ -1,8 +1,0 @@
-Example of a typemap to handle return values in char * arguments.
-
-type:
-make
-javac *.java
-export LD_LIBRARY_PATH=. # sh
-setenv LD_LIBRARY_PATH . # csh
-java main

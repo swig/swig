@@ -10,7 +10,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_void_c[] = "$Header$";
 
 #include "dohint.h"
 
@@ -88,15 +88,10 @@ static DohObjInfo DohVoidType = {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-NewVoid(void *obj, void (*del)(void *)) {
-  static int init = 0;
+DohNewVoid(void *obj, void (*del)(void *)) {
   VoidObj *v;
-  if (!init) {
-    DohRegisterType(DOHTYPE_VOID, &DohVoidType);
-    init = 1;
-  }
   v = (VoidObj *) DohMalloc(sizeof(VoidObj));
   v->ptr = obj;
   v->del = del;
-  return DohObjMalloc(DOHTYPE_VOID,v);
+  return DohObjMalloc(&DohVoidType,v);
 }

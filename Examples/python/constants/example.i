@@ -19,19 +19,9 @@
 /* Neither should this (BAR isn't defined) */
 #define    FOO         (ICONST + BAR)
 
-/* The following statements also produce constants */
-const int     iconst = 37;
-const double  fconst = 3.14;
+/* The following directives also produce constants */
 
-%constant(double) PI = 3.14159;
-
-/* Test address of operator */
-
-%{
-static double  blah = 1.2345;
-%}
-
-%constant(double *) blahptr = &blah;
-
+%constant int iconst = 37;
+%constant double fconst = 3.14;
 
 

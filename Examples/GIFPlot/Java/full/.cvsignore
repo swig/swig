@@ -1,0 +1,7 @@
+*.class
+*.java
+*_wrap.c
+*_wrap.cxx
+*.so
+*.dll
+*.gif

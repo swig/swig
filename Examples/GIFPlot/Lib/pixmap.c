@@ -99,10 +99,10 @@ FrameBuffer_drawpixmap(FrameBuffer *f, PixMap *pm, int x, int y, int fgcolor, in
     for (i = startx; i < endx; i++) {
       c = pm->map[py*pm->width + px];
       switch (c) {
-      case FOREGROUND:
+      case GIFPLOT_FOREGROUND:
 	f->pixels[j][i] = fgcolor;
 	break;
-      case BACKGROUND:
+      case GIFPLOT_BACKGROUND:
 	f->pixels[j][i] = bgcolor;
 	break;
       default:

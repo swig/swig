@@ -9,7 +9,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_naming_c[] = "$Header$";
 
 #include "swig.h"
 #include <ctype.h>
@@ -25,9 +25,97 @@ static Hash *naming_hash = 0;
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_name_register(String_or_char *method, String_or_char *format) {
+Swig_name_register(const String_or_char *method, const String_or_char *format) {
   if (!naming_hash) naming_hash = NewHash();
   Setattr(naming_hash,method,format);
+}
+
+void
+Swig_name_unregister(const String_or_char *method) {
+  if (naming_hash) {
+    Delattr(naming_hash,method);
+  }
+}
+
+static int name_mangle(String *r) {
+  char  *c;
+  int    special;
+  special = 0;
+  Replaceall(r,"::","_");
+  c = Char(r);
+  while (*c) {
+    if (!isalnum(*c) && (*c != '_')) {
+      special = 1;
+      switch(*c) {
+      case '+':
+	*c = 'a';
+	break;
+      case '-':
+	*c = 's';
+	break;
+      case '*':
+	*c = 'm';
+	break;
+      case '/':
+	*c = 'd';
+	break;
+      case '<':
+	*c = 'l';
+	break;
+      case '>':
+	*c = 'g';
+	break;
+      case '=':
+	*c = 'e';
+	break;
+      case ',':
+	*c = 'c';
+	break;
+      case '(':
+	*c = 'p';
+	break;
+      case ')':
+	*c = 'P';
+	break;
+      case '[':
+	*c = 'b';
+	break;
+      case ']':
+	*c = 'B';
+	break;
+      case '^':
+	*c = 'x';
+	break;
+      case '&':
+	*c = 'A';
+	break;
+      case '|':
+	*c = 'o';
+	break;
+      case '~':
+	*c = 'n';
+	break;
+      case '!':
+	*c = 'N';
+	break;
+      case '%':
+	*c = 'M';
+	break;
+      case '.':
+	*c = 'f';
+	break;
+      case '?':
+	*c = 'q';
+	break;
+      default:
+	*c = '_';
+	break;
+      }
+    }
+    c++;
+  }
+  if (special) Append(r,"___");
+  return special;
 }
 
 /* -----------------------------------------------------------------------------
@@ -37,16 +125,10 @@ Swig_name_register(String_or_char *method, String_or_char *format) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_name_mangle(String_or_char *s) {
-  String *r = NewString("");
-  char  *c;
-  Append(r,s);
-  c = Char(r);
-  while (*c) {
-    if (!isalnum(*c)) *c = '_';
-    c++;
-  }
-  return Swig_temp_result(r);
+Swig_name_mangle(const String_or_char *s) {
+  String *r = NewString(s);
+  name_mangle(r);
+  return r;
 }
 
 /* -----------------------------------------------------------------------------
@@ -56,7 +138,7 @@ Swig_name_mangle(String_or_char *s) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_name_wrapper(String_or_char *fname) {
+Swig_name_wrapper(const String_or_char *fname) {
   String *r;
   String *f;
 
@@ -69,8 +151,8 @@ Swig_name_wrapper(String_or_char *fname) {
     Append(r,f);
   }
   Replace(r,"%f",fname, DOH_REPLACE_ANY);
-  Replace(r,":","_", DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  name_mangle(r);
+  return r;
 }
 
 
@@ -81,11 +163,13 @@ Swig_name_wrapper(String_or_char *fname) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_name_member(String_or_char *classname, String_or_char *mname) {
+Swig_name_member(const String_or_char *classname, const String_or_char *mname) {
   String *r;
   String *f;
-  char   *cname, *c;
+  String *rclassname;
+  char   *cname;
 
+  rclassname = SwigType_namestr(classname);
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"member");
@@ -94,12 +178,17 @@ Swig_name_member(String_or_char *classname, String_or_char *mname) {
   } else {
     Append(r,f);
   }
-  cname = Char(classname);
-  c = strchr(cname, ' ');
-  if (c) cname = c+1;
+  cname = Char(rclassname);
+  if ((strncmp(cname,"struct ", 7) == 0) ||
+      ((strncmp(cname,"class ", 6) == 0)) ||
+      ((strncmp(cname,"union ", 6) == 0))) {
+    cname = strchr(cname, ' ')+1;
+  }
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
   Replace(r,"%m",mname, DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  /*  name_mangle(r);*/
+  Delete(rclassname);
+  return r;
 }
 
 /* -----------------------------------------------------------------------------
@@ -109,7 +198,7 @@ Swig_name_member(String_or_char *classname, String_or_char *mname) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_name_get(String_or_char *vname) {
+Swig_name_get(const String_or_char *vname) {
   String *r;
   String *f;
 
@@ -122,7 +211,8 @@ Swig_name_get(String_or_char *vname) {
     Append(r,f);
   }
   Replace(r,"%v",vname, DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  Replace(r,"::","_", DOH_REPLACE_ANY);
+  return r;
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -132,7 +222,7 @@ Swig_name_get(String_or_char *vname) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_name_set(String_or_char *vname) {
+Swig_name_set(const String_or_char *vname) {
   String *r;
   String *f;
 
@@ -145,7 +235,8 @@ Swig_name_set(String_or_char *vname) {
     Append(r,f);
   }
   Replace(r,"%v",vname, DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  Replace(r,"::","_", DOH_REPLACE_ANY);
+  return r;
 }
 
 /* -----------------------------------------------------------------------------
@@ -155,10 +246,13 @@ Swig_name_set(String_or_char *vname) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_name_construct(String_or_char *classname) {
+Swig_name_construct(const String_or_char *classname) {
   String *r;
   String *f;
-  char *cname, *c;
+  String *rclassname;
+  char *cname;
+
+  rclassname = SwigType_namestr(classname);
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"construct");
@@ -168,14 +262,52 @@ Swig_name_construct(String_or_char *classname) {
     Append(r,f);
   }
 
-  cname = Char(classname);
-  c = strchr(cname, ' ');
-  if (c) cname = c+1;
+  cname = Char(rclassname);
+  if ((strncmp(cname,"struct ", 7) == 0) ||
+      ((strncmp(cname,"class ", 6) == 0)) ||
+      ((strncmp(cname,"union ", 6) == 0))) {
+    cname = strchr(cname, ' ')+1;
+  }
+  Replace(r,"%c",cname, DOH_REPLACE_ANY);
+  Delete(rclassname);
+  return r;
+}
+
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_copyconstructor()
+ *
+ * Returns the name of the accessor function used to copy an object.
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_name_copyconstructor(const String_or_char *classname) {
+  String *r;
+  String *f;
+  String *rclassname;
+  char *cname;
+
+  rclassname = SwigType_namestr(classname);
+  r = NewString("");
+  if (!naming_hash) naming_hash = NewHash();
+  f = Getattr(naming_hash,"construct");
+  if (!f) {
+    Append(r,"copy_%c");
+  } else {
+    Append(r,f);
+  }
+
+  cname = Char(rclassname);
+  if ((strncmp(cname,"struct ", 7) == 0) ||
+      ((strncmp(cname,"class ", 6) == 0)) ||
+      ((strncmp(cname,"union ", 6) == 0))) {
+    cname = strchr(cname, ' ')+1;
+  }
 
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  Delete(rclassname);
+  return r;
 }
-  
 
 /* -----------------------------------------------------------------------------
  * Swig_name_destroy()
@@ -183,10 +315,12 @@ Swig_name_construct(String_or_char *classname) {
  * Returns the name of the accessor function used to destroy an object.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_destroy(String_or_char *classname) {
+String *Swig_name_destroy(const String_or_char *classname) {
   String *r;
   String *f;
-  char *cname, *c;
+  String *rclassname;
+  char *cname;
+  rclassname = SwigType_namestr(classname);
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"destroy");
@@ -196,13 +330,296 @@ String *Swig_name_destroy(String_or_char *classname) {
     Append(r,f);
   }
 
-  cname = Char(classname);
-  c = strchr(cname, ' ');
-  if (c) cname = c+1;
-
+  cname = Char(rclassname);
+  if ((strncmp(cname,"struct ", 7) == 0) ||
+      ((strncmp(cname,"class ", 6) == 0)) ||
+      ((strncmp(cname,"union ", 6) == 0))) {
+    cname = strchr(cname, ' ')+1;
+  }
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
-  return Swig_temp_result(r);
+  Delete(rclassname);
+  return r;
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_object_set()
+ *
+ * Sets an object associated with a name and optional declarators. 
+ * ----------------------------------------------------------------------------- */
+
+void 
+Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object) {
+  DOH *n;
+
+  /*  Printf(stdout,"name:  '%s', '%s'\n", name, decl);*/
+  n = Getattr(namehash,name);
+  if (!n) {
+    n = NewHash();
+    Setattr(namehash,name,n);
+  }
+  /* Add an object based on the declarator value */
+  if (!decl) {
+    Setattr(n,NewString("*"),object);
+  } else {
+    Setattr(n,Copy(decl),object);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_object_get()
+ *
+ * Return an object associated with an optional class prefix, name, and 
+ * declarator.   This function operates according to name matching rules
+ * described for the %rename directive in the SWIG manual.
+ * ----------------------------------------------------------------------------- */
+
+static DOH *get_object(Hash *n, String *decl) {
+  DOH *rn = 0;
+  if (!n) return 0;
+  if (decl) {
+    rn = Getattr(n,decl);
+  } else {
+    rn = Getattr(n,"*");
+  }
+  return rn;
+}
+
+DOH *
+Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *decl) {
+  String *tname;
+  DOH    *rn = 0;
+  Hash   *n;
+  char   *ncdecl = 0;
+
+  if (!namehash) return 0;
+
+  /* DB: This removed to more tightly control feature/name matching */
+  /*  if ((decl) && (SwigType_isqualifier(decl))) {
+    ncdecl = strchr(Char(decl),'.');
+    ncdecl++;
+  }
+  */
+
+  /* Perform a class-based lookup (if class prefix supplied) */
+  if (prefix) {
+    if (Len(prefix)) {
+      tname = NewStringf("%s::%s",prefix,name);
+      n = Getattr(namehash,tname);
+      rn = get_object(n,decl);
+      if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
+      if (!rn) rn = get_object(n,0);
+      Delete(tname);
+    }
+    /* A wildcard-based class lookup */
+    if (!rn) {
+      tname = NewStringf("*::%s",name);
+      n = Getattr(namehash,tname);
+      rn = get_object(n,decl);
+      if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
+      if (!rn) rn = get_object(n,0);
+      Delete(tname);
+    }
+  } else {
+    /* Lookup in the global namespace only */
+    tname = NewStringf("::%s",name);
+    n = Getattr(namehash,tname);
+    rn = get_object(n,decl);
+    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
+    if (!rn) rn = get_object(n,0);
+    Delete(tname);
+  }
+  /* Catch-all */
+  if (!rn) {
+    n = Getattr(namehash,name);
+    rn = get_object(n,decl);
+    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
+    if (!rn) rn = get_object(n,0);
+  }
+  return rn;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_object_inherit()
+ *
+ * Implements name-based inheritance scheme. 
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
+  String *key;
+  String *bprefix;
+  String *dprefix;
+  char *cbprefix;
+  int   plen;
+
+  if (!namehash) return;
+  
+  bprefix = NewStringf("%s::",base);
+  dprefix = NewStringf("%s::",derived);
+  cbprefix = Char(bprefix);
+  plen = strlen(cbprefix);
+  for (key = Firstkey(namehash); key; key = Nextkey(namehash)) {
+    char *k = Char(key);
+    if (strncmp(k,cbprefix,plen) == 0) {
+      Hash *n, *newh;
+      String *nkey, *okey;
+      
+      nkey = NewStringf("%s%s",dprefix,k+plen);
+      n = Getattr(namehash,key);
+      newh = Getattr(namehash,nkey);
+      if (!newh) {
+	newh = NewHash();
+	Setattr(namehash,nkey,newh);
+      }
+      for (okey = Firstkey(n); okey; okey = Nextkey(n)) {
+	String *ovalue = Getattr(n,okey);
+	if (!Getattr(newh,okey)) {
+	  Setattr(newh,okey,Copy(ovalue));
+	}
+      }
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_features_get()
+ *
+ * Given a node, this function merges features.
+ * ----------------------------------------------------------------------------- */
+
+static void merge_features(Hash *features, Node *n) {
+  String *key;
+  if (!features) return;
+  for (key = Firstkey(features); key; key = Nextkey(features)) {
+    if (Getattr(n,key)) {
+      continue;
+    }
+    Setattr(n,key,Copy(Getattr(features,key)));
+  }
+}
+
+void
+Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *node) {
+  String *tname;
+  DOH    *rn = 0;
+  Hash   *n;
+  char   *ncdecl = 0;
+  
+  if (!features) return;
+
+  if ((decl) && (SwigType_isqualifier(decl))) {
+    ncdecl = strchr(Char(decl),'.');
+    ncdecl++;
+  }
+
+  if (name) {
+    /* Perform a class-based lookup (if class prefix supplied) */
+    if (prefix) {
+      if (Len(prefix)) {
+	tname = NewStringf("%s::%s",prefix,name);
+	n = Getattr(features,tname);
+	rn = get_object(n,decl);
+	merge_features(rn,node);
+	if (ncdecl) {
+	  rn = get_object(n,ncdecl);
+	  merge_features(rn,node);
+	}
+	rn = get_object(n,0);
+	merge_features(rn,node);
+	Delete(tname);
+      }
+      /* A wildcard-based class lookup */
+      tname = NewStringf("*::%s",name);
+      n = Getattr(features,tname);
+      rn = get_object(n,decl);
+      merge_features(rn,node);
+      if (ncdecl) {
+	rn = get_object(n,ncdecl);
+	merge_features(rn,node);
+      }
+      rn = get_object(n,0);
+      merge_features(rn,node);
+      Delete(tname);
+      
+      /* A class-generic feature */
+      if (Len(prefix)) {
+	tname = NewStringf("%s::",prefix);
+	n = Getattr(features,tname);
+	rn = get_object(n,0);
+	merge_features(rn,node);
+	Delete(tname);
+      }
+      
+    } else {
+      /* Lookup in the global namespace only */
+      tname = NewStringf("::%s",name);
+      n = Getattr(features,tname);
+      rn = get_object(n,decl);
+      merge_features(rn,node);
+      if (ncdecl) {
+	rn = get_object(n,ncdecl);
+	merge_features(rn,node);
+      }
+      rn = get_object(n,0);
+      merge_features(rn,node);
+      Delete(tname);
+    }
+    /* Catch-all */
+    n = Getattr(features,name);
+    rn = get_object(n,decl);
+    merge_features(rn,node);
+    if (ncdecl) {
+      rn = get_object(n,ncdecl);
+      merge_features(rn,node);
+    }
+    rn = get_object(n,0);
+    merge_features(rn,node);
+  }
+  /* Global features */
+  n = Getattr(features,"");
+  rn = get_object(n,0);
+  merge_features(rn,node);
+
+}
+
+
+/* -----------------------------------------------------------------------------
+ * Swig_feature_set()
+ *
+ * Sets a feature name and value.
+ * ----------------------------------------------------------------------------- */
+
+void 
+Swig_feature_set(Hash *features, String *name, SwigType *decl, String *featurename, DOH *value) {
+  Hash *n;
+  Hash *fhash;
+  /*  Printf(stdout,"feature: %s %s %s %s\n", name, decl, featurename, value);*/
+
+  n = Getattr(features,name);
+  if (!n) {
+    n = NewHash();
+    Setattr(features,name,n);
+  }
+  if (!decl) {
+    fhash = Getattr(n,"*");
+    if (!fhash) {
+      fhash = NewHash();
+      Setattr(n,"*",fhash);
+    }
+  } else {
+    fhash = Getattr(n,decl);
+    if (!fhash) {
+      fhash = NewHash();
+      Setattr(n,Copy(decl),fhash);
+    }
+  }
+  if (value) {
+    Setattr(fhash,featurename,value);
+  } else {
+    Delattr(fhash,featurename);
+  }
+}
+
 
 
 

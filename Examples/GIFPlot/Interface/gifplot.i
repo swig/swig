@@ -11,8 +11,6 @@
 typedef unsigned char Pixel;
 typedef float Zvalue;
 
-%disabledoc
-
 /* ------------------------------------------------------------------------
    ColorMap
 
@@ -23,14 +21,14 @@ typedef struct ColorMap {
   char          *name;
 
 //
-// %addmethods adds some C methods to this structure to make it
+// %extend adds some C methods to this structure to make it
 // look like a C++ class in Python.
 // These are really named things like ColorMap_default, ColorMap_assign, etc...
 
-  %addmethods {
+  %extend {
     ColorMap(char *filename);
     ~ColorMap();
-#ifdef SWIGJAVA
+#if defined(SWIGJAVA ) || defined(SWIGPHP4)
     %name(make_default) void        default();
 #else
     void        default();
@@ -44,16 +42,6 @@ typedef struct ColorMap {
 
 /* Some default colors */
 
-#ifdef SWIGJAVA
-const Pixel BLACK   = 0;
-const Pixel WHITE   = 1;
-const Pixel RED     = 2;
-const Pixel GREEN   = 3;
-const Pixel BLUE    = 4;
-const Pixel YELLOW  = 5;
-const Pixel CYAN    = 6;
-const Pixel MAGENTA = 7;
-#else
 #define BLACK   0
 #define WHITE   1
 #define RED     2
@@ -62,7 +50,6 @@ const Pixel MAGENTA = 7;
 #define YELLOW  5
 #define CYAN    6
 #define MAGENTA 7
-#endif
 
 /*-------------------------------------------------------------------------
   FrameBuffer
@@ -77,7 +64,7 @@ typedef struct FrameBuffer {
   int             ymin;
   int             xmax;
   int             ymax;
-  %addmethods {
+  %extend {
     FrameBuffer(unsigned int width, unsigned int height);
     ~FrameBuffer();
     void resize(int width, int height);
@@ -119,9 +106,9 @@ extern PixMap   *new_PixMap(int width, int height, int centerx, int centery);
 extern void      delete_PixMap(PixMap *pm);
 extern void      PixMap_set(PixMap *pm, int x, int y, int pix);
 
-#define   TRANSPARENT  0
-#define   FOREGROUND   1
-#define   BACKGROUND   2
+#define   GIFPLOT_TRANSPARENT  0
+#define   GIFPLOT_FOREGROUND   1
+#define   GIFPLOT_BACKGROUND   2
 
 /* --------------------------------------------------------------------------
    Plot2D
@@ -141,7 +128,7 @@ typedef struct Plot2D {
   double          ymax;
   int             xscale;       /* Type of scaling (LINEAR, LOG, etc..) */
   int             yscale;       
-  %addmethods {
+  %extend {
        Plot2D(FrameBuffer *frame,double xmin,double ymin,  double xmax, double ymax);
        ~Plot2D();
        Plot2D  *copy();
@@ -203,7 +190,7 @@ typedef struct Plot3D {
   double         lookatz;    /* Where is the z-lookat point */
   double         xshift;     /* Used for translation and stuff */
   double         yshift;
-  %addmethods {
+  %extend {
     Plot3D(FrameBuffer *frame, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax);
     ~Plot3D();
     Plot3D *copy();
@@ -264,12 +251,10 @@ typedef struct Plot3D {
 /* These directives create constants of a specific type.  They
    do not correspond to any C variable or declared constant in the
    header file */
-%constant(PixMap *) SQUARE = &PixMap_SQUARE;
-%constant(PixMap *) TRIANGLE = &PixMap_TRIANGLE;
-%constant(PixMap *) CROSS = &PixMap_CROSS;
+%constant PixMap * SQUARE = &PixMap_SQUARE;
+%constant PixMap * TRIANGLE = &PixMap_TRIANGLE;
+%constant PixMap * CROSS = &PixMap_CROSS;
 #endif
-
-%enabledoc
 
 
 

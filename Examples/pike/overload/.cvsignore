@@ -1,0 +1,4 @@
+example.o
+example.so
+example_wrap.cxx
+example_wrap.o

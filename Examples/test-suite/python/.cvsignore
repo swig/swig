@@ -1,0 +1,5 @@
+*wrap*
+*.py
+*.pyc
+*.so
+*.dll

@@ -1,27 +1,38 @@
 # Makefile for Guile.  Used by all of the example programs.
 
-subdirs		= simple matrix
+subdirs		= simple matrix port constants multimap multivalue
 
 top_srcdir	= @top_srcdir@
-
+SWIG		= ../$(top_srcdir)/swig@release_suffix@
+CC		= @CC@
+CXX		= @CXX@
+CFLAGS		= @CFLAGS@
 GUILEINCLUDE	= @GUILEINCLUDE@
 GUILELINK	= @GUILELINK@
+SWIGOPT		= 
 
 WRAP		= $(IFILE:.i=_wrap.c)
+CXXWRAP		= $(IFILE:.i=_wrap.cxx)
 
 all:
 	for d in $(subdirs) ; do (cd $$d ; $(MAKE)) ; done
 
 clean::
-	cd simple; make clean
-	cd matrix; make clean
+	for d in $(subdirs) ; do (cd $$d ; $(MAKE) clean) ; done
 	rm -f *~ .~*
+
+guile_clean:
+	rm -f *.@OBJEXT@ *$(SO) *_wrap* *~ .~* core my-guile $(TARGET)
 
 # This is meant to be used w/ "make -f ../Makefile" from subdirs.
 # Doesn't make sense to use it from here.
 
 sub-all::
-	../$(top_srcdir)/swig -guile $(IFILE)
-	$(CC) -o $(TARGET) $(SRCS) $(WRAP) $(GUILEINCLUDE) $(GUILELINK)
+	$(SWIG) -guile $(SWIGOPT) $(IFILE)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS) $(WRAP) $(GUILEINCLUDE) $(GUILELINK)
+
+sub-all-cxx::
+	$(SWIG) -c++ -guile $(SWIGOPT) $(IFILE)
+	$(CXX) $(CFLAGS) -o $(TARGET) $(SRCS) $(CXXWRAP) $(GUILEINCLUDE) $(GUILELINK)
 
 # Makefile ends here

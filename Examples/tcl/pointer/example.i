@@ -6,7 +6,9 @@
 
 /* First we'll use the pointer library */
 extern void add(int *x, int *y, int *result);
-%include pointer.i
+
+%include cpointer.i
+%pointer_functions(int, intp);
 
 /* Next we'll use some typemaps */
 

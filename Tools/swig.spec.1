@@ -1,0 +1,42 @@
+%define version 1.3.7
+%define release	1
+
+# Preamble
+Summary: Simplified Wrapper and Interface Generator
+Name: swig
+Version: %{version}
+Release: %{release}
+Copyright: BSD
+URL: http://www.swig.org
+Group: System Environment/Daemons
+Source0: http://download.sourceforge.net/swig/swig-%{version}.tar.gz
+Packager: Dustin Mitchell <dustin@cs.uchicago.edu>
+BuildRoot: /var/tmp/rpm/swig-root
+Prefix: /usr
+
+%description
+SWIG is an interface compiler that connects programs written in C,
+C++, and Objective-C with scripting languages including Perl, Python,
+and Tcl/Tk. It works by taking the declarations commonly found in
+C/C++ header files and using them to generate the glue code (wrappers)
+that scripting languages need to access the underlying C/C++ code
+
+# PREP
+%prep
+%setup -n SWIG-%{version}
+
+# BUILD
+%build
+./configure --prefix=%prefix
+make
+
+# INSTALL
+%install
+rm -rf ${RPM_BUILD_ROOT}
+install -d -m 755 ${RPM_BUILD_ROOT}
+make prefix=${RPM_BUILD_ROOT}%prefix install
+
+# FILES
+%files
+%prefix/lib/*
+%prefix/bin/swig

@@ -35,7 +35,7 @@ CC            = @CC@
 CXX           = @CXX@
 OBJC          = @CC@ -Wno-import # -Wno-import needed for gcc 
 CFLAGS        = 
-INCLUDE       =
+INCLUDES      =
 LIBS          =
 
 # SWIG Options
@@ -102,13 +102,13 @@ BUILD_LIBS    = $(LIBS) # Dynamic loading
 .SUFFIXES: .c .cxx .m
 
 .c.o:
-	$(CC) $(CCSHARED) $(CFLAGS) $(INCLUDE) -c $<
+	$(CC) $(CCSHARED) $(CFLAGS) $(INCLUDES) -c $<
 
 .cxx.o:
-	$(CXX) $(CCSHARED) $(CXXFLAGS) $(INCLUDE) -c $<
+	$(CXX) $(CCSHARED) $(CXXFLAGS) $(INCLUDES) -c $<
 
 .m.o:
-	$(OBJC) $(CCSHARED) $(CFLAGS) $(INCLUDE) -c $<
+	$(OBJC) $(CCSHARED) $(CFLAGS) $(INCLUDES) -c $<
 
 
 # ----------------------------------------------------------------------
@@ -120,7 +120,7 @@ all: $(TARGET)
 # Convert the wrapper file into an object file
 
 $(WRAPOBJ) : $(WRAPFILE)
-	$(SWIGCC) -c $(CCSHARED) $(CFLAGS) $(WRAPFILE) $(INCLUDE) $(PY_INCLUDE) 
+	$(SWIGCC) -c $(CCSHARED) $(CFLAGS) $(WRAPFILE) $(INCLUDES) $(PY_INCLUDE) 
 
 $(WRAPFILE) : $(INTERFACE)
 	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIB) $(INTERFACE)

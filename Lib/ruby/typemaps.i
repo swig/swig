@@ -9,19 +9,13 @@
 // Masaki Fukushima
 //
 
-#ifdef AUTODOC
-%section "Typemap Library (Ruby)",info,after,pre,nosort,skip=1,chop_left=3,chop_right=0,chop_top=0,chop_bottom=0
-%text %{
-%include typemaps.i
-
+/*
 The SWIG typemap library provides a language independent mechanism for
 supporting output arguments, input values, and other C function
 calling mechanisms.  The primary use of the library is to provide a
 better interface to certain C function--especially those involving
 pointers.
-%}
-
-#endif
+*/
 
 // ------------------------------------------------------------------------
 // Pointer handling
@@ -34,11 +28,7 @@ pointers.
 // These remap a C pointer to be an "INPUT" value which is passed by value
 // instead of reference.
 
-
-#ifdef AUTODOC
-%subsection "Input Methods"
-
-%text %{
+/*
 The following methods can be applied to turn a pointer into a simple
 "input" value.  That is, instead of passing a pointer to an object,
 you would use a real value instead.
@@ -50,6 +40,7 @@ you would use a real value instead.
          unsigned short *INPUT
          unsigned long  *INPUT
          unsigned char  *INPUT
+	 bool           *INPUT
          float          *INPUT
          double         *INPUT
          
@@ -70,73 +61,37 @@ or you can use the %apply directive :
         %apply double *INPUT { double *a, double *b };
         double fadd(double *a, double *b);
 
-%}
-#endif
+*/
 
-%typemap(ruby,in) double *INPUT(double temp)
+%define INPUT_TYPEMAP(type, converter)
+%typemap(in) type *INPUT(type temp), type &INPUT(type temp)
 {
-  temp = NUM2DBL($source);
-  $target = &temp;
+    temp = (type) converter($input);
+    $1 = &temp;
 }
+%typemap(typecheck) type *INPUT = type;
+%typemap(typecheck) type &INPUT = type;
+%enddef
 
-%typemap(ruby,in) float  *INPUT(float temp)
-{
-  temp = (float) NUM2DBL($source);
-  $target = &temp;
-}
+INPUT_TYPEMAP(float, NUM2DBL);
+INPUT_TYPEMAP(double, NUM2DBL);
+INPUT_TYPEMAP(int, NUM2INT);
+INPUT_TYPEMAP(short, NUM2SHRT);
+INPUT_TYPEMAP(long, NUM2LONG);
+INPUT_TYPEMAP(unsigned int, NUM2UINT);
+INPUT_TYPEMAP(unsigned short, NUM2USHRT);
+INPUT_TYPEMAP(unsigned long, NUM2ULONG);
+INPUT_TYPEMAP(unsigned char, NUM2UINT);
+INPUT_TYPEMAP(signed char, NUM2INT);
+INPUT_TYPEMAP(bool, RTEST);
 
-%typemap(ruby,in) int            *INPUT(int temp)
-{
-  temp = NUM2INT($source);
-  $target = &temp;
-}
+#undef INPUT_TYPEMAP
 
-%typemap(ruby,in) short          *INPUT(short temp)
-{
-  temp = NUM2SHRT($source);
-  $target = &temp;
-}
-
-%typemap(ruby,in) long           *INPUT(long temp)
-{
-  temp = NUM2LONG($source);
-  $target = &temp;
-}
-%typemap(ruby,in) unsigned int   *INPUT(unsigned int temp)
-{
-  temp = NUM2UINT($source);
-  $target = &temp;
-}
-%typemap(ruby,in) unsigned short *INPUT(unsigned short temp)
-{
-  temp = NUM2USHRT($source);
-  $target = &temp;
-}
-%typemap(ruby,in) unsigned long  *INPUT(unsigned long temp)
-{
-  temp = NUM2ULONG($source);
-  $target = &temp;
-}
-%typemap(ruby,in) unsigned char  *INPUT(unsigned char temp)
-{
-  temp = (unsigned char)NUM2UINT($source);
-  $target = &temp;
-}
-
-%typemap(ruby,in) signed char  *INPUT(signed char temp)
-{
-  temp = (signed char)NUM2INT($source);
-  $target = &temp;
-}
-                 
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as
 // a array element.
 
-#ifdef AUTODOC
-%subsection "Output Methods"
-
-%text %{
+/*
 The following methods can be applied to turn a pointer into an "output"
 value.  When calling a function, no input value would be given for
 a parameter, but an output value would be returned.  In the case of
@@ -149,6 +104,7 @@ multiple output values, they are returned in the form of a Ruby Array.
          unsigned short *OUTPUT
          unsigned long  *OUTPUT
          unsigned char  *OUTPUT
+	 bool           *OUTPUT
          float          *OUTPUT
          double         *OUTPUT
          
@@ -171,74 +127,42 @@ or you can use the %apply directive :
 
 The Ruby output of the function would be a Array containing both
 output values. 
-%}
-#endif
+*/
 
-// Helper function for Array output
-
-%{
-static VALUE output_helper(VALUE target, VALUE o) {
-    if (NIL_P(target)) {
-	target = o;
-    } else {
-	if (TYPE(target) != T_ARRAY) {
-	    VALUE o2 = target;
-	    target = rb_ary_new();
-	    rb_ary_push(target, o2);
-	}
-	rb_ary_push(target, o);
-    }
-    return target;
+%include "fragments.i"
+		
+%define OUTPUT_TYPEMAP(type, converter, convtype)
+%typemap(in,numinputs=0) type *OUTPUT(type temp), type &OUTPUT(type temp) "$1 = &temp;";
+%typemap(argout, fragment="output_helper") type *OUTPUT, type &OUTPUT {
+   VALUE o = converter(convtype (*$1));
+   $result = output_helper($result, o);
 }
-%}
+%enddef
 
-// Force the argument to be ignored.
+OUTPUT_TYPEMAP(int, INT2NUM, (int));
+OUTPUT_TYPEMAP(short, INT2NUM, (int));
+OUTPUT_TYPEMAP(long, INT2NUM, (int));
+OUTPUT_TYPEMAP(unsigned int, UINT2NUM, (unsigned int));
+OUTPUT_TYPEMAP(unsigned short, UINT2NUM, (unsigned int));
+OUTPUT_TYPEMAP(unsigned long, UINT2NUM, (unsigned int));
+OUTPUT_TYPEMAP(unsigned char, UINT2NUM, (unsigned int));
+OUTPUT_TYPEMAP(signed char, INT2NUM, (int));
+OUTPUT_TYPEMAP(float, rb_float_new, (double));
+OUTPUT_TYPEMAP(double, rb_float_new, (double));
 
-%typemap(ruby,ignore) int            *OUTPUT(int temp),
-                      short          *OUTPUT(short temp),
-                      long           *OUTPUT(long temp),
-                      unsigned int   *OUTPUT(unsigned int temp),
-                      unsigned short *OUTPUT(unsigned short temp),
-                      unsigned long  *OUTPUT(unsigned long temp),
-                      unsigned char  *OUTPUT(unsigned char temp),
-                      signed char    *OUTPUT(signed char temp),  
-                      float          *OUTPUT(float temp),
-                      double         *OUTPUT(double temp)
-{
-    $target = &temp;
-}
+#undef OUTPUT_TYPEMAP
 
-%typemap(ruby,argout) int            *OUTPUT,
-                      short          *OUTPUT,
-                      long           *OUTPUT,
-                      signed char    *OUTPUT
-{
-    $target = output_helper($target, INT2NUM(*$source));
-}
-
-%typemap(ruby,argout) unsigned int   *OUTPUT,
-                      unsigned short *OUTPUT,
-                      unsigned long  *OUTPUT,
-                      unsigned char  *OUTPUT
-{
-    $target = output_helper($target, UINT2NUM(*$source));
-}
-
-%typemap(ruby,argout) float    *OUTPUT,
-                      double   *OUTPUT
-{
-    $target = output_helper($target, rb_float_new(*$source));
+%typemap(in,numinputs=0) bool *OUTPUT(bool temp), bool &OUTPUT(bool temp) "$1 = &temp;";
+%typemap(argout, fragment="output_helper") bool *OUTPUT, bool &OUTPUT {
+    VALUE o = (*$1) ? Qtrue : Qfalse;
+    $result = output_helper($result, o);
 }
 
 // INOUT
 // Mappings for an argument that is both an input and output
 // parameter
 
-
-#ifdef AUTODOC
-%subsection "Input/Output Methods"
-
-%text %{
+/*
 The following methods can be applied to make a function parameter both
 an input and output value.  This combines the behavior of both the
 "INPUT" and "OUTPUT" methods described earlier.  Output values are
@@ -251,6 +175,7 @@ returned in the form of a Ruby array.
          unsigned short *INOUT
          unsigned long  *INOUT
          unsigned char  *INOUT
+	 bool           *INOUT
          float          *INOUT
          double         *INOUT
          
@@ -281,101 +206,68 @@ to a Ruby variable you might do this :
 Note : previous versions of SWIG used the symbol 'BOTH' to mark
 input/output arguments.   This is still supported, but will be slowly
 phased out in future releases.
-%}
 
-#endif
+*/
 
-%typemap(ruby,in) int *INOUT = int *INPUT;
-%typemap(ruby,in) short *INOUT = short *INPUT;
-%typemap(ruby,in) long *INOUT = long *INPUT;
-%typemap(ruby,in) unsigned *INOUT = unsigned *INPUT;
-%typemap(ruby,in) unsigned short *INOUT = unsigned short *INPUT;
-%typemap(ruby,in) unsigned long *INOUT = unsigned long *INPUT;
-%typemap(ruby,in) unsigned char *INOUT = unsigned char *INPUT;
-%typemap(ruby,in) float *INOUT = float *INPUT;
-%typemap(ruby,in) double *INOUT = double *INPUT;
+%typemap(in) int *INOUT = int *INPUT;
+%typemap(in) short *INOUT = short *INPUT;
+%typemap(in) long *INOUT = long *INPUT;
+%typemap(in) unsigned *INOUT = unsigned *INPUT;
+%typemap(in) unsigned short *INOUT = unsigned short *INPUT;
+%typemap(in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(in) signed char *INOUT = signed char *INPUT;
+%typemap(in) bool *INOUT = bool *INPUT;
+%typemap(in) float *INOUT = float *INPUT;
+%typemap(in) double *INOUT = double *INPUT;
 
-%typemap(ruby,argout) int *INOUT = int *OUTPUT;
-%typemap(ruby,argout) short *INOUT = short *OUTPUT;
-%typemap(ruby,argout) long *INOUT = long *OUTPUT;
-%typemap(ruby,argout) unsigned *INOUT = unsigned *OUTPUT;
-%typemap(ruby,argout) unsigned short *INOUT = unsigned short *OUTPUT;
-%typemap(ruby,argout) unsigned long *INOUT = unsigned long *OUTPUT;
-%typemap(ruby,argout) unsigned char *INOUT = unsigned char *OUTPUT;
-%typemap(ruby,argout) float *INOUT = float *OUTPUT;
-%typemap(ruby,argout) double *INOUT = double *OUTPUT;
+%typemap(in) int &INOUT = int &INPUT;
+%typemap(in) short &INOUT = short &INPUT;
+%typemap(in) long &INOUT = long &INPUT;
+%typemap(in) unsigned &INOUT = unsigned &INPUT;
+%typemap(in) unsigned short &INOUT = unsigned short &INPUT;
+%typemap(in) unsigned long &INOUT = unsigned long &INPUT;
+%typemap(in) unsigned char &INOUT = unsigned char &INPUT;
+%typemap(in) signed char &INOUT = signed char &INPUT;
+%typemap(in) bool &INOUT = bool &INPUT;
+%typemap(in) float &INOUT = float &INPUT;
+%typemap(in) double &INOUT = double &INPUT;
 
-// Backwards compatibility
+%typemap(argout) int *INOUT = int *OUTPUT;
+%typemap(argout) short *INOUT = short *OUTPUT;
+%typemap(argout) long *INOUT = long *OUTPUT;
+%typemap(argout) unsigned *INOUT = unsigned *OUTPUT;
+%typemap(argout) unsigned short *INOUT = unsigned short *OUTPUT;
+%typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(argout) signed char *INOUT = signed char *OUTPUT;
+%typemap(argout) bool *INOUT = bool *OUTPUT;
+%typemap(argout) float *INOUT = float *OUTPUT;
+%typemap(argout) double *INOUT = double *OUTPUT;
 
-%typemap(ruby,in) int *BOTH = int *INOUT;
-%typemap(ruby,in) short *BOTH = short *INOUT;
-%typemap(ruby,in) long *BOTH = long *INOUT;
-%typemap(ruby,in) unsigned *BOTH = unsigned *INOUT;
-%typemap(ruby,in) unsigned short *BOTH = unsigned short *INOUT;
-%typemap(ruby,in) unsigned long *BOTH = unsigned long *INOUT;
-%typemap(ruby,in) unsigned char *BOTH = unsigned char *INOUT;
-%typemap(ruby,in) float *BOTH = float *INOUT;
-%typemap(ruby,in) double *BOTH = double *INOUT;
-
-%typemap(ruby,argout) int *BOTH = int *INOUT;
-%typemap(ruby,argout) short *BOTH = short *INOUT;
-%typemap(ruby,argout) long *BOTH = long *INOUT;
-%typemap(ruby,argout) unsigned *BOTH = unsigned *INOUT;
-%typemap(ruby,argout) unsigned short *BOTH = unsigned short *INOUT;
-%typemap(ruby,argout) unsigned long *BOTH = unsigned long *INOUT;
-%typemap(ruby,argout) unsigned char *BOTH = unsigned char *INOUT;
-%typemap(ruby,argout) float *BOTH = float *INOUT;
-%typemap(ruby,argout) double *BOTH = double *INOUT;
-
-// --------------------------------------------------------------------
-// OUTPUT typemaps for user defined type.
-//
-// --------------------------------------------------------------------
-
-#ifdef AUTODOC
-%subsection "Output Methods for User-defined types"
-
-%text %{
-The following method can be applied to turn a pointer to
-user-defined type returned through function aruguments into
-an output value.
-
-         User **OUTPUT
-         
-You can use the %apply directive :
-
-        %include typemaps.i
-        %apply User **OUTPUT { Foo **OUTPUT };
-        int foo_func(Foo **OUTPUT);
-
-%}
-#endif
-
-%typemap(ruby,ignore) User **OUTPUT(void *temp)
-{
-  $target = ($type)&temp;
-}
-%typemap(ruby,argout) User **OUTPUT
-{
-  $target = output_helper($target, Wrap_$basetype(*$source));
-}
-
+%typemap(argout) int &INOUT = int &OUTPUT;
+%typemap(argout) short &INOUT = short &OUTPUT;
+%typemap(argout) long &INOUT = long &OUTPUT;
+%typemap(argout) unsigned &INOUT = unsigned &OUTPUT;
+%typemap(argout) unsigned short &INOUT = unsigned short &OUTPUT;
+%typemap(argout) unsigned long &INOUT = unsigned long &OUTPUT;
+%typemap(argout) unsigned char &INOUT = unsigned char &OUTPUT;
+%typemap(argout) signed char &INOUT = signed char &OUTPUT;
+%typemap(argout) bool &INOUT = bool &OUTPUT;
+%typemap(argout) float &INOUT = float &OUTPUT;
+%typemap(argout) double &INOUT = double &OUTPUT;
 
 // --------------------------------------------------------------------
 // Special types
-//
 // --------------------------------------------------------------------
 
-#ifdef AUTODOC
-%subsection "Special Methods"
-
-%text %{
+/*
 The typemaps.i library also provides the following mappings :
 
 struct timeval *
 time_t
 
-    Ruby has builtin class Time.  INPUT/OUPUT typemap for timeval and
+    Ruby has builtin class Time.  INPUT/OUTPUT typemap for timeval and
     time_t is provided.
 
 int PROG_ARGC
@@ -384,9 +276,7 @@ char **PROG_ARGV
     Some C function receive argc and argv from C main function.
     This typemap provides ignore typemap which pass Ruby ARGV contents
     as argc and argv to C function.
-%}
-
-#endif
+*/
 
 
 // struct timeval *
@@ -403,71 +293,71 @@ struct timeval rb_time_timeval(VALUE);
 #endif
 %}
 
-%typemap(ruby,in) struct timeval *INPUT (struct timeval temp)
+%typemap(in) struct timeval *INPUT (struct timeval temp)
 {
-    if (NIL_P($source))
-	$target = NULL;
+    if (NIL_P($input))
+	$1 = NULL;
     else {
-	temp = rb_time_timeval($source);
-	$target = &temp;
+	temp = rb_time_timeval($input);
+	$1 = &temp;
     }
 }
 
-%typemap(ruby,ignore) struct timeval *OUTPUT(struct timeval temp)
+%typemap(in,numinputs=0) struct timeval *OUTPUT(struct timeval temp)
 {
-    $target = &temp;
+    $1 = &temp;
 }
 
-%typemap(ruby,argout) struct timeval *OUTPUT
+%typemap(argout) struct timeval *OUTPUT
 {
-    $target = rb_time_new($source->tv_sec, $source->tv_usec);
+    $result = rb_time_new($1->tv_sec, $1->tv_usec);
 }
 
-%typemap(ruby,out) struct timeval *
+%typemap(out) struct timeval *
 {
-    $target = rb_time_new($source->tv_sec, $source->tv_usec);
+    $result = rb_time_new($1->tv_sec, $1->tv_usec);
 }
 
-%typemap(ruby,out) struct timespec *
+%typemap(out) struct timespec *
 {
-    $target = rb_time_new($source->tv_sec, $source->tv_nsec / 1000);
+    $result = rb_time_new($1->tv_sec, $1->tv_nsec / 1000);
 }
 
 // time_t
-%typemap(ruby,in) time_t
+%typemap(in) time_t
 {
-    if (NIL_P($source))
-	$target = (time_t)-1;
+    if (NIL_P($input))
+	$1 = (time_t)-1;
     else
-	$target = NUM2LONG(rb_funcall($source, rb_intern("tv_sec"), 0));
+	$1 = NUM2LONG(rb_funcall($input, rb_intern("tv_sec"), 0));
 }
 
-%typemap(ruby,out) time_t
+%typemap(out) time_t
 {
-    $target = rb_time_new($source, 0);
+    $result = rb_time_new($1, 0);
 }
 
 // argc and argv
-%typemap(ruby,ignore) int PROG_ARGC {
-    $target = RARRAY(rb_argv)->len + 1;
+%typemap(in,numinputs=0) int PROG_ARGC {
+    $1 = RARRAY(rb_argv)->len + 1;
 }
 
-%typemap(ruby,ignore) char **PROG_ARGV {
+%typemap(in,numinputs=0) char **PROG_ARGV {
     int i, n;
     VALUE ary = rb_eval_string("[$0] + ARGV");
     n = RARRAY(ary)->len;
-    $target = (char **)malloc(n + 1);
+    $1 = (char **)malloc(n + 1);
     for (i = 0; i < n; i++) {
 	VALUE v = rb_obj_as_string(RARRAY(ary)->ptr[i]);
-	$target[i] = (char *)malloc(RSTRING(v)->len + 1);
-	strcpy($target[i], RSTRING(v)->ptr);
+	$1[i] = (char *)malloc(RSTRING(v)->len + 1);
+	strcpy($1[i], RSTRING(v)->ptr);
     }
 }
 
-%typemap(ruby,freearg) char **PROG_ARGV {
+%typemap(freearg) char **PROG_ARGV {
     int i, n = RARRAY(rb_argv)->len + 1;
-    for (i = 0; i < n; i++) free($source[i]);
-    free($source);
+    for (i = 0; i < n; i++) free($1[i]);
+    free($1);
 }
 
 // FILE *
@@ -480,25 +370,49 @@ extern "C" {
 }
 #endif
 %}
-%typemap(ruby,in) FILE *READ {
+
+%typemap(in) FILE *READ {
     OpenFile *of;
-    Check_Type($source, T_FILE);
-    GetOpenFile($source, of);
+    GetOpenFile($input, of);
     rb_io_check_readable(of);
-    $target = GetReadFile(of);
-    rb_read_check($target);
+    $1 = GetReadFile(of);
+    rb_read_check($1);
 }
-%typemap(ruby,in) FILE *READ_NOCHECK {
+
+%typemap(in) FILE *READ_NOCHECK {
     OpenFile *of;
-    Check_Type($source, T_FILE);
-    GetOpenFile($source, of);
+    GetOpenFile($input, of);
     rb_io_check_readable(of);
-    $target = GetReadFile(of);
+    $1 = GetReadFile(of);
 }
-%typemap(ruby,in) FILE *WRITE {
+
+%typemap(in) FILE *WRITE {
     OpenFile *of;
-    Check_Type($source, T_FILE);
-    GetOpenFile($source, of);
+    GetOpenFile($input, of);
     rb_io_check_writable(of);
-    $target = GetWriteFile(of);
+    $1 = GetWriteFile(of);
 }
+
+/* Overloading information */
+
+%typemap(typecheck) double *INOUT = double;
+%typemap(typecheck) signed char *INOUT = signed char;
+%typemap(typecheck) unsigned char *INOUT = unsigned char;
+%typemap(typecheck) unsigned long *INOUT = unsigned long;
+%typemap(typecheck) unsigned short *INOUT = unsigned short;
+%typemap(typecheck) unsigned int *INOUT = unsigned int;
+%typemap(typecheck) long *INOUT = long;
+%typemap(typecheck) short *INOUT = short;
+%typemap(typecheck) int *INOUT = int;
+%typemap(typecheck) float *INOUT = float;
+
+%typemap(typecheck) double &INOUT = double;
+%typemap(typecheck) signed char &INOUT = signed char;
+%typemap(typecheck) unsigned char &INOUT = unsigned char;
+%typemap(typecheck) unsigned long &INOUT = unsigned long;
+%typemap(typecheck) unsigned short &INOUT = unsigned short;
+%typemap(typecheck) unsigned int &INOUT = unsigned int;
+%typemap(typecheck) long &INOUT = long;
+%typemap(typecheck) short &INOUT = short;
+%typemap(typecheck) int &INOUT = int;
+%typemap(typecheck) float &INOUT = float;
