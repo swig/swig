@@ -1,9 +1,9 @@
-<?
+<?php
 
 # This file illustrates the manipulation of C++ references in Php.
 # This uses the low-level interface.  Shadow classes work differently.
 
-dl("example.so");
+require "example.php";
 
 # ----- Object creation -----
 
