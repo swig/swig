@@ -65,12 +65,14 @@ Swig_overload_rank(Node *n, bool script_lang_wrapping) {
       continue;
       } */
 
+    /* Make a list of all the declarations (methods) that are overloaded with
+     * this one particular method name */
     if (Getattr(c,"wrap:name")) {
       nodes[nnodes].n = c;
       nodes[nnodes].parms = Getattr(c,"wrap:parms");
       nodes[nnodes].argc = emit_num_required(nodes[nnodes].parms);
-	nodes[nnodes].error = 0;
-	nnodes++;
+      nodes[nnodes].error = 0;
+      nnodes++;
     }
     c = Getattr(c,"sym:nextSibling");
   }
