@@ -1,5 +1,6 @@
 aclocal.m4
 config.*
+libtool
 Makefile
 swig*
 *.tar.gz
