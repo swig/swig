@@ -1359,7 +1359,7 @@ The following SWIG interface file allows a Java String array to be used as a <tt
 /* This cleans up the memory we malloc'd before the function call */
 %typemap(freearg) char** {
     int i;
-    for (i=0; i&lt;size-1; i++)
+    for (i=0; i&lt;size$argnum-1; i++)
       free($1[i]);
     free($1);
 }
