@@ -1091,11 +1091,13 @@ public:
 	       "static SCM\n", dname,
 	       "(SCM rest)\n{\n",
 	       NIL);
+	Printf(df->code, "#define FUNC_NAME \"%s\"\n", proc_name);
 	Printf(df->code, "SCM argv[%d];\n", maxargs);
 	Printf(df->code, "int argc = SWIG_Guile_GetArgs (argv, rest, %d, %d, \"%s\");\n", 
 	       0, maxargs, proc_name);
 	Printv(df->code,dispatch,"\n",NIL);
 	Printf(df->code,"scm_misc_error(\"%s\", \"No matching method for generic function `%s'\", SCM_EOL);\n", proc_name, iname);
+	Printf(df->code, "#undef FUNC_NAME\n");
 	Printv(df->code,"}\n",NIL);
 	Wrapper_print(df,f_wrappers);
         if (use_scm_interface) {
