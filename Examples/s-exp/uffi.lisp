@@ -5,11 +5,11 @@
 ;;;
 ;;; Written by Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
 
-(require 'port)				; from CLOCC
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (require 'port)				; from CLOCC
+  (require 'uffi))
 
 (in-package :cl-user)
-
-(require 'uffi)
 
 ;; Interaction with the SWIG binary
 
@@ -18,14 +18,15 @@
 (defvar *swig-program* (merge-pathnames "swig" *swig-source-directory*))
 
 (defun run-swig (swig-interface-file-name &key directory-search-list module
-		 ignore-errors)
+		 ignore-errors c++)
   (setf (port:getenv :SWIG_LIB)
 	(namestring (merge-pathnames "Lib" *swig-source-directory*)))
   (let ((temp-file-name "/tmp/swig.lsp"))
     (let ((process
 	   (port:run-prog (namestring *swig-program*)
 			  :output t
-			  :args `("-sexp"
+			  :args `(,@(and c++ '("-c++"))
+				  "-sexp"
 				  ,@(mapcar (lambda (dir)
 				       (concatenate 'string
 						    "-I" (namestring dir)))
@@ -118,6 +119,14 @@ the terminating index into TYPE-STRING."
 		       (bad-type-error "missing dot"))
 	     (return (cons-and-recurse (cons 'FUNCTION arg-types)
 				       (+ index 2) end))))
+      ((prefix-match "v(")		;varargs
+       (let ((closing-paren (position #\) type-string
+				  :start (+ start 2)
+				  :end end)))
+	 (unless closing-paren
+	   (bad-type-error "missing right paren"))
+	 (values (list 'VARARGS (subseq type-string (+ start 2) closing-paren))
+		 (+ closing-paren 1))))
       (t (let ((junk-position (position-if (lambda (char)
 					     (member char '(#\, #\( #\) #\.)))
 					   type-string
@@ -193,12 +202,17 @@ is no representation."
   (format *uffi-output* "~&~S~%" uffi-definition)
   (push uffi-definition *uffi-definitions*))
 
-(defun make-cl-symbol (c-identifier)
-  (intern (substitute #\- #\_ (string-upcase c-identifier))))
+(defun make-cl-symbol (c-identifier &key uninterned)
+  (let ((name (substitute #\- #\_ (string-upcase c-identifier))))
+    (if uninterned
+	(make-symbol name)
+	(intern name))))
 
 (defvar *class-scope* '() "A stack of names of nested C++ classes.")
 
 (defvar *struct-fields* '())
+
+(defvar *linkage* nil "NIL or :C")
 
 (defgeneric handle-node (node-type &key &allow-other-keys)
   (:documentation "Handle a node of SWIG's parse tree of a C/C++ program"))
@@ -209,32 +223,55 @@ is no representation."
 
 (defmethod handle-node ((node-type (eql 'cdecl)) &key name decl storage parms type &allow-other-keys)
   (let ((swigtype (parse-swigtype (concatenate 'string decl type))))
-    (let ((*print-pretty* nil))	; or FUNCTION would be printed as #' by cmucl
+    (let ((*print-pretty* nil) ; or FUNCTION would be printed as #' by cmucl
+	  (*print-circle* t))
       (format *uffi-output* "~&;; C Declaration: ~A ~A ~A ~A~%;;  with-parms ~W~%;;   of-type ~W~%"
 	      storage type name decl parms swigtype))
     (multiple-value-bind (function-p arg-swigtype-list return-swigtype)
 	(swigtype-function-p swigtype)
       (declare (ignore arg-swigtype-list))
       (cond
-	((and (null *class-scope*) function-p) ; ordinary top-level function
-	 (let ((uffi-arg-list
-		(mapcar (lambda (param)
-			  (destructuring-bind (&key name type &allow-other-keys) param
-			    (let ((uffi-type (uffi-type-spec (parse-swigtype type))))
-			      (unless uffi-type
-				(format *uffi-output* "~&;; Warning: Cannot handle type ~S of argument `~A'~%"
-					type name)
-				(return-from handle-node))
-			      `(,(make-cl-symbol name) ,uffi-type))))
-			parms))
-	       (uffi-return-type
-		(uffi-type-spec return-swigtype)))
-	   (unless uffi-return-type
-	     (format *uffi-output* "~&;; Warning: Cannot handle return type `~S'~%"
-		     return-swigtype)
-	     (return-from handle-node))
-	   (emit-uffi-definition `(UFFI:DEF-FUNCTION ,name ,uffi-arg-list :RETURNING ,uffi-return-type))))
-
+	((and (null *class-scope*) function-p
+	      (or (eql *linkage* :c)
+		  (string= storage "externc")))
+	 ;; ordinary top-level function with C linkage
+	 (let ((argnum 0)
+	       (argname-list '()))
+	   (flet ((unique-argname (name)
+		    ;; Sometimes the functions in SWIG interfaces
+		    ;; do not have unique names.  Make them unique
+		    ;; by adding a suffix.  Also avoid symbols
+		    ;; that are specially bound.
+		    (unless name
+		      (setq name (format nil "arg~D" argnum)))
+		    (let ((argname (make-cl-symbol name)))
+		      (when (boundp argname) ;specially bound
+			(setq argname (make-cl-symbol name :uninterned t)))
+		      (push argname argname-list)
+		      argname)))
+	     (let ((uffi-arg-list
+		    (mapcan (lambda (param)
+			      (incf argnum)
+			      (destructuring-bind (&key name type &allow-other-keys) param
+				(let ((uffi-type (uffi-type-spec (parse-swigtype type))))
+				  (cond
+				    ((not uffi-type)
+				     (format *uffi-output* "~&;; Warning: Cannot handle type ~S of argument `~A'~%"
+					     type name)
+				     (return-from handle-node))
+				    ((eq uffi-type :void)
+				     '())
+				    (t
+				     (let ((symbol (unique-argname name)))
+				       (list `(,symbol ,uffi-type))))))))
+			    parms))
+		   (uffi-return-type
+		    (uffi-type-spec return-swigtype)))
+	       (unless uffi-return-type
+		 (format *uffi-output* "~&;; Warning: Cannot handle return type `~S'~%"
+			 return-swigtype)
+		 (return-from handle-node))
+	       (emit-uffi-definition `(UFFI:DEF-FUNCTION ,name ,uffi-arg-list :RETURNING ,uffi-return-type))))))
 	((and (not (null *class-scope*)) (null (rest *class-scope*))
 	      (not function-p))	; class/struct member (no nested structs)
 	 (let ((uffi-type (uffi-type-spec swigtype)))
@@ -263,13 +300,21 @@ is no representation."
   (format *uffi-output* ";; INCLUDE ~A~%" name)
   (dolist (child children)
     (apply 'handle-node child)))
-  
+
+(defmethod handle-node ((node-type (eql 'extern)) &key name children &allow-other-keys)
+  (format *uffi-output* ";; EXTERN \"C\" ~A~%" name)
+  (let ((*linkage* :c))
+    (dolist (child children)
+      (apply 'handle-node child))))
+
 ;;(defun compute-uffi-definitions (swig-interface)
 ;;  (let ((*uffi-definitions* '()))
 ;;    (handle-node swig-interface)
 ;;    *uffi-definitions*))
 
 ;; Test instances
+
+#||
 
 #+ignore
 (defvar *gifplot-interface*
@@ -326,6 +371,58 @@ is no representation."
 
 (action (namestring (merge-pathnames "Examples/GIFPlot/Common-Lisp/full/cmap"
 				     *swig-source-directory*)))
+
+||#
+
+;;; Link to SWIG itself
+
+(defparameter *c++-compiler* "g++")
+
+(defun stdc++-library (&key env)
+  (let ((error-output (make-string-output-stream)))
+    (let ((name-output (make-string-output-stream)))
+      (let ((proc (ext:run-program
+		   *c++-compiler*
+		   '("-print-file-name=libstdc++.so")
+		   :env env
+		   :input nil
+		   :output name-output
+		   :error error-output)))
+	(unless proc
+	  (error "Could not run ~A" *c++-compiler*))
+	(unless (zerop (ext:process-exit-code proc))
+	  (system:serve-all-events 0)
+	  (error "~A failed:~%~A" *c++-compiler*
+		 (get-output-stream-string error-output))))
+      (string-right-trim '(#\Newline) (get-output-stream-string name-output)))))
+
+(defvar *swig-interface* nil)
+
+(defvar *swig-uffi-pathname* #p"/tmp/swig-uffi.lisp")
+
+(defun link-swig ()
+  (setq *swig-interface*
+	(run-swig (merge-pathnames "Source/swig.i" *swig-source-directory*)
+		  :directory-search-list
+		  (list (merge-pathnames "Source/" *swig-source-directory*))
+		  :module "swig"
+		  :ignore-errors t
+		  :c++ t))
+  (with-open-file (f *swig-uffi-pathname* :direction :output)
+		  (let ((*uffi-definitions* '())
+			(*uffi-output* f)
+			(*uffi-primitive-type-alist* *uffi-default-primitive-type-alist*))
+		    (apply 'handle-node *swig-interface*)))
+  (compile-file *swig-uffi-pathname*)
+  (alien:load-foreign (merge-pathnames "Source/libswig.a"
+				       *swig-source-directory*)
+		      :libraries (list (stdc++-library)))
+  ;; FIXME: UFFI stuffes a "-l" in front of the passed library names
+  ;;  (uffi:load-foreign-library (merge-pathnames "Source/libswig.a"
+  ;;                                              *swig-source-directory*)
+  ;;                             :supporting-libraries
+  ;;                             (list (stdc++-library)))
+  (load (compile-file-pathname *swig-uffi-pathname*)))
 
 ;;;; TODO:
 
