@@ -25,7 +25,7 @@ class DirectorMethodException: public Swig::DirectorException {};
   #ifndef SWIG_fail
     #define SWIG_fail
   #endif
-#endif
+#endif /* !SWIG_DIRECTORS */
 
 %}
 
