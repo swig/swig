@@ -13,8 +13,13 @@
 )
 
 #ifdef __cplusplus
-# define VALUEFUNC(f) ((VALUE (*)(...))f)
-# define VOIDFUNC(f) ((void (*)(...))f)
+#  if defined(_WIN32) && defined(_MSC_VER)
+#    define VALUEFUNC(f) ((VALUE (*)())f)
+#    define VOIDFUNC(f) ((void (*)(void *))f)
+#  else
+#    define VALUEFUNC(f) ((VALUE (*)(...))f)
+#    define VOIDFUNC(f) ((void (*)(...))f)
+#  endif
 #else
 # define VALUEFUNC(f) (f)
 # define VOIDFUNC(f) (f)
