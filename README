@@ -73,11 +73,14 @@ about this step.
 
 The Examples directory contains a few examples of using SWIG.
 
-Note:
+Notes:
 
-If you checked the code out via CVS, you will have to run autoconf
-before typing 'configure.'  In addition, a full build of SWIG requires
-the use of bison.
+(1) If you checked the code out via CVS, you will have to run autoconf
+    before typing 'configure.'  In addition, a full build of SWIG requires
+    the use of bison.
+
+(2) If you are using Windows, the easiest way to install and build 
+    SWIG is to use the Cygwin package (http://sourceware.cygnus.com/cygwin/).
 
 Documentation
 =============
