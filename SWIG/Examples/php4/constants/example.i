@@ -20,7 +20,7 @@
 #define    FOO         (ICONST + BAR)
 
 /* The following statements also produce constants */
-const int     iconst = 37;
-const double  fconst = 3.14;
+%constant int     iconst = 37;
+%constant double  fconst = 3.14;
 
 
