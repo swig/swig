@@ -127,6 +127,49 @@ PHP
 Guile
 -----
 
+**   Rename slot setters from CLASS-SLOT-set to CLASS-SLOT-set!
+     to match Scheme convention for naming of mutators.
+
+**   Support keyword args.
+
+**   Support GOOPS shadow classes.
+
+**   Support garbage collection.  Here is a possible design:
+
+     -- %new annotation decides whether a pointer smob can be gc'ed.
+
+     -- New smob type `swig-gc'; instances created with
+        SWIG_Guile_MakeCollectablePtr.  %new versions of the pointer
+        typemaps use this function rather than SWIG_Guile_MakePtr.
+
+     -- New typemaps "destructor", "gcmarker".  Their values are taken
+        as identifiers for functions taking one argument: a pointer to
+        the object to be destroyed, or whose SCM-valued subobjects are
+        to be marked.  After creating the pointer equivalence table,
+        we iterate again over the remembered pointer types, emitting
+        code that puts the functions into our type table.  No
+        additional functions are generated.
+
+     -- The default for all pointer types would be: 
+        %typemap(destructor) SWIGPOINTER * "free";
+	(or "delete" for C++)
+
+     -- A special annotation, e.g. FREED, can be attached to the
+        arguments of destructor functions, so that explicitly freed
+        structs won't be collected by the GC again. Like this:
+
+	 %typemap(argout) SWIGPOINTER *FREED {
+	   smob-tag($source) = swig; /* non-gc */
+	   smob-data($source) = NULL;
+	 }
+	 void free_foo(struct foo *FREED);
+
+**   Make SWIG's types first-class by using a separate smob type for
+     SWIG type descriptors; enable reflection on types.
+
+**   Maybe communicate the type system between object modules via Scheme
+     variables, rather than a shared object.
+
 Mzscheme
 --------
 
