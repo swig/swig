@@ -957,8 +957,21 @@ declaration    : swig_directive { $$ = $1; }
                   }
                   $$ = $1; 
 	       }              
-              ;
 
+/* Out of class conversion operator.  For example:
+     inline A::operator char *() const { ... }.
+
+   This is nearly impossible to parse normally.  We just let the
+   first part generate a syntax error and then resynchronize on the
+   COPERATOR token---discarding the rest of the definition. Ugh.
+
+ */
+
+               | error COPERATOR {
+                  $$ = 0;
+                  skip_decl();
+               }
+               ;
 
 /* ======================================================================
  *                           SWIG DIRECTIVES 
@@ -2336,7 +2349,6 @@ cpp_class_decl  :
 		 }
 		 if (!classes) classes = NewHash();
 		 Setattr(classes,Swig_symbol_qualifiedscopename(0),$$);
-		 
 
 		 appendChild($$,$7);
 		 p = $9;
@@ -4526,6 +4538,10 @@ idcolontail    : DCOLON idtemplate idcolontail {
                | DCOLON OPERATOR {
                    $$ = NewStringf("::%s",$2);
                }
+/*               | DCOLON COPERATOR {
+                 $$ = NewString($2);                 
+		 } */
+
                | DCNOT idtemplate {
 		 $$ = NewStringf("::~%s",$2);
                }
