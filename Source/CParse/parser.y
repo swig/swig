@@ -4375,6 +4375,7 @@ template_decl : LESSTHAN valparms GREATERTHAN {
                      String *s = NewString("");
                      SwigType_add_template(s,$2);
                      $$ = Char(s);
+		     scanner_last_id(1);
                  }
                | empty { $$ = (char*)"";  }
                ;
@@ -4428,7 +4429,9 @@ idcolontail    : DCOLON idtemplate idcolontail {
 
 idtemplate    : ID template_decl {
                   $$ = NewStringf("%s%s",$1,$2);
-                  scanner_last_id(1);
+		  /*		  if (Len($2)) {
+		    scanner_last_id(1);
+		    } */
               }
               ;
 
