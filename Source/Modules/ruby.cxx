@@ -1163,6 +1163,84 @@ public:
     return Language::classDeclaration(n);
   }
 
+  /**
+   * Process the comma-separated list of mixed-in module names (if any).
+   */
+  void includeRubyModules(Node *n) {
+    String *mixin = Getattr(n,"feature:mixin");
+    if (mixin) {
+      List *modules = Split(mixin,',',INT_MAX);
+      if (modules && Len(modules) > 0) {
+	String *mod = Firstitem(modules);
+	while (mod) {
+          if (Len(mod) > 0) {
+            Printf(klass->init, "rb_include_module(%s, rb_eval_string(\"%s\"));\n", klass->vname, mod);
+	  }
+	  mod = Nextitem(modules);
+	}
+      }
+      Delete(modules);
+    }
+  }
+
+  void handleBaseClasses(Node *n) {
+    List *baselist = Getattr(n,"bases");
+    if (baselist && Len(baselist)) {
+      Node *base = Firstitem(baselist);
+      String *basename = Getattr(base,"name");
+      String *basenamestr = SwigType_namestr(basename);
+      RClass *super = RCLASS(classes, Char(basenamestr));
+      Delete(basenamestr);
+      if (super) {
+	SwigType *btype = NewString(basename);
+	SwigType_add_pointer(btype);
+	SwigType_remember(btype);
+	String *bmangle = SwigType_manglestr(btype);
+	Insert(bmangle,0,"((swig_class *) SWIGTYPE");
+	Append(bmangle,"->clientdata)->klass");
+	Replaceall(klass->init,"$super",bmangle);
+	Delete(bmangle);
+	Delete(btype);
+      }
+    
+      /* Warn about multiple inheritance if additional base class(es) listed */
+      base = Nextitem(baselist);
+      while (base) {
+	basename = Getattr(n,"name");
+	Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, input_file, line_number, 
+		     "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", basename, basename);
+	base = Nextitem(baselist);
+      }
+    }
+  }
+
+  /**
+   * Check to see if a %markfunc was specified.
+   */
+  void handleMarkFuncDirective(Node *n) {
+    String *markfunc = Getattr(n, "feature:markfunc");
+    if (markfunc) {
+      Printf(klass->init, "c%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
+    } else {
+      Printf(klass->init, "c%s.mark = 0;\n", klass->name);
+    }
+  }
+
+  /**
+   * Check to see if a %freefunc was specified.
+   */
+  void handleFreeFuncDirective(Node *n) {
+    String *freefunc = Getattr(n, "feature:freefunc");
+    if (freefunc) {
+      Printf(klass->init, "c%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
+    } else {
+      if (klass->destructor_defined) {
+	Printf(klass->init, "c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
+      }
+    }
+    Replaceall(klass->header,"$freeproto", "");
+  }
+
   /* ----------------------------------------------------------------------
    * classHandler()
    * ---------------------------------------------------------------------- */
@@ -1195,21 +1273,7 @@ public:
     Delete(tt);
     Delete(valid_name);
     
-    /* Process the comma-separated list of mixed-in module names (if any) */
-    String *mixin = Getattr(n,"feature:mixin");
-    if (mixin) {
-      List *modules = Split(mixin,',',INT_MAX);
-      if (modules && Len(modules) > 0) {
-	String *mod = Firstitem(modules);
-	while (mod) {
-          if (Len(mod) > 0) {
-            Printf(klass->init, "rb_include_module(%s, rb_eval_string(\"%s\"));\n", klass->vname, mod);
-	  }
-	  mod = Nextitem(modules);
-	}
-      }
-      Delete(modules);
-    }
+    includeRubyModules(n);
 
     Printv(klass->init, "$allocator",NIL);
     Printv(klass->init, "$initializer",NIL);
@@ -1220,54 +1284,9 @@ public:
 
     Language::classHandler(n);
 
-    /* Handle inheritance */
-    List *baselist = Getattr(n,"bases");
-    if (baselist && Len(baselist)) {
-      Node *base = Firstitem(baselist);
-      String *basename = Getattr(base,"name");
-      String *basenamestr = SwigType_namestr(basename);
-      RClass *super = RCLASS(classes, Char(basenamestr));
-      Delete(basenamestr);
-      if (super) {
-	SwigType *btype = NewString(basename);
-	SwigType_add_pointer(btype);
-	SwigType_remember(btype);
-	String *bmangle = SwigType_manglestr(btype);
-	Insert(bmangle,0,"((swig_class *) SWIGTYPE");
-	Append(bmangle,"->clientdata)->klass");
-	Replaceall(klass->init,"$super",bmangle);
-	Delete(bmangle);
-	Delete(btype);
-      }
-    
-      /* Warn about multiple inheritance if additional base class(es) listed */
-      base = Nextitem(baselist);
-      while (base) {
-	basename = Getattr(n,"name");
-	Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, input_file, line_number, 
-		     "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", basename, basename);
-	base = Nextitem(baselist);
-      }
-    }
-
-    /* Check to see if a %markfunc was specified */
-    String *markfunc = Getattr(n, "feature:markfunc");
-    if (markfunc) {
-      Printf(klass->init, "c%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
-    } else {
-      Printf(klass->init, "c%s.mark = 0;\n", klass->name);
-    }
-
-    /* Check to see if a %freefunc was specified */
-    String *freefunc = Getattr(n, "feature:freefunc");
-    if (freefunc) {
-      Printf(klass->init, "c%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
-    } else {
-      if (klass->destructor_defined) {
-	Printf(klass->init, "c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
-      }
-    }
-    Replaceall(klass->header,"$freeproto", "");
+    handleBaseClasses(n);
+    handleMarkFuncDirective(n);
+    handleFreeFuncDirective(n);
 
     Printv(f_header, klass->header,NIL);
 
