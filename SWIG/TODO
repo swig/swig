@@ -27,11 +27,55 @@ defer  ready to go.  The primary obstacle lies in the target language
        This is one of the last remaining "hard" problems in the SWIG
        core, but it is important that we solve it.  
 
+[DONE] Refinement of the overloading dispatch rules.  If you have two
+       classes like this:
+
+           class Foo {
+           };
+
+           class Bar : public Foo {
+           };
+
+       and two overloaded methods:
+
+           void spam(Foo *f);
+           void spam(Bar *b);
+
+       SWIG should make sure that the derived class version is checked
+       first. 
+
+[DONE] Refinement of using directives.  For example:
+
+          namespace foo {
+             int blah(int);
+          }
+
+          namespace bar {
+             double blah(double);
+          }
+
+          using foo::blah;
+          using bar::blah;
+
+       Currently, SWIG reports an error (redefined symbol).  Instead, it should be
+       silent.   
+
+       It's not entirely clear what should happen in terms of overloading.  Currently,
+       the two functions can't be combined into an overloaded method (they are
+       in separate namespaces and the functions don't quite combine like that).
+       
+       One could generate wrappers for the using declarations.  However, this
+       could generate a conflict (if both the namespace and non-namespace version
+       are wrapped).
+
 ****   Typemap environments.  Stay tuned.
 
-****   If a wrapper can't be generated to a function/method for some
+[DONE] If a wrapper can't be generated to a function/method for some
        reason, provide a flag that prevents that function/method from
        appearing the dispatch function.
+
+       If a language module sets the "error" attribute of a node, it is
+       not included in the dispatch function.
 
 ***    Rewrite declaration annotation to better unify %rename and related
        directives.  Add a selector mechanism that allows specific parse tree
@@ -66,6 +110,9 @@ defer  ready to go.  The primary obstacle lies in the target language
        using a template type, but that type hasn't been instantiated using
        %template.
 
+**     Fix build problems on 64-bit platforms.   We need to replace
+       NULL by (char *) NULL in most modules.
+
 *      Fix template partial specialization matching rules.   SWIG does not
        implement the proper C++ type deduction rules, but it does handle
        the most common cases.   This is likely to be hard and implementing
@@ -73,6 +120,8 @@ defer  ready to go.  The primary obstacle lies in the target language
 
 Build
 -----
+****   Fix Python Windows examples.
+
 ****   Upgrade libtool to a more recent version.  Might fix linking on OS-X
        but should definitely help on Cygwin.
 
