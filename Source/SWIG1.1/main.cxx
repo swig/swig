@@ -74,6 +74,7 @@ FILE  *swig_log;
 #endif
 
 char *SwigLib;
+static int     freeze = 0;
 
 int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 
@@ -90,6 +91,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   int     ignorecomments = 0;
   int     checkout = 0;
   int     cpp_only = 0;
+
   char   *typemap_file = 0;
   char   *includefiles[256];
   int     includecount = 0;
@@ -235,6 +237,9 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	    SWIG_mark_arg(i);
           } else if (strcmp(argv[i],"-co") == 0) {
 	    checkout = 1;
+	    SWIG_mark_arg(i);
+	  } else if (strcmp(argv[i],"-freeze") == 0) {
+	    freeze = 1;
 	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
@@ -405,6 +410,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
       cpps = SWIG_cpp_parse(ds);
       if (cpp_only) {
 	Printf(stdout,"%s", cpps);
+	while (freeze);
 	SWIG_exit(0);
       }
       f = fopen(fn_cpp,"w");
@@ -529,6 +535,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     fclose(swig_log);
   }
 #else
+  while (freeze);
   exit(error_count);
 #endif
   return(error_count);
@@ -558,6 +565,7 @@ void SWIG_exit(int) {
     fclose(f_runtime);
     remove(fn_runtime);
   }
+  while (freeze);
 #ifndef MACSWIG
   exit(1);
 #else
