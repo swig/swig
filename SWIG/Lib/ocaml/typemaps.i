@@ -43,7 +43,7 @@
 #ifdef __cplusplus
 
 %typemap(in) SWIGTYPE & {
-  *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum)) ;
+  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum) ;
 }
 
 %typemap(out) SWIGTYPE & {
@@ -51,12 +51,12 @@
 }
 
 %typemap(in) SWIGTYPE {
-  *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum)) ;
+  $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum) ;
 }
 
 %typemap(out) SWIGTYPE {
 	extern value $delete_fn( value );
-	$&1_ltype &temp = new $ltype( $1 );
+	$type *temp = new $type( $1 );
 	$result = SWIG_MakePtr ((void *)temp, $descriptor, 
 				(void *)$delete_fn );
 }
@@ -64,12 +64,12 @@
 #else
 
 %typemap(in) SWIGTYPE {
-  *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum)) ;
+  $1 = *(($&1_ltype) SWIG_MustGetPtr($input, $descriptor, $argnum)) ;
 }
 
 %typemap(out) SWIGTYPE {
         extern value $delete_fn( value );
-	$&1_ltype temp = calloc(1,sizeof($ltype));
+	$ltype temp = calloc(1,sizeof($ltype));
 	memcpy(temp,&$1,sizeof($ltype));
 	$result = SWIG_MakePtr ((void *)temp, $descriptor, (void *)$delete_fn);
 }

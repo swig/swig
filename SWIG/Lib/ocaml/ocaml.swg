@@ -19,8 +19,6 @@ struct SwigPtrType {
 };
 
 struct swig_proxy {
-    int type;
-    SwigPtrType *ptrtype;
     void (*delete_fn)( value );
     void *object;
 };
@@ -110,10 +108,8 @@ SWIG_MakePtr(void *c_pointer, swig_type_info *type,
     struct swig_proxy *new_proxy;
     CAMLlocal1(v);
 
-    v = alloc_custom(&makeptr_custom_ops,sizeof(struct swig_proxy),
-		     100,10000);
+    v = alloc_custom(&makeptr_custom_ops,sizeof(struct swig_proxy),0,1);
     new_proxy = (struct swig_proxy *)(&Field(v,1));
-    new_proxy->type = swig_type;
     new_proxy->delete_fn = (void (*)(value)) delete_fn;
     new_proxy->object = (void *) c_pointer;
     return v;
@@ -126,7 +122,7 @@ SWIG_GetPtr(value v, void **result, swig_type_info *type)
     struct swig_proxy *proxy = (struct swig_proxy *)(&Field(v,1));
 
     if (type) {
-	return !SWIG_Cast(proxy->object, result );
+	return !SWIG_Cast(proxy->object, result);
     }
     else {
 	*result = proxy->object;

@@ -349,31 +349,28 @@ class OCAML : public Language {
 	    if( !mliout ) {
 		Printf(f_pvariant_to_int,
 		       "let _ = Callback.register \"%s_enum_to_int\" "
-		       "enum_to_int\n",
-		       module);
-		Printf(f_pvariant_from_int,"`int _v_\n");
-		Printf(f_pvariant_to_int,
+		       "enum_to_int\n"
 		       "let enum_bits _v_ = int_to_enum "
 		       "(List.fold_left (fun a b -> a lor (enum_to_int b)) "
-		       "0 _v_)\n");
-		Printf(f_pvariant_to_int,
+		       "0 _v_)\n"
 		       "let check_enum_bit f _v_ = "
 		       "(enum_to_int _v_) land (enum_to_int f) == "
-		       "(enum_to_int f)\n");
-		Printf(f_pvariant_to_int,
+		       "(enum_to_int f)\n"
 		       "let bits_enum _v_ f_list = "
-		       "List.filter (fun f -> check_enum_bit f _v_) f_list\n");
-	
+		       "List.filter (fun f -> check_enum_bit f _v_) f_list\n",
+		       module );
+
 		Printf(f_pvariant_from_int,
+		       "`int _v_\n"
 		       "let _ = Callback.register \"%s_int_to_enum\" "
 		       "int_to_enum\n",
 		       module);
 	    } else {
 		Printf(f_pvariant_to_int,
-		       "val enum_bits : _enum list -> _enum\n");
-		Printf(f_pvariant_to_int,
-		       "val check_enum_bit : _enum -> _enum -> bool\n");
-		Printf(f_pvariant_to_int,
+		       "val enum_to_int : _enum -> int\n"
+		       "val int_to_enum : int -> _enum\n"
+		       "val enum_bits : _enum list -> _enum\n"
+		       "val check_enum_bit : _enum -> _enum -> bool\n"
 		       "val bits_enum : _enum -> _enum list -> _enum list\n");
 	    }
 
@@ -508,7 +505,8 @@ class OCAML : public Language {
 /* Return true iff T is a pointer type */
 
     static int is_a_pointer (SwigType *t) {
-	return SwigType_ispointer(SwigType_typedef_resolve_all(t));
+	return SwigType_ispointer(SwigType_typedef_resolve_all(t)) ||
+	    !strncmp(Char(SwigType_manglestr(t)),"_p",2);
     }
     
     static int is_simple (SwigType *t) {
@@ -572,7 +570,12 @@ class OCAML : public Language {
 	ml_vname = Copy(Swig_name_wrapper(iname));
 	/* Skip the _wrap_ and then lowercase the rest */
 
-	char *vname = Char(ml_vname) + strlen("_wrap_");
+	char *vname;
+
+	if( !strncmp( Char(ml_vname), "_wrap_", 6) )
+	    vname = Char(ml_vname) + strlen("_wrap_");
+	else
+	    vname = Char(ml_vname);
 
 	// Register this deleter as one we recognize 
 	if( !strncmp( vname, "new_", strlen( "new_" ) ) ) {
@@ -688,7 +691,8 @@ class OCAML : public Language {
 	// Write out signature for function in module file
 	if( !classmode || !onlyobjects || !mliout ||
 	    !strncmp( vname, "new_", 4 ) ||
-	    !strncmp( vname, "delete_", 7 ) ) {
+	    !strncmp( vname, "delete_", 7 ) ||
+	    !strncmp( vname, "copy_", 5 ) ) {
 	    Printf(f_module, "  external %s : ", vname_final);
 	
 	    if( numargs == 0 ) 
@@ -712,7 +716,8 @@ class OCAML : public Language {
 
 	if( classmode ) {
 	    if( strncmp( vname, "new_", 4 ) &&
-		strncmp( vname, "delete_", 7 ) ) {
+		strncmp( vname, "delete_", 7 ) &&
+		strncmp( vname, "copy_", 5 ) ) {
 		Printf( f_modclass, "  method %s", 
 			vname_class );
 
@@ -1169,7 +1174,13 @@ class OCAML : public Language {
     
 	    classname = Copy(Getattr(n,"name"));
 	    lcase(Char(classname));
-	
+
+	    /* Print this pointer type if it hasn't been seen before */
+	    String *type_name = NewString("");
+	    Printf(type_name,"p.%s", Getattr(n,"name"));
+	    print_unseen_type( type_name );
+	    Delete(type_name);
+
 	    if( mliout )
 		Printf(f_modclass,"class %s : _p_%s -> object\n", 
 		       classname, Getattr(n,"name"));
@@ -1210,7 +1221,7 @@ class OCAML : public Language {
 		Printf(f_modclass,
 		       "  method _self_ : _p_void\n" );
 
-	    Printf(f_modclass,"end\n");
+	    Printf(f_modclass,"end\n");	    
 	    
 	    classmode = 0;
 	
