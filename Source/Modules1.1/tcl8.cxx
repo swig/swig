@@ -852,7 +852,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       t = NewSwigType(T_CHAR);
       SwigType_add_pointer(t);
       SwigType_remember(type);
-      Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE_%s);\n",
+      Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
 	     var_name, var_name, SwigType_manglestr(type));
       sprintf(var_name,"%s_char",var_name);
       link_variable(var_name,name,t);
