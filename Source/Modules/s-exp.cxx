@@ -17,6 +17,7 @@ S-Exp Options (available with -sexp)\n\
      -typemaplang <lang> - Typemap language\n\n";
 
 #include "swigmod.h"
+#include "dohint.h"
 
 //static Node *view_top = 0;
 static File *out = 0;
@@ -309,9 +310,18 @@ public:
 	  }
 	  close_paren();
 	}
+	else if (strcmp(ObjType(obj)->objname, "List") == 0) {
+	  int i;
+	  open_paren(NIL);
+	  for (i = 0; i<Len(obj); i++) {
+	    DOH *item = Getitem(obj, i);
+	    Sexp_print_doh(item);
+	  }
+	  close_paren();
+	}
 	else {
 	  // What is it?
-	  Printf(out,"#<DOH %x>", obj);
+	  Printf(out,"#<DOH %s %x>", ObjType(obj)->objname, obj);
 	}
       }
     }
