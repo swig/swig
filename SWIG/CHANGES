@@ -1,5 +1,15 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+Version 1.3 Alpha 5 
+===================
+
+9/17/00 : beazley
+          Fixed problem with failed assertion and large files.
+
+9/17/00 : beazley
+          Fixed problem with the '%' character appearing in added methods
+          and function bodies.  Preprocessor bug.
+
 Version 1.3 Alpha 4 (September 4, 2000)
 ======================================
 
