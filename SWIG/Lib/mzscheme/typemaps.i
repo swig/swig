@@ -94,7 +94,7 @@
 %typemap(varin) enum SWIGTYPE {
   if (!SCHEME_INTP($input)) 
       scheme_wrong_type("$name", "integer", 1, argc, argv);
-  $1 = SCHEME_INT_VAL($input);
+  $1 = ($1_type) SCHEME_INT_VAL($input);
 }
 
 %typemap(out) enum SWIGTYPE "$result = scheme_make_integer_value($1);";

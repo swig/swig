@@ -246,6 +246,8 @@
 
 %typemap(varin) SWIGTYPE [] "croak(\"Value is read-only.\");";
 
+%typemap(varin) enum SWIGTYPE
+     "$1 = ($1_type) SvIV($input);";
 
 /* --- Typemaps for variable output --- */
 

@@ -191,7 +191,7 @@
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
   }
-  $1 = ($1_ltype) temp;
+  $1 = ($1_type) temp;
 }
 
 %typemap(varin) long long {
@@ -485,22 +485,27 @@
                   unsigned long, 
                   unsigned short {
   PyErr_SetObject(PyExc_RuntimeError, PyInt_FromLong((long) $1));
-  return NULL;
+  SWIG_fail;
 }
 
-%typemap("throw") SWIGTYPE {
+%typemap("throw") SWIGTYPE CLASS {
   $&1_ltype temp = new $1_ltype($1);
   if ($&1_descriptor->clientdata) {
     PyErr_SetObject((PyObject *) ($&1_descriptor->clientdata), SWIG_NewPointerObj(temp,$&1_descriptor,1));
   } else {
     PyErr_SetObject(PyExc_RuntimeError, SWIG_NewPointerObj(temp,$&1_descriptor,1));
   }
-  return NULL;
+  SWIG_fail;
+}
+
+%typemap("throw") SWIGTYPE {
+  PyErr_SetObject(PyExc_RuntimeError,"$1_type");
+  SWIG_fail;
 }
 
 %typemap("throw") char * {
   PyErr_SetString(PyExc_RuntimeError, $1);
-  return NULL;
+  SWIG_fail;
 }
 
 /* ------------------------------------------------------------

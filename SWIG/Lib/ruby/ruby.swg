@@ -229,7 +229,7 @@
 #endif
 
 %typemap(varin) char [ANY]      "strncpy($1,STR2CSTR($input),$1_dim0);";
-%typemap(varin) enum SWIGTYPE   "$1 = ($1_ltype) NUM2INT($input);";
+%typemap(varin) enum SWIGTYPE   "$1 = ($1_type) NUM2INT($input);";
 
 /* Typemaps for pointers.  Note: the SWIG run-time type checker works
    even if a pointer happens to be mapped to a Ruby class */
