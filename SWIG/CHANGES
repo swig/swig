@@ -1,12 +1,1720 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
 
-Version 1.3.20 (In progress)
-============================
+Version 1.3.20 (December 17, 2003)
+==================================
 
-Due to the size of the CHANGES file, please add change entries to the
-file CHANGES.current.  It will be merged into this file before
-release.  -- Dave
+12/17/2003: beazley
+            Last minute modifications.   Perl5 module now generates shadow classes
+            by default like all of the other modules.  PHP4 wrappers no longer
+            include "config.h". 
+
+12/14/2003: beazley
+            Weakened warning message related to constructor names so that an
+            unusual nested-class wrapping technique would work again (apparently
+            it worked in some older SWIG releases).   For example:
+
+               class Scope {
+                   class ClassA;
+                   class ClassB;
+               };
+               class Scope::ClassA {
+               ...
+               };
+               class Scope::ClassB {
+               ...
+               }
+
+            Note:  There is still some odd interaction with the SWIG symbol
+            table/type system that will need to be looked at in a future release.
+            Reported by Gustavo Niemeyer.
+
+
+12/11/2003: cheetah (William Fulton)
+            [Java] Protected class methods are wrapped as protected Java methods 
+            when using the dirprot director feature. This can be changed using
+            %javamethodmodifiers to something else should the need arise, for
+            example, private or package access.
+
+12/11/2003: cheetah (William Fulton)
+            [Java, C#] 
+            %javamethodmodifiers (Java) and %csmethodmodifiers (C#) operate slightly 
+            differently. Previously this feature had to be present to set the method
+            modifiers. Now it is only used if it exists for the method being wrapped.
+            The default is "public" as previous however, when wrapping protected
+            director methods it is "protected". This change will not affect existing
+            use of the %javamethodmodifiers or %csmethodmodifiers.
+
+12/11/2003: mmatus (Marcelo Matus)
+
+	    This fix some recurring reports about keywords not been
+	    properly identified and warned, and it solves the problem
+	    of how to add a test file to the test-suite such that it
+	    doesn't use any keyword of all the supported languages
+	    (and doing it without compiling the test for all the
+	    supported languages, thing that is not always possible,
+	    and without requiring you to know all the supported
+	    language keywords, thing that is always impossible).
+
+	    So these are the changes globally speaking:
+
+	    - Uniform the definition of the keyword warnings through
+	      the supported languages: all the languages has now a
+	      separate file that defines the keywords or bad names:
+
+		  python/pythonkw.swg
+		  chicken/chickenkw.swg
+                  ....
+
+	    - Added keyword list for most of the languages that didn't
+	      have one (using the new separated file).
+		    	    
+	    - Added the "All keywords" warning support: -Wallkw option.
+
+              This option allows you to include all the known keywords
+	      for all the supported languages, and can be used as:
+
+                 swig -Wallkw ....
+	    
+	      This will help to the process of adding a test-suite
+	      file that can be compiled in all the swig supported
+	      languages, and it will be also helpful for users who
+	      want to create multi-language libraries.
+	    
+	    And these are the detailed changes (mostly file addition):
+
+	    - For the languages that already have some sort of keyword
+	      warning list, move it to an external languagekw.swg
+	      file, ie:
+	    
+	         move keywords from python.swg -> pythonkw.swg
+	         move keywords from chicken.swg -> chickenkw.swg
+	         move keywords from tcl8.swg -> tclkw.swg
+ 
+              and re-include languagekw.swg from language.swg.
+	    
+	    - For the language that didn't have a keyword list, and
+	      for the ones that I could find a list, add the
+	      languagekw.swg file, ie:
+
+                 csharp/csharpkw.swg
+                 java/javakw.swg
+                 php4/phpkw.swg
+		 pike/pikekw.swg	 
+		 ruby/rubykw.swg
+
+
+              also add a line in language.swg to include
+	      languagekw.swg, but now it is commented!!!, like in
+	      java.swg:
+
+                  /* java keywords */
+                  /* please test and activate */
+                  //%include "javakw.swg"
+
+	      ie, there will be no change in how swig runs normally
+	      until the language maintainer test and uncomment that
+	      line.
+	      
+	      So, please check each languagekw.swg file (I left the
+	      link to the keyword list source for checking), and after
+	      testing, uncomment the %include line.
+
+	    - Added the file allkw.swg, which includes all the
+              languagekw.swg files.
+
+	      For the languages that has no languagekw.swg file right
+	      now, and if they need one, add the file into the
+	      language directory, and add the corresponding include
+	      line into the allkw.swg file.
+	      
+	    - Added the -Wallkw that includes the allkw.swg file.
+	      Note that the old -lallkw.swg option couldn't be used
+	      since it include the file after it would be needed.
+
+
+	    Hopefully, the -Wallkw option will be added to the default
+	    rules in the related test-suite Makefiles, so, when
+	    creating a new test, or adding a new swig library file
+	    (like _std_deque.i), swig will warn you if you are using a
+	    bad name, considering all the language where it needs to
+	    run.
+	    
+	    Right now you can test it by using:
+
+               make check-python-test-suite SWIG="swig -Wallkw"
+
+	    or using your favorite target language, it doesn't matter.
+
+	    And yes, there are several examples that are using
+	    reserved keywords, specially from csharp.
+          
+	    *** Remember ****: the new keyword warning lists are not
+	    included by default in any of language that before didn't
+	    have one. To enable the keyword warnings as the default
+	    behavior, the inclusion of the languagekw.swg file has to
+	    be uncommented at each language.swg file.
+
+	    So, all the language maintainers, please check the
+	    keywords list. 
+
+	    Also, you can add buit-in names, and not only keywords, like
+	    'True/False' in python.  Remember that you can be more
+	    specific and refer only to member names, like *::configure
+	    or *::cget (see an example in the tcl8/tcl8kw.swg file),
+	    or only global names, like ::range (see an example in the
+	    python/pythonkw.swg file.
+
+	    Just to be consistent, use the following codes:
+
+	    - Use code 314 for keyword and/or fatal bad names.
+	    - Use code 321 for buit-in and/or not fatal bad names.
+           
+            so, they can't be disabled/enabled independently (see
+	    python/pyhtonkw.swg for examples).
+
+	    **** And don't add any new test file without checking it
+	    with the -Wallkw option!! (that includes me) *****.
+	  
+
+12/11/2003: cheetah (William Fulton)
+            SF bug #854634
+            Added support for accepting the Unix directory separator '/' on 
+            Windows and the Mac in addition to the native one ( '\' on 
+            Windows). This can be used in %import, %include and commandline 
+            options taking a path, for example -I. On Cygwin, both the Windows
+            and Unix directory separator can now be used (was '/' only).
+            
+12/10/2003: mmatus (Marcelo Matus)
+
+            [python] Implementing the runtime "reprotected" director
+	    members, if you have:
+    
+                %feature("director") B;
+
+                class Bar {
+                public:
+                  virtual ~Bar();
+                  virtual int hello() { return do_hello();)
+
+                protected:
+                  virtual int do_hi() {return 0;}
+                  virtual int do_hello() {return 0;}
+                };
+
+            then, at the python side
+
+                import my_module
+
+                class Foo(my_module.Bar):
+                  def do_hello(self):
+                    return 1
+                  pass
+                 
+	        b = Bar() # Pure C++ Director class
+                f = Foo() # C++ Director + python methods
+
+                b.hello() # Ok, and it calls C++ Bar::do_hello()
+                f.hello() # Ok, and it calls Python Foo::do_hello()
+
+                b.do_hi() # RuntimeError, do_hi() is protected!!
+                f.do_hi() # RuntimeError, do_hi() is protected!!
+ 
+                b.do_hello() # RuntimeError, do_hello() is protected!!
+                f.do_hello() # Ok, since it its redefined in python.
+
+            Here Bar.do_hello is always protected, but Foo.do_hello
+            is "public", because it is redefined in python. Before,
+	    all the 'do_hello' methods were public.
+
+	    This seems to be a good compromise between C++ and python
+	    philosophies, ie, all the director protected methods keep
+	    protected at the user side (C++ way) until they are
+	    redefined (python way, were all defined methods are always
+	    public). And this is not only a good compromise, it also
+	    seems to be the only way to do it :).
+
+	    Now ruby has native director protected members, and python
+	    pure runtime support. I guess these are the two possible
+	    extreme cases. And hopefully, they could be used as
+	    templates to modify the other languages that support
+	    directors, so they can "reprotect" the protected director
+	    members at the target language side.
+
+	    This finished the director protected support for the 
+	    python language. Ocalm will need to add the
+	    "reprotection" later.
+
+12/10/2003: mmatus (Marcelo Matus)
+
+	    The following case (reported by Lyle Johnson) was fixed:
+
+	      %rename(x) Foo::y();
+ 
+	      class Foo { 
+	      public:
+	        void y();
+
+	      protected:
+	        int x;
+	      };
+
+	   swig warned that the symbol 'x' was already defined, and
+           the renaming fails. 'x' was not emitted, since it is
+           protected, but it was kept in the symbol table with too
+           much information.
+
+	   Now swig works for all the cases (plain, director and
+	   dirprot) again. This was fixed by allowing the parser.y to
+	   decide much closer what to do with 'x'. Before all the
+	   discarding or generation was resolved at the lang.cxx
+	   stage. Also the changes in parser.y to implement the
+	   director protected mode are now much more encapsulated, and
+	   they get disabled if the mode is not enabled. Before the
+	   deactivation was done at the generation stage (lang.cxx).
+
+	   By the other hand, if the director mode is enabled, and
+	   %rename is done, reusing a protected member name, there is
+	   a pathological case:
+
+	     %rename(x) Foo::y();
+ 
+             class Foo : public A {
+	     public:
+	       void y();
+
+	     protected:
+	       int x;            /* works */
+	       static  int x;    /* works */
+	       static  void x(); /* works */
+	       typedef void x(); /* works */
+
+	       virtual void x(); /* always fails, as it should, since
+                                    Foo::x() will be emitted in the
+                                    director */
+
+	       void x(); /* always fails, but sometimes it shouldn't,
+                            since the Foo::x() will not be emitted if
+                            it is not virtual */
+
+	     };
+
+	   The last case is not always right because at the parser.py
+	   stage it is not possible to decide if the protected member
+	   Foo::x() could or not conflict with the renamed Foo::y(),
+	   since Foo::x() could be virtual by inheritance.
+
+	   I guess this just an intrinsic limitation, and no much can
+	   be done about it without resorting into larger changes to
+	   postpone, under certain conditions, the multiply symbol
+	   detection (lang.cxx stage).
+	   
+	   So, by now, it is just considered a well known "feature" in
+	   the director protected mode. The good news is that it seems
+	   to be a rare case, and it can be avoided by the user by
+	   hiding 'x' before renaming 'y':
+
+	     %rename(_x) Foo::x();
+	     %rename(x) Foo::y();
+	   
+
+12/08/2003: mmatus (Marcelo Matus)
+	    The virtual method detections now properly
+	    treats the following cases:
+
+             namespace foo { typedef int Int; }
+	     struct A {};
+	     typedef A B;
+
+             struct Foo {
+               virtual ~Foo() {}
+
+               virtual Foo* cloner() = 0;
+	       virtual int get_value() = 0;
+	       virtual A* get_class() = 0;
+	       virtual void just_do_it() = 0;
+	     };
+
+             struct Bar : Foo
+             {
+               Bar* cloner();
+               foo::Int get_value();
+               B* get_class();
+               void just_do_it();
+             };
+ 
+            All the Foo and Bar methods are virtual.  A new attribute
+	    "virtual:type" record the base polymorphic type. In the
+	    previous cases we have:
+
+	       type : Bar       virtual:type : Foo
+	       type : foo::Int  virtual:type : int
+	       type : B         virtual:type : A
+	       type : void      virtual:type : void
+
+            This attribute is useful in languages (java+directors)
+	    that could have problems redefining Bar* Bar::cloner().
+
+	    If you never had code like the above, you will see no
+	    effects. But if you have some code like that, you
+	    will see some effects since some methods that
+	    before were not properly treated as virtual,
+	    will start to act like that. This could enlarge
+	    your director classes.
+	    
+
+12/08/2003: mmatus (Marcelo Matus)
+	    The director protected member support (dirprot)
+	    is disabled by default.
+	    
+	    It can be enable by using '-dirprot' or by adding
+	    the option to the module declaration, like:
+
+            %module(directors="1",dirprot="1") my_module
+
+	    This module option was added to properly compile the
+	    director_protected.i and director_nested.i examples.
+	    
+	    The feature has been tested with python[2.2,2.3] 
+	    and ruby[1.6.7], both at compilation and runtime, and 
+	    java[j2sdk1.4.1_01], but only at compilation (my java
+	    installation doesn't run any of the director examples,
+	    olds nor news).
+
+	    Please test for ocaml and java.
+	    
+	    The errors reported by William and Scott were fixed,
+	    except for a warning about  SWIG_JavaThrowExecption()
+	    multiply defined. I can't reproduce this error with my
+	    examples. We will wait for Scott to send us a minimal
+	    case.
+
+
+12/07/2003: mmatus (Marcelo Matus)
+	    The director protected member support has been
+	    completly moved out from python.cxx, and now
+	    resides in the common lang.cxx, emit.cxx and
+	    allocate.cxx files. 
+
+	    This means it should work for all the other languages
+	    that currently support directors, ie, python, java, ocalm
+	    and ruby.
+
+	    The change has been tested with python (compilation+runtime)
+	    and java (just compilation).
+	    
+	    Please add runtime tests for the missing languages 
+	    and test it.
+
+	    The '-nodirprot' option was moved to the principal main,
+	    and can be used from all the languages.
+
+12/07/2003: cheetah (William Fulton)
+            [Java] Fixed and improved error checking of STRING_OUT typemaps in 
+            various.i.
+
+12/04/2003: mmatus (Marcelo Matus)
+
+	    - Now the virtual members with no explicit declarator
+	    are properly identified:
+	    
+                struct A  {
+                 virtual int f() = 0;
+                };
+
+                struct B : A {
+                  int f();
+                };
+
+	    Here, B::f() is virtual, and the director and the
+	    virtual elimination mechanism now recognize that.
+
+            - [C#] This fix also fixes the problem where 'override' was not being 
+            used on any overridden virtual method, so for struct B above, 
+            this C# code is generated:
+
+                public class B : A {
+                  ...
+                  public override int f() {
+                    ...
+                  }
+                  ...
+                }
+
+	    - Initial support for protected virtual methods. They are now
+	    properly emitted when using with director (python only by
+	    now).
+	    
+                %feature("director") A;    
+                struct A  {
+                protected:
+                 virtual int f1() = 0;
+                };
+
+                %feature("director") B;
+                struct B : A{
+                protected:
+                  int f1();
+                  virtual f2();
+                };
+
+	    This can be dissabled by using the '-nodirprot' option.
+
+	    - The feature 'nodirector' is working now at the top level,
+	    so, it must work for all the languages:
+
+                %feature("director") A;
+                %feature("nodirector") A::f2;
+
+                struct A {
+                 virtual int f1();
+                 virtual int f2();
+                };
+                
+	    in this case, only 'f1' is exported to the director class.
+	    
+	    - Added director support for const TYPE& arguments (python).
+
+12/02/2003: cheetah (William Fulton)
+            [Java] Fix for INOUT and OUTPUT typemaps in typemaps.i for when the JNI type 
+            is bigger than the C type. For example, unsigned long (32bits on most systems)
+            is mapped to jlong (64bits). Returned value was incorrect. Bug reported by 
+            Brian Hawley.
+
+12/02/2003: cheetah (William Fulton)
+            [C# and Java] Better fix for entry dated 05/11/2003. Fixes the following
+            typemaps:
+
+            Java: javabase, javainterfaces, javaimports, javaclassmodifiers,
+            javaptrconstructormodifiers, javafinalize, javagetcptr & javacode.
+            C#: csbase, csinterfaces, csimports, csclassmodifiers,
+            csptrconstructormodifiers, csfinalize, csgetcptr & cscode.
+
+            It also fixes bug in using arrays of C structs with arrays_java.i 
+            as reported Scott Michel.
+
+12/02/2003: beazley
+            [Perl] Fixed [ 852119 ] recursive inheritance in output .pm, perl5.
+            Reported by William Dowling.
+
+12/02/2003: beazley
+            [Tcl] Fixed [ 755382 ] calling func(const vector<T>& p) evaluates p[0] in interp.
+            The Tcl type checker was improperly handling the interpreter result when
+            type violations were supposed to be ignored.
+            Reported by Flaviu Popp-Nowak.
+
+11/30/2003: cheetah (William Fulton)
+            Fixed [ 545058 ] configure's --with-tclincl has no effect
+
+11/30/2003: cheetah (William Fulton)
+            [Java] Fixed [ 766409 ] missing symbol SWIG_JavaThrowException during module load
+            SWIGs internal functions are all static as there is no need for different SWIG
+            generated modules to share any code at runtime.
+
+11/30/2003: beazley
+            [Tcl] Added support for C++ pointers to members.
+
+11/28/2003: cheetah (William Fulton)
+            Fixed [ 848335 ] Directors: #include wrapper .h file - was incorrectly
+            adding a directory to the generated #include "foo_wrap.h" statement
+            in some situations.
+
+11/28/2003: cheetah (William Fulton)
+            [Java] Fixed [ 849064 ] JAVA : Access modifier for derived class wrong.
+            The delete() method is always public now. It used to be protected whenever a 
+            destructor was non public. An UnsupportedOperationException runtime 
+            exception is thrown instead of making delete() protected now.
+
+11/28/2003: beazley
+            [Perl5] Added support for C++ pointers to members.
+
+11/28/2003: beazley
+            Fixed [ 850151 ] PYVERSION with python2.3 in configure of SWIG 1.3.19 (Maybe).
+
+11/28/2003: beazley
+            Fixed  [ 850666 ] #include extra line added.  
+            This should fix some problems with getting correct line numbers on
+            error messages.
+
+11/26/2003: beazley
+            Fixed another one of Marcelo's evil template bugs (infinite
+            recursion). [ 849504 ] template and typedef -> inf. recursion.
+
+11/26/2003: beazley
+            Fixed parsing problem with declarations like this:
+
+	         int *x = &somearray[0];
+
+11/25/2003: beazley
+            Fixed [ 756552 ] missing default argument class scope with "|".
+            This is really only a band-aid fix for use of class-enums in
+            expressions.  For example:
+
+                  class A {
+                  public:
+                     enum Flag { flag1 = 0x1, flag2 = 0x2 };
+                     void foo(int x = flag1 | flag2);
+                  };
+
+            Note: there are still some (more subtle) cases that are broken,
+            but hard to fix due to an issue with template expansion. Will
+            address later.
+            Reported by Dmitry Mironov.
+
+11/25/2003: beazley
+            Incorporated [ 840878 ] support for %inline { ... } (PATCH).
+            This adds support for the following:
+
+                  %inline {
+                      ... some code ...
+                  }
+
+            The difference between this and %inline %{ ... %} is that the
+            enclosed text is processed by the SWIG preprocessor.   This
+            allows special macros and other processing to be used in 
+            conjunction with %inline.
+            Contributed by Salvador Fandino Garcia.
+
+11/25/2003: beazley
+            Fixed [ 836903 ] C++ inconsistency (with void arguments).
+            SWIG was having difficulty with f() vs f(void) in C++ programs.
+            For instance:
+
+                  class A {
+                  public:
+                      virtual void f(void) = 0;
+                  };
+
+                  class B {
+                  public:
+                      virtual void f();    // Not matched to f(void) correctly
+                  }; 
+
+            The parser now normalizes all declarations of the form f(void) 
+            in C++ classes to f().  This should fix a variety of subtle 
+            problems with inheritance, optimizations, overloading, etc.
+            Problem reported by Partho Bhowmick.
+ 
+11/25/2003: beazley
+            [Perl5] Incorporated [ 841074 ] better croaking (PATCH).  This fixes some problems
+            with strings and provides some new error functions. 
+            Contributed by Salvador Fandino Garcia.
+            
+11/25/2003: beazley
+            Fixed [ 791835 ] Default argument with cast: txt = (char *)"txt" syntax Error.
+            The parser should now accept things like this:
+
+                 void foo(char *s = (char *) "Hello");
+
+            Problem reported by Claudius Schnorr.
+
+11/24/2003: beazley
+            [Tcl] Fixed problem with cross module linking.  Previously modules referred
+            to base classes through a global variable.   Now, the module looks up base
+            classes through the type system itself---avoiding the need to link to a global
+            like before.  Caveat:  modules with base classes must be loaded before
+            modules with derived classes.
+ 
+11/24/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] In -scm mode, use () to represent null pointers,
+	    as it is done in -gh mode.
+
+11/23/2003: mkoeppe (Matthias Koeppe)
+	    Add a generated script "preinst-swig", which can be used
+	    to invoke SWIG before it has been installed.  It arranges
+	    that the runtime libraries from the source directory are
+	    used. 
+
+11/23/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] In -gh mode, don't forget to call SWIG_Guile_Init.
+	    Add a SWIG_contract_assert macro.
+
+11/23/2003: mkoeppe (Matthias Koeppe)
+	    [MzScheme] Update the configure check for the dynext object to work
+	    with MzScheme 205.
+
+11/20/2003: mmatus
+	    Fixed the include/import error reported by Kerim Borchaev,
+	    where two files with names like
+
+	    'dir1/hello.i'
+	    'dir2/hello.i'
+	    
+	    can not be include at the same time. Swig was including
+	    just the first one, assuming the second one was not a
+	    different one, since it was checking/keeping just the
+	    basename 'hello.i'.
+
+11/19/2003: beazley
+            Changes to the SWIG runtime library support. 
+              -  The -c command line option has been renamed to -noruntime
+              -  New command line option: -runtime.  When supplied, this
+                 inserts the symbol SWIG_GLOBAL into the wrapper code.  This,
+                 in turn, makes all of the runtime support functions globally
+                 visible.
+               - New library file: swigrun.i.   Used to create modules
+                 for runtime library (if needed).
+    
+11/18/2003: cheetah (William Fulton)
+            'make srcrpm' rpmbuild fix - patch from Joe Cooper
+
+11/18/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Change meaning of configure option --with-guile to
+	    the name of the Guile executable.  The new option --with-guile-prefix 
+	    can be used to specify the tree where Guile is
+	    installed.  (However, usually it suffices to use the
+	    single option --with-guile-config.)  
+	    When running the run tests test-suite, make sure to use the
+	    version of Guile that SWIG was configured for.
+
+11/17/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Improvements to object-ownership management in 
+	    "-scm" mode.  (They do not apply to the default "-gh" mode.)
+	    * Renamed the smob type that indicates that the object can
+	      be garbage collected from "collected swig" to "collectable
+	      swig", which is more precise.  
+	    * Export the destructor functions again.  It is now
+ 	      allowed to explicitly call destructors, even for
+	      garbage-collected pointer objects.  A pointer object
+	      that has been passed to a destructor is marked in a
+	      special way using a new smob type, "destroyed swig".
+	      (This helps avoid nasty memory bugs, where references to
+	      dead C objects are still held in Scheme. Moreover, the
+	      garbage collector will not try to free a destroyed
+	      object once more.)
+	    * Destructor-like functions can also mark their arguments 
+	      as destroyed by applying the typemap SWIGTYPE *DESTROYED.
+	      (It calls the function SWIG_Guile_MarkPointerDestroyed.)
+	    * Functions that "consume" their objects (or that "own"
+	      them after the call) can mark their arguments as
+	      not garbage collectable.  This can be done by applying
+	      the typemap SWIGTYPE *CONSUMED.  (It calls the function
+	      SWIG_Guile_MarkPointerNoncollectable.)
+	    * The macro TYPEMAP_POINTER_INPUT_OUTPUT from library
+	      pointer-in-out.i creates additional typemaps 
+	      PTRTYPE *INPUT_CONSUMED, PTRTYPE *INPUT_DESTROYED.
+	      They mark the passed pointer object likewise.
+	      The typemap PTRTYPE *OUTPUT creates a garbage-collectable
+	      pointer object, like %newobject does for a returned 
+	      pointer.  Use the new typemap PTRTYPE *OUTPUT_NONCOLLECTABLE
+	      to create a pointer object that will not be garbage collected.
+
+11/17/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Handle $input in "freearg" typemaps.
+	    Never qualify GOOPS slot names with the class name. 
+	    Handle optional arguments properly in the GOOPS methods.
+
+11/16/2003: cheetah (William Fulton)
+            Fixes for installation to work with the upcoming Automake-1.8.
+            mkinstalldirs was being used by a non-Automake makefile. 
+            mkinstalldirs is being phased out and so was not being
+            created by Automake. install-sh used instead.
+
+11/16/2003: cheetah (William Fulton)
+            [Java] Numerous director improvements, tweaks and bug fixes since 
+            the initial implementation have been contributed by Scott Michel.
+
+11/12/2003: beazley
+            [Python] When %feature("shadow") is used to add code to shadow
+            classes, the special variable $action expands to the name of the
+            underlying wrapper function that would have been called normally.
+
+11/12/2003: beazley
+            [Python] When generating proxy class code, SWIG emits a few
+            default methods for __repr__() and other Python special
+            methods.  Some of these methods are emitted after all of the
+            contents of a class. However, this makes it hard to override
+            the methods using %pythoncode and some other directives that
+            allow code to be inserted into a class.  These special methods
+            are now emitted into the code *before* all of the other methods.
+            Suggested by Eric Jones.
+ 
+11/11/2003: beazley
+            Preprocessor enhancement.   For include statements like this:
+
+                  %include "foo/bar.i"
+
+            the directory "foo" is now added to the search path while 
+            processing the contents of bar.i.  Thus, if bar.i includes other
+            files in the same directory, they will be found. Previously,
+            you would have to add additional directories using -I to make this
+            work correctly.  Note: the C preprocessor seems to behave in
+            an identical manner on many (most? all?) systems.
+            Suggested by Kerim Borchaev.
+
+11/11/2003: beazley
+            Configuration changes to make SWIG work on Mac OSX 10.3.x (Panther).
+            Tested with Python, Tcl, Perl, and Ruby---all of which seem to work.
+
+11/08/2003: cheetah (William Fulton)
+            [Java] Fixed the typemaps in various.i which were mostly broken.
+            char **STRING_IN and char **STRING_RET typemaps replaced with 
+            STRING_ARRAY. float *FLOAT_ARRAY_RETURN typemap removed.
+
+11/08/2003: beazley
+            [Tcl] Tcl module now emits a safe module initialization function by
+            default.  It can be removed by running 'swig -nosafe'.
+
+11/04/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Only use the SCM_ API when the function
+	    `scm_slot_exists_p' exists (needed for GOOPS support).  
+	    This function was renamed during the Guile 1.5 series
+	    from `scm_slots_exists_p'.
+	    Report the right runtime library when invoked with
+	    -scm -ldflags.
+
+11/03/2003: mkoeppe (Matthias Koeppe)
+	    [Chicken] Fix #782052.  The --with-chickencfg configure
+	    option (and others) were not accepted.
+
+11/02/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Merge new set of GOOPS changes by John Lenz.
+	    GOOPS objects are now manipulated directly by the C code.
+	    Some fixes to typemap-GOOPS interaction.
+
+11/02/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Remove the file argument to -scmstub and -goops.
+	    The Scheme files are now always called MODULE.scm or
+	    MODULE-primitive.scm, where MODULE is the module name and 
+	    "primitive" can be changed by the -primsuffix option.
+	    The Scheme files are now placed in the directory given by
+	    the -outdir option, or the current directory.
+	    (Patch by John Lenz, slightly modified.)
+
+	    *** INCOMPATIBILITY [Guile] ***
+
+11/02/2003: mkoeppe (Matthias Koeppe)
+	    Unify the pointer-conversion runtime API.  The standard
+	    functions are:
+	     * SWIG_NewPointerObj (POINTER, TYPE, FLAGS)
+	        -- Create an scripting object that represents a typed
+		   pointer. FLAGS are language specific.
+	     * SWIG_ConvertPtr (INPUT, RESULT, TYPE, FLAGS)
+	        -- Get a pointer from the scripting object INPUT and
+		   store it in the place RESULT.  When a type mismatch 
+		   occurs, return nonzero.
+	     * SWIG_MustGetPtr (INPUT, TYPE, ARGNUM, FLAGS)
+	        -- Get a pointer from the scripting object INPUT and
+		   return it.  When a type mismatch occurs, throw an
+		   exception.  If ARGNUM > 0, report it as the 
+		   argument number that has the type mismatch.
+            [Guile]:    No changes.
+	    [MzScheme]: No changes.
+	    [Perl]:     Add the function SWIG_NewPointerObj.
+		        The function SWIG_MakePtr is kept.
+			The function SWIG_MustGetPtr is currently not
+			supported.
+	    [Python]:   Add the function SWIG_MustGetPtr.
+	    [Ruby]:     Add the function SWIG_MustGetPtr.
+	    [Tcl]:      Remove the "interp" argument of
+		        SWIG_NewInstanceObj, SWIG_ConvertPtr,
+		        SWIG_ConvertPacked, and SWIG_ConvertPtrFromString.
+			The function SWIG_MustGetPtr is currently 
+			not supported.
+	    No changes to Pike because its pointer conversion code did
+	    not look complete.  No changes to PHP4, because I did not
+	    understand its runtime code.  No changes to Chicken
+	    because major changes are expected soon anyway.  No
+	    changes to Java, OCaml, C# because they do not seem to
+	    have a pointer-conversion runtime API.
+
+            *** INCOMPATIBILITY [Tcl] ***
+
+11/02/2003: mkoeppe (Matthias Koeppe)
+	    [Perl5, PHP4, Pike, Python, Ruby, Tcl]: Use the
+	    preprocessor to rename external functions of the SWIG
+	    runtime API to follow the naming convention
+	    SWIG_<language>_<function>.  This should allow linking
+	    more than one interpreter into a program.
+
+10/31/2003: cheetah (William Fulton)
+            [C#] Fix since introducing the exception and std::string delegates.
+            The fix overcomes linker errors when using more than one SWIG module.
+            Problem reported by Andreas Schörk.
+
+10/31/2003: beazley
+            Incorporated patch: [ 823302 ] Incr Tcl support.
+            Contributed by Alexey Dyachenko.
+            Note: needs documentation.
+
+10/31/2003: beazley
+            Incorporated patch: [ 829325 ] new Python Module options and features.
+            Robin Dunn writes:
+
+            This patch makes a number of changes to the SWIG python module.
+
+            1. Add -apply option, and change the default code
+            output to use the foo(*args, **kw) calling syntax
+            instead of using apply(). If the -apply option is
+            given then code is generated as before. This is very
+            similar to Patch #737281 but the new -modern option
+            makes the second half of that patch unnecessary so it
+            is not included here.
+	    
+            2. Add -new_repr option. This is the same as my Patch
+            #797002 which I will mark as closed since it is no
+            longer needed. When this new option is used then the
+            __repr__ methods that are generated for proxy classes
+            will be more informative and give details about the
+            python class and the C++ class.
+	    
+            3. Add %feature("addtofunc"). It allows you to insert
+            one or more lines of code inside the shadow method or
+            function that is already generated, instead of
+            replacing the whole thing like %feature("shadow") does.
+            For __init__ it goes at the end, for __del__ it goes
+            at the begining and for all others the code generated
+            is expanded out to be like
+	    
+            def Bar(*args, **kwargs):
+            val = _module.Foo_Bar(*args, **kwargs)
+            return val
+	    
+            and the "addtofunc" code is inserted just before the
+            return statement. If the feature is not used for a
+            particular method or function then the shorter code is
+            generated just like before.
+	    
+            4. A little bit of refactoring to make implementing
+            addtofunc a little easier.
+	    
+            5. Added a -modern command-line flag that will cause
+            SWIG to omit the cruft in the proxy modules that allows
+            it to work with versions of Python prior to 2.2. The
+            result is a simpler, cleaner and faster python proxy
+            module, but one that requires Python 2.2 or greater. 
+
+10/31/2003: beazley 
+            Incorporated patch: [ 829319 ] XML module tweaks.
+            This adds a new command line option -xmllite that 
+            greatly reduces the amount of emitted XML code by
+            eliminating some fields mostly used in SWIG's
+            internal processing.  Contributed by Robin Dunn.
+
+10/31/2003: beazley
+            Incorporated patch: [ 829317 ] Adds DohSplitLines function.
+            Contributed by Robin Dunn.
+
+10/29/2003: beazley
+            Fixed [ 827907 ] argout objects not being wrapped properly (PATH).
+            Patch contributed by Salvador Fandiño García.
+	     
+10/29/2003: beazley
+            Fixed [ 826996 ] perl type checking ignores perl subclasses.
+            This enhancement makes it so wrapped classes and structs can
+            be subclassed in Perl and used normally. 
+            Patch contributed by Salvador Fandiño García.
+
+10/16/2003: cheetah (William Fulton)
+            [C#] IntPtr marshalled with a void* instead of int in C function 
+            declarations. The casts thus look more conventional, for example:
+
+                // old
+                DllExport double SWIGSTDCALL CSharp_get_Shape_x(int jarg1) {
+                    ...
+                    Shape *arg1 = (Shape *) 0 ;
+                    arg1 = *(Shape **)&jarg1; 
+                    ...
+                }
+                // new
+                DllExport double SWIGSTDCALL CSharp_get_Shape_x(void * jarg1) {
+                    ...
+                    Shape *arg1 = (Shape *) 0 ;
+                    arg1 = (Shape *)jarg1; 
+                    ...
+                }
+
+
+10/14/2003: beazley
+            Fixed a subtle problem with overloaded methods and smart pointers.
+            If a class has overloaded methods like this:
+
+                 class Foo {
+                 public:
+                     int bar(int x);
+                     static int bar(int x, int y);
+                 };
+
+            and the class is used as a smart pointer:
+
+                class FooPtr {
+                public:
+                     Foo *operator->();
+                };
+
+            The SWIG would try to expose the static member Foo::bar
+            through FooPtr---resulting bogus wrapper code and a compiler
+            error.
+
+            Due to the way in which overloading is handled, it is
+            extremely difficult to eliminate the static method in
+            this case.  Therefore, it is still exposed.  However,
+            the generated code now compiles and works.
+
+10/05/2003: mkoeppe (Matthias Koeppe)
+	    [Guile, MzScheme, Chicken]: Remove symbol clashes between
+	    the runtime libraries by renaming all extern common.swg
+	    functions with the preprocessor.
+
+10/05/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Added basic GOOPS support, contributed by John Lenz.
+	    See the documentation for details.
+	    
+            *** NEW FEATURE ***
+
+10/04/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] New option, -only-setters, which disables
+	    traditional getter and setter procedures for structure slots.
+
+10/03/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Added run test for reference_global_vars by John Lenz.
+
+09/30/2003: beazley
+            Partial solution to [ 792180 ] C++ smart-pointer/namespace mixup revisited.
+            The problem is not easy to fix (at least it doesn't seem so), but is
+            related to the instantiation of qualified templates inside of other
+            namespaces.   SWIG now generates an error message in this case rather
+            than generating broken wrappers.
+
+09/30/2003: beazley
+            Fixed [ 800012 ] ENTER macro from CORE/scope.h clashes with libc search.h.
+            Reported by Britton Leo Kerin.
+
+09/30/2003: beazley
+            Fixed [ 811518 ] Casting ints to doubles (w/ solution?)
+            Addresses a problem with overloading in the Perl module.
+            Reported by Gerald Dalley.
+
+09/28/2003: mkoeppe
+	    [Guile with -scm option] Fix typo in generated code for
+	    procedures-with-setters.  Reported by John Lenz.
+
+09/26/2003: beazley
+            Fixed [ 812528 ] externs not correct when throw is in signature.
+            Reported by Joseph Winston.
+            
+09/23/2003: cheetah (William Fulton)
+            SWIG was generating a number of symbols that didn't comply with 
+            the ISO C/C++ standard, in particular ISO/IEC 14882:1998(E) 17.4.3.1.2
+            where double underscores are forbidden as well as symbols starting with
+            an underscore followed by an upper case letter. Most of these have
+            been rooted out. See new section added to internals.html development
+            manual 'Symbol Naming Guidelines for Generated C/C++ Code'.
+
+09/23/2003: cheetah (William Fulton)
+            Director typemap name changes:
+            inv     => directorin
+            outv    => directorout
+            argoutv => directorargout
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+09/19/2003: mrose (Mark Rose)
+            [Python] Director constructors now default to __disown = 0, 
+	    which is the intended behavior and fixes the director_finalizer 
+	    test case under python.
+
+09/12/2003: cheetah (William Fulton)
+            [C#] - Typemaps added for std::string and const std::string &.
+                 - New delegate for creating a C# string given a char *. It
+                   can be used by calling SWIG_csharp_string_callback as shown
+                   in the std::string 'out' typemap. Useful if the return type is
+                   mapped to a C# string and the calling function is responsible 
+                   for cleaning up memory as the C# garbage collector doesn't
+                   free the memory created in C/C++ and then returned as a C# string.
+                 - The exception delegates have moved into an inner class in the
+                   intermediate class, thereby freeing up the static constructor.
+
+09/11/2003: beazley
+            (Internals)
+            Major refactoring of iteration over lists and hashes.  The
+            DOH library now uses iterators.  They work like this:
+
+                List *l = (some list);
+
+                Iterator i;
+                for (i = First(l); i.item; i = Next(i)) {
+                    // i.item contains the actual list item.
+                    // i.item is NULL at end of list
+                    ...
+                }
+
+                Hash *h = (some hash);
+                Iterator j;
+                for (j = First(h); j.item; j = Next(j)) {
+                    // j.item contains hash table item
+                    // j.key  contains hash table key
+                    // Both j.item and j.key are NULL at end
+                    ...
+                }
+ 
+            The old iteration functions Firstitem(), Nextitem(), Firstkey(),
+            and Nextkey() are gone.  
+
+            The new iterators are simpler, result in better memory use,
+            and may be faster.  Also, there are no longer any problems
+            iterating over the same list/hash in multiple places at
+            the same time.  For example, this is fine:
+
+                 Iterator i,j;
+                 for (i = First(l); i.item; i = Next(i)) {
+                    for (j = First(l); j.item; j = Next(j)) {
+                         ...
+                    }
+                 }
+
+            (This never worked in previous versions).
+            *** POTENTIAL INCOMPATIBILITY ***.  This will probably break 
+            third party extensions to SWIG (or give them further encouragement
+            to join the SWIG CVS-tree :-).
+
+09/10/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Fix memory leaks in the "list-vector.i" typemaps.
+
+09/09/2003: mkoeppe (Matthias Koeppe)
+	    [Chicken] Use C_mk_bool rather than C_mkbool.  This fixes
+	    the wrapping of boolean values for Chicken 1.10 and newer.
+	    Reported by Dave <hundo@yahoo.com> / Felix Winkelmann
+	    <felix@proxima-mt.de>.
+
+09/05/2003: cheetah (William Fulton)
+            [Java] Directors implemented for Java. In summary this is a big new feature 
+            which supports upcalls from C++ to Java. Code is generated to support C++ 
+            callbacks to call into Java and true polymorphic behaviour for Java classes 
+            derived from C++ classes. See java.html for details. Contributed by 
+            Scott Michel.
+
+09/05/2003: Tiger
+            Created contract example directory at /SWIG/Examples/contract
+            Added simple contract examples (simple_c & simple_cxx)
+            Modified contract module's output format
+
+            *** NEW FEATURE ***
+
+09/01/2003: cheetah (William Fulton)
+            Test-suite build improvements:
+            - Multiple build directories working for the test suite, so it is now
+              possible to run configure in multiple subdirectories and run the test
+              suite in each of these sub directories.
+            - 'make distclean' fixed so it doesn't bomb out on the Examples directory
+              when using multiple subdiretory builds. Required the following directories
+              to be moved:
+                Examples/GIFPlot/Perl -> Examples/GIFPlot/Perl5
+                Examples/GIFPlot/Php  -> Examples/GIFPlot/Php4
+              These new directories used to be symbolic links to the old directory.
+              Also the Examples/test-suite/Perl symbolic link has been removed.
+            - Running the test-suite, other than from the root directory, say
+              in Examples/test-suite/python will now display all the code being
+              executed.
+            - The following 3 C# compilers are detected during configure and work with 
+              the test-suite: Mono, Portable.NET and Microsoft.
+
+09/01/2003: Tiger
+            Added inheritance support for design by contract feature.
+
+09/01/2003: beazley
+            Fixed [ 794914 ] Wrong types in template specialization.
+            SWIG was not handling arguments correctly in template 
+            partial specialization.  For example,
+
+                template<class T> class Foo<T *> {
+                public:
+                    T *blah();
+                };
+
+                %template(FooInt) Foo<int *>;
+
+            in this class, the return type of blah was set to
+            'int **', but it should really be 'int *'.  This has been
+            fixed, but it will affect all prior uses of partial
+            specialization.
+ 
+09/01/2003: beazley
+            Fixed [ 786394 ] Patch for generated perl code does not compile under RedHat9.
+            Reported by Scott Finneran.
+
+09/01/2003: beazley
+            Fixed [ 791579 ] (unsigned) long long handled incorrectly (Tcl).
+            This was an error in the Tcl typemaps.i file. 
+            Reported by Kjell Wooding.
+        
+09/01/2003: beazley
+            Fixed [ 797573 ] no way to rename classes coming from C structures.
+            This problem relates to renaming of anonymous structures with a
+            typedef.  For example: 
+
+                  %rename(Bar) Foo;
+                  typedef struct {
+                     ...
+                  } Foo;
+
+            Reported by Britton Leo Kerin.
+            
+09/01/2003: beazley
+            Fixed [ 797576 ] -help seems to imply that only tcl-specific options exist.
+            Added a comment to alert user to other options.
+            Reported by Britton Leo Kerin.
+
+09/01/2003: beazley
+            Fixed [ 798205 ] Segfault in SWIG_ConvertPtr.
+            Reported by Prabhu Ramachandran.
+
+08/30/2003: mrose (Mark Rose)
+            Modified the director typemaps in python/std_complex.i to use the 
+	    new-style macro and conversion functions, which eliminated some
+	    redundant code.  Fixed a few bugs in these typemaps as well, although
+	    more testing is needed.
+
+08/29/2003: mrose (Mark Rose)
+            Completed initial support for wrapping abstract classes with directors.
+	    Constructor wrappers will be generated for abstract classes that have
+	    directors, and instances of the director classes will be created regardless
+	    of whether the proxy class has been subclassed in the target language.
+	    No checks are made during construction to ensure that all pure virtual
+	    methods are implemented in the target language.  Instead, calls to
+	    unimplemented methods will throw SWIG_DIRECTOR_PURE_VIRTUAL_EXCEPTION
+	    exceptions in C++.
+
+	    Integrated Prabhu Ramachandran's typemap patches, which provide director
+	    typemap support for enums and std::size_t, and fix a couple bugs in the 
+	    director std::vector<> typemaps.
+
+08/29/2003: cheetah (William Fulton)
+            [C#] Implemented exception handling for throwing C# exceptions from C/C++ code.
+            A few delegate functions are available for calling which then throw the C#
+            exception. Use the SWIG_CSharpThrowException function from C/C++ typemaps.
+            See the generated wrapper code or csharphead.swg for all available exceptions.
+            Example:
+
+              SWIG_CSharpThrowException(SWIG_CSharpException, "exception description");
+
+            The 'throws' typemaps are also now implemented, so code is automatically 
+            generated to convert any C++ exception into a C# System.Exception when the C++ 
+            method declares an exception specification such as:
+
+               int foo() throw(Bar);
+
+            Also any parameters that are references to a C++ class or a class passed by value
+            and are passed as a C# null will now throw a C# NullReferenceException.
+
+08/29/2003: cheetah (William Fulton)
+            [C#] Fix to match the calling convention of all pinvoke methods so that they
+            match the calling convention used by default in the C# 'static extern' declarations 
+            (__stdcall is used on Windows).
+
+08/19/2003: cheetah (William Fulton)
+            [Java] Reworked std::string typemaps. Fixes a number of string in std namespace 
+            problems. For example %template vector<string>. The templated class' get method 
+            wasn't returning a Java String, but a SWIGTYPE_p_string. Reported
+            by Zach Baum.
+
+08/15/2003: beazley
+            Fixed [ 763522 ] 1.3.19 segfault in SwigType_add_pointer/DohInsertitem.
+            Related to problem with unnamed class handling in Perl module.
+
+08/15/2003: beazley
+            Fixed [ 763563 ] Missing indication of optional arguments.
+            Tcl module.  Reported by Krzysztof Kozminski.
+
+08/15/2003: beazley
+            Fixed [ 787432 ] long param handled as int.  Tcl module
+            now uses Tcl_GetLongFromObj to convert integer values.
+
+08/11/2003: beazley
+            Fixed [ 775989 ] numeric template parameters.   There were
+            some errors in template expansion related to the use of
+            arrays where the array dimension was a template parameter.
+            It should work now.  Reported by Bryan Green.
+
+08/10/2003: mrose (Mark Rose)
+            Added a director typemap (outv) for return by value and cleaned up up a few 
+	    of the commented director typemaps.
+
+08/10/2003: mrose (Mark Rose)
+            Fixed constructor generation for director classes to ignore private
+	    constructors.  Protected constructors are also ignored for now, pending
+	    a solution to the problem of wrapping classes that only define protected
+	    constructors.
+
+08/07/2003: cheetah (William Fulton)
+            New commandline option -outdir <dir> to specify where the language specific
+            files are to be generated. This is useful for target languages like Python,
+            Java etc which generate proxy files in the appropriate language.
+            This option does not apply to the C/C++ wrapper file.
+
+08/07/2003: cheetah (William Fulton)
+            On Windows the generated files (other than the _wrap.c or _wrap.cxx files)
+            were sometimes incorrectly being generated into the current directory unless
+            the input file used the Unix path separator. The Windows path separator 
+            should now be used. Bug reported by Robert Davies.
+
+08/07/2003: beazley
+            Added array variable set typemap to Perl module.
+
+08/07/2003: beazley
+            Fixed [ 775677 ] Array init causes codegen bug..
+
+08/07/2003: beazley
+            Fixed [ 779062 ] Class"\n"::foo not supported.  SWIG
+            should now correctly handle whitespace in between 
+            namespace qualifiers.  For example "A :: Foo :: Bar".
+            
+07/31/2003: cheetah (William Fulton)
+            Fixes for parameters which are classes that are passed by value and have 
+            a default value. A copy constructor for SwigValueWrapper is required 
+            (SF #780056). Also fixed memory leak in these circumstances. These mods
+            also fix SF #780054.
+
+07/28/2003: beazley
+            Improved run-time error message for pointers in Python module.
+            Contributed by Zooko.
+
+07/10/2003: ballabio (Luigi Ballabio)
+            [Almost all languages] Wrappers for std::pair added.
+	    Typemaps for Python, Ruby, Guile and MzScheme.
+
+07/01/2003: mkoeppe (Matthias Koeppe)
+	    [Chicken] Handle the case of more than one argout typemap
+	    per function.
+
+06/29/2003: cheetah (William Fulton)
+            [Java, C#] SF #670949 request. The destructor wrapper function name is now 
+            configurable.  A new attribute called methodname in the 
+            javadestruct/javadestruct_derived (Java) or csdestruct/csdestruct_derived (C#)
+            typemaps specifies the method name. For example in Java the destructor is 
+            wrapped by default with the delete method:
+
+                %typemap(javadestruct, methodname="delete") SWIGTYPE {...}
+
+06/27/2003: cheetah (William Fulton)
+            [Java, C#] The throws attribute for adding exception classes to the throws
+            clause also now works with the following typemaps: 
+            newfree
+            javain, javaout (Java)
+            csin, csout (C#)
+
+            For example, the 'AnException' will be added to the throws clause in the
+            proxy function:
+
+            %typemap(javaout, throws="AnException") int {
+                int returnValue=$jnicall;
+                if (returnValue==0) throw new AnException("Value must not be zero");
+                return returnValue;
+            }
+
+06/25/2003: mrose (Mark Rose)
+            [Python] Director typemap marshalling checks for null pointers when
+	    walking the parameter list instead of relying soley on the parameter
+	    count.  Cures a segfault that occured for multiple argument inv typemaps.
+	    Someone with more Swig experience should probably review this code.
+
+06/24/2003: mkoeppe (Matthias Koeppe)
+	    [Chicken] Don't emit calls to "C_check_for_interrupt",
+	    which may result in an endless loop.  Patch by felix@proxima-mt.de.
+
+06/20/2003: cheetah (William Fulton)
+            [C#] Finalizers now use destructor syntax as the override which was used in 
+            the Finalize method is not in the ECMA standards, spotted by the MS compiler.
+
+06/10/2003: cheetah (William Fulton)
+            [C#] A number of changes have been made to remove the Java naming 
+            that was used in the C# module.
+            
+            Typemap name changes:
+            jni                         -> ctype
+            jtype                       -> imtype
+            jstype                      -> cstype
+            javain                      -> csin
+            javaout                     -> csout
+            javainterfaces              -> csinterfaces
+            javabase                    -> csbase
+            javaclassmodifiers          -> csclassmodifiers
+            javacode                    -> cscode
+            javaimports                 -> csimports
+            javaptrconstructormodifiers -> csptrconstructormodifiers
+            javagetcptr                 -> csgetcptr
+            javafinalize                -> csfinalize
+
+            Feature name changes:
+            javaconst                   -> csconst
+            javamethodmodifiers         -> csmethodmodifiers
+
+            Pragma changes:
+            pragma(java)                -> pragma(csharp)
+            jniclassbase                -> imclassbase
+            jniclassclassmodifiers      -> imclassclassmodifiers
+            jniclasscode                -> imclasscode
+            jniclassimports             -> imclassimports
+            jniclassinterfaces          -> imclassinterfaces
+
+            Special variable name changes:
+            $javaclassname              -> $csclassname
+            $javainput                  -> $csinput
+            $jnicall                    -> $imcall
+
+            This will break SWIG interface files that use these typemaps, features
+            and pragmas. Please update your code or use macros for backwards
+            compatibility.
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+
+06/10/2003: mkoeppe (Matthias Koeppe)
+	    [MzScheme] Applied MzScheme module updates contributed by
+	    John Lenz <jelenz@students.wisc.edu>.
+
+            - Updated mzscheme to use SWIG's common runtime type
+              system from common.swg. 
+
+	    - The Lib/mzscheme directory has been reorganized to
+              standardize names across the language modules:
+              mzscheme.i was moved to mzscheme.swg, mzscheme.swg and
+              mzschemedec.swg have been removed, mzrun.swg (which
+              contains the runtime code) has been added.
+
+            - The swig_proxy structure was renamed to swig_mz_proxy.
+              swig_mz_proxy now contains a pointer to a swig_type_info
+              structure.  
+
+	    - Added varin and varout typemaps for SWIGTYPE [] and
+              SWIGTYPE &.
+
+	    - Garbage collection by calling scheme_add_finalizer() has
+              been added.
+
+	    *** NEW FEATURE [MzScheme] ***
+
+06/10/2003: cheetah (William Fulton)
+            [Java] New typemaps: javadestruct and javadestruct_derived
+            for the C++ destructor wrapper. The javadestruct version gets used by
+            classes at the top of an inheritance chain and the javadestruct_derived 
+            version gets used by other classes.
+
+            [C#] cildispose and cildisposeoverride typemaps replaced by
+            csdestruct and csdestruct_derived typemaps. The delete()
+            method has been removed and its functionality put into these
+            typemaps designed for the Dispose() method.
+
+            - New typemaps csinterfaces and csinterfaces_derived replace
+            the javainterfaces typemap. Also fixes the peculiarity of all classes
+            in an inheritance chain individually deriving from the IDisposable 
+            interface.
+
+            - New typemap csfinalize for finalizers. C++ destructors are now called
+            by garbage collector during finalization. Problem reported by 
+            Andreas Schörk.
+
+06/10/2003: Tiger
+	    Modified contract code for error message output.
+            Contract code can now print out simple error message.
+            Modified contract code to prepare for inheritance
+            
+06/03/2003: mkoeppe
+	    [Guile] Applied Guile module updates contributed by 
+	    John Lenz <jelenz@students.wisc.edu>. 
+
+	    - SWIG currently uses Guile's gh_ API, which is marked as
+	      deprecated in Guile 1.6 and will be removed in Guile
+	      1.9.  This change introduces a command-line flag "-scm"
+	      which causes SWIG to generate wrappers that use Guile's
+	      SCM API instead; this requires Guile >= 1.6.
+	    
+	    - The Lib/guile directory has been reorganized to
+              standardize names across language modules: guiledec.swg
+              and guile.swg have been moved into guile_gh_run.swg,
+              guile.i has been moved to guile_gh.swg, guile_scm.swg
+              and guile_scm_run.swg which contain the SCM API stuff
+              have been added
+
+	    - ghinterface.i, which contains the defines from the gh_
+              functions to the scm_functions has been added
+
+	    - The API for dealing with pointer objects is now
+	      SWIG_ConvertPtr, SWIG_MustGetPtr, SWIG_NewPointerObj.
+
+            - Added varin and varout typemaps for SWIGTYPE [] and SWIGTYPE &
+
+            - Garbage collection has been added.
+
+            *** NEW FEATURE [Guile] ***
+	    	
+06/01/2003: cheetah (William Fulton)
+            Dimensionless arrays such as 
+
+                int foo[] = {1, 2};
+                extern int bar[];
+
+            produce a warning that the variable is read-only. Depending on the target
+            language, this used to cause compile errors or generate a setter that
+            generated a runtime error. A setter cannot be automatically generated
+            because the array size cannot be determined by SWIG. A varin, globalin 
+            or memberin typemap (depending on the target language) must be written 
+            by the user.
+
+05/29/2003: beazley
+            Refinement to default typemap matching and arrays.  When an
+            array is declared like this:
+
+                       int foo[4];
+
+            The default typemap now resolves to 
+
+                       SWIGTYPE [ANY]
+
+            If no match is found for that, it then resolves to
+
+                       SWIGTYPE []
+
+            If no array dimension is specified in the original declaration,
+            the SWIGTYPE [] is used right away. 
+
+            Note: This change has been made to resolve problems related to
+            arrays with and without dimensions.  For example, sometimes SWIG
+            was generating setter functions for array variables with no dimensions
+            (an error). Likewise, SWIG sometimes made arrays with dimensions
+            read-only (also an error).  This fixes the arrays_global test
+            problem.
+                        
+05/28/2003: beazley
+            Fixed subtle type handling bug with references and pointers.
+            If you had functions like this:
+
+                  typedef Foo Bar;
+
+                  Foo *func1();
+                  void func2(Bar &x);
+
+            Then func2() wouldn't accept objects returned by func1()
+            because of a type error.   It should work now.
+            Reported by Brian Yang.
+
+05/21/2003: cheetah (William Fulton)
+            Fixes to some of the Visual C++ example project files which would not 
+            work with spaces in the paths held in the environment variables used to 
+            point to the target language's library / include directory.
+            SF bug #740769
+
+05/21/2003:  songyanf (Tiger)
+            Added -contracts option.
+            First try of the idea of "Wrap by Contract": 
+            build up realiable cross-language module by wrapping with SWIG.
+            Implemented basic assertion
+            (preassertion & postassertion & invariant)
+            for simple C/C++ functions.
+            
+            Current format of contracts are:
+            %contract class_name :: func_name (paras...) {
+            require:
+                   boolean exprs;
+                   exprs;
+            ensure:
+                   boolean expr;
+                   exprs;
+            invariant:
+                   boolean expr;
+                   exprs;
+            }
+
+            *** NEW FEATURE ***
+	    	
+05/19/2003: cheetah (William Fulton)
+            Build tweaks. There were a few preprocessor definitions which were
+            specified in the Makefile for passing on the commandline when compiling.
+            These are now all defined in swigconfig.h. Autoconf doesn't normally 
+            allow installation directories to be defined in this config header file, 
+            but an autoconf archive macro enables this. This macro along with future 
+            autoconf macros are going to be put in the Tools/config directory.
+
+            'swig -version' now reports the target build platform.
+
+05/11/2003: cheetah (William Fulton)
+            [C# and Java] Fix to the following typemaps:
+
+            javabase, javainterfaces, javaimports, javaclassmodifiers,
+            javaptrconstructormodifiers, javafinalize, javagetcptr & javacode.
+
+            These are the typemaps for modifying/generating proxy classes.
+            Previously the typemaps would use the proxy class name and not the 
+            C++ type, which was inconsistent with all other typemaps. 
+
+            In most circumstances the proxy class name and the C++ class name/type 
+            is the same except for classes in namespace, templated classes etc. so
+            this shouldn't affect most cases.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA and C# MODULES ***
+
+05/09/2003: cheetah (William Fulton)
+            Visual C++ Project files have been added so that the runtime libraries
+            can be built on Windows (for Tcl, Perl, Python and Ruby).
+
+05/01/2003: beazley
+            Fixed problem with return by value, const, and private constructors.
+            For example:
+
+                class B {
+                private:
+                   B();
+                public:
+                   B(const B&);
+                };
+
+                class A {
+                   ...
+                   const B returnB() const;
+                   ...
+                };
+
+            Problem and patch suggestion reported by Bill Hoffman.
+
+04/29/2003: cheetah (William Fulton)
+            Build changes:
+            - Single autoconf invocation - autoconf in the Tools directory has gone.
+
+            - Libtool bootstrapped when running autogen.sh. This requires anyone
+              using the cvs version of SWIG to have libtool installed on their
+              machine. Suggest version 1.4.2 or higher, preferably the latest - 1.5.
+
+            - Automake is now used to build the runtime libraries in conjunction 
+              with libtool.
+
+            - Runtime libraries are now successfully built as DLLs on Cygwin.
+
+            - Skipping languages is no longer just determined in the top level 
+              makefile but in configure.in. This info is used for building
+              the runtime libraries and for running the examples and test-suite.
+
+            - These changes have fixed multiple build directory builds, that is
+              building from directories other than the top level directory. 
+              Installation from multiple build directories also working. An initial
+              configure in the top level directory is no longer needed as described
+              in 04/02/2003 entry. A 'make distclean' will be needed before building
+              in a directory other than the top level directory if the autotools 
+              have been run from this top level directory at some point, but 
+              autoconf will tell you this. Note that 'make check' only works from 
+              the top level directory at the moment.
+
+04/28/2003: beazley
+            Fixed [ 723471 ] Wrapper_print() fails with preprocessor directives.
+
+04/28/2003: beazley
+            Minor refinement of const static member variable handling 
+            described in CHANGES 08/11/2002.   Previously, SWIG merely
+            checked to see if there was an initializer in the declaration.
+            Now, SWIG additionally checks to make sure the static member
+            is const.
+
+04/25/2003: ljohnson (Lyle Johnson)
+            [Ruby] Added a kind of limited support for multiple inheritance,
+            activated using the -minherit command-line option. I've also updated
+            the "C++ Inheritance" section of the Ruby documentation to discuss
+            how this works, and its limitations. Also also modified the minherit.i
+            test case to run against this.
+
+04/25/2003: ljohnson (Lyle Johnson)
+            [Ruby] Added the -globalmodule command-line option for the Ruby
+            module, for wrapping stuff into the global module (Kernel) instead
+            of a nested module. Updated documentation accordingly.
+
+04/23/2003: mrose (Mark Rose)
+            Fixed symname error in director calls to Python methods
+	    that extend C++ operators.
+
+	    Stopped director destructor wrappers from calling __set_up,
+	    which was leaving the director flag in an inconsistent state.
+
+04/23/2003: beazley
+            Fixed problem with namespace resolution and nested namespaces.
+            Reported by Alfred Lorber (and Marcelo Matus).
+
+04/16/2003: cheetah (William Fulton)
+            Patch for Java examples and test-suite to run on Mac OS X.
+
+04/15/2003: ljohnson (Lyle Johnson)
+            [Ruby] Incorporated Nobu Nakada's patches for supporting the Ruby
+            1.8 allocation framework.
+
+04/15/2003: ljohnson (Lyle Johnson)
+            [Ruby] Replaced all uses of the deprecated STR2CSTR() macro with the
+            safer StringValuePtr() macro. For more information, see ruby-talk:67059
+            and follow-ups to that post.
+
+04/11/2003: beazley
+            Fixed problem with preprocessor macro expansion.  For example:
+ 
+                #define min(x,y) ((x) < (y)) ? (x) : (y) 
+                int f(int min);
+
+            Reported by Sebastien Recio.
+
+04/10/2003: cheetah (William Fulton)
+            [Java] Added a runtime check to typemaps in arrays_java.i library to check 
+            that the Java array passed in is the same size as the C array and throw an 
+            exception if not.
+
+            Also fix to use delete instead of free for arrays created using new.
+
+04/07/2003: cheetah (William Fulton)
+            Remove GCC3 warning when compiling the examples and test-suite:
+
+              cc1plus: warning: changing search order for system directory "/usr/include"
+              cc1plus: warning: as it has already been specified as a non-system directory 
+
+            See SF patch #715531 submitted by Gerald Williams
+
+04/03/2003: cheetah (William Fulton)
+            [C#] Improved wrapping of enums and constants. These were previously
+            wrapped as C# variables rather than constants. Either these are wrapped
+            as readonly (runtime) constants or compile time constants, depending on
+            the %javaconst directive (The directive is likely to change name soon).
+            For example wrapping:
+              %javaconst(0);
+              #define ABC 22
+              %javaconst(1) XYZ;
+              #define XYZ 33
+            is now:
+              public static readonly int ABC = examplePINVOKE.get_ABC();
+              public const int XYZ = 33;
+
+04/03/2003: cheetah (William Fulton)
+            [Java] Global constants and enums are put in their own interface called
+            xxxConstants, where xxx is the module name. This is an improvement as 
+            it is possible to derive (implement) a Java class from the xxxConstants
+            interface to improve the syntax; namely when wrapping:
+              enum {ONE=1, TWO, THREE};
+            accessing these from a Java class implementing xxxConstants is neater:
+              int number = ONE;
+            than the previous:
+              int number = xxx.ONE;
+
+            Patch submitted by Dave Dribin.
+
+04/02/2003: cheetah (William Fulton)
+            Build improvements for multiple builds. This allows one to build
+            the SWIG executable and runtime libraries for different platforms/compilers 
+            etc by running configure in different directories. This isn't 100% just 
+            yet and won't be until libtool is better configured... a 'configure' and 
+            'make distclean' needs to be run in the root directory before it all works.
+            For example:
+              $ ./configure
+              $ make distclean
+              $ mkdir config1; cd config1; ../configure CC=gcc CXX=g++; make; cd ..
+              $ mkdir config2; cd config2; ../configure CC=cc CXX=c++; make; cd ..
+            
+            To be improved. A 'make check' does not work yet either. 
+
+04/01/2003: beazley
+            Fixed template partial specialization argument expansion bug.
+            This showed up when trying to use std_vector.i with vectors
+            of pointers.
+
+03/31/2003: cheetah (William Fulton)
+            Fix for parallel make builds of SWIG, for example
+              make -j 4
+            Build failure reported by Bill Clarke.
+
+03/28/2003: beazley
+            Released 1.3.19.
+
+
 
 Version 1.3.19 (March 28, 2003)
 ===============================
