@@ -1514,9 +1514,6 @@ int Language::classDirectorDefaultConstructor(Node *n) {
 
 
 
-/* ----------------------------------------------------------------------
- * Language::unrollVirtualMethods()
- * ---------------------------------------------------------------------- */
 static
 String *vtable_method_id(Node *n)
 {
@@ -1532,6 +1529,9 @@ String *vtable_method_id(Node *n)
 }
 
 
+/* ----------------------------------------------------------------------
+ * Language::unrollVirtualMethods()
+ * ---------------------------------------------------------------------- */
 int Language::unrollVirtualMethods(Node *n, 
                                    Node *parent, 
                                    Hash *vm, 
@@ -1594,6 +1594,16 @@ int Language::unrollVirtualMethods(Node *n,
 	Hash *item = NewHash();
 	Setattr(item, "fqName", fqname);
 	Node *m = Copy(ni);
+
+        /* Store the complete return type - needed for non-simple return types (pointers, references etc.) */
+        SwigType *ty = NewString(Getattr(m,"type"));
+        SwigType_push(ty,decl);
+        if (SwigType_isqualifier(ty)) {
+          SwigType_pop(ty);
+        }
+        Delete(SwigType_pop_function(ty));
+        Setattr(m,"returntype", ty);
+
 	String *mname = NewStringf("%s::%s", Getattr(parent,"name"),name);
 	/* apply the features of the original method found in the base class */
 	Swig_features_get(Swig_cparse_features(), 0, mname, Getattr(m,"decl"), m);
