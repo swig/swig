@@ -17,8 +17,16 @@ tree (maybe).
 Version 1.3.10 (In progress)
 ============================
 
+10/25/2001: beazley
+           Modified Guile and Mzscheme modules to support
+           multi-argument typemaps.
+
 10/25/2001: cheetah (william fulton)
            [Java] Fix to handle pointers to arrays.
+
+10/24/2001:beazley
+           Defining a typemap rule for enum SWIGENUM can now be used
+           to define default behavior for enum variables.
 
 10/22/2001:beazley
            Ruby module modified to support multi-argument typemaps.
