@@ -158,7 +158,7 @@ If you have used typedef to change type-names, you can also do this :
                 double            NONPOSITIVE,
                 Number            NONPOSITIVE
 {
-  if ($target < 0) {
+  if ($target > 0) {
     SWIG_exception(SWIG_ValueError,"Expected a non-positive value.");
   }
 }
