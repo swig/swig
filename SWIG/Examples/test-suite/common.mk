@@ -66,6 +66,7 @@ CPP_TEST_CASES += \
 	abstract_virtual \
 	add_link \
 	anonymous_arg \
+	anonymous_bitfield \
 	argout \
 	arrayref \
 	arrays_global \
