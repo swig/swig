@@ -272,7 +272,8 @@ class Allocate : public Dispatcher {
       } else if (Strcmp(nodeType(c),"cdecl") == 0) {
 	if (!Getattr(c,"feature:ignore")) {
 	  String *storage = Getattr(c,"storage");
-	  if (!((Cmp(storage,"typedef") == 0))) {
+	  if (!((Cmp(storage,"typedef") == 0))
+	      && !((Cmp(storage,"friend") == 0))) {
 	    String *name = Getattr(c,"name");
 	    String *symname = Getattr(c,"sym:name");
 	    Node   *e    = Swig_symbol_clookup_local(name,0);
@@ -321,7 +322,6 @@ class Allocate : public Dispatcher {
 		  } else {
 		    Append(methods,cp);
 		  }
-		  Delete(cp);
 		  cc = Getattr(cc,"sym:nextSibling");
 		}
 	      }
