@@ -782,7 +782,7 @@ class JAVA : public Language {
     Swig_typemap_attach_parms("jtype", l, f);
     if (director_method) {
       Setattr(n, "tmap:inv", Swig_typemap_lookup_new("inv", n, "", 0));
-      Swig_typemap_attach_parms("directorin", l, 0);
+      Swig_typemap_attach_parms("javadirectorin", l, 0);
     }
 
     /* Get return types */
@@ -2691,7 +2691,7 @@ class JAVA : public Language {
     Swig_typemap_attach_parms("jni", l, w);
     Swig_typemap_attach_parms("jtype", l, w);
     Swig_typemap_attach_parms("inv", l, 0);
-    Swig_typemap_attach_parms("directorin", l, 0);
+    Swig_typemap_attach_parms("javadirectorin", l, 0);
 
     /* Get the JNI field descriptor for this return type */
 
@@ -2887,7 +2887,7 @@ class JAVA : public Language {
             if ((tm = Getattr(p, "tmap:jtype")) != NULL) {
               String         *din;
 
-              if ((din = Copy(Getattr(p, "tmap:directorin"))) != NULL) {
+              if ((din = Copy(Getattr(p, "tmap:javadirectorin"))) != NULL) {
                 String *darg = NewStringf("d%s", ln);
                 String *darg_init = NULL;
                 Node *canon_type = canonicalizeType(n, pt);
@@ -2915,8 +2915,8 @@ class JAVA : public Language {
                 if (darg_init)
                   Delete(darg_init);
               } else {
-                Swig_warning(WARN_JAVA_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
-                             "No directorin typemap defined for %s\n", SwigType_str(pt,0));
+                Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF, input_file, line_number, 
+                             "No javadirectorin typemap defined for %s\n", SwigType_str(pt,0));
                 output_director = false;
               }
             } else {
@@ -2980,7 +2980,7 @@ class JAVA : public Language {
     if (!is_void) {
       Parm   *tp = NewParm(return_type, empty_str);
 
-      tm = Swig_typemap_lookup_new("directorout", tp, "", 0);
+      tm = Swig_typemap_lookup_new("javadirectorout", tp, "", 0);
       if (tm != NULL) {
         Node *canon_type = canonicalizeType(n, return_type);
         String *canon_name = Getattr(canon_type, "sym:name");

@@ -28,8 +28,8 @@ class string;
 %typemap(jni) string "jstring"
 %typemap(jtype) string "String"
 %typemap(jstype) string "String"
-%typemap(directorin) string "$jniinput"
-%typemap(directorout) string "$javacall"
+%typemap(javadirectorin) string "$jniinput"
+%typemap(javadirectorout) string "$javacall"
 
 %typemap(in) string 
 %{if($input) {
@@ -61,8 +61,8 @@ class string;
 %typemap(jni) const string & "jstring"
 %typemap(jtype) const string & "String"
 %typemap(jstype) const string & "String"
-%typemap(directorin) const string & "$jniinput"
-%typemap(directorout) const string & "$javacall"
+%typemap(javadirectorin) const string & "$jniinput"
+%typemap(javadirectorout) const string & "$javacall"
 
 %typemap(in) const string & 
 %{$1 = NULL;
@@ -119,8 +119,8 @@ class wstring;
 %typemap(jni) wstring "jstring"
 %typemap(jtype) wstring "String"
 %typemap(jstype) wstring "String"
-%typemap(directorin) wstring "$jniinput"
-%typemap(directorout) wstring "$javacall"
+%typemap(javadirectorin) wstring "$jniinput"
+%typemap(javadirectorout) wstring "$javacall"
 
 %typemap(in) wstring
 %{if($input) {
@@ -170,8 +170,8 @@ class wstring;
 %typemap(jni) const wstring & "jstring"
 %typemap(jtype) const wstring & "String"
 %typemap(jstype) const wstring & "String"
-%typemap(directorin) const wstring & "$jniinput"
-%typemap(directorout) const wstring & "$javacall"
+%typemap(javadirectorin) const wstring & "$jniinput"
+%typemap(javadirectorout) const wstring & "$javacall"
 
 %typemap(in) const wstring & 
 %{$1 = NULL;

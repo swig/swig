@@ -182,34 +182,34 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 %typemap(jstype) float[ANY]              "float[]"
 %typemap(jstype) double[ANY]             "double[]"
 
-%typemap(directorin) bool[ANY],
-                     signed char[ANY],
-                     unsigned char[ANY],
-                     short[ANY],
-                     unsigned short[ANY],
-                     int[ANY],
-                     unsigned int[ANY],
-                     long[ANY],
-                     unsigned long[ANY],
-                     long long[ANY],
-                     /* unsigned long long[ANY], */
-                     float[ANY],
-                     double[ANY]
+%typemap(javadirectorin) bool[ANY],
+                         signed char[ANY],
+                         unsigned char[ANY],
+                         short[ANY],
+                         unsigned short[ANY],
+                         int[ANY],
+                         unsigned int[ANY],
+                         long[ANY],
+                         unsigned long[ANY],
+                         long long[ANY],
+                         /* unsigned long long[ANY], */
+                         float[ANY],
+                         double[ANY]
   "$jniinput"
 
-%typemap(directorout) bool[ANY],
-                      signed char[ANY],
-                      unsigned char[ANY],
-                      short[ANY],
-                      unsigned short[ANY],
-                      int[ANY],
-                      unsigned int[ANY],
-                      long[ANY],
-                      unsigned long[ANY],
-                      long long[ANY],
-                      /* unsigned long long[ANY], */
-                      float[ANY],
-                      double[ANY]
+%typemap(javadirectorout) bool[ANY],
+                          signed char[ANY],
+                          unsigned char[ANY],
+                          short[ANY],
+                          unsigned short[ANY],
+                          int[ANY],
+                          unsigned int[ANY],
+                          long[ANY],
+                          unsigned long[ANY],
+                          long long[ANY],
+                          /* unsigned long long[ANY], */
+                          float[ANY],
+                          double[ANY]
   "$javacall"
 
 /* Arrays of primitive types use the following macro. The array typemaps use support functions. */

@@ -8,8 +8,8 @@
 %typemap(jni) char **STRING_IN "jobjectArray"
 %typemap(jtype) char **STRING_IN "String[]"
 %typemap(jstype) char **STRING_IN "String[]"
-%typemap(directorin) char **STRING_IN "$jniinput"
-%typemap(directorout) char **STRING_IN "$javacall"
+%typemap(javadirectorin) char **STRING_IN "$jniinput"
+%typemap(javadirectorout) char **STRING_IN "$javacall"
 %typemap(in) char **STRING_IN {
   int i;
   jsize sz = JCALL1(GetArrayLength, jenv, $input);
@@ -37,8 +37,8 @@
 %typemap(jni) char **STRING_OUT "jobjectArray"
 %typemap(jtype) char **STRING_OUT "String[]"
 %typemap(jstype) char **STRING_OUT "String[]"
-%typemap(directorin) char **STRING_OUT "$jniinput"
-%typemap(directorout) char **STRING_OUT "$javacall"
+%typemap(javadirectorin) char **STRING_OUT "$jniinput"
+%typemap(javadirectorout) char **STRING_OUT "$javacall"
 %typemap(in) char **STRING_OUT (char *s) 
 %{ $1 = &s; %}
 %typemap(argout) char **STRING_OUT {
@@ -54,8 +54,8 @@
 %typemap(jni) char **STRING_RET "jarray"
 %typemap(jtype) char **STRING_RET "String[]"
 %typemap(jstype) char **STRING_RET "String[]"
-%typemap(directorin) char **STRING_RET "$jniinput"
-%typemap(directorout) char **STRING_RET "$javacall"
+%typemap(javadirectorin) char **STRING_RET "$jniinput"
+%typemap(javadirectorout) char **STRING_RET "$javacall"
 %typemap(out) char **STRING_RET {
   if($1 != NULL) {
     char **p = $1;
@@ -82,8 +82,8 @@
 %typemap(jni) float *FLOAT_ARRAY_RETURN "jfloatArray"
 %typemap(jtype) float *FLOAT_ARRAY_RETURN "float[]"
 %typemap(jstype) float *FLOAT_ARRAY_RETURN "float[]"
-%typemap(directorin) float *FLOAT_ARRAY_RETURN "$jniinput"
-%typemap(directorout) float *FLOAT_ARRAY_RETURN "$javacall"
+%typemap(javadirectorin) float *FLOAT_ARRAY_RETURN "$jniinput"
+%typemap(javadirectorout) float *FLOAT_ARRAY_RETURN "$javacall"
 %typemap(out) float *FLOAT_ARRAY_RETURN {
   if($1) {
      float *fp = $1;
@@ -115,8 +115,8 @@
 %typemap(jni) char *BYTE "jbyteArray"
 %typemap(jtype) char *BYTE "byte[]"
 %typemap(jstype) char *BYTE "byte[]"
-%typemap(directorin) char *BYTE "$jniinput"
-%typemap(directorout) char *BYTE "$javacall"
+%typemap(javadirectorin) char *BYTE "$jniinput"
+%typemap(javadirectorout) char *BYTE "$javacall"
 %typemap(in) char *BYTE {
     $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0); 
 }

@@ -100,8 +100,8 @@
 <li><a href="#n67">Director-specific typemaps</a>
 <ul>
 <li><a href="#n68">%typemap(inv)</a>
-<li><a href="#n69">%typemap(directorin)</a>
-<li><a href="#n70">%typemap(directorout)</a>
+<li><a href="#n69">%typemap(javadirectorin)</a>
+<li><a href="#n70">%typemap(javadirectorout)</a>
 </ul>
 <li><a href="#n71">Director method recursion</a>
 </ul>
@@ -4160,8 +4160,8 @@ public class director_derived extends director_example
 <p>
 The Java directors feature requires the <a
 href="#java_directors_inv"><code>%typemap(inv)</code></a>, the <a
-href="#java_directors_din"><code>%typemap(directorin)</code></a> and the <a
-href="#java_directors_dout"><code>%typemap(directorout)</code></a> type maps in
+href="#java_directors_din"><code>%typemap(javadirectorin)</code></a> and the <a
+href="#java_directors_dout"><code>%typemap(javadirectorout)</code></a> type maps in
 order to work properly.
 </p>
 
@@ -4197,34 +4197,34 @@ order to work properly.
   Java will generate a "method not found" warning.
 </p>
 
-<a name="n69"></a><H4>15.9.2.2 %typemap(directorin)</H4>
+<a name="n69"></a><H4>15.9.2.2 %typemap(javadirectorin)</H4>
 
 
 <p>
   This typemap specifies argument conversion in the generated Java upcall code.
-  Normally, this typemap should be specified as: <pre>%typemap(directorin)
+  Normally, this typemap should be specified as: <pre>%typemap(javadirectorin)
   user_def_class_here "$jniinput"</pre> <code>$jniinput</code> is the variable
   name passed from JNI to the intermediate class method's upcall code. For the
   default typemaps provided by the Java module, nothing special is done. The
   default handling for pointers and references, such as the <code>SWIGTYPE
-  &amp;</code> directorin typemap, a temporary object is created to encapsulate
+  &amp;</code> javadirectorin typemap, a temporary object is created to encapsulate
   the corresponding C++ object.
 </p>
 
-<a name="n70"></a><H4>15.9.2.3 %typemap(directorout)</H4>
+<a name="n70"></a><H4>15.9.2.3 %typemap(javadirectorout)</H4>
 
 
 <p>
   This typemap specifies argument conversion from the generated Java
   upcall code. Normally, this typemap should be specified as:
   <br>
-  <pre>%typemap(directorout) user_def_class_here "$javacall"</pre>
+  <pre>%typemap(javadirectorout) user_def_class_here "$javacall"</pre>
   <br>
   $javacall is the SWIG-generated call to the derived class's
   method, which is about to be upcalled. For the default typemaps
   provided by the Java module, nothing special is done. The default
   handling for pointers and references, such as <code>SWIGTYPE &amp;</code>
-  directorout typemap, the pointer is extracted from the object returned
+  javadirectorout typemap, the pointer is extracted from the object returned
   by the derived class's method call and returned back to the C++ code.
 </p>
 
