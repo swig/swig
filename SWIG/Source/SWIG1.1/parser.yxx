@@ -103,6 +103,12 @@ static int             cplus_mode;
 #define  CPLUS_PRIVATE   2
 #define  CPLUS_PROTECTED 3
 
+/* Storage classes */
+
+#define  STORAGE_EXTERN     1
+#define  STORAGE_EXTERN_C   2
+#define  STORAGE_STATIC     3
+
 /* -----------------------------------------------------------------------------
  *                           Assist functions
  * ----------------------------------------------------------------------------- */
@@ -127,11 +133,11 @@ static TMParm *NewTMParm() {
   return tmp;
 }
 
-// --------------------------------------------------------------------------
-// swig_pragma(char *lang, char *name, char *value)
-//
-// Handle swig pragma directives.  
-// --------------------------------------------------------------------------
+/* --------------------------------------------------------------------------
+ * swig_pragma()
+ *
+ * Handle swig pragma directives.  
+ * -------------------------------------------------------------------------- */
 
 void swig_pragma(char *lang, char *name, char *value) {
   if (strcmp(lang,"swig") == 0) {
@@ -161,11 +167,11 @@ static void emit_extern_func(char *decl, SwigType *t, ParmList *L, int extern_ty
     Printf(f,"%s", SwigType_str(t,0));
     Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
     break;
-  case 1:
+  case STORAGE_EXTERN:
     Printf(f,"extern %s", SwigType_str(t,0));
     Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
     break;
-  case 2:
+  case STORAGE_EXTERN_C:
   /* A C++ --- > C Extern */
     Printf(f,"extern \"C\" %s", SwigType_str(t,0));
     Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
@@ -206,11 +212,7 @@ int add_symbol(char *name) {
    return 0;
 }
 
-/* -----------------------------------------------------------------------------
- * promote()
- *
- * Type-promotion for binary operators.
- * ----------------------------------------------------------------------------- */
+/* Perform type-promotion for binary operators */
 
 static int promote(int t1, int t2) {
   if ((t1 == T_ERROR) || (t2 == T_ERROR)) return T_ERROR;
@@ -224,27 +226,26 @@ static int promote(int t1, int t2) {
   if ((t1 == T_SHORT) || (t2 == T_SHORT)) return T_SHORT;
   if ((t1 == T_UCHAR) || (t2 == T_UCHAR)) return T_UCHAR;
   if (t1 != t2) {
-    Printf(stderr,"%s : Line %d. Type mismatch in constant expression\n",
+    Printf(stderr,"%s:%d. Type mismatch in constant expression\n",
 	    input_file, line_number);
     FatalError();
   }
   return t1;
 }
 
-/* Generate the scripting name of an object, taking the %name directive into
-   account */
+/* Generate the scripting name of an object using the %name directive */
 
 static char *make_name(char *name) {
-  // Check to see if the name is in the hash
+  /* Check to see if the name is in the hash */
   if (!name_hash) name_hash = NewHash();
   char *nn = GetChar(name_hash,name);
 
-  if (nn) return nn;        // Yep, return it.
+  if (nn) return nn;   
   if (Rename_true) {
     Rename_true = 0;
     return yy_rename;
   } else {
-    // Now check to see if the name contains a $
+    /* Now check to see if the name contains a $ */
     if (strchr(name,'$')) {
       static DOHString *temp = 0;
       if (!temp) temp= NewString("");
@@ -258,14 +259,13 @@ static char *make_name(char *name) {
   }
 }
 
-// ----------------------------------------------------------------------
-// create_function(int ext, char *name, DataType *t, ParmList *l)
-//
-// Creates a function and manages documentation creation.  Really
-// only used internally to the parser.
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * create_function()
+ *
+ * Creates a function.
+ * ---------------------------------------------------------------------- */
 
-void create_function(int ext, char *name, SwigType *t, ParmList *l) {
+static void create_function(int ext, char *name, SwigType *t, ParmList *l) {
   if (Active_static) return;     // Static declaration. Ignore
 
   init_language();
@@ -276,12 +276,10 @@ void create_function(int ext, char *name, SwigType *t, ParmList *l) {
   // Check if symbol already exists
 
   if (add_symbol(iname)) {
-    Printf(stderr,"%s : Line %d. Function %s multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s:%d. Function %s multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, iname);
   } else {
-
     // If extern, make an extern declaration in the SWIG wrapper file
-
     if (ext)
       emit_extern_func(name, t, l, ext, f_header);
     else if (ForceExtern) {
@@ -294,11 +292,11 @@ void create_function(int ext, char *name, SwigType *t, ParmList *l) {
   scanner_clear_start();
 }
 
-// -------------------------------------------------------------------
-// create_variable(int ext, char *name, DataType *t)
-//
-// Create a link to a global variable.
-// -------------------------------------------------------------------
+/* -------------------------------------------------------------------
+ * create_variable()
+ *
+ * Create a link to a global variable.
+ * ------------------------------------------------------------------- */
 
 static void create_variable(int ext, char *name, SwigType *t) {
 
@@ -315,7 +313,7 @@ static void create_variable(int ext, char *name, SwigType *t) {
 
   char *iname = make_name(name);
   if (add_symbol(iname)) {
-    Printf(stderr,"%s : Line %d. Variable %s multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s:%d. Variable %s multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, iname);
   } else {
 
@@ -332,20 +330,20 @@ static void create_variable(int ext, char *name, SwigType *t) {
   Status = oldstatus;
 }
 
-// ------------------------------------------------------------------
-// create_constant(char *name, DataType *type, char *value)
-//
-// Creates a new constant.
-// -------------------------------------------------------------------
+/* ------------------------------------------------------------------
+ * create_constant()
+ *
+ * Creates a new constant.
+ * ------------------------------------------------------------------- */
 
-void create_constant(char *name, SwigType *type, char *value) {
+static void create_constant(char *name, SwigType *type, char *value) {
 
   if (Active_static) return;
   if (WrapExtern) return;        // External wrapper file. Ignore
   init_language();
 
   if (Rename_true) {
-    Printf(stderr,"%s : Line %d. %%name directive ignored with #define\n",
+    Printf(stderr,"%s:%d. %%name directive ignored with #define\n",
 	    input_file, line_number);
     Rename_true = 0;
   }
@@ -353,7 +351,7 @@ void create_constant(char *name, SwigType *type, char *value) {
   if (!value) value = Swig_copy_string(name);
   sprintf(temp_name,"const:%s", name);
   if (add_symbol(temp_name)) {
-    Printf(stderr,"%s : Line %d. Constant %s multiply defined. (2nd definition ignored)\n",
+    Printf(stderr,"%s:%d. Constant %s multiply defined. (2nd definition ignored)\n",
 	    input_file, line_number, name);
   } else {
     if (!WrapExtern) {    // Only wrap the constant if not in %extern mode
@@ -365,21 +363,21 @@ void create_constant(char *name, SwigType *type, char *value) {
   scanner_clear_start();
 }
 
-// Structures for handling code fragments built for nested classes
+/* Structures for handling code fragments built for nested classes */
 
 struct Nested {
-  DOHString *code;       // Associated code fragment
+  String   *code;        // Associated code fragment
   int      line;         // line number where it starts
   char     *name;        // Name associated with this nested class
   SwigType *type;        // Datatype associated with the name
   Nested   *next;        // Next code fragment in list
 };
 
-// Some internal variables for saving nested class information
+/* Some internal variables for saving nested class information */
 
 static Nested      *nested_list = 0;
 
-// Add a function to the nested list
+/* Add a function to the nested list */
 
 static void add_nested(Nested *n) {
   Nested *n1;
@@ -391,9 +389,9 @@ static void add_nested(Nested *n) {
   }
 }
 
-// Dump all of the nested class declarations to the inline processor
-// However.  We need to do a few name replacements and other munging
-// first.  This function must be called before closing a class!
+/* Dump all of the nested class declarations to the inline processor
+ * However.  We need to do a few name replacements and other munging
+ * first.  This function must be called before closing a class! */
 
 static void dump_nested(char *parent) {
   Nested *n,*n1;
@@ -430,8 +428,8 @@ static void dump_nested(char *parent) {
   Status = oldstatus;
 }
 
- static DOHList *typelist(Parm *p) {
-   DOHList *l = NewList();
+ static List *typelist(Parm *p) {
+   List *l = NewList();
    while (p) {
      Append(l,Gettype(p));
      p = Getnext(p);
@@ -454,16 +452,12 @@ static void dump_nested(char *parent) {
     char **names;
     int    count;
   } ilist;
-  struct DocList {
-    char **names;
-    char **values;
-    int  count;
-  } dlist;
   struct Define {
     char *id;
     int   type;
   } dtype;
   struct {
+    char *type;
     char *filename;
     int   line;
     int   flag;
@@ -508,7 +502,7 @@ static void dump_nested(char *parent) {
 %left  UMINUS NOT LNOT
 %left  DCOLON
 
-%type <ivalue>   extern;
+%type <ivalue>   extern storage_class;
 %type <pl>       parms typemap_args ptail;
 %type <p>        parm parm_type;
 %type <tmparm>   typemap_parm tm_list tm_tail;
@@ -524,24 +518,31 @@ static void dump_nested(char *parent) {
 %type <id>       type_qualifier;
 %type <id>       idstring;
 %type <id>       pragma_arg;
+%type <loc>       includetype;
 %type <type>     pointer;
 %type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
 %type <type>     abstract_declarator direct_abstract_declarator;
+%type <id>       typemap_type;
 
 %%
 
-/* The productions of the grammar with their
-   associated semantic actions. */
+/* -----------------------------------------------------------------------------
+ *                          High-level Interface file
+ *
+ * An interface is just a sequence of declarations which may be SWIG directives
+ * or normal C declarations.
+ * ----------------------------------------------------------------------------- */
 
-program        :  command {
-                   cplus_cleanup();
-		   if (lang_init) {
+program        :  interface {
+                   cplus_cleanup();    /* Dump all of the C++ classes */
+    
+		   if (lang_init) {    /* Clean up the language module if initialized */
 		     lang->close();
 		   }
                }
                ;
 
-command        : command statement {
+interface      : interface declaration {
 		     scanner_clear_start();
                      Error = 0;
                 }
@@ -549,12 +550,403 @@ command        : command statement {
 	       }
                ;
 
+declaration    : swig_directive { }
+               | c_declaration { }
+               ;
 
-statement      : swig_directive { }
+
+/* -----------------------------------------------------------------------------
+ *                           SWIG DIRECTIVES 
+ * ----------------------------------------------------------------------------- */
+  
+swig_directive :
+
+/*
+    %module modname
+    %module "modname"
+*/
+
+                MODULE idstring {
+		 lang->set_module($2);
+		 module_init = 1;
+		 init_language();
+	       }
+
+/*
+   %includefile "filename" { declarations } 
+   %externfile  "filename" { declarations }
+   %importfile  "filename" { declarations }
+*/
+
+               |  includetype STRING LBRACE {
+		     $1.flag = WrapExtern;
+                     $1.filename = Swig_copy_string(input_file);
+		     $1.line = line_number;
+		     input_file = Swig_copy_string($2);
+		     line_number = 0;
+		     if ((strcmp($1.type,"extern") == 0) || (strcmp($1.type,"import") == 0)) {
+		       WrapExtern = 1;
+		       if (strcmp($1.type,"import") == 0) {
+			 lang->import($2);
+		       }
+		     }
+               } interface RBRACE {
+		     input_file = $1.filename;
+		     line_number = $1.line;
+		     WrapExtern = $1.flag;
+               }
+
+/* 
+   %name(newname)    declaration
+   %name("newname")  declaration
+*/
+
+               | NAME LPAREN idstring RPAREN {
+		 strcpy(yy_rename,$3);
+		 Rename_true = 1;
+               }
+               | NAME LPAREN RPAREN {
+		   Printf(stderr,"%s:%d. Missing argument to %%name directive.\n",
+			   input_file, line_number);
+		   FatalError();
+	       } cpp {
+		 Rename_true = 0;
+	       }
+
+/*
+  %rename identifier newname;
+  %rename identifier "newname";
+*/
+
+               | RENAME ID idstring SEMI {
+		 if (!name_hash) name_hash = NewHash();
+		 Setattr(name_hash,$2,$3);
+	       }
+
+/* 
+   %new declaration
+*/
+
+               | NEW {
+		 NewObject = 1;
+	       } declaration {
+		 NewObject = 0;
+               }
+
+/*
+  %native(scriptname) name;
+  %native(scriptname) type name (parms);
+*/
+
+               | NATIVE LPAREN ID RPAREN extern ID SEMI {
+		 if (!WrapExtern) {
+		   init_language();
+		   if (add_symbol($3)) {
+		     Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
+			     input_file, line_number, $3);
+		   } else {
+		     lang->add_native($3,$6,0,0);
+		   }
+		 }
+	       }
+               | NATIVE LPAREN ID RPAREN extern type declarator LPAREN parms RPAREN SEMI {
+		 if (!WrapExtern) {
+		   init_language();
+		   SwigType_push($6,$7.type);
+		   if (add_symbol($3)) {
+		     Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
+			     input_file, line_number, $3);
+		   } else {
+		     if ($5) {
+		       emit_extern_func($7.id, $6, $9, $5, f_header);
+		     }
+		     lang->add_native($3,$7.id,$6,$9);
+		   }
+		 }
+		 Delete($6);
+		 Delete($7.type);
+		 Delete($9);
+	       }
+
+/*
+  %{ ... %}
+*/
+
+               | HBLOCK {
+		 if (!WrapExtern) {
+		   $1[strlen($1) - 1] = 0;
+		   File *f = Swig_filebyname("header");
+		   if (f) {
+		     Printf(f, "%s\n", $1);
+		   }
+		 }
+	       }
+
+/*
+  %insert(section) "filename"
+  %insert("section") "filename"
+  %insert(section) %{ ... %}
+  %insert("section") %{ ... %}
+*/
+
+               | INSERT LPAREN idstring RPAREN STRING {
+	         if (!WrapExtern) {
+		   File *f = Swig_filebyname($3);
+		   if (!f) {
+		     Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file, line_number, $3);
+		   } else {
+		     if (Swig_insert_file($5,f) < 0) {
+		       Printf(stderr,"%s:%d: Couldn't find '%s'. Possible installation problem.\n", input_file, line_number, $5);
+		       SWIG_exit (EXIT_FAILURE);
+		     }
+		   }
+		 }
+               }
+               | INSERT LPAREN idstring RPAREN HBLOCK {
+		 if (!WrapExtern) {
+		   File *f;
+		   $5[strlen($5)-1] = 0;
+		   f = Swig_filebyname($3);
+		   if (!f) {
+		     Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file,line_number,$3);
+		   } else {
+		     Printf(f,"%s\n",$5);
+		   }
+		 }
+               }
+
+/*
+  %inline %{ ... %}
+*/
+
+               | INLINE HBLOCK {
+		 if (!WrapExtern) {
+		   init_language();
+		   $2[strlen($2) - 1] = 0;
+		   Printf(f_header, "%s\n", $2);
+		   {
+	              /* Need to run through the preprocessor */
+	              DOH *cpps;
+                      DOH *s = NewString($2);
+	              Setline(s,start_line);
+                      Setfile(s,input_file);
+		      Seek(s,0,SEEK_SET);
+                      cpps = Preprocessor_parse(s);
+                      start_inline(Char(cpps), start_line);
+		      Delete(s);
+		      Delete(cpps);
+		   }
+		 }
+	       }
+
+/*
+  %echo "text"
+  %echo %{ ... %}
+*/
+
+               | ECHO HBLOCK {
+		 char temp[64];
+		 String *s = NewString($2);
+		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
+		 sprintf(temp,"%d", line_number);
+		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
+		 Printf(stderr,"%s\n", s);
+		 Delete(s);
+	       }
+
+               | ECHO STRING {
+		 char temp[64];
+		 String *s = NewString($2);
+		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
+		 sprintf(temp,"%d", line_number);
+		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
+		 Printf(stderr,"%s\n", s);
+		 Delete(s);
+               }
+
+/*
+  %types(parmlist); 
+*/
+
+               | TYPES LPAREN parms RPAREN SEMI {
+	            Parm *p = $3;
+                    while (p) {
+		      SwigType *t = Gettype(p);
+		      SwigType_remember(t);
+		      p = Getnext(p);
+		    }
+		    Delete($3);
+               }
+
+/*
+  %typemap(method) type { ... }
+*/
+
+               | TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
+		   TMParm *p;
+                   skip_brace();
+		   if ($3) {
+		     p = $5;
+		     while (p) {
+		       Swig_typemap_register($3,Gettype(p->p),Getname(p->p), CCode, p->args);
+		       p = p->next;
+		     }
+                   }
+	       }
+
+/* 
+   %typemap(method) type "..."
+*/
+
+               | TYPEMAP LPAREN typemap_type RPAREN tm_list STRING {
+		   TMParm *p;
+		   if ($3) {
+		     p = $5;
+		     while (p) {
+		       Swig_typemap_register($3,Gettype(p->p),Getname(p->p), $6, p->args);
+		       p = p->next;
+		     }
+		   }
+	       }
+
+/*
+  %typemap(method) type;    - typemap deletion
+*/
+
+               | TYPEMAP LPAREN typemap_type RPAREN tm_list SEMI {
+		 TMParm *p;
+		 if ($3) {
+		   p = $5;
+		   while (p) {
+	             Printf(stderr,"%s:%d. Warning. Typemap deletion is temporary disabled in this release.\n", input_file, line_number);
+		     /*	Swig_typemap_clear($3,Gettype(p->p),Getname(p->p)); */
+		     p = p->next;
+		   }
+		 }
+	       }
+
+/* 
+   %typemap(method) type1,type2,... = type;    - typemap copy
+*/
+
+               | TYPEMAP LPAREN typemap_type RPAREN tm_list EQUAL typemap_parm SEMI {
+                   TMParm *p;
+		   if ($3) {
+		     p = $5;
+		     while (p) {
+		       Swig_typemap_copy($3,Gettype($7->p),Getname($7->p),Gettype(p->p),Getname(p->p));
+		       p = p->next;
+		     }
+		   }
+	       }
+
+/* -----------------------------------------------------------------
+   apply and clear support (for typemaps)
+   ----------------------------------------------------------------- */
+
+/*
+  %apply
+*/
+
+               | APPLY typemap_parm LBRACE tm_list RBRACE {
+		 TMParm *p;
+		 p = $4;
+		 while(p) {
+		   Swig_typemap_apply(Gettype($2->p),Getname($2->p),Gettype(p->p),Getname(p->p));
+		   p = p->next;
+		 }
+		 free($4);
+		 Delete($2->args);
+		 free($2);
+               }
+
+/*
+  %clear
+*/
+
+	       | CLEAR tm_list SEMI {
+		 TMParm *p;
+		 p = $2;
+		 while (p) {
+		  Printf(stderr,"%s:%d. Warning. %%clear directive is temporarily disabled in this release. Ignored.\n", input_file, line_number);
+/*		   Swig_typemap_clear_apply(Gettype(p->p), Getname(p->p)); */
+		   p = p->next;
+		 }
+               }
+
+/* 
+   %except(lang) { ... }
+*/
+
+               | EXCEPT LPAREN ID RPAREN LBRACE {
+                    skip_brace();
+		    if (strcmp($3,typemap_lang) == 0) {
+		      Swig_except_register(CCode);
+		    }
+		    free($3);
+	       }
+
+/* 
+   %except { ... }
+*/
+
+               | EXCEPT LBRACE {
+                    skip_brace();
+		    Swig_except_register(CCode);
+               }
+
+/* 
+   %except(lang);   - clear exception
+*/
+
+
+               | EXCEPT LPAREN ID RPAREN SEMI {
+		 Swig_except_clear();
+               }
+
+/* 
+   %except;  - clear exception
+*/
+               | EXCEPT SEMI {
+		 Swig_except_clear();
+	       }
+
+/* pragma */
+               | pragma { }
+
+/* %constant */
+               | constant { }
+               ;
+
+
+/* Types of include statements. */
+
+includetype    : INCLUDE { $$.type = (char *) "include"; }
+               | WEXTERN { $$.type = (char *) "extern"; }
+               | IMPORT  { $$.type = (char *) "import"; }
+               ;
+
+/* typemap method type */
+
+typemap_type   : ID COMMA tm_method {
+                 if (strcmp($1,typemap_lang) == 0) {
+		   $$ = $3;
+		 } else {
+		   $$ = 0;
+		 }
+               }
+               | tm_method {
+                   $$ = $1;
+               }
+               ;
+
+/* -----------------------------------------------------------------------------
+ *                              C Parsing
+ * ----------------------------------------------------------------------------- */
 
 /* A variable declaration */
 
-                | extern type declarator def_args {
+c_declaration   : extern type declarator def_args {
  		    init_language();
   		    if (Active_type) Delete(Active_type);
 		    Active_type = Copy($2);
@@ -567,7 +959,7 @@ statement      : swig_directive { }
 
                 | extern strict_type LPAREN STAR {
                    skip_decl();
-		   Printf(stderr,"%s : Line %d. Function pointers not currently supported.\n",
+		   Printf(stderr,"%s:%d. Function pointers not currently supported.\n",
 			   input_file, line_number);
 		}
 
@@ -585,7 +977,7 @@ statement      : swig_directive { }
 
                 | STATIC strict_type LPAREN STAR {
                    skip_decl();
-		   Printf(stderr,"%s : Line %d. Function pointers not currently supported.\n",
+		   Printf(stderr,"%s:%d. Function pointers not currently supported.\n",
 			   input_file, line_number);
 		}
 
@@ -695,7 +1087,7 @@ statement      : swig_directive { }
 		   {
 		     static int last_error_line = -1;
 		     if (last_error_line != line_number) {
-		       Printf(stderr,"%s : Line %d. Syntax error in input.\n", input_file, line_number);
+		       Printf(stderr,"%s:%d. Syntax error in input.\n", input_file, line_number);
 		       FatalError();
 		       last_error_line = line_number;
                        // Try to make some kind of recovery.
@@ -708,443 +1100,7 @@ statement      : swig_directive { }
 
 /* A an extern C type declaration.  Does nothing, but is ignored */
 
-               | EXTERN STRING LBRACE command RBRACE { }
-
-/* -----------------------------------------------------------------------------
- *                           SWIG DIRECTIVES 
- * ----------------------------------------------------------------------------- */
-  
-swig_directive :
-/* %module */
-                MODULE ID {
-		 lang->set_module($2);
-		 module_init = 1;
-		 init_language();
-	       }
-
-/* %include "filename" { ... } */
-
-               |  INCLUDE STRING LBRACE {
-                     $1.filename = Swig_copy_string(input_file);
-		     $1.line = line_number;
-		     input_file = Swig_copy_string($2);
-		     line_number = 0;
-               } command RBRACE {
-                     input_file = $1.filename;
-		     line_number = $1.line;
-               }
-
-/* %extern directive */
-
-               | WEXTERN STRING LBRACE {
-		 $1.flag = WrapExtern;
-		 WrapExtern = 1;
-		 $1.filename = Swig_copy_string(input_file);
-		 $1.line = line_number;
-		 input_file = Swig_copy_string($2);
-		 line_number = 0;
-	       } command RBRACE {
-		 input_file = $1.filename;
-		 line_number = $1.line;
-		 WrapExtern = $1.flag;
-	       }
-
-/* %import directive.  Like %extern but calls out to a language module */
-
-               | IMPORT STRING LBRACE {
-		 $1.flag = WrapExtern;
-		 WrapExtern = 1;
-		 $1.filename = Swig_copy_string(input_file);
-		 $1.line = line_number;
-		 input_file = Swig_copy_string($2);
-		 line_number = 0;
-		 lang->import($2);
-	       } command RBRACE {
-		 input_file = $1.filename;
-		 line_number = $1.line;
-		 WrapExtern = $1.flag;
-	       }
-
-/* A function with an explicit inline directive. Not safe to use inside a %inline block */
-
-                | INLINE type declarator LPAREN parms RPAREN func_end {
-		    init_language();
-		    SwigType_push($2,$3.type);
-		    if (Inline) {
-		      Printf(stderr,"%s : Line %d. Repeated %%inline directive.\n",input_file,line_number);
-		      FatalError();
-		    } else {
-		      if (strlen(Char(CCode))) {
-			Printf(f_header,"static ");
-			emit_extern_func($3.id,$2,$5,3,f_header);
-			Printf(f_header,"%s\n",Char(CCode));
-		      }
-		      create_function(0, $3.id, $2, $5);
-		    }
-		    Delete($2);
-		    Delete($3.type);
-		    Delete($5);
-		}
-
-/* %name directive */
-               | NAME LPAREN idstring RPAREN {
-		 strcpy(yy_rename,$3);
-		 Rename_true = 1;
-               }
-
-/* %rename directive */
-               | RENAME ID idstring SEMI {
-		 if (!name_hash) name_hash = NewHash();
-		 Setattr(name_hash,$2,$3);
-	       }
-
-/* %new directive */
-
-               | NEW {
-                     NewObject = 1;
-                } statement {
-                     NewObject = 0;
-               }
-
-/* Empty name directive.  No longer allowed  */
-
-               | NAME LPAREN RPAREN {
-		   Printf(stderr,"%s : Lind %d. Empty %%name() is not supported.\n",
-			   input_file, line_number);
-		   FatalError();
-	       } cpp {
-		 Rename_true = 0;
-	       }
-
-/* A native wrapper function */
-
-               | NATIVE LPAREN ID RPAREN extern ID SEMI {
-		 if (!WrapExtern) {
-		   init_language();
-		   if (add_symbol($3)) {
-		     Printf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
-			     input_file, line_number, $3);
-		   } else {
-		     lang->add_native($3,$6,0,0);
-		   }
-		 }
-	       }
-               | NATIVE LPAREN ID RPAREN extern type declarator LPAREN parms RPAREN SEMI {
-		 if (!WrapExtern) {
-		   init_language();
-		   SwigType_push($6,$7.type);
-		   if (add_symbol($3)) {
-		     Printf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
-			     input_file, line_number, $3);
-		   } else {
-		     if ($5) {
-		       emit_extern_func($7.id, $6, $9, $5, f_header);
-		     }
-		     lang->add_native($3,$7.id,$6,$9);
-		   }
-		 }
-		 Delete($6);
-		 Delete($7.type);
-		 Delete($9);
-	       }
-
-/* Bare %{ ... %} block */
-
-               | HBLOCK {
-		 if (!WrapExtern) {
-		   $1[strlen($1) - 1] = 0;
-		   File *f = Swig_filebyname("header");
-		   if (f) {
-		     Printf(f, "%s\n", $1);
-		   }
-		 }
-	       }
-
-/* %insert directive */
-
-               | INSERT LPAREN idstring RPAREN STRING {
-	         if (!WrapExtern) {
-		   File *f = Swig_filebyname($3);
-		   if (!f) {
-		     Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file, line_number, $3);
-		   } else {
-		     if (Swig_insert_file($5,f) < 0) {
-		       Printf(stderr,"%s:%d: Couldn't find '%s'. Possible installation problem.\n", input_file, line_number, $5);
-		       SWIG_exit (EXIT_FAILURE);
-		     }
-		   }
-		 }
-               }
-               | INSERT LPAREN idstring RPAREN HBLOCK {
-		 if (!WrapExtern) {
-		   File *f;
-		   $5[strlen($5)-1] = 0;
-		   f = Swig_filebyname($3);
-		   if (!f) {
-		     Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file,line_number,$3);
-		   } else {
-		     Printf(f,"%s\n",$5);
-		   }
-		 }
-               }
-
-/* %inline block */
-               | INLINE HBLOCK {
-		 if (!WrapExtern) {
-		   init_language();
-		   $2[strlen($2) - 1] = 0;
-		   Printf(f_header, "%s\n", $2);
-		   {
-	              /* Need to run through the preprocessor */
-	              DOH *cpps;
-                      DOH *s = NewString($2);
-	              Setline(s,start_line);
-                      Setfile(s,input_file);
-		      Seek(s,0,SEEK_SET);
-                      cpps = Preprocessor_parse(s);
-                      start_inline(Char(cpps), start_line);
-		      Delete(s);
-		      Delete(cpps);
-		   }
-		 }
-	       }
-
-/* %echo mode */
-
-               | ECHO HBLOCK {
-		 char temp[64];
-		 String *s = NewString($2);
-		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
-		 sprintf(temp,"%d", line_number);
-		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
-		 Printf(stderr,"%s\n", s);
-		 Delete(s);
-	       }
-
-               | ECHO STRING {
-		 char temp[64];
-		 String *s = NewString($2);
-		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
-		 sprintf(temp,"%d", line_number);
-		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
-		 Printf(stderr,"%s\n", s);
-		 Delete(s);
-               }
-
-/* -----------------------------------------------------------------
-   typemap support.
-
-   These constructs are used to support type-maps.
-   ----------------------------------------------------------------- */
-
-/* Create a new typemap */
-
-               | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list LBRACE {
-		   TMParm *p;
-                   skip_brace();
-		   p = $7;
-		   while (p) {
-		     if (strcmp($3,typemap_lang) == 0)
-		       Swig_typemap_register($5,Gettype(p->p),Getname(p->p), CCode, p->args);
-		     p = p->next;
-                   }
-		   free($3);
-		   free($5);
-	       }
-
-/* Create a new typemap in current language */
-               | TYPEMAP LPAREN tm_method RPAREN tm_list LBRACE {
-		 if (!typemap_lang) {
-		   Printf(stderr,"SWIG internal error. No typemap_lang specified.\n");
-		   Printf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
-		   FatalError();
-		 } else {
-		   TMParm *p;
-		   skip_brace();
-		   p = $5;
-		   while (p) {
-		     Swig_typemap_register($3,Gettype(p->p),Getname(p->p), CCode, p->args);
-		     p = p->next;
-		   }
-		 }
-		 free($3);
-	       }
-
-/* Create a new typemap */
-
-               | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list STRING {
-		   TMParm *p;
-		   p = $7;
-		   while (p) {
-		     if (strcmp($3,typemap_lang) == 0)
-		       Swig_typemap_register($5,Gettype(p->p),Getname(p->p), $8, p->args);
-		     p = p->next;
-                   }
-		   free($3);
-		   free($5);
-	       }
-
-/* Create a new typemap in current language */
-               | TYPEMAP LPAREN tm_method RPAREN tm_list STRING {
-		 if (!typemap_lang) {
-		   Printf(stderr,"SWIG internal error. No typemap_lang specified.\n");
-		   Printf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
-		   FatalError();
-		 } else {
-		   TMParm *p;
-		   p = $5;
-		   while (p) {
-		     Swig_typemap_register($3,Gettype(p->p),Getname(p->p), $6, p->args);
-		     p = p->next;
-		   }
-		 }
-		 free($3);
-	       }
-
-/* Clear a typemap */
-
-               | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list SEMI {
-		 TMParm *p;
-		 p = $7;
-		 while (p) {
-		   if (strcmp($3,typemap_lang) == 0) {
-	             Printf(stderr,"%s:%d. Warning. Typemap deletion is temporary disabled in this release.\n", input_file, line_number);
-/*		     Swig_typemap_clear($5,Gettype(p->p),Getname(p->p)); */
-		   }
-		   p = p->next;
-		 }
-		 free($3);
-		 free($5);
-	       }
-/* Clear a typemap in current language */
-
-               | TYPEMAP LPAREN tm_method RPAREN tm_list SEMI {
-		 if (!typemap_lang) {
-		   Printf(stderr,"SWIG internal error. No typemap_lang specified.\n");
-		   Printf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
-		   FatalError();
-		 } else {
-		   TMParm *p;
-		   p = $5;
-		   while (p) {
-	             Printf(stderr,"%s:%d. Warning. Typemap deletion is temporary disabled in this release.\n", input_file, line_number);
-/*		     Swig_typemap_clear($3,Gettype(p->p),Getname(p->p)); */
-		     p = p->next;
-		   }
-		 }
-		 free($3);
-	       }
-
-/* Copy a typemap */
-
-               | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list EQUAL typemap_parm SEMI {
-                   TMParm *p;
-		   p = $7;
-		   while (p) {
-		     if (strcmp($3,typemap_lang) == 0) {
-		       Swig_typemap_copy($5,Gettype($9->p),Getname($9->p),Gettype(p->p),Getname(p->p));
-		     }
-		     p = p->next;
-		   }
-		   free($3);
-		   free($5);
-		   Delete($9->p);
-		   free($9);
-	       }
-
-/* Copy typemap in current language */
-
-               | TYPEMAP LPAREN tm_method RPAREN tm_list EQUAL typemap_parm SEMI {
-		 if (!typemap_lang) {
-		   Printf(stderr,"SWIG internal error. No typemap_lang specified.\n");
-		   Printf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
-		   FatalError();
-		 } else {
-                   TMParm *p;
-		   p = $5;
-		   while (p) {
-		     Swig_typemap_copy($3,Gettype($7->p),Getname($7->p),Gettype(p->p),Getname(p->p));
-		     p = p->next;
-		   }
-		 }
-		 free($3);
-		 Delete($7->p);
-		 free($7);
-	       }
-/* -----------------------------------------------------------------
-   apply and clear support (for typemaps)
-   ----------------------------------------------------------------- */
-
-               | APPLY typemap_parm LBRACE tm_list RBRACE {
-		 TMParm *p;
-		 p = $4;
-		 while(p) {
-		   Swig_typemap_apply(Gettype($2->p),Getname($2->p),Gettype(p->p),Getname(p->p));
-		   p = p->next;
-		 }
-		 free($4);
-		 Delete($2->args);
-		 free($2);
-               }
-	       | CLEAR tm_list SEMI {
-		 TMParm *p;
-		 p = $2;
-		 while (p) {
-		  Printf(stderr,"%s:%d. Warning. %%clear directive is temporarily disabled in this release. Ignored.\n", input_file, line_number);
-/*		   Swig_typemap_clear_apply(Gettype(p->p), Getname(p->p)); */
-		   p = p->next;
-		 }
-               }
-
-
-/* -----------------------------------------------------------------
-   exception support
-
-   These constructs are used to define exceptions
-   ----------------------------------------------------------------- */
-
-/* An exception definition */
-               | EXCEPT LPAREN ID RPAREN LBRACE {
-                    skip_brace();
-		    if (strcmp($3,typemap_lang) == 0) {
-		      Swig_except_register(CCode);
-		    }
-		    free($3);
-	       }
-
-/* A Generic Exception (no language specified */
-               | EXCEPT LBRACE {
-                    skip_brace();
-		    Swig_except_register(CCode);
-               }
-
-/* Clear an exception */
-
-               | EXCEPT LPAREN ID RPAREN SEMI {
-		 Swig_except_clear();
-               }
-
-/* Generic clear */
-               | EXCEPT SEMI {
-		 Swig_except_clear();
-	       }
-
-/* pragma */
-               | pragma { }
-
-/* %constant */
-               | constant { }
-
-/* %types directive. Used to register types with the type-checker */
-               | TYPES LPAREN parms RPAREN SEMI {
-	            Parm *p = $3;
-                    while (p) {
-		      SwigType *t = Gettype(p);
-		      SwigType_remember(t);
-		      p = Getnext(p);
-		    }
-		    Delete($3);
-               }
+               | EXTERN STRING LBRACE interface RBRACE { }
                ;
 
 /* Note : This really needs to be re-done */
@@ -1269,10 +1225,29 @@ extern         : EXTERN { $$ = 1; }
 		 if (strcmp($2,"C") == 0) {
 		   $$ = 2;
 		 } else {
-		   Printf(stderr,"%s : Line %d.  Unrecognized extern type \"%s\" (ignored).\n", input_file, line_number, $2);
+		   Printf(stderr,"%s:%d.  Unrecognized extern type \"%s\" (ignored).\n", input_file, line_number, $2);
 		   FatalError();
 		 }
 	       }
+               ;
+
+storage_class  : EXTERN {
+	           $$ = STORAGE_EXTERN;
+               }
+               | EXTERN STRING {
+                   if (strcmp($2,"C") == 0) {
+		     $$ = STORAGE_EXTERN_C;
+		   } else {
+		     Printf(stderr,"%s:%d.  Unrecognized extern type \"%s\" (ignored).\n", input_file,line_number, $2);
+		     $$ = 0;
+		   }
+               }
+               | STATIC {
+                   $$ = STORAGE_STATIC;
+               }
+               | empty {
+                   $$ = 0;
+               }
                ;
 
 /* End of a function declaration.  Allows C++ "const" directive and inline code */
@@ -1294,7 +1269,7 @@ constant         : CONSTANT ID definetype SEMI {
 		   } else if ($3.type == T_SYMBOL) {
 		     // Add a symbol to the SWIG symbol table
 		     if (add_symbol($2)) {
-		       Printf(stderr,"%s : Line %d. Warning. Symbol %s already defined.\n",
+		       Printf(stderr,"%s:%d. Warning. Symbol %s already defined.\n",
 			       input_file,line_number, $2);
 		     }
 		   }
@@ -1357,7 +1332,7 @@ parm_type      : type parameter_declarator {
 		  Delete(l);
 		}
                 | PERIOD PERIOD PERIOD {
-                  Printf(stderr,"%s : Line %d. Variable length arguments not supported (ignored).\n", input_file, line_number);
+                  Printf(stderr,"%s:%d. Variable length arguments not supported (ignored).\n", input_file, line_number);
 		  $$ = NewParm(NewSwigType(T_INT),(char *) "varargs");
 		  FatalError();
 		}
@@ -1780,7 +1755,7 @@ etype            : expr {
 		       ($$.type != T_LONG) && ($$.type != T_ULONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR)) {
-		     Printf(stderr,"%s : Lind %d. Type error. Expecting an int\n",
+		     Printf(stderr,"%s:%d. Type error. Expecting an int\n",
 			     input_file, line_number);
 		     FatalError();
 		   }
@@ -1869,7 +1844,7 @@ expr           :  NUM_INT {
 	         E_BINARY($$.id,$1.id,$3.id,"&");
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 free($1.id);
@@ -1880,7 +1855,7 @@ expr           :  NUM_INT {
 	         E_BINARY($$.id,$1.id,$3.id,"|");
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
@@ -1892,7 +1867,7 @@ expr           :  NUM_INT {
 	         E_BINARY($$.id,$1.id,$3.id,"^");
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
@@ -1904,7 +1879,7 @@ expr           :  NUM_INT {
 	         E_BINARY($$.id,$1.id,$3.id,"<<");
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
@@ -1916,7 +1891,7 @@ expr           :  NUM_INT {
 	         E_BINARY($$.id,$1.id,$3.id,">>");
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
@@ -1935,7 +1910,7 @@ expr           :  NUM_INT {
 	          $$.id = (char *) malloc(strlen($2.id)+2);
 		  sprintf($$.id,"~%s",$2.id);
 		  if ($2.type == T_DOUBLE) {
-		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s:%d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		  }
 		  $$.type = $2.type;
@@ -1966,11 +1941,11 @@ cpp_class    :
 
 	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
 	       if (add_symbol(temp_name)) {
-		 Printf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
+		 Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
 		 FatalError();
 	       }
 	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 
 	       iname = make_name($3);
 	       if (iname == $3)
@@ -1990,7 +1965,7 @@ cpp_class    :
 		 if (strcmp($2,"union") != 0)
 		   cplus_inherit($4.count, $4.names);
 		 else {
-		   Printf(stderr,"%s : Line %d.  Inheritance not allowed for unions.\n",input_file, line_number);
+		   Printf(stderr,"%s:%d.  Inheritance not allowed for unions.\n",input_file, line_number);
 		   FatalError();
 		 }
 	       }
@@ -2023,11 +1998,11 @@ cpp_class    :
 
 	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
 	       if (add_symbol(temp_name)) {
-		 Printf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
+		 Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
 		 FatalError();
 	       }
 	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 
 	       iname = make_name($3);
 	       if ($3 == iname)
@@ -2049,7 +2024,7 @@ cpp_class    :
 		  if (strcmp($2,"union") != 0)
 		    cplus_inherit($4.count, $4.names);
 		  else {
-		    Printf(stderr,"%s : Line %d.  Inheritance not allowed for unions.\n",input_file, line_number);
+		    Printf(stderr,"%s:%d.  Inheritance not allowed for unions.\n",input_file, line_number);
 		    FatalError();
 		  }
 		}
@@ -2065,7 +2040,7 @@ cpp_class    :
 		}
 
 		if ($9.type > 0) {
-		  Printf(stderr,"%s : Line %d.  typedef struct { } %s not supported properly. Winging it...\n", input_file, line_number, SwigType_str($9.type,$9.id));
+		  Printf(stderr,"%s:%d.  typedef struct { } %s not supported properly. Winging it...\n", input_file, line_number, SwigType_str($9.type,$9.id));
 
 		}
 		// Create dump nested class code
@@ -2106,7 +2081,7 @@ cpp_class    :
 	       init_language();
 	       SwigType_new_scope();
 	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 
 	       iname = make_name((char*)"");
 	       if (strlen(iname))
@@ -2121,12 +2096,12 @@ cpp_class    :
 	       nested_list = 0;
               } cpp_members RBRACE declarator {
 		if ($7.type) {
-		  Printf(stderr,"%s : Line %d. typedef %s {} %s not supported correctly. Will be ignored.\n", input_file, line_number, SwigType_str($7.type,$7.id));
+		  Printf(stderr,"%s:%d. typedef %s {} %s not supported correctly. Will be ignored.\n", input_file, line_number, SwigType_str($7.type,$7.id));
 		  cplus_abort();
 		} else {
 		  sprintf(temp_name,"CPP_CLASS:%s\n",$7.id);
 		  if (add_symbol(temp_name)) {
-		    Printf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $7.id);
+		    Printf(stderr,"%s:%d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $7.id);
 		    FatalError();
 		  }
 		}
@@ -2160,7 +2135,7 @@ cpp_other    :/* A dummy class name */
               | extern type declarator DCOLON ID LPAREN parms RPAREN SEMI {
 		init_language();
 		if (!CPlusPlus)
-		  Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		  Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 
 		SwigType_push($2,$3.type);
 		// Fix up the function name
@@ -2178,7 +2153,7 @@ cpp_other    :/* A dummy class name */
              | extern type declarator DCOLON ID SEMI {
 	       init_language();
 	       if (!CPlusPlus)
-		 Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		 Printf(stderr,"%s:%d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 
 	       SwigType_push($2,$3.type);
 	       // Fix up the function name
@@ -2194,7 +2169,7 @@ cpp_other    :/* A dummy class name */
 /* Operator overloading catch */
 
              | extern type declarator DCOLON OPERATOR {
-	       Printf(stderr,"%s : Line %d. Operator overloading not supported (ignored).\n", input_file, line_number);
+	       Printf(stderr,"%s:%d. Operator overloading not supported (ignored).\n", input_file, line_number);
 		skip_decl();
 		Delete($2);
 	     }
@@ -2202,7 +2177,7 @@ cpp_other    :/* A dummy class name */
 
 /* Template catch */
              | TEMPLATE {
-	       Printf(stderr,"%s : Line %d. Templates not currently supported (ignored).\n",
+	       Printf(stderr,"%s:%d. Templates not currently supported (ignored).\n",
 		       input_file, line_number);
 	       skip_decl();
 	     }
@@ -2235,7 +2210,7 @@ cpp_members  : cpp_member cpp_members {}
 		   {
 		     static int last_error_line = -1;
 		     if (last_error_line != line_number) {
-		       Printf(stderr,"%s : Line %d. Syntax error in input.\n", input_file, line_number);
+		       Printf(stderr,"%s:%d. Syntax error in input.\n", input_file, line_number);
 		       FatalError();
 		       last_error_line = line_number;
 		     }
@@ -2427,14 +2402,14 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
 
 /* A friend :   Illegal */
               | FRIEND {
-		Printf(stderr,"%s : Line %d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
+		Printf(stderr,"%s:%d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
 		skip_decl();
 		scanner_clear_start();
 	      }
 
 /* An operator: Illegal */
               | type abstract_declarator OPERATOR {
-		Printf(stderr,"%s : Line %d. Operator overloading not supported (ignored).\n", input_file, line_number);
+		Printf(stderr,"%s:%d. Operator overloading not supported (ignored).\n", input_file, line_number);
 		skip_decl();
 		scanner_clear_start();
 	      }
@@ -2474,7 +2449,7 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
 		  cplus_register_type($2);
 		  if ($5.id) {
 		    if (strcmp($1,"class") == 0) {
-		      Printf(stderr,"%s : Line %d.  Warning. Nested classes not currently supported (ignored).\n", input_file, line_number);
+		      Printf(stderr,"%s:%d.  Warning. Nested classes not currently supported (ignored).\n", input_file, line_number);
 		      /* Generate some code for a new class */
 		    } else {
 		      Nested *n = (Nested *) malloc(sizeof(Nested));
@@ -2496,7 +2471,7 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
               } declarator SEMI {
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (strcmp($1,"class") == 0) {
-		    Printf(stderr,"%s : Line %d.  Warning. Nested classes not currently supported (ignored)\n", input_file, line_number);
+		    Printf(stderr,"%s:%d.  Warning. Nested classes not currently supported (ignored)\n", input_file, line_number);
 		    /* Generate some code for a new class */
 		  } else {
 		    /* Generate some code for a new class */
@@ -2653,12 +2628,12 @@ base_list      : base_specifier {
                ;
 
 base_specifier : ID {
-                  Printf(stderr,"%s : Line %d. No access specifier given for base class %s (ignored).\n",
+                  Printf(stderr,"%s:%d. No access specifier given for base class %s (ignored).\n",
 			  input_file,line_number,$1);
 		  $$ = (char *) 0;
                }
                | VIRTUAL ID {
-                  Printf(stderr,"%s : Line %d. No access specifier given for base class %s (ignored).\n",
+                  Printf(stderr,"%s:%d. No access specifier given for base class %s (ignored).\n",
 			  input_file,line_number,$2);
 		  $$ = (char *) 0;
 	       }
@@ -2666,7 +2641,7 @@ base_specifier : ID {
 		 if (strcmp($2,"public") == 0) {
 		   $$ = $3;
 		 } else {
-		   Printf(stderr,"%s : Line %d. %s inheritance not supported (ignored).\n",
+		   Printf(stderr,"%s:%d. %s inheritance not supported (ignored).\n",
 			   input_file,line_number,$2);
 		   $$ = (char *) 0;
 		 }
@@ -2675,7 +2650,7 @@ base_specifier : ID {
 		 if (strcmp($1,"public") == 0) {
 		   $$ = $2;
 		 } else {
-		   Printf(stderr,"%s : Line %d. %s inheritance not supported (ignored).\n",
+		   Printf(stderr,"%s:%d. %s inheritance not supported (ignored).\n",
 			   input_file,line_number,$1);
 		   $$ = (char *) 0;
 		 }
@@ -2684,7 +2659,7 @@ base_specifier : ID {
                  if (strcmp($1,"public") == 0) {
 		   $$ = $3;
 		 } else {
-		   Printf(stderr,"%s : Line %d. %s inheritance not supported (ignored).\n",
+		   Printf(stderr,"%s:%d. %s inheritance not supported (ignored).\n",
 			   input_file,line_number,$1);
 		   $$ = (char *) 0;
 		 }
@@ -2791,15 +2766,6 @@ empty          :   ;
 
 %%
 
-void error_recover() {
-  int c;
-  c = yylex();
-  while ((c > 0) && (c != SEMI))
-    c = yylex();
-}
-
 /* Called by the parser (yyparse) when an error is found.*/
 void yyerror (char *) {
-  //  Printf(stderr,"%s : Line %d. Syntax error.\n", input_file, line_number);
-  //  error_recover();
 }
