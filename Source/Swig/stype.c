@@ -40,6 +40,7 @@
  *  'a(n).'             = Array of size n
  *  'f(..,..).'         = Function with arguments
  *  'q(str).'           = Qualifier (such as const or volatile)
+ *  't(...).'           = Template specifier???
  *
  * The encoding follows the order that you might describe a type in words.
  * For example "p.a(200).int" is "A pointer to array of int's" and
@@ -58,8 +59,8 @@
  *
  * For the most part, this module tries to minimize the use of special
  * characters (*, [, <, etc...) in its type encoding.  One reason for this
- * is that SWIG might be extended to interact with data encodings such as
- * XML in which case a type could be provided as follows:
+ * is that SWIG might be extended to encode data in formats such as XML
+ * where we might want to do things like this:
  * 
  *      <function>
  *         <type>p.p.int</type>
@@ -70,67 +71,66 @@
  *
  *      <function type="p.p.int" ...>blah</function>
  *
- * In either case, it's probably best to avoid characters such as '&'
- * or '<'.
+ * In either case, it's probably best to avoid characters such as '&', '*', or '<'.
  * ----------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
- * StringType_add_pointer()
+ * SwigType_add_pointer()
  *
  * Adds a pointer constructor to a type
  * ----------------------------------------------------------------------------- */
 
 void
-StringType_add_pointer(DOHString *t) {
+SwigType_add_pointer(DOHString *t) {
   Insert(t,0,"p.");
 }
 
 /* -----------------------------------------------------------------------------
- * StringType_add_array()
+ * SwigType_add_array()
  *
  * Adds an array constructor to a type
  * ----------------------------------------------------------------------------- */
 
 void
-StringType_add_array(DOHString *t, DOHString *size) {
+SwigType_add_array(DOHString *t, DOHString *size) {
   char temp[256];
   sprintf(temp,"a(%s).", Char(size));
   Insert(t,0,temp);
 }
 
 /* -----------------------------------------------------------------------------
- * StringType_add_reference()
+ * SwigType_add_reference()
  *
  * Adds a reference constructor to a type.
  * ----------------------------------------------------------------------------- */
 
 void
-StringType_add_reference(DOHString *t) {
+SwigType_add_reference(DOHString *t) {
   Insert(t,0,"r.");
 }
 
 /* -----------------------------------------------------------------------------
- * StringType_add_qualifier()
+ * SwigType_add_qualifier()
  *
  * Adds a qualifier to a type
  * ----------------------------------------------------------------------------- */
 
 void
-StringType_add_qualifier(DOHString *t, DOHString *qual) {
+SwigType_add_qualifier(DOHString *t, DOHString *qual) {
   char temp[256];
   sprintf(temp,"q(%s).",Char(qual));
   Insert(t,0,temp);
 }
 
 /* -----------------------------------------------------------------------------
- * StringType_add_function()
+ * SwigType_add_function()
  *
  * Adds a function to a type. Accepts a list of abstract types as parameters.
  * These abstract types should be passed as a list of type-strings.
  * ----------------------------------------------------------------------------- */
 
 void
-StringType_add_function(DOHString *t, DOHList *parms) {
+SwigType_add_function(DOHString *t, DOHList *parms) {
   DOHString *pstr;
   int        i,l;
 
@@ -156,7 +156,10 @@ static DOHString *
 isolate_element(char *c) {
   DOHString *result = NewString("");
   while (*c) {
-    if (*c == '.') return result;
+    if (*c == '.') {
+      Putc(*c,result);
+      return result;
+    }
     else if (*c == '(') {
       int nparen = 1;
       Putc(*c,result);
@@ -170,19 +173,6 @@ isolate_element(char *c) {
 	}
 	c++;
       }
-    } else if (*c == '{') {
-      int nbrace = 1;
-      Putc(*c,result);
-      c++;
-      while(*c) {
-	Putc(*c,result);
-	if (*c == '{') nbrace++;
-	if (*c == '}') {
-	  nbrace--;
-	  if (nbrace == 0) break;
-	}
-	c++;
-      }
     } else {
       Putc(*c,result);
     }
@@ -190,13 +180,14 @@ isolate_element(char *c) {
   }
   return result;
 }
+
 /* -----------------------------------------------------------------------------
- * StringType_split(DOH *t)
+ * SwigType_split(DOH *t)
  *
  * Splits a type into it's component parts and returns a list of string.
  * ----------------------------------------------------------------------------- */
 
-DOHList *StringType_split(DOHString_or_char *t) {
+DOHList *SwigType_split(DOHString_or_char *t) {
   DOH     *item;
   DOHList *list;
   char *c;
@@ -221,12 +212,12 @@ DOHList *StringType_split(DOHString_or_char *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * StringType_pop()
+ * SwigType_pop()
  *
  * Pop off the first type-constructor object and update the type
  * ----------------------------------------------------------------------------- */
 
-DOHString *StringType_pop(DOH *t)
+DOHString *SwigType_pop(DOH *t)
 {
   DOHString *result;
   char      *c;
@@ -243,12 +234,12 @@ DOHString *StringType_pop(DOH *t)
 }
 
 /* -----------------------------------------------------------------------------
- * StringType_push()
+ * SwigType_push()
  *
  * Push a type constructor onto the type
  * ----------------------------------------------------------------------------- */
 
-void StringType_push(DOHString *t, DOHString *cons)
+void SwigType_push(DOHString *t, DOHString *cons)
 {
   if (!cons) return;
   if (!Len(cons)) return;
@@ -262,18 +253,19 @@ void StringType_push(DOHString *t, DOHString *cons)
 }
 
 /* -----------------------------------------------------------------------------
- * StringType_split_parms()
+ * SwigType_parmlist()
  *
  * Splits a comma separated list of components into strings.
  * ----------------------------------------------------------------------------- */
 
-DOHList *StringType_split_parms(DOHString *p) {
+DOHList *SwigType_parmlist(DOHString *p) {
   DOH     *item;
   DOHList *list;
   char *c;
 
   c = Char(p);
-  assert(*c == '(');
+  while (*c && (*c != '(') && (*c != '.')) c++;
+  if (!*c || (*c == '.')) return 0;
   c++;
   list = NewList();
   item = NewString("");
@@ -297,19 +289,6 @@ DOHList *StringType_split_parms(DOHString *p) {
       }
     } else if (*c == ')') {
       break;
-    } else if (*c == '{') {
-      int nbraces = 1;
-      Putc(*c,item);
-      c++;
-      while (*c) {
-	Putc(*c,item);
-	if (*c == '{') nbraces++;
-	if (*c == '}') {
-	  nbraces--;
-	  if (nbraces == 0) break;
-	}
-	c++;
-      }
     } else {
       Putc(*c,item);
     }
@@ -322,67 +301,87 @@ DOHList *StringType_split_parms(DOHString *p) {
 }
 
 /* -----------------------------------------------------------------------------
- * StringType_ispointer()
- * StringType_isarray()
- * StringType_isreference()
- * StringType_isfunction()
- * StringType_isqualifier()
+ * SwigType_parm()
+ *
+ * Returns the parameter of an operator as a string
+ * ----------------------------------------------------------------------------- */
+
+DOHString *SwigType_parm(DOHString *t) {
+  DOHString *result;
+  char *c;
+  int  nparens = 0;
+
+  c = Char(t);
+  while (*c && (*c != '(') && (*c != '.')) c++;
+  if (!*c || (*c == '.')) return 0;
+  c++;
+  result = NewString("");
+  while (*c) {
+    if (*c == ')') {
+      if (nparens == 0) return result;
+      nparens--;
+    } else if (*c == '(') {
+      nparens++;
+    }
+    Putc(*c,result);
+    c++;
+  }
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_ispointer()
+ * SwigType_isarray()
+ * SwigType_isreference()
+ * SwigType_isfunction()
+ * SwigType_isqualifier()
  *
  * Testing functions for querying a datatype
  * ----------------------------------------------------------------------------- */
 
-int StringType_ispointer(DOHString *t) {
+int SwigType_ispointer(DOHString_or_char *t) {
   char *c;
 
-  assert(DohIsString(t));
   c = Char(t);
-  if (*c == '*') return 1;
+  if (strncmp(c,"p.",2) == 0) return 1;
   return 0;
 }
 
-int StringType_isreference(DOHString *t) {
+int SwigType_isreference(DOHString_or_char *t) {
   char *c;
-
-  assert(DohIsString(t));
   c = Char(t);
-  if (*c == '&') return 1;
+  if (strncmp(c,"r.",2) == 0) return 1;
   return 0;
 }
 
-int StringType_isarray(DOHString *t) {
+int SwigType_isarray(DOHString_or_char *t) {
   char *c;
-
-  assert(DohIsString(t));
   c = Char(t);
-  if (*c == '[') return 1;
+  if (strncmp(c,"a(",2) == 0) return 1;
   return 0;
 }
 
-int StringType_isfunction(DOHString *t) {
+int SwigType_isfunction(DOHString_or_char *t) {
   char *c;
-
-  assert(DohIsString(t));
   c = Char(t);
-  if (*c == '(') return 1;
+  if (strncmp(c,"f(",2) == 0) return 1;
   return 0;
 }
 
-int StringType_isqualifier(DOHString *t) {
+int SwigType_isqualifier(DOHString_or_char *t) {
   char *c;
-
-  assert(DohIsString(t));
   c = Char(t);
-  if (*c == '+') return 1;
+  if (strncmp(c,"q(",2) == 0) return 1;
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
- * StringType_base()
+ * SwigType_base()
  *
  * Returns the base of a datatype.
  * ----------------------------------------------------------------------------- */
 
-DOHString *StringType_base(DOHString *t) {
+DOHString *SwigType_base(DOHString *t) {
   char *c, *d;
 
   assert(DohIsString(t));
@@ -396,13 +395,38 @@ DOHString *StringType_base(DOHString *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * StringType_cstr(DOH *s, DOH *id)
+ * SwigType_prefix()
+ *
+ * Returns the prefix of a datatype
+ * ----------------------------------------------------------------------------- */
+
+DOHString *SwigType_prefix(DOHString *t) {
+  char *c, *d;
+  DOHString *r = 0;
+
+  c = Char(t);
+  d = c + strlen(c);
+  while (d > c) {
+    d--;
+    if (*d == '.') {
+      char t = *(d+1);
+      *(d+1) = 0;
+      r = NewString(c);
+      *(d+1) = t;
+      return r;
+    }
+  }
+  return NewString("");
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_cstr(DOH *s, DOH *id)
  *
  * Create a C string representation of a datatype.
  * ----------------------------------------------------------------------------- */
 
 DOHString *
-StringType_cstr(DOHString *s, DOHString_or_char *id)
+SwigType_cstr(DOHString *s, DOHString_or_char *id)
 {
   DOHString *result;
   DOHString *element, *nextelement;
@@ -416,8 +440,8 @@ StringType_cstr(DOHString *s, DOHString_or_char *id)
     result = NewString("");
   }
 
-  elements = StringType_split(s);
-  Printf(stdout,"%s\n",elements);
+  elements = SwigType_split(s);
+  /*  Printf(stdout,"%s\n",elements); */
   nelements = Len(elements);
 
   if (nelements > 0) {
@@ -430,32 +454,41 @@ StringType_cstr(DOHString *s, DOHString_or_char *id)
     } else {
       nextelement = 0;
     }
-    if (StringType_ispointer(element)) {
+    if (SwigType_ispointer(element)) {
       Insert(result,0,"*");
-      if ((nextelement) && ((StringType_isfunction(nextelement) || (StringType_isarray(nextelement))))) {
+      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
 	Insert(result,0,"(");
 	Append(result,")");
       }
     }
-    else if (StringType_isreference(element)) Insert(result,0,"&");
-    else if (StringType_isarray(element)) Append(result,element);
-    else if (StringType_isfunction(element)) {
+    else if (SwigType_isreference(element)) Insert(result,0,"&");
+    else if (SwigType_isarray(element)) {
+      DOH *size;
+      Append(result,"[");
+      size = SwigType_parm(element);
+      Append(result,size);
+      Append(result,"]");
+      Delete(size);
+    } else if (SwigType_isfunction(element)) {
       DOH *parms, *p;
       int j, plen;
       Append(result,"(");
-      parms = StringType_split_parms(element);
+      parms = SwigType_parmlist(element);
       plen = Len(parms);
       for (j = 0; j < plen; j++) {
-	p = StringType_cstr(Getitem(parms,j),0);
+	p = SwigType_cstr(Getitem(parms,j),0);
 	Append(result,p);
 	if (j < (plen-1)) Append(result,",");
 	Delete(p);
       }
       Append(result,")");
       Delete(parms);
-    } else if (StringType_isqualifier(element)) {
-      Insert(result,0, " ");
-      Insert(result,0,Char(element)+1);
+    } else if (SwigType_isqualifier(element)) {
+      DOH *q = 0;
+      q = SwigType_parm(element);
+      Insert(result,0," ");
+      Insert(result,0,q);
+      Delete(q);
     } else {
       Insert(result,0," ");
       Insert(result,0,element);
@@ -464,3 +497,203 @@ StringType_cstr(DOHString *s, DOHString_or_char *id)
   }
   return result;
 }
+
+/* -----------------------------------------------------------------------------
+ * Scope handling
+ *
+ * These functions are used to manipulate typedefs and scopes.
+ * ----------------------------------------------------------------------------- */
+
+#define MAX_SCOPE 8
+
+static DOHHash   *type_scopes = 0;              /* Hash table of scope names           */
+static DOHHash   *scopes[MAX_SCOPE];            /* List representing the current scope */
+static DOHString *scopenames[MAX_SCOPE];        /* Names of the various scopes         */
+static int      scope_level = 0;
+
+static init_scopes() {
+  if (type_scopes) return;
+  type_scopes = NewHash();
+  scopes[scope_level] = NewHash();
+  scopenames[scope_level] = NewString("::");
+  Setattr(type_scopes,"::",scopes[scope_level]);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_typedef()
+ *
+ * Defines a new typedef. Returns -1 if the type name is already defined.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_typedef(DOHString_or_char *type, DOHString_or_char *name) {
+  init_scopes();
+  if (Getattr(scopes[scope_level],name)) return -1;
+  Setattr(scopes[scope_level],name,type);
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_new_scope()
+ *
+ * Creates a new scope
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_new_scope() {
+  init_scopes();
+  scope_level++;
+  scopes[scope_level] = NewHash();
+  scopenames[scope_level] = NewString("");
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_reset_scopes()
+ *
+ * Reset the scope system
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_reset_scopes() {
+  Delete(type_scopes);
+  type_scopes = 0;
+  init_scopes();
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_set_scope_name()
+ *
+ * Set the name of the current scope.  Note: this will create an entry in the
+ * type_scopes hash.
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_set_scope_name(DOHString_or_char *name) {
+  DOHString *key;
+  int i;
+  init_scopes();
+  scopenames[scope_level] = NewString(Char(name));
+  key = NewString("");
+  for (i = 1; i <= scope_level; i++) {
+    Append(key,scopenames[scope_level]);
+    if (i < scope_level) Append(key,"::");
+  }
+  Setattr(type_scopes,key,scopes[scope_level]);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_merge_scope()
+ *
+ * Merges the contents of one scope into the current scope.
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_merge_scope(DOHHash *scope, DOHString_or_char *prefix) {
+  DOHString *name;
+  DOHString *key;
+  DOHString *type;
+
+  init_scopes();
+  key = Firstkey(scope);
+  while (key) {
+    type = Getattr(scope,key);
+    if (prefix) {
+      name = NewStringf("%s::%s",prefix,key);
+    } else {
+      name = NewString(key);
+    }
+    Setattr(scopes[scope_level],name,type);
+    key = Nextkey(scope);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_pop_scope()
+ *
+ * Pop off the last scope and perform a merge operation.  Returns the hash
+ * table for the scope that was popped off.
+ * ----------------------------------------------------------------------------- */
+
+DOHHash *SwigType_pop_scope() {
+  DOHHash *s;
+  DOHString *prefix;
+  init_scopes();
+  if (scope_level == 0) return 0;
+  prefix = scopenames[scope_level];
+  s = scopes[scope_level--];
+  SwigType_merge_scope(s,prefix);
+  return s;
+}
+
+/* ----------------------------------------------------------------------------- 
+ * SwigType_typedef_resolve()
+ *
+ * Resolves a typedef and returns a new type string.  Returns 0 if there is no
+ * typedef mapping.
+ * ----------------------------------------------------------------------------- */
+
+DOHString *SwigType_typedef_resolve(DOHString_or_char *t) {
+  DOHString *base;
+  DOHString *type;
+  DOHString *r;
+  int level;
+
+  base = SwigType_base(t);
+
+  level = scope_level;
+  while (level >= 0) {
+    /* See if we know about this type */
+    type = Getattr(scopes[scope_level],base);
+    if (type) break;
+    level--;
+  }
+  if (level < 0) {
+    Delete(base);
+    return 0;
+  }
+  r = SwigType_prefix(t);
+  Append(r,type);
+  return r;
+}
+
+
+/* ----------------------------------------------------------------------------- 
+ * SwigType_istypedef()
+ *
+ * Checks a typename to see if it is a typedef.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_istypedef(DOHString_or_char *t) {
+  DOHString *base, *type;
+  int level;
+
+  base = SwigType_base(t);
+  level = scope_level;
+  while (level >= 0) {
+    /* See if we know about this type */
+    type = Getattr(scopes[scope_level],base);
+    if (type) {
+      Delete(base);
+      return 1;
+    }
+    level--;
+  }
+  Delete(base);
+  return 0;
+}
+
+
+#ifdef DEBUG
+int main() {
+  DOHString *a,*b,*c,*d;
+
+  a = NewString("int");
+  SwigType_add_pointer(a);
+
+  SwigType_typedef(a,"IntPtr");
+  
+  b = NewString("IntPtr");
+  SwigType_add_array(b,"1000");
+
+  Printf(stdout,"b = '%s'\n", b);
+  c = SwigType_typedef_resolve(b);
+
+  Printf(stdout,"c = '%s'\n", c);
+}
+
+#endif
