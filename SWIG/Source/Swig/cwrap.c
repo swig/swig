@@ -157,6 +157,10 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
   case T_REFERENCE:
     Printf(fcall,"%s = ", SwigType_str(t,"_result_ref"));
     break;
+  case T_USER:
+    Printf(fcall,"%s = ", name);
+    break;
+
   default:
     /* Normal return value */
     Printf(fcall,"%s = (%s)", name, SwigType_lstr(t,0));

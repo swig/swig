@@ -204,7 +204,7 @@
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
   }
-  $1 = ($1_type) *temp;
+  $1 = *(($&1_type) temp);
 }
 
 /* --- Variable output --- */
