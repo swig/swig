@@ -99,11 +99,41 @@ int need_protected(Node* n, int dirprot_mode)
   if (!(Swig_need_protected() || dirprot_mode)) return 0;
 
   /* First, 'n' looks like a function */
-  if (SwigType_isfunction(Getattr(n,"decl"))) {
+  if ((Strcmp(nodeType(n),"cdecl") == 0) &&
+      SwigType_isfunction(Getattr(n,"decl"))) {
     String *storage = Getattr(n,"storage");
     /* and the function is declared like virtual, or it has no
        storage. This eliminates typedef, static and so on. */ 
     return (!storage || (Strcmp(storage,"virtual") == 0));
   }
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * int need_name_warning(Node *n)
+ *
+ * Detects if a node needs name warnings 
+ *
+ * ----------------------------------------------------------------------------- */
+
+int need_name_warning(Node *n)
+{
+  int need = 1;
+  /* 
+     we don't use name warnings for:
+     - class forwards, no symbol is generated at the target language.
+     - template declarations, only for real instances using %template(name).
+     - typedefs, they have no effect at the target language.
+  */
+  if (Strcmp(nodeType(n),"classforward") == 0) {
+    need = 0;
+  } else if (Getattr(n,"templatetype")) {
+    need = 0;
+  } else {
+    String *storage = Getattr(n,"storage");
+    if (storage && (Strcmp(storage,"typedef") == 0)) {
+      need = 0;
+    }
+  }
+  return need;
 }
