@@ -54,7 +54,7 @@ namespace swigpy {
 
   template <class Sequence, class Difference>
   inline typename Sequence::const_iterator 
-  getpos(const Sequence* self, Difference i)  {
+  cgetpos(const Sequence* self, Difference i)  {
     typename Sequence::const_iterator pos = self->begin(); 
     std::advance(pos, swigpy::check_index(i, self->size()));
     return pos;
@@ -67,7 +67,7 @@ namespace swigpy {
     typename Sequence::size_type ii = swigpy::slice_index(i, size);
     typename Sequence::size_type jj = swigpy::slice_index(j, size);
     if (jj > ii) {
-      return new Sequence(getpos(self, ii), getpos(self, jj));
+      return new Sequence(cgetpos(self, ii), cgetpos(self, jj));
     } else {
       return new Sequence();
     }
@@ -80,7 +80,7 @@ namespace swigpy {
     typename Sequence::size_type ii = swigpy::slice_index(i, size);
     typename Sequence::size_type jj = swigpy::slice_index(j, size);
     if (jj < ii) jj = ii;
-    typename InputSeq::const_iterator vmid = getpos(&v, jj - ii);
+    typename InputSeq::const_iterator vmid = cgetpos(&v, jj - ii);
     self->insert(std::copy(v.begin(), vmid, getpos(self,ii)), vmid, v.end());
   }
  
@@ -416,7 +416,7 @@ namespace swigpy
   %pysequence_methods_common(SWIG_arg(Sequence))
   %extend {
     const value_type& __getitem__(difference_type i) const {
-      return *(swigpy::getpos(self, i));
+      return *(swigpy::cgetpos(self, i));
     }
 
     void __setitem__(difference_type i, const value_type& x) {
@@ -433,7 +433,7 @@ namespace swigpy
   %pysequence_methods_common(SWIG_arg(Sequence))
   %extend {
     value_type __getitem__(difference_type i)  {
-      return *(swigpy::getpos(self, i));
+      return *(swigpy::cgetpos(self, i));
     }
 
     void __setitem__(difference_type i, value_type x) {
