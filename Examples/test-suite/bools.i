@@ -1,6 +1,8 @@
 // bool typemaps check
 %module bools
 
+%warnfilter(801) constbool;         /* Ruby, wrong class name */
+
 // bool constant
 %constant bool constbool=false;
 
