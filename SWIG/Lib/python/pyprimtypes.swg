@@ -453,7 +453,7 @@ SWIGSTATICINLINE(int)
   const char* errmsg = val ? "float" : 0;
   double v;
   if (SWIG_AsVal(double)(obj, &v)) {
-    if (SWIG_CheckDoubleInRange(v, FLT_MIN, FLT_MAX, errmsg)) {
+    if (SWIG_CheckDoubleInRange(v, -FLT_MAX, FLT_MAX, errmsg)) {
       if (val) *val = v;
       return 1;
     } else {
