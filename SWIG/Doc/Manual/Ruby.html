@@ -29,50 +29,54 @@
 <li><a href="#n15">Constants</a>
 <li><a href="#n16">Pointers</a>
 <li><a href="#n17">Structures</a>
-<li><a href="#n18">C++ Classes</a>
+<li><a href="#n18">C++ classes</a>
 <li><a href="#n19">C++ Inheritance</a>
 <li><a href="#n20">C++ Overloaded Functions</a>
 <li><a href="#n21">C++ Operators</a>
-<li><a href="#n22">C++ Namespaces</a>
-<li><a href="#n23">C++ Templates</a>
+<li><a href="#n22">C++ namespaces</a>
+<li><a href="#n23">C++ templates</a>
 <li><a href="#n24">C++ Smart Pointers</a>
-</ul>
-<li><a href="#n25">Input and output parameters</a>
-<li><a href="#n26">Simple exception handling </a>
-<li><a href="#n27">Typemaps</a>
+<li><a href="#n25">Cross-Language Polymorphism</a>
 <ul>
-<li><a href="#n28">What is a typemap?</a>
-<li><a href="#n29">Ruby typemaps</a>
-<li><a href="#n30">Typemap variables</a>
-<li><a href="#n31">Useful Functions</a>
-<ul>
-<li><a href="#n32">C Datatypes to Ruby Objects</a>
-<li><a href="#n33">Ruby Objects to C Datatypes</a>
-<li><a href="#n34">Macros for VALUE</a>
-<li><a href="#n35">Exceptions</a>
-<li><a href="#n36">Iterators</a>
-</ul>
-<li><a href="#n37">Typemap Examples</a>
-<li><a href="#n38">Converting a Ruby array to a char **</a>
-<li><a href="#n39">Collecting arguments in a hash</a>
-<li><a href="#n40">Pointer handling</a>
-<ul>
-<li><a href="#n41">Ruby Datatype Wrapping</a>
+<li><a href="#n26">Exception Unrolling</a>
 </ul>
 </ul>
-<li><a href="#n42">Operator overloading</a>
+<li><a href="#n27">Input and output parameters</a>
+<li><a href="#n28">Simple exception handling </a>
+<li><a href="#n29">Typemaps</a>
 <ul>
-<li><a href="#n43">An example (putting everything together)</a>
-<li><a href="#n44">Expanding the example</a>
-<li><a href="#n45">STL Vector to Ruby Array</a>
+<li><a href="#n30">What is a typemap?</a>
+<li><a href="#n31">Ruby typemaps</a>
+<li><a href="#n32">Typemap variables</a>
+<li><a href="#n33">Useful Functions</a>
+<ul>
+<li><a href="#n34">C Datatypes to Ruby Objects</a>
+<li><a href="#n35">Ruby Objects to C Datatypes</a>
+<li><a href="#n36">Macros for VALUE</a>
+<li><a href="#n37">Exceptions</a>
+<li><a href="#n38">Iterators</a>
 </ul>
-<li><a href="#n46">Advanced Topics</a>
+<li><a href="#n39">Typemap Examples</a>
+<li><a href="#n40">Converting a Ruby array to a char **</a>
+<li><a href="#n41">Collecting arguments in a hash</a>
+<li><a href="#n42">Pointer handling</a>
 <ul>
-<li><a href="#n47">Creating Multi-Module Packages</a>
-<li><a href="#n48">Defining Aliases</a>
-<li><a href="#n49">Predicate Methods</a>
-<li><a href="#n50">Specifying Mixin Modules</a>
-<li><a href="#n51">Interacting with Ruby's Garbage Collector</a>
+<li><a href="#n43">Ruby Datatype Wrapping</a>
+</ul>
+</ul>
+<li><a href="#n44">Operator overloading</a>
+<ul>
+<li><a href="#n45">An example (putting everything together)</a>
+<li><a href="#n46">Expanding the example</a>
+<li><a href="#n47">STL Vector to Ruby Array</a>
+</ul>
+<li><a href="#n48">Advanced Topics</a>
+<ul>
+<li><a href="#n49">Creating Multi-Module Packages</a>
+<li><a href="#n50">Defining Aliases</a>
+<li><a href="#n51">Predicate Methods</a>
+<li><a href="#n52">Specifying Mixin Modules</a>
+<li><a href="#n53">Interacting with Ruby's Garbage Collector</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -1168,8 +1172,37 @@ irb(main):004:0> <b>f = p.__deref__()</b>     # Returns underlying Foo *
 </blockquote>
 
 
+<a name="n25"></a><H3>20.3.14 Cross-Language Polymorphism</H3>
+
+
+SWIG's Ruby module supports cross-language polymorphism (a.k.a. the "directors"
+feature) similar to that for SWIG's Python module. Rather than duplicate the
+information presented in the <a href="Python.html">Python</a> chapter, this
+secton just notes the differences that you need to be aware of when using this
+feature with Ruby.
+
+<a name="n26"></a><H4>20.3.14.1 Exception Unrolling</H4>
+
+
+Whenever a C++ director class routes one of its virtual member function calls to a
+Ruby instance method, there's always the possibility that an exception will be
+raised in the Ruby code. By default, those exceptions are ignored, which simply
+means that the exception will be exposed to the Ruby interpreter. If you would
+like to change this behavior, you can use the <tt>%feature("director:except")</tt>
+directive to indicate what action should be taken when a Ruby exception is raised.
+The following code should suffice in most cases:
+
+<blockquote><pre>%feature("director:except") {
+    throw SWIG_DIRECTOR_METHOD_EXCEPTION($error);
+}
+</pre></blockquote> 
+
+When this feature is activated, the call to the Ruby instance method is "wrapped"
+using the <tt>rb_rescue2()</tt> function from Ruby's C API. If any Ruby exception
+is raised, it will be caught here and a C++ exception is raised in its place.
+
 <hr>
-<a name="n25"></a><H2>20.4 Input and output parameters</H2>
+<a name="n27"></a><H2>20.4 Input and output parameters</H2>
 
 
 A common problem in some C programs is handling parameters passed as simple
@@ -1327,7 +1360,7 @@ r, c = Example.get_dimensions(m)
 </blockquote>
 
 <hr>
-<a name="n26"></a><H2>20.5 Simple exception handling </H2>
+<a name="n28"></a><H2>20.5 Simple exception handling </H2>
 
 
 The SWIG <tt>%exception</tt> directive can be used to define a user-definable
@@ -1506,7 +1539,7 @@ SystemExit
 </blockquote>
 
 <hr>
-<a name="n27"></a><H2>20.6 Typemaps</H2>
+<a name="n29"></a><H2>20.6 Typemaps</H2>
 
 
 This section describes how you can modify SWIG's default wrapping behavior
@@ -1520,7 +1553,7 @@ part of using SWIG---the default wrapping behavior is enough in most cases.
 Typemaps are only used if you want to change some aspect of the primitive
 C-Ruby interface.
 
-<a name="n28"></a><H3>20.6.1 What is a typemap?</H3>
+<a name="n30"></a><H3>20.6.1 What is a typemap?</H3>
 
 
 A typemap is nothing more than a code generation rule that is attached to 
@@ -1624,7 +1657,7 @@ puts Example.count('o','Hello World')
 </pre>
 </blockquote>
 
-<a name="n29"></a><H3>20.6.2 Ruby typemaps</H3>
+<a name="n31"></a><H3>20.6.2 Ruby typemaps</H3>
 
 
 The previous section illustrated an "in" typemap for converting Ruby objects to
@@ -1706,7 +1739,7 @@ Initialize an argument to a value before any conversions occur.
 Examples of these typemaps appears in the <a href="#n34">section on typemap
 examples</a>
 
-<a name="n30"></a><H3>20.6.3 Typemap variables</H3>
+<a name="n32"></a><H3>20.6.3 Typemap variables</H3>
 
 
 Within a typemap, a number of special variables prefaced with a <tt>$</tt>
@@ -1762,7 +1795,7 @@ so that their values can be properly assigned.
 The Ruby name of the wrapper function being created.
 </blockquote>
 
-<a name="n31"></a><H3>20.6.4 Useful Functions</H3>
+<a name="n33"></a><H3>20.6.4 Useful Functions</H3>
 
 
 When you write a typemap, you usually have to work directly with Ruby objects.
@@ -1771,7 +1804,7 @@ more can be found in the "Programming Ruby" book written by David Thomas
 and Andrew Hunt.)
 
 <p>
-<a name="n32"></a><H4>20.6.4.1 C Datatypes to Ruby Objects</H4>
+<a name="n34"></a><H4>20.6.4.1 C Datatypes to Ruby Objects</H4>
 
 
 <blockquote>
@@ -1784,7 +1817,7 @@ rb_float_new(double)  - double to Float
 </pre>
 </blockquote>
 
-<a name="n33"></a><H4>20.6.4.2 Ruby Objects to C Datatypes</H4>
+<a name="n35"></a><H4>20.6.4.2 Ruby Objects to C Datatypes</H4>
 
 
 <blockquote>
@@ -1804,7 +1837,7 @@ unsigned long FIX2ULONG(Numeric)
 </pre>
 </blockquote>
 
-<a name="n34"></a><H4>20.6.4.3 Macros for VALUE</H4>
+<a name="n36"></a><H4>20.6.4.3 Macros for VALUE</H4>
 
 
 <p>
@@ -1823,7 +1856,7 @@ unsigned long FIX2ULONG(Numeric)
 <tt>RARRAY(arr)-&gt;ptr</tt>
 <blockquote>pointer to array storage</blockquote>
 
-<a name="n35"></a><H4>20.6.4.4 Exceptions</H4>
+<a name="n37"></a><H4>20.6.4.4 Exceptions</H4>
 
 
 <p>
@@ -1898,7 +1931,7 @@ unsigned long FIX2ULONG(Numeric)
 </pre>
 </blockquote>
 
-<a name="n36"></a><H4>20.6.4.5 Iterators</H4>
+<a name="n38"></a><H4>20.6.4.5 Iterators</H4>
 
 
 <p>
@@ -1945,13 +1978,13 @@ unsigned long FIX2ULONG(Numeric)
 
 
 
-<a name="n37"></a><H3>20.6.5 Typemap Examples</H3>
+<a name="n39"></a><H3>20.6.5 Typemap Examples</H3>
 
 
 This section includes a few examples of typemaps.  For more examples, you
 might look at the examples in the <tt>Example/ruby</tt> directory.
 
-<a name="n38"></a><H3>20.6.6 Converting a Ruby array to a char **</H3>
+<a name="n40"></a><H3>20.6.6 Converting a Ruby array to a char **</H3>
 
 
 A common problem in many C programs is the processing of command line
@@ -2015,7 +2048,7 @@ receive an input argument and convert it to a C array.  Since dynamic memory
 allocation is used to allocate memory for the array, the "freearg" typemap is
 used to later release this memory after the execution of the C function. 
 
-<a name="n39"></a><H3>20.6.7 Collecting arguments in a hash</H3>
+<a name="n41"></a><H3>20.6.7 Collecting arguments in a hash</H3>
 
 
 Ruby's solution to the "keyword arguments" capability of some other languages is
@@ -2223,7 +2256,7 @@ All of the code for this example, as well as a sample Ruby program that uses
 the extension, can be found in the <tt>Examples/ruby/hashargs</tt> directory
 of the SWIG distribution.
 
-<a name="n40"></a><H3>20.6.8 Pointer handling</H3>
+<a name="n42"></a><H3>20.6.8 Pointer handling</H3>
 
 
 Occasionally, it might be necessary to convert pointer values that have been
@@ -2282,7 +2315,7 @@ typemap variable <tt>$1_descriptor</tt>.  For example:
 </pre>
 </blockquote>
 
-<a name="n41"></a><H4>20.6.8.1 Ruby Datatype Wrapping</H4>
+<a name="n43"></a><H4>20.6.8.1 Ruby Datatype Wrapping</H4>
 
 
 <p>
@@ -2303,7 +2336,7 @@ Retrieves the original C pointer of type <i>c-type</i> from the data object
 </blockquote>
 
 <hr>
-<a name="n42"></a><H2>20.7 Operator overloading</H2>
+<a name="n44"></a><H2>20.7 Operator overloading</H2>
 
 
 SWIG allows operator overloading with, by using the <tt>%extend</tt> or
@@ -2361,7 +2394,7 @@ __ge__        - &gt;=
 
 Note that although SWIG supports the <tt>__eq__</tt> magic method name for defining an equivalence operator, there is no separate method for handling <i>inequality</i> since Ruby parses the expression <i>a != b</i> as <i>!(a == b)</i>.
 
-<a name="n43"></a><H3>20.7.1 An example (putting everything together)</H3>
+<a name="n45"></a><H3>20.7.1 An example (putting everything together)</H3>
 
 
 One way to illustrate the use of operator overloading, as well as the wrapping
@@ -2467,7 +2500,7 @@ irb(main):014:0> <b>puts "s_list[0] = #{s_list[0]}"</b>
 </pre></blockquote>
 <p>
 
-<a name="n44"></a><H3>20.7.2 Expanding the example</H3>
+<a name="n46"></a><H3>20.7.2 Expanding the example</H3>
 
 
 To expand on the previous example, the following shows how to create a vector
@@ -2508,7 +2541,7 @@ Also note that the call to <tt>Data_Wrap_Struct()</tt> sets the <tt>free</tt>
 parameter for <tt>CPP_Object</tt> to <tt>NULL</tt>.  That is done because C++,
   owns the object and thus should free it, not Ruby.
 
-<a name="n45"></a><H3>20.7.3 STL Vector to Ruby Array</H3>
+<a name="n47"></a><H3>20.7.3 STL Vector to Ruby Array</H3>
 
 
 Another use for macros and type maps is to create a Ruby array from a STL
@@ -2595,10 +2628,10 @@ It is also possible to create a Ruby array from a vector of static data types:
 </pre></blockquote>
 
 
-<a name="n46"></a><H2>20.8 Advanced Topics</H2>
+<a name="n48"></a><H2>20.8 Advanced Topics</H2>
 
 
-<a name="n47"></a><H3>20.8.1 Creating Multi-Module Packages</H3>
+<a name="n49"></a><H3>20.8.1 Creating Multi-Module Packages</H3>
 
 
 The chapter on <a href="Advanced.html">Advanced Topics</a> discusses the basics
@@ -2723,7 +2756,7 @@ irb(main):005:0> <b>c.getX()</b>
 </pre>
 </blockquote>
 
-<a name="n48"></a><H3>20.8.2 Defining Aliases</H3>
+<a name="n50"></a><H3>20.8.2 Defining Aliases</H3>
 
 
 It's a fairly common practice in the Ruby built-ins and standard library to
@@ -2791,7 +2824,7 @@ mechanism and so the same name matching rules used for other kinds of features
 apply (see the chapter on <a href="Customization.html">"Customization Features"</a>)
 for more details).
 
-<a name="n49"></a><H3>20.8.3 Predicate Methods</H3>
+<a name="n51"></a><H3>20.8.3 Predicate Methods</H3>
 
 
 Predicate methods in Ruby are those which return either <tt>true</tt> or
@@ -2842,7 +2875,7 @@ Note that the <tt>%predicate</tt> directive is implemented using SWIG's
 of features apply (see the chapter on <a href="Customization.html">"Customization
 Features"</a>) for more details).
 
-<a name="n50"></a><H3>20.8.4 Specifying Mixin Modules</H3>
+<a name="n52"></a><H3>20.8.4 Specifying Mixin Modules</H3>
 
 
 The Ruby language doesn't support multiple inheritance, but it does allow you
@@ -2914,7 +2947,7 @@ Note that the <tt>%mixin</tt> directive is implemented using SWIG's
 of features apply (see the chapter on <a href="Customization.html">"Customization
 Features"</a>) for more details).
 
-<a name="n51"></a><H3>20.8.5 Interacting with Ruby's Garbage Collector</H3>
+<a name="n53"></a><H3>20.8.5 Interacting with Ruby's Garbage Collector</H3>
 
 
 <b>This section is still unfinished!</b><p>
