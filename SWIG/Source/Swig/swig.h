@@ -437,7 +437,7 @@ extern void   Swig_typemap_attach_parms(const String_or_char *op, ParmList *parm
 /* --- Legacy %except directive API --- */
 
 extern void   Swig_except_register(String_or_char *code);
-extern char  *Swig_except_lookup();
+extern String *Swig_except_lookup();
 extern void   Swig_except_clear();
 
 #endif
