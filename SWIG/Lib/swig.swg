@@ -79,8 +79,6 @@
 %typemap(newfree) char * "free($1);";
 #endif
 
-%typemap(ignore,warning="Can't wrap variable length arguments.") (...) "";
-
 /* Default typemap for handling char * members */
 
 #ifdef __cplusplus
@@ -136,7 +134,11 @@
   else $1[0] = 0;
 }
 
+%typemap(ignore,warning="Variable length arguments ignored.") (...) "";
+%typemap(in) (...) "";
+
 %typemap(ignore) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
+
 
 /*  
  * This template wrapper is used to handle C++ objects that are passed or 
