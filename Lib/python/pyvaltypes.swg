@@ -1,10 +1,16 @@
+/*
+  Value typemaps (Type, const Type&) for value types, such as
+  fundamental types (int, double), that define the As/AsVal/From
+  methods.
+*/
+
 /* in */
 
-%define PY_IN_TYPEMAP(type, pyobj_as)
-  %typemap(in,fragment=#pyobj_as) type
+%define PYVAL_IN_TYPEMAP(pyobj_as,pyfrag,...)
+  %typemap(in,fragment=pyfrag) __VA_ARGS__ 
     "$1 = ($1_type) pyobj_as($input); 
-     if (PyErr_Occurred()) SWIG_fail;"
-  %typemap(in) const type& ($basetype temp)
+     if (PyErr_Occurred()) SWIG_fail;";
+  %typemap(in,fragment=pyfrag) const __VA_ARGS__ & ($basetype temp)
     "temp = ($basetype) pyobj_as($input);
      if (PyErr_Occurred()) SWIG_fail;
      $1 = &temp;";
@@ -12,17 +18,17 @@
 
 /* out */
 
-%define PY_OUT_TYPEMAP(type, pyobj_from)
-  %typemap(out,fragment=#pyobj_from) type 
-  "$result = pyobj_from((type)$1);";
-  %typemap(out,fragment=#pyobj_from) const type& 
-  "$result = pyobj_from((type)*($1));";
+%define PYVAL_OUT_TYPEMAP(pyobj_from,pyfrag,...)
+  %typemap(out,fragment=pyfrag) __VA_ARGS__ 
+  "$result = pyobj_from((__VA_ARGS__)$1);";
+  %typemap(out,fragment=pyfrag) const __VA_ARGS__& 
+  "$result = pyobj_from((__VA_ARGS__)*($1));";
 %enddef
 
 /* varin */
 
-%define PY_VARIN_TYPEMAP(type, pyobj_as)
-  %typemap(varin,fragment=#pyobj_as) type {
+%define PYVAL_VARIN_TYPEMAP(pyobj_as,pyfrag,...)
+  %typemap(varin,fragment=pyfrag) __VA_ARGS__ {
     $1_type temp = ($1_type) pyobj_as($input);  
     if (PyErr_Occurred()) {
       PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
@@ -34,95 +40,145 @@
 
 /* varout */
 
-%define PY_VAROUT_TYPEMAP(type, pyobj_from)
-  %typemap(varout,fragment=#pyobj_from)
-           type, const type&  "$result = pyobj_from((type)$1);";
+%define PYVAL_VAROUT_TYPEMAP(pyobj_from,pyfrag,...)
+  %typemap(varout,fragment=pyfrag) __VA_ARGS__, const __VA_ARGS__&  
+   "$result = pyobj_from((__VA_ARGS__)$1);";
 %enddef
-
 
 /* Primitive types */
-%define PY_CONSTCODE_TYPEMAP(type, pyobj_from)
-  %typemap(constcode,fragment=#pyobj_from) type 
-     "PyDict_SetItemString(d,\"$symname\", pyobj_from((type)$value));";
+%define PYVAL_CONSTCODE_TYPEMAP(pyobj_from,pyfrag,...)
+  %typemap(constcode,fragment=pyfrag) __VA_ARGS__ 
+     "PyDict_SetItemString(d,\"$symname\", pyobj_from((__VA_ARGS__)$value));";
 %enddef
+
 
 /* directorin */
 
-%define PY_DIRECTORIN_TYPEMAP(type, pyobj_from)
-  %typemap(directorin,fragment=#pyobj_from) type *DIRECTORIN 
-  "$input = pyobj_from((type)*$1_name);";
-  %typemap(directorin,fragment=#pyobj_from) type, const type& 
-  "$input = pyobj_from((type)$1_name);";
+%define PYVAL_DIRECTORIN_TYPEMAP(pyobj_from,pyfrag,...)
+  %typemap(directorin,fragment=pyfrag) __VA_ARGS__ *DIRECTORIN 
+  "$input = pyobj_from((__VA_ARGS__)*$1_name);";
+  %typemap(directorin,fragment=pyfrag) __VA_ARGS__, const __VA_ARGS__& 
+  "$input = pyobj_from((__VA_ARGS__)$1_name);";
 %enddef
 
 /* directorout */
 
-%define PY_DIRECTOROUT_TYPEMAP(Type, pyobj_as)
-  %typemap(directorargout,fragment=#pyobj_as) Type *DIRECTOROUT
+%define PYVAL_DIRECTOROUT_TYPEMAP(pyobj_as,pyfrag,...)
+  %typemap(directorargout,fragment=pyfrag) __VA_ARGS__ *DIRECTOROUT
     "*$result = ($basetype) pyobj_as($input);
      if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using pyobj_as\");";
-%typemap(directorout,fragment=#pyobj_as) Type
+%typemap(directorout,fragment=pyfrag) __VA_ARGS__
     "$result = ($basetype) pyobj_as($input);
     if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using pyobj_as\");";
-%typemap(directorout,fragment=#pyobj_as) const Type&
+%typemap(directorout,fragment=pyfrag) const __VA_ARGS__&
     "$basetype temp = ($basetype) pyobj_as($input);
      $result = &temp;
      if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using pyobj_as\");";
-  %typemap(directorout,fragment=#pyobj_as) Type &DIRECTOROUT = Type
+  %typemap(directorout,fragment=pyfrag) __VA_ARGS__ &DIRECTOROUT = __VA_ARGS__
 %enddef
 
 /* throws */
 
-%define PY_THROWS_TYPEMAP(type, pyobj_from)
-  %typemap(throws,fragment=#pyobj_from) type {
-  PyErr_SetObject(PyExc_RuntimeError, pyobj_from((type)$1));
+%define PYVAL_THROWS_TYPEMAP(pyobj_from,pyfrag,...)
+  %typemap(throws,fragment=pyfrag) __VA_ARGS__ {
+    PyErr_SetObject(PyExc_RuntimeError, pyobj_from((__VA_ARGS__)$1));
     SWIG_fail;
   }
 %enddef
 
 /* typecheck */
 
-%define PY_TYPECHECK_TYPEMAP(check, type, pyobj_check)
-%typemap(typecheck,precedence=SWIG_TYPECHECK_##check,
-	 fragment=#pyobj_check) type, const type&
+%define PYVAL_TYPECHECK_TYPEMAP(check,pyobj_check,pyfrag,...)
+%typemap(typecheck,precedence=check,fragment=pyfrag) 
+  __VA_ARGS__, const __VA_ARGS__&
  "$1 = pyobj_check($input);";
 %enddef
 
 /*
-  typemap definition for types with As/From/Check methods
- */
+  typemap definition for types with As/Check methods
+*/
+%define %typemap_ascheck(CheckCode, AsMeth, CheckMeth,
+			 AsFrag, CheckFrag, ...)
+  PYVAL_IN_TYPEMAP(SWIG_arg(AsMeth), SWIG_arg(AsFrag), __VA_ARGS__);
+  PYVAL_VARIN_TYPEMAP(SWIG_arg(AsMeth), SWIG_arg(AsFrag), __VA_ARGS__);
+  PYVAL_DIRECTOROUT_TYPEMAP(SWIG_arg(AsMeth), SWIG_arg(AsFrag), __VA_ARGS__);
+  PYVAL_TYPECHECK_TYPEMAP(SWIG_arg(CheckCode), SWIG_arg(CheckMeth), 
+			  SWIG_arg(CheckFrag), __VA_ARGS__);
+%enddef
 
-%define %typemap_asfromcheck(Type, CheckCode, AsType, FromType, CheckType)  
-  PY_IN_TYPEMAP(Type, AsType);
-  PY_OUT_TYPEMAP(Type, FromType);
-  PY_VARIN_TYPEMAP(Type, AsType);
-  PY_VAROUT_TYPEMAP(Type, FromType);
-  PY_CONSTCODE_TYPEMAP(Type, FromType);
-  PY_DIRECTORIN_TYPEMAP(Type, FromType);
-  PY_DIRECTOROUT_TYPEMAP(Type, AsType);
-  PY_THROWS_TYPEMAP(Type, FromType);
-  PY_TYPECHECK_TYPEMAP(CheckCode, Type, CheckType);
+
+/*
+  typemap definition for types with AsVal method
+*/
+%define %typemap_asvaln(CheckCode, ...)
+%fragment(SWIG_As_frag(__VA_ARGS__),"header",
+	  fragment=SWIG_AsVal_frag(__VA_ARGS__)) %{
+SWIGSTATICINLINE(__VA_ARGS__)
+SWIG_As_meth(__VA_ARGS__)(PyObject* obj)
+{
+  __VA_ARGS__ v;
+  SWIG_AsVal_meth(__VA_ARGS__)(obj, &v);
+  return v;
+}
+%}
+%fragment(SWIG_Check_frag(__VA_ARGS__),"header",
+	  fragment=SWIG_AsVal_frag(__VA_ARGS__)) %{  
+SWIGSTATICINLINE(int)
+SWIG_Check_meth(__VA_ARGS__)(PyObject* obj)
+{
+  return SWIG_AsVal_meth(__VA_ARGS__)(obj, (__VA_ARGS__*)0);
+}
+%}
+%typemap_ascheck(SWIG_arg(CheckCode),
+		 SWIG_As_meth(__VA_ARGS__), 
+		 SWIG_Check_meth(__VA_ARGS__), 
+		 SWIG_arg(SWIG_As_frag(__VA_ARGS__)), 
+		 SWIG_arg(SWIG_Check_frag(__VA_ARGS__)), 
+		 __VA_ARGS__);
 %enddef
 
 /*
-  typemap for simple swig types with only As/From conversor methods
-  named as SWIG_As##Name/SWIG_From##Name.
+  typemap definition for types with from method
 */
-%define %typemap_stype(Type, CheckCode, Name)  
-%fragment("SWIG_Check"#Name,"header",
-	  fragment="SWIG_As"#Name) %{
-SWIGSTATICINLINE(int)
-SWIG_Check##Name(PyObject* obj)
-{
-  SWIG_As##Name(obj);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    return 0;
-  } else {
-    return 1;
-  }
-}
-%}
-%typemap_asfromcheck(Type, CheckCode, SWIG_As##Name, 
-		     SWIG_From##Name, SWIG_Check##Name)
+%define %typemap_from(FromMeth, FromFrag, ...)
+  PYVAL_OUT_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), __VA_ARGS__);
+  PYVAL_VAROUT_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), __VA_ARGS__);
+  PYVAL_CONSTCODE_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), __VA_ARGS__);
+  PYVAL_DIRECTORIN_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), __VA_ARGS__);
+  PYVAL_THROWS_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag),__VA_ARGS__);
+%enddef
+
+
+%define %typemap_ascheckfrom(CheckCode, AsMeth, CheckMeth, FromMeth,
+			     AsFrag, CheckFrag, FromFrag, ...)
+  %typemap_ascheck(SWIG_arg(CheckCode), SWIG_arg(AsMeth), SWIG_arg(CheckMeth),
+		   SWIG_arg(AsFrag), SWIG_arg(CheckFrag), __VA_ARGS__);
+  %typemap_from(SWIG_arg(FromMeth), SWIG_arg(FromFrag), __VA_ARGS__);
+%enddef
+
+
+
+/*
+  typemap definition for types with asval/from method
+*/
+%define %typemap_asvalfromn(CheckCode, ...)
+  %typemap_asvaln(SWIG_arg(CheckCode), __VA_ARGS__);
+  %typemap_from(SWIG_arg(SWIG_From_meth(__VA_ARGS__)), 
+		SWIG_arg(SWIG_From_frag(__VA_ARGS__)), 
+		__VA_ARGS__);
+%enddef
+
+
+/*
+  typemap definition for types with as/check/from method
+*/
+%define %typemap_ascheckfromn(CheckCode, ...)
+ %typemap_ascheckfrom(SWIG_arg(CheckCode),
+		      SWIG_As_meth(__VA_ARGS__), 
+		      SWIG_From_meth(__VA_ARGS__), 
+		      SWIG_Check_meth(__VA_ARGS__), 
+		      SWIG_arg(SWIG_As_frag(__VA_ARGS__)), 
+		      SWIG_arg(SWIG_From_frag(__VA_ARGS__)), 
+		      SWIG_arg(SWIG_Check_frag(__VA_ARGS__)), 
+		      __VA_ARGS__);
 %enddef

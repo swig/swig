@@ -163,6 +163,7 @@ statichere PyTypeObject varlinktype = {
   0,                                  /* tp_clear */
   0,                                  /* tp_richcompare */
   0,                                  /* tp_weaklistoffset */
+#if PY_VERSION_HEX >= 0x02020000
   0,                                  /* tp_iter */
   0,                                  /* tp_iternext */
   0,                                  /* tp_methods */
@@ -183,6 +184,14 @@ statichere PyTypeObject varlinktype = {
   0,                                  /* tp_cache */
   0,                                  /* tp_subclasses */
   0,                                  /* tp_weaklist */
+#endif
+#ifdef COUNT_ALLOCS
+  /* these must be last */
+  0,                                  /* tp_alloc */
+  0,                                  /* tp_free */
+  0,                                  /* tp_maxalloc */
+  0,                                  /*  tp_next */
+#endif
 };
 
 /* Create a variable linking object for use later */
@@ -293,10 +302,9 @@ cobject:
 type_error:
   if (flags & SWIG_POINTER_EXCEPTION) {
     if (ty && c) {
-      PyObject *err = 
-	PyString_FromFormat("Type error. Got %s, expected %s",c,ty->name);
-      PyErr_SetObject(PyExc_TypeError, err);
-      Py_DECREF(err);
+      PyErr_Format(PyExc_TypeError, 
+		   "Type error. Got %s, expected %s",
+		   c, ty->name);
     } else {
       PyErr_SetString(PyExc_TypeError,"Expected a pointer");
     }
@@ -334,10 +342,9 @@ type_error:
 
   if (flags) {
     if (ty && c) {
-      PyObject *err = 
-	PyString_FromFormat("Type error. Got %s, expected %s",c,ty->name);
-      PyErr_SetObject(PyExc_TypeError, err);
-      Py_DECREF(err);
+      PyErr_Format(PyExc_TypeError, 
+		   "Type error. Got %s, expected %s",
+		   c, ty->name);
     } else {
       PyErr_SetString(PyExc_TypeError,"Expected a pointer");
     }

@@ -1,245 +1,167 @@
 //
-// SWIG typemaps for std::list types
-// Jing Cao
-// Aug 1st, 2002
-//
+// std::list
 // Python implementation
 
+%include std_container.i
 
-%module std_list
+// List
+
+%define %std_list_methods(list)
+  %std_sequence_methods(list)
+  
+  void pop_front();
+  void push_front(const value_type& x);
+  		
+  void remove(const value_type& x);
+  void unique();
+  void reverse();
+  void sort();
+  
+  void merge(list& x);
+%enddef
+
+
+%define %std_list_methods_val(list)
+  %std_sequence_methods_val(list)
+  
+  void pop_front();
+  void push_front(value_type x);
+  		
+  void remove(value_type x);
+  void unique();
+  void reverse();
+  void sort();
+  
+  void merge(list& x);
+%enddef
+
+// ------------------------------------------------------------------------
+// std::list
+// 
+// The aim of all that follows would be to integrate std::list with 
+// Python as much as possible, namely, to allow the user to pass and 
+// be returned Python tuples or lists.
+// const declarations are used to guess the intent of the function being
+// exported; therefore, the following rationale is applied:
+// 
+//   -- f(std::list<T>), f(const std::list<T>&):
+//      the parameter being read-only, either a Python sequence or a
+//      previously wrapped std::list<T> can be passed.
+//   -- f(std::list<T>&), f(std::list<T>*):
+//      the parameter may be modified; therefore, only a wrapped std::list
+//      can be passed.
+//   -- std::list<T> f(), const std::list<T>& f():
+//      the list is returned by copy; therefore, a Python sequence of T:s 
+//      is returned which is most easily used in other Python functions
+//   -- std::list<T>& f(), std::list<T>* f():
+//      the list is returned by reference; therefore, a wrapped std::list
+//      is returned
+//   -- const std::list<T>* f(), f(const std::list<T>*):
+//      for consistency, they expect and return a plain list pointer.
+// ------------------------------------------------------------------------
+
 %{
 #include <list>
-#include <stdexcept>
 %}
 
-%include "exception.i"
+%fragment("StdListTraits","header",fragment="StdSequenceTraits")
+%{
+  namespace swigpy {
+    template <class T >
+    struct traits_asptr<std::list<T> >  {
+      typedef std::list<T> list_type;
+      typedef T value_type;
+      static int asptr(PyObject *obj, list_type **lis) {
+	return traits_asptr_stdseq<list_type>::asptr(obj, lis);
+      }
+    };
 
-%exception std::list::__getitem__ {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
+    template <class T>
+    struct traits_from<std::list<T> > {
+      typedef std::list<T> list_type;
+      static PyObject *from(const list_type& vec) {
+	return traits_from_stdseq<list_type>::from(vec);
+      }
+    };
+  }
+%}
 
-%exception std::list::__setitem__ {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
+// exported classes
 
-%exception std::list::__delitem__  {
-    try {
-        $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
-    }
-}
+namespace std {
 
+  template<class T > class list {
+  public:
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef T value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
 
-namespace std{
-	template<class T> class list
-	{
-	   public:
-	     
-	     typedef T &reference;
-	     typedef const T& const_reference;
-	     typedef T &iterator;
-	     typedef const T& const_iterator; 
-	    
-	     list();
-	     list(unsigned int size, const T& value = T());
-	     list(const list<T> &);
+    %traits_swigtype(T);
 
-	     ~list();
-	     void assign(unsigned int n, const T& value);
-	     void swap(list<T> &x);
-
-	     const_reference front();
-	     const_reference back();
-	     const_iterator begin();
-	     const_iterator end();
-	     
-	     void resize(unsigned int n, T c = T());
-	     bool empty() const;
-
-	     void push_front(const T& x);
-	     void push_back(const T& x);
-
-
-	     void pop_front();
-	     void pop_back();
-	     void clear();
-	     unsigned int size() const;
-	     unsigned int max_size() const;
-	     void resize(unsigned int n, const T& value);
-		
-             void remove(const T& value);
-	     void unique();
-	     void reverse();
-             void sort();
-             
-	     
-		
-	  %extend 
-	    {
-	      const_reference __getitem__(int i) 
-	      {
-	        std::list<T>::iterator first = self->begin(); 
-		int size = int(self->size());
-		if (i<0) i += size;
-		if (i>=0 && i<size)
-		 {
-		    for (int k=0;k<i;k++)
-		       {
-		    	  first++;
-		       }
-		    return *first;
-		 }
-		else throw std::out_of_range("list index out of range");
-	      }
-	     void __setitem__(int i, const T& x) 
-	      {
-	        std::list<T>::iterator first = self->begin(); 
-		int size = int(self->size());
-		if (i<0) i += size;
-		if (i>=0 && i<size)
-		 {
-		    for (int k=0;k<i;k++)
-		       {
-		    	  first++;
-		       }
-		    *first = x;
-		 }
-		else throw std::out_of_range("list index out of range");
-	      }
-	      void __delitem__(int i) 
-	      {
-	        std::list<T>::iterator first = self->begin(); 
-		int size = int(self->size());
-		if (i<0) i += size;
-		if (i>=0 && i<size)
-		 {
-		    for (int k=0;k<i;k++)
-		       {
-		    	  first++;
-		       }
-		    self->erase(first);
-		 }
-		else throw std::out_of_range("list index out of range");
-	      }	     
-	      std::list<T> __getslice__(int i,int j) 
-	      {
-	        std::list<T>::iterator first = self->begin();
-		std::list<T>::iterator end = self->end();
-
-		int size = int(self->size());
-		if (i<0) i += size;
-		if (j<0) j += size;
-		if (i<0) i = 0;
-		if (j>size) j = size;
-		if (i>=j) i=j;
-		if (i>=0 && i<size && j>=0)
-		 {
-		    for (int k=0;k<i;k++)
-		       {
-		    	  first++;
-		       }
-		    for (int m=0;m<j;m++)
-		       {
-		    	  end++;
-		       }
-		    std::list<T> tmp(j-i);
-		    if (j>i) std::copy(first,end,tmp.begin());
-		    return tmp;
-		 }
-		else throw std::out_of_range("list index out of range");
-	      }
-	      void __delslice__(int i,int j) 
-	      {
-	        std::list<T>::iterator first = self->begin();
-		std::list<T>::iterator end = self->end();
-
-		int size = int(self->size());
-		if (i<0) i += size;
-		if (j<0) j += size;
-		if (i<0) i = 0;
-		if (j>size) j = size;
-	
-	        for (int k=0;k<i;k++)
-	          {
-	       	     first++;
-		  }
-		for (int m=0;m<=j;m++)
-		  {
-		     end++;
-		  }		   
-		self->erase(first,end);		
-	      }
-	      void __setslice__(int i,int j, const std::list<T>& v) 
-	      {
-	        std::list<T>::iterator first = self->begin();
-		std::list<T>::iterator end = self->end();
-
-		int size = int(self->size());
-		if (i<0) i += size;
-		if (j<0) j += size;
-		if (i<0) i = 0;
-		if (j>size) j = size;
-		
-	        for (int k=0;k<i;k++)
-	          {
-	       	     first++;
-		  }
-		for (int m=0;m<=j;m++)
-		  {
-		     end++;
-		  }
-		if (int(v.size()) == j-i) 
-		     {
-			std::copy(v.begin(),v.end(),first);
-		     }
-		else {
-		       self->erase(first,end);
-		       if (i+1 <= int(self->size())) 
-			{
-			   first = self->begin();
-			   for (int k=0;k<i;k++)
-	          	     {
-	       	     		first++;
-		  	     }
-			   self->insert(first,v.begin(),v.end());
-			}
-			else self->insert(self->end(),v.begin(),v.end());
-		      }
-			   	
-	      }
-	      unsigned int __len__() 
-	      {
-		return self->size();
-	      }	
-	      bool __nonzero__()
-	      {
-		return !(self->empty());
- 	      }
-	      void append(const T& x)
-	      {
-		self->push_back(x);
-	      }
-	      void pop()
-	      {
-	        self->pop_back();
-	      }
-	      
-	    };   
-	  
+    %fragment(SWIG_Traits_frag(std::list<T >), "header",
+	      fragment=SWIG_Traits_frag(T),
+	      fragment="StdListTraits") {
+      namespace swigpy {
+	template <>  struct traits<std::list<T > > {
+	  typedef pointer_category category;
+	  static const char* type_name() {
+	    return "std::list<" #T " >";
+	  }
 	};
+      }
+    }
+
+    %typemap_traits_ptr(SWIG_CCode(LIST), std::list<T >);
+  
+    %std_list_methods(std::list<T >);
+    %pysequence_methods(std::list<T >);
+  };
+
+  template<class T > class list<T*> {
+  public:
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef T* value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type reference;
+    typedef value_type const_reference;
+
+    %fragment(SWIG_Traits_frag(std::list<T* >), "header",
+	      fragment="StdListTraits") {
+      namespace swigpy {
+	template <>  struct traits<std::list<T* > > {
+	  typedef value_category category;
+	  static const char* type_name() {
+	    return "std::list<" #T " * >";
+	  }
+	};
+      }
+    }
+
+    %typemap_traits_ptr(SWIG_CCode(LIST), std::list<T* >);
+
+    %std_list_methods_val(std::list<T* >);
+    %pysequence_methods_val(std::list<T* >);
+  };
+
+  // Add the order operations <,>,<=,=> as needed
+  
+  %define %std_order_list(T)
+    %std_comp_methods(list<T>);
+  %enddef
+  
+  %apply_otypes(%std_order_list);
 }
 
 
+%define %std_list_ptypen(...) 
+%template() std::list<__VA_ARGS__ >;
+%enddef
 
-
-
+%apply_cpptypes(%std_list_ptypen);
 
