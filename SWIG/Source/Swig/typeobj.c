@@ -394,7 +394,7 @@ SwigType_isreference(SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 void
-SwigType_add_qualifier(SwigType *t, String *qual) {
+SwigType_add_qualifier(SwigType *t, const String_or_char *qual) {
   char temp[256], newq[256];
   int  sz, added = 0;
   char *q, *cqual;
@@ -480,7 +480,7 @@ SwigType_isqualifier(SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 void
-SwigType_add_memberpointer(SwigType *t, String_or_char *name) {
+SwigType_add_memberpointer(SwigType *t, const String_or_char *name) {
   String *temp = NewStringf("m(%s).", name);
   Insert(t,0,temp);
   Delete(temp);
@@ -522,7 +522,7 @@ SwigType_ismemberpointer(SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 void
-SwigType_add_array(SwigType *t, String *size) {
+SwigType_add_array(SwigType *t, const String_or_char *size) {
   char temp[512];
   strcpy(temp,"a(");
   strcat(temp,Char(size));
