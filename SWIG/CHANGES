@@ -14,6 +14,18 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+7/30/2001: beazley
+           Removed support for functions with no explicitly declared
+           return type.  For example:
+
+                  foo(int);
+
+           In C, such functions were implicitly assumed to return an 'int'.
+           In C++, this is illegal.  Either way, it's considered bad
+           style.  Removing support for this in SWIG will simplify
+           certain issues in parsing.
+           *** POTENTIAL INCOMPATIBILITY ***
+
 7/30/2001: mkoeppe
 	   * Partial merge from the CVS trunk.  The Source/DOH directory
 	     and most of the Source/Swig directory is up-to-date now.
@@ -43,10 +55,19 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
            *** POTENTIAL INCOMPATIBILITY ***
 
-7/29/2001: beazley
-           'const' variables are no longer wrapped as constants.
-           Instead, they are wrapped as read-only variables.
-           *** POTENTIAL INCOMPATIBILITY ***           
+7/29/2001: beazley (corrected)
+           Slight change to the way 'const' variables are wrapped.
+           If a 'const' variable has an initializer such as :
+
+                const int foo = 4;
+
+           It is wrapped as a scripting constant.   If a const
+           variable is simply declared with no initializer like this:
+
+                extern const int foo;
+
+           It is wrapped as a read-only variable.
+           *** EXPERIMENTAL ***
 
 7/29/2001: beazley
            Reorganization and simplification of type parsing.
