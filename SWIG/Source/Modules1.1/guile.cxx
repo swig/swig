@@ -35,6 +35,8 @@ Guile Options (available with -guile)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -prefix name    - Use NAME as prefix [default \"gswig_\"]\n\
      -package name   - Set the path of the module [default NULL]\n\
+     -emit-setters   - Emit procedures-with-setters for variables\n\
+                       and structure slots.\n\
      -linkage lstyle - Use linkage protocol LSTYLE [default `module']\n\
      -procdoc file   - Output procedure documentation to FILE\n\
      -procdocformat format - Output procedure documentation in FORMAT;\n\
@@ -78,7 +80,12 @@ static enum {
 
 static int	 emit_setters = 0;
 static int    struct_member = 0;
-static String *before_return = 0;
+
+static String *beforereturn = 0;
+static String *return_nothing_doc = 0;
+static String *return_one_doc = 0;
+static String *return_multi_doc = 0;
+
 static String *exported_symbols = 0;
 
 class GUILE : public Language {
@@ -441,27 +448,67 @@ public:
 
   void write_doc(const String *proc_name,
 		 const String *signature,
-		 const String *doc)  {
+		 const String *doc,
+		 const String *signature2 = NULL)  {
     switch (docformat) {
     case GUILE_1_4:
       Printv(procdoc, "\f\n", NIL);
       Printv(procdoc, "(", signature, ")\n", NIL);
+      if (signature2)
+	Printv(procdoc, "(", signature2, ")\n", NIL);
       Printv(procdoc, doc, "\n", NIL);
       break;
     case PLAIN:
       Printv(procdoc, "\f", proc_name, "\n\n", NIL);
       Printv(procdoc, "(", signature, ")\n", NIL);
+      if (signature2)
+	Printv(procdoc, "(", signature2, ")\n", NIL);
       Printv(procdoc, doc, "\n\n", NIL);
       break;
     case TEXINFO:
       Printv(procdoc, "\f", proc_name, "\n", NIL);
       Printv(procdoc, "@deffn primitive ", signature, "\n", NIL);
+      if (signature2)
+	Printv(procdoc, "@deffnx primitive ", signature2, "\n", NIL);
       Printv(procdoc, doc, "\n", NIL);
       Printv(procdoc, "@end deffn\n\n", NIL);
       break;
     }
   }
 
+  /* returns false if the typemap is an empty string */
+  bool handle_documentation_typemap(String *output,
+				    const String *maybe_delimiter,
+				    Parm *p,
+				    const String *typemap,
+				    const String *default_doc)
+  {
+    String *tmp = NewString("");
+    String *tm;
+    if (!(tm = Getattr(p, typemap))) {
+      Printf(tmp, "%s", default_doc);
+      tm = tmp;
+    }
+    bool result = (Len(tm) > 0);
+    if (maybe_delimiter && Len(output) > 0 && Len(tm) > 0) {
+      Printv(output, maybe_delimiter, NIL);
+    }
+    String *pn = Getattr(p,"name");
+    String *pt = Getattr(p,"type");
+    Replaceall(tm, "$name", pn); // legacy for $parmname
+    Replaceall(tm, "$type", SwigType_str(pt,0));
+    /* $NAME is like $name, but marked-up as a variable. */
+    String *ARGNAME = NewString("");
+    if (docformat == TEXINFO)
+      Printf(ARGNAME, "@var{%s}", pn);
+    else Printf(ARGNAME, "%(upper)s", pn);
+    Replaceall(tm, "$NAME", ARGNAME);
+    Replaceall(tm, "$PARMNAME", ARGNAME);
+    Printv(output,tm,NIL);
+    Delete(tmp);
+    return result;
+  } 
+    
   /* ------------------------------------------------------------
    * functionWrapper()
    * Create a function declaration and register it with the interpreter.
@@ -478,8 +525,9 @@ public:
     String *cleanup = NewString("");
     String *outarg = NewString("");
     String *signature = NewString("");
+    String *doc_body = NewString("");
     String *returns = NewString("");
-    int returns_list = 0;
+    int num_results = 1;
     String *tmp = NewString("");
     String *tm;
     int i;
@@ -528,11 +576,14 @@ public:
     
     if ((tm = Getattr(n,"tmap:out:doc"))) {
       Printv(returns,tm,NIL);
+      if (Len(tm) > 0) num_results = 1;
+      else num_results = 0;
     } else {
       String *s = SwigType_str(d,0);
       Chop(s);
       Printf(returns,"<%s>",s);
       Delete(s);
+      num_results = 1;
     }
     
     /* Open prototype and signature */
@@ -577,17 +628,12 @@ public:
 	Printv(f->code,tm,"\n",NIL);
 	
 	if (procdoc) {
-	  /* Add to signature */
-	  Printf(signature, " ");
-	  if ((tm = Getattr(p,"tmap:in:doc"))) {
-	    Replaceall(tm,"$name", pn);
-	    Printv(signature,tm,NIL);
-	  } else {
-	    String *s = SwigType_str(pt,0);
-	    Chop(s);
-	    Printf(signature,"(%s <%s>)", pn, s);
-	    Delete(s);
-	  }
+	  /* Add to signature (arglist) */
+	  handle_documentation_typemap(signature, " ", p, "tmap:in:arglist",
+				       "$name");
+	  /* Document the type of the arg in the documentation body */
+	  handle_documentation_typemap(doc_body, ", ", p, "tmap:in:doc",
+				       "$NAME is of type <$type>");
 	}
 	p = Getattr(p,"tmap:in:next");
       } else {
@@ -597,6 +643,8 @@ public:
       if (opt_p)
 	Printf(f->code,"    }\n");
     }
+    if (Len(doc_body) > 0)
+      Printf(doc_body, ".\n");
     
     /* Insert constraint checking code */
     for (p = l; p;) {
@@ -619,14 +667,12 @@ public:
 	Replaceall(tm,"$input",Getattr(p,"emit:input"));
 	Printv(outarg,tm,"\n",NIL);
 	if (procdoc) {
-	  if ((tm = Getattr(p,"tmap:argout:doc"))) {
-	    Replaceall(tm,"$name",Getattr(p,"name"));
-	    if (Len(returns)) {
-	      Printv(returns," ", tm, NIL);
-	      returns_list = 1;
-	    } else {
-	      Printv(returns,tm,NIL);
-	    }
+	  if (handle_documentation_typemap(returns, ", ",
+					   p, "tmap:argout:doc",
+					   "$NAME (of type $type)")) {
+	    /* A documentation typemap that is not the empty string
+	       indicates that a value is returned to Scheme. */
+	    num_results++;
 	  }
 	}
 	p = Getattr(p,"tmap:argout:next");
@@ -694,8 +740,8 @@ public:
     
     // Wrap things up (in a manner of speaking)
     
-    if (before_return)
-      Printv(f->code, before_return, "\n", NIL);
+    if (beforereturn)
+      Printv(f->code, beforereturn, "\n", NIL);
     Printv(f->code, "return gswig_result;\n", NIL);
     
     // Undefine the scheme name
@@ -796,11 +842,24 @@ public:
     Printf (exported_symbols, "\"%s\", ", proc_name);
     if (procdoc) {
       String *returns_text = NewString("");
-      Printv(returns_text, "Returns ", NIL);
-      if (Len(returns)==0) Printv(returns_text, "unspecified", NIL);
-      else if (returns_list) Printv(returns_text, "list (", returns, ")", NIL);
-      else Printv(returns_text, returns, NIL);
-      write_doc(proc_name, signature, returns_text);
+      if (num_results == 0) Printv(returns_text, return_nothing_doc, NIL);
+      else if (num_results == 1) Printv(returns_text, return_one_doc, NIL);
+      else Printv(returns_text, return_multi_doc, NIL);
+      /* Substitute documentation variables */
+      static const char *numbers[] = {"zero", "one", "two", "three",
+			       "four", "five", "six", "seven",
+			       "eight", "nine", "ten", "eleven",
+			       "twelve"};
+      if (num_results <= 12)
+	Replaceall(returns_text, "$num_values", numbers[num_results]);
+      else {
+	String *num_results_str = NewStringf("%d", num_results);
+	Replaceall(returns_text, "$num_values", num_results_str);
+	Delete(num_results_str);
+      }
+      Replaceall(returns_text, "$values", returns);
+      Printf(doc_body, "\n%s", returns_text);
+      write_doc(proc_name, signature, doc_body);
       Delete(returns_text);
     }
     
@@ -808,6 +867,7 @@ public:
     Delete(outarg);
     Delete(cleanup);
     Delete(signature);
+    Delete(doc_body);
     Delete(returns);
     Delete(tmp);
     DelWrapper(f);
@@ -913,6 +973,7 @@ public:
       if (procdoc) {
 	/* Compute documentation */
 	String *signature = NewString("");
+	String *signature2 = NULL;
 	String *doc = NewString("");
 	
 	if (Getattr(n,"feature:immutable")) {
@@ -926,6 +987,18 @@ public:
 	    Printf(doc,"<%s>",s);
 	    Delete(s);
 	  }
+	}
+	else if (emit_setters) {
+	  Printv(signature, proc_name, NIL);
+	  signature2 = NewString("");
+	  Printv(signature2, "set! (", proc_name, ") ", NIL);
+	  handle_documentation_typemap(signature2, NIL, n, "tmap:varin:arglist",
+				       "new-value");
+	  Printv(doc, "Get or set the value of the C variable, \n", NIL);
+	  Printv(doc, "which is of type ", NIL);
+	  handle_documentation_typemap(doc, NIL, n, "tmap:varout:doc",
+				       "$1_type");
+	  Printv(doc, ".");
 	}
 	else {
 	  Printv(signature, proc_name,
@@ -951,8 +1024,9 @@ public:
 	    Delete(s);
 	  }
 	}
-	write_doc(proc_name, signature, doc);
+	write_doc(proc_name, signature, doc, signature2);
 	Delete(signature);
+	if (signature2) Delete(signature2);
 	Delete(doc);
       }
       
@@ -1033,6 +1107,7 @@ public:
       Setattr(n,"name",var_name);
       Setattr(n,"sym:name",iname);
       Setattr(n,"type", nctype);
+      Setattr(n,"feature:immutable", "1");
       variableWrapper(n);
       Delete(n);
     }
@@ -1065,18 +1140,25 @@ public:
    * pragmaDirective()
    * ------------------------------------------------------------ */
 
-  virtual int pragmaDirective(Node *n) {
+  virtual int pragmaDirective(Node *n)
+  {
     if (!ImportMode) {
       String *lang = Getattr(n,"lang");
       String *cmd = Getattr(n,"name");
       String *value = Getattr(n,"value");
       
-      if (Strcmp(lang,"guile") == 0) {
-	if (Strcmp(cmd, "beforereturn")==0) {
-	  if (before_return)
-	    Delete(before_return);
-	  before_return = value ? NewString(value) : NULL;
+#     define store_pragma(PRAGMANAME)			\
+        if (Strcmp(cmd, #PRAGMANAME) == 0) {		\
+	  if (PRAGMANAME) Delete(PRAGMANAME);		\
+	  PRAGMANAME = value ? NewString(value) : NULL;	\
 	}
+      
+      if (Strcmp(lang,"guile") == 0) {
+	store_pragma(beforereturn)
+	  store_pragma(return_nothing_doc)
+	  store_pragma(return_one_doc)
+	  store_pragma(return_multi_doc);
+#     undef store_pragma
       }
     }
     return Language::pragmaDirective(n);
