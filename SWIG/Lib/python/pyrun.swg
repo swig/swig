@@ -184,6 +184,8 @@ statichere PyTypeObject varlinktype = {
   0,                                  /* tp_cache */
   0,                                  /* tp_subclasses */
   0,                                  /* tp_weaklist */
+#endif
+#if PY_VERSION_HEX >= 0x02030200
   0,                                  /* tp_del */
 #endif
 #ifdef COUNT_ALLOCS
