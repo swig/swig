@@ -1,5 +1,6 @@
 %module contract
 
+%warnfilter(813,833) C; /* C#, Java multiple inheritance */
 
 %contract test_preassert(int a, int b) {
 require:
