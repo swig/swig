@@ -220,8 +220,7 @@
   int i;
 
   if (!$input) {
-    jclass excep = JCALL1(FindClass, jenv, "java/lang/NullPointerException");
-    if (excep) JCALL2(ThrowNew, jenv, excep, "BigInteger null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
     return $null;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
@@ -293,120 +292,117 @@
 /* bool[ANY] */
 %typemap(in) bool[ANY] (jboolean *jarr)
 %{ if (!SWIG_JavaArrayInBool(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) bool[ANY] 
-%{ SWIG_JavaArrayFreeargBool(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) bool[ANY] 
+%{ SWIG_JavaArrayArgoutBool(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) bool[ANY] 
 %{$result = SWIG_JavaArrayOutBool(jenv, $1, $dim0); %}
 
 /* char[ANY] */
 %typemap(in) char[ANY] (jbyte *jarr)
 %{ if (!SWIG_JavaArrayInChar(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) char[ANY] 
-%{ SWIG_JavaArrayFreeargChar(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) char[ANY] 
+%{ SWIG_JavaArrayArgoutChar(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) char[ANY] 
 %{$result = SWIG_JavaArrayOutChar(jenv, $1, $dim0); %}
 
 /* signed char[ANY] */
 %typemap(in) signed char[ANY] (jbyte *jarr)
 %{ if (!SWIG_JavaArrayInSchar(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) signed char[ANY] 
-%{ SWIG_JavaArrayFreeargSchar(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) signed char[ANY] 
+%{ SWIG_JavaArrayArgoutSchar(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) signed char[ANY] 
 %{$result = SWIG_JavaArrayOutSchar(jenv, $1, $dim0); %}
 
 /* unsigned char[ANY] */
 %typemap(in) unsigned char[ANY] (jshort *jarr)
 %{ if (!SWIG_JavaArrayInUchar(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) unsigned char[ANY] 
-%{ SWIG_JavaArrayFreeargUchar(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) unsigned char[ANY] 
+%{ SWIG_JavaArrayArgoutUchar(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) unsigned char[ANY] 
 %{$result = SWIG_JavaArrayOutUchar(jenv, $1, $dim0); %}
 
 /* short[ANY] */
 %typemap(in) short[ANY] (jshort *jarr)
 %{ if (!SWIG_JavaArrayInShort(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) short[ANY] 
-%{ SWIG_JavaArrayFreeargShort(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) short[ANY] 
+%{ SWIG_JavaArrayArgoutShort(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) short[ANY] 
 %{$result = SWIG_JavaArrayOutShort(jenv, $1, $dim0); %}
 
 /* unsigned short[ANY] */
 %typemap(in) unsigned short[ANY] (jint *jarr)
 %{ if (!SWIG_JavaArrayInUshort(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) unsigned short[ANY] 
-%{ SWIG_JavaArrayFreeargUshort(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) unsigned short[ANY] 
+%{ SWIG_JavaArrayArgoutUshort(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) unsigned short[ANY] 
 %{$result = SWIG_JavaArrayOutUshort(jenv, $1, $dim0); %}
 
 /* int[ANY] */
 %typemap(in) int[ANY] (jint *jarr)
 %{ if (!SWIG_JavaArrayInInt(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) int[ANY] 
-%{ SWIG_JavaArrayFreeargInt(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) int[ANY] 
+%{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) int[ANY] 
 %{$result = SWIG_JavaArrayOutInt(jenv, $1, $dim0); %}
 
 /* unsigned int[ANY] */
 %typemap(in) unsigned int[ANY] (jlong *jarr)
 %{ if (!SWIG_JavaArrayInUint(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) unsigned int[ANY] 
-%{ SWIG_JavaArrayFreeargUint(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) unsigned int[ANY] 
+%{ SWIG_JavaArrayArgoutUint(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) unsigned int[ANY] 
 %{$result = SWIG_JavaArrayOutUint(jenv, $1, $dim0); %}
 
 /* long[ANY] */
 %typemap(in) long[ANY] (jint *jarr)
 %{ if (!SWIG_JavaArrayInLong(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) long[ANY] 
-%{ SWIG_JavaArrayFreeargLong(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) long[ANY] 
+%{ SWIG_JavaArrayArgoutLong(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) long[ANY] 
 %{$result = SWIG_JavaArrayOutLong(jenv, $1, $dim0); %}
 
 /* unsigned long[ANY] */
 %typemap(in) unsigned long[ANY] (jlong *jarr)
 %{ if (!SWIG_JavaArrayInUlong(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) unsigned long[ANY] 
-%{ SWIG_JavaArrayFreeargUlong(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) unsigned long[ANY] 
+%{ SWIG_JavaArrayArgoutUlong(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) unsigned long[ANY] 
 %{$result = SWIG_JavaArrayOutUlong(jenv, $1, $dim0); %}
 
 /* long long[ANY] */
 %typemap(in) long long[ANY] (jlong *jarr)
 %{ if (!SWIG_JavaArrayInLonglong(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) long long[ANY] 
-%{ SWIG_JavaArrayFreeargLonglong(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) long long[ANY] 
+%{ SWIG_JavaArrayArgoutLonglong(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) long long[ANY] 
 %{$result = SWIG_JavaArrayOutLonglong(jenv, $1, $dim0); %}
 
 /* float[ANY] */
 %typemap(in) float[ANY] (jfloat *jarr)
 %{ if (!SWIG_JavaArrayInFloat(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) float[ANY] 
-%{ SWIG_JavaArrayFreeargFloat(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) float[ANY] 
+%{ SWIG_JavaArrayArgoutFloat(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) float[ANY] 
 %{$result = SWIG_JavaArrayOutFloat(jenv, $1, $dim0); %}
 
 /* double[ANY] */
 %typemap(in) double[ANY] (jdouble *jarr)
 %{ if (!SWIG_JavaArrayInDouble(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(freearg) double[ANY] 
-%{ SWIG_JavaArrayFreeargDouble(jenv, jarr$argnum, $1, $input); %}
+%typemap(argout) double[ANY] 
+%{ SWIG_JavaArrayArgoutDouble(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) double[ANY] 
 %{$result = SWIG_JavaArrayOutDouble(jenv, $1, $dim0); %}
 
 /* enum SWIGTYPE[ANY] */
 %typemap(in) enum SWIGTYPE[ANY] (jint *jarr)
 %{ if (!SWIG_JavaArrayInInt(jenv, &jarr, (int**)&$1, $input)) return $null; %}
-%typemap(freearg) enum SWIGTYPE[ANY] 
-%{ SWIG_JavaArrayFreeargInt(jenv, jarr$argnum, (int*)$1, $input); %}
+%typemap(argout) enum SWIGTYPE[ANY] 
+%{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, (int*)$1, $input); %}
 %typemap(out) enum SWIGTYPE[ANY] 
 %{$result = SWIG_JavaArrayOutInt(jenv, (int*)$1, $dim0); %}
 
+// todo ********:
 /* check char[] - SWIG treats as a string */
-/* what if use unknown type eg __int32 array? - okay if the typedef is parsed - uses what it is typedef'd to typemaps */
-
-//test null pointers in these new typemaps.
-//use freearg in typemaps.i
 //arrays of char* - strings
 
 /* Arrays of pointers */
@@ -434,7 +430,7 @@
   }
 }
 
-%typemap(freearg) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY], 
+%typemap(argout) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY], 
                   SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY],
                   enum SWIGTYPE *[ANY]
 {
@@ -444,7 +440,6 @@
     *($1_basetype**)&jarr$argnum[i] = $1[i];
   }
   JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
-  free($1);
 }
 
 %typemap(out) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY],
@@ -495,7 +490,7 @@
   }
 }
 
-%typemap(freearg) SWIGTYPE []
+%typemap(argout) SWIGTYPE []
 {
   int i;
   for (i=0; i<sz$argnum; i++) {
@@ -503,7 +498,6 @@
     *($1_basetype**)&jarr$argnum[i] = &$1[i];
   }
   JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
-  free($1);
 }
 
 %typemap(out) SWIGTYPE []
@@ -524,6 +518,10 @@
   }
   JCALL3(ReleaseLongArrayElements, jenv, $result, arr, 0);
 }
+
+/* free memory - required by all the array typemaps */
+%typemap(freearg) SWIGTYPE []
+%{ free($1); %}
 
 
 %include "java_arrays.i"
