@@ -134,7 +134,7 @@ const char usageArgDir[] =
 
 class MODULA3:public Language
 {
-protected:
+public:
   enum block_type
   { no_block, constant, variable, type, revelation };
 
@@ -2618,12 +2618,12 @@ MODULA3 ():
       } else if (Cmp (kind, "class") == 0) {
         enum access_privilege
         { acc_public, acc_protected, acc_private };
-        access_privilege max_acc = acc_public;
+        int max_acc = acc_public;
 
         const char *acc_name[3] = { "public", "protected", "private" };
         String *methods[3];
-        access_privilege acc;
-        for (acc = acc_public; acc <= acc_private; int (acc)++) {
+        int acc;
+        for (acc = acc_public; acc <= acc_private; acc++) {
           String *methodattr =
             NewStringf ("modula3:method:%s", acc_name[acc]);
           methods[acc] = Getattr (n, methodattr);
@@ -2687,8 +2687,8 @@ MODULA3 ():
         {
           const static char *acc_m3suffix[] =
             { "Public", "Protected", "Private" };
-          access_privilege acc;
-          for (acc = acc_public; acc <= acc_private; int (acc)++) {
+          int acc;
+          for (acc = acc_public; acc <= acc_private; acc++) {
             bool process_private = (acc == acc_private) && need_private;
             if (hasContent (methods[acc]) || process_private) {
               String *subclass =
