@@ -127,15 +127,11 @@ extern DOHList    *StringType_split(DOHString *t);
 extern DOHString  *StringType_pop(DOHString *t);
 extern void        StringType_push(DOHString *t, DOHString *s);
 extern DOHList    *StringType_split_parms(DOHString *p);
-extern DOHList    *StringType_split_struct(DOHString *s);
-extern DOHList    *StringType_split_enum(DOHString *s);
-extern DOHString  *StringType_get_tag(DOHString *s);
 extern DOHString  *StringType_cstr(DOHString *s, DOHString_or_char *id);
 extern int         StringType_ispointer(DOHString *t);
 extern int         StringType_isreference(DOHString *t);
 extern int         StringType_isarray(DOHString *t);
 extern int         StringType_isfunction(DOHString *t);
-extern int         StringType_isstruct(DOHString *t);
 extern int         StringType_isqualifier(DOHString *t);
 extern DOHString  *StringType_base(DOHString *t);
 
