@@ -1109,9 +1109,6 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
  * Attach one or more typemaps to a node
  * ----------------------------------------------------------------------------- */
 
-Node *
-Swig_cparse_template_locate(String *name, Parm *tparms);
-
 String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f)
 {
   SwigType *type;
