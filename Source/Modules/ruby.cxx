@@ -13,6 +13,7 @@
 char cvsroot_ruby_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#define SWIG_PROTECTED_TARGET_METHODS 1
 
 #ifndef MACSWIG
 #include "swigconfig.h"
@@ -599,23 +600,21 @@ public:
     
     switch (current) {
     case MEMBER_FUNC: 
-      if (multipleInheritance) {
-        /*
-	const char* rb_define_method = !is_protected(n) ?
-	  "rb_define_method" : "rb_define_protected_method";
-        */
+      {
+#ifdef SWIG_PROTECTED_TARGET_METHODS
+	const char* rb_define_method = is_protected(n) ?
+	  "rb_define_protected_method" : "rb_define_method";
+#else        
 	const char* rb_define_method = "rb_define_method";
-	Printv(klass->init, tab4, rb_define_method,"(", klass->mImpl, ", \"",
-	       iname, "\", ", wname, ", -1);\n", NIL);
-      } else {
-        /*
-	const char* rb_define_method = !is_protected(n) ?
-	  "rb_define_method" : "rb_define_protected_method";
-        */
-	const char* rb_define_method = "rb_define_method";
-	Printv(klass->init, tab4, rb_define_method, "(", klass->vname, ", \"",
-	       iname, "\", ", wname, ", -1);\n", NIL);
-      }
+#endif	
+	if (multipleInheritance) {
+	  Printv(klass->init, tab4, rb_define_method,"(", klass->mImpl, ", \"",
+		 iname, "\", ", wname, ", -1);\n", NIL);
+	} else {
+	  Printv(klass->init, tab4, rb_define_method, "(", klass->vname, ", \"",
+		 iname, "\", ", wname, ", -1);\n", NIL);
+	}
+      }      
       break;
     case CONSTRUCTOR_ALLOCATE:
       Printv(s, tab4, "rb_define_alloc_func(", klass->vname, ", ", alloc_func, ");\n", NIL);
