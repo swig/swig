@@ -27,11 +27,15 @@ PHP4 Options (available with -php4)\n\
 	-dlname name	- Set module prefix.\n\
 	-make		- Create simple makefile.\n\
 	-phpfull	- Create full make files.\n\
-	-nosync		- No syncronisation of variables.\n\n";
+	-withincs libs	- With -phpfull writes needed incs in config.m4\n\
+	-withlibs libs	- With -phpfull writes needed libs in config.m4\n\n";
 
 static String *module = 0;
 static String *cap_module = 0;
 static String *dlname = 0;
+static String *withlibs = 0;
+static String *withincs = 0;
+static String *outputfile = 0;
 
 static String *f_cinit = 0;
 static String *f_oinit = 0;
@@ -197,14 +201,29 @@ PHP4::main(int argc, char *argv[]) {
 	       } else {
 		  Swig_arg_error();
 	       }
+	    } else if(strcmp(argv[i], "-withlibs") == 0) {
+	      if (argv[i+1]) {
+		  withlibs = NewString(argv[i+1]);
+		  Swig_mark_arg(i);
+		  Swig_mark_arg(i+1);
+		  i++;
+	       } else {
+		  Swig_arg_error();
+	       }
+	    } else if(strcmp(argv[i], "-withincs") == 0) {
+	      if (argv[i+1]) {
+		  withincs = NewString(argv[i+1]);
+		  Swig_mark_arg(i);
+		  Swig_mark_arg(i+1);
+		  i++;
+	       } else {
+		  Swig_arg_error();
+	       }
 	    }  else if(strcmp(argv[i], "-shadow") == 0) {
 		shadow = 1;
 		Swig_mark_arg(i);
 	    } else if(strcmp(argv[i], "-make") == 0) {
 		gen_make = 1;
-		Swig_mark_arg(i);
-	    } else if(strcmp(argv[i], "-nosync") == 0) {
-		no_sync = 1;
 		Swig_mark_arg(i);
 	    } else if(strcmp(argv[i], "-help") == 0) {
 	        fputs(usage, stderr);
@@ -252,6 +271,12 @@ void create_simple_make(void) {
 static
 void create_extra_files(void) {
 	File *f_extra;
+        // are we a --with- or --enable-
+        int with=(withincs || withlibs)?1:0;
+
+        // Note makefile.in only copes with one source file
+        // also withincs and withlibs only take one name each now
+        // the code they generate should be adapted to take multiple lines
 
 	if(gen_extra) {
 		/* Write out Makefile.in */
@@ -263,16 +288,31 @@ void create_extra_files(void) {
 
 	Printf(f_extra,
 	     "# $Id$\n\n"
-	     "LTLIBRARY_NAME          = lib%s.la\n"
-	     "LTLIBRARY_SOURCES       = %s_wrap.%s\n"
-	     "LTLIBRARY_SHARED_NAME   = %s.la\n"
-	     "LTLIBRARY_SHARED_LIBADD = $(%s_SHARED_LIBADD)\n\n"
+	     "LTLIBRARY_NAME          = %s.la\n",
+            module);
+
+        // CPP has more and different entires to C in Makefile.in
+        if (! CPlusPlus) Printf(f_extra,"LTLIBRARY_SOURCES       = %s\n",outputfile);
+        else Printf(f_extra,"LTLIBRARY_SOURCES       =\n"
+                            "LTLIBRARY_SOURCES_CPP   =%s\n"
+                            "LTLIBRARY_OBJECTS_X = $(LTLIBRARY_SOURCES_CPP:.cpp=.lo)\n"
+                           ,outputfile);
+  
+	Printf(f_extra,"LTLIBRARY_SHARED_NAME   = %s.la\n"
+	     "LTLIBRARY_SHARED_LIBADD = $(%(upper)s_SHARED_LIBADD)\n\n"
 	     "include $(top_srcdir)/build/dynlib.mk\n",
-	module, module, (CPlusPlus?"cxx":"c"), module, cap_module);
+	module,module);
 
 	Close(f_extra);
 
 	/* Now config.m4 */
+        // Note: # comments are OK in config.m4 if you don't mind them
+        // appearing in the final ./configure file 
+        // (which can help with ./configure debugging)
+
+        // NOTE2: phpize really ought to be able to write out a sample
+        // config.m4 based on some simple data, I'll take this up with
+        // the php folk!
 	f_extra = NewFile((void *)"config.m4", "w");
 	if (!f_extra) {
 		Printf(stderr, "Unable to open config.m4\n");
@@ -281,66 +321,110 @@ void create_extra_files(void) {
 
 	Printf(f_extra,
 	    "dnl $Id$\n"
-	    "dnl config.m4 for extension %s\n\n"
-	    "dnl Comments in this file start with the string 'dnl'.\n"
-	    "dnl Remove where necessary. This file will not work\n"
-	    "dnl without editing.\n\n"
-	    "dnl If your extension references somthing external, use:\n\n"
-	    "dnl PHP_ARG_WITH(%s, for %s support,\n"
-	    "dnl Make sure that the comment is aligned:\n"
-	    "dnl [  --with-%s           Include %s support])\n\n",
-	    module, module, module, module, module);
+            "dnl ***********************************************************************\n"
+            "dnl ** THIS config.m4 is provided for PHPIZE and PHP's consumption NOT\n"
+            "dnl ** for any part of the rest of the %s build system\n"
+            "dnl ***********************************************************************\n\n"
+	    ,module);
 
-	Printf(f_extra,
-	    "dnl Otherwise use enable:\n\n"
-	    "PHP_ARG_ENABLE(%s, whether to enable %s support,\n"
-	    "dnl Make sure that the comment is aligned:\n"
-	    "[  --enable-%s     Enable %s support])\n\n"
-	    "if test \"$PHP_%s\" != \"no\"; then\n"
-	    "  dnl Write more examples of tests here\n\n"
-	    "  dnl # --with-%s -> check with-path\n"
-	    "  dnl # you might want to change this\n"
-	    "  dnl SEARCH_PATH=\"/usr/local /usr\"\n"
-	    "  dnl # you most likely want to change this\n"
-	    "  dnl SEARCH_FOR=\"/include/%s.h\"\n"
-	    "  dnl # path given as parameter\n"
-	    "  dnl if test -r $PHP_%s/; then\n"
-	    "  dnl   %s_DIR=$PHP_%s\n"
-	    "  dnl else # search default path list\n"
-	    "  dnl   AC_MSG_CHECKING(for %s files in default path)\n"
-	    "  dnl   for i in $SEARCH_PATH; do\n"
-	    "  dnl     if test -r $i/$SEARCH_FOR; then\n"
-	    "  dnl       %s_DIR=$i\n"
-	    "  dnl       AC_MSG_RESULT(found in $i)\n"
-	    "  dnl     fi\n"
-	    "  dnl   done\n"
-	    "  dnl fi\n"
-	    "  dnl\n"
-	    "  dnl if test -z \"$%s_DIR\"; then\n"
-	    "  dnl   AC_MSG_RESULT(not found)\n"
-	    "  dnl   AC_MSG_ERROR(Please reinstall the %s distribution)\n"
-	    "  dnl fi\n\n"
-	    "  dnl # --with-%s -> add include path\n"
-	    "  dnl PHP_ADD_INCLUDE($%s_DIR/include)\n\n"
-	    "  dnl #--with-%s -> check for lib and symbol presence\n"
-	    "  dnl LIBNAME=%s # you may want to change this\n"
-	    "  dnl LIBSYMBOL=%s #  you most likely want to change this\n"
-	    "  dnl old_LIBS=$LIBS\n"
-	    "  dnl LIBS=\"$LIBS -L$%s_DIR/lib -lm -ldl\"\n"
-	    "  dnl AC_CHECK_LIB($LIBNAME, $LIBSYMBOL, [AC_DEFINE(HAVE_%sLIB,1,"
-	    "  [ ])],\n"
-	    "  dnl [AC_MSG_ERROR(wrong %s lib version or lib not found)])\n"
-	    "  dnl LIBS=$old_LIBS\n"
-	    "  dnl\n"
-	    "  dnl PHP_SUBST(%s_SHARED_LIBADD)\n"
-	    "  dnl PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $%s_DIR/lib, "
-	    "  SAPRFC_SHARED_LIBADD)\n\n"
-	    "  PHP_EXTENSION(%s, $ext_shared)\n"
-	    "  fi\n",
-	    module, module, module, module, cap_module, module, module, module,
-	    cap_module, cap_module, module, cap_module, cap_module, module,
-	    module, cap_module, module, module, module, cap_module, cap_module,
-	    module, cap_module, cap_module, module);
+        if (! with) { // must be enable then
+	  Printf(f_extra,
+            "PHP_ARG_ENABLE(%s, whether to enable %s support,\n"
+            "[  --enable-%s             Enable %s support])\n\n",
+            module,module,module,module);
+	} else {
+	  Printf(f_extra,
+            "PHP_ARG_WITH(%s, for %s support,\n"
+            "[  --with-%s[=DIR]             Include %s support.])\n\n",
+            module,module,module,module);
+          // These tests try and file the library we need
+          Printf(f_extra,"dnl THESE TESTS try and find the library and header files\n"
+                       "dnl your new php module needs. YOU MAY NEED TO EDIT THEM\n"
+                       "dnl as written they assume your header files are all in the same place\n\n");
+          
+          Printf(f_extra,"dnl ** are we looking for %s_lib.h or something else?\n",module);
+	  if (withincs) Printf(f_extra,"HNAMES=\"%s\"\n\n",withincs);
+          else Printf(f_extra,"HNAMES=\"\"; # %s_lib.h ?\n\n",module);
+
+          Printf(f_extra,"dnl ** Are we looking for lib%s.a or lib%s.so or something else?\n",module,module);
+	  if (withlibs) Printf(f_extra,"LIBNAMES=\"%s\"\n\n",withlibs);
+          else Printf(f_extra,"LIBNAMES=\"\"; # lib_%s.so ?\n\n",withlibs);
+          Printf(f_extra,"dnl IF YOU KNOW one of the symbols in the library and you\n"
+                       "dnl specify it below then we can have a link test to see if it works\n"
+                       "LIBSYMBOL=\"\"\n\n");
+	}
+
+        // Now write out tests to find thing.. they may need to extend tests
+        Printf(f_extra,"if test \"$PHP_%(upper)s\" != \"no\"; then\n\n",module);
+
+	// Ready for when we add libraries as we find them
+        Printf(f_extra,"  PHP_SUBST(%(upper)s_SHARED_LIBADD)\n\n",module);
+
+	if (withlibs) { // find more than one library
+	  Printf(f_extra,"  for LIBNAME in $LIBNAMES ; do\n");
+	  Printf(f_extra,"    LIBDIR=\"\"\n");
+          // For each path element to try...
+          Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/lib /usr/local/lib /usr/lib ; do\n",module,module);
+          Printf(f_extra,"      if test -r $i/lib$LIBNAME.a -o -r $i/lib$LIBNAME.so ; then\n"
+			 "        LIBDIR=\"$i\"\n"
+                         "        break\n"
+                         "      fi\n"
+			 "    done\n\n");
+          Printf(f_extra,"    dnl ** and $LIBDIR should be the library path\n"
+                        "    if test \"$LIBNAME\" != \"\" -a -z \"$LIBDIR\" ; then\n"
+                        "      AC_MSG_RESULT(Library files $LIBNAME not found)\n"
+                        "      AC_MSG_ERROR(Is the %s distribution installed properly?)\n"
+			"    else\n"
+                        "      AC_MSG_RESULT(Library files $LIBNAME found in $LIBDIR)\n"
+ 		        "      PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $LIBDIR, %(upper)s_SHARED_LIBADD)\n"
+                        "    fi\n",module);
+	  Printf(f_extra,"  done\n\n");
+	}
+
+	if (withincs) {  // Find more than once include
+	  Printf(f_extra,"  for HNAME in $HNAMES ; do\n");
+	  Printf(f_extra,"    INCDIR=\"\"\n");
+          // For each path element to try...
+          Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/include /usr/local/include /usr/include; do\n",module,module);
+          // Try and find header files
+          Printf(f_extra,"      if test \"$HNAME\" != \"\" -a -r $i/$HNAME ; then\n"
+                         "        INCDIR=\"$i\"\n"
+                         "        break\n"
+                         "      fi\n"
+			 "    done\n\n");
+
+          Printf(f_extra,
+                       "    dnl ** Now $INCDIR should be the include file path\n"
+                       "    if test \"$HNAME\" != \"\" -a -z \"$INCDIR\" ; then\n"
+                       "      AC_MSG_RESULT(Include files $HNAME found in $INCDIR)\n"
+                       "      AC_MSG_ERROR(Is the %s distribution installed properly?)\n"
+		       "    else\n"
+			"      PHP_ADD_INCLUDE($INCDIR)\n"
+                       "    fi\n\n",module);
+	  Printf(f_extra,"  done\n\n");
+ 	}
+
+        if (CPlusPlus) Printf(f_extra,
+                       "  # As this is a C++ module..\n"
+                       "  PHP_REQUIRE_CXX\n"
+                       "  AC_CHECK_LIB(stdc++, cin)\n");
+
+	if (with) {
+          Printf(f_extra,"  if test \"$LIBSYMBOL\" != \"\" ; then\n"
+                       "    old_LIBS=\"$LIBS\"\n"
+                       "    LIBS=\"$LIBS -L$TEST_DIR/lib -lm -ldl\"\n"
+                       "    AC_CHECK_LIB($LIBNAME, $LIBSYMBOL, [AC_DEFINE(HAVE_TESTLIB,1,  [ ])],\n"
+                       "    [AC_MSG_ERROR(wrong test lib version or lib not found)])\n"
+                       "    LIBS=\"$old_LIBS\"\n"
+                       "  fi\n\n");
+	}
+
+        Printf(f_extra,"  AC_DEFINE(HAVE_%(upper)s, 1, [ ])\n",module);
+        Printf(f_extra,"dnl  AC_DEFINE_UNQUOTED(PHP_%(upper)s_DIR, \"$%(upper)s_DIR\", [ ])\n",module,module);
+        Printf(f_extra,"  PHP_EXTENSION(%s, $ext_shared)\n",module);
+
+        // and thats all!
+        Printf(f_extra,"fi\n");
 
 	Close(f_extra);
 
@@ -384,6 +468,7 @@ PHP4::top(Node *n) {
 
   /* Initialize all of the output files */
   outfile = Getattr(n,"outfile");
+  outputfile = NewString(outfile);
   
   /* main output file */
   f_runtime = NewFile(outfile,"w");
@@ -446,7 +531,7 @@ PHP4::top(Node *n) {
 #if defined(_WIN32) || defined(__WIN32__)
 	 dlname = NewStringf("%s.dll", module);
 #else
-	 dlname = NewStringf("lib%s-php4.so", module);
+	 dlname = NewStringf("%s.so", module);
 #endif
   }
 
@@ -1245,7 +1330,6 @@ int PHP4::classHandler(Node *n) {
 	if(class_name) free(class_name);
 	class_name = Swig_copy_string(GetChar(n, "name"));
 	if(shadow) {
-printf("CLASS HANDLER FOR %s %d %d\n",class_name,shadow,wrapping_member);
                 cs_entry = NewString("");
 		Printf(cs_entry,"// Function entries for %s\n"
                  "static zend_function_entry %s_functions[] = {\n"
