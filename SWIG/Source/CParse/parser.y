@@ -776,6 +776,7 @@ Node *Swig_cparse(File *f) {
     String *rawval;
     int     type;
     String *qualifier;
+    String *bitfield;
   } dtype;
   struct {
     char *type;
@@ -2036,6 +2037,10 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		  n = nextSibling(n);
 		}
 	      }
+	      if ($4.bitfield) {
+		Setattr($$,"bitfield", $4.bitfield);
+	      }
+
 	      /* Look for "::" declarations (ignored) */
 	      if (Strstr($3.id,"::")) {
 		Delete($$);
@@ -2059,6 +2064,9 @@ c_decl_tail    : SEMI {
 		 Setattr($$,"decl",$2.type);
 		 Setattr($$,"parms",$2.parms);
 		 Setattr($$,"value",$3.val);
+		 if ($3.bitfield) {
+		   Setattr($$,"bitfield", $3.bitfield);
+		 }
 		 if (!$4) {
 		   if (Len(scanner_ccode)) {
 		     Setattr($$,"code",Copy(scanner_ccode));
@@ -3093,9 +3101,9 @@ cpp_end        : cpp_const SEMI {
                | cpp_const LBRACE { skip_balanced('{','}'); }
                ;
 
-cpp_vend       : cpp_const SEMI { Clear(scanner_ccode); $$.val = 0; $$.qualifier = $1; }
-               | cpp_const EQUAL definetype SEMI { Clear(scanner_ccode); $$.val = $3.val; $$.qualifier = $1;}
-               | cpp_const LBRACE { skip_balanced('{','}'); $$.val = 0; $$.qualifier = $1; }
+cpp_vend       : cpp_const SEMI { Clear(scanner_ccode); $$.val = 0; $$.qualifier = $1; $$.bitfield = 0; }
+               | cpp_const EQUAL definetype SEMI { Clear(scanner_ccode); $$.val = $3.val; $$.qualifier = $1; $$.bitfield = 0; }
+               | cpp_const LBRACE { skip_balanced('{','}'); $$.val = 0; $$.qualifier = $1; $$.bitfield = 0; }
                ;
 
 
@@ -3254,6 +3262,7 @@ def_args       : EQUAL definetype {
 		    Swig_warning(WARN_PARSE_BAD_DEFAULT,cparse_file, cparse_line, "Can't set default argument (ignored)\n");
 		    $$.val = 0;
 		    $$.rawval = 0;
+		    $$.bitfield = 0;
 		  }
                }
                | EQUAL AND idcolon {
@@ -3279,22 +3288,26 @@ def_args       : EQUAL definetype {
 		 }
 		 $$.rawval = 0;
 		 $$.type = T_USER;
+		 $$.bitfield = 0;
 	       }
                | EQUAL LBRACE {
 		 skip_balanced('{','}');
 		 $$.val = 0;
 		 $$.rawval = 0;
                  $$.type = T_INT;
+		 $$.bitfield = 0;
 	       }
                | COLON NUM_INT { 
 		 $$.val = 0;
 		 $$.rawval = 0;
 		 $$.type = 0;
+		 $$.bitfield = $2.val;
 	       }
                | empty {
                  $$.val = 0;
                  $$.rawval = 0;
                  $$.type = T_INT;
+		 $$.bitfield = 0;
                }
                ;
 
@@ -3923,12 +3936,14 @@ type_specifier : TYPE_INT {
 definetype     : { /* scanner_check_typedef(); */ } expr {
                    $$ = $2;
 		   $$.rawval = 0;
+		   $$.bitfield = 0;
 		   scanner_ignore_typedef();
                 }
                 | string {
                    $$.val = NewString($1);
 		   $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
                    $$.type = T_STRING;
+		   $$.bitfield = 0;
 		}
                 | CHARCONST {
                    $$.val = NewString($1);
@@ -3938,6 +3953,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		     $$.rawval = NewString("\'\\0'");
 		   }
 		   $$.type = T_CHAR;
+		   $$.bitfield = 0;
 		 }
                 ;
 
@@ -3972,6 +3988,7 @@ edecl          :  ID {
                  | ID EQUAL etype {
 		   $$ = new_node("enumitem");
 		   Setattr($$,"name",$1);
+		   Setattr($$,"enumvalue", $3.val);
 	           if ($3.type == T_CHAR) {
 		     Setattr($$,"value",$3.val);
 		     Setattr($$,"type",NewSwigType(T_CHAR));
@@ -3992,7 +4009,6 @@ etype            : expr {
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an int\n");
 		   }
-
                 }
                 | CHARCONST {
                    $$.val  = NewString($1);
