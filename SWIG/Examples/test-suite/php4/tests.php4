@@ -47,6 +47,7 @@ class check {
     global $_original_globals;
     if (! is_array($extra)) {
       if (GETSET) {
+        $_extra=array();
         foreach(check::get_extra_functions(false,1) as $global) {
           if (ereg('^(.*)_[sg]et$',$global,$match)) $_extra[$match[1]]=1;
         }
