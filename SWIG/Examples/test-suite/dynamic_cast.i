@@ -3,6 +3,7 @@
 
 #ifndef SWIGJAVA
 %apply SWIGTYPE *DYNAMIC { Foo * };
+#endif
 
 %inline %{
 
@@ -12,6 +13,20 @@ public:
        return this;
    }
 };
+%}
+
+#ifdef SWIGJAVA
+%typemap(out) Foo *blah {
+    Bar *downcast = dynamic_cast<Bar *>($1);
+    *(Bar **)&$result = downcast;
+}
+
+%typemap(javaout) Foo * {
+    return new Bar($jnicall, $owner);
+  }
+#endif
+
+%inline %{
 
 class Bar : public Foo {
 public:
@@ -28,6 +43,7 @@ char *do_test(Bar *b) {
 }
 %}
 
+#ifndef SWIGJAVA
 // A general purpose function for dynamic casting of a Foo *
 %{
 static swig_type_info *
