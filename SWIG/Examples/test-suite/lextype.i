@@ -42,8 +42,8 @@ code is not functioning properly it will fail to compile.
 typedef void * Animal;
 typedef Animal Giraffe;
 
-void eat(Giraffe g);
-void drink(Giraffe *g);
-Giraffe mate(Giraffe g[2]);
+void eat(Giraffe g) {}
+void drink(Giraffe *g) {}
+Giraffe mate(Giraffe g[2]) {}
 
 %}
