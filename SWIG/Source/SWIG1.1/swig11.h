@@ -82,9 +82,9 @@ public:
   friend String& operator<<(String&,const char *s);
   friend String& operator<<(String&,const int);
   friend String& operator<<(String&,const char);
-  friend String& operator<<(String&,String&);
+  friend String& operator<<(String&,const String&);
   friend String& operator>>(const char *s, String&);
-  friend String& operator>>(String&,String&);
+  friend String& operator>>(const String&,String&);
   String& operator=(const char *);
   operator char*() const { return str; }
   void   untabify();
