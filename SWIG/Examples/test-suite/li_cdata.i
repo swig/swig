@@ -1,4 +1,4 @@
-%module lib_cdata
+%module li_cdata
 
 %include "cdata.i"
 

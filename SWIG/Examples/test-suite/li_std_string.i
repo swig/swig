@@ -1,4 +1,4 @@
-%module lib_std_string
+%module li_std_string
 %include "std_string.i"
 
 %inline %{

@@ -1,4 +1,4 @@
-%module lib_carrays
+%module li_carrays
 
 %warnfilter(801) doubleArray; /* Ruby, wrong class name */
 

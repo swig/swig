@@ -1,4 +1,4 @@
-%module lib_std_pair
+%module li_std_pair
 
 %include "std_pair.i"
 

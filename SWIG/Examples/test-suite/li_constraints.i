@@ -1,4 +1,4 @@
-%module lib_constraints
+%module li_constraints
 %include constraints.i
 
 %inline %{

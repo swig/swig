@@ -1,4 +1,4 @@
-%module lib_std_deque
+%module li_std_deque
 
 %include "std_deque.i"
 
