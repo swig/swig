@@ -8,198 +8,330 @@
 
 <b>Caution: This chapter is under repair!</b>
 
-This chapter discusses SWIG's support of Tcl. SWIG supports Tcl
-versions 7.3 and newer, including Tcl 8.0. Tk 3.6 and newer can also
-be used. However, for the best results you should consider using Tcl
-7.5/Tk4.1 or later.<p>
+<p>
+This chapter discusses SWIG's support of Tcl. SWIG currently requires
+Tcl 8.0 or a later release.   Earlier releases of SWIG supported Tcl 7.x, but
+this is no longer supported.
 
-<h2> Preliminaries</h2>
+<h2>Preliminaries</h2>
 
-You will need to install Tcl/Tk on your system if you haven't done so
-already. If you are using Tcl 7.5 or newer, you should also determine
-if your system supports dynamic loading and shared libraries. SWIG
-will work with or without this, but the compilation process varies.<p>
-
-<h3> Running SWIG</h3>
-To build a Tcl module, run swig using the <tt>-tcl</tt> option as
-follows :<p>
+To build a Tcl module, run SWIG using the <tt>-tcl</tt> option :<p>
 
 <p>
-<blockquote><pre>swig -tcl example.i
-
+<blockquote><pre>$ swig -tcl example.i
 </pre></blockquote>
 
-This will produce 2 files. The first file, <tt>example_wrap.c,
-</tt>contains all of the C code needed to build your Tcl module. The
-second file contains supporting documentation and may be named
-<tt>example_wrap.doc</tt>, <tt>example_wrap.html</tt>,
-<tt>example_wrap.tex</tt>, etc... To build a Tcl extension you will
-need to compile the <tt>example_wrap.c</tt> file and link it with the
-rest of your program (and possibly Tcl itself).<p>
+If building a C++ extension, add the <tt>-c++</tt> option:
 
-<h3> Additional SWIG options</h3>
-
-The following options are also available with the Tcl module :<p>
 <p>
-<blockquote><pre>-tcl8         Produce Tcl8.0 native wrappers (use in place of -tcl).
--module       Set the module name.
--namespace    Use [incr Tcl] namespaces.
--prefix pkg   Set a package prefix of `pkg'. This prefix will be
-              attached to each function.
--htcl tcl.h   Set name of Tcl header file.
--htk tk.h     Set name of Tk header file.
--plugin       Generate additional code for the netscape plugin.
--noobject     Omit object oriented extensions (compatibility with SWIG 1.0)
+<blockquote><pre>$ swig -c++ -tcl example.i
 </pre></blockquote>
 
 <p>
-Many of these options will be described later.<p>
+This creates a file <tt>example_wrap.c</tt> or
+<tt>example_wrap.cxx</tt> that contains all of the code needed to
+build a Tcl extension module.  To finish building the module, you 
+need to compile this file and link it with the rest of your program.
 
-<h3> Getting the right header files and libraries</h3>
+<h3>Getting the right header files</h3>
 
-In order to compile Tcl/Tk extensions, you will need to locate the
-"<tt>tcl.h</tt>" and "<tt>tk.h</tt>" header files. These are usually
-located in <tt>/usr/local/include</tt>. You will also need to locate
-the Tcl/Tk libraries <tt>libtcl.a</tt> and <tt>libtk.a</tt>. These are
-usually located in <tt>/usr/local/lib</tt>.<p>
-
-When locating the right header and libraries files, double check to
-make sure the files are the correct version and form a matching
-pair. SWIG works with the following Tcl/Tk releases.<p>
+In order to compile the wrapper code, the compiler needs the <tt>tcl.h</tt> header file.
+This file is usually contained in the directory
 
 <p>
-<blockquote><pre>Tcl 7.3, Tk 3.6
-Tcl 7.4, Tk 4.0
-Tcl 7.5, Tk 4.1
-Tcl 7.6, Tk 4.2
-Tcl 8.0a2, Tk 8.0a2
+<blockquote><pre>/usr/local/include
 </pre></blockquote>
 
-<p>
-Do not mix versions. Although the code might compile if you do, it
-will usually core dump mysteriously. By default, SWIG looks for the
-header files "<tt>tcl.h</tt>" and "<tt>tk.h</tt>", but your installed
-version of Tcl/Tk may use slightly different names such as
-"<tt>tcl7.5.h</tt>" and "<tt>tk4.1.h</tt>". If you need to use
-different header files, you can use the <tt>-htcl</tt> and
-<tt>-htk</tt> options as in :<p>
-<p>
-<blockquote><pre>swig -tcl -htcl tcl7.5.h -htk tk4.1.h example.i
+Be aware that some Tcl versions install this header file with a version number attached to it.  If
+this is the case, you should probably make a symbolic link so that <tt>tcl.h</tt> points to the correct
+header file.
 
+<h3>Compiling a dynamic module</h3>
+
+The preferred approach to building an extension module is to compile it into
+a shared object file or DLL.   To do this, you will need to compile your program
+using comands like this (shown for Linux):
+
+<p>
+<blockquote><pre>$ swig -tcl example.i
+$ gcc -c example.c
+$ gcc -c example_wrap.c -I/usr/local/include
+$ gcc -shared example.o example_wrap.o -o example.so
 </pre></blockquote>
-If you are installing Tcl/Tk yourself, it is often easier to set up a
-symbolic links between <tt>tcl.h</tt> and the header files for the
-latest installed version.  You might also be able to make symbolic
-links to the correct files in your working directory.<p>
 
-<h3> Compiling a dynamic module (Unix)</h3>
-
-To compile a dynamically loadable module, you will need to compile
-your SWIG extension into a shared library. This usually looks
-something like the following (shown for Linux).<p>
+The exact commands for doing this vary from platform to platform. 
+SWIG tries to guess the right options when it is installed.  Therefore, 
+you may want to start with one of the examples in the <tt>SWIG/Examples/tcl</tt> 
+directory.   If that doesn't work, you will need to read the man-pages for
+your compiler and linker to get the right set of options.  You might also
+check the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SWIG Wiki</a> for
+additional information.
 <p>
-<blockquote><pre>unix &gt; swig -tcl example.i
-unix &gt; gcc -fpic example_wrap.c example.c -I/usr/local/include
-unix &gt; gcc -shared example.o example_wrap.o -o example.so	# Linux
+When linking the module, the name of the output file has to match the name
+of the module.  If the name of your SWIG module is "<tt>example</tt>", the
+name of the corresponding object file should be
+"<tt>example.so</tt>".
+The name of the module is specified using the <tt>%module</tt> directive or the 
+<tt> -module</tt> command line option.<p>
 
-</pre></blockquote>
-Unfortunately, the process of building of building shared libraries
-varies on every single machine. SWIG will try to guess when you run
-configure, but it isn't always successful. It's always a good idea to
-read the man pages on the compiler/linker to find out more
-information.<p>
+<h3>Static linking</h3>
 
-<h3> Using a dynamic module</h3>
-
-To use a dynamic module, you will need to load it using the Tcl load
-command as follows :<p>
+An alternative approach to dynamic linking is to rebuild the Tcl
+interpreter with your extension module added to it.  In the past,
+this approach was sometimes necesssary due to limitations in dynamic loading
+support on certain machines.  However, the situation has improved greatly
+over the last few years and you should not consider this approach 
+unless there is really no other option.
 
 <p>
-<blockquote><pre>load ./example.so example
-
-</pre></blockquote>
-The first argument is the name of the shared library while the second
-argument is the name of the module (the same as what you specified
-with the <tt>%module</tt> directive). As alternative, you can turn
-your module into a Tcl package.  See the section on configuration
-management at the end of this chapter for details.<p>
-
-<h3> Static linking</h3>
-
-If your machine does not support dynamic loading or you've tried to
-use it without success, you can build new versions of <tt>tclsh</tt>
-(the Tcl shell) or <tt>wish</tt> (Tcl/Tk shell) with your extensions
-added. To do this, use SWIG's <tt>%include</tt> directive as follows
-:<p>
+The usual procedure for adding a new module to Tcl involves writing a
+special function <tt>Tcl_AppInit()</tt> and using it to initialize the interpreter and
+your module.  With SWIG, the <tt>tclsh.i</tt> and <tt>wish.i</tt> library files
+can be used to rebuild the <tt>tclsh</tt> and <tt>wish</tt> interpreters respectively.
+For example:
 
 <p>
-<blockquote><pre>%module mymodule
-... declarations ...
+<blockquote><pre>%module example
 
-%include tclsh.i     // Support code for rebuilding tclsh
-</pre></blockquote>
-<p>
-To rebuild tclsh, you will need to compile as follows :<p>
-<p>
-<blockquote><pre>unix &gt; swig -tcl example.i
-unix &gt; gcc example_wrap.c example.c -I/usr/local/include -L/usr/local/lib -ltcl -ldl \
-	-lm -o my_tclsh
+extern int fact(int);
+extern int mod(int, int);
+extern double My_variable;
+
+%include tclsh.i       // Include code for rebuilding tclsh
 
 </pre></blockquote>
 
-Alternatively, you can use SWIG's <tt>-l</tt> option to add the
-tclsh.i library file without modifying the interface file.  For
-example :<p>
+The <tt>tclsh.i</tt> library file includes supporting code that
+contains everything needed to rebuild tclsh. To rebuild the interpreter,
+you simply do something like this:
 
 <p>
-<blockquote><pre>unix &gt; swig -tcl -ltclsh.i example.i
-unix &gt; gcc example_wrap.c example.c -I/usr/local/include -L/usr/local/lib -ltcl -ldl \
-	-lm -o my_tclsh
+<blockquote><pre>$ swig -tcl example.i
+$ gcc example.c example_wrap.c \
+        -Xlinker -export-dynamic \
+        -DHAVE_CONFIG_H -I/usr/local/include/ \
+	-L/usr/local/lib -ltcl -lm -ldl \
+	-o mytclsh
 
 </pre></blockquote>
-
-The <tt>-ldl</tt> option will be required if your Tcl/Tk supports
-dynamic loading. On some machines (most notably Solaris),it will also
-be necessary to add <tt>-lsocket -lnsl</tt> to the compile line. This
-will produce a new version of <tt>tclsh</tt> that is identical to the
-old one, but with your extensions added.<p>
-
-<p>
-If you are using Tk, you will want to rebuild the <tt>wish</tt>
-executable instead. This can be done as follows :<p>
+You will need to supply the same libraries that were used to build Tcl the first
+time.  This may include system libraries such as <tt>-lsocket</tt>, <tt>-lnsl</tt>,
+and <tt>-lpthread</tt>.  If this actually works, the new version of Tcl
+should be identical to the default version except that your extension module will be
+a built-in part of the interpreter.
 
 <p>
-<blockquote><pre>%module mymodule
-... declarations ...
 
-%include wish.i       // Support code for rebuilding wish
+<b>Comment:</b> In practice, you should probably try to avoid static
+linking if possible. Some programmers may be inclined
+to use static linking in the interest of getting better performance.
+However, the performance gained by static linking tends to be rather
+minimal in most situations (and quite frankly not worth the extra
+hassle in the opinion of this author). 
 
+<h3> Using your module</h3>
+
+To use your module, simply use the Tcl <tt>load</tt> command.  If
+all goes well, you will be able to this:
+
+<p>
+<blockquote><pre>$ tclsh
+% load ./example.so
+% fact 4
+24
+%
 </pre></blockquote>
-The compilation process is similar as before, but now looks like this
-:<p>
+
+A common error received by first-time users is the following:
+
+<blockquote>
+<pre>
+% load ./example.so
+couldn't find procedure Example_Init
+% 
+</pre>
+</blockquote>
+
+This error is almost always caused when the name of the shared object file doesn't
+match the name of the module supplied using the SWIG <tt>%module</tt> directive.
+Double-check the interface to make sure the module name and the shared object
+file match.  Another possible cause of this error is forgetting to link the SWIG-generated
+wrapper code with the rest of your application when creating the extension module.
+
 <p>
-<blockquote><pre>unix &gt; swig -tcl example.i
-unix &gt; gcc example_wrap.c example.c -I/usr/local/include -L/usr/local/lib -ltk -ltcl \
-	-lX11 -ldl -lm -o my_wish
+Another common error is something similar to the following:
 
+<blockquote>
+<pre>
+% load ./example.so
+couldn't load file "./example.so": ./example.so: undefined symbol: fact
+% 
+</pre>
+</blockquote>
+
+This error usually indicates that you forgot to include some object
+files or libraries in the linking of the shared library file.  Make
+sure you compile both the SWIG wrapper file and your original program
+into a shared library file.  Make sure you pass all of the required libraries
+to the linker.  
+
+<p>
+Sometimes unresolved symbols occur because a wrapper has been created
+for a function that doesn't actually exist in a library.  This usually
+occurs when a header file includes a declaration for a function that
+was never actually implemented or it was removed from a library
+without updating the header file.  To fix this, you can either edit
+the SWIG input file to remove the offending declaration or you can use
+the <tt>%ignore</tt> directive to ignore the declaration.
+
+<p>
+Finally, suppose that your extension module is linked with another library like this:
+
+<blockquote>
+<pre>
+$ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib -lfoo \
+      -o example.so
+</pre>
+</blockquote>
+
+If the <tt>foo</tt> library is compiled as a shared library, you might get the following
+problem when you try to use your module:
+
+<blockquote>
+<pre>
+% load ./example.so
+couldn't load file "./example.so": libfoo.so: cannot open shared object file:
+No such file or directory
+%        
+</pre>
+</blockquote>
+
+This error is generated because the dynamic linker can't locate the
+<tt>libfoo.so</tt> library.  When shared libraries are loaded, the
+system normally only checks a few standard locations such as
+<tt>/usr/lib</tt> and <tt>/usr/local/lib</tt>.   To fix this problem,
+there are several things you can do.  First, you can recompile your extension
+module with extra path information. For example, on Linux you can do this:
+
+<blockquote>
+<pre>
+$ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib -lfoo \
+      -Xlinker -rpath /home/beazley/projects/lib \
+      -o example.so
+</pre>
+</blockquote>
+
+Alternatively, you can set the <tt>LD_LIBRARY_PATH</tt> environment variable to
+include the directory with your shared libraries. 
+If setting <tt>LD_LIBRARY_PATH</tt>, be aware that setting this variable can introduce
+a noticeable performance impact on all other applications that you run.
+To set it only for Tcl, you might want to do this instead:
+
+<blockquote>
+<pre>
+$ env LD_LIBRARY_PATH=/home/beazley/projects/lib tclsh
+</pre>
+</blockquote>
+
+Finally, you can use a command such as <tt>ldconfig</tt> to add additional search paths
+to the default system configuration (this requires root access and you will need to read
+the man pages). 
+
+<h3>Compilation of C++ extensions</h3>
+
+Compilation of C++ extensions has traditionally been a tricky problem.
+Since the Tcl interpreter is written in C, you need to take steps to
+make sure C++ is properly initialized and that modules are compiled
+correctly.
+
+<p>
+On most machines, C++ extension modules should be linked using the C++
+compiler.  For example:
+
+<p>
+<blockquote><pre>% swig -c++ -tcl example.i
+% g++ -c example.cxx
+% g++ -c example_wrap.cxx -I/usr/local/include
+% g++ -shared example.o example_wrap.o -o example.so
 </pre></blockquote>
-In this case you will end up with a new version of the <tt>wish</tt>
-executable with your extensions added. Make sure you include
-<tt>-ltk</tt>, <tt>-ltcl</tt>, and <tt>-lX11</tt> in the order
-shown.<p>
 
-<h3> Compilation problems</h3>
+In addition to this, you may need to include additional library
+files to make it work.  For example, if you are using the Sun C++ compiler on
+Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 
-Tcl is one of the easiest languages to compile extensions for. The Tcl
-header files should work without problems under C and C++. Perhaps the
-only tricky task is that of compiling dynamically loadable modules for
-C++. If your C++ code has static constructors, it is unlikely to work
-at all. In this case, you will need to build new versions of the
-<tt>tclsh</tt> or <tt>wish</tt> executables instead. You may also need
-to link against the <tt>libgcc.a</tt>, <tt>libg++.a</tt>, and
-l<tt>ibstdc++.a</tt> libraries (assuming g++).<p>
+<p>
+<blockquote><pre>% swig -c++ -tcl example.i
+% CC -c example.cxx
+% CC -c example_wrap.cxx -I/usr/local/include
+% CC -G example.o example_wrap.o -L/opt/SUNWspro/lib -o example.so -lCrun
+</pre></blockquote>
 
-<h3> Setting a package prefix</h3>
+Of course, the extra libraries to use are completely non-portable---you will 
+probably need to do some experimentation.
+
+<p>
+Sometimes people have suggested that it is necessary to relink the
+Tcl interpreter using the C++ compiler to make C++ extension modules work.
+In the experience of this author, this has never actually appeared to be
+necessary.   Relinking the interpreter with C++ really only includes the 
+special run-time libraries described above---as long as you link your extension 
+modules with these libraries, it should not be necessary to rebuild Tcl.
+
+<p>
+If you aren't entirely sure about the linking of a C++ extension, you
+might look at an existing C++ program.  On many Unix machines, the
+<tt>ldd</tt> command will list library dependencies.  This should give
+you some clues about what you might have to include when you link your
+extension module. For example:
+
+<blockquote>
+<pre>
+$ ldd swig
+        libstdc++-libc6.1-1.so.2 => /usr/lib/libstdc++-libc6.1-1.so.2 (0x40019000)
+        libm.so.6 => /lib/libm.so.6 (0x4005b000)
+        libc.so.6 => /lib/libc.so.6 (0x40077000)
+        /lib/ld-linux.so.2 => /lib/ld-linux.so.2 (0x40000000)
+$
+</pre>
+</blockquote>
+
+<p>
+As a final complication, a major weakness of C++ is that it does not
+define any sort of standard for binary linking of libraries.  This
+means that C++ code compiled by different compilers will not link
+together properly as libraries nor is the memory layout of classes and
+data structures implemented in any kind of portable manner.  In a
+monolithic C++ program, this problem may be unnoticed.  However, in Tcl, it
+is possible for different extension modules to be compiled with
+different C++ compilers.  As long as these modules are self-contained,
+this probably won't matter.  However, if these modules start sharing data,
+you will need to take steps to avoid segmentation faults and other
+erratic program behavior.   If working with lots of software components, you
+might want to investigate using a more formal standard such as COM.
+
+<h3>Compiling for 64-bit platforms</h3>
+
+On platforms that support 64-bit applications (Solaris, Irix, etc.),
+special care is required when building extension modules.  On these
+machines, 64-bit applications are compiled and linked using a different
+set of compiler/linker options.  In addition, it is not generally possible to mix 
+32-bit and 64-bit code together in the same application.
+
+<p>
+To utilize 64-bits, the Tcl executable will need to be recompiled
+as a 64-bit application.  In addition, all libraries, wrapper code,
+and every other part of your application will need to be compiled for
+64-bits.  If you plan to use other third-party extension modules, they
+will also have to be recompiled as 64-bit extensions.
+
+<p>
+If you are wrapping commercial software for which you have no source
+code, you will be forced to use the same linking standard as used by
+that software.  This may prevent the use of 64-bit extensions.  It may
+also introduce problems on platforms that support more than one
+linking standard (e.g., -o32 and -n32 on Irix).
+
+<h3>Setting a package prefix</h3>
 
 To avoid namespace problems, you can instruct SWIG to append a package
 prefix to all of your functions and variables. This is done using the
@@ -212,10 +344,10 @@ If you have a function "<tt>bar</tt>" in the SWIG file, the prefix
 option will append the prefix to the name when creating a command and
 call it "<tt>Foo_bar</tt>". <p>
 
-<h3> Using [incr Tcl] namespaces</h3>
+<h3>Using namespaces</h3>
 
-Alternatively, you can have SWIG install your module into an [incr
-Tcl] namespace by specifying the <tt>-namespace</tt> option :<p>
+Alternatively, you can have SWIG install your module into a Tcl
+namespace by specifying the <tt>-namespace</tt> option :<p>
 <p>
 <blockquote><pre>swig -tcl -namespace example.i
 
@@ -223,18 +355,15 @@ Tcl] namespace by specifying the <tt>-namespace</tt> option :<p>
 By default, the name of the namespace will be the same as the module
 name, but you can override it using the <tt>-prefix</tt> option.<p>
 <p>
-When the<tt> -namespace</tt> option is used, the resulting wrapper
-code can be compiled under both Tcl and [incr Tcl]. When compiling
-under Tcl, the namespace will turn into a package prefix such as in
-<tt>Foo_bar</tt>. When running under [incr Tcl], it will be something
-like <tt>Foo::bar.</tt><p>
+When the<tt> -namespace</tt> option is used, objects in the module
+are always accessed with the namespace name such as <tt>Foo::bar</tt>.
 
 <h2> Building Tcl/Tk Extensions under Windows 95/NT</h2>
 
 Building a SWIG extension to Tcl/Tk under Windows 95/NT is roughly
 similar to the process used with Unix.  Normally, you will want to
 produce a DLL that can be loaded into tclsh or wish.  This section
-covers the process of using SWIG with Microsoft Visual C++ 4.x
+covers the process of using SWIG with Microsoft Visual C++.
 although the procedure may be similar with other compilers.<p>
 
 <h3> Running SWIG from Developer Studio</h3>
@@ -348,7 +477,9 @@ first).  This is a pretty minimal Makefile, but hopefully its enough
 to get you started.  With a little practice, you'll be making lots of
 Tcl extensions.<p>
 
-<h2> Basic Tcl Interface</h2>
+<h2>Primitive Tcl Interface</h2>
+
+This section describes the basic Tcl interface.   The object-based interface is described shortly.
 
 <h3> Functions</h3>
 
@@ -375,17 +506,9 @@ There isn't much more to say...this is pretty straightforward.<p>
 
 <h3> Global variables</h3>
 
-For global variables, things are a little more complicated. For the
-following C datatypes, SWIG will use Tcl's variable linking mechanism
-to provide direct access :<p>
-<p>
-<blockquote><pre>int, unsigned int,
-double,
-char *,
+For global variables, SWIG uses Tcl's variable tracing mechanism to
+provide direct access.  For example:
 
-</pre></blockquote>
-When used in an interface file and script, it will operate as follows
-:<p>
 <p>
 <blockquote><pre>// example.i
 %module example
@@ -398,51 +521,125 @@ puts $My_variable            # Output value of C global variable
 set My_variable 5.5          # Change the value
 
 </pre></blockquote>
-For all other C datatypes, SWIG will generate a pair of set/get
-functions. For example :<p>
-<p>
-<blockquote><pre>// example.i
-short My_short;
-</pre></blockquote>
-<p>
-will be accessed in Tcl as follows :<p>
-<p>
-<blockquote><pre>puts [My_short_get]          # Get value of global variable
-My_short_set 5.5             # Set value of global variable
 
-</pre></blockquote>
-While not the most elegant solution, this is the only solution for
-now. Tcl's normal variable linking mechanism operates directly on a
-variables and would not work correctly on datatypes other than the 3
-basic datatypes supported by Tcl (<tt>int</tt>, <tt>double</tt>, and
-<tt>char *</tt>).<p>
+<b>Compatibility Note:</b> 
+Variable tracing is currently supported for all C/C++ datatypes.  In older versions
+of SWIG, only variables of type <tt>int</tt>, <tt>double</tt>, and <tt>char *</tt> could
+be linked.  All other types were accessed using special function calls.   
 
 <h3> Constants</h3>
 
-Constants are created as read-only variables. For odd datatypes (not
-supported by the variable linking mechanism), SWIG generates a string
-representation of the constant and use it instead (you shouldn't
-notice this however since everything is already a string in Tcl). It
-is never necessary to use a special "get" function with
-constants. Unlike Tcl variables, constants can contain pointers,
-structure addresses, function pointers, etc...<p>
+Constants are installed as new Tcl variables. For example:
+
+<blockquote>
+<pre>
+%module example
+#define FOO 42
+</pre>
+</blockquote>
+
+is accessed as follows:
+
+<blockquote>
+<pre>
+% puts $FOO
+42
+%
+</pre>
+</blockquote>
+
+No attempt is made to enforce the read-only nature of a constant.  Therefore, a user could reassign the value if they wanted.
+You will just have to be careful.
+<p>
+A peculiarity of installing constants as variables is that it is necessary to use the Tcl <tt>global</tt> statement to
+access constants in procedure bodies.  For example:
+
+<blockquote>
+<pre>
+proc blah {} {
+   global FOO
+   bar $FOO
+}
+</pre>
+</blockquote>
+
+If a program relies on a lot of constants, this can be extremely annoying.  To fix the problem, consider using the
+following typemap rule:
+
+<blockquote>
+<pre>
+%apply int CONSTANT { int x };
+#define FOO 42
+...
+void bar(int x);
+</pre>
+</blockquote>
+
+When applied to an input argument, the <tt>CONSTANT</tt> rule allows a constant to be passed to a function using
+its actual value or a symbolic identifier name.  For example:
+
+<blockquote>
+<pre>
+proc blah {} {
+   bar FOO
+}
+</pre>
+</blockquote>
+
+When an identifier name is given, it is used to perform an implicit hash-table lookup of the value during argument 
+conversion.  This allows the <tt>global</tt> statement to be ommitted.
 
 <h3> Pointers</h3>
 
 Pointers to C/C++ objects are represented as character strings such as
 the following :<p>
 <p>
-<blockquote><pre>_100f8e2_Vector_p
+<blockquote><pre>_100f8e2_p_Vector
 
 </pre></blockquote>
 A NULL pointer is represented by the string "NULL". NULL pointers can also be explicitly created as follows :<p>
 <p>
-<blockquote><pre>_0_Vector_p
+<blockquote><pre>_0_p_Vector
 
 </pre></blockquote>
-In Tcl 8.0, pointers are represented using a new type of Tcl object,
-but the string representation is the same (and is interchangable). As
-a general, direct manipulation of pointer values is discouraged. <p>
+
+
+As much as you might be inclined to modify a pointer value directly
+from Tcl, don't.  The hexadecimal encoding is not necessarily the same
+as the logical memory address of the underlying object.  Instead it is
+the raw byte encoding of the pointer value.  The encoding will vary
+depending on the native byte-ordering of the platform (i.e.,
+big-endian vs. little-endian).  Similarly, don't try to manually cast
+a pointer to a new type by simply replacing the type-string.  This is
+may not work like you expect and it is particularly dangerous when
+casting C++ objects.  If you need to cast a pointer or change its
+value, consider writing some helper functions instead.  For example:
+
+<blockquote>
+<pre>
+%inline %{
+/* C-style cast */
+Bar *FooToBar(Foo *f) {
+   return (Bar *) f;
+}
+
+/* C++-style cast */
+Foo *BarToFoo(Bar *b) {
+   return dynamic_cast&lt;Foo*&gt;(b);
+}
+
+Foo *IncrFoo(Foo *f, int i) {
+    return f+i;
+}
+%}
+</pre>
+</blockquote>
+
+If you need to type-cast a lot of objects, it may indicate a serious 
+weakness in your design.  Also, if working with C++, you should always try
+to use the new C++ style casts.  For example, in the above code, the
+C-style cast may return a bogus result whereas as the C++-style cast will return
+<tt>NULL</tt> if the conversion can't be performed.
 
 <h3> Structures </h3>
 
@@ -528,7 +725,7 @@ Ale
 % puts [List_length_get $l]
 3
 % puts $l
-_1008560_List_p
+_1008560_p_List
 % 
 
 </pre></blockquote>
@@ -541,16 +738,17 @@ as the first argument.<p>
 While somewhat primitive, the low-level SWIG interface provides direct
 and flexible access to almost any C++ object. As it turns out, it is
 possible to do some rather amazing things with this interface as will
-be shown in some of the later examples. SWIG 1.1 also generates an
-object oriented interface that can be used in addition to the basic
+be shown in some of the later examples. SWIG also generates an
+object-based interface that can be used in addition to the basic
 interface just described here.<p>
 
-<h2> The object oriented interface</h2>
+<h2>The object-based interface</h2>
 
-With SWIG 1.1, a new object oriented interface to C structures and C++
-classes is supported. This interface supplements the low-level SWIG
+In addition to the low-level accessors, SWIG also generates an object-based interface to C 
+structures and C++
+classes. This interface supplements the low-level SWIG
 interface already defined--in fact, both can be used
-simultaneously. To illustrate this interface, consider our previous
+simultaneously. To illustrate this interface, consider the previous
 <tt>List</tt> class :<p>
 
 <p>
@@ -578,10 +776,10 @@ object. There are 5 methods for creating an object (<tt>MyObject
 </tt>is the name of the corresponding C++ class) <p>
 
 <p>
-<blockquote><pre>MyObject o                   # Creates a new object `o' 
+<blockquote><pre>MyObject o                   # Creates a new object named `o' 
 
 MyObject o -this $objptr     # Turn a pointer to an existing C++ object into a 
-                             # Tcl object `o'
+                             # Tcl object named `o'
 
 MyObject -this $objptr       # Turn the pointer $objptr into a Tcl "object"
 
@@ -593,7 +791,7 @@ MyObject                     # The same as MyObject -args, but for constructors 
 </pre></blockquote>
 
 <p>
-Thus, for our List class, we can create new List objects as follows :<p>
+Thus, for our List class, you can create new List objects as follows :<p>
 
 <p>
 <blockquote><pre>List l                       # Create a new list l
@@ -607,18 +805,18 @@ List -this $listptr          # Turn $listptr into a Tcl object of the same name
 </pre></blockquote>
 
 <p>
-Now assuming you're not completely confused at this point, the best
+Assuming you're not completely confused at this point, the best
 way to think of this is that there are really two different ways of
 representing an object.  One approach is to simply use the pointer
 value as the name of an object. For example :<p>
 <p>
-<blockquote><pre>_100e8f8_List_p
+<blockquote><pre>_100e8f8_p_List
 
 </pre></blockquote>
 
 The second approach is to allow you to pick a name for an object such
 as "foo".  The different types of constructors are really just
-mechanism for using either approach.<p>
+a mechanism for using either approach.<p>
 
 <h3> Invoking member functions</h3>
 
@@ -635,8 +833,7 @@ the method name and any arguments. For example :<p>
 
 </pre></blockquote>
 
-Or if you let SWIG generate the name of the object... (this is the
-pointer model)<p>
+Or if you let SWIG generate the name of the object, it works like this:
 
 <p>
 <blockquote><pre>% set l [List]
@@ -647,22 +844,26 @@ pointer model)<p>
 %
 </pre></blockquote>
 
-<h3> Deleting objects</h3>
+<h3>Deleting objects</h3>
 
 Since objects are created by adding new Tcl commands, they can be
 deleted by simply renaming them. For example :<p>
 
 <p>
 <blockquote><pre>% rename l ""                # Destroy list object `l'
-
 </pre></blockquote>
 
-SWIG will automatically call the corresponding C/C++ destructor, with
-one caveat--SWIG will not destroy an object if you created it from an
-already existing pointer (if you called the constructor using the
--this option). Since the pointer already existed when you created the
-Tcl object, Tcl doesn't own the object so it would probably be a bad
-idea to destroy it.<p>
+It is also possible to explicitly delete the object using the delete method.
+For example:
+
+<blockquote>
+<pre>
+% l -delete
+</pre>
+</blockquote>
+
+If applicable, SWIG will automatically call the corresponding C/C++ destructor
+when the object is destroyed.
 
 <h3> Accessing member data</h3>
 
@@ -688,7 +889,9 @@ be legal<p>
 % l insert Mike
 % List_print [l cget -this]         # Print it out using low-level function
 </pre></blockquote>
-<a name="n37"></a><h3> Changing member data</h3>
+
+<h3> Changing member data</h3>
+
 To change the value of member data, the <tt>configure</tt> method can be used. For example :<p>
 <p>
 <blockquote><pre>% l configure -length 10     # Change length to 10 (probably not a good idea, but
@@ -708,6 +911,28 @@ you can change the value of all or some of the members as follows :<p>
 </pre></blockquote>
 <p>
 The order of attributes does not matter.  <p>
+
+<h3> Managing Object Ownership</h3>
+
+By default, objects created from Tcl are owned by the Tcl interpreter and
+are automatically destroyed when the correponding Tcl variable goes out of scope.
+However, sometimes it is necessary to change the owneship of an object
+managed by the interpreter.  For instance, if you stored an object in another data structure, you
+might want Tcl to disown the object.  Similarly, it may make sense for Tcl to acquire ownership of
+an object returned by C.
+
+<p>
+To handle object ownership, two object methods are available:
+
+<blockquote>
+<pre>
+% obj -disown            # Release ownership
+% obj -acquire           # Acquire ownership
+</pre>
+</blockquote>
+
+When Tcl owns an object, it is released when the Tcl variable is destroyed.  Otherwise,
+the Tcl variable is destroyed without calling the corresponding C/C++ destructor.
 
 <h3> Relationship with pointers</h3>
 The object oriented interface is mostly compatible with all of the
@@ -758,20 +983,10 @@ $l insert Part
 List_print $l                # Call static method (uses pointer value as before).
 </pre></blockquote>
 <p>
-<h3> Performance concerns and disabling the object oriented interface</h3>
 
-The object oriented interface is mainly provided for ease of
-programming at the expense of introducing more overhead and increased
-code size (C code that is). If you are concerned about these issues
-use the basic SWIG interface instead. It provides direct access and is
-much faster. As it turns out, it is possible to build an object
-oriented interface directly in Tcl as well--an example we'll return to
-a little later.<p>
 
-<p>
-To disable the object oriented interface, run SWIG with the
-<tt>-noobject</tt> option. This will strip out all of the extra code
-and produce only the low-level interface.<p>
+<hr>
+<h4>Everything from this point on is out of date-- in progress</h4>
 
 <h2>Examples</h2>
 
@@ -2129,28 +2344,8 @@ wrapped by SWIG and requires no special compilation.  Proof that a
 short, but clever Tcl script can be combined with SWIG to do many
 interesting things.<p>
 
-<h2> Tcl8.0 features</h2>
-
-SWIG 1.1 now supports Tcl 8.0.  However, considering the beta release
-nature of Tcl 8.0, anything presented here is subject to change.
-Currently only Tcl 8.0b1 is supported.  None of the alpha releases are
-supported due to a change in the C API. <p>
-<p>
-The Tcl 8.0 module uses the new Tcl 8.0 object interface whenever
-possible.  Instead of using strings, the object interface provides
-more direct access to objects in their native representation. As a
-result, the performance is significantly better.  The older Tcl SWIG
-module is also compatible with Tcl 8.0, but since it uses strings it
-will be much slower than the new version.<p>
-<p>
-In addition to using native Tcl objects, the Tcl8.0 manipulates
-pointers directly in in a special Tcl object.  On the surface it still
-looks like a string, but internally its represented a (value,type)
-pair.  This too, should offer somewhat better performance.<p>
-<p>
-
 <p><hr>
 
-<address>SWIG 1.1 - Last Modified : Mon Aug  4 10:47:12 1997</address>
+<address>SWIG 1.3 - Last Modified : January 31, 2002</address>
 </body>
 </html>
