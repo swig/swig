@@ -4,119 +4,100 @@
  *
 */
 
-/* char **STRING_IN */
-%typemap(jni) char **STRING_IN "jobjectArray"
-%typemap(jtype) char **STRING_IN "String[]"
-%typemap(jstype) char **STRING_IN "String[]"
-%typemap(javadirectorin) char **STRING_IN "$jniinput"
-%typemap(javadirectorout) char **STRING_IN "$javacall"
-%typemap(in) char **STRING_IN {
-  int i;
-  jsize sz = JCALL1(GetArrayLength, jenv, $input);
-  $1 = (char **) calloc((sz+1),  sizeof(char *));
-  for(i=0; i<sz; i++) {
-    jstring js;
-    char *cs;
-
-    js = (jstring) JCALL2(GetObjectArrayElement, jenv, $input, i);
-    cs = (char *) JCALL2(GetStringUTFChars, jenv, js, 0);
-    $1[i] = cs;
-  }
-  $1[sz] = '\0';
-}
-%typemap(argout) char **STRING_IN %{
-  /* should copy changes in char ** back into array and release strings obtained from GetStringUTFChars */
-%}
-%typemap(freearg) char **STRING_IN 
-%{ free($1); %}
-
-%typemap(directorin, parse="Ljava/lang/String;") char **STRING_IN
-%{ $input = JCALL1(NewStringUTF, jenv, *$1); %}
-
-/* char **STRING_OUT - result must be a null terminated string */
-%typemap(jni) char **STRING_OUT "jobjectArray"
-%typemap(jtype) char **STRING_OUT "String[]"
-%typemap(jstype) char **STRING_OUT "String[]"
-%typemap(javadirectorin) char **STRING_OUT "$jniinput"
-%typemap(javadirectorout) char **STRING_OUT "$javacall"
-%typemap(in) char **STRING_OUT (char *s) 
-%{ $1 = &s; %}
-%typemap(argout) char **STRING_OUT {
-  if($1) {
-     JCALL3(SetObjectArrayElement, jenv, $input, 0, JCALL1(NewStringUTF, jenv, *$1)); 
-  }
-}
-
-%typemap(directorin,parse="Ljava/lang/String;") char **STRING_OUT
-%{ $input = JCALL1(NewStringUTF, jenv, *$1); %}
-
-/* char **STRING_RET - a NULL terminated array of char* */
-%typemap(jni) char **STRING_RET "jarray"
-%typemap(jtype) char **STRING_RET "String[]"
-%typemap(jstype) char **STRING_RET "String[]"
-%typemap(javadirectorin) char **STRING_RET "$jniinput"
-%typemap(javadirectorout) char **STRING_RET "$javacall"
-%typemap(out) char **STRING_RET {
-  if($1 != NULL) {
-    char **p = $1;
-    jsize size = 0;
+/* 
+ * char **STRING_ARRAY typemaps. 
+ * These typemaps are for C String arrays which are NULL terminated.
+ *   char *values[] = { "one", "two", "three", NULL }; // note NULL
+ * char ** is mapped to a Java String[].
+ *
+ * Example usage wrapping:
+ *   char ** foo(char **input);
+ *  
+ * Java usage:
+ *   String numbers[] = { "one", "two", "three" };
+ *   String[] ret = modulename.foo( numbers };
+ */
+%typemap(jni) char **STRING_ARRAY "jobjectArray"
+%typemap(jtype) char **STRING_ARRAY "String[]"
+%typemap(jstype) char **STRING_ARRAY "String[]"
+%typemap(in) char **STRING_ARRAY (jint size) {
     int i = 0;
-    jclass strClass;
-    
-    while (*p++) size++; /* determine size */
-    strClass = JCALL1(FindClass, jenv, "java/lang/String");
-    $result = JCALL3(NewObjectArray, jenv, size, strClass, NULL);
-    p = $1;
-    while (*p) {
-      jstring js = JCALL1(NewStringUTF, jenv, *p);
-      JCALL3(SetObjectArrayElement, jenv, $result, i++, js);
-      p++;
+    size = JCALL1(GetArrayLength, jenv, $input);
+#ifdef __cplusplus
+    $1 = new char*[size+1];
+#else
+    $1 = (char **)calloc(size+1, sizeof(char *));
+#endif
+    for (i = 0; i<size; i++) {
+        jstring j_string = (jstring)JCALL2(GetObjectArrayElement, jenv, $input, i);
+        const char *c_string = JCALL2(GetStringUTFChars, jenv, j_string, 0);
+#ifdef __cplusplus
+        $1[i] = new char [strlen((c_string)+1)];
+#else
+        $1[i] = (char *)calloc(strlen((c_string)+1), sizeof(const char *));
+#endif
+        strcpy($1[i], c_string);
+        JCALL2(ReleaseStringUTFChars, jenv, j_string, c_string);
+        JCALL1(DeleteLocalRef, jenv, j_string);
     }
-  } 
+    $1[i] = 0;
 }
 
-%typemap(directorin,parse="Ljava/lang/String;") char **STRING_RET
-%{ $input = JCALL1(NewStringUTF, jenv, *$1; %}
-
-/* float *FLOAT_ARRAY_RETURN */
-%typemap(jni) float *FLOAT_ARRAY_RETURN "jfloatArray"
-%typemap(jtype) float *FLOAT_ARRAY_RETURN "float[]"
-%typemap(jstype) float *FLOAT_ARRAY_RETURN "float[]"
-%typemap(javadirectorin) float *FLOAT_ARRAY_RETURN "$jniinput"
-%typemap(javadirectorout) float *FLOAT_ARRAY_RETURN "$javacall"
-%typemap(out) float *FLOAT_ARRAY_RETURN {
-  if($1) {
-     float *fp = $1;
-     jfloat *jfp;
-     int size = 0;
-     int i;
- 
-     /* determine size of array */
-     while(*fp++) size++;
-
-     /* new float array */
-     $result = JCALL1(NewFloatArray, jenv, size);
-
-     /* copy elements to float array */
-     jfp = JCALL2(GetFloatArrayElements, jenv, $result, 0);
-     for(i=0; i<size; i++ )
-       jfp[i] = (jfloat) $1[i];
-
-     JCALL3(ReleaseFloatArrayElements, jenv, $result, jfp, 0);
-   } 
+%typemap(freearg) char **STRING_ARRAY {
+    int i;
+    for (i=0; i<size$argnum-1; i++)
+#ifdef __cplusplus
+      delete[] $1[i];
+    delete[] $1;
+#else
+      free($1[i]);
+    free($1);
+#endif
 }
 
-%typemap(directorin,parse="[F") float *FLOATARRAYRETURN
-%{
-#error "Need directorin typemape for FLOATARRAYRETURN, array input size is unknown."
-%}
+%typemap(out) char **STRING_ARRAY (char *s) {
+    int i;
+    int len=0;
+    jstring temp_string;
+    const jclass clazz = JCALL1(FindClass, jenv, "java/lang/String");
 
-/* char *BYTE */
+    while ($1[len]) len++;    
+    jresult = JCALL3(NewObjectArray, jenv, len, clazz, NULL);
+    /* exception checking omitted */
+
+    for (i=0; i<len; i++) {
+      temp_string = JCALL1(NewStringUTF, jenv, *result++);
+      JCALL3(SetObjectArrayElement, jenv, jresult, i, temp_string);
+      JCALL1(DeleteLocalRef, jenv, temp_string);
+    }
+}
+
+%typemap(javain) char **STRING_ARRAY "$javainput"
+%typemap(javaout) char **STRING_ARRAY  {
+    return $jnicall;
+  }
+
+%typemap(javadirectorin) char **STRING_ARRAY "$jniinput"
+%typemap(javadirectorout) char **STRING_ARRAY "$javacall"
+%typemap(directorin, descriptor="Ljava/lang/String;") char **STRING_ARRAY
+%{ $input = JCALL1(NewStringUTF, jenv, *$1); %}
+
+/* 
+ * char *BYTE typemap. 
+ * This is an input typemap for mapping a Java byte[] array to a C char array.
+ * Note that as a Java array is used and thus passeed by reference, the C routine 
+ * can return data to Java via the parameter.
+ *
+ * Example usage wrapping:
+ *   void foo(char *array);
+ *  
+ * Java usage:
+ *   byte b[] = new byte[20];
+ *   modulename.foo(b);
+ */
 %typemap(jni) char *BYTE "jbyteArray"
 %typemap(jtype) char *BYTE "byte[]"
 %typemap(jstype) char *BYTE "byte[]"
-%typemap(javadirectorin) char *BYTE "$jniinput"
-%typemap(javadirectorout) char *BYTE "$javacall"
 %typemap(in) char *BYTE {
     $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0); 
 }
@@ -125,10 +106,15 @@
     JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *) $1, 0); 
 }
 
-%typemap(directorin,parse="[B") char *BYTE
-%{
-#error "Need directorin typemape for BYTE, array input size is unknown."
-%}
+%typemap(javain) char *BYTE "$javainput"
 
 /* Prevent default freearg typemap from being used */
 %typemap(freearg) char *BYTE ""
+
+%typemap(javadirectorin) char *BYTE "$jniinput"
+%typemap(javadirectorout) char *BYTE "$javacall"
+%typemap(directorin,descriptor="[B") char *BYTE
+%{
+#error "Need directorin typemap for char *BYTE, array input size is unknown."
+%}
+
