@@ -1,0 +1,6 @@
+This is an example of how un-initialized variables crash PHP. The
+string in the class will point to garbage at the start, which will
+then be attempted to be copied to PHP. The crash occurs in strlen as
+it cannot find the (non-existent) string terminator. Ideas on fixing this
+problem are welcome!. Until then pass the '-nosync' flag to swig and use
+set/get to change object values if this problem occurs.
