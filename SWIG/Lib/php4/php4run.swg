@@ -49,7 +49,6 @@ SWIG_SetPointerChar(char **c, void *ptr, swig_type_info *type) {
    char data[512];
 
    SWIG_MakePtr(data, ptr, type);
-
    *c = estrdup(data);
 
 }
@@ -114,8 +113,10 @@ type_error:
     return -1;
 }
 
+#define SWIG_ConvertPtr(a,b,c) SWIG_ZTS_ConvertPtr(a,b,c TSRMLS_CC)
+
 SWIGRUNTIME(int)
-SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty) {
+SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
    char *c;
    zval *val;
    

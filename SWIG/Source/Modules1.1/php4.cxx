@@ -890,7 +890,6 @@ PHP4::functionWrapper(Node *n) {
 	  create_command(iname, Char(Swig_name_wrapper(iname)));
   Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", NULL);
 
-
   emit_args(d, l, f);
   /* Attach standard typemaps */
   emit_attach_parmmaps(l,f);
