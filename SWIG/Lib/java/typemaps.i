@@ -229,7 +229,10 @@ value in the single element array. In Java you would use it like this:
 %}
 
 %typemap(argout) CTYPE *OUTPUT, CTYPE &OUTPUT 
-{ JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, (JNITYPE *)&temp$argnum); }
+{
+  JNITYPE jvalue = (JNITYPE)temp$argnum;
+  JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
+}
 
 %typemap(typecheck) CTYPE *INOUT = TYPECHECKTYPE;
 %typemap(typecheck) CTYPE &INOUT = TYPECHECKTYPE;
