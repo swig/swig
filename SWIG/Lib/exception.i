@@ -171,6 +171,38 @@ static void _SWIG_exception(int code, char *msg) {
 %}
 #endif
 
+#ifdef SWIGMZSCHEME
+
+%{
+  static void _SWIG_exception (int code, const char *msg) {
+#define ERROR(errname)				\
+	scheme_signal_error(errname " (%s)", msg);
+#define MAP(swigerr, errname)			\
+	case swigerr:				\
+	  ERROR(errname);			\
+	  break
+    switch (code) {
+      MAP(SWIG_MemoryError,	"swig-memory-error");
+      MAP(SWIG_IOError,		"swig-io-error");
+      MAP(SWIG_RuntimeError,	"swig-runtime-error");
+      MAP(SWIG_IndexError,	"swig-index-error");
+      MAP(SWIG_TypeError,	"swig-type-error");
+      MAP(SWIG_DivisionByZero,	"swig-division-by-zero");
+      MAP(SWIG_OverflowError,	"swig-overflow-error");
+      MAP(SWIG_SyntaxError,	"swig-syntax-error");
+      MAP(SWIG_ValueError,	"swig-value-error");
+      MAP(SWIG_SystemError,	"swig-system-error");
+    default:
+      ERROR("swig-error");
+    }
+#undef ERROR
+#undef MAP
+  }
+
+#define SWIG_exception(a,b) _SWIG_exception(a, b)
+%}
+#endif
+
 #ifdef SWIGJAVA
 %{
 static void _SWIG_exception(JNIEnv *jenv, int code, const char *msg) {

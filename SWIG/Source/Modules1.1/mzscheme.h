@@ -27,11 +27,6 @@ class MZSCHEME : public Language
 {
 private:
   void   get_pointer(DOHString_or_char *name, int parm, SwigType *t, Wrapper *f);
-  void   usage_var(char *, SwigType *, DOHString *usage);
-  void   usage_func(char *, SwigType *, ParmList *, DOHString *usage);
-  void   usage_returns(char *, SwigType *, ParmList *, DOHString *usage);
-  void   usage_const(char *, SwigType *, char *, DOHString *usage);
-
 public :
   void parse_args (int, char *argv[]);
   void parse ();
@@ -44,4 +39,6 @@ public :
   void set_module (char *);
   void set_init (char *);
   void create_command (char *, char *) { };
+  void import_start(char *modname);
+  void import_end();
 };
