@@ -1,5 +1,9 @@
 Version 1.3.20 (In progress)
 ============================
+08/15/2003: beazley
+            Fixed [ 787432 ] long param handled as int.  Tcl module
+            now uses Tcl_GetLongFromObj to convert integer values.
+
 08/11/2003: beazley
             Fixed [ 775989 ] numeric template parameters.   There were
             some errors in template expansion related to the use of
