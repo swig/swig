@@ -3,7 +3,7 @@
    Scott B. Drummonds, 08 June 2001.  
 */
 
-%module test
+%module cplusplus_throw
 
 %pragma no_default
 

@@ -1,4 +1,4 @@
-%module overload_extend
+%module overload_extendc
 
 %inline %{
 typedef struct Foo {
