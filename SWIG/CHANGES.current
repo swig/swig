@@ -27,10 +27,10 @@ Version 1.3.23 (in progress)
 	    - Add the -oh option to change the output header file if
               needed. 
 
-                 swig -c++ -python test.i -o test.CC -oh test.H
+                 swig -c++ -python test.i -o test.CC -oh test.HH
 	      
-              this is mainly to use with directors, if the current
-              default header file name is not good for you.
+              this is mainly needed when using directors, and if the
+              current default header file name is not good for you.
 
 10/20/2004: wsfulton
             1) Compact default arguments feature added. This feature allows one
