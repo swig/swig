@@ -61,21 +61,22 @@ String_dump(DOH *so, DOH *out) {
 
 static DOH *
 CopyString(DOH *so) {
-  String *s = (String *) ObjData(so);
   int max;
   String *str;
+  String *s = (String *) ObjData(so);
   str = (String *) DohMalloc(sizeof(String));
   str->hashkey = -1;
-  str->sp = 0;
+  str->sp = s->sp;
   str->line = s->line;
   str->file = s->file;
   if (str->file) Incref(str->file);
   max = s->maxsize;
-  str->str = (char *) DohMalloc(max);
+  str->str = (char *) DohMalloc(max+1);
   memmove(str->str, s->str, max);
   str->maxsize= max;
   str->len = s->len;
   str->str[str->len] = 0;
+  
   return DohObjMalloc(&DohStringType,str);
 }
 
@@ -86,6 +87,8 @@ CopyString(DOH *so) {
 static void
 DelString(DOH *so) {
   String *s = (String *) ObjData(so);
+  s->hashkey = -1;
+  s->str = 0;
   DohFree(s->str);
   DohFree(s);
 }
@@ -507,6 +510,7 @@ replace_simple(String *str, char *token, char *rep, int flags, int count, char *
   register char *base;
   int i;
 
+  str->hashkey = -1;
 
   /* Figure out if anything gets replaced */
   if (!strlen(token)) return 0;
