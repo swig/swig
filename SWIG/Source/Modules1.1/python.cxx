@@ -170,6 +170,16 @@ public:
       Printf(f_shadow,"# This file was created automatically by SWIG.\n");
       Printf(f_shadow,"import %s\n", module);
 
+      // Python-2.2 object hack
+
+      Printv(f_shadow,
+	     "import types\n",
+	     "try:\n",
+	     "    _object = types.ObjectType\n",
+	     "except AttributeError:\n",
+	     "    class _object: pass\n",
+	     NULL);
+
       // Include some information in the code
       Printf(f_header,"\n/*-----------------------------------------------\n              @(target):= %s.so\n\
   ------------------------------------------------*/\n", module);
@@ -803,6 +813,8 @@ public:
       Printv(f_shadow,"class ", class_name, NULL);
       if (Len(base_class)) {
 	Printf(f_shadow,"(%s)", base_class);
+      } else {
+	Printf(f_shadow,"(_object)");
       }
       Printf(f_shadow,":\n");
 
@@ -1103,10 +1115,10 @@ public:
     String *code = Getattr(n,"code");
     String *section = Getattr(n,"section");
 
-    if ((!ImportMode) && (Cmp(section,"shadow") == 0)) {
+    if ((!ImportMode) && ((Cmp(section,"python") == 0) || (Cmp(section,"shadow") == 0))) {
       if (shadow) {
 	String *pycode = pythoncode(code,shadow_indent);
-	Printv(f_shadow,pycode,"\n",NULL);
+	Printv(f_shadow_stubs,pycode,"\n",NULL);
 	Delete(pycode);
       }
     } else {
