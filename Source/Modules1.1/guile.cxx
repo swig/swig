@@ -688,6 +688,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   Delete(returns);
   Delete(tmp);
   DelWrapper(f);
+  delete[] wname;
 }
 
 // -----------------------------------------------------------------------

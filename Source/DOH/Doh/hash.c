@@ -297,7 +297,7 @@ hash_first(DOH *ho) {
     Hash *h = (Hash *) ObjData(ho);
     h->currentindex = 0;
     h->current = 0;
-    while (!h->hashtable[h->currentindex] && (h->currentindex < h->hashsize))
+    while ((h->currentindex < h->hashsize) && !h->hashtable[h->currentindex])
 	h->currentindex++;
     if (h->currentindex >= h->hashsize) return 0;
     h->current = h->hashtable[h->currentindex];
