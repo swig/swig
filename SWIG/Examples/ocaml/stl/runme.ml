@@ -3,11 +3,11 @@
 open Swig
 open Example
 
-let v = new_StringVector C_void 
+let v = new_StringVector '() 
 
 let _ = 
   for i = 0 to (Array.length Sys.argv) - 1 do
-    (invoke v) "push_back" (C_string Sys.argv.(i))
+    let str = (Sys.argv.(i)) to string in v -> push_back (str)
   done
 
-let _ = _vec_write v
+let _ = _vec_write '(v)
