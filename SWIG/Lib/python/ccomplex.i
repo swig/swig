@@ -1,17 +1,19 @@
 #ifndef __python_ccomplex_i__
 #define __python_ccomplex_i__
 
+%include "complex_common.i"
+
 /*
  *  C complex wrap
- *  ISO C99:  7.3 Complex arithmetic        <complex.h>
+ *  ISO C99:  7.3 Complex arithmetic <complex.h>
  */
 
 %{
 #include <complex.h>
 %}
 
-
 /*
+*** swig workaround ***
   the %{}% around these typedefs must be removed once
   swig parser supports 'float complex'...
 */
@@ -20,19 +22,18 @@
   typedef double complex double_complex;
 %}
 
+/* C complex constructor */
+#define CCplxConst(r, i) ((r) + I*(i))
 
-%include "complex_common.i"
+%swig_cplxflt_conv(float_complex, CCplxFlt, 
+		   CCplxConst, creal, cimag);
 
-#define CCOMPLEX(r, i) ((r) + I*(i))
-%swig_cplxflt_conv(float_complex,  CCplxFlt, CCOMPLEX, creal, cimag)
-%swig_cplxdbl_conv(double_complex, CCplxDbl, CCOMPLEX, creal, cimag)
+%swig_cplxdbl_conv(double_complex, CCplxDbl, 
+		   CCplxConst, creal, cimag);
 
 /* declaring the typemaps */
-%typemap_asfrom(float_complex,  CPLXFLT, 
-		SWIG_PyObj_AsCCplxFlt, SWIG_PyObj_FromCCplxFlt);
-
-%typemap_asfrom(double_complex, CPLXDBL, 
-		SWIG_PyObj_AsCCplxDbl, SWIG_PyObj_FromCCplxDbl);
+%typemap_stype(float_complex,  CPLXFLT, CCplxFlt);
+%typemap_stype(double_complex, CPLXDBL, CCplxDbl);
 
 %apply double_complex { complex };
 

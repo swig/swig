@@ -16,46 +16,56 @@
 #include <string>
 %}
 
-/* defining the std::string as/from converters */
+/* defining the std::string as/from/check methods */
 
-%fragment("SWIG_PyObj_AsStdString","header") %{
-static inline std::string
-SWIG_PyObj_AsStdString(PyObject* obj) {
-  static swig_type_info* pchar_info = SWIG_TypeQuery("char *");
+%fragment("SWIG_TryStdString","header",
+	  fragment="SWIG_AsCharPtrAndSize") %{
+SWIGSTATICINLINE(int)
+SWIG_TryStdString(PyObject* obj, char*& buf, size_t& size) {
+  SWIG_AsCharPtrAndSize(obj, &buf, &size);
+  if (PyErr_Occurred() || !buf) {
+    if (PyErr_Occurred()) PyErr_Clear();
+    return 0;
+  }
+  return 1;
+}
+%}
+
+%fragment("SWIG_CheckStdString","header",
+	  fragment="SWIG_TryStdString") %{
+SWIGSTATICINLINE(int)
+SWIG_CheckStdString(PyObject* obj) {
   char* buf = 0 ; size_t size = 0;
-  SWIG_PyObj_AsCharPtrAndSize(obj, pchar_info, &buf, &size);
-  if (PyErr_Occurred() || !buf) {
-    PyErr_Clear();
-    PyErr_SetString(PyExc_TypeError,"a string is expected");
-    return std::string();    
-  }
-  return std::string(buf, size);
+  return SWIG_TryStdString(obj, buf, size);
 }
 %}
 
-%fragment("SWIG_PyObj_CheckStdString","header") %{
-static inline void
-SWIG_PyObj_CheckStdString(PyObject* obj) {
-  static swig_type_info* pchar_info = SWIG_TypeQuery("char *");
-  char* buf = 0; size_t size = 0;
-  SWIG_PyObj_AsCharPtrAndSize(obj, pchar_info, &buf, &size);
-  if (PyErr_Occurred() || !buf) {
-    PyErr_Clear();
+
+%fragment("SWIG_AsStdString","header",
+	  fragment="SWIG_TryStdString") %{
+SWIGSTATICINLINE(std::string)
+SWIG_AsStdString(PyObject* obj) {
+  char* buf = 0 ; size_t size = 0;
+  if (SWIG_TryStdString(obj, buf, size)) {
+    return std::string(buf, size);
+  } else {
     PyErr_SetString(PyExc_TypeError,"a string is expected");
+    return std::string();
   }
 }
 %}
 
-%fragment("SWIG_PyObj_FromStdString","header") %{
-static inline PyObject* 
-SWIG_PyObj_FromStdString(const std::string& s) {
-  return SWIG_PyObj_FromCharArray(s.data(), s.size());
+%fragment("SWIG_FromStdString","header",
+	  fragment="SWIG_FromCharArray") %{
+SWIGSTATICINLINE(PyObject*)
+SWIG_FromStdString(const std::string& s) {
+  return SWIG_FromCharArray(s.data(), s.size());
 }
 %}
-
 
 /* declaring the typemaps */
 
-%typemap_asfromcheck(std::string, STRING, 
-		     SWIG_PyObj_AsStdString, SWIG_PyObj_FromStdString,
-		     SWIG_PyObj_CheckStdString);
+%typemap_asfromcheck(std::string, STRING,
+		     SWIG_AsStdString,
+		     SWIG_FromStdString,
+		     SWIG_CheckStdString);

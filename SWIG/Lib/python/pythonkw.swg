@@ -1,8 +1,10 @@
-#ifndef __python_pythonkw_swg__
-#define __python_pythonkw_swg__
+/*
+  Warnings for Python keywords, built-in names and bad names.
+*/
 
 #define PYTHONKW(x) %namewarn("314:" #x " is a python keyword")  #x
 #define PYTHONBN(x) %namewarn("321:" #x " conflicts with a built-in name in python")  "::"#x
+
 
 /*
   Warnings for Python keywords 
@@ -113,5 +115,3 @@ PYTHONBN(self);
 
 #undef PYTHONBN
 #undef PYTHONKW
-
-#endif //__python_pythonkw_swg__
