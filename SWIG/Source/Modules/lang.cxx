@@ -1454,7 +1454,24 @@ int Language::memberconstantHandler(Node *n) {
  * Language::typedefHandler() 
  * ---------------------------------------------------------------------- */
 
-int Language::typedefHandler(Node *) {
+int Language::typedefHandler(Node *n) {
+  /* since this is a recurring issue, we are going to remember the
+     typedef pointer, if already it is not a pointer or reference, as
+     in
+
+       typedef void NT;
+       int func(NT *p); 
+	
+     see director_basic.i for example.
+  */
+  SwigType *name = Getattr(n,"name");
+  SwigType *decl = Getattr(n,"decl");
+  if (!SwigType_ispointer(decl) && !SwigType_isreference(decl)) {
+    SwigType *pname = Copy(name);
+    SwigType_add_pointer(pname);
+    SwigType_remember(pname);
+    Delete(pname);
+  }
   return SWIG_OK;
 }
 
@@ -2240,6 +2257,7 @@ int Language::accessDeclaration(Node *n) {
 
 int Language::namespaceDeclaration(Node *n) {
   if (Getattr(n,"alias")) return SWIG_OK;
+  if (Getattr(n,"unnamed")) return SWIG_OK;
   emit_children(n);
   return SWIG_OK;
 }
