@@ -1,5 +1,14 @@
 Version 1.3.15 (In progress)
 ================================
+09/03/2002: beazley
+            Changed the evaluation order of preprocessor macro arguments.
+            Arguments are now expanded by the preprocessor *before* they
+            are passed to macro expansion.  This fixes a subtle expansion
+            bug reported by Anthony Heading.
+
+09/03/2002: beazley
+            Fixed the file include order (again, apparently). See 2/27/99.
+
 09/02/2002: beazley
             [Perl] Better exception handling support.  Since Perl error handling
             relies on setjmp/longjmp, wrapper functions have been modified slightly
