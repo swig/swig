@@ -43,7 +43,7 @@
 /* Pointer to a class member */
 %typemap(in) SWIGTYPE (CLASS::*) {  
   if ((SWIG_ConvertPacked($input,(void *)(&$1),sizeof($type),$descriptor,0)) == -1) {
-     SWIG_type_error("$basetype",$input);
+     SWIG_type_error("$type",$input);
    }
   if (SWIG_arg_fail($argnum)) SWIG_fail;
 }
