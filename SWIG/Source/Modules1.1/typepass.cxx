@@ -25,13 +25,22 @@ static char cvsroot[] = "$Header$";
 
 #include "swig11.h"
 
+struct normal_node {
+    Symtab *symtab;
+    Hash   *typescope;
+    List   *normallist;
+    normal_node *next;
+};
+
+static normal_node *patch_list = 0;
+
 class TypePass : public Dispatcher {
     Node   *inclass;
     String *module;
     int    importmode;
     String *nsname;
     Hash   *classhash;
-    List  *normalize;
+    List   *normalize;
 
     /* Normalize a type. Replaces type with fully qualified version */
 
@@ -65,10 +74,23 @@ class TypePass : public Dispatcher {
 
     /* Walk through entries in normalize list and patch them up */
     void normalize_list() {
-	SwigType *t;
-	for (t = Firstitem(normalize); t; t = Nextitem(normalize)) {
-	    normalize_type(t);
+	Hash *currentsym = Swig_symbol_current();
+
+	normal_node *nn = patch_list;
+	normal_node *np;
+	while (nn) {
+	    Swig_symbol_setscope(nn->symtab);
+	    SwigType_set_scope(nn->typescope);
+	    SwigType *t;
+	    for (t = Firstitem(nn->normallist); t; t = Nextitem(nn->normallist)) {
+		normalize_type(t);
+	    }
+	    Delete(nn->normallist);
+	    np = nn->next;
+	    delete(nn);
+	    nn = np;
 	}
+	Swig_symbol_setscope(currentsym);
     }
   
     /* generate C++ inheritance type-relationships */
@@ -186,6 +208,8 @@ public:
 	nsname = 0;
 	classhash = Getattr(n,"classes");
 	emit_children(n);
+	normalize_list();
+	SwigType_set_scope(0);
 	return SWIG_OK;
     }
 
@@ -271,15 +295,23 @@ public:
 	emit_children(n);
 	Swig_symbol_setscope(symtab);
 
-	/* Normalize deferred types */
-	normalize_list();
-	Delete(normalize);
-	normalize = olist;
-
-	inclass = oldinclass;
 	Hash *ts = SwigType_pop_scope();
 	Setattr(n,"typescope",ts);
 	Setattr(n,"module",module);
+
+	/* Normalize deferred types */
+	{
+	    normal_node *nn = new normal_node();
+	    nn->normallist = normalize;
+	    nn->symtab = Getattr(n,"symtab");
+	    nn->next = patch_list;
+	    nn->typescope = Getattr(n,"typescope");
+	    patch_list = nn;
+	}
+
+	normalize = olist;
+
+	inclass = oldinclass;
 
 	/* If in a namespace, patch the class name */
 	if (nname) {
@@ -360,17 +392,25 @@ public:
 	    emit_children(n);
 	    Swig_symbol_setscope(symtab);
 
-	    normalize_list();
-	    Delete(normalize);
+	    if (name) {
+		Hash *ts = SwigType_pop_scope();
+		Setattr(n,"typescope",ts);
+	    }
+
+	    /* Normalize deferred types */
+	    {
+		normal_node *nn = new normal_node();
+		nn->normallist = normalize;
+		nn->symtab = Getattr(n,"symtab");
+		nn->next = patch_list;
+		nn->typescope = Getattr(n,"typescope");
+		patch_list = nn;
+	    }
 	    normalize = olist;
 
 	    Delete(nsname);
 	    nsname = oldnsname;
 
-	    if (name) {
-		Hash *ts = SwigType_pop_scope();
-		Setattr(n,"typescope",ts);
-	    }
 	    return SWIG_OK;
 	}
     }

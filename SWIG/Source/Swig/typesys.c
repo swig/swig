@@ -249,6 +249,7 @@ Typetab *SwigType_pop_scope() {
 Typetab *
 SwigType_set_scope(Typetab *t) {
   Typetab *old = current_scope;
+  if (!t) t = global_scope;
   current_scope = t;
   current_typetab = Getattr(t,"typetab");
   return old;

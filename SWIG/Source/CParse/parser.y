@@ -1612,6 +1612,8 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		  
 		  $$ = 0;
 
+		  /* We need to patch argument types to respect namespaces */
+
 		  args = NewString("");
 		  /* Make args from parms */
 		  p = $7;
@@ -1622,7 +1624,9 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		    } else {
 		      SwigType *ty = Getattr(p,"type");
 		      if (ty) {
-			Printf(args,"%s",SwigType_str(ty,0));
+			  ty = Swig_symbol_type_qualify(ty,0);
+			  Printf(args,"%s",SwigType_str(ty,0));
+			  Setattr(p,"type",ty);
 		      }
 		    }
 		    p = nextSibling(p);
@@ -2181,10 +2185,18 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
 /* function template */
 cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possible {
                       $$ = $5;
-                      Setattr($$,"templatetype",nodeType($5));
-		      set_nodeType($$,"template");
-		      Setattr($$,"templateparms", $3.parms);
-		      add_symbols($$);
+		      if ($$) {
+			  Setattr($$,"templatetype",nodeType($5));
+			  set_nodeType($$,"template");
+			  Setattr($$,"templateparms", $3.parms);
+			  add_symbols($$);
+		      } else {
+			  if ($3.parms) {
+			      Printf(stderr,"%s:%d. Warning. Template partial specialization not supported.\n",
+				     input_file, line_number);
+
+			  }
+		      }
                 }
                 /* Forward template class declaration */
                 | TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_forward_class_decl { $$ = 0; }
