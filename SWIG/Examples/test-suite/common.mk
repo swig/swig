@@ -43,7 +43,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
-	typedef_class \
 	array_typedef_memberin \
 	exception_order \
 	template_default_arg \
@@ -70,6 +69,7 @@ CPP_TEST_CASES += \
 	arrayref \
 	arrays_global \
 	arrays_global_twodim \
+	array_member \
 	arrays_scope \
 	bloody_hell \
 	bool_default \
@@ -222,6 +222,7 @@ CPP_TEST_CASES += \
 	template_whitespace \
 	throw_exception \
 	typedef_array_member \
+	typedef_class \
 	typedef_funcptr \
 	typedef_inherit \
 	typedef_mptr \

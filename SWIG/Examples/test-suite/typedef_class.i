@@ -13,5 +13,4 @@ class B
    typedef RealA A2; 
    int testA (const A2& a) {return a.a;} 
 }; 
- 
 %} 
