@@ -8,3 +8,18 @@ struct Foo {
 };
 
 %}
+
+
+%ignore jbuf_tag;
+%inline %{
+
+  typedef struct jbuf_tag
+  {
+    int mask;
+  } jbuf[1];
+  
+  struct Ast_channel {
+    jbuf jmp[32];
+  };
+
+%}

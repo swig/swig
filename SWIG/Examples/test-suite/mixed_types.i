@@ -69,9 +69,14 @@
   }
 
 
-
+  template <class T> struct NameT {
+  };
+  
+  
   typedef char name[8];
   typedef char namea[];
+
+  typedef NameT<char> name_t[8];
   
   char* test_a(char hello[8],
 	       char hi[],
@@ -84,11 +89,26 @@
     return 1;
   }
 
-/* gcc doesn't like this one. Removing until reason resolved.
+/* gcc doesn't like this one. Removing until reason resolved.*/
   int test_c(const name& n1) {
     return 1;
   }
-*/
+
+  int test_d(name* n1) {
+    return 1;
+  }
+
+  int test_e(const name_t& n1) {
+    return 1;
+  }
+
+  int test_f(name_t n1) {
+    return 1;
+  }
+
+  int test_g(name_t* n1) {
+    return 1;
+  }
 
   struct Foo 
   {

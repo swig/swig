@@ -45,8 +45,11 @@ LIBPREFIX  = lib
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
+	cpp_broken \
 	namespace_union \
-	overload_complicated
+	nested_comment \
+	overload_complicated \
+	template_expr \
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_BROKEN += \
@@ -168,6 +171,7 @@ CPP_TEST_CASES += \
 	newobject1 \
 	overload_copy \
 	overload_extend \
+	overload_rename \
 	overload_simple \
 	overload_subtype \
 	overload_template \
@@ -178,10 +182,12 @@ CPP_TEST_CASES += \
 	pure_virtual \
 	redefined \
 	reference_global_vars \
+	register_par \
 	rename_scope \
 	return_const_value \
 	return_value_scope \
 	rname \
+	sizet \
 	smart_pointer_const \
 	smart_pointer_const2 \
 	smart_pointer_multi \

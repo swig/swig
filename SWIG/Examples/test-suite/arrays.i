@@ -57,3 +57,13 @@ void array_pointer_func(int (*x)[10]) {}
 %}
 
 
+%inline %{
+typedef float FLOAT;
+
+typedef FLOAT cartPosition_t[3]; 
+
+typedef struct {
+cartPosition_t p;
+} CartPoseData_t;
+
+%}
