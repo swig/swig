@@ -79,7 +79,6 @@ static  int       have_operators = 0;
 
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 DOH *PERL5::is_shadow(SwigType *t) {
-  DOH *r;
   Node *n;
   n = classLookup(t);
   if (n) {

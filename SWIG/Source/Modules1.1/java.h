@@ -24,12 +24,14 @@ public :
   virtual int constructorHandler(Node *);
   virtual int destructorHandler(Node *);
   virtual int classHandler(Node *);
-  virtual int classforwardDeclaration(Node *);
+  virtual int classDeclaration(Node *);
 
   virtual void set_module(char *);                 /* Deprecated */
   virtual void pragma(char *lang, char *code, char *value);
 
 private:
+  String *is_shadow(SwigType *ty);
+
   /* Java module enums */
   enum type_additions {none, pointer, reference};
 
@@ -42,4 +44,5 @@ private:
   void writeRegisterNatives();
   void javaShadowFunctionHandler(Node* n, int is_virtual);
   void typemapApply(String *swigtype, String *tmap, String *name, type_additions additions, int array_flag);
+  void addclasstypemaps(Node *n);
 };

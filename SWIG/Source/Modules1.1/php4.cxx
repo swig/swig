@@ -82,7 +82,10 @@ static String	  *class_type = 0;
 static String	  *realpackage = 0;
 static String	  *package = 0;
 
+#ifdef DEPRECATED
 static Hash	*shadow_classes;
+#endif
+
 static Hash	*shadow_php_vars;
 static Hash	*shadow_c_vars;
 static String	*shadow_classdef;
@@ -121,13 +124,25 @@ static int	  class_renamed = 0;
 static int	  shadow	= 0;
 
 /* Test to see if a type corresponds to something wrapped with a shadow class */
-static String *is_shadow(SwigType *t) {
+
+
+String *PHP4::is_shadow(SwigType *t) {
+  Node *n = classLookup(t);
+  if (n) {
+    return Getattr(n,"sym:name");
+  }
+  return 0;
+}
+
+#ifdef DEPRECATED
+String *PHP4::is_shadow(SwigType *t) {
 	String *r;
 	SwigType *lt = SwigType_ltype(t);
 	r = Getattr(shadow_classes,lt);
 	Delete(lt);
 	return r;
 }
+#endif
 
 // Return the type of the c array
 static SwigType *get_array_type(SwigType *t) {
@@ -520,7 +535,10 @@ PHP4::top(Node *n) {
   Swig_register_filebyname("header",s_header);
   Swig_register_filebyname("wrapper",s_wrappers);
 
+#ifdef DEPRECATED
   shadow_classes = NewHash();
+#endif
+
   shadow_classdef = NewString("");
   shadow_code = NewString("");
   php_enum_code = NewString("");
@@ -1357,12 +1375,14 @@ int PHP4::classHandler(Node *n) {
 			SWIG_exit(1);
 		}
 
+#ifdef DEPRECATED		
 		Setattr(shadow_classes, classname, shadow_classname);
 
 		if(ctype && strcmp(ctype, "struct") == 0) {
 			sprintf(bigbuf, "struct %s", classname);
 			Setattr(shadow_classes, bigbuf, shadow_classname);
 		}
+#endif
 
 		Clear(shadow_classdef);
 		Clear(shadow_code);
@@ -1844,6 +1864,7 @@ PHP4::memberconstantHandler(Node *n) {
 	return SWIG_OK;
 }
 
+#ifdef DEPRECATED
 int
 PHP4::classforwardDeclaration(Node *n) {
 	String *name = Getattr(n, "name");
@@ -1876,6 +1897,7 @@ PHP4::typedefHandler(Node *n) {
 	}
 	return SWIG_OK;
 }
+#endif
 
 void 
 PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name) {

@@ -38,7 +38,11 @@ static  File         *f_wrappers = 0;
 static  File         *f_init = 0;
 
 static int    shadow = 0;
+
+#ifdef DEPRECATED
 static Hash   *shadow_classes;
+#endif
+
 static String *shadow_classdef;
 static String *shadow_code;
 static char   *shadow_variable_name = 0; //Name of a c struct variable or c++ public member variable (may or may not be const)
@@ -77,7 +81,18 @@ static String *destructor_call = 0; //Destructor (delete) call if any
 
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 /* Return NULL if not otherwise the shadow name */
-static String *is_shadow(SwigType *t) {
+String *JAVA::is_shadow(SwigType *t) {
+  /*  Printf(stdout,"is_shadow: '%s'\n", t); */
+  if (shadow) {
+    Node *n = classLookup(t);
+    if (n) {
+      if (!Getattr(n,"java:addedtypemaps")) addclasstypemaps(n);
+      return Getattr(n,"sym:name");
+    }
+  }
+  return 0;
+
+#ifdef DEPRECATED
   SwigType *shadow_name = Getattr(shadow_classes,SwigType_base(t));
   /* See if this type is a typedef */
   if (!shadow_name) {
@@ -85,6 +100,8 @@ static String *is_shadow(SwigType *t) {
     shadow_name = Getattr(shadow_classes,SwigType_base(type_resolved));
   }
   return shadow_name;
+#endif
+
 }
 
 // Return the type of the c array
@@ -305,7 +322,10 @@ int JAVA::top(Node *n) {
   Swig_register_filebyname("runtime",f_runtime);
   Swig_register_filebyname("init",f_init);
 
+#ifdef DEPRECATED
   shadow_classes = NewHash();
+#endif
+
   shadow_classdef = NewString("");
   shadow_code = NewString("");
   registerNativesList = NewString("");
@@ -398,8 +418,10 @@ int JAVA::top(Node *n) {
   if(wrapper_conversion_code)
     Printv(f_wrappers,wrapper_conversion_code,NULL);
   
-
+#ifdef DEPRECATED
   Delete(shadow_classes); shadow_classes = NULL;
+#endif
+
   Delete(shadow_classdef); shadow_classdef = NULL;
   Delete(shadow_code); shadow_code = NULL;
   Delete(registerNativesList); registerNativesList = NULL;
@@ -522,6 +544,16 @@ int JAVA::functionWrapper(Node *n) {
   int       num_arguments = 0;
   int       num_required = 0;
 
+  /* This is a gross hack.  To get typemaps properly installed, we have to check for
+     shadows on all types first */
+
+  if (shadow) {
+    is_shadow(t);
+    for (p = l; p; p = nextSibling(p)) {
+      is_shadow(Getattr(p,"type"));
+    }
+  }
+	       
   /* 
   Generate the java class wrapper function ie the java shadow class. Only done for public
   member variables. That is this generates the getters/setters for member variables.
@@ -537,6 +569,7 @@ int JAVA::functionWrapper(Node *n) {
 
     Setattr(n,"java:shadfuncname", member_function_name);
     Setattr(n,"java:funcname", iname);
+
     javaShadowFunctionHandler(n, NOT_VIRTUAL);
 
     Delete(java_function_name);
@@ -1048,12 +1081,14 @@ void JAVA::emitShadowClassDef(Node *n) {
   String *c_classname = SwigType_namestr(Getattr(n,"name"));
   String *c_baseclass = 0;
   String *baseclass = 0;
+  String *c_baseclassname = 0;
 
   /* Deal with inheritance */
   List *baselist = Getattr(n,"bases");
   if (baselist) {
     Node *base = Firstitem(baselist);
-    baseclass = is_shadow(Getattr(base,"name"));
+    c_baseclassname = Getattr(base,"name");
+    baseclass = is_shadow(c_baseclassname);
     if (baseclass){
       c_baseclass = SwigType_namestr(Getattr(base,"name"));
     }
@@ -1083,7 +1118,7 @@ void JAVA::emitShadowClassDef(Node *n) {
   else if (all_shadow_class_modifiers && *Char(all_shadow_class_modifiers))
     class_modifiers = all_shadow_class_modifiers;
 
-  int derived = baseclass && is_shadow(baseclass); 
+  int derived = baseclass && is_shadow(c_baseclassname); 
 
   // Start writing the shadow class
   Printv(shadow_classdef,
@@ -1442,7 +1477,6 @@ DelWrapper(f);
     else {
       jstypep = nextSibling(jstypep);
     }
-
     p = nextSibling(p);
   }
 
@@ -1618,31 +1652,16 @@ void JAVA::typemapApply(String *type, String *tmap, String *name, type_additions
     Delete(swigtypetemp);
 }
 
-int JAVA::classforwardDeclaration(Node *n) {
+void JAVA::addclasstypemaps(Node *n) {
   String *name = Getattr(n,"name");
   String *kind = Getattr(n,"kind");
   String *class_tmap = NewString("CLASS");
   String *array_tmap = NewString("ARRAYSOFCLASSPOINTERS");
   String *swigtype = NewString("SWIGTYPE");
   String *shadowclassname = Getattr(n,"sym:name");
-
-  /* Add to the hash table of shadow classes */
-  if (shadow) {
-    Setattr(shadow_classes,name,shadowclassname);
-    if (Cmp(shadowclassname, name) != 0) { /* for matching a few typedef cases */
-      Setattr(shadow_classes,shadowclassname,shadowclassname);
-    }
-    if (kind && (Len(kind) > 0)) {
-      String *namewithkind = NewStringf("%s %s",kind, name);
-      Setattr(shadow_classes,namewithkind,shadowclassname);
-      Delete(namewithkind);
-      if (Cmp(shadowclassname, name) != 0) { /* for matching a few typedef cases */
-        String *namewithkind = NewStringf("%s %s",kind,shadowclassname);
-        Setattr(shadow_classes,namewithkind,shadowclassname);
-        Delete(namewithkind);
-      }
-    }
-  }
+  String *tdname = Getattr(n,"tdname");
+  
+  name = tdname ? tdname : name;
 
   /* Apply typemaps for handling pointers and references for all known classes/structs/unions. Also for 
    * arrays of these. This is a workaround because SWIG does not have a default SWIGTYPE * or SWIGTYPE &. */
@@ -1673,11 +1692,15 @@ int JAVA::classforwardDeclaration(Node *n) {
       Delete(namewithkind);
     }
   }
-
   Delete(class_tmap);
   Delete(array_tmap);
   Delete(swigtype);
-  return SWIG_OK;
+  Setattr(n,"java:addedtypemaps","1");
+}
+
+int JAVA::classDeclaration(Node *n) {
+  if (!Getattr(n,"java:addedtypemaps")) addclasstypemaps(n);
+  return Language::classDeclaration(n);
 }
 
 int JAVA::membervariableHandler(Node *n) {

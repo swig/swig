@@ -1703,6 +1703,8 @@ Language::classLookup(SwigType *s) {
     Delete(ty2);
     Delete(base);
     Delete(prefix);
+
+    if (n && (Getattr(n,"feature:ignore"))) return 0;
     return n; 
 }
 
