@@ -1,10 +1,10 @@
 %module(directors="1") virtual_poly
 
+%warnfilter(822, 842) copy; /* Java, C# covariant return types */
+%warnfilter(822, 842) ref_this; /* Java, C# covariant return types */
+
 //
-// Check this example with directors wherever is possible.  Python and
-// ruby work fine with and without directors. In theory, Java may
-// start to work with directors, but this is not tested yet (my Java
-// installation is broken).
+// Check this example with directors wherever possible.
 //
 //%feature("director");
 
@@ -31,21 +31,19 @@
   };
   
   /* 
-     NInt and NDouble are both NNumber derivated classes, but they
+     NInt and NDouble are both NNumber derived classes, but they
      have more different than common attributes.
      
      In particular the function 'get', that is type dependent, can't
      be included in the NNumber abstract interface.
 
-     For this reason, the virtual 'copy' function has a polymorphic
-     return type, since in most of the cases we don't want to lost the
+     For this reason, the virtual 'copy' method has a polymorphic (covariant)
+     return type, since in most of the cases we don't want to lose the
      original object type, which is very very important.
 
      Using the polymorphic return type reduced greatly the need of
      using 'dynamic_cast' at the C++ side, and at the target languages
-     that support it. Python is a target language that support
-     this feature, Java and Csharp don't.
-     
+     that support it.
    */
   struct NInt : NNumber
   {
@@ -110,23 +108,17 @@
   };
 
   /*
-     Java (and csharp) can not support the polymorphic return type for
-     'copy'. So, it just emit 'plain' copy functions for all the cases:
+     Java and C# do not support the polymorphic (covariant) return types used
+     in the copy method. So, they just emit 'plain' copy functions as if this is
+     being wrapped instead:
     
       NNumber* NNumber::copy() const;
       NNumber* NInt::copy() const;  
       NNumber* NDouble::copy() const;
     
-     In the last two cases, the original 'NInt' and 'NDouble' return
-     types are lost in the target side. This seems to be a restriction
-     of the language (strongly typed and 'by value' oriented), and
-     there is not much that can be done to work it around.
-    
      However, since the objects provide their own downcasting
-     mechanim, the narrow methods similar to the CORBA mechanism,
-     in theory you should be able to recover the original object
-     types, just as you can do it in the C++ side or in other
-     languages.
+     mechanism, the narrow methods similar to the CORBA mechanism,
+     could be used, otherwise use the Java/C# downcasts.
   */
   inline NInt* NInt::narrow(NNumber* n) {
     // this is just a plain C++ dynamic_cast, but in theory the user
@@ -137,17 +129,4 @@
   inline NDouble* NDouble::narrow(NNumber* n) {
     return dynamic_cast<NDouble*>(n);
   }
-  
-  /*
-     but the narrow methods don't work either in Java (see the
-     java/virtual_poly_runme.java file), because of the current way
-     polymorphic classes are wrapped, the user cannot downcast the
-     Java temporary object when the C++ class (and associated Java
-     class) is a base class in a class hierarchy.
-    
-     The 'narrow' methods work currently fine in languages like
-     python, but in there the polymorphic return type also works, so,
-     you are not forced to use them everytime (see the
-     python/virtual_poly_runme.py file).
-  */
 %}
