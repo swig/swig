@@ -142,6 +142,7 @@
 
   PYPTR_INPUT_TYPEMAP(SWIG_arg(CheckCode),SWIG_arg(AsPtrMeth),
 		      SWIG_arg(AsPtrFrag),Type);
+  PYVAL_OUTPUT_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), Type);
   PYPTR_INOUT_TYPEMAP(Type);
 %enddef
 
