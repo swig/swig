@@ -269,7 +269,7 @@ public:
 	    String *fname = SwigType_typedef_resolve_all(name);
 	    if (Strcmp(fname,name) != 0) {
 	      cn = Swig_symbol_clookup_local(fname,0);
-	      if (!cn) {
+	      if ((!cn) || (Strcmp(nodeType(cn),"template") == 0)) {
 		Swig_symbol_cadd(fname,n);
 	      } else {
 		Swig_warning(WARN_TYPE_REDEFINED,Getfile(n),Getline(n),"Template '%s' was already wrapped as '%s' at %s:%d.\n",
