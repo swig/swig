@@ -36,7 +36,12 @@ typedef struct swig_guile_clientdata {
   SWIG_Guile_NewPointerObj((void*)ptr, type, owner)
 #define SWIG_PropagateClientData(type) \
   SWIG_Guile_PropagateClientData(type)
-
+#define SWIG_contract_assert(expr, msg)				\
+  if (!(expr))							\
+    scm_error(scm_str2symbol("swig-contract-assertion-failed"),	\
+	      (char *) FUNC_NAME, (char *) msg,			\
+	      SCM_EOL, SCM_BOOL_F); else
+  
 #ifdef SWIG_NOINCLUDE
 
 /* Interface helper function */
