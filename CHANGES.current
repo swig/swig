@@ -992,6 +992,10 @@ Version 1.3.20 (In progress)
 
             *** POTENTIAL INCOMPATIBILITY FOR JAVA and C# MODULES ***
 
+05/09/2003: cheetah (William Fulton)
+            Visual C++ Project files have been added so that the runtime libraries
+            can be built on Windows (for Tcl, Perl, Python and Ruby).
+
 05/01/2003: beazley
             Fixed problem with return by value, const, and private constructors.
             For example:
