@@ -1,4 +1,8 @@
-;; Draw some simple shapes
+;;; Draw some simple shapes
+
+;; Use the wrapped GIFPlot library
+(use-modules (simple))
+
 (display "Drawing some basic shapes\n")
 
 (define cmap (new-ColorMap))

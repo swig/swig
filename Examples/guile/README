@@ -2,3 +2,10 @@ This directory contains examples for Guile.
 
 simple   - The simple example from the user manual.
 matrix   - A very simple Matrix example.
+
+Note that the examples in this directory build a special version of
+Guile which includes the wrapped functions in the top-level module. 
+
+If you want to put the wrapped functions into an own module,
+statically or dynamically linked, see the Examples/GIFPlot/Guile
+directory. 
