@@ -1908,7 +1908,7 @@ public:
     p = NewParm(NewString("bool"), NewString("disown"));
     Setattr(p, "arg:byname", "1");
     Setattr(n, "director:postfix_args", p);
-    Setattr(p, "value", "0");
+    Setattr(p, "value", "false");
     set_nextSibling(ip, p);
     
     /* constructor */
