@@ -115,7 +115,7 @@
 #ifdef __cplusplus
 
 %typemap(in) SWIGTYPE &, const SWIGTYPE & {
-  if (SWIG_Guile_GetPtr($input, (void **) &$1, $descriptor)!=0)
+  if (SWIG_Guile_GetPtr($input, (void **) &$1, $descriptor)!=0 || $1 == NULL)
     scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
 }
 

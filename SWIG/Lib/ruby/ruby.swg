@@ -49,9 +49,12 @@
    even if a pointer happens to be mapped to a Ruby class */
 
 %typemap(in) SWIGTYPE *,
-             SWIGTYPE &,
              SWIGTYPE []
 	"SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);"
+
+/* Additional check for null references */
+%typemap(in) SWIGTYPE &
+	"SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1); if ($1 == NULL) rb_raise(rb_eTypeError, \"null reference\");"
 
 /* Void pointer.  Accepts any kind of pointer */
 %typemap(in) void *

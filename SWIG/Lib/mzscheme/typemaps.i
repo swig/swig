@@ -45,6 +45,7 @@
 
 %typemap(in) SWIGTYPE &, const SWIGTYPE & { 
   $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum);
+  if ($1 == NULL) scheme_signal_error("swig-type-error (null reference)");
 }
 
 %typemap(out) SWIGTYPE &, const SWIGTYPE & {
