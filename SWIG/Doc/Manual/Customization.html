@@ -54,8 +54,8 @@ handler. For example, you can specify the following:
 When defined, the code enclosed in braces is inserted directly into the low-level wrapper
 functions.  The special symbol <tt>$action</tt> gets replaced with the actual operation
 to be performed (a function call, method invocation, attribute access, etc.).  An exception handler
-remains in effect until it is explicitly deleted.  This is done by using <tt>%exception</tt> with
-no code. For example:
+remains in effect until it is explicitly deleted.  This is done by using either <tt>%exception</tt> 
+or <tt>%noexception</tt> with no code. For example:
 <p>
 <blockquote><pre>%exception;   // Deletes any previously defined handler
 </pre></blockquote>
@@ -268,7 +268,9 @@ to specific declaration name. For example:
 In this case, the exception handler is only attached to declarations
 named "allocate".  This would include both global and member
 functions.  The names supplied to <tt>%exception</tt> follow the same
-rules as for <tt>%rename</tt>.  For example, if you wanted to define
+rules as for <tt>%rename</tt> described in the section on 
+<a href="SWIGPlus.html#ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>.
+For example, if you wanted to define
 an exception handler for a specific class, you might write this:
 
 <blockquote>
@@ -445,7 +447,7 @@ you can attach it to class members and parameterized declarations as before.  Fo
 When <tt>%newobject</tt> is supplied, many language modules will
 arrange to take ownership of the return value.  This allows the value
 to be automatically garbage-collected when it is no longer in use.  However,
-this depends entirely on the target language (a language module may choose to ignore
+this depends entirely on the target language (a language module may also choose to ignore
 the <tt>%newobject</tt> directive).
 
 <p>
@@ -570,10 +572,56 @@ are defined.  For example:
 </pre>
 </blockquote>
 
-<tt>%feature</tt> is a relatively new addition to SWIG that was not added until version 1.3.10.
-Its intended use is as a highly flexible customization mechanism that can be used to annotate
-declarations with additional information for use by specific target language modules.  For example,
-in the Python module, you might use <tt>%feature</tt> to rewrite shadow class code as follows:
+The <tt>%feature</tt> directive can be used with different syntax.
+The following are all equivalent:
+
+<blockquote>
+<pre>
+%feature("except") Object::method { $action };
+%feature("except") Object::method %{ $action %};
+%feature("except") Object::method " $action ";
+%feature("except","$action") Object::method;
+</pre>
+</blockquote>
+
+The syntax in the first variation will generate the <tt>{ }</tt> delimeters used whereas the other variations will not.
+The <tt>%feature</tt> directive also accepts XML style attributes in the same way that typemaps will.
+Any number of attributes can be specified.
+The following is the generic syntax for features:
+
+<blockquote>
+<pre>
+%feature("name","value", attribute1="AttibuteValue1") symbol;
+%feature("name", attribute1="AttibuteValue1") symbol {value};
+%feature("name", attribute1="AttibuteValue1") symbol %{value%};
+%feature("name", attribute1="AttibuteValue1") symbol "value";
+</pre>
+</blockquote>
+
+More than one attribute can be specified using a comma separated list. 
+The Java module is an example that uses attributes in <tt>%feature("except")</tt>.
+The <tt>throws</tt> attribute specifies the name of a Java class to add to a proxy method's throws clause.
+In the following example, <tt>MyExceptionClass</tt> is the name of the Java class for adding to the throws clause.
+
+<blockquote>
+<pre>
+%feature("except", throws="MyExceptionClass") Object::method { 
+   try {
+     $action
+   } catch (...) {
+     ... code to throw a MyExceptionClass Java exception ...
+   }
+};
+</pre>
+</blockquote>
+
+Further details can be obtained from the <a href="Java.html#exception_handling">Java exception handling</a> section.
+
+<p>
+
+As can be seen, the intended use for the <tt>%feature</tt> directive is as a highly flexible customization mechanism that can be used to annotate
+declarations with additional information for use by specific target language modules.  Another example is
+in the Python module. You might use <tt>%feature</tt> to rewrite proxy/shadow class code as follows:
 
 <blockquote>
 <pre>
@@ -597,11 +645,10 @@ public:
 </pre>
 </blockquote>
 
-As of this writing, <tt>%feature</tt> is still experimental.  Further details of its
-use will be described in the documentation for specific language modules.
+Further details of <tt>%feature</tt> usage is described in the documentation for specific language modules.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : June 1, 2003</address>
+<address>SWIG 1.3 - Last Modified : June 28, 2004</address>
 </body>
 </html>
