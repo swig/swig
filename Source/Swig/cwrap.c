@@ -622,6 +622,8 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 			   String *none_comparison, String *director_ctor, int cplus, int flags)
 {
   ParmList *parms;
+  Parm     *prefix_args;
+  Parm     *postfix_args;
   Parm     *p;
   ParmList *directorparms;
   SwigType *type;
@@ -632,15 +634,18 @@ Swig_ConstructorToFunction(Node *n, String *classname,
   
   classNode = Swig_methodclass(n);
   use_director = Swig_directorclass(n);
-  
+
   membername = Swig_name_construct(classname);
   mangled = Swig_name_mangle(membername);
 
   parms = CopyParmList(nonvoid_parms(Getattr(n,"parms")));
-  if ((p = Getattr(n,"director:prefix_args")) != NULL) {
+
+  /* Prepend the list of prefix_args (if any) */
+  prefix_args = Getattr(n,"director:prefix_args");
+  if (prefix_args != NIL) {
     Parm *p2, *p3;
 
-    directorparms = CopyParmList(p);
+    directorparms = CopyParmList(prefix_args);
     for (p = directorparms; nextSibling(p); p = nextSibling(p));
     for (p2 = parms; p2; p2 = nextSibling(p2)) {
       p3 = CopyParm(p2);
@@ -650,18 +655,23 @@ Swig_ConstructorToFunction(Node *n, String *classname,
   } else
     directorparms = parms;
 
-  if ((p = Getattr(n,"director:postfix_args")) != NULL) {
+  postfix_args = Getattr(n,"director:postfix_args");
+  if (postfix_args != NIL) {
     Parm *p2, *p3, *p4;
 
-    if (directorparms == parms) /* no prefix args from above. */
+    if (prefix_args == NIL) /* no prefix args from above. */
       directorparms = CopyParmList(parms);
 
-    for (p2 = directorparms; nextSibling(p2); p2 = nextSibling(p2));
-    for (p3 = p; p3; p3 = nextSibling(p)) {
-      p4 = CopyParm(p3);
-      set_nextSibling(p2, p4);
-      p2 = p4;
-    }
+    if (directorparms != NIL) {
+      p2 = directorparms;
+      for ( ; nextSibling(p2); p2 = nextSibling(p2));
+      for (p3 = postfix_args; p3; p3 = nextSibling(p3)) {
+        p4 = CopyParm(p3);
+        set_nextSibling(p2, p4);
+        p2 = p4;
+      }
+    } else
+      directorparms = CopyParmList(postfix_args);
   }
 
   type  = NewString(classname);
@@ -707,7 +717,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 	   * implemented in the target language, calls to those methods will
 	   * generate SWIG_DIRECTOR_PURE_VIRTUAL exceptions.
 	   */
-	  Printv(action, Swig_cresult(type, "result", director_call), NULL);
+	  Printv(action, Swig_cresult(type, "result", director_call), NIL);
 	} else {
 	  /* (scottm): The code for creating a new director is now a string
 	     template that gets passed in via the director_ctor argument.
