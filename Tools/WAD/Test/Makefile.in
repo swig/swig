@@ -17,3 +17,21 @@ INCLUDE = -I../Include
 test:
 	$(CC) -g -DNEED_MAIN debug.c $(INCLUDE) -L.. $(RPATH).. -lwad -o debug
 
+python:
+	swig -python debug.i
+	$(CC) $(CCSHARED) -c -g debug.c debug_wrap.c $(PYINCLUDE)
+	$(LDSHARED) debug.o debug_wrap.o -L.. $(RPATH).. -lwadpy -o debugmodule.so
+
+tcl:
+	swig -tcl debug.i
+	$(CC) $(CCSHARED) -c -g debug.c debug_wrap.c $(TCLINCLUDE)
+	$(LDSHARED) debug.o debug_wrap.o -L.. $(RPATH).. -lwadtcl -o debug.so
+
+perl:
+	swig -perl5 debug.i
+	$(CC) $(CCSHARED) -c -Dbool=char -g debug.c debug_wrap.c $(PERLINCLUDE)
+	$(LDSHARED) debug.o debug_wrap.o -L.. $(RPATH).. -lwadpl -o debug.so
+
+
+clean:
+	rm -f *.so *.o

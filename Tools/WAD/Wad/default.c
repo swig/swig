@@ -179,22 +179,22 @@ void wad_default_callback(int signo, WadFrame *framedata, char *ret) {
 
   switch(signo) {
   case SIGSEGV:
-    printf("Segmentation fault.\n");
+    fprintf(stderr,"Segmentation fault.\n");
     break;
   case SIGBUS:
-    printf("Bus error.\n");
+    fprintf(stderr,"Bus error.\n");
     break;
   case SIGABRT:
-    printf("Abort.\n");
+    fprintf(stderr,"Abort.\n");
     break;
   case SIGFPE:
-    printf("Floating point exception.\n");
+    fprintf(stderr,"Floating point exception.\n");
     break;
   case SIGILL:
-    printf("Illegal instruction.\n");
+    fprintf(stderr,"Illegal instruction.\n");
     break;
   default:
-    printf("Signal %d\n", signo);
+    fprintf(stderr,"Signal %d\n", signo);
     break;
   }
   fd = (char *) framedata;
@@ -211,12 +211,12 @@ void wad_default_callback(int signo, WadFrame *framedata, char *ret) {
   fd = fd - f->lastsize;
   f = (WadFrame *) fd;
   while (1) {
-    printf("#%-3d 0x%08x in %s(%s)", f->frameno, f->pc, *(fd + f->sym_off) ? fd+f->sym_off : "?", 
+    fprintf(stderr,"#%-3d 0x%08x in %s(%s)", f->frameno, f->pc, *(fd + f->sym_off) ? fd+f->sym_off : "?", 
 	   wad_arg_string(f));
     if (strlen(fd+f->src_off)) {
-      printf(" in '%s'", wad_strip_dir(fd+f->src_off));
+      fprintf(stderr," in '%s'", wad_strip_dir(fd+f->src_off));
       if (f->line_number > 0) {
-	printf(", line %d", f->line_number);
+	fprintf(stderr,", line %d", f->line_number);
 	{
 	  int fd;
 	  fd = open(SRCFILE(f), O_RDONLY);
@@ -228,10 +228,10 @@ void wad_default_callback(int signo, WadFrame *framedata, char *ret) {
       }
     } else {
       if (strlen(fd+f->obj_off)) {
-	printf(" from '%s'", fd+f->obj_off);
+	fprintf(stderr," from '%s'", fd+f->obj_off);
       }
     }
-    printf("\n");
+    fprintf(stderr,"\n");
     if (!f->lastsize) break;
     fd = fd - f->lastsize;
     f = (WadFrame *) fd;
@@ -248,24 +248,24 @@ void wad_default_callback(int signo, WadFrame *framedata, char *ret) {
     
     line = wad_load_source(SRCFILE(fline),first);
     if (line) {
-      printf("\n%s, line %d\n\n", SRCFILE(fline),fline->line_number);
+      fprintf(stderr,"\n%s, line %d\n\n", SRCFILE(fline),fline->line_number);
       for (i = first; i <= last; i++) {
-	if (i == fline->line_number) printf(" => ");
-	else                         printf("    ");
+	if (i == fline->line_number) fprintf(stderr," => ");
+	else                         fprintf(stderr,"    ");
 	c = strchr(line,'\n');
 	if (c) {
 	  *c = 0;
-	  printf("%s\n",line);
+	  fprintf(stderr,"%s\n",line);
 	  *c = '\n';
 	} else {
-	  printf("%s\n",line);
+	  fprintf(stderr,"%s\n",line);
 	  break;
 	}
 	line = c+1;
       }
       wad_release_source();
-      printf("\n");
+      fprintf(stderr,"\n");
     }
   }
-  wad_release_trace();
 }
+

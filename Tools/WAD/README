@@ -18,9 +18,8 @@ THIS IS EXPERIMENTAL UNSUPPORTED SOFTWARE THAT UTILIZES A HORRIBLE MIX
 OF LOW-LEVEL SYSTEMS PROGRAMMING, C, C++, AND ASSEMBLY CODE.  IT IS
 NOT PORTABLE, IT HAS NOT BEEN RIGOROUSLY TESTED, AND IT MIGHT NOT WORK
 AT ALL.  PLEASE KEEP AWAY FROM SMALL CHILDREN, PETS, NUCLEAR REACTORS,
-AIR-TRAFFIC CONTROL, VOTING MACHINES, AND MEDICAL EQUIPMENT.  SIDE
-EFFECTS MAY INCLUDE NAUSEA, VOMITING, AND HEADACHE.  OTHER THAN THIS,
-IT'S PERFECTLY SAFE.
+AIR-TRAFFIC CONTROL, AND VOTING MACHINES. SIDE EFFECTS MAY INCLUDE
+NAUSEA, VOMITING, AND HEADACHE.  OTHER THAN THIS, IT'S PERFECTLY SAFE.
 
 1. Introduction
 
@@ -36,9 +35,12 @@ welcome. Contributions and modifications are even more welcome.
 2. Compilation and Installation
 
 WAD is not particularly portable (for obvious reasons).  At this time,
-only two platforms are supported: SPARC Solaris and i386-Linux.  To
-build the Solaris version, type 'make solaris'.  To build the Linux
-version, type 'make linux'.   
+only two platforms are supported: SPARC Solaris and i386-Linux. Installation
+is as follows:
+
+      ./configure
+      make
+      make install
 
 The build process creates the following shared libraries:
 
@@ -137,9 +139,74 @@ WAD_ONESHOT             -  Disable WAD signal handler after first signal has
                            been received.
 
 
-5.  Known Limitations
+5.  Known Problems
 
-6.  Documentation
+General:
+
+  -  WAD does not gracefully recover from errors that corrupt the call
+     stack (i.e., buffer overlow).
+
+  -  Errors that destroy the process heap may or may not be recoverable
+     depending on what has been destroyed.
+
+  -  WAD does not currently support 64 bit applications on any platform.
+
+Solaris:
+
+  -  No platform specific issues are known at this time.
+
+Linux:
+
+  -  The interaction of threads and signals are particularly problematic
+     on this platform and may cause WAD not to work at all.   Here are
+     some specific thread-based problems:
+
+     1.  WAD causes the program to crash immediately upon startup. 
+         This appears to be caused by a bug in in the implemenation
+         of sigaction() and the initialization of signals.  There is no
+         known solution.
+
+     2.  Programs lock up when an error occurs.  This is sometimes
+         caused by a non-working implementation of sigaltstack().
+         One solution to this is to set the following environment
+         variable:
+
+             setenv WAD_NOSTACK
+
+         in which case the WAD signal handler will use the same
+         stack as the thread/process that generates the error.
+
+     3.  WAD just crashes altogether and doesn't seem to do anything.
+         It appears that some versions of Linux threads do *not*
+         pass CPU context information correctly to signal handlers
+         defined in threaded programs.   There is no known fix to
+         this at this time.
+
+
+6.  Language dependent issues
+
+If WAD is linked with a normal C/C++ program, errors simply produce a stack trace
+that is printed on standard error.
+
+Python:
+
+WAD tries to raise a Python exception and return.  At this time, the exception
+merely contains a traceback string.  However, in future versions, it may be
+possible to access a complete exception object.
+
+Tcl:
+
+WAD returns a Tcl and places the stack trace into the Tcl variable $errorInfo.
+The wish shell uses this to dump error information.  
+
+Perl:
+
+Perl doesn't seem to have a very well-defined exception handling
+mechanism.  Standard functions tend to just exit.  The WAD handler
+produces a C stack trace and produces a Perl stack trace using some
+code derived from the sigtrap module.
+
+7.  Documentation
 
 No official documentation exists at this time.  However, the Papers directory contains
 two conference papers that describe WAD's design and high-level operation.

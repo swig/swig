@@ -182,6 +182,7 @@ extern WadReturnFunc *wad_check_return(const char *name);
 #define DEBUG_SIGNAL     0x2000
 
 extern int wad_debug_mode;
+extern int wad_heap_overflow;
 
 #ifdef __cplusplus
 }
