@@ -125,6 +125,15 @@ To build and install SWIG, simply type the following:
      % make -k check	# this step is optional (see note below)
      % make install
 
+By default SWIG installs itself in /usr/local.  If you need to install SWIG in
+a different location or in your home directory, use the --prefix option
+to ./configure.  For example:
+
+     % ./configure --prefix=/home/yourname/projects
+     % make
+     % make -k check
+     % make install
+
 The file INSTALL details more about using configure. Also try
 
      % ./configure --help. 
@@ -159,6 +168,34 @@ the file "Example/index.html".
 
 The Examples directory now includes Visual C++ project files for
 building some of the examples on Windows (new in SWIG1.3.7).
+
+Troubleshooting
+===============
+In order to operate correctly, SWIG relies upon a set of library
+files.  If after building SWIG, you get error messages like this,
+
+    % swig foo.i
+    :1. Unable to find 'swig.swg'
+    :3. Unable to find 'tcl8.swg'
+
+it means that SWIG has either been incorrectly configured or
+installed.  To fix this:
+
+    1.  Make sure you remembed to do a 'make install' and that
+        the installation actually worked.  Make sure you have
+        write permission on the install directory.
+
+    2.  If that doesn't work, type 'swig -swiglib' to find out
+        where SWIG thinks its library is located.
+
+    3.  If the location is not where you expect, perhaps
+        you supplied a bad option to configure.  Use
+        ./configure --prefix=pathname to set the SWIG install
+        location.
+
+    4.  The SWIG library can be changed by setting the SWIG_LIB
+        environment variable.  However, you really shouldn't
+        have to do this.
 
 Documentation
 =============
