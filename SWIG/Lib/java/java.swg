@@ -929,8 +929,6 @@
 #define %javaconst(flag)     %feature("java:const","flag")
 #define %javamethodmodifiers %feature("java:methodmodifiers")
 
-%javamethodmodifiers "public";
-
 
 /* Some ANSI C typemaps */
 
