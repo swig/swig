@@ -731,7 +731,6 @@ check_id(DOH *s)
     case 0:
       if (isdigit(c)) {
 	hasvalue =1;
-	state = 1;
       }
       else if (isidentifier(c)) return 1;
       else if (c == '\"') {
@@ -741,11 +740,13 @@ check_id(DOH *s)
 	skip_tochar(s,'\'',0);
 	hasvalue = 1;
       } else if (c == '/') state = 3;
+
+      /* Checks for bad operators, symbols */
+      else if (c == ',') return 1;
+      else if (c == ';') return 1;
+
       break;
-    case 1:
-      if (isspace(c)) state = 0;
-      hasvalue = 1;
-      break;
+
     case 3:
       if (c == '*') state = 10;
       else if (c == '/') state = 20;
