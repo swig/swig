@@ -352,6 +352,19 @@ public:
     }
 
   }
+
+  void inherit(int mode) {
+      // Set up the proper addmethods mode and provide C code (if provided)
+      int oldaddmethods = AddMethods;
+      int oldnewobject = NewObject;
+      AddMethods = new_method;
+      Clear(CCode);
+      Append(CCode,code);
+      cplus_destructor(name,iname);
+      AddMethods = oldaddmethods;
+      Clear(CCode);
+  }
+
   void emit() {
     AddMethods = new_method;
     line_number = line;
@@ -1191,6 +1204,7 @@ void cplus_destructor(char *name, char *iname) {
 
   CPP_destructor *d;
 
+  if (current_class->have_destructor) return;
   d = new CPP_destructor(name,iname);
   current_class->add_member(d);
   current_class->have_destructor = 1;
