@@ -23,8 +23,8 @@ $(TARGET): $(INTERFACE) $(SRCS)
 
 clean::
 	$(MAKE) -f $(TOP)/Makefile chicken_clean
-	rm -f example.scm example-generic.scm example-clos.scm
+	rm -f example.scm
 	rm -f $(TARGET)
 
 check::
-	csi -batch $(TARGET).so test-constants.scm
+	csi test-constants.scm

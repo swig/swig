@@ -38,6 +38,7 @@ extern "C" {
 #define C_swig_is_pair(x) (C_truep (C_blockp(x)) && C_truep (C_pairp(x)))
 #define C_swig_is_ptr(x) (C_truep (C_blockp (x)) && C_truep (C_pointerp (x)))
 #define C_swig_is_swigpointer(x) (C_truep (C_blockp(x)) && C_truep (C_swigpointerp(x)))
+#define C_swig_is_closurep(x) (C_truep (C_blockp(x)) && C_truep(C_closurep(x)))
 
 #define SWIG_APPEND_VALUE(object) \
   if (resultobj == C_SCHEME_UNDEFINED) \
@@ -60,9 +61,9 @@ enum {
   SWIG_BARF1_ARGUMENT_NULL /* 1 arg */
 };
 
-struct swig_chicken_clientdata {
+typedef struct swig_chicken_clientdata {
   C_word clos_class;
-};
+} swig_chicken_clientdata;
   
 static char *
 SWIG_Chicken_MakeString(C_word str) {
@@ -161,13 +162,22 @@ SWIG_Chicken_Barf(int code, C_char *msg, ...)
   }
 }
 
-static SWIGINLINE C_word
+static C_word
 SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **data)
 {
+  swig_chicken_clientdata *cdata = (swig_chicken_clientdata *) type->clientdata;
+
   if (ptr == NULL)
     return C_SCHEME_FALSE;
-  else
-    return C_swigmpointer(data, ptr, type);
+  else {
+    C_word cptr = C_swigmpointer(data, ptr, type);
+    if (cdata && cdata->clos_class && C_swig_is_closurep(cdata->clos_class)) {
+      C_save(cptr);
+      return C_callback(cdata->clos_class, 1);
+    } else {
+      return cptr;
+    }
+  }
 }
 
 /* Return 0 if successful. */

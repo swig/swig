@@ -1,15 +1,15 @@
-;(declare (hide swig-initialize))
+(declare (hide swig-initialize))
 
-;(define (swig-initialize obj initargs create destroy)
-;     (if (memq 'swig-init initargs)
-;        (slot-set! obj 'swig-this (cadr initargs))
-;        (begin
- ;           (slot-set! obj 'swig-this (apply create initargs))
-                ;(let ((ret (apply create initargs)))
-                ;  (if (instance? ret)
-                ;    (slot-ref ret 'swig-this)
-                ;    ret)))
-;            (set-finalizer! obj destroy))))
+(define (swig-initialize obj initargs create)
+     (slot-set! obj 'swig-this
+        (if (memq 'swig-this initargs)
+            (cadr initargs)
+            (let ((ret (apply create initargs)))
+              (if (instance? ret)
+		(begin
+		  (set-finalizer! ret (lambda (x) #t))
+                  (slot-ref ret 'swig-this))
+                ret)))))
 
 (define-class <swig-metaclass-$module> (<class>) (void))
 
