@@ -1218,6 +1218,15 @@ Preprocessor_parse(String *s)
  	  Delete(fn);
   	}
       } else if (Cmp(id,"pragma") == 0) {
+	if (Strncmp(value,"SWIG ",5) == 0) {
+	  char *c = Char(value)+5;
+	  while (*c && (isspace(*c))) c++;
+	  if (*c) {
+	    if (Strncmp(c,"nowarn=",7) == 0) {
+	      Swig_warnfilter(c+7,1);
+	    }
+	  }
+	}
       } else if (Cmp(id,"level") == 0) {
 	Swig_error(Getfile(s),Getline(id),"cpp debug: level = %d, startlevel = %d\n", level, start_level);
       }

@@ -51,8 +51,6 @@ extern "C" {
     int        GenerateDefault = 1;             // Generate default constructors
     char      *Config = 0;
     int        NoInclude = 0;
-
-    int        error_count = 0;                 // Error count
     int        Verbose = 0;
 
 extern String  *ModuleName;
@@ -525,7 +523,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   }
   if (tm_debug) Swig_typemap_debug();
   while (freeze);
-  return error_count;
+  return Swig_numerrors();
 }
 
 // --------------------------------------------------------------------------

@@ -190,8 +190,8 @@ MZSCHEME::set_module (char *mod_name)
 static void
 throw_unhandled_mzscheme_type_error (SwigType *d)
 {
-  Printf (stderr, "%s : Line %d. Unable to handle type %s.\n", input_file, line_number, SwigType_str(d,0));
-  error_count++;
+  Swig_warning(WARN_TYPEMAP_UNDEF, input_file, line_number,
+	       "Unable to handle type %s.\n", SwigType_str(d,0));
 }
 
 /* Return true iff T is a pointer type */
@@ -503,9 +503,8 @@ MZSCHEME::variableWrapper(Node *n)
 	   "), env);\n",NULL);
 
   } else {
-    Printf (stderr, "%s : Line %d. ** Warning. Unable to link with "
-	    " type %s (ignored).\n",
-	    input_file, line_number, SwigType_manglestr(t));
+    Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
+		 "Unsupported variable type %s (ignored).\n", SwigType_str(t,0));
   }
   Delete(proc_name);
   Delete(argnum);
@@ -542,8 +541,8 @@ MZSCHEME::constantWrapper(Node *n)
   Replace(proc_name, "_", "-", DOH_REPLACE_ANY);
 
   if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
-    fprintf (stderr, "%s : Line %d.  Unsupported constant value.\n",
-	     input_file, line_number);
+    Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
+		 "Unsupported constant value.\n");
     return SWIG_NOWRAP;
   }
 

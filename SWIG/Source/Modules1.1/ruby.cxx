@@ -348,7 +348,8 @@ RUBY::set_module(const char *mod_name) {
 int
 RUBY::nativeWrapper(Node *n) {
   String *funcname = Getattr(n,"wrap:name");
-  Printf(stderr,"%s:%d.  Adding native function %s not supported (ignored).\n", input_file, line_number, funcname);
+  Swig_warning(WARN_LANG_NATIVE_UNIMPL, input_file, line_number, 
+	       "Adding native function %s not supported (ignored).\n", funcname);
   return SWIG_NOWRAP;
 }
 
@@ -465,7 +466,8 @@ RUBY::marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrapper *
       Printf(f->code,"%s\n", tm);
       p = Getattr(p,"tmap:in:next");
     } else {
-      Printf(stderr,"%s:%d.  Unsupported datatype %s\n", input_file, line_number, SwigType_str(pt,0));
+      Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number,
+		   "Unable to use type %s as a function argument.\n", SwigType_str(pt,0));
       p = nextSibling(p);
     }
     if (i >= numreq) {
@@ -699,8 +701,8 @@ RUBY::functionWrapper(Node *n) {
 	Replaceall(tm,"$owner", newobj ? "1" : "0");
         Printv(f->code, tm, "\n", NULL);
       } else {
-	Printf(stderr,"%s:%d. No return typemap for datatype %s\n",
-	       input_file,line_number,SwigType_str(t,0));
+	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
+		     "Unable to use return type %s.\n", SwigType_str(t,0));
       }
     }
   }
@@ -799,8 +801,8 @@ RUBY::variableWrapper(Node *n) {
     Replaceall(tm,"$source",name);
     Printv(getf->code,tm, NULL);
   } else {
-    Printf(stderr,"%s:%d. Unable to link with variable type %s\n",
-	   input_file,line_number,SwigType_str(t,0));
+    Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
+		 "Unable to read variable of type %s\n", SwigType_str(t,0));
   }
   Printv(getf->code, tab4, "return _val;\n}\n", NULL);
   Wrapper_print(getf,f_wrappers);
@@ -820,7 +822,8 @@ RUBY::variableWrapper(Node *n) {
       Replaceall(tm,"$target",name);
       Printv(setf->code,tm,"\n",NULL);
     } else {
-      Printf(stderr,"%s:%d.  Unable to link with variable type %s\n", input_file, line_number, SwigType_str(t,0));
+      Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number,
+		 "Unable to set variable of type %s\n", SwigType_str(t,0));
     }
     Printv(setf->code, tab4, "return _val;\n",NULL);
     Printf(setf->code,"}\n");
@@ -892,13 +895,14 @@ RUBY::validate_const_name(char *name, const char *reason) {
 
   if (islower(name[0])) {
     name[0] = toupper(name[0]);
-    Printf(stderr, "%s:%d. Wrong %s name "
-	    "(corrected to `%s')\n", input_file, line_number, reason, name);
+    Swig_warning(WARN_RUBY_WRONG_NAME, input_file, line_number,
+		 "Wrong %s name (corrected to `%s')\n", reason, name);
     return name;
   }
 
-  Printf(stderr,"%s:%d. Wrong %s name\n",
-	  input_file, line_number, reason);
+  Swig_warning(WARN_RUBY_WRONG_NAME, input_file, line_number,
+	       "Wrong %s name\n", reason);
+
   return name;
 }
 
@@ -940,8 +944,8 @@ RUBY::constantWrapper(Node *n) {
       Printf(f_init, "%s\n", tm);
     }
   } else {
-    Printf(stderr,"%s:%d. Unable to create constant %s = %s\n",
-	   input_file, line_number, SwigType_str(type, 0), value);
+    Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
+		 "Unsupported constant value %s = %s\n", SwigType_str(type, 0), value);
   }
   Swig_restore(&n);
   return SWIG_OK;

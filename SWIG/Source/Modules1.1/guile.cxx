@@ -437,8 +437,8 @@ is_a_pointer (SwigType *t)
 static void
 throw_unhandled_guile_type_error (SwigType *d)
 {
-  Printf (stderr, "%s : Line %d. Unable to handle type %s.\n",input_file, line_number, SwigType_str(d,0));
-  error_count++;
+  Swig_warning(WARN_TYPEMAP_UNDEF, input_file, line_number,
+	       "Unable to handle type %s.\n", SwigType_str(d,0));
 }
 
 
@@ -919,9 +919,8 @@ GUILE::variableWrapper(Node *n)
     }
 
   } else {
-    Printf (stderr, "%s : Line %d. ** Warning. Unable to link with "
-             " type %s (ignored).\n",
-             input_file, line_number, SwigType_str(t,0));
+    Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
+		 "Unsupported variable type %s (ignored).\n", SwigType_str(t,0));
   }
   Delete(proc_name);
   DelWrapper(f);
@@ -967,8 +966,8 @@ GUILE::constantWrapper(Node *n)
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
   if ((SwigType_type(nctype) == T_USER) && (!is_a_pointer(nctype))) {
-    Printf (stderr, "%s : Line %d.  Unsupported constant value.\n",
-             input_file, line_number);
+    Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
+		 "Unsupported constant value.\n");
     return SWIG_NOWRAP;
   }
 

@@ -38,12 +38,11 @@ extern  int       CPlusPlus;                        // C++ mode
 extern  int       Extend;                           // Extend mode
 extern  int       NewObject;                        // NewObject mode
 extern  int       NoInclude;                        // NoInclude flag
-extern  int       error_count;
 extern  int       Verbose;
 extern  int       IsVirtual;
 extern  int       ImportMode;
 
-#define FatalError()   if ((error_count++) > 20) { fprintf(stderr,"Confused by earlier errors. Bailing out\n"); SWIG_exit (EXIT_FAILURE); }
+/* #define FatalError()   if ((error_count++) > 20) { fprintf(stderr,"Confused by earlier errors. Bailing out\n"); SWIG_exit (EXIT_FAILURE); } */
 
 /* Miscellaneous stuff */
 
@@ -79,7 +78,6 @@ class Dispatcher {
   virtual int typemapitemDirective(Node *n);
   virtual int typemapcopyDirective(Node *n);
   virtual int typesDirective(Node *n);
-  virtual int warnDirective(Node *n);
 
   /* C/C++ parsing */
   

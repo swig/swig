@@ -708,7 +708,7 @@ void canonical_template(String *s) {
 %token <node> NAMESPACE
 %token NATIVE INLINE
 %token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE 
-%token WARN NOWARN
+%token WARN 
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
 %token TYPES PARMS
 %token NONID DSTAR DCNOT
@@ -735,7 +735,7 @@ void canonical_template(String *s) {
 %type <node>     echo_directive except_directive include_directive inline_directive ;
 %type <node>     insert_directive module_directive name_directive native_directive ;
 %type <node>     new_directive pragma_directive rename_directive feature_directive varargs_directive typemap_directive ;
-%type <node>     types_directive template_directive warn_directive nowarn_directive ;
+%type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_decl;
@@ -851,7 +851,6 @@ swig_directive : extend_directive { $$ = $1; }
                | types_directive  { $$ = $1; }
                | template_directive { $$ = $1; }
                | warn_directive { $$ = $1; }
-               | nowarn_directive { $$ = $1; }
                ;
 
 /* ------------------------------------------------------------
@@ -1784,24 +1783,6 @@ warn_directive : WARN string {
 		  Swig_warning(0,input_file, line_number,"%s\n", $2);
 		  $$ = 0;
                }
-               | WARN LPAREN NUM_INT RPAREN SEMI {
-                 Swig_warnfilter($3.val,0);
-		 $$ = new_node("warn");
-		 Setattr($$,"num",$3.val);
-		 Setattr($$,"value","0");
-               }
-               ;
-
-/* ------------------------------------------------------------
-   %nowarn(warnno);
-   ------------------------------------------------------------ */
-
-nowarn_directive : NOWARN LPAREN NUM_INT RPAREN SEMI {
-                 Swig_warnfilter($3.val,1);
-		 $$ = new_node("warn");
-		 Setattr($$,"num",$3.val);
-		 Setattr($$,"value","1");
-               }
                ;
 
 /* ======================================================================
@@ -2495,7 +2476,6 @@ cpp_member   : c_declaration { $$ = $1; }
              | cpp_template_decl { $$ = $1; }
              | template_directive { $$ = $1; }
              | warn_directive { $$ = $1; }
-             | nowarn_directive { $$ = $1; }
              | SEMI { $$ = 0; }
              ;
 

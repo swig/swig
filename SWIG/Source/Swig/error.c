@@ -16,10 +16,26 @@
 
 static char cvsroot[] = "$Header$";
 
-#define MAXWARN 1000
+/* -----------------------------------------------------------------------------
+ * Commentary on the warning filter.
+ *
+ * The warning filter is a string of numbers prefaced by (-) or (+) to
+ * indicate whether or not a warning message is displayed.  For example:
+ *
+ *      "-304-201-140+210+201"
+ *
+ * The filter string is scanned left to right and the first occurrence
+ * of a warning number is used to determine printing behavior.
+ *
+ * The same number may appear more than once in the string.  For example, in the 
+ * above string, "201" appears twice.  This simply means that warning 201
+ * was disabled after it was previously enabled.  This may only be temporary
+ * setting--the first number may be removed later in which case the warning
+ * is reenabled.
+ * ----------------------------------------------------------------------------- */
 
 static int silence = 0;            /* Silent operation */
-static char filter[MAXWARN] = { 0 };
+static String *filter = 0;         /* Warning filter */
 static int warnall = 0;
 
 /* -----------------------------------------------------------------------------
@@ -32,9 +48,10 @@ void
 Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt, ...) {
   String *out;
   char   *msg;
+  int     wrn = 1;
   va_list ap;
   if (silence) return;
-
+  
   va_start(ap,fmt);
 
   out = NewString("");
@@ -51,7 +68,19 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
       wnum = atoi(temp);
     }
   }
-  if (warnall || !filter[wnum]) {
+
+  /* Check in the warning filter */
+  if (filter) {
+    char    temp[32];    
+    char *c;
+    sprintf(temp,"%d",wnum);
+    c = Strstr(filter,temp);
+    if (c) {
+      if (*(c-1) == '-') wrn = 0;     /* Warning disabled */
+      if (*(c-1) == '+') wrn = 1;     /* Warning enabled */
+    }
+  }
+  if (warnall || wrn) {
     if (wnum) {
       Printf(stderr,"%s:%d: Warning(%d): ", filename, line, wnum);
     } else {
@@ -112,21 +141,38 @@ Swig_error_silent(int s) {
 
 /* -----------------------------------------------------------------------------
  * Swig_warnfilter()
+ *
+ * Takes a comma separate list of warning numbers and puts in the filter.
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_warnfilter(const String_or_char *wlist, int allow) {
+Swig_warnfilter(const String_or_char *wlist, int add) {
   char *c;
   int  wnum;
-  String *s = NewString(wlist);
+  String *s;
+
+  if (!filter) filter = NewString("");
+  s = NewString(wlist);
   c = Char(s);
-  c = strtok(c,",");
+  c = strtok(c,", ");
   while (c) {
-    wnum = atoi(c);
-    if ((wnum > 0) && (wnum < MAXWARN)) {
-      filter[wnum] = allow;
+    if (isdigit(*c) || (*c == '+') || (*c == '-')) {
+      if (add) {
+	Insert(filter,0,c);
+	if (isdigit(*c)) {
+	  Insert(filter,0,"-");
+	}
+      } else {
+	char temp[32];
+	if (isdigit(*c)) {
+	  sprintf(temp,"-%s",c);
+	} else {
+	  strcpy(temp,c);
+	}
+	Replace(filter,temp,"", DOH_REPLACE_FIRST);
+      }
     }
-    c = strtok(NULL,",");
+    c = strtok(NULL,", ");
   }
   Delete(s);
 }

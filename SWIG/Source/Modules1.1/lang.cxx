@@ -54,6 +54,9 @@ extern    int           ForceExtern;
  * ---------------------------------------------------------------------- */
 
 int Dispatcher::emit_one(Node *n) {
+    String *wrn;
+    int     ret = SWIG_OK;
+
     char *tag = Char(nodeType(n));
     if (!tag) {
 	Printf(stderr,"SWIG: Fatal internal error. Malformed parse tree node!\n");
@@ -64,34 +67,40 @@ int Dispatcher::emit_one(Node *n) {
     
     if (Getattr(n,"error")) return SWIG_OK;
 
+    /* Look for warnings */
+    wrn = Getattr(n,"feature:warnfilter");
+    if (wrn) {
+      Swig_warnfilter(wrn,1);
+    }
+
     /* ============================================================
      * C/C++ parsing
      * ============================================================ */
     
     if (strcmp(tag,"extern") == 0) {
-	return externDeclaration(n);
+	ret = externDeclaration(n);
     } else if (strcmp(tag,"cdecl") == 0) {
-	return cDeclaration(n);
+	ret = cDeclaration(n);
     } else if (strcmp(tag,"enum") == 0) {
-	return enumDeclaration(n);
+	ret = enumDeclaration(n);
     } else if (strcmp(tag,"enumitem") == 0) {
-	return enumvalueDeclaration(n);
+	ret = enumvalueDeclaration(n);
     } else if (strcmp(tag,"class") == 0) {
-	return classDeclaration(n);
+	ret = classDeclaration(n);
     } else if (strcmp(tag,"classforward") == 0) {
-	return classforwardDeclaration(n);
+	ret = classforwardDeclaration(n);
     } else if (strcmp(tag,"constructor") == 0) {
-	return constructorDeclaration(n);
+	ret = constructorDeclaration(n);
     } else if (strcmp(tag,"destructor") == 0) {
-	return destructorDeclaration(n);
+	ret = destructorDeclaration(n);
     } else if (strcmp(tag,"access") == 0) {
-	return accessDeclaration(n);
+	ret = accessDeclaration(n);
     } else if (strcmp(tag,"using") == 0) {
-	return usingDeclaration(n);
+	ret = usingDeclaration(n);
     } else if (strcmp(tag,"namespace") == 0) {
-	return namespaceDeclaration(n);
+	ret = namespaceDeclaration(n);
     } else if (strcmp(tag,"template") == 0) {
-      return templateDeclaration(n);
+      ret = templateDeclaration(n);
     }
     
     /* ===============================================================
@@ -99,45 +108,47 @@ int Dispatcher::emit_one(Node *n) {
      * =============================================================== */
 
     else if (strcmp(tag,"top") == 0) {
-	return top(n);
+	ret = top(n);
     } else if (strcmp(tag,"extend") == 0) {
-	return extendDirective(n);
+	ret = extendDirective(n);
     } else if (strcmp(tag,"apply") == 0) {
-	return applyDirective(n);
+	ret = applyDirective(n);
     } else if (strcmp(tag,"clear") == 0) {
-	return clearDirective(n);
+	ret = clearDirective(n);
     } else if (strcmp(tag,"constant") == 0) {
-	return constantDirective(n);
+	ret = constantDirective(n);
     } else if (strcmp(tag,"except") == 0) {
-	return exceptDirective(n);
+	ret = exceptDirective(n);
     } else if (strcmp(tag,"import") == 0) {
-	return importDirective(n);
+	ret = importDirective(n);
     } else if (strcmp(tag,"include") == 0) {
-	return includeDirective(n);
+	ret = includeDirective(n);
     } else if (strcmp(tag,"insert") == 0) {
-	return insertDirective(n);
+	ret = insertDirective(n);
     } else if (strcmp(tag,"module") == 0) { 
-	return moduleDirective(n);
+	ret = moduleDirective(n);
     } else if (strcmp(tag,"native") == 0) {
-	return nativeDirective(n);
+	ret = nativeDirective(n);
     } else if (strcmp(tag,"new") == 0) {
-	return newDirective(n);
+	ret = newDirective(n);
     } else if (strcmp(tag,"pragma") == 0) {
-	return pragmaDirective(n);
+	ret = pragmaDirective(n);
     } else if (strcmp(tag,"typemap") == 0) {
-	return typemapDirective(n);
+	ret = typemapDirective(n);
     } else if (strcmp(tag,"typemapcopy") == 0) {
-	return typemapcopyDirective(n);
+	ret = typemapcopyDirective(n);
     } else if (strcmp(tag,"typemapitem") == 0) {
-	return typemapitemDirective(n);
+	ret = typemapitemDirective(n);
     } else if (strcmp(tag,"types") == 0) {
-	return typesDirective(n);
-    } else if (strcmp(tag,"warn") == 0) {
-      return warnDirective(n);
+	ret = typesDirective(n);
     } else {
-	Printf(stderr,"%s:%d. Unrecognized parse tree node type '%s'\n", input_file, line_number, tag);
+      Printf(stderr,"%s:%d. Unrecognized parse tree node type '%s'\n", input_file, line_number, tag);
+      ret = SWIG_ERROR;
     }
-    return SWIG_ERROR;
+    if (wrn) {
+      Swig_warnfilter(wrn,0);
+    }
+    return ret;
 }
 
 /* ----------------------------------------------------------------------
@@ -174,16 +185,6 @@ int Dispatcher::typemapDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::typemapitemDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::typemapcopyDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::typesDirective(Node *n) { return defaultHandler(n); }
-
-int Dispatcher::warnDirective(Node *n) {
-  String *wlist;
-  int value;
-  wlist = Getattr(n,"num");
-  value = GetInt(n,"value");
-  Swig_warnfilter(wlist,value);
-  return SWIG_OK;
-}
-
 int Dispatcher::cDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::externDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::enumDeclaration(Node *n) { return defaultHandler(n); }

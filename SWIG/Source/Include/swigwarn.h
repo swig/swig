@@ -117,6 +117,8 @@
 #define WARN_TYPEMAP_VARIN_UNDEF      462
 #define WARN_TYPEMAP_VAROUT_UNDEF     463
 #define WARN_TYPEMAP_CONST_UNDEF      464
+#define WARN_TYPEMAP_UNDEF            465
+#define WARN_TYPEMAP_VAR_UNDEF        466
 
 /* -- General code generation -- */
 
@@ -126,14 +128,18 @@
 #define WARN_LANG_RETURN_TYPE         504
 #define WARN_LANG_VARARGS             505 
 #define WARN_LANG_VARARGS_KEYWORD     506
+#define WARN_LANG_NATIVE_UNIMPL       507
 
 /* -- Reserved (600-799) -- */
 
 /* -- Language module specific warnings (800 - 999) -- */
 
+#define WARN_RUBY_WRONG_NAME          801
+
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */
 
 #endif
+
 
 

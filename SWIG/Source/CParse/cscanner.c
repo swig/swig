@@ -1241,7 +1241,6 @@ int yylex(void) {
 	  if (strcmp(yytext,"%varargs") == 0) return(VARARGS);
 	  if (strcmp(yytext,"%template") == 0) return (SWIGTEMPLATE);
 	  if (strcmp(yytext,"%warn") == 0) return(WARN);
-	  if (strcmp(yytext,"%nowarn") == 0) return(NOWARN);
 	}
 	/* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 
