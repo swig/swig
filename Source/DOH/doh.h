@@ -59,6 +59,7 @@
 #define DohSetitem         DOH_NAMESPACE(Setitem)
 #define DohDelitem         DOH_NAMESPACE(Delitem)
 #define DohInsertitem      DOH_NAMESPACE(Insertitem)
+#define DohDelslice        DOH_NAMESPACE(Delslice)
 #define DohFirstitem       DOH_NAMESPACE(Firstitem)
 #define DohNextitem        DOH_NAMESPACE(Nextitem)
 #define DohWrite           DOH_NAMESPACE(Write)
@@ -87,6 +88,7 @@
 #define DohIsString        DOH_NAMESPACE(IsString)
 #define DohIsFile          DOH_NAMESPACE(IsFile)
 #define DohNewString       DOH_NAMESPACE(NewString)
+#define DohNewStringWithSize  DOH_NAMESPACE(NewStringWithSize)
 #define DohNewStringf      DOH_NAMESPACE(NewStringf)
 #define DohStrcmp          DOH_NAMESPACE(Strcmp)
 #define DohStrncmp         DOH_NAMESPACE(Strncmp)
@@ -190,6 +192,7 @@ extern DOH          *DohGetitem(DOH *obj, int index);
 extern int           DohSetitem(DOH *obj, int index, const DOHObj_or_char *value);
 extern int           DohDelitem(DOH *obj, int index);
 extern int           DohInsertitem(DOH *obj, int index, const DOHObj_or_char *value);
+extern int           DohDelslice(DOH *obj, int sindex, int eindex);
 extern DOH          *DohFirstitem(DOH *obj);
 extern DOH          *DohNextitem(DOH *obj);
 
@@ -243,6 +246,7 @@ extern int           DohGetmark(DOH *obj);
  * ----------------------------------------------------------------------------- */
 
 extern DOHString    *DohNewString(const DOH *c);
+extern DOHString    *DohNewStringWithSize(const DOH *c, int len);
 extern DOHString    *DohNewStringf(const DOH *fmt, ...);
 
 extern int   DohStrcmp(const DOHString_or_char *s1, const DOHString_or_char *s2);
@@ -310,6 +314,7 @@ extern DOH      *DohNone;
 #define Setitem            DohSetitem
 #define Delitem            DohDelitem
 #define Insert             DohInsertitem
+#define Delslice           DohDelslice
 #define Append(s,x)        DohInsertitem(s,DOH_END,x)
 #define Push(s,x)          DohInsertitem(s,DOH_BEGIN,x)
 #define Len                DohLen

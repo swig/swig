@@ -459,6 +459,21 @@ DohInsertitem(DOH *obj, int index, const DOH *value) {
   return -1;
 }
 
+
+/* -----------------------------------------------------------------------------
+ * DohDelslice()
+ * ----------------------------------------------------------------------------- */
+
+int
+DohDelslice(DOH *obj, int sindex, int eindex) {
+  DohBase *b = (DohBase *) obj;
+  DohObjInfo *objinfo = b->type;
+  if (objinfo->doh_list && objinfo->doh_list->doh_delslice) {
+    return (objinfo->doh_list->doh_delslice)(b,sindex,eindex);
+  }
+  return -1;
+}
+
 /* -----------------------------------------------------------------------------
  * DohFirstitem()
  * ----------------------------------------------------------------------------- */
