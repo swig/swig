@@ -34,7 +34,7 @@ following options and a filename like this:
 -o <em>outfile</em>            Name of output file
 -module <em>name</em>          Set the name of the SWIG module
 -D<em>symbol</em>              Define a preprocessor symbol
--version              Show SWIG's version number
+-version              Show SWIG version number
 -help                 Display all options
 
 </pre></blockquote>
@@ -49,12 +49,12 @@ As input, SWIG expects a file containing ANSI C/C++ declarations and
 special SWIG directives.  More often than not, this is a special SWIG
 interface file which is usually denoted with a special <tt>.i</tt> or
 <tt>.swg</tt> suffix.  In certain cases, SWIG can be used directly on
-raw C header files or C source files.  However, this is not the most
+raw header files or source files.  However, this is not the most
 typical case and there are several reasons why you might not want to
 do this (described later).
 
 <p>
-The general format of a SWIG interface is as follows:
+The most common format of a SWIG interface is as follows:
 
 <p>
 <blockquote><pre>%module mymodule 
@@ -70,7 +70,7 @@ int bar(int x);
 The name of the module is supplied using the special <tt>%module</tt>
 directive (or the <tt>-module</tt> command line option).  This
 directive must appear at the beginning of the file and is used to name
-the resulting extension module (in addition, this name is often used to define
+the resulting extension module (in addition, this name often defines
 a namespace in the target language).  If the module name is supplied on the
 command line, it overrides the name specified with the
 <tt>%module</tt> directive.
@@ -82,7 +82,7 @@ by SWIG.  Although the use of a <tt>%{,%}</tt> block is optional, most
 interface files have one to include header files and other supporting
 C declarations.  The <tt>%{...%}</tt> syntax and
 semantics in SWIG is analogous to that of the declarations section used
-in input files to yacc or bison.
+in input files to parser generation tools such as yacc or bison.
 
 <h3>SWIG Output</h3>
 
@@ -93,7 +93,7 @@ with the name <tt>file.i</tt> is transformed into a file
 or not the <tt>-c++</tt> option has been used).  The name of the
 output file can be changed using the <tt>-o</tt> option.  In certain
 cases, file suffixes are used by the compiler to determine the source
-language (C, C++, etc.). Therefore, you may want to use the
+language (C, C++, etc.). Therefore, you have to use the
 <tt>-o</tt> option to change the suffix of the SWIG-generated wrapper
 file (if needed). For example:
 
@@ -107,8 +107,7 @@ for the target scripting language. SWIG is not a stub compiler nor is
 usually necessary to edit the output file (and if you look at the output,
 you probably won't want to).      To build the final extension module, the
 SWIG output file is compiled and linked with the rest of your C/C++
-program to create a shared library.   If all goes well, your module is
-now ready to use.
+program to create a shared library. 
 
 <h3>Comments</h3>
 
@@ -191,13 +190,12 @@ In practice, few (if any) C programmers actually write code like
 is since this style is never featured in programming books.  However,
 if you're feeling particularly obfuscated, you can certainly break SWIG.
 
-
 <p>
 <li>Running SWIG on C++ source files (what would appear in a .C or .cxx file) 
 is not recommended.  Even though SWIG can parse C++ class declarations,
 it does not like declarations that are decoupled from their
 original class definition (the declarations are parsed, but a lot of warning
-messages will be generated).  For example:
+messages may be generated).  For example:
 
 <blockquote>
 <pre>
@@ -225,6 +223,27 @@ offending code.  For example:
 </blockquote>
 
 Alternatively, you can just delete the offending code from the interface file.
+
+<p>
+One of the reasons why SWIG does not provide a full C++ parser
+implementation is that it has been designed to work with incomplete
+specifications and to be very permissive in its handling of C/C++
+datatypes (e.g., SWIG can generate interfaces even when there are
+missing class declarations or opaque datatypes).  Unfortunately, this
+approach makes it extremely difficult to implement certain parts of a
+C/C++ parser as most compilers use type information to assist in the
+parsing of more complex declarations (for the truly curious, the
+primary complication in the implementation is that the SWIG parser
+does not utilize a separate <em>typedef-name</em> terminal symbol as
+described on p. 234 of K&amp;R).
+
+<p>
+It should also be noted that the SWIG parser was never really
+developed with the intent that it would be blindly used on raw C/C++
+source code.  Although parsing has become a lot more powerful in
+recent versions, the underlying assumption was that one would usually
+start with a header and enhance it by adding additional support code, cutting
+certain features out, supplying special SWIG directives, and so forth.
 
 <h2>Wrapping Simple C Declarations</h2>
 
@@ -285,7 +304,7 @@ next few sections describes various aspects of this mapping.
 <h3>Basic Type Handling</h3>
 
 In order to build an interface, SWIG has to convert C/C++ datatypes to
-equivalent types in the target language.  Generally speaking,
+equivalent types in the target language.  Generally,
 scripting languages provide a more limited set of primitive types than C.
 Therefore, this conversion process involves a certain amount of type
 coercion.
@@ -381,7 +400,7 @@ wide-character strings (the C <tt>wchar_t</tt> type).  This is a
 delicate topic that is quite complex and poorly understood by many
 programmers.  For those scripting languages that provide Unicode
 support, Unicode strings are often implicitly converted to an 8-bit
-representation such as UTF-8 whenever they are matched to the <tt>char
+representation such as UTF-8 whenever they are mapped to the <tt>char
 *</tt> type (in which case the SWIG interface will probably work).
 
 <h3>Global Variables</h3>
@@ -472,7 +491,7 @@ EXTERN void foo();
 </pre>
 </blockquote>
 
-In this case, we probably don't want to create a constant called 
+In this case, you probably don't want to create a constant called 
 <tt>EXTERN</tt> (what would the value be?).  In general,
 SWIG will not create constants for macros unless the value can
 be completely determined.  For instance, in the above example,
@@ -499,7 +518,7 @@ included somewhere in the interface file (either in a header file or
 in the <tt>%{,%}</tt> block). SWIG only translates the enumeration
 into code needed to add the constants to a scripting language. It
 needs the original enumeration declaration in order to get the correct
-enum values as assignd by the C compiler.
+enum values as assigned by the C compiler.
 
 <p>
 The <tt>%constant</tt> directive is used to more precisely create
@@ -562,7 +581,7 @@ mechanism.  In an embedded system, a <tt>const</tt> declaration might
 refer to a read-only memory address such as the location of a
 memory-mapped I/O device port (where the value changes, but writing to
 the port is not supported by the hardware).  Rather than trying to
-build a whole bunch of special cases into the <tt>const</tt>
+build a bunch of special cases into the <tt>const</tt>
 qualifier, the new interpretation of <tt>const</tt> as "read-only" is
 simple and exactly matches the actual semantics of <tt>const</tt> in
 C/C++.  If you really want to create a constant as in older versions
@@ -712,8 +731,8 @@ void free(void *);
 
 In this file, SWIG doesn't know what a <tt>FILE</tt> is, but it's used
 as a pointer, so it doesn't really matter what it is. If you wrapped
-this module into Python, you could use the functions just like you
-would expect :<p>
+this module into Python, you can use the functions just like you
+expect :<p>
 
 <p>
 <blockquote><pre># Copy a file 
@@ -760,7 +779,7 @@ one around in the scripting language interface.
 An important detail to mention is that SWIG will gladly generate
 wrappers for an interface when there are unspecified type names.
 However, <b>all unspecified types are internally handled as pointers
-to structures or classes!</b>. For example, consider the following declaration:
+to structures or classes!</b> For example, consider the following declaration:
 
 <blockquote>
 <pre>
@@ -817,6 +836,33 @@ typedef unsigned int size_t;
 %}
 </pre>
 </blockquote>
+
+In certain cases, you might be able to include other header files to collect type information.
+For example:
+
+<blockquote>
+<pre>
+%module example
+%import "sys/types.h"
+</pre>
+</blockquote>
+
+In this case, you might run SWIG as follows:
+
+<blockquote>
+<pre>
+$ swig -I/usr/include -includeall example.i
+</pre>
+</blockquote>
+
+However, it should be noted that your mileage will vary greatly here.
+System headers are notoriously complicated and may rely upon a variety
+of non-standard C coding extensions (e.g., such as special directives
+to GCC).  Unless you exactly specify the right include directories and
+preprocessor symbols, this may not work correctly (you will have to
+experiment).
+
+<p>
 
 SWIG tracks <tt>typedef</tt> declarations and uses this information
 for run-time type checking. For instance, if you use the above <tt>typedef</tt> and
@@ -915,9 +961,8 @@ gets mapped to an underlying pair of set/get functions like this :<p>
 <blockquote><pre>Vector *unit_i_get() {
 	return &amp;unit_i;
 }
-Vector *unit_i_set(Vector *value) {
+void unit_i_set(Vector *value) {
 	unit_i = *value;
-	return &amp;unit_i;
 }
 </pre></blockquote>
 <p>
@@ -927,6 +972,62 @@ manner will show up as a pointer in the target scripting language. It
 would be an extremely bad idea to free or destroy such a pointer.    Also,
 C++ classes must supply a properly defined copy constructor in order for
 assignment to work correctly.
+
+<h3> Linking to <tt>char *</tt></h3>
+
+When a global variable of type <tt>char *</tt> appears, SWIG uses <tt>malloc()</tt> or
+<tt>new</tt> to allocate memory for the new value.   Specifically, if you have a variable
+like this
+
+<blockquote>
+<pre>
+char *foo;
+</pre>
+</blockquote>
+
+SWIG generates the following code:
+
+<blockquote>
+<pre>
+/* C mode */
+void foo_set(char *value) {
+   if (foo) free(foo);
+   foo = (char *) malloc(strlen(value)+1);
+   strcpy(foo,value);
+}
+
+/* C++ mode.  When -c++ option is used */
+void foo_set(char *value) {
+   if (foo) delete [] foo;
+   foo = new char[strlen(value)+1];
+   strcpy(foo,value);
+}
+</pre>
+</blockquote>
+
+If this is not the behavior that you want, consider making the variable read-only using the
+<tt>%readonly</tt> directive.  Alternatively, you might write a short assist-function to set the value
+exactly like you want.  For example:
+
+<blockquote>
+<pre>
+%inline %{
+  void set_foo(char *value) {
+       strncpy(foo,value, 50);
+   }
+%}
+</pre>
+</blockquote>
+
+Note: If you write an assist function like this, you will have to call
+it as a function from the target scripting language (it does not work
+like a variable).  For example, in Python you will have to write:
+
+<blockquote>
+<pre>
+>>> set_foo("Hello World")
+</pre>
+</blockquote>
 
 <h3> Arrays</h3>
 
@@ -1017,6 +1118,29 @@ some helper functions in your interface.  For example:
      return (int (*)[10]) malloc(size*10*sizeof(int));
   }
 %}
+</pre>
+</blockquote>
+
+Arrays of <tt>char</tt> are handled as a special case by SWIG.  In this case, strings in the
+target language can be stored in the array.  For example, if you have a declaration like this,
+
+<blockquote>
+<pre>
+char pathname[256];
+</pre>
+</blockquote>
+
+SWIG generates functions for both getting and setting the value that are equivalent to the following
+code:
+
+<blockquote>
+<pre>
+char *pathname_get() {
+   return pathname;
+}
+void pathname_set(char *value) {
+   strncpy(pathname,value,256);
+}
 </pre>
 </blockquote>
 
@@ -1401,6 +1525,10 @@ char *Foo_name_set(Foo *obj, char *c) {
 If this behavior differs from what you need in your applications,
 the SWIG "memberin" typemap can be used to change it.  See the
 typemaps chapter for details.
+
+<p>
+Note: If the <tt>-c++</tt> option is used, <tt>new</tt> and <tt>delete</tt> are used to
+perform memory allocation.
 
 <h3>Array members</h3>
 
@@ -1873,6 +2001,9 @@ destructor.   However, there are a few rules that define this behavior:
 <li>A default constructor is not created if a class already defines a constructor.
 
 <p>
+<li>Default constructors are not generated for classes with pure virtual methods.
+
+<p>
 <li>A default constructor is not created unless all bases classes allow a 
 default constructor.
 
@@ -1887,18 +2018,33 @@ class defines a private default constructor or a private destructor.
 
 SWIG should never generate a constructor or destructor for a class in which
 it is illegal to do so.   However, if it is necessary to disable the
-default constructor/destructor creation, the <tt>%pragma nodefault</tt> directive
+default constructor/destructor creation, the <tt>%nodefault</tt> directive
 can be used:
 
 <blockquote>
 <pre>
-%pragma nodefault;   // Disable creation of constructor/destructor
+%nodefault;   // Disable creation of constructor/destructor
 class Foo {
 ...
 };
-%pragma makedefault;
+%makedefault;
 </pre>
 </blockquote>
+
+<b>Compatibility Note:</b> The generation of default
+constructors/destructors was made the default behavior in SWIG
+1.3.7. This may break certain older modules, but the old behavior can
+be easily restored using <tt>%nodefault</tt> or the
+<tt>-nodefault</tt> command line option.  Furthermore, in order for
+SWIG to properly generate (or not generate) default constructors, it
+must be able to gather information from both the <tt>private</tt> and
+<tt>protected</tt> sections (specifically, it needs to know if a private or
+protected constructor/destructor is defined).   In older versions of
+SWIG, it was fairly common to simply remove or comment out
+the private and protected sections of a class (due to parsing problems).
+However, this removal may now cause SWIG to erroneously generate constructors
+for classes that define a constructor in those sections.  Consider restoring
+those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
 
 <h3> Member functions</h3>
 
@@ -2143,7 +2289,7 @@ to inherit all of the declarations defined in base classes and
 regenerate specialized accessor functions such as
 <tt>Circle_x_get()</tt>, <tt>Square_x_get()</tt>,
 <tt>Circle_set_location()</tt>, and <tt>Square_set_location()</tt>.
-This behavior results in huge amounts of duplicated code for large
+This old behavior results in huge amounts of replicated code for large
 class hierarchies and makes it awkward to build applications spread
 across multiple modules (since accessor functions are duplicated in
 every single module).   It is also unnecessary to have such wrappers
@@ -2214,7 +2360,7 @@ void foo(Bar *b, Spam *s, int );
 </blockquote>
 
 Later, when a call to function <tt>foo()</tt> is made, the
-determination of which function to invoke is made by looking the types
+determination of which function to invoke is made by looking at the types
 of the arguments.  For example:
 
 <blockquote>
@@ -2233,7 +2379,7 @@ foo(b,s,z);    // Calls foo(Bar *, Spam *, int)
 
 It is important to note that the selection of the overloaded method or
 function is made by the C++ compiler and occurs at <b>compile
-time</b>.  It does not occur while your program runs.
+time</b>.  It does not occur as your program runs.
 
 <p>
 Internally to the C++ compiler, overloaded functions are mapped to unique
@@ -2256,12 +2402,12 @@ methods--neither of which map to the dynamically typed
 environment of a scripting language interpreter.  For example,
 in Python, it is simply impossible to define three entirely different
 versions of a function with exactly the same name in the same scope.    The repeated
-definitions would simply overwrite the previous definition.
+definitions simply overwrite previous definitions.
 
 <p>
-To solve the overloading problem, let's first look at several approaches that have
-been proposed as solutions, but which are <b>NOT</b> used to solve
-the overloading problem in SWIG.
+Therefore, to solve the overloading problem, let's first look at
+several approaches that have been proposed as solutions, but which are
+<b>NOT</b> used to solve the overloading problem in SWIG.
 
 <ul>
 <li><b>Explicit renaming</b>.  In earlier versions of SWIG, the only
@@ -2295,7 +2441,7 @@ foo__FP3BarP4Spami(b,s,i);
 </pre>
 </blockquote>
 
-Needless to say, this approach is not used by SWIG.
+Needless to say, this approach is not used by SWIG nor has it ever been seriously considered.
 
 <p>
 <li><b>Simplified Name Mangling</b>.  An alternative name mangling
@@ -2325,7 +2471,7 @@ void foo(instance *obj);       // ?????
 Also, what happens if the mangled version happens to match a legitimate identifier
 name used elsewhere in the program?  One could use the <tt>%name</tt> directive to
 resolve such a conflict, but this tends to defeat the whole point.  Although this
-might work in simple cases, there are still a lot of obvious problems.
+might work in simple cases, there are still a number of obvious problems.
 
 <p>
 <li><b>Numbering</b>.  A really simple solution might be to number all of
@@ -2343,7 +2489,7 @@ Unfortunately, the numbering doesn't give any clues about what the
 actual function is.  Also, if the order changes or a new function is
 added, all of the numbers might change--breaking all of the scripts
 written against the interface.  There is also a tiny problem
-of naming methods with inheritance:
+of naming methods with multiple inheritance:
 
 <blockquote>
 <pre>
@@ -2512,7 +2658,7 @@ example, if you write this,
 all occurences of "bar" will be renamed to "foo" (this feature was
 described a little earlier in this chapter in the section "Renaming
 Declarations").  By itself, this doesn't do anything to help fix
-overloaded methods.  However, the <tt>%rename</tt> can be
+overloaded methods.  However, the <tt>%rename</tt> directive can now be
 parameterized as shown in this example:
 
 <blockquote>
@@ -2534,7 +2680,7 @@ public:
 </blockquote>
 
 Since, the <tt>%rename</tt> declaration is used to declare a renaming in advance, it can be
-placed at the start of an interface file.  This makes it possible to apply consistent name
+placed at the start of an interface file.  This makes it possible to apply a consistent name
 resolution without having to modify header files. For example:
 
 <blockquote>
@@ -2977,7 +3123,7 @@ see if the actual contents of the template declaration make any sense.
 Since the C++ compiler (or is it a preprocessor?) will <em>definitely</em> check this when it
 compiles the resulting wrapper file, there is no practical reason for
 SWIG to duplicate this functionality (besides, none of the SWIG
-developers are masochistic enough to want to do it).
+developers are masochistic enough to want to implement this).
 
 <h3>Pointers to Members</h3>
 
@@ -3615,6 +3761,6 @@ version and wrapping that instead.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : September 3, 2001</address>
+<address>SWIG 1.3 - Last Modified : September 20, 2001</address>
 </body>
 </html>
