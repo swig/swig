@@ -773,7 +773,6 @@ chicken_csi:
 	X=`pwd` && cd @CHICKENHOME@ && \
 	@CHICKEN@ @CHICKENHOME@/src/csi.scm $(CHICKENOPTS) \
 		-include-path @CHICKENHOME@/src \
-		-postlude "(##csi#run)" \
 		-prologue @CHICKENHOME@/src/build.scm \
 		-prelude "(declare (uses posix $(INTERFACE)))" \
 		-output-file $$X/$(TARGET)

@@ -993,119 +993,119 @@
       <pre>
 % grep C_intern example_wrap.c
   C_word err = C_intern2 (&amp;a, errorhook);
-    sym = C_intern (&amp;a, 21, "example-max-mem-level");
-    sym = C_intern (&amp;a, 17, "example-max-wbits");
-    sym = C_intern (&amp;a, 16, "example-seek-set");
-    sym = C_intern (&amp;a, 16, "example-seek-cur");
-    sym = C_intern (&amp;a, 16, "example-seek-end");
-    sym = C_intern (&amp;a, 20, "example-zlib-version");
-    sym = C_intern (&amp;a, 28, "example-z-stream-next-in-set");
-    sym = C_intern (&amp;a, 28, "example-z-stream-next-in-get");
-    sym = C_intern (&amp;a, 29, "example-z-stream-avail-in-set");
-    sym = C_intern (&amp;a, 29, "example-z-stream-avail-in-get");
-    sym = C_intern (&amp;a, 29, "example-z-stream-total-in-set");
-    sym = C_intern (&amp;a, 29, "example-z-stream-total-in-get");
-    sym = C_intern (&amp;a, 29, "example-z-stream-next-out-set");
-    sym = C_intern (&amp;a, 29, "example-z-stream-next-out-get");
-    sym = C_intern (&amp;a, 30, "example-z-stream-avail-out-set");
-    sym = C_intern (&amp;a, 30, "example-z-stream-avail-out-get");
-    sym = C_intern (&amp;a, 30, "example-z-stream-total-out-set");
-    sym = C_intern (&amp;a, 30, "example-z-stream-total-out-get");
-    sym = C_intern (&amp;a, 24, "example-z-stream-msg-set");
-    sym = C_intern (&amp;a, 24, "example-z-stream-msg-get");
-    sym = C_intern (&amp;a, 26, "example-z-stream-state-set");
-    sym = C_intern (&amp;a, 26, "example-z-stream-state-get");
-    sym = C_intern (&amp;a, 27, "example-z-stream-zalloc-set");
-    sym = C_intern (&amp;a, 27, "example-z-stream-zalloc-get");
-    sym = C_intern (&amp;a, 26, "example-z-stream-zfree-set");
-    sym = C_intern (&amp;a, 26, "example-z-stream-zfree-get");
-    sym = C_intern (&amp;a, 27, "example-z-stream-opaque-set");
-    sym = C_intern (&amp;a, 27, "example-z-stream-opaque-get");
-    sym = C_intern (&amp;a, 30, "example-z-stream-data-type-set");
-    sym = C_intern (&amp;a, 30, "example-z-stream-data-type-get");
-    sym = C_intern (&amp;a, 26, "example-z-stream-adler-set");
-    sym = C_intern (&amp;a, 26, "example-z-stream-adler-get");
-    sym = C_intern (&amp;a, 29, "example-z-stream-reserved-set");
-    sym = C_intern (&amp;a, 29, "example-z-stream-reserved-get");
-    sym = C_intern (&amp;a, 20, "example-new-z-stream");
-    sym = C_intern (&amp;a, 23, "example-delete-z-stream");
-    sym = C_intern (&amp;a, 18, "example-z-no-flush");
-    sym = C_intern (&amp;a, 23, "example-z-partial-flush");
-    sym = C_intern (&amp;a, 20, "example-z-sync-flush");
-    sym = C_intern (&amp;a, 20, "example-z-full-flush");
-    sym = C_intern (&amp;a, 16, "example-z-finish");
-    sym = C_intern (&amp;a, 12, "example-z-ok");
-    sym = C_intern (&amp;a, 20, "example-z-stream-end");
-    sym = C_intern (&amp;a, 19, "example-z-need-dict");
-    sym = C_intern (&amp;a, 15, "example-z-errno");
-    sym = C_intern (&amp;a, 22, "example-z-stream-error");
-    sym = C_intern (&amp;a, 20, "example-z-data-error");
-    sym = C_intern (&amp;a, 19, "example-z-mem-error");
-    sym = C_intern (&amp;a, 19, "example-z-buf-error");
-    sym = C_intern (&amp;a, 23, "example-z-version-error");
-    sym = C_intern (&amp;a, 24, "example-z-no-compression");
-    sym = C_intern (&amp;a, 20, "example-z-best-speed");
-    sym = C_intern (&amp;a, 26, "example-z-best-compression");
-    sym = C_intern (&amp;a, 29, "example-z-default-compression");
-    sym = C_intern (&amp;a, 18, "example-z-filtered");
-    sym = C_intern (&amp;a, 22, "example-z-huffman-only");
-    sym = C_intern (&amp;a, 26, "example-z-default-strategy");
-    sym = C_intern (&amp;a, 16, "example-z-binary");
-    sym = C_intern (&amp;a, 15, "example-z-ascii");
-    sym = C_intern (&amp;a, 17, "example-z-unknown");
-    sym = C_intern (&amp;a, 18, "example-z-deflated");
-    sym = C_intern (&amp;a, 14, "example-z-null");
-    sym = C_intern (&amp;a, 19, "example-zlibversion");
-    sym = C_intern (&amp;a, 15, "example-deflate");
-    sym = C_intern (&amp;a, 18, "example-deflateend");
-    sym = C_intern (&amp;a, 15, "example-inflate");
-    sym = C_intern (&amp;a, 18, "example-inflateend");
-    sym = C_intern (&amp;a, 28, "example-deflatesetdictionary");
-    sym = C_intern (&amp;a, 19, "example-deflatecopy");
-    sym = C_intern (&amp;a, 20, "example-deflatereset");
-    sym = C_intern (&amp;a, 21, "example-deflateparams");
-    sym = C_intern (&amp;a, 28, "example-inflatesetdictionary");
-    sym = C_intern (&amp;a, 19, "example-inflatesync");
-    sym = C_intern (&amp;a, 20, "example-inflatereset");
-    sym = C_intern (&amp;a, 16, "example-compress");
-    sym = C_intern (&amp;a, 17, "example-compress2");
-    sym = C_intern (&amp;a, 18, "example-uncompress");
-    sym = C_intern (&amp;a, 14, "example-gzopen");
-    sym = C_intern (&amp;a, 15, "example-gzdopen");
-    sym = C_intern (&amp;a, 19, "example-gzsetparams");
-    sym = C_intern (&amp;a, 14, "example-gzread");
-    sym = C_intern (&amp;a, 15, "example-gzwrite");
-    sym = C_intern (&amp;a, 16, "example-gzprintf");
-    sym = C_intern (&amp;a, 14, "example-gzputs");
-    sym = C_intern (&amp;a, 14, "example-gzgets");
-    sym = C_intern (&amp;a, 14, "example-gzputc");
-    sym = C_intern (&amp;a, 14, "example-gzgetc");
-    sym = C_intern (&amp;a, 15, "example-gzflush");
-    sym = C_intern (&amp;a, 14, "example-gzseek");
-    sym = C_intern (&amp;a, 16, "example-gzrewind");
-    sym = C_intern (&amp;a, 14, "example-gztell");
-    sym = C_intern (&amp;a, 13, "example-gzeof");
-    sym = C_intern (&amp;a, 15, "example-gzclose");
-    sym = C_intern (&amp;a, 15, "example-gzerror");
-    sym = C_intern (&amp;a, 15, "example-adler32");
-    sym = C_intern (&amp;a, 13, "example-crc32");
-    sym = C_intern (&amp;a, 20, "example-deflateinit-");
-    sym = C_intern (&amp;a, 20, "example-inflateinit-");
-    sym = C_intern (&amp;a, 21, "example-deflateinit2-");
-    sym = C_intern (&amp;a, 21, "example-inflateinit2-");
-    sym = C_intern (&amp;a, 32, "example-internal-state-dummy-set");
-    sym = C_intern (&amp;a, 32, "example-internal-state-dummy-get");
-    sym = C_intern (&amp;a, 26, "example-new-internal-state");
-    sym = C_intern (&amp;a, 29, "example-delete-internal-state");
-    sym = C_intern (&amp;a, 14, "example-zerror");
-    sym = C_intern (&amp;a, 24, "example-inflatesyncpoint");
-    sym = C_intern (&amp;a, 21, "example-get-crc-table");
+    sym = C_intern (&amp;a, 21, "example:max-mem-level");
+    sym = C_intern (&amp;a, 17, "example:max-wbits");
+    sym = C_intern (&amp;a, 16, "example:seek-set");
+    sym = C_intern (&amp;a, 16, "example:seek-cur");
+    sym = C_intern (&amp;a, 16, "example:seek-end");
+    sym = C_intern (&amp;a, 20, "example:zlib-version");
+    sym = C_intern (&amp;a, 28, "example:z-stream-next-in-set");
+    sym = C_intern (&amp;a, 28, "example:z-stream-next-in-get");
+    sym = C_intern (&amp;a, 29, "example:z-stream-avail-in-set");
+    sym = C_intern (&amp;a, 29, "example:z-stream-avail-in-get");
+    sym = C_intern (&amp;a, 29, "example:z-stream-total-in-set");
+    sym = C_intern (&amp;a, 29, "example:z-stream-total-in-get");
+    sym = C_intern (&amp;a, 29, "example:z-stream-next-out-set");
+    sym = C_intern (&amp;a, 29, "example:z-stream-next-out-get");
+    sym = C_intern (&amp;a, 30, "example:z-stream-avail-out-set");
+    sym = C_intern (&amp;a, 30, "example:z-stream-avail-out-get");
+    sym = C_intern (&amp;a, 30, "example:z-stream-total-out-set");
+    sym = C_intern (&amp;a, 30, "example:z-stream-total-out-get");
+    sym = C_intern (&amp;a, 24, "example:z-stream-msg-set");
+    sym = C_intern (&amp;a, 24, "example:z-stream-msg-get");
+    sym = C_intern (&amp;a, 26, "example:z-stream-state-set");
+    sym = C_intern (&amp;a, 26, "example:z-stream-state-get");
+    sym = C_intern (&amp;a, 27, "example:z-stream-zalloc-set");
+    sym = C_intern (&amp;a, 27, "example:z-stream-zalloc-get");
+    sym = C_intern (&amp;a, 26, "example:z-stream-zfree-set");
+    sym = C_intern (&amp;a, 26, "example:z-stream-zfree-get");
+    sym = C_intern (&amp;a, 27, "example:z-stream-opaque-set");
+    sym = C_intern (&amp;a, 27, "example:z-stream-opaque-get");
+    sym = C_intern (&amp;a, 30, "example:z-stream-data-type-set");
+    sym = C_intern (&amp;a, 30, "example:z-stream-data-type-get");
+    sym = C_intern (&amp;a, 26, "example:z-stream-adler-set");
+    sym = C_intern (&amp;a, 26, "example:z-stream-adler-get");
+    sym = C_intern (&amp;a, 29, "example:z-stream-reserved-set");
+    sym = C_intern (&amp;a, 29, "example:z-stream-reserved-get");
+    sym = C_intern (&amp;a, 20, "example:new-z-stream");
+    sym = C_intern (&amp;a, 23, "example:delete-z-stream");
+    sym = C_intern (&amp;a, 18, "example:z-no-flush");
+    sym = C_intern (&amp;a, 23, "example:z-partial-flush");
+    sym = C_intern (&amp;a, 20, "example:z-sync-flush");
+    sym = C_intern (&amp;a, 20, "example:z-full-flush");
+    sym = C_intern (&amp;a, 16, "example:z-finish");
+    sym = C_intern (&amp;a, 12, "example:z-ok");
+    sym = C_intern (&amp;a, 20, "example:z-stream-end");
+    sym = C_intern (&amp;a, 19, "example:z-need-dict");
+    sym = C_intern (&amp;a, 15, "example:z-errno");
+    sym = C_intern (&amp;a, 22, "example:z-stream-error");
+    sym = C_intern (&amp;a, 20, "example:z-data-error");
+    sym = C_intern (&amp;a, 19, "example:z-mem-error");
+    sym = C_intern (&amp;a, 19, "example:z-buf-error");
+    sym = C_intern (&amp;a, 23, "example:z-version-error");
+    sym = C_intern (&amp;a, 24, "example:z-no-compression");
+    sym = C_intern (&amp;a, 20, "example:z-best-speed");
+    sym = C_intern (&amp;a, 26, "example:z-best-compression");
+    sym = C_intern (&amp;a, 29, "example:z-default-compression");
+    sym = C_intern (&amp;a, 18, "example:z-filtered");
+    sym = C_intern (&amp;a, 22, "example:z-huffman-only");
+    sym = C_intern (&amp;a, 26, "example:z-default-strategy");
+    sym = C_intern (&amp;a, 16, "example:z-binary");
+    sym = C_intern (&amp;a, 15, "example:z-ascii");
+    sym = C_intern (&amp;a, 17, "example:z-unknown");
+    sym = C_intern (&amp;a, 18, "example:z-deflated");
+    sym = C_intern (&amp;a, 14, "example:z-null");
+    sym = C_intern (&amp;a, 19, "example:zlibversion");
+    sym = C_intern (&amp;a, 15, "example:deflate");
+    sym = C_intern (&amp;a, 18, "example:deflateend");
+    sym = C_intern (&amp;a, 15, "example:inflate");
+    sym = C_intern (&amp;a, 18, "example:inflateend");
+    sym = C_intern (&amp;a, 28, "example:deflatesetdictionary");
+    sym = C_intern (&amp;a, 19, "example:deflatecopy");
+    sym = C_intern (&amp;a, 20, "example:deflatereset");
+    sym = C_intern (&amp;a, 21, "example:deflateparams");
+    sym = C_intern (&amp;a, 28, "example:inflatesetdictionary");
+    sym = C_intern (&amp;a, 19, "example:inflatesync");
+    sym = C_intern (&amp;a, 20, "example:inflatereset");
+    sym = C_intern (&amp;a, 16, "example:compress");
+    sym = C_intern (&amp;a, 17, "example:compress2");
+    sym = C_intern (&amp;a, 18, "example:uncompress");
+    sym = C_intern (&amp;a, 14, "example:gzopen");
+    sym = C_intern (&amp;a, 15, "example:gzdopen");
+    sym = C_intern (&amp;a, 19, "example:gzsetparams");
+    sym = C_intern (&amp;a, 14, "example:gzread");
+    sym = C_intern (&amp;a, 15, "example:gzwrite");
+    sym = C_intern (&amp;a, 16, "example:gzprintf");
+    sym = C_intern (&amp;a, 14, "example:gzputs");
+    sym = C_intern (&amp;a, 14, "example:gzgets");
+    sym = C_intern (&amp;a, 14, "example:gzputc");
+    sym = C_intern (&amp;a, 14, "example:gzgetc");
+    sym = C_intern (&amp;a, 15, "example:gzflush");
+    sym = C_intern (&amp;a, 14, "example:gzseek");
+    sym = C_intern (&amp;a, 16, "example:gzrewind");
+    sym = C_intern (&amp;a, 14, "example:gztell");
+    sym = C_intern (&amp;a, 13, "example:gzeof");
+    sym = C_intern (&amp;a, 15, "example:gzclose");
+    sym = C_intern (&amp;a, 15, "example:gzerror");
+    sym = C_intern (&amp;a, 15, "example:adler32");
+    sym = C_intern (&amp;a, 13, "example:crc32");
+    sym = C_intern (&amp;a, 20, "example:deflateinit-");
+    sym = C_intern (&amp;a, 20, "example:inflateinit-");
+    sym = C_intern (&amp;a, 21, "example:deflateinit2-");
+    sym = C_intern (&amp;a, 21, "example:inflateinit2-");
+    sym = C_intern (&amp;a, 32, "example:internal-state-dummy-set");
+    sym = C_intern (&amp;a, 32, "example:internal-state-dummy-get");
+    sym = C_intern (&amp;a, 26, "example:new-internal-state");
+    sym = C_intern (&amp;a, 29, "example:delete-internal-state");
+    sym = C_intern (&amp;a, 14, "example:zerror");
+    sym = C_intern (&amp;a, 24, "example:inflatesyncpoint");
+    sym = C_intern (&amp;a, 21, "example:get-crc-table");
       </pre>
     </blockquote>
 
     In fact, we want the Scheme procedure names to begin with
     <code>zlib</code> instead of <code>example</code>.  For
-    <code>example-zlib-version</code>, we want
+    <code>example:zlib-version</code>, we want
     <code>zlib-version</code>.  And we want dashes when the case
     switches to/from upper/lowercase; ex. the function
     <code>deflateEnd()</code> should be the Scheme procedure
@@ -1142,119 +1142,119 @@
 % swig -chicken <font color="red">-prefix zlib -mixed</font> -I/usr/include example.i
 % grep C_intern example_wrap.c
   C_word err = C_intern2 (&amp;a, errorhook);
-    sym = C_intern (&amp;a, 18, "zlib-max-mem-level");
-    sym = C_intern (&amp;a, 14, "zlib-max-wbits");
-    sym = C_intern (&amp;a, 13, "zlib-seek-set");
-    sym = C_intern (&amp;a, 13, "zlib-seek-cur");
-    sym = C_intern (&amp;a, 13, "zlib-seek-end");
-    sym = C_intern (&amp;a, 12, "zlib-version");
-    sym = C_intern (&amp;a, 25, "zlib-z-stream-next-in-set");
-    sym = C_intern (&amp;a, 25, "zlib-z-stream-next-in-get");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-avail-in-set");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-avail-in-get");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-total-in-set");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-total-in-get");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-next-out-set");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-next-out-get");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-avail-out-set");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-avail-out-get");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-total-out-set");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-total-out-get");
-    sym = C_intern (&amp;a, 21, "zlib-z-stream-msg-set");
-    sym = C_intern (&amp;a, 21, "zlib-z-stream-msg-get");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-state-set");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-state-get");
-    sym = C_intern (&amp;a, 24, "zlib-z-stream-zalloc-set");
-    sym = C_intern (&amp;a, 24, "zlib-z-stream-zalloc-get");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-zfree-set");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-zfree-get");
-    sym = C_intern (&amp;a, 24, "zlib-z-stream-opaque-set");
-    sym = C_intern (&amp;a, 24, "zlib-z-stream-opaque-get");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-data-type-set");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-data-type-get");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-adler-set");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-adler-get");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-reserved-set");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-reserved-get");
-    sym = C_intern (&amp;a, 17, "zlib-new-z-stream");
-    sym = C_intern (&amp;a, 20, "zlib-delete-z-stream");
-    sym = C_intern (&amp;a, 15, "zlib-z-no-flush");
-    sym = C_intern (&amp;a, 20, "zlib-z-partial-flush");
-    sym = C_intern (&amp;a, 17, "zlib-z-sync-flush");
-    sym = C_intern (&amp;a, 17, "zlib-z-full-flush");
-    sym = C_intern (&amp;a, 13, "zlib-z-finish");
-    sym = C_intern (&amp;a, 9, "zlib-z-ok");
-    sym = C_intern (&amp;a, 17, "zlib-z-stream-end");
-    sym = C_intern (&amp;a, 16, "zlib-z-need-dict");
-    sym = C_intern (&amp;a, 12, "zlib-z-errno");
-    sym = C_intern (&amp;a, 19, "zlib-z-stream-error");
-    sym = C_intern (&amp;a, 17, "zlib-z-data-error");
-    sym = C_intern (&amp;a, 16, "zlib-z-mem-error");
-    sym = C_intern (&amp;a, 16, "zlib-z-buf-error");
-    sym = C_intern (&amp;a, 20, "zlib-z-version-error");
-    sym = C_intern (&amp;a, 21, "zlib-z-no-compression");
-    sym = C_intern (&amp;a, 17, "zlib-z-best-speed");
-    sym = C_intern (&amp;a, 23, "zlib-z-best-compression");
-    sym = C_intern (&amp;a, 26, "zlib-z-default-compression");
-    sym = C_intern (&amp;a, 15, "zlib-z-filtered");
-    sym = C_intern (&amp;a, 19, "zlib-z-huffman-only");
-    sym = C_intern (&amp;a, 23, "zlib-z-default-strategy");
-    sym = C_intern (&amp;a, 13, "zlib-z-binary");
-    sym = C_intern (&amp;a, 12, "zlib-z-ascii");
-    sym = C_intern (&amp;a, 14, "zlib-z-unknown");
-    sym = C_intern (&amp;a, 15, "zlib-z-deflated");
-    sym = C_intern (&amp;a, 11, "zlib-z-null");
-    sym = C_intern (&amp;a, 17, "zlib-zlib-version");
-    sym = C_intern (&amp;a, 12, "zlib-deflate");
-    sym = C_intern (&amp;a, 16, "zlib-deflate-end");
-    sym = C_intern (&amp;a, 12, "zlib-inflate");
-    sym = C_intern (&amp;a, 16, "zlib-inflate-end");
-    sym = C_intern (&amp;a, 27, "zlib-deflate-set-dictionary");
-    sym = C_intern (&amp;a, 17, "zlib-deflate-copy");
-    sym = C_intern (&amp;a, 18, "zlib-deflate-reset");
-    sym = C_intern (&amp;a, 19, "zlib-deflate-params");
-    sym = C_intern (&amp;a, 27, "zlib-inflate-set-dictionary");
-    sym = C_intern (&amp;a, 17, "zlib-inflate-sync");
-    sym = C_intern (&amp;a, 18, "zlib-inflate-reset");
-    sym = C_intern (&amp;a, 13, "zlib-compress");
-    sym = C_intern (&amp;a, 14, "zlib-compress2");
-    sym = C_intern (&amp;a, 15, "zlib-uncompress");
-    sym = C_intern (&amp;a, 11, "zlib-gzopen");
-    sym = C_intern (&amp;a, 12, "zlib-gzdopen");
-    sym = C_intern (&amp;a, 16, "zlib-gzsetparams");
-    sym = C_intern (&amp;a, 11, "zlib-gzread");
-    sym = C_intern (&amp;a, 12, "zlib-gzwrite");
-    sym = C_intern (&amp;a, 13, "zlib-gzprintf");
-    sym = C_intern (&amp;a, 11, "zlib-gzputs");
-    sym = C_intern (&amp;a, 11, "zlib-gzgets");
-    sym = C_intern (&amp;a, 11, "zlib-gzputc");
-    sym = C_intern (&amp;a, 11, "zlib-gzgetc");
-    sym = C_intern (&amp;a, 12, "zlib-gzflush");
-    sym = C_intern (&amp;a, 11, "zlib-gzseek");
-    sym = C_intern (&amp;a, 13, "zlib-gzrewind");
-    sym = C_intern (&amp;a, 11, "zlib-gztell");
-    sym = C_intern (&amp;a, 10, "zlib-gzeof");
-    sym = C_intern (&amp;a, 12, "zlib-gzclose");
-    sym = C_intern (&amp;a, 12, "zlib-gzerror");
-    sym = C_intern (&amp;a, 12, "zlib-adler32");
-    sym = C_intern (&amp;a, 10, "zlib-crc32");
-    sym = C_intern (&amp;a, 18, "zlib-deflate-init-");
-    sym = C_intern (&amp;a, 18, "zlib-inflate-init-");
-    sym = C_intern (&amp;a, 19, "zlib-deflate-init2-");
-    sym = C_intern (&amp;a, 19, "zlib-inflate-init2-");
-    sym = C_intern (&amp;a, 29, "zlib-internal-state-dummy-set");
-    sym = C_intern (&amp;a, 29, "zlib-internal-state-dummy-get");
-    sym = C_intern (&amp;a, 23, "zlib-new-internal-state");
-    sym = C_intern (&amp;a, 26, "zlib-delete-internal-state");
-    sym = C_intern (&amp;a, 12, "zlib-ze-rror");
-    sym = C_intern (&amp;a, 23, "zlib-inflate-sync-point");
-    sym = C_intern (&amp;a, 18, "zlib-get-crc-table");
+    sym = C_intern (&amp;a, 18, "zlib:max-mem-level");
+    sym = C_intern (&amp;a, 14, "zlib:max-wbits");
+    sym = C_intern (&amp;a, 13, "zlib:seek-set");
+    sym = C_intern (&amp;a, 13, "zlib:seek-cur");
+    sym = C_intern (&amp;a, 13, "zlib:seek-end");
+    sym = C_intern (&amp;a, 12, "zlib:version");
+    sym = C_intern (&amp;a, 25, "zlib:z-stream-next-in-set");
+    sym = C_intern (&amp;a, 25, "zlib:z-stream-next-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-avail-in-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-avail-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-total-in-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-total-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-next-out-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-next-out-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-avail-out-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-avail-out-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-total-out-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-total-out-get");
+    sym = C_intern (&amp;a, 21, "zlib:z-stream-msg-set");
+    sym = C_intern (&amp;a, 21, "zlib:z-stream-msg-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-state-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-state-get");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-zalloc-set");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-zalloc-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-zfree-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-zfree-get");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-opaque-set");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-opaque-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-data-type-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-data-type-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-adler-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-adler-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-reserved-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-reserved-get");
+    sym = C_intern (&amp;a, 17, "zlib:new-z-stream");
+    sym = C_intern (&amp;a, 20, "zlib:delete-z-stream");
+    sym = C_intern (&amp;a, 15, "zlib:z-no-flush");
+    sym = C_intern (&amp;a, 20, "zlib:z-partial-flush");
+    sym = C_intern (&amp;a, 17, "zlib:z-sync-flush");
+    sym = C_intern (&amp;a, 17, "zlib:z-full-flush");
+    sym = C_intern (&amp;a, 13, "zlib:z-finish");
+    sym = C_intern (&amp;a, 9, "zlib:z-ok");
+    sym = C_intern (&amp;a, 17, "zlib:z-stream-end");
+    sym = C_intern (&amp;a, 16, "zlib:z-need-dict");
+    sym = C_intern (&amp;a, 12, "zlib:z-errno");
+    sym = C_intern (&amp;a, 19, "zlib:z-stream-error");
+    sym = C_intern (&amp;a, 17, "zlib:z-data-error");
+    sym = C_intern (&amp;a, 16, "zlib:z-mem-error");
+    sym = C_intern (&amp;a, 16, "zlib:z-buf-error");
+    sym = C_intern (&amp;a, 20, "zlib:z-version-error");
+    sym = C_intern (&amp;a, 21, "zlib:z-no-compression");
+    sym = C_intern (&amp;a, 17, "zlib:z-best-speed");
+    sym = C_intern (&amp;a, 23, "zlib:z-best-compression");
+    sym = C_intern (&amp;a, 26, "zlib:z-default-compression");
+    sym = C_intern (&amp;a, 15, "zlib:z-filtered");
+    sym = C_intern (&amp;a, 19, "zlib:z-huffman-only");
+    sym = C_intern (&amp;a, 23, "zlib:z-default-strategy");
+    sym = C_intern (&amp;a, 13, "zlib:z-binary");
+    sym = C_intern (&amp;a, 12, "zlib:z-ascii");
+    sym = C_intern (&amp;a, 14, "zlib:z-unknown");
+    sym = C_intern (&amp;a, 15, "zlib:z-deflated");
+    sym = C_intern (&amp;a, 11, "zlib:z-null");
+    sym = C_intern (&amp;a, 17, "zlib:zlib-version");
+    sym = C_intern (&amp;a, 12, "zlib:deflate");
+    sym = C_intern (&amp;a, 16, "zlib:deflate-end");
+    sym = C_intern (&amp;a, 12, "zlib:inflate");
+    sym = C_intern (&amp;a, 16, "zlib:inflate-end");
+    sym = C_intern (&amp;a, 27, "zlib:deflate-set-dictionary");
+    sym = C_intern (&amp;a, 17, "zlib:deflate-copy");
+    sym = C_intern (&amp;a, 18, "zlib:deflate-reset");
+    sym = C_intern (&amp;a, 19, "zlib:deflate-params");
+    sym = C_intern (&amp;a, 27, "zlib:inflate-set-dictionary");
+    sym = C_intern (&amp;a, 17, "zlib:inflate-sync");
+    sym = C_intern (&amp;a, 18, "zlib:inflate-reset");
+    sym = C_intern (&amp;a, 13, "zlib:compress");
+    sym = C_intern (&amp;a, 14, "zlib:compress2");
+    sym = C_intern (&amp;a, 15, "zlib:uncompress");
+    sym = C_intern (&amp;a, 11, "zlib:gzopen");
+    sym = C_intern (&amp;a, 12, "zlib:gzdopen");
+    sym = C_intern (&amp;a, 16, "zlib:gzsetparams");
+    sym = C_intern (&amp;a, 11, "zlib:gzread");
+    sym = C_intern (&amp;a, 12, "zlib:gzwrite");
+    sym = C_intern (&amp;a, 13, "zlib:gzprintf");
+    sym = C_intern (&amp;a, 11, "zlib:gzputs");
+    sym = C_intern (&amp;a, 11, "zlib:gzgets");
+    sym = C_intern (&amp;a, 11, "zlib:gzputc");
+    sym = C_intern (&amp;a, 11, "zlib:gzgetc");
+    sym = C_intern (&amp;a, 12, "zlib:gzflush");
+    sym = C_intern (&amp;a, 11, "zlib:gzseek");
+    sym = C_intern (&amp;a, 13, "zlib:gzrewind");
+    sym = C_intern (&amp;a, 11, "zlib:gztell");
+    sym = C_intern (&amp;a, 10, "zlib:gzeof");
+    sym = C_intern (&amp;a, 12, "zlib:gzclose");
+    sym = C_intern (&amp;a, 12, "zlib:gzerror");
+    sym = C_intern (&amp;a, 12, "zlib:adler32");
+    sym = C_intern (&amp;a, 10, "zlib:crc32");
+    sym = C_intern (&amp;a, 18, "zlib:deflate-init-");
+    sym = C_intern (&amp;a, 18, "zlib:inflate-init-");
+    sym = C_intern (&amp;a, 19, "zlib:deflate-init2-");
+    sym = C_intern (&amp;a, 19, "zlib:inflate-init2-");
+    sym = C_intern (&amp;a, 29, "zlib:internal-state-dummy-set");
+    sym = C_intern (&amp;a, 29, "zlib:internal-state-dummy-get");
+    sym = C_intern (&amp;a, 23, "zlib:new-internal-state");
+    sym = C_intern (&amp;a, 26, "zlib:delete-internal-state");
+    sym = C_intern (&amp;a, 12, "zlib:ze-rror");
+    sym = C_intern (&amp;a, 23, "zlib:inflate-sync-point");
+    sym = C_intern (&amp;a, 18, "zlib:get-crc-table");
       </pre>
     </blockquote>
 
     Much better.  The only problem is the identifier
-    <code>zlib-ze-rror</code>, and we are missing
-    <code>zlib-deflate-init</code> and <code>zlib-inflate-init</code>
+    <code>zlib:ze-rror</code>, and we are missing
+    <code>zlib:deflate-init</code> and <code>zlib:inflate-init</code>
     because they are defined as macros (see <a
       href="#initmacros">macro definitions</a>).
 
@@ -1262,7 +1262,7 @@
 
     We make sure to rename <code>zError</code> to
     <code>z_error</code>, and we inline some helper functions for the
-    <code>zlib-...-init</code> macros.  We try again.
+    <code>zlib:...-init</code> macros.  We try again.
 
     <blockquote>
       <pre>
@@ -1304,115 +1304,115 @@ int inflate_init(z_streamp strm) {
 % swig -chicken -prefix zlib -mixed -I/usr/include example.i
 % grep C_intern example_wrap.c
   C_word err = C_intern2 (&amp;a, errorhook);
-    sym = C_intern (&amp;a, 18, "zlib-max-mem-level");
-    sym = C_intern (&amp;a, 14, "zlib-max-wbits");
-    sym = C_intern (&amp;a, 13, "zlib-seek-set");
-    sym = C_intern (&amp;a, 13, "zlib-seek-cur");
-    sym = C_intern (&amp;a, 13, "zlib-seek-end");
-    sym = C_intern (&amp;a, 12, "zlib-version");
-    sym = C_intern (&amp;a, 25, "zlib-z-stream-next-in-set");
-    sym = C_intern (&amp;a, 25, "zlib-z-stream-next-in-get");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-avail-in-set");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-avail-in-get");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-total-in-set");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-total-in-get");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-next-out-set");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-next-out-get");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-avail-out-set");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-avail-out-get");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-total-out-set");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-total-out-get");
-    sym = C_intern (&amp;a, 21, "zlib-z-stream-msg-set");
-    sym = C_intern (&amp;a, 21, "zlib-z-stream-msg-get");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-state-set");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-state-get");
-    sym = C_intern (&amp;a, 24, "zlib-z-stream-zalloc-set");
-    sym = C_intern (&amp;a, 24, "zlib-z-stream-zalloc-get");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-zfree-set");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-zfree-get");
-    sym = C_intern (&amp;a, 24, "zlib-z-stream-opaque-set");
-    sym = C_intern (&amp;a, 24, "zlib-z-stream-opaque-get");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-data-type-set");
-    sym = C_intern (&amp;a, 27, "zlib-z-stream-data-type-get");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-adler-set");
-    sym = C_intern (&amp;a, 23, "zlib-z-stream-adler-get");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-reserved-set");
-    sym = C_intern (&amp;a, 26, "zlib-z-stream-reserved-get");
-    sym = C_intern (&amp;a, 17, "zlib-new-z-stream");
-    sym = C_intern (&amp;a, 20, "zlib-delete-z-stream");
-    sym = C_intern (&amp;a, 15, "zlib-z-no-flush");
-    sym = C_intern (&amp;a, 20, "zlib-z-partial-flush");
-    sym = C_intern (&amp;a, 17, "zlib-z-sync-flush");
-    sym = C_intern (&amp;a, 17, "zlib-z-full-flush");
-    sym = C_intern (&amp;a, 13, "zlib-z-finish");
-    sym = C_intern (&amp;a, 9, "zlib-z-ok");
-    sym = C_intern (&amp;a, 17, "zlib-z-stream-end");
-    sym = C_intern (&amp;a, 16, "zlib-z-need-dict");
-    sym = C_intern (&amp;a, 12, "zlib-z-errno");
-    sym = C_intern (&amp;a, 19, "zlib-z-stream-error");
-    sym = C_intern (&amp;a, 17, "zlib-z-data-error");
-    sym = C_intern (&amp;a, 16, "zlib-z-mem-error");
-    sym = C_intern (&amp;a, 16, "zlib-z-buf-error");
-    sym = C_intern (&amp;a, 20, "zlib-z-version-error");
-    sym = C_intern (&amp;a, 21, "zlib-z-no-compression");
-    sym = C_intern (&amp;a, 17, "zlib-z-best-speed");
-    sym = C_intern (&amp;a, 23, "zlib-z-best-compression");
-    sym = C_intern (&amp;a, 26, "zlib-z-default-compression");
-    sym = C_intern (&amp;a, 15, "zlib-z-filtered");
-    sym = C_intern (&amp;a, 19, "zlib-z-huffman-only");
-    sym = C_intern (&amp;a, 23, "zlib-z-default-strategy");
-    sym = C_intern (&amp;a, 13, "zlib-z-binary");
-    sym = C_intern (&amp;a, 12, "zlib-z-ascii");
-    sym = C_intern (&amp;a, 14, "zlib-z-unknown");
-    sym = C_intern (&amp;a, 15, "zlib-z-deflated");
-    sym = C_intern (&amp;a, 11, "zlib-z-null");
-    sym = C_intern (&amp;a, 17, "zlib-zlib-version");
-    sym = C_intern (&amp;a, 12, "zlib-deflate");
-    sym = C_intern (&amp;a, 16, "zlib-deflate-end");
-    sym = C_intern (&amp;a, 12, "zlib-inflate");
-    sym = C_intern (&amp;a, 16, "zlib-inflate-end");
-    sym = C_intern (&amp;a, 27, "zlib-deflate-set-dictionary");
-    sym = C_intern (&amp;a, 17, "zlib-deflate-copy");
-    sym = C_intern (&amp;a, 18, "zlib-deflate-reset");
-    sym = C_intern (&amp;a, 19, "zlib-deflate-params");
-    sym = C_intern (&amp;a, 27, "zlib-inflate-set-dictionary");
-    sym = C_intern (&amp;a, 17, "zlib-inflate-sync");
-    sym = C_intern (&amp;a, 18, "zlib-inflate-reset");
-    sym = C_intern (&amp;a, 13, "zlib-compress");
-    sym = C_intern (&amp;a, 14, "zlib-compress2");
-    sym = C_intern (&amp;a, 15, "zlib-uncompress");
-    sym = C_intern (&amp;a, 11, "zlib-gzopen");
-    sym = C_intern (&amp;a, 12, "zlib-gzdopen");
-    sym = C_intern (&amp;a, 16, "zlib-gzsetparams");
-    sym = C_intern (&amp;a, 11, "zlib-gzread");
-    sym = C_intern (&amp;a, 12, "zlib-gzwrite");
-    sym = C_intern (&amp;a, 13, "zlib-gzprintf");
-    sym = C_intern (&amp;a, 11, "zlib-gzputs");
-    sym = C_intern (&amp;a, 11, "zlib-gzgets");
-    sym = C_intern (&amp;a, 11, "zlib-gzputc");
-    sym = C_intern (&amp;a, 11, "zlib-gzgetc");
-    sym = C_intern (&amp;a, 12, "zlib-gzflush");
-    sym = C_intern (&amp;a, 11, "zlib-gzseek");
-    sym = C_intern (&amp;a, 13, "zlib-gzrewind");
-    sym = C_intern (&amp;a, 11, "zlib-gztell");
-    sym = C_intern (&amp;a, 10, "zlib-gzeof");
-    sym = C_intern (&amp;a, 12, "zlib-gzclose");
-    sym = C_intern (&amp;a, 12, "zlib-gzerror");
-    sym = C_intern (&amp;a, 12, "zlib-adler32");
-    sym = C_intern (&amp;a, 10, "zlib-crc32");
-    sym = C_intern (&amp;a, 18, "zlib-deflate-init-");
-    sym = C_intern (&amp;a, 18, "zlib-inflate-init-");
-    sym = C_intern (&amp;a, 19, "zlib-deflate-init2-");
-    sym = C_intern (&amp;a, 19, "zlib-inflate-init2-");
-    sym = C_intern (&amp;a, 29, "zlib-internal-state-dummy-set");
-    sym = C_intern (&amp;a, 29, "zlib-internal-state-dummy-get");
-    sym = C_intern (&amp;a, 23, "zlib-new-internal-state");
-    sym = C_intern (&amp;a, 26, "zlib-delete-internal-state");
-    sym = C_intern (&amp;a, 12, "zlib-z-error");
-    sym = C_intern (&amp;a, 23, "zlib-inflate-sync-point");
-    sym = C_intern (&amp;a, 18, "zlib-get-crc-table");
-    sym = C_intern (&amp;a, 17, "zlib-deflate-init");
-    sym = C_intern (&amp;a, 17, "zlib-inflate-init");
+    sym = C_intern (&amp;a, 18, "zlib:max-mem-level");
+    sym = C_intern (&amp;a, 14, "zlib:max-wbits");
+    sym = C_intern (&amp;a, 13, "zlib:seek-set");
+    sym = C_intern (&amp;a, 13, "zlib:seek-cur");
+    sym = C_intern (&amp;a, 13, "zlib:seek-end");
+    sym = C_intern (&amp;a, 12, "zlib:version");
+    sym = C_intern (&amp;a, 25, "zlib:z-stream-next-in-set");
+    sym = C_intern (&amp;a, 25, "zlib:z-stream-next-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-avail-in-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-avail-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-total-in-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-total-in-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-next-out-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-next-out-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-avail-out-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-avail-out-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-total-out-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-total-out-get");
+    sym = C_intern (&amp;a, 21, "zlib:z-stream-msg-set");
+    sym = C_intern (&amp;a, 21, "zlib:z-stream-msg-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-state-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-state-get");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-zalloc-set");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-zalloc-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-zfree-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-zfree-get");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-opaque-set");
+    sym = C_intern (&amp;a, 24, "zlib:z-stream-opaque-get");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-data-type-set");
+    sym = C_intern (&amp;a, 27, "zlib:z-stream-data-type-get");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-adler-set");
+    sym = C_intern (&amp;a, 23, "zlib:z-stream-adler-get");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-reserved-set");
+    sym = C_intern (&amp;a, 26, "zlib:z-stream-reserved-get");
+    sym = C_intern (&amp;a, 17, "zlib:new-z-stream");
+    sym = C_intern (&amp;a, 20, "zlib:delete-z-stream");
+    sym = C_intern (&amp;a, 15, "zlib:z-no-flush");
+    sym = C_intern (&amp;a, 20, "zlib:z-partial-flush");
+    sym = C_intern (&amp;a, 17, "zlib:z-sync-flush");
+    sym = C_intern (&amp;a, 17, "zlib:z-full-flush");
+    sym = C_intern (&amp;a, 13, "zlib:z-finish");
+    sym = C_intern (&amp;a, 9, "zlib:z-ok");
+    sym = C_intern (&amp;a, 17, "zlib:z-stream-end");
+    sym = C_intern (&amp;a, 16, "zlib:z-need-dict");
+    sym = C_intern (&amp;a, 12, "zlib:z-errno");
+    sym = C_intern (&amp;a, 19, "zlib:z-stream-error");
+    sym = C_intern (&amp;a, 17, "zlib:z-data-error");
+    sym = C_intern (&amp;a, 16, "zlib:z-mem-error");
+    sym = C_intern (&amp;a, 16, "zlib:z-buf-error");
+    sym = C_intern (&amp;a, 20, "zlib:z-version-error");
+    sym = C_intern (&amp;a, 21, "zlib:z-no-compression");
+    sym = C_intern (&amp;a, 17, "zlib:z-best-speed");
+    sym = C_intern (&amp;a, 23, "zlib:z-best-compression");
+    sym = C_intern (&amp;a, 26, "zlib:z-default-compression");
+    sym = C_intern (&amp;a, 15, "zlib:z-filtered");
+    sym = C_intern (&amp;a, 19, "zlib:z-huffman-only");
+    sym = C_intern (&amp;a, 23, "zlib:z-default-strategy");
+    sym = C_intern (&amp;a, 13, "zlib:z-binary");
+    sym = C_intern (&amp;a, 12, "zlib:z-ascii");
+    sym = C_intern (&amp;a, 14, "zlib:z-unknown");
+    sym = C_intern (&amp;a, 15, "zlib:z-deflated");
+    sym = C_intern (&amp;a, 11, "zlib:z-null");
+    sym = C_intern (&amp;a, 17, "zlib:zlib-version");
+    sym = C_intern (&amp;a, 12, "zlib:deflate");
+    sym = C_intern (&amp;a, 16, "zlib:deflate-end");
+    sym = C_intern (&amp;a, 12, "zlib:inflate");
+    sym = C_intern (&amp;a, 16, "zlib:inflate-end");
+    sym = C_intern (&amp;a, 27, "zlib:deflate-set-dictionary");
+    sym = C_intern (&amp;a, 17, "zlib:deflate-copy");
+    sym = C_intern (&amp;a, 18, "zlib:deflate-reset");
+    sym = C_intern (&amp;a, 19, "zlib:deflate-params");
+    sym = C_intern (&amp;a, 27, "zlib:inflate-set-dictionary");
+    sym = C_intern (&amp;a, 17, "zlib:inflate-sync");
+    sym = C_intern (&amp;a, 18, "zlib:inflate-reset");
+    sym = C_intern (&amp;a, 13, "zlib:compress");
+    sym = C_intern (&amp;a, 14, "zlib:compress2");
+    sym = C_intern (&amp;a, 15, "zlib:uncompress");
+    sym = C_intern (&amp;a, 11, "zlib:gzopen");
+    sym = C_intern (&amp;a, 12, "zlib:gzdopen");
+    sym = C_intern (&amp;a, 16, "zlib:gzsetparams");
+    sym = C_intern (&amp;a, 11, "zlib:gzread");
+    sym = C_intern (&amp;a, 12, "zlib:gzwrite");
+    sym = C_intern (&amp;a, 13, "zlib:gzprintf");
+    sym = C_intern (&amp;a, 11, "zlib:gzputs");
+    sym = C_intern (&amp;a, 11, "zlib:gzgets");
+    sym = C_intern (&amp;a, 11, "zlib:gzputc");
+    sym = C_intern (&amp;a, 11, "zlib:gzgetc");
+    sym = C_intern (&amp;a, 12, "zlib:gzflush");
+    sym = C_intern (&amp;a, 11, "zlib:gzseek");
+    sym = C_intern (&amp;a, 13, "zlib:gzrewind");
+    sym = C_intern (&amp;a, 11, "zlib:gztell");
+    sym = C_intern (&amp;a, 10, "zlib:gzeof");
+    sym = C_intern (&amp;a, 12, "zlib:gzclose");
+    sym = C_intern (&amp;a, 12, "zlib:gzerror");
+    sym = C_intern (&amp;a, 12, "zlib:adler32");
+    sym = C_intern (&amp;a, 10, "zlib:crc32");
+    sym = C_intern (&amp;a, 18, "zlib:deflate-init-");
+    sym = C_intern (&amp;a, 18, "zlib:inflate-init-");
+    sym = C_intern (&amp;a, 19, "zlib:deflate-init2-");
+    sym = C_intern (&amp;a, 19, "zlib:inflate-init2-");
+    sym = C_intern (&amp;a, 29, "zlib:internal-state-dummy-set");
+    sym = C_intern (&amp;a, 29, "zlib:internal-state-dummy-get");
+    sym = C_intern (&amp;a, 23, "zlib:new-internal-state");
+    sym = C_intern (&amp;a, 26, "zlib:delete-internal-state");
+    sym = C_intern (&amp;a, 12, "zlib:z-error");
+    sym = C_intern (&amp;a, 23, "zlib:inflate-sync-point");
+    sym = C_intern (&amp;a, 18, "zlib:get-crc-table");
+    sym = C_intern (&amp;a, 17, "zlib:deflate-init");
+    sym = C_intern (&amp;a, 17, "zlib:inflate-init");
       </pre>
     </blockquote>
 
@@ -1440,27 +1440,27 @@ zlib
 
 Scheme Procedures:
 
-zlib-max-mem-level
-zlib-max-wbits
-zlib-seek-set
-zlib-seek-cur
-zlib-seek-end
-zlib-version
-zlib-z-stream-next-in-set
-zlib-z-stream-next-in-get
-zlib-z-stream-avail-in-set
+zlib:max-mem-level
+zlib:max-wbits
+zlib:seek-set
+zlib:seek-cur
+zlib:seek-end
+zlib:version
+zlib:z-stream-next-in-set
+zlib:z-stream-next-in-get
+zlib:z-stream-avail-in-set
 ...
-zlib-get-crc-table
-zlib-deflate-init
-zlib-inflate-init
+zlib:get-crc-table
+zlib:deflate-init
+zlib:inflate-init
 ; This is the CHICKEN interpreter - Version 0, Build 1095 - windows-cygwin-x86
 ; (c)2000-2003 Felix L. Winkelmann
-&gt;&gt;&gt; (define s (zlib-new-z-stream))
+&gt;&gt;&gt; (define s (zlib:new-z-stream))
 &gt;&gt;&gt; s
 #&lt;tagged pointer #&lt;c++ "z_stream *"&gt;(#&lt;pointer 6d9290&gt;)&gt;
-&gt;&gt;&gt; (zlib-z-stream-next-in-get s)
+&gt;&gt;&gt; (zlib:z-stream-next-in-get s)
 #f
-&gt;&gt;&gt; (zlib-z-stream-next-in-set s "some dummy stream data")
+&gt;&gt;&gt; (zlib:z-stream-next-in-set s "some dummy stream data")
 Error: Type error. Expected _p_Bytef: "bad argument type"
 &gt;&gt;&gt; (exit)
       </pre>
@@ -1524,38 +1524,38 @@ zlib
 
 Scheme Procedures:
 
-zlib-max-mem-level
-zlib-max-wbits
-zlib-seek-set
-zlib-seek-cur
-zlib-seek-end
-zlib-version
-zlib-z-stream-next-in-set
-zlib-z-stream-next-in-get
-zlib-z-stream-avail-in-set
+zlib:max-mem-level
+zlib:max-wbits
+zlib:seek-set
+zlib:seek-cur
+zlib:seek-end
+zlib:version
+zlib:z-stream-next-in-set
+zlib:z-stream-next-in-get
+zlib:z-stream-avail-in-set
 ...
-zlib-get-crc-table
-zlib-deflate-init
-zlib-inflate-init
+zlib:get-crc-table
+zlib:deflate-init
+zlib:inflate-init
 ; This is the CHICKEN interpreter - Version 0, Build 1095 - windows-cygwin-x86
 ; (c)2000-2003 Felix L. Winkelmann
-&gt;&gt;&gt; (define s (zlib-new-z-stream))
+&gt;&gt;&gt; (define s (zlib:new-z-stream))
 <em>Init zstream</em>
-&gt;&gt;&gt; (zlib-z-stream-zalloc-set s #f) 
-&gt;&gt;&gt; (zlib-z-stream-zfree-set s #f)
-&gt;&gt;&gt; (zlib-z-stream-opaque-set s #f)
-&gt;&gt;&gt; (zlib-deflate-init s (zlib-z-default-compression))
+&gt;&gt;&gt; (zlib:z-stream-zalloc-set s #f) 
+&gt;&gt;&gt; (zlib:z-stream-zfree-set s #f)
+&gt;&gt;&gt; (zlib:z-stream-opaque-set s #f)
+&gt;&gt;&gt; (zlib:deflate-init s (zlib:z-default-compression))
 0
 <em>Deflate something small so we don't need to loop/stream data</em>
 &gt;&gt;&gt; (define in "some dummy data")
 &gt;&gt;&gt; (define out (make-string 1000))
-&gt;&gt;&gt; (zlib-z-stream-next-in-set s in)
-&gt;&gt;&gt; (zlib-z-stream-avail-in-set s (string-length in))
-&gt;&gt;&gt; (zlib-z-stream-next-out-set s out)
-&gt;&gt;&gt; (zlib-z-stream-avail-out-set s (string-length out))
-&gt;&gt;&gt; (zlib-deflate s (zlib-z-finish))
-1 <em>;; (zlib-z-stream-end) == 1, which is good</em>
-&gt;&gt;&gt; (zlib-z-stream-total-out-get s)
+&gt;&gt;&gt; (zlib:z-stream-next-in-set s in)
+&gt;&gt;&gt; (zlib:z-stream-avail-in-set s (string-length in))
+&gt;&gt;&gt; (zlib:z-stream-next-out-set s out)
+&gt;&gt;&gt; (zlib:z-stream-avail-out-set s (string-length out))
+&gt;&gt;&gt; (zlib:deflate s (zlib:z-finish))
+1 <em>;; (zlib:z-stream-end) == 1, which is good</em>
+&gt;&gt;&gt; (zlib:z-stream-total-out-get s)
 23.
 &gt;&gt;&gt; out
 "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "
@@ -1567,7 +1567,7 @@ zlib-inflate-init
     when SWIG CHICKEN passes a Scheme string to a C function, it
     duplicates the string before calling the C function.  We want to
     save the memory address that
-    <code>zlib-z-stream-next-out-set</code> is using, so we can
+    <code>zlib:z-stream-next-out-set</code> is using, so we can
     display this later.  While we are at it, we can foresee that
     <code>compress</code>, <code>compress2</code> and
     <code>uncompress</code> will all need some finessing to work with
