@@ -172,9 +172,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   extern  int check_suffix(char *);
   int     dump_tags = 0;
   int     dump_tree = 0;
-
+  int     contracts = 0;
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
+  extern  void Swig_contracts(Node *n);
 
   /* Initialize the SWIG core */
   Swig_init();
@@ -324,6 +325,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-dump_tree") == 0) {
 	    dump_tree = 1;
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-contracts") == 0) {
+	    Swig_mark_arg(i);
+	    contracts = 1;
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	    Swig_mark_arg(i);
@@ -446,7 +450,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (dump_tree) {
       Swig_dump_tree(top);
     }
-
     if (top) {
       if (!Getattr(top,"name")) {
 	Printf(stderr,"*** No module name specified using %%module or -module.\n");
@@ -462,6 +465,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  }
 	} else {
 	  Setattr(top,"outfile", outfile_name);
+	}
+	if (contracts) {
+	  Swig_contracts(top);
 	}
 	lang->top(top);
       }
