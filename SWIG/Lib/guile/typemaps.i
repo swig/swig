@@ -183,8 +183,39 @@
  SIMPLE_MAP(size_t, gh_scm2ulong, gh_ulong2scm, integer);
  SIMPLE_MAP(float, gh_scm2double, gh_double2scm, real);
  SIMPLE_MAP(double, gh_scm2double, gh_double2scm, real);
- SIMPLE_MAP(char *, SWIG_scm2str, gh_str02scm, string);
- SIMPLE_MAP(const char *, SWIG_scm2str, gh_str02scm, string);
+// SIMPLE_MAP(char *, SWIG_scm2str, gh_str02scm, string);
+// SIMPLE_MAP(const char *, SWIG_scm2str, gh_str02scm, string);
+
+ %typemap (in,     doc="($name <string>)")      char *(int must_free = 0) {
+  $1 = SWIG_scm2str($input);
+  must_free = 1;
+ }
+ %typemap (varin,  doc="(new-value <string>)")  char * {$1 = SWIG_scm2str($input);}
+ %typemap (out,    doc="<string>")              char * {$result = gh_str02scm($1);}
+ %typemap (varout, doc="<string>")              char * {$result = gh_str02scm($1);}
+ %typemap (in, doc="($name <string>)")          char * *INPUT(char * temp, int must_free = 0) {
+   temp = (char *) SWIG_scm2str($input); $1 = &temp;
+   must_free = 1;
+ }
+ %typemap (ignore)  char * *OUTPUT (char * temp)
+   {$1 = &temp;}
+ %typemap (argout,doc="($name <string>)") char * *OUTPUT
+   {SWIG_APPEND_VALUE(gh_str02scm(*$1));}
+ %typemap (in)          char * *BOTH = char * *INPUT;
+ %typemap (argout)      char * *BOTH = char * *OUTPUT;
+ %typemap (in)          char * *INOUT = char * *INPUT;
+ %typemap (argout)      char * *INOUT = char * *OUTPUT;
+
+/* GSWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
+   the function call. */
+
+%typemap (freearg) char * "if (must_free$argnum && $1) scm_must_free($1);";
+%typemap (freearg) char **OUTPUT, char **BOTH "if (must_free$argnum && (*$1)) scm_must_free(*$1);"
+
+/* But this shall not apply if we try to pass a single char by
+   reference. */
+
+%typemap (freearg) char *OUTPUT, char *BOTH "";
 
 /* Typemaps for constant references */
 
@@ -212,17 +243,6 @@
  REF_MAP(unsigned long, gh_scm2ulong, gh_ulong2scm, integer);
  REF_MAP(float, gh_scm2double, gh_double2scm, real);
  REF_MAP(double, gh_scm2double, gh_double2scm, real);
-
-/* GSWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
-   the function call. */
-
-%typemap (freearg) char * "if ($1) scm_must_free($1);";
-%typemap (freearg) char **OUTPUT, char **BOTH "if (*$1) scm_must_free(*$1);"
-
-/* But this shall not apply if we try to pass a single char by
-   reference. */
-
-%typemap (freearg) char *OUTPUT, char *BOTH "";
 
 /* If we set a string variable, delete the old result first. */
 
