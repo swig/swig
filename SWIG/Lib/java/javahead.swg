@@ -3,6 +3,7 @@
 #endif
 #include <jni.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 #   define JCALL0(func, jenv) jenv->func()
