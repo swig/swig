@@ -1,6 +1,15 @@
 Version 1.3.22 (in progress)
 ==================================
 
+08/22/2004: wsfulton
+            As discussed in bug #772453, the SWIG library directory is now installed
+            into a different default directory. The library used to be installed to
+            /usr/local/lib/swig1.3. It is now in the more usual architecture independent
+            directory and I have additionally used a version specific subdirectory as
+            the library will rarely work with older versions of SWIG. This release
+            will thus use /usr/local/share/swig/1.3.22 by default, which can be
+            tailored as before using './configure --swiglibdir'.
+
 08/17/2004: mkoeppe
 	    [MzScheme] Add support to create native MzScheme structures from C structures.
 	    To convert a C structure to an MzScheme structure, use the new runtime macro
