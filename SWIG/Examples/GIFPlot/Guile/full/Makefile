@@ -9,10 +9,17 @@ INCLUDE    = -I../../Include
 
 all:: static
 
-static::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+dynamic:: 
+	$(MAKE) -f $(TOP)/Makefile TOP='$(TOP)' \
+	SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	INCLUDE='$(INCLUDE)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
-	TARGET='gifguile' INTERFACE='$(INTERFACE)' guile_static
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' guile
+
+static::
+	$(MAKE) -f $(TOP)/Makefile TOP='$(TOP)' \
+	SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	INCLUDE='$(INCLUDE)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' guile_static
 
 clean::
 	rm -f *_wrap* *.o *~ *.so gifguile .~* core *.gif

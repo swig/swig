@@ -1,5 +1,8 @@
 ;;; Plot a 3D function
 
+;; Use the wrapped GIFPlot library
+(use-modules (gifplot))
+
 ;; Here is the function to plot
 (define (func x y)
   (* 5

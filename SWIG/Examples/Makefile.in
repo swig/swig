@@ -244,39 +244,23 @@ python_static_cpp: $(SRCS)
 GUILE_INCLUDE = @GUILEINCLUDE@
 GUILE_LIB     = @GUILELIB@
 
-
-# ----------------------------------------------------------------
-# Build a C dynamically loadable module
-# ----------------------------------------------------------------
-
-guile-hobbit: $(SRCS)
-	$(SWIG) -guile -Linkage hobbit $(SWIGOPT) $(INTERFACE)
-	for f in $^ ; do $(libtool_comp) $(CC) -c -O2 $(INCLUDE) $$f ; done
-	$(libtool_link) $(CC) -g -O2 -o lib$^.la -rpath `pwd` $^
-
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
 guile: $(SRCS)
-	$(SWIG) -guile $(SWIGOPT) $(INTERFACE)
-	for f in $(ISRCS) ; do $(libtool_comp)                          \
-                $(CC) -c $(INCLUDE) $(GUILE_INCLUDE) $(ISRCS) ; done
-	$(libtool_link) $(LDSHARED) -o lib$(TARGET)$(SO)        \
-                $(OBJS) $(IOBJS) $(LIBS)
+	$(SWIG) -guile -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDE) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o lib$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build a C++ dynamically loadable module
 # -----------------------------------------------------------------
 
 guile_cpp: $(SRCS)
-	$(SWIG) -c++ -guile $(SWIGOPT) $(INTERFACE)
-	$(libtool) compile                                              \
-                $(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS)        \
-                        $(INCLUDE) $(GUILE_INCLUDE)
-	$(libtool) link                                                 \
-                $(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS)     \
-                        -o lib$(TARGET)$(SO)
+	$(SWIG) -c++ -guile -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDE) $(GUILE_INCLUDE) $(ISRCS) $(SRCS) $(CXXSRCS)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o lib$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build statically linked Guile interpreter
@@ -285,14 +269,16 @@ guile_cpp: $(SRCS)
 GUILE_LIBOPTS = @GUILELINK@ @LIBS@ $(SYSLIBS)
 
 guile_static: $(SRCS)
-	$(SWIG) -guile -lguilemain.i $(SWIGOPT) $(INTERFACE)
-	$(CC) $(CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDE) \
-	$(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)
+	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
+	$(CC) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) \
+	  -DSWIGINIT="scm_init_$(TARGET)_module();" \
+	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_static_cpp: $(SRCS)
-	$(SWIG) -c++ -guile -lguilemain.i $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
 	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
-	$(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)
+	  -DSWIGINIT="scm_init_$(TARGET)_module();" \
+	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 
 ##################################################################

@@ -35,7 +35,11 @@ GDB_INTERFACE;
 static void
 inner_main(void *closure, int argc, char **argv)
 {
+#ifdef SWIGINIT
+  SWIGINIT
+#else
   SWIG_init();			/* SWIG init function */
+#endif
   scm_shell(argc, argv);	/* scheme interpreter */
   /* never reached: scm_shell will perform an exit */
 }
