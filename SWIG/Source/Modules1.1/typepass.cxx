@@ -174,7 +174,6 @@ class TypePass : public Dispatcher {
 		    }
 
 		    if (tname) Delete(tname);
-
 		    if (!bcls) {
 			if (!clsforward) {
 			    if (!Getmeta(bname,"already_warned")) {
@@ -211,6 +210,14 @@ class TypePass : public Dispatcher {
 	    if (scopes) {
 		SwigType_inherit_scope(scopes);
 	    }
+	    /* Set up inheritance in the symbol table */
+	    Symtab *s = Swig_symbol_current();
+	    Symtab *st = Getattr(cls,"symtab");
+	    Swig_symbol_setscope(st);
+	    Swig_symbol_inherit(Getattr(bclass,"symtab"));
+	    Swig_symbol_setscope(s);
+
+            /* Recursively hit base classes */
 	    cplus_inherit_types(bclass,clsname);
 	}
     }

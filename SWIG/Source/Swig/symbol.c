@@ -324,12 +324,17 @@ Swig_symbol_alias(String_or_char *aliasname, Symtab *s) {
  * ----------------------------------------------------------------------------- */
 
 void Swig_symbol_inherit(Symtab *s) {
+  int i;
   List *inherit = Getattr(current_symtab,"inherit");
   if (!inherit) {
     inherit = NewList();
     Setattr(current_symtab,"inherit", inherit);
   }
   assert(s != current_symtab);
+  for (i = 0; i < Len(inherit); i++) {
+    Node *n = Getitem(inherit,i);
+    if (n == s) return;              /* Already inherited */
+  }
   Append(inherit,s);
 }
 

@@ -43,7 +43,10 @@ class Allocate : public Dispatcher {
 	String *name = Getattr(nn,"name");
 	if (Strstr(name,"~")) continue;   /* Don't care about destructors */
 	Node *dn = Swig_symbol_clookup(name,0);
-	assert(dn);   // Assertion of doom
+	if (!dn) {
+	  Printf(stdout,"node: %x '%s'. base: %x '%s'. member '%s'\n", n, Getattr(n,"name"), base, Getattr(base,"name"), name);
+	}
+	//	assert(dn);   // Assertion of doom
 	if (dn && (Getattr(dn,"abstract"))) {
 	  return 1;
 	} 
@@ -184,7 +187,7 @@ public:
 
     if (is_abstract_inherit(n)) {
       if ((!Getattr(n,"abstract")) && ((Getattr(n,"allocate:public_constructor") || (!Getattr(n,"feature:nodefault") && !Getattr(n,"allocate:has_constructor"))))) {
-	Swig_warning(WARN_TYPE_ABSTRACT,Getfile(n),Getline(n),"Class '%s' might be abstract. \n", Getattr(n,"name"));
+	Swig_warning(WARN_TYPE_ABSTRACT,Getfile(n),Getline(n),"Class '%s' might be abstract. \n", SwigType_namestr(Getattr(n,"name")));
 		     /*	Setattr(n,"abstract",NewList()); */
       }
     }
