@@ -85,14 +85,9 @@ static const char *usage2 = (const char*)"\
      -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
      -Wallkw         - Enable keyword warnings for all the supported languages\n\
-     -Werror         - Force to treat warnings as errors\n\
-     -w<list>        - Suppress/add warning messages by code. \n\
-                       Use ',' as separator and the +/- signs as follows \n\
-                                             \n\
-                             -w+321,401,-402 \n\
-                                             \n\
-                       where code 321(+) is added, and 401(no sign) and 402(-) \n\
-                       are suppressed. See documentation for code meanings.\n\
+     -Werror         - Treat warnings as errors\n\
+     -w<list>        - Suppress/add warning messages eg -w401,+321 - see Warnings.html\n\
+     -xmlout <file>  - Write XML version of the parse tree to <file> after normal processing\n\
 \n";
 
 // Local variables
@@ -100,6 +95,7 @@ static int     freeze = 0;
 static String  *lang_config = 0;
 static char    *cpp_extension = (char *) "cxx";
 static String  *outdir = 0;
+static String  *xmlout = 0;
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
@@ -217,6 +213,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     includecount = 0;
   int     dump_tags = 0;
   int     dump_tree = 0;
+  int     dump_xml = 0;
   int     browse = 0;
   int     dump_typedef = 0;
   int     dump_classes = 0;
@@ -496,6 +493,18 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-dump_tree") == 0) {
 	    dump_tree = 1;
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dump_xml") == 0) {
+	    dump_xml = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-xmlout") == 0) {
+	    dump_xml = 1;
+	    Swig_mark_arg(i);
+	    if (argv[i+1]) {
+	      xmlout = NewString(argv[i+1]);	    
+	      Swig_mark_arg(i+1);
+	    } else {
+	      Swig_arg_error();
+	    }
 	  } else if (strcmp(argv[i],"-nocontract") == 0) {
 	    Swig_mark_arg(i);
 	    Swig_contract_mode_set(0);
@@ -747,6 +756,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
     if (dump_tree) {
       Swig_print_tree(top);
+    }
+    if (dump_xml) {
+      Swig_print_xml(top, xmlout);
     }
   }
   if (tm_debug) Swig_typemap_debug();
