@@ -27,4 +27,4 @@ clean::
 	rm -f $(TARGET)
 
 check::
-	csi -batch simple.so test-simple.scm
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH csi test-simple.scm

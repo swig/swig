@@ -2,6 +2,8 @@
  * CHICKEN module for SWIG
  *
  * Author : Jonah Beckford
+ * 
+ * Major restructuring: John Lenz
  *
  * Modified from mzscheme.cxx, guile.cxx and python.cxx : David
  * Beazley
@@ -62,7 +64,7 @@ static int           useclassprefix = 0;
 static String        *closprefix = 0;
 static String        *memberfunction_name = 0;
 static  int          hide_primitive = 1;
-static  String       *primitive_hide = 0;
+static Hash          *primitive_names = 0;
 
 class CHICKEN : public Language {
 public:
@@ -78,6 +80,7 @@ public:
   virtual int  membervariableHandler(Node *n);
   virtual int  constructorHandler(Node *n);
   virtual int  validIdentifier(String *s);
+  virtual int staticmembervariableHandler(Node *n);
 
 protected:
   void    addMethod(String *scheme_name, String *function);
@@ -86,6 +89,7 @@ protected:
   void    dispatchFunction(Node *n);
 
   String *chickenNameMapping(String *, String_or_char *);
+  String *chickenPrimitiveName(String *);
 };
 
 /* -----------------------------------------------------------------------
@@ -136,6 +140,8 @@ CHICKEN::main(int argc, char *argv[])
     }
   }
 
+  if (!clos) hide_primitive = 0;
+
   // Add a symbol for this module
   Preprocessor_define("SWIGCHICKEN 1",0);
     
@@ -169,7 +175,7 @@ CHICKEN::top(Node *n)
   chickentext = NewString("");
   closhelpers = NewString("");
   f_sym_size = NewString("");
-  primitive_hide = NewString("");
+  primitive_names = NewHash();
     
   /* Register file targets with the SWIG file handler */
   Swig_register_filebyname("header",f_header);
@@ -227,15 +233,13 @@ CHICKEN::top(Node *n)
 	 tab4, "(foreign-declare \"C_extern void swig_", module, "_init(int,C_word,C_word) C_noret;\"))\n", NIL);
   Printv(f_scm,"(define swig-init (##core#primitive \"swig_", module,
 	 "_init\"))\n", NIL);
-  Printv(f_scm,"(swig-init)\n\n", NIL);
+  Printv(f_scm,"(define swig-init-return (swig-init))\n\n", NIL);
 
   if (clos) {
     Printf (f_scm, "(declare (uses tinyclos))\n");
     Replaceall(closhelpers,"$module", scmmodule);
     Printf (f_scm, "%s\n", closhelpers);
     Printf (f_scm, "%s\n", closcode);
-    if (hide_primitive)
-        Printf(f_scm, "(declare (hide %s))\n", primitive_hide);
   }
 
   Printf(f_scm, "%s\n", chickentext);
@@ -249,12 +253,17 @@ CHICKEN::top(Node *n)
   Replaceall(f_init, "$nummethods", buftmp);
   Replaceall(f_init, "$symsize", f_sym_size);
 
+  if (hide_primitive)
+    Replaceall(f_init, "$veclength", buftmp);
+  else
+    Replaceall(f_init, "$veclength", "0");
+
   Delete(chicken_filename);
   Delete(chickentext);
   Delete(closhelpers);
-  Delete(primitive_hide);
 
   /* Close all of the files */
+  Delete(primitive_names);
   Delete(scmmodule);
   Dump(f_header,f_runtime);
   Dump(f_wrappers,f_runtime);
@@ -266,6 +275,14 @@ CHICKEN::top(Node *n)
   Close(f_runtime);
   Delete(f_runtime);
   return SWIG_OK;
+}
+
+static int checkNodeClass(Node *n) {
+  String *kind = Getattr(n, "kind");
+  if (kind && Strcmp(kind, "class") == 0)
+      return 1;
+  else
+      return 0;
 }
   
 int
@@ -401,7 +418,7 @@ CHICKEN::functionWrapper(Node *n)
           if (clos) {
               if (i < num_required) {
                   if (strcmp("void", Char(pt)) != 0) {
-                      Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
+                      Node *class_node = Swig_symbol_clookup_check(pb, Getattr(n, "sym:symtab"), checkNodeClass);
                       String *closclassname = (class_node == NULL) ? NULL : Getattr(class_node, "chicken:closclassname");
                       if (closclassname) {
                           Printv(method_signature, " (", argname, " ", closclassname, ")", NIL);
@@ -540,16 +557,22 @@ CHICKEN::functionWrapper(Node *n)
   Setattr(n,"wrap:name", wname);
 
   /* Now register the function with the interpreter.   */
+  int exportclos = 0;
   if (!Getattr(n,"sym:overloaded")) {
     addMethod(scmname, wname);
+    exportclos = 1;
   }
   else {
     if (!Getattr(n,"sym:nextSibling")) {
       dispatchFunction(n);
+      exportclos = 1;
     }
   }
 
-  if (!in_class || memberfunction_name) {
+  /* only export the clos function if sym:overloaded is false or last function in list of overloaded members
+   * also only export if we are not in a class, or if in a class memberfunction (this protects against member variables
+   * and static functions and so forth, which are generated seperatly */
+  if (exportclos && (!in_class || memberfunction_name)) {
       String *method_def = NewString("");
       String *clos_name;
       if (in_class)
@@ -559,13 +582,13 @@ CHICKEN::functionWrapper(Node *n)
       Replaceall(method_signature, "_", "-");
       Replaceall(method_signature, "_", "-");
       if (!any_specialized_arg) {
-          Printv(method_def, "(define ", clos_name, " primitive:", scmname, ")\n", NIL);
+          Printv(method_def, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
       } else if (num_required == num_arguments) {
           Printv(method_def, "(define-method (", clos_name, method_signature, ")\n", NIL);
-          Printv(method_def, "  (primitive:", scmname, primitive_args, "))\n", NIL);
+          Printv(method_def, "  (", chickenPrimitiveName(scmname), primitive_args, "))\n", NIL);
       } else {
           Printv(method_def, "(define-method (", clos_name, method_signature, " . %args)\n", NIL);
-          Printv(method_def, "  (apply primitive:", scmname, primitive_args, " %args))\n", NIL);
+          Printv(method_def, "  (apply ", chickenPrimitiveName(scmname), primitive_args, " %args))\n", NIL);
       }
       if (in_class) {
           Printv(clos_class_methods, method_def, NIL);
@@ -941,17 +964,25 @@ CHICKEN::classHandler(Node *n)
 
   Printf(closcode, ")))\n");
 
+  String *newmethod = NewStringf("new-%s", short_class_name);
+  String *delmethod = NewStringf("delete-%s", short_class_name);
+
   if (have_constructor) {
       Printv(closcode, "(define-method (initialize (obj ", class_name, ") initargs)\n",
                        "  (call-next-method)\n",
-                       "  (slot-set! obj 'swig-this (apply primitive:new-", short_class_name, " initargs))\n",
-                       "  (set-finalizer! obj (lambda (x) (primitive:delete-", short_class_name, " (slot-ref x 'swig-this)))))\n",
+		       "  (swig-initialize obj initargs ", chickenPrimitiveName(newmethod), ")\n",
+                       "  (set-finalizer! obj (lambda (x) (", chickenPrimitiveName(delmethod), " (slot-ref x 'swig-this))))",
+		       ")\n",
                        NIL);
   } else {
       Printv(closcode, "(define-method (initialize (obj ", class_name, ") initargs)\n",
                        "  (call-next-method)\n",
-                       "  (slot-set! obj 'swig-this #f))\n", NIL);
+		       "  (swig-initialize obj initargs (lambda x #f)))\n",
+		       NIL);
   }
+
+  Delete(newmethod);
+  Delete(delmethod);
 
   Printf(closcode, "%s\n", clos_class_methods);
   Delete(clos_class_methods);
@@ -967,10 +998,12 @@ CHICKEN::classHandler(Node *n)
       Printv(f_wrappers, "static void ", funcname, "(int,C_word,C_word,C_word) C_noret;\n",
                          "static void ", funcname, "(int argc, C_word closure, C_word continuation, C_word cl) {\n",
                          "  C_trace(\"", funcname, "\");\n",
-                         "  ((swig_chicken_clientdata *)(SWIGTYPE", swigtype_ptr,"->clientdata))->clos_class = cl;\n",
+                         "  C_mutate(&((swig_chicken_clientdata *)(SWIGTYPE", swigtype_ptr,"->clientdata))->clos_class, cl);\n",
                          "  C_kontinue(continuation, C_SCHEME_UNDEFINED);\n",
                          "}\n", NIL);
       addMethod(closfuncname, funcname);
+
+      Printv(closcode, "(", chickenPrimitiveName(closfuncname), " (lambda (x) (make ", class_name, " 'swig-this x)))\n", NIL);
 
       Delete(closfuncname);
       Delete(funcname);
@@ -1018,19 +1051,52 @@ CHICKEN::membervariableHandler(Node *n)
   Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
   String *closclassname = (class_node == NULL) ? NULL : Getattr(class_node, "chicken:closclassname");
 
-  Printv(closcode,"        (list '", proc, " ':swig-virtual ':swig-get primitive:", short_class_name, "-", proc, "-get", NIL);
+  String *getfunc = NewStringf("%s-%s-get", short_class_name, proc);
+  String *setfunc = NewStringf("%s-%s-set", short_class_name, proc);
+
+  Printv(closcode,"        (list '", proc, " ':swig-virtual ':swig-get ", chickenPrimitiveName(getfunc), NIL);
 
   if (!Getattr(n,"feature:immutable")) {
       if (closclassname) {
-          Printv(closcode, " ':swig-set (lambda (x y) (primitive:", short_class_name, "-", proc, "-set x (slot-ref y 'swig-this))\n");
+          Printv(closcode, " ':swig-set (lambda (x y) (", chickenPrimitiveName(setfunc), " x (slot-ref y 'swig-this))\n");
       } else {
-          Printv(closcode, " ':swig-set primitive:", short_class_name, "-", proc, "-set)\n", NIL);
+          Printv(closcode, " ':swig-set ", chickenPrimitiveName(setfunc), ")\n", NIL);
       }
   } else {
       Printf(closcode, ")\n");
   }
 
   Delete(proc);
+  return SWIG_OK;
+}
+
+int
+CHICKEN::staticmembervariableHandler(Node *n)
+{
+  String *iname = Getattr(n, "sym:name");
+  String *pb = SwigType_typedef_resolve_all(SwigType_base(Getattr(n, "type")));
+
+  Language::staticmembervariableHandler(n);
+
+  String *proc = NewString(iname);
+  Replaceall(proc, "_", "-");
+
+  String *closprocname = chickenNameMapping(proc, short_class_name);
+
+  Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
+  String *closclassname = (class_node == NULL) ? NULL : Getattr(class_node, "chicken:closclassname");
+
+  String *primfunc = NewStringf("%s-%s", short_class_name, proc);
+
+  if (closclassname) {
+    Printv(clos_class_methods, "(define (", closprocname, " . lst) (if (null? lst) (", chickenPrimitiveName(primfunc), ") (",
+	             chickenPrimitiveName(primfunc), " (slot-ref (car lst) 'swig-this))))\n", NIL);
+  } else {
+    Printv(clos_class_methods, "(define ", closprocname, " ", chickenPrimitiveName(primfunc), ")\n", NIL);
+  }
+
+  Delete(closprocname);
+
   return SWIG_OK;
 }
 
@@ -1134,19 +1200,43 @@ CHICKEN::addMethod(String *scheme_name, String *function)
   }
   Append(sym, scheme_name);
 
-  if (clos) {
-      Printf(primitive_hide, " %s ", sym);
+  /* add symbol to Chicken internal symbol table */
+  if (hide_primitive) {
+    Printv(f_init, "{\n",
+                   "  C_word *p0 = a;\n",
+                   "  *(a++)=C_CLOSURE_TYPE|1;\n",
+                   "  *(a++)=(C_word)", function, ";\n",
+		   "  C_mutate(return_vec++, (C_word)p0);\n",
+		   "}\n", NIL);
+  } else {
+    Printf(f_sym_size, "+C_SIZEOF_INTERNED_SYMBOL(%d)", Len(sym));    
+    Printf(f_init, "sym = C_intern (&a, %d, \"%s\");\n", 
+	   Len(sym), sym);
+    Printv(f_init, 
+	   "C_mutate ((C_word*)sym+1, (*a=C_CLOSURE_TYPE|1, a[1]=(C_word)", 
+	   function, ", tmp=(C_word)a, a+=2, tmp));\n", NIL);
+  } 
+
+  if (hide_primitive) {
+    Setattr(primitive_names, scheme_name, NewStringf("(vector-ref swig-init-return %i)", num_methods));
+  } else {
+    Setattr(primitive_names, scheme_name, Copy(sym));
   }
 
-  /* add symbol to Chicken internal symbol table */
-  Printf(f_sym_size, "+C_SIZEOF_INTERNED_SYMBOL(%d)", Len(sym));    
-  Printf(f_init, "sym = C_intern (&a, %d, \"%s\");\n", 
-	 Len(sym), sym);
-  Printv(f_init, 
-	 "C_mutate ((C_word*)sym+1, (*a=C_CLOSURE_TYPE|1, a[1]=(C_word)", 
-	 function, ", tmp=(C_word)a, a+=2, tmp));\n", NIL);
   num_methods++;
+
   Delete(sym);
+}
+
+String *
+CHICKEN::chickenPrimitiveName(String *name) {
+  String *value = Getattr(primitive_names, name);
+  if (value)
+    return value;
+  else {
+    Swig_error(input_file, line_number, "Internal Error: attempting to reference non-existant primitive name %s\n", name);
+    return NewString("#f");
+  }
 }
   
 int

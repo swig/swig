@@ -584,7 +584,7 @@ SWIGEXPORT(void) SWIG_init(int, C_word, C_word) C_noret;
 
 %insert(init) %{
 /* CHICKEN initialization function */
-static char[] swig_type_ptr_name = "type_pointer" SWIG_TYPE_TABLE_NAME;
+static char *swig_type_ptr_name = "type_pointer" SWIG_TYPE_TABLE_NAME;
 SWIGEXPORT(void)
 SWIG_init(int argc, C_word closure, C_word continuation) {
   static int       typeinit = 0;
@@ -593,6 +593,7 @@ SWIG_init(int argc, C_word closure, C_word continuation) {
   C_word tmp;
   C_word *a;
   C_word ret;
+  C_word *return_vec;
 
   if (!typeinit) {
     /* lookup the type pointer... it is stored in it's own symbol table */
@@ -620,6 +621,12 @@ SWIG_init(int argc, C_word closure, C_word continuation) {
     ret = C_SCHEME_FALSE;
   }
   
+#if $veclength
+  return_vec = C_alloc(C_SIZEOF_VECTOR($veclength));
+  ret = (C_word) return_vec;
+  *(return_vec++) = C_VECTOR_TYPE | $veclength;
+#endif
+
   a = C_alloc(2*$nummethods$symsize);
 
 %}
