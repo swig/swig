@@ -340,13 +340,6 @@ Microsoft Visual Studio.
 </p>
 
 <p>
-There is growing support for SWIG in some build tools, for example <a href="http://www.cmake.org">CMake</a>
-is a cross-platform, open-source build tool with built in support for SWIG. It can detect the SWIG executable,
-many of the target language interpreters and libraries for linking against.
-It can then use this information to generate a makefile/project file for a host of different compilers/IDEs.
-</p>
-
-<p>
 If you are using the GNU Autotools 
 (<a href="http://www.gnu.org/software/autoconf">Autoconf</a>/
 <a href="http://www.gnu.org/software/automake">Automake</a>/
@@ -354,9 +347,44 @@ If you are using the GNU Autotools
 to configure SWIG use in your project, the SWIG Autoconf macros can be used.
 The primary macro is <tt>ac_pkg_swig</tt>, see
 <a href="http://www.gnu.org/software/ac-archive/htmldoc/ac_pkg_swig.html">http://www.gnu.org/software/ac-archive/htmldoc/ac_pkg_swig.html</a>.
-The <tt>ac_python_devel</tt> Autoconf macro is also helpful for SWIG generated Python interfaces, see the 
-<a href="http://www.gnu.org/software/ac-archive/htmldoc/index.html">Autoconf Macro Archive</a> for further information and other .
+The <tt>ac_python_devel</tt> macro is also helpful for generating Python extensions. See the 
+<a href="http://www.gnu.org/software/ac-archive/htmldoc/index.html">Autoconf Macro Archive</a>
+for further information on this and other Autoconf macros.
 </p>
+
+<p>
+There is growing support for SWIG in some build tools, for example <a href="http://www.cmake.org">CMake</a>
+is a cross-platform, open-source build manager with built in support for SWIG. CMake can detect the SWIG executable
+and many of the target language libraries for linking against.
+CMake knows how to build shared libraries and loadable modules on many different operating systems.
+This allows easy cross platform SWIG development.  It also can generate the custom commands necessary for
+driving SWIG from IDE's and makefiles.  All of this can be done from a single cross platform input file.
+The following example is a CMake input file for creating a python wrapper for the SWIG interface file, example.i:
+</p>
+
+<blockquote><pre>
+
+# This is a CMake example for Python
+
+FIND_PACKAGE(SWIG REQUIRED)
+INCLUDE(${SWIG_USE_FILE})
+
+FIND_PACKAGE(PythonLibs)
+INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+
+SET(CMAKE_SWIG_FLAGS "")
+
+SET_SOURCE_FILES_PROPERTIES(example.i PROPERTIES CPLUSPLUS ON)
+SET_SOURCE_FILES_PROPERTIES(example.i PROPERTIES SWIG_FLAGS "-includeall")
+SWIG_ADD_MODULE(example python example.i example.cxx)
+SWIG_LINK_LIBRARIES(example ${PYTHON_LIBRARIES})
+
+</pre></blockquote>
+
+The above example will generate native build files such as makefiles, nmake files and Visual Studio projects
+which will invoke SWIG and compile the generated C++ files into _example.so (UNIX) or _example.dll (Windows).
 
 <H2><a name="Introduction_nn12"></a>2.7 Hands off code generation</H2>
 
