@@ -2947,8 +2947,193 @@ member pointers.  Normally SWIG tries to keep track of inheritance
 when checking types.  However, no such support is currently provided
 for member pointers.
 
-<a name="n26"></a><H2>5.19 Partial class definitions</H2>
+<h2>Smart pointers and operator-&gt;()</h2>
 
+In some C++ programs, objects are often encapsulated by smart-pointers
+or proxy classes.   This is sometimes done to implement automatic memory management (reference counting) or
+persistence. Typically a smart-pointer is defined by a template class where
+the <tt>-&gt;</tt> operator has been overloaded.  This class is then wrapped
+around some other class.  For example:
+
+<blockquote>
+<pre>
+// Smart-pointer class
+template&lt;class T&gt; class SmartPtr {
+    T *pointee;
+public:
+    ...
+    T *operator-&gt;() {
+        return pointee;
+    }
+    ...
+};
+
+// Ordinary class
+class Foo_Impl {
+public:
+    int x;
+    virtual void bar();
+    ...
+};
+
+// Smart-pointer wrapper
+typedef SmartPtr&lt;Foo_Impl&gt; Foo;
+
+// Create smart pointer Foo
+Foo make_Foo() {
+    return SmartPtr(new Foo_Impl());
+}
+
+// Do something with smart pointer Foo
+void do_something(Foo f) {
+    printf("x = %d\n", f-&gt;x);
+    f-&gt;bar();
+}
+</pre>
+</blockquote>
+
+A key feature of this approach is that by defining
+<tt>operator-&gt;</tt> the methods and attributes of the object
+wrapped by a smart pointer are transparently accessible.  For example,
+expressions such as these (from the previous example),
+
+<blockquote>
+<pre>
+f->x
+f->bar()
+</pre>
+</blockquote>
+
+are transparently mapped to the following
+
+<blockquote>
+<pre>
+(f.operator->())->x;
+(f.operator->())->bar();
+</pre>
+</blockquote>
+
+When generating wrappers, SWIG tries to emulate this functionality to
+the extent that it is possible.  To do this, whenever
+<tt>operator->()</tt> is encountered in a class, SWIG looks at its
+returned type and uses it to generate wrappers for accessing
+attributes of the underlying object.  For example, wrapping the above
+code produces wrappers like this:
+
+<blockquote>
+<pre>
+int Foo_x_get(Foo *f) {
+   return (*f)->x;
+}
+void Foo_x_set(Foo *f, int value) {
+   (*f)->x = value;
+}
+void Foo_bar(Foo *f) {
+   (*f)->bar();
+}
+</pre>
+</blockquote>
+
+These wrappers take a smart-pointer instance as an argument, but
+dereference it in a way to gain access to the object returned by
+<tt>operator-&gt;()</tt>.  You should carefully compare these wrappers
+to those in the first part of this chapter (they are slightly
+different).
+
+<p>
+The end result is that access looks very similar to C++.  For
+example, you could do this in Python:
+
+<blockquote>
+<pre>
+>>> f = make_Foo()
+>>> print f.x
+0
+>>> f.bar()
+>>>
+</pre>
+</blockquote>
+
+When generating wrappers through a smart-pointer, SWIG tries to
+generate wrappers for all methods and attributes that might be
+accessible through <tt>operator->()</tt>.  This includes any methods
+that might be accessible through inheritance.   However, there are a number of restrictions:
+
+<ul>
+<li>Only member variables and methods are wrapped through a smart pointer.  Static members, enumerations,
+constructors, and destructors are not wrapped.
+
+<P>
+<li>If the smart-pointer class and the underlying object both define a method or
+variable of the same name, then the smart-pointer version has precedence.   For
+example, if you have this code
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    int x;
+};
+
+class Bar {
+public:
+    int x;       
+    Foo *operator->();
+};
+</pre>
+</blockquote>
+
+then the wrapper for <tt>Bar::x</tt> accesses the <tt>x</tt> defined in <tt>Bar</tt>, and 
+not the <tt>x</tt> defined in <tt>Foo</tt>.
+</ul>
+
+If your intent is to only expose the smart-pointer class in the interface, it is not necessary to wrap both
+the smart-pointer class and the class for the underlying object.  However, you must still tell SWIG about both
+classes if you want the technique described in this section to work.   To only generate wrappers for the
+smart-pointer class, you can use the %ignore directive.  For example:
+
+<blockquote>
+<pre>
+%ignore Foo;
+class Foo {       // Ignored
+};
+
+class Bar {
+public:
+   Foo *operator->();
+   ...
+};
+</pre>
+</blockquote>
+
+Alternatively, you can import the definition of <tt>Foo</tt> from a separate file using
+<tt>%import</tt>.
+
+<p>
+<b>Note:</b> When a class defines <tt>operator->()</tt>, the operator itself is wrapped
+as a method <tt>__deref__()</tt>.  For example:
+
+<blockquote>
+<pre>
+f = Foo()               # Smart-pointer
+p = f.__deref__()       # Raw pointer from operator->
+</pre>
+</blockquote>
+
+<p>
+<b>Note:</b> To disable the smart-pointer behavior, use <tt>%ignore</tt> to ignore
+<tt>operator->()</tt>.  For example:
+
+<blockquote>
+<pre>
+%ignore Bar::operator->;
+</pre>
+</blockquote>
+
+<p>
+<b>Note:</b> Smart pointer support was first added in SWIG-1.3.14.
+
+<a name="n26"></a><H2>5.19 Partial class definitions</H2>
 
 Since SWIG is still limited in its support of C++, it may be necessary
 to use partial class information in an interface file.  However, since
@@ -2979,14 +3164,10 @@ files.
 
 <a name="n27"></a><H2>5.20 A brief rant about const-correctness</H2>
 
-
 A common issue when working with C++ programs is dealing with all
 possible ways in which the <tt>const</tt> qualifier (or lack thereof)
 will break your program, all programs linked against your program, and
-all programs linked against those programs.  In fact, many C++ books
-actively encourage using <tt>const</tt> whenever possible (perhaps in
-an effort to maximize correctness through annoyance or by observing 
-that an uncompilable program always runs correctly).
+all programs linked against those programs.  
 
 <p>
 Although SWIG knows how to correctly deal with <tt>const</tt> in its
@@ -3031,7 +3212,6 @@ using another tool if maintaining constness is the most important part
 of your project.
 
 <a name="n28"></a><H2>5.21 Proxy classes</H2>
-
 
 Write me.
 
