@@ -19,7 +19,7 @@ public:
   Test(int x) try : o(x) { }
   catch(Error &e) {
   } 
-  catch(int x) {
+  catch(int y) {
   }
   catch(...) {
   }
