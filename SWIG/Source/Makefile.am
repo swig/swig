@@ -11,6 +11,7 @@ SWIG_CXX_DEFS =	-DSWIG_LIB=\"$(swig_lib)\" 	\
 		-DRELEASE_SUFFIX=\"$(release_suffix)\" @SWILL@
 
 AM_CFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
+		-I$(BUILD_SOURCE_DIR)/CParse	\
 		-I$(SOURCE_DIR)/Include		\
 		-I$(SOURCE_DIR)/DOH		\
 		-I$(SOURCE_DIR)/CParse		\
@@ -87,6 +88,9 @@ eswig_SOURCES =	CParse/cscanner.c		\
 
 bin_PROGRAMS = eswig
 eswig_LDADD   = @SWIGLIBS@
+
+# Override the link stage to avoid using Libtool
+CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 
 # The executable is copied to the root directory for installation and running the test-suite.
 # This occurs on each invocation of make and is a step towards providing support for multiple 
