@@ -136,7 +136,7 @@ Because of this, scripted software tends to rely heavily
 upon shared libraries, dynamic loading, scripts, and
 third-party extensions. In this sense, one might argue that the
 benefits of scripting are achieved at the expense of creating a
-more complicated and decentralized development environment.
+more complicated and diverse development environment.
 
 A consequence of this complexity is an increased degree of difficulty
 associated with debugging programs that utilize multiple languages,
@@ -190,7 +190,7 @@ that the only way for a user to narrow the source of the problem
 within a script is through trial-and-error techniques such as
 inserting print statements, commenting out sections of scripts, or
 having a deep intuition of the underlying implementation. Obviously,
-none of these techniques are particularly satisfactory.
+none of these techniques are particularly elegant.
 
 An alternative approach is to run the application under the control of
 a traditional debugger such as gdb \cite{gdb}.  Although this provides
@@ -219,7 +219,7 @@ better integration with scripting languages, it is not clear that this
 would be the most natural solution to the problem.  For one, 
 having to run a separate debugging process to debug
 extension code is unnatural when no such requirement exists for
-scripts.  Furthermore, even if such a debugger existed, an
+scripts.  Moreover, even if such a debugger existed, an
 inexperienced user may not have the expertise or inclination to use
 it.  Finally, obscure fatal errors may occur long after an application
 has been deployed.  Unless the debugger is distributed along with the
@@ -381,7 +381,7 @@ detailed error information is first registered with the interpreter
 and then a special error code is returned. For example, in Tcl, errors
 are handled by setting error information in the interpreter and
 returning a value of TCL\_ERROR.  Similarly in Python, errors are
-handled by raising an exception and returning NULL.  In both cases,
+handled by calling a special function to raise an exception and returning NULL.  In both cases,
 this triggers the interpreter's error handler---possibly resulting in
 a stack trace of the running script.  In some cases, an interpreter
 might handle errors using a form of the C {\tt longjmp} function. 
@@ -409,11 +409,11 @@ produce signals that cause the interpreter to crash.
 Most scripting languages provide limited support for Unix signal
 handling \cite{stevens}.  However, this support is not sufficiently advanced to
 recover from fatal signals produced by extension code.
-First, unlike signals generated for asynchronous events such as I/O,
+Unlike signals generated for asynchronous events such as I/O,
 execution can {\em not} be resumed at the point of a fatal signal.
 Therefore, even if such a signal could be caught and handled by a script,
 there isn't much that it can do except to print a diagnostic
-message and abort before the signal handler returns.  Second, 
+message and abort before the signal handler returns.  In addition,
 some interpreters block signal delivery while executing
 extension code--opting to handle signals at a time when it is more convenient.
 In this case, a signal such as SIGSEGV would simply cause the whole application
@@ -428,7 +428,7 @@ and SIGFPE using the {\tt sigaction} function
 \cite{stevens}. Furthermore, it uses a special option (SA\_SIGINFO) of
 signal handling that passes process context information to the signal
 handler when a signal occurs. Since none of these signals are normally used in the
-implementation of the scripting interpreter or by any user scripts,
+implementation of the scripting interpreter or by user scripts,
 this does not usually override any previous signal handling.
 Afterwards, when one of these signals occurs, a two-phase recovery
 process executes. First, information is collected about the execution
@@ -622,7 +622,7 @@ In this case, the Tcl interpreter argument passed to a wrapper function
 is stolen and used to generate an error.  Also, the name {\tt TclExecuteByteCode}
 refers to the calling function, not the wrapper function itself.
 At this time, argument stealing is only applicable to simple types
-such as integers and pointers.  However, this is adequate for generating
+such as integers and pointers.  However, this appears to be adequate for generating
 scripting language errors.
 
 \section{Register Management}
@@ -710,12 +710,11 @@ As a fall-back, WAD could be configured to return control to a location
 previously specified with {\tt setjmp}.  Unfortunately, this either
 requires modifications to the interpreter or its extension modules.
 Although this kind of instrumentation could be facilitated by automatic
-wrapper code generators, it is not a preferred solution and is
-not discussed further.
+wrapper code generators, it is not a preferred solution.
 
 \section{Initialization}
 
-To simplify the debugging of extension module, it
+To simplify the debugging of extension modules, it
 is desirable to make the use of WAD as transparent as possible.
 Currently, there are two ways in which the system is used.  First, WAD
 may be explicitly loaded as a scripting language extension module.
@@ -725,7 +724,7 @@ enabled by linking it to an extension module as a shared
 library.  For instance:
 
 \begin{verbatim}
-% ld -shared $(OBJS) -o module.so -lwadpy
+% ld -shared ... -lwadpy
 \end{verbatim}
 
 In this case, WAD initializes itself whenever the extension module is
@@ -755,11 +754,14 @@ simply by linking or loading; no special initialization code needs to
 be added to an extension module to make it work.  In addition, due to
 the way in which the loader resolves and initializes libraries, the
 initialization of WAD is guaranteed to execute before any of the code
-in the extension module to which it has been linked executes.  The primary
+in the extension module to which it has been linked.  The primary
 downside to this approach is that WAD shared object file can not be
 linked directly to an interpreter (since its initialization would
 occur before any code in the interpreter started and the
 initialization of WAD may require the interpreter to be active).
+However, such limitations would be easy to fix by simply relinking
+WAD without the C++ initializer and placing an initialization call
+within the interpreter startup code.
 
 \section{Exception Objects}
 
@@ -963,7 +965,10 @@ Due to the heavy dependence on Unix signal handling, process
 introspection, and object file formats, it is unlikely that WAD could
 be easily ported to non-Unix systems such as Windows.  However, it may
 be possible to provide a similar capability using advanced features of
-structured exception handling \cite{seh}. 
+structured exception handling \cite{seh}.  For instance, structured
+exception handlers can be used to catch hardware faults, they can
+receive process context information, and they can arrange to take
+corrective action.  
 
 \section{Modification of Interpreters?}
 
